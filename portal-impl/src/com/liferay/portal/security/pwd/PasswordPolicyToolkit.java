@@ -61,22 +61,15 @@ public class PasswordPolicyToolkit extends BasicToolkit {
 			PropsValues.
 				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_SYMBOLS);
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(
+		_generatorCompleteCharset = StringBundler.concat(
 			PropsValues.
-				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_LOWERCASE);
-		sb.append(
+				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_LOWERCASE,
 			PropsValues.
-				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_NUMBERS);
-		sb.append(
+				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_NUMBERS,
 			PropsValues.
-				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_SYMBOLS);
-		sb.append(
+				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_SYMBOLS,
 			PropsValues.
 				PASSWORDS_PASSWORDPOLICYTOOLKIT_GENERATOR_CHARSET_UPPERCASE);
-
-		_generatorCompleteCharset = sb.toString();
 
 		_validatorLowerCaseCharsetArray = getSortedCharArray(
 			PropsValues.
@@ -185,10 +178,10 @@ public class PasswordPolicyToolkit extends BasicToolkit {
 		Date passwordModifiedDate = user.getPasswordModifiedDate();
 
 		if (passwordModifiedDate != null) {
-			Date now = new Date();
+			Date date = new Date();
 
 			long passwordModificationElapsedTime =
-				now.getTime() - passwordModifiedDate.getTime();
+				date.getTime() - passwordModifiedDate.getTime();
 
 			long minAge = passwordPolicy.getMinAge() * 1000;
 

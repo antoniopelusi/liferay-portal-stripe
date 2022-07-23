@@ -15,6 +15,7 @@
 package com.liferay.fragment.web.internal.display.context;
 
 import com.liferay.fragment.constants.FragmentActionKeys;
+import com.liferay.fragment.constants.FragmentPortletKeys;
 import com.liferay.fragment.contributor.FragmentCollectionContributor;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
 import com.liferay.fragment.model.FragmentCollection;
@@ -22,6 +23,7 @@ import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentCollectionLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryServiceUtil;
 import com.liferay.fragment.util.comparator.FragmentCollectionContributorNameComparator;
+import com.liferay.fragment.util.comparator.FragmentCompositionFragmentEntryNameComparator;
 import com.liferay.fragment.web.internal.constants.FragmentTypeConstants;
 import com.liferay.fragment.web.internal.constants.FragmentWebKeys;
 import com.liferay.fragment.web.internal.security.permission.resource.FragmentPermission;
@@ -40,12 +42,12 @@ import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -100,7 +102,7 @@ public class FragmentDisplayContext {
 					"/fragment/edit_fragment_collection", "redirect",
 					_themeDisplay.getURLCurrent());
 				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, "collection"));
+					LanguageUtil.get(_httpServletRequest, "fragment-set"));
 			}
 		).add(
 			dropdownItem -> {
@@ -145,66 +147,84 @@ public class FragmentDisplayContext {
 				_themeDisplay.getScopeGroupId(),
 				FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
 
-		return DropdownItemListBuilder.add(
-			dropdownItem -> {
-				dropdownItem.putData("action", "exportCollections");
-				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, "export"));
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						dropdownItem -> {
+							dropdownItem.putData("action", "exportCollections");
+							dropdownItem.setIcon("upload");
+							dropdownItem.setLabel(
+								LanguageUtil.get(
+									_httpServletRequest, "export"));
+						}
+					).add(
+						() -> hasManageFragmentEntriesPermission,
+						dropdownItem -> {
+							dropdownItem.putData("action", "openImportView");
+							dropdownItem.setIcon("import");
+							dropdownItem.setLabel(
+								LanguageUtil.get(
+									_httpServletRequest, "import"));
+						}
+					).build());
+				dropdownGroupItem.setSeparator(true);
 			}
-		).add(
-			() -> hasManageFragmentEntriesPermission,
-			dropdownItem -> {
-				dropdownItem.putData("action", "openImportView");
-				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, "import"));
-			}
-		).add(
-			() -> hasManageFragmentEntriesPermission,
-			dropdownItem -> {
-				dropdownItem.putData("action", "deleteCollections");
-				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, "delete"));
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() -> hasManageFragmentEntriesPermission,
+						dropdownItem -> {
+							dropdownItem.putData("action", "deleteCollections");
+							dropdownItem.setIcon("trash");
+							dropdownItem.setLabel(
+								LanguageUtil.get(
+									_httpServletRequest, "delete"));
+						}
+					).build());
+				dropdownGroupItem.setSeparator(true);
 			}
 		).build();
 	}
 
-	public SearchContainer<FragmentEntry>
-		getContributedFragmentEntriesSearchContainer() {
-
-		if (_contributedFragmentEntriesSearchContainer != null) {
-			return _contributedFragmentEntriesSearchContainer;
+	public SearchContainer<Object> getContributedEntriesSearchContainer() {
+		if (_contributedEntriesSearchContainer != null) {
+			return _contributedEntriesSearchContainer;
 		}
 
-		SearchContainer<FragmentEntry>
-			contributedFragmentEntriesSearchContainer = new SearchContainer(
+		SearchContainer<Object> contributedEntriesSearchContainer =
+			new SearchContainer(
 				_renderRequest, _getPortletURL(), null,
 				"there-are-no-fragments");
 
-		contributedFragmentEntriesSearchContainer.setId(
+		contributedEntriesSearchContainer.setId(
 			"fragmentEntries" + getFragmentCollectionKey());
 
 		FragmentCollectionContributor fragmentCollectionContributor =
 			_getFragmentCollectionContributor();
 
-		List<FragmentEntry> fragmentEntries =
+		List<Object> contributedEntries = new ArrayList<>();
+
+		contributedEntries.addAll(
+			fragmentCollectionContributor.getFragmentCompositions(
+				_themeDisplay.getLocale()));
+		contributedEntries.addAll(
 			fragmentCollectionContributor.getFragmentEntries(
-				_themeDisplay.getLocale());
+				_themeDisplay.getLocale()));
 
-		contributedFragmentEntriesSearchContainer.setResults(
-			ListUtil.subList(
-				fragmentEntries,
-				contributedFragmentEntriesSearchContainer.getStart(),
-				contributedFragmentEntriesSearchContainer.getEnd()));
+		contributedEntries.sort(
+			new FragmentCompositionFragmentEntryNameComparator(true));
 
-		contributedFragmentEntriesSearchContainer.setRowChecker(
+		contributedEntriesSearchContainer.setResultsAndTotal(
+			contributedEntries);
+
+		contributedEntriesSearchContainer.setRowChecker(
 			new EmptyOnClickRowChecker(_renderResponse));
-		contributedFragmentEntriesSearchContainer.setTotal(
-			fragmentEntries.size());
 
-		_contributedFragmentEntriesSearchContainer =
-			contributedFragmentEntriesSearchContainer;
+		_contributedEntriesSearchContainer = contributedEntriesSearchContainer;
 
-		return _contributedFragmentEntriesSearchContainer;
+		return _contributedEntriesSearchContainer;
 	}
 
 	public FragmentCollection getFragmentCollection() {
@@ -343,7 +363,7 @@ public class FragmentDisplayContext {
 			).setMVCRenderCommandName(
 				"/fragment/view_fragment_collections"
 			).setParameter(
-				"includeGlobalFragmentCollections", Boolean.TRUE.toString()
+				"includeGlobalFragmentCollections", true
 			).setWindowState(
 				LiferayWindowState.POP_UP
 			).buildString()
@@ -371,20 +391,11 @@ public class FragmentDisplayContext {
 
 		fragmentEntriesSearchContainer.setId(
 			"fragmentEntries" + getFragmentCollectionId());
-
-		fragmentEntriesSearchContainer.setRowChecker(
-			new EmptyOnClickRowChecker(_renderResponse));
-
-		OrderByComparator<Object> orderByComparator =
-			FragmentPortletUtil.getFragmentCompositionAndEntryOrderByComparator(
-				_getOrderByCol(), getOrderByType());
-
 		fragmentEntriesSearchContainer.setOrderByCol(_getOrderByCol());
-		fragmentEntriesSearchContainer.setOrderByComparator(orderByComparator);
+		fragmentEntriesSearchContainer.setOrderByComparator(
+			FragmentPortletUtil.getFragmentCompositionAndEntryOrderByComparator(
+				_getOrderByCol(), getOrderByType()));
 		fragmentEntriesSearchContainer.setOrderByType(getOrderByType());
-
-		List<Object> fragmentCompositionsAndEntries = null;
-		int fragmentCompositionsAndEntriesCount = 0;
 
 		FragmentCollection fragmentCollection = getFragmentCollection();
 
@@ -396,45 +407,47 @@ public class FragmentDisplayContext {
 			status = WorkflowConstants.STATUS_APPROVED;
 		}
 
-		if (isSearch()) {
-			fragmentCompositionsAndEntries =
-				FragmentEntryServiceUtil.
-					getFragmentCompositionsAndFragmentEntries(
-						fragmentCollection.getGroupId(),
-						fragmentCollection.getFragmentCollectionId(),
-						_getKeywords(), status,
-						fragmentEntriesSearchContainer.getStart(),
-						fragmentEntriesSearchContainer.getEnd(),
-						orderByComparator);
+		int fragmentEntryStatus = status;
 
-			fragmentCompositionsAndEntriesCount =
+		if (isSearch()) {
+			fragmentEntriesSearchContainer.setResultsAndTotal(
+				() ->
+					FragmentEntryServiceUtil.
+						getFragmentCompositionsAndFragmentEntries(
+							fragmentCollection.getGroupId(),
+							fragmentCollection.getFragmentCollectionId(),
+							_getKeywords(), fragmentEntryStatus,
+							fragmentEntriesSearchContainer.getStart(),
+							fragmentEntriesSearchContainer.getEnd(),
+							fragmentEntriesSearchContainer.
+								getOrderByComparator()),
 				FragmentEntryServiceUtil.
 					getFragmentCompositionsAndFragmentEntriesCount(
 						fragmentCollection.getGroupId(),
 						fragmentCollection.getFragmentCollectionId(),
-						_getKeywords(), status);
+						_getKeywords(), fragmentEntryStatus));
 		}
 		else {
-			fragmentCompositionsAndEntries =
-				FragmentEntryServiceUtil.
-					getFragmentCompositionsAndFragmentEntries(
-						fragmentCollection.getGroupId(),
-						fragmentCollection.getFragmentCollectionId(), status,
-						fragmentEntriesSearchContainer.getStart(),
-						fragmentEntriesSearchContainer.getEnd(),
-						orderByComparator);
-
-			fragmentCompositionsAndEntriesCount =
+			fragmentEntriesSearchContainer.setResultsAndTotal(
+				() ->
+					FragmentEntryServiceUtil.
+						getFragmentCompositionsAndFragmentEntries(
+							fragmentCollection.getGroupId(),
+							fragmentCollection.getFragmentCollectionId(),
+							fragmentEntryStatus,
+							fragmentEntriesSearchContainer.getStart(),
+							fragmentEntriesSearchContainer.getEnd(),
+							fragmentEntriesSearchContainer.
+								getOrderByComparator()),
 				FragmentEntryServiceUtil.
 					getFragmentCompositionsAndFragmentEntriesCount(
 						fragmentCollection.getGroupId(),
-						fragmentCollection.getFragmentCollectionId(), status);
+						fragmentCollection.getFragmentCollectionId(),
+						fragmentEntryStatus));
 		}
 
-		fragmentEntriesSearchContainer.setResults(
-			fragmentCompositionsAndEntries);
-		fragmentEntriesSearchContainer.setTotal(
-			fragmentCompositionsAndEntriesCount);
+		fragmentEntriesSearchContainer.setRowChecker(
+			new EmptyOnClickRowChecker(_renderResponse));
 
 		_fragmentEntriesSearchContainer = fragmentEntriesSearchContainer;
 
@@ -495,8 +508,9 @@ public class FragmentDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, FragmentPortletKeys.FRAGMENT,
+			"fragment-order-by-type", "asc");
 
 		return _orderByType;
 	}
@@ -508,31 +522,29 @@ public class FragmentDisplayContext {
 			return redirect;
 		}
 
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/fragment/view"
-		).build();
+		).setParameter(
+			"fragmentCollectionId",
+			() -> {
+				if (getFragmentCollectionId() > 0) {
+					return getFragmentCollectionId();
+				}
 
-		if (getFragmentCollectionId() > 0) {
-			portletURL.setParameter(
-				"fragmentCollectionId",
-				String.valueOf(getFragmentCollectionId()));
-		}
-
-		return portletURL.toString();
+				return null;
+			}
+		).buildString();
 	}
 
 	public boolean hasDeletePermission() {
-		if (hasUpdatePermission()) {
-			return true;
-		}
-
-		if (FragmentPermission.contains(
+		if (hasUpdatePermission() ||
+			(FragmentPermission.contains(
 				_themeDisplay.getPermissionChecker(),
 				_themeDisplay.getScopeGroupId(),
 				FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES) &&
-			!isLocked(getFragmentCollection())) {
+			 !isLocked(getFragmentCollection()))) {
 
 			return true;
 		}
@@ -688,52 +700,73 @@ public class FragmentDisplayContext {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_httpServletRequest, "orderByCol", "create-date");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, FragmentPortletKeys.FRAGMENT,
+			"fragment-order-by-col", "modified-date");
 
 		return _orderByCol;
 	}
 
 	private PortletURL _getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/fragment/view"
-		).build();
+		).setKeywords(
+			() -> {
+				String keywords = _getKeywords();
 
-		long fragmentCollectionId = getFragmentCollectionId();
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
 
-		if (fragmentCollectionId > 0) {
-			portletURL.setParameter(
-				"fragmentCollectionId", String.valueOf(fragmentCollectionId));
-		}
+				return null;
+			}
+		).setParameter(
+			"fragmentCollectionId",
+			() -> {
+				long fragmentCollectionId = getFragmentCollectionId();
 
-		String fragmentCollectionKey = getFragmentCollectionKey();
+				if (fragmentCollectionId > 0) {
+					return fragmentCollectionId;
+				}
 
-		if (Validator.isNotNull(fragmentCollectionKey)) {
-			portletURL.setParameter(
-				"fragmentCollectionKey", fragmentCollectionKey);
-		}
+				return null;
+			}
+		).setParameter(
+			"fragmentCollectionKey",
+			() -> {
+				String fragmentCollectionKey = getFragmentCollectionKey();
 
-		String keywords = _getKeywords();
+				if (Validator.isNotNull(fragmentCollectionKey)) {
+					return fragmentCollectionKey;
+				}
 
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = _getOrderByCol();
 
-		String orderByCol = _getOrderByCol();
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
 
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
 
-		String orderByType = getOrderByType();
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
 
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	private long _getSelectedFragmentCollectionId() {
@@ -768,19 +801,14 @@ public class FragmentDisplayContext {
 	}
 
 	private boolean _isShowResourcesTab() {
-		if (isSelectedFragmentCollectionContributor()) {
-			return false;
-		}
-
-		if (!_isScopeGroup()) {
+		if (isSelectedFragmentCollectionContributor() || !_isScopeGroup()) {
 			return false;
 		}
 
 		return true;
 	}
 
-	private SearchContainer<FragmentEntry>
-		_contributedFragmentEntriesSearchContainer;
+	private SearchContainer<Object> _contributedEntriesSearchContainer;
 	private FragmentCollection _fragmentCollection;
 	private final FragmentCollectionContributorTracker
 		_fragmentCollectionContributorTracker;

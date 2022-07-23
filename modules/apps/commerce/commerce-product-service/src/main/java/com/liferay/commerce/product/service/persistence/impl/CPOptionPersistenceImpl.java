@@ -20,8 +20,9 @@ import com.liferay.commerce.product.model.CPOptionTable;
 import com.liferay.commerce.product.model.impl.CPOptionImpl;
 import com.liferay.commerce.product.model.impl.CPOptionModelImpl;
 import com.liferay.commerce.product.service.persistence.CPOptionPersistence;
+import com.liferay.commerce.product.service.persistence.CPOptionUtil;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
+import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -32,38 +33,39 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the cp option service.
@@ -169,25 +171,28 @@ public class CPOptionPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid;
 				finderArgs = new Object[] {uuid};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid;
 			finderArgs = new Object[] {uuid, start, end, orderByComparator};
 		}
 
 		List<CPOption> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CPOption>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -254,7 +259,7 @@ public class CPOptionPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -912,11 +917,21 @@ public class CPOptionPersistenceImpl
 	public int countByUuid(String uuid) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
 
-		Object[] finderArgs = new Object[] {uuid};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid;
+
+			finderArgs = new Object[] {uuid};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -951,7 +966,9 @@ public class CPOptionPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -1119,18 +1136,21 @@ public class CPOptionPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid_C;
 				finderArgs = new Object[] {uuid, companyId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid_C;
 			finderArgs = new Object[] {
 				uuid, companyId, start, end, orderByComparator
@@ -1139,7 +1159,7 @@ public class CPOptionPersistenceImpl
 
 		List<CPOption> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CPOption>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -1212,7 +1232,7 @@ public class CPOptionPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -1911,11 +1931,21 @@ public class CPOptionPersistenceImpl
 	public int countByUuid_C(String uuid, long companyId) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid_C;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
 
-		Object[] finderArgs = new Object[] {uuid, companyId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid_C;
+
+			finderArgs = new Object[] {uuid, companyId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -1954,7 +1984,9 @@ public class CPOptionPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -2121,18 +2153,21 @@ public class CPOptionPersistenceImpl
 		long companyId, int start, int end,
 		OrderByComparator<CPOption> orderByComparator, boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByCompanyId;
 				finderArgs = new Object[] {companyId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByCompanyId;
 			finderArgs = new Object[] {
 				companyId, start, end, orderByComparator
@@ -2141,7 +2176,7 @@ public class CPOptionPersistenceImpl
 
 		List<CPOption> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CPOption>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -2197,7 +2232,7 @@ public class CPOptionPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -2820,11 +2855,21 @@ public class CPOptionPersistenceImpl
 	 */
 	@Override
 	public int countByCompanyId(long companyId) {
-		FinderPath finderPath = _finderPathCountByCompanyId;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
 
-		Object[] finderArgs = new Object[] {companyId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByCompanyId;
+
+			finderArgs = new Object[] {companyId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -2848,7 +2893,9 @@ public class CPOptionPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -2978,15 +3025,18 @@ public class CPOptionPersistenceImpl
 
 		key = Objects.toString(key, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {companyId, key};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(_finderPathFetchByC_K, finderArgs);
 		}
 
@@ -3038,7 +3088,7 @@ public class CPOptionPersistenceImpl
 				List<CPOption> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
 							_finderPathFetchByC_K, finderArgs, list);
 					}
@@ -3094,11 +3144,21 @@ public class CPOptionPersistenceImpl
 	public int countByC_K(long companyId, String key) {
 		key = Objects.toString(key, "");
 
-		FinderPath finderPath = _finderPathCountByC_K;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
 
-		Object[] finderArgs = new Object[] {companyId, key};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByC_K;
+
+			finderArgs = new Object[] {companyId, key};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -3137,7 +3197,9 @@ public class CPOptionPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -3224,15 +3286,18 @@ public class CPOptionPersistenceImpl
 
 		externalReferenceCode = Objects.toString(externalReferenceCode, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {companyId, externalReferenceCode};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(_finderPathFetchByC_ERC, finderArgs);
 		}
 
@@ -3286,7 +3351,7 @@ public class CPOptionPersistenceImpl
 				List<CPOption> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
 							_finderPathFetchByC_ERC, finderArgs, list);
 					}
@@ -3296,7 +3361,7 @@ public class CPOptionPersistenceImpl
 						Collections.sort(list, Collections.reverseOrder());
 
 						if (_log.isWarnEnabled()) {
-							if (!useFinderCache) {
+							if (!productionMode || !useFinderCache) {
 								finderArgs = new Object[] {
 									companyId, externalReferenceCode
 								};
@@ -3359,11 +3424,21 @@ public class CPOptionPersistenceImpl
 	public int countByC_ERC(long companyId, String externalReferenceCode) {
 		externalReferenceCode = Objects.toString(externalReferenceCode, "");
 
-		FinderPath finderPath = _finderPathCountByC_ERC;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
 
-		Object[] finderArgs = new Object[] {companyId, externalReferenceCode};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByC_ERC;
+
+			finderArgs = new Object[] {companyId, externalReferenceCode};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -3402,7 +3477,9 @@ public class CPOptionPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -3447,6 +3524,10 @@ public class CPOptionPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(CPOption cpOption) {
+		if (cpOption.getCtCollectionId() != 0) {
+			return;
+		}
+
 		entityCache.putResult(
 			CPOptionImpl.class, cpOption.getPrimaryKey(), cpOption);
 
@@ -3463,6 +3544,8 @@ public class CPOptionPersistenceImpl
 			cpOption);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the cp options in the entity cache if it is enabled.
 	 *
@@ -3470,7 +3553,18 @@ public class CPOptionPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<CPOption> cpOptions) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (cpOptions.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (CPOption cpOption : cpOptions) {
+			if (cpOption.getCtCollectionId() != 0) {
+				continue;
+			}
+
 			if (entityCache.getResult(
 					CPOptionImpl.class, cpOption.getPrimaryKey()) == null) {
 
@@ -3553,7 +3647,7 @@ public class CPOptionPersistenceImpl
 		cpOption.setNew(true);
 		cpOption.setPrimaryKey(CPOptionId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		cpOption.setUuid(uuid);
 
@@ -3627,7 +3721,7 @@ public class CPOptionPersistenceImpl
 					CPOptionImpl.class, cpOption.getPrimaryKeyObj());
 			}
 
-			if (cpOption != null) {
+			if ((cpOption != null) && ctPersistenceHelper.isRemove(cpOption)) {
 				session.delete(cpOption);
 			}
 		}
@@ -3668,7 +3762,7 @@ public class CPOptionPersistenceImpl
 		CPOptionModelImpl cpOptionModelImpl = (CPOptionModelImpl)cpOption;
 
 		if (Validator.isNull(cpOption.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			cpOption.setUuid(uuid);
 		}
@@ -3676,23 +3770,23 @@ public class CPOptionPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (cpOption.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				cpOption.setCreateDate(now);
+				cpOption.setCreateDate(date);
 			}
 			else {
-				cpOption.setCreateDate(serviceContext.getCreateDate(now));
+				cpOption.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!cpOptionModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				cpOption.setModifiedDate(now);
+				cpOption.setModifiedDate(date);
 			}
 			else {
-				cpOption.setModifiedDate(serviceContext.getModifiedDate(now));
+				cpOption.setModifiedDate(serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -3701,7 +3795,12 @@ public class CPOptionPersistenceImpl
 		try {
 			session = openSession();
 
-			if (isNew) {
+			if (ctPersistenceHelper.isInsert(cpOption)) {
+				if (!isNew) {
+					session.evict(
+						CPOptionImpl.class, cpOption.getPrimaryKeyObj());
+				}
+
 				session.save(cpOption);
 			}
 			else {
@@ -3713,6 +3812,16 @@ public class CPOptionPersistenceImpl
 		}
 		finally {
 			closeSession(session);
+		}
+
+		if (cpOption.getCtCollectionId() != 0) {
+			if (isNew) {
+				cpOption.setNew(false);
+			}
+
+			cpOption.resetOriginalValues();
+
+			return cpOption;
 		}
 
 		entityCache.putResult(
@@ -3771,12 +3880,137 @@ public class CPOptionPersistenceImpl
 	/**
 	 * Returns the cp option with the primary key or returns <code>null</code> if it could not be found.
 	 *
+	 * @param primaryKey the primary key of the cp option
+	 * @return the cp option, or <code>null</code> if a cp option with the primary key could not be found
+	 */
+	@Override
+	public CPOption fetchByPrimaryKey(Serializable primaryKey) {
+		if (ctPersistenceHelper.isProductionMode(CPOption.class)) {
+			return super.fetchByPrimaryKey(primaryKey);
+		}
+
+		CPOption cpOption = null;
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			cpOption = (CPOption)session.get(CPOptionImpl.class, primaryKey);
+
+			if (cpOption != null) {
+				cacheResult(cpOption);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return cpOption;
+	}
+
+	/**
+	 * Returns the cp option with the primary key or returns <code>null</code> if it could not be found.
+	 *
 	 * @param CPOptionId the primary key of the cp option
 	 * @return the cp option, or <code>null</code> if a cp option with the primary key could not be found
 	 */
 	@Override
 	public CPOption fetchByPrimaryKey(long CPOptionId) {
 		return fetchByPrimaryKey((Serializable)CPOptionId);
+	}
+
+	@Override
+	public Map<Serializable, CPOption> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+
+		if (ctPersistenceHelper.isProductionMode(CPOption.class)) {
+			return super.fetchByPrimaryKeys(primaryKeys);
+		}
+
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, CPOption> map = new HashMap<Serializable, CPOption>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			CPOption cpOption = fetchByPrimaryKey(primaryKey);
+
+			if (cpOption != null) {
+				map.put(primaryKey, cpOption);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
+			}
+
+			return map;
+		}
+
+		StringBundler sb = new StringBundler((primaryKeys.size() * 2) + 1);
+
+		sb.append(getSelectSQL());
+		sb.append(" WHERE ");
+		sb.append(getPKDBName());
+		sb.append(" IN (");
+
+		for (Serializable primaryKey : primaryKeys) {
+			sb.append((long)primaryKey);
+
+			sb.append(",");
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(")");
+
+		String sql = sb.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query query = session.createQuery(sql);
+
+			for (CPOption cpOption : (List<CPOption>)query.list()) {
+				map.put(cpOption.getPrimaryKeyObj(), cpOption);
+
+				cacheResult(cpOption);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
@@ -3842,25 +4076,28 @@ public class CPOptionPersistenceImpl
 		int start, int end, OrderByComparator<CPOption> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindAll;
 				finderArgs = FINDER_ARGS_EMPTY;
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<CPOption> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CPOption>)finderCache.getResult(
 				finderPath, finderArgs);
 		}
@@ -3898,7 +4135,7 @@ public class CPOptionPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -3931,8 +4168,15 @@ public class CPOptionPersistenceImpl
 	 */
 	@Override
 	public int countAll() {
-		Long count = (Long)finderCache.getResult(
-			_finderPathCountAll, FINDER_ARGS_EMPTY);
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CPOption.class);
+
+		Long count = null;
+
+		if (productionMode) {
+			count = (Long)finderCache.getResult(
+				_finderPathCountAll, FINDER_ARGS_EMPTY);
+		}
 
 		if (count == null) {
 			Session session = null;
@@ -3944,8 +4188,10 @@ public class CPOptionPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				if (productionMode) {
+					finderCache.putResult(
+						_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -3979,21 +4225,82 @@ public class CPOptionPersistenceImpl
 	}
 
 	@Override
-	protected Map<String, Integer> getTableColumnsMap() {
+	public Set<String> getCTColumnNames(
+		CTColumnResolutionType ctColumnResolutionType) {
+
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
+	}
+
+	@Override
+	public List<String> getMappingTableNames() {
+		return _mappingTableNames;
+	}
+
+	@Override
+	public Map<String, Integer> getTableColumnsMap() {
 		return CPOptionModelImpl.TABLE_COLUMNS_MAP;
+	}
+
+	@Override
+	public String getTableName() {
+		return "CPOption";
+	}
+
+	@Override
+	public List<String[]> getUniqueIndexColumnNames() {
+		return _uniqueIndexColumnNames;
+	}
+
+	private static final Map<CTColumnResolutionType, Set<String>>
+		_ctColumnNamesMap = new EnumMap<CTColumnResolutionType, Set<String>>(
+			CTColumnResolutionType.class);
+	private static final List<String> _mappingTableNames =
+		new ArrayList<String>();
+	private static final List<String[]> _uniqueIndexColumnNames =
+		new ArrayList<String[]>();
+
+	static {
+		Set<String> ctControlColumnNames = new HashSet<String>();
+		Set<String> ctIgnoreColumnNames = new HashSet<String>();
+		Set<String> ctStrictColumnNames = new HashSet<String>();
+
+		ctControlColumnNames.add("mvccVersion");
+		ctControlColumnNames.add("ctCollectionId");
+		ctStrictColumnNames.add("uuid_");
+		ctStrictColumnNames.add("externalReferenceCode");
+		ctStrictColumnNames.add("companyId");
+		ctStrictColumnNames.add("userId");
+		ctStrictColumnNames.add("userName");
+		ctStrictColumnNames.add("createDate");
+		ctIgnoreColumnNames.add("modifiedDate");
+		ctStrictColumnNames.add("name");
+		ctStrictColumnNames.add("description");
+		ctStrictColumnNames.add("DDMFormFieldTypeName");
+		ctStrictColumnNames.add("facetable");
+		ctStrictColumnNames.add("required");
+		ctStrictColumnNames.add("skuContributor");
+		ctStrictColumnNames.add("key_");
+		ctStrictColumnNames.add("lastPublishDate");
+
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.CONTROL, ctControlColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.PK, Collections.singleton("CPOptionId"));
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.STRICT, ctStrictColumnNames);
+
+		_uniqueIndexColumnNames.add(new String[] {"companyId", "key_"});
 	}
 
 	/**
 	 * Initializes the cp option persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(CPOptionPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new CPOptionModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4081,15 +4388,33 @@ public class CPOptionPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_ERC",
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"companyId", "externalReferenceCode"}, false);
+
+		_setCPOptionUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(CPOptionImpl.class.getName());
+		_setCPOptionUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(CPOptionImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setCPOptionUtilPersistence(
+		CPOptionPersistence cpOptionPersistence) {
+
+		try {
+			Field field = CPOptionUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, cpOptionPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
+
+	@ServiceReference(type = CTPersistenceHelper.class)
+	protected CTPersistenceHelper ctPersistenceHelper;
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -4151,108 +4476,7 @@ public class CPOptionPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class CPOptionModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			CPOptionModelImpl cpOptionModelImpl = (CPOptionModelImpl)baseModel;
-
-			long columnBitmask = cpOptionModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(cpOptionModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						cpOptionModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(cpOptionModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return CPOptionImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return CPOptionTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			CPOptionModelImpl cpOptionModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = cpOptionModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = cpOptionModelImpl.getColumnValue(columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= CPOptionModelImpl.getColumnBitmask("name");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

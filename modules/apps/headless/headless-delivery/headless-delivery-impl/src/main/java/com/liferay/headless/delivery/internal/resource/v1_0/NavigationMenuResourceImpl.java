@@ -17,10 +17,11 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 import com.liferay.headless.common.spi.service.context.ServiceContextRequestUtil;
 import com.liferay.headless.delivery.dto.v1_0.NavigationMenu;
 import com.liferay.headless.delivery.dto.v1_0.NavigationMenuItem;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CreatorUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.CreatorUtil;
 import com.liferay.headless.delivery.resource.v1_0.NavigationMenuResource;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutFriendlyURL;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -31,10 +32,12 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.JaxRsLinkUtil;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
+import com.liferay.site.navigation.constants.SiteNavigationActionKeys;
 import com.liferay.site.navigation.constants.SiteNavigationConstants;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.model.SiteNavigationMenuItem;
@@ -89,8 +92,9 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 			Collections.singletonMap(
 				"create",
 				addAction(
-					"ADD_SITE_NAVIGATION_MENU", "postSiteNavigationMenu",
-					"com.liferay.site.navigation", siteId)),
+					SiteNavigationActionKeys.ADD_SITE_NAVIGATION_MENU,
+					"postSiteNavigationMenu",
+					SiteNavigationConstants.RESOURCE_NAME, siteId)),
 			transform(
 				_siteNavigationMenuService.getSiteNavigationMenus(
 					siteId, pagination.getStartPosition(),
@@ -162,7 +166,7 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 
 	@Override
 	protected String getPermissionCheckerPortletName(Object id) {
-		return "com.liferay.site.navigation";
+		return SiteNavigationConstants.RESOURCE_NAME;
 	}
 
 	@Override
@@ -395,11 +399,9 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 			return null;
 		}
 
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.fastLoad(siteNavigationMenuItem.getTypeSettings());
-
-		return unicodeProperties;
+		return UnicodePropertiesBuilder.fastLoad(
+			siteNavigationMenuItem.getTypeSettings()
+		).build();
 	}
 
 	private boolean _isNameProperty(Map.Entry<String, String> property) {
@@ -411,12 +413,10 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 	private NavigationMenu _toNavigationMenu(
 		SiteNavigationMenu siteNavigationMenu) {
 
-		List<SiteNavigationMenuItem> siteNavigationMenuItems =
-			_siteNavigationMenuItemService.getSiteNavigationMenuItems(
-				siteNavigationMenu.getSiteNavigationMenuId());
-
 		Map<Long, List<SiteNavigationMenuItem>> siteNavigationMenuItemsMap =
-			_getSiteNavigationMenuItemsMap(siteNavigationMenuItems);
+			_getSiteNavigationMenuItemsMap(
+				_siteNavigationMenuItemService.getSiteNavigationMenuItems(
+					siteNavigationMenu.getSiteNavigationMenuId()));
 
 		return new NavigationMenu() {
 			{
@@ -440,12 +440,13 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 					() -> HashMapBuilder.put(
 						"delete",
 						addAction(
-							"DELETE", siteNavigationMenu,
+							ActionKeys.DELETE, siteNavigationMenu,
 							"deleteNavigationMenu")
 					).put(
 						"replace",
 						addAction(
-							"UPDATE", siteNavigationMenu, "putNavigationMenu")
+							ActionKeys.UPDATE, siteNavigationMenu,
+							"putNavigationMenu")
 					).build());
 				setNavigationType(
 					() -> {
@@ -554,8 +555,7 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 								localizedNames = layout.getNameMap();
 							}
 
-							return LocalizedMapUtil.getI18nMap(
-								true, localizedNames);
+							return LocalizedMapUtil.getI18nMap(localizedNames);
 						}
 
 						return null;

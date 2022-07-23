@@ -186,4 +186,7 @@ public interface WebDAVPropsModel
 	 */
 	public void setProps(String props);
 
+	@Override
+	public WebDAVProps cloneWithOriginalValues();
+
 }

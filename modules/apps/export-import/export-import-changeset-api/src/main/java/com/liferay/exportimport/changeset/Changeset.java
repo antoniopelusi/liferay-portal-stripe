@@ -43,6 +43,10 @@ public class Changeset implements Serializable {
 		return new RawBuilder(new Changeset());
 	}
 
+	public static RawBuilder createRaw(String uuid) {
+		return new RawBuilder(new Changeset(uuid));
+	}
+
 	public String getUuid() {
 		return _uuid;
 	}
@@ -173,7 +177,11 @@ public class Changeset implements Serializable {
 	}
 
 	private Changeset() {
-		_uuid = PortalUUIDUtil.generate();
+		this(PortalUUIDUtil.generate());
+	}
+
+	private Changeset(String uuid) {
+		_uuid = uuid;
 	}
 
 	private final List<StagedModel> _stagedModels = new ArrayList<>();

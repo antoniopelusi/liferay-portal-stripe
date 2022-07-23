@@ -27,6 +27,10 @@ public class LocalizedEntryLocalServiceWrapper
 	implements LocalizedEntryLocalService,
 			   ServiceWrapper<LocalizedEntryLocalService> {
 
+	public LocalizedEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LocalizedEntryLocalServiceWrapper(
 		LocalizedEntryLocalService localizedEntryLocalService) {
 
@@ -130,6 +134,13 @@ public class LocalizedEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _localizedEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _localizedEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -65,48 +65,51 @@ public abstract class BaseDBColumnSizeUpgradeProcess extends UpgradeProcess {
 		String schema = dbInspector.getSchema();
 
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			ResultSet tableRS = databaseMetaData.getTables(
+			ResultSet tableResultSet = databaseMetaData.getTables(
 				catalog, schema, null, new String[] {"TABLE"})) {
 
-			while (tableRS.next()) {
+			while (tableResultSet.next()) {
 				String tableName = dbInspector.normalizeName(
-					tableRS.getString("TABLE_NAME"));
+					tableResultSet.getString("TABLE_NAME"));
 
 				Set<String> invalidColumnNames = new HashSet<>();
 
-				try (ResultSet primaryKeyRS = databaseMetaData.getPrimaryKeys(
-						catalog, schema, tableName)) {
+				try (ResultSet primaryKeyResultSet =
+						databaseMetaData.getPrimaryKeys(
+							catalog, schema, tableName)) {
 
-					while (primaryKeyRS.next()) {
+					while (primaryKeyResultSet.next()) {
 						String primaryKeyName = StringUtil.toUpperCase(
-							primaryKeyRS.getString("COLUMN_NAME"));
+							primaryKeyResultSet.getString("COLUMN_NAME"));
 
 						invalidColumnNames.add(primaryKeyName);
 					}
 				}
 
-				try (ResultSet indexRS = databaseMetaData.getIndexInfo(
-						catalog, schema, tableName, false, false)) {
+				DB db = DBManagerUtil.getDB();
 
-					while (indexRS.next()) {
+				try (ResultSet indexResultSet = db.getIndexResultSet(
+						connection, tableName)) {
+
+					while (indexResultSet.next()) {
 						invalidColumnNames.add(
 							StringUtil.toUpperCase(
-								indexRS.getString("COLUMN_NAME")));
+								indexResultSet.getString("COLUMN_NAME")));
 					}
 				}
 
-				try (ResultSet columnRS = databaseMetaData.getColumns(
+				try (ResultSet columnResultSet = databaseMetaData.getColumns(
 						catalog, schema, tableName, null)) {
 
-					while (columnRS.next()) {
-						int size = columnRS.getInt("COLUMN_SIZE");
+					while (columnResultSet.next()) {
+						int size = columnResultSet.getInt("COLUMN_SIZE");
 
 						if ((size == _size) &&
 							StringUtil.equalsIgnoreCase(
 								_oldColumnType,
-								columnRS.getString("TYPE_NAME"))) {
+								columnResultSet.getString("TYPE_NAME"))) {
 
-							String columnName = columnRS.getString(
+							String columnName = columnResultSet.getString(
 								"COLUMN_NAME");
 
 							if (invalidColumnNames.contains(

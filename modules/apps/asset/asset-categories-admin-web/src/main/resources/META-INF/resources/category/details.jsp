@@ -58,6 +58,7 @@ renderResponse.setTitle(title);
 	<aui:input name="categoryId" type="hidden" value="<%= categoryId %>" />
 
 	<liferay-frontend:edit-form-body>
+		<liferay-ui:error exception="<%= AssetCategoryLimitException.class %>" message="the-maximum-number-of-categories-for-the-vocabulary-has-been-exceeded" />
 		<liferay-ui:error exception="<%= AssetCategoryNameException.class %>" message="please-enter-a-valid-name" />
 		<liferay-ui:error exception="<%= DuplicateCategoryException.class %>" message="please-enter-a-unique-name" />
 
@@ -156,19 +157,22 @@ renderResponse.setTitle(title);
 				</c:choose>
 			</liferay-frontend:fieldset>
 
-			<liferay-frontend:fieldset
-				collapsed="<%= true %>"
-				collapsible="<%= true %>"
-				label="display-page"
-			>
-				<liferay-asset:select-asset-display-page
-					classNameId="<%= PortalUtil.getClassNameId(AssetCategory.class) %>"
-					classPK="<%= (category != null) ? category.getCategoryId() : 0 %>"
-					classTypeId="<%= 0 %>"
-					groupId="<%= scopeGroupId %>"
-					showViewInContextLink="<%= true %>"
-				/>
-			</liferay-frontend:fieldset>
+			<c:if test="<%= assetCategoriesDisplayContext.isShowSelectAssetDisplayPage() %>">
+				<liferay-frontend:fieldset
+					collapsed="<%= true %>"
+					collapsible="<%= true %>"
+					label="display-page"
+				>
+					<liferay-asset:select-asset-display-page
+						classNameId="<%= PortalUtil.getClassNameId(AssetCategory.class) %>"
+						classPK="<%= (category != null) ? category.getCategoryId() : 0 %>"
+						classTypeId="<%= 0 %>"
+						groupId="<%= scopeGroupId %>"
+						parentClassPK="<%= parentCategoryId %>"
+						showViewInContextLink="<%= true %>"
+					/>
+				</liferay-frontend:fieldset>
+			</c:if>
 
 			<c:if test="<%= (category == null) && !assetCategoriesDisplayContext.isItemSelector() %>">
 				<liferay-frontend:fieldset
@@ -187,9 +191,9 @@ renderResponse.setTitle(title);
 	<c:choose>
 		<c:when test="<%= !assetCategoriesDisplayContext.isItemSelector() %>">
 			<liferay-frontend:edit-form-footer>
-				<aui:button type="submit" />
+				<aui:button disabled="<%= assetCategoriesDisplayContext.isSaveButtonDisabled() %>" type="submit" />
 
-				<aui:button cssClass="btn-secondary" onClick='<%= liferayPortletResponse.getNamespace() + "saveAndAddNew();" %>' value="save-and-add-a-new-one" />
+				<aui:button cssClass="btn-secondary" disabled="<%= assetCategoriesDisplayContext.isSaveAndAddNewButtonDisabled() %>" onClick='<%= liferayPortletResponse.getNamespace() + "saveAndAddNew();" %>' value="save-and-add-a-new-one" />
 
 				<aui:button cssClass="btn-secondary" href="<%= redirect %>" type="cancel" />
 			</liferay-frontend:edit-form-footer>
@@ -203,7 +207,7 @@ renderResponse.setTitle(title);
 						"redirect", redirect
 					).build()
 				%>'
-				module="js/DetailsItemSelector"
+				module="js/ItemSelectorAddCategory"
 				servletContext="<%= application %>"
 			/>
 		</c:otherwise>

@@ -29,7 +29,7 @@ public class WorkflowPermissionUtil {
 		PermissionChecker permissionChecker, long groupId, String className,
 		long classPK, String actionId) {
 
-		return getWorkflowPermission().hasPermission(
+		return _workflowPermission.hasPermission(
 			permissionChecker, groupId, className, classPK, actionId);
 	}
 

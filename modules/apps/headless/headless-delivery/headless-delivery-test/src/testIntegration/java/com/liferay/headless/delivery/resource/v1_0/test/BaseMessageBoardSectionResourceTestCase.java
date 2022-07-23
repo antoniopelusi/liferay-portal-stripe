@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import com.liferay.headless.delivery.client.dto.v1_0.Field;
 import com.liferay.headless.delivery.client.dto.v1_0.MessageBoardSection;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
@@ -37,7 +38,6 @@ import com.liferay.portal.kernel.json.JSONDeserializer;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -57,9 +57,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -239,7 +237,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	@Test
 	public void testGraphQLDeleteMessageBoardSection() throws Exception {
 		MessageBoardSection messageBoardSection =
-			testGraphQLMessageBoardSection_addMessageBoardSection();
+			testGraphQLDeleteMessageBoardSection_addMessageBoardSection();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -254,7 +252,6 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteMessageBoardSection"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -270,6 +267,13 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected MessageBoardSection
+			testGraphQLDeleteMessageBoardSection_addMessageBoardSection()
+		throws Exception {
+
+		return testGraphQLMessageBoardSection_addMessageBoardSection();
 	}
 
 	@Test
@@ -296,7 +300,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	@Test
 	public void testGraphQLGetMessageBoardSection() throws Exception {
 		MessageBoardSection messageBoardSection =
-			testGraphQLMessageBoardSection_addMessageBoardSection();
+			testGraphQLGetMessageBoardSection_addMessageBoardSection();
 
 		Assert.assertTrue(
 			equals(
@@ -337,6 +341,13 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected MessageBoardSection
+			testGraphQLGetMessageBoardSection_addMessageBoardSection()
+		throws Exception {
+
+		return testGraphQLMessageBoardSection_addMessageBoardSection();
 	}
 
 	@Test
@@ -427,18 +438,19 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	}
 
 	@Test
-	public void testPutMessageBoardSectionPermission() throws Exception {
+	public void testPutMessageBoardSectionPermissionsPage() throws Exception {
 		@SuppressWarnings("PMD.UnusedLocalVariable")
 		MessageBoardSection messageBoardSection =
-			testPutMessageBoardSectionPermission_addMessageBoardSection();
+			testPutMessageBoardSectionPermissionsPage_addMessageBoardSection();
 
+		@SuppressWarnings("PMD.UnusedLocalVariable")
 		com.liferay.portal.kernel.model.Role role = RoleTestUtil.addRole(
 			RoleConstants.TYPE_REGULAR);
 
 		assertHttpResponseStatusCode(
-			204,
+			200,
 			messageBoardSectionResource.
-				putMessageBoardSectionPermissionHttpResponse(
+				putMessageBoardSectionPermissionsPageHttpResponse(
 					messageBoardSection.getId(),
 					new Permission[] {
 						new Permission() {
@@ -452,7 +464,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		assertHttpResponseStatusCode(
 			404,
 			messageBoardSectionResource.
-				putMessageBoardSectionPermissionHttpResponse(
+				putMessageBoardSectionPermissionsPageHttpResponse(
 					0L,
 					new Permission[] {
 						new Permission() {
@@ -465,7 +477,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	}
 
 	protected MessageBoardSection
-			testPutMessageBoardSectionPermission_addMessageBoardSection()
+			testPutMessageBoardSectionPermissionsPage_addMessageBoardSection()
 		throws Exception {
 
 		return messageBoardSectionResource.postSiteMessageBoardSection(
@@ -528,19 +540,18 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	public void testGetMessageBoardSectionMessageBoardSectionsPage()
 		throws Exception {
 
-		Page<MessageBoardSection> page =
-			messageBoardSectionResource.
-				getMessageBoardSectionMessageBoardSectionsPage(
-					testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId(),
-					RandomTestUtil.randomString(), null, null,
-					Pagination.of(1, 2), null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long parentMessageBoardSectionId =
 			testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId();
 		Long irrelevantParentMessageBoardSectionId =
 			testGetMessageBoardSectionMessageBoardSectionsPage_getIrrelevantParentMessageBoardSectionId();
+
+		Page<MessageBoardSection> page =
+			messageBoardSectionResource.
+				getMessageBoardSectionMessageBoardSectionsPage(
+					parentMessageBoardSectionId, null, null, null,
+					Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantParentMessageBoardSectionId != null) {
 			MessageBoardSection irrelevantMessageBoardSection =
@@ -574,7 +585,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			messageBoardSectionResource.
 				getMessageBoardSectionMessageBoardSectionsPage(
 					parentMessageBoardSectionId, null, null, null,
-					Pagination.of(1, 2), null);
+					Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -617,6 +628,44 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 						parentMessageBoardSectionId, null, null,
 						getFilterString(
 							entityField, "between", messageBoardSection1),
+						Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(messageBoardSection1),
+				(List<MessageBoardSection>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetMessageBoardSectionMessageBoardSectionsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long parentMessageBoardSectionId =
+			testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId();
+
+		MessageBoardSection messageBoardSection1 =
+			testGetMessageBoardSectionMessageBoardSectionsPage_addMessageBoardSection(
+				parentMessageBoardSectionId, randomMessageBoardSection());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		MessageBoardSection messageBoardSection2 =
+			testGetMessageBoardSectionMessageBoardSectionsPage_addMessageBoardSection(
+				parentMessageBoardSectionId, randomMessageBoardSection());
+
+		for (EntityField entityField : entityFields) {
+			Page<MessageBoardSection> page =
+				messageBoardSectionResource.
+					getMessageBoardSectionMessageBoardSectionsPage(
+						parentMessageBoardSectionId, null, null,
+						getFilterString(
+							entityField, "eq", messageBoardSection1),
 						Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -735,6 +784,20 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	}
 
 	@Test
+	public void testGetMessageBoardSectionMessageBoardSectionsPageWithSortDouble()
+		throws Exception {
+
+		testGetMessageBoardSectionMessageBoardSectionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				BeanUtils.setProperty(
+					messageBoardSection1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					messageBoardSection2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetMessageBoardSectionMessageBoardSectionsPageWithSortInteger()
 		throws Exception {
 
@@ -759,7 +822,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -910,17 +973,15 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 	@Test
 	public void testGetSiteMessageBoardSectionsPage() throws Exception {
-		Page<MessageBoardSection> page =
-			messageBoardSectionResource.getSiteMessageBoardSectionsPage(
-				testGetSiteMessageBoardSectionsPage_getSiteId(), null,
-				RandomTestUtil.randomString(), null, null, Pagination.of(1, 2),
-				null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long siteId = testGetSiteMessageBoardSectionsPage_getSiteId();
 		Long irrelevantSiteId =
 			testGetSiteMessageBoardSectionsPage_getIrrelevantSiteId();
+
+		Page<MessageBoardSection> page =
+			messageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				siteId, null, null, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantSiteId != null) {
 			MessageBoardSection irrelevantMessageBoardSection =
@@ -948,7 +1009,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				siteId, randomMessageBoardSection());
 
 		page = messageBoardSectionResource.getSiteMessageBoardSectionsPage(
-			siteId, null, null, null, null, Pagination.of(1, 2), null);
+			siteId, null, null, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -989,6 +1050,41 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 					siteId, null, null, null,
 					getFilterString(
 						entityField, "between", messageBoardSection1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(messageBoardSection1),
+				(List<MessageBoardSection>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetSiteMessageBoardSectionsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long siteId = testGetSiteMessageBoardSectionsPage_getSiteId();
+
+		MessageBoardSection messageBoardSection1 =
+			testGetSiteMessageBoardSectionsPage_addMessageBoardSection(
+				siteId, randomMessageBoardSection());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		MessageBoardSection messageBoardSection2 =
+			testGetSiteMessageBoardSectionsPage_addMessageBoardSection(
+				siteId, randomMessageBoardSection());
+
+		for (EntityField entityField : entityFields) {
+			Page<MessageBoardSection> page =
+				messageBoardSectionResource.getSiteMessageBoardSectionsPage(
+					siteId, null, null, null,
+					getFilterString(entityField, "eq", messageBoardSection1),
 					Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -1097,6 +1193,20 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	}
 
 	@Test
+	public void testGetSiteMessageBoardSectionsPageWithSortDouble()
+		throws Exception {
+
+		testGetSiteMessageBoardSectionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				BeanUtils.setProperty(
+					messageBoardSection1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					messageBoardSection2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetSiteMessageBoardSectionsPageWithSortInteger()
 		throws Exception {
 
@@ -1121,7 +1231,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -1245,7 +1355,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			new HashMap<String, Object>() {
 				{
 					put("page", 1);
-					put("pageSize", 2);
+					put("pageSize", 10);
 
 					put("siteKey", "\"" + siteId + "\"");
 				}
@@ -1262,22 +1372,29 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			0, messageBoardSectionsJSONObject.get("totalCount"));
 
 		MessageBoardSection messageBoardSection1 =
-			testGraphQLMessageBoardSection_addMessageBoardSection();
+			testGraphQLGetSiteMessageBoardSectionsPage_addMessageBoardSection();
 		MessageBoardSection messageBoardSection2 =
-			testGraphQLMessageBoardSection_addMessageBoardSection();
+			testGraphQLGetSiteMessageBoardSectionsPage_addMessageBoardSection();
 
 		messageBoardSectionsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/messageBoardSections");
 
 		Assert.assertEquals(
-			2, messageBoardSectionsJSONObject.get("totalCount"));
+			2, messageBoardSectionsJSONObject.getLong("totalCount"));
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(messageBoardSection1, messageBoardSection2),
 			Arrays.asList(
 				MessageBoardSectionSerDes.toDTOs(
 					messageBoardSectionsJSONObject.getString("items"))));
+	}
+
+	protected MessageBoardSection
+			testGraphQLGetSiteMessageBoardSectionsPage_addMessageBoardSection()
+		throws Exception {
+
+		return testGraphQLMessageBoardSection_addMessageBoardSection();
 	}
 
 	@Test
@@ -1337,18 +1454,21 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	}
 
 	@Test
-	public void testPutSiteMessageBoardSectionPermission() throws Exception {
+	public void testPutSiteMessageBoardSectionPermissionsPage()
+		throws Exception {
+
 		@SuppressWarnings("PMD.UnusedLocalVariable")
 		MessageBoardSection messageBoardSection =
-			testPutSiteMessageBoardSectionPermission_addMessageBoardSection();
+			testPutSiteMessageBoardSectionPermissionsPage_addMessageBoardSection();
 
+		@SuppressWarnings("PMD.UnusedLocalVariable")
 		com.liferay.portal.kernel.model.Role role = RoleTestUtil.addRole(
 			RoleConstants.TYPE_REGULAR);
 
 		assertHttpResponseStatusCode(
-			204,
+			200,
 			messageBoardSectionResource.
-				putSiteMessageBoardSectionPermissionHttpResponse(
+				putSiteMessageBoardSectionPermissionsPageHttpResponse(
 					messageBoardSection.getSiteId(),
 					new Permission[] {
 						new Permission() {
@@ -1362,7 +1482,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		assertHttpResponseStatusCode(
 			404,
 			messageBoardSectionResource.
-				putSiteMessageBoardSectionPermissionHttpResponse(
+				putSiteMessageBoardSectionPermissionsPageHttpResponse(
 					messageBoardSection.getSiteId(),
 					new Permission[] {
 						new Permission() {
@@ -1375,7 +1495,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	}
 
 	protected MessageBoardSection
-			testPutSiteMessageBoardSectionPermission_addMessageBoardSection()
+			testPutSiteMessageBoardSectionPermissionsPage_addMessageBoardSection()
 		throws Exception {
 
 		return messageBoardSectionResource.postSiteMessageBoardSection(
@@ -1400,9 +1520,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 				Class<?> clazz = object.getClass();
 
-				for (Field field :
-						ReflectionUtil.getDeclaredFields(
-							clazz.getSuperclass())) {
+				for (java.lang.reflect.Field field :
+						getDeclaredFields(clazz.getSuperclass())) {
 
 					arraySB.append(field.getName());
 					arraySB.append(": ");
@@ -1449,8 +1568,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		StringBuilder sb = new StringBuilder("{");
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(MessageBoardSection.class)) {
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(MessageBoardSection.class)) {
 
 			if (!ArrayUtil.contains(
 					getAdditionalAssertFieldNames(), field.getName())) {
@@ -1490,6 +1609,25 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 						graphQLFields)),
 				"JSONObject/data", "JSONObject/createSiteMessageBoardSection"),
 			MessageBoardSection.class);
+	}
+
+	protected void assertContains(
+		MessageBoardSection messageBoardSection,
+		List<MessageBoardSection> messageBoardSections) {
+
+		boolean contains = false;
+
+		for (MessageBoardSection item : messageBoardSections) {
+			if (equals(messageBoardSection, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			messageBoardSections + " does not contain " + messageBoardSection,
+			contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -1707,8 +1845,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		graphQLFields.add(new GraphQLField("siteId"));
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.delivery.dto.v1_0.MessageBoardSection.
 						class)) {
 
@@ -1724,12 +1862,13 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -1743,7 +1882,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1962,6 +2101,19 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -2110,13 +2262,19 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		}
 
 		if (entityFieldName.equals("numberOfMessageBoardSections")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(
+				String.valueOf(
+					messageBoardSection.getNumberOfMessageBoardSections()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("numberOfMessageBoardThreads")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(
+				String.valueOf(
+					messageBoardSection.getNumberOfMessageBoardThreads()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("parentMessageBoardSectionId")) {
@@ -2300,8 +2458,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseMessageBoardSectionResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseMessageBoardSectionResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

@@ -302,14 +302,14 @@ public class ProjectTemplatesWorkspaceTest
 
 		buildTemplateWithGradle(modulesDir, template, name);
 
-		Optional<String> gradleResult = executeGradle(
+		Optional<String> gradleResultOptional = executeGradle(
 			workspaceDir, true, _gradleDistribution,
 			":modules:" + name + GRADLE_TASK_PATH_BUILD);
 
 		String gradleAntBndVersion = null;
 
 		Matcher matcher = antBndPluginVersionPattern.matcher(
-			gradleResult.get());
+			gradleResultOptional.get());
 
 		if (matcher.matches()) {
 			gradleAntBndVersion = matcher.group(1);
@@ -339,11 +339,11 @@ public class ProjectTemplatesWorkspaceTest
 		File workspaceDir = buildWorkspace(
 			temporaryFolder, getDefaultLiferayVersion());
 
-		Optional<String> result = executeGradle(
+		Optional<String> resultOptional = executeGradle(
 			workspaceDir, true, _gradleDistribution, ":tasks");
 
 		Matcher matcher = portalToolsBundleSupportVersionPattern.matcher(
-			result.get());
+			resultOptional.get());
 
 		String portalToolsBundleSupportVersion = null;
 

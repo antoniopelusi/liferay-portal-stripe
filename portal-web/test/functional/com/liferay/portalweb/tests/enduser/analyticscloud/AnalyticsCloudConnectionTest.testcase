@@ -1,0 +1,842 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+
+		ACSettings.takeTokenFromAnalyticsCloud();
+
+		TestCase.setUpPortalInstance();
+
+		ACUtils.launchDXP();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		JSONUser.tearDownNonAdminUsers();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Automation ID: LRAC-8832 | Test Summary: Add DXP data source and configure only one site"
+	@priority = "3"
+	test AddDataSourceForOneSite {
+		property portal.release = "true";
+
+		task ("Add site and page") {
+			ACUtils.addSiteAndPage();
+		}
+
+		task ("Connect DXP to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Open site Liferay DXP and close all sessions") {
+			Navigator.openURL();
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Launch AC, go to sites overview and change sites activities to the last 24 hours") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToSites();
+
+			ACNavigation.switchTab(tabName = "Overview");
+
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("View the number of Unique Visitors in the sites activities") {
+			ACCards.viewMetricValue(
+				cardTitle = "${propertyName} Activities",
+				metricName = "Unique Visitors",
+				metricValue = "0");
+		}
+
+		task ("Launch DXP and go to site") {
+			ACUtils.launchDXP();
+
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Launch AC and go to sites overview and change sites activities to the last 24 hours") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToSites();
+
+			ACNavigation.switchTab(tabName = "Overview");
+
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("View if the number of Unique Visitors in the sites activities has changed, this secure the connection ") {
+			ACCards.viewMetricValue(
+				cardTitle = "${propertyName} Activities",
+				metricName = "Unique Visitors",
+				metricValue = "1",
+				timeFilter = "Last 24 hours");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8108 | Test Summary: Add date source page that allows user to choose type of data source"
+	@priority = "5"
+	test AddDataSourcePageAllowsUserToChooseWhatKind {
+		task ("Go to data sources and enter in each one to assert that the user can choose any of them") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToDataSources();
+
+			ACSettings.clickGenericAddOrConfirmationButton();
+
+			ACSettings.assertCanChooseDataSourceOptions();
+		}
+	}
+
+	@description = "Automation ID: LRAC-8835 | Test Summary: Assert Liferay Data Source Contact Count Preview"
+	@priority = "4"
+	test AssertLiferayDataSourceContactCountPreview {
+		property portal.release = "true";
+
+		task ("Connect DXP to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+		}
+
+		task ("Go to contact data and get the string with number of contacts") {
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+			var currentContacts = selenium.getText("ACDXPSettings#SYNC_ALL_CONTACTS_NUMBER");
+			var numberContacts = StringUtil.extractDigits("${currentContacts}");
+		}
+
+		task ("Add a new user") {
+			Navigator.openURL();
+
+			JSONUser.addUser(
+				userEmailAddress = "ac@liferay.com",
+				userFirstName = "ac",
+				userLastName = "ac",
+				userScreenName = "ac");
+		}
+
+		task ("Add 1 into the value of the variable and format the string") {
+			var numberContacts = ${numberContacts} + 1;
+			var newContacts = StringUtil.add("Sync All (", "${numberContacts}", "");
+			var newContacts = StringUtil.add("${newContacts}", " Contacts)", "");
+		}
+
+		task ("Go to contact data and assert that the number of contacts updated") {
+			ACDXPSettings.goToInstanceSettingsAC();
+
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+			AssertTextEquals(
+				locator1 = "ACDXPSettings#SYNC_ALL_CONTACTS_NUMBER",
+				value1 = "${newContacts}");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8834 | Test Summary: Assert the Liferay DXP Data Source Status"
+	@priority = "3"
+	test AssertLiferayDataSourceStatus {
+		property portal.release = "true";
+
+		var sectionTitleList = ListUtil.newListFromString("Current Status,Synced Sites,Synced Contacts");
+		var statusSyncSite = ListUtil.newListFromString("Active,Configured,Unconfigured");
+		var statusSyncContact = ListUtil.newListFromString("Active,Configured,Configured");
+		var statusDisconnect = ListUtil.newListFromString("Disconnected,Unconfigured,Unconfigured");
+		var size = ListUtil.size("${sectionTitleList}");
+
+		task ("Connect DXP to AC, create a property, and sync the site only") {
+			ACDXPSettings.goToInstanceSettingsAC();
+
+			ACDXPSettings.connectAnalyticsCloud();
+
+			ACDXPSettings.assertSuccessfulConnection();
+
+			ACDXPSettings.navToSyncedSitesMenu();
+
+			ACDXPSettings.createCombinedProperties();
+
+			LexiconEntry.gotoAdd();
+
+			WaitForElementPresent(locator1 = "ACDXPSettings#SITE_NAME");
+
+			var siteName = selenium.getText("ACDXPSettings#SITE_NAME");
+
+			ACDXPSettings.getAssignedPropertyName(siteName = "${siteName}");
+
+			var dataSource = StringUtil.replace("${assignedPropertyName}", " Combined Property", "");
+		}
+
+		task ("Launch AC, go to settings and data source and click in the data source searched") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToDataSources();
+
+			ACUtils.searchBar(searchItem = "${dataSource}");
+
+			ACNavigation.openItem(itemName = "${dataSource}");
+		}
+
+		task ("Assert the data source Status: Active, Sites: Configured, Contacts: Unconfigured") {
+			var i = "0";
+
+			while ("${i}" != "${size}") {
+				var section = ListUtil.get("${sectionTitleList}", "${i}");
+				var status = ListUtil.get("${statusSyncSite}", "${i}");
+
+				ACSettings.assertDataSourceStatus(
+					section = "${section}",
+					status = "${status}");
+
+				var i = ${i} + 1;
+				var i = StringUtil.valueOf("${i}");
+			}
+		}
+
+		task ("Launch DXP and sync contact") {
+			ACUtils.launchDXP();
+
+			ACDXPSettings.goToInstanceSettingsAC();
+
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			ACDXPSettings.syncContactData();
+		}
+
+		task ("Launch AC, go to settings and data source and click in the data source searched") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToDataSources();
+
+			ACUtils.searchBar(searchItem = "${dataSource}");
+
+			ACNavigation.openItem(itemName = "${dataSource}");
+		}
+
+		task ("Assert the data source Status: Active, Sites: Configured, Contacts: Configured") {
+			var i = "0";
+
+			while ("${i}" != "${size}") {
+				var section = ListUtil.get("${sectionTitleList}", "${i}");
+				var status = ListUtil.get("${statusSyncContact}", "${i}");
+
+				ACSettings.assertDataSourceStatus(
+					section = "${section}",
+					status = "${status}");
+
+				var i = ${i} + 1;
+				var i = StringUtil.valueOf("${i}");
+			}
+		}
+
+		task ("Disconnect data source and assert the data source Status: Disconnected, Sites: Unconfigured, Contacts: Unconfigured") {
+			ACSettings.disconnectDataSource();
+
+			var i = "0";
+
+			while ("${i}" != "${size}") {
+				var section = ListUtil.get("${sectionTitleList}", "${i}");
+				var status = ListUtil.get("${statusDisconnect}", "${i}");
+
+				ACSettings.assertDataSourceStatus(
+					section = "${section}",
+					status = "${status}");
+
+				var i = ${i} + 1;
+				var i = StringUtil.valueOf("${i}");
+			}
+		}
+	}
+
+	@description = "Automation ID: LRAC-8836 | Test Summary: Cancel Creating a DXP Data Source"
+	@priority = "3"
+	test CancelCreatingDxpDataSource {
+		task ("Access the data sources, select Liferay DXP and click the cancel button") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToDataSources();
+
+			var entries = selenium.getText("ACUtils#RESULT_MESSAGE");
+
+			ACSettings.clickGenericAddOrConfirmationButton();
+
+			Click(locator1 = "AnalyticsCloudConnection#LIFERAY_DXP_SOURCE");
+
+			ACNavigation.clickCancelButton();
+		}
+
+		task ("Assert the data source list if a new data source has not been created") {
+			ACSettings.goToDataSources();
+
+			AssertTextEquals(
+				locator1 = "ACUtils#RESULT_MESSAGE",
+				value1 = "${entries}");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8107 | Test Summary: Navigates to data source page"
+	@priority = "5"
+	test CanNavigatesToDataSourcePage {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+		var dataSource = StringUtil.replace("${propertyName}", " Combined Property", "");
+
+		ACDXPSettings.syncNewContactData();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToSettings();
+
+		ACUtils.assertItemsName(itemList = "${dataSource}");
+
+		ACUtils.assertPageTitle(pageTitle = "Data Sources");
+	}
+
+	@description = "Sync Liferay Data Source Contacts"
+	@priority = "5"
+	test CanSyncAllContactsFromDXPToAC {
+		property portal.release = "true";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToIndividuals();
+
+		ACNavigation.switchTab(tabName = "Known Individuals");
+
+		ACUtils.searchBar(searchItem = "userfn userln");
+
+		ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "userfn userln");
+
+		ACNavigation.switchTab(tabName = "Details");
+
+		ACIndividualsDashboard.assertIndividualAttribute(individualAttribute = "userea@liferay.com");
+
+		ACIndividualsDashboard.assertIndividualAttribute(individualAttribute = "userfn");
+	}
+
+	@description = "Validate if the user can connect AC to DXP"
+	@priority = "5"
+	test ConnectACtoDXP {
+		property portal.release = "true";
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+	}
+
+	@description = "Automation ID: LRAC-8821 | Test Summary: Data Source list is searchable"
+	@priority = "5"
+	test DataSourceListIsSearchable {
+		task ("Create data sources") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+			var dataSource = StringUtil.replace("${propertyName}", " Combined Property", "");
+
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACUtils.assertDataSourceName(dataSourceName = "${dataSource}");
+		}
+
+		task ("Assert that a data source is searchable and found") {
+			ACUtils.searchBar(searchItem = "${dataSource}");
+
+			ACUtils.assertDataSourceName(dataSourceName = "${dataSource}");
+		}
+
+		task ("Assert that a data source that doesn't exist is not found") {
+			ACUtils.searchBar(searchItem = "Analytics Cloud");
+
+			AssertTextPresent(
+				locator1 = "//body",
+				value1 = "There are no Data Sources found.");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8825 | Test Summary: Validate Invalid Token"
+	@priority = "4"
+	test InvalidToken {
+		ACUtils.launchAC();
+
+		AnalyticsCloud.takeInvalidTokenFromAnalyticsCloud();
+	}
+
+	@description = "Automation ID: LRAC-8839 | Test Summary: Preview the number of Organization contacts to sync"
+	@priority = "3"
+	test OrganizationContactSyncPreview {
+		property portal.release = "true";
+
+		task ("Create a new user, a new organization and assign the organization for the created user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			Organization.addCP(
+				orgName = "Organization Name 1",
+				orgType = "Organization");
+
+			JSONOrganization.assignUserToOrganization(
+				organizationName = "Organization Name 1",
+				userEmailAddress = "userea@liferay.com");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			UsersAndOrganizationsNavigator.gotoOrganizations();
+
+			Organization.gotoCP(
+				orgName = "Organization Name 1",
+				searchToken = "Organization Name 1");
+
+			Organization.viewAssignMemberCP(userName = "userfn userln");
+		}
+
+		task ("Connect to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(orgName = "Organization Name 1");
+		}
+
+		task ("Assert preview the number of Organization contacts to sync") {
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+			var entrieOrg = selenium.getText("ACDXPSettings#SYNC_BY_ORGANIZATIONS_PREVIEW");
+			var numberOrg = StringUtil.extractDigits("${entrieOrg}");
+
+			AssertTextEquals(
+				locator1 = "ACDXPSettings#SYNC_BY_ORGANIZATIONS_PREVIEW",
+				value1 = "${entrieOrg}");
+		}
+
+		task ("Create a new organization and assign the organization for the created user") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			Organization.addCP(
+				orgName = "Organization Name 2",
+				orgType = "Organization");
+
+			JSONOrganization.assignUserToOrganization(
+				organizationName = "Organization Name 2",
+				userEmailAddress = "userea@liferay.com");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			UsersAndOrganizationsNavigator.gotoOrganizations();
+
+			Organization.gotoCP(
+				orgName = "Organization Name 2",
+				searchToken = "Organization Name 2");
+
+			Organization.viewAssignMemberCP(userName = "userfn userln");
+		}
+
+		task ("Connect to AC") {
+			ACDXPSettings.goToInstanceSettingsAC();
+
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			ACDXPSettings.syncByOrganizations(
+				index = "2",
+				orgName = "Organization Name 2");
+		}
+
+		task ("Assert preview the number of Organization contacts to sync") {
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+			var newNumberOrg = ${numberOrg} + 1;
+			var newEntrieOrg = StringUtil.add("${newNumberOrg}", " Organizations Selected", "");
+
+			AssertTextEquals(
+				locator1 = "ACDXPSettings#SYNC_BY_ORGANIZATIONS_PREVIEW",
+				value1 = "${newEntrieOrg}");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8822 | Test Summary: Sync Liferay Data Source Contacts by User Groups"
+	@priority = "4"
+	test SyncDataSourceContactsByGroups {
+		property portal.release = "true";
+
+		task ("Add user, group and assign user to group") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONUserGroup.addUserGroup(
+				userGroupDescription = "User Group Description",
+				userGroupName = "User Group Name");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			UserNavigator.gotoUser(userScreenName = "usersn");
+
+			User.assignUserGroupCP(userGroupName = "User Group Name");
+		}
+
+		task ("Connect to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(userGroup = "User Group Name");
+		}
+
+		task ("Login as another user and visit DXP") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+		}
+
+		task ("Go to Known Individuals tab") {
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToIndividuals();
+
+			ACNavigation.switchTab(tabName = "Known Individuals");
+		}
+
+		task ("Assert that the new user is present") {
+			ACUtils.searchBar(searchItem = "userfn userln");
+
+			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "userfn userln");
+
+			ACNavigation.switchTab(tabName = "Details");
+
+			ACIndividualsDashboard.assertIndividualAttribute(individualAttribute = "userea@liferay.com");
+
+			ACIndividualsDashboard.assertIndividualAttribute(individualAttribute = "userfn");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8823 | Test Summary: Sync Liferay Data Source Contacts by Organizations"
+	@priority = "4"
+	test SyncDataSourceContactsByOrganizations {
+		property portal.release = "true";
+
+		task ("Create a new user, a new organization and assign the organization for the created user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			Organization.addCP(
+				orgName = "Organization Name",
+				orgType = "Organization");
+
+			JSONOrganization.assignUserToOrganization(
+				organizationName = "Organization Name",
+				userEmailAddress = "userea@liferay.com");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			UsersAndOrganizationsNavigator.gotoOrganizations();
+
+			Organization.gotoCP(
+				orgName = "Organization Name",
+				searchToken = "Organization Name");
+
+			Organization.viewAssignMemberCP(userName = "userfn userln");
+		}
+
+		task ("Connect to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(orgName = "Organization Name");
+		}
+
+		task ("Login as another user and visit DXP") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+		}
+
+		task ("Go to Known Individuals tab") {
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToIndividuals();
+
+			ACNavigation.switchTab(tabName = "Known Individuals");
+		}
+
+		task ("Assert that the new user is present") {
+			ACUtils.searchBar(searchItem = "userfn userln");
+
+			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "userfn userln");
+
+			ACNavigation.switchTab(tabName = "Details");
+
+			ACIndividualsDashboard.assertIndividualAttribute(individualAttribute = "userea@liferay.com");
+
+			ACIndividualsDashboard.assertIndividualAttribute(individualAttribute = "userfn");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8824 | Test Summary: Preview the number of User Group contacts to sync"
+	@priority = "4"
+	test UserGroupContactSyncPreview {
+		property portal.release = "true";
+
+		var user = "ac";
+		var groupsList = "User Group1,User Group2";
+
+		task ("Create user") {
+			JSONUser.addUser(
+				userEmailAddress = "${user}@liferay.com",
+				userFirstName = "${user}",
+				userLastName = "${user}",
+				userScreenName = "${user}");
+		}
+
+		task ("Create groups") {
+			for (var groups : list "${groupsList}") {
+				JSONUserGroup.addUserGroup(
+					userGroupDescription = "${groups} Description",
+					userGroupName = "${groups}");
+			}
+		}
+
+		task ("Go to users and organizations") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+		}
+
+		task ("Entry user and add to groups") {
+			UserNavigator.gotoUser(userScreenName = "${user}");
+
+			for (var addUsers : list "${groupsList}") {
+				User.assignUserGroupCP(userGroupName = "${addUsers}");
+			}
+		}
+
+		task ("Connect DXP to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(userGroup = "User Group1");
+		}
+
+		task ("Assert preview the number of users groups contacts to sync") {
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+			var entrieGrup = selenium.getText("ACDXPSettings#SYNC_BY_USER_GROUPS_PREVIEW");
+			var numberGrup = StringUtil.extractDigits("${entrieGrup}");
+
+			AssertTextEquals(
+				locator1 = "ACDXPSettings#SYNC_BY_USER_GROUPS_PREVIEW",
+				value1 = "${entrieGrup}");
+
+			Navigator.gotoBack();
+		}
+
+		task ("Assert preview the number of users groups contacts to sync") {
+			ACDXPSettings.syncContactSingleUserGroupData(userGroup = "User Group2");
+
+			ACDXPSettings.navToSyncedContactDataMenu();
+
+			Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+			var newNumberGrup = ${numberGrup} + 1;
+			var newEntrieGrup = StringUtil.add("${newNumberGrup}", " User Groups Selected", "");
+
+			AssertTextEquals(
+				locator1 = "ACDXPSettings#SYNC_BY_USER_GROUPS_PREVIEW",
+				value1 = "${newEntrieGrup}");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8128 | Test Summary: View asset added by DXP data source"
+	@priority = "5"
+	test ViewAssetAddedByDXPDataSource {
+		property portal.release = "true";
+
+		task ("Create site, page and add a blog to the page") {
+			ACUtils.addSiteAndPage();
+
+			ACUtils.createBlogsAndAddToPage();
+		}
+
+		task ("Connect DXP to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("View the blog") {
+			ACUtils.navigateToSitePage(
+				actionType = "View Blog",
+				documentTitleList = "Blogs AC Title",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close DXP, launch AC and switch the propety") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Go to Blogs assets") {
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Blogs");
+		}
+
+		task ("Assert blog on the Last 24 hours") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+
+			ACUtils.viewNameList(nameList = "Blogs AC Title");
+		}
+	}
+
+	@description = "Automation ID: LRAC-8127 | Test Summary: View page added by DXP data source"
+	@priority = "5"
+	test ViewPageAddedByDXPDataSource {
+		task ("Add a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "ac@liferay.com",
+				userFirstName = "ac",
+				userLastName = "ac",
+				userScreenName = "ac");
+		}
+
+		task ("Connect DXP to AC and extract the data source name") {
+			ACUtils.addSiteAndPage();
+
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", " ");
+		}
+
+		task ("Visit the page with the new user and get data") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "ac@liferay.com",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close all sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Go to AC and switch property") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Navigate to Pages tab in Sites") {
+			ACNavigation.goToSites();
+
+			ACNavigation.switchTab(tabName = "Pages");
+		}
+
+		task ("Set time filter to 24 hours") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("Assert that the page is shown in the list") {
+			ACUtils.viewNameList(nameList = "AC Page - Site Name - ${dataSourceName}");
+		}
+	}
+
+}

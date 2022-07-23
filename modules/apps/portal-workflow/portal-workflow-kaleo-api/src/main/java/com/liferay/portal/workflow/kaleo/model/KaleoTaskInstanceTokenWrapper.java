@@ -203,6 +203,11 @@ public class KaleoTaskInstanceTokenWrapper
 		}
 	}
 
+	@Override
+	public KaleoTaskInstanceToken cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the class name of this kaleo task instance token.
 	 *

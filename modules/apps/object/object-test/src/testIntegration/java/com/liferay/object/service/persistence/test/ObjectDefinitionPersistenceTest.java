@@ -15,7 +15,7 @@
 package com.liferay.object.service.persistence.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.object.exception.NoSuchDefinitionException;
+import com.liferay.object.exception.NoSuchObjectDefinitionException;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
@@ -138,7 +138,41 @@ public class ObjectDefinitionPersistenceTest {
 
 		newObjectDefinition.setModifiedDate(RandomTestUtil.nextDate());
 
+		newObjectDefinition.setDescriptionObjectFieldId(
+			RandomTestUtil.nextLong());
+
+		newObjectDefinition.setTitleObjectFieldId(RandomTestUtil.nextLong());
+
+		newObjectDefinition.setActive(RandomTestUtil.randomBoolean());
+
+		newObjectDefinition.setDBTableName(RandomTestUtil.randomString());
+
+		newObjectDefinition.setLabel(RandomTestUtil.randomString());
+
+		newObjectDefinition.setClassName(RandomTestUtil.randomString());
+
 		newObjectDefinition.setName(RandomTestUtil.randomString());
+
+		newObjectDefinition.setPanelAppOrder(RandomTestUtil.randomString());
+
+		newObjectDefinition.setPanelCategoryKey(RandomTestUtil.randomString());
+
+		newObjectDefinition.setPKObjectFieldDBColumnName(
+			RandomTestUtil.randomString());
+
+		newObjectDefinition.setPKObjectFieldName(RandomTestUtil.randomString());
+
+		newObjectDefinition.setPluralLabel(RandomTestUtil.randomString());
+
+		newObjectDefinition.setPortlet(RandomTestUtil.randomBoolean());
+
+		newObjectDefinition.setScope(RandomTestUtil.randomString());
+
+		newObjectDefinition.setSystem(RandomTestUtil.randomBoolean());
+
+		newObjectDefinition.setVersion(RandomTestUtil.nextInt());
+
+		newObjectDefinition.setStatus(RandomTestUtil.nextInt());
 
 		_objectDefinitions.add(_persistence.update(newObjectDefinition));
 
@@ -169,7 +203,55 @@ public class ObjectDefinitionPersistenceTest {
 			Time.getShortTimestamp(existingObjectDefinition.getModifiedDate()),
 			Time.getShortTimestamp(newObjectDefinition.getModifiedDate()));
 		Assert.assertEquals(
+			existingObjectDefinition.getDescriptionObjectFieldId(),
+			newObjectDefinition.getDescriptionObjectFieldId());
+		Assert.assertEquals(
+			existingObjectDefinition.getTitleObjectFieldId(),
+			newObjectDefinition.getTitleObjectFieldId());
+		Assert.assertEquals(
+			existingObjectDefinition.isActive(),
+			newObjectDefinition.isActive());
+		Assert.assertEquals(
+			existingObjectDefinition.getDBTableName(),
+			newObjectDefinition.getDBTableName());
+		Assert.assertEquals(
+			existingObjectDefinition.getLabel(),
+			newObjectDefinition.getLabel());
+		Assert.assertEquals(
+			existingObjectDefinition.getClassName(),
+			newObjectDefinition.getClassName());
+		Assert.assertEquals(
 			existingObjectDefinition.getName(), newObjectDefinition.getName());
+		Assert.assertEquals(
+			existingObjectDefinition.getPanelAppOrder(),
+			newObjectDefinition.getPanelAppOrder());
+		Assert.assertEquals(
+			existingObjectDefinition.getPanelCategoryKey(),
+			newObjectDefinition.getPanelCategoryKey());
+		Assert.assertEquals(
+			existingObjectDefinition.getPKObjectFieldDBColumnName(),
+			newObjectDefinition.getPKObjectFieldDBColumnName());
+		Assert.assertEquals(
+			existingObjectDefinition.getPKObjectFieldName(),
+			newObjectDefinition.getPKObjectFieldName());
+		Assert.assertEquals(
+			existingObjectDefinition.getPluralLabel(),
+			newObjectDefinition.getPluralLabel());
+		Assert.assertEquals(
+			existingObjectDefinition.isPortlet(),
+			newObjectDefinition.isPortlet());
+		Assert.assertEquals(
+			existingObjectDefinition.getScope(),
+			newObjectDefinition.getScope());
+		Assert.assertEquals(
+			existingObjectDefinition.isSystem(),
+			newObjectDefinition.isSystem());
+		Assert.assertEquals(
+			existingObjectDefinition.getVersion(),
+			newObjectDefinition.getVersion());
+		Assert.assertEquals(
+			existingObjectDefinition.getStatus(),
+			newObjectDefinition.getStatus());
 	}
 
 	@Test
@@ -198,12 +280,56 @@ public class ObjectDefinitionPersistenceTest {
 	}
 
 	@Test
+	public void testCountBySystem() throws Exception {
+		_persistence.countBySystem(RandomTestUtil.randomBoolean());
+
+		_persistence.countBySystem(RandomTestUtil.randomBoolean());
+	}
+
+	@Test
+	public void testCountByC_C() throws Exception {
+		_persistence.countByC_C(RandomTestUtil.nextLong(), "");
+
+		_persistence.countByC_C(0L, "null");
+
+		_persistence.countByC_C(0L, (String)null);
+	}
+
+	@Test
 	public void testCountByC_N() throws Exception {
 		_persistence.countByC_N(RandomTestUtil.nextLong(), "");
 
 		_persistence.countByC_N(0L, "null");
 
 		_persistence.countByC_N(0L, (String)null);
+	}
+
+	@Test
+	public void testCountByS_S() throws Exception {
+		_persistence.countByS_S(
+			RandomTestUtil.randomBoolean(), RandomTestUtil.nextInt());
+
+		_persistence.countByS_S(RandomTestUtil.randomBoolean(), 0);
+	}
+
+	@Test
+	public void testCountByC_A_S() throws Exception {
+		_persistence.countByC_A_S(
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(),
+			RandomTestUtil.nextInt());
+
+		_persistence.countByC_A_S(0L, RandomTestUtil.randomBoolean(), 0);
+	}
+
+	@Test
+	public void testCountByC_A_S_S() throws Exception {
+		_persistence.countByC_A_S_S(
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(),
+			RandomTestUtil.randomBoolean(), RandomTestUtil.nextInt());
+
+		_persistence.countByC_A_S_S(
+			0L, RandomTestUtil.randomBoolean(), RandomTestUtil.randomBoolean(),
+			0);
 	}
 
 	@Test
@@ -216,7 +342,7 @@ public class ObjectDefinitionPersistenceTest {
 		Assert.assertEquals(existingObjectDefinition, newObjectDefinition);
 	}
 
-	@Test(expected = NoSuchDefinitionException.class)
+	@Test(expected = NoSuchObjectDefinitionException.class)
 	public void testFindByPrimaryKeyMissing() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
@@ -233,8 +359,13 @@ public class ObjectDefinitionPersistenceTest {
 		return OrderByComparatorFactoryUtil.create(
 			"ObjectDefinition", "mvccVersion", true, "uuid", true,
 			"objectDefinitionId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "modifiedDate", true, "name",
-			true);
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"descriptionObjectFieldId", true, "titleObjectFieldId", true,
+			"active", true, "dbTableName", true, "label", true, "className",
+			true, "name", true, "panelAppOrder", true, "panelCategoryKey", true,
+			"pkObjectFieldDBColumnName", true, "pkObjectFieldName", true,
+			"pluralLabel", true, "portlet", true, "scope", true, "system", true,
+			"version", true, "status", true);
 	}
 
 	@Test
@@ -512,6 +643,17 @@ public class ObjectDefinitionPersistenceTest {
 				objectDefinition, "getColumnOriginalValue",
 				new Class<?>[] {String.class}, "companyId"));
 		Assert.assertEquals(
+			objectDefinition.getClassName(),
+			ReflectionTestUtil.invoke(
+				objectDefinition, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "className"));
+
+		Assert.assertEquals(
+			Long.valueOf(objectDefinition.getCompanyId()),
+			ReflectionTestUtil.<Long>invoke(
+				objectDefinition, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "companyId"));
+		Assert.assertEquals(
 			objectDefinition.getName(),
 			ReflectionTestUtil.invoke(
 				objectDefinition, "getColumnOriginalValue",
@@ -537,7 +679,40 @@ public class ObjectDefinitionPersistenceTest {
 
 		objectDefinition.setModifiedDate(RandomTestUtil.nextDate());
 
+		objectDefinition.setDescriptionObjectFieldId(RandomTestUtil.nextLong());
+
+		objectDefinition.setTitleObjectFieldId(RandomTestUtil.nextLong());
+
+		objectDefinition.setActive(RandomTestUtil.randomBoolean());
+
+		objectDefinition.setDBTableName(RandomTestUtil.randomString());
+
+		objectDefinition.setLabel(RandomTestUtil.randomString());
+
+		objectDefinition.setClassName(RandomTestUtil.randomString());
+
 		objectDefinition.setName(RandomTestUtil.randomString());
+
+		objectDefinition.setPanelAppOrder(RandomTestUtil.randomString());
+
+		objectDefinition.setPanelCategoryKey(RandomTestUtil.randomString());
+
+		objectDefinition.setPKObjectFieldDBColumnName(
+			RandomTestUtil.randomString());
+
+		objectDefinition.setPKObjectFieldName(RandomTestUtil.randomString());
+
+		objectDefinition.setPluralLabel(RandomTestUtil.randomString());
+
+		objectDefinition.setPortlet(RandomTestUtil.randomBoolean());
+
+		objectDefinition.setScope(RandomTestUtil.randomString());
+
+		objectDefinition.setSystem(RandomTestUtil.randomBoolean());
+
+		objectDefinition.setVersion(RandomTestUtil.nextInt());
+
+		objectDefinition.setStatus(RandomTestUtil.nextInt());
 
 		_objectDefinitions.add(_persistence.update(objectDefinition));
 

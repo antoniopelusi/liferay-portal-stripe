@@ -14,94 +14,110 @@
 
 package com.liferay.jenkins.results.parser;
 
-import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
  */
-public abstract class WorkspaceFactory {
+public class WorkspaceFactory {
 
-	public static Workspace newBatchWorkspace(
-		String gitHubURL, String upstreamBranchName, String batchName,
-		String branchSHA) {
+	public static Workspace newWorkspace() {
+		return newWorkspace("liferay-jenkins-ee", "master");
+	}
 
-		if (gitHubURL == null) {
-			throw new RuntimeException("GitHub URL is null");
+	public static Workspace newWorkspace(JSONObject workspaceJSONObject) {
+		String primaryRepositoryName = workspaceJSONObject.getString(
+			"primary_repository_name");
+		String primaryRepositoryDirName = workspaceJSONObject.getString(
+			"primary_repository_dir_name");
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(primaryRepositoryName) ||
+			JenkinsResultsParserUtil.isNullOrEmpty(primaryRepositoryDirName)) {
+
+			throw new RuntimeException("Invalid JSONObject");
 		}
 
-		if (!BasePortalWorkspace.isPortalGitHubURL(gitHubURL)) {
-			throw new RuntimeException("Unsupported GitHub URL " + gitHubURL);
+		Workspace workspace = _workspaces.get(primaryRepositoryDirName);
+
+		if (workspace != null) {
+			return workspace;
 		}
 
-		if (batchName == null) {
-			batchName = "default";
+		if (primaryRepositoryName.matches("com-liferay-.*")) {
+			workspace = new SubrepositoryWorkspace(workspaceJSONObject);
 		}
-
-		Workspace workspace = null;
-
-		if (batchName.contains("functional")) {
-			workspace = new FunctionalBatchPortalWorkspace(
-				gitHubURL, upstreamBranchName, branchSHA);
+		else if (primaryRepositoryName.matches("liferay-plugins(-ee)?")) {
+			workspace = new PluginsWorkspace(workspaceJSONObject);
 		}
-		else if (batchName.contains("integration") ||
-				 batchName.contains("unit")) {
-
-			workspace = new JunitBatchPortalWorkspace(
-				gitHubURL, upstreamBranchName, branchSHA);
+		else if (primaryRepositoryName.matches("liferay-portal(-ee)?")) {
+			workspace = new PortalWorkspace(workspaceJSONObject);
 		}
 		else {
-			workspace = new BatchPortalWorkspace(
-				gitHubURL, upstreamBranchName, branchSHA);
+			workspace = new DefaultWorkspace(workspaceJSONObject);
 		}
 
-		if (workspace == null) {
-			throw new RuntimeException("Invalid workspace");
-		}
+		_workspaces.put(primaryRepositoryDirName, workspace);
 
-		if (workspace instanceof PortalWorkspace) {
-			return (PortalWorkspace)Proxy.newProxyInstance(
-				PortalWorkspace.class.getClassLoader(),
-				new Class<?>[] {PortalWorkspace.class},
-				new MethodLogger(workspace));
-		}
-
-		return (Workspace)Proxy.newProxyInstance(
-			Workspace.class.getClassLoader(), new Class<?>[] {Workspace.class},
-			new MethodLogger(workspace));
+		return workspace;
 	}
 
-	public static Workspace newSimpleWorkspace() {
-		Workspace workspace = new SimpleWorkspace();
+	public static Workspace newWorkspace(
+		String repositoryName, String upstreamBranchName) {
 
-		return (Workspace)Proxy.newProxyInstance(
-			Workspace.class.getClassLoader(), new Class<?>[] {Workspace.class},
-			new MethodLogger(workspace));
+		return newWorkspace(repositoryName, upstreamBranchName, null);
 	}
 
-	public static Workspace newTopLevelWorkspace(
-		String gitHubURL, String upstreamBranchName) {
+	public static Workspace newWorkspace(
+		String repositoryName, String upstreamBranchName, String jobName) {
 
-		if (gitHubURL == null) {
-			throw new RuntimeException("GitHub URL is null");
+		String gitDirectoryName = JenkinsResultsParserUtil.getGitDirectoryName(
+			repositoryName, upstreamBranchName);
+
+		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase();
+
+		Workspace workspace = _workspaces.get(gitDirectoryName);
+
+		if (workspace != null) {
+			buildDatabase.putWorkspace(gitDirectoryName, workspace);
+
+			return workspace;
 		}
 
-		if (!BasePortalWorkspace.isPortalGitHubURL(gitHubURL)) {
-			throw new RuntimeException("Unsupported GitHub URL " + gitHubURL);
+		if (buildDatabase.hasWorkspace(gitDirectoryName)) {
+			workspace = buildDatabase.getWorkspace(gitDirectoryName);
+
+			_workspaces.put(gitDirectoryName, workspace);
+
+			return workspace;
 		}
 
-		Workspace workspace = new TopLevelPortalWorkspace(
-			gitHubURL, upstreamBranchName);
-
-		if (workspace instanceof PortalWorkspace) {
-			return (PortalWorkspace)Proxy.newProxyInstance(
-				PortalWorkspace.class.getClassLoader(),
-				new Class<?>[] {PortalWorkspace.class},
-				new MethodLogger(workspace));
+		if (repositoryName.matches("com-liferay-.*")) {
+			workspace = new SubrepositoryWorkspace(
+				repositoryName, upstreamBranchName, jobName);
+		}
+		else if (repositoryName.matches("liferay-plugins(-ee)?")) {
+			workspace = new PluginsWorkspace(
+				repositoryName, upstreamBranchName, jobName);
+		}
+		else if (repositoryName.matches("liferay-portal(-ee)?")) {
+			workspace = new PortalWorkspace(
+				repositoryName, upstreamBranchName, jobName);
+		}
+		else {
+			workspace = new DefaultWorkspace(
+				repositoryName, upstreamBranchName, jobName);
 		}
 
-		return (Workspace)Proxy.newProxyInstance(
-			Workspace.class.getClassLoader(), new Class<?>[] {Workspace.class},
-			new MethodLogger(workspace));
+		_workspaces.put(gitDirectoryName, workspace);
+
+		buildDatabase.putWorkspace(gitDirectoryName, workspace);
+
+		return workspace;
 	}
+
+	private static final Map<String, Workspace> _workspaces = new HashMap<>();
 
 }

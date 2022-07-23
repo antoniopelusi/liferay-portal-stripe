@@ -1,5 +1,6 @@
 import com.liferay.gradle.util.FileUtil
 
+task processBlogsSanitizerConfiguration(type: Copy)
 task processDefaultSanitizerConfiguration(type: Copy)
 task processKnowledgeBaseSanitizerConfiguration(type: Copy)
 
@@ -7,25 +8,24 @@ File sanitizerConfigurationFile = new File("src/main/resources/META-INF/resource
 String sanitizerConfigurationUrl = "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/owaspantisamy/antisamy-ebay-1.4.4.xml"
 
 dependencies {
-	compileInclude group: "commons-io", name: "commons-io", version: "1.3.1"
-	compileInclude group: "commons-logging", name: "commons-logging", version: "1.0.4"
-	compileInclude group: "net.sourceforge.nekohtml", name: "nekohtml", version: "1.9.16"
-	compileInclude group: "org.apache.httpcomponents", name: "httpclient", version: "4.5.5"
-	compileInclude group: "org.apache.httpcomponents", name: "httpcore", version: "4.4.9"
-	compileInclude group: "org.apache.xmlgraphics", name: "batik-constants", version: "1.13"
-	compileInclude group: "org.apache.xmlgraphics", name: "batik-css", version: "1.13"
-	compileInclude group: "org.apache.xmlgraphics", name: "batik-i18n", version: "1.13"
-	compileInclude group: "org.apache.xmlgraphics", name: "batik-util", version: "1.13"
-	compileInclude group: "org.apache.xmlgraphics", name: "xmlgraphics-commons", version: "2.2"
-	compileInclude group: "org.owasp.antisamy", name: "antisamy", version: "1.5.9"
+	compileInclude group: "commons-codec", name: "commons-codec", version: "1.15"
+	compileInclude group: "net.sourceforge.nekohtml", name: "nekohtml", version: "1.9.22"
+	compileInclude group: "org.apache.httpcomponents", name: "httpclient", version: "4.5.13"
+	compileInclude group: "org.apache.httpcomponents", name: "httpcore", version: "4.4.14"
+	compileInclude group: "org.apache.xmlgraphics", name: "batik-constants", version: "1.14"
+	compileInclude group: "org.apache.xmlgraphics", name: "batik-css", version: "1.14"
+	compileInclude group: "org.apache.xmlgraphics", name: "batik-i18n", version: "1.14"
+	compileInclude group: "org.apache.xmlgraphics", name: "batik-util", version: "1.14"
+	compileInclude group: "org.apache.xmlgraphics", name: "xmlgraphics-commons", version: "2.6"
+	compileInclude group: "org.owasp.antisamy", name: "antisamy", version: "1.6.4"
 	compileInclude group: "xml-apis", name: "xml-apis-ext", version: "1.3.04"
 
-	compileOnly group: "biz.aQute.bnd", name: "biz.aQute.bnd.annotation", version: "4.2.0"
+	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
-	compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.5.0"
-	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.3.0"
+	compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
+	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly group: "org.osgi", name: "osgi.core", version: "6.0.0"
-	compileOnly group: "xerces", name: "xercesImpl", version: "2.12.0"
+	compileOnly group: "xerces", name: "xercesImpl", version: "2.12.1"
 	compileOnly group: "xml-apis", name: "xml-apis", version: "1.4.01"
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-persistence-api")
@@ -53,6 +53,34 @@ processDefaultSanitizerConfiguration {
 
 	rename {
 		sanitizerConfigurationFile.name
+	}
+}
+
+processBlogsSanitizerConfiguration {
+	dependsOn processDefaultSanitizerConfiguration
+
+	File blogsSanitizerConfigurationFile = new File("src/main/resources/META-INF/resources/blogs-sanitizer-configuration.xml")
+
+	ext {
+		autoClean = false
+	}
+
+	filter {
+		return _filterBlogsSanitizer(it)
+	}
+
+	from {
+		sanitizerConfigurationFile
+	}
+
+	into blogsSanitizerConfigurationFile.parentFile
+
+	onlyIf {
+		!blogsSanitizerConfigurationFile.exists()
+	}
+
+	rename {
+		blogsSanitizerConfigurationFile.name
 	}
 }
 
@@ -85,8 +113,94 @@ processKnowledgeBaseSanitizerConfiguration {
 }
 
 processResources {
+	dependsOn processBlogsSanitizerConfiguration
 	dependsOn processDefaultSanitizerConfiguration
 	dependsOn processKnowledgeBaseSanitizerConfiguration
+}
+
+private String _filterBlogsSanitizer(String line) {
+	if (line.contains('<directive name="embedStyleSheets" value="false"/>')) {
+		line = """\
+			|	${line}
+			|	<directive name="allowDynamicAttributes" value="true"/>""".stripMargin()
+	}
+
+	if (line.contains('</global-tag-attributes>')) {
+		line = """\
+			|	${line}
+			|	<dynamic-tag-attributes>
+			|		<attribute name="data-"/>
+			|	</dynamic-tag-attributes>""".stripMargin()
+	}
+
+	if (line.contains('<common-attributes>')) {
+		line = """\
+			|	${line}
+			|		<attribute name="data-" description="Allows the HTML5 'data-' attribute to be added to elements">
+			|			<regexp-list>
+			|				<regexp name="anything"/>
+			|			</regexp-list>
+			|		</attribute>""".stripMargin()
+	}
+
+	if (line.contains('<literal value="hr"/>')) {
+		line = """\
+			|	${line}
+			|	<literal value="iframe"/>""".stripMargin()
+	}
+	else if (line.contains('<tag name="iframe" action="remove"/>')) {
+		line = """\
+		|	<tag name="iframe" action="validate">
+		|		<attribute name="allow">
+		|			<regexp-list>
+		|				<regexp name="anything"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="allowfullscreen">
+		|			<regexp-list>
+		|				<regexp name="anything"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="allowTransparency">
+		|			<regexp-list>
+		|				<regexp name="boolean"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="frameborder">
+		|			<regexp-list>
+		|				<regexp name="integer"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="height"/>
+		|		<attribute name="mozallowfullscreen">
+		|			<regexp-list>
+		|				<regexp name="anything"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="scrolling">
+		|			<regexp-list>
+		|				<regexp name="anything"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="src">
+		|			<regexp-list>
+		|				<regexp name="anything"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="style">
+		|			<regexp-list>
+		|				<regexp name="anything"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="webkitallowfullscreen">
+		|			<regexp-list>
+		|				<regexp name="boolean"/>
+		|			</regexp-list>
+		|		</attribute>
+		|		<attribute name="width"/>
+		|	</tag>""".stripMargin()
+	}
+	return line
 }
 
 private String _filterDefaultSanitizer(String line) {
@@ -102,22 +216,6 @@ private String _filterDefaultSanitizer(String line) {
 	}
 	else if (line.contains('<tag-rules>')) {
 		line = """\
-			|	<allowed-empty-tags>
-			|		<literal-list>
-			|			<literal value="br"/>
-			|			<literal value="hr"/>
-			|			<literal value="a"/>
-			|			<literal value="img"/>
-			|			<literal value="param"/>
-			|			<literal value="input"/>
-			|			<literal value="textarea"/>
-			|			<literal value="basefont"/>
-			|			<literal value="col"/>
-			|			<literal value="div"/>
-			|			<literal value="source"/>
-			|		</literal-list>
-			|	</allowed-empty-tags>
-			|
 			|${line}
 			|		<tag name="article" action="validate" />
 			|		<tag name="aside" action="validate" />
@@ -143,8 +241,15 @@ private String _filterDefaultSanitizer(String line) {
 			|		<tag name="rp" action="validate" />
 			|		<tag name="rt" action="validate" />
 			|		<tag name="ruby" action="validate" />
+			|		<tag name="s" action="validate" />
 			|		<tag name="section" action="validate" />
 			|		<tag name="source" action="validate">
+			|			<attribute name="src" onInvalid="removeTag">
+			|				<regexp-list>
+			|					<regexp name="onsiteURL"/>
+			|					<regexp name="offsiteURL"/>
+			|				</regexp-list>
+			|			</attribute>
 			|			<attribute name="srcset">
 			|				<regexp-list>
 			|					<regexp name="anything"/>
@@ -163,6 +268,63 @@ private String _filterDefaultSanitizer(String line) {
 			|		</tag>
 			|		<tag name="summary" action="validate" />
 			|		<tag name="time" action="validate" />
+			|		<tag name="video" action="validate">
+			|			<attribute name="autoplay">
+			|				<regexp-list>
+			|					<regexp name="anything"/>
+			|				</regexp-list>
+			|			</attribute>
+			|			<attribute name="controls">
+			|				<regexp-list>
+			|					<regexp name="anything"/>
+			|				</regexp-list>
+			|			</attribute>
+			|			<attribute name="crossorigin">
+			|				<literal-list>
+			|					<literal value="anonymous"/>
+			|					<literal value="use-credentials"/>
+			|				</literal-list>
+			|			</attribute>
+			|			<attribute name="height">
+			|				<regexp-list>
+			|					<regexp name="number"/>
+			|				</regexp-list>
+			|			</attribute>
+			|			<attribute name="loop">
+			|				<regexp-list>
+			|					<regexp name="anything"/>
+			|				</regexp-list>
+			|			</attribute>
+			|			<attribute name="muted">
+			|				<regexp-list>
+			|					<regexp name="anything"/>
+			|				</regexp-list>
+			|			</attribute>
+			|			<attribute name="poster">
+			|				<regexp-list>
+			|					<regexp name="onsiteURL"/>
+			|					<regexp name="offsiteURL"/>
+			|				</regexp-list>
+			|			</attribute>
+			|			<attribute name="preload">
+			|				<literal-list>
+			|					<literal value="auto"/>
+			|					<literal value="metadata"/>
+			|					<literal value="none"/>
+			|				</literal-list>
+			|			</attribute>
+			|			<attribute name="src">
+			|				<regexp-list>
+			|					<regexp name="onsiteURL"/>
+			|					<regexp name="offsiteURL"/>
+			|				</regexp-list>
+			|			</attribute>
+			|			<attribute name="width">
+			|				<regexp-list>
+			|					<regexp name="number" />
+			|				</regexp-list>
+			|			</attribute>
+			|		</tag>
 			|		<tag name="wbr" action="validate" />""".stripMargin()
 	}
 	else if (line.contains('<tag name="a" action="validate">')) {
@@ -196,6 +358,25 @@ private String _filterDefaultSanitizer(String line) {
 			|				</literal-list>
 			|			</attribute>
 			|		</tag>""".stripMargin()
+	}
+	else if (line.contains('</css-rules>')) {
+		line = """\
+			|${line}
+			|		<allowed-empty-tags>
+			|			<literal-list>
+			|				<literal value="br"/>
+			|				<literal value="hr"/>
+			|				<literal value="a"/>
+			|				<literal value="img"/>
+			|				<literal value="param"/>
+			|				<literal value="input"/>
+			|				<literal value="textarea"/>
+			|				<literal value="basefont"/>
+			|				<literal value="col"/>
+			|				<literal value="div"/>
+			|				<literal value="source"/>
+			|			</literal-list>
+			|	</allowed-empty-tags>""".stripMargin()
 	}
 
 	return line

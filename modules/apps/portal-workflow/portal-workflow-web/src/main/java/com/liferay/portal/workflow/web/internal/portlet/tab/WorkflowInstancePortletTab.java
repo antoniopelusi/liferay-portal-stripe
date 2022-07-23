@@ -34,7 +34,7 @@ import com.liferay.portal.workflow.portlet.tab.WorkflowPortletTab;
 import com.liferay.portal.workflow.web.internal.configuration.WorkflowInstanceWebConfiguration;
 import com.liferay.portal.workflow.web.internal.display.context.MyWorkflowInstanceViewDisplayContext;
 import com.liferay.portal.workflow.web.internal.display.context.WorkflowInstanceViewDisplayContext;
-import com.liferay.portal.workflow.web.internal.request.prepocessor.WorkflowPreprocessorHelper;
+import com.liferay.portal.workflow.web.internal.request.preprocessor.helper.WorkflowPreprocessorHelper;
 
 import java.util.Map;
 import java.util.Objects;
@@ -103,14 +103,14 @@ public class WorkflowInstancePortletTab extends BaseWorkflowPortletTab {
 		throws PortletException {
 
 		try {
-			setWorkflowInstanceDisplayContextRenderRequestAttribute(
+			_setWorkflowInstanceDisplayContextRenderRequestAttribute(
 				renderRequest, renderResponse);
-			setWorkflowInstanceRenderRequestAttribute(renderRequest);
+			_setWorkflowInstanceRenderRequestAttribute(renderRequest);
 		}
 		catch (Exception exception) {
 			if (workflowPreprocessorHelper.isSessionErrorException(exception)) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 
 				workflowPreprocessorHelper.hideDefaultErrorMessage(
@@ -145,7 +145,16 @@ public class WorkflowInstancePortletTab extends BaseWorkflowPortletTab {
 		super.setServletContext(servletContext);
 	}
 
-	protected void setWorkflowInstanceDisplayContextRenderRequestAttribute(
+	@Reference
+	protected Portal portal;
+
+	protected volatile WorkflowInstanceWebConfiguration
+		workflowInstanceWebConfiguration;
+
+	@Reference
+	protected WorkflowPreprocessorHelper workflowPreprocessorHelper;
+
+	private void _setWorkflowInstanceDisplayContextRenderRequestAttribute(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws PortalException {
 
@@ -173,7 +182,7 @@ public class WorkflowInstancePortletTab extends BaseWorkflowPortletTab {
 		}
 	}
 
-	protected void setWorkflowInstanceRenderRequestAttribute(
+	private void _setWorkflowInstanceRenderRequestAttribute(
 			RenderRequest renderRequest)
 		throws PortalException {
 
@@ -192,15 +201,6 @@ public class WorkflowInstancePortletTab extends BaseWorkflowPortletTab {
 
 		renderRequest.setAttribute(WebKeys.WORKFLOW_INSTANCE, workflowInstance);
 	}
-
-	@Reference
-	protected Portal portal;
-
-	protected volatile WorkflowInstanceWebConfiguration
-		workflowInstanceWebConfiguration;
-
-	@Reference
-	protected WorkflowPreprocessorHelper workflowPreprocessorHelper;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		WorkflowInstancePortletTab.class);

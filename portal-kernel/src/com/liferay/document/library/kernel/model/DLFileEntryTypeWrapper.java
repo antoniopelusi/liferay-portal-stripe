@@ -165,6 +165,11 @@ public class DLFileEntryTypeWrapper
 	}
 
 	@Override
+	public DLFileEntryType cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

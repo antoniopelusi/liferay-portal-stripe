@@ -156,6 +156,11 @@ public class LayoutFriendlyURLWrapper
 		}
 	}
 
+	@Override
+	public LayoutFriendlyURL cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this layout friendly url.
 	 *

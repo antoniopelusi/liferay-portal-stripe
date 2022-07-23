@@ -1,16 +1,14 @@
 @component-name = "portal-wcm"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Content and Application Templates";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 	}
@@ -62,11 +60,7 @@ definition {
 		task ("Assert the New button doesn't present") {
 			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
 
-			var browserType = PropsUtil.get("browser.type");
-
-			if ("${browserType}" == "chrome") {
-				MetalComponent.waitForManagementBar();
-			}
+			WaitForPageLoad();
 
 			AssertElementNotPresent(locator1 = "Button#PLUS");
 		}
@@ -94,6 +88,62 @@ definition {
 			FormFields.enableCheckbox(fieldName = "Enable Template Creation");
 
 			PortletEntry.update();
+		}
+	}
+
+	@description = "This is a use case for LPS-137903. View the new GUI in Widget Templates."
+	@priority = "4"
+	@uitest
+	test ViewTemplateEditorSidebarPanel {
+		task ("Add a widget template for Asset Publisher") {
+			ApplicationsMenu.gotoSite(site = "Test Site Name");
+
+			ProductMenu.gotoPortlet(
+				category = "Design",
+				portlet = "Templates");
+
+			Navigator.gotoNavTab(navTab = "Widget Templates");
+
+			ApplicationDisplayTemplates.addADTWithFieldEntryCP(
+				fieldName = "Asset Entry",
+				portletName = "Asset Publisher");
+
+			Alert.viewSuccessMessage();
+
+			ApplicationDisplayTemplates.viewTemplate(adtType = "Asset Publisher");
+		}
+
+		task ("View sidebar panels in template editor") {
+			ApplicationDisplayTemplates.gotoWidgetTemplatesEllipsisItem(
+				item = "Edit",
+				widgetTemplateName = "Asset Publisher Test ADT");
+		}
+
+		task ("View Elements panel") {
+			Navigator.gotoSidebarTab(tabName = "Elements");
+
+			for (var fieldName : list "Asset Entries*,Asset Entry,Current URL,Locale,Portlet Preferences,Template ID,Theme Display,HTTP Request,Render Request,Render Response,Asset Publisher Helper") {
+				AssertElementPresent(
+					key_fieldName = "${fieldName}",
+					locator1 = "DDMEditTemplate#SCRIPT_FIELD");
+			}
+		}
+
+		task ("View Properties panel") {
+			Navigator.gotoSidebarTab(tabName = "Properties");
+
+			for (var fieldName : list "Template Key,URL,WebDAV URL") {
+				AssertVisible(
+					key_text = "${fieldName}",
+					locator1 = "TextInput#ANY");
+			}
+
+			AssertVisible(locator1 = "TextArea#DESCRIPTION");
+
+			AssertSelectedLabel(
+				locator1 = "Select#SELECT_ID",
+				selectFieldId = "smallImageSource",
+				value1 = "No Image");
 		}
 	}
 

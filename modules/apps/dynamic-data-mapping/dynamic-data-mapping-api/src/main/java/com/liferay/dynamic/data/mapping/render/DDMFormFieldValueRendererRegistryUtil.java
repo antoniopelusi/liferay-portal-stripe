@@ -23,7 +23,7 @@ public class DDMFormFieldValueRendererRegistryUtil {
 		String ddmFormFieldType) {
 
 		DDMFormFieldValueRendererRegistry ddmFormFieldValueRendererRegistry =
-			getDDMFormFieldValueRendererRegistry();
+			_ddmFormFieldValueRendererRegistry;
 
 		return ddmFormFieldValueRendererRegistry.getDDMFormFieldValueRenderer(
 			ddmFormFieldType);

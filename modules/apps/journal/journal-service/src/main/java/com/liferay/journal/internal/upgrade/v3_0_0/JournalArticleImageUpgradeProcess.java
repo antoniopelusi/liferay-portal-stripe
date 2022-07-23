@@ -42,11 +42,11 @@ public class JournalArticleImageUpgradeProcess extends UpgradeProcess {
 
 		try (LoggingTimer loggingTimer = new LoggingTimer();
 			Statement statement = connection.createStatement();
-			ResultSet rs1 = statement.executeQuery(
+			ResultSet resultSet1 = statement.executeQuery(
 				"select articleImageId from JournalArticleImage")) {
 
-			while (rs1.next()) {
-				long articleImageId = rs1.getLong(1);
+			while (resultSet1.next()) {
+				long articleImageId = resultSet1.getLong(1);
 
 				_imageLocalService.deleteImage(articleImageId);
 			}

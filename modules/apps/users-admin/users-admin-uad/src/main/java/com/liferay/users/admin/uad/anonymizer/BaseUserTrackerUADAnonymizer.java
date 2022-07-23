@@ -14,6 +14,8 @@
 
 package com.liferay.users.admin.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
@@ -46,6 +48,8 @@ public abstract class BaseUserTrackerUADAnonymizer
 
 		if (userTracker.getUserId() == userId) {
 			delete(userTracker);
+
+			autoAnonymizeAssetEntry(userTracker, anonymousUser);
 		}
 	}
 
@@ -59,6 +63,19 @@ public abstract class BaseUserTrackerUADAnonymizer
 		return UserTracker.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		UserTracker userTracker, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(userTracker);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return userTrackerLocalService.getActionableDynamicQuery();
@@ -68,6 +85,14 @@ public abstract class BaseUserTrackerUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return UsersAdminUADConstants.USER_ID_FIELD_NAMES_USER_TRACKER;
 	}
+
+	protected AssetEntry fetchAssetEntry(UserTracker userTracker) {
+		return assetEntryLocalService.fetchEntry(
+			UserTracker.class.getName(), userTracker.getUserTrackerId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected UserTrackerLocalService userTrackerLocalService;

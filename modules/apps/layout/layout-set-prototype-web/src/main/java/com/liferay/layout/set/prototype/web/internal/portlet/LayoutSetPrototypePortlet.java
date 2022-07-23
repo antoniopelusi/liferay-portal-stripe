@@ -18,9 +18,13 @@ import com.liferay.application.list.PanelAppRegistry;
 import com.liferay.application.list.PanelCategoryRegistry;
 import com.liferay.application.list.constants.ApplicationListWebKeys;
 import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
+import com.liferay.layout.set.prototype.configuration.LayoutSetPrototypeConfiguration;
 import com.liferay.layout.set.prototype.constants.LayoutSetPrototypePortletKeys;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.NoSuchLayoutSetPrototypeException;
 import com.liferay.portal.kernel.exception.RequiredLayoutSetPrototypeException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
@@ -49,13 +53,16 @@ import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
  */
 @Component(
+	configurationPid = "com.liferay.layout.set.prototype.configuration.LayoutSetPrototypeConfiguration",
 	immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
@@ -245,6 +252,13 @@ public class LayoutSetPrototypePortlet extends MVCPortlet {
 			readyForPropagation, serviceContext);
 	}
 
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		_layoutSetPrototypeConfiguration = ConfigurableUtil.createConfigurable(
+			LayoutSetPrototypeConfiguration.class, properties);
+	}
+
 	@Override
 	protected void doDispatch(
 			RenderRequest renderRequest, RenderResponse renderResponse)
@@ -273,6 +287,17 @@ public class LayoutSetPrototypePortlet extends MVCPortlet {
 			throwable instanceof RequiredLayoutSetPrototypeException) {
 
 			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isTriggerPropagation() {
+		try {
+			return _layoutSetPrototypeConfiguration.triggerPropagation();
+		}
+		catch (Exception exception) {
+			_log.error(exception);
 		}
 
 		return false;
@@ -310,8 +335,19 @@ public class LayoutSetPrototypePortlet extends MVCPortlet {
 		}
 
 		if (!oldReadyForPropagation && readyForPropagation) {
-			SessionMessages.add(actionRequest, "enablePropagation");
+			if (isTriggerPropagation()) {
+				SessionMessages.add(actionRequest, "triggerPropagation");
+			}
+			else {
+				SessionMessages.add(actionRequest, "enablePropagation");
+			}
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LayoutSetPrototypePortlet.class);
+
+	private volatile LayoutSetPrototypeConfiguration
+		_layoutSetPrototypeConfiguration;
 
 }

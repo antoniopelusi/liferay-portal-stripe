@@ -38,14 +38,14 @@ public class MailSynchronizationMessageListener extends BaseMessageListener {
 		String command = message.getString("command");
 
 		if (command.equals("synchronize")) {
-			synchronize(message);
+			_synchronize(message);
 		}
 		else if (command.equals("flag")) {
-			flagMessage(message);
+			_flagMessage(message);
 		}
 	}
 
-	protected void flagMessage(Message message) throws Exception {
+	private void _flagMessage(Message message) throws Exception {
 		String password = message.getString("password");
 
 		long messageId = message.getLong("messageId");
@@ -71,7 +71,7 @@ public class MailSynchronizationMessageListener extends BaseMessageListener {
 		mailbox.updateFlags(folderId, new long[] {messageId}, flag, flagValue);
 	}
 
-	protected void synchronize(Message message) throws Exception {
+	private void _synchronize(Message message) throws Exception {
 		long userId = message.getLong("userId");
 		long accountId = message.getLong("accountId");
 		String password = message.getString("password");

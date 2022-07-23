@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.constants.MVCRenderConstants;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -77,7 +78,7 @@ public class EditAssetCategoryCPDisplayLayoutMVCRenderCommand
 						_actionHelper, _assetCategoryLocalService,
 						httpServletRequest, _commerceChannelLocalService,
 						_cpDisplayLayoutService, _groupLocalService,
-						_itemSelector);
+						_itemSelector, _layoutLocalService);
 
 			httpServletRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
@@ -94,8 +95,7 @@ public class EditAssetCategoryCPDisplayLayoutMVCRenderCommand
 				return "/error.jsp";
 			}
 
-			throw new PortletException(
-				"Unable to include edit_category_display_page.jsp", exception);
+			throw new PortletException(exception);
 		}
 
 		return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;
@@ -118,6 +118,9 @@ public class EditAssetCategoryCPDisplayLayoutMVCRenderCommand
 
 	@Reference
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private Portal _portal;

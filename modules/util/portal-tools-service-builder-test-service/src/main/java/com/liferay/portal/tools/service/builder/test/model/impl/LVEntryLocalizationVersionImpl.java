@@ -19,8 +19,4 @@ package com.liferay.portal.tools.service.builder.test.model.impl;
  */
 public class LVEntryLocalizationVersionImpl
 	extends LVEntryLocalizationVersionBaseImpl {
-
-	public LVEntryLocalizationVersionImpl() {
-	}
-
 }

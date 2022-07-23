@@ -26,6 +26,10 @@ List<DiffResult> sourceResults = diffResults[0];
 List<DiffResult> targetResults = diffResults[1];
 %>
 
+<liferay-util:html-top>
+	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/css/diff.css") %>" rel="stylesheet" type="text/css" />
+</liferay-util:html-top>
+
 <clay:container-fluid>
 	<c:choose>
 		<c:when test="<%= !sourceResults.isEmpty() %>">
@@ -61,7 +65,7 @@ List<DiffResult> targetResults = diffResults[1];
 								for (String changedLine : sourceResult.getChangedLines()) {
 								%>
 
-									<tr class="lfr-top">
+									<tr class="align-top">
 										<%= _processColumn(changedLine) %>
 									</tr>
 
@@ -71,14 +75,14 @@ List<DiffResult> targetResults = diffResults[1];
 
 							</table>
 						</td>
-						<td class="lfr-top" width="50%">
+						<td class="align-top" width="50%">
 							<table class="taglib-diff-table">
 
 								<%
 								for (String changedLine : targetResult.getChangedLines()) {
 								%>
 
-									<tr class="lfr-top">
+									<tr class="align-top">
 										<%= _processColumn(changedLine) %>
 									</tr>
 

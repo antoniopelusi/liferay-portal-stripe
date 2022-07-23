@@ -62,7 +62,7 @@ List<Long> hitLayoutIds = JournalContentSearchLocalServiceUtil.getLayoutIds(layo
 			"articleId", articleId
 		).setParameter(
 			"groupId", articleGroupId
-		).build();
+		).buildPortletURL();
 		%>
 
 		<br /><a href="<%= webContentPortletURL.toString() %>"><%= StringUtil.shorten(webContentPortletURL.toString(), 100) %></a>

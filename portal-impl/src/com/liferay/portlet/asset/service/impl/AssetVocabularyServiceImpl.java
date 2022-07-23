@@ -17,12 +17,14 @@ package com.liferay.portlet.asset.service.impl;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.model.AssetVocabularyDisplay;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -103,6 +105,22 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 		return assetVocabularyLocalService.addVocabulary(
 			getUserId(), groupId, name, title, titleMap, descriptionMap,
 			settings, serviceContext);
+	}
+
+	@Override
+	public AssetVocabulary addVocabulary(
+			String externalReferenceCode, long groupId, String name,
+			String title, Map<Locale, String> titleMap,
+			Map<Locale, String> descriptionMap, String settings,
+			int visibilityType, ServiceContext serviceContext)
+		throws PortalException {
+
+		AssetCategoriesPermission.check(
+			getPermissionChecker(), groupId, ActionKeys.ADD_VOCABULARY);
+
+		return assetVocabularyLocalService.addVocabulary(
+			externalReferenceCode, getUserId(), groupId, name, title, titleMap,
+			descriptionMap, settings, visibilityType, serviceContext);
 	}
 
 	@Override
@@ -190,7 +208,7 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 			return vocabularies;
 		}
 
-		long classNameId = classNameLocalService.getClassNameId(className);
+		long classNameId = _classNameLocalService.getClassNameId(className);
 
 		return ListUtil.filter(
 			vocabularies,
@@ -457,5 +475,8 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 			vocabularyId, name, title, titleMap, descriptionMap, settings,
 			serviceContext);
 	}
+
+	@BeanReference(type = ClassNameLocalService.class)
+	private ClassNameLocalService _classNameLocalService;
 
 }

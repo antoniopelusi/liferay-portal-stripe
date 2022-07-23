@@ -34,7 +34,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -52,9 +51,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -216,15 +213,14 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGetChannelProductsPage() throws Exception {
-		Page<Product> page = productResource.getChannelProductsPage(
-			testGetChannelProductsPage_getChannelId(), null, null,
-			Pagination.of(1, 2), null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long channelId = testGetChannelProductsPage_getChannelId();
 		Long irrelevantChannelId =
 			testGetChannelProductsPage_getIrrelevantChannelId();
+
+		Page<Product> page = productResource.getChannelProductsPage(
+			channelId, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantChannelId != null) {
 			Product irrelevantProduct = testGetChannelProductsPage_addProduct(
@@ -248,7 +244,7 @@ public abstract class BaseProductResourceTestCase {
 			channelId, randomProduct());
 
 		page = productResource.getChannelProductsPage(
-			channelId, null, null, Pagination.of(1, 2), null);
+			channelId, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -278,6 +274,37 @@ public abstract class BaseProductResourceTestCase {
 			Page<Product> page = productResource.getChannelProductsPage(
 				channelId, null,
 				getFilterString(entityField, "between", product1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(product1),
+				(List<Product>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetChannelProductsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long channelId = testGetChannelProductsPage_getChannelId();
+
+		Product product1 = testGetChannelProductsPage_addProduct(
+			channelId, randomProduct());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Product product2 = testGetChannelProductsPage_addProduct(
+			channelId, randomProduct());
+
+		for (EntityField entityField : entityFields) {
+			Page<Product> page = productResource.getChannelProductsPage(
+				channelId, null, getFilterString(entityField, "eq", product1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -366,6 +393,16 @@ public abstract class BaseProductResourceTestCase {
 	}
 
 	@Test
+	public void testGetChannelProductsPageWithSortDouble() throws Exception {
+		testGetChannelProductsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, product1, product2) -> {
+				BeanUtils.setProperty(product1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(product2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetChannelProductsPageWithSortInteger() throws Exception {
 		testGetChannelProductsPageWithSort(
 			EntityField.Type.INTEGER,
@@ -384,7 +421,7 @@ public abstract class BaseProductResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -494,10 +531,15 @@ public abstract class BaseProductResourceTestCase {
 		Product postProduct = testGetChannelProduct_addProduct();
 
 		Product getProduct = productResource.getChannelProduct(
-			null, postProduct.getId(), null);
+			testGetChannelProduct_getChannelId(), postProduct.getId(), null);
 
 		assertEquals(postProduct, getProduct);
 		assertValid(getProduct);
+	}
+
+	protected Long testGetChannelProduct_getChannelId() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Product testGetChannelProduct_addProduct() throws Exception {
@@ -507,7 +549,7 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGraphQLGetChannelProduct() throws Exception {
-		Product product = testGraphQLProduct_addProduct();
+		Product product = testGraphQLGetChannelProduct_addProduct();
 
 		Assert.assertTrue(
 			equals(
@@ -519,12 +561,21 @@ public abstract class BaseProductResourceTestCase {
 								"channelProduct",
 								new HashMap<String, Object>() {
 									{
-										put("channelId", null);
+										put(
+											"channelId",
+											testGraphQLGetChannelProduct_getChannelId());
 										put("productId", product.getId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data", "Object/channelProduct"))));
+	}
+
+	protected Long testGraphQLGetChannelProduct_getChannelId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -549,12 +600,32 @@ public abstract class BaseProductResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Product testGraphQLGetChannelProduct_addProduct()
+		throws Exception {
+
+		return testGraphQLProduct_addProduct();
+	}
+
 	@Rule
 	public SearchTestRule searchTestRule = new SearchTestRule();
 
 	protected Product testGraphQLProduct_addProduct() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Product product, List<Product> products) {
+		boolean contains = false;
+
+		for (Product item : products) {
+			if (equals(product, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(products + " does not contain " + product, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -713,6 +784,16 @@ public abstract class BaseProductResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"productConfiguration", additionalAssertFieldName)) {
+
+				if (product.getProductConfiguration() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("productId", additionalAssertFieldName)) {
 				if (product.getProductId() == null) {
 					valid = false;
@@ -795,6 +876,14 @@ public abstract class BaseProductResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("urls", additionalAssertFieldName)) {
+				if (product.getUrls() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			throw new IllegalArgumentException(
 				"Invalid additional assert field name " +
 					additionalAssertFieldName);
@@ -827,8 +916,8 @@ public abstract class BaseProductResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.delivery.catalog.dto.v1_0.
 						Product.class)) {
 
@@ -844,12 +933,13 @@ public abstract class BaseProductResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -863,7 +953,7 @@ public abstract class BaseProductResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1019,6 +1109,19 @@ public abstract class BaseProductResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"productConfiguration", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						product1.getProductConfiguration(),
+						product2.getProductConfiguration())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("productId", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						product1.getProductId(), product2.getProductId())) {
@@ -1125,6 +1228,14 @@ public abstract class BaseProductResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("urls", additionalAssertFieldName)) {
+				if (!equals((Map)product1.getUrls(), (Map)product2.getUrls())) {
+					return false;
+				}
+
+				continue;
+			}
+
 			throw new IllegalArgumentException(
 				"Invalid additional assert field name " +
 					additionalAssertFieldName);
@@ -1157,6 +1268,19 @@ public abstract class BaseProductResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1329,8 +1453,9 @@ public abstract class BaseProductResourceTestCase {
 		}
 
 		if (entityFieldName.equals("multipleOrderQuantity")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(product.getMultipleOrderQuantity()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("name")) {
@@ -1339,6 +1464,11 @@ public abstract class BaseProductResourceTestCase {
 			sb.append("'");
 
 			return sb.toString();
+		}
+
+		if (entityFieldName.equals("productConfiguration")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
 		}
 
 		if (entityFieldName.equals("productId")) {
@@ -1401,6 +1531,11 @@ public abstract class BaseProductResourceTestCase {
 			sb.append("'");
 
 			return sb.toString();
+		}
+
+		if (entityFieldName.equals("urls")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
 		}
 
 		throw new IllegalArgumentException(
@@ -1558,8 +1693,8 @@ public abstract class BaseProductResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProductResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseProductResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

@@ -43,12 +43,13 @@ import org.osgi.service.component.annotations.Reference;
 public class DDMStructureModelListener extends BaseModelListener<DDMStructure> {
 
 	@Override
-	public void onAfterUpdate(DDMStructure ddmStructure)
+	public void onAfterUpdate(
+			DDMStructure originalDDMStructure, DDMStructure ddmStructure)
 		throws ModelListenerException {
 
 		try {
 			ActionableDynamicQuery actionableDynamicQuery =
-				getActionableDynamicQuery(ddmStructure);
+				_getActionableDynamicQuery(ddmStructure);
 
 			actionableDynamicQuery.performActions();
 		}
@@ -57,7 +58,7 @@ public class DDMStructureModelListener extends BaseModelListener<DDMStructure> {
 		}
 	}
 
-	protected ActionableDynamicQuery getActionableDynamicQuery(
+	private ActionableDynamicQuery _getActionableDynamicQuery(
 		DDMStructure ddmStructure) {
 
 		ActionableDynamicQuery actionableDynamicQuery =
@@ -94,15 +95,12 @@ public class DDMStructureModelListener extends BaseModelListener<DDMStructure> {
 
 				ServiceContext serviceContext = new ServiceContext();
 
-				serviceContext.setAddGuestPermissions(true);
 				serviceContext.setAddGroupPermissions(true);
-
+				serviceContext.setAddGuestPermissions(true);
 				serviceContext.setScopeGroupId(recordSet.getGroupId());
-
-				long defaultUserId = _userLocalService.getDefaultUserId(
-					recordSet.getCompanyId());
-
-				serviceContext.setUserId(defaultUserId);
+				serviceContext.setUserId(
+					_userLocalService.getDefaultUserId(
+						recordSet.getCompanyId()));
 
 				try {
 					_ddlRecordSetLocalService.updateRecordSet(

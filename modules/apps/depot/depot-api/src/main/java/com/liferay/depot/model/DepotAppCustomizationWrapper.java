@@ -93,6 +93,11 @@ public class DepotAppCustomizationWrapper
 		}
 	}
 
+	@Override
+	public DepotAppCustomization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this depot app customization.
 	 *

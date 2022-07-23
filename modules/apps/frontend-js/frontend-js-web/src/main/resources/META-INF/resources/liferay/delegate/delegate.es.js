@@ -12,6 +12,15 @@
  * details.
  */
 
+const USE_CAPTURE = {
+	blur: true,
+	error: true,
+	focus: true,
+	invalid: true,
+	load: true,
+	scroll: true,
+};
+
 /**
  * Checks if element is disabled or whether it exists in a disabled element tree
  * @param {!Element} element The DOM element to check.
@@ -50,7 +59,7 @@ function delegate(element, eventName, selector, callback) {
 		}
 	};
 
-	element.addEventListener(eventName, eventHandler);
+	element.addEventListener(eventName, eventHandler, !!USE_CAPTURE[eventName]);
 
 	return {
 		dispose() {

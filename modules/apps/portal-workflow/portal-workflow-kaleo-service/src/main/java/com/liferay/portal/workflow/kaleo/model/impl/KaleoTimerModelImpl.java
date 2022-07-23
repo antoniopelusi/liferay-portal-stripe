@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoTimer;
 import com.liferay.portal.workflow.kaleo.model.KaleoTimerModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -243,34 +244,6 @@ public class KaleoTimerModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoTimer>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoTimer.class.getClassLoader(), KaleoTimer.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KaleoTimer> constructor =
-				(Constructor<KaleoTimer>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoTimer, Object>>
@@ -808,6 +781,48 @@ public class KaleoTimerModelImpl
 	}
 
 	@Override
+	public KaleoTimer cloneWithOriginalValues() {
+		KaleoTimerImpl kaleoTimerImpl = new KaleoTimerImpl();
+
+		kaleoTimerImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoTimerImpl.setKaleoTimerId(
+			this.<Long>getColumnOriginalValue("kaleoTimerId"));
+		kaleoTimerImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		kaleoTimerImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoTimerImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		kaleoTimerImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoTimerImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoTimerImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoTimerImpl.setKaleoClassName(
+			this.<String>getColumnOriginalValue("kaleoClassName"));
+		kaleoTimerImpl.setKaleoClassPK(
+			this.<Long>getColumnOriginalValue("kaleoClassPK"));
+		kaleoTimerImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoTimerImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoTimerImpl.setName(this.<String>getColumnOriginalValue("name"));
+		kaleoTimerImpl.setBlocking(
+			this.<Boolean>getColumnOriginalValue("blocking"));
+		kaleoTimerImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		kaleoTimerImpl.setDuration(
+			this.<Double>getColumnOriginalValue("duration"));
+		kaleoTimerImpl.setScale(this.<String>getColumnOriginalValue("scale"));
+		kaleoTimerImpl.setRecurrenceDuration(
+			this.<Double>getColumnOriginalValue("recurrenceDuration"));
+		kaleoTimerImpl.setRecurrenceScale(
+			this.<String>getColumnOriginalValue("recurrenceScale"));
+
+		return kaleoTimerImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoTimer kaleoTimer) {
 		int value = 0;
 
@@ -984,7 +999,7 @@ public class KaleoTimerModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -995,9 +1010,26 @@ public class KaleoTimerModelImpl
 			Function<KaleoTimer, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KaleoTimer)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KaleoTimer)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1044,7 +1076,9 @@ public class KaleoTimerModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoTimer>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoTimer.class, ModelWrapper.class);
 
 	}
 

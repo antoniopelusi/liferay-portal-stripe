@@ -21,13 +21,13 @@ import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.math.BigDecimal;
@@ -243,7 +243,7 @@ public class NumericDDMFormFieldTypeReportProcessor
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return null;
@@ -261,7 +261,7 @@ public class NumericDDMFormFieldTypeReportProcessor
 						ddmFormInstanceRecord.getDDMFormValues();
 
 					Map<String, List<DDMFormFieldValue>> ddmFormFieldValuesMap =
-						ddmFormValues.getDDMFormFieldValuesMap(false);
+						ddmFormValues.getDDMFormFieldValuesMap(true);
 
 					List<DDMFormFieldValue> ddmFormFieldValues =
 						ddmFormFieldValuesMap.get(ddmFormFieldValueName);
@@ -277,7 +277,7 @@ public class NumericDDMFormFieldTypeReportProcessor
 				}
 				catch (PortalException portalException) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(portalException, portalException);
+						_log.warn(portalException);
 					}
 
 					return null;

@@ -197,6 +197,11 @@ public class EntryWrapper
 	}
 
 	@Override
+	public Entry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String getAttachmentsDir() {
 		return model.getAttachmentsDir();
 	}

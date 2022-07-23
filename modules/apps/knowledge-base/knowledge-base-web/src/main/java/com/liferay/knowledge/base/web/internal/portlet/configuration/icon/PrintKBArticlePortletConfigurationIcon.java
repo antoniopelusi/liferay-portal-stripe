@@ -69,7 +69,7 @@ public class PrintKBArticlePortletConfigurationIcon
 					PortletRequest.RENDER_PHASE)
 			).setMVCPath(
 				"/admin/print_article.jsp"
-			).build();
+			).buildPortletURL();
 
 			KBArticle kbArticle = getKBArticle(portletRequest);
 
@@ -93,7 +93,7 @@ public class PrintKBArticlePortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

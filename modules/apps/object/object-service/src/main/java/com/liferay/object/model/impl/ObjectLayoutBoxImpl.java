@@ -14,13 +14,26 @@
 
 package com.liferay.object.model.impl;
 
+import com.liferay.object.model.ObjectLayoutRow;
+
+import java.util.List;
+
 /**
  * @author Marco Leo
  * @author Brian Wing Shun Chan
  */
 public class ObjectLayoutBoxImpl extends ObjectLayoutBoxBaseImpl {
 
-	public ObjectLayoutBoxImpl() {
+	@Override
+	public List<ObjectLayoutRow> getObjectLayoutRows() {
+		return _objectLayoutRows;
 	}
+
+	@Override
+	public void setObjectLayoutRows(List<ObjectLayoutRow> objectLayoutRows) {
+		_objectLayoutRows = objectLayoutRows;
+	}
+
+	private List<ObjectLayoutRow> _objectLayoutRows;
 
 }

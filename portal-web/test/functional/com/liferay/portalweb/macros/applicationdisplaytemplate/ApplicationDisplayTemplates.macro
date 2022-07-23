@@ -7,7 +7,7 @@ definition {
 
 		MenuItem.click(menuItem = "${portletName} Template");
 
-		SiteAdmin.viewPortletTitle(portletTitle = "New ${portletName} Template");
+		SiteAdmin.viewPortletTitle(portletTitle = "Add ${portletName} Template");
 
 		PortletEntry.inputName(name = "${portletName} Test ADT");
 
@@ -40,156 +40,66 @@ definition {
 			MenuItem.click(menuItem = "${adtType} Template");
 		}
 
-		SiteAdmin.viewPortletTitle(portletTitle = "New ${adtType} Template");
+		SiteAdmin.viewPortletTitle(portletTitle = "Add ${adtType} Template");
 
 		PortletEntry.inputName(name = "${adtType} Test ADT");
 
 		if (isSet(templateScript)) {
-			Type.typeAceEditor(
-				locator1 = "TextArea#ACE_EDITOR",
+			Type.sendKeysAceEditor(
+				locator1 = "DDMEditTemplate#CODE_MIRROR_EDITOR_CONTENT",
 				value1 = "${templateScript}");
 		}
+		else if (isSet(fieldNameList)) {
+			for (var fieldName : list "${fieldNameList}") {
+				AssertClick(
+					key_panelTitle = "Fields",
+					key_variableName = "${fieldName}",
+					locator1 = "DDMEditTemplate#WEB_CONTENT_SCRIPT_VARIABLE",
+					value1 = "${fieldName}");
+			}
+		}
 		else {
-			UploadCommonFile(
-				locator1 = "DDMEditTemplate#SCRIPT_FILE_FIELD",
-				value1 = "${adtFile}");
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			var filePath = TestCase.getDependenciesDirPath(fileName = "${adtFile}");
+
+			UploadFile(
+				inputFieldId = "importScript",
+				locator1 = "TextInput#INPUT_ID",
+				value1 = "${filePath}");
 		}
 
 		PortletEntry.save();
 
-		AssertTextEquals(
-			locator1 = "ApplicationDisplayTemplates#ADT_TABLE_NAME_1",
-			value1 = "${adtType} Test ADT");
-	}
-
-	macro addManualViaRSS {
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-		Pause(locator1 = "5000");
-
-		if (IsElementPresent(locator1 = "Configuration#SETUP_DISPLAY_SETTINGS")) {
-			AssertClick(
-				locator1 = "Configuration#SETUP_DISPLAY_SETTINGS",
-				value1 = "Display Settings");
-		}
-
-		AssertClick(
-			locator1 = "ApplicationDisplayTemplatesConfiguration#MANAGE_DISPLAY_TEMPLATES_LINK",
-			value1 = "Manage Templates");
-
-		var key_adtType = "RSS";
-
-		SelectFrameTop(value1 = "relative=top");
-
-		SelectFrame(locator1 = "ApplicationDisplayTemplates#ADT_IFRAME");
-
-		LexiconEntry.gotoAdd();
-
-		AssertVisible(locator1 = "ApplicationDisplayTemplates#RSS_FEEDS");
-
-		AssertElementPresent(locator1 = "ApplicationDisplayTemplates#RSS_FEEDS");
-
-		PortletEntry.inputName(name = "RSS Test ADT");
-
-		Click(locator1 = "ApplicationDisplayTemplates#RSS_FEEDS");
-
-		PortletEntry.save();
-	}
-
-	macro addPG {
-		Portlet.gotoPortletOptions(
-			portletName = "${portletName}",
-			portletOption = "Configuration");
-
-		SelectFrame(locator1 = "IFrame#CONFIGURATION");
-
-		Pause(locator1 = "5000");
-
-		if (IsElementPresent(locator1 = "NavTab#TAB_LINK", key_tab = "Display Settings")) {
-			Navigator.gotoNavTab(navTab = "Display Settings");
-		}
-		else if (IsElementPresent(locator1 = "Panel#PANEL", key_panel = "Display Settings")) {
-			Panel.expandPanel(panel = "Display Settings");
-		}
-
-		AssertClick(
-			locator1 = "ApplicationDisplayTemplatesConfiguration#MANAGE_DISPLAY_TEMPLATES_LINK",
-			value1 = "Manage Templates");
-
-		var key_adtType = "${adtType}";
-
-		SelectFrameTop();
-
-		SelectFrame(locator1 = "ApplicationDisplayTemplates#ADT_IFRAME");
-
-		LexiconEntry.gotoAdd();
-
-		var key_adtType = "${adtType}";
-
-		AssertVisible(locator1 = "ApplicationDisplayTemplates#PORTLET_PREFERENCES");
-
-		AssertElementPresent(locator1 = "ApplicationDisplayTemplates#PORTLET_PREFERENCES");
-
-		PortletEntry.inputName(name = "${adtType} Test ADT");
-
-		UploadCommonFile(
-			locator1 = "DDMEditTemplate#SCRIPT_FILE_FIELD",
-			value1 = "${adtFile}");
-
-		PortletEntry.save();
-
-		SelectFrameTop(value1 = "relative=top");
-	}
-
-	macro addPortletADTWithFieldEntry {
-		Portlet.gotoPortletOptions(
-			portletName = "${portletName}",
-			portletOption = "Configuration");
-
-		SelectFrame(locator1 = "IFrame#CONFIGURATION");
-
-		Pause(locator1 = "3000");
-
-		AssertClick.assertPartialTextClickAt(
-			locator1 = "ApplicationDisplayTemplatesConfiguration#MANAGE_DISPLAY_TEMPLATES_LINK",
-			value1 = "Manage Templates");
-
-		SelectFrameTop();
-
-		SelectFrame(locator1 = "ApplicationDisplayTemplates#ADT_IFRAME");
-
-		LexiconEntry.gotoAdd();
-
-		PortletEntry.inputName(name = "${portletName} Test ADT");
-
-		Click(
-			key_fieldName = "${fieldName}",
-			locator1 = "DDMEditTemplate#SCRIPT_FIELD");
-
-		PortletEntry.save();
-
-		SelectFrameTop(value1 = "relative=top");
+		AssertVisible(
+			key_tableEntry = "${adtType} Test ADT",
+			locator1 = "LexiconTable#TABLE_ENTRY_TITLE");
 	}
 
 	macro editADTScript {
 		Type.sendKeysAceEditor(
-			locator1 = "TextArea#ACE_EDITOR",
+			locator1 = "DDMEditTemplate#CODE_MIRROR_EDITOR_CONTENT",
 			value1 = "${adtScript}");
 
 		PortletEntry.save();
 	}
 
 	macro editWidgetTemplate {
-		SiteAdmin.viewPortletTitle(portletTitle = "${oldWidgetTemplateName}");
+		SiteAdmin.viewPortletTitle(portletTitle = "Edit ${oldWidgetTemplateName}");
 
 		if (isSet(newWidgetTemplateName)) {
 			PortletEntry.inputName(name = "${newWidgetTemplateName}");
 		}
 
 		if (isSet(adtFile)) {
-			UploadCommonFile(
-				locator1 = "DDMEditTemplate#SCRIPT_FILE_FIELD",
-				value1 = "${adtFile}");
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			var filePath = TestCase.getDependenciesDirPath(fileName = "${adtFile}");
+
+			UploadFile(
+				inputFieldId = "importScript",
+				locator1 = "TextInput#INPUT_ID",
+				value1 = "${filePath}");
 		}
 
 		PortletEntry.save();
@@ -204,15 +114,15 @@ definition {
 	}
 
 	macro openWidgetTemplatesAdmin {
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_dynamic_data_mapping_web_portlet_PortletDisplayTemplatePortlet");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_template_web_internal_portlet_TemplatePortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_template_web_internal_portlet_TemplatePortlet_tabs1=widget-templates");
 	}
 
 	macro searchGlobalADT {
 		Search.searchCP(searchTerm = "${templateName}");
 
-		AssertTextEquals(
-			locator1 = "ApplicationDisplayTemplates#ADT_TABLE_NAME_1",
-			value1 = "${templateName}");
+		AssertVisible(
+			key_tableEntry = "${templateName}",
+			locator1 = "LexiconTable#TABLE_ENTRY_TITLE");
 	}
 
 	macro selectPortletADT {
@@ -238,9 +148,9 @@ definition {
 	}
 
 	macro viewTemplate {
-		AssertTextEquals(
-			locator1 = "ApplicationDisplayTemplates#ADT_TABLE_NAME_1",
-			value1 = "${adtType} Test ADT");
+		AssertVisible(
+			key_tableEntry = "${adtType} Test ADT",
+			locator1 = "LexiconTable#TABLE_ENTRY_TITLE");
 	}
 
 }

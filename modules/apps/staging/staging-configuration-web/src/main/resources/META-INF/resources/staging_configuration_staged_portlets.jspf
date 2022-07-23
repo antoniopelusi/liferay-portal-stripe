@@ -25,21 +25,34 @@
 				<liferay-ui:message key="page-versioning-help" />
 			</div>
 
-			<div class="custom-distance">
-				<liferay-staging:checkbox
-					checked='<%= GetterUtil.getBoolean(liveGroupTypeSettings.getProperty("branchingPublic")) %>'
-					label="enabled-on-public-pages"
-					name="branchingPublic"
-				/>
-			</div>
+			<c:choose>
+				<c:when test="<%= liveGroup.isPrivateLayoutsEnabled() %>">
+					<div class="custom-distance">
+						<liferay-staging:checkbox
+							checked='<%= GetterUtil.getBoolean(liveGroupTypeSettings.getProperty("branchingPublic")) %>'
+							label="enabled-on-public-pages"
+							name="branchingPublic"
+						/>
+					</div>
 
-			<div class="custom-distance">
-				<liferay-staging:checkbox
-					checked='<%= GetterUtil.getBoolean(liveGroupTypeSettings.getProperty("branchingPrivate")) %>'
-					label="enabled-on-private-pages"
-					name="branchingPrivate"
-				/>
-			</div>
+					<div class="custom-distance">
+						<liferay-staging:checkbox
+							checked='<%= GetterUtil.getBoolean(liveGroupTypeSettings.getProperty("branchingPrivate")) %>'
+							label="enabled-on-private-pages"
+							name="branchingPrivate"
+						/>
+					</div>
+				</c:when>
+				<c:otherwise>
+					<div class="custom-distance">
+						<liferay-staging:checkbox
+							checked='<%= GetterUtil.getBoolean(liveGroupTypeSettings.getProperty("branchingPublic")) %>'
+							label="enabled"
+							name="branchingPublic"
+						/>
+					</div>
+				</c:otherwise>
+			</c:choose>
 		</div>
 	</c:if>
 
@@ -103,11 +116,7 @@
 			for (Portlet curPortlet : dataSiteLevelPortlets) {
 				PortletDataHandler portletDataHandler = curPortlet.getPortletDataHandlerInstance();
 
-				if (!portletDataHandler.isConfigurationEnabled()) {
-					continue;
-				}
-
-				if (!GroupCapabilityUtil.isSupportsPortlet(liveGroup, curPortlet)) {
+				if (!portletDataHandler.isConfigurationEnabled() || !GroupCapabilityUtil.isSupportsPortlet(liveGroup, curPortlet)) {
 					continue;
 				}
 

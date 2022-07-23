@@ -144,4 +144,7 @@ public interface UserTrackerPathModel
 	 */
 	public void setPathDate(Date pathDate);
 
+	@Override
+	public UserTrackerPath cloneWithOriginalValues();
+
 }

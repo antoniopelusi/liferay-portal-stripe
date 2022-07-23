@@ -39,8 +39,9 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.social.kernel.service.SocialActivityLocalServiceUtil;
 import com.liferay.social.kernel.service.SocialActivitySetLocalServiceUtil;
@@ -123,7 +124,9 @@ public abstract class BaseSocialActivityInterpreter
 		}
 	}
 
-	protected abstract ResourceBundleLoader acquireResourceBundleLoader();
+	protected ResourceBundleLoader acquireResourceBundleLoader() {
+		return locale -> ResourceBundleUtil.getBundle(locale, getClass());
+	}
 
 	protected String addNoSuchEntryRedirect(
 			String url, String className, long classPK,
@@ -137,19 +140,12 @@ public abstract class BaseSocialActivityInterpreter
 			return url;
 		}
 
-		return HttpUtil.setParameter(url, "noSuchEntryRedirect", viewEntryURL);
+		return HttpComponentsUtil.setParameter(
+			url, "noSuchEntryRedirect", viewEntryURL);
 	}
 
 	protected String buildLink(String link, String text) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("<a href=\"");
-		sb.append(link);
-		sb.append("\">");
-		sb.append(text);
-		sb.append("</a>");
-
-		return sb.toString();
+		return StringBundler.concat("<a href=\"", link, "\">", text, "</a>");
 	}
 
 	protected SocialActivityFeedEntry doInterpret(
@@ -246,7 +242,7 @@ public abstract class BaseSocialActivityInterpreter
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;
@@ -327,7 +323,7 @@ public abstract class BaseSocialActivityInterpreter
 			return sb.toString();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return null;
 		}
@@ -338,20 +334,6 @@ public abstract class BaseSocialActivityInterpreter
 		throws Exception {
 
 		return StringPool.BLANK;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #acquireResourceBundleLoader}
-	 */
-	@Deprecated
-	protected com.liferay.portal.kernel.util.ResourceBundleLoader
-		getResourceBundleLoader() {
-
-		ResourceBundleLoader resourceBundleLoader =
-			acquireResourceBundleLoader();
-
-		return locale -> resourceBundleLoader.loadResourceBundle(locale);
 	}
 
 	protected String getTitle(
@@ -434,7 +416,7 @@ public abstract class BaseSocialActivityInterpreter
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;

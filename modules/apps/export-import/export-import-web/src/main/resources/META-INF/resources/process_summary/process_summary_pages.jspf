@@ -19,13 +19,9 @@ ProcessSummaryDisplayContext processSummaryDisplayContext = new ProcessSummaryDi
 
 boolean settingsMapPrivateLayout = MapUtil.getBoolean(exportImportConfigurationSettingsMap, "privateLayout");
 
-String publicPagesDescription = settingsMapPrivateLayout ? LanguageUtil.get(request, "private-pages") : LanguageUtil.get(request, "public-pages");
-
 LayoutSetBranch layoutSetBranch = LayoutSetBranchLocalServiceUtil.fetchLayoutSetBranch(MapUtil.getLong(parameterMap, "layoutSetBranchId"));
 
-long[] selectedLayoutIds = GetterUtil.getLongValues(exportImportConfigurationSettingsMap.get("layoutIds"));
-
-List<String> pageNames = processSummaryDisplayContext.getPageNames(groupId, settingsMapPrivateLayout, selectedLayoutIds, themeDisplay.getLanguageId());
+List<String> pageNames = processSummaryDisplayContext.getPageNames(groupId, settingsMapPrivateLayout, processSummaryDisplayContext.getSelectedLayoutIds(exportImportConfigurationSettingsMap), themeDisplay.getLanguageId());
 
 boolean deleteMissingLayouts = MapUtil.getBoolean(parameterMap, PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS);
 boolean layoutSetSettings = MapUtil.getBoolean(parameterMap, PortletDataHandlerKeys.LAYOUT_SET_SETTINGS);
@@ -50,7 +46,7 @@ if (modelDeletionCounters.containsKey(Layout.class.getName())) {
 			<liferay-ui:message key="pages-option" />:
 		</label>
 
-		<span><%= publicPagesDescription %></span>
+		<span><%= processSummaryDisplayContext.getPagesDescription(groupId, locale, settingsMapPrivateLayout) %></span>
 	</div>
 
 	<c:if test="<%= layoutSetBranch != null %>">

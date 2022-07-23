@@ -39,13 +39,16 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelper;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -754,15 +757,10 @@ public class JournalArticleFinderImpl
 			closeSession(session);
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("No JournalArticle exists with the key {resourcePrimKey=");
-		sb.append(resourcePrimKey);
-		sb.append(", displayDate=");
-		sb.append(displayDate);
-		sb.append("}");
-
-		throw new NoSuchArticleException(sb.toString());
+		throw new NoSuchArticleException(
+			StringBundler.concat(
+				"No JournalArticle exists with the key {resourcePrimKey=",
+				resourcePrimKey, ", displayDate=", displayDate, "}"));
 	}
 
 	@Override
@@ -909,7 +907,7 @@ public class JournalArticleFinderImpl
 			String sql = _customSQL.get(
 				getClass(), COUNT_BY_G_F, queryDefinition, "JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
@@ -1015,7 +1013,7 @@ public class JournalArticleFinderImpl
 			String sql = _customSQL.get(
 				getClass(), COUNT_BY_G_C_S, queryDefinition, "JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			if (groupId <= 0) {
 				sql = StringUtil.removeSubstring(
@@ -1081,7 +1079,7 @@ public class JournalArticleFinderImpl
 				getClass(), COUNT_BY_G_U_F_C, queryDefinition,
 				"JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			if (folderIds.isEmpty()) {
 				sql = StringUtil.removeSubstring(sql, "([$FOLDER_ID$]) AND");
@@ -1205,7 +1203,7 @@ public class JournalArticleFinderImpl
 			String sql = _customSQL.get(
 				getClass(), FIND_BY_G_F, queryDefinition, "JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			OrderByComparator<JournalArticle> orderByComparator =
 				queryDefinition.getOrderByComparator();
@@ -1366,7 +1364,7 @@ public class JournalArticleFinderImpl
 			String sql = _customSQL.get(
 				getClass(), FIND_BY_G_F_L, queryDefinition, "JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			OrderByComparator<JournalArticle> orderByComparator =
 				queryDefinition.getOrderByComparator();
@@ -1431,7 +1429,7 @@ public class JournalArticleFinderImpl
 			String sql = _customSQL.get(
 				getClass(), FIND_BY_G_C_S, queryDefinition, "JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			OrderByComparator<JournalArticle> orderByComparator =
 				queryDefinition.getOrderByComparator();
@@ -1501,7 +1499,7 @@ public class JournalArticleFinderImpl
 			String sql = _customSQL.get(
 				getClass(), FIND_BY_G_U_F_C, queryDefinition, "JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			OrderByComparator<JournalArticle> orderByComparator =
 				queryDefinition.getOrderByComparator();
@@ -1579,7 +1577,7 @@ public class JournalArticleFinderImpl
 			String sql = _customSQL.get(
 				getClass(), FIND_BY_G_C_S_L, queryDefinition, "JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			OrderByComparator<JournalArticle> orderByComparator =
 				queryDefinition.getOrderByComparator();
@@ -1652,7 +1650,7 @@ public class JournalArticleFinderImpl
 				getClass(), FIND_BY_G_U_F_C_L, queryDefinition,
 				"JournalArticle");
 
-			sql = replaceStatusJoin(sql, queryDefinition);
+			sql = replaceStatusJoin(sql, groupId, queryDefinition);
 
 			OrderByComparator<JournalArticle> orderByComparator =
 				queryDefinition.getOrderByComparator();
@@ -1850,7 +1848,7 @@ public class JournalArticleFinderImpl
 					JournalServiceConfiguration.class, companyId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		if (journalServiceConfiguration == null) {
@@ -1876,33 +1874,41 @@ public class JournalArticleFinderImpl
 	}
 
 	protected String replaceStatusJoin(
-		String sql, QueryDefinition<JournalArticle> queryDefinition) {
+		String sql, long groupId,
+		QueryDefinition<JournalArticle> queryDefinition) {
 
 		if (queryDefinition.getStatus() == WorkflowConstants.STATUS_ANY) {
 			return StringUtil.removeSubstring(sql, "[$STATUS_JOIN$] AND");
 		}
 
+		Group group = null;
+
+		try {
+			group = _groupLocalService.getGroup(groupId);
+		}
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
+		}
+
 		if (queryDefinition.isExcludeStatus()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("(JournalArticle.status != ");
-			sb.append(queryDefinition.getStatus());
-			sb.append(") AND (tempJournalArticle.status != ");
-			sb.append(queryDefinition.getStatus());
-			sb.append(")");
-
-			sql = StringUtil.replace(sql, "[$STATUS_JOIN$]", sb.toString());
+			sql = StringUtil.replace(
+				sql, "[$STATUS_JOIN$]",
+				StringBundler.concat(
+					"(JournalArticle.status != ", queryDefinition.getStatus(),
+					" AND JournalArticle.companyId = ", group.getCompanyId(),
+					") AND (tempJournalArticle.companyId = ",
+					group.getCompanyId(), " AND tempJournalArticle.status != ",
+					queryDefinition.getStatus(), ")"));
 		}
 		else {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("(JournalArticle.status = ");
-			sb.append(queryDefinition.getStatus());
-			sb.append(") AND (tempJournalArticle.status = ");
-			sb.append(queryDefinition.getStatus());
-			sb.append(")");
-
-			sql = StringUtil.replace(sql, "[$STATUS_JOIN$]", sb.toString());
+			sql = StringUtil.replace(
+				sql, "[$STATUS_JOIN$]",
+				StringBundler.concat(
+					"(JournalArticle.status = ", queryDefinition.getStatus(),
+					" AND JournalArticle.companyId = ", group.getCompanyId(),
+					") AND (tempJournalArticle.companyId = ",
+					group.getCompanyId(), " AND tempJournalArticle.status = ",
+					queryDefinition.getStatus(), ")"));
 		}
 
 		return sql;
@@ -2077,36 +2083,43 @@ public class JournalArticleFinderImpl
 		}
 
 		Predicate predicate = JournalArticleTable.INSTANCE.companyId.eq(
-			companyId);
+			companyId
+		).and(
+			() -> {
+				if (groupId > 0) {
+					return JournalArticleTable.INSTANCE.groupId.eq(groupId);
+				}
 
-		if (groupId > 0) {
-			predicate = predicate.and(
-				JournalArticleTable.INSTANCE.groupId.eq(groupId));
-		}
-
-		if (!folderIds.isEmpty()) {
-			predicate = predicate.and(
-				JournalArticleTable.INSTANCE.folderId.in(
-					folderIds.toArray(new Long[0])));
-		}
-
-		predicate = predicate.and(
-			JournalArticleTable.INSTANCE.classNameId.eq(classNameId));
-
-		if (queryDefinition.getStatus() != WorkflowConstants.STATUS_ANY) {
-			if (queryDefinition.isExcludeStatus()) {
-				predicate = predicate.and(
-					JournalArticleTable.INSTANCE.status.neq(
-						queryDefinition.getStatus()));
+				return null;
 			}
-			else {
-				predicate = predicate.and(
-					JournalArticleTable.INSTANCE.status.eq(
-						queryDefinition.getStatus()));
-			}
-		}
+		).and(
+			() -> {
+				if (!folderIds.isEmpty()) {
+					return JournalArticleTable.INSTANCE.folderId.in(
+						folderIds.toArray(new Long[0]));
+				}
 
-		predicate = predicate.and(
+				return null;
+			}
+		).and(
+			JournalArticleTable.INSTANCE.classNameId.eq(classNameId)
+		).and(
+			() -> {
+				if (queryDefinition.getStatus() ==
+						WorkflowConstants.STATUS_ANY) {
+
+					return null;
+				}
+
+				if (queryDefinition.isExcludeStatus()) {
+					return JournalArticleTable.INSTANCE.status.neq(
+						queryDefinition.getStatus());
+				}
+
+				return JournalArticleTable.INSTANCE.status.eq(
+					queryDefinition.getStatus());
+			}
+		).and(
 			Predicate.withParentheses(
 				_getAndOrPredicate(
 					andOperator,
@@ -2115,9 +2128,10 @@ public class JournalArticleFinderImpl
 						_customSQL.keywords(ddmStructureKeys, false)),
 					_customSQL.getKeywordsPredicate(
 						JournalArticleTable.INSTANCE.DDMTemplateKey,
-						_customSQL.keywords(ddmTemplateKeys, false)))));
-
-		predicate = predicate.and(tempJournalArticleTable.id.isNull());
+						_customSQL.keywords(ddmTemplateKeys, false))))
+		).and(
+			tempJournalArticleTable.id.isNull()
+		);
 
 		Predicate versionPredicate = null;
 
@@ -2183,16 +2197,21 @@ public class JournalArticleFinderImpl
 				JournalArticleTable.INSTANCE.reviewDate.lte(reviewDate));
 		}
 
-		predicate = predicate.and(Predicate.withParentheses(keywordsPredicate));
+		return joinStep.where(
+			predicate.and(
+				Predicate.withParentheses(keywordsPredicate)
+			).and(
+				() -> {
+					if (inlineSQLHelper) {
+						return _inlineSQLHelper.getPermissionWherePredicate(
+							JournalArticle.class,
+							JournalArticleTable.INSTANCE.resourcePrimKey,
+							groupId);
+					}
 
-		if (inlineSQLHelper) {
-			predicate = predicate.and(
-				_inlineSQLHelper.getPermissionWherePredicate(
-					JournalArticle.class,
-					JournalArticleTable.INSTANCE.resourcePrimKey, groupId));
-		}
-
-		return joinStep.where(predicate);
+					return null;
+				}
+			));
 	}
 
 	private boolean _isOrderByTitle(
@@ -2231,6 +2250,9 @@ public class JournalArticleFinderImpl
 
 	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private InlineSQLHelper _inlineSQLHelper;

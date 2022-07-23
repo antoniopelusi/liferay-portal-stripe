@@ -308,4 +308,7 @@ public interface OAuthApplicationModel
 	 */
 	public void setWebsiteURL(String websiteURL);
 
+	@Override
+	public OAuthApplication cloneWithOriginalValues();
+
 }

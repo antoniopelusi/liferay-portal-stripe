@@ -34,36 +34,34 @@ public class RoleUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			StringBundler sb = new StringBundler(8);
-
-			sb.append("select distinct Role_.roleId from Role_ inner join ");
-			sb.append("AccountRole on AccountRole.roleId = Role_.roleId ");
-			sb.append("where AccountRole.accountEntryId = ");
-			sb.append(AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT);
-			sb.append(" and Role_.classNameId = ");
-			sb.append(PortalUtil.getClassNameId(AccountRole.class));
-			sb.append(" and Role_.type_ = ");
-			sb.append(RoleConstants.TYPE_PROVIDER);
-
-			try (PreparedStatement ps1 = connection.prepareStatement(
-					sb.toString());
-				PreparedStatement ps2 =
+			try (PreparedStatement preparedStatement1 =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select distinct Role_.roleId from Role_ inner ",
+							"join AccountRole on AccountRole.roleId = ",
+							"Role_.roleId where AccountRole.accountEntryId = ",
+							AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
+							" and Role_.classNameId = ",
+							PortalUtil.getClassNameId(AccountRole.class),
+							" and Role_.type_ = ",
+							RoleConstants.TYPE_PROVIDER));
+				PreparedStatement preparedStatement2 =
 					AutoBatchPreparedStatementUtil.autoBatch(
 						connection.prepareStatement(
 							"update Role_ set type_ = " +
 								RoleConstants.TYPE_ACCOUNT +
 									" where roleId = ?"))) {
 
-				try (ResultSet rs = ps1.executeQuery()) {
-					while (rs.next()) {
-						long roleId = rs.getLong("roleId");
+				try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+					while (resultSet.next()) {
+						long roleId = resultSet.getLong("roleId");
 
-						ps2.setLong(1, roleId);
+						preparedStatement2.setLong(1, roleId);
 
-						ps2.addBatch();
+						preparedStatement2.addBatch();
 					}
 
-					ps2.executeBatch();
+					preparedStatement2.executeBatch();
 				}
 			}
 		}

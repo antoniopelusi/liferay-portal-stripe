@@ -1,0 +1,1152 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that is possible to Collapse a Fields Group"
+	@priority = "3"
+	test CanBeCollapsed {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.collapsibleFieldsGroup(fieldsGroup = "Fields Group");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		Form.viewExpandedCollapseButton();
+
+		Form.viewFieldsGroupNotCollapsedField(fieldLabel = "Text");
+
+		Form.viewFieldsGroupNotCollapsedField(fieldLabel = "Numeric");
+
+		DERenderer.clickCollapseFieldsGroup();
+
+		Form.viewCollapsedCollapseButton();
+
+		Form.viewFieldsGroupCollapsedField(fieldLabel = "Text");
+
+		Form.viewFieldsGroupCollapsedField(fieldLabel = "Numeric");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to create Fields Group by adding a field from the sidebar into a field that is on the builder."
+	@priority = "5"
+	test CanBeCreated {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Text,Numeric");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to create Fields Group by dragging a field already on the builder into another field on the builder."
+	@priority = "5"
+	test CanBeCreatedWithFieldsOnBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addField(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		DEBuilder.nestCreatedFields(
+			fieldLabel = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Text,Numeric");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to delete the entire Fields Group."
+	@priority = "5"
+	test CanBeDeleted {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addField(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldsGroupLabel = "Fields Group");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldsGroupLabel = "Fields Group");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to duplicate the entire Fields Group."
+	@priority = "4"
+	test CanBeDuplicated {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DataEngine.duplicate(fieldsGroupLabel = "Fields Group");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Text,Numeric");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Copy of Fields Group",
+			fieldsLabelList = "Copy of Text,Copy of Numeric");
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that the Web Content data persists upon editing the related Structure by creating a Fields Group"
+	@priority = "4"
+	test CanDataBeEditedInNewFieldsGroup {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addField(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "123");
+
+		Button.clickPublish();
+
+		NavItem.gotoStructures();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.nestCreatedFields(
+			fieldLabel = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field");
+
+		DERenderer.assertDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "123");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to delete a field inside a Fields Group."
+	@priority = "5"
+	test CanDeleteField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Numeric");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Text");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to duplicate the inner Fields Group that is inside another Fields Group."
+	@priority = "3"
+	test CanDuplicateNestedFieldsGroup {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DataEngine.editFieldsGroupLabel(
+			fieldsGroupLabel = "Fields Group",
+			fieldsGroupLabelEdit = "Fields Group 1");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		DataEngine.editFieldsGroupLabel(
+			fieldsGroupLabel = "Fields Group",
+			fieldsGroupLabelEdit = "Fields Group 2");
+
+		DataEngine.duplicate(fieldsGroupLabel = "Fields Group 2");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "2",
+			fieldGroupLabel = "Fields Group 2",
+			fieldsLabelList = "Numeric,Date");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "2",
+			fieldGroupLabel = "Copy of Fields Group 2",
+			fieldsLabelList = "Copy of Numeric,Copy of Date");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to duplicate or delete fields that are inside a Fields Group."
+	@priority = "5"
+	test CanDuplicateOrDeleteFields {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DataEngine.duplicate(fieldFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Copy of Text",
+			fieldName = "Text");
+
+		DataEngine.delete(fieldFieldLabel = "Copy of Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Copy of Text");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Text,Numeric");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to duplicate or delete fields that are inside a Fields Group inside another Fields Group."
+	@priority = "3"
+	test CanDuplicateOrDeleteFieldsInsideNestedFieldsGroup {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		DataEngine.duplicate(fieldFieldLabel = "Date");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Date",
+			fieldName = "Date");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Copy of Date",
+			fieldName = "Date");
+
+		DataEngine.delete(fieldFieldLabel = "Copy of Date");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Copy of Date");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to edit Fields Group label"
+	@priority = "4"
+	test CanEditLabel {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldsGroupLabel(
+			fieldsGroupLabel = "Fields Group",
+			fieldsGroupLabelEdit = "Fields Group Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group Edited",
+			fieldsLabelList = "Text,Numeric");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to edit the label of a Fields Group that is inside another Fields Group."
+	@priority = "3"
+	test CanEditLabelOfNestedFieldsGroup {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DataEngine.editFieldsGroupLabel(
+			fieldsGroupLabel = "Fields Group",
+			fieldsGroupLabelEdit = "Fields Group 1");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		DataEngine.editFieldsGroupLabel(
+			fieldsGroupLabel = "Fields Group",
+			fieldsGroupLabelEdit = "Fields Group 2");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldsGroupLabel(
+			fieldsGroupLabel = "Fields Group 2",
+			fieldsGroupLabelEdit = "Fields Group 2 Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group 1",
+			fieldsLabelList = "Text");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "2",
+			fieldGroupLabel = "Fields Group 2 Edited",
+			fieldsLabelList = "Numeric,Date");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to edit Label, Placeholder and Help text of fields that are inside the Fields Group."
+	@priority = "5"
+	test CanEditLabelPlaceholderAndHelpTextOfFields {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Text",
+			fieldHelp = "Help Text",
+			fieldPlaceholder = "Placeholder");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Numeric",
+			fieldHelp = "Help Text",
+			fieldPlaceholder = "Placeholder");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Text",
+			fieldFieldLabelEdit = "Text Edited");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Numeric",
+			fieldFieldLabelEdit = "Numeric Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Text Edited",
+			fieldHelp = "Help Text Edited",
+			fieldPlaceholder = "Placeholder Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Numeric Edited",
+			fieldHelp = "Help Text Edited",
+			fieldPlaceholder = "Placeholder Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Text Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Text",
+			fieldPlaceholder = "Placeholder Edited");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Numeric Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Numeric",
+			fieldPlaceholder = "Placeholder Edited");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to edit Label, Placeholder and Help text of fields that are inside a Fields Group inside another Fields Group."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextOfFieldsInsideNestedFieldsGroups {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Numeric",
+			fieldHelp = "Help Text",
+			fieldPlaceholder = "Placeholder");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Date",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Numeric",
+			fieldFieldLabelEdit = "Numeric Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Numeric Edited",
+			fieldHelp = "Help Text Edited",
+			fieldPlaceholder = "Placeholder Edited");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Date",
+			fieldFieldLabelEdit = "Date Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Date Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Numeric Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Numeric",
+			fieldPlaceholder = "Placeholder Edited");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Date Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Date");
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that inputted data on a Fields Group persists"
+	@priority = "5"
+	test CanInputData {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "123");
+
+		DERenderer.inputDataInDateField(
+			fieldLabel = "Date",
+			value = "08/06/2021");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field");
+
+		DERenderer.assertDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "123");
+
+		DERenderer.assertDataInDateField(
+			fieldLabel = "Date",
+			value = "08/06/2021");
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that data inputted on a repeatable Fields Group duplicated persists on the Web Content"
+	@priority = "4"
+	test CanInputDataOnDuplicatedField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		DataEngine.toggleFieldRepeatable(fieldsGroupLabel = "Fields Group");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Date");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			index = "1",
+			value = "This is a Text field 1");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			index = "1",
+			value = "123");
+
+		DERenderer.inputDataInDateField(
+			fieldLabel = "Date",
+			index = "1",
+			value = "08/06/2021");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			index = "2",
+			value = "This is a Text field 2");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			index = "2",
+			value = "456");
+
+		DERenderer.inputDataInDateField(
+			fieldLabel = "Date",
+			index = "2",
+			value = "09/06/2021");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInTextField(
+			fieldLabel = "Text",
+			index = "1",
+			value = "This is a Text field 1");
+
+		DERenderer.assertDataInNumericField(
+			fieldLabel = "Numeric",
+			index = "1",
+			value = "123");
+
+		DERenderer.assertDataInDateField(
+			fieldLabel = "Date",
+			index = "1",
+			value = "08/06/2021");
+
+		DERenderer.assertDataInTextField(
+			fieldLabel = "Text",
+			index = "2",
+			value = "This is a Text field 2");
+
+		DERenderer.assertDataInNumericField(
+			fieldLabel = "Numeric",
+			index = "2",
+			value = "456");
+
+		DERenderer.assertDataInDateField(
+			fieldLabel = "Date",
+			index = "2",
+			value = "09/06/2021");
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that is possible to edit data inputted on a Fields Group"
+	@priority = "5"
+	test CanInputtedDataBeEdited {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "123");
+
+		DERenderer.inputDataInDateField(
+			fieldLabel = "Date",
+			value = "08/06/2021");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field edited");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "456");
+
+		DERenderer.inputDataInDateField(
+			fieldLabel = "Date",
+			value = "09/06/2021");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field edited");
+
+		DERenderer.assertDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "456");
+
+		DERenderer.assertDataInDateField(
+			fieldLabel = "Date",
+			value = "09/06/2021");
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that is possible to remove data from fields inside a Fields Group"
+	@priority = "3"
+	test CanInputtedDataBeRemoved {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			value = "This is a Text field");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "123");
+
+		DERenderer.inputDataInDateField(
+			fieldLabel = "Date",
+			value = "08/06/2021");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.inputDataInTextField(
+			fieldLabel = "Text",
+			value = "");
+
+		DERenderer.inputDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "");
+
+		DERenderer.inputDataInDateField(
+			fieldLabel = "Date",
+			value = "");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInTextField(
+			fieldLabel = "Text",
+			value = "");
+
+		DERenderer.assertDataInNumericField(
+			fieldLabel = "Numeric",
+			value = "");
+
+		DERenderer.assertDataInDateField(
+			fieldLabel = "Date",
+			value = "");
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that is possible to remove duplicated repeatable Fields Group"
+	@priority = "4"
+	test CanRemoveDuplicatedField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		DataEngine.toggleFieldRepeatable(fieldsGroupLabel = "Fields Group");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Date");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.removeRepeatableField(fieldLabel = "Text");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DEBuilder.assertFieldNotPresent(
+			fieldLabel = "Fields Group",
+			index = "3");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that is possible to remove a field from the Fields Group."
+	@priority = "4"
+	test CanRemoveField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Text");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Numeric");
+	}
+
+	@description = "This is a test for LRQA-68747. This test verifies that if all fields from a Fields Group are removed the Fields Group is removed."
+	@priority = "3"
+	test CanRemoveFieldsGroupWhenAllFieldsAreRemoved {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addField(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Text");
+
+		DataEngine.delete(fieldFieldLabel = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Text");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Numeric");
+
+		DataEngine.assertFieldNotPresent(fieldsGroupLabel = "Fields Group");
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that Options chosen for a Grid field inside a Fields Group persists"
+	@priority = "5"
+	test CanSelectGridOptionsInFieldsGroup {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Grid",
+			fieldName = "Grid",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Rows",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Columns",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		for (var index : list "1,2,3") {
+			DERenderer.inputDataInGridField(
+				column = "${index}",
+				fieldLabel = "Grid",
+				row = "${index}");
+		}
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		for (var index : list "1,2,3") {
+			DERenderer.assertDataInGridField(
+				column = "${index}",
+				fieldLabel = "Grid",
+				row = "${index}");
+		}
+	}
+
+	@description = "This is a test for LRQA-71711. This test verifies that Options chosen for Fields with Options inside a Fields Group persists"
+	@priority = "5"
+	test CanSelectOptionsInFieldsGroup {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection",
+			targetFieldLabel = "Text");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Multiple Selection",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInMultipleSelectionField(
+			fieldLabel = "Multiple Selection",
+			optionValue = "Option 1");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInMultipleSelectionField(
+			fieldLabel = "Multiple Selection",
+			optionValue = "Option 1");
+	}
+
+}

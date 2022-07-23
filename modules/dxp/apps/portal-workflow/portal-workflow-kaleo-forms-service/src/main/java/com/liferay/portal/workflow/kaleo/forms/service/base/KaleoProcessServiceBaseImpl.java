@@ -155,22 +155,6 @@ public abstract class KaleoProcessServiceBaseImpl
 		counterLocalService;
 
 	@Reference
-	protected com.liferay.dynamic.data.lists.service.DDLRecordLocalService
-		ddlRecordLocalService;
-
-	@Reference
-	protected com.liferay.dynamic.data.lists.service.DDLRecordService
-		ddlRecordService;
-
-	@Reference
-	protected com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService
-		ddlRecordSetLocalService;
-
-	@Reference
-	protected com.liferay.dynamic.data.lists.service.DDLRecordSetService
-		ddlRecordSetService;
-
-	@Reference
 	protected com.liferay.portal.kernel.service.ClassNameLocalService
 		classNameLocalService;
 
@@ -188,14 +172,5 @@ public abstract class KaleoProcessServiceBaseImpl
 
 	@Reference
 	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected
-		com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService
-			workflowDefinitionLinkLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-		workflowInstanceLinkLocalService;
 
 }

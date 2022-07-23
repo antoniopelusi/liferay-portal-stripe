@@ -144,7 +144,7 @@
 			},
 			{
 				"actionIds": [
-					"MANAGE_AVAILABLE_ACCOUNTS"
+					"MANAGE_ALL_ACCOUNTS"
 				],
 				"resource": "com.liferay.commerce.account"
 			},
@@ -159,6 +159,18 @@
 					"MANAGE_COMMERCE_SUBSCRIPTIONS"
 				],
 				"resource": "com.liferay.commerce.subscription"
+			},
+			{
+				"actionIds": [
+					"MANAGE_COMMERCE_ORDER_DELIVERY_TERMS"
+				],
+				"resource": "com.liferay.commerce.order"
+			},
+			{
+				"actionIds": [
+					"MANAGE_COMMERCE_ORDER_PAYMENT_TERMS"
+				],
+				"resource": "com.liferay.commerce.order"
 			},
 			{
 				"actionIds": [

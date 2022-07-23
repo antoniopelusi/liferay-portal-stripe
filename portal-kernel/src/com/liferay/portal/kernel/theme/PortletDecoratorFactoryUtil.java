@@ -22,33 +22,31 @@ import com.liferay.portal.kernel.model.PortletDecorator;
 public class PortletDecoratorFactoryUtil {
 
 	public static PortletDecorator getDefaultPortletDecorator() {
-		return getPortletDecoratorFactory().getDefaultPortletDecorator();
+		return _portletDecoratorFactory.getDefaultPortletDecorator();
 	}
 
 	public static String getDefaultPortletDecoratorCssClass() {
-		return getPortletDecoratorFactory().
-			getDefaultPortletDecoratorCssClass();
+		return _portletDecoratorFactory.getDefaultPortletDecoratorCssClass();
 	}
 
 	public static String getDefaultPortletDecoratorId() {
-		return getPortletDecoratorFactory().getDefaultPortletDecoratorId();
+		return _portletDecoratorFactory.getDefaultPortletDecoratorId();
 	}
 
 	public static PortletDecorator getPortletDecorator() {
-		return getPortletDecoratorFactory().getPortletDecorator();
+		return _portletDecoratorFactory.getPortletDecorator();
 	}
 
 	public static PortletDecorator getPortletDecorator(
 		String portletDecoratorId) {
 
-		return getPortletDecoratorFactory().getPortletDecorator(
-			portletDecoratorId);
+		return _portletDecoratorFactory.getPortletDecorator(portletDecoratorId);
 	}
 
 	public static PortletDecorator getPortletDecorator(
 		String portletDecoratorId, String name, String cssClass) {
 
-		return getPortletDecoratorFactory().getPortletDecorator(
+		return _portletDecoratorFactory.getPortletDecorator(
 			portletDecoratorId, name, cssClass);
 	}
 

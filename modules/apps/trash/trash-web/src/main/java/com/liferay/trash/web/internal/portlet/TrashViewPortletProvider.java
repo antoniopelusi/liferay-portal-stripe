@@ -86,7 +86,7 @@ public class TrashViewPortletProvider
 				httpServletRequest, portletId, PortletRequest.RENDER_PHASE)
 		).setRedirect(
 			themeDisplay.getURLCurrent()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Reference

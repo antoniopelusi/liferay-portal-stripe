@@ -14,11 +14,29 @@
 
 package com.liferay.jenkins.results.parser.testray;
 
+import java.io.File;
+
+import java.net.URL;
+
 /**
  * @author Michael Hashimoto
  */
 public interface TestrayAttachmentUploader {
 
+	public File getPreparedFilesBaseDir();
+
+	public URL getTestrayServerLogsURL();
+
+	public URL getTestrayServerURL();
+
+	public void prepareFiles();
+
 	public void upload();
+
+	public static enum Type {
+
+		RSYNC, S3
+
+	}
 
 }

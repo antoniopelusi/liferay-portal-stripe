@@ -15,10 +15,12 @@
 package com.liferay.commerce.payment.internal.upgrade;
 
 import com.liferay.commerce.payment.internal.upgrade.v1_0_1.CommercePaymentMethodGroupRelUpgradeProcess;
+import com.liferay.commerce.payment.internal.upgrade.v1_2_0.util.CommercePaymentMethodGroupRelQualifierTable;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.upgrade.MVCCVersionUpgradeProcess;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.osgi.service.component.annotations.Component;
@@ -43,6 +45,21 @@ public class CommercePaymentUpgradeStepRegistrator
 			"1.0.0", "1.0.1",
 			new CommercePaymentMethodGroupRelUpgradeProcess(
 				_classNameLocalService, _groupLocalService));
+
+		registry.register(
+			"1.0.1", "1.1.0",
+			new MVCCVersionUpgradeProcess() {
+
+				@Override
+				protected String[] getModuleTableNames() {
+					return new String[] {"CommercePaymentMethodGroupRel"};
+				}
+
+			});
+
+		registry.register(
+			"1.1.0", "1.2.0",
+			CommercePaymentMethodGroupRelQualifierTable.create());
 
 		if (_log.isInfoEnabled()) {
 			_log.info("Commerce payment upgrade step registrator finished");

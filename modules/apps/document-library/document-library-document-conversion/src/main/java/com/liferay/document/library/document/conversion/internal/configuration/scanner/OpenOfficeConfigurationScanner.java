@@ -47,13 +47,11 @@ public class OpenOfficeConfigurationScanner {
 		if (_log.isWarnEnabled() && Validator.isNotNull(host) &&
 			!host.equals(_LOCALHOST_IP) && !host.startsWith(_LOCALHOST)) {
 
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("Conversion using a remote OpenOffice instance is not ");
-			sb.append("fully supported. Please use a local instance to ");
-			sb.append("prevent any limitations and problems.");
-
-			_log.warn(sb.toString());
+			_log.warn(
+				StringBundler.concat(
+					"Conversion using a remote OpenOffice instance is not ",
+					"fully supported. Please use a local instance to prevent ",
+					"any limitations and problems."));
 		}
 	}
 

@@ -36,6 +36,27 @@ public class UserAccount implements Cloneable, Serializable {
 		return UserAccountSerDes.toDTO(json);
 	}
 
+	public AccountBrief[] getAccountBriefs() {
+		return accountBriefs;
+	}
+
+	public void setAccountBriefs(AccountBrief[] accountBriefs) {
+		this.accountBriefs = accountBriefs;
+	}
+
+	public void setAccountBriefs(
+		UnsafeSupplier<AccountBrief[], Exception> accountBriefsUnsafeSupplier) {
+
+		try {
+			accountBriefs = accountBriefsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected AccountBrief[] accountBriefs;
+
 	public Map<String, Map<String, String>> getActions() {
 		return actions;
 	}
@@ -226,6 +247,27 @@ public class UserAccount implements Cloneable, Serializable {
 
 	protected String emailAddress;
 
+	public String getExternalReferenceCode() {
+		return externalReferenceCode;
+	}
+
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		this.externalReferenceCode = externalReferenceCode;
+	}
+
+	public void setExternalReferenceCode(
+		UnsafeSupplier<String, Exception> externalReferenceCodeUnsafeSupplier) {
+
+		try {
+			externalReferenceCode = externalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String externalReferenceCode;
+
 	public String getFamilyName() {
 		return familyName;
 	}
@@ -392,6 +434,27 @@ public class UserAccount implements Cloneable, Serializable {
 
 	protected String[] keywords;
 
+	public Date getLastLoginDate() {
+		return lastLoginDate;
+	}
+
+	public void setLastLoginDate(Date lastLoginDate) {
+		this.lastLoginDate = lastLoginDate;
+	}
+
+	public void setLastLoginDate(
+		UnsafeSupplier<Date, Exception> lastLoginDateUnsafeSupplier) {
+
+		try {
+			lastLoginDate = lastLoginDateUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Date lastLoginDate;
+
 	public String getName() {
 		return name;
 	}
@@ -432,6 +495,27 @@ public class UserAccount implements Cloneable, Serializable {
 	}
 
 	protected OrganizationBrief[] organizationBriefs;
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setPassword(
+		UnsafeSupplier<String, Exception> passwordUnsafeSupplier) {
+
+		try {
+			password = passwordUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String password;
 
 	public String getProfileURL() {
 		return profileURL;

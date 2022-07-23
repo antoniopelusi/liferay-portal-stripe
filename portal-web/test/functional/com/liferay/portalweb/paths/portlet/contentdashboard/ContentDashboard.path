@@ -2,15 +2,27 @@
 <head>
 <title>ContentDashboard</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ContentDashboard</td></tr>
 </thead>
+
 <tbody>
 <tr>
+	<td>ASSET_MENU_DROPDOWN_BUTTON</td>
+	<td>//button[contains(@class, 'dropdown-toggle') and contains(@class, 'btn-unstyled') and contains(@class, 'btn-monospaced') and contains(@class, 'component-action')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>AUDIENCE_LIST_DASHBOARD</td>
+	<td>//span[contains(@class,'label-secondary') and contains (.,'${value}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>AUDIT_GRAPH_CATEGORY_CHECKBOX</td>
-	<td>//*[contains(@class, 'inline-item-after') and contains(text(),'${auditGraphCheckboxName}')]</td>
+	<td>//label/descendant-or-self::*[contains(text(),'${auditGraphCheckboxName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -19,18 +31,38 @@
 	<td></td>
 </tr>
 <tr>
+	<td>AUDIT_GRAPH_CONFIGURATION_LEFT_ARROW_BUTTON</td>
+	<td>//button[contains(@class, 'transfer-button-rtl')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>AUDIT_GRAPH_CONFIGURATION_RIGHT_ARROW_BUTTON</td>
+	<td>//button[contains(@class, 'transfer-button-ltr')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>AUDIT_GRAPH_CONFIGURATION_STAGE_VOCABULARY</td>
 	<td>//option[contains(text(),'Stage')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>AUDIT_GRAPH_CONFIGURATION_UP_ARROW_BUTTON</td>
-	<td>//button[contains(@class, 'reorder-up')]</td>
+	<td>AUDIT_GRAPH_CONFIGURATION_VOCABULARY_IN_USE</td>
+	<td>//select[contains(@id, 'currentAssetVocabularyIds')] //option[contains(text(), '${vocabularyName}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>AUDIT_GRAPH_FIRST_BAR</td>
-	<td>//*[contains(@class, 'recharts-rectangle') and @fill='#4B9FFF']</td>
+	<td>AUDIT_GRAPH_CONFIGURATION_VOCABULARY_AVAILABLE</td>
+	<td>//select[contains(@id, 'availableAssetVocabularyIds')] //option[contains(text(), '${vocabularyName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>AUDIT_GRAPH_CONFIGURATION_UP_ARROW_BUTTON</td>
+	<td>//button[contains(@class, 'reorder-button-up')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>AUDIT_GRAPH_CONFIGURATION_DOWN_ARROW_BUTTON</td>
+	<td>//button[contains(@class, 'reorder-button-down')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -78,8 +110,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CATEGORY_LABEL_INFO_PANEL</td>
+	<td>//*[contains(@class, 'sidebar-light')]//span[contains(@class,'label-secondary') and contains (.,'${categoryName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CATEGORY_NAME_ELEMENT</td>
 	<td>//*[contains(@class, 'text-truncate') and contains(text(),'${categoryName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_OTHERS_LABEL</td>
+	<td>//*[contains(@data-qa-id, 'row')] //*[contains(@class, 'category-label') and contains(@class, 'btn')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECKBOX_TAGS</td>
+	<td>//*[contains(@title,'Select') and contains(@value,'${tagName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -88,8 +135,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CLOSE_CONTENT_PERFORMANCE_PANEL</td>
+	<td>//button[contains(@type,'button') and contains(@aria-label, 'Close')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CLOSE_INFO_PANEL_BUTTON</td>
 	<td>//*[contains(@class, 'component-action btn btn-monospaced btn-unstyled')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_CHART_SVG</td>
+	<td>//*[@class = 'recharts-surface']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_PERFORMANCE_TITLE_PANEL</td>
+	<td>//*[contains(@class, 'font-weight-bold mb-0 pr-2') and contains(text(), 'Content Performance')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -108,13 +170,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EMPTY_AUDIT_GRAPH_TEXT</td>
+	<td>//*[contains(@class, 'text-truncate') and contains(text(),'There is no data')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EXPIRED_LABEL</td>
 	<td>//*[contains(@class, 'label') and contains(text(),'EXPIRED')]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>EXPORT_XLS_BUTTON</td>
+	<td>//*[contains(@class, 'download-spreadsheet-button')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FILTER_AND_ORDER_DROPDOWN</td>
 	<td>//*[contains(@class, 'dropdown-toggle') and contains(@class, 'nav-link') and contains(@class, 'btn-unstyled')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_BY_EXTENSION_EMPTY</td>
+	<td>//*[contains(@class, 'sheet-text') and contains(@class, 'text-center') and contains(text(), '${noResultMessage}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -128,6 +205,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FILTER_EXTENSION_ELEMENT</td>
+	<td>//*[contains(@class, 'card-body')]//*[contains(@class, 'text-truncate') and contains (text(), '${extensionName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_LABEL</td>
+	<td>//li[contains(@class,'tbar')]//span[contains(@class,'label-item-expand')][starts-with(.,'${filterLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_PARENT_EXTENSION</td>
+	<td>//*[contains(@class, 'card-body')]//*[contains(@class, 'text-truncate') and contains (text(), '${parentExtension}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FILTER_TEXT</td>
 	<td>//*[contains(@class, 'label-section')]</td>
 	<td></td>
@@ -138,13 +230,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FIRST_ELEMENT_LISTED_DISPLAY_PAGE</td>
+	<td>//span[contains(@title, 'This content has a display page')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FIRST_ELEMENT_LISTED_LINK</td>
 	<td>((//*[contains(@class, 'lfr-portal-tooltip')])[4]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FIRST_ELEMENT_LISTED_TAGS</td>
-	<td>//*[contains(@class, 'text-truncate') and contains(text(),'Web Content Title')]</td>
+	<td>FIRST_ELEMENT_LISTED_MODIFIED_DATE</td>
+	<td>//*[contains(@class, 'lfr-modified-date-column')] //*[contains(@class, 'lfr-portal-tooltip')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -158,8 +255,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>GLOBAL_SITE_CARD</td>
-	<td>//*[contains(@class, 'card')]//*[contains(@data-groupdescriptivename, 'Global')]</td>
+	<td>SITE_CARD</td>
+	<td>//*[contains(@class, 'card')]//*[contains(@data-groupdescriptivename, '${key_siteName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ICON_VIEW_LISTED_MODIFIED_DATE</td>
+	<td>//a[contains(@label,'View')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -168,13 +270,58 @@
 	<td></td>
 </tr>
 <tr>
+	<td>INFO_PANEL_SECTION_TITLE</td>
+	<td>//*[contains(@class,'panel-title') and contains(text(),'${sectionName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_AUTHOR</td>
+	<td>//span[contains(@class,'text-secondary') and contains (.,'${assetAuthor}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_AVATAR</td>
+	<td>//*[contains(@class,'sidebar-section')]//*[contains(@class,'lexicon-icon-user')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_TYPE_OF_DATE</td>
+	<td>//*[contains(@class,'font-weight-semi-bold') and contains (text(),'${typeOfDate}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_VOCABULARY_NAME</td>
+	<td>//*[contains(@class,'font-weight-semi-bold') and contains (text(),'${vocabularyName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_TAGS_TITLE</td>
+	<td>//*[contains(@class,'font-weight-semi-bold') and contains (text(),'Tags')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_ID</td>
+	<td>//*[contains(@class,'font-weight-semi-bold') and contains (text(),'ID')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_STATUS</td>
+	<td>//span[contains(@class,'label-item') and contains (.,'${assetStatus}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>INFO_PANEL_TITLE</td>
-	<td>//*[contains(@class, 'text-truncate') and contains(text(),'Content Info')]</td>
+	<td>//section[contains(@class,'sidebar-header')]/descendant-or-self::p</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_PANEL_VERSION</td>
+	<td>//span[contains(@class,'label-item') and contains (.,'${assetVersion}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>MY_SITES_TAB</td>
-	<td>//*[contains(@class, 'nav-link') and contains(text(),'My Sites')]</td>
+	<td>//*[contains(@class, 'nav-link')]//*[contains(text(),'My Sites')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -183,13 +330,38 @@
 	<td></td>
 </tr>
 <tr>
-	<td>REVERSE_SORT_DIRECTION_BUTTON</td>
-	<td>//*[contains(@class, 'lexicon-icon lexicon-icon-order-arrow')]</td>
+	<td>PAGINATION_MOVE_TO_PAGE</td>
+	<td>//ul[contains(@class,'pagination')]/li/a[contains(.,'${pageNumber}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SEARCH_CATEGORY_FIELD</td>
-	<td>//*[contains(@class, 'form-control h-100 input-group-inset input-group-inset-after')]</td>
+	<td>PANEL_INFO_VIEW</td>
+	<td>//*[contains(@class,'link-outline-secondary')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>QUICK_ACTION_MENU</td>
+	<td>//a[contains(@class, 'component-action quick-action-item') and contains(@label, '${keyAction}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>QUICK_ACTION_BUTTON_MENU</td>
+	<td>//button[contains(@class, 'component-action quick-action-item') and contains(@label, '${keyButtonAction}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REORDER_ACTIVE_BUTTON</td>
+	<td>//div[contains(@class, 'reorder-order-buttons')] //button[not(@disabled)]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REVERSE_SORT_DIRECTION_BUTTON</td>
+	<td>//*[contains(@class, 'lexicon-icon lexicon-icon-order')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ROW_PANEL_WC</td>
+	<td>//tr[contains(@data-qa-id, 'row')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -199,7 +371,7 @@
 </tr>
 <tr>
 	<td>SEARCH_SUBTYPE_FIELD</td>
-	<td>//*[contains(@class,'form-control input-group-inset input-group-inset-after') and contains(@name,'ItemSelector')]</td>
+	<td>//*[contains(@class, 'input-group-inset')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -208,13 +380,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CHECKBOX_TAGS</td>
-	<td>//*[contains(@title,'Select') and contains(@value,'${tagName}')]</td>
+	<td>SITE_ASSET_LIBRARY_COLUMN</td>
+	<td>//*[contains(@class,'lfr-site-or-asset-library-column') and contains(text(), '${siteAssetValue}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SUBTYPE_ELEMENT_CHECKBOX</td>
-	<td>//*[contains(@type, 'checkbox') and contains(@title,'Select')]</td>
+	<td>SUBTYPE_NAME_ELEMENT</td>
+	<td>//*[contains(@class, 'text-truncate') and contains(text(),'${subtypeName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -223,13 +395,43 @@
 	<td></td>
 </tr>
 <tr>
-	<td>WEB_CONTENT_MENU_DROPDOWN_BUTTON</td>
-	<td>//button[contains(@class, 'dropdown-toggle') and contains(@class, 'btn-unstyled') and contains(@class, 'btn-monospaced') and contains(@class, 'component-action')]</td>
+	<td>TAG_LABEL_INFO_PANEL</td>
+	<td>//*[contains(@class, 'sidebar-light')]//span[contains(@class,'label-secondary') and contains (.,'${tagName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TITLE_COLUMN_CONTENT</td>
+	<td>//td[contains(@class,'lfr-title-column')]//a[contains(@title,'${title}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TYPE_COLUMN_VALUE</td>
+	<td>//td[contains(@class,'lfr-type-column') and contains(text(),'${assetType}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_METRICS_OPTION</td>
+	<td>//*[contains(@data-action, 'showMetrics')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_OPTION</td>
+	<td>//*[contains(@class, 'dropdown-item') and contains(text(),'View')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>X_AXIS_CATEGORIES_NAME</td>
+	<td>(//*[contains(@class, 'xAxis')] //*[contains(@class,'recharts-text')]/*)[${categoryIndex}]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>X_AXIS_VOCABULARY_NAME</td>
 	<td>//*[contains(@class, 'recharts-layer recharts-cartesian-axis-tick')]//*[contains(text(), '${xAxisCategoryName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ICON_INFO_LISTED_MODIFIED_DATE</td>
+	<td>//button[contains(@class,'component-action quick-action-item btn btn-monospaced btn-sm btn-unstyled')] //*[contains(@class,'circle')]</td>
 	<td></td>
 </tr>
 </tbody>

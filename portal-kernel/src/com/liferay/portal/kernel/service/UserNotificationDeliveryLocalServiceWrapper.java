@@ -25,6 +25,10 @@ public class UserNotificationDeliveryLocalServiceWrapper
 	implements ServiceWrapper<UserNotificationDeliveryLocalService>,
 			   UserNotificationDeliveryLocalService {
 
+	public UserNotificationDeliveryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public UserNotificationDeliveryLocalServiceWrapper(
 		UserNotificationDeliveryLocalService
 			userNotificationDeliveryLocalService) {
@@ -162,6 +166,13 @@ public class UserNotificationDeliveryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _userNotificationDeliveryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _userNotificationDeliveryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -38,13 +38,13 @@ public class UpgradeUserGroupRole extends UpgradeProcess {
 		String normalizedTableName = dbInspector.normalizeName(
 			"UserGroupRole", databaseMetaData);
 
-		try (ResultSet rs = databaseMetaData.getColumns(
+		try (ResultSet resultSet = databaseMetaData.getColumns(
 				dbInspector.getCatalog(), dbInspector.getSchema(),
 				normalizedTableName,
 				dbInspector.normalizeName(
 					"userGroupRoleId", databaseMetaData))) {
 
-			if (rs.next()) {
+			if (resultSet.next()) {
 				return;
 			}
 		}

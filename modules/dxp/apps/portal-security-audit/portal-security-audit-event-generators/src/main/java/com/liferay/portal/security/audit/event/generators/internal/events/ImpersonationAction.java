@@ -77,16 +77,16 @@ public class ImpersonationAction extends Action {
 		User user = themeDisplay.getUser();
 		User realUser = themeDisplay.getRealUser();
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		Boolean impersonatingUser = (Boolean)session.getAttribute(
+		Boolean impersonatingUser = (Boolean)httpSession.getAttribute(
 			_IMPERSONATING_USER);
 
 		if (Validator.isNotNull(themeDisplay.getDoAsUserId()) &&
 			(user.getUserId() != realUser.getUserId())) {
 
 			if (impersonatingUser == null) {
-				session.setAttribute(_IMPERSONATING_USER, Boolean.TRUE);
+				httpSession.setAttribute(_IMPERSONATING_USER, Boolean.TRUE);
 
 				JSONObject additionalInfoJSONObject =
 					_jsonFactory.createJSONObject();
@@ -107,7 +107,7 @@ public class ImpersonationAction extends Action {
 			}
 		}
 		else if (impersonatingUser != null) {
-			session.removeAttribute(_IMPERSONATING_USER);
+			httpSession.removeAttribute(_IMPERSONATING_USER);
 		}
 	}
 

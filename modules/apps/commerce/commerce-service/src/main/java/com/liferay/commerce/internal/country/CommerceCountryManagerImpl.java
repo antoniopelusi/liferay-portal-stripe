@@ -48,6 +48,7 @@ import org.osgi.service.component.annotations.Reference;
 @JSONWebService
 public class CommerceCountryManagerImpl implements CommerceCountryManager {
 
+	@Override
 	public List<Country> getBillingCountries(
 		long companyId, boolean active, boolean billingAllowed) {
 
@@ -71,6 +72,7 @@ public class CommerceCountryManagerImpl implements CommerceCountryManager {
 			));
 	}
 
+	@Override
 	public List<Country> getBillingCountriesByChannelId(
 		long channelId, int start, int end) {
 
@@ -86,6 +88,7 @@ public class CommerceCountryManagerImpl implements CommerceCountryManager {
 			));
 	}
 
+	@Override
 	public List<Country> getShippingCountries(
 		long companyId, boolean active, boolean shippingAllowed) {
 
@@ -109,6 +112,7 @@ public class CommerceCountryManagerImpl implements CommerceCountryManager {
 			));
 	}
 
+	@Override
 	public List<Country> getShippingCountriesByChannelId(
 		long channelId, int start, int end) {
 
@@ -124,6 +128,7 @@ public class CommerceCountryManagerImpl implements CommerceCountryManager {
 			));
 	}
 
+	@Override
 	public List<Country> getWarehouseCountries(long companyId, boolean all) {
 		return _countryLocalService.dslQuery(
 			DSLQueryFactoryUtil.selectDistinct(
@@ -136,19 +141,18 @@ public class CommerceCountryManagerImpl implements CommerceCountryManager {
 					CommerceInventoryWarehouseTable.INSTANCE.
 						countryTwoLettersISOCode)
 			).where(
-				() -> {
-					Predicate predicate =
-						CommerceInventoryWarehouseTable.INSTANCE.companyId.eq(
-							companyId);
+				() -> CommerceInventoryWarehouseTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					() -> {
+						if (!all) {
+							return CommerceInventoryWarehouseTable.INSTANCE.
+								active.eq(true);
+						}
 
-					if (!all) {
-						predicate = predicate.and(
-							CommerceInventoryWarehouseTable.INSTANCE.active.eq(
-								true));
+						return null;
 					}
-
-					return predicate;
-				}
+				)
 			).orderBy(
 				CountryTable.INSTANCE,
 				OrderByComparatorFactoryUtil.create("Country", "position", true)
@@ -188,7 +192,6 @@ public class CommerceCountryManagerImpl implements CommerceCountryManager {
 					channelFilterPredicate);
 
 				predicate = predicate.and(groupFilterPredicate);
-
 				predicate = predicate.and(
 					CountryTable.INSTANCE.billingAllowed.eq(billingAllowed));
 				predicate = predicate.and(

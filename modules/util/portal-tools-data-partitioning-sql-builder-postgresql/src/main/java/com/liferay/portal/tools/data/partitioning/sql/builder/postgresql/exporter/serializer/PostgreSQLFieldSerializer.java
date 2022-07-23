@@ -14,6 +14,7 @@
 
 package com.liferay.portal.tools.data.partitioning.sql.builder.postgresql.exporter.serializer;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.tools.data.partitioning.sql.builder.exporter.serializer.FieldSerializer;
 
 import java.sql.Date;
@@ -29,7 +30,7 @@ public class PostgreSQLFieldSerializer implements FieldSerializer {
 
 	@Override
 	public String serialize(Object object) {
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler(3);
 
 		if (object == null) {
 			sb.append("null");

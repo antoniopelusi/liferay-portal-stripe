@@ -68,7 +68,7 @@ long phoneId = phone.getPhoneId();
 		"listType", ListTypeConstants.PHONE
 	).setParameter(
 		"primaryKey", phoneId
-	).build();
+	).buildPortletURL();
 	%>
 
 	<liferay-ui:icon

@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.scripting.Scripting;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.scripting.executor.internal.constants.ScriptingExecutorMessagingConstants;
 
 import java.util.Dictionary;
@@ -49,9 +49,10 @@ public class ScriptingExecutorMessagingConfigurator {
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("destination.name", destination.getName());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		_destinationServiceRegistration = bundleContext.registerService(
 			Destination.class, destination, properties);

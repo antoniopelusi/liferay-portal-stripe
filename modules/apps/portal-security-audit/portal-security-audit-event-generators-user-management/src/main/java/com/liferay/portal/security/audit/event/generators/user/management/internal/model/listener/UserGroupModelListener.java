@@ -77,21 +77,18 @@ public class UserGroupModelListener extends BaseModelListener<UserGroup> {
 			associationClassPK);
 	}
 
-	public void onBeforeUpdate(UserGroup newUserGroup)
+	public void onBeforeUpdate(UserGroup originalUserGroup, UserGroup userGroup)
 		throws ModelListenerException {
 
 		try {
-			UserGroup oldUserGroup = _userGroupLocalService.getUserGroup(
-				newUserGroup.getUserGroupId());
-
 			List<Attribute> attributes = getModifiedAttributes(
-				newUserGroup, oldUserGroup);
+				originalUserGroup, userGroup);
 
 			if (!attributes.isEmpty()) {
 				AuditMessage auditMessage =
 					AuditMessageBuilder.buildAuditMessage(
 						EventTypes.UPDATE, UserGroup.class.getName(),
-						newUserGroup.getUserGroupId(), attributes);
+						userGroup.getUserGroupId(), attributes);
 
 				_auditRouter.route(auditMessage);
 			}
@@ -167,10 +164,10 @@ public class UserGroupModelListener extends BaseModelListener<UserGroup> {
 	}
 
 	protected List<Attribute> getModifiedAttributes(
-		UserGroup newUserGroup, UserGroup oldUserGroup) {
+		UserGroup originalUserGroup, UserGroup userGroup) {
 
 		AttributesBuilder attributesBuilder = new AttributesBuilder(
-			newUserGroup, oldUserGroup);
+			userGroup, originalUserGroup);
 
 		attributesBuilder.add("description");
 		attributesBuilder.add("name");

@@ -31,7 +31,6 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 
 	@Override
 	public void onAfterCreate(Layout layout) throws ModelListenerException {
-		super.onAfterCreate(layout);
 	}
 
 	@Override

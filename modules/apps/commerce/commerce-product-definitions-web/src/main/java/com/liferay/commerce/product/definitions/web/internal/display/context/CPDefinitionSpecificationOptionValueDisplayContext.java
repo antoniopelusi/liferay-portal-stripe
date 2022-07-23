@@ -117,7 +117,7 @@ public class CPDefinitionSpecificationOptionValueDisplayContext
 		}
 		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(principalException, principalException);
+				_log.debug(principalException);
 			}
 		}
 
@@ -154,7 +154,7 @@ public class CPDefinitionSpecificationOptionValueDisplayContext
 			"/cp_definitions/edit_cp_definition"
 		).setParameter(
 			"screenNavigationCategoryKey", getScreenNavigationCategoryKey()
-		).build();
+		).buildPortletURL();
 	}
 
 	public boolean hasCustomAttributesAvailable() throws Exception {

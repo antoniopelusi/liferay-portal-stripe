@@ -40,24 +40,6 @@ public class AssetVocabularySettingsHelper {
 		AssetCategoryConstants.ALL_CLASS_TYPE_PK
 	};
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #DEFAULT_SELECTED_CLASS_NAME_IDS}
-	 */
-	@Deprecated
-	public static final long[] DEFAULT_SELECTED_CLASSNAME_IDS = {
-		AssetCategoryConstants.ALL_CLASS_NAME_ID
-	};
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #DEFAULT_SELECTED_CLASS_TYPE_PKS}
-	 */
-	@Deprecated
-	public static final long[] DEFAULT_SELECTED_CLASSTYPE_PKS = {
-		AssetCategoryConstants.ALL_CLASS_TYPE_PK
-	};
-
 	public AssetVocabularySettingsHelper() {
 		_unicodeProperties = new UnicodeProperties(true);
 	}
@@ -126,13 +108,12 @@ public class AssetVocabularySettingsHelper {
 
 			if (classNameIdAndClassTypePK.equals(
 					AssetCategoryConstants.
-						ALL_CLASS_NAME_IDS_AND_CLASS_TYPE_PKS)) {
+						ALL_CLASS_NAME_IDS_AND_CLASS_TYPE_PKS) &&
+				required) {
 
-				if (required) {
-					requiredClassNameIds.clear();
+				requiredClassNameIds.clear();
 
-					requiredClassNameIds.add(classNameIdAndClassTypePK);
-				}
+				requiredClassNameIds.add(classNameIdAndClassTypePK);
 
 				selectedClassNameIds.clear();
 
@@ -146,6 +127,17 @@ public class AssetVocabularySettingsHelper {
 			}
 
 			selectedClassNameIds.add(classNameIdAndClassTypePK);
+		}
+
+		if (selectedClassNameIds.contains(
+				AssetCategoryConstants.ALL_CLASS_NAME_IDS_AND_CLASS_TYPE_PKS)) {
+
+			selectedClassNameIds.clear();
+
+			selectedClassNameIds.add(
+				AssetCategoryConstants.ALL_CLASS_NAME_IDS_AND_CLASS_TYPE_PKS);
+
+			selectedClassNameIds.addAll(requiredClassNameIds);
 		}
 
 		_unicodeProperties.setProperty(
@@ -252,15 +244,6 @@ public class AssetVocabularySettingsHelper {
 				AssetCategoryConstants.ALL_CLASS_NAME_IDS_AND_CLASS_TYPE_PKS)) {
 
 			return true;
-		}
-
-		if (classTypePK == AssetCategoryConstants.ALL_CLASS_TYPE_PK) {
-			String prefix = classNameId + StringPool.COLON;
-
-			return ArrayUtil.exists(
-				classNameIdsAndClassTypePKs,
-				classNameIdsAndClassTypePK ->
-					classNameIdsAndClassTypePK.startsWith(prefix));
 		}
 
 		String classNameIdAndClassTypePK = getClassNameIdAndClassTypePK(

@@ -19,6 +19,10 @@
 <div>
 	<span aria-hidden="true" class="loading-animation"></span>
 
+	<%
+	SimpleDateFormat simpleDateFormat = (SimpleDateFormat)DateFormat.getTimeInstance(DateFormat.SHORT, locale);
+	%>
+
 	<react:component
 		module="js/index.es"
 		props='<%=
@@ -30,6 +34,8 @@
 				"isAmPm", DateUtil.isFormatAmPm(locale)
 			).put(
 				"maxPages", PropsValues.SEARCH_CONTAINER_PAGE_ITERATOR_MAX_PAGES
+			).put(
+				"timeFormat", simpleDateFormat.toPattern()
 			).put(
 				"userId", themeDisplay.getUserId()
 			).put(

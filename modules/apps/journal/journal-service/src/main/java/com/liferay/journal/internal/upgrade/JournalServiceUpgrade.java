@@ -28,7 +28,7 @@ import com.liferay.dynamic.data.mapping.service.DDMTemplateLinkLocalService;
 import com.liferay.dynamic.data.mapping.util.DefaultDDMStructureHelper;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverter;
 import com.liferay.journal.content.compatibility.converter.JournalContentCompatibilityConverter;
-import com.liferay.journal.internal.upgrade.util.JournalArticleImageUpgradeHelper;
+import com.liferay.journal.internal.upgrade.helper.JournalArticleImageUpgradeHelper;
 import com.liferay.journal.internal.upgrade.v0_0_3.JournalArticleTypeUpgradeProcess;
 import com.liferay.journal.internal.upgrade.v0_0_4.SchemaUpgradeProcess;
 import com.liferay.journal.internal.upgrade.v0_0_5.JournalUpgradeProcess;
@@ -60,6 +60,8 @@ import com.liferay.journal.internal.upgrade.v3_3_0.StorageLinksUpgradeProcess;
 import com.liferay.journal.internal.upgrade.v3_5_0.JournalArticleContentUpgradeProcess;
 import com.liferay.journal.internal.upgrade.v3_5_1.JournalArticleDataFileEntryIdUpgradeProcess;
 import com.liferay.journal.internal.upgrade.v4_0_0.JournalArticleDDMFieldsUpgradeProcess;
+import com.liferay.journal.internal.upgrade.v4_1_0.JournalArticleExternalReferenceCodeUpgradeProcess;
+import com.liferay.journal.internal.upgrade.v4_2_0.JournalFeedUpgradeProcess;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.util.JournalConverter;
 import com.liferay.portal.change.tracking.store.CTStoreFactory;
@@ -92,6 +94,7 @@ import com.liferay.portal.kernel.upgrade.MVCCVersionUpgradeProcess;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
+import com.liferay.portlet.documentlibrary.store.StoreFactory;
 import com.liferay.subscription.service.SubscriptionLocalService;
 
 import java.io.PrintWriter;
@@ -144,7 +147,7 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 				@Override
 				public void upgrade(DBProcessContext dbProcessContext) {
 					try {
-						deleteTempImages();
+						_deleteTempImages();
 					}
 					catch (Exception exception) {
 						exception.printStackTrace(
@@ -297,9 +300,23 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 				_classNameLocalService, _ddmFieldLocalService,
 				_ddmStructureLocalService, _fieldsToDDMFormValuesConverter,
 				_journalConverter, _portal));
+
+		registry.register(
+			"4.0.0", "4.1.0",
+			new JournalArticleExternalReferenceCodeUpgradeProcess());
+
+		registry.register("4.1.0", "4.2.0", new JournalFeedUpgradeProcess());
 	}
 
-	protected void deleteTempImages() throws Exception {
+	@Reference(unbind = "-")
+	protected void setPortalCapabilityLocator(
+		PortalCapabilityLocator portalCapabilityLocator) {
+
+		// See LPS-82746
+
+	}
+
+	private void _deleteTempImages() throws Exception {
 		if (_log.isDebugEnabled()) {
 			_log.debug("Delete temporary images");
 		}
@@ -311,14 +328,6 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 				"JournalArticleImage where tempImage = TRUE)");
 
 		db.runSQL("delete from JournalArticleImage where tempImage = TRUE");
-	}
-
-	@Reference(unbind = "-")
-	protected void setPortalCapabilityLocator(
-		PortalCapabilityLocator portalCapabilityLocator) {
-
-		// See LPS-82746
-
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -424,6 +433,9 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Reference
 	private SettingsFactory _settingsFactory;
+
+	@Reference(target = "(dl.store.impl.enabled=true)")
+	private StoreFactory _storeFactory;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

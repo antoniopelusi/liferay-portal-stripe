@@ -43,13 +43,13 @@ public class RoleUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _updateRole(String oldName, String newName) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update Role_ set name = ?, title = NULL where name = ?")) {
 
-			ps.setString(1, newName);
-			ps.setString(2, oldName);
+			preparedStatement.setString(1, newName);
+			preparedStatement.setString(2, oldName);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

@@ -26,11 +26,11 @@ public class SharedSessionImpl implements SharedSession {
 
 	@Override
 	public HttpSession getSharedSessionWrapper(
-		HttpSession portalSession, HttpServletRequest httpServletRequest) {
+		HttpSession portalHttpSession, HttpServletRequest httpServletRequest) {
 
-		HttpSession portletSession = httpServletRequest.getSession();
+		HttpSession portletHttpSession = httpServletRequest.getSession();
 
-		return new SharedSessionWrapper(portalSession, portletSession);
+		return new SharedSessionWrapper(portalHttpSession, portletHttpSession);
 	}
 
 }

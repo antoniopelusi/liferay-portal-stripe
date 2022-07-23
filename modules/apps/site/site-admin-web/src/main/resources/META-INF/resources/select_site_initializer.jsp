@@ -35,7 +35,7 @@ renderResponse.setTitle(LanguageUtil.get(request, "select-site-template"));
 			modelVar="siteInitializerItem"
 		>
 			<liferay-ui:search-container-column-text>
-				<button class="add-site-action-button btn btn-unstyled mb-4 w-100" type="button">
+				<button class="add-site-action-button align-items-stretch btn btn-unstyled form-check-card mb-4 w-100" type="button">
 					<clay:vertical-card
 						verticalCard="<%= new SelectSiteInitializerVerticalCard(siteInitializerItem, renderRequest, renderResponse) %>"
 					/>
@@ -65,20 +65,14 @@ renderResponse.setTitle(LanguageUtil.get(request, "select-site-template"));
 				var data = event.delegateTarget.querySelector('.add-site-action-card')
 					.dataset;
 
-				openSimpleInputModal.default({
-					checkboxFieldLabel:
-						'<liferay-ui:message key="create-default-pages-as-private-available-only-to-members-if-unchecked-they-will-be-public-available-to-anyone" />',
-					checkboxFieldName: data.checkboxFieldName,
-					checkboxFieldValue: false,
-					dialogTitle: '<liferay-ui:message key="add-site" />',
-					formSubmitURL: data.addSiteUrl,
-					idFieldName: 'layoutSetPrototypeId',
-					idFieldValue: data.layoutSetPrototypeId,
-					mainFieldName: 'name',
-					mainFieldLabel: '<liferay-ui:message key="name" />',
-					namespace: '<portlet:namespace />',
-					spritemap:
-						'<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
+				Liferay.Util.openModal({
+					disableAutoClose: true,
+					height: '60vh',
+					id: '<portlet:namespace />addSiteDialog',
+					iframeBodyCssClass: '',
+					size: 'md',
+					title: '<liferay-ui:message key="add-site" />',
+					url: data.addSiteUrl,
 				});
 			}
 		);

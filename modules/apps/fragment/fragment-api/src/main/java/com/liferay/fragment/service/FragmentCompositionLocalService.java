@@ -154,6 +154,9 @@ public interface FragmentCompositionLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -395,17 +398,6 @@ public interface FragmentCompositionLocalService
 			long userId, long fragmentCompositionId, long fragmentCollectionId,
 			String name, String description, String data,
 			long previewFileEntryId, int status)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateFragmentComposition(long, long, long, String, String, String, long, int)}
-	 */
-	@Deprecated
-	public FragmentComposition updateFragmentComposition(
-			long userId, long fragmentCompositionId, String name,
-			String description, String data, long previewFileEntryId,
-			int status)
 		throws PortalException;
 
 	public FragmentComposition updateFragmentComposition(

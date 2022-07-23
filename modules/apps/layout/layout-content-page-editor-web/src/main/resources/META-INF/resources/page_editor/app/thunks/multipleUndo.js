@@ -31,7 +31,10 @@ export default function multipleUndo({numberOfActions, store, type}) {
 			return;
 		}
 
-		let isUndoAction, remainingUndos, undosToUndo, updateHistoryAction;
+		let isUndoAction;
+		let remainingUndos;
+		let undosToUndo;
+		let updateHistoryAction;
 
 		let updatedStore = store;
 
@@ -98,7 +101,10 @@ export default function multipleUndo({numberOfActions, store, type}) {
 					return undoAction({
 						action: undo,
 						store: updatedStore,
-					})(multipleUndoDispatch(undo.originalType || undo.type));
+					})(
+						multipleUndoDispatch(undo.originalType || undo.type),
+						() => updatedStore
+					);
 				});
 			}, Promise.resolve())
 			.then(() => {

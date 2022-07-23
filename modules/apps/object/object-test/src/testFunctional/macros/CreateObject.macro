@@ -1,0 +1,420 @@
+definition {
+
+	macro activeCustomObject {
+		ObjectPortlet.selectCustomObject(label = "${objectName}");
+
+		CreateObject.checkToggleActive();
+
+		CreateObject.saveObject();
+	}
+
+	macro addRelationshipAndSelectEntry {
+		LexiconEntry.gotoAdd();
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		ClickNoError(
+			key_titleFieldName = "${titleFieldName}",
+			locator1 = "CreateObject#SELECT_ENTRY_IN_RELATIONSHIP_TAB");
+
+		WaitForSPARefresh();
+
+		WaitForPageLoad();
+	}
+
+	macro assertAddedEntryRelationshipIsDisplayed {
+		LexiconEntry.gotoAdd();
+
+		Click(locator1 = "ObjectPortlet#SEARCH_RELATIONSHIP_ENTRY");
+
+		WaitForSPARefresh();
+
+		AssertElementPresent(
+			key_entry = "${entry}",
+			locator1 = "CreateObject#ENTRY_RELATIONSHIP_FIELD_OPTION");
+	}
+
+	macro assertCanCollapseAndExpandEntryField {
+		WaitForSPARefresh();
+
+		if (IsVisible(key_closedOrOpen = "open", locator1 = "CreateObject#VIEW_COLLAPSE_ICON")) {
+			Click(locator1 = "CreateObject#COLLAPSE_EXPAND_OBJECT_PORTLET_ENTRY_FIELD");
+
+			WaitForSPARefresh();
+
+			AssertNotVisible(
+				key_entryLabel = "Custom Field",
+				locator1 = "ObjectPortlet#VIEW_ENTRY_DETAILS_LABEL");
+		}
+
+		if (IsVisible(key_closedOrOpen = "closed", locator1 = "CreateObject#VIEW_COLLAPSE_ICON")) {
+			Click(locator1 = "CreateObject#COLLAPSE_EXPAND_OBJECT_PORTLET_ENTRY_FIELD");
+
+			WaitForSPARefresh();
+
+			AssertVisible(
+				key_entryLabel = "Custom Field",
+				locator1 = "ObjectPortlet#VIEW_ENTRY_DETAILS_LABEL");
+		}
+	}
+
+	macro assertCannotAddRelationshipTabFirst {
+		LexiconEntry.gotoAdd();
+
+		AssertElementPresent(locator1 = "CreateObject#DISABLED_TAB_TYPE_RELATIONSHIPS");
+	}
+
+	macro assertCustomObject {
+		AssertElementPresent(
+			key_labelName = "${labelName}",
+			locator1 = "CreateObject#OBJECT_NAME");
+	}
+
+	macro assertCustomObjectNotPresent {
+		AssertElementNotPresent(
+			key_labelName = "${labelName}",
+			locator1 = "CreateObject#OBJECT_NAME");
+	}
+
+	macro assertCustomObjectWithIndex {
+		AssertElementPresent(
+			key_index = "${index}",
+			key_labelName = "${labelName}",
+			locator1 = "CreateObject#OBJECT_NAME_INDEX");
+	}
+
+	macro assertDisabledAllFields {
+		CreateObject.assertDisabledObjectName();
+
+		for (var fieldsDisabled : list "Object ID,Name,Label") {
+			AssertElementPresent(
+				key_nameDisabled = "${fieldsDisabled}",
+				locator1 = "CreateObject#VIEW_OBJECT_DATA_DISABLED");
+		}
+
+		for (var fieldsDisabled : list "Title Field,Scope,Panel Category Key") {
+			AssertElementPresent(
+				key_nameDisabled = "${fieldsDisabled}",
+				locator1 = "CreateObject#VIEW_OBJECT_ENTRY_DISPLAY_DISABLED");
+		}
+
+		AssertElementPresent(locator1 = "CreateObject#SAVE_BUTTON_DISABLED");
+	}
+
+	macro assertDisabledObjectName {
+		AssertElementPresent(locator1 = "CreateObject#DISABLED_OBJECT_NAME");
+	}
+
+	macro assertDisabledPublishObjectButton {
+		AssertElementPresent(locator1 = "CreateObject#DISABLED_PUBLISH_OBJECT_BUTTON");
+	}
+
+	macro assertEntrySelectedOnRelationshipField {
+		AssertElementPresent(
+			key_entry = "${entry}",
+			locator1 = "CreateObject#VIEW_ENTRY_SELECTED_ON_RELATIONSHIP_FIELD");
+	}
+
+	macro assertFieldAddedOnBlock {
+		AssertElementPresent(
+			key_fieldLabelName = "${fieldLabelName}",
+			locator1 = "CreateObject#FIELD_ADDED_ON_BLOCK");
+	}
+
+	macro assertFieldNotPresentInBlock {
+		AssertElementNotPresent(
+			key_fieldLabelName = "${fieldLabelName}",
+			locator1 = "CreateObject#FIELD_ADDED_ON_BLOCK");
+	}
+
+	macro assertLabelBasicInfo {
+		var key_fieldType = "value";
+
+		WaitForSPARefresh();
+
+		if (!(IsElementPresent(locator1 = "CreateObject#FIELD_VALUE"))) {
+			SelectFrame.selectFrameTop();
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+		}
+
+		AssertElementPresent(
+			fieldLabel = "${fieldLabel}",
+			locator1 = "CreateObject#FIELD_VALUE");
+	}
+
+	macro assertLabelBasicInfoNotPresent {
+		var key_fieldType = "value";
+
+		WaitForSPARefresh();
+
+		if (!(IsElementPresent(locator1 = "CreateObject#FIELD_VALUE"))) {
+			SelectFrame.selectFrameTop();
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+		}
+
+		AssertElementNotPresent(
+			fieldLabel = "${fieldLabel}",
+			locator1 = "CreateObject#FIELD_VALUE");
+	}
+
+	macro assertObjectDefinitionName {
+		AssertTextEquals(
+			locator1 = "CreateObject#OBJECT_DEFINITION_NAME",
+			value1 = "${objectName}");
+	}
+
+	macro assertObjectFieldNameIsAutofilled {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectField#LABEL_INPUT",
+			value1 = "${fieldLabel}");
+
+		AssertElementPresent(
+			key_fieldName = "${fieldName}",
+			locator1 = "CreateObject#VIEW_OBJECT_FIELD_NAME");
+	}
+
+	macro assertObjectLabel {
+		AssertTextEquals(
+			locator1 = "CreateObject#OBJECT_LABEL",
+			value1 = "${labelName}");
+	}
+
+	macro assertObjectNotPresent {
+		AssertElementNotPresent(
+			key_tabName = "${objectLabel}",
+			locator1 = "ObjectAdmin#ANY_TAB_ON_ENTRY");
+	}
+
+	macro assertObjectNotPresentInSubmissions {
+		AssertElementNotPresent(
+			key_submissionName = "${objectName}",
+			locator1 = "WorkflowSubmissions#SUBMISSION_BY_NAME");
+	}
+
+	macro assertObjectPluralLabel {
+		AssertTextEquals(
+			locator1 = "CreateObject#OBJECT_PLURAL_LABEL",
+			value1 = "${pluralLabelName}");
+	}
+
+	macro assertOneColumnOnFieldEntry {
+		AssertElementPresent(locator1 = "CreateObject#ASSERT_ONE_COLUMN_FIELD_ENTRY");
+
+		AssertElementNotPresent(locator1 = "CreateObject#ASSERT_TWO_COLUMN_FIELD_ENTRY");
+	}
+
+	macro assertPanelCategoryKey {
+		AssertSelectedLabel(
+			locator1 = "CreateObject#PANEL_CATEGORY_KEY_SELECTED",
+			value1 = "${panelCategoryKey}");
+	}
+
+	macro assertRelatedObject {
+		AssertElementPresent(
+			key_relatedObject = "${relatedObject}",
+			locator1 = "CreateObject#VIEW_RELATED_OBJECT_ON_RELATIONSHIP_FIELD");
+	}
+
+	macro assertRequiredPicklistOnField {
+		AssertElementPresent(locator1 = "ObjectAdmin#SELECT_OBJECT_RELATIONSHIP_REQUIRED");
+	}
+
+	macro assertScopeFieldSelected {
+		AssertSelectedLabel(
+			locator1 = "ObjectAdmin#SELECT_OBJECT_SCOPE",
+			value1 = "${fieldScope}");
+	}
+
+	macro assertSearchableSectionOptionsAppears {
+		AssertElementPresent(
+			key_radioOption = "${radioOption}",
+			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
+	}
+
+	macro assertSelectedValueInDeletionType {
+		WaitForSPARefresh();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		AssertElementPresent(
+			key_fieldLabel = "Deletion Type",
+			key_value = "${deletionType}",
+			locator1 = "CreateObject#ASSERT_SELECTED_VALUE");
+	}
+
+	macro assertTitleFieldIsSelected {
+		AssertSelectedLabel(
+			locator1 = "CreateObject#TITLE_FIELD",
+			value1 = "${fieldLabel}");
+	}
+
+	macro assertToggleCollapsibleChecked {
+		AssertChecked.assertCheckedNotVisible(locator1 = "CreateObject#TOGGLE_COLLAPSIBLE");
+	}
+
+	macro assertValuesOnObjectData {
+		var key_fieldType = "form-control";
+
+		AssertElementPresent(
+			fieldLabel = "${fieldLabel}",
+			locator1 = "CreateObject#FIELD_VALUE");
+	}
+
+	macro assertValuesOnScope {
+		AssertElementPresent(
+			key_fieldLabel = "Scope",
+			key_value = "${valueScope}",
+			locator1 = "CommerceEntry#SELECT_ASSERT_SELECTED_VALUE");
+
+		AssertElementPresent(
+			key_fieldLabel = "Panel Category Key",
+			key_value = "${valuePanelCategory}",
+			locator1 = "CommerceEntry#SELECT_ASSERT_SELECTED_VALUE");
+	}
+
+	macro checkToggleActive {
+		Check.checkToggleSwitch(locator1 = "CreateObject#TOGGLE_ACTIVE");
+
+		WaitForSPARefresh();
+
+		WaitForPageLoad();
+	}
+
+	macro checkToggleCollapsible {
+		Check.checkToggleSwitch(locator1 = "CreateObject#TOGGLE_COLLAPSIBLE");
+
+		WaitForSPARefresh();
+
+		WaitForPageLoad();
+	}
+
+	macro checkToggleInactive {
+		Uncheck.uncheckToggleSwitch(locator1 = "CreateObject#TOGGLE_INACTIVE");
+
+		WaitForSPARefresh();
+
+		WaitForPageLoad();
+	}
+
+	macro chooseEntryOnRelationshipField {
+		Click(locator1 = "ObjectPortlet#SEARCH_RELATIONSHIP_ENTRY");
+
+		KeyPress(
+			locator1 = "ObjectPortlet#SEARCH_RELATIONSHIP_ENTRY",
+			value1 = "\BACK_SPACE");
+
+		Click(
+			key_picklistOption = "${entryOption}",
+			locator1 = "ObjectAdmin#ENTRY_PICKLIST_OPTION");
+	}
+
+	macro deleteEntryInRelationshipTab {
+		ObjectAdmin.gotoRelationshipsTab();
+
+		Click(locator1 = "CreateObject#DELETE_ENTRY_IN_RELATIONSHIP_TAB");
+
+		AssertElementNotPresent(locator1 = "CreateObject#KEBAB_MENU_BLOCK_FIELD_OPTION_DELETE");
+	}
+
+	macro deleteFieldOnBlock {
+		Click(locator1 = "CreateObject#KEBAB_MENU_BLOCK_FIELD");
+
+		Click(locator1 = "CreateObject#KEBAB_MENU_BLOCK_FIELD_OPTION_DELETE");
+	}
+
+	macro deleteObjectViaUI {
+		Click(
+			key_objectLabel = "${objectLabel}",
+			locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+	}
+
+	macro editLabel {
+		Type(
+			locator1 = "CreateObject#OBJECT_LABEL",
+			value1 = "${labelName}");
+	}
+
+	macro editPluralLabel {
+		Type(
+			locator1 = "CreateObject#OBJECT_PLURAL_LABEL",
+			value1 = "${pluralLabelName}");
+	}
+
+	macro inactiveCustomObject {
+		ObjectPortlet.selectCustomObject(label = "${objectName}");
+
+		CreateObject.checkToggleInactive();
+
+		CreateObject.saveObject();
+	}
+
+	macro saveObject {
+		Click(locator1 = "CreateObject#SAVE_BUTTON");
+
+		WaitForSPARefresh();
+
+		WaitForPageLoad();
+	}
+
+	macro selectDeletionType {
+		ObjectAdmin.gotoRelationshipsTab();
+
+		ObjectAdmin.goToRelationshipsDetails(fieldName = "${fieldName}");
+
+		WaitForSPARefresh();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Select(
+			locator1 = "CreateObject#SELECT_DELETION_TYPE",
+			value1 = "${deletionType}");
+
+		Button.clickSave();
+	}
+
+	macro selectPanelCategoryKey {
+		Select(
+			locator1 = "CreateObject#PANEL_CATEGORY_KEY",
+			value1 = "${panelCategoryKey}");
+	}
+
+	macro selectTitleField {
+		Select(
+			locator1 = "CreateObject#TITLE_FIELD",
+			value1 = "${fieldLabel}");
+	}
+
+	macro viewEmptyFieldTable {
+		AssertElementPresent(locator1 = "RemoteApps#EMPTY_REMOTE_TABLE_MESSAGE");
+	}
+
+	macro viewErrorValueInvalid {
+		AssertElementPresent(
+			key_className = "${className}",
+			key_errorMessage = "${errorMessage}",
+			locator1 = "CreateObject#ERROR_MESSAGE");
+	}
+
+	macro viewObject {
+		Click(
+			key_labelName = "${labelName}",
+			locator1 = "CreateObject#VIEW_OBJECT");
+	}
+
+	macro withdrawObjectTask {
+		Click(
+			key_taskName = "${objectName}",
+			locator1 = "WorkflowSubmissions#SUBMISSIONS_TASK_NAME");
+
+		Click(locator1 = "WorkflowSubmissions#SUBMISSIONS_DETAILS_PAGE_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Withdraw Submission");
+	}
+
+}

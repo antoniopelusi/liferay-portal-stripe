@@ -1,63 +1,273 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Shopping Experience";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "COMMERCE-5866. As a buyer, I want to be able to add a product to my wish list, by clicking on an Add To Wish List button"
-	@ignore = "true"
 	@priority = "3"
 	test AddProductToWishListFromProductCard {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5866 AddProductToWishListFromProductCard pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_ADD_TO_WISH_LIST_BUTTON");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/minium/lists");
+
+		AssertTextEquals(
+			locator1 = "AppBuilder#ITEM_ON_THE_TABLE",
+			value1 = "U-Joint");
 	}
 
 	@description = "COMMERCE-5859. As a buyer, I want to view the product price with the default channel currency"
-	@ignore = "true"
 	@priority = "3"
 	test AssertDefaultChannelCurrencyIsAppliedToProductCard {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5859 AssertDefaultChannelCurrencyIsAppliedToProductCard pending implementation
+		var currencyName = "US Dollar";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Store Management",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		AssertSelectedLabel(
+			key_title = "Currency",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "${currencyName}");
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Catalogs");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium");
+
+		AssertSelectedLabel(
+			key_title = "Currency",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "${currencyName}");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AssertTextEquals.assertPartialText(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_LIST_PRICE",
+			value1 = "$");
+	}
+
+	@description = "COMMERCE-6657. As a buyer, I want to be unable to add a bundled product(Price Type Dynamic) to cart directly"
+	@priority = "3"
+	test AssertDynamicPriceBundledProductCannotBeAddedToCartDirectly {
+		property portal.acceptance = "false";
+
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Options");
+
+		CPCommerceCatalog.newOptionsEntry(
+			optionDescription = "Option Description",
+			optionFieldType = "Select from List",
+			optionName = "Color");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Use in Faceted Navigation",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Required",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "SKU Contributor",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickSave();
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		CommerceEntry.addOptionValue(
+			valueName = "Black",
+			valuePosition = "");
+
+		Button.click(button = "Submit");
+
+		SelectFrameTop();
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Minium",
+			productName = "Bundled Product",
+			productType = "Simple");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Options");
+
+		Type(
+			key_title = "Add Options",
+			locator1 = "CommerceEntry#ADD_RELATION_FIELD",
+			value1 = "Color");
+
+		Button.click(button = "Select");
+
+		Refresh();
+
+		CommerceNavigator.gotoEntry(entryName = "Color");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Select(
+			key_fieldLabel = "Price Type",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Dynamic");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(
+			key_index = "Black",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Type(
+			key_fieldLabel = "SKU",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "MIN55861");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Refresh();
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		Click(locator1 = "Button#PLUS");
+
+		Click(
+			key_fieldName = "Add SKU",
+			locator1 = "FormViewBuilder#OBJECT_FIELD_BUTTON_DROPDOWN");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_fieldLabel = "SKU",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "BLACKSKU");
+
+		Click(locator1 = "Dropdown#TRIGGER");
+
+		Click(
+			key_fieldName = "Black",
+			locator1 = "FormViewBuilder#OBJECT_FIELD_BUTTON_DROPDOWN");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Purchasable",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Type(
+			key_fieldLabel = "Base Price",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "10.0");
+
+		Button.click(button = "Publish");
+
+		Pause(locator1 = "1000");
+
+		Refresh();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "First Account");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_AVAILABLE_LABEL");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			key_productSku = "BLACKSKU",
+			locator1 = "CommerceEntry#PRODUCT_CARD_SKU");
 	}
 
 	@description = "COMMERCE-5907. As a buyer, I want to be unable to add multiple SKU product to the cart directly, I want to be unable to select the quantity of the product directly and I want to be unable to check the availability of the product directly"
-	@ignore = "true"
 	@priority = "3"
 	test AssertMultipleSKUProductCannotBeDirectlyAddedToCart {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-5907 AssertMultipleSKUProductCannotBeDirectlyAddedToCart pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		AssertElementNotPresent(
+			key_productName = "Brake Fluid",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD");
+
+		AssertElementNotPresent(
+			key_productName = "Brake Fluid",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON");
+
+		AssertElementNotPresent(
+			key_productName = "Brake Fluid",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_AVAILABILITY_LABEL");
+
+		AssertElementNotPresent(
+			key_productSku = "MIN93016A",
+			locator1 = "CommerceEntry#PRODUCT_CARD_SKU");
 	}
 
 	@description = "COMMERCE-6160. As a buyer, I want to be able to select only the allowed quantities of a product, if set"
 	@priority = "3"
 	test AssertOnlyAllowedQuantitiesAreSelectable {
 		property portal.acceptance = "false";
+
+		// TODO Review
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
@@ -86,9 +296,7 @@ definition {
 
 		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
 
-		CommerceAcceleratorsInitializer.createNewAccountViaFront(
-			accountName = "Test",
-			adminEmailAddress = "test@liferay.com");
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test");
 
 		ApplicationsMenu.gotoSite(site = "Minium");
 
@@ -105,57 +313,280 @@ definition {
 	}
 
 	@description = "COMMERCE-6162. As a buyer, I want to be able to select the quantity of a product by multiple value, if set"
-	@ignore = "true"
 	@priority = "3"
 	test AssertOnlyMultipleValuesAreSelectableQuantities {
-		property portal.acceptance = "false";
+		property portal.acceptance = "Intern Test";
 
-		// TODO COMMERCE-6162 AssertOnlyMultipleValuesAreSelectableQuantities pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		var product = "U-Joint";
+
+		CommerceNavigator.searchEntry(entryName = "${product}");
+
+		CommerceNavigator.gotoEntry(entryName = "${product}");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Type(
+			key_text = "Multiple Order Quantity",
+			locator1 = "TextInput#ANY",
+			value1 = "3");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		for (var quantity : list "1,3,4,6,9,12,15,18") {
+			Type(
+				key_productName = "${product}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+				value1 = "${quantity}");
+
+			if (("${quantity}" == "1") || ("${quantity}" == "4")) {
+				AssertTextEquals(
+					key_productName = "${product}",
+					locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+					value1 = "3");
+			}
+			else {
+				AssertTextEquals(
+					key_productName = "${product}",
+					locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+					value1 = "${quantity}");
+			}
+		}
 	}
 
 	@description = "COMMERCE-6164. As a buyer I want to be able to add a product to the cart regardless of the availability, if back ordererabilty of that product is enabled"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductCanBeAddedToCartIfBackOrderIsEnabled {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6164 AssertProductCanBeAddedToCartIfBackOrderIsEnabled pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Minium",
+			productName = "Simple T-Shirt",
+			productType = "Simple");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		AssertTextEquals(
+			key_productQuantity = "0",
+			locator1 = "CommerceEntry#PRODUCT_SKU_CONFIGURATION_AVAILABLE_QUANTITY",
+			value1 = "0");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Uncheck.uncheckToggleSwitch(
+			key_toggleSwitchLabel = "Allow Back Order",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		AssertNotChecked.assertNotCheckedNotVisible(
+			key_productName = "Simple T-Shirt",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceNavigator.searchEntry(entryName = "Simple T-Shirt");
+
+		CommerceNavigator.gotoEntry(entryName = "Simple T-Shirt");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Allow Back Order",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AssertNotChecked.assertNotCheckedNotVisible(
+			key_productName = "Simple T-Shirt",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON");
 	}
 
 	@description = "COMMERCE-6163. As a buyer I don't want to be able to add a product to the cart if the product is not purchasable"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductCannotBeAddedToCartIfProductIsNotPurchasable {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6163 AssertProductCannotBeAddedToCartIfProductIsNotPurchasable pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Commerce Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceNavigator.searchEntry(entryName = "U-Joint");
+
+		CommerceNavigator.gotoEntry(entryName = "U-Joint");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Uncheck.uncheckToggleSwitch(
+			key_checkSetupName = "Purchasable",
+			locator1 = "ToggleSwitch#SHOW_SPECIFIC_TOGGLE_SWITCH");
+
+		Button.clickPublish();
+
+		SelectFrameTop(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AssertElementPresent(
+			key_productName = "U-Joint",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON_DISABLED");
 	}
 
 	@description = "COMMERCE-5860. As a buyer, I want to change the channel currency and view the product price with the changed currency"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductCardCurrencyAfterChannelCurrencyChanged {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5860 AssertProductCardCurrencyAfterChannelCurrencyChanged pending implementation
+		// TODO Review
+
+		var currencyName = "Euro";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Store Management",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		Select(
+			key_title = "Currency",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "${currencyName}");
+
+		Button.clickSave();
+
+		AssertSelectedLabel(
+			key_title = "Currency",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "${currencyName}");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AssertTextEquals.assertPartialText(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_LIST_PRICE",
+			value1 = "€");
 	}
 
 	@description = "COMMERCE-5856. As a buyer, I want to view the product image container in the top area and I want to be able to click on the product image to navigate to the product detail page"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductCardImageRedirectsToProductDetailsPage {
-		property portal.acceptance = "false";
+		property portal.acceptance = "Intern Test";
 
-		// TODO COMMERCE-5856 AssertProductCardImageRedirectsToProductDetailsPage pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(
+			key_productName = "u-joint",
+			locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+
+		AssertTextEquals(
+			locator1 = "Publications#MANAGE_PUBLICATIONS_PAGE_TITLE",
+			value1 = "Product Detail");
 	}
 
 	@description = "COMMERCE-5858. As a buyer, I want to view the catalog default product image if set"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductCardShowsCatalogDefaultImage {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5858 AssertProductCardShowsCatalogDefaultImage pending implementation
+		var productName = "Simple T-Shirt";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Catalogs");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium");
+
+		var catalog_default_img = "//img[@class='current-image']";
+		var catalog_default_img_src = selenium.getAttribute("${catalog_default_img}@src");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Minium",
+			productName = "${productName}",
+			productType = "Simple");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		WaitForPageLoad();
+
+		var minium_catalog_default_img = "//a[contains(@href,'simple-t-shirt')]//img[contains(@class,'card-picture')]";
+		var minium_catalog_default_img_src = selenium.getAttribute("${minium_catalog_default_img}@src");
+
+		TestUtils.assertEquals(
+			actual = "${minium_catalog_default_img_src}",
+			expected = "${catalog_default_img_src}");
 	}
 
 	@description = "COMMERCE-5857. As a buyer, I want to view the product's own image if set"
@@ -180,30 +611,51 @@ definition {
 			imageTitles = "Blue",
 			validationImage = "true");
 
+		CommerceNavigator.gotoEntry(entryName = "Commerce_Blue.jpg");
+
+		var fileEntryId = CommerceEntry.getFileEntryIDFromProductMedia();
+
 		ApplicationsMenu.gotoSite(site = "Minium");
 
 		AssertElementPresent(
-			key_itemImage = "Commerce_Blue",
+			key_fileEntryId = "${fileEntryId}",
 			key_itemName = "Blue T-Shirt",
 			locator1 = "CommerceEntry#PRODUCT_CARD_CUSTOM_IMAGE");
 	}
 
 	@description = "COMMERCE-5872. As a buyer, I want to view the availability of the product, if set and configured admin-side(product available)"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductIsAvailable {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-5872 AssertProductIsAvailable pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		AssertTextEquals(
+			key_productName = "abs-sensor",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_AVAILABILITY_LABEL",
+			value1 = "Available");
 	}
 
 	@description = "COMMERCE-5871. As a buyer, I want to view the availability of the product, if set and configured admin-side(product unavailable)"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductIsUnavailable {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5871 AssertProductIsUnavailable pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		AssertElementPresent(
+			key_productName = "Catalytic Converters",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_UNAVAILABLE_LABEL");
 	}
 
 	@description = "COMMERCE-5861. As a buyer, I want to view the product name with the correct localization"
@@ -255,7 +707,7 @@ definition {
 	@description = "COMMERCE-6318. As a buyer, I want to be able to select the quantity of a cart item up to a maximum quantity, if set"
 	@priority = "3"
 	test AssertQuantityCanBeSelectedUpToAMaximumQuantitySet {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
@@ -280,40 +732,247 @@ definition {
 
 		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
 
-		CommerceAcceleratorsInitializer.createNewAccountViaFront(
-			accountName = "Commerce Account",
-			adminEmailAddress = "test@liferay.com");
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
 
 		ApplicationsMenu.gotoSite(site = "Minium");
 
-		Click(
+		Type(
 			key_productName = "U-Joint",
-			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_SELECT_FIELD");
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+			value1 = "10");
+
+		KeyPress(
+			key_productName = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+			value1 = "\TAB");
+
+		WaitForElementNotPresent(
+			key_optionValue = "10",
+			key_productName = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD_OPTION_VALUE");
 
 		AssertElementPresent(
 			key_optionValue = "4",
 			key_productName = "U-Joint",
-			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_SELECT_FIELD_OPTION_VALUE");
-
-		AssertElementNotPresent(
-			key_optionValue = "5",
-			key_productName = "U-Joint",
-			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_SELECT_FIELD_OPTION_VALUE");
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD_OPTION_VALUE");
 	}
 
 	@description = "COMMERCE-6161. As a buyer, I want to be able to select the quantity of a product starting from a minimum quantity, if set"
-	@ignore = "true"
 	@priority = "3"
 	test AssertSelectableQuantitiesStartFromMinimumQuantitySet {
+		property portal.acceptance = "Intern Test";
+
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		var product = "U-Joint";
+
+		CommerceNavigator.searchEntry(entryName = "${product}");
+
+		CommerceNavigator.gotoEntry(entryName = "${product}");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Type(
+			key_text = "Minimum Order Quantity",
+			locator1 = "TextInput#ANY",
+			value1 = "3");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		for (var quantity : list "1,2,3") {
+			Type(
+				key_productName = "${product}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+				value1 = "${quantity}");
+
+			AssertTextEquals(
+				key_productName = "${product}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+				value1 = "3");
+		}
+	}
+
+	@description = "COMMERCE-6656. As a buyer, I want to be unable to add a bundled product(Price Type Static) to cart directly"
+	@priority = "3"
+	test AssertStaticPriceBundledProductCannotBeAddedToCartDirectly {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6161 AssertSelectableQuantitiesStartFromMinimumQuantitySet pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Options");
+
+		CPCommerceCatalog.newOptionsEntry(
+			optionDescription = "Option Description",
+			optionFieldType = "Select from List",
+			optionName = "Color");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Use in Faceted Navigation",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Required",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "SKU Contributor",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickSave();
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		CommerceEntry.addOptionValue(
+			valueName = "Black",
+			valuePosition = "");
+
+		Button.click(button = "Submit");
+
+		SelectFrameTop();
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Minium",
+			productName = "Bundled Product",
+			productType = "Simple");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Options");
+
+		Type(
+			key_title = "Add Options",
+			locator1 = "CommerceEntry#ADD_RELATION_FIELD",
+			value1 = "Color");
+
+		Button.click(button = "Select");
+
+		Refresh();
+
+		CommerceNavigator.gotoEntry(entryName = "Color");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Select(
+			key_fieldLabel = "Price Type",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Static");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(
+			key_index = "Black",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Type(
+			key_fieldLabel = "Delta Price",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "60.00");
+
+		Type(
+			key_fieldLabel = "SKU",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "MIN55861");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Refresh();
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		Click(locator1 = "Button#PLUS");
+
+		Click(
+			key_fieldName = "Add SKU",
+			locator1 = "FormViewBuilder#OBJECT_FIELD_BUTTON_DROPDOWN");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_fieldLabel = "SKU",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "BLACKSKU");
+
+		Click(locator1 = "Dropdown#TRIGGER");
+
+		Click(
+			key_fieldName = "Black",
+			locator1 = "FormViewBuilder#OBJECT_FIELD_BUTTON_DROPDOWN");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Purchasable",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Type(
+			key_fieldLabel = "Base Price",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "10.0");
+
+		Button.click(button = "Publish");
+
+		Pause(locator1 = "1000");
+
+		Refresh();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "First Account");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_AVAILABLE_LABEL");
+
+		AssertElementNotPresent(
+			key_productName = "Bundled Product",
+			key_productSku = "BLACKSKU",
+			locator1 = "CommerceEntry#PRODUCT_CARD_SKU");
 	}
 
 	@description = "COMMERCE-5873. As a buyer, I want to be able to navigate to the product detail page via primary CTA, to check its variants"
 	@priority = "3"
 	test AssertViewAllVariantsButtonRedirectsToProductDetailsPage {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
+
+		// TODO Review
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
@@ -322,27 +981,38 @@ definition {
 		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
 
 		Click(
-			key_productName = "brake-fluid",
+			key_productName = "Brake Fluid",
 			locator1 = "CommerceAccelerators#PRODUCT_CARD_VIEW_ALL_VARIANTS");
 
-		AssertTextEquals(
-			locator1 = "CommerceFrontStore#FS_PRODUCT_SKU",
-			value1 = "MIN93016A");
+		AssertElementPresent(
+			key_productSku = "MIN93016A",
+			locator1 = "CommerceFrontStore#FS_PRODUCT_SKU");
 	}
 
 	@description = "COMMERCE-5868. As a buyer, I want to be able to compare a product with other ones in a product comparison items list, by checking the product via checkbox"
-	@ignore = "true"
 	@priority = "3"
 	test CompareProductFromProductCard {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5868 CompareProductFromProductCard pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Check.checkToggleSwitch(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_COMPARE_CHECKBOX");
+
+		AssertElementPresent(
+			key_value = "0",
+			locator1 = "CommerceEntry#MINI_COMPARE_ITEM_ACTIVE");
 	}
 
 	@description = "COMMERCE-5869. As a buyer, I want to be able to remove a product from a product comparison items list, by unchecking the product via checkbox"
 	@priority = "3"
 	test RemoveProductFromComparisonItems {
 		property portal.acceptance = "false";
+
+		// TODO Review
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
@@ -368,84 +1038,239 @@ definition {
 	}
 
 	@description = "COMMERCE-5867. As a buyer, I want to be able to remove a product from my wish list, by clicking on an Add To Wish List button, if already active"
-	@ignore = "true"
 	@priority = "3"
 	test RemoveProductFromWishList {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5867 RemoveProductFromWishList pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		ClickNoError(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_ADD_TO_WISH_LIST_BUTTON");
+
+		AssertElementPresent(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_ASSERT_WISH_LIST_HEART_FULL");
+
+		Refresh();
+
+		AssertElementPresent(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_ASSERT_WISH_LIST_HEART_FULL");
+
+		ClickNoError(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_ADD_TO_WISH_LIST_BUTTON");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/minium/lists");
+
+		AssertElementNotPresent(
+			key_userName = "U-Joint",
+			locator1 = "Account#USER_TABLE_NAME");
 	}
 
 	@description = "COMMERCE-6193. As a buyer, I want the first selectable quantity of a product to be the minimum multiple quantity if Minimum Order Quantity is higher than Multiple Order Quantity"
-	@ignore = "true"
 	@priority = "3"
 	test ViewFirstSelectableQuantityWhenMinimumOrderQuantityIsHigherThanMultipleOrderQuantity {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6193 ViewFirstSelectableQuantityWhenMinimumOrderQuantityIsHigherThanMultipleOrderQuantity pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		AppBuilderAdmin.searchByItem(itemName = "U-Joint");
+
+		CommerceNavigator.gotoEntry(entryName = "U-Joint");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Type(
+			key_fieldLabel = "Minimum Order Quantity",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "6");
+
+		Type(
+			key_fieldLabel = "Multiple Order Quantity",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "5");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AssertElementPresent(
+			key_optionValue = "10",
+			key_productName = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD_OPTION_VALUE");
 	}
 
 	@description = "COMMERCE-6194. As a buyer, I want the first selectable quantity of a product to be the minimum multiple quantity if Minimum Order Quantity is lower than Multiple Order Quantity"
-	@ignore = "true"
 	@priority = "3"
 	test ViewFirstSelectableQuantityWhenMinimumOrderQuantityIsLowerThanMultipleOrderQuantity {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6194 ViewFirstSelectableQuantityWhenMinimumOrderQuantityIsLowerThanMultipleOrderQuantity pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceProducts.searchProduct(search = "U-Joint");
+
+		CommerceNavigator.gotoEntry(entryName = "U-Joint");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Type(
+			key_fieldLabel = "Minimum Order Quantity",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "4");
+
+		Type(
+			key_fieldLabel = "Multiple Order Quantity",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "5");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Test");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AssertElementPresent(
+			key_optionValue = "5",
+			key_productName = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD_OPTION_VALUE");
 	}
 
 	@description = "COMMERCE-5864. As a buyer, I want to view the product price"
-	@ignore = "true"
 	@priority = "3"
 	test ViewProductCardPrice {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5864 ViewProductCardPrice pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium");
+
+		AssertTextEquals.assertPartialText(
+			key_productName = "U-Joint",
+			locator1 = "CommerceEntry#PRODUCT_CARD_LIST_PRICE",
+			value1 = "$ 24.00");
 	}
 
 	@description = "COMMERCE-6158. As a buyer, I want to see the barred list price and a discount price of a product, if set"
-	@ignore = "true"
 	@priority = "3"
 	test ViewProductCardPriceWithDiscount {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6158 ViewProductCardPriceWithDiscount pending implementation
-	}
+		// TODO Review
 
-	@description = "COMMERCE-6159. As a buyer, I want to see the barred list price and the sale price of a product, if a price modifier is set"
-	@ignore = "true"
-	@priority = "3"
-	test ViewProductCardPriceWithPriceModifier {
-		property portal.acceptance = "false";
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
-		// TODO COMMERCE-6159 ViewProductCardPriceWithPriceModifier pending implementation
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewDiscountsEntry(
+			channelsEligibility = "Minium Portal",
+			discountAmount = "20",
+			discountName = "Test Discount",
+			discountTarget = "Products",
+			discountType = "Percentage");
+
+		CommerceRelations.assignSingleRelationToProductsEntry(
+			entryName = "ABS Sensor",
+			title = "Add Products");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		AssertElementPresent(
+			key_productName = "ABS Sensor",
+			locator1 = "CommerceFrontStore#PRODUCT_DETAILS_PRICE_VALUE_INACTIVE");
+
+		AssertElementPresent(
+			key_productName = "ABS Sensor",
+			locator1 = "CommerceFrontStore#PRODUCT_DETAILS_PRICE_VALUE_FINAL");
 	}
 
 	@description = "COMMERCE-6157. As a buyer, I want to see the barred list price and a sale price of a product, if a promotion is set"
-	@ignore = "true"
 	@priority = "3"
 	test ViewProductCardPriceWithPromotion {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6157 ViewProductCardPriceWithPromotion pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		AssertElementPresent(
+			key_productName = "Brake Pads",
+			locator1 = "CommerceFrontStore#FS_PRODUCT_VALUE_PROMO_PRICE");
+
+		AssertElementPresent(
+			key_productName = "Brake Pads",
+			locator1 = "CommerceFrontStore#FS_PRODUCT_VALUE_INACTIVE_PRICE");
 	}
 
 	@description = "COMMERCE-5862. As a buyer, I want to view the product SKU, if set(single SKU)"
-	@ignore = "true"
 	@priority = "3"
 	test ViewProductCardSKU {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5862 ViewProductCardSKU pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AssertElementPresent(
+			key_productName = "U-Joint",
+			key_productSku = "MIN55861",
+			locator1 = "CommerceEntry#PRODUCT_CARD_SKU");
 	}
 
 	@description = "COMMERCE-5865. As a buyer, I want to view starting price on product card when product has different SKUs with different prices"
-	@ignore = "true"
 	@priority = "3"
 	test ViewProductCardStartingPrice {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-5865 ViewProductCardStartingPrice pending implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		AssertTextEquals.assertPartialText(
+			key_productName = "Brake Fluid",
+			locator1 = "CommerceEntry#PRODUCT_CARD_LIST_PRICE",
+			value1 = "From $ 80.00");
 	}
 
 }

@@ -64,7 +64,7 @@ long addressId = ParamUtil.getLong(request, "addressId");
 		"listType", ListTypeConstants.ADDRESS
 	).setParameter(
 		"primaryKey", addressId
-	).build();
+	).buildPortletURL();
 	%>
 
 	<liferay-ui:icon

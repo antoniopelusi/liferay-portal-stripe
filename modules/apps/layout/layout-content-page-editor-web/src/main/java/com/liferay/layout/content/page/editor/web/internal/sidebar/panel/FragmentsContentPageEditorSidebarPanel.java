@@ -40,7 +40,7 @@ public class FragmentsContentPageEditorSidebarPanel
 
 	@Override
 	public String getIcon() {
-		return "cards2";
+		return "plus";
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class FragmentsContentPageEditorSidebarPanel
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

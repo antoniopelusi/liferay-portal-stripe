@@ -27,6 +27,10 @@ public class CommerceNotificationQueueEntryLocalServiceWrapper
 	implements CommerceNotificationQueueEntryLocalService,
 			   ServiceWrapper<CommerceNotificationQueueEntryLocalService> {
 
+	public CommerceNotificationQueueEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceNotificationQueueEntryLocalServiceWrapper(
 		CommerceNotificationQueueEntryLocalService
 			commerceNotificationQueueEntryLocalService) {
@@ -213,6 +217,14 @@ public class CommerceNotificationQueueEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceNotificationQueueEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceNotificationQueueEntryLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override

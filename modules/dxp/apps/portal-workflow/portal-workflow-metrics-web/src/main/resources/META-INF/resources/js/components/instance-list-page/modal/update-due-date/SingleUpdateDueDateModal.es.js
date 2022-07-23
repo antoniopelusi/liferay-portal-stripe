@@ -62,11 +62,22 @@ export default function SingleUpdateDueDateModal() {
 		url: `/workflow-instances/${selectedInstance?.id}/workflow-tasks`,
 	});
 
-	const {dateDue, id: taskId} = data.items?.[0] || {};
+	const {dateDue, id: taskId} = data?.items?.[0] || {};
 
 	const {postData} = usePost({
 		admin: true,
 		body: {comment, dueDate},
+		callback: () => {
+			toaster.success(
+				Liferay.Language.get(
+					'the-due-date-for-this-task-has-been-updated'
+				)
+			);
+
+			onCloseModal(true);
+			setSendingPost(false);
+			setErrorToast(false);
+		},
 		url: `/workflow-tasks/${taskId}/update-due-date`,
 	});
 
@@ -74,47 +85,37 @@ export default function SingleUpdateDueDateModal() {
 		setSendingPost(true);
 		setErrorToast(false);
 
-		postData()
-			.then(() => {
-				toaster.success(
-					Liferay.Language.get(
-						'the-due-date-for-this-task-has-been-updated'
-					)
-				);
+		postData().catch((dataError) => {
+			const errorMessage = `${Liferay.Language.get(
+				'your-request-has-failed'
+			)} ${Liferay.Language.get('select-done-to-retry')}`;
 
-				onCloseModal(true);
-				setSendingPost(false);
-				setErrorToast(false);
-			})
-			.catch(({response}) => {
-				const errorMessage = `${Liferay.Language.get(
-					'your-request-has-failed'
-				)} ${Liferay.Language.get('select-done-to-retry')}`;
+			setErrorToast(dataError?.title ?? errorMessage);
+			setSendingPost(false);
+		});
 
-				setErrorToast(response?.data.title ?? errorMessage);
-				setSendingPost(false);
-			});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [postData]);
+	}, [toaster]);
 
 	const promises = useMemo(() => {
 		setErrorToast(false);
 
 		if (selectedInstance?.id && visibleModal === 'updateDueDate') {
 			return [
-				fetchData().catch((err) => {
+				fetchData().catch((error) => {
 					setErrorToast(
 						Liferay.Language.get('your-request-has-failed')
 					);
 
-					return Promise.reject(err);
+					return Promise.reject(error);
 				}),
 			];
 		}
 
 		return [];
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [fetchData, retry, visibleModal]);
+	}, [retry, selectedInstance, visibleModal]);
 
 	const statesProps = {
 		errorProps: {

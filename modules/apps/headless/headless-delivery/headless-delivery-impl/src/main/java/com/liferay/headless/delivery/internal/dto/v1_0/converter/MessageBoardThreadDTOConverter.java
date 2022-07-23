@@ -21,10 +21,10 @@ import com.liferay.asset.kernel.service.AssetLinkLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.headless.delivery.dto.v1_0.MessageBoardThread;
 import com.liferay.headless.delivery.dto.v1_0.TaxonomyCategoryBrief;
+import com.liferay.headless.delivery.dto.v1_0.util.CreatorUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.AggregateRatingUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.CreatorStatisticsUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CreatorUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.RelatedContentUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.TaxonomyCategoryBriefUtil;
 import com.liferay.message.boards.model.MBMessage;
@@ -82,8 +82,6 @@ public class MessageBoardThreadDTOConverter
 			dtoConverterContext.getLocale());
 		MBMessage mbMessage = _mbMessageLocalService.getMessage(
 			mbThread.getRootMessageId());
-		Optional<UriInfo> uriInfoOptional =
-			dtoConverterContext.getUriInfoOptional();
 		User user = _userLocalService.fetchUser(mbThread.getUserId());
 
 		return new MessageBoardThread() {
@@ -95,9 +93,6 @@ public class MessageBoardThreadDTOConverter
 				articleBody = mbMessage.getBody();
 				creator = CreatorUtil.toCreator(
 					_portal, dtoConverterContext.getUriInfoOptional(), user);
-				creatorStatistics = CreatorStatisticsUtil.toCreatorStatistics(
-					mbMessage.getGroupId(), languageId,
-					_mbStatsUserLocalService, uriInfoOptional.get(), user);
 				customFields = CustomFieldsUtil.toCustomFields(
 					dtoConverterContext.isAcceptAllLanguages(),
 					MBMessage.class.getName(), mbMessage.getMessageId(),
@@ -138,6 +133,7 @@ public class MessageBoardThreadDTOConverter
 					dtoConverterContext.getUserId(), mbThread);
 				showAsQuestion = mbThread.isQuestion();
 				siteId = mbThread.getGroupId();
+				status = WorkflowConstants.getStatusLabel(mbThread.getStatus());
 				subscribed = _subscriptionLocalService.isSubscribed(
 					mbMessage.getCompanyId(), dtoConverterContext.getUserId(),
 					MBThread.class.getName(), mbMessage.getThreadId());
@@ -151,6 +147,23 @@ public class MessageBoardThreadDTOConverter
 				threadType = _toThreadType(
 					languageId, mbThread.getGroupId(), mbThread.getPriority());
 				viewCount = mbThread.getViewCount();
+
+				setCreatorStatistics(
+					() -> {
+						if (mbMessage.isAnonymous() || (user == null) ||
+							user.isDefaultUser()) {
+
+							return null;
+						}
+
+						Optional<UriInfo> uriInfoOptional =
+							dtoConverterContext.getUriInfoOptional();
+
+						return CreatorStatisticsUtil.toCreatorStatistics(
+							mbMessage.getGroupId(), languageId,
+							_mbStatsUserLocalService,
+							uriInfoOptional.orElse(null), user);
+					});
 			}
 		};
 	}

@@ -24,8 +24,6 @@ import com.liferay.dynamic.data.mapping.io.DDMFormSerializerSerializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormSerializerSerializeResponse;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializer;
-import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerSerializeRequest;
-import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerSerializeResponse;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
@@ -33,14 +31,10 @@ import com.liferay.dynamic.data.mapping.model.DDMFormLayoutColumn;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutPage;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutRow;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
-import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.petra.reflect.ReflectionUtil;
-import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -48,15 +42,11 @@ import java.io.Serializable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import org.mockito.Matchers;
 
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
@@ -90,10 +80,8 @@ public class DDMImplTest extends BaseDDMTestCase {
 		setUpDDMFormValuesJSONSerializer();
 		setUpDDMStructureLocalServiceUtil();
 		setUpJSONFactoryUtil();
-		setUpHtmlUtil();
 		setUpLanguageUtil();
 		setUpLocaleUtil();
-		setUpPortalUtil();
 		setUpPropsValues();
 		setUpSAXReaderUtil();
 	}
@@ -718,18 +706,6 @@ public class DDMImplTest extends BaseDDMTestCase {
 		return ddmFormSerializerSerializeResponse.getContent();
 	}
 
-	protected String serialize(DDMFormValues ddmFormValues) {
-		DDMFormValuesSerializerSerializeRequest.Builder builder =
-			DDMFormValuesSerializerSerializeRequest.Builder.newBuilder(
-				ddmFormValues);
-
-		DDMFormValuesSerializerSerializeResponse
-			ddmFormValuesSerializerSerializeResponse =
-				_ddmFormValuesSerializer.serialize(builder.build());
-
-		return ddmFormValuesSerializerSerializeResponse.getContent();
-	}
-
 	protected void setUpDDM() throws Exception {
 		java.lang.reflect.Field field = ReflectionUtil.getDeclaredField(
 			DDMImpl.class, "_jsonDDMFormSerializer");
@@ -745,36 +721,6 @@ public class DDMImplTest extends BaseDDMTestCase {
 			DDMImpl.class, "_jsonDDMFormValuesSerializer");
 
 		field.set(_ddmImpl, _ddmFormValuesSerializer);
-	}
-
-	protected void setUpDDMFormValuesJSONDeserializer() throws Exception {
-		java.lang.reflect.Field field = ReflectionUtil.getDeclaredField(
-			DDMFormValuesJSONDeserializer.class, "_jsonFactory");
-
-		field.set(_ddmFormValuesDeserializer, new JSONFactoryImpl());
-	}
-
-	protected void setUpDDMFormValuesJSONSerializer() throws Exception {
-		java.lang.reflect.Field field = ReflectionUtil.getDeclaredField(
-			DDMFormValuesJSONSerializer.class, "_jsonFactory");
-
-		field.set(_ddmFormValuesSerializer, new JSONFactoryImpl());
-	}
-
-	protected void setUpPortalUtil() {
-		PortalUtil portalUtil = new PortalUtil();
-
-		Portal portal = mock(Portal.class);
-
-		ResourceBundle resourceBundle = mock(ResourceBundle.class);
-
-		when(
-			portal.getResourceBundle(Matchers.any(Locale.class))
-		).thenReturn(
-			resourceBundle
-		);
-
-		portalUtil.setPortal(portal);
 	}
 
 	protected void testValues(

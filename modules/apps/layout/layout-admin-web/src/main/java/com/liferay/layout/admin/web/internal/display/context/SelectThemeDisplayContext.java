@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.ThemeLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -31,6 +32,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.layoutsadmin.display.context.GroupDisplayContextHelper;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.portlet.PortletURL;
 
@@ -80,8 +82,9 @@ public class SelectThemeDisplayContext {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_httpServletRequest, "orderByCol", "name");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, LayoutAdminPortletKeys.GROUP_PAGES,
+			"select-order-by-col", "name");
 
 		return _orderByCol;
 	}
@@ -91,44 +94,58 @@ public class SelectThemeDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, LayoutAdminPortletKeys.GROUP_PAGES,
+			"select-order-by-type", "asc");
 
 		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_liferayPortletResponse
 		).setMVCPath(
 			"/select_theme.jsp"
 		).setRedirect(
 			getRedirect()
 		).setParameter(
+			"displayStyle",
+			() -> {
+				String displayStyle = getDisplayStyle();
+
+				if (Validator.isNotNull(displayStyle)) {
+					return displayStyle;
+				}
+
+				return null;
+			}
+		).setParameter(
 			"eventName", getEventName()
 		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
+
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
+
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
+
+				return null;
+			}
+		).setParameter(
 			"themeId", getThemeId()
-		).build();
-
-		String displayStyle = getDisplayStyle();
-
-		if (Validator.isNotNull(displayStyle)) {
-			portletURL.setParameter("displayStyle", displayStyle);
-		}
-
-		String orderByCol = getOrderByCol();
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+		).buildPortletURL();
 	}
 
 	public String getRedirect() {
@@ -169,24 +186,20 @@ public class SelectThemeDisplayContext {
 		GroupDisplayContextHelper groupDisplayContextHelper =
 			new GroupDisplayContextHelper(_httpServletRequest);
 
-		List<Theme> themes = ThemeLocalServiceUtil.getPageThemes(
-			themeDisplay.getCompanyId(),
-			groupDisplayContextHelper.getLiveGroupId(),
-			themeDisplay.getUserId());
-
-		themesSearchContainer.setTotal(themes.size());
-
 		boolean orderByAsc = false;
 
-		String orderByType = getOrderByType();
-
-		if (orderByType.equals("asc")) {
+		if (Objects.equals(getOrderByType(), "asc")) {
 			orderByAsc = true;
 		}
 
-		themes = ListUtil.sort(themes, new ThemeNameComparator(orderByAsc));
+		List<Theme> themes = ListUtil.sort(
+			ThemeLocalServiceUtil.getPageThemes(
+				themeDisplay.getCompanyId(),
+				groupDisplayContextHelper.getLiveGroupId(),
+				themeDisplay.getUserId()),
+			new ThemeNameComparator(orderByAsc));
 
-		themesSearchContainer.setResults(themes);
+		themesSearchContainer.setResultsAndTotal(() -> themes, themes.size());
 
 		_themesSearchContainer = themesSearchContainer;
 

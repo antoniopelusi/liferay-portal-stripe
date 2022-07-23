@@ -19,6 +19,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.ToolsUtil;
 
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -28,7 +29,8 @@ import java.util.TreeSet;
 public class JavaSignatureParser {
 
 	public static JavaSignature parseJavaSignature(
-		String content, String accessModifier, boolean method) {
+		String content, String accessModifier, String packageName,
+		List<String> importNames, boolean method) {
 
 		JavaSignature javaSignature = new JavaSignature();
 
@@ -42,7 +44,8 @@ public class JavaSignatureParser {
 
 		if (method) {
 			javaSignature.setReturnType(
-				_getReturnType(content.substring(x, y)));
+				_getReturnType(content.substring(x, y)), packageName,
+				importNames);
 		}
 
 		x = y;
@@ -69,6 +72,8 @@ public class JavaSignatureParser {
 		parameters = StringUtil.replace(
 			parameters, new String[] {"\t", ".\n", "\n"},
 			new String[] {"", ".", " "});
+
+		parameters = parameters.replaceAll(" +<", "<");
 
 		for (x = 0;;) {
 			int pos = -1;
@@ -122,8 +127,8 @@ public class JavaSignatureParser {
 				String parameterName = parameters.substring(x + 1);
 
 				javaSignature.addParameter(
-					parameterName, parameterType, parameterAnnotations,
-					isFinal);
+					parameterName, parameterType, parameterAnnotations, isFinal,
+					packageName, importNames);
 
 				return javaSignature;
 			}
@@ -131,7 +136,8 @@ public class JavaSignatureParser {
 			String parameterName = parameters.substring(x + 1, y);
 
 			javaSignature.addParameter(
-				parameterName, parameterType, parameterAnnotations, isFinal);
+				parameterName, parameterType, parameterAnnotations, isFinal,
+				packageName, importNames);
 
 			isFinal = false;
 			parameterAnnotations = new TreeSet<>();
@@ -162,7 +168,7 @@ public class JavaSignatureParser {
 		}
 
 		if (returnType.equals("void")) {
-			returnType = StringPool.BLANK;
+			return null;
 		}
 
 		return returnType;

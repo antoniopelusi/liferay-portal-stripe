@@ -64,6 +64,11 @@
 
 <#assign
 	dayValue = paramUtil.getInteger(request, "${namespacedFieldName}Day", day)
+
+	firstDayOfWeekCalendar = calendarFactory.getCalendar(timeZone, requestedLocale)
+
+	firstDayOfWeek = firstDayOfWeekCalendar.getFirstDayOfWeek() - 1
+
 	monthValue = paramUtil.getInteger(request, "${namespacedFieldName}Month", month)
 	yearValue = paramUtil.getInteger(request, "${namespacedFieldName}Year", year)
 />
@@ -82,6 +87,7 @@
 			dayParam="${namespacedFieldName}Day"
 			dayValue=dayValue
 			disabled=false
+			firstDayOfWeek=firstDayOfWeek
 			monthParam="${namespacedFieldName}Month"
 			monthValue=monthValue
 			name="${namespacedFieldName}"

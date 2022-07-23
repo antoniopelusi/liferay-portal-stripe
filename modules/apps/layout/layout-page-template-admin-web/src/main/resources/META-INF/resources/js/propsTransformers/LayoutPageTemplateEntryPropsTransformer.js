@@ -47,6 +47,34 @@ const ACTIONS = {
 		}
 	},
 
+	moveLayoutPageTemplateEntry(
+		{itemSelectorURL, moveLayoutPageTemplateEntryURL},
+		namespace
+	) {
+		Liferay.Util.openSelectionModal({
+			onSelect: (selectedItem) => {
+				if (!selectedItem) {
+					return;
+				}
+
+				var value = JSON.parse(selectedItem.value);
+
+				var portletURL = new Liferay.Util.PortletURL.createPortletURL(
+					moveLayoutPageTemplateEntryURL,
+					{
+						targetLayoutPageTemplateCollectionId:
+							value.layoutPageTemplateCollectionId,
+					}
+				);
+
+				send(portletURL.toString());
+			},
+			selectEventName: `${namespace}selectItem`,
+			title: Liferay.Language.get('select-destination'),
+			url: itemSelectorURL,
+		});
+	},
+
 	permissionsLayoutPageTemplateEntry({
 		permissionsLayoutPageTemplateEntryURL,
 	}) {
@@ -122,15 +150,20 @@ export default function LayoutPageTemplateEntryPropsTransformer({
 		actions: actions?.map((item) => {
 			return {
 				...item,
-				onClick(event) {
-					const action = item.data?.action;
+				items: item.items?.map((child) => {
+					return {
+						...child,
+						onClick(event) {
+							const action = child.data?.action;
 
-					if (action) {
-						event.preventDefault();
+							if (action) {
+								event.preventDefault();
 
-						ACTIONS[action](item.data, portletNamespace);
-					}
-				},
+								ACTIONS[action](child.data, portletNamespace);
+							}
+						},
+					};
+				}),
 			};
 		}),
 		portletNamespace,

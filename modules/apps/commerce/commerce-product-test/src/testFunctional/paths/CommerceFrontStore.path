@@ -2,15 +2,42 @@
 <head>
 <title>CommerceFrontStore</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">CommerceFrontStore</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>FS_PRODUCT_SKU</td>
-	<td>//p/span[(normalize-space(text())='SKU')]/following::span</td>
+	<td>//p/span[(normalize-space(text())='SKU')]/following::span[text()='${key_productSku}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FS_PRODUCT_DETAIL</td>
+	<td>//span[(normalize-space(text())='${key_detail}')]/following-sibling::span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FS_PRODUCT_STOCK_QUANTITY</td>
+	<td>//div[contains(concat(' ',normalize-space(@class),' '),' stock-quantity ')]/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FS_PRODUCT_AVAILABILITY</td>
+	<td>//div/div/span[contains(@class,'availability-label')]/span[contains(text(),'${key_availability}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FS_PRODUCT_DESCRIPTION</td>
+	<td>//p[contains(concat(' ',normalize-space(@class),' '),'product-description')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FS_PRODUCT_SPECIFICATIONS</td>
+	<td>//dl/dt[@class="specification-term"][contains(text(),'${key_specification}')]/following-sibling::dd</td>
 	<td></td>
 </tr>
 <tr>
@@ -20,17 +47,87 @@
 </tr>
 <tr>
 	<td>FS_PRODUCT_OPTIONS_SELECT</td>
-	<td>//div[contains (@class,'select-field-trigger')]//a</td>
+	<td>//div/label[text()='${key_optionName}']/..//div[contains (@class,'select-field-trigger')]//a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FS_PRODUCT_OPTION</td>
-	<td>//div[contains(@class,'dropdown-menu')]/ul//li/button[contains(.,'${key_optionValue}')]</td>
+	<td>//div[contains(@class,'dropdown-menu')]/ul//li/button[(normalize-space(text())='${key_optionValue}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FS_PRODUCT_IMAGE</td>
-	<td>//div[@class='product-gallery']//img[contains(@src, '${key_FSProductImage}')]</td>
+	<td>//div[@class='product-gallery']//img[contains(@src, '${key_fsProductImage}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MAX_QUANTITY_SELECTOR_PRODUCT_DETAILS</td>
+	<td>//div[contains(@class,"product-detail")]//div[contains(@class,"add-to-cart")]//input[contains(@max, '${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_DETAILS_QUANTITY_INPUT</td>
+	<td>//header//h2[text()="${key_productName}"]//..//following-sibling::div[4]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_DETAILS_PRICE_VALUE_INACTIVE</td>
+	<td>//p[@title='${key_productName}']/following-sibling::p//span[contains(@class, 'price-value price-value-inactive')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_DETAILS_QUANTITY_OPTION</td>
+	<td>//header//h2[text()='${key_productName}']//..//following-sibling::div[4]//option[@value='${key_optionValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_DETAILS_PRICE_VALUE_FINAL</td>
+	<td>//p[@title='${key_productName}']/following-sibling::p//span[contains(@class, 'price-value price-value-final')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_DETAILS_PACKAGE_QUANTITY</td>
+	<td>//label[text()='Package Quantity']//..//div[contains(@class,'form-control')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_DETAILS_IN_STOCK_QUANTITY</td>
+	<td>//span[(@data-qa-id='in-stock-quantity') and (contains(text(),'${key_inStockQuantity}'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MINI_COMPARE_ITEM_ACTIVE_N</td>
+	<td>//div[@class='mini-compare-item active'][${key_value}]//div[@class='mini-compare-thumbnail']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MINI_COMPARE_ITEM_CUSTOM_IMAGE</td>
+	<td>//div[contains(@class,'mini-compare active')]//div[contains(@style,'${key_productMediaId}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FS_PRODUCT_VALUE_PROMO_PRICE</td>
+	<td>//p[@title='${key_productName}']//following-sibling::p[@class='card-text']//span[@class='price-value price-value-promo']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FS_PRODUCT_VALUE_INACTIVE_PRICE</td>
+	<td>//p[@title='${key_productName}']//following-sibling::p[@class='card-text']//span[@class='price-value price-value-inactive']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MINI_COMPARE_ITEM_REMOVE_BUTTON</td>
+	<td>//div[contains(@class,'mini-compare active')]//div[contains(@style,'${key_productMediaId}')]/../../..//button[contains(@class,'mini-compare-delete')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_CARD_CATALOG_IMAGE</td>
+	<td>//a[contains(@href,'${key_productName}')]//img[contains(@class,'card-picture')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_CARD_IMAGE</td>
+	<td>//a[contains(@href,'${key_productName}')]//*[(contains(@style,'image')) or (contains(@class,'img'))]</td>
 	<td></td>
 </tr>
 <tr>

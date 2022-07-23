@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.configuration.CommercePriceConfiguration;
 import com.liferay.commerce.constants.CommerceConstants;
 import com.liferay.commerce.constants.CommerceWebKeys;
@@ -32,6 +31,7 @@ import com.liferay.commerce.product.permission.CommerceProductViewPermission;
 import com.liferay.commerce.product.util.CPContentContributor;
 import com.liferay.commerce.product.util.CPContentContributorRegistry;
 import com.liferay.commerce.product.util.CPInstanceHelper;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -92,16 +92,9 @@ public class CheckCPInstanceMVCActionCommand extends BaseMVCActionCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		CommerceAccount commerceAccount = commerceContext.getCommerceAccount();
-
-		long commerceAccountId = 0;
-
-		if (commerceAccount != null) {
-			commerceAccountId = commerceAccount.getCommerceAccountId();
-		}
-
 		_commerceProductViewPermission.check(
-			themeDisplay.getPermissionChecker(), commerceAccountId,
+			themeDisplay.getPermissionChecker(),
+			CommerceUtil.getCommerceAccountId(commerceContext),
 			commerceContext.getCommerceChannelGroupId(), cpDefinitionId);
 
 		JSONObject jsonObject = _jsonFactory.createJSONObject();
@@ -128,7 +121,7 @@ public class CheckCPInstanceMVCActionCommand extends BaseMVCActionCommand {
 					_configurationProvider.getConfiguration(
 						CommercePriceConfiguration.class,
 						new SystemSettingsLocator(
-							CommerceConstants.SERVICE_NAME_PRICE));
+							CommerceConstants.SERVICE_NAME_COMMERCE_PRICE));
 
 				jsonObject.put(
 					"displayDiscountLevels",
@@ -169,7 +162,7 @@ public class CheckCPInstanceMVCActionCommand extends BaseMVCActionCommand {
 			jsonObject.put("success", true);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			jsonObject.put(
 				"error", exception.getMessage()

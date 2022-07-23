@@ -106,6 +106,11 @@ public class AnnouncementsDeliveryWrapper
 		}
 	}
 
+	@Override
+	public AnnouncementsDelivery cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this announcements delivery.
 	 *

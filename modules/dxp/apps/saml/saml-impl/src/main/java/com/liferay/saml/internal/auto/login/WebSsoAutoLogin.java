@@ -60,11 +60,12 @@ public class WebSsoAutoLogin extends BaseAutoLogin {
 				return null;
 			}
 
-			HttpSession session = httpServletRequest.getSession(false);
+			HttpSession httpSession = httpServletRequest.getSession(false);
 
-			if (session != null) {
+			if (httpSession != null) {
 				boolean forceReauthentication = GetterUtil.getBoolean(
-					session.getAttribute(SamlWebKeys.FORCE_REAUTHENTICATION));
+					httpSession.getAttribute(
+						SamlWebKeys.FORCE_REAUTHENTICATION));
 
 				if (forceReauthentication) {
 					return null;

@@ -16,7 +16,6 @@ package com.liferay.sync.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,13 +26,14 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -43,10 +43,12 @@ import com.liferay.sync.model.SyncDLObjectTable;
 import com.liferay.sync.model.impl.SyncDLObjectImpl;
 import com.liferay.sync.model.impl.SyncDLObjectModelImpl;
 import com.liferay.sync.service.persistence.SyncDLObjectPersistence;
+import com.liferay.sync.service.persistence.SyncDLObjectUtil;
 import com.liferay.sync.service.persistence.impl.constants.SyncPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
@@ -54,12 +56,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -97,8 +96,8 @@ public class SyncDLObjectPersistenceImpl
 	private FinderPath _finderPathWithPaginationFindAll;
 	private FinderPath _finderPathWithoutPaginationFindAll;
 	private FinderPath _finderPathCountAll;
-	private FinderPath _finderPathWithPaginationFindByTreePath;
-	private FinderPath _finderPathWithPaginationCountByTreePath;
+	private FinderPath _finderPathWithPaginationFindByLikeTreePath;
+	private FinderPath _finderPathWithPaginationCountByLikeTreePath;
 
 	/**
 	 * Returns all the sync dl objects where treePath LIKE &#63;.
@@ -107,8 +106,8 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByTreePath(String treePath) {
-		return findByTreePath(
+	public List<SyncDLObject> findByLikeTreePath(String treePath) {
+		return findByLikeTreePath(
 			treePath, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -125,10 +124,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByTreePath(
+	public List<SyncDLObject> findByLikeTreePath(
 		String treePath, int start, int end) {
 
-		return findByTreePath(treePath, start, end, null);
+		return findByLikeTreePath(treePath, start, end, null);
 	}
 
 	/**
@@ -145,11 +144,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByTreePath(
+	public List<SyncDLObject> findByLikeTreePath(
 		String treePath, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		return findByTreePath(treePath, start, end, orderByComparator, true);
+		return findByLikeTreePath(
+			treePath, start, end, orderByComparator, true);
 	}
 
 	/**
@@ -167,7 +167,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByTreePath(
+	public List<SyncDLObject> findByLikeTreePath(
 		String treePath, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator,
 		boolean useFinderCache) {
@@ -177,7 +177,7 @@ public class SyncDLObjectPersistenceImpl
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByTreePath;
+		finderPath = _finderPathWithPaginationFindByLikeTreePath;
 		finderArgs = new Object[] {treePath, start, end, orderByComparator};
 
 		List<SyncDLObject> list = null;
@@ -216,12 +216,12 @@ public class SyncDLObjectPersistenceImpl
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_LIKETREEPATH_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_LIKETREEPATH_TREEPATH_2);
 			}
 
 			if (orderByComparator != null) {
@@ -276,11 +276,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByTreePath_First(
+	public SyncDLObject findByLikeTreePath_First(
 			String treePath, OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByTreePath_First(
+		SyncDLObject syncDLObject = fetchByLikeTreePath_First(
 			treePath, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -307,10 +307,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the first matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByTreePath_First(
+	public SyncDLObject fetchByLikeTreePath_First(
 		String treePath, OrderByComparator<SyncDLObject> orderByComparator) {
 
-		List<SyncDLObject> list = findByTreePath(
+		List<SyncDLObject> list = findByLikeTreePath(
 			treePath, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -329,11 +329,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByTreePath_Last(
+	public SyncDLObject findByLikeTreePath_Last(
 			String treePath, OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByTreePath_Last(
+		SyncDLObject syncDLObject = fetchByLikeTreePath_Last(
 			treePath, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -360,16 +360,16 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the last matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByTreePath_Last(
+	public SyncDLObject fetchByLikeTreePath_Last(
 		String treePath, OrderByComparator<SyncDLObject> orderByComparator) {
 
-		int count = countByTreePath(treePath);
+		int count = countByLikeTreePath(treePath);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<SyncDLObject> list = findByTreePath(
+		List<SyncDLObject> list = findByLikeTreePath(
 			treePath, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -389,7 +389,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a sync dl object with the primary key could not be found
 	 */
 	@Override
-	public SyncDLObject[] findByTreePath_PrevAndNext(
+	public SyncDLObject[] findByLikeTreePath_PrevAndNext(
 			long syncDLObjectId, String treePath,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
@@ -405,12 +405,12 @@ public class SyncDLObjectPersistenceImpl
 
 			SyncDLObject[] array = new SyncDLObjectImpl[3];
 
-			array[0] = getByTreePath_PrevAndNext(
+			array[0] = getByLikeTreePath_PrevAndNext(
 				session, syncDLObject, treePath, orderByComparator, true);
 
 			array[1] = syncDLObject;
 
-			array[2] = getByTreePath_PrevAndNext(
+			array[2] = getByLikeTreePath_PrevAndNext(
 				session, syncDLObject, treePath, orderByComparator, false);
 
 			return array;
@@ -423,7 +423,7 @@ public class SyncDLObjectPersistenceImpl
 		}
 	}
 
-	protected SyncDLObject getByTreePath_PrevAndNext(
+	protected SyncDLObject getByLikeTreePath_PrevAndNext(
 		Session session, SyncDLObject syncDLObject, String treePath,
 		OrderByComparator<SyncDLObject> orderByComparator, boolean previous) {
 
@@ -443,12 +443,12 @@ public class SyncDLObjectPersistenceImpl
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_LIKETREEPATH_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_LIKETREEPATH_TREEPATH_2);
 		}
 
 		if (orderByComparator != null) {
@@ -548,9 +548,9 @@ public class SyncDLObjectPersistenceImpl
 	 * @param treePath the tree path
 	 */
 	@Override
-	public void removeByTreePath(String treePath) {
+	public void removeByLikeTreePath(String treePath) {
 		for (SyncDLObject syncDLObject :
-				findByTreePath(
+				findByLikeTreePath(
 					treePath, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 
 			remove(syncDLObject);
@@ -564,10 +564,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the number of matching sync dl objects
 	 */
 	@Override
-	public int countByTreePath(String treePath) {
+	public int countByLikeTreePath(String treePath) {
 		treePath = Objects.toString(treePath, "");
 
-		FinderPath finderPath = _finderPathWithPaginationCountByTreePath;
+		FinderPath finderPath = _finderPathWithPaginationCountByLikeTreePath;
 
 		Object[] finderArgs = new Object[] {treePath};
 
@@ -581,12 +581,12 @@ public class SyncDLObjectPersistenceImpl
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_LIKETREEPATH_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_LIKETREEPATH_TREEPATH_2);
 			}
 
 			String sql = sb.toString();
@@ -619,14 +619,14 @@ public class SyncDLObjectPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_TREEPATH_TREEPATH_2 =
+	private static final String _FINDER_COLUMN_LIKETREEPATH_TREEPATH_2 =
 		"syncDLObject.treePath LIKE ?";
 
-	private static final String _FINDER_COLUMN_TREEPATH_TREEPATH_3 =
+	private static final String _FINDER_COLUMN_LIKETREEPATH_TREEPATH_3 =
 		"(syncDLObject.treePath IS NULL OR syncDLObject.treePath LIKE '')";
 
-	private FinderPath _finderPathWithPaginationFindByM_R;
-	private FinderPath _finderPathWithPaginationCountByM_R;
+	private FinderPath _finderPathWithPaginationFindByGtM_R;
+	private FinderPath _finderPathWithPaginationCountByGtM_R;
 
 	/**
 	 * Returns all the sync dl objects where modifiedTime &gt; &#63; and repositoryId = &#63;.
@@ -636,8 +636,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R(long modifiedTime, long repositoryId) {
-		return findByM_R(
+	public List<SyncDLObject> findByGtM_R(
+		long modifiedTime, long repositoryId) {
+
+		return findByGtM_R(
 			modifiedTime, repositoryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -656,10 +658,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R(
+	public List<SyncDLObject> findByGtM_R(
 		long modifiedTime, long repositoryId, int start, int end) {
 
-		return findByM_R(modifiedTime, repositoryId, start, end, null);
+		return findByGtM_R(modifiedTime, repositoryId, start, end, null);
 	}
 
 	/**
@@ -677,11 +679,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R(
+	public List<SyncDLObject> findByGtM_R(
 		long modifiedTime, long repositoryId, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		return findByM_R(
+		return findByGtM_R(
 			modifiedTime, repositoryId, start, end, orderByComparator, true);
 	}
 
@@ -701,7 +703,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R(
+	public List<SyncDLObject> findByGtM_R(
 		long modifiedTime, long repositoryId, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator,
 		boolean useFinderCache) {
@@ -709,7 +711,7 @@ public class SyncDLObjectPersistenceImpl
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByM_R;
+		finderPath = _finderPathWithPaginationFindByGtM_R;
 		finderArgs = new Object[] {
 			modifiedTime, repositoryId, start, end, orderByComparator
 		};
@@ -746,9 +748,9 @@ public class SyncDLObjectPersistenceImpl
 
 			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			sb.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_GTM_R_MODIFIEDTIME_2);
 
-			sb.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_GTM_R_REPOSITORYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -803,12 +805,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByM_R_First(
+	public SyncDLObject findByGtM_R_First(
 			long modifiedTime, long repositoryId,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByM_R_First(
+		SyncDLObject syncDLObject = fetchByGtM_R_First(
 			modifiedTime, repositoryId, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -839,11 +841,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the first matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByM_R_First(
+	public SyncDLObject fetchByGtM_R_First(
 		long modifiedTime, long repositoryId,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		List<SyncDLObject> list = findByM_R(
+		List<SyncDLObject> list = findByGtM_R(
 			modifiedTime, repositoryId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -863,12 +865,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByM_R_Last(
+	public SyncDLObject findByGtM_R_Last(
 			long modifiedTime, long repositoryId,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByM_R_Last(
+		SyncDLObject syncDLObject = fetchByGtM_R_Last(
 			modifiedTime, repositoryId, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -899,17 +901,17 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the last matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByM_R_Last(
+	public SyncDLObject fetchByGtM_R_Last(
 		long modifiedTime, long repositoryId,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		int count = countByM_R(modifiedTime, repositoryId);
+		int count = countByGtM_R(modifiedTime, repositoryId);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<SyncDLObject> list = findByM_R(
+		List<SyncDLObject> list = findByGtM_R(
 			modifiedTime, repositoryId, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -930,7 +932,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a sync dl object with the primary key could not be found
 	 */
 	@Override
-	public SyncDLObject[] findByM_R_PrevAndNext(
+	public SyncDLObject[] findByGtM_R_PrevAndNext(
 			long syncDLObjectId, long modifiedTime, long repositoryId,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
@@ -944,13 +946,13 @@ public class SyncDLObjectPersistenceImpl
 
 			SyncDLObject[] array = new SyncDLObjectImpl[3];
 
-			array[0] = getByM_R_PrevAndNext(
+			array[0] = getByGtM_R_PrevAndNext(
 				session, syncDLObject, modifiedTime, repositoryId,
 				orderByComparator, true);
 
 			array[1] = syncDLObject;
 
-			array[2] = getByM_R_PrevAndNext(
+			array[2] = getByGtM_R_PrevAndNext(
 				session, syncDLObject, modifiedTime, repositoryId,
 				orderByComparator, false);
 
@@ -964,7 +966,7 @@ public class SyncDLObjectPersistenceImpl
 		}
 	}
 
-	protected SyncDLObject getByM_R_PrevAndNext(
+	protected SyncDLObject getByGtM_R_PrevAndNext(
 		Session session, SyncDLObject syncDLObject, long modifiedTime,
 		long repositoryId, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean previous) {
@@ -982,9 +984,9 @@ public class SyncDLObjectPersistenceImpl
 
 		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		sb.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
+		sb.append(_FINDER_COLUMN_GTM_R_MODIFIEDTIME_2);
 
-		sb.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_GTM_R_REPOSITORYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -1084,9 +1086,9 @@ public class SyncDLObjectPersistenceImpl
 	 * @param repositoryId the repository ID
 	 */
 	@Override
-	public void removeByM_R(long modifiedTime, long repositoryId) {
+	public void removeByGtM_R(long modifiedTime, long repositoryId) {
 		for (SyncDLObject syncDLObject :
-				findByM_R(
+				findByGtM_R(
 					modifiedTime, repositoryId, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
@@ -1102,8 +1104,8 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the number of matching sync dl objects
 	 */
 	@Override
-	public int countByM_R(long modifiedTime, long repositoryId) {
-		FinderPath finderPath = _finderPathWithPaginationCountByM_R;
+	public int countByGtM_R(long modifiedTime, long repositoryId) {
+		FinderPath finderPath = _finderPathWithPaginationCountByGtM_R;
 
 		Object[] finderArgs = new Object[] {modifiedTime, repositoryId};
 
@@ -1114,9 +1116,9 @@ public class SyncDLObjectPersistenceImpl
 
 			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			sb.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_GTM_R_MODIFIEDTIME_2);
 
-			sb.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_GTM_R_REPOSITORYID_2);
 
 			String sql = sb.toString();
 
@@ -1148,10 +1150,10 @@ public class SyncDLObjectPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_M_R_MODIFIEDTIME_2 =
+	private static final String _FINDER_COLUMN_GTM_R_MODIFIEDTIME_2 =
 		"syncDLObject.modifiedTime > ? AND ";
 
-	private static final String _FINDER_COLUMN_M_R_REPOSITORYID_2 =
+	private static final String _FINDER_COLUMN_GTM_R_REPOSITORYID_2 =
 		"syncDLObject.repositoryId = ?";
 
 	private FinderPath _finderPathWithPaginationFindByR_P;
@@ -2847,8 +2849,8 @@ public class SyncDLObjectPersistenceImpl
 	private static final String _FINDER_COLUMN_R_T_TYPE_3 =
 		"(syncDLObject.type IS NULL OR syncDLObject.type = '')";
 
-	private FinderPath _finderPathWithPaginationFindByT_NotE;
-	private FinderPath _finderPathWithPaginationCountByT_NotE;
+	private FinderPath _finderPathWithPaginationFindByLikeT_NotE;
+	private FinderPath _finderPathWithPaginationCountByLikeT_NotE;
 
 	/**
 	 * Returns all the sync dl objects where treePath LIKE &#63; and event &ne; &#63;.
@@ -2858,8 +2860,8 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByT_NotE(String treePath, String event) {
-		return findByT_NotE(
+	public List<SyncDLObject> findByLikeT_NotE(String treePath, String event) {
+		return findByLikeT_NotE(
 			treePath, event, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2877,10 +2879,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByT_NotE(
+	public List<SyncDLObject> findByLikeT_NotE(
 		String treePath, String event, int start, int end) {
 
-		return findByT_NotE(treePath, event, start, end, null);
+		return findByLikeT_NotE(treePath, event, start, end, null);
 	}
 
 	/**
@@ -2898,11 +2900,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByT_NotE(
+	public List<SyncDLObject> findByLikeT_NotE(
 		String treePath, String event, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		return findByT_NotE(
+		return findByLikeT_NotE(
 			treePath, event, start, end, orderByComparator, true);
 	}
 
@@ -2922,7 +2924,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByT_NotE(
+	public List<SyncDLObject> findByLikeT_NotE(
 		String treePath, String event, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator,
 		boolean useFinderCache) {
@@ -2933,7 +2935,7 @@ public class SyncDLObjectPersistenceImpl
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByT_NotE;
+		finderPath = _finderPathWithPaginationFindByLikeT_NotE;
 		finderArgs = new Object[] {
 			treePath, event, start, end, orderByComparator
 		};
@@ -2975,23 +2977,23 @@ public class SyncDLObjectPersistenceImpl
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_TREEPATH_2);
 			}
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_EVENT_2);
 			}
 
 			if (orderByComparator != null) {
@@ -3051,12 +3053,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByT_NotE_First(
+	public SyncDLObject findByLikeT_NotE_First(
 			String treePath, String event,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByT_NotE_First(
+		SyncDLObject syncDLObject = fetchByLikeT_NotE_First(
 			treePath, event, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -3087,11 +3089,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the first matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByT_NotE_First(
+	public SyncDLObject fetchByLikeT_NotE_First(
 		String treePath, String event,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		List<SyncDLObject> list = findByT_NotE(
+		List<SyncDLObject> list = findByLikeT_NotE(
 			treePath, event, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -3111,12 +3113,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByT_NotE_Last(
+	public SyncDLObject findByLikeT_NotE_Last(
 			String treePath, String event,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByT_NotE_Last(
+		SyncDLObject syncDLObject = fetchByLikeT_NotE_Last(
 			treePath, event, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -3147,17 +3149,17 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the last matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByT_NotE_Last(
+	public SyncDLObject fetchByLikeT_NotE_Last(
 		String treePath, String event,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		int count = countByT_NotE(treePath, event);
+		int count = countByLikeT_NotE(treePath, event);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<SyncDLObject> list = findByT_NotE(
+		List<SyncDLObject> list = findByLikeT_NotE(
 			treePath, event, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -3178,7 +3180,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a sync dl object with the primary key could not be found
 	 */
 	@Override
-	public SyncDLObject[] findByT_NotE_PrevAndNext(
+	public SyncDLObject[] findByLikeT_NotE_PrevAndNext(
 			long syncDLObjectId, String treePath, String event,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
@@ -3195,13 +3197,13 @@ public class SyncDLObjectPersistenceImpl
 
 			SyncDLObject[] array = new SyncDLObjectImpl[3];
 
-			array[0] = getByT_NotE_PrevAndNext(
+			array[0] = getByLikeT_NotE_PrevAndNext(
 				session, syncDLObject, treePath, event, orderByComparator,
 				true);
 
 			array[1] = syncDLObject;
 
-			array[2] = getByT_NotE_PrevAndNext(
+			array[2] = getByLikeT_NotE_PrevAndNext(
 				session, syncDLObject, treePath, event, orderByComparator,
 				false);
 
@@ -3215,7 +3217,7 @@ public class SyncDLObjectPersistenceImpl
 		}
 	}
 
-	protected SyncDLObject getByT_NotE_PrevAndNext(
+	protected SyncDLObject getByLikeT_NotE_PrevAndNext(
 		Session session, SyncDLObject syncDLObject, String treePath,
 		String event, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean previous) {
@@ -3236,23 +3238,23 @@ public class SyncDLObjectPersistenceImpl
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_LIKET_NOTE_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_LIKET_NOTE_TREEPATH_2);
 		}
 
 		boolean bindEvent = false;
 
 		if (event.isEmpty()) {
-			sb.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
+			sb.append(_FINDER_COLUMN_LIKET_NOTE_EVENT_3);
 		}
 		else {
 			bindEvent = true;
 
-			sb.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
+			sb.append(_FINDER_COLUMN_LIKET_NOTE_EVENT_2);
 		}
 
 		if (orderByComparator != null) {
@@ -3357,9 +3359,9 @@ public class SyncDLObjectPersistenceImpl
 	 * @param event the event
 	 */
 	@Override
-	public void removeByT_NotE(String treePath, String event) {
+	public void removeByLikeT_NotE(String treePath, String event) {
 		for (SyncDLObject syncDLObject :
-				findByT_NotE(
+				findByLikeT_NotE(
 					treePath, event, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null)) {
 
@@ -3375,11 +3377,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the number of matching sync dl objects
 	 */
 	@Override
-	public int countByT_NotE(String treePath, String event) {
+	public int countByLikeT_NotE(String treePath, String event) {
 		treePath = Objects.toString(treePath, "");
 		event = Objects.toString(event, "");
 
-		FinderPath finderPath = _finderPathWithPaginationCountByT_NotE;
+		FinderPath finderPath = _finderPathWithPaginationCountByLikeT_NotE;
 
 		Object[] finderArgs = new Object[] {treePath, event};
 
@@ -3393,23 +3395,23 @@ public class SyncDLObjectPersistenceImpl
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_TREEPATH_2);
 			}
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_LIKET_NOTE_EVENT_2);
 			}
 
 			String sql = sb.toString();
@@ -3446,16 +3448,16 @@ public class SyncDLObjectPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_T_NOTE_TREEPATH_2 =
+	private static final String _FINDER_COLUMN_LIKET_NOTE_TREEPATH_2 =
 		"syncDLObject.treePath LIKE ? AND ";
 
-	private static final String _FINDER_COLUMN_T_NOTE_TREEPATH_3 =
+	private static final String _FINDER_COLUMN_LIKET_NOTE_TREEPATH_3 =
 		"(syncDLObject.treePath IS NULL OR syncDLObject.treePath LIKE '') AND ";
 
-	private static final String _FINDER_COLUMN_T_NOTE_EVENT_2 =
+	private static final String _FINDER_COLUMN_LIKET_NOTE_EVENT_2 =
 		"syncDLObject.event != ?";
 
-	private static final String _FINDER_COLUMN_T_NOTE_EVENT_3 =
+	private static final String _FINDER_COLUMN_LIKET_NOTE_EVENT_3 =
 		"(syncDLObject.event IS NULL OR syncDLObject.event != '')";
 
 	private FinderPath _finderPathWithPaginationFindByV_T;
@@ -4321,8 +4323,8 @@ public class SyncDLObjectPersistenceImpl
 	private static final String _FINDER_COLUMN_T_T_TYPEPK_2 =
 		"syncDLObject.typePK = ?";
 
-	private FinderPath _finderPathWithPaginationFindByM_R_NotE;
-	private FinderPath _finderPathWithPaginationCountByM_R_NotE;
+	private FinderPath _finderPathWithPaginationFindByGtM_R_NotE;
+	private FinderPath _finderPathWithPaginationCountByGtM_R_NotE;
 
 	/**
 	 * Returns all the sync dl objects where modifiedTime &gt; &#63; and repositoryId = &#63; and event &ne; &#63;.
@@ -4333,10 +4335,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String event) {
 
-		return findByM_R_NotE(
+		return findByGtM_R_NotE(
 			modifiedTime, repositoryId, event, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -4356,11 +4358,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String event, int start,
 		int end) {
 
-		return findByM_R_NotE(
+		return findByGtM_R_NotE(
 			modifiedTime, repositoryId, event, start, end, null);
 	}
 
@@ -4380,11 +4382,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String event, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		return findByM_R_NotE(
+		return findByGtM_R_NotE(
 			modifiedTime, repositoryId, event, start, end, orderByComparator,
 			true);
 	}
@@ -4406,7 +4408,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String event, int start, int end,
 		OrderByComparator<SyncDLObject> orderByComparator,
 		boolean useFinderCache) {
@@ -4416,7 +4418,7 @@ public class SyncDLObjectPersistenceImpl
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByM_R_NotE;
+		finderPath = _finderPathWithPaginationFindByGtM_R_NotE;
 		finderArgs = new Object[] {
 			modifiedTime, repositoryId, event, start, end, orderByComparator
 		};
@@ -4454,19 +4456,19 @@ public class SyncDLObjectPersistenceImpl
 
 			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_MODIFIEDTIME_2);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_REPOSITORYID_2);
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_2);
 			}
 
 			if (orderByComparator != null) {
@@ -4527,12 +4529,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByM_R_NotE_First(
+	public SyncDLObject findByGtM_R_NotE_First(
 			long modifiedTime, long repositoryId, String event,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByM_R_NotE_First(
+		SyncDLObject syncDLObject = fetchByGtM_R_NotE_First(
 			modifiedTime, repositoryId, event, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -4567,11 +4569,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the first matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByM_R_NotE_First(
+	public SyncDLObject fetchByGtM_R_NotE_First(
 		long modifiedTime, long repositoryId, String event,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		List<SyncDLObject> list = findByM_R_NotE(
+		List<SyncDLObject> list = findByGtM_R_NotE(
 			modifiedTime, repositoryId, event, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -4592,12 +4594,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject findByM_R_NotE_Last(
+	public SyncDLObject findByGtM_R_NotE_Last(
 			long modifiedTime, long repositoryId, String event,
 			OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
 
-		SyncDLObject syncDLObject = fetchByM_R_NotE_Last(
+		SyncDLObject syncDLObject = fetchByGtM_R_NotE_Last(
 			modifiedTime, repositoryId, event, orderByComparator);
 
 		if (syncDLObject != null) {
@@ -4632,17 +4634,17 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the last matching sync dl object, or <code>null</code> if a matching sync dl object could not be found
 	 */
 	@Override
-	public SyncDLObject fetchByM_R_NotE_Last(
+	public SyncDLObject fetchByGtM_R_NotE_Last(
 		long modifiedTime, long repositoryId, String event,
 		OrderByComparator<SyncDLObject> orderByComparator) {
 
-		int count = countByM_R_NotE(modifiedTime, repositoryId, event);
+		int count = countByGtM_R_NotE(modifiedTime, repositoryId, event);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<SyncDLObject> list = findByM_R_NotE(
+		List<SyncDLObject> list = findByGtM_R_NotE(
 			modifiedTime, repositoryId, event, count - 1, count,
 			orderByComparator);
 
@@ -4665,7 +4667,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @throws NoSuchDLObjectException if a sync dl object with the primary key could not be found
 	 */
 	@Override
-	public SyncDLObject[] findByM_R_NotE_PrevAndNext(
+	public SyncDLObject[] findByGtM_R_NotE_PrevAndNext(
 			long syncDLObjectId, long modifiedTime, long repositoryId,
 			String event, OrderByComparator<SyncDLObject> orderByComparator)
 		throws NoSuchDLObjectException {
@@ -4681,13 +4683,13 @@ public class SyncDLObjectPersistenceImpl
 
 			SyncDLObject[] array = new SyncDLObjectImpl[3];
 
-			array[0] = getByM_R_NotE_PrevAndNext(
+			array[0] = getByGtM_R_NotE_PrevAndNext(
 				session, syncDLObject, modifiedTime, repositoryId, event,
 				orderByComparator, true);
 
 			array[1] = syncDLObject;
 
-			array[2] = getByM_R_NotE_PrevAndNext(
+			array[2] = getByGtM_R_NotE_PrevAndNext(
 				session, syncDLObject, modifiedTime, repositoryId, event,
 				orderByComparator, false);
 
@@ -4701,7 +4703,7 @@ public class SyncDLObjectPersistenceImpl
 		}
 	}
 
-	protected SyncDLObject getByM_R_NotE_PrevAndNext(
+	protected SyncDLObject getByGtM_R_NotE_PrevAndNext(
 		Session session, SyncDLObject syncDLObject, long modifiedTime,
 		long repositoryId, String event,
 		OrderByComparator<SyncDLObject> orderByComparator, boolean previous) {
@@ -4719,19 +4721,19 @@ public class SyncDLObjectPersistenceImpl
 
 		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+		sb.append(_FINDER_COLUMN_GTM_R_NOTE_MODIFIEDTIME_2);
 
-		sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_GTM_R_NOTE_REPOSITORYID_2);
 
 		boolean bindEvent = false;
 
 		if (event.isEmpty()) {
-			sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_3);
 		}
 		else {
 			bindEvent = true;
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_2);
 		}
 
 		if (orderByComparator != null) {
@@ -4842,10 +4844,10 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String[] events) {
 
-		return findByM_R_NotE(
+		return findByGtM_R_NotE(
 			modifiedTime, repositoryId, events, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -4865,11 +4867,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String[] events, int start,
 		int end) {
 
-		return findByM_R_NotE(
+		return findByGtM_R_NotE(
 			modifiedTime, repositoryId, events, start, end, null);
 	}
 
@@ -4889,11 +4891,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String[] events, int start,
 		int end, OrderByComparator<SyncDLObject> orderByComparator) {
 
-		return findByM_R_NotE(
+		return findByGtM_R_NotE(
 			modifiedTime, repositoryId, events, start, end, orderByComparator,
 			true);
 	}
@@ -4915,7 +4917,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the ordered range of matching sync dl objects
 	 */
 	@Override
-	public List<SyncDLObject> findByM_R_NotE(
+	public List<SyncDLObject> findByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String[] events, int start,
 		int end, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean useFinderCache) {
@@ -4932,7 +4934,7 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (events.length == 1) {
-			return findByM_R_NotE(
+			return findByGtM_R_NotE(
 				modifiedTime, repositoryId, events[0], start, end,
 				orderByComparator);
 		}
@@ -4959,7 +4961,7 @@ public class SyncDLObjectPersistenceImpl
 
 		if (useFinderCache) {
 			list = (List<SyncDLObject>)finderCache.getResult(
-				_finderPathWithPaginationFindByM_R_NotE, finderArgs);
+				_finderPathWithPaginationFindByGtM_R_NotE, finderArgs);
 
 			if ((list != null) && !list.isEmpty()) {
 				for (SyncDLObject syncDLObject : list) {
@@ -4980,9 +4982,9 @@ public class SyncDLObjectPersistenceImpl
 
 			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_MODIFIEDTIME_2);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_REPOSITORYID_2);
 
 			if (events.length > 0) {
 				sb.append("(");
@@ -4991,10 +4993,10 @@ public class SyncDLObjectPersistenceImpl
 					String event = events[i];
 
 					if (event.isEmpty()) {
-						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+						sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_3);
 					}
 					else {
-						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+						sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_2);
 					}
 
 					if ((i + 1) < events.length) {
@@ -5044,7 +5046,7 @@ public class SyncDLObjectPersistenceImpl
 
 				if (useFinderCache) {
 					finderCache.putResult(
-						_finderPathWithPaginationFindByM_R_NotE, finderArgs,
+						_finderPathWithPaginationFindByGtM_R_NotE, finderArgs,
 						list);
 				}
 			}
@@ -5067,11 +5069,11 @@ public class SyncDLObjectPersistenceImpl
 	 * @param event the event
 	 */
 	@Override
-	public void removeByM_R_NotE(
+	public void removeByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String event) {
 
 		for (SyncDLObject syncDLObject :
-				findByM_R_NotE(
+				findByGtM_R_NotE(
 					modifiedTime, repositoryId, event, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
@@ -5088,12 +5090,12 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the number of matching sync dl objects
 	 */
 	@Override
-	public int countByM_R_NotE(
+	public int countByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String event) {
 
 		event = Objects.toString(event, "");
 
-		FinderPath finderPath = _finderPathWithPaginationCountByM_R_NotE;
+		FinderPath finderPath = _finderPathWithPaginationCountByGtM_R_NotE;
 
 		Object[] finderArgs = new Object[] {modifiedTime, repositoryId, event};
 
@@ -5104,19 +5106,19 @@ public class SyncDLObjectPersistenceImpl
 
 			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_MODIFIEDTIME_2);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_REPOSITORYID_2);
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_2);
 			}
 
 			String sql = sb.toString();
@@ -5162,7 +5164,7 @@ public class SyncDLObjectPersistenceImpl
 	 * @return the number of matching sync dl objects
 	 */
 	@Override
-	public int countByM_R_NotE(
+	public int countByGtM_R_NotE(
 		long modifiedTime, long repositoryId, String[] events) {
 
 		if (events == null) {
@@ -5181,16 +5183,16 @@ public class SyncDLObjectPersistenceImpl
 		};
 
 		Long count = (Long)finderCache.getResult(
-			_finderPathWithPaginationCountByM_R_NotE, finderArgs);
+			_finderPathWithPaginationCountByGtM_R_NotE, finderArgs);
 
 		if (count == null) {
 			StringBundler sb = new StringBundler();
 
 			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_MODIFIEDTIME_2);
 
-			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_GTM_R_NOTE_REPOSITORYID_2);
 
 			if (events.length > 0) {
 				sb.append("(");
@@ -5199,10 +5201,10 @@ public class SyncDLObjectPersistenceImpl
 					String event = events[i];
 
 					if (event.isEmpty()) {
-						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+						sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_3);
 					}
 					else {
-						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+						sb.append(_FINDER_COLUMN_GTM_R_NOTE_EVENT_2);
 					}
 
 					if ((i + 1) < events.length) {
@@ -5240,7 +5242,7 @@ public class SyncDLObjectPersistenceImpl
 				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
-					_finderPathWithPaginationCountByM_R_NotE, finderArgs,
+					_finderPathWithPaginationCountByGtM_R_NotE, finderArgs,
 					count);
 			}
 			catch (Exception exception) {
@@ -5254,16 +5256,16 @@ public class SyncDLObjectPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2 =
+	private static final String _FINDER_COLUMN_GTM_R_NOTE_MODIFIEDTIME_2 =
 		"syncDLObject.modifiedTime > ? AND ";
 
-	private static final String _FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2 =
+	private static final String _FINDER_COLUMN_GTM_R_NOTE_REPOSITORYID_2 =
 		"syncDLObject.repositoryId = ? AND ";
 
-	private static final String _FINDER_COLUMN_M_R_NOTE_EVENT_2 =
+	private static final String _FINDER_COLUMN_GTM_R_NOTE_EVENT_2 =
 		"syncDLObject.event != ?";
 
-	private static final String _FINDER_COLUMN_M_R_NOTE_EVENT_3 =
+	private static final String _FINDER_COLUMN_GTM_R_NOTE_EVENT_3 =
 		"(syncDLObject.event IS NULL OR syncDLObject.event != '')";
 
 	private FinderPath _finderPathWithPaginationFindByR_P_T;
@@ -6254,6 +6256,8 @@ public class SyncDLObjectPersistenceImpl
 			syncDLObject);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the sync dl objects in the entity cache if it is enabled.
 	 *
@@ -6261,6 +6265,13 @@ public class SyncDLObjectPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<SyncDLObject> syncDLObjects) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (syncDLObjects.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (SyncDLObject syncDLObject : syncDLObjects) {
 			if (entityCache.getResult(
 					SyncDLObjectImpl.class, syncDLObject.getPrimaryKey()) ==
@@ -6743,12 +6754,9 @@ public class SyncDLObjectPersistenceImpl
 	 * Initializes the sync dl object persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new SyncDLObjectModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -6762,21 +6770,21 @@ public class SyncDLObjectPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
 			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByTreePath = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByTreePath",
+		_finderPathWithPaginationFindByLikeTreePath = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByLikeTreePath",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
 			},
 			new String[] {"treePath"}, true);
 
-		_finderPathWithPaginationCountByTreePath = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByTreePath",
+		_finderPathWithPaginationCountByLikeTreePath = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByLikeTreePath",
 			new String[] {String.class.getName()}, new String[] {"treePath"},
 			false);
 
-		_finderPathWithPaginationFindByM_R = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByM_R",
+		_finderPathWithPaginationFindByGtM_R = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByGtM_R",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
@@ -6784,8 +6792,8 @@ public class SyncDLObjectPersistenceImpl
 			},
 			new String[] {"modifiedTime", "repositoryId"}, true);
 
-		_finderPathWithPaginationCountByM_R = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByM_R",
+		_finderPathWithPaginationCountByGtM_R = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByGtM_R",
 			new String[] {Long.class.getName(), Long.class.getName()},
 			new String[] {"modifiedTime", "repositoryId"}, false);
 
@@ -6841,8 +6849,8 @@ public class SyncDLObjectPersistenceImpl
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"repositoryId", "type_"}, false);
 
-		_finderPathWithPaginationFindByT_NotE = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByT_NotE",
+		_finderPathWithPaginationFindByLikeT_NotE = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByLikeT_NotE",
 			new String[] {
 				String.class.getName(), String.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
@@ -6850,8 +6858,8 @@ public class SyncDLObjectPersistenceImpl
 			},
 			new String[] {"treePath", "event"}, true);
 
-		_finderPathWithPaginationCountByT_NotE = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByT_NotE",
+		_finderPathWithPaginationCountByLikeT_NotE = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByLikeT_NotE",
 			new String[] {String.class.getName(), String.class.getName()},
 			new String[] {"treePath", "event"}, false);
 
@@ -6884,8 +6892,8 @@ public class SyncDLObjectPersistenceImpl
 			new String[] {String.class.getName(), Long.class.getName()},
 			new String[] {"type_", "typePK"}, false);
 
-		_finderPathWithPaginationFindByM_R_NotE = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByM_R_NotE",
+		_finderPathWithPaginationFindByGtM_R_NotE = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByGtM_R_NotE",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName(), Integer.class.getName(),
@@ -6893,8 +6901,8 @@ public class SyncDLObjectPersistenceImpl
 			},
 			new String[] {"modifiedTime", "repositoryId", "event"}, true);
 
-		_finderPathWithPaginationCountByM_R_NotE = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByM_R_NotE",
+		_finderPathWithPaginationCountByGtM_R_NotE = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByGtM_R_NotE",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
@@ -6933,13 +6941,31 @@ public class SyncDLObjectPersistenceImpl
 				String.class.getName()
 			},
 			new String[] {"repositoryId", "parentFolderId", "type_"}, false);
+
+		_setSyncDLObjectUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(SyncDLObjectImpl.class.getName());
+		_setSyncDLObjectUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(SyncDLObjectImpl.class.getName());
+	}
+
+	private void _setSyncDLObjectUtilPersistence(
+		SyncDLObjectPersistence syncDLObjectPersistence) {
+
+		try {
+			Field field = SyncDLObjectUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, syncDLObjectPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -6967,8 +6993,6 @@ public class SyncDLObjectPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -7007,113 +7031,8 @@ public class SyncDLObjectPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class SyncDLObjectModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			SyncDLObjectModelImpl syncDLObjectModelImpl =
-				(SyncDLObjectModelImpl)baseModel;
-
-			long columnBitmask = syncDLObjectModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(syncDLObjectModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						syncDLObjectModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(syncDLObjectModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return SyncDLObjectImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return SyncDLObjectTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			SyncDLObjectModelImpl syncDLObjectModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = syncDLObjectModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = syncDLObjectModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= SyncDLObjectModelImpl.getColumnBitmask(
-				"modifiedTime");
-			orderByColumnsBitmask |= SyncDLObjectModelImpl.getColumnBitmask(
-				"repositoryId");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private SyncDLObjectModelArgumentsResolver
+		_syncDLObjectModelArgumentsResolver;
 
 }

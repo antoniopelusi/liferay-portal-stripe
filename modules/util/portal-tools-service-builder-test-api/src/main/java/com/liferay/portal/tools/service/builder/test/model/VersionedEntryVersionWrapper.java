@@ -79,6 +79,11 @@ public class VersionedEntryVersionWrapper
 		}
 	}
 
+	@Override
+	public VersionedEntryVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the group ID of this versioned entry version.
 	 *

@@ -1,0 +1,306 @@
+@component-name = "portal-ab-test"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Content Performance";
+
+	setUp {
+		task ("Go to DXP portal, login and create site") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+
+			Navigator.openURL();
+
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "LPS-132406: Given the Content Performance Panel
+	When the users leave the page because the session expires or s/he does log out
+	Then they find the panel closed"
+	@priority = "3"
+	test ContentPerformanceClosed {
+		task ("Open Content Performance panel") {
+			ContentPerformance.openContentPerformance();
+
+			AssertVisible(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_START_FREE_TRIAL");
+		}
+
+		task ("Logout and login") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+		}
+
+		task ("Check if panel is closed") {
+			AssertNotVisible(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_START_FREE_TRIAL");
+		}
+	}
+
+	@description = "LPS-108856: When user opens Content Performance panel and AC is not connected, a Dont show me this again button is displayed"
+	@priority = "3"
+	test DontShowButton {
+		task ("Assert if element is not present") {
+			ContentPerformance.openContentPerformance();
+		}
+
+		task ("Click on the") {
+			AssertElementPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_DO_NOT_SHOW_AGAIN",
+				value1 = "Do not show me this again.");
+		}
+	}
+
+	@description = "LPS-105216: Validate that Free trial and dismiss buttons are displayed when AC is disabled"
+	@priority = "5"
+	test FreeTrialButtonPresent {
+		task ("Open Content Performance and Assert if element is present") {
+			if (IsVisible(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_PANEL")) {
+				Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
+			}
+
+			Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
+
+			AssertElementPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_START_FREE_TRIAL",
+				value1 = "Start Free Trial");
+
+			AssertElementPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_DO_NOT_SHOW_AGAIN",
+				value1 = "Do not show me this again.");
+		}
+	}
+
+	@description = "LPS-108856: When user clicks on Dont show me this again button, the Content Performance panel disappears"
+	@priority = "5"
+	test HideContentPerformancePanel {
+		task ("Assert if element is not present") {
+			if (IsVisible(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_PANEL")) {
+				Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
+			}
+
+			Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
+		}
+
+		task ("Click on the button") {
+			Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_DO_NOT_SHOW_AGAIN");
+		}
+
+		task ("Assert that the Content Performance panel button disappears") {
+			AssertElementNotPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON",
+				value1 = "Content Performance");
+		}
+	}
+
+	@description = "LPS-126044: When DXP is not connected to AC, the metrics icon is shown in the bar above the blog display page in the view mode"
+	@priority = "3"
+	test MetricsIconNotVisibleInBlogDisplayPageWithoutAC {
+		task ("Create a Blog Entry") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add 'Asset Publisher' to page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Open Content Performance panel") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "Blogs Entry Title");
+
+			ContentPerformance.openContentPerformance();
+		}
+
+		task ("Check if infomation is not present at painel") {
+			AssertElementNotPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_TITLE",
+				pageName = "DM Document Title");
+
+			AssertElementNotPresent(
+				key_numberViews = "0",
+				locator1 = "ContentPerformance#TOTAL_VIEWS_NUMBER");
+		}
+	}
+
+	@description = "LPS-126044: When DXP is not connected to AC, the metrics icon is shown in the bar above the document display page in the view mode"
+	@priority = "3"
+	test MetricsIconNotVisibleInDocumentDisplayPageWithoutAC {
+		task ("Create a Document") {
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add 'Asset Publisher' to page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Open Content Performance panel") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "DM Document Title");
+
+			ContentPerformance.openContentPerformance();
+		}
+
+		task ("Check if infomation is not present at painel") {
+			AssertElementNotPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_TITLE",
+				pageName = "DM Document Title");
+
+			AssertElementNotPresent(
+				key_numberViews = "0",
+				locator1 = "ContentPerformance#TOTAL_VIEWS_NUMBER");
+		}
+	}
+
+	@description = "LPS-126047: When DXP is not connected to AC, the metrics icon is shown in the bar above the widget page in the view mode"
+	@priority = "3"
+	test MetricsIconNotVisibleInWidgetPageWithoutAC {
+		task ("Create Widget Page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.addPage(
+				pageName = "Widget Page Name",
+				sitePageType = "Widget Page");
+		}
+
+		task ("Navigate to Widget page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/3");
+		}
+
+		task ("Assert icon is displayed by opening panel") {
+			ContentPerformance.openContentPerformance();
+		}
+	}
+
+	@description = "LPS-127220: When DXP is not connected to AC, the metrics icon is shown in the bar above the content page in the view mode"
+	@priority = "3"
+	test MetricsIconVisibleInContentPageWithoutAC {
+		task ("Open content performance panel") {
+			ContentPerformance.openContentPerformance();
+		}
+	}
+
+	@description = "LPS-118006: When the DXP is not connected to AC, if the user clicks on the Metrics button, the sidebar panel shows up and displays a button titled Dont show me this again and a message informing the user that the panel will show up again if AC is connected"
+	@priority = "4"
+	test MetricsInContentDashboardACDisabled {
+		task ("Create a Web Content and set a Display Page") {
+			JSONWebcontent.addWebContent(
+				content = "Webcontent Content",
+				groupName = "Test Site Name",
+				title = "WC Content");
+		}
+
+		task ("Create and Publish a Display Page Template with Fragment") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			Button.clickPublish();
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+		}
+
+		task ("Check in Content Dashboard and open Content Performance Panel") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Content",
+				panel = "Applications",
+				portlet = "Content Dashboard");
+
+			ContentPerformance.showMetricsButton();
+		}
+
+		task ("Check if elements present") {
+			AssertElementPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_START_FREE_TRIAL",
+				value1 = "Start Free Trial");
+
+			AssertElementPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_DO_NOT_SHOW_AGAIN",
+				value1 = "Do not show me this again.");
+		}
+	}
+
+	@description = "LPS-108856: When user opens Content Performance panel and AC is connected but not synced, the Content Performance panel displays instructions to sync to AC (Dont show me this again button and the message is not displayed)"
+	@priority = "3"
+	test NotSyncedPanel {
+		task ("Launch AC and get Token") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Navigate to DXP and connect with AC") {
+			Navigator.openURL();
+
+			User.loginPG(
+				password = "test",
+				userEmailAddress = "test@liferay.com");
+
+			ContentPerformance.connectDXPtoAnalyticsCloudNoSync();
+		}
+
+		task ("Open Content Performance") {
+			Navigator.openURL();
+
+			ContentPerformance.openContentPerformance();
+		}
+
+		task ("Assert if button is not present and instructions are present") {
+			AssertElementNotPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_DO_NOT_SHOW_AGAIN",
+				value1 = "Do not show me this again.");
+
+			AssertElementPresent(
+				locator1 = "ContentPerformance#INSTRUCTIONS_SYNC_AC",
+				value1 = "Sync to Liferay Analytics Cloud");
+		}
+
+		task ("End connection with Analytics Cloud") {
+			AnalyticsCloud.teardownAnalyticsCloud();
+		}
+	}
+
+}

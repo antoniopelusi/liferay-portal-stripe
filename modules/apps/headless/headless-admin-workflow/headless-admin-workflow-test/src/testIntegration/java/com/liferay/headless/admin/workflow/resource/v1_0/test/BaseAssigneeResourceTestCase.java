@@ -33,7 +33,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -50,7 +49,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -193,17 +191,16 @@ public abstract class BaseAssigneeResourceTestCase {
 
 	@Test
 	public void testGetWorkflowTaskAssignableUsersPage() throws Exception {
-		Page<Assignee> page =
-			assigneeResource.getWorkflowTaskAssignableUsersPage(
-				testGetWorkflowTaskAssignableUsersPage_getWorkflowTaskId(),
-				Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long workflowTaskId =
 			testGetWorkflowTaskAssignableUsersPage_getWorkflowTaskId();
 		Long irrelevantWorkflowTaskId =
 			testGetWorkflowTaskAssignableUsersPage_getIrrelevantWorkflowTaskId();
+
+		Page<Assignee> page =
+			assigneeResource.getWorkflowTaskAssignableUsersPage(
+				workflowTaskId, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantWorkflowTaskId != null) {
 			Assignee irrelevantAssignee =
@@ -228,7 +225,7 @@ public abstract class BaseAssigneeResourceTestCase {
 			workflowTaskId, randomAssignee());
 
 		page = assigneeResource.getWorkflowTaskAssignableUsersPage(
-			workflowTaskId, Pagination.of(1, 2));
+			workflowTaskId, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -306,6 +303,21 @@ public abstract class BaseAssigneeResourceTestCase {
 	protected Assignee testGraphQLAssignee_addAssignee() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Assignee assignee, List<Assignee> assignees) {
+		boolean contains = false;
+
+		for (Assignee item : assignees) {
+			if (equals(assignee, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			assignees + " does not contain " + assignee, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -406,8 +418,8 @@ public abstract class BaseAssigneeResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.admin.workflow.dto.v1_0.Assignee.
 						class)) {
 
@@ -423,12 +435,13 @@ public abstract class BaseAssigneeResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -442,7 +455,7 @@ public abstract class BaseAssigneeResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -514,6 +527,19 @@ public abstract class BaseAssigneeResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -715,8 +741,8 @@ public abstract class BaseAssigneeResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseAssigneeResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseAssigneeResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

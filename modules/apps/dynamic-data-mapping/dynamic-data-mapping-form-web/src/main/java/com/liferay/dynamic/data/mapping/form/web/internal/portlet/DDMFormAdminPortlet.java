@@ -16,6 +16,7 @@ package com.liferay.dynamic.data.mapping.form.web.internal.portlet;
 
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
 import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormBuilderContextFactory;
+import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormContextDeserializer;
 import com.liferay.dynamic.data.mapping.form.builder.settings.DDMFormBuilderSettingsRetriever;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
@@ -33,10 +34,13 @@ import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureService;
+import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.DDMStorageAdapterTracker;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesMerger;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -100,13 +104,13 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 		catch (Exception exception) {
 			if (isSessionErrorException(exception)) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 
 				SessionErrors.add(renderRequest, exception.getClass());
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				throw new PortletException(exception);
 			}
@@ -115,6 +119,17 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 		hideDefaultErrorMessage(renderRequest);
 
 		super.render(renderRequest, renderResponse);
+	}
+
+	@Override
+	protected boolean isSessionErrorException(Throwable throwable) {
+		if ((throwable instanceof SystemException) ||
+			super.isSessionErrorException(throwable)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	@Reference(
@@ -139,6 +154,7 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 					_addDefaultSharedFormLayoutPortalInstanceLifecycleListener,
 					_ddmFormBuilderContextFactory,
 					_ddmFormBuilderSettingsRetriever,
+					_ddmFormContextToDDMFormValues,
 					_ddmFormFieldTypeServicesTracker,
 					_ddmFormFieldTypesSerializer, _ddmFormInstanceLocalService,
 					_ddmFormInstanceRecordLocalService,
@@ -150,7 +166,8 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 					_ddmFormWebConfigurationActivator.
 						getDDMFormWebConfiguration(),
 					_ddmStorageAdapterTracker, _ddmStructureLocalService,
-					_ddmStructureService, _jsonFactory, _npmResolver, _portal));
+					_ddmStructureService, _jsonFactory, _npmResolver,
+					_objectDefinitionLocalService, _portal));
 		}
 		else {
 			renderRequest.setAttribute(
@@ -160,6 +177,7 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 					_addDefaultSharedFormLayoutPortalInstanceLifecycleListener,
 					_ddmFormBuilderContextFactory,
 					_ddmFormBuilderSettingsRetriever,
+					_ddmFormContextToDDMFormValues,
 					_ddmFormFieldTypeServicesTracker,
 					_ddmFormFieldTypesSerializer, _ddmFormInstanceLocalService,
 					_ddmFormInstanceRecordLocalService,
@@ -171,7 +189,8 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 					_ddmFormWebConfigurationActivator.
 						getDDMFormWebConfiguration(),
 					_ddmStorageAdapterTracker, _ddmStructureLocalService,
-					_ddmStructureService, _jsonFactory, _npmResolver, _portal));
+					_ddmStructureService, _jsonFactory, _npmResolver,
+					_objectDefinitionLocalService, _portal));
 		}
 	}
 
@@ -193,6 +212,12 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 
 	@Reference
 	private DDMFormBuilderSettingsRetriever _ddmFormBuilderSettingsRetriever;
+
+	@Reference(
+		target = "(dynamic.data.mapping.form.builder.context.deserializer.type=formValues)"
+	)
+	private DDMFormContextDeserializer<DDMFormValues>
+		_ddmFormContextToDDMFormValues;
 
 	@Reference
 	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
@@ -253,6 +278,9 @@ public class DDMFormAdminPortlet extends MVCPortlet {
 
 	@Reference
 	private NPMResolver _npmResolver;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
 	@Reference
 	private Portal _portal;

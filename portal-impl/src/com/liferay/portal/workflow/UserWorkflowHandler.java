@@ -113,13 +113,13 @@ public class UserWorkflowHandler extends BaseWorkflowHandler<User> {
 		auditRequestThreadLocal.setServerPort(
 			httpServletRequest.getServerPort());
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		if (session == null) {
+		if (httpSession == null) {
 			return;
 		}
 
-		auditRequestThreadLocal.setSessionID(session.getId());
+		auditRequestThreadLocal.setSessionID(httpSession.getId());
 	}
 
 }

@@ -132,10 +132,6 @@ public abstract class ObjectLayoutTabServiceBaseImpl
 		}
 	}
 
-	@Reference
-	protected com.liferay.object.service.ObjectLayoutTabLocalService
-		objectLayoutTabLocalService;
-
 	protected ObjectLayoutTabService objectLayoutTabService;
 
 	@Reference

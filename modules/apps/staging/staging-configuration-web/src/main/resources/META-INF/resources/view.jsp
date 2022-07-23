@@ -47,7 +47,7 @@ BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskMan
 		<%@ include file="/staging_configuration_exceptions.jspf" %>
 
 		<clay:container-fluid
-			cssClass="main-content-body"
+			cssClass="main-content-body mt-4"
 		>
 			<liferay-ui:breadcrumb
 				showLayout="<%= false %>"
@@ -193,8 +193,12 @@ BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskMan
 				'input[name=<portlet:namespace />stagingType]:checked'
 			);
 
-			if (selectedStagingTypeInput) {
+			if (forceDisable || selectedStagingTypeInput) {
 				var currentValue = selectedStagingTypeInput.value;
+
+				if (forceDisable) {
+					currentValue = <%= StagingConstants.TYPE_NOT_STAGED %>;
+				}
 
 				if (currentValue != oldValue) {
 					ok = false;
@@ -225,6 +229,9 @@ BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskMan
 		if (ok) {
 			if (forceDisable) {
 				form.elements['<portlet:namespace />forceDisable'].value = true;
+				form.elements[
+					'<portlet:namespace />stagingType'
+				].value = <%= StagingConstants.TYPE_NOT_STAGED %>;
 			}
 
 			submitForm(form);

@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Portal Template Velocity
 Bundle-SymbolicName: com.liferay.portal.template.velocity
-Bundle-Version: 6.0.6
+Bundle-Version: 6.0.22
 Import-Package:\
 	!com.sun.org.apache.xml.internal.utils,\
 	!com.sun.org.apache.xpath.internal,\
@@ -15,6 +15,9 @@ Import-Package:\
 	!org.apache.log.output.io,\
 	!org.apache.oro.text.perl,\
 	!org.apache.struts.*,\
+	!org.apache.tools.ant.*,\
+	\
+	!org.jdom.*,\
 	\
 	!org.slf4j.spi,\
 	\

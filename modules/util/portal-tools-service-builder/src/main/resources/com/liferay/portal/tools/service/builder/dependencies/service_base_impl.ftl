@@ -133,6 +133,16 @@ import org.osgi.service.component.annotations.Reference;
 	</#if>
 </#list>
 
+<#list entity.entityColumns as entityColumn>
+	<#if entityColumn.isCollection() && entityColumn.isMappingManyToMany()>
+		<#assign referenceEntity = serviceBuilder.getEntity(entityColumn.entityName) />
+
+		<#if !referenceEntities?seq_contains(referenceEntity) && referenceEntity.hasEntityColumns() && referenceEntity.hasPersistence()>
+			import ${referenceEntity.apiPackagePath}.service.persistence.${referenceEntity.name}Persistence;
+		</#if>
+	</#if>
+</#list>
+
 <#if stringUtil.equals(sessionTypeName, "Local")>
 /**
  * Provides the base implementation for the ${entity.humanName} local service.
@@ -155,6 +165,8 @@ import org.osgi.service.component.annotations.Reference;
 	public abstract class ${entity.name}LocalServiceBaseImpl extends BaseLocalServiceImpl implements ${entity.name}LocalService,
 	<#if dependencyInjectorDS>
 		AopService,
+	<#elseif osgiModule && entity.isChangeTrackingEnabled()>
+		CTService<${entity.name}>,
 	</#if>
 
 	IdentifiableOSGiService
@@ -348,6 +360,13 @@ import org.osgi.service.component.annotations.Reference;
 			@Override
 			public <T> T dslQuery(DSLQuery dslQuery) {
 				return ${entity.variableName}Persistence.dslQuery(dslQuery);
+			}
+
+			@Override
+			public int dslQueryCount(DSLQuery dslQuery) {
+				Long count = dslQuery(dslQuery);
+
+				return count.intValue();
 			}
 		</#if>
 
@@ -2102,6 +2121,25 @@ import org.osgi.service.component.annotations.Reference;
 		</#if>
 	</#list>
 
+	<#list entity.entityColumns as entityColumn>
+		<#if entityColumn.isCollection() && entityColumn.isMappingManyToMany()>
+			<#assign referenceEntity = serviceBuilder.getEntity(entityColumn.entityName) />
+
+			<#if !referenceEntities?seq_contains(referenceEntity) && referenceEntity.hasEntityColumns() && referenceEntity.hasPersistence()>
+				<#if !dependencyInjectorDS || (referenceEntity.apiPackagePath == apiPackagePath)>
+					<#if dependencyInjectorDS>
+						@Reference
+					<#elseif osgiModule && (referenceEntity.apiPackagePath != apiPackagePath)>
+						@ServiceReference(type = ${referenceEntity.name}Persistence.class)
+					<#else>
+						@BeanReference(type = ${referenceEntity.name}Persistence.class)
+					</#if>
+					protected ${referenceEntity.name}Persistence ${referenceEntity.variableName}Persistence;
+				</#if>
+			</#if>
+		</#if>
+	</#list>
+
 	<#if lazyBlobExists>
 		<#if dependencyInjectorDS>
 			@Reference
@@ -2195,18 +2233,14 @@ import org.osgi.service.component.annotations.Reference;
 
 			@Override
 			public void afterDelete(${entity.name} published${entity.name}) throws PortalException {
-				${localizedEntity.variableName}Persistence.removeBy${pkEntityMethod}(published${entity.name}.getPrimaryKey());
-				${localizedVersionEntity.variableName}Persistence.removeBy${pkEntityMethod}(published${entity.name}.getPrimaryKey());
 			}
 
 			@Override
 			public void afterDeleteDraft(${entity.name} draft${entity.name}) throws PortalException {
-				${localizedEntity.variableName}Persistence.removeBy${pkEntityMethod}(draft${entity.name}.getPrimaryKey());
 			}
 
 			@Override
 			public void afterDeleteVersion(${versionEntity.name} ${versionEntity.variableName}) throws PortalException {
-				${localizedVersionEntity.variableName}Persistence.removeBy${pkEntityMethod}_Version(${versionEntity.variableName}.getVersionedModelId(), ${versionEntity.variableName}.getVersion());
 			}
 
 			@Override

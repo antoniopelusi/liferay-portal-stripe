@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.channel.web.internal.display.context;
 
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;

@@ -41,10 +41,10 @@ public class DDMFormInstanceRecordBatchReindexerImpl
 
 		batchIndexingActionable.setAddCriteriaMethod(
 			dynamicQuery -> {
-				Property formInstanceIdPropery = PropertyFactoryUtil.forName(
+				Property formInstanceIdProperty = PropertyFactoryUtil.forName(
 					"formInstanceId");
 
-				dynamicQuery.add(formInstanceIdPropery.eq(formInstanceId));
+				dynamicQuery.add(formInstanceIdProperty.eq(formInstanceId));
 			});
 		batchIndexingActionable.setCompanyId(companyId);
 		batchIndexingActionable.setPerformActionMethod(

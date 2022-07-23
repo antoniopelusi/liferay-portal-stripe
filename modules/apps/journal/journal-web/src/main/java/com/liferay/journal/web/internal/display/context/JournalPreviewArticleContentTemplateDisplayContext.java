@@ -182,7 +182,7 @@ public class JournalPreviewArticleContentTemplateDisplayContext {
 			"version", getVersion()
 		).setWindowState(
 			LiferayWindowState.POP_UP
-		).build();
+		).buildPortletURL();
 	}
 
 	public PortletURL getPortletURL() throws Exception {
@@ -200,7 +200,7 @@ public class JournalPreviewArticleContentTemplateDisplayContext {
 			"version", getVersion()
 		).setWindowState(
 			LiferayWindowState.POP_UP
-		).build();
+		).buildPortletURL();
 	}
 
 	public Double getVersion() {

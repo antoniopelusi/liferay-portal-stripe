@@ -30,6 +30,10 @@ public class SegmentsExperimentLocalServiceWrapper
 	implements SegmentsExperimentLocalService,
 			   ServiceWrapper<SegmentsExperimentLocalService> {
 
+	public SegmentsExperimentLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SegmentsExperimentLocalServiceWrapper(
 		SegmentsExperimentLocalService segmentsExperimentLocalService) {
 
@@ -168,6 +172,13 @@ public class SegmentsExperimentLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _segmentsExperimentLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _segmentsExperimentLocalService.dynamicQuery();
 	}
@@ -256,6 +267,15 @@ public class SegmentsExperimentLocalServiceWrapper
 
 		return _segmentsExperimentLocalService.dynamicQueryCount(
 			dynamicQuery, projection);
+	}
+
+	@Override
+	public com.liferay.segments.model.SegmentsExperience
+		fetchControlSegmentExperience(
+			com.liferay.segments.model.SegmentsExperience segmentsExperience) {
+
+		return _segmentsExperimentLocalService.fetchControlSegmentExperience(
+			segmentsExperience);
 	}
 
 	@Override

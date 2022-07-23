@@ -12,14 +12,14 @@
  * details.
  */
 
+/* eslint-disable @liferay/aui/no-one */
+
 // For details about this file see: LPS-2155
 
 (function (A) {
 	var Util = Liferay.Util;
 
 	var Lang = A.Lang;
-
-	var AObject = A.Object;
 
 	var htmlEscapedValues = [];
 	var htmlUnescapedValues = [];
@@ -36,7 +36,8 @@
 
 	var MAP_HTML_CHARS_UNESCAPED = {};
 
-	AObject.each(MAP_HTML_CHARS_ESCAPED, (item, index) => {
+	// eslint-disable-next-line @liferay/aui/no-object
+	A.Object.each(MAP_HTML_CHARS_ESCAPED, (item, index) => {
 		MAP_HTML_CHARS_UNESCAPED[item] = index;
 
 		htmlEscapedValues.push(item);
@@ -105,8 +106,8 @@
 				var nodeType = target.get('type');
 
 				if (
-					(tagName == 'input' && /text|password/.test(nodeType)) ||
-					tagName == 'textarea'
+					(tagName === 'input' && /text|password/.test(nodeType)) ||
+					tagName === 'textarea'
 				) {
 					var action = 'addClass';
 
@@ -128,10 +129,10 @@
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
 	 */
-	Util.addInputType = function (el) {
+	Util.addInputType = function (element) {
 		Util.addInputType = Lang.emptyFn;
 
-		return Util.addInputType(el);
+		return Util.addInputType(element);
 	};
 
 	/**
@@ -175,12 +176,12 @@
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
 	 */
-	Util.selectAndCopy = function (el) {
-		el.focus();
-		el.select();
+	Util.selectAndCopy = function (element) {
+		element.focus();
+		element.select();
 
 		if (document.all) {
-			var textRange = el.createTextRange();
+			var textRange = element.createTextRange();
 
 			textRange.execCommand('copy');
 		}
@@ -212,32 +213,32 @@
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
 	 */
 	Util.textareaTabs = function (event) {
-		var el = event.currentTarget.getDOM();
+		var element = event.currentTarget.getDOM();
 
 		if (event.isKey('TAB')) {
 			event.halt();
 
-			var oldscroll = el.scrollTop;
+			var oldscroll = element.scrollTop;
 
-			if (el.setSelectionRange) {
-				var caretPos = el.selectionStart + 1;
-				var elValue = el.value;
+			if (element.setSelectionRange) {
+				var caretPos = element.selectionStart + 1;
+				var elValue = element.value;
 
-				el.value =
-					elValue.substring(0, el.selectionStart) +
+				element.value =
+					elValue.substring(0, element.selectionStart) +
 					'\t' +
-					elValue.substring(el.selectionEnd, elValue.length);
+					elValue.substring(element.selectionEnd, elValue.length);
 
 				setTimeout(() => {
-					el.focus();
-					el.setSelectionRange(caretPos, caretPos);
+					element.focus();
+					element.setSelectionRange(caretPos, caretPos);
 				}, 0);
 			}
 			else {
 				document.selection.createRange().text = '\t';
 			}
 
-			el.scrollTop = oldscroll;
+			element.scrollTop = oldscroll;
 
 			return false;
 		}
@@ -290,7 +291,7 @@
 				var disabled = function () {
 					var currentValue = selectBox.val();
 
-					var visible = value == currentValue;
+					var visible = value === currentValue;
 
 					if (dynamicValue) {
 						visible = value(currentValue, value);
@@ -316,7 +317,7 @@
 		(textarea) => {
 			textarea = A.one(textarea);
 
-			if (textarea && textarea.attr('textareatabs') != 'enabled') {
+			if (textarea && textarea.attr('textareatabs') !== 'enabled') {
 				textarea.attr('textareatabs', 'disabled');
 
 				textarea.detach('keydown', Util.textareaTabs);
@@ -334,7 +335,7 @@
 		(textarea) => {
 			textarea = A.one(textarea);
 
-			if (textarea && textarea.attr('textareatabs') != 'enabled') {
+			if (textarea && textarea.attr('textareatabs') !== 'enabled') {
 				textarea.attr('textareatabs', 'disabled');
 
 				textarea.on('keydown', Util.textareaTabs);
@@ -373,15 +374,16 @@
 		Util,
 		'resizeTextarea',
 		(elString, usingRichEditor) => {
-			var el = A.one('#' + elString);
+			var element = A.one('#' + elString);
 
-			if (!el) {
-				el = A.one(
+			if (!element) {
+				element = A.one(
 					'textarea[name=' + elString + STR_RIGHT_SQUARE_BRACKET
 				);
 			}
 
-			if (el) {
+			if (element) {
+				// eslint-disable-next-line @liferay/aui/no-get-body
 				var pageBody = A.getBody();
 
 				var diff;
@@ -391,11 +393,14 @@
 
 					if (usingRichEditor) {
 						try {
-							if (el.get('nodeName').toLowerCase() != 'iframe') {
-								el = window[elString];
+							if (
+								element.get('nodeName').toLowerCase() !==
+								'iframe'
+							) {
+								element = window[elString];
 							}
 						}
-						catch (e) {}
+						catch (error) {}
 					}
 
 					if (!diff) {
@@ -414,7 +419,7 @@
 						}
 					}
 
-					el = A.one(el);
+					element = A.one(element);
 
 					var styles = {
 						width: '98%',
@@ -425,14 +430,14 @@
 					}
 
 					if (usingRichEditor) {
-						if (!el || !A.DOM.inDoc(el)) {
+						if (!element || !A.DOM.inDoc(element)) {
 							A.on(
 								'available',
 								() => {
-									el = A.one(window[elString]);
+									element = A.one(window[elString]);
 
-									if (el) {
-										el.setStyles(styles);
+									if (element) {
+										element.setStyles(styles);
 									}
 								},
 								'#' + elString + '_cp'
@@ -442,8 +447,8 @@
 						}
 					}
 
-					if (el) {
-						el.setStyles(styles);
+					if (element) {
+						element.setStyles(styles);
 					}
 				};
 

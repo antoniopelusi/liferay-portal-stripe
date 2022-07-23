@@ -17,7 +17,7 @@ package com.liferay.change.tracking.internal.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -64,8 +64,8 @@ public class GroupServiceUserSitesGroupsCTTest {
 	public void testGetUserSitesGroups() throws Exception {
 		Group group = null;
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					_ctCollection.getCtCollectionId())) {
 
 			group = GroupTestUtil.addGroup();

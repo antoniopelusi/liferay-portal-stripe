@@ -1,33 +1,13 @@
 definition {
 
 	macro changeDisplayStyle {
-		var browserType = PropsUtil.get("browser.type");
+		WaitForPageLoad();
 
-		if ("${browserType}" == "chrome") {
-			MetalComponent.waitForManagementBar();
-		}
-
-		Click.clickNoMouseOver(locator1 = "Icon#CURRENT_DISPLAY_STYLE");
+		Click(locator1 = "Icon#CURRENT_DISPLAY_STYLE");
 
 		MenuItem.click(menuItem = "${displayStyle}");
 
 		ManagementBar.viewDisplayStyle(displayStyle = "${displayStyle}");
-	}
-
-	macro clickAdd {
-		var browserType = PropsUtil.get("browser.type");
-
-		if ("${browserType}" == "chrome") {
-			MetalComponent.waitForManagementBar();
-		}
-
-		Click.clickNoMouseOver(locator1 = "Button#PLUS");
-	}
-
-	macro clickAddMenuItem {
-		ManagementBar.clickAdd();
-
-		MenuItem.click(menuItem = "${menuItem}");
 	}
 
 	macro clickInfo {
@@ -56,15 +36,18 @@ definition {
 	}
 
 	macro toggleViewOrder {
-		if (IsElementNotPresent(locator1 = "ManagementBar#ORDER_ICON_SPECIFIC", key_order = "${order}")) {
-			Click(locator1 = "ManagementBar#ORDER_ICON_GENERIC");
+		if (isSet(order)) {
+			Click.clickNoMouseOver(
+				key_order = "${order}",
+				locator1 = "ManagementBar#ORDER_ICON_SPECIFIC");
 
 			MouseOver(locator1 = "ManagementBar#FILTER_AND_ORDER");
 		}
+		else {
+			Click.clickNoMouseOver(locator1 = "ManagementBar#ORDER_ICON_GENERIC");
 
-		AssertElementPresent(
-			key_order = "${order}",
-			locator1 = "ManagementBar#ORDER_ICON_SPECIFIC");
+			MouseOver(locator1 = "ManagementBar#FILTER_AND_ORDER");
+		}
 	}
 
 	macro viewDisplayStyle {
@@ -83,12 +66,58 @@ definition {
 			locator1 = "ManagementBar#FILTER_AND_ORDER_ACTIVE_ITEM");
 	}
 
+	macro viewFilterAndOrderItem {
+		Click(locator1 = "ManagementBar#FILTER_AND_ORDER");
+
+		AssertElementPresent(
+			key_menuItem = "${menuItem}",
+			locator1 = "ManagementBar#FILTER_AND_ORDER_ITEM");
+	}
+
+	macro viewFilterAndOrderNoItem {
+		Click(locator1 = "ManagementBar#FILTER_AND_ORDER");
+
+		AssertElementNotPresent(
+			key_menuItem = "${menuItem}",
+			locator1 = "ManagementBar#FILTER_AND_ORDER_ITEM");
+	}
+
+	macro viewFilterAndOrderSelectedItem {
+		Click(locator1 = "ManagementBar#FILTER_AND_ORDER");
+
+		AssertElementPresent(
+			key_menuItem = "${menuItem}",
+			locator1 = "ManagementBar#FILTER_AND_ORDER_ITEM_SELECTED");
+	}
+
+	macro viewItemsDisabled {
+		for (var text : list "${textList}") {
+			AssertElementPresent(
+				key_text = "${text}",
+				locator1 = "Icon#ANY_DISABLED");
+		}
+	}
+
+	macro viewNoItems {
+		for (var text : list "${textList}") {
+			AssertElementNotPresent(
+				key_text = "${text}",
+				locator1 = "Icon#ANY");
+		}
+	}
+
 	macro viewNoSubheaderInFilterAndOrder {
 		Click(locator1 = "ManagementBar#FILTER_AND_ORDER");
 
 		AssertElementNotPresent(
 			key_subheaderItem = "${subheaderItem}",
 			locator1 = "ManagementBar#FILTER_AND_ORDER_SUBHEADER");
+	}
+
+	macro viewNumberOfSelectedItems {
+		AssertTextEquals(
+			locator1 = "ManagementBar#NAVBAR_TEXT",
+			value1 = "${text}");
 	}
 
 }

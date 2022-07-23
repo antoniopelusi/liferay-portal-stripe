@@ -13,7 +13,7 @@
 		<div class="speedwell-user-nav__avatar ${userImageCssClass}">
 			<@liferay_ui["user-portrait"] user=user />
 
-			<div class="speedwell-user-nav__name">${user_name}</div>
+			<div class="speedwell-user-nav__name">${htmlUtil.escape(user_name)}</div>
 		</div>
 
 		<div class="speedwell-user-nav__menu">
@@ -40,7 +40,7 @@
 				</a>
 			</#if>
 		</div>
-	<#else>
+	<#elseif show_sign_in>
 		<div class="speedwell-user-nav__sign-in">
 			<a class="main-link" href="${sign_in_url}">
 				<div class="main-link__label">${sign_in_text}</div>

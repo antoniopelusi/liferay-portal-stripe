@@ -17,65 +17,13 @@
 <%@ include file="/init.jsp" %>
 
 <%
-int delta = ParamUtil.getInteger(request, SearchContainer.DEFAULT_DELTA_PARAM, SearchContainer.DEFAULT_DELTA);
-String keywords = ParamUtil.getString(request, "keywords");
-String screenNavigationCategoryKey = ParamUtil.getString(request, "screenNavigationCategoryKey", ServerAdminNavigationEntryConstants.CATEGORY_KEY_SYSTEM_PROPERTIES);
-String screenNavigationEntryKey = ParamUtil.getString(request, "screenNavigationEntryKey", ServerAdminNavigationEntryConstants.ENTRY_KEY_SYSTEM_PROPERTIES);
-
-PortletURL serverURL = PortletURLBuilder.createRenderURL(
-	renderResponse
-).setMVCRenderCommandName(
-	"/server_admin/view"
-).setTabs1(
-	tabs1
-).setParameter(
-	"delta", String.valueOf(delta)
-).setParameter(
-	"screenNavigationCategoryKey", screenNavigationCategoryKey
-).setParameter(
-	"screenNavigationEntryKey", screenNavigationEntryKey
-).build();
-
-PortletURL clearResultsURL = PortletURLBuilder.create(
-	PortletURLUtil.clone(serverURL, liferayPortletResponse)
-).setKeywords(
-	StringPool.BLANK
-).setNavigation(
-	StringPool.NULL
-).build();
-
-Map<String, String> filteredProperties = new TreeMap<String, String>();
-
-Properties properties = System.getProperties();
-
-for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-	String property = String.valueOf(entry.getKey());
-	String value = StringPool.BLANK;
-
-	if (ArrayUtil.contains(PropsValues.ADMIN_OBFUSCATED_PROPERTIES, property)) {
-		value = StringPool.EIGHT_STARS;
-	}
-	else {
-		value = String.valueOf(entry.getValue());
-	}
-
-	if (Validator.isNull(keywords) || property.contains(keywords) || value.contains(keywords)) {
-		filteredProperties.put(property, value);
-	}
-}
-
-List<Map.Entry<String, String>> filteredPropertiesList = ListUtil.fromCollection(filteredProperties.entrySet());
-
-SearchContainer<Map.Entry<String, String>> propertiesSearchContainer = new SearchContainer(liferayPortletRequest, serverURL, null, null);
-
-propertiesSearchContainer.setResults(ListUtil.subList(filteredPropertiesList, propertiesSearchContainer.getStart(), propertiesSearchContainer.getEnd()));
-propertiesSearchContainer.setTotal(filteredPropertiesList.size());
+ViewSystemPropertiesDisplayContext viewSystemPropertiesDisplayContext = new ViewSystemPropertiesDisplayContext(request, liferayPortletRequest, liferayPortletResponse, renderResponse);
 %>
 
 <clay:management-toolbar
-	clearResultsURL="<%= String.valueOf(clearResultsURL) %>"
-	itemsTotal="<%= propertiesSearchContainer.getTotal() %>"
-	searchActionURL="<%= String.valueOf(serverURL) %>"
+	clearResultsURL="<%= String.valueOf(viewSystemPropertiesDisplayContext.getClearResultsURL()) %>"
+	itemsTotal="<%= viewSystemPropertiesDisplayContext.getSearchContainerTotal() %>"
+	searchActionURL="<%= String.valueOf(viewSystemPropertiesDisplayContext.getPortletURL()) %>"
 	searchFormName="searchFm"
 	selectable="<%= false %>"
 	showSearch="<%= true %>"
@@ -83,14 +31,8 @@ propertiesSearchContainer.setTotal(filteredPropertiesList.size());
 
 <clay:container-fluid>
 	<liferay-ui:search-container
-		emptyResultsMessage='<%= tabs2.equals("portal-properties") ? "no-portal-properties-were-found-that-matched-the-keywords" : "no-system-properties-were-found-that-matched-the-keywords" %>'
-		iteratorURL="<%= serverURL %>"
-		total="<%= filteredPropertiesList.size() %>"
+		searchContainer="<%= viewSystemPropertiesDisplayContext.getSearchContainer() %>"
 	>
-		<liferay-ui:search-container-results
-			results="<%= ListUtil.subList(filteredPropertiesList, searchContainer.getStart(), searchContainer.getEnd()) %>"
-		/>
-
 		<liferay-ui:search-container-row
 			className="java.util.Map.Entry"
 			modelVar="entry"

@@ -19,23 +19,30 @@ import ClayLayout from '@clayui/layout';
 import ClayModal, {useModal} from '@clayui/modal';
 import ClaySticker from '@clayui/sticker';
 import ClayTabs from '@clayui/tabs';
-import {useEventListener} from '@liferay/frontend-js-react-web';
+import {ReactDOMServer, useEventListener} from '@liferay/frontend-js-react-web';
 import classNames from 'classnames';
 import {fetch, navigate, openSelectionModal} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import '../css/ApplicationsMenu.scss';
 
-const getOpenMenuTooltip = (keyLabel) =>
-	`<div>${Liferay.Language.get('open-menu')}</div>` +
-	'<kbd class="c-kbd c-kbd-dark">' +
-	`<kbd class="c-kbd">${keyLabel}</kbd>` +
-	'<span class="c-kbd-separator">+</span>' +
-	'<kbd class="c-kbd">⇧</kbd>' +
-	'<span class="c-kbd-separator">+</span>' +
-	'<kbd class="c-kbd">M</kbd>' +
-	'</kbd>';
+const getOpenMenuTooltip = (keyLabel) => (
+	<>
+		<div>{Liferay.Language.get('open-menu')}</div>
+		<kbd className="c-kbd c-kbd-dark">
+			<kbd className="c-kbd">{keyLabel}</kbd>
+
+			<span className="c-kbd-separator">+</span>
+
+			<kbd className="c-kbd">⇧</kbd>
+
+			<span className="c-kbd-separator">+</span>
+
+			<kbd className="c-kbd">M</kbd>
+		</kbd>
+	</>
+);
 
 const SitesPanel = ({portletNamespace, sites, virtualInstance}) => {
 	return (
@@ -208,13 +215,14 @@ const AppsPanel = ({
 			<h1 className="sr-only">
 				{Liferay.Language.get('applications-menu')}
 			</h1>
+
 			<div className="applications-menu-header">
 				<ClayLayout.ContainerFluid>
 					<ClayLayout.Row>
 						<ClayLayout.Col>
 							<ClayLayout.ContentRow verticalAlign="center">
 								<ClayLayout.ContentCol expand>
-									<ClayTabs modern>
+									<ClayTabs>
 										{categories.map(
 											({key, label}, index) => (
 												<ClayTabs.Item
@@ -453,11 +461,23 @@ const ApplicationsMenu = ({
 		window
 	);
 
+	useEffect(() => {
+		const closeEventBusHandler = Liferay.on(
+			'closeApplicationsMenu',
+			onClose
+		);
+
+		return () => {
+			closeEventBusHandler.detach();
+		};
+	}, [onClose]);
+
 	return (
 		<>
 			{visible && (
 				<ClayModal
 					className="applications-menu-modal"
+					containerProps={{className: 'cadmin'}}
 					observer={observer}
 					status="info"
 				>
@@ -477,13 +497,15 @@ const ApplicationsMenu = ({
 				aria-label={Liferay.Language.get('open-menu')}
 				className="dropdown-toggle lfr-portal-tooltip"
 				data-qa-id="applicationsMenu"
+				data-title-set-as-html
+				data-tooltip-align="bottom-left"
 				displayType="unstyled"
 				onClick={handleTriggerButtonClick}
 				onFocus={fetchCategories}
 				onMouseOver={fetchCategories}
 				small
 				symbol="grid"
-				title={buttonTitle}
+				title={ReactDOMServer.renderToString(buttonTitle)}
 			/>
 		</>
 	);

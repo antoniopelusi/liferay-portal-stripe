@@ -43,7 +43,7 @@ AUI.add(
 		A.TreeNode.prototype._syncIconUI = function (args) {
 			originalSyncIconUIFn.call(this, args);
 
-			var hasChildren = this.childrenLength > 0;
+			var hasChildren = !this.get('leaf');
 			var expanded = this.get('expanded');
 			var hitAreaEl = this.get('hitAreaEl');
 			var iconEl = this.get('iconEl');

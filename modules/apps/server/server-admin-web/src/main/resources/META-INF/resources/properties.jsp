@@ -31,6 +31,6 @@ int delta = ParamUtil.getInteger(request, SearchContainer.DEFAULT_DELTA_PARAM, S
 			tabs1
 		).setParameter(
 			"delta", delta
-		).build()
+		).buildPortletURL()
 	%>'
 />

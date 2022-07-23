@@ -21,7 +21,7 @@ import com.liferay.portal.search.aggregation.pipeline.PipelineAggregationVisitor
  * @author Michael C. Han
  */
 public class ExtendedStatsBucketPipelineAggregationImpl
-	extends BucketMetricsPipelineAggregationImpl
+	extends BaseBucketMetricsPipelineAggregationImpl
 	implements ExtendedStatsBucketPipelineAggregation {
 
 	public ExtendedStatsBucketPipelineAggregationImpl(

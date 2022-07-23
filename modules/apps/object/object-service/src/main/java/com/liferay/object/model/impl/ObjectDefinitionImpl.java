@@ -16,7 +16,9 @@ package com.liferay.object.model.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 /**
  * @author Marco Leo
@@ -24,33 +26,84 @@ import com.liferay.portal.kernel.util.TextFormatter;
  */
 public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 
-	public ObjectDefinitionImpl() {
+	public static String getShortName(String name) {
+		String shortName = name;
+
+		if (shortName.startsWith("C_")) {
+			shortName = shortName.substring(2);
+		}
+
+		return shortName;
 	}
 
 	@Override
-	public String getClassName() {
-		return getDBTableName();
-	}
-
-	@Override
-	public String getDBPrimaryKeyColumnName() {
-		return getPrimaryKeyColumnName() + StringPool.UNDERLINE;
-	}
-
-	@Override
-	public String getDBTableName() {
+	public String getDestinationName() {
 		return StringBundler.concat(
-			"O_", getCompanyId(), StringPool.UNDERLINE, getName());
+			"liferay/object/", getCompanyId(), StringPool.SLASH,
+			getShortName());
+	}
+
+	@Override
+	public String getExtensionDBTableName() {
+		if (isSystem()) {
+			String extensionDBTableName = getDBTableName();
+
+			if (extensionDBTableName.endsWith("_")) {
+				extensionDBTableName += "x_";
+			}
+			else {
+				extensionDBTableName += "_x_";
+			}
+
+			extensionDBTableName += getCompanyId();
+
+			return extensionDBTableName;
+		}
+
+		return getDBTableName() + "_x";
 	}
 
 	@Override
 	public String getPortletId() {
-		return getDBTableName();
+		if (isSystem()) {
+			throw new UnsupportedOperationException();
+		}
+
+		return "com_liferay_object_web_internal_object_definitions_portlet_" +
+			"ObjectDefinitionsPortlet_" + getObjectDefinitionId();
 	}
 
 	@Override
-	public String getPrimaryKeyColumnName() {
-		return TextFormatter.format(getName() + "Id", TextFormatter.I);
+	public String getResourceName() {
+		if (isSystem()) {
+			throw new UnsupportedOperationException();
+		}
+
+		return "com.liferay.object#" + getObjectDefinitionId();
+	}
+
+	@Override
+	public String getRESTContextPath() {
+		if (isSystem()) {
+			throw new UnsupportedOperationException();
+		}
+
+		return "/c/" +
+			TextFormatter.formatPlural(StringUtil.toLowerCase(getShortName()));
+	}
+
+	@Override
+	public String getShortName() {
+		return getShortName(getName());
+	}
+
+	@Override
+	public boolean isApproved() {
+		if (getStatus() == WorkflowConstants.STATUS_APPROVED) {
+			return true;
+		}
+
+		return false;
 	}
 
 }

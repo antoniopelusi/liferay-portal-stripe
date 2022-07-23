@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -53,6 +54,10 @@ public class Index implements Serializable {
 
 	public static Index toDTO(String json) {
 		return ObjectMapperUtil.readValue(Index.class, json);
+	}
+
+	public static Index unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(Index.class, json);
 	}
 
 	@Schema
@@ -233,13 +238,17 @@ public class Index implements Serializable {
 
 		@JsonCreator
 		public static Group create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (Group group : values()) {
 				if (Objects.equals(group.getValue(), value)) {
 					return group;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -261,9 +270,9 @@ public class Index implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -289,7 +298,7 @@ public class Index implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -321,7 +330,7 @@ public class Index implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -337,5 +346,10 @@ public class Index implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

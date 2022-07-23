@@ -95,10 +95,10 @@ public class CommerceTaxRateClayTable
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField nameField =
+		ClayTableSchemaField nameClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("name", "name");
 
-		nameField.setContentRenderer("actionLink");
+		nameClayTableSchemaField.setContentRenderer("actionLink");
 
 		clayTableSchemaBuilder.addClayTableSchemaField("rate", "rate");
 
@@ -237,10 +237,6 @@ public class CommerceTaxRateClayTable
 	private String _getTaxRateDeleteURL(
 		HttpServletRequest httpServletRequest, long taxRateId) {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				httpServletRequest, CommercePortletKeys.COMMERCE_TAX_METHODS,
@@ -250,7 +246,9 @@ public class CommerceTaxRateClayTable
 		).setCMD(
 			Constants.DELETE
 		).setRedirect(
-			redirect
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"commerceTaxFixedRateId", taxRateId
 		).buildString();
@@ -266,7 +264,7 @@ public class CommerceTaxRateClayTable
 				PortletProvider.Action.EDIT)
 		).setMVCRenderCommandName(
 			"/commerce_tax_methods/edit_commerce_tax_fixed_rate"
-		).build();
+		).buildPortletURL();
 
 		long commerceTaxMethodId = ParamUtil.getLong(
 			httpServletRequest, "commerceTaxMethodId");

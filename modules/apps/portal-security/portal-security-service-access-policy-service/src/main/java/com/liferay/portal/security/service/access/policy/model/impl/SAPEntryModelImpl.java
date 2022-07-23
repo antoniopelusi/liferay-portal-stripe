@@ -33,24 +33,22 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.model.SAPEntryModel;
-import com.liferay.portal.security.service.access.policy.model.SAPEntrySoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -171,60 +169,6 @@ public class SAPEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SAPEntry toModel(SAPEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		SAPEntry model = new SAPEntryImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setSapEntryId(soapModel.getSapEntryId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setAllowedServiceSignatures(
-			soapModel.getAllowedServiceSignatures());
-		model.setDefaultSAPEntry(soapModel.isDefaultSAPEntry());
-		model.setEnabled(soapModel.isEnabled());
-		model.setName(soapModel.getName());
-		model.setTitle(soapModel.getTitle());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SAPEntry> toModels(SAPEntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SAPEntry> models = new ArrayList<SAPEntry>(soapModels.length);
-
-		for (SAPEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public SAPEntryModelImpl() {
 	}
 
@@ -307,34 +251,6 @@ public class SAPEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SAPEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SAPEntry.class.getClassLoader(), SAPEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SAPEntry> constructor =
-				(Constructor<SAPEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SAPEntry, Object>>
@@ -910,6 +826,34 @@ public class SAPEntryModelImpl
 	}
 
 	@Override
+	public SAPEntry cloneWithOriginalValues() {
+		SAPEntryImpl sapEntryImpl = new SAPEntryImpl();
+
+		sapEntryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		sapEntryImpl.setSapEntryId(
+			this.<Long>getColumnOriginalValue("sapEntryId"));
+		sapEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		sapEntryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		sapEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		sapEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		sapEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		sapEntryImpl.setAllowedServiceSignatures(
+			this.<String>getColumnOriginalValue("allowedServiceSignatures"));
+		sapEntryImpl.setDefaultSAPEntry(
+			this.<Boolean>getColumnOriginalValue("defaultSAPEntry"));
+		sapEntryImpl.setEnabled(
+			this.<Boolean>getColumnOriginalValue("enabled"));
+		sapEntryImpl.setName(this.<String>getColumnOriginalValue("name"));
+		sapEntryImpl.setTitle(this.<String>getColumnOriginalValue("title"));
+
+		return sapEntryImpl;
+	}
+
+	@Override
 	public int compareTo(SAPEntry sapEntry) {
 		long primaryKey = sapEntry.getPrimaryKey();
 
@@ -1063,7 +1007,7 @@ public class SAPEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1074,9 +1018,26 @@ public class SAPEntryModelImpl
 			Function<SAPEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SAPEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SAPEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1123,7 +1084,9 @@ public class SAPEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SAPEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SAPEntry.class, ModelWrapper.class);
 
 	}
 

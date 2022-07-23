@@ -502,4 +502,7 @@ public interface AddressModel
 	 */
 	public void setZip(String zip);
 
+	@Override
+	public Address cloneWithOriginalValues();
+
 }

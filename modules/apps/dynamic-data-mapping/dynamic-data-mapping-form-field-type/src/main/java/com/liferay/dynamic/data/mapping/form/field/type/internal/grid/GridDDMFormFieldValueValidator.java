@@ -74,7 +74,7 @@ public class GridDDMFormFieldValueValidator
 		}
 
 		for (Locale availableLocale : value.getAvailableLocales()) {
-			validateSelectedValue(
+			_validateSelectedValue(
 				ddmFormField, rowValues, columnValues,
 				value.getString(availableLocale));
 		}
@@ -89,7 +89,7 @@ public class GridDDMFormFieldValueValidator
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(jsonException, jsonException);
+				_log.debug(jsonException);
 			}
 
 			throw new IllegalStateException(
@@ -98,7 +98,10 @@ public class GridDDMFormFieldValueValidator
 		}
 	}
 
-	protected void validateSelectedValue(
+	@Reference
+	protected JSONFactory jsonFactory;
+
+	private void _validateSelectedValue(
 			DDMFormField ddmFormField, Set<String> rowValues,
 			Set<String> columnValues, String selectedValues)
 		throws DDMFormFieldValueValidationException {
@@ -123,9 +126,6 @@ public class GridDDMFormFieldValueValidator
 			}
 		}
 	}
-
-	@Reference
-	protected JSONFactory jsonFactory;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		GridDDMFormFieldValueValidator.class);

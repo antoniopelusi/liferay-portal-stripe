@@ -15,9 +15,7 @@
 package com.liferay.document.library.video.internal.portlet.action;
 
 import com.liferay.document.library.constants.DLFileVersionPreviewConstants;
-import com.liferay.document.library.kernel.model.DLProcessorConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.kernel.util.DLProcessor;
 import com.liferay.document.library.kernel.util.DLProcessorRegistryUtil;
 import com.liferay.document.library.kernel.util.VideoProcessor;
 import com.liferay.document.library.service.DLFileVersionPreviewLocalService;
@@ -61,15 +59,6 @@ public class EmbedVideoStatusMVCResourceCommand extends BaseMVCResourceCommand {
 		resourceResponse.setStatus(_getEmbedVideoStatus(resourceRequest));
 	}
 
-	@Reference(
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(type=" + DLProcessorConstants.VIDEO_PROCESSOR + ")",
-		unbind = "-"
-	)
-	protected void setDLProcessor(DLProcessor dlProcessor) {
-		_videoProcessor = (VideoProcessor)dlProcessor;
-	}
-
 	private int _getEmbedVideoStatus(ResourceRequest resourceRequest) {
 		try {
 			FileVersion fileVersion = _dlAppLocalService.getFileVersion(
@@ -88,7 +77,7 @@ public class EmbedVideoStatusMVCResourceCommand extends BaseMVCResourceCommand {
 			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return HttpServletResponse.SC_SERVICE_UNAVAILABLE;
@@ -97,12 +86,9 @@ public class EmbedVideoStatusMVCResourceCommand extends BaseMVCResourceCommand {
 	private boolean _isPreviewFailure(FileVersion fileVersion) {
 		if (_dlFileVersionPreviewLocalService.hasDLFileVersionPreview(
 				fileVersion.getFileEntryId(), fileVersion.getFileVersionId(),
-				DLFileVersionPreviewConstants.STATUS_FAILURE)) {
+				DLFileVersionPreviewConstants.STATUS_FAILURE) ||
+			!DLProcessorRegistryUtil.isPreviewableSize(fileVersion)) {
 
-			return true;
-		}
-
-		if (!DLProcessorRegistryUtil.isPreviewableSize(fileVersion)) {
 			return true;
 		}
 
@@ -118,6 +104,7 @@ public class EmbedVideoStatusMVCResourceCommand extends BaseMVCResourceCommand {
 	@Reference
 	private DLFileVersionPreviewLocalService _dlFileVersionPreviewLocalService;
 
+	@Reference(policyOption = ReferencePolicyOption.GREEDY)
 	private VideoProcessor _videoProcessor;
 
 }

@@ -16,7 +16,6 @@ package com.liferay.portlet.documentlibrary.model.impl;
 
 import com.liferay.document.library.kernel.model.DLFileShortcut;
 import com.liferay.document.library.kernel.model.DLFileShortcutModel;
-import com.liferay.document.library.kernel.model.DLFileShortcutSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -36,22 +35,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -202,70 +200,6 @@ public class DLFileShortcutModelImpl
 	@Deprecated
 	public static final long FILESHORTCUTID_COLUMN_BITMASK = 128L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DLFileShortcut toModel(DLFileShortcutSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DLFileShortcut model = new DLFileShortcutImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setFileShortcutId(soapModel.getFileShortcutId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setRepositoryId(soapModel.getRepositoryId());
-		model.setFolderId(soapModel.getFolderId());
-		model.setToFileEntryId(soapModel.getToFileEntryId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setActive(soapModel.isActive());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DLFileShortcut> toModels(
-		DLFileShortcutSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DLFileShortcut> models = new ArrayList<DLFileShortcut>(
-			soapModels.length);
-
-		for (DLFileShortcutSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.document.library.kernel.model.DLFileShortcut"));
@@ -353,34 +287,6 @@ public class DLFileShortcutModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DLFileShortcut>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DLFileShortcut.class.getClassLoader(), DLFileShortcut.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DLFileShortcut> constructor =
-				(Constructor<DLFileShortcut>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DLFileShortcut, Object>>
@@ -1243,6 +1149,54 @@ public class DLFileShortcutModelImpl
 	}
 
 	@Override
+	public DLFileShortcut cloneWithOriginalValues() {
+		DLFileShortcutImpl dlFileShortcutImpl = new DLFileShortcutImpl();
+
+		dlFileShortcutImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		dlFileShortcutImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		dlFileShortcutImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		dlFileShortcutImpl.setFileShortcutId(
+			this.<Long>getColumnOriginalValue("fileShortcutId"));
+		dlFileShortcutImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		dlFileShortcutImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		dlFileShortcutImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		dlFileShortcutImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		dlFileShortcutImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		dlFileShortcutImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		dlFileShortcutImpl.setRepositoryId(
+			this.<Long>getColumnOriginalValue("repositoryId"));
+		dlFileShortcutImpl.setFolderId(
+			this.<Long>getColumnOriginalValue("folderId"));
+		dlFileShortcutImpl.setToFileEntryId(
+			this.<Long>getColumnOriginalValue("toFileEntryId"));
+		dlFileShortcutImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		dlFileShortcutImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+		dlFileShortcutImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		dlFileShortcutImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		dlFileShortcutImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		dlFileShortcutImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		dlFileShortcutImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return dlFileShortcutImpl;
+	}
+
+	@Override
 	public int compareTo(DLFileShortcut dlFileShortcut) {
 		long primaryKey = dlFileShortcut.getPrimaryKey();
 
@@ -1418,7 +1372,7 @@ public class DLFileShortcutModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1429,9 +1383,26 @@ public class DLFileShortcutModelImpl
 			Function<DLFileShortcut, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DLFileShortcut)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DLFileShortcut)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1478,7 +1449,9 @@ public class DLFileShortcutModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DLFileShortcut>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DLFileShortcut.class, ModelWrapper.class);
 
 	}
 

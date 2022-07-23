@@ -38,17 +38,18 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 			return classNameId;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"insert into ClassName_ (mvccVersion, classNameId, value) " +
 					"values (?, ?, ?)")) {
 
 			classNameId = increment();
 
-			ps.setLong(1, 0);
-			ps.setLong(2, classNameId);
-			ps.setString(3, RawMetadataProcessor.class.getName());
+			preparedStatement.setLong(1, 0);
+			preparedStatement.setLong(2, classNameId);
+			preparedStatement.setString(
+				3, RawMetadataProcessor.class.getName());
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 
 		return classNameId;
@@ -65,17 +66,17 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		throws Exception {
 
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select structureId from DDMStructure where structureKey = ? " +
 					"and classNameId = ?")) {
 
-			ps.setString(1, structureKey);
-			ps.setLong(2, classNameId);
+			preparedStatement.setString(1, structureKey);
+			preparedStatement.setLong(2, classNameId);
 
-			ResultSet rs = ps.executeQuery();
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-			if (rs.next()) {
-				return rs.getLong("structureId");
+			if (resultSet.next()) {
+				return resultSet.getLong("structureId");
 			}
 
 			return 0;
@@ -91,14 +92,14 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 			return;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update DDMStructure set classNameId = ? where structureKey " +
 					"= ?")) {
 
-			ps.setLong(1, classNameId);
-			ps.setString(2, "TIKARAWMETADATA");
+			preparedStatement.setLong(1, classNameId);
+			preparedStatement.setString(2, "TIKARAWMETADATA");
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
@@ -120,47 +121,46 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 				return;
 			}
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("select fileVersionId, DDMStructureId from ");
-			sb.append("DLFileEntryMetadata where fileVersionId in (select ");
-			sb.append("fileVersionId from DLFileEntryMetadata group by ");
-			sb.append("fileVersionId having count(*) >= 2) and ");
-			sb.append("DDMStructureId = ?");
-
-			try (PreparedStatement ps1 = connection.prepareStatement(
-					sb.toString());
-				PreparedStatement ps2 =
+			try (PreparedStatement preparedStatement1 =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select fileVersionId, DDMStructureId from ",
+							"DLFileEntryMetadata where fileVersionId in ",
+							"(select fileVersionId from DLFileEntryMetadata ",
+							"group by fileVersionId having count(*) >= 2) and ",
+							"DDMStructureId = ?"));
+				PreparedStatement preparedStatement2 =
 					AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 						connection,
 						"delete from DLFileEntryMetadata where fileVersionId " +
 							"= ? and DDMStructureId = ?")) {
 
-				ps1.setLong(1, oldDDMStructureId);
+				preparedStatement1.setLong(1, oldDDMStructureId);
 
-				ResultSet resultSet = ps1.executeQuery();
+				ResultSet resultSet = preparedStatement1.executeQuery();
 
 				while (resultSet.next()) {
 					long fileVersionId = resultSet.getLong("fileVersionId");
 					long ddmStructureId = resultSet.getLong("DDMStructureId");
 
-					ps2.setLong(1, fileVersionId);
-					ps2.setLong(2, ddmStructureId);
+					preparedStatement2.setLong(1, fileVersionId);
+					preparedStatement2.setLong(2, ddmStructureId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 
-			try (PreparedStatement ps = connection.prepareStatement(
-					"update DLFileEntryMetadata set DDMStructureId = ? where " +
-						"DDMStructureId = ?")) {
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"update DLFileEntryMetadata set DDMStructureId = ? " +
+							"where DDMStructureId = ?")) {
 
-				ps.setLong(1, newDDMStructureId);
-				ps.setLong(2, oldDDMStructureId);
+				preparedStatement.setLong(1, newDDMStructureId);
+				preparedStatement.setLong(2, oldDDMStructureId);
 
-				ps.execute();
+				preparedStatement.execute();
 			}
 		}
 	}

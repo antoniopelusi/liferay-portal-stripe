@@ -137,7 +137,7 @@ AUI.add(
 
 				var editMode = inputEditModeNode.val();
 
-				var boolEditMode = editMode == 'true';
+				var boolEditMode = editMode === 'true' || editMode === true;
 
 				inputEditModeNode.val(!boolEditMode);
 			},
@@ -409,7 +409,7 @@ AUI.add(
 					'</a>';
 
 				var successMessage =
-					Liferay.Language.get('definition-imported-sucessfully') +
+					Liferay.Language.get('definition-imported-successfully') +
 					'&nbsp;';
 
 				successMessage += undoLink;

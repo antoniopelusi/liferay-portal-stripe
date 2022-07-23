@@ -1,0 +1,415 @@
+@component-name = "portal-document-management"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Depot";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONDepot.deleteDepot(depotName = "Test Depot Name");
+
+			Site.tearDownCP();
+
+			BlogsEntry.tearDownCP();
+
+			DMDocument.tearDownCP();
+
+			User.logoutPG();
+		}
+	}
+
+	@description = "This ensures that a depot image can be used through Blogs on a connected site."
+	@priority = "5"
+	@refactordone
+	test CanAddImageViaBlogs {
+		DepotNavigator.openDepotAdmin();
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_2.jpg",
+			groupName = "Test Depot Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		Blogs.addEntryWithCoverImageFromDepot(
+			depotName = "Test Depot Name",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			imageFileName = "Document_2.jpg",
+			siteURLKey = "site-name");
+
+		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntryCP(
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			uploadFileName = "Document_2");
+	}
+
+	@description = "This ensures that a depot image can be used through page creation on a connected site."
+	@priority = "5"
+	@refactordone
+	test CanAddImageViaContentPage {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.jpeg",
+			groupName = "Test Depot Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpeg");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
+
+		ContentPages.addPage(pageName = "Test Content Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Layout Elements",
+			fragmentName = "Container");
+
+		PageEditor.editLayoutContainer(
+			backgroundImage = "Direct",
+			depotName = "Test Depot Name",
+			imageFileName = "Document_1.jpeg",
+			paddingTop = "2",
+			panel = "Styles");
+
+		PageEditor.clickPublish();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name/test-content-page-name");
+
+		ContentPages.viewFragmentBackgroundImage(image = "Document_1.jpeg");
+	}
+
+	@description = "This ensures that a depot image can be used through web content on a connected site."
+	@priority = "5"
+	@refactordone
+	test CanAddImageViaWebContent {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_2.jpeg",
+			groupName = "Test Depot Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpeg");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		WebContentStructures.openWebContentStructuresAdmin(siteURLKey = "site-name");
+
+		WebContentStructures.addCP(
+			structureDescription = "WC Structure Description",
+			structureName = "WC Structure Name");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Image",
+			fieldName = "Image");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Name");
+
+		WebContentNavigator.openWebContentTemplatesAdmin(siteURLKey = "site-name");
+
+		WebContentTemplates.addCP(
+			structureName = "WC Structure Name",
+			templateDescription = "WC Template Description",
+			templateFieldNames = "Image",
+			templateName = "WC Template Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+
+		WebContent.addWithStructureCP(
+			depotName = "Test Depot Name",
+			navTab = "Documents and Media",
+			structureName = "WC Structure Name",
+			templateName = "WC Template Name",
+			webContentImage = "Document_2.jpeg",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		WebContent.viewTitle(webContentTitle = "WC WebContent Title");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Test Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Test Page",
+			widgetName = "Web Content Display");
+
+		Navigator.openSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+
+		Navigator.openSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_2.jpeg",
+			webContentTitle = "WC WebContent Title");
+	}
+
+	@description = "This ensures that a document using a type stored in AL can be removed on a connected site."
+	@priority = "5"
+	@refactordone
+	test CanRemoveDMWithDocumentType {
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
+
+		DMDocumentType.add(
+			dmDocumentTypeDescription = "DM Document Type Description",
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Depot");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.configureDDMStructures(
+			depotName = "Test Depot Name",
+			siteName = "Site Name",
+			tableEntryText = "Yes");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "Document_1.jpg",
+			dmDocumentTypeName = "DM Document Type Depot",
+			textField = "DM Document Text");
+
+		DMNavigator.openToEntryInAdmin(
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.viewDocumentTypePG(textContent = "DM Document Text");
+
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
+
+		DMDocumentType.delete(
+			dmDocumentTypeName = "DM Document Type Depot",
+			documentTypeHasReference = "true");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		DMDocument.deleteCP(dmDocumentTitle = "Document_1.jpg");
+	}
+
+	@description = "This ensures that a document using a type stored in AL can be viewed on the connected site widgets."
+	@priority = "4"
+	@refactordone
+	test CanViewDMwithDocumentTypeOnSiteWidgets {
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page Name",
+			widgetName = "Asset Publisher");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page Name",
+			widgetName = "Documents and Media");
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
+
+		DMDocumentType.add(
+			dmDocumentTypeDescription = "DM Document Type Description",
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Depot");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.configureDDMStructures(
+			depotName = "Test Depot Name",
+			siteName = "Site Name",
+			tableEntryText = "Yes");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "Document_1.jpg",
+			dmDocumentTypeName = "DM Document Type Depot",
+			textField = "DM Document Text");
+
+		Navigator.openSitePage(
+			pageName = "Page Name",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "Document_1.jpg");
+
+		DMDocument.viewPG(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.jpg",
+			dmDocumentType = "DM Document Type Depot");
+	}
+
+	@description = "This ensures that a document using a type stored in AL can be viewed in related assets on a connected site."
+	@priority = "4"
+	@refactordone
+	test CanViewDocumentTypeInRelatedAssets {
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
+
+		DMDocumentType.add(
+			dmDocumentTypeDescription = "DM Document Type Description",
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Depot");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.configureDDMStructures(
+			depotName = "Test Depot Name",
+			siteName = "Site Name",
+			tableEntryText = "Yes");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "Document_1.jpg",
+			dmDocumentTypeName = "DM Document Type Depot",
+			textField = "DM Document Text");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			webContentContent = "Web Content Content",
+			webContentTitle = "WC WebContent Title");
+
+		RelatedAssets.selectAsset(
+			assetTitle = "Document_1.jpg",
+			assetType = "DM Document Type Depot");
+
+		PortletEntry.publish();
+
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Site Name",
+			siteURLKey = "site-name",
+			webContentTitle = "WC WebContent Title");
+
+		AssertTextEquals.assertPartialText(
+			key_assetTitle = "Document_1.jpg",
+			locator1 = "AssetRelatedAssets#RELATED_ASSETS_TABLE_TYPE",
+			value1 = "DM Document Type Depot");
+	}
+
+	@description = "This ensures that the depot assets can be used through Related Assets on a connected site."
+	@priority = "4"
+	@refactordone
+	test CanViewRelatedAssets {
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page Name",
+			widgetName = "Asset Publisher");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.doc",
+			groupName = "Test Depot Name",
+			mimeType = "application/msword",
+			sourceFileName = "Document_1.doc");
+
+		JSONWebcontent.addWebContent(
+			content = "WC WebContent Depot 1",
+			groupName = "Test Depot Name",
+			site = "false",
+			title = "WC WebContent Title");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		BlogsNavigator.openToAddEntry(siteURLKey = "site-name");
+
+		BlogsEntry.addEntryContent(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addRelatedAsset(
+			assetTitle = "WC WebContent Title",
+			assetType = "Basic Web Content",
+			depotName = "Test Depot Name");
+
+		BlogsEntry.addRelatedAsset(
+			assetTitle = "Document_1.doc",
+			assetType = "Basic Document",
+			depotName = "Test Depot Name");
+
+		Button.clickPublish();
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		AssetPublisherPortlet.configureDisplaySettings(displaySettings = "Related Assets");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		AssetPublisherPortlet.viewPG(
+			assetContent = "Blogs Entry Content",
+			assetTitle = "Blogs Entry Title",
+			relatedAssetTitle = "WC WebContent Title,Document_1.doc");
+	}
+
+}

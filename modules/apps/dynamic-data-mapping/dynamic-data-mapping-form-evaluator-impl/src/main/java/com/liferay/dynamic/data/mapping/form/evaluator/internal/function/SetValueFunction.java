@@ -17,7 +17,7 @@ package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 /**
  * @author Leonardo Barros
  */
-public class SetValueFunction extends SetPropertyFunction<Object> {
+public class SetValueFunction extends BaseSetPropertyFunction<Object> {
 
 	public static final String NAME = "setValue";
 

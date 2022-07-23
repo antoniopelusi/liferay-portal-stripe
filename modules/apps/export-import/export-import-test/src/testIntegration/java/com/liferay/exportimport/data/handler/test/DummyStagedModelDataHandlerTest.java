@@ -20,6 +20,7 @@ import com.liferay.exportimport.staged.model.repository.StagedModelRepositoryReg
 import com.liferay.exportimport.test.util.lar.BaseStagedModelDataHandlerTestCase;
 import com.liferay.exportimport.test.util.model.Dummy;
 import com.liferay.exportimport.test.util.model.DummyFolder;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.PersistedModel;
@@ -80,6 +81,16 @@ public class DummyStagedModelDataHandlerTest
 					throws PortalException {
 
 					return null;
+				}
+
+				@Override
+				public <T> T dslQuery(DSLQuery dslQuery) {
+					return null;
+				}
+
+				@Override
+				public int dslQueryCount(DSLQuery dslQuery) {
+					return 0;
 				}
 
 				@Override

@@ -28,7 +28,7 @@ import com.liferay.portal.kernel.service.ReleaseLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -129,6 +129,13 @@ public class DataCleanupTest {
 	}
 
 	@Test
+	public void testDeprecatedModulesUpgradeOpenSocial() throws Exception {
+		_testDeprecatedModulesUpgrade(
+			"cleanUpOpenSocialModuleData", "opensocial-portlet",
+			"dependencies/opensocial-tables.sql", "3_WAR_opensocialportlet");
+	}
+
+	@Test
 	public void testDeprecatedModulesUpgradePrivateMessaging()
 		throws Exception {
 
@@ -146,6 +153,14 @@ public class DataCleanupTest {
 			"cleanUpShoppingModuleData", "com.liferay.shopping.service",
 			"dependencies/shopping-tables.sql",
 			"com_liferay_shopping_web_portlet_ShoppingPortlet");
+	}
+
+	@Test
+	public void testDeprecatedModulesUpgradeSoftwareCatalog() throws Exception {
+		_testDeprecatedModulesUpgrade(
+			"cleanUpSoftwareCatalogModuleData",
+			"com.liferay.softwarecatalog.service",
+			"dependencies/software-catalog-tables.sql", "98");
 	}
 
 	@Test
@@ -172,7 +187,8 @@ public class DataCleanupTest {
 		}
 
 		if (portletPreferencePortletId != null) {
-			_layout = LayoutTestUtil.addLayout(TestPropsValues.getGroupId());
+			_layout = LayoutTestUtil.addTypePortletLayout(
+				TestPropsValues.getGroupId());
 
 			UnicodeProperties unicodeProperties =
 				_layout.getTypeSettingsProperties();
@@ -195,9 +211,10 @@ public class DataCleanupTest {
 			_layout = _layoutLocalService.updateLayout(_layout);
 		}
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(propertyKey, true);
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				propertyKey, true
+			).build();
 
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
@@ -247,7 +264,8 @@ public class DataCleanupTest {
 		"com.liferay.hello.world.web", "com.liferay.invitation.web",
 		"com.liferay.mail.reader.service", "com.liferay.shopping.service",
 		"com.liferay.social.privatemessaging.service",
-		"com.liferay.twitter.service"
+		"com.liferay.softwarecatalog.service", "com.liferay.twitter.service",
+		"opensocial-portlet"
 	};
 
 	@Inject

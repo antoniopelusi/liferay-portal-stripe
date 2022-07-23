@@ -50,7 +50,7 @@ public class JournalDDMTemplateSelectorBrowserPortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/select_ddm_template.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

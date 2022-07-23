@@ -361,16 +361,7 @@ public class LiferayResourceProperties extends ComponentPropertiesImpl {
 				parameters.getRequestParameters();
 
 			for (RequestParameter requestParameter : requestParameters) {
-				if (requestParameter.isPathLocation()) {
-					uriBuilder.resolveTemplate(
-						requestParameter.getName(),
-						requestParameter.getValue());
-
-					continue;
-				}
-
-				uriBuilder.queryParam(
-					requestParameter.getName(), requestParameter.getValue());
+				requestParameter.apply(uriBuilder);
 			}
 		}
 
@@ -396,8 +387,14 @@ public class LiferayResourceProperties extends ComponentPropertiesImpl {
 	private String _getOpenAPIModuleVersionPath() {
 		String openAPIModuleValue = openAPIModule.getValue();
 
-		return openAPIModuleValue.substring(
+		String version = openAPIModuleValue.substring(
 			openAPIModuleValue.lastIndexOf("/"));
+
+		if (version.matches("/v[0-9.]+")) {
+			return version;
+		}
+
+		return "";
 	}
 
 	private String[] _getOperations() {

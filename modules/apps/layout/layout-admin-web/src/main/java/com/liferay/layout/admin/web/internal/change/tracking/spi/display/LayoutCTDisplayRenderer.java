@@ -49,6 +49,16 @@ import org.osgi.service.component.annotations.Reference;
 public class LayoutCTDisplayRenderer extends BaseCTDisplayRenderer<Layout> {
 
 	@Override
+	public String[] getAvailableLanguageIds(Layout layout) {
+		return layout.getAvailableLanguageIds();
+	}
+
+	@Override
+	public String getDefaultLanguageId(Layout layout) {
+		return layout.getDefaultLanguageId();
+	}
+
+	@Override
 	public String getEditURL(
 			HttpServletRequest httpServletRequest, Layout layout)
 		throws PortalException {
@@ -71,7 +81,7 @@ public class LayoutCTDisplayRenderer extends BaseCTDisplayRenderer<Layout> {
 				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/layout_admin/edit_layout"
-		).build();
+		).buildPortletURL();
 
 		String currentURL = _portal.getCurrentURL(httpServletRequest);
 

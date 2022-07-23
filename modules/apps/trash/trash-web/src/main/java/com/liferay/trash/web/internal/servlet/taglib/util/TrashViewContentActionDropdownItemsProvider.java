@@ -15,6 +15,7 @@
 package com.liferay.trash.web.internal.servlet.taglib.util;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -60,56 +61,49 @@ public class TrashViewContentActionDropdownItemsProvider {
 	}
 
 	private DropdownItem _getDeleteActionDropdownItem() {
-		return new DropdownItem() {
-			{
-				putData("action", "deleteEntry");
-
-				putData(
-					"deleteEntryURL",
-					PortletURLBuilder.createActionURL(
-						_liferayPortletResponse
-					).setActionName(
-						"deleteEntries"
-					).setRedirect(
-						_themeDisplay.getURLCurrent()
-					).setParameter(
-						"className", _className
-					).setParameter(
-						"classPK", _classPK
-					).buildString());
-
-				setLabel(LanguageUtil.get(_themeDisplay.getLocale(), "delete"));
-			}
-		};
+		return DropdownItemBuilder.putData(
+			"action", "deleteEntry"
+		).putData(
+			"deleteEntryURL",
+			PortletURLBuilder.createActionURL(
+				_liferayPortletResponse
+			).setActionName(
+				"deleteEntries"
+			).setRedirect(
+				_themeDisplay.getURLCurrent()
+			).setParameter(
+				"className", _className
+			).setParameter(
+				"classPK", _classPK
+			).buildString()
+		).setLabel(
+			LanguageUtil.get(_themeDisplay.getLocale(), "delete")
+		).build();
 	}
 
 	private DropdownItem _getMoveActionDropdownItem() throws Exception {
-		return new DropdownItem() {
-			{
-				putData("action", "moveEntry");
-
-				putData(
-					"moveEntryURL",
-					PortletURLBuilder.createRenderURL(
-						_liferayPortletResponse
-					).setMVCPath(
-						"/view_container_model.jsp"
-					).setParameter(
-						"classNameId", PortalUtil.getClassNameId(_className)
-					).setParameter(
-						"classPK", _classPK
-					).setParameter(
-						"containerModelClassNameId",
-						PortalUtil.getClassNameId(
-							_trashHandler.getContainerModelClassName(_classPK))
-					).setWindowState(
-						LiferayWindowState.POP_UP
-					).buildString());
-
-				setLabel(
-					LanguageUtil.get(_themeDisplay.getLocale(), "restore"));
-			}
-		};
+		return DropdownItemBuilder.putData(
+			"action", "moveEntry"
+		).putData(
+			"moveEntryURL",
+			PortletURLBuilder.createRenderURL(
+				_liferayPortletResponse
+			).setMVCPath(
+				"/view_container_model.jsp"
+			).setParameter(
+				"classNameId", PortalUtil.getClassNameId(_className)
+			).setParameter(
+				"classPK", _classPK
+			).setParameter(
+				"containerModelClassNameId",
+				PortalUtil.getClassNameId(
+					_trashHandler.getContainerModelClassName(_classPK))
+			).setWindowState(
+				LiferayWindowState.POP_UP
+			).buildString()
+		).setLabel(
+			LanguageUtil.get(_themeDisplay.getLocale(), "restore")
+		).build();
 	}
 
 	private final String _className;

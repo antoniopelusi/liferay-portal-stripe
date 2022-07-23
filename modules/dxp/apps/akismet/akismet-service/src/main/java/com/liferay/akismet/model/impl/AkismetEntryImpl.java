@@ -36,7 +36,5 @@ public class AkismetEntryImpl extends AkismetEntryBaseImpl {
 	 * entry model instance should use the {@link
 	 * com.liferay.akismet.model.AkismetEntry} interface instead.
 	 */
-	public AkismetEntryImpl() {
-	}
 
 }

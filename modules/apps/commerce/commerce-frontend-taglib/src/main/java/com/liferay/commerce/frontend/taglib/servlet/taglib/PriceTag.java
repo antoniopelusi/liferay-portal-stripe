@@ -82,7 +82,7 @@ public class PriceTag extends IncludeTag {
 			_priceModel = _getPriceModel(commerceContext, cpInstanceId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return SKIP_BODY;
 		}
@@ -122,11 +122,12 @@ public class PriceTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
+		setServletContext(ServletContextUtil.getServletContext());
+
 		commerceChannelLocalService =
 			ServletContextUtil.getCommerceChannelLocalService();
 		configurationProvider = ServletContextUtil.getConfigurationProvider();
 		_productHelper = ServletContextUtil.getProductHelper();
-		servletContext = ServletContextUtil.getServletContext();
 	}
 
 	public void setQuantity(int quantity) {
@@ -194,7 +195,7 @@ public class PriceTag extends IncludeTag {
 			configurationProvider.getConfiguration(
 				CommercePriceConfiguration.class,
 				new SystemSettingsLocator(
-					CommerceConstants.PRICE_SERVICE_NAME));
+					CommerceConstants.SERVICE_NAME_COMMERCE_PRICE));
 
 		return commercePriceConfiguration.displayDiscountLevels();
 	}

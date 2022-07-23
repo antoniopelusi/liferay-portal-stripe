@@ -30,6 +30,10 @@ public class SegmentsExperimentRelLocalServiceWrapper
 	implements SegmentsExperimentRelLocalService,
 			   ServiceWrapper<SegmentsExperimentRelLocalService> {
 
+	public SegmentsExperimentRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SegmentsExperimentRelLocalServiceWrapper(
 		SegmentsExperimentRelLocalService segmentsExperimentRelLocalService) {
 
@@ -162,6 +166,13 @@ public class SegmentsExperimentRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _segmentsExperimentRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _segmentsExperimentRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

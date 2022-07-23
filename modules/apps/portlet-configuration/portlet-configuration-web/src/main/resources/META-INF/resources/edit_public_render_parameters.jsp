@@ -49,8 +49,8 @@ Set<PublicRenderParameter> publicRenderParameters = (Set<PublicRenderParameter>)
 					"/edit_public_render_parameters.jsp"
 				).setRedirect(
 					ParamUtil.getString(request, "redirect")
-				).setParameter(
-					"portletResource", portletResource
+				).setPortletResource(
+					portletResource
 				).setParameter(
 					"returnToFullPageURL", returnToFullPageURL
 				).buildString()
@@ -66,14 +66,15 @@ Set<PublicRenderParameter> publicRenderParameters = (Set<PublicRenderParameter>)
 					<liferay-ui:error key="duplicateMapping" message="several-shared-parameters-are-mapped-to-the-same-parameter" />
 
 					<div class="alert alert-info">
-						<liferay-ui:message arguments='<%= "https://dev.liferay.com/en/discover/portal/-/knowledge_base/7-0/communication-between-apps" %>' key="set-up-the-communication-among-the-portlets-that-use-public-render-parameters" translateArguments="<%= false %>" />
+						<liferay-ui:message arguments="https://dev.liferay.com/en/discover/portal/-/knowledge_base/7-0/communication-between-apps" key="set-up-the-communication-among-the-portlets-that-use-public-render-parameters" translateArguments="<%= false %>" />
 					</div>
 
 					<liferay-ui:search-container
 						total="<%= publicRenderParameterConfigurations.size() %>"
 					>
 						<liferay-ui:search-container-results
-							results="<%= ListUtil.subList(publicRenderParameterConfigurations, searchContainer.getStart(), searchContainer.getEnd()) %>"
+							calculateStartAndEnd="<%= true %>"
+							results="<%= publicRenderParameterConfigurations %>"
 						/>
 
 						<liferay-ui:search-container-row

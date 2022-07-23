@@ -30,6 +30,10 @@ public class SocialActivityLimitLocalServiceWrapper
 	implements ServiceWrapper<SocialActivityLimitLocalService>,
 			   SocialActivityLimitLocalService {
 
+	public SocialActivityLimitLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SocialActivityLimitLocalServiceWrapper(
 		SocialActivityLimitLocalService socialActivityLimitLocalService) {
 
@@ -141,6 +145,13 @@ public class SocialActivityLimitLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _socialActivityLimitLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _socialActivityLimitLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

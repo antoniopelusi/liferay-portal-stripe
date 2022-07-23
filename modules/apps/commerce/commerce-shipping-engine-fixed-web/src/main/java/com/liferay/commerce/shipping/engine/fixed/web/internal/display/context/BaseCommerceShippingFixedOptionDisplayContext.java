@@ -102,38 +102,49 @@ public class BaseCommerceShippingFixedOptionDisplayContext {
 	}
 
 	public PortletURL getPortletURL() throws PortalException {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			renderResponse
 		).setMVCRenderCommandName(
 			"/commerce_shipping_methods/edit_commerce_shipping_method"
 		).setParameter(
+			"commerceShippingMethodId",
+			() -> {
+				CommerceShippingMethod commerceShippingMethod =
+					getCommerceShippingMethod();
+
+				if (commerceShippingMethod != null) {
+					return commerceShippingMethod.getCommerceShippingMethodId();
+				}
+
+				return null;
+			}
+		).setParameter(
+			"delta",
+			() -> {
+				String delta = ParamUtil.getString(renderRequest, "delta");
+
+				if (Validator.isNotNull(delta)) {
+					return delta;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"engineKey",
+			() -> {
+				String engineKey = ParamUtil.getString(
+					renderRequest, "engineKey");
+
+				if (Validator.isNotNull(engineKey)) {
+					return engineKey;
+				}
+
+				return null;
+			}
+		).setParameter(
 			"screenNavigationCategoryKey",
-			getSelectedScreenNavigationCategoryKey()
-		).build();
-
-		CommerceShippingMethod commerceShippingMethod =
-			getCommerceShippingMethod();
-
-		if (commerceShippingMethod != null) {
-			portletURL.setParameter(
-				"commerceShippingMethodId",
-				String.valueOf(
-					commerceShippingMethod.getCommerceShippingMethodId()));
-		}
-
-		String engineKey = ParamUtil.getString(renderRequest, "engineKey");
-
-		if (Validator.isNotNull(engineKey)) {
-			portletURL.setParameter("engineKey", engineKey);
-		}
-
-		String delta = ParamUtil.getString(renderRequest, "delta");
-
-		if (Validator.isNotNull(delta)) {
-			portletURL.setParameter("delta", delta);
-		}
-
-		return portletURL;
+			_getSelectedScreenNavigationCategoryKey()
+		).buildPortletURL();
 	}
 
 	public String getScreenNavigationCategoryKey() {
@@ -141,7 +152,7 @@ public class BaseCommerceShippingFixedOptionDisplayContext {
 	}
 
 	public BigDecimal round(BigDecimal value) throws PortalException {
-		CommerceCurrency commerceCurrency = getCommerceCurrency();
+		CommerceCurrency commerceCurrency = _getCommerceCurrency();
 
 		if (commerceCurrency == null) {
 			return value;
@@ -150,7 +161,13 @@ public class BaseCommerceShippingFixedOptionDisplayContext {
 		return commerceCurrency.round(value);
 	}
 
-	protected CommerceCurrency getCommerceCurrency() throws PortalException {
+	protected final CommerceChannelLocalService commerceChannelLocalService;
+	protected final CommerceCurrencyLocalService commerceCurrencyLocalService;
+	protected final CommerceShippingMethodService commerceShippingMethodService;
+	protected final RenderRequest renderRequest;
+	protected final RenderResponse renderResponse;
+
+	private CommerceCurrency _getCommerceCurrency() throws PortalException {
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -165,17 +182,11 @@ public class BaseCommerceShippingFixedOptionDisplayContext {
 			themeDisplay.getCompanyId(), commerceCurrencyCode);
 	}
 
-	protected String getSelectedScreenNavigationCategoryKey() {
+	private String _getSelectedScreenNavigationCategoryKey() {
 		return ParamUtil.getString(
 			renderRequest, "screenNavigationCategoryKey",
 			getScreenNavigationCategoryKey());
 	}
-
-	protected final CommerceChannelLocalService commerceChannelLocalService;
-	protected final CommerceCurrencyLocalService commerceCurrencyLocalService;
-	protected final CommerceShippingMethodService commerceShippingMethodService;
-	protected final RenderRequest renderRequest;
-	protected final RenderResponse renderResponse;
 
 	private CommerceShippingMethod _commerceShippingMethod;
 

@@ -279,4 +279,7 @@ public interface SegmentsEntryRelModel
 	@Override
 	public void setClassPK(long classPK);
 
+	@Override
+	public SegmentsEntryRel cloneWithOriginalValues();
+
 }

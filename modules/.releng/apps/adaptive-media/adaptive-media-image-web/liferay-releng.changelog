@@ -7,3 +7,13 @@
 # Bundle Version 5.0.0
 #
 b23fda2cf7c59bd7501f1781b5efd82a3a97ddb6^..5cf6b9b63b2e727fb567fa6d94094264accfffbb=LPS-105380 LPS-121724 LPS-121824
+
+#
+# Bundle Version 5.0.4
+#
+5cf6b9b63b2e727fb567fa6d94094264accfffbb^..e19accf88144f01f590ad18e1946db33f9ce93e3=LPS-105380
+
+#
+# Bundle Version 5.0.6
+#
+e19accf88144f01f590ad18e1946db33f9ce93e3^..6af0cf902b4a3e31c64cc2775e4ae6513647158e=LPS-105380

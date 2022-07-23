@@ -1,0 +1,104 @@
+@component-name = "portal-user-tracker"
+definition {
+
+	property custom.properties = "live.users.enabled=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "User Tracker";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@priority = "4"
+	test CanTrackerUserClicks {
+		property test.name.skip.portal.instance = "UserTracker#CanTrackerUserClicks";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Monitoring");
+
+		AssertTextEquals(
+			locator1 = "LexiconTable#TABLE_HITS_COUNT",
+			value1 = "4");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.addCP(
+			mailDomain = "www.able.com",
+			virtualHost = "www.able.com",
+			webId = "www.able.com");
+
+		PortalInstances.viewCP(virtualHost = "www.able.com");
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Monitoring");
+
+		AssertTextEquals(
+			locator1 = "LexiconTable#TABLE_HITS_COUNT",
+			value1 = "6");
+
+		SignOut.signOut();
+
+		User.firstLoginPG();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.addCP(
+			mailDomain = "www.baker.com",
+			virtualHost = "www.baker.com",
+			webId = "www.baker.com");
+
+		PortalInstances.viewCP(virtualHost = "www.baker.com");
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.baker.com:8080",
+			userEmailAddress = "test@www.baker.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Monitoring");
+
+		AssertTextEquals(
+			locator1 = "LexiconTable#TABLE_HITS_COUNT",
+			value1 = "6");
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Monitoring");
+
+		AssertTextEquals(
+			locator1 = "LexiconTable#TABLE_HITS_COUNT",
+			value1 = "10");
+	}
+
+}

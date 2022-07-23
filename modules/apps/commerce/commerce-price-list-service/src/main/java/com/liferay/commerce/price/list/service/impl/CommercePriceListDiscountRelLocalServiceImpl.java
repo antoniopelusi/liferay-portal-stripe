@@ -14,12 +14,19 @@
 
 package com.liferay.commerce.price.list.service.impl;
 
+import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.model.CommercePriceListDiscountRel;
 import com.liferay.commerce.price.list.service.base.CommercePriceListDiscountRelLocalServiceBaseImpl;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
 
@@ -32,11 +39,11 @@ public class CommercePriceListDiscountRelLocalServiceImpl
 
 	@Override
 	public CommercePriceListDiscountRel addCommercePriceListDiscountRel(
-			long commercePriceListId, long commerceDiscountId, int order,
-			ServiceContext serviceContext)
+			long userId, long commercePriceListId, long commerceDiscountId,
+			int order, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = userLocalService.getUser(userId);
 
 		CommercePriceListDiscountRel commercePriceListDiscountRel =
 			commercePriceListDiscountRelPersistence.create(
@@ -51,8 +58,6 @@ public class CommercePriceListDiscountRelLocalServiceImpl
 		commercePriceListDiscountRel.setOrder(order);
 		commercePriceListDiscountRel.setExpandoBridgeAttributes(serviceContext);
 
-		// Cache
-
 		commercePriceListLocalService.cleanPriceListCache(
 			serviceContext.getCompanyId());
 
@@ -61,6 +66,7 @@ public class CommercePriceListDiscountRelLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceListDiscountRel deleteCommercePriceListDiscountRel(
 			CommercePriceListDiscountRel commercePriceListDiscountRel)
 		throws PortalException {
@@ -68,7 +74,10 @@ public class CommercePriceListDiscountRelLocalServiceImpl
 		commercePriceListDiscountRelPersistence.remove(
 			commercePriceListDiscountRel);
 
-		// Cache
+		_expandoRowLocalService.deleteRows(
+			commercePriceListDiscountRel.getCommercePriceListDiscountRelId());
+
+		reindexPriceList(commercePriceListDiscountRel.getCommercePriceListId());
 
 		commercePriceListLocalService.cleanPriceListCache(
 			commercePriceListDiscountRel.getCompanyId());
@@ -99,7 +108,7 @@ public class CommercePriceListDiscountRelLocalServiceImpl
 	public CommercePriceListDiscountRel fetchCommercePriceListDiscountRel(
 		long commerceDiscountId, long commercePriceListId) {
 
-		return commercePriceListDiscountRelPersistence.fetchByC_C(
+		return commercePriceListDiscountRelPersistence.fetchByCDI_CPI(
 			commerceDiscountId, commercePriceListId);
 	}
 
@@ -126,5 +135,17 @@ public class CommercePriceListDiscountRelLocalServiceImpl
 		return commercePriceListDiscountRelPersistence.
 			countByCommercePriceListId(commercePriceListId);
 	}
+
+	protected void reindexPriceList(long commercePriceListId)
+		throws PortalException {
+
+		Indexer<CommercePriceList> indexer =
+			IndexerRegistryUtil.nullSafeGetIndexer(CommercePriceList.class);
+
+		indexer.reindex(CommercePriceList.class.getName(), commercePriceListId);
+	}
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 }

@@ -130,6 +130,11 @@ public class FriendlyURLEntryWrapper
 	}
 
 	@Override
+	public FriendlyURLEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

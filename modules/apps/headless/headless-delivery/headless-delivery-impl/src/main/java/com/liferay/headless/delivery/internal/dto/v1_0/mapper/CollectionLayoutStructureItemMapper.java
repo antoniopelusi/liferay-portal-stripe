@@ -17,15 +17,22 @@ package com.liferay.headless.delivery.internal.dto.v1_0.mapper;
 import com.liferay.headless.delivery.dto.v1_0.ClassNameReference;
 import com.liferay.headless.delivery.dto.v1_0.ClassPKReference;
 import com.liferay.headless.delivery.dto.v1_0.CollectionConfig;
+import com.liferay.headless.delivery.dto.v1_0.CollectionViewport;
+import com.liferay.headless.delivery.dto.v1_0.CollectionViewportDefinition;
 import com.liferay.headless.delivery.dto.v1_0.PageCollectionDefinition;
 import com.liferay.headless.delivery.dto.v1_0.PageElement;
 import com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType;
 import com.liferay.item.selector.criteria.InfoListItemSelectorReturnType;
+import com.liferay.layout.responsive.ViewportSize;
 import com.liferay.layout.util.structure.CollectionStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
@@ -57,6 +64,12 @@ public class CollectionLayoutStructureItemMapper
 					{
 						collectionConfig = _getCollectionConfig(
 							collectionStyledLayoutStructureItem);
+						displayAllItems =
+							collectionStyledLayoutStructureItem.
+								isDisplayAllItems();
+						displayAllPages =
+							collectionStyledLayoutStructureItem.
+								isDisplayAllPages();
 						listItemStyle =
 							collectionStyledLayoutStructureItem.
 								getListItemStyle();
@@ -68,10 +81,25 @@ public class CollectionLayoutStructureItemMapper
 						numberOfItems =
 							collectionStyledLayoutStructureItem.
 								getNumberOfItems();
+						numberOfItemsPerPage =
+							collectionStyledLayoutStructureItem.
+								getNumberOfItemsPerPage();
+						numberOfPages =
+							collectionStyledLayoutStructureItem.
+								getNumberOfPages();
+						paginationType = _getPaginationType(
+							collectionStyledLayoutStructureItem.
+								getPaginationType());
+						showAllItems =
+							collectionStyledLayoutStructureItem.
+								isShowAllItems();
 						templateKey =
 							collectionStyledLayoutStructureItem.
 								getTemplateKey();
 
+						setCollectionViewports(
+							_getCollectionViewports(
+								collectionStyledLayoutStructureItem));
 						setFragmentStyle(
 							() -> {
 								JSONObject itemConfigJSONObject =
@@ -83,16 +111,10 @@ public class CollectionLayoutStructureItemMapper
 										"styles"),
 									saveMappingConfiguration);
 							});
-
 						setFragmentViewports(
-							() -> {
-								JSONObject itemConfigJSONObject =
-									collectionStyledLayoutStructureItem.
-										getItemConfigJSONObject();
-
-								return getFragmentViewPorts(
-									itemConfigJSONObject);
-							});
+							() -> getFragmentViewPorts(
+								collectionStyledLayoutStructureItem.
+									getItemConfigJSONObject()));
 					}
 				};
 				type = Type.COLLECTION;
@@ -150,6 +172,105 @@ public class CollectionLayoutStructureItemMapper
 		}
 
 		return null;
+	}
+
+	private CollectionViewport[] _getCollectionViewports(
+		CollectionStyledLayoutStructureItem
+			collectionStyledLayoutStructureItem) {
+
+		Map<String, JSONObject> collectionViewportConfigurationJSONObjects =
+			collectionStyledLayoutStructureItem.
+				getViewportConfigurationJSONObjects();
+
+		if (MapUtil.isEmpty(collectionViewportConfigurationJSONObjects)) {
+			return null;
+		}
+
+		List<CollectionViewport> collectionViewports = new ArrayList<>();
+
+		collectionViewports.add(
+			new CollectionViewport() {
+				{
+					collectionViewportDefinition =
+						_toCollectionViewportDefinition(
+							collectionViewportConfigurationJSONObjects,
+							ViewportSize.MOBILE_LANDSCAPE);
+					id = ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId();
+				}
+			});
+		collectionViewports.add(
+			new CollectionViewport() {
+				{
+					collectionViewportDefinition =
+						_toCollectionViewportDefinition(
+							collectionViewportConfigurationJSONObjects,
+							ViewportSize.PORTRAIT_MOBILE);
+					id = ViewportSize.PORTRAIT_MOBILE.getViewportSizeId();
+				}
+			});
+		collectionViewports.add(
+			new CollectionViewport() {
+				{
+					collectionViewportDefinition =
+						_toCollectionViewportDefinition(
+							collectionViewportConfigurationJSONObjects,
+							ViewportSize.TABLET);
+					id = ViewportSize.TABLET.getViewportSizeId();
+				}
+			});
+
+		return collectionViewports.toArray(new CollectionViewport[0]);
+	}
+
+	private PageCollectionDefinition.PaginationType _getPaginationType(
+		String paginationType) {
+
+		if (Validator.isNull(paginationType)) {
+			return null;
+		}
+
+		if (Objects.equals(paginationType, "none")) {
+			return PageCollectionDefinition.PaginationType.NONE;
+		}
+
+		if (Objects.equals(paginationType, "numeric") ||
+			Objects.equals(paginationType, "regular")) {
+
+			return PageCollectionDefinition.PaginationType.NUMERIC;
+		}
+
+		if (Objects.equals(paginationType, "simple")) {
+			return PageCollectionDefinition.PaginationType.SIMPLE;
+		}
+
+		return null;
+	}
+
+	private CollectionViewportDefinition _toCollectionViewportDefinition(
+		Map<String, JSONObject> collectionViewportConfigurationJSONObjects,
+		ViewportSize viewportSize) {
+
+		if (!collectionViewportConfigurationJSONObjects.containsKey(
+				viewportSize.getViewportSizeId())) {
+
+			return null;
+		}
+
+		JSONObject jsonObject = collectionViewportConfigurationJSONObjects.get(
+			viewportSize.getViewportSizeId());
+
+		return new CollectionViewportDefinition() {
+			{
+				setNumberOfColumns(
+					() -> {
+						if (!jsonObject.has("numberOfColumns")) {
+							return null;
+						}
+
+						return jsonObject.getInt("numberOfColumns");
+					});
+			}
+		};
 	}
 
 }

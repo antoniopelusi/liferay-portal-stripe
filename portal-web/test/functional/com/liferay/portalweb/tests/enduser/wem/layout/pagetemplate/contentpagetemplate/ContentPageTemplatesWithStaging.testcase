@@ -3,7 +3,7 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Layout Page Templates";
+	property testray.main.component.name = "Content Page Templates";
 
 	setUp {
 		task ("Set up instance and sign in") {
@@ -17,9 +17,52 @@ definition {
 		}
 
 		task ("Activate local live staging") {
-			Staging.openStagingAdmin(siteURLKey = "test-site-name");
+			JSONStaging.enableLocalStaging(
+				branchingPrivate = "false",
+				branchingPublic = "false",
+				groupName = "Test Site Name");
+		}
 
-			Staging.activateStagingCP(siteName = "Test Site Name");
+		task ("Add a page template collection") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name-staging",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				site = "false");
+		}
+
+		task ("Add a page template") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name-staging",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Page Template Name",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template",
+				site = "false");
+		}
+
+		task ("Add a Heading fragment to the page template") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name-staging");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Paragraph fragment below the Heading") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Publish the page template") {
+			PageEditor.clickPublish();
 		}
 	}
 
@@ -52,6 +95,145 @@ definition {
 			AssertElementNotPresent(
 				key_navItem = "Page Templates",
 				locator1 = "NavBar#NAV_ITEM_LINK");
+		}
+	}
+
+	@description = "Publish content pages based on page templates to live."
+	@priority = "5"
+	test PublishContentPageBasedOnContentPageTemplateToLive {
+		property portal.acceptance = "true";
+
+		task ("Add a content page that uses the page template") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			ContentPages.addPage(
+				collectionName = "Page Template Collection",
+				pageName = "Test Content Page Name",
+				pageTemplateName = "Page Template Name");
+		}
+
+		task ("Publish the content page") {
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the content page in the staging site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("View the Heading fragment in view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("View the Paragraph fragment in view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.");
+		}
+
+		task ("View the no resource shown in the live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			AssertTextPresent(value1 = "The requested resource could not be found.");
+		}
+
+		task ("Publish the site to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the content page in the live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("View the Heading fragment") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("View the Paragraph fragment") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.");
+		}
+	}
+
+	@description = "This is a use case for for LPS-111548. Undo can make the content page template editor come back to previous state in Staging site."
+	@priority = "4"
+	test UndoChangesOfContentPageTemplateInStagingSite {
+		task ("View Undo button is disabled when no changes") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name-staging");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+
+			AssertElementPresent(
+				key_text = "undo",
+				locator1 = "Icon#ANY_DISABLED");
+		}
+
+		task ("Add a Button fragment below the Paragraph") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button",
+				targetFragmentName = "Paragraph");
+
+			PageEditor.waitForAutoSave();
+
+			AssertVisible(
+				key_text = "undo",
+				locator1 = "Icon#ANY_ENABLED");
+		}
+
+		task ("Configure the styles of Button") {
+			PageEditor.gotoStyle(fragmentName = "Button");
+
+			PageEditor.configureFragment(alignment = "Center");
+
+			PageEditor.viewFragmentStyle(
+				alignment = "center",
+				fragmentName = "button");
+		}
+
+		task ("Undo changes") {
+			Click(
+				key_text = "undo",
+				locator1 = "Icon#ANY");
+
+			AssertCssValue(
+				fragmentName = "button",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				locator2 = "text-align",
+				value1 = "left");
+
+			Click(
+				key_text = "undo",
+				locator1 = "Icon#ANY");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Button");
+		}
+
+		task ("View Undo button is disabled when back to original state") {
+			AssertElementPresent(
+				key_text = "undo",
+				locator1 = "Icon#ANY_DISABLED");
 		}
 	}
 

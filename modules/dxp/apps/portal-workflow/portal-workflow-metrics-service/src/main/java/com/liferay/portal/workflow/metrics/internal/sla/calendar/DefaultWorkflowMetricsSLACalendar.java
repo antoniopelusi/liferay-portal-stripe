@@ -15,7 +15,6 @@
 package com.liferay.portal.workflow.metrics.internal.sla.calendar;
 
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.workflow.metrics.sla.calendar.WorkflowMetricsSLACalendar;
 
 import java.time.Duration;
@@ -54,10 +53,7 @@ public class DefaultWorkflowMetricsSLACalendar
 
 	@Override
 	public String getTitle(Locale locale) {
-		return _language.get(
-			ResourceBundleUtil.getBundle(
-				locale, DefaultWorkflowMetricsSLACalendar.class),
-			"default-calendar-title");
+		return _language.get(locale, "default-calendar-title");
 	}
 
 	@Reference

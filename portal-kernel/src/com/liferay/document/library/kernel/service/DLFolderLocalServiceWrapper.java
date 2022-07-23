@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class DLFolderLocalServiceWrapper
 	implements DLFolderLocalService, ServiceWrapper<DLFolderLocalService> {
 
+	public DLFolderLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLFolderLocalServiceWrapper(
 		DLFolderLocalService dlFolderLocalService) {
 
@@ -255,6 +259,13 @@ public class DLFolderLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dlFolderLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlFolderLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -617,24 +628,6 @@ public class DLFolderLocalServiceWrapper
 
 		return _dlFolderLocalService.getFolders(
 			groupId, parentFolderId, includeMountfolders, start, end,
-			orderByComparator);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getFolders(long, long, boolean, int, int,
-	 OrderByComparator)}
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<DLFolder> getFolders(
-		long groupId, long parentFolderId, int status,
-		boolean includeMountfolders, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<DLFolder>
-			orderByComparator) {
-
-		return _dlFolderLocalService.getFolders(
-			groupId, parentFolderId, status, includeMountfolders, start, end,
 			orderByComparator);
 	}
 

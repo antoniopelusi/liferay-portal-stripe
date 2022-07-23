@@ -62,6 +62,11 @@ public class DSLQueryEntryWrapper
 		}
 	}
 
+	@Override
+	public DSLQueryEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the dsl query entry ID of this dsl query entry.
 	 *

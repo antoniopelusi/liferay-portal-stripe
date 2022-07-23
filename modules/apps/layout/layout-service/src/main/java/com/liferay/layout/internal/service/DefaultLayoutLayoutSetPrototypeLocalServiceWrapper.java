@@ -14,13 +14,11 @@
 
 package com.liferay.layout.internal.service;
 
-import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.service.LayoutLocalService;
-import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalService;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceWrapper;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
@@ -39,16 +37,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = ServiceWrapper.class)
 public class DefaultLayoutLayoutSetPrototypeLocalServiceWrapper
 	extends LayoutSetPrototypeLocalServiceWrapper {
-
-	public DefaultLayoutLayoutSetPrototypeLocalServiceWrapper() {
-		super(null);
-	}
-
-	public DefaultLayoutLayoutSetPrototypeLocalServiceWrapper(
-		LayoutSetPrototypeLocalService layoutSetPrototypeLocalService) {
-
-		super(layoutSetPrototypeLocalService);
-	}
 
 	@Override
 	public LayoutSetPrototype addLayoutSetPrototype(
@@ -70,10 +58,6 @@ public class DefaultLayoutLayoutSetPrototypeLocalServiceWrapper
 				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, "Home", null, null,
 				LayoutConstants.TYPE_CONTENT, false, "/home", serviceContext);
 
-			_layoutPageTemplateStructureLocalService.
-				rebuildLayoutPageTemplateStructure(
-					layoutSetPrototype.getGroupId(), defaultLayout.getPlid());
-
 			Layout draftLayout = defaultLayout.fetchDraftLayout();
 
 			UnicodeProperties unicodeProperties =
@@ -83,11 +67,7 @@ public class DefaultLayoutLayoutSetPrototypeLocalServiceWrapper
 
 			draftLayout.setTypeSettingsProperties(unicodeProperties);
 
-			draftLayout = _layoutLocalService.updateLayout(draftLayout);
-
-			_layoutPageTemplateStructureLocalService.
-				rebuildLayoutPageTemplateStructure(
-					layoutSetPrototype.getGroupId(), draftLayout.getPlid());
+			_layoutLocalService.updateLayout(draftLayout);
 		}
 
 		return layoutSetPrototype;
@@ -107,9 +87,5 @@ public class DefaultLayoutLayoutSetPrototypeLocalServiceWrapper
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
-
-	@Reference
-	private LayoutPageTemplateStructureLocalService
-		_layoutPageTemplateStructureLocalService;
 
 }

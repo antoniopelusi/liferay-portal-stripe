@@ -155,15 +155,20 @@ public class RedirectEntryLocalServiceUtil {
 	 *
 	 * @param redirectEntry the redirect entry
 	 * @return the redirect entry that was removed
+	 * @throws PortalException
 	 */
-	public static RedirectEntry deleteRedirectEntry(
-		RedirectEntry redirectEntry) {
+	public static RedirectEntry deleteRedirectEntry(RedirectEntry redirectEntry)
+		throws PortalException {
 
 		return getService().deleteRedirectEntry(redirectEntry);
 	}
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {

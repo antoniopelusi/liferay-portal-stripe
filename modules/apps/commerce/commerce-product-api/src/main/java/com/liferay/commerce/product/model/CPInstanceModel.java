@@ -16,9 +16,11 @@ package com.liferay.commerce.product.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
 import com.liferay.portal.kernel.model.WorkflowedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.math.BigDecimal;
 
@@ -39,8 +41,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CPInstanceModel
-	extends BaseModel<CPInstance>, ShardedModel, StagedGroupedModel,
-			WorkflowedModel {
+	extends BaseModel<CPInstance>, CTModel<CPInstance>, MVCCModel, ShardedModel,
+			StagedGroupedModel, WorkflowedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -53,6 +55,7 @@ public interface CPInstanceModel
 	 *
 	 * @return the primary key of this cp instance
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -60,7 +63,40 @@ public interface CPInstanceModel
 	 *
 	 * @param primaryKey the primary key of this cp instance
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this cp instance.
+	 *
+	 * @return the mvcc version of this cp instance
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this cp instance.
+	 *
+	 * @param mvccVersion the mvcc version of this cp instance
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this cp instance.
+	 *
+	 * @return the ct collection ID of this cp instance
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this cp instance.
+	 *
+	 * @param ctCollectionId the ct collection ID of this cp instance
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the uuid of this cp instance.
@@ -677,6 +713,70 @@ public interface CPInstanceModel
 	public void setUnspsc(String unspsc);
 
 	/**
+	 * Returns the discontinued of this cp instance.
+	 *
+	 * @return the discontinued of this cp instance
+	 */
+	public boolean getDiscontinued();
+
+	/**
+	 * Returns <code>true</code> if this cp instance is discontinued.
+	 *
+	 * @return <code>true</code> if this cp instance is discontinued; <code>false</code> otherwise
+	 */
+	public boolean isDiscontinued();
+
+	/**
+	 * Sets whether this cp instance is discontinued.
+	 *
+	 * @param discontinued the discontinued of this cp instance
+	 */
+	public void setDiscontinued(boolean discontinued);
+
+	/**
+	 * Returns the discontinued date of this cp instance.
+	 *
+	 * @return the discontinued date of this cp instance
+	 */
+	public Date getDiscontinuedDate();
+
+	/**
+	 * Sets the discontinued date of this cp instance.
+	 *
+	 * @param discontinuedDate the discontinued date of this cp instance
+	 */
+	public void setDiscontinuedDate(Date discontinuedDate);
+
+	/**
+	 * Returns the replacement cp instance uuid of this cp instance.
+	 *
+	 * @return the replacement cp instance uuid of this cp instance
+	 */
+	@AutoEscape
+	public String getReplacementCPInstanceUuid();
+
+	/**
+	 * Sets the replacement cp instance uuid of this cp instance.
+	 *
+	 * @param replacementCPInstanceUuid the replacement cp instance uuid of this cp instance
+	 */
+	public void setReplacementCPInstanceUuid(String replacementCPInstanceUuid);
+
+	/**
+	 * Returns the replacement c product ID of this cp instance.
+	 *
+	 * @return the replacement c product ID of this cp instance
+	 */
+	public long getReplacementCProductId();
+
+	/**
+	 * Sets the replacement c product ID of this cp instance.
+	 *
+	 * @param replacementCProductId the replacement c product ID of this cp instance
+	 */
+	public void setReplacementCProductId(long replacementCProductId);
+
+	/**
 	 * Returns the status of this cp instance.
 	 *
 	 * @return the status of this cp instance
@@ -820,5 +920,8 @@ public interface CPInstanceModel
 	 */
 	@Override
 	public boolean isScheduled();
+
+	@Override
+	public CPInstance cloneWithOriginalValues();
 
 }

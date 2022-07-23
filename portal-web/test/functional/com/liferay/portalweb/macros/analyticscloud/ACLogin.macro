@@ -1,12 +1,10 @@
 definition {
 
 	macro loginAs {
-		if (!(isSet(emailAddress))) {
-			emailAddress = "test@liferay.com";
-		}
+		WaitForPageLoad();
 
 		if (!(isSet(password))) {
-			password = "test";
+			var password = "test";
 		}
 
 		Click(locator1 = "ACLogin#EMAIL_LOGIN_FIELD");

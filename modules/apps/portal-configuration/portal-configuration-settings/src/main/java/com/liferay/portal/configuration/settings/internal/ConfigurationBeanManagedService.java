@@ -17,6 +17,7 @@ package com.liferay.portal.configuration.settings.internal;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.configuration.settings.internal.util.ConfigurationPidUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -53,12 +54,11 @@ public class ConfigurationBeanManagedService implements ManagedService {
 	}
 
 	public void register() {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(Constants.SERVICE_PID, _configurationPid);
-
 		_managedServiceServiceRegistration = _bundleContext.registerService(
-			ManagedService.class, this, properties);
+			ManagedService.class, this,
+			HashMapDictionaryBuilder.<String, Object>put(
+				Constants.SERVICE_PID, _configurationPid
+			).build());
 	}
 
 	public void unregister() {
@@ -79,17 +79,34 @@ public class ConfigurationBeanManagedService implements ManagedService {
 	}
 
 	@Override
-	public void updated(final Dictionary<String, ?> properties) {
+	public void updated(Dictionary<String, ?> properties) {
 		if (System.getSecurityManager() != null) {
 			AccessController.doPrivileged(
 				new UpdatePrivilegedAction(properties));
 		}
 		else {
-			doUpdated(properties);
+			_updated(properties);
 		}
 	}
 
-	protected void doUpdated(Dictionary<String, ?> properties) {
+	protected class UpdatePrivilegedAction implements PrivilegedAction<Void> {
+
+		@Override
+		public Void run() {
+			_updated(_properties);
+
+			return null;
+		}
+
+		private UpdatePrivilegedAction(Dictionary<String, ?> properties) {
+			_properties = properties;
+		}
+
+		private final Dictionary<String, ?> _properties;
+
+	}
+
+	private void _updated(Dictionary<String, ?> properties) {
 		if (properties == null) {
 			properties = new HashMapDictionary<>();
 		}
@@ -125,23 +142,6 @@ public class ConfigurationBeanManagedService implements ManagedService {
 				break;
 			}
 		}
-	}
-
-	protected class UpdatePrivilegedAction implements PrivilegedAction<Void> {
-
-		@Override
-		public Void run() {
-			doUpdated(_properties);
-
-			return null;
-		}
-
-		private UpdatePrivilegedAction(Dictionary<String, ?> properties) {
-			_properties = properties;
-		}
-
-		private final Dictionary<String, ?> _properties;
-
 	}
 
 	private final BundleContext _bundleContext;

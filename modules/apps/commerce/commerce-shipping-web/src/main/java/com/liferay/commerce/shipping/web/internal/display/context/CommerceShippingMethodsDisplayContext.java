@@ -20,7 +20,7 @@ import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceShippingMethodService;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionService;
-import com.liferay.commerce.shipping.web.internal.display.context.util.CommerceShippingMethodRequestHelper;
+import com.liferay.commerce.shipping.web.internal.display.context.helper.CommerceShippingMethodRequestHelper;
 import com.liferay.commerce.util.CommerceShippingEngineRegistry;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.CountryService;

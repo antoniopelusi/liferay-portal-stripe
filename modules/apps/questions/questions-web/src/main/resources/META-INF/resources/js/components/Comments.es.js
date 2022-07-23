@@ -12,17 +12,17 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
-import React, {useCallback, useState} from 'react';
+import {useMutation} from 'graphql-hooks';
+import React, {useCallback, useContext, useRef, useState} from 'react';
 import {withRouter} from 'react-router-dom';
 
+import {AppContext} from '../AppContext.es';
 import {createCommentQuery} from '../utils/client.es';
-import {getContextLink, stripHTML} from '../utils/utils.es';
+import {getContextLink} from '../utils/utils.es';
 import Comment from './Comment.es';
-import QuestionsEditor from './QuestionsEditor';
-import TextLengthValidation from './TextLengthValidation.es';
+import DefaultQuestionsEditor from './DefaultQuestionsEditor.es';
 
 export default withRouter(
 	({
@@ -36,19 +36,13 @@ export default withRouter(
 		showNewComment,
 		showNewCommentChange,
 	}) => {
-		const [comment, setComment] = useState('');
+		const context = useContext(AppContext);
 
-		const [createComment] = useMutation(createCommentQuery, {
-			context: getContextLink(`${sectionTitle}/${questionId}`),
-			onCompleted(data) {
-				setComment('');
-				showNewCommentChange(false);
-				commentsChange([
-					...comments,
-					data.createMessageBoardMessageMessageBoardMessage,
-				]);
-			},
-		});
+		const editorRef = useRef('');
+
+		const [isReplyButtonDisable, setIsReplyButtonDisable] = useState(false);
+
+		const [createComment] = useMutation(createCommentQuery);
 
 		const _commentChange = useCallback(
 			(comment) => {
@@ -77,29 +71,40 @@ export default withRouter(
 				{editable && showNewComment && (
 					<>
 						<ClayForm.Group small>
-							<QuestionsEditor
-								contents={comment}
-								onChange={(event) => {
-									setComment(event.editor.getData());
-								}}
+							<DefaultQuestionsEditor
+								label={Liferay.Language.get('your-answer')}
+								onContentLengthValid={setIsReplyButtonDisable}
+								ref={editorRef}
 							/>
-
-							<TextLengthValidation text={comment} />
 
 							<ClayButton.Group className="c-mt-3" spaced>
 								<ClayButton
-									disabled={stripHTML(comment).length < 15}
+									disabled={isReplyButtonDisable}
 									displayType="primary"
 									onClick={() => {
 										createComment({
+											fetchOptionsOverrides: getContextLink(
+												`${sectionTitle}/${questionId}`
+											),
 											variables: {
-												articleBody: comment,
+												articleBody: editorRef.current.getContent(),
 												parentMessageBoardMessageId: entityId,
 											},
+										}).then(({data}) => {
+											editorRef.current.clearContent();
+											showNewCommentChange(false);
+											commentsChange([
+												...comments,
+												data.createMessageBoardMessageMessageBoardMessage,
+											]);
 										});
 									}}
 								>
-									{Liferay.Language.get('reply')}
+									{context.trustedUser
+										? Liferay.Language.get('reply')
+										: Liferay.Language.get(
+												'submit-for-publication'
+										  )}
 								</ClayButton>
 
 								<ClayButton

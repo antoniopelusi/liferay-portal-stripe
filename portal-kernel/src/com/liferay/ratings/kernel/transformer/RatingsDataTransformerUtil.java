@@ -19,15 +19,13 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.ratings.kernel.RatingsType;
 import com.liferay.ratings.kernel.definition.PortletRatingsDefinitionUtil;
 import com.liferay.ratings.kernel.definition.PortletRatingsDefinitionValues;
 import com.liferay.ratings.kernel.model.RatingsEntry;
 import com.liferay.ratings.kernel.service.RatingsEntryLocalServiceUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceTracker;
 
 import java.util.Map;
 
@@ -44,38 +42,11 @@ public class RatingsDataTransformerUtil {
 	}
 
 	public static void transformCompanyRatingsData(
-			final long companyId, PortletPreferences oldPortletPreferences,
+			long companyId, PortletPreferences oldPortletPreferences,
 			UnicodeProperties unicodeProperties)
 		throws PortalException {
 
-		_ratingsDataTransformerUtil._transformCompanyRatingsData(
-			companyId, oldPortletPreferences, unicodeProperties);
-	}
-
-	public static void transformGroupRatingsData(
-			final long groupId, UnicodeProperties oldUnicodeProperties,
-			UnicodeProperties unicodeProperties)
-		throws PortalException {
-
-		_ratingsDataTransformerUtil._transformGroupRatingsData(
-			groupId, oldUnicodeProperties, unicodeProperties);
-	}
-
-	private RatingsDataTransformerUtil() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_serviceTracker = registry.trackServices(RatingsDataTransformer.class);
-
-		_serviceTracker.open();
-	}
-
-	private void _transformCompanyRatingsData(
-			final long companyId, PortletPreferences oldPortletPreferences,
-			UnicodeProperties unicodeProperties)
-		throws PortalException {
-
-		RatingsDataTransformer ratingsDataTransformer =
-			_serviceTracker.getService();
+		RatingsDataTransformer ratingsDataTransformer = _ratingsDataTransformer;
 
 		if (ratingsDataTransformer == null) {
 			return;
@@ -109,17 +80,16 @@ public class RatingsDataTransformerUtil {
 
 			_transformRatingsData(
 				"companyId", companyId, className, fromRatingsType,
-				toRatingsType);
+				toRatingsType, ratingsDataTransformer);
 		}
 	}
 
-	private void _transformGroupRatingsData(
-			final long groupId, UnicodeProperties oldUnicodeProperties,
+	public static void transformGroupRatingsData(
+			long groupId, UnicodeProperties oldUnicodeProperties,
 			UnicodeProperties unicodeProperties)
 		throws PortalException {
 
-		RatingsDataTransformer ratingsDataTransformer =
-			_serviceTracker.getService();
+		RatingsDataTransformer ratingsDataTransformer = _ratingsDataTransformer;
 
 		if (ratingsDataTransformer == null) {
 			return;
@@ -152,22 +122,20 @@ public class RatingsDataTransformerUtil {
 				unicodeProperties.getProperty(propertyKey));
 
 			_transformRatingsData(
-				"groupId", groupId, className, fromRatingsType, toRatingsType);
+				"groupId", groupId, className, fromRatingsType, toRatingsType,
+				ratingsDataTransformer);
 		}
 	}
 
-	private void _transformRatingsData(
-			final String classPKFieldName, final long classPKFieldValue,
-			final String className, RatingsType fromRatingsType,
-			RatingsType toRatingsType)
+	private static void _transformRatingsData(
+			String classPKFieldName, long classPKFieldValue, String className,
+			RatingsType fromRatingsType, RatingsType toRatingsType,
+			RatingsDataTransformer ratingsDataTransformer)
 		throws PortalException {
 
 		if ((toRatingsType == null) || fromRatingsType.equals(toRatingsType)) {
 			return;
 		}
-
-		RatingsDataTransformer ratingsDataTransformer =
-			_serviceTracker.getService();
 
 		ActionableDynamicQuery.PerformActionMethod<RatingsEntry>
 			performActionMethod = ratingsDataTransformer.transformRatingsData(
@@ -198,10 +166,12 @@ public class RatingsDataTransformerUtil {
 		ratingsEntryActionableDynamicQuery.performActions();
 	}
 
-	private static final RatingsDataTransformerUtil
-		_ratingsDataTransformerUtil = new RatingsDataTransformerUtil();
+	private RatingsDataTransformerUtil() {
+	}
 
-	private final ServiceTracker<RatingsDataTransformer, RatingsDataTransformer>
-		_serviceTracker;
+	private static volatile RatingsDataTransformer _ratingsDataTransformer =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			RatingsDataTransformer.class, RatingsDataTransformerUtil.class,
+			"_ratingsDataTransformer", false, true);
 
 }

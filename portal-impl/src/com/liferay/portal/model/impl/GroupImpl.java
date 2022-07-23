@@ -17,6 +17,7 @@ package com.liferay.portal.model.impl;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.exportimport.kernel.staging.constants.StagingConstants;
+import com.liferay.layout.admin.kernel.visibility.LayoutVisibilityManager;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -24,7 +25,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Account;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
@@ -61,6 +61,7 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -203,9 +204,7 @@ public class GroupImpl extends GroupBaseImpl {
 			Company company = CompanyLocalServiceUtil.getCompany(
 				getCompanyId());
 
-			Account account = company.getAccount();
-
-			name = account.getName();
+			name = company.getName();
 		}
 		else if (isLayout()) {
 			Layout layout = LayoutLocalServiceUtil.getLayout(getClassPK());
@@ -274,6 +273,14 @@ public class GroupImpl extends GroupBaseImpl {
 	public String getDisplayURL(
 		ThemeDisplay themeDisplay, boolean privateLayout) {
 
+		return getDisplayURL(themeDisplay, privateLayout, false);
+	}
+
+	@Override
+	public String getDisplayURL(
+		ThemeDisplay themeDisplay, boolean privateLayout,
+		boolean controlPanel) {
+
 		try {
 			LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
 				getGroupId(), privateLayout);
@@ -284,7 +291,7 @@ public class GroupImpl extends GroupBaseImpl {
 					 0))) {
 
 				String groupFriendlyURL = PortalUtil.getGroupFriendlyURL(
-					layoutSet, themeDisplay);
+					layoutSet, themeDisplay, false, controlPanel);
 
 				if (isUser()) {
 					return PortalUtil.addPreservedParameters(
@@ -296,7 +303,7 @@ public class GroupImpl extends GroupBaseImpl {
 			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return StringPool.BLANK;
@@ -350,25 +357,24 @@ public class GroupImpl extends GroupBaseImpl {
 
 	@Override
 	public String getLayoutRootNodeName(boolean privateLayout, Locale locale) {
-		String pagesName = null;
+		String pagesName = "pages";
 
-		if (isLayoutPrototype() || isLayoutSetPrototype()) {
-			pagesName = "pages";
-		}
-		else if (privateLayout) {
-			if (isUser() || isUserGroup()) {
-				pagesName = "my-dashboard";
+		if (!isLayoutPrototype() && !isLayoutSetPrototype()) {
+			if (privateLayout) {
+				if (isUser() || isUserGroup()) {
+					pagesName = "my-dashboard";
+				}
+				else if (isPrivateLayoutsEnabled()) {
+					pagesName = "private-pages";
+				}
 			}
 			else {
-				pagesName = "private-pages";
-			}
-		}
-		else {
-			if (isUser() || isUserGroup()) {
-				pagesName = "my-profile";
-			}
-			else {
-				pagesName = "public-pages";
+				if (isUser() || isUserGroup()) {
+					pagesName = "my-profile";
+				}
+				else if (isPrivateLayoutsEnabled()) {
+					pagesName = "public-pages";
+				}
 			}
 		}
 
@@ -441,15 +447,9 @@ public class GroupImpl extends GroupBaseImpl {
 		}
 
 		if (logoId > 0) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(themeDisplay.getPathImage());
-			sb.append("/layout_set_logo?img_id=");
-			sb.append(logoId);
-			sb.append("&t=");
-			sb.append(WebServerServletTokenUtil.getToken(logoId));
-
-			return sb.toString();
+			return StringBundler.concat(
+				themeDisplay.getPathImage(), "/layout_set_logo?img_id=", logoId,
+				"&t=", WebServerServletTokenUtil.getToken(logoId));
 		}
 
 		StringBundler sb = new StringBundler(5);
@@ -511,7 +511,7 @@ public class GroupImpl extends GroupBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -542,7 +542,7 @@ public class GroupImpl extends GroupBaseImpl {
 				getGroupId(), true);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return layoutSet;
@@ -554,7 +554,7 @@ public class GroupImpl extends GroupBaseImpl {
 			return LayoutLocalServiceUtil.getLayoutsCount(this, true);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return 0;
@@ -569,7 +569,7 @@ public class GroupImpl extends GroupBaseImpl {
 				getGroupId(), false);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return layoutSet;
@@ -581,7 +581,7 @@ public class GroupImpl extends GroupBaseImpl {
 			return LayoutLocalServiceUtil.getLayoutsCount(this, false);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return 0;
@@ -662,7 +662,7 @@ public class GroupImpl extends GroupBaseImpl {
 	@Override
 	public String getScopeSimpleName(ThemeDisplay themeDisplay) {
 		if (isDepot()) {
-			return themeDisplay.translate("asset-library");
+			return themeDisplay.translate("asset-library-group");
 		}
 
 		if (getGroupId() == themeDisplay.getCompanyGroupId()) {
@@ -742,7 +742,7 @@ public class GroupImpl extends GroupBaseImpl {
 				_typeSettingsUnicodeProperties.load(super.getTypeSettings());
 			}
 			catch (IOException ioException) {
-				_log.error(ioException, ioException);
+				_log.error(ioException);
 			}
 		}
 
@@ -765,7 +765,7 @@ public class GroupImpl extends GroupBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return name;
@@ -966,6 +966,11 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
+	public boolean isPrivateLayoutsEnabled() {
+		return _layoutVisibilityManager.isPrivateLayoutsEnabled(getGroupId());
+	}
+
+	@Override
 	public boolean isRegularSite() {
 		if (getClassNameId() == ClassNameIds._GROUP_CLASS_NAME_ID) {
 			return true;
@@ -1137,7 +1142,7 @@ public class GroupImpl extends GroupBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1216,7 +1221,7 @@ public class GroupImpl extends GroupBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception.getMessage());
+				_log.warn(exception);
 			}
 		}
 
@@ -1226,6 +1231,11 @@ public class GroupImpl extends GroupBaseImpl {
 	private static final Group _NULL_STAGING_GROUP = new GroupImpl();
 
 	private static final Log _log = LogFactoryUtil.getLog(GroupImpl.class);
+
+	private static volatile LayoutVisibilityManager _layoutVisibilityManager =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			LayoutVisibilityManager.class, GroupImpl.class,
+			"_layoutVisibilityManager", false, true);
 
 	private Group _liveGroup;
 	private Group _stagingGroup;

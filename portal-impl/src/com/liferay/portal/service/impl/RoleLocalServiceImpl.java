@@ -15,10 +15,15 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.admin.kernel.util.PortalMyAccountApplicationType;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.petra.sql.dsl.DSLFunctionFactoryUtil;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.cache.thread.local.Lifecycle;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCachable;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCache;
@@ -27,6 +32,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.DuplicateRoleException;
 import com.liferay.portal.kernel.exception.NoSuchRoleException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -35,16 +41,32 @@ import com.liferay.portal.kernel.exception.RoleNameException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupTable;
+import com.liferay.portal.kernel.model.Groups_OrgsTable;
+import com.liferay.portal.kernel.model.Groups_RolesTable;
+import com.liferay.portal.kernel.model.Groups_UserGroupsTable;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.ResourceAction;
+import com.liferay.portal.kernel.model.ResourceActionTable;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
+import com.liferay.portal.kernel.model.ResourcePermissionTable;
 import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.RoleTable;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.Team;
+import com.liferay.portal.kernel.model.TeamTable;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.model.UserGroupGroupRoleTable;
+import com.liferay.portal.kernel.model.UserGroupRoleTable;
+import com.liferay.portal.kernel.model.UserGroups_TeamsTable;
+import com.liferay.portal.kernel.model.Users_GroupsTable;
+import com.liferay.portal.kernel.model.Users_OrgsTable;
+import com.liferay.portal.kernel.model.Users_RolesTable;
+import com.liferay.portal.kernel.model.Users_TeamsTable;
+import com.liferay.portal.kernel.model.Users_UserGroupsTable;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
@@ -54,7 +76,21 @@ import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.persistence.GroupPersistence;
+import com.liferay.portal.kernel.service.persistence.ResourcePermissionPersistence;
+import com.liferay.portal.kernel.service.persistence.TeamPersistence;
+import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -126,16 +162,16 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 		// Role
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = _userPersistence.findByPrimaryKey(userId);
 
 		className = GetterUtil.getString(className);
 
-		long classNameId = classNameLocalService.getClassNameId(className);
+		long classNameId = _classNameLocalService.getClassNameId(className);
 
 		long roleId = counterLocalService.increment();
 
 		if ((classNameId <= 0) || className.equals(Role.class.getName())) {
-			classNameId = classNameLocalService.getClassNameId(Role.class);
+			classNameId = _classNameLocalService.getClassNameId(Role.class);
 			classPK = roleId;
 		}
 
@@ -169,12 +205,12 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			ownerId = 0;
 		}
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			user.getCompanyId(), 0, ownerId, Role.class.getName(),
 			role.getRoleId(), false, false, false);
 
 		if (!user.isDefaultUser()) {
-			resourceLocalService.addResources(
+			_resourceLocalService.addResources(
 				user.getCompanyId(), 0, userId, Role.class.getName(),
 				role.getRoleId(), false, false, false);
 
@@ -191,12 +227,12 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param roleId the primary key of the role
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#addRole(
+	 * @see   UserPersistence#addRole(
 	 *        long, long)
 	 */
 	@Override
 	public void addUserRole(long userId, long roleId) throws PortalException {
-		userPersistence.addRole(userId, roleId);
+		_userPersistence.addRole(userId, roleId);
 
 		reindex(userId);
 	}
@@ -206,12 +242,12 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param role the role
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#addRole(
+	 * @see   UserPersistence#addRole(
 	 *        long, Role)
 	 */
 	@Override
 	public void addUserRole(long userId, Role role) throws PortalException {
-		userPersistence.addRole(userId, role);
+		_userPersistence.addRole(userId, role);
 
 		reindex(userId);
 	}
@@ -222,14 +258,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param roles the roles
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#addRoles(
+	 * @see   UserPersistence#addRoles(
 	 *        long, List)
 	 */
 	@Override
 	public void addUserRoles(long userId, List<Role> roles)
 		throws PortalException {
 
-		userPersistence.addRoles(userId, roles);
+		_userPersistence.addRoles(userId, roles);
 
 		reindex(userId);
 	}
@@ -240,14 +276,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param roleIds the primary keys of the roles
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#addRoles(
+	 * @see   UserPersistence#addRoles(
 	 *        long, long[])
 	 */
 	@Override
 	public void addUserRoles(long userId, long[] roleIds)
 		throws PortalException {
 
-		userPersistence.addRoles(userId, roleIds);
+		_userPersistence.addRoles(userId, roleIds);
 
 		reindex(userId);
 	}
@@ -258,7 +294,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 */
 	@Override
 	public void checkSystemRoles() throws PortalException {
-		companyLocalService.forEachCompanyId(
+		_companyLocalService.forEachCompanyId(
 			companyId -> checkSystemRoles(companyId));
 	}
 
@@ -347,7 +383,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		for (String roleName : allSystemRoles) {
 			Role role = getRole(companyId, roleName);
 
-			resourceLocalService.addResources(
+			_resourceLocalService.addResources(
 				companyId, 0, 0, Role.class.getName(), role.getRoleId(), false,
 				false, false);
 		}
@@ -363,7 +399,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 			Role role = getRole(companyId, roleName);
 
-			resourcePermissionLocalService.setResourcePermissions(
+			_resourcePermissionLocalService.setResourcePermissions(
 				companyId, Role.class.getName(),
 				ResourceConstants.SCOPE_INDIVIDUAL,
 				String.valueOf(role.getRoleId()), userRole.getRoleId(),
@@ -376,12 +412,12 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * are removed.
 	 *
 	 * @param userId the primary key of the user
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#clearRoles(
+	 * @see   UserPersistence#clearRoles(
 	 *        long)
 	 */
 	@Override
 	public void clearUserRoles(long userId) throws PortalException {
-		userPersistence.clearRoles(userId);
+		_userPersistence.clearRoles(userId);
 
 		reindex(userId);
 	}
@@ -418,27 +454,22 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		// Resources
 
 		List<ResourcePermission> resourcePermissions =
-			resourcePermissionPersistence.findByRoleId(role.getRoleId());
+			_resourcePermissionPersistence.findByRoleId(role.getRoleId());
 
 		for (ResourcePermission resourcePermission : resourcePermissions) {
-			resourcePermissionLocalService.deleteResourcePermission(
+			_resourcePermissionLocalService.deleteResourcePermission(
 				resourcePermission);
 		}
 
-		String className = role.getClassName();
-		long classNameId = role.getClassNameId();
-
-		if ((classNameId <= 0) || className.equals(Role.class.getName())) {
-			resourceLocalService.deleteResource(
-				role.getCompanyId(), Role.class.getName(),
-				ResourceConstants.SCOPE_INDIVIDUAL, role.getRoleId());
-		}
+		_resourceLocalService.deleteResource(
+			role.getCompanyId(), Role.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL, role.getRoleId());
 
 		if ((role.getType() == RoleConstants.TYPE_DEPOT) ||
 			(role.getType() == RoleConstants.TYPE_ORGANIZATION) ||
 			(role.getType() == RoleConstants.TYPE_SITE)) {
 
-			List<Group> groups = groupPersistence.findByC_S(
+			List<Group> groups = _groupPersistence.findByC_S(
 				role.getCompanyId(), true);
 
 			for (Group group : groups) {
@@ -459,16 +490,16 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 						ListUtil.toString(
 							defaultSiteRoleIds, StringPool.BLANK));
 
-					groupLocalService.updateGroup(
+					_groupLocalService.updateGroup(
 						group.getGroupId(),
 						typeSettingsUnicodeProperties.toString());
 				}
 			}
 
-			userGroupRoleLocalService.deleteUserGroupRolesByRoleId(
+			_userGroupRoleLocalService.deleteUserGroupRolesByRoleId(
 				role.getRoleId());
 
-			userGroupGroupRoleLocalService.deleteUserGroupGroupRolesByRoleId(
+			_userGroupGroupRoleLocalService.deleteUserGroupGroupRolesByRoleId(
 				role.getRoleId());
 		}
 
@@ -478,7 +509,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(role.getRoleId());
+		_expandoRowLocalService.deleteRows(role.getRoleId());
 
 		return role;
 	}
@@ -489,14 +520,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param roleId the primary key of the role
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#removeRole(
+	 * @see   UserPersistence#removeRole(
 	 *        long, long)
 	 */
 	@Override
 	public void deleteUserRole(long userId, long roleId)
 		throws PortalException {
 
-		userPersistence.removeRole(userId, roleId);
+		_userPersistence.removeRole(userId, roleId);
 
 		reindex(userId);
 	}
@@ -507,12 +538,12 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param role the role
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#removeRole(
+	 * @see   UserPersistence#removeRole(
 	 *        long, Role)
 	 */
 	@Override
 	public void deleteUserRole(long userId, Role role) throws PortalException {
-		userPersistence.removeRole(userId, role);
+		_userPersistence.removeRole(userId, role);
 
 		reindex(userId);
 	}
@@ -523,14 +554,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param roles the roles
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#removeRoles(
+	 * @see   UserPersistence#removeRoles(
 	 *        long, List)
 	 */
 	@Override
 	public void deleteUserRoles(long userId, List<Role> roles)
 		throws PortalException {
 
-		userPersistence.removeRoles(userId, roles);
+		_userPersistence.removeRoles(userId, roles);
 
 		reindex(userId);
 	}
@@ -541,14 +572,14 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 *
 	 * @param userId the primary key of the user
 	 * @param roleIds the primary keys of the roles
-	 * @see   com.liferay.portal.kernel.service.persistence.UserPersistence#removeRoles(
+	 * @see   UserPersistence#removeRoles(
 	 *        long, long[])
 	 */
 	@Override
 	public void deleteUserRoles(long userId, long[] roleIds)
 		throws PortalException {
 
-		userPersistence.removeRoles(userId, roleIds);
+		_userPersistence.removeRoles(userId, roleIds);
 
 		reindex(userId);
 	}
@@ -580,8 +611,8 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		int type = role.getType();
 
 		if (type == RoleConstants.TYPE_REGULAR) {
-			assigneesTotal += groupLocalService.getRoleGroupsCount(roleId);
-			assigneesTotal += userLocalService.getRoleUsersCount(
+			assigneesTotal += _groupLocalService.getRoleGroupsCount(roleId);
+			assigneesTotal += _userLocalService.getRoleUsersCount(
 				roleId, WorkflowConstants.STATUS_APPROVED);
 		}
 
@@ -589,7 +620,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			(type == RoleConstants.TYPE_SITE)) {
 
 			DynamicQuery userGroupGroupRoleDynamicQuery =
-				userGroupGroupRoleLocalService.dynamicQuery();
+				_userGroupGroupRoleLocalService.dynamicQuery();
 
 			Property property = PropertyFactoryUtil.forName("roleId");
 
@@ -598,7 +629,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			userGroupGroupRoleDynamicQuery.setProjection(
 				ProjectionFactoryUtil.countDistinct("userGroupId"));
 
-			List<?> list = userGroupRoleLocalService.dynamicQuery(
+			List<?> list = _userGroupRoleLocalService.dynamicQuery(
 				userGroupGroupRoleDynamicQuery);
 
 			Long count = (Long)list.get(0);
@@ -610,17 +641,31 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			(type == RoleConstants.TYPE_ORGANIZATION) ||
 			(type == RoleConstants.TYPE_SITE)) {
 
+			DynamicQuery userDynamicQuery = _userLocalService.dynamicQuery();
+
+			Property statusProperty = PropertyFactoryUtil.forName("status");
+
+			userDynamicQuery.add(
+				statusProperty.eq(WorkflowConstants.STATUS_APPROVED));
+
+			userDynamicQuery.setProjection(
+				ProjectionFactoryUtil.property("userId"));
+
 			DynamicQuery userGroupRoleDynamicQuery =
-				userGroupRoleLocalService.dynamicQuery();
+				_userGroupRoleLocalService.dynamicQuery();
 
-			Property property = PropertyFactoryUtil.forName("roleId");
+			Property userIdProperty = PropertyFactoryUtil.forName("userId");
 
-			userGroupRoleDynamicQuery.add(property.eq(roleId));
+			userGroupRoleDynamicQuery.add(userIdProperty.in(userDynamicQuery));
+
+			Property roleIdProperty = PropertyFactoryUtil.forName("roleId");
+
+			userGroupRoleDynamicQuery.add(roleIdProperty.eq(roleId));
 
 			userGroupRoleDynamicQuery.setProjection(
 				ProjectionFactoryUtil.countDistinct("userId"));
 
-			List<?> list = userGroupRoleLocalService.dynamicQuery(
+			List<?> list = _userGroupRoleLocalService.dynamicQuery(
 				userGroupRoleDynamicQuery);
 
 			Long count = (Long)list.get(0);
@@ -648,10 +693,10 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 */
 	@Override
 	public Role getDefaultGroupRole(long groupId) throws PortalException {
-		Group group = groupPersistence.findByPrimaryKey(groupId);
+		Group group = _groupPersistence.findByPrimaryKey(groupId);
 
 		if (group.isLayout()) {
-			Layout layout = layoutLocalService.getLayout(group.getClassPK());
+			Layout layout = _layoutLocalService.getLayout(group.getClassPK());
 
 			group = layout.getGroup();
 		}
@@ -687,7 +732,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 		List<Role> roles = new ArrayList<>();
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		if (group.isStagingGroup()) {
 			group = group.getLiveGroup();
@@ -746,14 +791,56 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  scope the permission scope
 	 * @param  primKey the primary key of the resource's class
 	 * @return the role names and action IDs
-	 * @see    com.liferay.portal.kernel.service.persistence.RoleFinder#findByC_N_S_P(
-	 *         long, String, int, String)
 	 */
 	@Override
 	public Map<String, List<String>> getResourceRoles(
 		long companyId, String name, int scope, String primKey) {
 
-		return roleFinder.findByC_N_S_P(companyId, name, scope, primKey);
+		Map<String, List<String>> rolesMap = new HashMap<>();
+
+		for (Object[] array :
+				rolePersistence.<List<Object[]>>dslQuery(
+					DSLQueryFactoryUtil.select(
+						RoleTable.INSTANCE.name.as("roleName"),
+						ResourceActionTable.INSTANCE.actionId.as("actionId")
+					).from(
+						ResourcePermissionTable.INSTANCE
+					).innerJoinON(
+						RoleTable.INSTANCE,
+						RoleTable.INSTANCE.roleId.eq(
+							ResourcePermissionTable.INSTANCE.roleId)
+					).innerJoinON(
+						ResourceActionTable.INSTANCE,
+						ResourceActionTable.INSTANCE.name.eq(
+							ResourcePermissionTable.INSTANCE.name
+						).and(
+							ResourceActionTable.INSTANCE.bitwiseValue.eq(
+								DSLFunctionFactoryUtil.bitAnd(
+									ResourcePermissionTable.INSTANCE.actionIds,
+									ResourceActionTable.INSTANCE.bitwiseValue))
+						)
+					).where(
+						ResourcePermissionTable.INSTANCE.companyId.eq(
+							companyId
+						).and(
+							ResourcePermissionTable.INSTANCE.name.eq(name)
+						).and(
+							ResourcePermissionTable.INSTANCE.scope.eq(scope)
+						).and(
+							ResourcePermissionTable.INSTANCE.primKey.eq(primKey)
+						)
+					))) {
+
+			String roleName = (String)array[0];
+			String actionId = (String)array[1];
+
+			List<String> roles = rolesMap.computeIfAbsent(
+				roleName, key -> new ArrayList<>());
+
+			roles.add(actionId);
+		}
+
+		return rolesMap;
 	}
 
 	/**
@@ -766,16 +853,48 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  primKey the primary key of the resource's class
 	 * @param  actionId the name of the resource action
 	 * @return the roles
-	 * @see    com.liferay.portal.kernel.service.persistence.RoleFinder#findByC_N_S_P_A(
-	 *         long, String, int, String, String)
 	 */
 	@Override
 	public List<Role> getResourceRoles(
 		long companyId, String name, int scope, String primKey,
 		String actionId) {
 
-		return roleFinder.findByC_N_S_P_A(
-			companyId, name, scope, primKey, actionId);
+		ResourceAction resourceAction =
+			_resourceActionLocalService.fetchResourceAction(name, actionId);
+
+		if (resourceAction == null) {
+			return Collections.emptyList();
+		}
+
+		return rolePersistence.dslQuery(
+			DSLQueryFactoryUtil.select(
+				RoleTable.INSTANCE
+			).from(
+				RoleTable.INSTANCE
+			).innerJoinON(
+				ResourcePermissionTable.INSTANCE,
+				ResourcePermissionTable.INSTANCE.roleId.eq(
+					RoleTable.INSTANCE.roleId)
+			).where(
+				ResourcePermissionTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					ResourcePermissionTable.INSTANCE.name.eq(name)
+				).and(
+					ResourcePermissionTable.INSTANCE.scope.eq(scope)
+				).and(
+					ResourcePermissionTable.INSTANCE.primKey.eq(primKey)
+				).and(
+					DSLFunctionFactoryUtil.bitAnd(
+						ResourcePermissionTable.INSTANCE.actionIds,
+						resourceAction.getBitwiseValue()
+					).eq(
+						resourceAction.getBitwiseValue()
+					)
+				)
+			).orderBy(
+				RoleTable.INSTANCE.name.ascending()
+			));
 	}
 
 	/**
@@ -889,7 +1008,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		throws PortalException {
 
 		return rolePersistence.findByC_C_C(
-			companyId, classNameLocalService.getClassNameId(Team.class),
+			companyId, _classNameLocalService.getClassNameId(Team.class),
 			teamId);
 	}
 
@@ -946,7 +1065,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		throws PortalException {
 
 		return rolePersistence.findByC_C_C(
-			companyId, classNameLocalService.getClassNameId(Team.class),
+			companyId, _classNameLocalService.getClassNameId(Team.class),
 			teamIds);
 	}
 
@@ -992,24 +1111,62 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  userId the primary key of the user
 	 * @param  groupId the primary key of the group
 	 * @return the user's roles within the user group
-	 * @see    com.liferay.portal.kernel.service.persistence.RoleFinder#findByUserGroupGroupRole(
-	 *         long, long)
 	 */
 	@Override
 	public List<Role> getUserGroupGroupRoles(long userId, long groupId) {
-		return roleFinder.findByUserGroupGroupRole(userId, groupId);
+		return getUserGroupGroupRoles(
+			userId, groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 	}
 
 	@Override
 	public List<Role> getUserGroupGroupRoles(
 		long userId, long groupId, int start, int end) {
 
-		return roleFinder.findByUserGroupGroupRole(userId, groupId, start, end);
+		return rolePersistence.dslQuery(
+			DSLQueryFactoryUtil.select(
+				RoleTable.INSTANCE
+			).from(
+				RoleTable.INSTANCE
+			).innerJoinON(
+				UserGroupGroupRoleTable.INSTANCE,
+				UserGroupGroupRoleTable.INSTANCE.roleId.eq(
+					RoleTable.INSTANCE.roleId)
+			).innerJoinON(
+				Users_UserGroupsTable.INSTANCE,
+				Users_UserGroupsTable.INSTANCE.userGroupId.eq(
+					UserGroupGroupRoleTable.INSTANCE.userGroupId)
+			).where(
+				Users_UserGroupsTable.INSTANCE.userId.eq(
+					userId
+				).and(
+					UserGroupGroupRoleTable.INSTANCE.groupId.eq(groupId)
+				)
+			).limit(
+				start, end
+			));
 	}
 
 	@Override
 	public int getUserGroupGroupRolesCount(long userId, long groupId) {
-		return roleFinder.countByUserGroupGroupRole(userId, groupId);
+		return rolePersistence.dslQueryCount(
+			DSLQueryFactoryUtil.count(
+			).from(
+				RoleTable.INSTANCE
+			).innerJoinON(
+				UserGroupGroupRoleTable.INSTANCE,
+				UserGroupGroupRoleTable.INSTANCE.roleId.eq(
+					RoleTable.INSTANCE.roleId)
+			).innerJoinON(
+				Users_UserGroupsTable.INSTANCE,
+				Users_UserGroupsTable.INSTANCE.userGroupId.eq(
+					UserGroupGroupRoleTable.INSTANCE.userGroupId)
+			).where(
+				Users_UserGroupsTable.INSTANCE.userId.eq(
+					userId
+				).and(
+					UserGroupGroupRoleTable.INSTANCE.groupId.eq(groupId)
+				)
+			));
 	}
 
 	/**
@@ -1018,12 +1175,24 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  userId the primary key of the user
 	 * @param  groupId the primary key of the group
 	 * @return the user's roles within the user group
-	 * @see    com.liferay.portal.kernel.service.persistence.RoleFinder#findByUserGroupRole(
-	 *         long, long)
 	 */
 	@Override
 	public List<Role> getUserGroupRoles(long userId, long groupId) {
-		return roleFinder.findByUserGroupRole(userId, groupId);
+		return rolePersistence.dslQuery(
+			DSLQueryFactoryUtil.select(
+				RoleTable.INSTANCE
+			).from(
+				RoleTable.INSTANCE
+			).innerJoinON(
+				UserGroupRoleTable.INSTANCE,
+				UserGroupRoleTable.INSTANCE.roleId.eq(RoleTable.INSTANCE.roleId)
+			).where(
+				UserGroupRoleTable.INSTANCE.userId.eq(
+					userId
+				).and(
+					UserGroupRoleTable.INSTANCE.groupId.eq(groupId)
+				)
+			));
 	}
 
 	/**
@@ -1032,16 +1201,22 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  userId the primary key of the user
 	 * @param  groups the groups (optionally <code>null</code>)
 	 * @return the union of all the user's roles within the groups
-	 * @see    com.liferay.portal.kernel.service.persistence.RoleFinder#findByU_G(
-	 *         long, List)
 	 */
 	@Override
 	public List<Role> getUserRelatedRoles(long userId, List<Group> groups) {
-		if ((groups == null) || groups.isEmpty()) {
+		if (ListUtil.isEmpty(groups)) {
 			return Collections.emptyList();
 		}
 
-		return roleFinder.findByU_G(userId, groups);
+		long[] groupIds = new long[groups.size()];
+
+		for (int i = 0; i < groups.size(); i++) {
+			Group group = groups.get(i);
+
+			groupIds[i] = group.getGroupId();
+		}
+
+		return getUserRelatedRoles(userId, groupIds);
 	}
 
 	/**
@@ -1050,12 +1225,10 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  userId the primary key of the user
 	 * @param  groupId the primary key of the group
 	 * @return the user's roles within the group
-	 * @see    com.liferay.portal.kernel.service.persistence.RoleFinder#findByU_G(
-	 *         long, long)
 	 */
 	@Override
 	public List<Role> getUserRelatedRoles(long userId, long groupId) {
-		return roleFinder.findByU_G(userId, groupId);
+		return getUserRelatedRoles(userId, new long[] {groupId});
 	}
 
 	/**
@@ -1064,17 +1237,106 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  userId the primary key of the user
 	 * @param  groupIds the primary keys of the groups
 	 * @return the union of all the user's roles within the groups
-	 * @see    com.liferay.portal.kernel.service.persistence.RoleFinder#findByU_G(
-	 *         long, long[])
 	 */
 	@Override
 	public List<Role> getUserRelatedRoles(long userId, long[] groupIds) {
-		return roleFinder.findByU_G(userId, groupIds);
+		return rolePersistence.dslQuery(
+			DSLQueryFactoryUtil.select(
+				RoleTable.INSTANCE
+			).from(
+				RoleTable.INSTANCE
+			).innerJoinON(
+				Users_RolesTable.INSTANCE,
+				Users_RolesTable.INSTANCE.roleId.eq(RoleTable.INSTANCE.roleId)
+			).where(
+				Users_RolesTable.INSTANCE.userId.eq(userId)
+			).union(
+				DSLQueryFactoryUtil.select(
+					RoleTable.INSTANCE
+				).from(
+					RoleTable.INSTANCE
+				).innerJoinON(
+					Groups_RolesTable.INSTANCE,
+					Groups_RolesTable.INSTANCE.roleId.eq(
+						RoleTable.INSTANCE.roleId)
+				).where(
+					() -> {
+						if (groupIds.length == 0) {
+							return null;
+						}
+
+						Predicate predicate =
+							Groups_RolesTable.INSTANCE.groupId.eq(groupIds[0]);
+
+						for (int i = 1; i < groupIds.length; i++) {
+							predicate = predicate.or(
+								Groups_RolesTable.INSTANCE.groupId.eq(
+									groupIds[i]));
+						}
+
+						return predicate.withParentheses();
+					}
+				)
+			));
 	}
 
 	@Override
 	public List<Role> getUserTeamRoles(long userId, long groupId) {
-		return roleFinder.findByTeamsUser(userId, groupId);
+		long classNameId = _classNameLocalService.getClassNameId(Team.class);
+
+		return rolePersistence.dslQuery(
+			DSLQueryFactoryUtil.select(
+				RoleTable.INSTANCE
+			).from(
+				RoleTable.INSTANCE
+			).innerJoinON(
+				TeamTable.INSTANCE,
+				TeamTable.INSTANCE.companyId.eq(
+					RoleTable.INSTANCE.companyId
+				).and(
+					TeamTable.INSTANCE.teamId.eq(RoleTable.INSTANCE.classPK)
+				)
+			).innerJoinON(
+				Users_TeamsTable.INSTANCE,
+				Users_TeamsTable.INSTANCE.teamId.eq(TeamTable.INSTANCE.teamId)
+			).where(
+				RoleTable.INSTANCE.classNameId.eq(
+					classNameId
+				).and(
+					TeamTable.INSTANCE.groupId.eq(groupId)
+				).and(
+					Users_TeamsTable.INSTANCE.userId.eq(userId)
+				)
+			).union(
+				DSLQueryFactoryUtil.select(
+					RoleTable.INSTANCE
+				).from(
+					RoleTable.INSTANCE
+				).innerJoinON(
+					TeamTable.INSTANCE,
+					TeamTable.INSTANCE.companyId.eq(
+						RoleTable.INSTANCE.companyId
+					).and(
+						TeamTable.INSTANCE.teamId.eq(RoleTable.INSTANCE.classPK)
+					)
+				).innerJoinON(
+					UserGroups_TeamsTable.INSTANCE,
+					UserGroups_TeamsTable.INSTANCE.teamId.eq(
+						TeamTable.INSTANCE.teamId)
+				).innerJoinON(
+					Users_UserGroupsTable.INSTANCE,
+					Users_UserGroupsTable.INSTANCE.userGroupId.eq(
+						UserGroups_TeamsTable.INSTANCE.userGroupId)
+				).where(
+					RoleTable.INSTANCE.classNameId.eq(
+						classNameId
+					).and(
+						TeamTable.INSTANCE.groupId.eq(groupId)
+					).and(
+						Users_UserGroupsTable.INSTANCE.userId.eq(userId)
+					)
+				)
+			));
 	}
 
 	/**
@@ -1112,7 +1374,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			throw new IllegalArgumentException(name + " is not a regular role");
 		}
 
-		long defaultUserId = userLocalService.getDefaultUserId(companyId);
+		long defaultUserId = _userLocalService.getDefaultUserId(companyId);
 
 		if (userId == defaultUserId) {
 			if (name.equals(RoleConstants.GUEST)) {
@@ -1123,7 +1385,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		}
 
 		if (inherited) {
-			if (userPersistence.containsRole(userId, role.getRoleId())) {
+			if (_userPersistence.containsRole(userId, role.getRoleId())) {
 				return true;
 			}
 
@@ -1144,9 +1406,116 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			value = PermissionCacheUtil.getUserRole(userId, role);
 
 			if (value == null) {
-				int count = roleFinder.countByR_U(role.getRoleId(), userId);
+				List<Long> roleIds = rolePersistence.dslQuery(
+					DSLQueryFactoryUtil.select(
+						Groups_RolesTable.INSTANCE.roleId
+					).from(
+						Groups_RolesTable.INSTANCE
+					).innerJoinON(
+						GroupTable.INSTANCE,
+						GroupTable.INSTANCE.groupId.eq(
+							Groups_RolesTable.INSTANCE.groupId)
+					).innerJoinON(
+						Users_OrgsTable.INSTANCE,
+						Users_OrgsTable.INSTANCE.organizationId.eq(
+							GroupTable.INSTANCE.classPK)
+					).where(
+						Groups_RolesTable.INSTANCE.roleId.eq(
+							role.getRoleId()
+						).and(
+							Users_OrgsTable.INSTANCE.userId.eq(userId)
+						)
+					).union(
+						DSLQueryFactoryUtil.select(
+							Groups_RolesTable.INSTANCE.roleId
+						).from(
+							Groups_RolesTable.INSTANCE
+						).innerJoinON(
+							Groups_OrgsTable.INSTANCE,
+							Groups_OrgsTable.INSTANCE.groupId.eq(
+								Groups_RolesTable.INSTANCE.groupId)
+						).innerJoinON(
+							Users_OrgsTable.INSTANCE,
+							Users_OrgsTable.INSTANCE.organizationId.eq(
+								Groups_OrgsTable.INSTANCE.organizationId)
+						).where(
+							Groups_RolesTable.INSTANCE.roleId.eq(
+								role.getRoleId()
+							).and(
+								Users_OrgsTable.INSTANCE.userId.eq(userId)
+							)
+						)
+					).union(
+						DSLQueryFactoryUtil.select(
+							Groups_RolesTable.INSTANCE.roleId
+						).from(
+							Groups_RolesTable.INSTANCE
+						).innerJoinON(
+							Users_GroupsTable.INSTANCE,
+							Users_GroupsTable.INSTANCE.groupId.eq(
+								Groups_RolesTable.INSTANCE.groupId)
+						).where(
+							Groups_RolesTable.INSTANCE.roleId.eq(
+								role.getRoleId()
+							).and(
+								Users_GroupsTable.INSTANCE.userId.eq(userId)
+							)
+						)
+					).union(
+						DSLQueryFactoryUtil.select(
+							Users_RolesTable.INSTANCE.roleId
+						).from(
+							Users_RolesTable.INSTANCE
+						).where(
+							Users_RolesTable.INSTANCE.roleId.eq(
+								role.getRoleId()
+							).and(
+								Users_RolesTable.INSTANCE.userId.eq(userId)
+							)
+						)
+					).union(
+						DSLQueryFactoryUtil.select(
+							Groups_RolesTable.INSTANCE.roleId
+						).from(
+							Groups_RolesTable.INSTANCE
+						).innerJoinON(
+							GroupTable.INSTANCE,
+							GroupTable.INSTANCE.groupId.eq(
+								Groups_RolesTable.INSTANCE.groupId)
+						).innerJoinON(
+							Users_UserGroupsTable.INSTANCE,
+							Users_UserGroupsTable.INSTANCE.userGroupId.eq(
+								GroupTable.INSTANCE.classPK)
+						).where(
+							Groups_RolesTable.INSTANCE.roleId.eq(
+								role.getRoleId()
+							).and(
+								Users_UserGroupsTable.INSTANCE.userId.eq(userId)
+							)
+						)
+					).union(
+						DSLQueryFactoryUtil.select(
+							Groups_RolesTable.INSTANCE.roleId
+						).from(
+							Groups_RolesTable.INSTANCE
+						).innerJoinON(
+							Groups_UserGroupsTable.INSTANCE,
+							Groups_UserGroupsTable.INSTANCE.groupId.eq(
+								Groups_RolesTable.INSTANCE.groupId)
+						).innerJoinON(
+							Users_UserGroupsTable.INSTANCE,
+							Users_UserGroupsTable.INSTANCE.userGroupId.eq(
+								Groups_UserGroupsTable.INSTANCE.userGroupId)
+						).where(
+							Groups_RolesTable.INSTANCE.roleId.eq(
+								role.getRoleId()
+							).and(
+								Users_UserGroupsTable.INSTANCE.userId.eq(userId)
+							)
+						)
+					));
 
-				if (count > 0) {
+				if (!roleIds.isEmpty()) {
 					value = true;
 				}
 				else {
@@ -1161,7 +1530,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			return value;
 		}
 
-		return userPersistence.containsRole(userId, role.getRoleId());
+		return _userPersistence.containsRole(userId, role.getRoleId());
 	}
 
 	/**
@@ -1191,39 +1560,6 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	}
 
 	/**
-	 * Returns a role with the name in the company.
-	 *
-	 * @param  companyId the primary key of the company
-	 * @param  name the role's name (optionally <code>null</code>)
-	 * @return the role with the name, or <code>null</code> if a role with the
-	 *         name could not be found in the company
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fetchRole(long, String)}
-	 */
-	@Deprecated
-	@Override
-	public Role loadFetchRole(long companyId, String name) {
-		return rolePersistence.fetchByC_N(companyId, name);
-	}
-
-	/**
-	 * Returns a role with the name in the company.
-	 *
-	 * @param  companyId the primary key of the company
-	 * @param  name the role's name
-	 * @return the role with the name in the company
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getRole(long, String)}
-	 */
-	@Deprecated
-	@Override
-	public Role loadGetRole(long companyId, String name)
-		throws PortalException {
-
-		return rolePersistence.findByC_N(companyId, name);
-	}
-
-	/**
 	 * Returns an ordered range of all the roles that match the keywords and
 	 * types.
 	 *
@@ -1233,7 +1569,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *
@@ -1270,7 +1606,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *
@@ -1310,7 +1646,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *
@@ -1347,7 +1683,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *
@@ -1465,7 +1801,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 		roleIds = UsersAdminUtil.addRequiredRoles(userId, roleIds);
 
-		userPersistence.setRoles(userId, roleIds);
+		_userPersistence.setRoles(userId, roleIds);
 
 		reindex(userId);
 	}
@@ -1483,7 +1819,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 		roleIds = UsersAdminUtil.removeRequiredRoles(userId, roleIds);
 
-		userPersistence.removeRoles(userId, roleIds);
+		_userPersistence.removeRoles(userId, roleIds);
 
 		reindex(userId);
 	}
@@ -1567,10 +1903,10 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchRoleException, noSuchRoleException);
+				_log.debug(noSuchRoleException);
 			}
 
-			User user = userLocalService.getDefaultUser(companyId);
+			User user = _userLocalService.getDefaultUser(companyId);
 
 			PermissionThreadLocal.setAddResource(false);
 
@@ -1585,6 +1921,9 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 			if (name.equals(RoleConstants.ANALYTICS_ADMINISTRATOR)) {
 				initAnalyticsAdministratorViewPermissions(role);
+			}
+			else if (name.equals(RoleConstants.PUBLICATIONS_USER)) {
+				initPublicationsUserViewPermissions(role);
 			}
 			else if (name.equals(RoleConstants.USER)) {
 				initPersonalControlPanelPortletsPermissions(role);
@@ -1607,13 +1946,13 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			long groupId, long[] excludedRoleIds)
 		throws PortalException {
 
-		Group group = groupPersistence.findByPrimaryKey(groupId);
+		Group group = _groupPersistence.findByPrimaryKey(groupId);
 
 		if (group.isLayout()) {
 			group = group.getParentGroup();
 		}
 
-		List<Team> teams = teamPersistence.findByGroupId(group.getGroupId());
+		List<Team> teams = _teamPersistence.findByGroupId(group.getGroupId());
 
 		if (teams.isEmpty()) {
 			return Collections.emptyMap();
@@ -1639,25 +1978,25 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	protected void initAnalyticsAdministratorViewPermissions(Role role)
 		throws PortalException {
 
-		resourcePermissionLocalService.addResourcePermission(
+		_resourcePermissionLocalService.addResourcePermission(
 			role.getCompanyId(), Group.class.getName(),
 			ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(role.getCompanyId()), role.getRoleId(),
 			ActionKeys.VIEW);
 
-		resourcePermissionLocalService.addResourcePermission(
+		_resourcePermissionLocalService.addResourcePermission(
 			role.getCompanyId(), User.class.getName(),
 			ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(role.getCompanyId()), role.getRoleId(),
 			ActionKeys.VIEW);
 
-		resourcePermissionLocalService.addResourcePermission(
+		_resourcePermissionLocalService.addResourcePermission(
 			role.getCompanyId(), Organization.class.getName(),
 			ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(role.getCompanyId()), role.getRoleId(),
 			ActionKeys.VIEW_MEMBERS);
 
-		resourcePermissionLocalService.addResourcePermission(
+		_resourcePermissionLocalService.addResourcePermission(
 			role.getCompanyId(), UserGroup.class.getName(),
 			ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(role.getCompanyId()), role.getRoleId(),
@@ -1668,7 +2007,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		throws PortalException {
 
 		for (String portletId : getDefaultControlPanelPortlets()) {
-			int count = resourcePermissionPersistence.countByC_N_S_P_R(
+			int count = _resourcePermissionPersistence.countByC_N_S_P_R(
 				role.getCompanyId(), portletId, ResourceConstants.SCOPE_COMPANY,
 				String.valueOf(role.getCompanyId()), role.getRoleId());
 
@@ -1677,7 +2016,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			}
 
 			ResourceAction resourceAction =
-				resourceActionLocalService.fetchResourceAction(
+				_resourceActionLocalService.fetchResourceAction(
 					portletId, ActionKeys.ACCESS_IN_CONTROL_PANEL);
 
 			if (resourceAction == null) {
@@ -1690,11 +2029,21 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		}
 	}
 
+	protected void initPublicationsUserViewPermissions(Role role)
+		throws PortalException {
+
+		_resourcePermissionLocalService.addResourcePermission(
+			role.getCompanyId(), PortletKeys.PORTAL,
+			ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(role.getCompanyId()), role.getRoleId(),
+			ActionKeys.VIEW_CONTROL_PANEL);
+	}
+
 	protected void reindex(long userId) throws SearchException {
 		Indexer<User> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
 			User.class);
 
-		User user = userLocalService.fetchUser(userId);
+		User user = _userLocalService.fetchUser(userId);
 
 		indexer.reindex(user);
 	}
@@ -1703,7 +2052,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			Role role, String name, String[] actionIds)
 		throws PortalException {
 
-		resourcePermissionLocalService.setResourcePermissions(
+		_resourcePermissionLocalService.setResourcePermissions(
 			role.getCompanyId(), name, ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(role.getCompanyId()), role.getRoleId(), actionIds);
 	}
@@ -1712,24 +2061,30 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			long roleId, long companyId, long classNameId, String name)
 		throws PortalException {
 
-		if (classNameId == classNameLocalService.getClassNameId(Role.class)) {
+		if (classNameId == _classNameLocalService.getClassNameId(Role.class)) {
 			validateName(name);
 		}
 
-		try {
-			Role role = roleFinder.findByC_N(companyId, name);
+		int count = rolePersistence.dslQueryCount(
+			DSLQueryFactoryUtil.count(
+			).from(
+				RoleTable.INSTANCE
+			).where(
+				RoleTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					DSLFunctionFactoryUtil.lower(
+						RoleTable.INSTANCE.name
+					).eq(
+						StringUtil.lowerCase(name)
+					)
+				).and(
+					RoleTable.INSTANCE.roleId.neq(roleId)
+				)
+			));
 
-			if (role.getRoleId() != roleId) {
-				throw new DuplicateRoleException("{roleId=" + roleId + "}");
-			}
-		}
-		catch (NoSuchRoleException noSuchRoleException) {
-
-			// LPS-52675
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchRoleException, noSuchRoleException);
-			}
+		if (count > 0) {
+			throw new DuplicateRoleException("{roleId=" + roleId + "}");
 		}
 
 		if (name.equals(RoleConstants.PLACEHOLDER_DEFAULT_GROUP_ROLE)) {
@@ -1741,5 +2096,50 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		RoleLocalServiceImpl.class);
+
+	@BeanReference(type = ClassNameLocalService.class)
+	private ClassNameLocalService _classNameLocalService;
+
+	@BeanReference(type = CompanyLocalService.class)
+	private CompanyLocalService _companyLocalService;
+
+	@BeanReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
+
+	@BeanReference(type = GroupLocalService.class)
+	private GroupLocalService _groupLocalService;
+
+	@BeanReference(type = GroupPersistence.class)
+	private GroupPersistence _groupPersistence;
+
+	@BeanReference(type = LayoutLocalService.class)
+	private LayoutLocalService _layoutLocalService;
+
+	@BeanReference(type = ResourceActionLocalService.class)
+	private ResourceActionLocalService _resourceActionLocalService;
+
+	@BeanReference(type = ResourceLocalService.class)
+	private ResourceLocalService _resourceLocalService;
+
+	@BeanReference(type = ResourcePermissionLocalService.class)
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@BeanReference(type = ResourcePermissionPersistence.class)
+	private ResourcePermissionPersistence _resourcePermissionPersistence;
+
+	@BeanReference(type = TeamPersistence.class)
+	private TeamPersistence _teamPersistence;
+
+	@BeanReference(type = UserGroupGroupRoleLocalService.class)
+	private UserGroupGroupRoleLocalService _userGroupGroupRoleLocalService;
+
+	@BeanReference(type = UserGroupRoleLocalService.class)
+	private UserGroupRoleLocalService _userGroupRoleLocalService;
+
+	@BeanReference(type = UserLocalService.class)
+	private UserLocalService _userLocalService;
+
+	@BeanReference(type = UserPersistence.class)
+	private UserPersistence _userPersistence;
 
 }

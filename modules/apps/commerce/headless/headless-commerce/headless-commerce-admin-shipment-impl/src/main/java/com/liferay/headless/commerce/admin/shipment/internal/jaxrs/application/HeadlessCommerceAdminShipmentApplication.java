@@ -25,6 +25,7 @@ import org.osgi.service.component.annotations.Component;
  * @generated
  */
 @Component(
+	enabled = false,
 	property = {
 		"liferay.jackson=false",
 		"osgi.jaxrs.application.base=/headless-commerce-admin-shipment",

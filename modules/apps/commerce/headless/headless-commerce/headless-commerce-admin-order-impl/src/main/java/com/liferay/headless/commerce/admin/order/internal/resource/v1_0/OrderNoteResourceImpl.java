@@ -59,7 +59,7 @@ public class OrderNoteResourceImpl extends BaseOrderNoteResourceImpl {
 
 		if (commerceOrderNote == null) {
 			throw new NoSuchOrderNoteException(
-				"Unable to find OrderNote with externalReferenceCode: " +
+				"Unable to find order note with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -79,7 +79,7 @@ public class OrderNoteResourceImpl extends BaseOrderNoteResourceImpl {
 
 		if (commerceOrder == null) {
 			throw new NoSuchOrderException(
-				"Unable to find Order with externalReferenceCode: " +
+				"Unable to find order with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -130,7 +130,7 @@ public class OrderNoteResourceImpl extends BaseOrderNoteResourceImpl {
 
 		if (commerceOrderNote == null) {
 			throw new NoSuchOrderNoteException(
-				"Unable to find OrderNote with externalReferenceCode: " +
+				"Unable to find order note with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -163,7 +163,7 @@ public class OrderNoteResourceImpl extends BaseOrderNoteResourceImpl {
 
 		if (commerceOrderNote == null) {
 			throw new NoSuchOrderNoteException(
-				"Unable to find OrderNote with externalReferenceCode: " +
+				"Unable to find order note with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -185,7 +185,7 @@ public class OrderNoteResourceImpl extends BaseOrderNoteResourceImpl {
 
 		if (commerceOrder == null) {
 			throw new NoSuchOrderException(
-				"Unable to find Order with externalReferenceCode: " +
+				"Unable to find order with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -205,7 +205,7 @@ public class OrderNoteResourceImpl extends BaseOrderNoteResourceImpl {
 		throws Exception {
 
 		CommerceOrderNote commerceOrderNote =
-			_commerceOrderNoteService.upsertCommerceOrderNote(
+			_commerceOrderNoteService.addOrUpdateCommerceOrderNote(
 				orderNote.getExternalReferenceCode(),
 				GetterUtil.get(orderNote.getId(), 0L),
 				commerceOrder.getCommerceOrderId(), orderNote.getContent(),
@@ -241,7 +241,7 @@ public class OrderNoteResourceImpl extends BaseOrderNoteResourceImpl {
 		throws Exception {
 
 		commerceOrderNote = _commerceOrderNoteService.updateCommerceOrderNote(
-			orderNote.getOrderId(),
+			commerceOrderNote.getCommerceOrderNoteId(),
 			GetterUtil.get(
 				orderNote.getContent(), commerceOrderNote.getContent()),
 			GetterUtil.get(

@@ -24,18 +24,20 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.service.builder.test.model.LVEntryLocalization;
 import com.liferay.portal.tools.service.builder.test.model.LVEntryLocalizationModel;
 import com.liferay.portal.tools.service.builder.test.model.LVEntryLocalizationVersion;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -243,34 +245,6 @@ public class LVEntryLocalizationModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LVEntryLocalization>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LVEntryLocalization.class.getClassLoader(),
-			LVEntryLocalization.class, ModelWrapper.class);
-
-		try {
-			Constructor<LVEntryLocalization> constructor =
-				(Constructor<LVEntryLocalization>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LVEntryLocalization, Object>>
@@ -615,6 +589,31 @@ public class LVEntryLocalizationModelImpl
 	}
 
 	@Override
+	public LVEntryLocalization cloneWithOriginalValues() {
+		LVEntryLocalizationImpl lvEntryLocalizationImpl =
+			new LVEntryLocalizationImpl();
+
+		lvEntryLocalizationImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		lvEntryLocalizationImpl.setHeadId(
+			this.<Long>getColumnOriginalValue("headId"));
+		lvEntryLocalizationImpl.setLvEntryLocalizationId(
+			this.<Long>getColumnOriginalValue("lvEntryLocalizationId"));
+		lvEntryLocalizationImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		lvEntryLocalizationImpl.setLvEntryId(
+			this.<Long>getColumnOriginalValue("lvEntryId"));
+		lvEntryLocalizationImpl.setLanguageId(
+			this.<String>getColumnOriginalValue("languageId"));
+		lvEntryLocalizationImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+		lvEntryLocalizationImpl.setContent(
+			this.<String>getColumnOriginalValue("content"));
+
+		return lvEntryLocalizationImpl;
+	}
+
+	@Override
 	public int compareTo(LVEntryLocalization lvEntryLocalization) {
 		long primaryKey = lvEntryLocalization.getPrimaryKey();
 
@@ -732,7 +731,7 @@ public class LVEntryLocalizationModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -743,9 +742,27 @@ public class LVEntryLocalizationModelImpl
 			Function<LVEntryLocalization, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((LVEntryLocalization)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(LVEntryLocalization)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -792,7 +809,9 @@ public class LVEntryLocalizationModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, LVEntryLocalization>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					LVEntryLocalization.class, ModelWrapper.class);
 
 	}
 

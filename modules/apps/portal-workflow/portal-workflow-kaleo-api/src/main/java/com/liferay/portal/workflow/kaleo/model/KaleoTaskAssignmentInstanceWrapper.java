@@ -193,6 +193,11 @@ public class KaleoTaskAssignmentInstanceWrapper
 		}
 	}
 
+	@Override
+	public KaleoTaskAssignmentInstance cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the assignee class name of this kaleo task assignment instance.
 	 *

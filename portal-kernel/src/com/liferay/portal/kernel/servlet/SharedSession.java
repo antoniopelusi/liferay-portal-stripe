@@ -23,6 +23,6 @@ import javax.servlet.http.HttpSession;
 public interface SharedSession {
 
 	public HttpSession getSharedSessionWrapper(
-		HttpSession portalSession, HttpServletRequest httpServletRequest);
+		HttpSession portalHttpSession, HttpServletRequest httpServletRequest);
 
 }

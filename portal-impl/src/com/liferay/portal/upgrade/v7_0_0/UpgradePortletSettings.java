@@ -59,21 +59,21 @@ public abstract class UpgradePortletSettings extends UpgradeProcess {
 						"where PortletPreferences.ownerType = ", ownerType,
 						" and PortletPreferences.portletId = '", portletId,
 						"'"));
-			ResultSet rs = selectPreparedStatement.executeQuery()) {
+			ResultSet resultSet = selectPreparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				long oldPortletPreferencesId = rs.getLong(1);
+			while (resultSet.next()) {
+				long oldPortletPreferencesId = resultSet.getLong(1);
 
 				long ownerId = 0;
 				long plid = 0;
 
 				if (ownerType == PortletKeys.PREFS_OWNER_TYPE_LAYOUT) {
-					ownerId = rs.getLong(3);
+					ownerId = resultSet.getLong(3);
 					plid = 0;
 				}
 				else {
-					ownerId = rs.getLong(1);
-					plid = rs.getLong(2);
+					ownerId = resultSet.getLong(1);
+					plid = resultSet.getLong(2);
 				}
 
 				long newPortletPreferencesId = increment();
@@ -159,9 +159,7 @@ public abstract class UpgradePortletSettings extends UpgradeProcess {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					"Upgrading display portlet " + portletId + " settings");
-			}
 
-			if (_log.isDebugEnabled()) {
 				_log.debug("Delete service keys from portlet settings");
 			}
 

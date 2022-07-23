@@ -14,6 +14,9 @@
 
 package com.liferay.account.service;
 
+import com.liferay.account.model.AccountEntryUserRel;
+import com.liferay.portal.kernel.exception.PortalException;
+
 /**
  * Provides the remote service utility for AccountEntryUserRel. This utility wraps
  * <code>com.liferay.account.service.impl.AccountEntryUserRelServiceImpl</code> and is an
@@ -33,14 +36,81 @@ public class AccountEntryUserRelServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.account.service.impl.AccountEntryUserRelServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static AccountEntryUserRel addAccountEntryUserRel(
+			long accountEntryId, long creatorUserId, String screenName,
+			String emailAddress, java.util.Locale locale, String firstName,
+			String middleName, String lastName, long prefixId, long suffixId,
+			String jobTitle,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addAccountEntryUserRel(
+			accountEntryId, creatorUserId, screenName, emailAddress, locale,
+			firstName, middleName, lastName, prefixId, suffixId, jobTitle,
+			serviceContext);
+	}
+
+	public static AccountEntryUserRel addAccountEntryUserRelByEmailAddress(
+			long accountEntryId, String emailAddress, long[] accountRoleIds,
+			String userExternalReferenceCode,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addAccountEntryUserRelByEmailAddress(
+			accountEntryId, emailAddress, accountRoleIds,
+			userExternalReferenceCode, serviceContext);
+	}
+
+	public static void addAccountEntryUserRels(
+			long accountEntryId, long[] accountUserIds)
+		throws PortalException {
+
+		getService().addAccountEntryUserRels(accountEntryId, accountUserIds);
+	}
+
+	public static AccountEntryUserRel addPersonTypeAccountEntryUserRel(
+			long accountEntryId, long creatorUserId, String screenName,
+			String emailAddress, java.util.Locale locale, String firstName,
+			String middleName, String lastName, long prefixId, long suffixId,
+			String jobTitle,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addPersonTypeAccountEntryUserRel(
+			accountEntryId, creatorUserId, screenName, emailAddress, locale,
+			firstName, middleName, lastName, prefixId, suffixId, jobTitle,
+			serviceContext);
+	}
+
+	public static void deleteAccountEntryUserRelByEmailAddress(
+			long accountEntryId, String emailAddress)
+		throws PortalException {
+
+		getService().deleteAccountEntryUserRelByEmailAddress(
+			accountEntryId, emailAddress);
+	}
+
+	public static void deleteAccountEntryUserRels(
+			long accountEntryId, long[] accountUserIds)
+		throws PortalException {
+
+		getService().deleteAccountEntryUserRels(accountEntryId, accountUserIds);
+	}
 
 	/**
 	 * Returns the OSGi service identifier.
 	 *
 	 * @return the OSGi service identifier
 	 */
-	public static java.lang.String getOSGiServiceIdentifier() {
+	public static String getOSGiServiceIdentifier() {
 		return getService().getOSGiServiceIdentifier();
+	}
+
+	public static void setPersonTypeAccountEntryUser(
+			long accountEntryId, long userId)
+		throws PortalException {
+
+		getService().setPersonTypeAccountEntryUser(accountEntryId, userId);
 	}
 
 	public static AccountEntryUserRelService getService() {

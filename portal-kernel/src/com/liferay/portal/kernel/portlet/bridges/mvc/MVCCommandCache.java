@@ -14,18 +14,18 @@
 
 package com.liferay.portal.kernel.portlet.bridges.mvc;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapper;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.registry.collections.ServiceReferenceMapper;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerMap;
-import com.liferay.registry.util.StringPlus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,14 +106,9 @@ public class MVCCommandCache<T extends MVCCommand> {
 				return _emptyMVCCommand;
 			}
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(_packagePrefix);
-			sb.append(Character.toUpperCase(mvcCommandName.charAt(0)));
-			sb.append(mvcCommandName.substring(1));
-			sb.append(_mvcCommandPostFix);
-
-			className = sb.toString();
+			className = StringBundler.concat(
+				_packagePrefix, Character.toUpperCase(mvcCommandName.charAt(0)),
+				mvcCommandName.substring(1), _mvcCommandPostFix);
 
 			mvcCommand = (T)InstanceFactory.newInstance(className);
 
@@ -196,7 +191,8 @@ public class MVCCommandCache<T extends MVCCommand> {
 			synchronized (this) {
 				if (_serviceTrackerMap == null) {
 					_serviceTrackerMap =
-						ServiceTrackerCollections.openSingleValueMap(
+						ServiceTrackerMapFactory.openSingleValueMap(
+							SystemBundleUtil.getBundleContext(),
 							_mvcCommandClass, _filterString,
 							_SERVICE_REFERENCE_MAPPER);
 				}
@@ -210,7 +206,7 @@ public class MVCCommandCache<T extends MVCCommand> {
 
 	private static final ServiceReferenceMapper<String, MVCCommand>
 		_SERVICE_REFERENCE_MAPPER = (serviceReference, emitter) -> {
-			List<String> mvcCommandNames = StringPlus.asList(
+			List<String> mvcCommandNames = StringUtil.asList(
 				serviceReference.getProperty("mvc.command.name"));
 
 			for (String mvcCommandName : mvcCommandNames) {

@@ -65,31 +65,14 @@ public class CommerceShippingFixedOptionLocalServiceUtil {
 
 	public static CommerceShippingFixedOption addCommerceShippingFixedOption(
 			long userId, long groupId, long commerceShippingMethodId,
-			Map<java.util.Locale, String> nameMap,
-			Map<java.util.Locale, String> descriptionMap,
-			java.math.BigDecimal amount, double priority)
+			java.math.BigDecimal amount,
+			Map<java.util.Locale, String> descriptionMap, String key,
+			Map<java.util.Locale, String> nameMap, double priority)
 		throws PortalException {
 
 		return getService().addCommerceShippingFixedOption(
-			userId, groupId, commerceShippingMethodId, nameMap, descriptionMap,
-			amount, priority);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public static CommerceShippingFixedOption addCommerceShippingFixedOption(
-			long commerceShippingMethodId,
-			Map<java.util.Locale, String> nameMap,
-			Map<java.util.Locale, String> descriptionMap,
-			java.math.BigDecimal amount, double priority,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().addCommerceShippingFixedOption(
-			commerceShippingMethodId, nameMap, descriptionMap, amount, priority,
-			serviceContext);
+			userId, groupId, commerceShippingMethodId, amount, descriptionMap,
+			key, nameMap, priority);
 	}
 
 	/**
@@ -170,6 +153,10 @@ public class CommerceShippingFixedOptionLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -256,10 +243,25 @@ public class CommerceShippingFixedOptionLocalServiceUtil {
 			commerceShippingFixedOptionId);
 	}
 
+	public static CommerceShippingFixedOption fetchCommerceShippingFixedOption(
+		long companyId, String key) {
+
+		return getService().fetchCommerceShippingFixedOption(companyId, key);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
 		return getService().getActionableDynamicQuery();
+	}
+
+	public static List<CommerceShippingFixedOption>
+		getCommerceOrderTypeCommerceShippingFixedOptions(
+			long companyId, long commerceOrderTypeId,
+			long commerceShippingMethodId) {
+
+		return getService().getCommerceOrderTypeCommerceShippingFixedOptions(
+			companyId, commerceOrderTypeId, commerceShippingMethodId);
 	}
 
 	/**
@@ -397,14 +399,13 @@ public class CommerceShippingFixedOptionLocalServiceUtil {
 	}
 
 	public static CommerceShippingFixedOption updateCommerceShippingFixedOption(
-			long commerceShippingFixedOptionId,
-			Map<java.util.Locale, String> nameMap,
-			Map<java.util.Locale, String> descriptionMap,
-			java.math.BigDecimal amount, double priority)
+			long commerceShippingFixedOptionId, java.math.BigDecimal amount,
+			Map<java.util.Locale, String> descriptionMap, String key,
+			Map<java.util.Locale, String> nameMap, double priority)
 		throws PortalException {
 
 		return getService().updateCommerceShippingFixedOption(
-			commerceShippingFixedOptionId, nameMap, descriptionMap, amount,
+			commerceShippingFixedOptionId, amount, descriptionMap, key, nameMap,
 			priority);
 	}
 

@@ -61,6 +61,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Michael C. Han
+ * @author Brian Wing Shun Chan
  */
 @Component(
 	immediate = true,
@@ -68,15 +69,6 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 	service = {ManagedServiceFactory.class, MessageBus.class}
 )
 public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public synchronized void addDestination(Destination destination) {
-		_addDestination(destination);
-	}
 
 	@Override
 	public boolean addMessageBusEventListener(
@@ -165,51 +157,11 @@ public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
 		return false;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public Destination removeDestination(String destinationName) {
-		return removeDestination(destinationName, true);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public synchronized Destination removeDestination(
-		String destinationName, boolean closeOnRemove) {
-
-		return _removeDestination(destinationName);
-	}
-
 	@Override
 	public boolean removeMessageBusEventListener(
 		MessageBusEventListener messageBusEventListener) {
 
 		return _messageBusEventListeners.remove(messageBusEventListener);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void replace(Destination destination) {
-		replace(destination, true);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public synchronized void replace(
-		Destination destination, boolean closeOnRemove) {
-
-		_addDestination(destination);
 	}
 
 	@Override
@@ -315,7 +267,7 @@ public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
 		Destination destination = _destinations.get(
 			destinationWorkerConfiguration.destinationName());
 
-		updateDestination(destination, destinationWorkerConfiguration);
+		_updateDestination(destination, destinationWorkerConfiguration);
 	}
 
 	@Activate
@@ -431,6 +383,7 @@ public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
 			BaseDestination baseDestination = (BaseDestination)destination;
 
 			baseDestination.setName(destinationName);
+
 			baseDestination.afterPropertiesSet();
 		}
 
@@ -439,7 +392,7 @@ public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
 		DestinationWorkerConfiguration destinationWorkerConfiguration =
 			_destinationWorkerConfigurations.get(destinationName);
 
-		updateDestination(destination, destinationWorkerConfiguration);
+		_updateDestination(destination, destinationWorkerConfiguration);
 	}
 
 	@Reference(
@@ -515,26 +468,6 @@ public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
 		removeMessageBusEventListener(messageBusEventListener);
 	}
 
-	protected void updateDestination(
-		Destination destination,
-		DestinationWorkerConfiguration destinationWorkerConfiguration) {
-
-		if ((destination == null) || (destinationWorkerConfiguration == null)) {
-			return;
-		}
-
-		if (destination instanceof BaseAsyncDestination) {
-			BaseAsyncDestination baseAsyncDestination =
-				(BaseAsyncDestination)destination;
-
-			baseAsyncDestination.setMaximumQueueSize(
-				destinationWorkerConfiguration.maxQueueSize());
-			baseAsyncDestination.setWorkersSize(
-				destinationWorkerConfiguration.workerCoreSize(),
-				destinationWorkerConfiguration.workerMaxSize());
-		}
-	}
-
 	private void _addDestination(Destination destination) {
 		Destination oldDestination = _destinations.get(destination.getName());
 
@@ -600,6 +533,26 @@ public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
 		return destination;
 	}
 
+	private void _updateDestination(
+		Destination destination,
+		DestinationWorkerConfiguration destinationWorkerConfiguration) {
+
+		if ((destination == null) || (destinationWorkerConfiguration == null)) {
+			return;
+		}
+
+		if (destination instanceof BaseAsyncDestination) {
+			BaseAsyncDestination baseAsyncDestination =
+				(BaseAsyncDestination)destination;
+
+			baseAsyncDestination.setMaximumQueueSize(
+				destinationWorkerConfiguration.maxQueueSize());
+			baseAsyncDestination.setWorkersSize(
+				destinationWorkerConfiguration.workerCoreSize(),
+				destinationWorkerConfiguration.workerMaxSize());
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultMessageBus.class);
 
@@ -616,7 +569,6 @@ public class DefaultMessageBus implements ManagedServiceFactory, MessageBus {
 			_messageListenerServiceTracker;
 	private final Map<String, List<MessageListener>> _queuedMessageListeners =
 		new HashMap<>();
-	private ServiceTrackerList<MessageBusInterceptor, MessageBusInterceptor>
-		_serviceTrackerList;
+	private ServiceTrackerList<MessageBusInterceptor> _serviceTrackerList;
 
 }

@@ -2,6 +2,16 @@ definition {
 
 	var formName = "Created Form Name";
 
+	macro changeLanguage {
+		Click(
+			key_language = "${currentLanguage}",
+			locator1 = "FormPortletConfiguration#SELECT_LANGUAGE");
+
+		Click(
+			key_language = "${newLanguage}",
+			locator1 = "FormPortletConfiguration#SELECT_LANGUAGE");
+	}
+
 	macro configureScopePG {
 		Portlet.gotoPortletOptions(
 			portletName = "${portletName}",
@@ -19,6 +29,10 @@ definition {
 	}
 
 	macro selectForm {
+		if (isSet(formTitle)) {
+			var formName = "${formTitle}";
+		}
+
 		Navigator.gotoNavItem(navItem = "Setup");
 
 		AssertClick(
@@ -29,6 +43,12 @@ definition {
 		AssertTextEquals(
 			locator1 = "Message#INFO",
 			value1 = "Displaying Form: ${formName} (Modified)");
+	}
+
+	macro viewTranslationLanguage {
+		AssertElementPresent(
+			key_language = "${language}",
+			locator1 = "FormPortletConfiguration#SELECT_LANGUAGE");
 	}
 
 }

@@ -30,8 +30,6 @@ import java.util.Map;
 public class MBTreeWalkerImpl implements MBTreeWalker {
 
 	public MBTreeWalkerImpl(List<MBMessage> messages) {
-		_messageIdsMap = new HashMap<>();
-
 		MBMessage rootMessage = null;
 
 		try {
@@ -132,7 +130,7 @@ public class MBTreeWalkerImpl implements MBTreeWalker {
 	private static final Log _log = LogFactoryUtil.getLog(
 		MBTreeWalkerImpl.class);
 
-	private final Map<Long, Integer> _messageIdsMap;
+	private final Map<Long, Integer> _messageIdsMap = new HashMap<>();
 	private final List<MBMessage> _messages;
 	private boolean _odd;
 	private final MBMessage _rootMessage;

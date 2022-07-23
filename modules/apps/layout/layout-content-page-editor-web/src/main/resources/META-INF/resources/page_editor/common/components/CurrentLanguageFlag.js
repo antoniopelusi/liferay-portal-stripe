@@ -13,27 +13,25 @@
  */
 
 import ClayIcon from '@clayui/icon';
+import classNames from 'classnames';
 import React from 'react';
 
 import {config} from '../../app/config/index';
+import {useSelector} from '../../app/contexts/StoreContext';
 import selectLanguageId from '../../app/selectors/selectLanguageId';
-import {useSelector} from '../../app/store/index';
-import getLanguages from '../../app/utils/getLanguages';
 
-export default function CurrentLanguageFlag() {
+export default function CurrentLanguageFlag({className}) {
 	const languageId = useSelector(selectLanguageId);
-
-	const languages = getLanguages(config.availableLanguages);
+	const language = config.availableLanguages[languageId];
 
 	return (
 		<div
-			className="align-self-end autofit-col ml-1 p-2"
+			className={classNames(className, 'link-monospaced')}
 			data-title={Liferay.Language.get('localizable')}
 		>
-			<ClayIcon symbol={languages[languageId].languageIcon} />
-			<span className="sr-only">
-				{languages[languageId].w3cLanguageId}
-			</span>
+			<ClayIcon symbol={language.languageIcon} />
+
+			<span className="sr-only">{language.w3cLanguageId}</span>
 		</div>
 	);
 }

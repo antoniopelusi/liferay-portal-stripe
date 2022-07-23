@@ -31,12 +31,13 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -76,8 +77,9 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
-		{"assetListEntryId", Types.BIGINT}, {"segmentsEntryId", Types.BIGINT},
-		{"typeSettings", Types.CLOB}, {"lastPublishDate", Types.TIMESTAMP}
+		{"assetListEntryId", Types.BIGINT}, {"priority", Types.INTEGER},
+		{"segmentsEntryId", Types.BIGINT}, {"typeSettings", Types.CLOB},
+		{"lastPublishDate", Types.TIMESTAMP}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -95,13 +97,14 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("assetListEntryId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("priority", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("segmentsEntryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("typeSettings", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("lastPublishDate", Types.TIMESTAMP);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AssetListEntrySegmentsEntryRel (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,alEntrySegmentsEntryRelId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,assetListEntryId LONG,segmentsEntryId LONG,typeSettings TEXT null,lastPublishDate DATE null,primary key (alEntrySegmentsEntryRelId, ctCollectionId))";
+		"create table AssetListEntrySegmentsEntryRel (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,alEntrySegmentsEntryRelId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,assetListEntryId LONG,priority INTEGER,segmentsEntryId LONG,typeSettings TEXT null,lastPublishDate DATE null,primary key (alEntrySegmentsEntryRelId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table AssetListEntrySegmentsEntryRel";
@@ -257,34 +260,6 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, AssetListEntrySegmentsEntryRel>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetListEntrySegmentsEntryRel.class.getClassLoader(),
-			AssetListEntrySegmentsEntryRel.class, ModelWrapper.class);
-
-		try {
-			Constructor<AssetListEntrySegmentsEntryRel> constructor =
-				(Constructor<AssetListEntrySegmentsEntryRel>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map
 		<String, Function<AssetListEntrySegmentsEntryRel, Object>>
 			_attributeGetterFunctions;
@@ -374,6 +349,12 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 			"assetListEntryId",
 			(BiConsumer<AssetListEntrySegmentsEntryRel, Long>)
 				AssetListEntrySegmentsEntryRel::setAssetListEntryId);
+		attributeGetterFunctions.put(
+			"priority", AssetListEntrySegmentsEntryRel::getPriority);
+		attributeSetterBiConsumers.put(
+			"priority",
+			(BiConsumer<AssetListEntrySegmentsEntryRel, Integer>)
+				AssetListEntrySegmentsEntryRel::setPriority);
 		attributeGetterFunctions.put(
 			"segmentsEntryId",
 			AssetListEntrySegmentsEntryRel::getSegmentsEntryId);
@@ -628,6 +609,20 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 	}
 
 	@Override
+	public int getPriority() {
+		return _priority;
+	}
+
+	@Override
+	public void setPriority(int priority) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_priority = priority;
+	}
+
+	@Override
 	public long getSegmentsEntryId() {
 		return _segmentsEntryId;
 	}
@@ -763,6 +758,7 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 		assetListEntrySegmentsEntryRelImpl.setModifiedDate(getModifiedDate());
 		assetListEntrySegmentsEntryRelImpl.setAssetListEntryId(
 			getAssetListEntryId());
+		assetListEntrySegmentsEntryRelImpl.setPriority(getPriority());
 		assetListEntrySegmentsEntryRelImpl.setSegmentsEntryId(
 			getSegmentsEntryId());
 		assetListEntrySegmentsEntryRelImpl.setTypeSettings(getTypeSettings());
@@ -770,6 +766,45 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 			getLastPublishDate());
 
 		assetListEntrySegmentsEntryRelImpl.resetOriginalValues();
+
+		return assetListEntrySegmentsEntryRelImpl;
+	}
+
+	@Override
+	public AssetListEntrySegmentsEntryRel cloneWithOriginalValues() {
+		AssetListEntrySegmentsEntryRelImpl assetListEntrySegmentsEntryRelImpl =
+			new AssetListEntrySegmentsEntryRelImpl();
+
+		assetListEntrySegmentsEntryRelImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetListEntrySegmentsEntryRelImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetListEntrySegmentsEntryRelImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		assetListEntrySegmentsEntryRelImpl.setAssetListEntrySegmentsEntryRelId(
+			this.<Long>getColumnOriginalValue("alEntrySegmentsEntryRelId"));
+		assetListEntrySegmentsEntryRelImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		assetListEntrySegmentsEntryRelImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetListEntrySegmentsEntryRelImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		assetListEntrySegmentsEntryRelImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		assetListEntrySegmentsEntryRelImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetListEntrySegmentsEntryRelImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		assetListEntrySegmentsEntryRelImpl.setAssetListEntryId(
+			this.<Long>getColumnOriginalValue("assetListEntryId"));
+		assetListEntrySegmentsEntryRelImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
+		assetListEntrySegmentsEntryRelImpl.setSegmentsEntryId(
+			this.<Long>getColumnOriginalValue("segmentsEntryId"));
+		assetListEntrySegmentsEntryRelImpl.setTypeSettings(
+			this.<String>getColumnOriginalValue("typeSettings"));
+		assetListEntrySegmentsEntryRelImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
 
 		return assetListEntrySegmentsEntryRelImpl;
 	}
@@ -908,6 +943,8 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 		assetListEntrySegmentsEntryRelCacheModel.assetListEntryId =
 			getAssetListEntryId();
 
+		assetListEntrySegmentsEntryRelCacheModel.priority = getPriority();
+
 		assetListEntrySegmentsEntryRelCacheModel.segmentsEntryId =
 			getSegmentsEntryId();
 
@@ -941,7 +978,7 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -952,11 +989,27 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 			Function<AssetListEntrySegmentsEntryRel, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply(
-					(AssetListEntrySegmentsEntryRel)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AssetListEntrySegmentsEntryRel)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1007,7 +1060,9 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 		private static final Function
 			<InvocationHandler, AssetListEntrySegmentsEntryRel>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						AssetListEntrySegmentsEntryRel.class,
+						ModelWrapper.class);
 
 	}
 
@@ -1023,6 +1078,7 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
 	private long _assetListEntryId;
+	private int _priority;
 	private long _segmentsEntryId;
 	private String _typeSettings;
 	private Date _lastPublishDate;
@@ -1068,6 +1124,7 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("assetListEntryId", _assetListEntryId);
+		_columnOriginalValues.put("priority", _priority);
 		_columnOriginalValues.put("segmentsEntryId", _segmentsEntryId);
 		_columnOriginalValues.put("typeSettings", _typeSettings);
 		_columnOriginalValues.put("lastPublishDate", _lastPublishDate);
@@ -1118,11 +1175,13 @@ public class AssetListEntrySegmentsEntryRelModelImpl
 
 		columnBitmasks.put("assetListEntryId", 1024L);
 
-		columnBitmasks.put("segmentsEntryId", 2048L);
+		columnBitmasks.put("priority", 2048L);
 
-		columnBitmasks.put("typeSettings", 4096L);
+		columnBitmasks.put("segmentsEntryId", 4096L);
 
-		columnBitmasks.put("lastPublishDate", 8192L);
+		columnBitmasks.put("typeSettings", 8192L);
+
+		columnBitmasks.put("lastPublishDate", 16384L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

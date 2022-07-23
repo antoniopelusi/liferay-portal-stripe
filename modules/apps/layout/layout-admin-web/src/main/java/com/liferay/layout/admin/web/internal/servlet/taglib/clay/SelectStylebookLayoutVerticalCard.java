@@ -16,12 +16,17 @@ package com.liferay.layout.admin.web.internal.servlet.taglib.clay;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.style.book.model.StyleBookEntry;
+import com.liferay.style.book.util.DefaultStyleBookEntryUtil;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.portlet.RenderRequest;
 
@@ -31,8 +36,11 @@ import javax.portlet.RenderRequest;
 public class SelectStylebookLayoutVerticalCard implements VerticalCard {
 
 	public SelectStylebookLayoutVerticalCard(
-		StyleBookEntry styleBookEntry, RenderRequest renderRequest) {
+		RenderRequest renderRequest, Layout selLayout,
+		StyleBookEntry styleBookEntry) {
 
+		_renderRequest = renderRequest;
+		_selLayout = selLayout;
 		_styleBookEntry = styleBookEntry;
 
 		_themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
@@ -41,8 +49,27 @@ public class SelectStylebookLayoutVerticalCard implements VerticalCard {
 
 	@Override
 	public String getCssClass() {
-		return "select-master-layout-option card-interactive " +
-			"card-interactive-secondary";
+		String cssClass =
+			"select-style-book-option card-interactive " +
+				"card-interactive-secondary";
+
+		if (_isSelected()) {
+			cssClass += " active";
+		}
+
+		return cssClass;
+	}
+
+	public StyleBookEntry getDefaultStyleBookEntry() {
+		if (_defaultStyleBookEntry != null) {
+			return _defaultStyleBookEntry;
+		}
+
+		_defaultStyleBookEntry =
+			DefaultStyleBookEntryUtil.getDefaultMasterStyleBookEntry(
+				_selLayout);
+
+		return _defaultStyleBookEntry;
 	}
 
 	@Override
@@ -70,13 +97,49 @@ public class SelectStylebookLayoutVerticalCard implements VerticalCard {
 	}
 
 	@Override
+	public String getStickerCssClass() {
+		return "select-style-book-option-sticker sticker-primary";
+	}
+
+	@Override
+	public String getStickerIcon() {
+		return "check-circle";
+	}
+
+	@Override
 	public String getSubtitle() {
+		StyleBookEntry defaultStyleBookEntry = getDefaultStyleBookEntry();
+
+		if ((_styleBookEntry.getStyleBookEntryId() <= 0) &&
+			(defaultStyleBookEntry != null)) {
+
+			return defaultStyleBookEntry.getName();
+		}
+
 		return StringPool.DASH;
 	}
 
 	@Override
 	public String getTitle() {
-		return _styleBookEntry.getName();
+		if (_styleBookEntry.getStyleBookEntryId() > 0) {
+			return _styleBookEntry.getName();
+		}
+
+		StyleBookEntry defaultStyleBookEntry = getDefaultStyleBookEntry();
+
+		if (defaultStyleBookEntry == null) {
+			return LanguageUtil.get(
+				_themeDisplay.getLocale(), "styles-from-theme");
+		}
+
+		if (ParamUtil.getBoolean(_renderRequest, "editableMasterLayout") &&
+			(_selLayout.getMasterLayoutPlid() > 0)) {
+
+			return LanguageUtil.get(
+				_themeDisplay.getLocale(), "styles-from-master");
+		}
+
+		return LanguageUtil.get(_themeDisplay.getLocale(), "styles-by-default");
 	}
 
 	@Override
@@ -84,6 +147,22 @@ public class SelectStylebookLayoutVerticalCard implements VerticalCard {
 		return false;
 	}
 
+	private boolean _isSelected() {
+		long styleBookEntryId = ParamUtil.getLong(
+			_renderRequest, "styleBookEntryId");
+
+		if (Objects.equals(
+				styleBookEntryId, _styleBookEntry.getStyleBookEntryId())) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private StyleBookEntry _defaultStyleBookEntry;
+	private final RenderRequest _renderRequest;
+	private final Layout _selLayout;
 	private final StyleBookEntry _styleBookEntry;
 	private final ThemeDisplay _themeDisplay;
 

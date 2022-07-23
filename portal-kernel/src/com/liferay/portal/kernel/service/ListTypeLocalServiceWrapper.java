@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class ListTypeLocalServiceWrapper
 	implements ListTypeLocalService, ServiceWrapper<ListTypeLocalService> {
 
+	public ListTypeLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ListTypeLocalServiceWrapper(
 		ListTypeLocalService listTypeLocalService) {
 
@@ -128,6 +132,13 @@ public class ListTypeLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _listTypeLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _listTypeLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

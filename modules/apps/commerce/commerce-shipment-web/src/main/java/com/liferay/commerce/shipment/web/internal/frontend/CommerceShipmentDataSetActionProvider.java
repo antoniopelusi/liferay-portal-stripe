@@ -102,13 +102,13 @@ public class CommerceShipmentDataSetActionProvider
 			_portal.getCurrentURL(httpServletRequest)
 		).setParameter(
 			"commerceShipmentId", commerceShipmentId
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL.toString();
@@ -146,7 +146,7 @@ public class CommerceShipmentDataSetActionProvider
 	private Portal _portal;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_SHIPMENT + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_SHIPMENT + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

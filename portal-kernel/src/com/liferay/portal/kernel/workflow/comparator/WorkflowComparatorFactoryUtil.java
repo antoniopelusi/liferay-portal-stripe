@@ -28,172 +28,162 @@ public class WorkflowComparatorFactoryUtil {
 	public static OrderByComparator<WorkflowDefinition>
 		getDefinitionNameComparator() {
 
-		return getWorkflowComparatorFactory().getDefinitionNameComparator(
-			false);
+		return _workflowComparatorFactory.getDefinitionNameComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowDefinition>
 		getDefinitionNameComparator(boolean ascending) {
 
-		return getWorkflowComparatorFactory().getDefinitionNameComparator(
+		return _workflowComparatorFactory.getDefinitionNameComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceCompletedComparator() {
 
-		return getWorkflowComparatorFactory().getInstanceCompletedComparator(
-			false);
+		return _workflowComparatorFactory.getInstanceCompletedComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceCompletedComparator(boolean ascending) {
 
-		return getWorkflowComparatorFactory().getInstanceCompletedComparator(
+		return _workflowComparatorFactory.getInstanceCompletedComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceEndDateComparator() {
 
-		return getWorkflowComparatorFactory().getInstanceEndDateComparator(
-			false);
+		return _workflowComparatorFactory.getInstanceEndDateComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceEndDateComparator(boolean ascending) {
 
-		return getWorkflowComparatorFactory().getInstanceEndDateComparator(
+		return _workflowComparatorFactory.getInstanceEndDateComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceStartDateComparator() {
 
-		return getWorkflowComparatorFactory().getInstanceStartDateComparator(
-			false);
+		return _workflowComparatorFactory.getInstanceStartDateComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceStartDateComparator(boolean ascending) {
 
-		return getWorkflowComparatorFactory().getInstanceStartDateComparator(
+		return _workflowComparatorFactory.getInstanceStartDateComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceStateComparator() {
 
-		return getWorkflowComparatorFactory().getInstanceStateComparator(false);
+		return _workflowComparatorFactory.getInstanceStateComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowInstance>
 		getInstanceStateComparator(boolean ascending) {
 
-		return getWorkflowComparatorFactory().getInstanceStateComparator(
-			ascending);
+		return _workflowComparatorFactory.getInstanceStateComparator(ascending);
 	}
 
 	public static OrderByComparator<WorkflowLog> getLogCreateDateComparator() {
-		return getWorkflowComparatorFactory().getLogCreateDateComparator(false);
+		return _workflowComparatorFactory.getLogCreateDateComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowLog> getLogCreateDateComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getLogCreateDateComparator(
-			ascending);
+		return _workflowComparatorFactory.getLogCreateDateComparator(ascending);
 	}
 
 	public static OrderByComparator<WorkflowLog> getLogUserIdComparator() {
-		return getWorkflowComparatorFactory().getLogUserIdComparator(false);
+		return _workflowComparatorFactory.getLogUserIdComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowLog> getLogUserIdComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getLogUserIdComparator(ascending);
+		return _workflowComparatorFactory.getLogUserIdComparator(ascending);
 	}
 
 	public static OrderByComparator<WorkflowTask>
 		getTaskCompletionDateComparator() {
 
-		return getWorkflowComparatorFactory().getTaskCompletionDateComparator(
+		return _workflowComparatorFactory.getTaskCompletionDateComparator(
 			false);
 	}
 
 	public static OrderByComparator<WorkflowTask>
 		getTaskCompletionDateComparator(boolean ascending) {
 
-		return getWorkflowComparatorFactory().getTaskCompletionDateComparator(
+		return _workflowComparatorFactory.getTaskCompletionDateComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowTask>
 		getTaskCreateDateComparator() {
 
-		return getWorkflowComparatorFactory().getTaskCreateDateComparator(
-			false);
+		return _workflowComparatorFactory.getTaskCreateDateComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskCreateDateComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getTaskCreateDateComparator(
+		return _workflowComparatorFactory.getTaskCreateDateComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskDueDateComparator() {
-		return getWorkflowComparatorFactory().getTaskDueDateComparator(false);
+		return _workflowComparatorFactory.getTaskDueDateComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskDueDateComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getTaskDueDateComparator(
-			ascending);
+		return _workflowComparatorFactory.getTaskDueDateComparator(ascending);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskInstanceIdComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getTaskInstanceIdComparator(
+		return _workflowComparatorFactory.getTaskInstanceIdComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowTask>
 		getTaskModifiedDateComparator() {
 
-		return getWorkflowComparatorFactory().getTaskModifiedDateComparator(
-			false);
+		return _workflowComparatorFactory.getTaskModifiedDateComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskModifiedDateComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getTaskModifiedDateComparator(
+		return _workflowComparatorFactory.getTaskModifiedDateComparator(
 			ascending);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskNameComparator() {
-		return getWorkflowComparatorFactory().getTaskNameComparator(false);
+		return _workflowComparatorFactory.getTaskNameComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskNameComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getTaskNameComparator(ascending);
+		return _workflowComparatorFactory.getTaskNameComparator(ascending);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskUserIdComparator() {
-		return getWorkflowComparatorFactory().getTaskUserIdComparator(false);
+		return _workflowComparatorFactory.getTaskUserIdComparator(false);
 	}
 
 	public static OrderByComparator<WorkflowTask> getTaskUserIdComparator(
 		boolean ascending) {
 
-		return getWorkflowComparatorFactory().getTaskUserIdComparator(
-			ascending);
+		return _workflowComparatorFactory.getTaskUserIdComparator(ascending);
 	}
 
 	public static WorkflowComparatorFactory getWorkflowComparatorFactory() {

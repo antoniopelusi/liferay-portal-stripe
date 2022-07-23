@@ -2,7 +2,9 @@ definition {
 
 	@summary = "This calls the JSON WS API to add a Depot entry"
 	macro addDepot {
-		var portalURL = JSONCompany.getPortalURL();
+		if (!(isSet(portalURL))) {
+			var portalURL = JSONCompany.getPortalURL();
+		}
 
 		var curl = '''
 			${portalURL}/api/jsonws/depot.depotentry/add-depot-entry \
@@ -16,6 +18,36 @@ definition {
 		echo("## * Title: ${depotName}");
 
 		echo("## * Description: ${depotDescription}");
+
+		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to connect the depot to a site"
+	macro connectSite {
+		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
+
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "${site}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/depot.depotentrygrouprel/add-depot-entry-group-rel \
+				-u test@liferay.com:test \
+				-d depotEntryId=${depotId}
+				-d toGroupId=${groupId}
+			''';
+
+		echo("## Connect a 'Depot' to a site with the following info using JSONWS:");
+
+		echo("## * ID: ${depotId}");
+
+		echo("## * ID: ${groupId}");
 
 		var messageId = JSONCurlUtil.post("${curl}");
 	}
@@ -37,6 +69,87 @@ definition {
 		echo("## * ID: ${depotId}");
 
 		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to disconnect the depot to a site"
+	macro disconnectSite {
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		var depotEntryGroupRelId = JSONGroupAPI._getDepotEntryGroupRelIdByGroupName(
+			groupName = "${groupName}",
+			site = "${site}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/depot.depotentrygrouprel/delete-depot-entry-group-rel \
+				-u test@liferay.com:test \
+				-d depotEntryGroupRelId=${depotEntryGroupRelId}
+			''';
+
+		echo("## Disconnect a 'Depot' to a site with the following info using JSONWS:");
+
+		echo("## * ID: ${groupId}");
+
+		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	macro remoteStagingSetUp {
+		if (!(isSet(remotePort))) {
+			var remotePort = "8080";
+		}
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a remote depot",
+			depotName = "Remote Depot",
+			portalURL = "http://localhost:${remotePort}");
+
+		var remoteGroupId = JSONGroupSetter.setGroupId(
+			groupName = "Remote Depot",
+			portalURL = "http://localhost:${remotePort}",
+			site = "${site}");
+
+		JSONStaging.enableRemoteStaging(
+			branchingPrivate = "${branchingPrivate}",
+			branchingPublic = "${branchingPublic}",
+			groupName = "${groupName}",
+			remoteGroupId = "${remoteGroupId}",
+			remotePort = "${remotePort}",
+			site = "${site}");
+	}
+
+	@summary = "This calls the JSON WS API to make structure available or unavailable."
+	macro updateStructureState {
+		Variables.assertDefined(parameterList = "${groupName},${structureState}");
+
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		if ("${structureState}" == "Available") {
+			var ddmStructuresAvailable = "true";
+		}
+
+		if ("${structureState}" == "Unavailable") {
+			var ddmStructuresAvailable = "false";
+		}
+
+		var depotEntryGroupRelId = JSONGroupAPI._getDepotEntryGroupRelIdByGroupName(
+			groupName = "${groupName}",
+			site = "${site}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/depot.depotentrygrouprel/update-ddm-structures-available \
+				-u test@liferay.com:test \
+				-d depotEntryGroupRelId=${depotEntryGroupRelId} \
+				-d ddmStructuresAvailable=${ddmStructuresAvailable}
+			''';
+
+		JSONCurlUtil.post("${curl}");
 	}
 
 }

@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.osgi.web.portlet.container.test.BasePortletContainerTestCase;
 import com.liferay.portal.osgi.web.portlet.container.test.TestPortlet;
 import com.liferay.portal.osgi.web.portlet.container.test.util.PortletContainerTestUtil;
@@ -91,10 +91,10 @@ public class
 
 		};
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"com.liferay.portlet.instanceable", Boolean.FALSE.toString());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"com.liferay.portlet.instanceable", Boolean.FALSE.toString()
+			).build();
 
 		setUpPortlet(testPortlet, properties, TEST_PORTLET_ID);
 

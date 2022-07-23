@@ -28,38 +28,16 @@ public class SocialActivityInterpreterLocalServiceWrapper
 	implements ServiceWrapper<SocialActivityInterpreterLocalService>,
 			   SocialActivityInterpreterLocalService {
 
+	public SocialActivityInterpreterLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SocialActivityInterpreterLocalServiceWrapper(
 		SocialActivityInterpreterLocalService
 			socialActivityInterpreterLocalService) {
 
 		_socialActivityInterpreterLocalService =
 			socialActivityInterpreterLocalService;
-	}
-
-	/**
-	 * Adds the activity interpreter to the list of available interpreters.
-	 *
-	 * @param activityInterpreter the activity interpreter
-	 */
-	@Override
-	public void addActivityInterpreter(
-		SocialActivityInterpreter activityInterpreter) {
-
-		_socialActivityInterpreterLocalService.addActivityInterpreter(
-			activityInterpreter);
-	}
-
-	/**
-	 * Removes the activity interpreter from the list of available interpreters.
-	 *
-	 * @param activityInterpreter the activity interpreter
-	 */
-	@Override
-	public void deleteActivityInterpreter(
-		SocialActivityInterpreter activityInterpreter) {
-
-		_socialActivityInterpreterLocalService.deleteActivityInterpreter(
-			activityInterpreter);
 	}
 
 	@Override

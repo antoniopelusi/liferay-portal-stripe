@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -44,7 +46,9 @@ public class BlogsEntryWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
+		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("entryId", getEntryId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -85,10 +89,23 @@ public class BlogsEntryWrapper
 			setMvccVersion(mvccVersion);
 		}
 
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
 			setUuid(uuid);
+		}
+
+		String externalReferenceCode = (String)attributes.get(
+			"externalReferenceCode");
+
+		if (externalReferenceCode != null) {
+			setExternalReferenceCode(externalReferenceCode);
 		}
 
 		Long entryId = (Long)attributes.get("entryId");
@@ -262,6 +279,11 @@ public class BlogsEntryWrapper
 		}
 	}
 
+	@Override
+	public BlogsEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the allow pingbacks of this blogs entry.
 	 *
@@ -358,6 +380,16 @@ public class BlogsEntryWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this blogs entry.
+	 *
+	 * @return the ct collection ID of this blogs entry
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the description of this blogs entry.
 	 *
 	 * @return the description of this blogs entry
@@ -385,6 +417,16 @@ public class BlogsEntryWrapper
 	@Override
 	public long getEntryId() {
 		return model.getEntryId();
+	}
+
+	/**
+	 * Returns the external reference code of this blogs entry.
+	 *
+	 * @return the external reference code of this blogs entry
+	 */
+	@Override
+	public String getExternalReferenceCode() {
+		return model.getExternalReferenceCode();
 	}
 
 	/**
@@ -887,6 +929,16 @@ public class BlogsEntryWrapper
 	}
 
 	/**
+	 * Sets the ct collection ID of this blogs entry.
+	 *
+	 * @param ctCollectionId the ct collection ID of this blogs entry
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
+	}
+
+	/**
 	 * Sets the description of this blogs entry.
 	 *
 	 * @param description the description of this blogs entry
@@ -914,6 +966,16 @@ public class BlogsEntryWrapper
 	@Override
 	public void setEntryId(long entryId) {
 		model.setEntryId(entryId);
+	}
+
+	/**
+	 * Sets the external reference code of this blogs entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this blogs entry
+	 */
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		model.setExternalReferenceCode(externalReferenceCode);
 	}
 
 	/**
@@ -1139,6 +1201,20 @@ public class BlogsEntryWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<BlogsEntry, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<BlogsEntry, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

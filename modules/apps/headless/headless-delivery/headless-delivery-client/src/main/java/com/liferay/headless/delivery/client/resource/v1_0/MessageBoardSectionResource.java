@@ -99,12 +99,12 @@ public interface MessageBoardSectionResource {
 				Long messageBoardSectionId, String roleNames)
 		throws Exception;
 
-	public void putMessageBoardSectionPermission(
+	public Page<Permission> putMessageBoardSectionPermissionsPage(
 			Long messageBoardSectionId, Permission[] permissions)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			putMessageBoardSectionPermissionHttpResponse(
+			putMessageBoardSectionPermissionsPageHttpResponse(
 				Long messageBoardSectionId, Permission[] permissions)
 		throws Exception;
 
@@ -186,12 +186,12 @@ public interface MessageBoardSectionResource {
 				Long siteId, String roleNames)
 		throws Exception;
 
-	public void putSiteMessageBoardSectionPermission(
+	public Page<Permission> putSiteMessageBoardSectionPermissionsPage(
 			Long siteId, Permission[] permissions)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			putSiteMessageBoardSectionPermissionHttpResponse(
+			putSiteMessageBoardSectionPermissionsPageHttpResponse(
 				Long siteId, Permission[] permissions)
 		throws Exception;
 
@@ -387,6 +387,8 @@ public interface MessageBoardSectionResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -845,12 +847,12 @@ public interface MessageBoardSectionResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putMessageBoardSectionPermission(
+		public Page<Permission> putMessageBoardSectionPermissionsPage(
 				Long messageBoardSectionId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putMessageBoardSectionPermissionHttpResponse(
+				putMessageBoardSectionPermissionsPageHttpResponse(
 					messageBoardSectionId, permissions);
 
 			String content = httpResponse.getContent();
@@ -879,7 +881,7 @@ public interface MessageBoardSectionResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -891,7 +893,7 @@ public interface MessageBoardSectionResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putMessageBoardSectionPermissionHttpResponse(
+				putMessageBoardSectionPermissionsPageHttpResponse(
 					Long messageBoardSectionId, Permission[] permissions)
 			throws Exception {
 
@@ -990,9 +992,6 @@ public interface MessageBoardSectionResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
-			httpInvoker.body(
-				messageBoardSectionId.toString(), "application/json");
-
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -1076,9 +1075,6 @@ public interface MessageBoardSectionResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(
-				messageBoardSectionId.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -1678,12 +1674,12 @@ public interface MessageBoardSectionResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putSiteMessageBoardSectionPermission(
+		public Page<Permission> putSiteMessageBoardSectionPermissionsPage(
 				Long siteId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putSiteMessageBoardSectionPermissionHttpResponse(
+				putSiteMessageBoardSectionPermissionsPageHttpResponse(
 					siteId, permissions);
 
 			String content = httpResponse.getContent();
@@ -1712,7 +1708,7 @@ public interface MessageBoardSectionResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -1724,7 +1720,7 @@ public interface MessageBoardSectionResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putSiteMessageBoardSectionPermissionHttpResponse(
+				putSiteMessageBoardSectionPermissionsPageHttpResponse(
 					Long siteId, Permission[] permissions)
 			throws Exception {
 

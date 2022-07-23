@@ -51,7 +51,7 @@ public abstract class BaseAnalyticsMVCRenderCommand
 			servletContext.getRequestDispatcher(getJspPath());
 
 		try {
-			setHttpServletRequestAttributes(
+			_setHttpServletRequestAttributes(
 				PortalUtil.getHttpServletRequest(renderRequest));
 
 			requestDispatcher.include(
@@ -72,7 +72,15 @@ public abstract class BaseAnalyticsMVCRenderCommand
 
 	protected abstract String getJspPath();
 
-	protected void setHttpServletRequestAttributes(
+	@Reference
+	protected AnalyticsUsersManager analyticsUsersManager;
+
+	@Reference
+	protected ConfigurationProvider configurationProvider;
+
+	protected volatile ServletContext servletContext;
+
+	private void _setHttpServletRequestAttributes(
 			HttpServletRequest httpServletRequest)
 		throws Exception {
 
@@ -89,14 +97,6 @@ public abstract class BaseAnalyticsMVCRenderCommand
 			AnalyticsSettingsWebKeys.ANALYTICS_USERS_MANAGER,
 			analyticsUsersManager);
 	}
-
-	@Reference
-	protected AnalyticsUsersManager analyticsUsersManager;
-
-	@Reference
-	protected ConfigurationProvider configurationProvider;
-
-	protected volatile ServletContext servletContext;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseAnalyticsMVCRenderCommand.class);

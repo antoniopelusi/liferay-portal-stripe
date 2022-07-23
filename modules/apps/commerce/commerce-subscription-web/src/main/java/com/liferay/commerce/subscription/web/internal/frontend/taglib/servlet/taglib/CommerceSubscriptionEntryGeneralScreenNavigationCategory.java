@@ -100,7 +100,7 @@ public class CommerceSubscriptionEntryGeneralScreenNavigationCategory
 
 		_jspRenderer.renderJSP(
 			_servletContext, httpServletRequest, httpServletResponse,
-			"/subscription_entry/general.jsp");
+			"/commerce_subscription_entry/general.jsp");
 	}
 
 	@Reference
@@ -125,7 +125,7 @@ public class CommerceSubscriptionEntryGeneralScreenNavigationCategory
 	private JSPRenderer _jspRenderer;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_SUBSCRIPTION + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_SUBSCRIPTION + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

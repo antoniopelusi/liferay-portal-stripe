@@ -30,6 +30,10 @@ public class ExpandoColumnLocalServiceWrapper
 	implements ExpandoColumnLocalService,
 			   ServiceWrapper<ExpandoColumnLocalService> {
 
+	public ExpandoColumnLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ExpandoColumnLocalServiceWrapper(
 		ExpandoColumnLocalService expandoColumnLocalService) {
 
@@ -90,7 +94,9 @@ public class ExpandoColumnLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteColumn(ExpandoColumn column) {
+	public void deleteColumn(ExpandoColumn column)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_expandoColumnLocalService.deleteColumn(column);
 	}
 
@@ -111,7 +117,9 @@ public class ExpandoColumnLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteColumn(long tableId, String name) {
+	public void deleteColumn(long tableId, String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_expandoColumnLocalService.deleteColumn(tableId, name);
 	}
 
@@ -125,7 +133,9 @@ public class ExpandoColumnLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteColumns(long tableId) {
+	public void deleteColumns(long tableId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_expandoColumnLocalService.deleteColumns(tableId);
 	}
 
@@ -194,6 +204,13 @@ public class ExpandoColumnLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _expandoColumnLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _expandoColumnLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

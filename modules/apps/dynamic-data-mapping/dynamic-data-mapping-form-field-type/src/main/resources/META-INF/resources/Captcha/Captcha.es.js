@@ -51,11 +51,12 @@ const Captcha = ({html, name, ...otherProps}) => {
 	}, [elRef, name]);
 
 	return (
-		<FieldBase {...otherProps} name={name} visible={true}>
+		<FieldBase {...otherProps} hideEditedFlag name={name} visible={true}>
 			<div
 				dangerouslySetInnerHTML={{__html: contentMemoized}}
 				ref={elRef}
 			/>
+
 			<input id={name} type="hidden" />
 		</FieldBase>
 	);

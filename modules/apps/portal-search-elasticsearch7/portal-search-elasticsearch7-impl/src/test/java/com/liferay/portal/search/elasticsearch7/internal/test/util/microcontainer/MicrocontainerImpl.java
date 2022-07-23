@@ -44,13 +44,13 @@ public class MicrocontainerImpl implements Microcontainer {
 		Stream.of(
 			components
 		).forEach(
-			this::injectComponent
+			this::_injectComponent
 		);
 
 		Stream.of(
 			components
 		).forEach(
-			this::deployComponent
+			this::_deployComponent
 		);
 	}
 
@@ -134,31 +134,46 @@ public class MicrocontainerImpl implements Microcontainer {
 		activator.activate();
 	}
 
-	protected static Optional<MethodNode> findMethodPortalInitialized(
+	private Map<String, Collection<Object>> _createComponentsMap() {
+		return LinkedHashMapBuilder.<String, Collection<Object>>put(
+			StringPool.BLANK, new HashSet<>()
+		).put(
+			ModuleServiceLifecycle.PORTAL_INITIALIZED, new HashSet<>()
+		).build();
+	}
+
+	private void _deployComponent(Object component) {
+		Collection<Object> lifecycleComponents = _componentsMap.get(
+			_getLifecycle(component));
+
+		lifecycleComponents.add(component);
+	}
+
+	private Optional<MethodNode> _findMethodPortalInitialized(
 		ClassNode classNode) {
 
 		Stream<MethodNode> stream = classNode.methods.stream();
 
 		return stream.filter(
-			methodNode -> hasReferenceWithTarget(
+			methodNode -> _hasReferenceWithTarget(
 				methodNode, ModuleServiceLifecycle.PORTAL_INITIALIZED)
 		).findAny();
 	}
 
-	protected static String getLifecycle(Object component) {
-		if (hasMethodPortalInitialized(component)) {
+	private String _getLifecycle(Object component) {
+		if (_hasMethodPortalInitialized(component)) {
 			return ModuleServiceLifecycle.PORTAL_INITIALIZED;
 		}
 
 		return StringPool.BLANK;
 	}
 
-	protected static boolean hasMethodPortalInitialized(Object component) {
+	private boolean _hasMethodPortalInitialized(Object component) {
 		Class<?> clazz = component.getClass();
 
 		ClassNode classNode1 = ASMUtil.getClassNode(clazz);
 
-		Optional<MethodNode> optional1 = findMethodPortalInitialized(
+		Optional<MethodNode> optional1 = _findMethodPortalInitialized(
 			classNode1);
 
 		if (optional1.isPresent()) {
@@ -171,13 +186,13 @@ public class MicrocontainerImpl implements Microcontainer {
 
 		ClassNode classNode2 = ASMUtil.getClassNode(classNode1.superName);
 
-		Optional<MethodNode> optional2 = findMethodPortalInitialized(
+		Optional<MethodNode> optional2 = _findMethodPortalInitialized(
 			classNode2);
 
 		return optional2.isPresent();
 	}
 
-	protected static boolean hasReferenceWithTarget(
+	private boolean _hasReferenceWithTarget(
 		MethodNode methodNode, String lifecycle) {
 
 		List<AnnotationNode> annotationNodes = methodNode.invisibleAnnotations;
@@ -189,14 +204,12 @@ public class MicrocontainerImpl implements Microcontainer {
 		Stream<AnnotationNode> stream = annotationNodes.stream();
 
 		return stream.filter(
-			annotationNode -> hasTarget(annotationNode, lifecycle)
+			annotationNode -> _hasTarget(annotationNode, lifecycle)
 		).findAny(
 		).isPresent();
 	}
 
-	protected static boolean hasTarget(
-		AnnotationNode annotationNode, String target) {
-
+	private boolean _hasTarget(AnnotationNode annotationNode, String target) {
 		if (!annotationNode.desc.contains(Reference.class.getSimpleName())) {
 			return false;
 		}
@@ -216,28 +229,13 @@ public class MicrocontainerImpl implements Microcontainer {
 		return false;
 	}
 
-	protected void deployComponent(Object component) {
-		Collection<Object> lifecycleComponents = _componentsMap.get(
-			getLifecycle(component));
-
-		lifecycleComponents.add(component);
-	}
-
-	protected void injectComponent(Object component) {
+	private void _injectComponent(Object component) {
 		if (_started) {
 			activate(component);
 		}
 
 		_injectors.forEach(injector -> injector.inject(component));
 		_injectorProps.forEach(injectorProp -> injectorProp.inject(component));
-	}
-
-	private Map<String, Collection<Object>> _createComponentsMap() {
-		return LinkedHashMapBuilder.<String, Collection<Object>>put(
-			StringPool.BLANK, new HashSet<>()
-		).put(
-			ModuleServiceLifecycle.PORTAL_INITIALIZED, new HashSet<>()
-		).build();
 	}
 
 	private final Map<String, Collection<Object>> _componentsMap =

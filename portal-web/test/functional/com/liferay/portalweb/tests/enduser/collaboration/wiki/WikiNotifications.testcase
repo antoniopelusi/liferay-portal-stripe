@@ -1,0 +1,153 @@
+@component-name = "portal-lima"
+definition {
+
+	property custom.properties = "default.layout.template.id=1_column${line.separator}jsonws.web.service.paths.excludes=";
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Notifications";
+	property testray.main.component.name = "Wiki";
+
+	var pageName = "Wiki Test Page";
+	var portletName = "Wiki";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Wiki Test Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Wiki Test Page",
+			widgetName = "Wiki");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Administrator",
+			userEmailAddress = "userea@liferay.com");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			WikiNode.tearDownCP();
+
+			PagesAdmin.tearDownCP();
+
+			JSONUser.tearDownNonAdminUsers();
+		}
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewWebsiteNotificationForNewWikiPage {
+		WikiNavigator.openWikiAdmin(siteURLKey = "guest");
+
+		WikiPortlet.subscribeToNodeCP(wikiNodeName = "Main");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		WikiPage.addPG(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Notifications.viewBadgeCount(notificationCount = "1");
+
+		Notifications.gotoNotifications();
+
+		Notifications.viewNewContent(
+			assetType = "wiki page",
+			contentBody = "Wiki Page Title",
+			user = "userfn userln");
+
+		Notifications.navigateToContent(contentBody = "Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewWebsiteNotificationForUpdatedWikiPage {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openWikiAdmin(siteURLKey = "guest");
+
+		WikiPortlet.subscribeToNodeCP(wikiNodeName = "Main");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		WikiPage.editPagePG(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageContentEdit = "Wiki Page Content Edit",
+			wikiPageTitle = "Wiki Page Title");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Notifications.viewBadgeCount(notificationCount = "1");
+
+		Notifications.gotoNotifications();
+
+		Notifications.viewUpdatedContent(
+			assetType = "wiki page",
+			contentBody = "Wiki Page Title",
+			user = "userfn userln");
+
+		Notifications.navigateToContent(contentBody = "Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content Edit",
+			wikiPageTitle = "Wiki Page Title");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+	}
+
+}

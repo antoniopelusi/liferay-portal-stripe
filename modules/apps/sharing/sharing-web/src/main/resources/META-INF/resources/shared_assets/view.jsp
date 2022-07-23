@@ -30,7 +30,7 @@ PortletURL viewAssetTypeURL = PortletURLBuilder.create(
 	PortletURLUtil.clone(currentURLObj, liferayPortletResponse)
 ).setParameter(
 	"className", (String)null
-).build();
+).buildPortletURL();
 
 PortletURL selectAssetTypeURL = viewSharedAssetsDisplayContext.getSelectAssetTypeURL();
 %>
@@ -56,7 +56,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCRenderCommandName(
 	"/blogs/view"
-).build();
+).buildPortletURL();
 
 SearchContainer<SharingEntry> sharingEntriesSearchContainer = new SearchContainer(renderRequest, PortletURLUtil.clone(portletURL, liferayPortletResponse), null, "no-entries-were-found");
 

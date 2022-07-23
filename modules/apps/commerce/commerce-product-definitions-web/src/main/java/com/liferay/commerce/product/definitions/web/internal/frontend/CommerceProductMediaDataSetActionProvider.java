@@ -116,7 +116,7 @@ public class CommerceProductMediaDataSetActionProvider
 			"/cp_definitions/edit_cp_attachment_file_entry"
 		).setCMD(
 			Constants.DELETE
-		).build();
+		).buildPortletURL();
 
 		String redirect = ParamUtil.getString(
 			httpServletRequest, "currentUrl",
@@ -148,13 +148,13 @@ public class CommerceProductMediaDataSetActionProvider
 			"cpDefinitionId", cpAttachmentFileEntry.getClassPK()
 		).setParameter(
 			"type", cpAttachmentFileEntry.getType()
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL;

@@ -68,7 +68,7 @@ public abstract class BaseSearchEngineConfigurator
 		for (SearchEngineRegistration searchEngineRegistration :
 				_searchEngineRegistrations) {
 
-			destroySearchEngine(searchEngineRegistration);
+			_destroySearchEngine(searchEngineRegistration);
 		}
 
 		_searchEngineRegistrations.clear();
@@ -116,20 +116,6 @@ public abstract class BaseSearchEngineConfigurator
 
 	}
 
-	protected void createSearchEngineListeners(
-		String searchEngineId, SearchEngine searchEngine,
-		Destination searchReaderDestination,
-		Destination searchWriterDestination) {
-
-		registerSearchEngineMessageListener(
-			searchEngineId, searchEngine, searchReaderDestination,
-			new SearchReaderMessageListener(), searchEngine.getIndexSearcher());
-
-		registerSearchEngineMessageListener(
-			searchEngineId, searchEngine, searchWriterDestination,
-			new SearchWriterMessageListener(), searchEngine.getIndexWriter());
-	}
-
 	protected Destination createSearchReaderDestination(
 		String searchReaderDestinationName) {
 
@@ -172,14 +158,11 @@ public abstract class BaseSearchEngineConfigurator
 						ThreadPoolExecutor threadPoolExecutor) {
 
 						if (_log.isWarnEnabled()) {
-							StringBundler sb = new StringBundler(4);
-
-							sb.append("The search index writer's task queue ");
-							sb.append("is at its maximum capacity. The ");
-							sb.append("current thread will handle the ");
-							sb.append("request.");
-
-							_log.warn(sb.toString());
+							_log.warn(
+								StringBundler.concat(
+									"The search index writer's task queue is ",
+									"at its maximum capacity. The current ",
+									"thread will handle the request."));
 						}
 
 						super.rejectedExecution(runnable, threadPoolExecutor);
@@ -196,19 +179,112 @@ public abstract class BaseSearchEngineConfigurator
 		return destinationFactory.createDestination(destinationConfiguration);
 	}
 
-	protected void destroySearchEngine(
+	protected abstract BundleContext getBundleContext();
+
+	protected abstract String getDefaultSearchEngineId();
+
+	protected Destination getDestination(
+		ServiceRegistration<Destination> serviceRegistration) {
+
+		BundleContext bundleContext = getBundleContext();
+
+		return bundleContext.getService(serviceRegistration.getReference());
+	}
+
+	protected abstract DestinationFactory getDestinationFactory();
+
+	protected abstract IndexSearcher getIndexSearcher();
+
+	protected abstract IndexWriter getIndexWriter();
+
+	protected abstract MessageBus getMessageBus();
+
+	protected abstract ClassLoader getOperatingClassLoader();
+
+	protected abstract SearchEngineHelper getSearchEngineHelper();
+
+	protected void initialize() {
+		Set<Map.Entry<String, SearchEngine>> entrySet =
+			_searchEngines.entrySet();
+
+		for (Map.Entry<String, SearchEngine> entry : entrySet) {
+			_initSearchEngine(entry.getKey(), entry.getValue());
+		}
+
+		String defaultSearchEngineId = getDefaultSearchEngineId();
+
+		if (Validator.isNotNull(defaultSearchEngineId)) {
+			SearchEngineHelper searchEngineHelper = getSearchEngineHelper();
+
+			_originalSearchEngineId =
+				searchEngineHelper.getDefaultSearchEngineId();
+
+			searchEngineHelper.setDefaultSearchEngineId(defaultSearchEngineId);
+		}
+
+		_searchEngines.clear();
+	}
+
+	protected ServiceRegistration<Destination> registerDestination(
+		Destination destination) {
+
+		BundleContext bundleContext = getBundleContext();
+
+		return bundleContext.registerService(
+			Destination.class, destination,
+			MapUtil.singletonDictionary(
+				"destination.name", destination.getName()));
+	}
+
+	protected void setDestinationServiceRegistrarHelper(
+		DestinationServiceRegistrarHelper destinationServiceRegistrarHelper) {
+
+		_destinationServiceRegistrarHelper = destinationServiceRegistrarHelper;
+	}
+
+	protected void setSearchDestinationHelper(
+		SearchDestinationHelper searchDestinationHelper) {
+
+		_searchDestinationHelper = searchDestinationHelper;
+	}
+
+	protected void setSearchEngine(
+		String searchEngineId, SearchEngine searchEngine) {
+
+		SearchEngineHelper searchEngineHelper = getSearchEngineHelper();
+
+		searchEngineHelper.setSearchEngine(searchEngineId, searchEngine);
+
+		searchEngine.initialize(CompanyConstants.SYSTEM);
+	}
+
+	private void _createSearchEngineListeners(
+		String searchEngineId, SearchEngine searchEngine,
+		Destination searchReaderDestination,
+		Destination searchWriterDestination) {
+
+		_registerSearchEngineMessageListener(
+			searchEngineId, searchEngine, searchReaderDestination,
+			new SearchReaderMessageListener(), searchEngine.getIndexSearcher());
+
+		_registerSearchEngineMessageListener(
+			searchEngineId, searchEngine, searchWriterDestination,
+			new SearchWriterMessageListener(), searchEngine.getIndexWriter());
+	}
+
+	private void _destroySearchEngine(
 		SearchEngineRegistration searchEngineRegistration) {
 
 		MessageBus messageBus = getMessageBus();
 
-		Destination searchReaderDestination = getSearchReaderDestination(
+		Destination searchReaderDestination = _getSearchReaderDestination(
 			messageBus, searchEngineRegistration.getSearchEngineId(), false);
 
 		if (searchReaderDestination != null) {
 			searchReaderDestination.unregisterMessageListeners();
 		}
 
-		Destination searchWriterDestination = getSearchWriterDestination(
+		Destination searchWriterDestination = _getSearchWriterDestination(
 			messageBus, searchEngineRegistration.getSearchEngineId(), false);
 
 		if (searchWriterDestination != null) {
@@ -236,14 +312,14 @@ public abstract class BaseSearchEngineConfigurator
 			searchEngineRegistration.getOriginalSearchEngineProxyWrapper();
 
 		if (searchReaderDestination != null) {
-			registerInvokerMessageListener(
+			_registerInvokerMessageListener(
 				searchReaderDestination,
 				searchEngineRegistration.
 					getOriginalSearchReaderMessageListeners());
 		}
 
 		if (searchWriterDestination != null) {
-			registerInvokerMessageListener(
+			_registerInvokerMessageListener(
 				searchWriterDestination,
 				searchEngineRegistration.
 					getOriginalSearchWriterMessageListeners());
@@ -254,40 +330,7 @@ public abstract class BaseSearchEngineConfigurator
 			originalSearchEngineProxy);
 	}
 
-	protected abstract BundleContext getBundleContext();
-
-	protected abstract String getDefaultSearchEngineId();
-
-	protected Destination getDestination(
-		ServiceRegistration<Destination> serviceRegistration) {
-
-		BundleContext bundleContext = getBundleContext();
-
-		return bundleContext.getService(serviceRegistration.getReference());
-	}
-
-	protected abstract DestinationFactory getDestinationFactory();
-
-	protected abstract IndexSearcher getIndexSearcher();
-
-	protected abstract IndexWriter getIndexWriter();
-
-	protected abstract MessageBus getMessageBus();
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getOperatingClassLoader()}
-	 */
-	@Deprecated
-	protected ClassLoader getOperatingClassloader() {
-		return getOperatingClassLoader();
-	}
-
-	protected abstract ClassLoader getOperatingClassLoader();
-
-	protected abstract SearchEngineHelper getSearchEngineHelper();
-
-	protected Destination getSearchReaderDestination(
+	private Destination _getSearchReaderDestination(
 		MessageBus messageBus, String searchEngineId, boolean createIfAbsent) {
 
 		SearchEngineHelper searchEngineHelper = getSearchEngineHelper();
@@ -310,7 +353,7 @@ public abstract class BaseSearchEngineConfigurator
 		return searchReaderDestination;
 	}
 
-	protected Destination getSearchWriterDestination(
+	private Destination _getSearchWriterDestination(
 		MessageBus messageBus, String searchEngineId, boolean createIfAbsent) {
 
 		SearchEngineHelper searchEngineHelper = getSearchEngineHelper();
@@ -333,29 +376,7 @@ public abstract class BaseSearchEngineConfigurator
 		return searchWriterDestination;
 	}
 
-	protected void initialize() {
-		Set<Map.Entry<String, SearchEngine>> entrySet =
-			_searchEngines.entrySet();
-
-		for (Map.Entry<String, SearchEngine> entry : entrySet) {
-			initSearchEngine(entry.getKey(), entry.getValue());
-		}
-
-		String defaultSearchEngineId = getDefaultSearchEngineId();
-
-		if (Validator.isNotNull(defaultSearchEngineId)) {
-			SearchEngineHelper searchEngineHelper = getSearchEngineHelper();
-
-			_originalSearchEngineId =
-				searchEngineHelper.getDefaultSearchEngineId();
-
-			searchEngineHelper.setDefaultSearchEngineId(defaultSearchEngineId);
-		}
-
-		_searchEngines.clear();
-	}
-
-	protected void initSearchEngine(
+	private void _initSearchEngine(
 		String searchEngineId, SearchEngine searchEngine) {
 
 		SearchEngineRegistration searchEngineRegistration =
@@ -365,13 +386,13 @@ public abstract class BaseSearchEngineConfigurator
 
 		MessageBus messageBus = getMessageBus();
 
-		Destination searchReaderDestination = getSearchReaderDestination(
+		Destination searchReaderDestination = _getSearchReaderDestination(
 			messageBus, searchEngineId, true);
 
 		searchEngineRegistration.setSearchReaderDestinationName(
 			searchReaderDestination.getName());
 
-		Destination searchWriterDestination = getSearchWriterDestination(
+		Destination searchWriterDestination = _getSearchWriterDestination(
 			messageBus, searchEngineId, true);
 
 		searchEngineRegistration.setSearchWriterDestinationName(
@@ -388,7 +409,7 @@ public abstract class BaseSearchEngineConfigurator
 			searchEngineRegistration.setOriginalSearchEngineProxyWrapper(
 				(SearchEngineProxyWrapper)originalSearchEngine);
 
-			savePreviousSearchEngineListeners(
+			_savePreviousSearchEngineListeners(
 				searchReaderDestination, searchWriterDestination,
 				searchEngineRegistration);
 
@@ -396,7 +417,7 @@ public abstract class BaseSearchEngineConfigurator
 			searchWriterDestination.unregisterMessageListeners();
 		}
 
-		createSearchEngineListeners(
+		_createSearchEngineListeners(
 			searchEngineId, searchEngine, searchReaderDestination,
 			searchWriterDestination);
 
@@ -407,18 +428,7 @@ public abstract class BaseSearchEngineConfigurator
 		setSearchEngine(searchEngineId, searchEngineProxyWrapper);
 	}
 
-	protected ServiceRegistration<Destination> registerDestination(
-		Destination destination) {
-
-		BundleContext bundleContext = getBundleContext();
-
-		return bundleContext.registerService(
-			Destination.class, destination,
-			MapUtil.singletonDictionary(
-				"destination.name", destination.getName()));
-	}
-
-	protected void registerInvokerMessageListener(
+	private void _registerInvokerMessageListener(
 		Destination destination,
 		List<InvokerMessageListener> invokerMessageListeners) {
 
@@ -431,7 +441,29 @@ public abstract class BaseSearchEngineConfigurator
 		}
 	}
 
-	protected void registerSearchEngineMessageListener(
+	private void _registerSearchEngineDestination(
+		String searchEngineId, Destination destination) {
+
+		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
+			"destination.name", destination.getName()
+		).build();
+
+		DestinationServiceRegistrar destinationServiceRegistrar =
+			_destinationServiceRegistrars.get(searchEngineId);
+
+		if (destinationServiceRegistrar == null) {
+			destinationServiceRegistrar = new DestinationServiceRegistrar(
+				_destinationServiceRegistrarHelper);
+
+			_destinationServiceRegistrars.put(
+				searchEngineId, destinationServiceRegistrar);
+		}
+
+		destinationServiceRegistrar.registerService(
+			Destination.class, destination, properties);
+	}
+
+	private void _registerSearchEngineMessageListener(
 		String searchEngineId, SearchEngine searchEngine,
 		Destination destination,
 		BaseSearchEngineMessageListener baseSearchEngineMessageListener,
@@ -446,7 +478,7 @@ public abstract class BaseSearchEngineConfigurator
 			baseSearchEngineMessageListener, getOperatingClassLoader());
 	}
 
-	protected void savePreviousSearchEngineListeners(
+	private void _savePreviousSearchEngineListeners(
 		Destination searchReaderDestination,
 		Destination searchWriterDestination,
 		SearchEngineRegistration searchEngineRegistration) {
@@ -476,50 +508,6 @@ public abstract class BaseSearchEngineConfigurator
 			searchEngineRegistration.addOriginalSearchWriterMessageListener(
 				invokerMessageListener);
 		}
-	}
-
-	protected void setDestinationServiceRegistrarHelper(
-		DestinationServiceRegistrarHelper destinationServiceRegistrarHelper) {
-
-		_destinationServiceRegistrarHelper = destinationServiceRegistrarHelper;
-	}
-
-	protected void setSearchDestinationHelper(
-		SearchDestinationHelper searchDestinationHelper) {
-
-		_searchDestinationHelper = searchDestinationHelper;
-	}
-
-	protected void setSearchEngine(
-		String searchEngineId, SearchEngine searchEngine) {
-
-		SearchEngineHelper searchEngineHelper = getSearchEngineHelper();
-
-		searchEngineHelper.setSearchEngine(searchEngineId, searchEngine);
-
-		searchEngine.initialize(CompanyConstants.SYSTEM);
-	}
-
-	private void _registerSearchEngineDestination(
-		String searchEngineId, Destination destination) {
-
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			"destination.name", destination.getName()
-		).build();
-
-		DestinationServiceRegistrar destinationServiceRegistrar =
-			_destinationServiceRegistrars.get(searchEngineId);
-
-		if (destinationServiceRegistrar == null) {
-			destinationServiceRegistrar = new DestinationServiceRegistrar(
-				_destinationServiceRegistrarHelper);
-
-			_destinationServiceRegistrars.put(
-				searchEngineId, destinationServiceRegistrar);
-		}
-
-		destinationServiceRegistrar.registerService(
-			Destination.class, destination, properties);
 	}
 
 	private static final int _INDEX_SEARCH_WRITER_MAX_QUEUE_SIZE =

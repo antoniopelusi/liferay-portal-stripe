@@ -37,10 +37,10 @@ PortletURL productSkusURL = PortletURLBuilder.createRenderURL(
 ).setMVCRenderCommandName(
 	"/cp_definitions/edit_cp_definition"
 ).setParameter(
-	"cpDefinitionId", String.valueOf(cpDefinition.getCPDefinitionId())
+	"cpDefinitionId", cpDefinition.getCPDefinitionId()
 ).setParameter(
 	"screenNavigationCategoryKey", cpInstanceSubscriptionInfoDisplayContext.getScreenNavigationCategoryKey()
-).build();
+).buildPortletURL();
 
 boolean overrideSubscriptionInfo = BeanParamUtil.getBoolean(cpInstance, request, "overrideSubscriptionInfo", false);
 boolean subscriptionEnabled = BeanParamUtil.getBoolean(cpInstance, request, "subscriptionEnabled", false);
@@ -123,7 +123,7 @@ if (deliveryMaxSubscriptionCycles > 0) {
 
 				<%
 				if (cpSubscriptionTypeJSPContributor != null) {
-					cpSubscriptionTypeJSPContributor.render(cpInstance, request, PipingServletResponse.createPipingServletResponse(pageContext));
+					cpSubscriptionTypeJSPContributor.render(cpInstance, request, PipingServletResponseFactory.createPipingServletResponse(pageContext));
 				}
 				%>
 
@@ -185,7 +185,7 @@ if (deliveryMaxSubscriptionCycles > 0) {
 
 				<%
 				if (deliveryCPSubscriptionTypeJSPContributor != null) {
-					deliveryCPSubscriptionTypeJSPContributor.render(cpDefinition, request, PipingServletResponse.createPipingServletResponse(pageContext), false);
+					deliveryCPSubscriptionTypeJSPContributor.render(cpDefinition, request, PipingServletResponseFactory.createPipingServletResponse(pageContext), false);
 				}
 				%>
 

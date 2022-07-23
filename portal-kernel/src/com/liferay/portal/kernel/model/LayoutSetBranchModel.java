@@ -381,4 +381,7 @@ public interface LayoutSetBranchModel
 	public void setLayoutSetPrototypeLinkEnabled(
 		boolean layoutSetPrototypeLinkEnabled);
 
+	@Override
+	public LayoutSetBranch cloneWithOriginalValues();
+
 }

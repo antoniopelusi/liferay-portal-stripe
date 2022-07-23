@@ -113,7 +113,7 @@ public class CommerceCatalogDataSetActionProvider
 			"/commerce_catalogs/edit_commerce_catalog"
 		).setCMD(
 			Constants.DELETE
-		).build();
+		).buildPortletURL();
 
 		String redirect = ParamUtil.getString(
 			httpServletRequest, "currentUrl",
@@ -135,7 +135,7 @@ public class CommerceCatalogDataSetActionProvider
 				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/commerce_catalogs/edit_commerce_catalog"
-		).build();
+		).buildPortletURL();
 
 		String redirect = ParamUtil.getString(
 			httpServletRequest, "currentUrl",
@@ -152,10 +152,6 @@ public class CommerceCatalogDataSetActionProvider
 			Catalog catalog, HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		PortletURL portletURL = PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				httpServletRequest,
@@ -165,14 +161,17 @@ public class CommerceCatalogDataSetActionProvider
 		).setMVCPath(
 			"/edit_permissions.jsp"
 		).setParameter(
-			PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE + "backURL", redirect
+			PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE + "backURL",
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"modelResource", CommerceCatalog.class.getName()
 		).setParameter(
 			"modelResourceDescription", catalog.getName()
 		).setParameter(
 			"resourcePrimKey", catalog.getCatalogId()
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);

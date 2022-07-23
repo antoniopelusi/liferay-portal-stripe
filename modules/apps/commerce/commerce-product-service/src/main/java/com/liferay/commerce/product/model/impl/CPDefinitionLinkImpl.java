@@ -24,9 +24,6 @@ import com.liferay.commerce.product.service.CProductLocalServiceUtil;
  */
 public class CPDefinitionLinkImpl extends CPDefinitionLinkBaseImpl {
 
-	public CPDefinitionLinkImpl() {
-	}
-
 	@Override
 	public CPDefinition getCPDefinition() {
 		return CPDefinitionLocalServiceUtil.fetchCPDefinition(

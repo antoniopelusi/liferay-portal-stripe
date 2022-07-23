@@ -13,7 +13,7 @@
  */
 
 import {ClayButtonWithIcon} from '@clayui/button';
-import ClayDropDown from '@clayui/drop-down';
+import ClayDropDown, {ClayDropDownWithItems} from '@clayui/drop-down';
 import {ClayCheckbox} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
@@ -24,6 +24,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useDrag, useDrop} from 'react-dnd';
 import {getEmptyImage} from 'react-dnd-html5-backend';
 
+import ACTIONS from '../actions';
 import {ACCEPTING_TYPES, ITEM_HOVER_BORDER_LIMIT} from './constants';
 
 const DROP_ZONES = {
@@ -36,11 +37,11 @@ const ITEM_HOVER_TIMEOUT = 500;
 
 const ITEM_STATES_COLORS = {
 	'conversion-draft': 'info',
-	draft: 'secondary',
-	pending: 'info',
+	'draft': 'secondary',
+	'pending': 'info',
 };
 
-const isValidTarget = (sources, target, dropZone) => {
+const isValidTarget = (sources, target, dropZone, isPrivateLayoutsEnabled) => {
 	if (sources.some((item) => item.id === target.id)) {
 		return false;
 	}
@@ -49,7 +50,8 @@ const isValidTarget = (sources, target, dropZone) => {
 		sources.some(
 			(source) =>
 				!(
-					(target.parentId &&
+					(((isPrivateLayoutsEnabled && target.parentId) ||
+						!isPrivateLayoutsEnabled) &&
 						target.columnIndex <= source.columnIndex) ||
 					(target.columnIndex > source.columnIndex && !source.active)
 				)
@@ -117,9 +119,53 @@ const getItemIndex = (item = {}, items) => {
 	return siblings.indexOf(item);
 };
 
+function addSeparators(items) {
+	if (items.length < 2) {
+		return items;
+	}
+
+	const separatedItems = [items[0]];
+
+	for (let i = 1; i < items.length; i++) {
+		const item = items[i];
+
+		if (item.type === 'group' && item.separator) {
+			separatedItems.push({type: 'divider'});
+		}
+
+		separatedItems.push(item);
+	}
+
+	return separatedItems.map((item) => {
+		if (item.type === 'group') {
+			return {
+				...item,
+				items: addSeparators(item.items),
+			};
+		}
+
+		return item;
+	});
+}
+
+function filterEmptyGroups(items) {
+	return items
+		.filter(
+			(item) =>
+				item.type !== 'group' ||
+				(Array.isArray(item.items) && item.items.length)
+		)
+		.map((item) =>
+			item.type === 'group'
+				? {...item, items: filterEmptyGroups(item.items)}
+				: item
+		);
+}
+
 const noop = () => {};
 
 const MillerColumnsItem = ({
+	isPrivateLayoutsEnabled,
 	item: {
 		actions = [],
 		active,
@@ -133,6 +179,7 @@ const MillerColumnsItem = ({
 		itemIndex,
 		parentId,
 		parentable,
+		quickActions = [],
 		selectable,
 		states = [],
 		title,
@@ -140,7 +187,6 @@ const MillerColumnsItem = ({
 		viewUrl,
 	},
 	items,
-	actionHandlers = {},
 	namespace,
 	onDragEnd,
 	onItemDrop = noop,
@@ -150,53 +196,48 @@ const MillerColumnsItem = ({
 	const ref = useRef();
 	const timeoutRef = useRef();
 
-	const [dropdownActionsActive, setDropdownActionsActive] = useState();
 	const [dropZone, setDropZone] = useState();
-	const [layoutActionsActive, setLayoutActionsActive] = useState();
+
+	const [dropdownActionsActive, setDropdownActionsActive] = useState(false);
+
+	const [layoutActionsActive, setLayoutActionsActive] = useState(false);
 
 	const dropdownActions = useMemo(() => {
-		const dropdownActions = [];
+		const dropdownActions = actions.map((action) => {
+			return {
+				...action,
+				items: action.items?.map((child) => {
+					return {
+						...child,
+						onClick(event) {
+							const action = child.data?.action;
 
-		actions.forEach((action) => {
-			if (!action.quickAction && !action.layoutAction) {
-				const onClick = action.handler || actionHandlers[action.id];
+							if (action) {
+								event.preventDefault();
 
-				dropdownActions.push({
-					...action,
-					handler: () =>
-						onClick &&
-						onClick({
-							actionURL: action.url,
-							hasChildren: action.hasChildren,
-							namespace,
-						}),
-					href: onClick ? null : action.url,
-				});
-			}
+								ACTIONS[action](child.data, namespace);
+							}
+						},
+						symbolLeft: child.icon,
+					};
+				}),
+			};
 		});
 
-		return dropdownActions;
-	}, [actions, actionHandlers, namespace]);
+		return addSeparators(filterEmptyGroups(dropdownActions));
+	}, [actions, namespace]);
 
 	const layoutActions = useMemo(() => {
-		return actions.filter((action) => action.layoutAction && action.url);
-	}, [actions]);
+		return quickActions.filter(
+			(action) => action.layoutAction && action.url
+		);
+	}, [quickActions]);
 
-	const quickActions = useMemo(() => {
-		const quickActions = [];
-
-		actions.forEach((action) => {
-			if (action.quickAction && action.url) {
-				quickActions.push({
-					...action,
-					handler:
-						action.handler || actionHandlers[action.id] || noop,
-				});
-			}
-		});
-
-		return quickActions;
-	}, [actions, actionHandlers]);
+	const normalizedQuickActions = useMemo(() => {
+		return quickActions.filter(
+			(action) => action.quickAction && action.url
+		);
+	}, [quickActions]);
 
 	const [{isDragging}, drag, previewRef] = useDrag({
 		collect: (monitor) => ({
@@ -237,7 +278,8 @@ const MillerColumnsItem = ({
 			return isValidTarget(
 				source.items,
 				{columnIndex, id: itemId, itemIndex, parentId, parentable},
-				dropZone
+				dropZone,
+				isPrivateLayoutsEnabled
 			);
 		},
 		collect: (monitor) => ({
@@ -302,7 +344,7 @@ const MillerColumnsItem = ({
 	return (
 		<ClayLayout.ContentRow
 			className={classNames('list-group-item-flex miller-columns-item', {
-				dragging: isDragging,
+				'dragging': isDragging,
 				'drop-bottom': isOver && dropZone === DROP_ZONES.BOTTOM,
 				'drop-element': isOver && dropZone === DROP_ZONES.ELEMENT,
 				'drop-top': isOver && dropZone === DROP_ZONES.TOP,
@@ -335,7 +377,7 @@ const MillerColumnsItem = ({
 				</ClayLayout.ContentCol>
 			)}
 
-			<ClayLayout.ContentCol expand>
+			<ClayLayout.ContentCol className="pl-1" expand>
 				<h4 className="list-group-title text-truncate-inline">
 					{viewUrl ? (
 						<ClayLink className="text-truncate" href={viewUrl}>
@@ -368,12 +410,14 @@ const MillerColumnsItem = ({
 					<ClayDropDown
 						active={layoutActionsActive}
 						onActiveChange={setLayoutActionsActive}
+						renderMenuOnClick
 						trigger={
 							<ClayButtonWithIcon
 								borderless
 								displayType="secondary"
 								small
 								symbol="plus"
+								title={Liferay.Language.get('add-child-page')}
 							/>
 						}
 					>
@@ -394,7 +438,7 @@ const MillerColumnsItem = ({
 				</ClayLayout.ContentCol>
 			)}
 
-			{quickActions.map((action) => (
+			{normalizedQuickActions.map((action) => (
 				<ClayLayout.ContentCol
 					className="miller-columns-item-quick-action"
 					key={action.id}
@@ -413,32 +457,23 @@ const MillerColumnsItem = ({
 
 			{dropdownActions.length > 0 && (
 				<ClayLayout.ContentCol className="miller-columns-item-actions">
-					<ClayDropDown
+					<ClayDropDownWithItems
 						active={dropdownActionsActive}
+						items={dropdownActions}
 						onActiveChange={setDropdownActionsActive}
+						renderMenuOnClick
 						trigger={
 							<ClayButtonWithIcon
 								borderless
 								displayType="secondary"
 								small
 								symbol="ellipsis-v"
+								title={Liferay.Language.get(
+									'open-page-options-menu'
+								)}
 							/>
 						}
-					>
-						<ClayDropDown.ItemList>
-							{dropdownActions.map((action) => (
-								<ClayDropDown.Item
-									disabled={!action.url}
-									href={action.href}
-									id={action.id}
-									key={action.id}
-									onClick={action.handler}
-								>
-									{action.label}
-								</ClayDropDown.Item>
-							))}
-						</ClayDropDown.ItemList>
-					</ClayDropDown>
+					/>
 				</ClayLayout.ContentCol>
 			)}
 

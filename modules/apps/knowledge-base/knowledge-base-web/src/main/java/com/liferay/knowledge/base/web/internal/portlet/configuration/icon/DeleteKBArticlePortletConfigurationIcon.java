@@ -67,7 +67,7 @@ public class DeleteKBArticlePortletConfigurationIcon
 				PortletRequest.ACTION_PHASE)
 		).setActionName(
 			"deleteKBArticle"
-		).build();
+		).buildPortletURL();
 
 		String mvcPath = ParamUtil.getString(portletRequest, "mvcPath");
 
@@ -112,7 +112,7 @@ public class DeleteKBArticlePortletConfigurationIcon
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 

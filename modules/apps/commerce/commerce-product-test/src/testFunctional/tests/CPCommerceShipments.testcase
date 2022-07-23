@@ -1,48 +1,223 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Order Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "This is a test for COMMERCE-6238. Add shipment items to a shipment"
-	@ignore = "true"
 	@priority = "3"
 	test AddItemsToShipment {
-		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6238 AddItemsToShipment Pending Implementation
+		// TODO Review
 
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Test Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		Refresh();
+
+		var orderId = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_text = "Accept Order",
+			locator1 = "Link#ANY");
+
+		Click(
+			key_text = "Create Shipment",
+			locator1 = "Button#ANY");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Check.checkToggleSwitch(
+			key_productSku = "MIN55861",
+			locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+		Button.clickSubmitButton();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		for (var column : list "2-${orderId},3-Italy,4-0,5-1") {
+			var key_columnNumber = StringUtil.extractFirst("${column}", "-");
+			var currentValue = StringUtil.extractLast("${column}", "-");
+
+			AssertTextEquals(
+				key_entryName = "MIN55861",
+				locator1 = "CommerceEntry#TABLE_CELL_BY_COLUMN_ORDER",
+				value1 = "${currentValue}");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-6248. It should not be possible to add non-shippable items to a shipment"
-	@ignore = "true"
 	@priority = "3"
 	test AssertAddingNonShippableItemToShipmentNotPossible {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6248 AssertAddingNonShippableItemToShipmentNotPossible Pending Implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceNavigator.searchEntry(entryName = "ABS Sensor");
+
+		CommerceNavigator.gotoEntry(entryName = "ABS Sensor");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Uncheck.uncheckToggleSwitch(
+			key_toggleSwitchLabel = "Shippable",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "ABS Sensor",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "ABS Sensor",
+			productQuantity = "1",
+			productUnitPrice = "50");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		ClickNoError(
+			key_orderStatus = "Pending",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+
+		CommerceEntry.clickNoError(menuItem = "View");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		AssertElementNotPresent(
+			key_index = "Create Shipment",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Completed",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
 	}
 
 	@description = "This is a test for COMMERCE-6252. Check that shipment information set at product level are overriden by the shipment info at cpInstance level"
@@ -52,6 +227,7 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6252 AssertProductShipmentInfoOverrideCPInstanceShipmentInfo Pending Implementation
+
 	}
 
 	@description = "This is a test for COMMERCE-6253. Shipment dimensions should be correctly calculated"
@@ -61,15 +237,110 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6253 AssertShipmentDimensionsCorrectlyCalculated Pending Implementation
+
 	}
 
 	@description = "This is a test for COMMERCE-6249. Shipment items should be taken only from active warehouses"
-	@ignore = "true"
 	@priority = "3"
 	test AssertShipmentItemTakenFromActiveWarehouses {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6249 AssertShipmentItemTakenFromActiveWarehouses Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(
+			key_language = "Italy",
+			locator1 = "Icon#DEPOT_LANGUAGES_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Deactivate");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		ClickNoError(
+			key_orderStatus = "Pending",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+
+		CommerceEntry.clickNoError(menuItem = "View");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Create Shipment",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Check.checkToggleSwitch(
+			key_productSku = "MIN55861",
+			locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+		Button.clickSubmitButton();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		AssertElementNotPresent(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_WAREHOUSE_BY_NAME");
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(
+			key_language = "Italy",
+			locator1 = "Icon#DEPOT_LANGUAGES_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Activate");
+
+		AssertElementPresent(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_WAREHOUSE_BY_ACTIVE_STATUS");
 	}
 
 	@description = "This is a test for COMMERCE-6254. Shipment weight should be correctly calculated"
@@ -79,51 +350,552 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6254 AssertShipmentWeightIsCorrectlyCalculated Pending Implementation
+
 	}
 
 	@description = "This is a test for COMMERCE-6251. Delete shipment"
-	@ignore = "true"
 	@priority = "3"
 	test AssertShippedShipmentNotDeletable {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6251 AssertStateShippedShipmentNotDeletable Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Test Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		Refresh();
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		ClickNoError(
+			key_orderStatus = "Pending",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+
+		CommerceEntry.clickNoError(menuItem = "View");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		CommerceOrders.createShipment(
+			productSkuList = "MIN55861",
+			warehouseName = "Italy");
+
+		AssertElementNotPresent(
+			key_index = "Create Shipment",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
 	}
 
 	@description = "This is a test for COMMERCE-6247. Multiple shipment for the same order"
-	@ignore = "true"
 	@priority = "3"
 	test CreateMultipleShipmentsForOneOrder {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6247 CreateMultipleShipmentsForOneOrder Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		for (var productCard : list "U-Joint,Transmission Cooler Line Assembly,Torque Converters,Wheel Seal - Front,Mount") {
+			FrontStore.addInitializerProductToCart(
+				productName = "${productCard}",
+				productQuantity = "1");
+		}
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		WaitForElementPresent(locator1 = "CommerceAccelerators#CHECKOUT_PORTLET_BODY");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "United States");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Zip Code");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		ClickNoError(
+			key_orderStatus = "Pending",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+
+		CommerceEntry.clickNoError(menuItem = "View");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		CommerceOrders.createShipment(
+			productSkuList = "MIN55857,MIN55858,MIN55859",
+			warehouseName = "Italy");
+
+		Click(locator1 = "Icon#BACK");
+
+		AssertElementPresent(
+			key_orderStatus = "Partially Shipped",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+
+		ClickNoError(
+			key_orderStatus = "Partially Shipped",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+
+		CommerceEntry.clickNoError(menuItem = "View");
+
+		CommerceOrders.createShipment(
+			productSkuList = "MIN55860,MIN55861",
+			warehouseName = "Italy");
+
+		Click(
+			key_index = "Completed",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(locator1 = "Icon#BACK");
+
+		AssertElementPresent(
+			key_orderStatus = "Completed",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
 	}
 
 	@description = "This is a test for COMMERCE-6237. Create a shipment from an order"
-	@ignore = "true"
 	@priority = "3"
 	test CreateOrderShipment {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6237 CreateOrderShipment Pending Implementation
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Store Management",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		CommerceChannels.activatePaymentMethod(paymentMethod = "Money Order");
+
+		Refresh();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		Click(
+			key_value = "Commerce Account",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "View");
+
+		Click(
+			key_text = "Accept Order",
+			locator1 = "Link#ANY");
+
+		Click(
+			key_text = "Create Shipment",
+			locator1 = "Link#ANY");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		Check.checkToggleSwitch(
+			key_productSku = "MIN55861",
+			locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+		Button.clickSubmitButton();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Refresh();
+
+		Click(
+			key_index = "Finish Processing",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Shipments");
+
+		AssertTextEquals(
+			locator1 = "CommerceOrders#ASSERT_FIRST_SHIPMENT_STATUS",
+			value1 = "Ready to Ship");
 	}
 
 	@description = "This is a test for COMMERCE-6250. Delete shipment"
-	@ignore = "true"
 	@priority = "3"
 	test DeleteShipment {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6250 DeleteShipment Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		Pause(locator1 = "3000");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		ClickNoError(
+			key_orderStatus = "Pending",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+
+		CommerceEntry.clickNoError(menuItem = "View");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		CommerceOrders.createShipment(
+			complement = "Deliver",
+			productSkuList = "MIN55861",
+			warehouseName = "Italy");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Shipments");
+
+		Click(
+			key_text = "Delivered",
+			locator1 = "Icon#ANY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		AssertClickNoError(
+			locator1 = "Button#SUBMIT",
+			value1 = "Submit");
+
+		AssertElementNotPresent(
+			key_text = "Shipment ID",
+			locator1 = "Icon#ANY_VERTICAL_ELLIPSIS");
 	}
 
 	@description = "This is a test for COMMERCE-6241. Execute the shipment workflow"
-	@ignore = "true"
 	@priority = "3"
 	test ExecuteShipmentWorkflow {
-		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6241 ExecuteShipmentWorkflow Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Test Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		WaitForElementPresent(locator1 = "CommerceAccelerators#CHECKOUT_PORTLET_BODY");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Address Name");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "United States");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Zip Code");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Create Shipment",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Check.checkToggleSwitch(
+			key_productSku = "MIN55861",
+			locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+		Button.clickSubmitButton();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		Click(
+			key_index = "Finish Processing",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Ship",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Deliver",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
 	}
 
 	@description = "This is a test for COMMERCE-6255. Filter, Sort shipment from shipment UI"
@@ -133,69 +905,942 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6255 FilterAndSortShipments Pending Implementation
+
 	}
 
 	@description = "This is a test for COMMERCE-6240. Remove shipment items from a shipment"
-	@ignore = "true"
 	@priority = "3"
 	test RemoveItemFromShipment {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6240 RemoveItemFromShipment Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Store Management",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		CommerceChannels.activatePaymentMethod(paymentMethod = "Money Order");
+
+		Refresh();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "Transmission Cooler Line Assembly",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		WaitForElementPresent(locator1 = "CommerceAccelerators#CHECKOUT_PORTLET_BODY");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Address Name");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "United States");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Zip Code");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Create Shipment",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		for (var productSku : list "MIN55860,MIN55861") {
+			Check.checkToggleSwitch(
+				key_productSku = "${productSku}",
+				locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+		}
+
+		Button.clickSubmitButton();
+
+		for (var productSku : list "MIN55860,MIN55861") {
+			CommerceNavigator.gotoEntry(entryName = "${productSku}");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Type(
+				key_warehouseName = "Italy",
+				locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+				value1 = "1");
+
+			Button.clickSave();
+
+			Click(locator1 = "Icon#CLOSE");
+
+			Refresh();
+		}
+
+		Click(
+			key_index = "Finish Processing",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Delete",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Click(
+			key_filterOption = "Submit",
+			locator1 = "AppBuilder#CHOOSE_SEARCH_FILTER_BY_OPTION");
+
+		Refresh();
+
+		AssertElementNotPresent(
+			key_index = "MIN55861",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
 	}
 
 	@description = "This is a test for COMMERCE-6256. Search shipment from shipment UI"
-	@ignore = "true"
 	@priority = "3"
 	test SearchShipment {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6256 SearchShipment Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		for (var i : list "1,2") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+			CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "account${i}");
+		}
+
+		var ship1Id = "";
+		var ship2Id = "";
+
+		for (var i : list "1,2") {
+			ApplicationsMenu.gotoSite(site = "Minium");
+
+			Click(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN");
+
+			Click(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN_BACK_BUTTON");
+
+			Click(
+				key_accountName = "account${i}",
+				locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_ACCOUNT_LIST_ITEM");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceNavigator.gotoMiniCart();
+
+			Button.click(button = "View Details");
+
+			Button.click(button = "Checkout");
+
+			Pause(locator1 = "3000");
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Orders");
+
+			Click(
+				key_value = "account${i}",
+				locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+			MenuItem.click(menuItem = "View");
+
+			Click(
+				key_text = "Accept Order",
+				locator1 = "Link#ANY");
+
+			Click(
+				key_text = "Create Shipment",
+				locator1 = "Link#ANY");
+
+			Click(locator1 = "Button#PLUS");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			Check.checkToggleSwitch(
+				key_productSku = "MIN55861",
+				locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+			Button.clickSubmitButton();
+
+			CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Type(
+				key_warehouseName = "Italy",
+				locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+				value1 = "1");
+
+			Button.clickSave();
+
+			Refresh();
+
+			Click(
+				key_index = "Finish Processing",
+				locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+			if ("${i}" == "1") {
+				var ship1Id = selenium.getText("CommerceEntry#HEADER_ID");
+			}
+			else {
+				var ship2Id = selenium.getText("CommerceEntry#HEADER_ID");
+			}
+		}
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Shipments");
+
+		for (var search : list "${ship1Id},${ship2Id},account1,account2") {
+			CommerceNavigator.searchEntry(entryName = "${search}");
+
+			if (("${search}" == "account1") || ("${search}" == "${ship1Id}")) {
+				AssertElementPresent(
+					key_entryName = "${ship1Id}",
+					locator1 = "CommerceNavigation#ENTRY_NAME");
+
+				AssertElementNotPresent(
+					key_entryName = "${ship2Id}",
+					locator1 = "CommerceNavigation#ENTRY_NAME");
+			}
+			else {
+				AssertElementPresent(
+					key_entryName = "${ship2Id}",
+					locator1 = "CommerceNavigation#ENTRY_NAME");
+
+				AssertElementNotPresent(
+					key_entryName = "${ship1Id}",
+					locator1 = "CommerceNavigation#ENTRY_NAME");
+			}
+		}
 	}
 
 	@description = "This is a test for COMMERCE-6242. Update address"
-	@ignore = "true"
 	@priority = "3"
 	test UpdateShipmentAddress {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6242 UpdateShipmentAddress Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Test Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		WaitForElementPresent(locator1 = "CommerceAccelerators#CHECKOUT_PORTLET_BODY");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Address Name");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "United States");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Zip Code");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_buttonName = "Edit",
+			key_titleName = "Billing Address",
+			locator1 = "CommerceOrders#ORDER_GENERAL_DETAILS_ADD_EDIT_BUTTON");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			key_fieldLabel = "Street 1",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "Billing Address, Test Street");
+
+		Button.click(button = "Submit");
+
+		Refresh();
+
+		AssertElementPresent(
+			key_errorMessage = "Billing Address",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		Click(
+			key_buttonName = "Edit",
+			key_titleName = "Shipping Address",
+			locator1 = "CommerceOrders#ORDER_GENERAL_DETAILS_ADD_EDIT_BUTTON");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			key_fieldLabel = "Street 1",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "Shipping Address, Test1 Street");
+
+		Button.click(button = "Submit");
+
+		Refresh();
+
+		AssertElementPresent(
+			key_errorMessage = "Shipping Address",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
 	}
 
 	@description = "This is a test for COMMERCE-6239. Update shipment items to a shipment"
-	@ignore = "true"
 	@priority = "3"
 	test UpdateShipmentItems {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6239 UpdateShipmentItems Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Commerce Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		WaitForElementPresent(locator1 = "CommerceEntry#ACTIVE_ORDER_ID");
+
+		var orderId = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_text = "Accept Order",
+			locator1 = "Link#ANY");
+
+		Click(
+			key_text = "Create Shipment",
+			locator1 = "Button#ANY");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Check.checkToggleSwitch(
+			key_productSku = "MIN55861",
+			locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+		Button.clickSubmitButton();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "0");
+
+		Button.clickSave();
+
+		Type(
+			key_warehouseName = "United States - Southwest",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		ClickNoError(
+			key_value = "Italy",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		CommerceEntry.clickNoError(menuItem = "Delete");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Button.clickSubmitButton();
+
+		Refresh();
+
+		for (var column : list "3;United States - Southwest,5;1") {
+			var key_columnNumber = StringUtil.extractFirst("${column}", ";");
+			var currentValue = StringUtil.extractLast("${column}", ";");
+
+			AssertTextEquals(
+				key_entryName = "MIN55861",
+				locator1 = "CommerceEntry#TABLE_CELL_BY_COLUMN_ORDER",
+				value1 = "${currentValue}");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-6243. Update address"
-	@ignore = "true"
 	@priority = "3"
 	test ValidateShipmentAddress {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6243 ValidateShipmentAddress Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Test Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		WaitForElementPresent(locator1 = "CommerceAccelerators#CHECKOUT_PORTLET_BODY");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Address Name");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "United States");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Zip Code");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_index = "Accept Order",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Create Shipment",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Click(
+			key_index = "Finish Processing",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Alert.viewErrorMessage(errorMessage = "Please add at least one item to the shipment.");
 	}
 
 	@description = "This is a test for COMMERCE-6245. Check that shipping amount is correctly calculated in the order"
-	@ignore = "true"
 	@priority = "3"
 	test ViewOrderShipmentAmountIsCorrect {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6245 ViewOrderShipmentAmountIsCorrect Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Test Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		Click(locator1 = "Dropdown#FILTER_AND_ORDER");
+
+		MenuItem.click(menuItem = "Account Users");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		Refresh();
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		Click(
+			key_filterOption = "Go to Order Details",
+			locator1 = "AppBuilder#CHOOSE_APP_SEARCH_FILTER_BY_OPTION");
+
+		AssertTextEquals.assertPartialText(
+			key_priceName = "Subtotal",
+			locator1 = "CommerceOrders#ORDER_PRICES_SEPARETED",
+			value1 = "24.00");
+
+		AssertTextEquals.assertPartialText(
+			key_priceName = "Delivery",
+			locator1 = "CommerceOrders#ORDER_PRICES_SEPARETED",
+			value1 = "15.00");
+
+		AssertTextEquals.assertPartialText(
+			key_priceName = "Total",
+			locator1 = "CommerceOrders#ORDER_PRICES_SEPARETED",
+			value1 = "39.00");
 	}
 
 	@description = "This is a test for COMMERCE-6246. Check that shipping discount amount is correctly calculated in the order"
-	@ignore = "true"
 	@priority = "3"
 	test ViewOrderShipmentDiscountAmountIsCorrect {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6246 ViewOrderShipmentDiscountAmountIsCorrect Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewDiscountsEntry(
+			channelsEligibility = "Minium Portal",
+			discountAmount = "7",
+			discountName = "Test Discount",
+			discountTarget = "Shipping",
+			discountType = "Fixed Amount");
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Test Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Test Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		Refresh();
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Name");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "Italy");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "0100");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Roma");
+
+		Select(
+			key_fieldName = "Region",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "Roma");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_filterOption = "Go to Order Details",
+			locator1 = "AppBuilder#CHOOSE_APP_SEARCH_FILTER_BY_OPTION");
+
+		AssertTextEquals.assertPartialText(
+			key_priceName = "Delivery Discount",
+			locator1 = "CommerceOrders#ORDER_PRICES_SEPARETED",
+			value1 = "7.00");
 	}
 
 }

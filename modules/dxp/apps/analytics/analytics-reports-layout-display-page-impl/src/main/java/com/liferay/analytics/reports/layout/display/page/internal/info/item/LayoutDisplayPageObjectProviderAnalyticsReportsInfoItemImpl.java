@@ -171,7 +171,7 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 							return layoutSEOLink.getHref();
 						}
 						catch (PortalException portalException) {
-							_log.error(portalException, portalException);
+							_log.error(portalException);
 
 							return StringPool.BLANK;
 						}
@@ -200,7 +200,7 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 				layoutDisplayPageObjectProvider.getGroupId());
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return LocaleUtil.getDefault();
@@ -219,7 +219,7 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 					InfoItemFieldValuesProvider.class, className.getClassName())
 			).map(
 				infoItemFieldValuesProvider ->
-					infoItemFieldValuesProvider.getInfoItemFieldValue(
+					infoItemFieldValuesProvider.getInfoFieldValue(
 						layoutDisplayPageObjectProvider.getDisplayObject(),
 						"createDate")
 			).filter(
@@ -251,7 +251,7 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 			);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return new Date();
@@ -272,7 +272,7 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 					className.getClassName());
 
 			return (String)Optional.ofNullable(
-				infoItemFieldValuesProvider.getInfoItemFieldValue(
+				infoItemFieldValuesProvider.getInfoFieldValue(
 					layoutDisplayPageObjectProvider.getDisplayObject(), "title")
 			).filter(
 				infoFieldValue -> {
@@ -289,7 +289,7 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 			);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return StringPool.BLANK;
@@ -314,7 +314,7 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 						PermissionThreadLocal.getPermissionChecker());
 				}
 				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+					_log.error(portalException);
 
 					return false;
 				}
@@ -332,21 +332,12 @@ public class LayoutDisplayPageObjectProviderAnalyticsReportsInfoItemImpl
 				currentLayoutDisplayPageObjectProvider.getDisplayObject() !=
 					null
 		).map(
-			currentLayoutDisplayPageObjectProvider -> {
-				try {
-					return AssetDisplayPageUtil.
-						getAssetDisplayPageLayoutPageTemplateEntry(
-							layoutDisplayPageObjectProvider.getGroupId(),
-							layoutDisplayPageObjectProvider.getClassNameId(),
-							layoutDisplayPageObjectProvider.getClassPK(),
-							layoutDisplayPageObjectProvider.getClassTypeId());
-				}
-				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
-
-					return null;
-				}
-			}
+			currentLayoutDisplayPageObjectProvider ->
+				AssetDisplayPageUtil.getAssetDisplayPageLayoutPageTemplateEntry(
+					layoutDisplayPageObjectProvider.getGroupId(),
+					layoutDisplayPageObjectProvider.getClassNameId(),
+					layoutDisplayPageObjectProvider.getClassPK(),
+					layoutDisplayPageObjectProvider.getClassTypeId())
 		).map(
 			layoutPageTemplateEntry -> _layoutLocalService.fetchLayout(
 				layoutPageTemplateEntry.getPlid())

@@ -230,7 +230,7 @@ public class MBThreadTrashHandlerTest
 					trashEntryException) {
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(trashEntryException, trashEntryException);
+				_log.debug(trashEntryException);
 			}
 
 			throw new TrashEntryException();
@@ -247,7 +247,7 @@ public class MBThreadTrashHandlerTest
 					restoreEntryException) {
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(restoreEntryException, restoreEntryException);
+				_log.debug(restoreEntryException);
 			}
 
 			throw new RestoreEntryException();
@@ -391,17 +391,15 @@ public class MBThreadTrashHandlerTest
 	protected void replyMessage(BaseModel<?> baseModel) throws Exception {
 		MBThread thread = (MBThread)baseModel;
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				thread.getGroupId(), TestPropsValues.getUserId());
-
 		MBMessageLocalServiceUtil.addMessage(
 			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
 			thread.getGroupId(), thread.getCategoryId(), thread.getThreadId(),
 			thread.getRootMessageId(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(), MBMessageConstants.DEFAULT_FORMAT,
 			Collections.<ObjectValuePair<String, InputStream>>emptyList(),
-			false, 0.0, false, serviceContext);
+			false, 0.0, false,
+			ServiceContextTestUtil.getServiceContext(
+				thread.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	private static final String _SUBJECT = "Subject";

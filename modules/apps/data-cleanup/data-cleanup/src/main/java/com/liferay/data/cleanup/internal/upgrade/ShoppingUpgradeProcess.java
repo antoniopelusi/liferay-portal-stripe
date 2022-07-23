@@ -17,7 +17,6 @@ package com.liferay.data.cleanup.internal.upgrade;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
 import com.liferay.portal.kernel.service.ImageLocalService;
-import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,7 +24,7 @@ import java.sql.ResultSet;
 /**
  * @author Preston Crary
  */
-public class ShoppingUpgradeProcess extends UpgradeProcess {
+public class ShoppingUpgradeProcess extends BaseUpgradeProcess {
 
 	public ShoppingUpgradeProcess(ImageLocalService imageLocalService) {
 		_imageLocalService = imageLocalService;
@@ -33,107 +32,54 @@ public class ShoppingUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingCart'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingCategory'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingCoupon'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingItem'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingItemField'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingItemPrice'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingOrder'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.shopping.model.ShoppingOrderItem'");
+		_deleteFromShoppingItem("smallImage");
+		_deleteFromShoppingItem("mediumImage");
+		_deleteFromShoppingItem("largeImage");
 
-		_deleteImages("smallImage");
-		_deleteImages("mediumImage");
-		_deleteImages("largeImage");
+		removePortletData(
+			new String[] {"com.liferay.shopping.web"}, null,
+			new String[] {
+				"com_liferay_shopping_web_portlet_ShoppingPortlet",
+				"com.liferay.portlet.shopping"
+			});
 
-		LayoutTypeSettingsUtil.removePortletId(
-			connection, "com_liferay_shopping_web_portlet_ShoppingPortlet");
-
-		runSQL(
-			"delete from Portlet where portletId = " +
-				"'com_liferay_shopping_web_portlet_ShoppingAdminPortlet'");
-		runSQL(
-			"delete from Portlet where portletId = " +
-				"'com_liferay_shopping_web_portlet_ShoppingPortlet'");
-
-		runSQL(
-			"delete from PortletPreferences where portletId = " +
-				"'com_liferay_shopping_web_portlet_ShoppingAdminPortlet'");
-		runSQL(
-			"delete from PortletPreferences where portletId = " +
-				"'com_liferay_shopping_web_portlet_ShoppingPortlet'");
-
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.shopping.service'");
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.shopping.web'");
-
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingCart'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingCategory'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingCoupon'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingItem'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingItemField'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingItemPrice'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingOrder'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.shopping.model.ShoppingOrderItem'");
-
-		runSQL(
-			"delete from ServiceComponent where buildNamespace = 'Shopping'");
-
-		runSQL("drop table ShoppingCart");
-		runSQL("drop table ShoppingCategory");
-		runSQL("drop table ShoppingCoupon");
-		runSQL("drop table ShoppingItem");
-		runSQL("drop table ShoppingItemField");
-		runSQL("drop table ShoppingItemPrice");
-		runSQL("drop table ShoppingOrder");
-		runSQL("drop table ShoppingOrderItem");
+		removeServiceData(
+			"Shopping", new String[] {"com.liferay.shopping.service"},
+			new String[] {
+				"com.liferay.portlet.shopping.model.ShoppingCart",
+				"com.liferay.portlet.shopping.model.ShoppingCategory",
+				"com.liferay.portlet.shopping.model.ShoppingCoupon",
+				"com.liferay.portlet.shopping.model.ShoppingItem",
+				"com.liferay.portlet.shopping.model.ShoppingItemField",
+				"com.liferay.portlet.shopping.model.ShoppingItemPrice",
+				"com.liferay.portlet.shopping.model.ShoppingOrder",
+				"com.liferay.portlet.shopping.model.ShoppingOrderItem",
+				"com.liferay.shopping.model.ShoppingCart",
+				"com.liferay.shopping.model.ShoppingCategory",
+				"com.liferay.shopping.model.ShoppingCoupon",
+				"com.liferay.shopping.model.ShoppingItem",
+				"com.liferay.shopping.model.ShoppingItemField",
+				"com.liferay.shopping.model.ShoppingItemPrice",
+				"com.liferay.shopping.model.ShoppingOrder",
+				"com.liferay.shopping.model.ShoppingOrderItem"
+			},
+			new String[] {
+				"ShoppingCart", "ShoppingCategory", "ShoppingCoupon",
+				"ShoppingItem", "ShoppingItemField", "ShoppingItemPrice",
+				"ShoppingOrder", "ShoppingOrderItem"
+			});
 	}
 
-	private void _deleteImages(String type) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private void _deleteFromShoppingItem(String type) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				SQLTransformer.transform(
 					StringBundler.concat(
 						"select ", type, "Id from ShoppingItem where ", type,
 						" = [$TRUE$]")));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				_imageLocalService.deleteImage(rs.getLong(1));
+			while (resultSet.next()) {
+				_imageLocalService.deleteImage(resultSet.getLong(1));
 			}
 		}
 	}

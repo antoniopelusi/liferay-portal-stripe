@@ -181,9 +181,9 @@ public class I18nFilterTest {
 			Locale sessionLocale, Locale cookieLocale)
 		throws Exception {
 
-		HttpSession session = _mockHttpServletRequest.getSession();
+		HttpSession httpSession = _mockHttpServletRequest.getSession();
 
-		session.setAttribute(WebKeys.LOCALE, sessionLocale);
+		httpSession.setAttribute(WebKeys.LOCALE, sessionLocale);
 
 		if (userLocale != null) {
 			_user = UserTestUtil.addUser(

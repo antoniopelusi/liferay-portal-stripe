@@ -14,6 +14,8 @@
 
 package com.liferay.segments.asah.connector.internal.client.model;
 
+import com.liferay.petra.string.StringBundler;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,9 +26,6 @@ import java.util.Map;
  * @author Matthew Kong
  */
 public class Individual {
-
-	public Individual() {
-	}
 
 	public List<DataSourceIndividualPK> getDataSourceIndividualPKs() {
 		return _dataSourceIndividualPKs;
@@ -80,29 +79,14 @@ public class Individual {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder(11);
-
-		sb.append("{dataSourceIndividualPKs=");
-		sb.append(_dataSourceIndividualPKs);
-		sb.append(", dateCreated=");
-		sb.append(_dateCreated);
-		sb.append(", dateModified=");
-		sb.append(_dateModified);
-		sb.append(", demographics=");
-		sb.append(_demographics);
-		sb.append(", id=");
-		sb.append(_id);
-		sb.append(", individualSegmentIds=");
-		sb.append(_individualSegmentIds);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{dataSourceIndividualPKs=", _dataSourceIndividualPKs,
+			", dateCreated=", _dateCreated, ", dateModified=", _dateModified,
+			", demographics=", _demographics, ", id=", _id,
+			", individualSegmentIds=", _individualSegmentIds, "}");
 	}
 
 	public static class DataSourceIndividualPK {
-
-		public DataSourceIndividualPK() {
-		}
 
 		public String getDataSourceId() {
 			return _dataSourceId;

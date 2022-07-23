@@ -12,8 +12,11 @@
  * details.
  */
 
-import {FieldUtil} from 'dynamic-data-mapping-form-builder';
-import {FormSupport, PagesVisitor} from 'dynamic-data-mapping-form-renderer';
+import {
+	FieldUtil,
+	FormSupport,
+	PagesVisitor,
+} from 'data-engine-js-components-web';
 
 import {EVENT_TYPES} from '../eventTypes.es';
 
@@ -21,7 +24,7 @@ import {EVENT_TYPES} from '../eventTypes.es';
  * NOTE: This is a literal copy of the old LayoutProvider logic. Small changes
  * were made only to adapt to the reducer.
  */
-export default (state, {payload, type}) => {
+export default function elementSetReducer(state, {payload, type}) {
 	switch (type) {
 		case EVENT_TYPES.ELEMENT_SET_ADD: {
 			const {elementSetPages, indexes} = payload;
@@ -91,4 +94,4 @@ export default (state, {payload, type}) => {
 		default:
 			return state;
 	}
-};
+}

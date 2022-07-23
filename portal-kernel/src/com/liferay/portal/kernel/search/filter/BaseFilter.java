@@ -43,15 +43,8 @@ public abstract class BaseFilter implements Filter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("(cached=");
-		sb.append(_cached);
-		sb.append(", executionOption=");
-		sb.append(_executionOption);
-		sb.append(")");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"(cached=", _cached, ", executionOption=", _executionOption, ")");
 	}
 
 	private Boolean _cached;

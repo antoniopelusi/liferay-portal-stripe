@@ -35,29 +35,33 @@ List<CPOptionCategory> cpOptionCategories = cpSpecificationOptionDisplayContext.
 <liferay-ui:error exception="<%= CPSpecificationOptionKeyException.MustNotBeDuplicate.class %>" message="that-key-is-already-being-used" />
 <liferay-ui:error exception="<%= CPSpecificationOptionKeyException.MustNotBeNull.class %>" message="please-enter-a-valid-key" />
 
-<aui:fieldset>
-	<aui:input autoFocus="<%= true %>" label="label" name="title" />
+<commerce-ui:panel
+	elementClasses="mt-4"
+>
+	<aui:fieldset>
+		<aui:input autoFocus="<%= true %>" label="label" name="title" />
 
-	<aui:input name="description" />
+		<aui:input name="description" />
 
-	<aui:input checked="<%= (cpSpecificationOption == null) ? false : cpSpecificationOption.isFacetable() %>" inlineLabel="right" label="use-in-faceted-navigation" labelCssClass="simple-toggle-switch" name="facetable" type="toggle-switch" />
+		<aui:input checked="<%= (cpSpecificationOption == null) ? false : cpSpecificationOption.isFacetable() %>" inlineLabel="right" label="use-in-faceted-navigation" labelCssClass="simple-toggle-switch" name="facetable" type="toggle-switch" />
 
-	<aui:select label="default-specification-group" name="CPOptionCategoryId" showEmptyOption="<%= true %>">
+		<aui:select label="default-specification-group" name="CPOptionCategoryId" showEmptyOption="<%= true %>">
 
-		<%
-		for (CPOptionCategory cpOptionCategory : cpOptionCategories) {
-		%>
+			<%
+			for (CPOptionCategory cpOptionCategory : cpOptionCategories) {
+			%>
 
-			<aui:option label="<%= HtmlUtil.escape(cpOptionCategory.getTitle(locale)) %>" selected="<%= cpOptionCategoryId == cpOptionCategory.getCPOptionCategoryId() %>" value="<%= cpOptionCategory.getCPOptionCategoryId() %>" />
+				<aui:option label="<%= HtmlUtil.escape(cpOptionCategory.getTitle(locale)) %>" selected="<%= cpOptionCategoryId == cpOptionCategory.getCPOptionCategoryId() %>" value="<%= cpOptionCategory.getCPOptionCategoryId() %>" />
 
-		<%
-		}
-		%>
+			<%
+			}
+			%>
 
-	</aui:select>
+		</aui:select>
 
-	<aui:input helpMessage="key-help" name="key" />
-</aui:fieldset>
+		<aui:input helpMessage="key-help" name="key" />
+	</aui:fieldset>
+</commerce-ui:panel>
 
 <c:if test="<%= cpSpecificationOption == null %>">
 	<aui:script require="commerce-frontend-js/utilities/debounce as debounce">

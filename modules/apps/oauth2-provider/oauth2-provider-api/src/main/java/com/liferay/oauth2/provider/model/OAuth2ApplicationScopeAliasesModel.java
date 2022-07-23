@@ -159,4 +159,7 @@ public interface OAuth2ApplicationScopeAliasesModel
 	 */
 	public void setOAuth2ApplicationId(long oAuth2ApplicationId);
 
+	@Override
+	public OAuth2ApplicationScopeAliases cloneWithOriginalValues();
+
 }

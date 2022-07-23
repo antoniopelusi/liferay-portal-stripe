@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.model.impl.ResourcePermissionImpl;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -202,17 +203,13 @@ public class UpgradeClassNamesTest {
 	protected void addAssetVocabulary(long classNameId) throws Exception {
 		Group group = GroupTestUtil.addGroup();
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("multiValued=true\nselectedClassNameIds=");
-		sb.append(classNameId);
-		sb.append(":-1");
-
 		_assetVocabulary = _assetVocabularyLocalService.addVocabulary(
 			TestPropsValues.getUserId(), group.getGroupId(),
 			RandomTestUtil.randomString(),
 			RandomTestUtil.randomLocaleStringMap(),
-			RandomTestUtil.randomLocaleStringMap(), sb.toString(),
+			RandomTestUtil.randomLocaleStringMap(),
+			StringBundler.concat(
+				"multiValued=true\nselectedClassNameIds=", classNameId, ":-1"),
 			ServiceContextTestUtil.getServiceContext());
 	}
 
@@ -282,8 +279,8 @@ public class UpgradeClassNamesTest {
 	}
 
 	protected void setUpUpgradeCalendarResource() {
-		_upgradeProcess = CalendarUpgradeTestUtil.getServiceUpgradeStep(
-			"v1_0_4.UpgradeClassNames");
+		_upgradeProcess = CalendarUpgradeTestUtil.getUpgradeStep(
+			_upgradeStepRegistrator, "v1_0_4.UpgradeClassNames");
 	}
 
 	private AssetVocabulary _assetVocabulary;
@@ -306,5 +303,10 @@ public class UpgradeClassNamesTest {
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 	private UpgradeProcess _upgradeProcess;
+
+	@Inject(
+		filter = "component.name=com.liferay.calendar.internal.upgrade.CalendarServiceUpgrade"
+	)
+	private UpgradeStepRegistrator _upgradeStepRegistrator;
 
 }

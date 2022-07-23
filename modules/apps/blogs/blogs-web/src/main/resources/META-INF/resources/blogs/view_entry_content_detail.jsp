@@ -97,14 +97,14 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 												"/blogs/edit_entry"
 											).setRedirect(
 												currentURL
+											).setPortletResource(
+												portletDisplay.getId()
 											).setParameter(
 												"entryId", entry.getEntryId()
-											).setParameter(
-												"portletResource", portletDisplay.getId()
 											).buildString()
 										%>"
 									>
-										<span class="hide-accessible"><liferay-ui:message key="edit-entry" /></span>
+										<span class="hide-accessible sr-only"><liferay-ui:message key="edit-entry" /></span>
 
 										<clay:icon
 											symbol="pencil"
@@ -150,7 +150,7 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 									</div>
 
 									<div>
-										<span class="hide-accessible"><liferay-ui:message key="published-date" /></span><liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - entry.getStatusDate().getTime(), true) %>" key="x-ago" translateArguments="<%= false %>" />
+										<span class="hide-accessible sr-only"><liferay-ui:message key="published-date" /></span><liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - entry.getStatusDate().getTime(), true) %>" key="x-ago" translateArguments="<%= false %>" />
 
 										<c:if test="<%= blogsPortletInstanceConfiguration.enableReadingTime() %>">
 											- <liferay-reading-time:reading-time displayStyle="descriptive" model="<%= entry %>" />
@@ -177,9 +177,10 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 		String coverImageURL = entry.getCoverImageURL(themeDisplay);
 		%>
 
-		<c:if test="<%= Validator.isNotNull(coverImageURL) %>">
-			<div class="aspect-ratio aspect-ratio-bg-cover cover-image" style="background-image: url(<%= coverImageURL %>);"></div>
-		</c:if>
+		<liferay-util:include page="/blogs/entry_cover_image_caption.jsp" servletContext="<%= application %>">
+			<liferay-util:param name="coverImageCaption" value="<%= entry.getCoverImageCaption() %>" />
+			<liferay-util:param name="coverImageURL" value="<%= coverImageURL %>" />
+		</liferay-util:include>
 
 		<!-- text resume -->
 
@@ -299,7 +300,7 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 
 		<%
 		if (searchContainer != null) {
-			searchContainer.setTotal(searchContainer.getTotal() - 1);
+			searchContainer.setResultsAndTotal(searchContainer::getResults, searchContainer.getTotal() - 1);
 		}
 		%>
 

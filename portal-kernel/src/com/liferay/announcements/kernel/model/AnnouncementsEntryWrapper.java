@@ -176,6 +176,11 @@ public class AnnouncementsEntryWrapper
 		}
 	}
 
+	@Override
+	public AnnouncementsEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the alert of this announcements entry.
 	 *

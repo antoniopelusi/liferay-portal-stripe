@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -54,8 +55,8 @@ public class AccountEntryOrganizationRelLocalServiceImpl
 			throw new DuplicateAccountEntryOrganizationRelException();
 		}
 
-		accountEntryLocalService.getAccountEntry(accountEntryId);
-		organizationLocalService.getOrganization(organizationId);
+		_accountEntryLocalService.getAccountEntry(accountEntryId);
+		_organizationLocalService.getOrganization(organizationId);
 
 		AccountEntryOrganizationRel accountEntryOrganizationRel =
 			createAccountEntryOrganizationRel(counterLocalService.increment());
@@ -244,9 +245,6 @@ public class AccountEntryOrganizationRelLocalServiceImpl
 			accountEntryId, ArrayUtil.toLongArray(newOrganizationIdsSet));
 	}
 
-	@Reference
-	protected AccountEntryLocalService accountEntryLocalService;
-
 	private void _reindexAccountEntry(long accountEntryId)
 		throws PortalException {
 
@@ -264,5 +262,11 @@ public class AccountEntryOrganizationRelLocalServiceImpl
 
 		indexer.reindex(Organization.class.getName(), organizationId);
 	}
+
+	@Reference
+	private AccountEntryLocalService _accountEntryLocalService;
+
+	@Reference
+	private OrganizationLocalService _organizationLocalService;
 
 }

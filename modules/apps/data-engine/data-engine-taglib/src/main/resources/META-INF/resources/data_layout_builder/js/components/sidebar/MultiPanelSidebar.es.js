@@ -12,18 +12,17 @@
  * details.
  */
 
-import './MultiPanelSidebar.scss';
-
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
+import {ClayTooltipProvider} from '@clayui/tooltip';
 import {useIsMounted, useStateSafe} from '@liferay/frontend-js-react-web';
 import classNames from 'classnames';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import useLoad from '../../hooks/useLoad.es';
 
-const {useEffect} = React;
+import './MultiPanelSidebar.scss';
 
 const CLASSNAME_INDICATORS = [
 	'.change-tracking-indicator',
@@ -84,215 +83,179 @@ export default function MultiPanelSidebar({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isMounted, load]);
 
-	const changeAlertClassName = (styleName) => {
-		const formBuilderMessage = document.querySelector(
-			'.data-engine-form-builder-messages'
-		);
-
-		if (formBuilderMessage) {
-			const className = formBuilderMessage.className;
-
-			formBuilderMessage.className = className.replace(
-				formBuilderMessage.className,
-				styleName
-			);
-		}
-	};
-
 	useEffect(() => {
-		const sideNavigation = Liferay.SideNavigation.instance(
+		const productMenu = Liferay.SideNavigation.instance(
 			document.querySelector('.product-menu-toggle')
 		);
 
-		if (sideNavigation) {
-			const onCloseSidebar = () => {
-				if (open) {
-					changeAlertClassName('data-engine-form-builder-messages');
-				}
+		if (productMenu) {
 
-				onChange({
-					sidebarOpen: false,
-					sidebarPanelId: null,
-				});
-			};
+			// Close product menu whenever sidebarOpen becomes true
 
-			if (sideNavigation.visible()) {
-				onCloseSidebar();
+			if (open) {
+				productMenu.hide();
 			}
 
-			const sideNavigationListener = sideNavigation.on(
+			// Add listener on product menu to turn sidebarOpen false if opened
+
+			const sideNavigationListener = productMenu.on(
 				'openStart.lexicon.sidenav',
-				onCloseSidebar
+				() => onChange({sidebarOpen: false})
 			);
 
-			return () => {
-				sideNavigationListener.removeListener();
-			};
+			return () => sideNavigationListener.removeListener();
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [open]);
+	}, [onChange, open]);
 
-	const handleClick = (panel) => {
-		const isOpen = panel.sidebarPanelId === currentPanelId ? !open : true;
-		const productMenuToggle = document.querySelector(
-			'.product-menu-toggle'
-		);
-
-		if (productMenuToggle && !open) {
-			Liferay.SideNavigation.hide(productMenuToggle);
-		}
-
-		if (isOpen) {
-			changeAlertClassName(
-				'data-engine-form-builder-messages data-engine-form-builder-messages--collapsed'
-			);
-		}
-		else {
-			changeAlertClassName('data-engine-form-builder-messages');
-		}
-
+	const handlePanelClick = ({sidebarPanelId}) =>
 		onChange({
-			sidebarOpen: isOpen,
-			sidebarPanelId: panel.sidebarPanelId,
+			sidebarOpen: sidebarPanelId !== currentPanelId || !open,
+			sidebarPanelId,
 		});
-	};
 
 	return (
-		<div
-			className={classNames(
-				'multi-panel-sidebar',
-				`multi-panel-sidebar-${variant}`,
-				{
-					'menu-indicator-enabled': document.querySelector(
-						CLASSNAME_INDICATORS.join(',')
-					),
-				}
-			)}
-		>
-			<nav
+		<ClayTooltipProvider>
+			<div
 				className={classNames(
-					'multi-panel-sidebar-buttons',
-					'tbar',
-					'tbar-stacked',
-					variant === 'dark'
-						? `tbar-${variant}-d1`
-						: `tbar-${variant}`
+					'multi-panel-sidebar',
+					`multi-panel-sidebar-${variant}`,
+					{
+						'menu-indicator-enabled': document.querySelector(
+							CLASSNAME_INDICATORS.join(',')
+						),
+					}
 				)}
 			>
-				<ul className="tbar-nav">
-					{panels.reduce((elements, group, groupIndex) => {
-						const buttons = group.map((panelId) => {
-							const panel = sidebarPanels[panelId];
+				<nav
+					className={classNames(
+						'multi-panel-sidebar-buttons',
+						'tbar',
+						'tbar-stacked',
+						variant === 'dark'
+							? `tbar-${variant}-d1`
+							: `tbar-${variant}`
+					)}
+				>
+					<ul className="tbar-nav">
+						{panels.reduce((elements, group, groupIndex) => {
+							const buttons = group.map((panelId) => {
+								const panel = sidebarPanels[panelId];
 
-							const active = open && currentPanelId === panelId;
-							const {
-								icon,
-								isLink,
-								label,
-								pluginEntryPoint,
-								url,
-							} = panel;
+								const active =
+									open && currentPanelId === panelId;
+								const {
+									icon,
+									isLink,
+									label,
+									pluginEntryPoint,
+									url,
+								} = panel;
 
-							const prefetch = () =>
-								load(
-									panel.sidebarPanelId,
-									pluginEntryPoint
-								).then(...swallow);
+								const prefetch = () =>
+									load(
+										panel.sidebarPanelId,
+										pluginEntryPoint
+									).then(...swallow);
 
-							const btnClasses = classNames(
-								'tbar-btn tbar-btn-monospaced',
-								{active}
-							);
+								const btnClasses = classNames(
+									'tbar-btn tbar-btn-monospaced',
+									{active}
+								);
 
-							return (
-								<li
-									className={classNames(
-										'tbar-item',
-										`tbar-item--${panel.sidebarPanelId}`
-									)}
+								return (
+									<li
+										className={classNames(
+											'tbar-item',
+											`tbar-item--${panel.sidebarPanelId}`
+										)}
+										key={panel.sidebarPanelId}
+									>
+										{isLink ? (
+											<a
+												className={btnClasses}
+												href={url}
+											>
+												<ClayIcon symbol={icon} />
+											</a>
+										) : (
+											<ClayButtonWithIcon
+												aria-pressed={active}
+												className={btnClasses}
+												data-tooltip-align="left"
+												displayType="unstyled"
+												id={panel.sidebarPanelId}
+												onClick={() =>
+													handlePanelClick(panel)
+												}
+												onFocus={prefetch}
+												onMouseEnter={prefetch}
+												symbol={icon}
+												title={label}
+											/>
+										)}
+									</li>
+								);
+							});
+
+							if (groupIndex === panels.length - 1) {
+								return elements.concat(buttons);
+							}
+							else {
+								return elements.concat([
+									...buttons,
+									<hr key={`separator-${groupIndex}`} />,
+								]);
+							}
+						}, [])}
+					</ul>
+				</nav>
+
+				<div
+					className={classNames('multi-panel-sidebar-content', {
+						'multi-panel-sidebar-content-open': open,
+					})}
+				>
+					{hasError ? (
+						<div>
+							<ClayButton
+								block
+								displayType="secondary"
+								onClick={() => {
+									onChange({sidebarOpen: false});
+									setHasError(false);
+								}}
+								small
+							>
+								{Liferay.Language.get('refresh')}
+							</ClayButton>
+						</div>
+					) : (
+						<ErrorBoundary
+							handleError={() => {
+								setHasError(true);
+							}}
+						>
+							{panelComponents.length === 0 && (
+								<ClayLoadingIndicator />
+							)}
+
+							{panelComponents.map((panel) => (
+								<div
+									className={classNames({
+										'd-none':
+											panel.sidebarPanelId !==
+											currentPanelId,
+									})}
 									key={panel.sidebarPanelId}
 								>
-									{isLink ? (
-										<a className={btnClasses} href={url}>
-											<ClayIcon symbol={icon} />
-										</a>
-									) : (
-										<ClayButtonWithIcon
-											aria-pressed={active}
-											className={btnClasses}
-											data-tooltip-align="left"
-											displayType="unstyled"
-											id={panel.sidebarPanelId}
-											onClick={() => handleClick(panel)}
-											onFocus={prefetch}
-											onMouseEnter={prefetch}
-											symbol={icon}
-											title={label}
-										/>
-									)}
-								</li>
-							);
-						});
-
-						if (groupIndex === panels.length - 1) {
-							return elements.concat(buttons);
-						}
-						else {
-							return elements.concat([
-								...buttons,
-								<hr key={`separator-${groupIndex}`} />,
-							]);
-						}
-					}, [])}
-				</ul>
-			</nav>
-			<div
-				className={classNames('multi-panel-sidebar-content', {
-					'multi-panel-sidebar-content-open': open,
-				})}
-			>
-				{hasError ? (
-					<div>
-						<ClayButton
-							block
-							displayType="secondary"
-							onClick={() => {
-								onChange({
-									sidebarOpen: false,
-									sidebarPanelId: panels[0] && panels[0][0],
-								});
-								setHasError(false);
-							}}
-							small
-						>
-							{Liferay.Language.get('refresh')}
-						</ClayButton>
-					</div>
-				) : (
-					<ErrorBoundary
-						handleError={() => {
-							setHasError(true);
-						}}
-					>
-						{panelComponents.length === 0 && (
-							<ClayLoadingIndicator />
-						)}
-
-						{panelComponents.map((panel) => (
-							<div
-								className={classNames({
-									'd-none':
-										panel.sidebarPanelId !== currentPanelId,
-								})}
-								key={panel.sidebarPanelId}
-							>
-								<panel.Component />
-							</div>
-						))}
-					</ErrorBoundary>
-				)}
+									<panel.Component />
+								</div>
+							))}
+						</ErrorBoundary>
+					)}
+				</div>
 			</div>
-		</div>
+		</ClayTooltipProvider>
 	);
 }
 

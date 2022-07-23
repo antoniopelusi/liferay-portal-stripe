@@ -53,7 +53,7 @@ public class SegmentsSimulationDisplayContext {
 			_liferayPortletResponse, SegmentsPortletKeys.SEGMENTS_SIMULATION
 		).setActionName(
 			"/segments_simulation/deactivate_simulation"
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getPortletNamespace() {
@@ -77,7 +77,7 @@ public class SegmentsSimulationDisplayContext {
 			_liferayPortletResponse, SegmentsPortletKeys.SEGMENTS_SIMULATION
 		).setActionName(
 			"/segments_simulation/simulate_segments_entries"
-		).build();
+		).buildPortletURL();
 	}
 
 	public boolean isShowEmptyMessage() {

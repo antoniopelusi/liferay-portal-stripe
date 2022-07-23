@@ -83,7 +83,7 @@ public abstract class BasePortletLayoutFinder implements PortletLayoutFinder {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchLayoutException, noSuchLayoutException);
+					_log.debug(noSuchLayoutException);
 				}
 			}
 		}
@@ -115,25 +115,6 @@ public abstract class BasePortletLayoutFinder implements PortletLayoutFinder {
 		return new ResultImpl(
 			(long)plidAndPortletId[0], (String)plidAndPortletId[1],
 			(boolean)plidAndPortletId[2]);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	protected Object[] fetchPlidAndPortletId(
-			PermissionChecker permissionChecker, long groupId,
-			String[] portletIds)
-		throws PortalException {
-
-		Object[] plidAndPortletId = _fetchPlidAndPortletId(
-			permissionChecker, groupId, portletIds);
-
-		if ((plidAndPortletId == null) || (boolean)plidAndPortletId[2]) {
-			return null;
-		}
-
-		return new Object[] {plidAndPortletId[0], plidAndPortletId[1]};
 	}
 
 	protected String getPortletId(
@@ -169,15 +150,6 @@ public abstract class BasePortletLayoutFinder implements PortletLayoutFinder {
 	protected abstract String[] getPortletIds();
 
 	protected class ResultImpl implements PortletLayoutFinder.Result {
-
-		/**
-		 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-		 *             #ResultImpl(long, String, boolean)}
-		 */
-		@Deprecated
-		public ResultImpl(long plid, String portletId) {
-			this(plid, portletId, false);
-		}
 
 		public ResultImpl(long plid, String portletId, boolean signInRequired) {
 			_plid = plid;

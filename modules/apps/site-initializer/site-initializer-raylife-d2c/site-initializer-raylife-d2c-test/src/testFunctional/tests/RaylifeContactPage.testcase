@@ -1,0 +1,219 @@
+@component-name = "portal-solutions"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Raylife";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		Raylife.createRaylifeSite(siteName = "Raylife");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		Raylife.tearDownCP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.logoutPG();
+		}
+	}
+
+	@description = "LPS-142596 - Verify clicking 'Dismiss' on the Information Panel closes it (Information Panel from 'Let's get in touch.' page)"
+	@priority = "3"
+	test CanDismissContactAgentPageInfoPanel {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.gotoContactInfoByBusiness();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		Click(locator1 = "Raylife#BUTTON_DISMISS");
+
+		AssertElementPresent(
+			locator1 = "Raylife#INFO_PANEL_DISMISS_BUTTON",
+			value1 = "Did you know?");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_CONTACT_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+	@description = "LPS-142608 - Verify if you can reach the contact page by 'Let’s get to know your business!' page"
+	@priority = "5"
+	test CanReachContactPageByBusinessPage {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.gotoContactInfoByBusiness();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		AssertElementPresent(
+			contextualMessage = "We need to ask you for more information about your business.",
+			locator1 = "Raylife#CONTEXTUAL_MESSAGE");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_CONTACT_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+	@description = "LPS-142609 - Verify if you can reach the contact page by 'Tell us about your employees!' page"
+	@priority = "5"
+	test CanReachContactPageByEmployeesPage {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.typeAllBusinessInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeEmployees.gotoContactInfoByEmployees();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		AssertElementPresent(
+			contextualMessage = "We need to ask you for more information about your employees.",
+			locator1 = "Raylife#CONTEXTUAL_MESSAGE");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_CONTACT_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+	@description = "LPS-142610 - Verify if you can reach the contact page by 'More about... <Business Street Address>' page"	
+	@priority = "5"
+	test CanReachContactPageByPropertyPage {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.getAQuote();
+
+		Click(
+			locator1 = "RaylifeProduct#SELECT_PRODUCT",
+			selectProduct = "Business Owners Policy");
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeIndustry.typeIndustry(primaryIndustry = "Residential");
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.typeAllBusinessInfoFieldsResidential();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeEmployees.typeAllEmployeesInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeProperty.gotoContactInfoByProperty();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		AssertElementPresent(
+			contextualMessage = "We need to ask you for more information about your business location.",
+			locator1 = "Raylife#CONTEXTUAL_MESSAGE");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_CONTACT_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+	@description = "LPS-142584 - Verify if Application ID was generated after the user saved their Contact Info"
+	@priority = "5"
+	test CanViewApplicationId {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.gotoContactInfoByBusiness();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		AssertElementPresent(locator1 = "Raylife#APPLICATION_ID");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_CONTACT_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+	@description = "LPS-142589 - Verify if when the user click in the 'Back to edit info', the previous data persist"
+	@priority = "5"
+	test DataPersistsWhenTryToEditInfo {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.gotoContactInfoByBusiness();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_CONTACT_PAGE");
+
+		RaylifeBusiness.viewBusinessInfo();
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+}

@@ -78,7 +78,7 @@ public class ObjectDefinitionCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(51);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -96,8 +96,40 @@ public class ObjectDefinitionCacheModel
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
+		sb.append(", descriptionObjectFieldId=");
+		sb.append(descriptionObjectFieldId);
+		sb.append(", titleObjectFieldId=");
+		sb.append(titleObjectFieldId);
+		sb.append(", active=");
+		sb.append(active);
+		sb.append(", dbTableName=");
+		sb.append(dbTableName);
+		sb.append(", label=");
+		sb.append(label);
+		sb.append(", className=");
+		sb.append(className);
 		sb.append(", name=");
 		sb.append(name);
+		sb.append(", panelAppOrder=");
+		sb.append(panelAppOrder);
+		sb.append(", panelCategoryKey=");
+		sb.append(panelCategoryKey);
+		sb.append(", pkObjectFieldDBColumnName=");
+		sb.append(pkObjectFieldDBColumnName);
+		sb.append(", pkObjectFieldName=");
+		sb.append(pkObjectFieldName);
+		sb.append(", pluralLabel=");
+		sb.append(pluralLabel);
+		sb.append(", portlet=");
+		sb.append(portlet);
+		sb.append(", scope=");
+		sb.append(scope);
+		sb.append(", system=");
+		sb.append(system);
+		sb.append(", version=");
+		sb.append(version);
+		sb.append(", status=");
+		sb.append(status);
 		sb.append("}");
 
 		return sb.toString();
@@ -141,12 +173,87 @@ public class ObjectDefinitionCacheModel
 			objectDefinitionImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
+		objectDefinitionImpl.setDescriptionObjectFieldId(
+			descriptionObjectFieldId);
+		objectDefinitionImpl.setTitleObjectFieldId(titleObjectFieldId);
+		objectDefinitionImpl.setActive(active);
+
+		if (dbTableName == null) {
+			objectDefinitionImpl.setDBTableName("");
+		}
+		else {
+			objectDefinitionImpl.setDBTableName(dbTableName);
+		}
+
+		if (label == null) {
+			objectDefinitionImpl.setLabel("");
+		}
+		else {
+			objectDefinitionImpl.setLabel(label);
+		}
+
+		if (className == null) {
+			objectDefinitionImpl.setClassName("");
+		}
+		else {
+			objectDefinitionImpl.setClassName(className);
+		}
+
 		if (name == null) {
 			objectDefinitionImpl.setName("");
 		}
 		else {
 			objectDefinitionImpl.setName(name);
 		}
+
+		if (panelAppOrder == null) {
+			objectDefinitionImpl.setPanelAppOrder("");
+		}
+		else {
+			objectDefinitionImpl.setPanelAppOrder(panelAppOrder);
+		}
+
+		if (panelCategoryKey == null) {
+			objectDefinitionImpl.setPanelCategoryKey("");
+		}
+		else {
+			objectDefinitionImpl.setPanelCategoryKey(panelCategoryKey);
+		}
+
+		if (pkObjectFieldDBColumnName == null) {
+			objectDefinitionImpl.setPKObjectFieldDBColumnName("");
+		}
+		else {
+			objectDefinitionImpl.setPKObjectFieldDBColumnName(
+				pkObjectFieldDBColumnName);
+		}
+
+		if (pkObjectFieldName == null) {
+			objectDefinitionImpl.setPKObjectFieldName("");
+		}
+		else {
+			objectDefinitionImpl.setPKObjectFieldName(pkObjectFieldName);
+		}
+
+		if (pluralLabel == null) {
+			objectDefinitionImpl.setPluralLabel("");
+		}
+		else {
+			objectDefinitionImpl.setPluralLabel(pluralLabel);
+		}
+
+		objectDefinitionImpl.setPortlet(portlet);
+
+		if (scope == null) {
+			objectDefinitionImpl.setScope("");
+		}
+		else {
+			objectDefinitionImpl.setScope(scope);
+		}
+
+		objectDefinitionImpl.setSystem(system);
+		objectDefinitionImpl.setVersion(version);
+		objectDefinitionImpl.setStatus(status);
 
 		objectDefinitionImpl.resetOriginalValues();
 
@@ -166,7 +273,30 @@ public class ObjectDefinitionCacheModel
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+
+		descriptionObjectFieldId = objectInput.readLong();
+
+		titleObjectFieldId = objectInput.readLong();
+
+		active = objectInput.readBoolean();
+		dbTableName = objectInput.readUTF();
+		label = objectInput.readUTF();
+		className = objectInput.readUTF();
 		name = objectInput.readUTF();
+		panelAppOrder = objectInput.readUTF();
+		panelCategoryKey = objectInput.readUTF();
+		pkObjectFieldDBColumnName = objectInput.readUTF();
+		pkObjectFieldName = objectInput.readUTF();
+		pluralLabel = objectInput.readUTF();
+
+		portlet = objectInput.readBoolean();
+		scope = objectInput.readUTF();
+
+		system = objectInput.readBoolean();
+
+		version = objectInput.readInt();
+
+		status = objectInput.readInt();
 	}
 
 	@Override
@@ -196,12 +326,89 @@ public class ObjectDefinitionCacheModel
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
 
+		objectOutput.writeLong(descriptionObjectFieldId);
+
+		objectOutput.writeLong(titleObjectFieldId);
+
+		objectOutput.writeBoolean(active);
+
+		if (dbTableName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(dbTableName);
+		}
+
+		if (label == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(label);
+		}
+
+		if (className == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(className);
+		}
+
 		if (name == null) {
 			objectOutput.writeUTF("");
 		}
 		else {
 			objectOutput.writeUTF(name);
 		}
+
+		if (panelAppOrder == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(panelAppOrder);
+		}
+
+		if (panelCategoryKey == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(panelCategoryKey);
+		}
+
+		if (pkObjectFieldDBColumnName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(pkObjectFieldDBColumnName);
+		}
+
+		if (pkObjectFieldName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(pkObjectFieldName);
+		}
+
+		if (pluralLabel == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(pluralLabel);
+		}
+
+		objectOutput.writeBoolean(portlet);
+
+		if (scope == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(scope);
+		}
+
+		objectOutput.writeBoolean(system);
+
+		objectOutput.writeInt(version);
+
+		objectOutput.writeInt(status);
 	}
 
 	public long mvccVersion;
@@ -212,6 +419,22 @@ public class ObjectDefinitionCacheModel
 	public String userName;
 	public long createDate;
 	public long modifiedDate;
+	public long descriptionObjectFieldId;
+	public long titleObjectFieldId;
+	public boolean active;
+	public String dbTableName;
+	public String label;
+	public String className;
 	public String name;
+	public String panelAppOrder;
+	public String panelCategoryKey;
+	public String pkObjectFieldDBColumnName;
+	public String pkObjectFieldName;
+	public String pluralLabel;
+	public boolean portlet;
+	public String scope;
+	public boolean system;
+	public int version;
+	public int status;
 
 }

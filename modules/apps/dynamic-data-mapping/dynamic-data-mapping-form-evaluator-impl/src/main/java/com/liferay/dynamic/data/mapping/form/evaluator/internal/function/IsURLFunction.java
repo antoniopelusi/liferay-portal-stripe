@@ -15,7 +15,10 @@
 package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunction;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.util.Objects;
 
 /**
  * @author Leonardo Barros
@@ -27,7 +30,10 @@ public class IsURLFunction
 
 	@Override
 	public Boolean apply(Object parameter) {
-		if (parameter == null) {
+		if ((parameter == null) ||
+			Objects.equals(parameter.toString(), Http.HTTP_WITH_SLASH) ||
+			Objects.equals(parameter.toString(), Http.HTTPS_WITH_SLASH)) {
+
 			return false;
 		}
 

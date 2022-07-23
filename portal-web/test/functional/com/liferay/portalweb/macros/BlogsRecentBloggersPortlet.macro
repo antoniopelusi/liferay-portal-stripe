@@ -1,0 +1,27 @@
+definition {
+
+	macro gotoEntryDetails {
+		Click(
+			key_userName = "${userName}",
+			locator1 = "BlogsRecentBloggers#USER_NAME_LINK");
+	}
+
+	macro viewInfo {
+		AssertTextEquals(
+			locator1 = "BlogsRecentBloggers#NUMBER_OF_POST",
+			value1 = "Post: ${numberOfPost}");
+
+		AssertTextEquals(
+			locator1 = "BlogsRecentBloggers#NUMBER_OF_RATINGS",
+			value1 = "Number of Ratings: ${numberOfRatings}");
+
+		var postYear = DateUtil.getFormattedCurrentDate("yy");
+
+		echo("## * postYear: ${postYear}");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "BlogsRecentBloggers#POST_DATE",
+			value1 = "${postYear}");
+	}
+
+}

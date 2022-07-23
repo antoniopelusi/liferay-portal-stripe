@@ -28,6 +28,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class TeamLocalServiceWrapper
 	implements ServiceWrapper<TeamLocalService>, TeamLocalService {
 
+	public TeamLocalServiceWrapper() {
+		this(null);
+	}
+
 	public TeamLocalServiceWrapper(TeamLocalService teamLocalService) {
 		_teamLocalService = teamLocalService;
 	}
@@ -230,6 +234,13 @@ public class TeamLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _teamLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _teamLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

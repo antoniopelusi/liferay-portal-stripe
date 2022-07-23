@@ -139,6 +139,18 @@ public class AccountGroupRelLocalServiceUtil {
 			accountGroupId, className, classPKs);
 	}
 
+	public static void deleteAccountGroupRels(
+		String className, long[] classPKs) {
+
+		getService().deleteAccountGroupRels(className, classPKs);
+	}
+
+	public static void deleteAccountGroupRelsByAccountGroupId(
+		long accountGroupId) {
+
+		getService().deleteAccountGroupRelsByAccountGroupId(accountGroupId);
+	}
+
 	/**
 	 * @throws PortalException
 	 */
@@ -151,6 +163,10 @@ public class AccountGroupRelLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -277,10 +293,26 @@ public class AccountGroupRelLocalServiceUtil {
 		return getService().getAccountGroupRels(className, classPK);
 	}
 
+	public static List<AccountGroupRel> getAccountGroupRels(
+		String className, long classPK, int start, int end,
+		OrderByComparator<AccountGroupRel> orderByComparator) {
+
+		return getService().getAccountGroupRels(
+			className, classPK, start, end, orderByComparator);
+	}
+
 	public static List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(
 		long accountGroupId) {
 
 		return getService().getAccountGroupRelsByAccountGroupId(accountGroupId);
+	}
+
+	public static List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(
+		long accountGroupId, int start, int end,
+		OrderByComparator<AccountGroupRel> orderByComparator) {
+
+		return getService().getAccountGroupRelsByAccountGroupId(
+			accountGroupId, start, end, orderByComparator);
 	}
 
 	/**
@@ -290,6 +322,10 @@ public class AccountGroupRelLocalServiceUtil {
 	 */
 	public static int getAccountGroupRelsCount() {
 		return getService().getAccountGroupRelsCount();
+	}
+
+	public static int getAccountGroupRelsCount(String className, long classPK) {
+		return getService().getAccountGroupRelsCount(className, classPK);
 	}
 
 	public static long getAccountGroupRelsCountByAccountGroupId(

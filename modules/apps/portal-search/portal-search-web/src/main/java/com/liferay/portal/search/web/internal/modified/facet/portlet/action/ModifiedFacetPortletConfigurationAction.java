@@ -28,7 +28,7 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.web.internal.modified.facet.builder.DateRangeFactory;
 import com.liferay.portal.search.web.internal.modified.facet.constants.ModifiedFacetPortletKeys;
-import com.liferay.portal.search.web.internal.modified.facet.display.context.ModifiedFacetDisplayBuilder;
+import com.liferay.portal.search.web.internal.modified.facet.display.context.builder.ModifiedFacetDisplayContextBuilder;
 
 import java.text.ParseException;
 
@@ -68,12 +68,12 @@ public class ModifiedFacetPortletConfigurationAction
 			(RenderRequest)httpServletRequest.getAttribute(
 				JavaConstants.JAVAX_PORTLET_REQUEST);
 
-		ModifiedFacetDisplayBuilder modifiedFacetDisplayBuilder =
-			createModifiedFacetDisplayBuilder(renderRequest);
+		ModifiedFacetDisplayContextBuilder modifiedFacetDisplayContextBuilder =
+			_createModifiedFacetDisplayContextBuilder(renderRequest);
 
 		httpServletRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT,
-			modifiedFacetDisplayBuilder.build());
+			modifiedFacetDisplayContextBuilder.build());
 
 		super.include(portletConfig, httpServletRequest, httpServletResponse);
 	}
@@ -98,7 +98,7 @@ public class ModifiedFacetPortletConfigurationAction
 		catch (JSONException | ParseException exception) {
 			SessionErrors.add(actionRequest, "unparsableDate");
 
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		if (SessionErrors.isEmpty(actionRequest)) {
@@ -106,12 +106,12 @@ public class ModifiedFacetPortletConfigurationAction
 		}
 	}
 
-	protected ModifiedFacetDisplayBuilder createModifiedFacetDisplayBuilder(
-		RenderRequest renderRequest) {
+	private ModifiedFacetDisplayContextBuilder
+		_createModifiedFacetDisplayContextBuilder(RenderRequest renderRequest) {
 
 		try {
-			return new ModifiedFacetDisplayBuilder(
-				null, null, null, renderRequest);
+			return new ModifiedFacetDisplayContextBuilder(
+				null, null, renderRequest);
 		}
 		catch (ConfigurationException configurationException) {
 			throw new RuntimeException(configurationException);

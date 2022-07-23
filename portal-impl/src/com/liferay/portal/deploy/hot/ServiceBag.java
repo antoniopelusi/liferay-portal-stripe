@@ -30,7 +30,7 @@ public class ServiceBag<V> {
 
 	public ServiceBag(
 		ClassLoader classLoader, AopInvocationHandler aopInvocationHandler,
-		Class<?> serviceTypeClass, final ServiceWrapper<V> serviceWrapper) {
+		Class<?> serviceTypeClass, ServiceWrapper<V> serviceWrapper) {
 
 		_aopInvocationHandler = aopInvocationHandler;
 

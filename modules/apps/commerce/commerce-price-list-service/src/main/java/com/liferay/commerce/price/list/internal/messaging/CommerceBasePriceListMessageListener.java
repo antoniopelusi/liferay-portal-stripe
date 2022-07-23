@@ -14,14 +14,16 @@
 
 package com.liferay.commerce.price.list.internal.messaging;
 
-import com.liferay.commerce.constants.CommerceDestinationNames;
 import com.liferay.commerce.price.list.internal.helper.CommerceBasePriceListHelper;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
+import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageListener;
 
@@ -33,14 +35,17 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	enabled = false, immediate = true,
-	property = "destination.name=" + CommerceDestinationNames.BASE_PRICE_LIST,
+	property = "destination.name=" + DestinationNames.COMMERCE_BASE_PRICE_LIST,
 	service = MessageListener.class
 )
 public class CommerceBasePriceListMessageListener extends BaseMessageListener {
 
 	@Override
 	protected void doReceive(Message message) throws Exception {
-		long commerceCatalogId = message.getLong("commerceCatalogId");
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			String.valueOf(message.getPayload()));
+
+		long commerceCatalogId = jsonObject.getLong("commerceCatalogId");
 
 		CommerceCatalog commerceCatalog =
 			_commerceCatalogLocalService.fetchCommerceCatalog(
@@ -56,7 +61,7 @@ public class CommerceBasePriceListMessageListener extends BaseMessageListener {
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 	}

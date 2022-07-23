@@ -17,6 +17,7 @@ package com.liferay.portal.osgi.web.wab.generator.internal.artifact;
 import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.whip.util.ReflectionUtil;
 
 import java.io.IOException;
@@ -67,18 +68,12 @@ public class ArtifactURLUtil {
 			contextName = symbolicName;
 		}
 
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(artifact.getPath());
-		sb.append("?");
-		sb.append(Constants.BUNDLE_SYMBOLICNAME);
-		sb.append("=");
-		sb.append(symbolicName);
-		sb.append("&Web-ContextPath=/");
-		sb.append(contextName);
-		sb.append("&protocol=file");
-
-		return new URL("webbundle", null, sb.toString());
+		return new URL(
+			"webbundle", null,
+			StringBundler.concat(
+				artifact.getPath(), "?", Constants.BUNDLE_SYMBOLICNAME, "=",
+				symbolicName, "&Web-ContextPath=/", contextName,
+				"&protocol=file"));
 	}
 
 	private static String _readServletContextName(Jar jar) throws Exception {

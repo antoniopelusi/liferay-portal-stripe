@@ -14,7 +14,9 @@
 
 package com.liferay.commerce.product.service;
 
+import com.liferay.commerce.product.model.CPAttachmentFileEntry;
 import com.liferay.commerce.product.model.CPDefinition;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -48,6 +50,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -69,7 +72,7 @@ public interface CPDefinitionService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.commerce.product.service.impl.CPDefinitionServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the cp definition remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CPDefinitionServiceUtil} if injection and service tracking are not available.
 	 */
 	public CPDefinition addCPDefinition(
-			String externalReferenceCode, long groupId, long userId,
+			String externalReferenceCode, long groupId,
 			Map<Locale, String> nameMap,
 			Map<Locale, String> shortDescriptionMap,
 			Map<Locale, String> descriptionMap, Map<Locale, String> urlTitleMap,
@@ -96,7 +99,58 @@ public interface CPDefinitionService extends BaseService {
 		throws PortalException;
 
 	public CPDefinition addCPDefinition(
-			String externalReferenceCode, long groupId, long userId,
+			String externalReferenceCode, long groupId,
+			Map<Locale, String> nameMap,
+			Map<Locale, String> shortDescriptionMap,
+			Map<Locale, String> descriptionMap, Map<Locale, String> urlTitleMap,
+			Map<Locale, String> metaTitleMap,
+			Map<Locale, String> metaDescriptionMap,
+			Map<Locale, String> metaKeywordsMap, String productTypeName,
+			boolean ignoreSKUCombinations, boolean shippable,
+			boolean freeShipping, boolean shipSeparately,
+			double shippingExtraPrice, double width, double height,
+			double depth, double weight, long cpTaxCategoryId,
+			boolean taxExempt, boolean telcoOrElectronics,
+			String ddmStructureKey, boolean published, int displayDateMonth,
+			int displayDateDay, int displayDateYear, int displayDateHour,
+			int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire, String defaultSku, boolean subscriptionEnabled,
+			int subscriptionLength, String subscriptionType,
+			UnicodeProperties subscriptionTypeSettingsUnicodeProperties,
+			long maxSubscriptionCycles, ServiceContext serviceContext)
+		throws PortalException;
+
+	public CPDefinition addOrUpdateCPDefinition(
+			String externalReferenceCode, long groupId,
+			Map<Locale, String> nameMap,
+			Map<Locale, String> shortDescriptionMap,
+			Map<Locale, String> descriptionMap, Map<Locale, String> urlTitleMap,
+			Map<Locale, String> metaTitleMap,
+			Map<Locale, String> metaDescriptionMap,
+			Map<Locale, String> metaKeywordsMap, String productTypeName,
+			boolean ignoreSKUCombinations, boolean shippable,
+			boolean freeShipping, boolean shipSeparately,
+			double shippingExtraPrice, double width, double height,
+			double depth, double weight, long cpTaxCategoryId,
+			boolean taxExempt, boolean telcoOrElectronics,
+			String ddmStructureKey, boolean published, int displayDateMonth,
+			int displayDateDay, int displayDateYear, int displayDateHour,
+			int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire, String defaultSku, boolean subscriptionEnabled,
+			int subscriptionLength, String subscriptionType,
+			UnicodeProperties subscriptionTypeSettingsUnicodeProperties,
+			long maxSubscriptionCycles, boolean deliverySubscriptionEnabled,
+			int deliverySubscriptionLength, String deliverySubscriptionType,
+			UnicodeProperties deliverySubscriptionTypeSettingsUnicodeProperties,
+			long deliveryMaxSubscriptionCycles, ServiceContext serviceContext)
+		throws PortalException;
+
+	public CPDefinition addOrUpdateCPDefinition(
+			String externalReferenceCode, long groupId,
 			Map<Locale, String> nameMap,
 			Map<Locale, String> shortDescriptionMap,
 			Map<Locale, String> descriptionMap, Map<Locale, String> urlTitleMap,
@@ -155,6 +209,11 @@ public interface CPDefinitionService extends BaseService {
 	public int getCPDefinitionsCount(long groupId, int status)
 		throws PortalException;
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPAttachmentFileEntry getDefaultImageCPAttachmentFileEntry(
+			long cpDefinitionId)
+		throws PortalException;
+
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 	 */
@@ -170,6 +229,10 @@ public interface CPDefinitionService extends BaseService {
 	public String getOSGiServiceIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Map<Locale, String> getUrlTitleMap(long cpDefinitionId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String getUrlTitleMapAsXML(long cpDefinitionId)
 		throws PortalException;
 
@@ -183,6 +246,13 @@ public interface CPDefinitionService extends BaseService {
 	public BaseModelSearchResult<CPDefinition> searchCPDefinitions(
 			long companyId, String keywords, String filterFields,
 			String filterValues, int start, int end, Sort sort)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BaseModelSearchResult<CPDefinition>
+			searchCPDefinitionsByChannelGroupId(
+				long companyId, long commerceChannelGroupId, String keywords,
+				int status, int start, int end, Sort sort)
 		throws PortalException;
 
 	public CPDefinition updateCPDefinition(
@@ -233,8 +303,7 @@ public interface CPDefinitionService extends BaseService {
 		throws PortalException;
 
 	public CPDefinition updateStatus(
-			long userId, long cpDefinitionId, int status,
-			ServiceContext serviceContext,
+			long cpDefinitionId, int status, ServiceContext serviceContext,
 			Map<String, Serializable> workflowContext)
 		throws PortalException;
 
@@ -262,57 +331,6 @@ public interface CPDefinitionService extends BaseService {
 	public CPDefinition updateTaxCategoryInfo(
 			long cpDefinitionId, long cpTaxCategoryId, boolean taxExempt,
 			boolean telcoOrElectronics)
-		throws PortalException;
-
-	public CPDefinition upsertCPDefinition(
-			String externalReferenceCode, long groupId, long userId,
-			Map<Locale, String> nameMap,
-			Map<Locale, String> shortDescriptionMap,
-			Map<Locale, String> descriptionMap, Map<Locale, String> urlTitleMap,
-			Map<Locale, String> metaTitleMap,
-			Map<Locale, String> metaDescriptionMap,
-			Map<Locale, String> metaKeywordsMap, String productTypeName,
-			boolean ignoreSKUCombinations, boolean shippable,
-			boolean freeShipping, boolean shipSeparately,
-			double shippingExtraPrice, double width, double height,
-			double depth, double weight, long cpTaxCategoryId,
-			boolean taxExempt, boolean telcoOrElectronics,
-			String ddmStructureKey, boolean published, int displayDateMonth,
-			int displayDateDay, int displayDateYear, int displayDateHour,
-			int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, String defaultSku, boolean subscriptionEnabled,
-			int subscriptionLength, String subscriptionType,
-			UnicodeProperties subscriptionTypeSettingsUnicodeProperties,
-			long maxSubscriptionCycles, boolean deliverySubscriptionEnabled,
-			int deliverySubscriptionLength, String deliverySubscriptionType,
-			UnicodeProperties deliverySubscriptionTypeSettingsUnicodeProperties,
-			long deliveryMaxSubscriptionCycles, ServiceContext serviceContext)
-		throws PortalException;
-
-	public CPDefinition upsertCPDefinition(
-			String externalReferenceCode, long groupId, long userId,
-			Map<Locale, String> nameMap,
-			Map<Locale, String> shortDescriptionMap,
-			Map<Locale, String> descriptionMap, Map<Locale, String> urlTitleMap,
-			Map<Locale, String> metaTitleMap,
-			Map<Locale, String> metaDescriptionMap,
-			Map<Locale, String> metaKeywordsMap, String productTypeName,
-			boolean ignoreSKUCombinations, boolean shippable,
-			boolean freeShipping, boolean shipSeparately,
-			double shippingExtraPrice, double width, double height,
-			double depth, double weight, long cpTaxCategoryId,
-			boolean taxExempt, boolean telcoOrElectronics,
-			String ddmStructureKey, boolean published, int displayDateMonth,
-			int displayDateDay, int displayDateYear, int displayDateHour,
-			int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, String defaultSku, boolean subscriptionEnabled,
-			int subscriptionLength, String subscriptionType,
-			UnicodeProperties subscriptionTypeSettingsUnicodeProperties,
-			long maxSubscriptionCycles, ServiceContext serviceContext)
 		throws PortalException;
 
 }

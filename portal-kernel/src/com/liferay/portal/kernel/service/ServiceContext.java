@@ -80,17 +80,6 @@ import javax.servlet.http.HttpServletResponse;
 public class ServiceContext implements Cloneable, Serializable {
 
 	/**
-	 * Creates a new service context object with an attributes map and an
-	 * expando bridge attributes map. The attributes map contains standard
-	 * service context parameters and the expando bridge attributes map contains
-	 * optional service context parameters.
-	 */
-	public ServiceContext() {
-		_attributes = new LinkedHashMap<>();
-		_expandoBridgeAttributes = new LinkedHashMap<>();
-	}
-
-	/**
 	 * Returns a new service context object identical to this service context
 	 * object.
 	 *
@@ -210,6 +199,14 @@ public class ServiceContext implements Cloneable, Serializable {
 			ModelPermissionsFactory.create(
 				groupPermissionsList.toArray(new String[0]),
 				guestPermissionsList.toArray(new String[0]), modelName));
+	}
+
+	public User fetchUser() {
+		if (_userId == 0) {
+			return null;
+		}
+
+		return UserLocalServiceUtil.fetchUserById(_userId);
 	}
 
 	/**
@@ -1549,13 +1546,14 @@ public class ServiceContext implements Cloneable, Serializable {
 	private long[] _assetLinkEntryIds;
 	private double _assetPriority;
 	private String[] _assetTagNames;
-	private Map<String, Serializable> _attributes;
+	private Map<String, Serializable> _attributes = new LinkedHashMap<>();
 	private String _command;
 	private long _companyId;
 	private Date _createDate;
 	private String _currentURL;
 	private boolean _deriveDefaultPermissions;
-	private Map<String, Serializable> _expandoBridgeAttributes;
+	private Map<String, Serializable> _expandoBridgeAttributes =
+		new LinkedHashMap<>();
 	private boolean _failOnPortalException = true;
 	private Date _formDate;
 	private transient Map<String, String> _headers;

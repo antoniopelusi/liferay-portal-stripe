@@ -14,11 +14,11 @@
 
 package com.liferay.portal.layoutconfiguration.util;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.PortletContainerException;
 import com.liferay.portal.kernel.portlet.PortletContainerUtil;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
-import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.IOException;
 

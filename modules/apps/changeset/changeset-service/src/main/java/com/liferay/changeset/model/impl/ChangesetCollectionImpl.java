@@ -36,7 +36,5 @@ public class ChangesetCollectionImpl extends ChangesetCollectionBaseImpl {
 	 * collection model instance should use the {@link
 	 * com.liferay.changeset.model.ChangesetCollection} interface instead.
 	 */
-	public ChangesetCollectionImpl() {
-	}
 
 }

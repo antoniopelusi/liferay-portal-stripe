@@ -27,11 +27,52 @@ public class AccountEntryOrganizationRelServiceWrapper
 	implements AccountEntryOrganizationRelService,
 			   ServiceWrapper<AccountEntryOrganizationRelService> {
 
+	public AccountEntryOrganizationRelServiceWrapper() {
+		this(null);
+	}
+
 	public AccountEntryOrganizationRelServiceWrapper(
 		AccountEntryOrganizationRelService accountEntryOrganizationRelService) {
 
 		_accountEntryOrganizationRelService =
 			accountEntryOrganizationRelService;
+	}
+
+	@Override
+	public com.liferay.account.model.AccountEntryOrganizationRel
+			addAccountEntryOrganizationRel(
+				long accountEntryId, long organizationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountEntryOrganizationRelService.
+			addAccountEntryOrganizationRel(accountEntryId, organizationId);
+	}
+
+	@Override
+	public void addAccountEntryOrganizationRels(
+			long accountEntryId, long[] organizationIds)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountEntryOrganizationRelService.addAccountEntryOrganizationRels(
+			accountEntryId, organizationIds);
+	}
+
+	@Override
+	public void deleteAccountEntryOrganizationRel(
+			long accountEntryId, long organizationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountEntryOrganizationRelService.deleteAccountEntryOrganizationRel(
+			accountEntryId, organizationId);
+	}
+
+	@Override
+	public void deleteAccountEntryOrganizationRels(
+			long accountEntryId, long[] organizationIds)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountEntryOrganizationRelService.deleteAccountEntryOrganizationRels(
+			accountEntryId, organizationIds);
 	}
 
 	/**

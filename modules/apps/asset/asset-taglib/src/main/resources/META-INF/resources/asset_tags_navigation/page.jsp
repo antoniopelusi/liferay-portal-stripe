@@ -147,7 +147,7 @@ private String _buildTagsNavigation(long scopeGroupId, String selectedTagName, l
 				renderResponse
 			).setParameter(
 				"tag", StringPool.BLANK
-			).build();
+			).buildPortletURL();
 
 			sb.append(HtmlUtil.escape(portletURL.toString()));
 		}
@@ -158,7 +158,7 @@ private String _buildTagsNavigation(long scopeGroupId, String selectedTagName, l
 				renderResponse
 			).setParameter(
 				"tag", tagName
-			).build();
+			).buildPortletURL();
 
 			sb.append(HtmlUtil.escape(portletURL.toString()));
 		}

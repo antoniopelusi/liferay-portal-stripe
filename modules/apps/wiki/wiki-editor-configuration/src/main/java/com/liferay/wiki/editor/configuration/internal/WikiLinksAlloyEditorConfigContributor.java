@@ -77,21 +77,19 @@ public class WikiLinksAlloyEditorConfigContributor
 				"buttons");
 
 			selectionJSONObject.put(
-				"buttons", updateButtonsJSONArray(buttonsJSONArray));
+				"buttons", _updateButtonsJSONArray(buttonsJSONArray));
 		}
 	}
 
-	protected JSONObject getWikiLinkButtonJSONObject(String buttonName) {
-		JSONObject cfgJSONObject = JSONUtil.put("appendProtocol", false);
-
+	private JSONObject _getWikiLinkButtonJSONObject(String buttonName) {
 		return JSONUtil.put(
-			"cfg", cfgJSONObject
+			"cfg", JSONUtil.put("appendProtocol", false)
 		).put(
 			"name", buttonName
 		);
 	}
 
-	protected JSONArray updateButtonsJSONArray(JSONArray oldButtonsJSONArray) {
+	private JSONArray _updateButtonsJSONArray(JSONArray oldButtonsJSONArray) {
 		JSONArray newButtonsJSONArray = JSONFactoryUtil.createJSONArray();
 
 		for (int j = 0; j < oldButtonsJSONArray.length(); j++) {
@@ -103,7 +101,7 @@ public class WikiLinksAlloyEditorConfigContributor
 				if (buttonName.equals("link") ||
 					buttonName.equals("linkEdit")) {
 
-					buttonJSONObject = getWikiLinkButtonJSONObject(buttonName);
+					buttonJSONObject = _getWikiLinkButtonJSONObject(buttonName);
 
 					newButtonsJSONArray.put(buttonJSONObject);
 				}

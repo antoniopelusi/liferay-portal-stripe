@@ -20,21 +20,6 @@
 String rootMenuItemType = siteNavigationMenuDisplayContext.getRootMenuItemType();
 
 SiteNavigationMenu siteNavigationMenu = siteNavigationMenuDisplayContext.getSiteNavigationMenu();
-
-String siteNavigationMenuName = StringPool.BLANK;
-
-if (siteNavigationMenu != null) {
-	siteNavigationMenuName = HtmlUtil.escape(siteNavigationMenu.getName());
-}
-else if (siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PRIVATE_PAGES_HIERARCHY) {
-	siteNavigationMenuName = LanguageUtil.get(request, "private-pages-hierarchy");
-}
-else if (siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PUBLIC_PAGES_HIERARCHY) {
-	siteNavigationMenuName = LanguageUtil.get(request, "public-pages-hierarchy");
-}
-else {
-	siteNavigationMenuName = LanguageUtil.get(request, layout.isPrivateLayout() ? "private-pages-hierarchy" : "public-pages-hierarchy");
-}
 %>
 
 <liferay-portlet:actionURL portletConfiguration="<%= true %>" var="configurationActionURL" />
@@ -70,13 +55,22 @@ else {
 							Group scopeGroup = themeDisplay.getScopeGroup();
 							%>
 
-							<c:if test="<%= scopeGroup.hasPublicLayouts() && layout.isPublicLayout() %>">
-								<aui:option label="public-pages-hierarchy" selected="<%= siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PUBLIC_PAGES_HIERARCHY %>" value="<%= SiteNavigationConstants.TYPE_PUBLIC_PAGES_HIERARCHY %>" />
-							</c:if>
+							<c:choose>
+								<c:when test="<%= scopeGroup.isPrivateLayoutsEnabled() %>">
+									<c:if test="<%= scopeGroup.hasPublicLayouts() && layout.isPublicLayout() %>">
+										<aui:option label="public-pages-hierarchy" selected="<%= siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PUBLIC_PAGES_HIERARCHY %>" value="<%= SiteNavigationConstants.TYPE_PUBLIC_PAGES_HIERARCHY %>" />
+									</c:if>
 
-							<c:if test="<%= scopeGroup.hasPrivateLayouts() && layout.isPrivateLayout() %>">
-								<aui:option label="private-pages-hierarchy" selected="<%= siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PRIVATE_PAGES_HIERARCHY %>" value="<%= SiteNavigationConstants.TYPE_PRIVATE_PAGES_HIERARCHY %>" />
-							</c:if>
+									<c:if test="<%= scopeGroup.hasPrivateLayouts() && layout.isPrivateLayout() %>">
+										<aui:option label="private-pages-hierarchy" selected="<%= siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PRIVATE_PAGES_HIERARCHY %>" value="<%= SiteNavigationConstants.TYPE_PRIVATE_PAGES_HIERARCHY %>" />
+									</c:if>
+								</c:when>
+								<c:otherwise>
+									<c:if test="<%= scopeGroup.hasPublicLayouts() && layout.isPublicLayout() %>">
+										<aui:option label="pages-hierarchy" selected="<%= siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PUBLIC_PAGES_HIERARCHY %>" value="<%= SiteNavigationConstants.TYPE_PUBLIC_PAGES_HIERARCHY %>" />
+									</c:if>
+								</c:otherwise>
+							</c:choose>
 
 							<aui:option label="primary-navigation" selected="<%= siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PRIMARY %>" value="<%= SiteNavigationConstants.TYPE_PRIMARY %>" />
 							<aui:option label="secondary-navigation" selected="<%= siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_SECONDARY %>" value="<%= SiteNavigationConstants.TYPE_SECONDARY %>" />
@@ -88,7 +82,7 @@ else {
 						<div class="mb-2 text-muted">
 							<span id="<portlet:namespace />navigationMenuName">
 								<c:if test="<%= siteNavigationMenuDisplayContext.isSiteNavigationMenuSelected() && (siteNavigationMenu != null) %>">
-									<%= siteNavigationMenuName %>
+									<%= siteNavigationMenuDisplayContext.getSiteNavigationMenuName() %>
 								</c:if>
 							</span>
 							<span class="mt-1 <%= (siteNavigationMenuDisplayContext.isSiteNavigationMenuSelected() && (siteNavigationMenu != null)) ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />removeSiteNavigationMenu" role="button">
@@ -99,7 +93,7 @@ else {
 						<aui:button disabled="<%= !siteNavigationMenuDisplayContext.isSiteNavigationMenuSelected() %>" name="chooseSiteNavigationMenu" value="select" />
 
 						<div class="display-template mt-4">
-							<liferay-ddm:template-selector
+							<liferay-template:template-selector
 								className="<%= NavItem.class.getName() %>"
 								displayStyle="<%= siteNavigationMenuDisplayContext.getDisplayStyle() %>"
 								displayStyleGroupId="<%= siteNavigationMenuDisplayContext.getDisplayStyleGroupId() %>"
@@ -153,7 +147,7 @@ else {
 										<aui:input id="rootMenuItemId" ignoreRequestValue="<%= true %>" name="preferences--rootMenuItemId--" type="hidden" value="<%= siteNavigationMenuDisplayContext.getRootMenuItemId() %>" />
 
 										<%
-										String rootMenuItemName = siteNavigationMenuName;
+										String rootMenuItemName = siteNavigationMenuDisplayContext.getSiteNavigationMenuName();
 
 										SiteNavigationMenuItem siteNavigationMenuItem = SiteNavigationMenuItemLocalServiceUtil.fetchSiteNavigationMenuItem(GetterUtil.getLong(siteNavigationMenuDisplayContext.getRootMenuItemId()));
 

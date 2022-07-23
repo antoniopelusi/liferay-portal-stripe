@@ -313,4 +313,7 @@ public interface AssetListEntryAssetEntryRelModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public AssetListEntryAssetEntryRel cloneWithOriginalValues();
+
 }

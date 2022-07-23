@@ -14,6 +14,8 @@
 
 package com.liferay.layout.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.layout.uad.constants.LayoutUADConstants;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -48,6 +50,8 @@ public abstract class BaseLayoutFriendlyURLUADAnonymizer
 		if (layoutFriendlyURL.getUserId() == userId) {
 			layoutFriendlyURL.setUserId(anonymousUser.getUserId());
 			layoutFriendlyURL.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(layoutFriendlyURL, anonymousUser);
 		}
 
 		layoutFriendlyURLLocalService.updateLayoutFriendlyURL(
@@ -67,6 +71,19 @@ public abstract class BaseLayoutFriendlyURLUADAnonymizer
 		return LayoutFriendlyURL.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		LayoutFriendlyURL layoutFriendlyURL, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(layoutFriendlyURL);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return layoutFriendlyURLLocalService.getActionableDynamicQuery();
@@ -76,6 +93,15 @@ public abstract class BaseLayoutFriendlyURLUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return LayoutUADConstants.USER_ID_FIELD_NAMES_LAYOUT_FRIENDLY_URL;
 	}
+
+	protected AssetEntry fetchAssetEntry(LayoutFriendlyURL layoutFriendlyURL) {
+		return assetEntryLocalService.fetchEntry(
+			LayoutFriendlyURL.class.getName(),
+			layoutFriendlyURL.getLayoutFriendlyURLId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected LayoutFriendlyURLLocalService layoutFriendlyURLLocalService;

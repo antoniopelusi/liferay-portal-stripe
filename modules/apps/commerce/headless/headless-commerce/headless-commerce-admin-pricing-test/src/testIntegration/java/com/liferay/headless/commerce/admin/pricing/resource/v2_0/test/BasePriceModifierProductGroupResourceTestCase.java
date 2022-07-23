@@ -34,7 +34,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -52,9 +51,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -228,18 +225,17 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 	public void testGetPriceModifierByExternalReferenceCodePriceModifierProductGroupsPage()
 		throws Exception {
 
-		Page<PriceModifierProductGroup> page =
-			priceModifierProductGroupResource.
-				getPriceModifierByExternalReferenceCodePriceModifierProductGroupsPage(
-					testGetPriceModifierByExternalReferenceCodePriceModifierProductGroupsPage_getExternalReferenceCode(),
-					Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		String externalReferenceCode =
 			testGetPriceModifierByExternalReferenceCodePriceModifierProductGroupsPage_getExternalReferenceCode();
 		String irrelevantExternalReferenceCode =
 			testGetPriceModifierByExternalReferenceCodePriceModifierProductGroupsPage_getIrrelevantExternalReferenceCode();
+
+		Page<PriceModifierProductGroup> page =
+			priceModifierProductGroupResource.
+				getPriceModifierByExternalReferenceCodePriceModifierProductGroupsPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantExternalReferenceCode != null) {
 			PriceModifierProductGroup irrelevantPriceModifierProductGroup =
@@ -271,7 +267,7 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 		page =
 			priceModifierProductGroupResource.
 				getPriceModifierByExternalReferenceCodePriceModifierProductGroupsPage(
-					externalReferenceCode, Pagination.of(1, 2));
+					externalReferenceCode, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -393,18 +389,16 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 	public void testGetPriceModifierIdPriceModifierProductGroupsPage()
 		throws Exception {
 
-		Page<PriceModifierProductGroup> page =
-			priceModifierProductGroupResource.
-				getPriceModifierIdPriceModifierProductGroupsPage(
-					testGetPriceModifierIdPriceModifierProductGroupsPage_getId(),
-					RandomTestUtil.randomString(), null, Pagination.of(1, 2),
-					null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetPriceModifierIdPriceModifierProductGroupsPage_getId();
 		Long irrelevantId =
 			testGetPriceModifierIdPriceModifierProductGroupsPage_getIrrelevantId();
+
+		Page<PriceModifierProductGroup> page =
+			priceModifierProductGroupResource.
+				getPriceModifierIdPriceModifierProductGroupsPage(
+					id, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			PriceModifierProductGroup irrelevantPriceModifierProductGroup =
@@ -435,7 +429,7 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 		page =
 			priceModifierProductGroupResource.
 				getPriceModifierIdPriceModifierProductGroupsPage(
-					id, null, null, Pagination.of(1, 2), null);
+					id, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -473,6 +467,43 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 						id, null,
 						getFilterString(
 							entityField, "between", priceModifierProductGroup1),
+						Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(priceModifierProductGroup1),
+				(List<PriceModifierProductGroup>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetPriceModifierIdPriceModifierProductGroupsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long id = testGetPriceModifierIdPriceModifierProductGroupsPage_getId();
+
+		PriceModifierProductGroup priceModifierProductGroup1 =
+			testGetPriceModifierIdPriceModifierProductGroupsPage_addPriceModifierProductGroup(
+				id, randomPriceModifierProductGroup());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		PriceModifierProductGroup priceModifierProductGroup2 =
+			testGetPriceModifierIdPriceModifierProductGroupsPage_addPriceModifierProductGroup(
+				id, randomPriceModifierProductGroup());
+
+		for (EntityField entityField : entityFields) {
+			Page<PriceModifierProductGroup> page =
+				priceModifierProductGroupResource.
+					getPriceModifierIdPriceModifierProductGroupsPage(
+						id, null,
+						getFilterString(
+							entityField, "eq", priceModifierProductGroup1),
 						Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -590,6 +621,22 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 	}
 
 	@Test
+	public void testGetPriceModifierIdPriceModifierProductGroupsPageWithSortDouble()
+		throws Exception {
+
+		testGetPriceModifierIdPriceModifierProductGroupsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, priceModifierProductGroup1,
+			 priceModifierProductGroup2) -> {
+
+				BeanUtils.setProperty(
+					priceModifierProductGroup1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					priceModifierProductGroup2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetPriceModifierIdPriceModifierProductGroupsPageWithSortInteger()
 		throws Exception {
 
@@ -618,7 +665,7 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -769,6 +816,26 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 
 	@Rule
 	public SearchTestRule searchTestRule = new SearchTestRule();
+
+	protected void assertContains(
+		PriceModifierProductGroup priceModifierProductGroup,
+		List<PriceModifierProductGroup> priceModifierProductGroups) {
+
+		boolean contains = false;
+
+		for (PriceModifierProductGroup item : priceModifierProductGroups) {
+			if (equals(priceModifierProductGroup, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			priceModifierProductGroups + " does not contain " +
+				priceModifierProductGroup,
+			contains);
+	}
 
 	protected void assertHttpResponseStatusCode(
 		int expectedHttpResponseStatusCode,
@@ -952,8 +1019,8 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v2_0.
 						PriceModifierProductGroup.class)) {
 
@@ -969,12 +1036,13 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -988,7 +1056,7 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1136,6 +1204,19 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1388,8 +1469,9 @@ public abstract class BasePriceModifierProductGroupResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BasePriceModifierProductGroupResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(
+			BasePriceModifierProductGroupResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import com.liferay.headless.delivery.client.dto.v1_0.Field;
 import com.liferay.headless.delivery.client.dto.v1_0.SitePage;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
@@ -34,7 +35,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -52,9 +52,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -206,14 +204,13 @@ public abstract class BaseSitePageResourceTestCase {
 
 	@Test
 	public void testGetSiteSitePagesPage() throws Exception {
-		Page<SitePage> page = sitePageResource.getSiteSitePagesPage(
-			testGetSiteSitePagesPage_getSiteId(), RandomTestUtil.randomString(),
-			null, null, Pagination.of(1, 2), null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long siteId = testGetSiteSitePagesPage_getSiteId();
 		Long irrelevantSiteId = testGetSiteSitePagesPage_getIrrelevantSiteId();
+
+		Page<SitePage> page = sitePageResource.getSiteSitePagesPage(
+			siteId, null, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantSiteId != null) {
 			SitePage irrelevantSitePage = testGetSiteSitePagesPage_addSitePage(
@@ -237,7 +234,7 @@ public abstract class BaseSitePageResourceTestCase {
 			siteId, randomSitePage());
 
 		page = sitePageResource.getSiteSitePagesPage(
-			siteId, null, null, null, Pagination.of(1, 2), null);
+			siteId, null, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -268,6 +265,38 @@ public abstract class BaseSitePageResourceTestCase {
 			Page<SitePage> page = sitePageResource.getSiteSitePagesPage(
 				siteId, null, null,
 				getFilterString(entityField, "between", sitePage1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(sitePage1),
+				(List<SitePage>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetSiteSitePagesPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long siteId = testGetSiteSitePagesPage_getSiteId();
+
+		SitePage sitePage1 = testGetSiteSitePagesPage_addSitePage(
+			siteId, randomSitePage());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		SitePage sitePage2 = testGetSiteSitePagesPage_addSitePage(
+			siteId, randomSitePage());
+
+		for (EntityField entityField : entityFields) {
+			Page<SitePage> page = sitePageResource.getSiteSitePagesPage(
+				siteId, null, null,
+				getFilterString(entityField, "eq", sitePage1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -357,6 +386,16 @@ public abstract class BaseSitePageResourceTestCase {
 	}
 
 	@Test
+	public void testGetSiteSitePagesPageWithSortDouble() throws Exception {
+		testGetSiteSitePagesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, sitePage1, sitePage2) -> {
+				BeanUtils.setProperty(sitePage1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(sitePage2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetSiteSitePagesPageWithSortInteger() throws Exception {
 		testGetSiteSitePagesPageWithSort(
 			EntityField.Type.INTEGER,
@@ -375,7 +414,7 @@ public abstract class BaseSitePageResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -500,34 +539,28 @@ public abstract class BaseSitePageResourceTestCase {
 	}
 
 	@Test
-	public void testGetSiteSitePageFriendlyUrlPathExperiencesPage()
-		throws Exception {
+	public void testGetSiteSitePagesExperiencesPage() throws Exception {
+		Long siteId = testGetSiteSitePagesExperiencesPage_getSiteId();
+		Long irrelevantSiteId =
+			testGetSiteSitePagesExperiencesPage_getIrrelevantSiteId();
+		String friendlyUrlPath =
+			testGetSiteSitePagesExperiencesPage_getFriendlyUrlPath();
+		String irrelevantFriendlyUrlPath =
+			testGetSiteSitePagesExperiencesPage_getIrrelevantFriendlyUrlPath();
 
-		Page<SitePage> page =
-			sitePageResource.getSiteSitePageFriendlyUrlPathExperiencesPage(
-				testGetSiteSitePageFriendlyUrlPathExperiencesPage_getSiteId(),
-				testGetSiteSitePageFriendlyUrlPathExperiencesPage_getFriendlyUrlPath());
+		Page<SitePage> page = sitePageResource.getSiteSitePagesExperiencesPage(
+			siteId, friendlyUrlPath);
 
 		Assert.assertEquals(0, page.getTotalCount());
 
-		Long siteId =
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_getSiteId();
-		Long irrelevantSiteId =
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_getIrrelevantSiteId();
-		String friendlyUrlPath =
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_getFriendlyUrlPath();
-		String irrelevantFriendlyUrlPath =
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_getIrrelevantFriendlyUrlPath();
-
 		if ((irrelevantSiteId != null) && (irrelevantFriendlyUrlPath != null)) {
 			SitePage irrelevantSitePage =
-				testGetSiteSitePageFriendlyUrlPathExperiencesPage_addSitePage(
+				testGetSiteSitePagesExperiencesPage_addSitePage(
 					irrelevantSiteId, irrelevantFriendlyUrlPath,
 					randomIrrelevantSitePage());
 
-			page =
-				sitePageResource.getSiteSitePageFriendlyUrlPathExperiencesPage(
-					irrelevantSiteId, irrelevantFriendlyUrlPath);
+			page = sitePageResource.getSiteSitePagesExperiencesPage(
+				irrelevantSiteId, irrelevantFriendlyUrlPath);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -537,15 +570,13 @@ public abstract class BaseSitePageResourceTestCase {
 			assertValid(page);
 		}
 
-		SitePage sitePage1 =
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_addSitePage(
-				siteId, friendlyUrlPath, randomSitePage());
+		SitePage sitePage1 = testGetSiteSitePagesExperiencesPage_addSitePage(
+			siteId, friendlyUrlPath, randomSitePage());
 
-		SitePage sitePage2 =
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_addSitePage(
-				siteId, friendlyUrlPath, randomSitePage());
+		SitePage sitePage2 = testGetSiteSitePagesExperiencesPage_addSitePage(
+			siteId, friendlyUrlPath, randomSitePage());
 
-		page = sitePageResource.getSiteSitePageFriendlyUrlPathExperiencesPage(
+		page = sitePageResource.getSiteSitePagesExperiencesPage(
 			siteId, friendlyUrlPath);
 
 		Assert.assertEquals(2, page.getTotalCount());
@@ -556,30 +587,27 @@ public abstract class BaseSitePageResourceTestCase {
 		assertValid(page);
 	}
 
-	protected SitePage
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_addSitePage(
-				Long siteId, String friendlyUrlPath, SitePage sitePage)
+	protected SitePage testGetSiteSitePagesExperiencesPage_addSitePage(
+			Long siteId, String friendlyUrlPath, SitePage sitePage)
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
 	}
 
-	protected Long testGetSiteSitePageFriendlyUrlPathExperiencesPage_getSiteId()
+	protected Long testGetSiteSitePagesExperiencesPage_getSiteId()
 		throws Exception {
 
 		return testGroup.getGroupId();
 	}
 
-	protected Long
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_getIrrelevantSiteId()
+	protected Long testGetSiteSitePagesExperiencesPage_getIrrelevantSiteId()
 		throws Exception {
 
 		return irrelevantGroup.getGroupId();
 	}
 
-	protected String
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_getFriendlyUrlPath()
+	protected String testGetSiteSitePagesExperiencesPage_getFriendlyUrlPath()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
@@ -587,7 +615,7 @@ public abstract class BaseSitePageResourceTestCase {
 	}
 
 	protected String
-			testGetSiteSitePageFriendlyUrlPathExperiencesPage_getIrrelevantFriendlyUrlPath()
+			testGetSiteSitePagesExperiencesPage_getIrrelevantFriendlyUrlPath()
 		throws Exception {
 
 		return null;
@@ -626,6 +654,21 @@ public abstract class BaseSitePageResourceTestCase {
 
 	@Rule
 	public SearchTestRule searchTestRule = new SearchTestRule();
+
+	protected void assertContains(SitePage sitePage, List<SitePage> sitePages) {
+		boolean contains = false;
+
+		for (SitePage item : sitePages) {
+			if (equals(sitePage, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			sitePages + " does not contain " + sitePage, contains);
+	}
 
 	protected void assertHttpResponseStatusCode(
 		int expectedHttpResponseStatusCode,
@@ -895,8 +938,8 @@ public abstract class BaseSitePageResourceTestCase {
 
 		graphQLFields.add(new GraphQLField("siteId"));
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.delivery.dto.v1_0.SitePage.class)) {
 
 			if (!ArrayUtil.contains(
@@ -911,12 +954,13 @@ public abstract class BaseSitePageResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -930,7 +974,7 @@ public abstract class BaseSitePageResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1231,6 +1275,19 @@ public abstract class BaseSitePageResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1634,8 +1691,8 @@ public abstract class BaseSitePageResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseSitePageResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseSitePageResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

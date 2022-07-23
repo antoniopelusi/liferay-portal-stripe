@@ -70,15 +70,7 @@ public abstract class IncreasableEntry<K, V> {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{key=");
-		sb.append(key);
-		sb.append(", value=");
-		sb.append(value);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat("{key=", key, ", value=", value, "}");
 	}
 
 	protected final K key;

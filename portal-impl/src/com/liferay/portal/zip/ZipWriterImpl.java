@@ -15,6 +15,7 @@
 package com.liferay.portal.zip;
 
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.memory.DeleteFileFinalizeAction;
 import com.liferay.petra.memory.FinalizeManager;
 import com.liferay.petra.string.StringBundler;
@@ -23,6 +24,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.kernel.zip.ZipWriter;
+import com.liferay.portal.util.PropsValues;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +93,14 @@ public class ZipWriterImpl implements ZipWriter {
 			_exportEntries.add(
 				new AbstractMap.SimpleImmutableEntry<>(name, bytes));
 
+			_exportEntriesBytes += bytes.length;
+
+			if (_exportEntriesBytes >=
+					PropsValues.ZIP_FILE_WRITER_EXPORT_BUFFER_SIZE) {
+
+				_writeExportEntries();
+			}
+
 			return;
 		}
 
@@ -116,6 +126,12 @@ public class ZipWriterImpl implements ZipWriter {
 		throws IOException {
 
 		if (inputStream == null) {
+			return;
+		}
+
+		if (ExportImportThreadLocal.isExportInProcess()) {
+			addEntry(name, StreamUtil.toByteArray(inputStream));
+
 			return;
 		}
 
@@ -164,36 +180,7 @@ public class ZipWriterImpl implements ZipWriter {
 	@Override
 	public File getFile() {
 		if (_exportEntries != null) {
-			try (FileSystem fileSystem = FileSystems.newFileSystem(
-					_uri, Collections.emptyMap())) {
-
-				Iterator<Map.Entry<String, byte[]>> iterator =
-					_exportEntries.iterator();
-
-				while (iterator.hasNext()) {
-					Map.Entry<String, byte[]> entry = iterator.next();
-
-					iterator.remove();
-
-					Path path = fileSystem.getPath(entry.getKey());
-
-					Path parentPath = path.getParent();
-
-					if (parentPath != null) {
-						Files.createDirectories(parentPath);
-					}
-
-					Files.write(
-						path, entry.getValue(), StandardOpenOption.CREATE,
-						StandardOpenOption.TRUNCATE_EXISTING,
-						StandardOpenOption.WRITE);
-				}
-
-				_exportEntries = null;
-			}
-			catch (IOException ioException) {
-				throw new UncheckedIOException(ioException);
-			}
+			_writeExportEntries();
 		}
 
 		return _file;
@@ -216,7 +203,42 @@ public class ZipWriterImpl implements ZipWriter {
 	public void umount() {
 	}
 
+	private void _writeExportEntries() {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(
+				_uri, Collections.emptyMap())) {
+
+			Iterator<Map.Entry<String, byte[]>> iterator =
+				_exportEntries.iterator();
+
+			while (iterator.hasNext()) {
+				Map.Entry<String, byte[]> entry = iterator.next();
+
+				iterator.remove();
+
+				Path path = fileSystem.getPath(entry.getKey());
+
+				Path parentPath = path.getParent();
+
+				if (parentPath != null) {
+					Files.createDirectories(parentPath);
+				}
+
+				Files.write(
+					path, entry.getValue(), StandardOpenOption.CREATE,
+					StandardOpenOption.TRUNCATE_EXISTING,
+					StandardOpenOption.WRITE);
+			}
+
+			_exportEntries = null;
+			_exportEntriesBytes = 0;
+		}
+		catch (IOException ioException) {
+			throw new UncheckedIOException(ioException);
+		}
+	}
+
 	private List<Map.Entry<String, byte[]>> _exportEntries;
+	private long _exportEntriesBytes;
 	private final File _file;
 	private final URI _uri;
 

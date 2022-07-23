@@ -2,11 +2,13 @@
 <head>
 <title>Translation</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Translation</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD</td>
@@ -45,13 +47,38 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CURRENT_LOCALE_NAME</td>
+	<td>//div[contains(@class,'localized')]//button[contains(@class,'localized') and contains(@id,'name')][*[normalize-space(text())='${key_locale}']]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CURRENT_LOCALE_TITLE</td>
 	<td>//div[contains(@class,'localized')]//button[contains(@class,'localized') and contains(@id,'description')][*[normalize-space(text())='${key_locale}']]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DROPDOWN_MENU_ITEM</td>
-	<td>//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//button[contains(@class,'dropdown-item') and contains(.,'${key_locale}')]</td>
+	<td>//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//*[contains(@class,'dropdown-item') and contains(.,'${key_locale}')] | //div[contains(@class,'lfr-icon-menu-open') and contains(@class,'open')]//*[contains(@class,'dropdown-item') and contains(.,'${key_locale}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DROPDOWN_MENU_ITEM_INDEX</td>
+	<td>xpath=(//div[contains(@class,'dropdown-menu')]//button[contains(@class,'dropdown-item')] //span[@class = 'text-truncate'])[${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXPERIENCE_CHECKBOX_POSITION</td>
+	<td>//li[contains(@class,'list-group-item')][${key_position}]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXPERIENCE_OPTION</td>
+	<td>//select[contains(@class,'form-control')]/option[.='${experienceName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXPERIENCE_SELECTOR</td>
+	<td>//select[contains(@id,'experience-selector')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -70,6 +97,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>BASIC_INFORMATION</td>
+	<td>//div[contains(@class,'col-md-6')]//div[text()='Basic Information']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMPORT_FILE_NAME</td>
+	<td>//li//p[@class='list-group-title']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TARGET_LANGUAGE_FIELD</td>
 	<td>//div[contains(@class,'form-group') and contains(.,'${key_fieldName}')]//input[contains(@value,'${key_fieldValue}') and not(@readonly)]</td>
 	<td></td>
@@ -80,8 +117,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TRANSLATION_MANAGE_BUTTON</td>
+	<td>//button[@id='manage-translations']//span[text()='Manage Translations']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATION_MANAGE_OPTION</td>
+	<td>//div[contains(@class,'dropdown-menu-indicator-start')]//ul//li//button[text()='${key_language}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TRANSLATION_STATUS_TITLE</td>
 	<td>//div[contains(@id,'JournalPortlet')]//span[contains(text(),'${key_localizedLanguage}')]//span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATION_STATUS_TITLE_PAGE</td>
+	<td>//div[contains(@class,'page-editor')]//span[contains(text(),'${key_localizedLanguage}')]//..//div</td>
 	<td></td>
 </tr>
 <tr>
@@ -91,7 +143,7 @@
 </tr>
 <tr>
 	<td>LOCALIZATION_NAME</td>
-	<td>//div[contains(@class,'menu-open')]//a[@data-value='${key_locale}']</td>
+	<td>//div[contains(@class,'menu-open')]//a[@data-languageid]//span[contains(@class,'text')][normalize-space(text())='${key_locale}']</td>
 	<td></td>
 </tr>
 </tbody>

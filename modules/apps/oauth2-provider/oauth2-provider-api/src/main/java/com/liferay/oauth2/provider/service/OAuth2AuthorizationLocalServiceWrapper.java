@@ -27,6 +27,10 @@ public class OAuth2AuthorizationLocalServiceWrapper
 	implements OAuth2AuthorizationLocalService,
 			   ServiceWrapper<OAuth2AuthorizationLocalService> {
 
+	public OAuth2AuthorizationLocalServiceWrapper() {
+		this(null);
+	}
+
 	public OAuth2AuthorizationLocalServiceWrapper(
 		OAuth2AuthorizationLocalService oAuth2AuthorizationLocalService) {
 
@@ -268,6 +272,13 @@ public class OAuth2AuthorizationLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _oAuth2AuthorizationLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _oAuth2AuthorizationLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

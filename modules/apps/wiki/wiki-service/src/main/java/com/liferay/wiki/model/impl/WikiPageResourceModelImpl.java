@@ -24,17 +24,19 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.wiki.model.WikiPageResource;
 import com.liferay.wiki.model.WikiPageResourceModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -234,34 +236,6 @@ public class WikiPageResourceModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, WikiPageResource>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			WikiPageResource.class.getClassLoader(), WikiPageResource.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<WikiPageResource> constructor =
-				(Constructor<WikiPageResource>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<WikiPageResource, Object>>
@@ -541,6 +515,28 @@ public class WikiPageResourceModelImpl
 	}
 
 	@Override
+	public WikiPageResource cloneWithOriginalValues() {
+		WikiPageResourceImpl wikiPageResourceImpl = new WikiPageResourceImpl();
+
+		wikiPageResourceImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		wikiPageResourceImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		wikiPageResourceImpl.setResourcePrimKey(
+			this.<Long>getColumnOriginalValue("resourcePrimKey"));
+		wikiPageResourceImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		wikiPageResourceImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		wikiPageResourceImpl.setNodeId(
+			this.<Long>getColumnOriginalValue("nodeId"));
+		wikiPageResourceImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+
+		return wikiPageResourceImpl;
+	}
+
+	@Override
 	public int compareTo(WikiPageResource wikiPageResource) {
 		long primaryKey = wikiPageResource.getPrimaryKey();
 
@@ -647,7 +643,7 @@ public class WikiPageResourceModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -658,9 +654,27 @@ public class WikiPageResourceModelImpl
 			Function<WikiPageResource, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((WikiPageResource)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(WikiPageResource)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -707,7 +721,9 @@ public class WikiPageResourceModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, WikiPageResource>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					WikiPageResource.class, ModelWrapper.class);
 
 	}
 

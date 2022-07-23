@@ -1,0 +1,329 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Master Page Templates";
+	property testray.main.component.name = "Master Page Templates";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site via JSON") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Activate local live staging") {
+			JSONStaging.enableLocalStaging(groupName = "Test Site Name");
+		}
+
+		task ("Add a custom master") {
+			JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+				groupName = "Test Site Name-staging",
+				masterPageTemplateEntryName = "Custom Masters Page Template",
+				site = "false");
+
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name-staging");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is for LPS-116106. Page Creator can quickly change master page via Page Design Options panel in Staging site."
+	@priority = "4"
+	test ChangeMasterOfContentPageViaPageDesignOptionsPanelInStagingSite {
+		task ("Add a header and footer fragment to master page") {
+			PageEditor.addFragment(
+				collectionName = "Navigation Bars",
+				dropTarget = "Header",
+				fragmentName = "Header Dark",
+				scope = "Master");
+
+			PageEditor.addFragment(
+				collectionName = "Footers",
+				dropTarget = "Footer",
+				fragmentName = "Footer Nav Dark",
+				scope = "Master");
+
+			Button.click(button = "Publish Master");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Add a content page based on Blank") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Change to custom master of content page via Page Design Options panel") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Navigator.gotoNavTab(navTab = "Master");
+
+			AssertElementPresent(
+				key_card = "Blank",
+				locator1 = "Card#CARD_SELECTED");
+
+			MastersPageTemplates.selectMasterViaPageDesignOptions(masterLayoutName = "Custom Masters Page Template");
+
+			AssertVisible(
+				key_type = "dark",
+				locator1 = "PageEditor#NAVIGATION_BARS");
+
+			AssertVisible(
+				key_type = "dark",
+				locator1 = "PageEditor#FOOTERS");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Assert the Custom Masters Page Template is applied to content page in view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			AssertVisible(
+				key_type = "dark",
+				locator1 = "PageEditor#NAVIGATION_BARS");
+
+			AssertVisible(
+				key_type = "dark",
+				locator1 = "PageEditor#FOOTERS");
+		}
+
+		task ("Change to Blank of content page via Page Design Options panel") {
+			ContentPages.gotoPageEditor();
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Navigator.gotoNavTab(navTab = "Master");
+
+			AssertElementPresent(
+				key_card = "Custom Masters Page Template",
+				locator1 = "Card#CARD_SELECTED");
+
+			MastersPageTemplates.selectMasterViaPageDesignOptions(masterLayoutName = "Blank");
+
+			AssertElementNotPresent(
+				key_type = "dark",
+				locator1 = "PageEditor#NAVIGATION_BARS");
+
+			AssertElementNotPresent(
+				key_type = "dark",
+				locator1 = "PageEditor#FOOTERS");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Assert the Blank is applied to content page in view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			AssertElementNotPresent(
+				key_type = "dark",
+				locator1 = "PageEditor#NAVIGATION_BARS");
+
+			AssertElementNotPresent(
+				key_type = "dark",
+				locator1 = "PageEditor#FOOTERS");
+		}
+	}
+
+	@description = "This is a test for LPS-111549. Redo can make the master page editor rollback the previous undo state up to X that is the number of undo interactions in Staging site."
+	@priority = "4"
+	test UndoMasterPageChangesInStagingSite {
+		AssertElementPresent(
+			key_text = "redo",
+			locator1 = "Icon#ANY_DISABLED");
+
+		AssertElementPresent(
+			key_text = "undo",
+			locator1 = "Icon#ANY_DISABLED");
+
+		PageEditor.addFragment(
+			collectionName = "Layout Elements",
+			dropTarget = "Footer",
+			fragmentName = "Container",
+			scope = "Master");
+
+		PageEditor.addElementToContainer(
+			collectionName = "Basic Components",
+			fragmentName = "Heading",
+			navTab = "Fragments");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "New editable fragment text");
+
+		PageEditor.gotoStyle(fragmentName = "Heading");
+
+		PageEditor.configureFragment(alignment = "Center");
+
+		PageEditor.gotoDuplicate(fragmentName = "Container");
+
+		PageEditor.removeFragmentViaPageStructure(
+			duplicateFragment = "true",
+			fragmentName = "Container");
+
+		AssertVisible(
+			key_text = "undo",
+			locator1 = "Icon#ANY_ENABLED");
+
+		AssertElementPresent(
+			key_text = "redo",
+			locator1 = "Icon#ANY_DISABLED");
+
+		for (var i : list "1,2,3,4,5,6") {
+			Click(
+				key_text = "undo",
+				locator1 = "Icon#ANY");
+		}
+
+		PageEditor.viewFragmentNotPresent(fragmentName = "Container");
+
+		AssertVisible(
+			key_text = "redo",
+			locator1 = "Icon#ANY_ENABLED");
+
+		AssertElementPresent(
+			key_text = "undo",
+			locator1 = "Icon#ANY_DISABLED");
+
+		Click(
+			key_text = "redo",
+			locator1 = "Icon#ANY");
+
+		PageEditor.viewFragment(fragmentName = "Container");
+
+		Click(
+			key_text = "redo",
+			locator1 = "Icon#ANY");
+
+		AssertElementPresent(
+			key_fragmentName = "Heading",
+			key_inFragmentName = "Container",
+			locator1 = "Fragment#FRAGMENT_BODY_IN_FRAGMENT");
+
+		Click(
+			key_text = "redo",
+			locator1 = "Icon#ANY");
+
+		PageEditor.viewFragmentEditableText(
+			editableText = "New editable fragment text",
+			fragmentName = "Heading",
+			id = "element-text");
+
+		Click(
+			key_text = "redo",
+			locator1 = "Icon#ANY");
+
+		PageEditor.viewFragmentStyle(
+			alignment = "center",
+			fragmentName = "heading");
+
+		Click(
+			key_text = "redo",
+			locator1 = "Icon#ANY");
+
+		PageEditor.viewDuplicateFragment(fragmentName = "Heading");
+
+		Click(
+			key_text = "redo",
+			locator1 = "Icon#ANY");
+
+		AssertElementNotPresent(
+			index = "2",
+			key_fragmentName = "Container",
+			locator1 = "Fragment#FRAGMENT_LABEL");
+
+		PageEditor.viewFragment(fragmentName = "Container");
+
+		AssertVisible(
+			key_text = "undo",
+			locator1 = "Icon#ANY_ENABLED");
+
+		AssertElementPresent(
+			key_text = "redo",
+			locator1 = "Icon#ANY_DISABLED");
+	}
+
+	@description = "This is a test for LPS-124104. The page editor of content page based on custom master should be available in staging site."
+	@priority = "4"
+	test ViewPageEditorOfContentPageBasedOnCustomMasterInStagingSite {
+		task ("Add a Heading fragment to custom master") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				dropTarget = "Header",
+				fragmentName = "Heading",
+				scope = "Master");
+
+			Button.click(button = "Publish Master");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Add a content page based on custom master") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			ContentPages.addPage(
+				masterLayoutName = "Custom Masters Page Template",
+				pageName = "Test Page Name Staging");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the content page at edit mode in staging site") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("View the Heading fragment is shown on header") {
+			AssertVisible(
+				key_fragmentName = "heading",
+				locator1 = "PageEditor#FRAGMENT_INHERITED_FROM_CUSTOM_MASTERS");
+		}
+
+		task ("View the page editor sidebar shown") {
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("Add a Button fragment to page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("View the Button fragment on the page") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Go Somewhere",
+				fragmentName = "Button",
+				id = "link");
+		}
+	}
+
+}

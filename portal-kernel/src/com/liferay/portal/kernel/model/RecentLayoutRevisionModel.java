@@ -181,4 +181,7 @@ public interface RecentLayoutRevisionModel
 	 */
 	public void setPlid(long plid);
 
+	@Override
+	public RecentLayoutRevision cloneWithOriginalValues();
+
 }

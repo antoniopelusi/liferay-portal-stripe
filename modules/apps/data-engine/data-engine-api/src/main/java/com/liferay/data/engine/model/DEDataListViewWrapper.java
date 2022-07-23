@@ -157,6 +157,11 @@ public class DEDataListViewWrapper
 		}
 	}
 
+	@Override
+	public DEDataListView cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the applied filters of this de data list view.
 	 *

@@ -236,4 +236,7 @@ public interface RatingsStatsModel
 	 */
 	public void setAverageScore(double averageScore);
 
+	@Override
+	public RatingsStats cloneWithOriginalValues();
+
 }

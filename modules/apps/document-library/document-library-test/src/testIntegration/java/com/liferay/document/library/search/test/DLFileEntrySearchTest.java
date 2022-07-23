@@ -60,7 +60,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -100,11 +100,9 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 	public static void setUpClass() throws Exception {
 		ConfigurationTestUtil.saveConfiguration(
 			DDMIndexerConfiguration.class.getName(),
-			new HashMapDictionary() {
-				{
-					put("enableLegacyDDMIndexFields", false);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"enableLegacyDDMIndexFields", false
+			).build());
 	}
 
 	@AfterClass
@@ -238,10 +236,11 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 			file = FileUtil.createTempFile(inputStream);
 
 			DLAppLocalServiceUtil.addFileEntry(
-				serviceContext.getUserId(), serviceContext.getScopeGroupId(),
+				null, serviceContext.getUserId(),
+				serviceContext.getScopeGroupId(),
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, fileName, mimeType,
-				fileName, StringPool.BLANK, StringPool.BLANK, file,
-				serviceContext);
+				fileName, StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+				file, null, null, serviceContext);
 		}
 		finally {
 			FileUtil.delete(file);
@@ -249,6 +248,40 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 
 		assertBaseModelsCount(
 			initialBaseModelsSearchCount + 1, "Enterprise", searchContext);
+	}
+
+	@Test
+	public void testSearchTreePath() throws Exception {
+		DLAppLocalServiceUtil.addFileEntry(
+			null, TestPropsValues.getUserId(), group.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
+			"Document", StringPool.BLANK, StringUtil.randomString(),
+			StringUtil.randomString(), new byte[0], null, null,
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+
+		Folder folder = DLAppLocalServiceUtil.addFolder(
+			TestPropsValues.getUserId(), group.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			StringUtil.randomString(), StringUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+
+		DLAppLocalServiceUtil.addFileEntry(
+			null, TestPropsValues.getUserId(), group.getGroupId(),
+			folder.getFolderId(), StringUtil.randomString(),
+			ContentTypes.APPLICATION_OCTET_STREAM, "Document", StringPool.BLANK,
+			StringUtil.randomString(), StringUtil.randomString(), new byte[0],
+			null, null,
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+
+		SearchContext searchContext = SearchContextTestUtil.getSearchContext(
+			group.getGroupId());
+
+		assertBaseModelsCount(2, "Document", searchContext);
+
+		searchContext.setFolderIds(new long[] {folder.getFolderId()});
+
+		assertBaseModelsCount(1, "Document", searchContext);
 	}
 
 	protected BaseModel<?> addBaseModel(
@@ -302,11 +335,11 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 			ddmFormValues);
 
 		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
+			null, TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
 			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
-			content.getBytes(), serviceContext);
+			StringPool.BLANK, content.getBytes(), null, null, serviceContext);
 
 		return (DLFileEntry)fileEntry.getModel();
 	}
@@ -376,7 +409,7 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 
 	@Override
 	protected void deleteBaseModel(long primaryKey) throws Exception {
-		DLFileEntryLocalServiceUtil.deleteDLFileEntry(primaryKey);
+		DLFileEntryLocalServiceUtil.deleteFileEntry(primaryKey);
 	}
 
 	@Override
@@ -482,8 +515,10 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			dlFileEntry.getFileEntryId(), null, dlFileEntry.getMimeType(),
-			keywords, StringPool.BLANK, StringPool.BLANK,
-			DLVersionNumberIncrease.MAJOR, (byte[])null, serviceContext);
+			keywords, StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+			DLVersionNumberIncrease.MAJOR, (byte[])null,
+			dlFileEntry.getExpirationDate(), dlFileEntry.getReviewDate(),
+			serviceContext);
 
 		return (DLFileEntry)fileEntry.getModel();
 	}

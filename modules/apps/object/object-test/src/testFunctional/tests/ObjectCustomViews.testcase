@@ -1,0 +1,1002 @@
+@component-name = "portal-object"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.object.web.internal.configuration.FFObjectViewConfiguration.config";
+	property osgi.module.configurations = "enabled=&quot;true&quot;";
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Object";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			ObjectAdmin.deleteAllCustomObjectsViaAPI();
+		}
+	}
+
+	@description = "LPS-135394 - Verify it is possible to add a column for the View"
+	@priority = "5"
+	test CanAddColumn {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147765",
+			objectName = "CustomObject147765",
+			pluralLabelName = "Custom Objects 147765");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147765");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		for (var columnOption : list "Author,Creation Date") {
+			Click.clickAtNotVisible(
+				key_columnOption = "${columnOption}",
+				locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+		}
+
+		ObjectCustomViews.saveColumnsModal();
+
+		for (var columnOption : list "Author,Creation Date") {
+			ObjectCustomViews.assertColumnPresent(colunmName = "${columnOption}");
+		}
+	}
+
+	@description = "LPS-135394 - Verify it is possible to cancel the addition of a column for the View"
+	@priority = "4"
+	test CanCancelColumnAddition {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147766",
+			objectName = "CustomObject147766",
+			pluralLabelName = "Custom Objects 147766");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147766");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		Button.clickCancel();
+
+		AssertElementNotPresent(locator1 = "Portlet#MODAL_TITLE");
+
+		ObjectCustomViews.assertEmptyStateTextOnViewBuilder(text = "No columns added yet.");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to cancel the creation of a View"
+	@priority = "4"
+	test CanCancelViewCreation {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Object 147754",
+			objectName = "Object147754",
+			pluralLabelName = "Objects 147754");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Object 147754");
+
+		ObjectCustomViews.goToViewsTab();
+
+		LexiconEntry.gotoAdd();
+
+		Button.clickCancel();
+
+		AssertElementNotPresent(locator1 = "Portlet#MODAL_TITLE");
+
+		ObjectAdmin.assertNoResultsWereFound();
+	}
+
+	@description = "LPS-135394 - Verify it is possible to create a View"
+	@priority = "5"
+	test CanCreateView {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 171621",
+			objectName = "CustomObject171621",
+			pluralLabelName = "Custom Objects 171621");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 171621");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.assertObjectView(viewLabel = "Custom Views");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to delete a column for the View by unselecting it"
+	@priority = "5"
+	test CanDeleteColumnByUnselect {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147768",
+			objectName = "CustomObject147768",
+			pluralLabelName = "Custom Objects 147768");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147768");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		Click.clickAtNotVisible(
+			key_columnOption = "Author",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		ObjectCustomViews.saveColumnsModal();
+
+		ObjectCustomViews.assertColumnPresent(colunmName = "Author");
+
+		LexiconEntry.gotoAdd();
+
+		Click.clickAtNotVisible(
+			key_columnOption = "Author",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		ObjectCustomViews.saveColumnsModal();
+
+		ObjectCustomViews.assertColumnNotPresent(colunmName = "Author");
+
+		ObjectCustomViews.assertEmptyStateTextOnViewBuilder(text = "No columns added yet.");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to delete a column for the View through the delete button"
+	@priority = "5"
+	test CanDeleteColumnThroughDeleteButton {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147767",
+			objectName = "CustomObject147767",
+			pluralLabelName = "Custom Objects 147767");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147767");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		Click.clickAtNotVisible(
+			key_columnOption = "Author",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		ObjectCustomViews.saveColumnsModal();
+
+		ObjectCustomViews.deleteSpecificColumn(columnName = "Author");
+
+		ObjectCustomViews.assertColumnNotPresent(colunmName = "Author");
+
+		ObjectCustomViews.assertEmptyStateTextOnViewBuilder(text = "No columns added yet.");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to delete a View"
+	@priority = "5"
+	test CanDeleteView {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 171623",
+			objectName = "CustomObject171623",
+			pluralLabelName = "Custom Objects 171623");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 171623");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.assertObjectView(viewLabel = "Custom Views");
+
+		ObjectCustomViews.deleteObjectCustomViewViaUI(viewLabel = "Custom Views");
+
+		ObjectCustomViews.assertObjectViewNotPresent(viewLabel = "Custom Views");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to drag the columns"
+	@priority = "5"
+	test CanDragColumns {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147769",
+			objectName = "CustomObject147769",
+			pluralLabelName = "Custom Objects 147769");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147769");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		for (var selectColumns : list "Author,Creation Date,Modified Date") {
+			Click.clickAtNotVisible(
+				key_columnOption = "${selectColumns}",
+				locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+		}
+
+		ObjectCustomViews.saveColumnsModal();
+
+		ObjectCustomViews.viewOrdersOfTheColumns(
+			colunmName = "Author",
+			position = "1");
+
+		ObjectCustomViews.viewOrdersOfTheColumns(
+			colunmName = "Creation Date",
+			position = "2");
+
+		ObjectCustomViews.viewOrdersOfTheColumns(
+			colunmName = "Modified Date",
+			position = "3");
+
+		DragAndDrop.javaScriptDragAndDropToUp(
+			key_columnName = "Creation Date",
+			key_colunmName1 = "Author",
+			key_position = "1",
+			locator1 = "ObjectCustomViews#VIEW_BUILDER_SEARCH_RESULT",
+			locator2 = "ObjectCustomViews#VIEW_LIST_COLUMNS_BY_POSITION",
+			value1 = "");
+
+		ObjectCustomViews.viewOrdersOfTheColumns(
+			colunmName = "Creation Date",
+			position = "1");
+
+		ObjectCustomViews.viewOrdersOfTheColumns(
+			colunmName = "Author",
+			position = "2");
+
+		ObjectCustomViews.viewOrdersOfTheColumns(
+			colunmName = "Modified Date",
+			position = "3");
+	}
+
+	@description = "LPS-146028 - Verify that the user can duplicate a object View"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanDuplicateObjectView {
+
+		// TODO LPS-151589 CanDuplicateObjectView pending implementation
+
+	}
+
+	@description = "LPS-135394 - Verify the Name is required when creating a View"
+	@priority = "4"
+	test CannotLeaveNameFieldEmpty {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147755",
+			objectName = "CustomObject147755",
+			pluralLabelName = "Custom Objects 147755");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147755");
+
+		ObjectCustomViews.goToViewsTab();
+
+		LexiconEntry.gotoAdd();
+
+		Button.clickSave();
+
+		AssertElementPresent(locator1 = "ObjectAdmin#REQUIRED_ERROR_MESSAGE");
+	}
+
+	@description = "LPS-135394 - Verify that it is not possible to save another View as default"
+	@priority = "4"
+	test CannotSaveAnotherViewAsDefault {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 171624",
+			objectName = "CustomObject171624",
+			pluralLabelName = "Custom Objects 171624");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 171624");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views A");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views A");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		ObjectCustomViews.addColumnsViaUI(
+			columnOption = "Workflow Status",
+			viewLabel = "Custom Views A");
+
+		Button.clickSave();
+
+		Refresh();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views B");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views B");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		ObjectCustomViews.addColumnsViaUI(
+			columnOption = "Author",
+			viewLabel = "Custom Views B");
+
+		Button.clickSave();
+
+		SelectFrame(locator1 = "Message#ERROR");
+
+		Alert.viewErrorMessage(errorMessage = "There can only be one default object view");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to search for a column on the View Builder tab"
+	@priority = "4"
+	test CanSearchColumn {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147762",
+			objectName = "CustomObject147762",
+			pluralLabelName = "Custom Objects 147762");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147762");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		Click.clickAtNotVisible(
+			key_columnOption = "Author",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		Click.clickAtNotVisible(
+			key_columnOption = "Creation Date",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		ObjectCustomViews.saveColumnsModal();
+
+		ObjectCustomViews.searchOnViewBuilder(colunmName = "Author");
+
+		ObjectCustomViews.assertColumnPresent(colunmName = "Author");
+
+		ObjectCustomViews.assertColumnNotPresent(colunmName = "Creation Date");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to search for a column on the Add Columns modal"
+	@priority = "4"
+	test CanSearchColumnAddColumnModal {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147763",
+			objectName = "CustomObject147763",
+			pluralLabelName = "Custom Objects 147763");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147763");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		ObjectCustomViews.searchOnAddColumnModal(colunmName = "Author");
+
+		ObjectCustomViews.assertColumnVisibleOnAddColumnModal(columnOption = "Author");
+
+		ObjectCustomViews.assertColumnNotVisibleOnAddColumnModal(columnOption = "Creation Date");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to search for a View"
+	@priority = "4"
+	test CanSearchView {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147753",
+			objectName = "CustomObject147753",
+			pluralLabelName = "Custom Objects 147753");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147753");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "View A");
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom B");
+
+		Search.searchCP(searchTerm = "View A");
+
+		ObjectCustomViews.assertObjectView(viewLabel = "View A");
+
+		ObjectCustomViews.assertObjectViewNotPresent(viewLabel = "Custom B");
+	}
+
+	@description = "LPS-135394 - Verify it is possible to update a View"
+	@priority = "5"
+	test CanUpdateView {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 171622",
+			objectName = "CustomObject171622",
+			pluralLabelName = "Custom Objects 171622");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 171622");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.editName(name = "New Custom Views");
+
+		Button.clickSave();
+
+		Refresh();
+
+		ObjectCustomViews.assertObjectView(viewLabel = "New Custom Views");
+	}
+
+	@description = "LPS-148955 - Verify it is possible to view the values of 2 or more relationship fields for a same object"
+	@priority = "4"
+	test CanView2RelationshipFieldValues {
+		for (var letter : list "A,B,C") {
+			ObjectAdmin.addObjectViaAPI(
+				labelName = "Custom Object ${letter} 149238",
+				objectName = "CustomObject${letter}149238",
+				pluralLabelName = "Custom Objects ${letter} 149238");
+		}
+
+		for (var letter : list "A,B") {
+			ObjectAdmin.addObjectRelationshipViaAPI(
+				objectName_1 = "CustomObject${letter}149238",
+				objectName_2 = "CustomObjectC149238",
+				relationshipLabel = "Relationship ${letter}",
+				relationshipName = "relationship${letter}",
+				relationshipType = "oneToMany");
+		}
+
+		for (var letter : list "A,B,C") {
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "Text",
+				fieldLabelName = "Custom Field ${letter} 149238",
+				fieldName = "customObjectField${letter}",
+				fieldType = "String",
+				isRequired = "false",
+				objectName = "CustomObject${letter}149238");
+
+			ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject${letter}149238");
+		}
+
+		for (var letter : list "A,B,C") {
+			ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+				fieldName = "customObjectField${letter}",
+				objectName = "CustomObject${letter}149238",
+				value = "Entry ${letter}");
+		}
+
+		for (var letter : list "A,B") {
+			ObjectAdmin.openObjectAdmin();
+
+			ObjectPortlet.selectCustomObject(label = "Custom Object ${letter} 149238");
+
+			CreateObject.selectTitleField(fieldLabel = "Custom Field ${letter} 149238");
+
+			CreateObject.saveObject();
+		}
+
+		for (var letter : list "A,B") {
+			ObjectAdmin.goToCustomObject(objectName = "CustomObjectC149238");
+
+			ObjectPortlet.viewEntryDetails(entry = "Entry C");
+
+			ObjectPortlet.chooseEntryOnRelationshipFieldSpecific(
+				entryOption = "Entry ${letter}",
+				relationshipFieldLabel = "Relationship ${letter}");
+		}
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object C 149238");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		for (var letter : list "A,B") {
+			ObjectCustomViews.addColumnsViaUI(
+				columnOption = "Relationship ${letter}",
+				viewLabel = "Custom Views");
+		}
+
+		Button.clickSave();
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObjectC149238");
+
+		ObjectPortlet.viewEntry(entry = "Entry A");
+
+		ObjectPortlet.viewEntry(entry = "Entry B");
+	}
+
+	@description = "LPS-144902 - Verify if the entries from an object in a table view defined as default are presented correctly"
+	@priority = "5"
+	test CanViewEntries {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147770",
+			objectName = "CustomObject147770",
+			pluralLabelName = "Custom Objects 147770");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject147770");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147770");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		Click.clickAtNotVisible(
+			key_columnOption = "Custom Field",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		ObjectCustomViews.saveColumnsModal();
+
+		Button.clickSave();
+
+		Navigator.openURL();
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject147770");
+
+		ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+			fieldName = "customObjectField",
+			objectName = "CustomObject147770",
+			value = "Entry Test");
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject147770");
+
+		ObjectPortlet.viewEntry(entry = "Entry Test");
+	}
+
+	@description = "LPS-143190 - Verify that the metadata values are correctly displayed on a Custom View"
+	@priority = "5"
+	test CanViewMetadataValues {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 149239",
+			objectName = "CustomObject149239",
+			pluralLabelName = "Custom Objects 149239");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject149239");
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject149239");
+
+		ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+			fieldName = "customObjectField",
+			objectName = "CustomObject149239",
+			value = "Entry Test");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 149239");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		for (var columnOption : list "Author,Creation Date,Modified Date,Workflow Status,ID") {
+			Click.clickAtNotVisible(
+				key_columnOption = "${columnOption}",
+				locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+		}
+
+		ObjectCustomViews.saveColumnsModal();
+
+		Button.clickSave();
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject149239");
+
+		for (var columnName : list "Author,Creation Date,Modified Date,Workflow Status,ID") {
+			ObjectPortlet.assertEntryColumnPresent(column = "${columnName}");
+		}
+	}
+
+	@description = "LPS-144902 - Verify if selected Columns on custom view are presented correctly during visualization"
+	@priority = "5"
+	test CanViewOnlySelectedColumns {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147771",
+			objectName = "CustomObject147771",
+			pluralLabelName = "Custom Objects 147771");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject147771");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147771");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		for (var columnOption : list "Author,Creation Date,Custom Field") {
+			Click.clickAtNotVisible(
+				key_columnOption = "${columnOption}",
+				locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+		}
+
+		ObjectCustomViews.saveColumnsModal();
+
+		Button.clickSave();
+
+		Navigator.openURL();
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject147771");
+
+		ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+			fieldName = "customObjectField",
+			objectName = "CustomObject147771",
+			value = "Entry Test");
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject147771");
+
+		for (var columnName : list "Author,Creation Date,Custom Field") {
+			ObjectPortlet.assertEntryColumnPresent(column = "${columnName}");
+		}
+
+		for (var columnName : list "Modified Date,Workflow Status,ID") {
+			ObjectPortlet.assertEntryColumnNotPresent(column = "${columnName}");
+		}
+	}
+
+	@description = "LPS-144902 - Verify if the Columns on the custom view are presented following the predefined order during visualization"
+	@priority = "5"
+	test ColumnsAreOrdered {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147772",
+			objectName = "CustomObject147772",
+			pluralLabelName = "Custom Objects 147772");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject147772");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147772");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.markViewAsDefault();
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		for (var columnOption : list "Author,Creation Date,ID") {
+			Click.clickAtNotVisible(
+				key_columnOption = "${columnOption}",
+				locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+		}
+
+		ObjectCustomViews.saveColumnsModal();
+
+		DragAndDrop.javaScriptDragAndDropToUp(
+			key_columnName = "Creation Date",
+			key_colunmName1 = "Author",
+			key_position = "1",
+			locator1 = "ObjectCustomViews#VIEW_BUILDER_SEARCH_RESULT",
+			locator2 = "ObjectCustomViews#VIEW_LIST_COLUMNS_BY_POSITION",
+			value1 = "");
+
+		Button.clickSave();
+
+		Navigator.openURL();
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject147772");
+
+		ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+			fieldName = "customObjectField",
+			objectName = "CustomObject147772",
+			value = "Entry Test");
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject147772");
+
+		WaitForPageLoad();
+
+		ObjectCustomViews.viewColumnsOrder(
+			colunmName = "Creation Date",
+			position = "1");
+
+		ObjectCustomViews.viewColumnsOrder(
+			colunmName = "Author",
+			position = "2");
+
+		ObjectCustomViews.viewColumnsOrder(
+			colunmName = "ID",
+			position = "3");
+	}
+
+	@description = "LPS-146028 - Verify that the columns present at the View Builder are ordered correctly"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test DuplicatedObjectViewColumnsAreCorrectlyOrdered {
+
+		// TODO LPS-151590 DuplicatedObjectViewColumnsAreCorrectlyOrdered pending implementation
+
+	}
+
+	@description = "LPS-146028 - Verify that the fields present at the Default Sort are ordered correctly"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test DuplicatedObjectViewFieldsAreCorrectlyOrdered {
+
+		// TODO LPS-151591 DuplicatedObjectViewFieldsAreCorrectlyOrdered pending implementation
+
+	}
+
+	@description = "LPS-135394 - Verify the empty state for the View Builder tab"
+	@priority = "3"
+	test EmptyStateViewBuilder {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147760",
+			objectName = "CustomObject147760",
+			pluralLabelName = "Custom Objects 147760");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147760");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		ObjectCustomViews.assertEmptyStateTextOnViewBuilder(text = "No columns added yet.");
+
+		ObjectCustomViews.assertEmptyStateTextOnViewBuilder(text = "Add columns to start creating a view.");
+	}
+
+	@description = "LPS-135394 - Verify the empty state for the View tab"
+	@priority = "3"
+	test EmptyStateViewTab {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 201",
+			objectName = "CustomObject201",
+			pluralLabelName = "Custom Objects 201");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 201");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectAdmin.assertNoResultsWereFound();
+	}
+
+	@description = "LPS-135394 - Verify the Author, Creation Date, Modified Date, Workflow Status, ID columns (Metadata columns) are displayed to be selected"
+	@priority = "5"
+	test MetadataColumnsDisplayed {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147764",
+			objectName = "CustomObject147764",
+			pluralLabelName = "Custom Objects 147764");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147764");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		for (var columnOption : list "Author,Creation Date,Modified Date,Workflow Status,ID") {
+			ObjectCustomViews.assertColumnVisibleOnAddColumnModal(columnOption = "${columnOption}");
+		}
+	}
+
+	@description = "LPS-135394 - Verify the no result message when searching for a view"
+	@priority = "3"
+	test NoResultMessageView {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 202",
+			objectName = "CustomObject202",
+			pluralLabelName = "Custom Objects 202");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 202");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(labelName = "Custom View");
+
+		Search.searchCP(searchTerm = "ObjectTest202");
+
+		ObjectAdmin.assertNoResultsWereFound();
+	}
+
+	@description = "LPS-135394 - Verify the no result message when searching for a column"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test NoResultMessageViewBuilder {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147761",
+			objectName = "CustomObject147761",
+			pluralLabelName = "Custom Objects 147761");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147761");
+
+		ObjectCustomViews.goToViewsTab();
+
+		ObjectCustomViews.addObjectViewViaUI(viewName = "Custom Views");
+
+		ObjectCustomViews.goToViewsDetails(label = "Custom Views");
+
+		ObjectCustomViews.goToViewsBuilderTab();
+
+		LexiconEntry.gotoAdd();
+
+		Click.clickAtNotVisible(
+			key_columnOption = "Author",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		ObjectCustomViews.saveColumnsModal();
+
+		ObjectCustomViews.searchOnViewBuilder(colunmName = "Teste");
+
+		ObjectCustomViews.assertEmptyStateTextOnViewBuilder(text = "No Results Found");
+
+		ObjectCustomViews.assertEmptyStateTextOnViewBuilder(text = "Sorry, no results were found.");
+	}
+
+}

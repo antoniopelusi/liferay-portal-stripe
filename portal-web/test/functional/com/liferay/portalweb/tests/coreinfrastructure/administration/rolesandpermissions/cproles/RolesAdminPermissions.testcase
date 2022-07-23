@@ -1,0 +1,110 @@
+@component-name = "portal-permissions"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Roles";
+	property testray.main.component.name = "Roles";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			JSONUser.tearDownNonAdminUsers();
+
+			Role.tearDownCP();
+
+			PortalSettings.tearDownCP();
+		}
+	}
+
+	@description = "This test adds a user with a regular role that has view and add permissions for Roles. It then asserts that a user assigned to this role can successfully add different kinds of roles (Regular, Site, and Organization)"
+	@priority = "4"
+	test UserWithAddRolePermissionCanAdd {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		Permissions.setUpRegRoleLoginUserCP(
+			roleTitle = "Regrole Name",
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW_CONTROL_PANEL",
+			resourceName = "90",
+			roleTitle = "Regrole Name");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_roles_admin_web_portlet_RolesAdminPortlet",
+			roleTitle = "Regrole Name");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		AssertElementNotPresent(locator1 = "NavBar#ADD");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.portal.kernel.model.Role",
+			roleTitle = "Regrole Name");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ADD_ROLE",
+			resourceName = "90",
+			roleTitle = "Regrole Name");
+
+		for (var roleType : list "Regular,Site,Organization") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Roles");
+
+			RoleNavigator.gotoRoleType(roleType = "${roleType}");
+
+			Role.add(roleTitle = "${roleType}Role Name");
+		}
+
+		Permissions.removePermissionViaAPI(
+			resourceAction = "ADD_ROLE",
+			resourceName = "90",
+			roleTitle = "Regrole Name");
+
+		Permissions.removePermissionViaAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.portal.kernel.model.Role",
+			roleTitle = "Regrole Name");
+
+		for (var roleType : list "Regular,Site,Organization") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Roles");
+
+			RoleNavigator.gotoRoleType(roleType = "${roleType}");
+
+			AssertElementNotPresent(locator1 = "NavBar#ADD");
+		}
+	}
+
+}

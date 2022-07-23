@@ -53,7 +53,7 @@ public class CPDefinitionSubscriptionInfoDisplayContext
 		).setParameter(
 			"screenNavigationCategoryKey",
 			getSelectedScreenNavigationCategoryKey()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

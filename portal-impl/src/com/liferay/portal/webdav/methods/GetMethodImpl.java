@@ -50,7 +50,7 @@ public class GetMethodImpl implements Method {
 				inputStream = resource.getContentAsStream();
 			}
 			catch (Exception exception) {
-				_log.error(exception.getMessage());
+				_log.error(exception);
 			}
 
 			if (inputStream != null) {
@@ -65,7 +65,7 @@ public class GetMethodImpl implements Method {
 				}
 				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(exception, exception);
+						_log.warn(exception);
 					}
 				}
 

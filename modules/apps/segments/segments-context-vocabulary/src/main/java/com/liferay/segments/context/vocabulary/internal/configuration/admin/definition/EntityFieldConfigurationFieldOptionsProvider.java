@@ -46,6 +46,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"configuration.field.name=entityField",
+		"configuration.pid=com.liferay.segments.context.vocabulary.internal.configuration.SegmentsContextVocabularyCompanyConfiguration",
 		"configuration.pid=com.liferay.segments.context.vocabulary.internal.configuration.SegmentsContextVocabularyConfiguration"
 	},
 	service = ConfigurationFieldOptionsProvider.class
@@ -123,6 +124,6 @@ public class EntityFieldConfigurationFieldOptionsProvider
 	@Reference
 	private Language _language;
 
-	private List<Option> _options;
+	private volatile List<Option> _options;
 
 }

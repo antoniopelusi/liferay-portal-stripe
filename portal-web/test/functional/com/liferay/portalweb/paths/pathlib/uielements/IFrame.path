@@ -2,17 +2,14 @@
 <head>
 <title>IFrame</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">IFrame</td></tr>
 </thead>
+
 <tbody>
-<tr>
-	<td>ADD_ASSIGNEE_TO_ACCOUNT</td>
-	<td>//iframe[@title='Assign ${key_assigneeType} to ${key_accountName}']</td>
-	<td></td>
-</tr>
 <tr>
 	<td>ADD_DOMAIN</td>
 	<td>//iframe[@title='Add Domain']</td>
@@ -106,6 +103,11 @@
 <tr>
 	<td>IFRAME</td>
 	<td>//iframe</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IFRAME_SRC</td>
+	<td>//iframe[contains(@src,'${key_src}')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -35,6 +35,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+
 import java.net.URL;
 
 import java.nio.charset.StandardCharsets;
@@ -76,6 +79,25 @@ public class ToolsUtil {
 	public static final int PLUGINS_MAX_DIR_LEVEL = 3;
 
 	public static final int PORTAL_MAX_DIR_LEVEL = 7;
+
+	public static String encodeEnvironmentProperty(String property) {
+		StringBundler sb = new StringBundler();
+
+		sb.append("LIFERAY_");
+
+		for (char c : property.toCharArray()) {
+			if (Character.isLowerCase(c)) {
+				sb.append(Character.toUpperCase(c));
+			}
+			else {
+				sb.append(CharPool.UNDERLINE);
+				sb.append(_charPoolChars.get(c));
+				sb.append(CharPool.UNDERLINE);
+			}
+		}
+
+		return sb.toString();
+	}
 
 	public static String getContent(String fileName) throws Exception {
 		Document document = _getContentDocument(fileName);
@@ -716,7 +738,7 @@ public class ToolsUtil {
 			while (matcher1.find()) {
 				String lineStart = StringUtil.trimLeading(matcher1.group(1));
 
-				if (lineStart.contains("//") ||
+				if (lineStart.contains("//") || lineStart.startsWith("*") ||
 					isInsideQuotes(afterImportsContent, matcher1.start(2))) {
 
 					continue;
@@ -753,5 +775,32 @@ public class ToolsUtil {
 
 		Files.write(path, s.getBytes(StandardCharsets.UTF_8));
 	}
+
+	/**
+	 * @see com.liferay.portal.configuration.ClassLoaderAggregatePropertiesUtil#_getCharPoolChars
+	 */
+	private static final Map<Character, String> _charPoolChars =
+		new HashMap<Character, String>() {
+			{
+				try {
+					for (Field field : CharPool.class.getFields()) {
+						if (Modifier.isStatic(field.getModifiers()) &&
+							(field.getType() == char.class)) {
+
+							put(
+								field.getChar(null),
+								StringUtil.removeChar(
+									field.getName(), CharPool.UNDERLINE));
+						}
+					}
+				}
+				catch (ReflectiveOperationException
+							reflectiveOperationException) {
+
+					throw new ExceptionInInitializerError(
+						reflectiveOperationException);
+				}
+			}
+		};
 
 }

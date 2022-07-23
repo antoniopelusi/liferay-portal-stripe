@@ -143,12 +143,12 @@ const EditCategoriesModal = ({
 		}
 		else {
 			addedCategories = finalCategories.filter(
-				(categoryId) => initialCategories.indexOf(categoryId) == -1
+				(categoryId) => initialCategories.indexOf(categoryId) === -1
 			);
 		}
 
 		const removedCategories = initialCategories.filter(
-			(category) => finalCategories.indexOf(category) == -1
+			(category) => finalCategories.indexOf(category) === -1
 		);
 
 		fetchCategories(URL_UPDATE_CATEGORIES, append ? 'PATCH' : 'PUT', {
@@ -194,7 +194,7 @@ const EditCategoriesModal = ({
 
 			const categoryIds = categories.map((item) => item.value);
 
-			const obj = {
+			const object = {
 				id: vocabulary.taxonomyVocabularyId.toString(),
 				required: vocabulary.required,
 				selectedCategoryIds: categoryIds.join(','),
@@ -203,10 +203,10 @@ const EditCategoriesModal = ({
 				title: vocabulary.name,
 			};
 
-			vocabulariesList.push(obj);
+			vocabulariesList.push(object);
 
 			if (vocabulary.required) {
-				requiredVocabularies.push(obj);
+				requiredVocabularies.push(object);
 			}
 
 			initialCategories = initialCategories.concat(categoryIds);
@@ -291,7 +291,7 @@ const EditCategoriesModal = ({
 							>
 								<div className="form-text">
 									{Liferay.Language.get(
-										'these-categories-replace-all-existing-categories'
+										'add-new-categories-or-remove-common-categories'
 									)}
 								</div>
 							</ClayRadio>
@@ -332,6 +332,7 @@ const EditCategoriesModal = ({
 							>
 								{Liferay.Language.get('cancel')}
 							</ClayButton>
+
 							<ClayButton
 								disabled={!isValid}
 								displayType="primary"

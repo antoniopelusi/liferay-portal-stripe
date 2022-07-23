@@ -16,7 +16,7 @@ import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import {useSelector} from '../../store/index';
+import {useSelector} from '../../contexts/StoreContext';
 import UndoHistory from './UndoHistory';
 
 export default function Undo({onRedo = () => {}, onUndo = () => {}}) {
@@ -36,6 +36,7 @@ export default function Undo({onRedo = () => {}, onUndo = () => {}}) {
 					symbol="undo"
 					title={Liferay.Language.get('undo')}
 				/>
+
 				<ClayButtonWithIcon
 					aria-label={Liferay.Language.get('redo')}
 					className="btn-monospaced"

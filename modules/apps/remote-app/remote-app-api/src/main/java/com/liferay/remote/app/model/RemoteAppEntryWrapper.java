@@ -45,14 +45,31 @@ public class RemoteAppEntryWrapper
 
 		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
+		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("remoteAppEntryId", getRemoteAppEntryId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("customElementCSSURLs", getCustomElementCSSURLs());
+		attributes.put(
+			"customElementHTMLElementName", getCustomElementHTMLElementName());
+		attributes.put("customElementURLs", getCustomElementURLs());
+		attributes.put("customElementUseESM", isCustomElementUseESM());
+		attributes.put("description", getDescription());
+		attributes.put("friendlyURLMapping", getFriendlyURLMapping());
+		attributes.put("iFrameURL", getIFrameURL());
+		attributes.put("instanceable", isInstanceable());
 		attributes.put("name", getName());
-		attributes.put("url", getUrl());
+		attributes.put("portletCategoryName", getPortletCategoryName());
+		attributes.put("properties", getProperties());
+		attributes.put("sourceCodeURL", getSourceCodeURL());
+		attributes.put("type", getType());
+		attributes.put("status", getStatus());
+		attributes.put("statusByUserId", getStatusByUserId());
+		attributes.put("statusByUserName", getStatusByUserName());
+		attributes.put("statusDate", getStatusDate());
 
 		return attributes;
 	}
@@ -69,6 +86,13 @@ public class RemoteAppEntryWrapper
 
 		if (uuid != null) {
 			setUuid(uuid);
+		}
+
+		String externalReferenceCode = (String)attributes.get(
+			"externalReferenceCode");
+
+		if (externalReferenceCode != null) {
+			setExternalReferenceCode(externalReferenceCode);
 		}
 
 		Long remoteAppEntryId = (Long)attributes.get("remoteAppEntryId");
@@ -107,17 +131,117 @@ public class RemoteAppEntryWrapper
 			setModifiedDate(modifiedDate);
 		}
 
+		String customElementCSSURLs = (String)attributes.get(
+			"customElementCSSURLs");
+
+		if (customElementCSSURLs != null) {
+			setCustomElementCSSURLs(customElementCSSURLs);
+		}
+
+		String customElementHTMLElementName = (String)attributes.get(
+			"customElementHTMLElementName");
+
+		if (customElementHTMLElementName != null) {
+			setCustomElementHTMLElementName(customElementHTMLElementName);
+		}
+
+		String customElementURLs = (String)attributes.get("customElementURLs");
+
+		if (customElementURLs != null) {
+			setCustomElementURLs(customElementURLs);
+		}
+
+		Boolean customElementUseESM = (Boolean)attributes.get(
+			"customElementUseESM");
+
+		if (customElementUseESM != null) {
+			setCustomElementUseESM(customElementUseESM);
+		}
+
+		String description = (String)attributes.get("description");
+
+		if (description != null) {
+			setDescription(description);
+		}
+
+		String friendlyURLMapping = (String)attributes.get(
+			"friendlyURLMapping");
+
+		if (friendlyURLMapping != null) {
+			setFriendlyURLMapping(friendlyURLMapping);
+		}
+
+		String iFrameURL = (String)attributes.get("iFrameURL");
+
+		if (iFrameURL != null) {
+			setIFrameURL(iFrameURL);
+		}
+
+		Boolean instanceable = (Boolean)attributes.get("instanceable");
+
+		if (instanceable != null) {
+			setInstanceable(instanceable);
+		}
+
 		String name = (String)attributes.get("name");
 
 		if (name != null) {
 			setName(name);
 		}
 
-		String url = (String)attributes.get("url");
+		String portletCategoryName = (String)attributes.get(
+			"portletCategoryName");
 
-		if (url != null) {
-			setUrl(url);
+		if (portletCategoryName != null) {
+			setPortletCategoryName(portletCategoryName);
 		}
+
+		String properties = (String)attributes.get("properties");
+
+		if (properties != null) {
+			setProperties(properties);
+		}
+
+		String sourceCodeURL = (String)attributes.get("sourceCodeURL");
+
+		if (sourceCodeURL != null) {
+			setSourceCodeURL(sourceCodeURL);
+		}
+
+		String type = (String)attributes.get("type");
+
+		if (type != null) {
+			setType(type);
+		}
+
+		Integer status = (Integer)attributes.get("status");
+
+		if (status != null) {
+			setStatus(status);
+		}
+
+		Long statusByUserId = (Long)attributes.get("statusByUserId");
+
+		if (statusByUserId != null) {
+			setStatusByUserId(statusByUserId);
+		}
+
+		String statusByUserName = (String)attributes.get("statusByUserName");
+
+		if (statusByUserName != null) {
+			setStatusByUserName(statusByUserName);
+		}
+
+		Date statusDate = (Date)attributes.get("statusDate");
+
+		if (statusDate != null) {
+			setStatusDate(statusDate);
+		}
+	}
+
+	@Override
+	public RemoteAppEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	@Override
@@ -165,9 +289,99 @@ public class RemoteAppEntryWrapper
 		return model.getCreateDate();
 	}
 
+	/**
+	 * Returns the custom element cssur ls of this remote app entry.
+	 *
+	 * @return the custom element cssur ls of this remote app entry
+	 */
+	@Override
+	public String getCustomElementCSSURLs() {
+		return model.getCustomElementCSSURLs();
+	}
+
+	/**
+	 * Returns the custom element html element name of this remote app entry.
+	 *
+	 * @return the custom element html element name of this remote app entry
+	 */
+	@Override
+	public String getCustomElementHTMLElementName() {
+		return model.getCustomElementHTMLElementName();
+	}
+
+	/**
+	 * Returns the custom element ur ls of this remote app entry.
+	 *
+	 * @return the custom element ur ls of this remote app entry
+	 */
+	@Override
+	public String getCustomElementURLs() {
+		return model.getCustomElementURLs();
+	}
+
+	/**
+	 * Returns the custom element use esm of this remote app entry.
+	 *
+	 * @return the custom element use esm of this remote app entry
+	 */
+	@Override
+	public boolean getCustomElementUseESM() {
+		return model.getCustomElementUseESM();
+	}
+
 	@Override
 	public String getDefaultLanguageId() {
 		return model.getDefaultLanguageId();
+	}
+
+	/**
+	 * Returns the description of this remote app entry.
+	 *
+	 * @return the description of this remote app entry
+	 */
+	@Override
+	public String getDescription() {
+		return model.getDescription();
+	}
+
+	/**
+	 * Returns the external reference code of this remote app entry.
+	 *
+	 * @return the external reference code of this remote app entry
+	 */
+	@Override
+	public String getExternalReferenceCode() {
+		return model.getExternalReferenceCode();
+	}
+
+	/**
+	 * Returns the friendly url mapping of this remote app entry.
+	 *
+	 * @return the friendly url mapping of this remote app entry
+	 */
+	@Override
+	public String getFriendlyURLMapping() {
+		return model.getFriendlyURLMapping();
+	}
+
+	/**
+	 * Returns the i frame url of this remote app entry.
+	 *
+	 * @return the i frame url of this remote app entry
+	 */
+	@Override
+	public String getIFrameURL() {
+		return model.getIFrameURL();
+	}
+
+	/**
+	 * Returns the instanceable of this remote app entry.
+	 *
+	 * @return the instanceable of this remote app entry
+	 */
+	@Override
+	public boolean getInstanceable() {
+		return model.getInstanceable();
 	}
 
 	/**
@@ -277,6 +491,16 @@ public class RemoteAppEntryWrapper
 	}
 
 	/**
+	 * Returns the portlet category name of this remote app entry.
+	 *
+	 * @return the portlet category name of this remote app entry
+	 */
+	@Override
+	public String getPortletCategoryName() {
+		return model.getPortletCategoryName();
+	}
+
+	/**
 	 * Returns the primary key of this remote app entry.
 	 *
 	 * @return the primary key of this remote app entry
@@ -284,6 +508,16 @@ public class RemoteAppEntryWrapper
 	@Override
 	public long getPrimaryKey() {
 		return model.getPrimaryKey();
+	}
+
+	/**
+	 * Returns the properties of this remote app entry.
+	 *
+	 * @return the properties of this remote app entry
+	 */
+	@Override
+	public String getProperties() {
+		return model.getProperties();
 	}
 
 	/**
@@ -297,13 +531,73 @@ public class RemoteAppEntryWrapper
 	}
 
 	/**
-	 * Returns the url of this remote app entry.
+	 * Returns the source code url of this remote app entry.
 	 *
-	 * @return the url of this remote app entry
+	 * @return the source code url of this remote app entry
 	 */
 	@Override
-	public String getUrl() {
-		return model.getUrl();
+	public String getSourceCodeURL() {
+		return model.getSourceCodeURL();
+	}
+
+	/**
+	 * Returns the status of this remote app entry.
+	 *
+	 * @return the status of this remote app entry
+	 */
+	@Override
+	public int getStatus() {
+		return model.getStatus();
+	}
+
+	/**
+	 * Returns the status by user ID of this remote app entry.
+	 *
+	 * @return the status by user ID of this remote app entry
+	 */
+	@Override
+	public long getStatusByUserId() {
+		return model.getStatusByUserId();
+	}
+
+	/**
+	 * Returns the status by user name of this remote app entry.
+	 *
+	 * @return the status by user name of this remote app entry
+	 */
+	@Override
+	public String getStatusByUserName() {
+		return model.getStatusByUserName();
+	}
+
+	/**
+	 * Returns the status by user uuid of this remote app entry.
+	 *
+	 * @return the status by user uuid of this remote app entry
+	 */
+	@Override
+	public String getStatusByUserUuid() {
+		return model.getStatusByUserUuid();
+	}
+
+	/**
+	 * Returns the status date of this remote app entry.
+	 *
+	 * @return the status date of this remote app entry
+	 */
+	@Override
+	public Date getStatusDate() {
+		return model.getStatusDate();
+	}
+
+	/**
+	 * Returns the type of this remote app entry.
+	 *
+	 * @return the type of this remote app entry
+	 */
+	@Override
+	public String getType() {
+		return model.getType();
 	}
 
 	/**
@@ -344,6 +638,106 @@ public class RemoteAppEntryWrapper
 	@Override
 	public String getUuid() {
 		return model.getUuid();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is approved.
+	 *
+	 * @return <code>true</code> if this remote app entry is approved; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isApproved() {
+		return model.isApproved();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is custom element use esm.
+	 *
+	 * @return <code>true</code> if this remote app entry is custom element use esm; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isCustomElementUseESM() {
+		return model.isCustomElementUseESM();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is denied.
+	 *
+	 * @return <code>true</code> if this remote app entry is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied() {
+		return model.isDenied();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is a draft.
+	 *
+	 * @return <code>true</code> if this remote app entry is a draft; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDraft() {
+		return model.isDraft();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is expired.
+	 *
+	 * @return <code>true</code> if this remote app entry is expired; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isExpired() {
+		return model.isExpired();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is inactive.
+	 *
+	 * @return <code>true</code> if this remote app entry is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive() {
+		return model.isInactive();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is incomplete.
+	 *
+	 * @return <code>true</code> if this remote app entry is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete() {
+		return model.isIncomplete();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is instanceable.
+	 *
+	 * @return <code>true</code> if this remote app entry is instanceable; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInstanceable() {
+		return model.isInstanceable();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is pending.
+	 *
+	 * @return <code>true</code> if this remote app entry is pending; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isPending() {
+		return model.isPending();
+	}
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is scheduled.
+	 *
+	 * @return <code>true</code> if this remote app entry is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled() {
+		return model.isScheduled();
 	}
 
 	@Override
@@ -394,6 +788,98 @@ public class RemoteAppEntryWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the custom element cssur ls of this remote app entry.
+	 *
+	 * @param customElementCSSURLs the custom element cssur ls of this remote app entry
+	 */
+	@Override
+	public void setCustomElementCSSURLs(String customElementCSSURLs) {
+		model.setCustomElementCSSURLs(customElementCSSURLs);
+	}
+
+	/**
+	 * Sets the custom element html element name of this remote app entry.
+	 *
+	 * @param customElementHTMLElementName the custom element html element name of this remote app entry
+	 */
+	@Override
+	public void setCustomElementHTMLElementName(
+		String customElementHTMLElementName) {
+
+		model.setCustomElementHTMLElementName(customElementHTMLElementName);
+	}
+
+	/**
+	 * Sets the custom element ur ls of this remote app entry.
+	 *
+	 * @param customElementURLs the custom element ur ls of this remote app entry
+	 */
+	@Override
+	public void setCustomElementURLs(String customElementURLs) {
+		model.setCustomElementURLs(customElementURLs);
+	}
+
+	/**
+	 * Sets whether this remote app entry is custom element use esm.
+	 *
+	 * @param customElementUseESM the custom element use esm of this remote app entry
+	 */
+	@Override
+	public void setCustomElementUseESM(boolean customElementUseESM) {
+		model.setCustomElementUseESM(customElementUseESM);
+	}
+
+	/**
+	 * Sets the description of this remote app entry.
+	 *
+	 * @param description the description of this remote app entry
+	 */
+	@Override
+	public void setDescription(String description) {
+		model.setDescription(description);
+	}
+
+	/**
+	 * Sets the external reference code of this remote app entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this remote app entry
+	 */
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		model.setExternalReferenceCode(externalReferenceCode);
+	}
+
+	/**
+	 * Sets the friendly url mapping of this remote app entry.
+	 *
+	 * @param friendlyURLMapping the friendly url mapping of this remote app entry
+	 */
+	@Override
+	public void setFriendlyURLMapping(String friendlyURLMapping) {
+		model.setFriendlyURLMapping(friendlyURLMapping);
+	}
+
+	/**
+	 * Sets the i frame url of this remote app entry.
+	 *
+	 * @param iFrameURL the i frame url of this remote app entry
+	 */
+	@Override
+	public void setIFrameURL(String iFrameURL) {
+		model.setIFrameURL(iFrameURL);
+	}
+
+	/**
+	 * Sets whether this remote app entry is instanceable.
+	 *
+	 * @param instanceable the instanceable of this remote app entry
+	 */
+	@Override
+	public void setInstanceable(boolean instanceable) {
+		model.setInstanceable(instanceable);
 	}
 
 	/**
@@ -490,6 +976,16 @@ public class RemoteAppEntryWrapper
 	}
 
 	/**
+	 * Sets the portlet category name of this remote app entry.
+	 *
+	 * @param portletCategoryName the portlet category name of this remote app entry
+	 */
+	@Override
+	public void setPortletCategoryName(String portletCategoryName) {
+		model.setPortletCategoryName(portletCategoryName);
+	}
+
+	/**
 	 * Sets the primary key of this remote app entry.
 	 *
 	 * @param primaryKey the primary key of this remote app entry
@@ -497,6 +993,16 @@ public class RemoteAppEntryWrapper
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		model.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	 * Sets the properties of this remote app entry.
+	 *
+	 * @param properties the properties of this remote app entry
+	 */
+	@Override
+	public void setProperties(String properties) {
+		model.setProperties(properties);
 	}
 
 	/**
@@ -510,13 +1016,73 @@ public class RemoteAppEntryWrapper
 	}
 
 	/**
-	 * Sets the url of this remote app entry.
+	 * Sets the source code url of this remote app entry.
 	 *
-	 * @param url the url of this remote app entry
+	 * @param sourceCodeURL the source code url of this remote app entry
 	 */
 	@Override
-	public void setUrl(String url) {
-		model.setUrl(url);
+	public void setSourceCodeURL(String sourceCodeURL) {
+		model.setSourceCodeURL(sourceCodeURL);
+	}
+
+	/**
+	 * Sets the status of this remote app entry.
+	 *
+	 * @param status the status of this remote app entry
+	 */
+	@Override
+	public void setStatus(int status) {
+		model.setStatus(status);
+	}
+
+	/**
+	 * Sets the status by user ID of this remote app entry.
+	 *
+	 * @param statusByUserId the status by user ID of this remote app entry
+	 */
+	@Override
+	public void setStatusByUserId(long statusByUserId) {
+		model.setStatusByUserId(statusByUserId);
+	}
+
+	/**
+	 * Sets the status by user name of this remote app entry.
+	 *
+	 * @param statusByUserName the status by user name of this remote app entry
+	 */
+	@Override
+	public void setStatusByUserName(String statusByUserName) {
+		model.setStatusByUserName(statusByUserName);
+	}
+
+	/**
+	 * Sets the status by user uuid of this remote app entry.
+	 *
+	 * @param statusByUserUuid the status by user uuid of this remote app entry
+	 */
+	@Override
+	public void setStatusByUserUuid(String statusByUserUuid) {
+		model.setStatusByUserUuid(statusByUserUuid);
+	}
+
+	/**
+	 * Sets the status date of this remote app entry.
+	 *
+	 * @param statusDate the status date of this remote app entry
+	 */
+	@Override
+	public void setStatusDate(Date statusDate) {
+		model.setStatusDate(statusDate);
+	}
+
+	/**
+	 * Sets the type of this remote app entry.
+	 *
+	 * @param type the type of this remote app entry
+	 */
+	@Override
+	public void setType(String type) {
+		model.setType(type);
 	}
 
 	/**

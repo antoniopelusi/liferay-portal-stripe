@@ -127,8 +127,9 @@ public class AnnotationsExtendedObjectClassDefinition
 		URL url = bundle.getResource(resourcePath);
 
 		if (url != null) {
-			try (InputStream is = url.openStream()) {
-				return JSONFactoryUtil.createJSONObject(StringUtil.read(is));
+			try (InputStream inputStream = url.openStream()) {
+				return JSONFactoryUtil.createJSONObject(
+					StringUtil.read(inputStream));
 			}
 			catch (Exception exception) {
 				_log.error(
@@ -150,7 +151,7 @@ public class AnnotationsExtendedObjectClassDefinition
 		}
 		catch (ClassNotFoundException classNotFoundException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(classNotFoundException, classNotFoundException);
+				_log.debug(classNotFoundException);
 			}
 		}
 	}
@@ -206,8 +207,17 @@ public class AnnotationsExtendedObjectClassDefinition
 			"generateUI",
 			Boolean.toString(extendedObjectClassDefinition.generateUI())
 		).put(
+			"liferayLearnMessageKey",
+			extendedObjectClassDefinition.liferayLearnMessageKey()
+		).put(
+			"liferayLearnMessageResource",
+			extendedObjectClassDefinition.liferayLearnMessageResource()
+		).put(
 			"name-arguments",
 			StringUtil.merge(extendedObjectClassDefinition.nameArguments())
+		).put(
+			"strictScope",
+			Boolean.toString(extendedObjectClassDefinition.strictScope())
 		).build();
 
 		ExtendedObjectClassDefinition.Scope scope =

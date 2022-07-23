@@ -9,6 +9,7 @@
  * distribution rights of the Software.
  */
 
+import ClayTable from '@clayui/table';
 import React, {useContext} from 'react';
 
 import filterConstants from '../../../shared/components/filter/util/filterConstants.es';
@@ -48,18 +49,18 @@ function Item({
 	);
 
 	return (
-		<tr>
-			<td className="assignee-name border-0">
+		<ClayTable.Row>
+			<ClayTable.Cell className="assignee-name border-0">
 				<ChildLink
 					className="workload-by-assignee-link"
 					query={{filters}}
-					to={`/instance/${processId}/${defaultDelta}/1`}
+					to={`/instance/${processId}/${defaultDelta}/1/dateOverdue:asc`}
 				>
 					<span>{name}</span>
 				</ChildLink>
-			</td>
+			</ClayTable.Cell>
 
-			<td className="border-0 text-right">
+			<ClayTable.Cell className="border-0 text-right">
 				<span className="task-count-value">{counts[currentTab]}</span>
 
 				{currentTab !== 'total' && (
@@ -69,16 +70,16 @@ function Item({
 						{formattedPercentage}
 					</span>
 				)}
-			</td>
-		</tr>
+			</ClayTable.Cell>
+		</ClayTable.Row>
 	);
 }
 
 function Table({currentTab, items = [], processId, processStepKey}) {
 	return (
 		<div className="mb-3 table-fit-panel">
-			<table className="table table-autofit table-hover">
-				<tbody>
+			<ClayTable borderless>
+				<ClayTable.Body>
 					{items.map((item, index) => (
 						<Table.Item
 							{...item}
@@ -88,8 +89,8 @@ function Table({currentTab, items = [], processId, processStepKey}) {
 							processStepKey={processStepKey}
 						/>
 					))}
-				</tbody>
-			</table>
+				</ClayTable.Body>
+			</ClayTable>
 		</div>
 	);
 }

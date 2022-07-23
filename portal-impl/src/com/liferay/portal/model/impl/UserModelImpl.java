@@ -25,27 +25,25 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserModel;
-import com.liferay.portal.kernel.model.UserSoap;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -272,91 +270,6 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 	@Deprecated
 	public static final long UUID_COLUMN_BITMASK = 16384L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static User toModel(UserSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		User model = new UserImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setUserId(soapModel.getUserId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setDefaultUser(soapModel.isDefaultUser());
-		model.setContactId(soapModel.getContactId());
-		model.setPassword(soapModel.getPassword());
-		model.setPasswordEncrypted(soapModel.isPasswordEncrypted());
-		model.setPasswordReset(soapModel.isPasswordReset());
-		model.setPasswordModifiedDate(soapModel.getPasswordModifiedDate());
-		model.setDigest(soapModel.getDigest());
-		model.setReminderQueryQuestion(soapModel.getReminderQueryQuestion());
-		model.setReminderQueryAnswer(soapModel.getReminderQueryAnswer());
-		model.setGraceLoginCount(soapModel.getGraceLoginCount());
-		model.setScreenName(soapModel.getScreenName());
-		model.setEmailAddress(soapModel.getEmailAddress());
-		model.setFacebookId(soapModel.getFacebookId());
-		model.setGoogleUserId(soapModel.getGoogleUserId());
-		model.setLdapServerId(soapModel.getLdapServerId());
-		model.setOpenId(soapModel.getOpenId());
-		model.setPortraitId(soapModel.getPortraitId());
-		model.setLanguageId(soapModel.getLanguageId());
-		model.setTimeZoneId(soapModel.getTimeZoneId());
-		model.setGreeting(soapModel.getGreeting());
-		model.setComments(soapModel.getComments());
-		model.setFirstName(soapModel.getFirstName());
-		model.setMiddleName(soapModel.getMiddleName());
-		model.setLastName(soapModel.getLastName());
-		model.setJobTitle(soapModel.getJobTitle());
-		model.setLoginDate(soapModel.getLoginDate());
-		model.setLoginIP(soapModel.getLoginIP());
-		model.setLastLoginDate(soapModel.getLastLoginDate());
-		model.setLastLoginIP(soapModel.getLastLoginIP());
-		model.setLastFailedLoginDate(soapModel.getLastFailedLoginDate());
-		model.setFailedLoginAttempts(soapModel.getFailedLoginAttempts());
-		model.setLockout(soapModel.isLockout());
-		model.setLockoutDate(soapModel.getLockoutDate());
-		model.setAgreedToTermsOfUse(soapModel.isAgreedToTermsOfUse());
-		model.setEmailAddressVerified(soapModel.isEmailAddressVerified());
-		model.setStatus(soapModel.getStatus());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<User> toModels(UserSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<User> models = new ArrayList<User>(soapModels.length);
-
-		for (UserSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final String MAPPING_TABLE_USERS_GROUPS_NAME = "Users_Groups";
 
 	public static final Object[][] MAPPING_TABLE_USERS_GROUPS_COLUMNS = {
@@ -520,33 +433,6 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, User>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			User.class.getClassLoader(), User.class, ModelWrapper.class);
-
-		try {
-			Constructor<User> constructor =
-				(Constructor<User>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<User, Object>>
@@ -1789,6 +1675,83 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 	}
 
 	@Override
+	public User cloneWithOriginalValues() {
+		UserImpl userImpl = new UserImpl();
+
+		userImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		userImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		userImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		userImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		userImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		userImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		userImpl.setCreateDate(this.<Date>getColumnOriginalValue("createDate"));
+		userImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		userImpl.setDefaultUser(
+			this.<Boolean>getColumnOriginalValue("defaultUser"));
+		userImpl.setContactId(this.<Long>getColumnOriginalValue("contactId"));
+		userImpl.setPassword(this.<String>getColumnOriginalValue("password_"));
+		userImpl.setPasswordEncrypted(
+			this.<Boolean>getColumnOriginalValue("passwordEncrypted"));
+		userImpl.setPasswordReset(
+			this.<Boolean>getColumnOriginalValue("passwordReset"));
+		userImpl.setPasswordModifiedDate(
+			this.<Date>getColumnOriginalValue("passwordModifiedDate"));
+		userImpl.setDigest(this.<String>getColumnOriginalValue("digest"));
+		userImpl.setReminderQueryQuestion(
+			this.<String>getColumnOriginalValue("reminderQueryQuestion"));
+		userImpl.setReminderQueryAnswer(
+			this.<String>getColumnOriginalValue("reminderQueryAnswer"));
+		userImpl.setGraceLoginCount(
+			this.<Integer>getColumnOriginalValue("graceLoginCount"));
+		userImpl.setScreenName(
+			this.<String>getColumnOriginalValue("screenName"));
+		userImpl.setEmailAddress(
+			this.<String>getColumnOriginalValue("emailAddress"));
+		userImpl.setFacebookId(this.<Long>getColumnOriginalValue("facebookId"));
+		userImpl.setGoogleUserId(
+			this.<String>getColumnOriginalValue("googleUserId"));
+		userImpl.setLdapServerId(
+			this.<Long>getColumnOriginalValue("ldapServerId"));
+		userImpl.setOpenId(this.<String>getColumnOriginalValue("openId"));
+		userImpl.setPortraitId(this.<Long>getColumnOriginalValue("portraitId"));
+		userImpl.setLanguageId(
+			this.<String>getColumnOriginalValue("languageId"));
+		userImpl.setTimeZoneId(
+			this.<String>getColumnOriginalValue("timeZoneId"));
+		userImpl.setGreeting(this.<String>getColumnOriginalValue("greeting"));
+		userImpl.setComments(this.<String>getColumnOriginalValue("comments"));
+		userImpl.setFirstName(this.<String>getColumnOriginalValue("firstName"));
+		userImpl.setMiddleName(
+			this.<String>getColumnOriginalValue("middleName"));
+		userImpl.setLastName(this.<String>getColumnOriginalValue("lastName"));
+		userImpl.setJobTitle(this.<String>getColumnOriginalValue("jobTitle"));
+		userImpl.setLoginDate(this.<Date>getColumnOriginalValue("loginDate"));
+		userImpl.setLoginIP(this.<String>getColumnOriginalValue("loginIP"));
+		userImpl.setLastLoginDate(
+			this.<Date>getColumnOriginalValue("lastLoginDate"));
+		userImpl.setLastLoginIP(
+			this.<String>getColumnOriginalValue("lastLoginIP"));
+		userImpl.setLastFailedLoginDate(
+			this.<Date>getColumnOriginalValue("lastFailedLoginDate"));
+		userImpl.setFailedLoginAttempts(
+			this.<Integer>getColumnOriginalValue("failedLoginAttempts"));
+		userImpl.setLockout(this.<Boolean>getColumnOriginalValue("lockout"));
+		userImpl.setLockoutDate(
+			this.<Date>getColumnOriginalValue("lockoutDate"));
+		userImpl.setAgreedToTermsOfUse(
+			this.<Boolean>getColumnOriginalValue("agreedToTermsOfUse"));
+		userImpl.setEmailAddressVerified(
+			this.<Boolean>getColumnOriginalValue("emailAddressVerified"));
+		userImpl.setStatus(this.<Integer>getColumnOriginalValue("status"));
+
+		return userImpl;
+	}
+
+	@Override
 	public int compareTo(User user) {
 		long primaryKey = user.getPrimaryKey();
 
@@ -2134,7 +2097,7 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -2144,9 +2107,26 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 			String attributeName = entry.getKey();
 			Function<User, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((User)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((User)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -2192,7 +2172,9 @@ public class UserModelImpl extends BaseModelImpl<User> implements UserModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, User>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					User.class, ModelWrapper.class);
 
 	}
 

@@ -13,29 +13,67 @@
  */
 
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 
-import Collapse from '../../../../../common/components/Collapse';
-import PageContent from './PageContent';
-import SearchContents from './SearchContents';
+import {CONTENT_TYPE_LABELS} from '../../../../../app/config/constants/contentTypeLabels';
+import ContentFilter from './ContentFilter';
+import ContentList from './ContentList';
 
 export default function PageContents({pageContents}) {
+	const [searchValue, setSearchValue] = useState('');
+	const [selectedType, setSelectedType] = useState(
+		CONTENT_TYPE_LABELS.allContent
+	);
+
+	const contentTypes = Object.keys(pageContents);
+
+	const sortedTypes = contentTypes.includes(CONTENT_TYPE_LABELS.collection)
+		? [
+				...[
+					CONTENT_TYPE_LABELS.allContent,
+					CONTENT_TYPE_LABELS.collection,
+				],
+				...contentTypes.filter(
+					(type) => type !== CONTENT_TYPE_LABELS.collection
+				),
+		  ]
+		: [CONTENT_TYPE_LABELS.allContent, ...contentTypes];
+
+	const filteredContents = useMemo(
+		() =>
+			searchValue
+				? Object.entries(pageContents).reduce(
+						(acc, [key, pageContent]) => {
+							const filteredContent = pageContent.filter(
+								(content) =>
+									content.title
+										.toLowerCase()
+										.indexOf(searchValue.toLowerCase()) !==
+									-1
+							);
+
+							return filteredContent.length
+								? {...acc, ...{[key]: filteredContent}}
+								: acc;
+						},
+						{}
+				  )
+				: pageContents,
+		[pageContents, searchValue]
+	);
+
 	return (
 		<>
-			<SearchContents />
-
-			{Object.keys(pageContents).map((type) => (
-				<Collapse key={type} label={type} open>
-					<ul className="list-unstyled mb-1">
-						{pageContents[type].map((pageContent, index) => (
-							<PageContent
-								key={`${pageContent.classPK}${index}`}
-								{...pageContent}
-							/>
-						))}
-					</ul>
-				</Collapse>
-			))}
+			<ContentFilter
+				contentTypes={sortedTypes}
+				onChangeInput={setSearchValue}
+				onChangeSelect={setSelectedType}
+				selectedType={selectedType}
+			/>
+			<ContentList
+				contents={filteredContents}
+				selectedType={selectedType}
+			/>
 		</>
 	);
 }

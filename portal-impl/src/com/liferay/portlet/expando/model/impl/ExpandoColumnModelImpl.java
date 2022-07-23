@@ -16,7 +16,6 @@ package com.liferay.portlet.expando.model.impl;
 
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnModel;
-import com.liferay.expando.kernel.model.ExpandoColumnSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.json.JSON;
@@ -25,19 +24,19 @@ import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -68,9 +67,9 @@ public class ExpandoColumnModelImpl
 	public static final Object[][] TABLE_COLUMNS = {
 		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"columnId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"tableId", Types.BIGINT}, {"name", Types.VARCHAR},
-		{"type_", Types.INTEGER}, {"defaultData", Types.CLOB},
-		{"typeSettings", Types.CLOB}
+		{"modifiedDate", Types.TIMESTAMP}, {"tableId", Types.BIGINT},
+		{"name", Types.VARCHAR}, {"type_", Types.INTEGER},
+		{"defaultData", Types.CLOB}, {"typeSettings", Types.CLOB}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -81,6 +80,7 @@ public class ExpandoColumnModelImpl
 		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("columnId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("tableId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("type_", Types.INTEGER);
@@ -89,7 +89,7 @@ public class ExpandoColumnModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ExpandoColumn (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,columnId LONG not null,companyId LONG,tableId LONG,name VARCHAR(75) null,type_ INTEGER,defaultData TEXT null,typeSettings TEXT null,primary key (columnId, ctCollectionId))";
+		"create table ExpandoColumn (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,columnId LONG not null,companyId LONG,modifiedDate DATE null,tableId LONG,name VARCHAR(75) null,type_ INTEGER,defaultData TEXT null,typeSettings TEXT null,primary key (columnId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table ExpandoColumn";
 
@@ -134,57 +134,6 @@ public class ExpandoColumnModelImpl
 	 */
 	@Deprecated
 	public static final long TABLEID_COLUMN_BITMASK = 2L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ExpandoColumn toModel(ExpandoColumnSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ExpandoColumn model = new ExpandoColumnImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setColumnId(soapModel.getColumnId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setTableId(soapModel.getTableId());
-		model.setName(soapModel.getName());
-		model.setType(soapModel.getType());
-		model.setDefaultData(soapModel.getDefaultData());
-		model.setTypeSettings(soapModel.getTypeSettings());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ExpandoColumn> toModels(ExpandoColumnSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ExpandoColumn> models = new ArrayList<ExpandoColumn>(
-			soapModels.length);
-
-		for (ExpandoColumnSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
@@ -275,34 +224,6 @@ public class ExpandoColumnModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, ExpandoColumn>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ExpandoColumn.class.getClassLoader(), ExpandoColumn.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ExpandoColumn> constructor =
-				(Constructor<ExpandoColumn>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<ExpandoColumn, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<ExpandoColumn, Object>>
@@ -332,6 +253,11 @@ public class ExpandoColumnModelImpl
 		attributeSetterBiConsumers.put(
 			"companyId",
 			(BiConsumer<ExpandoColumn, Long>)ExpandoColumn::setCompanyId);
+		attributeGetterFunctions.put(
+			"modifiedDate", ExpandoColumn::getModifiedDate);
+		attributeSetterBiConsumers.put(
+			"modifiedDate",
+			(BiConsumer<ExpandoColumn, Date>)ExpandoColumn::setModifiedDate);
 		attributeGetterFunctions.put("tableId", ExpandoColumn::getTableId);
 		attributeSetterBiConsumers.put(
 			"tableId",
@@ -417,6 +343,27 @@ public class ExpandoColumnModelImpl
 		}
 
 		_companyId = companyId;
+	}
+
+	@JSON
+	@Override
+	public Date getModifiedDate() {
+		return _modifiedDate;
+	}
+
+	public boolean hasSetModifiedDate() {
+		return _setModifiedDate;
+	}
+
+	@Override
+	public void setModifiedDate(Date modifiedDate) {
+		_setModifiedDate = true;
+
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_modifiedDate = modifiedDate;
 	}
 
 	@JSON
@@ -574,6 +521,7 @@ public class ExpandoColumnModelImpl
 		expandoColumnImpl.setCtCollectionId(getCtCollectionId());
 		expandoColumnImpl.setColumnId(getColumnId());
 		expandoColumnImpl.setCompanyId(getCompanyId());
+		expandoColumnImpl.setModifiedDate(getModifiedDate());
 		expandoColumnImpl.setTableId(getTableId());
 		expandoColumnImpl.setName(getName());
 		expandoColumnImpl.setType(getType());
@@ -581,6 +529,33 @@ public class ExpandoColumnModelImpl
 		expandoColumnImpl.setTypeSettings(getTypeSettings());
 
 		expandoColumnImpl.resetOriginalValues();
+
+		return expandoColumnImpl;
+	}
+
+	@Override
+	public ExpandoColumn cloneWithOriginalValues() {
+		ExpandoColumnImpl expandoColumnImpl = new ExpandoColumnImpl();
+
+		expandoColumnImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		expandoColumnImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		expandoColumnImpl.setColumnId(
+			this.<Long>getColumnOriginalValue("columnId"));
+		expandoColumnImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		expandoColumnImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		expandoColumnImpl.setTableId(
+			this.<Long>getColumnOriginalValue("tableId"));
+		expandoColumnImpl.setName(this.<String>getColumnOriginalValue("name"));
+		expandoColumnImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		expandoColumnImpl.setDefaultData(
+			this.<String>getColumnOriginalValue("defaultData"));
+		expandoColumnImpl.setTypeSettings(
+			this.<String>getColumnOriginalValue("typeSettings"));
 
 		return expandoColumnImpl;
 	}
@@ -647,6 +622,8 @@ public class ExpandoColumnModelImpl
 	public void resetOriginalValues() {
 		_columnOriginalValues = Collections.emptyMap();
 
+		_setModifiedDate = false;
+
 		_columnBitmask = 0;
 	}
 
@@ -662,6 +639,15 @@ public class ExpandoColumnModelImpl
 		expandoColumnCacheModel.columnId = getColumnId();
 
 		expandoColumnCacheModel.companyId = getCompanyId();
+
+		Date modifiedDate = getModifiedDate();
+
+		if (modifiedDate != null) {
+			expandoColumnCacheModel.modifiedDate = modifiedDate.getTime();
+		}
+		else {
+			expandoColumnCacheModel.modifiedDate = Long.MIN_VALUE;
+		}
 
 		expandoColumnCacheModel.tableId = getTableId();
 
@@ -700,7 +686,7 @@ public class ExpandoColumnModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -711,9 +697,26 @@ public class ExpandoColumnModelImpl
 			Function<ExpandoColumn, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ExpandoColumn)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ExpandoColumn)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -760,7 +763,9 @@ public class ExpandoColumnModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ExpandoColumn>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ExpandoColumn.class, ModelWrapper.class);
 
 	}
 
@@ -768,6 +773,8 @@ public class ExpandoColumnModelImpl
 	private long _ctCollectionId;
 	private long _columnId;
 	private long _companyId;
+	private Date _modifiedDate;
+	private boolean _setModifiedDate;
 	private long _tableId;
 	private String _name;
 	private int _type;
@@ -807,6 +814,7 @@ public class ExpandoColumnModelImpl
 		_columnOriginalValues.put("ctCollectionId", _ctCollectionId);
 		_columnOriginalValues.put("columnId", _columnId);
 		_columnOriginalValues.put("companyId", _companyId);
+		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("tableId", _tableId);
 		_columnOriginalValues.put("name", _name);
 		_columnOriginalValues.put("type_", _type);
@@ -843,15 +851,17 @@ public class ExpandoColumnModelImpl
 
 		columnBitmasks.put("companyId", 8L);
 
-		columnBitmasks.put("tableId", 16L);
+		columnBitmasks.put("modifiedDate", 16L);
 
-		columnBitmasks.put("name", 32L);
+		columnBitmasks.put("tableId", 32L);
 
-		columnBitmasks.put("type_", 64L);
+		columnBitmasks.put("name", 64L);
 
-		columnBitmasks.put("defaultData", 128L);
+		columnBitmasks.put("type_", 128L);
 
-		columnBitmasks.put("typeSettings", 256L);
+		columnBitmasks.put("defaultData", 256L);
+
+		columnBitmasks.put("typeSettings", 512L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

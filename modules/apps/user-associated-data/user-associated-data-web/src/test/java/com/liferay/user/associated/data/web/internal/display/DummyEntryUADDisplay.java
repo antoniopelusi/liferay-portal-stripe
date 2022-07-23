@@ -17,7 +17,7 @@ package com.liferay.user.associated.data.web.internal.display;
 /**
  * @author Drew Brokke
  */
-public class DummyEntryUADDisplay extends DummyUADDisplay<DummyEntry> {
+public class DummyEntryUADDisplay extends BaseDummyUADDisplay<DummyEntry> {
 
 	public DummyEntryUADDisplay(DummyService<DummyEntry> dummyEntryService) {
 		_dummyEntryService = dummyEntryService;

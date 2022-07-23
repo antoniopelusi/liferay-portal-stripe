@@ -176,7 +176,8 @@ public class BaseBatchEngineTaskExecutorTest {
 				blogPosting.getDatePublished());
 
 			_blogsEntryService.addEntry(
-				blogPosting.getHeadline(), blogPosting.getAlternativeHeadline(),
+				null, blogPosting.getHeadline(),
+				blogPosting.getAlternativeHeadline(),
 				blogPosting.getFriendlyUrlPath(), blogPosting.getDescription(),
 				blogPosting.getArticleBody(), localDateTime.getMonthValue() - 1,
 				localDateTime.getDayOfMonth(), localDateTime.getYear(),
@@ -427,7 +428,7 @@ public class BaseBatchEngineTaskExecutorTest {
 	protected BlogsEntryLocalService blogsEntryLocalService;
 
 	protected final DateFormat dateFormat = new SimpleDateFormat(
-		"yyyy-MM-dd'T'HH:mm:00.000Z");
+		"yyyy-MM-dd'T'HH:mm:00.000XXX");
 
 	@DeleteAfterTestRun
 	protected Group group;

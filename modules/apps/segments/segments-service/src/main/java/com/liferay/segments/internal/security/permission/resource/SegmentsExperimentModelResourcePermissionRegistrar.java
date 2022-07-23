@@ -23,13 +23,11 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionLogic;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.segments.constants.SegmentsConstants;
 import com.liferay.segments.constants.SegmentsPortletKeys;
 import com.liferay.segments.model.SegmentsExperiment;
 import com.liferay.segments.service.SegmentsExperimentLocalService;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -46,10 +44,6 @@ public class SegmentsExperimentModelResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", SegmentsExperiment.class.getName());
-
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<SegmentsExperiment>>)
 				(Class<?>)ModelResourcePermission.class,
@@ -61,7 +55,9 @@ public class SegmentsExperimentModelResourcePermissionRegistrar {
 				(modelResourcePermission, consumer) -> consumer.accept(
 					new StagedModelResourcePermissionLogic(
 						_stagingPermission))),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", SegmentsExperiment.class.getName()
+			).build());
 	}
 
 	@Deactivate

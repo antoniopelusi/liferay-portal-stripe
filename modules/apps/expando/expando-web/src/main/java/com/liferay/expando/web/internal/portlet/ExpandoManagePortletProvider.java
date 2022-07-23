@@ -50,7 +50,7 @@ public class ExpandoManagePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/view_attributes.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

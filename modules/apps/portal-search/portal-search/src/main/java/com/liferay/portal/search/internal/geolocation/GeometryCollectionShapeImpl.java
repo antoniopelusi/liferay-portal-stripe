@@ -29,7 +29,7 @@ import java.util.List;
  * @author André de Oliveira
  */
 public class GeometryCollectionShapeImpl
-	extends ShapeImpl implements GeometryCollectionShape {
+	extends BaseShapeImpl implements GeometryCollectionShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

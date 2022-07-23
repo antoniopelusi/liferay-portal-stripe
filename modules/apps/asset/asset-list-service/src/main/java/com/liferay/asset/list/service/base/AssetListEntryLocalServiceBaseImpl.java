@@ -17,10 +17,7 @@ package com.liferay.asset.list.service.base;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.asset.list.service.AssetListEntryLocalServiceUtil;
-import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelFinder;
-import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelPersistence;
 import com.liferay.asset.list.service.persistence.AssetListEntryPersistence;
-import com.liferay.asset.list.service.persistence.AssetListEntrySegmentsEntryRelPersistence;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
@@ -158,6 +155,13 @@ public abstract class AssetListEntryLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return assetListEntryPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -620,25 +624,5 @@ public abstract class AssetListEntryLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected AssetListEntryAssetEntryRelPersistence
-		assetListEntryAssetEntryRelPersistence;
-
-	@Reference
-	protected AssetListEntryAssetEntryRelFinder
-		assetListEntryAssetEntryRelFinder;
-
-	@Reference
-	protected AssetListEntrySegmentsEntryRelPersistence
-		assetListEntrySegmentsEntryRelPersistence;
 
 }

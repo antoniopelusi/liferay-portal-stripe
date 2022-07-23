@@ -17,11 +17,8 @@ package com.liferay.dynamic.data.mapping.service.base;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordServiceUtil;
-import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceFinder;
-import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstancePersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceRecordFinder;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceRecordPersistence;
-import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceRecordVersionPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -155,34 +152,5 @@ public abstract class DDMFormInstanceRecordServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected DDMFormInstancePersistence ddmFormInstancePersistence;
-
-	@Reference
-	protected DDMFormInstanceFinder ddmFormInstanceFinder;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-		workflowInstanceLinkLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryLocalService
-		assetEntryLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryService
-		assetEntryService;
-
-	@Reference
-	protected DDMFormInstanceRecordVersionPersistence
-		ddmFormInstanceRecordVersionPersistence;
 
 }

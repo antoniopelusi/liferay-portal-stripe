@@ -29,6 +29,10 @@ public class LayoutFriendlyURLLocalServiceWrapper
 	implements LayoutFriendlyURLLocalService,
 			   ServiceWrapper<LayoutFriendlyURLLocalService> {
 
+	public LayoutFriendlyURLLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutFriendlyURLLocalServiceWrapper(
 		LayoutFriendlyURLLocalService layoutFriendlyURLLocalService) {
 
@@ -165,6 +169,13 @@ public class LayoutFriendlyURLLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _layoutFriendlyURLLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutFriendlyURLLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

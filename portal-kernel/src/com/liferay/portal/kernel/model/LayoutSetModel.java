@@ -294,4 +294,7 @@ public interface LayoutSetModel
 	public void setLayoutSetPrototypeLinkEnabled(
 		boolean layoutSetPrototypeLinkEnabled);
 
+	@Override
+	public LayoutSet cloneWithOriginalValues();
+
 }

@@ -8,29 +8,39 @@
 	grid-column-gap: 15px;
 	max-height: 200px;
 	grid-template-areas:
-		'image info quantity price delete'
-		'errors errors errors errors errors';
-	grid-template-columns: min-content auto 90px minmax(min-content, 100px) min-content;
+		'info quantity price delete'
+		'errors errors errors errors';
+	grid-template-columns: auto 90px minmax(min-content, 100px) min-content;
 	overflow: hidden;
 	padding: 10px;
 	position: relative;
 	transition: height 0.2s ease-in, padding 0.1s ease-in;
+
+	&-anchor,
+	&-anchor:hover,
+	&-anchor:active,
+	&-anchor:focus {
+		align-items: center;
+		color: inherit;
+		display: flex;
+		grid-area: info;
+		text-decoration: inherit;
+	}
 
 	&-thumbnail {
 		align-self: flex-start;
 		background-position: center center;
 		background-size: cover;
 		border-radius: 4px;
-		grid-area: image;
 		height: 70px;
 		min-height: 70px;
 		min-width: 70px;
 		overflow: hidden;
+		position: relative;
 		width: 70px;
 	}
 
 	&-info {
-		grid-area: info;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;

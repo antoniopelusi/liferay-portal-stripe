@@ -61,26 +61,26 @@ public class XSLContentUtil {
 			URL xslURL)
 		throws Exception {
 
-		TransformerFactory transformerFactory = getTransformerFactory(
+		TransformerFactory transformerFactory = _getTransformerFactory(
 			xslContentConfiguration);
 
-		DocumentBuilder documentBuilder = getDocumentBuilder(
+		DocumentBuilder documentBuilder = _getDocumentBuilder(
 			xslContentConfiguration);
 
 		Transformer transformer = transformerFactory.newTransformer(
-			getXslSource(documentBuilder, xslURL));
+			_getXslSource(documentBuilder, xslURL));
 
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream();
 
 		transformer.transform(
-			getXmlSource(documentBuilder, xmlURL),
+			_getXmlSource(documentBuilder, xmlURL),
 			new StreamResult(unsyncByteArrayOutputStream));
 
 		return unsyncByteArrayOutputStream.toString();
 	}
 
-	protected static DocumentBuilder getDocumentBuilder(
+	private static DocumentBuilder _getDocumentBuilder(
 			XSLContentConfiguration xslContentConfiguration)
 		throws Exception {
 
@@ -102,7 +102,7 @@ public class XSLContentUtil {
 		return documentBuilderFactory.newDocumentBuilder();
 	}
 
-	protected static TransformerFactory getTransformerFactory(
+	private static TransformerFactory _getTransformerFactory(
 			XSLContentConfiguration xslContentConfiguration)
 		throws Exception {
 
@@ -116,7 +116,7 @@ public class XSLContentUtil {
 		return transformerFactory;
 	}
 
-	protected static Source getXmlSource(
+	private static Source _getXmlSource(
 			DocumentBuilder documentBuilder, URL xmlURL)
 		throws Exception {
 
@@ -128,7 +128,7 @@ public class XSLContentUtil {
 		return new DOMSource(xmlDocument);
 	}
 
-	protected static Source getXslSource(
+	private static Source _getXslSource(
 			DocumentBuilder documentBuilder, URL xslURL)
 		throws Exception {
 

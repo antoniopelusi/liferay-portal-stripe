@@ -31,7 +31,7 @@ dependencies {
 	compileInclude group: "com.beust", name: "jcommander", version: "1.48"
 	compileInclude group: "net.coobird", name: "thumbnailator", version: "0.4.8"
 
-	compileOnly group: "org.apache.ant", name: "ant", transitive: false, version: "1.10.9"
+	compileOnly group: "org.apache.ant", name: "ant", transitive: false, version: "1.10.11"
 	compileOnly group: "org.apache.maven", name: "maven-artifact", version: "3.2.5"
 	compileOnly group: "org.apache.maven", name: "maven-core", version: "3.2.5"
 	compileOnly group: "org.apache.maven", name: "maven-plugin-api", version: "3.2.5"
@@ -46,7 +46,7 @@ dependencies {
 	parentThemes project(":apps:frontend-theme:frontend-theme-unstyled")
 
 	testCompile group: "com.googlecode.json-simple", name: "json-simple", version: "1.1"
-	testCompile group: "com.liferay", name: "com.liferay.maven.executor", version: "1.0.1"
+	testCompile group: "com.liferay", name: "com.liferay.maven.executor", version: "1.0.2"
 	testCompile group: "org.apache.ant", name: "ant-testutil", version: "1.9.7"
 
 	testThemes project(":apps:frontend-theme:frontend-theme-admin")

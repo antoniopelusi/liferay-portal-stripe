@@ -56,10 +56,10 @@ public class CalendarResourceUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeCalendarResourceUserIds();
+		_upgradeCalendarResourceUserIds();
 	}
 
-	protected long getCompanyAdminUserId(Company company)
+	private long _getCompanyAdminUserId(Company company)
 		throws PortalException {
 
 		Role role = RoleLocalServiceUtil.getRole(
@@ -106,64 +106,61 @@ public class CalendarResourceUpgradeProcess extends UpgradeProcess {
 				company.getCompanyId());
 	}
 
-	protected void updateCalendarUserId(long calendarId, long userId)
+	private void _updateCalendarUserId(long calendarId, long userId)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update Calendar set userId = ? where calendarId = ?")) {
 
-			ps.setLong(1, userId);
-			ps.setLong(2, calendarId);
+			preparedStatement.setLong(1, userId);
+			preparedStatement.setLong(2, calendarId);
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
-	protected void updateCalendarUserIds(
+	private void _updateCalendarUserIds(
 			long groupClassNameId, long defaultUserId, long adminUserId)
 		throws SQLException {
 
-		StringBundler sb = new StringBundler(5);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select Calendar.calendarId from Calendar join ",
+					"CalendarResource on Calendar.calendarResourceId = ",
+					"CalendarResource.calendarResourceId where ",
+					"CalendarResource.classNameId = ? and ",
+					"CalendarResource.userId = ?"))) {
 
-		sb.append("select Calendar.calendarId from Calendar join ");
-		sb.append("CalendarResource on Calendar.calendarResourceId = ");
-		sb.append("CalendarResource.calendarResourceId where ");
-		sb.append("CalendarResource.classNameId = ? and ");
-		sb.append("CalendarResource.userId = ?");
+			preparedStatement.setLong(1, groupClassNameId);
+			preparedStatement.setLong(2, defaultUserId);
 
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					long calendarId = resultSet.getLong(1);
 
-			ps.setLong(1, groupClassNameId);
-			ps.setLong(2, defaultUserId);
-
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					long calendarId = rs.getLong(1);
-
-					updateCalendarUserId(calendarId, adminUserId);
+					_updateCalendarUserId(calendarId, adminUserId);
 				}
 			}
 		}
 	}
 
-	protected void upgradeCalendarResourceUserId(
+	private void _upgradeCalendarResourceUserId(
 			long groupClassNameId, long defaultUserId, long companyAdminUserId)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update CalendarResource set userId = ? where userId = ? and " +
 					"classNameId = ?")) {
 
-			ps.setLong(1, companyAdminUserId);
-			ps.setLong(2, defaultUserId);
-			ps.setLong(3, groupClassNameId);
+			preparedStatement.setLong(1, companyAdminUserId);
+			preparedStatement.setLong(2, defaultUserId);
+			preparedStatement.setLong(3, groupClassNameId);
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
-	protected void upgradeCalendarResourceUserIds() throws Exception {
+	private void _upgradeCalendarResourceUserIds() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			_companyLocalService.forEachCompany(
 				company -> {
@@ -171,12 +168,12 @@ public class CalendarResourceUpgradeProcess extends UpgradeProcess {
 						Group.class);
 					long defaultUserId = _userLocalService.getDefaultUserId(
 						company.getCompanyId());
-					long companyAdminUserId = getCompanyAdminUserId(company);
+					long companyAdminUserId = _getCompanyAdminUserId(company);
 
-					updateCalendarUserIds(
+					_updateCalendarUserIds(
 						classNameId, defaultUserId, companyAdminUserId);
 
-					upgradeCalendarResourceUserId(
+					_upgradeCalendarResourceUserId(
 						classNameId, defaultUserId, companyAdminUserId);
 				});
 		}

@@ -73,7 +73,7 @@ public class SearchRequestExecutorFixture {
 	}
 
 	public void setUp() {
-		FacetProcessor<?> facetProcessor = getFacetProcessor();
+		FacetProcessor<?> facetProcessor = _getFacetProcessor();
 
 		ElasticsearchQueryTranslatorFixture
 			elasticsearchQueryTranslatorFixture =
@@ -88,7 +88,7 @@ public class SearchRequestExecutorFixture {
 				new ElasticsearchSortFieldTranslatorFixture(
 					elasticsearchQueryTranslator);
 
-		_searchRequestExecutor = createSearchRequestExecutor(
+		_searchRequestExecutor = _createSearchRequestExecutor(
 			_elasticsearchClientResolver, elasticsearchQueryTranslator,
 			elasticsearchSortFieldTranslatorFixture.
 				getElasticsearchSortFieldTranslator(),
@@ -142,7 +142,7 @@ public class SearchRequestExecutorFixture {
 				setComplexQueryBuilderFactory(complexQueryBuilderFactory);
 
 				setFacetTranslator(
-					createFacetTranslator(
+					_createFacetTranslator(
 						facetProcessor, legacyElasticsearchQueryTranslator));
 
 				setFilterToQueryBuilderTranslator(
@@ -173,29 +173,17 @@ public class SearchRequestExecutorFixture {
 		};
 	}
 
-	protected static CountSearchRequestExecutor
-		createCountSearchRequestExecutor(
-			ElasticsearchClientResolver elasticsearchClientResolver,
-			CommonSearchSourceBuilderAssembler
-				commonSearchSourceBuilderAssembler,
-			StatsTranslator statsTranslator) {
+	protected void setElasticsearchClientResolver(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
 
-		return new CountSearchRequestExecutorImpl() {
-			{
-				setCommonSearchResponseAssembler(
-					new CommonSearchResponseAssemblerImpl() {
-						{
-							setStatsTranslator(statsTranslator);
-						}
-					});
-				setCommonSearchSourceBuilderAssembler(
-					commonSearchSourceBuilderAssembler);
-				setElasticsearchClientResolver(elasticsearchClientResolver);
-			}
-		};
+		_elasticsearchClientResolver = elasticsearchClientResolver;
 	}
 
-	protected static FacetTranslator createFacetTranslator(
+	protected void setFacetProcessor(FacetProcessor<?> facetProcessor) {
+		_facetProcessor = facetProcessor;
+	}
+
+	private static FacetTranslator _createFacetTranslator(
 		FacetProcessor<?> facetProcessor,
 		QueryTranslator<QueryBuilder> queryTranslator) {
 
@@ -216,8 +204,28 @@ public class SearchRequestExecutorFixture {
 		};
 	}
 
-	protected static MultisearchSearchRequestExecutor
-		createMultisearchSearchRequestExecutor(
+	private CountSearchRequestExecutor _createCountSearchRequestExecutor(
+		ElasticsearchClientResolver elasticsearchClientResolver,
+		CommonSearchSourceBuilderAssembler commonSearchSourceBuilderAssembler,
+		StatsTranslator statsTranslator) {
+
+		return new CountSearchRequestExecutorImpl() {
+			{
+				setCommonSearchResponseAssembler(
+					new CommonSearchResponseAssemblerImpl() {
+						{
+							setStatsTranslator(statsTranslator);
+						}
+					});
+				setCommonSearchSourceBuilderAssembler(
+					commonSearchSourceBuilderAssembler);
+				setElasticsearchClientResolver(elasticsearchClientResolver);
+			}
+		};
+	}
+
+	private MultisearchSearchRequestExecutor
+		_createMultisearchSearchRequestExecutor(
 			ElasticsearchClientResolver elasticsearchClientResolver,
 			SearchSearchRequestAssembler searchSearchRequestAssembler,
 			SearchSearchResponseAssembler searchSearchResponseAssembler) {
@@ -231,7 +239,7 @@ public class SearchRequestExecutorFixture {
 		};
 	}
 
-	protected static SearchRequestExecutor createSearchRequestExecutor(
+	private SearchRequestExecutor _createSearchRequestExecutor(
 		ElasticsearchClientResolver elasticsearchClientResolver,
 		ElasticsearchQueryTranslator elasticsearchQueryTranslator,
 		ElasticsearchSortFieldTranslator elasticsearchSortFieldTranslator,
@@ -245,46 +253,44 @@ public class SearchRequestExecutorFixture {
 				complexQueryBuilderFactory);
 
 		SearchSearchRequestAssembler searchSearchRequestAssembler =
-			createSearchSearchRequestAssembler(
+			_createSearchSearchRequestAssembler(
 				elasticsearchQueryTranslator, elasticsearchSortFieldTranslator,
 				commonSearchSourceBuilderAssembler, statsRequestBuilderFactory,
 				statsTranslator);
 
 		SearchSearchResponseAssembler searchSearchResponseAssembler =
-			createSearchSearchResponseAssembler(
+			_createSearchSearchResponseAssembler(
 				statsRequestBuilderFactory, statsTranslator);
 
 		return new ElasticsearchSearchRequestExecutor() {
 			{
 				setCountSearchRequestExecutor(
-					createCountSearchRequestExecutor(
+					_createCountSearchRequestExecutor(
 						elasticsearchClientResolver,
 						commonSearchSourceBuilderAssembler, statsTranslator));
 				setMultisearchSearchRequestExecutor(
-					createMultisearchSearchRequestExecutor(
+					_createMultisearchSearchRequestExecutor(
 						elasticsearchClientResolver,
 						searchSearchRequestAssembler,
 						searchSearchResponseAssembler));
 				setSearchSearchRequestExecutor(
-					createSearchSearchRequestExecutor(
+					_createSearchSearchRequestExecutor(
 						elasticsearchClientResolver,
 						searchSearchRequestAssembler,
 						searchSearchResponseAssembler));
 				setSuggestSearchRequestExecutor(
-					createSuggestSearchRequestExecutor(
+					_createSuggestSearchRequestExecutor(
 						elasticsearchClientResolver));
 			}
 		};
 	}
 
-	protected static SearchSearchRequestAssembler
-		createSearchSearchRequestAssembler(
-			ElasticsearchQueryTranslator elasticsearchQueryTranslator,
-			ElasticsearchSortFieldTranslator elasticsearchSortFieldTranslator,
-			CommonSearchSourceBuilderAssembler
-				commonSearchSourceBuilderAssembler,
-			StatsRequestBuilderFactory statsRequestBuilderFactory,
-			StatsTranslator statsTranslator) {
+	private SearchSearchRequestAssembler _createSearchSearchRequestAssembler(
+		ElasticsearchQueryTranslator elasticsearchQueryTranslator,
+		ElasticsearchSortFieldTranslator elasticsearchSortFieldTranslator,
+		CommonSearchSourceBuilderAssembler commonSearchSourceBuilderAssembler,
+		StatsRequestBuilderFactory statsRequestBuilderFactory,
+		StatsTranslator statsTranslator) {
 
 		return new SearchSearchRequestAssemblerImpl() {
 			{
@@ -302,11 +308,10 @@ public class SearchRequestExecutorFixture {
 		};
 	}
 
-	protected static SearchSearchRequestExecutor
-		createSearchSearchRequestExecutor(
-			ElasticsearchClientResolver elasticsearchClientResolver,
-			SearchSearchRequestAssembler searchSearchRequestAssembler,
-			SearchSearchResponseAssembler searchSearchResponseAssembler) {
+	private SearchSearchRequestExecutor _createSearchSearchRequestExecutor(
+		ElasticsearchClientResolver elasticsearchClientResolver,
+		SearchSearchRequestAssembler searchSearchRequestAssembler,
+		SearchSearchResponseAssembler searchSearchResponseAssembler) {
 
 		return new SearchSearchRequestExecutorImpl() {
 			{
@@ -317,10 +322,9 @@ public class SearchRequestExecutorFixture {
 		};
 	}
 
-	protected static SearchSearchResponseAssembler
-		createSearchSearchResponseAssembler(
-			StatsRequestBuilderFactory statsRequestBuilderFactory,
-			StatsTranslator statsTranslator) {
+	private SearchSearchResponseAssembler _createSearchSearchResponseAssembler(
+		StatsRequestBuilderFactory statsRequestBuilderFactory,
+		StatsTranslator statsTranslator) {
 
 		return new SearchSearchResponseAssemblerImpl() {
 			{
@@ -355,9 +359,8 @@ public class SearchRequestExecutorFixture {
 		};
 	}
 
-	protected static SuggestSearchRequestExecutor
-		createSuggestSearchRequestExecutor(
-			ElasticsearchClientResolver elasticsearchClientResolver) {
+	private SuggestSearchRequestExecutor _createSuggestSearchRequestExecutor(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new SuggestSearchRequestExecutorImpl() {
 			{
@@ -374,7 +377,7 @@ public class SearchRequestExecutorFixture {
 		};
 	}
 
-	protected FacetProcessor<?> getFacetProcessor() {
+	private FacetProcessor<?> _getFacetProcessor() {
 		if (_facetProcessor != null) {
 			return _facetProcessor;
 		}
@@ -392,16 +395,6 @@ public class SearchRequestExecutorFixture {
 						"class.name", NestedFacetImpl.class.getName()));
 			}
 		};
-	}
-
-	protected void setElasticsearchClientResolver(
-		ElasticsearchClientResolver elasticsearchClientResolver) {
-
-		_elasticsearchClientResolver = elasticsearchClientResolver;
-	}
-
-	protected void setFacetProcessor(FacetProcessor<?> facetProcessor) {
-		_facetProcessor = facetProcessor;
 	}
 
 	private ElasticsearchClientResolver _elasticsearchClientResolver;

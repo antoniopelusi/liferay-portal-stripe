@@ -93,19 +93,9 @@ public class RangeTermFilter extends BaseFilter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{(");
-		sb.append(_lowerBound);
-		sb.append(_lowerBoundOperator);
-		sb.append(_field);
-		sb.append(_upperBoundOperator);
-		sb.append(_upperBound);
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(", _lowerBound, _lowerBoundOperator, _field, _upperBoundOperator,
+			_upperBound, "), ", super.toString(), "}");
 	}
 
 	public enum Operator {

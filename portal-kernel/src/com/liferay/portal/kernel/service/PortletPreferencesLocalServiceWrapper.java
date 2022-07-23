@@ -29,6 +29,10 @@ public class PortletPreferencesLocalServiceWrapper
 	implements PortletPreferencesLocalService,
 			   ServiceWrapper<PortletPreferencesLocalService> {
 
+	public PortletPreferencesLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PortletPreferencesLocalServiceWrapper(
 		PortletPreferencesLocalService portletPreferencesLocalService) {
 
@@ -171,6 +175,13 @@ public class PortletPreferencesLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _portletPreferencesLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _portletPreferencesLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

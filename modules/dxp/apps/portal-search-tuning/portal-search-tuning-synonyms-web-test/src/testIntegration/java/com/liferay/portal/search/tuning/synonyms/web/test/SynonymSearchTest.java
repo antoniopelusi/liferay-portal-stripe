@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -243,16 +244,13 @@ public class SynonymSearchTest {
 	}
 
 	protected static Dictionary<String, Object> setUpSynonymsProperties() {
-		return new HashMapDictionary<String, Object>() {
-			{
-				put(
-					"filterNames",
-					new String[] {
-						"liferay_filter_synonym_en",
-						"liferay_filter_synonym_es", "custom-synonym-filter-fr"
-					});
+		return HashMapDictionaryBuilder.<String, Object>put(
+			"filterNames",
+			new String[] {
+				"liferay_filter_synonym_en", "liferay_filter_synonym_es",
+				"custom-synonym-filter-fr"
 			}
-		};
+		).build();
 	}
 
 	protected void doAssertSearch(

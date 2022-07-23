@@ -57,20 +57,12 @@ public class PersistenceNestedSetsTreeManager<T extends NestedSetsTreeNodeModel>
 		try {
 			session = _basePersistenceImpl.openSession();
 
-			StringBundler sb = new StringBundler(9);
-
-			sb.append("SELECT count(*) FROM ");
-			sb.append(_tableName);
-			sb.append(" WHERE ");
-			sb.append(_nestedSetsTreeNodeScopeIdName);
-			sb.append(" = ? AND ");
-			sb.append(_nestedSetsTreeNodeLeftName);
-			sb.append(" <= ? AND ");
-			sb.append(_nestedSetsTreeNodeRightName);
-			sb.append(" >= ?");
-
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
-				sb.toString());
+				StringBundler.concat(
+					"SELECT count(*) FROM ", _tableName, " WHERE ",
+					_nestedSetsTreeNodeScopeIdName, " = ? AND ",
+					_nestedSetsTreeNodeLeftName, " <= ? AND ",
+					_nestedSetsTreeNodeRightName, " >= ?"));
 
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
@@ -100,20 +92,12 @@ public class PersistenceNestedSetsTreeManager<T extends NestedSetsTreeNodeModel>
 		try {
 			session = _basePersistenceImpl.openSession();
 
-			StringBundler sb = new StringBundler(9);
-
-			sb.append("SELECT count(*) FROM ");
-			sb.append(_tableName);
-			sb.append(" WHERE ");
-			sb.append(_nestedSetsTreeNodeScopeIdName);
-			sb.append(" = ? AND ");
-			sb.append(_nestedSetsTreeNodeLeftName);
-			sb.append(" >= ? AND ");
-			sb.append(_nestedSetsTreeNodeRightName);
-			sb.append(" <= ?");
-
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
-				sb.toString());
+				StringBundler.concat(
+					"SELECT count(*) FROM ", _tableName, " WHERE ",
+					_nestedSetsTreeNodeScopeIdName, " = ? AND ",
+					_nestedSetsTreeNodeLeftName, " >= ? AND ",
+					_nestedSetsTreeNodeRightName, " <= ?"));
 
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
@@ -143,22 +127,12 @@ public class PersistenceNestedSetsTreeManager<T extends NestedSetsTreeNodeModel>
 		try {
 			session = _basePersistenceImpl.openSession();
 
-			StringBundler sb = new StringBundler(11);
-
-			sb.append("SELECT {");
-			sb.append(_entityName);
-			sb.append(".*} FROM ");
-			sb.append(_tableName);
-			sb.append(" WHERE ");
-			sb.append(_nestedSetsTreeNodeScopeIdName);
-			sb.append(" = ? AND ");
-			sb.append(_nestedSetsTreeNodeLeftName);
-			sb.append(" <= ? AND ");
-			sb.append(_nestedSetsTreeNodeRightName);
-			sb.append(" >= ?");
-
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
-				sb.toString());
+				StringBundler.concat(
+					"SELECT {", _entityName, ".*} FROM ", _tableName, " WHERE ",
+					_nestedSetsTreeNodeScopeIdName, " = ? AND ",
+					_nestedSetsTreeNodeLeftName, " <= ? AND ",
+					_nestedSetsTreeNodeRightName, " >= ?"));
 
 			sqlQuery.addEntity(_entityName, _entityImplClass);
 
@@ -190,22 +164,12 @@ public class PersistenceNestedSetsTreeManager<T extends NestedSetsTreeNodeModel>
 		try {
 			session = _basePersistenceImpl.openSession();
 
-			StringBundler sb = new StringBundler(11);
-
-			sb.append("SELECT {");
-			sb.append(_entityName);
-			sb.append(".*} FROM ");
-			sb.append(_tableName);
-			sb.append(" WHERE ");
-			sb.append(_nestedSetsTreeNodeScopeIdName);
-			sb.append(" = ? AND ");
-			sb.append(_nestedSetsTreeNodeLeftName);
-			sb.append(" >= ? AND ");
-			sb.append(_nestedSetsTreeNodeRightName);
-			sb.append(" <= ?");
-
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
-				sb.toString());
+				StringBundler.concat(
+					"SELECT {", _entityName, ".*} FROM ", _tableName, " WHERE ",
+					_nestedSetsTreeNodeScopeIdName, " = ? AND ",
+					_nestedSetsTreeNodeLeftName, " >= ? AND ",
+					_nestedSetsTreeNodeRightName, " <= ?"));
 
 			sqlQuery.addEntity(_entityName, _entityImplClass);
 
@@ -419,20 +383,12 @@ public class PersistenceNestedSetsTreeManager<T extends NestedSetsTreeNodeModel>
 		try {
 			session = _basePersistenceImpl.openSession();
 
-			StringBundler sb = new StringBundler(9);
-
-			sb.append("SELECT MAX(");
-			sb.append(_nestedSetsTreeNodeRightName);
-			sb.append(") AS maxNestedSetsTreeNodeRight FROM ");
-			sb.append(_tableName);
-			sb.append(" WHERE ");
-			sb.append(_nestedSetsTreeNodeScopeIdName);
-			sb.append(" = ? AND ");
-			sb.append(_nestedSetsTreeNodeRightName);
-			sb.append(" > 0");
-
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
-				sb.toString());
+				StringBundler.concat(
+					"SELECT MAX(", _nestedSetsTreeNodeRightName,
+					") AS maxNestedSetsTreeNodeRight FROM ", _tableName,
+					" WHERE ", _nestedSetsTreeNodeScopeIdName, " = ? AND ",
+					_nestedSetsTreeNodeRightName, " > 0"));
 
 			sqlQuery.addScalar("maxNestedSetsTreeNodeRight", Type.LONG);
 

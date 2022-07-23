@@ -14,9 +14,9 @@
 
 package com.liferay.portal.kernel.servlet.taglib.aui;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.Mergeable;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Brian Wing Shun Chan
@@ -205,16 +203,14 @@ public class ScriptData implements Mergeable<ScriptData>, Serializable {
 			for (TagInvocationData tagInvocationData :
 					portletData._es6TagInvocationDatas) {
 
+				List<String> variables = new ArrayList<>();
+
 				List<String> modules = tagInvocationData.getModules();
 
-				Stream<String> stream = modules.stream();
-
-				List<String> variables = stream.map(
-					module -> VariableUtil.generateVariable(
-						module, usedVariables)
-				).collect(
-					Collectors.toList()
-				);
+				for (String module : modules) {
+					variables.add(
+						VariableUtil.generateVariable(module, usedVariables));
+				}
 
 				es6Modules.addAll(modules);
 				es6Variables.addAll(variables);

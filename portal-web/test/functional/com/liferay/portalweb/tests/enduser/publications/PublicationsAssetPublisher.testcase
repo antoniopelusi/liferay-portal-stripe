@@ -1,0 +1,79 @@
+@component-name = "portal-publications"
+definition {
+
+	property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Publications";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONPublications.enablePublications();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Publications.disablePublications();
+		}
+	}
+
+	@priority = "4"
+	test ViewProductionWebContentInPublication {
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONWebcontent.addWebContent(
+			content = "Web Content Content",
+			groupName = "Site Name",
+			title = "Production WC");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Test Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Test Page Name",
+			widgetName = "Asset Publisher");
+
+		JSONPublications.addPublication(publicationName = "Publication Name");
+
+		JSONPublications.selectPublication(publicationName = "Publication Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Publication WC");
+
+		PortletEntry.publish();
+
+		Navigator.openSitePage(
+			pageName = "Test Page Name",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.viewDisplayOrderPG(
+			assetTitle = "Publication WC",
+			rowNumber = "1");
+
+		AssetPublisherPortlet.viewDisplayOrderPG(
+			assetTitle = "Production WC",
+			rowNumber = "2");
+
+		Publications.workOnProduction();
+
+		AssetPublisherPortlet.viewDisplayOrderPG(
+			assetTitle = "Production WC",
+			rowNumber = "1");
+	}
+
+}

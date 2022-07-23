@@ -2,36 +2,17 @@
 <head>
 <title>SiteMap</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">SiteMap</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>SITE_MAP_PAGE_DISPLAY</td>
-	<td>//div[contains(@id,'main-content')]//div[contains(@class,'portlet-content')]//a[contains(.,'${pageName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SITE_MAP_CHILD_PAGE_DISPLAY</td>
-	<td>//div[contains(@id,'main-content')]//div[contains(@class,'portlet-content')]//ul/li/a[contains(.,'${childPageName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<!--ADT_MULTI_COLUMN-->
-<tr>
-	<td>ADT_MULTI_COLUMN_PAGE_DISPLAY</td>
-	<td>//div[contains(@class,'col-md-3')]/div/h3[contains(.,'${pageName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADT_MULTI_COLUMN_CHILD_PAGE_DISPLAY</td>
-	<td>//div[contains(@class,'col-md-3')]/ul[@class='child-pages']/li[contains(.,'${childPageName}')]</td>
+	<td>//div[contains(@id,'main-content')]//div[contains(@class,'portlet-content')]//a[contains(.,'${key_pageName}')]</td>
 	<td></td>
 </tr>
 </tbody>

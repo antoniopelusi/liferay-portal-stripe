@@ -78,10 +78,22 @@ if (editorOptions != null) {
 	CKEDITOR.env.isCompatible = true;
 </script>
 
+<liferay-util:html-top>
+	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/css/main.css") %>" rel="stylesheet" type="text/css" />
+</liferay-util:html-top>
+
 <liferay-util:buffer
 	var="alloyEditor"
 >
-	<div class="alloy-editor alloy-editor-placeholder <%= HtmlUtil.escapeAttribute(cssClass) %>" contenteditable="false" data-placeholder="<%= LanguageUtil.get(request, placeholder) %>" data-required="<%= required %>" id="<%= HtmlUtil.escapeAttribute(name) %>" name="<%= HtmlUtil.escapeAttribute(name) %>"></div>
+	<div class="alloy-editor <%= HtmlUtil.escapeAttribute(cssClass) %>" contenteditable="false" data-placeholder="<%= LanguageUtil.get(request, placeholder) %>" data-required="<%= required %>" id="<%= HtmlUtil.escapeAttribute(name) %>" name="<%= HtmlUtil.escapeAttribute(name) %>"></div>
+
+	<div class="alloy-editor-placeholder <%= HtmlUtil.escapeAttribute(cssClass) %>">
+		<%= LanguageUtil.get(request, placeholder) %>
+
+		<c:if test="<%= Boolean.parseBoolean(required) %>">
+			<span class="text-warning">*</span>
+		</c:if>
+	</div>
 
 	<aui:icon cssClass="alloy-editor-icon" image="text-editor" markupView="lexicon" />
 </liferay-util:buffer>
@@ -260,11 +272,7 @@ name = HtmlUtil.escapeJS(name);
 			portletId: '<%= portletId %>',
 			textMode: <%= (editorOptions != null) ? editorOptions.isTextMode() : Boolean.FALSE.toString() %>,
 
-			<%
-			boolean useCustomDataProcessor = (editorOptionsDynamicAttributes != null) && GetterUtil.getBoolean(editorOptionsDynamicAttributes.get("useCustomDataProcessor"));
-			%>
-
-			useCustomDataProcessor: <%= useCustomDataProcessor %>,
+			useCustomDataProcessor: <%= (editorOptionsDynamicAttributes != null) && GetterUtil.getBoolean(editorOptionsDynamicAttributes.get("useCustomDataProcessor")) %>,
 		}).render();
 
 		CKEDITOR.dom.selection.prototype.selectElement = function (element) {

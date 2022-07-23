@@ -402,4 +402,7 @@ public interface CommerceInventoryWarehouseModel
 	 */
 	public void setType(String type);
 
+	@Override
+	public CommerceInventoryWarehouse cloneWithOriginalValues();
+
 }

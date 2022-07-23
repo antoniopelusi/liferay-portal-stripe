@@ -521,4 +521,7 @@ public interface BookmarksEntryModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public BookmarksEntry cloneWithOriginalValues();
+
 }

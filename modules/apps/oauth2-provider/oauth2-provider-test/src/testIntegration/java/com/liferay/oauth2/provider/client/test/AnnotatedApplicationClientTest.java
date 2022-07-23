@@ -21,7 +21,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
@@ -75,10 +75,12 @@ public class AnnotatedApplicationClientTest extends BaseClientTestCase {
 
 			User user = UserTestUtil.getAdminUser(defaultCompanyId);
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put("auth.verifier.guest.allowed", false);
-			properties.put("oauth2.scope.checker.type", "annotations");
+			Dictionary<String, Object> properties =
+				HashMapDictionaryBuilder.<String, Object>put(
+					"auth.verifier.guest.allowed", false
+				).put(
+					"oauth2.scope.checker.type", "annotations"
+				).build();
 
 			registerJaxRsApplication(
 				new TestInterfaceAnnotatedApplication(), "annotated-interface",

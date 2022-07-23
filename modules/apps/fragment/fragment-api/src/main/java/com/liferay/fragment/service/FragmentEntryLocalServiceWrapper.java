@@ -30,6 +30,10 @@ public class FragmentEntryLocalServiceWrapper
 	implements FragmentEntryLocalService,
 			   ServiceWrapper<FragmentEntryLocalService> {
 
+	public FragmentEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public FragmentEntryLocalServiceWrapper(
 		FragmentEntryLocalService fragmentEntryLocalService) {
 
@@ -54,44 +58,16 @@ public class FragmentEntryLocalServiceWrapper
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long userId, long groupId, long fragmentCollectionId,
-			String fragmentEntryKey, String name, long previewFileEntryId,
-			int type, int status,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _fragmentEntryLocalService.addFragmentEntry(
-			userId, groupId, fragmentCollectionId, fragmentEntryKey, name,
-			previewFileEntryId, type, status, serviceContext);
-	}
-
-	@Override
-	public FragmentEntry addFragmentEntry(
-			long userId, long groupId, long fragmentCollectionId,
 			String fragmentEntryKey, String name, String css, String html,
-			String js, boolean cacheable, String configuration,
+			String js, boolean cacheable, String configuration, String icon,
 			long previewFileEntryId, int type, int status,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _fragmentEntryLocalService.addFragmentEntry(
 			userId, groupId, fragmentCollectionId, fragmentEntryKey, name, css,
-			html, js, cacheable, configuration, previewFileEntryId, type,
+			html, js, cacheable, configuration, icon, previewFileEntryId, type,
 			status, serviceContext);
-	}
-
-	@Override
-	public FragmentEntry addFragmentEntry(
-			long userId, long groupId, long fragmentCollectionId,
-			String fragmentEntryKey, String name, String css, String html,
-			String js, String configuration, long previewFileEntryId, int type,
-			int status,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _fragmentEntryLocalService.addFragmentEntry(
-			userId, groupId, fragmentCollectionId, fragmentEntryKey, name, css,
-			html, js, configuration, previewFileEntryId, type, status,
-			serviceContext);
 	}
 
 	@Override
@@ -214,6 +190,13 @@ public class FragmentEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _fragmentEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _fragmentEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -645,21 +628,17 @@ public class FragmentEntryLocalServiceWrapper
 			cacheable, configuration, previewFileEntryId, status);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateFragmentEntry(long, long, long, String, String, String, String, boolean, String, long, int)}
-	 */
-	@Deprecated
 	@Override
 	public FragmentEntry updateFragmentEntry(
-			long userId, long fragmentEntryId, String name, String css,
-			String html, String js, boolean cacheable, String configuration,
-			long previewFileEntryId, int status)
+			long userId, long fragmentEntryId, long fragmentCollectionId,
+			String name, String css, String html, String js, boolean cacheable,
+			String configuration, String icon, long previewFileEntryId,
+			int status)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _fragmentEntryLocalService.updateFragmentEntry(
-			userId, fragmentEntryId, name, css, html, js, cacheable,
-			configuration, previewFileEntryId, status);
+			userId, fragmentEntryId, fragmentCollectionId, name, css, html, js,
+			cacheable, configuration, icon, previewFileEntryId, status);
 	}
 
 	@Override

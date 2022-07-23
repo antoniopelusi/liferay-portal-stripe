@@ -16,14 +16,46 @@
 
 <%@ include file="/dynamic_include/init.jsp" %>
 
-<script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=<%= clickToChatChatProviderAccountId %>">
-</script>
+<script>
+	(function () {
+		function loadZendeskScript() {
+			function setZendeskUserInfo() {
+				if ('<%= themeDisplay.isSignedIn() %>' === 'true') {
+					zE('webWidget', 'identify', {
+						email: '<%= user.getEmailAddress() %>',
+						name: '<%= user.getScreenName() %>',
+					});
+				}
+			}
 
-<c:if test="<%= themeDisplay.isSignedIn() %>">
-	<script>
-		zE('webWidget', 'identify', {
-			email: '<%= user.getEmailAddress() %>',
-			name: '<%= user.getScreenName() %>',
-		});
-	</script>
-</c:if>
+			if (!document.getElementById('ze-snippet')) {
+				var scriptElement = document.createElement('script');
+
+				scriptElement.setAttribute('id', 'ze-snippet');
+				scriptElement.setAttribute(
+					'src',
+					'https://static.zdassets.com/ekr/snippet.js?key=<%= clickToChatChatProviderAccountId %>'
+				);
+				scriptElement.setAttribute('type', 'text/javascript');
+				scriptElement.onload = function () {
+					setZendeskUserInfo();
+				};
+
+				var bodyElement = document.getElementsByTagName('body').item(0);
+
+				bodyElement.appendChild(scriptElement);
+			}
+			else {
+				setZendeskUserInfo();
+			}
+		}
+
+		window.onload = function () {
+			loadZendeskScript();
+		};
+
+		if (document.readyState === 'complete') {
+			loadZendeskScript();
+		}
+	})();
+</script>

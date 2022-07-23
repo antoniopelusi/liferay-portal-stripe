@@ -32,10 +32,6 @@ BackgroundTask backgroundTask = (BackgroundTask)row.getObject();
 		<%
 		FileEntry fileEntry = UADExportProcessUtil.getFileEntry(backgroundTask);
 
-		Map<String, Object> data = HashMapBuilder.<String, Object>put(
-			"senna-off", "true"
-		).build();
-
 		StringBundler sb = new StringBundler(5);
 
 		sb.append(LanguageUtil.get(request, "download"));
@@ -46,7 +42,9 @@ BackgroundTask backgroundTask = (BackgroundTask)row.getObject();
 		%>
 
 		<liferay-ui:icon
-			data="<%= data %>"
+			data='<%=
+				Collections.singletonMap("senna-off", "true")
+			%>'
 			label="<%= true %>"
 			markupView="lexicon"
 			message="<%= sb.toString() %>"
@@ -55,13 +53,8 @@ BackgroundTask backgroundTask = (BackgroundTask)row.getObject();
 		/>
 	</c:if>
 
-	<portlet:renderURL var="viewUADExportProcesses">
-		<portlet:param name="p_u_i_d" value="<%= String.valueOf(selectedUser.getUserId()) %>" />
-		<portlet:param name="mvcRenderCommandName" value="/user_associated_data/view_uad_export_processes" />
-	</portlet:renderURL>
-
 	<portlet:actionURL name="/user_associated_data/delete_uad_export_background_task" var="deleteBackgroundTaskURL">
-		<portlet:param name="redirect" value="<%= viewUADExportProcesses.toString() %>" />
+		<portlet:param name="redirect" value="<%= currentURL %>" />
 		<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
 	</portlet:actionURL>
 

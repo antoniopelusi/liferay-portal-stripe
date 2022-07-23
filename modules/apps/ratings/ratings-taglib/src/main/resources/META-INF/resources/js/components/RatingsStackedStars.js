@@ -38,9 +38,9 @@ export default function RatingsStackedStars({
 				title={averageScore.toFixed(1)}
 			>
 				<span className="inline-item inline-item-before">
-					{starScores.map(({label: score}, index, arr) => {
+					{starScores.map(({label: score}, index, array) => {
 						const previousScore =
-							arr[index - 1] && arr[index - 1].label;
+							array[index - 1] && array[index - 1].label;
 						let symbol = 'star-o';
 
 						if (averageScore >= score) {
@@ -59,6 +59,7 @@ export default function RatingsStackedStars({
 						);
 					})}
 				</span>
+
 				<span className="inline-item ratings-stars-average-text">
 					{!!totalEntries &&
 						` (${totalEntries} ${
@@ -67,6 +68,7 @@ export default function RatingsStackedStars({
 								: Liferay.Language.get('votes')
 						})`}
 				</span>
+
 				<span className="sr-only">{getSrAverageMessage()}</span>
 			</div>
 
@@ -101,6 +103,7 @@ export default function RatingsStackedStars({
 										type="radio"
 										value={value}
 									/>
+
 									<label
 										className={
 											full
@@ -113,10 +116,12 @@ export default function RatingsStackedStars({
 											className="ratings-stars-icon-full"
 											symbol="star"
 										/>
+
 										<ClayIcon
 											className="ratings-stars-icon-empty"
 											symbol="star-o"
 										/>
+
 										<span className="sr-only">
 											{Lang.sub(srMessage, [
 												label,

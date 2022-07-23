@@ -166,39 +166,8 @@ public abstract class SyncDLObjectServiceBaseImpl
 		classNameService;
 
 	@Reference
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupService groupService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.OrganizationLocalService
-		organizationLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.OrganizationService
-		organizationService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.RepositoryLocalService
-		repositoryLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.RepositoryService
-		repositoryService;
-
-	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService
 		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourcePermissionLocalService
-		resourcePermissionLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourcePermissionService
-		resourcePermissionService;
 
 	@Reference
 	protected com.liferay.portal.kernel.service.UserLocalService
@@ -206,47 +175,5 @@ public abstract class SyncDLObjectServiceBaseImpl
 
 	@Reference
 	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLAppLocalService
-		dlAppLocalService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLAppService
-		dlAppService;
-
-	@Reference
-	protected
-		com.liferay.document.library.kernel.service.DLFileEntryLocalService
-			dlFileEntryLocalService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLFileEntryService
-		dlFileEntryService;
-
-	@Reference
-	protected
-		com.liferay.document.library.kernel.service.DLFileVersionLocalService
-			dlFileVersionLocalService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLFileVersionService
-		dlFileVersionService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLFolderLocalService
-		dlFolderLocalService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLFolderService
-		dlFolderService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLTrashLocalService
-		dlTrashLocalService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLTrashService
-		dlTrashService;
 
 }

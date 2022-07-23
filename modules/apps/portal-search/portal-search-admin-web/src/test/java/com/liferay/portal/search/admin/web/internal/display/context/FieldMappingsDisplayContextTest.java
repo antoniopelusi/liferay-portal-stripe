@@ -15,12 +15,11 @@
 package com.liferay.portal.search.admin.web.internal.display.context;
 
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.search.admin.web.internal.display.context.builder.FieldMappingsDisplayContextBuilder;
 import com.liferay.portal.search.index.IndexInformation;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.util.HttpImpl;
 
 import java.util.List;
 
@@ -45,22 +44,22 @@ public class FieldMappingsDisplayContextTest {
 
 	@Before
 	public void setUp() {
-		setUpHttpUtil();
 		setUpIndexInformation();
 		setUpPortalUtil();
 	}
 
 	@Test
 	public void testGetIndexes() {
-		FieldMappingsDisplayBuilder fieldMappingsDisplayBuilder =
-			new FieldMappingsDisplayBuilder(http);
+		FieldMappingsDisplayContextBuilder fieldMappingsDisplayContextBuilder =
+			new FieldMappingsDisplayContextBuilder();
 
-		fieldMappingsDisplayBuilder.setCurrentURL("/");
-		fieldMappingsDisplayBuilder.setIndexInformation(indexInformation);
-		fieldMappingsDisplayBuilder.setNamespace("_namespace_");
+		fieldMappingsDisplayContextBuilder.setCurrentURL("/");
+		fieldMappingsDisplayContextBuilder.setIndexInformation(
+			indexInformation);
+		fieldMappingsDisplayContextBuilder.setNamespace("_namespace_");
 
 		FieldMappingsDisplayContext fieldMappingsDisplayContext =
-			fieldMappingsDisplayBuilder.build();
+			fieldMappingsDisplayContextBuilder.build();
 
 		List<FieldMappingIndexDisplayContext> fieldMappingIndexDisplayContexts =
 			fieldMappingsDisplayContext.getFieldMappingIndexDisplayContexts();
@@ -97,16 +96,17 @@ public class FieldMappingsDisplayContextTest {
 
 	@Test
 	public void testGetSelectedIndexName() {
-		FieldMappingsDisplayBuilder fieldMappingsDisplayBuilder =
-			new FieldMappingsDisplayBuilder(http);
+		FieldMappingsDisplayContextBuilder fieldMappingsDisplayContextBuilder =
+			new FieldMappingsDisplayContextBuilder();
 
-		fieldMappingsDisplayBuilder.setCurrentURL("/");
-		fieldMappingsDisplayBuilder.setIndexInformation(indexInformation);
-		fieldMappingsDisplayBuilder.setNamespace("_namespace_");
-		fieldMappingsDisplayBuilder.setSelectedIndexName("index2");
+		fieldMappingsDisplayContextBuilder.setCurrentURL("/");
+		fieldMappingsDisplayContextBuilder.setIndexInformation(
+			indexInformation);
+		fieldMappingsDisplayContextBuilder.setNamespace("_namespace_");
+		fieldMappingsDisplayContextBuilder.setSelectedIndexName("index2");
 
 		FieldMappingsDisplayContext fieldMappingsDisplayContext =
-			fieldMappingsDisplayBuilder.build();
+			fieldMappingsDisplayContextBuilder.build();
 
 		Assert.assertEquals(
 			"index2", fieldMappingsDisplayContext.getSelectedIndexName());
@@ -136,16 +136,17 @@ public class FieldMappingsDisplayContextTest {
 
 	@Test
 	public void testGetSelectedIndexNameDefaultCompany() {
-		FieldMappingsDisplayBuilder fieldMappingsDisplayBuilder =
-			new FieldMappingsDisplayBuilder(http);
+		FieldMappingsDisplayContextBuilder fieldMappingsDisplayContextBuilder =
+			new FieldMappingsDisplayContextBuilder();
 
-		fieldMappingsDisplayBuilder.setCompanyId(2);
-		fieldMappingsDisplayBuilder.setCurrentURL("/");
-		fieldMappingsDisplayBuilder.setIndexInformation(indexInformation);
-		fieldMappingsDisplayBuilder.setNamespace("_namespace_");
+		fieldMappingsDisplayContextBuilder.setCompanyId(2);
+		fieldMappingsDisplayContextBuilder.setCurrentURL("/");
+		fieldMappingsDisplayContextBuilder.setIndexInformation(
+			indexInformation);
+		fieldMappingsDisplayContextBuilder.setNamespace("_namespace_");
 
 		FieldMappingsDisplayContext fieldMappingsDisplayContext =
-			fieldMappingsDisplayBuilder.build();
+			fieldMappingsDisplayContextBuilder.build();
 
 		Assert.assertEquals(
 			"index2", fieldMappingsDisplayContext.getSelectedIndexName());
@@ -175,15 +176,16 @@ public class FieldMappingsDisplayContextTest {
 
 	@Test
 	public void testGetSelectedIndexNameDefaultFirst() {
-		FieldMappingsDisplayBuilder fieldMappingsDisplayBuilder =
-			new FieldMappingsDisplayBuilder(http);
+		FieldMappingsDisplayContextBuilder fieldMappingsDisplayContextBuilder =
+			new FieldMappingsDisplayContextBuilder();
 
-		fieldMappingsDisplayBuilder.setCurrentURL("/");
-		fieldMappingsDisplayBuilder.setIndexInformation(indexInformation);
-		fieldMappingsDisplayBuilder.setNamespace("_namespace_");
+		fieldMappingsDisplayContextBuilder.setCurrentURL("/");
+		fieldMappingsDisplayContextBuilder.setIndexInformation(
+			indexInformation);
+		fieldMappingsDisplayContextBuilder.setNamespace("_namespace_");
 
 		FieldMappingsDisplayContext fieldMappingsDisplayContext =
-			fieldMappingsDisplayBuilder.build();
+			fieldMappingsDisplayContextBuilder.build();
 
 		Assert.assertEquals(
 			"index1", fieldMappingsDisplayContext.getSelectedIndexName());
@@ -209,10 +211,6 @@ public class FieldMappingsDisplayContextTest {
 		Assert.assertEquals(
 			"index2", fieldMappingIndexDisplayContext.getName());
 		Assert.assertEquals("", fieldMappingIndexDisplayContext.getCssClass());
-	}
-
-	protected void setUpHttpUtil() {
-		http = new HttpImpl();
 	}
 
 	protected void setUpIndexInformation() {
@@ -249,7 +247,6 @@ public class FieldMappingsDisplayContextTest {
 		portalUtil.setPortal(_portal);
 	}
 
-	protected Http http;
 	protected IndexInformation indexInformation;
 
 	private Portal _portal;

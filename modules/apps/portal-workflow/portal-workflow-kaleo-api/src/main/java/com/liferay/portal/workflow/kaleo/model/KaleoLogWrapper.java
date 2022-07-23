@@ -287,6 +287,11 @@ public class KaleoLogWrapper
 		}
 	}
 
+	@Override
+	public KaleoLog cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the comment of this kaleo log.
 	 *

@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConnectionConfiguration;
-import com.liferay.portal.search.elasticsearch7.internal.ElasticsearchSearchEngine;
 import com.liferay.portal.search.elasticsearch7.internal.configuration.ElasticsearchConfigurationWrapper;
 import com.liferay.portal.search.elasticsearch7.internal.configuration.OperationModeResolver;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchConnection;
@@ -38,7 +37,6 @@ import com.liferay.portal.search.engine.NodeInformationBuilder;
 import com.liferay.portal.search.engine.NodeInformationBuilderFactory;
 import com.liferay.portal.search.engine.SearchEngineInformation;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
-import com.liferay.portal.search.engine.adapter.cluster.ClusterHealthStatus;
 import com.liferay.portal.search.engine.adapter.cluster.HealthClusterRequest;
 import com.liferay.portal.search.engine.adapter.cluster.HealthClusterResponse;
 
@@ -83,7 +81,7 @@ public class ElasticsearchSearchEngineInformation
 		ElasticsearchConnection elasticsearchConnection =
 			elasticsearchConnectionManager.getElasticsearchConnection();
 
-		addMainConnection(elasticsearchConnection, connectionInformationList);
+		_addMainConnection(elasticsearchConnection, connectionInformationList);
 
 		String filterString = String.format(
 			"(&(service.factoryPid=%s)(active=%s)",
@@ -109,7 +107,7 @@ public class ElasticsearchSearchEngineInformation
 			!elasticsearchConnection.equals(
 				localClusterElasticsearchConnection)) {
 
-			addCCRConnection(
+			_addCCRConnection(
 				localClusterElasticsearchConnection, connectionInformationList);
 
 			filterString = filterString.concat(
@@ -121,7 +119,7 @@ public class ElasticsearchSearchEngineInformation
 		filterString = filterString.concat(")");
 
 		try {
-			addActiveConnections(filterString, connectionInformationList);
+			_addActiveConnections(filterString, connectionInformationList);
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -135,33 +133,21 @@ public class ElasticsearchSearchEngineInformation
 	@Override
 	public String getNodesString() {
 		try {
-			String clusterNodesString = getClusterNodesString(
+			String clusterNodesString = _getClusterNodesString(
 				elasticsearchConnectionManager.getRestHighLevelClient());
 
 			if (operationModeResolver.isProductionModeEnabled() &&
 				elasticsearchConnectionManager.
 					isCrossClusterReplicationEnabled()) {
 
-				String localClusterNodesString = getClusterNodesString(
+				String localClusterNodesString = _getClusterNodesString(
 					elasticsearchConnectionManager.getRestHighLevelClient(
 						null, true));
 
 				if (!Validator.isBlank(localClusterNodesString)) {
-					StringBundler sb = new StringBundler(11);
-
-					sb.append("Remote Cluster");
-					sb.append(StringPool.SPACE);
-					sb.append(StringPool.EQUAL);
-					sb.append(StringPool.SPACE);
-					sb.append(clusterNodesString);
-					sb.append(StringPool.COMMA_AND_SPACE);
-					sb.append("Local Cluster");
-					sb.append(StringPool.SPACE);
-					sb.append(StringPool.EQUAL);
-					sb.append(StringPool.SPACE);
-					sb.append(localClusterNodesString);
-
-					clusterNodesString = sb.toString();
+					clusterNodesString = StringBundler.concat(
+						"Remote Cluster = ", clusterNodesString,
+						", Local Cluster = ", localClusterNodesString);
 				}
 			}
 
@@ -174,24 +160,39 @@ public class ElasticsearchSearchEngineInformation
 
 	@Override
 	public String getVendorString() {
-		String vendor = elasticsearchSearchEngine.getVendor();
+		String vendor = "Elasticsearch";
 
 		if (operationModeResolver.isDevelopmentModeEnabled()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(vendor);
-			sb.append(StringPool.SPACE);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append("Sidecar");
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			return sb.toString();
+			return vendor + " (Sidecar)";
 		}
 
 		return vendor;
 	}
 
-	protected void addActiveConnections(
+	@Reference
+	protected ConfigurationAdmin configurationAdmin;
+
+	@Reference
+	protected ConnectionInformationBuilderFactory
+		connectionInformationBuilderFactory;
+
+	@Reference
+	protected volatile ElasticsearchConfigurationWrapper
+		elasticsearchConfigurationWrapper;
+
+	@Reference
+	protected ElasticsearchConnectionManager elasticsearchConnectionManager;
+
+	@Reference
+	protected NodeInformationBuilderFactory nodeInformationBuilderFactory;
+
+	@Reference
+	protected OperationModeResolver operationModeResolver;
+
+	@Reference
+	protected SearchEngineAdapter searchEngineAdapter;
+
+	private void _addActiveConnections(
 			String filterString,
 			List<ConnectionInformation> connectionInformationList)
 		throws Exception {
@@ -209,22 +210,22 @@ public class ElasticsearchSearchEngineInformation
 
 			String connectionId = (String)properties.get("connectionId");
 
-			addConnectionInformation(
+			_addConnectionInformation(
 				elasticsearchConnectionManager.getElasticsearchConnection(
 					connectionId),
 				connectionInformationList, null);
 		}
 	}
 
-	protected void addCCRConnection(
+	private void _addCCRConnection(
 		ElasticsearchConnection elasticsearchConnection,
 		List<ConnectionInformation> connectionInformationList) {
 
-		addConnectionInformation(
+		_addConnectionInformation(
 			elasticsearchConnection, connectionInformationList, "read");
 	}
 
-	protected void addConnectionInformation(
+	private void _addConnectionInformation(
 		ElasticsearchConnection elasticsearchConnection,
 		List<ConnectionInformation> connectionInformationList,
 		String... labels) {
@@ -273,7 +274,7 @@ public class ElasticsearchSearchEngineInformation
 		connectionInformationList.add(connectionInformationBuilder.build());
 	}
 
-	protected void addMainConnection(
+	private void _addMainConnection(
 		ElasticsearchConnection elasticsearchConnection,
 		List<ConnectionInformation> connectionInformationList) {
 
@@ -288,11 +289,11 @@ public class ElasticsearchSearchEngineInformation
 			labels = new String[] {"write"};
 		}
 
-		addConnectionInformation(
+		_addConnectionInformation(
 			elasticsearchConnection, connectionInformationList, labels);
 	}
 
-	protected String getClusterNodesString(
+	private String _getClusterNodesString(
 		RestHighLevelClient restHighLevelClient) {
 
 		try {
@@ -317,76 +318,27 @@ public class ElasticsearchSearchEngineInformation
 
 			Stream<NodeInformation> stream = nodeInformations.stream();
 
-			String nodesString = stream.map(
-				nodeInfo -> {
-					StringBundler sb = new StringBundler(5);
-
-					sb.append(nodeInfo.getName());
-					sb.append(StringPool.SPACE);
-					sb.append(StringPool.OPEN_PARENTHESIS);
-					sb.append(nodeInfo.getVersion());
-					sb.append(StringPool.CLOSE_PARENTHESIS);
-
-					return sb.toString();
-				}
-			).collect(
-				Collectors.joining(StringPool.COMMA_AND_SPACE)
-			);
-
-			StringBundler sb = new StringBundler(6);
-
-			sb.append(clusterName);
-			sb.append(StringPool.COLON);
-			sb.append(StringPool.SPACE);
-			sb.append(StringPool.OPEN_BRACKET);
-			sb.append(nodesString);
-			sb.append(StringPool.CLOSE_BRACKET);
-
-			return sb.toString();
+			return StringBundler.concat(
+				clusterName, StringPool.COLON, StringPool.SPACE,
+				StringPool.OPEN_BRACKET,
+				stream.map(
+					nodeInfo -> StringBundler.concat(
+						nodeInfo.getName(), StringPool.SPACE,
+						StringPool.OPEN_PARENTHESIS, nodeInfo.getVersion(),
+						StringPool.CLOSE_PARENTHESIS)
+				).collect(
+					Collectors.joining(StringPool.COMMA_AND_SPACE)
+				),
+				StringPool.CLOSE_BRACKET);
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn("Unable to get node information", exception);
 			}
 
-			StringBundler sb = new StringBundler(6);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append("Error");
-			sb.append(StringPool.COLON);
-			sb.append(StringPool.SPACE);
-			sb.append(exception.toString());
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			return sb.toString();
+			return StringBundler.concat("(Error: ", exception.toString(), ")");
 		}
 	}
-
-	@Reference
-	protected ConfigurationAdmin configurationAdmin;
-
-	@Reference
-	protected ConnectionInformationBuilderFactory
-		connectionInformationBuilderFactory;
-
-	@Reference
-	protected volatile ElasticsearchConfigurationWrapper
-		elasticsearchConfigurationWrapper;
-
-	@Reference
-	protected ElasticsearchConnectionManager elasticsearchConnectionManager;
-
-	@Reference
-	protected ElasticsearchSearchEngine elasticsearchSearchEngine;
-
-	@Reference
-	protected NodeInformationBuilderFactory nodeInformationBuilderFactory;
-
-	@Reference
-	protected OperationModeResolver operationModeResolver;
-
-	@Reference
-	protected SearchEngineAdapter searchEngineAdapter;
 
 	private void _setClusterAndNodeInformation(
 			ConnectionInformationBuilder connectionInformationBuilder,
@@ -448,10 +400,8 @@ public class ElasticsearchSearchEngineInformation
 		HealthClusterResponse healthClusterResponse =
 			searchEngineAdapter.execute(healthClusterRequest);
 
-		ClusterHealthStatus clusterHealthStatus =
-			healthClusterResponse.getClusterHealthStatus();
-
-		connectionInformationBuilder.health(clusterHealthStatus.toString());
+		connectionInformationBuilder.health(
+			String.valueOf(healthClusterResponse.getClusterHealthStatus()));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

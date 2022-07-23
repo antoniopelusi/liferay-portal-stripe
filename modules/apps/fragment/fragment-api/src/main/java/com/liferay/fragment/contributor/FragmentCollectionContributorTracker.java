@@ -14,6 +14,7 @@
 
 package com.liferay.fragment.contributor;
 
+import com.liferay.fragment.model.FragmentComposition;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 
@@ -32,14 +33,11 @@ public interface FragmentCollectionContributorTracker {
 	public FragmentCollectionContributor getFragmentCollectionContributor(
 		String fragmentCollectionKey);
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by #getFragmentEntries
-	 */
-	@Deprecated
-	public Map<String, FragmentEntry> getFragmentCollectionContributorEntries();
-
 	public List<FragmentCollectionContributor>
 		getFragmentCollectionContributors();
+
+	public FragmentComposition getFragmentComposition(
+		String fragmentCompositionKey);
 
 	public Map<String, FragmentEntry> getFragmentEntries();
 

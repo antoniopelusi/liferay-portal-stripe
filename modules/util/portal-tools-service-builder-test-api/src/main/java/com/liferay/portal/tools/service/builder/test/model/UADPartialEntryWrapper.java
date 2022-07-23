@@ -76,6 +76,11 @@ public class UADPartialEntryWrapper
 		}
 	}
 
+	@Override
+	public UADPartialEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the message of this uad partial entry.
 	 *

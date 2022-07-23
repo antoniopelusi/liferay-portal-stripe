@@ -1,0 +1,430 @@
+@component-name = "portal-workflow-ee"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.run.environment = "EE";
+	property testray.main.component.name = "Workflow Metrics";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		User.firstLoginPG();
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "LPS-88573 - Verify that the search can be done by similar words, not having 100% match needs of the string"
+	@priority = "4"
+	test CanSearchBySimilarWords {
+		WorkflowMetricsProcessListView.metricsWorkflowSearch(workflowSearchName = "Single Ap");
+
+		WorkflowMetrics.assertWorkflowProcessPresent(workflowProcessName = "Single Approver");
+	}
+
+	@description = "LPS-88573 - Verify that the Clear All option cleans the search results"
+	@priority = "3"
+	test ClearAllSearchResults {
+		WorkflowMetricsProcessListView.metricsWorkflowSearchClearAll(workflowSearchName = "Test");
+	}
+
+	@description = "LPS-88573 - Verify that the specific empty state is displayed when there are no metrics available"
+	@ignore = "Test Stub"
+	@priority = "2"
+	test DisplayEmptyStateWhenNoProcessAvailable {
+
+		// TODO LRQA-67516 DisplayEmptyStateWhenNoProcessAvailable pending implementation
+
+	}
+
+	@description = "LPS-86638 - Verify that the pagination button indicates the selected page, even when there is only 1 page"
+	@priority = "3"
+	test PaginationButtonIndicatesSelectedPage {
+		property test.name.skip.portal.instance = "WorkflowMetricsProcessListView#PaginationButtonIndicatesSelectedPage";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 1");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 2");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 3");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+
+		WorkflowMetricsProcessListView.assertPaginationComponentPresent(pageNumberList = "1");
+	}
+
+	@description = "LPS-86638 - Verify that pagination follows in asc/desc sequence"
+	@priority = "3"
+	test PaginationFollowsAscDescSequence {
+		property test.name.skip.portal.instance = "WorkflowMetricsProcessListView#PaginationFollowsAscDescSequence";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 1");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 2");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 3");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+
+		WorkflowMetricsProcessListView.changePagination(itemsPerPage = "4 Entries");
+
+		WorkflowMetricsProcessListView.assertPaginationComponentPresent(pageNumberList = "1");
+
+		WorkflowMetricsProcessListView.assertPaginationComponentPresent(pageNumberList = "2");
+
+		WorkflowMetricsProcessListView.viewResults(results = "Showing 1 to 4 of 5 entries.");
+	}
+
+	@description = "LPS-86638 - Verify that the pagination component is displayed when the table has 5 items or more"
+	@priority = "3"
+	test PaginationIsDisplayedWhenTableHas5Items {
+		property test.name.skip.portal.instance = "WorkflowMetricsProcessListView#PaginationIsDisplayedWhenTableHas5Items";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 1");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 2");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 3");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 4");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		Workflow.addNewDefinition(workflowDefinitionTitle = "New Workflow 5");
+
+		ProcessBuilderKaleoDesignerReact.addConnector(
+			connectorIn = "end",
+			connectorLabel = "Start-End Connector",
+			connectorOut = "start",
+			key_direction = "right");
+
+		PortletEntry.publish();
+
+		Navigator.gotoBack();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+
+		WorkflowMetricsProcessListView.assertPaginationBar();
+	}
+
+	@description = "LPS-88573 - Verify that once an order option is made by the user, this definition should be saved by the system during the user stay in the Metrics context, even when the user makes a search query, reloads the page"
+	@priority = "3"
+	test SavedOrderOptionStaysInMetricsContext {
+		property test.name.skip.portal.instance = "WorkflowMetricsProcessListView#SavedOrderOptionStaysInMetricsContext";
+
+		Workflow.duplicateSingleApproverWorkflow(workflowName = "Single Approver A");
+
+		Workflow.duplicateSingleApproverWorkflow(workflowName = "Single Approver B");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry A");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry B");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+
+		Click(
+			key_value = "down",
+			locator1 = "WorkflowMetricsProcessListView#ANY_ARROW_ORDER");
+
+		Refresh();
+
+		Type(
+			locator1 = "WorkflowMetricsProcessListView#SEARCH_BAR_INPUT",
+			value1 = "Single Approver B");
+
+		Click(locator1 = "WorkflowMetricsProcessListView#SEARCH_BUTTON");
+
+		Click(locator1 = "WorkflowMetricsProcessListView#CLEAR_SEARCH");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+
+		Click(
+			key_assigneeName = "Total Pending",
+			locator1 = "WorkflowMetrics#METRICS_WORKLOAD_BY_ASSIGNEE_NAME_TABLE");
+
+		WaitForElementPresent(
+			key_value = "down",
+			locator1 = "WorkflowMetricsProcessListView#ANY_ARROW_ORDER");
+
+		Refresh();
+
+		WaitForElementPresent(
+			key_value = "down",
+			locator1 = "WorkflowMetricsProcessListView#ANY_ARROW_ORDER");
+
+		Type(
+			locator1 = "WorkflowMetricsProcessListView#SEARCH_BAR_INPUT",
+			value1 = "abc");
+
+		Click(locator1 = "WorkflowMetricsProcessListView#SEARCH_BUTTON");
+
+		Click(locator1 = "WorkflowMetricsProcessListView#CLEAR_SEARCH");
+
+		AssertTextEquals(
+			key_rowNumber = "1",
+			locator1 = "WorkflowAllItems#METRICS_PROCESS_NAME_TABLE_ROW",
+			value1 = "Single Approver");
+
+		AssertTextEquals(
+			key_rowNumber = "2",
+			locator1 = "WorkflowAllItems#METRICS_PROCESS_NAME_TABLE_ROW",
+			value1 = "Message Boards User Stats Moderation");
+
+		AssertTextEquals(
+			key_rowNumber = "3",
+			locator1 = "WorkflowAllItems#METRICS_PROCESS_NAME_TABLE_ROW",
+			value1 = "Single Approver A");
+
+		AssertTextEquals(
+			key_rowNumber = "4",
+			locator1 = "WorkflowAllItems#METRICS_PROCESS_NAME_TABLE_ROW",
+			value1 = "Single Approver B");
+	}
+
+	@description = "LPS-88573 - Verify that when an instance from Asset is added to the list of process, the count number should be reflected on the Process List"
+	@priority = "5"
+	test TableDisplaysCorrectNumbersWhenAssetAdded {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Blogs");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.checkWorkflowReports(
+			key_onTimeValue = "0",
+			key_overdueValue = "0",
+			key_totalPendingValue = "1",
+			key_workflowProcessName = "Single Approver");
+	}
+
+	@description = "LPS-88573 - Verify that the table entries are ordered by Overdue, from biggest to the smaller value, by default"
+	@priority = "3"
+	test TableIsOrderedByOverdueDesc {
+		property test.name.skip.portal.instance = "WorkflowMetricsProcessListView#TableIsOrderedByOverdueDesc";
+
+		Workflow.duplicateSingleApproverWorkflow(workflowName = "Test Workflow");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		WorkflowMetrics.goToWorkflowSLASettings(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetricsSLA#ADD_NEW_SLA_BUTTON");
+
+		WorkflowMetrics.fillSLAForm(
+			slaDefinitionDays = "0",
+			slaDefinitionDescription = "SLA Description",
+			slaDefinitionEnd = "Process Ends: Approved",
+			slaDefinitionHours = "00:01",
+			slaDefinitionName = "Test",
+			slaDefinitionStart = "Process Begins");
+
+		Button.clickSave();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Blogs");
+
+		Blogs.addWithWorkflow(
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Subtitle",
+			entryTitle = "Blogs Entry Title");
+
+		Pause(locator1 = "120000");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+
+		WaitForElementPresent(
+			key_value = "down",
+			locator1 = "WorkflowMetricsProcessListView#ANY_ARROW_ORDER");
+	}
+
+}

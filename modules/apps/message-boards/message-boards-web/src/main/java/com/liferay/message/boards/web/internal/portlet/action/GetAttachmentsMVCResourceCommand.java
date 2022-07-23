@@ -139,7 +139,7 @@ public class GetAttachmentsMVCResourceCommand extends BaseMVCResourceCommand {
 			"fileName", HtmlUtil.unescape(fileEntry.getTitle())
 		).setParameter(
 			"messageId", message.getMessageId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Reference

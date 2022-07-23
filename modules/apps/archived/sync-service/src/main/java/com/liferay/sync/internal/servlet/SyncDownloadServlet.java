@@ -45,7 +45,7 @@ import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -121,14 +121,15 @@ public class SyncDownloadServlet extends HttpServlet {
 			PermissionThreadLocal.setPermissionChecker(
 				PermissionCheckerFactoryUtil.create(user));
 
-			String path = _http.fixPath(httpServletRequest.getPathInfo());
+			String path = HttpComponentsUtil.fixPath(
+				httpServletRequest.getPathInfo());
 
 			String[] pathArray = StringUtil.split(path, CharPool.SLASH);
 
 			if (pathArray[0].equals("image")) {
 				long imageId = GetterUtil.getLong(pathArray[1]);
 
-				sendImage(httpServletRequest, httpServletResponse, imageId);
+				_sendImage(httpServletRequest, httpServletResponse, imageId);
 			}
 			else if (pathArray[0].equals("zip")) {
 				String zipFileIds = ParamUtil.get(
@@ -142,8 +143,7 @@ public class SyncDownloadServlet extends HttpServlet {
 				JSONArray zipFileIdsJSONArray = JSONFactoryUtil.createJSONArray(
 					zipFileIds);
 
-				sendZipFile(
-					httpServletResponse, user.getUserId(), zipFileIdsJSONArray);
+				_sendZipFile(httpServletResponse, zipFileIdsJSONArray);
 			}
 			else if (pathArray[0].equals("zipfolder")) {
 				long repositoryId = ParamUtil.getLong(
@@ -160,7 +160,7 @@ public class SyncDownloadServlet extends HttpServlet {
 						"Missing parameter folderId");
 				}
 
-				sendZipFolder(
+				_sendZipFolder(
 					httpServletResponse, user.getUserId(), repositoryId,
 					folderId);
 			}
@@ -182,14 +182,14 @@ public class SyncDownloadServlet extends HttpServlet {
 				String fileUuid = pathArray[1];
 
 				if (ParamUtil.getBoolean(httpServletRequest, "patch")) {
-					sendPatch(
-						httpServletRequest, httpServletResponse,
-						user.getUserId(), groupId, fileUuid);
+					_sendPatch(
+						httpServletRequest, httpServletResponse, groupId,
+						fileUuid);
 				}
 				else {
-					sendFile(
-						httpServletRequest, httpServletResponse,
-						user.getUserId(), groupId, fileUuid);
+					_sendFile(
+						httpServletRequest, httpServletResponse, groupId,
+						fileUuid);
 				}
 			}
 		}
@@ -207,318 +207,6 @@ public class SyncDownloadServlet extends HttpServlet {
 			_portal.sendError(
 				exception, httpServletRequest, httpServletResponse);
 		}
-	}
-
-	protected void addZipFolderEntry(
-			long userId, long repositoryId, long folderId, String folderPath,
-			ZipWriter zipWriter)
-		throws Exception {
-
-		List<FileEntry> fileEntries = _dlAppService.getFileEntries(
-			repositoryId, folderId);
-
-		for (FileEntry fileEntry : fileEntries) {
-			try (InputStream inputStream =
-					_dlFileEntryLocalService.getFileAsStream(
-						fileEntry.getFileEntryId(), fileEntry.getVersion(),
-						false)) {
-
-				String filePath = folderPath + fileEntry.getTitle();
-
-				zipWriter.addEntry(filePath, inputStream);
-			}
-		}
-
-		List<Folder> childFolders = _dlAppService.getFolders(
-			repositoryId, folderId);
-
-		for (Folder childFolder : childFolders) {
-			String childFolderPath =
-				folderPath + childFolder.getName() + StringPool.FORWARD_SLASH;
-
-			addZipFolderEntry(
-				userId, repositoryId, childFolder.getFolderId(),
-				childFolderPath, zipWriter);
-		}
-	}
-
-	protected File getDeltaFile(
-			long userId, long fileEntryId, long sourceVersionId,
-			long targetVersionId)
-		throws Exception {
-
-		DLFileVersion sourceDLFileVersion =
-			_dlFileVersionLocalService.getDLFileVersion(sourceVersionId);
-
-		File sourceFile = FileUtil.createTempFile(
-			_dlFileEntryLocalService.getFileAsStream(
-				fileEntryId, sourceDLFileVersion.getVersion(), false));
-
-		DLFileVersion targetDLFileVersion =
-			_dlFileVersionLocalService.getDLFileVersion(targetVersionId);
-
-		File targetFile = FileUtil.createTempFile(
-			_dlFileEntryLocalService.getFileAsStream(
-				fileEntryId, targetDLFileVersion.getVersion(), false));
-
-		try {
-			return _syncHelper.getFileDelta(sourceFile, targetFile);
-		}
-		finally {
-			sourceFile.delete();
-
-			targetFile.delete();
-		}
-	}
-
-	protected DownloadServletInputStream getFileDownloadServletInputStream(
-			long userId, long groupId, String uuid, String version,
-			long versionId)
-		throws Exception {
-
-		FileEntry fileEntry = _dlAppService.getFileEntryByUuidAndGroupId(
-			uuid, groupId);
-
-		if (fileEntry.isInTrash()) {
-			throw new NoSuchFileEntryException();
-		}
-
-		if (Validator.isNull(version)) {
-			InputStream inputStream = _dlFileEntryLocalService.getFileAsStream(
-				fileEntry.getFileEntryId(), fileEntry.getVersion(), false);
-
-			return new DownloadServletInputStream(
-				inputStream, fileEntry.getFileName(), fileEntry.getMimeType(),
-				fileEntry.getSize());
-		}
-
-		if (versionId > 0) {
-			DLFileVersion dlFileVersion =
-				_dlFileVersionLocalService.fetchDLFileVersion(versionId);
-
-			return new DownloadServletInputStream(
-				dlFileVersion.getContentStream(false),
-				dlFileVersion.getFileName(), dlFileVersion.getMimeType(),
-				dlFileVersion.getSize());
-		}
-
-		FileVersion fileVersion = fileEntry.getFileVersion(version);
-
-		return new DownloadServletInputStream(
-			fileVersion.getContentStream(false), fileVersion.getFileName(),
-			fileVersion.getMimeType(), fileVersion.getSize());
-	}
-
-	protected DownloadServletInputStream getPatchDownloadServletInputStream(
-			long userId, long groupId, String uuid, long sourceVersionId,
-			long targetVersionId)
-		throws Exception {
-
-		FileEntry fileEntry = _dlAppService.getFileEntryByUuidAndGroupId(
-			uuid, groupId);
-
-		if (fileEntry.isInTrash()) {
-			throw new NoSuchFileEntryException();
-		}
-
-		if (!SyncServiceConfigurationValues.SYNC_FILE_DIFF_CACHE_ENABLED) {
-			File deltaFile = null;
-
-			try {
-				deltaFile = getDeltaFile(
-					userId, fileEntry.getFileEntryId(), sourceVersionId,
-					targetVersionId);
-
-				return new DownloadServletInputStream(
-					new FileInputStream(deltaFile), deltaFile.length());
-			}
-			finally {
-				FileUtil.delete(deltaFile);
-			}
-		}
-
-		SyncDLFileVersionDiff syncDLFileVersionDiff =
-			SyncDLFileVersionDiffLocalServiceUtil.fetchSyncDLFileVersionDiff(
-				fileEntry.getFileEntryId(), sourceVersionId, targetVersionId);
-
-		if (syncDLFileVersionDiff != null) {
-			SyncDLFileVersionDiffLocalServiceUtil.refreshExpirationDate(
-				syncDLFileVersionDiff.getSyncDLFileVersionDiffId());
-
-			FileEntry dataFileEntry =
-				PortletFileRepositoryUtil.getPortletFileEntry(
-					syncDLFileVersionDiff.getDataFileEntryId());
-
-			return new DownloadServletInputStream(
-				dataFileEntry.getContentStream(), dataFileEntry.getSize());
-		}
-
-		File deltaFile = null;
-
-		try {
-			deltaFile = getDeltaFile(
-				userId, fileEntry.getFileEntryId(), sourceVersionId,
-				targetVersionId);
-
-			SyncDLFileVersionDiffLocalServiceUtil.addSyncDLFileVersionDiff(
-				fileEntry.getFileEntryId(), sourceVersionId, targetVersionId,
-				deltaFile);
-
-			return new DownloadServletInputStream(
-				new FileInputStream(deltaFile), deltaFile.length());
-		}
-		finally {
-			FileUtil.delete(deltaFile);
-		}
-	}
-
-	protected void processException(
-		String zipFileId, String exception, JSONObject errorsJSONObject) {
-
-		JSONObject exceptionJSONObject = JSONUtil.put("exception", exception);
-
-		errorsJSONObject.put(zipFileId, exceptionJSONObject);
-	}
-
-	protected void sendFile(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, long userId, long groupId,
-			String uuid)
-		throws Exception {
-
-		String version = ParamUtil.getString(httpServletRequest, "version");
-		long versionId = ParamUtil.getLong(httpServletRequest, "versionId");
-
-		DownloadServletInputStream downloadServletInputStream =
-			getFileDownloadServletInputStream(
-				userId, groupId, uuid, version, versionId);
-
-		if (httpServletRequest.getHeader(HttpHeaders.RANGE) != null) {
-			ServletResponseUtil.sendFileWithRangeHeader(
-				httpServletRequest, httpServletResponse,
-				downloadServletInputStream.getFileName(),
-				downloadServletInputStream,
-				downloadServletInputStream.getSize(),
-				downloadServletInputStream.getMimeType());
-		}
-		else {
-			ServletResponseUtil.write(
-				httpServletResponse, downloadServletInputStream,
-				downloadServletInputStream.getSize());
-		}
-	}
-
-	protected void sendImage(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, long imageId)
-		throws Exception {
-
-		User user = _userLocalService.fetchUser(imageId);
-
-		if (user != null) {
-			imageId = user.getPortraitId();
-		}
-
-		Image image = _imageLocalService.fetchImage(imageId);
-
-		if (image == null) {
-			_portal.sendError(
-				HttpServletResponse.SC_NOT_FOUND, new NoSuchImageException(),
-				httpServletRequest, httpServletResponse);
-
-			return;
-		}
-
-		String type = image.getType();
-
-		if (!type.equals(ImageConstants.TYPE_NOT_AVAILABLE)) {
-			httpServletResponse.setContentType(
-				MimeTypesUtil.getExtensionContentType(type));
-		}
-
-		ServletResponseUtil.write(httpServletResponse, image.getTextObj());
-	}
-
-	protected void sendPatch(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, long userId, long groupId,
-			String uuid)
-		throws Exception {
-
-		long sourceVersionId = ParamUtil.getLong(
-			httpServletRequest, "sourceVersionId");
-		long targetVersionId = ParamUtil.getLong(
-			httpServletRequest, "targetVersionId");
-
-		DownloadServletInputStream downloadServletInputStream =
-			getPatchDownloadServletInputStream(
-				userId, groupId, uuid, sourceVersionId, targetVersionId);
-
-		ServletResponseUtil.write(
-			httpServletResponse, downloadServletInputStream,
-			downloadServletInputStream.getSize());
-	}
-
-	protected void sendZipFile(
-			HttpServletResponse httpServletResponse, long userId,
-			JSONArray zipFileIdsJSONArray)
-		throws Exception {
-
-		ZipWriter zipWriter = ZipWriterFactoryUtil.getZipWriter();
-
-		JSONObject errorsJSONObject = JSONFactoryUtil.createJSONObject();
-
-		for (int i = 0; i < zipFileIdsJSONArray.length(); i++) {
-			JSONObject zipObjectJSONObject = zipFileIdsJSONArray.getJSONObject(
-				i);
-
-			long groupId = zipObjectJSONObject.getLong("groupId");
-			String zipFileId = zipObjectJSONObject.getString("zipFileId");
-
-			Group group = _groupLocalService.fetchGroup(groupId);
-
-			if ((group == null) || !_syncHelper.isSyncEnabled(group)) {
-				processException(
-					zipFileId, SyncSiteUnavailableException.class.getName(),
-					errorsJSONObject);
-
-				continue;
-			}
-
-			try (InputStream inputStream = _getZipFileInputStream(
-					zipObjectJSONObject, userId, groupId)) {
-
-				zipWriter.addEntry(zipFileId, inputStream);
-			}
-			catch (Exception exception) {
-				Class<?> clazz = exception.getClass();
-
-				processException(zipFileId, clazz.getName(), errorsJSONObject);
-			}
-		}
-
-		zipWriter.addEntry("errors.json", errorsJSONObject.toString());
-
-		File file = zipWriter.getFile();
-
-		ServletResponseUtil.write(
-			httpServletResponse, new FileInputStream(file), file.length());
-	}
-
-	protected void sendZipFolder(
-			HttpServletResponse httpServletResponse, long userId,
-			long repositoryId, long folderId)
-		throws Exception {
-
-		ZipWriter zipWriter = ZipWriterFactoryUtil.getZipWriter();
-
-		addZipFolderEntry(
-			userId, repositoryId, folderId, StringPool.BLANK, zipWriter);
-
-		File file = zipWriter.getFile();
-
-		ServletResponseUtil.write(
-			httpServletResponse, new FileInputStream(file), file.length());
 	}
 
 	@Reference(unbind = "-")
@@ -555,8 +243,168 @@ public class SyncDownloadServlet extends HttpServlet {
 		_userLocalService = userLocalService;
 	}
 
+	private void _addZipFolderEntry(
+			long userId, long repositoryId, long folderId, String folderPath,
+			ZipWriter zipWriter)
+		throws Exception {
+
+		List<FileEntry> fileEntries = _dlAppService.getFileEntries(
+			repositoryId, folderId);
+
+		for (FileEntry fileEntry : fileEntries) {
+			try (InputStream inputStream =
+					_dlFileEntryLocalService.getFileAsStream(
+						fileEntry.getFileEntryId(), fileEntry.getVersion(),
+						false)) {
+
+				String filePath = folderPath + fileEntry.getTitle();
+
+				zipWriter.addEntry(filePath, inputStream);
+			}
+		}
+
+		List<Folder> childFolders = _dlAppService.getFolders(
+			repositoryId, folderId);
+
+		for (Folder childFolder : childFolders) {
+			String childFolderPath =
+				folderPath + childFolder.getName() + StringPool.FORWARD_SLASH;
+
+			_addZipFolderEntry(
+				userId, repositoryId, childFolder.getFolderId(),
+				childFolderPath, zipWriter);
+		}
+	}
+
+	private File _getDeltaFile(
+			long fileEntryId, long sourceVersionId, long targetVersionId)
+		throws Exception {
+
+		DLFileVersion sourceDLFileVersion =
+			_dlFileVersionLocalService.getDLFileVersion(sourceVersionId);
+
+		File sourceFile = FileUtil.createTempFile(
+			_dlFileEntryLocalService.getFileAsStream(
+				fileEntryId, sourceDLFileVersion.getVersion(), false));
+
+		DLFileVersion targetDLFileVersion =
+			_dlFileVersionLocalService.getDLFileVersion(targetVersionId);
+
+		File targetFile = FileUtil.createTempFile(
+			_dlFileEntryLocalService.getFileAsStream(
+				fileEntryId, targetDLFileVersion.getVersion(), false));
+
+		try {
+			return _syncHelper.getFileDelta(sourceFile, targetFile);
+		}
+		finally {
+			sourceFile.delete();
+
+			targetFile.delete();
+		}
+	}
+
+	private DownloadServletInputStream _getFileDownloadServletInputStream(
+			long groupId, String uuid, String version, long versionId)
+		throws Exception {
+
+		FileEntry fileEntry = _dlAppService.getFileEntryByUuidAndGroupId(
+			uuid, groupId);
+
+		if (fileEntry.isInTrash()) {
+			throw new NoSuchFileEntryException();
+		}
+
+		if (Validator.isNull(version)) {
+			InputStream inputStream = _dlFileEntryLocalService.getFileAsStream(
+				fileEntry.getFileEntryId(), fileEntry.getVersion(), false);
+
+			return new DownloadServletInputStream(
+				inputStream, fileEntry.getFileName(), fileEntry.getMimeType(),
+				fileEntry.getSize());
+		}
+
+		if (versionId > 0) {
+			DLFileVersion dlFileVersion =
+				_dlFileVersionLocalService.fetchDLFileVersion(versionId);
+
+			return new DownloadServletInputStream(
+				dlFileVersion.getContentStream(false),
+				dlFileVersion.getFileName(), dlFileVersion.getMimeType(),
+				dlFileVersion.getSize());
+		}
+
+		FileVersion fileVersion = fileEntry.getFileVersion(version);
+
+		return new DownloadServletInputStream(
+			fileVersion.getContentStream(false), fileVersion.getFileName(),
+			fileVersion.getMimeType(), fileVersion.getSize());
+	}
+
+	private DownloadServletInputStream _getPatchDownloadServletInputStream(
+			long groupId, String uuid, long sourceVersionId,
+			long targetVersionId)
+		throws Exception {
+
+		FileEntry fileEntry = _dlAppService.getFileEntryByUuidAndGroupId(
+			uuid, groupId);
+
+		if (fileEntry.isInTrash()) {
+			throw new NoSuchFileEntryException();
+		}
+
+		if (!SyncServiceConfigurationValues.SYNC_FILE_DIFF_CACHE_ENABLED) {
+			File deltaFile = null;
+
+			try {
+				deltaFile = _getDeltaFile(
+					fileEntry.getFileEntryId(), sourceVersionId,
+					targetVersionId);
+
+				return new DownloadServletInputStream(
+					new FileInputStream(deltaFile), deltaFile.length());
+			}
+			finally {
+				FileUtil.delete(deltaFile);
+			}
+		}
+
+		SyncDLFileVersionDiff syncDLFileVersionDiff =
+			SyncDLFileVersionDiffLocalServiceUtil.fetchSyncDLFileVersionDiff(
+				fileEntry.getFileEntryId(), sourceVersionId, targetVersionId);
+
+		if (syncDLFileVersionDiff != null) {
+			SyncDLFileVersionDiffLocalServiceUtil.refreshExpirationDate(
+				syncDLFileVersionDiff.getSyncDLFileVersionDiffId());
+
+			FileEntry dataFileEntry =
+				PortletFileRepositoryUtil.getPortletFileEntry(
+					syncDLFileVersionDiff.getDataFileEntryId());
+
+			return new DownloadServletInputStream(
+				dataFileEntry.getContentStream(), dataFileEntry.getSize());
+		}
+
+		File deltaFile = null;
+
+		try {
+			deltaFile = _getDeltaFile(
+				fileEntry.getFileEntryId(), sourceVersionId, targetVersionId);
+
+			SyncDLFileVersionDiffLocalServiceUtil.addSyncDLFileVersionDiff(
+				fileEntry.getFileEntryId(), sourceVersionId, targetVersionId,
+				deltaFile);
+
+			return new DownloadServletInputStream(
+				new FileInputStream(deltaFile), deltaFile.length());
+		}
+		finally {
+			FileUtil.delete(deltaFile);
+		}
+	}
+
 	private InputStream _getZipFileInputStream(
-			JSONObject zipObjectJSONObject, long userId, long groupId)
+			JSONObject zipObjectJSONObject, long groupId)
 		throws Exception {
 
 		String uuid = zipObjectJSONObject.getString("uuid");
@@ -567,13 +415,160 @@ public class SyncDownloadServlet extends HttpServlet {
 			long targetVersionId = zipObjectJSONObject.getLong(
 				"targetVersionId", 0);
 
-			return getPatchDownloadServletInputStream(
-				userId, groupId, uuid, sourceVersionId, targetVersionId);
+			return _getPatchDownloadServletInputStream(
+				groupId, uuid, sourceVersionId, targetVersionId);
 		}
 
-		return getFileDownloadServletInputStream(
-			userId, groupId, uuid, zipObjectJSONObject.getString("version"),
+		return _getFileDownloadServletInputStream(
+			groupId, uuid, zipObjectJSONObject.getString("version"),
 			zipObjectJSONObject.getLong("versionId"));
+	}
+
+	private void _processException(
+		String zipFileId, String exception, JSONObject errorsJSONObject) {
+
+		JSONObject exceptionJSONObject = JSONUtil.put("exception", exception);
+
+		errorsJSONObject.put(zipFileId, exceptionJSONObject);
+	}
+
+	private void _sendFile(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, long groupId, String uuid)
+		throws Exception {
+
+		String version = ParamUtil.getString(httpServletRequest, "version");
+		long versionId = ParamUtil.getLong(httpServletRequest, "versionId");
+
+		DownloadServletInputStream downloadServletInputStream =
+			_getFileDownloadServletInputStream(
+				groupId, uuid, version, versionId);
+
+		if (httpServletRequest.getHeader(HttpHeaders.RANGE) != null) {
+			ServletResponseUtil.sendFileWithRangeHeader(
+				httpServletRequest, httpServletResponse,
+				downloadServletInputStream.getFileName(),
+				downloadServletInputStream,
+				downloadServletInputStream.getSize(),
+				downloadServletInputStream.getMimeType());
+		}
+		else {
+			ServletResponseUtil.write(
+				httpServletResponse, downloadServletInputStream,
+				downloadServletInputStream.getSize());
+		}
+	}
+
+	private void _sendImage(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, long imageId)
+		throws Exception {
+
+		User user = _userLocalService.fetchUser(imageId);
+
+		if (user != null) {
+			imageId = user.getPortraitId();
+		}
+
+		Image image = _imageLocalService.fetchImage(imageId);
+
+		if (image == null) {
+			_portal.sendError(
+				HttpServletResponse.SC_NOT_FOUND, new NoSuchImageException(),
+				httpServletRequest, httpServletResponse);
+
+			return;
+		}
+
+		String type = image.getType();
+
+		if (!type.equals(ImageConstants.TYPE_NOT_AVAILABLE)) {
+			httpServletResponse.setContentType(
+				MimeTypesUtil.getExtensionContentType(type));
+		}
+
+		ServletResponseUtil.write(httpServletResponse, image.getTextObj());
+	}
+
+	private void _sendPatch(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, long groupId, String uuid)
+		throws Exception {
+
+		long sourceVersionId = ParamUtil.getLong(
+			httpServletRequest, "sourceVersionId");
+		long targetVersionId = ParamUtil.getLong(
+			httpServletRequest, "targetVersionId");
+
+		DownloadServletInputStream downloadServletInputStream =
+			_getPatchDownloadServletInputStream(
+				groupId, uuid, sourceVersionId, targetVersionId);
+
+		ServletResponseUtil.write(
+			httpServletResponse, downloadServletInputStream,
+			downloadServletInputStream.getSize());
+	}
+
+	private void _sendZipFile(
+			HttpServletResponse httpServletResponse,
+			JSONArray zipFileIdsJSONArray)
+		throws Exception {
+
+		ZipWriter zipWriter = ZipWriterFactoryUtil.getZipWriter();
+
+		JSONObject errorsJSONObject = JSONFactoryUtil.createJSONObject();
+
+		for (int i = 0; i < zipFileIdsJSONArray.length(); i++) {
+			JSONObject zipObjectJSONObject = zipFileIdsJSONArray.getJSONObject(
+				i);
+
+			long groupId = zipObjectJSONObject.getLong("groupId");
+			String zipFileId = zipObjectJSONObject.getString("zipFileId");
+
+			Group group = _groupLocalService.fetchGroup(groupId);
+
+			if ((group == null) || !_syncHelper.isSyncEnabled(group)) {
+				_processException(
+					zipFileId, SyncSiteUnavailableException.class.getName(),
+					errorsJSONObject);
+
+				continue;
+			}
+
+			try (InputStream inputStream = _getZipFileInputStream(
+					zipObjectJSONObject, groupId)) {
+
+				zipWriter.addEntry(zipFileId, inputStream);
+			}
+			catch (Exception exception) {
+				Class<?> clazz = exception.getClass();
+
+				_processException(zipFileId, clazz.getName(), errorsJSONObject);
+			}
+		}
+
+		zipWriter.addEntry("errors.json", errorsJSONObject.toString());
+
+		File file = zipWriter.getFile();
+
+		ServletResponseUtil.write(
+			httpServletResponse, new FileInputStream(file), file.length());
+	}
+
+	private void _sendZipFolder(
+			HttpServletResponse httpServletResponse, long userId,
+			long repositoryId, long folderId)
+		throws Exception {
+
+		ZipWriter zipWriter = ZipWriterFactoryUtil.getZipWriter();
+
+		_addZipFolderEntry(
+			userId, repositoryId, folderId, StringPool.BLANK, zipWriter);
+
+		File file = zipWriter.getFile();
+
+		ServletResponseUtil.write(
+			httpServletResponse, new FileInputStream(file), file.length());
 	}
 
 	private static final String _ERROR_HEADER = "Sync-Error";
@@ -582,10 +577,6 @@ public class SyncDownloadServlet extends HttpServlet {
 	private DLFileEntryLocalService _dlFileEntryLocalService;
 	private DLFileVersionLocalService _dlFileVersionLocalService;
 	private GroupLocalService _groupLocalService;
-
-	@Reference
-	private Http _http;
-
 	private ImageLocalService _imageLocalService;
 
 	@Reference

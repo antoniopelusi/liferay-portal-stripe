@@ -1,0 +1,248 @@
+@component-name = "portal-commerce"
+definition {
+
+	property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Shopping Experience";
+
+	setUp {
+		CommerceConfiguration.commerceSetUp();
+	}
+
+	tearDown {
+		CommerceConfiguration.commerceTearDown();
+	}
+
+	@description = "COMMERCE-8350. This is a use case for COMMERCE-8143"
+	@priority = "5"
+	test AddOrderFromAUserAndCheckoutFromAdminUser {
+		property portal.acceptance = "false";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Speedwell");
+
+		JSONUser.addUser(
+			userEmailAddress = "buyer@liferay.com",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "buyer@liferay.com");
+
+		JSONUser.addUserToSite(
+			groupName = "Speedwell",
+			userEmailAddress = "buyer@liferay.com");
+
+		User.logoutPG();
+
+		CommerceLogin.speedwellLogin(
+			password = "test",
+			urlAppend = "web/speedwell",
+			userEmailAddress = "buyer@liferay.com");
+
+		CommerceNavigator.gotoSpeedwellTopbarItem(menuItem = "Catalog");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		User.logoutPG();
+
+		CommerceLogin.speedwellLogin(
+			password = "test",
+			urlAppend = "web/speedwell",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoSpeedwellAccountDropdownItem(dropdownItem = "My Account");
+
+		CommerceNavigator.gotoSpeedwellDashboardItem(dashboardItem = "Login & Security");
+
+		Accounts.goToEntryMenuItem(
+			menuItem = "Select Account",
+			rowEntry = "Buyer User");
+
+		Accounts.viewSelectedAccount(entryName = "Buyer User");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "Submit");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+	}
+
+	@description = "COMMERCE-8350. This is a use case for COMMERCE-8143"
+	@priority = "5"
+	test AddOrderFromAUserAndCheckoutFromAnotherUser {
+		property portal.acceptance = "true";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceEntry.addAccountEntryUser(
+			accountName = "Commerce Account",
+			accountType = "Business",
+			agreeToTermsAndAnswerReminderQuery = "true",
+			createNewAccount = "true",
+			requireReset = "false",
+			userEmailAddress = "buyer@liferay.com",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userRole = "Buyer",
+			userScreenName = "buyeruser",
+			userSiteMembership = "Minium");
+
+		CommerceEntry.addAccountEntryUser(
+			accountName = "Commerce Account",
+			agreeToTermsAndAnswerReminderQuery = "true",
+			createNewAccount = "false",
+			requireReset = "false",
+			userEmailAddress = "buyer2@liferay.com",
+			userFirstName = "Buyer",
+			userLastName = "User 2",
+			userRole = "Buyer",
+			userScreenName = "buyeruser2",
+			userSiteMembership = "Minium");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		WaitForElementPresent(locator1 = "CommerceEntry#ACTIVE_ORDER_ID");
+
+		var activeOrderId = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer2@liferay.com");
+
+		AssertTextEquals(
+			locator1 = "CommerceEntry#ACTIVE_ORDER_ID",
+			value1 = "${activeOrderId}");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		AssertTextEquals(
+			locator1 = "CommerceAccelerators#CHECKOUT_SUCCESS_MESSAGE",
+			value1 = "Success! Your order has been processed.");
+	}
+
+	@description = "COMMERCE-8168. This is a use case for COMMERCE-8127"
+	@priority = "5"
+	test DeleteOrderAndCheckoutNewOrder {
+		property portal.acceptance = "true";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Commerce Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		ClickNoError(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "1",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		AssertTextEquals(
+			locator1 = "CommerceAccelerators#CHECKOUT_SUCCESS_MESSAGE",
+			value1 = "Success! Your order has been processed.");
+	}
+
+}

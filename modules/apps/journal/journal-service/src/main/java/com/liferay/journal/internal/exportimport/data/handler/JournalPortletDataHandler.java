@@ -17,9 +17,15 @@ package com.liferay.journal.internal.exportimport.data.handler;
 import com.liferay.changeset.model.ChangesetCollection;
 import com.liferay.changeset.service.ChangesetCollectionLocalService;
 import com.liferay.changeset.service.ChangesetEntryLocalService;
+import com.liferay.data.engine.service.DEDataDefinitionFieldLinkLocalService;
+import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
+import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
+import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.exportimport.kernel.lar.BasePortletDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportDateUtil;
@@ -162,7 +168,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			return journalServiceConfiguration.publishToLiveByDefaultEnabled();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return true;
@@ -240,6 +246,44 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			portletDataContext.getScopeGroupId(),
 			_portal.getClassNameId(DDMStructure.class));
 
+		List<DDMStructure> ddmStructures =
+			_ddmStructureLocalService.getStructures(
+				portletDataContext.getScopeGroupId(),
+				_portal.getClassNameId(JournalArticle.class));
+
+		for (DDMStructure ddmStructure : ddmStructures) {
+			_deDataDefinitionFieldLinkLocalService.
+				deleteDEDataDefinitionFieldLinks(
+					_portal.getClassNameId(DDMStructure.class),
+					ddmStructure.getStructureId());
+
+			List<DDMStructureVersion> ddmStructureVersions =
+				_ddmStructureVersionLocalService.getStructureVersions(
+					ddmStructure.getStructureId());
+
+			for (DDMStructureVersion ddmStructureVersion :
+					ddmStructureVersions) {
+
+				List<DDMStructureLayout> ddmStructureLayouts =
+					_ddmStructureLayoutLocalService.getStructureLayouts(
+						ddmStructure.getGroupId(),
+						ddmStructure.getClassNameId(),
+						ddmStructureVersion.getStructureVersionId());
+
+				for (DDMStructureLayout ddmStructureLayout :
+						ddmStructureLayouts) {
+
+					_deDataDefinitionFieldLinkLocalService.
+						deleteDEDataDefinitionFieldLinks(
+							_portal.getClassNameId(DDMStructureLayout.class),
+							ddmStructureLayout.getStructureLayoutId());
+				}
+			}
+
+			_ddlRecordSetLocalService.deleteDDMStructureRecordSets(
+				ddmStructure.getStructureId());
+		}
+
 		_ddmStructureLocalService.deleteStructures(
 			portletDataContext.getScopeGroupId(),
 			_portal.getClassNameId(JournalArticle.class));
@@ -249,7 +293,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected String doExportData(
-			final PortletDataContext portletDataContext, String portletId,
+			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
 		throws Exception {
 
@@ -279,7 +323,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 
 		if (portletDataContext.getBooleanParameter(NAMESPACE, "structures")) {
 			ActionableDynamicQuery ddmStructureActionableDynamicQuery =
-				getDDMStructureActionableDynamicQuery(portletDataContext);
+				_getDDMStructureActionableDynamicQuery(portletDataContext);
 
 			ddmStructureActionableDynamicQuery.performActions();
 
@@ -287,7 +331,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 
 			ActionableDynamicQuery
 				ddmStructureDefaultValuesActionableDynamicQuery =
-					getDDMStructureDefaultValuesActionableDynamicQuery(
+					_getDDMStructureDefaultValuesActionableDynamicQuery(
 						portletDataContext);
 
 			ddmStructureDefaultValuesActionableDynamicQuery.performActions();
@@ -295,14 +339,14 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 
 		if (portletDataContext.getBooleanParameter(NAMESPACE, "templates")) {
 			ActionableDynamicQuery ddmTemplateActionableDynamicQuery =
-				getDDMTemplateActionableDynamicQuery(portletDataContext);
+				_getDDMTemplateActionableDynamicQuery(portletDataContext);
 
 			ddmTemplateActionableDynamicQuery.performActions();
 		}
 
 		if (portletDataContext.getBooleanParameter(NAMESPACE, "web-content")) {
 			ActionableDynamicQuery articleActionableDynamicQuery =
-				getArticleActionableDynamicQuery(portletDataContext);
+				_getArticleActionableDynamicQuery(portletDataContext);
 
 			articleActionableDynamicQuery.performActions();
 		}
@@ -429,17 +473,17 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 		}
 
 		ActionableDynamicQuery articleActionableDynamicQuery =
-			getArticleActionableDynamicQuery(portletDataContext);
+			_getArticleActionableDynamicQuery(portletDataContext);
 
 		articleActionableDynamicQuery.performCount();
 
 		ActionableDynamicQuery ddmStructureActionableDynamicQuery =
-			getDDMStructureActionableDynamicQuery(portletDataContext);
+			_getDDMStructureActionableDynamicQuery(portletDataContext);
 
 		ddmStructureActionableDynamicQuery.performCount();
 
 		ActionableDynamicQuery ddmTemplateActionableDynamicQuery =
-			getDDMTemplateActionableDynamicQuery(portletDataContext);
+			_getDDMTemplateActionableDynamicQuery(portletDataContext);
 
 		ddmTemplateActionableDynamicQuery.performCount();
 
@@ -454,166 +498,6 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 				portletDataContext);
 
 		folderActionableDynamicQuery.performCount();
-	}
-
-	protected ActionableDynamicQuery getArticleActionableDynamicQuery(
-		final PortletDataContext portletDataContext) {
-
-		ExportActionableDynamicQuery exportActionableDynamicQuery =
-			_journalArticleLocalService.getExportActionableDynamicQuery(
-				portletDataContext);
-
-		final ExportActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
-			exportActionableDynamicQuery.getAddCriteriaMethod();
-
-		exportActionableDynamicQuery.setAddCriteriaMethod(
-			dynamicQuery -> {
-				addCriteriaMethod.addCriteria(dynamicQuery);
-
-				if (portletDataContext.getBooleanParameter(
-						NAMESPACE, "version-history")) {
-
-					return;
-				}
-
-				Class<?> clazz = getClass();
-
-				DynamicQuery versionArticleDynamicQuery =
-					DynamicQueryFactoryUtil.forClass(
-						JournalArticle.class, "versionArticle",
-						clazz.getClassLoader());
-
-				versionArticleDynamicQuery.setProjection(
-					ProjectionFactoryUtil.alias(
-						ProjectionFactoryUtil.max("versionArticle.version"),
-						"versionArticle.version"));
-
-				// We need to use the "this" default alias to make sure the
-				// database engine handles this subquery as a correlated
-				// subquery
-
-				versionArticleDynamicQuery.add(
-					RestrictionsFactoryUtil.eqProperty(
-						"this.resourcePrimKey",
-						"versionArticle.resourcePrimKey"));
-
-				Property workflowStatusProperty = PropertyFactoryUtil.forName(
-					"status");
-
-				versionArticleDynamicQuery.add(
-					workflowStatusProperty.in(
-						_journalArticleStagedModelDataHandler.
-							getExportableStatuses()));
-
-				Property versionProperty = PropertyFactoryUtil.forName(
-					"version");
-
-				dynamicQuery.add(
-					versionProperty.eq(versionArticleDynamicQuery));
-			});
-
-		exportActionableDynamicQuery.setStagedModelType(
-			new StagedModelType(JournalArticle.class.getName()));
-
-		return exportActionableDynamicQuery;
-	}
-
-	protected ActionableDynamicQuery getDDMStructureActionableDynamicQuery(
-		final PortletDataContext portletDataContext) {
-
-		ExportActionableDynamicQuery exportActionableDynamicQuery =
-			_ddmStructureLocalService.getExportActionableDynamicQuery(
-				portletDataContext);
-
-		final ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
-			exportActionableDynamicQuery.getAddCriteriaMethod();
-
-		exportActionableDynamicQuery.setAddCriteriaMethod(
-			dynamicQuery -> {
-				addCriteriaMethod.addCriteria(dynamicQuery);
-
-				Property classNameIdProperty = PropertyFactoryUtil.forName(
-					"classNameId");
-
-				dynamicQuery.add(
-					classNameIdProperty.eq(
-						_portal.getClassNameId(JournalArticle.class)));
-			});
-
-		exportActionableDynamicQuery.setStagedModelType(
-			new StagedModelType(
-				DDMStructure.class.getName(), JournalArticle.class.getName()));
-
-		return exportActionableDynamicQuery;
-	}
-
-	protected ActionableDynamicQuery
-		getDDMStructureDefaultValuesActionableDynamicQuery(
-			PortletDataContext portletDataContext) {
-
-		ExportActionableDynamicQuery exportActionableDynamicQuery =
-			_journalArticleLocalService.getExportActionableDynamicQuery(
-				portletDataContext);
-
-		exportActionableDynamicQuery.setStagedModelType(
-			new StagedModelType(
-				JournalArticle.class.getName(), DDMStructure.class.getName()));
-
-		return exportActionableDynamicQuery;
-	}
-
-	protected ActionableDynamicQuery getDDMTemplateActionableDynamicQuery(
-		final PortletDataContext portletDataContext) {
-
-		ExportActionableDynamicQuery exportActionableDynamicQuery =
-			_ddmTemplateLocalService.getExportActionableDynamicQuery(
-				portletDataContext);
-
-		final ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
-			exportActionableDynamicQuery.getAddCriteriaMethod();
-
-		exportActionableDynamicQuery.setAddCriteriaMethod(
-			dynamicQuery -> {
-				addCriteriaMethod.addCriteria(dynamicQuery);
-
-				Disjunction disjunction = RestrictionsFactoryUtil.disjunction();
-
-				Property classPKProperty = PropertyFactoryUtil.forName(
-					"classPK");
-
-				disjunction.add(classPKProperty.eq(0L));
-
-				DynamicQuery ddmStructureDynamicQuery =
-					_ddmStructureLocalService.dynamicQuery();
-
-				Property classNameIdProperty = PropertyFactoryUtil.forName(
-					"classNameId");
-
-				long ddmStructureClassNameId = _portal.getClassNameId(
-					DDMStructure.class);
-
-				dynamicQuery.add(
-					classNameIdProperty.eq(ddmStructureClassNameId));
-
-				long articleClassNameId = _portal.getClassNameId(
-					JournalArticle.class);
-
-				ddmStructureDynamicQuery.add(
-					classNameIdProperty.eq(articleClassNameId));
-
-				ddmStructureDynamicQuery.setProjection(
-					ProjectionFactoryUtil.property("structureId"));
-
-				disjunction.add(classPKProperty.in(ddmStructureDynamicQuery));
-
-				dynamicQuery.add(disjunction);
-			});
-
-		exportActionableDynamicQuery.setStagedModelType(
-			new StagedModelType(
-				DDMTemplate.class.getName(), DDMStructure.class.getName()));
-
-		return exportActionableDynamicQuery;
 	}
 
 	@Reference(unbind = "-")
@@ -670,6 +554,166 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 		ModuleServiceLifecycle moduleServiceLifecycle) {
 	}
 
+	private ActionableDynamicQuery _getArticleActionableDynamicQuery(
+		PortletDataContext portletDataContext) {
+
+		ExportActionableDynamicQuery exportActionableDynamicQuery =
+			_journalArticleLocalService.getExportActionableDynamicQuery(
+				portletDataContext);
+
+		ExportActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
+			exportActionableDynamicQuery.getAddCriteriaMethod();
+
+		exportActionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				addCriteriaMethod.addCriteria(dynamicQuery);
+
+				if (portletDataContext.getBooleanParameter(
+						NAMESPACE, "version-history")) {
+
+					return;
+				}
+
+				Class<?> clazz = getClass();
+
+				DynamicQuery versionArticleDynamicQuery =
+					DynamicQueryFactoryUtil.forClass(
+						JournalArticle.class, "versionArticle",
+						clazz.getClassLoader());
+
+				versionArticleDynamicQuery.setProjection(
+					ProjectionFactoryUtil.alias(
+						ProjectionFactoryUtil.max("versionArticle.version"),
+						"versionArticle.version"));
+
+				// We need to use the "this" default alias to make sure the
+				// database engine handles this subquery as a correlated
+				// subquery
+
+				versionArticleDynamicQuery.add(
+					RestrictionsFactoryUtil.eqProperty(
+						"this.resourcePrimKey",
+						"versionArticle.resourcePrimKey"));
+
+				Property workflowStatusProperty = PropertyFactoryUtil.forName(
+					"status");
+
+				versionArticleDynamicQuery.add(
+					workflowStatusProperty.in(
+						_journalArticleStagedModelDataHandler.
+							getExportableStatuses()));
+
+				Property versionProperty = PropertyFactoryUtil.forName(
+					"version");
+
+				dynamicQuery.add(
+					versionProperty.eq(versionArticleDynamicQuery));
+			});
+
+		exportActionableDynamicQuery.setStagedModelType(
+			new StagedModelType(JournalArticle.class.getName()));
+
+		return exportActionableDynamicQuery;
+	}
+
+	private ActionableDynamicQuery _getDDMStructureActionableDynamicQuery(
+		PortletDataContext portletDataContext) {
+
+		ExportActionableDynamicQuery exportActionableDynamicQuery =
+			_ddmStructureLocalService.getExportActionableDynamicQuery(
+				portletDataContext);
+
+		ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
+			exportActionableDynamicQuery.getAddCriteriaMethod();
+
+		exportActionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				addCriteriaMethod.addCriteria(dynamicQuery);
+
+				Property classNameIdProperty = PropertyFactoryUtil.forName(
+					"classNameId");
+
+				dynamicQuery.add(
+					classNameIdProperty.eq(
+						_portal.getClassNameId(JournalArticle.class)));
+			});
+
+		exportActionableDynamicQuery.setStagedModelType(
+			new StagedModelType(
+				DDMStructure.class.getName(), JournalArticle.class.getName()));
+
+		return exportActionableDynamicQuery;
+	}
+
+	private ActionableDynamicQuery
+		_getDDMStructureDefaultValuesActionableDynamicQuery(
+			PortletDataContext portletDataContext) {
+
+		ExportActionableDynamicQuery exportActionableDynamicQuery =
+			_journalArticleLocalService.getExportActionableDynamicQuery(
+				portletDataContext);
+
+		exportActionableDynamicQuery.setStagedModelType(
+			new StagedModelType(
+				JournalArticle.class.getName(), DDMStructure.class.getName()));
+
+		return exportActionableDynamicQuery;
+	}
+
+	private ActionableDynamicQuery _getDDMTemplateActionableDynamicQuery(
+		PortletDataContext portletDataContext) {
+
+		ExportActionableDynamicQuery exportActionableDynamicQuery =
+			_ddmTemplateLocalService.getExportActionableDynamicQuery(
+				portletDataContext);
+
+		ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
+			exportActionableDynamicQuery.getAddCriteriaMethod();
+
+		exportActionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				addCriteriaMethod.addCriteria(dynamicQuery);
+
+				Disjunction disjunction = RestrictionsFactoryUtil.disjunction();
+
+				Property classPKProperty = PropertyFactoryUtil.forName(
+					"classPK");
+
+				disjunction.add(classPKProperty.eq(0L));
+
+				DynamicQuery ddmStructureDynamicQuery =
+					_ddmStructureLocalService.dynamicQuery();
+
+				Property classNameIdProperty = PropertyFactoryUtil.forName(
+					"classNameId");
+
+				long ddmStructureClassNameId = _portal.getClassNameId(
+					DDMStructure.class);
+
+				dynamicQuery.add(
+					classNameIdProperty.eq(ddmStructureClassNameId));
+
+				long articleClassNameId = _portal.getClassNameId(
+					JournalArticle.class);
+
+				ddmStructureDynamicQuery.add(
+					classNameIdProperty.eq(articleClassNameId));
+
+				ddmStructureDynamicQuery.setProjection(
+					ProjectionFactoryUtil.property("structureId"));
+
+				disjunction.add(classPKProperty.in(ddmStructureDynamicQuery));
+
+				dynamicQuery.add(disjunction);
+			});
+
+		exportActionableDynamicQuery.setStagedModelType(
+			new StagedModelType(
+				DDMTemplate.class.getName(), DDMStructure.class.getName()));
+
+		return exportActionableDynamicQuery;
+	}
+
 	private boolean _isVersionHistoryByDefaultEnabled() {
 		try {
 			JournalServiceConfiguration journalServiceConfiguration =
@@ -680,7 +724,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			return journalServiceConfiguration.versionHistoryByDefaultEnabled();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return true;
@@ -734,8 +778,22 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 	@Reference
 	private ChangesetEntryLocalService _changesetEntryLocalService;
 
+	@Reference
+	private DDLRecordSetLocalService _ddlRecordSetLocalService;
+
+	@Reference
+	private DDMStructureLayoutLocalService _ddmStructureLayoutLocalService;
+
 	private DDMStructureLocalService _ddmStructureLocalService;
+
+	@Reference
+	private DDMStructureVersionLocalService _ddmStructureVersionLocalService;
+
 	private DDMTemplateLocalService _ddmTemplateLocalService;
+
+	@Reference
+	private DEDataDefinitionFieldLinkLocalService
+		_deDataDefinitionFieldLinkLocalService;
 
 	@Reference
 	private ExportImportHelper _exportImportHelper;

@@ -1,0 +1,24 @@
+{
+	"dependencies": {
+	},
+	"jest": {
+		"moduleNameMapper": {
+			"frontend-taglib-clay/data_set_display/utils/eventsDefinitions": "<rootDir>/../../../../node_modules/frontend-taglib-clay/src/main/resources/META-INF/resources/data_set_display/utils/eventsDefinitions.js"
+		},
+		"testPathIgnorePatterns": [
+			"<rootDir>/dev/",
+			"<rootDir>/test/utilities.js"
+		]
+	},
+	"name": "@liferay/commerce-shop-by-diagram-web",
+	"private": true,
+	"scripts": {
+		"build": "liferay-npm-scripts build",
+		"checkFormat": "liferay-npm-scripts check",
+		"coverage": "liferay-npm-scripts test --coverage --silent --verbose",
+		"format": "liferay-npm-scripts fix",
+		"test": "liferay-npm-scripts test --passWithNoTests",
+		"watch": "liferay-npm-scripts webpack --watch"
+	},
+	"version": "1.0.43"
+}

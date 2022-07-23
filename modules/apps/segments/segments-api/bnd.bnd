@@ -1,9 +1,10 @@
 Bundle-Name: Liferay Segments API
 Bundle-SymbolicName: com.liferay.segments.api
-Bundle-Version: 3.0.1
+Bundle-Version: 7.0.0
 Export-Package:\
 	com.liferay.segments,\
 	com.liferay.segments.configuration,\
+	com.liferay.segments.configuration.provider,\
 	com.liferay.segments.constants,\
 	com.liferay.segments.context,\
 	com.liferay.segments.context.contributor,\
@@ -12,6 +13,7 @@ Export-Package:\
 	com.liferay.segments.exception,\
 	com.liferay.segments.field,\
 	com.liferay.segments.field.customizer,\
+	com.liferay.segments.manager,\
 	com.liferay.segments.model,\
 	com.liferay.segments.odata.matcher,\
 	com.liferay.segments.odata.retriever,\
@@ -21,11 +23,4 @@ Export-Package:\
 	com.liferay.segments.service,\
 	com.liferay.segments.service.persistence,\
 	com.liferay.segments.simulator,\
-	com.liferay.segments.util
-Provide-Capability:\
-	liferay.resource.bundle;\
-		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.segments.lang)";\
-		resource.bundle.base.name="content.Language"
-Require-Capability:\
-	liferay.resource.bundle;\
-		filter:="(bundle.symbolic.name=com.liferay.segments.lang)"
+	com.liferay.segments.source.provider

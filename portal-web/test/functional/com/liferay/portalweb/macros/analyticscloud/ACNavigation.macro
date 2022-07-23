@@ -6,6 +6,16 @@ definition {
 			value1 = "${headerTitle}");
 	}
 
+	macro backNavigation {
+		var key_pageName = "${pageName}";
+
+		Click(locator1 = "ACNavigation#BACK_NAVIGATION");
+	}
+
+	macro clickCancelButton {
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_CANCEL_BUTTON");
+	}
+
 	macro clickHeaderTab {
 		Click(
 			key_tabName = "${tabName}",
@@ -14,6 +24,14 @@ definition {
 
 	macro collapseSidebar {
 		Click(locator1 = "ACNavigation#COLLAPSE_SIDEBAR_ARROW");
+	}
+
+	macro exitSettings {
+		WaitForVisible(
+			key_title = "Settings",
+			locator1 = "Header#H2_TITLE");
+
+		Click(locator1 = "ACSettings#EXIT_SETTINGS_BUTTON");
 	}
 
 	macro expandSidebar {
@@ -26,6 +44,10 @@ definition {
 
 	macro goToAssets {
 		ACNavigation.goToSidebarOption(sidebarOption = "assets");
+	}
+
+	macro goToEventAnalysis {
+		ACNavigation.goToSidebarOption(sidebarOption = "event-analysis");
 	}
 
 	macro goToIndividuals {
@@ -41,7 +63,7 @@ definition {
 	}
 
 	macro goToSidebarOption {
-		var key_SidebarOption = "${sidebarOption}";
+		var key_sidebarOption = "${sidebarOption}";
 
 		Click(locator1 = "ACNavigation#GENERIC_SIDEBAR_OPTION");
 	}
@@ -52,6 +74,41 @@ definition {
 
 	macro goToTests {
 		ACNavigation.goToSidebarOption(sidebarOption = "tests");
+	}
+
+	macro openItem {
+		var key_itemName = "${itemName}";
+
+		while (IsElementNotPresent(locator1 = "ACNavigation#OPEN_ITEM") && (maxIterations = "50")) {
+			TestUtils.hardRefresh();
+		}
+
+		Click(locator1 = "ACNavigation#OPEN_ITEM");
+	}
+
+	macro switchTab {
+		var key_tabName = "${tabName}";
+
+		Click(locator1 = "ACNavigation#TAB_NAME");
+	}
+
+	macro switchTabInCard {
+		var key_tabName = "${tabName}";
+
+		Click(locator1 = "ACNavigation#CARD_TAB_NAME");
+	}
+
+	macro viewActiveSwitchTab {
+		AssertTextEquals(
+			locator1 = "ACNavigation#ACTIVE_TAB_NAME",
+			value1 = "${tabName}");
+	}
+
+	macro viewActiveSwitchTabInCard {
+		AssertTextEquals(
+			key_tabName = "${tabName}",
+			locator1 = "ACNavigation#ACTIVE_CARD_TAB_NAME",
+			value1 = "${tabName}");
 	}
 
 }

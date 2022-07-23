@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.lists.service.impl;
 
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.dynamic.data.lists.constants.DDLRecordConstants;
 import com.liferay.dynamic.data.lists.constants.DDLRecordSetConstants;
@@ -25,6 +26,8 @@ import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.model.DDLRecordVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService;
 import com.liferay.dynamic.data.lists.service.base.DDLRecordLocalServiceBaseImpl;
+import com.liferay.dynamic.data.lists.service.persistence.DDLRecordSetPersistence;
+import com.liferay.dynamic.data.lists.service.persistence.DDLRecordVersionPersistence;
 import com.liferay.dynamic.data.lists.util.DDL;
 import com.liferay.dynamic.data.lists.util.comparator.DDLRecordIdComparator;
 import com.liferay.dynamic.data.mapping.exception.StorageException;
@@ -58,6 +61,8 @@ import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -67,6 +72,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
+import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 
 import java.io.Serializable;
 
@@ -119,9 +125,9 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Record
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
-		DDLRecordSet recordSet = ddlRecordSetPersistence.findByPrimaryKey(
+		DDLRecordSet recordSet = _ddlRecordSetPersistence.findByPrimaryKey(
 			recordSetId);
 
 		validate(groupId, recordSet);
@@ -208,9 +214,9 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Record
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
-		DDLRecordSet ddlRecordSet = ddlRecordSetPersistence.findByPrimaryKey(
+		DDLRecordSet ddlRecordSet = _ddlRecordSetPersistence.findByPrimaryKey(
 			ddlRecordSetId);
 
 		validate(groupId, ddlRecordSet);
@@ -271,10 +277,10 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		// Record Versions
 
 		List<DDLRecordVersion> recordVersions =
-			ddlRecordVersionPersistence.findByRecordId(record.getRecordId());
+			_ddlRecordVersionPersistence.findByRecordId(record.getRecordId());
 
 		for (DDLRecordVersion recordVersion : recordVersions) {
-			ddlRecordVersionPersistence.remove(recordVersion);
+			_ddlRecordVersionPersistence.remove(recordVersion);
 
 			// Dynamic data mapping storage
 
@@ -660,7 +666,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 			if (!version.equals(DDLRecordConstants.VERSION_DEFAULT)) {
 				int approvedRecordVersionsCount =
-					ddlRecordVersionPersistence.countByR_S(
+					_ddlRecordVersionPersistence.countByR_S(
 						record.getRecordId(),
 						WorkflowConstants.STATUS_APPROVED);
 
@@ -687,7 +693,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			new Object[] {ddmStructureName, recordSetName}, false);
 
 		if (addDraftAssetEntry) {
-			assetEntryLocalService.updateEntry(
+			_assetEntryLocalService.updateEntry(
 				userId, record.getGroupId(), record.getCreateDate(),
 				record.getModifiedDate(),
 				DDLRecordConstants.getClassName(scope),
@@ -703,7 +709,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 				publishDate = record.getCreateDate();
 			}
 
-			assetEntryLocalService.updateEntry(
+			_assetEntryLocalService.updateEntry(
 				userId, record.getGroupId(), record.getCreateDate(),
 				record.getModifiedDate(),
 				DDLRecordConstants.getClassName(scope), record.getRecordId(),
@@ -738,7 +744,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Record
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		DDLRecord record = ddlRecordPersistence.findByPrimaryKey(recordId);
 
@@ -785,7 +791,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		if (isKeepRecordVersionLabel(
 				record.getRecordVersion(), recordVersion, serviceContext)) {
 
-			ddlRecordVersionPersistence.remove(recordVersion);
+			_ddlRecordVersionPersistence.remove(recordVersion);
 
 			// Dynamic data mapping storage
 
@@ -816,7 +822,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		DDLRecord record = ddlRecordPersistence.findByPrimaryKey(recordId);
 
@@ -869,17 +875,17 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Record version
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		DDLRecordVersion recordVersion =
-			ddlRecordVersionPersistence.findByPrimaryKey(recordVersionId);
+			_ddlRecordVersionPersistence.findByPrimaryKey(recordVersionId);
 
 		recordVersion.setStatus(status);
 		recordVersion.setStatusByUserId(user.getUserId());
 		recordVersion.setStatusByUserName(user.getFullName());
 		recordVersion.setStatusDate(new Date());
 
-		recordVersion = ddlRecordVersionPersistence.update(recordVersion);
+		recordVersion = _ddlRecordVersionPersistence.update(recordVersion);
 
 		// Record
 
@@ -908,7 +914,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 				String newVersion = DDLRecordConstants.VERSION_DEFAULT;
 
 				List<DDLRecordVersion> approvedRecordVersions =
-					ddlRecordVersionPersistence.findByR_S(
+					_ddlRecordVersionPersistence.findByR_S(
 						record.getRecordId(),
 						WorkflowConstants.STATUS_APPROVED);
 
@@ -941,7 +947,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		long recordVersionId = counterLocalService.increment();
 
-		DDLRecordVersion recordVersion = ddlRecordVersionPersistence.create(
+		DDLRecordVersion recordVersion = _ddlRecordVersionPersistence.create(
 			recordVersionId);
 
 		recordVersion.setGroupId(record.getGroupId());
@@ -960,21 +966,22 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		recordVersion.setStatusByUserName(user.getFullName());
 		recordVersion.setStatusDate(record.getModifiedDate());
 
-		return ddlRecordVersionPersistence.update(recordVersion);
+		return _ddlRecordVersionPersistence.update(recordVersion);
 	}
 
 	protected void deleteAssetEntry(long recordId) throws PortalException {
-		assetEntryLocalService.deleteEntry(
+		_assetEntryLocalService.deleteEntry(
 			DDLFormRecord.class.getName(), recordId);
 
-		assetEntryLocalService.deleteEntry(DDLRecord.class.getName(), recordId);
+		_assetEntryLocalService.deleteEntry(
+			DDLRecord.class.getName(), recordId);
 	}
 
 	protected void deleteRatingsStats(long recordId) throws PortalException {
-		ratingsStatsLocalService.deleteStats(
+		_ratingsStatsLocalService.deleteStats(
 			DDLFormRecord.class.getName(), recordId);
 
-		ratingsStatsLocalService.deleteStats(
+		_ratingsStatsLocalService.deleteStats(
 			DDLRecord.class.getName(), recordId);
 	}
 
@@ -982,10 +989,10 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			long companyId, long groupId, long recordVersionId)
 		throws PortalException {
 
-		workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+		_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
 			companyId, groupId, DDLFormRecord.class.getName(), recordVersionId);
 
-		workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+		_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
 			companyId, groupId, DDLRecord.class.getName(), recordVersionId);
 	}
 
@@ -1058,17 +1065,10 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			DDLRecordVersion latestRecordVersion, ServiceContext serviceContext)
 		throws PortalException {
 
-		if (Objects.equals(serviceContext.getCommand(), Constants.REVERT)) {
-			return false;
-		}
-
-		if (serviceContext.getWorkflowAction() ==
-				WorkflowConstants.ACTION_SAVE_DRAFT) {
-
-			return false;
-		}
-
-		if (Objects.equals(
+		if (Objects.equals(serviceContext.getCommand(), Constants.REVERT) ||
+			(serviceContext.getWorkflowAction() ==
+				WorkflowConstants.ACTION_SAVE_DRAFT) ||
+			Objects.equals(
 				lastRecordVersion.getVersion(),
 				latestRecordVersion.getVersion())) {
 
@@ -1179,7 +1179,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		recordVersion.setStatusByUserName(user.getFullName());
 		recordVersion.setStatusDate(serviceContext.getModifiedDate(null));
 
-		ddlRecordVersionPersistence.update(recordVersion);
+		_ddlRecordVersionPersistence.update(recordVersion);
 	}
 
 	protected void validate(long groupId, DDLRecordSet recordSet)
@@ -1288,6 +1288,24 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		DDLRecordLocalServiceImpl.class);
 
 	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Reference
+	private DDLRecordSetPersistence _ddlRecordSetPersistence;
+
+	@Reference
 	private DDLRecordVersionLocalService _ddlRecordVersionLocalService;
+
+	@Reference
+	private DDLRecordVersionPersistence _ddlRecordVersionPersistence;
+
+	@Reference
+	private RatingsStatsLocalService _ratingsStatsLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
+	private WorkflowInstanceLinkLocalService _workflowInstanceLinkLocalService;
 
 }

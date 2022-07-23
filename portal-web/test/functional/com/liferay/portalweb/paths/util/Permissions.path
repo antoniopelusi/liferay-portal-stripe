@@ -2,11 +2,13 @@
 <head>
 <title>Permissions</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Permissions</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ASSET_TITLE</td>
@@ -21,6 +23,17 @@
 <tr>
 	<td>SAVE_BUTTON</td>
 	<td>//button[contains(.,'Save')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--PERMISSIONS_MODAL-->
+<tr>
+	<td>PERMISSIONS_MODAL_CHECKBOX</td>
+	<td>//input[@id='${key_roleTitle}_ACTION_${key_actionName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -47,6 +60,11 @@
 <tr>
 	<td>CONFIGURATION_PERMISSIONS_ADD_ENTRY</td>
 	<td>//input[@id='${key_roleTitle}_ACTION_ADD_ENTRY']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIGURATION_PERMISSIONS_ADD_FOLDER</td>
+	<td>//input[@id='${key_roleTitle}_ACTION_ADD_FOLDER']</td>
 	<td></td>
 </tr>
 <tr>
@@ -136,6 +154,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>INLINE_PERMISSIONS_DELETE_CHECKBOX</td>
+	<td>//input[@id='${key_roleTitle}_ACTION_DELETE']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>INLINE_PERMISSIONS_SUBSCRIBE_CHECKBOX</td>
 	<td>//input[@id='${key_roleTitle}_ACTION_SUBSCRIBE']</td>
 	<td></td>
@@ -153,6 +176,11 @@
 <tr>
 	<td>INLINE_PERMISSIONS_VIEW_CHECKBOX</td>
 	<td>//input[@id='${key_roleTitle}_ACTION_VIEW']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INLINE_PERMISSIONS_ADD_WEB_CONTENT_CHECKBOX</td>
+	<td>//input[@id='${key_roleTitle}_ACTION_ADD_ARTICLE']</td>
 	<td></td>
 </tr>
 <tr>

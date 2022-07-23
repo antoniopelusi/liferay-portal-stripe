@@ -114,4 +114,7 @@ public interface CompanyInfoModel
 	 */
 	public void setKey(String key);
 
+	@Override
+	public CompanyInfo cloneWithOriginalValues();
+
 }

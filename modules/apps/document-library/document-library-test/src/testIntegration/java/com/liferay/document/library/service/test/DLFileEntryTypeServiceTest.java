@@ -86,12 +86,13 @@ public class DLFileEntryTypeServiceTest {
 
 		_folder = DLAppLocalServiceUtil.addFolder(
 			TestPropsValues.getUserId(), _group.getGroupId(),
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, "Folder A", "",
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, "Folder A",
+			StringPool.BLANK,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		_subfolder = DLAppLocalServiceUtil.addFolder(
 			TestPropsValues.getUserId(), _group.getGroupId(),
-			_folder.getFolderId(), "SubFolder AA", "",
+			_folder.getFolderId(), "SubFolder AA", StringPool.BLANK,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		_basicDocumentDLFileEntryType =
@@ -206,7 +207,7 @@ public class DLFileEntryTypeServiceTest {
 
 		Assert.assertTrue(hasUserLocale);
 
-		DLFileEntryTypeLocalServiceUtil.deleteDLFileEntryType(dlFileEntryType);
+		DLFileEntryTypeLocalServiceUtil.deleteFileEntryType(dlFileEntryType);
 	}
 
 	@Test
@@ -225,8 +226,9 @@ public class DLFileEntryTypeServiceTest {
 		byte[] bytes = _CONTENT.getBytes();
 
 		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
-			_group.getGroupId(), _folder.getFolderId(), name,
-			ContentTypes.TEXT_PLAIN, name, "", "", bytes,
+			null, _group.getGroupId(), _folder.getFolderId(), name,
+			ContentTypes.TEXT_PLAIN, name, StringPool.BLANK, StringPool.BLANK,
+			StringPool.BLANK, bytes, null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		assertFileEntryType(fileEntry, _dlFileEntryType1);
@@ -234,8 +236,9 @@ public class DLFileEntryTypeServiceTest {
 		// Add file to subfolder
 
 		fileEntry = DLAppServiceUtil.addFileEntry(
-			_group.getGroupId(), _subfolder.getFolderId(), name,
-			ContentTypes.TEXT_PLAIN, name, "", "", bytes,
+			null, _group.getGroupId(), _subfolder.getFolderId(), name,
+			ContentTypes.TEXT_PLAIN, name, StringPool.BLANK, StringPool.BLANK,
+			StringPool.BLANK, bytes, null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		assertFileEntryType(fileEntry, _dlFileEntryType1);
@@ -247,9 +250,9 @@ public class DLFileEntryTypeServiceTest {
 			_subfolder.getName(), _subfolder.getDescription(),
 			_getFolderServiceContext(_basicDocumentDLFileEntryType));
 
-		fileEntry = DLAppServiceUtil.getFileEntry(fileEntry.getFileEntryId());
-
-		assertFileEntryType(fileEntry, _basicDocumentDLFileEntryType);
+		assertFileEntryType(
+			DLAppServiceUtil.getFileEntry(fileEntry.getFileEntryId()),
+			_basicDocumentDLFileEntryType);
 	}
 
 	@Test

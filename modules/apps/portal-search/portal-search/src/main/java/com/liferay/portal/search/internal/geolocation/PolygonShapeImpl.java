@@ -29,7 +29,7 @@ import java.util.List;
  * @author Michael C. Han
  * @author André de Oliveira
  */
-public class PolygonShapeImpl extends ShapeImpl implements PolygonShape {
+public class PolygonShapeImpl extends BaseShapeImpl implements PolygonShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

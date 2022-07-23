@@ -14,7 +14,6 @@
 
 package com.liferay.portal.action;
 
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.struts.JSONAction;
@@ -60,7 +59,7 @@ public class RateEntryAction extends JSONAction {
 			totalScore = stats.getTotalScore();
 		}
 
-		JSONObject jsonObject = JSONUtil.put(
+		return JSONUtil.put(
 			"averageScore", averageScore
 		).put(
 			"score", score
@@ -68,9 +67,7 @@ public class RateEntryAction extends JSONAction {
 			"totalEntries", totalEntries
 		).put(
 			"totalScore", totalScore
-		);
-
-		return jsonObject.toString();
+		).toString();
 	}
 
 	protected String getClassName(HttpServletRequest httpServletRequest) {

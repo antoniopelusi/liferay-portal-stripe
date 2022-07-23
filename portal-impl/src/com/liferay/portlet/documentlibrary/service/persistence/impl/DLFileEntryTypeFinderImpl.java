@@ -506,17 +506,12 @@ public class DLFileEntryTypeFinderImpl
 	}
 
 	protected String getBasicDocument(String prefix) {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append(prefix);
-		sb.append("((DLFileEntryType.companyId = 0) AND ");
-		sb.append("(DLFileEntryType.groupId = 0) AND (");
-		sb.append("(LOWER(DLFileEntryType.name) LIKE ? ");
-		sb.append("[$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$] ");
-		sb.append("(DLFileEntryType.description LIKE ? ");
-		sb.append("[$AND_OR_NULL_CHECK$]) ))) UNION ALL (");
-
-		return sb.toString();
+		return StringBundler.concat(
+			prefix, "((DLFileEntryType.companyId = 0) AND ",
+			"(DLFileEntryType.groupId = 0) AND (",
+			"(LOWER(DLFileEntryType.name) LIKE ? [$AND_OR_NULL_CHECK$]) ",
+			"[$AND_OR_CONNECTOR$] (DLFileEntryType.description LIKE ? ",
+			"[$AND_OR_NULL_CHECK$]) ))) UNION ALL (");
 	}
 
 	protected String getBasicDocumentCount(boolean includeBasicFileEntryType) {

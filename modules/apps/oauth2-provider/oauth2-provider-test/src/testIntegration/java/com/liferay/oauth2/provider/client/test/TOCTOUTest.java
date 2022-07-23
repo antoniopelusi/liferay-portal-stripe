@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
@@ -159,12 +159,13 @@ public class TOCTOUTest extends BaseClientTestCase {
 		// Try again with a fresh token (implicitly for "everything.read"). It
 		// should succeed.
 
-		token = getToken(
-			"oauthTestApplicationCode", null,
-			getAuthorizationCodeBiFunction("test@liferay.com", "test", null),
-			this::parseTokenString);
-
-		webTarget2InvocationBuilder = authorize(webTarget2.request(), token);
+		webTarget2InvocationBuilder = authorize(
+			webTarget2.request(),
+			getToken(
+				"oauthTestApplicationCode", null,
+				getAuthorizationCodeBiFunction(
+					"test@liferay.com", "test", null),
+				this::parseTokenString));
 
 		Assert.assertEquals(
 			"everything.read", webTarget2InvocationBuilder.get(String.class));
@@ -236,9 +237,10 @@ public class TOCTOUTest extends BaseClientTestCase {
 					}
 				});
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put("oauth2.scope.checker.type", "annotations");
+			Dictionary<String, Object> properties =
+				HashMapDictionaryBuilder.<String, Object>put(
+					"oauth2.scope.checker.type", "annotations"
+				).build();
 
 			registerJaxRsApplication(
 				new TestRunnablePostHandlingApplication(

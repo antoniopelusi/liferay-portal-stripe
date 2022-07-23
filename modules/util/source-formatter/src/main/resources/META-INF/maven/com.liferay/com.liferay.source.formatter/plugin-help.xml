@@ -7,7 +7,7 @@
 	<description/>
 	<groupId>com.liferay</groupId>
 	<artifactId>com.liferay.source.formatter</artifactId>
-	<version>1.0.1109</version>
+	<version>1.0.1217</version>
 	<goalPrefix>source-formatter</goalPrefix>
 	<mojos>
 		<mojo>
@@ -146,20 +146,6 @@
 				</parameter>
 				<parameter>
 					<name>showDebugInformation</name>
-					<type>boolean</type>
-					<required>false</required>
-					<editable>true</editable>
-					<description/>
-				</parameter>
-				<parameter>
-					<name>showDocumentation</name>
-					<type>boolean</type>
-					<required>false</required>
-					<editable>true</editable>
-					<description/>
-				</parameter>
-				<parameter>
-					<name>showStatusUpdates</name>
 					<type>boolean</type>
 					<required>false</required>
 					<editable>true</editable>

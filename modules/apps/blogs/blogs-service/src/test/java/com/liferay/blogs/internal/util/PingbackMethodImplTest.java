@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
-import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFunction;
@@ -43,7 +42,6 @@ import com.liferay.portal.kernel.xmlrpc.XmlRpc;
 import com.liferay.portal.kernel.xmlrpc.XmlRpcConstants;
 import com.liferay.portal.kernel.xmlrpc.XmlRpcUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.registry.collections.ServiceTrackerMap;
 
 import java.io.IOException;
 
@@ -78,17 +76,17 @@ public class PingbackMethodImplTest {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 
-		setUpBlogsEntryLocalService();
-		setUpHttpUtil();
-		setUpInetAddressLookup();
-		setUpLanguageUtil();
-		setUpPingbackProperties();
-		setUpPortalUtil();
-		setUpPortletIdLookup();
-		setUpPortletLocalService();
-		setUpPropsTestUtil();
-		setUpUserLocalService();
-		setUpXmlRpcUtil();
+		_setUpBlogsEntryLocalService();
+		_setUpHttpUtil();
+		_setUpInetAddressLookup();
+		_setUpLanguageUtil();
+		_setUpPingbackProperties();
+		_setUpPortalUtil();
+		_setUpPortletIdLookup();
+		_setUpPortletLocalService();
+		_setUpPropsTestUtil();
+		_setUpUserLocalService();
+		_setUpXmlRpcUtil();
 	}
 
 	@Test
@@ -103,7 +101,7 @@ public class PingbackMethodImplTest {
 
 		execute();
 
-		verifyFault(
+		_verifyFault(
 			XmlRpcConstants.REQUESTED_METHOD_NOT_FOUND,
 			"Pingbacks are disabled");
 	}
@@ -120,7 +118,7 @@ public class PingbackMethodImplTest {
 
 		execute();
 
-		verifyFault(
+		_verifyFault(
 			XmlRpcConstants.REQUESTED_METHOD_NOT_FOUND,
 			"Pingbacks are disabled");
 	}
@@ -147,21 +145,21 @@ public class PingbackMethodImplTest {
 
 		String friendlyURLPath = RandomTestUtil.randomString();
 
-		whenFriendlyURLMapperPopulateParams(
+		_whenFriendlyURLMapperPopulateParams(
 			"/" + friendlyURLPath, "urlTitle", _URL_TITLE);
 
 		String targetURI = StringBundler.concat(
 			"http://", RandomTestUtil.randomString(), "/", friendlyURL, "/-/",
 			friendlyURLPath);
 
-		whenHttpURLToString(
+		_whenHttpURLToString(
 			StringBundler.concat(
 				"<body><a href='", targetURI, "'>",
 				RandomTestUtil.randomString(), "</a></body>"));
 
 		execute(targetURI);
 
-		verifySuccess();
+		_verifySuccess();
 
 		Mockito.verify(
 			_blogsEntryLocalService
@@ -194,10 +192,11 @@ public class PingbackMethodImplTest {
 
 	@Test
 	public void testBuildServiceContext() throws Exception {
-		PingbackMethodImpl pingbackMethodImpl = getPingbackMethodImpl();
-
-		ServiceContext serviceContext = pingbackMethodImpl.buildServiceContext(
-			_COMPANY_ID, _GROUP_ID, _URL_TITLE);
+		ServiceContext serviceContext =
+			(ServiceContext)ReflectionTestUtil.invoke(
+				_getPingbackMethodImpl(), "_buildServiceContext",
+				new Class<?>[] {long.class, long.class, String.class},
+				_COMPANY_ID, _GROUP_ID, _URL_TITLE);
 
 		Assert.assertEquals(
 			_PINGBACK_USER_NAME,
@@ -227,7 +226,7 @@ public class PingbackMethodImplTest {
 
 		execute();
 
-		verifyFault(
+		_verifyFault(
 			PingbackMethodImpl.PINGBACK_ALREADY_REGISTERED,
 			"Pingback is already registered: null");
 	}
@@ -236,7 +235,7 @@ public class PingbackMethodImplTest {
 	public void testExecuteWithSuccess() throws Exception {
 		execute();
 
-		verifySuccess();
+		_verifySuccess();
 
 		Mockito.verify(
 			_commentManager
@@ -259,24 +258,24 @@ public class PingbackMethodImplTest {
 			_pingbackProperties
 		).getLinkbackExcerptLength();
 
-		whenHttpURLToString(
+		_whenHttpURLToString(
 			"<body><a href='http://" + _TARGET_URI + "'>12345</a></body>");
 
 		execute();
 
-		verifyExcerpt("1...");
+		_verifyExcerpt("1...");
 	}
 
 	@Test
 	public void testGetExcerptWhenAnchorHasParent() throws Exception {
-		whenHttpURLToString(
+		_whenHttpURLToString(
 			StringBundler.concat(
 				"<body><p>Visit <a href='http://", _TARGET_URI,
 				"'>Liferay</a> to learn more</p></body>"));
 
 		execute();
 
-		verifyExcerpt("Visit Liferay to learn more");
+		_verifyExcerpt("Visit Liferay to learn more");
 	}
 
 	@Test
@@ -287,33 +286,33 @@ public class PingbackMethodImplTest {
 			_pingbackProperties
 		).getLinkbackExcerptLength();
 
-		whenHttpURLToString(
+		_whenHttpURLToString(
 			"<body>_____<p>12345<span>67890<a href='http://" + _TARGET_URI +
 				"'>Liferay</a>12345</span>67890</p>_____</body>");
 
 		execute();
 
-		verifyExcerpt("1234567890Lifer...");
+		_verifyExcerpt("1234567890Lifer...");
 	}
 
 	@Test
 	public void testGetExcerptWhenAnchorIsMalformed() throws Exception {
-		whenHttpURLToString("<a href='MALFORMED' />");
+		_whenHttpURLToString("<a href='MALFORMED' />");
 
 		execute("MALFORMED");
 
-		verifyFault(
+		_verifyFault(
 			PingbackMethodImpl.TARGET_URI_INVALID,
 			"Unable to parse target URI");
 	}
 
 	@Test
 	public void testGetExcerptWhenAnchorIsMissing() throws Exception {
-		whenHttpURLToString("");
+		_whenHttpURLToString("");
 
 		execute();
 
-		verifyFault(
+		_verifyFault(
 			PingbackMethodImpl.SOURCE_URI_INVALID,
 			"Unable to find target URI in source");
 	}
@@ -328,7 +327,7 @@ public class PingbackMethodImplTest {
 
 		execute();
 
-		verifyFault(
+		_verifyFault(
 			PingbackMethodImpl.SOURCE_URI_DOES_NOT_EXIST,
 			"Error accessing source URI");
 	}
@@ -348,7 +347,7 @@ public class PingbackMethodImplTest {
 					"</a></body>")
 			);
 
-			PingbackMethodImpl pingbackMethodImpl = getPingbackMethodImpl();
+			PingbackMethodImpl pingbackMethodImpl = _getPingbackMethodImpl();
 
 			pingbackMethodImpl.setArguments(
 				new Object[] {sourceURL, "http://" + _TARGET_URI});
@@ -368,14 +367,48 @@ public class PingbackMethodImplTest {
 	}
 
 	protected void execute(String targetURI) {
-		PingbackMethodImpl pingbackMethodImpl = getPingbackMethodImpl();
+		PingbackMethodImpl pingbackMethodImpl = _getPingbackMethodImpl();
 
 		pingbackMethodImpl.setArguments(new Object[] {_SOURCE_URI, targetURI});
 
 		pingbackMethodImpl.execute(_COMPANY_ID);
 	}
 
-	protected PingbackMethodImpl getPingbackMethodImpl() {
+	protected void testAddPingbackWithFriendlyURLParameterEntryId(
+			String namespace)
+		throws Exception {
+
+		Mockito.when(
+			_blogsEntryLocalService.getEntry(Matchers.anyLong())
+		).thenReturn(
+			_blogsEntry
+		);
+
+		String name = null;
+
+		if (namespace == null) {
+			name = "entryId";
+		}
+		else {
+			name = namespace + "entryId";
+		}
+
+		long entryId = RandomTestUtil.randomLong();
+
+		_whenFriendlyURLMapperPopulateParams("", name, String.valueOf(entryId));
+
+		execute();
+
+		_verifySuccess();
+
+		Mockito.verify(
+			_blogsEntryLocalService
+		).getEntry(
+			entryId
+		);
+	}
+
+	private PingbackMethodImpl _getPingbackMethodImpl() {
 		PingbackMethodImpl pingbackMethodImpl = new PingbackMethodImpl();
 
 		pingbackMethodImpl.setInetAddressLookup(_inetAddressLookup);
@@ -395,11 +428,13 @@ public class PingbackMethodImplTest {
 			pingbackMethodImpl, "_portletLocalService", _portletLocalService);
 		ReflectionTestUtil.setFieldValue(
 			pingbackMethodImpl, "_userLocalService", _userLocalService);
+		ReflectionTestUtil.setFieldValue(
+			pingbackMethodImpl, "_xmlRpc", _xmlRpc);
 
 		return pingbackMethodImpl;
 	}
 
-	protected void setUpBlogsEntryLocalService() throws Exception {
+	private void _setUpBlogsEntryLocalService() throws Exception {
 		Mockito.when(
 			_blogsEntry.getEntryId()
 		).thenReturn(
@@ -432,8 +467,8 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void setUpHttpUtil() throws Exception {
-		whenHttpURLToString(
+	private void _setUpHttpUtil() throws Exception {
+		_whenHttpURLToString(
 			StringBundler.concat(
 				"<body><a href='http://", _TARGET_URI, "'>", _EXCERPT_BODY,
 				"</a></body>"));
@@ -443,7 +478,7 @@ public class PingbackMethodImplTest {
 		httpUtil.setHttp(_http);
 	}
 
-	protected void setUpInetAddressLookup() throws Exception {
+	private void _setUpInetAddressLookup() throws Exception {
 		_localAddresses = new InetAddress[] {
 			InetAddress.getByAddress(new byte[] {0, 0, 0, 0}),
 			InetAddress.getByAddress(new byte[] {10, 0, 0, 1}),
@@ -477,16 +512,16 @@ public class PingbackMethodImplTest {
 		}
 	}
 
-	protected void setUpLanguageUtil() {
-		whenLanguageGet("pingback", _PINGBACK_USER_NAME);
-		whenLanguageGet("read-more", _READ_MORE);
+	private void _setUpLanguageUtil() {
+		_whenLanguageGet("pingback", _PINGBACK_USER_NAME);
+		_whenLanguageGet("read-more", _READ_MORE);
 
 		LanguageUtil languageUtil = new LanguageUtil();
 
 		languageUtil.setLanguage(_language);
 	}
 
-	protected void setUpPingbackProperties() {
+	private void _setUpPingbackProperties() {
 		Mockito.doReturn(
 			200
 		).when(
@@ -500,7 +535,7 @@ public class PingbackMethodImplTest {
 		).isPingbackEnabled();
 	}
 
-	protected void setUpPortalUtil() throws Exception {
+	private void _setUpPortalUtil() throws Exception {
 		Mockito.when(
 			_portal.getLayoutFullURL(
 				Matchers.anyLong(), Matchers.eq(BlogsPortletKeys.BLOGS))
@@ -526,7 +561,7 @@ public class PingbackMethodImplTest {
 		portalUtil.setPortal(_portal);
 	}
 
-	protected void setUpPortletIdLookup() {
+	private void _setUpPortletIdLookup() {
 		Mockito.doReturn(
 			BlogsPortletKeys.BLOGS
 		).when(
@@ -536,7 +571,7 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void setUpPortletLocalService() {
+	private void _setUpPortletLocalService() {
 		Portlet portlet = Mockito.mock(Portlet.class);
 
 		Mockito.when(
@@ -565,7 +600,7 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void setUpPropsTestUtil() {
+	private void _setUpPropsTestUtil() {
 		PropsTestUtil.setProps(
 			HashMapBuilder.<String, Object>put(
 				PropsKeys.DNS_SECURITY_ADDRESS_TIMEOUT_SECONDS,
@@ -575,7 +610,7 @@ public class PingbackMethodImplTest {
 			).build());
 	}
 
-	protected void setUpUserLocalService() throws Exception {
+	private void _setUpUserLocalService() throws Exception {
 		Mockito.when(
 			_userLocalService.getDefaultUserId(Matchers.anyLong())
 		).thenReturn(
@@ -583,7 +618,7 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void setUpXmlRpcUtil() {
+	private void _setUpXmlRpcUtil() {
 		Fault fault = Mockito.mock(Fault.class);
 
 		Mockito.when(
@@ -597,42 +632,8 @@ public class PingbackMethodImplTest {
 		xmlRpcUtil.setXmlRpc(_xmlRpc);
 	}
 
-	protected void testAddPingbackWithFriendlyURLParameterEntryId(
-			String namespace)
-		throws Exception {
-
-		Mockito.when(
-			_blogsEntryLocalService.getEntry(Matchers.anyLong())
-		).thenReturn(
-			_blogsEntry
-		);
-
-		String name = null;
-
-		if (namespace == null) {
-			name = "entryId";
-		}
-		else {
-			name = namespace + "entryId";
-		}
-
-		long entryId = RandomTestUtil.randomLong();
-
-		whenFriendlyURLMapperPopulateParams("", name, String.valueOf(entryId));
-
-		execute();
-
-		verifySuccess();
-
-		Mockito.verify(
-			_blogsEntryLocalService
-		).getEntry(
-			entryId
-		);
-	}
-
-	protected void verifyExcerpt(String excerpt) throws Exception {
-		verifySuccess();
+	private void _verifyExcerpt(String excerpt) throws Exception {
+		_verifySuccess();
 
 		Mockito.verify(
 			_commentManager
@@ -647,7 +648,7 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void verifyFault(int code, String description) {
+	private void _verifyFault(int code, String description) {
 		Mockito.verify(
 			_xmlRpc
 		).createFault(
@@ -655,7 +656,7 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void verifySuccess() {
+	private void _verifySuccess() {
 		Mockito.verify(
 			_xmlRpc
 		).createSuccess(
@@ -663,8 +664,8 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void whenFriendlyURLMapperPopulateParams(
-		String friendlyURLPath, final String name, final String value) {
+	private void _whenFriendlyURLMapperPopulateParams(
+		String friendlyURLPath, String name, String value) {
 
 		Mockito.doAnswer(
 			invocationOnMock -> {
@@ -682,7 +683,7 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void whenHttpURLToString(String returnValue) throws Exception {
+	private void _whenHttpURLToString(String returnValue) throws Exception {
 		Mockito.when(
 			_http.URLtoString(_SOURCE_URI)
 		).thenReturn(
@@ -690,7 +691,7 @@ public class PingbackMethodImplTest {
 		);
 	}
 
-	protected void whenLanguageGet(String key, String returnValue) {
+	private void _whenLanguageGet(String key, String returnValue) {
 		Mockito.when(
 			_language.get((Locale)Matchers.any(), Matchers.eq(key))
 		).thenReturn(
@@ -760,9 +761,6 @@ public class PingbackMethodImplTest {
 
 	@Mock
 	private PortletLocalService _portletLocalService;
-
-	@Mock
-	private ServiceTrackerMap<String, PortletProvider> _serviceTrackerMap;
 
 	@Mock
 	private UserLocalService _userLocalService;

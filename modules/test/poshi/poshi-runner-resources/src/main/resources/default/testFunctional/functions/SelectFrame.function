@@ -1,21 +1,59 @@
-<definition default="selectFrame">
-	<command name="selectFrame">
-		<if>
-			<contains string="${locator1}" substring="/iframe" />
-			<then>
-				<execute selenium="waitForVisible" />
+@default = "selectFrame"
+definition {
 
-				<execute selenium="mouseOver" />
+	function selectFrame {
+		if (contains("${locator1}", "/iframe")) {
+			selenium.waitForVisible();
 
-				<execute selenium="selectFrame" />
-			</then>
-			<else>
-				<execute function="SelectFrame#selectFrameTop" />
-			</else>
-		</if>
-	</command>
+			selenium.mouseOver();
 
-	<command name="selectFrameTop">
-		<execute argument1="relative=top" selenium="selectFrame" />
-	</command>
-</definition>
+			selenium.selectFrame();
+
+			selenium.assertJavaScriptErrors();
+
+			selenium.assertLiferayErrors();
+		}
+		else {
+			SelectFrame.selectFrameTop();
+		}
+	}
+
+	function selectFrameNoLoading {
+		if (contains("${locator1}", "/iframe")) {
+			selenium.waitForVisible();
+
+			selenium.mouseOver();
+
+			selenium.selectFrame();
+
+			selenium.assertJavaScriptErrors();
+
+			selenium.assertLiferayErrors();
+		}
+		else {
+			SelectFrame.selectFrameTop();
+		}
+	}
+
+	function selectFrameTop {
+		selenium.selectFrame("relative=top");
+	}
+
+	function selectSecondFrame {
+		if (contains("${locator1}", "/iframe")) {
+			selenium.waitForVisible();
+
+			selenium.mouseOver();
+
+			selenium.selectFrame();
+
+			selenium.assertJavaScriptErrors();
+
+			selenium.assertLiferayErrors();
+		}
+		else {
+			SelectFrame.selectFrameTop();
+		}
+	}
+
+}

@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.Address;
 import com.liferay.portal.kernel.model.AddressModel;
-import com.liferay.portal.kernel.model.AddressSoap;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
@@ -34,21 +33,20 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -213,88 +211,26 @@ public class AddressModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long USERID_COLUMN_BITMASK = 256L;
+	public static final long TYPEID_COLUMN_BITMASK = 256L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 512L;
+	public static final long USERID_COLUMN_BITMASK = 512L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 1024L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CREATEDATE_COLUMN_BITMASK = 1024L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Address toModel(AddressSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Address model = new AddressImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setAddressId(soapModel.getAddressId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setCountryId(soapModel.getCountryId());
-		model.setRegionId(soapModel.getRegionId());
-		model.setTypeId(soapModel.getTypeId());
-		model.setCity(soapModel.getCity());
-		model.setDescription(soapModel.getDescription());
-		model.setLatitude(soapModel.getLatitude());
-		model.setLongitude(soapModel.getLongitude());
-		model.setMailing(soapModel.isMailing());
-		model.setName(soapModel.getName());
-		model.setPrimary(soapModel.isPrimary());
-		model.setStreet1(soapModel.getStreet1());
-		model.setStreet2(soapModel.getStreet2());
-		model.setStreet3(soapModel.getStreet3());
-		model.setValidationDate(soapModel.getValidationDate());
-		model.setValidationStatus(soapModel.getValidationStatus());
-		model.setZip(soapModel.getZip());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Address> toModels(AddressSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Address> models = new ArrayList<Address>(soapModels.length);
-
-		for (AddressSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
+	public static final long CREATEDATE_COLUMN_BITMASK = 2048L;
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
@@ -382,33 +318,6 @@ public class AddressModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Address>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Address.class.getClassLoader(), Address.class, ModelWrapper.class);
-
-		try {
-			Constructor<Address> constructor =
-				(Constructor<Address>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Address, Object>>
@@ -861,6 +770,15 @@ public class AddressModelImpl
 		_typeId = typeId;
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalTypeId() {
+		return GetterUtil.getLong(this.<Long>getColumnOriginalValue("typeId"));
+	}
+
 	@JSON
 	@Override
 	public String getCity() {
@@ -1220,6 +1138,56 @@ public class AddressModelImpl
 	}
 
 	@Override
+	public Address cloneWithOriginalValues() {
+		AddressImpl addressImpl = new AddressImpl();
+
+		addressImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		addressImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		addressImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		addressImpl.setAddressId(
+			this.<Long>getColumnOriginalValue("addressId"));
+		addressImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		addressImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		addressImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		addressImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		addressImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		addressImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		addressImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		addressImpl.setCountryId(
+			this.<Long>getColumnOriginalValue("countryId"));
+		addressImpl.setRegionId(this.<Long>getColumnOriginalValue("regionId"));
+		addressImpl.setTypeId(this.<Long>getColumnOriginalValue("typeId"));
+		addressImpl.setCity(this.<String>getColumnOriginalValue("city"));
+		addressImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		addressImpl.setLatitude(
+			this.<Double>getColumnOriginalValue("latitude"));
+		addressImpl.setLongitude(
+			this.<Double>getColumnOriginalValue("longitude"));
+		addressImpl.setMailing(this.<Boolean>getColumnOriginalValue("mailing"));
+		addressImpl.setName(this.<String>getColumnOriginalValue("name"));
+		addressImpl.setPrimary(
+			this.<Boolean>getColumnOriginalValue("primary_"));
+		addressImpl.setStreet1(this.<String>getColumnOriginalValue("street1"));
+		addressImpl.setStreet2(this.<String>getColumnOriginalValue("street2"));
+		addressImpl.setStreet3(this.<String>getColumnOriginalValue("street3"));
+		addressImpl.setValidationDate(
+			this.<Date>getColumnOriginalValue("validationDate"));
+		addressImpl.setValidationStatus(
+			this.<Integer>getColumnOriginalValue("validationStatus"));
+		addressImpl.setZip(this.<String>getColumnOriginalValue("zip"));
+
+		return addressImpl;
+	}
+
+	@Override
 	public int compareTo(Address address) {
 		int value = 0;
 
@@ -1436,7 +1404,7 @@ public class AddressModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1447,9 +1415,26 @@ public class AddressModelImpl
 			Function<Address, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Address)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Address)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1496,7 +1481,9 @@ public class AddressModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Address>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Address.class, ModelWrapper.class);
 
 	}
 

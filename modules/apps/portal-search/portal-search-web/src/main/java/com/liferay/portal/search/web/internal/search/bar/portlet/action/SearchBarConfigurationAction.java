@@ -21,9 +21,9 @@ import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.web.constants.SearchBarPortletKeys;
-import com.liferay.portal.search.web.internal.search.bar.portlet.SearchBarPortletDisplayContext;
-import com.liferay.portal.search.web.internal.search.bar.portlet.SearchBarPrecedenceHelper;
 import com.liferay.portal.search.web.internal.search.bar.portlet.configuration.SearchBarPortletInstanceConfiguration;
+import com.liferay.portal.search.web.internal.search.bar.portlet.display.context.SearchBarPortletDisplayContext;
+import com.liferay.portal.search.web.internal.search.bar.portlet.helper.SearchBarPrecedenceHelper;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -51,7 +51,7 @@ public class SearchBarConfigurationAction extends DefaultConfigurationAction {
 
 		SearchBarPortletInstanceConfiguration
 			searchBarPortletInstanceConfiguration =
-				getSearchBarPortletInstanceConfiguration(
+				_getSearchBarPortletInstanceConfiguration(
 					themeDisplay.getPortletDisplay());
 
 		long displayStyleGroupId =
@@ -75,8 +75,11 @@ public class SearchBarConfigurationAction extends DefaultConfigurationAction {
 		return "/search/bar/configuration.jsp";
 	}
 
-	protected SearchBarPortletInstanceConfiguration
-		getSearchBarPortletInstanceConfiguration(
+	@Reference
+	protected SearchBarPrecedenceHelper searchBarPrecedenceHelper;
+
+	private SearchBarPortletInstanceConfiguration
+		_getSearchBarPortletInstanceConfiguration(
 			PortletDisplay portletDisplay) {
 
 		try {
@@ -87,8 +90,5 @@ public class SearchBarConfigurationAction extends DefaultConfigurationAction {
 			throw new RuntimeException(configurationException);
 		}
 	}
-
-	@Reference
-	protected SearchBarPrecedenceHelper searchBarPrecedenceHelper;
 
 }

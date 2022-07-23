@@ -27,6 +27,10 @@ public class CommerceCurrencyLocalServiceWrapper
 	implements CommerceCurrencyLocalService,
 			   ServiceWrapper<CommerceCurrencyLocalService> {
 
+	public CommerceCurrencyLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceCurrencyLocalServiceWrapper(
 		CommerceCurrencyLocalService commerceCurrencyLocalService) {
 
@@ -157,6 +161,13 @@ public class CommerceCurrencyLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceCurrencyLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceCurrencyLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

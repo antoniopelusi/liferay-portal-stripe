@@ -24,18 +24,20 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.service.builder.test.model.VersionedEntry;
 import com.liferay.portal.tools.service.builder.test.model.VersionedEntryVersion;
 import com.liferay.portal.tools.service.builder.test.model.VersionedEntryVersionModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -223,34 +225,6 @@ public class VersionedEntryVersionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, VersionedEntryVersion>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			VersionedEntryVersion.class.getClassLoader(),
-			VersionedEntryVersion.class, ModelWrapper.class);
-
-		try {
-			Constructor<VersionedEntryVersion> constructor =
-				(Constructor<VersionedEntryVersion>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<VersionedEntryVersion, Object>>
@@ -481,6 +455,23 @@ public class VersionedEntryVersionModelImpl
 	}
 
 	@Override
+	public VersionedEntryVersion cloneWithOriginalValues() {
+		VersionedEntryVersionImpl versionedEntryVersionImpl =
+			new VersionedEntryVersionImpl();
+
+		versionedEntryVersionImpl.setVersionedEntryVersionId(
+			this.<Long>getColumnOriginalValue("versionedEntryVersionId"));
+		versionedEntryVersionImpl.setVersion(
+			this.<Integer>getColumnOriginalValue("version"));
+		versionedEntryVersionImpl.setVersionedEntryId(
+			this.<Long>getColumnOriginalValue("versionedEntryId"));
+		versionedEntryVersionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+
+		return versionedEntryVersionImpl;
+	}
+
+	@Override
 	public int compareTo(VersionedEntryVersion versionedEntryVersion) {
 		int value = 0;
 
@@ -580,7 +571,7 @@ public class VersionedEntryVersionModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -591,10 +582,27 @@ public class VersionedEntryVersionModelImpl
 			Function<VersionedEntryVersion, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((VersionedEntryVersion)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(VersionedEntryVersion)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -642,7 +650,9 @@ public class VersionedEntryVersionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, VersionedEntryVersion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					VersionedEntryVersion.class, ModelWrapper.class);
 
 	}
 

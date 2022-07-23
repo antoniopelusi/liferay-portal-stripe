@@ -134,6 +134,11 @@ public class KBTemplateWrapper
 		}
 	}
 
+	@Override
+	public KBTemplate cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this kb template.
 	 *

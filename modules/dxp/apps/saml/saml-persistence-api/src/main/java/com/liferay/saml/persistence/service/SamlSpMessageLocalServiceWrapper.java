@@ -27,6 +27,10 @@ public class SamlSpMessageLocalServiceWrapper
 	implements SamlSpMessageLocalService,
 			   ServiceWrapper<SamlSpMessageLocalService> {
 
+	public SamlSpMessageLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SamlSpMessageLocalServiceWrapper(
 		SamlSpMessageLocalService samlSpMessageLocalService) {
 
@@ -140,6 +144,13 @@ public class SamlSpMessageLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _samlSpMessageLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _samlSpMessageLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

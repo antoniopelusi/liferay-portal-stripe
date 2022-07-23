@@ -83,6 +83,11 @@ public class AccountRoleWrapper
 		}
 	}
 
+	@Override
+	public AccountRole cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the account entry ID of this account role.
 	 *

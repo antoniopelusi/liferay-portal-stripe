@@ -182,15 +182,10 @@ public class InfoForm {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{_infoFieldSetEntriesByName: ");
-		sb.append(MapUtil.toString(_builder._infoFieldSetEntriesByName));
-		sb.append(", name: ");
-		sb.append(_builder._name);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{_infoFieldSetEntriesByName: ",
+			MapUtil.toString(_builder._infoFieldSetEntriesByName), ", name: ",
+			_builder._name, "}");
 	}
 
 	public static class Builder {
@@ -255,10 +250,10 @@ public class InfoForm {
 
 		public <T extends Throwable> Builder infoFieldSetEntry(
 				UnsafeConsumer<UnsafeConsumer<InfoFieldSetEntry, T>, T>
-					consumer)
+					unsafeConsumer)
 			throws T {
 
-			consumer.accept(this::infoFieldSetEntry);
+			unsafeConsumer.accept(this::infoFieldSetEntry);
 
 			return this;
 		}

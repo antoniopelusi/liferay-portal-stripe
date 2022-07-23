@@ -1,0 +1,1027 @@
+definition {
+
+	macro addPage {
+		if (!(isSet(siteName))) {
+			var siteName = "Site Name";
+		}
+
+		if (!(isSet(layoutName))) {
+			var layoutName = "AC Page";
+		}
+
+		JSONLayout.addPublicLayout(
+			groupName = "${siteName}",
+			layoutName = "${layoutName}");
+	}
+
+	macro addSiteAndPage {
+		if (!(isSet(siteName))) {
+			var siteName = "Site Name";
+		}
+
+		JSONGroup.addGroup(groupName = "${siteName}");
+
+		if (!(isSet(layoutName))) {
+			var layoutName = "AC Page";
+		}
+
+		ACUtils.addPage(
+			layoutName = "${layoutName}",
+			siteName = "${siteName}");
+	}
+
+	macro addWidgetToPage {
+		if (!(isSet(layoutName))) {
+			var layoutName = "AC Page";
+		}
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "${layoutName}",
+			widgetName = "${widgetName}");
+
+		Navigator.gotoSitePage(
+			pageName = "${layoutName}",
+			siteName = "Site Name");
+	}
+
+	macro assertActiveIndividualChart {
+		var key_timeFilter = "${timeFilter}";
+
+		if (isSet(visitorLegend)) {
+			var key_visitorLegend = "${visitorLegend}";
+
+			MouseOver(locator1 = "ACIndividualsDashboard#VISITORS_LEGEND");
+
+			while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART") && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+
+				if ("${timeFilter}" != "Custom Range") {
+					ACTimeFilter.clickTimeFilterButton();
+
+					if ("${timeFilter}" == "Last 24 hours") {
+						ACTimeFilter.setLast24Hours();
+					}
+
+					if ("${timeFilter}" == "Yesterday") {
+						ACTimeFilter.setYesterday();
+					}
+
+					if ("${timeFilter}" == "Last 7 days") {
+						ACTimeFilter.setLast7Days();
+					}
+
+					if ("${timeFilter}" == "Last 28 days") {
+						ACTimeFilter.setLast28Days();
+					}
+
+					if ("${timeFilter}" == "Last 30 days") {
+						ACTimeFilter.setLast30Days();
+					}
+
+					if ("${timeFilter}" == "Last 90 days") {
+						ACTimeFilter.setLast90Days();
+					}
+
+					if ("${timeFilter}" == "Last 180 days") {
+						ACTimeFilter.setLast180Days();
+					}
+
+					if ("${timeFilter}" == "Last Year") {
+						ACTimeFilter.setLastYear();
+					}
+				}
+
+				if ("${timeFilter}" == "Custom Range") {
+					ACTimeFilter.setCustomRange(
+						endDay = "${endDay}",
+						endMonth = "${endMonth}",
+						endYear = "${endYear}",
+						startDay = "${startDay}",
+						startMonth = "${startMonth}",
+						startYear = "${startYear}");
+				}
+
+				MouseOver(locator1 = "ACIndividualsDashboard#VISITORS_LEGEND");
+			}
+		}
+		else {
+			while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART") && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+
+				if ("${timeFilter}" != "Custom Range") {
+					ACTimeFilter.clickTimeFilterButton();
+
+					if ("${timeFilter}" == "Last 24 hours") {
+						ACTimeFilter.setLast24Hours();
+					}
+
+					if ("${timeFilter}" == "Yesterday") {
+						ACTimeFilter.setYesterday();
+					}
+
+					if ("${timeFilter}" == "Last 7 days") {
+						ACTimeFilter.setLast7Days();
+					}
+
+					if ("${timeFilter}" == "Last 28 days") {
+						ACTimeFilter.setLast28Days();
+					}
+
+					if ("${timeFilter}" == "Last 30 days") {
+						ACTimeFilter.setLast30Days();
+					}
+
+					if ("${timeFilter}" == "Last 90 days") {
+						ACTimeFilter.setLast90Days();
+					}
+
+					if ("${timeFilter}" == "Last 180 days") {
+						ACTimeFilter.setLast180Days();
+					}
+
+					if ("${timeFilter}" == "Last Year") {
+						ACTimeFilter.setLastYear();
+					}
+				}
+
+				if ("${timeFilter}" == "Custom Range") {
+					ACTimeFilter.setCustomRange(
+						endDay = "${endDay}",
+						endMonth = "${endMonth}",
+						endYear = "${endYear}",
+						startDay = "${startDay}",
+						startMonth = "${startMonth}",
+						startYear = "${startYear}");
+				}
+			}
+		}
+
+		AssertElementPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART");
+	}
+
+	macro assertAudienceCard {
+		var key_index = "${index}";
+
+		for (var percentage : list "${percentageList}") {
+			var key_percentage = "${percentage}";
+
+			while (IsElementNotPresent(locator1 = "ACUtils#METRIC_VALUE_PERCENTAGE") && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+			}
+
+			AssertTextEquals(
+				locator1 = "ACUtils#METRIC_VALUE_PERCENTAGE",
+				value1 = "${percentage}");
+		}
+	}
+
+	macro assertDataSourceName {
+		var itemName = "${dataSourceName}";
+
+		ACUtils.assertItemsName(itemList = "${itemName}");
+	}
+
+	macro assertDatePattern {
+		if ("${format}" == "MMM d") {
+			var pattern = "[A-Z][a-z][a-z]\s\d+";
+		}
+
+		if ("${format}" == "MMM") {
+			var pattern = "[A-Z][a-z][a-z]";
+		}
+
+		if ("${format}" == "MMM d - d") {
+			var pattern = "[A-Z][a-z][a-z]\s\d+\s-\s\d+";
+		}
+
+		if ("${format}" == "MMM d - MMM d") {
+			var pattern = "[A-Z][a-z][a-z]\s\d+\s-\s[A-Z][a-z][a-z]\s\d+";
+		}
+
+		if ("${format}" == "yyyy MMM dd") {
+			var pattern = "\d\d\d\d\s[A-Z][a-z][a-z]\s\d+";
+		}
+
+		var match = StringUtil.matches("${date}", "${pattern}");
+
+		if ("${match}" == "true") {
+			echo("PASSED");
+		}
+		else {
+			fail("The ${date} doesn't follow the expected format ${format}");
+		}
+	}
+
+	macro assertDropdownItem {
+		var key_dropdownItem = "${menuItem}";
+
+		AssertTextEquals(
+			locator1 = "ACUtils#DROPDOWN_ITEM",
+			value1 = "${menuItem}");
+	}
+
+	macro assertEventNotPresent {
+		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+		var actual = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]['eventId']");
+
+		TestUtils.assertEquals(
+			actual = "${actual}",
+			expected = "");
+	}
+
+	macro assertEventPresent {
+		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+		var actual = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]['eventId']");
+
+		TestUtils.assertEquals(
+			actual = "${actual}",
+			expected = "${eventId}");
+	}
+
+	macro assertEventPropertyValue {
+		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+		var actual = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]..${property}");
+
+		TestUtils.assertEquals(
+			actual = "${actual}",
+			expected = "${value}");
+	}
+
+	macro assertIdentityRequestPropertiesValue {
+		var actualDataSourceId = ACUtils.getPageRefRequestPropertyValue(
+			pageRef = "identity",
+			property = "dataSourceId");
+
+		TestUtils.assertEquals(
+			actual = "${actualDataSourceId}",
+			expected = "${expectedDataSourceId}");
+
+		var emailAddressHashed = ACUtils.getPageRefRequestPropertyValue(
+			pageRef = "identity",
+			property = "emailAddressHashed");
+
+		TestUtils.assertNotEquals(
+			actual = "${emailAddressHashed}",
+			expected = "");
+
+		var id = ACUtils.getPageRefRequestPropertyValue(
+			pageRef = "identity",
+			property = "id");
+
+		TestUtils.assertNotEquals(
+			actual = "${id}",
+			expected = "");
+
+		var userId = ACUtils.getPageRefRequestPropertyValue(
+			pageRef = "identity",
+			property = "userId");
+
+		TestUtils.assertNotEquals(
+			actual = "${userId}",
+			expected = "");
+	}
+
+	@summary = "Asserts a list of items by the name"
+	macro assertItemsName {
+		for (var key_itemName : list "${itemList}") {
+			AssertElementPresent(
+				itemName = "${key_itemName}",
+				locator1 = "ACSettings#ITEM_ON_LIST");
+		}
+	}
+
+	@summary = "Asserts an element not present in the list of items by the name"
+	macro assertItemsNameNotPresent {
+		for (var itemName : list "${itemList}") {
+			AssertElementNotPresent(
+				itemName = "${itemName}",
+				locator1 = "ACSettings#ITEM_ON_LIST");
+		}
+	}
+
+	macro assertPageTitle {
+		var key_pageTitle = "${pageTitle}";
+
+		AssertTextEquals(
+			locator1 = "ACUtils#PAGE_TITLE",
+			value1 = "${pageTitle}");
+	}
+
+	macro assertPageTitleNotPresent {
+		var key_pageTitle = "${pageTitle}";
+
+		AssertElementNotPresent(
+			locator1 = "ACUtils#PAGE_TITLE",
+			value1 = "${pageTitle}");
+	}
+
+	macro assertRequestCommonPropertiesValue {
+		var actualChannelId = ACUtils.getRequestCommonPropertyValue(property = "channelId");
+
+		TestUtils.assertEquals(
+			actual = "${actualChannelId}",
+			expected = "${expectedChannelId}");
+
+		var actualDataSourceId = ACUtils.getRequestCommonPropertyValue(property = "dataSourceId");
+
+		TestUtils.assertEquals(
+			actual = "${actualDataSourceId}",
+			expected = "${expectedDataSourceId}");
+
+		var id = ACUtils.getRequestCommonPropertyValue(property = "id");
+
+		TestUtils.assertNotEquals(
+			actual = "${id}",
+			expected = "");
+
+		var userId = ACUtils.getRequestCommonPropertyValue(property = "userId");
+
+		TestUtils.assertNotEquals(
+			actual = "${userId}",
+			expected = "");
+	}
+
+	macro assertTimePattern {
+		if ("${format}" == "h tt") {
+			var pattern = "\d+\s[A-Z][A-Z]";
+		}
+
+		var match = StringUtil.regexReplaceFirst("${time}", "${pattern}", "true");
+
+		if ("${match}" == "true") {
+			echo("PASSED");
+		}
+		else {
+			fail("The ${time} doesn't follow the expected format ${format}");
+		}
+	}
+
+	macro assertXAxisTimedGraph {
+		var key_parentName = "${parentName}";
+
+		AssertElementPresent(locator1 = "ACUtils#SVG_TIMED_GRAPH");
+	}
+
+	macro changePagination {
+		Click(locator1 = "ACUtils#PAGINATION_ITEMS_PER_PAGE_SELECT");
+
+		MenuItem.click(menuItem = "${itemsPerPage}");
+
+		ACUtils.viewPaginationItemsPerPage(itemsPerPage = "${itemsPerPage}");
+	}
+
+	macro checkAnyPage {
+		var key_pageNumber = "${pageNumber}";
+
+		Click(locator1 = "ACUtils#ANY_PAGE");
+	}
+
+	macro checkPreviousNextButton {
+		if (isSet(previousButton)) {
+			Click(locator1 = "ACUtils#PREVIOUS_PAGES");
+		}
+
+		if (isSet(nextButton)) {
+			Click(locator1 = "ACUtils#NEXT_PAGES");
+		}
+	}
+
+	macro clearSearchBar {
+		Click(locator1 = "ACUtils#CLEAR_SEARCH_BAR_BUTTON");
+	}
+
+	macro clickAnyButton {
+		var buttonName = "${button}";
+
+		Click(
+			key_buttonName = "${buttonName}",
+			locator1 = "ACUtils#GENERIC_BUTTON");
+	}
+
+	macro clickGenericHyperlink {
+		var key_textValue = "${hyperlinkText}";
+
+		Click(locator1 = "ACUtils#GENERIC_TEXT");
+	}
+
+	macro clickKebab {
+		Click(locator1 = "ACSegments#SEGMENT_ELLIPSIS");
+	}
+
+	macro closeAllSessions {
+		ACUtils.restartDockerContainer(containerName = "osbasahredis");
+
+		var analyticsCloudAsahCuratorBatchURL = PropsUtil.get("analytics.cloud.asah.curator.batch.url");
+
+		var cleanCurl = '''
+			${analyticsCloudAsahCuratorBatchURL}/admin/sessions/close \
+			-H 'Content-Type: application/json' \
+			-H 'osb-asah-project-id: osbasah'
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${cleanCurl}");
+	}
+
+	@summary = "This macro close all open AC sessions. It needs a 30 second pause which is the time required for the command to be executed. For more information about pause see LRAC-9518"
+	macro closeAllSessionsAndWait {
+		ACUtils.closeAllSessions();
+
+		// It needs a 30 second pause which is the time required for the command to be executed. For more information about pause see LRAC-9518
+
+		Pause(locator1 = "30000");
+	}
+
+	macro closeModal {
+		Click(locator1 = "ACUtils#MODAL_CLOSE_BUTTON");
+	}
+
+	macro createBlogsAndAddToPage {
+		if (!(isSet(layoutName))) {
+			var layoutName = "AC Page";
+		}
+
+		Navigator.gotoSitePage(
+			pageName = "${layoutName}",
+			siteName = "Site Name");
+
+		if (IsElementNotPresent(key_portletTitleName = "Blogs", locator1 = "Portlet#SPECIFIC_TITLE")) {
+			ACUtils.addWidgetToPage(
+				layoutName = "${layoutName}",
+				widgetName = "Blogs");
+		}
+
+		if (!(isSet(entryTitle))) {
+			var entryTitle = "Blogs AC Title";
+		}
+
+		JSONBlog.addEntry(
+			entryContent = "This is the blog test for AC",
+			entryTitle = "${entryTitle}",
+			groupName = "Site Name");
+	}
+
+	macro createDMAndAddToPage {
+		if (!(isSet(layoutName))) {
+			var layoutName = "AC Page";
+		}
+
+		Navigator.gotoSitePage(
+			pageName = "${layoutName}",
+			siteName = "Site Name");
+
+		if (IsElementNotPresent(key_portletTitleName = "Documents and Media", locator1 = "Portlet#SPECIFIC_TITLE")) {
+			ACUtils.addWidgetToPage(
+				layoutName = "${layoutName}",
+				widgetName = "Documents and Media");
+		}
+
+		if (!(isSet(dmDocumentTitle))) {
+			var dmDocumentTitle = "DM AC Title";
+		}
+
+		if (!(isSet(dmDocumentFile))) {
+			var dmDocumentFile = "Document_1.jpg";
+		}
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentTitle = "${dmDocumentTitle}",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "${dmDocumentFile}");
+	}
+
+	macro createFormAndAddToPage {
+		if (!(isSet(formAcTitle))) {
+			var formAcTitle = "Created Form Name";
+		}
+
+		if (!(isSet(layoutName))) {
+			var layoutName = "AC Page";
+		}
+
+		ACUtils.addWidgetToPage(
+			layoutName = "${layoutName}",
+			widgetName = "Form");
+
+		FormsAdmin.openFormsAdmin(siteURLKey = "site-name");
+
+		FormsAdminNavigator.gotoAddForm();
+
+		Form.editName(formTitle = "${formAcTitle}");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Button.clickPublish();
+
+		Navigator.gotoSitePage(
+			pageName = "${layoutName}",
+			siteName = "Site Name");
+
+		FormPortletNavigator.gotoSelectForm();
+
+		FormPortletConfiguration.selectForm(formTitle = "${formAcTitle}");
+
+		PortletEntry.save();
+	}
+
+	macro createWCAndAddToPage {
+		if (!(isSet(layoutName))) {
+			var layoutName = "AC Page";
+		}
+
+		if (!(isSet(webContentTitle))) {
+			var webContentTitle = "Web Content AC Title";
+		}
+
+		if (!(isSet(webContentContent))) {
+			var webContentContent = "This is the web content test for AC";
+
+			JSONWebcontent.addWebContent(
+				content = "${webContentContent}",
+				groupName = "Site Name",
+				title = "${webContentTitle}");
+		}
+		else {
+			JSONWebcontent.addWebContent(
+				content = "${webContentContent}",
+				groupName = "Site Name",
+				source = "true",
+				title = "${webContentTitle}");
+		}
+
+		ACUtils.addWidgetToPage(
+			layoutName = "${layoutName}",
+			widgetName = "Web Content Display");
+
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "${webContentTitle}");
+
+		Navigator.gotoSitePage(
+			pageName = "${layoutName}",
+			siteName = "Site Name");
+	}
+
+	macro deleteItemFromList {
+		var key_actionButton = "Delete";
+		var key_nameList = "${itemName}";
+
+		WaitForPageLoad();
+
+		ACUtils.searchBar(searchItem = "${itemName}");
+
+		MouseOver(locator1 = "ACUtils#NAME_LIST");
+
+		Click(locator1 = "ACUtils#DELETE_BUTTON");
+
+		ACUtils.clickAnyButton(button = "${key_actionButton}");
+
+		ACUtils.clearSearchBar();
+	}
+
+	@summary = "Dismiss Onboarding Modal if it appears when launching AC"
+	macro dismissOnboardingModal {
+		if (IsElementPresent(locator1 = "ACSettings#MODAL_SCREEN")) {
+			Click(locator1 = "ACSettings#CLOSE_ONBOARDING_MODAL");
+		}
+	}
+
+	macro getEventPropertyValue {
+		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+		var value = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]..${property}");
+
+		return "${value}";
+	}
+
+	macro getIPCountry {
+		var curl = '''https://ipinfo.io''';
+		var code = JSONCurlUtil.get("${curl}", "$.country");
+
+		if ("${code}" == "GB") {
+			var country = "United Kingdom";
+		}
+
+		if ("${code}" == "BR") {
+			var country = "Brazil";
+		}
+
+		if ("${code}" == "US") {
+			var country = "United States";
+		}
+
+		if ("${code}" == "CN") {
+			var country = "China";
+		}
+
+		if ("${code}" == "ES") {
+			var country = "Spain";
+		}
+
+		if ("${code}" == "NZ") {
+			var country = "New Zealand";
+		}
+
+		return "${country}";
+	}
+
+	macro getPageRefRequestPropertyValue {
+		var postDataText = ProxyUtil.getHarRecording("$..[?(@['pageref'] == '${pageRef}')].request[?(@.method == 'POST' && @.url contains '/${pageRef}')]..text");
+		var value = JSONUtil.getWithJSONPath("[${postDataText}]", "$..${property}");
+
+		return "${value}";
+	}
+
+	macro getRequestCommonPropertyValue {
+		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+		var value = JSONUtil.getWithJSONPath("[${postDataText}]", "$.[-1:]..${property}");
+
+		return "${value}";
+	}
+
+	macro launchAC {
+		var analyticsCloudURL = PropsUtil.get("analytics.cloud.url");
+
+		Open(locator1 = "${analyticsCloudURL}");
+
+		if (!(isSet(emailAddress))) {
+			var emailAddress = "test@liferay.com";
+		}
+
+		if (IsElementPresent(locator1 = "ACLogin#EMAIL_LOGIN_FIELD")) {
+			if (!(isSet(password))) {
+				ACLogin.loginAs(emailAddress = "${emailAddress}");
+			}
+			else {
+				ACLogin.loginAs(
+					emailAddress = "${emailAddress}",
+					password = "${password}");
+			}
+		}
+
+		if (!(isSet(workspaceName))) {
+			ACWorkspace.openWorkspace();
+		}
+
+		if (isSet(workspaceName)) {
+			if (!(isSet(emailList))) {
+				ACWorkspace.openWorkspace(workspaceName = "${workspaceName}");
+			}
+
+			if (isSet(emailList)) {
+				ACWorkspace.createWorkspace(
+					emailList = "${emailList}",
+					workspaceName = "${workspaceName}");
+			}
+		}
+	}
+
+	macro launchDXP {
+		Navigator.openURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (IsElementNotPresent(locator1 = "ApplicationsMenu#APPLICATIONS_MENU")) {
+			User.firstLoginPG(userEmailAddress = "${userEmailAddress}");
+		}
+	}
+
+	@summary = "This macro access a page/document"
+	macro navigateToSitePage {
+		for (var documentTitle : list "${documentTitleList}") {
+			Navigator.gotoSitePage(
+				pageName = "${pageName}",
+				siteName = "${siteName}");
+
+			if ("${actionType}" == "View Blog") {
+				BlogsNavigator.gotoPG(entryTitle = "${documentTitle}");
+			}
+
+			if ("${actionType}" == "Comment Blog") {
+				BlogsNavigator.gotoPG(entryTitle = "${documentTitle}");
+
+				Comments.addPG(entryComment = "${commentText}");
+			}
+
+			if ("${actionType}" == "View DM") {
+				DMNavigator.gotoDocumentPG(dmDocumentTitle = "${documentTitle}");
+			}
+
+			if ("${actionType}" == "Download DM") {
+				DMDocument.downloadPG(dmDocumentTitle = "${documentTitle}");
+			}
+
+			if ("${actionType}" == "View Form") {
+				FormPortlet.waitFormRenderer(text = "Submit");
+			}
+
+			if ("${actionType}" == "Submit Form") {
+				FormPortlet.waitFormRenderer(text = "Submit");
+
+				FormFields.viewTextLabel(
+					fieldLabel = "Text",
+					fieldName = "Text");
+
+				FormFields.editText(
+					fieldName = "Text",
+					fieldValue = "${submitText}");
+
+				FormPortlet.submitLocalizedSuccessfully(buttonName = "Submit");
+			}
+		}
+	}
+
+	@summary = "This macro access a page/document with different users. Pause is necessary because poshi logs in from one user to another very quickly. For more information about pause see LRAC-9514"
+	macro navigateToSitePageWithUser {
+		for (var email : list "${emailList}") {
+			User.logoutAndLoginPG(userLoginEmailAddress = "${email}");
+
+			ACUtils.navigateToSitePage(
+				actionType = "${actionType}",
+				documentTitleList = "${documentTitleList}",
+				pageName = "${pageName}",
+				siteName = "${siteName}",
+				submitText = "${submitText}");
+
+			// Pause is necessary because poshi logs in from one user to another very quickly. For more information about pause see LRAC-9514
+
+			Pause(locator1 = "5000");
+		}
+	}
+
+	macro orderAnyTable {
+		var key_columnName = "${columnName}";
+
+		Click(locator1 = "ACUtils#GENERIC_ORDER_BUTTON");
+	}
+
+	macro orderArrow {
+		var type = "${type}";
+
+		if ("${type}" == "descending") {
+			if (IsElementPresent(locator1 = "ACUtils#ORDER_ARROW_BUTTON_ASC")) {
+				Click(locator1 = "ACUtils#ORDER_ARROW_BUTTON_ASC");
+			}
+		}
+
+		if ("${type}" == "ascending") {
+			if (IsElementPresent(locator1 = "ACUtils#ORDER_ARROW_BUTTON_DES")) {
+				Click(locator1 = "ACUtils#ORDER_ARROW_BUTTON_DES");
+			}
+		}
+	}
+
+	macro orderTableTitleArrow {
+		var type = "${type}";
+
+		if ("${type}" == "down") {
+			if (IsElementPresent(locator1 = "ACUtils#ORDER_ARROW_TABLE_BUTTON_UP")) {
+				Click(locator1 = "ACUtils#ORDER_ARROW_TABLE_BUTTON_UP");
+			}
+		}
+
+		if ("${type}" == "up") {
+			if (IsElementPresent(locator1 = "ACUtils#ORDER_ARROW_TABLE_BUTTON_DOWN")) {
+				Click(locator1 = "ACUtils#ORDER_ARROW_TABLE_BUTTON_DOWN");
+			}
+		}
+	}
+
+	macro restartDockerContainer {
+		var containerName = "${containerName}";
+
+		AntCommand(
+			locator1 = "build-test.xml",
+			value1 = "restart-docker-container -Ddocker.container=${containerName}");
+	}
+
+	macro saveButton {
+		Click(locator1 = "Button#SAVE");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro searchBar {
+		if (isSet(cardTitle)) {
+			Type(
+				key_cardTitle = "${cardTitle}",
+				locator1 = "ACSettings#SEARCH_BAR_IN_SPECIFIC_CARD",
+				value1 = "${searchItem}");
+
+			KeyPress(
+				key_cardTitle = "${cardTitle}",
+				locator1 = "ACSettings#SEARCH_BAR_IN_SPECIFIC_CARD",
+				value1 = "\ENTER");
+		}
+		else {
+			Type(
+				locator1 = "ACSettings#SEARCH_BAR",
+				value1 = "${searchItem}");
+
+			KeyPress(
+				locator1 = "ACSettings#SEARCH_BAR",
+				value1 = "\ENTER");
+		}
+	}
+
+	macro setItemName {
+		WaitForPageLoad();
+
+		if ((IsElementNotPresent(locator1 = "ACSegments#SEGMENT_LABEL")) || (IsTextNotEqual(locator1 = "ACSegments#SEGMENT_LABEL", value1 = "STATIC SEGMENT"))) {
+			Click(locator1 = "ACUtils#EDIT_NAME_BUTTON");
+		}
+
+		Type.sendKeys(
+			locator1 = "ACUtils#NAME_FIELD",
+			value1 = "${itemName}");
+	}
+
+	macro tearDownAC {
+		ACUtils.launchAC();
+
+		ACSettings.deleteAllProperties();
+
+		ACSettings.deleteAllDataSource();
+	}
+
+	macro tearDownDXP {
+		ACUtils.launchDXP();
+
+		ACDXPSettings.disconnectDXPFromAnalyticsCloud();
+	}
+
+	macro viewActivePage {
+		AssertTextEquals(
+			locator1 = "ACUtils#ACTIVE_PAGE",
+			value1 = "${pageNumber}");
+	}
+
+	macro viewAlertInfo {
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#ALERT_DISMISSIBLE",
+			value1 = "${infoMessage}");
+	}
+
+	macro viewGenericButton {
+		var key_buttonName = "${buttonName}";
+
+		AssertElementPresent(locator1 = "ACUtils#GENERIC_BUTTON");
+	}
+
+	macro viewGenericText {
+		for (var textValue : list "${textValueList}") {
+			var key_textValue = "${textValue}";
+
+			WaitForPageLoad();
+
+			while (IsElementNotPresent(locator1 = "ACUtils#GENERIC_TEXT") && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+			}
+
+			AssertElementPresent(locator1 = "ACUtils#GENERIC_TEXT");
+		}
+	}
+
+	macro viewNameList {
+		for (var name : list "${nameList}") {
+			var key_nameList = "${name}";
+
+			WaitForPageLoad();
+
+			while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+				ACSegments.searchSegment(findSegment = "${name}");
+
+				ACUtils.clearSearchBar();
+			}
+
+			AssertTextEquals(
+				locator1 = "ACUtils#NAME_LIST",
+				value1 = "${name}");
+		}
+	}
+
+	macro viewNameListInOrder {
+		var key_userName = "${name}";
+		var index = "${index}";
+
+		WaitForPageLoad();
+
+		while (IsElementNotPresent(locator1 = "ACSegments#ADD_MEMBERS_INDEX_TABLE") && (maxIterations = "50")) {
+			Refresh();
+		}
+
+		AssertTextEquals(
+			locator1 = "ACSegments#ADD_MEMBERS_INDEX_TABLE",
+			value1 = "${name}");
+	}
+
+	macro viewNameListIsNotPresent {
+		for (var name : list "${nameList}") {
+			var key_nameList = "${name}";
+
+			WaitForPageLoad();
+
+			while (IsElementPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+				ACSegments.searchSegment(findSegment = "${name}");
+
+				ACUtils.clearSearchBar();
+			}
+
+			AssertElementNotPresent(locator1 = "ACUtils#NAME_LIST");
+		}
+	}
+
+	macro viewNoResultsMessage {
+		var key_noResultMessage = "${noResultMessage}";
+
+		WaitForPageLoad();
+
+		while (IsElementNotPresent(locator1 = "ACAssets#NO_RESULTS_CONTENT_MESSAGE") && (maxIterations = "50")) {
+			TestUtils.hardRefresh();
+		}
+
+		AssertTextEquals(
+			locator1 = "ACAssets#NO_RESULTS_CONTENT_MESSAGE",
+			value1 = "${noResultMessage}");
+	}
+
+	macro viewNoResultsMessageNotPresent {
+		AssertElementNotPresent(
+			key_noResultMessage = "${noResultMessage}",
+			locator1 = "ACAssets#NO_RESULTS_CONTENT_MESSAGE");
+	}
+
+	macro viewPaginationItemsPerPage {
+		AssertTextEquals(
+			locator1 = "ACUtils#PAGINATION_ITEMS_PER_PAGE_SELECT",
+			value1 = "${itemsPerPage} Items");
+	}
+
+	macro viewPartialNameList {
+		for (var name : list "${nameList}") {
+			var key_nameList = "${name}";
+
+			WaitForPageLoad();
+
+			while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+				ACSegments.searchSegment(findSegment = "${name}");
+
+				ACUtils.clearSearchBar();
+			}
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "ACUtils#PARTIAL_NAME_LIST",
+				value1 = "${name}");
+		}
+	}
+
+	macro viewResultsMessage {
+		AssertTextEquals(
+			locator1 = "ACUtils#RESULT_MESSAGE",
+			value1 = "${results}");
+	}
+
+	macro viewResultsPages {
+		var key_pageNumber = "${pageNumber}";
+
+		AssertTextEquals(
+			locator1 = "ACUtils#ANY_PAGE",
+			value1 = "${key_pageNumber}");
+	}
+
+	macro viewSearchResultsInfo {
+		AssertTextEquals(
+			locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_ATTRIBUTE_SEARCH_INFO",
+			value1 = "${count} Results for ${searchTerm}");
+	}
+
+	macro viewTableInformation {
+		var list1 = ListUtil.newListFromString("${nameList}");
+		var list2 = ListUtil.newListFromString("${numberValueList}");
+		var size = ListUtil.size("${list1}");
+		var i = "0";
+
+		while ("${i}" != "${size}") {
+			var key_nameList = ListUtil.get("${list1}", "${i}");
+			var key_numberValue = ListUtil.get("${list2}", "${i}");
+
+			WaitForPageLoad();
+
+			while (IsElementNotPresent(locator1 = "ACUtils#TABLE_CELL_INFORMATION") && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+			}
+
+			AssertElementPresent(locator1 = "ACUtils#TABLE_CELL_INFORMATION");
+
+			var i = ${i} + 1;
+			var i = StringUtil.valueOf("${i}");
+		}
+	}
+
+	macro waitForLoading {
+		WaitForElementNotPresent(locator1 = "ACUtils#LOADING_ANIMATION");
+	}
+
+}

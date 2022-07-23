@@ -26,8 +26,8 @@ import com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
-import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HtmlParser;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -47,16 +47,6 @@ import org.osgi.service.component.annotations.Reference;
 public class MentionsMessageServiceWrapper
 	extends MBMessageLocalServiceWrapper {
 
-	public MentionsMessageServiceWrapper() {
-		super(null);
-	}
-
-	public MentionsMessageServiceWrapper(
-		MBMessageLocalService mbMessageLocalService) {
-
-		super(mbMessageLocalService);
-	}
-
 	@Override
 	public MBMessage updateStatus(
 			long userId, long messageId, int status,
@@ -72,12 +62,8 @@ public class MentionsMessageServiceWrapper
 			userId, messageId, status, serviceContext, workflowContext);
 
 		if ((status != WorkflowConstants.STATUS_APPROVED) ||
-			(oldStatus == WorkflowConstants.STATUS_IN_TRASH)) {
-
-			return message;
-		}
-
-		if (!MentionsUtil.isMentionsEnabled(
+			(oldStatus == WorkflowConstants.STATUS_IN_TRASH) ||
+			!MentionsUtil.isMentionsEnabled(
 				_portal.getSiteGroupId(message.getGroupId()))) {
 
 			return message;
@@ -92,7 +78,7 @@ public class MentionsMessageServiceWrapper
 		String title = message.getSubject();
 
 		if (message.isDiscussion()) {
-			title = StringUtil.shorten(HtmlUtil.extractText(content), 100);
+			title = StringUtil.shorten(_htmlParser.extractText(content), 100);
 		}
 
 		MentionsGroupServiceConfiguration mentionsGroupServiceConfiguration =
@@ -122,7 +108,7 @@ public class MentionsMessageServiceWrapper
 		else {
 			serviceContext.setAttribute(
 				"contentURL",
-				_http.addParameter(
+				HttpComponentsUtil.addParameter(
 					contentURL,
 					serviceContext.getAttribute("namespace") + "messageId",
 					message.getMessageId()));
@@ -158,7 +144,7 @@ public class MentionsMessageServiceWrapper
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
-	private Http _http;
+	private HtmlParser _htmlParser;
 
 	private MBMessageLocalService _mbMessageLocalService;
 	private MentionsNotifier _mentionsNotifier;

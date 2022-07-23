@@ -201,6 +201,11 @@ public class OrganizationWrapper
 	}
 
 	@Override
+	public Organization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public Address getAddress() {
 		return model.getAddress();
 	}

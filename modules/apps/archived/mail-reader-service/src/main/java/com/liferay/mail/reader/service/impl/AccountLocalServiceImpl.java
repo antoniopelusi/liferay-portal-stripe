@@ -20,9 +20,11 @@ import com.liferay.mail.reader.service.base.AccountLocalServiceBaseImpl;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Date;
@@ -52,7 +54,7 @@ public class AccountLocalServiceImpl extends AccountLocalServiceBaseImpl {
 		throws PortalException {
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		long accountId = counterLocalService.increment();
 
@@ -61,8 +63,8 @@ public class AccountLocalServiceImpl extends AccountLocalServiceBaseImpl {
 		account.setCompanyId(user.getCompanyId());
 		account.setUserId(user.getUserId());
 		account.setUserName(user.getFullName());
-		account.setCreateDate(now);
-		account.setModifiedDate(now);
+		account.setCreateDate(date);
+		account.setModifiedDate(date);
 		account.setAddress(address);
 		account.setPersonalName(personalName);
 		account.setProtocol(protocol);
@@ -95,6 +97,7 @@ public class AccountLocalServiceImpl extends AccountLocalServiceBaseImpl {
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public Account deleteAccount(Account account) throws PortalException {
 
 		// Account

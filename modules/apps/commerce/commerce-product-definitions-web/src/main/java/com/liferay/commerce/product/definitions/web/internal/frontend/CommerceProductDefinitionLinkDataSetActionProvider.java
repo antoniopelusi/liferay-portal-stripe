@@ -102,10 +102,6 @@ public class CommerceProductDefinitionLinkDataSetActionProvider
 			HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				_portal.getOriginalServletRequest(httpServletRequest),
@@ -115,12 +111,14 @@ public class CommerceProductDefinitionLinkDataSetActionProvider
 		).setCMD(
 			Constants.DELETE
 		).setRedirect(
-			redirect
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"cpDefinitionId", cpDefinitionLink.getCPDefinitionId()
 		).setParameter(
 			"cpDefinitionLinkId", cpDefinitionLink.getCPDefinitionLinkId()
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getProductLinkEditURL(
@@ -138,13 +136,13 @@ public class CommerceProductDefinitionLinkDataSetActionProvider
 			"cpDefinitionId", cpDefinitionLink.getCPDefinitionId()
 		).setParameter(
 			"cpDefinitionLinkId", cpDefinitionLink.getCPDefinitionLinkId()
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL;

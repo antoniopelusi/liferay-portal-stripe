@@ -38,7 +38,5 @@ public class JournalArticleLocalizationImpl
 	 * article localization model instance should use the {@link
 	 * com.liferay.journal.model.JournalArticleLocalization} interface instead.
 	 */
-	public JournalArticleLocalizationImpl() {
-	}
 
 }

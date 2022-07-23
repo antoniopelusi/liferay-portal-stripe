@@ -113,7 +113,7 @@ if (organizationId > 0) {
 								PortletProviderUtil.getPortletURL(request, Organization.class.getName(), PortletProvider.Action.BROWSE)
 							).setWindowState(
 								LiferayWindowState.POP_UP
-							).build();
+							).buildPortletURL();
 							%>
 
 							url: '<%= selectOrganizationURL.toString() %>',

@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -96,15 +97,19 @@ public interface DLFileEntryLocalService
 	public DLFileEntry addDLFileEntry(DLFileEntry dlFileEntry);
 
 	public DLFileEntry addFileEntry(
-			long userId, long groupId, long repositoryId, long folderId,
-			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, long fileEntryTypeId,
+			String externalReferenceCode, long userId, long groupId,
+			long repositoryId, long folderId, String sourceFileName,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, long fileEntryTypeId,
 			Map<String, DDMFormValues> ddmFormValuesMap, File file,
-			InputStream inputStream, long size, ServiceContext serviceContext)
+			InputStream inputStream, long size, Date expirationDate,
+			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException;
 
 	public DLFileVersion cancelCheckOut(long userId, long fileEntryId)
 		throws PortalException;
+
+	public void checkFileEntries(long checkInterval) throws PortalException;
 
 	public void checkInFileEntry(
 			long userId, long fileEntryId,
@@ -240,6 +245,9 @@ public interface DLFileEntryLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -309,6 +317,25 @@ public interface DLFileEntryLocalService
 	public DLFileEntry fetchDLFileEntry(long fileEntryId);
 
 	/**
+	 * Returns the document library file entry with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the document library file entry's external reference code
+	 * @return the matching document library file entry, or <code>null</code> if a matching document library file entry could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public DLFileEntry fetchDLFileEntryByExternalReferenceCode(
+		long groupId, String externalReferenceCode);
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchDLFileEntryByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public DLFileEntry fetchDLFileEntryByReferenceCode(
+		long groupId, String externalReferenceCode);
+
+	/**
 	 * Returns the document library file entry matching the UUID and group.
 	 *
 	 * @param uuid the document library file entry's UUID
@@ -328,6 +355,10 @@ public interface DLFileEntryLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DLFileEntry fetchFileEntryByAnyImageId(long imageId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public DLFileEntry fetchFileEntryByExternalReferenceCode(
+		long groupId, String externalReferenceCode);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DLFileEntry fetchFileEntryByFileName(
@@ -404,6 +435,19 @@ public interface DLFileEntryLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DLFileEntry getDLFileEntry(long fileEntryId) throws PortalException;
+
+	/**
+	 * Returns the document library file entry with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the document library file entry's external reference code
+	 * @return the matching document library file entry
+	 * @throws PortalException if a matching document library file entry could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public DLFileEntry getDLFileEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException;
 
 	/**
 	 * Returns the document library file entry matching the UUID and group.
@@ -497,6 +541,11 @@ public interface DLFileEntryLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DLFileEntry getFileEntry(long groupId, long folderId, String title)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public DLFileEntry getFileEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -646,19 +695,16 @@ public interface DLFileEntryLocalService
 
 	public DLFileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, DLVersionNumberIncrease dlVersionNumberIncrease,
 			long fileEntryTypeId, Map<String, DDMFormValues> ddmFormValuesMap,
-			File file, InputStream inputStream, long size,
-			ServiceContext serviceContext)
+			File file, InputStream inputStream, long size, Date expirationDate,
+			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException;
 
 	public DLFileEntry updateFileEntryType(
 			long userId, long fileEntryId, long fileEntryTypeId,
 			ServiceContext serviceContext)
-		throws PortalException;
-
-	public void updateSmallImage(long smallImageId, long largeImageId)
 		throws PortalException;
 
 	public DLFileEntry updateStatus(

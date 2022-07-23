@@ -20,7 +20,7 @@ import com.liferay.commerce.machine.learning.forecast.alert.constants.CommerceML
 import com.liferay.commerce.machine.learning.forecast.alert.constants.CommerceMLForecastAlertConstants;
 import com.liferay.commerce.machine.learning.forecast.alert.model.CommerceMLForecastAlertEntry;
 import com.liferay.commerce.machine.learning.forecast.alert.service.CommerceMLForecastAlertEntryService;
-import com.liferay.commerce.machine.learning.forecast.alert.web.internal.display.context.util.CommerceMLForecastAlertEntryRequestHelper;
+import com.liferay.commerce.machine.learning.forecast.alert.web.internal.display.context.helper.CommerceMLForecastAlertEntryRequestHelper;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
-
-import java.util.List;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -60,7 +58,7 @@ public class CommerceMLForecastAlertEntryListDisplayContext {
 				commerceAccountId);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return null;
 		}
@@ -84,29 +82,23 @@ public class CommerceMLForecastAlertEntryListDisplayContext {
 		_searchContainer = new SearchContainer<>(
 			_commerceMLForecastAlertEntryRequestHelper.
 				getLiferayPortletRequest(),
-			getPortletURL(), null, null);
-
-		_searchContainer.setEmptyResultsMessage(
+			getPortletURL(), null,
 			"there-are-no-forecast-alert-entries-to-display");
 
-		List<CommerceMLForecastAlertEntry> results =
-			_commerceMLForecastAlertEntryService.
-				getBelowThresholdCommerceMLForecastAlertEntries(
-					_commerceMLForecastAlertEntryRequestHelper.getCompanyId(),
-					_commerceMLForecastAlertEntryRequestHelper.getUserId(),
-					CommerceMLForecastAlertConstants.STATUS_NEW, 0.0,
-					_searchContainer.getStart(), _searchContainer.getEnd());
-
-		_searchContainer.setResults(results);
-
-		int total =
+		_searchContainer.setResultsAndTotal(
+			() ->
+				_commerceMLForecastAlertEntryService.
+					getBelowThresholdCommerceMLForecastAlertEntries(
+						_commerceMLForecastAlertEntryRequestHelper.
+							getCompanyId(),
+						_commerceMLForecastAlertEntryRequestHelper.getUserId(),
+						CommerceMLForecastAlertConstants.STATUS_NEW, 0.0,
+						_searchContainer.getStart(), _searchContainer.getEnd()),
 			_commerceMLForecastAlertEntryService.
 				getBelowThresholdCommerceMLForecastAlertEntriesCount(
 					_commerceMLForecastAlertEntryRequestHelper.getCompanyId(),
 					_commerceMLForecastAlertEntryRequestHelper.getUserId(),
-					CommerceMLForecastAlertConstants.STATUS_NEW, 0.0);
-
-		_searchContainer.setTotal(total);
+					CommerceMLForecastAlertConstants.STATUS_NEW, 0.0));
 
 		return _searchContainer;
 	}

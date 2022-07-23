@@ -30,6 +30,10 @@ public class JournalContentSearchLocalServiceWrapper
 	implements JournalContentSearchLocalService,
 			   ServiceWrapper<JournalContentSearchLocalService> {
 
+	public JournalContentSearchLocalServiceWrapper() {
+		this(null);
+	}
+
 	public JournalContentSearchLocalServiceWrapper(
 		JournalContentSearchLocalService journalContentSearchLocalService) {
 
@@ -178,6 +182,13 @@ public class JournalContentSearchLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _journalContentSearchLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _journalContentSearchLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

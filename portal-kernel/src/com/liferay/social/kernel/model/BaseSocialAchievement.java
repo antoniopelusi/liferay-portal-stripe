@@ -17,6 +17,7 @@ package com.liferay.social.kernel.model;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -167,7 +168,7 @@ public class BaseSocialAchievement implements SocialAchievement {
 			return;
 		}
 
-		StringBuilder sb = new StringBuilder(name.length());
+		StringBundler sb = new StringBundler(name.length());
 
 		for (int i = 0; i < name.length(); i++) {
 			char c = name.charAt(i);

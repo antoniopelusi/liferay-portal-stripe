@@ -23,42 +23,40 @@ import com.liferay.portal.kernel.search.generic.BooleanClauseFactoryImpl;
 public class BooleanClauseFactoryUtil {
 
 	public static BooleanClause<Query> create(Query query, String occur) {
-		return getBooleanClauseFactory().create(query, occur);
+		return _booleanClauseFactory.create(query, occur);
 	}
 
 	public static BooleanClause<Query> create(
 		String field, String value, String occur) {
 
-		return getBooleanClauseFactory().create(field, value, occur);
+		return _booleanClauseFactory.create(field, value, occur);
 	}
 
 	public static BooleanClause<Filter> createFilter(
 		Filter filter, BooleanClauseOccur booleanClauseOccur) {
 
-		return getBooleanClauseFactory().createFilter(
-			filter, booleanClauseOccur);
+		return _booleanClauseFactory.createFilter(filter, booleanClauseOccur);
 	}
 
 	public static BooleanClause<Filter> createFilter(
 		SearchContext searchContext, Filter filter,
 		BooleanClauseOccur booleanClauseOccur) {
 
-		return getBooleanClauseFactory().createFilter(
-			filter, booleanClauseOccur);
+		return _booleanClauseFactory.createFilter(filter, booleanClauseOccur);
 	}
 
 	public static BooleanClause<Filter> createFilter(
 		SearchContext searchContext, String field, String value,
 		BooleanClauseOccur booleanClauseOccur) {
 
-		return getBooleanClauseFactory().createFilter(
+		return _booleanClauseFactory.createFilter(
 			field, value, booleanClauseOccur);
 	}
 
 	public static BooleanClause<Filter> createFilter(
 		String field, String value, BooleanClauseOccur booleanClauseOccur) {
 
-		return getBooleanClauseFactory().createFilter(
+		return _booleanClauseFactory.createFilter(
 			field, value, booleanClauseOccur);
 	}
 

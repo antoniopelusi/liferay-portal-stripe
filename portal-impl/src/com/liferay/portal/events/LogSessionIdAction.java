@@ -34,12 +34,12 @@ public class LogSessionIdAction extends Action {
 		HttpServletResponse httpServletResponse) {
 
 		if (_log.isDebugEnabled()) {
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
 			_log.debug(
 				StringBundler.concat(
-					"Session id ", session.getId(), " is ",
-					!session.isNew() ? "not " : "", "new"));
+					"Session id ", httpSession.getId(), " is ",
+					!httpSession.isNew() ? "not " : "", "new"));
 		}
 	}
 

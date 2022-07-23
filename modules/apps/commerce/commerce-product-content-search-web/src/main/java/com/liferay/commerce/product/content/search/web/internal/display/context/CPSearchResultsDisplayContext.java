@@ -24,20 +24,19 @@ import com.liferay.commerce.product.content.render.list.entry.CPContentListEntry
 import com.liferay.commerce.product.content.render.list.entry.CPContentListEntryRendererRegistry;
 import com.liferay.commerce.product.content.search.web.internal.configuration.CPSearchResultsPortletInstanceConfiguration;
 import com.liferay.commerce.product.data.source.CPDataSourceResult;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.commerce.product.type.CPType;
 import com.liferay.commerce.product.type.CPTypeServicesTracker;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.dao.search.DisplayTerms;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -50,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.portlet.PortletPreferences;
-import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 
@@ -145,7 +143,7 @@ public class CPSearchResultsDisplayContext {
 	}
 
 	public CPDataSourceResult getCPDataSourceResult() {
-		List<CPCatalogEntry> cpCatalogEntries = getCPCatalogEntries(
+		List<CPCatalogEntry> cpCatalogEntries = _getCPCatalogEntries(
 			_portletSharedSearchResponse.getDocuments());
 
 		return new CPDataSourceResult(
@@ -232,7 +230,7 @@ public class CPSearchResultsDisplayContext {
 			return _searchContainer;
 		}
 
-		_searchContainer = buildSearchContainer(
+		_searchContainer = _buildSearchContainer(
 			getCPDataSourceResult(),
 			_portletSharedSearchResponse.getPaginationStart(), "start",
 			_portletSharedSearchResponse.getPaginationDelta(), "delta");
@@ -282,34 +280,25 @@ public class CPSearchResultsDisplayContext {
 		return false;
 	}
 
-	protected SearchContainer<CPCatalogEntry> buildSearchContainer(
+	private SearchContainer<CPCatalogEntry> _buildSearchContainer(
 		CPDataSourceResult cpDataSourceResult, int paginationStart,
 		String paginationStartParameterName, int paginationDelta,
 		String paginationDeltaParameterName) {
 
-		PortletRequest portletRequest =
-			_cpRequestHelper.getLiferayPortletRequest();
-		DisplayTerms displayTerms = null;
-		DisplayTerms searchTerms = null;
-		String curParam = paginationStartParameterName;
-		int cur = paginationStart;
-		int delta = paginationDelta;
-		List<String> headerNames = null;
-		String emptyResultsMessage = null;
-		String cssClass = null;
-
 		SearchContainer<CPCatalogEntry> searchContainer = new SearchContainer<>(
-			portletRequest, displayTerms, searchTerms, curParam, cur, delta,
-			getPortletURL(), headerNames, emptyResultsMessage, cssClass);
+			_cpRequestHelper.getLiferayPortletRequest(), null, null,
+			paginationStartParameterName, paginationStart, paginationDelta,
+			_getPortletURL(), null, null, null);
 
 		searchContainer.setDeltaParam(paginationDeltaParameterName);
-		searchContainer.setResults(cpDataSourceResult.getCPCatalogEntries());
-		searchContainer.setTotal(cpDataSourceResult.getLength());
+		searchContainer.setResultsAndTotal(
+			cpDataSourceResult::getCPCatalogEntries,
+			cpDataSourceResult.getLength());
 
 		return searchContainer;
 	}
 
-	protected List<CPCatalogEntry> getCPCatalogEntries(
+	private List<CPCatalogEntry> _getCPCatalogEntries(
 		List<Document> documents) {
 
 		List<CPCatalogEntry> cpCatalogEntries = new ArrayList<>();
@@ -323,8 +312,8 @@ public class CPSearchResultsDisplayContext {
 		return cpCatalogEntries;
 	}
 
-	protected PortletURL getPortletURL() {
-		final String urlString = getURLString();
+	private PortletURL _getPortletURL() {
+		final String urlString = _getURLString();
 
 		return new NullPortletURL() {
 
@@ -336,9 +325,9 @@ public class CPSearchResultsDisplayContext {
 		};
 	}
 
-	protected String getURLString() {
-		return HttpUtil.removeParameter(
-			_cpRequestHelper.getCurrentURL(), "start");
+	private String _getURLString() {
+		return HttpComponentsUtil.removeParameter(
+			PortalUtil.getCurrentURL(_cpRequestHelper.getRequest()), "start");
 	}
 
 	private final CPContentListEntryRendererRegistry

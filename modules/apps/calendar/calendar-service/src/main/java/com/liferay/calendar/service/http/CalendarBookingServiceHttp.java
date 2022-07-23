@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Eduardo Lundgren
- * @see CalendarBookingServiceSoap
  * @generated
  */
 public class CalendarBookingServiceHttp {
@@ -1112,8 +1111,8 @@ public class CalendarBookingServiceHttp {
 				HttpPrincipal httpPrincipal, long companyId, long[] groupIds,
 				long[] calendarIds, long[] calendarResourceIds,
 				long parentCalendarBookingId, String keywords, long startTime,
-				long endTime, boolean recurring, int[] statuses, int start,
-				int end,
+				long endTime, java.util.TimeZone displayTimeZone,
+				boolean recurring, int[] statuses, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
 					<com.liferay.calendar.model.CalendarBooking>
 						orderByComparator)
@@ -1127,8 +1126,8 @@ public class CalendarBookingServiceHttp {
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, companyId, groupIds, calendarIds,
 				calendarResourceIds, parentCalendarBookingId, keywords,
-				startTime, endTime, recurring, statuses, start, end,
-				orderByComparator);
+				startTime, endTime, displayTimeZone, recurring, statuses, start,
+				end, orderByComparator);
 
 			Object returnObj = null;
 
@@ -1908,8 +1907,8 @@ public class CalendarBookingServiceHttp {
 		};
 	private static final Class<?>[] _searchParameterTypes25 = new Class[] {
 		long.class, long[].class, long[].class, long[].class, long.class,
-		String.class, long.class, long.class, boolean.class, int[].class,
-		int.class, int.class,
+		String.class, long.class, long.class, java.util.TimeZone.class,
+		boolean.class, int[].class, int.class, int.class,
 		com.liferay.portal.kernel.util.OrderByComparator.class
 	};
 	private static final Class<?>[] _searchParameterTypes26 = new Class[] {

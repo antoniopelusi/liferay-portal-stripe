@@ -117,7 +117,7 @@ if (organizationId > 0) {
 									"organizations"
 								).setWindowState(
 									LiferayWindowState.POP_UP
-								).build();
+								).buildPortletURL();
 								%>
 
 								url: '<%= selectOrganizationURL.toString() %>',

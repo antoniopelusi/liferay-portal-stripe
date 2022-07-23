@@ -15,7 +15,6 @@
 package com.liferay.wiki.web.internal.portlet.action;
 
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.TrashedModel;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -68,7 +67,53 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteNode(ActionRequest actionRequest, boolean moveToTrash)
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
+		try {
+			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
+				_updateNode(actionRequest);
+			}
+			else if (cmd.equals(Constants.DELETE)) {
+				_deleteNode(actionRequest, false);
+			}
+			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
+				_deleteNode(actionRequest, true);
+			}
+			else if (cmd.equals(Constants.RESTORE)) {
+				_restoreTrashEntries(actionRequest);
+			}
+			else if (cmd.equals(Constants.SUBSCRIBE)) {
+				_subscribeNode(actionRequest);
+			}
+			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
+				_unsubscribeNode(actionRequest);
+			}
+		}
+		catch (Exception exception) {
+			if (exception instanceof NoSuchNodeException ||
+				exception instanceof PrincipalException) {
+
+				SessionErrors.add(actionRequest, exception.getClass());
+
+				actionResponse.setRenderParameter("mvcPath", "/wiki/error.jsp");
+			}
+			else if (exception instanceof DuplicateNodeNameException ||
+					 exception instanceof NodeNameException) {
+
+				SessionErrors.add(actionRequest, exception.getClass());
+			}
+			else {
+				throw exception;
+			}
+		}
+	}
+
+	private void _deleteNode(ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -97,7 +142,7 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 				actionRequest, "rowIdsWikiNode");
 		}
 
-		ModifiableSettings modifiableSettings = getModifiableSettings(
+		ModifiableSettings modifiableSettings = _getModifiableSettings(
 			actionRequest);
 
 		for (long deleteNodeId : deleteNodeIds) {
@@ -115,7 +160,7 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 				_wikiNodeService.deleteNode(deleteNodeId);
 			}
 
-			updateSettings(modifiableSettings, oldName, StringPool.BLANK);
+			_updateSettings(modifiableSettings, oldName, StringPool.BLANK);
 		}
 
 		if (moveToTrash && !trashedModels.isEmpty()) {
@@ -127,55 +172,9 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
-		try {
-			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateNode(actionRequest);
-			}
-			else if (cmd.equals(Constants.DELETE)) {
-				deleteNode(actionRequest, false);
-			}
-			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteNode(actionRequest, true);
-			}
-			else if (cmd.equals(Constants.RESTORE)) {
-				restoreTrashEntries(actionRequest);
-			}
-			else if (cmd.equals(Constants.SUBSCRIBE)) {
-				subscribeNode(actionRequest);
-			}
-			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
-				unsubscribeNode(actionRequest);
-			}
-		}
-		catch (Exception exception) {
-			if (exception instanceof NoSuchNodeException ||
-				exception instanceof PrincipalException) {
-
-				SessionErrors.add(actionRequest, exception.getClass());
-
-				actionResponse.setRenderParameter("mvcPath", "/wiki/error.jsp");
-			}
-			else if (exception instanceof DuplicateNodeNameException ||
-					 exception instanceof NodeNameException) {
-
-				SessionErrors.add(actionRequest, exception.getClass());
-			}
-			else {
-				throw exception;
-			}
-		}
-	}
-
-	protected ModifiableSettings getModifiableSettings(
+	private ModifiableSettings _getModifiableSettings(
 			ActionRequest actionRequest)
-		throws PortalException {
+		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -191,7 +190,19 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 		return settings.getModifiableSettings();
 	}
 
-	protected void restoreTrashEntries(ActionRequest actionRequest)
+	private String[] _replace(
+		String[] values, String oldValue, String newValue) {
+
+		if (newValue.isEmpty()) {
+			return ArrayUtil.remove(values, oldValue);
+		}
+
+		ArrayUtil.replace(values, oldValue, newValue);
+
+		return values;
+	}
+
+	private void _restoreTrashEntries(ActionRequest actionRequest)
 		throws Exception {
 
 		long[] restoreTrashEntryIds = StringUtil.split(
@@ -202,13 +213,13 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void subscribeNode(ActionRequest actionRequest) throws Exception {
+	private void _subscribeNode(ActionRequest actionRequest) throws Exception {
 		long nodeId = ParamUtil.getLong(actionRequest, "nodeId");
 
 		_wikiNodeService.subscribeNode(nodeId);
 	}
 
-	protected void unsubscribeNode(ActionRequest actionRequest)
+	private void _unsubscribeNode(ActionRequest actionRequest)
 		throws Exception {
 
 		long nodeId = ParamUtil.getLong(actionRequest, "nodeId");
@@ -216,7 +227,7 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 		_wikiNodeService.unsubscribeNode(nodeId);
 	}
 
-	protected void updateNode(ActionRequest actionRequest) throws Exception {
+	private void _updateNode(ActionRequest actionRequest) throws Exception {
 		long nodeId = ParamUtil.getLong(actionRequest, "nodeId");
 
 		String name = ParamUtil.getString(actionRequest, "name");
@@ -242,11 +253,12 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 			_wikiNodeService.updateNode(
 				nodeId, name, description, serviceContext);
 
-			updateSettings(getModifiableSettings(actionRequest), oldName, name);
+			_updateSettings(
+				_getModifiableSettings(actionRequest), oldName, name);
 		}
 	}
 
-	protected void updateSettings(
+	private void _updateSettings(
 			ModifiableSettings modifiableSettings, String oldName,
 			String newName)
 		throws Exception {
@@ -255,28 +267,16 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 			"hiddenNodes", null);
 
 		if (hiddenNodes != null) {
-			if (newName.isEmpty()) {
-				ArrayUtil.remove(hiddenNodes, oldName);
-			}
-			else {
-				ArrayUtil.replace(hiddenNodes, oldName, newName);
-			}
-
-			modifiableSettings.setValues("hiddenNodes", hiddenNodes);
+			modifiableSettings.setValues(
+				"hiddenNodes", _replace(hiddenNodes, oldName, newName));
 		}
 
-		if (hiddenNodes != null) {
-			String[] visibleNodes = modifiableSettings.getValues(
-				"visibleNodes", null);
+		String[] visibleNodes = modifiableSettings.getValues(
+			"visibleNodes", null);
 
-			if (newName.isEmpty()) {
-				ArrayUtil.remove(visibleNodes, oldName);
-			}
-			else {
-				ArrayUtil.replace(visibleNodes, oldName, newName);
-			}
-
-			modifiableSettings.setValues("visibleNodes", visibleNodes);
+		if (visibleNodes != null) {
+			modifiableSettings.setValues(
+				"visibleNodes", _replace(visibleNodes, oldName, newName));
 		}
 
 		modifiableSettings.store();

@@ -25,11 +25,12 @@ import com.liferay.commerce.product.content.render.list.entry.CPContentListEntry
 import com.liferay.commerce.product.content.render.list.entry.CPContentListEntryRendererRegistry;
 import com.liferay.commerce.product.content.web.internal.configuration.CPCompareContentMiniPortletInstanceConfiguration;
 import com.liferay.commerce.product.data.source.CPDataSourceResult;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.commerce.product.type.CPType;
 import com.liferay.commerce.product.type.CPTypeServicesTracker;
 import com.liferay.commerce.product.util.CPCompareHelper;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.theme.PortletDisplay;
@@ -168,18 +169,10 @@ public class CPCompareContentMiniDisplayContext {
 			(CommerceContext)httpServletRequest.getAttribute(
 				CommerceWebKeys.COMMERCE_CONTEXT);
 
-		CommerceAccount commerceAccount = commerceContext.getCommerceAccount();
-
-		long commerceAccountId = 0;
-
-		if (commerceAccount != null) {
-			commerceAccountId = commerceAccount.getCommerceAccountId();
-		}
-
 		for (Long cpDefinitionId : _cpDefinitionIds) {
 			cpCatalogEntries.add(
 				_cpDefinitionHelper.getCPCatalogEntry(
-					commerceAccountId,
+					CommerceUtil.getCommerceAccountId(commerceContext),
 					commerceContext.getCommerceChannelGroupId(), cpDefinitionId,
 					_cpRequestHelper.getLocale()));
 		}

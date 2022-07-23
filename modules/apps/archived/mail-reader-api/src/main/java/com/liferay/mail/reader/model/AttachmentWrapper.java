@@ -111,6 +111,11 @@ public class AttachmentWrapper
 		}
 	}
 
+	@Override
+	public Attachment cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the account ID of this attachment.
 	 *

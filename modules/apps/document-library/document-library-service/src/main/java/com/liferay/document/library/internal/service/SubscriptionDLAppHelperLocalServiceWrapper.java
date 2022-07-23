@@ -20,7 +20,6 @@ import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
-import com.liferay.document.library.kernel.service.DLAppHelperLocalService;
 import com.liferay.document.library.kernel.service.DLAppHelperLocalServiceWrapper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
@@ -61,16 +60,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = ServiceWrapper.class)
 public class SubscriptionDLAppHelperLocalServiceWrapper
 	extends DLAppHelperLocalServiceWrapper {
-
-	public SubscriptionDLAppHelperLocalServiceWrapper() {
-		super(null);
-	}
-
-	public SubscriptionDLAppHelperLocalServiceWrapper(
-		DLAppHelperLocalService dlAppHelperLocalService) {
-
-		super(dlAppHelperLocalService);
-	}
 
 	@Override
 	public void deleteFileEntry(FileEntry fileEntry) throws PortalException {
@@ -119,14 +108,35 @@ public class SubscriptionDLAppHelperLocalServiceWrapper
 
 			// Subscriptions
 
-			notifySubscribers(
+			_notifySubscribers(
 				userId, latestFileVersion,
 				(String)workflowContext.get(WorkflowConstants.CONTEXT_URL),
 				serviceContext);
 		}
 	}
 
-	protected void notifySubscribers(
+	private boolean _isEnabled(FileEntry fileEntry) {
+		if (!DLAppHelperThreadLocal.isEnabled() ||
+			RepositoryUtil.isExternalRepository(fileEntry.getRepositoryId())) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean _isEnabled(Folder folder) {
+		if (!DLAppHelperThreadLocal.isEnabled() ||
+			(!folder.isMountPoint() &&
+			 RepositoryUtil.isExternalRepository(folder.getRepositoryId()))) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	private void _notifySubscribers(
 			long userId, FileVersion fileVersion, String entryURL,
 			ServiceContext serviceContext)
 		throws PortalException {
@@ -243,16 +253,15 @@ public class SubscriptionDLAppHelperLocalServiceWrapper
 		}
 
 		subscriptionSender.setNotificationType(notificationType);
-
-		String portletId = PortletProviderUtil.getPortletId(
-			FileEntry.class.getName(), PortletProvider.Action.VIEW);
-
-		subscriptionSender.setPortletId(portletId);
-
+		subscriptionSender.setPortletId(
+			PortletProviderUtil.getPortletId(
+				FileEntry.class.getName(), PortletProvider.Action.VIEW));
 		subscriptionSender.setReplyToAddress(fromAddress);
 		subscriptionSender.setScopeGroupId(fileVersion.getGroupId());
 		subscriptionSender.setServiceContext(serviceContext);
 
+		subscriptionSender.addAssetEntryPersistedSubscribers(
+			DLFileEntry.class.getName(), dlFileEntry.getPrimaryKey());
 		subscriptionSender.addPersistedSubscribers(
 			DLFolder.class.getName(), fileVersion.getGroupId());
 
@@ -282,32 +291,6 @@ public class SubscriptionDLAppHelperLocalServiceWrapper
 			DLFileEntry.class.getName(), fileEntry.getFileEntryId());
 
 		subscriptionSender.flushNotificationsAsync();
-	}
-
-	private boolean _isEnabled(FileEntry fileEntry) {
-		if (!DLAppHelperThreadLocal.isEnabled()) {
-			return false;
-		}
-
-		if (RepositoryUtil.isExternalRepository(fileEntry.getRepositoryId())) {
-			return false;
-		}
-
-		return true;
-	}
-
-	private boolean _isEnabled(Folder folder) {
-		if (!DLAppHelperThreadLocal.isEnabled()) {
-			return false;
-		}
-
-		if (!folder.isMountPoint() &&
-			RepositoryUtil.isExternalRepository(folder.getRepositoryId())) {
-
-			return false;
-		}
-
-		return true;
 	}
 
 	@Reference

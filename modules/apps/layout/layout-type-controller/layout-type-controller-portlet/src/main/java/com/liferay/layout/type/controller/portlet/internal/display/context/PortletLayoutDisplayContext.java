@@ -16,18 +16,28 @@ package com.liferay.layout.type.controller.portlet.internal.display.context;
 
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
-import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
-import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalServiceUtil;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 /**
  * @author Eudaldo Alonso
  */
 public class PortletLayoutDisplayContext {
+
+	public PortletLayoutDisplayContext(
+		LayoutPageTemplateEntryLocalService layoutPageTemplateEntryLocalService,
+		LayoutPageTemplateStructureLocalService
+			layoutPageTemplateStructureLocalService) {
+
+		_layoutPageTemplateEntryLocalService =
+			layoutPageTemplateEntryLocalService;
+		_layoutPageTemplateStructureLocalService =
+			layoutPageTemplateStructureLocalService;
+	}
 
 	public LayoutStructure getLayoutStructure(long groupId, Layout layout) {
 		if (_layoutStructure != null) {
@@ -35,7 +45,7 @@ public class PortletLayoutDisplayContext {
 		}
 
 		LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
-			LayoutPageTemplateEntryLocalServiceUtil.
+			_layoutPageTemplateEntryLocalService.
 				fetchLayoutPageTemplateEntryByPlid(
 					layout.getMasterLayoutPlid());
 
@@ -46,13 +56,14 @@ public class PortletLayoutDisplayContext {
 		}
 
 		LayoutPageTemplateStructure masterLayoutPageTemplateStructure =
-			LayoutPageTemplateStructureLocalServiceUtil.
+			_layoutPageTemplateStructureLocalService.
 				fetchLayoutPageTemplateStructure(
 					masterLayoutPageTemplateEntry.getGroupId(),
 					masterLayoutPageTemplateEntry.getPlid());
 
-		String data = masterLayoutPageTemplateStructure.getData(
-			SegmentsExperienceConstants.ID_DEFAULT);
+		String data =
+			masterLayoutPageTemplateStructure.
+				getDefaultSegmentsExperienceData();
 
 		if (Validator.isNull(data)) {
 			_layoutStructure = _getDefaultMasterLayoutStructure();
@@ -77,6 +88,10 @@ public class PortletLayoutDisplayContext {
 		return layoutStructure;
 	}
 
+	private final LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
+	private final LayoutPageTemplateStructureLocalService
+		_layoutPageTemplateStructureLocalService;
 	private LayoutStructure _layoutStructure;
 
 }

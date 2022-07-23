@@ -17,6 +17,11 @@
 <%@ include file="/init.jsp" %>
 
 <%
+CommerceContext commerceContext = (CommerceContext)request.getAttribute(CommerceWebKeys.COMMERCE_CONTEXT);
+
+CommerceAccount commerceAccount = commerceContext.getCommerceAccount();
+CommerceOrder commerceOrder = commerceContext.getCommerceOrder();
+
 CPContentHelper cpContentHelper = (CPContentHelper)request.getAttribute(CPContentWebKeys.CP_CONTENT_HELPER);
 
 CPCatalogEntry cpCatalogEntry = cpContentHelper.getCPCatalogEntry(request);
@@ -24,14 +29,6 @@ CPCatalogEntry cpCatalogEntry = cpContentHelper.getCPCatalogEntry(request);
 CPSku cpSku = cpContentHelper.getDefaultCPSku(cpCatalogEntry);
 
 long cpDefinitionId = cpCatalogEntry.getCPDefinitionId();
-
-String hideCssClass = "hide";
-long skuId = 0;
-
-if (cpSku != null) {
-	hideCssClass = StringPool.BLANK;
-	skuId = cpSku.getCPInstanceId();
-}
 %>
 
 <div class="mb-5 product-detail" id="<portlet:namespace /><%= cpDefinitionId %>ProductContent">
@@ -53,14 +50,52 @@ if (cpSku != null) {
 						/>
 					</div>
 
-					<div class="col stock-quantity text-truncate-inline <%= hideCssClass %>">
+					<div class="col stock-quantity text-truncate-inline">
 						<span class="text-truncate" data-text-cp-instance-stock-quantity>
-							<c:if test="<%= cpSku != null %>">
-								<%= LanguageUtil.format(request, "x-in-stock", cpContentHelper.getStockQuantity(request)) %>
-							</c:if>
+							<span class="<%= ((cpSku != null) && cpSku.isDiscontinued()) ? StringPool.BLANK : "hide" %>">
+								<span class="text-danger">
+									<%= LanguageUtil.get(request, "discontinued") %>
+								</span>
+								-
+							</span>
+							<span data-qa-id="in-stock-quantity"><%= LanguageUtil.format(request, "x-in-stock", cpContentHelper.getStockQuantity(request)) %></span>
 						</span>
 					</div>
 				</div>
+
+				<%
+				boolean hasReplacement = cpContentHelper.hasReplacement(cpSku, request);
+				%>
+
+				<c:if test="<%= hasReplacement %>">
+					<p class="product-description"><%= LanguageUtil.get(request, "this-product-is-discontinued.-you-can-see-the-replacement-product-by-clicking-on-the-button-below") %></p>
+
+					<aui:button cssClass="btn btn-primary btn-sm my-2" href="<%= cpContentHelper.getReplacementCommerceProductFriendlyURL(cpSku, themeDisplay) %>" value="replacement-product" />
+				</c:if>
+
+				<c:if test="<%= (cpSku != null) && (cpSku.getDiscontinuedDate() != null) %>">
+
+					<%
+					Format format = FastDateFormatFactoryUtil.getSimpleDateFormat("MMMMM dd, yyyy", locale, timeZone);
+					%>
+
+					<p class="my-2">
+						<span class="font-weight-semi-bold">
+							<%= LanguageUtil.get(request, "end-of-life") %>
+						</span>
+						<span>
+							<%= format.format(cpSku.getDiscontinuedDate()) %>
+						</span>
+					</p>
+				</c:if>
+
+				<%
+				String hideCssClass = StringPool.BLANK;
+
+				if (hasReplacement) {
+					hideCssClass = "hide";
+				}
+				%>
 
 				<p class="my-2 <%= hideCssClass %>" data-text-cp-instance-sku>
 					<span class="font-weight-semi-bold">
@@ -155,9 +190,12 @@ if (cpSku != null) {
 
 			<div class="align-items-center d-flex mt-3 product-detail-actions">
 				<commerce-ui:add-to-cart
+					alignment="left"
 					CPCatalogEntry="<%= cpCatalogEntry %>"
+					inline="<%= true %>"
 					namespace="<%= liferayPortletResponse.getNamespace() %>"
-					options='<%= "[]" %>'
+					size="lg"
+					skuOptions="[]"
 				/>
 
 				<commerce-ui:add-to-wish-list
@@ -178,8 +216,8 @@ if (cpSku != null) {
 
 <%
 List<CPDefinitionSpecificationOptionValue> cpDefinitionSpecificationOptionValues = cpContentHelper.getCPDefinitionSpecificationOptionValues(cpDefinitionId);
+List<CPMedia> cpMedias = cpContentHelper.getCPMedias(cpDefinitionId, themeDisplay);
 List<CPOptionCategory> cpOptionCategories = cpContentHelper.getCPOptionCategories(company.getCompanyId());
-List<CPMedia> cpAttachmentFileEntries = cpContentHelper.getCPAttachmentFileEntries(cpDefinitionId, themeDisplay);
 %>
 
 <c:if test="<%= cpContentHelper.hasCPDefinitionSpecificationOptionValues(cpDefinitionId) %>">
@@ -236,7 +274,7 @@ List<CPMedia> cpAttachmentFileEntries = cpContentHelper.getCPAttachmentFileEntri
 	</commerce-ui:panel>
 </c:if>
 
-<c:if test="<%= !cpAttachmentFileEntries.isEmpty() %>">
+<c:if test="<%= !cpMedias.isEmpty() %>">
 	<commerce-ui:panel
 		elementClasses="mb-3"
 		title='<%= LanguageUtil.get(resourceBundle, "attachments") %>'
@@ -246,14 +284,14 @@ List<CPMedia> cpAttachmentFileEntries = cpContentHelper.getCPAttachmentFileEntri
 			<%
 			int attachmentsCount = 0;
 
-			for (CPMedia curCPAttachmentFileEntry : cpAttachmentFileEntries) {
+			for (CPMedia cpMedia : cpMedias) {
 			%>
 
 				<dt class="specification-term">
-					<%= HtmlUtil.escape(curCPAttachmentFileEntry.getTitle()) %>
+					<%= HtmlUtil.escape(cpMedia.getTitle()) %>
 				</dt>
 				<dd class="specification-desc">
-					<aui:icon cssClass="icon-monospaced" image="download" markupView="lexicon" target="_blank" url="<%= curCPAttachmentFileEntry.getDownloadUrl() %>" />
+					<aui:icon cssClass="icon-monospaced" image="download" markupView="lexicon" target="_blank" url="<%= cpMedia.getDownloadURL() %>" />
 				</dd>
 
 				<%
@@ -275,5 +313,35 @@ List<CPMedia> cpAttachmentFileEntries = cpContentHelper.getCPAttachmentFileEntri
 			%>
 
 		</dl>
+	</commerce-ui:panel>
+</c:if>
+
+<c:if test="<%= cpContentHelper.hasDirectReplacement(cpSku) %>">
+	<commerce-ui:panel
+		elementClasses="mb-3"
+		title='<%= LanguageUtil.get(resourceBundle, "replacements") %>'
+	>
+		<clay:data-set-display
+			contextParams='<%=
+				HashMapBuilder.<String, String>put(
+					"commerceAccountId", (commerceAccount == null) ? "0" : String.valueOf(commerceAccount.getCommerceAccountId())
+				).put(
+					"commerceChannelGroupId", String.valueOf(commerceContext.getCommerceChannelGroupId())
+				).put(
+					"commerceOrderId", (commerceOrder == null) ? "0" : String.valueOf(commerceOrder.getCommerceOrderId())
+				).put(
+					"cpInstanceUuid", cpSku.getCPInstanceUuid()
+				).put(
+					"cProductId", String.valueOf(cpCatalogEntry.getCProductId())
+				).build()
+			%>'
+			dataProviderKey="<%= CPContentDataSetConstants.COMMERCE_DATA_SET_KEY_REPLACEMENT_CP_INSTANCES %>"
+			id="<%= CPContentDataSetConstants.COMMERCE_DATA_SET_KEY_REPLACEMENT_CP_INSTANCES %>"
+			itemsPerPage="<%= 10 %>"
+			namespace="<%= liferayPortletResponse.getNamespace() %>"
+			pageNumber="<%= 1 %>"
+			portletURL="<%= currentURLObj %>"
+			style="stacked"
+		/>
 	</commerce-ui:panel>
 </c:if>

@@ -35,159 +35,7 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-121281. The data-lfr-priority can order the elements information of fragment with drop zone in Selection panel."
-	@priority = "4"
-	test CanOrderElementInfoOfFragmentWithDropZoneInSelectionPanel {
-		task ("Add a fragment collection") {
-			JSONFragment.addFragmentCollection(
-				groupName = "Test Site Name",
-				name = "Collection Name");
-		}
-
-		task ("Add a fragment with drop zone and data-lfr-priority attribute") {
-			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
-
-			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
-
-			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
-
-			var htmlSnippet = '''
-<div class="fragment-example">
-	<div class="section">
-		<p data-lfr-editable-id="01-title" data-lfr-editable-type="text" data-lfr-priority="1">
-			Title
-		</p>
-		<lfr-drop-zone data-lfr-drop-zone-id="1" data-lfr-priority="2"></lfr-drop-zone>
-	</div>
-	<div class="section">
-		<p data-lfr-editable-id="02-title" data-lfr-editable-type="text" data-lfr-priority="3">
-			Title
-		</p>
-		<lfr-drop-zone data-lfr-drop-zone-id="2" data-lfr-priority="4"></lfr-drop-zone>
-	</div>
-</div>
-		''';
-
-			var cssSnippet = '''
-.fragment-example {
-}
-		''';
-
-			FragmentsEditor.typeHtmlEditor(content = "${htmlSnippet}");
-
-			FragmentsEditor.typeCssEditor(content = "${cssSnippet}");
-
-			FragmentsEditor.waitForAutoSave();
-
-			FragmentsEditor.publish();
-		}
-
-		task ("Add a new fragment to page") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			PageEditor.addFragment(
-				collectionName = "Collection Name",
-				fragmentName = "Fragment Name");
-		}
-
-		task ("Assert elements information is organized in Selection panel") {
-			PageEditor.clickConfigurableField(fragmentName = "Fragment Name");
-
-			Pause(locator1 = "3000");
-
-			var n = "1";
-
-			for (var nodeName : list "Fragment Name,01-title,Drop Zone 1,02-title,Drop Zone 2") {
-				AssertElementPresent(
-					key_nodeName = "${nodeName}",
-					key_position = "${n}",
-					locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_POSITION");
-
-				var n = ${n} + 1;
-			}
-		}
-	}
-
-	@description = "This is a test for LPS-121626. The data-lfr-priority can order the elements information of fragment with editable fields in Selection panel."
-	@priority = "4"
-	test CanOrderElementInfoOfFragmentWithEditableFieldInSelectionPanel {
-		task ("Add a fragment collection") {
-			JSONFragment.addFragmentCollection(
-				groupName = "Test Site Name",
-				name = "Collection Name");
-		}
-
-		task ("Add a fragment with editable fields and data-lfr-priority attribute") {
-			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
-
-			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
-
-			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
-
-			var htmlSnippet = '''
-<div class="fragment-example">
-	<div class="item">
-		<h2 data-lfr-editable-type="text" data-lfr-priority="3" data-lfr-editable-id="01-title">
-		Title
-		</h2>
-		<a data-lfr-editable-type="link" data-lfr-priority="1" data-lfr-editable-id="01-link">Go Somewhere</a>
-		<p data-lfr-editable-type="rich-text" data-lfr-priority="2" data-lfr-editable-id="01-subtitle">Subtitle</p>
-	</div>
-	<div class="item">
-		<h2 data-lfr-editable-type="text" data-lfr-priority="6" data-lfr-editable-id="02-title">
-		Title
-		</h2>
-		<a data-lfr-editable-type="link" data-lfr-priority="4" data-lfr-editable-id="02-link">Go Somewhere</a>
-		<p data-lfr-editable-type="rich-text" data-lfr-priority="5" data-lfr-editable-id="02-subtitle">Subtitle</p>
-	</div>
-</div>
-		''';
-
-			var cssSnippet = '''
-.fragment-example {
-}
-		''';
-
-			FragmentsEditor.typeHtmlEditor(content = "${htmlSnippet}");
-
-			FragmentsEditor.typeCssEditor(content = "${cssSnippet}");
-
-			FragmentsEditor.waitForAutoSave();
-
-			FragmentsEditor.publish();
-		}
-
-		task ("Add a new fragment to page") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			PageEditor.addFragment(
-				collectionName = "Collection Name",
-				fragmentName = "Fragment Name");
-		}
-
-		task ("Assert elements information is organized in Selection panel") {
-			PageEditor.clickConfigurableField(fragmentName = "Fragment Name");
-
-			Pause(locator1 = "3000");
-
-			var n = "1";
-
-			for (var nodeName : list "Fragment Name,01-link,01-subtitle,01-title,02-link,02-subtitle,02-title") {
-				AssertElementPresent(
-					key_nodeName = "${nodeName}",
-					key_position = "${n}",
-					locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_POSITION");
-
-				var n = ${n} + 1;
-			}
-		}
-	}
-
-	@description = "This is a test for LPS-118271. Can change the order of the elements in page editor via Selection panel."
+	@description = "This is a test for LPS-118271 and LPS-106776. Can change the order of the elements in page editor via Selection panel. View Page Structure in react page editor."
 	@priority = "5"
 	test ChangeOrderOfElementsViaSelectionPanel {
 		property portal.acceptance = "true";
@@ -227,8 +75,8 @@ definition {
 			}
 		}
 
-		task ("Assert the order of element nodes in the Selection panel") {
-			PageEditor.gotoTab(tabName = "Selection");
+		task ("Assert the order of element nodes in the Browser panel") {
+			PageEditor.gotoTab(tabName = "Browser");
 
 			Pause(locator1 = "3000");
 
@@ -358,8 +206,8 @@ definition {
 			}
 		}
 
-		task ("Move the Button into the Container via the Selection panel") {
-			PageEditor.gotoTab(tabName = "Selection");
+		task ("Move the Button into the Container via the Browser panel") {
+			PageEditor.gotoTab(tabName = "Browser");
 
 			Pause(locator1 = "3000");
 
@@ -370,7 +218,7 @@ definition {
 			Pause(locator1 = "3000");
 
 			AssertElementPresent(
-				key_elementHeader = "//div[contains(@class,'page-editor')]//li[contains(.,'Button')]",
+				key_elementHeader = "//div[@aria-label='Button']",
 				key_position = "1",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
 		}
@@ -388,7 +236,7 @@ definition {
 
 			AssertElementPresent(
 				key_columnNumber = "1",
-				key_elementHeader = "//div[contains(@class,'page-editor')]//li[contains(.,'Asset Publisher')]",
+				key_elementHeader = "//div[@aria-label='Asset Publisher']",
 				key_position = "1",
 				locator1 = "PageEditor#GRID_COLUMN_NESTED_ELEMENT");
 		}
@@ -443,11 +291,707 @@ definition {
 			for (var n : list "1,2,3") {
 				AssertElementPresent(
 					key_colPosition = "1",
-					key_element = "//div[contains(@class,'page-editor')]//li[contains(.,'Heading')]",
+					key_element = "//div[@aria-label='Heading']",
 					key_fragmentName = "Collection Display",
 					key_rowPosition = "${n}",
 					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT");
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-121281. The data-lfr-priority can order the elements information of fragment with drop zone in Selection panel."
+	@priority = "4"
+	test OrderElementInfoOfFragmentWithDropZoneInSelectionPanel {
+		task ("Add a fragment collection") {
+			JSONFragment.addFragmentCollection(
+				groupName = "Test Site Name",
+				name = "Collection Name");
+		}
+
+		task ("Add a fragment with drop zone and data-lfr-priority attribute") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
+
+			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
+
+			var htmlSnippet = '''
+<div class="fragment-example">
+	<div class="section">
+		<p data-lfr-editable-id="01-title" data-lfr-editable-type="text" data-lfr-priority="1">
+			Title
+		</p>
+		<lfr-drop-zone data-lfr-drop-zone-id="1" data-lfr-priority="2"></lfr-drop-zone>
+	</div>
+	<div class="section">
+		<p data-lfr-editable-id="02-title" data-lfr-editable-type="text" data-lfr-priority="3">
+			Title
+		</p>
+		<lfr-drop-zone data-lfr-drop-zone-id="2" data-lfr-priority="4"></lfr-drop-zone>
+	</div>
+</div>
+		''';
+
+			var cssSnippet = '''
+.fragment-example {
+}
+		''';
+
+			FragmentsEditor.typeHtmlEditor(content = "${htmlSnippet}");
+
+			FragmentsEditor.typeCssEditor(content = "${cssSnippet}");
+
+			FragmentsEditor.waitForAutoSave();
+
+			FragmentsEditor.publish();
+		}
+
+		task ("Add a new fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Collection Name",
+				fragmentName = "Fragment Name");
+		}
+
+		task ("Assert elements information is organized in Selection panel") {
+			PageEditor.clickConfigurableField(fragmentName = "Fragment Name");
+
+			Pause(locator1 = "3000");
+
+			var n = "1";
+
+			for (var nodeName : list "Fragment Name,01-title,Drop Zone 1,02-title,Drop Zone 2") {
+				AssertElementPresent(
+					key_nodeName = "${nodeName}",
+					key_position = "${n}",
+					locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_POSITION");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-121626. The data-lfr-priority can order the elements information of fragment with editable fields in Selection panel."
+	@priority = "4"
+	test OrderElementInfoOfFragmentWithEditableFieldInSelectionPanel {
+		task ("Add a fragment collection") {
+			JSONFragment.addFragmentCollection(
+				groupName = "Test Site Name",
+				name = "Collection Name");
+		}
+
+		task ("Add a fragment with editable fields and data-lfr-priority attribute") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
+
+			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
+
+			var htmlSnippet = '''
+<div class="fragment-example">
+	<div class="item">
+		<h2 data-lfr-editable-type="text" data-lfr-priority="3" data-lfr-editable-id="01-title">
+		Title
+		</h2>
+		<a data-lfr-editable-type="link" data-lfr-priority="1" data-lfr-editable-id="01-link">Go Somewhere</a>
+		<p data-lfr-editable-type="rich-text" data-lfr-priority="2" data-lfr-editable-id="01-subtitle">Subtitle</p>
+	</div>
+	<div class="item">
+		<h2 data-lfr-editable-type="text" data-lfr-priority="6" data-lfr-editable-id="02-title">
+		Title
+		</h2>
+		<a data-lfr-editable-type="link" data-lfr-priority="4" data-lfr-editable-id="02-link">Go Somewhere</a>
+		<p data-lfr-editable-type="rich-text" data-lfr-priority="5" data-lfr-editable-id="02-subtitle">Subtitle</p>
+	</div>
+</div>
+		''';
+
+			var cssSnippet = '''
+.fragment-example {
+}
+		''';
+
+			FragmentsEditor.typeHtmlEditor(content = "${htmlSnippet}");
+
+			FragmentsEditor.typeCssEditor(content = "${cssSnippet}");
+
+			FragmentsEditor.waitForAutoSave();
+
+			FragmentsEditor.publish();
+		}
+
+		task ("Add a new fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Collection Name",
+				fragmentName = "Fragment Name");
+		}
+
+		task ("Assert elements information is organized in Selection panel") {
+			PageEditor.clickConfigurableField(fragmentName = "Fragment Name");
+
+			Pause(locator1 = "3000");
+
+			var n = "1";
+
+			for (var nodeName : list "Fragment Name,01-link,01-subtitle,01-title,02-link,02-subtitle,02-title") {
+				AssertElementPresent(
+					key_nodeName = "${nodeName}",
+					key_position = "${n}",
+					locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_POSITION");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-125985. The Page Creater can perform actions on the asset displayed in Content Display via General panel."
+	@priority = "5"
+	test PerformActionsOnDisplayedAssetInContentDisplayViaGeneralPanel {
+		property portal.acceptance = "true";
+
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a Content Display to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
+
+		task ("Select the web content in Content Display") {
+			PageEditor.editContentDisplay(
+				fragmentName = "Content Display",
+				webcontent = "true",
+				webContentTitle = "Web Content Title");
+		}
+
+		task ("Access to the web content editor via General panel") {
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Edit Item");
+		}
+
+		task ("Edit the web content") {
+			WebContent.addCP(
+				webContentContent = "Web Content Content Edit",
+				webContentTitle = "Web Content Title Edit");
+
+			PortletEntry.publish();
+		}
+
+		task ("View the edited content shown in Content Display") {
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertTextEquals(
+				index = "1",
+				locator1 = "WCD#WEB_CONTENT_CONTENT",
+				value1 = "Web Content Content Edit");
+		}
+
+		task ("View the edited title shown in Item field") {
+			PageEditor.gotoConfiguration(fragmentName = "Content Display");
+
+			AssertTextEquals(
+				key_fieldLabel = "Item",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Web Content Title Edit");
+		}
+
+		task ("Define the permissions of web content via General panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Edit Item Permissions");
+
+			IFrame.selectPermissionsFrame();
+
+			AssertChecked(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#INLINE_PERMISSIONS_ADD_DISCUSSION_CHECKBOX");
+
+			Uncheck(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#INLINE_PERMISSIONS_ADD_DISCUSSION_CHECKBOX");
+
+			PortletEntry.save();
+
+			IFrame.closeFrame();
+		}
+
+		task ("View the customized permissions of web content via General panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Edit Item Permissions");
+
+			IFrame.selectPermissionsFrame();
+
+			AssertNotChecked(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#INLINE_PERMISSIONS_ADD_DISCUSSION_CHECKBOX");
+
+			IFrame.closeFrame();
+		}
+
+		task ("View the usage of web content via General panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "View Item Usages");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementPresent(
+				locator1 = "AssetLists#ASSET_LIST_USAGES",
+				usageAmount = "1",
+				usageType = "All");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Remove the selected web content via General panel") {
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Remove Item");
+
+			PageEditor.waitForAutoSave();
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_fieldLabel = "Item",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Select Item");
+		}
+
+		task ("View the default empty message is shown in Content Display") {
+			PageEditor.viewFragmentMessageInfo(fragmentName = "Content Display");
+		}
+	}
+
+	@description = "This is a test for LPS-125985. The Page Creater can perform actions on collection displayed in Collection Display via General panel."
+	@priority = "5"
+	test PerformActionsOnDisplayedCollectionInCollectionDisplayViaGeneralPanel {
+		property portal.acceptance = "true";
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category in vocabulary") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry") {
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a dynamic collection for All Types") {
+			JSONAssetlist.addDynamicAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemType = "All Types",
+				title = "Dynamic Collection");
+		}
+
+		task ("Add a Collection Display to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the dynamic collection") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Dynamic Collection",
+				fragmentName = "Collection Display");
+		}
+
+		task ("View three assets shown in Collection Display") {
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title,Web Content Title") {
+				AssertVisible(
+					key_colPosition = "1",
+					key_entryTitle = "${title}",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "${n}",
+					locator1 = "PageEditor#COLLECTION_ITEM_TITLE");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Access to the collection editor via General panel") {
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Collection",
+				menuItem = "Edit Collection");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Dynamic Collection");
+		}
+
+		task ("Add a category filter rule") {
+			AssetListsAdmin.addCategoriesFilter(
+				categoryNameList = "Category Name",
+				queryAndOperator = "All",
+				queryContains = "Contains");
+		}
+
+		task ("Navigate to page editor") {
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("View only the web content shown in Collection Display") {
+			AssertVisible(
+				key_colPosition = "1",
+				key_entryTitle = "Web Content Title",
+				key_fragmentName = "Collection Display",
+				key_rowPosition = "1",
+				locator1 = "PageEditor#COLLECTION_ITEM_TITLE");
+
+			for (var title : list "Document Title,Blogs Entry Title") {
+				AssertElementNotPresent(
+					key_entryTitle = "${title}",
+					locator1 = "PageEditor#COLLECTION_CELL");
+			}
+		}
+
+		task ("View the collection items via General panel") {
+			PageEditor.gotoConfiguration(fragmentName = "Collection Display");
+
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Collection",
+				menuItem = "View Items");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			LexiconTable.viewTableEntryTitle(tableEntry = "Web Content Title");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Add a new collection item via General panel") {
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Collection",
+				menuItem = "Add Items");
+
+			MenuItem.click(menuItem = "Basic Web Content");
+
+			WebContent.addCP(
+				webContentContent = "Web Content Content 2",
+				webContentTitle = "Web Content Title 2");
+
+			PortletEntry.publish();
+		}
+
+		task ("View the new web content shown in Collection Display") {
+			var n = "1";
+
+			for (var title : list "Web Content Title 2,Web Content Title") {
+				AssertVisible(
+					key_colPosition = "1",
+					key_entryTitle = "${title}",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "${n}",
+					locator1 = "PageEditor#COLLECTION_ITEM_TITLE");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Define the permissions of collection via General panel") {
+			PageEditor.gotoConfiguration(fragmentName = "Collection Display");
+
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Collection",
+				menuItem = "Edit Collection Permissions");
+
+			IFrame.selectPermissionsFrame();
+
+			AssertChecked(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX");
+
+			Uncheck(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX");
+
+			PortletEntry.save();
+
+			IFrame.closeFrame();
+		}
+
+		task ("View the customized permissions of collection via General panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Collection",
+				menuItem = "Edit Collection Permissions");
+
+			IFrame.selectPermissionsFrame();
+
+			AssertNotChecked(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Remove the selected collection via General panel") {
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Collection",
+				menuItem = "Remove Collection");
+
+			PageEditor.waitForAutoSave();
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_fieldLabel = "Collection",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Select Collection");
+		}
+
+		task ("View the default empty message is shown in Collection Display") {
+			PageEditor.viewFragmentMessageInfo(fragmentName = "Collection Display");
+		}
+	}
+
+	@description = "This is a test for LPS-125985. The Page Creater can perform actions on mapped asset via Mapping panel."
+	@priority = "5"
+	test PerformActionsOnMappedAssetViaMappingPanel {
+		property portal.acceptance = "true";
+
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a Heading fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Title of web content to editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				contributed = "true",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Web Content Title",
+				navItem = "Web Content");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("View the title of web content shown in Heading") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Access to the web content editor via Mapping panel") {
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Edit Item");
+		}
+
+		task ("Edit the web content") {
+			WebContent.addCP(
+				webContentContent = "Web Content Content Edit",
+				webContentTitle = "Web Content Title Edit");
+
+			PortletEntry.publish();
+		}
+
+		task ("View the edited title shown in Heading") {
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title Edit",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("View the edited title shown in Item field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				contributed = "true",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			AssertTextEquals(
+				key_fieldLabel = "Item",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Web Content Title Edit");
+		}
+
+		task ("Define the permissions of web content via Mapping panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Edit Item Permissions");
+
+			IFrame.selectPermissionsFrame();
+
+			AssertChecked(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#INLINE_PERMISSIONS_ADD_DISCUSSION_CHECKBOX");
+
+			Uncheck(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#INLINE_PERMISSIONS_ADD_DISCUSSION_CHECKBOX");
+
+			PortletEntry.save();
+
+			IFrame.closeFrame();
+		}
+
+		task ("View the customized permissions of web content via Mapping panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Edit Item Permissions");
+
+			IFrame.selectPermissionsFrame();
+
+			AssertNotChecked(
+				key_roleTitle = "guest",
+				locator1 = "Permissions#INLINE_PERMISSIONS_ADD_DISCUSSION_CHECKBOX");
+
+			IFrame.closeFrame();
+		}
+
+		task ("View the usage of web content via Mapping panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "View Item Usages");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementPresent(
+				locator1 = "AssetLists#ASSET_LIST_USAGES",
+				usageAmount = "1",
+				usageType = "All");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Remove the selected web content via Mapping panel") {
+			PageEditor.gotoEllipsisMenuItemInItemSelector(
+				fieldLabel = "Item",
+				menuItem = "Remove Item");
+
+			PageEditor.waitForAutoSave();
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_fieldLabel = "Item",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Select Item");
+		}
+
+		task ("View the default inline text is shown in Heading") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Heading Example",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+	}
+
+	@description = "This is a use case for LPS-116989. Resize the configuration panel."
+	@priority = "4"
+	test ResizeConfigurationPanel {
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Resize the configuration panel") {
+			PageEditor.resizeConfigurationPanel(
+				fragmentName = "Button",
+				position = "0,-100");
+		}
+
+		task ("View the configuration panel is restored when access to it second time") {
+			PageEditor.gotoTab(tabName = "Fragments and Widgets");
+
+			PageEditor.gotoTab(tabName = "Browser");
+
+			AssertElementPresent(locator1 = "PageEditor#CONFIGURATION_PANEL_HANDLE");
+
+			AssertElementNotPresent(locator1 = "PageEditor#CONFIGURATION_PANEL_RESIZE");
 		}
 	}
 
@@ -588,6 +1132,87 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-122396. The details of mapped assets are shown in Mapping panel."
+	@priority = "5"
+	test ViewDetailsOfMappedAssetsInMappingPanel {
+		property portal.acceptance = "true";
+
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Map the Title of web content to editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				contributed = "true",
+				fragmentName = "Button",
+				id = "link");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Web Content Title",
+				navItem = "Web Content");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("View the details of mapped web content in Mapping panel") {
+			AssertTextEquals(
+				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
+				value1 = "Type:Web Content Article");
+
+			AssertTextEquals(
+				locator1 = "PageEditor#MAPPING_PANEL_SUB_TYPE_LABEL",
+				value1 = "Subtype:Basic Web Content");
+		}
+
+		task ("Add a Collection Display below the Button") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display",
+				targetFragmentName = "Button");
+		}
+
+		task ("Select the Highest Rated Assets in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoListProviderName = "Highest Rated Assets");
+		}
+
+		task ("Add a Heading fragment to the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Web Content Title",
+				fragmentName = "Heading");
+		}
+
+		task ("View the details of mapped collection provider in Mapping panel") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			AssertTextEquals(
+				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
+				value1 = "Type:Asset");
+		}
+	}
+
 	@description = "This is a test for LPS-121626. The elements information of Slider is organized in Selection panel."
 	@priority = "5"
 	test ViewElementInfoOrderOfSliderInSelectionPanel {
@@ -610,7 +1235,7 @@ definition {
 
 			var n = "1";
 
-			for (var nodeName : list "Slider,01-01-title,01-02-subtitle,01-03-image,02-01-title,02-02-subtitle,02-03-image,03-01-title,03-02-subtitle,03-03-image") {
+			for (var nodeName : list "Slider,01-01-image,01-02-title,01-03-subtitle,02-01-image,02-02-title,02-03-subtitle,03-01-image,03-02-title,03-03-subtitle") {
 				AssertElementPresent(
 					key_nodeName = "${nodeName}",
 					key_position = "${n}",
@@ -697,6 +1322,93 @@ definition {
 
 				var n = ${n} + 1;
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-122142. View the visual style of mapped editable field items in Selection panel of content page."
+	@priority = "4"
+	test ViewVisualStyleOfMappedEditableFieldItems {
+		task ("Add a web content with basic web content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Map the Content field of web content to editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Button",
+				id = "link");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Web Content Title",
+				navItem = "Web Content");
+
+			Pause(locator1 = "3000");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Content");
+		}
+
+		task ("View the visual style of Content item in Selection panel") {
+			AssertCssValue(
+				key_nodeName = "Content",
+				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_NAME",
+				locator2 = "color",
+				value1 = "rgba(149, 76, 255, 1)");
+		}
+
+		task ("Add a Collection Display fragment to page") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display",
+				targetFragmentName = "Button");
+		}
+
+		task ("Select the Highest Rated Assets in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoListProviderName = "Highest Rated Assets");
+		}
+
+		task ("Add a Heading fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Web Content Title",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Title field to editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			Pause(locator1 = "3000");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+		}
+
+		task ("View the visual style of Title item in Selection panel") {
+			AssertCssValue(
+				key_nodeName = "Title",
+				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_NAME",
+				locator2 = "color",
+				value1 = "rgba(149, 76, 255, 1)");
 		}
 	}
 

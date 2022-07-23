@@ -78,9 +78,7 @@ public class EditCPDefinitionGroupedEntryMVCRenderCommand
 			requestDispatcher.include(httpServletRequest, httpServletResponse);
 		}
 		catch (Exception exception) {
-			throw new PortletException(
-				"Unable to include edit_definition_grouped_entry.jsp",
-				exception);
+			throw new PortletException(exception);
 		}
 
 		return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;

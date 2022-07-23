@@ -1,25 +1,21 @@
 @component-name = "portal-upgrades"
 definition {
 
-	property database.types = "db2,mariadb,mysql,oracle,postgresql,sybase";
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.component.names = "Documents Management";
-	property testray.main.component.name = "Upgrades Collaboration";
+	property test.assert.warning.exceptions = "true";
+	property testray.component.names = "Document Management";
+	property testray.main.component.name = "Upgrades Lima";
 
 	setUp {
 		SignIn.signIn();
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		AssertLocation(value1 = "${portalURL}/web/guest/home");
+		AssertLocation(value1 = "${portalURL}/web/guest?SM_USER=test@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 	}
 
 	@priority = "5"
@@ -33,9 +29,67 @@ definition {
 	}
 
 	@priority = "5"
+	@refactordone
+	test ViewDMArchive71105 {
+		property data.archive.type = "data-archive-documents-and-media";
+		property portal.version = "7.1.10.5";
+
+		Upgrade.viewDocuments();
+
+		Upgrade.viewDocumentTypesAndMetadataSets();
+
+		Upgrade.addDMWithDocumentTypesAndMetadataSets();
+
+		Upgrade.editDocumentTypesAndMetadataSets();
+
+		Upgrade.editAndDeleteDocuments();
+
+		Upgrade.deleteDocumentTypesAndMetadataSets();
+	}
+
+	@priority = "5"
+	@refactordone
+	test ViewDMArchive72104 {
+		property data.archive.type = "data-archive-documents-and-media";
+		property portal.version = "7.2.10.4";
+
+		Upgrade.viewDocuments();
+
+		Upgrade.viewDocumentTypesAndMetadataSets();
+
+		Upgrade.addDMWithDocumentTypesAndMetadataSets();
+
+		Upgrade.editDocumentTypesAndMetadataSets();
+
+		Upgrade.editAndDeleteDocuments();
+
+		Upgrade.deleteDocumentTypesAndMetadataSets();
+	}
+
+	@priority = "5"
+	@refactordone
+	test ViewDMArchive73101 {
+		property data.archive.type = "data-archive-documents-and-media";
+		property portal.version = "7.3.10.1";
+
+		Upgrade.viewDocuments();
+
+		Upgrade.viewDocumentTypesAndMetadataSets();
+
+		Upgrade.addDMWithDocumentTypesAndMetadataSets();
+
+		Upgrade.editDocumentTypesAndMetadataSets();
+
+		Upgrade.editAndDeleteDocuments();
+
+		Upgrade.deleteDocumentTypesAndMetadataSets();
+	}
+
+	@priority = "5"
 	@refactorneeded
 	test ViewDMArchive621015 {
 		property data.archive.type = "data-archive-documents-and-media";
+		property database.types = "mariadb,mysql,postgresql";
 		property portal.version = "6.2.10.15";
 
 		Upgrade.viewDocument();
@@ -45,9 +99,29 @@ definition {
 	@refactorneeded
 	test ViewDMArchive621021 {
 		property data.archive.type = "data-archive-documents-and-media";
+		property database.types = "mariadb,mysql,postgresql";
 		property portal.version = "6.2.10.21";
 
 		Upgrade.viewDocument();
+	}
+
+	@priority = "5"
+	@refactordone
+	test ViewDMArchive701015 {
+		property data.archive.type = "data-archive-documents-and-media";
+		property portal.version = "7.0.10.15";
+
+		Upgrade.viewDocuments();
+
+		Upgrade.viewDocumentTypesAndMetadataSets();
+
+		Upgrade.addDMWithDocumentTypesAndMetadataSets();
+
+		Upgrade.editDocumentTypesAndMetadataSets();
+
+		Upgrade.editAndDeleteDocuments();
+
+		Upgrade.deleteDocumentTypesAndMetadataSets();
 	}
 
 }

@@ -1,0 +1,65 @@
+@component-name = "portal-solutions"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Raylife";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		Raylife.createRaylifeSite(siteName = "Raylife");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		Raylife.tearDownCP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.logoutPG();
+		}
+	}
+
+	@description = "LPS-142187 - Verify if error message appear after inserting a wrong ZipCode."
+	@priority = "4"
+	test CanViewErrorMessageForWrongZipCode {
+		ApplicationsMenu.gotoSite(site = "Raylife");
+
+		Type(
+			locator1 = "RaylifeHomePage#HOME_PAGE_ZIP_CODE",
+			value1 = "123");
+
+		Click(locator1 = "RaylifeHomePage#HOME_PAGE_GET_A_QUOTE");
+
+		AssertTextEquals(
+			locator1 = "RaylifeHomePage#HOME_PAGE_ERROR_ZIP_MESSAGE",
+			value1 = "Enter a valid 5 digit Zip");
+	}
+
+	@description = "LPS-142182 - Verify if ZipCode is required."
+	@priority = "4"
+	test ZipCodeIsRequired {
+		ApplicationsMenu.gotoSite(site = "Raylife");
+
+		Click(locator1 = "RaylifeHomePage#HOME_PAGE_GET_A_QUOTE");
+
+		AssertElementPresent(locator1 = "RaylifeHomePage#HOME_PAGE_ERROR_ZIP_MESSAGE");
+	}
+
+	@description = "LPS-142184 - Verify ZipCode Max number of characters (max chars 5)."
+	@priority = "2"
+	test ZipCodeMaxNumber {
+		ApplicationsMenu.gotoSite(site = "Raylife");
+
+		AssertElementPresent(locator1 = "RaylifeHomePage#HOME_PAGE_MESSAGE_MAX_NUMBER_CHARACTERS");
+	}
+
+}

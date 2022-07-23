@@ -99,6 +99,11 @@ public class DDMTemplateLinkWrapper
 		}
 	}
 
+	@Override
+	public DDMTemplateLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this ddm template link.
 	 *

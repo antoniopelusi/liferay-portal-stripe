@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -47,8 +46,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
 import com.liferay.segments.criteria.Criteria;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.service.SegmentsEntryLocalService;
@@ -393,13 +390,11 @@ public class ContentTargetingUpgradeProcessTest {
 
 		long contentTargetingUserSegmentId = -1L;
 
-		JSONObject jsonObject = JSONUtil.put("value", "liferay");
-
-		JSONArray jsonArray = JSONUtil.put(jsonObject);
-
 		insertContentTargetingRuleInstance(
 			contentTargetingUserSegmentId, "PreviousVisitedSiteRule",
-			jsonArray.toString());
+			JSONUtil.put(
+				JSONUtil.put("value", "liferay")
+			).toString());
 
 		insertContentTargetingUserSegment(
 			contentTargetingUserSegmentId,
@@ -617,32 +612,28 @@ public class ContentTargetingUpgradeProcessTest {
 	protected void createContentTargetingTables()
 		throws IOException, SQLException {
 
-		StringBundler sb = new StringBundler(6);
+		_db.runSQL(
+			StringBundler.concat(
+				"create table CT_RuleInstance (uuid_ VARCHAR (75) null, ",
+				"ruleInstanceId LONG not null primary key, groupId LONG, ",
+				"companyId LONG, userId LONG, userName VARCHAR(75) null, ",
+				"createDate DATE null, modifiedDate DATE null, userSegmentId ",
+				"LONG, ruleKey VARCHAR(75) null, displayOrder INTEGER, ",
+				"typeSettings TEXT null)"));
 
-		sb.append("create table CT_RuleInstance (uuid_ VARCHAR (75) null, ");
-		sb.append("ruleInstanceId LONG not null primary key, groupId LONG, ");
-		sb.append("companyId LONG, userId LONG, userName VARCHAR(75) null, ");
-		sb.append("createDate DATE null, modifiedDate DATE null, ");
-		sb.append("userSegmentId LONG, ruleKey VARCHAR(75) null, ");
-		sb.append("displayOrder INTEGER, typeSettings TEXT null)");
-
-		_db.runSQL(sb.toString());
-
-		sb = new StringBundler(6);
-
-		sb.append("create table CT_UserSegment (uuid_ VARCHAR (75) null, ");
-		sb.append("userSegmentId LONG not null primary key, groupId LONG, ");
-		sb.append("companyId LONG, userId LONG, userName VARCHAR(75) null, ");
-		sb.append("createDate DATE null, modifiedDate DATE null, ");
-		sb.append("lastPublishDate DATE null, name STRING null, description ");
-		sb.append("STRING null)");
-
-		_db.runSQL(sb.toString());
+		_db.runSQL(
+			StringBundler.concat(
+				"create table CT_UserSegment (uuid_ VARCHAR (75) null, ",
+				"userSegmentId LONG not null primary key, groupId LONG, ",
+				"companyId LONG, userId LONG, userName VARCHAR(75) null, ",
+				"createDate DATE null, modifiedDate DATE null, ",
+				"lastPublishDate DATE null, name STRING null, description ",
+				"STRING null)"));
 	}
 
 	protected void dropContentTargetingTables() throws Exception {
-		try (Connection con = DataAccess.getConnection()) {
-			DBInspector dbInspector = new DBInspector(con);
+		try (Connection connection = DataAccess.getConnection()) {
+			DBInspector dbInspector = new DBInspector(connection);
 
 			if (dbInspector.hasTable("CT_RuleInstance")) {
 				_db.runSQL("drop table CT_RuleInstance");
@@ -659,34 +650,32 @@ public class ContentTargetingUpgradeProcessTest {
 			String typeSettings)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(4);
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into CT_RuleInstance(ruleInstanceId, groupId, ",
+					"companyId, userId, userName, createDate, modifiedDate, ",
+					"userSegmentId, ruleKey, typeSettings) values (?, ?, ?, ",
+					"?, ?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into CT_RuleInstance(ruleInstanceId, groupId, ");
-		sb.append("companyId, userId, userName, createDate, modifiedDate, ");
-		sb.append("userSegmentId, ruleKey, typeSettings) values (?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?, ?)");
-
-		String sql = sb.toString();
-
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-
-			ps.setLong(1, _counterLocalService.increment());
-			ps.setLong(2, _group.getGroupId());
-			ps.setLong(3, _group.getCompanyId());
-			ps.setLong(4, TestPropsValues.getUserId());
+			preparedStatement.setLong(1, _counterLocalService.increment());
+			preparedStatement.setLong(2, _group.getGroupId());
+			preparedStatement.setLong(3, _group.getCompanyId());
+			preparedStatement.setLong(4, TestPropsValues.getUserId());
 
 			User user = TestPropsValues.getUser();
 
-			ps.setString(5, user.getFullName());
+			preparedStatement.setString(5, user.getFullName());
 
-			ps.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
-			ps.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
-			ps.setLong(8, contentTargetingUserSegmentId);
-			ps.setString(9, ruleKey);
-			ps.setString(10, typeSettings);
+			preparedStatement.setTimestamp(
+				6, new Timestamp(System.currentTimeMillis()));
+			preparedStatement.setTimestamp(
+				7, new Timestamp(System.currentTimeMillis()));
+			preparedStatement.setLong(8, contentTargetingUserSegmentId);
+			preparedStatement.setString(9, ruleKey);
+			preparedStatement.setString(10, typeSettings);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
@@ -695,56 +684,47 @@ public class ContentTargetingUpgradeProcessTest {
 			Map<Locale, String> descriptionMap)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(3);
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into CT_UserSegment(userSegmentId, groupId, ",
+					"companyId, userId, userName, createDate, modifiedDate, ",
+					"name, description) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into CT_UserSegment(userSegmentId, groupId, ");
-		sb.append("companyId, userId, userName, createDate, modifiedDate, ");
-		sb.append("name, description) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		String sql = sb.toString();
-
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-
-			ps.setLong(1, contentTargetingUserSegmentId);
-			ps.setLong(2, _group.getGroupId());
-			ps.setLong(3, _group.getCompanyId());
-			ps.setLong(4, TestPropsValues.getUserId());
+			preparedStatement.setLong(1, contentTargetingUserSegmentId);
+			preparedStatement.setLong(2, _group.getGroupId());
+			preparedStatement.setLong(3, _group.getCompanyId());
+			preparedStatement.setLong(4, TestPropsValues.getUserId());
 
 			User user = TestPropsValues.getUser();
 
-			ps.setString(5, user.getFullName());
+			preparedStatement.setString(5, user.getFullName());
 
-			ps.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
-			ps.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
+			preparedStatement.setTimestamp(
+				6, new Timestamp(System.currentTimeMillis()));
+			preparedStatement.setTimestamp(
+				7, new Timestamp(System.currentTimeMillis()));
 
 			Locale defaultLocale = PortalUtil.getSiteDefaultLocale(_group);
 
 			String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
 
-			ps.setString(
+			preparedStatement.setString(
 				8,
 				LocalizationUtil.updateLocalization(
 					nameMap, StringPool.BLANK, "Name", defaultLanguageId));
-			ps.setString(
+			preparedStatement.setString(
 				9,
 				LocalizationUtil.updateLocalization(
 					descriptionMap, StringPool.BLANK, "Description",
 					defaultLanguageId));
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
 	protected void setUpContentTargetingUpgradeProcess() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		UpgradeStepRegistrator upgradeStepRegistror = registry.getService(
-			registry.getServiceReference(
-				"com.liferay.segments.content.targeting.upgrade.internal." +
-					"SegmentsContentTargetingUpgrade"));
-
-		upgradeStepRegistror.register(
+		_upgradeStepRegistror.register(
 			new UpgradeStepRegistrator.Registry() {
 
 				@Override
@@ -762,35 +742,31 @@ public class ContentTargetingUpgradeProcessTest {
 					}
 				}
 
+				@Override
+				public void registerInitialUpgradeSteps(
+					UpgradeStep... upgradeSteps) {
+				}
+
 			});
 	}
 
 	private String _getCustomFieldFilterString(
 		ExpandoColumn expandoColumn, String expandoValue) {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("(customField/_");
-		sb.append(expandoColumn.getColumnId());
-		sb.append("_");
-		sb.append(Normalizer.normalizeIdentifier(expandoColumn.getName()));
-		sb.append(" eq '");
-		sb.append(expandoValue);
-		sb.append("')");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"(customField/_", expandoColumn.getColumnId(), "_",
+			Normalizer.normalizeIdentifier(expandoColumn.getName()), " eq '",
+			expandoValue, "')");
 	}
 
 	private String _getCustomFieldRuleTypeSettings(
 		ExpandoColumn expandoColumn, String expandoValue) {
 
-		JSONObject jsonObject = JSONUtil.put(
+		return JSONUtil.put(
 			"attributeName", expandoColumn.getName()
 		).put(
 			"value", expandoValue
-		);
-
-		return jsonObject.toString();
+		).toString();
 	}
 
 	private String _getDateRangeTypeSettings(
@@ -840,5 +816,10 @@ public class ContentTargetingUpgradeProcessTest {
 
 	@Inject
 	private SegmentsEntryLocalService _segmentsEntryLocalService;
+
+	@Inject(
+		filter = "component.name=com.liferay.segments.content.targeting.upgrade.internal.SegmentsContentTargetingUpgrade"
+	)
+	private UpgradeStepRegistrator _upgradeStepRegistror;
 
 }

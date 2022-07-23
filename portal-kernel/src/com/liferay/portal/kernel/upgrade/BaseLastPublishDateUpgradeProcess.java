@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.sql.PreparedStatement;
@@ -54,17 +55,19 @@ public abstract class BaseLastPublishDateUpgradeProcess extends UpgradeProcess {
 	}
 
 	protected Date getLayoutSetLastPublishDate(long groupId) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select settings_ from LayoutSet where groupId = ?")) {
 
-			ps.setLong(1, groupId);
+			preparedStatement.setLong(1, groupId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
 					UnicodeProperties settingsUnicodeProperties =
-						new UnicodeProperties(true);
-
-					settingsUnicodeProperties.load(rs.getString("settings_"));
+						UnicodePropertiesBuilder.create(
+							true
+						).load(
+							resultSet.getString("settings_")
+						).build();
 
 					String lastPublishDateString =
 						settingsUnicodeProperties.getProperty(
@@ -85,27 +88,29 @@ public abstract class BaseLastPublishDateUpgradeProcess extends UpgradeProcess {
 		throws Exception {
 
 		if (!hasColumn("PortletPreferences", "preferences")) {
-			try (PreparedStatement ps = connection.prepareStatement(
-					StringBundler.concat(
-						"select PortletPreferenceValue.smallValue from ",
-						"PortletPreferenceValue inner join PortletPreferences ",
-						"on PortletPreferences.portletPreferencesId = ",
-						"PortletPreferenceValue.portletPreferencesId where ",
-						"PortletPreferences.plid = ? and ",
-						"PortletPreferences.ownerType = ? and ",
-						"PortletPreferences.ownerId = ? and ",
-						"PortletPreferences.portletId = ? and ",
-						"PortletPreferenceValue.name = ?"))) {
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select PortletPreferenceValue.smallValue from ",
+							"PortletPreferenceValue inner join ",
+							"PortletPreferences on ",
+							"PortletPreferences.portletPreferencesId = ",
+							"PortletPreferenceValue.portletPreferencesId ",
+							"where PortletPreferences.plid = ? and ",
+							"PortletPreferences.ownerType = ? and ",
+							"PortletPreferences.ownerId = ? and ",
+							"PortletPreferences.portletId = ? and ",
+							"PortletPreferenceValue.name = ?"))) {
 
-				ps.setLong(1, LayoutConstants.DEFAULT_PLID);
-				ps.setInt(2, PortletKeys.PREFS_OWNER_TYPE_GROUP);
-				ps.setLong(3, groupId);
-				ps.setString(4, portletId);
-				ps.setString(5, "last-publish-date");
+				preparedStatement.setLong(1, LayoutConstants.DEFAULT_PLID);
+				preparedStatement.setInt(2, PortletKeys.PREFS_OWNER_TYPE_GROUP);
+				preparedStatement.setLong(3, groupId);
+				preparedStatement.setString(4, portletId);
+				preparedStatement.setString(5, "last-publish-date");
 
-				try (ResultSet rs = ps.executeQuery()) {
-					while (rs.next()) {
-						String value = rs.getString("smallValue");
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					while (resultSet.next()) {
+						String value = resultSet.getString("smallValue");
 
 						if (Validator.isNotNull(value)) {
 							return new Date(GetterUtil.getLong(value));
@@ -117,18 +122,18 @@ public abstract class BaseLastPublishDateUpgradeProcess extends UpgradeProcess {
 			return null;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select preferences from PortletPreferences where plid = ? " +
 					"and ownerType = ? and ownerId = ? and portletId = ?")) {
 
-			ps.setLong(1, LayoutConstants.DEFAULT_PLID);
-			ps.setInt(2, PortletKeys.PREFS_OWNER_TYPE_GROUP);
-			ps.setLong(3, groupId);
-			ps.setString(4, portletId);
+			preparedStatement.setLong(1, LayoutConstants.DEFAULT_PLID);
+			preparedStatement.setInt(2, PortletKeys.PREFS_OWNER_TYPE_GROUP);
+			preparedStatement.setLong(3, groupId);
+			preparedStatement.setString(4, portletId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					String preferences = rs.getString("preferences");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					String preferences = resultSet.getString("preferences");
 
 					if (Validator.isNotNull(preferences)) {
 						int x = preferences.lastIndexOf(
@@ -156,15 +161,15 @@ public abstract class BaseLastPublishDateUpgradeProcess extends UpgradeProcess {
 	}
 
 	protected List<Long> getStagedGroupIds() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select groupId from Group_ where typeSettings like " +
 					"'%staged=true%'");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
 			List<Long> stagedGroupIds = new ArrayList<>();
 
-			while (rs.next()) {
-				long stagedGroupId = rs.getLong("groupId");
+			while (resultSet.next()) {
+				long stagedGroupId = resultSet.getLong("groupId");
 
 				stagedGroupIds.add(stagedGroupId);
 			}
@@ -202,15 +207,16 @@ public abstract class BaseLastPublishDateUpgradeProcess extends UpgradeProcess {
 			long groupId, String tableName, Date lastPublishDate)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"update ", tableName, " set lastPublishDate = ? where ",
 					"groupId = ?"))) {
 
-			ps.setDate(1, new java.sql.Date(lastPublishDate.getTime()));
-			ps.setLong(2, groupId);
+			preparedStatement.setDate(
+				1, new java.sql.Date(lastPublishDate.getTime()));
+			preparedStatement.setLong(2, groupId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

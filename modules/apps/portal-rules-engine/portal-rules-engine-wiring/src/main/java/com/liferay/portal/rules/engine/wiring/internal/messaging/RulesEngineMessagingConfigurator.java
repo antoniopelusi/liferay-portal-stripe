@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.proxy.ProxyMessageListener;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.rules.engine.constants.RulesEngineConstants;
 
 import java.util.Dictionary;
@@ -75,9 +75,9 @@ public class RulesEngineMessagingConfigurator {
 			destinationConfiguration);
 
 		Dictionary<String, Object> destinationProperties =
-			new HashMapDictionary<>();
-
-		destinationProperties.put("destination.name", destination.getName());
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		_destinationServiceRegistration = _bundleContext.registerService(
 			Destination.class, destination, destinationProperties);

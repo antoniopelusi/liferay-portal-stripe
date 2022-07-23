@@ -16,12 +16,11 @@ package com.liferay.change.tracking.web.internal.servlet.taglib;
 
 import com.liferay.change.tracking.constants.CTActionKeys;
 import com.liferay.change.tracking.constants.CTConstants;
+import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTPreferences;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
-import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.service.CTPreferencesLocalService;
-import com.liferay.change.tracking.web.internal.constants.CTPortletKeys;
 import com.liferay.change.tracking.web.internal.security.permission.resource.CTPermission;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
@@ -43,18 +42,15 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
-import com.liferay.portal.util.PropsValues;
 import com.liferay.taglib.util.HtmlTopTag;
 
 import java.io.IOException;
 import java.io.Writer;
 
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -99,7 +95,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 
 			return;
@@ -198,7 +194,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			"/change_tracking/checkout_ct_collection"
 		).setRedirect(
 			_portal.getCurrentURL(httpServletRequest)
-		).build();
+		).buildPortletURL();
 
 		PortalPreferences portalPreferences =
 			PortletPreferencesFactoryUtil.getPortalPreferences(
@@ -246,10 +242,6 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			"spritemap", themeDisplay.getPathThemeImages() + "/clay/icons.svg"
 		).build();
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			themeDisplay.getLocale(),
-			ChangeTrackingIndicatorDynamicInclude.class);
-
 		long ctCollectionId = CTConstants.CT_COLLECTION_ID_PRODUCTION;
 
 		if (ctCollection != null) {
@@ -259,7 +251,8 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 		if (ctCollection == null) {
 			data.put("iconClass", "change-tracking-indicator-icon-production");
 			data.put("iconName", "simple-circle");
-			data.put("title", _language.get(resourceBundle, "production"));
+			data.put(
+				"title", _language.get(themeDisplay.getLocale(), "production"));
 		}
 		else {
 			data.put("iconClass", "change-tracking-indicator-icon-publication");
@@ -288,7 +281,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 						).put(
 							"label",
 							_language.format(
-								resourceBundle, "work-on-x",
+								themeDisplay.getLocale(), "work-on-x",
 								previousCTCollection.getName(), false)
 						).put(
 							"symbolLeft", "radio-button"
@@ -306,7 +299,8 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 						"href", checkoutURL.toString()
 					).put(
 						"label",
-						_language.get(resourceBundle, "work-on-production")
+						_language.get(
+							themeDisplay.getLocale(), "work-on-production")
 					).put(
 						"symbolLeft", "simple-circle"
 					));
@@ -324,7 +318,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 					PortletRequest.RENDER_PHASE)
 			).setMVCRenderCommandName(
 				"/change_tracking/add_ct_collection"
-			).build();
+			).buildPortletURL();
 
 			PortletURL redirectURL = _portal.getControlPanelPortletURL(
 				httpServletRequest, themeDisplay.getScopeGroup(),
@@ -338,7 +332,8 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 					"href", addURL.toString()
 				).put(
 					"label",
-					_language.get(resourceBundle, "create-new-publication")
+					_language.get(
+						themeDisplay.getLocale(), "create-new-publication")
 				).put(
 					"symbolLeft", "plus"
 				));
@@ -360,55 +355,11 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 						"ctCollectionId", ctCollectionId
 					).buildString()
 				).put(
-					"label", _language.get(resourceBundle, "review-changes")
+					"label",
+					_language.get(themeDisplay.getLocale(), "review-changes")
 				).put(
 					"symbolLeft", "list-ul"
 				));
-
-			int count = _ctEntryLocalService.getCTCollectionCTEntriesCount(
-				ctCollection.getCtCollectionId());
-
-			if ((count > 0) &&
-				_ctCollectionModelResourcePermission.contains(
-					themeDisplay.getPermissionChecker(), ctCollection,
-					CTActionKeys.PUBLISH)) {
-
-				PortletURL publishURL = PortletURLBuilder.create(
-					_portal.getControlPanelPortletURL(
-						httpServletRequest, themeDisplay.getScopeGroup(),
-						CTPortletKeys.PUBLICATIONS, 0, 0,
-						PortletRequest.RENDER_PHASE)
-				).setMVCRenderCommandName(
-					"/change_tracking/view_conflicts"
-				).setParameter(
-					"ctCollectionId", ctCollection.getCtCollectionId()
-				).build();
-
-				data.put(
-					"publishDropdownItem",
-					JSONUtil.put(
-						"href", publishURL.toString()
-					).put(
-						"label", _language.get(resourceBundle, "publish")
-					).put(
-						"symbolLeft", "change"
-					));
-
-				if (PropsValues.SCHEDULER_ENABLED) {
-					publishURL.setParameter(
-						"schedule", Boolean.TRUE.toString());
-
-					data.put(
-						"scheduleDropdownItem",
-						JSONUtil.put(
-							"href", publishURL.toString()
-						).put(
-							"label", _language.get(resourceBundle, "schedule")
-						).put(
-							"symbolLeft", "calendar"
-						));
-				}
-			}
 		}
 
 		return data;
@@ -425,9 +376,6 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 	)
 	private ModelResourcePermission<CTCollection>
 		_ctCollectionModelResourcePermission;
-
-	@Reference
-	private CTEntryLocalService _ctEntryLocalService;
 
 	@Reference
 	private CTPreferencesLocalService _ctPreferencesLocalService;

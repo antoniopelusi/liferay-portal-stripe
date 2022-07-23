@@ -3,7 +3,6 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="WARN" name="com.liferay.adaptive.media.web.internal.messaging.AMMessageListener" />
-
 		<Logger level="WARN" name="com.liferay.adaptive.media.web.internal.servlet.AMServlet" />
 	</Loggers>
 </Configuration>

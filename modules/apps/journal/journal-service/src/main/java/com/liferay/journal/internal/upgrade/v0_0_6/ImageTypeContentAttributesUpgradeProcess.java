@@ -35,9 +35,12 @@ import java.util.List;
  */
 public class ImageTypeContentAttributesUpgradeProcess extends UpgradeProcess {
 
-	protected String addImageContentAttributes(String content)
-		throws Exception {
+	@Override
+	protected void doUpgrade() throws Exception {
+		_updateContentImages();
+	}
 
+	private String _addImageContentAttributes(String content) throws Exception {
 		Document document = SAXReaderUtil.read(content);
 
 		document = document.clone();
@@ -66,63 +69,56 @@ public class ImageTypeContentAttributesUpgradeProcess extends UpgradeProcess {
 
 			if (Validator.isNotNull(id)) {
 				imageElement.addAttribute(
-					"instance-id", getImageInstanceId(id));
+					"instance-id", _getImageInstanceId(id));
 			}
 		}
 
 		return document.formattedString();
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		updateContentImages();
-	}
-
-	protected String getImageInstanceId(String articleImageId)
-		throws Exception {
-
-		try (PreparedStatement ps = connection.prepareStatement(
+	private String _getImageInstanceId(String articleImageId) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select elInstanceId from JournalArticleImage where " +
 					"articleImageId = ?")) {
 
-			ps.setLong(1, Long.valueOf(articleImageId));
+			preparedStatement.setLong(1, Long.valueOf(articleImageId));
 
-			ResultSet rs = ps.executeQuery();
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-			if (rs.next()) {
-				return rs.getString(1);
+			if (resultSet.next()) {
+				return resultSet.getString(1);
 			}
 
 			return StringPool.BLANK;
 		}
 	}
 
-	protected void updateContentImages() throws Exception {
+	private void _updateContentImages() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select content, id_ from JournalArticle where content like " +
 					"?")) {
 
-			ps1.setString(1, "%type=\"image\"%");
+			preparedStatement1.setString(1, "%type=\"image\"%");
 
-			ResultSet rs = ps1.executeQuery();
+			ResultSet resultSet = preparedStatement1.executeQuery();
 
-			while (rs.next()) {
-				String content = rs.getString(1);
-				long id = rs.getLong(2);
+			while (resultSet.next()) {
+				String content = resultSet.getString(1);
+				long id = resultSet.getLong(2);
 
-				String newContent = addImageContentAttributes(content);
+				String newContent = _addImageContentAttributes(content);
 
-				try (PreparedStatement ps =
+				try (PreparedStatement preparedStatement =
 						AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 							connection,
 							"update JournalArticle set content = ? where id_ " +
 								"= ?")) {
 
-					ps.setString(1, newContent);
-					ps.setLong(2, id);
+					preparedStatement.setString(1, newContent);
+					preparedStatement.setLong(2, id);
 
-					ps.executeUpdate();
+					preparedStatement.executeUpdate();
 				}
 			}
 		}

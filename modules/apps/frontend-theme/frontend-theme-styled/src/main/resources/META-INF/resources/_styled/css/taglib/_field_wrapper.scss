@@ -1,8 +1,7 @@
-.lfr-ddm-field-group {
-	margin-bottom: 20px;
+.field-wrapper.form-inline .control-label {
+	display: inline-block;
 }
 
-.lfr-ddm-field-group-inline {
-	display: inline-block;
-	vertical-align: bottom;
+.field-wrapper-html .input-localized .input-group-item {
+	flex-wrap: nowrap;
 }

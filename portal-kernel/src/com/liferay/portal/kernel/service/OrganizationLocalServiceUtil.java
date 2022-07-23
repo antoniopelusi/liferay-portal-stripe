@@ -157,6 +157,29 @@ public class OrganizationLocalServiceUtil {
 		getService().addOrganizationResources(userId, organization);
 	}
 
+	public static com.liferay.portal.kernel.model.User
+			addOrganizationUserByEmailAddress(
+				String emailAddress, long organizationId,
+				ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrganizationUserByEmailAddress(
+			emailAddress, organizationId, serviceContext);
+	}
+
+	public static Organization addOrUpdateOrganization(
+			String externalReferenceCode, long userId,
+			long parentOrganizationId, String name, String type, long regionId,
+			long countryId, long statusId, String comments, boolean hasLogo,
+			byte[] logoBytes, boolean site, ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateOrganization(
+			externalReferenceCode, userId, parentOrganizationId, name, type,
+			regionId, countryId, statusId, comments, hasLogo, logoBytes, site,
+			serviceContext);
+	}
+
 	/**
 	 * Assigns the password policy to the organizations, removing any other
 	 * currently assigned password policies.
@@ -179,6 +202,14 @@ public class OrganizationLocalServiceUtil {
 		long userId, Organization organization) {
 
 		getService().addUserOrganization(userId, organization);
+	}
+
+	public static void addUserOrganizationByEmailAddress(
+			String emailAddress, long organizationId)
+		throws PortalException {
+
+		getService().addUserOrganizationByEmailAddress(
+			emailAddress, organizationId);
 	}
 
 	public static void addUserOrganizations(
@@ -310,6 +341,14 @@ public class OrganizationLocalServiceUtil {
 		getService().deleteUserOrganization(userId, organization);
 	}
 
+	public static void deleteUserOrganizationByEmailAddress(
+			String emailAddress, long organizationId)
+		throws PortalException {
+
+		getService().deleteUserOrganizationByEmailAddress(
+			emailAddress, organizationId);
+	}
+
 	public static void deleteUserOrganizations(
 		long userId, List<Organization> organizations) {
 
@@ -324,6 +363,10 @@ public class OrganizationLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {

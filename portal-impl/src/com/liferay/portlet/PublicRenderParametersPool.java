@@ -43,22 +43,23 @@ public class PublicRenderParametersPool {
 				httpServletRequest, plid, _PUBLIC_RENDER_PARAMETERS);
 		}
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		HttpSession portalSession = PortalSessionContext.get(session.getId());
+		HttpSession portalHttpSession = PortalSessionContext.get(
+			httpSession.getId());
 
-		if (portalSession != null) {
-			session = portalSession;
+		if (portalHttpSession != null) {
+			httpSession = portalHttpSession;
 		}
 
 		Map<Long, Map<String, String[]>> publicRenderParametersPool =
-			(Map<Long, Map<String, String[]>>)session.getAttribute(
+			(Map<Long, Map<String, String[]>>)httpSession.getAttribute(
 				WebKeys.PUBLIC_RENDER_PARAMETERS_POOL);
 
 		if (publicRenderParametersPool == null) {
 			publicRenderParametersPool = new ConcurrentHashMap<>();
 
-			session.setAttribute(
+			httpSession.setAttribute(
 				WebKeys.PUBLIC_RENDER_PARAMETERS_POOL,
 				publicRenderParametersPool);
 		}
@@ -73,7 +74,7 @@ public class PublicRenderParametersPool {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return new HashMap<>();

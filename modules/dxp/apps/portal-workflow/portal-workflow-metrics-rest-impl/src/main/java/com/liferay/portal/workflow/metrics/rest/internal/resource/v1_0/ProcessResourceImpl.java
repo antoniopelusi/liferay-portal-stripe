@@ -26,6 +26,9 @@ import com.liferay.portal.search.hits.SearchHits;
 import com.liferay.portal.search.query.BooleanQuery;
 import com.liferay.portal.search.query.Queries;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
+import com.liferay.portal.workflow.metrics.model.AddProcessRequest;
+import com.liferay.portal.workflow.metrics.model.DeleteProcessRequest;
+import com.liferay.portal.workflow.metrics.model.UpdateProcessRequest;
 import com.liferay.portal.workflow.metrics.rest.dto.v1_0.Process;
 import com.liferay.portal.workflow.metrics.rest.internal.dto.v1_0.util.ProcessUtil;
 import com.liferay.portal.workflow.metrics.rest.internal.resource.exception.NoSuchProcessException;
@@ -55,8 +58,15 @@ public class ProcessResourceImpl extends BaseProcessResourceImpl {
 	public void deleteProcess(Long processId) throws Exception {
 		Process process = getProcess(processId);
 
+		DeleteProcessRequest.Builder builder =
+			new DeleteProcessRequest.Builder();
+
 		_processWorkflowMetricsIndexer.deleteProcess(
-			contextCompany.getCompanyId(), process.getId());
+			builder.companyId(
+				contextCompany.getCompanyId()
+			).processId(
+				process.getId()
+			).build());
 	}
 
 	@Override
@@ -133,14 +143,33 @@ public class ProcessResourceImpl extends BaseProcessResourceImpl {
 
 	@Override
 	public Process postProcess(Process process) throws Exception {
+		AddProcessRequest.Builder builder = new AddProcessRequest.Builder();
+
 		return ProcessUtil.toProcess(
 			_processWorkflowMetricsIndexer.addProcess(
-				process.getActive(), contextCompany.getCompanyId(),
-				process.getDateModified(), process.getDescription(),
-				process.getDateModified(), process.getName(), process.getId(),
-				process.getTitle(),
-				LocalizedMapUtil.getLocalizedMap(process.getTitle_i18n()),
-				process.getVersion()),
+				builder.active(
+					process.getActive()
+				).companyId(
+					contextCompany.getCompanyId()
+				).createDate(
+					process.getDateCreated()
+				).description(
+					process.getDescription()
+				).modifiedDate(
+					process.getDateModified()
+				).name(
+					process.getName()
+				).processId(
+					process.getId()
+				).title(
+					process.getTitle()
+				).titleMap(
+					LocalizedMapUtil.getLocalizedMap(process.getTitle_i18n())
+				).version(
+					process.getVersion()
+				).versions(
+					new String[] {process.getVersion()}
+				).build()),
 			contextAcceptLanguage.getPreferredLocale());
 	}
 
@@ -151,12 +180,27 @@ public class ProcessResourceImpl extends BaseProcessResourceImpl {
 		Map<Locale, String> titleMap = LocalizedMapUtil.getLocalizedMap(
 			process.getTitle_i18n());
 
+		UpdateProcessRequest.Builder builder =
+			new UpdateProcessRequest.Builder();
+
 		_processWorkflowMetricsIndexer.updateProcess(
-			process.getActive(), contextCompany.getCompanyId(),
-			process.getDescription(), process.getDateModified(),
-			getProcess.getId(),
-			titleMap.get(contextAcceptLanguage.getPreferredLocale()), titleMap,
-			process.getVersion());
+			builder.active(
+				process.getActive()
+			).companyId(
+				contextCompany.getCompanyId()
+			).description(
+				process.getDescription()
+			).modifiedDate(
+				process.getDateModified()
+			).processId(
+				getProcess.getId()
+			).title(
+				titleMap.get(contextAcceptLanguage.getPreferredLocale())
+			).titleMap(
+				titleMap
+			).version(
+				process.getVersion()
+			).build());
 	}
 
 	private BooleanQuery _createBooleanQuery(Long processId) {

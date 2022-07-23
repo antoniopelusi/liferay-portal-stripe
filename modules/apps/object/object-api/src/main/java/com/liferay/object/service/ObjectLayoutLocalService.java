@@ -16,6 +16,7 @@ package com.liferay.object.service;
 
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.object.model.ObjectLayout;
+import com.liferay.object.model.ObjectLayoutTab;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -25,10 +26,12 @@ import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -37,6 +40,8 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -63,6 +68,11 @@ public interface ObjectLayoutLocalService
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectLayoutLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the object layout local service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link ObjectLayoutLocalServiceUtil} if injection and service tracking are not available.
 	 */
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectLayout addObjectLayout(
+			long userId, long objectDefinitionId, boolean defaultObjectLayout,
+			Map<Locale, String> nameMap, List<ObjectLayoutTab> objectLayoutTabs)
+		throws PortalException;
 
 	/**
 	 * Adds the object layout to the database. Also notifies the appropriate model listeners.
@@ -116,9 +126,12 @@ public interface ObjectLayoutLocalService
 	 *
 	 * @param objectLayout the object layout
 	 * @return the object layout that was removed
+	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
-	public ObjectLayout deleteObjectLayout(ObjectLayout objectLayout);
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	public ObjectLayout deleteObjectLayout(ObjectLayout objectLayout)
+		throws PortalException;
 
 	/**
 	 * @throws PortalException
@@ -129,6 +142,9 @@ public interface ObjectLayoutLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -214,6 +230,10 @@ public interface ObjectLayoutLocalService
 	public ActionableDynamicQuery getActionableDynamicQuery();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectLayout getDefaultObjectLayout(long objectDefinitionId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
 		PortletDataContext portletDataContext);
 
@@ -258,6 +278,13 @@ public interface ObjectLayoutLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<ObjectLayout> getObjectLayouts(int start, int end);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectLayout> getObjectLayouts(long objectDefinitionId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectLayout> getObjectLayouts(
+		long objectDefinitionId, int start, int end);
+
 	/**
 	 * Returns the number of object layouts.
 	 *
@@ -265,6 +292,9 @@ public interface ObjectLayoutLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getObjectLayoutsCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getObjectLayoutsCount(long objectDefinitionId);
 
 	/**
 	 * Returns the OSGi service identifier.
@@ -279,6 +309,12 @@ public interface ObjectLayoutLocalService
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
+		throws PortalException;
+
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectLayout updateObjectLayout(
+			long objectLayoutId, boolean defaultObjectLayout,
+			Map<Locale, String> nameMap, List<ObjectLayoutTab> objectLayoutTabs)
 		throws PortalException;
 
 	/**

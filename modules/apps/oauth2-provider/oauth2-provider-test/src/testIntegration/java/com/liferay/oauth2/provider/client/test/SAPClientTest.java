@@ -19,12 +19,11 @@ import com.liferay.oauth2.provider.internal.test.TestSAPApplication;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Collections;
-import java.util.Dictionary;
 
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -55,28 +54,28 @@ public class SAPClientTest extends BaseClientTestCase {
 		Invocation.Builder builder = authorize(
 			webTarget.request(), getToken("oauthTestApplication"));
 
-		Assert.assertEquals(true, builder.get(Boolean.class));
+		Assert.assertTrue(builder.get(Boolean.class));
 
 		webTarget = getWebTarget("SAP/CUSTOM_SAP");
 
 		builder = authorize(
 			webTarget.request(), getToken("oauthTestApplication"));
 
-		Assert.assertEquals(false, builder.get(Boolean.class));
+		Assert.assertFalse(builder.get(Boolean.class));
 
 		webTarget = getWebTarget("CUSTOM_SAP/AUTHORIZED_OAUTH2_SAP");
 
 		builder = authorize(
 			webTarget.request(), getToken("oauthTestApplication"));
 
-		Assert.assertEquals(false, builder.get(Boolean.class));
+		Assert.assertFalse(builder.get(Boolean.class));
 
 		webTarget = getWebTarget("CUSTOM_SAP/CUSTOM_SAP");
 
 		builder = authorize(
 			webTarget.request(), getToken("oauthTestApplication"));
 
-		Assert.assertEquals(true, builder.get(Boolean.class));
+		Assert.assertTrue(builder.get(Boolean.class));
 	}
 
 	public static class SAPTestPreparatorBundleActivator
@@ -88,21 +87,19 @@ public class SAPClientTest extends BaseClientTestCase {
 
 			User user = UserTestUtil.getAdminUser(defaultCompanyId);
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put(
-				"osgi.jaxrs.name", TestSAPApplication.class.getName());
+			registerJaxRsApplication(
+				new TestSAPApplication(), "SAP",
+				HashMapDictionaryBuilder.<String, Object>put(
+					"osgi.jaxrs.name", TestSAPApplication.class.getName()
+				).build());
 
 			registerJaxRsApplication(
-				new TestSAPApplication(), "SAP", properties);
-
-			properties = new HashMapDictionary<>();
-
-			properties.put("oauth2.service.access.policy.name", "CUSTOM_SAP");
-			properties.put("osgi.jaxrs.name", "custom-sap-application");
-
-			registerJaxRsApplication(
-				new TestSAPApplication(), "CUSTOM_SAP", properties);
+				new TestSAPApplication(), "CUSTOM_SAP",
+				HashMapDictionaryBuilder.<String, Object>put(
+					"oauth2.service.access.policy.name", "CUSTOM_SAP"
+				).put(
+					"osgi.jaxrs.name", "custom-sap-application"
+				).build());
 
 			createOAuth2Application(
 				defaultCompanyId, user, "oauthTestApplication",

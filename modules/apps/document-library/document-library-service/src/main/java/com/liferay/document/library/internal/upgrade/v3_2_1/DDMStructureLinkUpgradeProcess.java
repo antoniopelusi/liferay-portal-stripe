@@ -28,30 +28,30 @@ public class DDMStructureLinkUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBundler sb = new StringBundler(6);
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DLFileEntryType.fileEntryTypeId, ",
+					"DLFileEntryType.dataDefinitionId from DLFileEntryType ",
+					"inner join DDMStructureLink on ",
+					"DDMStructureLink.structureId = ",
+					"DLFileEntryType.dataDefinitionId and ",
+					"DDMStructureLink.classPK = ",
+					"DLFileEntryType.fileEntryTypeId"));
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"delete from DDMStructureLink where classPK = ? and " +
+							"structureId = ?"));
+			ResultSet resultSet1 = preparedStatement1.executeQuery()) {
 
-		sb.append("select DLFileEntryType.fileEntryTypeId, ");
-		sb.append("DLFileEntryType.dataDefinitionId from DLFileEntryType ");
-		sb.append("inner join DDMStructureLink on ");
-		sb.append("DDMStructureLink.structureId = ");
-		sb.append("DLFileEntryType.dataDefinitionId and ");
-		sb.append("DDMStructureLink.classPK = DLFileEntryType.fileEntryTypeId");
+			while (resultSet1.next()) {
+				preparedStatement2.setLong(1, resultSet1.getLong(1));
+				preparedStatement2.setLong(2, resultSet1.getLong(2));
 
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"delete from DDMStructureLink where classPK = ? and " +
-						"structureId = ?"));
-			ResultSet rs1 = ps1.executeQuery()) {
-
-			while (rs1.next()) {
-				ps2.setLong(1, rs1.getLong(1));
-				ps2.setLong(2, rs1.getLong(2));
-
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

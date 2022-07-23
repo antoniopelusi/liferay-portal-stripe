@@ -14,7 +14,6 @@
 
 package com.liferay.document.library.document.conversion.internal;
 
-import com.artofsolving.jodconverter.DefaultDocumentFormatRegistry;
 import com.artofsolving.jodconverter.DocumentConverter;
 import com.artofsolving.jodconverter.DocumentFormat;
 import com.artofsolving.jodconverter.DocumentFormatRegistry;
@@ -90,7 +89,7 @@ public class DocumentConversionImpl implements DocumentConversion {
 		}
 
 		DocumentFormatRegistry documentFormatRegistry =
-			new DefaultDocumentFormatRegistry();
+			new LiferayDocumentFormatRegistry();
 
 		DocumentFormat inputDocumentFormat =
 			documentFormatRegistry.getFormatByFileExtension(sourceExtension);
@@ -180,15 +179,10 @@ public class DocumentConversionImpl implements DocumentConversion {
 
 	@Override
 	public String getFilePath(String id, String targetExtension) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
-		sb.append("/liferay/document_conversion/");
-		sb.append(id);
-		sb.append(StringPool.PERIOD);
-		sb.append(targetExtension);
-
-		return sb.toString();
+		return StringBundler.concat(
+			SystemProperties.get(SystemProperties.TMP_DIR),
+			"/liferay/document_conversion/", id, StringPool.PERIOD,
+			targetExtension);
 	}
 
 	@Override
@@ -224,7 +218,7 @@ public class DocumentConversionImpl implements DocumentConversion {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;
@@ -335,7 +329,7 @@ public class DocumentConversionImpl implements DocumentConversion {
 			Filter filter = new Filter(documentFamily);
 
 			DocumentFormatRegistry documentFormatRegistry =
-				new DefaultDocumentFormatRegistry();
+				new LiferayDocumentFormatRegistry();
 
 			String[] sourceExtensions = PropsUtil.getArray(
 				PropsKeys.OPENOFFICE_CONVERSION_SOURCE_EXTENSIONS, filter);

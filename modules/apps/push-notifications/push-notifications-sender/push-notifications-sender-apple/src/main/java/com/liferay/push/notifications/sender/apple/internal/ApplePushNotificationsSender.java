@@ -14,33 +14,42 @@
 
 package com.liferay.push.notifications.sender.apple.internal;
 
+import com.eatthepath.pushy.apns.ApnsClient;
+import com.eatthepath.pushy.apns.ApnsClientBuilder;
+import com.eatthepath.pushy.apns.PushNotificationResponse;
+import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
+import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
+
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.push.notifications.constants.PushNotificationsConstants;
+import com.liferay.push.notifications.constants.PushNotificationsDestinationNames;
 import com.liferay.push.notifications.exception.PushNotificationsException;
 import com.liferay.push.notifications.sender.PushNotificationsSender;
 import com.liferay.push.notifications.sender.apple.internal.configuration.ApplePushNotificationsSenderConfiguration;
-
-import com.notnoop.apns.APNS;
-import com.notnoop.apns.ApnsService;
-import com.notnoop.apns.ApnsServiceBuilder;
-import com.notnoop.apns.PayloadBuilder;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.time.Instant;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -66,39 +75,48 @@ public class ApplePushNotificationsSender implements PushNotificationsSender {
 	public void send(List<String> tokens, JSONObject payloadJSONObject)
 		throws Exception {
 
-		if (_apnsService == null) {
+		if (_apnsClient == null) {
 			throw new PushNotificationsException(
 				"Apple push notifications sender is not configured properly");
 		}
 
-		String payload = buildPayload(payloadJSONObject);
+		String payload = _buildPayload(payloadJSONObject);
 
-		_apnsService.push(tokens, payload);
+		Stream<String> tokensStream = tokens.stream();
+
+		tokensStream.map(
+			token -> new SimpleApnsPushNotification(token, _topic, payload)
+		).forEach(
+			simpleApnsPushNotification -> _handleNotificationResponse(
+				_apnsClient.sendNotification(simpleApnsPushNotification))
+		);
 	}
 
 	@Activate
 	@Modified
-	protected void activate(Map<String, Object> properties) {
+	protected void activate(Map<String, Object> properties) throws Exception {
 		ApplePushNotificationsSenderConfiguration
 			applePushNotificationsSenderConfiguration =
 				ConfigurableUtil.createConfigurable(
 					ApplePushNotificationsSenderConfiguration.class,
 					properties);
 
+		String appId = applePushNotificationsSenderConfiguration.appId();
 		String certificatePath =
 			applePushNotificationsSenderConfiguration.certificatePath();
 		String certificatePassword =
 			applePushNotificationsSenderConfiguration.certificatePassword();
 
-		if (Validator.isNull(certificatePath) ||
+		if (Validator.isNull(appId) || Validator.isNull(certificatePath) ||
 			Validator.isNull(certificatePassword)) {
 
-			_apnsService = null;
+			_apnsClient = null;
+			_topic = "";
 
 			return;
 		}
 
-		ApnsServiceBuilder appleServiceBuilder = APNS.newService();
+		ApnsClientBuilder apnsClientBuilder = new ApnsClientBuilder();
 
 		try (InputStream inputStream = _getCertificateInputStream(
 				certificatePath)) {
@@ -108,107 +126,41 @@ public class ApplePushNotificationsSender implements PushNotificationsSender {
 					"Unable to find Apple certificate at " + certificatePath);
 			}
 
-			appleServiceBuilder.withCert(inputStream, certificatePassword);
+			apnsClientBuilder.setClientCredentials(
+				inputStream, certificatePassword);
 		}
 		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioException, ioException);
+				_log.warn(ioException);
 			}
 		}
-
-		appleServiceBuilder.withDelegate(new AppleDelegate(_messageBus));
 
 		if (applePushNotificationsSenderConfiguration.sandbox()) {
-			appleServiceBuilder.withSandboxDestination();
+			apnsClientBuilder.setApnsServer(
+				ApnsClientBuilder.DEVELOPMENT_APNS_HOST);
 		}
 		else {
-			appleServiceBuilder.withProductionDestination();
+			apnsClientBuilder.setApnsServer(
+				ApnsClientBuilder.PRODUCTION_APNS_HOST);
 		}
 
-		_apnsService = appleServiceBuilder.build();
+		_apnsClient = apnsClientBuilder.build();
+
+		_topic = appId;
 	}
 
-	protected String buildPayload(JSONObject payloadJSONObject) {
-		PayloadBuilder builder = PayloadBuilder.newPayload();
+	@Deactivate
+	protected void deactivate() {
+		if (_apnsClient != null) {
+			CompletableFuture<Void> close = _apnsClient.close();
 
-		String title = payloadJSONObject.getString(
-			PushNotificationsConstants.KEY_TITLE);
-
-		if (Validator.isNotNull(title)) {
-			builder.alertTitle(title);
+			close.join();
 		}
+	}
 
-		if (payloadJSONObject.has(PushNotificationsConstants.KEY_BADGE)) {
-			builder.badge(
-				payloadJSONObject.getInt(PushNotificationsConstants.KEY_BADGE));
-		}
-
-		String body = payloadJSONObject.getString(
-			PushNotificationsConstants.KEY_BODY);
-
-		if (Validator.isNotNull(body)) {
-			builder.alertBody(body);
-		}
-
-		String bodyLocalizedKey = payloadJSONObject.getString(
-			PushNotificationsConstants.KEY_BODY_LOCALIZED);
-
-		if (Validator.isNotNull(bodyLocalizedKey)) {
-			builder.localizedKey(bodyLocalizedKey);
-		}
-
-		JSONArray bodyLocalizedArgumentsJSONArray =
-			payloadJSONObject.getJSONArray(
-				PushNotificationsConstants.KEY_BODY_LOCALIZED_ARGUMENTS);
-
-		if (bodyLocalizedArgumentsJSONArray != null) {
-			List<String> localizedArguments = new ArrayList<>();
-
-			for (int i = 0; i < bodyLocalizedArgumentsJSONArray.length(); i++) {
-				localizedArguments.add(
-					bodyLocalizedArgumentsJSONArray.getString(i));
-			}
-
-			builder.localizedArguments(localizedArguments);
-		}
-
-		boolean silent = payloadJSONObject.getBoolean(
-			PushNotificationsConstants.KEY_SILENT);
-
-		if (silent) {
-			builder.instantDeliveryOrSilentNotification();
-		}
-
-		String sound = payloadJSONObject.getString(
-			PushNotificationsConstants.KEY_SOUND);
-
-		if (Validator.isNotNull(sound)) {
-			builder.sound(sound);
-		}
-
-		JSONArray titleLocalizedArgumentsJSONArray =
-			payloadJSONObject.getJSONArray(
-				PushNotificationsConstants.KEY_TITLE_LOCALIZED_ARGUMENTS);
-
-		if (titleLocalizedArgumentsJSONArray != null) {
-			List<String> localizedArguments = new ArrayList<>();
-
-			for (int i = 0; i < titleLocalizedArgumentsJSONArray.length();
-				 i++) {
-
-				localizedArguments.add(
-					titleLocalizedArgumentsJSONArray.getString(i));
-			}
-
-			builder.localizedTitleArguments(localizedArguments);
-		}
-
-		String titleLocalizedKey = payloadJSONObject.getString(
-			PushNotificationsConstants.KEY_TITLE_LOCALIZED);
-
-		if (Validator.isNotNull(titleLocalizedKey)) {
-			builder.localizedTitleKey(titleLocalizedKey);
-		}
+	private String _buildPayload(JSONObject payloadJSONObject) {
+		SimpleApnsPayloadBuilder simpleApnsPayloadBuilder =
+			new SimpleApnsPayloadBuilder();
 
 		JSONObject newPayloadJSONObject = JSONFactoryUtil.createJSONObject();
 
@@ -233,16 +185,100 @@ public class ApplePushNotificationsSender implements PushNotificationsSender {
 			}
 		}
 
-		builder.customField(
+		simpleApnsPayloadBuilder.addCustomProperty(
 			PushNotificationsConstants.KEY_PAYLOAD,
 			newPayloadJSONObject.toString());
 
-		return builder.build();
-	}
+		String body = payloadJSONObject.getString(
+			PushNotificationsConstants.KEY_BODY);
 
-	@Deactivate
-	protected void deactivate() {
-		_apnsService = null;
+		if (Validator.isNotNull(body)) {
+			simpleApnsPayloadBuilder.setAlertBody(body);
+		}
+
+		String title = payloadJSONObject.getString(
+			PushNotificationsConstants.KEY_TITLE);
+
+		if (Validator.isNotNull(title)) {
+			simpleApnsPayloadBuilder.setAlertTitle(title);
+		}
+
+		if (payloadJSONObject.has(PushNotificationsConstants.KEY_BADGE)) {
+			simpleApnsPayloadBuilder.setBadgeNumber(
+				payloadJSONObject.getInt(PushNotificationsConstants.KEY_BADGE));
+		}
+
+		String bodyLocalizedKey = payloadJSONObject.getString(
+			PushNotificationsConstants.KEY_BODY_LOCALIZED);
+
+		if (Validator.isNotNull(bodyLocalizedKey)) {
+			JSONArray bodyLocalizedArgumentsJSONArray =
+				payloadJSONObject.getJSONArray(
+					PushNotificationsConstants.KEY_BODY_LOCALIZED_ARGUMENTS);
+
+			if (bodyLocalizedArgumentsJSONArray != null) {
+				List<String> localizedArguments = new ArrayList<>();
+
+				for (int i = 0; i < bodyLocalizedArgumentsJSONArray.length();
+					 i++) {
+
+					localizedArguments.add(
+						bodyLocalizedArgumentsJSONArray.getString(i));
+				}
+
+				simpleApnsPayloadBuilder.setLocalizedAlertMessage(
+					bodyLocalizedKey,
+					localizedArguments.toArray(new String[0]));
+			}
+			else {
+				simpleApnsPayloadBuilder.setLocalizedAlertMessage(
+					bodyLocalizedKey);
+			}
+		}
+
+		String titleLocalizedKey = payloadJSONObject.getString(
+			PushNotificationsConstants.KEY_TITLE_LOCALIZED);
+
+		if (Validator.isNotNull(titleLocalizedKey)) {
+			JSONArray titleLocalizedArgumentsJSONArray =
+				payloadJSONObject.getJSONArray(
+					PushNotificationsConstants.KEY_TITLE_LOCALIZED_ARGUMENTS);
+
+			if (titleLocalizedArgumentsJSONArray != null) {
+				List<String> localizedArguments = new ArrayList<>();
+
+				for (int i = 0; i < titleLocalizedArgumentsJSONArray.length();
+					 i++) {
+
+					localizedArguments.add(
+						titleLocalizedArgumentsJSONArray.getString(i));
+				}
+
+				simpleApnsPayloadBuilder.setLocalizedAlertTitle(
+					titleLocalizedKey,
+					localizedArguments.toArray(new String[0]));
+			}
+			else {
+				simpleApnsPayloadBuilder.setLocalizedAlertTitle(
+					titleLocalizedKey);
+			}
+		}
+
+		boolean silent = payloadJSONObject.getBoolean(
+			PushNotificationsConstants.KEY_SILENT);
+
+		if (silent) {
+			simpleApnsPayloadBuilder.setContentAvailable(true);
+		}
+
+		String sound = payloadJSONObject.getString(
+			PushNotificationsConstants.KEY_SOUND);
+
+		if (Validator.isNotNull(sound)) {
+			simpleApnsPayloadBuilder.setSound(sound);
+		}
+
+		return simpleApnsPayloadBuilder.build();
 	}
 
 	private InputStream _getCertificateInputStream(String certificatePath) {
@@ -251,7 +287,7 @@ public class ApplePushNotificationsSender implements PushNotificationsSender {
 		}
 		catch (FileNotFoundException fileNotFoundException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(fileNotFoundException, fileNotFoundException);
+				_log.debug(fileNotFoundException);
 			}
 
 			ClassLoader classLoader =
@@ -261,12 +297,62 @@ public class ApplePushNotificationsSender implements PushNotificationsSender {
 		}
 	}
 
+	private void _handleNotificationResponse(
+		CompletableFuture<PushNotificationResponse<SimpleApnsPushNotification>>
+			completableFuture) {
+
+		completableFuture.whenComplete(
+			(simpleApnsPushNotification, throwable) -> {
+				if (simpleApnsPushNotification == null) {
+					_sendResponse(new AppleResponse(null, throwable));
+
+					return;
+				}
+
+				if (!simpleApnsPushNotification.isAccepted() &&
+					_log.isWarnEnabled()) {
+
+					String timestamp = String.valueOf(Instant.parse(""));
+
+					Optional<Instant> optional =
+						simpleApnsPushNotification.
+							getTokenInvalidationTimestamp();
+
+					if (optional.isPresent()) {
+						timestamp = String.valueOf(optional.get());
+					}
+
+					_log.warn(
+						StringBundler.concat(
+							"The token is invalid as of ", timestamp, ": ",
+							simpleApnsPushNotification.getRejectionReason()));
+				}
+
+				_sendResponse(
+					new AppleResponse(
+						simpleApnsPushNotification.getPushNotification(),
+						false));
+			});
+	}
+
+	private void _sendResponse(AppleResponse appleResponse) {
+		Message message = new Message();
+
+		message.setPayload(appleResponse);
+
+		_messageBus.sendMessage(
+			PushNotificationsDestinationNames.PUSH_NOTIFICATION_RESPONSE,
+			message);
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		ApplePushNotificationsSender.class);
 
-	private volatile ApnsService _apnsService;
+	private volatile ApnsClient _apnsClient;
 
 	@Reference
 	private MessageBus _messageBus;
+
+	private volatile String _topic;
 
 }

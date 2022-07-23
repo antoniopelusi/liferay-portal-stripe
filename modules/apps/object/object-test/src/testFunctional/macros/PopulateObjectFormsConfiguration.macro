@@ -1,0 +1,152 @@
+definition {
+
+	macro closeUnmappedError {
+		Click(locator1 = "PopulateObjectFormsConfiguration#CLOSE_UNMAPPED_ERROR");
+	}
+
+	macro gotoBuilderFormFields {
+		Click(locator1 = "PopulateObjectFormsConfiguration#BUILDER_FORM_FIELDS");
+	}
+
+	macro gotoFormField {
+		Click(
+			key_formFieldName = "${formFieldName}",
+			locator1 = "PopulateObjectFormsConfiguration#GO_TO_FORM_FIELD");
+	}
+
+	macro mapFormField {
+		Click(locator1 = "PopulateObjectFormsConfiguration#ADVANCED_TAB");
+
+		Click(locator1 = "PopulateObjectFormsConfiguration#OBJECT_FIELD_TAB");
+
+		Click(
+			key_fieldLabelName = "${fieldLabelName}",
+			locator1 = "PopulateObjectFormsConfiguration#MAP_OBJECT_FIELD");
+
+		WaitForPageLoad();
+	}
+
+	macro mapFormObjectField {
+		Click(locator1 = "PopulateObjectFormsConfiguration#ADVANCED_TAB");
+
+		AssertClick(
+			key_formObjectField = "${formObjectField}",
+			locator1 = "PopulateObjectFormsConfiguration#FORM_OBJECT_FIELD",
+			value1 = "${formObjectField}");
+
+		Click(
+			key_fieldLabelName = "${fieldLabelName}",
+			locator1 = "PopulateObjectFormsConfiguration#MAP_OBJECT_FIELD");
+
+		WaitForPageLoad();
+	}
+
+	macro openForm {
+		Navigator.openSpecificURL(url = "/group/guest/~/control_panel/manage?p_p_id=com_liferay_dynamic_data_mapping_form_web_portlet_DDMFormAdminPortlet");
+	}
+
+	macro openFormSettings {
+		Click(locator1 = "PopulateObjectFormsConfiguration#OPEN_FORM_SETTINGS");
+
+		Click(locator1 = "PopulateObjectFormsConfiguration#DEFAULT_STORAGE_TYPE");
+	}
+
+	macro publishFormObject {
+		Click(locator1 = "PopulateObjectFormsConfiguration#BUTTON_PUBLISH_FORM");
+	}
+
+	macro saveFormObject {
+		AssertClick(
+			locator1 = "PopulateObjectFormsConfiguration#BUTTON_SAVE_FORM",
+			value1 = "Save");
+	}
+
+	macro selectCustomObject {
+		Click(
+			key_label = "${label}",
+			locator1 = "PopulateObjectFormsConfiguration#DISPLAY_SELECT_OBJECT");
+
+		Click(locator1 = "PopulateObjectFormsConfiguration#BUTTON_SETTINGS_FORM");
+	}
+
+	macro selectObject {
+		Click(
+			key_label = "${label}",
+			locator1 = "PopulateObjectFormsConfiguration#DISPLAY_SELECT_OBJECT");
+
+		Click(locator1 = "PopulateObjectFormsConfiguration#DEFAULT_SELECT_OBJECT");
+	}
+
+	macro selectObjectOnly {
+		Click(
+			key_label = "${labelObject}",
+			locator1 = "PopulateObjectFormsConfiguration#DISPLAY_SELECT_OBJECT");
+	}
+
+	macro selectPicklistObject {
+		Click(locator1 = "PopulateObjectFormsConfiguration#OBJECT_FIELD_TAB");
+
+		Click(
+			key_label = "${picklistItem}",
+			locator1 = "PopulateObjectFormsConfiguration#DISPLAY_SELECT_OBJECT");
+
+		IFrame.selectTopFrame();
+	}
+
+	macro viewDisplaySelectOption {
+		AssertElementPresent(
+			key_label = "${label}",
+			locator1 = "PopulateObjectFormsConfiguration#DISPLAY_SELECT_OBJECT");
+	}
+
+	macro viewDisplaySelectOptionNotPresent {
+		AssertElementNotPresent(
+			key_label = "${label}",
+			locator1 = "PopulateObjectFormsConfiguration#DISPLAY_SELECT_OBJECT");
+	}
+
+	macro viewRequiredFieldOptionDisabled {
+		Form.gotoBasicTab();
+
+		AssertElementPresent(locator1 = "PopulateObjectFormsConfiguration#REQUIRED_FIELD_OPTION_DISABLED");
+	}
+
+	macro viewUnmappedFormField {
+		Click(locator1 = "PopulateObjectFormsConfiguration#ADVANCED_TAB");
+
+		Click(locator1 = "PopulateObjectFormsConfiguration#OBJECT_FIELD_TAB");
+
+		AssertElementPresent(
+			key_fieldLabelName = "${fieldLabelName}",
+			locator1 = "PopulateObjectFormsConfiguration#MAP_OBJECT_FIELD");
+	}
+
+	macro viewUnmappedFormFieldsError {
+		AssertElementPresent(locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_FORM_FIELDS_ERROR_MODAL_TITLE");
+
+		AssertElementPresent(locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_FORM_FIELDS_ERROR_MODAL_BODY");
+
+		AssertElementPresent(locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_FORM_FIELDS_ERROR_PANEL_TITLE");
+
+		var fieldType = StringUtil.toLowerCase("${fieldType}");
+
+		AssertElementPresent(
+			key_fieldLabel = "${fieldLabel}",
+			key_fieldType = "${fieldType}",
+			locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_FORM_FIELDS_ERROR_PANEL_BODY");
+	}
+
+	macro viewUnmappedObjectRequiredFieldsError {
+		AssertElementPresent(locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_MODAL_TITLE");
+
+		AssertElementPresent(locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_MODAL_BODY");
+
+		AssertElementPresent(locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_PANEL_TITLE");
+
+		AssertElementPresent(
+			key_fieldLabelName = "${fieldLabelName}",
+			key_fieldType = "${fieldType}",
+			locator1 = "PopulateObjectFormsConfiguration#UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_PANEL_BODY");
+	}
+
+}

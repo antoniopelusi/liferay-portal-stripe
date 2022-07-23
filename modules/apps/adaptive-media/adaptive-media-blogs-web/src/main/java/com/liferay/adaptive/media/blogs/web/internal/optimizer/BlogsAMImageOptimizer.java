@@ -21,6 +21,7 @@ import com.liferay.adaptive.media.image.counter.AMImageCounter;
 import com.liferay.adaptive.media.image.mime.type.AMImageMimeTypeProvider;
 import com.liferay.adaptive.media.image.optimizer.AMImageOptimizer;
 import com.liferay.adaptive.media.image.processor.AMImageProcessor;
+import com.liferay.adaptive.media.image.size.AMImageSizeProvider;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
@@ -63,14 +64,15 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 
 		int total = count * amImageConfigurationEntries.size();
 
-		AtomicInteger atomicCounter = new AtomicInteger(0);
+		AtomicInteger successCounter = new AtomicInteger(0);
+		AtomicInteger errorCounter = new AtomicInteger(0);
 
 		for (AMImageConfigurationEntry amImageConfigurationEntry :
 				amImageConfigurationEntries) {
 
 			_optimize(
 				companyId, amImageConfigurationEntry.getUUID(), total,
-				atomicCounter);
+				successCounter, errorCounter);
 		}
 	}
 
@@ -78,13 +80,17 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 	public void optimize(long companyId, String configurationEntryUuid) {
 		int total = _amImageCounter.countExpectedAMImageEntries(companyId);
 
+		AtomicInteger successCounter = new AtomicInteger(0);
+		AtomicInteger errorCounter = new AtomicInteger(0);
+
 		_optimize(
-			companyId, configurationEntryUuid, total, new AtomicInteger(0));
+			companyId, configurationEntryUuid, total, successCounter,
+			errorCounter);
 	}
 
 	private void _optimize(
 		long companyId, String configurationEntryUuid, int total,
-		AtomicInteger atomicCounter) {
+		AtomicInteger successCounter, AtomicInteger errorCounter) {
 
 		ActionableDynamicQuery actionableDynamicQuery =
 			_dlFileEntryLocalService.getActionableDynamicQuery();
@@ -99,10 +105,10 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 				Property classNameIdProperty = PropertyFactoryUtil.forName(
 					"classNameId");
 
-				long classNameId = _classNameLocalService.getClassNameId(
-					BlogsEntry.class.getName());
-
-				dynamicQuery.add(classNameIdProperty.eq(classNameId));
+				dynamicQuery.add(
+					classNameIdProperty.eq(
+						_classNameLocalService.getClassNameId(
+							BlogsEntry.class.getName())));
 
 				Property mimeTypeProperty = PropertyFactoryUtil.forName(
 					"mimeType");
@@ -110,6 +116,11 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 				dynamicQuery.add(
 					mimeTypeProperty.in(
 						_amImageMimeTypeProvider.getSupportedMimeTypes()));
+
+				Property sizeProperty = PropertyFactoryUtil.forName("size");
+
+				dynamicQuery.add(
+					sizeProperty.le(_amImageSizeProvider.getImageMaxSize()));
 			});
 		actionableDynamicQuery.setPerformActionMethod(
 			(DLFileEntry dlFileEntry) -> {
@@ -119,13 +130,21 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 					_amImageProcessor.process(
 						fileEntry.getFileVersion(), configurationEntryUuid);
 
-					_sendStatusMessage(atomicCounter.incrementAndGet(), total);
+					_sendStatusMessage(
+						successCounter.incrementAndGet(), errorCounter.get(),
+						total);
 				}
-				catch (PortalException portalException) {
-					_log.error(
-						"Unable to process file entry " +
-							fileEntry.getFileEntryId(),
-						portalException);
+				catch (Exception exception) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							"Unable to process file entry " +
+								fileEntry.getFileEntryId(),
+							exception);
+					}
+
+					_sendStatusMessage(
+						successCounter.get(), errorCounter.incrementAndGet(),
+						total);
 				}
 			});
 
@@ -133,11 +152,11 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 			actionableDynamicQuery.performActions();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 	}
 
-	private void _sendStatusMessage(int count, int total) {
+	private void _sendStatusMessage(int count, int errors, int total) {
 		Message message = new Message();
 
 		message.put(
@@ -151,6 +170,7 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 			clazz.getName());
 
 		message.put(AMOptimizeImagesBackgroundTaskConstants.COUNT, count);
+		message.put(AMOptimizeImagesBackgroundTaskConstants.ERRORS, errors);
 		message.put(AMOptimizeImagesBackgroundTaskConstants.TOTAL, total);
 
 		message.put("status", BackgroundTaskConstants.STATUS_IN_PROGRESS);
@@ -173,6 +193,9 @@ public class BlogsAMImageOptimizer implements AMImageOptimizer {
 
 	@Reference
 	private AMImageProcessor _amImageProcessor;
+
+	@Reference
+	private AMImageSizeProvider _amImageSizeProvider;
 
 	@Reference
 	private BackgroundTaskStatusMessageSender

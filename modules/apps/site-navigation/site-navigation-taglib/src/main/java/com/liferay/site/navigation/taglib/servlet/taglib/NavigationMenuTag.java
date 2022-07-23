@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.display.template.PortletDisplayTemplate;
@@ -114,29 +115,32 @@ public class NavigationMenuTag extends IncludeTag {
 		List<NavItem> branchNavItems = null;
 		List<NavItem> navItems = null;
 
+		HttpServletRequest httpServletRequest = getRequest();
+
 		try {
 			if (_siteNavigationMenuId > 0) {
 				branchNavItems = _getBranchNavItems();
 
-				navItems = _getMenuNavItems(request, branchNavItems);
+				navItems = _getMenuNavItems(httpServletRequest, branchNavItems);
 			}
 			else {
-				branchNavItems = getBranchNavItems(request);
+				branchNavItems = getBranchNavItems(httpServletRequest);
 
 				navItems = NavItemUtil.getNavItems(
-					_navigationMenuMode, request, _rootItemType, _rootItemLevel,
-					_rootItemId, branchNavItems);
+					_navigationMenuMode, httpServletRequest, _rootItemType,
+					_rootItemLevel, _rootItemId, branchNavItems);
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		HttpServletResponse httpServletResponse =
 			(HttpServletResponse)pageContext.getResponse();
 
 		String result = portletDisplayTemplate.renderDDMTemplate(
-			request, httpServletResponse, portletDisplayDDMTemplate, navItems,
+			httpServletRequest, httpServletResponse, portletDisplayDDMTemplate,
+			navItems,
 			HashMapBuilder.<String, Object>put(
 				"branchNavItems", branchNavItems
 			).put(
@@ -182,7 +186,7 @@ public class NavigationMenuTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setPreview(boolean preview) {
@@ -242,8 +246,11 @@ public class NavigationMenuTag extends IncludeTag {
 			return _ddmTemplateGroupId;
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		return themeDisplay.getScopeGroupId();
 	}
@@ -258,8 +265,11 @@ public class NavigationMenuTag extends IncludeTag {
 	}
 
 	private List<NavItem> _getBranchNavItems() throws PortalException {
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		long siteNavigationMenuItemId = _getRelativeSiteNavigationMenuItemId(
 			themeDisplay.getLayout());
@@ -281,13 +291,11 @@ public class NavigationMenuTag extends IncludeTag {
 		while (siteNavigationMenuItem.getParentSiteNavigationMenuItemId() !=
 					0) {
 
-			siteNavigationMenuItem =
+			ancestorSiteNavigationMenuItems.add(
 				SiteNavigationMenuItemLocalServiceUtil.
 					getSiteNavigationMenuItem(
 						siteNavigationMenuItem.
-							getParentSiteNavigationMenuItemId());
-
-			ancestorSiteNavigationMenuItems.add(siteNavigationMenuItem);
+							getParentSiteNavigationMenuItemId()));
 		}
 
 		List<NavItem> navItems = new ArrayList<>(
@@ -299,12 +307,14 @@ public class NavigationMenuTag extends IncludeTag {
 
 			navItems.add(
 				new SiteNavigationMenuNavItem(
-					request, themeDisplay, ancestorSiteNavigationMenuItem));
+					httpServletRequest, themeDisplay,
+					ancestorSiteNavigationMenuItem));
 		}
 
 		navItems.add(
 			new SiteNavigationMenuNavItem(
-				request, themeDisplay, originalSiteNavigationMenuItem));
+				httpServletRequest, themeDisplay,
+				originalSiteNavigationMenuItem));
 
 		return navItems;
 	}
@@ -358,10 +368,10 @@ public class NavigationMenuTag extends IncludeTag {
 		for (SiteNavigationMenuItem siteNavigationMenuItem :
 				siteNavigationMenuItems) {
 
-			UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-			unicodeProperties.fastLoad(
-				siteNavigationMenuItem.getTypeSettings());
+			UnicodeProperties unicodeProperties =
+				UnicodePropertiesBuilder.fastLoad(
+					siteNavigationMenuItem.getTypeSettings()
+				).build();
 
 			String itemLayoutUuid = unicodeProperties.getProperty("layoutUuid");
 

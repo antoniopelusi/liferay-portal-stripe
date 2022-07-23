@@ -117,6 +117,11 @@ public class CommerceAccountGroupRelWrapper
 		}
 	}
 
+	@Override
+	public CommerceAccountGroupRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this commerce account group rel.
 	 *
@@ -242,11 +247,6 @@ public class CommerceAccountGroupRelWrapper
 	@Override
 	public String getUserUuid() {
 		return model.getUserUuid();
-	}
-
-	@Override
-	public void persist() {
-		model.persist();
 	}
 
 	@Override

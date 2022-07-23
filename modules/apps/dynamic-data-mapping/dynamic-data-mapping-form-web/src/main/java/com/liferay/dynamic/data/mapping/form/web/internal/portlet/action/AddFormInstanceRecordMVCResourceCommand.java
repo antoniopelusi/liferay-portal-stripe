@@ -15,8 +15,11 @@
 package com.liferay.dynamic.data.mapping.form.web.internal.portlet.action;
 
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
+import com.liferay.dynamic.data.mapping.exception.FormInstanceExpiredException;
+import com.liferay.dynamic.data.mapping.exception.FormInstanceSubmissionLimitException;
 import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormContextDeserializer;
 import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormContextDeserializerRequest;
+import com.liferay.dynamic.data.mapping.form.web.internal.portlet.action.helper.AddFormInstanceRecordMVCCommandHelper;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord;
@@ -28,6 +31,8 @@ import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
@@ -88,20 +93,6 @@ public class AddFormInstanceRecordMVCResourceCommand
 			ddmFormContextDeserializerRequest);
 	}
 
-	protected ServiceContext createServiceContext(
-			ResourceRequest resourceRequest)
-		throws PortalException {
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			DDMFormInstanceRecord.class.getName(), resourceRequest);
-
-		serviceContext.setAttribute("status", WorkflowConstants.STATUS_DRAFT);
-		serviceContext.setAttribute("validateDDMFormValues", Boolean.FALSE);
-		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
-
-		return serviceContext;
-	}
-
 	@Override
 	protected void doServeResource(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
@@ -124,6 +115,31 @@ public class AddFormInstanceRecordMVCResourceCommand
 		DDMFormInstance ddmFormInstance =
 			_ddmFormInstanceService.getFormInstance(formInstanceId);
 
+		try {
+			_addFormInstanceRecordMVCCommandHelper.validateExpirationStatus(
+				ddmFormInstance, resourceRequest);
+			_addFormInstanceRecordMVCCommandHelper.
+				validateSubmissionLimitStatus(
+					ddmFormInstance, _ddmFormInstanceRecordVersionLocalService,
+					resourceRequest);
+		}
+		catch (FormInstanceExpiredException formInstanceExpiredException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(formInstanceExpiredException);
+			}
+
+			return;
+		}
+		catch (FormInstanceSubmissionLimitException
+					formInstanceSubmissionLimitException) {
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(formInstanceSubmissionLimitException);
+			}
+
+			return;
+		}
+
 		DDMFormValues ddmFormValues = createDDMFormValues(
 			ddmFormInstance, resourceRequest);
 
@@ -138,7 +154,7 @@ public class AddFormInstanceRecordMVCResourceCommand
 					ddmFormInstance.getVersion(),
 					WorkflowConstants.STATUS_DRAFT);
 
-		ServiceContext serviceContext = createServiceContext(resourceRequest);
+		ServiceContext serviceContext = _createServiceContext(resourceRequest);
 
 		if (ddmFormInstanceRecordVersion == null) {
 			_ddmFormInstanceRecordService.addFormInstanceRecord(
@@ -159,6 +175,27 @@ public class AddFormInstanceRecordMVCResourceCommand
 
 		return ddmStructure.getDDMForm();
 	}
+
+	private ServiceContext _createServiceContext(
+			ResourceRequest resourceRequest)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			DDMFormInstanceRecord.class.getName(), resourceRequest);
+
+		serviceContext.setAttribute("status", WorkflowConstants.STATUS_DRAFT);
+		serviceContext.setAttribute("validateDDMFormValues", Boolean.FALSE);
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		return serviceContext;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		AddFormInstanceRecordMVCResourceCommand.class);
+
+	@Reference
+	private AddFormInstanceRecordMVCCommandHelper
+		_addFormInstanceRecordMVCCommandHelper;
 
 	@Reference(
 		target = "(dynamic.data.mapping.form.builder.context.deserializer.type=formValues)"

@@ -24,19 +24,21 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.service.builder.test.model.BigDecimalEntry;
 import com.liferay.portal.tools.service.builder.test.model.BigDecimalEntryModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
 import java.math.BigDecimal;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -230,34 +232,6 @@ public class BigDecimalEntryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, BigDecimalEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			BigDecimalEntry.class.getClassLoader(), BigDecimalEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<BigDecimalEntry> constructor =
-				(Constructor<BigDecimalEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<BigDecimalEntry, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<BigDecimalEntry, Object>>
@@ -411,6 +385,20 @@ public class BigDecimalEntryModelImpl
 	}
 
 	@Override
+	public BigDecimalEntry cloneWithOriginalValues() {
+		BigDecimalEntryImpl bigDecimalEntryImpl = new BigDecimalEntryImpl();
+
+		bigDecimalEntryImpl.setBigDecimalEntryId(
+			this.<Long>getColumnOriginalValue("bigDecimalEntryId"));
+		bigDecimalEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		bigDecimalEntryImpl.setBigDecimalValue(
+			this.<BigDecimal>getColumnOriginalValue("bigDecimalValue"));
+
+		return bigDecimalEntryImpl;
+	}
+
+	@Override
 	public int compareTo(BigDecimalEntry bigDecimalEntry) {
 		int value = 0;
 
@@ -496,7 +484,7 @@ public class BigDecimalEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -507,9 +495,26 @@ public class BigDecimalEntryModelImpl
 			Function<BigDecimalEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((BigDecimalEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((BigDecimalEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -556,7 +561,9 @@ public class BigDecimalEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, BigDecimalEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					BigDecimalEntry.class, ModelWrapper.class);
 
 	}
 

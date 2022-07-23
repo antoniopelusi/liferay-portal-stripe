@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -62,21 +63,18 @@ public class UserServiceWhenAddingUserWithDefaultSitesEnabledTest {
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.put(
-			PropsKeys.ADMIN_DEFAULT_GROUP_NAMES, _group.getDescriptiveName());
-
 		_organization = OrganizationTestUtil.addOrganization(true);
 
 		Group organizationGroup = _organization.getGroup();
 
-		unicodeProperties.put(
-			PropsKeys.ADMIN_DEFAULT_ORGANIZATION_GROUP_NAMES,
-			organizationGroup.getDescriptiveName());
-
 		_companyLocalService.updatePreferences(
-			_group.getCompanyId(), unicodeProperties);
+			_group.getCompanyId(),
+			UnicodePropertiesBuilder.put(
+				PropsKeys.ADMIN_DEFAULT_GROUP_NAMES, _group.getDescriptiveName()
+			).put(
+				PropsKeys.ADMIN_DEFAULT_ORGANIZATION_GROUP_NAMES,
+				organizationGroup.getDescriptiveName()
+			).build());
 
 		UnicodeProperties typeSettingsUnicodeProperties =
 			_group.getTypeSettingsProperties();

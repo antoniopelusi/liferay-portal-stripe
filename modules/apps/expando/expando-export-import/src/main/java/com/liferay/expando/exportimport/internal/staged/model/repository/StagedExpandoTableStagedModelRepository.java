@@ -31,7 +31,11 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.adapter.ModelAdapterUtil;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 
@@ -147,7 +151,7 @@ public class StagedExpandoTableStagedModelRepository
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
 		final PortletDataContext portletDataContext) {
 
-		final ExportActionableDynamicQuery exportActionableDynamicQuery =
+		ExportActionableDynamicQuery exportActionableDynamicQuery =
 			new ExportActionableDynamicQuery() {
 
 				@Override
@@ -189,6 +193,19 @@ public class StagedExpandoTableStagedModelRepository
 		exportActionableDynamicQuery.setModelClass(ExpandoTable.class);
 		exportActionableDynamicQuery.setPerformActionMethod(
 			(ExpandoTable expandoTable) -> {
+				ClassName className = _classNameLocalService.fetchClassName(
+					expandoTable.getClassNameId());
+
+				if (className == null) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							"No class name exists for class name ID " +
+								expandoTable.getClassNameId());
+					}
+
+					return;
+				}
+
 				StagedExpandoTable stagedExpandoTable = ModelAdapterUtil.adapt(
 					expandoTable, ExpandoTable.class, StagedExpandoTable.class);
 
@@ -237,6 +254,12 @@ public class StagedExpandoTableStagedModelRepository
 	private String _parseName(String uuid) {
 		return uuid.substring(uuid.indexOf(StringPool.POUND) + 1);
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		StagedExpandoTableStagedModelRepository.class);
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
 
 	@Reference
 	private ExpandoTableLocalService _expandoTableLocalService;

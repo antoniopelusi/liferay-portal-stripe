@@ -52,7 +52,7 @@ public class UserModelDocumentContributor
 			if (ArrayUtil.isNotEmpty(accountEntryIds)) {
 				document.addKeyword("accountEntryIds", accountEntryIds);
 				document.addKeyword(
-					"emailAddressDomain", getEmailAddressDomain(user));
+					"emailAddressDomain", _getEmailAddressDomain(user));
 			}
 		}
 		catch (Exception exception) {
@@ -82,14 +82,14 @@ public class UserModelDocumentContributor
 		return ArrayUtil.toLongArray(accountEntryIds);
 	}
 
-	protected String getEmailAddressDomain(User user) {
+	@Reference
+	protected AccountEntryUserRelLocalService accountEntryUserRelLocalService;
+
+	private String _getEmailAddressDomain(User user) {
 		String emailAddress = user.getEmailAddress();
 
 		return emailAddress.substring(emailAddress.indexOf(StringPool.AT) + 1);
 	}
-
-	@Reference
-	protected AccountEntryUserRelLocalService accountEntryUserRelLocalService;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		UserModelDocumentContributor.class);

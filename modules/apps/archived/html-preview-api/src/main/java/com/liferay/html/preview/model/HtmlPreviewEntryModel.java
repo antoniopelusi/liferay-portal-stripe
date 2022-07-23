@@ -243,4 +243,7 @@ public interface HtmlPreviewEntryModel
 	 */
 	public void setFileEntryId(long fileEntryId);
 
+	@Override
+	public HtmlPreviewEntry cloneWithOriginalValues();
+
 }

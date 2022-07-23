@@ -17,7 +17,7 @@ package com.liferay.portal.search.internal;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.executor.PortalExecutorManager;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
 import com.liferay.portal.kernel.log.Log;
@@ -71,7 +71,7 @@ public class SearchEngineInitializer implements Runnable {
 	}
 
 	public void reindex(int delay) {
-		doReIndex(delay);
+		_reIndex(delay);
 	}
 
 	@Override
@@ -79,7 +79,31 @@ public class SearchEngineInitializer implements Runnable {
 		reindex(PropsValues.INDEX_ON_STARTUP_DELAY);
 	}
 
-	protected void doReIndex(int delay) {
+	protected void reindex(Indexer<?> indexer) throws Exception {
+		StopWatch stopWatch = new StopWatch();
+
+		stopWatch.start();
+
+		if (_log.isInfoEnabled()) {
+			_log.info(
+				"Reindexing of " + indexer.getClassName() +
+					" entities started");
+		}
+
+		indexer.reindex(new String[] {String.valueOf(_companyId)});
+
+		_usedSearchEngineIds.add(indexer.getSearchEngineId());
+
+		if (_log.isInfoEnabled()) {
+			_log.info(
+				StringBundler.concat(
+					"Reindexing of ", indexer.getClassName(),
+					" entities completed in ",
+					stopWatch.getTime() / Time.SECOND, " seconds"));
+		}
+	}
+
+	private void _reIndex(int delay) {
 		if (IndexWriterHelperUtil.isIndexReadOnly()) {
 			return;
 		}
@@ -99,7 +123,7 @@ public class SearchEngineInitializer implements Runnable {
 		}
 		catch (InterruptedException interruptedException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(interruptedException, interruptedException);
+				_log.debug(interruptedException);
 			}
 		}
 
@@ -137,9 +161,9 @@ public class SearchEngineInitializer implements Runnable {
 
 						@Override
 						public Void call() throws Exception {
-							try (SafeClosable safeClosable =
+							try (SafeCloseable safeCloseable =
 									BackgroundTaskThreadLocal.
-										setBackgroundTaskIdWithSafeClosable(
+										setBackgroundTaskIdWithSafeCloseable(
 											backgroundTaskId)) {
 
 								reindex(indexer);
@@ -178,37 +202,13 @@ public class SearchEngineInitializer implements Runnable {
 		_finished = true;
 	}
 
-	protected void reindex(Indexer<?> indexer) throws Exception {
-		StopWatch stopWatch = new StopWatch();
-
-		stopWatch.start();
-
-		if (_log.isInfoEnabled()) {
-			_log.info(
-				"Reindexing of " + indexer.getClassName() +
-					" entities started");
-		}
-
-		indexer.reindex(new String[] {String.valueOf(_companyId)});
-
-		_usedSearchEngineIds.add(indexer.getSearchEngineId());
-
-		if (_log.isInfoEnabled()) {
-			_log.info(
-				StringBundler.concat(
-					"Reindexing of ", indexer.getClassName(),
-					" entities completed in ",
-					stopWatch.getTime() / Time.SECOND, " seconds"));
-		}
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		SearchEngineInitializer.class);
 
 	private final BundleContext _bundleContext;
 	private final long _companyId;
 	private boolean _finished;
-	private ServiceTrackerList<Indexer<?>, Indexer<?>> _indexers;
+	private ServiceTrackerList<Indexer<?>> _indexers;
 	private final PortalExecutorManager _portalExecutorManager;
 	private final Set<String> _usedSearchEngineIds = new HashSet<>();
 

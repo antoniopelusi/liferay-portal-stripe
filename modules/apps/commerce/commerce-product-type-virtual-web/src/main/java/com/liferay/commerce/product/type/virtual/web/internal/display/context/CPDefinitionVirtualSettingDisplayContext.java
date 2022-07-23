@@ -21,7 +21,7 @@ import com.liferay.commerce.product.portlet.action.ActionHelper;
 import com.liferay.commerce.product.type.CPType;
 import com.liferay.commerce.product.type.virtual.constants.VirtualCPTypeConstants;
 import com.liferay.commerce.product.type.virtual.model.CPDefinitionVirtualSetting;
-import com.liferay.commerce.product.type.virtual.web.internal.portlet.action.CPDefinitionVirtualSettingActionHelper;
+import com.liferay.commerce.product.type.virtual.web.internal.portlet.action.helper.CPDefinitionVirtualSettingActionHelper;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.item.selector.ItemSelector;
@@ -238,7 +238,7 @@ public class CPDefinitionVirtualSettingDisplayContext
 			cpType = getCPType();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		if (cpType != null) {
@@ -258,7 +258,7 @@ public class CPDefinitionVirtualSettingDisplayContext
 		).setParameter(
 			"groupId", getScopeGroupId()
 		).setParameter(
-			"selectedGroupIds", StringUtil.merge(getSelectedGroupIds())
+			"selectedGroupIds", StringUtil.merge(_getSelectedGroupIds())
 		).setParameter(
 			"showNonindexable", Boolean.TRUE
 		).setParameter(
@@ -272,7 +272,7 @@ public class CPDefinitionVirtualSettingDisplayContext
 		).buildString();
 	}
 
-	protected long[] getSelectedGroupIds() {
+	private long[] _getSelectedGroupIds() {
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);

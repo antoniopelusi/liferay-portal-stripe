@@ -128,6 +128,9 @@ public interface ListTypeLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -268,9 +271,11 @@ public interface ListTypeLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public ListType updateListType(ListType listType);
 
+	@Transactional(readOnly = true)
 	public void validate(long listTypeId, long classNameId, String type)
 		throws PortalException;
 
+	@Transactional(readOnly = true)
 	public void validate(long listTypeId, String type) throws PortalException;
 
 }

@@ -400,4 +400,7 @@ public interface AssetListEntryUsageModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public AssetListEntryUsage cloneWithOriginalValues();
+
 }

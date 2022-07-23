@@ -42,15 +42,8 @@ public class IndexMetadata extends Index implements Comparable<IndexMetadata> {
 
 		_columnNames = columnNames;
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("drop index ");
-		sb.append(indexName);
-		sb.append(" on ");
-		sb.append(tableName);
-		sb.append(StringPool.SEMICOLON);
-
-		_dropSQL = sb.toString();
+		_dropSQL = StringBundler.concat(
+			"drop index ", indexName, " on ", tableName, StringPool.SEMICOLON);
 	}
 
 	@Override

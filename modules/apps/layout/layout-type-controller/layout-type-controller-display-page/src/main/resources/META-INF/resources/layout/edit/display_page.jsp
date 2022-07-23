@@ -16,7 +16,7 @@
 
 <%@ include file="/init.jsp" %>
 
-<liferay-ui:success key="displayPageAdded" message="the-display-page-template-was-created-succesfully" />
+<liferay-ui:success key="displayPageAdded" message="the-display-page-template-was-created-successfully" />
 
 <div class="layout-content portlet-layout" id="main-content" role="main">
 	<liferay-portlet:runtime

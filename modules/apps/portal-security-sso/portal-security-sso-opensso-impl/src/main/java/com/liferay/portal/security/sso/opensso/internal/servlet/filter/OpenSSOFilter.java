@@ -86,8 +86,9 @@ public class OpenSSOFilter extends BaseFilter {
 		HttpServletResponse httpServletResponse) {
 
 		try {
-			OpenSSOConfiguration openSSOConfiguration = getOpenSSOConfiguration(
-				_portal.getCompanyId(httpServletRequest));
+			OpenSSOConfiguration openSSOConfiguration =
+				_getOpenSSOConfiguration(
+					_portal.getCompanyId(httpServletRequest));
 
 			if (openSSOConfiguration.enabled() &&
 				Validator.isNotNull(openSSOConfiguration.loginURL()) &&
@@ -98,7 +99,7 @@ public class OpenSSOFilter extends BaseFilter {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;
@@ -109,31 +110,22 @@ public class OpenSSOFilter extends BaseFilter {
 		return _log;
 	}
 
-	protected OpenSSOConfiguration getOpenSSOConfiguration(long companyId)
-		throws Exception {
-
-		return _configurationProvider.getConfiguration(
-			OpenSSOConfiguration.class,
-			new CompanyServiceSettingsLocator(
-				companyId, OpenSSOConstants.SERVICE_NAME));
-	}
-
 	@Override
 	protected void processFilter(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse, FilterChain filterChain)
 		throws Exception {
 
-		OpenSSOConfiguration openSSOConfiguration = getOpenSSOConfiguration(
+		OpenSSOConfiguration openSSOConfiguration = _getOpenSSOConfiguration(
 			_portal.getCompanyId(httpServletRequest));
 
 		String requestURI = GetterUtil.getString(
 			httpServletRequest.getRequestURI());
 
 		if (requestURI.endsWith("/portal/logout")) {
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
-			session.invalidate();
+			httpSession.invalidate();
 
 			httpServletResponse.sendRedirect(openSSOConfiguration.logoutURL());
 
@@ -150,7 +142,7 @@ public class OpenSSOFilter extends BaseFilter {
 				httpServletRequest, openSSOConfiguration.serviceURL());
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			processFilter(
 				OpenSSOFilter.class.getName(), httpServletRequest,
@@ -159,7 +151,7 @@ public class OpenSSOFilter extends BaseFilter {
 			return;
 		}
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
 		if (authenticated) {
 
@@ -168,17 +160,18 @@ public class OpenSSOFilter extends BaseFilter {
 			String newSubjectId = _openSSO.getSubjectId(
 				httpServletRequest, openSSOConfiguration.serviceURL());
 
-			String oldSubjectId = (String)session.getAttribute(_SUBJECT_ID_KEY);
+			String oldSubjectId = (String)httpSession.getAttribute(
+				_SUBJECT_ID_KEY);
 
 			if (oldSubjectId == null) {
-				session.setAttribute(_SUBJECT_ID_KEY, newSubjectId);
+				httpSession.setAttribute(_SUBJECT_ID_KEY, newSubjectId);
 			}
 			else if (!newSubjectId.equals(oldSubjectId)) {
-				session.invalidate();
+				httpSession.invalidate();
 
-				session = httpServletRequest.getSession();
+				httpSession = httpServletRequest.getSession();
 
-				session.setAttribute(_SUBJECT_ID_KEY, newSubjectId);
+				httpSession.setAttribute(_SUBJECT_ID_KEY, newSubjectId);
 			}
 
 			processFilter(
@@ -188,7 +181,7 @@ public class OpenSSOFilter extends BaseFilter {
 			return;
 		}
 		else if (_portal.getUserId(httpServletRequest) > 0) {
-			session.invalidate();
+			httpSession.invalidate();
 		}
 
 		String loginURL = openSSOConfiguration.loginURL();
@@ -218,6 +211,15 @@ public class OpenSSOFilter extends BaseFilter {
 				URLCodec.encodeURL("?redirect=" + URLCodec.encodeURL(redirect));
 
 		httpServletResponse.sendRedirect(redirect);
+	}
+
+	private OpenSSOConfiguration _getOpenSSOConfiguration(long companyId)
+		throws Exception {
+
+		return _configurationProvider.getConfiguration(
+			OpenSSOConfiguration.class,
+			new CompanyServiceSettingsLocator(
+				companyId, OpenSSOConstants.SERVICE_NAME));
 	}
 
 	private static final String _SUBJECT_ID_KEY = "open.sso.subject.id";

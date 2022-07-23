@@ -13,12 +13,77 @@
  */
 
 import ClayDropDown from '@clayui/drop-down';
+import {fetch, objectToFormData} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
 import {useConstants} from '../contexts/ConstantsContext';
 
-export const AddItemDropDown = ({trigger}) => {
+function getNamespacedInfoItem(
+	portletNamespace,
+	selectedItem,
+	siteNavigationMenuId
+) {
+	if (!selectedItem) {
+		return;
+	}
+
+	let infoItem = {
+		...selectedItem,
+	};
+
+	let value;
+
+	if (typeof selectedItem.value === 'string') {
+		try {
+			value = JSON.parse(selectedItem.value);
+		}
+		catch (error) {}
+	}
+	else if (selectedItem.value && typeof selectedItem.value === 'object') {
+		value = selectedItem.value;
+	}
+
+	if (value) {
+		delete infoItem.value;
+		infoItem = {...value};
+	}
+
+	infoItem.siteNavigationMenuId = siteNavigationMenuId;
+
+	return Liferay.Util.ns(portletNamespace, infoItem);
+}
+
+function getNamespacedInfoItems(
+	portletNamespace,
+	selectedItems,
+	siteNavigationMenuId
+) {
+	if (!selectedItems) {
+		return;
+	}
+
+	let selectedItemsValue = selectedItems;
+
+	if (selectedItems.value && Array.isArray(selectedItems.value)) {
+		selectedItemsValue = selectedItems.value.map((item) =>
+			JSON.parse(item)
+		);
+	}
+
+	if (!selectedItemsValue.length) {
+		return;
+	}
+
+	const infoItems = {
+		items: JSON.stringify(selectedItemsValue),
+		siteNavigationMenuId,
+	};
+
+	return Liferay.Util.ns(portletNamespace, infoItems);
+}
+
+export function AddItemDropDown({trigger}) {
 	const [active, setActive] = useState(false);
 	const {addSiteNavigationMenuItemOptions, portletNamespace} = useConstants();
 
@@ -35,14 +100,47 @@ export const AddItemDropDown = ({trigger}) => {
 						<ClayDropDown.Item
 							key={label}
 							onClick={() => {
-								Liferay.Util.openWindow({
-									dialog: {
-										destroyOnHide: true,
-									},
-									id: `${portletNamespace}addMenuItem`,
-									title: label,
-									uri: data.href,
-								});
+								if (data.itemSelector) {
+									Liferay.Util.openSelectionModal({
+										buttonAddLabel: data.multiSelection
+											? Liferay.Language.get('select')
+											: null,
+										multiple: data.multiSelection,
+										onSelect: (selection) => {
+											fetch(data.addItemURL, {
+												body: objectToFormData(
+													data.multiSelection
+														? getNamespacedInfoItems(
+																portletNamespace,
+																selection,
+																data.siteNavigationMenuId
+														  )
+														: getNamespacedInfoItem(
+																portletNamespace,
+																selection,
+																data.siteNavigationMenuId
+														  )
+												),
+												method: 'POST',
+											}).then(() => {
+												window.location.reload();
+											});
+										},
+										selectEventName: `${portletNamespace}selectItem`,
+										title: data.addTitle,
+										url: data.href,
+									});
+								}
+								else {
+									Liferay.Util.openWindow({
+										dialog: {
+											destroyOnHide: true,
+										},
+										id: `${portletNamespace}addMenuItem`,
+										title: data.addTitle,
+										uri: data.href,
+									});
+								}
 							}}
 						>
 							{label}
@@ -52,7 +150,7 @@ export const AddItemDropDown = ({trigger}) => {
 			</ClayDropDown>
 		</>
 	);
-};
+}
 
 AddItemDropDown.propTypes = {
 	trigger: PropTypes.element,

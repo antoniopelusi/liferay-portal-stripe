@@ -166,6 +166,11 @@ public class StyleBookEntryWrapper
 		}
 	}
 
+	@Override
+	public StyleBookEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this style book entry.
 	 *

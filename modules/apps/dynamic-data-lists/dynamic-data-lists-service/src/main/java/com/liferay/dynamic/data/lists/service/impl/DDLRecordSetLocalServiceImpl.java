@@ -23,6 +23,7 @@ import com.liferay.dynamic.data.lists.model.DDLRecordSetVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordLocalService;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetVersionLocalService;
 import com.liferay.dynamic.data.lists.service.base.DDLRecordSetLocalServiceBaseImpl;
+import com.liferay.dynamic.data.lists.service.persistence.DDLRecordSetVersionPersistence;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializerDeserializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializerDeserializeResponse;
@@ -48,7 +49,11 @@ import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -114,7 +119,7 @@ public class DDLRecordSetLocalServiceImpl
 
 		// Record set
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		if (Validator.isNull(recordSetKey)) {
 			recordSetKey = String.valueOf(counterLocalService.increment());
@@ -171,11 +176,9 @@ public class DDLRecordSetLocalServiceImpl
 
 		// Dynamic data mapping structure link
 
-		long classNameId = classNameLocalService.getClassNameId(
-			DDLRecordSet.class);
-
 		ddmStructureLinkLocalService.addStructureLink(
-			classNameId, recordSetId, ddmStructureId);
+			_classNameLocalService.getClassNameId(DDLRecordSet.class),
+			recordSetId, ddmStructureId);
 
 		return updatedRecordSet;
 	}
@@ -194,7 +197,7 @@ public class DDLRecordSetLocalServiceImpl
 			boolean addGuestPermissions)
 		throws PortalException {
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			recordSet.getCompanyId(), recordSet.getGroupId(),
 			recordSet.getUserId(), DDLRecordSet.class.getName(),
 			recordSet.getRecordSetId(), false, addGroupPermissions,
@@ -213,7 +216,7 @@ public class DDLRecordSetLocalServiceImpl
 			DDLRecordSet recordSet, ModelPermissions modelPermissions)
 		throws PortalException {
 
-		resourceLocalService.addModelResources(
+		_resourceLocalService.addModelResources(
 			recordSet.getCompanyId(), recordSet.getGroupId(),
 			recordSet.getUserId(), DDLRecordSet.class.getName(),
 			recordSet.getRecordSetId(), modelPermissions);
@@ -250,7 +253,7 @@ public class DDLRecordSetLocalServiceImpl
 
 		// Resources
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			recordSet.getCompanyId(), DDLRecordSet.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL, recordSet.getRecordSetId());
 
@@ -266,12 +269,12 @@ public class DDLRecordSetLocalServiceImpl
 		// Dynamic data mapping structure link
 
 		ddmStructureLinkLocalService.deleteStructureLinks(
-			classNameLocalService.getClassNameId(DDLRecordSet.class),
+			_classNameLocalService.getClassNameId(DDLRecordSet.class),
 			recordSet.getRecordSetId());
 
 		// Workflow
 
-		workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
+		_workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
 			recordSet.getCompanyId(), recordSet.getGroupId(),
 			DDLRecordSet.class.getName(), recordSet.getRecordSetId(), 0);
 	}
@@ -659,14 +662,14 @@ public class DDLRecordSetLocalServiceImpl
 			long recordSetId, DDMFormValues settingsDDMFormValues)
 		throws PortalException {
 
-		Date now = new Date();
+		Date date = new Date();
 
 		ddmFormValuesValidator.validate(settingsDDMFormValues);
 
 		DDLRecordSet recordSet = ddlRecordSetPersistence.findByPrimaryKey(
 			recordSetId);
 
-		recordSet.setModifiedDate(now);
+		recordSet.setModifiedDate(date);
 		recordSet.setSettings(serialize(settingsDDMFormValues));
 
 		return ddlRecordSetPersistence.update(recordSet);
@@ -752,7 +755,7 @@ public class DDLRecordSetLocalServiceImpl
 		long recordSetVersionId = counterLocalService.increment();
 
 		DDLRecordSetVersion recordSetVersion =
-			ddlRecordSetVersionPersistence.create(recordSetVersionId);
+			_ddlRecordSetVersionPersistence.create(recordSetVersionId);
 
 		recordSetVersion.setGroupId(recordSet.getGroupId());
 		recordSetVersion.setCompanyId(recordSet.getCompanyId());
@@ -764,18 +767,15 @@ public class DDLRecordSetLocalServiceImpl
 		recordSetVersion.setName(recordSet.getName());
 		recordSetVersion.setDescription(recordSet.getDescription());
 		recordSetVersion.setVersion(version);
-
-		int status = GetterUtil.getInteger(
-			serviceContext.getAttribute("status"),
-			WorkflowConstants.STATUS_APPROVED);
-
-		recordSetVersion.setStatus(status);
-
+		recordSetVersion.setStatus(
+			GetterUtil.getInteger(
+				serviceContext.getAttribute("status"),
+				WorkflowConstants.STATUS_APPROVED));
 		recordSetVersion.setStatusByUserId(user.getUserId());
 		recordSetVersion.setStatusByUserName(user.getFullName());
 		recordSetVersion.setStatusDate(recordSet.getModifiedDate());
 
-		return ddlRecordSetVersionPersistence.update(recordSetVersion);
+		return _ddlRecordSetVersionPersistence.update(recordSetVersion);
 	}
 
 	protected DDMFormValues deserialize(String content, DDMForm ddmForm) {
@@ -802,7 +802,7 @@ public class DDLRecordSetLocalServiceImpl
 
 		validateDDMStructureId(ddmStructureId);
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long oldDDMStructureId = recordSet.getDDMStructureId();
 
@@ -866,7 +866,7 @@ public class DDLRecordSetLocalServiceImpl
 
 			// Dynamic data mapping structure link
 
-			long classNameId = classNameLocalService.getClassNameId(
+			long classNameId = _classNameLocalService.getClassNameId(
 				DDLRecordSet.class);
 
 			DDMStructureLink ddmStructureLink =
@@ -945,7 +945,7 @@ public class DDLRecordSetLocalServiceImpl
 		recordSetVersion.setStatusByUserName(user.getFullName());
 		recordSetVersion.setStatusDate(recordSet.getModifiedDate());
 
-		ddlRecordSetVersionPersistence.update(recordSetVersion);
+		_ddlRecordSetVersionPersistence.update(recordSetVersion);
 	}
 
 	protected void validate(
@@ -997,15 +997,31 @@ public class DDLRecordSetLocalServiceImpl
 	protected DDMStructureVersionLocalService ddmStructureVersionLocalService;
 
 	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
 	private DDLRecordLocalService _ddlRecordLocalService;
 
 	@Reference
 	private DDLRecordSetVersionLocalService _ddlRecordSetVersionLocalService;
+
+	@Reference
+	private DDLRecordSetVersionPersistence _ddlRecordSetVersionPersistence;
 
 	@Reference(target = "(ddm.form.values.deserializer.type=json)")
 	private DDMFormValuesDeserializer _jsonDDMFormValuesDeserializer;
 
 	@Reference(target = "(ddm.form.values.serializer.type=json)")
 	private DDMFormValuesSerializer _jsonDDMFormValuesSerializer;
+
+	@Reference
+	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
+	private WorkflowDefinitionLinkLocalService
+		_workflowDefinitionLinkLocalService;
 
 }

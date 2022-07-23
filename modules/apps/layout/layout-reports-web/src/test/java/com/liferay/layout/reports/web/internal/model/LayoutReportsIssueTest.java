@@ -14,11 +14,19 @@
 
 package com.liferay.layout.reports.web.internal.model;
 
-import com.liferay.portal.json.JSONFactoryImpl;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.language.LanguageImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,18 +45,26 @@ public class LayoutReportsIssueTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Before
-	public void setUp() throws Exception {
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
+	public void setUp() {
+		LanguageUtil languageUtil = new LanguageUtil();
 
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
+		languageUtil.setLanguage(new LanguageImpl());
 	}
 
 	@Test
 	public void testEquals() {
 		LayoutReportsIssue layoutReportsIssue1 = new LayoutReportsIssue(
-			"key", 100);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
 		LayoutReportsIssue layoutReportsIssue2 = new LayoutReportsIssue(
-			"key", 100);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
 
 		Assert.assertTrue(layoutReportsIssue1.equals(layoutReportsIssue2));
 	}
@@ -56,23 +72,74 @@ public class LayoutReportsIssueTest {
 	@Test
 	public void testNewLayoutReportsIssue() {
 		LayoutReportsIssue layoutReportsIssue = new LayoutReportsIssue(
-			"key", 100);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
 
-		Assert.assertEquals("key", layoutReportsIssue.getKey());
+		List<LayoutReportsIssue.Detail> details =
+			layoutReportsIssue.getDetails();
+
+		Assert.assertEquals(details.toString(), 1, details.size());
+
+		LayoutReportsIssue.Detail detail = details.get(0);
+
+		Assert.assertEquals(
+			LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+			detail.getKey());
+		Assert.assertEquals(100, detail.getTotal());
+
+		Assert.assertEquals(
+			LayoutReportsIssue.Key.SEO, layoutReportsIssue.getKey());
 		Assert.assertEquals(100, layoutReportsIssue.getTotal());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNewLayoutReportsIssueWithNullKey() {
-		new LayoutReportsIssue(null, 100);
+		new LayoutReportsIssue(
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			null);
+	}
+
+	@Test
+	public void testNotEqualsWithDifferentDetails() {
+		LayoutReportsIssue layoutReportsIssue1 = new LayoutReportsIssue(
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
+		LayoutReportsIssue layoutReportsIssue2 = new LayoutReportsIssue(
+			Arrays.asList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(50)),
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
+
+		Assert.assertFalse(layoutReportsIssue1.equals(layoutReportsIssue2));
 	}
 
 	@Test
 	public void testNotEqualsWithDifferentKey() {
 		LayoutReportsIssue layoutReportsIssue1 = new LayoutReportsIssue(
-			"key", 100);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
 		LayoutReportsIssue layoutReportsIssue2 = new LayoutReportsIssue(
-			"key1", 100);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.ACCESSIBILITY);
 
 		Assert.assertFalse(layoutReportsIssue1.equals(layoutReportsIssue2));
 	}
@@ -80,9 +147,17 @@ public class LayoutReportsIssueTest {
 	@Test
 	public void testNotEqualsWithDifferentTotal() {
 		LayoutReportsIssue layoutReportsIssue1 = new LayoutReportsIssue(
-			"key", 100);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
 		LayoutReportsIssue layoutReportsIssue2 = new LayoutReportsIssue(
-			"key", 200);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(200))),
+			LayoutReportsIssue.Key.SEO);
 
 		Assert.assertFalse(layoutReportsIssue1.equals(layoutReportsIssue2));
 	}
@@ -90,25 +165,61 @@ public class LayoutReportsIssueTest {
 	@Test
 	public void testToJSONObject() {
 		LayoutReportsIssue layoutReportsIssue = new LayoutReportsIssue(
-			"key", 100);
+			Collections.singletonList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
 
 		JSONObject jsonObject = layoutReportsIssue.toJSONObject(
-			ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE);
+			null, null, ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE);
+
+		JSONArray detailsJSONArray = jsonObject.getJSONArray("details");
+
+		Assert.assertEquals(1, detailsJSONArray.length());
+
+		JSONObject detailJSONObject = detailsJSONArray.getJSONObject(0);
 
 		Assert.assertEquals(
-			layoutReportsIssue.getKey(), jsonObject.getString("key"));
+			"detail-missing-img-alt-attributes-description",
+			detailJSONObject.getString("description"));
 		Assert.assertEquals(
-			layoutReportsIssue.getTotal(), jsonObject.getLong("total"));
+			"missing-img-alt-attributes", detailJSONObject.getString("key"));
+		Assert.assertEquals(
+			StringPool.BLANK, detailJSONObject.getString("tips"));
+		Assert.assertEquals(100, detailJSONObject.getLong("total"));
+
+		Assert.assertEquals(
+			LayoutReportsIssue.Key.SEO.toString(), jsonObject.getString("key"));
+		Assert.assertEquals(100, jsonObject.getLong("total"));
 	}
 
 	@Test
 	public void testToString() {
 		LayoutReportsIssue layoutReportsIssue = new LayoutReportsIssue(
-			"key", 100);
+			Arrays.asList(
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.LINK_TEXTS,
+					_getLighthouseAuditJSONObject(99)),
+				new LayoutReportsIssue.Detail(
+					LayoutReportsIssue.Detail.Key.MISSING_IMG_ALT_ATTRIBUTES,
+					_getLighthouseAuditJSONObject(100))),
+			LayoutReportsIssue.Key.SEO);
 
 		Assert.assertEquals(
-			"{\"total\":\"100\",\"key\":\"key\"}",
+			"{details={link-texts=99, missing-img-alt-attributes=100}, " +
+				"key=seo, total=199}",
 			layoutReportsIssue.toString());
+	}
+
+	private JSONObject _getLighthouseAuditJSONObject(int total) {
+		JSONArray itemsJSONArray = JSONFactoryUtil.createJSONArray();
+
+		for (int i = 0; i < total; i++) {
+			itemsJSONArray.put(String.valueOf(i));
+		}
+
+		return JSONUtil.put("details", JSONUtil.put("items", itemsJSONArray));
 	}
 
 }

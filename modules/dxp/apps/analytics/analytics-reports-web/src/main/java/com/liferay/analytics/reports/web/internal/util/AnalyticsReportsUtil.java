@@ -64,7 +64,7 @@ public class AnalyticsReportsUtil {
 			portal.getCurrentCompleteURL(httpServletRequest)
 		).setParameter(
 			"className", infoItemReference.getClassName()
-		).build();
+		).buildPortletURL();
 
 		if (infoItemReference.getInfoItemIdentifier() instanceof
 				ClassNameClassPKInfoItemIdentifier) {

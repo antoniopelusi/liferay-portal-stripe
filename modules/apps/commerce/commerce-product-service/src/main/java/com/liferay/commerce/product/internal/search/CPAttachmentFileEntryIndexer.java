@@ -197,42 +197,41 @@ public class CPAttachmentFileEntryIndexer
 		Document document = getBaseModelDocument(
 			CLASS_NAME, cpAttachmentFileEntry);
 
+		document.addKeyword(CPField.CDN, cpAttachmentFileEntry.isCDNEnabled());
+		document.addText(CPField.CDN_URL, cpAttachmentFileEntry.getCDNURL());
 		document.addText(Field.CONTENT, StringPool.BLANK);
-
-		document.addNumber(Field.PRIORITY, cpAttachmentFileEntry.getPriority());
-
-		document.addNumber(Field.TYPE, cpAttachmentFileEntry.getType());
 		document.addDateSortable(
 			CPField.DISPLAY_DATE, cpAttachmentFileEntry.getDisplayDate());
-
+		document.addNumber(
+			CPField.FILE_ENTRY_ID, cpAttachmentFileEntry.getFileEntryId());
+		document.addNumber(Field.PRIORITY, cpAttachmentFileEntry.getPriority());
 		document.addNumber(
 			CPField.RELATED_ENTITY_CLASS_NAME_ID,
 			cpAttachmentFileEntry.getClassNameId());
 		document.addNumber(
 			CPField.RELATED_ENTITY_CLASS_PK,
 			cpAttachmentFileEntry.getClassPK());
-		document.addNumber(
-			CPField.FILE_ENTRY_ID, cpAttachmentFileEntry.getFileEntryId());
+		document.addNumber(Field.TYPE, cpAttachmentFileEntry.getType());
 
 		Map<CPDefinitionOptionRel, List<CPDefinitionOptionValueRel>>
-			cpDefinitionOptionRelListMap =
-				_cpInstanceHelper.getCPDefinitionOptionRelsMap(
+			cpDefinitionOptionValueRelListMap =
+				_cpInstanceHelper.getCPDefinitionOptionValueRelsMap(
 					cpAttachmentFileEntry.getClassPK(),
 					cpAttachmentFileEntry.getJson());
 
 		for (Map.Entry<CPDefinitionOptionRel, List<CPDefinitionOptionValueRel>>
-				cpDefinitionOptionRelListMapEntry :
-					cpDefinitionOptionRelListMap.entrySet()) {
+				cpDefinitionOptionValueRelListMapEntry :
+					cpDefinitionOptionValueRelListMap.entrySet()) {
 
 			CPDefinitionOptionRel cpDefinitionOptionRel =
-				cpDefinitionOptionRelListMapEntry.getKey();
+				cpDefinitionOptionValueRelListMapEntry.getKey();
 
 			CPOption cpOption = cpDefinitionOptionRel.getCPOption();
 
 			List<String> optionValueIds = new ArrayList<>();
 
 			for (CPDefinitionOptionValueRel cpDefinitionOptionValueRel :
-					cpDefinitionOptionRelListMapEntry.getValue()) {
+					cpDefinitionOptionValueRelListMapEntry.getValue()) {
 
 				optionValueIds.add(cpDefinitionOptionValueRel.getKey());
 			}
@@ -284,13 +283,13 @@ public class CPAttachmentFileEntryIndexer
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCPAttachmentFileEntries(companyId);
+		_reindexCPAttachmentFileEntries(companyId);
 	}
 
-	protected void reindexCPAttachmentFileEntries(long companyId)
-		throws PortalException {
+	private void _reindexCPAttachmentFileEntries(long companyId)
+		throws Exception {
 
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_cpAttachmentFileEntryLocalService.
 				getIndexableActionableDynamicQuery();
 

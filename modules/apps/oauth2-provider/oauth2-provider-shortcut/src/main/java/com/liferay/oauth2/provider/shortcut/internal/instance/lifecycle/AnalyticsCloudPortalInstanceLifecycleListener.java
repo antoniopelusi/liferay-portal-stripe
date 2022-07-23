@@ -41,9 +41,6 @@ import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
-import com.liferay.portal.kernel.resource.bundle.AggregateResourceBundleLoader;
-import com.liferay.portal.kernel.resource.bundle.ClassResourceBundleLoader;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.CompanyService;
@@ -57,7 +54,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserGroupService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserService;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -69,7 +66,6 @@ import java.io.InputStream;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -113,13 +109,6 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 					sapEntryObjectArray[0], "OAUTH2_", StringPool.BLANK));
 		}
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"osgi.jaxrs.name",
-			OAuth2ProviderShortcutConstants.APPLICATION_NAME);
-		properties.put("sap.scope.finder", true);
-
 		_serviceRegistration = bundleContext.registerService(
 			new String[] {
 				ApplicationDescriptor.class.getName(),
@@ -127,7 +116,12 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 				ScopeFinder.class.getName(), ScopeMapper.class.getName()
 			},
 			new OAuth2ProviderShortcutScopeFinder(_sapEntryLocalService),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"osgi.jaxrs.name",
+				OAuth2ProviderShortcutConstants.APPLICATION_NAME
+			).put(
+				"sap.scope.finder", true
+			).build());
 	}
 
 	@Deactivate
@@ -169,14 +163,15 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 						add(GrantType.REFRESH_TOKEN);
 					}
 				},
-				user.getUserId(),
+				"client_secret_post", user.getUserId(),
 				OAuth2SecureRandomGenerator.generateClientId(),
 				ClientProfile.WEB_APPLICATION.id(),
 				OAuth2SecureRandomGenerator.generateClientSecret(), null, null,
-				"https://analytics.liferay.com", 0, _APPLICATION_NAME, null,
+				"https://analytics.liferay.com", 0, null, _APPLICATION_NAME,
+				null,
 				Collections.singletonList(
 					"https://analytics.liferay.com/oauth/receive"),
-				this::_buildScopes, new ServiceContext());
+				false, false, this::_buildScopes, new ServiceContext());
 
 		Class<?> clazz = getClass();
 
@@ -220,14 +215,6 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 	}
 
 	private void _addSAPEntries(long companyId, long userId) throws Exception {
-		Class<?> clazz = getClass();
-
-		ResourceBundleLoader resourceBundleLoader =
-			new AggregateResourceBundleLoader(
-				new ClassResourceBundleLoader(
-					"content.Language", clazz.getClassLoader()),
-				LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER);
-
 		for (String[] sapEntryObjectArray : _SAP_ENTRY_OBJECT_ARRAYS) {
 			String sapEntryName = sapEntryObjectArray[0];
 
@@ -240,7 +227,8 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 
 			Map<Locale, String> titleMap =
 				ResourceBundleUtil.getLocalizationMap(
-					resourceBundleLoader, sapEntryName);
+					LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER,
+					sapEntryName);
 
 			_sapEntryLocalService.addSAPEntry(
 				userId, sapEntryObjectArray[1], false, true, sapEntryName,

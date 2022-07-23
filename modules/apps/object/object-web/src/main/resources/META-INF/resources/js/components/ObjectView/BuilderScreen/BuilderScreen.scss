@@ -1,0 +1,23 @@
+.lfr-object {
+	&__object-builder-screen-name {
+		padding-left: 50px !important;
+	}
+
+	&__object-builder-screen-second-column {
+		left: 330px;
+		position: absolute;
+	}
+
+	&__object-builder-screen-sort-order {
+		left: 336px;
+		position: absolute;
+		top: 23px;
+	}
+
+	&__object-builder-screen-empty-state {
+		align-items: center;
+		display: flex;
+		justify-content: center;
+		text-align: center;
+	}
+}

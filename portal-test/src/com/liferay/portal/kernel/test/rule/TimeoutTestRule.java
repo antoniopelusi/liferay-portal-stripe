@@ -61,16 +61,11 @@ public class TimeoutTestRule implements TestRule {
 						public Void call() throws InterruptedException {
 							Thread.sleep(_timeout);
 
-							StringBundler sb = new StringBundler(6);
-
-							sb.append("Thread dump for ");
-							sb.append(description.toString());
-							sb.append(" timeout after waited ");
-							sb.append(_timeout);
-							sb.append("ms:");
-							sb.append(ThreadUtil.threadDump());
-
-							System.out.println(sb.toString());
+							System.out.println(
+								StringBundler.concat(
+									"Thread dump for ", description.toString(),
+									" timeout after waited ", _timeout, "ms:",
+									ThreadUtil.threadDump()));
 
 							System.exit(TIMEOUT_EXIT_CODE);
 

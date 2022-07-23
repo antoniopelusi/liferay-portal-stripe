@@ -25,7 +25,7 @@ import java.util.List;
  * @author Michael C. Han
  * @author André de Oliveira
  */
-public class EnvelopeShapeImpl extends ShapeImpl implements EnvelopeShape {
+public class EnvelopeShapeImpl extends BaseShapeImpl implements EnvelopeShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

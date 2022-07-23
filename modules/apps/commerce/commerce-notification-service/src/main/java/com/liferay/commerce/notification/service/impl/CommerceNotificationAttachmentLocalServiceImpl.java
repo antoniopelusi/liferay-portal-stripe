@@ -16,11 +16,13 @@ package com.liferay.commerce.notification.service.impl;
 
 import com.liferay.commerce.notification.model.CommerceNotificationAttachment;
 import com.liferay.commerce.notification.service.base.CommerceNotificationAttachmentLocalServiceBaseImpl;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
 
@@ -39,7 +41,7 @@ public class CommerceNotificationAttachmentLocalServiceImpl
 		User user = userLocalService.getUser(serviceContext.getUserId());
 		long groupId = serviceContext.getScopeGroupId();
 
-		FileEntry fileEntry = dlAppLocalService.getFileEntry(fileEntryId);
+		FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
 
 		long commerceNotificationAttachmentId = counterLocalService.increment();
 
@@ -82,5 +84,8 @@ public class CommerceNotificationAttachmentLocalServiceImpl
 				commerceNotificationQueueEntryId, start, end,
 				orderByComparator);
 	}
+
+	@ServiceReference(type = DLAppLocalService.class)
+	private DLAppLocalService _dlAppLocalService;
 
 }

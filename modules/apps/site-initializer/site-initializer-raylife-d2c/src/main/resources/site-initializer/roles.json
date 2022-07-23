@@ -1,0 +1,37 @@
+[
+	{
+		"actions": [
+		],
+		"name": "Sales Agent",
+		"scope": 1,
+		"type": 1
+	},
+	{
+		"actions": [
+		],
+		"name": "Discount Manager",
+		"scope": 1,
+		"type": 1
+	},
+	{
+		"actions": [
+		],
+		"name": "Category Manager",
+		"scope": 1,
+		"type": 1
+	},
+	{
+		"actions": [
+		],
+		"name": "Operations Manager",
+		"scope": 1,
+		"type": 1
+	},
+	{
+		"actions": [
+		],
+		"name": "Punch Out",
+		"scope": 3,
+		"type": 2
+	}
+]

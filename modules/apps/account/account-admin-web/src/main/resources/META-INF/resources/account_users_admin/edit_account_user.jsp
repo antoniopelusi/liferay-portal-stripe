@@ -34,7 +34,7 @@ User selUser = PortalUtil.getSelectedUser(request, false);
 			"/account_users_admin/edit_account_user.jsp"
 		).setParameter(
 			"p_u_i_d", selUser.getUserId()
-		).build()
+		).buildPortletURL()
 	%>'
 />
 
@@ -73,7 +73,7 @@ AccountUserDisplay accountUserDisplay = AccountUserDisplay.of(selUser);
 				"validDomains", accountUserDisplay.getValidDomainsString()
 			).setWindowState(
 				LiferayWindowState.POP_UP
-			).build();
+			).buildPortletURL();
 
 			context.put("viewValidDomainsURL", viewValidDomainsURL.toString());
 		}

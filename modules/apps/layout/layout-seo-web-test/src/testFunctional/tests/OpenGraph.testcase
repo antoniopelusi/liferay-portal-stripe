@@ -1,6 +1,7 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "SEO";
@@ -34,19 +35,19 @@ definition {
 		}
 	}
 
-	@description = "This ensures that the user can customize OG tags."
+	@description = "This ensures that the user can customize OG tags, also covers LPS-134658."
 	@priority = "5"
-	@refactorneeded
-	test CustomizeMetaTags {
+	@refactordone
+	test CanCustomizeMetaTags {
 		var portalURL = PropsUtil.get("portal.url");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
-
-		Navigator.gotoNavTab(navTab = "Open Graph");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "Open Graph",
+			siteURLKey = "test-site-name");
 
 		OpenGraph.configureOpenGraph(
 			customDescription = "This is a custom description",
@@ -55,77 +56,74 @@ definition {
 			pageName = "Test Page Name",
 			uploadFileName = "Document_1.jpg");
 
-		var siteID = Site.getSiteId();
+		Page.viewPreview(
+			description = "This is a custom description",
+			htmlTitle = "This is a custom title",
+			key_imageName = "Document_1.jpg",
+			openGraph = "true",
+			portalURL = "${portalURL}",
+			siteNameURL = "test-site-name");
 
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title","og:description" content="This is a custom description","og:image" content="${portalURL}/documents/${siteID}/0/Document_1.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title","og:description" content="This is a custom description","og:image" content="${portalURL}/documents/${siteId}/0/Document_1.jpg''');
 	}
 
 	@description = "This ensures that the user can customize OG tags with escape characters."
 	@priority = "4"
-	@refactorneeded
-	test CustomizeMetaTagsWithEscapeCharacters {
+	@refactordone
+	test CanCustomizeMetaTagsWithEscapeCharacters {
 		var portalURL = PropsUtil.get("portal.url");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
-
-		Navigator.gotoNavTab(navTab = "Open Graph");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "Open Graph",
+			siteURLKey = "test-site-name");
 
 		OpenGraph.configureOpenGraph(
-			customDescription = '''description@#$%^&amp;*()~`1234567890''',
-			customTitle = '''@#$%^&amp;*()~`1234567890title''');
+			customDescription = '''description@#$%^*()~`1234567890''',
+			customTitle = '''@#$%^*()~`1234567890title''');
 
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="@#$%^&amp;*()~`1234567890title","og:description" content="description@#$%^&amp;*()~`1234567890"''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="@#$%^*()~`1234567890title","og:description" content="description@#$%^*()~`1234567890"''');
 	}
 
 	@description = "This ensures that OG tags will not appear when Open Graph is disabled."
 	@priority = "5"
-	@refactorneeded
-	test DisableConfiguration {
+	@refactordone
+	test CanDisableConfiguration {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "OpenGraph#DisableConfiguration";
+		property test.name.skip.portal.instance = "OpenGraph#CanDisableConfiguration";
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		SystemSettings.openSystemSettingsAdmin();
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "Pages",
-			configurationName = "SEO",
-			configurationScope = "Virtual Instance Scope");
+		OpenGraph.openToConfigInSystemSettings(portlet = "SEO");
 
 		FormFields.disableCheckbox(fieldName = "Enable Open Graph");
 
 		SystemSettings.saveConfiguration();
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "General",
+			siteURLKey = "test-site-name");
 
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
+		OpenGraph.viewNoTab();
 
-		AssertElementNotPresent(
-			key_tab = "Open Graph",
-			locator1 = "NavTab#TAB_LINK");
+		Site.openToSiteSettingsPages(
+			portlet = "Pages",
+			siteURLKey = "test-site-name");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "test-site-name");
+		OpenGraph.viewNoTab();
 
-		AssertElementNotPresent(
-			key_panel = "open graph",
-			locator1 = "Panel#PANEL_COLLAPSED");
-
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
@@ -134,23 +132,17 @@ definition {
 
 	@description = "This ensures that OG configuration is properly disabled at the site level."
 	@priority = "5"
-	@refactorneeded
-	test DisableConfigurationAtSiteLevel {
-		property test.name.skip.portal.instance = "OpenGraph#DisableConfigurationAtSiteLevel";
+	@refactordone
+	test CanDisableConfigurationAtSiteLevel {
+		OpenGraph.disableOpenGraphAtSiteLevel(siteURLKey = "test-site-name");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "test-site-name");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "General",
+			siteURLKey = "test-site-name");
 
-		OpenGraph.disableOpenGraphAtSiteLevel();
-
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
-
-		AssertElementNotPresent(
-			key_tab = "Open Graph",
-			locator1 = "NavTab#TAB_LINK");
+		OpenGraph.viewNoTab();
 
 		JSONGroup.addGroup(groupName = "Test Site Name 2");
 
@@ -158,30 +150,28 @@ definition {
 			groupName = "Test Site Name 2",
 			layoutName = "Test Page Name 2");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name-2");
-
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name 2");
-
-		Navigator.gotoNavTab(navTab = "Open Graph");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name 2",
+			layoutName = "Test Page Name 2",
+			portlet = "Open Graph",
+			siteURLKey = "test-site-name-2");
 
 		OpenGraph.viewDefaultConfiguration();
 	}
 
 	@description = "This ensures that the user can edit existing OG tags."
 	@priority = "5"
-	@refactorneeded
-	test EditMetaTagCustomizations {
+	@refactordone
+	test CanEditMetaTagCustomizations {
 		var portalURL = PropsUtil.get("portal.url");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
-
-		Navigator.gotoNavTab(navTab = "Open Graph");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "Open Graph",
+			siteURLKey = "test-site-name");
 
 		OpenGraph.configureOpenGraph(
 			customDescription = "This is a custom description",
@@ -197,28 +187,29 @@ definition {
 			pageName = "Test Page Name",
 			uploadFileName = "Document_2.jpg");
 
-		var siteID = Site.getSiteId();
-
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title edit","og:description" content="This is a custom description edit","og:image" content="${portalURL}/documents/${siteID}/0/Document_2''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title edit","og:description" content="This is a custom description edit","og:image" content="${portalURL}/documents/${siteId}/0/Document_2''');
 	}
 
 	@description = "This test ensures that user can map the blogs with open graph meta tags for display pages."
 	@priority = "5"
-	@refactorneeded
-	test MapBlogsToDisplayPage {
-		property test.name.skip.portal.instance = "OpenGraph#MapBlogsToDisplayPage";
-
+	@refactordone
+	test CanMapBlogsToDisplayPage {
 		var portalURL = PropsUtil.get("portal.url");
 
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.addDisplayPage(
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 			contentType = "Blogs Entry",
-			displayPageName = "Display Page Template Name");
+			displayPageTemplateEntryName = "Display Page Template Name",
+			groupName = "Test Site Name");
+
+		DisplayPageTemplate.addFragment(
+			collectionName = "Content Display",
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
 
 		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
@@ -228,213 +219,194 @@ definition {
 
 		Navigator.gotoNavNested(navNested = "Open Graph");
 
-		OpenGraph.viewMappedField(
+		OpenGraph.viewDefaultMappedField(portlet = "Open Graph");
+
+		OpenGraph.mapEditableTextToField(
+			field = "Title,Subtitle",
 			mappedField = "Title",
-			mappedFieldValue = "Blogs Entry: Title");
+			mappedFieldName = "Title",
+			mappedFieldText = "Title is ",
+			textType = "TextInput");
 
-		OpenGraph.viewMappedField(
+		OpenGraph.mapEditableTextToField(
+			field = "Content,Description",
 			mappedField = "Description",
-			mappedFieldValue = "Blogs Entry: Description");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Image",
-			mappedFieldValue = "-- Unmapped --");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "-- Unmapped --");
+			mappedFieldName = "Description",
+			mappedFieldText = "Description is ",
+			textType = "TextArea");
 
 		OpenGraph.mapEditableTextToField(
-			field = "Subtitle",
-			mappedField = "Title");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Content",
-			mappedField = "Description");
+			field = "Author Name,Description",
+			mappedField = "ImageAlt",
+			mappedFieldName = "Image Alt Description",
+			mappedFieldText = "Image Alt is ",
+			textType = "TextArea");
 
 		OpenGraph.mapEditableTextToField(
 			field = "Author Profile Image",
-			mappedField = "Image");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Author Name",
-			mappedField = "Image Alt Description");
+			mappedFieldName = "Image");
 
 		Button.clickSave();
 
 		OpenGraph.viewMappedField(
 			mappedField = "Title",
-			mappedFieldValue = "Blogs Entry: Subtitle");
+			mappedFieldValue = "Title is Title: ${title:Title}Subtitle: ${subtitle:Subtitle}");
 
 		OpenGraph.viewMappedField(
 			mappedField = "Description",
-			mappedFieldValue = "Blogs Entry: Content");
+			mappedFieldValue = "Description is Content: ${content:Content}Description: ${description:Description}",
+			textType = "TextArea");
 
 		OpenGraph.viewMappedField(
 			mappedField = "Image",
 			mappedFieldValue = "Blogs Entry: Author Profile Image");
 
 		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "Blogs Entry: Author Name");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
-
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
-
-		Button.clickPublish();
-
-		JSONBlog.addEntry(
-			entryContent = "Blogs Entry Content",
-			entrySubtitle = "Blogs Entry Subtitle",
-			entryTitle = "Blogs Entry Title",
-			groupName = "Test Site Name");
+			mappedField = "ImageAlt",
+			mappedFieldValue = "Image Alt is Author Name: ${authorName:Author Name}Description: ${description:Description}",
+			textType = "TextArea");
 
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
 
-		BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
+		Blogs.addWithCustomAbstract(
+			entryAbstractDescription = "Custom Abstract",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title");
 
-		WebContent.editDisplayPage(pageName = "Display Page Template Name");
+		DisplayPageTemplate.selectDisplayPageTemplateForAsset(
+			assetType = "Blogs Entry",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Test Site Name",
+			pageName = "Display Page Template Name",
+			siteURLKey = "test-site-name");
 
-		PortletEntry.publish();
-
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/b/blogs-entry-title");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Blogs Entry Subtitle","og:description" content="Blogs Entry Content"''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Title is Title: Blogs Entry TitleSubtitle: Blogs Entry Subtitle","og:description" content="Description is Content: Blogs Entry ContentDescription: Custom Abstract"''');
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Test Test","og:image" content="${portalURL}/image/user_portrait''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Image Alt is Author Name: Test TestDescription: Custom Abstract","og:image" content="${portalURL}/image/user_portrait''');
 	}
 
 	@description = "This test ensures that user can map the document with open graph meta tags for display pages."
 	@priority = "5"
-	@refactorneeded
-	test MapDocumentToDisplayPage {
-		property test.name.skip.portal.instance = "OpenGraph#MapDocumentToDisplayPage";
-
-		var portalURL = PropsUtil.get("portal.url");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.addDisplayPage(
+	@refactordone
+	test CanMapDocumentToDisplayPage {
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 			contentType = "Document",
-			displayPageName = "Display Page Template Name Test",
+			displayPageTemplateEntryName = "Display Page Template Name",
+			groupName = "Test Site Name",
 			subType = "Basic Document");
+
+		DisplayPageTemplate.addFragment(
+			collectionName = "Content Display",
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
 
 		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
 		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
 			item = "Configure",
-			pageTemplateName = "Display Page Template Name Test");
+			pageTemplateName = "Display Page Template Name");
 
 		Navigator.gotoNavNested(navNested = "Open Graph");
 
-		OpenGraph.viewMappedField(
-			mappedField = "Title",
-			mappedFieldValue = "Document: Title");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Description",
-			mappedFieldValue = "Document: Description");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Image",
-			mappedFieldValue = "-- Unmapped --");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "-- Unmapped --");
+		OpenGraph.viewDefaultMappedField(portlet = "Open Graph");
 
 		OpenGraph.mapEditableTextToField(
 			field = "File Name",
-			mappedField = "Title");
+			mappedField = "Title",
+			mappedFieldName = "Title",
+			mappedFieldText = "Title is ",
+			textType = "TextInput");
 
 		OpenGraph.mapEditableTextToField(
 			field = "MIME Type",
-			mappedField = "Description");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Preview Image",
-			mappedField = "Image");
+			mappedField = "Description",
+			mappedFieldName = "Description",
+			mappedFieldText = "Description is ",
+			textType = "TextArea");
 
 		OpenGraph.mapEditableTextToField(
 			field = "Author Name",
-			mappedField = "Image Alt Description");
+			mappedField = "ImageAlt",
+			mappedFieldName = "Image Alt Description",
+			mappedFieldText = "Image Alt is ",
+			textType = "TextArea");
+
+		OpenGraph.mapEditableTextToField(
+			field = "Preview Image",
+			mappedFieldName = "Image");
 
 		Button.clickSave();
 
 		OpenGraph.viewMappedField(
 			mappedField = "Title",
-			mappedFieldValue = "Document: File Name");
+			mappedFieldValue = "Title is File Name: ${fileName:File Name}");
 
 		OpenGraph.viewMappedField(
 			mappedField = "Description",
-			mappedFieldValue = "Document: MIME Type");
+			mappedFieldValue = "Description is MIME Type: ${mimeType:MIME Type}",
+			textType = "TextArea");
 
 		OpenGraph.viewMappedField(
 			mappedField = "Image",
 			mappedFieldValue = "Document: Preview Image");
 
 		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "Document: Author Name");
+			mappedField = "ImageAlt",
+			mappedFieldValue = "Image Alt is Author Name: ${authorName:Author Name}",
+			textType = "TextArea");
 
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name Test");
-
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
-
-		Button.clickPublish();
-
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
-
-		DMDocument.addCP(
+		JSONDocument.addFileWithUploadedFile(
 			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.jpg",
-			dmDocumentTitle = "Document_1.jpg");
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Test Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		DisplayPageTemplate.selectDisplayPageTemplateForAsset(
+			assetType = "Document",
+			entryTitle = "DM Document Title",
+			groupName = "Test Site Name",
+			pageName = "Display Page Template Name",
+			siteURLKey = "test-site-name");
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
 
-		var dmFileEntryID = DMDocument.getFileEntryID(dmDocumentTitle = "Document_1.jpg");
+		var dmFileEntryId = JSONDocument.getFileEntryId(
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Test Site Name");
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Document_1.jpg");
+		var portalURL = PropsUtil.get("portal.url");
 
-		WebContent.editDisplayPage(pageName = "Display Page Template Name Test");
+		var siteId = JSONGroupAPI._getGroupIdByName(
+			groupName = "Test Site Name",
+			site = "true");
 
-		PortletEntry.publish();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
-		var siteID = Site.getSiteId();
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryId}");
 
-		User.logoutPG();
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Title is File Name: Document_1.jpg","og:description" content="Description is MIME Type: image/jpeg"''');
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryID}");
-
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Document_1.jpg","og:description" content="image/jpeg"''');
-
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Test Test","og:image" content="${portalURL}/documents/${siteID}/0/Document_1''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Image Alt is Author Name: Test Test","og:image" content="${portalURL}/documents/${siteId}/0/Document_1''');
 	}
 
 	@description = "This test ensures that image meta tags are displayed with the site image and alt description in the HTML when the image fields are not mapped in the display page."
 	@priority = "5"
-	@refactorneeded
-	test MapSiteImageToDisplayPage {
-		property test.name.skip.portal.instance = "OpenGraph#MapSiteImageToDisplayPage";
+	@refactordone
+	test CanMapSiteImageToDisplayPage {
+		Site.openSiteSettingsAdmin(siteURLKey = "test-site-name");
 
-		var portalURL = PropsUtil.get("portal.url");
+		Click(
+			key_itemName = "Pages",
+			locator1 = "ListGroupItem#ITEM_TEXT");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "test-site-name");
-
-		Panel.expandPanel(panel = "Open Graph");
+		Navigator.gotoNavTab(navTab = "Open Graph");
 
 		OpenGraph.configureOpenGraph(
 			altDescription = "This is image alternative description",
@@ -446,6 +418,12 @@ definition {
 			displayPageTemplateEntryName = "Display Page Template Name",
 			groupName = "Test Site Name");
 
+		DisplayPageTemplate.addFragment(
+			collectionName = "Content Display",
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
+
 		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
 		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
@@ -459,18 +437,9 @@ definition {
 			mappedFieldValue = "-- Unmapped --");
 
 		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "-- Unmapped --");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
-
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
-
-		Button.clickPublish();
+			mappedField = "ImageAlt",
+			mappedFieldValue = "",
+			textType = "TextArea");
 
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content",
@@ -478,36 +447,41 @@ definition {
 			entryTitle = "Blogs Entry Title",
 			groupName = "Test Site Name");
 
-		BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+		DisplayPageTemplate.selectDisplayPageTemplateForAsset(
+			assetType = "Blogs Entry",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Test Site Name",
+			pageName = "Display Page Template Name",
+			siteURLKey = "test-site-name");
 
-		BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
+		var portalURL = PropsUtil.get("portal.url");
 
-		WebContent.editDisplayPage(pageName = "Display Page Template Name");
+		var siteId = JSONGroupAPI._getGroupIdByName(
+			groupName = "Test Site Name",
+			site = "true");
 
-		PortletEntry.publish();
-
-		var siteID = Site.getSiteId();
-
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/b/blogs-entry-title");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="This is image alternative description","og:image" content="${portalURL}/documents/${siteID}/0/Document_1''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="This is image alternative description","og:image" content="${portalURL}/documents/${siteId}/0/Document_1''');
 	}
 
 	@description = "This test ensures that user can map the web content with open graph meta tags for display pages."
 	@priority = "5"
-	@refactorneeded
-	test MapWebContentToDisplayPage {
-		property test.name.skip.portal.instance = "OpenGraph#MapWebContentToDisplayPage";
-
-		var portalURL = PropsUtil.get("portal.url");
-
+	@refactordone
+	test CanMapWebContentToDisplayPage {
 		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 			contentType = "Web Content Article",
 			displayPageTemplateEntryName = "Display Page Template Name",
 			groupName = "Test Site Name",
 			subType = "Basic Web Content");
+
+		DisplayPageTemplate.addFragment(
+			collectionName = "Content Display",
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
 
 		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
@@ -517,109 +491,59 @@ definition {
 
 		Navigator.gotoNavNested(navNested = "Open Graph");
 
-		OpenGraph.viewMappedField(
-			mappedField = "Title",
-			mappedFieldValue = "Basic Web Content: Title");
+		OpenGraph.viewDefaultMappedField(portlet = "Open Graph");
 
-		OpenGraph.viewMappedField(
+		OpenGraph.mapEditableTextToField(
+			field = "Description",
 			mappedField = "Description",
-			mappedFieldValue = "Basic Web Content: Description");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Image",
-			mappedFieldValue = "-- Unmapped --");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "-- Unmapped --");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Last Editor Name",
-			mappedField = "Title");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Content",
-			mappedField = "Description");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Small Image",
-			mappedField = "Image");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Author Name",
-			mappedField = "Image Alt Description");
+			mappedFieldName = "Description",
+			mappedFieldText = "Description is ",
+			textType = "TextArea");
 
 		Button.clickSave();
 
 		OpenGraph.viewMappedField(
-			mappedField = "Title",
-			mappedFieldValue = "Basic Web Content: Last Editor Name");
-
-		OpenGraph.viewMappedField(
 			mappedField = "Description",
-			mappedFieldValue = "Basic Web Content: Content");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Image",
-			mappedFieldValue = "Basic Web Content: Small Image");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "Basic Web Content: Author Name");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
-
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
-
-		Button.clickPublish();
+			mappedFieldValue = "Description is Description: ${description:Description}",
+			textType = "TextArea");
 
 		JSONWebcontent.addWebContent(
 			content = "Web Content Content",
+			description = "Web Content Description",
 			groupName = "Test Site Name",
 			title = "Web Content Title");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		DisplayPageTemplate.selectDisplayPageTemplateForAsset(
+			assetType = "Web Content",
+			entryTitle = "Web Content Title",
+			groupName = "Test Site Name",
+			pageName = "Display Page Template Name",
+			siteURLKey = "test-site-name");
 
-		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+		var portalURL = PropsUtil.get("portal.url");
 
-		WebContent.editDisplayPage(pageName = "Display Page Template Name");
-
-		WebContent.addFeaturedImageFromURL(imageSourceURL = "https://dummyimage.com/600x400/000/fff.jpg");
-
-		PortletEntry.publish();
-
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/web-content-title");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Test Test","og:description" content="Web Content Content"''');
-
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Test Test","og:image" content="https://dummyimage.com/600x400/000/fff.jpg"''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Web Content Title","og:description" content="Description is Description: Web Content Description"''');
 	}
 
 	@description = "This ensures that the user can reset to the default OG title tag."
 	@priority = "5"
-	@refactorneeded
-	test RevertCustomTitle {
+	@refactordone
+	test CanRevertCustomTitle {
 		var portalURL = PropsUtil.get("portal.url");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
-
-		Navigator.gotoNavTab(navTab = "Open Graph");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "Open Graph",
+			siteURLKey = "test-site-name");
 
 		OpenGraph.configureOpenGraph(customTitle = "This is a custom title");
 
-		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
-
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
@@ -627,21 +551,17 @@ definition {
 
 		User.firstLoginPG();
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "Open Graph",
+			siteURLKey = "test-site-name");
 
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
-
-		Navigator.gotoNavTab(navTab = "Open Graph");
-
-		Click(
-			checkboxName = "Use Custom Title",
-			locator1 = "Checkbox#ANY_CHECKBOX");
+		OpenGraph.disableOpenGraphCustomSettings(customTitle = "This is a custom title");
 
 		Button.click(button = "Save");
 
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
@@ -650,23 +570,21 @@ definition {
 
 	@description = "This ensures that OG tags will appear when Open Graph is enabled."
 	@priority = "5"
-	@refactorneeded
-	test Smoke {
+	@refactordone
+	test CanViewDefaultMetaTags {
 		property portal.acceptance = "true";
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Test Page Name");
-
-		Navigator.gotoNavTab(navTab = "Open Graph");
+		Navigator.openToGroupPagesPortlet(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			portlet = "Open Graph",
+			siteURLKey = "test-site-name");
 
 		OpenGraph.viewDefaultConfiguration();
 
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
@@ -677,24 +595,19 @@ definition {
 
 	@description = "This ensures that meta tags can be viewed on a new page."
 	@priority = "5"
-	@refactorneeded
-	test ViewNewPageWithMetaTags {
+	@refactordone
+	test CanViewNewPageWithMetaTags {
 		var portalURL = PropsUtil.get("portal.url");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+		PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
-
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			customDescription = "This is a new description",
 			customTitle = "This is a new title",
 			openGraph = "true",
 			pageName = "Test New Page");
 
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-new-page");
 

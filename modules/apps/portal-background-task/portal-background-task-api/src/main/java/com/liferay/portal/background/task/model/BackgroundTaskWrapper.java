@@ -190,6 +190,11 @@ public class BackgroundTaskWrapper
 	}
 
 	@Override
+	public BackgroundTask cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 			getAttachmentsFileEntries()
 		throws com.liferay.portal.kernel.exception.PortalException {

@@ -2,11 +2,13 @@
 <head>
 <title>PagesFinder</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">PagesFinder</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>CHILD_PAGE_NAME</td>
@@ -19,18 +21,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>OUTLINE_ICON</td>
-	<td>//button[contains(.,'Page Tree')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>PAGE_ELLIPSIS_ICON</td>
 	<td>//span[contains(@class,'tree-label') and contains(.,'${key_pageName}')]//button[contains(@class,'dropdown')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_NAME</td>
-	<td>//a[contains(@class,'layout-tree')][contains(.,'${key_pageName}')]</td>
+	<td>//div[contains(@class,'pages-tree')]//*[contains(@class,'tree-node')]//a[normalize-space()='${key_pageName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -40,12 +37,12 @@
 </tr>
 <tr>
 	<td>PAGE_TYPE_SELECTOR</td>
-	<td>//div[contains(@class,'page-type-selector')]//select[contains(@class,'form-control')]</td>
+	<td>//div[contains(@class,'page-type-selector')]//button[contains(@class,'form-control-select')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_TYPE_SELECTOR_ELLIPSIS_ICON</td>
-	<td>//div[contains(@class,'page-type-selector')]//button[contains(@class,'dropdown')]</td>
+	<td>//div[contains(@class,'page-type-selector')]//button[*[name()='svg'][contains(@class,'icon-plus')]]</td>
 	<td></td>
 </tr>
 <tr>

@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.batch.planner.model.BatchPlannerMapping">
+		<field name="mvccVersion" type="long" />
+		<field name="batchPlannerMappingId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="batchPlannerPlanId" type="long" />
+		<field name="externalFieldName" type="String">
+			<validator name="required" />
+		</field>
+		<field name="externalFieldType" type="String">
+			<validator name="required" />
+		</field>
+		<field name="internalFieldName" type="String">
+			<validator name="required" />
+		</field>
+		<field name="internalFieldType" type="String">
+			<validator name="required" />
+		</field>
+		<field name="script" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+	</model>
+	<model name="com.liferay.batch.planner.model.BatchPlannerPlan">
+		<field name="mvccVersion" type="long" />
+		<field name="batchPlannerPlanId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="active" type="boolean" />
+		<field name="export" type="boolean" />
+		<field name="externalType" type="String">
+			<validator name="required" />
+		</field>
+		<field name="externalURL" type="String">
+			<hint-collection name="URL" />
+			<validator name="required" />
+		</field>
+		<field name="internalClassName" type="String">
+			<validator name="required" />
+		</field>
+		<field name="name" type="String">
+			<validator name="required" />
+		</field>
+		<field name="size" type="int" />
+		<field name="taskItemDelegateName" type="String" />
+		<field name="total" type="int" />
+		<field name="template" type="boolean" />
+		<field name="status" type="int" />
+	</model>
+	<model name="com.liferay.batch.planner.model.BatchPlannerPolicy">
+		<field name="mvccVersion" type="long" />
+		<field name="batchPlannerPolicyId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="batchPlannerPlanId" type="long" />
+		<field name="name" type="String">
+			<validator name="required" />
+		</field>
+		<field name="value" type="String">
+			<validator name="required" />
+		</field>
+	</model>
+</model-hints>

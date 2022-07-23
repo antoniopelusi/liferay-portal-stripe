@@ -27,7 +27,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.workflow.metrics.rest.client.pagination.Page;
 import com.liferay.portal.workflow.metrics.rest.client.resource.v1_0.CalendarResource;
 import com.liferay.portal.workflow.metrics.rest.client.serdes.v1_0.CalendarSerDes;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -194,12 +192,48 @@ public abstract class BaseCalendarResourceTestCase {
 
 	@Test
 	public void testGetCalendarsPage() throws Exception {
-		Assert.assertTrue(false);
+		Page<Calendar> page = calendarResource.getCalendarsPage();
+
+		long totalCount = page.getTotalCount();
+
+		Calendar calendar1 = testGetCalendarsPage_addCalendar(randomCalendar());
+
+		Calendar calendar2 = testGetCalendarsPage_addCalendar(randomCalendar());
+
+		page = calendarResource.getCalendarsPage();
+
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
+
+		assertContains(calendar1, (List<Calendar>)page.getItems());
+		assertContains(calendar2, (List<Calendar>)page.getItems());
+		assertValid(page);
+	}
+
+	protected Calendar testGetCalendarsPage_addCalendar(Calendar calendar)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
 	public void testGraphQLGetCalendarsPage() throws Exception {
 		Assert.assertTrue(false);
+	}
+
+	protected void assertContains(Calendar calendar, List<Calendar> calendars) {
+		boolean contains = false;
+
+		for (Calendar item : calendars) {
+			if (equals(calendar, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			calendars + " does not contain " + calendar, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -312,8 +346,8 @@ public abstract class BaseCalendarResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.portal.workflow.metrics.rest.dto.v1_0.Calendar.
 						class)) {
 
@@ -329,12 +363,13 @@ public abstract class BaseCalendarResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -348,7 +383,7 @@ public abstract class BaseCalendarResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -433,6 +468,19 @@ public abstract class BaseCalendarResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -643,8 +691,8 @@ public abstract class BaseCalendarResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseCalendarResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseCalendarResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

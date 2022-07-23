@@ -179,6 +179,11 @@ public class DDMFormInstanceWrapper
 	}
 
 	@Override
+	public DDMFormInstance cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}
@@ -437,6 +442,13 @@ public class DDMFormInstanceWrapper
 	@Override
 	public Map<java.util.Locale, String> getNameMap() {
 		return model.getNameMap();
+	}
+
+	@Override
+	public long getObjectDefinitionId()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getObjectDefinitionId();
 	}
 
 	/**

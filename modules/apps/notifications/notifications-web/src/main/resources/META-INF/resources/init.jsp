@@ -52,6 +52,7 @@ page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.StringUtil" %><%@
 page import="com.liferay.portal.kernel.util.Time" %><%@
+page import="com.liferay.portal.kernel.util.TreeMapBuilder" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.subscription.model.Subscription" %><%@
@@ -62,8 +63,7 @@ page import="com.liferay.taglib.search.ResultRow" %>
 
 <%@ page import="java.util.ArrayList" %><%@
 page import="java.util.List" %><%@
-page import="java.util.Map" %><%@
-page import="java.util.TreeMap" %>
+page import="java.util.Map" %>
 
 <liferay-frontend:defineObjects />
 

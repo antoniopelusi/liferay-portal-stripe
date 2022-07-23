@@ -22,8 +22,8 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.document.library.util.DLURLHelperUtil;
 import com.liferay.document.library.web.internal.constants.DLWebKeys;
-import com.liferay.document.library.web.internal.display.context.logic.DLPortletInstanceSettingsHelper;
-import com.liferay.document.library.web.internal.display.context.util.DLRequestHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLPortletInstanceSettingsHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
 import com.liferay.document.library.web.internal.helper.DLTrashHelper;
 import com.liferay.document.library.web.internal.search.EntriesChecker;
 import com.liferay.document.library.web.internal.search.EntriesMover;
@@ -45,7 +45,7 @@ import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -99,6 +99,8 @@ public class DLViewEntriesDisplayContext {
 
 		if (DLFileEntryPermission.contains(
 				permissionChecker, fileEntry, ActionKeys.UPDATE)) {
+
+			availableActions.add("collectDigitalSignature");
 
 			availableActions.add("move");
 
@@ -247,7 +249,7 @@ public class DLViewEntriesDisplayContext {
 		).setMVCRenderCommandName(
 			"/document_library/view_file_entry"
 		).setRedirect(
-			HttpUtil.removeParameter(
+			HttpComponentsUtil.removeParameter(
 				_dlRequestHelper.getCurrentURL(),
 				_liferayPortletResponse.getNamespace() + "ajax")
 		).setParameter(
@@ -307,10 +309,10 @@ public class DLViewEntriesDisplayContext {
 		if ((folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) &&
 			(folderId != _dlAdminDisplayContext.getRootFolderId())) {
 
-			return true;
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	public boolean isVersioningStrategyOverridable() {

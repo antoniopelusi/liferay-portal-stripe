@@ -33,8 +33,7 @@ public abstract class BaseTransactionalMVCActionCommand
 
 	@Override
 	public boolean processAction(
-			final ActionRequest actionRequest,
-			final ActionResponse actionResponse)
+			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws PortletException {
 
 		try {

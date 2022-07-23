@@ -29,12 +29,17 @@ import com.liferay.commerce.service.CommerceAddressRestrictionLocalService;
 import com.liferay.commerce.service.CommerceShippingMethodLocalService;
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOption;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionLocalService;
+import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionQualifierLocalService;
+import com.liferay.commerce.shipping.engine.fixed.util.comparator.CommerceShippingFixedOptionPriorityComparator;
+import com.liferay.commerce.shipping.engine.fixed.web.internal.util.CommerceShippingFixedOptionEngineUtil;
 import com.liferay.commerce.util.CommerceShippingHelper;
+import com.liferay.commerce.util.comparator.CommerceShippingOptionPriorityComparator;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.math.BigDecimal;
@@ -77,11 +82,11 @@ public class FixedCommerceShippingEngine implements CommerceShippingEngine {
 
 		try {
 			commerceShippingOptions = _getCommerceShippingOptions(
-				commerceOrder.getGroupId(), commerceOrder, locale);
+				false, commerceOrder, locale);
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -92,6 +97,28 @@ public class FixedCommerceShippingEngine implements CommerceShippingEngine {
 	public String getDescription(Locale locale) {
 		return LanguageUtil.get(
 			_getResourceBundle(locale), "fixed-shipping-description");
+	}
+
+	@Override
+	public List<CommerceShippingOption> getEnabledCommerceShippingOptions(
+			CommerceContext commerceContext, CommerceOrder commerceOrder,
+			Locale locale)
+		throws CommerceShippingEngineException {
+
+		List<CommerceShippingOption> commerceShippingOptions =
+			new ArrayList<>();
+
+		try {
+			commerceShippingOptions = _getCommerceShippingOptions(
+				true, commerceOrder, locale);
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		return commerceShippingOptions;
 	}
 
 	@Override
@@ -113,11 +140,13 @@ public class FixedCommerceShippingEngine implements CommerceShippingEngine {
 		return _commerceShippingFixedOptionLocalService.
 			getCommerceShippingFixedOptions(
 				commerceShippingMethod.getCommerceShippingMethodId(),
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				new CommerceShippingFixedOptionPriorityComparator());
 	}
 
 	private List<CommerceShippingOption> _getCommerceShippingOptions(
-			long groupId, CommerceOrder commerceOrder, Locale locale)
+			boolean checkEligibility, CommerceOrder commerceOrder,
+			Locale locale)
 		throws PortalException {
 
 		List<CommerceShippingOption> commerceShippingOptions =
@@ -131,8 +160,21 @@ public class FixedCommerceShippingEngine implements CommerceShippingEngine {
 			commerceCountryId = commerceAddress.getCountryId();
 		}
 
-		List<CommerceShippingFixedOption> commerceShippingFixedOptions =
-			_getCommerceShippingFixedOptions(groupId);
+		List<CommerceShippingFixedOption> commerceShippingFixedOptions = null;
+
+		if (checkEligibility) {
+			commerceShippingFixedOptions =
+				CommerceShippingFixedOptionEngineUtil.
+					getEligibleCommerceShippingFixedOptions(
+						commerceOrder.getCommerceOrderTypeId(),
+						_commerceShippingFixedOptionQualifierLocalService,
+						_getCommerceShippingFixedOptions(
+							commerceOrder.getGroupId()));
+		}
+		else {
+			commerceShippingFixedOptions = _getCommerceShippingFixedOptions(
+				commerceOrder.getGroupId());
+		}
 
 		for (CommerceShippingFixedOption commerceShippingFixedOption :
 				commerceShippingFixedOptions) {
@@ -148,11 +190,14 @@ public class FixedCommerceShippingEngine implements CommerceShippingEngine {
 				continue;
 			}
 
+			String key = commerceShippingFixedOption.getKey();
 			String name = commerceShippingFixedOption.getName(locale);
+			double priority = commerceShippingFixedOption.getPriority();
 
 			if (_commerceShippingHelper.isFreeShipping(commerceOrder)) {
 				commerceShippingOptions.add(
-					new CommerceShippingOption(name, name, BigDecimal.ZERO));
+					new CommerceShippingOption(
+						BigDecimal.ZERO, KEY, key, name, priority));
 
 				continue;
 			}
@@ -185,10 +230,12 @@ public class FixedCommerceShippingEngine implements CommerceShippingEngine {
 			}
 
 			commerceShippingOptions.add(
-				new CommerceShippingOption(name, name, amount));
+				new CommerceShippingOption(amount, KEY, key, name, priority));
 		}
 
-		return commerceShippingOptions;
+		return ListUtil.sort(
+			commerceShippingOptions,
+			new CommerceShippingOptionPriorityComparator());
 	}
 
 	private ResourceBundle _getResourceBundle(Locale locale) {
@@ -212,6 +259,10 @@ public class FixedCommerceShippingEngine implements CommerceShippingEngine {
 	@Reference
 	private CommerceShippingFixedOptionLocalService
 		_commerceShippingFixedOptionLocalService;
+
+	@Reference
+	private CommerceShippingFixedOptionQualifierLocalService
+		_commerceShippingFixedOptionQualifierLocalService;
 
 	@Reference
 	private CommerceShippingHelper _commerceShippingHelper;

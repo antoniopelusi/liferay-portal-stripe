@@ -10,7 +10,7 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {cleanup, render} from '@testing-library/react';
+import {act, cleanup, render} from '@testing-library/react';
 import React from 'react';
 
 import ContentView from '../../../../src/main/resources/META-INF/resources/js/shared/components/content-view/ContentView.es';
@@ -19,7 +19,7 @@ import PromisesResolver from '../../../../src/main/resources/META-INF/resources/
 describe('The ContentView component should', () => {
 	afterEach(cleanup);
 
-	test('Be rendered with children', () => {
+	it('Be rendered with children', () => {
 		const {getByText} = render(
 			<ContentView>
 				<div>Lorem Ipsum</div>
@@ -29,7 +29,7 @@ describe('The ContentView component should', () => {
 		expect(getByText('Lorem Ipsum')).toBeTruthy();
 	});
 
-	test('Be rendered with empty state and the expected message', () => {
+	it('Be rendered with empty state and the expected message', () => {
 		const {getByText} = render(
 			<ContentView emptyProps={{message: 'No results were found.'}} />
 		);
@@ -37,7 +37,7 @@ describe('The ContentView component should', () => {
 		expect(getByText('No results were found.')).toBeTruthy();
 	});
 
-	test('Be rendered with loading state', async () => {
+	it('Be rendered with loading state', async () => {
 		const {container} = render(
 			<PromisesResolver promises={[new Promise(() => {})]}>
 				<ContentView />
@@ -52,7 +52,7 @@ describe('The ContentView component should', () => {
 	describe('Be rendered with error state', () => {
 		let getByText;
 
-		beforeAll(() => {
+		beforeAll(async () => {
 			const renderResult = render(
 				<PromisesResolver
 					promises={[
@@ -68,9 +68,13 @@ describe('The ContentView component should', () => {
 			);
 
 			getByText = renderResult.getByText;
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Be rendered with expected message', () => {
+		it('Be rendered with expected message', () => {
 			expect(getByText('Unable to retrieve data')).toBeTruthy();
 		});
 	});

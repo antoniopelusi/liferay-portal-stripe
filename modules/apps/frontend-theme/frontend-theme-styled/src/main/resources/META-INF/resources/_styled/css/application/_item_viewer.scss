@@ -1,16 +1,53 @@
 .lfr-item-viewer {
-	.image-viewer-base {
-		outline: none;
-	}
+	&.uploading {
+		& > div:not(.progress-container) {
+			opacity: 0.3;
+		}
 
-	.item-preview:hover {
-		cursor: pointer;
+		& > .progress-container {
+			visibility: visible;
+		}
 	}
 
 	.aspect-ratio a.item-preview {
 		background-position: center center;
 		background-repeat: no-repeat;
 		background-size: cover;
+		height: 100%;
+		position: absolute;
+		width: 100%;
+	}
+
+	.image-viewer-base-image-list {
+		padding-top: 35px;
+	}
+
+	.item-preview:hover {
+		cursor: pointer;
+	}
+
+	.progress-container {
+		background-color: #fff;
+		left: 0;
+		margin: 0 auto;
+		padding: 20px 30px;
+		position: absolute;
+		right: 0;
+		text-align: center;
+		top: 50%;
+		transform: translateY(-50%);
+		visibility: hidden;
+		width: 80%;
+		z-index: 1000;
+
+		a {
+			position: absolute;
+			right: 30px;
+		}
+
+		.progress {
+			margin-top: 10px;
+		}
 	}
 
 	.search-info {
@@ -27,73 +64,19 @@
 		}
 	}
 
-	.progress-container {
-		background-color: #fff;
-	}
+	.upload-view {
+		display: table;
+		height: 400px;
+		margin-top: 20px;
+		width: 100%;
 
-	&.uploading > div:not(.progress-container) {
-		opacity: 0.3;
-	}
-}
-
-.image-viewer-caption {
-	color: #777;
-}
-
-.image-viewer-footer-control {
-	&,
-	&:focus,
-	&:hover {
-		color: #777;
-	}
-}
-
-.image-viewer-sidenav-menu {
-	@include media-breakpoint-up(sm) {
-		background-color: transparent;
-		border-left-width: 0;
-	}
-}
-
-.image-viewer-sidenav {
-	dd {
-		color: #8b8b8b;
-		margin-bottom: 16px;
-
-		@include media-breakpoint-up(sm) {
-			color: #777;
+		> div {
+			display: table-cell;
+			vertical-align: middle;
 		}
 	}
 
-	.h5 {
-		color: #869cad;
-		margin-bottom: 3px;
-
-		@include media-breakpoint-up(sm) {
-			color: #fff;
-		}
+	.yui3-widget-bd {
+		position: relative;
 	}
-}
-
-.image-viewer-sidenav-body {
-	padding-top: 0;
-}
-
-.lfr-item-viewer .lfr-item-viewer-close {
-	color: #fff;
-	opacity: 1;
-
-	&,
-	&:focus,
-	&:hover {
-		color: #fff;
-	}
-
-	.icon-monospaced {
-		color: #777;
-	}
-}
-
-.lfr-item-viewer-icon-info {
-	color: #fff;
 }

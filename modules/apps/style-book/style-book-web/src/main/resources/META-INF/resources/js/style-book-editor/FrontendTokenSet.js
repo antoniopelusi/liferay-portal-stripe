@@ -12,10 +12,11 @@
  * details.
  */
 
+import {Collapse} from '@liferay/layout-content-page-editor-web';
 import PropTypes from 'prop-types';
 import React, {useContext} from 'react';
 
-import Collapse from './Collapse';
+import {config} from '../style-book-editor/config';
 import {StyleBookContext} from './StyleBookContext';
 import {FRONTEND_TOKEN_TYPES} from './constants/frontendTokenTypes';
 import BooleanFrontendToken from './frontend_tokens/BooleanFrontendToken';
@@ -23,9 +24,44 @@ import ColorFrontendToken from './frontend_tokens/ColorFrontendToken';
 import SelectFrontendToken from './frontend_tokens/SelectFrontendToken';
 import TextFrontendToken from './frontend_tokens/TextFrontendToken';
 
-export default function FrontendTokenSet({frontendTokens, label}) {
+const getColorFrontendTokens = (
+	{frontendTokenCategories},
+	frontendTokensValues
+) => {
+	let tokens = {};
+
+	for (const category of frontendTokenCategories) {
+		for (const tokenSet of category.frontendTokenSets) {
+			for (const token of tokenSet.frontendTokens) {
+				tokens = {
+					...tokens,
+					[token.name]: {
+						editorType: token.editorType,
+						label: token.label,
+						name: token.name,
+						tokenCategoryLabel: category.label,
+						tokenSetLabel: tokenSet.label,
+						value:
+							frontendTokensValues[token.name]?.value ||
+							token.defaultValue,
+						[token.mappings[0].type]: token.mappings[0].value,
+					},
+				};
+			}
+		}
+	}
+
+	return tokens;
+};
+
+export default function FrontendTokenSet({frontendTokens, label, open}) {
 	const {frontendTokensValues = {}, setFrontendTokensValues} = useContext(
 		StyleBookContext
+	);
+
+	const tokenValues = getColorFrontendTokens(
+		config.frontendTokenDefinition,
+		frontendTokensValues
 	);
 
 	const updateFrontendTokensValues = (frontendToken, value) => {
@@ -40,30 +76,45 @@ export default function FrontendTokenSet({frontendTokens, label}) {
 				...frontendTokensValues,
 				[name]: {
 					cssVariableMapping: cssVariableMapping.value,
-					value,
+					name: tokenValues[value]?.name,
+					value: tokenValues[value]?.value || value,
 				},
 			});
 		}
 	};
 
 	return (
-		<Collapse label={label}>
+		<Collapse label={label} open={open}>
 			{frontendTokens.map((frontendToken) => {
 				const FrontendTokenComponent = getFrontendTokenComponent(
 					frontendToken
 				);
 
+				let props = {
+					frontendToken,
+					onValueSelect: (value) =>
+						updateFrontendTokensValues(frontendToken, value),
+					value:
+						frontendTokensValues[frontendToken.name]?.name ||
+						frontendTokensValues[frontendToken.name]?.value ||
+						frontendToken.defaultValue,
+				};
+
+				if (frontendToken.editorType === 'ColorPicker') {
+					props = {
+						...props,
+						frontendTokensValues,
+						onValueSelect: (_, value) => {
+							updateFrontendTokensValues(frontendToken, value);
+						},
+						tokenValues,
+					};
+				}
+
 				return (
 					<FrontendTokenComponent
-						frontendToken={frontendToken}
 						key={frontendToken.name}
-						onValueSelect={(value) =>
-							updateFrontendTokensValues(frontendToken, value)
-						}
-						value={
-							frontendTokensValues[frontendToken.name]?.value ||
-							frontendToken.defaultValue
-						}
+						{...props}
 					/>
 				);
 			})}

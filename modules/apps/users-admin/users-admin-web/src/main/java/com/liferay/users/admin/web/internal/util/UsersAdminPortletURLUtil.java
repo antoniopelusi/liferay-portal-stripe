@@ -14,6 +14,7 @@
 
 package com.liferay.users.admin.web.internal.util;
 
+import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationConstants;
@@ -34,10 +35,13 @@ public class UsersAdminPortletURLUtil {
 	public static String createOrganizationViewTreeURL(
 		long organizationId, RenderResponse renderResponse) {
 
-		RenderURL renderURL = renderResponse.createRenderURL();
-
-		renderURL.setParameter("mvcRenderCommandName", "/users_admin/view");
-		renderURL.setParameter("toolbarItem", "view-all-organizations");
+		RenderURL renderURL = PortletURLBuilder.createRenderURL(
+			renderResponse
+		).setMVCRenderCommandName(
+			"/users_admin/view"
+		).setParameter(
+			"toolbarItem", "view-all-organizations"
+		).buildRenderURL();
 
 		if (organizationId ==
 				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID) {

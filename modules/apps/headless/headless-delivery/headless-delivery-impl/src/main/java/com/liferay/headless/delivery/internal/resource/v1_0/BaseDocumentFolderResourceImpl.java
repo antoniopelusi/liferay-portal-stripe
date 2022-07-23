@@ -16,10 +16,12 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 
 import com.liferay.headless.delivery.dto.v1_0.DocumentFolder;
 import com.liferay.headless.delivery.resource.v1_0.DocumentFolderResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.ResourceAction;
-import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -29,10 +31,14 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
@@ -43,13 +49,6 @@ import com.liferay.portal.vulcan.permission.PermissionUtil;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.io.Serializable;
 
@@ -63,19 +62,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -86,7 +72,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v1.0")
+@javax.ws.rs.Path("/v1.0")
 public abstract class BaseDocumentFolderResourceImpl
 	implements DocumentFolderResource, EntityModelResource,
 			   VulcanBatchEngineTaskItemDelegate<DocumentFolder> {
@@ -96,31 +82,63 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/document-folders'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "assetLibraryId"),
-			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
-			@Parameter(in = ParameterIn.QUERY, name = "search"),
-			@Parameter(in = ParameterIn.QUERY, name = "filter"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "assetLibraryId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "flatten"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "search"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/asset-libraries/{assetLibraryId}/document-folders")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/asset-libraries/{assetLibraryId}/document-folders")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DocumentFolder> getAssetLibraryDocumentFoldersPage(
-			@NotNull @Parameter(hidden = true) @PathParam("assetLibraryId") Long
-				assetLibraryId,
-			@Parameter(hidden = true) @QueryParam("flatten") Boolean flatten,
-			@Parameter(hidden = true) @QueryParam("search") String search,
-			@Context com.liferay.portal.vulcan.aggregation.Aggregation
-				aggregation,
-			@Context Filter filter, @Context Pagination pagination,
-			@Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("assetLibraryId")
+			Long assetLibraryId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("flatten")
+			Boolean flatten,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("search")
+			String search,
+			@javax.ws.rs.core.Context
+				com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+			@javax.ws.rs.core.Context Filter filter,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -131,18 +149,29 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/document-folders' -d $'{"customFields": ___, "description": ___, "name": ___, "parentDocumentFolderId": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "assetLibraryId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "assetLibraryId"
+			)
+		}
 	)
-	@Path("/asset-libraries/{assetLibraryId}/document-folders")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/asset-libraries/{assetLibraryId}/document-folders")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DocumentFolder postAssetLibraryDocumentFolder(
-			@NotNull @Parameter(hidden = true) @PathParam("assetLibraryId") Long
-				assetLibraryId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("assetLibraryId")
+			Long assetLibraryId,
 			DocumentFolder documentFolder)
 		throws Exception {
 
@@ -154,23 +183,38 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/document-folders/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "assetLibraryId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "assetLibraryId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path("/asset-libraries/{assetLibraryId}/document-folders/batch")
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path(
+		"/asset-libraries/{assetLibraryId}/document-folders/batch"
+	)
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postAssetLibraryDocumentFolderBatch(
-			@NotNull @Parameter(hidden = true) @PathParam("assetLibraryId") Long
-				assetLibraryId,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("assetLibraryId")
+			Long assetLibraryId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -195,23 +239,38 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/document-folders/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "assetLibraryId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "assetLibraryId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/asset-libraries/{assetLibraryId}/document-folders/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
+		"/asset-libraries/{assetLibraryId}/document-folders/permissions"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getAssetLibraryDocumentFolderPermissionsPage(
-				@NotNull @Parameter(hidden = true) @PathParam("assetLibraryId")
-					Long assetLibraryId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("assetLibraryId")
+				Long assetLibraryId,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(assetLibraryId);
@@ -220,7 +279,21 @@ public abstract class BaseDocumentFolderResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, portletName,
 			assetLibraryId, assetLibraryId);
 
-		return toPermissionPage(assetLibraryId, portletName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getAssetLibraryDocumentFolderPermissionsPage", portletName,
+					assetLibraryId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putAssetLibraryDocumentFolderPermissionsPage", portletName,
+					assetLibraryId)
+			).build(),
+			assetLibraryId, portletName, roleNames);
 	}
 
 	/**
@@ -228,18 +301,32 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/document-folders/permissions'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "assetLibraryId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "assetLibraryId"
+			)
+		}
 	)
-	@Path("/asset-libraries/{assetLibraryId}/document-folders/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DocumentFolder")})
-	public void putAssetLibraryDocumentFolderPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("assetLibraryId") Long
-				assetLibraryId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Path(
+		"/asset-libraries/{assetLibraryId}/document-folders/permissions"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putAssetLibraryDocumentFolderPermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("assetLibraryId")
+				Long assetLibraryId,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(assetLibraryId);
@@ -255,6 +342,22 @@ public abstract class BaseDocumentFolderResourceImpl
 				contextCompany.getCompanyId(), permissions, assetLibraryId,
 				portletName, resourceActionLocalService,
 				resourcePermissionLocalService, roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getAssetLibraryDocumentFolderPermissionsPage", portletName,
+					assetLibraryId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putAssetLibraryDocumentFolderPermissionsPage", portletName,
+					assetLibraryId)
+			).build(),
+			assetLibraryId, portletName, null);
 	}
 
 	/**
@@ -262,20 +365,31 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Deletes the document folder and returns a 204 if the operation succeeds."
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			)
+		}
 	)
-	@Path("/document-folders/{documentFolderId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteDocumentFolder(
-			@NotNull @Parameter(hidden = true) @PathParam("documentFolderId")
-				Long documentFolderId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("documentFolderId")
+			Long documentFolderId)
 		throws Exception {
 	}
 
@@ -284,18 +398,28 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/document-folders/batch")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/document-folders/batch")
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response deleteDocumentFolderBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -320,18 +444,31 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the document folder.")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the document folder."
 	)
-	@Path("/document-folders/{documentFolderId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DocumentFolder getDocumentFolder(
-			@NotNull @Parameter(hidden = true) @PathParam("documentFolderId")
-				Long documentFolderId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("documentFolderId")
+			Long documentFolderId)
 		throws Exception {
 
 		return new DocumentFolder();
@@ -342,21 +479,32 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}' -d $'{"customFields": ___, "description": ___, "name": ___, "parentDocumentFolderId": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Updates only the fields received in the request body. Any other fields are left untouched."
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			)
+		}
 	)
-	@PATCH
-	@Path("/document-folders/{documentFolderId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.PATCH
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DocumentFolder patchDocumentFolder(
-			@NotNull @Parameter(hidden = true) @PathParam("documentFolderId")
-				Long documentFolderId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("documentFolderId")
+			Long documentFolderId,
 			DocumentFolder documentFolder)
 		throws Exception {
 
@@ -430,21 +578,32 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}' -d $'{"customFields": ___, "description": ___, "name": ___, "parentDocumentFolderId": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Replaces the document folder with the information sent in the request body. Any missing fields are deleted, unless they are required."
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			)
+		}
 	)
-	@Path("/document-folders/{documentFolderId}")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public DocumentFolder putDocumentFolder(
-			@NotNull @Parameter(hidden = true) @PathParam("documentFolderId")
-				Long documentFolderId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("documentFolderId")
+			Long documentFolderId,
 			DocumentFolder documentFolder)
 		throws Exception {
 
@@ -456,18 +615,28 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/document-folders/batch")
-	@Produces("application/json")
-	@PUT
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/document-folders/batch")
+	@javax.ws.rs.Produces("application/json")
+	@javax.ws.rs.PUT
+	@Override
 	public Response putDocumentFolderBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -492,24 +661,36 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "documentFolderId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/document-folders/{documentFolderId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getDocumentFolderPermissionsPage(
-				@NotNull @Parameter(hidden = true)
-				@PathParam("documentFolderId")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("documentFolderId")
 				Long documentFolderId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -520,7 +701,19 @@ public abstract class BaseDocumentFolderResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, resourceName, resourceId,
 			getPermissionCheckerGroupId(documentFolderId));
 
-		return toPermissionPage(resourceId, resourceName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS, "getDocumentFolderPermissionsPage",
+					resourceName, resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS, "putDocumentFolderPermissionsPage",
+					resourceName, resourceId)
+			).build(),
+			resourceId, resourceName, roleNames);
 	}
 
 	/**
@@ -528,18 +721,30 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			)
+		}
 	)
-	@Path("/document-folders/{documentFolderId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DocumentFolder")})
-	public void putDocumentFolderPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("documentFolderId")
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putDocumentFolderPermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("documentFolderId")
 				Long documentFolderId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -551,12 +756,27 @@ public abstract class BaseDocumentFolderResourceImpl
 			getPermissionCheckerGroupId(documentFolderId));
 
 		resourcePermissionLocalService.updateResourcePermissions(
-			contextCompany.getCompanyId(), 0, resourceName,
+			contextCompany.getCompanyId(),
+			getPermissionCheckerGroupId(documentFolderId), resourceName,
 			String.valueOf(resourceId),
 			ModelPermissionsUtil.toModelPermissions(
 				contextCompany.getCompanyId(), permissions, resourceId,
 				resourceName, resourceActionLocalService,
 				resourcePermissionLocalService, roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS, "getDocumentFolderPermissionsPage",
+					resourceName, resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS, "putDocumentFolderPermissionsPage",
+					resourceName, resourceId)
+			).build(),
+			resourceId, resourceName, null);
 	}
 
 	/**
@@ -564,17 +784,28 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}/subscribe'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			)
+		}
 	)
-	@Path("/document-folders/{documentFolderId}/subscribe")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}/subscribe")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public void putDocumentFolderSubscribe(
-			@NotNull @Parameter(hidden = true) @PathParam("documentFolderId")
-				Long documentFolderId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("documentFolderId")
+			Long documentFolderId)
 		throws Exception {
 	}
 
@@ -583,17 +814,28 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{documentFolderId}/unsubscribe'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "documentFolderId"
+			)
+		}
 	)
-	@Path("/document-folders/{documentFolderId}/unsubscribe")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Path("/document-folders/{documentFolderId}/unsubscribe")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public void putDocumentFolderUnsubscribe(
-			@NotNull @Parameter(hidden = true) @PathParam("documentFolderId")
-				Long documentFolderId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("documentFolderId")
+			Long documentFolderId)
 		throws Exception {
 	}
 
@@ -602,35 +844,68 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{parentDocumentFolderId}/document-folders'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Retrieves the folder's subfolders. Results can be paginated, filtered, searched, and sorted."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "parentDocumentFolderId"),
-			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
-			@Parameter(in = ParameterIn.QUERY, name = "search"),
-			@Parameter(in = ParameterIn.QUERY, name = "filter"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "parentDocumentFolderId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "flatten"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "search"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/document-folders/{parentDocumentFolderId}/document-folders")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
+		"/document-folders/{parentDocumentFolderId}/document-folders"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DocumentFolder> getDocumentFolderDocumentFoldersPage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("parentDocumentFolderId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("parentDocumentFolderId")
 			Long parentDocumentFolderId,
-			@Parameter(hidden = true) @QueryParam("flatten") Boolean flatten,
-			@Parameter(hidden = true) @QueryParam("search") String search,
-			@Context com.liferay.portal.vulcan.aggregation.Aggregation
-				aggregation,
-			@Context Filter filter, @Context Pagination pagination,
-			@Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("flatten")
+			Boolean flatten,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("search")
+			String search,
+			@javax.ws.rs.core.Context
+				com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+			@javax.ws.rs.core.Context Filter filter,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -641,23 +916,33 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/document-folders/{parentDocumentFolderId}/document-folders' -d $'{"customFields": ___, "description": ___, "name": ___, "parentDocumentFolderId": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Creates a new folder in a folder identified by `parentDocumentFolderId`."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "parentDocumentFolderId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "parentDocumentFolderId"
+			)
 		}
 	)
-	@Path("/document-folders/{parentDocumentFolderId}/document-folders")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
+		"/document-folders/{parentDocumentFolderId}/document-folders"
+	)
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DocumentFolder postDocumentFolderDocumentFolder(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("parentDocumentFolderId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("parentDocumentFolderId")
 			Long parentDocumentFolderId,
 			DocumentFolder documentFolder)
 		throws Exception {
@@ -670,33 +955,66 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/document-folders'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Retrieves the site's document folders. Results can be paginated, filtered, searched, flattened, and sorted."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
-			@Parameter(in = ParameterIn.QUERY, name = "search"),
-			@Parameter(in = ParameterIn.QUERY, name = "filter"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "flatten"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "search"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/document-folders")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/sites/{siteId}/document-folders")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DocumentFolder> getSiteDocumentFoldersPage(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Parameter(hidden = true) @QueryParam("flatten") Boolean flatten,
-			@Parameter(hidden = true) @QueryParam("search") String search,
-			@Context com.liferay.portal.vulcan.aggregation.Aggregation
-				aggregation,
-			@Context Filter filter, @Context Pagination pagination,
-			@Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("flatten")
+			Boolean flatten,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("search")
+			String search,
+			@javax.ws.rs.core.Context
+				com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+			@javax.ws.rs.core.Context Filter filter,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -707,16 +1025,32 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/document-folders' -d $'{"customFields": ___, "description": ___, "name": ___, "parentDocumentFolderId": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(description = "Creates a new document folder.")
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Creates a new document folder."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/sites/{siteId}/document-folders")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
 	@Override
-	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
-	@Path("/sites/{siteId}/document-folders")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
 	public DocumentFolder postSiteDocumentFolder(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
 			DocumentFolder documentFolder)
 		throws Exception {
 
@@ -728,22 +1062,36 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/document-folders/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/document-folders/batch")
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/sites/{siteId}/document-folders/batch")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postSiteDocumentFolderBatch(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -768,23 +1116,36 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/document-folders/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/document-folders/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DocumentFolder")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/sites/{siteId}/document-folders/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getSiteDocumentFolderPermissionsPage(
-				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
-					siteId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(siteId);
@@ -793,7 +1154,19 @@ public abstract class BaseDocumentFolderResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, portletName, siteId,
 			siteId);
 
-		return toPermissionPage(siteId, portletName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getSiteDocumentFolderPermissionsPage", portletName, siteId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putSiteDocumentFolderPermissionsPage", portletName, siteId)
+			).build(),
+			siteId, portletName, roleNames);
 	}
 
 	/**
@@ -801,15 +1174,30 @@ public abstract class BaseDocumentFolderResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/document-folders/permissions'  -u 'test@liferay.com:test'
 	 */
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DocumentFolder")
+		}
+	)
+	@javax.ws.rs.Path("/sites/{siteId}/document-folders/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
 	@Override
-	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
-	@Path("/sites/{siteId}/document-folders/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DocumentFolder")})
-	public void putSiteDocumentFolderPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putSiteDocumentFolderPermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(siteId);
@@ -825,6 +1213,20 @@ public abstract class BaseDocumentFolderResourceImpl
 				contextCompany.getCompanyId(), permissions, siteId, portletName,
 				resourceActionLocalService, resourcePermissionLocalService,
 				roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getSiteDocumentFolderPermissionsPage", portletName, siteId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putSiteDocumentFolderPermissionsPage", portletName, siteId)
+			).build(),
+			siteId, portletName, null);
 	}
 
 	@Override
@@ -834,9 +1236,29 @@ public abstract class BaseDocumentFolderResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (DocumentFolder documentFolder : documentFolders) {
-			postSiteDocumentFolder(
-				(Long)parameters.get("siteId"), documentFolder);
+		UnsafeConsumer<DocumentFolder, Exception> documentFolderUnsafeConsumer =
+			documentFolder -> {
+			};
+
+		if (parameters.containsKey("assetLibraryId")) {
+			documentFolderUnsafeConsumer =
+				documentFolder -> postAssetLibraryDocumentFolder(
+					(Long)parameters.get("assetLibraryId"), documentFolder);
+		}
+		else if (parameters.containsKey("siteId")) {
+			documentFolderUnsafeConsumer =
+				documentFolder -> postSiteDocumentFolder(
+					(Long)parameters.get("siteId"), documentFolder);
+		}
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				documentFolders, documentFolderUnsafeConsumer);
+		}
+		else {
+			for (DocumentFolder documentFolder : documentFolders) {
+				documentFolderUnsafeConsumer.accept(documentFolder);
+			}
 		}
 	}
 
@@ -866,15 +1288,31 @@ public abstract class BaseDocumentFolderResourceImpl
 		return null;
 	}
 
+	public String getVersion() {
+		return "v1.0";
+	}
+
 	@Override
 	public Page<DocumentFolder> read(
 			Filter filter, Pagination pagination, Sort[] sorts,
 			Map<String, Serializable> parameters, String search)
 		throws Exception {
 
-		return getSiteDocumentFoldersPage(
-			(Long)parameters.get("siteId"), (Boolean)parameters.get("flatten"),
-			search, null, filter, pagination, sorts);
+		if (parameters.containsKey("assetLibraryId")) {
+			return getAssetLibraryDocumentFoldersPage(
+				(Long)parameters.get("assetLibraryId"),
+				Boolean.parseBoolean((String)parameters.get("flatten")), search,
+				null, filter, pagination, sorts);
+		}
+		else if (parameters.containsKey("siteId")) {
+			return getSiteDocumentFoldersPage(
+				(Long)parameters.get("siteId"),
+				Boolean.parseBoolean((String)parameters.get("flatten")), search,
+				null, filter, pagination, sorts);
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -908,7 +1346,7 @@ public abstract class BaseDocumentFolderResourceImpl
 		for (DocumentFolder documentFolder : documentFolders) {
 			putDocumentFolder(
 				documentFolder.getId() != null ? documentFolder.getId() :
-					(Long)parameters.get("documentFolderId"),
+					Long.parseLong((String)parameters.get("documentFolderId")),
 				documentFolder);
 		}
 	}
@@ -943,7 +1381,9 @@ public abstract class BaseDocumentFolderResourceImpl
 	}
 
 	protected Page<com.liferay.portal.vulcan.permission.Permission>
-			toPermissionPage(long id, String resourceName, String roleNames)
+			toPermissionPage(
+				Map<String, Map<String, String>> actions, long id,
+				String resourceName, String roleNames)
 		throws Exception {
 
 		List<ResourceAction> resourceActions =
@@ -951,6 +1391,7 @@ public abstract class BaseDocumentFolderResourceImpl
 
 		if (Validator.isNotNull(roleNames)) {
 			return Page.of(
+				actions,
 				transform(
 					PermissionUtil.getRoles(
 						contextCompany, roleLocalService,
@@ -961,10 +1402,11 @@ public abstract class BaseDocumentFolderResourceImpl
 		}
 
 		return Page.of(
+			actions,
 			transform(
-				resourcePermissionLocalService.getResourcePermissions(
-					contextCompany.getCompanyId(), resourceName,
-					ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(id)),
+				PermissionUtil.getResourcePermissions(
+					contextCompany.getCompanyId(), id, resourceName,
+					resourcePermissionLocalService),
 				resourcePermission -> PermissionUtil.toPermission(
 					resourceActions, resourcePermission,
 					roleLocalService.getRole(resourcePermission.getRoleId()))));
@@ -972,6 +1414,15 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
+	}
+
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<DocumentFolder>,
+			 UnsafeConsumer<DocumentFolder, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
 	}
 
 	public void setContextCompany(
@@ -1002,12 +1453,69 @@ public abstract class BaseDocumentFolderResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
+	}
+
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
+	}
+
+	@Override
+	public Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		try {
+			EntityModel entityModel = getEntityModel(multivaluedMap);
+
+			FilterParser filterParser = filterParserProvider.provide(
+				entityModel);
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(filterString));
+
+			return expressionConvert.convert(
+				oDataFilter.getExpression(),
+				contextAcceptLanguage.getPreferredLocale(), entityModel);
+		}
+		catch (Exception exception) {
+			_log.error("Invalid filter " + filterString, exception);
+		}
+
+		return null;
 	}
 
 	protected Map<String, String> addAction(
@@ -1077,17 +1585,26 @@ public abstract class BaseDocumentFolderResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<DocumentFolder>,
+		 UnsafeConsumer<DocumentFolder, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
 	protected VulcanBatchEngineImportTaskResource
 		vulcanBatchEngineImportTaskResource;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseDocumentFolderResourceImpl.class);
 
 }

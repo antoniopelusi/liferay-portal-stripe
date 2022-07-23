@@ -19,15 +19,12 @@ import com.liferay.dynamic.data.mapping.annotations.DDMFormField;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
-import com.liferay.portal.json.JSONFactoryImpl;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,13 +38,6 @@ public class DDMFormInstanceFactoryTest {
 	@Rule
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
-
-	@Before
-	public void setUp() {
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
-
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
-	}
 
 	@Test
 	public void testCreateDynamicFormWithFieldSet() {
@@ -523,8 +513,7 @@ public class DDMFormInstanceFactoryTest {
 			DDMFormInstanceFactory.create(
 				DynamicFormWithPrimitiveTypes.class, ddmFormValues);
 
-		Assert.assertEquals(
-			false, dynamicFormWithPrimitiveTypes.booleanValue());
+		Assert.assertFalse(dynamicFormWithPrimitiveTypes.booleanValue());
 		Assert.assertEquals(
 			0.0D, dynamicFormWithPrimitiveTypes.doubleValue(), 0.1);
 		Assert.assertEquals(
@@ -550,8 +539,7 @@ public class DDMFormInstanceFactoryTest {
 					DynamicFormWithPrimitiveTypesWithPredefinedValue.class,
 					ddmFormValues);
 
-		Assert.assertEquals(
-			true,
+		Assert.assertTrue(
 			dynamicFormWithPrimitiveTypesWithPredefinedValue.booleanValue());
 		Assert.assertEquals(
 			1.0D,

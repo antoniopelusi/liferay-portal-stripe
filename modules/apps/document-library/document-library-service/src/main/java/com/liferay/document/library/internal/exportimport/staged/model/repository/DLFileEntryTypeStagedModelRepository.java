@@ -99,7 +99,7 @@ public class DLFileEntryTypeStagedModelRepository
 			_dlFileEntryTypeLocalService.getExportActionableDynamicQuery(
 				portletDataContext);
 
-		final ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
+		ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
 			actionableDynamicQuery.getAddCriteriaMethod();
 
 		actionableDynamicQuery.setAddCriteriaMethod(

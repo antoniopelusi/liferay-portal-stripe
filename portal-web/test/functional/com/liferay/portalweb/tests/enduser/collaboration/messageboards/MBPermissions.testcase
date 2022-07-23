@@ -1,0 +1,842 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Message Boards";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			MessageboardsCategory.tearDownCP();
+
+			MessageboardsThread.tearDownCP();
+
+			MessageboardsPortlet.tearDownConfigurationGeneralCP();
+		}
+	}
+
+	@description = "This is a test for LPS-136922. It checks that a banned user cannot create a new thread."
+	@priority = "3"
+	test CannotCreateThreadAsBannedUser {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		PermissionsInline.gotoMessageBoardsPG(pageName = "Message Boards Page");
+
+		for (var permissionDefinitionKey : list "INLINE_PERMISSIONS_REPLY_TO_MESSAGE_CHECKBOX,INLINE_PERMISSIONS_VIEW_CHECKBOX") {
+			Role.definePermissionPG(
+				permissionDefinitionKey = "${permissionDefinitionKey}",
+				roleTitle = "User");
+		}
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.replyPG(
+			threadReplyBody = "MB Thread Reply Body",
+			threadSubject = "MB Thread Message Subject");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		MessageboardsThread.openToThread(
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadSubject = "MB Thread Message Subject");
+
+		MessageboardsThread.banUser(
+			threadReplyBody = "MB Thread Reply Body",
+			userName = "userfn userln");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.viewBannedUserAuthenticationMessage();
+	}
+
+	@description = "This test covers LPS-97376, This ensures that a user can not view the subscribed message via the notification without permissions."
+	@priority = "4"
+	test CannotViewMessageViaNotificationWithoutPermissionsOnContentPage {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "true";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			type = "content");
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Message Boards Page",
+			siteName = "Guest");
+
+		PageEditor.addWidget(portletName = "Message Boards");
+
+		PageEditor.clickPublish();
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		PermissionsInline.gotoMessageBoardsThreadPG(threadSubject = "MB Thread Message Subject");
+
+		PermissionsInline.addOrRemoveSubscribePermissionFromAllRoles(
+			addOrRemoveViewPermission = "Add",
+			roleList = "User");
+
+		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+			addOrRemoveViewPermission = "Add",
+			roleList = "User");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		JSONMBMessage.subscribeToMessage(
+			groupName = "Guest",
+			threadSubject = "MB Thread Message Subject",
+			userEmailAddress = "userea@liferay.com");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.replyPG(
+			threadReplyBody = "MB Body Reply",
+			threadSubject = "MB Thread Message Subject");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		PermissionsInline.gotoMessageBoardsThreadPG(threadSubject = "MB Thread Message Subject");
+
+		PermissionsInline.addOrRemoveSubscribePermissionFromAllRoles(
+			addOrRemoveViewPermission = "Remove",
+			roleList = "User");
+
+		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+			addOrRemoveViewPermission = "Remove",
+			roleList = "User,Guest");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Notifications.gotoNotifications();
+
+		Notifications.navigateToContent(contentBody = "MB Thread Message Subject");
+
+		AssertElementNotPresent(
+			key_threadBody = "MB Body Reply",
+			locator1 = "MessageBoardsThread#THREAD_BODY");
+
+		Alert.viewErrorMessage(errorMessage = "Close Error:You do not have the required permissions.");
+	}
+
+	@description = "This test covers LPS-130664, This ensures that a user can not view the subscribed message via the notification without permissions on widget page."
+	@priority = "4"
+	test CannotViewMessageViaNotificationWithoutPermissionsOnWidgetPage {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		PermissionsInline.gotoMessageBoardsThreadPG(threadSubject = "MB Thread Message Subject");
+
+		PermissionsInline.addOrRemoveSubscribePermissionFromAllRoles(
+			addOrRemoveViewPermission = "Add",
+			roleList = "User");
+
+		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+			addOrRemoveViewPermission = "Add",
+			roleList = "User");
+
+		JSONMBMessage.subscribeToMessage(
+			groupName = "Guest",
+			threadSubject = "MB Thread Message Subject",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONMBMessage.addMessageReply(
+			groupName = "Guest",
+			replyBody = "MB Body Reply",
+			threadSubject = "MB Thread Message Subject");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		PermissionsInline.gotoMessageBoardsThreadPG(threadSubject = "MB Thread Message Subject");
+
+		PermissionsInline.addOrRemoveSubscribePermissionFromAllRoles(
+			addOrRemoveViewPermission = "Remove",
+			roleList = "User");
+
+		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+			addOrRemoveViewPermission = "Remove",
+			roleList = "User,Guest");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Notifications.gotoNotifications();
+
+		Notifications.navigateToContent(contentBody = "MB Thread Message Subject");
+
+		AssertElementNotPresent(
+			key_threadBody = "MB Body Reply",
+			locator1 = "MessageBoardsThread#THREAD_BODY");
+
+		Alert.viewErrorMessage(errorMessage = "Close Error:You do not have the required permissions.");
+	}
+
+	@priority = "3"
+	@refactordone
+	test CanViewCorrectViewPermissionsInMessageBoardsQuickReplyInPrivateSite {
+		JSONGroup.addGroup(
+			groupName = "Blank Site Name",
+			type = "Private");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Blank Site Name",
+			layoutName = "Site Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Blank Site Name",
+			layoutName = "Site Page Name",
+			widgetName = "Message Boards");
+
+		MessageboardsThread.openToAddThread(
+			groupName = "Blank Site Name",
+			layoutName = "site-page-name",
+			siteURLKey = "blank-site-name");
+
+		MessageboardsThread.addPGWithPermissions(
+			skipNavigation = "true",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject",
+			viewableBySelection = "Owner");
+
+		JSONMBMessage.addMessageReply(
+			groupName = "Blank Site Name",
+			replyBody = "MB Thread Message Subject Reply",
+			threadSubject = "MB Thread Message Subject");
+
+		PermissionsInline.gotoMessageBoardsThreadReplyPG(
+			pageName = "Site Page Name",
+			siteName = "Blank Site Name",
+			siteURL = "true",
+			threadReplyBody = "MB Thread Message Subject Reply",
+			threadSubject = "MB Thread Message Subject");
+
+		for (var roleTitle : list "Power User,User") {
+			PermissionsInline.viewPermissionsRemoved(
+				permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitle = "${roleTitle}");
+		}
+
+		PermissionsInline.viewPermissionsChecked(
+			permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX",
+			roleTitle = "Owner");
+	}
+
+	@priority = "3"
+	@refactordone
+	test CanViewMessageBoardsBannedUsers {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea1@liferay.com",
+			userFirstName = "userfn1",
+			userLastName = "userln1",
+			userScreenName = "usersn1");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea1@liferay.com");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea2@liferay.com",
+			userFirstName = "userfn2",
+			userLastName = "userln2",
+			userScreenName = "usersn2");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea2@liferay.com");
+
+		PermissionsInline.gotoMessageBoardsPG(pageName = "Message Boards Page");
+
+		for (var permissionDefinitionKey : list "INLINE_PERMISSIONS_REPLY_TO_MESSAGE_CHECKBOX,INLINE_PERMISSIONS_VIEW_CHECKBOX") {
+			Role.definePermissionPG(
+				permissionDefinitionKey = "${permissionDefinitionKey}",
+				roleTitle = "User");
+		}
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.replyPG(
+			threadReplyBody = "MB Thread1 Reply Body",
+			threadSubject = "MB Thread Message Subject");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea2@liferay.com",
+			userLoginFullName = "userfn2 userln2");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.replyPG(
+			threadReplyBody = "MB Thread2 Reply Body",
+			threadSubject = "MB Thread Message Subject");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.gotoPG(
+			lastPostUserName = "userfn2 userln2",
+			replyCount = "2",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		MessageboardsThread.banUser(
+			threadReplyBody = "MB Thread1 Reply Body",
+			userName = "userfn1 userln1");
+
+		MessageboardsThread.openToThread(
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadSubject = "MB Thread Message Subject");
+
+		MessageboardsThread.banUser(
+			threadReplyBody = "MB Thread2 Reply Body",
+			userName = "userfn2 userln2");
+
+		MessageboardsPortlet.viewBannedUserCP(
+			siteURLKey = "Guest",
+			userScreenName = "userfn1 userln1");
+
+		MessageboardsPortlet.viewBannedUserCP(
+			siteURLKey = "Guest",
+			userScreenName = "userfn2 userln2");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewMessageBoardsPortletRegRole {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "true";
+
+		Permissions.setUpRegRoleLoginUserCP(
+			roleTitle = "Regrole Name",
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.message.boards",
+			roleTitle = "Regrole Name");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW_SITE_ADMINISTRATION",
+			resourceName = "com.liferay.portal.kernel.model.Group",
+			roleTitle = "Regrole Name");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_message_boards_web_portlet_MBAdminPortlet",
+			roleTitle = "Regrole Name");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
+
+		MessageboardsPortlet.viewNoPermissionCP();
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewMessageBoardsPortletSiteRole {
+		property portal.acceptance = "true";
+
+		Permissions.setUpSiteRoleLoginUserCP(
+			pageName = "Blogs Page",
+			portletName = "Message Boards",
+			roleTitle = "Roles Siterole Name",
+			roleType = "Site",
+			siteName = "Site Name",
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln",
+			userScreenName = "usersn");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.message.boards",
+			roleTitle = "Roles Siterole Name",
+			roleType = "site");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW_SITE_ADMINISTRATION",
+			resourceName = "com.liferay.portal.kernel.model.Group",
+			roleTitle = "Roles Siterole Name",
+			roleType = "site");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_message_boards_web_portlet_MBAdminPortlet",
+			roleTitle = "Roles Siterole Name",
+			roleType = "site");
+
+		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "site-name");
+
+		MessageboardsPortlet.viewNoPermissionCP();
+	}
+
+	@description = "This test covers LPS-135908, This ensures that a user can view the reply message of a thread via the notification."
+	@priority = "3"
+	test CanViewMessageViaNotificationOnContentPage {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			type = "content");
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Message Boards Page",
+			siteName = "Guest");
+
+		PageEditor.addWidget(portletName = "Message Boards");
+
+		PageEditor.clickPublish();
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		PermissionsInline.gotoMessageBoardsThreadPG(threadSubject = "MB Thread Message Subject");
+
+		PermissionsInline.addOrRemoveSubscribePermissionFromAllRoles(
+			addOrRemoveViewPermission = "Add",
+			roleList = "User");
+
+		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+			addOrRemoveViewPermission = "Add",
+			roleList = "User");
+
+		JSONMBMessage.subscribeToMessage(
+			groupName = "Guest",
+			threadSubject = "MB Thread Message Subject",
+			userEmailAddress = "userea@liferay.com");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.replyPG(
+			threadReplyBody = "MB Thread Reply Body",
+			threadSubject = "MB Thread Message Subject");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Notifications.gotoNotifications();
+
+		Notifications.navigateToContent(contentBody = "MB Thread Message Subject");
+
+		AssertVisible(
+			key_threadBody = "MB Thread Reply Body",
+			locator1 = "MessageBoardsThread#THREAD_BODY");
+	}
+
+	@description = "This is a test for LPS-136939. It checks that a guest cannot view a thread without permissions."
+	@priority = "3"
+	test GuestCannotViewThread {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONMBMessage.addMessage(
+			addGuestPermissions = "false",
+			groupName = "Guest",
+			threadBody = "Message Boards Thread Body",
+			threadSubject = "Message Boards Thread");
+
+		User.logoutPG();
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsThread.viewNoPG(threadSubject = "Thread Subject");
+	}
+
+	@description = "This is a test for LPS-136933. It checks that a site member cannot delete a category without permissions."
+	@priority = "3"
+	test SiteMemberCannotDeleteCategory {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONUser.addUserToSite(
+			groupName = "Guest",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONMBMessage.addCategory(
+			categoryDescription = "MB Category Description",
+			categoryName = "MB Category Name",
+			userEmailAddress = "test@liferay.com");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		DMDocument.viewNoPermission(
+			menuItem = "Move to Recycle Bin",
+			rowEntry = "MB Category Name");
+	}
+
+	@description = "This is a test for LPS-136934. It checks that a site member cannot delete a thread without permissions."
+	@priority = "3"
+	test SiteMemberCannotDeleteThread {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONUser.addUserToSite(
+			groupName = "Guest",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "Message Boards Thread Body",
+			threadSubject = "Message Boards Thread");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		DMDocument.viewNoPermission(
+			menuItem = "Move to Recycle Bin",
+			rowEntry = "Message Boards Thread");
+	}
+
+	@description = "This is a test for LPS-136935. It checks that a site member cannot reply to a thread without permissions."
+	@priority = "3"
+	test SiteMemberCannotReplyToThread {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONUser.addUserToSite(
+			groupName = "Guest",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "Message Boards Thread Body",
+			threadSubject = "Message Boards Thread");
+
+		PermissionsInline.gotoMessageBoardsPG(pageName = "Message Boards Page");
+
+		PermissionsInline.addOrRemoveAnyPermissionsFromSpecificRole(
+			addOrRemoveViewPermission = "Remove",
+			permissionsKeyList = "INLINE_PERMISSIONS_REPLY_TO_MESSAGE_CHECKBOX",
+			roleTitle = "Site Member");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		MessageboardsThread.openToThread(
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadSubject = "Message Boards Thread");
+
+		Button.viewNotPresent(button = "Reply");
+	}
+
+	@description = "This is a test for LPS-136938. It checks that a site member cannot subscribe to a thread without permissions."
+	@priority = "3"
+	test SiteMemberCannotSubscribeToThread {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONUser.addUserToSite(
+			groupName = "Guest",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONMBMessage.addMessage(
+			addGroupPermissions = "false",
+			groupName = "Guest",
+			threadBody = "Message Boards Thread Body",
+			threadSubject = "Message Boards Thread");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		DMDocument.viewNoPermission(
+			menuItem = "Subscribe",
+			rowEntry = "Message Boards Thread");
+	}
+
+	@description = "This is a test for LPS-136936. It checks that a site member cannot update a thread without permissions."
+	@priority = "3"
+	test SiteMemberCannotUpdateThread {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONUser.addUserToSite(
+			groupName = "Guest",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "Message Boards Thread Body",
+			threadSubject = "Message Boards Thread");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		DMDocument.viewNoPermission(
+			menuItem = "Edit",
+			rowEntry = "Message Boards Thread");
+	}
+
+}

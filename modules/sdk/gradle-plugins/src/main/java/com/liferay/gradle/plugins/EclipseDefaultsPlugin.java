@@ -108,9 +108,9 @@ public class EclipseDefaultsPlugin extends BaseDefaultsPlugin<EclipsePlugin> {
 	}
 
 	private void _configureEclipseClasspath(
-		final Project project, EclipseModel eclipseModelExtension) {
+		Project project, EclipseModel eclipseModelExtension) {
 
-		final EclipseClasspath eclipseClasspath =
+		EclipseClasspath eclipseClasspath =
 			eclipseModelExtension.getClasspath();
 
 		FileContentMerger fileContentMerger = eclipseClasspath.getFile();

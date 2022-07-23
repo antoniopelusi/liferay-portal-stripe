@@ -14,12 +14,12 @@
 
 package com.liferay.portal.upgrade.v7_4_x;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ListType;
 import com.liferay.portal.kernel.model.ListTypeConstants;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.sql.PreparedStatement;
@@ -36,32 +36,28 @@ public class UpgradeListType extends UpgradeProcess {
 	}
 
 	private void _addListType(String name, String type) throws Exception {
-		StringBundler sb = new StringBundler(4);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select * from ListType where name = ",
+					StringUtil.quote(name), "and type_ = ",
+					StringUtil.quote(type)))) {
 
-		sb.append("select * from ListType where name = ");
-		sb.append(StringUtil.quote(name));
-		sb.append("and type_ = ");
-		sb.append(StringUtil.quote(type));
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			ResultSet rs = ps.executeQuery();
-
-			if (rs.next()) {
+			if (resultSet.next()) {
 				return;
 			}
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"insert into ListType (listTypeId, name, type_) values (?, " +
 					"?, ?)")) {
 
-			ps.setLong(1, increment(ListType.class.getName()));
-			ps.setString(2, name);
-			ps.setString(3, type);
+			preparedStatement.setLong(1, increment(ListType.class.getName()));
+			preparedStatement.setString(2, name);
+			preparedStatement.setString(3, type);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {

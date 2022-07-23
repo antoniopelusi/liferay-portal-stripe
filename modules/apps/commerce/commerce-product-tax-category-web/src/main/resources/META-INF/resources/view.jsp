@@ -88,7 +88,7 @@ CPTaxCategoryDisplayContext cpTaxCategoryDisplayContext = (CPTaxCategoryDisplayC
 					modelVar="cpTaxCategory"
 				>
 					<liferay-ui:search-container-column-text
-						cssClass="important table-cell-expand"
+						cssClass="font-weight-bold important table-cell-expand"
 						href='<%=
 							PortletURLBuilder.createRenderURL(
 								renderResponse
@@ -98,7 +98,7 @@ CPTaxCategoryDisplayContext cpTaxCategoryDisplayContext = (CPTaxCategoryDisplayC
 								currentURL
 							).setParameter(
 								"cpTaxCategoryId", cpTaxCategory.getCPTaxCategoryId()
-							).build()
+							).buildPortletURL()
 						%>'
 						name="name"
 						value="<%= HtmlUtil.escape(cpTaxCategory.getName(languageId)) %>"

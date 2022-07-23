@@ -28,29 +28,28 @@ public class TeamPermissionUtil {
 			PermissionChecker permissionChecker, long teamId, String actionId)
 		throws PortalException {
 
-		getTeamPermission().check(permissionChecker, teamId, actionId);
+		_teamPermission.check(permissionChecker, teamId, actionId);
 	}
 
 	public static void check(
 			PermissionChecker permissionChecker, Team team, String actionId)
 		throws PortalException {
 
-		getTeamPermission().check(permissionChecker, team, actionId);
+		_teamPermission.check(permissionChecker, team, actionId);
 	}
 
 	public static boolean contains(
 			PermissionChecker permissionChecker, long teamId, String actionId)
 		throws PortalException {
 
-		return getTeamPermission().contains(
-			permissionChecker, teamId, actionId);
+		return _teamPermission.contains(permissionChecker, teamId, actionId);
 	}
 
 	public static boolean contains(
 			PermissionChecker permissionChecker, Team team, String actionId)
 		throws PortalException {
 
-		return getTeamPermission().contains(permissionChecker, team, actionId);
+		return _teamPermission.contains(permissionChecker, team, actionId);
 	}
 
 	public static TeamPermission getTeamPermission() {

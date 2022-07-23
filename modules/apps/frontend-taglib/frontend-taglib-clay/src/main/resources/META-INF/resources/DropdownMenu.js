@@ -19,6 +19,8 @@ import ClayLink from '@clayui/link';
 import classNames from 'classnames';
 import React from 'react';
 
+import normalizeDropdownItems from './normalize_dropdown_items';
+
 export default function DropdownMenu({
 	actionsDropdown = false,
 	additionalProps: _additionalProps,
@@ -38,20 +40,7 @@ export default function DropdownMenu({
 				className={classNames({
 					'dropdown-action': actionsDropdown,
 				})}
-				items={items.map(({data, ...rest}) => {
-					const dataAttributes = data
-						? Object.entries(data).reduce((acc, [key, value]) => {
-								acc[`data-${key}`] = value;
-
-								return acc;
-						  }, {})
-						: {};
-
-					return {
-						...dataAttributes,
-						...rest,
-					};
-				})}
+				items={normalizeDropdownItems(items) || []}
 				trigger={
 					<ClayButton
 						className={classNames(cssClass, {
@@ -80,6 +69,7 @@ export default function DropdownMenu({
 						<ClayButtonWithIcon
 							className="component-action quick-action-item"
 							displayType="unstyled"
+							key={data.action}
 							small={true}
 							symbol={icon}
 							{...rest}
@@ -91,6 +81,7 @@ export default function DropdownMenu({
 							<ClayLink
 								className="component-action quick-action-item"
 								href={href}
+								key={href}
 								{...rest}
 							>
 								<ClayIcon symbol={icon} />

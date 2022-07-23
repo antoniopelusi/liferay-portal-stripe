@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the calendar resource service. This utility wraps <code>com.liferay.calendar.service.persistence.impl.CalendarResourcePersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -1714,10 +1710,10 @@ public class CalendarResourceUtil {
 	 * @param active the active
 	 * @return the matching calendar resources
 	 */
-	public static List<CalendarResource> findByC_C_A(
+	public static List<CalendarResource> findByC_LikeC_A(
 		long companyId, String code, boolean active) {
 
-		return getPersistence().findByC_C_A(companyId, code, active);
+		return getPersistence().findByC_LikeC_A(companyId, code, active);
 	}
 
 	/**
@@ -1734,10 +1730,10 @@ public class CalendarResourceUtil {
 	 * @param end the upper bound of the range of calendar resources (not inclusive)
 	 * @return the range of matching calendar resources
 	 */
-	public static List<CalendarResource> findByC_C_A(
+	public static List<CalendarResource> findByC_LikeC_A(
 		long companyId, String code, boolean active, int start, int end) {
 
-		return getPersistence().findByC_C_A(
+		return getPersistence().findByC_LikeC_A(
 			companyId, code, active, start, end);
 	}
 
@@ -1756,11 +1752,11 @@ public class CalendarResourceUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching calendar resources
 	 */
-	public static List<CalendarResource> findByC_C_A(
+	public static List<CalendarResource> findByC_LikeC_A(
 		long companyId, String code, boolean active, int start, int end,
 		OrderByComparator<CalendarResource> orderByComparator) {
 
-		return getPersistence().findByC_C_A(
+		return getPersistence().findByC_LikeC_A(
 			companyId, code, active, start, end, orderByComparator);
 	}
 
@@ -1780,12 +1776,12 @@ public class CalendarResourceUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching calendar resources
 	 */
-	public static List<CalendarResource> findByC_C_A(
+	public static List<CalendarResource> findByC_LikeC_A(
 		long companyId, String code, boolean active, int start, int end,
 		OrderByComparator<CalendarResource> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByC_C_A(
+		return getPersistence().findByC_LikeC_A(
 			companyId, code, active, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -1800,12 +1796,12 @@ public class CalendarResourceUtil {
 	 * @return the first matching calendar resource
 	 * @throws NoSuchResourceException if a matching calendar resource could not be found
 	 */
-	public static CalendarResource findByC_C_A_First(
+	public static CalendarResource findByC_LikeC_A_First(
 			long companyId, String code, boolean active,
 			OrderByComparator<CalendarResource> orderByComparator)
 		throws com.liferay.calendar.exception.NoSuchResourceException {
 
-		return getPersistence().findByC_C_A_First(
+		return getPersistence().findByC_LikeC_A_First(
 			companyId, code, active, orderByComparator);
 	}
 
@@ -1818,11 +1814,11 @@ public class CalendarResourceUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching calendar resource, or <code>null</code> if a matching calendar resource could not be found
 	 */
-	public static CalendarResource fetchByC_C_A_First(
+	public static CalendarResource fetchByC_LikeC_A_First(
 		long companyId, String code, boolean active,
 		OrderByComparator<CalendarResource> orderByComparator) {
 
-		return getPersistence().fetchByC_C_A_First(
+		return getPersistence().fetchByC_LikeC_A_First(
 			companyId, code, active, orderByComparator);
 	}
 
@@ -1836,12 +1832,12 @@ public class CalendarResourceUtil {
 	 * @return the last matching calendar resource
 	 * @throws NoSuchResourceException if a matching calendar resource could not be found
 	 */
-	public static CalendarResource findByC_C_A_Last(
+	public static CalendarResource findByC_LikeC_A_Last(
 			long companyId, String code, boolean active,
 			OrderByComparator<CalendarResource> orderByComparator)
 		throws com.liferay.calendar.exception.NoSuchResourceException {
 
-		return getPersistence().findByC_C_A_Last(
+		return getPersistence().findByC_LikeC_A_Last(
 			companyId, code, active, orderByComparator);
 	}
 
@@ -1854,11 +1850,11 @@ public class CalendarResourceUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching calendar resource, or <code>null</code> if a matching calendar resource could not be found
 	 */
-	public static CalendarResource fetchByC_C_A_Last(
+	public static CalendarResource fetchByC_LikeC_A_Last(
 		long companyId, String code, boolean active,
 		OrderByComparator<CalendarResource> orderByComparator) {
 
-		return getPersistence().fetchByC_C_A_Last(
+		return getPersistence().fetchByC_LikeC_A_Last(
 			companyId, code, active, orderByComparator);
 	}
 
@@ -1873,13 +1869,13 @@ public class CalendarResourceUtil {
 	 * @return the previous, current, and next calendar resource
 	 * @throws NoSuchResourceException if a calendar resource with the primary key could not be found
 	 */
-	public static CalendarResource[] findByC_C_A_PrevAndNext(
+	public static CalendarResource[] findByC_LikeC_A_PrevAndNext(
 			long calendarResourceId, long companyId, String code,
 			boolean active,
 			OrderByComparator<CalendarResource> orderByComparator)
 		throws com.liferay.calendar.exception.NoSuchResourceException {
 
-		return getPersistence().findByC_C_A_PrevAndNext(
+		return getPersistence().findByC_LikeC_A_PrevAndNext(
 			calendarResourceId, companyId, code, active, orderByComparator);
 	}
 
@@ -1890,10 +1886,10 @@ public class CalendarResourceUtil {
 	 * @param code the code
 	 * @param active the active
 	 */
-	public static void removeByC_C_A(
+	public static void removeByC_LikeC_A(
 		long companyId, String code, boolean active) {
 
-		getPersistence().removeByC_C_A(companyId, code, active);
+		getPersistence().removeByC_LikeC_A(companyId, code, active);
 	}
 
 	/**
@@ -1904,10 +1900,10 @@ public class CalendarResourceUtil {
 	 * @param active the active
 	 * @return the number of matching calendar resources
 	 */
-	public static int countByC_C_A(
+	public static int countByC_LikeC_A(
 		long companyId, String code, boolean active) {
 
-		return getPersistence().countByC_C_A(companyId, code, active);
+		return getPersistence().countByC_LikeC_A(companyId, code, active);
 	}
 
 	/**
@@ -2062,27 +2058,9 @@ public class CalendarResourceUtil {
 	}
 
 	public static CalendarResourcePersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CalendarResourcePersistence, CalendarResourcePersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CalendarResourcePersistence.class);
-
-		ServiceTracker<CalendarResourcePersistence, CalendarResourcePersistence>
-			serviceTracker =
-				new ServiceTracker
-					<CalendarResourcePersistence, CalendarResourcePersistence>(
-						bundle.getBundleContext(),
-						CalendarResourcePersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CalendarResourcePersistence _persistence;
 
 }

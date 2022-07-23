@@ -12,6 +12,13 @@
  * details.
  */
 
+const RETURN_TYPES = {
+	assetList:
+		'com.liferay.item.selector.criteria.InfoListItemSelectorReturnType',
+	infoList:
+		'com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType',
+};
+
 export default function itemSelectorValueToCollection(collection) {
 	const {
 		classNameId,
@@ -19,17 +26,32 @@ export default function itemSelectorValueToCollection(collection) {
 		itemSubtype,
 		itemType,
 		key,
-		returnType,
+		returnType: type,
+		sourceItemType,
 		title,
 	} = collection;
 
-	return {
-		classNameId,
-		classPK,
-		itemSubtype,
-		itemType,
-		key,
-		title,
-		type: returnType,
-	};
+	switch (type) {
+		case RETURN_TYPES.assetList:
+			return {
+				classNameId,
+				classPK,
+				itemSubtype,
+				itemType,
+				title,
+				type,
+			};
+		case RETURN_TYPES.infoList:
+			return {
+				itemSubtype,
+				itemType,
+				key,
+				sourceItemType,
+				title,
+				type,
+			};
+
+		default:
+			return {...collection};
+	}
 }

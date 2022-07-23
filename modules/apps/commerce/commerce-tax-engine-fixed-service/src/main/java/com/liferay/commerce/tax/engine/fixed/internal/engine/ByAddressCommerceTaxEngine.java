@@ -66,8 +66,8 @@ public class ByAddressCommerceTaxEngine implements CommerceTaxEngine {
 		long commerceAddressId =
 			commerceTaxCalculateRequest.getCommerceBillingAddressId();
 
-		if (isTaxAppliedToShippingAddress(
-				commerceTaxCalculateRequest.getChannelGroupId())) {
+		if (_isTaxAppliedToShippingAddress(
+				commerceTaxCalculateRequest.getCommerceChannelGroupId())) {
 
 			commerceAddressId =
 				commerceTaxCalculateRequest.getCommerceShippingAddressId();
@@ -128,7 +128,12 @@ public class ByAddressCommerceTaxEngine implements CommerceTaxEngine {
 		return LanguageUtil.get(_getResourceBundle(locale), KEY);
 	}
 
-	protected boolean isTaxAppliedToShippingAddress(long groupId) {
+	private ResourceBundle _getResourceBundle(Locale locale) {
+		return ResourceBundleUtil.getBundle(
+			"content.Language", locale, getClass());
+	}
+
+	private boolean _isTaxAppliedToShippingAddress(long groupId) {
 		try {
 			CommerceTaxByAddressTypeConfiguration
 				commerceTaxByAddressTypeConfiguration =
@@ -143,15 +148,10 @@ public class ByAddressCommerceTaxEngine implements CommerceTaxEngine {
 				taxAppliedToShippingAddress();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return false;
 		}
-	}
-
-	private ResourceBundle _getResourceBundle(Locale locale) {
-		return ResourceBundleUtil.getBundle(
-			"content.Language", locale, getClass());
 	}
 
 	private static final BigDecimal _ONE_HUNDRED = BigDecimal.valueOf(100);

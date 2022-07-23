@@ -142,10 +142,9 @@ renderResponse.setTitle(headerTitle);
 		<%
 		for (RepositoryClassDefinition repositoryClassDefinition : RepositoryClassDefinitionCatalogUtil.getExternalRepositoryClassDefinitions()) {
 			try {
-				String repositoryClassDefinitionId = RepositoryClassDefinitionUtil.getRepositoryClassDefinitionId(repositoryClassDefinition);
 		%>
 
-				<div class="settings-parameters" id="<portlet:namespace />repository-<%= repositoryClassDefinitionId %>-configuration">
+				<div class="settings-parameters" id="<portlet:namespace />repository-<%= RepositoryClassDefinitionUtil.getRepositoryClassDefinitionId(repositoryClassDefinition) %>-configuration">
 
 					<%
 					RepositoryConfiguration repositoryConfiguration = repositoryClassDefinition.getRepositoryConfiguration();
@@ -164,7 +163,7 @@ renderResponse.setTitle(headerTitle);
 		<%
 			}
 			catch (Exception e) {
-				_log.error(e, e);
+				_log.error(e);
 			}
 		}
 		%>

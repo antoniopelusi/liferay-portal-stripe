@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-ViewFlatUsersDisplayContext viewFlatUsersDisplayContext = ViewFlatUsersDisplayContextFactory.create(renderRequest, renderResponse);
+ViewFlatUsersDisplayContext viewFlatUsersDisplayContext = ViewFlatUsersDisplayContextFactory.create(request, renderRequest, renderResponse);
 
 if (!ParamUtil.getBoolean(renderRequest, "advancedSearch")) {
 	currentURLObj.setParameter("status", String.valueOf(viewFlatUsersDisplayContext.getStatus()));

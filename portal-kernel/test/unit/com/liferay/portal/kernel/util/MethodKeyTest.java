@@ -206,19 +206,23 @@ public class MethodKeyTest {
 	}
 
 	private MethodKey _clone(MethodKey methodKey) throws Exception {
-		try (UnsyncByteArrayOutputStream ubaos =
+		try (UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 				new UnsyncByteArrayOutputStream()) {
 
-			try (ObjectOutputStream oos = new ObjectOutputStream(ubaos)) {
-				oos.writeObject(methodKey);
+			try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+					unsyncByteArrayOutputStream)) {
+
+				objectOutputStream.writeObject(methodKey);
 			}
 
-			try (UnsyncByteArrayInputStream ubais =
+			try (UnsyncByteArrayInputStream unsyncByteArrayInputStream =
 					new UnsyncByteArrayInputStream(
-						ubaos.unsafeGetByteArray(), 0, ubaos.size());
-				ObjectInputStream ois = new ObjectInputStream(ubais)) {
+						unsyncByteArrayOutputStream.unsafeGetByteArray(), 0,
+						unsyncByteArrayOutputStream.size());
+				ObjectInputStream objectInputStream = new ObjectInputStream(
+					unsyncByteArrayInputStream)) {
 
-				return (MethodKey)ois.readObject();
+				return (MethodKey)objectInputStream.readObject();
 			}
 		}
 	}

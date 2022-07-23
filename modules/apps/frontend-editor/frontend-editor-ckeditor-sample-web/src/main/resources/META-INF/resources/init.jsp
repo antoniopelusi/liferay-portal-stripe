@@ -15,8 +15,7 @@
 --%>
 
 <%@ taglib uri="http://liferay.com/tld/editor" prefix="liferay-editor" %><%@
-taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %>
+taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
+taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
 <liferay-theme:defineObjects />
-
-<%@ include file="/init-ext.jsp" %>

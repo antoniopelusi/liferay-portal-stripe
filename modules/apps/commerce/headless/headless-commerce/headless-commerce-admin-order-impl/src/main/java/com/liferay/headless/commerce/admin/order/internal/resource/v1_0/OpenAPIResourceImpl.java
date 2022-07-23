@@ -42,12 +42,13 @@ import org.osgi.service.component.annotations.Reference;
  * @generated
  */
 @Component(
+	enabled = false,
 	properties = "OSGI-INF/liferay/rest/v1_0/openapi.properties",
 	service = OpenAPIResourceImpl.class
 )
 @Generated("")
 @OpenAPIDefinition(
-	info = @Info(description = "Liferay Commerce Admin Order API. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.commerce.admin.order.client', and version '4.0.2'.", license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0.html"), title = "Liferay Commerce Admin Order API", version = "v1.0")
+	info = @Info(description = "Liferay Commerce Admin Order API. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.commerce.admin.order.client', and version '4.0.19'.", license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0.html"), title = "Liferay Commerce Admin Order API", version = "v1.0")
 )
 @Path("/v1.0")
 public class OpenAPIResourceImpl {
@@ -82,6 +83,8 @@ public class OpenAPIResourceImpl {
 		{
 			add(AccountResourceImpl.class);
 
+			add(AccountGroupResourceImpl.class);
+
 			add(BillingAddressResourceImpl.class);
 
 			add(ChannelResourceImpl.class);
@@ -92,7 +95,25 @@ public class OpenAPIResourceImpl {
 
 			add(OrderNoteResourceImpl.class);
 
+			add(OrderRuleResourceImpl.class);
+
+			add(OrderRuleAccountResourceImpl.class);
+
+			add(OrderRuleAccountGroupResourceImpl.class);
+
+			add(OrderRuleChannelResourceImpl.class);
+
+			add(OrderRuleOrderTypeResourceImpl.class);
+
+			add(OrderTypeResourceImpl.class);
+
+			add(OrderTypeChannelResourceImpl.class);
+
 			add(ShippingAddressResourceImpl.class);
+
+			add(TermResourceImpl.class);
+
+			add(TermOrderTypeResourceImpl.class);
 
 			add(OpenAPIResourceImpl.class);
 		}

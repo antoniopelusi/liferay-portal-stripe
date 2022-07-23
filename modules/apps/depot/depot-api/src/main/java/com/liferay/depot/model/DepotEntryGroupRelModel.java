@@ -306,4 +306,7 @@ public interface DepotEntryGroupRelModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public DepotEntryGroupRel cloneWithOriginalValues();
+
 }

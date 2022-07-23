@@ -29,23 +29,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.security.audit.storage.model.AuditEvent;
 import com.liferay.portal.security.audit.storage.model.AuditEventModel;
-import com.liferay.portal.security.audit.storage.model.AuditEventSoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -149,62 +147,6 @@ public class AuditEventModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AuditEvent toModel(AuditEventSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		AuditEvent model = new AuditEventImpl();
-
-		model.setAuditEventId(soapModel.getAuditEventId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setEventType(soapModel.getEventType());
-		model.setClassName(soapModel.getClassName());
-		model.setClassPK(soapModel.getClassPK());
-		model.setMessage(soapModel.getMessage());
-		model.setClientHost(soapModel.getClientHost());
-		model.setClientIP(soapModel.getClientIP());
-		model.setServerName(soapModel.getServerName());
-		model.setServerPort(soapModel.getServerPort());
-		model.setSessionID(soapModel.getSessionID());
-		model.setAdditionalInfo(soapModel.getAdditionalInfo());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AuditEvent> toModels(AuditEventSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AuditEvent> models = new ArrayList<AuditEvent>(soapModels.length);
-
-		for (AuditEventSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public AuditEventModelImpl() {
 	}
 
@@ -287,34 +229,6 @@ public class AuditEventModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AuditEvent>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AuditEvent.class.getClassLoader(), AuditEvent.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AuditEvent> constructor =
-				(Constructor<AuditEvent>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AuditEvent, Object>>
@@ -773,6 +687,43 @@ public class AuditEventModelImpl
 	}
 
 	@Override
+	public AuditEvent cloneWithOriginalValues() {
+		AuditEventImpl auditEventImpl = new AuditEventImpl();
+
+		auditEventImpl.setAuditEventId(
+			this.<Long>getColumnOriginalValue("auditEventId"));
+		auditEventImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		auditEventImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		auditEventImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		auditEventImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		auditEventImpl.setEventType(
+			this.<String>getColumnOriginalValue("eventType"));
+		auditEventImpl.setClassName(
+			this.<String>getColumnOriginalValue("className"));
+		auditEventImpl.setClassPK(
+			this.<String>getColumnOriginalValue("classPK"));
+		auditEventImpl.setMessage(
+			this.<String>getColumnOriginalValue("message"));
+		auditEventImpl.setClientHost(
+			this.<String>getColumnOriginalValue("clientHost"));
+		auditEventImpl.setClientIP(
+			this.<String>getColumnOriginalValue("clientIP"));
+		auditEventImpl.setServerName(
+			this.<String>getColumnOriginalValue("serverName"));
+		auditEventImpl.setServerPort(
+			this.<Integer>getColumnOriginalValue("serverPort"));
+		auditEventImpl.setSessionID(
+			this.<String>getColumnOriginalValue("sessionID"));
+		auditEventImpl.setAdditionalInfo(
+			this.<String>getColumnOriginalValue("additionalInfo"));
+
+		return auditEventImpl;
+	}
+
+	@Override
 	public int compareTo(AuditEvent auditEvent) {
 		int value = 0;
 
@@ -949,7 +900,7 @@ public class AuditEventModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -960,9 +911,26 @@ public class AuditEventModelImpl
 			Function<AuditEvent, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AuditEvent)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((AuditEvent)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1009,7 +977,9 @@ public class AuditEventModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AuditEvent>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AuditEvent.class, ModelWrapper.class);
 
 	}
 

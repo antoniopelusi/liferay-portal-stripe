@@ -14,7 +14,7 @@
 
 import {useResource} from '@clayui/data-provider';
 import ClayForm, {ClayInput} from '@clayui/form';
-import ClayMultiSelect from '@clayui/multi-select';
+import ClayMultiSelect, {itemLabelFilter} from '@clayui/multi-select';
 import React, {useState} from 'react';
 
 function formatAutocompleteValue(data) {
@@ -24,17 +24,20 @@ function formatAutocompleteValue(data) {
 function isEmailAddressValid(email) {
 	const emailRegex = /.+@.+\..+/i;
 
-	return emailRegex.test(email);
+	return emailRegex.test(email.label);
 }
 
-function formatAutocompleteUsersFromRequest(resource) {
+function formatAutocompleteUsersFromRequest(resource, inputValue) {
 	if (resource.length) {
-		return resource.map((data) => {
-			return {
-				label: data.emailAddress,
-				value: formatAutocompleteValue(data),
-			};
-		});
+		return itemLabelFilter(
+			resource.map((data) => {
+				return {
+					label: data.emailAddress,
+					value: formatAutocompleteValue(data),
+				};
+			}),
+			inputValue
+		);
 	}
 
 	return resource;
@@ -66,6 +69,7 @@ const Email = ({
 		<div className="share-form-modal-item-email">
 			<ClayForm.Group>
 				<label>{Liferay.Language.get('to')}</label>
+
 				<ClayInput.Group small stacked>
 					<ClayInput.GroupItem>
 						{!error && (
@@ -91,17 +95,15 @@ const Email = ({
 											);
 										}
 
-										if (
-											newItems.length &&
-											isEmailAddressValid(
-												newItems[newItems.length - 1]
-													?.label
-											)
-										) {
-											emailContent.current.addresses = newItems;
+										const validItens = newItems.filter(
+											isEmailAddressValid
+										);
+
+										if (validItens.length) {
+											emailContent.current.addresses = validItens;
 
 											return onMultiSelectItemsChanged(
-												newItems
+												validItens
 											);
 										}
 									}}
@@ -111,7 +113,8 @@ const Email = ({
 									sourceItems={
 										resource
 											? formatAutocompleteUsersFromRequest(
-													resource
+													resource,
+													multiSelectValue
 											  )
 											: []
 									}
@@ -119,7 +122,7 @@ const Email = ({
 								<ClayForm.FeedbackGroup>
 									<ClayForm.Text>
 										{Liferay.Language.get(
-											'you-can-use-a-comma-to-enter-multiple-emails'
+											'type-a-comma-or-press-enter-to-input-email-addresses'
 										)}
 									</ClayForm.Text>
 								</ClayForm.FeedbackGroup>
@@ -133,6 +136,7 @@ const Email = ({
 				<label htmlFor="subject">
 					{Liferay.Language.get('subject')}
 				</label>
+
 				<ClayInput.Group>
 					<ClayInput.GroupItem>
 						<ClayInput
@@ -154,6 +158,7 @@ const Email = ({
 				<label htmlFor="message">
 					{Liferay.Language.get('message')}
 				</label>
+
 				<ClayInput.Group>
 					<ClayInput.GroupItem>
 						<ClayInput

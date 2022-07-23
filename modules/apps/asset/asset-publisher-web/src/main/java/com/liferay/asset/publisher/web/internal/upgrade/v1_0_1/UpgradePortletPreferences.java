@@ -59,7 +59,7 @@ public class UpgradePortletPreferences
 			"assetEntryXml", new String[0]);
 
 		if (ArrayUtil.isNotEmpty(assetEntryXmls)) {
-			upgradeTypes(assetEntryXmls);
+			_upgradeTypes(assetEntryXmls);
 
 			portletPreferences.setValues("assetEntryXml", assetEntryXmls);
 		}
@@ -67,7 +67,7 @@ public class UpgradePortletPreferences
 		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
 	}
 
-	protected void upgradeTypes(String[] assetEntryXmls) throws Exception {
+	private void _upgradeTypes(String[] assetEntryXmls) throws Exception {
 		for (int i = 0; i < assetEntryXmls.length; i++) {
 			String assetEntry = assetEntryXmls[i];
 

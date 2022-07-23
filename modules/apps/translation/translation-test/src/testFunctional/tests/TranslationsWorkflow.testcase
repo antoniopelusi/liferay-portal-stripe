@@ -1,6 +1,7 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Translations Management";
@@ -24,8 +25,8 @@ definition {
 
 	@description = "This ensures that the reviewer can view the translation in the side by side interface and approve it individually."
 	@priority = "5"
-	@refactorneeded
-	test ApproveEntry {
+	@refactordone
+	test CanApproveEntry {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
 
 		JSONWebcontent.addWebContent(
@@ -45,14 +46,9 @@ definition {
 			requireReset = "false",
 			userEmailAddress = "userea@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.assignRegularRoleCP(
+		JSONRole.assignRoleToUser(
 			roleTitle = "Administrator",
-			userScreenName = "usersn");
+			userEmailAddress = "userea@liferay.com");
 
 		User.logoutPG();
 
@@ -79,9 +75,7 @@ definition {
 			webContentDescription = "WC WebContent Descripción",
 			webContentTitle = "WC WebContent Título");
 
-		AssertClick(
-			locator1 = "Button#SUBMIT_FOR_PUBLICATION",
-			value1 = "Submit for Publication");
+		Button.clickSubmitForPublication();
 
 		Alert.viewSuccessMessage();
 
@@ -121,9 +115,11 @@ definition {
 			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WC WebContent Title");
 
 		PortletEntry.changeLocale(locale = "es-ES");
 
@@ -133,10 +129,10 @@ definition {
 			webContentTitle = "WC WebContent Título");
 	}
 
-	@description = "This ensures that an imported translation can be approved through the workflow."
-	@priority = "5"
-	@refactorneeded
-	test ApproveImportToWebContent {
+	@description = "This ensures that only the valid translation files can be uploaded and approved from a zip file when enabling Workflow."
+	@priority = "4"
+	@refactordone
+	test CanApproveEntryFromPartiallyImportedZip {
 		JSONWebcontent.addWebContent(
 			content = "WebContent",
 			description = "Description",
@@ -147,7 +143,135 @@ definition {
 
 		Workflow.configureWorkflow(
 			workflowDefinition = "Single Approver",
-			workflowResourceValue = "Web Content Article");
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Translations.gotoExportTranslation(webContentTitle = "WebContentTitle");
+
+		Translations.exportTranslation(
+			defaultLanguage = "English (United States)",
+			languageList = "German (Germany),Spanish (Spain)");
+
+		Translations.translateFile(
+			contentTranslation = "Internetinhalt",
+			descriptionTranslation = "Beschreibung",
+			encoding = "false",
+			operation = "unzip",
+			titleTranslation = "TiteldesWebinhalts",
+			translationFileName = "WebContentTitle-en_US-de_DE",
+			translationZipFileName = "WebContentTitle-en_US",
+			webContentContent = "WebContent",
+			webContentDescription = "Description",
+			webContentTitle = "WebContentTitle");
+
+		Translations.updateTranslateFileID(
+			translationEntryType = "JournalArticle",
+			translationFileName = "WebContentTitle-en_US-de_DE",
+			translationZipFileName = "WebContentTitle-en_US");
+
+		Translations.translateFile(
+			contentTranslation = "Contenidoweb",
+			descriptionTranslation = "Descripcion",
+			encoding = "false",
+			operation = "zip",
+			titleTranslation = "Titulodelcontenidoweb",
+			translationFileName = "WebContentTitle-en_US-es_ES",
+			translationZipFileName = "WebContentTitle-en_US",
+			webContentContent = "WebContent",
+			webContentDescription = "Description",
+			webContentTitle = "WebContentTitle");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Translations.importTranslation(
+			errorMessage = "1 Error: Some files could not be published, check them and upload another file.",
+			errorMessageItem = "The translation file does not correspond to this web content.",
+			failFileName = "WebContentTitle-en_US-de_DE.xlf",
+			fileName = "WebContentTitle-en_US_translated.zip",
+			filePath = "",
+			successFileName = "WebContentTitle-en_US-es_ES.xlf",
+			successFileNumber = "1 File Published",
+			webContentTitle = "WebContentTitle",
+			workflow = "true");
+
+		Translations.openTranslationAdmin(siteURLKey = "guest");
+
+		Translations.viewNoTranslationEntry(title = "Translation of WebContentTitle to de_DE");
+
+		Translations.viewTranslationEntry(
+			language = "es-ES",
+			status = "Pending",
+			title = "Translation of WebContentTitle to es-ES");
+
+		Notifications.viewBadgeCount(
+			activePanel = "Notifications",
+			notificationCount = "1");
+
+		WorkflowAsset.gotoViaNotification(
+			assetType = "Translation",
+			user = "Test Test");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Translation of WebContentTitle to es-ES",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Translation of WebContentTitle to es-ES",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Translations.openTranslationAdmin(siteURLKey = "guest");
+
+		Translations.viewTranslationEntry(
+			language = "es-ES",
+			status = "Approved",
+			title = "Translation of WebContentTitle to es-ES");
+
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WebContentTitle");
+
+		PortletEntry.changeLocale(locale = "es-ES");
+
+		WebContent.viewCP(
+			webContentContent = "Contenidoweb",
+			webContentDescription = "Descripcion",
+			webContentTitle = "Titulodelcontenidoweb");
+
+		Click.clickNoMouseOver(locator1 = "Button#LOCALIZATION_GENERIC");
+
+		AssertTextEquals(
+			key_localizedLanguage = "es-ES",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
+			value1 = "Translated");
+
+		AssertTextEquals(
+			key_localizedLanguage = "de-DE",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
+			value1 = "Not Translated");
+	}
+
+	@description = "This ensures that an imported translation can be approved through the workflow."
+	@priority = "5"
+	@refactordone
+	test CanApproveImportToWebContent {
+		JSONWebcontent.addWebContent(
+			content = "WebContent",
+			description = "Description",
+			groupName = "Guest",
+			title = "WebContentTitle");
+
+		Workflow.openWorkflowAdmin(siteURLKey = "guest");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
 
@@ -158,34 +282,31 @@ definition {
 			languageList = "Spanish (Spain)");
 
 		Translations.translateFile(
-			contentTranslateion = "Contenidoweb",
-			descriptionTranslateion = "Descripcion",
+			contentTranslation = "Contenidoweb",
+			descriptionTranslation = "Descripcion",
 			encoding = "utf8",
+			operation = "unzip",
 			titleTranslation = "Titulodelcontenidoweb",
 			translationFileName = "WebContentTitle-en_US-es_ES",
-			translationZipFileName = "WebContentTitle-en_US.zip",
+			translationZipFileName = "WebContentTitle-en_US",
 			webContentContent = "WebContent",
 			webContentDescription = "Description",
 			webContentTitle = "WebContentTitle");
 
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
 		Translations.importTranslation(
 			fileName = "WebContentTitle-en_US-es_ES.xlf",
+			filePath = "/WebContentTitle-en_US",
 			webContentTitle = "WebContentTitle",
 			workflow = "true");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+		Translations.openTranslationAdmin(siteURLKey = "guest");
 
-		WebContent.viewTranslationStatusWithWorkflowCP(
-			webContentContent = "WebContent",
-			webContentTitle = "WebContentTitle",
-			workflowTask = "Review");
-
-		PortletEntry.changeLocale(locale = "es-ES");
-
-		AssertTextEquals(
-			key_status = "Pending",
-			locator1 = "AssetWorkflow#WORKFLOW_STATUS",
-			value1 = "Pending");
+		Translations.viewTranslationEntry(
+			language = "es-ES",
+			status = "Pending",
+			title = "Translation of WebContentTitle to es-ES");
 
 		Navigator.openURL();
 
@@ -193,17 +314,19 @@ definition {
 
 		Workflow.assignToMeTaskByActions(
 			workflowAssetTitle = "WebContentTitle",
-			workflowAssetType = "Web Content Article",
+			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
 		Workflow.approveTaskByActions(
 			workflowAssetTitle = "WebContentTitle",
-			workflowAssetType = "Web Content Article",
+			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WebContentTitle");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WebContentTitle");
 
 		AssertTextEquals(
 			locator1 = "AssetWorkflow#WORKFLOW_STATUS",
@@ -223,8 +346,8 @@ definition {
 
 	@description = "This ensures that a new version of a published WC can be created and submitted for publication once a new translation is approved."
 	@priority = "5"
-	@refactorneeded
-	test ApproveNewTranslationForPublishedWC {
+	@refactordone
+	test CanApproveNewTranslationForPublishedWC {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
 
 		JSONWebcontent.addWebContent(
@@ -249,14 +372,9 @@ definition {
 			requireReset = "false",
 			userEmailAddress = "userea@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.assignRegularRoleCP(
+		JSONRole.assignRoleToUser(
 			roleTitle = "Administrator",
-			userScreenName = "usersn");
+			userEmailAddress = "userea@liferay.com");
 
 		User.logoutPG();
 
@@ -282,9 +400,11 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WC WebContent Title");
 
 		PortletEntry.changeLocale(locale = "es-ES");
 
@@ -312,9 +432,11 @@ definition {
 			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WC WebContent Title");
 
 		PortletEntry.changeLocale(locale = "es-ES");
 
@@ -323,10 +445,71 @@ definition {
 			webContentTitle = "WC WebContent Título");
 	}
 
+	@description = "This ensures that the translation in the web content will not be retained after deleting the translation in pending status from the app."
+	@priority = "4"
+	@refactordone
+	test CanDeletePendingTranslation {
+		JSONWebcontent.addWebContent(
+			content = "WC WebContent Content",
+			description = "Description",
+			groupName = "Guest",
+			title = "WC WebContent Title");
+
+		Workflow.openWorkflowAdmin(siteURLKey = "guest");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Translations.gotoTranslate(webContentTitle = "WC WebContent Title");
+
+		Translations.changeTargetLocale(
+			currentTargetLocale = "ar-SA",
+			newTargetLocale = "es-ES");
+
+		Translations.viewBaseFields(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		Translations.translateFields(
+			webContentContent = "WC WebContent Contenido",
+			webContentDescription = "WC WebContent Descripción",
+			webContentTitle = "WC WebContent Título");
+
+		AssertClick(
+			locator1 = "Button#SUBMIT_FOR_PUBLICATION",
+			value1 = "Submit for Publication");
+
+		Alert.viewSuccessMessage();
+
+		Translations.openTranslationAdmin(siteURLKey = "guest");
+
+		Translations.viewTranslationEntry(
+			language = "es-ES",
+			status = "Pending",
+			title = "Translation of WC WebContent Title to es-ES");
+
+		Translations.deleteTranslationEntry(
+			confirmationText = "Are you sure you want to delete this? It will be deleted immediately.",
+			translationEntry = "Translation of WC WebContent Title to es-ES");
+
+		Translations.viewEmptyState();
+
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WC WebContent Title");
+
+		Translations.viewUntranslatedStatus(locale = "es-ES");
+	}
+
 	@description = "This ensures that an imported translation can be Rejected and Resubmited through the workflow."
 	@priority = "5"
-	@refactorneeded
-	test RejectandResubmitImportToDraftWebContent {
+	@refactordone
+	test CanRejectandResubmitImportToDraftWebContent {
 		JSONWebcontent.addWebContent(
 			content = "WebContent",
 			description = "Description",
@@ -337,7 +520,7 @@ definition {
 
 		Workflow.configureWorkflow(
 			workflowDefinition = "Single Approver",
-			workflowResourceValue = "Web Content Article");
+			workflowResourceValue = "Translation");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
 
@@ -348,34 +531,31 @@ definition {
 			languageList = "French (France)");
 
 		Translations.translateFile(
-			contentTranslateion = "ContenuWeb",
-			descriptionTranslateion = "Ladescription",
+			contentTranslation = "ContenuWeb",
+			descriptionTranslation = "Ladescription",
 			encoding = "utf8",
+			operation = "unzip",
 			titleTranslation = "TitreducontenuWeb",
 			translationFileName = "WebContentTitle-en_US-fr_FR",
-			translationZipFileName = "WebContentTitle-en_US.zip",
+			translationZipFileName = "WebContentTitle-en_US",
 			webContentContent = "WebContent",
 			webContentDescription = "Description",
 			webContentTitle = "WebContentTitle");
 
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
 		Translations.importTranslation(
 			fileName = "WebContentTitle-en_US-fr_FR.xlf",
+			filePath = "/WebContentTitle-en_US",
 			webContentTitle = "WebContentTitle",
 			workflow = "true");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+		Translations.openTranslationAdmin(siteURLKey = "guest");
 
-		WebContent.viewTranslationStatusWithWorkflowCP(
-			webContentContent = "WebContent",
-			webContentTitle = "WebContentTitle",
-			workflowTask = "Review");
-
-		PortletEntry.changeLocale(locale = "fr-FR");
-
-		AssertTextEquals(
-			key_status = "Pending",
-			locator1 = "AssetWorkflow#WORKFLOW_STATUS",
-			value1 = "Pending");
+		Translations.viewTranslationEntry(
+			language = "fr-FR",
+			status = "Pending",
+			title = "Translation of WebContentTitle to fr-FR");
 
 		Navigator.openURL();
 
@@ -383,27 +563,28 @@ definition {
 
 		Workflow.assignToMeTaskByActions(
 			workflowAssetTitle = "WebContentTitle",
-			workflowAssetType = "Web Content Article",
+			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
 
 		Workflow.rejectTaskByActions(
 			workflowAssetTitle = "WebContentTitle",
-			workflowAssetType = "Web Content Article",
+			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+		Translations.openTranslationAdmin(siteURLKey = "guest");
 
-		WebContent.viewTranslationStatusWithWorkflowCP(
-			webContentContent = "WebContent",
-			webContentTitle = "WebContentTitle",
-			workflowTask = "Review");
+		Translations.viewTranslationEntry(
+			language = "fr-FR",
+			status = "Pending",
+			title = "Translation of WebContentTitle to fr-FR");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
 
 		Translations.importTranslation(
 			fileName = "WebContentTitle-en_US-fr_FR.xlf",
+			filePath = "/WebContentTitle-en_US",
 			webContentTitle = "WebContentTitle",
 			workflowResubmit = "true");
 
@@ -411,28 +592,33 @@ definition {
 
 		Workflow.resubmitTaskByActions(
 			workflowAssetTitle = "WebContentTitle",
-			workflowAssetType = "Web Content Article",
+			workflowAssetType = "Translation",
 			workflowTask = "Update");
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
 
 		Workflow.assignToMeTaskByActions(
 			workflowAssetTitle = "WebContentTitle",
-			workflowAssetType = "Web Content Article",
+			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
 		Workflow.approveTaskByActions(
 			workflowAssetTitle = "WebContentTitle",
-			workflowAssetType = "Web Content Article",
+			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+		Translations.openTranslationAdmin(siteURLKey = "guest");
 
-		WebContentNavigator.gotoEditCP(webContentTitle = "WebContentTitle");
+		Translations.viewTranslationEntry(
+			language = "fr-FR",
+			status = "Approved",
+			title = "Translation of WebContentTitle to fr-FR");
 
-		AssertTextEquals(
-			locator1 = "AssetWorkflow#WORKFLOW_STATUS",
-			value1 = "Approved");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WebContentTitle");
 
 		PortletEntry.changeLocale(locale = "fr-FR");
 
@@ -440,16 +626,12 @@ definition {
 			webContentContent = "ContenuWeb",
 			webContentDescription = "Ladescription",
 			webContentTitle = "TitreducontenuWeb");
-
-		AssertTextEquals(
-			locator1 = "AssetWorkflow#WORKFLOW_STATUS",
-			value1 = "Approved");
 	}
 
 	@description = "This ensures that a rejected translation does not appear in a WC."
 	@priority = "5"
-	@refactorneeded
-	test RejectTranslationsForDraftAndApprovedWC {
+	@refactordone
+	test CanRejectTranslationsForDraftAndApprovedWC {
 		for (var resourceValue : list "Translation,Web Content Article") {
 			Workflow.openWorkflowAdmin(siteURLKey = "guest");
 
@@ -500,9 +682,11 @@ definition {
 			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WC WebContent Title");
 
 		PortletEntry.changeLocale(locale = "es-ES");
 
@@ -564,9 +748,11 @@ definition {
 			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WC WebContent Title");
 
 		PortletEntry.changeLocale(locale = "ja-JP");
 
@@ -575,10 +761,148 @@ definition {
 			webContentTitle = "WC WebContent Title");
 	}
 
+	@description = "This ensures that only the valid translation files can be uploaded and resubmitted from a zip file when enabling Workflow."
+	@priority = "4"
+	@refactordone
+	test CanResubmitImportedEntryFromZipFile {
+		JSONWebcontent.addWebContent(
+			content = "WebContent",
+			description = "Description",
+			groupName = "Guest",
+			title = "WebContentTitle");
+
+		Workflow.openWorkflowAdmin(siteURLKey = "guest");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Translations.gotoExportTranslation(webContentTitle = "WebContentTitle");
+
+		Translations.exportTranslation(
+			defaultLanguage = "English (United States)",
+			languageList = "German (Germany),Spanish (Spain)");
+
+		Translations.translateFile(
+			contentTranslation = "Contenidoweb",
+			descriptionTranslation = "Descripcion",
+			encoding = "false",
+			operation = "unzip",
+			titleTranslation = "Titulodelcontenidoweb",
+			translationFileName = "WebContentTitle-en_US-es_ES",
+			translationZipFileName = "WebContentTitle-en_US",
+			webContentContent = "WebContent",
+			webContentDescription = "Description",
+			webContentTitle = "WebContentTitle");
+
+		Translations.translateFile(
+			contentTranslation = "Internetinhalt",
+			descriptionTranslation = "Beschreibung",
+			encoding = "false",
+			operation = "zip",
+			titleTranslation = "TiteldesWebinhalts",
+			translationFileName = "WebContentTitle-en_US-de_DE",
+			translationZipFileName = "WebContentTitle-en_US",
+			webContentContent = "WebContent",
+			webContentDescription = "Description",
+			webContentTitle = "WebContentTitle");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Translations.importTranslation(
+			fileName = "WebContentTitle-en_US_translated.zip",
+			filePath = "",
+			webContentTitle = "WebContentTitle",
+			workflow = "true");
+
+		Translations.openTranslationAdmin(siteURLKey = "guest");
+
+		for (var language : list "de-DE,es-ES") {
+			Translations.viewTranslationEntry(
+				language = "${language}",
+				status = "Pending",
+				title = "Translation of WebContentTitle to ${language}");
+		}
+
+		for (var language : list "de-DE,es-ES") {
+			UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+			Workflow.assignToMeTaskByActions(
+				workflowAssetTitle = "Translation of WebContentTitle to ${language}",
+				workflowAssetType = "Translation",
+				workflowTask = "Review");
+
+			Workflow.rejectTaskByActions(
+				workflowAssetTitle = "Translation of WebContentTitle to ${language}",
+				workflowAssetType = "Translation",
+				workflowTask = "Review");
+
+			Navigator.openURL();
+
+			UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+			Workflow.resubmitTaskByActions(
+				workflowAssetTitle = "Translation of WebContentTitle to ${language}",
+				workflowAssetType = "Translation",
+				workflowTask = "Update");
+
+			UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+			Workflow.assignToMeTaskByActions(
+				workflowAssetTitle = "Translation of WebContentTitle to ${language}",
+				workflowAssetType = "Translation",
+				workflowTask = "Review");
+
+			Workflow.approveTaskByActions(
+				workflowAssetTitle = "Translation of WebContentTitle to ${language}",
+				workflowAssetType = "Translation",
+				workflowTask = "Review");
+		}
+
+		Translations.openTranslationAdmin(siteURLKey = "guest");
+
+		for (var language : list "de-DE,es-ES") {
+			Translations.viewTranslationEntry(
+				language = "${language}",
+				status = "Approved",
+				title = "Translation of WebContentTitle to ${language}");
+		}
+
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WebContentTitle");
+
+		PortletEntry.changeLocale(locale = "de-DE");
+
+		WebContent.viewCP(
+			webContentContent = "Internetinhalt",
+			webContentDescription = "Beschreibung",
+			webContentTitle = "TiteldesWebinhalts");
+
+		AssertTextEquals(
+			locator1 = "AssetWorkflow#WORKFLOW_STATUS",
+			value1 = "Approved");
+
+		PortletEntry.changeLocale(locale = "es-ES");
+
+		WebContent.viewCP(
+			webContentContent = "Contenidoweb",
+			webContentDescription = "Descripcion",
+			webContentTitle = "Titulodelcontenidoweb");
+
+		AssertTextEquals(
+			locator1 = "AssetWorkflow#WORKFLOW_STATUS",
+			value1 = "Approved");
+	}
+
 	@description = "This ensures that the reviewer can receive different translations notifications and reject them individually."
 	@priority = "5"
-	@refactorneeded
-	test ResubmitRejectedEntries {
+	@refactordone
+	test CanResubmitRejectedEntries {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
 
 		JSONWebcontent.addWebContent(
@@ -598,14 +922,9 @@ definition {
 			requireReset = "false",
 			userEmailAddress = "userea@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.assignRegularRoleCP(
+		JSONRole.assignRoleToUser(
 			roleTitle = "Administrator",
-			userScreenName = "usersn");
+			userEmailAddress = "userea@liferay.com");
 
 		User.logoutPG();
 
@@ -783,8 +1102,8 @@ definition {
 
 	@description = "This ensures that a user cannot submit a translation with the same language that is pending review."
 	@priority = "5"
-	@refactorneeded
-	test UpdateSameTranslationAsAnotherUser {
+	@refactordone
+	test CanUpdateSameTranslationAsAnotherUser {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
 
 		JSONWebcontent.addWebContent(
@@ -827,14 +1146,9 @@ definition {
 			requireReset = "false",
 			userEmailAddress = "userea@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.assignRegularRoleCP(
+		JSONRole.assignRoleToUser(
 			roleTitle = "Administrator",
-			userScreenName = "usersn");
+			userEmailAddress = "userea@liferay.com");
 
 		User.logoutPG();
 
@@ -873,8 +1187,8 @@ definition {
 
 	@description = "This ensures that a pending WC can be updated with a newly added translation once the translation is approved."
 	@priority = "5"
-	@refactorneeded
-	test ViewUpdatedWCSubmissionAfterApprovedTranslation {
+	@refactordone
+	test CanViewUpdatedWCSubmissionAfterApprovedTranslation {
 		for (var resourceValue : list "Translation,Web Content Article") {
 			Workflow.openWorkflowAdmin(siteURLKey = "guest");
 
@@ -923,9 +1237,11 @@ definition {
 			workflowAssetType = "Translation",
 			workflowTask = "Review");
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			version = "1.1",
+			webContentTitle = "WC WebContent Title");
 
 		PortletEntry.changeLocale(locale = "es-ES");
 

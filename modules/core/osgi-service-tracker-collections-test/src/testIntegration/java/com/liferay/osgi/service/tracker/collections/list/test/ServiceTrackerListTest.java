@@ -71,7 +71,7 @@ public class ServiceTrackerListTest {
 
 	@Test
 	public void testGetServiceWithCustomComparator() {
-		try (ServiceTrackerList<TrackedOne, TrackedOne> serviceTrackerList =
+		try (ServiceTrackerList<TrackedOne> serviceTrackerList =
 				ServiceTrackerListFactory.open(
 					_bundleContext, TrackedOne.class,
 					new Comparator<ServiceReference<TrackedOne>>() {
@@ -100,27 +100,27 @@ public class ServiceTrackerListTest {
 
 	@Test
 	public void testGetServiceWithServiceTrackerCustomizer() {
-		try (ServiceTrackerList<TrackedOne, TrackedOne> serviceTrackerList =
+		try (ServiceTrackerList<TrackedOne> serviceTrackerList =
 				ServiceTrackerListFactory.open(
 					_bundleContext, TrackedOne.class, null,
 					new ServiceTrackerCustomizer<TrackedOne, TrackedOne>() {
 
 						@Override
 						public TrackedOne addingService(
-							ServiceReference<TrackedOne> reference) {
+							ServiceReference<TrackedOne> serviceReference) {
 
 							return new CustomizedService();
 						}
 
 						@Override
 						public void modifiedService(
-							ServiceReference<TrackedOne> reference,
+							ServiceReference<TrackedOne> serviceReference,
 							TrackedOne service) {
 						}
 
 						@Override
 						public void removedService(
-							ServiceReference<TrackedOne> reference,
+							ServiceReference<TrackedOne> serviceReference,
 							TrackedOne service) {
 						}
 
@@ -139,7 +139,7 @@ public class ServiceTrackerListTest {
 
 	@Test
 	public void testServiceInsertion() {
-		try (ServiceTrackerList<TrackedOne, TrackedOne> serviceTrackerList =
+		try (ServiceTrackerList<TrackedOne> serviceTrackerList =
 				ServiceTrackerListFactory.open(
 					_bundleContext, TrackedOne.class)) {
 
@@ -158,7 +158,7 @@ public class ServiceTrackerListTest {
 
 	@Test
 	public void testServiceIterationOrderWithCustomComparator() {
-		try (ServiceTrackerList<TrackedOne, TrackedOne> serviceTrackerList =
+		try (ServiceTrackerList<TrackedOne> serviceTrackerList =
 				ServiceTrackerListFactory.open(
 					_bundleContext, TrackedOne.class,
 					new Comparator<ServiceReference<TrackedOne>>() {
@@ -193,13 +193,36 @@ public class ServiceTrackerListTest {
 				i++;
 			}
 
+			for (ServiceRegistration<TrackedOne> serviceRegistration :
+					serviceRegistrations) {
+
+				ServiceReference<TrackedOne> serviceReference =
+					serviceRegistration.getReference();
+
+				Dictionary<String, Object> properties = new Hashtable<>();
+
+				properties.put(
+					"service.ranking",
+					-(int)serviceReference.getProperty("service.ranking"));
+
+				serviceRegistration.setProperties(properties);
+			}
+
+			i = 1;
+
+			for (TrackedOne service : serviceTrackerList) {
+				Assert.assertSame(services[i], service);
+
+				i--;
+			}
+
 			unregister(serviceRegistrations);
 		}
 	}
 
 	@Test
 	public void testServiceIterationOrderWithDefaultComparator() {
-		try (ServiceTrackerList<TrackedOne, TrackedOne> serviceTrackerList =
+		try (ServiceTrackerList<TrackedOne> serviceTrackerList =
 				ServiceTrackerListFactory.open(
 					_bundleContext, TrackedOne.class)) {
 
@@ -222,7 +245,7 @@ public class ServiceTrackerListTest {
 
 	@Test
 	public void testServiceRemoval() {
-		try (ServiceTrackerList<TrackedOne, TrackedOne> serviceTrackerList =
+		try (ServiceTrackerList<TrackedOne> serviceTrackerList =
 				ServiceTrackerListFactory.open(
 					_bundleContext, TrackedOne.class)) {
 
@@ -293,6 +316,6 @@ public class ServiceTrackerListTest {
 	}
 
 	private BundleContext _bundleContext;
-	private ServiceTrackerList<Object, Object> _serviceTrackerList;
+	private ServiceTrackerList<Object> _serviceTrackerList;
 
 }

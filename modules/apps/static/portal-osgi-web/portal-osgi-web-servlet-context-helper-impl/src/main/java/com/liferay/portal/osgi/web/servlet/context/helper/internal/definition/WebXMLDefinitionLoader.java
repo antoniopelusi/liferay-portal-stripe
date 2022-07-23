@@ -83,8 +83,6 @@ public class WebXMLDefinitionLoader extends DefaultHandler {
 		_saxParserFactory = saxParserFactory;
 		_classes = classes;
 		_annotatedClasses = annotatedClasses;
-
-		_webXMLDefinition = new WebXMLDefinition();
 	}
 
 	@Override
@@ -941,16 +939,13 @@ public class WebXMLDefinitionLoader extends DefaultHandler {
 			// See http://bugs.java.com/view_bug.do?bug_id=7183985 and LPS-69679
 
 			if (_log.isDebugEnabled()) {
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("Unexpected error retrieving the annotation ");
-				sb.append(WebServlet.class);
-				sb.append("from class ");
-				sb.append(clazz);
-				sb.append(" because a some dependency may not be present in ");
-				sb.append("the classpath");
-
-				_log.debug(sb.toString(), exception);
+				_log.debug(
+					StringBundler.concat(
+						"Unexpected error retrieving the annotation ",
+						WebServlet.class, "from class ", clazz,
+						" because a some dependency may not be present in the ",
+						"classpath"),
+					exception);
 			}
 
 			return;
@@ -1176,7 +1171,7 @@ public class WebXMLDefinitionLoader extends DefaultHandler {
 	private String _taglibLocation;
 	private String _taglibUri;
 	private WebResourceCollection _webResourceCollection;
-	private final WebXMLDefinition _webXMLDefinition;
+	private final WebXMLDefinition _webXMLDefinition = new WebXMLDefinition();
 
 	private static class FilterMapping {
 

@@ -113,4 +113,7 @@ public interface DSLQueryStatusEntryModel
 	 */
 	public void setStatusDate(Date statusDate);
 
+	@Override
+	public DSLQueryStatusEntry cloneWithOriginalValues();
+
 }

@@ -75,7 +75,6 @@ export default function renderApp({
 	classPK = '',
 	initialGoals = segmentsGoals,
 	initialExperimentHistory = [],
-	initialSegmentsExperiences = [],
 	initialSegmentsExperiment,
 	initialSegmentsVariants = [],
 	APIService = {},
@@ -115,7 +114,7 @@ export default function renderApp({
 					publishExperience,
 					runExperiment,
 				},
-				assetsPath: '',
+				imagesPath: '',
 				page: {
 					classNameId,
 					classPK,
@@ -126,7 +125,6 @@ export default function renderApp({
 			<SegmentsExperimentsSidebar
 				initialExperimentHistory={initialExperimentHistory}
 				initialGoals={initialGoals}
-				initialSegmentsExperiences={initialSegmentsExperiences}
 				initialSegmentsExperiment={initialSegmentsExperiment}
 				initialSegmentsVariants={initialSegmentsVariants}
 				selectedSegmentsExperienceId={selectedSegmentsExperienceId}

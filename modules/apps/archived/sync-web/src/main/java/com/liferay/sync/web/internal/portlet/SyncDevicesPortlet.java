@@ -65,7 +65,7 @@ public class SyncDevicesPortlet extends BaseSyncPortlet {
 
 		long syncDeviceId = ParamUtil.getLong(actionRequest, "syncDeviceId");
 
-		checkSyncDevice(syncDeviceId, themeDisplay.getUserId());
+		_checkSyncDevice(syncDeviceId, themeDisplay.getUserId());
 
 		super.deleteDevice(actionRequest, actionResponse);
 	}
@@ -80,12 +80,19 @@ public class SyncDevicesPortlet extends BaseSyncPortlet {
 
 		long syncDeviceId = ParamUtil.getLong(actionRequest, "syncDeviceId");
 
-		checkSyncDevice(syncDeviceId, themeDisplay.getUserId());
+		_checkSyncDevice(syncDeviceId, themeDisplay.getUserId());
 
 		super.updateDevice(actionRequest, actionResponse);
 	}
 
-	protected void checkSyncDevice(long syncDeviceId, long userId)
+	@Reference(
+		target = "(&(release.bundle.symbolic.name=com.liferay.sync.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))",
+		unbind = "-"
+	)
+	protected void setRelease(Release release) {
+	}
+
+	private void _checkSyncDevice(long syncDeviceId, long userId)
 		throws Exception {
 
 		SyncDevice syncDevice = syncDeviceLocalService.getSyncDevice(
@@ -94,13 +101,6 @@ public class SyncDevicesPortlet extends BaseSyncPortlet {
 		if (userId != syncDevice.getUserId()) {
 			throw new PrincipalException();
 		}
-	}
-
-	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.sync.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))",
-		unbind = "-"
-	)
-	protected void setRelease(Release release) {
 	}
 
 }

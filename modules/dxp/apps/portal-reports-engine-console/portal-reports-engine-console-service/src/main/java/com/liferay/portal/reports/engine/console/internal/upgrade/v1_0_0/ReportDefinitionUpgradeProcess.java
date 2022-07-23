@@ -38,26 +38,27 @@ public class ReportDefinitionUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		if (hasTable("Reports_Definition")) {
-			updateReportDefinitions();
+			_updateReportDefinitions();
 		}
 	}
 
-	protected void updateReportDefinitions() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+	private void _updateReportDefinitions() throws Exception {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select companyId, definitionId, reportParameters from " +
 					"Reports_Definition")) {
 
-			try (PreparedStatement ps2 =
+			try (PreparedStatement preparedStatement2 =
 					AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 						connection,
 						"update Reports_Definition set reportParameters = ? " +
 							"where companyId = ? and definitionId = ?");
-				ResultSet rs = ps1.executeQuery()) {
+				ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-				while (rs.next()) {
-					String reportParameters = rs.getString("reportParameters");
+				while (resultSet.next()) {
+					String reportParameters = resultSet.getString(
+						"reportParameters");
 
-					String updatedReportParameters = updateReportParameters(
+					String updatedReportParameters = _updateReportParameters(
 						reportParameters);
 
 					if (Validator.isNotNull(reportParameters) &&
@@ -66,21 +67,23 @@ public class ReportDefinitionUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					ps2.setString(1, updatedReportParameters);
+					preparedStatement2.setString(1, updatedReportParameters);
 
-					ps2.setString(1, reportParameters);
-					ps2.setLong(2, rs.getLong("companyId"));
-					ps2.setLong(3, rs.getLong("definitionId"));
+					preparedStatement2.setString(1, reportParameters);
+					preparedStatement2.setLong(
+						2, resultSet.getLong("companyId"));
+					preparedStatement2.setLong(
+						3, resultSet.getLong("definitionId"));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
 
-	protected String updateReportParameters(String reportParameters) {
+	private String _updateReportParameters(String reportParameters) {
 		Matcher matcher = _pattern.matcher(reportParameters);
 
 		if (!matcher.find()) {

@@ -57,17 +57,12 @@ public class Order {
 			return false;
 		}
 
-		final Order order = (Order)object;
+		Order order = (Order)object;
 
-		if (_ascending != order._ascending) {
-			return false;
-		}
+		if ((_ascending != order._ascending) ||
+			!Objects.equals(_metricName, order._metricName) ||
+			!Objects.equals(_path, order._path)) {
 
-		if (!Objects.equals(_metricName, order._metricName)) {
-			return false;
-		}
-
-		if (!Objects.equals(_path, order._path)) {
 			return false;
 		}
 

@@ -485,12 +485,8 @@ public class PortletPermissionImpl implements PortletPermission {
 		for (Portlet portlet : layoutTypePortlet.getAllPortlets(false)) {
 			if (contains(
 					permissionChecker, groupId, layout, portlet.getPortletId(),
-					actionId)) {
-
-				return true;
-			}
-
-			if (contains(
+					actionId) ||
+				contains(
 					permissionChecker, groupId, null,
 					portlet.getRootPortletId(), actionId)) {
 
@@ -574,7 +570,7 @@ public class PortletPermissionImpl implements PortletPermission {
 			return layoutManagerActions.contains(actionId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return false;
 		}

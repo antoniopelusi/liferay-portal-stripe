@@ -306,13 +306,7 @@ public class TrashImpl implements Trash {
 
 	@Override
 	public String getNewName(String oldName, String token) {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(oldName);
-		sb.append(StringPool.SPACE);
-		sb.append(token);
-
-		return sb.toString();
+		return StringBundler.concat(oldName, StringPool.SPACE, token);
 	}
 
 	@Override

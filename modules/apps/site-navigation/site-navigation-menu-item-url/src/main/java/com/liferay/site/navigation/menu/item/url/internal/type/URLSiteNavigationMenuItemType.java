@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.site.navigation.constants.SiteNavigationWebKeys;
 import com.liferay.site.navigation.menu.item.layout.constants.SiteNavigationMenuItemTypeConstants;
 import com.liferay.site.navigation.model.SiteNavigationMenuItem;
@@ -42,7 +43,10 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	immediate = true,
-	property = "site.navigation.menu.item.type=" + SiteNavigationMenuItemTypeConstants.URL,
+	property = {
+		"service.ranking:Integer=200",
+		"site.navigation.menu.item.type=" + SiteNavigationMenuItemTypeConstants.URL
+	},
 	service = SiteNavigationMenuItemType.class
 )
 public class URLSiteNavigationMenuItemType
@@ -64,10 +68,9 @@ public class URLSiteNavigationMenuItemType
 		SiteNavigationMenuItem siteNavigationMenuItem) {
 
 		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		typeSettingsUnicodeProperties.fastLoad(
-			siteNavigationMenuItem.getTypeSettings());
+			UnicodePropertiesBuilder.fastLoad(
+				siteNavigationMenuItem.getTypeSettings()
+			).build();
 
 		return typeSettingsUnicodeProperties.get("url");
 	}
@@ -75,10 +78,9 @@ public class URLSiteNavigationMenuItemType
 	@Override
 	public String getTarget(SiteNavigationMenuItem siteNavigationMenuItem) {
 		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		typeSettingsUnicodeProperties.fastLoad(
-			siteNavigationMenuItem.getTypeSettings());
+			UnicodePropertiesBuilder.fastLoad(
+				siteNavigationMenuItem.getTypeSettings()
+			).build();
 
 		boolean useNewTab = GetterUtil.getBoolean(
 			typeSettingsUnicodeProperties.getProperty(
@@ -96,10 +98,9 @@ public class URLSiteNavigationMenuItemType
 		SiteNavigationMenuItem siteNavigationMenuItem, Locale locale) {
 
 		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		typeSettingsUnicodeProperties.fastLoad(
-			siteNavigationMenuItem.getTypeSettings());
+			UnicodePropertiesBuilder.fastLoad(
+				siteNavigationMenuItem.getTypeSettings()
+			).build();
 
 		String defaultLanguageId = typeSettingsUnicodeProperties.getProperty(
 			Field.DEFAULT_LANGUAGE_ID,

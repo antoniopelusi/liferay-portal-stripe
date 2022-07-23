@@ -30,13 +30,14 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -245,34 +246,6 @@ public class ChangesetEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ChangesetEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ChangesetEntry.class.getClassLoader(), ChangesetEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ChangesetEntry> constructor =
-				(Constructor<ChangesetEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<ChangesetEntry, Object>>
@@ -648,6 +621,34 @@ public class ChangesetEntryModelImpl
 	}
 
 	@Override
+	public ChangesetEntry cloneWithOriginalValues() {
+		ChangesetEntryImpl changesetEntryImpl = new ChangesetEntryImpl();
+
+		changesetEntryImpl.setChangesetEntryId(
+			this.<Long>getColumnOriginalValue("changesetEntryId"));
+		changesetEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		changesetEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		changesetEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		changesetEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		changesetEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		changesetEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		changesetEntryImpl.setChangesetCollectionId(
+			this.<Long>getColumnOriginalValue("changesetCollectionId"));
+		changesetEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		changesetEntryImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+
+		return changesetEntryImpl;
+	}
+
+	@Override
 	public int compareTo(ChangesetEntry changesetEntry) {
 		long primaryKey = changesetEntry.getPrimaryKey();
 
@@ -771,7 +772,7 @@ public class ChangesetEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -782,9 +783,26 @@ public class ChangesetEntryModelImpl
 			Function<ChangesetEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ChangesetEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ChangesetEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -831,7 +849,9 @@ public class ChangesetEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ChangesetEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ChangesetEntry.class, ModelWrapper.class);
 
 	}
 

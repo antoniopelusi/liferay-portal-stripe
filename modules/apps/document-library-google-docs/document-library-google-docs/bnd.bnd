@@ -1,12 +1,17 @@
 Bundle-Name: Liferay Document Library Google Docs
 Bundle-SymbolicName: com.liferay.document.library.google.docs
-Bundle-Version: 6.0.2
+Bundle-Version: 6.0.19
 Import-Package:\
 	!com.sun.org.apache.xml.internal.utils,\
 	!com.sun.org.apache.xpath.internal,\
 	!com.sun.org.apache.xpath.internal.objects,\
 	\
 	!org.apache.log,\
+	!org.apache.tools.ant.*,\
+	!org.apache.xml.utils,\
+	!org.apache.xpath.*,\
+	\
+	!org.jdom.*,\
 	\
 	!org.mozilla.javascript,\
 	\

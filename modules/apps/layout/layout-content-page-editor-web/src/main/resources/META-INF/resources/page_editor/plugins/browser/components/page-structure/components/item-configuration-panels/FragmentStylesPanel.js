@@ -12,31 +12,27 @@
  * details.
  */
 
-import ClayIcon from '@clayui/icon';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 
 import {FRAGMENT_CONFIGURATION_ROLES} from '../../../../../../app/config/constants/fragmentConfigurationRoles';
-import {FREEMARKER_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../../app/config/constants/freemarkerFragmentEntryProcessor';
 import {VIEWPORT_SIZES} from '../../../../../../app/config/constants/viewportSizes';
 import {config} from '../../../../../../app/config/index';
-import selectLanguageId from '../../../../../../app/selectors/selectLanguageId';
-import selectSegmentsExperienceId from '../../../../../../app/selectors/selectSegmentsExperienceId';
 import {
 	useDispatch,
 	useSelector,
 	useSelectorCallback,
-} from '../../../../../../app/store/index';
-import updateFragmentConfiguration from '../../../../../../app/thunks/updateFragmentConfiguration';
+} from '../../../../../../app/contexts/StoreContext';
+import selectLanguageId from '../../../../../../app/selectors/selectLanguageId';
+import getFragmentConfigurationValues from '../../../../../../app/utils/getFragmentConfigurationValues';
 import {getResponsiveConfig} from '../../../../../../app/utils/getResponsiveConfig';
+import updateConfigurationValue from '../../../../../../app/utils/updateConfigurationValue';
 import {getLayoutDataItemPropTypes} from '../../../../../../prop-types/index';
 import {CommonStyles} from './CommonStyles';
 import {FieldSet} from './FieldSet';
 
-export const FragmentStylesPanel = ({item}) => {
+export function FragmentStylesPanel({item}) {
 	const dispatch = useDispatch();
-
-	const {availableViewportSizes} = config;
 
 	const fragmentEntryLink = useSelectorCallback(
 		(state) => state.fragmentEntryLinks[item.config.fragmentEntryLinkId],
@@ -44,46 +40,35 @@ export const FragmentStylesPanel = ({item}) => {
 	);
 
 	const languageId = useSelector(selectLanguageId);
-
-	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
 	const selectedViewportSize = useSelector(
 		(state) => state.selectedViewportSize
 	);
 
-	const viewportSize = availableViewportSizes[selectedViewportSize];
-
 	const itemConfig = getResponsiveConfig(item.config, selectedViewportSize);
+
+	const hasCustomStyles =
+		fragmentEntryLink.configuration?.fieldSets?.filter(
+			(fieldSet) =>
+				fieldSet.configurationRole ===
+				FRAGMENT_CONFIGURATION_ROLES.style
+		).length && selectedViewportSize === VIEWPORT_SIZES.desktop;
 
 	const onCustomStyleValueSelect = useCallback(
 		(name, value) => {
-			const configurationValues = getConfigurationValues(
-				fragmentEntryLink
-			);
-
-			const nextConfigurationValues = {
-				...configurationValues,
-				[name]: value,
-			};
-
-			dispatch(
-				updateFragmentConfiguration({
-					configurationValues: nextConfigurationValues,
-					fragmentEntryLink,
-					languageId,
-					segmentsExperienceId,
-				})
-			);
+			updateConfigurationValue({
+				configuration: fragmentEntryLink.configuration,
+				dispatch,
+				fragmentEntryLink,
+				languageId,
+				name,
+				value,
+			});
 		},
-		[dispatch, fragmentEntryLink, languageId, segmentsExperienceId]
+		[dispatch, fragmentEntryLink, languageId]
 	);
 
 	return (
 		<>
-			<p className="page-editor__row-styles-panel__viewport-label">
-				<ClayIcon className="mr-2" symbol={viewportSize.icon} />
-				{viewportSize.label}
-			</p>
-
 			{selectedViewportSize === VIEWPORT_SIZES.desktop && (
 				<CustomStyles
 					fragmentEntryLink={fragmentEntryLink}
@@ -91,10 +76,14 @@ export const FragmentStylesPanel = ({item}) => {
 				/>
 			)}
 
-			<CommonStyles commonStylesValues={itemConfig.styles} item={item} />
+			<CommonStyles
+				className={hasCustomStyles ? 'mt-3' : null}
+				commonStylesValues={itemConfig.styles}
+				item={item}
+			/>
 		</>
 	);
-};
+}
 
 FragmentStylesPanel.propTypes = {
 	item: getLayoutDataItemPropTypes({
@@ -122,7 +111,9 @@ const CustomStyles = ({fragmentEntryLink, onValueSelect}) => {
 						label={fieldSet.label}
 						languageId={config.defaultLanguageId}
 						onValueSelect={onValueSelect}
-						values={getConfigurationValues(fragmentEntryLink)}
+						values={getFragmentConfigurationValues(
+							fragmentEntryLink
+						)}
 					/>
 				);
 			})}
@@ -134,12 +125,3 @@ CustomStyles.propTypes = {
 	fragmentEntryLink: PropTypes.object.isRequired,
 	onValueSelect: PropTypes.func.isRequired,
 };
-
-function getConfigurationValues(fragmentEntryLink) {
-	return {
-		...fragmentEntryLink.defaultConfigurationValues,
-		...fragmentEntryLink.editableValues[
-			FREEMARKER_FRAGMENT_ENTRY_PROCESSOR
-		],
-	};
-}

@@ -14,15 +14,15 @@
 			<redirector inputstring="telnet 127.0.0.1 11312" />
 		</exec>
 
-		<echo message="${gogo.shell.content.out}" />
+		<echo>${gogo.shell.content.out}</echo>
 
 		<if>
 			<contains string="${gogo.shell.content.out}" substring="Connected to 127.0.0.1." />
 			<then>
-				<echo message="PASSED. 'Connected to 127.0.0.1.' is present." />
+				<echo>'Connected to 127.0.0.1.' is present.</echo>
 			</then>
 			<else>
-				<fail message="FAILED. 'Connected to 127.0.0.1.' is not present." />
+				<fail message="'Connected to 127.0.0.1.' is not present." />
 			</else>
 		</if>
 	</target>
@@ -36,15 +36,15 @@
 			<redirector inputstring="telnet 127.0.0.1 11311" />
 		</exec>
 
-		<echo message="${gogo.shell.content.out}" />
+		<echo>${gogo.shell.content.out}</echo>
 
 		<if>
 			<contains string="${gogo.shell.content.out}" substring="telnet: connect to address 127.0.0.1: Connection refused" />
 			<then>
-				<echo message="PASSED. 'telnet: connect to address 127.0.0.1: Connection refused' is present." />
+				<echo>'telnet: connect to address 127.0.0.1: Connection refused' is present.</echo>
 			</then>
 			<else>
-				<fail message="FAILED. 'telnet: connect to address 127.0.0.1: Connection refused' is not present." />
+				<fail message="'telnet: connect to address 127.0.0.1: Connection refused' is not present." />
 			</else>
 		</if>
 	</target>

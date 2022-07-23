@@ -38,11 +38,11 @@ definition {
 
 		WebContentStructures.addCP(structureName = "${structureTitle}");
 
-		DataEngine.addFieldsets(
-			createNewFieldset = "true",
+		DataEngine.createNewFieldset(
 			fieldNameList = "${key_fieldLabel}",
-			fieldsetLabel = "${fieldsetLabel}",
 			fieldsetName = "${fieldsetName}");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "${fieldsetName}");
 
 		Button.clickSave();
 
@@ -51,13 +51,12 @@ definition {
 		Click.clickNoMouseOver(locator1 = "Button#LOCALIZATION_GENERIC");
 
 		AssertElementPresent(
-			key_locale = "en_US",
-			locator1 = "Translation#LOCALIZATION_NAME",
-			value1 = "lexicon-icon-en-us");
+			key_text = "en-us",
+			locator1 = "MenuItem#ANY_ICON");
 
-		AssertElementPresent(
-			key_locale = "en_US",
-			locator1 = "Translation#LOCALIZATION_NAME",
+		AssertTextEquals(
+			key_localizedLanguage = "en-US",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
 			value1 = "Default");
 	}
 
@@ -72,10 +71,14 @@ definition {
 
 		DataEngine.createNewFieldset(
 			fieldNameList = "Date",
+			fieldsetName = "Fieldset Name");
+
+		DataEngine.addTranslationToFieldset(
+			fieldNameList = "Date",
 			fieldsetName = "Fieldset Name",
 			localeList = "pt-BR");
 
-		DataEngine.addFieldsets(fieldsetName = "Fieldset Name");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "Fieldset Name");
 
 		WebContentStructures.saveCP();
 
@@ -93,6 +96,8 @@ definition {
 			key_fieldFieldLabel = "Date",
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
 
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
+
 		DataEngine.viewFieldsetTranslation(
 			fieldNameList = "Date",
 			fieldsetName = "Fieldset Name",
@@ -108,9 +113,7 @@ definition {
 	test DefaultTitlePersistsUponFirstlyTranslatingForAnotherLocale {
 		WebContentStructures.addCP();
 
-		Navigator.gotoNavTab(navTab = "Fieldsets");
-
-		Click(locator1 = "FormViewBuilder#CREATE_NEW_FIELD_SETS");
+		DataEngine.gotoCreateNewFieldset();
 
 		Navigator.gotoNavTab(navTab = "Fields");
 
@@ -124,7 +127,7 @@ definition {
 			key_fieldFieldLabel = "Text",
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
 
-		PortletEntry.changeLocale(
+		DataEngine.changeLocale(
 			locale = "pt-BR",
 			modal = "true");
 
@@ -154,7 +157,9 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		DataEngine.addFieldsets(fieldsetName = "New Fieldset en-US");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset en-US");
+
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
 
 		DataEngine.viewFieldsetTranslation(
 			fieldNameList = "Text",
@@ -165,36 +170,43 @@ definition {
 	@description = "This test ensures its possible to translate the Fieldset to N languages."
 	@priority = "5"
 	test TranslateFieldsetToNLanguages {
-		var fieldsetNameEN = "Fieldset Name";
+		var fieldsetNameEn = "Fieldset Name";
 
 		WebContentStructures.addCP(structureName = "WC Structure Name");
 
-		DataEngine.addFieldsets(
-			createNewFieldset = "true",
+		DataEngine.createNewFieldset(
 			fieldNameList = "Text,Numeric",
-			fieldsetName = "${fieldsetNameEN}");
+			fieldsetName = "${fieldsetNameEn}");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "${fieldsetNameEn}");
+
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
 		DataEngine.editFieldsetsLabel(
-			fieldsetLabel = "${fieldsetNameEN}",
+			fieldsetLabel = "${fieldsetNameEn}",
 			fieldsetLabelEdit = "Fieldset Name pt-BR");
+
+		Translations.addLanguageManageTranslations(key_language = "de-DE");
 
 		PortletEntry.changeLocale(locale = "de-DE");
 
 		DataEngine.editFieldsetsLabel(
-			fieldsetLabel = "${fieldsetNameEN}",
+			fieldsetLabel = "${fieldsetNameEn}",
 			fieldsetLabelEdit = "Fieldset Name de-DE");
+
+		Translations.addLanguageManageTranslations(key_language = "es-ES");
 
 		PortletEntry.changeLocale(locale = "es-ES");
 
 		DataEngine.editFieldsetsLabel(
-			fieldsetLabel = "${fieldsetNameEN}",
+			fieldsetLabel = "${fieldsetNameEn}",
 			fieldsetLabelEdit = "Fieldset Name es-ES");
 
 		DataEngine.addTranslationToFieldset(
 			fieldNameList = "Text,Numeric",
-			fieldsetName = "${fieldsetNameEN}",
+			fieldsetName = "${fieldsetNameEn}",
 			localeList = "pt-BR,de-DE,es-ES");
 
 		WebContentStructures.saveCP();
@@ -203,48 +215,8 @@ definition {
 
 		DataEngine.viewFieldsetTranslation(
 			fieldNameList = "Text,Numeric",
-			fieldsetName = "${fieldsetNameEN}",
+			fieldsetName = "${fieldsetNameEn}",
 			localeList = "pt-BR,de-DE,es-ES");
-
-		Navigator.gotoNavTab(navTab = "Web Content");
-
-		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
-
-		AssertVisible(locator1 = "WCEditWebContent#SIDEBAR");
-
-		PortletEntry.viewLocale(locale = "en-US");
-
-		AssertVisible(
-			key_fieldsetLabel = "New Fieldset",
-			locator1 = "DDMEditStructure#FORM_FIELD_SETS_CONTAINER_LABEL");
-
-		AssertVisible(
-			key_fieldFieldLabel = "Text",
-			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
-
-		AssertVisible(
-			key_helpText = "Text Help Text",
-			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_HELP_TEXT");
-
-		PortletEntry.changeLocale(locale = "pt-BR");
-
-		PortletEntry.viewLocale(locale = "pt-BR");
-
-		AssertVisible(
-			key_fieldsetLabel = "New Fieldset pt-BR",
-			locator1 = "DDMEditStructure#FORM_FIELD_SETS_CONTAINER_LABEL");
-
-		AssertVisible(
-			key_fieldFieldLabel = "Text pt-BR",
-			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
-
-		AssertVisible(
-			key_helpText = "Text Help Text pt-BR",
-			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_HELP_TEXT");
-
-		DataEngine.deleteFieldsetFromSideBar(
-			fieldsetName = "New Fieldset",
-			siteURLKey = "test-site-name");
 	}
 
 	@description = "This test ensures that translations on a fieldset with nested fields persists."
@@ -338,7 +310,7 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		DataEngine.addFieldsets(fieldsetName = "New Fieldset");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
 
 		WebContentStructures.saveCP();
 
@@ -363,6 +335,8 @@ definition {
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
 
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
+
 		PortletEntry.changeLocale(locale = "pt-BR");
 
 		AssertTextEquals(
@@ -384,6 +358,8 @@ definition {
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
 
+		Translations.addLanguageManageTranslations(key_language = "es-ES");
+
 		PortletEntry.changeLocale(locale = "es-ES");
 
 		AssertTextEquals(
@@ -404,6 +380,8 @@ definition {
 				key_fieldsGroupLabel = "Grupo de campos",
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
+
+		Translations.addLanguageManageTranslations(key_language = "ja-JP");
 
 		PortletEntry.changeLocale(locale = "ja-JP");
 
@@ -602,7 +580,7 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		DataEngine.addFieldsets(fieldsetName = "${fieldsetName}");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "${fieldsetName}");
 
 		WebContentStructures.saveCP();
 
@@ -638,6 +616,8 @@ definition {
 				key_fieldsGroupLabel = "Third Level Fields Group",
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
+
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
@@ -678,6 +658,8 @@ definition {
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
 
+		Translations.addLanguageManageTranslations(key_language = "es-ES");
+
 		PortletEntry.changeLocale(locale = "es-ES");
 
 		AssertTextEquals(
@@ -716,6 +698,8 @@ definition {
 				key_fieldsGroupLabel = "Grupo de campos de tercer nivel",
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
+
+		Translations.addLanguageManageTranslations(key_language = "de-DE");
 
 		PortletEntry.changeLocale(locale = "de-DE");
 
@@ -938,7 +922,7 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		DataEngine.addFieldsets(fieldsetName = "New Fieldset");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
 
 		WebContentStructures.saveCP();
 
@@ -974,6 +958,8 @@ definition {
 				key_fieldsGroupLabel = "Third Level Fields Group",
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
+
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
@@ -1014,6 +1000,8 @@ definition {
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
 
+		Translations.addLanguageManageTranslations(key_language = "es-ES");
+
 		PortletEntry.changeLocale(locale = "es-ES");
 
 		AssertTextEquals(
@@ -1052,6 +1040,8 @@ definition {
 				key_fieldsGroupLabel = "Grupo de campos de tercer nivel",
 				locator1 = "DataEngineBuilder#FORM_FIELD_NESTED");
 		}
+
+		Translations.addLanguageManageTranslations(key_language = "de-DE");
 
 		PortletEntry.changeLocale(locale = "de-DE");
 
@@ -1104,10 +1094,14 @@ definition {
 
 		DataEngine.createNewFieldset(
 			fieldNameList = "Text",
+			fieldsetName = "Fieldset Name");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "Fieldset Name");
+
+		DataEngine.addTranslationToFieldset(
+			fieldNameList = "Text",
 			fieldsetName = "Fieldset Name",
 			localeList = "pt-BR");
-
-		DataEngine.addFieldsets(fieldsetName = "Fieldset Name");
 
 		WebContentStructures.addLocalization(
 			locale = "pt-BR",
@@ -1133,6 +1127,8 @@ definition {
 	@description = "This test ensures it's not possible to edit a fieldset inside a field group on a structure."
 	@priority = "4"
 	test VerifyNestedFieldsetEditionOnStructure {
+		property portal.upstream = "quarantine";
+
 		WebContentStructures.addCP(structureName = "WC Structure Name");
 
 		DataEngine.addField(
@@ -1140,6 +1136,10 @@ definition {
 			fieldName = "Upload");
 
 		DataEngine.createNewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+
+		DataEngine.addTranslationToFieldset(
 			fieldNameList = "Text",
 			fieldsetName = "New Fieldset",
 			localeList = "pt-BR");
@@ -1170,6 +1170,8 @@ definition {
 		AssertVisible(
 			key_fieldFieldLabel = "Text",
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
+
+		WebContentStructures.addTranslations(localeList = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 

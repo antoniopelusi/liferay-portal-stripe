@@ -23,30 +23,6 @@
 	&__input {
 		position: relative;
 		vertical-align: middle;
-
-		.minium-card &::before {
-			background-color: rgba(157, 158, 158, 0.5);
-			border-radius: 50%;
-			bottom: 0;
-			content: '';
-			left: 0;
-			position: absolute;
-			right: 0;
-			top: 0;
-			transform: scale(0);
-			transition: all $micro-transition;
-			z-index: -1;
-		}
-
-		.minium-card &:checked::before {
-			background-color: $color-theme;
-		}
-
-		.minium-card &:hover {
-			&::before {
-				transform: scale(3);
-			}
-		}
 	}
 
 	&__label {

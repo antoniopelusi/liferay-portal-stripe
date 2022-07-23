@@ -14,6 +14,11 @@
 
 package com.liferay.jenkins.results.parser;
 
+import java.io.File;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.json.JSONObject;
 
 /**
@@ -21,11 +26,17 @@ import org.json.JSONObject;
  */
 public class PluginsWorkspaceGitRepository extends BaseWorkspaceGitRepository {
 
-	public static final String TYPE = "plugins";
+	public String getPortalUpstreamBranchName() {
+		return optString("portal_upstream_branch_name", "master");
+	}
+
+	public void setPortalUpstreamBranchName(String portalUpstreamBranchName) {
+		put("portal_upstream_branch_name", portalUpstreamBranchName);
+	}
 
 	@Override
-	public String getType() {
-		return TYPE;
+	public void writePropertiesFiles() {
+		_writeBuildPropertiesFile();
 	}
 
 	protected PluginsWorkspaceGitRepository(JSONObject jsonObject) {
@@ -45,17 +56,21 @@ public class PluginsWorkspaceGitRepository extends BaseWorkspaceGitRepository {
 	}
 
 	@Override
-	protected String getDefaultRelativeGitRepositoryDirPath(
-		String upstreamBranchName) {
+	protected Set<String> getPropertyOptions() {
+		Set<String> propertyOptions = new HashSet<>(super.getPropertyOptions());
 
-		String name = getName();
+		propertyOptions.add(getPortalUpstreamBranchName());
 
-		if (upstreamBranchName.equals("master")) {
-			return name.replace("-ee", "");
-		}
+		return propertyOptions;
+	}
 
-		return JenkinsResultsParserUtil.combine(
-			name.replace("-ee", ""), "-", upstreamBranchName);
+	private void _writeBuildPropertiesFile() {
+		JenkinsResultsParserUtil.writePropertiesFile(
+			new File(
+				getDirectory(),
+				JenkinsResultsParserUtil.combine(
+					"build.", System.getenv("HOSTNAME"), ".properties")),
+			getProperties("plugins.build.properties"), true);
 	}
 
 }

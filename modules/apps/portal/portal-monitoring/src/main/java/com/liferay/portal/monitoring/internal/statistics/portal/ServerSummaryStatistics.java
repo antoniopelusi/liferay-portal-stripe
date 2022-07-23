@@ -278,7 +278,7 @@ public class ServerSummaryStatistics implements SummaryStatistics {
 		}
 		catch (Exception exception) {
 			throw new MonitoringException(
-				"Unable to get company with company id " + companyId,
+				"Unable to get company with company ID " + companyId,
 				exception);
 		}
 	}
@@ -294,7 +294,7 @@ public class ServerSummaryStatistics implements SummaryStatistics {
 		}
 		catch (Exception exception) {
 			throw new MonitoringException(
-				"Unable to get company with web id " + webId, exception);
+				"Unable to get company with web ID " + webId, exception);
 		}
 	}
 

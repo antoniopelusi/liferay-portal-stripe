@@ -137,13 +137,19 @@ AUI.add(
 			_defSelectFn(event) {
 				var instance = this;
 
+				var tplReplace = instance.get('tplReplace');
+
 				var text = event.result.text;
 
-				var tplReplace = instance.get('tplReplace');
+				var mentionsResult = document.getElementById(
+					'_com_liferay_mentions_web_portlet_MentionsPortlet_mentionsResult'
+				);
 
 				if (tplReplace) {
 					text = Lang.sub(tplReplace, event.result.raw);
 				}
+
+				mentionsResult.style.display = 'none';
 
 				instance._inputNode.focus();
 
@@ -241,9 +247,10 @@ AUI.add(
 						triggers.indexOf(trigger)
 					];
 
-					instance.setAttrs(
-						A.merge(instance._triggerConfigDefaults, triggerConfig)
-					);
+					instance.setAttrs({
+						...instance._triggerConfigDefaults,
+						...triggerConfig,
+					});
 
 					instance._trigger = trigger;
 				}
@@ -275,17 +282,17 @@ AUI.add(
 
 				instance._bindUIACIBase();
 
-				var autocompleteAttrs = A.Object.keys(
+				var autocompleteAttrs = Object.keys(
 					A.AutoComplete.ATTRS
 				).filter((item) => {
 					return item !== 'value';
 				});
 
-				instance._triggerConfigDefaults = A.merge(
-					TRIGGER_CONFIG_DEFAULTS
-				);
+				instance._triggerConfigDefaults = TRIGGER_CONFIG_DEFAULTS;
 
-				A.mix(
+				// eslint-disable-next-line prefer-object-spread
+				Object.assign(
+					{},
 					instance._triggerConfigDefaults,
 					instance.getAttrs(),
 					false,

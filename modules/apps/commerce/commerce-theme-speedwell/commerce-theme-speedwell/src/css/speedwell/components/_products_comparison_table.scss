@@ -1,0 +1,27 @@
+.products-comparison-table.table {
+	td:last-child,
+	th:last-child {
+		padding: 0;
+	}
+
+	thead {
+		background-color: transparent;
+
+		td {
+			padding: 0 0.2rem;
+		}
+
+		tr,
+		td {
+			background-color: transparent;
+		}
+	}
+
+	tr.table-divider {
+		height: 40px;
+	}
+
+	.card-item-first {
+		padding: 0;
+	}
+}

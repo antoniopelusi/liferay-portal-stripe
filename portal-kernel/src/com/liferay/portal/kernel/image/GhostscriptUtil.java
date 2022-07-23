@@ -23,7 +23,7 @@ import java.util.concurrent.Future;
 public class GhostscriptUtil {
 
 	public static Future<?> execute(List<String> arguments) throws Exception {
-		return getGhostscript().execute(arguments);
+		return _ghostscript.execute(arguments);
 	}
 
 	public static Ghostscript getGhostscript() {
@@ -31,11 +31,11 @@ public class GhostscriptUtil {
 	}
 
 	public static boolean isEnabled() {
-		return getGhostscript().isEnabled();
+		return _ghostscript.isEnabled();
 	}
 
 	public static void reset() {
-		getGhostscript().reset();
+		_ghostscript.reset();
 	}
 
 	public void setGhostscript(Ghostscript ghostscript) {

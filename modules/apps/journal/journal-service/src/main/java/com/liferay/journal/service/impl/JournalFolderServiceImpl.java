@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.base.JournalFolderServiceBaseImpl;
+import com.liferay.journal.service.persistence.JournalArticleFinder;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -233,14 +234,14 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 			status);
 
 		if (folderIds.size() <= PropsValues.SQL_DATA_MAX_PARAMETERS) {
-			return journalArticleFinder.filterCountByG_F(
+			return _journalArticleFinder.filterCountByG_F(
 				groupId, folderIds, queryDefinition);
 		}
 
 		int start = 0;
 		int end = PropsValues.SQL_DATA_MAX_PARAMETERS;
 
-		int articlesCount = journalArticleFinder.filterCountByG_F(
+		int articlesCount = _journalArticleFinder.filterCountByG_F(
 			groupId, folderIds.subList(start, end), queryDefinition);
 
 		List<Long> sublist = folderIds.subList(start, end);
@@ -464,6 +465,9 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 	)
 	private ModelResourcePermission<DDMStructure>
 		_ddmStructureModelResourcePermission;
+
+	@Reference
+	private JournalArticleFinder _journalArticleFinder;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.journal.model.JournalFolder)"

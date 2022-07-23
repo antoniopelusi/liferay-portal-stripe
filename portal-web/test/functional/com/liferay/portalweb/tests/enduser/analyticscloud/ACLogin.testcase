@@ -1,0 +1,51 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+
+		ACSettings.takeTokenFromAnalyticsCloud();
+
+		TestCase.setUpPortalInstance();
+
+		ACUtils.launchDXP();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8534 | Test Summary: Sign out of AC"
+	@priority = "5"
+	test CanSignOutAC {
+		task ("Navigate to AC workspace") {
+			ACUtils.launchAC();
+		}
+
+		task ("Sign out AC") {
+			ACWorkspace.signOut();
+		}
+
+		task ("View redirect to the Sign In page") {
+			AssertVisible(locator1 = "ACLogin#EMAIL_LOGIN_FIELD");
+
+			AssertVisible(locator1 = "ACLogin#PASSWORD_LOGIN_FIELD");
+
+			AssertVisible(locator1 = "ACLogin#LOGIN_BUTTON");
+		}
+	}
+
+}

@@ -47,19 +47,27 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 			ignoreMissingAddEntryResourceAction;
 	}
 
-	protected void addAnnouncementsAdminResourceActions() {
-		addResourceAction(
-			ActionKeys.ACCESS_IN_CONTROL_PANEL,
-			_BITWISE_VALUE_ACCESS_IN_CONTROL_PANEL);
-		addResourceAction(ActionKeys.VIEW, _BITWISE_VALUE_VIEW);
+	@Override
+	protected void doUpgrade() throws Exception {
+		_addAnnouncementsAdminResourceActions();
+
+		_upgradeAlertsResourcePermission();
+		_upgradeAnnouncementsResourcePermission();
 	}
 
-	protected void addAnnouncementsAdminViewResourcePermission(
+	private void _addAnnouncementsAdminResourceActions() {
+		_addResourceAction(
+			ActionKeys.ACCESS_IN_CONTROL_PANEL,
+			_BITWISE_VALUE_ACCESS_IN_CONTROL_PANEL);
+		_addResourceAction(ActionKeys.VIEW, _BITWISE_VALUE_VIEW);
+	}
+
+	private void _addAnnouncementsAdminViewResourcePermission(
 			long companyId, int scope, String primKey, long primKeyId,
 			long roleId)
 		throws Exception {
 
-		String key = getKey(companyId, scope, primKey, roleId);
+		String key = _getKey(companyId, scope, primKey, roleId);
 
 		if (_resourcePermissions.contains(key)) {
 			return;
@@ -77,29 +85,28 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 			"com_liferay_announcements_web_portlet_AnnouncementsAdminPortlet";
 		long ownerId = 0;
 
-		StringBundler sb = new StringBundler(4);
+		String sql = StringBundler.concat(
+			"insert into ResourcePermission (mvccVersion, ",
+			"resourcePermissionId, companyId, name, scope, primKey, ",
+			"primKeyId, roleId, ownerId, actionIds, viewActionId) values (?, ",
+			"?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-		sb.append("insert into ResourcePermission (mvccVersion, ");
-		sb.append("resourcePermissionId, companyId, name, scope, primKey, ");
-		sb.append("primKeyId, roleId, ownerId, actionIds, viewActionId) ");
-		sb.append("values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				sql)) {
 
-		String sql = sb.toString();
+			preparedStatement.setLong(1, 0);
+			preparedStatement.setLong(2, resourcePermissionId);
+			preparedStatement.setLong(3, companyId);
+			preparedStatement.setString(4, name);
+			preparedStatement.setInt(5, scope);
+			preparedStatement.setString(6, primKey);
+			preparedStatement.setLong(7, primKeyId);
+			preparedStatement.setLong(8, roleId);
+			preparedStatement.setLong(9, ownerId);
+			preparedStatement.setLong(10, actionBitwiseValue);
+			preparedStatement.setBoolean(11, true);
 
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setLong(1, 0);
-			ps.setLong(2, resourcePermissionId);
-			ps.setLong(3, companyId);
-			ps.setString(4, name);
-			ps.setInt(5, scope);
-			ps.setString(6, primKey);
-			ps.setLong(7, primKeyId);
-			ps.setLong(8, roleId);
-			ps.setLong(9, ownerId);
-			ps.setLong(10, actionBitwiseValue);
-			ps.setBoolean(11, true);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -108,28 +115,25 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void addResourceAction(String actionId, long bitwiseValue) {
+	private void _addResourceAction(String actionId, long bitwiseValue) {
 		long resourceActionId = increment(ResourceAction.class.getName());
 
-		StringBundler sb = new StringBundler(3);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into ResourceAction (mvccVersion, ",
+					"resourceActionId, name, actionId, bitwiseValue) values ",
+					"(?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into ResourceAction (mvccVersion, ");
-		sb.append("resourceActionId, name, actionId, bitwiseValue) values ");
-		sb.append("(?, ?, ?, ?, ?)");
-
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setLong(1, 0);
-			ps.setLong(2, resourceActionId);
-			ps.setString(
+			preparedStatement.setLong(1, 0);
+			preparedStatement.setLong(2, resourceActionId);
+			preparedStatement.setString(
 				3,
 				"com_liferay_announcements_web_portlet_" +
 					"AnnouncementsAdminPortlet");
-			ps.setString(4, actionId);
-			ps.setLong(5, bitwiseValue);
+			preparedStatement.setString(4, actionId);
+			preparedStatement.setLong(5, bitwiseValue);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -138,88 +142,60 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void deleteResourceAction(long resourceActionId)
+	private void _deleteResourceAction(long resourceActionId)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"delete from ResourceAction where resourceActionId = ?")) {
 
-			ps.setLong(1, resourceActionId);
+			preparedStatement.setLong(1, resourceActionId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		addAnnouncementsAdminResourceActions();
-
-		upgradeAlertsResourcePermission();
-		upgradeAnnouncementsResourcePermission();
-	}
-
-	protected String getKey(
+	private String _getKey(
 		long companyId, int scope, String primKey, long roleId) {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append(companyId);
-		sb.append(StringPool.PERIOD);
-		sb.append(scope);
-		sb.append(StringPool.PERIOD);
-		sb.append(primKey);
-		sb.append(StringPool.PERIOD);
-		sb.append(roleId);
-
-		return sb.toString();
+		return StringBundler.concat(
+			companyId, StringPool.PERIOD, scope, StringPool.PERIOD, primKey,
+			StringPool.PERIOD, roleId);
 	}
 
-	protected void updateResourcePermission(
+	private void _updateResourcePermission(
 			long resourcePermissionId, long bitwiseValue)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update ResourcePermission set actionIds = ? where " +
 					"resourcePermissionId = ?")) {
 
-			ps.setLong(1, bitwiseValue);
-			ps.setLong(2, resourcePermissionId);
+			preparedStatement.setLong(1, bitwiseValue);
+			preparedStatement.setLong(2, resourcePermissionId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void upgradeAlertsResourcePermission() throws Exception {
-		upgradeResourcePermission(
+	private void _upgradeAlertsResourcePermission() throws Exception {
+		_upgradeResourcePermission(
 			"com_liferay_announcements_web_portlet_AlertsPortlet");
 	}
 
-	protected void upgradeAnnouncementsResourcePermission() throws Exception {
-		upgradeResourcePermission(
+	private void _upgradeAnnouncementsResourcePermission() throws Exception {
+		_upgradeResourcePermission(
 			"com_liferay_announcements_web_portlet_AnnouncementsPortlet");
 	}
 
-	protected void upgradeResourcePermission(String name) throws Exception {
-		StringBundler sb1 = new StringBundler(4);
+	private void _upgradeResourcePermission(String name) throws Exception {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select resourceActionId, bitwiseValue from ",
+					"ResourceAction where actionId = 'ADD_ENTRY' and name = '",
+					name, "'"));
+			ResultSet resultSet1 = preparedStatement1.executeQuery()) {
 
-		sb1.append("select resourceActionId, bitwiseValue from ");
-		sb1.append("ResourceAction where actionId = 'ADD_ENTRY' and name = '");
-		sb1.append(name);
-		sb1.append("'");
-
-		StringBundler sb2 = new StringBundler(5);
-
-		sb2.append("select resourcePermissionId, companyId, scope, primKey, ");
-		sb2.append("primKeyId, roleId, actionIds from ResourcePermission ");
-		sb2.append("where name = '");
-		sb2.append(name);
-		sb2.append("'");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			ResultSet rs1 = ps1.executeQuery()) {
-
-			if (!rs1.next()) {
+			if (!resultSet1.next()) {
 				if (!_ignoreMissingAddEntryResourceAction) {
 					_log.error(
 						StringBundler.concat(
@@ -231,27 +207,31 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 				return;
 			}
 
-			long bitwiseValue = rs1.getLong("bitwiseValue");
+			long bitwiseValue = resultSet1.getLong("bitwiseValue");
 
-			try (PreparedStatement ps2 = connection.prepareStatement(
-					sb2.toString());
-				ResultSet rs = ps2.executeQuery()) {
+			try (PreparedStatement preparedStatement2 =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select resourcePermissionId, companyId, scope, ",
+							"primKey, primKeyId, roleId, actionIds from ",
+							"ResourcePermission where name = '", name, "'"));
+				ResultSet resultSet = preparedStatement2.executeQuery()) {
 
-				while (rs.next()) {
-					long actionIds = rs.getLong("actionIds");
+				while (resultSet.next()) {
+					long actionIds = resultSet.getLong("actionIds");
 
 					if ((bitwiseValue & actionIds) == 0) {
 						continue;
 					}
 
-					long resourcePermissionId = rs.getLong(
+					long resourcePermissionId = resultSet.getLong(
 						"resourcePermissionId");
-					long companyId = rs.getLong("companyId");
-					int scope = rs.getInt("scope");
-					String primKey = rs.getString("primKey");
-					long primKeyId = rs.getLong("primKeyId");
+					long companyId = resultSet.getLong("companyId");
+					int scope = resultSet.getInt("scope");
+					String primKey = resultSet.getString("primKey");
+					long primKeyId = resultSet.getLong("primKeyId");
 
-					updateResourcePermission(
+					_updateResourcePermission(
 						resourcePermissionId, actionIds - bitwiseValue);
 
 					if (scope == ResourceConstants.SCOPE_INDIVIDUAL) {
@@ -265,16 +245,16 @@ public class PermissionUpgradeProcess extends UpgradeProcess {
 						}
 					}
 
-					long roleId = rs.getLong("roleId");
+					long roleId = resultSet.getLong("roleId");
 
-					addAnnouncementsAdminViewResourcePermission(
+					_addAnnouncementsAdminViewResourcePermission(
 						companyId, scope, primKey, primKeyId, roleId);
 				}
 			}
 
-			long resourceActionId = rs1.getLong("resourceActionId");
+			long resourceActionId = resultSet1.getLong("resourceActionId");
 
-			deleteResourceAction(resourceActionId);
+			_deleteResourceAction(resourceActionId);
 		}
 	}
 

@@ -37,7 +37,7 @@ definition {
 			Navigator.openSiteURL(siteName = "${siteName}");
 
 			ProductMenu.gotoPortlet(
-				category = "Content &amp; Data",
+				category = "Content & Data",
 				portlet = "Documents and Media",
 				site = "${siteName}");
 		}
@@ -128,7 +128,9 @@ definition {
 	}
 
 	macro configureWorkflowCP {
-		DMFolder.gotoEditCP(folderName = "${dmFolderName}");
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "${dmFolderName}");
 
 		if (IsElementNotPresent.isNotVisible(locator1 = "Radio#WORKFLOW_PARENT_FOLDER")) {
 			Click(locator1 = "DocumentsAndMediaEditFolder#WORKFLOW_DOCUMENT_TYPE_RESTRICTIONS_TOGGLE");
@@ -176,10 +178,8 @@ definition {
 				locator1 = "Select#WORKFLOW_DEFAULT",
 				value1 = "${workflowDefinition}");
 
-			Button.clickSave();
+			PortletEntry.save();
 		}
-
-		Alert.viewSuccessMessage();
 	}
 
 	macro deleteCP {
@@ -408,7 +408,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media",
 			site = "${site}");
 
@@ -422,13 +422,7 @@ definition {
 			PortletEntry.clickMoveToRecycleBin();
 		}
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Recycle Bin",
-			portlet = "Recycle Bin");
-
-		RecycleBin.emptyCP();
+		JSONRecycleBin.emptyRecycleBin();
 	}
 
 	macro tearDownPGViaMG {
@@ -444,19 +438,13 @@ definition {
 			VerifyElementPresent(locator1 = "Message#SUCCESS");
 		}
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Recycle Bin",
-			portlet = "Recycle Bin");
-
-		RecycleBin.emptyCP();
+		JSONRecycleBin.emptyRecycleBin();
 	}
 
 	macro viewCP {
 		var key_dmFolderName = "${dmFolderName}";
 
-		if (IsElementPresent(locator1 = "Icon#CURRENT_DISPLAY_STYLE_ACTIVE", key_displayStyle = "list")) {
+		if (IsElementPresent(key_displayStyle = "list", locator1 = "Icon#CURRENT_DISPLAY_STYLE_ACTIVE")) {
 			AssertElementPresent(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_FOLDER_ICON");
 
 			AssertTextEquals(
@@ -508,6 +496,12 @@ definition {
 		MenuItem.click(menuItem = "Permissions");
 
 		IFrame.selectPermissionsFrame();
+	}
+
+	macro viewNoSubscribe {
+		Click(locator1 = "Icon#INFO");
+
+		AssertElementNotPresent(locator1 = "Icon#SUBSCRIBE");
 	}
 
 	macro viewPG {

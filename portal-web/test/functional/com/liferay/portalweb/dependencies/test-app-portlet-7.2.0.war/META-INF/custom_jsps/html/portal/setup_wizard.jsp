@@ -16,6 +16,8 @@
 
 <h6>Custom Setup Wizard Header</h6>
 
-<liferay-util:buffer var="html">
+<liferay-util:buffer
+	var="html"
+>
 	<liferay-util:include page="/html/portal/setup_wizard.portal.jsp" />
 </liferay-util:buffer>

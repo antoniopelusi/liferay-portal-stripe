@@ -133,6 +133,11 @@ public class MemberRequestWrapper
 		}
 	}
 
+	@Override
+	public MemberRequest cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this member request.
 	 *

@@ -42,7 +42,8 @@ public interface GCloudVisionAssetAutoTagProviderCompanyConfiguration {
 		requiredInput = true
 	)
 	@Meta.AD(
-		description = "api-key-description", name = "api-key", required = false
+		description = "set-the-api-key-for-the-google-cloud-vision-api",
+		name = "api-key", required = false
 	)
 	public String apiKey();
 
@@ -50,7 +51,8 @@ public interface GCloudVisionAssetAutoTagProviderCompanyConfiguration {
 	 * Enables auto tagging of images using the G Cloud Vision API.
 	 */
 	@Meta.AD(
-		description = "enabled-description", name = "enabled", required = false
+		description = "enabled-description[google-cloud-vision]",
+		name = "enabled", required = false
 	)
 	public boolean enabled();
 

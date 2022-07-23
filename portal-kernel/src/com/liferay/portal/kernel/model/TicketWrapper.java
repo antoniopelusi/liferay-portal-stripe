@@ -117,6 +117,11 @@ public class TicketWrapper
 		}
 	}
 
+	@Override
+	public Ticket cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this ticket.
 	 *

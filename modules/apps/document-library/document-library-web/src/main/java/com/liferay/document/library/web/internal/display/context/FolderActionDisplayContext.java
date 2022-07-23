@@ -18,8 +18,8 @@ import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
-import com.liferay.document.library.web.internal.display.context.logic.DLPortletInstanceSettingsHelper;
-import com.liferay.document.library.web.internal.display.context.util.DLRequestHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLPortletInstanceSettingsHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
 import com.liferay.document.library.web.internal.helper.DLTrashHelper;
 import com.liferay.document.library.web.internal.security.permission.resource.DLFolderPermission;
 import com.liferay.document.library.web.internal.security.permission.resource.DLPermission;
@@ -107,7 +107,7 @@ public class FolderActionDisplayContext {
 		).setRedirect(
 			_dlRequestHelper.getCurrentURL()
 		).setParameter(
-			"ignoreRootFolder", Boolean.TRUE.toString()
+			"ignoreRootFolder", true
 		).setParameter(
 			"parentFolderId", _getFolderId()
 		).setParameter(
@@ -464,7 +464,7 @@ public class FolderActionDisplayContext {
 			return false;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return false;
 		}
@@ -555,11 +555,7 @@ public class FolderActionDisplayContext {
 
 		Folder folder = _getFolder();
 
-		if (folder == null) {
-			return true;
-		}
-
-		if (!DLFolderUtil.isRepositoryRoot(folder)) {
+		if ((folder == null) || !DLFolderUtil.isRepositoryRoot(folder)) {
 			return true;
 		}
 
@@ -575,11 +571,8 @@ public class FolderActionDisplayContext {
 
 		String portletName = _dlRequestHelper.getPortletName();
 
-		if (!portletName.equals(DLPortletKeys.DOCUMENT_LIBRARY_ADMIN)) {
-			return false;
-		}
-
-		if (!GroupPermissionUtil.contains(
+		if (!portletName.equals(DLPortletKeys.DOCUMENT_LIBRARY_ADMIN) ||
+			!GroupPermissionUtil.contains(
 				_dlRequestHelper.getPermissionChecker(),
 				_dlRequestHelper.getScopeGroupId(),
 				ActionKeys.EXPORT_IMPORT_PORTLET_INFO)) {
@@ -591,12 +584,8 @@ public class FolderActionDisplayContext {
 			StagingGroupHelperUtil.getStagingGroupHelper();
 
 		if (!stagingGroupHelper.isStagingGroup(
-				_dlRequestHelper.getScopeGroupId())) {
-
-			return false;
-		}
-
-		if (!stagingGroupHelper.isStagedPortlet(
+				_dlRequestHelper.getScopeGroupId()) ||
+			!stagingGroupHelper.isStagedPortlet(
 				_dlRequestHelper.getScopeGroupId(),
 				DLPortletKeys.DOCUMENT_LIBRARY)) {
 
@@ -633,7 +622,7 @@ public class FolderActionDisplayContext {
 			return false;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return false;
 		}
@@ -642,11 +631,9 @@ public class FolderActionDisplayContext {
 	public boolean isViewSlideShowActionVisible() throws PortalException {
 		String portletName = _dlRequestHelper.getPortletName();
 
-		if (!portletName.equals(DLPortletKeys.MEDIA_GALLERY_DISPLAY)) {
-			return false;
-		}
+		if (!portletName.equals(DLPortletKeys.MEDIA_GALLERY_DISPLAY) ||
+			!_hasViewPermission()) {
 
-		if (!_hasViewPermission()) {
 			return false;
 		}
 
@@ -732,23 +719,20 @@ public class FolderActionDisplayContext {
 			return StringPool.BLANK;
 		}
 
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_dlRequestHelper.getLiferayPortletResponse()
 		).setMVCRenderCommandName(
 			mvcRenderCommandName
-		).build();
+		).setParameter(
+			"folderId",
+			() -> {
+				if (DLFolderUtil.isRepositoryRoot(folder)) {
+					return DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+				}
 
-		if (DLFolderUtil.isRepositoryRoot(folder)) {
-			portletURL.setParameter(
-				"folderId",
-				String.valueOf(DLFolderConstants.DEFAULT_PARENT_FOLDER_ID));
-		}
-		else {
-			portletURL.setParameter(
-				"folderId", String.valueOf(folder.getParentFolderId()));
-		}
-
-		return portletURL.toString();
+				return folder.getParentFolderId();
+			}
+		).buildString();
 	}
 
 	private long _getRepositoryId() {

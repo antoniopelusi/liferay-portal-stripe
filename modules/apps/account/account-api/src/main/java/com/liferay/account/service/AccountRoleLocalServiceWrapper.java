@@ -27,6 +27,10 @@ public class AccountRoleLocalServiceWrapper
 	implements AccountRoleLocalService,
 			   ServiceWrapper<AccountRoleLocalService> {
 
+	public AccountRoleLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AccountRoleLocalServiceWrapper(
 		AccountRoleLocalService accountRoleLocalService) {
 
@@ -149,7 +153,9 @@ public class AccountRoleLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteAccountRolesByCompanyId(long companyId) {
+	public void deleteAccountRolesByCompanyId(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_accountRoleLocalService.deleteAccountRolesByCompanyId(companyId);
 	}
 
@@ -167,6 +173,13 @@ public class AccountRoleLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _accountRoleLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _accountRoleLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -324,6 +337,15 @@ public class AccountRoleLocalServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.account.model.AccountRole>
+		getAccountRolesByAccountEntryIds(
+			long companyId, long[] accountEntryIds) {
+
+		return _accountRoleLocalService.getAccountRolesByAccountEntryIds(
+			companyId, accountEntryIds);
+	}
+
+	@Override
+	public java.util.List<com.liferay.account.model.AccountRole>
 		getAccountRolesByAccountEntryIds(long[] accountEntryIds) {
 
 		return _accountRoleLocalService.getAccountRolesByAccountEntryIds(
@@ -387,56 +409,23 @@ public class AccountRoleLocalServiceWrapper
 	@Override
 	public com.liferay.portal.kernel.search.BaseModelSearchResult
 		<com.liferay.account.model.AccountRole> searchAccountRoles(
-			long companyId, long accountEntryId, String keywords, int start,
-			int end,
+			long companyId, long[] accountEntryIds, String keywords,
+			java.util.LinkedHashMap<String, Object> params, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator<?>
 				orderByComparator) {
 
 		return _accountRoleLocalService.searchAccountRoles(
-			companyId, accountEntryId, keywords, start, end, orderByComparator);
-	}
-
-	@Override
-	public com.liferay.portal.kernel.search.BaseModelSearchResult
-		<com.liferay.account.model.AccountRole> searchAccountRoles(
-			long companyId, long[] accountEntryIds, String keywords, int start,
-			int end,
-			com.liferay.portal.kernel.util.OrderByComparator<?>
-				orderByComparator) {
-
-		return _accountRoleLocalService.searchAccountRoles(
-			companyId, accountEntryIds, keywords, start, end,
+			companyId, accountEntryIds, keywords, params, start, end,
 			orderByComparator);
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x)
-	 */
-	@Deprecated
 	@Override
-	public com.liferay.portal.kernel.search.BaseModelSearchResult
-		<com.liferay.account.model.AccountRole> searchAccountRoles(
-			long accountEntryId, String keywords, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator<?>
-				orderByComparator) {
+	public void setUserAccountRoles(
+			long accountEntryId, long[] accountRoleIds, long userId)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _accountRoleLocalService.searchAccountRoles(
-			accountEntryId, keywords, start, end, orderByComparator);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x)
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.search.BaseModelSearchResult
-		<com.liferay.account.model.AccountRole> searchAccountRoles(
-			long[] accountEntryIds, String keywords, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator<?>
-				orderByComparator) {
-
-		return _accountRoleLocalService.searchAccountRoles(
-			accountEntryIds, keywords, start, end, orderByComparator);
+		_accountRoleLocalService.setUserAccountRoles(
+			accountEntryId, accountRoleIds, userId);
 	}
 
 	@Override

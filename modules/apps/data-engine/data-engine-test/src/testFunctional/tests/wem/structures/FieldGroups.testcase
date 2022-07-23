@@ -105,17 +105,17 @@ definition {
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
 
-		DataEngine.assertFieldsGroup(
+		DEBuilder.assertFieldsGroup(
 			fieldGroupDepth = "1",
 			fieldGroupLabel = "Fields Group 1",
 			fieldsLabelList = "Text,Fields Group 2");
 
-		DataEngine.assertFieldsGroup(
+		DEBuilder.assertFieldsGroup(
 			fieldGroupDepth = "2",
 			fieldGroupLabel = "Fields Group 2",
 			fieldsLabelList = "Numeric,Fields Group 3");
 
-		DataEngine.assertFieldsGroup(
+		DEBuilder.assertFieldsGroup(
 			fieldGroupDepth = "3",
 			fieldGroupLabel = "Fields Group 3",
 			fieldsLabelList = "Date,Color");
@@ -130,17 +130,17 @@ definition {
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
 
-		DataEngine.assertFieldsGroup(
+		DEBuilder.assertFieldsGroup(
 			fieldGroupDepth = "1",
 			fieldGroupLabel = "Fields Group 1",
 			fieldsLabelList = "Edited Text,Fields Group 2");
 
-		DataEngine.assertFieldsGroup(
+		DEBuilder.assertFieldsGroup(
 			fieldGroupDepth = "2",
 			fieldGroupLabel = "Fields Group 2",
 			fieldsLabelList = "Edited Numeric,Fields Group 3");
 
-		DataEngine.assertFieldsGroup(
+		DEBuilder.assertFieldsGroup(
 			fieldGroupDepth = "3",
 			fieldGroupLabel = "Fields Group 3",
 			fieldsLabelList = "Edited Date,Edited Color");
@@ -455,7 +455,8 @@ definition {
 	@description = "This is a test for LRQA-66584. This test validates the duplication of field groups up to 2 levels"
 	@priority = "5"
 	test DuplicateTwoLevelFieldGroups {
-		property portal.acceptance = "true";
+		property portal.acceptance = "quarantine";
+		property portal.upstream = "quarantine";
 
 		DataEngine.addField(
 			fieldFieldLabel = "Text 1",
@@ -479,7 +480,7 @@ definition {
 			fieldsGroupLabel = "Fields Group",
 			fieldsGroupLabelEdit = "Fields Group 2");
 
-		DataEngine.editFieldsGroupRepeatable(fieldsGroupLabel = "Fields Group 2");
+		DataEngine.toggleFieldRepeatable(fieldsGroupLabel = "Fields Group 2");
 
 		WebContentStructures.saveCP();
 
@@ -487,7 +488,7 @@ definition {
 
 		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
 
-		DataEngine.addRepeatableFieldsGroup(fieldsGroupLabel = "Fields Group 2");
+		DataEngine.addRepeatableField(fieldLabel = "Fields Group 2");
 
 		WebContent.addWithStructureCP(
 			webContentText = "This is a Text field - 1",
@@ -565,7 +566,7 @@ definition {
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
 
-		DataEngine.editFieldsGroupRepeatable(fieldsGroupLabel = "Fields Group 1");
+		DataEngine.toggleFieldRepeatable(fieldsGroupLabel = "Fields Group 1");
 
 		WebContentStructures.saveCP();
 
@@ -573,7 +574,7 @@ definition {
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
 
-		DataEngine.addRepeatableFieldsGroup(fieldsGroupLabel = "Fields Group 1");
+		DataEngine.addRepeatableField(fieldLabel = "Fields Group 1");
 
 		for (var labelCount : list "1,2,3") {
 			WebContent.editFieldValue(
@@ -800,7 +801,7 @@ definition {
 			fieldName = "Numeric",
 			targetFieldLabel = "Text");
 
-		DataEngine.editFieldsGroupRepeatable();
+		DataEngine.toggleFieldRepeatable(fieldsGroupLabel = "Fields Group");
 
 		WebContentStructures.saveCP();
 
@@ -810,7 +811,7 @@ definition {
 
 		WebContent.addWithStructureCP(webContentTitle = "WC WebContent Title");
 
-		DataEngine.addRepeatableFieldsGroup(fieldsGroupLabel = "Fields Group");
+		DataEngine.addRepeatableField(fieldLabel = "Fields Group");
 
 		PortletEntry.publish();
 

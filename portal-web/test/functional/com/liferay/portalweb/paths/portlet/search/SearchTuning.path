@@ -2,11 +2,13 @@
 <head>
 <title>SearchTuning</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">SearchTuning</td></tr>
 </thead>
+
 <tbody>
 <!--RESULT_RANKINGS-->
 <tr>
@@ -17,6 +19,11 @@
 <tr>
 	<td>RESULT_RANKINGS_ACTIVE_RANKING</td>
 	<td>//tr[@data-qa-id='row'][.//descendant::td[contains(@class,'lfr-status-column') and contains(.,'Active')]]//a[normalize-space(text())='${key_query}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RESULT_RANKINGS_ADD_RESULT_CHECKBOX_LABEL</td>
+	<td>//li[contains(.,'${key_assetTitle}')]//label//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>

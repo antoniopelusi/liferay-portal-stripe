@@ -18,13 +18,13 @@ import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.segments.context.vocabulary.internal.configuration.SegmentsContextVocabularyConfiguration;
 import com.liferay.segments.field.Field;
 import com.liferay.segments.field.customizer.SegmentsFieldCustomizer;
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Activate;
@@ -78,11 +77,8 @@ public class SegmentsContextVocabularySegmentsFieldCustomizer
 
 	@Override
 	public String getLabel(String fieldName, Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			"content.Language", locale, getClass());
-
-		return ResourceBundleUtil.getString(
-			resourceBundle, "field." + CamelCaseUtil.fromCamelCase(fieldName));
+		return LanguageUtil.get(
+			locale, "field." + CamelCaseUtil.fromCamelCase(fieldName));
 	}
 
 	@Override
@@ -93,7 +89,7 @@ public class SegmentsContextVocabularySegmentsFieldCustomizer
 			return null;
 		}
 
-		final String assetVocabulary = _assetVocabulary;
+		String assetVocabulary = _assetVocabulary;
 
 		Group group = _groupLocalService.fetchCompanyGroup(companyId);
 
@@ -130,16 +126,16 @@ public class SegmentsContextVocabularySegmentsFieldCustomizer
 				ConfigurableUtil.createConfigurable(
 					SegmentsContextVocabularyConfiguration.class, properties);
 
-		_entityField = segmentsContextVocabularyConfiguration.entityField();
+		_entityField = segmentsContextVocabularyConfiguration.entityFieldName();
 
 		_assetVocabulary =
-			segmentsContextVocabularyConfiguration.assetVocabulary();
+			segmentsContextVocabularyConfiguration.assetVocabularyName();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SegmentsContextVocabularySegmentsFieldCustomizer.class);
 
-	private String _assetVocabulary;
+	private volatile String _assetVocabulary;
 
 	@Reference
 	private AssetVocabularyLocalService _assetVocabularyLocalService;

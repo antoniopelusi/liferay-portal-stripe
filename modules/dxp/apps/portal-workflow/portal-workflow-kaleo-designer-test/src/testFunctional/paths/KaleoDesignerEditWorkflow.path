@@ -2,15 +2,22 @@
 <head>
 <title>KaleoDesignerEditWorkflow</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">KaleoDesignerEditWorkflow</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>BODY</td>
 	<td>//body</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CIRCLE_ORANGE_CONNECTOR</td>
+	<td>//*[name()='svg:circle' and @class = 'yui3-shape yui3-svgShape yui3-circle yui3-svgCircle']</td>
 	<td></td>
 </tr>
 <tr>
@@ -55,6 +62,11 @@
 </tr>
 <!-- REVISION_HISTORY -->
 <tr>
+	<td>REVISION_HISTORY_PREVIEW_BUTTON</td>
+	<td>//span[contains(.,'Preview')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>REVISION_HISTORY_RESTORE_BUTTON</td>
 	<td>//span[contains(.,'Restore')]</td>
 	<td></td>
@@ -71,6 +83,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>NODE_FIELD</td>
+	<td>//div[contains(@class,'tabs-content')]//li[contains(@class,'builder-field')][div[contains(@class,'field-label')][normalize-space(text())='${key_nodeNodeLabel}']]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE</td>
+	<td>//div[contains(@class,'drop-container')]//div[contains(@class,'diagram-node-${key_nodeType}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>NODE_PNG</td>
 	<td>portal/screenshots/kaleodesigner/node_${key_nodeType}.png</td>
 	<td></td>
@@ -81,14 +103,34 @@
 	<td></td>
 </tr>
 <tr>
+	<td>NODE_BY_TITLE</td>
+	<td>//ul//li[@title='${key_nodeNodeTitle}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
 </tr>
 <!--SETTINGS-->
 <tr>
+	<td>SETTINGS_ACTIONS</td>
+	<td>//td[contains(@class,'table-col-name') and contains(.,'Actions')]//following-sibling::td[contains(@class,'table-col-value')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SETTINGS_ACTIONS_VALUE</td>
+	<td>//td[contains(@class,'table-col-name') and contains(.,'Actions')]//following-sibling::td[contains(.,'${key_actionsValue}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SETTINGS_SCRIPT</td>
 	<td>//td[contains(@class,'table-col-name') and contains(.,'Script')]//following-sibling::td[contains(@class,'table-col-value')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SETTINGS_TABLE</td>
+	<td>//table[contains(@class, "table-table table")]</td>
 	<td></td>
 </tr>
 <tr>
@@ -104,6 +146,11 @@
 <tr>
 	<td>SETTINGS_DESCRIPTION</td>
 	<td>//td[contains(@class,'table-col-name') and contains(.,'Description')]//following-sibling::td[contains(@class,'table-col-value')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SETTINGS_NAME</td>
+	<td>//td[contains(@class,'table-col-name') and contains(.,'Name')]//following-sibling::td[contains(@class,'table-col-value')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -178,6 +225,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SETTINGS_CELL_EDITOR_PRIORITY</td>
+	<td>//input[@name='priority']m</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SETTINGS_CELL_EDITOR_SCALE_SELECT_2</td>
 	<td>xpath=(//select[@name='scale'])[2]</td>
 	<td></td>
@@ -185,6 +237,11 @@
 <tr>
 	<td>SETTINGS_CELL_EDITOR_SCRIPT</td>
 	<td>//textarea[@name='script']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SETTINGS_CELL_EDITOR_SCRIPT_LANGUAGE_SELECT</td>
+	<td>//select[@name='scriptLanguage']</td>
 	<td></td>
 </tr>
 <tr>
@@ -234,6 +291,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ROLE_REMOVE_ICON</td>
+	<td>//div[contains(@class,'cell-editor-focused')]//div[@class='celleditor-view-dynamic-views']//div[contains(@class,'celleditor-assignment-view')][1]//div[@class='celleditor-view-menu'][2]//a</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -252,6 +314,11 @@
 <tr>
 	<td>VIEW_FORM_NODE_DELETE_ICON</td>
 	<td>//div[@class='diagram-node-label' and contains(.,'${key_nodeNodeLabel}')]/../div[3]/div/button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_FORM_NODE_UPDATE</td>
+	<td>//div[contains(text(),'update')]</td>
 	<td></td>
 </tr>
 <tr>

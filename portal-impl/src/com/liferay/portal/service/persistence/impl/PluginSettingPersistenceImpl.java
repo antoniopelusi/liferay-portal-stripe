@@ -15,7 +15,6 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -28,23 +27,24 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchPluginSettingException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.PluginSetting;
 import com.liferay.portal.kernel.model.PluginSettingTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.PluginSettingPersistence;
+import com.liferay.portal.kernel.service.persistence.PluginSettingUtil;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.model.impl.PluginSettingImpl;
 import com.liferay.portal.model.impl.PluginSettingModelImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the plugin setting service.
@@ -582,8 +581,8 @@ public class PluginSettingPersistenceImpl
 	private static final String _FINDER_COLUMN_COMPANYID_COMPANYID_2 =
 		"pluginSetting.companyId = ?";
 
-	private FinderPath _finderPathFetchByC_I_T;
-	private FinderPath _finderPathCountByC_I_T;
+	private FinderPath _finderPathFetchByC_P_P;
+	private FinderPath _finderPathCountByC_P_P;
 
 	/**
 	 * Returns the plugin setting where companyId = &#63; and pluginId = &#63; and pluginType = &#63; or throws a <code>NoSuchPluginSettingException</code> if it could not be found.
@@ -595,11 +594,11 @@ public class PluginSettingPersistenceImpl
 	 * @throws NoSuchPluginSettingException if a matching plugin setting could not be found
 	 */
 	@Override
-	public PluginSetting findByC_I_T(
+	public PluginSetting findByC_P_P(
 			long companyId, String pluginId, String pluginType)
 		throws NoSuchPluginSettingException {
 
-		PluginSetting pluginSetting = fetchByC_I_T(
+		PluginSetting pluginSetting = fetchByC_P_P(
 			companyId, pluginId, pluginType);
 
 		if (pluginSetting == null) {
@@ -637,10 +636,10 @@ public class PluginSettingPersistenceImpl
 	 * @return the matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
 	 */
 	@Override
-	public PluginSetting fetchByC_I_T(
+	public PluginSetting fetchByC_P_P(
 		long companyId, String pluginId, String pluginType) {
 
-		return fetchByC_I_T(companyId, pluginId, pluginType, true);
+		return fetchByC_P_P(companyId, pluginId, pluginType, true);
 	}
 
 	/**
@@ -653,7 +652,7 @@ public class PluginSettingPersistenceImpl
 	 * @return the matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
 	 */
 	@Override
-	public PluginSetting fetchByC_I_T(
+	public PluginSetting fetchByC_P_P(
 		long companyId, String pluginId, String pluginType,
 		boolean useFinderCache) {
 
@@ -670,7 +669,7 @@ public class PluginSettingPersistenceImpl
 
 		if (useFinderCache) {
 			result = FinderCacheUtil.getResult(
-				_finderPathFetchByC_I_T, finderArgs);
+				_finderPathFetchByC_P_P, finderArgs);
 		}
 
 		if (result instanceof PluginSetting) {
@@ -689,28 +688,28 @@ public class PluginSettingPersistenceImpl
 
 			sb.append(_SQL_SELECT_PLUGINSETTING_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_I_T_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_P_P_COMPANYID_2);
 
 			boolean bindPluginId = false;
 
 			if (pluginId.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINID_3);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINID_3);
 			}
 			else {
 				bindPluginId = true;
 
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINID_2);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINID_2);
 			}
 
 			boolean bindPluginType = false;
 
 			if (pluginType.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINTYPE_3);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINTYPE_3);
 			}
 			else {
 				bindPluginType = true;
 
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINTYPE_2);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINTYPE_2);
 			}
 
 			String sql = sb.toString();
@@ -739,7 +738,7 @@ public class PluginSettingPersistenceImpl
 				if (list.isEmpty()) {
 					if (useFinderCache) {
 						FinderCacheUtil.putResult(
-							_finderPathFetchByC_I_T, finderArgs, list);
+							_finderPathFetchByC_P_P, finderArgs, list);
 					}
 				}
 				else {
@@ -775,11 +774,11 @@ public class PluginSettingPersistenceImpl
 	 * @return the plugin setting that was removed
 	 */
 	@Override
-	public PluginSetting removeByC_I_T(
+	public PluginSetting removeByC_P_P(
 			long companyId, String pluginId, String pluginType)
 		throws NoSuchPluginSettingException {
 
-		PluginSetting pluginSetting = findByC_I_T(
+		PluginSetting pluginSetting = findByC_P_P(
 			companyId, pluginId, pluginType);
 
 		return remove(pluginSetting);
@@ -794,13 +793,13 @@ public class PluginSettingPersistenceImpl
 	 * @return the number of matching plugin settings
 	 */
 	@Override
-	public int countByC_I_T(
+	public int countByC_P_P(
 		long companyId, String pluginId, String pluginType) {
 
 		pluginId = Objects.toString(pluginId, "");
 		pluginType = Objects.toString(pluginType, "");
 
-		FinderPath finderPath = _finderPathCountByC_I_T;
+		FinderPath finderPath = _finderPathCountByC_P_P;
 
 		Object[] finderArgs = new Object[] {companyId, pluginId, pluginType};
 
@@ -811,28 +810,28 @@ public class PluginSettingPersistenceImpl
 
 			sb.append(_SQL_COUNT_PLUGINSETTING_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_I_T_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_P_P_COMPANYID_2);
 
 			boolean bindPluginId = false;
 
 			if (pluginId.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINID_3);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINID_3);
 			}
 			else {
 				bindPluginId = true;
 
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINID_2);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINID_2);
 			}
 
 			boolean bindPluginType = false;
 
 			if (pluginType.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINTYPE_3);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINTYPE_3);
 			}
 			else {
 				bindPluginType = true;
 
-				sb.append(_FINDER_COLUMN_C_I_T_PLUGINTYPE_2);
+				sb.append(_FINDER_COLUMN_C_P_P_PLUGINTYPE_2);
 			}
 
 			String sql = sb.toString();
@@ -871,19 +870,19 @@ public class PluginSettingPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_C_I_T_COMPANYID_2 =
+	private static final String _FINDER_COLUMN_C_P_P_COMPANYID_2 =
 		"pluginSetting.companyId = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_I_T_PLUGINID_2 =
+	private static final String _FINDER_COLUMN_C_P_P_PLUGINID_2 =
 		"pluginSetting.pluginId = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_I_T_PLUGINID_3 =
+	private static final String _FINDER_COLUMN_C_P_P_PLUGINID_3 =
 		"(pluginSetting.pluginId IS NULL OR pluginSetting.pluginId = '') AND ";
 
-	private static final String _FINDER_COLUMN_C_I_T_PLUGINTYPE_2 =
+	private static final String _FINDER_COLUMN_C_P_P_PLUGINTYPE_2 =
 		"pluginSetting.pluginType = ?";
 
-	private static final String _FINDER_COLUMN_C_I_T_PLUGINTYPE_3 =
+	private static final String _FINDER_COLUMN_C_P_P_PLUGINTYPE_3 =
 		"(pluginSetting.pluginType IS NULL OR pluginSetting.pluginType = '')";
 
 	public PluginSettingPersistenceImpl() {
@@ -913,13 +912,15 @@ public class PluginSettingPersistenceImpl
 			pluginSetting);
 
 		FinderCacheUtil.putResult(
-			_finderPathFetchByC_I_T,
+			_finderPathFetchByC_P_P,
 			new Object[] {
 				pluginSetting.getCompanyId(), pluginSetting.getPluginId(),
 				pluginSetting.getPluginType()
 			},
 			pluginSetting);
 	}
+
+	private int _valueObjectFinderCacheListThreshold;
 
 	/**
 	 * Caches the plugin settings in the entity cache if it is enabled.
@@ -928,6 +929,13 @@ public class PluginSettingPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<PluginSetting> pluginSettings) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (pluginSettings.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (PluginSetting pluginSetting : pluginSettings) {
 			if (EntityCacheUtil.getResult(
 					PluginSettingImpl.class, pluginSetting.getPrimaryKey()) ==
@@ -991,9 +999,9 @@ public class PluginSettingPersistenceImpl
 		};
 
 		FinderCacheUtil.putResult(
-			_finderPathCountByC_I_T, args, Long.valueOf(1));
+			_finderPathCountByC_P_P, args, Long.valueOf(1));
 		FinderCacheUtil.putResult(
-			_finderPathFetchByC_I_T, args, pluginSettingModelImpl);
+			_finderPathFetchByC_P_P, args, pluginSettingModelImpl);
 	}
 
 	/**
@@ -1415,10 +1423,8 @@ public class PluginSettingPersistenceImpl
 	 * Initializes the plugin setting persistence.
 	 */
 	public void afterPropertiesSet() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_argumentsResolverServiceRegistration = registry.registerService(
-			ArgumentsResolver.class, new PluginSettingModelArgumentsResolver());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1450,27 +1456,45 @@ public class PluginSettingPersistenceImpl
 			new String[] {Long.class.getName()}, new String[] {"companyId"},
 			false);
 
-		_finderPathFetchByC_I_T = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByC_I_T",
+		_finderPathFetchByC_P_P = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByC_P_P",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				String.class.getName()
 			},
 			new String[] {"companyId", "pluginId", "pluginType"}, true);
 
-		_finderPathCountByC_I_T = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_I_T",
+		_finderPathCountByC_P_P = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_P_P",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				String.class.getName()
 			},
 			new String[] {"companyId", "pluginId", "pluginType"}, false);
+
+		_setPluginSettingUtilPersistence(this);
 	}
 
 	public void destroy() {
-		EntityCacheUtil.removeCache(PluginSettingImpl.class.getName());
+		_setPluginSettingUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		EntityCacheUtil.removeCache(PluginSettingImpl.class.getName());
+	}
+
+	private void _setPluginSettingUtilPersistence(
+		PluginSettingPersistence pluginSettingPersistence) {
+
+		try {
+			Field field = PluginSettingUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, pluginSettingPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	private static final String _SQL_SELECT_PLUGINSETTING =
@@ -1502,96 +1526,6 @@ public class PluginSettingPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class PluginSettingModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			PluginSettingModelImpl pluginSettingModelImpl =
-				(PluginSettingModelImpl)baseModel;
-
-			long columnBitmask = pluginSettingModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(pluginSettingModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						pluginSettingModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(pluginSettingModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return PluginSettingImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return PluginSettingTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			PluginSettingModelImpl pluginSettingModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						pluginSettingModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = pluginSettingModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
 	}
 
 }

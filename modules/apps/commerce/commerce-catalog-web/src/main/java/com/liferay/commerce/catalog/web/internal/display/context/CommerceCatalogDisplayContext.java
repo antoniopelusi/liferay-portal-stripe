@@ -25,7 +25,7 @@ import com.liferay.commerce.pricing.constants.CommercePricingConstants;
 import com.liferay.commerce.product.configuration.AttachmentsConfiguration;
 import com.liferay.commerce.product.constants.CPActionKeys;
 import com.liferay.commerce.product.constants.CPPortletKeys;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.service.CommerceCatalogService;
 import com.liferay.document.library.kernel.service.DLAppService;
@@ -224,7 +224,7 @@ public class CommerceCatalogDisplayContext {
 				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/commerce_catalogs/edit_commerce_catalog"
-		).build();
+		).buildPortletURL();
 	}
 
 	public List<HeaderActionModel> getHeaderActionModels() throws Exception {
@@ -253,7 +253,7 @@ public class CommerceCatalogDisplayContext {
 		return _attachmentsConfiguration.imageExtensions();
 	}
 
-	public String getImageItemSelectorUrl() {
+	public String getImageItemSelectorURL() {
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
 			RequestBackedPortletURLFactoryUtil.create(
 				cpRequestHelper.getRenderRequest());
@@ -314,25 +314,16 @@ public class CommerceCatalogDisplayContext {
 	}
 
 	public String getPriceListsApiUrl(String type) throws PortalException {
-		StringBundler filterSB = new StringBundler(6);
+		String encodedFilter = URLCodec.encodeURL(
+			StringBundler.concat(
+				"(catalogId/any(x:(x eq ", getCommerceCatalogId(),
+				"))) and type eq '", type, StringPool.APOSTROPHE),
+			true);
 
-		filterSB.append("(catalogId/any(x:(x eq ");
-		filterSB.append(getCommerceCatalogId());
-		filterSB.append("))) and type eq ");
-		filterSB.append(StringPool.APOSTROPHE);
-		filterSB.append(type);
-		filterSB.append(StringPool.APOSTROPHE);
-
-		String encodedFilter = URLCodec.encodeURL(filterSB.toString(), true);
-
-		StringBundler apiUrlSB = new StringBundler(4);
-
-		apiUrlSB.append(_portal.getPortalURL(cpRequestHelper.getRequest()));
-		apiUrlSB.append("/o/headless-commerce-admin-pricing/v2.0/price-lists");
-		apiUrlSB.append("?filter=");
-		apiUrlSB.append(encodedFilter);
-
-		return apiUrlSB.toString();
+		return StringBundler.concat(
+			_portal.getPortalURL(cpRequestHelper.getRequest()),
+			"/o/headless-commerce-admin-pricing/v2.0/price-lists?filter=",
+			encodedFilter);
 	}
 
 	public boolean hasAddCatalogPermission() {

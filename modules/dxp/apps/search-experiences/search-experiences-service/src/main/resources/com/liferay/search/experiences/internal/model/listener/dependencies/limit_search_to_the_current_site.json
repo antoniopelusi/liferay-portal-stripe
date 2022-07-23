@@ -1,0 +1,33 @@
+{
+	"description_i18n": {
+		"en_US": "Limit the search to the current site."
+	},
+	"elementDefinition": {
+		"category": "filter",
+		"configuration": {
+			"queryConfiguration": {
+				"queryEntries": [
+					{
+						"clauses": [
+							{
+								"context": "query",
+								"occur": "filter",
+								"query": {
+									"term": {
+										"scopeGroupId": "${context.scope_group_id}"
+									}
+								}
+							}
+						]
+					}
+				]
+			}
+		},
+		"icon": "filter",
+		"uiConfiguration": {
+		}
+	},
+	"title_i18n": {
+		"en_US": "Limit Search to the Current Site"
+	}
+}

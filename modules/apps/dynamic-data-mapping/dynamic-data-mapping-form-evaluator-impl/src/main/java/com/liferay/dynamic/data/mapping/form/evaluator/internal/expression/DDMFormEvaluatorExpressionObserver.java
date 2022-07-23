@@ -83,12 +83,12 @@ public class DDMFormEvaluatorExpressionObserver
 	protected void updateFieldProperty(
 		String fieldName, Map<String, Object> properties) {
 
-		Set<DDMFormEvaluatorFieldContextKey> ddmFormFieldContextKeySet =
-			_ddmFormEvaluatorFormValuesHelper.getDDMFormFieldContextKeySet(
+		Set<DDMFormEvaluatorFieldContextKey> ddmFormFieldContextKeys =
+			_ddmFormEvaluatorFormValuesHelper.getDDMFormFieldContextKeys(
 				fieldName);
 
 		for (DDMFormEvaluatorFieldContextKey ddmFormFieldContextKey :
-				ddmFormFieldContextKeySet) {
+				ddmFormFieldContextKeys) {
 
 			updateFieldProperty(ddmFormFieldContextKey, properties);
 		}

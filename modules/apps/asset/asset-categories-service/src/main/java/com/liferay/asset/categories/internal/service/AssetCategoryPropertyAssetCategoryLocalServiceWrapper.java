@@ -14,17 +14,22 @@
 
 package com.liferay.asset.categories.internal.service;
 
+import com.liferay.asset.categories.configuration.AssetCategoriesCompanyConfiguration;
 import com.liferay.asset.category.property.model.AssetCategoryProperty;
 import com.liferay.asset.category.property.service.AssetCategoryPropertyLocalService;
+import com.liferay.asset.kernel.exception.AssetCategoryLimitException;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
-import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetCategoryLocalServiceWrapper;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -45,27 +50,37 @@ import org.osgi.service.component.annotations.Reference;
 public class AssetCategoryPropertyAssetCategoryLocalServiceWrapper
 	extends AssetCategoryLocalServiceWrapper {
 
-	public AssetCategoryPropertyAssetCategoryLocalServiceWrapper() {
-		super(null);
-	}
-
-	public AssetCategoryPropertyAssetCategoryLocalServiceWrapper(
-		AssetCategoryLocalService assetCategoryLocalService) {
-
-		super(assetCategoryLocalService);
-	}
-
 	@Override
 	public AssetCategory addCategory(
-			long userId, long groupId, long parentCategoryId,
-			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
-			long vocabularyId, String[] categoryProperties,
-			ServiceContext serviceContext)
+			String externalReferenceCode, long userId, long groupId,
+			long parentCategoryId, Map<Locale, String> titleMap,
+			Map<Locale, String> descriptionMap, long vocabularyId,
+			String[] categoryProperties, ServiceContext serviceContext)
 		throws PortalException {
 
+		User user = _userLocalService.getUser(userId);
+
+		AssetCategoriesCompanyConfiguration
+			assetCategoriesCompanyConfiguration =
+				_configurationProvider.getCompanyConfiguration(
+					AssetCategoriesCompanyConfiguration.class,
+					user.getCompanyId());
+
+		int vocabularyCategoriesCount = super.getVocabularyCategoriesCount(
+			vocabularyId);
+
+		if (vocabularyCategoriesCount >=
+				assetCategoriesCompanyConfiguration.
+					maximumNumberOfCategoriesPerVocabulary()) {
+
+			throw new AssetCategoryLimitException(
+				"Unable to exceed maximum number of allowed asset categories " +
+					"for asset vocabulary " + vocabularyId);
+		}
+
 		AssetCategory assetCategory = super.addCategory(
-			userId, groupId, parentCategoryId, titleMap, descriptionMap,
-			vocabularyId, categoryProperties, serviceContext);
+			externalReferenceCode, userId, groupId, parentCategoryId, titleMap,
+			descriptionMap, vocabularyId, categoryProperties, serviceContext);
 
 		if (categoryProperties == null) {
 			return assetCategory;
@@ -225,5 +240,14 @@ public class AssetCategoryPropertyAssetCategoryLocalServiceWrapper
 	@Reference
 	private AssetCategoryPropertyLocalService
 		_assetCategoryPropertyLocalService;
+
+	@Reference
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

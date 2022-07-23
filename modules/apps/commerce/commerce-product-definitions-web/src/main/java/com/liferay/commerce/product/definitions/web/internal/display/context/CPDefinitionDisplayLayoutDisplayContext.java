@@ -14,6 +14,9 @@
 
 package com.liferay.commerce.product.definitions.web.internal.display.context;
 
+import com.liferay.commerce.product.configuration.CPDisplayLayoutConfiguration;
+import com.liferay.commerce.product.constants.CPConstants;
+import com.liferay.commerce.product.constants.CPField;
 import com.liferay.commerce.product.display.context.BaseCPDefinitionsDisplayContext;
 import com.liferay.commerce.product.item.selector.criterion.CPDefinitionItemSelectorCriterion;
 import com.liferay.commerce.product.model.CPDisplayLayout;
@@ -29,25 +32,22 @@ import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.criteria.UUIDItemSelectorReturnType;
 import com.liferay.layout.item.selector.criterion.LayoutItemSelectorCriterion;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
 
 import javax.portlet.PortletURL;
 
@@ -64,7 +64,8 @@ public class CPDefinitionDisplayLayoutDisplayContext
 		CommerceChannelLocalService commerceChannelLocalService,
 		CPDefinitionService cpDefinitionService,
 		CPDisplayLayoutService cpDisplayLayoutService,
-		GroupLocalService groupLocalService, ItemSelector itemSelector) {
+		GroupLocalService groupLocalService, ItemSelector itemSelector,
+		LayoutLocalService layoutLocalService) {
 
 		super(actionHelper, httpServletRequest);
 
@@ -73,6 +74,7 @@ public class CPDefinitionDisplayLayoutDisplayContext
 		_cpDisplayLayoutService = cpDisplayLayoutService;
 		_groupLocalService = groupLocalService;
 		_itemSelector = itemSelector;
+		_layoutLocalService = layoutLocalService;
 	}
 
 	public String getAddProductDisplayPageURL() throws Exception {
@@ -132,6 +134,33 @@ public class CPDefinitionDisplayLayoutDisplayContext
 		).build();
 	}
 
+	public Layout getDefaultProductLayout() throws Exception {
+		CommerceChannel commerceChannel = getCommerceChannel();
+
+		CPDisplayLayoutConfiguration cpDisplayLayoutConfiguration =
+			ConfigurationProviderUtil.getConfiguration(
+				CPDisplayLayoutConfiguration.class,
+				new GroupServiceSettingsLocator(
+					commerceChannel.getGroupId(),
+					CPConstants.RESOURCE_NAME_CP_DISPLAY_LAYOUT));
+
+		String layoutUuid = cpDisplayLayoutConfiguration.productLayoutUuid();
+
+		Layout layout = null;
+
+		if (Validator.isNotNull(layoutUuid)) {
+			layout = _layoutLocalService.fetchLayoutByUuidAndGroupId(
+				layoutUuid, commerceChannel.getSiteGroupId(), false);
+
+			if (layout == null) {
+				layout = _layoutLocalService.fetchLayoutByUuidAndGroupId(
+					layoutUuid, commerceChannel.getSiteGroupId(), true);
+			}
+		}
+
+		return layout;
+	}
+
 	public String getDisplayPageItemSelectorUrl() throws PortalException {
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
 			RequestBackedPortletURLFactoryUtil.create(
@@ -159,42 +188,6 @@ public class CPDefinitionDisplayLayoutDisplayContext
 		return itemSelectorURL.toString();
 	}
 
-	public String getLayoutBreadcrumb(Layout layout) throws Exception {
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		Locale locale = themeDisplay.getLocale();
-
-		List<Layout> ancestors = layout.getAncestors();
-
-		StringBundler sb = new StringBundler((4 * ancestors.size()) + 5);
-
-		if (layout.isPrivateLayout()) {
-			sb.append(LanguageUtil.get(httpServletRequest, "private-pages"));
-		}
-		else {
-			sb.append(LanguageUtil.get(httpServletRequest, "public-pages"));
-		}
-
-		sb.append(StringPool.SPACE);
-		sb.append(StringPool.GREATER_THAN);
-		sb.append(StringPool.SPACE);
-
-		Collections.reverse(ancestors);
-
-		for (Layout ancestor : ancestors) {
-			sb.append(HtmlUtil.escape(ancestor.getName(locale)));
-			sb.append(StringPool.SPACE);
-			sb.append(StringPool.GREATER_THAN);
-			sb.append(StringPool.SPACE);
-		}
-
-		sb.append(HtmlUtil.escape(layout.getName(locale)));
-
-		return sb.toString();
-	}
-
 	public String getProductItemSelectorUrl() {
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
 			RequestBackedPortletURLFactoryUtil.create(
@@ -212,7 +205,14 @@ public class CPDefinitionDisplayLayoutDisplayContext
 				requestBackedPortletURLFactory, "productDefinitionsSelectItem",
 				cpDefinitionItemSelectorCriterion)
 		).setParameter(
-			"singleSelection", Boolean.toString(true)
+			CPField.COMMERCE_CHANNEL_GROUP_ID,
+			() -> {
+				CommerceChannel commerceChannel = getCommerceChannel();
+
+				return commerceChannel.getGroupId();
+			}
+		).setParameter(
+			"singleSelection", Boolean.TRUE
 		).buildString();
 	}
 
@@ -222,5 +222,6 @@ public class CPDefinitionDisplayLayoutDisplayContext
 	private final CPDisplayLayoutService _cpDisplayLayoutService;
 	private final GroupLocalService _groupLocalService;
 	private final ItemSelector _itemSelector;
+	private final LayoutLocalService _layoutLocalService;
 
 }

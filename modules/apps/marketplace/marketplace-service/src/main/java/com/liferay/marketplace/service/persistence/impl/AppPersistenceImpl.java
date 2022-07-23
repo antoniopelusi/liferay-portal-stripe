@@ -20,10 +20,10 @@ import com.liferay.marketplace.model.AppTable;
 import com.liferay.marketplace.model.impl.AppImpl;
 import com.liferay.marketplace.model.impl.AppModelImpl;
 import com.liferay.marketplace.service.persistence.AppPersistence;
+import com.liferay.marketplace.service.persistence.AppUtil;
 import com.liferay.marketplace.service.persistence.impl.constants.MarketplacePersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,22 +34,24 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
@@ -59,12 +61,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2450,6 +2449,8 @@ public class AppPersistenceImpl
 			app);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the apps in the entity cache if it is enabled.
 	 *
@@ -2457,6 +2458,13 @@ public class AppPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<App> apps) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (apps.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (App app : apps) {
 			if (entityCache.getResult(AppImpl.class, app.getPrimaryKey()) ==
 					null) {
@@ -2530,7 +2538,7 @@ public class AppPersistenceImpl
 		app.setNew(true);
 		app.setPrimaryKey(appId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		app.setUuid(uuid);
 
@@ -2641,7 +2649,7 @@ public class AppPersistenceImpl
 		AppModelImpl appModelImpl = (AppModelImpl)app;
 
 		if (Validator.isNull(app.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			app.setUuid(uuid);
 		}
@@ -2649,23 +2657,23 @@ public class AppPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (app.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				app.setCreateDate(now);
+				app.setCreateDate(date);
 			}
 			else {
-				app.setCreateDate(serviceContext.getCreateDate(now));
+				app.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!appModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				app.setModifiedDate(now);
+				app.setModifiedDate(date);
 			}
 			else {
-				app.setModifiedDate(serviceContext.getModifiedDate(now));
+				app.setModifiedDate(serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -2956,12 +2964,9 @@ public class AppPersistenceImpl
 	 * Initializes the app persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new AppModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -3057,13 +3062,28 @@ public class AppPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCategory",
 			new String[] {String.class.getName()}, new String[] {"category"},
 			false);
+
+		_setAppUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(AppImpl.class.getName());
+		_setAppUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(AppImpl.class.getName());
+	}
+
+	private void _setAppUtilPersistence(AppPersistence appPersistence) {
+		try {
+			Field field = AppUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, appPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -3091,8 +3111,6 @@ public class AppPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -3130,90 +3148,10 @@ public class AppPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class AppModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AppModelImpl appModelImpl = (AppModelImpl)baseModel;
-
-			long columnBitmask = appModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(appModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |= appModelImpl.getColumnBitmask(
-						columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(appModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AppImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AppTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AppModelImpl appModelImpl, String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = appModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = appModelImpl.getColumnValue(columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private AppModelArgumentsResolver _appModelArgumentsResolver;
 
 }

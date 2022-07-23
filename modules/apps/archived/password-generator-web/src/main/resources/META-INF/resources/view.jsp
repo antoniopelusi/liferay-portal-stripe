@@ -45,9 +45,9 @@ catch (Exception e) {
 }
 %>
 
-<liferay-portlet:renderURL var="generatePasswordUrl" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>" />
+<liferay-portlet:renderURL var="generatePasswordURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>" />
 
-<aui:form action="<%= generatePasswordUrl %>" method="post" name="fm">
+<aui:form action="<%= generatePasswordURL %>" method="post" name="fm">
 	<aui:fieldset>
 		<aui:field-wrapper label="password-settings">
 			<aui:input name="numbers" type="checkbox" value="<%= numbers %>" />

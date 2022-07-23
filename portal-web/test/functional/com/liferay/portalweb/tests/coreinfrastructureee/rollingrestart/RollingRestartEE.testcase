@@ -3,6 +3,7 @@ definition {
 
 	property app.server.bundles.size = "1";
 	property cluster.enabled = "true";
+	property minimum.slave.ram = "24";
 	property remote.elasticsearch.enabled = "true";
 	property test.assert.warning.exceptions = "true";
 	property test.ignore.tomcat.ext.environment = "true";
@@ -26,7 +27,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -51,7 +52,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "9080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
@@ -80,7 +81,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "9080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
@@ -101,7 +102,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
@@ -126,7 +127,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
@@ -147,7 +148,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "9080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
@@ -208,7 +209,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "9080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -233,7 +234,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster2");
@@ -250,7 +251,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "10080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster2");
@@ -277,7 +278,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -302,7 +303,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "9080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster1");
@@ -320,7 +321,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "10080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster1");
@@ -349,7 +350,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "10080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -374,7 +375,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster3");
@@ -391,7 +392,7 @@ definition {
 		Page.assertNodePortPG(nodePort = "9080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster3");
@@ -507,7 +508,7 @@ definition {
 			value1 = "25000");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -546,7 +547,7 @@ definition {
 			value1 = "30000");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster1");
@@ -575,7 +576,7 @@ definition {
 			value1 = "30000");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster1");
@@ -683,7 +684,7 @@ definition {
 			userEmailAddress = "test@liferay.com");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -708,7 +709,7 @@ definition {
 				userEmailAddress = "test@liferay.com");
 
 			ProductMenu.gotoPortlet(
-				category = "Content &amp; Data",
+				category = "Content & Data",
 				portlet = "Web Content");
 
 			WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster2");
@@ -757,14 +758,13 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Documents and Media Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Documents and Media Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Documents and Media Page");
@@ -908,16 +908,16 @@ definition {
 			deleteLiferayHome = "false",
 			nodePort = "9080");
 
-		User.loginPG(
+		User.firstLoginUI(
 			authenticationMethod = "By Screen Name",
-			nodePort = "9080",
 			password = "test",
+			specificURL = "http://localhost:9080",
 			userScreenName = "test");
 
 		Page.assertNodePortPG(nodePort = "9080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -933,15 +933,15 @@ definition {
 		User.logoutPG(specificURL = "http://localhost:9080");
 
 		for (var nodePort : list "8080,10080") {
-			User.loginPG(
-				nodePort = "${nodePort}",
+			User.firstLoginUI(
 				password = "test",
+				specificURL = "http://localhost:${nodePort}",
 				userEmailAddress = "test@liferay.com");
 
 			Page.assertNodePortPG(nodePort = "${nodePort}");
 
 			ProductMenu.gotoPortlet(
-				category = "Content &amp; Data",
+				category = "Content & Data",
 				portlet = "Web Content");
 
 			WebContent.viewTitle(webContentTitle = "WC WebContent Title Cluster2");
@@ -962,7 +962,7 @@ definition {
 			deleteLiferayHome = "false",
 			nodePort = "8080");
 
-		User.loginPG(
+		User.firstLoginUI(
 			authenticationMethod = "By Screen Name",
 			nodePort = "8080",
 			password = "test",
@@ -974,26 +974,27 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Documents and Media Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Documents and Media Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Documents and Media Page");
 
 		Portlet.addPG(portletName = "Documents and Media");
 
+		DMDocument.enableActionsMenuOnPortlet();
+
 		User.logoutPG();
 
-		User.loginPG(
+		User.firstLoginUI(
 			authenticationMethod = "By Screen Name",
-			nodePort = "9080",
 			password = "test",
+			specificURL = "http://localhost:9080",
 			userScreenName = "test");
 
 		Page.assertNodePortPG(nodePort = "9080");
@@ -1006,9 +1007,9 @@ definition {
 
 		User.logoutPG(specificURL = "http://localhost:9080");
 
-		User.loginPG(
-			nodePort = "10080",
+		User.firstLoginUI(
 			password = "test",
+			specificURL = "http://localhost:10080",
 			userEmailAddress = "test@liferay.com");
 
 		Page.assertNodePortPG(nodePort = "10080");
@@ -1034,10 +1035,10 @@ definition {
 			deleteLiferayHome = "false",
 			nodePort = "10080");
 
-		User.loginPG(
+		User.firstLoginUI(
 			authenticationMethod = "By Screen Name",
-			nodePort = "10080",
 			password = "test",
+			specificURL = "http://localhost:10080",
 			userScreenName = "test");
 
 		Page.assertNodePortPG(nodePort = "10080");
@@ -1056,10 +1057,10 @@ definition {
 		User.logoutPG(specificURL = "http://localhost:10080");
 
 		for (var nodePort : list "8080,9080") {
-			User.loginPG(
+			User.firstLoginUI(
 				authenticationMethod = "By Screen Name",
-				nodePort = "${nodePort}",
 				password = "test",
+				specificURL = "http://localhost:${nodePort}",
 				userScreenName = "test");
 
 			Page.assertNodePortPG(nodePort = "${nodePort}");

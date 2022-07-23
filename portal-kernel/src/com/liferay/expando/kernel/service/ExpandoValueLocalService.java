@@ -160,7 +160,7 @@ public interface ExpandoValueLocalService
 	public ExpandoValue addValue(
 			long companyId, String className, String tableName,
 			String columnName, long classPK, Map<Locale, ?> dataMap,
-			Locale defautlLocale)
+			Locale defaultLocale)
 		throws PortalException;
 
 	public ExpandoValue addValue(
@@ -290,6 +290,9 @@ public interface ExpandoValueLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();

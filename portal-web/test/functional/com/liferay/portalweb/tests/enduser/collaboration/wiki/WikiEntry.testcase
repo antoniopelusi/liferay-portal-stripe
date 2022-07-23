@@ -1,0 +1,263 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Wiki";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Wiki Test Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Wiki Test Page",
+			widgetName = "Wiki");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			WikiPage.tearDownCP();
+
+			WikiNode.tearDownCP();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "This is a test for LPS-136983. It checks that an external link can be accessed from a wiki page."
+	@priority = "3"
+	test CanAccessExternalLink {
+		WikiNavigator.openToAddPage(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			wikiNodeName = "Main");
+
+		WikiEntry.addPageTitle(wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addLinkToContent(externalLink = "https://raw.githubusercontent.com/liferay/liferay-portal/master/portal-web/test/functional/com/liferay/portalweb/dependencies/Document_1.jpg");
+
+		PortletEntry.publish();
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		Click(locator1 = "WikiEntry#BODY_LINK");
+
+		AssertVisible(
+			key_contentImageName = "Document_1.jpg",
+			locator1 = "Wiki#CONTENT_IMAGE_NAME");
+	}
+
+	@description = "This is a test for LPS-136987. It checks that related assets can be added to a page."
+	@priority = "3"
+	test CanAddRelatedAssets {
+		JSONWebcontent.addWebContent(
+			content = "Web Content Content",
+			groupName = "Guest",
+			title = "Web Content Title");
+
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openToEditPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		RelatedAssets.selectAsset(
+			assetTitle = "Web Content Title",
+			assetType = "Basic Web Content");
+
+		Button.clickPublish();
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewRelatedAsset(relatedAssetTitle = "Web Content Title");
+	}
+
+	@description = "This is a test for LPS-136985. It checks that a summary can be added to a page."
+	@priority = "3"
+	test CanAddSummary {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openToEditPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addPageSummary(wikiPageSummary = "Wiki Page Summary");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewSummary(
+			wikiPageRevision = "1.1",
+			wikiPageTitle = "Wiki Page Title",
+			wikiVersionSummary = "Wiki Page Summary");
+	}
+
+	@description = "This is a test for LPS-136988. It checks that a table of contents can be added to a page."
+	@priority = "3"
+	test CanAddTableOfContents {
+		WikiNavigator.openToAddPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main");
+
+		WikiEntry.addPageTitle(wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addPageContentTable();
+
+		Button.clickPublish();
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContentTable = "true",
+			wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This is a test for LPS-136995. It checks that page versions can be compared."
+	@ignore = "Test Stub"
+	@priority = "3"
+	test CanComparePageVersions {
+		property portal.acceptance = "false";
+
+		// TODO LPS-136995 CanComparePageVersions pending implementation
+
+	}
+
+	@description = "This is a test for LPS-136996. It checks that a minor change can be created for a page."
+	@priority = "3"
+	test CanCreateMinorChange {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiPage.editPagePG(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			minorEdit = "true",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageContentEdit = "Wiki Page Content Edit",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiTable.viewEntry(
+			entryStatus = "APPROVED",
+			revision = "1.1 (Minor Edit)",
+			wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This is a test for LPS-136989. It checks that pages can be imported into a specific node."
+	@priority = "3"
+	test CanImportPagesIntoSpecificNode {
+		JSONWiki.addWikiNode(
+			groupName = "Guest",
+			wikiNodeDescription = "Wiki Node Description",
+			wikiNodeName = "Wiki Node Name");
+
+		WikiNavigator.openWikiAdmin(siteURLKey = "guest");
+
+		WikiNode.importWikiPage(
+			fileName = "Liferay-sample2.xml",
+			wikiNodeName = "Wiki Node Name");
+
+		WikiNavigator.openToWikiPage(
+			siteURLKey = "guest",
+			wikiNodeName = "Wiki Node Name",
+			wikiPageTitle = "Liferay");
+
+		WikiPage.viewCP(
+			wikiPageContent = "Liferay, Inc., is an open-source company that provides free documentation and paid professional service to users of its software. Mainly focused on enterprise portal] technology, the company has its headquarters in Diamond Bar, California, United States.",
+			wikiPageTitle = "Liferay");
+	}
+
+	@description = "This ensures that the script can be escaped."
+	@priority = "3"
+	@refactordone
+	test CanViewEscapedScriptFromHTML {
+		property portal.acceptance = "false";
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.editFrontPagePG(wikiPageContentEdit = '''<script>alert(123);</script>''');
+
+		AssertAlertNotPresent();
+
+		var actualScript = '''<script>alert(123);</script>''';
+
+		var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
+
+		AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
+
+		AssertHTMLSourceTextPresent(value1 = "${escapedScript}");
+	}
+
+	@description = "This is a test for LPS-136984. It checks that Javascript will not be excuted from the page title."
+	@priority = "3"
+	test TitleWillNotExecuteXSS {
+		WikiPage.addPG(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = '''<script>alert(123);</script>''',
+			wikiPageTitleVariation = "Invalid");
+	}
+
+}

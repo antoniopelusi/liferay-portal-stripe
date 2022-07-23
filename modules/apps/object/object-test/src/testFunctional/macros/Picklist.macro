@@ -1,0 +1,378 @@
+definition {
+
+	macro addLanguageOnPicklist {
+		SelectFrameTop();
+
+		Picklist.assertPicklistDetails(title = "Basic Info");
+
+		PortletEntry.changeLocale(locale = "${newlanguage}");
+
+		Type(
+			locator1 = "Picklist#EDIT_ITEM_NAME",
+			value1 = "${itemName}");
+
+		WaitForSPARefresh();
+	}
+
+	macro addLanguageOnPicklistItem {
+		SelectFrameTop();
+
+		IFrame.selectModalFrame();
+
+		PortletEntry.changeLocale(locale = "${newlanguage}");
+
+		Type(
+			locator1 = "Picklist#EDIT_ITEM_NAME",
+			value1 = "${itemName}");
+
+		WaitForSPARefresh();
+	}
+
+	macro addPicklistItemViaAPI {
+		JSONObject.addPicklistItem(
+			itemKey = "${itemKey}",
+			itemName = "${itemName}",
+			picklistName = "${picklistName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro addPicklistItemViaUI {
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_MODAL");
+
+		Click.javaScriptClick(locator1 = "Picklist#ADD_ITEM_BUTTON");
+
+		if (isSet(picklistItemName)) {
+			Type(
+				locator1 = "Picklist#ADD_PICKLIST_ITEM_NAME",
+				value1 = "${picklistItemName}");
+		}
+
+		if (isSet(picklistItemKey)) {
+			Type(
+				locator1 = "Picklist#ADD_PICKLIST_ITEM_KEY",
+				value1 = "${picklistItemKey}");
+		}
+	}
+
+	macro addPicklistItemWithTranslationViaUI {
+		Picklist.addPicklistItemViaUI(picklistItemName = "${picklistItemName}");
+
+		ObjectAdmin.chooseAnyLanguage(
+			newLanguage = "${newLanguage}",
+			symbolName = "");
+
+		if (IsElementNotPresent(locator1 = "Picklist#VIEW_PICKLIST_ITEM_NAME")) {
+			Click(
+				key_symbolName = "",
+				locator1 = "FormViewBuilder#BUTTON_LOCALIZATION");
+
+			Click(locator1 = "Modal#BODY");
+		}
+
+		Type(
+			locator1 = "Picklist#ADD_PICKLIST_ITEM_NAME",
+			value1 = "${newItemName}");
+
+		ObjectAdmin.chooseAnyLanguage(
+			newLanguage = "${defaultLanguage}",
+			symbolName = "");
+
+		WaitForSPARefresh();
+	}
+
+	macro addPicklistViaAPI {
+		JSONObject.addPicklist(
+			picklistName = "${picklistName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro addPicklistViaUI {
+		Click.javaScriptClick(locator1 = "Picklist#ADD_PICKLIST_BUTTON");
+
+		Type(
+			locator1 = "Picklist#ADD_PICKLIST_NAME",
+			value1 = "${picklistName}");
+
+		Button.clickSave();
+	}
+
+	macro assertDisabledPicklistItem {
+		Picklist.assertDisableKey();
+
+		AssertElementPresent(locator1 = "Picklist#DISABLED_PICKLIST_NAME");
+	}
+
+	macro assertDisabledPicklistName {
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_MODAL");
+
+		AssertElementPresent(locator1 = "Picklist#DISABLED_PICKLIST_NAME");
+	}
+
+	macro assertDisabledSaveButton {
+		AssertElementPresent(locator1 = "CreateObject#SAVE_BUTTON_DISABLED");
+	}
+
+	macro assertDisableKey {
+		IFrame.selectTopFrame();
+
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_ITEM_MODAL");
+
+		AssertElementPresent(locator1 = "Picklist#DISABLE_PICKLIST_KEY");
+	}
+
+	macro assertEmptyStateMessageDisplayed {
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "No items were found.");
+	}
+
+	macro assertEntryRelationshipFieldPicklist {
+		Click(
+			key_selectField = "${selectField}",
+			locator1 = "Picklist#SELECT_FIELD_RELATIONSHIP_OBJECT");
+
+		AssertElementPresent(
+			key_entry = "${newEntry}",
+			locator1 = "CreateObject#ENTRY_RELATIONSHIP_FIELD_OPTION");
+	}
+
+	macro assertItemNameAndItemKeyOnModal {
+		if (IsElementPresent(locator1 = "Picklist#VIEW_PICKLIST_ITEM_NAME")) {
+			AssertElementPresent(
+				key_itemName = "${itemName}",
+				locator1 = "Picklist#VIEW_PICKLIST_ITEM_NAME");
+
+			AssertElementPresent(
+				key_labelName = "${itemName}",
+				locator1 = "ObjectAdmin#VIEW_SIMPLE_TEXT_GENERIC");
+
+			AssertElementPresent(
+				key_itemKey = "${itemKey}",
+				locator1 = "Picklist#VIEW_PICKLIST_ITEM_KEY");
+		}
+
+		if (IsElementPresent(locator1 = "Picklist#VIEW_PICKLIST_EDIT_ITEM_NAME")) {
+			AssertElementPresent(
+				key_itemName = "${itemName}",
+				locator1 = "Picklist#VIEW_PICKLIST_EDIT_ITEM_NAME");
+
+			AssertElementPresent(
+				key_itemKey = "${itemKey}",
+				locator1 = "Picklist#VIEW_PICKLIST_EDIT_ITEM_KEY");
+		}
+	}
+
+	macro assertPicklist {
+		var key_picklistName = "${picklistName}";
+
+		AssertElementPresent(locator1 = "Picklist#VIEW_PICKLIST");
+	}
+
+	macro assertPicklistDetails {
+		var key_title = "${title}";
+
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_MODAL");
+
+		AssertElementPresent(locator1 = "Picklist#PICKLIST_DETAILS");
+	}
+
+	macro assertPicklistItem {
+		var key_picklistItemName = "${picklistItemName}";
+		var key_picklistItemKey = "${picklistItemKey}";
+
+		if (IsElementNotPresent(locator1 = "Picklist#VIEW_PICKLIST_ITEM")) {
+			Picklist.gotoPicklistView(picklistName = "${picklistItemName}");
+		}
+
+		AssertElementPresent(locator1 = "Picklist#VIEW_PICKLIST_ITEM");
+	}
+
+	macro assertPicklistItemByLanguage {
+		SelectFrameTop();
+
+		IFrame.selectModalFrame();
+
+		PortletEntry.changeLocale(locale = "${language}");
+
+		AssertTextEquals(
+			locator1 = "Picklist#EDIT_ITEM_NAME",
+			value1 = "${nameItem}");
+	}
+
+	macro assertPicklistItemDetails {
+		IFrame.selectTopFrame();
+
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_ITEM_MODAL");
+
+		AssertElementPresent(locator1 = "Picklist#PICKLIST_ITEM_DETAILS");
+	}
+
+	macro assertPicklistItemInTable {
+		Picklist.assertPicklistDetails(title = "Items");
+
+		AssertElementPresent(
+			key_picklistItemKey = "${picklistItemKey}",
+			key_picklistItemName = "${picklistItemName}",
+			locator1 = "Picklist#VIEW_PICKLIST_ITEM");
+	}
+
+	macro assertPicklistItemNotPresent {
+		var key_picklistItemName = "${picklistItemName}";
+		var key_picklistItemKey = "${picklistItemKey}";
+
+		AssertElementNotPresent(locator1 = "Picklist#VIEW_PICKLIST_ITEM");
+	}
+
+	macro assertPicklistMessage {
+		var key_picklistMessage = "${picklistMessage}";
+
+		AssertElementPresent(locator1 = "Picklist#PICKLIST_MESSAGE");
+	}
+
+	macro assertPicklistNameByLanguage {
+		SelectFrameTop();
+
+		Picklist.assertPicklistDetails(title = "Basic Info");
+
+		PortletEntry.changeLocale(locale = "${language}");
+
+		AssertTextEquals(
+			locator1 = "Picklist#EDIT_ITEM_NAME",
+			value1 = "${nameItem}");
+	}
+
+	macro assertPicklistNotPresent {
+		var key_picklistName = "${picklistName}";
+
+		AssertElementNotPresent(locator1 = "Picklist#VIEW_PICKLIST");
+	}
+
+	macro assertRequiredKeyItem {
+		AssertElementPresent(locator1 = "Picklist#REQUIRED_KEY_ITEM");
+	}
+
+	macro cancelPicklist {
+		Click.javaScriptClick(locator1 = "Picklist#ADD_PICKLIST_BUTTON");
+
+		Type(
+			locator1 = "Picklist#ADD_PICKLIST_NAME",
+			value1 = "${picklistName}");
+
+		Picklist.cancelPicklistButton();
+	}
+
+	macro cancelPicklistButton {
+		Click(locator1 = "Picklist#CANCEL_PICKLIST");
+	}
+
+	macro cancelUpdatePicklist {
+		Click.javaScriptClick(locator1 = "Picklist#CANCEL_UPDATE_PICKLIST");
+	}
+
+	macro clickSaveButton {
+		Click.javaScriptClick(locator1 = "Picklist#SAVE_BUTTON");
+	}
+
+	macro deleteAllPicklistsViaAPI {
+		JSONObject.deleteAllPicklists(
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro deletePicklistViaAPI {
+		JSONObject.deletePicklist(
+			picklistName = "${picklistName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro gotoPicklists {
+		Navigator.openSpecificURL(url = "/group/guest/~/control_panel/manage?p_p_id=com_liferay_object_web_internal_list_type_portlet_portlet_ListTypeDefinitionsPortlet");
+	}
+
+	macro gotoPicklistView {
+		Click.javaScriptClick(
+			key_picklistName = "${picklistName}",
+			locator1 = "Picklist#SELECT_PICKLIST_VIEW");
+
+		Click.javaScriptClick(locator1 = "Picklist#GOTO_PICKLIST_VIEW");
+	}
+
+	macro optionsPicklist {
+		Click.javaScriptClick(
+			key_picklistName = "${picklistName}",
+			locator1 = "Picklist#PICKLIST_KEBAB_MENU");
+
+		Click.javaScriptClick(
+			key_picklistOption = "${picklistOption}",
+			locator1 = "Picklist#PICKLIST_KEBAB_MENU_OPTION");
+	}
+
+	macro optionsPicklistItem {
+		var key_itemKey = "${itemKey}";
+		var key_picklistItemOption = "${picklistItemOption}";
+
+		SelectFrameTop();
+
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_MODAL");
+
+		Click.javaScriptClick(locator1 = "Picklist#PICKLIST_ITEM_KEBAB_MENU");
+
+		Click.javaScriptClick(locator1 = "Picklist#PICKLIST_ITEM_KEBAB_MENU_OPTION");
+	}
+
+	macro searchPicklist {
+		Type(
+			locator1 = "TextInput#SEARCH",
+			value1 = "${picklistName}");
+
+		KeyPress(
+			locator1 = "TextInput#SEARCH",
+			value1 = "\RETURN");
+	}
+
+	macro searchPicklistItem {
+		Picklist.selectPickilistModalFrame();
+
+		Type(
+			locator1 = "TextInput#SEARCH",
+			value1 = "${picklistItemName}");
+
+		KeyPress(
+			locator1 = "TextInput#SEARCH",
+			value1 = "\RETURN");
+	}
+
+	macro selectPickilistModalFrame {
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_MODAL");
+	}
+
+	macro updatePicklistItemName {
+		Picklist.optionsPicklistItem(
+			itemKey = "${itemkey}",
+			picklistItemOption = "View");
+
+		SelectFrameTop();
+
+		IFrame.selectModalFrame();
+
+		Type(
+			locator1 = "Picklist#EDIT_ITEM_NAME",
+			value1 = "${newItemName}");
+
+		WaitForSPARefresh();
+	}
+
+	macro updatePicklistName {
+		SelectFrame(locator1 = "Picklist#IFRAME_PICKLIST_MODAL");
+
+		Type(
+			locator1 = "Picklist#UPDATE_PICKLIST_NAME",
+			value1 = "${picklistName}");
+
+		WaitForSPARefresh();
+	}
+
+}

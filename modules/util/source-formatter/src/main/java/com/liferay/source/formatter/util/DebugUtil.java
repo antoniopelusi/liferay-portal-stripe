@@ -130,7 +130,6 @@ public class DebugUtil {
 			sb.append("line ");
 			sb.append(originalChunk.getPosition() + 1);
 			sb.append(" changed:\n");
-
 			sb.append("before:\n");
 
 			for (String line : originalChunk.getLines()) {

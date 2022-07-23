@@ -1,12 +1,10 @@
 {
 	"dependencies": {
-		"clay-icon": "2.22.2",
-		"metal-state": "2.16.8"
 	},
 	"name": "commerce-cart-taglib",
 	"scripts": {
 		"build": "liferay-npm-scripts build",
 		"checkFormat": "liferay-npm-scripts check"
 	},
-	"version": "5.0.3"
+	"version": "5.0.18"
 }

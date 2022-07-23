@@ -25,7 +25,7 @@ public class PersistedModelLocalServiceRegistryUtil {
 	public static PersistedModelLocalService getPersistedModelLocalService(
 		String className) {
 
-		return getPersistedModelLocalServiceRegistry().
+		return _persistedModelLocalServiceRegistry.
 			getPersistedModelLocalService(className);
 	}
 
@@ -38,7 +38,7 @@ public class PersistedModelLocalServiceRegistryUtil {
 	public static List<PersistedModelLocalService>
 		getPersistedModelLocalServices() {
 
-		return getPersistedModelLocalServiceRegistry().
+		return _persistedModelLocalServiceRegistry.
 			getPersistedModelLocalServices();
 	}
 
@@ -46,12 +46,12 @@ public class PersistedModelLocalServiceRegistryUtil {
 		String className,
 		PersistedModelLocalService persistedModelLocalService) {
 
-		getPersistedModelLocalServiceRegistry().register(
+		_persistedModelLocalServiceRegistry.register(
 			className, persistedModelLocalService);
 	}
 
 	public static void unregister(String className) {
-		getPersistedModelLocalServiceRegistry().unregister(className);
+		_persistedModelLocalServiceRegistry.unregister(className);
 	}
 
 	public void setPersistedModelLocalServiceRegistry(

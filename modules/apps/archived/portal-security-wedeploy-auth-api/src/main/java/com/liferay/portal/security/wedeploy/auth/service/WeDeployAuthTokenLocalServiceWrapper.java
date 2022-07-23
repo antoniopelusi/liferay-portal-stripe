@@ -27,6 +27,10 @@ public class WeDeployAuthTokenLocalServiceWrapper
 	implements ServiceWrapper<WeDeployAuthTokenLocalService>,
 			   WeDeployAuthTokenLocalService {
 
+	public WeDeployAuthTokenLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WeDeployAuthTokenLocalServiceWrapper(
 		WeDeployAuthTokenLocalService weDeployAuthTokenLocalService) {
 
@@ -169,6 +173,13 @@ public class WeDeployAuthTokenLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _weDeployAuthTokenLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _weDeployAuthTokenLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

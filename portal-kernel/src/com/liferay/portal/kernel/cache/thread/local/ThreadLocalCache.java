@@ -67,17 +67,9 @@ public class ThreadLocalCache<T> {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{cache=");
-		sb.append(_cache.toString());
-		sb.append(", id=");
-		sb.append(_id);
-		sb.append(", lifecycle=");
-		sb.append(_lifecycle);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{cache=", _cache.toString(), ", id=", _id, ", lifecycle=",
+			_lifecycle, "}");
 	}
 
 	private Map<String, T> _cache;

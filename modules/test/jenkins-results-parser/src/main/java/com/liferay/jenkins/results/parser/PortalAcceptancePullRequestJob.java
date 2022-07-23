@@ -16,8 +16,11 @@ package com.liferay.jenkins.results.parser;
 
 import java.io.File;
 
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
@@ -25,10 +28,45 @@ import java.util.TreeSet;
 public class PortalAcceptancePullRequestJob
 	extends PortalAcceptanceTestSuiteJob {
 
-	public PortalAcceptancePullRequestJob(
-		String jobName, BuildProfile buildProfile, String testSuiteName) {
+	public boolean isCentralMergePullRequest() {
+		if (_centralMergePullRequest != null) {
+			return _centralMergePullRequest;
+		}
 
-		super(jobName, buildProfile, testSuiteName);
+		GitWorkingDirectory gitWorkingDirectory = getGitWorkingDirectory();
+
+		List<File> currentBranchModifiedFiles =
+			gitWorkingDirectory.getModifiedFilesList();
+
+		if (currentBranchModifiedFiles.size() == 1) {
+			File modifiedFile = currentBranchModifiedFiles.get(0);
+
+			String modifiedFileName = modifiedFile.getName();
+
+			if (modifiedFileName.equals("ci-merge")) {
+				_centralMergePullRequest = true;
+
+				return _centralMergePullRequest;
+			}
+		}
+
+		_centralMergePullRequest = false;
+
+		return _centralMergePullRequest;
+	}
+
+	protected PortalAcceptancePullRequestJob(
+		BuildProfile buildProfile, String jobName,
+		PortalGitWorkingDirectory portalGitWorkingDirectory,
+		String testSuiteName, String upstreamBranchName) {
+
+		super(
+			buildProfile, jobName, portalGitWorkingDirectory, testSuiteName,
+			upstreamBranchName);
+	}
+
+	protected PortalAcceptancePullRequestJob(JSONObject jsonObject) {
+		super(jsonObject);
 	}
 
 	@Override
@@ -82,5 +120,7 @@ public class PortalAcceptancePullRequestJob
 
 		return testSuiteName.equals("relevant");
 	}
+
+	private Boolean _centralMergePullRequest;
 
 }

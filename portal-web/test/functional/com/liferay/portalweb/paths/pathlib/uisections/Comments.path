@@ -2,11 +2,13 @@
 <head>
 <title>Comments</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Comments</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>PANEL_HEADING</td>
@@ -66,6 +68,11 @@
 <tr>
 	<td>USER_NAME</td>
 	<td>//div[contains(.,'${key_entryComment}')]//*[self::a or self::span][contains(@class,'username') and contains(.,'${key_userFullName}')] | //div[contains(.,'${key_entryComment}')]//*[self::a or self::span][contains(@class,'author-link') and contains(.,'${key_userFullName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>USER_NAME_2</td>
+	<td>//div[contains(@class, 'text-truncate')]/a[contains(text(),'${key_userFullName}')]</td>
 	<td></td>
 </tr>
 <tr>

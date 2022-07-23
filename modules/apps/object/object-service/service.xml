@@ -1,9 +1,43 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.object">
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.object" short-no-such-exception-enabled="false">
 	<author>Marco Leo</author>
 	<namespace>Object</namespace>
+	<entity local-service="true" name="ObjectAction" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectActionId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectDefinitionId" type="long" />
+		<column name="active" type="boolean" />
+		<column name="name" type="String" />
+		<column name="objectActionExecutorKey" type="String" />
+		<column name="objectActionTriggerKey" type="String" />
+		<column name="parameters" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectDefinitionId" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="O_A_OATK" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="active" />
+			<finder-column name="objectActionTriggerKey" />
+		</finder>
+	</entity>
 	<entity local-service="true" name="ObjectDefinition" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
@@ -20,23 +54,61 @@
 
 		<!-- Other fields -->
 
+		<column name="descriptionObjectFieldId" type="long" />
+		<column name="titleObjectFieldId" type="long" />
+		<column name="active" type="boolean" />
+		<column method-name="DBTableName" name="dbTableName" type="String" />
+		<column localized="true" name="label" type="String" />
+		<column name="className" type="String" />
 		<column name="name" type="String" />
-
-		<!-- Finder methods -->
-
-		<finder name="CompanyId" return-type="Collection">
-			<finder-column name="companyId" />
-		</finder>
-		<finder name="C_N" return-type="ObjectDefinition">
-			<finder-column name="companyId" />
-			<finder-column name="name" />
-		</finder>
+		<column name="panelAppOrder" type="String" />
+		<column name="panelCategoryKey" type="String" />
+		<column method-name="PKObjectFieldDBColumnName" name="pkObjectFieldDBColumnName" type="String" />
+		<column method-name="PKObjectFieldName" name="pkObjectFieldName" type="String" />
+		<column localized="true" name="pluralLabel" type="String" />
+		<column name="portlet" type="boolean" />
+		<column name="scope" type="String" />
+		<column name="system" type="boolean" />
+		<column name="version" type="int" />
+		<column name="status" type="int" />
 
 		<!-- Order -->
 
 		<order by="asc">
 			<order-column name="name" />
 		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="System" return-type="Collection">
+			<finder-column name="system" />
+		</finder>
+		<finder name="C_C" return-type="ObjectDefinition">
+			<finder-column name="companyId" />
+			<finder-column name="className" />
+		</finder>
+		<finder name="C_N" return-type="ObjectDefinition">
+			<finder-column name="companyId" />
+			<finder-column name="name" />
+		</finder>
+		<finder name="S_S" return-type="Collection">
+			<finder-column name="system" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="C_A_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="C_A_S_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+			<finder-column name="system" />
+			<finder-column name="status" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="ObjectEntry" remote-service="true" uuid="true">
 
@@ -58,6 +130,7 @@
 
 		<!-- Other fields -->
 
+		<column name="externalReferenceCode" type="String" />
 		<column name="objectDefinitionId" type="long" />
 		<column name="lastPublishDate" type="Date" />
 		<column name="status" type="int" />
@@ -65,19 +138,37 @@
 		<column name="statusByUserName" type="String" />
 		<column name="statusDate" type="Date" />
 
-		<!-- Finder methods -->
-
-		<finder name="ObjectDefinitionId" return-type="Collection">
-			<finder-column name="objectDefinitionId" />
-		</finder>
-
 		<!-- Order -->
 
 		<order by="asc">
 			<order-column name="objectEntryId" />
 		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectDefinitionId" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="G_ODI" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="ODI_NotS" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column comparator="!=" name="status" />
+		</finder>
+		<finder name="G_C_ERC" return-type="ObjectEntry">
+			<finder-column name="groupId" />
+			<finder-column name="companyId" />
+			<finder-column name="externalReferenceCode" />
+		</finder>
+		<finder name="G_ODI_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="status" />
+		</finder>
 	</entity>
-	<entity local-service="true" name="ObjectField" remote-service="false" uuid="true">
+	<entity local-service="true" name="ObjectField" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -93,25 +184,72 @@
 
 		<!-- Other fields -->
 
+		<column name="listTypeDefinitionId" type="long" />
 		<column name="objectDefinitionId" type="long" />
+		<column name="businessType" type="String" />
+		<column method-name="DBColumnName" name="dbColumnName" type="String" />
+		<column method-name="DBTableName" name="dbTableName" type="String" />
+		<column method-name="DBType" name="dbType" type="String" />
+		<column name="indexed" type="boolean" />
+		<column name="indexedAsKeyword" type="boolean" />
+		<column name="indexedLanguageId" type="String" />
+		<column localized="true" name="label" type="String" />
 		<column name="name" type="String" />
-		<column name="type" type="String" />
-
-		<!-- Finder methods -->
-
-		<finder name="ObjectDefinitionId" return-type="Collection">
-			<finder-column name="objectDefinitionId" />
-		</finder>
-		<finder name="ODI_N" return-type="ObjectDefinition">
-			<finder-column name="objectDefinitionId" />
-			<finder-column name="name" />
-		</finder>
+		<column name="relationshipType" type="String" />
+		<column name="required" type="boolean" />
 
 		<!-- Order -->
 
 		<order by="asc">
 			<order-column name="name" />
 		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="ListTypeDefinitionId" return-type="Collection">
+			<finder-column name="listTypeDefinitionId" />
+		</finder>
+		<finder name="ObjectDefinitionId" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="ODI_DTN" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="dbTableName" />
+		</finder>
+		<finder name="ODI_N" return-type="ObjectDefinition">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="name" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="ObjectFieldSetting" remote-service="false" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectFieldSettingId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectFieldId" type="long" />
+		<column name="name" type="String" />
+		<column name="value" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectFieldId" return-type="Collection">
+			<finder-column name="objectFieldId" />
+		</finder>
+		<finder name="OFI_N" return-type="ObjectFieldSetting" unique="true">
+			<finder-column name="objectFieldId" />
+			<finder-column name="name" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="ObjectLayout" remote-service="true" uuid="true">
 
@@ -126,8 +264,24 @@
 		<column name="userName" type="String" />
 		<column name="createDate" type="Date" />
 		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectDefinitionId" type="long" />
+		<column name="defaultObjectLayout" type="boolean" />
+		<column localized="true" name="name" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectDefinitionId" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="ODI_DOL" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="defaultObjectLayout" />
+		</finder>
 	</entity>
-	<entity local-service="true" name="ObjectLayoutBox" remote-service="true" uuid="true">
+	<entity local-service="false" name="ObjectLayoutBox" remote-service="false" uuid="true">
 
 		<!-- PK fields -->
 
@@ -140,8 +294,76 @@
 		<column name="userName" type="String" />
 		<column name="createDate" type="Date" />
 		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectLayoutTabId" type="long" />
+		<column name="collapsable" type="boolean" />
+		<column localized="true" name="name" type="String" />
+		<column name="priority" type="int" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectLayoutTabId" return-type="Collection">
+			<finder-column name="objectLayoutTabId" />
+		</finder>
 	</entity>
-	<entity local-service="true" name="ObjectLayoutTab" remote-service="true" uuid="true">
+	<entity local-service="false" name="ObjectLayoutColumn" remote-service="false" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectLayoutColumnId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectFieldId" type="long" />
+		<column name="objectLayoutRowId" type="long" />
+		<column name="priority" type="int" />
+		<column name="size" type="int" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectFieldId" return-type="Collection">
+			<finder-column name="objectFieldId" />
+		</finder>
+		<finder name="ObjectLayoutRowId" return-type="Collection">
+			<finder-column name="objectLayoutRowId" />
+		</finder>
+	</entity>
+	<entity local-service="false" name="ObjectLayoutRow" remote-service="false" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectLayoutRowId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectLayoutBoxId" type="long" />
+		<column name="priority" type="int" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectLayoutBoxId" return-type="Collection">
+			<finder-column name="objectLayoutBoxId" />
+		</finder>
+	</entity>
+	<entity local-service="false" name="ObjectLayoutTab" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -154,6 +376,22 @@
 		<column name="userName" type="String" />
 		<column name="createDate" type="Date" />
 		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectLayoutId" type="long" />
+		<column name="objectRelationshipId" type="long" />
+		<column localized="true" name="name" type="String" />
+		<column name="priority" type="int" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectLayoutId" return-type="Collection">
+			<finder-column name="objectLayoutId" />
+		</finder>
+		<finder name="ObjectRelationshipId" return-type="Collection">
+			<finder-column name="objectRelationshipId" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="ObjectRelationship" remote-service="true" uuid="true">
 
@@ -168,14 +406,205 @@
 		<column name="userName" type="String" />
 		<column name="createDate" type="Date" />
 		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectDefinitionId1" type="long" />
+		<column name="objectDefinitionId2" type="long" />
+		<column name="objectFieldId2" type="long" />
+		<column name="deletionType" type="String" />
+		<column method-name="DBTableName" name="dbTableName" type="String" />
+		<column localized="true" name="label" type="String" />
+		<column name="name" type="String" />
+		<column name="reverse" type="boolean" />
+		<column name="type" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectDefinitionId1" return-type="Collection">
+			<finder-column name="objectDefinitionId1" />
+		</finder>
+		<finder name="ObjectDefinitionId2" return-type="Collection">
+			<finder-column name="objectDefinitionId2" />
+		</finder>
+		<finder name="ObjectFieldId2" return-type="ObjectRelationship">
+			<finder-column name="objectFieldId2" />
+		</finder>
+		<finder name="ODI1_N" return-type="ObjectRelationship">
+			<finder-column name="objectDefinitionId1" />
+			<finder-column name="name" />
+		</finder>
+		<finder name="ODI1_ODI2_N_T" return-type="Collection">
+			<finder-column name="objectDefinitionId1" />
+			<finder-column name="objectDefinitionId2" />
+			<finder-column name="name" />
+			<finder-column name="type" />
+		</finder>
+		<finder name="ODI1_ODI2_N_R_T" return-type="ObjectRelationship">
+			<finder-column name="objectDefinitionId1" />
+			<finder-column name="objectDefinitionId2" />
+			<finder-column name="name" />
+			<finder-column name="reverse" />
+			<finder-column name="type" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="ObjectValidationRule" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectValidationRuleId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectDefinitionId" type="long" />
+		<column name="active" type="boolean" />
+		<column name="engine" type="String" />
+		<column localized="true" name="errorLabel" type="String" />
+		<column localized="true" name="name" type="String" />
+		<column name="script" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectDefinitionId" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="ODI_A" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="active" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="ObjectView" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectViewId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectDefinitionId" type="long" />
+		<column name="defaultObjectView" type="boolean" />
+		<column localized="true" name="name" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectDefinitionId" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="ODI_DOV" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="defaultObjectView" />
+		</finder>
+	</entity>
+	<entity local-service="false" name="ObjectViewColumn" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectViewColumnId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectViewId" type="long" />
+		<column localized="true" name="label" type="String" />
+		<column name="objectFieldName" type="String" />
+		<column name="priority" type="int" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectViewId" return-type="Collection">
+			<finder-column name="objectViewId" />
+		</finder>
+		<finder name="OVI_OFN" return-type="Collection">
+			<finder-column name="objectViewId" />
+			<finder-column name="objectFieldName" />
+		</finder>
+	</entity>
+	<entity local-service="false" name="ObjectViewSortColumn" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="objectViewSortColumnId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="objectViewId" type="long" />
+		<column name="objectFieldName" type="String" />
+		<column name="priority" type="int" />
+		<column name="sortOrder" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ObjectViewId" return-type="Collection">
+			<finder-column name="objectViewId" />
+		</finder>
+		<finder name="OVI_OFN" return-type="Collection">
+			<finder-column name="objectViewId" />
+			<finder-column name="objectFieldName" />
+		</finder>
 	</entity>
 	<exceptions>
-		<exception>DuplicateObjectDefinition</exception>
-		<exception>DuplicateObjectField</exception>
+		<exception>DefaultObjectLayout</exception>
+		<exception>DefaultObjectView</exception>
+		<exception>DuplicateObjectRelationship</exception>
+		<exception>ObjectActionExecutorKey</exception>
+		<exception>ObjectActionName</exception>
+		<exception>ObjectActionTriggerKey</exception>
+		<exception>ObjectDefinitionActive</exception>
+		<exception>ObjectDefinitionLabel</exception>
 		<exception>ObjectDefinitionName</exception>
+		<exception>ObjectDefinitionPluralLabel</exception>
+		<exception>ObjectDefinitionScope</exception>
+		<exception>ObjectDefinitionStatus</exception>
+		<exception>ObjectDefinitionVersion</exception>
 		<exception>ObjectEntryValues</exception>
+		<exception>ObjectFieldBusinessType</exception>
+		<exception>ObjectFieldDBType</exception>
+		<exception>ObjectFieldLabel</exception>
 		<exception>ObjectFieldName</exception>
-		<exception>ObjectFieldType</exception>
-		<exception>ReservedObjectField</exception>
+		<exception>ObjectFieldRelationshipType</exception>
+		<exception>ObjectFieldSettingName</exception>
+		<exception>ObjectFieldSettingValue</exception>
+		<exception>ObjectLayoutColumnSize</exception>
+		<exception>ObjectRelationshipName</exception>
+		<exception>ObjectRelationshipReverse</exception>
+		<exception>ObjectRelationshipType</exception>
+		<exception>ObjectValidationRuleEngine</exception>
+		<exception>ObjectValidationRuleName</exception>
+		<exception>ObjectValidationRuleScript</exception>
+		<exception>ObjectViewSortColumn</exception>
+		<exception>RequiredObjectDefinition</exception>
+		<exception>RequiredObjectField</exception>
+		<exception>RequiredObjectRelationship</exception>
 	</exceptions>
 </service-builder>

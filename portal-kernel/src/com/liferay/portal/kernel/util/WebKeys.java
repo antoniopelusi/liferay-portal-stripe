@@ -21,6 +21,8 @@ public interface WebKeys {
 
 	public static final String ADDRESS = "ADDRESS";
 
+	public static final String ALL_PORTLETS = "ALL_PORTLETS";
+
 	public static final String ASSET_ADDON_ENTRIES = "ASSET_ADDON_ENTRIES";
 
 	public static final String ASSET_ADDON_ENTRY = "ASSET_ADDON_ENTRY";
@@ -203,6 +205,8 @@ public interface WebKeys {
 	public static final String GROUP = "GROUP";
 
 	public static final String HTTPS_INITIAL = "HTTPS_INITIAL";
+
+	public static final String I18N_ERROR_PATH = "I18N_ERROR_PATH";
 
 	public static final String I18N_LANGUAGE_CODE = "I18N_LANGUAGE_CODE";
 
@@ -399,18 +403,6 @@ public interface WebKeys {
 
 	public static final String NOTES_LIST = "NOTES_LIST";
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String OPEN_ID_LOGIN = "OPEN_ID_LOGIN";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String OPEN_ID_LOGIN_PENDING = "OPEN_ID_LOGIN_PENDING";
-
 	public static final String ORG_LABOR = "ORG_LABOR";
 
 	public static final String ORGANIZATION = "ORGANIZATION";
@@ -438,20 +430,6 @@ public interface WebKeys {
 
 	public static final String PAGE_TOP = "PAGE_TOP";
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String PARALLEL_RENDERING_MERGE_LOCK =
-		"PARALLEL_RENDERING_MERGE_LOCK";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String PARALLEL_RENDERING_TIMEOUT_ERROR =
-		"PARALLEL_RENDERING_TIMEOUT_ERROR";
-
 	public static final String PASSWORD_POLICY = "PASSWORD_POLICY";
 
 	public static final String PHONE = "PHONE";
@@ -471,12 +449,8 @@ public interface WebKeys {
 
 	public static final String PORTAL_PREFERENCES = "PORTAL_PREFERENCES";
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String PORTAL_RESILIENCY_ACTION =
-		"PORTAL_RESILIENCY_ACTION";
+	public static final String PORTAL_SERVLET_URL_PATTERNS =
+		"PORTAL_SERVLET_URL_PATTERNS";
 
 	public static final String PORTLET_AJAX_RENDER = "PORTLET_AJAX_RENDER";
 
@@ -506,13 +480,6 @@ public interface WebKeys {
 		"PORTLET_DISPLAY_TEMPLATE";
 
 	public static final String PORTLET_ID = "PORTLET_ID";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String PORTLET_PARALLEL_RENDER =
-		"PORTLET_PARALLEL_RENDER";
 
 	public static final String PORTLET_PREFERENCES_MAP =
 		"PORTLET_PREFERENCES_MAP";
@@ -608,8 +575,6 @@ public interface WebKeys {
 	public static final String SERVLET_CONTEXT_INCLUDE_FILTER_THEME =
 		"SERVLET_CONTEXT_INCLUDE_FILTER_THEME";
 
-	public static final String SERVLET_MAPPING = "SERVLET_MAPPING";
-
 	public static final String SERVLET_PATH = "SERVLET_PATH";
 
 	public static final String SESSION_LISTENER = "SESSION_LISTENER";
@@ -652,70 +617,6 @@ public interface WebKeys {
 	public static final String SOURCE_NAME = "SOURCE_NAME";
 
 	public static final String SOURCE_VERSION = "SOURCE_VERSION";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_ACTION_RESULT =
-		"SPI_AGENT_ACTION_RESULT";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_EVENT = "SPI_AGENT_EVENT";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_EVENT_RESULT =
-		"SPI_AGENT_EVENT_RESULT";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_LAYOUT = "SPI_AGENT_LAYOUT";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_LAYOUT_TYPE_SETTINGS =
-		"SPI_AGENT_LAYOUT_TYPE_SETTINGS";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_LIFECYCLE = "SPI_AGENT_LIFECYCLE";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_ORIGINAL_RESPONSE =
-		"SPI_AGENT_ORIGINAL_RESPONSE";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_PORTLET = "SPI_AGENT_PORTLET";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_REQUEST = "SPI_AGENT_REQUEST";
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final String SPI_AGENT_RESPONSE = "SPI_AGENT_RESPONSE";
 
 	public static final String STALE_SESSION = "STALE_SESSION";
 
@@ -813,8 +714,5 @@ public interface WebKeys {
 	public static final String WORKFLOW_INSTANCE = "WORKFLOW_INSTANCE";
 
 	public static final String WORKFLOW_TASK = "WORKFLOW_TASK";
-
-	public static final String XUGGLER_INSTALL_STATUS =
-		"XUGGLER_INSTALL_STATUS";
 
 }

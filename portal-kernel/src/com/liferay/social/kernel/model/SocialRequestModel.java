@@ -321,4 +321,7 @@ public interface SocialRequestModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public SocialRequest cloneWithOriginalValues();
+
 }

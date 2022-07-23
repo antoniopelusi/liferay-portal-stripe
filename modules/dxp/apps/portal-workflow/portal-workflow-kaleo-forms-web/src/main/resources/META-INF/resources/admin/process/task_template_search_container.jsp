@@ -17,45 +17,20 @@
 <%@ include file="/admin/init.jsp" %>
 
 <%
-String backURL = ParamUtil.getString(request, "backURL");
-
-KaleoProcess kaleoProcess = (KaleoProcess)request.getAttribute(KaleoFormsWebKeys.KALEO_PROCESS);
-
-long kaleoProcessId = BeanParamUtil.getLong(kaleoProcess, request, "kaleoProcessId");
-
-long ddmStructureId = KaleoFormsUtil.getKaleoProcessDDMStructureId(kaleoProcessId, portletSession);
-
-String workflowDefinition = ParamUtil.getString(request, "workflowDefinition");
-
-KaleoTaskFormPair initialStateKaleoTaskFormPair = KaleoFormsUtil.getInitialStateKaleoTaskFormPair(kaleoProcessId, ddmStructureId, workflowDefinition, KaleoFormsUtil.getInitialStateName(company.getCompanyId(), workflowDefinition), portletSession);
+KaleoFormsTaskTemplateSearchDisplayContext kaleoFormsTaskTemplateSearchDisplayContext = new KaleoFormsTaskTemplateSearchDisplayContext(request, liferayPortletRequest, liferayPortletResponse, renderRequest);
 %>
 
 <div id="<portlet:namespace />formsSearchContainer">
-	<liferay-portlet:renderURL varImpl="portletURL" />
-
 	<liferay-ui:search-container
-		searchContainer='<%= new SearchContainer<Object>(renderRequest, portletURL, null, "no-tasks-were-found") %>'
+		searchContainer="<%= kaleoFormsTaskTemplateSearchDisplayContext.getSearchContainer() %>"
 	>
-		<liferay-ui:search-container-results>
-
-			<%
-			KaleoTaskFormPairs kaleoTaskFormPairs = KaleoFormsUtil.getKaleoTaskFormPairs(company.getCompanyId(), kaleoProcessId, ddmStructureId, workflowDefinition, portletSession);
-
-			kaleoTaskFormPairs.add(0, initialStateKaleoTaskFormPair);
-
-			searchContainer.setResults(kaleoTaskFormPairs.list());
-			searchContainer.setTotal(kaleoTaskFormPairs.size());
-			%>
-
-		</liferay-ui:search-container-results>
-
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.workflow.kaleo.forms.model.KaleoTaskFormPair"
 			modelVar="taskFormsPair"
 		>
 			<liferay-ui:search-container-row-parameter
 				name="backURL"
-				value="<%= backURL %>"
+				value="<%= kaleoFormsTaskTemplateSearchDisplayContext.getBackURL() %>"
 			/>
 
 			<liferay-ui:search-container-column-text
@@ -82,7 +57,7 @@ KaleoTaskFormPair initialStateKaleoTaskFormPair = KaleoFormsUtil.getInitialState
 			<liferay-util:buffer
 				var="taskInputBuffer"
 			>
-				<c:if test="<%= taskFormsPair.equals(initialStateKaleoTaskFormPair) %>">
+				<c:if test="<%= taskFormsPair.equals(kaleoFormsTaskTemplateSearchDisplayContext.getInitialStateKaleoTaskFormPair()) %>">
 					<aui:input name="ddmTemplateId" type="hidden" value="<%= Validator.isNull(formName) ? StringPool.BLANK : String.valueOf(ddmTemplateId) %>">
 						<aui:validator name="required" />
 					</aui:input>
@@ -107,61 +82,49 @@ KaleoTaskFormPair initialStateKaleoTaskFormPair = KaleoFormsUtil.getInitialState
 	</liferay-ui:search-container>
 </div>
 
+<portlet:resourceURL id="saveInPortletSession" var="saveInPortletSessionURL" />
+
+<liferay-frontend:component
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"backURL", HtmlUtil.escapeURL(kaleoFormsTaskTemplateSearchDisplayContext.getBackURL())
+		).put(
+			"itemSelectorURL",
+			PortletURLBuilder.create(
+				PortletURLFactoryUtil.create(request, DDMPortletKeys.DYNAMIC_DATA_MAPPING, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE)
+			).setMVCPath(
+				"/select_template.jsp"
+			).setParameter(
+				"classNameId", PortalUtil.getClassNameId(DDMStructure.class)
+			).setParameter(
+				"navigationStartsOn", DDMNavigationHelper.SELECT_TEMPLATE
+			).setParameter(
+				"portletResourceNamespace", liferayPortletResponse.getNamespace()
+			).setParameter(
+				"refererPortletName", portletDisplay.getId()
+			).setParameter(
+				"resourceClassNameId", scopeClassNameId
+			).setParameter(
+				"scopeTitle", LanguageUtil.get(request, "form")
+			).setParameter(
+				"showBackURL", false
+			).setParameter(
+				"showHeader", false
+			).setParameter(
+				"structureAvailableFields", liferayPortletResponse.getNamespace() + "getAvailableFields"
+			).setWindowState(
+				LiferayWindowState.POP_UP
+			).buildString()
+		).put(
+			"portletNamespace", liferayPortletResponse.getNamespace()
+		).put(
+			"saveInPortletSessionURL", saveInPortletSessionURL
+		).build()
+	%>'
+	module="admin/js/KaleoFormsTemplateSelector"
+/>
+
 <aui:script use="aui-base,aui-io-request,liferay-util">
-	Liferay.provide(
-		window,
-		'<portlet:namespace />selectFormTemplate',
-		(classPK, mode, sessionParamName) => {
-			Liferay.Util.openDDMPortlet(
-				{
-					basePortletURL:
-						'<%= PortletURLFactoryUtil.create(request, DDMPortletKeys.DYNAMIC_DATA_MAPPING, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE) %>',
-					classNameId: <%= PortalUtil.getClassNameId(DDMStructure.class) %>,
-					classPK: classPK,
-					dialog: {
-						destroyOnHide: true,
-					},
-					id: 'ddmDialog',
-					mode: mode,
-					mvcPath: '/select_template.jsp',
-					navigationStartsOn:
-						'<%= DDMNavigationHelper.SELECT_TEMPLATE %>',
-					portletResourceNamespace:
-						'<%= liferayPortletResponse.getNamespace() %>',
-					refererPortletName: '<%= portletDisplay.getId() %>',
-					resourceClassNameId: <%= scopeClassNameId %>,
-					showBackURL: false,
-					showHeader: false,
-					structureAvailableFields:
-						'<%= liferayPortletResponse.getNamespace() + "getAvailableFields" %>',
-					title: '<liferay-ui:message key="form" />',
-				},
-				(event) => {
-					var A = AUI();
-
-					var data = {};
-
-					data[sessionParamName] = event.ddmtemplateid;
-
-					A.io.request(
-						'<portlet:resourceURL id="saveInPortletSession" />',
-						{
-							after: {
-								success: function () {
-									window.location = decodeURIComponent(
-										'<%= HtmlUtil.escapeURL(backURL) %>'
-									);
-								},
-							},
-							data: data,
-						}
-					);
-				}
-			);
-		},
-		['aui-base', 'aui-io-request', 'liferay-util']
-	);
-
 	Liferay.provide(
 		window,
 		'<portlet:namespace />editFormTemplate',
@@ -171,6 +134,9 @@ KaleoTaskFormPair initialStateKaleoTaskFormPair = KaleoFormsUtil.getInitialState
 			var WIN = A.config.win;
 
 			Liferay.Util.openWindow({
+				dialog: {
+					destroyOnHide: true,
+				},
 				id: A.guid(),
 				refreshWindow: WIN,
 				title: '<liferay-ui:message key="forms" />',
@@ -186,17 +152,21 @@ KaleoTaskFormPair initialStateKaleoTaskFormPair = KaleoFormsUtil.getInitialState
 		(event) => {
 			var A = AUI();
 
-			var taskFormPairsParamName = event.taskFormPairsParamName;
-
 			var data = {};
 
-			data[taskFormPairsParamName] = 0;
+			data['<portlet:namespace />kaleoProcessLinkDDMStructureId'] =
+				event.ddmStructureId;
+			data['<portlet:namespace />kaleoProcessLinkDDMTemplateId'] = 0;
+			data['<portlet:namespace />kaleoProcessLinkWorkflowDefinition'] =
+				event.workflowDefinition;
+			data['<portlet:namespace />kaleoProcessLinkWorkflowTaskName'] =
+				event.workflowTaskName;
 
 			A.io.request('<portlet:resourceURL id="saveInPortletSession" />', {
 				after: {
 					success: function () {
 						window.location = decodeURIComponent(
-							'<%= HtmlUtil.escapeURL(backURL) %>'
+							'<%= HtmlUtil.escapeURL(kaleoFormsTaskTemplateSearchDisplayContext.getBackURL()) %>'
 						);
 					},
 				},

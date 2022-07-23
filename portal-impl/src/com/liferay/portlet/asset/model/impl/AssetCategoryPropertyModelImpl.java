@@ -16,7 +16,6 @@ package com.liferay.portlet.asset.model.impl;
 
 import com.liferay.asset.kernel.model.AssetCategoryProperty;
 import com.liferay.asset.kernel.model.AssetCategoryPropertyModel;
-import com.liferay.asset.kernel.model.AssetCategoryPropertySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -31,20 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -155,63 +153,6 @@ public class AssetCategoryPropertyModelImpl
 	@Deprecated
 	public static final long KEY_COLUMN_BITMASK = 4L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AssetCategoryProperty toModel(
-		AssetCategoryPropertySoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		AssetCategoryProperty model = new AssetCategoryPropertyImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setCategoryPropertyId(soapModel.getCategoryPropertyId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setCategoryId(soapModel.getCategoryId());
-		model.setKey(soapModel.getKey());
-		model.setValue(soapModel.getValue());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AssetCategoryProperty> toModels(
-		AssetCategoryPropertySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AssetCategoryProperty> models =
-			new ArrayList<AssetCategoryProperty>(soapModels.length);
-
-		for (AssetCategoryPropertySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.asset.kernel.model.AssetCategoryProperty"));
@@ -300,34 +241,6 @@ public class AssetCategoryPropertyModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AssetCategoryProperty>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetCategoryProperty.class.getClassLoader(),
-			AssetCategoryProperty.class, ModelWrapper.class);
-
-		try {
-			Constructor<AssetCategoryProperty> constructor =
-				(Constructor<AssetCategoryProperty>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AssetCategoryProperty, Object>>
@@ -724,6 +637,37 @@ public class AssetCategoryPropertyModelImpl
 	}
 
 	@Override
+	public AssetCategoryProperty cloneWithOriginalValues() {
+		AssetCategoryPropertyImpl assetCategoryPropertyImpl =
+			new AssetCategoryPropertyImpl();
+
+		assetCategoryPropertyImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetCategoryPropertyImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetCategoryPropertyImpl.setCategoryPropertyId(
+			this.<Long>getColumnOriginalValue("categoryPropertyId"));
+		assetCategoryPropertyImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetCategoryPropertyImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		assetCategoryPropertyImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		assetCategoryPropertyImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetCategoryPropertyImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		assetCategoryPropertyImpl.setCategoryId(
+			this.<Long>getColumnOriginalValue("categoryId"));
+		assetCategoryPropertyImpl.setKey(
+			this.<String>getColumnOriginalValue("key_"));
+		assetCategoryPropertyImpl.setValue(
+			this.<String>getColumnOriginalValue("value"));
+
+		return assetCategoryPropertyImpl;
+	}
+
+	@Override
 	public int compareTo(AssetCategoryProperty assetCategoryProperty) {
 		int value = 0;
 
@@ -861,7 +805,7 @@ public class AssetCategoryPropertyModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -872,10 +816,27 @@ public class AssetCategoryPropertyModelImpl
 			Function<AssetCategoryProperty, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((AssetCategoryProperty)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AssetCategoryProperty)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -923,7 +884,9 @@ public class AssetCategoryPropertyModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AssetCategoryProperty>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AssetCategoryProperty.class, ModelWrapper.class);
 
 	}
 

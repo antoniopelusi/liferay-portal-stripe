@@ -39,7 +39,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.List;
 
-import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ResourceURL;
@@ -76,85 +75,104 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 				_themeDisplay.getScopeGroupId(),
 				FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
 
-		return DropdownItemListBuilder.add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				(_fragmentEntry.getType() != FragmentConstants.TYPE_REACT),
-			_getEditFragmentEntryActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly(),
-			_getRenameFragmentEntryActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly(),
-			_getMoveFragmentEntryActionUnsafeConsumer()
-		).add(
-			() -> hasManageFragmentEntriesPermission,
-			_getCopyFragmentEntryActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly(),
-			_getUpdateFragmentEntryPreviewActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly() &&
-				(_fragmentEntry.getGroupId() ==
-					_themeDisplay.getCompanyGroupId()) &&
-				(_fragmentEntry.getGlobalUsageCount() > 0),
-			_getViewGroupFragmentEntryUsagesActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly() &&
-				(_fragmentEntry.getPreviewFileEntryId() > 0),
-			_getDeleteFragmentEntryPreviewActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly() &&
-				(_fragmentEntry.getType() != FragmentConstants.TYPE_REACT),
-			_getExportFragmentEntryActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly() &&
-				(_fragmentEntry.getGroupId() !=
-					_themeDisplay.getCompanyGroupId()) &&
-				(_fragmentEntry.getUsageCount() > 0),
-			_getViewFragmentEntryUsagesActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly(),
-			_getDeleteFragmentEntryActionUnsafeConsumer()
-		).add(
-			() ->
-				hasManageFragmentEntriesPermission &&
-				!_fragmentEntry.isReadOnly() &&
-				(_fragmentEntry.isDraft() ||
-				 (_fragmentEntry.fetchDraftFragmentEntry() != null)) &&
-				(_fragmentEntry.getType() != FragmentConstants.TYPE_REACT),
-			_getDeleteDraftFragmentEntryActionUnsafeConsumer()
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							(_fragmentEntry.getType() !=
+								FragmentConstants.TYPE_REACT),
+						_getEditFragmentEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly(),
+						_getUpdateFragmentEntryPreviewActionUnsafeConsumer()
+					).add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly() &&
+							(_fragmentEntry.getPreviewFileEntryId() > 0),
+						_getDeleteFragmentEntryPreviewActionUnsafeConsumer()
+					).add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly() &&
+							(_fragmentEntry.isDraft() ||
+							 (_fragmentEntry.fetchDraftFragmentEntry() !=
+								 null)) &&
+							(_fragmentEntry.getType() !=
+								FragmentConstants.TYPE_REACT),
+						_getDeleteDraftFragmentEntryActionUnsafeConsumer()
+					).add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly(),
+						_getRenameFragmentEntryActionUnsafeConsumer()
+					).add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly() &&
+							(_fragmentEntry.getGroupId() ==
+								_themeDisplay.getCompanyGroupId()) &&
+							(_fragmentEntry.getGlobalUsageCount() > 0),
+						_getViewGroupFragmentEntryUsagesActionUnsafeConsumer()
+					).add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly() &&
+							(_fragmentEntry.getGroupId() !=
+								_themeDisplay.getCompanyGroupId()) &&
+							(_fragmentEntry.getUsageCount() > 0),
+						_getViewFragmentEntryUsagesActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly() &&
+							(_fragmentEntry.getType() !=
+								FragmentConstants.TYPE_REACT),
+						_getExportFragmentEntryActionUnsafeConsumer()
+					).add(
+						() -> hasManageFragmentEntriesPermission,
+						_getCopyFragmentEntryActionUnsafeConsumer()
+					).add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly(),
+						_getMoveFragmentEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							hasManageFragmentEntriesPermission &&
+							!_fragmentEntry.isReadOnly(),
+						_getDeleteFragmentEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
 		).build();
 	}
 
 	private UnsafeConsumer<DropdownItem, Exception>
 			_getCopyFragmentEntryActionUnsafeConsumer()
 		throws Exception {
-
-		PortletURL selectFragmentCollectionURL =
-			PortletURLBuilder.createRenderURL(
-				_renderResponse
-			).setMVCRenderCommandName(
-				"/fragment/select_fragment_collection"
-			).setWindowState(
-				LiferayWindowState.POP_UP
-			).build();
 
 		return dropdownItem -> {
 			dropdownItem.putData("action", "copyFragmentEntry");
@@ -175,7 +193,14 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 				String.valueOf(_fragmentEntry.getFragmentEntryId()));
 			dropdownItem.putData(
 				"selectFragmentCollectionURL",
-				selectFragmentCollectionURL.toString());
+				PortletURLBuilder.createRenderURL(
+					_renderResponse
+				).setMVCRenderCommandName(
+					"/fragment/select_fragment_collection"
+				).setWindowState(
+					LiferayWindowState.POP_UP
+				).buildString());
+			dropdownItem.setIcon("copy");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "make-a-copy"));
 		};
@@ -218,6 +243,7 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 				).setParameter(
 					"fragmentEntryId", _fragmentEntry.getFragmentEntryId()
 				).buildString());
+			dropdownItem.setIcon("trash");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "delete"));
 		};
@@ -270,6 +296,7 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 				_themeDisplay.getURLCurrent(), "fragmentCollectionId",
 				editFragmentEntry.getFragmentCollectionId(), "fragmentEntryId",
 				editFragmentEntry.getFragmentEntryId());
+			dropdownItem.setIcon("pencil");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "edit"));
 		};
@@ -290,6 +317,7 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 		return dropdownItem -> {
 			dropdownItem.setDisabled(_fragmentEntry.isDraft());
 			dropdownItem.setHref(exportFragmentEntryURL);
+			dropdownItem.setIcon("upload");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "export"));
 		};
@@ -325,15 +353,6 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 			_getMoveFragmentEntryActionUnsafeConsumer()
 		throws Exception {
 
-		PortletURL selectFragmentCollectionURL =
-			PortletURLBuilder.createRenderURL(
-				_renderResponse
-			).setMVCRenderCommandName(
-				"/fragment/select_fragment_collection"
-			).setWindowState(
-				LiferayWindowState.POP_UP
-			).build();
-
 		return dropdownItem -> {
 			dropdownItem.putData("action", "moveFragmentEntry");
 			dropdownItem.putData(
@@ -350,7 +369,14 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 				).buildString());
 			dropdownItem.putData(
 				"selectFragmentCollectionURL",
-				selectFragmentCollectionURL.toString());
+				PortletURLBuilder.createRenderURL(
+					_renderResponse
+				).setMVCRenderCommandName(
+					"/fragment/select_fragment_collection"
+				).setWindowState(
+					LiferayWindowState.POP_UP
+				).buildString());
+			dropdownItem.setIcon("move-folder");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "move"));
 		};
@@ -391,6 +417,7 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 				"fragmentEntryId",
 				String.valueOf(_fragmentEntry.getFragmentEntryId()));
 			dropdownItem.putData("itemSelectorURL", _getItemSelectorURL());
+			dropdownItem.setIcon("change");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "change-thumbnail"));
 		};
@@ -406,6 +433,7 @@ public class BasicFragmentEntryActionDropdownItemsProvider {
 				_themeDisplay.getURLCurrent(), "fragmentCollectionId",
 				_fragmentEntry.getFragmentCollectionId(), "fragmentEntryId",
 				_fragmentEntry.getFragmentEntryId());
+			dropdownItem.setIcon("list-ul");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "view-usages"));
 		};

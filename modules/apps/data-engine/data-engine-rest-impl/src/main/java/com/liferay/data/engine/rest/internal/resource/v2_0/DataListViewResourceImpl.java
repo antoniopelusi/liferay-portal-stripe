@@ -32,6 +32,7 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -79,8 +80,21 @@ import org.osgi.service.component.annotations.ServiceScope;
 	properties = "OSGI-INF/liferay/rest/v2_0/data-list-view.properties",
 	scope = ServiceScope.PROTOTYPE, service = DataListViewResource.class
 )
+@CTAware
 public class DataListViewResourceImpl
 	extends BaseDataListViewResourceImpl implements EntityModelResource {
+
+	@Override
+	public void deleteDataDefinitionDataListView(Long dataDefinitionId)
+		throws Exception {
+
+		for (DEDataListView deDataListView :
+				_deDataListViewLocalService.getDEDataListViews(
+					dataDefinitionId)) {
+
+			_deleteDataListView(deDataListView.getDeDataListViewId());
+		}
+	}
 
 	@Override
 	public void deleteDataListView(Long dataListViewId) throws Exception {
@@ -91,18 +105,6 @@ public class DataListViewResourceImpl
 			ActionKeys.DELETE);
 
 		_deleteDataListView(dataListViewId);
-	}
-
-	@Override
-	public void deleteDataListViewsDataDefinition(Long dataDefinitionId)
-		throws Exception {
-
-		for (DEDataListView deDataListView :
-				_deDataListViewLocalService.getDEDataListViews(
-					dataDefinitionId)) {
-
-			_deleteDataListView(deDataListView.getDeDataListViewId());
-		}
 	}
 
 	@Override
@@ -151,7 +153,7 @@ public class DataListViewResourceImpl
 			Collections.emptyMap(),
 			booleanQuery -> {
 			},
-			null, DEDataListView.class, keywords, pagination,
+			null, DEDataListView.class.getName(), keywords, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {

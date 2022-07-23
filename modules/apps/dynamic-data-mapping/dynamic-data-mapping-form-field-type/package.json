@@ -1,25 +1,10 @@
 {
 	"dependencies": {
-		"@clayui/button": "3.6.0",
-		"@clayui/form": "3.14.4",
-		"@clayui/layout": "3.3.0",
-		"@clayui/modal": "3.8.5",
-		"@clayui/table": "3.1.0",
-		"axios": "0.21.1",
-		"classnames": "2.2.6",
-		"clay-icon": "2.22.2",
-		"frontend-editor-ckeditor-web": "*",
-		"frontend-js-web": "*",
-		"leaflet": "1.2.0",
-		"map-google-maps": "*",
-		"map-openstreetmap": "*",
-		"metal-component": "2.16.8",
-		"metal-drag-drop": "3.3.1",
-		"metal-soy": "2.16.9",
+		"axios": "0.24.0",
+		"leaflet": "1.7.1",
 		"moment": "^2.22.2",
 		"text-mask-addons": "^3.7.1",
-		"text-mask-core": "^5.1.2",
-		"vanilla-text-mask": "^5.0.1"
+		"text-mask-core": "^5.1.2"
 	},
 	"jest": {
 		"setupFiles": [
@@ -42,5 +27,5 @@
 		"format": "liferay-npm-scripts fix",
 		"test": "liferay-npm-scripts test"
 	},
-	"version": "6.0.8"
+	"version": "6.0.89"
 }

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.reports.engine.console.service.impl;
 
+import com.liferay.document.library.kernel.store.DLStoreRequest;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -66,7 +67,7 @@ public class DefinitionLocalServiceImpl extends DefinitionLocalServiceBaseImpl {
 		// Definition
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		validate(nameMap);
 
@@ -79,8 +80,8 @@ public class DefinitionLocalServiceImpl extends DefinitionLocalServiceBaseImpl {
 		definition.setCompanyId(user.getCompanyId());
 		definition.setUserId(user.getUserId());
 		definition.setUserName(user.getFullName());
-		definition.setCreateDate(serviceContext.getCreateDate(now));
-		definition.setModifiedDate(serviceContext.getModifiedDate(now));
+		definition.setCreateDate(serviceContext.getCreateDate(date));
+		definition.setModifiedDate(serviceContext.getModifiedDate(date));
 		definition.setNameMap(nameMap);
 		definition.setDescriptionMap(descriptionMap);
 		definition.setSourceId(sourceId);
@@ -265,7 +266,11 @@ public class DefinitionLocalServiceImpl extends DefinitionLocalServiceBaseImpl {
 			directoryName, StringPool.SLASH, fileName);
 
 		DLStoreUtil.addFile(
-			companyId, CompanyConstants.SYSTEM, fileLocation, false,
+			DLStoreRequest.builder(
+				companyId, CompanyConstants.SYSTEM, fileLocation
+			).className(
+				this
+			).build(),
 			inputStream);
 	}
 

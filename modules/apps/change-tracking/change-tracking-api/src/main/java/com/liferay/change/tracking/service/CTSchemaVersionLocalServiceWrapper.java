@@ -27,6 +27,10 @@ public class CTSchemaVersionLocalServiceWrapper
 	implements CTSchemaVersionLocalService,
 			   ServiceWrapper<CTSchemaVersionLocalService> {
 
+	public CTSchemaVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CTSchemaVersionLocalServiceWrapper(
 		CTSchemaVersionLocalService ctSchemaVersionLocalService) {
 
@@ -136,6 +140,13 @@ public class CTSchemaVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ctSchemaVersionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ctSchemaVersionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

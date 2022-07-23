@@ -19,14 +19,15 @@ import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.content.dashboard.item.action.ContentDashboardItemAction;
 import com.liferay.content.dashboard.item.action.exception.ContentDashboardItemActionException;
 import com.liferay.content.dashboard.item.action.provider.ContentDashboardItemActionProvider;
+import com.liferay.content.dashboard.web.internal.info.item.provider.util.InfoItemFieldValuesProviderUtil;
 import com.liferay.content.dashboard.web.internal.item.action.ContentDashboardItemActionProviderTracker;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemType;
-import com.liferay.info.field.InfoFieldValue;
+import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtype;
+import com.liferay.content.dashboard.web.internal.util.ContentDashboardGroupUtil;
+import com.liferay.info.item.InfoItemClassDetails;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -60,7 +61,7 @@ public class JournalArticleContentDashboardItem
 		List<AssetCategory> assetCategories, List<AssetTag> assetTags,
 		ContentDashboardItemActionProviderTracker
 			contentDashboardItemActionProviderTracker,
-		ContentDashboardItemType contentDashboardItemType, Group group,
+		ContentDashboardItemSubtype contentDashboardItemSubtype, Group group,
 		InfoItemFieldValuesProvider<JournalArticle> infoItemFieldValuesProvider,
 		JournalArticle journalArticle, Language language,
 		JournalArticle latestApprovedJournalArticle, Portal portal) {
@@ -81,7 +82,7 @@ public class JournalArticleContentDashboardItem
 
 		_contentDashboardItemActionProviderTracker =
 			contentDashboardItemActionProviderTracker;
-		_contentDashboardItemType = contentDashboardItemType;
+		_contentDashboardItemSubtype = contentDashboardItemSubtype;
 		_group = group;
 		_infoItemFieldValuesProvider = infoItemFieldValuesProvider;
 		_journalArticle = journalArticle;
@@ -131,6 +132,11 @@ public class JournalArticleContentDashboardItem
 	}
 
 	@Override
+	public Clipboard getClipboard() {
+		return Clipboard.EMPTY;
+	}
+
+	@Override
 	public List<ContentDashboardItemAction> getContentDashboardItemActions(
 		HttpServletRequest httpServletRequest,
 		ContentDashboardItemAction.Type... types) {
@@ -155,9 +161,7 @@ public class JournalArticleContentDashboardItem
 				catch (ContentDashboardItemActionException
 							contentDashboardItemActionException) {
 
-					_log.error(
-						contentDashboardItemActionException,
-						contentDashboardItemActionException);
+					_log.error(contentDashboardItemActionException);
 				}
 
 				return Optional.<ContentDashboardItemAction>empty();
@@ -172,24 +176,13 @@ public class JournalArticleContentDashboardItem
 	}
 
 	@Override
-	public ContentDashboardItemType getContentDashboardItemType() {
-		return _contentDashboardItemType;
+	public ContentDashboardItemSubtype getContentDashboardItemSubtype() {
+		return _contentDashboardItemSubtype;
 	}
 
 	@Override
 	public Date getCreateDate() {
 		return _journalArticle.getCreateDate();
-	}
-
-	@Override
-	public Map<String, Object> getData(Locale locale) {
-		return HashMapBuilder.<String, Object>put(
-			"display-date", _journalArticle.getDisplayDate()
-		).put(
-			"expiration-date", _journalArticle.getExpirationDate()
-		).put(
-			"review-date", _journalArticle.getReviewDate()
-		).build();
 	}
 
 	@Override
@@ -264,16 +257,10 @@ public class JournalArticleContentDashboardItem
 	}
 
 	@Override
-	public Object getDisplayFieldValue(String fieldName, Locale locale) {
-		InfoFieldValue<Object> infoItemFieldValue =
-			_infoItemFieldValuesProvider.getInfoItemFieldValue(
-				_journalArticle, fieldName);
-
-		if (infoItemFieldValue == null) {
-			return null;
-		}
-
-		return infoItemFieldValue.getValue(locale);
+	public String getDescription(Locale locale) {
+		return InfoItemFieldValuesProviderUtil.getStringValue(
+			_journalArticle, _infoItemFieldValuesProvider, "description",
+			locale);
 	}
 
 	@Override
@@ -289,28 +276,43 @@ public class JournalArticleContentDashboardItem
 	}
 
 	@Override
+	public Preview getPreview() {
+		return Preview.EMPTY;
+	}
+
+	@Override
 	public String getScopeName(Locale locale) {
 		return Optional.ofNullable(
 			_group
 		).map(
-			group -> {
-				try {
-					return group.getDescriptiveName(locale);
-				}
-				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
-
-					return StringPool.BLANK;
-				}
-			}
+			group -> ContentDashboardGroupUtil.getGroupName(group, locale)
 		).orElse(
 			StringPool.BLANK
 		);
 	}
 
 	@Override
+	public Map<String, Object> getSpecificInformation(Locale locale) {
+		return HashMapBuilder.<String, Object>put(
+			"display-date", _journalArticle.getDisplayDate()
+		).put(
+			"expiration-date", _journalArticle.getExpirationDate()
+		).put(
+			"review-date", _journalArticle.getReviewDate()
+		).build();
+	}
+
+	@Override
 	public String getTitle(Locale locale) {
 		return _journalArticle.getTitle(locale);
+	}
+
+	@Override
+	public String getTypeLabel(Locale locale) {
+		InfoItemClassDetails infoItemClassDetails = new InfoItemClassDetails(
+			JournalArticle.class.getName());
+
+		return infoItemClassDetails.getLabel(locale);
 	}
 
 	@Override
@@ -387,9 +389,7 @@ public class JournalArticleContentDashboardItem
 		catch (ContentDashboardItemActionException
 					contentDashboardItemActionException) {
 
-			_log.error(
-				contentDashboardItemActionException,
-				contentDashboardItemActionException);
+			_log.error(contentDashboardItemActionException);
 
 			return null;
 		}
@@ -407,7 +407,7 @@ public class JournalArticleContentDashboardItem
 					WorkflowConstants.getStatusLabel(
 						curJournalArticle.getStatus())),
 				WorkflowConstants.getStatusStyle(curJournalArticle.getStatus()),
-				curJournalArticle.getVersion())
+				String.valueOf(curJournalArticle.getVersion()))
 		);
 	}
 
@@ -418,7 +418,7 @@ public class JournalArticleContentDashboardItem
 	private final List<AssetTag> _assetTags;
 	private final ContentDashboardItemActionProviderTracker
 		_contentDashboardItemActionProviderTracker;
-	private final ContentDashboardItemType _contentDashboardItemType;
+	private final ContentDashboardItemSubtype _contentDashboardItemSubtype;
 	private final Group _group;
 	private final InfoItemFieldValuesProvider<JournalArticle>
 		_infoItemFieldValuesProvider;

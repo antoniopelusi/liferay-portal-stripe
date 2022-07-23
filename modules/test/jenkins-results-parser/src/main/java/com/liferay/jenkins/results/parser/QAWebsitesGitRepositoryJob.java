@@ -18,18 +18,21 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  * @author Michael Hashimoto
  */
 public class QAWebsitesGitRepositoryJob
-	extends GitRepositoryJob implements PortalTestClassJob {
+	extends GitRepositoryJob implements PortalTestClassJob, TestSuiteJob {
 
+	@Override
 	public String getBranchName() {
 		return _upstreamBranchName;
 	}
@@ -45,47 +48,72 @@ public class QAWebsitesGitRepositoryJob
 	}
 
 	@Override
+	public JSONObject getJSONObject() {
+		if (jsonObject != null) {
+			return jsonObject;
+		}
+
+		jsonObject = super.getJSONObject();
+
+		jsonObject.put("project_names", _projectNames);
+		jsonObject.put("test_suite_name", _testSuiteName);
+		jsonObject.put("upstream_branch_name", _upstreamBranchName);
+
+		return jsonObject;
+	}
+
+	@Override
 	public PortalGitWorkingDirectory getPortalGitWorkingDirectory() {
 		return GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
 			"master");
 	}
 
 	public List<String> getProjectNames() {
-		if (JenkinsResultsParserUtil.isNullOrEmpty(_projectNames)) {
-			return new ArrayList<>();
-		}
-
-		return Arrays.asList(_projectNames.split(","));
-	}
-
-	protected QAWebsitesGitRepositoryJob(
-		String jobName, BuildProfile buildProfile, String projectNames,
-		String upstreamBranchName) {
-
-		super(jobName, buildProfile);
-
-		_projectNames = projectNames;
-
-		_upstreamBranchName = upstreamBranchName;
-
-		gitWorkingDirectory = GitWorkingDirectoryFactory.newGitWorkingDirectory(
-			_upstreamBranchName, _getQAWebsitesGitRepositoryDir(),
-			_getQAWebsitesRepositoryName());
-
-		setGitRepositoryDir(gitWorkingDirectory.getWorkingDirectory());
-
-		checkGitRepositoryDir();
-
-		jobPropertiesFiles.add(new File(gitRepositoryDir, "test.properties"));
-
-		readJobProperties();
+		return _projectNames;
 	}
 
 	@Override
-	protected Set<String> getRawBatchNames() {
-		return getSetFromString(
-			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names"));
+	public String getTestSuiteName() {
+		return _testSuiteName;
+	}
+
+	protected QAWebsitesGitRepositoryJob(
+		BuildProfile buildProfile, String jobName, List<String> projectNames,
+		String testSuiteName, String upstreamBranchName) {
+
+		super(buildProfile, jobName);
+
+		_projectNames = projectNames;
+		_testSuiteName = testSuiteName;
+		_upstreamBranchName = upstreamBranchName;
+
+		_initialize();
+	}
+
+	protected QAWebsitesGitRepositoryJob(JSONObject jsonObject) {
+		super(jsonObject);
+
+		_testSuiteName = jsonObject.getString("test_suite_name");
+		_upstreamBranchName = jsonObject.getString("upstream_branch_name");
+
+		_projectNames = new ArrayList<>();
+
+		JSONArray projectNamesJSONArray = jsonObject.optJSONArray(
+			"project_names");
+
+		if (projectNamesJSONArray != null) {
+			for (int i = 0; i < projectNamesJSONArray.length(); i++) {
+				String projectName = projectNamesJSONArray.getString(i);
+
+				if (JenkinsResultsParserUtil.isNullOrEmpty(projectName)) {
+					continue;
+				}
+
+				_projectNames.add(projectName);
+			}
+		}
+
+		_initialize();
 	}
 
 	private File _getQAWebsitesGitRepositoryDir() {
@@ -129,13 +157,26 @@ public class QAWebsitesGitRepositoryJob
 			buildProperties, "qa.websites.repository", getBranchName());
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(qaWebsitesRepository)) {
-			throw new RuntimeException("Could not find QA Websites repository");
+			throw new RuntimeException("Unable to find QA Websites repository");
 		}
 
 		return qaWebsitesRepository;
 	}
 
-	private final String _projectNames;
+	private void _initialize() {
+		gitWorkingDirectory = GitWorkingDirectoryFactory.newGitWorkingDirectory(
+			_upstreamBranchName, _getQAWebsitesGitRepositoryDir(),
+			_getQAWebsitesRepositoryName());
+
+		setGitRepositoryDir(gitWorkingDirectory.getWorkingDirectory());
+
+		checkGitRepositoryDir();
+
+		jobPropertiesFiles.add(new File(gitRepositoryDir, "test.properties"));
+	}
+
+	private final List<String> _projectNames;
+	private final String _testSuiteName;
 	private final String _upstreamBranchName;
 
 }

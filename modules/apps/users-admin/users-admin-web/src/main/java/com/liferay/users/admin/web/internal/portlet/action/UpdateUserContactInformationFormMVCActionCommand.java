@@ -18,7 +18,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.DuplicateOpenIdException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.exception.UserSmsException;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.ContactConstants;
 import com.liferay.portal.kernel.model.User;
@@ -29,7 +28,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ContactLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.service.permission.UserPermissionUtil;
+import com.liferay.portal.kernel.service.permission.UserPermission;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -72,7 +71,7 @@ public class UpdateUserContactInformationFormMVCActionCommand
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
 
-			UserPermissionUtil.check(
+			_userPermission.check(
 				themeDisplay.getPermissionChecker(), user.getUserId(),
 				ActionKeys.UPDATE);
 
@@ -136,12 +135,6 @@ public class UpdateUserContactInformationFormMVCActionCommand
 			contact.setUserName(StringPool.BLANK);
 			contact.setClassName(User.class.getName());
 			contact.setClassPK(user.getUserId());
-
-			Company company = _companyLocalService.getCompany(
-				user.getCompanyId());
-
-			contact.setAccountId(company.getAccountId());
-
 			contact.setParentContactId(
 				ContactConstants.DEFAULT_PARENT_CONTACT_ID);
 		}
@@ -166,5 +159,8 @@ public class UpdateUserContactInformationFormMVCActionCommand
 
 	@Reference
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private UserPermission _userPermission;
 
 }

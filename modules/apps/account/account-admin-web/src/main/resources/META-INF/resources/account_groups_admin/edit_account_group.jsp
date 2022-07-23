@@ -30,6 +30,6 @@ AccountGroupDisplay accountGroupDisplay = (AccountGroupDisplay)request.getAttrib
 			"/account_admin/edit_account_group"
 		).setParameter(
 			"accountGroupId", accountGroupDisplay.getAccountGroupId()
-		).build()
+		).buildPortletURL()
 	%>'
 />

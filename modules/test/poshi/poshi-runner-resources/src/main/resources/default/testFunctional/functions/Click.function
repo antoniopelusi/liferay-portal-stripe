@@ -1,62 +1,77 @@
-<definition default="click" summary="Click on '${locator1}'">
-	<command name="click">
-		<execute selenium="waitForVisible" />
+@default = "click"
+@summary = "Click on '${locator1}'"
+definition {
 
-		<execute selenium="mouseOver" />
+	function click {
+		selenium.waitForVisible();
 
-		<execute selenium="click" />
-	</command>
+		selenium.mouseOver();
 
-	<command name="clickAt">
-		<execute selenium="waitForVisible" />
+		selenium.click();
+	}
 
-		<execute selenium="mouseOver" />
+	function clickAt {
+		selenium.waitForVisible();
 
-		<execute selenium="clickAt" />
-	</command>
+		selenium.mouseOver();
 
-	<command name="clickNoMouseOver">
-		<execute selenium="waitForVisible" />
+		selenium.clickAt("${locator1}", "${value1}");
+	}
 
-		<execute selenium="click" />
-	</command>
+	function clickAtNotVisible {
+		selenium.waitForElementPresent();
 
-	<command name="clickNoWaitForVisible">
-		<execute selenium="mouseOver" />
+		selenium.mouseOver();
 
-		<execute selenium="click" />
-	</command>
+		selenium.clickAt();
+	}
 
-	<command name="makeVisibleClickAt">
-		<execute selenium="waitForElementPresent" />
+	function clickNoMouseOver {
+		selenium.waitForVisible();
 
-		<execute selenium="mouseOver" />
+		selenium.click();
+	}
 
-		<execute selenium="makeVisible" />
+	function clickNoMouseOverNoWaitForVisible {
+		selenium.click();
+	}
 
-		<execute selenium="waitForVisible" />
+	function clickNoWaitForVisible {
+		selenium.mouseOver();
 
-		<execute selenium="clickAt" />
-	</command>
+		selenium.click();
+	}
 
-	<command name="mouseOverClick">
-		<execute selenium="waitForElementPresent" />
+	function javaScriptClick {
+		selenium.javaScriptClick();
+	}
 
-		<execute selenium="mouseOver" />
+	function mouseDownMouseUp {
+		selenium.waitForElementPresent();
 
-		<execute selenium="waitForVisible" />
+		selenium.waitForVisible();
 
-		<execute selenium="click" />
-	</command>
+		selenium.mouseDown();
 
-	<command name="pauseClickAt">
+		selenium.mouseUp();
+	}
 
-		<execute selenium="mouseOver" />
+	function mouseOverClick {
+		selenium.waitForElementPresent();
 
-		<execute function="Click#clickAt" />
-	</command>
+		selenium.mouseOver();
 
-	<command name="pauseMakeVisibleClickAt">
-		<execute function="Click#makeVisibleClickAt" />
-	</command>
-</definition>
+		selenium.waitForVisible();
+
+		selenium.click();
+	}
+
+	function pauseClickAt {
+		selenium.pause("1000");
+
+		selenium.mouseOver();
+
+		Click.clickAt();
+	}
+
+}

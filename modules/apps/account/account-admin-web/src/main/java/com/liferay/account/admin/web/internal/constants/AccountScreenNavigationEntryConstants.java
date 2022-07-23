@@ -19,6 +19,8 @@ package com.liferay.account.admin.web.internal.constants;
  */
 public class AccountScreenNavigationEntryConstants {
 
+	public static final String CATEGORY_KEY_ACCOUNT_GROUPS = "account-groups";
+
 	public static final String CATEGORY_KEY_ACCOUNTS = "accounts";
 
 	public static final String CATEGORY_KEY_ADDRESSES = "addresses";
@@ -26,6 +28,9 @@ public class AccountScreenNavigationEntryConstants {
 	public static final String CATEGORY_KEY_ASSIGNEES = "assignees";
 
 	public static final String CATEGORY_KEY_CONTACT = "contact";
+
+	public static final String CATEGORY_KEY_DEFINE_GROUP_SCOPE_PERMISSIONS =
+		"define-group-scope-permissions";
 
 	public static final String CATEGORY_KEY_DEFINE_PERMISSIONS =
 		"define-permissions";
@@ -42,6 +47,8 @@ public class AccountScreenNavigationEntryConstants {
 
 	public static final String CATEGORY_KEY_USERS = "users";
 
+	public static final String ENTRY_KEY_ACCOUNT_GROUPS = "account-groups";
+
 	public static final String ENTRY_KEY_ACCOUNTS = "accounts";
 
 	public static final String ENTRY_KEY_ADDRESSES = "addresses";
@@ -53,6 +60,9 @@ public class AccountScreenNavigationEntryConstants {
 
 	public static final String ENTRY_KEY_CONTACT_INFORMATION =
 		"contact-information";
+
+	public static final String ENTRY_KEY_DEFINE_GROUP_SCOPE_PERMISSIONS =
+		"define-group-scope-permissions";
 
 	public static final String ENTRY_KEY_DEFINE_PERMISSIONS =
 		"define-permissions";

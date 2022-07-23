@@ -36,6 +36,9 @@ public class CommerceOrderItemTable extends BaseTable<CommerceOrderItemTable> {
 	public static final CommerceOrderItemTable INSTANCE =
 		new CommerceOrderItemTable();
 
+	public final Column<CommerceOrderItemTable, Long> mvccVersion =
+		createColumn(
+			"mvccVersion", Long.class, Types.BIGINT, Column.FLAG_NULLITY);
 	public final Column<CommerceOrderItemTable, String> externalReferenceCode =
 		createColumn(
 			"externalReferenceCode", String.class, Types.VARCHAR,
@@ -70,15 +73,20 @@ public class CommerceOrderItemTable extends BaseTable<CommerceOrderItemTable> {
 	public final Column<CommerceOrderItemTable, Long> CPInstanceId =
 		createColumn(
 			"CPInstanceId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+	public final Column<CommerceOrderItemTable, Long> CPMeasurementUnitId =
+		createColumn(
+			"CPMeasurementUnitId", Long.class, Types.BIGINT,
+			Column.FLAG_DEFAULT);
 	public final Column<CommerceOrderItemTable, Long> CProductId = createColumn(
 		"CProductId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
 	public final Column<CommerceOrderItemTable, Long>
 		parentCommerceOrderItemId = createColumn(
 			"parentCommerceOrderItemId", Long.class, Types.BIGINT,
 			Column.FLAG_DEFAULT);
-	public final Column<CommerceOrderItemTable, Long> shippingAddressId =
+	public final Column<CommerceOrderItemTable, BigDecimal> decimalQuantity =
 		createColumn(
-			"shippingAddressId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+			"decimalQuantity", BigDecimal.class, Types.DECIMAL,
+			Column.FLAG_DEFAULT);
 	public final Column<CommerceOrderItemTable, String> deliveryGroup =
 		createColumn(
 			"deliveryGroup", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
@@ -181,6 +189,9 @@ public class CommerceOrderItemTable extends BaseTable<CommerceOrderItemTable> {
 		createColumn(
 			"requestedDeliveryDate", Date.class, Types.TIMESTAMP,
 			Column.FLAG_DEFAULT);
+	public final Column<CommerceOrderItemTable, Long> shippingAddressId =
+		createColumn(
+			"shippingAddressId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
 	public final Column<CommerceOrderItemTable, Boolean> shipSeparately =
 		createColumn(
 			"shipSeparately", Boolean.class, Types.BOOLEAN,

@@ -18,1336 +18,1940 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
-	test AddAndEditApplication {
-		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
-		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
-		property portal.upstream = "quarantine";
+	@description = "This is a use case for LPS-129398. User can authorize external application multiple times without any user session, when remember device is chosen."
+	@priority = "4"
+	test ApplicationCanBeAuthorizedWithoutUserSession {
+		property test.name.skip.portal.instance = "OAuth2#ApplicationCanBeAuthorizedWithoutUserSession";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		OAuth2.addApplication(
-			applicationName = "OAuth Application",
-			callbackURI = "http://www.liferay.com",
-			clientProfile = "Web Application",
-			websiteURL = "http://www.liferay.com");
-
-		var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
-		var generatedClientSecret = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_SECRET");
-
-		OAuth2.inputApplicationValues(
-			description = "Registering a new application",
-			privacyPolicyURL = "http://www.liferay.com");
-
-		Navigator.gotoBack();
-
-		OAuth2.viewApplicationInTable(
-			applicationName = "OAuth Application",
-			clientId = "${generatedClientId}",
-			description = "Registering a new application");
-
-		OAuth2.viewApplication(
-			applicationName = "OAuth Application",
-			callbackURI = "http://www.liferay.com",
-			checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
-			clientId = "${generatedClientId}",
-			clientProfile = "Web Application",
-			clientSecret = "${generatedClientSecret}",
-			description = "Registering a new application",
-			privacyPolicyURL = "http://www.liferay.com",
-			websiteURL = "http://www.liferay.com");
-
-		OAuth2.editApplication(
-			applicationName = "OAuth Application",
-			callbackURI = "http://www.liferay.com/callback",
-			checkboxCheckList = "Token Introspection",
-			checkboxUncheckList = "Refresh Token,Resource Owner Password Credentials",
-			clientId = "abcd1234",
-			clientProfile = "Native Application",
-			clientSecret = "abcd1234",
-			description = "Editing a new application",
-			newApplicationName = "OAuth Application Edited",
-			privacyPolicyURL = "http://www.google.com",
-			websiteURL = "http://www.google.com");
-
-		Navigator.gotoBack();
-
-		OAuth2.viewApplicationInTable(
-			applicationName = "OAuth Application Edited",
-			clientId = "abcd1234",
-			description = "Editing a new application");
-
-		OAuth2.viewApplication(
-			applicationName = "OAuth Application Edited",
-			callbackURI = "http://www.liferay.com/callback",
-			checkboxCheckList = "Token Introspection",
-			clientId = "abcd1234",
-			clientProfile = "Native Application",
-			clientSecret = "abcd1234",
-			description = "Editing a new application",
-			privacyPolicyURL = "http://www.google.com",
-			websiteURL = "http://www.google.com");
-
-		var newGeneratedClientSecret = OAuth2.editApplication(
-			applicationName = "OAuth Application Edited",
-			generateNewSecret = "true"
-		);
-
-		Navigator.gotoBack();
-
-		OAuth2.viewApplication(
-			applicationName = "OAuth Application Edited",
-			clientSecret = "${newGeneratedClientSecret}");
-
-		OAuth2.deleteApplication(applicationName = "OAuth Application Edited");
-	}
-
-	test AddAndEditOAuthSAPEntries {
-		property custom.properties = "json.service.serialize.throwable=true";
-		property test.name.skip.portal.instance = "OAuth2#AddAndEditOAuthSAPEntries";
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "Service Access Policy");
-
-		ServiceAccessPolicy.addServiceAccessPolicy(
-			enabled = "true",
-			methodName = "getVersion",
-			policyName = "OAUTH2_read.portalversion",
-			serviceClass = "com.liferay.portal.kernel.service.PortalService",
-			title = "read Portal version");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		OAuth2.addApplication(
-			applicationName = "OAuth Application",
-			checkboxUncheckList = "Authorization Code");
-
-		var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
-		var generatedClientSecret = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_SECRET");
-
-		Navigator.gotoBack();
-
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			resourceCheckList = "liferay-json-web-services.read.portalversion",
-			resourcePanels = "Portal Services");
-
-		var accessToken = OAuth2.getAccessToken(
-			clientId = "${generatedClientId}",
-			clientSecret = "${generatedClientSecret}",
-			grantFlow = "clientCredentials");
-
-		var portalURL = PropsUtil.get("portal.url");
-
-		var portalVersionCurl = '''
-			-H 'Authorization: Bearer ${accessToken}' ${portalURL}/api/jsonws/portal/get-version
-		''';
-
-		var portalVersionOutput = JSONCurlUtil.post("${portalVersionCurl}");
-
-		if (!(contains("${portalVersionOutput}", "7.4"))) {
-			fail("JSON-WS call failed to return Portal version");
+		task ("Add and edit 2 external applications") {
+			for (var count : list "1,2") {
+				OAuth2.addAndEditExternalApplication(
+					applicationName = "My Application${count}",
+					callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default${count}''',
+					checkboxCheckList = "Remember Device",
+					clientId = "default${count}",
+					clientProfile = "Web Application",
+					clientSecret = "defaultsecret${count}",
+					websiteURL = "http://www.liferay.com");
+			}
 		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "Service Access Policy");
+		task ("Logout, authorize application1 and launch request") {
+			User.logoutPG();
 
-		ServiceAccessPolicy.editServiceAccessPolicy(
-			enabled = "false",
-			policyName = "OAUTH2_read.portalversion");
+			OAuth2.authorizeMyApplication(
+				clientId = "default1",
+				clientSecret = "defaultsecret1",
+				rememberDevice = "true");
 
-		var portalVersionOutput = JSONCurlUtil.post("${portalVersionCurl}");
-
-		if (!(contains("${portalVersionOutput}", "Access denied to com.liferay.portal.kernel.service.PortalService#getVersion"))) {
-			fail("Access denied message was not returned");
+			OAuth2.launchRequest();
 		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Authorize application1 again and launch request to check if the device is remembered") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default1",
+				clientSecret = "defaultsecret1",
+				noAuthorize = "true");
 
-		OAuth2.viewScopes(
-			applicationName = "OAuth Application",
-			removedScope = "read.portalversion",
-			resourcePanels = "Portal Services");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "Service Access Policy");
-
-		ServiceAccessPolicy.editServiceAccessPolicy(
-			enabled = "true",
-			policyName = "OAUTH2_read.portalversion");
-
-		var portalVersionOutput = JSONCurlUtil.post("${portalVersionCurl}");
-
-		if (!(contains("${portalVersionOutput}", "7.4"))) {
-			fail("JSON-WS call failed to return Portal version");
+			OAuth2.launchRequest();
 		}
 
-		ServiceAccessPolicy.editServiceAccessPolicy(
-			methodName = "getBuildNumber",
-			newName = "OAUTH2_read.buildnumber",
-			policyName = "OAUTH2_read.portalversion",
-			title = "read Portal build number");
+		task ("Authorize application2 on a new page and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default2",
+				clientSecret = "defaultsecret2",
+				newTab = "true",
+				rememberDevice = "true");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+			OAuth2.launchRequest();
+		}
 
-		OAuth2.viewScopes(
-			applicationName = "OAuth Application",
-			removedScope = "read.portalversion",
-			resourcePanels = "Portal Services");
+		task ("Authorize application2 and launch request to check if the device is remembered") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default2",
+				clientSecret = "defaultsecret2",
+				noAuthorize = "true");
 
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			resourceCheckList = "liferay-json-web-services.read.buildnumber",
-			resourcePanels = "Portal Services");
-
-		var accessToken = OAuth2.getAccessToken(
-			clientId = "${generatedClientId}",
-			clientSecret = "${generatedClientSecret}",
-			grantFlow = "clientCredentials");
-
-		var buildNumberCurl = '''
-			-H 'Authorization: Bearer ${accessToken}' ${portalURL}/api/jsonws/portal/get-build-number
-		''';
-
-		var buildNumberOutput = JSONCurlUtil.post("${buildNumberCurl}");
-
-		if (!(contains("${buildNumberOutput}", "74"))) {
-			fail("JSON-WS call failed to return build number");
+			OAuth2.launchRequest();
 		}
 	}
 
-	@description = "This is a use case for OAUTH2-242."
+	@description = "This is a use case for LPS-126597. User can authorize external application multiple times with remember device option. After the first authorization flow login is not needed."
 	@priority = "5"
-	test AssertAuthorizationCodeWorksInCluster {
+	test ApplicationCanBeAuthorizedWithRememberDeviceEnabled {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#ApplicationCanBeAuthorizedWithRememberDeviceEnabled";
+
+		task ("Add and edit an external application with remember device enabled") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "Third-party Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				checkboxCheckList = "Remember Device",
+				clientId = "abc123",
+				clientProfile = "Web Application",
+				clientSecret = "abc123");
+		}
+
+		task ("Authorize my application with remember device option checked") {
+			OAuth2.authorizeMyApplication(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				rememberDevice = "true");
+		}
+
+		task ("Re-open test harness and authorize the application to check if Device is remembered") {
+			OAuth2.authorizeMyApplication(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				noAuthorize = "true");
+		}
+
+		task ("Launch request") {
+			OAuth2.launchRequest();
+		}
+	}
+
+	@description = "This is a use case for LPS-145191 TC-1:Liferay will not issue an access token back to the client when configure OAuth 2 Application as Client Secret JWT without the client sending client info in JWT."
+	@priority = "4"
+	test ApplicationCannotBeAuthorizedWithClientSecretJWTWithoutJWTAssertion {
+		property test.name.skip.portal.instance = "OAuth2#ApplicationCannotBeAuthorizedWithClientSecretJWTWithoutJWTAssertion";
+
+		task ("Add and edit an external application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "My Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				clientAuthenticationMethod = "Client Secret JWT",
+				clientId = "abc123",
+				clientProfile = "Web Application",
+				clientSecret = "abc123");
+		}
+
+		task ("Authorize application") {
+			OAuth2.authorizeMyApplication(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
+
+		task ("Verify OAuth2 access is not authorized") {
+			OAuth2.obtainOAuth2AccessNotAuthorized();
+		}
+	}
+
+	@description = "This is a use case for LPS-145190 TC-5 TC-6 TC-7 Request the liferay access token for OAuth2 application with invalid JWTs."
+	@priority = "3"
+	test ApplicationCannotBeAuthorizedWithInvalidJWT {
+		property test.name.skip.portal.instance = "OAuth2#ApplicationCannotBeAuthorizedWithInvalidJWT";
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance.config");
+		}
+
+		task ("Add a new OAuth2 application") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.addApplication(
+				applicationName = "OAuth2 Application",
+				checkboxUncheckList = "Authorization Code");
+		}
+
+		task ("Input OAuth2 valuies") {
+			OAuth2.inputApplicationValues(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
+
+		task ("Edit OAuth2 scopes") {
+			Navigator.gotoBack();
+
+			OAuth2.editScopes(
+				applicationName = "OAuth2 Application",
+				resourceCheckList = "analytics.read,analytics.write",
+				resourcePanels = "Analytics");
+		}
+
+		task ("Authorize application with the JWT which lack the kid confirmation method value.") {
+			OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_lack_kid.txt",
+				noResponse = "true",
+				scopes = "");
+		}
+
+		task ("Verify that there is no granted authorization via admin ") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				noAuthorizations = "true");
+		}
+
+		task ("Authorize application with an expired JWT.") {
+			OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_expired.txt",
+				noResponse = "true",
+				scopes = "");
+		}
+
+		task ("Verify that there is no granted authorization via admin ") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				noAuthorizations = "true");
+		}
+
+		task ("Authorize application with the JWT which includes a non-existent user in liferay.") {
+			OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_nonexistent_user.txt",
+				noResponse = "true",
+				scopes = "");
+		}
+
+		task ("Verify that there is no granted authorization via admin ") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				noAuthorizations = "true");
+		}
+	}
+
+	@description = "This is a use case for LPS-145191 TC-2:Liferay will not issue an access token back to the client when configure OAuth 2 Application as Private Key JWT without the client sending client info in JWT."
+	@priority = "4"
+	test ApplicationCannotBeAuthorizedWithPrivateKeyJWTWithoutJWTAssertion {
+		property test.name.skip.portal.instance = "OAuth2#ApplicationCannotBeAuthorizedWithPrivateKeyJWTWithoutJWTAssertion";
+
+		task ("Add and edit an external application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "My Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				clientAuthenticationMethod = "Private Key JWT",
+				clientId = "abc123",
+				clientProfile = "Web Application",
+				clientSecret = "abc123");
+		}
+
+		task ("Check the content of JSON Web Key Set doesn't disappear") {
+			OAuth2.viewApplication(
+				applicationName = "My Application",
+				clientAuthenticationMethod = "Private Key JWT",
+				jwks = "p2wfqbbEOf6OrbjScvOkuoVIx5MGJy6jEqN7RkfR8P82NdwuriRLoakZcs");
+		}
+
+		task ("Authorize application") {
+			OAuth2.authorizeMyApplication(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
+
+		task ("Verify OAuth2 access is not authorized") {
+			OAuth2.obtainOAuth2AccessNotAuthorized();
+		}
+	}
+
+	@description = "This is a use case for OAUTH2-242. Verify that 2 portals and an external application authorization works in a clustered environment."
+	@priority = "5"
+	test AuthCodeShouldWorkWithClusteredPortals {
 		property app.server.bundles.size = "1";
 		property cluster.enabled = "true";
 		property custom.properties = "virtual.hosts.default.site.name=Guest";
+		property minimum.slave.ram = "24";
 		property remote.elasticsearch.enabled = "true";
-		property test.name.skip.portal.instance = "OAuth2#AssertAuthorizationCodeWorksInCluster";
+		property test.name.skip.portal.instance = "OAuth2#AuthCodeShouldWorkWithClusteredPortals";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Add an OAuth 2 application") {
+			var baseURL = PropsUtil.get("portal.url");
 
-		OAuth2.addApplication(
-			applicationName = "OAuth Application",
-			callbackURI = "http://www.liferay.com");
+			OAuth2.openOAuth2Admin();
 
-		Navigator.gotoNavItem(navItem = "Scopes");
+			OAuth2.addApplication(
+				applicationName = "OAuth Application",
+				callbackUri = "http://www.liferay.com");
+		}
 
-		for (var resourcePanel : list "Analytics,Portal Services") {
-			var key_panel = "${resourcePanel}";
+		task ("Verify Analytics and portal services are present in scopes on the first portal") {
+			Navigator.gotoNavItem(navItem = "Scopes");
 
-			AssertElementPresent(locator1 = "OAuth2#ADMIN_RESOURCE_PANEL_COLLAPSED");
+			OAuth2.viewResourcePanelCollapsed(scopeList = "Analytics,Portal Services");
 		}
 
 		User.logoutPG();
 
-		User.loginPG(
-			nodePort = "9080",
-			password = "test",
-			userEmailAddress = "test@liferay.com");
+		task ("Log in the second portal and verify Analytics and portal services are present in scopes") {
+			User.loginPG(
+				nodePort = "9080",
+				password = "test",
+				userEmailAddress = "test@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+			OAuth2.openOAuth2Admin(baseURL = "http://localhost:9080");
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "OAuth Application");
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "OAuth Application");
 
-		Navigator.gotoNavItem(navItem = "Scopes");
+			Navigator.gotoNavItem(navItem = "Scopes");
 
-		for (var resourcePanel : list "Analytics,Portal Services") {
-			var key_panel = "${resourcePanel}";
-
-			AssertElementPresent(locator1 = "OAuth2#ADMIN_RESOURCE_PANEL_COLLAPSED");
+			OAuth2.viewResourcePanelCollapsed(scopeList = "Analytics,Portal Services");
 		}
 
 		User.logoutPG(nodePort = "9080");
 
-		User.loginPG(
-			password = "test",
-			userEmailAddress = "test@liferay.com");
+		task ("Log in on the first portal then fill the clientId and client secret values") {
+			User.loginPG(
+				password = "test",
+				userEmailAddress = "test@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+			OAuth2.openOAuth2Admin();
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "OAuth Application");
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "OAuth Application");
 
-		OAuth2.inputApplicationValues(
-			clientId = "abc123",
-			clientSecret = "abc123");
-
-		var authorizationCode = OAuth2.getAuthorizationCode();
-
-		var curl = '''
-			http://localhost:9080/o/oauth2/token \
-				 --data client_id=abc123&client_secret=abc123&grant_type=authorization_code&code=${authorizationCode}
-		''';
-
-		var reponse = JSONCurlUtil.post("${curl}");
-
-		if (contains("${reponse}", "access_token")) {
-			echo("OAuth2 Authorization Code is working in cluster.");
+			OAuth2.inputApplicationValues(
+				clientId = "abc123",
+				clientSecret = "abc123");
 		}
-		else {
-			fail("OAuth2 Authorization Code is not working in cluster.");
+
+		task ("Check if OAuth 2 authorization code is working in cluster") {
+			var authorizationCode = OAuth2.getAuthorizationCode();
+
+			OAuth2.assertOAuthAuthorizationIsWorkingInCluster(authorizationCode = "${authorizationCode}");
 		}
 	}
 
-	@description = "This is a use case for OAUTH2-259."
-	@priority = "4"
-	test AssertClientCredentialsIsUserScoped {
-		property custom.properties = "json.service.serialize.throwable=true";
-		property test.name.skip.portal.instance = "OAuth2#AssertClientCredentialsIsUserScoped";
+	@description = "This is a use case for LPS-145190 TC-3 Liferay will issue the access token when the token issuer matches any of configurations in system settings and instance settings."
+	@priority = "5"
+	test AuthorizationCanBeIssuedWhenTokenIssuerMatchesWithSystemLevelOrInstanceLevel {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#AuthorizationCanBeIssuedWhenTokenIssuerMatchesWithSystemLevelOrInstanceLevel";
 
-		JSONWebcontent.addWebContent(
-			content = "WC Content",
-			groupName = "Guest",
-			title = "WC Title");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "Service Access Policy");
-
-		ServiceAccessPolicy.addServiceAccessPolicy(
-			enabled = "true",
-			methodName = "deleteArticle",
-			policyName = "OAUTH2_delete.journalarticles",
-			serviceClass = "com.liferay.journal.service.JournalArticleService",
-			title = "delete journal articles");
-
-		JSONUser.addUser(
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		OAuth2.addApplication(
-			applicationName = "OAuth Application",
-			checkboxUncheckList = "Authorization Code");
-
-		OAuth2.inputApplicationValues(
-			clientCredentialsUser = "usersn",
-			clientId = "abc123",
-			clientSecret = "abc123");
-
-		Navigator.gotoBack();
-
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			resourceCheckList = "liferay-json-web-services.delete.journalarticles",
-			resourcePanels = "Portal Services");
-
-		var portalURL = PropsUtil.get("portal.url");
-
-		var siteName = TestCase.getSiteName(siteName = "${siteName}");
-
-		var tokenCurl = '''
-			${portalURL}/o/oauth2/token \
-				--data grant_type=client_credentials&client_id=abc123&client_secret=abc123
-		''';
-
-		var accessToken = OAuth2.getAccessToken(tokenCurl = "${tokenCurl}");
-
-		var articleId = JSONWebcontentSetter.setArticleId(
-			groupName = "Guest",
-			title = "WC Title");
-
-		var liferaySiteId = JSONGroupAPI._getGroupIdByName(groupName = "Guest", site = "true");
-
-		var deleteCurl = '''
-			-H 'Authorization: Bearer ${accessToken}' ${portalURL}/api/jsonws/journal.journalarticle/delete-article \
-				-d groupId=${liferaySiteId} \
-				-d articleId=${articleId} \
-				-d articleURL='wc-title'
-		''';
-
-		var deleteOutput1 = JSONCurlUtil.post("${deleteCurl}");
-
-		if (!(contains("${deleteOutput1}", "must have DELETE permission for com.liferay.journal.model.JournalArticle"))) {
-			fail("Could not find message for denied permissions.");
+		task ("Add the OSGI configuration file to configure System Settings") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~default.config");
 		}
 
-		Permissions.definePermissionViaJSONAPI(
-			resourceAction = "DELETE",
-			resourceName = "com.liferay.journal.model.JournalArticle",
-			roleTitle = "Guest");
-
-		var deleteOutput2 = JSONCurlUtil.post("${deleteCurl}");
-
-		if (contains("${deleteOutput2}", "must have DELETE permission for com.liferay.journal.model.JournalArticle")) {
-			fail("Unable to delete journal article");
+		task ("Add the OSGI configuration file to configure Instance Settings") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance~SSO.config");
 		}
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Web Content",
-			site = "${siteName}");
+		task ("Add a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "test1@liferay.com",
+				userFirstName = "Test",
+				userLastName = "One",
+				userScreenName = "test1");
 
-		AssertTextNotPresent(value1 = "WC Title");
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "test1@liferay.com");
+		}
+
+		task ("Add a new OAuth2 application") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.addApplication(
+				applicationName = "OAuth2 Application",
+				checkboxUncheckList = "Authorization Code");
+		}
+
+		task ("Input OAuth2 valuies") {
+			OAuth2.inputApplicationValues(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
+
+		task ("Edit OAuth2 scopes") {
+			Navigator.gotoBack();
+
+			OAuth2.editScopes(
+				applicationName = "OAuth2 Application",
+				resourceCheckList = "analytics.read,analytics.write",
+				resourcePanels = "Analytics");
+		}
+
+		task ("Authorize application with the localhost issuer.") {
+			var scopeList = OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_email_test.txt",
+				scopes = "");
+		}
+
+		task ("Verify granted authorization via admin") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test Test");
+		}
+
+		task ("Authorize application with the sso issuer.") {
+			var scopeList = OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_email_test1_sso.txt",
+				scopes = "");
+		}
+
+		task ("Verify granted authorization via admin") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test One");
+		}
 	}
 
-	@description = "This is a use case for LPS-110393."
-	@priority = "4"
-	test AssertExpandPanelsOnGlobalScopes {
+	@description = "This is a use case for LPS-129397 TC-1: User can revoke authorization via kebab menu on	the OAuth 2 administration page."
+	@priority = "5"
+	test AuthorizationCanBeRevokedViaKebabMenu {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#AuthorizationCanBeRevokedViaKebabMenu";
+
+		task ("Add and edit an external application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "My Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
+				clientId = "default",
+				clientProfile = "Web Application",
+				clientSecret = "defaultsecret",
+				websiteURL = "http://localhost:8080");
+		}
+
+		task ("Verify that the created application is in the first row and the Revoke button is not present") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewApplicationInAuthorizationsTable(
+				entryIndex = "0",
+				tableEntry = "My Application");
+
+			LexiconEntry.viewNoEntryMenuItem(
+				menuItem = "Revoke Authorizations",
+				rowEntry = "My Application");
+		}
+
+		task ("Authorize application and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default",
+				clientSecret = "defaultsecret");
+
+			OAuth2.launchRequest();
+		}
+
+		task ("Verify that the created application is in the first row in OAuth 2 admin page then revoke the application") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewApplicationInAuthorizationsTable(
+				entryIndex = "1",
+				tableEntry = "My Application");
+
+			OAuth2.revokeApplicationAuthorization(applicationName = "My Application");
+		}
+
+		task ("Verify that the authorization list is empty in the revoked application settings ") {
+			OAuth2.assertApplicationHasNoAuthorization(applicationName = "My Application");
+		}
+	}
+
+	@description = "This is a use case for LPS-129397 TC-2: User can revoke authorizations from a trusted application via kebab menu on the OAuth 2 administration page."
+	@priority = "3"
+	test AuthorizationCanBeRevokedViaKebabMenuWithTrustedDevice {
+		property test.name.skip.portal.instance = "OAuth2#AuthorizationCanBeRevokedViaKebabMenuWithTrustedDevice";
+
+		task ("Add and edit an external application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "My Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
+				checkboxCheckList = "Trusted Application",
+				clientId = "default",
+				clientProfile = "Web Application",
+				clientSecret = "defaultsecret",
+				websiteURL = "http://localhost:8080");
+		}
+
+		task ("Verify that the application has 0 authorizations at OAuth 2 admin and the Revoke button is not present") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewApplicationInAuthorizationsTable(
+				entryIndex = "0",
+				tableEntry = "My Application");
+
+			LexiconEntry.viewNoEntryMenuItem(
+				menuItem = "Revoke Authorizations",
+				rowEntry = "My Application");
+		}
+
+		task ("Authorize the application and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default",
+				clientSecret = "defaultsecret",
+				noAuthorize = "true");
+
+			OAuth2.launchRequest();
+		}
+
+		task ("Verify that the application has 1 authorization at OAuth 2 admin then Revoke it's authorization") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewApplicationInAuthorizationsTable(
+				entryIndex = "1",
+				tableEntry = "My Application");
+
+			OAuth2.revokeApplicationAuthorization(applicationName = "My Application");
+		}
+
+		task ("Verify that the authorization list is empty in the revoked application settings ") {
+			OAuth2.assertApplicationHasNoAuthorization(applicationName = "My Application");
+		}
+	}
+
+	@description = "This is a use case for OAUTH2-216. Authorization prompt should not include the application name when authorizing and no scopes should be stored from the application in the authorization request page."
+	test AuthPromptInRequestScopeShouldNotBeVisible {
+		property custom.properties = "virtual.hosts.default.site.name=Guest";
+		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.scope.internal.configuration.BundlePrefixHandlerFactoryConfiguration~default.config";
+		property osgi.module.configurations = "include.bundle.symbolic.name=&quot;false&quot;${line.separator}osgi.jaxrs.name=&quot;Default&quot;${line.separator}separator=&quot;&quot;${line.separator}service.properties=&quot;&quot;";
 		property portal.upstream = "quarantine";
-		property test.name.skip.portal.instance = "OAuth2#AssertExpandPanelsOnGlobalScopes";
+		property test.name.skip.portal.instance = "OAuth2#AuthPromptInRequestScopeShouldNotBeVisible";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
+		task ("Go to OAuth 2 administration") {
+			OAuth2.openOAuth2Admin();
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "OAuth 2",
-			configurationName = "Bundle PrefixHandlerFactory",
-			configurationScope = "System Scope");
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Analytics Cloud");
+		}
 
-		SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
+		task ("Get clientId") {
+			WaitForSPARefresh();
 
-		SystemSettings.deleteConfiguration();
+			var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
+			var portalURL = PropsUtil.get("portal.url");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Go to scopes and add com.liferay.oauth2.provider.sample.jar file") {
+			Navigator.gotoBack();
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Analytics Cloud");
+			OAuth2.editScopes(
+				applicationName = "Analytics Cloud",
+				checkGlobalScope = "Everything");
 
-		AssertClick(
-			key_navItem = "Scopes",
-			locator1 = "NavBar#NAV_ITEM_LINK",
-			value1 = "Scopes");
+			FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.sample.jar");
+		}
 
-		AssertElementPresent(
-			key_navItem = "Scopes",
-			locator1 = "NavBar#ACTIVE_NAV_ITEM_LINK");
+		task ("Verify everything.read is checked in sample-app resource panel") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Analytics Cloud");
 
-		Navigator.gotoNavUnderline(navUnderline = "Global scopes");
+			Navigator.gotoNavItem(navItem = "Scopes");
 
-		for (var globalPanel : list "analytics.read,analytics.write,everything.write,everything.read,everything") {
-			OAuth2.expandGlobalPanel(globalPanel = "${globalPanel}");
+			OAuth2.expandResourcePanel(resourcePanel = "sample-app");
+
+			OAuth2.assertScopeChecked(
+				panel = "sample-app",
+				scopeName = "everything.read");
+		}
+
+		task ("Verify request is authorized") {
+			Navigator.openSpecificURL(url = "${portalURL}/o/oauth2/authorize?client_id=${generatedClientId}&response_type=code");
+
+			OAuth2.viewAuthorizationRequestAppName(appName = "Analytics Cloud");
+
+			OAuth2.viewAuthorizationRequestResourceName(resourceName = "Portal Services");
+
+			OAuth2.viewAuthorizationRequestResourceName(resourceName = "sample-app");
+		}
+
+		task ("Save OAuth 2 scopes configuration") {
+			OAuth2.openOAuth2Admin();
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Analytics Cloud");
+
+			Navigator.gotoNavItem(navItem = "Scopes");
+
+			PortletEntry.save();
+		}
+
+		task ("Verify authorization request name is sample-app") {
+			Navigator.openSpecificURL(url = "${portalURL}/o/oauth2/authorize?client_id=${generatedClientId}&response_type=code");
+
+			OAuth2.viewAuthorizationRequestResourceName(resourceName = "Portal Services");
+
+			OAuth2.viewAuthorizationRequestResourceName(resourceName = "sample-app");
 		}
 	}
 
-	test AuthorizeExternalApplication {
-		property custom.properties = "virtual.hosts.default.site.name=Guest";
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		var clientId = "abc123";
-		var clientSecret = "abc123";
-		var portalURL = PropsUtil.get("portal.url");
-
-		OAuth2.addApplication(
-			applicationName = "Third-party Application",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
-			clientProfile = "Web Application");
-
-		OAuth2.inputApplicationValues(
-			clientId = "${clientId}",
-			clientSecret = "${clientSecret}");
-
-		Navigator.gotoBack();
-
-		OAuth2.editScopes(
-			applicationName = "Third-party Application",
-			resourceCheckList = "liferay-json-web-services.everything.read.userprofile",
-			resourcePanels = "Portal Services");
-
-		Navigator.openSpecificURL(url = "http://martamedio.com/oauth2-tester/");
-
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_ID",
-			value1 = "${clientId}");
-
-		Button.click(button = "Authorize My Application");
-
-		Button.click(button = "Authorize");
-
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_SECRET",
-			value1 = "${clientSecret}");
-
-		Button.click(button = "Obtain OAuth2 Access");
-
-		Button.click(button = "Launch Request");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
-			value1 = "test@liferay.com");
-	}
-
-	@description = "This is a use case for LPS-126597."
+	@description = "This is a use case for OAUTH2-259. Verify that client credential is in the user scope and can be added to an external application."
 	@priority = "4"
-	test AuthorizeExternalApplicationWithRememberDeviceEnabled {
-		property test.name.skip.portal.instance = "OAuth2#AuthorizeExternalApplicationWithRememberDeviceEnabled";
+	test ClientCredentialsShouldBeConfigurableInUserScope {
+		property custom.properties = "access.control.sanitize.security.exception=false${line.separator}json.service.serialize.throwable=true";
+		property test.name.skip.portal.instance = "OAuth2#ClientCredentialsShouldBeConfigurableInUserScope";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Add a test web content") {
+			JSONWebcontent.addWebContent(
+				content = "WC Content",
+				groupName = "Guest",
+				title = "WC Title");
+		}
 
-		var clientId = "abc123";
-		var clientSecret = "abc123";
-		var portalURL = PropsUtil.get("portal.url");
+		task ("Add SAP") {
+			var baseURL = PropsUtil.get("portal.url");
 
-		OAuth2.addApplication(
-			applicationName = "Third-party Application",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
-			checkboxCheckList = "Remember Device",
-			clientProfile = "Web Application");
+			ServiceAccessPolicy.openServiceAccessPolicyAdmin();
 
-		OAuth2.inputApplicationValues(
-			clientId = "${clientId}",
-			clientSecret = "${clientSecret}");
+			ServiceAccessPolicy.addServiceAccessPolicy(
+				enabled = "true",
+				methodName = "deleteArticle",
+				policyName = "OAUTH2_delete.journalarticles",
+				serviceClass = "com.liferay.journal.service.JournalArticleService",
+				title = "delete journal articles");
+		}
 
-		Navigator.gotoBack();
+		task ("Add user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
 
-		OAuth2.editScopes(
-			applicationName = "Third-party Application",
-			resourceCheckList = "liferay-json-web-services.everything.read.userprofile",
-			resourcePanels = "Portal Services");
+		task ("Add OAuth application") {
+			OAuth2.openOAuth2Admin();
 
-		Navigator.openSpecificURL(url = "http://martamedio.com/oauth2-tester/");
+			OAuth2.addApplication(
+				applicationName = "OAuth Application",
+				checkboxUncheckList = "Authorization Code");
+		}
 
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_ID",
-			value1 = "${clientId}");
+		task ("Input OAuth valuies") {
+			OAuth2.inputApplicationValues(
+				clientCredentialsUser = "usersn",
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
 
-		Button.click(button = "Authorize My Application");
+		task ("Edit OAuth scopes") {
+			Navigator.gotoBack();
 
-		Check(
-			key_checkboxName = "Remember Device",
-			locator1 = "OAuth2#ADMIN_INPUT_FORM_CHECKBOX");
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				resourceCheckList = "liferay-json-web-services.delete.journalarticles",
+				resourcePanels = "Portal Services");
+		}
 
-		Button.click(button = "Authorize");
+		task ("Set article Id") {
+			var portalURL = PropsUtil.get("portal.url");
 
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_SECRET",
-			value1 = "${clientSecret}");
+			var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
-		Button.click(button = "Obtain OAuth2 Access");
+			var tokenCurl = '''
+				${portalURL}/o/oauth2/token \
+					--data grant_type=client_credentials&client_id=abc123&client_secret=abc123
+			''';
 
-		// Re-open test harness to check if Device is remembered
+			var accessToken = OAuth2.getAccessToken(tokenCurl = "${tokenCurl}");
 
-		Navigator.openSpecificURL(url = "http://martamedio.com/oauth2-tester/");
+			var articleId = JSONWebcontentSetter.setArticleId(
+				groupName = "Guest",
+				title = "WC Title");
+		}
 
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_ID",
-			value1 = "${clientId}");
+		task ("Verify permission is required to delete article") {
+			var liferaySiteId = JSONGroupAPI._getGroupIdByName(
+				groupName = "Guest",
+				site = "true");
 
-		Button.click(button = "Authorize My Application");
+			var deleteCurl = '''
+				${portalURL}/api/jsonws/journal.journalarticle/delete-article -H 'Authorization: Bearer ${accessToken}' \
+					-d groupId=${liferaySiteId} \
+					-d articleId=${articleId} \
+					-d articleURL='wc-title'
+			''';
+			var deleteOutput1 = JSONCurlUtil.post("${deleteCurl}");
 
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_SECRET",
-			value1 = "${clientSecret}");
+			OAuth2.assertPermissionsDenied(
+				deleteOutput = "${deleteOutput1}",
+				msg = "must have DELETE permission for com.liferay.journal.model.JournalArticle");
+		}
 
-		Button.click(button = "Obtain OAuth2 Access");
+		task ("Define DELETE permission for the User") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "DELETE",
+				resourceName = "com.liferay.journal.model.JournalArticle",
+				roleTitle = "Guest");
+		}
 
-		// Execute a request as final verification
+		task ("Verify permission required to delete article") {
+			var deleteOutput2 = JSONCurlUtil.post("${deleteCurl}");
 
-		Button.click(button = "Launch Request");
+			OAuth2.assertAbleToDeleteJournalArticle(
+				deleteOutput = "${deleteOutput2}",
+				msg = "must have DELETE permission for com.liferay.journal.model.JournalArticle");
+		}
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
-			value1 = "test@liferay.com");
-	}
+		task ("Verify WC deleted") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
 
-	@description = "This is a use case for LPS-126596."
-	@priority = "4"
-	test AuthorizeExternalTrustedApplication {
-		property custom.properties = "virtual.hosts.default.site.name=Guest";
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		var clientId = "abc123";
-		var clientSecret = "abc123";
-		var portalURL = PropsUtil.get("portal.url");
-
-		OAuth2.addApplication(
-			applicationName = "Third-party Application",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
-			checkboxCheckList = "Trusted Application",
-			clientProfile = "Web Application");
-
-		OAuth2.inputApplicationValues(
-			clientId = "${clientId}",
-			clientSecret = "${clientSecret}");
-
-		Navigator.gotoBack();
-
-		OAuth2.editScopes(
-			applicationName = "Third-party Application",
-			resourceCheckList = "liferay-json-web-services.everything.read.userprofile",
-			resourcePanels = "Portal Services");
-
-		Navigator.openSpecificURL(url = "http://martamedio.com/oauth2-tester/");
-
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_ID",
-			value1 = "${clientId}");
-
-		Button.click(button = "Authorize My Application");
-
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_SECRET",
-			value1 = "${clientSecret}");
-
-		Button.click(button = "Obtain OAuth2 Access");
-
-		Button.click(button = "Launch Request");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
-			value1 = "test@liferay.com");
-	}
-
-	@description = "This is a use case for LPS-105158."
-	@priority = "4"
-	test ConfigureOnSystemLevelWillApplyToInstanceLevel {
-		property test.name.skip.portal.instance = "OAuth2#ConfigureOnSystemLevelWillApplyToInstanceLevel";
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "OAuth 2",
-			configurationName = "Bundle PrefixHandlerFactory",
-			configurationScope = "System Scope");
-
-		SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
-
-		SystemSettings.deleteConfiguration();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Analytics Cloud");
-
-		AssertClick(
-			key_navItem = "Scopes",
-			locator1 = "NavBar#NAV_ITEM_LINK",
-			value1 = "Scopes");
-
-		AssertElementPresent(
-			key_navUnderline = "Resource scopes",
-			locator1 = "NavUnderline#NAV_UNDERLINE_LINK");
-
-		AssertElementPresent(
-			key_navUnderline = "Global scopes",
-			locator1 = "NavUnderline#NAV_UNDERLINE_LINK");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
-
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
-
-		PortalInstances.viewCP(virtualHost = "www.able.com");
-
-		User.firstLoginPG(
-			password = "test",
-			userEmailAddress = "test@www.able.com",
-			virtualHostsURL = "http://www.able.com:8080");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.unassignRegularRoleCP(
-			regularRoleName = "Power User",
-			userScreenName = "test");
-
-		Navigator.openSpecificURL(url = "http://www.able.com:8080");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Analytics Cloud");
-
-		AssertClick(
-			key_navItem = "Scopes",
-			locator1 = "NavBar#NAV_ITEM_LINK",
-			value1 = "Scopes");
-
-		AssertElementNotPresent(
-			key_navUnderline = "Resource scopes",
-			locator1 = "NavUnderline#NAV_UNDERLINE_LINK");
-
-		for (var resourcePanel : list "Bulk Processing,Content Delivery,Dynamic Data Lists,Forms,Portal Services,Taxonomy Administration,User Administration,Workflow Administration") {
-			AssertHTMLSourceTextNotPresent(value1 = "${resourcePanel}");
+			AssertTextNotPresent(value1 = "WC Title");
 		}
 	}
 
+	@description = "This is a use case for LPS-105158. Configuring the settings on system level will set the same settings on the Instance level."
+	@priority = "5"
+	test ConfigureOnSystemLevelShouldApplyToInstanceLevel {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#ConfigureOnSystemLevelShouldApplyToInstanceLevel";
+
+		task ("Delete OSGi JAX-RS Default configuration") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "OAuth 2",
+				configurationName = "Bundle PrefixHandlerFactory",
+				configurationScope = "System Scope");
+
+			SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
+
+			SystemSettings.deleteConfiguration();
+		}
+
+		task ("Verify resource and global scopes are present in OAuth 2 administration entry scopes") {
+			var baseURL = PropsUtil.get("portal.url");
+
+			OAuth2.openOAuth2Admin();
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Analytics Cloud");
+
+			Navigator.gotoNavItem(navItem = "Scopes");
+
+			OAuth2.viewGlobalScopesPresent();
+		}
+
+		task ("Add able.com as a new virtual instance") {
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Login at able.com and unassign power user role from the test user") {
+			User.firstLoginPG(
+				password = "test",
+				userEmailAddress = "test@www.able.com",
+				virtualHostsURL = "http://www.able.com:8080");
+
+			User.openUsersAdmin(baseURL = "http://www.able.com:8080");
+
+			User.unassignRegularRoleCP(
+				regularRoleName = "Power User",
+				userScreenName = "test");
+		}
+
+		task ("Verify resource scopes are not present in OAuth 2 administration entry scope") {
+			OAuth2.openOAuth2Admin(baseURL = "http://www.able.com:8080");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Analytics Cloud");
+
+			Navigator.gotoNavItem(navItem = "Scopes");
+
+			OAuth2.viewResourceScopesPresent();
+
+			for (var resourcePanel : list "Bulk Processing,Content Delivery,Dynamic Data Lists,Forms,Portal Services,Taxonomy Administration,User Administration,Workflow Administration") {
+				AssertHTMLSourceTextNotPresent(value1 = "${resourcePanel}");
+			}
+		}
+	}
+
+	@description = "This is a use case for LRQA-48777. User can edit external applications to enable or disable permissions in both scopes. Blocked by LPS-142520."
 	test EditApplicationScopesAndViewLanguageKeys {
-		property liferay.dependency.jars = "com.liferay.oauth2.provider.scope.sample.qa.jar";
-		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.scope.internal.configuration.ConfigurableScopeMapperConfiguration-default.config";
+		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.scope.internal.configuration.ConfigurableScopeMapperConfiguration~default.config";
 		property osgi.module.configurations = "mapping=[&quot;example-scope-1,example-scope-2\=everything&quot;]${line.separator}osgi.jaxrs.name=&quot;liferay-oauth2-scope-sample-qa-app&quot;${line.separator}passthrough=&quot;true&quot;";
 		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "OAuth2#EditApplicationScopesAndViewLanguageKeys";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
+		FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.scope.sample.qa.jar");
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "OAuth 2",
-			configurationName = "Bundle PrefixHandlerFactory",
-			configurationScope = "System Scope");
+		task ("Delete OSGi JAX-RS Default configuration") {
+			var baseURL = PropsUtil.get("portal.url");
 
-		SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
+			Navigator.openSpecificURL(url = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=com.liferay.oauth2.provider.scope.internal.configuration.BundlePrefixHandlerFactoryConfiguration&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fview_factory_instances");
 
-		SystemSettings.deleteConfiguration();
+			SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		OAuth2.addApplication(
-			applicationName = "OAuth Application",
-			checkboxUncheckList = "Authorization Code");
-
-		Navigator.gotoNavItem(navItem = "Scopes");
-
-		Navigator.gotoNavUnderline(navUnderline = "Resource scopes");
-
-		for (var resourcePanel : list "Liferay.Bulk.REST,Liferay.Headless.Admin.Taxonomy,Liferay.Headless.Admin.User,Liferay.Headless.Admin.Workflow,Liferay.Headless.Delivery,Liferay.Headless.Form") {
-			var key_panel = "${resourcePanel}";
-
-			AssertElementNotPresent(locator1 = "OAuth2#ADMIN_RESOURCE_PANEL_COLLAPSED");
+			SystemSettings.deleteConfiguration();
 		}
 
-		for (var resourcePanel : list "Analytics,Bulk Processing,Content Delivery,Dynamic Data Lists,Forms,Portal Services,Taxonomy Administration,User Administration,Workflow Administration") {
-			var key_panel = "${resourcePanel}";
+		task ("Add a new OAuth 2 application") {
+			OAuth2.openOAuth2Admin();
 
-			AssertElementPresent(locator1 = "OAuth2#ADMIN_RESOURCE_PANEL_COLLAPSED");
+			OAuth2.addApplication(
+				applicationName = "OAuth Application",
+				checkboxUncheckList = "Authorization Code");
 		}
 
-		Navigator.gotoBack();
+		task ("Verify resource scopes are shown") {
+			Navigator.gotoNavItem(navItem = "Scopes");
 
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			resourceCheckList = "everything.read.userprofile",
-			resourcePanels = "Portal Services");
+			Navigator.gotoNavUnderline(navUnderline = "Resource scopes");
 
-		Refresh();
+			OAuth2.viewResourcePanelCollapsed(scopeList = "Analytics,Liferay.Bulk.REST,Liferay.Data.Engine.REST,Liferay.Frontend.View.State.REST,Liferay.Headless.Admin.Content");
+		}
 
-		OAuth2.viewScopes(
-			applicationName = "OAuth Application",
-			resourceCheckedList = "everything.read.userprofile",
-			resourcePanels = "Portal Services");
+		task ("Edit OAuth application scopes and check the permission to read the userprofile") {
+			Navigator.gotoBack();
 
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			checkGlobalScope = "Everything");
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				resourceCheckList = "everything.read.userprofile",
+				resourcePanels = "Portal Services");
 
-		Refresh();
+			Refresh();
 
-		OAuth2.viewScopes(
-			applicationName = "OAuth Application",
-			checkedGlobalScope = "Everything",
-			resourceCheckedList = "example-scope-1,example-scope-2,everything.read.userprofile,everything.read.documents.download",
-			resourcePanels = "Portal Services,Sample QA app");
+			OAuth2.viewScopes(
+				applicationName = "OAuth Application",
+				resourceCheckedList = "everything.read.userprofile",
+				resourcePanels = "Portal Services");
+		}
 
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			resourcePanels = "Portal Services,Sample QA app",
-			uncheckAllResourceScopes = "true",
-			uncheckGlobalScope = "Everything");
+		task ("Edit OAuth application scopes and check everything under Global scope") {
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				checkGlobalScope = "Everything");
 
-		Refresh();
+			Refresh();
 
-		OAuth2.viewScopes(
-			allResourceScopesUnchecked = "true",
-			applicationName = "OAuth Application",
-			resourcePanels = "Portal Services,Sample QA app",
-			uncheckedGlobalScope = "Everything");
+			OAuth2.viewScopes(
+				applicationName = "OAuth Application",
+				checkedGlobalScope = "Everything",
+				resourceCheckedList = "example-scope-1,example-scope-2,everything.read.userprofile,everything.read.documents.download",
+				resourcePanels = "Portal Services,Sample QA app");
+		}
 
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			checkGlobalScopesViaModal = "Everything",
-			modalLinkScope = "example-scope-1",
-			resourcePanels = "Sample QA app");
+		task ("Edit OAuth application scopes and uncheck everything under Resource scope") {
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				resourcePanels = "Portal Services,Sample QA app",
+				uncheckAllResourceScopes = "true",
+				uncheckGlobalScope = "Everything");
 
-		Refresh();
+			Refresh();
 
-		OAuth2.viewScopes(
-			applicationName = "OAuth Application",
-			checkedGlobalScope = "Everything",
-			checkedGlobalScopesViaModal = "Everything",
-			modalLinkScope = "example-scope-1",
-			resourceCheckedList = "example-scope-1,example-scope-2,everything.read.userprofile,everything.read.documents.download",
-			resourcePanels = "Portal Services,Sample QA app");
+			OAuth2.viewScopes(
+				allResourceScopesUnchecked = "true",
+				applicationName = "OAuth Application",
+				resourcePanels = "Portal Services,Sample QA app",
+				uncheckedGlobalScope = "Everything");
+		}
+
+		task ("Edit OAuth application scopes and check everything under Global Scope/example-scope-1 modal") {
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				checkGlobalScopesViaModal = "Everything",
+				modalLinkScope = "example-scope-1",
+				resourcePanels = "Sample QA app");
+
+			Refresh();
+
+			OAuth2.viewScopes(
+				applicationName = "OAuth Application",
+				checkedGlobalScope = "Everything",
+				checkedGlobalScopesViaModal = "Everything",
+				modalLinkScope = "example-scope-1",
+				resourceCheckedList = "example-scope-1,example-scope-2,everything.read.userprofile,everything.read.documents.download",
+				resourcePanels = "Portal Services,Sample QA app");
+		}
 	}
 
+	@description = "This is a use case for LPS-105156. Authorized application should be automatically removed from the User's connect table when it is expired."
 	@priority = "4"
-	test RefreshTokenTime {
-		property custom.properties = "virtual.hosts.default.site.name=Guest";
-		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.rest.internal.spi.bearer.token.provider.configuration.DefaultBearerTokenProviderConfiguration.config";
-		property osgi.module.configurations = "access.token.expires.in=&quot;5&quot;";
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		var clientId = "abc123";
-		var clientSecret = "abc123";
-		var portalURL = PropsUtil.get("portal.url");
-
-		OAuth2.addApplication(
-			applicationName = "Third-party Application",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
-			clientProfile = "Web Application");
-
-		OAuth2.inputApplicationValues(
-			clientId = "${clientId}",
-			clientSecret = "${clientSecret}");
-
-		Navigator.gotoBack();
-
-		OAuth2.editScopes(
-			applicationName = "Third-party Application",
-			resourceCheckList = "liferay-json-web-services.everything.read.userprofile",
-			resourcePanels = "Portal Services");
-
-		Navigator.openSpecificURL(url = "http://martamedio.com/oauth2-tester/");
-
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_ID",
-			value1 = "${clientId}");
-
-		Button.click(button = "Authorize My Application");
-
-		Button.click(button = "Authorize");
-
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_SECRET",
-			value1 = "${clientSecret}");
-
-		Button.click(button = "Obtain OAuth2 Access");
-
-		Pause(locator1 = "6000");
-
-		Button.click(button = "Launch Request");
-
-		AssertConfirm.assertConfirmationNoError(value1 = "403 - Unauthorized!");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
-			value1 = "");
-
-		Button.click(button = "Refresh Token");
-
-		Button.click(button = "Launch Request");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
-			value1 = "test@liferay.com");
-	}
-
-	@description = "This is a use case for LPS-105156."
-	@priority = "5"
-	test RemoveExpiredAuthorization {
+	test ExpiredAuthorizationShouldBeRemovedFromTable {
 		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.rest.internal.spi.bearer.token.provider.configuration.DefaultBearerTokenProviderConfiguration.config:com.liferay.oauth2.provider.configuration.OAuth2ProviderConfiguration.config";
 		property osgi.module.configurations = "access.token.expires.in=&quot;30&quot;${line.separator}refresh.token.expires.in=&quot;60&quot;:oauth2.expired.authorizations.afterlife.duration=&quot;30&quot;${line.separator}oauth2.expired.authorizations.check.interval=&quot;30&quot;";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Add a new OAuth 2 application") {
+			var portalURL = PropsUtil.get("portal.url");
 
-		var clientId = "abc123";
-		var clientSecret = "abc123";
-		var portalURL = PropsUtil.get("portal.url");
+			OAuth2.openOAuth2Admin();
 
-		OAuth2.addApplication(
-			applicationName = "Test Expired Application",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''');
+			var clientId = "abc123";
+			var clientSecret = "abc123";
+			var portalURL = PropsUtil.get("portal.url");
 
-		Navigator.gotoBack();
+			OAuth2.addApplication(
+				applicationName = "Test Expired Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''');
+		}
 
-		OAuth2.editScopes(
-			applicationName = "Test Expired Application",
-			resourceCheckList = "liferay-json-web-services.everything.read.userprofile",
-			resourcePanels = "Portal Services");
+		task ("Edit scopes") {
+			Navigator.gotoBack();
 
-		Refresh();
+			OAuth2.editScopes(
+				applicationName = "Test Expired Application",
+				resourceCheckList = "liferay-json-web-services.everything.read.userprofile",
+				resourcePanels = "Portal Services");
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Test Expired Application");
+			Refresh();
+		}
 
-		OAuth2.inputApplicationValues(
-			clientId = "${clientId}",
-			clientSecret = "${clientSecret}");
+		task ("Insert clientId and clientSecret") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Test Expired Application");
 
-		var authorizationCode = OAuth2.getAuthorizationCode();
+			OAuth2.inputApplicationValues(
+				clientId = "${clientId}",
+				clientSecret = "${clientSecret}");
+		}
 
-		Type(
-			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_SECRET",
-			value1 = "${clientSecret}");
+		task ("Get authorization code") {
+			var authorizationCode = OAuth2.getAuthorizationCode();
+		}
 
-		Button.click(button = "Obtain OAuth2 Access");
+		task ("Verify OAuth 2 access is valid") {
+			OAuth2.viewValidOAuth2LaunchRequest(clientSecret = "${clientSecret}");
+		}
 
-		AssertElementPresent(
-			key_text = "Launch Request",
-			locator1 = "Button#ANY");
+		task ("Verify authorization is granted via user") {
+			Navigator.openURL();
 
-		Navigator.openURL();
+			OAuth2.viewGrantedAuthViaUser(applicationName = "Test Expired Application");
 
-		OAuth2.viewGrantedAuthViaUser(applicationName = "Test Expired Application");
+			OAuth2.viewUserConnectedLastAccess();
+		}
 
-		AssertElementPresent(
-			key_activity = "Last Access",
-			locator1 = "OAuth2#USER_CONNECTED_APP_ACTIVITY");
+		task ("Verify Test Expired Application") {
+			Pause(locator1 = "20000");
 
-		Pause(locator1 = "20000");
+			Refresh();
 
-		Refresh();
+			OAuth2.viewUserConnectedExpirationValue(expirationValue = "Within");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#USER_CONNECTED_APP_EXPIRATION_VALUE",
-			value1 = "Within");
+			Pause(locator1 = "30000");
 
-		Pause(locator1 = "30000");
+			Refresh();
 
-		Refresh();
+			OAuth2.viewUserConnectedExpirationValue(expirationValue = "Seconds Ago");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#USER_CONNECTED_APP_EXPIRATION_VALUE",
-			value1 = "Seconds Ago");
+			Pause(locator1 = "30000");
 
-		Pause(locator1 = "30000");
+			Refresh();
 
-		Refresh();
+			SystemSettings.viewUserAvatarImage();
 
-		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
-
-		AssertElementNotPresent(
-			key_appName = "Test Expired Application",
-			locator1 = "OAuth2#USER_CONNECTED_APP_TABLE_NAME");
+			OAuth2.viewApplicationNameInUserConnectedAppTable(appName = "Test Expired Application");
+		}
 	}
 
-	@description = "This is a use case for LPS-105158."
-	@priority = "4"
-	test ScopesDisplayAsListOnInstanceLevel {
-		property test.name.skip.portal.instance = "OAuth2#ScopesDisplayAsListOnInstanceLevel";
+	@description = "This is a use case for LRQA-40687. User can add and edit external application on the OAuth 2 administration page."
+	@priority = "5"
+	test ExternalApplicationCanBeAddedAndEdited {
+		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
+		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeAddedAndEdited";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
+		task ("Add a new OAuth 2 application") {
+			var baseURL = PropsUtil.get("portal.url");
 
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
+			OAuth2.openOAuth2Admin();
 
-		PortalInstances.viewCP(virtualHost = "www.able.com");
+			OAuth2.addApplication(
+				applicationName = "OAuth Application",
+				callbackUri = "http://www.liferay.com",
+				clientProfile = "Web Application",
+				websiteURL = "http://www.liferay.com");
+		}
 
-		User.firstLoginPG(
-			password = "test",
-			userEmailAddress = "test@www.able.com",
-			virtualHostsURL = "http://www.able.com:8080");
+		task ("Get clientId and client secret then add description with privacy policy URL to the Application") {
+			var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
+			var generatedClientSecret = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_SECRET");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+			OAuth2.inputApplicationValues(
+				description = "Registering a new application",
+				privacyPolicyURL = "http://www.liferay.com");
 
-		User.unassignRegularRoleCP(
-			regularRoleName = "Power User",
-			userScreenName = "test");
+			Navigator.gotoBack();
+		}
 
-		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+		task ("Verify correct application name, client Id and description") {
+			OAuth2.viewApplicationInTable(
+				applicationName = "OAuth Application",
+				clientId = "${generatedClientId}",
+				description = "Registering a new application");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Check OAuth application information correctness") {
+			OAuth2.viewApplication(
+				applicationName = "OAuth Application",
+				callbackUri = "http://www.liferay.com",
+				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
+				clientId = "${generatedClientId}",
+				clientProfile = "Web Application",
+				clientSecret = "${generatedClientSecret}",
+				description = "Registering a new application",
+				privacyPolicyURL = "http://www.liferay.com",
+				websiteURL = "http://www.liferay.com");
+		}
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Analytics Cloud");
+		task ("Edit all application values") {
+			OAuth2.editApplication(
+				applicationName = "OAuth Application",
+				callbackUri = "http://www.liferay.com/callback",
+				checkboxCheckList = "Token Introspection",
+				checkboxUncheckList = "Refresh Token,Resource Owner Password Credentials",
+				clientId = "abcd1234",
+				clientProfile = "Native Application",
+				clientSecret = "abcd1234",
+				description = "Editing a new application",
+				newApplicationName = "OAuth Application Edited",
+				privacyPolicyURL = "http://www.google.com",
+				websiteURL = "http://www.google.com");
+		}
 
-		AssertClick(
-			key_navItem = "Scopes",
-			locator1 = "NavBar#NAV_ITEM_LINK",
-			value1 = "Scopes");
+		task ("View recent changes applied") {
+			Navigator.gotoBack();
 
-		AssertElementNotPresent(
-			key_panel = "Analytics",
-			locator1 = "OAuth2#ADMIN_RESOURCE_PANEL_COLLAPSED");
+			OAuth2.viewApplicationInTable(
+				applicationName = "OAuth Application Edited",
+				clientId = "abcd1234",
+				description = "Editing a new application");
+
+			OAuth2.viewApplication(
+				applicationName = "OAuth Application Edited",
+				callbackUri = "http://www.liferay.com/callback",
+				checkboxCheckList = "Token Introspection",
+				clientId = "abcd1234",
+				clientProfile = "Native Application",
+				clientSecret = "abcd1234",
+				description = "Editing a new application",
+				privacyPolicyURL = "http://www.google.com",
+				websiteURL = "http://www.google.com");
+		}
+
+		task ("Edit application new secret") {
+			var newGeneratedClientSecret = OAuth2.editApplication(
+				applicationName = "OAuth Application Edited",
+				generateNewSecret = "true");
+		}
+
+		task ("Verify the newly generated secret") {
+			Navigator.gotoBack();
+
+			OAuth2.viewApplication(
+				applicationName = "OAuth Application Edited",
+				clientSecret = "${newGeneratedClientSecret}");
+		}
+
+		task ("Delete edited application") {
+			OAuth2.deleteApplication(applicationName = "OAuth Application Edited");
+		}
 	}
 
-	test UpdateScopeBundlePrefixes {
-		property liferay.dependency.jars = "com.liferay.oauth2.provider.scope.sample.qa.jar";
+	@description = "This is a use case for LRQA-47381. User can authorize external applications."
+	test ExternalApplicationCanBeAuthorized {
+		property custom.properties = "virtual.hosts.default.site.name=Guest";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeAuthorized";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Add and edit an external application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "Third-party Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				clientId = "abc123",
+				clientProfile = "Web Application",
+				clientSecret = "abc123");
+		}
 
-		OAuth2.addApplication(
-			applicationName = "OAuth Application",
-			checkboxUncheckList = "Authorization Code");
+		task ("Authorize the new external application") {
+			OAuth2.authorizeMyApplication(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
 
-		Navigator.gotoBack();
-
-		OAuth2.viewScopeAliases(
-			applicationName = "OAuth Application",
-			resourcePanels = "Portal Services,Sample QA app",
-			scopeAliasList = "liferay-json-web-services.everything,liferay-oauth2-scope-sample-qa-app.example-scope-1");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "OAuth 2",
-			configurationName = "Bundle PrefixHandlerFactory",
-			configurationScope = "System Scope");
-
-		SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
-
-		SystemSettings.deleteConfiguration();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		OAuth2.viewScopeAliases(
-			applicationName = "OAuth Application",
-			resourcePanels = "Portal Services,Sample QA app",
-			scopeAliasList = "everything,example-scope-1");
-
-		OAuth2.addPrefixHandlerInSystemSettings(
-			excludedScopesName = "example-scope-1",
-			osgiJaxrsName = "liferay-oauth2-scope-sample-qa-app",
-			separator = "_",
-			serviceProperties = "osgi.jaxrs.application.base");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		OAuth2.viewScopeAliases(
-			applicationName = "OAuth Application",
-			resourcePanels = "Portal Services,Sample QA app",
-			scopeAliasList = "everything,example-scope-1,com.liferay.oauth2.provider.scope.sample.qa_/sample-qa-app_example-scope-2");
+		task ("Launch request") {
+			OAuth2.launchRequest();
+		}
 	}
 
-	test UpdateScopeMappings {
-		property liferay.dependency.jars = "com.liferay.oauth2.provider.scope.sample.qa.jar";
-		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.scope.internal.configuration.ConfigurableScopeMapperConfiguration-liferay-oauth2-scope-sample-qa-app.config";
-		property osgi.module.configurations = "mapping=[&quot;example-scope-1,example-scope-2\=everything.read,everything.write&quot;]${line.separator}osgi.jaxrs.name=&quot;liferay-oauth2-scope-sample-qa-app&quot;${line.separator}passthrough=&quot;false&quot;";
+	@description = "This is a use case for LPS-126596. User can authorize trusted external applications."
+	@priority = "3"
+	test ExternalApplicationCanBeTrustedAndAuthorized {
+		property custom.properties = "virtual.hosts.default.site.name=Guest";
+		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeTrustedAndAuthorized";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
+		task ("Add and edit an external trusted application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "Third-party Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				checkboxCheckList = "Trusted Application",
+				clientId = "abc123",
+				clientProfile = "Web Application",
+				clientSecret = "abc123");
+		}
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "OAuth 2",
-			configurationName = "Bundle PrefixHandlerFactory",
-			configurationScope = "System Scope");
+		task ("Authorize the new external application") {
+			OAuth2.authorizeMyApplication(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				noAuthorize = "true");
+		}
 
-		SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
-
-		SystemSettings.deleteConfiguration();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		OAuth2.viewScopeMappings(
-			applicationName = "Analytics Cloud",
-			globalScopeLinkValue = "This resource scope MUST be assigned via a global scope.",
-			resourcePanels = "Sample QA app",
-			scopeAliasList = "everything,everything.read,everything.write",
-			scopeTranslation = "Example scope 1 + Example scope 2");
-
-		AssertElementNotPresent(locator1 = "xpath=(//a[contains(.,'Sample QA app')]//following-sibling::div//li)[2]");
+		task ("Launch request") {
+			OAuth2.launchRequest();
+		}
 	}
 
-	test ViewAndRevokeGrantedAuthorizations {
+	@description = "This is a use case for LRQA-41000. User can view and revoke granted authorizations."
+	test GrantedAuthorizationsCanBeRevoked {
 		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
 		property environment.acceptance = "true";
 		property portal.acceptance = "true";
-		property portal.upstream = "quarantine";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "OAuth2#GrantedAuthorizationsCanBeRevoked";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Add a new external application") {
+			var portalURL = PropsUtil.get("portal.url");
 
-		OAuth2.addApplication(
-			applicationName = "OAuth Application",
-			checkboxUncheckList = "Authorization Code");
+			OAuth2.openOAuth2Admin();
 
-		Navigator.gotoBack();
+			OAuth2.addApplication(
+				applicationName = "OAuth Application",
+				checkboxUncheckList = "Authorization Code");
+		}
 
-		OAuth2.editScopes(
-			applicationName = "OAuth Application",
-			resourceCheckList = "liferay-json-web-services.everything.read,liferay-json-web-services.everything.write,liferay-json-web-services.everything.read.documents.download,liferay-json-web-services.everything.read.userprofile",
-			resourcePanels = "Portal Services");
+		task ("Edit the new external application's scopes") {
+			Navigator.gotoBack();
 
-		Refresh();
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				resourceCheckList = "liferay-json-web-services.everything.read,liferay-json-web-services.everything.write,liferay-json-web-services.everything.read.documents.download,liferay-json-web-services.everything.read.userprofile",
+				resourcePanels = "Portal Services");
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "OAuth Application");
+			Refresh();
 
-		AssertTextEquals(
-			locator1 = "Portlet#HEADER",
-			value1 = "OAuth Application");
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "OAuth Application");
 
-		var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
-		var generatedClientSecret = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_SECRET");
-		var portalURL = PropsUtil.get("portal.url");
+			OAuth2.assertPortletHeader(header = "OAuth Application");
+		}
 
-		var curl = '''
-			${portalURL}/o/oauth2/token \
-				-d client_id=${generatedClientId} \
-				-d client_secret=${generatedClientSecret} \
-				-d grant_type=client_credentials
-		''';
+		task ("Post client credential token via curl") {
+			OAuth2.postClientCredentialTokenViaCurl();
+		}
 
-		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+		task ("Verify granted authorization via admin") {
+			Navigator.gotoBack();
 
-		Navigator.gotoBack();
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth Application",
+				userName = "Test Test");
+		}
 
-		OAuth2.viewGrantedAuthViaAdmin(
-			applicationName = "OAuth Application",
-			userName = "Test Test");
+		task ("Revoke granted authorization via admin") {
+			OAuth2.revokeGrantedAuthViaAdmin(
+				applicationName = "OAuth Application",
+				userName = "Test Test");
 
-		OAuth2.revokeGrantedAuthViaAdmin(
-			applicationName = "OAuth Application",
-			userName = "Test Test");
+			Refresh();
+		}
 
-		Refresh();
+		task ("View scopes") {
+			OAuth2.viewScopes(
+				applicationName = "OAuth Application",
+				resourceCheckedList = "liferay-json-web-services.everything.read,liferay-json-web-services.everything.write,liferay-json-web-services.everything.read.documents.download,liferay-json-web-services.everything.read.userprofile",
+				resourcePanels = "Portal Services");
+		}
 
-		OAuth2.viewScopes(
-			applicationName = "OAuth Application",
-			resourceCheckedList = "liferay-json-web-services.everything.read,liferay-json-web-services.everything.write,liferay-json-web-services.everything.read.documents.download,liferay-json-web-services.everything.read.userprofile",
-			resourcePanels = "Portal Services");
+		task ("Verify that there is no granted authorization via admin ") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth Application",
+				noAuthorizations = "true");
+		}
 
-		OAuth2.viewGrantedAuthViaAdmin(
-			applicationName = "OAuth Application",
-			noAuthorizations = "true");
+		task ("Post client credential token via curl") {
+			OAuth2.openOAuth2Admin();
 
-		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "OAuth Application");
 
-		OAuth2.viewGrantedAuthViaUser(applicationName = "OAuth Application");
+			OAuth2.assertPortletHeader(header = "OAuth Application");
 
-		OAuth2.revokeGrantedAuthViaUser(applicationName = "OAuth Application");
+			OAuth2.postClientCredentialTokenViaCurl();
+		}
 
-		OAuth2.viewGrantedAuthViaUser(noAuthorizations = "true");
+		task ("View granted authorization via user") {
+			OAuth2.viewGrantedAuthViaUser(applicationName = "OAuth Application");
+		}
+
+		task ("Revoke granted authorization via user") {
+			OAuth2.revokeGrantedAuthViaUser(applicationName = "OAuth Application");
+		}
+
+		task ("Verify that there is no granted authorization via user ") {
+			OAuth2.viewGrantedAuthViaUser(noAuthorizations = "true");
+		}
 	}
 
-	test ViewAuthPromptRequestedScopes {
+	@description = "This is a use case for LPS-145190 TC-4 The system configuration will be ignored and the instance configuration will be used for token validation when the same JWT issuer is configured at both system and instance configuration scopes."
+	@priority = "5"
+	test InstanceLevelConfigurationWillCoverSystemLevelWhenTheyConfiguredWithSameIssuer {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#InstanceLevelConfigurationWillCoverSystemLevelWhenTheyConfiguredWithSameIssuer";
+
+		task ("Add the OSGI configuration file to configure System Settings") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~default.config");
+		}
+
+		task ("Add the OSGI configuration file to configure Instance Settings") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance~screenName.config");
+		}
+
+		task ("Add a new OAuth2 application") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.addApplication(
+				applicationName = "OAuth2 Application",
+				checkboxUncheckList = "Authorization Code");
+		}
+
+		task ("Input OAuth2 valuies") {
+			OAuth2.inputApplicationValues(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
+
+		task ("Edit OAuth2 scopes") {
+			Navigator.gotoBack();
+
+			OAuth2.editScopes(
+				applicationName = "OAuth2 Application",
+				resourceCheckList = "analytics.read,analytics.write",
+				resourcePanels = "Analytics");
+		}
+
+		task ("Authorize application with the JWT which includes email as its subject value.") {
+			OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_email_test.txt",
+				noResponse = "true",
+				scopes = "");
+		}
+
+		task ("Verify that there is no granted authorization via admin ") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				noAuthorizations = "true");
+		}
+
+		task ("Authorize application with the JWT which includes screen name as its subject value.") {
+			var scopeList = OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_screenname_test.txt",
+				scopes = "");
+		}
+
+		task ("Verify granted authorization via admin") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test Test");
+		}
+	}
+
+	@description = "This is a use case for LPS-145190 TC-1 TC-8 TC-9 Liferay is able to accept JWT assertion as grant type to issue access token with email address as user authentication type."
+	@priority = "5"
+	test JWTAssertionCanBeAcceptedAsGrantTypeWithEmailAddressAsUserAuthenticationType {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#ApplicationCanBeAuthorizedWithJWTBearerAsGrantTypeAndEmailAddressAsUserAuthenticationType";
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance.config");
+		}
+
+		task ("Add a new OAuth2 application") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.addApplication(
+				applicationName = "OAuth2 Application",
+				checkboxUncheckList = "Authorization Code");
+		}
+
+		task ("Input OAuth2 valuies") {
+			OAuth2.inputApplicationValues(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
+
+		task ("Edit OAuth2 scopes") {
+			Navigator.gotoBack();
+
+			OAuth2.editScopes(
+				applicationName = "OAuth2 Application",
+				resourceCheckList = "analytics.read,analytics.write",
+				resourcePanels = "Analytics");
+		}
+
+		task ("Authorize application and scope parameter is ignored.") {
+			var scopeList = OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_email_test.txt",
+				scopes = "");
+		}
+
+		task ("Verify the issued access token grant all the OAuth2 scopes that are configured.") {
+			if ("${scopeList}" == "analytics.read analytics.write") {
+				echo("The issued access token grant all the OAuth2 scopes that are configured.");
+			}
+			else {
+				fail("FAIL. Scopes aren't matched.");
+			}
+		}
+
+		task ("Verify granted authorization via admin") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test Test");
+		}
+
+		task ("Revoke granted authorization via admin") {
+			OAuth2.revokeGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test Test");
+
+			Refresh();
+		}
+
+		task ("Authorize application and scope parameter contains subset of configured scopes.") {
+			var scopeList = OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_email_test.txt",
+				scopes = "analytics.read");
+		}
+
+		task ("Verify the issued access token grant all the OAuth2 scopes that are configured.") {
+			if ("${scopeList}" == "analytics.read") {
+				echo("The issued access token grant the subset of configured scopes.");
+			}
+			else {
+				fail("FAIL. Scopes aren't matched.");
+			}
+		}
+
+		task ("Verify granted authorization via admin") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test Test");
+		}
+
+		task ("Revoke granted authorization via admin") {
+			OAuth2.revokeGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test Test");
+
+			Refresh();
+		}
+
+		task ("Authorize application and scope paramter contains scopes that were not configured.") {
+			OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_email_test.txt",
+				noResponse = "true",
+				scopes = "liferay-json-web-services.userprofile");
+		}
+
+		task ("Verify that there is no granted authorization via admin ") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				noAuthorizations = "true");
+		}
+	}
+
+	@description = "This is a use case for LPS-145190 TC-2 Liferay is able to accept JWT assertion as grant type to issue access token with screen name as user authentication type."
+	@priority = "5"
+	test JWTAssertionCanBeAcceptedAsGrantTypeWithScreenNameAsUserAuthenticationType {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OAuth2#JWTAssertionCanBeAcceptedAsGrantTypeWithScreenNameAsUserAuthenticationType";
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance~screenName.config");
+		}
+
+		task ("Add a new OAuth2 application") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.addApplication(
+				applicationName = "OAuth2 Application",
+				checkboxUncheckList = "Authorization Code");
+		}
+
+		task ("Input OAuth2 valuies") {
+			OAuth2.inputApplicationValues(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
+
+		task ("Edit OAuth2 scopes") {
+			Navigator.gotoBack();
+
+			OAuth2.editScopes(
+				applicationName = "OAuth2 Application",
+				resourceCheckList = "analytics.read,analytics.write",
+				resourcePanels = "Analytics");
+		}
+
+		task ("Authorize application and scope parameter is ignored.") {
+			var scopeList = OAuth2.requestAccessTokenWithJWTViaCurl(
+				clientId = "abc123",
+				clientSecret = "abc123",
+				jwtFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				jwtFileName = "jwt_screenname_test.txt",
+				scopes = "");
+		}
+
+		task ("Verify the issued access token grant all the OAuth2 scopes that are configured.") {
+			if ("${scopeList}" == "analytics.read analytics.write") {
+				echo("The issued access token grant all the OAuth2 scopes that are configured.");
+			}
+			else {
+				fail("FAIL. Scopes aren't matched.");
+			}
+		}
+
+		task ("Verify granted authorization via admin") {
+			OAuth2.viewGrantedAuthViaAdmin(
+				applicationName = "OAuth2 Application",
+				userName = "Test Test");
+		}
+	}
+
+	@description = "This is a use case for LRQA-48782. Add and Edit OAuth SAP entries."
+	test OAuth2SAPEntriesCanBeAddedAndEdited {
+		property custom.properties = "access.control.sanitize.security.exception=false${line.separator}json.service.serialize.throwable=true";
+		property test.name.skip.portal.instance = "OAuth2#OAuth2SAPEntriesCanBeAddedAndEdited";
+
+		task ("Add SAP") {
+			var baseURL = PropsUtil.get("portal.url");
+
+			ServiceAccessPolicy.openServiceAccessPolicyAdmin();
+
+			ServiceAccessPolicy.addServiceAccessPolicy(
+				enabled = "true",
+				methodName = "getVersion",
+				policyName = "OAUTH2_read.portalversion",
+				serviceClass = "com.liferay.portal.kernel.service.PortalService",
+				title = "read Portal version");
+		}
+
+		task ("Add a new OAuth 2 application") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.addApplication(
+				applicationName = "OAuth Application",
+				checkboxUncheckList = "Authorization Code");
+		}
+
+		task ("Get generated Client Id and Client Secret") {
+			var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
+			var generatedClientSecret = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_SECRET");
+
+			Navigator.gotoBack();
+		}
+
+		task ("Edit the external application's scopes") {
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				resourceCheckList = "liferay-json-web-services.read.portalversion",
+				resourcePanels = "Portal Services");
+		}
+
+		task ("Get access token") {
+			var accessToken = OAuth2.getAccessToken(
+				clientId = "${generatedClientId}",
+				clientSecret = "${generatedClientSecret}",
+				grantFlow = "clientCredentials");
+		}
+
+		task ("Verify portal version equals 7.4") {
+			SystemSettings.assertPortalVersion(
+				accessToken = "${accessToken}",
+				portalVersion = "7.4");
+		}
+
+		task ("Edit SAP successfully") {
+			ServiceAccessPolicy.openServiceAccessPolicyAdmin();
+
+			ServiceAccessPolicy.editServiceAccessPolicy(
+				enabled = "false",
+				policyName = "OAUTH2_read.portalversion");
+
+			Navigator.openSpecificURL(url = "http://localhost:8080/api/jsonws/portal/get-version");
+
+			AssertTextPresent(value1 = "You do not have permission to access the requested resource.");
+		}
+
+		task ("View OAuth 2 application scope") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewScopes(
+				applicationName = "OAuth Application",
+				removedScope = "read.portalversion",
+				resourcePanels = "Portal Services");
+		}
+
+		task ("Edit SAP") {
+			ServiceAccessPolicy.openServiceAccessPolicyAdmin();
+
+			ServiceAccessPolicy.editServiceAccessPolicy(
+				enabled = "true",
+				policyName = "OAUTH2_read.portalversion");
+		}
+
+		task ("Verify portal version equals 7.4") {
+			SystemSettings.assertPortalVersion(
+				accessToken = "${accessToken}",
+				portalVersion = "7.4");
+		}
+
+		task ("Edit SAP") {
+			ServiceAccessPolicy.editServiceAccessPolicy(
+				methodName = "getBuildNumber",
+				newName = "OAUTH2_read.buildnumber",
+				policyName = "OAUTH2_read.portalversion",
+				title = "read Portal build number");
+		}
+
+		task ("View and edit the new OAuth 2 application scopes") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewScopes(
+				applicationName = "OAuth Application",
+				removedScope = "read.portalversion",
+				resourcePanels = "Portal Services");
+
+			OAuth2.editScopes(
+				applicationName = "OAuth Application",
+				resourceCheckList = "liferay-json-web-services.read.buildnumber",
+				resourcePanels = "Portal Services");
+		}
+
+		task ("Verify portal version equals 7.4") {
+			var accessToken = OAuth2.getAccessToken(
+				clientId = "${generatedClientId}",
+				clientSecret = "${generatedClientSecret}",
+				grantFlow = "clientCredentials");
+
+			SystemSettings.assertPortalBuildNumber(
+				accessToken = "${accessToken}",
+				portalBuild = "74");
+		}
+	}
+
+	@description = "This is a use case for LPS-110393. Verify that panels under global scopes can be expanded."
+	@priority = "4"
+	test PanelsShouldBeExpandableOnGlobalScopes {
+		property portal.upstream = "quarantine";
+		property test.name.skip.portal.instance = "OAuth2#PanelsShouldBeExpandableOnGlobalScopes";
+
+		task ("Delete OSGi JAX-RS Default configuration") {
+			var baseURL = PropsUtil.get("portal.url");
+
+			Navigator.openSpecificURL(url = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=com.liferay.oauth2.provider.scope.internal.configuration.BundlePrefixHandlerFactoryConfiguration&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fview_factory_instances");
+
+			SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
+
+			SystemSettings.deleteConfiguration();
+		}
+
+		task ("Go to the scopes of an OAuth 2 application entry navbar") {
+			OAuth2.openOAuth2Admin();
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Analytics Cloud");
+
+			Navigator.gotoNavItem(navItem = "Scopes");
+		}
+
+		task ("Expand global panels in global scopes") {
+			Navigator.gotoNavUnderline(navUnderline = "Global scopes");
+
+			for (var globalPanel : list "analytics.read,analytics.write,everything.write,everything.read,everything") {
+				OAuth2.expandGlobalPanel(globalPanel = "${globalPanel}");
+			}
+		}
+	}
+
+	@description = "This is a use case for LRQA-57134. Refresh token can expire and can be renewed."
+	@priority = "4"
+	test RefreshTokenTimeCanBeSetExpiredAndRenewed {
 		property custom.properties = "virtual.hosts.default.site.name=Guest";
-		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.scope.internal.configuration.BundlePrefixHandlerFactoryConfiguration-default.config";
-		property osgi.module.configurations = "include.bundle.symbolic.name=&quot;false&quot;${line.separator}osgi.jaxrs.name=&quot;Default&quot;${line.separator}separator=&quot;&quot;${line.separator}service.properties=&quot;&quot;";
-		property portal.upstream = "quarantine";
-		property test.name.skip.portal.instance = "OAuth2#ViewAuthPromptRequestedScopes";
+		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.rest.internal.spi.bearer.token.provider.configuration.DefaultBearerTokenProviderConfiguration.config";
+		property osgi.module.configurations = "access.token.expires.in=&quot;8&quot;";
+		property test.name.skip.portal.instance = "OAuth2#RefreshTokenTimeCanBeSetExpiredAndRenewed";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+		task ("Add and edit an external application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "Third-party Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				clientId = "abc123",
+				clientProfile = "Web Application",
+				clientSecret = "abc123");
+		}
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Analytics Cloud");
+		task ("Authorize application") {
+			OAuth2.authorizeMyApplication(
+				clientId = "abc123",
+				clientSecret = "abc123");
+		}
 
-		WaitForSPARefresh();
+		task ("Verify request launch is not authorized") {
+			OAuth2.launchRequestNotAuthorized();
+		}
 
-		var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
-		var portalURL = PropsUtil.get("portal.url");
+		task ("Renew the refresh token") {
+			Button.click(button = "Refresh Token");
+		}
 
-		Navigator.gotoBack();
-
-		OAuth2.editScopes(
-			applicationName = "Analytics Cloud",
-			checkGlobalScope = "Everything");
-
-		FileInstall.deployFileOnServer(liferayDependencyJars = "com.liferay.oauth2.provider.sample.jar");
-
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Analytics Cloud");
-
-		AssertClick(
-			key_navItem = "Scopes",
-			locator1 = "NavBar#NAV_ITEM_LINK",
-			value1 = "Scopes");
-
-		OAuth2.expandResourcePanel(resourcePanel = "sample-app");
-
-		AssertChecked(
-			key_panel = "sample-app",
-			key_scopeName = "everything.read",
-			locator1 = "OAuth2#ADMIN_GLOBAL_RESOURCE_SCOPE_CHECKBOX");
-
-		Navigator.openSpecificURL(url = "${portalURL}/o/oauth2/authorize?client_id=${generatedClientId}&response_type=code");
-
-		AssertElementPresent(
-			key_applicationName = "Analytics Cloud",
-			locator1 = "OAuth2#AUTHORIZATION_REQUEST_APPLICATION_NAME");
-
-		AssertElementPresent(
-			key_resourceName = "Portal Services",
-			locator1 = "OAuth2#AUTHORIZATION_REQUEST_RESOURCE_NAME");
-
-		AssertElementNotPresent(
-			key_resourceName = "sample-app",
-			locator1 = "OAuth2#AUTHORIZATION_REQUEST_RESOURCE_NAME");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
-
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Analytics Cloud");
-
-		AssertClick(
-			key_navItem = "Scopes",
-			locator1 = "NavBar#NAV_ITEM_LINK",
-			value1 = "Scopes");
-
-		PortletEntry.save();
-
-		Navigator.openSpecificURL(url = "${portalURL}/o/oauth2/authorize?client_id=${generatedClientId}&response_type=code");
-
-		AssertElementPresent(
-			key_resourceName = "Portal Services",
-			locator1 = "OAuth2#AUTHORIZATION_REQUEST_RESOURCE_NAME");
-
-		AssertElementPresent(
-			key_resourceName = "sample-app",
-			locator1 = "OAuth2#AUTHORIZATION_REQUEST_RESOURCE_NAME");
+		task ("Launch request") {
+			OAuth2.launchRequest();
+		}
 	}
 
-	@description = "This is a use case for LPS-129395."
-	@priority = "4"
-	test ViewExternalOptionsRememberDevice {
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+	@description = "This is a use case for LPS-129395. Remember device option should be visible in OAuth 2 admin page if it was set in the application settings."
+	@priority = "5"
+	test RememberDeviceExternalPropertyShouldBeVisible {
+		property test.name.skip.portal.instance = "OAuth2#RememberDeviceExternalPropertyShouldBeVisible";
 
-		var clientId = "abc123";
-		var portalURL = PropsUtil.get("portal.url");
+		task ("Add a new external application with remember device checked") {
+			var portalURL = PropsUtil.get("portal.url");
+			var clientId = "abc123";
 
-		OAuth2.addApplication(
-			applicationName = "Remember Device Application",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
-			checkboxCheckList = "Remember Device",
-			clientProfile = "Web Application");
+			OAuth2.openOAuth2Admin();
 
-		Navigator.gotoBack();
+			OAuth2.addApplication(
+				applicationName = "Remember Device Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
+				checkboxCheckList = "Remember Device",
+				clientProfile = "Web Application");
+		}
 
-		AssertTextEquals(
-			key_columnName = "lfr-extra-properties",
-			key_tableEntry = "Remember Device Application",
-			locator1 = "LexiconTable#TABLE_ENTRY_INFO",
-			value1 = "Remember Device is on");
+		task ("Verify application was added and has the 'Remember Device' external option") {
+			Navigator.gotoBack();
+
+			OAuth2.viewPropertyInLiferayExtraProperties(
+				propertyName = "Remember Device Application",
+				propertyValue = "Remember Device is on");
+		}
 	}
 
-	@description = "This is a use case for LPS-129395."
+	@description = "This is a use case for LPS-129398. User can authorize multiple external applications which have the remember device option checked."
 	@priority = "4"
-	test ViewExternalOptionsTrusted {
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "OAuth 2 Administration");
+	test RememberDeviceShouldWorkWithMultipleAuthorizations {
+		property test.name.skip.portal.instance = "OAuth2#RememberDeviceShouldWorkWithMultipleAuthorizations";
 
-		var clientId = "abc123";
-		var portalURL = PropsUtil.get("portal.url");
+		task ("Add and edit 2 external applications") {
+			for (var count : list "1,2") {
+				OAuth2.addAndEditExternalApplication(
+					applicationName = "My Application${count}",
+					callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default${count}''',
+					checkboxCheckList = "Remember Device",
+					clientId = "default${count}",
+					clientProfile = "Web Application",
+					clientSecret = "defaultsecret${count}",
+					websiteURL = "http://www.liferay.com");
+			}
+		}
 
-		OAuth2.addApplication(
-			applicationName = "Trusted Application",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
-			checkboxCheckList = "Trusted Application",
-			clientProfile = "Web Application");
+		task ("Authorize application1 and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default1",
+				clientSecret = "defaultsecret1",
+				rememberDevice = "true");
 
-		Navigator.gotoBack();
+			OAuth2.launchRequest();
+		}
 
-		AssertTextEquals(
-			key_columnName = "lfr-extra-properties",
-			key_tableEntry = "Trusted Application",
-			locator1 = "LexiconTable#TABLE_ENTRY_INFO",
-			value1 = "Trusted");
+		task ("Authorize application1 and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default1",
+				clientSecret = "defaultsecret1",
+				noAuthorize = "true");
+
+			OAuth2.launchRequest();
+		}
+
+		task ("Authorize application2 and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default2",
+				clientSecret = "defaultsecret2",
+				newTab = "true",
+				rememberDevice = "true");
+
+			OAuth2.launchRequest();
+		}
+
+		task ("Authorize application2 and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default2",
+				clientSecret = "defaultsecret2",
+				noAuthorize = "true");
+
+			OAuth2.launchRequest();
+		}
+	}
+
+	@description = "This is a use case for LPS-129397 TC-3: User can evoke authorizations via new kebab menu option in OAuth 2 application's row when the device is remembered."
+	@priority = "3"
+	test RevokeAuthorizationViaKebabMenuWithRememberDevice {
+		property test.name.skip.portal.instance = "OAuth2#RevokeAuthorizationViaKebabMenuWithRememberDevice";
+
+		task ("Add and edit an external application") {
+			OAuth2.addAndEditExternalApplication(
+				applicationName = "My Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
+				checkboxCheckList = "Remember Device",
+				clientId = "default",
+				clientProfile = "Web Application",
+				clientSecret = "defaultsecret",
+				websiteURL = "http://localhost:8080");
+		}
+
+		task ("Verify My Application has 0 authorizations at OAuth 2 admin") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewApplicationInAuthorizationsTable(
+				entryIndex = "0",
+				tableEntry = "My Application");
+
+			LexiconEntry.viewNoEntryMenuItem(
+				menuItem = "Revoke Authorizations",
+				rowEntry = "My Application");
+		}
+
+		task ("Authorize application and launch request") {
+			OAuth2.authorizeMyApplication(
+				clientId = "default",
+				clientSecret = "defaultsecret",
+				rememberDevice = "true");
+
+			OAuth2.launchRequest();
+		}
+
+		task ("Verify My Application has 1 authorization at OAuth 2 admin") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewApplicationInAuthorizationsTable(
+				entryIndex = "1",
+				tableEntry = "My Application");
+		}
+
+		task ("Revoke authorization") {
+			OAuth2.revokeApplicationAuthorization(applicationName = "My Application");
+		}
+
+		task ("Verify My Application has no authorizations") {
+			OAuth2.assertApplicationHasNoAuthorization(applicationName = "My Application");
+		}
+	}
+
+	@description = "This is a use case for LRQA-48773. User can update scope bundle prefixes."
+	test ScopeBundlePrefixesCanBeUpdated {
+		property test.name.skip.portal.instance = "OAuth2#ScopeBundlePrefixesCanBeUpdated";
+
+		FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.scope.sample.qa.jar");
+
+		task ("Add OAuth 2 Application") {
+			var portalURL = PropsUtil.get("portal.url");
+
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.addApplication(
+				applicationName = "OAuth Application",
+				checkboxUncheckList = "Authorization Code");
+		}
+
+		task ("View scope aliases") {
+			Navigator.gotoBack();
+
+			OAuth2.viewScopeAliases(
+				applicationName = "OAuth Application",
+				resourcePanels = "Portal Services,Sample QA app",
+				scopeAliasList = "liferay-json-web-services.everything,liferay-oauth2-scope-sample-qa-app.example-scope-1");
+		}
+
+		task ("Delete OSGi JAX-RS Default configuration") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "OAuth 2",
+				configurationName = "Bundle PrefixHandlerFactory",
+				configurationScope = "System Scope");
+
+			SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
+
+			SystemSettings.deleteConfiguration();
+		}
+
+		task ("View scope aliases without prefixes") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewScopeAliases(
+				applicationName = "OAuth Application",
+				resourcePanels = "Portal Services,Sample QA app",
+				scopeAliasList = "everything,example-scope-1");
+		}
+
+		task ("Add prefix handler in system settings") {
+			OAuth2.addPrefixHandlerInSystemSettings(
+				excludedScopesName = "example-scope-1",
+				osgiJaxrsName = "liferay-oauth2-scope-sample-qa-app",
+				separator = "_",
+				serviceProperties = "osgi.jaxrs.application.base");
+		}
+
+		task ("Verify that the added prefix is visible in scope aliases") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewScopeAliases(
+				applicationName = "OAuth Application",
+				resourcePanels = "Portal Services,Sample QA app",
+				scopeAliasList = "everything,example-scope-1,com.liferay.oauth2.provider.scope.sample.qa_/sample-qa-app_example-scope-2");
+		}
+	}
+
+	@description = "This is a use case for LRQA-40999. User can add and remove configurations in the scope mappings."
+	test ScopeMappingsCanBeUpdated {
+		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.scope.internal.configuration.ConfigurableScopeMapperConfiguration~liferay~oauth2~scope~sample~qa~app.config";
+		property osgi.module.configurations = "mapping=[&quot;example-scope-1,example-scope-2\=everything.read,everything.write&quot;]${line.separator}osgi.jaxrs.name=&quot;liferay-oauth2-scope-sample-qa-app&quot;${line.separator}passthrough=&quot;false&quot;";
+		property test.name.skip.portal.instance = "OAuth2#ScopeMappingsCanBeUpdated";
+
+		FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.scope.sample.qa.jar");
+
+		task ("Delete OSGi JAX-RS Default configuration") {
+			var baseURL = PropsUtil.get("portal.url");
+
+			Navigator.openSpecificURL(url = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=com.liferay.oauth2.provider.scope.internal.configuration.BundlePrefixHandlerFactoryConfiguration&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fview_factory_instances");
+
+			SystemSettings.gotoConfigurationEntry(configurationEntry = "Default");
+
+			SystemSettings.deleteConfiguration();
+		}
+
+		task ("View installed QA app in scope mapping") {
+			OAuth2.openOAuth2Admin();
+
+			OAuth2.viewScopeMappings(
+				applicationName = "Analytics Cloud",
+				globalScopeLinkValue = "This resource scope MUST be assigned via a global scope.",
+				resourcePanels = "Sample QA app",
+				scopeAliasList = "everything,everything.read,everything.write",
+				scopeTranslation = "Example scope 1 + Example scope 2");
+
+			OAuth2.viewSimpleQAAppInScopeMappings();
+		}
+	}
+
+	@description = "This is a use case for LPS-105158. Scopes of external applications are displayed in lists on Instance Level."
+	@priority = "4"
+	test ScopesShouldBeDisplayedAsListOnInstanceLevel {
+		property test.name.skip.portal.instance = "OAuth2#ScopesShouldBeDisplayedAsListOnInstanceLevel";
+
+		task ("Add CP able.com") {
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Login at able.com and unassign power user role from the test user") {
+			User.firstLoginPG(
+				password = "test",
+				userEmailAddress = "test@www.able.com",
+				virtualHostsURL = "http://www.able.com:8080");
+
+			User.openUsersAdmin(baseURL = "http://www.able.com:8080");
+
+			User.unassignRegularRoleCP(
+				regularRoleName = "Power User",
+				userScreenName = "test");
+		}
+
+		task ("Verify user is not able to view Analytics in OAuth 2 administration scopes") {
+			OAuth2.openOAuth2Admin(baseURL = "http://www.able.com:8080");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Analytics Cloud");
+
+			Navigator.gotoNavItem(navItem = "Scopes");
+
+			OAuth2.viewResourcePanelNotCollapsed(panel = "Analytics");
+		}
+	}
+
+	@description = "This is a use case for LPS-129395. External applications have trusted label in OAuth 2 admin page when they are created with the trusted device option."
+	@priority = "5"
+	test TrustedExternalPropertyShouldBeVisible {
+		property test.name.skip.portal.instance = "OAuth2#TrustedExternalPropertyShouldBeVisible";
+
+		task ("Add a trusted OAuth 2 application") {
+			var portalURL = PropsUtil.get("portal.url");
+
+			OAuth2.openOAuth2Admin();
+
+			var clientId = "abc123";
+
+			OAuth2.addApplication(
+				applicationName = "Trusted Application",
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
+				checkboxCheckList = "Trusted Application",
+				clientProfile = "Web Application");
+		}
+
+		task ("Verify application was added") {
+			Navigator.gotoBack();
+
+			OAuth2.viewPropertyInLiferayExtraProperties(
+				propertyName = "Trusted Application",
+				propertyValue = "Trusted");
+		}
 	}
 
 }

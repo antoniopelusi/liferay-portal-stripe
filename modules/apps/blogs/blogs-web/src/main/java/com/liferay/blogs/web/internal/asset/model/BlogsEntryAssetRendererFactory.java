@@ -75,9 +75,7 @@ public class BlogsEntryAssetRendererFactory
 		BlogsEntryAssetRenderer blogsEntryAssetRenderer =
 			new BlogsEntryAssetRenderer(
 				_blogsEntryLocalService.getEntry(classPK),
-				ResourceBundleLoaderUtil.
-					getResourceBundleLoaderByBundleSymbolicName(
-						"com.liferay.blogs.web"));
+				ResourceBundleLoaderUtil.getPortalResourceBundleLoader());
 
 		blogsEntryAssetRenderer.setAssetDisplayPageFriendlyURLProvider(
 			_assetDisplayPageFriendlyURLProvider);
@@ -95,9 +93,7 @@ public class BlogsEntryAssetRendererFactory
 		BlogsEntryAssetRenderer blogsEntryAssetRenderer =
 			new BlogsEntryAssetRenderer(
 				_blogsEntryLocalService.getEntry(groupId, urlTitle),
-				ResourceBundleLoaderUtil.
-					getResourceBundleLoaderByBundleSymbolicName(
-						"com.liferay.blogs.web"));
+				ResourceBundleLoaderUtil.getPortalResourceBundleLoader());
 
 		blogsEntryAssetRenderer.setServletContext(_servletContext);
 
@@ -130,7 +126,7 @@ public class BlogsEntryAssetRendererFactory
 				BlogsPortletKeys.BLOGS, 0, 0, PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/blogs/edit_entry"
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -147,7 +143,7 @@ public class BlogsEntryAssetRendererFactory
 		}
 		catch (WindowStateException windowStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(windowStateException, windowStateException);
+				_log.debug(windowStateException);
 			}
 		}
 

@@ -35,6 +35,29 @@ public class CartItem implements Cloneable, Serializable {
 		return CartItemSerDes.toDTO(json);
 	}
 
+	public String getAdaptiveMediaImageHTMLTag() {
+		return adaptiveMediaImageHTMLTag;
+	}
+
+	public void setAdaptiveMediaImageHTMLTag(String adaptiveMediaImageHTMLTag) {
+		this.adaptiveMediaImageHTMLTag = adaptiveMediaImageHTMLTag;
+	}
+
+	public void setAdaptiveMediaImageHTMLTag(
+		UnsafeSupplier<String, Exception>
+			adaptiveMediaImageHTMLTagUnsafeSupplier) {
+
+		try {
+			adaptiveMediaImageHTMLTag =
+				adaptiveMediaImageHTMLTagUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String adaptiveMediaImageHTMLTag;
+
 	public CartItem[] getCartItems() {
 		return cartItems;
 	}
@@ -217,6 +240,28 @@ public class CartItem implements Cloneable, Serializable {
 	}
 
 	protected Long productId;
+
+	public Map<String, String> getProductURLs() {
+		return productURLs;
+	}
+
+	public void setProductURLs(Map<String, String> productURLs) {
+		this.productURLs = productURLs;
+	}
+
+	public void setProductURLs(
+		UnsafeSupplier<Map<String, String>, Exception>
+			productURLsUnsafeSupplier) {
+
+		try {
+			productURLs = productURLsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, String> productURLs;
 
 	public Integer getQuantity() {
 		return quantity;

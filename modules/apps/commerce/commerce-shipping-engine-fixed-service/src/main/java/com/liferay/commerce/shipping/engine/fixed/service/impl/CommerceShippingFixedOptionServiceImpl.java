@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
@@ -42,35 +41,17 @@ public class CommerceShippingFixedOptionServiceImpl
 
 	@Override
 	public CommerceShippingFixedOption addCommerceShippingFixedOption(
-			long userId, long groupId, long commerceShippingMethodId,
-			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
-			BigDecimal amount, double priority)
+			long groupId, long commerceShippingMethodId, BigDecimal amount,
+			Map<Locale, String> descriptionMap, String key,
+			Map<Locale, String> nameMap, double priority)
 		throws PortalException {
 
 		_checkCommerceChannel(groupId);
 
 		return commerceShippingFixedOptionLocalService.
 			addCommerceShippingFixedOption(
-				userId, groupId, commerceShippingMethodId, nameMap,
-				descriptionMap, amount, priority);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	@Override
-	public CommerceShippingFixedOption addCommerceShippingFixedOption(
-			long commerceShippingMethodId, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, BigDecimal amount,
-			double priority, ServiceContext serviceContext)
-		throws PortalException {
-
-		return commerceShippingFixedOptionService.
-			addCommerceShippingFixedOption(
-				serviceContext.getUserId(), serviceContext.getScopeGroupId(),
-				commerceShippingMethodId, nameMap, descriptionMap, amount,
-				priority);
+				getUserId(), groupId, commerceShippingMethodId, amount,
+				descriptionMap, key, nameMap, priority);
 	}
 
 	@Override
@@ -96,6 +77,22 @@ public class CommerceShippingFixedOptionServiceImpl
 		CommerceShippingFixedOption commerceShippingFixedOption =
 			commerceShippingFixedOptionLocalService.
 				fetchCommerceShippingFixedOption(commerceShippingFixedOptionId);
+
+		if (commerceShippingFixedOption != null) {
+			_checkCommerceChannel(commerceShippingFixedOption.getGroupId());
+		}
+
+		return commerceShippingFixedOption;
+	}
+
+	@Override
+	public CommerceShippingFixedOption fetchCommerceShippingFixedOption(
+			long companyId, String key)
+		throws PortalException {
+
+		CommerceShippingFixedOption commerceShippingFixedOption =
+			commerceShippingFixedOptionLocalService.
+				fetchCommerceShippingFixedOption(companyId, key);
 
 		if (commerceShippingFixedOption != null) {
 			_checkCommerceChannel(commerceShippingFixedOption.getGroupId());
@@ -184,9 +181,9 @@ public class CommerceShippingFixedOptionServiceImpl
 
 	@Override
 	public CommerceShippingFixedOption updateCommerceShippingFixedOption(
-			long commerceShippingFixedOptionId, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, BigDecimal amount,
-			double priority)
+			long commerceShippingFixedOptionId, BigDecimal amount,
+			Map<Locale, String> descriptionMap, String key,
+			Map<Locale, String> nameMap, double priority)
 		throws PortalException {
 
 		CommerceShippingFixedOption commerceShippingFixedOption =
@@ -197,8 +194,8 @@ public class CommerceShippingFixedOptionServiceImpl
 
 		return commerceShippingFixedOptionLocalService.
 			updateCommerceShippingFixedOption(
-				commerceShippingFixedOptionId, nameMap, descriptionMap, amount,
-				priority);
+				commerceShippingFixedOptionId, amount, descriptionMap, key,
+				nameMap, priority);
 	}
 
 	private void _checkCommerceChannel(long groupId) throws PortalException {

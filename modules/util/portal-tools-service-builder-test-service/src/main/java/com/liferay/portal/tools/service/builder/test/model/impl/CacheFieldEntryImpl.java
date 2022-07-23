@@ -21,9 +21,6 @@ import com.liferay.portal.kernel.model.cache.CacheField;
  */
 public class CacheFieldEntryImpl extends CacheFieldEntryBaseImpl {
 
-	public CacheFieldEntryImpl() {
-	}
-
 	@Override
 	public String getNickname() {
 		if (_nickname == null) {
@@ -38,7 +35,7 @@ public class CacheFieldEntryImpl extends CacheFieldEntryBaseImpl {
 		_nickname = nickname;
 	}
 
-	@CacheField
+	@CacheField(propagateToInterface = true)
 	private String _nickname;
 
 }

@@ -15,9 +15,10 @@
 package com.liferay.portal.search.similar.results.web.internal.contributor.wiki;
 
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.search.model.uid.UIDFactory;
+import com.liferay.portal.search.similar.results.web.internal.helper.HttpHelper;
 import com.liferay.portal.search.similar.results.web.internal.util.SearchStringUtil;
-import com.liferay.portal.search.similar.results.web.internal.util.http.HttpHelper;
 import com.liferay.portal.search.similar.results.web.spi.contributor.SimilarResultsContributor;
 import com.liferay.portal.search.similar.results.web.spi.contributor.helper.RouteBuilder;
 import com.liferay.portal.search.similar.results.web.spi.contributor.helper.RouteHelper;
@@ -44,12 +45,17 @@ public class WikiDisplaySimilarResultsContributor
 
 		SearchStringUtil.requireStartsWith(
 			WikiPortletKeys.WIKI_DISPLAY,
-			_httpHelper.getPortletIdParameter(urlString, "p_p_id"));
+			URLCodec.decodeURL(
+				_httpHelper.getPortletIdParameter(urlString, "p_p_id")));
 
 		routeBuilder.addAttribute(
-			"nodeName", _httpHelper.getPortletIdParameter(urlString, "nodeName")
+			"nodeName",
+			URLCodec.decodeURL(
+				_httpHelper.getPortletIdParameter(urlString, "nodeName"))
 		).addAttribute(
-			"title", _httpHelper.getPortletIdParameter(urlString, "title")
+			"title",
+			URLCodec.decodeURL(
+				_httpHelper.getPortletIdParameter(urlString, "title"))
 		);
 	}
 

@@ -114,8 +114,8 @@ public class BookmarksEntryAssetRendererFactory
 		).setParameter(
 			"folderId", BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID
 		).setParameter(
-			"showFolderSelector", Boolean.TRUE.toString()
-		).build();
+			"showFolderSelector", true
+		).buildPortletURL();
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public class BookmarksEntryAssetRendererFactory
 		}
 		catch (WindowStateException windowStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(windowStateException, windowStateException);
+				_log.debug(windowStateException);
 			}
 		}
 

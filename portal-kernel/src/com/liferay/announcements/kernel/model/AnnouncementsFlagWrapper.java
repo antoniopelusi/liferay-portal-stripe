@@ -98,6 +98,11 @@ public class AnnouncementsFlagWrapper
 		}
 	}
 
+	@Override
+	public AnnouncementsFlag cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this announcements flag.
 	 *

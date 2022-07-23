@@ -19,12 +19,14 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.io.Serializable;
+
 import java.util.Objects;
 
 /**
  * @author Preston Crary
  */
-public class PortalPreferenceKey {
+public class PortalPreferenceKey implements Serializable {
 
 	public PortalPreferenceKey(String namespace, String key) {
 		if (key == null) {
@@ -97,15 +99,8 @@ public class PortalPreferenceKey {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{key=");
-		sb.append(_key);
-		sb.append(", namespace=");
-		sb.append(_namespace);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{key=", _key, ", namespace=", _namespace, "}");
 	}
 
 	private final String _key;

@@ -15,7 +15,7 @@ definition {
 	macro closeFrame {
 		SelectFrame(value1 = "relative=top");
 
-		Click(locator1 = "Modal#CLOSE_BUTTON");
+		Click.mouseDownMouseUp(locator1 = "Modal#CLOSE_BUTTON");
 	}
 
 	macro saveConfiguration {
@@ -45,13 +45,15 @@ definition {
 	}
 
 	macro selectPermissionsFrame {
-		while (IsElementPresent(locator1 = "IFrame#MODAL_BODY")) {
-			SelectFrame(locator1 = "IFrame#MODAL_BODY");
-		}
+		SelectFrame(
+			key_title = "Permissions",
+			locator1 = "IFrame#MODAL_ANY");
 	}
 
 	macro selectTagFrame {
-		SelectFrame(locator1 = "IFrame#SELECT_TAG");
+		SelectFrame(
+			key_title = "Tags",
+			locator1 = "IFrame#MODAL_ANY");
 	}
 
 	macro selectTopFrame {

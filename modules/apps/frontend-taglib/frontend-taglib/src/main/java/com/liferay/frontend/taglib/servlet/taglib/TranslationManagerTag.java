@@ -115,7 +115,7 @@ public class TranslationManagerTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setReadOnly(boolean readOnly) {
@@ -147,8 +147,11 @@ public class TranslationManagerTag extends IncludeTag {
 		JSONArray availableLocalesJSONArray = JSONFactoryUtil.createJSONArray();
 		JSONArray localesJSONArray = JSONFactoryUtil.createJSONArray();
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest parentHttpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)parentHttpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		Set<Locale> locales = LanguageUtil.getAvailableLocales(
 			themeDisplay.getSiteGroupId());

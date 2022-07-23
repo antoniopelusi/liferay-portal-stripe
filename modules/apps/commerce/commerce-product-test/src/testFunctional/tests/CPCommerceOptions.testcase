@@ -1,36 +1,22 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-
-			User.logoutPG();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	test CreateAnOption {
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CPCommerceOptions#CreateAnOption";
+		property portal.acceptance = "false";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -51,13 +37,38 @@ definition {
 	}
 
 	@description = "This is a test for COMMERCE-6280. RemoveAnOption"
-	@ignore = "true"
 	@priority = "3"
 	test RemoveAnOption {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6280 RemoveAnOption
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Options");
 
+		CPCommerceCatalog.newOptionsEntry(
+			optionDescription = "",
+			optionFieldType = "Select from List",
+			optionName = "Color");
+
+		Button.clickSave();
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
+
+		CPCommerceCatalog.addOptionValues(optionValuesList = "Black:0");
+
+		Button.clickSave();
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
+
+		Click(locator1 = "Icon#BACK");
+
+		ClickNoError(
+			key_value = "Color",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
 	}
 
 }

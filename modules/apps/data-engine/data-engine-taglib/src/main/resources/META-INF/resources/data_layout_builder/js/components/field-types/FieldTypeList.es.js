@@ -12,15 +12,31 @@
  * details.
  */
 
+import ClayEmptyState from '@clayui/empty-state';
 import classNames from 'classnames';
+import {
+	EVENT_TYPES as CORE_EVENT_TYPES,
+	useConfig,
+	useForm,
+	useFormState,
+} from 'data-engine-js-components-web';
 import React from 'react';
 
+import {sub} from '../../utils/lang.es';
 import {getSearchRegex} from '../../utils/search.es';
 import CollapsablePanel from '../collapsable-panel/CollapsablePanel.es';
-import EmptyState from '../empty-state/EmptyState.es';
 import FieldType from './FieldType.es';
 
-const FieldTypeWrapper = ({expanded, fieldType, showArrows, ...otherProps}) => {
+const FieldTypeWrapper = ({
+	expanded,
+	fieldType,
+	fieldTypes,
+	showArrows,
+	...otherProps
+}) => {
+	const dispatch = useForm();
+	const {activePage, pages} = useFormState();
+
 	const getIcon = () => {
 		if (showArrows) {
 			return expanded ? 'angle-down' : 'angle-right';
@@ -29,24 +45,46 @@ const FieldTypeWrapper = ({expanded, fieldType, showArrows, ...otherProps}) => {
 		return fieldType.icon;
 	};
 
-	return <FieldType {...otherProps} {...fieldType} icon={getIcon()} />;
+	return (
+		<FieldType
+			{...otherProps}
+			{...fieldType}
+			icon={getIcon()}
+			onDoubleClick={({name}) => {
+				dispatch({
+					payload: {
+						fieldType: {
+							...fieldTypes.find(
+								({name: typeName}) => typeName === name
+							),
+							editable: true,
+						},
+						indexes: {
+							columnIndex: 0,
+							pageIndex: activePage,
+							rowIndex: pages[activePage].rows.length,
+						},
+					},
+					type: CORE_EVENT_TYPES.FIELD.ADD,
+				});
+			}}
+		/>
+	);
 };
 
 const FieldTypeList = ({
 	dataDefinition,
 	deleteLabel,
-	emptyState,
-	fieldTypes,
 	keywords,
 	onClick,
 	onDelete,
-	onDoubleClick,
 	showEmptyState = true,
 }) => {
+	const {fieldTypes} = useConfig();
 	const regex = getSearchRegex(keywords);
 
-	const filteredFieldTypes = fieldTypes.filter(
-		({description, label, system}) => {
+	const filteredFieldTypes = fieldTypes
+		.filter(({description, label, system}) => {
 			if (system) {
 				return false;
 			}
@@ -55,11 +93,21 @@ const FieldTypeList = ({
 			}
 
 			return regex.test(description) || regex.test(label);
-		}
-	);
+		})
+		.sort(({displayOrder: a}, {displayOrder: b}) => a - b);
 
 	if (showEmptyState && !filteredFieldTypes.length) {
-		return <EmptyState emptyState={emptyState} keywords={keywords} small />;
+		return (
+			<ClayEmptyState
+				description={sub(
+					Liferay.Language.get('there-are-no-results-for-x'),
+					[keywords]
+				)}
+				imgSrc={`${themeDisplay.getPathThemeImages()}/states/search_state.gif`}
+				small
+				title={Liferay.Language.get('no-results-found')}
+			/>
+		);
 	}
 
 	return filteredFieldTypes.map((fieldType, index) => {
@@ -83,13 +131,13 @@ const FieldTypeList = ({
 						...fieldType,
 						className: `${fieldType.className} field-type-header`,
 					}}
+					fieldTypes={filteredFieldTypes}
 					onClick={(props) => {
 						setExpanded(!expanded);
 
 						handleOnClick(props);
 					}}
 					onDelete={onDelete}
-					onDoubleClick={onDoubleClick}
 					setExpanded={setExpanded}
 					showArrows
 				/>
@@ -114,6 +162,7 @@ const FieldTypeList = ({
 											...nestedFieldType,
 											disabled: fieldType.disabled,
 										}}
+										fieldTypes={filteredFieldTypes}
 										key={`${nestedFieldType.name}_${index}`}
 									/>
 								)
@@ -129,10 +178,10 @@ const FieldTypeList = ({
 				dataDefinition={dataDefinition}
 				deleteLabel={deleteLabel}
 				fieldType={fieldType}
+				fieldTypes={filteredFieldTypes}
 				key={index}
 				onClick={handleOnClick}
 				onDelete={onDelete}
-				onDoubleClick={onDoubleClick}
 			/>
 		);
 	});

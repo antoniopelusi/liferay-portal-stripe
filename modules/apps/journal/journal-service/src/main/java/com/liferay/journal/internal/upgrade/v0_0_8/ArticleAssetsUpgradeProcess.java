@@ -45,29 +45,29 @@ public class ArticleAssetsUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateDefaultDraftArticleAssets();
+		_updateDefaultDraftArticleAssets();
 	}
 
-	protected void updateDefaultDraftArticleAssets() throws Exception {
+	private void _updateDefaultDraftArticleAssets() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			_companyLocalService.forEachCompanyId(
-				companyId -> updateDefaultDraftArticleAssets(companyId));
+				companyId -> _updateDefaultDraftArticleAssets(companyId));
 		}
 	}
 
-	protected void updateDefaultDraftArticleAssets(long companyId)
+	private void _updateDefaultDraftArticleAssets(long companyId)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select resourcePrimKey, indexable from JournalArticle ",
 					"where companyId = ", companyId, " and version = ",
 					JournalArticleConstants.VERSION_DEFAULT, " and status = ",
 					WorkflowConstants.STATUS_DRAFT));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				long resourcePrimKey = rs.getLong("resourcePrimKey");
+			while (resultSet.next()) {
+				long resourcePrimKey = resultSet.getLong("resourcePrimKey");
 
 				AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
 					JournalArticle.class.getName(), resourcePrimKey);
@@ -84,7 +84,7 @@ public class ArticleAssetsUpgradeProcess extends UpgradeProcess {
 					continue;
 				}
 
-				boolean indexable = rs.getBoolean("indexable");
+				boolean indexable = resultSet.getBoolean("indexable");
 
 				_assetEntryLocalService.updateEntry(
 					assetEntry.getClassName(), assetEntry.getClassPK(), null,

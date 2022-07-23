@@ -1,0 +1,156 @@
+.sidebar-container {
+	height: 100vh;
+	transition: width 0.9s ease;
+	width: 64px;
+}
+
+.sidebar-container:hover {
+	width: 200px;
+}
+
+.sidebar-container .top-bar {
+	padding-left: 12px;
+}
+
+.sidebar-container .footer-bar .avatar-container,
+.sidebar-container .footer-bar .notification-container,
+.sidebar-container .top-bar {
+	cursor: pointer;
+}
+
+.sidebar-container .footer-bar .avatar-container p,
+.sidebar-container .top-bar .logo-name,
+.sidebar-container .middle-bar .menu-item-name {
+	color: #ffffff;
+	opacity: 0;
+	transition: opacity 0.4s ease-in, color 0.3s ease-in;
+}
+
+.sidebar-container:hover .footer-bar .avatar-container p,
+.sidebar-container:hover .top-bar .logo-name,
+.sidebar-container:hover .middle-bar .menu-item-name {
+	color: #afafb1 !important;
+	opacity: 10;
+}
+
+.sidebar-container .middle-bar div {
+	border-left: 4px solid transparent;
+	cursor: pointer;
+	height: 28px;
+	padding: 0 20px 0 16px;
+}
+
+.sidebar-container .middle-bar div:hover {
+	border-left: 4px solid #4c85ff;
+	color: #ffffff !important;
+}
+
+.sidebar-container .middle-bar div:hover::before {
+	background-color: #ffffff;
+}
+
+.sidebar-container .middle-bar div:hover .menu-item-name {
+	color: #ffffff !important;
+	font-weight: 700;
+}
+
+.sidebar-container .middle-bar div::before {
+	-webkit-mask-size: cover;
+	background-color: #afafb1;
+	content: '';
+	display: inline-block;
+	flex-shrink: 0;
+	height: 24px;
+	margin-right: 4px;
+	transition: background-color 0.3s ease-in;
+	width: 24px;
+}
+
+.sidebar-container .middle-bar #Applications.applications-menu::before,
+.sidebar-container .middle-bar #Claims.claims-menu::before,
+.sidebar-container .middle-bar #Dashboard.dashboard-menu::before,
+.sidebar-container .middle-bar #Policies.policies-menu::before,
+.sidebar-container .middle-bar #Reports.reports-menu::before {
+	-webkit-mask-size: cover;
+	background-color: #ffffff;
+	content: '';
+	display: inline-block;
+	flex-shrink: 0;
+	height: 24px;
+	margin-right: 4px;
+	transition: background-color 0.3s ease-in;
+	width: 24px;
+}
+
+.sidebar-container .middle-bar .dashboard-menu::before {
+	-webkit-mask: url('[resources:home_icon.svg]') no-repeat 50% 50%;
+	mask: url('[resources:home_icon.svg]') no-repeat 50% 50%;
+}
+
+.sidebar-container .middle-bar .applications-menu::before {
+	-webkit-mask: url('[resources:note_icon.svg]') no-repeat 50% 50%;
+	mask: url('[resources:note_icon.svg]') no-repeat 50% 50%;
+}
+
+.sidebar-container .middle-bar .policies-menu::before {
+	-webkit-mask: url('[resources:umbrella_icon.svg]') no-repeat 50% 50%;
+	mask: url('[resources:umbrella_icon.svg]') no-repeat 50% 50%;
+}
+
+.sidebar-container .middle-bar .claims-menu::before {
+	-webkit-mask: url('[resources:shield_check_icon.svg]') no-repeat 50% 50%;
+	mask: url('[resources:shield_check_icon_icon.svg]') no-repeat 50% 50%;
+}
+
+.sidebar-container .middle-bar .reports-menu::before {
+	-webkit-mask: url('[resources:chart_icon.svg]') no-repeat 50% 50%;
+	mask: url('[resources:chart_icon.svg]') no-repeat 50% 50%;
+}
+
+.sidebar-container .footer-bar .notification-container {
+	height: 24px;
+	width: 24px;
+}
+
+.sidebar-container .footer-bar .indicator-icon {
+	bottom: 35px;
+	right: 25px;
+}
+
+.page-header-container:not(#Applications) {
+	box-shadow: 0 5px 15px rgba(77, 133, 255, 0.12);
+}
+
+.page-header-container .header-content {
+	height: 72px;
+	top: 0;
+}
+
+.page-header-container .header-content .search-icon {
+	cursor: pointer;
+}
+
+#Applications .page-header-container {
+	box-shadow: 0 1px #d3d3d4 !important;
+}
+
+#Applications .navbar.navigation-bar-light {
+	border-color: #ffffff !important;
+}
+
+#Applications.applications-menu,
+#Claims.claims-menu,
+#Dashboard.dashboard-menu,
+#Policies.policies-menu,
+#Reports.reports-menu {
+	border-left: 4px solid #4c85ff;
+}
+
+#Applications.applications-menu .menu-item-name,
+#Claims.claims-menu .menu-item-name,
+#Dashboard.dashboard-menu .menu-item-name,
+#Policies.policies-menu .menu-item-name,
+#Reports.reports-menu .menu-item-name {
+	color: #ffffff !important;
+	font-weight: 700;
+}

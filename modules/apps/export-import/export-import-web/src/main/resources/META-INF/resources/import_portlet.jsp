@@ -23,11 +23,11 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCRenderCommandName(
 	"/export_import/export_import"
+).setPortletResource(
+	portletResource
 ).setTabs2(
 	"import"
-).setParameter(
-	"portletResource", portletResource
-).build();
+).buildPortletURL();
 
 boolean validate = ParamUtil.getBoolean(request, "validate", true);
 

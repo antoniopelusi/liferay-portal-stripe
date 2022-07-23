@@ -77,29 +77,26 @@ public class UpgradePortalPreferences extends UpgradeProcess {
 	}
 
 	protected void upgradeOrganizationReminderQueries() throws Exception {
-		StringBundler sb1 = new StringBundler(7);
-
-		sb1.append("select PortalPreferences.portalPreferencesId, ");
-		sb1.append("PortalPreferences.preferences, Organization_.companyId ");
-		sb1.append("from PortalPreferences inner join Organization_ on ");
-		sb1.append("PortalPreferences.ownerId = Organization_.organizationId ");
-		sb1.append("where PortalPreferences.ownerType = ");
-		sb1.append(PortletKeys.PREFS_OWNER_TYPE_ORGANIZATION);
-		sb1.append(" and preferences like '%reminderQueries%'");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select PortalPreferences.portalPreferencesId, ",
+					"PortalPreferences.preferences, Organization_.companyId ",
+					"from PortalPreferences inner join Organization_ on ",
+					"PortalPreferences.ownerId = Organization_.organizationId ",
+					"where PortalPreferences.ownerType = ",
+					PortletKeys.PREFS_OWNER_TYPE_ORGANIZATION,
+					" and preferences like '%reminderQueries%'"));
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update PortalPreferences set preferences = ? where " +
 						"portalPreferencesId = ?")) {
 
-			while (rs.next()) {
-				long companyId = rs.getLong("companyId");
+			while (resultSet.next()) {
+				long companyId = resultSet.getLong("companyId");
 
-				String preferences = rs.getString("preferences");
+				String preferences = resultSet.getString("preferences");
 
 				String defaultLanguageId =
 					UpgradeProcessUtil.getDefaultLanguageId(companyId);
@@ -111,19 +108,20 @@ public class UpgradePortalPreferences extends UpgradeProcess {
 					continue;
 				}
 
-				ps2.setString(
+				preparedStatement2.setString(
 					1,
 					convertDefaultReminderQueries(
 						localizedPreference, preferences));
 
-				long portalPreferencesId = rs.getLong("portalPreferencesId");
+				long portalPreferencesId = resultSet.getLong(
+					"portalPreferencesId");
 
-				ps2.setLong(2, portalPreferencesId);
+				preparedStatement2.setLong(2, portalPreferencesId);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

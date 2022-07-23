@@ -2,12 +2,19 @@
 <head>
 <title>Radio</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Radio</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ANY</td>
+	<td>//label[contains(.,'${radioLabel}')]/input</td>
+	<td></td>
+</tr>
 <tr>
 	<td>APPEND</td>
 	<td>//label[contains(.,'Append')]/input</td>

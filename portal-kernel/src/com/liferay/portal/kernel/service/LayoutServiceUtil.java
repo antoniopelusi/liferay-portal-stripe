@@ -507,6 +507,17 @@ public class LayoutServiceUtil {
 			orderByComparator);
 	}
 
+	public static List<Layout> getLayouts(
+			long groupId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses, int start, int end,
+			OrderByComparator<Layout> orderByComparator)
+		throws PortalException {
+
+		return getService().getLayouts(
+			groupId, privateLayout, keywords, types, statuses, start, end,
+			orderByComparator);
+	}
+
 	public static List<Layout> getLayouts(long groupId, String type) {
 		return getService().getLayouts(groupId, type);
 	}
@@ -551,6 +562,15 @@ public class LayoutServiceUtil {
 			groupId, privateLayout, keywords, types);
 	}
 
+	public static int getLayoutsCount(
+			long groupId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses)
+		throws PortalException {
+
+		return getService().getLayoutsCount(
+			groupId, privateLayout, keywords, types, statuses);
+	}
+
 	public static int getLayoutsCount(long groupId, String type) {
 		return getService().getLayoutsCount(groupId, type);
 	}
@@ -592,6 +612,10 @@ public class LayoutServiceUtil {
 		throws PortalException {
 
 		return getService().hasPortletId(plid, portletId);
+	}
+
+	public static Layout publishLayout(long plid) throws Exception {
+		return getService().publishLayout(plid);
 	}
 
 	/**

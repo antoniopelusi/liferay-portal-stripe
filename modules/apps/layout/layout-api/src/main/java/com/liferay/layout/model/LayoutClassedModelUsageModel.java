@@ -303,4 +303,7 @@ public interface LayoutClassedModelUsageModel
 	 */
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public LayoutClassedModelUsage cloneWithOriginalValues();
+
 }

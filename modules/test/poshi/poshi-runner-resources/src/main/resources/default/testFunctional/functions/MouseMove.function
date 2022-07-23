@@ -1,9 +1,10 @@
-<definition default="mouseMove">
-	<command name="mouseMove">
-		<execute selenium="mouseMove" />
-	</command>
+@default = "mouseMoveAt"
+definition {
 
-	<command name="mouseMoveAt">
-		<execute selenium="mouseMoveAt" />
-	</command>
-</definition>
+	function mouseMoveAt {
+		selenium.waitForVisible();
+
+		selenium.mouseMoveAt("${locator1}", "${value1}");
+	}
+
+}

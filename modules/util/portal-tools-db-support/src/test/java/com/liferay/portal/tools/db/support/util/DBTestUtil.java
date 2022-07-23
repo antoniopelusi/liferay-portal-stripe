@@ -31,7 +31,9 @@ public class DBTestUtil {
 			DatabaseMetaData databaseMetaData, String name)
 		throws SQLException {
 
-		try (ResultSet resultSet = _getTables(databaseMetaData, name)) {
+		try (ResultSet resultSet = _getTablesResultSet(
+				databaseMetaData, name)) {
+
 			Assert.assertTrue(
 				"Missing table \"" + name + "\"", resultSet.next());
 		}
@@ -41,7 +43,9 @@ public class DBTestUtil {
 			DatabaseMetaData databaseMetaData, String name)
 		throws SQLException {
 
-		try (ResultSet resultSet = _getTables(databaseMetaData, name)) {
+		try (ResultSet resultSet = _getTablesResultSet(
+				databaseMetaData, name)) {
+
 			Assert.assertFalse(
 				"Unexpected table \"" + name + "\"", resultSet.next());
 		}
@@ -64,7 +68,7 @@ public class DBTestUtil {
 		}
 	}
 
-	private static ResultSet _getTables(
+	private static ResultSet _getTablesResultSet(
 			DatabaseMetaData databaseMetaData, String name)
 		throws SQLException {
 

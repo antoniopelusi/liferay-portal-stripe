@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -48,7 +47,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -191,10 +189,19 @@ public abstract class BaseProductGroupResourceTestCase {
 			testGetDiscountProductGroupProductGroup_addProductGroup();
 
 		ProductGroup getProductGroup =
-			productGroupResource.getDiscountProductGroupProductGroup(null);
+			productGroupResource.getDiscountProductGroupProductGroup(
+				testGetDiscountProductGroupProductGroup_getDiscountProductGroupId());
 
 		assertEquals(postProductGroup, getProductGroup);
 		assertValid(getProductGroup);
+	}
+
+	protected Long
+			testGetDiscountProductGroupProductGroup_getDiscountProductGroupId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected ProductGroup
@@ -209,7 +216,8 @@ public abstract class BaseProductGroupResourceTestCase {
 	public void testGraphQLGetDiscountProductGroupProductGroup()
 		throws Exception {
 
-		ProductGroup productGroup = testGraphQLProductGroup_addProductGroup();
+		ProductGroup productGroup =
+			testGraphQLGetDiscountProductGroupProductGroup_addProductGroup();
 
 		Assert.assertTrue(
 			equals(
@@ -221,12 +229,22 @@ public abstract class BaseProductGroupResourceTestCase {
 								"discountProductGroupProductGroup",
 								new HashMap<String, Object>() {
 									{
-										put("discountProductGroupId", null);
+										put(
+											"discountProductGroupId",
+											testGraphQLGetDiscountProductGroupProductGroup_getDiscountProductGroupId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data",
 						"Object/discountProductGroupProductGroup"))));
+	}
+
+	protected Long
+			testGraphQLGetDiscountProductGroupProductGroup_getDiscountProductGroupId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -253,6 +271,13 @@ public abstract class BaseProductGroupResourceTestCase {
 				"Object/code"));
 	}
 
+	protected ProductGroup
+			testGraphQLGetDiscountProductGroupProductGroup_addProductGroup()
+		throws Exception {
+
+		return testGraphQLProductGroup_addProductGroup();
+	}
+
 	@Test
 	public void testGetPriceModifierProductGroupProductGroup()
 		throws Exception {
@@ -261,10 +286,19 @@ public abstract class BaseProductGroupResourceTestCase {
 			testGetPriceModifierProductGroupProductGroup_addProductGroup();
 
 		ProductGroup getProductGroup =
-			productGroupResource.getPriceModifierProductGroupProductGroup(null);
+			productGroupResource.getPriceModifierProductGroupProductGroup(
+				testGetPriceModifierProductGroupProductGroup_getPriceModifierProductGroupId());
 
 		assertEquals(postProductGroup, getProductGroup);
 		assertValid(getProductGroup);
+	}
+
+	protected Long
+			testGetPriceModifierProductGroupProductGroup_getPriceModifierProductGroupId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected ProductGroup
@@ -279,7 +313,8 @@ public abstract class BaseProductGroupResourceTestCase {
 	public void testGraphQLGetPriceModifierProductGroupProductGroup()
 		throws Exception {
 
-		ProductGroup productGroup = testGraphQLProductGroup_addProductGroup();
+		ProductGroup productGroup =
+			testGraphQLGetPriceModifierProductGroupProductGroup_addProductGroup();
 
 		Assert.assertTrue(
 			equals(
@@ -293,12 +328,20 @@ public abstract class BaseProductGroupResourceTestCase {
 									{
 										put(
 											"priceModifierProductGroupId",
-											null);
+											testGraphQLGetPriceModifierProductGroupProductGroup_getPriceModifierProductGroupId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data",
 						"Object/priceModifierProductGroupProductGroup"))));
+	}
+
+	protected Long
+			testGraphQLGetPriceModifierProductGroupProductGroup_getPriceModifierProductGroupId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -326,11 +369,35 @@ public abstract class BaseProductGroupResourceTestCase {
 				"Object/code"));
 	}
 
+	protected ProductGroup
+			testGraphQLGetPriceModifierProductGroupProductGroup_addProductGroup()
+		throws Exception {
+
+		return testGraphQLProductGroup_addProductGroup();
+	}
+
 	protected ProductGroup testGraphQLProductGroup_addProductGroup()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		ProductGroup productGroup, List<ProductGroup> productGroups) {
+
+		boolean contains = false;
+
+		for (ProductGroup item : productGroups) {
+			if (equals(productGroup, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			productGroups + " does not contain " + productGroup, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -442,8 +509,8 @@ public abstract class BaseProductGroupResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v2_0.
 						ProductGroup.class)) {
 
@@ -459,12 +526,13 @@ public abstract class BaseProductGroupResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -478,7 +546,7 @@ public abstract class BaseProductGroupResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -568,6 +636,19 @@ public abstract class BaseProductGroupResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -624,8 +705,9 @@ public abstract class BaseProductGroupResourceTestCase {
 		}
 
 		if (entityFieldName.equals("productsCount")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(productGroup.getProductsCount()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("title")) {
@@ -769,8 +851,8 @@ public abstract class BaseProductGroupResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProductGroupResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseProductGroupResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

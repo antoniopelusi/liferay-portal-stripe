@@ -15,6 +15,11 @@
 		<field name="groupId" type="long" />
 		<field name="name" type="String" />
 	</model>
+	<model name="com.liferay.portal.tools.service.builder.test.model.CacheMissEntry">
+		<field name="mvccVersion" type="long" />
+		<field name="ctCollectionId" type="long" />
+		<field name="cacheMissEntryId" type="long" />
+	</model>
 	<model name="com.liferay.portal.tools.service.builder.test.model.DataLimitEntry">
 		<field name="dataLimitEntryId" type="long" />
 		<field name="companyId" type="long" />
@@ -187,6 +192,10 @@
 		<field name="parentNestedSetsTreeEntryId" type="long" />
 		<field name="leftNestedSetsTreeEntryId" type="long" />
 		<field name="rightNestedSetsTreeEntryId" type="long" />
+	</model>
+	<model name="com.liferay.portal.tools.service.builder.test.model.NullConvertibleEntry">
+		<field name="nullConvertibleEntryId" type="long" />
+		<field name="name" type="String" />
 	</model>
 	<model name="com.liferay.portal.tools.service.builder.test.model.UADPartialEntry">
 		<field name="uadPartialEntryId" type="long" />

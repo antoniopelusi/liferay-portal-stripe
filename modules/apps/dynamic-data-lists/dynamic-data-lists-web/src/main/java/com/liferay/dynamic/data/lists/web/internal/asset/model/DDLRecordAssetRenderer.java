@@ -72,7 +72,7 @@ public class DDLRecordAssetRenderer extends BaseJSPAssetRenderer<DDLRecord> {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -172,7 +172,7 @@ public class DDLRecordAssetRenderer extends BaseJSPAssetRenderer<DDLRecord> {
 			"recordId", _record.getRecordId()
 		).setParameter(
 			"version", _recordVersion.getVersion()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

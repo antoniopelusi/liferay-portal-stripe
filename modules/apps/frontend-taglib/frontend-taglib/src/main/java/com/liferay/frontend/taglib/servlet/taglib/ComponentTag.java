@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.taglib.util.ParamAndPropertyAncestorTagImpl;
 
 import java.io.IOException;
@@ -39,8 +40,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 
@@ -136,7 +139,7 @@ public class ComponentTag extends ParamAndPropertyAncestorTagImpl {
 		ServletContext servletContext = pageContext.getServletContext();
 
 		if (_setServletContext) {
-			servletContext = this.servletContext;
+			servletContext = getServletContext();
 		}
 
 		try {
@@ -153,15 +156,18 @@ public class ComponentTag extends ParamAndPropertyAncestorTagImpl {
 	protected boolean isPositionInline() {
 		Boolean positionInline = null;
 
-		String fragmentId = ParamUtil.getString(request, "p_f_id");
+		HttpServletRequest httpServletRequest = getRequest();
+
+		String fragmentId = ParamUtil.getString(httpServletRequest, "p_f_id");
 
 		if (Validator.isNotNull(fragmentId)) {
 			positionInline = true;
 		}
 
 		if (positionInline == null) {
-			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-				WebKeys.THEME_DISPLAY);
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
 
 			if (themeDisplay.isIsolated() ||
 				themeDisplay.isLifecycleResource() ||
@@ -194,15 +200,26 @@ public class ComponentTag extends ParamAndPropertyAncestorTagImpl {
 		StringBundler sb = new StringBundler(14);
 
 		sb.append("Liferay.component('");
-		sb.append(getComponentId());
+
+		String componentId = Optional.ofNullable(
+			getComponentId()
+		).orElse(
+			_UNNAMED_COMPONENT_NAME + PortalUUIDUtil.generate()
+		);
+
+		sb.append(componentId);
+
 		sb.append("', new ");
 
 		sb.append(variableName);
 
 		sb.append(".default(");
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
@@ -251,6 +268,8 @@ public class ComponentTag extends ParamAndPropertyAncestorTagImpl {
 
 		String javaScriptCode = _getRenderInvocation(variableName);
 
+		HttpServletRequest httpServletRequest = getRequest();
+
 		if (jsModuleLauncher.isValidModule(module)) {
 			List<JSModuleDependency> jsModuleDependencies = Arrays.asList(
 				new JSModuleDependency(module, variableName));
@@ -261,7 +280,8 @@ public class ComponentTag extends ParamAndPropertyAncestorTagImpl {
 			}
 			else {
 				jsModuleLauncher.appendPortletScript(
-					request, PortalUtil.getPortletId(request),
+					httpServletRequest,
+					PortalUtil.getPortletId(httpServletRequest),
 					jsModuleDependencies, javaScriptCode);
 			}
 		}
@@ -270,7 +290,7 @@ public class ComponentTag extends ParamAndPropertyAncestorTagImpl {
 				ScriptData scriptData = new ScriptData();
 
 				scriptData.append(
-					PortalUtil.getPortletId(request), javaScriptCode,
+					PortalUtil.getPortletId(httpServletRequest), javaScriptCode,
 					module + " as " + variableName, ScriptData.ModulesType.ES6);
 
 				JspWriter jspWriter = pageContext.getOut();
@@ -280,20 +300,24 @@ public class ComponentTag extends ParamAndPropertyAncestorTagImpl {
 				return;
 			}
 
-			ScriptData scriptData = (ScriptData)request.getAttribute(
+			ScriptData scriptData = (ScriptData)httpServletRequest.getAttribute(
 				WebKeys.AUI_SCRIPT_DATA);
 
 			if (scriptData == null) {
 				scriptData = new ScriptData();
 
-				request.setAttribute(WebKeys.AUI_SCRIPT_DATA, scriptData);
+				httpServletRequest.setAttribute(
+					WebKeys.AUI_SCRIPT_DATA, scriptData);
 			}
 
 			scriptData.append(
-				PortalUtil.getPortletId(request), javaScriptCode,
+				PortalUtil.getPortletId(httpServletRequest), javaScriptCode,
 				module + " as " + variableName, ScriptData.ModulesType.ES6);
 		}
 	}
+
+	private static final String _UNNAMED_COMPONENT_NAME =
+		"__UNNAMED_COMPONENT__";
 
 	private static final char[] _UNSAFE_MODULE_NAME_CHARS = {
 		CharPool.PERIOD, CharPool.DASH

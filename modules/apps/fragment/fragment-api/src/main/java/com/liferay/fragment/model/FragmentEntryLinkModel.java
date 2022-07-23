@@ -489,4 +489,7 @@ public interface FragmentEntryLinkModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public FragmentEntryLink cloneWithOriginalValues();
+
 }

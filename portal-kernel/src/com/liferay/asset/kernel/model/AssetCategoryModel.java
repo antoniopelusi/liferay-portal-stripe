@@ -545,4 +545,7 @@ public interface AssetCategoryModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public AssetCategory cloneWithOriginalValues();
+
 }

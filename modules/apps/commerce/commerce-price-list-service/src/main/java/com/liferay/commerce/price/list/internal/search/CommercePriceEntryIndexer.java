@@ -188,13 +188,11 @@ public class CommercePriceEntryIndexer extends BaseIndexer<CommercePriceEntry> {
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCommercePriceEntries(companyId);
+		_reindexCommercePriceEntries(companyId);
 	}
 
-	protected void reindexCommercePriceEntries(long companyId)
-		throws PortalException {
-
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+	private void _reindexCommercePriceEntries(long companyId) throws Exception {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_commercePriceEntryLocalService.
 				getIndexableActionableDynamicQuery();
 

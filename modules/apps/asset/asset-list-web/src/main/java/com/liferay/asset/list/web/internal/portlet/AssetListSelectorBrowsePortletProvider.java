@@ -50,7 +50,7 @@ public class AssetListSelectorBrowsePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCRenderCommandName(
 			"/asset_list/view_list_items"
-		).build();
+		).buildPortletURL();
 	}
 
 }

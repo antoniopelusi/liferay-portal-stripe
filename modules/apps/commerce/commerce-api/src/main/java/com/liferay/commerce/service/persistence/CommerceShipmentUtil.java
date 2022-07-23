@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the commerce shipment service. This utility wraps <code>com.liferay.commerce.service.persistence.impl.CommerceShipmentPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -129,8 +125,8 @@ public class CommerceShipmentUtil {
 	 * @param groupId the group ID
 	 * @return the matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(long groupId) {
-		return getPersistence().findByGroupIds(groupId);
+	public static List<CommerceShipment> findByGroupId(long groupId) {
+		return getPersistence().findByGroupId(groupId);
 	}
 
 	/**
@@ -145,10 +141,10 @@ public class CommerceShipmentUtil {
 	 * @param end the upper bound of the range of commerce shipments (not inclusive)
 	 * @return the range of matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(
+	public static List<CommerceShipment> findByGroupId(
 		long groupId, int start, int end) {
 
-		return getPersistence().findByGroupIds(groupId, start, end);
+		return getPersistence().findByGroupId(groupId, start, end);
 	}
 
 	/**
@@ -164,11 +160,11 @@ public class CommerceShipmentUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(
+	public static List<CommerceShipment> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<CommerceShipment> orderByComparator) {
 
-		return getPersistence().findByGroupIds(
+		return getPersistence().findByGroupId(
 			groupId, start, end, orderByComparator);
 	}
 
@@ -186,12 +182,12 @@ public class CommerceShipmentUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(
+	public static List<CommerceShipment> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<CommerceShipment> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByGroupIds(
+		return getPersistence().findByGroupId(
 			groupId, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -203,12 +199,11 @@ public class CommerceShipmentUtil {
 	 * @return the first matching commerce shipment
 	 * @throws NoSuchShipmentException if a matching commerce shipment could not be found
 	 */
-	public static CommerceShipment findByGroupIds_First(
+	public static CommerceShipment findByGroupId_First(
 			long groupId, OrderByComparator<CommerceShipment> orderByComparator)
 		throws com.liferay.commerce.exception.NoSuchShipmentException {
 
-		return getPersistence().findByGroupIds_First(
-			groupId, orderByComparator);
+		return getPersistence().findByGroupId_First(groupId, orderByComparator);
 	}
 
 	/**
@@ -218,10 +213,10 @@ public class CommerceShipmentUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching commerce shipment, or <code>null</code> if a matching commerce shipment could not be found
 	 */
-	public static CommerceShipment fetchByGroupIds_First(
+	public static CommerceShipment fetchByGroupId_First(
 		long groupId, OrderByComparator<CommerceShipment> orderByComparator) {
 
-		return getPersistence().fetchByGroupIds_First(
+		return getPersistence().fetchByGroupId_First(
 			groupId, orderByComparator);
 	}
 
@@ -233,11 +228,11 @@ public class CommerceShipmentUtil {
 	 * @return the last matching commerce shipment
 	 * @throws NoSuchShipmentException if a matching commerce shipment could not be found
 	 */
-	public static CommerceShipment findByGroupIds_Last(
+	public static CommerceShipment findByGroupId_Last(
 			long groupId, OrderByComparator<CommerceShipment> orderByComparator)
 		throws com.liferay.commerce.exception.NoSuchShipmentException {
 
-		return getPersistence().findByGroupIds_Last(groupId, orderByComparator);
+		return getPersistence().findByGroupId_Last(groupId, orderByComparator);
 	}
 
 	/**
@@ -247,11 +242,10 @@ public class CommerceShipmentUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching commerce shipment, or <code>null</code> if a matching commerce shipment could not be found
 	 */
-	public static CommerceShipment fetchByGroupIds_Last(
+	public static CommerceShipment fetchByGroupId_Last(
 		long groupId, OrderByComparator<CommerceShipment> orderByComparator) {
 
-		return getPersistence().fetchByGroupIds_Last(
-			groupId, orderByComparator);
+		return getPersistence().fetchByGroupId_Last(groupId, orderByComparator);
 	}
 
 	/**
@@ -263,12 +257,12 @@ public class CommerceShipmentUtil {
 	 * @return the previous, current, and next commerce shipment
 	 * @throws NoSuchShipmentException if a commerce shipment with the primary key could not be found
 	 */
-	public static CommerceShipment[] findByGroupIds_PrevAndNext(
+	public static CommerceShipment[] findByGroupId_PrevAndNext(
 			long commerceShipmentId, long groupId,
 			OrderByComparator<CommerceShipment> orderByComparator)
 		throws com.liferay.commerce.exception.NoSuchShipmentException {
 
-		return getPersistence().findByGroupIds_PrevAndNext(
+		return getPersistence().findByGroupId_PrevAndNext(
 			commerceShipmentId, groupId, orderByComparator);
 	}
 
@@ -282,8 +276,8 @@ public class CommerceShipmentUtil {
 	 * @param groupIds the group IDs
 	 * @return the matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(long[] groupIds) {
-		return getPersistence().findByGroupIds(groupIds);
+	public static List<CommerceShipment> findByGroupId(long[] groupIds) {
+		return getPersistence().findByGroupId(groupIds);
 	}
 
 	/**
@@ -298,10 +292,10 @@ public class CommerceShipmentUtil {
 	 * @param end the upper bound of the range of commerce shipments (not inclusive)
 	 * @return the range of matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(
+	public static List<CommerceShipment> findByGroupId(
 		long[] groupIds, int start, int end) {
 
-		return getPersistence().findByGroupIds(groupIds, start, end);
+		return getPersistence().findByGroupId(groupIds, start, end);
 	}
 
 	/**
@@ -317,11 +311,11 @@ public class CommerceShipmentUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(
+	public static List<CommerceShipment> findByGroupId(
 		long[] groupIds, int start, int end,
 		OrderByComparator<CommerceShipment> orderByComparator) {
 
-		return getPersistence().findByGroupIds(
+		return getPersistence().findByGroupId(
 			groupIds, start, end, orderByComparator);
 	}
 
@@ -339,12 +333,12 @@ public class CommerceShipmentUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching commerce shipments
 	 */
-	public static List<CommerceShipment> findByGroupIds(
+	public static List<CommerceShipment> findByGroupId(
 		long[] groupIds, int start, int end,
 		OrderByComparator<CommerceShipment> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByGroupIds(
+		return getPersistence().findByGroupId(
 			groupIds, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -353,8 +347,8 @@ public class CommerceShipmentUtil {
 	 *
 	 * @param groupId the group ID
 	 */
-	public static void removeByGroupIds(long groupId) {
-		getPersistence().removeByGroupIds(groupId);
+	public static void removeByGroupId(long groupId) {
+		getPersistence().removeByGroupId(groupId);
 	}
 
 	/**
@@ -363,8 +357,8 @@ public class CommerceShipmentUtil {
 	 * @param groupId the group ID
 	 * @return the number of matching commerce shipments
 	 */
-	public static int countByGroupIds(long groupId) {
-		return getPersistence().countByGroupIds(groupId);
+	public static int countByGroupId(long groupId) {
+		return getPersistence().countByGroupId(groupId);
 	}
 
 	/**
@@ -373,8 +367,8 @@ public class CommerceShipmentUtil {
 	 * @param groupIds the group IDs
 	 * @return the number of matching commerce shipments
 	 */
-	public static int countByGroupIds(long[] groupIds) {
-		return getPersistence().countByGroupIds(groupIds);
+	public static int countByGroupId(long[] groupIds) {
+		return getPersistence().countByGroupId(groupIds);
 	}
 
 	/**
@@ -938,6 +932,76 @@ public class CommerceShipmentUtil {
 	}
 
 	/**
+	 * Returns the commerce shipment where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchShipmentException</code> if it could not be found.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching commerce shipment
+	 * @throws NoSuchShipmentException if a matching commerce shipment could not be found
+	 */
+	public static CommerceShipment findByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.commerce.exception.NoSuchShipmentException {
+
+		return getPersistence().findByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the commerce shipment where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching commerce shipment, or <code>null</code> if a matching commerce shipment could not be found
+	 */
+	public static CommerceShipment fetchByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().fetchByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the commerce shipment where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching commerce shipment, or <code>null</code> if a matching commerce shipment could not be found
+	 */
+	public static CommerceShipment fetchByC_ERC(
+		long companyId, String externalReferenceCode, boolean useFinderCache) {
+
+		return getPersistence().fetchByC_ERC(
+			companyId, externalReferenceCode, useFinderCache);
+	}
+
+	/**
+	 * Removes the commerce shipment where companyId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the commerce shipment that was removed
+	 */
+	public static CommerceShipment removeByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.commerce.exception.NoSuchShipmentException {
+
+		return getPersistence().removeByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the number of commerce shipments where companyId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching commerce shipments
+	 */
+	public static int countByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().countByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
 	 * Caches the commerce shipment in the entity cache if it is enabled.
 	 *
 	 * @param commerceShipment the commerce shipment
@@ -1089,27 +1153,9 @@ public class CommerceShipmentUtil {
 	}
 
 	public static CommerceShipmentPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CommerceShipmentPersistence, CommerceShipmentPersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommerceShipmentPersistence.class);
-
-		ServiceTracker<CommerceShipmentPersistence, CommerceShipmentPersistence>
-			serviceTracker =
-				new ServiceTracker
-					<CommerceShipmentPersistence, CommerceShipmentPersistence>(
-						bundle.getBundleContext(),
-						CommerceShipmentPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CommerceShipmentPersistence _persistence;
 
 }

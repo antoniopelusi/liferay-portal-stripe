@@ -101,18 +101,15 @@ public class FieldsetTag extends BaseFieldsetTag {
 
 		jspWriter.write(
 			InlineUtil.buildDynamicAttributes(getDynamicAttributes()));
+		jspWriter.write(
+			"><legend class=\"fieldset-legend\"><span class=\"legend\">");
 
-		jspWriter.write(StringPool.GREATER_THAN);
+		String label = getLabel();
 
-		String lable = getLabel();
-
-		if (lable != null) {
-			jspWriter.write(
-				"<legend class=\"fieldset-legend\"><span class=\"legend\">");
-
+		if (label != null) {
 			MessageTag messageTag = new MessageTag();
 
-			messageTag.setKey(lable);
+			messageTag.setKey(label);
 			messageTag.setLocalizeKey(getLocalizeLabel());
 
 			messageTag.doTag(pageContext);
@@ -126,9 +123,9 @@ public class FieldsetTag extends BaseFieldsetTag {
 
 				iconHelpTag.doTag(pageContext);
 			}
-
-			jspWriter.write("</span></legend>");
 		}
+
+		jspWriter.write("</span></legend>");
 
 		if (getColumn()) {
 			jspWriter.write("<div class=\"row\">");

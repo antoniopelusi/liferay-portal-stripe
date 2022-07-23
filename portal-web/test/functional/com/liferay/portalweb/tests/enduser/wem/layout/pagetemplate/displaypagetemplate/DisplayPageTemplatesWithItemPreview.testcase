@@ -1,0 +1,1501 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Display Pages";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site via JSON") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-133319. Change master of display page template when preview item selected."
+	@priority = "3"
+	test ChangeMasterOfDisplayPageTemplateWhenPreviewItemSelected {
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a custom master") {
+			JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+				groupName = "Test Site Name",
+				masterPageTemplateEntryName = "Custom Masters Page Template");
+		}
+
+		task ("Add a header and footer fragments in custom master") {
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+
+			PageEditor.addFragment(
+				collectionName = "Navigation Bars",
+				dropTarget = "Header",
+				fragmentName = "Header Dark",
+				scope = "Master");
+
+			PageEditor.addFragment(
+				collectionName = "Footers",
+				dropTarget = "Footer",
+				fragmentName = "Footer Nav Dark",
+				scope = "Master");
+
+			Button.click(button = "Publish Master");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Add a Heading fragment to the display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Mapping the Title field to Heading fragment") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Select the web content via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title",
+				assetType = "Web Content Article");
+		}
+
+		task ("View title of web content shown in editable field") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Apply the custom master to display page template") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Navigator.gotoNavTab(navTab = "Master");
+
+			AssertElementPresent(
+				key_card = "Blank",
+				locator1 = "Card#CARD_SELECTED");
+
+			MastersPageTemplates.selectMasterViaPageDesignOptions(masterLayoutName = "Custom Masters Page Template");
+
+			AssertVisible(
+				key_type = "dark",
+				locator1 = "PageEditor#NAVIGATION_BARS");
+
+			AssertVisible(
+				key_type = "dark",
+				locator1 = "PageEditor#FOOTERS");
+		}
+
+		task ("View title of web content shown in editable field") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View Heading Example shown in Heading fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Heading Example",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+	}
+
+	@description = "This is a test for LPS-128904. The page editor should still work when select a preview item."
+	@priority = "4"
+	test EditPageContentWhenPreviewItemSelected {
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a Banner Center fragment to the display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Mapping the Title field to title editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Select the web content via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title",
+				assetType = "Web Content Article");
+		}
+
+		task ("View title of web content shown in title editable field") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Mapping the Content field to subtitle editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Content",
+				fragmentName = "Paragraph",
+				id = "element-text");
+		}
+
+		task ("View content of web content shown in subtitle editable field") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Content",
+				fragmentName = "Paragraph",
+				id = "element-text");
+		}
+
+		task ("Edit inline content of link editable field") {
+			PageEditor.editFragmentText(
+				fragmentName = "Button",
+				id = "link",
+				text = "Edited Text");
+		}
+
+		task ("View the edited inline content of link editable field") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Edited Text",
+				fragmentName = "Button",
+				id = "link");
+		}
+	}
+
+	@description = "This is a test for LPS-128904. Look for the item via scroll bar when there are lots of items shown in Preview With dropdown list."
+	@priority = "4"
+	test ViewItemInDropdownListViaScrollBar {
+		task ("Add 21 web contents based on Basic Web Content") {
+			var n = "1";
+
+			while ("${n}" != "22" && (maxIterations = "30")) {
+				JSONWebcontent.addWebContent(
+					content = "Web Content Content ${n}",
+					groupName = "Test Site Name",
+					title = "Web Content Title ${n}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a Heading fragment to the display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Mapping the Title field to Heading fragment") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Preview 16 different web contents via preview item selector") {
+			var n = "1";
+
+			while ("${n}" != "17" && (maxIterations = "30")) {
+				DisplayPageTemplate.selectPreviewItem(
+					assetTitle = "Web Content Title ${n}",
+					assetType = "Web Content Article",
+					searchTerm = "&quot;Web Content Title ${n}&quot;");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Select the top item in dropdown list via scroll bar") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title 16",
+				assetType = "Web Content Article",
+				item = "Web Content Title 16");
+		}
+
+		task ("Select the bottom item in dropdown list via scroll bar") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title 1",
+				assetType = "Web Content Article",
+				item = "Web Content Title 1");
+		}
+	}
+
+	@description = "This is a test for LPS-131040 and LPS-132081. View mapped content of selected category and subcategory preview items."
+	@priority = "5"
+	test ViewMappedContentOfPreviewCategoryItem {
+		property portal.acceptance = "true";
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add an image to category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.addImageToCategory(
+				categoryName = "Category Name",
+				imageName = "Document_1.jpg");
+		}
+
+		task ("Add a subCategory") {
+			JSONCategory.addSubcategory(
+				groupName = "Test Site Name",
+				parentCategoryName = "Category Name",
+				title = "Subcategory Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Card fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Card");
+		}
+
+		task ("Mapping the Name field to link editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Name",
+				fragmentName = "Card",
+				id = "link");
+		}
+
+		task ("Mapping the Main Image field to image editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Main Image",
+				fragmentName = "Card",
+				id = "img");
+		}
+
+		task ("Select the category via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Category Name",
+				assetType = "Category");
+		}
+
+		task ("View mapped content shown in Card fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Category Name",
+				fragmentName = "Card",
+				id = "link");
+
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "/images/");
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View Go Somewhere shown in Card fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Go Somewhere",
+				fragmentName = "Card",
+				id = "link");
+		}
+
+		task ("View image placeholder shown in Card fragment") {
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "data:image/png");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the category via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Category Name",
+				assetType = "Category",
+				modal = "true");
+		}
+
+		task ("View mapped content shown in Card fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "card",
+				id = "link",
+				text = "Category Name");
+
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "/images/");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View Go Somewhere shown in Card fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "card",
+				id = "link",
+				text = "Go Somewhere");
+		}
+
+		task ("View image placeholder shown in Card fragment") {
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "data:image/png");
+		}
+
+		task ("Close the iframe") {
+			IFrame.closeFrame();
+		}
+
+		task ("Select the subcategory via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Subcategory Name",
+				assetType = "Category");
+		}
+
+		task ("View the subcategory name shown in Card fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Subcategory Name",
+				fragmentName = "Card",
+				id = "link");
+		}
+
+		task ("View image placeholder shown in Card fragment") {
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "data:image/png");
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View Go Somewhere shown in Card fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Go Somewhere",
+				fragmentName = "Card",
+				id = "link");
+		}
+
+		task ("View image placeholder shown in Card fragment") {
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "data:image/png");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the subcategory via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Subcategory Name",
+				assetType = "Category",
+				modal = "true");
+		}
+
+		task ("View the subcategory name shown in Card fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "card",
+				id = "link",
+				text = "Subcategory Name");
+		}
+
+		task ("View image placeholder shown in Card fragment") {
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "data:image/png");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View the subcategory name shown in Card fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "card",
+				id = "link",
+				text = "Go Somewhere");
+		}
+
+		task ("View image placeholder shown in Card fragment") {
+			ContentPages.viewFragmentImage(
+				fragmentName = "card",
+				id = "img",
+				image = "data:image/png");
+		}
+	}
+
+	@description = "This is a test for LPS-132081. View mapped content in Collection Display with Items with This Category when select preview category item in display page template for Category."
+	@priority = "4"
+	test ViewMappedContentOfPreviewCategoryItemInCollectionDisplayWithItemsWithThisCategory {
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with the category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with the category") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${categoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document entry with the category") {
+			JSONDocument.addFileWithUploadedFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_2.jpg");
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Collection Display fragment to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Items with This Category collection provider in Collection Display and Select the Bulleted List as List Style ") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Items with This Category",
+				listStyle = "Bulleted List");
+		}
+
+		task ("View the no items message is shown in Collection Display") {
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Collection Display",
+				messageInfo = "There are no items to display.");
+		}
+
+		task ("Select the category via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Category Name",
+				assetType = "Category");
+		}
+
+		task ("View the title of collection items are shown as Bulleted List") {
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title,Web Content Title") {
+				AssertVisible(
+					key_entryContent = "[normalize-space(text())='${title}']",
+					key_fragmentName = "Collection Display",
+					key_position = "${n}",
+					locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BULLETED_LIST");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View the no items message is shown in Collection Display") {
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Collection Display",
+				messageInfo = "There are no items to display.");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the category via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Category Name",
+				assetType = "Category",
+				modal = "true");
+		}
+
+		task ("View the title of collection items are shown as Bulleted List") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title,Web Content Title") {
+				AssertVisible(
+					key_entryContent = "[normalize-space(text())='${title}']",
+					key_fragmentName = "Collection Display",
+					key_position = "${n}",
+					locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BULLETED_LIST_AT_VIEW_MODE");
+
+				var n = ${n} + 1;
+			}
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View the Collection Display is not shown in modal") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementNotPresent(
+				key_fragmentName = "Collection Display",
+				key_messageInfo = "There are no items to display.",
+				locator1 = "Fragment#NO_COLLECTION_SELECTED_MESSAGE");
+		}
+	}
+
+	@description = "This is a test for LPS-128904. View mapped content in page editor when select preview items."
+	@priority = "5"
+	test ViewMappedContentOfPreviewItem {
+		property portal.acceptance = "true";
+
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry") {
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document with an image") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add the first display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name 1",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a Heading fragment to the first display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 1");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Mapping the Title field to Heading fragment") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Select the web content via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title",
+				assetType = "Web Content Article");
+		}
+
+		task ("View title of web content shown in Heading fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View Heading Example shown in Heading fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Heading Example",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the web content via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title",
+				assetType = "Web Content Article",
+				modal = "true");
+		}
+
+		task ("View title of web content shown in Heading fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Web Content Title");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View Heading Example shown in Heading fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("Add the second display page template for Blogs Entry") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Blogs Entry",
+				displayPageTemplateEntryName = "Display Page Name 2",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Button fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 2");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Mapping the Title field to Button fragment") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("Select the blogs entry via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+		}
+
+		task ("View title of blogs entry shown in Button fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Blogs Entry Title",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View Go Somewhere shown in Button fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Go Somewhere",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the blogs entry via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry",
+				modal = "true");
+		}
+
+		task ("View title of blogs entry shown in Button fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Blogs Entry Title");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View Go Somewhere shown in Button fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+		}
+
+		task ("Add the third display page template for Document") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Document",
+				displayPageTemplateEntryName = "Display Page Name 3",
+				groupName = "Test Site Name",
+				subType = "Basic Document");
+		}
+
+		task ("Add an Image fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 3");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Image");
+		}
+
+		task ("Mapping the Preview Image field to Image fragment") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Image",
+				id = "image-square");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Preview Image");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Select the document via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Document Title",
+				assetType = "Document");
+		}
+
+		task ("View image of document shown in Image fragment") {
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "Document_1.jpg");
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View the placeholder shown in Image fragment") {
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "data:image/png");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the document via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Document Title",
+				assetType = "Document",
+				modal = "true");
+		}
+
+		task ("View image of document shown in Image fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "Document_1.jpg");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View the placeholder shown in Image fragment") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "data:image/png");
+		}
+	}
+
+	@description = "This is a test for LPS-131040. Only the public vocabularies are available in preview item selector."
+	@priority = "4"
+	test ViewOnlyPublicVocabulariesAvailableToItemSelector {
+		task ("Add a category in Topic, Audience and Stage") {
+			var n = "1";
+
+			for (var vocabularyName : list "Topic,Audience,Stage") {
+				JSONCategory.addCategory(
+					groupName = "Global",
+					title = "Category Name ${n}",
+					vocabularyName = "${vocabularyName}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Button fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Mapping the Vocabulary field to Button fragment") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Vocabulary",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("Open the preview item selector") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			Click(locator1 = "ControlMenu#DISPLAY_PAGE_PREVIEW_ITEM_SELECTOR");
+
+			DropdownMenuItem.click(menuItem = "Select Other Item");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			Portlet.expandTree();
+		}
+
+		task ("View the category of Topic (Global) is present") {
+			AssertVisible(
+				key_nodeName = "Category Name 1",
+				locator1 = "Treeview#NODE_UNSELECTED");
+		}
+
+		task ("View Audience and Stage vocabularies are not present") {
+			for (var vocabularyName : list "Audience(Global),Stage(Global)") {
+				AssertElementNotPresent(
+					key_nodeName = "${vocabularyName}",
+					locator1 = "Treeview#NODE_UNSELECTED");
+			}
+		}
+
+		task ("Close the modal") {
+			IFrame.closeFrame();
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Open the preview item selector in preview modal") {
+			Click(locator1 = "Modal#DISPLAY_PAGE_PREVIEW_ITEM_SELECTOR");
+
+			DropdownMenuItem.click(menuItem = "Select Other Item");
+
+			SelectFrame(
+				key_title = "Select",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Portlet.expandTree();
+		}
+
+		task ("View the category of Topic is present") {
+			AssertVisible(
+				key_nodeName = "Category Name 1",
+				locator1 = "Treeview#NODE_UNSELECTED");
+		}
+
+		task ("View Audience and Stage vocabularies are not present") {
+			for (var vocabularyName : list "Audience(Global),Stage(Global)") {
+				AssertElementNotPresent(
+					key_nodeName = "${vocabularyName}",
+					locator1 = "Treeview#NODE_UNSELECTED");
+			}
+		}
+
+		task ("Delete the global categories") {
+			var n = "1";
+
+			for (var vocabularyName : list "Topic,Audience,Stage") {
+				JSONCategory.deleteCategory(
+					categoryName = "Category Name ${n}",
+					groupName = "Global",
+					vocabularyName = "${vocabularyName}");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-132081. View related categories when select preview item in display page template for non-category assets."
+	@priority = "4"
+	test ViewRelatedCategoriesOfPreviewItemInCollectionDisplayWithCategoriesForThisItem {
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add three categories in vocabulary") {
+			var firstCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 1",
+				vocabularyName = "Vocabulary Name");
+
+			var secondCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 2",
+				vocabularyName = "Vocabulary Name");
+
+			var thirdCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 3",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with all three categories") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId},${thirdCategoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with all three categories") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId},${thirdCategoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document entry with all three categories") {
+			JSONDocument.addFileWithUploadedFile(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId},${thirdCategoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a display page template for Web Content Article") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Web Content DPT",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a Collection Display fragment to display Page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Web Content DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Categories for This item collection provider in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Categories for This Item");
+		}
+
+		task ("Select the web content via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title",
+				assetType = "Web Content Article");
+		}
+
+		task ("View all three categories name are shown in Collection Display") {
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				PageEditor.viewCollectionItem(
+					assetTitle = "${categoryName}",
+					row = "${n}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Add a Content Display fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "Category Name 1",
+				fragmentName = "Content Display");
+		}
+
+		task ("View all three categories name are shown in Content Display") {
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				ContentPages.viewFragmentTextInCollectionDisplay(
+					row = "${n}",
+					text = "${categoryName}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View the default info shown in Content Display") {
+			PageEditor.viewFragmentMessageInfo(fragmentName = "Content Display");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the web content via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Web Content Title",
+				assetType = "Web Content Article",
+				modal = "true");
+		}
+
+		task ("View all three categories name are shown in modal") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				ContentPages.viewFragmentTextInCollectionDisplay(
+					row = "${n}",
+					text = "${categoryName}");
+
+				var n = ${n} + 1;
+			}
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View the Collection Display is not shown in Preview modal") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementNotPresent(
+				column = "1",
+				locator1 = "Fragment#FRAGMENT_TEXT_IN_COLLECTION_DISPLAY",
+				row = "1");
+		}
+
+		task ("Add a display page template for Blogs Entry") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Blogs Entry",
+				displayPageTemplateEntryName = "Blogs Entry DPT",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Collection Display fragment to display Page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Blogs Entry DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Categories for This item collection provider in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Categories for This Item");
+		}
+
+		task ("Select the blogs entry via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+		}
+
+		task ("View all three categories name are shown in Collection Display") {
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				PageEditor.viewCollectionItem(
+					assetTitle = "${categoryName}",
+					row = "${n}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Add a Content Display fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "Category Name 1",
+				fragmentName = "Content Display");
+		}
+
+		task ("View all three categories name are shown in Content Display") {
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				ContentPages.viewFragmentTextInCollectionDisplay(
+					row = "${n}",
+					text = "${categoryName}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View the default info shown in Content Display") {
+			PageEditor.viewFragmentMessageInfo(fragmentName = "Content Display");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the blogs entry via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry",
+				modal = "true");
+		}
+
+		task ("View all three categories name are shown in modal") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				ContentPages.viewFragmentTextInCollectionDisplay(
+					row = "${n}",
+					text = "${categoryName}");
+
+				var n = ${n} + 1;
+			}
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View the Collection Display is not shown in Preview modal") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementNotPresent(
+				column = "1",
+				locator1 = "Fragment#FRAGMENT_TEXT_IN_COLLECTION_DISPLAY",
+				row = "1");
+		}
+
+		task ("Add a display page template for Document") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Document",
+				displayPageTemplateEntryName = "Document DPT",
+				groupName = "Test Site Name",
+				subType = "Basic Document");
+		}
+
+		task ("Add a Collection Display fragment to display Page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Document DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Categories for This item collection provider in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Categories for This Item");
+		}
+
+		task ("Select the document via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Document Title",
+				assetType = "Document");
+		}
+
+		task ("View all three categories name are shown in Collection Display") {
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				PageEditor.viewCollectionItem(
+					assetTitle = "${categoryName}",
+					row = "${n}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Add a Content Display fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "Category Name 1",
+				fragmentName = "Content Display");
+		}
+
+		task ("View all three categories name are shown in Content Display") {
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				ContentPages.viewFragmentTextInCollectionDisplay(
+					row = "${n}",
+					text = "${categoryName}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --");
+		}
+
+		task ("View the default info shown in Content Display") {
+			PageEditor.viewFragmentMessageInfo(fragmentName = "Content Display");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Select the document via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Document Title",
+				assetType = "Document",
+				modal = "true");
+		}
+
+		task ("View all three categories name are shown in modal") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			var n = "1";
+
+			for (var categoryName : list "Category Name 1,Category Name 2,Category Name 3") {
+				ContentPages.viewFragmentTextInCollectionDisplay(
+					row = "${n}",
+					text = "${categoryName}");
+
+				var n = ${n} + 1;
+			}
+
+			SelectFrameTop();
+		}
+
+		task ("Select the None via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "-- None --",
+				item = "-- None --",
+				modal = "true");
+		}
+
+		task ("View the Collection Display is not shown in Preview modal") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementNotPresent(
+				column = "1",
+				locator1 = "Fragment#FRAGMENT_TEXT_IN_COLLECTION_DISPLAY",
+				row = "1");
+		}
+	}
+
+}

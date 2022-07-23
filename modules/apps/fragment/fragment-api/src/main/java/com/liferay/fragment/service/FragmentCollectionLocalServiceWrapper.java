@@ -30,6 +30,10 @@ public class FragmentCollectionLocalServiceWrapper
 	implements FragmentCollectionLocalService,
 			   ServiceWrapper<FragmentCollectionLocalService> {
 
+	public FragmentCollectionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public FragmentCollectionLocalServiceWrapper(
 		FragmentCollectionLocalService fragmentCollectionLocalService) {
 
@@ -157,6 +161,13 @@ public class FragmentCollectionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _fragmentCollectionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _fragmentCollectionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

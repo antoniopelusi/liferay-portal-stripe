@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class MBMessageLocalServiceWrapper
 	implements MBMessageLocalService, ServiceWrapper<MBMessageLocalService> {
 
+	public MBMessageLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MBMessageLocalServiceWrapper(
 		MBMessageLocalService mbMessageLocalService) {
 
@@ -47,15 +51,15 @@ public class MBMessageLocalServiceWrapper
 
 	@Override
 	public MBMessage addDiscussionMessage(
-			long userId, String userName, long groupId, String className,
-			long classPK, long threadId, long parentMessageId, String subject,
-			String body,
+			String externalReferenceCode, long userId, String userName,
+			long groupId, String className, long classPK, long threadId,
+			long parentMessageId, String subject, String body,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _mbMessageLocalService.addDiscussionMessage(
-			userId, userName, groupId, className, classPK, threadId,
-			parentMessageId, subject, body, serviceContext);
+			externalReferenceCode, userId, userName, groupId, className,
+			classPK, threadId, parentMessageId, subject, body, serviceContext);
 	}
 
 	/**
@@ -363,6 +367,13 @@ public class MBMessageLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mbMessageLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mbMessageLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

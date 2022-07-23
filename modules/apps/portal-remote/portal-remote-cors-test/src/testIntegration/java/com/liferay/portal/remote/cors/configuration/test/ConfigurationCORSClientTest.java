@@ -19,14 +19,12 @@ import com.liferay.portal.configuration.persistence.listener.ConfigurationModelL
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.remote.cors.client.test.BaseCORSClientTestCase;
 import com.liferay.portal.remote.cors.client.test.CORSTestApplication;
 import com.liferay.portal.remote.cors.configuration.PortalCORSConfiguration;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-
-import java.util.Dictionary;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -86,11 +84,11 @@ public class ConfigurationCORSClientTest extends BaseCORSClientTestCase {
 			_companyId, "/o/cors-app/instance/only/path/*",
 			"http://www.google.com");
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("osgi.jaxrs.name", "test-cors-2");
-
-		registerJaxRsApplication(new CORSTestApplication(), "", properties);
+		registerJaxRsApplication(
+			new CORSTestApplication(), "",
+			HashMapDictionaryBuilder.<String, Object>put(
+				"osgi.jaxrs.name", "test-cors-2"
+			).build());
 
 		assertJaxRSUrl(
 			"/cors-app/instance/only/path/whatever", "GET", false, true,
@@ -108,11 +106,11 @@ public class ConfigurationCORSClientTest extends BaseCORSClientTestCase {
 			_companyId, "/o/cors-app/overwritten/path/*",
 			"http://www.liferay.com");
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("osgi.jaxrs.name", "test-cors-3");
-
-		registerJaxRsApplication(new CORSTestApplication(), "", properties);
+		registerJaxRsApplication(
+			new CORSTestApplication(), "",
+			HashMapDictionaryBuilder.<String, Object>put(
+				"osgi.jaxrs.name", "test-cors-3"
+			).build());
 
 		assertJaxRSUrl(
 			"/cors-app/overwritten/path/whatever", "GET", false, false,
@@ -126,21 +124,21 @@ public class ConfigurationCORSClientTest extends BaseCORSClientTestCase {
 			long companyId, String urlPattern, String allowedOrigin)
 		throws Exception {
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("companyId", companyId);
-		properties.put("filter.mapping.url.pattern", new String[] {urlPattern});
-		properties.put(
-			"headers",
-			new String[] {
-				"Access-Control-Allow-Credentials: true",
-				"Access-Control-Allow-Headers: *",
-				"Access-Control-Allow-Methods: *",
-				"Access-Control-Allow-Origin: " + allowedOrigin
-			});
-
 		createFactoryConfiguration(
-			PortalCORSConfiguration.class.getName(), properties);
+			PortalCORSConfiguration.class.getName(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				"companyId", companyId
+			).put(
+				"filter.mapping.url.pattern", new String[] {urlPattern}
+			).put(
+				"headers",
+				new String[] {
+					"Access-Control-Allow-Credentials: true",
+					"Access-Control-Allow-Headers: *",
+					"Access-Control-Allow-Methods: *",
+					"Access-Control-Allow-Origin: " + allowedOrigin
+				}
+			).build());
 	}
 
 	private long _companyId;

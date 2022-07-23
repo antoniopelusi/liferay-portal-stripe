@@ -14,7 +14,7 @@
 
 package com.liferay.redirect.web.internal.portlet.action;
 
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
@@ -62,8 +62,8 @@ public class EditRedirectNotFoundEntryMVCActionCommand
 		long redirectNotFoundEntryId = ParamUtil.getLong(
 			actionRequest, "redirectNotFoundEntryId");
 
-		try (SafeClosable safeClosable =
-				ProxyModeThreadLocal.setWithSafeClosable(true)) {
+		try (SafeCloseable safeCloseable =
+				ProxyModeThreadLocal.setWithSafeCloseable(true)) {
 
 			if (redirectNotFoundEntryId > 0) {
 				_redirectNotFoundEntryLocalService.updateRedirectNotFoundEntry(

@@ -945,7 +945,7 @@ public class DLFolderFinderImpl
 			}
 
 			sb.append(sql);
-			sb.append(" UNION ALL ");
+			sb.append(" UNION ");
 
 			sql = getFileEntriesSQL(
 				FIND_FE_BY_G_F_RC, groupId, mimeTypes, queryDefinition,
@@ -953,7 +953,7 @@ public class DLFolderFinderImpl
 
 			sb.append(sql);
 
-			sb.append(" UNION ALL ");
+			sb.append(" UNION ");
 
 			sql = getFileShortcutsSQL(
 				FIND_FS_BY_G_F_A_RC, groupId, mimeTypes, queryDefinition,
@@ -1343,15 +1343,10 @@ public class DLFolderFinderImpl
 		}
 
 		if (ArrayUtil.isNotEmpty(mimeTypes)) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(sql);
-			sb.append(WHERE_AND);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(getMimeTypes(mimeTypes, DLFileEntryImpl.TABLE_NAME));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			sql = sb.toString();
+			sql = StringBundler.concat(
+				sql, WHERE_AND, StringPool.OPEN_PARENTHESIS,
+				getMimeTypes(mimeTypes, DLFileEntryImpl.TABLE_NAME),
+				StringPool.CLOSE_PARENTHESIS);
 		}
 
 		return sql;
@@ -1371,19 +1366,13 @@ public class DLFolderFinderImpl
 		}
 
 		if (ArrayUtil.isNotEmpty(mimeTypes)) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(
+			sql = StringBundler.concat(
 				StringUtil.replace(
 					sql, "[$JOIN$]",
-					CustomSQLUtil.get(JOIN_FS_BY_DL_FILE_ENTRY)));
-
-			sb.append(WHERE_AND);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(getMimeTypes(mimeTypes, DLFileEntryImpl.TABLE_NAME));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			sql = sb.toString();
+					CustomSQLUtil.get(JOIN_FS_BY_DL_FILE_ENTRY)),
+				WHERE_AND, StringPool.OPEN_PARENTHESIS,
+				getMimeTypes(mimeTypes, DLFileEntryImpl.TABLE_NAME),
+				StringPool.CLOSE_PARENTHESIS);
 		}
 		else {
 			sql = StringUtil.removeSubstring(sql, "[$JOIN$]");
@@ -1406,15 +1395,10 @@ public class DLFolderFinderImpl
 		}
 
 		if (ArrayUtil.isNotEmpty(mimeTypes)) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(sql);
-			sb.append(WHERE_AND);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(getMimeTypes(mimeTypes, DLFileVersionImpl.TABLE_NAME));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			sql = sb.toString();
+			sql = StringBundler.concat(
+				sql, WHERE_AND, StringPool.OPEN_PARENTHESIS,
+				getMimeTypes(mimeTypes, DLFileVersionImpl.TABLE_NAME),
+				StringPool.CLOSE_PARENTHESIS);
 		}
 
 		return sql;
@@ -1469,7 +1453,7 @@ public class DLFolderFinderImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

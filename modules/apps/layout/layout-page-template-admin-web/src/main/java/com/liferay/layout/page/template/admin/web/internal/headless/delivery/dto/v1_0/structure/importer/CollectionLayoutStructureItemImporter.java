@@ -17,20 +17,22 @@ package com.liferay.layout.page.template.admin.web.internal.headless.delivery.dt
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.headless.delivery.dto.v1_0.CollectionConfig;
+import com.liferay.headless.delivery.dto.v1_0.PageCollectionDefinition;
 import com.liferay.headless.delivery.dto.v1_0.PageElement;
-import com.liferay.info.list.provider.InfoListProvider;
-import com.liferay.info.list.provider.InfoListProviderTracker;
+import com.liferay.info.collection.provider.InfoCollectionProvider;
+import com.liferay.info.collection.provider.RelatedInfoItemCollectionProvider;
+import com.liferay.info.collection.provider.SingleFormVariationInfoCollectionProvider;
+import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType;
 import com.liferay.item.selector.criteria.InfoListItemSelectorReturnType;
 import com.liferay.layout.util.structure.CollectionStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
-import com.liferay.petra.reflect.GenericUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -53,64 +55,125 @@ public class CollectionLayoutStructureItemImporter
 
 	@Override
 	public LayoutStructureItem addLayoutStructureItem(
-			Layout layout, LayoutStructure layoutStructure,
-			PageElement pageElement, String parentItemId, int position,
-			Set<String> warningMessages)
+			LayoutStructure layoutStructure,
+			LayoutStructureItemImporterContext
+				layoutStructureItemImporterContext,
+			PageElement pageElement, Set<String> warningMessages)
 		throws Exception {
 
 		CollectionStyledLayoutStructureItem
 			collectionStyledLayoutStructureItem =
 				(CollectionStyledLayoutStructureItem)
 					layoutStructure.addCollectionStyledLayoutStructureItem(
-						parentItemId, position);
+						layoutStructureItemImporterContext.getParentItemId(),
+						layoutStructureItemImporterContext.getPosition());
 
 		Map<String, Object> definitionMap = getDefinitionMap(
 			pageElement.getDefinition());
 
-		if (definitionMap != null) {
-			Map<String, Object> collectionConfig =
-				(Map<String, Object>)definitionMap.get("collectionConfig");
+		if (definitionMap == null) {
+			return collectionStyledLayoutStructureItem;
+		}
 
-			if (collectionConfig != null) {
-				collectionStyledLayoutStructureItem.setCollectionJSONObject(
-					_getCollectionConfigAsJSONObject(collectionConfig));
+		Map<String, Object> collectionConfig =
+			(Map<String, Object>)definitionMap.get("collectionConfig");
+
+		if (collectionConfig != null) {
+			collectionStyledLayoutStructureItem.setCollectionJSONObject(
+				_getCollectionConfigAsJSONObject(collectionConfig));
+		}
+
+		if (definitionMap.containsKey("collectionViewports")) {
+			List<Map<String, Object>> collectionViewports =
+				(List<Map<String, Object>>)definitionMap.get(
+					"collectionViewports");
+
+			for (Map<String, Object> collectionViewport : collectionViewports) {
+				_processCollectionViewportDefinition(
+					collectionStyledLayoutStructureItem,
+					(Map<String, Object>)collectionViewport.get(
+						"collectionViewportDefinition"),
+					(String)collectionViewport.get("id"));
 			}
+		}
 
-			collectionStyledLayoutStructureItem.setListItemStyle(
-				(String)definitionMap.get("listItemStyle"));
-			collectionStyledLayoutStructureItem.setListStyle(
-				(String)definitionMap.get("listStyle"));
-			collectionStyledLayoutStructureItem.setNumberOfColumns(
-				(Integer)definitionMap.get("numberOfColumns"));
-			collectionStyledLayoutStructureItem.setNumberOfItems(
-				(Integer)definitionMap.get("numberOfItems"));
-			collectionStyledLayoutStructureItem.setTemplateKey(
-				(String)definitionMap.get("templateKey"));
+		collectionStyledLayoutStructureItem.setDisplayAllItems(
+			(Boolean)definitionMap.get("displayAllItems"));
 
-			Map<String, Object> fragmentStyleMap =
-				(Map<String, Object>)definitionMap.get("fragmentStyle");
+		Boolean displayAllPages = (Boolean)definitionMap.get("displayAllPages");
 
-			if (fragmentStyleMap != null) {
+		Boolean showAllItems = (Boolean)definitionMap.get("showAllItems");
+
+		if (displayAllPages == null) {
+			displayAllPages = showAllItems;
+		}
+
+		collectionStyledLayoutStructureItem.setDisplayAllPages(displayAllPages);
+
+		collectionStyledLayoutStructureItem.setListItemStyle(
+			(String)definitionMap.get("listItemStyle"));
+		collectionStyledLayoutStructureItem.setListStyle(
+			(String)definitionMap.get("listStyle"));
+		collectionStyledLayoutStructureItem.setNumberOfColumns(
+			(Integer)definitionMap.get("numberOfColumns"));
+
+		Integer numberOfItems = (Integer)definitionMap.get("numberOfItems");
+
+		collectionStyledLayoutStructureItem.setNumberOfItems(numberOfItems);
+
+		Integer numberOfItemsPerPage = (Integer)definitionMap.get(
+			"numberOfItemsPerPage");
+
+		if (numberOfItemsPerPage != null) {
+			collectionStyledLayoutStructureItem.setNumberOfItemsPerPage(
+				numberOfItemsPerPage);
+		}
+
+		Integer numberOfPages = (Integer)definitionMap.get("numberOfPages");
+
+		if (numberOfPages == null) {
+			if ((numberOfItemsPerPage != null) && (numberOfItemsPerPage > 0)) {
+				collectionStyledLayoutStructureItem.setNumberOfPages(
+					(int)Math.ceil(
+						numberOfItems / (double)numberOfItemsPerPage));
+			}
+		}
+		else {
+			collectionStyledLayoutStructureItem.setNumberOfPages(numberOfPages);
+		}
+
+		collectionStyledLayoutStructureItem.setPaginationType(
+			_toPaginationType((String)definitionMap.get("paginationType")));
+
+		collectionStyledLayoutStructureItem.setShowAllItems(showAllItems);
+
+		collectionStyledLayoutStructureItem.setTemplateKey(
+			(String)definitionMap.get("templateKey"));
+
+		Map<String, Object> fragmentStyleMap =
+			(Map<String, Object>)definitionMap.get("fragmentStyle");
+
+		if (fragmentStyleMap != null) {
+			JSONObject jsonObject = JSONUtil.put(
+				"styles",
+				toStylesJSONObject(
+					layoutStructureItemImporterContext, fragmentStyleMap));
+
+			collectionStyledLayoutStructureItem.updateItemConfig(jsonObject);
+		}
+
+		if (definitionMap.containsKey("fragmentViewports")) {
+			List<Map<String, Object>> fragmentViewports =
+				(List<Map<String, Object>>)definitionMap.get(
+					"fragmentViewports");
+
+			for (Map<String, Object> fragmentViewport : fragmentViewports) {
 				JSONObject jsonObject = JSONUtil.put(
-					"styles", toStylesJSONObject(fragmentStyleMap));
+					(String)fragmentViewport.get("id"),
+					toFragmentViewportStylesJSONObject(fragmentViewport));
 
 				collectionStyledLayoutStructureItem.updateItemConfig(
 					jsonObject);
-			}
-
-			if (definitionMap.containsKey("fragmentViewports")) {
-				List<Map<String, Object>> fragmentViewports =
-					(List<Map<String, Object>>)definitionMap.get(
-						"fragmentViewports");
-
-				for (Map<String, Object> fragmentViewport : fragmentViewports) {
-					JSONObject jsonObject = JSONUtil.put(
-						(String)fragmentViewport.get("id"),
-						toFragmentViewportStylesJSONObject(fragmentViewport));
-
-					collectionStyledLayoutStructureItem.updateItemConfig(
-						jsonObject);
-				}
 			}
 		}
 
@@ -191,22 +254,70 @@ public class CollectionLayoutStructureItemImporter
 
 		String className = (String)collectionReference.get("className");
 
-		InfoListProvider<?> infoListProvider =
-			_infoListProviderTracker.getInfoListProvider(className);
+		InfoCollectionProvider<?> infoCollectionProvider =
+			_infoItemServiceTracker.getInfoItemService(
+				InfoCollectionProvider.class, className);
 
-		if (infoListProvider == null) {
+		if (infoCollectionProvider == null) {
+			infoCollectionProvider = _infoItemServiceTracker.getInfoItemService(
+				RelatedInfoItemCollectionProvider.class, className);
+		}
+
+		if (infoCollectionProvider == null) {
 			return null;
 		}
 
 		return JSONUtil.put(
-			"itemType", GenericUtil.getGenericClassName(infoListProvider)
+			"itemSubtype", _getItemSubtype(infoCollectionProvider)
+		).put(
+			"itemType", infoCollectionProvider.getCollectionItemClassName()
 		).put(
 			"key", className
 		).put(
-			"title", infoListProvider.getLabel(LocaleUtil.getDefault())
+			"title", infoCollectionProvider.getLabel(LocaleUtil.getDefault())
 		).put(
 			"type", InfoListProviderItemSelectorReturnType.class.getName()
 		);
+	}
+
+	private String _getItemSubtype(
+		InfoCollectionProvider<?> infoCollectionProvider) {
+
+		if (infoCollectionProvider instanceof
+				SingleFormVariationInfoCollectionProvider) {
+
+			SingleFormVariationInfoCollectionProvider<?>
+				singleFormVariationInfoCollectionProvider =
+					(SingleFormVariationInfoCollectionProvider<?>)
+						infoCollectionProvider;
+
+			return singleFormVariationInfoCollectionProvider.
+				getFormVariationKey();
+		}
+
+		return null;
+	}
+
+	private void _processCollectionViewportDefinition(
+		CollectionStyledLayoutStructureItem collectionStyledLayoutStructureItem,
+		Map<String, Object> collectionViewportDefinitionMap,
+		String collectionViewportId) {
+
+		collectionStyledLayoutStructureItem.setViewportConfiguration(
+			collectionViewportId,
+			JSONUtil.put(
+				"numberOfColumns",
+				() -> {
+					if (collectionViewportDefinitionMap.containsKey(
+							"numberOfColumns")) {
+
+						return GetterUtil.getInteger(
+							collectionViewportDefinitionMap.get(
+								"numberOfColumns"));
+					}
+
+					return null;
+				}));
 	}
 
 	private Long _toClassPK(String classPKString) {
@@ -233,6 +344,35 @@ public class CollectionLayoutStructureItemImporter
 		return classPK;
 	}
 
+	private String _toPaginationType(String paginationType) {
+		if (Validator.isNull(paginationType) ||
+			Objects.equals(
+				paginationType,
+				PageCollectionDefinition.PaginationType.NONE.getValue())) {
+
+			return "none";
+		}
+
+		if (Objects.equals(
+				paginationType,
+				PageCollectionDefinition.PaginationType.NUMERIC.getValue()) ||
+			Objects.equals(
+				paginationType,
+				PageCollectionDefinition.PaginationType.REGULAR.getValue())) {
+
+			return "numeric";
+		}
+
+		if (Objects.equals(
+				paginationType,
+				PageCollectionDefinition.PaginationType.SIMPLE.getValue())) {
+
+			return "simple";
+		}
+
+		return null;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		CollectionLayoutStructureItemImporter.class);
 
@@ -240,6 +380,6 @@ public class CollectionLayoutStructureItemImporter
 	private AssetListEntryLocalService _assetListEntryLocalService;
 
 	@Reference
-	private InfoListProviderTracker _infoListProviderTracker;
+	private InfoItemServiceTracker _infoItemServiceTracker;
 
 }

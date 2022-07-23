@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Brian Wing Shun Chan
@@ -318,6 +319,17 @@ public class Entity implements Comparable<Entity> {
 	public String getConstantName() {
 		return TextFormatter.format(
 			TextFormatter.format(_name, TextFormatter.H), TextFormatter.A);
+	}
+
+	public Set<String> getCTColumnResolutionTypeNames() {
+		Set<String> ctColumnResolutionTypeNames = new TreeSet<>();
+
+		for (EntityColumn entityColumn : getEntityColumns()) {
+			ctColumnResolutionTypeNames.add(
+				entityColumn.getCTColumnResolutionTypeName());
+		}
+
+		return ctColumnResolutionTypeNames;
 	}
 
 	public List<EntityColumn> getDatabaseRegularEntityColumns() {
@@ -838,7 +850,7 @@ public class Entity implements Comparable<Entity> {
 	}
 
 	public boolean hasEagerBlobColumn() {
-		if ((_blobEntityColumns == null) || _blobEntityColumns.isEmpty()) {
+		if (ListUtil.isEmpty(_blobEntityColumns)) {
 			return false;
 		}
 
@@ -885,7 +897,7 @@ public class Entity implements Comparable<Entity> {
 	}
 
 	public boolean hasLazyBlobEntityColumn() {
-		if ((_blobEntityColumns == null) || _blobEntityColumns.isEmpty()) {
+		if (ListUtil.isEmpty(_blobEntityColumns)) {
 			return false;
 		}
 

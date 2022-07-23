@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -175,13 +174,11 @@ public class BlogsEntryAttachmentFileEntryHelperTest {
 			getBlogsEntryAttachmentFileEntryReferences(FileEntry tempFileEntry)
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), _user.getUserId());
-
 		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), _user.getUserId()));
 
 		List<FileEntry> tempFileEntries = new ArrayList<>();
 
@@ -222,19 +219,13 @@ public class BlogsEntryAttachmentFileEntryHelperTest {
 	}
 
 	protected String getModifiedTempFileEntryImgTag(FileEntry tempFileEntry) {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("<img ");
-		sb.append(EditorConstants.ATTRIBUTE_DATA_IMAGE_ID);
-		sb.append("=\"");
-		sb.append(tempFileEntry.getFileEntryId());
-		sb.append("\" class=\"test-class\" id=\"test-id\" src=\"");
-		sb.append(
+		return StringBundler.concat(
+			"<img ", EditorConstants.ATTRIBUTE_DATA_IMAGE_ID, "=\"",
+			tempFileEntry.getFileEntryId(),
+			"\" class=\"test-class\" id=\"test-id\" src=\"",
 			PortletFileRepositoryUtil.getPortletFileEntryURL(
-				null, tempFileEntry, StringPool.BLANK));
-		sb.append("\" title=\"test-title\" />");
-
-		return sb.toString();
+				null, tempFileEntry, StringPool.BLANK),
+			"\" title=\"test-title\" />");
 	}
 
 	private List<BlogsEntryAttachmentFileEntryReference>

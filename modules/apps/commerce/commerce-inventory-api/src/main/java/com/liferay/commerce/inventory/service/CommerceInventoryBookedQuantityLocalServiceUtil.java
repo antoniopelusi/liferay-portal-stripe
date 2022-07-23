@@ -161,6 +161,10 @@ public class CommerceInventoryBookedQuantityLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -347,6 +351,16 @@ public class CommerceInventoryBookedQuantityLocalServiceUtil {
 		return getService().resetCommerceBookedQuantity(
 			commerceBookedQuantityId, userId, sku, quantity, expirationDate,
 			context);
+	}
+
+	public static CommerceInventoryBookedQuantity
+			restockCommerceInventoryBookedQuantity(
+				long userId, long commerceInventoryBookedQuantityId,
+				Map<String, String> context)
+		throws PortalException {
+
+		return getService().restockCommerceInventoryBookedQuantity(
+			userId, commerceInventoryBookedQuantityId, context);
 	}
 
 	/**

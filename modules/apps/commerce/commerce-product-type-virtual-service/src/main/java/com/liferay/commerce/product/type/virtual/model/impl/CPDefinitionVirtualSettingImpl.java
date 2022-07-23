@@ -27,9 +27,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 public class CPDefinitionVirtualSettingImpl
 	extends CPDefinitionVirtualSettingBaseImpl {
 
-	public CPDefinitionVirtualSettingImpl() {
-	}
-
 	@Override
 	public FileEntry getFileEntry() throws PortalException {
 		if (isUseUrl()) {

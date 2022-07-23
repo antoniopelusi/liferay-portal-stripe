@@ -60,15 +60,9 @@ public class SimpleFacetCollector implements FacetCollector {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{fieldName=");
-		sb.append(_fieldName);
-		sb.append(", termCollectors=");
-		sb.append(_termCollectors);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{fieldName=", _fieldName, ", termCollectors=", _termCollectors,
+			"}");
 	}
 
 	private final String _fieldName;

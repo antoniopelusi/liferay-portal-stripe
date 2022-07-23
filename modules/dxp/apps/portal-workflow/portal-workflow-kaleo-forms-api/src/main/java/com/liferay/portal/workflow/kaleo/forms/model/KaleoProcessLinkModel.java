@@ -128,4 +128,7 @@ public interface KaleoProcessLinkModel
 	 */
 	public void setDDMTemplateId(long DDMTemplateId);
 
+	@Override
+	public KaleoProcessLink cloneWithOriginalValues();
+
 }

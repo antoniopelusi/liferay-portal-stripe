@@ -163,7 +163,7 @@ definition {
 		Navigator.gotoPage(pageName = "Home");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		UserBar.gotoDropdownItem(dropdownItem = "Notifications");
@@ -222,6 +222,15 @@ definition {
 			userFirstName = "Test",
 			userLastName = "Test",
 			userScreenName = "testscreen");
+
+		JSONUser.updateUser(
+			creatorEmailAddress = "testadmin@liferay.com",
+			creatorPassword = "test",
+			screenNameUpdate = "test",
+			userEmailAddress = "testadmin@liferay.com",
+			userEmailAddressUpdate = "test@liferay.com",
+			userFirstName = "Test",
+			userLastName = "Test");
 	}
 
 	@description = "This is a use case for LPS-105387."
@@ -316,7 +325,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Sign In Page",
 			sitePageType = "Widget Page");
 
@@ -410,6 +419,32 @@ definition {
 		UserBar.viewNoDropdownItem(dropdownItem = "My Dashboard");
 
 		UserBar.viewNoDropdownItem(dropdownItem = "My Profile");
+	}
+
+	@ignore = "true"
+	@priority = "3"
+	test ViewUserIconIsAccessibleViaKeyboard {
+		AssertAccessible();
+
+		KeyPress(
+			locator1 = "Button#SUBMIT",
+			value1 = "\TAB");
+
+		KeyPress(
+			locator1 = "UserBar#USER_AVATAR_BUTTON",
+			value1 = "\ENTER");
+
+		KeyPress(
+			key_dropdownItem = "My Profile",
+			locator1 = "UserBar#USER_AVATAR_DROPDOWN_ITEM",
+			value1 = "\TAB");
+
+		KeyPress(
+			key_dropdownItem = "My Dashboard",
+			locator1 = "UserBar#USER_AVATAR_DROPDOWN_ITEM",
+			value1 = "\ENTER");
+
+		AssertAccessible();
 	}
 
 }

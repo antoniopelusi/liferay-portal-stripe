@@ -17,9 +17,16 @@ definition {
 	}
 
 	macro addPG {
-		AssertClick(
-			locator1 = "Button#ADD_CATEGORY",
-			value1 = "Add Category");
+		if (isSet(siteURLKey)) {
+			MessageboardsCategory.openToAddCategory(
+				layoutName = "${layoutName}",
+				siteURLKey = "${siteURLKey}");
+		}
+		else {
+			AssertClick(
+				locator1 = "Button#ADD_CATEGORY",
+				value1 = "Add Category");
+		}
 
 		PortletEntry.inputName(name = "${categoryName}");
 
@@ -42,7 +49,12 @@ definition {
 			locator1 = "Button#SAVE",
 			value1 = "Save");
 
-		Alert.viewSuccessMessage();
+		if ("${categoryWithoutName}" == "true") {
+			Alert.viewRequiredField();
+		}
+		else {
+			Alert.viewSuccessMessage();
+		}
 	}
 
 	macro deleteCP {
@@ -72,15 +84,18 @@ definition {
 	}
 
 	macro editPG {
-		var key_categoryName = "${categoryName}";
+		if (isSet(siteURLKey)) {
+			MessageboardsCategory.openToEditCategory(
+				categoryName = "${categoryName}",
+				groupName = "${groupName}",
+				layoutName = "${layoutName}",
+				siteURLKey = "${siteURLKey}");
+		}
+		else {
+			LexiconEntry.openEntryMenu(rowEntry = "${categoryName}");
 
-		AssertTextEquals(
-			locator1 = "MessageBoards#CATEGORY_LIST_CATEGORY",
-			value1 = "${categoryName}");
-
-		LexiconEntry.openEntryMenu(rowEntry = "${categoryName}");
-
-		MenuItem.click(menuItem = "Edit");
+			MenuItem.click(menuItem = "Edit");
+		}
 
 		PortletEntry.inputName(name = "${categoryNameEdit}");
 
@@ -89,10 +104,6 @@ definition {
 			value1 = "Save");
 
 		Alert.viewSuccessMessage();
-
-		AssertTextEquals(
-			locator1 = "MessageBoards#CATEGORY_LIST_CATEGORY",
-			value1 = "${categoryNameEdit}");
 	}
 
 	macro gotoCP {
@@ -137,6 +148,54 @@ definition {
 		}
 	}
 
+	macro openToAddCategory {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		Open(locator1 = "${baseURL}/web/${siteURLKey}/${layoutName}?p_p_id=com_liferay_message_boards_web_portlet_MBPortlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_com_liferay_message_boards_web_portlet_MBPortlet_javax.portlet.action=%2Fmessage_boards%2Fedit_category&_com_liferay_message_boards_web_portlet_MBPortlet_mvcRenderCommandName=%2Fmessage_boards%2Fedit_category");
+	}
+
+	macro openToCategory {
+		var categoryId = JSONMBMessage.getCategoryIdByName(
+			categoryName = "${categoryName}",
+			groupName = "${groupName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (isSet(layoutName)) {
+			Open(locator1 = "${baseURL}/web/${siteURLKey}/${layoutName}/-/message_boards/category/${categoryId}");
+		}
+		else {
+			Open(locator1 = "${baseURL}/group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_message_boards_web_portlet_MBAdminPortlet&_com_liferay_message_boards_web_portlet_MBAdminPortlet_mvcRenderCommandName=%2Fmessage_boards%2Fview_category&_com_liferay_message_boards_web_portlet_MBAdminPortlet_mbCategoryId=${categoryId}");
+		}
+	}
+
+	macro openToEditCategory {
+		var categoryId = JSONMBMessage.getCategoryIdByName(
+			categoryName = "${categoryName}",
+			groupName = "${groupName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (isSet(layoutName)) {
+			Open(locator1 = "${baseURL}/web/${siteURLKey}/${layoutName}?p_p_id=com_liferay_message_boards_web_portlet_MBPortlet&_com_liferay_message_boards_web_portlet_MBPortlet_mvcRenderCommandName=%2Fmessage_boards%2Fedit_category&_com_liferay_message_boards_web_portlet_MBPortlet_mbCategoryId=${categoryId}");
+		}
+		else {
+			Open(locator1 = "${baseURL}/group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_message_boards_web_portlet_MBAdminPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_message_boards_web_portlet_MBAdminPortlet_mvcRenderCommandName=%2Fmessage_boards%2Fedit_category&_com_liferay_message_boards_web_portlet_MBAdminPortlet_mbCategoryId=${categoryId}");
+		}
+	}
+
 	macro subscribePG {
 		var key_categoryName = "${categoryName}";
 
@@ -155,7 +214,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Message Boards");
 
 		IsElementPresent(locator1 = "Checkbox#SELECT_ALL");
@@ -166,7 +225,7 @@ definition {
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
-		RecycleBin.emptyCP();
+		JSONRecycleBin.emptyRecycleBin();
 	}
 
 	macro viewCategoryDefaultPG {
@@ -200,6 +259,39 @@ definition {
 		AssertElementNotPresent(locator1 = "MessageBoards#CATEGORY_TABLE_CATEGORY_GENERIC");
 	}
 
+	macro viewCategorySubscribeLink {
+		var key_categoryName = "${categoryName}";
+
+		if (isSet(disabledEmailConfiguration)) {
+			Click(locator1 = "MessageBoards#CATEGORY_LIST_ACTIONS");
+
+			MenuItem.viewNotPresent(menuItem = "Subscribe");
+
+			AssertClick(
+				locator1 = "MessageBoards#CATEGORY_LIST_CATEGORY",
+				value1 = "${categoryName}");
+
+			Click(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+			AssertElementNotPresent(locator1 = "Link#SUBSCRIBE");
+		}
+		else {
+			Click(locator1 = "MessageBoards#CATEGORY_LIST_ACTIONS");
+
+			MenuItem.viewPresent(menuItem = "Subscribe");
+
+			AssertClick(
+				locator1 = "MessageBoards#CATEGORY_LIST_CATEGORY",
+				value1 = "${categoryName}");
+
+			Click(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+			AssertTextEquals(
+				locator1 = "Link#SUBSCRIBE",
+				value1 = "Subscribe");
+		}
+	}
+
 	macro viewCP {
 		var key_categoryName = "${categoryName}";
 
@@ -227,15 +319,22 @@ definition {
 			locator1 = "MessageBoards#CATEGORY_LIST_CATEGORY",
 			value1 = "${categoryName}");
 
-		AssertTextEquals(
-			locator1 = "Portlet#HEADER",
-			value1 = "Message Boards");
+		if (isSet(localizedHeader)) {
+			AssertTextEquals(
+				locator1 = "Portlet#HEADER",
+				value1 = "${localizedHeader}");
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "Portlet#HEADER",
+				value1 = "Message Boards");
+		}
 	}
 
-	macro viewDefaultPG {
-		AssertElementNotPresent(locator1 = "MessageBoards#CATEGORY_TABLE_PANEL");
-
-		AssertElementNotPresent(locator1 = "MessageBoards#CATEGORY_TABLE_CATEGORY_GENERIC");
+	macro viewDefault {
+		AssertTextEquals.assertText(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "There are no threads or categories.");
 	}
 
 	macro viewMySubscriptionsPG {

@@ -92,17 +92,9 @@ public class SchedulerResponse implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{groupName=");
-		sb.append(getGroupName());
-		sb.append(", jobName=");
-		sb.append(getJobName());
-		sb.append(", storageType=");
-		sb.append(getStorageType());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{groupName=", getGroupName(), ", jobName=", getJobName(),
+			", storageType=", getStorageType(), "}");
 	}
 
 	private String _description;

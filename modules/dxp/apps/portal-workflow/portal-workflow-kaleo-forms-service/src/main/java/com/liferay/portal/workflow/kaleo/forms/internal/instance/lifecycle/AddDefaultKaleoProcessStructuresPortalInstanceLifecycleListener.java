@@ -41,8 +41,8 @@ public class AddDefaultKaleoProcessStructuresPortalInstanceLifecycleListener
 	public void portalInstanceRegistered(Company company) throws Exception {
 		ServiceContext serviceContext = new ServiceContext();
 
-		serviceContext.setAddGuestPermissions(true);
 		serviceContext.setAddGroupPermissions(true);
+		serviceContext.setAddGuestPermissions(true);
 
 		Group group = _groupLocalService.getCompanyGroup(
 			company.getCompanyId());

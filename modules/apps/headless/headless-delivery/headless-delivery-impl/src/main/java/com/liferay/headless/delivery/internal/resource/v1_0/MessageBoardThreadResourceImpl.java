@@ -20,12 +20,13 @@ import com.liferay.headless.common.spi.resource.SPIRatingResource;
 import com.liferay.headless.common.spi.service.context.ServiceContextRequestUtil;
 import com.liferay.headless.delivery.dto.v1_0.MessageBoardThread;
 import com.liferay.headless.delivery.dto.v1_0.Rating;
+import com.liferay.headless.delivery.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.converter.MessageBoardThreadDTOConverter;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.EntityFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.RatingUtil;
 import com.liferay.headless.delivery.internal.odata.entity.v1_0.MessageBoardMessageEntityModel;
 import com.liferay.headless.delivery.resource.v1_0.MessageBoardThreadResource;
+import com.liferay.message.boards.constants.MBConstants;
 import com.liferay.message.boards.constants.MBMessageConstants;
 import com.liferay.message.boards.constants.MBThreadConstants;
 import com.liferay.message.boards.exception.NoSuchMessageException;
@@ -39,11 +40,13 @@ import com.liferay.message.boards.service.MBThreadFlagLocalService;
 import com.liferay.message.boards.service.MBThreadLocalService;
 import com.liferay.message.boards.service.MBThreadService;
 import com.liferay.message.boards.settings.MBGroupServiceSettings;
+import com.liferay.message.boards.util.comparator.ThreadCreateDateComparator;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.OrderFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ClassName;
@@ -54,7 +57,9 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.search.filter.TermFilter;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
@@ -67,6 +72,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.view.count.ViewCountManager;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.search.expando.ExpandoBridgeIndexer;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
@@ -91,6 +97,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
@@ -133,8 +140,8 @@ public class MessageBoardThreadResourceImpl
 			new ArrayList<>(
 				EntityFieldsUtil.getEntityFields(
 					_portal.getClassNameId(MBMessage.class.getName()),
-					contextCompany.getCompanyId(), _expandoColumnLocalService,
-					_expandoTableLocalService)));
+					contextCompany.getCompanyId(), _expandoBridgeIndexer,
+					_expandoColumnLocalService, _expandoTableLocalService)));
 	}
 
 	@Override
@@ -152,33 +159,49 @@ public class MessageBoardThreadResourceImpl
 			HashMapBuilder.<String, Map<String, String>>put(
 				"create",
 				addAction(
-					"ADD_MESSAGE", mbCategory.getCategoryId(),
+					ActionKeys.ADD_MESSAGE, mbCategory.getCategoryId(),
 					"postMessageBoardSectionMessageBoardThread",
-					mbCategory.getUserId(), "com.liferay.message.boards",
+					mbCategory.getUserId(), MBConstants.RESOURCE_NAME,
 					mbCategory.getGroupId())
 			).put(
 				"get",
 				addAction(
-					"VIEW", mbCategory.getCategoryId(),
+					ActionKeys.VIEW, mbCategory.getCategoryId(),
 					"getMessageBoardSectionMessageBoardThreadsPage",
-					mbCategory.getUserId(), "com.liferay.message.boards",
+					mbCategory.getUserId(), MBConstants.RESOURCE_NAME,
 					mbCategory.getGroupId())
 			).build();
 
 		if ((search == null) && (filter == null) && (sorts == null)) {
+			int status = WorkflowConstants.STATUS_APPROVED;
+
+			PermissionChecker permissionChecker =
+				PermissionThreadLocal.getPermissionChecker();
+
+			if (permissionChecker.isContentReviewer(
+					contextCompany.getCompanyId(), mbCategory.getGroupId())) {
+
+				status = WorkflowConstants.STATUS_ANY;
+			}
+
 			return Page.of(
 				actions,
 				TransformUtil.transform(
 					_mbThreadService.getThreads(
 						mbCategory.getGroupId(), mbCategory.getCategoryId(),
-						WorkflowConstants.STATUS_APPROVED,
-						pagination.getStartPosition(),
-						pagination.getEndPosition()),
+						new QueryDefinition<>(
+							status, contextUser.getUserId(), true,
+							pagination.getStartPosition(),
+							pagination.getEndPosition(),
+							new ThreadCreateDateComparator())),
 					this::_toMessageBoardThread),
 				pagination,
 				_mbThreadService.getThreadsCount(
 					mbCategory.getGroupId(), mbCategory.getCategoryId(),
-					WorkflowConstants.STATUS_APPROVED));
+					new QueryDefinition<>(
+						status, contextUser.getUserId(), true,
+						pagination.getStartPosition(),
+						pagination.getEndPosition(), null)));
 		}
 
 		return _getSiteMessageBoardThreadsPage(
@@ -189,7 +212,7 @@ public class MessageBoardThreadResourceImpl
 
 				booleanFilter.add(
 					new TermFilter(
-						"categoryId",
+						Field.CATEGORY_ID,
 						String.valueOf(mbCategory.getCategoryId())),
 					BooleanClauseOccur.MUST);
 				booleanFilter.add(
@@ -204,13 +227,17 @@ public class MessageBoardThreadResourceImpl
 	public MessageBoardThread getMessageBoardThread(Long messageBoardThreadId)
 		throws Exception {
 
+		MBThread mbThread = _mbThreadLocalService.getMBThread(
+			messageBoardThreadId);
+
+		_checkPermission(
+			mbThread.getCompanyId(), mbThread.getGroupId(),
+			mbThread.getStatus(), mbThread.getUserId());
+
 		_viewCountManager.incrementViewCount(
 			contextCompany.getCompanyId(),
 			_classNameLocalService.getClassNameId(MBThread.class),
 			messageBoardThreadId, 1);
-
-		MBThread mbThread = _mbThreadLocalService.getMBThread(
-			messageBoardThreadId);
 
 		_mbThreadFlagLocalService.addThreadFlag(
 			contextUser.getUserId(), mbThread, new ServiceContext());
@@ -287,6 +314,10 @@ public class MessageBoardThreadResourceImpl
 					friendlyUrlPath);
 		}
 
+		_checkPermission(
+			mbMessage.getCompanyId(), mbMessage.getGroupId(),
+			mbMessage.getStatus(), mbMessage.getUserId());
+
 		_viewCountManager.incrementViewCount(
 			contextCompany.getCompanyId(),
 			_classNameLocalService.getClassNameId(MBThread.class),
@@ -310,13 +341,13 @@ public class MessageBoardThreadResourceImpl
 			HashMapBuilder.put(
 				"create",
 				addAction(
-					"ADD_MESSAGE", "postSiteMessageBoardThread",
-					"com.liferay.message.boards", siteId)
+					ActionKeys.ADD_MESSAGE, "postSiteMessageBoardThread",
+					MBConstants.RESOURCE_NAME, siteId)
 			).put(
 				"get",
 				addAction(
-					"VIEW", "getSiteMessageBoardThreadsPage",
-					"com.liferay.message.boards", siteId)
+					ActionKeys.VIEW, "getSiteMessageBoardThreadsPage",
+					MBConstants.RESOURCE_NAME, siteId)
 			).build(),
 			booleanQuery -> {
 				BooleanFilter booleanFilter =
@@ -385,19 +416,17 @@ public class MessageBoardThreadResourceImpl
 		MBThread mbThread = _mbThreadLocalService.getMBThread(
 			messageBoardThreadId);
 
-		MBMessage mbMessage = _mbMessageService.getMessage(
-			mbThread.getRootMessageId());
+		MBMessage mbMessage = _mbMessageService.updateMessage(
+			mbThread.getRootMessageId(), messageBoardThread.getHeadline(),
+			messageBoardThread.getArticleBody(), null,
+			_toPriority(
+				mbThread.getGroupId(), messageBoardThread.getThreadType()),
+			false,
+			_createServiceContext(mbThread.getGroupId(), messageBoardThread));
 
 		_updateQuestion(mbMessage, messageBoardThread);
 
-		return _toMessageBoardThread(
-			_mbMessageService.updateMessage(
-				mbThread.getRootMessageId(), messageBoardThread.getHeadline(),
-				messageBoardThread.getArticleBody(), null,
-				_toPriority(
-					mbThread.getGroupId(), messageBoardThread.getThreadType()),
-				false,
-				_getServiceContext(messageBoardThread, mbThread.getGroupId())));
+		return _toMessageBoardThread(mbMessage);
 	}
 
 	@Override
@@ -443,7 +472,7 @@ public class MessageBoardThreadResourceImpl
 
 	@Override
 	protected String getPermissionCheckerPortletName(Object id) {
-		return "com.liferay.message.boards";
+		return MBConstants.RESOURCE_NAME;
 	}
 
 	@Override
@@ -469,8 +498,8 @@ public class MessageBoardThreadResourceImpl
 			encodingFormat = MBMessageConstants.DEFAULT_FORMAT;
 		}
 
-		ServiceContext serviceContext = _getServiceContext(
-			messageBoardThread, siteId);
+		ServiceContext serviceContext = _createServiceContext(
+			siteId, messageBoardThread);
 
 		MBMessage mbMessage = _mbMessageService.addMessage(
 			siteId, messageBoardSectionId, messageBoardThread.getHeadline(),
@@ -482,6 +511,63 @@ public class MessageBoardThreadResourceImpl
 		_updateQuestion(mbMessage, messageBoardThread);
 
 		return _toMessageBoardThread(mbMessage);
+	}
+
+	private void _checkPermission(
+		long companyId, long groupId, int status, long userId) {
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if ((status != WorkflowConstants.STATUS_APPROVED) &&
+			(userId != contextUser.getUserId()) &&
+			!permissionChecker.isContentReviewer(companyId, groupId)) {
+
+			throw new NotAuthorizedException(
+				StringBundler.concat(
+					"User ", userId,
+					" must be the owner or a content reviewer to access this ",
+					"message thread"));
+		}
+	}
+
+	private ServiceContext _createServiceContext(
+		long groupId, MessageBoardThread messageBoardThread) {
+
+		ServiceContext serviceContext =
+			ServiceContextRequestUtil.createServiceContext(
+				messageBoardThread.getTaxonomyCategoryIds(),
+				Optional.ofNullable(
+					messageBoardThread.getKeywords()
+				).orElse(
+					new String[0]
+				),
+				_getExpandoBridgeAttributes(messageBoardThread), groupId,
+				contextHttpServletRequest,
+				messageBoardThread.getViewableByAsString());
+
+		String link = contextHttpServletRequest.getHeader("Link");
+
+		if (link == null) {
+			UriBuilder uriBuilder = UriInfoUtil.getBaseUriBuilder(
+				contextUriInfo);
+
+			link = String.valueOf(
+				uriBuilder.replacePath(
+					"/"
+				).build());
+		}
+
+		serviceContext.setAttribute("link", link);
+
+		if (messageBoardThread.getId() == null) {
+			serviceContext.setCommand("add");
+		}
+		else {
+			serviceContext.setCommand("update");
+		}
+
+		return serviceContext;
 	}
 
 	private DynamicQuery _getDynamicQuery(
@@ -533,45 +619,6 @@ public class MessageBoardThreadResourceImpl
 			contextAcceptLanguage.getPreferredLocale());
 	}
 
-	private ServiceContext _getServiceContext(
-		MessageBoardThread messageBoardThread, long siteId) {
-
-		ServiceContext serviceContext =
-			ServiceContextRequestUtil.createServiceContext(
-				messageBoardThread.getTaxonomyCategoryIds(),
-				Optional.ofNullable(
-					messageBoardThread.getKeywords()
-				).orElse(
-					new String[0]
-				),
-				_getExpandoBridgeAttributes(messageBoardThread), siteId,
-				contextHttpServletRequest,
-				messageBoardThread.getViewableByAsString());
-
-		String link = contextHttpServletRequest.getHeader("Link");
-
-		if (link == null) {
-			UriBuilder uriBuilder = UriInfoUtil.getBaseUriBuilder(
-				contextUriInfo);
-
-			link = String.valueOf(
-				uriBuilder.replacePath(
-					"/"
-				).build());
-		}
-
-		serviceContext.setAttribute("entryURL", link);
-
-		if (messageBoardThread.getId() == null) {
-			serviceContext.setCommand("add");
-		}
-		else {
-			serviceContext.setCommand("update");
-		}
-
-		return serviceContext;
-	}
-
 	private Page<MessageBoardThread> _getSiteMessageBoardThreadsPage(
 			Map<String, Map<String, String>> actions,
 			UnsafeConsumer<BooleanQuery, Exception> booleanQueryUnsafeConsumer,
@@ -580,8 +627,8 @@ public class MessageBoardThreadResourceImpl
 		throws Exception {
 
 		return SearchUtil.search(
-			actions, booleanQueryUnsafeConsumer, filter, MBMessage.class,
-			keywords, pagination,
+			actions, booleanQueryUnsafeConsumer, filter,
+			MBMessage.class.getName(), keywords, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
@@ -606,20 +653,23 @@ public class MessageBoardThreadResourceImpl
 					HashMapBuilder.put(
 						"create",
 						addAction(
-							"VIEW", mbMessage, "postMessageBoardThreadMyRating")
+							ActionKeys.VIEW, mbMessage,
+							"postMessageBoardThreadMyRating")
 					).put(
 						"delete",
 						addAction(
-							"VIEW", mbMessage,
+							ActionKeys.VIEW, mbMessage,
 							"deleteMessageBoardThreadMyRating")
 					).put(
 						"get",
 						addAction(
-							"VIEW", mbMessage, "getMessageBoardThreadMyRating")
+							ActionKeys.VIEW, mbMessage,
+							"getMessageBoardThreadMyRating")
 					).put(
 						"replace",
 						addAction(
-							"VIEW", mbMessage, "putMessageBoardThreadMyRating")
+							ActionKeys.VIEW, mbMessage,
+							"putMessageBoardThreadMyRating")
 					).build(),
 					_portal, ratingsEntry, _userLocalService);
 			},
@@ -648,39 +698,39 @@ public class MessageBoardThreadResourceImpl
 				HashMapBuilder.put(
 					"delete",
 					addAction(
-						"DELETE", mbMessage.getThreadId(),
+						ActionKeys.DELETE, mbMessage.getThreadId(),
 						"deleteMessageBoardThread", modelResourcePermission)
 				).put(
 					"get",
 					addAction(
-						"VIEW", mbMessage.getThreadId(),
+						ActionKeys.VIEW, mbMessage.getThreadId(),
 						"getMessageBoardThread", modelResourcePermission)
 				).put(
 					"replace",
 					addAction(
-						"UPDATE", mbMessage.getThreadId(),
+						ActionKeys.UPDATE, mbMessage.getThreadId(),
 						"putMessageBoardThread", modelResourcePermission)
 				).put(
 					"reply-to-thread",
 					ActionUtil.addAction(
-						"REPLY_TO_MESSAGE",
+						ActionKeys.REPLY_TO_MESSAGE,
 						MessageBoardMessageResourceImpl.class,
 						mbMessage.getThreadId(),
 						"postMessageBoardThreadMessageBoardMessage",
 						contextScopeChecker,
 						new MessageBoardThreadModelResourcePermission(
-							mbMessage, "com.liferay.message.boards"),
+							mbMessage, MBConstants.RESOURCE_NAME),
 						contextUriInfo)
 				).put(
 					"subscribe",
 					addAction(
-						"SUBSCRIBE", mbMessage.getThreadId(),
+						ActionKeys.SUBSCRIBE, mbMessage.getThreadId(),
 						"putMessageBoardThreadSubscribe",
 						modelResourcePermission)
 				).put(
 					"unsubscribe",
 					addAction(
-						"SUBSCRIBE", mbMessage.getThreadId(),
+						ActionKeys.SUBSCRIBE, mbMessage.getThreadId(),
 						"putMessageBoardThreadUnsubscribe",
 						modelResourcePermission)
 				).build(),
@@ -742,7 +792,8 @@ public class MessageBoardThreadResourceImpl
 		}
 
 		if (GetterUtil.getBoolean(messageBoardThread.getSubscribed())) {
-			_mbMessageService.subscribeMessage(mbMessage.getRootMessageId());
+			_mbMessageLocalService.subscribeMessage(
+				mbMessage.getUserId(), mbMessage.getRootMessageId());
 		}
 	}
 
@@ -751,6 +802,9 @@ public class MessageBoardThreadResourceImpl
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
+
+	@Reference
+	private ExpandoBridgeIndexer _expandoBridgeIndexer;
 
 	@Reference
 	private ExpandoColumnLocalService _expandoColumnLocalService;
@@ -822,9 +876,17 @@ public class MessageBoardThreadResourceImpl
 			PermissionChecker permissionChecker, long primaryKey,
 			String actionId) {
 
-			return permissionChecker.hasPermission(
-				_mbMessage.getGroupId(), _name, _mbMessage.getRootMessageId(),
-				actionId);
+			if (permissionChecker.hasOwnerPermission(
+					_mbMessage.getCompanyId(), _name, _mbMessage.getMessageId(),
+					_mbMessage.getUserId(), actionId) ||
+				permissionChecker.hasPermission(
+					_mbMessage.getGroupId(), _name, _mbMessage.getMessageId(),
+					actionId)) {
+
+				return true;
+			}
+
+			return false;
 		}
 
 		@Override

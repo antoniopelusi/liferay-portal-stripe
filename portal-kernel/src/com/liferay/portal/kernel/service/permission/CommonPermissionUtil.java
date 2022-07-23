@@ -27,7 +27,7 @@ public class CommonPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		getCommonPermission().check(
+		_commonPermission.check(
 			permissionChecker, classNameId, classPK, actionId);
 	}
 
@@ -36,7 +36,7 @@ public class CommonPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		getCommonPermission().check(
+		_commonPermission.check(
 			permissionChecker, className, classPK, actionId);
 	}
 

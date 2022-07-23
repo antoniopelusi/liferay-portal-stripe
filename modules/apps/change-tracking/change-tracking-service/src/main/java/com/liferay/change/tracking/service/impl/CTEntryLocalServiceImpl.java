@@ -20,6 +20,7 @@ import com.liferay.change.tracking.model.CTCollectionTable;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.model.CTEntryTable;
 import com.liferay.change.tracking.service.base.CTEntryLocalServiceBaseImpl;
+import com.liferay.change.tracking.service.persistence.CTCollectionPersistence;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
@@ -37,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Brian Wing Shun Chan
@@ -56,7 +58,7 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 			long userId, int changeType)
 		throws PortalException {
 
-		CTCollection ctCollection = ctCollectionPersistence.findByPrimaryKey(
+		CTCollection ctCollection = _ctCollectionPersistence.findByPrimaryKey(
 			ctCollectionId);
 
 		if ((ctCollection.getStatus() != WorkflowConstants.STATUS_DRAFT) &&
@@ -83,7 +85,7 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 
 	@Override
 	public CTEntry deleteCTEntry(CTEntry ctEntry) throws PortalException {
-		CTCollection ctCollection = ctCollectionPersistence.findByPrimaryKey(
+		CTCollection ctCollection = _ctCollectionPersistence.findByPrimaryKey(
 			ctEntry.getCtCollectionId());
 
 		if ((ctCollection.getStatus() != WorkflowConstants.STATUS_DRAFT) &&
@@ -119,7 +121,7 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 			return Collections.emptyList();
 		}
 
-		return ctEntryPersistence.findByCTCollectionId(
+		return ctEntryPersistence.findByCtCollectionId(
 			ctCollectionId, start, end, orderByComparator);
 	}
 
@@ -129,7 +131,7 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 			return 0;
 		}
 
-		return ctEntryPersistence.countByCTCollectionId(ctCollectionId);
+		return ctEntryPersistence.countByCtCollectionId(ctCollectionId);
 	}
 
 	@Override
@@ -142,7 +144,7 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 
 	@Override
 	public long getCTRowCTCollectionId(CTEntry ctEntry) throws PortalException {
-		CTCollection ctCollection = ctCollectionPersistence.findByPrimaryKey(
+		CTCollection ctCollection = _ctCollectionPersistence.findByPrimaryKey(
 			ctEntry.getCtCollectionId());
 
 		if ((ctCollection.getStatus() == WorkflowConstants.STATUS_DRAFT) ||
@@ -226,7 +228,7 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 
 	@Override
 	public CTEntry updateCTEntry(CTEntry ctEntry) {
-		CTCollection ctCollection = ctCollectionPersistence.fetchByPrimaryKey(
+		CTCollection ctCollection = _ctCollectionPersistence.fetchByPrimaryKey(
 			ctEntry.getCtCollectionId());
 
 		if (ctCollection == null) {
@@ -245,5 +247,8 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 
 		return ctEntryPersistence.update(ctEntry);
 	}
+
+	@Reference
+	private CTCollectionPersistence _ctCollectionPersistence;
 
 }

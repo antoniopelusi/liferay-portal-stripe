@@ -55,7 +55,7 @@ public class JournalArticleFixture {
 		String ddmTemplateKey = "BASIC-WEB-CONTENT";
 
 		JournalArticle journalArticle = _journalArticleLocalService.addArticle(
-			TestPropsValues.getUserId(), _group.getGroupId(), 0, titleMap,
+			null, TestPropsValues.getUserId(), _group.getGroupId(), 0, titleMap,
 			descriptionMap,
 			DDMStructureTestUtil.getSampleStructuredContent("content", "title"),
 			ddmStructureKey, ddmTemplateKey, serviceContext);
@@ -70,8 +70,8 @@ public class JournalArticleFixture {
 			ServiceContextTestUtil.getServiceContext(
 				_group.getGroupId(), TestPropsValues.getUserId());
 
-		serviceContext.setAddGuestPermissions(false);
 		serviceContext.setAddGroupPermissions(false);
+		serviceContext.setAddGuestPermissions(false);
 
 		return serviceContext;
 	}

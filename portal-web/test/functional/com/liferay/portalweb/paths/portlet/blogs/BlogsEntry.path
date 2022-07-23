@@ -2,12 +2,19 @@
 <head>
 <title>BlogsEntry</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">BlogsEntry</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ENTRY_COVER_IMAGE_CAPTION</td>
+	<td>//div[contains(@class,'cover-image-caption')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>ENTRY_COVER_IMAGE</td>
 	<td>//div[contains(@class,'cover-image') and contains(@style,'${key_uploadFileName}')] | //div[contains(@class,'cover-image')]//img</td>
@@ -15,7 +22,7 @@
 </tr>
 <tr>
 	<td>ENTRY_COVER_IMAGE_SELECT_FILE</td>
-	<td>//div[contains(@class,'image-selector')]//button[contains(.,'Select File')]</td>
+	<td>//div[contains(@class,'blogs-cover-image-selector')]//div[contains(@class,'browse-image-controls')]//button[contains(.,'Select File')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -30,7 +37,7 @@
 </tr>
 <tr>
 	<td>TITLE</td>
-	<td>//div[contains(@class,'autofit-row')]//h3[contains(.,'${key_entryTitle}')] | //div[contains(@class,'entry-title')]//p[contains(.,'${key_entryTitle}')]</td>
+	<td>//div[contains(@class,'autofit-row')]//h3[contains(.,'${key_entryTitle}')] | //div[contains(@class,'entry-title')]//*[contains(.,'${key_entryTitle}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -65,12 +72,17 @@
 </tr>
 <tr>
 	<td>CONTENT</td>
-	<td>//div[contains(@class,'content')]//p[contains(.,'${key_entryContent}')]</td>
+	<td>//div[contains(@class,'content')]//p[contains(normalize-space(),'${key_entryContent}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CONTENT_ABSTRACT</td>
-	<td>//div[contains(@class,'content')]//p[contains(.,'${key_entryAbstractDescription}')]</td>
+	<td>//div[contains(@class,'content')]//p[contains(normalize-space(),'${key_entryAbstractDescription}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_ABSTRACT_AP</td>
+	<td>//div[contains(@class,'asset-content')]//div[contains(.,'${key_entryAbstractDescription}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -91,6 +103,11 @@
 <tr>
 	<td>CONTENT_HTML_BOLD</td>
 	<td>//div[contains(@class,'widget-mode-detail-text')]/p/b</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_HTML_H2</td>
+	<td>//div[contains(@class,'widget-mode-detail-text')]/h2</td>
 	<td></td>
 </tr>
 <tr>
@@ -161,6 +178,22 @@
 <tr>
 	<td>VIDEO_EMBED_HELP_MESSAGE</td>
 	<td>//div[@class='embed-help-message']//span</td>
+	<td></td>
+</tr>
+<!--FRIENDLY_URL-->
+<tr>
+	<td>FRIENDLY_URL_ACTIVE_URL</td>
+	<td>//div[contains(@class,'modal-dialog')]//div[contains(@class,'active-url')]//p[normalize-space(text())='${key_activeURL}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRIENDLY_URL_HISTORY_ITEM</td>
+	<td>//div[contains(@class,'modal-dialog')]//ul/li[contains(@class,'list-group-item')]//p[normalize-space(text())='${key_oldFriendlyURL}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRIENDLY_URL_HISTORY_ITEM_LAST</td>
+	<td>xpath=(//div[contains(@class,'modal-dialog')]//ul/li[contains(@class,'list-group-item')]//p[normalize-space(text())='${key_oldFriendlyURL}'])[last()]</td>
 	<td></td>
 </tr>
 </tbody>

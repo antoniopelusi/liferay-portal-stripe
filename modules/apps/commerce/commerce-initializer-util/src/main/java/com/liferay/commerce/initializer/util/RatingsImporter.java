@@ -56,8 +56,6 @@ public class RatingsImporter {
 	public void importRatings(File ratingsFile, long scopeGroupId, long userId)
 		throws Exception {
 
-		ServiceContext serviceContext = getServiceContext(scopeGroupId, userId);
-
 		MappingJsonFactory mappingJsonFactory = new MappingJsonFactory();
 
 		JsonParser jsonFactoryParser = mappingJsonFactory.createParser(
@@ -68,6 +66,8 @@ public class RatingsImporter {
 		if (jsonToken != JsonToken.START_ARRAY) {
 			throw new Exception("JSON Array Expected");
 		}
+
+		ServiceContext serviceContext = getServiceContext(scopeGroupId, userId);
 
 		while (jsonFactoryParser.nextToken() != JsonToken.END_ARRAY) {
 			TreeNode treeNode = jsonFactoryParser.readValueAsTree();
@@ -92,9 +92,9 @@ public class RatingsImporter {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(user.getCompanyId());
 		serviceContext.setScopeGroupId(scopeGroupId);
 		serviceContext.setUserId(userId);
-		serviceContext.setCompanyId(user.getCompanyId());
 
 		return serviceContext;
 	}

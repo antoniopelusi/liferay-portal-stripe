@@ -15,37 +15,110 @@
 package com.liferay.portal.search.test.util.document;
 
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Document;
+import com.liferay.portal.kernel.search.Query;
+import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
+import com.liferay.portal.kernel.search.generic.MatchQuery;
 import com.liferay.portal.search.test.util.indexing.BaseIndexingTestCase;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 
 /**
  * @author Wade Cao
  */
 public abstract class BaseDocumentTestCase extends BaseIndexingTestCase {
 
-	@Before
-	@Override
-	public void setUp() throws Exception {
-		super.setUp();
-
+	@BeforeClass
+	public static void setUpClassTestData() throws Exception {
 		populateNumberArrays();
-
 		populateNumbers();
+	}
 
-		addDocuments(
-			screenName -> document -> populate(document, screenName),
-			getScreenNamesStream());
+	protected static Query getQuery(String keywords) {
+		BooleanQueryImpl booleanQueryImpl = new BooleanQueryImpl();
+
+		booleanQueryImpl.add(
+			new MatchQuery("firstName", keywords), BooleanClauseOccur.SHOULD);
+		booleanQueryImpl.add(
+			new MatchQuery("lastName", keywords), BooleanClauseOccur.SHOULD);
+
+		return booleanQueryImpl;
+	}
+
+	protected static void populateNumberArrays() {
+		populateNumberArrays(
+			SCREEN_NAMES[0], new Double[] {1e-11, 2e-11, 3e-11},
+			new Float[] {8e-5F, 8e-5F, 8e-5F}, new Integer[] {1, 2, 3},
+			new Long[] {-3L, -2L, -1L});
+
+		populateNumberArrays(
+			SCREEN_NAMES[1], new Double[] {1e-11, 2e-11, 5e-11},
+			new Float[] {9e-5F, 8e-5F, 7e-5F}, new Integer[] {1, 3, 4},
+			new Long[] {-3L, -2L, -2L});
+
+		populateNumberArrays(
+			SCREEN_NAMES[2], new Double[] {1e-11, 3e-11, 2e-11},
+			new Float[] {9e-5F, 8e-5F, 9e-5F}, new Integer[] {2, 1, 1},
+			new Long[] {-3L, -3L, -1L});
+
+		populateNumberArrays(
+			SCREEN_NAMES[3], new Double[] {1e-11, 2e-11, 4e-11},
+			new Float[] {9e-5F, 9e-5F, 7e-5F}, new Integer[] {1, 2, 4},
+			new Long[] {-3L, -3L, -2L});
+
+		populateNumberArrays(
+			SCREEN_NAMES[4], new Double[] {1e-11, 3e-11, 1e-11},
+			new Float[] {9e-5F, 9e-5F, 8e-5F}, new Integer[] {1, 4, 4},
+			new Long[] {-4L, -2L, -1L});
+
+		populateNumberArrays(
+			SCREEN_NAMES[5], new Double[] {2e-11, 1e-11, 1e-11},
+			new Float[] {9e-5F, 9e-5F, 9e-5F}, new Integer[] {2, 1, 2},
+			new Long[] {-4L, -2L, -2L});
+	}
+
+	protected static void populateNumberArrays(
+		String screenName, Double[] doubleArray, Float[] floatArray,
+		Integer[] integerArray, Long[] longArray) {
+
+		doubleArrays.put(screenName, doubleArray);
+		floatArrays.put(screenName, floatArray);
+		integerArrays.put(screenName, integerArray);
+		longArrays.put(screenName, longArray);
+	}
+
+	protected static void populateNumbers() {
+		int maxInt = Integer.MAX_VALUE;
+		long minLong = Long.MIN_VALUE;
+
+		populateNumbers(SCREEN_NAMES[0], 1e-11, 8e-5F, maxInt, minLong);
+		populateNumbers(SCREEN_NAMES[1], 3e-11, 7e-5F, maxInt - 1, minLong + 1);
+		populateNumbers(SCREEN_NAMES[2], 5e-11, 6e-5F, maxInt - 2, minLong + 2);
+		populateNumbers(SCREEN_NAMES[3], 2e-11, 5e-5F, maxInt - 3, minLong + 3);
+		populateNumbers(SCREEN_NAMES[4], 4e-11, 4e-5F, maxInt - 4, minLong + 4);
+		populateNumbers(SCREEN_NAMES[5], 6e-11, 3e-5F, maxInt - 5, minLong + 5);
+	}
+
+	protected static void populateNumbers(
+		String screenName, Double numberDouble, Float floatNumber,
+		Integer numberInteger, Long longNumber) {
+
+		doubles.put(screenName, numberDouble);
+		floats.put(screenName, floatNumber);
+		integers.put(screenName, numberInteger);
+		longs.put(screenName, longNumber);
 	}
 
 	protected Stream<String> getScreenNamesStream() {
-		Collection<String> screenNames = doubles.keySet();
+		Collection<String> screenNames = Arrays.asList(SCREEN_NAMES);
 
 		return screenNames.stream();
 	}
@@ -54,7 +127,6 @@ public abstract class BaseDocumentTestCase extends BaseIndexingTestCase {
 		document.addKeyword(
 			"firstName", screenName.replaceFirst("user", StringPool.BLANK));
 		document.addKeyword("lastName", "Smith");
-
 		document.addText("screenName", screenName);
 
 		document.addNumber(FIELD_DOUBLE, doubles.get(screenName));
@@ -68,73 +140,39 @@ public abstract class BaseDocumentTestCase extends BaseIndexingTestCase {
 		document.addNumber(FIELD_LONG_ARRAY, longArrays.get(screenName));
 	}
 
-	protected void populateNumberArrays() {
-		populateNumberArrays(
-			"firstuser", new Double[] {1e-11, 2e-11, 3e-11},
-			new Float[] {8e-5F, 8e-5F, 8e-5F}, new Integer[] {1, 2, 3},
-			new Long[] {-3L, -2L, -1L});
+	protected void populate(
+		Document document, String field, String screenName) {
 
-		populateNumberArrays(
-			"seconduser", new Double[] {1e-11, 2e-11, 5e-11},
-			new Float[] {9e-5F, 8e-5F, 7e-5F}, new Integer[] {1, 3, 4},
-			new Long[] {-3L, -2L, -2L});
+		document.addKeyword(
+			"firstName", screenName.replaceFirst("user", StringPool.BLANK));
+		document.addKeyword("lastName", "Smith");
 
-		populateNumberArrays(
-			"thirduser", new Double[] {1e-11, 3e-11, 2e-11},
-			new Float[] {9e-5F, 8e-5F, 9e-5F}, new Integer[] {2, 1, 1},
-			new Long[] {-3L, -3L, -1L});
+		document.addText("screenName", screenName);
 
-		populateNumberArrays(
-			"fourthuser", new Double[] {1e-11, 2e-11, 4e-11},
-			new Float[] {9e-5F, 9e-5F, 7e-5F}, new Integer[] {1, 2, 4},
-			new Long[] {-3L, -3L, -2L});
-
-		populateNumberArrays(
-			"fifthuser", new Double[] {1e-11, 3e-11, 1e-11},
-			new Float[] {9e-5F, 9e-5F, 8e-5F}, new Integer[] {1, 4, 4},
-			new Long[] {-4L, -2L, -1L});
-
-		populateNumberArrays(
-			"sixthuser", new Double[] {2e-11, 1e-11, 1e-11},
-			new Float[] {9e-5F, 9e-5F, 9e-5F}, new Integer[] {2, 1, 2},
-			new Long[] {-4L, -2L, -2L});
-	}
-
-	protected void populateNumberArrays(
-		String screenName, Double[] doubleArray, Float[] floatArray,
-		Integer[] integerArray, Long[] longArray) {
-
-		doubleArrays.put(screenName, doubleArray);
-		floatArrays.put(screenName, floatArray);
-		integerArrays.put(screenName, integerArray);
-		longArrays.put(screenName, longArray);
-	}
-
-	protected void populateNumbers() {
-		int maxInt = Integer.MAX_VALUE;
-		long minLong = Long.MIN_VALUE;
-
-		populateNumbers("firstuser", 1e-11, 8e-5F, maxInt, minLong);
-
-		populateNumbers("seconduser", 3e-11, 7e-5F, maxInt - 1, minLong + 1);
-
-		populateNumbers("thirduser", 5e-11, 6e-5F, maxInt - 2, minLong + 2);
-
-		populateNumbers("fourthuser", 2e-11, 5e-5F, maxInt - 3, minLong + 3);
-
-		populateNumbers("fifthuser", 4e-11, 4e-5F, maxInt - 4, minLong + 4);
-
-		populateNumbers("sixthuser", 6e-11, 3e-5F, maxInt - 5, minLong + 5);
-	}
-
-	protected void populateNumbers(
-		String screenName, Double numberDouble, Float floatNumber,
-		Integer numberInteger, Long longNumber) {
-
-		doubles.put(screenName, numberDouble);
-		floats.put(screenName, floatNumber);
-		integers.put(screenName, numberInteger);
-		longs.put(screenName, longNumber);
+		if (Objects.equals(field, FIELD_DOUBLE)) {
+			document.addNumber(field, doubles.get(screenName));
+		}
+		else if (Objects.equals(field, FIELD_FLOAT)) {
+			document.addNumber(field, floats.get(screenName));
+		}
+		else if (Objects.equals(field, FIELD_INTEGER)) {
+			document.addNumber(field, integers.get(screenName));
+		}
+		else if (Objects.equals(field, FIELD_LONG)) {
+			document.addNumber(field, longs.get(screenName));
+		}
+		else if (Objects.equals(field, FIELD_DOUBLE_ARRAY)) {
+			document.addNumber(field, doubleArrays.get(screenName));
+		}
+		else if (Objects.equals(field, FIELD_FLOAT_ARRAY)) {
+			document.addNumber(field, floatArrays.get(screenName));
+		}
+		else if (Objects.equals(field, FIELD_INTEGER_ARRAY)) {
+			document.addNumber(field, integerArrays.get(screenName));
+		}
+		else if (Objects.equals(field, FIELD_LONG_ARRAY)) {
+			document.addNumber(field, longArrays.get(screenName));
+		}
 	}
 
 	protected static final String FIELD_DOUBLE = "sd";
@@ -153,13 +191,19 @@ public abstract class BaseDocumentTestCase extends BaseIndexingTestCase {
 
 	protected static final String FIELD_LONG_ARRAY = "ml";
 
-	protected final Map<String, Double[]> doubleArrays = new HashMap<>();
-	protected final Map<String, Double> doubles = new HashMap<>();
-	protected final Map<String, Float[]> floatArrays = new HashMap<>();
-	protected final Map<String, Float> floats = new HashMap<>();
-	protected final Map<String, Integer[]> integerArrays = new HashMap<>();
-	protected final Map<String, Integer> integers = new HashMap<>();
-	protected final Map<String, Long[]> longArrays = new HashMap<>();
-	protected final Map<String, Long> longs = new HashMap<>();
+	protected static final String[] SCREEN_NAMES = {
+		"firstuser", "seconduser", "thirduser", "fourthuser", "fifthuser",
+		"sixthuser"
+	};
+
+	protected static final Map<String, Double[]> doubleArrays = new HashMap<>();
+	protected static final Map<String, Double> doubles = new HashMap<>();
+	protected static final Map<String, Float[]> floatArrays = new HashMap<>();
+	protected static final Map<String, Float> floats = new HashMap<>();
+	protected static final Map<String, Integer[]> integerArrays =
+		new HashMap<>();
+	protected static final Map<String, Integer> integers = new HashMap<>();
+	protected static final Map<String, Long[]> longArrays = new HashMap<>();
+	protected static final Map<String, Long> longs = new HashMap<>();
 
 }

@@ -21,12 +21,10 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.site.navigation.item.selector.SiteNavigationMenuItemSelectorReturnType;
 
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -67,40 +65,41 @@ public class SiteNavigationMenuContextualMenusItemSelectorViewDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			themeDisplay.getLocale(), getClass());
-
 		return JSONUtil.putAll(
 			JSONUtil.put(
 				"description",
-				LanguageUtil.get(resourceBundle, "children-description")
+				LanguageUtil.get(
+					themeDisplay.getLocale(), "children-description")
 			).put(
 				"imageURL", _getImageURL("children.svg")
 			).put(
-				"title", LanguageUtil.get(resourceBundle, "children")
+				"title", LanguageUtil.get(themeDisplay.getLocale(), "children")
 			).put(
 				"value", "children"
 			),
 			JSONUtil.put(
 				"description",
 				LanguageUtil.get(
-					resourceBundle, "self-and-siblings-description")
+					themeDisplay.getLocale(), "self-and-siblings-description")
 			).put(
 				"imageURL", _getImageURL("self_and_siblings.svg")
 			).put(
-				"title", LanguageUtil.get(resourceBundle, "self-and-siblings")
+				"title",
+				LanguageUtil.get(themeDisplay.getLocale(), "self-and-siblings")
 			).put(
 				"value", "self-and-siblings"
 			),
 			JSONUtil.put(
 				"description",
 				LanguageUtil.get(
-					resourceBundle, "parent-and-its-siblings-description")
+					themeDisplay.getLocale(),
+					"parent-and-its-siblings-description")
 			).put(
 				"imageURL", _getImageURL("parent_and_its_siblings.svg")
 			).put(
 				"title",
-				LanguageUtil.get(resourceBundle, "parent-and-its-siblings")
+				LanguageUtil.get(
+					themeDisplay.getLocale(), "parent-and-its-siblings")
 			).put(
 				"value", "parent-and-its-siblings"
 			));

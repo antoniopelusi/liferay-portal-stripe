@@ -272,4 +272,7 @@ public interface DispatchLogModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public DispatchLog cloneWithOriginalValues();
+
 }

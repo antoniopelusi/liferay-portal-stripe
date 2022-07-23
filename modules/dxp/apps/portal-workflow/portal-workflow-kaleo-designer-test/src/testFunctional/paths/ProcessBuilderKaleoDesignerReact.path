@@ -1,0 +1,292 @@
+<html>
+<head>
+<title>ProcessBuilderKaleoDesignerReact</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">ProcessBuilderKaleoDesignerReact</td></tr>
+</thead>
+
+<tbody>
+
+<tr>
+	<td>BUTTON_DIAGRAM_SOURCE_SWITCH</td>
+	<td>//*[not(self::div)][contains(@class,'btn-secondary')][normalize-space()=''][not(contains(@class,'navbar'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BUTTON_CLOSE_MODAL</td>
+	<td>//button[contains (@class,'close')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SOURCE_EDITOR</td>
+	<td>//div[@class='CodeMirror-lines']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ICON_COUNTRY</td>
+	<td>//button[contains(@class,'btn')]//*[contains(@class,'lexicon-icon-${key_translationOptionSelected}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATION_COUNTRY_LABEL</td>
+	<td>//div[@class='autofit-section' and contains(.,'${key_translationOption}')]//..//..//span[@class="label label-${key_translationStatus}"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_NODE</td>
+	<td>//div[@class='sidebar']//span[contains(.,'${key_nodeLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_NODE</td>
+	<td>//div[contains(@class, 'node ${key_nodeType}-node')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PANEL_NODE</td>
+	<td>//div[@class='react-flow']//div[contains(@class, 'node ${key_nodeType}-node')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_CONNECTOR_LABEL</td>
+	<td>//input[@id='edgeLabel']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_CONNECTOR_ID</td>
+	<td>//input[@id='transitionId']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONNECTOR_SOURCE</td>
+	<td>//div[@class='node ${key_nodeType}-node']/..//div[@data-handleid='${key_direction}Source']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_CONNECTOR_LABEL</td>
+	<td>//*[name()='g'][contains(@class,'react-flow__connection')]//*[normalize-space(text())='${key_connectorLabel}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DELETE_MODAL</td>
+	<td>//div[contains(@class, 'modal-content') and contains(.,'${key_title}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BUTTON_DELETE_MODAL</td>
+	<td>//button[contains(@class,'btn btn-danger')][contains(text(),'Delete')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BUTTON_CANCEL_MODAL</td>
+	<td>//button[contains(@class,'mr-3 btn btn-secondary')][contains(.,'Cancel')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BACK_TO_SIDEBAR_BUTTON</td>
+	<td>//button[@class='text-secondary btn btn-monospaced btn-unstyled']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROPERTIES_NEW_BUTTON</td>
+	<td>//span[contains(., '${key_propertyName}')]/../..//button[contains(.,'New')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROPERTIES_INPUT</td>
+	<td>//label[contains(., '${key_inputOption}')]/..//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>XML_CODE_SNIPPET</td>
+	<td>//div[contains(@class, 'CodeMirror-lines')]//span[contains(@role,'presentation')and contains(text(),'${key_codeSnippet}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>XML_CODE_METADATA_ELEMENT</td>
+	<td>//div[contains(@class,'CodeMirror-gutter-wrapper') and contains(.,'${key_line}')]/..//span[contains(@class,'cm-atom')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>XML_CODE_SPECIFIC_ELEMENT</td>
+	<td>//div[contains(@class,'CodeMirror-gutter-wrapper')]//..//pre[@class=' CodeMirror-line ']//span[contains(.,'${key_elementOption}')]//..//*[normalize-space(text())='${key_elementValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROPERTIES_SELECTORS</td>
+	<td>//label[contains(., '${key_selectorField}')]/..//select</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROPERTIES_TEMPLATE_TEXTAREA</td>
+	<td>//label[contains(., 'Template')]/..//textarea | //label[contains(., 'Script')]/..//textarea</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_TOGGLE_SWITCH</td>
+	<td>//input[contains(@class,'toggle-switch-check')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_TOGGLE_SWITCH_STATUS</td>
+	<td>//span[@class='toggle-switch-label' and contains(., '${key_defaultStatus}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_TRANSITION_STYLE</td>
+	<td>//*[name()='path'][contains(@style,'stroke: rgb(128, 172, 255); stroke-dasharray: ${key_transitionStyle}; stroke-width: 2;')]/..//*[normalize-space(text())='${key_connectorLabel}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECTED_NODE</td>
+	<td>//div[contains(@class, 'react-flow__node-${key_nodeType} selected')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_MESSAGE_FEEDBACK</td>
+	<td>//div[contains(@class, 'form-feedback-item') and contains(text(), '${key_sidebarMessage}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ALERT_MESSAGE_FEEDBACK</td>
+	<td>//div[contains(@class, 'alert-notifications')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATION_DROPDOWN</td>
+	<td>//div[@class='dropdown-menu show']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONNECTOR_SOURCE_SELECTED</td>
+	<td>//div[@class='node ${key_nodeType}-node selected']/..//div[@data-handleid='${key_direction}Source']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>HIDE_ANGLE_ICON</td>
+	<td>//div[@class='sidebar']//span[contains(text(),'${key_property}')]/..//*[contains(@class,'lexicon-icon-angle-down')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REACT_PANEL</td>
+	<td>//div[@class='react-flow__pane']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_BODY</td>
+	<td>//body</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_POSITION</td>
+	<td>//div[@class='react-flow']//span[contains(text(),'${key_nodeLabel}')]/../../..//div[@xpos='${key_nodeXPosition}' and @ypos='${key_nodeYPosition}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_FIELD_LABEL</td>
+	<td>//div[@class='sidebar']//span[contains(text(),'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_INFO</td>
+	<td>//span[contains(., 'Information')]/../..//input[@id='${key_infoOption}' and @value='${key_infoValue}'] | //span[contains(., 'Information')]/../..//textarea[@id='${key_infoOption}' and contains(., '${key_infoValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REQUIRED_FIELD</td>
+	<td>//div[@class='sidebar']//label[@for='${key_requiredField}']//span[contains(text(),'*')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REQUIRED_FEEDBACK_MESSAGE</td>
+	<td>//label[@for='${key_requiredField}']/..//div[@class='form-feedback-item'][contains(text(),'This field is required.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MODAL_MESSAGE</td>
+	<td>//div[contains(@class, 'modal-content')]//div[contains(@class, 'modal-body') and contains(text(), '${key_modalMessage}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_NODE_LABEL_SPECIFIC</td>
+	<td>//div[contains(@class, 'node ${key_nodeType}-node')]//span[contains(text(),'${key_nodeLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_NODE_LABEL</td>
+	<td>//span[contains(@class, 'node-label') and contains(text(), '${key_nodeLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_INFO_INPUT</td>
+	<td>//div[@class='sidebar']//input[contains(@ID,'node${key_infoOption}')] | //div[@class='sidebar']//textarea[contains(@ID,'node${key_infoOption}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_PROPERTY</td>
+	<td>//span[contains(., '${key_propertyName}')]/../..//div[@class='panel-body']/..//span[contains(.,'${key_propertyValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATIONS_TYPE_DROPDOWN</td>
+	<td>//label[contains(., 'Notification Types')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATION_TYPE_OPTIONS</td>
+	<td>//input[@type='checkbox' and @value ='${key_checkboxValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RECIPIENT_TYPE_NAME_FIELD</td>
+	<td>//input[contains(@id,'role-name')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ROLE_TYPE_FIELD</td>
+	<td>//input[contains(@id,'role-type')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATION_VALUE_NODE_SIDEBAR</td>
+	<td>//div[contains(@class, 'sheet-subtitle') and contains(., 'Notifications')]//..//*[contains(@class, 'link-secondary') and contains(., '${key_nodeNotificationName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATIONS_RECIPIENT_ROLE_TYPE_AUTOCREATE</td>
+	<td>//div[contains(@class, 'recipient-type')]//input[contains(@type, 'checkbox')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RECIPIENT_TYPE_NAME_OPTIONS</td>
+	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(@class, 'dropdown-item') and contains(., '${key_optionRoleName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATIONS_SCRIPTED_RECIPIENT_VALUE</td>
+	<td>//textarea[contains(@id, 'nodeScript')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RESOURCE_ACTIONS_TEXTAREA</td>
+	<td>//label[@for='resource-actions']/..//textarea[@type='text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSIGNMENT_TYPE_USER_SELECT_OPTION</td>
+	<td>//*[contains(@class,'autocomplete-dropdown-menu')]//..//button[contains(@class,'dropdown-item')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECTED_ASSIGNMENTS_VALUE</td>
+	<td>//*[contains(@class,'d-flex')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

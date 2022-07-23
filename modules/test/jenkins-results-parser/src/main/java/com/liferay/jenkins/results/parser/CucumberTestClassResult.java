@@ -76,6 +76,7 @@ public class CucumberTestClassResult implements TestClassResult {
 		return _cucumberScenarioResult.getStatus();
 	}
 
+	@Override
 	public TestResult getTestResult(String testName) {
 		for (TestResult testResult : getTestResults()) {
 			if (testName.equals(testResult.getTestName())) {

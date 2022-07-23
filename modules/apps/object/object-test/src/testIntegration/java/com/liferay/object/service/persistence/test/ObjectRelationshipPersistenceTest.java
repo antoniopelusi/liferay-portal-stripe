@@ -15,7 +15,7 @@
 package com.liferay.object.service.persistence.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.object.exception.NoSuchRelationshipException;
+import com.liferay.object.exception.NoSuchObjectRelationshipException;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.service.ObjectRelationshipLocalServiceUtil;
 import com.liferay.object.service.persistence.ObjectRelationshipPersistence;
@@ -26,6 +26,8 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -137,6 +139,24 @@ public class ObjectRelationshipPersistenceTest {
 
 		newObjectRelationship.setModifiedDate(RandomTestUtil.nextDate());
 
+		newObjectRelationship.setObjectDefinitionId1(RandomTestUtil.nextLong());
+
+		newObjectRelationship.setObjectDefinitionId2(RandomTestUtil.nextLong());
+
+		newObjectRelationship.setObjectFieldId2(RandomTestUtil.nextLong());
+
+		newObjectRelationship.setDeletionType(RandomTestUtil.randomString());
+
+		newObjectRelationship.setDBTableName(RandomTestUtil.randomString());
+
+		newObjectRelationship.setLabel(RandomTestUtil.randomString());
+
+		newObjectRelationship.setName(RandomTestUtil.randomString());
+
+		newObjectRelationship.setReverse(RandomTestUtil.randomBoolean());
+
+		newObjectRelationship.setType(RandomTestUtil.randomString());
+
 		_objectRelationships.add(_persistence.update(newObjectRelationship));
 
 		ObjectRelationship existingObjectRelationship =
@@ -168,6 +188,33 @@ public class ObjectRelationshipPersistenceTest {
 			Time.getShortTimestamp(
 				existingObjectRelationship.getModifiedDate()),
 			Time.getShortTimestamp(newObjectRelationship.getModifiedDate()));
+		Assert.assertEquals(
+			existingObjectRelationship.getObjectDefinitionId1(),
+			newObjectRelationship.getObjectDefinitionId1());
+		Assert.assertEquals(
+			existingObjectRelationship.getObjectDefinitionId2(),
+			newObjectRelationship.getObjectDefinitionId2());
+		Assert.assertEquals(
+			existingObjectRelationship.getObjectFieldId2(),
+			newObjectRelationship.getObjectFieldId2());
+		Assert.assertEquals(
+			existingObjectRelationship.getDeletionType(),
+			newObjectRelationship.getDeletionType());
+		Assert.assertEquals(
+			existingObjectRelationship.getDBTableName(),
+			newObjectRelationship.getDBTableName());
+		Assert.assertEquals(
+			existingObjectRelationship.getLabel(),
+			newObjectRelationship.getLabel());
+		Assert.assertEquals(
+			existingObjectRelationship.getName(),
+			newObjectRelationship.getName());
+		Assert.assertEquals(
+			existingObjectRelationship.isReverse(),
+			newObjectRelationship.isReverse());
+		Assert.assertEquals(
+			existingObjectRelationship.getType(),
+			newObjectRelationship.getType());
 	}
 
 	@Test
@@ -189,6 +236,59 @@ public class ObjectRelationshipPersistenceTest {
 	}
 
 	@Test
+	public void testCountByObjectDefinitionId1() throws Exception {
+		_persistence.countByObjectDefinitionId1(RandomTestUtil.nextLong());
+
+		_persistence.countByObjectDefinitionId1(0L);
+	}
+
+	@Test
+	public void testCountByObjectDefinitionId2() throws Exception {
+		_persistence.countByObjectDefinitionId2(RandomTestUtil.nextLong());
+
+		_persistence.countByObjectDefinitionId2(0L);
+	}
+
+	@Test
+	public void testCountByObjectFieldId2() throws Exception {
+		_persistence.countByObjectFieldId2(RandomTestUtil.nextLong());
+
+		_persistence.countByObjectFieldId2(0L);
+	}
+
+	@Test
+	public void testCountByODI1_N() throws Exception {
+		_persistence.countByODI1_N(RandomTestUtil.nextLong(), "");
+
+		_persistence.countByODI1_N(0L, "null");
+
+		_persistence.countByODI1_N(0L, (String)null);
+	}
+
+	@Test
+	public void testCountByODI1_ODI2_N_T() throws Exception {
+		_persistence.countByODI1_ODI2_N_T(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(), "", "");
+
+		_persistence.countByODI1_ODI2_N_T(0L, 0L, "null", "null");
+
+		_persistence.countByODI1_ODI2_N_T(0L, 0L, (String)null, (String)null);
+	}
+
+	@Test
+	public void testCountByODI1_ODI2_N_R_T() throws Exception {
+		_persistence.countByODI1_ODI2_N_R_T(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(), "",
+			RandomTestUtil.randomBoolean(), "");
+
+		_persistence.countByODI1_ODI2_N_R_T(
+			0L, 0L, "null", RandomTestUtil.randomBoolean(), "null");
+
+		_persistence.countByODI1_ODI2_N_R_T(
+			0L, 0L, (String)null, RandomTestUtil.randomBoolean(), (String)null);
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		ObjectRelationship newObjectRelationship = addObjectRelationship();
 
@@ -199,7 +299,7 @@ public class ObjectRelationshipPersistenceTest {
 		Assert.assertEquals(existingObjectRelationship, newObjectRelationship);
 	}
 
-	@Test(expected = NoSuchRelationshipException.class)
+	@Test(expected = NoSuchObjectRelationshipException.class)
 	public void testFindByPrimaryKeyMissing() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
@@ -216,7 +316,10 @@ public class ObjectRelationshipPersistenceTest {
 		return OrderByComparatorFactoryUtil.create(
 			"ObjectRelationship", "mvccVersion", true, "uuid", true,
 			"objectRelationshipId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "modifiedDate", true);
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"objectDefinitionId1", true, "objectDefinitionId2", true,
+			"objectFieldId2", true, "deletionType", true, "dbTableName", true,
+			"label", true, "name", true, "reverse", true, "type", true);
 	}
 
 	@Test
@@ -442,6 +545,103 @@ public class ObjectRelationshipPersistenceTest {
 		Assert.assertEquals(0, result.size());
 	}
 
+	@Test
+	public void testResetOriginalValues() throws Exception {
+		ObjectRelationship newObjectRelationship = addObjectRelationship();
+
+		_persistence.clearCache();
+
+		_assertOriginalValues(
+			_persistence.findByPrimaryKey(
+				newObjectRelationship.getPrimaryKey()));
+	}
+
+	@Test
+	public void testResetOriginalValuesWithDynamicQueryLoadFromDatabase()
+		throws Exception {
+
+		_testResetOriginalValuesWithDynamicQuery(true);
+	}
+
+	@Test
+	public void testResetOriginalValuesWithDynamicQueryLoadFromSession()
+		throws Exception {
+
+		_testResetOriginalValuesWithDynamicQuery(false);
+	}
+
+	private void _testResetOriginalValuesWithDynamicQuery(boolean clearSession)
+		throws Exception {
+
+		ObjectRelationship newObjectRelationship = addObjectRelationship();
+
+		if (clearSession) {
+			Session session = _persistence.openSession();
+
+			session.flush();
+
+			session.clear();
+		}
+
+		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
+			ObjectRelationship.class, _dynamicQueryClassLoader);
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"objectRelationshipId",
+				newObjectRelationship.getObjectRelationshipId()));
+
+		List<ObjectRelationship> result = _persistence.findWithDynamicQuery(
+			dynamicQuery);
+
+		_assertOriginalValues(result.get(0));
+	}
+
+	private void _assertOriginalValues(ObjectRelationship objectRelationship) {
+		Assert.assertEquals(
+			Long.valueOf(objectRelationship.getObjectFieldId2()),
+			ReflectionTestUtil.<Long>invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "objectFieldId2"));
+
+		Assert.assertEquals(
+			Long.valueOf(objectRelationship.getObjectDefinitionId1()),
+			ReflectionTestUtil.<Long>invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "objectDefinitionId1"));
+		Assert.assertEquals(
+			objectRelationship.getName(),
+			ReflectionTestUtil.invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "name"));
+
+		Assert.assertEquals(
+			Long.valueOf(objectRelationship.getObjectDefinitionId1()),
+			ReflectionTestUtil.<Long>invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "objectDefinitionId1"));
+		Assert.assertEquals(
+			Long.valueOf(objectRelationship.getObjectDefinitionId2()),
+			ReflectionTestUtil.<Long>invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "objectDefinitionId2"));
+		Assert.assertEquals(
+			objectRelationship.getName(),
+			ReflectionTestUtil.invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "name"));
+		Assert.assertEquals(
+			Boolean.valueOf(objectRelationship.getReverse()),
+			ReflectionTestUtil.<Boolean>invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "reverse"));
+		Assert.assertEquals(
+			objectRelationship.getType(),
+			ReflectionTestUtil.invoke(
+				objectRelationship, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "type_"));
+	}
+
 	protected ObjectRelationship addObjectRelationship() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
@@ -460,6 +660,24 @@ public class ObjectRelationshipPersistenceTest {
 		objectRelationship.setCreateDate(RandomTestUtil.nextDate());
 
 		objectRelationship.setModifiedDate(RandomTestUtil.nextDate());
+
+		objectRelationship.setObjectDefinitionId1(RandomTestUtil.nextLong());
+
+		objectRelationship.setObjectDefinitionId2(RandomTestUtil.nextLong());
+
+		objectRelationship.setObjectFieldId2(RandomTestUtil.nextLong());
+
+		objectRelationship.setDeletionType(RandomTestUtil.randomString());
+
+		objectRelationship.setDBTableName(RandomTestUtil.randomString());
+
+		objectRelationship.setLabel(RandomTestUtil.randomString());
+
+		objectRelationship.setName(RandomTestUtil.randomString());
+
+		objectRelationship.setReverse(RandomTestUtil.randomBoolean());
+
+		objectRelationship.setType(RandomTestUtil.randomString());
 
 		_objectRelationships.add(_persistence.update(objectRelationship));
 

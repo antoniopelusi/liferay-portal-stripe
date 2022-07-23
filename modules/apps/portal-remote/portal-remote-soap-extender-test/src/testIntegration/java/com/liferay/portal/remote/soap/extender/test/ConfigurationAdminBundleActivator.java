@@ -83,15 +83,10 @@ public class ConfigurationAdminBundleActivator implements BundleActivator {
 
 			_soapConfiguration.update(properties);
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("(&(objectClass=");
-			sb.append(ServletContextHelper.class.getName());
-			sb.append(")(");
-			sb.append(HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_NAME);
-			sb.append("=soap-test))");
-
-			_filterString = sb.toString();
+			_filterString = StringBundler.concat(
+				"(&(objectClass=", ServletContextHelper.class.getName(), ")(",
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_NAME,
+				"=soap-test))");
 
 			try {
 				WaiterUtil.waitForFilter(bundleContext, _filterString, 10_000);

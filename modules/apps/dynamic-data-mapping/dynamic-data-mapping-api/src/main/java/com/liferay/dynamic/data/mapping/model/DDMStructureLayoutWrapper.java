@@ -166,6 +166,11 @@ public class DDMStructureLayoutWrapper
 	}
 
 	@Override
+	public DDMStructureLayout cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

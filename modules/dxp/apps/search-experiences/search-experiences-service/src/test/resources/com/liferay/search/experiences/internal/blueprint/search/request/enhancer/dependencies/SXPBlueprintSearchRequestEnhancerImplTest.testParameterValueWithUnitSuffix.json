@@ -1,0 +1,126 @@
+{
+	"configuration": {
+		"queryConfiguration": {
+			"applyIndexerClauses": true,
+			"queryEntries": [
+				{
+					"clauses": [
+						{
+							"occur": "must",
+							"query": {
+								"term": {
+									"version": {
+										"value": "7.4"
+									}
+								}
+							}
+						}
+					],
+					"enabled": true
+				}
+			]
+		},
+		"sortConfiguration": {
+		}
+	},
+	"elementInstances": [
+		{
+			"sxpElement": {
+				"description_i18n": {
+					"en_US": "Boost Freshness."
+				},
+				"elementDefinition": {
+					"category": "boost",
+					"configuration": {
+						"queryConfiguration": {
+							"queryEntries": [
+								{
+									"clauses": [
+										{
+											"context": "query",
+											"occur": "should",
+											"query": {
+												"function_score": {
+													"boost": "${configuration.boost}",
+													"gauss": {
+														"modified": {
+															"decay": "${configuration.decay}",
+															"offset": "${configuration.offset}",
+															"origin": "20211209082600",
+															"scale": "${configuration.scale}"
+														}
+													}
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					"icon": "custom-field",
+					"uiConfiguration": {
+						"fieldSets": [
+							{
+								"fields": [
+									{
+										"defaultValue": 0.5,
+										"label": "Decay",
+										"name": "decay",
+										"type": "slider",
+										"typeOptions": {
+											"max": 0.99,
+											"min": 0.01,
+											"step": 0.01
+										}
+									},
+									{
+										"defaultValue": 0,
+										"label": "Offset",
+										"name": "offset",
+										"type": "number",
+										"typeOptions": {
+											"min": 0,
+											"unit": "days",
+											"unitSuffix": "d"
+										}
+									},
+									{
+										"defaultValue": 10,
+										"label": "Scale",
+										"name": "scale",
+										"type": "number",
+										"typeOptions": {
+											"min": 0,
+											"unit": "days",
+											"unitSuffix": "d"
+										}
+									},
+									{
+										"defaultValue": 2,
+										"label": "Boost",
+										"name": "boost",
+										"type": "number",
+										"typeOptions": {
+											"min": 0
+										}
+									}
+								]
+							}
+						]
+					}
+				},
+				"title_i18n": {
+					"en_US": "Boost Freshness"
+				}
+			},
+			"uiConfigurationValues": {
+				"boost": 100,
+				"decay": 0.01,
+				"occur": "should",
+				"offset": 0,
+				"scale": 9
+			}
+		}
+	]
+}

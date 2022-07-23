@@ -360,4 +360,7 @@ public interface KaleoTaskFormInstanceModel
 	 */
 	public void setMetadata(String metadata);
 
+	@Override
+	public KaleoTaskFormInstance cloneWithOriginalValues();
+
 }

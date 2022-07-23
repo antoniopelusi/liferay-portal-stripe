@@ -59,7 +59,7 @@ public class ShipmentItemSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (shipmentItem.getActions() != null) {
 			if (sb.length() > 1) {
@@ -82,6 +82,20 @@ public class ShipmentItemSerDes {
 
 			sb.append(
 				liferayToJSONDateFormat.format(shipmentItem.getCreateDate()));
+
+			sb.append("\"");
+		}
+
+		if (shipmentItem.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(shipmentItem.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -131,6 +145,20 @@ public class ShipmentItemSerDes {
 			sb.append(shipmentItem.getQuantity());
 		}
 
+		if (shipmentItem.getShipmentExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"shipmentExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(shipmentItem.getShipmentExternalReferenceCode()));
+
+			sb.append("\"");
+		}
+
 		if (shipmentItem.getShipmentId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -153,6 +181,16 @@ public class ShipmentItemSerDes {
 			sb.append(_escape(shipmentItem.getUserName()));
 
 			sb.append("\"");
+		}
+
+		if (shipmentItem.getValidateInventory() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"validateInventory\": ");
+
+			sb.append(shipmentItem.getValidateInventory());
 		}
 
 		if (shipmentItem.getWarehouseId() != null) {
@@ -185,7 +223,7 @@ public class ShipmentItemSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (shipmentItem.getActions() == null) {
 			map.put("actions", null);
@@ -201,6 +239,15 @@ public class ShipmentItemSerDes {
 			map.put(
 				"createDate",
 				liferayToJSONDateFormat.format(shipmentItem.getCreateDate()));
+		}
+
+		if (shipmentItem.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(shipmentItem.getExternalReferenceCode()));
 		}
 
 		if (shipmentItem.getId() == null) {
@@ -234,6 +281,16 @@ public class ShipmentItemSerDes {
 			map.put("quantity", String.valueOf(shipmentItem.getQuantity()));
 		}
 
+		if (shipmentItem.getShipmentExternalReferenceCode() == null) {
+			map.put("shipmentExternalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"shipmentExternalReferenceCode",
+				String.valueOf(
+					shipmentItem.getShipmentExternalReferenceCode()));
+		}
+
 		if (shipmentItem.getShipmentId() == null) {
 			map.put("shipmentId", null);
 		}
@@ -246,6 +303,15 @@ public class ShipmentItemSerDes {
 		}
 		else {
 			map.put("userName", String.valueOf(shipmentItem.getUserName()));
+		}
+
+		if (shipmentItem.getValidateInventory() == null) {
+			map.put("validateInventory", null);
+		}
+		else {
+			map.put(
+				"validateInventory",
+				String.valueOf(shipmentItem.getValidateInventory()));
 		}
 
 		if (shipmentItem.getWarehouseId() == null) {
@@ -290,6 +356,14 @@ public class ShipmentItemSerDes {
 						toDate((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					shipmentItem.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				if (jsonParserFieldValue != null) {
 					shipmentItem.setId(
@@ -314,6 +388,14 @@ public class ShipmentItemSerDes {
 						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "shipmentExternalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					shipmentItem.setShipmentExternalReferenceCode(
+						(String)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "shipmentId")) {
 				if (jsonParserFieldValue != null) {
 					shipmentItem.setShipmentId(
@@ -323,6 +405,12 @@ public class ShipmentItemSerDes {
 			else if (Objects.equals(jsonParserFieldName, "userName")) {
 				if (jsonParserFieldValue != null) {
 					shipmentItem.setUserName((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "validateInventory")) {
+				if (jsonParserFieldValue != null) {
+					shipmentItem.setValidateInventory(
+						(Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "warehouseId")) {

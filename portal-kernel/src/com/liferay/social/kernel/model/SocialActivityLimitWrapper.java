@@ -128,6 +128,11 @@ public class SocialActivityLimitWrapper
 		}
 	}
 
+	@Override
+	public SocialActivityLimit cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the activity counter name of this social activity limit.
 	 *

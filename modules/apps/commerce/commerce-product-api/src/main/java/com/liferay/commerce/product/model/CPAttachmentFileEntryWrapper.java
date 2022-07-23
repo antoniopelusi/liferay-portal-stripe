@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -45,6 +47,8 @@ public class CPAttachmentFileEntryWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("CPAttachmentFileEntryId", getCPAttachmentFileEntryId());
@@ -57,6 +61,8 @@ public class CPAttachmentFileEntryWrapper
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
 		attributes.put("fileEntryId", getFileEntryId());
+		attributes.put("cdnEnabled", isCDNEnabled());
+		attributes.put("cdnURL", getCDNURL());
 		attributes.put("displayDate", getDisplayDate());
 		attributes.put("expirationDate", getExpirationDate());
 		attributes.put("title", getTitle());
@@ -74,6 +80,18 @@ public class CPAttachmentFileEntryWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -148,6 +166,18 @@ public class CPAttachmentFileEntryWrapper
 			setFileEntryId(fileEntryId);
 		}
 
+		Boolean cdnEnabled = (Boolean)attributes.get("cdnEnabled");
+
+		if (cdnEnabled != null) {
+			setCDNEnabled(cdnEnabled);
+		}
+
+		String cdnURL = (String)attributes.get("cdnURL");
+
+		if (cdnURL != null) {
+			setCDNURL(cdnURL);
+		}
+
 		Date displayDate = (Date)attributes.get("displayDate");
 
 		if (displayDate != null) {
@@ -216,8 +246,40 @@ public class CPAttachmentFileEntryWrapper
 	}
 
 	@Override
+	public CPAttachmentFileEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
+	public com.liferay.portal.kernel.repository.model.FileEntry fetchFileEntry()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.fetchFileEntry();
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
+	}
+
+	/**
+	 * Returns the cdn enabled of this cp attachment file entry.
+	 *
+	 * @return the cdn enabled of this cp attachment file entry
+	 */
+	@Override
+	public boolean getCDNEnabled() {
+		return model.getCDNEnabled();
+	}
+
+	/**
+	 * Returns the cdn url of this cp attachment file entry.
+	 *
+	 * @return the cdn url of this cp attachment file entry
+	 */
+	@Override
+	public String getCDNURL() {
+		return model.getCDNURL();
 	}
 
 	/**
@@ -280,6 +342,16 @@ public class CPAttachmentFileEntryWrapper
 		return model.getCreateDate();
 	}
 
+	/**
+	 * Returns the ct collection ID of this cp attachment file entry.
+	 *
+	 * @return the ct collection ID of this cp attachment file entry
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
 	@Override
 	public String getDefaultLanguageId() {
 		return model.getDefaultLanguageId();
@@ -313,13 +385,6 @@ public class CPAttachmentFileEntryWrapper
 	@Override
 	public String getExternalReferenceCode() {
 		return model.getExternalReferenceCode();
-	}
-
-	@Override
-	public com.liferay.portal.kernel.repository.model.FileEntry getFileEntry()
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return model.getFileEntry();
 	}
 
 	/**
@@ -370,6 +435,16 @@ public class CPAttachmentFileEntryWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this cp attachment file entry.
+	 *
+	 * @return the mvcc version of this cp attachment file entry
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -579,6 +654,16 @@ public class CPAttachmentFileEntryWrapper
 	}
 
 	/**
+	 * Returns <code>true</code> if this cp attachment file entry is cdn enabled.
+	 *
+	 * @return <code>true</code> if this cp attachment file entry is cdn enabled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isCDNEnabled() {
+		return model.isCDNEnabled();
+	}
+
+	/**
 	 * Returns <code>true</code> if this cp attachment file entry is denied.
 	 *
 	 * @return <code>true</code> if this cp attachment file entry is denied; <code>false</code> otherwise
@@ -668,6 +753,26 @@ public class CPAttachmentFileEntryWrapper
 		model.prepareLocalizedFieldsForImport(defaultImportLocale);
 	}
 
+	/**
+	 * Sets whether this cp attachment file entry is cdn enabled.
+	 *
+	 * @param cdnEnabled the cdn enabled of this cp attachment file entry
+	 */
+	@Override
+	public void setCDNEnabled(boolean cdnEnabled) {
+		model.setCDNEnabled(cdnEnabled);
+	}
+
+	/**
+	 * Sets the cdn url of this cp attachment file entry.
+	 *
+	 * @param cdnURL the cdn url of this cp attachment file entry
+	 */
+	@Override
+	public void setCDNURL(String cdnURL) {
+		model.setCDNURL(cdnURL);
+	}
+
 	@Override
 	public void setClassName(String className) {
 		model.setClassName(className);
@@ -721,6 +826,16 @@ public class CPAttachmentFileEntryWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this cp attachment file entry.
+	 *
+	 * @param ctCollectionId the ct collection ID of this cp attachment file entry
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -801,6 +916,16 @@ public class CPAttachmentFileEntryWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this cp attachment file entry.
+	 *
+	 * @param mvccVersion the mvcc version of this cp attachment file entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -985,6 +1110,20 @@ public class CPAttachmentFileEntryWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<CPAttachmentFileEntry, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<CPAttachmentFileEntry, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

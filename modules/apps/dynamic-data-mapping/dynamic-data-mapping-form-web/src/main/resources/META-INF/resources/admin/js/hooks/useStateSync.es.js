@@ -16,8 +16,8 @@ import {
 	PagesVisitor,
 	useConfig,
 	useFormState,
-} from 'dynamic-data-mapping-form-renderer';
-import {useCallback, useEffect, useRef} from 'react';
+} from 'data-engine-js-components-web';
+import {useCallback} from 'react';
 
 const getSerializedSettingsContextPages = (pages, defaultLanguageId) => {
 	const visitor = new PagesVisitor(pages);
@@ -60,20 +60,24 @@ const getSerializedFormBuilderContext = (state, defaultLanguageId) => {
 
 	return JSON.stringify({
 		...state,
-		pages: visitor.mapFields((field) => {
-			return {
-				...field,
-				settingsContext: {
-					...field.settingsContext,
-					availableLanguageIds: state.availableLanguageIds,
-					defaultLanguageId: state.defaultLanguageId,
-					pages: getSerializedSettingsContextPages(
-						field.settingsContext.pages,
-						defaultLanguageId
-					),
-				},
-			};
-		}),
+		pages: visitor.mapFields(
+			(field) => {
+				return {
+					...field,
+					settingsContext: {
+						...field.settingsContext,
+						availableLanguageIds: state.availableLanguageIds,
+						defaultLanguageId: state.defaultLanguageId,
+						pages: getSerializedSettingsContextPages(
+							field.settingsContext.pages,
+							defaultLanguageId
+						),
+					},
+				};
+			},
+			true,
+			true
+		),
 	});
 };
 
@@ -81,8 +85,8 @@ const getSerializedFormBuilderContext = (state, defaultLanguageId) => {
  * This hook is just a way to save the state in the hidden input of the form
  * to make the submit, this is the same implementation of StateSyncronizer.
  */
-export const useStateSync = () => {
-	const {portletNamespace} = useConfig();
+export function useStateSync() {
+	const {portletNamespace, sidebarPanels} = useConfig();
 	const {
 		availableLanguageIds,
 		defaultLanguageId,
@@ -94,18 +98,6 @@ export const useStateSync = () => {
 		successPageSettings,
 	} = useFormState();
 
-	const settingsDDMFormRef = useRef(null);
-
-	useEffect(() => {
-		const getAsync = async () => {
-			settingsDDMFormRef.current = await Liferay.componentReady(
-				'settingsDDMForm'
-			);
-		};
-
-		getAsync();
-	}, [settingsDDMFormRef]);
-
 	return useCallback(() => {
 		const state = {
 			availableLanguageIds,
@@ -115,6 +107,7 @@ export const useStateSync = () => {
 			pages,
 			paginationMode,
 			rules,
+			sidebarPanels,
 			successPageSettings,
 		};
 
@@ -127,16 +120,6 @@ export const useStateSync = () => {
 				state.description[key]
 			);
 		});
-
-		if (settingsDDMFormRef.current?.reactComponentRef.current) {
-			document.querySelector(
-				`#${portletNamespace}serializedSettingsContext`
-			).value = JSON.stringify({
-				pages: settingsDDMFormRef.current.reactComponentRef.current.get(
-					'pages'
-				),
-			});
-		}
 
 		document.querySelector(
 			`#${portletNamespace}name`
@@ -156,6 +139,7 @@ export const useStateSync = () => {
 		paginationMode,
 		portletNamespace,
 		rules,
+		sidebarPanels,
 		successPageSettings,
 	]);
-};
+}

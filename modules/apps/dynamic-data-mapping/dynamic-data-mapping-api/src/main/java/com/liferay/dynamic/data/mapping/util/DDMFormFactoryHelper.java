@@ -111,14 +111,14 @@ public class DDMFormFactoryHelper {
 		}
 		catch (MissingResourceException missingResourceException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(missingResourceException, missingResourceException);
+				_log.debug(missingResourceException);
 			}
 		}
 	}
 
 	protected Set<Locale> getAvailableLocales() {
 		if (Validator.isNull(_ddmForm.availableLanguageIds())) {
-			return SetUtil.fromArray(new Locale[] {getDefaultLocale()});
+			return SetUtil.fromArray(getDefaultLocale());
 		}
 
 		Set<Locale> availableLocales = new HashSet<>();

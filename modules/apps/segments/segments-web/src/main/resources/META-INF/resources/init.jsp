@@ -30,6 +30,8 @@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 page import="com.liferay.item.selector.criteria.UUIDItemSelectorReturnType" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.dao.search.ResultRow" %><%@
+page import="com.liferay.portal.kernel.json.JSONArray" %><%@
+page import="com.liferay.portal.kernel.json.JSONObject" %><%@
 page import="com.liferay.portal.kernel.model.Group" %><%@
 page import="com.liferay.portal.kernel.model.role.RoleConstants" %><%@
 page import="com.liferay.portal.kernel.portlet.LiferayWindowState" %><%@
@@ -40,25 +42,24 @@ page import="com.liferay.portal.kernel.util.ArrayUtil" %><%@
 page import="com.liferay.portal.kernel.util.Constants" %><%@
 page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
-page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.roles.item.selector.RoleItemSelectorCriterion" %><%@
-page import="com.liferay.segments.constants.SegmentsEntryConstants" %><%@
 page import="com.liferay.segments.exception.NoSuchEntryException" %><%@
 page import="com.liferay.segments.exception.RequiredSegmentsEntryException" %><%@
 page import="com.liferay.segments.exception.SegmentsEntryCriteriaException" %><%@
 page import="com.liferay.segments.exception.SegmentsEntryKeyException" %><%@
 page import="com.liferay.segments.exception.SegmentsEntryNameException" %><%@
 page import="com.liferay.segments.model.SegmentsEntry" %><%@
+page import="com.liferay.segments.source.provider.SegmentsSourceDetailsProvider" %><%@
 page import="com.liferay.segments.web.internal.constants.SegmentsWebKeys" %><%@
 page import="com.liferay.segments.web.internal.display.context.EditSegmentsEntryDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.PreviewSegmentsEntryUsersDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SegmentsDisplayContext" %><%@
+page import="com.liferay.segments.web.internal.display.context.SegmentsExperienceSelectorDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SelectSegmentsEntryDisplayContext" %><%@
-page import="com.liferay.segments.web.internal.security.permission.resource.SegmentsEntryPermission" %>
-
-<%@ page import="java.util.Objects" %>
+page import="com.liferay.segments.web.internal.security.permission.resource.SegmentsEntryPermission" %><%@
+page import="com.liferay.segments.web.internal.util.SegmentsSourceDetailsProviderUtil" %>
 
 <%@ page import="javax.portlet.PortletURL" %>
 

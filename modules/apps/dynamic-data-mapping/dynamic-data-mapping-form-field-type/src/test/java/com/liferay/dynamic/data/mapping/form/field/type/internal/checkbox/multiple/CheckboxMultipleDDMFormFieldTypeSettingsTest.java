@@ -17,7 +17,11 @@ package com.liferay.dynamic.data.mapping.form.field.type.internal.checkbox.multi
 import com.liferay.dynamic.data.mapping.form.field.type.BaseDDMFormFieldTypeSettingsTestCase;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
+import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.test.util.DDMFormLayoutTestUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
+import com.liferay.dynamic.data.mapping.util.DDMFormLayoutFactory;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -25,6 +29,7 @@ import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -57,6 +62,24 @@ public class CheckboxMultipleDDMFormFieldTypeSettingsTest
 	}
 
 	@Test
+	public void testCreateCheckboxDDMFormFieldTypeSettingsDDMFormLayout() {
+		assertDDMFormLayout(
+			DDMFormLayoutFactory.create(
+				CheckboxMultipleDDMFormFieldTypeSettings.class),
+			DDMFormLayoutTestUtil.createDDMFormLayout(
+				DDMFormLayout.TABBED_MODE,
+				DDMFormLayoutTestUtil.createDDMFormLayoutPage(
+					"label", "tip", "required", "requiredErrorMessage",
+					"showAsSwitcher", "options"),
+				DDMFormLayoutTestUtil.createDDMFormLayoutPage(
+					"name", "fieldReference", "visibilityExpression",
+					"predefinedValue", "objectFieldName", "fieldNamespace",
+					"indexType", "labelAtStructureLevel", "localizable",
+					"nativeField", "readOnly", "dataType", "type", "showLabel",
+					"repeatable", "inline")));
+	}
+
+	@Test
 	public void testCreateCheckboxMultipleDDMFormFieldTypeSettingsDDMForm() {
 		DDMForm ddmForm = DDMFormFactory.create(
 			CheckboxMultipleDDMFormFieldTypeSettings.class);
@@ -77,6 +100,31 @@ public class CheckboxMultipleDDMFormFieldTypeSettingsTest
 		Assert.assertEquals("ddm-options", optionsDDMFormField.getDataType());
 		Assert.assertNotNull(optionsDDMFormField.getLabel());
 		Assert.assertEquals("options", optionsDDMFormField.getType());
+
+		DDMFormField requiredErrorMessage = ddmFormFieldsMap.get(
+			"requiredErrorMessage");
+
+		Assert.assertNotNull(requiredErrorMessage);
+
+		List<DDMFormRule> ddmFormRules = ddmForm.getDDMFormRules();
+
+		Assert.assertEquals(ddmFormRules.toString(), 1, ddmFormRules.size());
+
+		DDMFormRule ddmFormRule = ddmFormRules.get(0);
+
+		Assert.assertEquals("TRUE", ddmFormRule.getCondition());
+
+		List<String> actions = ddmFormRule.getActions();
+
+		Assert.assertEquals(actions.toString(), 3, actions.size());
+
+		Assert.assertEquals(
+			"setOptions('predefinedValue', getValue('options'))",
+			actions.get(0));
+		Assert.assertEquals("setRequired('options', true)", actions.get(1));
+		Assert.assertEquals(
+			"setVisible('requiredErrorMessage', getValue('required'))",
+			actions.get(2));
 	}
 
 	@Override
@@ -86,6 +134,7 @@ public class CheckboxMultipleDDMFormFieldTypeSettingsTest
 		languageUtil.setLanguage(PowerMockito.mock(Language.class));
 	}
 
+	@Override
 	protected void setUpPortalUtil() {
 		PortalUtil portalUtil = new PortalUtil();
 

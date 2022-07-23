@@ -68,7 +68,7 @@ if (portletTitleBasedNavigation) {
 
 	<c:choose>
 		<c:when test="<%= portletTitleBasedNavigation %>">
-			<div class="contextual-sidebar sidebar-light sidebar-preview" id="<%= liferayPortletResponse.getNamespace() + "ContextualSidebar" %>">
+			<div class="contextual-sidebar sidebar-light sidebar-preview" id="<portlet:namespace />ContextualSidebar">
 
 				<%
 				request.setAttribute("info_panel.jsp-fileEntry", dlViewFileEntryDisplayContext.getFileEntry());
@@ -172,10 +172,19 @@ if (portletTitleBasedNavigation) {
 	/>
 </div>
 
-<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-	<portlet:param name="mvcRenderCommandName" value="/document_library/select_folder" />
-	<portlet:param name="folderId" value="<%= String.valueOf(fileEntry.getFolderId()) %>" />
-</portlet:renderURL>
+<%
+ItemSelector itemSelector = (ItemSelector)request.getAttribute(ItemSelector.class.getName());
+
+FolderItemSelectorCriterion folderItemSelectorCriterion = new FolderItemSelectorCriterion();
+
+folderItemSelectorCriterion.setDesiredItemSelectorReturnTypes(new FolderItemSelectorReturnType());
+folderItemSelectorCriterion.setFolderId(fileEntry.getFolderId());
+folderItemSelectorCriterion.setRepositoryId(fileEntry.getRepositoryId());
+folderItemSelectorCriterion.setSelectedFolderId(fileEntry.getFolderId());
+folderItemSelectorCriterion.setSelectedRepositoryId(fileEntry.getRepositoryId());
+
+PortletURL selectFolderURL = itemSelector.getItemSelectorURL(RequestBackedPortletURLFactoryUtil.create(request), portletDisplay.getNamespace() + "folderSelected", folderItemSelectorCriterion);
+%>
 
 <portlet:actionURL name="/document_library/edit_entry" var="editEntryURL" />
 
@@ -188,8 +197,13 @@ if (portletTitleBasedNavigation) {
 		var namespace = '<portlet:namespace />';
 
 		Liferay.Util.openSelectionModal({
-			id: namespace + 'selectFolder',
+			selectEventName: '<portlet:namespace />folderSelected',
+			multiple: false,
 			onSelect: function (selectedItem) {
+				if (!selectedItem) {
+					return;
+				}
+
 				var form = document.getElementById(namespace + 'fm');
 
 				if (parameterName && parameterValue) {
@@ -207,10 +221,9 @@ if (portletTitleBasedNavigation) {
 
 				submitForm(form, actionUrl, false);
 			},
-			selectEventName: namespace + 'selectFolder',
 			title:
 				'<liferay-ui:message arguments="<%= 1 %>" key="select-destination-folder-for-x-items" translateArguments="<%= false %>" />',
-			url: '<%= selectFolderURL.toString() %>',
+			url: '<%= HtmlUtil.escapeJS(selectFolderURL.toString()) %>',
 		});
 	}
 </aui:script>

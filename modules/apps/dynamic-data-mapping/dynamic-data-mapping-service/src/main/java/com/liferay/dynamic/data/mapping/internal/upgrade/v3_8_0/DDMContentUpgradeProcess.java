@@ -51,32 +51,32 @@ public class DDMContentUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBundler sb = new StringBundler(13);
-
-		sb.append("select DDMContent.contentId, DDMContent.data_, ");
-		sb.append("DDMStructureVersion.structureVersionId, ");
-		sb.append("DDMStructureVersion.definition from DDMContent inner join ");
-		sb.append("DDMFormInstanceRecordVersion on DDMContent.contentId = ");
-		sb.append("DDMFormInstanceRecordVersion.storageId inner join ");
-		sb.append("DDMFormInstanceVersion on ");
-		sb.append("DDMFormInstanceRecordVersion.formInstanceId = ");
-		sb.append("DDMFormInstanceVersion.formInstanceId and ");
-		sb.append("DDMFormInstanceRecordVersion.formInstanceVersion = ");
-		sb.append("DDMFormInstanceVersion.version inner join ");
-		sb.append("DDMStructureVersion on ");
-		sb.append("DDMFormInstanceVersion.structureVersionId = ");
-		sb.append("DDMStructureVersion.structureVersionId");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMContent.contentId, DDMContent.data_, ",
+					"DDMStructureVersion.structureVersionId, ",
+					"DDMStructureVersion.definition from DDMContent inner ",
+					"join DDMFormInstanceRecordVersion on ",
+					"DDMContent.contentId = ",
+					"DDMFormInstanceRecordVersion.storageId inner join ",
+					"DDMFormInstanceVersion on ",
+					"DDMFormInstanceRecordVersion.formInstanceId = ",
+					"DDMFormInstanceVersion.formInstanceId and ",
+					"DDMFormInstanceRecordVersion.formInstanceVersion = ",
+					"DDMFormInstanceVersion.version inner join ",
+					"DDMStructureVersion on ",
+					"DDMFormInstanceVersion.structureVersionId = ",
+					"DDMStructureVersion.structureVersionId"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMContent set data_ = ? where contentId = ?")) {
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
 					DDMForm ddmForm = DDMFormDeserializeUtil.deserialize(
-						_ddmFormDeserializer, rs.getString("definition"));
+						_ddmFormDeserializer,
+						resultSet.getString("definition"));
 
 					List<DDMFormField> ddmFormFields =
 						ddmForm.getDDMFormFields();
@@ -96,7 +96,7 @@ public class DDMContentUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					String data = rs.getString("data_");
+					String data = resultSet.getString("data_");
 
 					String newData = _upgradeDDMContentData(
 						data, fieldSetDDMFormFields);
@@ -105,13 +105,14 @@ public class DDMContentUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					ps2.setString(1, newData);
-					ps2.setLong(2, rs.getLong("contentId"));
+					preparedStatement2.setString(1, newData);
+					preparedStatement2.setLong(
+						2, resultSet.getLong("contentId"));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

@@ -52,6 +52,12 @@ public class AccountEntryWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("defaultBillingAddressId", getDefaultBillingAddressId());
 		attributes.put(
+			"defaultCPaymentMethodKey", getDefaultCPaymentMethodKey());
+		attributes.put(
+			"defaultDeliveryCTermEntryId", getDefaultDeliveryCTermEntryId());
+		attributes.put(
+			"defaultPaymentCTermEntryId", getDefaultPaymentCTermEntryId());
+		attributes.put(
 			"defaultShippingAddressId", getDefaultShippingAddressId());
 		attributes.put("parentAccountEntryId", getParentAccountEntryId());
 		attributes.put("description", getDescription());
@@ -125,6 +131,27 @@ public class AccountEntryWrapper
 			setDefaultBillingAddressId(defaultBillingAddressId);
 		}
 
+		String defaultCPaymentMethodKey = (String)attributes.get(
+			"defaultCPaymentMethodKey");
+
+		if (defaultCPaymentMethodKey != null) {
+			setDefaultCPaymentMethodKey(defaultCPaymentMethodKey);
+		}
+
+		Long defaultDeliveryCTermEntryId = (Long)attributes.get(
+			"defaultDeliveryCTermEntryId");
+
+		if (defaultDeliveryCTermEntryId != null) {
+			setDefaultDeliveryCTermEntryId(defaultDeliveryCTermEntryId);
+		}
+
+		Long defaultPaymentCTermEntryId = (Long)attributes.get(
+			"defaultPaymentCTermEntryId");
+
+		if (defaultPaymentCTermEntryId != null) {
+			setDefaultPaymentCTermEntryId(defaultPaymentCTermEntryId);
+		}
+
 		Long defaultShippingAddressId = (Long)attributes.get(
 			"defaultShippingAddressId");
 
@@ -195,6 +222,11 @@ public class AccountEntryWrapper
 	}
 
 	@Override
+	public AccountEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public com.liferay.portal.kernel.model.Group getAccountEntryGroup() {
 		return model.getAccountEntryGroup();
 	}
@@ -247,6 +279,36 @@ public class AccountEntryWrapper
 	@Override
 	public long getDefaultBillingAddressId() {
 		return model.getDefaultBillingAddressId();
+	}
+
+	/**
+	 * Returns the default c payment method key of this account entry.
+	 *
+	 * @return the default c payment method key of this account entry
+	 */
+	@Override
+	public String getDefaultCPaymentMethodKey() {
+		return model.getDefaultCPaymentMethodKey();
+	}
+
+	/**
+	 * Returns the default delivery c term entry ID of this account entry.
+	 *
+	 * @return the default delivery c term entry ID of this account entry
+	 */
+	@Override
+	public long getDefaultDeliveryCTermEntryId() {
+		return model.getDefaultDeliveryCTermEntryId();
+	}
+
+	/**
+	 * Returns the default payment c term entry ID of this account entry.
+	 *
+	 * @return the default payment c term entry ID of this account entry
+	 */
+	@Override
+	public long getDefaultPaymentCTermEntryId() {
+		return model.getDefaultPaymentCTermEntryId();
 	}
 
 	@Override
@@ -482,6 +544,38 @@ public class AccountEntryWrapper
 	@Override
 	public void setDefaultBillingAddressId(long defaultBillingAddressId) {
 		model.setDefaultBillingAddressId(defaultBillingAddressId);
+	}
+
+	/**
+	 * Sets the default c payment method key of this account entry.
+	 *
+	 * @param defaultCPaymentMethodKey the default c payment method key of this account entry
+	 */
+	@Override
+	public void setDefaultCPaymentMethodKey(String defaultCPaymentMethodKey) {
+		model.setDefaultCPaymentMethodKey(defaultCPaymentMethodKey);
+	}
+
+	/**
+	 * Sets the default delivery c term entry ID of this account entry.
+	 *
+	 * @param defaultDeliveryCTermEntryId the default delivery c term entry ID of this account entry
+	 */
+	@Override
+	public void setDefaultDeliveryCTermEntryId(
+		long defaultDeliveryCTermEntryId) {
+
+		model.setDefaultDeliveryCTermEntryId(defaultDeliveryCTermEntryId);
+	}
+
+	/**
+	 * Sets the default payment c term entry ID of this account entry.
+	 *
+	 * @param defaultPaymentCTermEntryId the default payment c term entry ID of this account entry
+	 */
+	@Override
+	public void setDefaultPaymentCTermEntryId(long defaultPaymentCTermEntryId) {
+		model.setDefaultPaymentCTermEntryId(defaultPaymentCTermEntryId);
 	}
 
 	/**

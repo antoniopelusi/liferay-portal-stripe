@@ -2,13 +2,20 @@
 <head>
 <title>WorkflowConfiguration</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WorkflowConfiguration</td></tr>
 </thead>
+
 <tbody>
 <!--RESOURCE_TABLE-->
+<tr>
+	<td>RESOURCE_TABLE_CANCEL</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_workflowResourceValue}')]//button[contains(.,'Cancel')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>RESOURCE_TABLE_WORKFLOW</td>
 	<td>//div[contains(@id,'WorkflowPortlet')]//tr[contains(.,'${key_workflowResourceValue}')]/td[2]</td>
@@ -27,6 +34,36 @@
 <tr>
 	<td>BLOGS_MOVE_TO_RECYCLE_BIN</td>
 	<td>//*[contains(@class, 'icon-trash')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_BUILDER_SEARCH_BAR_BUTTON</td>
+	<td>//span[contains(@class,'input-group-inset-item input-group-inset-item-after')]//button[2][contains(@class,'btn btn-monospaced btn-unstyled')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_BUILDER_TABLE_FIELD</td>
+	<td>//div[contains(@class, "table-responsive")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_BUILDER_TABLE_FIELD_NAME</td>
+	<td>//tbody//tr[${key_order}]//td//span[contains(text(),"${key_fieldName}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_BUILDER_TABLE_FIELD_ORDER</td>
+	<td>//tbody//tr[${key_order}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CLEAR_BUTTON</td>
+	<td>//a[contains(text(),'Clear')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_BUILDER_CONFIGURATION_MESSAGE</td>
+	<td>//div[@class='autofit-section' and text()='The assets from Documents and Media and Forms are assigned within their respective applications.']</td>
 	<td></td>
 </tr>
 </tbody>

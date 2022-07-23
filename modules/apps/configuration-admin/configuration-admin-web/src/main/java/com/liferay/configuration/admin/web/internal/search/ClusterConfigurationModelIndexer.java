@@ -15,7 +15,7 @@
 package com.liferay.configuration.admin.web.internal.search;
 
 import com.liferay.configuration.admin.web.internal.model.ConfigurationModel;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.cluster.ClusterExecutor;
 import com.liferay.portal.kernel.cluster.ClusterMasterExecutor;
 import com.liferay.portal.kernel.cluster.ClusterMasterTokenTransitionListener;
@@ -65,8 +65,8 @@ public class ClusterConfigurationModelIndexer
 			}
 
 			if (_clusterMasterExecutor.isMaster()) {
-				try (SafeClosable safeClosable =
-						ProxyModeThreadLocal.setWithSafeClosable(true)) {
+				try (SafeCloseable safeCloseable =
+						ProxyModeThreadLocal.setWithSafeCloseable(true)) {
 
 					_bundleTracker = _configurationModelIndexer.initialize();
 				}
@@ -134,8 +134,8 @@ public class ClusterConfigurationModelIndexer
 
 	private synchronized void _stopBundleTracker() {
 		if (_bundleTracker != null) {
-			try (SafeClosable safeClosable =
-					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+			try (SafeCloseable safeCloseable =
+					ProxyModeThreadLocal.setWithSafeCloseable(true)) {
 
 				_bundleTracker.close();
 			}

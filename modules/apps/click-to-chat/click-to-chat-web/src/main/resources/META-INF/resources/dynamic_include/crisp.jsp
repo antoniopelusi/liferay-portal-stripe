@@ -18,23 +18,51 @@
 
 <script type="text/javascript">
 	window.$crisp = [];
-
 	window.CRISP_WEBSITE_ID = '<%= clickToChatChatProviderAccountId %>';
 
 	(function () {
-		d = document;
+		function loadCrispScript() {
+			function setCrispUserInfo() {
+				if ('<%= themeDisplay.isSignedIn() %>' === 'true') {
+					$crisp.push([
+						'set',
+						'user:email',
+						'<%= user.getEmailAddress() %>',
+					]);
+					$crisp.push([
+						'set',
+						'user:nickname',
+						'<%= user.getScreenName() %>',
+					]);
+				}
+			}
 
-		s = d.createElement('script');
+			if (!document.getElementById('crisp-script-chat')) {
+				var scriptElement = document.createElement('script');
 
-		s.src = 'https://client.crisp.chat/l.js';
+				scriptElement.setAttribute('async', true);
+				scriptElement.setAttribute('id', 'crisp-script-chat');
+				scriptElement.setAttribute('src', 'https://client.crisp.chat/l.js');
+				scriptElement.setAttribute('type', 'text/javascript');
+				scriptElement.onload = function () {
+					setCrispUserInfo();
+				};
 
-		s.async = 1;
+				var bodyElement = document.getElementsByTagName('body').item(0);
 
-		d.getElementsByTagName('head')[0].appendChild(s);
+				bodyElement.appendChild(scriptElement);
+			}
+			else {
+				setCrispUserInfo();
+			}
+		}
+
+		window.onload = function () {
+			loadCrispScript();
+		};
+
+		if (document.readyState === 'complete') {
+			loadCrispScript();
+		}
 	})();
-
-	<c:if test="<%= themeDisplay.isSignedIn() %>">
-		$crisp.push(['set', 'user:email', '<%= user.getScreenName() %>']);
-		$crisp.push(['set', 'user:nickname', '<%= user.getEmailAddress() %>']);
-	</c:if>
 </script>

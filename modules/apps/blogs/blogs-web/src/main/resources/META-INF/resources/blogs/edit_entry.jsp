@@ -41,7 +41,7 @@ if (!customAbstract) {
 
 boolean allowPingbacks = PropsValues.BLOGS_PINGBACK_ENABLED && BeanParamUtil.getBoolean(entry, request, "allowPingbacks", true);
 boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.getBoolean(entry, request, "allowTrackbacks", true);
-String coverImageCaption = BeanParamUtil.getString(entry, request, "coverImageCaption");
+String coverImageCaption = BeanParamUtil.getString(entry, request, "coverImageCaption", LanguageUtil.get(request, "caption"));
 long coverImageFileEntryId = BeanParamUtil.getLong(entry, request, "coverImageFileEntryId");
 long smallImageFileEntryId = BeanParamUtil.getLong(entry, request, "smallImageFileEntryId");
 
@@ -85,7 +85,12 @@ renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourc
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= FileSizeException.class %>">
-				<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(DLValidatorUtil.getMaxAllowableSize(), locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
+
+				<%
+				FileSizeException fileSizeException = (FileSizeException)errorException;
+				%>
+
+				<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(fileSizeException.getMaxSize(), locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= ImageResolutionException.class %>">
@@ -139,10 +144,9 @@ renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourc
 							<small>
 								<liferay-editor:editor
 									contents="<%= coverImageCaption %>"
-									editorName="alloyeditor"
+									editorName="ballooneditor"
 									name="coverImageCaptionEditor"
 									placeholder="caption"
-									showSource="<%= false %>"
 								/>
 							</small>
 						</div>
@@ -206,8 +210,6 @@ renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourc
 
 					<%
 					Portlet portlet = PortletLocalServiceUtil.getPortletById(BlogsPortletKeys.BLOGS);
-
-					String friendlyURLPrefix = StringUtil.shorten("/-/" + portlet.getFriendlyURLMapping(), 40) + StringPool.SLASH;
 					%>
 
 					<div class="clearfix form-group">
@@ -233,11 +235,14 @@ renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourc
 							<aui:input checked="<%= !automaticURL %>" label="custom" name="automaticURL" type="radio" value="<%= false %>" />
 						</div>
 
-						<aui:field-wrapper cssClass="form-group" disabled="<%= automaticURL %>" helpMessage='<%= LanguageUtil.format(resourceBundle, "for-example-x", "<em>one-day-in-the-life-of-marion-cotillard</em>") %>' label="blog-entry-url" name="urlTitle">
-							<div class="form-text"><%= friendlyURLPrefix %></div>
-
-							<aui:input cssClass="input-medium" disabled="<%= automaticURL %>" ignoreRequestValue="<%= true %>" label="" name="urlTitle" prefix="/" type="text" value="<%= urlTitle %>" />
-						</aui:field-wrapper>
+						<liferay-friendly-url:input
+							className="<%= BlogsEntry.class.getName() %>"
+							classPK="<%= entryId %>"
+							disabled="<%= automaticURL %>"
+							inputAddon='<%= StringUtil.shorten("/-/" + portlet.getFriendlyURLMapping(), 40) + StringPool.SLASH %>'
+							localizable="<%= false %>"
+							name="urlTitle"
+						/>
 					</div>
 
 					<div class="clearfix form-group">
@@ -270,6 +275,9 @@ renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourc
 						</div>
 
 						<div class="lfr-blogs-small-image-selector">
+							<c:if test="<%= entry != null %>">
+								<aui:input name="smallImageURL" type="hidden" value="<%= entry.getSmallImageURL() %>" />
+							</c:if>
 
 							<%
 							String smallImageSelectedItemEventName = liferayPortletResponse.getNamespace() + "smallImageSelectedItem";
@@ -329,7 +337,7 @@ renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourc
 				%>
 
 				<c:if test="<%= !scopeGroup.isCompany() %>">
-					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="display-page-template">
+					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="display-page">
 						<liferay-asset:select-asset-display-page
 							classNameId="<%= PortalUtil.getClassNameId(BlogsEntry.class) %>"
 							classPK="<%= (entry != null) ? entry.getEntryId() : 0 %>"

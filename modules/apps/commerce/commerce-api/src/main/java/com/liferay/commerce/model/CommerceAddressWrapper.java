@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.model;
 
+import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 
@@ -42,6 +43,7 @@ public class CommerceAddressWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("commerceAddressId", getCommerceAddressId());
 		attributes.put("groupId", getGroupId());
@@ -73,6 +75,12 @@ public class CommerceAddressWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String externalReferenceCode = (String)attributes.get(
 			"externalReferenceCode");
 
@@ -226,6 +234,11 @@ public class CommerceAddressWrapper
 	}
 
 	@Override
+	public CommerceAddress cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public com.liferay.portal.kernel.model.Country fetchCountry() {
 		return model.fetchCountry();
 	}
@@ -347,6 +360,11 @@ public class CommerceAddressWrapper
 		return model.getDescription();
 	}
 
+	@Override
+	public ExpandoBridge getExpandoBridge() {
+		return model.getExpandoBridge();
+	}
+
 	/**
 	 * Returns the external reference code of this commerce address.
 	 *
@@ -395,6 +413,16 @@ public class CommerceAddressWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce address.
+	 *
+	 * @return the mvcc version of this commerce address
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -554,11 +582,6 @@ public class CommerceAddressWrapper
 		return model.isSameAddress(commerceAddress);
 	}
 
-	@Override
-	public void persist() {
-		model.persist();
-	}
-
 	/**
 	 * Sets the city of this commerce address.
 	 *
@@ -712,6 +735,16 @@ public class CommerceAddressWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce address.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce address
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

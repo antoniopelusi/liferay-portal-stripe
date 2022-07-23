@@ -23,9 +23,6 @@ import com.liferay.portal.workflow.kaleo.service.KaleoNodeLocalServiceUtil;
  */
 public class KaleoTransitionImpl extends KaleoTransitionBaseImpl {
 
-	public KaleoTransitionImpl() {
-	}
-
 	@Override
 	public KaleoNode getSourceKaleoNode() throws PortalException {
 		return KaleoNodeLocalServiceUtil.getKaleoNode(getSourceKaleoNodeId());

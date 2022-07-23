@@ -2,15 +2,17 @@
 <head>
 <title>ManagementBar</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ManagementBar</td></tr>
 </thead>
+
 <tbody>
 <tr>
-	<td>ELLIPSIS_ICON</td>
-	<td>//nav[contains(@class,'management-bar')]//button[*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
+	<td>ANY_ICON</td>
+	<td>//nav[contains(@class,'management-bar')]//*[*[name()='svg'][contains(@class,'icon-${key_text}')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -20,7 +22,17 @@
 </tr>
 <tr>
 	<td>FILTER_AND_ORDER_ACTIVE_ITEM</td>
-	<td>//div[contains(@class,'dropdown-menu')]//a[contains(@class,'active')][contains(text(),'${key_menuItem}')]</td>
+	<td>//div[contains(@class,'dropdown-menu')]//a[contains(text(),'${key_menuItem}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_AND_ORDER_ITEM</td>
+	<td>//div[contains(@class,'dropdown-menu')]//a[contains(text(),'${key_menuItem}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_AND_ORDER_ITEM_SELECTED</td>
+	<td>//li[contains(@aria-selected,'true')]//a[contains(text(),'${key_menuItem}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -40,12 +52,12 @@
 </tr>
 <tr>
 	<td>ORDER_ICON_GENERIC</td>
-	<td>//nav[contains(@class,'management-bar')]//a[*[name()='svg'][contains(@class,'icon-order-arrow')]]</td>
+	<td>//nav[contains(@class,'management-bar')]//a[*[name()='svg'][contains(@class,'icon-order')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ORDER_ICON_SPECIFIC</td>
-	<td>//nav[contains(@class,'management-bar')]//a[@title='Reverse Sort Direction']</td>
+	<td>//nav[contains(@class,'management-bar')]//a[@title='Reverse Sort Direction']//*[contains(@class,'${key_order}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -61,6 +73,67 @@
 <tr>
 	<td>SEARCH_RESULT_SUMMARY</td>
 	<td>//nav[contains(@class,'subnav-tbar')]//span[@class='text-truncate']</td>
+	<td></td>
+</tr>
+<!--FEATURE FLAG CONFIGURATIONS-->
+<tr>
+	<td>ACTION_INFO_BUTTON_SEPARATOR</td>
+	<td>//nav[contains(@class,'management-bar')]//*[contains(@class,'info')]//preceding::*[contains(@class,'ellipsis')]//following::*[contains(@class, 'separator-left')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ACTIVE_DROPDOWN_ITEM</td>
+	<td>//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//li//*[contains(@class,'dropdown-item') and contains(.,'${key_item}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CLEAR_BUTTON</td>
+	<td>//nav[contains(@class,'management-bar')]//*[contains(@aria-label, 'Clear')]//*[contains(.,'Clear')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CLEAR_BUTTON_MOBILE</td>
+	<td>//nav[contains(@class,'management-bar')]//*[contains(@aria-label, 'Clear')]//*[contains(@class,'icon-times-circle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_OR_ORDER</td>
+	<td>//nav[contains(@class,'management-bar')]//*[*[contains(@title,'${key_filter}')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_OR_ORDER_MOBILE</td>
+	<td>//nav[contains(@class,'management-bar')]//*[contains(@title,'${key_title}')]//*[name()='svg'][contains(@class,'icon-${key_icon}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ICON_AND_TEXT_ACTION_BUTTON</td>
+	<td>//nav[contains(@class,'management-bar')]//*[*[name()='svg'][contains(@class,'icon-${key_icon}')]]//following-sibling::span[text()='${key_action}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_TOGGLE_BUTTON</td>
+	<td>//nav[contains(@class,'management-bar')]//*[*[name()='svg'][contains(@class,'icon-${key_icon}')] and contains(@title,'Reverse Order Direction')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MORE_ACTIONS_ELLIPSIS</td>
+	<td>//nav[contains(@class,'management-bar')]//button[contains(@class, 'dropdown-toggle')][*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEW_BUTTON</td>
+	<td>//nav[contains(@class,'management-bar')]//button[contains(@aria-label, 'New')]//*[contains(.,'New')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEW_BUTTON_MOBILE</td>
+	<td>//nav[contains(@class,'management-bar')]//button[contains(@aria-label, 'New')]//*[contains(@class,'icon-plus')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_BUTTON</td>
+	<td>//nav[contains(@class,'management-bar')]//*[(@title="Show View Options")][*[name()='svg'][contains(@class,'icon-${key_text}')]]</td>
 	<td></td>
 </tr>
 </tbody>

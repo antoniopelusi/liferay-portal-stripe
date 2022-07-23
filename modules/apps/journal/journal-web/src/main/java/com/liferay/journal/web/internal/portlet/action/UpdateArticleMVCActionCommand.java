@@ -55,8 +55,9 @@ import com.liferay.portal.kernel.servlet.MultiSessionMessages;
 import com.liferay.portal.kernel.upload.LiferayFileItemException;
 import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
+import com.liferay.portal.kernel.util.Html;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -80,7 +81,6 @@ import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
-import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -142,7 +142,6 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 		long folderId = ParamUtil.getLong(uploadPortletRequest, "folderId");
 		String articleId = ParamUtil.getString(
 			uploadPortletRequest, "articleId");
-		double version = ParamUtil.getDouble(uploadPortletRequest, "version");
 
 		Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(
 			actionRequest, "titleMapAsXML");
@@ -313,7 +312,7 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 				uploadPortletRequest, "autoArticleId");
 
 			article = _journalArticleService.addArticle(
-				groupId, folderId, classNameId, classPK, articleId,
+				null, groupId, folderId, classNameId, classPK, articleId,
 				autoArticleId, titleMap, descriptionMap, friendlyURLMap,
 				content, ddmStructureKey, ddmTemplateKey, layoutUuid,
 				displayDateMonth, displayDateDay, displayDateYear,
@@ -327,6 +326,9 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 		else {
 
 			// Update article
+
+			double version = ParamUtil.getDouble(
+				uploadPortletRequest, "version");
 
 			article = _journalArticleService.getArticle(
 				groupId, articleId, version);
@@ -386,7 +388,7 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 
 				portletPreferences.store();
 
-				updateContentSearch(
+				_updateContentSearch(
 					refererPlid, portletResource, article.getArticleId());
 			}
 
@@ -431,7 +433,7 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 				actionRequest, "friendlyURLChanged", friendlyURLChangedMessage);
 		}
 
-		sendEditArticleRedirect(actionRequest, article, oldUrlTitle);
+		_sendEditArticleRedirect(actionRequest, article, oldUrlTitle);
 
 		boolean hideDefaultSuccessMessage = ParamUtil.getBoolean(
 			actionRequest, "hideDefaultSuccessMessage");
@@ -439,124 +441,6 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 		if (hideDefaultSuccessMessage) {
 			hideDefaultSuccessMessage(actionRequest);
 		}
-	}
-
-	protected String getSaveAndContinueRedirect(
-			ActionRequest actionRequest, JournalArticle article,
-			String redirect)
-		throws Exception {
-
-		String languageId = ParamUtil.getString(actionRequest, "languageId");
-
-		PortletURL portletURL = PortletURLBuilder.create(
-			PortletURLFactoryUtil.create(
-				actionRequest, JournalPortletKeys.JOURNAL,
-				PortletRequest.RENDER_PHASE)
-		).setMVCPath(
-			"/edit_article.jsp"
-		).setRedirect(
-			redirect
-		).setParameter(
-			"articleId", article.getArticleId()
-		).setParameter(
-			"folderId", article.getFolderId()
-		).setParameter(
-			"groupId", article.getGroupId()
-		).setParameter(
-			"portletResource",
-			ParamUtil.getString(actionRequest, "portletResource")
-		).setParameter(
-			"referringPortletResource",
-			ParamUtil.getString(actionRequest, "referringPortletResource")
-		).setParameter(
-			"resourcePrimKey", article.getResourcePrimKey()
-		).setParameter(
-			"version", article.getVersion()
-		).build();
-
-		if (Validator.isNotNull(languageId)) {
-			portletURL.setParameter("languageId", languageId);
-		}
-
-		portletURL.setWindowState(actionRequest.getWindowState());
-
-		return portletURL.toString();
-	}
-
-	protected void sendEditArticleRedirect(
-			ActionRequest actionRequest, JournalArticle article,
-			String oldUrlTitle)
-		throws Exception {
-
-		String actionName = ParamUtil.getString(
-			actionRequest, ActionRequest.ACTION_NAME);
-
-		String redirect = ParamUtil.getString(actionRequest, "redirect");
-
-		int workflowAction = ParamUtil.getInteger(
-			actionRequest, "workflowAction", WorkflowConstants.ACTION_PUBLISH);
-
-		String portletId = _http.getParameter(
-			redirect, "portletResource", false);
-
-		String namespace = _portal.getPortletNamespace(portletId);
-
-		if (Validator.isNotNull(oldUrlTitle) &&
-			Validator.isNotNull(portletId)) {
-
-			String oldRedirectParam = namespace + "redirect";
-
-			String oldRedirect = _http.getParameter(
-				redirect, oldRedirectParam, false);
-
-			if (Validator.isNotNull(oldRedirect)) {
-				String newRedirect = _http.decodeURL(oldRedirect);
-
-				newRedirect = StringUtil.replace(
-					newRedirect, oldUrlTitle, article.getUrlTitle());
-				newRedirect = StringUtil.replace(
-					newRedirect, oldRedirectParam, "redirect");
-
-				redirect = StringUtil.replace(
-					redirect, oldRedirect, newRedirect);
-			}
-		}
-
-		if ((article != null) &&
-			(workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT)) {
-
-			redirect = getSaveAndContinueRedirect(
-				actionRequest, article, redirect);
-		}
-		else {
-			redirect = _portal.escapeRedirect(redirect);
-
-			if (Validator.isNotNull(redirect) &&
-				Validator.isNotNull(portletId) &&
-				actionName.equals("/journal/add_article") &&
-				(article != null) && Validator.isNotNull(namespace)) {
-
-				redirect = _http.addParameter(
-					redirect, namespace + "className",
-					JournalArticle.class.getName());
-				redirect = _http.addParameter(
-					redirect, namespace + "classPK",
-					JournalArticleAssetRenderer.getClassPK(article));
-			}
-		}
-
-		actionRequest.setAttribute(WebKeys.REDIRECT, redirect);
-	}
-
-	protected void updateContentSearch(
-			long plid, String portletResource, String articleId)
-		throws Exception {
-
-		Layout layout = _layoutLocalService.fetchLayout(plid);
-
-		_journalContentSearchLocalService.updateContentSearch(
-			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			portletResource, articleId, true);
 	}
 
 	private String _getFriendlyURLChangedMessage(
@@ -576,12 +460,12 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 			String originalFriendlyURL = originalFriendlyURLMap.get(locale);
 
 			String normalizedOriginalFriendlyURL =
-				FriendlyURLNormalizerUtil.normalizeWithEncoding(
+				_friendlyURLNormalizer.normalizeWithEncoding(
 					originalFriendlyURL);
 
 			String currentFriendlyURL = entry.getValue();
 
-			if (!originalFriendlyURL.equals(StringPool.BLANK) &&
+			if (Validator.isNotNull(originalFriendlyURL) &&
 				!currentFriendlyURL.equals(normalizedOriginalFriendlyURL)) {
 
 				messages.add(
@@ -589,7 +473,8 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 						httpServletRequest, "for-locale-x-x-was-changed-to-x",
 						new Object[] {
 							"<strong>" + locale.getLanguage() + "</strong>",
-							"<strong>" + originalFriendlyURL + "</strong>",
+							"<strong>" + _html.escapeURL(originalFriendlyURL) +
+								"</strong>",
 							"<strong>" + currentFriendlyURL + "</strong>"
 						}));
 			}
@@ -605,6 +490,127 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		return StringUtil.merge(messages, "<br />");
+	}
+
+	private String _getSaveAndContinueRedirect(
+			ActionRequest actionRequest, JournalArticle article,
+			String redirect)
+		throws Exception {
+
+		return PortletURLBuilder.create(
+			PortletURLFactoryUtil.create(
+				actionRequest, JournalPortletKeys.JOURNAL,
+				PortletRequest.RENDER_PHASE)
+		).setMVCPath(
+			"/edit_article.jsp"
+		).setRedirect(
+			redirect
+		).setPortletResource(
+			ParamUtil.getString(actionRequest, "portletResource")
+		).setParameter(
+			"articleId", article.getArticleId()
+		).setParameter(
+			"folderId", article.getFolderId()
+		).setParameter(
+			"groupId", article.getGroupId()
+		).setParameter(
+			"languageId",
+			() -> {
+				String languageId = ParamUtil.getString(
+					actionRequest, "languageId");
+
+				if (Validator.isNotNull(languageId)) {
+					return languageId;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"referringPortletResource",
+			ParamUtil.getString(actionRequest, "referringPortletResource")
+		).setParameter(
+			"resourcePrimKey", article.getResourcePrimKey()
+		).setParameter(
+			"version", article.getVersion()
+		).setWindowState(
+			actionRequest.getWindowState()
+		).buildString();
+	}
+
+	private void _sendEditArticleRedirect(
+			ActionRequest actionRequest, JournalArticle article,
+			String oldUrlTitle)
+		throws Exception {
+
+		String actionName = ParamUtil.getString(
+			actionRequest, ActionRequest.ACTION_NAME);
+
+		String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+		int workflowAction = ParamUtil.getInteger(
+			actionRequest, "workflowAction", WorkflowConstants.ACTION_PUBLISH);
+
+		String portletId = HttpComponentsUtil.getParameter(
+			redirect, "portletResource", false);
+
+		String namespace = _portal.getPortletNamespace(portletId);
+
+		if (Validator.isNotNull(oldUrlTitle) &&
+			Validator.isNotNull(portletId)) {
+
+			String oldRedirectParam = namespace + "redirect";
+
+			String oldRedirect = HttpComponentsUtil.getParameter(
+				redirect, oldRedirectParam, false);
+
+			if (Validator.isNotNull(oldRedirect)) {
+				String newRedirect = HttpComponentsUtil.decodeURL(oldRedirect);
+
+				newRedirect = StringUtil.replace(
+					newRedirect, oldUrlTitle, article.getUrlTitle());
+				newRedirect = StringUtil.replace(
+					newRedirect, oldRedirectParam, "redirect");
+
+				redirect = StringUtil.replace(
+					redirect, oldRedirect, newRedirect);
+			}
+		}
+
+		if ((article != null) &&
+			(workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT)) {
+
+			redirect = _getSaveAndContinueRedirect(
+				actionRequest, article, redirect);
+		}
+		else {
+			redirect = _portal.escapeRedirect(redirect);
+
+			if (Validator.isNotNull(redirect) &&
+				Validator.isNotNull(portletId) &&
+				actionName.equals("/journal/add_article") &&
+				(article != null) && Validator.isNotNull(namespace)) {
+
+				redirect = HttpComponentsUtil.addParameter(
+					redirect, namespace + "className",
+					JournalArticle.class.getName());
+				redirect = HttpComponentsUtil.addParameter(
+					redirect, namespace + "classPK",
+					JournalArticleAssetRenderer.getClassPK(article));
+			}
+		}
+
+		actionRequest.setAttribute(WebKeys.REDIRECT, redirect);
+	}
+
+	private void _updateContentSearch(
+			long plid, String portletResource, String articleId)
+		throws Exception {
+
+		Layout layout = _layoutLocalService.fetchLayout(plid);
+
+		_journalContentSearchLocalService.updateContentSearch(
+			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+			portletResource, articleId, true);
 	}
 
 	private void _updateLayoutClassedModelUsage(
@@ -645,7 +651,10 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 	private DDMStructureLocalService _ddmStructureLocalService;
 
 	@Reference
-	private Http _http;
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
+
+	@Reference
+	private Html _html;
 
 	@Reference
 	private JournalArticleService _journalArticleService;

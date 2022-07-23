@@ -384,4 +384,7 @@ public interface OrganizationModel
 	 */
 	public void setLogoId(long logoId);
 
+	@Override
+	public Organization cloneWithOriginalValues();
+
 }

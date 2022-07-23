@@ -255,4 +255,7 @@ public interface LockModel extends BaseModel<Lock>, MVCCModel, ShardedModel {
 	 */
 	public void setExpirationDate(Date expirationDate);
 
+	@Override
+	public Lock cloneWithOriginalValues();
+
 }

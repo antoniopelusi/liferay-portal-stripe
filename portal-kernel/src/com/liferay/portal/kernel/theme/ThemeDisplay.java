@@ -16,7 +16,6 @@ package com.liferay.portal.kernel.theme;
 
 import com.liferay.admin.kernel.util.PortalMyAccountApplicationType;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
-import com.liferay.mobile.device.rules.kernel.MDRRuleGroupInstance;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
@@ -27,7 +26,6 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.mobile.device.Device;
-import com.liferay.portal.kernel.model.Account;
 import com.liferay.portal.kernel.model.ColorScheme;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Contact;
@@ -50,12 +48,11 @@ import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.Mergeable;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.TimeZoneThreadLocal;
@@ -140,19 +137,6 @@ public class ThemeDisplay
 		return themeDisplay;
 	}
 
-	public Account getAccount() {
-		if ((_account == null) && (_company != null)) {
-			try {
-				_account = _company.getAccount();
-			}
-			catch (PortalException portalException) {
-				ReflectionUtil.throwException(portalException);
-			}
-		}
-
-		return _account;
-	}
-
 	/**
 	 * Returns the content delivery network (CDN) base URL, or the current
 	 * portal URL if the CDN base URL is <code>null</code>. The CDN base URL can
@@ -177,7 +161,7 @@ public class ThemeDisplay
 				portalURL = PortalUtil.getPortalURL(getLayout(), this);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 
 			host = portalURL;
@@ -540,10 +524,6 @@ public class ThemeDisplay
 		return _locale;
 	}
 
-	public MDRRuleGroupInstance getMDRRuleGroupInstance() {
-		return _mdrRuleGroupInstance;
-	}
-
 	public String getPathApplet() {
 		return _pathApplet;
 	}
@@ -564,14 +544,6 @@ public class ThemeDisplay
 
 	public String getPathContext() {
 		return _pathContext;
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	public String getPathFlash() {
-		return _pathFlash;
 	}
 
 	/**
@@ -732,7 +704,7 @@ public class ThemeDisplay
 	}
 
 	public String getProtocol() {
-		return HttpUtil.getProtocol(_secure);
+		return HttpComponentsUtil.getProtocol(_secure);
 	}
 
 	public String getRealCompanyLogo() {
@@ -950,11 +922,9 @@ public class ThemeDisplay
 	public String getThemeSetting(String key) {
 		Theme theme = getTheme();
 
-		String device = theme.getDevice();
-
 		Layout layout = getLayout();
 
-		return layout.getThemeSetting(key, device);
+		return layout.getThemeSetting(key, theme.getDevice());
 	}
 
 	/**
@@ -1049,17 +1019,6 @@ public class ThemeDisplay
 
 	public String getURLSignOut() {
 		return _urlSignOut;
-	}
-
-	@JSON(include = false)
-	public PortletURL getURLUpdateManager() {
-		if (_urlUpdateManager == null) {
-			_urlUpdateManager = PortalUtil.getControlPanelPortletURL(
-				getRequest(), PortletKeys.MARKETPLACE_STORE,
-				PortletRequest.RENDER_PHASE);
-		}
-
-		return _urlUpdateManager;
 	}
 
 	/**
@@ -1275,10 +1234,6 @@ public class ThemeDisplay
 		return this;
 	}
 
-	public void setAccount(Account account) {
-		_account = account;
-	}
-
 	public void setAddSessionIdToURL(boolean addSessionIdToURL) {
 		_addSessionIdToURL = addSessionIdToURL;
 	}
@@ -1461,7 +1416,7 @@ public class ThemeDisplay
 				portalURL = PortalUtil.getPortalURL(getLayout(), this);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 
 			dynamicResourcesHost = portalURL;
@@ -1489,12 +1444,6 @@ public class ThemeDisplay
 			cdnBaseURL + themeStaticResourcePath + theme.getTemplatesPath());
 	}
 
-	public void setMDRRuleGroupInstance(
-		MDRRuleGroupInstance mdrRuleGroupInstance) {
-
-		_mdrRuleGroupInstance = mdrRuleGroupInstance;
-	}
-
 	public void setPathApplet(String pathApplet) {
 		_pathApplet = pathApplet;
 	}
@@ -1509,14 +1458,6 @@ public class ThemeDisplay
 
 	public void setPathContext(String pathContext) {
 		_pathContext = pathContext;
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPathFlash(String pathFlash) {
-		_pathFlash = pathFlash;
 	}
 
 	public void setPathFriendlyURLPrivateGroup(
@@ -1615,7 +1556,7 @@ public class ThemeDisplay
 				_refererGroup = GroupLocalServiceUtil.getGroup(_refererGroupId);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
@@ -1640,7 +1581,7 @@ public class ThemeDisplay
 				_scopeGroup = GroupLocalServiceUtil.getGroup(_scopeGroupId);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
@@ -1727,7 +1668,7 @@ public class ThemeDisplay
 				_siteGroup = GroupLocalServiceUtil.getGroup(_siteGroupId);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
@@ -1896,7 +1837,6 @@ public class ThemeDisplay
 
 	private static int _layoutManagePagesInitialChildren = Integer.MIN_VALUE;
 
-	private Account _account;
 	private boolean _addSessionIdToURL;
 	private boolean _ajax;
 	private boolean _async;
@@ -1941,12 +1881,10 @@ public class ThemeDisplay
 	private boolean _lifecycleRender;
 	private boolean _lifecycleResource;
 	private Locale _locale;
-	private MDRRuleGroupInstance _mdrRuleGroupInstance;
 	private String _pathApplet = StringPool.BLANK;
 	private String _pathCms = StringPool.BLANK;
 	private String _pathColorSchemeImages = StringPool.BLANK;
 	private String _pathContext = StringPool.BLANK;
-	private String _pathFlash = StringPool.BLANK;
 	private String _pathFriendlyURLPrivateGroup = StringPool.BLANK;
 	private String _pathFriendlyURLPrivateUser = StringPool.BLANK;
 	private String _pathFriendlyURLPublic = StringPool.BLANK;
@@ -2017,7 +1955,6 @@ public class ThemeDisplay
 	private transient PortletURL _urlPublishToLive;
 	private String _urlSignIn = StringPool.BLANK;
 	private String _urlSignOut = StringPool.BLANK;
-	private transient PortletURL _urlUpdateManager;
 	private User _user;
 	private boolean _widget;
 

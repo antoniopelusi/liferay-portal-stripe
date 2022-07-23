@@ -16,11 +16,11 @@ package com.liferay.fragment.contributor;
 
 import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.constants.FragmentExportImportConstants;
+import com.liferay.fragment.exception.InvalidFragmentCompositionKeyException;
+import com.liferay.fragment.model.FragmentComposition;
 import com.liferay.fragment.model.FragmentEntry;
-import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
-import com.liferay.fragment.service.FragmentEntryLinkLocalService;
+import com.liferay.fragment.service.FragmentCompositionLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
-import com.liferay.fragment.validator.FragmentEntryValidator;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -68,6 +68,18 @@ import org.osgi.service.component.annotations.Reference;
  */
 public abstract class BaseFragmentCollectionContributor
 	implements FragmentCollectionContributor {
+
+	@Override
+	public List<FragmentComposition> getFragmentCompositions() {
+		_initialize();
+
+		return Collections.unmodifiableList(_fragmentCompositions);
+	}
+
+	@Override
+	public List<FragmentComposition> getFragmentCompositions(Locale locale) {
+		return _getFragmentCompositions(getFragmentCompositions(), locale);
+	}
 
 	@Override
 	public List<FragmentEntry> getFragmentEntries() {
@@ -162,58 +174,67 @@ public abstract class BaseFragmentCollectionContributor
 		try {
 			Map<Locale, String> names = _getContributedCollectionNames();
 
-			Enumeration<URL> enumeration = _bundle.findEntries(
+			Enumeration<URL> fragmentEntriesEnumeration = _bundle.findEntries(
 				StringPool.BLANK,
 				FragmentExportImportConstants.FILE_NAME_FRAGMENT, true);
 
+			Enumeration<URL> fragmentCompositionsEnumeration =
+				_bundle.findEntries(
+					StringPool.BLANK,
+					FragmentExportImportConstants.
+						FILE_NAME_FRAGMENT_COMPOSITION,
+					true);
+
+			_fragmentCompositionNames = new HashMap<>();
+			_fragmentCompositions = new ArrayList<>();
 			_fragmentEntries = new HashMap<>();
 			_fragmentEntryNames = new HashMap<>();
 
-			if (MapUtil.isEmpty(names) || !enumeration.hasMoreElements()) {
+			if (MapUtil.isEmpty(names) ||
+				((fragmentCompositionsEnumeration != null) &&
+				 !fragmentCompositionsEnumeration.hasMoreElements() &&
+				 (fragmentEntriesEnumeration != null) &&
+				 !fragmentEntriesEnumeration.hasMoreElements())) {
+
 				return;
 			}
 
 			_names = names;
 
-			while (enumeration.hasMoreElements()) {
-				URL url = enumeration.nextElement();
+			if (fragmentEntriesEnumeration != null) {
+				while (fragmentEntriesEnumeration.hasMoreElements()) {
+					URL url = fragmentEntriesEnumeration.nextElement();
 
-				FragmentEntry fragmentEntry = _getFragmentEntry(url);
+					FragmentEntry fragmentEntry = _getFragmentEntry(url);
 
-				List<FragmentEntry> fragmentEntryList =
-					_fragmentEntries.computeIfAbsent(
-						fragmentEntry.getType(), type -> new ArrayList<>());
+					List<FragmentEntry> fragmentEntryList =
+						_fragmentEntries.computeIfAbsent(
+							fragmentEntry.getType(), type -> new ArrayList<>());
 
-				fragmentEntryList.add(fragmentEntry);
+					fragmentEntryList.add(fragmentEntry);
+				}
+			}
+
+			if (fragmentCompositionsEnumeration != null) {
+				while (fragmentCompositionsEnumeration.hasMoreElements()) {
+					URL url = fragmentCompositionsEnumeration.nextElement();
+
+					_fragmentCompositions.add(_getFragmentComposition(url));
+				}
 			}
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x)
-	 */
-	@Deprecated
-	protected FragmentEntryLinkLocalService fragmentEntryLinkLocalService;
+	@Reference
+	protected FragmentCompositionLocalService fragmentCompositionLocalService;
 
 	@Reference
 	protected FragmentEntryLocalService fragmentEntryLocalService;
-
-	/**
-	 * @deprecated As of Mueller (7.2.x)
-	 */
-	@Deprecated
-	protected FragmentEntryProcessorRegistry fragmentEntryProcessorRegistry;
-
-	/**
-	 * @deprecated As of Mueller (7.2.x)
-	 */
-	@Deprecated
-	protected FragmentEntryValidator fragmentEntryValidator;
 
 	private Map<Locale, String> _getContributedCollectionNames()
 		throws Exception {
@@ -234,6 +255,80 @@ public abstract class BaseFragmentCollectionContributor
 		_setLocalizedNames(name, names, getResourceBundleLoader());
 
 		return names;
+	}
+
+	private FragmentComposition _getFragmentComposition(URL url)
+		throws Exception {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			StreamUtil.toString(url.openStream()));
+
+		String fragmentCompositionKey = jsonObject.getString(
+			"fragmentCompositionKey");
+
+		if (Validator.isNull(fragmentCompositionKey)) {
+			throw new InvalidFragmentCompositionKeyException();
+		}
+
+		fragmentCompositionKey = StringBundler.concat(
+			getFragmentCollectionKey(), "-composition-",
+			jsonObject.getString("fragmentCompositionKey"));
+
+		Map<Locale, String> names = _fragmentCompositionNames.getOrDefault(
+			fragmentCompositionKey, new HashMap<>());
+
+		String name = jsonObject.getString("name");
+
+		_setLocalizedNames(name, names, getResourceBundleLoader());
+
+		_fragmentCompositionNames.put(fragmentCompositionKey, names);
+
+		String definition = _read(
+			FileUtil.getPath(url.getPath()),
+			jsonObject.getString("fragmentCompositionDefinitionPath"),
+			"fragment-composition-definition.json");
+
+		String thumbnailURL = _getImagePreviewURL(
+			jsonObject.getString("thumbnail"));
+
+		FragmentComposition fragmentComposition =
+			fragmentCompositionLocalService.createFragmentComposition(0L);
+
+		fragmentComposition.setFragmentCompositionKey(fragmentCompositionKey);
+
+		fragmentComposition.setName(name);
+		fragmentComposition.setData(definition);
+		fragmentComposition.setIcon(
+			jsonObject.getString("icon", "edit-layout"));
+		fragmentComposition.setImagePreviewURL(thumbnailURL);
+
+		return fragmentComposition;
+	}
+
+	private List<FragmentComposition> _getFragmentCompositions(
+		List<FragmentComposition> fragmentCompositions, Locale locale) {
+
+		Stream<FragmentComposition> stream = fragmentCompositions.stream();
+
+		return stream.map(
+			fragmentComposition -> {
+				Map<Locale, String> names =
+					_fragmentCompositionNames.getOrDefault(
+						fragmentComposition.getFragmentCompositionKey(),
+						Collections.emptyMap());
+
+				fragmentComposition.setName(
+					names.getOrDefault(
+						locale,
+						names.getOrDefault(
+							LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+							fragmentComposition.getName())));
+
+				return fragmentComposition;
+			}
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	private List<FragmentEntry> _getFragmentEntries(
@@ -304,8 +399,8 @@ public abstract class BaseFragmentCollectionContributor
 		fragmentEntry.setJs(js);
 		fragmentEntry.setCacheable(cacheable);
 		fragmentEntry.setConfiguration(configuration);
-		fragmentEntry.setType(type);
 		fragmentEntry.setIcon(jsonObject.getString("icon", "code"));
+		fragmentEntry.setType(type);
 		fragmentEntry.setImagePreviewURL(thumbnailURL);
 
 		return fragmentEntry;
@@ -396,6 +491,8 @@ public abstract class BaseFragmentCollectionContributor
 		BaseFragmentCollectionContributor.class);
 
 	private Bundle _bundle;
+	private Map<String, Map<Locale, String>> _fragmentCompositionNames;
+	private List<FragmentComposition> _fragmentCompositions;
 	private Map<Integer, List<FragmentEntry>> _fragmentEntries;
 	private Map<String, Map<Locale, String>> _fragmentEntryNames;
 	private volatile boolean _initialized;

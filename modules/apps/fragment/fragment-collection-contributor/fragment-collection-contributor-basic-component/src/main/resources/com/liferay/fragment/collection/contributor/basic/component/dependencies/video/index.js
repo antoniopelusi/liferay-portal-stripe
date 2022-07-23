@@ -12,6 +12,11 @@ const width = configuration.videoWidth
 	: configuration.videoWidth;
 
 function resize() {
+	const scrollPosition = {
+		left: window.scrollX,
+		top: window.scrollY,
+	};
+
 	content.style.height = '';
 	content.style.width = '';
 
@@ -25,6 +30,8 @@ function resize() {
 
 			content.style.height = contentHeight + 'px';
 			content.style.width = contentWidth + 'px';
+
+			window.scrollTo(scrollPosition);
 		}
 		catch (error) {
 			window.removeEventListener('resize', resize);
@@ -180,7 +187,7 @@ function main() {
 
 	try {
 		let matched = false;
-		const url = new URL(configuration.url);
+		const url = new URL(configuration.url, window.location.origin);
 		const providers = [youtubeProvider, rawProvider];
 
 		for (let i = 0; i < providers.length && !matched; i++) {

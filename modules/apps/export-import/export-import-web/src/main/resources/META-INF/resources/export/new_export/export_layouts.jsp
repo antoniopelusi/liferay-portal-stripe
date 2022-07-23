@@ -53,17 +53,8 @@ else {
 
 boolean configuredExport = (exportImportConfiguration == null) ? false : true;
 
-String rootNodeName = StringPool.BLANK;
-
 if (configuredExport) {
 	privateLayout = MapUtil.getBoolean(exportImportConfigurationSettingsMap, "privateLayout", privateLayout);
-}
-
-if (privateLayout) {
-	rootNodeName = LanguageUtil.get(request, "private-pages");
-}
-else {
-	rootNodeName = LanguageUtil.get(request, "public-pages");
 }
 
 String treeId = "layoutsExportTree" + liveGroupId + privateLayout;
@@ -77,12 +68,12 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 ).setParameter(
 	"displayStyle", displayStyle
 ).setParameter(
-	"groupId", String.valueOf(groupId)
+	"groupId", groupId
 ).setParameter(
-	"liveGroupId", String.valueOf(liveGroupId)
+	"liveGroupId", liveGroupId
 ).setParameter(
-	"privateLayout", String.valueOf(privateLayout)
-).build();
+	"privateLayout", privateLayout
+).buildPortletURL();
 
 if (Validator.isBlank(backURL)) {
 	backURL = portletURL.toString();
@@ -128,7 +119,6 @@ renderResponse.setTitle(!configuredExport ? LanguageUtil.get(request, "new-custo
 		<aui:input name="groupId" type="hidden" value="<%= String.valueOf(groupId) %>" />
 		<aui:input name="liveGroupId" type="hidden" value="<%= String.valueOf(liveGroupId) %>" />
 		<aui:input name="privateLayout" type="hidden" value="<%= String.valueOf(privateLayout) %>" />
-		<aui:input name="rootNodeName" type="hidden" value="<%= rootNodeName %>" />
 		<aui:input name="treeId" type="hidden" value="<%= treeId %>" />
 		<aui:input name="<%= PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS_ALL %>" type="hidden" value="<%= true %>" />
 		<aui:input name="<%= PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL %>" type="hidden" value="<%= true %>" />

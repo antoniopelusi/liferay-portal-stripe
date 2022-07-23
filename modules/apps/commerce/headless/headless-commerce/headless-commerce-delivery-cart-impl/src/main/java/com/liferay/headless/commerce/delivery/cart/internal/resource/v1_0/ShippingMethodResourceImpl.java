@@ -27,7 +27,7 @@ import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.service.CommerceShippingMethodLocalService;
 import com.liferay.commerce.util.CommerceShippingEngineRegistry;
-import com.liferay.commerce.util.comparator.CommerceShippingOptionLabelComparator;
+import com.liferay.commerce.util.comparator.CommerceShippingOptionPriorityComparator;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.ShippingMethod;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.ShippingOption;
 import com.liferay.headless.commerce.delivery.cart.resource.v1_0.ShippingMethodResource;
@@ -36,8 +36,6 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.vulcan.pagination.Page;
 
 import java.math.BigDecimal;
-
-import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -95,15 +93,12 @@ public class ShippingMethodResourceImpl extends BaseShippingMethodResourceImpl {
 			_commerceShippingEngineRegistry.getCommerceShippingEngine(
 				commerceShippingMethod.getEngineKey());
 
-		List<CommerceShippingOption> commerceShippingOptions =
-			commerceShippingEngine.getCommerceShippingOptions(
-				commerceContext, commerceOrder,
-				contextAcceptLanguage.getPreferredLocale());
-
 		return transformToArray(
 			ListUtil.sort(
-				commerceShippingOptions,
-				new CommerceShippingOptionLabelComparator()),
+				commerceShippingEngine.getCommerceShippingOptions(
+					commerceContext, commerceOrder,
+					contextAcceptLanguage.getPreferredLocale()),
+				new CommerceShippingOptionPriorityComparator()),
 			shippingOption -> _toShippingOption(
 				shippingOption, commerceContext),
 			ShippingOption.class);
@@ -142,8 +137,8 @@ public class ShippingMethodResourceImpl extends BaseShippingMethodResourceImpl {
 					commerceContext.getCommerceCurrency(),
 					commerceShippingOption.getAmount(),
 					contextAcceptLanguage.getPreferredLocale());
-				label = commerceShippingOption.getLabel();
-				name = commerceShippingOption.getName();
+				label = commerceShippingOption.getName();
+				name = commerceShippingOption.getKey();
 			}
 		};
 	}

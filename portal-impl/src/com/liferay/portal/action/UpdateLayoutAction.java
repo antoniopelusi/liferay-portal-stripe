@@ -16,6 +16,8 @@ package com.liferay.portal.action;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -25,8 +27,9 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.AddPortletProvider;
-import com.liferay.portal.kernel.portlet.PortletJSONUtil;
+import com.liferay.portal.kernel.portlet.PortletPathsUtil;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutServiceUtil;
@@ -54,8 +57,9 @@ import com.liferay.portal.struts.Action;
 import com.liferay.portal.struts.JSONAction;
 import com.liferay.portal.util.LayoutClone;
 import com.liferay.portal.util.LayoutCloneFactory;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerMap;
+
+import java.util.Collection;
+import java.util.Map;
 
 import javax.portlet.PortletPreferences;
 
@@ -300,8 +304,22 @@ public class UpdateLayoutAction extends JSONAction {
 
 			portletHTML = portletHTML.trim();
 
-			PortletJSONUtil.populatePortletJSONObject(
-				httpServletRequest, portletHTML, portlet, jsonObject);
+			Map<String, Object> paths = PortletPathsUtil.getPortletPaths(
+				httpServletRequest, portletHTML, portlet);
+
+			for (Map.Entry<String, Object> entry : paths.entrySet()) {
+				Object value = entry.getValue();
+
+				if (value instanceof Collection) {
+					jsonObject.put(
+						entry.getKey(),
+						JSONFactoryUtil.createJSONArray(
+							(Collection<String>)value));
+				}
+				else {
+					jsonObject.put(entry.getKey(), value);
+				}
+			}
 
 			httpServletResponse.setContentType(ContentTypes.APPLICATION_JSON);
 
@@ -358,7 +376,8 @@ public class UpdateLayoutAction extends JSONAction {
 	}
 
 	private static final ServiceTrackerMap<String, AddPortletProvider>
-		_serviceTrackerMap = ServiceTrackerCollections.openSingleValueMap(
-			AddPortletProvider.class, "model.class.name");
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			SystemBundleUtil.getBundleContext(), AddPortletProvider.class,
+			"model.class.name");
 
 }

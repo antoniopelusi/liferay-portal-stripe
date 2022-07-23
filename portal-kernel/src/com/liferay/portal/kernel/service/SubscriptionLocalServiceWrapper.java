@@ -28,6 +28,10 @@ public class SubscriptionLocalServiceWrapper
 	implements ServiceWrapper<SubscriptionLocalService>,
 			   SubscriptionLocalService {
 
+	public SubscriptionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SubscriptionLocalServiceWrapper(
 		SubscriptionLocalService subscriptionLocalService) {
 
@@ -240,6 +244,13 @@ public class SubscriptionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _subscriptionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _subscriptionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

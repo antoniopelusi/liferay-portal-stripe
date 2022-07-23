@@ -222,6 +222,11 @@ public class MBThreadWrapper
 	}
 
 	@Override
+	public MBThread cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public long getAttachmentsFolderId() {
 		return model.getAttachmentsFolderId();
 	}

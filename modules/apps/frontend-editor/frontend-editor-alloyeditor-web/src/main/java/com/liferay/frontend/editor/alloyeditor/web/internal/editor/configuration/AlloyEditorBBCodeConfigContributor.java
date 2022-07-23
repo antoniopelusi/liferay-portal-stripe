@@ -18,29 +18,19 @@ import com.liferay.message.boards.constants.MBThreadConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigContributor;
 import com.liferay.portal.kernel.json.JSONArray;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Ambrín Chaudhary
@@ -77,22 +67,21 @@ public class AlloyEditorBBCodeConfigContributor
 		).put(
 			"format_tags", "p;pre"
 		).put(
-			"lang", getLangJSONObject(inputEditorTaglibAttributes)
+			"lang", _getLangJSONObject(inputEditorTaglibAttributes)
 		).put(
 			"newThreadURL", MBThreadConstants.NEW_THREAD_URL
 		);
 
 		String removePlugins = jsonObject.getString("removePlugins");
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("bidi,div,font,forms,indentblock,keystrokes,maximize,");
-		sb.append("newpage,pagebreak,preview,print,save,showblocks,smiley,");
-		sb.append("stylescombo,templates,video");
-
 		jsonObject.put(
 			"removePlugins",
-			StringBundler.concat(removePlugins, ",", sb.toString())
+			StringBundler.concat(
+				removePlugins, ",",
+				StringBundler.concat(
+					"bidi,div,font,forms,indentblock,keystrokes,maximize,",
+					"newpage,pagebreak,preview,print,save,showblocks,smiley,",
+					"stylescombo,templates,video"))
 		).put(
 			"smiley_images",
 			toJSONArray(BBCodeTranslatorUtil.getEmoticonFiles())
@@ -107,15 +96,6 @@ public class AlloyEditorBBCodeConfigContributor
 		);
 	}
 
-	protected JSONObject getLangJSONObject(
-		Map<String, Object> inputEditorTaglibAttributes) {
-
-		return JSONUtil.put(
-			"code",
-			LanguageUtil.get(
-				getContentsLocale(inputEditorTaglibAttributes), "code"));
-	}
-
 	protected JSONObject getStyleFormatJSONObject(
 		String styleFormatName, String element, String cssClass, int type) {
 
@@ -127,37 +107,21 @@ public class AlloyEditorBBCodeConfigContributor
 	}
 
 	protected JSONArray getStyleFormatsJSONArray(Locale locale) {
-		ResourceBundle resourceBundle = null;
-
-		try {
-			resourceBundle = _resourceBundleLoader.loadResourceBundle(locale);
-		}
-		catch (MissingResourceException missingResourceException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(missingResourceException, missingResourceException);
-			}
-
-			resourceBundle = ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE;
-		}
-
 		return JSONUtil.putAll(
 			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "normal"), "p", null,
+				LanguageUtil.get(locale, "normal"), "p", null,
 				_CKEDITOR_STYLE_BLOCK),
 			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "cited-work"), "cite", null,
+				LanguageUtil.get(locale, "cited-work"), "cite", null,
 				_CKEDITOR_STYLE_INLINE),
 			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "computer-code"), "code", null,
+				LanguageUtil.get(locale, "computer-code"), "code", null,
 				_CKEDITOR_STYLE_INLINE));
 	}
 
 	protected JSONObject getStyleFormatsJSONObject(Locale locale) {
-		JSONObject stylesJSONObject = JSONUtil.put(
-			"styles", getStyleFormatsJSONArray(locale));
-
 		return JSONUtil.put(
-			"cfg", stylesJSONObject
+			"cfg", JSONUtil.put("styles", getStyleFormatsJSONArray(locale))
 		).put(
 			"name", "styles"
 		);
@@ -166,21 +130,20 @@ public class AlloyEditorBBCodeConfigContributor
 	protected JSONObject getStyleJSONObject(
 		String element, String cssClass, int type) {
 
-		JSONObject styleJSONObject = JSONFactoryUtil.createJSONObject();
+		return JSONUtil.put(
+			"attributes",
+			() -> {
+				if (Validator.isNotNull(cssClass)) {
+					return JSONUtil.put("class", cssClass);
+				}
 
-		if (Validator.isNotNull(cssClass)) {
-			JSONObject attributesJSONObject = JSONUtil.put("class", cssClass);
-
-			styleJSONObject.put("attributes", attributesJSONObject);
-		}
-
-		styleJSONObject.put(
+				return null;
+			}
+		).put(
 			"element", element
 		).put(
 			"type", type
 		);
-
-		return styleJSONObject;
 	}
 
 	protected JSONObject getToolbarsAddJSONObject() {
@@ -238,18 +201,17 @@ public class AlloyEditorBBCodeConfigContributor
 		);
 	}
 
+	private JSONObject _getLangJSONObject(
+		Map<String, Object> inputEditorTaglibAttributes) {
+
+		return JSONUtil.put(
+			"code",
+			LanguageUtil.get(
+				getContentsLocale(inputEditorTaglibAttributes), "code"));
+	}
+
 	private static final int _CKEDITOR_STYLE_BLOCK = 1;
 
 	private static final int _CKEDITOR_STYLE_INLINE = 2;
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		AlloyEditorBBCodeConfigContributor.class);
-
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(bundle.symbolic.name=com.liferay.frontend.editor.lang)"
-	)
-	private volatile ResourceBundleLoader _resourceBundleLoader;
 
 }

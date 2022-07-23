@@ -1,0 +1,187 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9119 | Test Summary: Property list loading a lot of values"
+	@ignore = "true"
+	@priority = "2"
+	test CanPropertyListLoadingALotOfValues {
+
+		// TODO LRAC-9119 CanPropertyListLoadingALotOfValues pending implementation
+
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9121 | Test Summary: Settings page properties list is searchable"
+	@priority = "3"
+	test CanSearchForPagePropertiesList {
+		var propertyList = "Property Name 1,Property Name 2,Property Name 3,Property Name 4";
+
+		task ("go to property and add new  properties") {
+			ACNavigation.goToSettings();
+
+			for (var n : list "${propertyList}") {
+				ACSettings.goToProperties();
+
+				ACProperties.addNewProperty(propertyName = "${n}");
+			}
+		}
+
+		task ("search the properties") {
+			ACSettings.goToProperties();
+
+			for (var n : list "${propertyList}") {
+				ACUtils.searchBar(searchItem = "${n}");
+
+				ACSettings.viewPropertyEntryName(propertyName = "${n}");
+			}
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9122 | Test Summary: Search for a property"
+	@priority = "5"
+	test CanSearchForProperty {
+		var propertyList = "Property Name 1,Property Name 2,Property Name 3,Property Name 4";
+
+		task ("go to property and add new  properties") {
+			ACNavigation.goToSettings();
+
+			for (var n : list "${propertyList}") {
+				ACSettings.goToProperties();
+
+				ACProperties.addNewProperty(propertyName = "${n}");
+			}
+		}
+
+		task ("search for a property") {
+			ACNavigation.exitSettings();
+
+			for (var n : list "${propertyList}") {
+				ACProperties.switchProperty(propertyName = "${n}");
+			}
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9117 | Test Summary: User selecting a property from the drop down by 1st time"
+	@priority = "3"
+	test CanUserSelectPropertyFromTheDropDownByFirstTime {
+		var propertyName = "Property Name 1";
+
+		task ("go to properties and add a new property") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+
+			ACProperties.addNewProperty(propertyName = "${propertyName}");
+		}
+
+		task ("select new property") {
+			ACNavigation.exitSettings();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9120 | Test Summary: Property field is displayed in empty state when no property is available"
+	@priority = "3"
+	test ViewPropertyListDefault {
+		task ("Go to properties") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+		}
+
+		task ("Assert empty state on properties page") {
+			if (IsElementNotPresent(key_textValue = "No Properties Found", locator1 = "ACUtils#GENERIC_TEXT")) {
+				ACSettings.deleteAllProperties();
+			}
+
+			ACProperties.assertNoProperties();
+		}
+
+		task ("Assert that there are no more properties on the sites page") {
+			Navigator.gotoBack();
+
+			AssertElementPresent(locator1 = "ACSidebar#PROPERTY_MENU_NO_PROPERTIES");
+
+			AssertElementPresent(locator1 = "TextInput#NO_PROPERTIES_AVAILABLE_TEXT");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9118 | Test Summary: The setting info (from AC configuration menu) are global and don't depend of property"
+	@priority = "3"
+	test ViewSettingInfoAreGlobalAndDontDependOfProperty {
+		task ("go to properties and add 2 new properties") {
+			ACNavigation.goToSettings();
+
+			var propertyList = "Property Name 1,Property Name 2";
+
+			for (var n : list "${propertyList}") {
+				ACSettings.goToProperties();
+
+				ACProperties.addNewProperty(propertyName = "${n}");
+			}
+		}
+
+		task ("switch between properties and assert the workspace settings is the same for those properties") {
+			for (var n : list "${propertyList}") {
+				ACNavigation.exitSettings();
+
+				ACProperties.switchProperty(propertyName = "${n}");
+
+				ACNavigation.goToSettings();
+
+				ACSettings.goToWorkspace();
+
+				ACWorkspace.viewWorkspaceSettings(
+					timezone = "UTC",
+					timezoneId = "UTC Coordinated Universal Time (UTC)",
+					workspaceName = "FARO-DEV-liferay");
+			}
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9116 | Test Summary: Dropdown transiction between no properties or no site and one or more properties available"
+	@priority = "3"
+	test ViewTheDropdownTransition {
+		task ("go to properties page and add 2 new properties") {
+			var propertyList = "Property Name 1,Property Name 2";
+
+			ACNavigation.goToSettings();
+
+			for (var n : list "${propertyList}") {
+				ACSettings.goToProperties();
+
+				ACProperties.addNewProperty(propertyName = "${n}");
+			}
+		}
+
+		task ("assert transition when switching between properties") {
+			ACNavigation.exitSettings();
+
+			for (var n : list "${propertyList}") {
+				ACProperties.switchProperty(propertyName = "${n}");
+
+				ACProperties.assertPropertyHeader(propertyName = "${n}");
+
+				ACProperties.assertSitesOverviewPropertyHeader(propertyName = "${n}");
+
+				ACProperties.assertCurrentActiveProperty(propertyName = "${n}");
+			}
+		}
+	}
+
+}

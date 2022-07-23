@@ -234,4 +234,7 @@ public interface SegmentsEntryRoleModel
 	 */
 	public void setRoleId(long roleId);
 
+	@Override
+	public SegmentsEntryRole cloneWithOriginalValues();
+
 }

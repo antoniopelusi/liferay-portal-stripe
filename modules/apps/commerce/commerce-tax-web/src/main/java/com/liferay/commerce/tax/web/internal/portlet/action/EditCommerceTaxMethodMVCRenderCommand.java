@@ -68,8 +68,7 @@ public class EditCommerceTaxMethodMVCRenderCommand implements MVCRenderCommand {
 				return "/error.jsp";
 			}
 
-			throw new PortletException(
-				"Unable to include edit_tax_method.jsp", exception);
+			throw new PortletException(exception);
 		}
 
 		return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;

@@ -253,6 +253,11 @@ public class LayoutRevisionWrapper
 	}
 
 	@Override
+	public LayoutRevision cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

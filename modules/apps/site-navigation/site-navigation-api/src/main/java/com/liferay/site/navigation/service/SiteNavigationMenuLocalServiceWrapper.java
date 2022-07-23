@@ -30,6 +30,10 @@ public class SiteNavigationMenuLocalServiceWrapper
 	implements ServiceWrapper<SiteNavigationMenuLocalService>,
 			   SiteNavigationMenuLocalService {
 
+	public SiteNavigationMenuLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SiteNavigationMenuLocalServiceWrapper(
 		SiteNavigationMenuLocalService siteNavigationMenuLocalService) {
 
@@ -163,13 +167,22 @@ public class SiteNavigationMenuLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteSiteNavigationMenus(long groupId) {
+	public void deleteSiteNavigationMenus(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_siteNavigationMenuLocalService.deleteSiteNavigationMenus(groupId);
 	}
 
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _siteNavigationMenuLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _siteNavigationMenuLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -281,6 +294,14 @@ public class SiteNavigationMenuLocalServiceWrapper
 	public SiteNavigationMenu fetchSiteNavigationMenu(long groupId, int type) {
 		return _siteNavigationMenuLocalService.fetchSiteNavigationMenu(
 			groupId, type);
+	}
+
+	@Override
+	public SiteNavigationMenu fetchSiteNavigationMenuByName(
+		long groupId, String name) {
+
+		return _siteNavigationMenuLocalService.fetchSiteNavigationMenuByName(
+			groupId, name);
 	}
 
 	/**

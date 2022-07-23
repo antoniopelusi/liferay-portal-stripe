@@ -33,15 +33,15 @@ import javax.servlet.http.HttpSession;
 public class ChannelSessionDestroyAction extends SessionAction {
 
 	@Override
-	public void run(HttpSession session) {
+	public void run(HttpSession httpSession) {
 		User user = null;
 
 		try {
-			user = (User)session.getAttribute(WebKeys.USER);
+			user = (User)httpSession.getAttribute(WebKeys.USER);
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			return;
@@ -49,7 +49,7 @@ public class ChannelSessionDestroyAction extends SessionAction {
 
 		try {
 			if (user == null) {
-				Long userId = (Long)session.getAttribute(WebKeys.USER_ID);
+				Long userId = (Long)httpSession.getAttribute(WebKeys.USER_ID);
 
 				if (userId != null) {
 					user = UserLocalServiceUtil.getUser(userId);
@@ -78,7 +78,7 @@ public class ChannelSessionDestroyAction extends SessionAction {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 

@@ -32,9 +32,6 @@ import java.util.List;
  */
 public class MessageImpl extends MessageBaseImpl {
 
-	public MessageImpl() {
-	}
-
 	@Override
 	public String getBcc() {
 		return normalizeAddress(super.getBcc());

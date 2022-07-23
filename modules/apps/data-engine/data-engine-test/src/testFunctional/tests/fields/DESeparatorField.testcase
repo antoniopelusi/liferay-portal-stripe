@@ -1,0 +1,259 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-68681. This test verifies that is possible to delete the field"
+	@priority = "5"
+	test CanBeDeleted {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Separator");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Separator");
+	}
+
+	@description = "This is a test for LRQA-68681. This test verifies that is possible to duplicate the field"
+	@priority = "4"
+	test CanBeDuplicated {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.duplicate(fieldFieldLabel = "Separator");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Copy of Separator",
+			fieldName = "Separator");
+	}
+
+	@description = "This is a test for LRQA-70166. This test verifies that Styles are applied to the Separator"
+	@priority = "4"
+	test CanBeStyled {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.editStyle(
+			fieldLabel = "Separator",
+			index = "1",
+			styleValue = "border-top: 10px dashed #9D60EB");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		for (var style : list "style-dashed,width-10px") {
+			var styleName = StringUtil.extractFirst("${style}", "-");
+			var styleValue = StringUtil.extractLast("${style}", "-");
+
+			AssertCssValue(
+				key_styleValue = "border-top: 10px dashed #9D60EB",
+				locator1 = "DataEngineRenderer#SEPARATOR_STYLE",
+				locator2 = "border-top-${styleName}",
+				value1 = "${styleValue}");
+		}
+
+		AssertCssValue(
+			key_styleValue = "border-top: 10px dashed #9D60EB",
+			locator1 = "DataEngineRenderer#SEPARATOR_STYLE",
+			locator2 = "border-top-color",
+			value1 = "rgba(157, 96, 235, 1)");
+	}
+
+	@description = "This is a test for LRQA-68681. This test verifies that Label and Help text can be edited"
+	@priority = "5"
+	test CanEditLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Separator",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Separator",
+			fieldFieldLabelEdit = "Separator Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Separator Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Separator Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Separator");
+	}
+
+	@description = "This is a test for LRQA-70166. This test verifies that is possible to remove a duplicated field (repeatable)"
+	@priority = "4"
+	test CanRemoveDuplicatedField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Separator");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Separator");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.removeRepeatableField(fieldLabel = "Separator");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DEBuilder.assertFieldNotPresent(
+			fieldLabel = "Separator",
+			index = "2");
+	}
+
+	@description = "This is a test for LRQA-68681. This test verifies that Label and Help text can be set"
+	@priority = "5"
+	test CanSetLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Separator",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Separator",
+			fieldHelp = "Help Text",
+			fieldName = "Separator");
+	}
+
+	@description = "This is a test for LRQA-68681. This test verifies that Label can be shown or hidden"
+	@priority = "3"
+	test CanSetLabelToShownOrHidden {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+
+		DataEngine.toggleShowLabel(fieldLabel = "Separator");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Separator");
+
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "Separator");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Separator",
+			fieldName = "Separator");
+	}
+
+}

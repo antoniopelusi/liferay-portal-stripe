@@ -47,10 +47,10 @@ Entry entry = (Entry)row.getObject();
 	</c:if>
 
 	<%
-	Date now = new Date();
+	Date date = new Date();
 	%>
 
-	<c:if test="<%= entry.isRepeating() && ((entry.getEndDate() == null) || now.before(entry.getEndDate())) %>">
+	<c:if test="<%= entry.isRepeating() && ((entry.getEndDate() == null) || date.before(entry.getEndDate())) %>">
 		<c:if test="<%= EntryPermissionChecker.contains(permissionChecker, entry.getEntryId(), ActionKeys.DELETE) %>">
 			<portlet:renderURL var="searchRequestURL">
 				<portlet:param name="mvcPath" value="/admin/view.jsp" />

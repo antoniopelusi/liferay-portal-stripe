@@ -62,29 +62,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditCommerceCurrencyMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteCommerceCurrencies(ActionRequest actionRequest)
-		throws PortalException {
-
-		long[] deleteCommerceCurrencyIds = null;
-
-		long commerceCurrencyId = ParamUtil.getLong(
-			actionRequest, "commerceCurrencyId");
-
-		if (commerceCurrencyId > 0) {
-			deleteCommerceCurrencyIds = new long[] {commerceCurrencyId};
-		}
-		else {
-			deleteCommerceCurrencyIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "deleteCommerceCurrencyIds"),
-				0L);
-		}
-
-		for (long deleteCommerceCurrencyId : deleteCommerceCurrencyIds) {
-			_commerceCurrencyService.deleteCommerceCurrency(
-				deleteCommerceCurrencyId);
-		}
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -94,18 +71,18 @@ public class EditCommerceCurrencyMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceCurrencies(actionRequest);
+				_deleteCommerceCurrencies(actionRequest);
 			}
 			else if (cmd.equals(Constants.ADD) ||
 					 cmd.equals(Constants.UPDATE)) {
 
-				updateCommerceCurrency(actionRequest);
+				_updateCommerceCurrency(actionRequest);
 			}
 			else if (cmd.equals("setActive")) {
-				setActive(actionRequest);
+				_setActive(actionRequest);
 			}
 			else if (cmd.equals("setPrimary")) {
-				setPrimary(actionRequest);
+				_setPrimary(actionRequest);
 			}
 			else if (cmd.equals("updateExchangeRates")) {
 				updateExchangeRates(actionRequest);
@@ -137,81 +114,6 @@ public class EditCommerceCurrencyMVCActionCommand extends BaseMVCActionCommand {
 				throw exception;
 			}
 		}
-	}
-
-	protected void setActive(ActionRequest actionRequest)
-		throws PortalException {
-
-		long commerceCurrencyId = ParamUtil.getLong(
-			actionRequest, "commerceCurrencyId");
-
-		boolean active = ParamUtil.getBoolean(actionRequest, "active");
-
-		_commerceCurrencyService.setActive(commerceCurrencyId, active);
-	}
-
-	protected void setPrimary(ActionRequest actionRequest)
-		throws PortalException {
-
-		long commerceCurrencyId = ParamUtil.getLong(
-			actionRequest, "commerceCurrencyId");
-
-		boolean primary = ParamUtil.getBoolean(actionRequest, "primary");
-
-		_commerceCurrencyService.setPrimary(commerceCurrencyId, primary);
-	}
-
-	protected CommerceCurrency updateCommerceCurrency(
-			ActionRequest actionRequest)
-		throws PortalException {
-
-		long commerceCurrencyId = ParamUtil.getLong(
-			actionRequest, "commerceCurrencyId");
-
-		String code = ParamUtil.getString(actionRequest, "code");
-		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
-			actionRequest, "name");
-		String rate = ParamUtil.getString(actionRequest, "rate");
-		Map<Locale, String> formatPatternMap =
-			LocalizationUtil.getLocalizationMap(actionRequest, "formatPattern");
-
-		int maxFractionDigits = ParamUtil.getInteger(
-			actionRequest, "maxFractionDigits");
-		int minFractionDigits = ParamUtil.getInteger(
-			actionRequest, "minFractionDigits");
-
-		if ((maxFractionDigits < 0) || (minFractionDigits < 0) ||
-			(maxFractionDigits < minFractionDigits)) {
-
-			throw new CommerceCurrencyFractionDigitsException();
-		}
-
-		String roundingMode = ParamUtil.getString(
-			actionRequest, "roundingMode");
-		boolean primary = ParamUtil.getBoolean(actionRequest, "primary");
-		double priority = ParamUtil.getDouble(actionRequest, "priority");
-		String symbol = ParamUtil.getString(actionRequest, "symbol");
-		boolean active = ParamUtil.getBoolean(actionRequest, "active");
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			CommerceCurrency.class.getName(), actionRequest);
-
-		CommerceCurrency commerceCurrency = null;
-
-		if (commerceCurrencyId <= 0) {
-			commerceCurrency = _commerceCurrencyService.addCommerceCurrency(
-				serviceContext.getUserId(), code, nameMap, symbol,
-				new BigDecimal(rate), formatPatternMap, maxFractionDigits,
-				minFractionDigits, roundingMode, primary, priority, active);
-		}
-		else {
-			commerceCurrency = _commerceCurrencyService.updateCommerceCurrency(
-				commerceCurrencyId, code, nameMap, symbol, new BigDecimal(rate),
-				formatPatternMap, maxFractionDigits, minFractionDigits,
-				roundingMode, primary, priority, active, serviceContext);
-		}
-
-		return commerceCurrency;
 	}
 
 	protected void updateExchangeRates(ActionRequest actionRequest)
@@ -253,6 +155,104 @@ public class EditCommerceCurrencyMVCActionCommand extends BaseMVCActionCommand {
 			_commerceCurrencyService.updateExchangeRate(
 				updateCommerceCurrencyExchangeRateId, exchangeRateProviderKey);
 		}
+	}
+
+	private void _deleteCommerceCurrencies(ActionRequest actionRequest)
+		throws PortalException {
+
+		long[] deleteCommerceCurrencyIds = null;
+
+		long commerceCurrencyId = ParamUtil.getLong(
+			actionRequest, "commerceCurrencyId");
+
+		if (commerceCurrencyId > 0) {
+			deleteCommerceCurrencyIds = new long[] {commerceCurrencyId};
+		}
+		else {
+			deleteCommerceCurrencyIds = StringUtil.split(
+				ParamUtil.getString(actionRequest, "deleteCommerceCurrencyIds"),
+				0L);
+		}
+
+		for (long deleteCommerceCurrencyId : deleteCommerceCurrencyIds) {
+			_commerceCurrencyService.deleteCommerceCurrency(
+				deleteCommerceCurrencyId);
+		}
+	}
+
+	private void _setActive(ActionRequest actionRequest)
+		throws PortalException {
+
+		long commerceCurrencyId = ParamUtil.getLong(
+			actionRequest, "commerceCurrencyId");
+
+		boolean active = ParamUtil.getBoolean(actionRequest, "active");
+
+		_commerceCurrencyService.setActive(commerceCurrencyId, active);
+	}
+
+	private void _setPrimary(ActionRequest actionRequest)
+		throws PortalException {
+
+		long commerceCurrencyId = ParamUtil.getLong(
+			actionRequest, "commerceCurrencyId");
+
+		boolean primary = ParamUtil.getBoolean(actionRequest, "primary");
+
+		_commerceCurrencyService.setPrimary(commerceCurrencyId, primary);
+	}
+
+	private CommerceCurrency _updateCommerceCurrency(
+			ActionRequest actionRequest)
+		throws PortalException {
+
+		int maxFractionDigits = ParamUtil.getInteger(
+			actionRequest, "maxFractionDigits");
+		int minFractionDigits = ParamUtil.getInteger(
+			actionRequest, "minFractionDigits");
+
+		if ((maxFractionDigits < 0) || (minFractionDigits < 0) ||
+			(maxFractionDigits < minFractionDigits)) {
+
+			throw new CommerceCurrencyFractionDigitsException();
+		}
+
+		long commerceCurrencyId = ParamUtil.getLong(
+			actionRequest, "commerceCurrencyId");
+
+		String code = ParamUtil.getString(actionRequest, "code");
+		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
+			actionRequest, "name");
+		String rate = ParamUtil.getString(actionRequest, "rate");
+		Map<Locale, String> formatPatternMap =
+			LocalizationUtil.getLocalizationMap(actionRequest, "formatPattern");
+
+		String roundingMode = ParamUtil.getString(
+			actionRequest, "roundingMode");
+		boolean primary = ParamUtil.getBoolean(actionRequest, "primary");
+		double priority = ParamUtil.getDouble(actionRequest, "priority");
+		String symbol = ParamUtil.getString(actionRequest, "symbol");
+		boolean active = ParamUtil.getBoolean(actionRequest, "active");
+
+		CommerceCurrency commerceCurrency = null;
+
+		if (commerceCurrencyId <= 0) {
+			commerceCurrency = _commerceCurrencyService.addCommerceCurrency(
+				code, nameMap, symbol, new BigDecimal(rate), formatPatternMap,
+				maxFractionDigits, minFractionDigits, roundingMode, primary,
+				priority, active);
+		}
+		else {
+			ServiceContext serviceContext = ServiceContextFactory.getInstance(
+				CommerceCurrency.class.getName(), actionRequest);
+
+			commerceCurrency = _commerceCurrencyService.updateCommerceCurrency(
+				commerceCurrencyId, code, nameMap, symbol, new BigDecimal(rate),
+				formatPatternMap, maxFractionDigits, minFractionDigits,
+				roundingMode, primary, priority, active, serviceContext);
+		}
+
+		return commerceCurrency;
 	}
 
 	@Reference

@@ -14,7 +14,6 @@
 
 package com.liferay.dynamic.data.mapping.internal.report;
 
-import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
@@ -71,21 +70,7 @@ public class GridDDMFormFieldTypeReportProcessor
 
 			String columnName = valueJSONObject.getString(rowName);
 
-			int count = rowJSONObject.getInt(columnName);
-
-			if (ddmFormInstanceReportEvent.equals(
-					DDMFormInstanceReportConstants.EVENT_ADD_RECORD_VERSION)) {
-
-				count++;
-			}
-			else if (ddmFormInstanceReportEvent.equals(
-						DDMFormInstanceReportConstants.
-							EVENT_DELETE_RECORD_VERSION)) {
-
-				count--;
-			}
-
-			rowJSONObject.put(columnName, count);
+			updateData(ddmFormInstanceReportEvent, rowJSONObject, columnName);
 
 			valuesJSONObject.put(rowName, rowJSONObject);
 		}
@@ -102,20 +87,13 @@ public class GridDDMFormFieldTypeReportProcessor
 		DDMFormField ddmFormField = ddmStructure.getDDMFormField(
 			ddmFormFieldValue.getName());
 
-		int totalEntries = fieldJSONObject.getInt("totalEntries");
-
 		if (valueJSONObject.length() != 0) {
-			if (ddmFormInstanceReportEvent.equals(
-					DDMFormInstanceReportConstants.EVENT_ADD_RECORD_VERSION)) {
-
-				totalEntries++;
-			}
-			else if (ddmFormInstanceReportEvent.equals(
-						DDMFormInstanceReportConstants.
-							EVENT_DELETE_RECORD_VERSION)) {
-
-				totalEntries--;
-			}
+			updateData(
+				ddmFormInstanceReportEvent, fieldJSONObject, "totalEntries");
+		}
+		else {
+			fieldJSONObject.put(
+				"totalEntries", fieldJSONObject.getInt("totalEntries"));
 		}
 
 		fieldJSONObject.put(
@@ -124,10 +102,7 @@ public class GridDDMFormFieldTypeReportProcessor
 				"columns", _getOptionValuesJSONArray(ddmFormField, "columns")
 			).put(
 				"rows", _getOptionValuesJSONArray(ddmFormField, "rows")
-			)
-		).put(
-			"totalEntries", totalEntries
-		);
+			));
 
 		return fieldJSONObject;
 	}

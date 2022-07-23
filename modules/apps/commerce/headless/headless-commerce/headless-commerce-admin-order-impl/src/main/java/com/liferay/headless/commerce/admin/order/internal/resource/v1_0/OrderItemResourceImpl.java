@@ -95,7 +95,7 @@ public class OrderItemResourceImpl
 
 		if (commerceOrderItem == null) {
 			throw new NoSuchOrderItemException(
-				"Unable to find OrderItem with externalReferenceCode: " +
+				"Unable to find order item with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -125,7 +125,7 @@ public class OrderItemResourceImpl
 
 		if (commerceOrder == null) {
 			throw new NoSuchOrderException(
-				"Unable to find Order with externalReferenceCode: " +
+				"Unable to find order with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -169,7 +169,7 @@ public class OrderItemResourceImpl
 
 		if (commerceOrderItem == null) {
 			throw new NoSuchOrderItemException(
-				"Unable to find OrderItem with externalReferenceCode: " +
+				"Unable to find order item with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -199,7 +199,7 @@ public class OrderItemResourceImpl
 
 		if (commerceOrderItem == null) {
 			throw new NoSuchOrderItemException(
-				"Unable to find OrderItem with externalReferenceCode: " +
+				"Unable to find order item with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -221,27 +221,27 @@ public class OrderItemResourceImpl
 
 		if (commerceOrder == null) {
 			throw new NoSuchOrderException(
-				"Unable to find Order with externalReferenceCode: " +
+				"Unable to find order with external reference code " +
 					externalReferenceCode);
 		}
 
-		return _addOrUpdateOrderItem(commerceOrder, orderItem);
+		return _addOrderItem(commerceOrder, orderItem);
 	}
 
 	@Override
 	public OrderItem postOrderIdOrderItem(Long id, OrderItem orderItem)
 		throws Exception {
 
-		return _addOrUpdateOrderItem(
+		return _addOrderItem(
 			_commerceOrderService.getCommerceOrder(id), orderItem);
 	}
 
-	private OrderItem _addOrUpdateOrderItem(
+	private OrderItem _addOrderItem(
 			CommerceOrder commerceOrder, OrderItem orderItem)
 		throws Exception {
 
 		CommerceOrderItem commerceOrderItem =
-			OrderItemUtil.upsertCommerceOrderItem(
+			OrderItemUtil.addCommerceOrderItem(
 				_cpInstanceService, _commerceOrderItemService,
 				_commerceOrderModelResourcePermission, orderItem, commerceOrder,
 				_commerceContextFactory.create(

@@ -101,6 +101,11 @@ public class OAuth2ScopeGrantWrapper
 		}
 	}
 
+	@Override
+	public OAuth2ScopeGrant cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the application name of this o auth2 scope grant.
 	 *

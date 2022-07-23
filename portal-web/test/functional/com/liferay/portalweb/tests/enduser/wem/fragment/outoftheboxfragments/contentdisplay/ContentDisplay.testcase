@@ -3,19 +3,25 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Content Pages,Fragments";
+	property testray.main.component.name = "Fragments";
 
 	setUp {
-		TestCase.setUpPortalInstance();
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
 
-		User.firstLoginPG();
+			User.firstLoginPG();
+		}
 
-		JSONGroup.addGroup(groupName = "Test Site Name");
+		task ("Add a site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
 
-		JSONLayout.addPublicLayout(
-			groupName = "Test Site Name",
-			layoutName = "Content Page Name",
-			type = "content");
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name",
+				type = "content");
+		}
 	}
 
 	tearDown {
@@ -137,6 +143,7 @@ definition {
 				siteName = "Test Site Name");
 
 			AssertTextEquals.assertPartialText(
+				index = "1",
 				locator1 = "WCD#WEB_CONTENT_CONTENT",
 				value1 = "Web Content Content");
 		}
@@ -160,7 +167,7 @@ definition {
 				locator1 = "Portlet#MESSAGE_INFO",
 				value1 = "You do not have permission to access the requested resource.");
 
-			ContentPages.clickPencil();
+			ContentPages.gotoPageEditor();
 
 			AssertElementNotPresent(
 				key_content = "[normalize-space(text())='Web Content Content']",
@@ -172,75 +179,506 @@ definition {
 		}
 	}
 
-	@description = "Given a content page with a configured Content fragment, when the content is deleted the fragment should not be visible in view mode and a message should be shown in page editor."
+	@description = "This is a test for LPS-97182. Given a content page with a configured Content fragment, when the content is deleted the fragment should not be visible in view mode and a message should be shown in page editor."
 	@priority = "4"
 	test DeletedContentIsInvisible {
-		JSONWebcontent.addWebContent(
-			content = "WC WebContent Content",
-			groupName = "Test Site Name",
-			title = "WebContent Title");
-
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
-
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Content Display");
-
-		PageEditor.editContentDisplay(
-			fragmentName = "Content Display",
-			webcontent = "true",
-			webContentContent = "WC WebContent Content",
-			webContentTitle = "WebContent Title");
-
-		PageEditor.clickPublish();
-
-		JSONWebcontent.deleteWebContent(
-			groupName = "Test Site Name",
-			title = "WebContent Title");
-
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
-
-		task ("Assert the fragment is not visible in the site page") {
-			AssertElementNotPresent(
-				key_pageName = "Content Page Name",
-				locator1 = "PageEditor#CONTENT_PAGE_TEXT_CONTENT");
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WebContent Title");
 		}
 
-		ContentPages.clickPencil();
+		task ("Add a Content Display to a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		task ("Assert there is a message in page editor informing the page author that the content is no longer available") {
-			AssertVisible(
-				key_fragmentName = "Content Display",
-				key_messageIfo = "The selected content is no longer available. Please select another.",
-				locator1 = "Fragment#MESSAGE_INFO");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
+
+		task ("Select the web content in Content Display") {
+			PageEditor.editContentDisplay(
+				fragmentName = "Content Display",
+				webcontent = "true",
+				webContentContent = "WC WebContent Content",
+				webContentTitle = "WebContent Title");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Delete the web content") {
+			JSONWebcontent.deleteWebContent(
+				groupName = "Test Site Name",
+				title = "WebContent Title");
+		}
+
+		task ("View the Content Display is not shown at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			AssertElementNotPresent(
+				assetType = "journal",
+				index = "1",
+				locator1 = "Fragment#CONTENT_DISPLAY_TEXT");
+
+			AssertElementNotPresent(locator1 = "Portlet#MESSAGE_INFO");
+		}
+
+		task ("View the warning message shown in Content Display in page editor") {
+			ContentPages.gotoPageEditor();
+
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Content Display",
+				messageInfo = "The selected content is no longer available. Please select another.");
 		}
 	}
 
-	@description = "Given a published content page with an unconfigured Content fragment, when the page is viewed the fragment should not be visible."
+	@description = "This is a test for LPS-142166. The user could display blogs entry when item type is blogs entry."
+	@priority = "4"
+	test DisplayBlogsEntryWhenItemTypeIsBlogsEntry {
+		task ("Create a blog entry") {
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a fragment collection") {
+			JSONFragment.addFragmentCollection(
+				groupName = "Test Site Name",
+				name = "Collection Name");
+		}
+
+		task ("Add a fragment with item selector") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
+
+			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
+
+			FragmentsEditor.gotoConfigurationTab();
+
+			var jsonSnippet = '''
+{
+	"fieldSets": [
+		{
+			"fields": [
+				{
+					"label": "Item",
+					"name": "itemSelectorName",
+					"type": "itemSelector",
+					"typeOptions": {
+						"itemType": "com.liferay.blogs.model.BlogsEntry"
+					}
+				}
+			]
+		}
+	]
+}
+			''';
+
+			FragmentsEditor.typeConfigurationEditor(content = "${jsonSnippet}");
+
+			FragmentsEditor.waitForAutoSave();
+
+			FragmentsEditor.gotoCodeTab();
+
+			var htmlSnippet = '''
+<div class="fragment-blogs">
+	[#if configuration.itemSelectorName.content??]
+		${configuration.itemSelectorName.content}
+	[#else]
+		<div class="portlet-msg-info">The selected content will be shown here.</div>
+	[/#if]
+</div>
+			''';
+
+			FragmentsEditor.typeHtmlEditor(content = "${htmlSnippet}");
+
+			FragmentsEditor.waitForAutoSave();
+
+			FragmentsEditor.publish();
+		}
+
+		task ("Add a new fragment to the content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Collection Name",
+				fragmentName = "Fragment Name");
+
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Fragment Name",
+				messageInfo = "The selected content will be shown here.");
+		}
+
+		task ("Select Blog Entry in fragment") {
+			PageEditor.gotoSelectPanel(fragmentName = "Fragment Name");
+
+			LexiconCard.clickCard(card = "Blogs Entry Title");
+
+			PageEditor.viewItemSelectorText(
+				fieldLabel = "Item",
+				text = "Blogs Entry Title");
+		}
+
+		task ("View the displayed content") {
+			AssertTextEquals(
+				fragmentName = "blogs",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				value1 = "Blogs Entry Content");
+		}
+	}
+
+	@description = "This is a test for LPS-97182. Given a published content page with an unconfigured Content fragment, when the page is viewed the fragment should not be visible."
 	@priority = "4"
 	test UnconfiguredContentDisplayIsInvisible {
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("Add a Content Display to a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Content Display");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
 
-		PageEditor.clickPublish();
+			PageEditor.clickPublish();
+		}
 
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("View the Content Display is not shown at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		task ("Assert the fragment is not visible in the site page") {
+			AssertElementNotPresent(locator1 = "Portlet#MESSAGE_INFO");
+		}
+	}
+
+	@description = "This is a test for LPS-101249. Can only select Documents and Media when set itemType to FileEntry."
+	@priority = "3"
+	test ViewOnlyDocumentsAndMediaAvailableWhenItemTypeIsFileEntry {
+		task ("Add a WC based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				description = "Web Content Description",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blog") {
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document with an image") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Import test fragments from dependencies folder") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+			FragmentsAdmin.importCollectionFromDependenciesFolder(collectionZipFile = "display-collection-name.zip");
+		}
+
+		task ("Add new fragment to content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Imported",
+				fragmentName = "Documents and Media");
+
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Documents and Media",
+				messageInfo = "The selected content will be shown here.");
+		}
+
+		task ("Open select popup") {
+			PageEditor.gotoSelectPanel(fragmentName = "Documents and Media");
+		}
+
+		task ("Assert only Documents and Media entry shown") {
+			AssertElementPresent(
+				key_card = "Document Title",
+				locator1 = "Card#CARD");
+
 			AssertElementNotPresent(
-				key_pageName = "Content Page Name",
-				locator1 = "PageEditor#CONTENT_PAGE_TEXT_CONTENT");
+				key_navItem = "Web Content",
+				locator1 = "NavBar#NAV_ITEM_LINK");
+
+			AssertElementNotPresent(
+				key_navItem = "Blogs",
+				locator1 = "NavBar#NAV_ITEM_LINK");
+		}
+
+		task ("Assert fragment display correctly") {
+			LexiconCard.clickCard(card = "Document Title");
+
+			AssertTextEquals(
+				fragmentName = "dm",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				value1 = "Document Title");
+		}
+	}
+
+	@description = "This is a test for LPS-101249. Can only select web content articles when set itemType to JournalArticle"
+	@priority = "5"
+	@uitest
+	test ViewOnlyWebContentAvailableWhenItemTypeIsJournalArticle {
+		property portal.acceptance = "true";
+
+		task ("Add a WC based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				description = "Web Content Description",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blog") {
+			Navigator.openSiteURL(siteName = "Test Site Name");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document") {
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Import test fragments from dependencies folder") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+			FragmentsAdmin.importCollectionFromDependenciesFolder(collectionZipFile = "display-collection-name.zip");
+		}
+
+		task ("Add new fragment to content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Imported",
+				fragmentName = "Web Content");
+
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Web Content",
+				messageInfo = "The selected content will be shown here.");
+		}
+
+		task ("Open select popup") {
+			PageEditor.gotoSelectPanel(fragmentName = "Web Content");
+		}
+
+		task ("Assert only Web Content entry shown") {
+			AssertElementPresent(
+				key_listEntry = "Web Content Title",
+				locator1 = "LexiconList#LIST_ENTRY_TITLE");
+
+			AssertElementNotPresent(
+				key_navItem = "Documents and Media",
+				locator1 = "NavBar#NAV_ITEM_LINK");
+
+			AssertElementNotPresent(
+				key_navItem = "Blogs",
+				locator1 = "NavBar#NAV_ITEM_LINK");
+		}
+
+		task ("Assert fragment display correctly") {
+			AssertClick(
+				key_listEntry = "Web Content Title",
+				locator1 = "LexiconList#LIST_ENTRY_TITLE",
+				value1 = "Web Content Title");
+
+			AssertTextEquals.assertPartialText(
+				fragmentName = "wc",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				value1 = "Web Content Title");
+
+			AssertTextEquals.assertPartialText(
+				fragmentName = "wc",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				value1 = "Web Content Content");
+
+			AssertTextEquals.assertPartialText(
+				fragmentName = "wc",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				value1 = "Web Content Description");
+		}
+	}
+
+	@description = "This is a test for LPS-101249 and LPS-100545. Can only select web content articles created with a specific structure when set itemSubtype."
+	@priority = "3"
+	test ViewOnlyWebContentBasedOnCustomStructureAvailableWhenSetItemSubtype {
+		property test.name.skip.portal.instance = "ContentDisplay#ViewOnlyWebContentBasedOnCustomStructureAvailableWhenSetItemSubtype";
+
+		task ("Add a WC based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				description = "Web Content Description",
+				groupName = "Test Site Name",
+				title = "Basic Web Content Title");
+		}
+
+		task ("Disable autogenerate structure key") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "System Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Web Content",
+				configurationName = "Administration",
+				configurationScope = "System Scope");
+
+			FormFields.disableCheckbox(fieldName = "Autogenerate Structure Key");
+
+			PortletEntry.save();
+		}
+
+		task ("Add a structure with Text field") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(
+				structureDescription = "WC Structure Description",
+				structureKey = "STRUCTURE-TEXT",
+				structureName = "WC Structure Name");
+
+			DataEngine.addField(
+				fieldFieldLabel = "Text",
+				fieldName = "Text");
+
+			WebContentStructures.saveCP(structureName = "WC Structure Name");
+		}
+
+		task ("Add a template for new structure") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			NavItem.gotoTemplates();
+
+			WebContentTemplates.addCP(
+				structureName = "WC Structure Name",
+				templateDescription = "WC Template Description",
+				templateFieldNames = "Text",
+				templateName = "WC Template Name");
+		}
+
+		task ("Add a WC based on structure with Text field") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+
+			WebContent.addWithStructureCP(
+				description = "Web Content Description",
+				structureName = "WC Structure Name",
+				templateName = "WC Template Name",
+				webContentText = "Web Content Text",
+				webContentTitle = "Web Content With Text Title");
+
+			PortletEntry.publish();
+
+			WebContent.viewTitle(webContentTitle = "Web Content With Text Title");
+		}
+
+		task ("Import test fragments from dependencies folder") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+			FragmentsAdmin.importCollectionFromDependenciesFolder(collectionZipFile = "display-collection-name.zip");
+		}
+
+		task ("Add new fragment to content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Imported",
+				fragmentName = "Web Content With Text");
+
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Web Content With Text",
+				messageInfo = "The selected content will be shown here.");
+		}
+
+		task ("Open select popup") {
+			PageEditor.gotoSelectPanel(fragmentName = "Web Content With Text");
+		}
+
+		task ("Assert only WC with text field shown in popup") {
+			AssertElementNotPresent(
+				key_listEntry = "Basic Web Content Title",
+				locator1 = "LexiconList#LIST_ENTRY_TITLE");
+
+			AssertElementPresent(
+				key_listEntry = "Web Content With Text Title",
+				locator1 = "LexiconList#LIST_ENTRY_TITLE");
+		}
+
+		task ("Assert fragment display correctly") {
+			AssertClick(
+				key_listEntry = "Web Content With Text Title",
+				locator1 = "LexiconList#LIST_ENTRY_TITLE",
+				value1 = "Web Content With Text Title");
+
+			for (var content : list "Web Content With Text Title,Web Content Description,Web Content Text") {
+				AssertTextEquals.assertPartialText(
+					fragmentName = "wctext",
+					index = "1",
+					locator1 = "Fragment#FRAGMENT_BODY",
+					value1 = "${content}");
+			}
+		}
+
+		task ("Select the custom template") {
+			Select(
+				key_fieldLabel = "Template",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "WC Template Name");
+
+			PageEditor.waitForAutoSave();
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Template",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "WC Template Name");
+		}
+
+		task ("View displayed content") {
+			for (var content : list "Web Content With Text Title,Web Content Description,Web Content Text") {
+				AssertTextEquals.assertPartialText(
+					fragmentName = "wctext",
+					index = "1",
+					locator1 = "Fragment#FRAGMENT_BODY",
+					value1 = "${content}");
+			}
 		}
 	}
 
@@ -278,9 +716,10 @@ definition {
 				pageName = "Content Page Name",
 				siteName = "Test Site Name");
 
-			AssertTextEquals.assertPartialText(
-				locator1 = "WCD#WEB_CONTENT_CONTENT",
-				value1 = "Web Content Content");
+			ContentPages.viewFragmentText(
+				assetType = "journal",
+				fragmentName = "Content Display",
+				text = "Web Content Content");
 		}
 
 		task ("Delete the web content") {
@@ -298,12 +737,11 @@ definition {
 				key_content = "[normalize-space(text())='Web Content Content']",
 				locator1 = "WCD#WEB_CONTENT_CONTENT_ANY");
 
-			ContentPages.clickPencil();
+			ContentPages.gotoPageEditor();
 
-			AssertVisible(
-				key_fragmentName = "Content Display",
-				key_messageIfo = "The selected content is no longer available. Please select another.",
-				locator1 = "Fragment#MESSAGE_INFO");
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Content Display",
+				messageInfo = "The selected content is no longer available. Please select another.");
 		}
 
 		task ("Restore web content from Recycle Bin") {
@@ -320,181 +758,279 @@ definition {
 				pageName = "Content Page Name",
 				siteName = "Test Site Name");
 
-			AssertTextEquals.assertPartialText(
-				locator1 = "WCD#WEB_CONTENT_CONTENT",
-				value1 = "Web Content Content");
+			ContentPages.viewFragmentText(
+				assetType = "journal",
+				fragmentName = "Content Display",
+				text = "Web Content Content");
 
-			ContentPages.clickPencil();
+			ContentPages.gotoPageEditor();
 
-			AssertTextEquals(
-				key_fragmentName = "Content Display",
-				locator1 = "Fragment#FRAGMENT_BODY",
-				value1 = "Web Content Content");
+			PageEditor.viewFragment(fragmentName = "Content Display");
+
+			ContentPages.viewFragmentText(
+				assetType = "journal",
+				fragmentName = "Content Display",
+				text = "Web Content Content");
 		}
 	}
 
-	@description = "This case ensures that a user can map a blogs content field to a fragment via the content display."
+	@description = "This is a test for LPS-97182. This case ensures that a user can map a blogs content field to a fragment via the content display."
 	@priority = "5"
+	@uitest
 	test ViewSelectedBlog {
 		property portal.acceptance = "true";
 
-		BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+		task ("Add a blog entry with a cover image") {
+			var imageId = JSONBlog.uploadBlogImage(
+				groupName = "Test Site Name",
+				sourceFileName = "Document_1.jpg");
 
-		Blogs.addEntryWithUploadedCoverImage(
-			coverImageName = "Document_1",
-			entryContent = "This content maps from blog content",
-			entrySubtitle = "Blogs Entry Subtitle",
-			entryTitle = "Blogs Entry Title",
-			navTab = "Blog Images",
-			uploadFileName = "Document_1.jpg");
+			HeadlessBlog.addBlogEntry(
+				content = "This content maps from blog content",
+				coverImageId = "${imageId}",
+				groupName = "Test Site Name",
+				subtitle = "Blogs Entry Subtitle",
+				title = "Blogs Entry Title");
+		}
 
-		Button.clickPublish();
+		task ("Add a Content Display to a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
 
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Content Display");
+		task ("Select the blog entry in Content Display") {
+			PageEditor.editContentDisplay(
+				blogs = "true",
+				entryContent = "This content maps from blog content",
+				entryTitle = "Blogs Entry Title",
+				fragmentName = "Content Display");
 
-		PageEditor.editContentDisplay(
-			blogs = "true",
-			entryContent = "This content maps from blog content",
-			entryTitle = "Blogs Entry Title",
-			fragmentName = "Content Display");
+			PageEditor.clickPublish();
+		}
 
-		PageEditor.clickPublish();
+		task ("View the contents of blog entry are shown in Content Display") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_1.jpg");
 
-		AssertVisible(
-			key_imageFileName = "Document_1.jpg",
-			locator1 = "PageEditor#CONTENT_PAGE_IMAGE_CONTENT");
-
-		AssertTextEquals(
-			locator1 = "PageEditor#CONTENT_PAGE_TEXT_CONTENT",
-			value1 = "This content maps from blog content");
+			ContentPages.viewFragmentText(
+				assetType = "widget-content",
+				fragmentName = "Content Display",
+				text = "This content maps from blog content");
+		}
 	}
 
-	@description = "This case ensures that a user can map an image to a fragment via the content display."
+	@description = "This is a test for LPS-131040. The category name should be shown when select a category in Content Display with Default Template."
+	@priority = "4"
+	test ViewSelectedCategoryInDisplayPageTemplate {
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Content Display fragment to the display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
+
+		task ("Select the category in Content Display") {
+			PageEditor.editContentDisplay(
+				assetTitle = "Category Name",
+				categories = "true",
+				fragmentName = "Content Display");
+		}
+
+		task ("View category name shown in Content Display") {
+			AssertTextEquals(
+				key_fieldLabel = "Item",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Category Name");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("View category name shown in modal") {
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "Content Display",
+				text = "Category Name");
+		}
+	}
+
+	@description = "This is a test for LPS-97182. This case ensures that a user can map an image to a fragment via the content display."
 	@priority = "5"
+	@uitest
 	test ViewSelectedDocument {
 		property portal.acceptance = "true";
 
-		JSONDocument.addFileWithUploadedFile(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentTitle = "Document Title",
-			groupName = "Test Site Name",
-			mimeType = "image/jpeg",
-			sourceFileName = "Document_1.jpg");
+		task ("Add a document with an image") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("Add a Content Display to content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Content Display");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
 
-		PageEditor.editContentDisplay(
-			documentandmedia = "true",
-			fragmentName = "Content Display",
-			imageFileName = "Document Title",
-			sourceFileName = "Document_1.jpg");
+		task ("Select the document in Content Display") {
+			PageEditor.editContentDisplay(
+				documentandmedia = "true",
+				fragmentName = "Content Display",
+				imageFileName = "Document Title",
+				sourceFileName = "Document_1.jpg");
 
-		PageEditor.clickPublish();
+			PageEditor.clickPublish();
+		}
 
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("View the image is shown in Content Display at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		AssertVisible(
-			key_imageFileName = "Document_1.jpg",
-			locator1 = "PageEditor#CONTENT_PAGE_IMAGE_CONTENT");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_1.jpg");
+		}
 	}
 
-	@description = "This case ensures that a user can map the content field from web content to a fragment via the content display."
+	@description = "This is a test for LPS-100545 and LPS-97182. The user can map the content field from web content to a fragment via the content display."
 	@priority = "5"
+	@uitest
 	test ViewSelectedWebContentInContentPage {
 		property portal.acceptance = "true";
 
-		JSONWebcontent.addWebContent(
-			content = "This content maps from web content",
-			groupName = "Test Site Name",
-			title = "Webcontent Title");
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "This content maps from web content",
+				groupName = "Test Site Name",
+				title = "Webcontent Title");
+		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("Add a Content Display to a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Content Display");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
 
-		PageEditor.editContentDisplay(
-			fragmentName = "Content Display",
-			webcontent = "true",
-			webContentContent = "This content maps from web content",
-			webContentTitle = "Webcontent Title");
+		task ("Select the web content in Content Display") {
+			PageEditor.editContentDisplay(
+				fragmentName = "Content Display",
+				webcontent = "true",
+				webContentContent = "This content maps from web content",
+				webContentTitle = "Webcontent Title");
 
-		PageEditor.clickPublish();
+			PageEditor.clickPublish();
+		}
 
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("View the content of webc content shown in Content Display at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		AssertTextEquals.assertPartialTextAceEditor(
-			locator1 = "PageEditor#CONTENT_PAGE_WEB_CONTENT_CONTENT",
-			value1 = "This content maps from web content");
+			AssertTextEquals.assertPartialTextAceEditor(
+				locator1 = "PageEditor#CONTENT_PAGE_WEB_CONTENT_CONTENT",
+				value1 = "This content maps from web content");
+		}
 	}
 
-	@description = "This case ensures that a user can select content via content display in content page template editor."
+	@description = "This is a test for LPS-100545 and LPS-97182. The user can map the content field from web content to a fragment via the content display."
 	@priority = "4"
 	test ViewSelectedWebContentInContentPageTemplate {
-		property testray.main.component.name = "Fragments,Layout Page Templates";
+		property testray.main.component.name = "Content Page Templates";
 
-		JSONWebcontent.addWebContent(
-			content = "WC WebContent Content",
-			groupName = "Test Site Name",
-			title = "WebContent Title");
+		task ("Add a Web Content via JSON") {
+			JSONWebcontent.addWebContent(
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WebContent Title");
+		}
 
-		JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
-			groupName = "Test Site Name",
-			layoutPageTemplateCollectionName = "Page Template Collection");
+		task ("Add a page template collection and a draft page template to it") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
 
-		JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
-			groupName = "Test Site Name",
-			layoutPageTemplateCollectionName = "Page Template Collection",
-			layoutPageTemplateEntryName = "Page Template Name",
-			layoutPageTemplateStatus = "Draft",
-			layoutPageTemplateType = "Content Page Template");
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Page Template Name",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template");
+		}
 
-		PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+		task ("Add a Content Display to page template") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
 
-		Navigator.gotoNavNested(navNested = "Page Template Collection");
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
 
-		PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
 
-		PageEditor.assertFragmentSidebarLoaded();
+			PageEditor.assertFragmentSidebarLoaded();
 
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Content Display");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
 
-		PageEditor.editContentDisplay(
-			fragmentName = "Content Display",
-			webcontent = "true",
-			webContentContent = "WC WebContent Content",
-			webContentTitle = "WebContent Title");
+		task ("Select WC to display in Content Display") {
+			PageEditor.editContentDisplay(
+				fragmentName = "Content Display",
+				webcontent = "true",
+				webContentContent = "WC WebContent Content",
+				webContentTitle = "WebContent Title");
+		}
 
-		PageEditor.clickPublish();
+		task ("Publish page template") {
+			PageEditor.clickPublish();
+		}
 
-		PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+		task ("Go to view page template") {
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
 
-		PageEditor.assertFragmentSidebarLoaded();
+			PageEditor.assertFragmentSidebarLoaded();
+		}
 
 		task ("Assert correct content is visible") {
 			AssertTextEquals.assertPartialTextAceEditor(
@@ -503,43 +1039,49 @@ definition {
 		}
 	}
 
-	@description = "This case ensures that a user can select content via content display in display page template editor."
+	@description = "This is a test for LPS-100545 and LPS-97182. The user can map the content field from web content to a fragment via the content display."
 	@priority = "4"
 	test ViewSelectedWebContentInDisplayPageTemplate {
-		property testray.main.component.name = "Display Pages,Fragments";
+		property testray.main.component.name = "Display Pages";
 
-		JSONWebcontent.addWebContent(
-			content = "WC WebContent Content",
-			groupName = "Test Site Name",
-			title = "WebContent Title");
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WebContent Title");
+		}
 
-		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
-			contentType = "Web Content Article",
-			displayPageTemplateEntryName = "Display Page Name",
-			groupName = "Test Site Name",
-			subType = "Basic Web Content");
+		task ("Add a Content Display to a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
 
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
 
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Content Display");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Content Display");
+		}
 
-		PageEditor.editContentDisplay(
-			fragmentName = "Content Display",
-			webcontent = "true",
-			webContentContent = "WC WebContent Content",
-			webContentTitle = "WebContent Title");
+		task ("Select the web content in Content Display") {
+			PageEditor.editContentDisplay(
+				fragmentName = "Content Display",
+				webcontent = "true",
+				webContentContent = "WC WebContent Content",
+				webContentTitle = "WebContent Title");
 
-		PageEditor.clickPublish();
+			PageEditor.clickPublish();
+		}
 
-		DisplayPageTemplatesAdmin.gotoDisplayPageEllipsisItem(
-			displayPageName = "Display Page Name",
-			item = "Edit");
+		task ("View the content of web content shown in Content Display") {
+			DisplayPageTemplatesAdmin.gotoDisplayPageEllipsisItem(
+				displayPageName = "Display Page Name",
+				item = "Edit");
 
-		task ("Assert correct content is visible") {
 			AssertTextEquals.assertPartialTextAceEditor(
 				locator1 = "PageEditor#CONTENT_PAGE_WEB_CONTENT_CONTENT",
 				value1 = "WC WebContent Content");

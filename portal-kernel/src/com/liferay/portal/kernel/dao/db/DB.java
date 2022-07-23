@@ -14,13 +14,15 @@
 
 package com.liferay.portal.kernel.dao.db;
 
+import com.liferay.petra.function.UnsafeConsumer;
+
 import java.io.IOException;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.naming.NamingException;
 
@@ -32,48 +34,47 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface DB {
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final int BARE = 0;
+	public static final int SQL_SIZE_NONE = -1;
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static final int DEFAULT = 1;
+	public static final int SQL_VARCHAR_MAX_SIZE = Integer.MAX_VALUE;
+
+	public static final int SQL_VARCHAR_MAX_SIZE_THRESHOLD = 9999999;
 
 	public void addIndexes(
-			Connection con, String indexesSQL, Set<String> validIndexNames)
-		throws IOException;
+			Connection connection, List<IndexMetadata> indexMetadatas)
+		throws IOException, SQLException;
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void buildCreateFile(String sqlDir, String databaseName)
-		throws IOException;
+	public void alterColumnName(
+			Connection connection, String tableName, String oldColumnName,
+			String newColumnDefinition)
+		throws Exception;
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void buildCreateFile(
-			String sqlDir, String databaseName, int population)
-		throws IOException;
+	public void alterColumnType(
+			Connection connection, String tableName, String columnName,
+			String newColumnType)
+		throws Exception;
+
+	public void alterTableAddColumn(
+			Connection connection, String tableName, String columnName,
+			String columnType)
+		throws Exception;
+
+	public void alterTableDropColumn(
+			Connection connection, String tableName, String columnName)
+		throws Exception;
 
 	public String buildSQL(String template) throws IOException, SQLException;
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void buildSQLFile(String sqlDir, String fileName) throws IOException;
+	public List<IndexMetadata> dropIndexes(
+			Connection connection, String tableName, String columnName)
+		throws IOException, SQLException;
 
 	public DBType getDBType();
 
-	public List<Index> getIndexes(Connection con) throws SQLException;
+	public List<Index> getIndexes(Connection connection) throws SQLException;
+
+	public ResultSet getIndexResultSet(Connection connection, String tableName)
+		throws SQLException;
 
 	public int getMajorVersion();
 
@@ -85,9 +86,15 @@ public interface DB {
 
 	public String getPopulateSQL(String databaseName, String sqlContent);
 
+	public String[] getPrimaryKeyColumnNames(
+			Connection connection, String tableName)
+		throws SQLException;
+
 	public String getRecreateSQL(String databaseName);
 
 	public Integer getSQLType(String templateType);
+
+	public Integer getSQLVarcharSize(String templateType);
 
 	public String getTemplateBlob();
 
@@ -96,27 +103,6 @@ public interface DB {
 	public String getTemplateTrue();
 
 	public String getVersionString();
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             CounterLocalServiceUtil#increment()}
-	 */
-	@Deprecated
-	public long increment();
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             CounterLocalServiceUtil#increment(String)}
-	 */
-	@Deprecated
-	public long increment(String name);
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             CounterLocalServiceUtil#increment(String, int)}
-	 */
-	@Deprecated
-	public long increment(String name, int size);
 
 	public boolean isSupportsAlterColumnName();
 
@@ -136,18 +122,25 @@ public interface DB {
 
 	public boolean isSupportsUpdateWithInnerJoin();
 
-	public default void runSQL(Connection con, DBTypeToSQLMap dbTypeToSQLMap)
+	public void process(UnsafeConsumer<Long, Exception> unsafeConsumer)
+		throws Exception;
+
+	public void removePrimaryKey(Connection connection, String tableName)
+		throws Exception;
+
+	public default void runSQL(
+			Connection connection, DBTypeToSQLMap dbTypeToSQLMap)
 		throws IOException, SQLException {
 
 		String sql = dbTypeToSQLMap.get(getDBType());
 
-		runSQL(con, new String[] {sql});
+		runSQL(connection, new String[] {sql});
 	}
 
-	public void runSQL(Connection con, String sql)
+	public void runSQL(Connection connection, String sql)
 		throws IOException, SQLException;
 
-	public void runSQL(Connection con, String[] sqls)
+	public void runSQL(Connection connection, String[] sqls)
 		throws IOException, SQLException;
 
 	public default void runSQL(DBTypeToSQLMap dbTypeToSQLMap)
@@ -162,54 +155,19 @@ public interface DB {
 
 	public void runSQL(String[] sqls) throws IOException, SQLException;
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             DBProcess#runSQLTemplate(String)}
-	 */
-	@Deprecated
-	public void runSQLTemplate(String path)
-		throws IOException, NamingException, SQLException;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             DBProcess#runSQLTemplate(String, boolean)}
-	 */
-	@Deprecated
-	public void runSQLTemplate(String path, boolean failOnError)
-		throws IOException, NamingException, SQLException;
-
 	public void runSQLTemplateString(
 			Connection connection, String template, boolean failOnError)
 		throws IOException, NamingException, SQLException;
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #runSQLTemplateString(Connection, String, boolean)}
-	 */
-	@Deprecated
-	public void runSQLTemplateString(
-			Connection connection, String template, boolean evaluate,
-			boolean failOnError)
-		throws IOException, NamingException, SQLException;
-
 	public void runSQLTemplateString(String template, boolean failOnError)
-		throws IOException, NamingException, SQLException;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #runSQLTemplateString(String, boolean)}
-	 */
-	@Deprecated
-	public void runSQLTemplateString(
-			String template, boolean evaluate, boolean failOnError)
 		throws IOException, NamingException, SQLException;
 
 	public void setSupportsStringCaseSensitiveQuery(
 		boolean supportsStringCaseSensitiveQuery);
 
 	public void updateIndexes(
-			Connection con, String tablesSQL, String indexesSQL,
+			Connection connection, String tablesSQL, String indexesSQL,
 			boolean dropStaleIndexes)
-		throws IOException, SQLException;
+		throws Exception;
 
 }

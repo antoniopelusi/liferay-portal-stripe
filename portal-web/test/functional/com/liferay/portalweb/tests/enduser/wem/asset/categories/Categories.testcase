@@ -1,17 +1,15 @@
 @component-name = "portal-categories"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Categories";
 	property testray.main.component.name = "Categories";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
@@ -34,6 +32,8 @@ definition {
 	@description = "Add properties in category."
 	@priority = "3"
 	test AddCategoryProperties {
+		property testray.component.names = "AUI,Categories";
+
 		task ("Add a category") {
 			JSONCategory.addCategory(
 				groupName = "Test Site Name",
@@ -396,6 +396,53 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-143167. The user cannot add duplicated categories properties."
+	@priority = "4"
+	test CannotAddDuplicatedCategoryProperties {
+		task ("Add a category") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a property in category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.addPropertyCP(
+				categoryName = "Category Name",
+				propertiesKeyField = "Category Property",
+				propertiesValueField = "Category Property",
+				propertyNumber = "0");
+		}
+
+		task ("Add a duplicate property") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Category Name");
+
+			Navigator.gotoNavUnderline(navUnderline = "Properties");
+
+			Click(locator1 = "Button#ADD_ROW_LAST");
+
+			Type(
+				key_pathNumber = "1",
+				locator1 = "CategoriesEditCategory#PROPERTIES_KEY_FIELD",
+				value1 = "Category Property");
+
+			Type(
+				key_pathNumber = "1",
+				locator1 = "CategoriesEditCategory#PROPERTIES_VALUE_FIELD",
+				value1 = "Category Property");
+
+			Button.clickSave();
+		}
+
+		task ("Assert error message is shown") {
+			Alert.viewErrorMessage(errorMessage = "Error:Please enter a unique property key.");
+		}
+	}
+
 	@description = "Cannot add a duplicate subcategory."
 	@priority = "3"
 	test CannotAddDuplicateSubCategory {
@@ -473,7 +520,7 @@ definition {
 
 			Navigator.gotoNavUnderline(navUnderline = "Properties");
 
-			Type(
+			Type.sendKeys(
 				locator1 = "CategoriesEditCategory#PROPERTIES_KEY_FIELD_1",
 				value1 = "${inputText}");
 
@@ -485,7 +532,7 @@ definition {
 				locator1 = "CategoriesEditCategory#PROPERTIES_KEY_FIELD_1",
 				value1 = "${actualText}");
 
-			Type(
+			Type.sendKeys(
 				locator1 = "CategoriesEditCategory#PROPERTIES_VALUE_FIELD_1",
 				value1 = "${inputText}");
 
@@ -888,11 +935,11 @@ definition {
 
 			Category.viewPath(
 				categoryName = "Category Name",
-				path = "Vocabulary Name &gt; Category Name");
+				path = "Vocabulary Name > Category Name");
 
 			Category.viewPath(
 				categoryName = "Subcategory Name",
-				path = "Vocabulary Name &gt; Category Name &gt; Subcategory Name");
+				path = "Vocabulary Name > Category Name > Subcategory Name");
 		}
 	}
 

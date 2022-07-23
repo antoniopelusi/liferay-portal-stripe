@@ -15,26 +15,19 @@
 package com.liferay.portal.workflow.metrics.search.index;
 
 import com.liferay.portal.search.document.Document;
-
-import java.util.Date;
-import java.util.Locale;
-import java.util.Map;
+import com.liferay.portal.workflow.metrics.model.AddProcessRequest;
+import com.liferay.portal.workflow.metrics.model.DeleteProcessRequest;
+import com.liferay.portal.workflow.metrics.model.UpdateProcessRequest;
 
 /**
  * @author Rafael Praxedes
  */
 public interface ProcessWorkflowMetricsIndexer {
 
-	public Document addProcess(
-		boolean active, long companyId, Date createDate, String description,
-		Date modifiedDate, String name, long processId, String title,
-		Map<Locale, String> titleMap, String version);
+	public Document addProcess(AddProcessRequest addProcessRequest);
 
-	public void deleteProcess(long companyId, long processId);
+	public void deleteProcess(DeleteProcessRequest deleteProcessRequest);
 
-	public Document updateProcess(
-		Boolean active, long companyId, String description, Date modifiedDate,
-		long processId, String title, Map<Locale, String> titleMap,
-		String version);
+	public Document updateProcess(UpdateProcessRequest updateProcessRequest);
 
 }

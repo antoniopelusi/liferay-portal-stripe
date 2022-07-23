@@ -1,25 +1,40 @@
-<definition default="keyPress">
-	<command name="keyDown">
-		<execute selenium="mouseOver" />
+@default = "keyPress"
+definition {
 
-		<execute selenium="keyDown" />
-	</command>
+	function keyDown {
+		selenium.mouseOver();
 
-	<command name="keyPress">
-		<execute selenium="mouseOver" />
+		selenium.keyDown();
+	}
 
-		<execute selenium="keyPress" />
-	</command>
+	function keyPress {
+		selenium.mouseOver();
 
-	<command name="keyPressNoError">
-		<execute selenium="mouseOver" />
+		selenium.keyPress();
+	}
 
-		<execute selenium="keyPress" />
-	</command>
+	function keyPressCKEditorWaitForCKEditor {
+		selenium.waitForVisible("//a[contains(@class,'cke_button__source') and contains(@class,'cke_button_off')]");
 
-	<command name="keyUp">
-		<execute selenium="mouseOver" />
+		selenium.pause("1000");
 
-		<execute selenium="keyUp" />
-	</command>
-</definition>
+		selenium.waitForEditable();
+
+		selenium.mouseOver();
+
+		selenium.keyPress();
+	}
+
+	function keyPressNoError {
+		selenium.mouseOver();
+
+		selenium.keyPress();
+	}
+
+	function keyUp {
+		selenium.mouseOver();
+
+		selenium.keyUp();
+	}
+
+}

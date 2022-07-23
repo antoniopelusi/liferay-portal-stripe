@@ -4,7 +4,7 @@ definition {
 		for (var contentName : list "${checkContentNameList}") {
 			var key_contentName = "${contentName}";
 
-			Check.checkToggleSwitch(locator1 = "PagesConfiguration#CONTENT_CHOOSE_CONTENT_CHECKBOX_LABEL");
+			Check.checkToggleSwitch(locator1 = "PagesConfiguration#CONTENT_CHOOSE_CONTENT_CONTENT_CHECKBOX");
 		}
 	}
 
@@ -45,9 +45,7 @@ definition {
 			Click(locator1 = "PagesConfiguration#CHANGE_TO_PUBLIC_PAGES");
 		}
 
-		Click(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
-
-		Click(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
+		ContentConfiguration.uncheckPages();
 
 		for (var pageName : list "${checkPublicPages}") {
 			var key_pageName = "${pageName}";
@@ -130,7 +128,7 @@ definition {
 		for (var contentName : list "${uncheckContentNameList}") {
 			Uncheck.uncheckToggleSwitch(
 				key_contentName = "${contentName}",
-				locator1 = "PagesConfiguration#CONTENT_CHOOSE_CONTENT_CHECKBOX_LABEL");
+				locator1 = "PagesConfiguration#CONTENT_CHOOSE_CONTENT_CONTENT_CHECKBOX");
 		}
 	}
 
@@ -139,9 +137,12 @@ definition {
 	}
 
 	macro uncheckPages {
-		Click(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
-
-		Click(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
+		if (IsElementPresent(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX")) {
+			Uncheck(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX");
+		}
+		else {
+			Uncheck(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
+		}
 	}
 
 	macro uncheckSitePagesSettings {

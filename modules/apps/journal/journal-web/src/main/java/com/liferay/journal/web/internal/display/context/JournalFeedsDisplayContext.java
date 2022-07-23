@@ -23,12 +23,11 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-
-import java.util.List;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -52,8 +51,8 @@ public class JournalFeedsDisplayContext {
 		}
 
 		_displayStyle = SearchDisplayStyleUtil.getDisplayStyle(
-			PortalUtil.getHttpServletRequest(_renderRequest),
-			JournalPortletKeys.JOURNAL, "feeds-display-style", "list");
+			_renderRequest, JournalPortletKeys.JOURNAL, "feeds-display-style",
+			"list");
 
 		return _displayStyle;
 	}
@@ -68,44 +67,43 @@ public class JournalFeedsDisplayContext {
 
 		_feedSearch = new FeedSearch(_renderRequest, getPortletURL());
 
-		_feedSearch.setRowChecker(new EmptyOnClickRowChecker(_renderResponse));
-
 		FeedSearchTerms searchTerms =
 			(FeedSearchTerms)_feedSearch.getSearchTerms();
 
-		int feedsCount = JournalFeedLocalServiceUtil.searchCount(
-			themeDisplay.getCompanyId(), searchTerms.getGroupId(),
-			searchTerms.getKeywords());
+		_feedSearch.setResultsAndTotal(
+			() -> JournalFeedLocalServiceUtil.search(
+				themeDisplay.getCompanyId(), searchTerms.getGroupId(),
+				searchTerms.getKeywords(), _feedSearch.getStart(),
+				_feedSearch.getEnd(), _feedSearch.getOrderByComparator()),
+			JournalFeedLocalServiceUtil.searchCount(
+				themeDisplay.getCompanyId(), searchTerms.getGroupId(),
+				searchTerms.getKeywords()));
 
-		_feedSearch.setTotal(feedsCount);
-
-		List<JournalFeed> feeds = JournalFeedLocalServiceUtil.search(
-			themeDisplay.getCompanyId(), searchTerms.getGroupId(),
-			searchTerms.getKeywords(), _feedSearch.getStart(),
-			_feedSearch.getEnd(), _feedSearch.getOrderByComparator());
-
-		_feedSearch.setResults(feeds);
+		_feedSearch.setRowChecker(new EmptyOnClickRowChecker(_renderResponse));
 
 		return _feedSearch;
 	}
 
 	public String getOrderByCol() {
-		if (_orderByCol != null) {
+		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(_renderRequest, "orderByCol", "name");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_renderRequest, JournalPortletKeys.JOURNAL, "feeds-order-by-col",
+			"name");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (_orderByType != null) {
+		if (Validator.isNotNull(_orderByType)) {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_renderRequest, JournalPortletKeys.JOURNAL, "feeds-order-by-type",
+			"asc");
 
 		return _orderByType;
 	}
@@ -123,7 +121,7 @@ public class JournalFeedsDisplayContext {
 			"orderByCol", getOrderByCol()
 		).setParameter(
 			"orderByType", getOrderByType()
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getRedirect() {

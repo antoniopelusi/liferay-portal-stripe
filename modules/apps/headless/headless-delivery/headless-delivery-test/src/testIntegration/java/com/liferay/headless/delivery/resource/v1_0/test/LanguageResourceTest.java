@@ -61,12 +61,10 @@ public class LanguageResourceTest extends BaseLanguageResourceTestCase {
 	@Override
 	@Test
 	public void testGraphQLGetSiteLanguagesPage() throws Exception {
-		Long siteId = testGetSiteLanguagesPage_getSiteId();
-
 		GraphQLField graphQLField = new GraphQLField(
 			"languages",
 			HashMapBuilder.<String, Object>put(
-				"siteKey", "\"" + siteId + "\""
+				"siteKey", "\"" + testGetSiteLanguagesPage_getSiteId() + "\""
 			).build(),
 			new GraphQLField("items", getGraphQLFields()),
 			new GraphQLField("page"), new GraphQLField("totalCount"));

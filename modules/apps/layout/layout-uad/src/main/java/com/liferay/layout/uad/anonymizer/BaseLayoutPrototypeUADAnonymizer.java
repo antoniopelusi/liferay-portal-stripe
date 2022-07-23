@@ -14,6 +14,8 @@
 
 package com.liferay.layout.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.layout.uad.constants.LayoutUADConstants;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -47,6 +49,8 @@ public abstract class BaseLayoutPrototypeUADAnonymizer
 		if (layoutPrototype.getUserId() == userId) {
 			layoutPrototype.setUserId(anonymousUser.getUserId());
 			layoutPrototype.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(layoutPrototype, anonymousUser);
 		}
 
 		layoutPrototypeLocalService.updateLayoutPrototype(layoutPrototype);
@@ -62,6 +66,19 @@ public abstract class BaseLayoutPrototypeUADAnonymizer
 		return LayoutPrototype.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		LayoutPrototype layoutPrototype, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(layoutPrototype);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return layoutPrototypeLocalService.getActionableDynamicQuery();
@@ -71,6 +88,15 @@ public abstract class BaseLayoutPrototypeUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return LayoutUADConstants.USER_ID_FIELD_NAMES_LAYOUT_PROTOTYPE;
 	}
+
+	protected AssetEntry fetchAssetEntry(LayoutPrototype layoutPrototype) {
+		return assetEntryLocalService.fetchEntry(
+			LayoutPrototype.class.getName(),
+			layoutPrototype.getLayoutPrototypeId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected LayoutPrototypeLocalService layoutPrototypeLocalService;

@@ -36,6 +36,7 @@ import org.osgi.service.component.annotations.Component;
 @Component(service = JSModuleResolver.class)
 public class JSModuleResolverImpl implements JSModuleResolver {
 
+	@Override
 	public String resolveModule(Bundle bundle, String moduleName) {
 		URL url = bundle.getEntry("META-INF/resources/package.json");
 
@@ -62,6 +63,7 @@ public class JSModuleResolverImpl implements JSModuleResolver {
 		}
 	}
 
+	@Override
 	public String resolveModule(
 		ServletContext servletContext, String moduleName) {
 

@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -47,6 +49,8 @@ public class CommerceTierPriceEntryWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put(
@@ -78,6 +82,18 @@ public class CommerceTierPriceEntryWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -232,6 +248,11 @@ public class CommerceTierPriceEntryWrapper
 	}
 
 	@Override
+	public CommerceTierPriceEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public CommercePriceEntry getCommercePriceEntry()
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -276,6 +297,16 @@ public class CommerceTierPriceEntryWrapper
 	@Override
 	public Date getCreateDate() {
 		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the ct collection ID of this commerce tier price entry.
+	 *
+	 * @return the ct collection ID of this commerce tier price entry
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
 	}
 
 	/**
@@ -389,6 +420,16 @@ public class CommerceTierPriceEntryWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this commerce tier price entry.
+	 *
+	 * @return the mvcc version of this commerce tier price entry
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the price of this commerce tier price entry.
 	 *
 	 * @return the price of this commerce tier price entry
@@ -399,11 +440,11 @@ public class CommerceTierPriceEntryWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.currency.model.CommerceMoney getPriceMoney(
-			long commerceCurrencyId)
+	public com.liferay.commerce.currency.model.CommerceMoney
+			getPriceCommerceMoney(long commerceCurrencyId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return model.getPriceMoney(commerceCurrencyId);
+		return model.getPriceCommerceMoney(commerceCurrencyId);
 	}
 
 	/**
@@ -427,11 +468,11 @@ public class CommerceTierPriceEntryWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.currency.model.CommerceMoney getPromoPriceMoney(
-			long commerceCurrencyId)
+	public com.liferay.commerce.currency.model.CommerceMoney
+			getPromoPriceCommerceMoney(long commerceCurrencyId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return model.getPromoPriceMoney(commerceCurrencyId);
+		return model.getPromoPriceCommerceMoney(commerceCurrencyId);
 	}
 
 	/**
@@ -660,6 +701,16 @@ public class CommerceTierPriceEntryWrapper
 	}
 
 	/**
+	 * Sets the ct collection ID of this commerce tier price entry.
+	 *
+	 * @param ctCollectionId the ct collection ID of this commerce tier price entry
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
+	}
+
+	/**
 	 * Sets whether this commerce tier price entry is discount discovery.
 	 *
 	 * @param discountDiscovery the discount discovery of this commerce tier price entry
@@ -767,6 +818,16 @@ public class CommerceTierPriceEntryWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce tier price entry.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce tier price entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -887,6 +948,20 @@ public class CommerceTierPriceEntryWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<CommerceTierPriceEntry, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<CommerceTierPriceEntry, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

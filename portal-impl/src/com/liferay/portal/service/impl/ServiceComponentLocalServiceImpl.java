@@ -16,6 +16,7 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBContext;
@@ -29,6 +30,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.model.ServiceComponent;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
+import com.liferay.portal.kernel.service.ReleaseLocalService;
 import com.liferay.portal.kernel.service.configuration.ServiceComponentConfiguration;
 import com.liferay.portal.kernel.service.configuration.servlet.ServletServiceContextComponentConfiguration;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
@@ -46,12 +49,6 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.service.base.ServiceComponentLocalServiceBaseImpl;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.registry.Filter;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.ServiceTrackerCustomizer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,6 +61,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
+
 /**
  * @author Brian Wing Shun Chan
  */
@@ -71,16 +74,14 @@ public class ServiceComponentLocalServiceImpl
 	extends ServiceComponentLocalServiceBaseImpl {
 
 	public ServiceComponentLocalServiceImpl() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		Filter filter = registry.getFilter(
+		Filter filter = SystemBundleUtil.createFilter(
 			StringBundler.concat(
 				"(&(objectClass=", UpgradeStep.class.getName(),
 				")(upgrade.from.schema.version=0.0.0)(upgrade.initial.",
 				"database.creation=true))"));
 
-		_upgradeStepServiceTracker = registry.trackServices(
-			filter, new UpgradeStepServiceTrackerCustomizer());
+		_upgradeStepServiceTracker = new ServiceTracker<>(
+			_bundleContext, filter, new UpgradeStepServiceTrackerCustomizer());
 
 		_upgradeStepServiceTracker.open();
 	}
@@ -257,11 +258,9 @@ public class ServiceComponentLocalServiceImpl
 
 	@Override
 	public void upgradeDB(
-			final ClassLoader classLoader, final String buildNamespace,
-			final long buildNumber,
-			final ServiceComponent previousServiceComponent,
-			final String tablesSQL, final String sequencesSQL,
-			final String indexesSQL)
+			ClassLoader classLoader, String buildNamespace, long buildNumber,
+			ServiceComponent previousServiceComponent, String tablesSQL,
+			String sequencesSQL, String indexesSQL)
 		throws Exception {
 
 		_upgradeDB(
@@ -276,7 +275,7 @@ public class ServiceComponentLocalServiceImpl
 
 			String servletContextName = upgradeStepHolder._servletContextName;
 
-			Release release = releaseLocalService.fetchRelease(
+			Release release = _releaseLocalService.fetchRelease(
 				upgradeStepHolder._servletContextName);
 
 			if ((release != null) &&
@@ -303,19 +302,19 @@ public class ServiceComponentLocalServiceImpl
 
 					});
 
-				releaseLocalService.updateRelease(
+				_releaseLocalService.updateRelease(
 					servletContextName, "0.0.1", "0.0.0");
 
-				release = releaseLocalService.fetchRelease(servletContextName);
+				release = _releaseLocalService.fetchRelease(servletContextName);
 
 				int buildNumber = upgradeStepHolder._buildNumber;
 
 				release.setBuildNumber(buildNumber);
 
-				releaseLocalService.updateRelease(release);
+				_releaseLocalService.updateRelease(release);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
@@ -559,17 +558,13 @@ public class ServiceComponentLocalServiceImpl
 		}
 		else if (PropsValues.SCHEMA_MODULE_BUILD_AUTO_UPGRADE) {
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(7);
-
-				sb.append("Auto upgrading ");
-				sb.append(buildNamespace);
-				sb.append(" database to build number ");
-				sb.append(buildNumber);
-				sb.append(" is not supported for a production environment. ");
-				sb.append("Write an UpgradeStep to ensure data is upgraded ");
-				sb.append("correctly.");
-
-				_log.warn(sb.toString());
+				_log.warn(
+					StringBundler.concat(
+						"Auto upgrading ", buildNamespace,
+						" database to build number ", buildNumber,
+						" is not supported for a production environment. ",
+						"Write an UpgradeStep to ensure data is upgraded ",
+						"correctly."));
 			}
 
 			if (!tablesSQL.equals(previousServiceComponent.getTablesSQL())) {
@@ -611,6 +606,12 @@ public class ServiceComponentLocalServiceImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		ServiceComponentLocalServiceImpl.class);
 
+	private final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
+
+	@BeanReference(type = ReleaseLocalService.class)
+	private ReleaseLocalService _releaseLocalService;
+
 	private volatile Map<String, ServiceComponent> _serviceComponents;
 	private final ServiceTracker<UpgradeStep, UpgradeStepHolder>
 		_upgradeStepServiceTracker;
@@ -632,7 +633,7 @@ public class ServiceComponentLocalServiceImpl
 
 	}
 
-	private static class UpgradeStepServiceTrackerCustomizer
+	private class UpgradeStepServiceTrackerCustomizer
 		implements ServiceTrackerCustomizer<UpgradeStep, UpgradeStepHolder> {
 
 		@Override
@@ -644,9 +645,8 @@ public class ServiceComponentLocalServiceImpl
 			int buildNumber = GetterUtil.getInteger(
 				serviceReference.getProperty("build.number"));
 
-			Registry registry = RegistryUtil.getRegistry();
-
-			UpgradeStep upgradeStep = registry.getService(serviceReference);
+			UpgradeStep upgradeStep = _bundleContext.getService(
+				serviceReference);
 
 			return new UpgradeStepHolder(
 				servletContextName, buildNumber, upgradeStep);
@@ -664,6 +664,8 @@ public class ServiceComponentLocalServiceImpl
 		public void removedService(
 			ServiceReference<UpgradeStep> serviceReference,
 			UpgradeStepHolder upgradeStepHolder) {
+
+			_bundleContext.ungetService(serviceReference);
 		}
 
 	}

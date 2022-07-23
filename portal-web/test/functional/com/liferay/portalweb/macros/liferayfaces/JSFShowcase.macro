@@ -136,8 +136,14 @@ definition {
 			for (var listboxNameList : list "${listboxNameList}") {
 				Click(
 					key_opt = "${listboxNameList}",
-					locator1 = "JSFShowcase#GENERAL_SELECT");
+					locator1 = "JSFShowcase#GENERAL_SELECT_OPTION");
 			}
+		}
+
+		if (isSet(oneMenuName)) {
+			Select(
+				locator1 = "JSFShowcase#GENERAL_SELECT",
+				value1 = "${oneMenuName}");
 		}
 
 		Click(locator1 = "JSFShowcase#GENERAL_BUTTON");
@@ -188,7 +194,6 @@ definition {
 					locator1 = "JSFShowcase#MODEL_VALUE");
 			}
 		}
-
 		else {
 			AssertElementPresent(
 				key_attribute = "${textValue}",
@@ -203,7 +208,7 @@ definition {
 			for (var listboxNameList : list "${listboxNameList}") {
 				Click(
 					key_opt = "${listboxNameList}",
-					locator1 = "JSFShowcase#GENERAL_SELECT");
+					locator1 = "JSFShowcase#GENERAL_SELECT_OPTION");
 			}
 		}
 
@@ -221,6 +226,12 @@ definition {
 					key_opt = "${checkboxNameList}",
 					locator1 = "JSFShowcase#GENERAL_CHECKBOX");
 			}
+		}
+
+		if (isSet(oneMenuName)) {
+			Select(
+				locator1 = "JSFShowcase#GENERAL_SELECT",
+				value1 = "${oneMenuName}");
 		}
 
 		for (var textValue : list "${textValue}") {
@@ -304,8 +315,14 @@ definition {
 				for (var listboxNameList : list "${listboxNameList}") {
 					Click(
 						key_opt = "${listboxNameList}",
-						locator1 = "JSFShowcase#GENERAL_SELECT");
+						locator1 = "JSFShowcase#GENERAL_SELECT_OPTION");
 				}
+			}
+
+			if (isSet(oneMenuName)) {
+				Select(
+					locator1 = "JSFShowcase#GENERAL_SELECT",
+					value1 = "${oneMenuName}");
 			}
 
 			if (isSet(uncheckboxNameList)) {
@@ -364,8 +381,14 @@ definition {
 				for (var listboxNameList : list "${listboxNameList}") {
 					Click(
 						key_opt = "${listboxNameList}",
-						locator1 = "JSFShowcase#GENERAL_SELECT_2");
+						locator1 = "JSFShowcase#GENERAL_SELECT_OPTION_2");
 				}
+			}
+
+			if (isSet(oneMenuName)) {
+				Select(
+					locator1 = "JSFShowcase#GENERAL_SELECT_2",
+					value1 = "${oneMenuName}");
 			}
 
 			if (isSet(uncheckboxNameList)) {
@@ -496,7 +519,7 @@ definition {
 			locator1 = "TextInput#FILE",
 			value1 = "${fileName}");
 
-		if (!("${instantAjax}" == "true")) {
+		if ("${instantAjax}" != "true") {
 			Click(locator1 = "BridgeDemos#SUBMIT_BUTTON");
 		}
 
@@ -531,7 +554,7 @@ definition {
 
 		Click(locator1 = "BridgeDemos#SUBMIT_BUTTON");
 
-		if ("${selectManyMenu}" == "true" || "${selectManyList}" == "true" || "${selectManyListbox}" == "true") {
+		if (("${selectManyMenu}" == "true") || ("${selectManyList}" == "true") || ("${selectManyListbox}" == "true")) {
 			AssertElementPresent(locator1 = "JSFShowcase#VALID_ERROR_MESSAGE");
 		}
 		else {
@@ -600,7 +623,7 @@ definition {
 
 		AssertLocation.assertPartialLocation(value1 = "${linkURL}");
 
-		if (!("${newTab}" == "false")) {
+		if ("${newTab}" != "false") {
 			Navigator.closeWindow();
 		}
 	}

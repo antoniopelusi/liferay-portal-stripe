@@ -15,13 +15,33 @@
 package com.liferay.portal.kernel.util;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
  * @author Hugo Huijser
  */
 public class TreeMapBuilder<K, V> extends BaseMapBuilder {
+
+	public static <K, V> TreeMapWrapper<K, V> create(
+		Comparator<? super K> comparator) {
+
+		return new TreeMapWrapper<>(comparator);
+	}
+
+	public static <K, V> TreeMapWrapper<K, V> create(
+		Map<? extends K, ? extends V> map) {
+
+		return new TreeMapWrapper<>(map);
+	}
+
+	public static <K, V> TreeMapWrapper<K, V> create(
+		SortedMap<K, ? extends V> sortedMap) {
+
+		return new TreeMapWrapper<>(sortedMap);
+	}
 
 	public static <K, V> TreeMapWrapper<K, V> put(
 		Collection<? extends K> inputCollection,
@@ -73,6 +93,22 @@ public class TreeMapBuilder<K, V> extends BaseMapBuilder {
 
 	public static final class TreeMapWrapper<K, V>
 		extends BaseMapWrapper<K, V> {
+
+		public TreeMapWrapper() {
+			_treeMap = new TreeMap<>();
+		}
+
+		public TreeMapWrapper(Comparator<? super K> comparator) {
+			_treeMap = new TreeMap<>(comparator);
+		}
+
+		public TreeMapWrapper(Map<? extends K, ? extends V> map) {
+			_treeMap = new TreeMap<>(map);
+		}
+
+		public TreeMapWrapper(SortedMap<K, ? extends V> sortedMap) {
+			_treeMap = new TreeMap<>(sortedMap);
+		}
 
 		public TreeMap<K, V> build() {
 			return _treeMap;
@@ -131,7 +167,7 @@ public class TreeMapBuilder<K, V> extends BaseMapBuilder {
 			return _treeMap;
 		}
 
-		private final TreeMap<K, V> _treeMap = new TreeMap<>();
+		private final TreeMap<K, V> _treeMap;
 
 	}
 

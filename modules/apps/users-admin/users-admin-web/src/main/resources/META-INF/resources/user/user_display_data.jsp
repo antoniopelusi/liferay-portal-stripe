@@ -149,11 +149,6 @@ User selUser = (User)request.getAttribute(UsersAdminWebKeys.SELECTED_USER);
 			<c:if test="<%= selUser != null %>">
 				<c:choose>
 					<c:when test='<%= UsersAdminUtil.hasUpdateFieldPermission(permissionChecker, user, selUser, "portrait") %>'>
-
-						<%
-						UserFileUploadsConfiguration userFileUploadsConfiguration = ConfigurationProviderUtil.getSystemConfiguration(UserFileUploadsConfiguration.class);
-						%>
-
 						<label class="control-label"></label>
 
 						<liferay-ui:logo-selector
@@ -162,7 +157,6 @@ User selUser = (User)request.getAttribute(UsersAdminWebKeys.SELECTED_USER);
 							defaultLogo="<%= selUser.getPortraitId() == 0 %>"
 							defaultLogoURL="<%= UserConstants.getPortraitURL(themeDisplay.getPathImage(), selUser.isMale(), 0, null) %>"
 							logoDisplaySelector=".user-logo"
-							maxFileSize="<%= userFileUploadsConfiguration.imageMaxSize() %>"
 							preserveRatio="<%= true %>"
 							tempImageFileName="<%= String.valueOf(selUser.getUserId()) %>"
 						/>
@@ -180,7 +174,7 @@ User selUser = (User)request.getAttribute(UsersAdminWebKeys.SELECTED_USER);
 	<portlet:param name="mvcPath" value="/user/password_verification.jsp" />
 </portlet:renderURL>
 
-<c:if test="<%= selUser != null %>">
+<c:if test="<%= (selUser != null) && company.isUpdatePasswordRequired() %>">
 	<aui:script use="liferay-form">
 		Liferay.once('<portlet:namespace />formReady', () => {
 			var form = Liferay.Form.get('<portlet:namespace />fm');

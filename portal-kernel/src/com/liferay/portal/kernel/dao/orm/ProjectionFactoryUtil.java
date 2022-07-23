@@ -20,23 +20,23 @@ package com.liferay.portal.kernel.dao.orm;
 public class ProjectionFactoryUtil {
 
 	public static Projection alias(Projection projection, String alias) {
-		return getProjectionFactory().alias(projection, alias);
+		return _projectionFactory.alias(projection, alias);
 	}
 
 	public static Projection avg(String propertyName) {
-		return getProjectionFactory().avg(propertyName);
+		return _projectionFactory.avg(propertyName);
 	}
 
 	public static Projection count(String propertyName) {
-		return getProjectionFactory().count(propertyName);
+		return _projectionFactory.count(propertyName);
 	}
 
 	public static Projection countDistinct(String propertyName) {
-		return getProjectionFactory().countDistinct(propertyName);
+		return _projectionFactory.countDistinct(propertyName);
 	}
 
 	public static Projection distinct(Projection projection) {
-		return getProjectionFactory().distinct(projection);
+		return _projectionFactory.distinct(projection);
 	}
 
 	public static ProjectionFactory getProjectionFactory() {
@@ -44,44 +44,44 @@ public class ProjectionFactoryUtil {
 	}
 
 	public static Projection groupProperty(String propertyName) {
-		return getProjectionFactory().groupProperty(propertyName);
+		return _projectionFactory.groupProperty(propertyName);
 	}
 
 	public static Projection max(String propertyName) {
-		return getProjectionFactory().max(propertyName);
+		return _projectionFactory.max(propertyName);
 	}
 
 	public static Projection min(String propertyName) {
-		return getProjectionFactory().min(propertyName);
+		return _projectionFactory.min(propertyName);
 	}
 
 	public static ProjectionList projectionList() {
-		return getProjectionFactory().projectionList();
+		return _projectionFactory.projectionList();
 	}
 
 	public static Projection property(String propertyName) {
-		return getProjectionFactory().property(propertyName);
+		return _projectionFactory.property(propertyName);
 	}
 
 	public static Projection rowCount() {
-		return getProjectionFactory().rowCount();
+		return _projectionFactory.rowCount();
 	}
 
 	public static Projection sqlGroupProjection(
 		String sql, String groupBy, String[] columnAliases, Type[] types) {
 
-		return getProjectionFactory().sqlGroupProjection(
+		return _projectionFactory.sqlGroupProjection(
 			sql, groupBy, columnAliases, types);
 	}
 
 	public static Projection sqlProjection(
 		String sql, String[] columnAliases, Type[] types) {
 
-		return getProjectionFactory().sqlProjection(sql, columnAliases, types);
+		return _projectionFactory.sqlProjection(sql, columnAliases, types);
 	}
 
 	public static Projection sum(String propertyName) {
-		return getProjectionFactory().sum(propertyName);
+		return _projectionFactory.sum(propertyName);
 	}
 
 	public void setProjectionFactory(ProjectionFactory projectionFactory) {

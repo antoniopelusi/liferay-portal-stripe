@@ -14,6 +14,7 @@
 
 package com.liferay.portal.tools.upgrade.table.builder;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.ArgumentsUtil;
@@ -153,7 +154,10 @@ public class UpgradeTableBuilder {
 			upgradeFilePath = _getUpgradeFilePath(upgradeFileName);
 
 			if (upgradeFilePath == null) {
-				return;
+				throw new IOException(
+					StringBundler.concat(
+						"Verify the file name for ", fileName, " because ",
+						upgradeFileName, " does not exist"));
 			}
 		}
 
@@ -161,17 +165,28 @@ public class UpgradeTableBuilder {
 
 		String packagePath = _getPackagePath(content);
 
+		if (packagePath == null) {
+			throw new IOException("Provide a package in " + fileName);
+		}
+
 		String className = fileName.substring(0, fileName.length() - 5);
 
 		String upgradeFileContent = _read(upgradeFilePath);
 
-		String author = _getAuthor(content);
+		if (_getVersion() >= 74) {
+			content = _getContent(
+				packagePath, className, upgradeFileContent,
+				_getAuthor(content));
+		}
+		else {
+			String author = _getAuthor(content);
 
-		String[] addIndexes = _getAddIndexes(
-			_getIndexesFilePath(upgradeFileVersion), tableName);
+			String[] addIndexes = _getAddIndexes(
+				_getIndexesFilePath(upgradeFileVersion), tableName);
 
-		content = _getContent(
-			packagePath, className, upgradeFileContent, author, addIndexes);
+			content = _getOldContent(
+				packagePath, className, upgradeFileContent, author, addIndexes);
+		}
 
 		Files.write(path, content.getBytes(StandardCharsets.UTF_8));
 	}
@@ -254,6 +269,115 @@ public class UpgradeTableBuilder {
 	}
 
 	private String _getContent(
+			String packagePath, String className, String content, String author)
+		throws IOException {
+
+		StringBundler sb = new StringBundler(34);
+
+		sb.append(_getCopyright());
+		sb.append("\n\npackage ");
+		sb.append(packagePath);
+		sb.append(";\n\n");
+		sb.append(
+			"import com.liferay.portal.kernel.upgrade.UpgradeProcess;\n\n");
+		sb.append("/**\n");
+		sb.append(" * @author ");
+		sb.append(author);
+		sb.append("\n");
+		sb.append(" * @generated\n");
+		sb.append(" * @see ");
+		sb.append(UpgradeTableBuilder.class.getName());
+		sb.append("\n");
+		sb.append(" */\n");
+		sb.append("public class ");
+		sb.append(className);
+		sb.append(" {\n\n");
+		sb.append("\tpublic static UpgradeProcess create() {\n");
+		sb.append("\t\treturn new UpgradeProcess() {\n\n");
+		sb.append("\t\t\t@Override\n");
+		sb.append("\t\t\tprotected void doUpgrade() throws Exception {\n");
+		sb.append("\t\t\t\tif (!hasTable(_TABLE_NAME)) {\n");
+		sb.append("\t\t\t\t\trunSQL(_TABLE_SQL_CREATE);\n");
+		sb.append("\t\t\t\t}\n");
+		sb.append("\t\t\t}\n\n");
+		sb.append("\t\t};\n");
+		sb.append("\t}\n\n");
+		sb.append("\tprivate static final String _TABLE_NAME =");
+
+		int x = content.indexOf("public static final String TABLE_NAME =");
+
+		if (x == -1) {
+			x = content.indexOf("public static String TABLE_NAME =");
+		}
+
+		sb.append(
+			content.substring(
+				content.indexOf("=", x) + 1, content.indexOf(";", x)));
+
+		sb.append(";\n\n");
+		sb.append("\tprivate static final String _TABLE_SQL_CREATE =");
+
+		int y = content.indexOf(
+			"public static final String TABLE_SQL_CREATE =");
+
+		if (y == -1) {
+			y = content.lastIndexOf("public static String TABLE_SQL_CREATE =");
+		}
+
+		sb.append(
+			content.substring(
+				content.indexOf("=", y) + 1, content.indexOf(";", y)));
+
+		sb.append(";\n\n");
+		sb.append("}");
+
+		return sb.toString();
+	}
+
+	private String _getCopyright() throws IOException {
+		Path path = Paths.get(_baseDirName);
+
+		path = path.toAbsolutePath();
+
+		while (path != null) {
+			Path copyrightFilePath = path.resolve("copyright.txt");
+
+			if (Files.exists(copyrightFilePath)) {
+				return _read(copyrightFilePath);
+			}
+
+			path = path.getParent();
+		}
+
+		return null;
+	}
+
+	private Path _getIndexesFilePath(String upgradeFileVersion)
+		throws IOException {
+
+		Path indexesFilePath = null;
+
+		if (_osgiModule) {
+			List<Path> paths = _findFiles(
+				_baseDirName, "**/sql/indexes.sql", 1);
+
+			if (!paths.isEmpty()) {
+				indexesFilePath = paths.get(0);
+			}
+		}
+		else {
+			indexesFilePath = Paths.get(
+				_upgradeTableDirName, upgradeFileVersion, "indexes.sql");
+
+			if (Files.notExists(indexesFilePath)) {
+				indexesFilePath = Paths.get(_baseDirName, "../sql/indexes.sql");
+			}
+		}
+
+		return indexesFilePath;
+	}
+
+	private String _getOldContent(
 			String packagePath, String className, String content, String author,
 			String[] addIndexes)
 		throws IOException {
@@ -284,14 +408,13 @@ public class UpgradeTableBuilder {
 			content = StringUtil.replace(content, "\n\n", "\n");
 		}
 
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		sb.append(_getCopyright());
 
 		sb.append("\n\npackage ");
 		sb.append(packagePath);
 		sb.append(";\n\n");
-
 		sb.append("import java.sql.Types;\n\n");
 
 		if (content.contains("TABLE_COLUMNS_MAP")) {
@@ -344,53 +467,9 @@ public class UpgradeTableBuilder {
 		}
 
 		sb.append("\t};\n\n");
-
 		sb.append("}");
 
 		return sb.toString();
-	}
-
-	private String _getCopyright() throws IOException {
-		Path path = Paths.get(_baseDirName);
-
-		path = path.toAbsolutePath();
-
-		while (path != null) {
-			Path copyrightFilePath = path.resolve("copyright.txt");
-
-			if (Files.exists(copyrightFilePath)) {
-				return _read(copyrightFilePath);
-			}
-
-			path = path.getParent();
-		}
-
-		return null;
-	}
-
-	private Path _getIndexesFilePath(String upgradeFileVersion)
-		throws IOException {
-
-		Path indexesFilePath = null;
-
-		if (_osgiModule) {
-			List<Path> paths = _findFiles(
-				_baseDirName, "**/sql/indexes.sql", 1);
-
-			if (!paths.isEmpty()) {
-				indexesFilePath = paths.get(0);
-			}
-		}
-		else {
-			indexesFilePath = Paths.get(
-				_upgradeTableDirName, upgradeFileVersion, "indexes.sql");
-
-			if (Files.notExists(indexesFilePath)) {
-				indexesFilePath = Paths.get(_baseDirName, "../sql/indexes.sql");
-			}
-		}
-
-		return indexesFilePath;
 	}
 
 	private String _getPackagePath(String content) {
@@ -425,6 +504,56 @@ public class UpgradeTableBuilder {
 		return paths.get(0);
 	}
 
+	private int _getVersion() throws IOException {
+		Path path = null;
+
+		if (_osgiModule) {
+			path = Paths.get(_baseDirName, "service.xml");
+		}
+		else {
+			Path[] paths = new Path[1];
+
+			Files.walkFileTree(
+				Paths.get(_baseDirName),
+				new SimpleFileVisitor<Path>() {
+
+					@Override
+					public FileVisitResult visitFile(
+							Path path, BasicFileAttributes basicFileAttributes)
+						throws IOException {
+
+						if (path.endsWith("service.xml")) {
+							paths[0] = path;
+
+							return FileVisitResult.TERMINATE;
+						}
+
+						return FileVisitResult.CONTINUE;
+					}
+
+				});
+
+			path = paths[0];
+		}
+
+		String content = _read(path);
+
+		int index = content.indexOf("http://www.liferay.com/dtd/");
+
+		String url = content.substring(
+			content.indexOf(index), content.indexOf("\">", index));
+
+		Matcher matcher = _dtdVersionPattern.matcher(url);
+
+		if (matcher.matches()) {
+			String version = StringUtil.removeSubstring(matcher.group(1), "_");
+
+			return Integer.valueOf(version.substring(0, 2));
+		}
+
+		throw new IOException("Unable to get Liferay version from " + path);
+	}
+
 	private boolean _isRelevantUpgradePackage(String upgradeFileVersion)
 		throws IOException {
 
@@ -452,6 +581,8 @@ public class UpgradeTableBuilder {
 
 	private static final String _AUTHOR = "Brian Wing Shun Chan";
 
+	private static final Pattern _dtdVersionPattern = Pattern.compile(
+		".*service-builder_([^\\.]+)\\.dtd");
 	private static final Pattern _packagePathPattern = Pattern.compile(
 		"package (.+?);");
 

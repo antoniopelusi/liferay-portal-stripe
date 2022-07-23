@@ -17,7 +17,6 @@ package com.liferay.layout.set.prototype.internal.exportimport.data.handler;
 import com.liferay.exportimport.data.handler.base.BaseStagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
-import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.petra.string.StringPool;
@@ -122,9 +121,9 @@ public class LayoutSetPrototypeStagedModelDataHandler
 			ExportImportPathUtil.getModelPath(layoutSetPrototype),
 			layoutSetPrototype);
 
-		exportLayouts(layoutSetPrototype, portletDataContext);
+		_exportLayouts(layoutSetPrototype, portletDataContext);
 
-		exportLayoutPrototypes(
+		_exportLayoutPrototypes(
 			portletDataContext, layoutSetPrototype, layoutSetPrototypeElement);
 	}
 
@@ -190,8 +189,8 @@ public class LayoutSetPrototypeStagedModelDataHandler
 					readyForPropagation, serviceContext);
 		}
 
-		importLayoutPrototypes(portletDataContext, layoutSetPrototype);
-		importLayouts(
+		_importLayoutPrototypes(portletDataContext, layoutSetPrototype);
+		_importLayouts(
 			portletDataContext, layoutSetPrototype, importedLayoutSetPrototype,
 			serviceContext);
 
@@ -199,7 +198,38 @@ public class LayoutSetPrototypeStagedModelDataHandler
 			layoutSetPrototype, importedLayoutSetPrototype);
 	}
 
-	protected void exportLayoutPrototypes(
+	@Override
+	protected boolean isSkipImportReferenceStagedModels() {
+		return true;
+	}
+
+	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutLocalService(
+		LayoutLocalService layoutLocalService) {
+
+		_layoutLocalService = layoutLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutPrototypeLocalService(
+		LayoutPrototypeLocalService layoutPrototypeLocalService) {
+
+		_layoutPrototypeLocalService = layoutPrototypeLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutSetPrototypeLocalService(
+		LayoutSetPrototypeLocalService layoutSetPrototypeLocalService) {
+
+		_layoutSetPrototypeLocalService = layoutSetPrototypeLocalService;
+	}
+
+	private void _exportLayoutPrototypes(
 			PortletDataContext portletDataContext,
 			LayoutSetPrototype layoutSetPrototype,
 			Element layoutSetPrototypeElement)
@@ -245,7 +275,7 @@ public class LayoutSetPrototypeStagedModelDataHandler
 		}
 	}
 
-	protected void exportLayouts(
+	private void _exportLayouts(
 			LayoutSetPrototype layoutSetPrototype,
 			PortletDataContext portletDataContext)
 		throws Exception {
@@ -287,10 +317,10 @@ public class LayoutSetPrototypeStagedModelDataHandler
 		}
 	}
 
-	protected void importLayoutPrototypes(
+	private void _importLayoutPrototypes(
 			PortletDataContext portletDataContext,
 			LayoutSetPrototype layoutSetPrototype)
-		throws PortletDataException {
+		throws Exception {
 
 		List<Element> layoutPrototypeElements =
 			portletDataContext.getReferenceDataElements(
@@ -302,12 +332,12 @@ public class LayoutSetPrototypeStagedModelDataHandler
 		}
 	}
 
-	protected void importLayouts(
+	private void _importLayouts(
 			PortletDataContext portletDataContext,
 			LayoutSetPrototype layoutSetPrototype,
 			LayoutSetPrototype importedLayoutSetPrototype,
 			ServiceContext serviceContext)
-		throws PortalException {
+		throws Exception {
 
 		String layoutSetPrototypeLARPath = ExportImportPathUtil.getModelPath(
 			layoutSetPrototype,
@@ -322,40 +352,9 @@ public class LayoutSetPrototypeStagedModelDataHandler
 		}
 		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioException, ioException);
+				_log.warn(ioException);
 			}
 		}
-	}
-
-	@Override
-	protected boolean isSkipImportReferenceStagedModels() {
-		return true;
-	}
-
-	@Reference(unbind = "-")
-	protected void setGroupLocalService(GroupLocalService groupLocalService) {
-		_groupLocalService = groupLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutLocalService(
-		LayoutLocalService layoutLocalService) {
-
-		_layoutLocalService = layoutLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutPrototypeLocalService(
-		LayoutPrototypeLocalService layoutPrototypeLocalService) {
-
-		_layoutPrototypeLocalService = layoutPrototypeLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutSetPrototypeLocalService(
-		LayoutSetPrototypeLocalService layoutSetPrototypeLocalService) {
-
-		_layoutSetPrototypeLocalService = layoutSetPrototypeLocalService;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

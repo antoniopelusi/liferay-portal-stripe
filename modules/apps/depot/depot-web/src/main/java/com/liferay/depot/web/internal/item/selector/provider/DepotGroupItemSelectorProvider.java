@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.LayoutPrototype;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.service.LayoutPrototypeService;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -57,7 +56,7 @@ public class DepotGroupItemSelectorProvider
 	@Override
 	public String getEmptyResultsMessage(Locale locale) {
 		return ResourceBundleUtil.getString(
-			_resourceBundleLoader.loadResourceBundle(locale),
+			ResourceBundleUtil.getBundle(locale, getClass()),
 			"no-asset-libraries-were-found");
 	}
 
@@ -78,7 +77,7 @@ public class DepotGroupItemSelectorProvider
 			return groups;
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return Collections.emptyList();
 		}
@@ -91,7 +90,7 @@ public class DepotGroupItemSelectorProvider
 				_getGroupId(groupId));
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return 0;
 		}
@@ -153,8 +152,5 @@ public class DepotGroupItemSelectorProvider
 
 	@Reference
 	private LayoutPrototypeService _layoutPrototypeService;
-
-	@Reference(target = "(bundle.symbolic.name=com.liferay.depot.web)")
-	private ResourceBundleLoader _resourceBundleLoader;
 
 }

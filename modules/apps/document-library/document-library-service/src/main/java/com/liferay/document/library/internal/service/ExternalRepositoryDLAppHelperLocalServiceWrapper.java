@@ -39,16 +39,6 @@ import org.osgi.service.component.annotations.Reference;
 public class ExternalRepositoryDLAppHelperLocalServiceWrapper
 	extends DLAppHelperLocalServiceWrapper {
 
-	public ExternalRepositoryDLAppHelperLocalServiceWrapper() {
-		super(null);
-	}
-
-	public ExternalRepositoryDLAppHelperLocalServiceWrapper(
-		DLAppHelperLocalService dlAppHelperLocalService) {
-
-		super(dlAppHelperLocalService);
-	}
-
 	@Override
 	public void addFolder(
 			long userId, Folder folder, ServiceContext serviceContext)
@@ -124,11 +114,9 @@ public class ExternalRepositoryDLAppHelperLocalServiceWrapper
 	}
 
 	private boolean _isEnabled(FileEntry fileEntry) {
-		if (!DLAppHelperThreadLocal.isEnabled()) {
-			return false;
-		}
+		if (!DLAppHelperThreadLocal.isEnabled() ||
+			RepositoryUtil.isExternalRepository(fileEntry.getRepositoryId())) {
 
-		if (RepositoryUtil.isExternalRepository(fileEntry.getRepositoryId())) {
 			return false;
 		}
 
@@ -136,12 +124,9 @@ public class ExternalRepositoryDLAppHelperLocalServiceWrapper
 	}
 
 	private boolean _isEnabled(Folder folder) {
-		if (!DLAppHelperThreadLocal.isEnabled()) {
-			return false;
-		}
-
-		if (!folder.isMountPoint() &&
-			RepositoryUtil.isExternalRepository(folder.getRepositoryId())) {
+		if (!DLAppHelperThreadLocal.isEnabled() ||
+			(!folder.isMountPoint() &&
+			 RepositoryUtil.isExternalRepository(folder.getRepositoryId()))) {
 
 			return false;
 		}

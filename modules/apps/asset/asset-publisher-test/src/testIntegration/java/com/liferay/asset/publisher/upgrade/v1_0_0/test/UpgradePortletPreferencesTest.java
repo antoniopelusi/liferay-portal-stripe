@@ -88,7 +88,7 @@ public class UpgradePortletPreferencesTest {
 
 		_group = GroupTestUtil.addGroup();
 
-		_layout = LayoutTestUtil.addLayout(_group);
+		_layout = LayoutTestUtil.addTypePortletLayout(_group);
 
 		CacheRegistryUtil.setActive(false);
 
@@ -103,9 +103,9 @@ public class UpgradePortletPreferencesTest {
 
 	@Test
 	public void testUpgradeDLDateFieldsValues() throws Exception {
-		Date now = new Date();
+		Date date = new Date();
 
-		String dateString = _oldDateFormat.format(now);
+		String dateString = _oldDateFormat.format(date);
 
 		PortletPreferences portletPreferences = updatePortletPreferences(
 			getPortletId(),
@@ -147,7 +147,7 @@ public class UpgradePortletPreferencesTest {
 		ddmStructureFieldValue = portletPreferences.getValue(
 			"ddmStructureFieldValue", StringPool.BLANK);
 
-		dateString = _newDateFormat.format(now);
+		dateString = _newDateFormat.format(date);
 
 		Assert.assertEquals(dateString, ddmStructureFieldValue);
 	}
@@ -194,9 +194,9 @@ public class UpgradePortletPreferencesTest {
 
 	@Test
 	public void testUpgradeJournalDateFieldValue() throws Exception {
-		Date now = new Date();
+		Date date = new Date();
 
-		String dateString = _oldDateFormat.format(now);
+		String dateString = _oldDateFormat.format(date);
 
 		PortletPreferences portletPreferences = updatePortletPreferences(
 			getPortletId(),
@@ -231,7 +231,7 @@ public class UpgradePortletPreferencesTest {
 		fieldValue = portletPreferences.getValue(
 			"ddmStructureFieldValue", StringPool.BLANK);
 
-		dateString = _newDateFormat.format(now);
+		dateString = _newDateFormat.format(date);
 
 		Assert.assertEquals(dateString, fieldValue);
 	}
@@ -278,10 +278,9 @@ public class UpgradePortletPreferencesTest {
 
 		DDMFormField ddmFormField = ddmStructure.getDDMFormField("Text");
 
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(4);
 
-		sb.append("ddm");
-		sb.append(StringPool.DOUBLE_UNDERLINE);
+		sb.append("ddm__");
 		sb.append(ddmStructure.getStructureId());
 		sb.append(StringPool.DOUBLE_UNDERLINE);
 		sb.append(ddmFormField.getName());
@@ -320,34 +319,22 @@ public class UpgradePortletPreferencesTest {
 
 		DDMFormField ddmFormField = ddmStructure.getDDMFormField("Text");
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("ddm");
-		sb.append(StringPool.FORWARD_SLASH);
-		sb.append(ddmStructure.getStructureId());
-		sb.append(StringPool.FORWARD_SLASH);
-		sb.append(ddmFormField.getName());
-
-		Map<String, String> portletPreferencesMap = HashMapBuilder.put(
-			"orderByColumn1", sb.toString()
-		).put(
-			"subtypeFieldsFilterEnabled", Boolean.TRUE.toString()
-		).build();
-
-		sb = new StringBundler(7);
-
-		sb.append("ddm");
-		sb.append(StringPool.FORWARD_SLASH);
-		sb.append(ddmFormField.getIndexType());
-		sb.append(StringPool.FORWARD_SLASH);
-		sb.append(ddmStructure.getStructureId());
-		sb.append(StringPool.FORWARD_SLASH);
-		sb.append(ddmFormField.getName());
-
-		portletPreferencesMap.put("orderByColumn2", sb.toString());
-
 		PortletPreferences portletPreferences = updatePortletPreferences(
-			getPortletId(), portletPreferencesMap);
+			getPortletId(),
+			HashMapBuilder.put(
+				"orderByColumn1",
+				StringBundler.concat(
+					"ddm/", ddmStructure.getStructureId(),
+					StringPool.FORWARD_SLASH, ddmFormField.getName())
+			).put(
+				"orderByColumn2",
+				StringBundler.concat(
+					"ddm/", ddmFormField.getIndexType(),
+					StringPool.FORWARD_SLASH, ddmStructure.getStructureId(),
+					StringPool.FORWARD_SLASH, ddmFormField.getName())
+			).put(
+				"subtypeFieldsFilterEnabled", Boolean.TRUE.toString()
+			).build());
 
 		portletPreferences = ReflectionTestUtil.invoke(
 			_upgradePortletPreferences, "upgradePreferences",
@@ -389,27 +376,16 @@ public class UpgradePortletPreferencesTest {
 	protected String getExpectedOrderByColumnValue(
 		DDMStructure ddmStructure, DDMFormField ddmFormField) {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("ddm");
-		sb.append(StringPool.DOUBLE_UNDERLINE);
-		sb.append(ddmFormField.getIndexType());
-		sb.append(StringPool.DOUBLE_UNDERLINE);
-		sb.append(ddmStructure.getStructureId());
-		sb.append(StringPool.DOUBLE_UNDERLINE);
-		sb.append(ddmFormField.getName());
-
-		return sb.toString();
+		return StringBundler.concat(
+			"ddm__", ddmFormField.getIndexType(), StringPool.DOUBLE_UNDERLINE,
+			ddmStructure.getStructureId(), StringPool.DOUBLE_UNDERLINE,
+			ddmFormField.getName());
 	}
 
 	protected String getPortletId() {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(AssetPublisherPortletKeys.ASSET_PUBLISHER);
-		sb.append("_INSTANCE_");
-		sb.append(StringUtil.randomId());
-
-		return sb.toString();
+		return StringBundler.concat(
+			AssetPublisherPortletKeys.ASSET_PUBLISHER, "_INSTANCE_",
+			StringUtil.randomId());
 	}
 
 	protected PortletPreferences getPortletPreferences(String portletId)

@@ -15,6 +15,7 @@
 package com.liferay.password.policies.admin.web.internal.display.context;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemListBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -23,10 +24,10 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.permission.PasswordPolicyPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.portlet.PortletException;
@@ -91,7 +92,7 @@ public class PasswordPolicyDisplayContext {
 			ParamUtil.getString(_httpServletRequest, "redirect")
 		).setParameter(
 			"passwordPolicyId", _passwordPolicyId
-		).build();
+		).buildPortletURL();
 
 		List<NavigationItem> navigationItems = NavigationItemListBuilder.add(
 			() -> (_passwordPolicyId == 0) || _hasPermission(ActionKeys.UPDATE),
@@ -137,20 +138,14 @@ public class PasswordPolicyDisplayContext {
 	}
 
 	public List<NavigationItem> getSelectMembersNavigationItems() {
-		String tabs2 = ParamUtil.getString(
-			_httpServletRequest, "tabs2", "users");
-
-		List<NavigationItem> navigationItems = new ArrayList<>();
-
-		NavigationItem entriesNavigationItem = new NavigationItem();
-
-		entriesNavigationItem.setActive(true);
-		entriesNavigationItem.setLabel(
-			LanguageUtil.get(_httpServletRequest, tabs2));
-
-		navigationItems.add(entriesNavigationItem);
-
-		return navigationItems;
+		return ListUtil.fromArray(
+			NavigationItemBuilder.setActive(
+				true
+			).setLabel(
+				LanguageUtil.get(
+					_httpServletRequest,
+					ParamUtil.getString(_httpServletRequest, "tabs2", "users"))
+			).build());
 	}
 
 	public boolean hasPermission(String actionId, long passwordPolicyId) {

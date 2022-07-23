@@ -40,6 +40,8 @@ public class SiteFriendlyURLTable extends BaseTable<SiteFriendlyURLTable> {
 	public final Column<SiteFriendlyURLTable, Long> siteFriendlyURLId =
 		createColumn(
 			"siteFriendlyURLId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
+	public final Column<SiteFriendlyURLTable, Long> groupId = createColumn(
+		"groupId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
 	public final Column<SiteFriendlyURLTable, Long> companyId = createColumn(
 		"companyId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
 	public final Column<SiteFriendlyURLTable, Long> userId = createColumn(
@@ -50,8 +52,6 @@ public class SiteFriendlyURLTable extends BaseTable<SiteFriendlyURLTable> {
 		"createDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
 	public final Column<SiteFriendlyURLTable, Date> modifiedDate = createColumn(
 		"modifiedDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
-	public final Column<SiteFriendlyURLTable, Long> groupId = createColumn(
-		"groupId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
 	public final Column<SiteFriendlyURLTable, String> friendlyURL =
 		createColumn(
 			"friendlyURL", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);

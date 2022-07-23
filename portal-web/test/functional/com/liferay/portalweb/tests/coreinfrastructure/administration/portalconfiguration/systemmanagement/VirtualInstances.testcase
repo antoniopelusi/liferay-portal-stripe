@@ -20,13 +20,13 @@ definition {
 		else {
 			PortalInstances.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
 	@priority = "5"
 	test AddPortalInstance {
-		property test.name.skip.portal.instance = "PortalconfigurationUsecase#AddPortalInstance";
+		property test.name.skip.portal.instance = "VirtualInstances#AddPortalInstance";
 
 		ApplicationsMenu.gotoPortlet(
 			category = "System",
@@ -43,7 +43,7 @@ definition {
 
 	@priority = "5"
 	test DeletePortalInstance {
-		property test.name.skip.portal.instance = "PortalconfigurationUsecase#DeletePortalInstance";
+		property test.name.skip.portal.instance = "VirtualInstances#DeletePortalInstance";
 
 		ApplicationsMenu.gotoPortlet(
 			category = "System",
@@ -60,7 +60,7 @@ definition {
 
 	@priority = "4"
 	test PermissionCheckPortalInstances {
-		property test.name.skip.portal.instance = "PortalconfigurationUsecase#PermissionCheckPortalInstances";
+		property test.name.skip.portal.instance = "VirtualInstances#PermissionCheckPortalInstances";
 
 		ApplicationsMenu.gotoPortlet(
 			category = "System",
@@ -85,7 +85,7 @@ definition {
 		Navigator.openSpecificURL(url = "http://www.able.com:8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMDocument.addCP(
@@ -116,7 +116,7 @@ definition {
 
 	@priority = "5"
 	test ViewDeactivatedPortalInstance {
-		property test.name.skip.portal.instance = "PortalconfigurationUsecase#ViewDeactivatedPortalInstance";
+		property test.name.skip.portal.instance = "VirtualInstances#ViewDeactivatedPortalInstance";
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -148,7 +148,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Blogs Page");
+		PagesAdmin.addPage(pageName = "Blogs Page");
 
 		Navigator.gotoPage(pageName = "Blogs Page");
 
@@ -158,7 +158,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Wiki Page");
+		PagesAdmin.addPage(pageName = "Wiki Page");
 
 		Navigator.gotoPage(pageName = "Wiki Page");
 
@@ -168,7 +168,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Language Page");
+		PagesAdmin.addPage(pageName = "Language Page");
 
 		Navigator.gotoPage(pageName = "Language Page");
 
@@ -197,7 +197,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Web Content Page");
+		PagesAdmin.addPage(pageName = "Web Content Page");
 
 		Navigator.gotoSpecificURLPage(
 			pageName = "Web Content Page",
@@ -231,7 +231,9 @@ definition {
 	@priority = "4"
 	test ViewVirtualHostPrivateSitePage {
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com,www.baker.com,www.charlie.com";
-		property test.name.skip.portal.instance = "PortalconfigurationUsecase#ViewVirtualHostPrivateSitePage";
+		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property test.name.skip.portal.instance = "VirtualInstances#ViewVirtualHostPrivateSitePage";
 
 		PortalSettings.gotoConfiguration(
 			configurationCategory = "Instance Configuration",
@@ -240,13 +242,13 @@ definition {
 
 		PortalSettings.editVirtualHostCP(virtualHostName = "www.able.com");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "guest");
+		Site.openSiteSettingsAdmin(siteURLKey = "guest");
 
 		Site.addVirtualHostsURLCP(
 			publicPageVirtualHostURL = "www.baker.com",
 			publicVirtualHosts = "${publicPageVirtualHostURL}");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "guest");
+		Site.openSiteSettingsAdmin(siteURLKey = "guest");
 
 		Site.addVirtualHostsURLCP(
 			privatePageVirtualHostURL = "www.charlie.com",
@@ -256,9 +258,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Public Page");
+		PagesAdmin.addPublicPage(pageName = "Public Page");
 
-		SitePages.addPrivatePage(pageName = "Private Page");
+		PagesAdmin.addPrivatePage(pageName = "Private Page");
 
 		Navigator.openSpecificURL(url = "http://www.charlie.com:8080");
 
@@ -285,7 +287,7 @@ definition {
 
 	@priority = "4"
 	test ViewVirtualInstanceInheritsSystemSettings {
-		property test.name.skip.portal.instance = "PortalconfigurationUsecase#ViewVirtualInstanceInheritsSystemSettings";
+		property test.name.skip.portal.instance = "VirtualInstances#ViewVirtualInstanceInheritsSystemSettings";
 
 		PortalSettings.gotoConfiguration(
 			configurationCategory = "Users",

@@ -70,12 +70,6 @@ public class DDMFormInstanceRecordStagedModelDataHandlerTest
 	public static final AggregateTestRule aggregateTestRule =
 		new LiferayIntegrationTestRule();
 
-	@Override
-	@Test
-	public void testCleanStagedModelDataHandler() throws Exception {
-		super.testCleanStagedModelDataHandler();
-	}
-
 	@Test
 	public void testVersionMatchingAfterExportImport() throws Exception {
 		String fieldName = "Text";

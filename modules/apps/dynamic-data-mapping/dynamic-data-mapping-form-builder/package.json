@@ -1,13 +1,4 @@
 {
-	"dependencies": {
-		"classnames": "2.2.6",
-		"clay-dropdown": "2.22.3",
-		"clay-icon": "2.22.2",
-		"clay-modal": "2.22.2",
-		"metal-drag-drop": "3.3.1",
-		"metal-jsx": "2.16.8",
-		"metal-state": "2.16.8"
-	},
 	"jest": {
 		"collectCoverageFrom": [
 			"src/main/resources/META-INF/resources/js/**/*.es.js"
@@ -20,26 +11,6 @@
 		],
 		"setupFiles": [
 			"<rootDir>/jest-setup.config.js"
-		],
-		"snapshotSerializers": [
-			"metal-jest-serializer"
-		],
-		"testPathIgnorePatterns": [
-			"Evaluator",
-			"fieldSupport",
-			"FormBuilder",
-			"FormRenderer",
-			"LayoutProvider/handlers/columnResizedHandler",
-			"LayoutProvider/handlers/fieldBlurredHandler",
-			"LayoutProvider/handlers/fieldDeletedHandler",
-			"LayoutProvider/handlers/fieldEditedHandler",
-			"LayoutProvider/handlers/fieldSetAddedHandler",
-			"LayoutProvider/handlers/focusedFieldEvaluationEndedHandler",
-			"LayoutProvider/LayoutProvider",
-			"LayoutProvider/util",
-			"PageRenderer",
-			"RuleBuilder/RulesSupport.",
-			"Sidebar/Sidebar"
 		]
 	},
 	"main": "js/index.es.js",
@@ -48,7 +19,7 @@
 		"build": "liferay-npm-scripts build",
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix",
-		"test": "metalsoy -s \"test/**/*.soy\" -d \"test\" && liferay-npm-scripts test"
+		"test": "liferay-npm-scripts test"
 	},
-	"version": "4.0.2"
+	"version": "4.0.32"
 }

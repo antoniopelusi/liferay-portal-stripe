@@ -77,52 +77,14 @@ public class StructuredContentResourceTest
 
 	@Override
 	@Test
-	public void testDeleteStructuredContentByVersion() throws Exception {
-		StructuredContent structuredContent = _postSiteStructuredContent(
-			testGroup.getGroupId(), randomStructuredContent());
-
-		Page<StructuredContent> structuredContentsVersionsPage =
-			structuredContentResource.
-				getStructuredContentsStructuredContentPage(
-					structuredContent.getId());
-
-		Assert.assertEquals(1L, structuredContentsVersionsPage.getTotalCount());
-
-		structuredContentResource.deleteStructuredContentByVersion(
-			structuredContent.getId(), 1.0D);
-
-		assertHttpResponseStatusCode(
-			404,
-			structuredContentResource.getStructuredContentByVersionHttpResponse(
-				structuredContent.getId(), 1.0D));
-	}
-
-	@Override
-	@Test
-	public void testGetStructuredContentByVersion() throws Exception {
-		StructuredContent structuredContent = _postSiteStructuredContent(
-			testGroup.getGroupId(), randomStructuredContent());
-
-		StructuredContent structuredContentVersion =
-			structuredContentResource.getStructuredContentByVersion(
-				structuredContent.getId(), 1.0D);
-
-		assertEquals(structuredContent, structuredContentVersion);
-	}
-
-	@Override
-	@Test
-	public void testGetStructuredContentsStructuredContentPage()
-		throws Exception {
-
+	public void testGetStructuredContentsVersionsPage() throws Exception {
 		StructuredContent structuredContent = _postSiteStructuredContent(
 			testGroup.getGroupId(), randomStructuredContent());
 
 		Long id = structuredContent.getId();
 
 		Page<StructuredContent> structuredContentsVersionsPage =
-			structuredContentResource.
-				getStructuredContentsStructuredContentPage(id);
+			structuredContentResource.getStructuredContentsVersionsPage(id);
 
 		Assert.assertEquals(1L, structuredContentsVersionsPage.getTotalCount());
 
@@ -130,8 +92,7 @@ public class StructuredContentResourceTest
 			id, _toStructuredContent(structuredContent));
 
 		structuredContentsVersionsPage =
-			structuredContentResource.
-				getStructuredContentsStructuredContentPage(id);
+			structuredContentResource.getStructuredContentsVersionsPage(id);
 
 		Assert.assertEquals(2L, structuredContentsVersionsPage.getTotalCount());
 	}
@@ -189,7 +150,7 @@ public class StructuredContentResourceTest
 
 	@Override
 	protected String[] getAdditionalAssertFieldNames() {
-		return new String[] {"title"};
+		return new String[] {"priority", "title"};
 	}
 
 	@Override
@@ -224,6 +185,22 @@ public class StructuredContentResourceTest
 
 	@Override
 	protected StructuredContent
+			testDeleteStructuredContentByVersion_addStructuredContent()
+		throws Exception {
+
+		return _postSiteStructuredContent(
+			testGroup.getGroupId(), randomStructuredContent());
+	}
+
+	@Override
+	protected Double testDeleteStructuredContentByVersion_getVersion()
+		throws Exception {
+
+		return 1.0D;
+	}
+
+	@Override
+	protected StructuredContent
 			testGetSiteStructuredContentsPage_addStructuredContent(
 				Long siteId, StructuredContent structuredContent)
 		throws Exception {
@@ -233,11 +210,37 @@ public class StructuredContentResourceTest
 
 	@Override
 	protected StructuredContent
+			testGetStructuredContentByVersion_addStructuredContent()
+		throws Exception {
+
+		return _postSiteStructuredContent(
+			testGroup.getGroupId(), randomStructuredContent());
+	}
+
+	@Override
+	protected Double testGetStructuredContentByVersion_getVersion()
+		throws Exception {
+
+		return 1.0D;
+	}
+
+	@Override
+	protected StructuredContent
 			testGraphQLStructuredContent_addStructuredContent()
 		throws Exception {
 
 		return _postSiteStructuredContent(
 			testGroup.getGroupId(), randomStructuredContent());
+	}
+
+	@Override
+	protected StructuredContent
+			testPostSiteStructuredContentDraft_addStructuredContent(
+				StructuredContent structuredContent)
+		throws Exception {
+
+		return structuredContentResource.postSiteStructuredContentDraft(
+			testGroup.getGroupId(), structuredContent);
 	}
 
 	private DDMStructure _addDDMStructure(Group group, String fileName)
@@ -261,7 +264,7 @@ public class StructuredContentResourceTest
 			ddmStructure.getGroupId(), ddmStructure.getStructureId(),
 			PortalUtil.getClassNameId(JournalArticle.class),
 			TemplateConstants.LANG_TYPE_VM,
-			_read("test-structured-content-template.xsl"), LocaleUtil.US);
+			_read("test-structured-content-template.vm"), LocaleUtil.US);
 	}
 
 	private DDMForm _deserialize(String content) {
@@ -288,6 +291,7 @@ public class StructuredContentResourceTest
 					{
 						setContentStructureId(
 							structuredContent.getContentStructureId());
+						setPriority(structuredContent.getPriority());
 						setSiteId(structuredContent.getSiteId());
 						setTitle(structuredContent.getTitle());
 					}
@@ -303,20 +307,6 @@ public class StructuredContentResourceTest
 		return StringUtil.read(inputStream);
 	}
 
-	private StructuredContent _toStructuredContent(
-		com.liferay.headless.delivery.client.dto.v1_0.StructuredContent
-			structuredContent) {
-
-		return new StructuredContent() {
-			{
-				setContentStructureId(
-					structuredContent.getContentStructureId());
-				setId(structuredContent.getId());
-				setTitle(structuredContent.getTitle());
-			}
-		};
-	}
-
 	private com.liferay.headless.delivery.client.dto.v1_0.StructuredContent
 		_toStructuredContent(StructuredContent structuredContent) {
 
@@ -326,6 +316,24 @@ public class StructuredContentResourceTest
 			{
 				setContentStructureId(
 					structuredContent.getContentStructureId());
+				setSiteId(structuredContent.getSiteId());
+				setTitle(structuredContent.getTitle());
+			}
+		};
+	}
+
+	private StructuredContent _toStructuredContent(
+		com.liferay.headless.delivery.client.dto.v1_0.StructuredContent
+			structuredContent) {
+
+		return new StructuredContent() {
+			{
+				setContentStructureId(
+					structuredContent.getContentStructureId());
+				setDateCreated(structuredContent.getDateCreated());
+				setDateModified(structuredContent.getDateModified());
+				setId(structuredContent.getId());
+				setPriority(structuredContent.getPriority());
 				setSiteId(structuredContent.getSiteId());
 				setTitle(structuredContent.getTitle());
 			}

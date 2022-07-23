@@ -126,6 +126,11 @@ public class ReleaseWrapper
 		}
 	}
 
+	@Override
+	public Release cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the build date of this release.
 	 *

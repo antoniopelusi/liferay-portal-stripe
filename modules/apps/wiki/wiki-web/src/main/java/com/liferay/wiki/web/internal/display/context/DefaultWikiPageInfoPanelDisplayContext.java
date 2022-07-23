@@ -20,7 +20,7 @@ import com.liferay.wiki.display.context.WikiPageInfoPanelDisplayContext;
 import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.model.WikiPage;
 import com.liferay.wiki.service.WikiPageLocalServiceUtil;
-import com.liferay.wiki.web.internal.display.context.util.WikiPageInfoPanelRequestHelper;
+import com.liferay.wiki.web.internal.display.context.helper.WikiPageInfoPanelRequestHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -58,15 +58,9 @@ public class DefaultWikiPageInfoPanelDisplayContext
 		ThemeDisplay themeDisplay =
 			_wikiPageInfoPanelRequestHelper.getThemeDisplay();
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(themeDisplay.getPathMain());
-		sb.append("/wiki/rss?nodeId=");
-		sb.append(page.getNodeId());
-		sb.append("&title=");
-		sb.append(page.getTitle());
-
-		return sb.toString();
+		return StringBundler.concat(
+			themeDisplay.getPathMain(), "/wiki/rss?nodeId=", page.getNodeId(),
+			"&title=", page.getTitle());
 	}
 
 	@Override
@@ -78,7 +72,7 @@ public class DefaultWikiPageInfoPanelDisplayContext
 
 	@Override
 	public int getSelectedPagesCount() {
-		List<?> items = getSelectedPages();
+		List<?> items = _getSelectedPages();
 
 		return items.size();
 	}
@@ -90,7 +84,7 @@ public class DefaultWikiPageInfoPanelDisplayContext
 
 	@Override
 	public boolean isMultiplePageSelection() {
-		List<?> items = getSelectedPages();
+		List<?> items = _getSelectedPages();
 
 		if (items.size() > 1) {
 			return true;
@@ -121,7 +115,7 @@ public class DefaultWikiPageInfoPanelDisplayContext
 		return false;
 	}
 
-	protected List<WikiPage> getSelectedPages() {
+	private List<WikiPage> _getSelectedPages() {
 		return _wikiPageInfoPanelRequestHelper.getPages();
 	}
 

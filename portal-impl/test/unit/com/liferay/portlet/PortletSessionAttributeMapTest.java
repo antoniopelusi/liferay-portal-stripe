@@ -47,31 +47,31 @@ public class PortletSessionAttributeMapTest {
 
 	@Before
 	public void setUp() {
-		_session.setAttribute(_SCOPE_PREFIX.concat(_KEY_1), _value1);
-		_session.setAttribute(_SCOPE_PREFIX.concat(_KEY_2), _value2);
-		_session.setAttribute(_SCOPE_PREFIX.concat(_KEY_3), _value3);
+		_httpSession.setAttribute(_SCOPE_PREFIX.concat(_KEY_1), _value1);
+		_httpSession.setAttribute(_SCOPE_PREFIX.concat(_KEY_2), _value2);
+		_httpSession.setAttribute(_SCOPE_PREFIX.concat(_KEY_3), _value3);
 	}
 
 	@Test
 	public void testConstructor() {
 		PortletSessionAttributeMap portletSessionAttributeMap =
-			new PortletSessionAttributeMap(_session);
+			new PortletSessionAttributeMap(_httpSession);
 
-		Assert.assertSame(_session, portletSessionAttributeMap.session);
+		Assert.assertSame(_httpSession, portletSessionAttributeMap.httpSession);
 		Assert.assertNull(portletSessionAttributeMap.scopePrefix);
 
 		portletSessionAttributeMap = new PortletSessionAttributeMap(
-			_session, null);
+			_httpSession, null);
 
-		Assert.assertSame(_session, portletSessionAttributeMap.session);
+		Assert.assertSame(_httpSession, portletSessionAttributeMap.httpSession);
 		Assert.assertNull(portletSessionAttributeMap.scopePrefix);
 
 		String scopePrefix = "scopePrefix";
 
 		portletSessionAttributeMap = new PortletSessionAttributeMap(
-			_session, scopePrefix);
+			_httpSession, scopePrefix);
 
-		Assert.assertSame(_session, portletSessionAttributeMap.session);
+		Assert.assertSame(_httpSession, portletSessionAttributeMap.httpSession);
 		Assert.assertSame(scopePrefix, portletSessionAttributeMap.scopePrefix);
 	}
 
@@ -119,11 +119,11 @@ public class PortletSessionAttributeMapTest {
 
 	@Test
 	public void testPortletScopeFiltering() {
-		_session.setAttribute(_KEY_4, _value4);
-		_session.setAttribute(_KEY_5, _value5);
+		_httpSession.setAttribute(_KEY_4, _value4);
+		_httpSession.setAttribute(_KEY_5, _value5);
 
 		PortletSessionAttributeMap portletSessionAttributeMap =
-			new PortletSessionAttributeMap(_session, _SCOPE_PREFIX);
+			new PortletSessionAttributeMap(_httpSession, _SCOPE_PREFIX);
 
 		Set<Map.Entry<String, Object>> entrySet =
 			portletSessionAttributeMap.entrySet();
@@ -139,7 +139,8 @@ public class PortletSessionAttributeMapTest {
 			entrySet.toString(),
 			entrySet.contains(new AbstractMap.SimpleEntry<>(_KEY_3, _value3)));
 
-		portletSessionAttributeMap = new PortletSessionAttributeMap(_session);
+		portletSessionAttributeMap = new PortletSessionAttributeMap(
+			_httpSession);
 
 		entrySet = portletSessionAttributeMap.entrySet();
 
@@ -176,7 +177,7 @@ public class PortletSessionAttributeMapTest {
 	@Test
 	public void testUnsupportedMethods() {
 		PortletSessionAttributeMap portletSessionAttributeMap =
-			new PortletSessionAttributeMap(_session);
+			new PortletSessionAttributeMap(_httpSession);
 
 		try {
 			portletSessionAttributeMap.clear();
@@ -257,7 +258,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testContainsKey(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Assert.assertFalse(portletSessionAttributeMap.containsKey(null));
 		Assert.assertTrue(
@@ -280,7 +281,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testContainsValue(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Assert.assertFalse(portletSessionAttributeMap.containsValue(null));
 		Assert.assertTrue(portletSessionAttributeMap.containsValue(_value1));
@@ -293,7 +294,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testEntrySet(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Set<Map.Entry<String, Object>> entrySet =
 			portletSessionAttributeMap.entrySet();
@@ -319,7 +320,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testEqualsAndHashCode(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Map<String, Object> map = HashMapBuilder.<String, Object>put(
 			encodeKey(portletScope, _KEY_1), _value1
@@ -337,7 +338,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testGet(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Assert.assertNull(portletSessionAttributeMap.get(null));
 		Assert.assertSame(
@@ -358,7 +359,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testIsEmpty(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Assert.assertFalse(portletSessionAttributeMap.isEmpty());
 
@@ -371,7 +372,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testKeySet(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Set<String> keySet = portletSessionAttributeMap.keySet();
 
@@ -390,7 +391,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testSize(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Assert.assertEquals(3, portletSessionAttributeMap.size());
 
@@ -403,7 +404,7 @@ public class PortletSessionAttributeMapTest {
 	protected void testValues(boolean portletScope) {
 		PortletSessionAttributeMap portletSessionAttributeMap =
 			new PortletSessionAttributeMap(
-				_session, getScopePrefix(portletScope));
+				_httpSession, getScopePrefix(portletScope));
 
 		Collection<Object> values = portletSessionAttributeMap.values();
 
@@ -431,6 +432,6 @@ public class PortletSessionAttributeMapTest {
 	private static final Object _value4 = new Object();
 	private static final Object _value5 = new Object();
 
-	private final HttpSession _session = new MockHttpSession();
+	private final HttpSession _httpSession = new MockHttpSession();
 
 }

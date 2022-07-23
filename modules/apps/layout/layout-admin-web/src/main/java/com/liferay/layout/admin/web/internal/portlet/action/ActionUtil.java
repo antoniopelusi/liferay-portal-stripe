@@ -16,7 +16,6 @@ package com.liferay.layout.admin.web.internal.portlet.action;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ColorScheme;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Theme;
@@ -151,19 +150,19 @@ public class ActionUtil {
 			return typeSettingsUnicodeProperties;
 		}
 
-		setThemeSettingProperties(
+		_setThemeSettingProperties(
 			actionRequest, typeSettingsUnicodeProperties, themeSettings, device,
 			layout);
 
 		return typeSettingsUnicodeProperties;
 	}
 
-	protected static void setThemeSettingProperties(
+	private static void _setThemeSettingProperties(
 			ActionRequest actionRequest,
 			UnicodeProperties typeSettingsUnicodeProperties,
 			Map<String, ThemeSetting> themeSettings, String device,
 			boolean isLayout)
-		throws PortalException {
+		throws Exception {
 
 		Layout layout = null;
 

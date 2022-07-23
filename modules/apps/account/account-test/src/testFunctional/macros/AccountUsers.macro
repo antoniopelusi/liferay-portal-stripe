@@ -1,6 +1,23 @@
 definition {
 
-	macro addUserInfos {
+	macro addUser {
+		LexiconEntry.gotoAdd();
+
+		Pause(locator1 = "3000");
+
+		SelectFrame(locator1 = "IFrame#SELECT_ACCOUNT");
+
+		AssertClick(
+			key_accountName = "${accountName}",
+			locator1 = "AccountUsers#SELECT_AN_ACCOUNT_CHOOSE_BUTTON",
+			value1 = "Choose");
+
+		SelectFrame(value1 = "relative=top");
+
+		WaitForElementPresent(
+			key_accountName = "${accountName}",
+			locator1 = "AccountUsers#ADD_NEW_USER_HEADER");
+
 		Type(
 			locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD",
 			value1 = "${userScreenName}");
@@ -16,46 +33,6 @@ definition {
 		Type(
 			locator1 = "UsersAndOrganizationsEditUser#DETAILS_LAST_NAME_FIELD",
 			value1 = "${userLastName}");
-
-		if (isSet(emailDomainName)) {
-			AccountUsers.viewEmailDomainValidation(
-				accountName = "${accountName}",
-				domainValidation = "${domainValidation}",
-				emailDomainName = "${emailDomainName}");
-		}
-
-		if (isSet(validDomainNames)) {
-			AccountUsers.viewValidDomains(validDomainNames = "${validDomainNames}");
-		}
-	}
-
-	macro addUsers {
-		LexiconEntry.gotoAdd();
-
-		Pause(locator1 = "3000");
-
-		SelectFrame(locator1 = "IFrame#SELECT_ACCOUNT");
-
-		AssertClick(
-			key_accountName = "${accountName}",
-			locator1 = "Account#CHOOSE_ACCOUNT",
-			value1 = "Choose");
-
-		SelectFrame(value1 = "relative=top");
-
-		WaitForElementPresent(
-			key_accountName = "${accountName}",
-			locator1 = "Account#ADD_USER_HEADER");
-
-		AccountUsers.addUserInfos(
-			accountName = "${accountName}",
-			domainValidation = "${domainValidation}",
-			emailDomainName = "${emailDomainName}",
-			userEmailAddress = "${userEmailAddress}",
-			userFirstName = "${userFirstName}",
-			userLastName = "${userLastName}",
-			userScreenName = "${userScreenName}",
-			validDomainNames = "${validDomainNames}");
 
 		AssertClick(
 			locator1 = "Button#SAVE",
@@ -77,13 +54,18 @@ definition {
 	}
 
 	macro editUser {
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "${accountUser}");
+		if ("${accountManagementWidget}" == "true") {
+			LexiconEntry.gotoEntry(rowEntry = "${accountUser}");
+		}
+		else {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "${accountUser}");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "Portlet#HEADER",
-			value1 = "Edit User");
+			AssertTextEquals.assertPartialText(
+				locator1 = "Portlet#HEADER",
+				value1 = "Edit User");
+		}
 
 		if (isSet(editScreenName)) {
 			Type(
@@ -110,6 +92,10 @@ definition {
 		}
 
 		Alert.viewSuccessMessage();
+	}
+
+	macro openAccountUsersAdmin {
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/control_panel/manage?p_p_id=com_liferay_account_admin_web_internal_portlet_AccountUsersAdminPortlet");
 	}
 
 	macro removeAccount {
@@ -144,31 +130,36 @@ definition {
 		AssertElementPresent(locator1 = "Search#SEARCH_INFO");
 	}
 
-	macro viewEmailDomainValidation {
-		if ("${domainValidation}" == "Blocked") {
-			AssertTextEquals(
-				key_alertMessage = "${emailDomainName} is a blocked domain. Account administrators cannot add users with this domain to their accounts. You can still manually assign this email address to this user.",
-				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
-				value1 = "${emailDomainName} is a blocked domain. Account administrators cannot add users with this domain to their accounts. You can still manually assign this email address to this user.");
-		}
-		else if ("${domainValidation}" == "Invalid") {
-			AssertTextEquals(
-				key_alertMessage = "${emailDomainName} is not a valid domain for the following accounts: ${accountName}. Account Administrators cannot add users with this domain to their accounts. You can still manually assign this email address to this user.",
-				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
-				value1 = "${emailDomainName} is not a valid domain for the following accounts: ${accountName}. Account Administrators cannot add users with this domain to their accounts. You can still manually assign this email address to this user.");
-		}
-		else {
-			AssertElementNotPresent(
-				key_alertMessage = "${emailDomainName} is",
-				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE");
-		}
+	macro setUserPassword {
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "${accountUser}");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Portlet#HEADER",
+			value1 = "Edit User");
+
+		UserNavigator.gotoPassword();
+
+		Type(
+			locator1 = "TextInput#NEW_PASSWORD",
+			value1 = "${accountUserPassword}");
+
+		Type(
+			locator1 = "TextInput#ENTER_AGAIN",
+			value1 = "${accountUserPassword}");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro viewEntryAccounts {
 		AssertElementPresent(
+			key_columnName = "lfr-accounts-column",
 			key_rowEntry = "${accountUserName}",
-			key_rowEntryAccount = "${accountName}",
-			locator1 = "Account#ENTRY_CONTENT_ENTRY_ACCOUNTS");
+			locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER_TD",
+			value1 = "${accountName}");
 	}
 
 	macro viewValidDomains {

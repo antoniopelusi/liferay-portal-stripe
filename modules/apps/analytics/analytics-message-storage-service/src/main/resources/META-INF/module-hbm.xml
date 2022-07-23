@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping auto-import="false" default-lazy="false">
 	<import class="com.liferay.analytics.message.storage.model.AnalyticsMessage" />
@@ -12,7 +12,7 @@
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="userId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="userName" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="createDate" type="org.hibernate.type.TimestampType" />
-		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="com.liferay.analytics.message.storage.model.AnalyticsMessageBodyBlobModel" constrained="true" name="bodyBlobModel" outer-join="false" />
+		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="com.liferay.analytics.message.storage.model.AnalyticsMessageBodyBlobModel" constrained="false" name="bodyBlobModel" outer-join="false" />
 	</class>
 	<class dynamic-update="true" lazy="true" name="com.liferay.analytics.message.storage.model.AnalyticsMessageBodyBlobModel" table="AnalyticsMessage">
 		<id column="analyticsMessageId" name="analyticsMessageId">

@@ -26,13 +26,13 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -92,10 +92,7 @@ public class DiscardDraftLayoutMVCActionCommand
 
 		Layout draftLayout = _layoutLocalService.getLayout(selPlid);
 
-		if ((draftLayout.getClassPK() == 0) ||
-			(_portal.getClassNameId(Layout.class) !=
-				draftLayout.getClassNameId())) {
-
+		if (!draftLayout.isDraftLayout()) {
 			sendRedirect(actionRequest, actionResponse);
 
 			return;
@@ -125,24 +122,18 @@ public class DiscardDraftLayoutMVCActionCommand
 			themeDisplay.getPermissionChecker(), layout.getPlid(),
 			ActionKeys.VIEW);
 
-		UnicodeProperties typeSettingsUnicodeProperties =
-			draftLayout.getTypeSettingsProperties();
-
-		boolean published = GetterUtil.getBoolean(
-			typeSettingsUnicodeProperties.getProperty("published"));
+		boolean published = layout.isPublished();
 
 		draftLayout = _layoutCopyHelper.copyLayout(layout, draftLayout);
 
-		draftLayout.setStatus(WorkflowConstants.STATUS_APPROVED);
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			Layout.class.getName(), actionRequest);
 
-		typeSettingsUnicodeProperties = draftLayout.getTypeSettingsProperties();
+		serviceContext.setAttribute("published", published);
 
-		typeSettingsUnicodeProperties.put(
-			"published", String.valueOf(published));
-
-		draftLayout.setTypeSettingsProperties(typeSettingsUnicodeProperties);
-
-		_layoutLocalService.updateLayout(draftLayout);
+		_layoutLocalService.updateStatus(
+			themeDisplay.getUserId(), draftLayout.getPlid(),
+			WorkflowConstants.STATUS_APPROVED, serviceContext);
 
 		sendRedirect(actionRequest, actionResponse);
 	}

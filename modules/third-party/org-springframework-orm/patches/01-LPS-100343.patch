@@ -1,8 +1,8 @@
-diff --git a/org/springframework/orm/hibernate3/SpringSessionSynchronization.java b/org/springframework/orm/hibernate3/SpringSessionSynchronization.java
-index 28acc3b..a7fa2a0 100644
---- a/org/springframework/orm/hibernate3/SpringSessionSynchronization.java
-+++ b/org/springframework/orm/hibernate3/SpringSessionSynchronization.java
-@@ -115,8 +115,6 @@ class SpringSessionSynchronization implements TransactionSynchronization, Ordere
+diff --git a/org/springframework/orm/hibernate5/SpringSessionSynchronization.java b/org/springframework/orm/hibernate5/SpringSessionSynchronization.java
+index e7014c3842751..e6c07e2d8b7ac 100644
+--- a/org/springframework/orm/hibernate5/SpringSessionSynchronization.java
++++ b/org/springframework/orm/hibernate5/SpringSessionSynchronization.java
+@@ -68,8 +68,6 @@ public class SpringSessionSynchronization implements TransactionSynchronization,
  	public void suspend() {
  		if (this.holderActive) {
  			TransactionSynchronizationManager.unbindResource(this.sessionFactory);
@@ -11,7 +11,7 @@ index 28acc3b..a7fa2a0 100644
  		}
  	}
  
-@@ -264,3 +262,4 @@ class SpringSessionSynchronization implements TransactionSynchronization, Ordere
+@@ -141,3 +139,4 @@ public class SpringSessionSynchronization implements TransactionSynchronization,
  	}
  
  }

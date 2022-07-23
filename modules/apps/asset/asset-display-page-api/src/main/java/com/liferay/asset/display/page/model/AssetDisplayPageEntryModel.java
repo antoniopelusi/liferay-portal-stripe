@@ -326,4 +326,7 @@ public interface AssetDisplayPageEntryModel
 	 */
 	public void setPlid(long plid);
 
+	@Override
+	public AssetDisplayPageEntry cloneWithOriginalValues();
+
 }

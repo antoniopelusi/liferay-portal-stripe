@@ -29,12 +29,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -222,34 +223,6 @@ public class CTCommentModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CTComment>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CTComment.class.getClassLoader(), CTComment.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CTComment> constructor =
-				(Constructor<CTComment>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CTComment, Object>>
@@ -549,6 +522,30 @@ public class CTCommentModelImpl
 	}
 
 	@Override
+	public CTComment cloneWithOriginalValues() {
+		CTCommentImpl ctCommentImpl = new CTCommentImpl();
+
+		ctCommentImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ctCommentImpl.setCtCommentId(
+			this.<Long>getColumnOriginalValue("ctCommentId"));
+		ctCommentImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ctCommentImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		ctCommentImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ctCommentImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		ctCommentImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ctCommentImpl.setCtEntryId(
+			this.<Long>getColumnOriginalValue("ctEntryId"));
+		ctCommentImpl.setValue(this.<String>getColumnOriginalValue("value"));
+
+		return ctCommentImpl;
+	}
+
+	@Override
 	public int compareTo(CTComment ctComment) {
 		int value = 0;
 
@@ -676,7 +673,7 @@ public class CTCommentModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -687,9 +684,26 @@ public class CTCommentModelImpl
 			Function<CTComment, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CTComment)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CTComment)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -736,7 +750,9 @@ public class CTCommentModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CTComment>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CTComment.class, ModelWrapper.class);
 
 	}
 

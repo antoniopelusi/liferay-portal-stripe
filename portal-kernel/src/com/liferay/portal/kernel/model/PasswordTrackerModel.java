@@ -158,4 +158,7 @@ public interface PasswordTrackerModel
 	 */
 	public void setPassword(String password);
 
+	@Override
+	public PasswordTracker cloneWithOriginalValues();
+
 }

@@ -46,7 +46,7 @@ AccountEntryDisplay accountEntryDisplay = (AccountEntryDisplay)request.getAttrib
 		<liferay-asset:asset-tags-selector
 			className="<%= AccountEntry.class.getName() %>"
 			classPK="<%= accountEntryDisplay.getAccountEntryId() %>"
-			groupIds="<%= new long[] {controlPanelGroup.getGroupId()} %>"
+			groupIds="<%= new long[] {controlPanelGroup.getGroupId(), themeDisplay.getSiteGroupId()} %>"
 		/>
 	</div>
 </clay:sheet-section>

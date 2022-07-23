@@ -18,8 +18,4 @@ package com.liferay.asset.list.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class AssetListEntryUsageImpl extends AssetListEntryUsageBaseImpl {
-
-	public AssetListEntryUsageImpl() {
-	}
-
 }

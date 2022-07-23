@@ -22,7 +22,7 @@
 			reportsEngineDisplayContext.getPortletURL()
 		).setMVCPath(
 			"/admin/view.jsp"
-		).build()
+		).buildPortletURL()
 	%>'
 	method="get"
 	name="fm"

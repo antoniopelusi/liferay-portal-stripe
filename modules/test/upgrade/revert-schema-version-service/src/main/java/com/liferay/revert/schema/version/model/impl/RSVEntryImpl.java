@@ -18,8 +18,4 @@ package com.liferay.revert.schema.version.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class RSVEntryImpl extends RSVEntryBaseImpl {
-
-	public RSVEntryImpl() {
-	}
-
 }

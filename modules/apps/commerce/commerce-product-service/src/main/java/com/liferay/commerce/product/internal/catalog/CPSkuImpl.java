@@ -19,6 +19,8 @@ import com.liferay.commerce.product.model.CPInstance;
 
 import java.math.BigDecimal;
 
+import java.util.Date;
+
 /**
  * @author Alessio Antonio Rendina
  */
@@ -36,6 +38,11 @@ public class CPSkuImpl implements CPSku {
 	@Override
 	public String getCPInstanceUuid() {
 		return _cpInstance.getCPInstanceUuid();
+	}
+
+	@Override
+	public Date getDiscontinuedDate() {
+		return _cpInstance.getDiscontinuedDate();
 	}
 
 	@Override
@@ -64,8 +71,23 @@ public class CPSkuImpl implements CPSku {
 	}
 
 	@Override
+	public String getReplacementCPInstanceUuid() {
+		return _cpInstance.getReplacementCPInstanceUuid();
+	}
+
+	@Override
+	public long getReplacementCProductId() {
+		return _cpInstance.getReplacementCProductId();
+	}
+
+	@Override
 	public String getSku() {
 		return _cpInstance.getSku();
+	}
+
+	@Override
+	public boolean isDiscontinued() {
+		return _cpInstance.isDiscontinued();
 	}
 
 	@Override

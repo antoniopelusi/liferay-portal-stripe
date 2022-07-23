@@ -32,9 +32,9 @@ function showNotification(message, type, closeable = true, duration = 500) {
 	});
 }
 
-const CURRENT = 'current',
-	NEXT = 'next',
-	WILL_BE_NEXT = 'will-be-next';
+const CURRENT = 'current';
+const NEXT = 'next';
+const WILL_BE_NEXT = 'will-be-next';
 
 const STATES_MAP = {
 	[CURRENT]: {
@@ -51,8 +51,8 @@ const STATES_MAP = {
 	},
 };
 
-const BACKWARDS = 'backwards',
-	FORWARDS = 'forwards';
+const BACKWARDS = 'backwards';
+const FORWARDS = 'forwards';
 
 function validateInterval(interval) {
 	const MIN = 4000;
@@ -194,9 +194,10 @@ SpeedwellSlider.prototype = {
 		this.setupData()
 			.then(this.setupSliders.bind(this))
 			.then(this.attachListeners.bind(this))
-			.catch((e) => {
+			.catch((error) => {
 				const errorMessage =
-					`Request code: ${e.statusCode.toString()}` || 'API error';
+					`Request code: ${error.statusCode.toString()}` ||
+					'API error';
 
 				showNotification(errorMessage, 'danger');
 			});
@@ -258,8 +259,8 @@ SpeedwellSlider.prototype = {
 				this.datasetSize = this.dataset.length;
 				resolve();
 			}
-			catch (e) {
-				reject(new Error(e));
+			catch (error) {
+				reject(new Error(error));
 			}
 		});
 	},
@@ -291,16 +292,16 @@ SpeedwellSlider.prototype = {
 	slides: [],
 	stateCycleMap: {},
 
-	throttleInteraction(e) {
+	throttleInteraction(event) {
 		const direction =
-				e instanceof Event &&
-				e.currentTarget.className.indexOf('prev') > -1
-					? BACKWARDS
-					: FORWARDS,
-			prepare =
-				direction === BACKWARDS
-					? this.prepareNow.bind(this)
-					: this.prepareLater;
+			event instanceof Event &&
+			event.currentTarget.className.indexOf('prev') > -1
+				? BACKWARDS
+				: FORWARDS;
+		const prepare =
+			direction === BACKWARDS
+				? this.prepareNow.bind(this)
+				: this.prepareLater;
 
 		this.toggleControls({isEnabled: false});
 

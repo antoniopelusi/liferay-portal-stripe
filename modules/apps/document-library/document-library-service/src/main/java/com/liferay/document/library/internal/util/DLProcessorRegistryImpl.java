@@ -23,6 +23,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.function.UnsafeConsumer;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -141,12 +142,9 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 		long fileEntryPreviewableProcessorMaxSize =
 			_dlFileEntryConfiguration.previewableProcessorMaxSize();
 
-		if (fileEntryPreviewableProcessorMaxSize == 0) {
-			return false;
-		}
-
-		if ((fileEntryPreviewableProcessorMaxSize > 0) &&
-			(fileVersion.getSize() > fileEntryPreviewableProcessorMaxSize)) {
+		if ((fileEntryPreviewableProcessorMaxSize == 0) ||
+			((fileEntryPreviewableProcessorMaxSize > 0) &&
+			 (fileVersion.getSize() > fileEntryPreviewableProcessorMaxSize))) {
 
 			return false;
 		}
@@ -162,12 +160,20 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 
 	@Override
 	public void register(DLProcessor dlProcessor) {
-		ServiceRegistration<DLProcessor> serviceRegistration =
+		Class<?>[] classes = ReflectionUtil.getInterfaces(dlProcessor);
+
+		String[] classNames = new String[classes.length];
+
+		for (int i = 0; i < classes.length; i++) {
+			classNames[i] = classes[i].getName();
+		}
+
+		ServiceRegistration<?> serviceRegistration =
 			_bundleContext.registerService(
-				DLProcessor.class, dlProcessor,
+				classNames, dlProcessor,
 				MapUtil.singletonDictionary("type", dlProcessor.getType()));
 
-		ServiceRegistration<DLProcessor> previousServiceRegistration =
+		ServiceRegistration<?> previousServiceRegistration =
 			_serviceRegistrations.put(dlProcessor, serviceRegistration);
 
 		if (previousServiceRegistration != null) {
@@ -184,11 +190,9 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 	public void trigger(
 		FileEntry fileEntry, FileVersion fileVersion, boolean trusted) {
 
-		if (!DLProcessorThreadLocal.isEnabled()) {
-			return;
-		}
+		if (!DLProcessorThreadLocal.isEnabled() || (fileEntry == null) ||
+			(fileEntry.getSize() == 0)) {
 
-		if ((fileEntry == null) || (fileEntry.getSize() == 0)) {
 			return;
 		}
 
@@ -208,7 +212,7 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 
 	@Override
 	public void unregister(DLProcessor dlProcessor) {
-		ServiceRegistration<DLProcessor> serviceRegistration =
+		ServiceRegistration<?> serviceRegistration =
 			_serviceRegistrations.remove(dlProcessor);
 
 		serviceRegistration.unregister();
@@ -266,13 +270,13 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 		}
 		catch (NoSuchFileEntryException noSuchFileEntryException) {
 			if (_log.isInfoEnabled()) {
-				_log.info(noSuchFileEntryException, noSuchFileEntryException);
+				_log.info(noSuchFileEntryException);
 			}
 
 			return null;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return null;
 		}
@@ -290,7 +294,7 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 		_DL_FILE_ENTRY_PROCESSORS.length);
 	private ServiceTrackerMap<String, DLProcessor>
 		_dlProcessorServiceTrackerMap;
-	private final Map<DLProcessor, ServiceRegistration<DLProcessor>>
+	private final Map<DLProcessor, ServiceRegistration<?>>
 		_serviceRegistrations = new ConcurrentHashMap<>();
 
 }

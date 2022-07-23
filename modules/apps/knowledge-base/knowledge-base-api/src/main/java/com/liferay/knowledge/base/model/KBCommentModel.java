@@ -322,4 +322,7 @@ public interface KBCommentModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public KBComment cloneWithOriginalValues();
+
 }

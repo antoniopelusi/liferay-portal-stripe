@@ -129,4 +129,7 @@ public interface AccountRoleModel
 	 */
 	public void setRoleId(long roleId);
 
+	@Override
+	public AccountRole cloneWithOriginalValues();
+
 }

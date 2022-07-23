@@ -81,9 +81,7 @@ public class ViewCPDefinitionGroupedEntriesMVCRenderCommand
 			requestDispatcher.include(httpServletRequest, httpServletResponse);
 		}
 		catch (Exception exception) {
-			throw new PortletException(
-				"Unable to include view_definition_grouped_entries.jsp",
-				exception);
+			throw new PortletException(exception);
 		}
 
 		return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;

@@ -71,7 +71,7 @@ public class DDMFormContextToDDMFormValues
 		DDMForm ddmForm = ddmFormContextDeserializerRequest.getProperty(
 			"ddmForm");
 
-		if (Validator.isNull(serializedFormContext)) {
+		if (ddmForm == null) {
 			throw new IllegalStateException(
 				"The property \"ddmForm\" is required");
 		}
@@ -98,7 +98,7 @@ public class DDMFormContextToDDMFormValues
 		ddmFormValues.addAvailableLocale(currentLocale);
 		ddmFormValues.setDefaultLocale(currentLocale);
 
-		setDDMFormValuesDDMFormFieldValues(
+		_setDDMFormValuesDDMFormFieldValues(
 			jsonObject.getJSONArray("pages"), ddmFormValues);
 
 		return ddmFormValues;
@@ -119,23 +119,16 @@ public class DDMFormContextToDDMFormValues
 			new Consumer<JSONObject>() {
 
 				@Override
-				public void accept(JSONObject fieldJSONObject) {
-					DDMFormFieldValue ddmFormFieldValue =
-						new DDMFormFieldValue();
+				public void accept(JSONObject jsonObject) {
+					DDMFormFieldValue ddmFormFieldValue = _getDDMFormFieldValue(
+						jsonObject);
 
-					ddmFormFieldValue.setFieldReference(
-						fieldJSONObject.getString("fieldReference"));
-
-					String name = fieldJSONObject.getString("fieldName");
-
-					ddmFormFieldValue.setName(name);
-
-					ddmFormFieldValue.setInstanceId(
-						fieldJSONObject.getString("instanceId"));
-
-					setDDMFormFieldValueValue(
-						fieldJSONObject, ddmFormFieldsMap.get(name),
+					_setDDMFormFieldValueValue(
+						jsonObject,
+						ddmFormFieldsMap.get(jsonObject.getString("fieldName")),
 						ddmFormFieldValue);
+					_setNestedDDMFormFieldValues(
+						jsonObject, ddmFormFieldsMap, ddmFormFieldValue);
 
 					ddmFormFieldValues.add(ddmFormFieldValue);
 				}
@@ -163,7 +156,21 @@ public class DDMFormContextToDDMFormValues
 		return value;
 	}
 
-	protected void setDDMFormFieldValueValue(
+	@Reference
+	protected JSONFactory jsonFactory;
+
+	private DDMFormFieldValue _getDDMFormFieldValue(JSONObject jsonObject) {
+		DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue();
+
+		ddmFormFieldValue.setFieldReference(
+			jsonObject.getString("fieldReference"));
+		ddmFormFieldValue.setInstanceId(jsonObject.getString("instanceId"));
+		ddmFormFieldValue.setName(jsonObject.getString("fieldName"));
+
+		return ddmFormFieldValue;
+	}
+
+	private void _setDDMFormFieldValueValue(
 		JSONObject fieldJSONObject, DDMFormField ddmFormField,
 		DDMFormFieldValue ddmFormFieldValue) {
 
@@ -171,15 +178,12 @@ public class DDMFormContextToDDMFormValues
 			return;
 		}
 
-		String type = ddmFormField.getType();
-
 		if (ddmFormField.isLocalizable()) {
-			Value value = getLocalizedValue(
-				fieldJSONObject.getJSONObject("localizedValue"));
-
-			ddmFormFieldValue.setValue(value);
+			ddmFormFieldValue.setValue(
+				getLocalizedValue(
+					fieldJSONObject.getJSONObject("localizedValue")));
 		}
-		else if (Objects.equals(type, "checkbox")) {
+		else if (Objects.equals(ddmFormField.getType(), "checkbox")) {
 			ddmFormFieldValue.setValue(
 				new UnlocalizedValue(
 					String.valueOf(fieldJSONObject.getBoolean("value"))));
@@ -190,7 +194,7 @@ public class DDMFormContextToDDMFormValues
 		}
 	}
 
-	protected void setDDMFormValuesDDMFormFieldValues(
+	private void _setDDMFormValuesDDMFormFieldValues(
 		JSONArray jsonArray, DDMFormValues ddmFormValues) {
 
 		List<DDMFormFieldValue> ddmFormFieldValues = getDDMFormFieldValues(
@@ -199,7 +203,37 @@ public class DDMFormContextToDDMFormValues
 		ddmFormValues.setDDMFormFieldValues(ddmFormFieldValues);
 	}
 
-	@Reference
-	protected JSONFactory jsonFactory;
+	private void _setNestedDDMFormFieldValues(
+		JSONObject jsonObject, Map<String, DDMFormField> ddmFormFieldsMap,
+		DDMFormFieldValue ddmFormFieldValue) {
+
+		if ((jsonObject == null) || !jsonObject.has("nestedFields")) {
+			return;
+		}
+
+		JSONArray nestedFieldsJSONArray = jsonObject.getJSONArray(
+			"nestedFields");
+
+		for (int i = 0; i < nestedFieldsJSONArray.length(); i++) {
+			JSONObject nestedFieldJSONObject =
+				nestedFieldsJSONArray.getJSONObject(i);
+
+			DDMFormFieldValue nestedDDMFormFieldValue = _getDDMFormFieldValue(
+				nestedFieldJSONObject);
+
+			_setDDMFormFieldValueValue(
+				nestedFieldJSONObject,
+				ddmFormFieldsMap.get(
+					nestedFieldJSONObject.getString("fieldName")),
+				nestedDDMFormFieldValue);
+
+			ddmFormFieldValue.addNestedDDMFormFieldValue(
+				nestedDDMFormFieldValue);
+
+			_setNestedDDMFormFieldValues(
+				nestedFieldJSONObject, ddmFormFieldsMap,
+				nestedDDMFormFieldValue);
+		}
+	}
 
 }

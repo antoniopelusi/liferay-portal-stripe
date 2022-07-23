@@ -99,20 +99,24 @@ public class EditSegmentsExperimentStatusMVCActionCommand
 			ActionRequest actionRequest)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		SegmentsExperiment segmentsExperiment =
-			_segmentsExperimentService.updateSegmentsExperimentStatus(
-				ParamUtil.getLong(actionRequest, "segmentsExperimentId"),
-				ParamUtil.getLong(
-					actionRequest, "winnerSegmentsExperienceId", -1),
-				ParamUtil.getInteger(actionRequest, "status"));
-
 		return JSONUtil.put(
 			"segmentsExperiment",
-			SegmentsExperimentUtil.toSegmentsExperimentJSONObject(
-				themeDisplay.getLocale(), segmentsExperiment));
+			() -> {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)actionRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				SegmentsExperiment segmentsExperiment =
+					_segmentsExperimentService.updateSegmentsExperimentStatus(
+						ParamUtil.getLong(
+							actionRequest, "segmentsExperimentId"),
+						ParamUtil.getLong(
+							actionRequest, "winnerSegmentsExperienceId", -1),
+						ParamUtil.getInteger(actionRequest, "status"));
+
+				return SegmentsExperimentUtil.toSegmentsExperimentJSONObject(
+					themeDisplay.getLocale(), segmentsExperiment);
+			});
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

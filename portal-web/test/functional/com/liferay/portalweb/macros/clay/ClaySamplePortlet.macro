@@ -1,0 +1,11 @@
+definition {
+
+	macro assertNavTabVisualContent {
+		Navigator.gotoNavTab(navTab = "${tab}");
+
+		OcularAssertElementImage(
+			locator1 = "ClaySamplePortlet#CLAY_SECTION",
+			value1 = "ClaySmoke/CanRenderUI/${tab}.png");
+	}
+
+}

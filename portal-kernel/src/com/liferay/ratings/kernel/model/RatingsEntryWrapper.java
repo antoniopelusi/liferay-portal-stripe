@@ -136,6 +136,11 @@ public class RatingsEntryWrapper
 		}
 	}
 
+	@Override
+	public RatingsEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this ratings entry.
 	 *

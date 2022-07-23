@@ -24,13 +24,13 @@ public class RepositoryFactoryUtil {
 	public static LocalRepository createLocalRepository(long repositoryId)
 		throws PortalException {
 
-		return getRepositoryFactory().createLocalRepository(repositoryId);
+		return _repositoryFactory.createLocalRepository(repositoryId);
 	}
 
 	public static Repository createRepository(long repositoryId)
 		throws PortalException {
 
-		return getRepositoryFactory().createRepository(repositoryId);
+		return _repositoryFactory.createRepository(repositoryId);
 	}
 
 	public static RepositoryFactory getRepositoryFactory() {

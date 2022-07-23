@@ -195,13 +195,13 @@ public class CommerceSubscriptionEntryIndexer
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCommerceSubscriptionEntries(companyId);
+		_reindexCommerceSubscriptionEntries(companyId);
 	}
 
-	protected void reindexCommerceSubscriptionEntries(long companyId)
-		throws PortalException {
+	private void _reindexCommerceSubscriptionEntries(long companyId)
+		throws Exception {
 
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_commerceSubscriptionEntryLocalService.
 				getIndexableActionableDynamicQuery();
 

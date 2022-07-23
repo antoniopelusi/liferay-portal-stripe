@@ -536,4 +536,7 @@ public interface MBMailingListModel
 	 */
 	public void setActive(boolean active);
 
+	@Override
+	public MBMailingList cloneWithOriginalValues();
+
 }

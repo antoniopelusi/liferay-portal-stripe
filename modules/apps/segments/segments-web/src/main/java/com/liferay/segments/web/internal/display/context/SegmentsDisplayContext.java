@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
-import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -128,8 +128,7 @@ public class SegmentsDisplayContext {
 		}
 
 		_displayStyle = SearchDisplayStyleUtil.getDisplayStyle(
-			PortalUtil.getHttpServletRequest(_renderRequest),
-			SegmentsPortletKeys.SEGMENTS, "list");
+			_renderRequest, SegmentsPortletKeys.SEGMENTS, "list");
 
 		return _displayStyle;
 	}
@@ -153,20 +152,18 @@ public class SegmentsDisplayContext {
 	}
 
 	public String getOrderByType() {
-		if (Validator.isNotNull(_orderByType)) {
+		if (_orderByType != null) {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_renderRequest, SegmentsPortletKeys.SEGMENTS, "asc");
 
 		return _orderByType;
 	}
 
 	public String getSearchActionURL() {
-		PortletURL portletURL = _getPortletURL();
-
-		return portletURL.toString();
+		return String.valueOf(_getPortletURL());
 	}
 
 	public SearchContainer<SegmentsEntry> getSearchContainer()
@@ -183,37 +180,27 @@ public class SegmentsDisplayContext {
 		searchContainer.setOrderByCol(_getOrderByCol());
 		searchContainer.setOrderByComparator(_getOrderByComparator());
 		searchContainer.setOrderByType(getOrderByType());
-		searchContainer.setRowChecker(
-			new EmptyOnClickRowChecker(_renderResponse));
-
-		List<SegmentsEntry> segmentsEntries = null;
-
-		int segmentsEntriesCount = 0;
 
 		if (_isSearch()) {
-			BaseModelSearchResult<SegmentsEntry> baseModelSearchResult =
+			searchContainer.setResultsAndTotal(
 				_segmentsEntryService.searchSegmentsEntries(
 					_themeDisplay.getCompanyId(),
 					_themeDisplay.getScopeGroupId(), _getKeywords(), true,
 					searchContainer.getStart(), searchContainer.getEnd(),
-					_getSort());
-
-			segmentsEntries = baseModelSearchResult.getBaseModels();
-			segmentsEntriesCount = baseModelSearchResult.getLength();
+					_getSort()));
 		}
 		else {
-			segmentsEntries = _segmentsEntryService.getSegmentsEntries(
-				_themeDisplay.getScopeGroupId(), true,
-				searchContainer.getStart(), searchContainer.getEnd(),
-				searchContainer.getOrderByComparator());
-
-			segmentsEntriesCount =
+			searchContainer.setResultsAndTotal(
+				() -> _segmentsEntryService.getSegmentsEntries(
+					_themeDisplay.getScopeGroupId(), true,
+					searchContainer.getStart(), searchContainer.getEnd(),
+					searchContainer.getOrderByComparator()),
 				_segmentsEntryService.getSegmentsEntriesCount(
-					_themeDisplay.getScopeGroupId(), true);
+					_themeDisplay.getScopeGroupId(), true));
 		}
 
-		searchContainer.setResults(segmentsEntries);
-		searchContainer.setTotal(segmentsEntriesCount);
+		searchContainer.setRowChecker(
+			new EmptyOnClickRowChecker(_renderResponse));
 
 		_searchContainer = searchContainer;
 
@@ -249,7 +236,7 @@ public class SegmentsDisplayContext {
 		).setParameter(
 			"segmentsEntryId", segmentsEntry.getSegmentsEntryId()
 		).setParameter(
-			"showInEditMode", Boolean.FALSE.toString()
+			"showInEditMode", false
 		).buildString();
 	}
 
@@ -280,10 +267,9 @@ public class SegmentsDisplayContext {
 	}
 
 	public boolean isAsahEnabled(long companyId) {
-		String asahFaroURL = PrefsPropsUtil.getString(
-			companyId, "liferayAnalyticsURL");
+		if (Validator.isNotNull(
+				PrefsPropsUtil.getString(companyId, "liferayAnalyticsURL"))) {
 
-		if (Validator.isNotNull(asahFaroURL)) {
 			return true;
 		}
 
@@ -291,11 +277,7 @@ public class SegmentsDisplayContext {
 	}
 
 	public boolean isDisabledManagementBar() throws PortalException {
-		if (_hasResults()) {
-			return false;
-		}
-
-		if (_isSearch()) {
+		if (_hasResults() || _isSearch()) {
 			return false;
 		}
 
@@ -344,8 +326,8 @@ public class SegmentsDisplayContext {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_renderRequest, "orderByCol", "modified-date");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_renderRequest, SegmentsPortletKeys.SEGMENTS, "modified-date");
 
 		return _orderByCol;
 	}
@@ -353,9 +335,7 @@ public class SegmentsDisplayContext {
 	private OrderByComparator<SegmentsEntry> _getOrderByComparator() {
 		boolean orderByAsc = false;
 
-		String orderByType = getOrderByType();
-
-		if (orderByType.equals("asc")) {
+		if (Objects.equals(getOrderByType(), "asc")) {
 			orderByAsc = true;
 		}
 
@@ -396,43 +376,43 @@ public class SegmentsDisplayContext {
 	}
 
 	private PortletURL _getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/view.jsp"
-		).build();
+		).setKeywords(
+			() -> {
+				String keywords = _getKeywords();
 
-		String keywords = _getKeywords();
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
 
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		portletURL.setParameter("displayStyle", getDisplayStyle());
-		portletURL.setParameter("orderByCol", _getOrderByCol());
-		portletURL.setParameter("orderByType", getOrderByType());
-
-		return portletURL;
+				return null;
+			}
+		).setParameter(
+			"displayStyle", getDisplayStyle()
+		).setParameter(
+			"orderByCol", _getOrderByCol()
+		).setParameter(
+			"orderByType", getOrderByType()
+		).buildPortletURL();
 	}
 
 	private Sort _getSort() {
 		boolean orderByAsc = false;
 
-		String orderByType = getOrderByType();
-
-		if (orderByType.equals("asc")) {
+		if (Objects.equals(getOrderByType(), "asc")) {
 			orderByAsc = true;
 		}
 
-		String orderByCol = _getOrderByCol();
-
 		Sort sort = null;
 
-		if (orderByCol.equals("name")) {
-			String sortFieldName = Field.getSortableFieldName(
-				"localized_name_".concat(_themeDisplay.getLanguageId()));
-
-			sort = new Sort(sortFieldName, Sort.STRING_TYPE, !orderByAsc);
+		if (Objects.equals(_getOrderByCol(), "name")) {
+			sort = new Sort(
+				Field.getSortableFieldName(
+					"localized_name_".concat(_themeDisplay.getLanguageId())),
+				Sort.STRING_TYPE, !orderByAsc);
 		}
 		else {
 			sort = new Sort(Field.MODIFIED_DATE, Sort.LONG_TYPE, !orderByAsc);

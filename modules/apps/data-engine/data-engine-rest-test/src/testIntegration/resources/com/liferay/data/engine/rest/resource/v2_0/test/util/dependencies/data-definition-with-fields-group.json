@@ -1,0 +1,1052 @@
+{
+	"availableLanguageIds": [
+		"en_US",
+		"pt_BR"
+	],
+	"dataDefinitionFields": [
+		{
+			"customProperties": {
+				"dataType": "string",
+				"fieldNamespace": "",
+				"inline": true,
+				"options": {
+					"en_US": [
+						{
+							"edited": false,
+							"label": "House",
+							"value": "House"
+						},
+						{
+							"edited": false,
+							"label": "Apartment",
+							"value": "Apartment"
+						}
+					],
+					"pt_BR": [
+						{
+							"edited": false,
+							"label": "Casa",
+							"value": "House"
+						},
+						{
+							"edited": false,
+							"label": "Apartamento",
+							"value": "Apartment"
+						}
+					]
+				},
+				"showAsSwitcher": true,
+				"validation": {
+					"errorMessage": {
+					},
+					"expression": {
+					},
+					"parameter": {
+					}
+				},
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": [
+				],
+				"pt_BR": [
+				]
+			},
+			"fieldType": "checkbox_multiple",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Multiple Selection",
+				"pt_BR": "Seleção múltipla"
+			},
+			"localizable": true,
+			"name": "MultipleSelection",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": false,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string",
+				"fieldNamespace": "",
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "color",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Color",
+				"pt_BR": "Cor"
+			},
+			"localizable": true,
+			"name": "Color",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string",
+				"fieldNamespace": "",
+				"validation": {
+					"errorMessage": {
+					},
+					"expression": {
+					},
+					"parameter": {
+					}
+				},
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "date",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Date",
+				"pt_BR": "Data"
+			},
+			"localizable": true,
+			"name": "Date",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string",
+				"fieldNamespace": "",
+				"validation": {
+					"errorMessage": {
+					},
+					"expression": {
+					},
+					"parameter": {
+					}
+				},
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "document_library",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Upload",
+				"pt_BR": "Upload"
+			},
+			"localizable": true,
+			"name": "Upload",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string"
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "geolocation",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Geolocation",
+				"pt_BR": "Geolocalização"
+			},
+			"localizable": true,
+			"name": "Geolocation",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"columns": {
+					"en_US": [
+						{
+							"edited": false,
+							"label": "Have",
+							"value": "Have"
+						},
+						{
+							"edited": true,
+							"label": "Don't Have",
+							"value": "DontHave"
+						}
+					],
+					"pt_BR": [
+						{
+							"edited": false,
+							"label": "Possuo",
+							"value": "Have"
+						},
+						{
+							"edited": true,
+							"label": "Não Possuo",
+							"value": "DontHave"
+						}
+					]
+				},
+				"dataType": "string",
+				"fieldNamespace": "",
+				"rows": {
+					"en_US": [
+						{
+							"edited": true,
+							"label": "TV",
+							"value": "TV"
+						},
+						{
+							"edited": false,
+							"label": "Internet",
+							"value": "Internet"
+						},
+						{
+							"edited": false,
+							"label": "Telephone",
+							"value": "Telephone"
+						}
+					],
+					"pt_BR": [
+						{
+							"edited": true,
+							"label": "TV",
+							"value": "TV"
+						},
+						{
+							"edited": false,
+							"label": "Internet",
+							"value": "Internet"
+						},
+						{
+							"edited": false,
+							"label": "Telefone",
+							"value": "Telephone"
+						}
+					]
+				},
+				"validation": "",
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "grid",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Grid",
+				"pt_BR": "Tabela"
+			},
+			"localizable": true,
+			"name": "Grid",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": false,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string",
+				"fieldNamespace": "",
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "image",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Image",
+				"pt_BR": "Imagem"
+			},
+			"localizable": true,
+			"name": "Image",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "journal-article",
+				"fieldNamespace": "",
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "journal_article",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Web Content",
+				"pt_BR": "Web Content"
+			},
+			"localizable": true,
+			"name": "WebContent",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "link-to-page",
+				"fieldNamespace": "",
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "link_to_layout",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Link to Page",
+				"pt_BR": "Link Para Página"
+			},
+			"localizable": true,
+			"name": "LinkToPage",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "integer",
+				"direction": [
+					"vertical"
+				],
+				"fieldNamespace": "",
+				"placeholder": {
+					"en_US": "Placeholder Text",
+					"pt_BR": "Texto Placeholder"
+				},
+				"tooltip": {
+					"en_US": "",
+					"pt_BR": ""
+				},
+				"validation": {
+					"errorMessage": {
+					},
+					"expression": {
+					},
+					"parameter": {
+					}
+				},
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "numeric",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Numeric",
+				"pt_BR": "Numérico"
+			},
+			"localizable": true,
+			"name": "Numeric",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string",
+				"fieldNamespace": "",
+				"inline": true,
+				"options": {
+					"en_US": [
+						{
+							"edited": false,
+							"label": "Car",
+							"value": "Car"
+						},
+						{
+							"edited": false,
+							"label": "Boat",
+							"value": "Boat"
+						}
+					],
+					"pt_BR": [
+						{
+							"edited": false,
+							"label": "Carro",
+							"value": "Car"
+						},
+						{
+							"edited": false,
+							"label": "Barco",
+							"value": "Boat"
+						}
+					]
+				},
+				"validation": {
+					"errorMessage": {
+					},
+					"expression": {
+					},
+					"parameter": {
+					}
+				},
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": [
+				],
+				"pt_BR": [
+				]
+			},
+			"fieldType": "radio",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Single Selection",
+				"pt_BR": "Seleção única"
+			},
+			"localizable": true,
+			"name": "SingleSelection",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string",
+				"fieldNamespace": "",
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "rich_text",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Rich Text",
+				"pt_BR": "Texto HTML"
+			},
+			"localizable": true,
+			"name": "RichText",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataSourceType": "manual",
+				"dataType": "string",
+				"ddmDataProviderInstanceId": [
+				],
+				"ddmDataProviderInstanceOutput": [
+				],
+				"fieldNamespace": "",
+				"multiple": true,
+				"options": {
+					"en_US": [
+						{
+							"edited": false,
+							"label": "Magazine",
+							"value": "Magazine"
+						},
+						{
+							"edited": false,
+							"label": "Book",
+							"value": "Book"
+						}
+					],
+					"pt_BR": [
+						{
+							"edited": false,
+							"label": "Revista",
+							"value": "Magazine"
+						},
+						{
+							"edited": false,
+							"label": "Livro",
+							"value": "Book"
+						}
+					]
+				},
+				"validation": {
+					"errorMessage": {
+					},
+					"expression": {
+					},
+					"parameter": {
+					}
+				},
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": [
+				],
+				"pt_BR": [
+				]
+			},
+			"fieldType": "select",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Select from List",
+				"pt_BR": "Selecione da Lista"
+			},
+			"localizable": true,
+			"name": "SelectFromList",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "",
+				"style": {
+					"en_US": "",
+					"pt_BR": ""
+				}
+			},
+			"defaultValue": {
+			},
+			"fieldType": "separator",
+			"indexable": false,
+			"label": {
+				"en_US": "Separator",
+				"pt_BR": "Separador"
+			},
+			"localizable": true,
+			"name": "Separator",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": false,
+			"required": false,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"dataType": "string",
+				"direction": [
+					"vertical"
+				],
+				"displayStyle": "multiline",
+				"fieldNamespace": "",
+				"options": {
+				},
+				"placeholder": {
+					"en_US": "Placeholder Text",
+					"pt_BR": "Texto Placeholder"
+				},
+				"tooltip": {
+					"en_US": "Tooltip",
+					"pt_BR": "Dica"
+				},
+				"validation": {
+					"errorMessage": {
+					},
+					"expression": {
+					},
+					"parameter": {
+					}
+				},
+				"visibilityExpression": ""
+			},
+			"defaultValue": {
+				"en_US": "",
+				"pt_BR": ""
+			},
+			"fieldType": "text",
+			"indexType": "keyword",
+			"indexable": true,
+			"label": {
+				"en_US": "Text",
+				"pt_BR": "Texto"
+			},
+			"localizable": true,
+			"name": "Text",
+			"nestedDataDefinitionFields": [
+			],
+			"readOnly": false,
+			"repeatable": true,
+			"required": true,
+			"showLabel": true,
+			"tip": {
+				"en_US": "Help Text",
+				"pt_BR": "Texto de Ajuda"
+			}
+		},
+		{
+			"customProperties": {
+				"collapsible": false,
+				"ddmStructureId": "",
+				"ddmStructureLayoutId": "",
+				"fieldReference": "FieldsGroup",
+				"labelAtStructureLevel": true,
+				"rows": [
+					{
+						"columns": [
+							{
+								"fields": [
+									"FieldsGroup_Text"
+								],
+								"size": 12
+							}
+						]
+					},
+					{
+						"columns": [
+							{
+								"fields": [
+									"FieldsGroup_Numeric"
+								],
+								"size": 12
+							}
+						]
+					}
+				],
+				"upgradedStructure": false
+			},
+			"defaultValue": {
+			},
+			"fieldType": "fieldset",
+			"indexable": false,
+			"label": {
+				"en_US": "Fields Group"
+			},
+			"localizable": false,
+			"name": "FieldsGroup",
+			"nestedDataDefinitionFields": [
+				{
+					"customProperties": {
+						"confirmationErrorMessage": {
+							"en_US": ""
+						},
+						"confirmationLabel": {
+							"en_US": ""
+						},
+						"dataType": "string",
+						"direction": [
+							"vertical"
+						],
+						"displayStyle": "singleline",
+						"fieldNamespace": "",
+						"fieldReference": "FieldsGroup_Text",
+						"hideField": false,
+						"labelAtStructureLevel": true,
+						"nativeField": false,
+						"objectFieldName": "",
+						"options": {
+						},
+						"placeholder": {
+							"en_US": ""
+						},
+						"requireConfirmation": false,
+						"requiredErrorMessage": {
+							"en_US": ""
+						},
+						"tooltip": {
+							"en_US": ""
+						},
+						"visibilityExpression": ""
+					},
+					"defaultValue": {
+						"en_US": ""
+					},
+					"fieldType": "text",
+					"indexType": "keyword",
+					"indexable": true,
+					"label": {
+						"en_US": "Text"
+					},
+					"localizable": true,
+					"name": "FieldsGroup_Text",
+					"nestedDataDefinitionFields": [
+					],
+					"readOnly": false,
+					"repeatable": false,
+					"required": false,
+					"showLabel": true,
+					"tip": {
+						"en_US": ""
+					}
+				},
+				{
+					"customProperties": {
+						"characterOptions": false,
+						"confirmationErrorMessage": {
+							"en_US": ""
+						},
+						"confirmationLabel": {
+							"en_US": ""
+						},
+						"dataType": "integer",
+						"direction": [
+							"vertical"
+						],
+						"fieldNamespace": "",
+						"fieldReference": "FieldsGroup_Numeric",
+						"hideField": false,
+						"inputMask": false,
+						"inputMaskFormat": {
+							"en_US": ""
+						},
+						"labelAtStructureLevel": true,
+						"nativeField": false,
+						"numericInputMask": {
+							"en_US": {
+								"append": "",
+								"appendType": "prefix",
+								"symbols": {
+									"decimalSymbol": ".",
+									"thousandsSeparator": "none"
+								}
+							}
+						},
+						"objectFieldName": "",
+						"placeholder": {
+							"en_US": ""
+						},
+						"requireConfirmation": false,
+						"requiredErrorMessage": {
+							"en_US": ""
+						},
+						"tooltip": {
+							"en_US": ""
+						},
+						"visibilityExpression": ""
+					},
+					"defaultValue": {
+						"en_US": ""
+					},
+					"fieldType": "numeric",
+					"indexType": "keyword",
+					"indexable": true,
+					"label": {
+						"en_US": "Numeric"
+					},
+					"localizable": true,
+					"name": "FieldsGroup_Numeric",
+					"nestedDataDefinitionFields": [
+					],
+					"readOnly": false,
+					"repeatable": false,
+					"required": false,
+					"showLabel": true,
+					"tip": {
+						"en_US": ""
+					}
+				}
+			],
+			"readOnly": false,
+			"repeatable": false,
+			"required": false,
+			"showLabel": true,
+			"tip": {
+			}
+		}
+	],
+	"defaultDataLayout": {
+		"dataLayoutPages": [
+			{
+				"dataLayoutRows": [
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"MultipleSelection"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Color"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Date"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Upload"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Geolocation"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Grid"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Image"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"WebContent"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"LinkToPage"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Numeric"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"SingleSelection"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"RichText"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"SelectFromList"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Separator"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"Text"
+								]
+							}
+						]
+					},
+					{
+						"dataLayoutColumns": [
+							{
+								"columnSize": 12,
+								"fieldNames": [
+									"FieldsGroup"
+								]
+							}
+						]
+					}
+				],
+				"description": {
+					"en_US": "Page Description",
+					"pt_BR": "Descrção da Página"
+				},
+				"title": {
+					"en_US": "Page Title",
+					"pt_BR": "Título da Página"
+				}
+			}
+		],
+		"name": {
+			"en_US": "Structure",
+			"pt_BR": "Estrutura"
+		},
+		"paginationMode": "wizard"
+	},
+	"defaultLanguageId": "en_US",
+	"description": {
+		"en_US": "Data Definition Description",
+		"pt_BR": "Descrição do Data Definition"
+	},
+	"name": {
+		"en_US": "Structure",
+		"pt_BR": "Estrutura"
+	},
+	"storageType": "default"
+}

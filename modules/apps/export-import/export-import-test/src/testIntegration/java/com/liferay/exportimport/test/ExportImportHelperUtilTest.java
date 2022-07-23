@@ -39,7 +39,6 @@ import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.repository.capabilities.ThumbnailCapability;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -357,12 +356,11 @@ public class ExportImportHelperUtilTest {
 			).build();
 
 		Element portletDataElement = null;
-		ManifestSummary manifestSummary = new ManifestSummary();
 
 		Map<String, Boolean> actualPortletControlsMap =
 			ExportImportHelperUtil.getImportPortletControlsMap(
 				companyId, portletId, parameterMap, portletDataElement,
-				manifestSummary);
+				new ManifestSummary());
 
 		_assertPortletControlsMap(
 			actualPortletControlsMap, false, false, false, false, false);
@@ -547,12 +545,11 @@ public class ExportImportHelperUtilTest {
 			).build();
 
 		Element portletDataElement = null;
-		ManifestSummary manifestSummary = new ManifestSummary();
 
 		Map<String, Boolean> actualPortletControlsMap =
 			ExportImportHelperUtil.getImportPortletControlsMap(
 				companyId, portletId, parameterMap, portletDataElement,
-				manifestSummary);
+				new ManifestSummary());
 
 		_assertPortletControlsMap(
 			actualPortletControlsMap, false, false, false, false, false);
@@ -740,21 +737,18 @@ public class ExportImportHelperUtilTest {
 
 	@Test
 	public void testGetSelectedLayoutsJSONSelectAllLayouts() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_stagingGroup);
 
-		Layout childLayout = LayoutTestUtil.addLayout(
+		Layout childLayout = LayoutTestUtil.addTypePortletLayout(
 			_stagingGroup, layout.getPlid());
 
-		String selectedLayoutsJSON =
+		JSONArray selectedLayoutsJSONArray = JSONFactoryUtil.createJSONArray(
 			ExportImportHelperUtil.getSelectedLayoutsJSON(
 				_stagingGroup.getGroupId(), false,
 				StringUtil.merge(
 					new long[] {
 						layout.getLayoutId(), childLayout.getLayoutId()
-					}));
-
-		JSONArray selectedLayoutsJSONArray = JSONFactoryUtil.createJSONArray(
-			selectedLayoutsJSON);
+					})));
 
 		Assert.assertEquals(1, selectedLayoutsJSONArray.length());
 
@@ -766,18 +760,15 @@ public class ExportImportHelperUtilTest {
 
 	@Test
 	public void testGetSelectedLayoutsJSONSelectChildLayout() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_stagingGroup);
 
-		Layout childLayout = LayoutTestUtil.addLayout(
+		Layout childLayout = LayoutTestUtil.addTypePortletLayout(
 			_stagingGroup, layout.getPlid());
 
-		String selectedLayoutsJSON =
+		JSONArray selectedLayoutsJSONArray = JSONFactoryUtil.createJSONArray(
 			ExportImportHelperUtil.getSelectedLayoutsJSON(
 				_stagingGroup.getGroupId(), false,
-				StringUtil.merge(new long[] {childLayout.getLayoutId()}));
-
-		JSONArray selectedLayoutsJSONArray = JSONFactoryUtil.createJSONArray(
-			selectedLayoutsJSON);
+				StringUtil.merge(new long[] {childLayout.getLayoutId()})));
 
 		Assert.assertEquals(1, selectedLayoutsJSONArray.length());
 
@@ -790,17 +781,14 @@ public class ExportImportHelperUtilTest {
 
 	@Test
 	public void testGetSelectedLayoutsJSONSelectNoLayouts() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_stagingGroup);
 
-		LayoutTestUtil.addLayout(_stagingGroup, layout.getPlid());
-
-		String selectedLayoutsJSON =
-			ExportImportHelperUtil.getSelectedLayoutsJSON(
-				_stagingGroup.getGroupId(), false,
-				StringUtil.merge(new long[0]));
+		LayoutTestUtil.addTypePortletLayout(_stagingGroup, layout.getPlid());
 
 		JSONArray selectedLayoutsJSONArray = JSONFactoryUtil.createJSONArray(
-			selectedLayoutsJSON);
+			ExportImportHelperUtil.getSelectedLayoutsJSON(
+				_stagingGroup.getGroupId(), false,
+				StringUtil.merge(new long[0])));
 
 		Assert.assertEquals(0, selectedLayoutsJSONArray.length());
 	}
@@ -809,18 +797,15 @@ public class ExportImportHelperUtilTest {
 	public void testGetSelectedLayoutsJSONSelectParentLayout()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addLayout(_stagingGroup);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_stagingGroup);
 
-		LayoutTestUtil.addLayout(
+		LayoutTestUtil.addTypePortletLayout(
 			_stagingGroup.getGroupId(), "Child Layout", layout.getPlid());
 
-		String selectedLayoutsJSON =
+		JSONArray selectedLayoutsJSONArray = JSONFactoryUtil.createJSONArray(
 			ExportImportHelperUtil.getSelectedLayoutsJSON(
 				_stagingGroup.getGroupId(), false,
-				StringUtil.merge(new long[] {layout.getLayoutId()}));
-
-		JSONArray selectedLayoutsJSONArray = JSONFactoryUtil.createJSONArray(
-			selectedLayoutsJSON);
+				StringUtil.merge(new long[] {layout.getLayoutId()})));
 
 		Assert.assertEquals(1, selectedLayoutsJSONArray.length());
 
@@ -883,15 +868,13 @@ public class ExportImportHelperUtilTest {
 	}
 
 	protected FileEntry getFileEntry() throws PortalException {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_stagingGroup.getGroupId(), TestPropsValues.getUserId());
-
 		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), _stagingGroup.getGroupId(),
+			null, TestPropsValues.getUserId(), _stagingGroup.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
-			TestDataConstants.TEST_BYTE_ARRAY, serviceContext);
+			TestDataConstants.TEST_BYTE_ARRAY, null, null,
+			ServiceContextTestUtil.getServiceContext(
+				_stagingGroup.getGroupId(), TestPropsValues.getUserId()));
 
 		ThumbnailCapability thumbnailCapability =
 			fileEntry.getRepositoryCapability(ThumbnailCapability.class);
@@ -945,10 +928,6 @@ public class ExportImportHelperUtilTest {
 	private Group _stagingGroup;
 
 	private class ExportImportTestParameterMapBuilder {
-
-		public ExportImportTestParameterMapBuilder() {
-			_parameterMap = new HashMap<>();
-		}
 
 		public Map<String, String[]> build() {
 			return _parameterMap;
@@ -1014,7 +993,7 @@ public class ExportImportHelperUtilTest {
 			return this;
 		}
 
-		private final Map<String, String[]> _parameterMap;
+		private final Map<String, String[]> _parameterMap = new HashMap<>();
 
 	}
 

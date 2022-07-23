@@ -188,23 +188,23 @@ public class AdminPortlet extends BaseKBPortlet {
 		throws Exception {
 
 		try {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
-
 			UploadPortletRequest uploadPortletRequest =
 				_portal.getUploadPortletRequest(actionRequest);
 
 			checkExceededSizeLimit(actionRequest);
-
-			long parentKBFolderId = ParamUtil.getLong(
-				uploadPortletRequest, "parentKBFolderId",
-				KBFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 			String fileName = uploadPortletRequest.getFileName("file");
 
 			if (Validator.isNull(fileName)) {
 				throw new KBArticleImportException("File name is null");
 			}
+
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
+
+			long parentKBFolderId = ParamUtil.getLong(
+				uploadPortletRequest, "parentKBFolderId",
+				KBFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 			boolean prioritizeByNumericalPrefix = ParamUtil.getBoolean(
 				uploadPortletRequest, "prioritizeByNumericalPrefix");
@@ -259,7 +259,7 @@ public class AdminPortlet extends BaseKBPortlet {
 
 				resourceRequest.setAttribute(
 					KBWebKeys.KNOWLEDGE_BASE_KB_FOLDERS,
-					getKBFolders(httpServletRequest));
+					_getKBFolders(httpServletRequest));
 
 				PortletSession portletSession =
 					resourceRequest.getPortletSession();
@@ -358,7 +358,7 @@ public class AdminPortlet extends BaseKBPortlet {
 					KBWebKeys.THEME_DISPLAY);
 
 			kbFolderService.addKBFolder(
-				themeDisplay.getScopeGroupId(), parentResourceClassNameId,
+				null, themeDisplay.getScopeGroupId(), parentResourceClassNameId,
 				parentResourcePrimKey, name, description, serviceContext);
 		}
 		else if (cmd.equals(Constants.UPDATE)) {
@@ -552,21 +552,6 @@ public class AdminPortlet extends BaseKBPortlet {
 		return kbArticles;
 	}
 
-	protected List<KBFolder> getKBFolders(HttpServletRequest httpServletRequest)
-		throws Exception {
-
-		long[] kbFolderIds = ParamUtil.getLongValues(
-			httpServletRequest, "rowIdsKBFolder");
-
-		List<KBFolder> kbFolders = new ArrayList<>();
-
-		for (long kbFolderId : kbFolderIds) {
-			kbFolders.add(kbFolderService.getKBFolder(kbFolderId));
-		}
-
-		return kbFolders;
-	}
-
 	@Override
 	protected boolean isSessionErrorException(Throwable throwable) {
 		if (throwable instanceof KBArticleImportException ||
@@ -586,6 +571,21 @@ public class AdminPortlet extends BaseKBPortlet {
 		unbind = "-"
 	)
 	protected void setRelease(Release release) {
+	}
+
+	private List<KBFolder> _getKBFolders(HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		long[] kbFolderIds = ParamUtil.getLongValues(
+			httpServletRequest, "rowIdsKBFolder");
+
+		List<KBFolder> kbFolders = new ArrayList<>();
+
+		for (long kbFolderId : kbFolderIds) {
+			kbFolders.add(kbFolderService.getKBFolder(kbFolderId));
+		}
+
+		return kbFolders;
 	}
 
 	@Reference

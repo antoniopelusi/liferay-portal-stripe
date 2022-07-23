@@ -559,4 +559,7 @@ public interface DDMFormInstanceModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public DDMFormInstance cloneWithOriginalValues();
+
 }

@@ -182,8 +182,6 @@ public class InstallCacheTask extends DefaultTask {
 	}
 
 	private void _installCache(String extension) throws IOException {
-		CacheFormat cacheFormat = getCacheFormat();
-
 		File file = new File(
 			getMavenInputDir(),
 			getArtifactName() + "-" + getArtifactVersion() + "." + extension);
@@ -197,6 +195,8 @@ public class InstallCacheTask extends DefaultTask {
 		}
 
 		File destinationDir = getCacheDestinationDir();
+
+		CacheFormat cacheFormat = getCacheFormat();
 
 		if (cacheFormat == CacheFormat.GRADLE) {
 			HashValue hashValue = HashUtil.sha1(file);

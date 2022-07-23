@@ -64,7 +64,7 @@ public class BlogPostingSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (blogPosting.getActions() != null) {
 			if (sb.length() > 1) {
@@ -213,6 +213,20 @@ public class BlogPostingSerDes {
 			sb.append("\"");
 
 			sb.append(_escape(blogPosting.getEncodingFormat()));
+
+			sb.append("\"");
+		}
+
+		if (blogPosting.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(blogPosting.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -428,7 +442,7 @@ public class BlogPostingSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (blogPosting.getActions() == null) {
 			map.put("actions", null);
@@ -520,6 +534,15 @@ public class BlogPostingSerDes {
 			map.put(
 				"encodingFormat",
 				String.valueOf(blogPosting.getEncodingFormat()));
+		}
+
+		if (blogPosting.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(blogPosting.getExternalReferenceCode()));
 		}
 
 		if (blogPosting.getFriendlyUrlPath() == null) {
@@ -710,6 +733,14 @@ public class BlogPostingSerDes {
 			else if (Objects.equals(jsonParserFieldName, "encodingFormat")) {
 				if (jsonParserFieldValue != null) {
 					blogPosting.setEncodingFormat((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					blogPosting.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "friendlyUrlPath")) {

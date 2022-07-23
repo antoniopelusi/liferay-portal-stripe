@@ -72,7 +72,7 @@ public class BlogsEntryStagedModelDataHandlerTest
 	public void testImportedCoverImage() throws Exception {
 		initExport();
 
-		BlogsEntry entry = addBlogsEntryWithCoverImage();
+		BlogsEntry entry = _addBlogsEntryWithCoverImage();
 
 		StagedModelDataHandlerUtil.exportStagedModel(portletDataContext, entry);
 
@@ -103,7 +103,7 @@ public class BlogsEntryStagedModelDataHandlerTest
 	public void testImportedCoverImageAfterUpdate() throws Exception {
 		initExport();
 
-		BlogsEntry entry = addBlogsEntryWithCoverImage();
+		BlogsEntry entry = _addBlogsEntryWithCoverImage();
 
 		StagedModelDataHandlerUtil.exportStagedModel(portletDataContext, entry);
 
@@ -146,7 +146,7 @@ public class BlogsEntryStagedModelDataHandlerTest
 	public void testImportedSmallImage() throws Exception {
 		initExport();
 
-		BlogsEntry entry = addBlogsEntryWithSmallImage();
+		BlogsEntry entry = _addBlogsEntryWithSmallImage();
 
 		StagedModelDataHandlerUtil.exportStagedModel(portletDataContext, entry);
 
@@ -179,7 +179,7 @@ public class BlogsEntryStagedModelDataHandlerTest
 	public void testImportedSmallImageAfterUpdate() throws Exception {
 		initExport();
 
-		BlogsEntry entry = addBlogsEntryWithSmallImage();
+		BlogsEntry entry = _addBlogsEntryWithSmallImage();
 
 		StagedModelDataHandlerUtil.exportStagedModel(portletDataContext, entry);
 
@@ -218,50 +218,32 @@ public class BlogsEntryStagedModelDataHandlerTest
 			importedUpdatedEntry.getSmallImageFileEntryId());
 	}
 
-	protected BlogsEntry addBlogsEntry(
-			ImageSelector coverImageImageSelector,
-			ImageSelector smallImageImageSelector,
-			ServiceContext serviceContext)
-		throws Exception {
+	@Test
+	public void testImportedSmallImageURL() throws Exception {
+		initExport();
 
-		return BlogsEntryLocalServiceUtil.addEntry(
-			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), new Date(), true, true,
-			new String[0], StringPool.BLANK, coverImageImageSelector,
-			smallImageImageSelector, serviceContext);
-	}
-
-	protected BlogsEntry addBlogsEntryWithCoverImage() throws Exception {
-		ServiceContext serviceContext =
+		BlogsEntry entry = _addBlogsEntry(
+			null, new ImageSelector(StringUtil.randomString()),
 			ServiceContextTestUtil.getServiceContext(
-				stagingGroup.getGroupId(), TestPropsValues.getUserId());
+				stagingGroup.getGroupId(), TestPropsValues.getUserId()));
 
-		InputStream inputStream = getInputStream();
+		StagedModelDataHandlerUtil.exportStagedModel(portletDataContext, entry);
 
-		String mimeType = MimeTypesUtil.getContentType(_IMAGE_TITLE);
+		initImport();
 
-		ImageSelector imageSelector = new ImageSelector(
-			FileUtil.getBytes(inputStream), _IMAGE_TITLE, mimeType,
-			_IMAGE_CROP_REGION);
+		BlogsEntry exportedEntry = (BlogsEntry)readExportedStagedModel(entry);
 
-		return addBlogsEntry(imageSelector, null, serviceContext);
-	}
+		Assert.assertNotNull(exportedEntry);
 
-	protected BlogsEntry addBlogsEntryWithSmallImage() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				stagingGroup.getGroupId(), TestPropsValues.getUserId());
+		StagedModelDataHandlerUtil.importStagedModel(
+			portletDataContext, exportedEntry);
 
-		InputStream inputStream = getInputStream();
+		BlogsEntry importedEntry = (BlogsEntry)getStagedModel(
+			entry.getUuid(), liveGroup);
 
-		String mimeType = MimeTypesUtil.getContentType(_IMAGE_TITLE);
-
-		ImageSelector imageSelector = new ImageSelector(
-			FileUtil.getBytes(inputStream), _IMAGE_TITLE, mimeType,
-			StringPool.BLANK);
-
-		return addBlogsEntry(null, imageSelector, serviceContext);
+		Assert.assertTrue(importedEntry.isSmallImage());
+		Assert.assertEquals(
+			entry.getSmallImageURL(), importedEntry.getSmallImageURL());
 	}
 
 	@Override
@@ -270,13 +252,11 @@ public class BlogsEntryStagedModelDataHandlerTest
 			Map<String, List<StagedModel>> dependentStagedModelsMap)
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				group, TestPropsValues.getUserId());
-
 		return BlogsEntryLocalServiceUtil.addEntry(
 			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				group, TestPropsValues.getUserId()));
 	}
 
 	@Override
@@ -302,15 +282,6 @@ public class BlogsEntryStagedModelDataHandlerTest
 		stagedModels.add(pendingEntry);
 
 		return stagedModels;
-	}
-
-	protected InputStream getInputStream() {
-		Class<?> clazz = getClass();
-
-		ClassLoader classLoader = clazz.getClassLoader();
-
-		return classLoader.getResourceAsStream(
-			"com/liferay/blogs/dependencies/test.jpg");
 	}
 
 	@Override
@@ -341,6 +312,9 @@ public class BlogsEntryStagedModelDataHandlerTest
 		BlogsEntry entry = (BlogsEntry)stagedModel;
 		BlogsEntry importedEntry = (BlogsEntry)importedStagedModel;
 
+		Assert.assertEquals(
+			entry.getExternalReferenceCode(),
+			importedEntry.getExternalReferenceCode());
 		Assert.assertEquals(entry.getTitle(), importedEntry.getTitle());
 		Assert.assertEquals(entry.getSubtitle(), importedEntry.getSubtitle());
 		Assert.assertEquals(entry.getUrlTitle(), importedEntry.getUrlTitle());
@@ -371,6 +345,61 @@ public class BlogsEntryStagedModelDataHandlerTest
 		Assert.assertEquals(
 			entry.getCoverImageCaption(), importedEntry.getCoverImageCaption());
 		Assert.assertEquals(entry.isSmallImage(), importedEntry.isSmallImage());
+	}
+
+	private BlogsEntry _addBlogsEntry(
+			ImageSelector coverImageImageSelector,
+			ImageSelector smallImageImageSelector,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		return BlogsEntryLocalServiceUtil.addEntry(
+			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), new Date(), true, true,
+			new String[0], StringPool.BLANK, coverImageImageSelector,
+			smallImageImageSelector, serviceContext);
+	}
+
+	private BlogsEntry _addBlogsEntryWithCoverImage() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				stagingGroup.getGroupId(), TestPropsValues.getUserId());
+
+		InputStream inputStream = _getInputStream();
+
+		String mimeType = MimeTypesUtil.getContentType(_IMAGE_TITLE);
+
+		ImageSelector imageSelector = new ImageSelector(
+			FileUtil.getBytes(inputStream), _IMAGE_TITLE, mimeType,
+			_IMAGE_CROP_REGION);
+
+		return _addBlogsEntry(imageSelector, null, serviceContext);
+	}
+
+	private BlogsEntry _addBlogsEntryWithSmallImage() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				stagingGroup.getGroupId(), TestPropsValues.getUserId());
+
+		InputStream inputStream = _getInputStream();
+
+		String mimeType = MimeTypesUtil.getContentType(_IMAGE_TITLE);
+
+		ImageSelector imageSelector = new ImageSelector(
+			FileUtil.getBytes(inputStream), _IMAGE_TITLE, mimeType,
+			StringPool.BLANK);
+
+		return _addBlogsEntry(null, imageSelector, serviceContext);
+	}
+
+	private InputStream _getInputStream() {
+		Class<?> clazz = getClass();
+
+		ClassLoader classLoader = clazz.getClassLoader();
+
+		return classLoader.getResourceAsStream(
+			"com/liferay/blogs/dependencies/test.jpg");
 	}
 
 	private BlogsEntry _updateBlogsEntry(BlogsEntry blogsEntry)

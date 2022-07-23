@@ -27,26 +27,33 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class DLFileEntryServiceWrapper
 	implements DLFileEntryService, ServiceWrapper<DLFileEntryService> {
 
+	public DLFileEntryServiceWrapper() {
+		this(null);
+	}
+
 	public DLFileEntryServiceWrapper(DLFileEntryService dlFileEntryService) {
 		_dlFileEntryService = dlFileEntryService;
 	}
 
 	@Override
 	public DLFileEntry addFileEntry(
-			long groupId, long repositoryId, long folderId,
-			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, long fileEntryTypeId,
+			String externalReferenceCode, long groupId, long repositoryId,
+			long folderId, String sourceFileName, String mimeType, String title,
+			String urlTitle, String description, String changeLog,
+			long fileEntryTypeId,
 			java.util.Map
 				<String, com.liferay.dynamic.data.mapping.kernel.DDMFormValues>
 					ddmFormValuesMap,
 			java.io.File file, java.io.InputStream inputStream, long size,
+			java.util.Date expirationDate, java.util.Date reviewDate,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryService.addFileEntry(
-			groupId, repositoryId, folderId, sourceFileName, mimeType, title,
-			description, changeLog, fileEntryTypeId, ddmFormValuesMap, file,
-			inputStream, size, serviceContext);
+			externalReferenceCode, groupId, repositoryId, folderId,
+			sourceFileName, mimeType, title, urlTitle, description, changeLog,
+			fileEntryTypeId, ddmFormValuesMap, file, inputStream, size,
+			expirationDate, reviewDate, serviceContext);
 	}
 
 	@Override
@@ -130,6 +137,15 @@ public class DLFileEntryServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_dlFileEntryService.deleteFileVersion(fileEntryId, version);
+	}
+
+	@Override
+	public DLFileEntry fetchFileEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlFileEntryService.fetchFileEntryByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	@Override
@@ -260,6 +276,15 @@ public class DLFileEntryServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryService.getFileEntry(groupId, folderId, title);
+	}
+
+	@Override
+	public DLFileEntry getFileEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlFileEntryService.getFileEntryByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	@Override
@@ -434,7 +459,7 @@ public class DLFileEntryServiceWrapper
 	@Override
 	public DLFileEntry updateFileEntry(
 			long fileEntryId, String sourceFileName, String mimeType,
-			String title, String description, String changeLog,
+			String title, String urlTitle, String description, String changeLog,
 			com.liferay.document.library.kernel.model.DLVersionNumberIncrease
 				dlVersionNumberIncrease,
 			long fileEntryTypeId,
@@ -442,13 +467,15 @@ public class DLFileEntryServiceWrapper
 				<String, com.liferay.dynamic.data.mapping.kernel.DDMFormValues>
 					ddmFormValuesMap,
 			java.io.File file, java.io.InputStream inputStream, long size,
+			java.util.Date expirationDate, java.util.Date reviewDate,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryService.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
+			fileEntryId, sourceFileName, mimeType, title, urlTitle, description,
 			changeLog, dlVersionNumberIncrease, fileEntryTypeId,
-			ddmFormValuesMap, file, inputStream, size, serviceContext);
+			ddmFormValuesMap, file, inputStream, size, expirationDate,
+			reviewDate, serviceContext);
 	}
 
 	@Override

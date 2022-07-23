@@ -19,9 +19,9 @@ package com.liferay.style.book.web.internal.constants;
  */
 public class StyleBookWebKeys {
 
-	public static final String ITEM_SELECTOR = "ITEM_SELECTOR";
+	public static final String FRAGMENT_COLLECTION_CONTRIBUTOR_TRACKER =
+		"FRAGMENT_COLLECTION_CONTRIBUTOR_TRACKER";
 
-	public static final String STYLE_BOOK_ENTRY_DROPDOWN_DEFAULT_EVENT_HANDLER =
-		"STYLE_BOOK_ENTRY_DROPDOWN_DEFAULT_EVENT_HANDLER";
+	public static final String ITEM_SELECTOR = "ITEM_SELECTOR";
 
 }

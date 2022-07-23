@@ -13,14 +13,8 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	waitForElement,
-} from '@testing-library/react';
-import {PageProvider} from 'dynamic-data-mapping-form-renderer';
+import {act, fireEvent, render, screen} from '@testing-library/react';
+import {PageProvider} from 'data-engine-js-components-web';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -69,8 +63,6 @@ describe('Select', () => {
 			return element;
 		});
 	});
-
-	afterEach(cleanup);
 
 	beforeEach(() => {
 		jest.useFakeTimers();
@@ -220,6 +212,24 @@ describe('Select', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('renders fixed options', () => {
+		render(
+			<SelectWithProvider
+				fixedOptions={[
+					{
+						dataType: 'user',
+						label: 'User',
+						name: 'user',
+						value: 'user',
+					},
+				]}
+				showEmptyOption={false}
+			/>
+		);
+
+		expect(screen.getByText('User')).toBeInTheDocument();
+	});
+
 	it('renders no options when options come empty', () => {
 		const {container} = render(
 			<SelectWithProvider options={[]} spritemap={spritemap} />
@@ -365,7 +375,7 @@ describe('Select', () => {
 	it('calls onChange callback when an item is selected', async () => {
 		const handleFieldEdited = jest.fn();
 
-		const {container, getByTestId} = render(
+		const {container, findByTestId} = render(
 			<SelectWithProvider
 				dataSourceType="manual"
 				onChange={handleFieldEdited}
@@ -388,9 +398,7 @@ describe('Select', () => {
 			jest.runAllTimers();
 		});
 
-		const dropdownItem = await waitForElement(() =>
-			getByTestId('dropdownItem-0')
-		);
+		const dropdownItem = await findByTestId('dropdownItem-0');
 
 		fireEvent.click(dropdownItem);
 
@@ -404,7 +412,7 @@ describe('Select', () => {
 	it('calls onChange callback when an item is selected using multiselect', async () => {
 		const handleFieldEdited = jest.fn();
 
-		const {container, getByTestId} = render(
+		const {container, findByTestId} = render(
 			<SelectWithProvider
 				dataSourceType="manual"
 				multiple={true}
@@ -424,9 +432,7 @@ describe('Select', () => {
 			jest.runAllTimers();
 		});
 
-		const labelItem = await waitForElement(() =>
-			getByTestId('labelItem-item7')
-		);
+		const labelItem = await findByTestId('labelItem-item7');
 
 		fireEvent.click(labelItem);
 
@@ -494,7 +500,7 @@ describe('Select', () => {
 	it('filters according to the input and calls onChange callback when an item is selected using search', async () => {
 		const handleFieldEdited = jest.fn();
 
-		const {container, getByTestId} = render(
+		const {container, findByTestId} = render(
 			<SelectWithProvider
 				dataSourceType="manual"
 				multiple={true}
@@ -528,9 +534,7 @@ describe('Select', () => {
 
 		expect(container).toMatchSnapshot();
 
-		const labelItem = await waitForElement(() =>
-			getByTestId('labelItem-item11')
-		);
+		const labelItem = await findByTestId('labelItem-item11');
 
 		fireEvent.click(labelItem);
 
@@ -543,38 +547,76 @@ describe('Select', () => {
 		]);
 	});
 
-	it('adjusts dropdown menu position during scroll', async () => {
-		const {container} = render(
+	it('shows the options value if there are values', async () => {
+		const handleFieldEdited = jest.fn();
+
+		render(
 			<SelectWithProvider
 				dataSourceType="manual"
+				multiple={true}
+				onChange={handleFieldEdited}
 				options={createOptions(12)}
+				predefinedValue={['item1', 'item2']}
 				spritemap={spritemap}
+				value={['item3']}
 			/>
 		);
 
-		const dropdownTrigger = container.querySelector(
-			'.form-builder-select-field.input-group-container'
+		expect(
+			document.querySelector('span[value="item1"]')
+		).not.toBeInTheDocument();
+		expect(
+			document.querySelector('span[value="item2"]')
+		).not.toBeInTheDocument();
+		expect(
+			document.querySelector('span[value="item3"]')
+		).toBeInTheDocument();
+	});
+
+	it('shows the predefinedValues if there is no value', async () => {
+		const handleFieldEdited = jest.fn();
+
+		render(
+			<SelectWithProvider
+				dataSourceType="manual"
+				multiple={true}
+				onChange={handleFieldEdited}
+				options={createOptions(12)}
+				predefinedValue={['item1', 'item2']}
+				spritemap={spritemap}
+				value={[]}
+			/>
 		);
 
-		jest.spyOn(dropdownTrigger, 'getBoundingClientRect').mockImplementation(
-			() => {
-				return {
-					height: 40,
-					top: 50,
-				};
-			}
+		expect(
+			document.querySelector('span[value="item1"]')
+		).toBeInTheDocument();
+		expect(
+			document.querySelector('span[value="item2"]')
+		).toBeInTheDocument();
+	});
+
+	it('clear all values if the user has edited the field to clear the predefinedValue', async () => {
+		const handleFieldEdited = jest.fn();
+
+		render(
+			<SelectWithProvider
+				dataSourceType="manual"
+				localizedValueEdited={{en_US: true}}
+				multiple={true}
+				onChange={handleFieldEdited}
+				options={createOptions(12)}
+				predefinedValue={['item1', 'item2']}
+				spritemap={spritemap}
+				value={[]}
+			/>
 		);
 
-		window.pageYOffset = 100;
-
-		fireEvent.scroll(container);
-
-		act(() => {
-			jest.runAllTimers();
-		});
-
-		const dropdownMenu = container.querySelector('.ddm-select-dropdown');
-
-		expect(dropdownMenu.style).toHaveProperty('top', '190px');
+		expect(
+			document.querySelector('span[value="item1"]')
+		).not.toBeInTheDocument();
+		expect(
+			document.querySelector('span[value="item2"]')
+		).not.toBeInTheDocument();
 	});
 });

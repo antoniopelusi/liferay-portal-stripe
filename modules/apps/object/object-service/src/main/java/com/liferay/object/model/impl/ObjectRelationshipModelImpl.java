@@ -19,9 +19,9 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectRelationshipModel;
-import com.liferay.object.model.ObjectRelationshipSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
@@ -31,24 +31,29 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -79,7 +84,12 @@ public class ObjectRelationshipModelImpl
 		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
 		{"objectRelationshipId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP}
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"objectDefinitionId1", Types.BIGINT},
+		{"objectDefinitionId2", Types.BIGINT}, {"objectFieldId2", Types.BIGINT},
+		{"deletionType", Types.VARCHAR}, {"dbTableName", Types.VARCHAR},
+		{"label", Types.VARCHAR}, {"name", Types.VARCHAR},
+		{"reverse", Types.BOOLEAN}, {"type_", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -94,10 +104,19 @@ public class ObjectRelationshipModelImpl
 		TABLE_COLUMNS_MAP.put("userName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("objectDefinitionId1", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("objectDefinitionId2", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("objectFieldId2", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("deletionType", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("dbTableName", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("label", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("reverse", Types.BOOLEAN);
+		TABLE_COLUMNS_MAP.put("type_", Types.VARCHAR);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ObjectRelationship (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectRelationshipId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null)";
+		"create table ObjectRelationship (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectRelationshipId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectDefinitionId1 LONG,objectDefinitionId2 LONG,objectFieldId2 LONG,deletionType VARCHAR(75) null,dbTableName VARCHAR(75) null,label STRING null,name VARCHAR(75) null,reverse BOOLEAN,type_ VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP = "drop table ObjectRelationship";
 
@@ -123,14 +142,50 @@ public class ObjectRelationshipModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 2L;
+	public static final long NAME_COLUMN_BITMASK = 2L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long OBJECTDEFINITIONID1_COLUMN_BITMASK = 4L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long OBJECTDEFINITIONID2_COLUMN_BITMASK = 8L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long OBJECTFIELDID2_COLUMN_BITMASK = 16L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long REVERSE_COLUMN_BITMASK = 32L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long TYPE_COLUMN_BITMASK = 64L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long OBJECTRELATIONSHIPID_COLUMN_BITMASK = 4L;
+	public static final long OBJECTRELATIONSHIPID_COLUMN_BITMASK = 256L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -144,58 +199,6 @@ public class ObjectRelationshipModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ObjectRelationship toModel(ObjectRelationshipSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ObjectRelationship model = new ObjectRelationshipImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setObjectRelationshipId(soapModel.getObjectRelationshipId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ObjectRelationship> toModels(
-		ObjectRelationshipSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ObjectRelationship> models = new ArrayList<ObjectRelationship>(
-			soapModels.length);
-
-		for (ObjectRelationshipSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public ObjectRelationshipModelImpl() {
@@ -283,34 +286,6 @@ public class ObjectRelationshipModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, ObjectRelationship>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ObjectRelationship.class.getClassLoader(), ObjectRelationship.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ObjectRelationship> constructor =
-				(Constructor<ObjectRelationship>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<ObjectRelationship, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<ObjectRelationship, Object>>
@@ -372,6 +347,56 @@ public class ObjectRelationshipModelImpl
 			"modifiedDate",
 			(BiConsumer<ObjectRelationship, Date>)
 				ObjectRelationship::setModifiedDate);
+		attributeGetterFunctions.put(
+			"objectDefinitionId1", ObjectRelationship::getObjectDefinitionId1);
+		attributeSetterBiConsumers.put(
+			"objectDefinitionId1",
+			(BiConsumer<ObjectRelationship, Long>)
+				ObjectRelationship::setObjectDefinitionId1);
+		attributeGetterFunctions.put(
+			"objectDefinitionId2", ObjectRelationship::getObjectDefinitionId2);
+		attributeSetterBiConsumers.put(
+			"objectDefinitionId2",
+			(BiConsumer<ObjectRelationship, Long>)
+				ObjectRelationship::setObjectDefinitionId2);
+		attributeGetterFunctions.put(
+			"objectFieldId2", ObjectRelationship::getObjectFieldId2);
+		attributeSetterBiConsumers.put(
+			"objectFieldId2",
+			(BiConsumer<ObjectRelationship, Long>)
+				ObjectRelationship::setObjectFieldId2);
+		attributeGetterFunctions.put(
+			"deletionType", ObjectRelationship::getDeletionType);
+		attributeSetterBiConsumers.put(
+			"deletionType",
+			(BiConsumer<ObjectRelationship, String>)
+				ObjectRelationship::setDeletionType);
+		attributeGetterFunctions.put(
+			"dbTableName", ObjectRelationship::getDBTableName);
+		attributeSetterBiConsumers.put(
+			"dbTableName",
+			(BiConsumer<ObjectRelationship, String>)
+				ObjectRelationship::setDBTableName);
+		attributeGetterFunctions.put("label", ObjectRelationship::getLabel);
+		attributeSetterBiConsumers.put(
+			"label",
+			(BiConsumer<ObjectRelationship, String>)
+				ObjectRelationship::setLabel);
+		attributeGetterFunctions.put("name", ObjectRelationship::getName);
+		attributeSetterBiConsumers.put(
+			"name",
+			(BiConsumer<ObjectRelationship, String>)
+				ObjectRelationship::setName);
+		attributeGetterFunctions.put("reverse", ObjectRelationship::getReverse);
+		attributeSetterBiConsumers.put(
+			"reverse",
+			(BiConsumer<ObjectRelationship, Boolean>)
+				ObjectRelationship::setReverse);
+		attributeGetterFunctions.put("type", ObjectRelationship::getType);
+		attributeSetterBiConsumers.put(
+			"type",
+			(BiConsumer<ObjectRelationship, String>)
+				ObjectRelationship::setType);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
@@ -550,6 +575,319 @@ public class ObjectRelationshipModelImpl
 		_modifiedDate = modifiedDate;
 	}
 
+	@JSON
+	@Override
+	public long getObjectDefinitionId1() {
+		return _objectDefinitionId1;
+	}
+
+	@Override
+	public void setObjectDefinitionId1(long objectDefinitionId1) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_objectDefinitionId1 = objectDefinitionId1;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalObjectDefinitionId1() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("objectDefinitionId1"));
+	}
+
+	@JSON
+	@Override
+	public long getObjectDefinitionId2() {
+		return _objectDefinitionId2;
+	}
+
+	@Override
+	public void setObjectDefinitionId2(long objectDefinitionId2) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_objectDefinitionId2 = objectDefinitionId2;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalObjectDefinitionId2() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("objectDefinitionId2"));
+	}
+
+	@JSON
+	@Override
+	public long getObjectFieldId2() {
+		return _objectFieldId2;
+	}
+
+	@Override
+	public void setObjectFieldId2(long objectFieldId2) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_objectFieldId2 = objectFieldId2;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalObjectFieldId2() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("objectFieldId2"));
+	}
+
+	@JSON
+	@Override
+	public String getDeletionType() {
+		if (_deletionType == null) {
+			return "";
+		}
+		else {
+			return _deletionType;
+		}
+	}
+
+	@Override
+	public void setDeletionType(String deletionType) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_deletionType = deletionType;
+	}
+
+	@JSON
+	@Override
+	public String getDBTableName() {
+		if (_dbTableName == null) {
+			return "";
+		}
+		else {
+			return _dbTableName;
+		}
+	}
+
+	@Override
+	public void setDBTableName(String dbTableName) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_dbTableName = dbTableName;
+	}
+
+	@JSON
+	@Override
+	public String getLabel() {
+		if (_label == null) {
+			return "";
+		}
+		else {
+			return _label;
+		}
+	}
+
+	@Override
+	public String getLabel(Locale locale) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		return getLabel(languageId);
+	}
+
+	@Override
+	public String getLabel(Locale locale, boolean useDefault) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		return getLabel(languageId, useDefault);
+	}
+
+	@Override
+	public String getLabel(String languageId) {
+		return LocalizationUtil.getLocalization(getLabel(), languageId);
+	}
+
+	@Override
+	public String getLabel(String languageId, boolean useDefault) {
+		return LocalizationUtil.getLocalization(
+			getLabel(), languageId, useDefault);
+	}
+
+	@Override
+	public String getLabelCurrentLanguageId() {
+		return _labelCurrentLanguageId;
+	}
+
+	@JSON
+	@Override
+	public String getLabelCurrentValue() {
+		Locale locale = getLocale(_labelCurrentLanguageId);
+
+		return getLabel(locale);
+	}
+
+	@Override
+	public Map<Locale, String> getLabelMap() {
+		return LocalizationUtil.getLocalizationMap(getLabel());
+	}
+
+	@Override
+	public void setLabel(String label) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_label = label;
+	}
+
+	@Override
+	public void setLabel(String label, Locale locale) {
+		setLabel(label, locale, LocaleUtil.getDefault());
+	}
+
+	@Override
+	public void setLabel(String label, Locale locale, Locale defaultLocale) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
+
+		if (Validator.isNotNull(label)) {
+			setLabel(
+				LocalizationUtil.updateLocalization(
+					getLabel(), "Label", label, languageId, defaultLanguageId));
+		}
+		else {
+			setLabel(
+				LocalizationUtil.removeLocalization(
+					getLabel(), "Label", languageId));
+		}
+	}
+
+	@Override
+	public void setLabelCurrentLanguageId(String languageId) {
+		_labelCurrentLanguageId = languageId;
+	}
+
+	@Override
+	public void setLabelMap(Map<Locale, String> labelMap) {
+		setLabelMap(labelMap, LocaleUtil.getDefault());
+	}
+
+	@Override
+	public void setLabelMap(
+		Map<Locale, String> labelMap, Locale defaultLocale) {
+
+		if (labelMap == null) {
+			return;
+		}
+
+		setLabel(
+			LocalizationUtil.updateLocalization(
+				labelMap, getLabel(), "Label",
+				LocaleUtil.toLanguageId(defaultLocale)));
+	}
+
+	@JSON
+	@Override
+	public String getName() {
+		if (_name == null) {
+			return "";
+		}
+		else {
+			return _name;
+		}
+	}
+
+	@Override
+	public void setName(String name) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_name = name;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public String getOriginalName() {
+		return getColumnOriginalValue("name");
+	}
+
+	@JSON
+	@Override
+	public boolean getReverse() {
+		return _reverse;
+	}
+
+	@JSON
+	@Override
+	public boolean isReverse() {
+		return _reverse;
+	}
+
+	@Override
+	public void setReverse(boolean reverse) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_reverse = reverse;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public boolean getOriginalReverse() {
+		return GetterUtil.getBoolean(
+			this.<Boolean>getColumnOriginalValue("reverse"));
+	}
+
+	@JSON
+	@Override
+	public String getType() {
+		if (_type == null) {
+			return "";
+		}
+		else {
+			return _type;
+		}
+	}
+
+	@Override
+	public void setType(String type) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_type = type;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public String getOriginalType() {
+		return getColumnOriginalValue("type_");
+	}
+
 	@Override
 	public StagedModelType getStagedModelType() {
 		return new StagedModelType(
@@ -595,6 +933,72 @@ public class ObjectRelationshipModelImpl
 	}
 
 	@Override
+	public String[] getAvailableLanguageIds() {
+		Set<String> availableLanguageIds = new TreeSet<String>();
+
+		Map<Locale, String> labelMap = getLabelMap();
+
+		for (Map.Entry<Locale, String> entry : labelMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		return availableLanguageIds.toArray(
+			new String[availableLanguageIds.size()]);
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		String xml = getLabel();
+
+		if (xml == null) {
+			return "";
+		}
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException {
+		Locale defaultLocale = LocaleUtil.fromLanguageId(
+			getDefaultLanguageId());
+
+		Locale[] availableLocales = LocaleUtil.fromLanguageIds(
+			getAvailableLanguageIds());
+
+		Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(
+			ObjectRelationship.class.getName(), getPrimaryKey(), defaultLocale,
+			availableLocales);
+
+		prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		String modelDefaultLanguageId = getDefaultLanguageId();
+
+		String label = getLabel(defaultLocale);
+
+		if (Validator.isNull(label)) {
+			setLabel(getLabel(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setLabel(getLabel(defaultLocale), defaultLocale, defaultLocale);
+		}
+	}
+
+	@Override
 	public ObjectRelationship toEscapedModel() {
 		if (_escapedModel == null) {
 			Function<InvocationHandler, ObjectRelationship>
@@ -623,8 +1027,60 @@ public class ObjectRelationshipModelImpl
 		objectRelationshipImpl.setUserName(getUserName());
 		objectRelationshipImpl.setCreateDate(getCreateDate());
 		objectRelationshipImpl.setModifiedDate(getModifiedDate());
+		objectRelationshipImpl.setObjectDefinitionId1(getObjectDefinitionId1());
+		objectRelationshipImpl.setObjectDefinitionId2(getObjectDefinitionId2());
+		objectRelationshipImpl.setObjectFieldId2(getObjectFieldId2());
+		objectRelationshipImpl.setDeletionType(getDeletionType());
+		objectRelationshipImpl.setDBTableName(getDBTableName());
+		objectRelationshipImpl.setLabel(getLabel());
+		objectRelationshipImpl.setName(getName());
+		objectRelationshipImpl.setReverse(isReverse());
+		objectRelationshipImpl.setType(getType());
 
 		objectRelationshipImpl.resetOriginalValues();
+
+		return objectRelationshipImpl;
+	}
+
+	@Override
+	public ObjectRelationship cloneWithOriginalValues() {
+		ObjectRelationshipImpl objectRelationshipImpl =
+			new ObjectRelationshipImpl();
+
+		objectRelationshipImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		objectRelationshipImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		objectRelationshipImpl.setObjectRelationshipId(
+			this.<Long>getColumnOriginalValue("objectRelationshipId"));
+		objectRelationshipImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		objectRelationshipImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		objectRelationshipImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		objectRelationshipImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		objectRelationshipImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		objectRelationshipImpl.setObjectDefinitionId1(
+			this.<Long>getColumnOriginalValue("objectDefinitionId1"));
+		objectRelationshipImpl.setObjectDefinitionId2(
+			this.<Long>getColumnOriginalValue("objectDefinitionId2"));
+		objectRelationshipImpl.setObjectFieldId2(
+			this.<Long>getColumnOriginalValue("objectFieldId2"));
+		objectRelationshipImpl.setDeletionType(
+			this.<String>getColumnOriginalValue("deletionType"));
+		objectRelationshipImpl.setDBTableName(
+			this.<String>getColumnOriginalValue("dbTableName"));
+		objectRelationshipImpl.setLabel(
+			this.<String>getColumnOriginalValue("label"));
+		objectRelationshipImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		objectRelationshipImpl.setReverse(
+			this.<Boolean>getColumnOriginalValue("reverse"));
+		objectRelationshipImpl.setType(
+			this.<String>getColumnOriginalValue("type_"));
 
 		return objectRelationshipImpl;
 	}
@@ -746,6 +1202,56 @@ public class ObjectRelationshipModelImpl
 			objectRelationshipCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
+		objectRelationshipCacheModel.objectDefinitionId1 =
+			getObjectDefinitionId1();
+
+		objectRelationshipCacheModel.objectDefinitionId2 =
+			getObjectDefinitionId2();
+
+		objectRelationshipCacheModel.objectFieldId2 = getObjectFieldId2();
+
+		objectRelationshipCacheModel.deletionType = getDeletionType();
+
+		String deletionType = objectRelationshipCacheModel.deletionType;
+
+		if ((deletionType != null) && (deletionType.length() == 0)) {
+			objectRelationshipCacheModel.deletionType = null;
+		}
+
+		objectRelationshipCacheModel.dbTableName = getDBTableName();
+
+		String dbTableName = objectRelationshipCacheModel.dbTableName;
+
+		if ((dbTableName != null) && (dbTableName.length() == 0)) {
+			objectRelationshipCacheModel.dbTableName = null;
+		}
+
+		objectRelationshipCacheModel.label = getLabel();
+
+		String label = objectRelationshipCacheModel.label;
+
+		if ((label != null) && (label.length() == 0)) {
+			objectRelationshipCacheModel.label = null;
+		}
+
+		objectRelationshipCacheModel.name = getName();
+
+		String name = objectRelationshipCacheModel.name;
+
+		if ((name != null) && (name.length() == 0)) {
+			objectRelationshipCacheModel.name = null;
+		}
+
+		objectRelationshipCacheModel.reverse = isReverse();
+
+		objectRelationshipCacheModel.type = getType();
+
+		String type = objectRelationshipCacheModel.type;
+
+		if ((type != null) && (type.length() == 0)) {
+			objectRelationshipCacheModel.type = null;
+		}
+
 		return objectRelationshipCacheModel;
 	}
 
@@ -755,7 +1261,7 @@ public class ObjectRelationshipModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -766,9 +1272,27 @@ public class ObjectRelationshipModelImpl
 			Function<ObjectRelationship, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ObjectRelationship)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(ObjectRelationship)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -815,7 +1339,9 @@ public class ObjectRelationshipModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ObjectRelationship>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ObjectRelationship.class, ModelWrapper.class);
 
 	}
 
@@ -828,6 +1354,16 @@ public class ObjectRelationshipModelImpl
 	private Date _createDate;
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
+	private long _objectDefinitionId1;
+	private long _objectDefinitionId2;
+	private long _objectFieldId2;
+	private String _deletionType;
+	private String _dbTableName;
+	private String _label;
+	private String _labelCurrentLanguageId;
+	private String _name;
+	private boolean _reverse;
+	private String _type;
 
 	public <T> T getColumnValue(String columnName) {
 		columnName = _attributeNames.getOrDefault(columnName, columnName);
@@ -867,6 +1403,15 @@ public class ObjectRelationshipModelImpl
 		_columnOriginalValues.put("userName", _userName);
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
+		_columnOriginalValues.put("objectDefinitionId1", _objectDefinitionId1);
+		_columnOriginalValues.put("objectDefinitionId2", _objectDefinitionId2);
+		_columnOriginalValues.put("objectFieldId2", _objectFieldId2);
+		_columnOriginalValues.put("deletionType", _deletionType);
+		_columnOriginalValues.put("dbTableName", _dbTableName);
+		_columnOriginalValues.put("label", _label);
+		_columnOriginalValues.put("name", _name);
+		_columnOriginalValues.put("reverse", _reverse);
+		_columnOriginalValues.put("type_", _type);
 	}
 
 	private static final Map<String, String> _attributeNames;
@@ -875,6 +1420,7 @@ public class ObjectRelationshipModelImpl
 		Map<String, String> attributeNames = new HashMap<>();
 
 		attributeNames.put("uuid_", "uuid");
+		attributeNames.put("type_", "type");
 
 		_attributeNames = Collections.unmodifiableMap(attributeNames);
 	}
@@ -905,6 +1451,24 @@ public class ObjectRelationshipModelImpl
 		columnBitmasks.put("createDate", 64L);
 
 		columnBitmasks.put("modifiedDate", 128L);
+
+		columnBitmasks.put("objectDefinitionId1", 256L);
+
+		columnBitmasks.put("objectDefinitionId2", 512L);
+
+		columnBitmasks.put("objectFieldId2", 1024L);
+
+		columnBitmasks.put("deletionType", 2048L);
+
+		columnBitmasks.put("dbTableName", 4096L);
+
+		columnBitmasks.put("label", 8192L);
+
+		columnBitmasks.put("name", 16384L);
+
+		columnBitmasks.put("reverse", 32768L);
+
+		columnBitmasks.put("type_", 65536L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

@@ -122,6 +122,11 @@ public class CTSContentWrapper
 		}
 	}
 
+	@Override
+	public CTSContent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this cts content.
 	 *

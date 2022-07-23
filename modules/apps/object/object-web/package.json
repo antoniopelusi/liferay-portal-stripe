@@ -1,0 +1,13 @@
+{
+	"dependencies": {
+		"text-mask-core": "^5.1.2"
+	},
+	"name": "@liferay/object-web",
+	"private": true,
+	"scripts": {
+		"build": "liferay-npm-scripts build",
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix"
+	},
+	"version": "1.0.60"
+}

@@ -16,7 +16,6 @@ package com.liferay.bookmarks.model.impl;
 
 import com.liferay.bookmarks.model.BookmarksFolder;
 import com.liferay.bookmarks.model.BookmarksFolderModel;
-import com.liferay.bookmarks.model.BookmarksFolderSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -36,22 +35,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -189,68 +187,6 @@ public class BookmarksFolderModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static BookmarksFolder toModel(BookmarksFolderSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		BookmarksFolder model = new BookmarksFolderImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setFolderId(soapModel.getFolderId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentFolderId(soapModel.getParentFolderId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<BookmarksFolder> toModels(
-		BookmarksFolderSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<BookmarksFolder> models = new ArrayList<BookmarksFolder>(
-			soapModels.length);
-
-		for (BookmarksFolderSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public BookmarksFolderModelImpl() {
 	}
 
@@ -334,34 +270,6 @@ public class BookmarksFolderModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, BookmarksFolder>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			BookmarksFolder.class.getClassLoader(), BookmarksFolder.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<BookmarksFolder> constructor =
-				(Constructor<BookmarksFolder>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<BookmarksFolder, Object>>
@@ -1204,6 +1112,50 @@ public class BookmarksFolderModelImpl
 	}
 
 	@Override
+	public BookmarksFolder cloneWithOriginalValues() {
+		BookmarksFolderImpl bookmarksFolderImpl = new BookmarksFolderImpl();
+
+		bookmarksFolderImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		bookmarksFolderImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		bookmarksFolderImpl.setFolderId(
+			this.<Long>getColumnOriginalValue("folderId"));
+		bookmarksFolderImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		bookmarksFolderImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		bookmarksFolderImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		bookmarksFolderImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		bookmarksFolderImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		bookmarksFolderImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		bookmarksFolderImpl.setParentFolderId(
+			this.<Long>getColumnOriginalValue("parentFolderId"));
+		bookmarksFolderImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		bookmarksFolderImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		bookmarksFolderImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		bookmarksFolderImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		bookmarksFolderImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		bookmarksFolderImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		bookmarksFolderImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		bookmarksFolderImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return bookmarksFolderImpl;
+	}
+
+	@Override
 	public int compareTo(BookmarksFolder bookmarksFolder) {
 		int value = 0;
 
@@ -1399,7 +1351,7 @@ public class BookmarksFolderModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1410,9 +1362,26 @@ public class BookmarksFolderModelImpl
 			Function<BookmarksFolder, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((BookmarksFolder)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((BookmarksFolder)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1459,7 +1428,9 @@ public class BookmarksFolderModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, BookmarksFolder>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					BookmarksFolder.class, ModelWrapper.class);
 
 	}
 

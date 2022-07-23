@@ -152,6 +152,10 @@ public class WorkflowDefinitionLinkLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -352,6 +356,14 @@ public class WorkflowDefinitionLinkLocalServiceUtil {
 		int start, int end) {
 
 		return getService().getWorkflowDefinitionLinks(start, end);
+	}
+
+	public static List<WorkflowDefinitionLink> getWorkflowDefinitionLinks(
+			long companyId, long groupId, long classPK)
+		throws PortalException {
+
+		return getService().getWorkflowDefinitionLinks(
+			companyId, groupId, classPK);
 	}
 
 	public static List<WorkflowDefinitionLink> getWorkflowDefinitionLinks(

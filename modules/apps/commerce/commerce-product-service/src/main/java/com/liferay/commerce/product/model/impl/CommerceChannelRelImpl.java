@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CommerceChannelRelImpl extends CommerceChannelRelBaseImpl {
 
-	public CommerceChannelRelImpl() {
-	}
-
 	@Override
 	public CommerceChannel getCommerceChannel() throws PortalException {
 		return CommerceChannelLocalServiceUtil.getCommerceChannel(

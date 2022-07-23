@@ -19,10 +19,10 @@ import React, {useEffect, useState} from 'react';
 import {useId} from '../../app/utils/useId';
 import CurrentLanguageFlag from './CurrentLanguageFlag';
 
-export const ImageSelectorDescription = ({
+export function ImageSelectorDescription({
 	imageDescription,
 	onImageDescriptionChanged,
-}) => {
+}) {
 	const [
 		imageDescriptionInputElement,
 		setImageDescriptionInputElement,
@@ -37,12 +37,13 @@ export const ImageSelectorDescription = ({
 	}, [imageDescription, imageDescriptionInputElement]);
 
 	return (
-		<div className="autofit-row mb-3">
-			<div className="autofit-col autofit-col-expand">
-				<ClayForm.Group>
-					<label htmlFor={imageDescriptionInputId}>
-						{Liferay.Language.get('image-description')}
-					</label>
+		<ClayForm.Group>
+			<label htmlFor={imageDescriptionInputId}>
+				{Liferay.Language.get('image-description')}
+			</label>
+
+			<ClayInput.Group small>
+				<ClayInput.GroupItem>
 					<ClayInput
 						id={imageDescriptionInputId}
 						onBlur={(event) => {
@@ -52,12 +53,15 @@ export const ImageSelectorDescription = ({
 						sizing="sm"
 						type="text"
 					/>
-				</ClayForm.Group>
-			</div>
-			<CurrentLanguageFlag />
-		</div>
+				</ClayInput.GroupItem>
+
+				<ClayInput.GroupItem shrink>
+					<CurrentLanguageFlag />
+				</ClayInput.GroupItem>
+			</ClayInput.Group>
+		</ClayForm.Group>
 	);
-};
+}
 
 ImageSelectorDescription.propTypes = {
 	imageDescription: PropTypes.string.isRequired,

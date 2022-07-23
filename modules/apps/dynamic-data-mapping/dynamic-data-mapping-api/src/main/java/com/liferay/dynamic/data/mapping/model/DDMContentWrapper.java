@@ -146,6 +146,11 @@ public class DDMContentWrapper
 	}
 
 	@Override
+	public DDMContent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

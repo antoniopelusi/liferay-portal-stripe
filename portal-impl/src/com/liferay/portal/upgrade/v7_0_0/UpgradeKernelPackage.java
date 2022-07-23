@@ -99,23 +99,26 @@ public class UpgradeKernelPackage extends UpgradeProcess {
 			String updateSQL, String[] name)
 		throws SQLException {
 
-		try (PreparedStatement ps1 = connection.prepareStatement(selectSQL);
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(updateSQL))) {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				selectSQL);
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(updateSQL))) {
 
-			while (rs.next()) {
-				ps2.setString(
+			while (resultSet.next()) {
+				preparedStatement2.setString(
 					1,
 					StringUtil.replace(
-						rs.getString(columnName), name[0], name[1]));
+						resultSet.getString(columnName), name[0], name[1]));
 
-				ps2.setLong(2, rs.getLong(primaryKeyColumnName));
+				preparedStatement2.setLong(
+					2, resultSet.getLong(primaryKeyColumnName));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 
@@ -135,32 +138,14 @@ public class UpgradeKernelPackage extends UpgradeProcess {
 		try (LoggingTimer loggingTimer = new LoggingTimer(
 				getClass(), tableName)) {
 
-			StringBundler updateSB = new StringBundler(7);
+			String updateSQL = StringBundler.concat(
+				"update ", tableName, " set ", columnName, " = ? where ",
+				primaryKeyColumnName, " = ?");
 
-			updateSB.append("update ");
-			updateSB.append(tableName);
-			updateSB.append(" set ");
-			updateSB.append(columnName);
-			updateSB.append(" = ? where ");
-			updateSB.append(primaryKeyColumnName);
-			updateSB.append(" = ?");
-
-			String updateSQL = updateSB.toString();
-
-			StringBundler selectPrefixSB = new StringBundler(10);
-
-			selectPrefixSB.append("select ");
-			selectPrefixSB.append(columnName);
-			selectPrefixSB.append(", ");
-			selectPrefixSB.append(primaryKeyColumnName);
-			selectPrefixSB.append(" from ");
-			selectPrefixSB.append(tableName);
-			selectPrefixSB.append(" where ");
-			selectPrefixSB.append(columnName);
-			selectPrefixSB.append(" like '");
-			selectPrefixSB.append(wildcardMode.getLeadingWildcard());
-
-			String selectPrefix = selectPrefixSB.toString();
+			String selectPrefix = StringBundler.concat(
+				"select ", columnName, ", ", primaryKeyColumnName, " from ",
+				tableName, " where ", columnName, " like '",
+				wildcardMode.getLeadingWildcard());
 
 			String selectPostfix =
 				wildcardMode.getTrailingWildcard() + StringPool.APOSTROPHE;
@@ -204,17 +189,13 @@ public class UpgradeKernelPackage extends UpgradeProcess {
 		throws Exception {
 
 		for (String[] name : names) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("delete from ");
-			sb.append(tableName);
-			sb.append(_getWhereClause(columnName, name[1], wildcardMode));
-			sb.append(
-				_getNotLikeClause(
-					columnName, (String)ArrayUtil.getValue(name, 2),
-					wildcardMode));
-
-			runSQL(sb.toString());
+			runSQL(
+				StringBundler.concat(
+					"delete from ", tableName,
+					_getWhereClause(columnName, name[1], wildcardMode),
+					_getNotLikeClause(
+						columnName, (String)ArrayUtil.getValue(name, 2),
+						wildcardMode)));
 		}
 	}
 
@@ -223,17 +204,9 @@ public class UpgradeKernelPackage extends UpgradeProcess {
 			WildcardMode wildcardMode)
 		throws Exception {
 
-		StringBundler sb1 = new StringBundler(7);
-
-		sb1.append("update ");
-		sb1.append(tableName);
-		sb1.append(" set ");
-		sb1.append(columnName);
-		sb1.append(" = replace(");
-		sb1.append(_transformColumnName(columnName));
-		sb1.append(", '");
-
-		String tableSQL = sb1.toString();
+		String tableSQL = StringBundler.concat(
+			"update ", tableName, " set ", columnName, " = replace(",
+			_transformColumnName(columnName), ", '");
 
 		StringBundler sb2 = new StringBundler(6);
 
@@ -262,35 +235,19 @@ public class UpgradeKernelPackage extends UpgradeProcess {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(" and ");
-		sb.append(columnName);
-		sb.append(" not like ");
-		sb.append(StringPool.APOSTROPHE);
-		sb.append(wildcardMode.getLeadingWildcard());
-		sb.append(value);
-		sb.append(wildcardMode.getTrailingWildcard());
-		sb.append(StringPool.APOSTROPHE);
-
-		return sb.toString();
+		return StringBundler.concat(
+			" and ", columnName, " not like '",
+			wildcardMode.getLeadingWildcard(), value,
+			wildcardMode.getTrailingWildcard(), StringPool.APOSTROPHE);
 	}
 
 	private String _getWhereClause(
 		String columnName, String columnValue, WildcardMode wildcardMode) {
 
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(" where ");
-		sb.append(columnName);
-		sb.append(" like ");
-		sb.append(StringPool.APOSTROPHE);
-		sb.append(wildcardMode.getLeadingWildcard());
-		sb.append(columnValue);
-		sb.append(wildcardMode.getTrailingWildcard());
-		sb.append(StringPool.APOSTROPHE);
-
-		return sb.toString();
+		return StringBundler.concat(
+			" where ", columnName, " like '", wildcardMode.getLeadingWildcard(),
+			columnValue, wildcardMode.getTrailingWildcard(),
+			StringPool.APOSTROPHE);
 	}
 
 	private String _transformColumnName(String columnName) {

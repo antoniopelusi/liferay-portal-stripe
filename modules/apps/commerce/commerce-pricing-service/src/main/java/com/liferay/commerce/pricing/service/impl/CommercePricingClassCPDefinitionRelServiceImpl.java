@@ -28,7 +28,6 @@ import java.util.List;
 
 /**
  * @author Riccardo Alberti
- * @see CommercePricingClassCPDefinitionRelServiceBaseImpl
  */
 public class CommercePricingClassCPDefinitionRelServiceImpl
 	extends CommercePricingClassCPDefinitionRelServiceBaseImpl {

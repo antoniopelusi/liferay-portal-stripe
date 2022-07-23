@@ -125,6 +125,10 @@ public class CPOptionValuePersistenceTest {
 
 		CPOptionValue newCPOptionValue = _persistence.create(pk);
 
+		newCPOptionValue.setMvccVersion(RandomTestUtil.nextLong());
+
+		newCPOptionValue.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newCPOptionValue.setUuid(RandomTestUtil.randomString());
 
 		newCPOptionValue.setExternalReferenceCode(
@@ -155,6 +159,12 @@ public class CPOptionValuePersistenceTest {
 		CPOptionValue existingCPOptionValue = _persistence.findByPrimaryKey(
 			newCPOptionValue.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCPOptionValue.getMvccVersion(),
+			newCPOptionValue.getMvccVersion());
+		Assert.assertEquals(
+			existingCPOptionValue.getCtCollectionId(),
+			newCPOptionValue.getCtCollectionId());
 		Assert.assertEquals(
 			existingCPOptionValue.getUuid(), newCPOptionValue.getUuid());
 		Assert.assertEquals(
@@ -267,11 +277,12 @@ public class CPOptionValuePersistenceTest {
 
 	protected OrderByComparator<CPOptionValue> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"CPOptionValue", "uuid", true, "externalReferenceCode", true,
-			"CPOptionValueId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "modifiedDate", true,
-			"CPOptionId", true, "name", true, "priority", true, "key", true,
-			"lastPublishDate", true);
+			"CPOptionValue", "mvccVersion", true, "ctCollectionId", true,
+			"uuid", true, "externalReferenceCode", true, "CPOptionValueId",
+			true, "companyId", true, "userId", true, "userName", true,
+			"createDate", true, "modifiedDate", true, "CPOptionId", true,
+			"name", true, "priority", true, "key", true, "lastPublishDate",
+			true);
 	}
 
 	@Test
@@ -565,6 +576,10 @@ public class CPOptionValuePersistenceTest {
 		long pk = RandomTestUtil.nextLong();
 
 		CPOptionValue cpOptionValue = _persistence.create(pk);
+
+		cpOptionValue.setMvccVersion(RandomTestUtil.nextLong());
+
+		cpOptionValue.setCtCollectionId(RandomTestUtil.nextLong());
 
 		cpOptionValue.setUuid(RandomTestUtil.randomString());
 

@@ -1,5 +1,104 @@
 definition {
 
+	macro addCSVDataSource {
+		var n = "1";
+
+		if (!(isSet(index))) {
+			var index = "2";
+		}
+
+		ACSettings.goToDataSources();
+
+		Button.click(button = "Add Data Source");
+
+		Click(
+			key_sourceType = "CSV File",
+			locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
+
+		UploadDependencyFile.uploadFile(fileName = "${sourceFileName}");
+
+		WaitForVisible(locator1 = "ACSettings#FILE_UPLOAD_SUCCESS_ICON");
+
+		Type(
+			key_text = "Name Data Source",
+			locator1 = "TextInput#ANY",
+			value1 = "${dataSourceName}");
+
+		while (IsElementPresent(key_text = "Next", locator1 = "Button#ANY_DISABLED")) {
+			Type(
+				key_text = "Name Data Source",
+				locator1 = "TextInput#ANY",
+				value1 = "${dataSourceName} ${n}");
+
+			var n = ${n} + 1;
+		}
+
+		WaitForElementPresent(
+			key_text = "Next",
+			locator1 = "Button#ANY_ENABLED");
+
+		Button.clickNext();
+
+		if (isSet(selectAnalyticsCloudField)) {
+			if (IsElementNotPresent(key_fieldName = "${fieldName}", key_index = "${index}", locator1 = "ACSettings#DATA_SOURCE_FIELD_NAME")) {
+				Button.click(button = "Select Analytics Cloud Field");
+
+				if (isSet(newField)) {
+					Button.click(button = "New Field");
+
+					Type(
+						key_text = "New Field Name",
+						locator1 = "TextInput#ANY",
+						value1 = "${fieldName}");
+
+					Button.click(button = "Select");
+
+					MenuItem.click(menuItem = "${fieldType}");
+
+					WaitForElementNotPresent(
+						key_text = "Create",
+						locator1 = "Button#ANY_DISABLED");
+
+					Button.click(button = "Create");
+				}
+				else {
+					if (isSet(fieldNameList)) {
+						for (var item : list "${fieldNameList}") {
+							ACUtils.searchBar(searchItem = "${item}");
+
+							MenuItem.click(menuItem = "${item}");
+
+							if (IsElementPresent(key_text = "Select Analytics Cloud Field", locator1 = "Button#ANY")) {
+								Button.click(button = "Select Analytics Cloud Field");
+							}
+						}
+					}
+					else {
+						MenuItem.click(menuItem = "${fieldName}");
+					}
+				}
+			}
+		}
+
+		WaitForElementNotPresent(locator1 = "ACSettings#LOADING_ANIMATION");
+
+		WaitForElementNotPresent(
+			key_text = "Done",
+			locator1 = "Button#ANY_DISABLED");
+
+		Button.click(button = "Done");
+
+		WaitForElementNotPresent(
+			key_text = "Done",
+			locator1 = "Button#ANY_DISABLED");
+
+		WaitForElementNotPresent(locator1 = "ACSettings#LOADING_ANIMATION");
+
+		AssertVisible(
+			key_title = "${dataSourceName}",
+			locator1 = "Header#H3_TITLE");
+	}
+
 	macro addKeywords {
 		Click(locator1 = "ACSettings#KEYWORD_BUTTON");
 
@@ -10,17 +109,532 @@ definition {
 		Click(locator1 = "ACSettings#KEYWORD_SEND_BUTTON");
 	}
 
-	macro assertKeywords {
-		var key_KeywordName = "${keyword}";
+	macro addMultiplesOptions {
+		Click(locator1 = "ACSettings#KEYWORD_BUTTON");
 
+		for (var option : list "${optionsList}") {
+			Type(
+				locator1 = "ACSettings#KEYWORD_TEXTFIELD",
+				value1 = "${option}");
+
+			KeyPress(
+				locator1 = "ACSettings#KEYWORD_TEXTFIELD",
+				value1 = "\ENTER");
+		}
+
+		Click(locator1 = "ACSettings#KEYWORD_SEND_BUTTON");
+	}
+
+	macro addSalesforceAndCancel {
+		var key_salesforceName = "${salesforceName}";
+		var key_consumerKey = "${consumerKey}";
+		var key_consumerSecret = "${consumerSecret}";
+
+		ACSettings.clickGenericAddOrConfirmationButton();
+
+		Click(
+			key_sourceType = "Salesforce",
+			locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
+
+		Type(
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${key_salesforceName}");
+
+		Type(
+			key_text = "Consumer Key/Client ID",
+			locator1 = "TextInput#ANY",
+			value1 = "${key_consumerKey}");
+
+		Type(
+			key_text = "Consumer Secret/Client Secret",
+			locator1 = "TextInput#ANY",
+			value1 = "${key_consumerSecret}");
+
+		ACNavigation.clickCancelButton();
+
+		Button.click(button = "Leave Page");
+	}
+
+	macro addUser {
+		Click(locator1 = "ACSettings#INVITE_USERS_BUTTON");
+
+		for (var keyword : list "${userInvite}") {
+			Type(
+				locator1 = "ACSettings#KEYWORD_TEXTFIELD",
+				value1 = "${keyword}");
+
+			KeyPress(
+				locator1 = "ACSettings#KEYWORD_TEXTFIELD",
+				value1 = "\ENTER");
+		}
+
+		Click(locator1 = "ACSettings#KEYWORD_SEND_BUTTON");
+	}
+
+	macro assertAddonsDetails {
+		if (isSet(limit)) {
+			AssertVisible(
+				key_addOnItem = "${addOnItem}",
+				key_planLimit = "${limit}",
+				locator1 = "ACUsage#USAGE_ADDONS_LIMIT");
+		}
+
+		if (isSet(time)) {
+			AssertVisible(
+				key_addOnItem = "${addOnItem}",
+				key_time = "${time}",
+				locator1 = "ACUsage#USAGE_ADDONS_TIME");
+		}
+
+		if (isSet(annualPrice)) {
+			AssertVisible(
+				key_addOnItem = "${addOnItem}",
+				key_annualPrice = "${annualPrice}",
+				locator1 = "ACUsage#USAGE_ADDONS_PRICE");
+		}
+	}
+
+	macro assertCanChooseDataSourceOptions {
+		Click(
+			key_sourceType = "Liferay DXP",
+			locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
+
+		AssertElementPresent(locator1 = "ACSettings#TOKEN_INPUT_FIELD");
+
+		Click(locator1 = "ACUtils#MODAL_CLOSE_BUTTON");
+
+		Click(
+			key_sourceType = "Salesforce",
+			locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
+
+		ACUtils.assertItemsName(itemList = "Configure Salesforce");
+
+		Click(
+			key_breadcrumbName = "Add Data Source",
+			locator1 = "BreadcrumbPortlet#BREADCRUMB_PAGE");
+
+		Click(
+			key_sourceType = "CSV File",
+			locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
+
+		AssertElementPresent(
+			key_title = "CSV File",
+			locator1 = "Header#H3_TITLE");
+	}
+
+	macro assertCurrentPlanLimitAndAddOn {
 		AssertTextEquals(
-			locator1 = "ACSettings#KEYWORD_NAME",
-			value1 = "${keyword}");
+			key_metricName = "${metricName}",
+			locator1 = "ACUsage#USAGE_CURRENT_PLAN_LIMIT_AND_ADD_ON",
+			value1 = "${currentPlanLimitAndAddOn}");
+	}
+
+	@summary = "Assert data source status"
+	macro assertDataSourceStatus {
+		var key_dataSourceStatus = "${status}";
+		var key_sectionStatus = "${section}";
+
+		AssertElementPresent(locator1 = "ACSettings#DATA_SOURCE_STATUS");
+	}
+
+	@summary = "Asserts the individuals usage value \  @param individualUsageValue"
+	macro assertIndividualsUsage {
+		AssertTextEquals(
+			locator1 = "ACSettings#INDIVIDUALS_USAGE_METRIC",
+			value1 = "${individualUsageValue}");
+	}
+
+	macro assertInviteUsersButton {
+		AssertElementPresent(locator1 = "ACSettings#INVITE_USERS_BUTTON");
+	}
+
+	macro assertKeywordNotPresent {
+		for (var word : list "${keyword}") {
+			var key_keywordName = "${word}";
+
+			AssertElementNotPresent(
+				locator1 = "ACSettings#KEYWORD_NAME",
+				value1 = "${word}");
+		}
+	}
+
+	macro assertKeywords {
+		for (var word : list "${keyword}") {
+			var key_keywordName = "${word}";
+
+			AssertTextEquals(
+				locator1 = "ACSettings#KEYWORD_NAME",
+				value1 = "${word}");
+		}
+	}
+
+	macro assertOverviewUsage {
+		if (isSet(current)) {
+			AssertTextEquals(
+				key_metricName = "${metricName}",
+				locator1 = "ACUsage#USAGE_CURRENT_NUMBER",
+				value1 = "${current}");
+		}
+
+		if (isSet(limit)) {
+			AssertTextEquals(
+				key_metricName = "${metricName}",
+				locator1 = "ACUsage#USAGE_LIMIT_NUMBER",
+				value1 = "${limit}");
+		}
+
+		if (isSet(usageSince)) {
+			AssertTextEquals.assertPartialText(
+				key_metricName = "${metricName}",
+				locator1 = "ACUsage#USAGE_SINCE",
+				value1 = "${usageSince}");
+		}
+
+		if (isSet(notEquals)) {
+			AssertTextNotEquals(
+				key_metricName = "${metricName}",
+				locator1 = "ACUsage#USAGE_CURRENT_NUMBER",
+				value1 = "${notEquals}");
+		}
+	}
+
+	@summary = "Asserts the page views usage value \  @param pageViewsUsageValue"
+	macro assertPageViewsUsage {
+		AssertTextEquals(
+			locator1 = "ACSettings#PAGE_VIEWS_USAGE_METRIC",
+			value1 = "${pageViewsUsageValue}");
+	}
+
+	macro assertPlanDetails {
+		AssertElementPresent(
+			key_planName = "${planName}",
+			locator1 = "ACUsage#PLAN_NAME");
+
+		if (isSet(individualsLimit)) {
+			AssertElementPresent(
+				key_planItem = "Individuals",
+				key_planLimit = "${individualsLimit}",
+				key_planName = "${planName}",
+				locator1 = "ACUsage#USAGE_PLAN_LIMITS_TABLE");
+		}
+
+		if (isSet(pageViewsLimit)) {
+			AssertElementPresent(
+				key_planItem = "Page Views",
+				key_planLimit = "${pageViewsLimit}",
+				key_planName = "${planName}",
+				locator1 = "ACUsage#USAGE_PLAN_LIMITS_TABLE");
+		}
+
+		if (isSet(usersLimit)) {
+			AssertElementPresent(
+				key_planItem = "Users",
+				key_planLimit = "${usersLimit}",
+				key_planName = "${planName}",
+				locator1 = "ACUsage#USAGE_PLAN_LIMITS_TABLE");
+		}
+
+		if (isSet(individualsAddOnsLimit)) {
+			AssertElementPresent(
+				key_planItem = "Individuals for ${individualsAddOnsPrice}",
+				key_planLimit = "${individualsAddOnsLimit}",
+				key_planName = "${planName}",
+				locator1 = "ACUsage#USAGE_PLAN_LIMITS_TABLE");
+		}
+
+		if (isSet(pageViewsAddOnsLimit)) {
+			AssertElementPresent(
+				key_planItem = "Page Views for ${pageViewsAddOnsPrice}",
+				key_planLimit = "${pageViewsAddOnsLimit}",
+				key_planName = "${planName}",
+				locator1 = "ACUsage#USAGE_PLAN_LIMITS_TABLE");
+		}
+	}
+
+	macro assertRequestLog {
+		if ("${jobType}" == "Delete") {
+			AssertElementPresent(locator1 = "ACDataControlAndPrivacy#REQUEST_LOG_TABLE");
+
+			AssertElementPresent(locator1 = "ACDataControlAndPrivacy#REQUEST_LOG_TABLE");
+		}
+		else {
+			AssertElementPresent(locator1 = "ACDataControlAndPrivacy#REQUEST_LOG_TABLE");
+		}
+	}
+
+	@summary = "Asserts the users shown in list"
+	macro assertUserList {
+		AssertTextEquals(
+			locator1 = "ACSettings#USER_LIST",
+			value1 = "${userName}");
+	}
+
+	macro assertUserListEmail {
+		AssertTextEquals(
+			locator1 = "ACSettings#USER_LIST_EMAIL",
+			value1 = "${userEmail}");
+	}
+
+	macro assertUserManagementDescription {
+		AssertElementPresent(locator1 = "ACSettings#USER_MANAGEMENT_DESCRIPTION");
+	}
+
+	macro assertUserManagementHeader {
+		AssertElementPresent(locator1 = "ACSettings#HEADER_USER_MANAGEMENT");
+	}
+
+	macro assertUserNotPresent {
+		AssertTextNotEquals(
+			locator1 = "ACSettings#USER_LIST_EMAIL",
+			value1 = "${userEmail}");
+	}
+
+	macro assertUserPermission {
+		for (var userEmail : list "${userEmail}") {
+			AssertElementPresent(
+				key_permissionType = "${permissionType}",
+				key_userEmail = "${userEmail}",
+				locator1 = "ACSettings#USER_ROLE_BY_EMAIL");
+		}
+	}
+
+	macro assertUsersListByEmail {
+		AssertElementPresent(locator1 = "ACSettings#USER_LIST_BY_EMAIL");
+	}
+
+	macro changeMultipleUsersPermissions {
+		ACSettings.clickUsersByEmail(userEmail = "${userEmail}");
+
+		Click(
+			key_text = "Change Permissions",
+			locator1 = "Button#ANY");
+
+		Click(
+			key_text = "Select Permission",
+			locator1 = "Button#ANY");
+
+		Click(
+			key_siteRole = "${permissionType}",
+			locator1 = "ACSettings#SELECT_SITE_ROLE");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro changeRetentionPeriodTo7Months {
+		Click(locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_MENU");
+
+		KeyPress(
+			locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_MENU",
+			value1 = "\UP");
+
+		KeyPress(
+			locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_MENU",
+			value1 = "\ENTER");
+
+		Click(locator1 = "ACSettings#DELETE_CONFIRMATION_BUTTON");
+	}
+
+	macro changeUserRole {
+		Click(
+			key_userEmail = "${userEmail}",
+			locator1 = "ACSettings#EDIT_BUTTON_BY_EMAIL");
+
+		Click(
+			key_permissionType = "${permissionType}",
+			locator1 = "ACSettings#PERMISSION_DROPDOWN");
+
+		Click(
+			key_siteRole = "${newRole}",
+			locator1 = "ACSettings#SELECT_SITE_ROLE");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro clickGenericAddOrConfirmationButton {
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+	}
+
+	macro clickUsersByEmail {
+		for (var userEmail : list "${userEmail}") {
+			Click(
+				key_userEmail = "${userEmail}",
+				locator1 = "ACSettings#CHECKBOX_BY_EMAIL");
+		}
+	}
+
+	macro collapsePlan {
+		Click(
+			key_planName = "${planName}",
+			key_type = "angle-up",
+			locator1 = "ACUsage#USAGE_PLAN_ICON");
+	}
+
+	macro createRequestLogByEmail {
+		var key_fieldType = "${fieldType}";
+
+		ACSettings.goToDataControlAndPrivacy();
+
+		ACSettings.navigateToRequestOrSuppressedOptions(
+			optionName = "Request Log",
+			optionValue = "Manage");
+
+		Click(locator1 = "ACDataControlAndPrivacy#CREATE_REQUEST");
+
+		Click(locator1 = "ACDataControlAndPrivacy#JOB_TYPE");
+
+		Type(
+			locator1 = "ACDataControlAndPrivacy#FIND_BY_EMAIL_FIELD",
+			value1 = "${email}");
+
+		Click(locator1 = "ACDataControlAndPrivacy#FIND_BY_EMAIL_FIELD");
+
+		Click(locator1 = "ACDataControlAndPrivacy#SELECT_USER");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+	@summary = "Deletes all data source"
+	macro deleteAllDataSource {
+		if (IsElementNotPresent(locator1 = "ACSettings#EXIT_SETTINGS_BUTTON")) {
+			ACNavigation.goToSettings();
+		}
+
+		ACSettings.goToDataSources();
+
+		while (IsElementPresent(locator1 = "ACSettings#ITEM_TABLE")) {
+			ACSettings.deleteDataSource();
+
+			Refresh();
+		}
+	}
+
+	macro deleteAllKeywords {
+		KeyPress(
+			locator1 = "ACSettings#SELECT_ALL_CHECKBOX",
+			value1 = "\SPACE");
+
+		Click(locator1 = "ACSettings#DELETE_FROM_TOOLBAR");
+
+		Click(locator1 = "ACSettings#CONTINUE_BUTTON");
+	}
+
+	@summary = "The macro deletes all users that have pending status."
+	macro deleteAllPendingUsers {
+		ACSettings.goToUserManagement();
+
+		while (IsElementPresent(locator1 = "ACSettings#VIEW_STATUS_PENDING")) {
+			if (IsElementPresent(locator1 = "ACSettings#VIEW_STATUS_PENDING")) {
+				Click(locator1 = "ACSettings#DELETE_USER");
+
+				Click(locator1 = "ACSettings#CONTINUE_BUTTON");
+			}
+		}
+	}
+
+	@summary = "Deletes all properties \  @param propertyList the list of properties you want to delete (optional)"
+	macro deleteAllProperties {
+		if (IsElementNotPresent(locator1 = "ACSettings#EXIT_SETTINGS_BUTTON")) {
+			ACNavigation.goToSettings();
+		}
+
+		ACSettings.goToProperties();
+
+		KeyPress(
+			locator1 = "ACSettings#SELECT_ALL_CHECKBOX",
+			value1 = "\SPACE");
+
+		if (IsElementPresent(locator1 = "ACSettings#GENERIC_DELETE_BUTTON")) {
+			Click(locator1 = "ACSettings#GENERIC_DELETE_BUTTON");
+
+			Copy(locator1 = "ACSettings#DELETE_CONFIRMATION_MESSAGE");
+
+			Click(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+			Paste(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+			Click(locator1 = "ACSettings#DELETE_CONFIRMATION_BUTTON");
+		}
+	}
+
+	@summary = "Deletes a specific data source \  @param dataSourceName the name of the data source you want to delete"
+	macro deleteDataSource {
+		if (IsElementNotPresent(locator1 = "ACSettings#EXIT_SETTINGS_BUTTON")) {
+			ACNavigation.goToSettings();
+		}
+
+		if (isSet(dataSourceName)) {
+			ACUtils.searchBar(searchItem = "${dataSourceName}");
+
+			ACNavigation.openItem(itemName = "${dataSourceName}");
+		}
+		else {
+			Click(locator1 = "ACSettings#ITEM_TABLE");
+		}
+
+		WaitForVisible(locator1 = "ACSettings#DELETE_BUTTON_DATA_SOURCE");
+
+		if (IsElementPresent(key_text = "Edit CSV", locator1 = "Button#ANY")) {
+			var dataSourceName = selenium.getText("//div[contains(@class,'sheet-header')]//h3");
+
+			Click(locator1 = "ACSettings#DELETE_BUTTON_DATA_SOURCE");
+
+			Copy(locator1 = "ACSettings#DELETE_CONFIRMATION_MESSAGE");
+
+			Click(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+			Paste(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+			Click(locator1 = "ACSettings#DELETE_BUTTON_DATA_SOURCE");
+
+			AssertTextEquals(
+				locator1 = "Modal#HEADER",
+				value1 = "Delete Data Source");
+
+			AssertTextPresent(
+				locator1 = "Modal#BODY",
+				value1 = "Are you sure you want to delete ${dataSourceName}?");
+
+			AssertTextPresent(
+				locator1 = "Modal#BODY",
+				value1 = "You will permanently lose all contacts and analytics data collected from this data source. You will not be able to undo this action.");
+
+			Click(locator1 = "ACSettings#DELETE_BUTTON_DATA_SOURCE");
+		}
+		else {
+			var dataSourceName = selenium.getText("//h3");
+
+			Click(locator1 = "ACSettings#DELETE_BUTTON_DATA_SOURCE");
+
+			if (!(contains("${dataSourceName}", "Salesforce"))) {
+				AssertTextEquals(
+					locator1 = "Modal#HEADER",
+					value1 = "Delete ${dataSourceName}");
+			}
+
+			Copy(locator1 = "ACSettings#DELETE_CONFIRMATION_MESSAGE");
+
+			Click(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+			Paste(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+			Click(locator1 = "ACSettings#DELETE_CONFIRMATION_BUTTON");
+		}
 	}
 
 	macro deleteKeywordCheckbox {
-		if (IsVisible(locator1 = "ACSettings#KEYWORD_NAME", value1 = "${keyword}")) {
-			Click(locator1 = "ACSettings#KEYWORD_DELETE_CHECKBOX");
+		var key_keywordName = "${keyword}";
+
+		if (IsVisible(locator1 = "ACSettings#KEYWORD_NAME")) {
+			KeyPress(
+				locator1 = "ACSettings#KEYWORD_CHECKBOX",
+				value1 = "\SPACE");
 
 			Click(locator1 = "ACSettings#DELETE_FROM_TOOLBAR");
 
@@ -29,15 +643,152 @@ definition {
 	}
 
 	macro deleteKeywordIcon {
-		if (IsVisible(locator1 = "ACSettings#KEYWORD_NAME", value1 = "${keyword}")) {
+		var key_keywordName = "${keyword}";
+
+		if (IsVisible(locator1 = "ACSettings#KEYWORD_NAME")) {
 			Click(locator1 = "ACSettings#KEYWORD_DELETE_ICON");
 
 			Click(locator1 = "ACSettings#CONTINUE_BUTTON");
 		}
 	}
 
+	macro deleteProperty {
+		ACUtils.searchBar(searchItem = "${propertyName}");
+
+		ACNavigation.openItem(itemName = "${propertyName}");
+
+		Click(locator1 = "ACSettings#GENERIC_DELETE_BUTTON");
+
+		AssertTextEquals(
+			locator1 = "Modal#HEADER",
+			value1 = "Delete ${propertyName}?");
+
+		AssertTextPresent(
+			locator1 = "Modal#BODY",
+			value1 = "To delete ${propertyName}, copy the sentence below to confirm your intention to delete property.");
+
+		AssertTextPresent(
+			locator1 = "Modal#BODY",
+			value1 = "This will result in the complete removal of this property's historical events. You will not be able to undo this operation.");
+
+		Copy(locator1 = "ACSettings#DELETE_CONFIRMATION_MESSAGE");
+
+		Click(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+		Paste(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+		Click(locator1 = "ACSettings#DELETE_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro deletePropertyByCheckbox {
+		Click.clickAtNotVisible(
+			key_propertyName = "${propertyName}",
+			locator1 = "ACSettings#PROPERTY_CHECKBOX");
+
+		Click(locator1 = "ACSettings#GENERIC_DELETE_BUTTON");
+
+		AssertTextEquals(
+			locator1 = "Modal#HEADER",
+			value1 = "Delete ${propertyName}?");
+
+		AssertTextPresent(
+			locator1 = "Modal#BODY",
+			value1 = "To delete ${propertyName}, copy the sentence below to confirm your intention to delete property.");
+
+		AssertTextPresent(
+			locator1 = "Modal#BODY",
+			value1 = "This will result in the complete removal of this property's historical events. You will not be able to undo this operation.");
+
+		Copy(locator1 = "ACSettings#DELETE_CONFIRMATION_MESSAGE");
+
+		Click(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+		Paste(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+		Click(locator1 = "ACSettings#DELETE_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro deleteUser {
+		if (IsVisible(locator1 = "ACSettings#USER_LIST_EMAIL", value1 = "${userDelete}")) {
+			Click(locator1 = "ACSettings#DELETE_USER");
+
+			Click(locator1 = "ACSettings#CONTINUE_BUTTON");
+		}
+	}
+
+	@summary = "Disconnect selected data source"
+	macro disconnectDataSource {
+		Click(locator1 = "ACSettings#DISCONNECT_DATA_SOURCE_BUTTON");
+
+		Click(locator1 = "ACSettings#DISCONNECT_CONFIRMATION_BUTTON");
+	}
+
+	macro getCurrentNumber {
+		WaitForVisible(
+			key_metricName = "${metricName}",
+			locator1 = "ACUsage#USAGE_CURRENT_NUMBER");
+
+		var current = selenium.getText("//div[contains(@class,'overview-usage')][.//h3[contains(@class,'metric-name')][normalize-space(text())='${metricName}']]//span[contains(@class,'metric-current')]");
+
+		return "${current}";
+	}
+
+	macro getDXPInstanceId {
+		ACSettings.goToDataSources();
+
+		ACUtils.searchBar(searchItem = "${dataSourceName}");
+
+		ACNavigation.openItem(itemName = "${dataSourceName}");
+
+		AssertTextEquals(
+			inputFieldId = "dataSourceName",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "${dataSourceName}");
+
+		var dxpInstanceId = selenium.getElementValue("//input[contains(@id,'dxpInstanceId')]");
+
+		return "${dxpInstanceId}";
+	}
+
+	macro getPropertyId {
+		ACSettings.goToProperties();
+
+		ACUtils.searchBar(searchItem = "${propertyName}");
+
+		ACNavigation.openItem(itemName = "${propertyName}");
+
+		WaitForVisible(
+			locator1 = "ACSettings#HEADER_TITLE",
+			title = "${propertyName}");
+
+		var propertyId = selenium.getText("ACSettings#HEADER_DESCRIPTION");
+		var propertyId = StringUtil.extractLast("${propertyId}", " ");
+
+		return "${propertyId}";
+	}
+
+	macro getUsagePercentage {
+		var usageSince = selenium.getText("//div[contains(@class,'overview-usage')][.//h3[contains(@class,'metric-name')][normalize-space(text())='${metricName}']]//span[contains(@class,'usage-since')]");
+		var percentage = StringUtil.extractFirst("${usageSince}", "since");
+		var percentage = StringUtil.trim("${percentage}");
+
+		return "${percentage}";
+	}
+
+	macro goToAccounts {
+		ACSettings.goToDefinitionsOptions(definitionsOptions = "accounts");
+	}
+
 	macro goToApis {
 		ACSettings.goToSettingsNavigation(settingsNavigation = "apis");
+	}
+
+	macro goToBehaviors {
+		ACSettings.goToDefinitionsOptions(definitionsOptions = "behaviors");
 	}
 
 	macro goToDataControlAndPrivacy {
@@ -52,12 +803,38 @@ definition {
 		ACSettings.goToSettingsNavigation(settingsNavigation = "definitions");
 	}
 
+	macro goToDefinitionsOptions {
+		var key_definitionsOptions = "${definitionsOptions}";
+
+		Click(locator1 = "ACSettings#DEFINITIONS_OPTIONS");
+	}
+
+	macro goToEventAttributes {
+		ACSettings.goToDefinitionsOptions(definitionsOptions = "event-attributes");
+	}
+
+	macro goToEvents {
+		ACSettings.goToDefinitionsOptions(definitionsOptions = "events");
+	}
+
+	macro goToIndividuals {
+		ACSettings.goToDefinitionsOptions(definitionsOptions = "individual");
+	}
+
+	macro goToInterests {
+		ACSettings.goToDefinitionsOptions(definitionsOptions = "interest");
+	}
+
 	macro goToProperties {
 		ACSettings.goToSettingsNavigation(settingsNavigation = "properties");
 	}
 
+	macro goToSearch {
+		ACSettings.goToDefinitionsOptions(definitionsOptions = "search");
+	}
+
 	macro goToSettingsNavigation {
-		var key_SettingsNavigation = "${settingsNavigation}";
+		var key_settingsNavigation = "${settingsNavigation}";
 
 		Click(locator1 = "ACSettings#SETTINGS_NAVIGATION");
 	}
@@ -72,6 +849,72 @@ definition {
 
 	macro goToWorkspace {
 		ACSettings.goToSettingsNavigation(settingsNavigation = "settings/workspace");
+	}
+
+	macro navigateToRequestOrSuppressedOptions {
+		var key_optionName = "${optionName}";
+		var key_optionValue = "${optionValue}";
+
+		Click(locator1 = "ACDataControlAndPrivacy#REQUEST_SUPPRESSED_OPTIONS");
+	}
+
+	@summary = "Takes the token from Analytics Clouds to use on during the DXP connection process"
+	macro takeTokenFromAnalyticsCloud {
+		ACSettings.goToDataSources();
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Click(locator1 = "ACSettings#DXP_DATA_SOURCE_OPTION");
+
+		Copy(locator1 = "ACSettings#TOKEN_INPUT_FIELD");
+	}
+
+	macro verifyCannotAddUser {
+		AssertElementNotPresent(locator1 = "ACSettings#INVITE_USERS_BUTTON");
+	}
+
+	macro viewCurrentPlan {
+		AssertVisible(
+			key_planName = "${planName}",
+			locator1 = "ACUsage#CURRENT_PLAN");
+	}
+
+	macro viewDeleteNotAvailable {
+		AssertElementNotPresent(locator1 = "ACSettings#DELETE_USER");
+	}
+
+	macro viewEditnotAvailable {
+		AssertElementNotPresent(
+			key_text = "Edit",
+			locator1 = "Button#ANY");
+	}
+
+	macro viewFilterButton {
+		if (isSet(nofilter)) {
+			AssertElementNotPresent(
+				key_text = "${nofilter}",
+				locator1 = "ACSettings#PROPERTIES_DROPDOWN_BUTTON");
+		}
+
+		AssertElementPresent(
+			key_text = "${filter}",
+			locator1 = "ACSettings#PROPERTIES_DROPDOWN_BUTTON");
+	}
+
+	macro viewPropertyEntryName {
+		AssertElementPresent(
+			entryName = "${propertyName}",
+			locator1 = "ACSettings#PROPERTIES_LIST_NAME");
+	}
+
+	macro viewPropertyInfo {
+		AssertElementPresent(locator1 = "ACSettings#PROPERTIES_HEADER_DESCRIPTION");
+	}
+
+	macro viewUserNotSelectable {
+		AssertElementPresent(
+			locator1 = "ACSettings#USER_UNSELECTABLE",
+			userEmail = "${email}");
 	}
 
 }

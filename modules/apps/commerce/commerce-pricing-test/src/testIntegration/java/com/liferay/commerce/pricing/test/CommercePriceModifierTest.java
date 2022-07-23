@@ -38,14 +38,12 @@ import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.test.util.CPTestUtil;
-import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -70,7 +68,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Riccardo Alberti
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommercePriceModifierTest {
 
@@ -84,12 +81,12 @@ public class CommercePriceModifierTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
+		_user = UserTestUtil.addUser();
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
-			_company.getCompanyId());
+			_group.getCompanyId());
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
 			_user.getCompanyId(), _user.getGroupId(), _user.getUserId());
@@ -173,16 +170,18 @@ public class CommercePriceModifierTest {
 			CommercePricingClass.class.getName(),
 			commercePricingClass.getCommercePricingClassId());
 
-		CommerceMoney priceCommerceMoney1 = commercePriceEntry1.getPriceMoney(
-			_commerceCurrency.getCommerceCurrencyId());
+		CommerceMoney priceCommerceMoney1 =
+			commercePriceEntry1.getPriceCommerceMoney(
+				_commerceCurrency.getCommerceCurrencyId());
 
 		BigDecimal modifiedPrice1 =
 			_commercePriceModifierHelper.applyCommercePriceModifier(
 				commercePriceList.getCommercePriceListId(),
 				cpInstance1.getCPDefinitionId(), priceCommerceMoney1);
 
-		CommerceMoney priceCommerceMoney2 = commercePriceEntry2.getPriceMoney(
-			_commerceCurrency.getCommerceCurrencyId());
+		CommerceMoney priceCommerceMoney2 =
+			commercePriceEntry2.getPriceCommerceMoney(
+				_commerceCurrency.getCommerceCurrencyId());
 
 		BigDecimal modifiedPrice2 =
 			_commercePriceModifierHelper.applyCommercePriceModifier(
@@ -297,11 +296,13 @@ public class CommercePriceModifierTest {
 			commercePriceModifier2.getCommercePriceModifierId(),
 			AssetCategory.class.getName(), assetCategory.getCategoryId());
 
-		CommerceMoney priceCommerceMoney1 = commercePriceEntry1.getPriceMoney(
-			_commerceCurrency.getCommerceCurrencyId());
+		CommerceMoney priceCommerceMoney1 =
+			commercePriceEntry1.getPriceCommerceMoney(
+				_commerceCurrency.getCommerceCurrencyId());
 
-		CommerceMoney priceCommerceMoney2 = commercePriceEntry2.getPriceMoney(
-			_commerceCurrency.getCommerceCurrencyId());
+		CommerceMoney priceCommerceMoney2 =
+			commercePriceEntry2.getPriceCommerceMoney(
+				_commerceCurrency.getCommerceCurrencyId());
 
 		BigDecimal modifiedPrice1 =
 			_commercePriceModifierHelper.applyCommercePriceModifier(
@@ -387,13 +388,12 @@ public class CommercePriceModifierTest {
 			commercePriceModifier.getCommercePriceModifierId(),
 			CPDefinition.class.getName(), cpDefinition.getCPDefinitionId());
 
-		CommerceMoney priceCommerceMoney = commercePriceEntry.getPriceMoney(
-			_commerceCurrency.getCommerceCurrencyId());
-
 		BigDecimal finalPrice =
 			_commercePriceModifierHelper.applyCommercePriceModifier(
 				commercePriceList.getCommercePriceListId(),
-				cpInstance.getCPDefinitionId(), priceCommerceMoney);
+				cpInstance.getCPDefinitionId(),
+				commercePriceEntry.getPriceCommerceMoney(
+					_commerceCurrency.getCommerceCurrencyId()));
 
 		RoundingMode roundingMode = RoundingMode.valueOf(
 			_commerceCurrency.getRoundingMode());
@@ -420,14 +420,14 @@ public class CommercePriceModifierTest {
 			CommercePriceListLocalServiceUtil.getCommercePriceList(
 				commercePriceListId);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				commercePriceList.getGroupId());
-
 		return CommercePriceEntryLocalServiceUtil.addCommercePriceEntry(
 			externalReferenceCode, cpProductId, cpInstanceUuid,
-			commercePriceListId, price, BigDecimal.ZERO, serviceContext);
+			commercePriceListId, price, BigDecimal.ZERO,
+			ServiceContextTestUtil.getServiceContext(
+				commercePriceList.getGroupId()));
 	}
+
+	private static User _user;
 
 	@Inject
 	private CommerceCatalogLocalService _commerceCatalogLocalService;
@@ -447,12 +447,7 @@ public class CommercePriceModifierTest {
 	@Inject
 	private CommercePricingClassLocalService _commercePricingClassLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
+	private Group _group;
 	private ServiceContext _serviceContext;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

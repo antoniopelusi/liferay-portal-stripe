@@ -82,17 +82,9 @@ class LocalProcessLog implements ProcessLog {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{level=");
-		sb.append(_level);
-		sb.append(", message=");
-		sb.append(_message);
-		sb.append(", throwable=");
-		sb.append(_throwable);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{level=", _level, ", message=", _message, ", throwable=",
+			_throwable, "}");
 	}
 
 	private final ProcessLog.Level _level;

@@ -211,4 +211,7 @@ public interface CTSContentModel
 	 */
 	public void setStoreType(String storeType);
 
+	@Override
+	public CTSContent cloneWithOriginalValues();
+
 }

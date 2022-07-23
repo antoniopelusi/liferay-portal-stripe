@@ -17,8 +17,11 @@ package com.liferay.dynamic.data.mapping.form.field.type.internal.paragraph;
 import com.liferay.dynamic.data.mapping.form.field.type.BaseDDMFormFieldTypeSettingsTestCase;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.test.util.DDMFormLayoutTestUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
+import com.liferay.dynamic.data.mapping.util.DDMFormLayoutFactory;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -88,13 +91,6 @@ public class ParagraphDDMFormFieldTypeSettingsTest
 
 		Assert.assertEquals("rich_text", textDDMFormField.getType());
 
-		DDMFormField validationDDMFormField = ddmFormFieldsMap.get(
-			"validation");
-
-		Assert.assertNotNull(validationDDMFormField);
-		Assert.assertEquals("string", validationDDMFormField.getDataType());
-		Assert.assertEquals("validation", validationDDMFormField.getType());
-
 		List<DDMFormRule> ddmFormRules = ddmForm.getDDMFormRules();
 
 		Assert.assertEquals(ddmFormRules.toString(), 1, ddmFormRules.size());
@@ -105,7 +101,7 @@ public class ParagraphDDMFormFieldTypeSettingsTest
 
 		List<String> actions = ddmFormRule.getActions();
 
-		Assert.assertEquals(actions.toString(), 9, actions.size());
+		Assert.assertEquals(actions.toString(), 8, actions.size());
 
 		Assert.assertTrue(
 			actions.toString(), actions.contains("setRequired('text', true)"));
@@ -131,10 +127,23 @@ public class ParagraphDDMFormFieldTypeSettingsTest
 			actions.toString(), actions.contains("setVisible('tip', false)"));
 		Assert.assertTrue(
 			actions.toString(),
-			actions.contains("setVisible('validation', false)"));
-		Assert.assertTrue(
-			actions.toString(),
 			actions.contains("setVisible('indexType', false)"));
+	}
+
+	@Test
+	public void testCreateParagraphDDMFormFieldTypeSettingsDDMFormLayout() {
+		assertDDMFormLayout(
+			DDMFormLayoutFactory.create(
+				ParagraphDDMFormFieldTypeSettings.class),
+			DDMFormLayoutTestUtil.createDDMFormLayout(
+				DDMFormLayout.TABBED_MODE,
+				DDMFormLayoutTestUtil.createDDMFormLayoutPage(
+					"label", "text", "tip", "required"),
+				DDMFormLayoutTestUtil.createDDMFormLayoutPage(
+					"name", "fieldReference", "showLabel", "repeatable",
+					"predefinedValue", "visibilityExpression", "fieldNamespace",
+					"indexType", "localizable", "readOnly", "dataType", "type",
+					"rulesConditionDisabled")));
 	}
 
 	@Override
@@ -144,6 +153,7 @@ public class ParagraphDDMFormFieldTypeSettingsTest
 		languageUtil.setLanguage(PowerMockito.mock(Language.class));
 	}
 
+	@Override
 	protected void setUpPortalUtil() {
 		PortalUtil portalUtil = new PortalUtil();
 

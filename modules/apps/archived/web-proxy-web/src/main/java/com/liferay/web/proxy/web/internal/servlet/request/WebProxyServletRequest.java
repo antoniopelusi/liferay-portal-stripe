@@ -35,7 +35,7 @@ public class WebProxyServletRequest extends HttpServletRequestWrapper {
 
 		_liferayServletRequest = new LiferayServletRequest(httpServletRequest);
 
-		readInputStream(_liferayServletRequest.getInputStream());
+		_readInputStream(_liferayServletRequest.getInputStream());
 
 		_liferayServletRequest.setFinishedReadingOriginalStream(true);
 	}
@@ -49,7 +49,7 @@ public class WebProxyServletRequest extends HttpServletRequestWrapper {
 		return super.getInputStream();
 	}
 
-	protected void readInputStream(InputStream inputStream) throws IOException {
+	private void _readInputStream(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[4096];
 
 		while (inputStream.read(buffer, 0, 4096) > 0) {

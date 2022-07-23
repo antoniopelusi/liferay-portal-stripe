@@ -18,8 +18,4 @@ package com.liferay.layout.seo.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class LayoutSEOEntryImpl extends LayoutSEOEntryBaseImpl {
-
-	public LayoutSEOEntryImpl() {
-	}
-
 }

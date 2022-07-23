@@ -25,19 +25,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.Mockito;
 
 /**
  * @author Iván Zaera
  */
-public class LocationVariableResolverTest extends PowerMockito {
+public class LocationVariableResolverTest {
 
 	@Before
 	public void setUp() throws Exception {
 		_mockResourceManager = new MockResourceManager(
 			"En un lugar de la Mancha...");
 
-		_mockSettingsLocatorHelper = mock(SettingsLocatorHelper.class);
+		_mockSettingsLocatorHelper = Mockito.mock(SettingsLocatorHelper.class);
 
 		_locationVariableResolver = new LocationVariableResolver(
 			_mockResourceManager, _mockSettingsLocatorHelper);
@@ -118,13 +118,13 @@ public class LocationVariableResolverTest extends PowerMockito {
 
 	@Test
 	public void testResolveVariableWithServerProperty() {
-		final String expectedValue = "test@liferay.com";
+		String expectedValue = "test@liferay.com";
 
 		MemorySettings memorySettings = new MemorySettings();
 
 		memorySettings.setValue("admin.email.from.address", expectedValue);
 
-		when(
+		Mockito.when(
 			_mockSettingsLocatorHelper.getServerSettings("com.liferay.portal")
 		).thenReturn(
 			memorySettings

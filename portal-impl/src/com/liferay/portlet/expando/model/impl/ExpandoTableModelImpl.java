@@ -25,16 +25,18 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -229,34 +231,6 @@ public class ExpandoTableModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ExpandoTable>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ExpandoTable.class.getClassLoader(), ExpandoTable.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ExpandoTable> constructor =
-				(Constructor<ExpandoTable>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<ExpandoTable, Object>>
@@ -503,6 +477,25 @@ public class ExpandoTableModelImpl
 	}
 
 	@Override
+	public ExpandoTable cloneWithOriginalValues() {
+		ExpandoTableImpl expandoTableImpl = new ExpandoTableImpl();
+
+		expandoTableImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		expandoTableImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		expandoTableImpl.setTableId(
+			this.<Long>getColumnOriginalValue("tableId"));
+		expandoTableImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		expandoTableImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		expandoTableImpl.setName(this.<String>getColumnOriginalValue("name"));
+
+		return expandoTableImpl;
+	}
+
+	@Override
 	public int compareTo(ExpandoTable expandoTable) {
 		long primaryKey = expandoTable.getPrimaryKey();
 
@@ -601,7 +594,7 @@ public class ExpandoTableModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -612,9 +605,26 @@ public class ExpandoTableModelImpl
 			Function<ExpandoTable, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ExpandoTable)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ExpandoTable)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -661,7 +671,9 @@ public class ExpandoTableModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ExpandoTable>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ExpandoTable.class, ModelWrapper.class);
 
 	}
 

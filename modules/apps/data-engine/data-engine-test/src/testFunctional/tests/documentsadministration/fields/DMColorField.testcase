@@ -67,7 +67,7 @@ definition {
 
 		DDLDataDefinition.save();
 
-		NavItem.click(navItem = "Documents and Media");
+		NavItem.click(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type Name");
 
@@ -171,7 +171,7 @@ definition {
 
 		DDLDataDefinition.save();
 
-		NavItem.click(navItem = "Documents and Media");
+		NavItem.click(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type Name");
 
@@ -179,10 +179,7 @@ definition {
 
 		Button.clickPublish();
 
-		AssertTextEquals(
-			key_fieldFieldLabel = "Color",
-			locator1 = "WCEditWebContent#FIELD_REQUIRED_ALERT",
-			value1 = "This field is required.");
+		AssertElementPresent(locator1 = "WCEditWebContent#FIELD_REQUIRED_ALERT");
 	}
 
 	@description = "This test ensures user can set a color on the color field."
@@ -192,17 +189,18 @@ definition {
 
 		DDLDataDefinition.save();
 
-		NavItem.click(navItem = "Documents and Media");
+		NavItem.click(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type Name");
 
 		PortletEntry.inputTitle(title = "DM Title Test");
 
-		DMDocument.selectColorRGB(
-			blueValue = "0",
+		DERenderer.inputDataInColorField(
+			colorSelectionMethod = "RGB",
 			fieldLabel = "Color",
-			greenValue = "0",
-			redValue = "255");
+			valueBlue = "248",
+			valueGreen = "110",
+			valueRed = "0");
 
 		Button.clickPublish();
 
@@ -210,10 +208,9 @@ definition {
 			menuItem = "Edit",
 			rowEntry = "DM Title Test");
 
-		AssertTextEquals(
-			key_fieldLabel = "Color",
-			locator1 = "DDMField#COLOR_PICKER_GENERAL_INPUT",
-			value1 = "ff0000");
+		DERenderer.assertDataInColorField(
+			fieldLabel = "Color",
+			value = "006ef8");
 	}
 
 	@description = "This test validates the set of searchable property on the color field."

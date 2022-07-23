@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -66,7 +68,7 @@ public class PortalPreferenceValueModelImpl
 
 	public static final Object[][] TABLE_COLUMNS = {
 		{"mvccVersion", Types.BIGINT},
-		{"portalPreferenceValueId", Types.BIGINT},
+		{"portalPreferenceValueId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"portalPreferencesId", Types.BIGINT}, {"index_", Types.INTEGER},
 		{"key_", Types.VARCHAR}, {"largeValue", Types.CLOB},
 		{"namespace", Types.VARCHAR}, {"smallValue", Types.VARCHAR}
@@ -78,6 +80,7 @@ public class PortalPreferenceValueModelImpl
 	static {
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("portalPreferenceValueId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("portalPreferencesId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("index_", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("key_", Types.VARCHAR);
@@ -87,7 +90,7 @@ public class PortalPreferenceValueModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table PortalPreferenceValue (mvccVersion LONG default 0 not null,portalPreferenceValueId LONG not null primary key,portalPreferencesId LONG,index_ INTEGER,key_ VARCHAR(255) null,largeValue TEXT null,namespace VARCHAR(255) null,smallValue VARCHAR(255) null)";
+		"create table PortalPreferenceValue (mvccVersion LONG default 0 not null,portalPreferenceValueId LONG not null primary key,companyId LONG,portalPreferencesId LONG,index_ INTEGER,key_ VARCHAR(255) null,largeValue TEXT null,namespace VARCHAR(255) null,smallValue VARCHAR(255) null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table PortalPreferenceValue";
@@ -242,34 +245,6 @@ public class PortalPreferenceValueModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, PortalPreferenceValue>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			PortalPreferenceValue.class.getClassLoader(),
-			PortalPreferenceValue.class, ModelWrapper.class);
-
-		try {
-			Constructor<PortalPreferenceValue> constructor =
-				(Constructor<PortalPreferenceValue>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<PortalPreferenceValue, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<PortalPreferenceValue, Object>>
@@ -298,6 +273,12 @@ public class PortalPreferenceValueModelImpl
 			"portalPreferenceValueId",
 			(BiConsumer<PortalPreferenceValue, Long>)
 				PortalPreferenceValue::setPortalPreferenceValueId);
+		attributeGetterFunctions.put(
+			"companyId", PortalPreferenceValue::getCompanyId);
+		attributeSetterBiConsumers.put(
+			"companyId",
+			(BiConsumer<PortalPreferenceValue, Long>)
+				PortalPreferenceValue::setCompanyId);
 		attributeGetterFunctions.put(
 			"portalPreferencesId",
 			PortalPreferenceValue::getPortalPreferencesId);
@@ -366,6 +347,20 @@ public class PortalPreferenceValueModelImpl
 		}
 
 		_portalPreferenceValueId = portalPreferenceValueId;
+	}
+
+	@Override
+	public long getCompanyId() {
+		return _companyId;
+	}
+
+	@Override
+	public void setCompanyId(long companyId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_companyId = companyId;
 	}
 
 	@Override
@@ -546,7 +541,8 @@ public class PortalPreferenceValueModelImpl
 	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(
-			0, PortalPreferenceValue.class.getName(), getPrimaryKey());
+			getCompanyId(), PortalPreferenceValue.class.getName(),
+			getPrimaryKey());
 	}
 
 	@Override
@@ -579,6 +575,7 @@ public class PortalPreferenceValueModelImpl
 		portalPreferenceValueImpl.setMvccVersion(getMvccVersion());
 		portalPreferenceValueImpl.setPortalPreferenceValueId(
 			getPortalPreferenceValueId());
+		portalPreferenceValueImpl.setCompanyId(getCompanyId());
 		portalPreferenceValueImpl.setPortalPreferencesId(
 			getPortalPreferencesId());
 		portalPreferenceValueImpl.setIndex(getIndex());
@@ -588,6 +585,33 @@ public class PortalPreferenceValueModelImpl
 		portalPreferenceValueImpl.setSmallValue(getSmallValue());
 
 		portalPreferenceValueImpl.resetOriginalValues();
+
+		return portalPreferenceValueImpl;
+	}
+
+	@Override
+	public PortalPreferenceValue cloneWithOriginalValues() {
+		PortalPreferenceValueImpl portalPreferenceValueImpl =
+			new PortalPreferenceValueImpl();
+
+		portalPreferenceValueImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		portalPreferenceValueImpl.setPortalPreferenceValueId(
+			this.<Long>getColumnOriginalValue("portalPreferenceValueId"));
+		portalPreferenceValueImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		portalPreferenceValueImpl.setPortalPreferencesId(
+			this.<Long>getColumnOriginalValue("portalPreferencesId"));
+		portalPreferenceValueImpl.setIndex(
+			this.<Integer>getColumnOriginalValue("index_"));
+		portalPreferenceValueImpl.setKey(
+			this.<String>getColumnOriginalValue("key_"));
+		portalPreferenceValueImpl.setLargeValue(
+			this.<String>getColumnOriginalValue("largeValue"));
+		portalPreferenceValueImpl.setNamespace(
+			this.<String>getColumnOriginalValue("namespace"));
+		portalPreferenceValueImpl.setSmallValue(
+			this.<String>getColumnOriginalValue("smallValue"));
 
 		return portalPreferenceValueImpl;
 	}
@@ -676,6 +700,8 @@ public class PortalPreferenceValueModelImpl
 		portalPreferenceValueCacheModel.portalPreferenceValueId =
 			getPortalPreferenceValueId();
 
+		portalPreferenceValueCacheModel.companyId = getCompanyId();
+
 		portalPreferenceValueCacheModel.portalPreferencesId =
 			getPortalPreferencesId();
 
@@ -722,7 +748,7 @@ public class PortalPreferenceValueModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -733,10 +759,27 @@ public class PortalPreferenceValueModelImpl
 			Function<PortalPreferenceValue, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((PortalPreferenceValue)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(PortalPreferenceValue)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -784,12 +827,15 @@ public class PortalPreferenceValueModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, PortalPreferenceValue>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					PortalPreferenceValue.class, ModelWrapper.class);
 
 	}
 
 	private long _mvccVersion;
 	private long _portalPreferenceValueId;
+	private long _companyId;
 	private long _portalPreferencesId;
 	private int _index;
 	private String _key;
@@ -829,6 +875,7 @@ public class PortalPreferenceValueModelImpl
 		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put(
 			"portalPreferenceValueId", _portalPreferenceValueId);
+		_columnOriginalValues.put("companyId", _companyId);
 		_columnOriginalValues.put("portalPreferencesId", _portalPreferencesId);
 		_columnOriginalValues.put("index_", _index);
 		_columnOriginalValues.put("key_", _key);
@@ -863,17 +910,19 @@ public class PortalPreferenceValueModelImpl
 
 		columnBitmasks.put("portalPreferenceValueId", 2L);
 
-		columnBitmasks.put("portalPreferencesId", 4L);
+		columnBitmasks.put("companyId", 4L);
 
-		columnBitmasks.put("index_", 8L);
+		columnBitmasks.put("portalPreferencesId", 8L);
 
-		columnBitmasks.put("key_", 16L);
+		columnBitmasks.put("index_", 16L);
 
-		columnBitmasks.put("largeValue", 32L);
+		columnBitmasks.put("key_", 32L);
 
-		columnBitmasks.put("namespace", 64L);
+		columnBitmasks.put("largeValue", 64L);
 
-		columnBitmasks.put("smallValue", 128L);
+		columnBitmasks.put("namespace", 128L);
+
+		columnBitmasks.put("smallValue", 256L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

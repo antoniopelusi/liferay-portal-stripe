@@ -323,10 +323,10 @@
 
 							dispatchNextQueuedCall();
 						})
-						.catch((err) => {
-							explain(callId, 'Rejecting module', err);
+						.catch((error) => {
+							explain(callId, 'Rejecting module', error);
 
-							reject(err);
+							reject(error);
 
 							dispatchNextQueuedCall();
 						});
@@ -385,7 +385,8 @@
 			i = moduleName.indexOf('/', i + 1);
 		}
 
-		let containerId, path;
+		let containerId;
+		let path;
 
 		if (i === -1) {
 			containerId = moduleName;

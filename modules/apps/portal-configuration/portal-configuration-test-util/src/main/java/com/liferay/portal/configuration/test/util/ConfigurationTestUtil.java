@@ -18,7 +18,7 @@ import com.liferay.osgi.util.service.OSGiServiceUtil;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Dictionary;
@@ -162,13 +162,12 @@ public class ConfigurationTestUtil {
 			updateCountDownLatch.countDown();
 		};
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(Constants.SERVICE_PID, markerPID);
-
 		ServiceRegistration<ManagedService> managedServiceServiceRegistration =
 			_bundleContext.registerService(
-				ManagedService.class, managedService, properties);
+				ManagedService.class, managedService,
+				HashMapDictionaryBuilder.<String, Object>put(
+					Constants.SERVICE_PID, markerPID
+				).build());
 
 		try {
 			if (dictionary == null) {

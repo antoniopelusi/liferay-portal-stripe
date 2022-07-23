@@ -92,16 +92,8 @@ public class UpdateDataDefinitionMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		DataDefinitionResource.Builder dataDefinitionResourcedBuilder =
 			_dataDefinitionResourceFactory.create();
-
-		DataDefinitionResource dataDefinitionResource =
-			dataDefinitionResourcedBuilder.user(
-				themeDisplay.getUser()
-			).build();
 
 		DataDefinition dataDefinition = DataDefinition.toDTO(
 			ParamUtil.getString(actionRequest, "dataDefinition"));
@@ -112,6 +104,14 @@ public class UpdateDataDefinitionMVCActionCommand
 		if (ArrayUtil.isEmpty(dataDefinition.getDataDefinitionFields())) {
 			throw new DataDefinitionValidationException.MustSetFields();
 		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		DataDefinitionResource dataDefinitionResource =
+			dataDefinitionResourcedBuilder.user(
+				themeDisplay.getUser()
+			).build();
 
 		dataDefinitionResource.putDataDefinition(
 			ParamUtil.getLong(actionRequest, "dataDefinitionId"),

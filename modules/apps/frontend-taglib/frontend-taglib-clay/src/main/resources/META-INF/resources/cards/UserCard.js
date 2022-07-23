@@ -13,10 +13,10 @@
  */
 
 import {ClayCardWithUser} from '@clayui/card';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {EVENT_MANAGEMENT_TOOLBAR_TOGGLE_ALL_ITEMS} from '../constants';
-import getDataAttributes from '../get_data_attributes';
+import normalizeDropdownItems from '../normalize_dropdown_items';
 
 export default function UserCard({
 	actions,
@@ -33,6 +33,10 @@ export default function UserCard({
 	symbol,
 	...otherProps
 }) {
+	const normalizedActions = useMemo(() => normalizeDropdownItems(actions), [
+		actions,
+	]);
+
 	const [selected, setSelected] = useState(initialSelected);
 
 	const handleToggleAllItems = useCallback(
@@ -58,14 +62,7 @@ export default function UserCard({
 
 	return (
 		<ClayCardWithUser
-			actions={actions?.map(({data, ...rest}) => {
-				const dataAttributes = getDataAttributes(data);
-
-				return {
-					...dataAttributes,
-					...rest,
-				};
-			})}
+			actions={normalizedActions}
 			checkboxProps={{
 				name: inputName ?? '',
 				value: inputValue ?? '',

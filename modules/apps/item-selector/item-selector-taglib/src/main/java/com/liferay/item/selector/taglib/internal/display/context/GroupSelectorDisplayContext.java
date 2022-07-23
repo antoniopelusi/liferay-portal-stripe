@@ -80,11 +80,14 @@ public class GroupSelectorDisplayContext {
 		).setParameter(
 			"groupType", groupType
 		).setParameter(
+			"scopeGroupType",
+			ParamUtil.getString(_liferayPortletRequest, "scopeGroupType")
+		).setParameter(
 			"selectedTab",
 			ParamUtil.getString(_liferayPortletRequest, "selectedTab")
 		).setParameter(
-			"showGroupSelector", Boolean.TRUE.toString()
-		).build();
+			"showGroupSelector", true
+		).buildPortletURL();
 	}
 
 	public Set<String> getGroupTypes() {
@@ -96,17 +99,12 @@ public class GroupSelectorDisplayContext {
 			_liferayPortletRequest, _getIteratorURL());
 
 		searchContainer.setEmptyResultsMessage(_getEmptyResultsMessage());
-
-		List<Group> groups = (List<Group>)_liferayPortletRequest.getAttribute(
-			"liferay-item-selector:group-selector:groups");
-
-		searchContainer.setResults(groups);
-
-		int groupsCount = GetterUtil.getInteger(
-			_liferayPortletRequest.getAttribute(
-				"liferay-item-selector:group-selector:groupsCount"));
-
-		searchContainer.setTotal(groupsCount);
+		searchContainer.setResultsAndTotal(
+			() -> (List<Group>)_liferayPortletRequest.getAttribute(
+				"liferay-item-selector:group-selector:groups"),
+			GetterUtil.getInteger(
+				_liferayPortletRequest.getAttribute(
+					"liferay-item-selector:group-selector:groupsCount")));
 
 		return searchContainer;
 	}
@@ -168,16 +166,14 @@ public class GroupSelectorDisplayContext {
 	private PortletURL _getItemSelectorURL() {
 		ItemSelector itemSelector = _getItemSelector();
 
-		String itemSelectedEventName = ParamUtil.getString(
-			_liferayPortletRequest, "itemSelectedEventName");
-
 		List<ItemSelectorCriterion> itemSelectorCriteria =
 			itemSelector.getItemSelectorCriteria(
 				_liferayPortletRequest.getParameterMap());
 
 		return itemSelector.getItemSelectorURL(
 			RequestBackedPortletURLFactoryUtil.create(_liferayPortletRequest),
-			itemSelectedEventName,
+			ParamUtil.getString(
+				_liferayPortletRequest, "itemSelectedEventName"),
 			itemSelectorCriteria.toArray(new ItemSelectorCriterion[0]));
 	}
 
@@ -190,8 +186,8 @@ public class GroupSelectorDisplayContext {
 			"selectedTab",
 			ParamUtil.getString(_liferayPortletRequest, "selectedTab")
 		).setParameter(
-			"showGroupSelector", Boolean.TRUE.toString()
-		).build();
+			"showGroupSelector", true
+		).buildPortletURL();
 	}
 
 	private String _groupType;

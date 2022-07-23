@@ -17,8 +17,8 @@
 <%@ include file="/wiki/init.jsp" %>
 
 <%
-WikiPage wikiPage = (WikiPage)request.getAttribute(WikiWebKeys.WIKI_PAGE);
 WikiNode node = (WikiNode)request.getAttribute(WikiWebKeys.WIKI_NODE);
+WikiPage wikiPage = (WikiPage)request.getAttribute(WikiWebKeys.WIKI_PAGE);
 %>
 
 <portlet:actionURL name="/wiki/edit_page_attachment" var="undoTrashURL">
@@ -67,7 +67,7 @@ WikiNode node = (WikiNode)request.getAttribute(WikiWebKeys.WIKI_NODE);
 		"title", wikiPage.getTitle()
 	).setWindowState(
 		LiferayWindowState.POP_UP
-	).build();
+	).buildPortletURL();
 
 	boolean paginate = false;
 	boolean showPageAttachmentAction = true;

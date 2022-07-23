@@ -60,8 +60,6 @@ public class BaseWebDAVTestCase {
 	public Tuple service(
 		String method, String path, Map<String, String> headers, byte[] data) {
 
-		WebDAVServlet webDAVServlet = new WebDAVServlet();
-
 		String requestURI = StringBundler.concat(
 			_CONTEXT_PATH, _SERVLET_PATH, _PATH_INFO_PREFACE, path);
 
@@ -134,6 +132,8 @@ public class BaseWebDAVTestCase {
 		}
 
 		try {
+			WebDAVServlet webDAVServlet = new WebDAVServlet();
+
 			MockHttpServletResponse mockHttpServletResponse =
 				new MockHttpServletResponse();
 
@@ -343,27 +343,18 @@ public class BaseWebDAVTestCase {
 	private static WebDAVStorage _webDAVStorage;
 
 	static {
-		StringBundler sb = new StringBundler(8);
+		_LOCK_XML = StringBundler.concat(
+			"<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n",
+			"<D:lockinfo xmlns:D='DAV:'>\n",
+			"<D:lockscope><D:exclusive/></D:lockscope>\n",
+			"<D:locktype><D:write/></D:locktype>\n", "<D:owner>\n",
+			"<D:href>http://www.liferay.com</D:href>\n", "</D:owner>\n",
+			"</D:lockinfo>\n");
 
-		sb.append("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n");
-		sb.append("<D:lockinfo xmlns:D='DAV:'>\n");
-		sb.append("<D:lockscope><D:exclusive/></D:lockscope>\n");
-		sb.append("<D:locktype><D:write/></D:locktype>\n");
-		sb.append("<D:owner>\n");
-		sb.append("<D:href>http://www.liferay.com</D:href>\n");
-		sb.append("</D:owner>\n");
-		sb.append("</D:lockinfo>\n");
-
-		_LOCK_XML = sb.toString();
-
-		sb = new StringBundler(4);
-
-		sb.append("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n");
-		sb.append("<D:propfind xmlns:D=\"DAV:\">\n");
-		sb.append("<D:allprop/>\n");
-		sb.append("</D:propfind>");
-
-		_PROPFIND_XML = sb.toString();
+		_PROPFIND_XML = StringBundler.concat(
+			"<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n",
+			"<D:propfind xmlns:D=\"DAV:\">\n", "<D:allprop/>\n",
+			"</D:propfind>");
 	}
 
 }

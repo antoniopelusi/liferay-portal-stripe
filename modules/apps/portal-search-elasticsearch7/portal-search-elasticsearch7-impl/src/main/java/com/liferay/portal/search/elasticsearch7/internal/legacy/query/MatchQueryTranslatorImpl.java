@@ -26,7 +26,7 @@ import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
+import org.elasticsearch.index.query.ZeroTermsQueryOption;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -57,19 +57,19 @@ public class MatchQueryTranslatorImpl
 		}
 
 		if ((type == null) || (type == MatchQuery.Type.BOOLEAN)) {
-			return translateMatchQuery(field, value, matchQuery);
+			return _translateMatchQuery(field, value, matchQuery);
 		}
 		else if (type == MatchQuery.Type.PHRASE) {
-			return translateMatchPhraseQuery(field, value, matchQuery);
+			return _translateMatchPhraseQuery(field, value, matchQuery);
 		}
 		else if (type == MatchQuery.Type.PHRASE_PREFIX) {
-			return translateMatchPhrasePrefixQuery(field, value, matchQuery);
+			return _translateMatchPhrasePrefixQuery(field, value, matchQuery);
 		}
 
 		throw new IllegalArgumentException("Invalid match query type: " + type);
 	}
 
-	protected QueryBuilder translateMatchPhrasePrefixQuery(
+	private QueryBuilder _translateMatchPhrasePrefixQuery(
 		String field, String value, MatchQuery matchQuery) {
 
 		MatchPhrasePrefixQueryBuilder matchPhrasePrefixQueryBuilder =
@@ -95,7 +95,7 @@ public class MatchQueryTranslatorImpl
 		return matchPhrasePrefixQueryBuilder;
 	}
 
-	protected QueryBuilder translateMatchPhraseQuery(
+	private QueryBuilder _translateMatchPhraseQuery(
 		String field, String value, MatchQuery matchQuery) {
 
 		MatchPhraseQueryBuilder matchPhraseQueryBuilder =
@@ -116,7 +116,7 @@ public class MatchQueryTranslatorImpl
 		return matchPhraseQueryBuilder;
 	}
 
-	protected QueryBuilder translateMatchQuery(
+	private QueryBuilder _translateMatchQuery(
 		String field, String value, MatchQuery matchQuery) {
 
 		MatchQueryBuilder matchQueryBuilder = QueryBuilders.matchQuery(
@@ -162,10 +162,10 @@ public class MatchQueryTranslatorImpl
 		}
 
 		if (matchQuery.getZeroTermsQuery() != null) {
-			ZeroTermsQuery matchQueryBuilderZeroTermsQuery = translate(
+			ZeroTermsQueryOption zeroTermsQueryOption = translate(
 				matchQuery.getZeroTermsQuery());
 
-			matchQueryBuilder.zeroTermsQuery(matchQueryBuilderZeroTermsQuery);
+			matchQueryBuilder.zeroTermsQuery(zeroTermsQueryOption);
 		}
 
 		if (!matchQuery.isDefaultBoost()) {

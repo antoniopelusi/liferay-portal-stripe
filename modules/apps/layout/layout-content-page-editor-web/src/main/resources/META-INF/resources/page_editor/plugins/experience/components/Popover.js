@@ -13,10 +13,10 @@
  */
 
 import ClayPopover from '@clayui/popover';
+import {ReactPortal} from '@liferay/frontend-js-react-web';
 import {ALIGN_POSITIONS, align} from 'frontend-js-web';
 import Proptypes from 'prop-types';
 import React, {useRef} from 'react';
-import ReactDOM from 'react-dom';
 
 /**
  * Tailored implementation of a ClayPopover for Experiences
@@ -25,9 +25,10 @@ import ReactDOM from 'react-dom';
  * scroll or any other event
  */
 const Popover = (props) => {
-	return ReactDOM.createPortal(
-		<PopoverComponent {...props} />,
-		document.body
+	return (
+		<ReactPortal>
+			<PopoverComponent {...props} />
+		</ReactPortal>
 	);
 };
 

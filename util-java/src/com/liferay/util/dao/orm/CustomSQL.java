@@ -156,22 +156,19 @@ public class CustomSQL {
 
 		if (queryDefinition.getOwnerUserId() > 0) {
 			if (queryDefinition.isIncludeOwner()) {
-				StringBundler sb = new StringBundler(7);
-
-				sb.append(StringPool.OPEN_PARENTHESIS);
-				sb.append(tableName);
-				sb.append(_OWNER_USER_ID_CONDITION_DEFAULT);
-				sb.append(" AND ");
-				sb.append(tableName);
-				sb.append(_STATUS_CONDITION_INVERSE);
-				sb.append(StringPool.CLOSE_PARENTHESIS);
-
 				sql = StringUtil.replace(
 					sql,
 					new String[] {
 						_OWNER_USER_ID_KEYWORD, _OWNER_USER_ID_AND_OR_CONNECTOR
 					},
-					new String[] {sb.toString(), " OR "});
+					new String[] {
+						StringBundler.concat(
+							StringPool.OPEN_PARENTHESIS, tableName,
+							_OWNER_USER_ID_CONDITION_DEFAULT, " AND ",
+							tableName, _STATUS_CONDITION_INVERSE,
+							StringPool.CLOSE_PARENTHESIS),
+						" OR "
+					});
 			}
 			else {
 				sql = StringUtil.replace(
@@ -369,7 +366,7 @@ public class CustomSQL {
 		String functionIsNull = PortalUtil.getCustomSQLFunctionIsNull();
 		String functionIsNotNull = PortalUtil.getCustomSQLFunctionIsNotNull();
 
-		try (Connection con = DataAccess.getConnection()) {
+		try (Connection connection = DataAccess.getConnection()) {
 			if (Validator.isNotNull(functionIsNull) &&
 				Validator.isNotNull(functionIsNotNull)) {
 
@@ -384,8 +381,8 @@ public class CustomSQL {
 							functionIsNotNull);
 				}
 			}
-			else if (con != null) {
-				DatabaseMetaData metaData = con.getMetaData();
+			else if (connection != null) {
+				DatabaseMetaData metaData = connection.getMetaData();
 
 				String dbName = GetterUtil.getString(
 					metaData.getDatabaseProductName());
@@ -465,7 +462,7 @@ public class CustomSQL {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		try {
@@ -484,7 +481,7 @@ public class CustomSQL {
 			_sqlPool = sqlPool;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -575,14 +572,9 @@ public class CustomSQL {
 				sql = StringBundler.concat(sql, _GROUP_BY_CLAUSE, groupBy);
 			}
 			else {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append(sql.substring(0, y));
-				sb.append(_GROUP_BY_CLAUSE);
-				sb.append(groupBy);
-				sb.append(sql.substring(y));
-
-				sql = sb.toString();
+				sql = StringBundler.concat(
+					sql.substring(0, y), _GROUP_BY_CLAUSE, groupBy,
+					sql.substring(y));
 			}
 		}
 
@@ -827,7 +819,7 @@ public class CustomSQL {
 		}
 		catch (IOException ioException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(ioException, ioException);
+				_log.debug(ioException);
 			}
 
 			return sql;
@@ -866,8 +858,10 @@ public class CustomSQL {
 			ClassLoader classLoader, String source, Map<String, String> sqlPool)
 		throws Exception {
 
-		try (InputStream is = classLoader.getResourceAsStream(source)) {
-			if (is == null) {
+		try (InputStream inputStream = classLoader.getResourceAsStream(
+				source)) {
+
+			if (inputStream == null) {
 				return;
 			}
 
@@ -875,7 +869,7 @@ public class CustomSQL {
 				_log.debug("Loading " + source);
 			}
 
-			Document document = UnsecureSAXReaderUtil.read(is);
+			Document document = UnsecureSAXReaderUtil.read(inputStream);
 
 			Element rootElement = document.getRootElement();
 

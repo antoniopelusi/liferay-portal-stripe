@@ -63,21 +63,21 @@ public class RTLServlet extends HttpServlet {
 			HttpServletResponse httpServletResponse)
 		throws IOException, ServletException {
 
-		URL url = getResourceURL(httpServletRequest);
+		URL url = _getResourceURL(httpServletRequest);
 
 		if (url == null) {
 			httpServletResponse.sendError(
 				HttpServletResponse.SC_NOT_FOUND, "Not Found");
 		}
 		else {
-			transfer(url, httpServletResponse);
+			_transfer(url, httpServletResponse);
 		}
 	}
 
 	@Override
 	protected long getLastModified(HttpServletRequest httpServletRequest) {
 		try {
-			URL url = getResourceURL(httpServletRequest);
+			URL url = _getResourceURL(httpServletRequest);
 
 			if (url != null) {
 				URLConnection urlConnection = url.openConnection();
@@ -89,14 +89,14 @@ public class RTLServlet extends HttpServlet {
 		}
 		catch (IOException ioException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(ioException, ioException);
+				_log.debug(ioException);
 			}
 
 			return super.getLastModified(httpServletRequest);
 		}
 	}
 
-	protected URL getResourceURL(HttpServletRequest httpServletRequest)
+	private URL _getResourceURL(HttpServletRequest httpServletRequest)
 		throws IOException {
 
 		String path = URLDecoder.decode(
@@ -174,7 +174,7 @@ public class RTLServlet extends HttpServlet {
 		return uri.toURL();
 	}
 
-	protected void transfer(URL url, HttpServletResponse httpServletResponse)
+	private void _transfer(URL url, HttpServletResponse httpServletResponse)
 		throws IOException {
 
 		URLConnection urlConnection = url.openConnection();

@@ -30,6 +30,10 @@ public class TrashVersionLocalServiceWrapper
 	implements ServiceWrapper<TrashVersionLocalService>,
 			   TrashVersionLocalService {
 
+	public TrashVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public TrashVersionLocalServiceWrapper(
 		TrashVersionLocalService trashVersionLocalService) {
 
@@ -136,6 +140,13 @@ public class TrashVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _trashVersionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _trashVersionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

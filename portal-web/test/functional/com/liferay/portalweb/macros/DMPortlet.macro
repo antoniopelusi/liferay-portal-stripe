@@ -82,9 +82,9 @@ definition {
 			locator1 = "Button#SELECT",
 			value1 = "Select");
 
-		SelectFrame(value1 = "relative=top");
-
-		SelectFrame(locator1 = "IFrame#SELECT_FOLDER");
+		SelectFrame.selectSecondFrame(
+			key_title = "Select Folder",
+			locator1 = "IFrame#MODAL_ANY");
 
 		var key_dmFolderName = "${dmFolderName}";
 
@@ -165,6 +165,23 @@ definition {
 		AssertTextEquals(
 			locator1 = "Message#EMPTY_INFO",
 			value1 = "There are no documents or media files in this folder.");
+	}
+
+	macro viewInvalidRootFolder {
+		Alert.viewErrorMessage(errorMessage = "The folder could not be found");
+
+		Portlet.gotoPortletOptions(
+			portletName = "Documents and Media",
+			portletOption = "Configuration");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "DocumentsAndMedia#CONFIGURATION_IFRAME");
+
+		AssertTextEquals.assertPartialText(
+			key_warningMessage = "The selected root folder cannot be found. Please select another one",
+			locator1 = "Message#WARNING_SPECIFIC",
+			value1 = "The selected root folder cannot be found. Please select another one");
+
+		SelectFrame.selectFrameTop();
 	}
 
 	macro viewNoPermissionCP {

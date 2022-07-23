@@ -73,7 +73,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	redirect
 ).setParameter(
 	"modelResource", modelResource
-).build();
+).buildPortletURL();
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);

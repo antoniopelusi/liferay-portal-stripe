@@ -16,7 +16,6 @@ package com.liferay.portal.workflow.metrics.rest.internal.jaxrs.exception.mapper
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.workflow.metrics.rest.dto.v1_0.GenericError;
 
@@ -46,11 +45,7 @@ public abstract class BaseSLAExceptionMapper<T extends PortalException>
 	}
 
 	protected String getMessage(String key) {
-		return language.get(
-			ResourceBundleUtil.getBundle(
-				_acceptLanguage.getPreferredLocale(),
-				BaseSLAExceptionMapper.class),
-			key);
+		return language.get(_acceptLanguage.getPreferredLocale(), key);
 	}
 
 	@Reference

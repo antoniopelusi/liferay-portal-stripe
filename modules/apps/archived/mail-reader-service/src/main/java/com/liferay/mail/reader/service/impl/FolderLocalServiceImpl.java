@@ -19,9 +19,11 @@ import com.liferay.mail.reader.service.MessageLocalService;
 import com.liferay.mail.reader.service.base.FolderLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 
 import java.util.Date;
 import java.util.List;
@@ -45,7 +47,7 @@ public class FolderLocalServiceImpl extends FolderLocalServiceBaseImpl {
 		throws PortalException {
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		long folderId = counterLocalService.increment();
 
@@ -54,8 +56,8 @@ public class FolderLocalServiceImpl extends FolderLocalServiceBaseImpl {
 		folder.setCompanyId(user.getCompanyId());
 		folder.setUserId(user.getUserId());
 		folder.setUserName(user.getFullName());
-		folder.setCreateDate(now);
-		folder.setModifiedDate(now);
+		folder.setCreateDate(date);
+		folder.setModifiedDate(date);
 		folder.setAccountId(accountId);
 		folder.setFullName(fullName);
 		folder.setDisplayName(displayName);
@@ -65,6 +67,7 @@ public class FolderLocalServiceImpl extends FolderLocalServiceBaseImpl {
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public Folder deleteFolder(Folder folder) throws PortalException {
 
 		// Folder

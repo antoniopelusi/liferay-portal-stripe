@@ -1,5 +1,10 @@
-<definition default="scrollWebElementIntoView">
-	<command name="scrollWebElementIntoView">
-		<execute selenium="scrollWebElementIntoView" />
-	</command>
-</definition>
+@default = "scrollWebElementIntoView"
+definition {
+
+	function scrollWebElementIntoView {
+		selenium.waitForElementPresent();
+
+		selenium.scrollWebElementIntoView();
+	}
+
+}

@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -50,7 +49,6 @@ import com.liferay.segments.asah.rest.client.pagination.Page;
 import com.liferay.segments.asah.rest.client.resource.v1_0.ExperimentResource;
 import com.liferay.segments.asah.rest.client.serdes.v1_0.ExperimentSerDes;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -223,7 +221,7 @@ public abstract class BaseExperimentResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteExperiment() throws Exception {
-		Experiment experiment = testGraphQLExperiment_addExperiment();
+		Experiment experiment = testGraphQLDeleteExperiment_addExperiment();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -238,7 +236,6 @@ public abstract class BaseExperimentResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteExperiment"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -254,6 +251,12 @@ public abstract class BaseExperimentResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Experiment testGraphQLDeleteExperiment_addExperiment()
+		throws Exception {
+
+		return testGraphQLExperiment_addExperiment();
 	}
 
 	@Test
@@ -274,7 +277,7 @@ public abstract class BaseExperimentResourceTestCase {
 
 	@Test
 	public void testGraphQLGetExperiment() throws Exception {
-		Experiment experiment = testGraphQLExperiment_addExperiment();
+		Experiment experiment = testGraphQLGetExperiment_addExperiment();
 
 		Assert.assertTrue(
 			equals(
@@ -316,11 +319,34 @@ public abstract class BaseExperimentResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Experiment testGraphQLGetExperiment_addExperiment()
+		throws Exception {
+
+		return testGraphQLExperiment_addExperiment();
+	}
+
 	protected Experiment testGraphQLExperiment_addExperiment()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		Experiment experiment, List<Experiment> experiments) {
+
+		boolean contains = false;
+
+		for (Experiment item : experiments) {
+			if (equals(experiment, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			experiments + " does not contain " + experiment, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -461,8 +487,8 @@ public abstract class BaseExperimentResourceTestCase {
 
 		graphQLFields.add(new GraphQLField("siteId"));
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.segments.asah.rest.dto.v1_0.Experiment.class)) {
 
 			if (!ArrayUtil.contains(
@@ -477,12 +503,13 @@ public abstract class BaseExperimentResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -496,7 +523,7 @@ public abstract class BaseExperimentResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -628,6 +655,19 @@ public abstract class BaseExperimentResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -930,8 +970,8 @@ public abstract class BaseExperimentResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseExperimentResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseExperimentResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

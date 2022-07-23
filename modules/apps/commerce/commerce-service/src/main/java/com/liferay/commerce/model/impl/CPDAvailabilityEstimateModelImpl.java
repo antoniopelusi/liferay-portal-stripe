@@ -16,7 +16,6 @@ package com.liferay.commerce.model.impl;
 
 import com.liferay.commerce.model.CPDAvailabilityEstimate;
 import com.liferay.commerce.model.CPDAvailabilityEstimateModel;
-import com.liferay.commerce.model.CPDAvailabilityEstimateSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -76,7 +74,8 @@ public class CPDAvailabilityEstimateModelImpl
 	public static final String TABLE_NAME = "CPDAvailabilityEstimate";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"uuid_", Types.VARCHAR}, {"CPDAvailabilityEstimateId", Types.BIGINT},
+		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
+		{"CPDAvailabilityEstimateId", Types.BIGINT},
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
 		{"modifiedDate", Types.TIMESTAMP},
@@ -88,6 +87,7 @@ public class CPDAvailabilityEstimateModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("CPDAvailabilityEstimateId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -101,7 +101,7 @@ public class CPDAvailabilityEstimateModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CPDAvailabilityEstimate (uuid_ VARCHAR(75) null,CPDAvailabilityEstimateId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commerceAvailabilityEstimateId LONG,CProductId LONG,lastPublishDate DATE null)";
+		"create table CPDAvailabilityEstimate (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,CPDAvailabilityEstimateId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commerceAvailabilityEstimateId LONG,CProductId LONG,lastPublishDate DATE null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CPDAvailabilityEstimate";
@@ -166,64 +166,6 @@ public class CPDAvailabilityEstimateModelImpl
 	 */
 	@Deprecated
 	public static final long CPDAVAILABILITYESTIMATEID_COLUMN_BITMASK = 16L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CPDAvailabilityEstimate toModel(
-		CPDAvailabilityEstimateSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		CPDAvailabilityEstimate model = new CPDAvailabilityEstimateImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setCPDAvailabilityEstimateId(
-			soapModel.getCPDAvailabilityEstimateId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setCommerceAvailabilityEstimateId(
-			soapModel.getCommerceAvailabilityEstimateId());
-		model.setCProductId(soapModel.getCProductId());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CPDAvailabilityEstimate> toModels(
-		CPDAvailabilityEstimateSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CPDAvailabilityEstimate> models =
-			new ArrayList<CPDAvailabilityEstimate>(soapModels.length);
-
-		for (CPDAvailabilityEstimateSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.service.util.ServiceProps.get(
@@ -315,34 +257,6 @@ public class CPDAvailabilityEstimateModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CPDAvailabilityEstimate>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CPDAvailabilityEstimate.class.getClassLoader(),
-			CPDAvailabilityEstimate.class, ModelWrapper.class);
-
-		try {
-			Constructor<CPDAvailabilityEstimate> constructor =
-				(Constructor<CPDAvailabilityEstimate>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CPDAvailabilityEstimate, Object>>
 		_attributeGetterFunctions;
 	private static final Map
@@ -359,6 +273,12 @@ public class CPDAvailabilityEstimateModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<CPDAvailabilityEstimate, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", CPDAvailabilityEstimate::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CPDAvailabilityEstimate, Long>)
+				CPDAvailabilityEstimate::setMvccVersion);
 		attributeGetterFunctions.put("uuid", CPDAvailabilityEstimate::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -425,6 +345,21 @@ public class CPDAvailabilityEstimateModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -715,6 +650,7 @@ public class CPDAvailabilityEstimateModelImpl
 		CPDAvailabilityEstimateImpl cpdAvailabilityEstimateImpl =
 			new CPDAvailabilityEstimateImpl();
 
+		cpdAvailabilityEstimateImpl.setMvccVersion(getMvccVersion());
 		cpdAvailabilityEstimateImpl.setUuid(getUuid());
 		cpdAvailabilityEstimateImpl.setCPDAvailabilityEstimateId(
 			getCPDAvailabilityEstimateId());
@@ -729,6 +665,38 @@ public class CPDAvailabilityEstimateModelImpl
 		cpdAvailabilityEstimateImpl.setLastPublishDate(getLastPublishDate());
 
 		cpdAvailabilityEstimateImpl.resetOriginalValues();
+
+		return cpdAvailabilityEstimateImpl;
+	}
+
+	@Override
+	public CPDAvailabilityEstimate cloneWithOriginalValues() {
+		CPDAvailabilityEstimateImpl cpdAvailabilityEstimateImpl =
+			new CPDAvailabilityEstimateImpl();
+
+		cpdAvailabilityEstimateImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		cpdAvailabilityEstimateImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		cpdAvailabilityEstimateImpl.setCPDAvailabilityEstimateId(
+			this.<Long>getColumnOriginalValue("CPDAvailabilityEstimateId"));
+		cpdAvailabilityEstimateImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		cpdAvailabilityEstimateImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		cpdAvailabilityEstimateImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		cpdAvailabilityEstimateImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		cpdAvailabilityEstimateImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		cpdAvailabilityEstimateImpl.setCommerceAvailabilityEstimateId(
+			this.<Long>getColumnOriginalValue(
+				"commerceAvailabilityEstimateId"));
+		cpdAvailabilityEstimateImpl.setCProductId(
+			this.<Long>getColumnOriginalValue("CProductId"));
+		cpdAvailabilityEstimateImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
 
 		return cpdAvailabilityEstimateImpl;
 	}
@@ -808,6 +776,8 @@ public class CPDAvailabilityEstimateModelImpl
 		CPDAvailabilityEstimateCacheModel cpdAvailabilityEstimateCacheModel =
 			new CPDAvailabilityEstimateCacheModel();
 
+		cpdAvailabilityEstimateCacheModel.mvccVersion = getMvccVersion();
+
 		cpdAvailabilityEstimateCacheModel.uuid = getUuid();
 
 		String uuid = cpdAvailabilityEstimateCacheModel.uuid;
@@ -874,7 +844,7 @@ public class CPDAvailabilityEstimateModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -885,10 +855,27 @@ public class CPDAvailabilityEstimateModelImpl
 			Function<CPDAvailabilityEstimate, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((CPDAvailabilityEstimate)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CPDAvailabilityEstimate)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -938,10 +925,12 @@ public class CPDAvailabilityEstimateModelImpl
 		private static final Function
 			<InvocationHandler, CPDAvailabilityEstimate>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						CPDAvailabilityEstimate.class, ModelWrapper.class);
 
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _CPDAvailabilityEstimateId;
 	private long _companyId;
@@ -983,6 +972,7 @@ public class CPDAvailabilityEstimateModelImpl
 	private void _setColumnOriginalValues() {
 		_columnOriginalValues = new HashMap<String, Object>();
 
+		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put("uuid_", _uuid);
 		_columnOriginalValues.put(
 			"CPDAvailabilityEstimateId", _CPDAvailabilityEstimateId);
@@ -1018,25 +1008,27 @@ public class CPDAvailabilityEstimateModelImpl
 	static {
 		Map<String, Long> columnBitmasks = new HashMap<>();
 
-		columnBitmasks.put("uuid_", 1L);
+		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("CPDAvailabilityEstimateId", 2L);
+		columnBitmasks.put("uuid_", 2L);
 
-		columnBitmasks.put("companyId", 4L);
+		columnBitmasks.put("CPDAvailabilityEstimateId", 4L);
 
-		columnBitmasks.put("userId", 8L);
+		columnBitmasks.put("companyId", 8L);
 
-		columnBitmasks.put("userName", 16L);
+		columnBitmasks.put("userId", 16L);
 
-		columnBitmasks.put("createDate", 32L);
+		columnBitmasks.put("userName", 32L);
 
-		columnBitmasks.put("modifiedDate", 64L);
+		columnBitmasks.put("createDate", 64L);
 
-		columnBitmasks.put("commerceAvailabilityEstimateId", 128L);
+		columnBitmasks.put("modifiedDate", 128L);
 
-		columnBitmasks.put("CProductId", 256L);
+		columnBitmasks.put("commerceAvailabilityEstimateId", 256L);
 
-		columnBitmasks.put("lastPublishDate", 512L);
+		columnBitmasks.put("CProductId", 512L);
+
+		columnBitmasks.put("lastPublishDate", 1024L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

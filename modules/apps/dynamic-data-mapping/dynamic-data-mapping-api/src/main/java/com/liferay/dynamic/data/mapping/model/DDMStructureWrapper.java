@@ -207,6 +207,11 @@ public class DDMStructureWrapper
 	}
 
 	@Override
+	public DDMStructure cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public DDMForm createFullHierarchyDDMForm()
 		throws com.liferay.portal.kernel.exception.PortalException {
 

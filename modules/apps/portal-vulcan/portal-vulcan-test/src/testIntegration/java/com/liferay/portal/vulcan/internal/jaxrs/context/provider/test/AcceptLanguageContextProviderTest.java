@@ -95,8 +95,6 @@ public class AcceptLanguageContextProviderTest {
 		CompanyTestUtil.resetCompanyLocales(
 			PortalUtil.getDefaultCompanyId(), _availableLocales,
 			_defaultLocale);
-
-		CompanyLocalServiceUtil.deleteCompany(_company.getCompanyId());
 	}
 
 	@Before

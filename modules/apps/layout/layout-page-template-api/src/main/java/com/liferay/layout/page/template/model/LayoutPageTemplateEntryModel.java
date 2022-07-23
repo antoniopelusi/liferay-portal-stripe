@@ -566,4 +566,7 @@ public interface LayoutPageTemplateEntryModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public LayoutPageTemplateEntry cloneWithOriginalValues();
+
 }

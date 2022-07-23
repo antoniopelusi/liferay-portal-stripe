@@ -20,7 +20,6 @@ import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.knowledge.base.service.KBArticleLocalServiceUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.json.JSONException;
@@ -62,31 +61,22 @@ public class KnowledgeBaseUtil {
 		long plid, long resourcePrimKey, int status, String portalURL,
 		boolean maximized) {
 
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(10);
 
 		sb.append(portalURL);
 		sb.append(PortalUtil.getPathMain());
-		sb.append("/knowledge_base/find_kb_article");
-		sb.append(StringPool.QUESTION);
-		sb.append("plid");
-		sb.append(StringPool.EQUAL);
+		sb.append("/knowledge_base/find_kb_article?plid=");
 		sb.append(plid);
-		sb.append(StringPool.AMPERSAND);
-		sb.append("resourcePrimKey");
-		sb.append(StringPool.EQUAL);
+		sb.append("&resourcePrimKey=");
 		sb.append(resourcePrimKey);
 
 		if (status != WorkflowConstants.STATUS_APPROVED) {
-			sb.append(StringPool.AMPERSAND);
-			sb.append("status");
-			sb.append(StringPool.EQUAL);
+			sb.append("&status=");
 			sb.append(status);
 		}
 
 		if (maximized) {
-			sb.append(StringPool.AMPERSAND);
-			sb.append("maximized");
-			sb.append(StringPool.EQUAL);
+			sb.append("&maximized=");
 			sb.append(maximized);
 		}
 
@@ -116,7 +106,7 @@ public class KnowledgeBaseUtil {
 		}
 		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioException, ioException);
+				_log.warn(ioException);
 			}
 		}
 

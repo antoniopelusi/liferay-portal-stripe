@@ -30,6 +30,10 @@ public class MBDiscussionLocalServiceWrapper
 	implements MBDiscussionLocalService,
 			   ServiceWrapper<MBDiscussionLocalService> {
 
+	public MBDiscussionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MBDiscussionLocalServiceWrapper(
 		MBDiscussionLocalService mbDiscussionLocalService) {
 
@@ -131,6 +135,13 @@ public class MBDiscussionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mbDiscussionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mbDiscussionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

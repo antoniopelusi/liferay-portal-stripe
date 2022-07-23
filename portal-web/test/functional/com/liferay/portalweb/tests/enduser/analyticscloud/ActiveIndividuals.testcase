@@ -1,0 +1,446 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		task ("Copy the token from AC") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Set up instance and sign in DXP") {
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+		}
+
+		task ("Add a new site and page") {
+			ACUtils.addSiteAndPage();
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+
+			JSONUser.tearDownNonAdminUsers();
+		}
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8913 | Test Summary: Assert Individual Activities Chart popover follows format"
+	@priority = "3"
+	test AssertIndividualActivitiesChartPopover {
+		property portal.upstream = "quarantine";
+
+		// AC Quarantine Reason: Not finding the date pattern
+		// AC Refactor ticket: LRAC-10517
+
+		task ("Add DM to AC Page") {
+			ACUtils.createDMAndAddToPage();
+		}
+
+		task ("Add a new user in DXP") {
+			JSONUser.addUser(
+				userEmailAddress = "ac@liferay.com",
+				userFirstName = "ac",
+				userLastName = "ac",
+				userScreenName = "ac");
+		}
+
+		task ("Get site assigned property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Sign in with the new user to visit the site pages") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "ac@liferay.com",
+				userLoginFullName = "ac ac");
+
+			ACUtils.navigateToSitePage(
+				actionType = "View DM",
+				documentTitleList = "DM AC Title,DM AC Title,DM AC Title",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close all sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Navigate to the Individual Activity Overview") {
+			ACNavigation.goToIndividuals();
+
+			ACNavigation.switchTab(tabName = "Known Individuals");
+
+			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "ac ac");
+		}
+
+		task ("Choose Custom Range") {
+			var displayDateDay = DateUtil.getCurrentDate();
+			var displayDateMonth = DateUtil.getCurrentMonthName();
+			var displayDateYear = DateUtil.getCurrentYear();
+			var previousDay = DateUtil.getFormattedDate("-1", "d");
+
+			ACTimeFilter.setCustomRange(
+				endDay = "${displayDateDay}",
+				endMonth = "${displayDateMonth}",
+				endYear = "${displayDateYear}",
+				startDay = "${previousDay}",
+				startMonth = "${displayDateMonth}",
+				startYear = "${displayDateYear}");
+
+			ACIndividualsDashboard.viewRechartsBarOnIndividualsActivitiesChart();
+		}
+
+		task ("Assert chart popover date formatted") {
+			var formattedDate = ACIndividualsDashboard.getChartPopoverDate();
+
+			var formattedDate = StringUtil.extractFirst("${formattedDate}", ",");
+
+			ACUtils.assertDatePattern(
+				date = "${formattedDate}",
+				format = "MMM d");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8916 | Test Summary: Selected individual activity point can clear date selection"
+	@priority = "3"
+	test AssertIndividualActivitiesOverviewClearDate {
+		task ("Add DM to AC Page") {
+			ACUtils.createDMAndAddToPage();
+		}
+
+		task ("Add a new user in DXP") {
+			JSONUser.addUser(
+				userEmailAddress = "ac@liferay.com",
+				userFirstName = "ac",
+				userLastName = "ac",
+				userScreenName = "ac");
+		}
+
+		task ("Get site assigned property name") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Sign in with the new user to visit the site pages") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "ac@liferay.com",
+				userLoginFullName = "ac ac");
+
+			ACUtils.navigateToSitePage(
+				actionType = "View DM",
+				documentTitleList = "DM AC Title,DM AC Title,DM AC Title",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close all sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Navigate to the Individual Activity Overview") {
+			ACNavigation.goToIndividuals();
+
+			ACNavigation.switchTab(tabName = "Known Individuals");
+
+			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "ac ac");
+		}
+
+		task ("Set time filter use last 24 hours") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("Assert the Individual Activity Chart displays") {
+			ACIndividualsDashboard.viewRechartsBarOnIndividualsActivitiesChart();
+		}
+
+		task ("Select the data on Individuals Activities chart") {
+			ACIndividualsDashboard.selectDataOnIndividualsActivitiesChart();
+		}
+
+		task ("Get current Date") {
+			var displayDateDay = DateUtil.getCurrentDate();
+			var displayDateMonth = DateUtil.getCurrentMonthName();
+			var displayDateYear = DateUtil.getCurrentYear();
+			var individualCurrentDate = selenium.getText("ACIndividualsDashboard#INDIVIDUALS_EVENTS_DATE");
+			var monthAndDay = StringUtil.extractFirst("${individualCurrentDate}", ",");
+			var currentDay = StringUtil.extractLast("${monthAndDay}", " ");
+			var result = MathUtil.isGreaterThan("${currentDay}", "${displayDateDay}");
+
+			if ("${result}" == "true") {
+				var displayDateDay = ${displayDateDay} + 1;
+			}
+
+			var displayDate = "${displayDateMonth} ${displayDateDay}, ${displayDateYear}";
+		}
+
+		task ("Assert the display time range") {
+			ACIndividualsDashboard.assertIndividualsActivitiesTimeRange(timeRange = "${displayDate}");
+		}
+
+		task ("Clear the time range") {
+			Click(locator1 = "ACIndividualsDashboard#CLEAR_DATE_SELECTION_BUTTON");
+		}
+
+		task ("Get the last 24 hours Date") {
+			var previousDay = ${displayDateDay} - 1;
+			var previousMonth = DateUtil.getFormattedDate("-1", "MMMM");
+			var previousDate = "${previousMonth} ${previousDay}, ${displayDateYear}";
+		}
+
+		task ("Assert the display time range") {
+			ACIndividualsDashboard.assertIndividualsActivitiesTimeRange(timeRange = "${previousDate} - ${displayDate}");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8914 | Test Summary: Assert Individual Activities time filter 180 Days"
+	@ignore = "true"
+	@priority = "3"
+	test AssertIndividualActivitiesTimeFilter180Days {
+
+		// AC Refactor: data doesn't appear on time and the test needs data from a past date
+		// AC Refactor ticket: LRAC-8970
+
+		task ("Add DM to AC Page") {
+			ACUtils.createDMAndAddToPage();
+		}
+
+		task ("Get site assigned property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Add a new user in DXP") {
+			JSONUser.addUser(
+				userEmailAddress = "ac@liferay.com",
+				userFirstName = "ac",
+				userLastName = "ac",
+				userScreenName = "ac");
+		}
+
+		task ("Sign in with the new user to visit the site pages") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "ac@liferay.com",
+				userLoginFullName = "ac ac");
+
+			ACUtils.navigateToSitePage(
+				actionType = "View DM",
+				documentTitleList = "DM AC Title",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close all sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Navigate to the Individual Activity Overview") {
+			ACNavigation.goToIndividuals();
+
+			ACNavigation.switchTab(tabName = "Known Individuals");
+
+			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "ac ac");
+		}
+
+		task ("Set time filter use 180Days") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast180Days();
+		}
+
+		task ("Assert the Individual Activity Chart displays") {
+			ACIndividualsDashboard.viewRechartsBarOnIndividualsActivitiesChart();
+		}
+	}
+
+	@description = "Assert an Individual's Segments"
+	@priority = "5"
+	test CanAssertIndividualSegment {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ACDXPSettings.syncNewContactData();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToSegments();
+
+		ACSegments.createStaticSegment();
+
+		ACUtils.setItemName(itemName = "Static Segment Test");
+
+		ACSegments.addStaticMember(tableMember = "userfn userln");
+
+		ACSegments.saveSegment();
+
+		ACNavigation.goToIndividuals();
+
+		ACNavigation.switchTab(tabName = "Known Individuals");
+
+		ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "userfn userln");
+
+		ACNavigation.switchTab(tabName = "Segments");
+
+		ACIndividualsDashboard.assertIndividualAttribute(individualAttribute = "Static Segment Test");
+	}
+
+	@description = "Assert Individual Activities Custom Range (when changing to an valida data time period)"
+	@ignore = "true"
+	@priority = "5"
+	test CanSetDataWithCustomRangeOnIndividualActivitiesCard {
+
+		// Tests with custom range are not possible to automate now. These cases will be automated on personas.
+
+		ACUtils.createDMAndAddToPage();
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		ACUtils.navigateToSitePage(
+			actionType = "Download DM",
+			documentTitleList = "DM AC Title",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToIndividuals();
+
+		var displayDateDay = DateUtil.getCurrentDate();
+		var displayDateMonth = DateUtil.getCurrentMonthName();
+		var displayDateYear = DateUtil.getCurrentYear();
+		var previousDay = DateUtil.getFormattedDate("-1", "d");
+		var previousMonth = DateUtil.getFormattedDate("-1", "MMMM");
+
+		ACUtils.assertActiveIndividualChart(
+			endDay = "${displayDateDay}",
+			endMonth = "${displayDateMonth}",
+			endYear = "${displayDateYear}",
+			startDay = "${previousDay}",
+			startMonth = "${previousMonth}",
+			startYear = "${displayDateYear}",
+			timeFilter = "Custom Range");
+	}
+
+	@description = "Set custom range filter with empty data for individual activity"
+	@priority = "5"
+	test CanSetEmptyDataCustomRangeOnIndividualActivitiesCard {
+		ACUtils.createDMAndAddToPage();
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		ACUtils.navigateToSitePage(
+			actionType = "View DM",
+			documentTitleList = "DM AC Title,DM AC Title,DM AC Title,DM AC Title",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToIndividuals();
+
+		ACTimeFilter.setCustomRange(
+			endDay = "13",
+			endMonth = "July",
+			endYear = "2020",
+			startDay = "1",
+			startMonth = "July",
+			startYear = "2020");
+
+		ACTimeFilter.assertCurrentTimeFilterRange(timeFilterRange = "Jul 1, 2020 - Jul 13, 2020");
+
+		AssertElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8139 | Test Summary: Active individual graph shows activities from today when switched to the 24hr filter"
+	@priority = "5"
+	test GraphShowsActivitiesFromTodayWhenSwitchedTo24HrFilter {
+		ACUtils.createDMAndAddToPage();
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "ac@liferay.com",
+			userFirstName = "ac",
+			userLastName = "ac",
+			userScreenName = "ac");
+
+		ACDXPSettings.syncNewContactData();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "ac@liferay.com",
+			userLoginFullName = "ac ac");
+
+		ACUtils.navigateToSitePage(
+			actionType = "View DM",
+			documentTitleList = "DM AC Title,DM AC Title,DM AC Title,DM AC Title",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToIndividuals();
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACUtils.assertActiveIndividualChart(timeFilter = "Last 24 hours");
+	}
+
+}

@@ -17,8 +17,8 @@ package com.liferay.change.tracking.internal.background.task;
 import com.liferay.change.tracking.conflict.ConflictInfo;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.internal.CTServiceRegistry;
-import com.liferay.change.tracking.internal.CTTableMapperHelper;
 import com.liferay.change.tracking.internal.background.task.display.CTPublishBackgroundTaskDisplay;
+import com.liferay.change.tracking.internal.helper.CTTableMapperHelper;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
@@ -26,7 +26,7 @@ import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.service.CTMessageLocalService;
 import com.liferay.change.tracking.service.CTProcessLocalService;
 import com.liferay.change.tracking.service.CTSchemaVersionLocalService;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
@@ -101,8 +101,9 @@ public class CTPublishBackgroundTaskExecutor
 					" because it is out of date with the current release"));
 		}
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(ctCollectionId)) {
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollectionId)) {
 
 			_ctServiceRegistry.onBeforePublish(ctCollectionId);
 		}

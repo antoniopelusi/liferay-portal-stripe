@@ -15,7 +15,7 @@
 package com.liferay.account.admin.web.internal.portlet.action;
 
 import com.liferay.account.constants.AccountPortletKeys;
-import com.liferay.account.service.AccountRoleLocalService;
+import com.liferay.account.service.AccountRoleService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -33,6 +33,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_MANAGEMENT,
 		"mvc.command.name=/account_admin/assign_account_role_users"
 	},
 	service = MVCActionCommand.class
@@ -52,12 +53,12 @@ public class AssignAccountRoleUsersMVCActionCommand
 			actionRequest, "accountUserIds");
 
 		for (long accountUserId : accountUserIds) {
-			_accountRoleLocalService.associateUser(
+			_accountRoleService.associateUser(
 				accountEntryId, accountRoleId, accountUserId);
 		}
 	}
 
 	@Reference
-	private AccountRoleLocalService _accountRoleLocalService;
+	private AccountRoleService _accountRoleService;
 
 }

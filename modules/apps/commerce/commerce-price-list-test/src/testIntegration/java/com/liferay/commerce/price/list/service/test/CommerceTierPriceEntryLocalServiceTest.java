@@ -29,8 +29,6 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -49,6 +47,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,7 +57,6 @@ import org.junit.runner.RunWith;
  * @author Zoltán Takács
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommerceTierPriceEntryLocalServiceTest {
 
@@ -69,10 +67,13 @@ public class CommerceTierPriceEntryLocalServiceTest {
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
 
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		_company = CompanyTestUtil.addCompany();
+	}
+
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
-
 		User defaultUser = _company.getDefaultUser();
 
 		_group = GroupTestUtil.addGroup(
@@ -169,7 +170,7 @@ public class CommerceTierPriceEntryLocalServiceTest {
 	}
 
 	@Test
-	public void testUpsertCommerceTierPriceEntry1() throws Exception {
+	public void testAddOrUpdateCommerceTierPriceEntry1() throws Exception {
 		frutillaRule.scenario(
 			"Adding a Tier Price Entry to a Price Entry"
 		).given(
@@ -203,7 +204,7 @@ public class CommerceTierPriceEntryLocalServiceTest {
 		double promoPrice = RandomTestUtil.randomDouble();
 
 		CommerceTierPriceEntry commerceTierPriceEntry =
-			CommerceTierPriceEntryTestUtil.upsertCommerceTierPriceEntry(
+			CommerceTierPriceEntryTestUtil.addOrUpdateCommerceTierPriceEntry(
 				_company.getCompanyId(), 0L,
 				commercePriceEntry.getCommercePriceEntryId(), minQuantity,
 				price, promoPrice, null, null);
@@ -214,7 +215,7 @@ public class CommerceTierPriceEntryLocalServiceTest {
 	}
 
 	@Test
-	public void testUpsertCommerceTierPriceEntry2() throws Exception {
+	public void testAddOrUpdateCommerceTierPriceEntry2() throws Exception {
 		frutillaRule.scenario(
 			"Updating a Tier Price Entry on a Price Entry"
 		).given(
@@ -250,7 +251,7 @@ public class CommerceTierPriceEntryLocalServiceTest {
 		double price = RandomTestUtil.randomDouble();
 		double promoPrice = RandomTestUtil.randomDouble();
 
-		CommerceTierPriceEntryTestUtil.upsertCommerceTierPriceEntry(
+		CommerceTierPriceEntryTestUtil.addOrUpdateCommerceTierPriceEntry(
 			_company.getCompanyId(), 0L,
 			commercePriceEntry.getCommercePriceEntryId(), minQuantity, price,
 			promoPrice, externalReferenceCode, null);
@@ -265,7 +266,7 @@ public class CommerceTierPriceEntryLocalServiceTest {
 	}
 
 	@Test(expected = DuplicateCommerceTierPriceEntryException.class)
-	public void testUpsertCommerceTierPriceEntry3() throws Exception {
+	public void testAddOrUpdateCommerceTierPriceEntry3() throws Exception {
 		frutillaRule.scenario(
 			"Adding a new Tier Price Entry on a Price Entry where the same " +
 				"amount of minQuantity is already used in another entry"
@@ -303,14 +304,14 @@ public class CommerceTierPriceEntryLocalServiceTest {
 			commercePriceEntry.getCommercePriceEntryId(), minQuantity, price,
 			promoPrice, null);
 
-		CommerceTierPriceEntryTestUtil.upsertCommerceTierPriceEntry(
+		CommerceTierPriceEntryTestUtil.addOrUpdateCommerceTierPriceEntry(
 			_company.getCompanyId(), 0L,
 			commercePriceEntry.getCommercePriceEntryId(), minQuantity, price,
 			promoPrice, null, null);
 	}
 
 	@Test(expected = NoSuchPriceEntryException.class)
-	public void testUpsertCommerceTierPriceEntry4() throws Exception {
+	public void testAddOrUpdateCommerceTierPriceEntry4() throws Exception {
 		frutillaRule.scenario(
 			"Adding a new Tier Price Entry where the referred Price Entry " +
 				"does not exist"
@@ -342,13 +343,13 @@ public class CommerceTierPriceEntryLocalServiceTest {
 		double price = RandomTestUtil.randomDouble();
 		double promoPrice = RandomTestUtil.randomDouble();
 
-		CommerceTierPriceEntryTestUtil.upsertCommerceTierPriceEntry(
+		CommerceTierPriceEntryTestUtil.addOrUpdateCommerceTierPriceEntry(
 			_company.getCompanyId(), 0L, commercePriceEntryId, minQuantity,
 			price, promoPrice, null, null);
 	}
 
 	@Test
-	public void testUpsertCommerceTierPriceEntry5() throws Exception {
+	public void testAddOrUpdateCommerceTierPriceEntry5() throws Exception {
 		frutillaRule.scenario(
 			"Adding a new Tier Price Entry where the referred Price Entry is " +
 				"given by its external reference code"
@@ -387,7 +388,7 @@ public class CommerceTierPriceEntryLocalServiceTest {
 		double price = RandomTestUtil.randomDouble();
 		double promoPrice = RandomTestUtil.randomDouble();
 
-		CommerceTierPriceEntryTestUtil.upsertCommerceTierPriceEntry(
+		CommerceTierPriceEntryTestUtil.addOrUpdateCommerceTierPriceEntry(
 			_company.getCompanyId(), 0L, 0L, minQuantity, price, promoPrice,
 			null, priceEntryExternalReferenceCode);
 
@@ -443,6 +444,8 @@ public class CommerceTierPriceEntryLocalServiceTest {
 		Assert.assertEquals(promoPrice, actualPromoPrice.doubleValue(), 0.0001);
 	}
 
+	private static Company _company;
+
 	@Inject
 	private CommercePriceEntryLocalService _commercePriceEntryLocalService;
 
@@ -452,9 +455,6 @@ public class CommerceTierPriceEntryLocalServiceTest {
 	@Inject
 	private CommerceTierPriceEntryLocalService
 		_commerceTierPriceEntryLocalService;
-
-	@DeleteAfterTestRun
-	private Company _company;
 
 	private Group _group;
 

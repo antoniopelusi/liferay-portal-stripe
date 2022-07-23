@@ -142,4 +142,7 @@ public interface DLSyncEventModel extends BaseModel<DLSyncEvent>, ShardedModel {
 	 */
 	public void setTypePK(long typePK);
 
+	@Override
+	public DLSyncEvent cloneWithOriginalValues();
+
 }

@@ -23,13 +23,14 @@ import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
-import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -86,18 +87,8 @@ public interface CommerceShippingFixedOptionLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public CommerceShippingFixedOption addCommerceShippingFixedOption(
 			long userId, long groupId, long commerceShippingMethodId,
-			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
-			BigDecimal amount, double priority)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public CommerceShippingFixedOption addCommerceShippingFixedOption(
-			long commerceShippingMethodId, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, BigDecimal amount,
-			double priority, ServiceContext serviceContext)
+			BigDecimal amount, Map<Locale, String> descriptionMap, String key,
+			Map<Locale, String> nameMap, double priority)
 		throws PortalException;
 
 	/**
@@ -127,6 +118,7 @@ public interface CommerceShippingFixedOptionLocalService
 	 * @return the commerce shipping fixed option that was removed
 	 */
 	@Indexable(type = IndexableType.DELETE)
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommerceShippingFixedOption deleteCommerceShippingFixedOption(
 		CommerceShippingFixedOption commerceShippingFixedOption);
 
@@ -158,6 +150,9 @@ public interface CommerceShippingFixedOptionLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -230,7 +225,17 @@ public interface CommerceShippingFixedOptionLocalService
 		long commerceShippingFixedOptionId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceShippingFixedOption fetchCommerceShippingFixedOption(
+		long companyId, String key);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CommerceShippingFixedOption>
+		getCommerceOrderTypeCommerceShippingFixedOptions(
+			long companyId, long commerceOrderTypeId,
+			long commerceShippingMethodId);
 
 	/**
 	 * Returns the commerce shipping fixed option with the primary key.
@@ -331,9 +336,9 @@ public interface CommerceShippingFixedOptionLocalService
 		CommerceShippingFixedOption commerceShippingFixedOption);
 
 	public CommerceShippingFixedOption updateCommerceShippingFixedOption(
-			long commerceShippingFixedOptionId, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, BigDecimal amount,
-			double priority)
+			long commerceShippingFixedOptionId, BigDecimal amount,
+			Map<Locale, String> descriptionMap, String key,
+			Map<Locale, String> nameMap, double priority)
 		throws PortalException;
 
 }

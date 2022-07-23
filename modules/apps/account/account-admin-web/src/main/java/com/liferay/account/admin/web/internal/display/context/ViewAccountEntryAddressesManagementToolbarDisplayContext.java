@@ -14,24 +14,35 @@
 
 package com.liferay.account.admin.web.internal.display.context;
 
+import com.liferay.account.admin.web.internal.display.AccountEntryDisplay;
 import com.liferay.account.admin.web.internal.display.AddressDisplay;
+import com.liferay.account.admin.web.internal.security.permission.resource.AccountEntryPermission;
 import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.portlet.PortletURL;
 
@@ -57,28 +68,46 @@ public class ViewAccountEntryAddressesManagementToolbarDisplayContext
 	@Override
 	public List<DropdownItem> getActionDropdownItems() {
 		return DropdownItemList.of(
-			() -> {
-				DropdownItem dropdownItem = new DropdownItem();
+			DropdownItemBuilder.putData(
+				"action", "deleteAccountEntryAddresses"
+			).putData(
+				"deleteAccountEntryAddressesURL",
+				PortletURLBuilder.createActionURL(
+					liferayPortletResponse
+				).setActionName(
+					"/account_admin/delete_account_entry_addresses"
+				).setRedirect(
+					currentURLObj
+				).setParameter(
+					"accountEntryId",
+					ParamUtil.getLong(liferayPortletRequest, "accountEntryId")
+				).buildString()
+			).setIcon(
+				"times-circle"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "delete")
+			).setQuickAction(
+				true
+			).build());
+	}
 
-				dropdownItem.putData("action", "deleteAccountEntryAddresses");
+	public List<String> getAvailableActions(
+			AccountEntryDisplay accountEntryDisplay)
+		throws PortalException {
 
-				dropdownItem.putData(
-					"deleteAccountEntryAddressesURL",
-					PortletURLBuilder.createActionURL(
-						liferayPortletResponse
-					).setActionName(
-						"/account_admin/delete_account_entry_addresses"
-					).setRedirect(
-						currentURLObj.toString()
-					).buildString());
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
-				dropdownItem.setIcon("times-circle");
-				dropdownItem.setLabel(
-					LanguageUtil.get(httpServletRequest, "delete"));
-				dropdownItem.setQuickAction(true);
+		if (AccountEntryPermission.contains(
+				themeDisplay.getPermissionChecker(),
+				accountEntryDisplay.getAccountEntryId(), ActionKeys.UPDATE)) {
 
-				return dropdownItem;
-			});
+			return Collections.<String>singletonList(
+				"deleteAccountEntryAddresses");
+		}
+
+		return Collections.<String>emptyList();
 	}
 
 	@Override
@@ -87,6 +116,8 @@ public class ViewAccountEntryAddressesManagementToolbarDisplayContext
 			getPortletURL()
 		).setKeywords(
 			StringPool.BLANK
+		).setParameter(
+			"type", (String)null
 		).buildString();
 	}
 
@@ -112,13 +143,34 @@ public class ViewAccountEntryAddressesManagementToolbarDisplayContext
 	}
 
 	@Override
+	public List<LabelItem> getFilterLabelItems() {
+		return LabelItemListBuilder.add(
+			() -> !Objects.equals(getNavigation(), "all"),
+			labelItem -> {
+				labelItem.putData(
+					"removeLabelURL",
+					PortletURLBuilder.create(
+						getPortletURL()
+					).setParameter(
+						"type", (String)null
+					).buildString());
+				labelItem.setDismissible(true);
+				labelItem.setLabel(
+					String.format(
+						"%s: %s", LanguageUtil.get(httpServletRequest, "type"),
+						LanguageUtil.get(httpServletRequest, getNavigation())));
+			}
+		).build();
+	}
+
+	@Override
 	public PortletURL getPortletURL() {
 		try {
 			return PortletURLUtil.clone(currentURLObj, liferayPortletResponse);
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return liferayPortletResponse.createRenderURL();
@@ -138,6 +190,23 @@ public class ViewAccountEntryAddressesManagementToolbarDisplayContext
 	}
 
 	@Override
+	public Boolean isShowCreationMenu() {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return AccountEntryPermission.contains(
+			themeDisplay.getPermissionChecker(),
+			ParamUtil.getLong(liferayPortletRequest, "accountEntryId"),
+			ActionKeys.UPDATE);
+	}
+
+	@Override
+	protected String getFilterNavigationDropdownItemsLabel() {
+		return LanguageUtil.get(httpServletRequest, "filter-by-type");
+	}
+
+	@Override
 	protected String getNavigation() {
 		return ParamUtil.getString(
 			liferayPortletRequest, getNavigationParam(), "all");
@@ -145,7 +214,12 @@ public class ViewAccountEntryAddressesManagementToolbarDisplayContext
 
 	@Override
 	protected String[] getNavigationKeys() {
-		return new String[] {"all"};
+		return new String[] {"all", "billing", "shipping"};
+	}
+
+	@Override
+	protected String getNavigationParam() {
+		return "type";
 	}
 
 	@Override

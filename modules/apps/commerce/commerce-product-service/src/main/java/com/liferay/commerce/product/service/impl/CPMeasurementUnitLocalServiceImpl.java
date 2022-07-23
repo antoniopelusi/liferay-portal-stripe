@@ -98,11 +98,25 @@ public class CPMeasurementUnitLocalServiceImpl
 	}
 
 	@Override
+	public CPMeasurementUnit fetchCPMeasurementUnit(long companyId, String key)
+		throws PortalException {
+
+		return cpMeasurementUnitPersistence.fetchByC_K(companyId, key);
+	}
+
+	@Override
 	public CPMeasurementUnit fetchPrimaryCPMeasurementUnit(
 		long companyId, int type) {
 
 		return cpMeasurementUnitPersistence.fetchByC_P_T_First(
 			companyId, true, type, new CPMeasurementUnitPriorityComparator());
+	}
+
+	@Override
+	public CPMeasurementUnit getCPMeasurementUnit(long companyId, String key)
+		throws PortalException {
+
+		return cpMeasurementUnitPersistence.findByC_K(companyId, key);
 	}
 
 	@Override
@@ -130,14 +144,14 @@ public class CPMeasurementUnitLocalServiceImpl
 
 	@Override
 	public List<CPMeasurementUnit> getCPMeasurementUnits(
-		long companyId, String[] keys, int type) {
+		long companyId, String[] keys) {
 
 		List<CPMeasurementUnit> cpMeasurementUnits = new ArrayList<>(
 			keys.length);
 
 		for (String key : keys) {
 			CPMeasurementUnit cpMeasurementUnit =
-				cpMeasurementUnitPersistence.fetchByC_K_T(companyId, key, type);
+				cpMeasurementUnitPersistence.fetchByC_K(companyId, key);
 
 			if (cpMeasurementUnit != null) {
 				cpMeasurementUnits.add(cpMeasurementUnit);
@@ -171,7 +185,7 @@ public class CPMeasurementUnitLocalServiceImpl
 			"meters", "m", 0.0254, false, 3,
 			CPMeasurementUnitConstants.TYPE_DIMENSION, serviceContext);
 		_addCPMeasurementUnit(
-			"millimeters", "mm", 25.4, false, 1,
+			"millimeters", "mm", 25.4, false, 4,
 			CPMeasurementUnitConstants.TYPE_DIMENSION, serviceContext);
 
 		_addCPMeasurementUnit(
@@ -186,6 +200,10 @@ public class CPMeasurementUnitLocalServiceImpl
 		_addCPMeasurementUnit(
 			"grams", "g", 453.59237, false, 4,
 			CPMeasurementUnitConstants.TYPE_WEIGHT, serviceContext);
+
+		_addCPMeasurementUnit(
+			"piece(s)", "pc", 1, true, 1, CPMeasurementUnitConstants.TYPE_UNIT,
+			serviceContext);
 	}
 
 	@Override
@@ -239,7 +257,7 @@ public class CPMeasurementUnitLocalServiceImpl
 		throws PortalException {
 
 		CPMeasurementUnit cpMeasurementUnit =
-			cpMeasurementUnitPersistence.fetchByC_K_T(companyId, key, type);
+			cpMeasurementUnitPersistence.fetchByC_K(companyId, key);
 
 		if ((cpMeasurementUnit != null) &&
 			(cpMeasurementUnit.getCPMeasurementUnitId() !=
@@ -275,8 +293,8 @@ public class CPMeasurementUnitLocalServiceImpl
 		).build();
 
 		CPMeasurementUnit cpMeasurementUnit =
-			cpMeasurementUnitPersistence.fetchByC_K_T(
-				serviceContext.getCompanyId(), key, type);
+			cpMeasurementUnitPersistence.fetchByC_K(
+				serviceContext.getCompanyId(), key);
 
 		if (cpMeasurementUnit == null) {
 			cpMeasurementUnitLocalService.addCPMeasurementUnit(

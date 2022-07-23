@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<xmi:XMI xmi:version="2.0" xmlns:TalendProperties="http://www.talend.org/properties" xmlns:xmi="http://www.omg.org/XMI">
+	<TalendProperties:Project author="_xSDf4bI8Eeu1eaA2EzSHFQ" bigData="false" description="" itemsRelationVersion="1.3" label="TOS_711_LIFERAY" language="java" local="true" productVersion="Talend Open Studio for ESB-7.1.1.20181026_1147" technicalLabel="TOS_711_LIFERAY" xmi:id="_xSDf4LI8Eeu1eaA2EzSHFQ">
+		<migrationTask breaks="7.1.0" id="org.talend.repository.model.migration.CheckProductVersionMigrationTask" version="7.1.1" xmi:id="_xTki0LI8Eeu1eaA2EzSHFQ" />
+	</TalendProperties:Project>
+	<TalendProperties:User login="user@talend.com" password="D41D8CD98F00B204E9800998ECF8427E" xmi:id="_xSDf4bI8Eeu1eaA2EzSHFQ" />
+</xmi:XMI>

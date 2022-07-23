@@ -452,4 +452,7 @@ public interface LayoutPrototypeModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public LayoutPrototype cloneWithOriginalValues();
+
 }

@@ -20,8 +20,8 @@ import com.liferay.commerce.notification.model.CommerceNotificationTemplateTable
 import com.liferay.commerce.notification.model.impl.CommerceNotificationTemplateImpl;
 import com.liferay.commerce.notification.model.impl.CommerceNotificationTemplateModelImpl;
 import com.liferay.commerce.notification.service.persistence.CommerceNotificationTemplatePersistence;
+import com.liferay.commerce.notification.service.persistence.CommerceNotificationTemplateUtil;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -32,22 +32,24 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -56,12 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the commerce notification template service.
@@ -4483,6 +4479,8 @@ public class CommerceNotificationTemplatePersistenceImpl
 			commerceNotificationTemplate);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the commerce notification templates in the entity cache if it is enabled.
 	 *
@@ -4491,6 +4489,14 @@ public class CommerceNotificationTemplatePersistenceImpl
 	@Override
 	public void cacheResult(
 		List<CommerceNotificationTemplate> commerceNotificationTemplates) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (commerceNotificationTemplates.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (CommerceNotificationTemplate commerceNotificationTemplate :
 				commerceNotificationTemplates) {
@@ -4589,7 +4595,7 @@ public class CommerceNotificationTemplatePersistenceImpl
 		commerceNotificationTemplate.setPrimaryKey(
 			commerceNotificationTemplateId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		commerceNotificationTemplate.setUuid(uuid);
 
@@ -4723,7 +4729,7 @@ public class CommerceNotificationTemplatePersistenceImpl
 					commerceNotificationTemplate;
 
 		if (Validator.isNull(commerceNotificationTemplate.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			commerceNotificationTemplate.setUuid(uuid);
 		}
@@ -4731,25 +4737,25 @@ public class CommerceNotificationTemplatePersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (commerceNotificationTemplate.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				commerceNotificationTemplate.setCreateDate(now);
+				commerceNotificationTemplate.setCreateDate(date);
 			}
 			else {
 				commerceNotificationTemplate.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!commerceNotificationTemplateModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				commerceNotificationTemplate.setModifiedDate(now);
+				commerceNotificationTemplate.setModifiedDate(date);
 			}
 			else {
 				commerceNotificationTemplate.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -5058,15 +5064,8 @@ public class CommerceNotificationTemplatePersistenceImpl
 	 * Initializes the commerce notification template persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommerceNotificationTemplatePersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new CommerceNotificationTemplateModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -5188,16 +5187,34 @@ public class CommerceNotificationTemplatePersistenceImpl
 				Boolean.class.getName()
 			},
 			new String[] {"groupId", "type_", "enabled"}, false);
+
+		_setCommerceNotificationTemplateUtilPersistence(this);
 	}
 
 	public void destroy() {
+		_setCommerceNotificationTemplateUtilPersistence(null);
+
 		entityCache.removeCache(
 			CommerceNotificationTemplateImpl.class.getName());
-
-		_argumentsResolverServiceRegistration.unregister();
 	}
 
-	private BundleContext _bundleContext;
+	private void _setCommerceNotificationTemplateUtilPersistence(
+		CommerceNotificationTemplatePersistence
+			commerceNotificationTemplatePersistence) {
+
+		try {
+			Field field =
+				CommerceNotificationTemplateUtil.class.getDeclaredField(
+					"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, commerceNotificationTemplatePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -5265,124 +5282,7 @@ public class CommerceNotificationTemplatePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class CommerceNotificationTemplateModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			CommerceNotificationTemplateModelImpl
-				commerceNotificationTemplateModelImpl =
-					(CommerceNotificationTemplateModelImpl)baseModel;
-
-			long columnBitmask =
-				commerceNotificationTemplateModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					commerceNotificationTemplateModelImpl, columnNames,
-					original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						commerceNotificationTemplateModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					commerceNotificationTemplateModelImpl, columnNames,
-					original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return CommerceNotificationTemplateImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return CommerceNotificationTemplateTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			CommerceNotificationTemplateModelImpl
-				commerceNotificationTemplateModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						commerceNotificationTemplateModelImpl.
-							getColumnOriginalValue(columnName);
-				}
-				else {
-					arguments[i] =
-						commerceNotificationTemplateModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |=
-				CommerceNotificationTemplateModelImpl.getColumnBitmask(
-					"modifiedDate");
-			orderByColumnsBitmask |=
-				CommerceNotificationTemplateModelImpl.getColumnBitmask("name");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

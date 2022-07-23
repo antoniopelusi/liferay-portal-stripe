@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Dynamic Data Mapping API
 Bundle-SymbolicName: com.liferay.dynamic.data.mapping.api
-Bundle-Version: 9.4.0
+Bundle-Version: 11.2.2
 Export-Package:\
 	com.liferay.dynamic.data.mapping.annotations,\
 	com.liferay.dynamic.data.mapping.configuration,\
@@ -19,8 +19,11 @@ Export-Package:\
 	com.liferay.dynamic.data.mapping.form.evaluator,\
 	com.liferay.dynamic.data.mapping.form.field.type,\
 	com.liferay.dynamic.data.mapping.form.field.type.image,\
+	com.liferay.dynamic.data.mapping.form.page.change,\
 	com.liferay.dynamic.data.mapping.form.renderer,\
 	com.liferay.dynamic.data.mapping.form.renderer.constants,\
+	com.liferay.dynamic.data.mapping.form.validation,\
+	com.liferay.dynamic.data.mapping.form.validation.util,\
 	com.liferay.dynamic.data.mapping.form.values.factory,\
 	com.liferay.dynamic.data.mapping.form.values.query,\
 	com.liferay.dynamic.data.mapping.info.display.field,\
@@ -41,7 +44,3 @@ Export-Package:\
 	com.liferay.dynamic.data.mapping.util.comparator,\
 	com.liferay.dynamic.data.mapping.validator,\
 	com.liferay.dynamic.data.mapping.webdav
-Provide-Capability:\
-	liferay.resource.bundle;\
-		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.dynamic.data.mapping.lang)";\
-		resource.bundle.base.name="content.Language"

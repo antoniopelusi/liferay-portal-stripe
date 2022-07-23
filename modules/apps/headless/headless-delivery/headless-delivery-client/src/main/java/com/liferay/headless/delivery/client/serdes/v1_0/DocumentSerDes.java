@@ -63,7 +63,7 @@ public class DocumentSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (document.getActions() != null) {
 			if (sb.length() > 1) {
@@ -251,6 +251,20 @@ public class DocumentSerDes {
 			sb.append("\"");
 
 			sb.append(_escape(document.getEncodingFormat()));
+
+			sb.append("\"");
+		}
+
+		if (document.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(document.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -463,7 +477,7 @@ public class DocumentSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (document.getActions() == null) {
 			map.put("actions", null);
@@ -573,6 +587,15 @@ public class DocumentSerDes {
 		else {
 			map.put(
 				"encodingFormat", String.valueOf(document.getEncodingFormat()));
+		}
+
+		if (document.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(document.getExternalReferenceCode()));
 		}
 
 		if (document.getFileExtension() == null) {
@@ -781,6 +804,14 @@ public class DocumentSerDes {
 			else if (Objects.equals(jsonParserFieldName, "encodingFormat")) {
 				if (jsonParserFieldValue != null) {
 					document.setEncodingFormat((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					document.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "fileExtension")) {

@@ -1,0 +1,12 @@
+{
+	"articleId": "job13",
+	"assetCategoryERCs": [
+		"CAT_HR"
+	],
+	"assetTagNames": [
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "Junior HR Adivsor"
+}

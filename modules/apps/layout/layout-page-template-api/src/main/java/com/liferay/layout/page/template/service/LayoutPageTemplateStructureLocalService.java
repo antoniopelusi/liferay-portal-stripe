@@ -87,20 +87,9 @@ public interface LayoutPageTemplateStructureLocalService
 	public LayoutPageTemplateStructure addLayoutPageTemplateStructure(
 		LayoutPageTemplateStructure layoutPageTemplateStructure);
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #addLayoutPageTemplateStructure(long, long, long, long,
-	 String, ServiceContext)}
-	 */
-	@Deprecated
 	public LayoutPageTemplateStructure addLayoutPageTemplateStructure(
-			long userId, long groupId, long classNameId, long classPK,
+			long userId, long groupId, long plid, long segmentsExperienceId,
 			String data, ServiceContext serviceContext)
-		throws PortalException;
-
-	public LayoutPageTemplateStructure addLayoutPageTemplateStructure(
-			long userId, long groupId, long plid, String data,
-			ServiceContext serviceContext)
 		throws PortalException;
 
 	/**
@@ -155,15 +144,6 @@ public interface LayoutPageTemplateStructureLocalService
 		throws PortalException;
 
 	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #deleteLayoutPageTemplateStructure(long, long)}
-	 */
-	@Deprecated
-	public LayoutPageTemplateStructure deleteLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK)
-		throws PortalException;
-
-	/**
 	 * @throws PortalException
 	 */
 	@Override
@@ -172,6 +152,9 @@ public interface LayoutPageTemplateStructureLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -250,26 +233,6 @@ public interface LayoutPageTemplateStructureLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
 			long groupId, long plid, boolean rebuildStructure)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #fetchLayoutPageTemplateStructure(long, long)}
-	 */
-	@Deprecated
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
-		long groupId, long classNameId, long classPK);
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #fetchLayoutPageTemplateStructure(long, long, boolean)}
-	 */
-	@Deprecated
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK,
-			boolean rebuildStructure)
 		throws PortalException;
 
 	/**
@@ -391,15 +354,6 @@ public interface LayoutPageTemplateStructureLocalService
 		throws PortalException;
 
 	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #rebuildLayoutPageTemplateStructure(long, long)}
-	 */
-	@Deprecated
-	public LayoutPageTemplateStructure rebuildLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK)
-		throws PortalException;
-
-	/**
 	 * Updates the layout page template structure in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
 	 * <p>
@@ -412,26 +366,6 @@ public interface LayoutPageTemplateStructureLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
 		LayoutPageTemplateStructure layoutPageTemplateStructure);
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateLayoutPageTemplateStructureData(long, long, long,
-	 String)}
-	 */
-	@Deprecated
-	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK,
-			long segmentsExperienceId, String data)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateLayoutPageTemplateStructureData(long, long, String)}
-	 */
-	@Deprecated
-	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK, String data)
-		throws PortalException;
 
 	public LayoutPageTemplateStructure updateLayoutPageTemplateStructureData(
 			long groupId, long plid, long segmentsExperienceId, String data)

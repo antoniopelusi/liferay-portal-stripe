@@ -75,6 +75,17 @@
 			<rtexprvalue>true</rtexprvalue>
 			<type>java.util.Set</type>
 		</attribute>
+		<attribute>
+			<name>searchableFieldsDisabled</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<name>submitButtonId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
 		<dynamic-attributes>true</dynamic-attributes>
 	</tag>
 	<tag>
@@ -139,6 +150,12 @@
 		</attribute>
 		<attribute>
 			<name>readOnly</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<name>submittable</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>boolean</type>

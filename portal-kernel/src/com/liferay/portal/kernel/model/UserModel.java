@@ -763,4 +763,7 @@ public interface UserModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public User cloneWithOriginalValues();
+
 }

@@ -1,0 +1,92 @@
+@component-name = "portal-calendar"
+definition {
+
+	property custom.properties = "default.layout.template.id=1_column${line.separator}company.default.time.zone=America/Los_Angeles";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Calendar";
+
+	var pageName = "Calendar Page";
+	var portletName = "Calendar";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(
+			pageName = "Calendar Page",
+			sitePageType = "Widget Page");
+
+		PagesAdmin.configurePage(
+			columnName = "1 Column",
+			pageName = "Calendar Page",
+			sitePageType = "Widget Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Portlet.addPG(
+			pageName = "Calendar Page",
+			portletName = "Calendar");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.gotoPage(pageName = "Calendar Page");
+
+			if (IsElementPresent(locator1 = "Calendar#SCHEDULER_EVENT_GENERIC")) {
+				CalendarEvent.tearDown();
+			}
+
+			Calendar.tearDown();
+
+			CalendarConfiguration.tearDown();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "LRQA-71892 - Verify that the user email is displayed on -From Adress- field, on Notification Templates tab"
+	@priority = "5"
+	test FromAdressFieldDisplaysUserEmail {
+		NotificationTemplates.gotoCalendarMenuOption(
+			calendarName = "Test Test",
+			menuListOption = "Calendar Settings");
+
+		NotificationTemplates.gotoNotificationTemplatesTab();
+
+		NotificationTemplates.viewUserEmailDisplayedFromAdressField(userEmail = "test@liferay.com");
+
+		NotificationTemplates.gotoReminderEmailTab();
+
+		NotificationTemplates.viewUserEmailDisplayedFromAdressField(userEmail = "test@liferay.com");
+	}
+
+	@description = "LRQA-71892 - Verify that the user name is displayed on -From Name- field, on Notification Templates tab"
+	@priority = "5"
+	test FromNameFieldDisplaysUsername {
+		property portal.upstream = "quarantine";
+
+		NotificationTemplates.gotoCalendarMenuOption(
+			calendarName = "Test Test",
+			menuListOption = "Calendar Settings");
+
+		NotificationTemplates.gotoNotificationTemplatesTab();
+
+		NotificationTemplates.viewUserNameDisplayedFromNameField(userName = "Test Test");
+
+		NotificationTemplates.gotoReminderEmailTab();
+
+		NotificationTemplates.viewUserNameDisplayedFromNameField(userName = "Test Test");
+	}
+
+}

@@ -22,11 +22,11 @@ import java.io.File;
 public class ZipWriterFactoryUtil {
 
 	public static ZipWriter getZipWriter() {
-		return getZipWriterFactory().getZipWriter();
+		return _zipWriterFactory.getZipWriter();
 	}
 
 	public static ZipWriter getZipWriter(File file) {
-		return getZipWriterFactory().getZipWriter(file);
+		return _zipWriterFactory.getZipWriter(file);
 	}
 
 	public static ZipWriterFactory getZipWriterFactory() {

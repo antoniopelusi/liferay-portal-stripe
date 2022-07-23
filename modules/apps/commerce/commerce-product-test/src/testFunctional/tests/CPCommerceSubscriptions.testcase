@@ -1,29 +1,18 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Order Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "COMMERCE-5841. As a system admin I want to be able to add/suspend/reactivate/cancel a delivery subscription"
@@ -44,6 +33,7 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6257 SubscriptionLifecycle Pending Implementation
+
 	}
 
 	@description = "COMMERCE-5844. As a system admin I want to check subscription notifications are properly created"
@@ -53,6 +43,7 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-5841 SubscriptionNotifications Pending Implementation
+
 	}
 
 }

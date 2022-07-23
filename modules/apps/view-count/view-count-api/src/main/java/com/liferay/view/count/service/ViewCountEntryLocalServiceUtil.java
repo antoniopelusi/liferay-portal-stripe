@@ -139,6 +139,10 @@ public class ViewCountEntryLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -297,6 +301,10 @@ public class ViewCountEntryLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getViewCountEntry(viewCountEntryPK);
+	}
+
+	public static com.liferay.petra.sql.dsl.Table<?> getViewCountEntryTable() {
+		return getService().getViewCountEntryTable();
 	}
 
 	public static void incrementViewCount(

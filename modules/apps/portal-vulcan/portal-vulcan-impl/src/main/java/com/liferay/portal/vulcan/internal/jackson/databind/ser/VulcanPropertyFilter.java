@@ -88,14 +88,14 @@ public class VulcanPropertyFilter
 
 	private boolean _isFilteredWithoutNested(String path) {
 		if (_isFiltered(path)) {
-			Stream<String> fieldStream = _fieldNames.stream();
+			Stream<String> fieldNamesStream = _fieldNames.stream();
 
 			Predicate<String> stringPredicate = field -> field.startsWith(
 				path + ".");
 
 			Stream<String> restrictFieldStream = _restrictFieldNames.stream();
 
-			if (fieldStream.noneMatch(stringPredicate) &&
+			if (fieldNamesStream.noneMatch(stringPredicate) &&
 				restrictFieldStream.noneMatch(stringPredicate)) {
 
 				return true;

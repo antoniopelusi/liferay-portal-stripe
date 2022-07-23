@@ -1,11 +1,41 @@
 components:
     schemas:
+        Admin:
+            # @review
+            description:
+                Administrator information.
+            properties:
+                emailAddress:
+                    # @review
+                    description:
+                        Administrator's email address.
+                    format: email
+                    type: string
+                familyName:
+                    # @review
+                    description:
+                        The admin's surname (last name).
+                    type: string
+                givenName:
+                    # @review
+                    description:
+                        The admin's first name.
+                    type: string
+            type: object
         PortalInstance:
             # @review
             properties:
                 active:
                     readOnly: true
                     type: boolean
+                admin:
+                    allOf:
+                        - $ref: "#/components/schemas/Admin"
+                    # @review
+                    description:
+                        The portal instance's administrator. This field is optional and is only used in the portal
+                        instance creation.
+                    writeOnly: true
                 companyId:
                     description:
                         internal unique key.
@@ -19,12 +49,16 @@ components:
                     description:
                         public unique key (corresponds to company's webId field)
                     type: string
+                siteInitializerKey:
+                    type: string
+                    writeOnly: true
                 virtualHost:
                     type: string
             type: object
 info:
     description:
-        ""
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
+        'com.liferay.headless.portal.instances.client', and version '1.0.7'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -66,12 +100,6 @@ paths:
             description:
                 Adds a new portal instance
             operationId: postPortalInstance
-            parameters:
-                - in: query
-                  name: initializerKey
-                  required: false
-                  schema:
-                      type: string
             requestBody:
                 content:
                     application/json:
@@ -109,8 +137,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             # @review
             tags: ["PortalInstance"]
         get:

@@ -64,11 +64,11 @@ public class DDMFormUploadValidator {
 		List<String> guestUploadFileExtensions = Arrays.asList(
 			getGuestUploadFileExtensions());
 
-		Stream<String> guestUploadFileExtensionStream =
+		Stream<String> guestUploadFileExtensionsStream =
 			guestUploadFileExtensions.stream();
 
 		Optional<String> guestUploadFileExtensionOptional =
-			guestUploadFileExtensionStream.filter(
+			guestUploadFileExtensionsStream.filter(
 				guestUploadFileExtension -> StringUtil.equalsIgnoreCase(
 					FileUtil.getExtension(fileName),
 					StringUtil.trim(guestUploadFileExtension))
@@ -95,7 +95,8 @@ public class DDMFormUploadValidator {
 					"File ", fileName,
 					" exceeds the maximum permitted size of ",
 					(double)guestUploadMaximumFileSize / _FILE_LENGTH_MB,
-					" MB"));
+					" MB"),
+				guestUploadMaximumFileSize);
 		}
 	}
 

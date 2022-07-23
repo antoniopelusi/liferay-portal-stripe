@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class FolderLocalServiceWrapper
 	implements FolderLocalService, ServiceWrapper<FolderLocalService> {
 
+	public FolderLocalServiceWrapper() {
+		this(null);
+	}
+
 	public FolderLocalServiceWrapper(FolderLocalService folderLocalService) {
 		_folderLocalService = folderLocalService;
 	}
@@ -137,6 +141,13 @@ public class FolderLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _folderLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _folderLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

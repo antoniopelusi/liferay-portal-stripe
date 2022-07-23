@@ -3,7 +3,7 @@
 
 <service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.wiki">
 	<namespace>Wiki</namespace>
-	<entity local-service="true" name="WikiNode" remote-service="true" trash-enabled="true" uuid="true">
+	<entity external-reference-code="group" local-service="true" name="WikiNode" remote-service="true" trash-enabled="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -58,13 +58,6 @@
 			<finder-column name="companyId" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="WikiPage" package-path="com.liferay.wiki" />
 	</entity>
 	<entity local-service="true" name="WikiPage" remote-service="true" trash-enabled="true" uuid="true">
 
@@ -90,6 +83,7 @@
 
 		<!-- Other fields -->
 
+		<column name="externalReferenceCode" type="String" />
 		<column name="nodeId" type="long" />
 		<column name="title" type="String" uad-nonanonymizable="true" />
 		<column name="version" type="double" />
@@ -133,6 +127,10 @@
 			<finder-column name="resourcePrimKey" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="G_ERC" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="externalReferenceCode" />
+		</finder>
 		<finder name="N_T" return-type="Collection">
 			<finder-column name="nodeId" />
 			<finder-column case-sensitive="false" name="title" />
@@ -167,6 +165,11 @@
 			<finder-column name="resourcePrimKey" />
 			<finder-column name="nodeId" />
 			<finder-column name="status" />
+		</finder>
+		<finder name="G_ERC_V" return-type="WikiPage">
+			<finder-column name="groupId" />
+			<finder-column name="externalReferenceCode" />
+			<finder-column name="version" />
 		</finder>
 		<finder name="G_N_H" return-type="Collection">
 			<finder-column name="groupId" />
@@ -267,21 +270,6 @@
 			<finder-column case-sensitive="false" name="parentTitle" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="SystemEvent" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="AssetCategory" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetLink" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetTag" package-path="com.liferay.portlet.asset" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
-		<reference entity="RatingsStats" package-path="com.liferay.portlet.ratings" />
-		<reference entity="WikiNode" package-path="com.liferay.wiki" />
-		<reference entity="WikiPageResource" package-path="com.liferay.wiki" />
 	</entity>
 	<entity local-service="true" name="WikiPageResource" remote-service="false" uuid="true">
 
@@ -310,8 +298,10 @@
 		</finder>
 	</entity>
 	<exceptions>
+		<exception>DuplicateNodeExternalReferenceCode</exception>
 		<exception>DuplicateNodeName</exception>
 		<exception>DuplicatePage</exception>
+		<exception>DuplicatePageExternalReferenceCode</exception>
 		<exception>ImportFiles</exception>
 		<exception>NodeName</exception>
 		<exception>NoSuchNode</exception>

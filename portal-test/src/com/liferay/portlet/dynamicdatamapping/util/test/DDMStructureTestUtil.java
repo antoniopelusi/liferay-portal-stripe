@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author Eudaldo Alonso
@@ -53,17 +52,16 @@ public class DDMStructureTestUtil {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		Map<Locale, String> nameMap = HashMapBuilder.put(
-			defaultLocale, "Test Structure"
-		).build();
-
 		serviceContext.setAddGroupPermissions(true);
 		serviceContext.setAddGuestPermissions(true);
 
 		return DDMStructureManagerUtil.addStructure(
 			TestPropsValues.getUserId(), groupId, parentStructureId,
-			PortalUtil.getClassNameId(className), null, nameMap, null, ddmForm,
-			StorageEngineManager.STORAGE_TYPE_DEFAULT,
+			PortalUtil.getClassNameId(className), null,
+			HashMapBuilder.put(
+				defaultLocale, "Test Structure"
+			).build(),
+			null, ddmForm, StorageEngineManager.STORAGE_TYPE_DEFAULT,
 			DDMStructureManager.STRUCTURE_TYPE_DEFAULT, serviceContext);
 	}
 

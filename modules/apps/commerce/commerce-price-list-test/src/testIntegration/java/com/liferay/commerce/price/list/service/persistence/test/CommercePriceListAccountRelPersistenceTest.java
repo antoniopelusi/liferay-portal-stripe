@@ -130,6 +130,12 @@ public class CommercePriceListAccountRelPersistenceTest {
 		CommercePriceListAccountRel newCommercePriceListAccountRel =
 			_persistence.create(pk);
 
+		newCommercePriceListAccountRel.setMvccVersion(
+			RandomTestUtil.nextLong());
+
+		newCommercePriceListAccountRel.setCtCollectionId(
+			RandomTestUtil.nextLong());
+
 		newCommercePriceListAccountRel.setUuid(RandomTestUtil.randomString());
 
 		newCommercePriceListAccountRel.setCompanyId(RandomTestUtil.nextLong());
@@ -162,6 +168,12 @@ public class CommercePriceListAccountRelPersistenceTest {
 			_persistence.findByPrimaryKey(
 				newCommercePriceListAccountRel.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCommercePriceListAccountRel.getMvccVersion(),
+			newCommercePriceListAccountRel.getMvccVersion());
+		Assert.assertEquals(
+			existingCommercePriceListAccountRel.getCtCollectionId(),
+			newCommercePriceListAccountRel.getCtCollectionId());
 		Assert.assertEquals(
 			existingCommercePriceListAccountRel.getUuid(),
 			newCommercePriceListAccountRel.getUuid());
@@ -230,11 +242,11 @@ public class CommercePriceListAccountRelPersistenceTest {
 	}
 
 	@Test
-	public void testCountByC_C() throws Exception {
-		_persistence.countByC_C(
+	public void testCountByCAI_CPI() throws Exception {
+		_persistence.countByCAI_CPI(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
-		_persistence.countByC_C(0L, 0L);
+		_persistence.countByCAI_CPI(0L, 0L);
 	}
 
 	@Test
@@ -268,7 +280,8 @@ public class CommercePriceListAccountRelPersistenceTest {
 		getOrderByComparator() {
 
 		return OrderByComparatorFactoryUtil.create(
-			"CommercePriceListAccountRel", "uuid", true,
+			"CommercePriceListAccountRel", "mvccVersion", true,
+			"ctCollectionId", true, "uuid", true,
 			"commercePriceListAccountRelId", true, "companyId", true, "userId",
 			true, "userName", true, "createDate", true, "modifiedDate", true,
 			"commerceAccountId", true, "commercePriceListId", true, "order",
@@ -599,6 +612,11 @@ public class CommercePriceListAccountRelPersistenceTest {
 
 		CommercePriceListAccountRel commercePriceListAccountRel =
 			_persistence.create(pk);
+
+		commercePriceListAccountRel.setMvccVersion(RandomTestUtil.nextLong());
+
+		commercePriceListAccountRel.setCtCollectionId(
+			RandomTestUtil.nextLong());
 
 		commercePriceListAccountRel.setUuid(RandomTestUtil.randomString());
 

@@ -112,17 +112,18 @@ public interface AssetVocabularyLocalService
 			ServiceContext serviceContext)
 		throws PortalException;
 
-	@Indexable(type = IndexableType.REINDEX)
-	public AssetVocabulary addVocabulary(
-			long userId, long groupId, String name, String title,
-			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
-			String settings, int visibilityType, ServiceContext serviceContext)
-		throws PortalException;
-
 	public AssetVocabulary addVocabulary(
 			long userId, long groupId, String name, String title,
 			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
 			String settings, ServiceContext serviceContext)
+		throws PortalException;
+
+	@Indexable(type = IndexableType.REINDEX)
+	public AssetVocabulary addVocabulary(
+			String externalReferenceCode, long userId, long groupId,
+			String name, String title, Map<Locale, String> titleMap,
+			Map<Locale, String> descriptionMap, String settings,
+			int visibilityType, ServiceContext serviceContext)
 		throws PortalException;
 
 	public void addVocabularyResources(
@@ -201,6 +202,9 @@ public interface AssetVocabularyLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -270,15 +274,15 @@ public interface AssetVocabularyLocalService
 	public AssetVocabulary fetchAssetVocabulary(long vocabularyId);
 
 	/**
-	 * Returns the asset vocabulary with the matching external reference code and company.
+	 * Returns the asset vocabulary with the matching external reference code and group.
 	 *
-	 * @param companyId the primary key of the company
+	 * @param groupId the primary key of the group
 	 * @param externalReferenceCode the asset vocabulary's external reference code
 	 * @return the matching asset vocabulary, or <code>null</code> if a matching asset vocabulary could not be found
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public AssetVocabulary fetchAssetVocabularyByExternalReferenceCode(
-		long companyId, String externalReferenceCode);
+		long groupId, String externalReferenceCode);
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchAssetVocabularyByExternalReferenceCode(long, String)}
@@ -286,7 +290,7 @@ public interface AssetVocabularyLocalService
 	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public AssetVocabulary fetchAssetVocabularyByReferenceCode(
-		long companyId, String externalReferenceCode);
+		long groupId, String externalReferenceCode);
 
 	/**
 	 * Returns the asset vocabulary matching the UUID and group.
@@ -365,16 +369,16 @@ public interface AssetVocabularyLocalService
 		throws PortalException;
 
 	/**
-	 * Returns the asset vocabulary with the matching external reference code and company.
+	 * Returns the asset vocabulary with the matching external reference code and group.
 	 *
-	 * @param companyId the primary key of the company
+	 * @param groupId the primary key of the group
 	 * @param externalReferenceCode the asset vocabulary's external reference code
 	 * @return the matching asset vocabulary
 	 * @throws PortalException if a matching asset vocabulary could not be found
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public AssetVocabulary getAssetVocabularyByExternalReferenceCode(
-			long companyId, String externalReferenceCode)
+			long groupId, String externalReferenceCode)
 		throws PortalException;
 
 	/**

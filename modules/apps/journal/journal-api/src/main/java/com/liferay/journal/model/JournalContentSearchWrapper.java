@@ -115,6 +115,11 @@ public class JournalContentSearchWrapper
 		}
 	}
 
+	@Override
+	public JournalContentSearch cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the article ID of this journal content search.
 	 *

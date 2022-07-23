@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
  */
 public class CommerceWishListImpl extends CommerceWishListBaseImpl {
 
-	public CommerceWishListImpl() {
-	}
-
 	@Override
 	public boolean isGuestWishList() throws PortalException {
 		User user = UserLocalServiceUtil.getUser(getUserId());

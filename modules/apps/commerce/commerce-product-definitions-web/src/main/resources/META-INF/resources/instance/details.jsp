@@ -30,11 +30,13 @@ boolean neverExpire = ParamUtil.getBoolean(request, "neverExpire", true);
 if ((cpInstance != null) && (cpInstance.getExpirationDate() != null)) {
 	neverExpire = false;
 }
+
+boolean discontinued = BeanParamUtil.getBoolean(cpInstance, request, "discontinued");
 %>
 
 <portlet:actionURL name="/cp_definitions/edit_cp_instance" var="editProductInstanceActionURL" />
 
-<aui:form action="<%= editProductInstanceActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "saveInstance();" %>'>
+<aui:form action="<%= editProductInstanceActionURL %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (cpInstance == null) ? Constants.ADD : Constants.UPDATE %>" />
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="cpDefinitionId" type="hidden" value="<%= cpDefinition.getCPDefinitionId() %>" />
@@ -44,6 +46,7 @@ if ((cpInstance != null) && (cpInstance.getExpirationDate() != null)) {
 	<liferay-ui:error exception="<%= CommerceUndefinedBasePriceListException.class %>" message="there-is-no-base-price-list-associated-with-the-current-sku" />
 	<liferay-ui:error exception="<%= CPDefinitionIgnoreSKUCombinationsException.class %>" message="only-one-sku-can-be-approved" />
 	<liferay-ui:error exception="<%= CPInstanceJsonException.class %>" message="there-is-already-one-sku-with-the-selected-options" />
+	<liferay-ui:error exception="<%= CPInstanceReplacementCPInstanceUuidException.class %>" message="please-enter-a-valid-replacement" />
 	<liferay-ui:error exception="<%= CPInstanceSkuException.class %>" message="please-enter-a-valid-sku" />
 
 	<commerce-ui:panel
@@ -165,6 +168,50 @@ if ((cpInstance != null) && (cpInstance.getExpirationDate() != null)) {
 		<aui:input bean="<%= cpInstance %>" dateTogglerCheckboxLabel="never-expire" disabled="<%= neverExpire %>" formName="fm" model="<%= CPInstance.class %>" name="expirationDate" />
 	</commerce-ui:panel>
 
+	<commerce-ui:panel
+		elementClasses="pb-5"
+		title='<%= LanguageUtil.get(request, "end-of-life") %>'
+	>
+		<div class="row">
+			<div class="align-items-start col-auto d-flex">
+				<aui:input checked="<%= discontinued %>" label="mark-the-sku-as-discontinued" name="discontinued" type="toggle-switch" />
+			</div>
+
+			<div class="col">
+				<div class="form-group input-date-wrapper">
+					<label for="discontinuedDate"><liferay-ui:message key="end-of-life-date" /></label>
+
+					<liferay-ui:input-date
+						dayParam="discontinuedDateDay"
+						dayValue="<%= cpInstanceDisplayContext.getDiscontinuedDateField(Calendar.DAY_OF_MONTH) %>"
+						disabled="<%= !discontinued %>"
+						monthParam="discontinuedDateMonth"
+						monthValue="<%= cpInstanceDisplayContext.getDiscontinuedDateField(Calendar.MONTH) %>"
+						name="discontinuedDate"
+						nullable="<%= true %>"
+						showDisableCheckbox="<%= false %>"
+						yearParam="discontinuedDateYear"
+						yearValue="<%= cpInstanceDisplayContext.getDiscontinuedDateField(Calendar.YEAR) %>"
+					/>
+				</div>
+			</div>
+		</div>
+
+		<%
+		String replacementAutocompleteWrapperCssClasses = "mb-8 pb-5";
+
+		if (!discontinued) {
+			replacementAutocompleteWrapperCssClasses += " d-none";
+		}
+		%>
+
+		<div class="<%= replacementAutocompleteWrapperCssClasses %>" id="<portlet:namespace />replacementAutocompleteWrapper">
+			<label class="control-label" for="replacementCPInstanceId"><%= LanguageUtil.get(request, "replacement") %></label>
+
+			<div id="autocomplete-root"></div>
+		</div>
+	</commerce-ui:panel>
+
 	<c:if test="<%= cpInstanceDisplayContext.hasCustomAttributesAvailable() %>">
 		<commerce-ui:panel
 			title='<%= LanguageUtil.get(request, "custom-attribute") %>'
@@ -214,94 +261,17 @@ if ((cpInstance != null) && (cpInstance.getExpirationDate() != null)) {
 	</aui:button-row>
 </aui:form>
 
-<aui:script>
-	var fieldValues = [];
-
-	Liferay.componentReady(
-		'ProductOptions<%= cpDefinition.getCPDefinitionId() %>'
-	).then((ddmForm) => {
-		ddmForm.unstable_onEvent((e) => {
-			var eventName = e.type;
-			if (eventName === 'field_change') {
-				var key = e.payload.fieldInstance.fieldName;
-				var updatedItem = {
-					key: e.payload.fieldInstance.fieldName,
-					value: e.payload.value,
-				};
-
-				var itemFound = fieldValues.find((item) => {
-					return item.key === key;
-				});
-
-				if (itemFound) {
-					fieldValues = fieldValues.reduce((acc, item) => {
-						return acc.concat(item.key === key ? updatedItem : item);
-					}, []);
-				}
-				else {
-					fieldValues.push(updatedItem);
-				}
-
-				var form = window.document['<portlet:namespace />fm'];
-				form['<portlet:namespace />ddmFormValues'].value = JSON.stringify(
-					fieldValues
-				);
-			}
-		});
-	});
-
-	function <portlet:namespace />saveInstance(forceDisable) {
-		var form = window.document['<portlet:namespace />fm'];
-
-		var ddmForm = Liferay.component(
-			'ProductOptions<%= cpDefinition.getCPDefinitionId() %>DDMForm'
-		);
-
-		if (ddmForm) {
-			var fields = ddmForm.getImmediateFields();
-
-			var fieldValues = [];
-
-			fields.forEach((field) => {
-				var fieldValue = {};
-
-				fieldValue.key = field.get('fieldName');
-
-				var value = field.getValue();
-
-				var arrValue = [];
-
-				if (Array.isArray(value)) {
-					arrValue = value;
-				}
-				else {
-					arrValue.push(value);
-				}
-
-				fieldValue.value = arrValue;
-
-				fieldValues.push(fieldValue);
-			});
-
-			form['<portlet:namespace />ddmFormValues'].value = JSON.stringify(
-				fieldValues
-			);
-		}
-
-		submitForm(form);
-	}
-</aui:script>
-
-<aui:script use="aui-base,event-input">
-	var form = A.one('#<portlet:namespace />fm');
-
-	var publishButton = form.one('#<portlet:namespace />publishButton');
-
-	publishButton.on('click', () => {
-		var workflowActionInput = form.one('#<portlet:namespace />workflowAction');
-
-		if (workflowActionInput) {
-			workflowActionInput.val('<%= WorkflowConstants.ACTION_PUBLISH %>');
-		}
-	});
-</aui:script>
+<liferay-frontend:component
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"cpDefinitionId", cpDefinition.getCPDefinitionId()
+		).put(
+			"initialLabel", cpInstanceDisplayContext.getReplacementCPInstanceLabel()
+		).put(
+			"initialValue", cpInstanceDisplayContext.getReplacementCPInstanceId()
+		).put(
+			"WORKFLOW_ACTION_PUBLISH", WorkflowConstants.ACTION_PUBLISH
+		).build()
+	%>'
+	module="js/InstanceDetails"
+/>

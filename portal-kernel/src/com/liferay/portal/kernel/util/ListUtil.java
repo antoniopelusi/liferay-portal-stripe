@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
@@ -357,6 +358,14 @@ public class ListUtil {
 		return !isEmpty(list);
 	}
 
+	public static <E> void isNotEmptyForEach(
+		List<? extends E> list, Consumer<? super E> consumer) {
+
+		if (!isEmpty(list)) {
+			list.forEach(consumer);
+		}
+	}
+
 	public static boolean isNotNull(List<?> list) {
 		return !isNull(list);
 	}
@@ -469,116 +478,8 @@ public class ListUtil {
 		return array;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(boolean[])}
-	 */
-	@Deprecated
-	public static List<Boolean> toList(boolean[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		List<Boolean> list = new ArrayList<>(array.length);
-
-		for (boolean value : array) {
-			list.add(value);
-		}
-
-		return list;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(char[])}
-	 */
-	@Deprecated
-	public static List<Character> toList(char[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		List<Character> list = new ArrayList<>(array.length);
-
-		for (char value : array) {
-			list.add(value);
-		}
-
-		return list;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(double[])}
-	 */
-	@Deprecated
-	public static List<Double> toList(double[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		List<Double> list = new ArrayList<>(array.length);
-
-		for (double value : array) {
-			list.add(value);
-		}
-
-		return list;
-	}
-
 	public static <E> List<E> toList(E value) {
 		return new ArrayList<>(Arrays.asList(value));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(E...)}
-	 */
-	@Deprecated
-	public static <E> List<E> toList(E[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		return new ArrayList<>(Arrays.asList(array));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(float[])}
-	 */
-	@Deprecated
-	public static List<Float> toList(float[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		List<Float> list = new ArrayList<>(array.length);
-
-		for (float value : array) {
-			list.add(value);
-		}
-
-		return list;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(int[])}
-	 */
-	@Deprecated
-	public static List<Integer> toList(int[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		List<Integer> list = new ArrayList<>(array.length);
-
-		for (int value : array) {
-			list.add(value);
-		}
-
-		return list;
 	}
 
 	public static <T, A> List<A> toList(List<T> list, Accessor<T, A> accessor) {
@@ -592,7 +493,7 @@ public class ListUtil {
 	}
 
 	public static <T, R> List<R> toList(List<T> list, Function<T, R> function) {
-		final List<R> result = new ArrayList<>(list.size());
+		List<R> result = new ArrayList<>(list.size());
 
 		for (T t : list) {
 			result.add(function.apply(t));
@@ -603,44 +504,6 @@ public class ListUtil {
 
 	public static <T, V extends T> List<T> toList(List<V> vlist) {
 		return new ArrayList<T>(vlist);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(long[])}
-	 */
-	@Deprecated
-	public static List<Long> toList(long[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		List<Long> list = new ArrayList<>(array.length);
-
-		for (long value : array) {
-			list.add(value);
-		}
-
-		return list;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fromArray(short[])}
-	 */
-	@Deprecated
-	public static List<Short> toList(short[] array) {
-		if (ArrayUtil.isEmpty(array)) {
-			return new ArrayList<>();
-		}
-
-		List<Short> list = new ArrayList<>(array.length);
-
-		for (short value : array) {
-			list.add(value);
-		}
-
-		return list;
 	}
 
 	public static <T> long[] toLongArray(

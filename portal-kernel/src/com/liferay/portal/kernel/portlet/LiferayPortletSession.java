@@ -27,6 +27,6 @@ public interface LiferayPortletSession extends PortletSession {
 
 	public static final String PORTLET_SCOPE_NAMESPACE = "javax.portlet.p.";
 
-	public void setHttpSession(HttpSession session);
+	public void setHttpSession(HttpSession httpSession);
 
 }

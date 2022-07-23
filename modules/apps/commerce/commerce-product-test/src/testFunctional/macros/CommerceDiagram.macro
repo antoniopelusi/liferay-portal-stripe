@@ -1,0 +1,286 @@
+definition {
+
+	macro addPin {
+		var key_pinNumber = "${pinNumber}";
+
+		Click(locator1 = "CommerceDiagrams#DIAGRAM_IMAGE");
+
+		Type(
+			key_inputField = "Position",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+			value1 = "${pinNumber}");
+
+		Select(
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN_TYPE_SELECT",
+			value1 = "${selectType}");
+
+		if ("${selectType}" == "Not Linked to a Catalog") {
+			Type(
+				key_inputField = "Label",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${label}");
+
+			Type(
+				key_inputField = "Quantity",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${quantity}");
+		}
+		else if ("${selectType}" == "Linked to a SKU") {
+			Type(
+				key_inputField = "SKU",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${sku}");
+
+			Click(
+				key_menuItem = "${sku}",
+				locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
+
+			Type(
+				key_inputField = "Quantity",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${quantity}");
+		}
+		else if ("${selectType}" == "Linked to a Diagram") {
+			Type(
+				key_inputField = "Diagram",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${diagram}");
+
+			Click(
+				key_menuItem = "${diagram}",
+				locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
+		}
+
+		Button.clickSave();
+
+		if (isSet(position)) {
+			DragAndDrop.dragAndDropReorganizeObjects(
+				key_pinNumber = "${pinNumber}",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN",
+				locator2 = "CommerceDiagrams#DIAGRAM_IMAGE",
+				position = "${position}");
+		}
+
+		Refresh();
+
+		WaitForElementPresent(
+			key_pinNumber = "${pinNumber}",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN");
+	}
+
+	macro assertDiagramSettingsType {
+		AssertElementPresent(
+			key_selectedType = "${settingsType}",
+			locator1 = "CommerceDiagrams#DIAGRAM_SETTINGS_SELECTED_TYPE");
+	}
+
+	macro assertPinToolTipInfo {
+		AssertElementPresent(
+			key_positionValue = "${pinNumber}",
+			locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP_POSITION");
+
+		AssertElementPresent(
+			key_linkedType = "${pinType}",
+			locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP_LINKED_TYPE");
+
+		if ("${pinType}" != "Diagram") {
+			AssertElementPresent(
+				key_quantity = "${quantity}",
+				locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP_QUANTITY");
+		}
+
+		if (isSet(sku)) {
+			var key_inputItem = "${sku}";
+		}
+		else if (isSet(diagram)) {
+			var key_inputItem = "${diagram}";
+		}
+		else if (isSet(label)) {
+			var key_inputItem = "${label}";
+		}
+
+		if (isSet(key_inputItem)) {
+			AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP_INPUT_GROUP_ITEM");
+		}
+	}
+
+	macro assertPinToolTipNotOpen {
+		AssertElementNotPresent(locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP");
+	}
+
+	macro assertPinToolTipOpens {
+		Click(locator1 = "CommerceDiagrams#DIAGRAM_IMAGE");
+
+		WaitForElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP");
+
+		Click(
+			key_text = "Cancel",
+			locator1 = "Button#ANY_SECONDARY");
+	}
+
+	macro changePinInfo {
+		CommerceDiagram.viewPin(pinNumber = "${pinNumber}");
+
+		Type(
+			key_inputField = "Position",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+			value1 = "${newPinNumber}");
+
+		Select(
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN_TYPE_SELECT",
+			value1 = "${selectType}");
+
+		if ("${selectType}" == "Not Linked to a Catalog") {
+			Type(
+				key_inputField = "Label",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${label}");
+
+			Type(
+				key_inputField = "Quantity",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${quantity}");
+		}
+		else if ("${selectType}" == "Linked to a SKU") {
+			Type(
+				key_inputField = "SKU",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${sku}");
+
+			Type(
+				key_inputField = "Quantity",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${quantity}");
+		}
+		else if ("${selectType}" == "Linked to a Diagram") {
+			Type(
+				key_inputField = "Diagram",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN_INPUT_FIELD",
+				value1 = "${diagram}");
+
+			Click(
+				key_menuItem = "${diagram}",
+				locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
+		}
+
+		Button.clickUpdate();
+
+		Refresh();
+
+		WaitForElementPresent(
+			key_pinNumber = "${newPinNumber}",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN");
+	}
+
+	macro changeSettingsType {
+		SelectField.select(
+			selectFieldLabel = "Type",
+			selectFieldValue = "${settingsType}");
+
+		Button.clickPublish();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro useDragOnBackground {
+
+		// Verify the postion after mouse drag
+
+		CommerceDiagram.useResetZoom();
+
+		var first_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
+
+		DragAndDrop.dragAndDropReorganizeObjects(
+			key_image = "${image_name}",
+			locator1 = "CommerceEntry#VERIFY_IMAGE",
+			locator2 = "CommerceEntry#VERIFY_IMAGE",
+			position = "${position}");
+
+		var second_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
+
+		if ("${first_position}" != "${second_position}") {
+			echo("The position after the drag is correct");
+		}
+		else {
+			fail("The position after the drag is not correct: ${second_position}, the expected position it must be different from ${first_position}");
+		}
+	}
+
+	macro useDragOnPin {
+
+		// Verify the postion after mouse drag on pin
+
+		var first_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='circle']/../../*[name()='g']@transform");
+
+		DragAndDrop.dragAndDropReorganizeObjects(
+			key_image = "${image_name}",
+			locator1 = "CommerceEntry#VERIFY_IMAGE",
+			locator2 = "CommerceEntry#VERIFY_IMAGE",
+			position = "${position}");
+
+		var second_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='circle']/../../*[name()='g']@transform");
+
+		if ("${first_position}" != "${second_position}") {
+			echo("The pin position after the drag is correct");
+		}
+		else {
+			fail("The pin position after the drag is not correct: ${second_position}, the expected position it must be different from ${first_position}");
+		}
+	}
+
+	macro usePreDefinedZoom {
+
+		// Use Pre-defined zoom values
+
+		CommerceDiagram.useResetZoom();
+
+		CommerceDiagram.usePreDefinedZoomValues(key_list = "${key_list}");
+	}
+
+	macro usePreDefinedZoomValues {
+		for (var zoom : list "${key_list}") {
+			var first_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
+
+			Select(
+				locator1 = "CommerceEntry#DIAGRAM_ZOOM_SELECT",
+				value1 = "${zoom}");
+
+			var second_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
+
+			if ("${first_position}" != "${second_position}") {
+				echo("The position is correct for ${zoom}");
+			}
+			else {
+				fail("The position for the zoom: ${zoom} is not correct: ${second_position}, the expected position it must be different from ${first_position}");
+			}
+		}
+	}
+
+	macro useResetZoom {
+		var i = "0";
+
+		Click(
+			key_text = "Reset Zoom",
+			locator1 = "Button#ANY");
+
+		Pause(locator1 = "2000");
+
+		var actual_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
+
+		if (("${actual_position}" == "translate(0,0) scale(1)") || ("${actual_position}" == "translate(0, 0) scale(1,1)")) {
+			echo("The reset zoom position is correct");
+		}
+		else {
+			fail("The reset zoom position is not correct: ${actual_position} expected position: translate(0,0) scale(1) OR translate(0, 0) scale(1,1))");
+		}
+	}
+
+	macro viewPin {
+		Click(
+			key_pinNumber = "${pinNumber}",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN");
+
+		WaitForElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP");
+	}
+
+}

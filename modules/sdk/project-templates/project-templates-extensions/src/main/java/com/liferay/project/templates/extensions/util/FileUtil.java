@@ -159,8 +159,7 @@ public class FileUtil {
 			});
 	}
 
-	public static void extractDirectory(
-			String dirName, final Path destinationDirPath)
+	public static void extractDirectory(String dirName, Path destinationDirPath)
 		throws Exception {
 
 		Map<String, InputStream> filesAndDirectories = _getFilesFromClasspath(
@@ -277,6 +276,18 @@ public class FileUtil {
 		return properties;
 	}
 
+	public static void replaceString(File file, String search, String replace)
+		throws IOException {
+
+		Path path = file.toPath();
+
+		String content = read(path);
+
+		String newContent = content.replace(search, replace);
+
+		Files.write(path, newContent.getBytes(StandardCharsets.UTF_8));
+	}
+
 	public static void setPosixFilePermissions(
 			Path path, Set<PosixFilePermission> posixFilePermissions)
 		throws IOException {
@@ -292,8 +303,6 @@ public class FileUtil {
 			String dirPathString)
 		throws Exception {
 
-		Map<String, InputStream> pathMap = new HashMap<>();
-
 		if ((dirPathString != null) && (File.separatorChar == '\\')) {
 			dirPathString = dirPathString.replace('\\', '/');
 		}
@@ -305,6 +314,8 @@ public class FileUtil {
 
 			throw new NoSuchElementException(errorMessage);
 		}
+
+		Map<String, InputStream> pathMap = new HashMap<>();
 
 		URI uri = url.toURI();
 

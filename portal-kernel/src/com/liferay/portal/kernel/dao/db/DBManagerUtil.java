@@ -24,19 +24,19 @@ import javax.sql.DataSource;
 public class DBManagerUtil {
 
 	public static DB getDB() {
-		DBManager dbManager = getDBManager();
+		DBManager dbManager = _dbManager;
 
 		return dbManager.getDB();
 	}
 
 	public static DB getDB(DBType dbType, DataSource dataSource) {
-		DBManager dbManager = getDBManager();
+		DBManager dbManager = _dbManager;
 
 		return dbManager.getDB(dbType, dataSource);
 	}
 
 	public static DB getDB(Object dialect, DataSource dataSource) {
-		DBManager dbManager = getDBManager();
+		DBManager dbManager = _dbManager;
 
 		return dbManager.getDB(dbManager.getDBType(dialect), dataSource);
 	}
@@ -46,13 +46,13 @@ public class DBManagerUtil {
 	}
 
 	public static DBType getDBType(Object dialect) {
-		DBManager dbManager = getDBManager();
+		DBManager dbManager = _dbManager;
 
 		return dbManager.getDBType(dialect);
 	}
 
 	public static Set<DBType> getDBTypes() {
-		DBManager dbManager = getDBManager();
+		DBManager dbManager = _dbManager;
 
 		return dbManager.getDBTypes();
 	}
@@ -62,13 +62,13 @@ public class DBManagerUtil {
 	}
 
 	public static void setDB(DBType dbType, DataSource dataSource) {
-		DBManager dbManager = getDBManager();
+		DBManager dbManager = _dbManager;
 
 		dbManager.setDB(dbManager.getDB(dbType, dataSource));
 	}
 
 	public static void setDB(Object dialect, DataSource dataSource) {
-		DBManager dbManager = getDBManager();
+		DBManager dbManager = _dbManager;
 
 		dbManager.setDB(
 			dbManager.getDB(dbManager.getDBType(dialect), dataSource));

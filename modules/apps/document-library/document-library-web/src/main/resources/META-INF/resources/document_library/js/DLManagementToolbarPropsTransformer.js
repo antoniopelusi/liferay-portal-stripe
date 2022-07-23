@@ -19,8 +19,11 @@ import {
 	openSelectionModal,
 } from 'frontend-js-web';
 
+import {collectDigitalSignature} from './digital-signature/DigitalSignatureUtil';
+
 export default function propsTransformer({
 	additionalProps: {
+		collectDigitalSignaturePortlet,
 		downloadEntryURL,
 		editEntryURL,
 		folderConfiguration,
@@ -33,6 +36,14 @@ export default function propsTransformer({
 	portletNamespace,
 	...otherProps
 }) {
+	const getAllSelectedElements = () => {
+		const searchContainer = Liferay.SearchContainer.get(
+			otherProps.searchContainerId
+		);
+
+		return searchContainer.select.getAllSelectedElements();
+	};
+
 	const processAction = (action, url) => {
 		if (!action) {
 			return;
@@ -230,6 +241,12 @@ export default function propsTransformer({
 			}
 			else if (action === 'checkout') {
 				processAction('checkout', editEntryURL);
+			}
+			else if (action === 'collectDigitalSignature') {
+				collectDigitalSignature(
+					getAllSelectedElements().get('value'),
+					collectDigitalSignaturePortlet
+				);
 			}
 			else if (action === 'deleteEntries') {
 				deleteEntries();

@@ -15,12 +15,16 @@
 package com.liferay.object.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
+import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.LocalizedModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedAuditedModel;
 
 import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -37,7 +41,7 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface ObjectFieldModel
-	extends BaseModel<ObjectField>, MVCCModel, ShardedModel,
+	extends BaseModel<ObjectField>, LocalizedModel, MVCCModel, ShardedModel,
 			StagedAuditedModel {
 
 	/*
@@ -205,6 +209,20 @@ public interface ObjectFieldModel
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
+	 * Returns the list type definition ID of this object field.
+	 *
+	 * @return the list type definition ID of this object field
+	 */
+	public long getListTypeDefinitionId();
+
+	/**
+	 * Sets the list type definition ID of this object field.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID of this object field
+	 */
+	public void setListTypeDefinitionId(long listTypeDefinitionId);
+
+	/**
 	 * Returns the object definition ID of this object field.
 	 *
 	 * @return the object definition ID of this object field
@@ -217,6 +235,222 @@ public interface ObjectFieldModel
 	 * @param objectDefinitionId the object definition ID of this object field
 	 */
 	public void setObjectDefinitionId(long objectDefinitionId);
+
+	/**
+	 * Returns the business type of this object field.
+	 *
+	 * @return the business type of this object field
+	 */
+	@AutoEscape
+	public String getBusinessType();
+
+	/**
+	 * Sets the business type of this object field.
+	 *
+	 * @param businessType the business type of this object field
+	 */
+	public void setBusinessType(String businessType);
+
+	/**
+	 * Returns the db column name of this object field.
+	 *
+	 * @return the db column name of this object field
+	 */
+	@AutoEscape
+	public String getDBColumnName();
+
+	/**
+	 * Sets the db column name of this object field.
+	 *
+	 * @param dbColumnName the db column name of this object field
+	 */
+	public void setDBColumnName(String dbColumnName);
+
+	/**
+	 * Returns the db table name of this object field.
+	 *
+	 * @return the db table name of this object field
+	 */
+	@AutoEscape
+	public String getDBTableName();
+
+	/**
+	 * Sets the db table name of this object field.
+	 *
+	 * @param dbTableName the db table name of this object field
+	 */
+	public void setDBTableName(String dbTableName);
+
+	/**
+	 * Returns the db type of this object field.
+	 *
+	 * @return the db type of this object field
+	 */
+	@AutoEscape
+	public String getDBType();
+
+	/**
+	 * Sets the db type of this object field.
+	 *
+	 * @param dbType the db type of this object field
+	 */
+	public void setDBType(String dbType);
+
+	/**
+	 * Returns the indexed of this object field.
+	 *
+	 * @return the indexed of this object field
+	 */
+	public boolean getIndexed();
+
+	/**
+	 * Returns <code>true</code> if this object field is indexed.
+	 *
+	 * @return <code>true</code> if this object field is indexed; <code>false</code> otherwise
+	 */
+	public boolean isIndexed();
+
+	/**
+	 * Sets whether this object field is indexed.
+	 *
+	 * @param indexed the indexed of this object field
+	 */
+	public void setIndexed(boolean indexed);
+
+	/**
+	 * Returns the indexed as keyword of this object field.
+	 *
+	 * @return the indexed as keyword of this object field
+	 */
+	public boolean getIndexedAsKeyword();
+
+	/**
+	 * Returns <code>true</code> if this object field is indexed as keyword.
+	 *
+	 * @return <code>true</code> if this object field is indexed as keyword; <code>false</code> otherwise
+	 */
+	public boolean isIndexedAsKeyword();
+
+	/**
+	 * Sets whether this object field is indexed as keyword.
+	 *
+	 * @param indexedAsKeyword the indexed as keyword of this object field
+	 */
+	public void setIndexedAsKeyword(boolean indexedAsKeyword);
+
+	/**
+	 * Returns the indexed language ID of this object field.
+	 *
+	 * @return the indexed language ID of this object field
+	 */
+	@AutoEscape
+	public String getIndexedLanguageId();
+
+	/**
+	 * Sets the indexed language ID of this object field.
+	 *
+	 * @param indexedLanguageId the indexed language ID of this object field
+	 */
+	public void setIndexedLanguageId(String indexedLanguageId);
+
+	/**
+	 * Returns the label of this object field.
+	 *
+	 * @return the label of this object field
+	 */
+	public String getLabel();
+
+	/**
+	 * Returns the localized label of this object field in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the locale of the language
+	 * @return the localized label of this object field
+	 */
+	@AutoEscape
+	public String getLabel(Locale locale);
+
+	/**
+	 * Returns the localized label of this object field in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the local of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this object field. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
+	 */
+	@AutoEscape
+	public String getLabel(Locale locale, boolean useDefault);
+
+	/**
+	 * Returns the localized label of this object field in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @return the localized label of this object field
+	 */
+	@AutoEscape
+	public String getLabel(String languageId);
+
+	/**
+	 * Returns the localized label of this object field in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this object field
+	 */
+	@AutoEscape
+	public String getLabel(String languageId, boolean useDefault);
+
+	@AutoEscape
+	public String getLabelCurrentLanguageId();
+
+	@AutoEscape
+	public String getLabelCurrentValue();
+
+	/**
+	 * Returns a map of the locales and localized labels of this object field.
+	 *
+	 * @return the locales and localized labels of this object field
+	 */
+	public Map<Locale, String> getLabelMap();
+
+	/**
+	 * Sets the label of this object field.
+	 *
+	 * @param label the label of this object field
+	 */
+	public void setLabel(String label);
+
+	/**
+	 * Sets the localized label of this object field in the language.
+	 *
+	 * @param label the localized label of this object field
+	 * @param locale the locale of the language
+	 */
+	public void setLabel(String label, Locale locale);
+
+	/**
+	 * Sets the localized label of this object field in the language, and sets the default locale.
+	 *
+	 * @param label the localized label of this object field
+	 * @param locale the locale of the language
+	 * @param defaultLocale the default locale
+	 */
+	public void setLabel(String label, Locale locale, Locale defaultLocale);
+
+	public void setLabelCurrentLanguageId(String languageId);
+
+	/**
+	 * Sets the localized labels of this object field from the map of locales and localized labels.
+	 *
+	 * @param labelMap the locales and localized labels of this object field
+	 */
+	public void setLabelMap(Map<Locale, String> labelMap);
+
+	/**
+	 * Sets the localized labels of this object field from the map of locales and localized labels, and sets the default locale.
+	 *
+	 * @param labelMap the locales and localized labels of this object field
+	 * @param defaultLocale the default locale
+	 */
+	public void setLabelMap(Map<Locale, String> labelMap, Locale defaultLocale);
 
 	/**
 	 * Returns the name of this object field.
@@ -234,18 +468,55 @@ public interface ObjectFieldModel
 	public void setName(String name);
 
 	/**
-	 * Returns the type of this object field.
+	 * Returns the relationship type of this object field.
 	 *
-	 * @return the type of this object field
+	 * @return the relationship type of this object field
 	 */
 	@AutoEscape
-	public String getType();
+	public String getRelationshipType();
 
 	/**
-	 * Sets the type of this object field.
+	 * Sets the relationship type of this object field.
 	 *
-	 * @param type the type of this object field
+	 * @param relationshipType the relationship type of this object field
 	 */
-	public void setType(String type);
+	public void setRelationshipType(String relationshipType);
+
+	/**
+	 * Returns the required of this object field.
+	 *
+	 * @return the required of this object field
+	 */
+	public boolean getRequired();
+
+	/**
+	 * Returns <code>true</code> if this object field is required.
+	 *
+	 * @return <code>true</code> if this object field is required; <code>false</code> otherwise
+	 */
+	public boolean isRequired();
+
+	/**
+	 * Sets whether this object field is required.
+	 *
+	 * @param required the required of this object field
+	 */
+	public void setRequired(boolean required);
+
+	@Override
+	public String[] getAvailableLanguageIds();
+
+	@Override
+	public String getDefaultLanguageId();
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
+
+	@Override
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
+	@Override
+	public ObjectField cloneWithOriginalValues();
 
 }

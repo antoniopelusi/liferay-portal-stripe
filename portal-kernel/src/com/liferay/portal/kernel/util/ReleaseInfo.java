@@ -74,7 +74,19 @@ public class ReleaseInfo {
 
 	public static final int RELEASE_7_4_0_BUILD_NUMBER = 7400;
 
+	public static final int RELEASE_7_4_1_BUILD_NUMBER = 7401;
+
+	public static final int RELEASE_7_4_2_BUILD_NUMBER = 7402;
+
+	public static final int RELEASE_7_4_3_BUILD_NUMBER = 7403;
+
 	public static final int RELEASE_7_4_10_BUILD_NUMBER = 7410;
+
+	public static final int RELEASE_7_4_11_BUILD_NUMBER = 7411;
+
+	public static final int RELEASE_7_4_12_BUILD_NUMBER = 7412;
+
+	public static final int RELEASE_7_4_13_BUILD_NUMBER = 7413;
 
 	public static Date getBuildDate() {
 		DateFormat df = DateFormat.getDateInstance(DateFormat.LONG);
@@ -117,12 +129,24 @@ public class ReleaseInfo {
 		return _serverInfo;
 	}
 
+	public static boolean isDXP() {
+		if (_NAME.contains("Community")) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public static String getVendor() {
 		return _VENDOR;
 	}
 
 	public static String getVersion() {
 		return _VERSION;
+	}
+
+	public static String getVersionDisplayName() {
+		return _VERSION_DISPLAY_NAME;
 	}
 
 	private static final String _BUILD = "@release.info.build@";

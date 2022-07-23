@@ -18,14 +18,13 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Calendar Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Calendar Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Calendar Page");
@@ -52,8 +51,45 @@ definition {
 
 			CalendarConfiguration.tearDown();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
+	}
+
+	@description = "LRQA-71362 - Verify that the user can configure the Default Duration of an Event"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test CanConfigureEventsDefaultDuration {
+
+		// TODO LRQA-71621 CanConfigureEventsDefaultDuration pending implementation
+
+	}
+
+	@description = "LRQA-71362 - Verify that the user can modify the default View from the Calendar"
+	@priority = "3"
+	test CanModifyViews {
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.viewDefaultViewCalendar(defaultView = "Week");
+
+		CalendarNavigator.gotoConfiguration();
+
+		CalendarConfiguration.viewDefaultViewConfiguration(defaultView = "Week");
+
+		CalendarConfiguration.selectDefaultView(defaultView = "Month");
+
+		CalendarConfiguration.save();
+
+		Alert.viewSuccessMessage();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.viewDefaultViewCalendar(defaultView = "Month");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoConfiguration();
+
+		CalendarConfiguration.viewDefaultViewConfiguration(defaultView = "Month");
 	}
 
 	@priority = "3"
@@ -269,7 +305,7 @@ definition {
 
 	@priority = "5"
 	test ViewCalendarTimeZoneDefaults {
-		property portal.acceptance = "quarantine";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "CalendarConfiguration#ViewCalendarTimeZoneDefaults";
 
 		UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
@@ -299,8 +335,6 @@ definition {
 	@description = "This is a use case for LPS-51783."
 	@priority = "4"
 	test ViewEventDetailsAllDayWithModifiedUserTimeZone {
-		property portal.upstream = "quarantine";
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		UserBar.gotoDropdownItem(dropdownItem = "Account Settings");

@@ -86,18 +86,16 @@ public class LayoutSetPrototypeServiceImpl
 
 		Locale locale = LocaleUtil.getSiteDefault();
 
-		Map<Locale, String> nameMap = HashMapBuilder.put(
-			locale, name
-		).build();
-
-		Map<Locale, String> descriptionMap = HashMapBuilder.put(
-			locale, description
-		).build();
-
 		User user = getUser();
 
 		return layoutSetPrototypeLocalService.addLayoutSetPrototype(
-			user.getUserId(), user.getCompanyId(), nameMap, descriptionMap,
+			user.getUserId(), user.getCompanyId(),
+			HashMapBuilder.put(
+				locale, name
+			).build(),
+			HashMapBuilder.put(
+				locale, description
+			).build(),
 			active, layoutsUpdateable, readyForPropagation, serviceContext);
 	}
 

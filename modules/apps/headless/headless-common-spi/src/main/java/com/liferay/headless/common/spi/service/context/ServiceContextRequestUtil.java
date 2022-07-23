@@ -65,16 +65,16 @@ public class ServiceContextRequestUtil {
 		}
 
 		if (StringUtil.equalsIgnoreCase(viewableBy, "anyone")) {
-			serviceContext.setAddGuestPermissions(true);
 			serviceContext.setAddGroupPermissions(true);
+			serviceContext.setAddGuestPermissions(true);
 		}
 		else if (StringUtil.equalsIgnoreCase(viewableBy, "members")) {
-			serviceContext.setAddGuestPermissions(false);
 			serviceContext.setAddGroupPermissions(true);
+			serviceContext.setAddGuestPermissions(false);
 		}
 		else {
-			serviceContext.setAddGuestPermissions(false);
 			serviceContext.setAddGroupPermissions(false);
+			serviceContext.setAddGuestPermissions(false);
 		}
 
 		if (assetCategoryIds != null) {

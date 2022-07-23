@@ -22,9 +22,9 @@ import {LAYOUT_TYPES} from '../config/constants/layoutTypes';
 import {VIEWPORT_SIZES} from '../config/constants/viewportSizes';
 import {config} from '../config/index';
 import {useDisplayPagePreviewItem} from '../contexts/DisplayPagePreviewItemContext';
+import {useSelector} from '../contexts/StoreContext';
 import selectLanguageId from '../selectors/selectLanguageId';
 import selectSegmentsExperienceId from '../selectors/selectSegmentsExperienceId';
-import {useSelector} from '../store/index';
 import {useId} from '../utils/useId';
 import {DisplayPagePreviewItemSelector} from './DisplayPagePreviewItemSelector';
 import Translation from './Translation';
@@ -89,17 +89,18 @@ const PreviewModal = ({observer}) => {
 	return (
 		<ClayModal
 			className="page-editor__preview-modal"
+			containerProps={{className: 'cadmin'}}
 			observer={observer}
 			size="full-screen"
 		>
 			<ClayModal.Header>
 				<div className="d-flex flex-grow-1 justify-content-between page-editor__theme-adapter-buttons responsive-mode">
-					<ul className="navbar-nav page-editor__preview-modal__part">
+					<ul className="justify-content-start navbar-nav page-editor__preview-modal__part">
 						{availableSegmentsExperiences && (
 							<li className="mr-2 nav-item">
 								<div className="align-middle d-inline-flex">
 									<label
-										className="mr-2 mt-1"
+										className="mr-2 mt-1 w-100"
 										htmlFor={experienceSelectId}
 									>
 										{Liferay.Language.get('experience')}
@@ -158,7 +159,7 @@ const PreviewModal = ({observer}) => {
 						/>
 					</div>
 
-					<div className="page-editor__preview-modal__part">
+					<div className="justify-content-end page-editor__preview-modal__part pr-3">
 						{config.layoutType === LAYOUT_TYPES.display ? (
 							<DisplayPagePreviewItemSelector />
 						) : null}

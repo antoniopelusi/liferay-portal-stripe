@@ -96,7 +96,7 @@ public class RankingJSONBuilder {
 		).put(
 			"type", _getType()
 		).put(
-			"viewURL", _getViewURL()
+			"viewURL", _viewURL
 		);
 	}
 
@@ -314,10 +314,6 @@ public class RankingJSONBuilder {
 		String entryClassName = _document.getString(Field.ENTRY_CLASS_NAME);
 
 		return _resourceActions.getModelResource(_locale, entryClassName);
-	}
-
-	private String _getViewURL() {
-		return _viewURL;
 	}
 
 	private boolean _isFileEntry() {

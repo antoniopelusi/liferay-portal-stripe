@@ -167,6 +167,13 @@ public abstract class CommerceNotificationAttachmentLocalServiceBaseImpl
 	}
 
 	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
+	@Override
 	public DynamicQuery dynamicQuery() {
 		Class<?> clazz = getClass();
 
@@ -886,29 +893,6 @@ public abstract class CommerceNotificationAttachmentLocalServiceBaseImpl
 		this.userPersistence = userPersistence;
 	}
 
-	/**
-	 * Returns the dl app local service.
-	 *
-	 * @return the dl app local service
-	 */
-	public com.liferay.document.library.kernel.service.DLAppLocalService
-		getDLAppLocalService() {
-
-		return dlAppLocalService;
-	}
-
-	/**
-	 * Sets the dl app local service.
-	 *
-	 * @param dlAppLocalService the dl app local service
-	 */
-	public void setDLAppLocalService(
-		com.liferay.document.library.kernel.service.DLAppLocalService
-			dlAppLocalService) {
-
-		this.dlAppLocalService = dlAppLocalService;
-	}
-
 	public void afterPropertiesSet() {
 		persistedModelLocalServiceRegistry.register(
 			"com.liferay.commerce.notification.model.CommerceNotificationAttachment",
@@ -1057,12 +1041,6 @@ public abstract class CommerceNotificationAttachmentLocalServiceBaseImpl
 
 	@ServiceReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
-
-	@ServiceReference(
-		type = com.liferay.document.library.kernel.service.DLAppLocalService.class
-	)
-	protected com.liferay.document.library.kernel.service.DLAppLocalService
-		dlAppLocalService;
 
 	@ServiceReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry

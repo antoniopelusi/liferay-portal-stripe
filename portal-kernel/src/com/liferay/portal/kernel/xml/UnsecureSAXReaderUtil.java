@@ -31,73 +31,73 @@ public class UnsecureSAXReaderUtil {
 	}
 
 	public static Document read(File file) throws DocumentException {
-		return getSAXReader().read(file);
+		return _saxReader.read(file);
 	}
 
 	public static Document read(File file, boolean validate)
 		throws DocumentException {
 
-		return getSAXReader().read(file, validate);
+		return _saxReader.read(file, validate);
 	}
 
 	public static Document read(InputStream inputStream)
 		throws DocumentException {
 
-		return getSAXReader().read(inputStream);
+		return _saxReader.read(inputStream);
 	}
 
 	public static Document read(InputStream inputStream, boolean validate)
 		throws DocumentException {
 
-		return getSAXReader().read(inputStream, validate);
+		return _saxReader.read(inputStream, validate);
 	}
 
 	public static Document read(Reader reader) throws DocumentException {
-		return getSAXReader().read(reader);
+		return _saxReader.read(reader);
 	}
 
 	public static Document read(Reader reader, boolean validate)
 		throws DocumentException {
 
-		return getSAXReader().read(reader, validate);
+		return _saxReader.read(reader, validate);
 	}
 
 	public static Document read(String xml) throws DocumentException {
-		return getSAXReader().read(xml);
+		return _saxReader.read(xml);
 	}
 
 	public static Document read(String xml, boolean validate)
 		throws DocumentException {
 
-		return getSAXReader().read(xml, validate);
+		return _saxReader.read(xml, validate);
 	}
 
 	public static Document read(String xml, XMLSchema xmlSchema)
 		throws DocumentException {
 
-		return getSAXReader().read(xml, xmlSchema);
+		return _saxReader.read(xml, xmlSchema);
 	}
 
 	public static Document read(URL url) throws DocumentException {
-		return getSAXReader().read(url);
+		return _saxReader.read(url);
 	}
 
 	public static Document read(URL url, boolean validate)
 		throws DocumentException {
 
-		return getSAXReader().read(url, validate);
+		return _saxReader.read(url, validate);
 	}
 
 	public static Document readURL(String url)
 		throws DocumentException, MalformedURLException {
 
-		return getSAXReader().readURL(url);
+		return _saxReader.readURL(url);
 	}
 
 	public static Document readURL(String url, boolean validate)
 		throws DocumentException, MalformedURLException {
 
-		return getSAXReader().readURL(url, validate);
+		return _saxReader.readURL(url, validate);
 	}
 
 	public void setSAXReader(SAXReader saxReader) {

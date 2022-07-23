@@ -100,7 +100,7 @@ PortletURLBuilder.create(
 									"screenNavigationCategoryKey", screenNavigationEntry.getCategoryKey()
 								).setParameter(
 									"screenNavigationEntryKey", screenNavigationEntry.getEntryKey()
-								).build() %>"><%= screenNavigationEntry.getLabel(themeDisplay.getLocale()) %></a
+								).buildPortletURL() %>"><%= screenNavigationEntry.getLabel(themeDisplay.getLocale()) %></a
 									>
 								</li>
 
@@ -117,7 +117,7 @@ PortletURLBuilder.create(
 		<div class="<%= (screenNavigationEntries.size() > 1) ? containerCssClass : fullContainerCssClass %>">
 
 			<%
-			selectedScreenNavigationEntry.render(request, PipingServletResponse.createPipingServletResponse(pageContext));
+			selectedScreenNavigationEntry.render(request, PipingServletResponseFactory.createPipingServletResponse(pageContext));
 			%>
 
 		</div>

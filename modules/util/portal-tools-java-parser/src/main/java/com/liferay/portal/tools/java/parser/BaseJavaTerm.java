@@ -116,21 +116,16 @@ public abstract class BaseJavaTerm implements JavaTerm {
 
 		String trimmedLastLine = StringUtil.trim(lastLine);
 
-		if (trimmedLastLine.startsWith("catch (")) {
+		if (trimmedLastLine.startsWith("catch (") ||
+			trimmedLastLine.startsWith("else if (")) {
+
 			return _getLeadingWhitespace(lastLine) + "\t\t\t";
 		}
 
-		if (trimmedLastLine.startsWith("else if (")) {
-			return _getLeadingWhitespace(lastLine) + "\t\t\t";
-		}
+		if ((trimmedLastLine.startsWith("for (") &&
+			 !trimmedLastLine.endsWith(";")) ||
+			trimmedLastLine.startsWith("if (")) {
 
-		if (trimmedLastLine.startsWith("for (") &&
-			!trimmedLastLine.endsWith(";")) {
-
-			return _getLeadingWhitespace(lastLine) + "\t\t";
-		}
-
-		if (trimmedLastLine.startsWith("if (")) {
 			return _getLeadingWhitespace(lastLine) + "\t\t";
 		}
 
@@ -255,13 +250,29 @@ public abstract class BaseJavaTerm implements JavaTerm {
 			JavaOperatorExpression javaOperatorExpression =
 				(JavaOperatorExpression)javaExpression;
 
-			JavaOperator javaOperator =
-				javaOperatorExpression.getJavaOperator();
+			while (true) {
+				JavaOperator javaOperator =
+					javaOperatorExpression.getJavaOperator();
 
-			if (!javaOperator.equals(
-					JavaOperator.LOGICAL_COMPLEMENT_OPERATOR)) {
+				if (!javaOperator.equals(
+						JavaOperator.LOGICAL_COMPLEMENT_OPERATOR)) {
 
-				newLine = true;
+					newLine = true;
+
+					break;
+				}
+
+				JavaExpression rightHandJavaExpression =
+					javaOperatorExpression.getRightHandJavaExpression();
+
+				if (!(rightHandJavaExpression instanceof
+						JavaOperatorExpression)) {
+
+					break;
+				}
+
+				javaOperatorExpression =
+					(JavaOperatorExpression)rightHandJavaExpression;
 			}
 		}
 		else if (javaExpression instanceof JavaTypeCast) {

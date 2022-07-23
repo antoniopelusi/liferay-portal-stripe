@@ -83,7 +83,7 @@ public class UnicodeFormatter {
 			}
 			catch (NumberFormatException numberFormatException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(numberFormatException, numberFormatException);
+					_log.debug(numberFormatException);
 				}
 
 				return new byte[0];
@@ -102,7 +102,7 @@ public class UnicodeFormatter {
 			return hexString;
 		}
 
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		for (int i = 2; i < hexString.length(); i = i + 6) {
 			String s = hexString.substring(i, i + 4);
@@ -113,7 +113,7 @@ public class UnicodeFormatter {
 				sb.append(c);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return hexString;
 			}
@@ -123,7 +123,7 @@ public class UnicodeFormatter {
 	}
 
 	public static String toString(char[] array) {
-		StringBuilder sb = new StringBuilder(array.length * 6);
+		StringBundler sb = new StringBundler(array.length * 6);
 
 		char[] hexes = new char[4];
 
@@ -140,7 +140,7 @@ public class UnicodeFormatter {
 			return null;
 		}
 
-		StringBuilder sb = new StringBuilder(s.length() * 6);
+		StringBundler sb = new StringBundler(s.length() * 6);
 
 		char[] hexes = new char[4];
 

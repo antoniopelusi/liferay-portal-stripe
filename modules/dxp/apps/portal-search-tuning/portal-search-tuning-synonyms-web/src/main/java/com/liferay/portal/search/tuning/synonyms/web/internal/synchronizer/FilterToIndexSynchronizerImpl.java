@@ -19,7 +19,7 @@ import com.liferay.portal.search.tuning.synonyms.index.name.SynonymSetIndexNameB
 import com.liferay.portal.search.tuning.synonyms.web.internal.filter.SynonymSetFilterReader;
 import com.liferay.portal.search.tuning.synonyms.web.internal.filter.name.SynonymSetFilterNameHolder;
 import com.liferay.portal.search.tuning.synonyms.web.internal.index.SynonymSet;
-import com.liferay.portal.search.tuning.synonyms.web.internal.index.SynonymSetIndexWriter;
+import com.liferay.portal.search.tuning.synonyms.web.internal.storage.SynonymSetStorageAdapter;
 
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
@@ -39,12 +39,12 @@ public class FilterToIndexSynchronizerImpl
 	public void copyToIndex(
 		String companyIndexName, SynonymSetIndexName synonymSetIndexName) {
 
-		for (String synonyms : getSynonymsFromFilters(companyIndexName)) {
-			addSynonymSetToIndex(synonymSetIndexName, synonyms);
+		for (String synonyms : _getSynonymsFromFilters(companyIndexName)) {
+			_addSynonymSetToIndex(synonymSetIndexName, synonyms);
 		}
 	}
 
-	protected void addSynonymSetToIndex(
+	private void _addSynonymSetToIndex(
 		SynonymSetIndexName synonymSetIndexName, String synonyms) {
 
 		SynonymSet.SynonymSetBuilder synonymSetBuilder =
@@ -52,11 +52,11 @@ public class FilterToIndexSynchronizerImpl
 
 		synonymSetBuilder.synonyms(synonyms);
 
-		_synonymSetIndexWriter.create(
+		_synonymSetStorageAdapter.create(
 			synonymSetIndexName, synonymSetBuilder.build());
 	}
 
-	protected String[] getSynonymsFromFilters(String companyIndexName) {
+	private String[] _getSynonymsFromFilters(String companyIndexName) {
 		LinkedHashSet<String> synonyms = Stream.of(
 			_synonymSetFilterNameHolder.getFilterNames()
 		).map(
@@ -81,6 +81,6 @@ public class FilterToIndexSynchronizerImpl
 	private SynonymSetIndexNameBuilder _synonymSetIndexNameBuilder;
 
 	@Reference
-	private SynonymSetIndexWriter _synonymSetIndexWriter;
+	private SynonymSetStorageAdapter _synonymSetStorageAdapter;
 
 }

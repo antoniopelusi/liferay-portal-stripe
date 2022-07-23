@@ -260,4 +260,7 @@ public interface CTCollectionModel
 	 */
 	public void setStatusDate(Date statusDate);
 
+	@Override
+	public CTCollection cloneWithOriginalValues();
+
 }

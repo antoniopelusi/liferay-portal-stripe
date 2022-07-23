@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class DDMFieldLocalServiceWrapper
 	implements DDMFieldLocalService, ServiceWrapper<DDMFieldLocalService> {
 
+	public DDMFieldLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMFieldLocalServiceWrapper(
 		DDMFieldLocalService ddmFieldLocalService) {
 
@@ -129,6 +133,13 @@ public class DDMFieldLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmFieldLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmFieldLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

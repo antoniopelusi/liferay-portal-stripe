@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CommerceAccountServiceWrapper
 	implements CommerceAccountService, ServiceWrapper<CommerceAccountService> {
 
+	public CommerceAccountServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceAccountServiceWrapper(
 		CommerceAccountService commerceAccountService) {
 
@@ -58,6 +62,20 @@ public class CommerceAccountServiceWrapper
 		return _commerceAccountService.addCommerceAccount(
 			name, parentCommerceAccountId, email, taxId, type, active,
 			externalReferenceCode, serviceContext);
+	}
+
+	@Override
+	public com.liferay.commerce.account.model.CommerceAccount
+			addOrUpdateCommerceAccount(
+				String name, long parentCommerceAccountId, boolean logo,
+				byte[] logoBytes, String email, String taxId, int type,
+				boolean active, String externalReferenceCode,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceAccountService.addOrUpdateCommerceAccount(
+			name, parentCommerceAccountId, logo, logoBytes, email, taxId, type,
+			active, externalReferenceCode, serviceContext);
 	}
 
 	@Override
@@ -229,20 +247,6 @@ public class CommerceAccountServiceWrapper
 
 		return _commerceAccountService.updateDefaultShippingAddress(
 			commerceAccountId, commerceAddressId);
-	}
-
-	@Override
-	public com.liferay.commerce.account.model.CommerceAccount
-			upsertCommerceAccount(
-				String name, long parentCommerceAccountId, boolean logo,
-				byte[] logoBytes, String email, String taxId, int type,
-				boolean active, String externalReferenceCode,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _commerceAccountService.upsertCommerceAccount(
-			name, parentCommerceAccountId, logo, logoBytes, email, taxId, type,
-			active, externalReferenceCode, serviceContext);
 	}
 
 	@Override

@@ -88,11 +88,10 @@ public class FormNavigatorOSGiCommands {
 				FormNavigatorEntry<?> formNavigatorEntry =
 					bundleContext.getService(serviceReference);
 
-				String key = _getKey(
-					formNavigatorEntry.getFormNavigatorId(),
-					formNavigatorEntry.getCategoryKey());
-
-				emitter.emit(key);
+				emitter.emit(
+					_getKey(
+						formNavigatorEntry.getFormNavigatorId(),
+						formNavigatorEntry.getCategoryKey()));
 
 				bundleContext.ungetService(serviceReference);
 			});
@@ -149,8 +148,7 @@ public class FormNavigatorOSGiCommands {
 
 	private final Collector<CharSequence, ?, String> _collectorCSV =
 		Collectors.joining(StringPool.COMMA);
-	private ServiceTrackerList<FormNavigatorEntry<?>, FormNavigatorEntry<?>>
-		_formNavigatorEntries;
+	private ServiceTrackerList<FormNavigatorEntry<?>> _formNavigatorEntries;
 	private ServiceTrackerMap<String, List<FormNavigatorEntry<?>>>
 		_formNavigatorEntriesMap;
 

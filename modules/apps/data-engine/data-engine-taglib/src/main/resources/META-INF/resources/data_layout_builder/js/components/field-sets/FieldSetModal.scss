@@ -1,0 +1,64 @@
+@import '../../../css/variables';
+
+.fieldset-modal {
+	.data-engine-form-builder {
+		> .sheet {
+			background-color: transparent;
+			border: 0 none;
+		}
+
+		&.ddm-form-builder {
+			padding-right: 15px;
+
+			&--sidebar-open {
+				padding-right: $multiPanelSidebarContentWidth;
+			}
+
+			.container {
+				max-width: none;
+				padding: 0;
+			}
+		}
+	}
+
+	.data-layout-builder-sidebar {
+		&.display-settings .sidebar .sidebar-body {
+			height: calc(100vh - 349px);
+		}
+
+		.sidebar .sidebar-body {
+			height: calc(100vh - 397px);
+		}
+	}
+
+	.ddm-form-builder > div:first-child {
+		height: calc(100vh - 293px);
+		overflow: auto;
+	}
+
+	.lfr-ddm-form-container:not(.ddm-user-view-content) {
+		background-color: white;
+		border: 1px solid #e7e7ed;
+		border-radius: 0.25rem;
+		margin: 1.5rem auto;
+		padding: 0 1.5rem;
+		width: calc(808px + 3rem);
+	}
+
+	.multi-panel-sidebar {
+		height: calc(100vh - 293px) !important;
+		position: absolute;
+		top: 0 !important;
+
+		&-content {
+			height: calc(100vh - 293px);
+			position: absolute;
+			top: 0;
+		}
+	}
+
+	.modal-body {
+		overflow: hidden;
+		padding: 0;
+	}
+}

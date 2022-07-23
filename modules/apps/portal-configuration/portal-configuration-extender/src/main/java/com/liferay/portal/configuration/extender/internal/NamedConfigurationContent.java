@@ -52,15 +52,8 @@ public class NamedConfigurationContent {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{factoryPid=");
-		sb.append(_factoryPid);
-		sb.append(", pid=");
-		sb.append(_pid);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{factoryPid=", _factoryPid, ", pid=", _pid, "}");
 	}
 
 	private final String _factoryPid;

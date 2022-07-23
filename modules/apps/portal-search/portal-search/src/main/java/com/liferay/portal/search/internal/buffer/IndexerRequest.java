@@ -15,12 +15,14 @@
 package com.liferay.portal.search.internal.buffer;
 
 import com.liferay.petra.lang.HashUtil;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
 import com.liferay.portal.kernel.model.ClassedModel;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.util.ClassUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 
 import java.lang.reflect.Method;
 
@@ -40,7 +42,7 @@ public class IndexerRequest {
 
 		_indexer = new NoAutoCommitIndexer<>(indexer);
 
-		_forceSync = ProxyModeThreadLocal.isForceSync();
+		_forceSync = _isForceSync();
 		_modelClassName = classedModel.getModelClassName();
 		_modelPrimaryKey = (Long)_classedModel.getPrimaryKeyObj();
 	}
@@ -55,7 +57,7 @@ public class IndexerRequest {
 		_modelPrimaryKey = modelPrimaryKey;
 
 		_classedModel = null;
-		_forceSync = ProxyModeThreadLocal.isForceSync();
+		_forceSync = _isForceSync();
 	}
 
 	@Override
@@ -85,8 +87,8 @@ public class IndexerRequest {
 	}
 
 	public void execute() throws Exception {
-		try (SafeClosable safeClosable =
-				ProxyModeThreadLocal.setWithSafeClosable(_forceSync)) {
+		try (SafeCloseable safeCloseable =
+				ProxyModeThreadLocal.setWithSafeCloseable(_forceSync)) {
 
 			Class<?>[] parameterTypes = _method.getParameterTypes();
 
@@ -115,24 +117,23 @@ public class IndexerRequest {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(13);
-
-		sb.append("{classModel=");
-		sb.append(_classedModel);
-		sb.append(", forceSync=");
-		sb.append(_forceSync);
-		sb.append(", indexer=");
-		sb.append(ClassUtil.getClassName(_indexer));
-		sb.append(", method=");
-		sb.append(_method);
-		sb.append(", modelClassName=");
-		sb.append(_modelClassName);
-		sb.append(", modelPrimaryKey=");
-		sb.append(_modelPrimaryKey);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{classModel=", _classedModel, ", forceSync=", _forceSync,
+			", indexer=", ClassUtil.getClassName(_indexer), ", method=",
+			_method, ", modelClassName=", _modelClassName, ", modelPrimaryKey=",
+			_modelPrimaryKey, "}");
 	}
+
+	private boolean _isForceSync() {
+		if (_FORCE_SYNC_DISABLED) {
+			return false;
+		}
+
+		return ProxyModeThreadLocal.isForceSync();
+	}
+
+	private static final boolean _FORCE_SYNC_DISABLED = GetterUtil.getBoolean(
+		PropsUtil.get("index.search.request.force.sync.disabled"));
 
 	private final ClassedModel _classedModel;
 	private final boolean _forceSync;

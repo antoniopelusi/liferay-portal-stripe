@@ -150,6 +150,13 @@ public abstract class EntryLocalServiceBaseImpl
 	}
 
 	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
+	@Override
 	public DynamicQuery dynamicQuery() {
 		Class<?> clazz = getClass();
 
@@ -473,10 +480,6 @@ public abstract class EntryLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.portal.kernel.service.ClassNameLocalService
 		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.PortletPreferencesLocalService
-		portletPreferencesLocalService;
 
 	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService

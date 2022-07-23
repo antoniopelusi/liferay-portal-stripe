@@ -28,9 +28,9 @@ import javax.servlet.http.HttpSession;
 public class PortletServletSession extends HttpSessionWrapper {
 
 	public PortletServletSession(
-		HttpSession session, LiferayPortletRequest liferayPortletRequest) {
+		HttpSession httpSession, LiferayPortletRequest liferayPortletRequest) {
 
-		super(session);
+		super(httpSession);
 
 		_liferayPortletRequestReference = new WeakReference<>(
 			liferayPortletRequest);

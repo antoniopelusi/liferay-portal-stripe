@@ -30,7 +30,8 @@ List<AssetEntry> assetEntries = assetPublisherHelper.getAssetEntries(renderReque
 	total="<%= assetEntries.size() %>"
 >
 	<liferay-ui:search-container-results
-		results="<%= assetEntries.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
+		calculateStartAndEnd="<%= true %>"
+		results="<%= assetEntries %>"
 	/>
 
 	<liferay-ui:search-container-row
@@ -240,7 +241,7 @@ for (long groupId : groupIds) {
 		var assetEntryIds = [];
 
 		Array.prototype.forEach.call(assetEntryList, (assetEntry) => {
-			assetEntryIds.push(assetEntry.entityid);
+			assetEntryIds.push(assetEntry.value);
 
 			assetClassName = assetEntry.assetclassname;
 		});
@@ -267,6 +268,7 @@ for (long groupId : groupIds) {
 			var delegateTarget = event.delegateTarget;
 
 			Liferay.Util.openSelectionModal({
+				customSelectEvent: true,
 				multiple: true,
 				onSelect: function (selectedItems) {
 					if (selectedItems) {

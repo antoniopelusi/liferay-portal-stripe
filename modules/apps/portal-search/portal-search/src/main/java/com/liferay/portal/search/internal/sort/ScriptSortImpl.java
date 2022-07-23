@@ -23,7 +23,7 @@ import com.liferay.portal.search.sort.SortVisitor;
 /**
  * @author Michael C. Han
  */
-public class ScriptSortImpl extends SortImpl implements ScriptSort {
+public class ScriptSortImpl extends BaseSortImpl implements ScriptSort {
 
 	public ScriptSortImpl(Script script, ScriptSortType scriptSortType) {
 		_script = script;

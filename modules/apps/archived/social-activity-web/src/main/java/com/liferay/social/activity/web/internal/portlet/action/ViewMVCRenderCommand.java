@@ -65,7 +65,7 @@ public class ViewMVCRenderCommand implements MVCRenderCommand {
 		try {
 			renderRequest.setAttribute(
 				SocialActivityWebKeys.SOCIAL_ACTIVITY_SETTINGS_MAP,
-				getActivitySettingsMap(themeDisplay));
+				_getActivitySettingsMap(themeDisplay));
 		}
 		catch (Exception exception) {
 			if (exception instanceof PrincipalException) {
@@ -80,7 +80,14 @@ public class ViewMVCRenderCommand implements MVCRenderCommand {
 		return "/view.jsp";
 	}
 
-	protected Map<String, Boolean> getActivitySettingsMap(
+	@Reference(unbind = "-")
+	protected void setSocialActivitySettingService(
+		SocialActivitySettingService socialActivitySettingService) {
+
+		_socialActivitySettingService = socialActivitySettingService;
+	}
+
+	private Map<String, Boolean> _getActivitySettingsMap(
 			ThemeDisplay themeDisplay)
 		throws Exception {
 
@@ -127,13 +134,6 @@ public class ViewMVCRenderCommand implements MVCRenderCommand {
 		}
 
 		return activitySettingsMap;
-	}
-
-	@Reference(unbind = "-")
-	protected void setSocialActivitySettingService(
-		SocialActivitySettingService socialActivitySettingService) {
-
-		_socialActivitySettingService = socialActivitySettingService;
 	}
 
 	private SocialActivitySettingService _socialActivitySettingService;

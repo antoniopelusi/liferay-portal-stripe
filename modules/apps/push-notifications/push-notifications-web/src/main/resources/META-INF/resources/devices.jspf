@@ -52,7 +52,7 @@ ResourceBundleLoaderProvider resourceBundleLoaderProvider = (ResourceBundleLoade
 						renderResponse
 					).setParameter(
 						"displayStyle", displayStyle
-					).build()
+					).buildPortletURL()
 				%>'
 			/>
 		</liferay-frontend:management-bar-filters>

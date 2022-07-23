@@ -4,7 +4,14 @@ definition {
 		var key_entryContent = "${entryContent}";
 		var key_mentionsUserScreenName = "${mentionsUserScreenName}";
 
-		BlogsNavigator.gotoAddEntry();
+		if (isSet(siteURLKey)) {
+			BlogsNavigator.openToAddEntry(
+				layoutName = "${layoutName}",
+				siteURLKey = "${siteURLKey}");
+		}
+		else {
+			BlogsNavigator.gotoAddEntry();
+		}
 
 		BlogsEntry.addTitle(entryTitle = "${entryTitle}");
 
@@ -19,10 +26,23 @@ definition {
 	}
 
 	macro addMentionViaComments {
+		if (isSet(parentComment)) {
+			AssertClick(
+				key_entryComment = "${parentComment}",
+				key_text = "Reply",
+				locator1 = "Comments#ANY_BUTTON_IN_COMMENT",
+				value1 = "Reply");
+
+			AssertElementPresent.pauseAssertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
+		}
+		else {
+			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+		}
+
 		var key_entryComment = "${entryComment}";
 		var key_mentionsUserScreenName = "${mentionsUserScreenName}";
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
 		Type.sendKeys(
 			locator1 = "CKEditor#BODY",
@@ -80,6 +100,13 @@ definition {
 
 			Alert.viewSuccessMessage();
 		}
+		else if (isSet(parentComment)) {
+			AssertClick(
+				locator1 = "Button#REPLY_LAST",
+				value1 = "Reply");
+
+			Alert.viewSuccessMessage();
+		}
 		else {
 			AssertClick(
 				locator1 = "Button#REPLY",
@@ -93,11 +120,20 @@ definition {
 		var key_mentionsUserScreenName = "${mentionsUserScreenName}";
 		var key_threadSubject = "${threadSubject}";
 
-		AssertClick(
-			locator1 = "MessageBoards#THREAD_LIST_THREAD",
-			value1 = "${threadSubject}");
+		if (isSet(siteURLKey)) {
+			MessageboardsThread.openToThread(
+				groupName = "${groupName}",
+				layoutName = "${layoutName}",
+				siteURLKey = "${siteURLKey}",
+				threadSubject = "${threadSubject}");
+		}
+		else {
+			AssertClick(
+				locator1 = "MessageBoards#THREAD_LIST_THREAD",
+				value1 = "${threadSubject}");
 
-		AssertElementPresent(locator1 = "MessageBoardsThread#THREAD_REPLY_BUTTON");
+			AssertElementPresent(locator1 = "MessageBoardsThread#THREAD_REPLY_BUTTON");
+		}
 
 		AssertClick(
 			locator1 = "MessageBoardsThread#THREAD_REPLY_BUTTON",
@@ -117,9 +153,14 @@ definition {
 	}
 
 	macro addMentionViaMessageBoardThread {
-		LexiconEntry.gotoAdd();
+		if (isSet(siteURLKey)) {
+			MessageboardsThread.openToAddThread(siteURLKey = "${siteURLKey}");
+		}
+		else {
+			LexiconEntry.gotoAdd();
 
-		MenuItem.click(menuItem = "Thread");
+			MenuItem.click(menuItem = "Thread");
+		}
 
 		var key_mentionsUserScreenName = "${mentionsUserScreenName}";
 
@@ -158,9 +199,17 @@ definition {
 	}
 
 	macro addMentionViaMessageBoardThreadEdit {
-		Click(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+		if (isSet(siteURLKey)) {
+			MessageboardsThread.openToEditThread(
+				groupName = "${groupName}",
+				siteURLKey = "${siteURLKey}",
+				threadSubject = "${threadSubject}");
+		}
+		else {
+			Click(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
 
-		MenuItem.click(menuItem = "Edit");
+			MenuItem.click(menuItem = "Edit");
+		}
 
 		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 

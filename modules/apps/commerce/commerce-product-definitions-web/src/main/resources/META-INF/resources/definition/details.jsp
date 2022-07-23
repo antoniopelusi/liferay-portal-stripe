@@ -73,7 +73,7 @@ if ((cpDefinition != null) && (cpDefinition.getExpirationDate() != null)) {
 							for (CommerceCatalog curCommerceCatalog : commerceCatalogs) {
 							%>
 
-								<aui:option data-languageId="<%= curCommerceCatalog.getCatalogDefaultLanguageId() %>" label="<%= curCommerceCatalog.getName() %>" selected="<%= (cpDefinition == null) ? (commerceCatalogs.size() == 1) : cpDefinitionsDisplayContext.isSelectedCatalog(curCommerceCatalog) %>" value="<%= curCommerceCatalog.getGroupId() %>" />
+								<aui:option data-languageId="<%= curCommerceCatalog.getCatalogDefaultLanguageId() %>" label="<%= HtmlUtil.escape(curCommerceCatalog.getName()) %>" selected="<%= (cpDefinition == null) ? (commerceCatalogs.size() == 1) : cpDefinitionsDisplayContext.isSelectedCatalog(curCommerceCatalog) %>" value="<%= curCommerceCatalog.getGroupId() %>" />
 
 							<%
 							}
@@ -129,7 +129,9 @@ if ((cpDefinition != null) && (cpDefinition.getExpirationDate() != null)) {
 						defaultLanguageId="<%= defaultLanguageId %>"
 						inputAddon="<%= StringUtil.shorten(friendlyURLBase, 40) %>"
 						name="urlTitleMapAsXML"
-						xml="<%= HttpUtil.decodeURL(cpDefinitionsDisplayContext.getUrlTitleMapAsXML()) %>"
+						xml="<%=
+							HttpComponentsUtil.decodeURL(cpDefinitionsDisplayContext.getUrlTitleMapAsXML())
+						%>"
 					/>
 				</div>
 
@@ -300,7 +302,7 @@ if ((cpDefinition != null) && (cpDefinition.getExpirationDate() != null)) {
 								fieldName: 'key',
 							},
 						],
-						spritemap: '<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg',
+						spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
 						titleLabel:
 							'<%= LanguageUtil.get(request, "add-existing-specification") %>',
 					});
@@ -319,12 +321,13 @@ if ((cpDefinition != null) && (cpDefinition.getExpirationDate() != null)) {
 							).build()
 						%>'
 						dataProviderKey="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_DEFINITION_SPECIFICATIONS %>"
-						formId="fm"
+						formName="fm"
 						id="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_DEFINITION_SPECIFICATIONS %>"
 						itemsPerPage="<%= 10 %>"
 						namespace="<%= liferayPortletResponse.getNamespace() %>"
 						pageNumber="<%= 1 %>"
 						portletURL="<%= currentURLObj %>"
+						selectedItemsKey="cpdefinitionSpecificationOptionValueId"
 						showManagementBar="<%= false %>"
 					/>
 				</commerce-ui:panel>

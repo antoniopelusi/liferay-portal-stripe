@@ -77,7 +77,7 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 				kaleoInstanceTokenId);
 		KaleoTimer kaleoTimer = kaleoTimerPersistence.findByPrimaryKey(
 			kaleoTimerId);
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoTimerInstanceTokenId = counterLocalService.increment();
 
@@ -93,8 +93,8 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 		kaleoTimerInstanceToken.setCompanyId(user.getCompanyId());
 		kaleoTimerInstanceToken.setUserId(user.getUserId());
 		kaleoTimerInstanceToken.setUserName(user.getFullName());
-		kaleoTimerInstanceToken.setCreateDate(now);
-		kaleoTimerInstanceToken.setModifiedDate(now);
+		kaleoTimerInstanceToken.setCreateDate(date);
+		kaleoTimerInstanceToken.setModifiedDate(date);
 		kaleoTimerInstanceToken.setKaleoClassName(
 			kaleoTimer.getKaleoClassName());
 		kaleoTimerInstanceToken.setKaleoClassPK(kaleoTimer.getKaleoClassPK());

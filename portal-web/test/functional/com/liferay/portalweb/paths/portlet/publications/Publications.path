@@ -2,50 +2,17 @@
 <head>
 <title>Publications</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Publications</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>AUTOMATICALLY_RESOLVED_TABLE</td>
 	<td>//div[contains(@class,'publications-conflicts-container')]//span[contains(.,'Automatically Resolved')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PUBLICATIONS_INDICATOR_BUTTON</td>
-	<td>//button[contains(@class,'dropdown-toggle change-tracking-indicator-button')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PUBLICATIONS_INDICATOR_TITLE</td>
-	<td>//button[contains(@class,'change-tracking-indicator-title')] and contains(.,'${key_publicationName}')</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLUMN_VALUE_IN_PRODUCTION</td>
-	<td>//td[contains(@class,'publications-key-td') and contains(.,'${key_columnName}')]//following-sibling::td[contains(.,'${key_columnValueInProduction}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLUMN_VALUE_IN_PUBLICATION</td>
-	<td>//td[contains(@class,'publications-key-td') and contains(.,'${key_columnName}')]//following-sibling::td[contains(.,'${key_columnValueInPublication}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CONFLICTING_CHANGES_CONTENT_LINK</td>
-	<td>//div[contains(@class,'autofit-col-expand') and contains(.,'${key_entryTitle}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CONFLICTING_CHANGES_DIFF_IFRAME_TITLE</td>
-	<td>//div[contains(@class,'modal-header')]/div[@class='modal-title' and contains(.,'${key_iframeTitle}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CONFLICTING_CHANGES_DISCARD_ELLIPSIS</td>
-	<td>//div[contains(@class,'autofit-col-expand') and contains(.,'${key_entryTitle}')]//following-sibling::div//button</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,28 +26,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CURRENT_DIFF_DISPLAY_ICON</td>
-	<td>//span[contains(@class, 'inline-item inline-item-after')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CURRENT_DIFF_DISPLAY_ITEM</td>
-	<td>//button[contains(@class,'dropdown-toggle') and contains(.,'${key_displayItem}')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>DELETE_THE_ENTERED_TIME_BUTTON</td>
 	<td>//button[contains(@aria-label,'Delete the entered time')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DIFF_ADDED_VALUE</td>
-	<td>//td[contains(@class,'publications-key-td') and contains(.,'${key_columnName}')]//following-sibling::td//span[contains(@class,'diff-html-added')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DIFF_REMOVED_VALUE</td>
-	<td>//td[contains(@class,'publications-key-td') and contains(.,'${key_columnName}')]//following-sibling::td//span[contains(@class,'diff-html-removed')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -89,8 +36,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>DISCARDED_CHANGES_TITLE</td>
-	<td>//h2[contains(.,'Discarded Changes')]</td>
+	<td>KEYWORD_TEXTFIELD</td>
+	<td>//*[@class='form-control-inset']</td>
 	<td></td>
 </tr>
 <tr>
@@ -100,7 +47,7 @@
 </tr>
 <tr>
 	<td>LIST_PUBLICATION_ELLIPSIS</td>
-	<td>//li[@data-qa-id='row'][contains(.,'${key_publicationName}')]//*[contains(@class,'lexicon-icon lexicon-icon-ellipsis-v')]</td>
+	<td>//*[@data-qa-id='row'][contains(.,'${key_publicationName}')]//*[contains(@class,'lexicon-icon lexicon-icon-ellipsis-v')] | //tr[contains(.,'${key_publicationName}')]//following-sibling::div//*[contains(@class,'lexicon-icon lexicon-icon-ellipsis-v')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -119,12 +66,12 @@
 	<td></td>
 </tr>
 <tr>
-	<td>MANGE_PUBLICATIONS_PAGE_TITLE</td>
+	<td>MANAGE_PUBLICATIONS_PAGE_TITLE</td>
 	<td>//span[contains(@data-qa-id,'headerTitle')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>MANGE_PUBLICATIONS_NAVBAR_TITLE</td>
+	<td>MANAGE_PUBLICATIONS_NAVBAR_TITLE</td>
 	<td>//li[contains(@class,'nav-item')]/a[contains(.,'${key_navBarTitle}')]</td>
 	<td></td>
 </tr>
@@ -149,6 +96,36 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PUBLICATION_ORDER_IN_HISTORY</td>
+	<td>//ul[contains(@class,'publications-table')]//li[${resultOrder}]/div/p/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLICATION_ROLE_BUTTON</td>
+	<td>//button[strong[contains(.,'${key_publicationRole}')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLICATIONS_ELLIPSIS</td>
+	<td>//div[contains(@class,'control-menu-icon')]//span[*[contains(@class,'lexicon-icon-ellipsis-v')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLICATIONS_INDICATOR_BUTTON</td>
+	<td>//button[contains(@class,'dropdown-toggle change-tracking-indicator-button')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLICATIONS_INDICATOR_TITLE</td>
+	<td>//button[contains(@class,'change-tracking-indicator-title')] and contains(.,'${key_publicationName}')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLICATIONS_TOGGLE_SWITCH</td>
+	<td>//input[contains(@id,'enablePublications')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PUBLISH_BUTTON</td>
 	<td>//button[contains(.,'Publish')]</td>
 	<td></td>
@@ -156,11 +133,6 @@
 <tr>
 	<td>PUBLISH_DATE</td>
 	<td>//div[@class='date-picker']//input[contains(@class,'input-group-inset') and @type='text']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PUBLISH_DISABLED_NAV_BAR</td>
-	<td>//a[contains(@class,'btn-sm disabled') and contains(.,'Publish')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -201,11 +173,6 @@
 <tr>
 	<td>SCHEDULE_BUTTON</td>
 	<td>//*[contains(@class,'btn')][normalize-space(text())='Schedule']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SCHEDULE_DISABLED_NAV_BAR</td>
-	<td>//a[contains(@class,'btn-sm disabled') and contains(.,'Schedule')]</td>
 	<td></td>
 </tr>
 <tr>

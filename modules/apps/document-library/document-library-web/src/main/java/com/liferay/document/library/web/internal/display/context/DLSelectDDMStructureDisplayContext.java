@@ -14,6 +14,7 @@
 
 package com.liferay.document.library.web.internal.display.context;
 
+import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLinkLocalServiceUtil;
@@ -21,15 +22,14 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureServiceUtil;
 import com.liferay.dynamic.data.mapping.util.DDMUtil;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
-import java.util.List;
 import java.util.Objects;
 
 import javax.portlet.PortletURL;
@@ -80,67 +80,55 @@ public class DLSelectDDMStructureDisplayContext {
 			ddmStructureSearch.setEmptyResultsMessage("no-results-were-found");
 		}
 
-		String orderByCol = getOrderByCol();
-		String orderByType = getOrderByType();
-
-		OrderByComparator<DDMStructure> orderByComparator =
+		ddmStructureSearch.setOrderByCol(getOrderByCol());
+		ddmStructureSearch.setOrderByComparator(
 			DDMUtil.getStructureOrderByComparator(
-				getOrderByCol(), getOrderByType());
-
-		ddmStructureSearch.setOrderByCol(orderByCol);
-		ddmStructureSearch.setOrderByComparator(orderByComparator);
-		ddmStructureSearch.setOrderByType(orderByType);
+				getOrderByCol(), getOrderByType()));
+		ddmStructureSearch.setOrderByType(getOrderByType());
 
 		long[] groupIds = PortalUtil.getCurrentAndAncestorSiteGroupIds(
 			themeDisplay.getScopeGroupId());
 
-		int total = 0;
-
 		if (_isSearchRestriction()) {
-			total = DDMStructureLinkLocalServiceUtil.getStructureLinksCount(
-				_getSearchRestrictionClassNameId(),
-				_getSearchRestrictionClassPK());
-		}
-		else if (Validator.isNotNull(_getKeywords())) {
-			total = DDMStructureServiceUtil.searchCount(
-				themeDisplay.getCompanyId(), groupIds,
-				PortalUtil.getClassNameId(DLFileEntryMetadata.class.getName()),
-				_getKeywords(), WorkflowConstants.STATUS_ANY);
-		}
-		else {
-			total = DDMStructureServiceUtil.getStructuresCount(
-				themeDisplay.getCompanyId(), groupIds,
-				PortalUtil.getClassNameId(DLFileEntryMetadata.class.getName()));
-		}
-
-		ddmStructureSearch.setTotal(total);
-
-		List<DDMStructure> results = null;
-
-		if (_isSearchRestriction()) {
-			results =
-				DDMStructureLinkLocalServiceUtil.getStructureLinkStructures(
+			ddmStructureSearch.setResultsAndTotal(
+				() ->
+					DDMStructureLinkLocalServiceUtil.getStructureLinkStructures(
+						_getSearchRestrictionClassNameId(),
+						_getSearchRestrictionClassPK(),
+						ddmStructureSearch.getStart(),
+						ddmStructureSearch.getEnd()),
+				DDMStructureLinkLocalServiceUtil.getStructureLinksCount(
 					_getSearchRestrictionClassNameId(),
-					_getSearchRestrictionClassPK(),
-					ddmStructureSearch.getStart(), ddmStructureSearch.getEnd());
+					_getSearchRestrictionClassPK()));
 		}
 		else if (Validator.isNotNull(_getKeywords())) {
-			results = DDMStructureServiceUtil.search(
-				themeDisplay.getCompanyId(), groupIds,
-				PortalUtil.getClassNameId(DLFileEntryMetadata.class.getName()),
-				_getKeywords(), WorkflowConstants.STATUS_ANY,
-				ddmStructureSearch.getStart(), ddmStructureSearch.getEnd(),
-				ddmStructureSearch.getOrderByComparator());
+			ddmStructureSearch.setResultsAndTotal(
+				() -> DDMStructureServiceUtil.search(
+					themeDisplay.getCompanyId(), groupIds,
+					PortalUtil.getClassNameId(
+						DLFileEntryMetadata.class.getName()),
+					_getKeywords(), WorkflowConstants.STATUS_ANY,
+					ddmStructureSearch.getStart(), ddmStructureSearch.getEnd(),
+					ddmStructureSearch.getOrderByComparator()),
+				DDMStructureServiceUtil.searchCount(
+					themeDisplay.getCompanyId(), groupIds,
+					PortalUtil.getClassNameId(
+						DLFileEntryMetadata.class.getName()),
+					_getKeywords(), WorkflowConstants.STATUS_ANY));
 		}
 		else {
-			results = DDMStructureServiceUtil.getStructures(
-				themeDisplay.getCompanyId(), groupIds,
-				PortalUtil.getClassNameId(DLFileEntryMetadata.class.getName()),
-				ddmStructureSearch.getStart(), ddmStructureSearch.getEnd(),
-				ddmStructureSearch.getOrderByComparator());
+			ddmStructureSearch.setResultsAndTotal(
+				() -> DDMStructureServiceUtil.getStructures(
+					themeDisplay.getCompanyId(), groupIds,
+					PortalUtil.getClassNameId(
+						DLFileEntryMetadata.class.getName()),
+					ddmStructureSearch.getStart(), ddmStructureSearch.getEnd(),
+					ddmStructureSearch.getOrderByComparator()),
+				DDMStructureServiceUtil.getStructuresCount(
+					themeDisplay.getCompanyId(), groupIds,
+					PortalUtil.getClassNameId(
+						DLFileEntryMetadata.class.getName())));
 		}
-
-		ddmStructureSearch.setResults(results);
 
 		_ddmStructureSearch = ddmStructureSearch;
 
@@ -152,23 +140,25 @@ public class DLSelectDDMStructureDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		if (_orderByCol != null) {
+		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_renderRequest, "orderByCol", "modified-date");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, DLPortletKeys.DOCUMENT_LIBRARY,
+			"ddm-structure-order-by-col", "modified-date");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (_orderByType != null) {
+		if (Validator.isNotNull(_orderByType)) {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, DLPortletKeys.DOCUMENT_LIBRARY,
+			"ddm-structure-order-by-type", "asc");
 
 		return _orderByType;
 	}
@@ -201,38 +191,54 @@ public class DLSelectDDMStructureDisplayContext {
 	}
 
 	private PortletURL _getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/document_library/ddm/select_ddm_structure.jsp"
-		).build();
+		).setKeywords(
+			() -> {
+				String keywords = _getKeywords();
 
-		long ddmStructureId = getDDMStructureId();
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
 
-		if (ddmStructureId != 0) {
-			portletURL.setParameter(
-				"ddmStructureId", String.valueOf(ddmStructureId));
-		}
+				return null;
+			}
+		).setParameter(
+			"ddmStructureId",
+			() -> {
+				long ddmStructureId = getDDMStructureId();
 
-		String keywords = _getKeywords();
+				if (ddmStructureId != 0) {
+					return ddmStructureId;
+				}
 
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
 
-		String orderByCol = getOrderByCol();
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
 
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
 
-		String orderByType = getOrderByType();
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
 
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	private long _getSearchRestrictionClassNameId() {

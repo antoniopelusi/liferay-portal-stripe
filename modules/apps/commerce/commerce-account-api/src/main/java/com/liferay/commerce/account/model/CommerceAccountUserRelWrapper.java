@@ -101,6 +101,11 @@ public class CommerceAccountUserRelWrapper
 		}
 	}
 
+	@Override
+	public CommerceAccountUserRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the commerce account ID of this commerce account user rel.
 	 *
@@ -217,11 +222,6 @@ public class CommerceAccountUserRelWrapper
 	@Override
 	public String getUserUuid() {
 		return model.getUserUuid();
-	}
-
-	@Override
-	public void persist() {
-		model.persist();
 	}
 
 	/**

@@ -12,7 +12,7 @@
  * details.
  */
 
-import MapBase from 'map-common/js/MapBase.es';
+import MapBase from '@liferay/map-common/js/MapBase.es';
 import {Config} from 'metal-state';
 
 import OpenStreetMapDialog from './OpenStreetMapDialog.es';
@@ -32,6 +32,12 @@ class MapOpenStreetMap extends MapBase {
 	 * @review
 	 */
 	constructor(...args) {
+		MapBase.DialogImpl = OpenStreetMapDialog;
+		MapBase.GeocoderImpl = OpenStreetMapGeocoder;
+		MapBase.GeoJSONImpl = OpenStreetMapGeoJSON;
+		MapBase.MarkerImpl = OpenStreetMapMarker;
+		MapBase.SearchImpl = null;
+
 		super(...args);
 
 		this._map = null;
@@ -115,16 +121,6 @@ class MapOpenStreetMap extends MapBase {
 		}
 	}
 }
-
-MapBase.DialogImpl = OpenStreetMapDialog;
-
-MapBase.GeocoderImpl = OpenStreetMapGeocoder;
-
-MapBase.GeoJSONImpl = OpenStreetMapGeoJSON;
-
-MapBase.MarkerImpl = OpenStreetMapMarker;
-
-MapBase.SearchImpl = null;
 
 MapOpenStreetMap.CONTROLS_MAP = {
 	[MapBase.CONTROLS.ATTRIBUTION]: 'attributionControl',

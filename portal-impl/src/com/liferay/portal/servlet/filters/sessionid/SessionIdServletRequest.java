@@ -42,24 +42,24 @@ public class SessionIdServletRequest extends HttpServletRequestWrapper {
 
 	@Override
 	public HttpSession getSession() {
-		HttpSession session = super.getSession();
+		HttpSession httpSession = super.getSession();
 
-		process(session);
+		process(httpSession);
 
-		return session;
+		return httpSession;
 	}
 
 	@Override
 	public HttpSession getSession(boolean create) {
-		HttpSession session = super.getSession(create);
+		HttpSession httpSession = super.getSession(create);
 
-		process(session);
+		process(httpSession);
 
-		return session;
+		return httpSession;
 	}
 
-	protected void process(HttpSession session) {
-		if ((session == null) || !session.isNew() || !isSecure() ||
+	protected void process(HttpSession httpSession) {
+		if ((httpSession == null) || !httpSession.isNew() || !isSecure() ||
 			isRequestedSessionIdFromCookie()) {
 
 			return;
@@ -72,10 +72,10 @@ public class SessionIdServletRequest extends HttpServletRequestWrapper {
 		}
 
 		if (_log.isDebugEnabled()) {
-			_log.debug("Processing " + session.getId());
+			_log.debug("Processing " + httpSession.getId());
 		}
 
-		Cookie cookie = new Cookie(_JESSIONID, session.getId());
+		Cookie cookie = new Cookie(_JESSIONID, httpSession.getId());
 
 		cookie.setMaxAge(-1);
 

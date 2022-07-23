@@ -249,6 +249,11 @@ public class DDMTemplateWrapper
 	}
 
 	@Override
+	public DDMTemplate cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

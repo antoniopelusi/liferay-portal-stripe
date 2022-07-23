@@ -27,6 +27,10 @@ public class CacheFieldEntryLocalServiceWrapper
 	implements CacheFieldEntryLocalService,
 			   ServiceWrapper<CacheFieldEntryLocalService> {
 
+	public CacheFieldEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CacheFieldEntryLocalServiceWrapper(
 		CacheFieldEntryLocalService cacheFieldEntryLocalService) {
 
@@ -132,6 +136,13 @@ public class CacheFieldEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cacheFieldEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cacheFieldEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -18,8 +18,4 @@ package com.liferay.analytics.message.storage.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class AnalyticsMessageImpl extends AnalyticsMessageBaseImpl {
-
-	public AnalyticsMessageImpl() {
-	}
-
 }

@@ -55,11 +55,9 @@ export default function Header({
 						'search-for-assignee-name'
 					)}
 				/>
+
 				<ClayManagementToolbar.ItemList>
-					<TimeRangeFilter
-						buttonClassName="btn-flat btn-sm"
-						options={{position: 'right'}}
-					/>
+					<TimeRangeFilter />
 				</ClayManagementToolbar.ItemList>
 			</ClayManagementToolbar>
 

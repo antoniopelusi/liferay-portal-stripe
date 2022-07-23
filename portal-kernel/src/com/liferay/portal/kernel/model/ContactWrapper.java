@@ -50,7 +50,6 @@ public class ContactWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
-		attributes.put("accountId", getAccountId());
 		attributes.put("parentContactId", getParentContactId());
 		attributes.put("emailAddress", getEmailAddress());
 		attributes.put("firstName", getFirstName());
@@ -128,12 +127,6 @@ public class ContactWrapper
 
 		if (classPK != null) {
 			setClassPK(classPK);
-		}
-
-		Long accountId = (Long)attributes.get("accountId");
-
-		if (accountId != null) {
-			setAccountId(accountId);
 		}
 
 		Long parentContactId = (Long)attributes.get("parentContactId");
@@ -251,14 +244,9 @@ public class ContactWrapper
 		}
 	}
 
-	/**
-	 * Returns the account ID of this contact.
-	 *
-	 * @return the account ID of this contact
-	 */
 	@Override
-	public long getAccountId() {
-		return model.getAccountId();
+	public Contact cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -594,16 +582,6 @@ public class ContactWrapper
 	@Override
 	public void persist() {
 		model.persist();
-	}
-
-	/**
-	 * Sets the account ID of this contact.
-	 *
-	 * @param accountId the account ID of this contact
-	 */
-	@Override
-	public void setAccountId(long accountId) {
-		model.setAccountId(accountId);
 	}
 
 	/**

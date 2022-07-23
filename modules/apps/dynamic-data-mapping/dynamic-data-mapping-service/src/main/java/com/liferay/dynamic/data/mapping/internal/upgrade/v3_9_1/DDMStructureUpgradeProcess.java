@@ -22,6 +22,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.util.DDMFormDeserializeUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormSerializeUtil;
+import com.liferay.journal.model.JournalArticle;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
@@ -93,77 +94,80 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _upgradeDDMStructure() throws Exception {
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("select DDMStructure.structureId, ");
-		sb.append("DDMStructureVersion.definition from DDMStructure inner ");
-		sb.append("join DDMStructureVersion on DDMStructure.structureId = ");
-		sb.append("DDMStructureVersion.structureId where ");
-		sb.append("DDMStructure.version = DDMStructureVersion.version and ");
-		sb.append("DDMStructure.classNameId = ?");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMStructure.structureId, ",
+					"DDMStructureVersion.definition from DDMStructure inner ",
+					"join DDMStructureVersion on DDMStructure.structureId = ",
+					"DDMStructureVersion.structureId where ",
+					"DDMStructure.version = DDMStructureVersion.version and ",
+					"DDMStructure.classNameId = ? or DDMStructure.classNameId ",
+					"= ?"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
 						"structureId = ?")) {
 
-			ps1.setLong(
+			preparedStatement1.setLong(
 				1, PortalUtil.getClassNameId(DDMFormInstance.class.getName()));
+			preparedStatement1.setLong(
+				2, PortalUtil.getClassNameId(JournalArticle.class.getName()));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String definition = rs.getString("definition");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String definition = resultSet.getString("definition");
 
-					ps2.setString(1, definition);
+					preparedStatement2.setString(1, definition);
 
-					long structureId = rs.getLong("structureId");
+					long structureId = resultSet.getLong("structureId");
 
-					ps2.setLong(2, structureId);
+					preparedStatement2.setLong(2, structureId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
 
 	private void _upgradeDDMStructureVersion() throws Exception {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("select DDMStructureVersion.structureVersionId, ");
-		sb.append("DDMStructureVersion.definition from DDMStructure inner ");
-		sb.append("join DDMStructureVersion on DDMStructure.structureId = ");
-		sb.append("DDMStructureVersion.structureId where ");
-		sb.append("DDMStructure.classNameId = ?");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMStructureVersion.structureVersionId, ",
+					"DDMStructureVersion.definition from DDMStructure inner ",
+					"join DDMStructureVersion on DDMStructure.structureId = ",
+					"DDMStructureVersion.structureId where ",
+					"DDMStructure.classNameId = ? or DDMStructure.classNameId ",
+					"= ?"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureVersion set definition = ? where " +
 						"structureVersionId = ?")) {
 
-			ps1.setLong(
+			preparedStatement1.setLong(
 				1, PortalUtil.getClassNameId(DDMFormInstance.class.getName()));
+			preparedStatement1.setLong(
+				2, PortalUtil.getClassNameId(JournalArticle.class.getName()));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					long structureVersionId = rs.getLong("structureVersionId");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					long structureVersionId = resultSet.getLong(
+						"structureVersionId");
 
-					ps2.setString(
+					preparedStatement2.setString(
 						1,
 						_upgradeDDMStructureVersionDefinition(
-							rs.getString("definition")));
+							resultSet.getString("definition")));
 
-					ps2.setLong(2, structureVersionId);
+					preparedStatement2.setLong(2, structureVersionId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

@@ -15,12 +15,16 @@
 package com.liferay.account.admin.web.internal.frontend.taglib.servlet.taglib;
 
 import com.liferay.account.admin.web.internal.constants.AccountScreenNavigationEntryConstants;
-import com.liferay.account.admin.web.internal.display.AccountEntryDisplay;
+import com.liferay.account.admin.web.internal.security.permission.resource.AccountEntryPermission;
+import com.liferay.account.admin.web.internal.util.AllowEditAccountRoleThreadLocal;
+import com.liferay.account.constants.AccountActionKeys;
 import com.liferay.account.constants.AccountConstants;
+import com.liferay.account.model.AccountEntry;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -29,6 +33,7 @@ import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Pei-Jung Lan
+ * @author Alessio Antonio Rendina
  */
 @Component(
 	property = {
@@ -62,21 +67,20 @@ public class AccountEntryRolesScreenNavigationCategory
 	}
 
 	@Override
-	public boolean isVisible(
-		User user, AccountEntryDisplay accountEntryDisplay) {
-
-		if (Objects.equals(
-				accountEntryDisplay.getType(),
+	public boolean isVisible(User user, AccountEntry accountEntry) {
+		if ((accountEntry == null) ||
+			!AllowEditAccountRoleThreadLocal.isAllowEditAccountRole() ||
+			Objects.equals(
+				accountEntry.getType(),
 				AccountConstants.ACCOUNT_ENTRY_TYPE_GUEST)) {
 
 			return false;
 		}
 
-		if (accountEntryDisplay.getAccountEntryId() > 0) {
-			return true;
-		}
-
-		return false;
+		return AccountEntryPermission.contains(
+			PermissionCheckerFactoryUtil.create(user),
+			accountEntry.getAccountEntryId(),
+			AccountActionKeys.VIEW_ACCOUNT_ROLES);
 	}
 
 }

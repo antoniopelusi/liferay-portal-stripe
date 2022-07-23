@@ -54,8 +54,8 @@ public class CalendarConfigurationAction extends DefaultConfigurationAction {
 			ActionResponse actionResponse)
 		throws Exception {
 
-		updateDisplaySettings(actionRequest, actionResponse);
-		updateUserSettings(actionRequest, actionResponse);
+		_updateDisplaySettings(actionRequest);
+		_updateUserSettings(actionRequest);
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
@@ -69,8 +69,7 @@ public class CalendarConfigurationAction extends DefaultConfigurationAction {
 		super.setServletContext(servletContext);
 	}
 
-	protected void updateDisplaySettings(
-			ActionRequest actionRequest, ActionResponse actionResponse)
+	private void _updateDisplaySettings(ActionRequest actionRequest)
 		throws Exception {
 
 		PortletPreferences portletPreferences = actionRequest.getPreferences();
@@ -115,8 +114,7 @@ public class CalendarConfigurationAction extends DefaultConfigurationAction {
 		portletPreferences.store();
 	}
 
-	protected void updateUserSettings(
-			ActionRequest actionRequest, ActionResponse actionResponse)
+	private void _updateUserSettings(ActionRequest actionRequest)
 		throws Exception {
 
 		PortletPreferences portletPreferences = actionRequest.getPreferences();

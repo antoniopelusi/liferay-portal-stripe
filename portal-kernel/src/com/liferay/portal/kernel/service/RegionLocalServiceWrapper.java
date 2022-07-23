@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class RegionLocalServiceWrapper
 	implements RegionLocalService, ServiceWrapper<RegionLocalService> {
 
+	public RegionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public RegionLocalServiceWrapper(RegionLocalService regionLocalService) {
 		_regionLocalService = regionLocalService;
 	}
@@ -121,12 +125,10 @@ public class RegionLocalServiceWrapper
 	 *
 	 * @param region the region
 	 * @return the region that was removed
-	 * @throws PortalException
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Region deleteRegion(
-			com.liferay.portal.kernel.model.Region region)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		com.liferay.portal.kernel.model.Region region) {
 
 		return _regionLocalService.deleteRegion(region);
 	}
@@ -134,6 +136,13 @@ public class RegionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _regionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _regionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

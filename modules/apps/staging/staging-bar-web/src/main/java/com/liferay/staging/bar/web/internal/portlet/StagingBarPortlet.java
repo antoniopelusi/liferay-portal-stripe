@@ -21,7 +21,7 @@ import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.exportimport.kernel.staging.StagingURLHelper;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
+import com.liferay.portal.kernel.bean.BeanProperties;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.LayoutBranchNameException;
@@ -132,7 +132,7 @@ public class StagingBarPortlet extends MVCPortlet {
 				layoutRevision.getParentLayoutRevisionId());
 		}
 
-		addLayoutRevisionSessionMessages(actionRequest, actionResponse);
+		_addLayoutRevisionSessionMessages(actionRequest, actionResponse);
 	}
 
 	@Override
@@ -174,10 +174,17 @@ public class StagingBarPortlet extends MVCPortlet {
 		LayoutBranch layoutBranch = null;
 		LayoutRevision layoutRevision = null;
 		LayoutSetBranch layoutSetBranch = null;
-		Layout liveLayout = null;
 
 		if (layout != null) {
-			layoutRevision = LayoutStagingUtil.getLayoutRevision(layout);
+			Layout layoutRevisionLayout = layout;
+
+			if (layout.isDraftLayout()) {
+				layoutRevisionLayout = _layoutLocalService.fetchLayout(
+					layout.getClassPK());
+			}
+
+			layoutRevision = LayoutStagingUtil.getLayoutRevision(
+				layoutRevisionLayout);
 
 			if (layoutRevision != null) {
 				branchingEnabled = true;
@@ -198,14 +205,13 @@ public class StagingBarPortlet extends MVCPortlet {
 		List<LayoutSetBranch> layoutSetBranches = null;
 		Group liveGroup = _staging.getLiveGroup(group.getGroupId());
 		String liveURL = null;
+		Layout liveLayout = null;
 		Group stagingGroup = _staging.getStagingGroup(group.getGroupId());
 		String remoteSiteURL = StringPool.BLANK;
 		String remoteURL = null;
 		String stagingURL = null;
 
 		if (themeDisplay.isShowStagingIcon()) {
-			Object originalAssetEntry = httpServletRequest.getAttribute(
-				WebKeys.LAYOUT_ASSET_ENTRY);
 			long originalScopeGroupId = themeDisplay.getScopeGroupId();
 
 			if (liveGroup != null) {
@@ -271,8 +277,12 @@ public class StagingBarPortlet extends MVCPortlet {
 				}
 			}
 
+			Object originalAssetEntry = httpServletRequest.getAttribute(
+				WebKeys.LAYOUT_ASSET_ENTRY);
+
 			httpServletRequest.setAttribute(
 				WebKeys.LAYOUT_ASSET_ENTRY, originalAssetEntry);
+
 			themeDisplay.setScopeGroupId(originalScopeGroupId);
 
 			if (group.isStagingGroup() || group.isStagedRemotely()) {
@@ -302,7 +312,7 @@ public class StagingBarPortlet extends MVCPortlet {
 						group, layout.isPrivateLayout());
 				}
 				catch (AuthException authException) {
-					_log.error(authException.getMessage());
+					_log.error(authException);
 
 					SessionErrors.add(renderRequest, AuthException.class);
 				}
@@ -323,7 +333,7 @@ public class StagingBarPortlet extends MVCPortlet {
 						renderRequest, RemoteExportException.class);
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 
 					SessionErrors.add(renderRequest, Exception.class);
 				}
@@ -378,7 +388,7 @@ public class StagingBarPortlet extends MVCPortlet {
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
 
-		updateParentLayoutsRevisions(layoutRevision, serviceContext);
+		_updateParentLayoutsRevisions(layoutRevision, serviceContext);
 
 		LayoutRevision enableLayoutRevision =
 			_layoutRevisionLocalService.updateLayoutRevision(
@@ -396,7 +406,7 @@ public class StagingBarPortlet extends MVCPortlet {
 				themeDisplay.getUser(), layoutRevision.getLayoutSetBranchId(),
 				layoutRevision.getPlid(), layoutRevision.getLayoutRevisionId());
 
-			addLayoutRevisionSessionMessages(actionRequest, actionResponse);
+			_addLayoutRevisionSessionMessages(actionRequest, actionResponse);
 
 			return;
 		}
@@ -433,18 +443,7 @@ public class StagingBarPortlet extends MVCPortlet {
 				newLayoutRevision.getLayoutRevisionId());
 		}
 
-		addLayoutRevisionSessionMessages(actionRequest, actionResponse);
-	}
-
-	protected void addLayoutRevisionSessionMessages(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws IOException {
-
-		MultiSessionMessages.add(
-			actionRequest,
-			_portal.getPortletId(actionRequest) + "requestProcessed");
-
-		sendRedirect(actionRequest, actionResponse);
+		_addLayoutRevisionSessionMessages(actionRequest, actionResponse);
 	}
 
 	@Override
@@ -550,60 +549,15 @@ public class StagingBarPortlet extends MVCPortlet {
 		_layoutSetLocalService = null;
 	}
 
-	protected void updateParentLayoutsRevisions(
-			LayoutRevision layoutRevision, ServiceContext serviceContext)
+	private void _addLayoutRevisionSessionMessages(
+			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		Layout layout = _layoutLocalService.fetchLayout(
-			layoutRevision.getPlid());
+		MultiSessionMessages.add(
+			actionRequest,
+			_portal.getPortletId(actionRequest) + "requestProcessed");
 
-		if (layout == null) {
-			return;
-		}
-
-		long parentPlid = layout.getParentPlid();
-
-		Layout parentLayout = null;
-
-		while (true) {
-			parentLayout = _layoutLocalService.fetchLayout(parentPlid);
-
-			if (parentLayout == null) {
-				break;
-			}
-
-			List<LayoutRevision> parentHeadLayoutRevisions =
-				_layoutRevisionLocalService.getLayoutRevisions(
-					layoutRevision.getLayoutSetBranchId(),
-					parentLayout.getPlid(), true);
-
-			if (parentHeadLayoutRevisions.isEmpty()) {
-				LayoutRevision parentLayoutsRevision =
-					_layoutRevisionLocalService.fetchLatestLayoutRevision(
-						layoutRevision.getLayoutSetBranchId(),
-						parentLayout.getPlid());
-
-				if (parentLayoutsRevision != null) {
-					_layoutRevisionLocalService.updateLayoutRevision(
-						serviceContext.getUserId(),
-						parentLayoutsRevision.getLayoutRevisionId(),
-						parentLayoutsRevision.getLayoutBranchId(),
-						parentLayoutsRevision.getName(),
-						parentLayoutsRevision.getTitle(),
-						parentLayoutsRevision.getDescription(),
-						parentLayoutsRevision.getKeywords(),
-						parentLayoutsRevision.getRobots(),
-						parentLayoutsRevision.getTypeSettings(),
-						parentLayoutsRevision.getIconImage(),
-						parentLayoutsRevision.getIconImageId(),
-						parentLayoutsRevision.getThemeId(),
-						parentLayoutsRevision.getColorSchemeId(),
-						parentLayoutsRevision.getCss(), serviceContext);
-				}
-			}
-
-			parentPlid = parentLayout.getParentPlid();
-		}
+		sendRedirect(actionRequest, actionResponse);
 	}
 
 	private void _deleteUnusedLayoutIconImage(LayoutRevision layoutRevision)
@@ -616,11 +570,11 @@ public class StagingBarPortlet extends MVCPortlet {
 			return;
 		}
 
-		long layoutRevisionIconImageId = BeanPropertiesUtil.getLong(
+		long layoutRevisionIconImageId = _beanProperties.getLong(
 			layoutRevision, "iconImageId");
 
 		if (layoutRevisionIconImageId == GetterUtil.DEFAULT_LONG) {
-			layoutRevisionIconImageId = BeanPropertiesUtil.getLong(
+			layoutRevisionIconImageId = _beanProperties.getLong(
 				layout, "iconImageId");
 		}
 
@@ -669,11 +623,70 @@ public class StagingBarPortlet extends MVCPortlet {
 		}
 	}
 
+	private void _updateParentLayoutsRevisions(
+			LayoutRevision layoutRevision, ServiceContext serviceContext)
+		throws Exception {
+
+		Layout layout = _layoutLocalService.fetchLayout(
+			layoutRevision.getPlid());
+
+		if (layout == null) {
+			return;
+		}
+
+		long parentPlid = layout.getParentPlid();
+
+		Layout parentLayout = null;
+
+		while (true) {
+			parentLayout = _layoutLocalService.fetchLayout(parentPlid);
+
+			if (parentLayout == null) {
+				break;
+			}
+
+			List<LayoutRevision> parentHeadLayoutRevisions =
+				_layoutRevisionLocalService.getLayoutRevisions(
+					layoutRevision.getLayoutSetBranchId(),
+					parentLayout.getPlid(), true);
+
+			if (parentHeadLayoutRevisions.isEmpty()) {
+				LayoutRevision parentLayoutRevision =
+					_layoutRevisionLocalService.fetchLatestLayoutRevision(
+						layoutRevision.getLayoutSetBranchId(),
+						parentLayout.getPlid());
+
+				if (parentLayoutRevision != null) {
+					_layoutRevisionLocalService.updateLayoutRevision(
+						serviceContext.getUserId(),
+						parentLayoutRevision.getLayoutRevisionId(),
+						parentLayoutRevision.getLayoutBranchId(),
+						parentLayoutRevision.getName(),
+						parentLayoutRevision.getTitle(),
+						parentLayoutRevision.getDescription(),
+						parentLayoutRevision.getKeywords(),
+						parentLayoutRevision.getRobots(),
+						parentLayoutRevision.getTypeSettings(),
+						parentLayoutRevision.getIconImage(),
+						parentLayoutRevision.getIconImageId(),
+						parentLayoutRevision.getThemeId(),
+						parentLayoutRevision.getColorSchemeId(),
+						parentLayoutRevision.getCss(), serviceContext);
+				}
+			}
+
+			parentPlid = parentLayout.getParentPlid();
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		StagingBarPortlet.class);
 
 	@Reference
 	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Reference
+	private BeanProperties _beanProperties;
 
 	private LayoutLocalService _layoutLocalService;
 	private LayoutRevisionLocalService _layoutRevisionLocalService;

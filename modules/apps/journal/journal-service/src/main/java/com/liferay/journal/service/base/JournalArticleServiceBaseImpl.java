@@ -18,11 +18,7 @@ import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleService;
 import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.service.persistence.JournalArticleFinder;
-import com.liferay.journal.service.persistence.JournalArticleLocalizationPersistence;
 import com.liferay.journal.service.persistence.JournalArticlePersistence;
-import com.liferay.journal.service.persistence.JournalArticleResourcePersistence;
-import com.liferay.journal.service.persistence.JournalFolderFinder;
-import com.liferay.journal.service.persistence.JournalFolderPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -152,110 +148,5 @@ public abstract class JournalArticleServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameLocalService
-		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameService
-		classNameService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.CompanyLocalService
-		companyLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.CompanyService companyService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupService groupService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ImageLocalService
-		imageLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ImageService imageService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.SystemEventLocalService
-		systemEventLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-		workflowInstanceLinkLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetCategoryLocalService
-		assetCategoryLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetCategoryService
-		assetCategoryService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryLocalService
-		assetEntryLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryService
-		assetEntryService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetLinkLocalService
-		assetLinkLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetTagLocalService
-		assetTagLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetTagService assetTagService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLAppLocalService
-		dlAppLocalService;
-
-	@Reference
-	protected com.liferay.document.library.kernel.service.DLAppService
-		dlAppService;
-
-	@Reference
-	protected com.liferay.expando.kernel.service.ExpandoRowLocalService
-		expandoRowLocalService;
-
-	@Reference
-	protected com.liferay.ratings.kernel.service.RatingsStatsLocalService
-		ratingsStatsLocalService;
-
-	@Reference
-	protected JournalArticleLocalizationPersistence
-		journalArticleLocalizationPersistence;
-
-	@Reference
-	protected JournalArticleResourcePersistence
-		journalArticleResourcePersistence;
-
-	@Reference
-	protected JournalFolderPersistence journalFolderPersistence;
-
-	@Reference
-	protected JournalFolderFinder journalFolderFinder;
 
 }

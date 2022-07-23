@@ -30,6 +30,10 @@ public class JournalFeedLocalServiceWrapper
 	implements JournalFeedLocalService,
 			   ServiceWrapper<JournalFeedLocalService> {
 
+	public JournalFeedLocalServiceWrapper() {
+		this(null);
+	}
+
 	public JournalFeedLocalServiceWrapper(
 		JournalFeedLocalService journalFeedLocalService) {
 
@@ -189,6 +193,13 @@ public class JournalFeedLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _journalFeedLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _journalFeedLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

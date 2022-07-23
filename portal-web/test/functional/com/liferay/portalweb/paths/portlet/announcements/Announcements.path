@@ -2,12 +2,19 @@
 <head>
 <title>Announcements</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Announcements</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>PRIORITY_IMPORTANT</td>
+	<td>//span[contains(text(),'Important')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>PRIORITY_SELECT</td>
 	<td>//select[contains(@id,'AnnouncementsPortlet') and contains(@id,'priority')]</td>

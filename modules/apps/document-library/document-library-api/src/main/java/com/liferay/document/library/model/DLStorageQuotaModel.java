@@ -115,4 +115,7 @@ public interface DLStorageQuotaModel
 	 */
 	public void setStorageSize(long storageSize);
 
+	@Override
+	public DLStorageQuota cloneWithOriginalValues();
+
 }

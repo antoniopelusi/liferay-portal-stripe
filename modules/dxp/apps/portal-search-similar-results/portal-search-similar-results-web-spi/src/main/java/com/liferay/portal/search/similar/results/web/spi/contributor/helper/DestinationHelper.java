@@ -29,11 +29,15 @@ public interface DestinationHelper {
 
 	public AssetRenderer<?> getAssetRenderer();
 
+	public String getAssetViewURL();
+
 	public String getClassName();
 
 	public long getClassPK();
 
 	public Object getRouteParameter(String name);
+
+	public long getScopeGroupId();
 
 	public String getUID();
 

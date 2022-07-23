@@ -61,6 +61,6 @@ renderResponse.setTitle((role == null) ? LanguageUtil.get(request, "add-new-role
 			"accountEntryId", accountEntryId
 		).setParameter(
 			"accountRoleId", accountRoleId
-		).build()
+		).buildPortletURL()
 	%>'
 />

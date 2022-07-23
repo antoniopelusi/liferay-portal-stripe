@@ -27,6 +27,10 @@ public class SamlSpAuthRequestLocalServiceWrapper
 	implements SamlSpAuthRequestLocalService,
 			   ServiceWrapper<SamlSpAuthRequestLocalService> {
 
+	public SamlSpAuthRequestLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SamlSpAuthRequestLocalServiceWrapper(
 		SamlSpAuthRequestLocalService samlSpAuthRequestLocalService) {
 
@@ -149,6 +153,13 @@ public class SamlSpAuthRequestLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _samlSpAuthRequestLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _samlSpAuthRequestLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

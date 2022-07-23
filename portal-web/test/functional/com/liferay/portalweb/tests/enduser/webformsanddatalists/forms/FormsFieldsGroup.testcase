@@ -1,0 +1,493 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Fields Group can be collapsed"
+	@priority = "5"
+	test CanBeCollapsed {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsFieldsGroup#CanBeCollapsed";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.closeSidebar();
+
+		Click(
+			key_fieldLabel = "Fields Group",
+			locator1 = "FormFields#LABEL");
+
+		FormFields.enableSwitch(fieldName = "Collapsible");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		Form.viewExpandedCollapseButton();
+
+		Form.viewFieldsGroupNotCollapsedField(fieldLabel = "Text");
+
+		Form.viewFieldsGroupNotCollapsedField(fieldLabel = "Numeric");
+
+		Click(locator1 = "Form#COLLAPSE_BUTTON");
+
+		Form.viewCollapsedCollapseButton();
+
+		Form.viewFieldsGroupCollapsedField(fieldLabel = "Text");
+
+		Form.viewFieldsGroupCollapsedField(fieldLabel = "Numeric");
+	}
+
+	@description = "Verify that a Fields Group can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		FormFields.viewLabel(
+			fieldLabel = "Fields Group",
+			fieldName = "Fields Group");
+
+		Form.assertFieldPositionAtFormsGroupOnPublishedForm(
+			key_formPageNumber = "0",
+			key_rowNumber = "0",
+			key_text = "Text");
+
+		Form.assertFieldPositionAtFormsGroupOnPublishedForm(
+			key_formPageNumber = "0",
+			key_rowNumber = "1",
+			key_text = "Numeric");
+	}
+
+	@description = "Verify that a Fields Group can be created from an existing Field"
+	@priority = "5"
+	test CanBeCreatedFromExistingField {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		FormFields.editPlaceholderField(fieldValue = "Test Placeholder Text");
+
+		FormFields.editHelpTextField(fieldHelpText = "Test Help Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormFields.editPlaceholderField(fieldValue = "Test Placeholder Text Numeric");
+
+		FormFields.editHelpTextField(fieldHelpText = "Test Help Text Numeric");
+
+		Form.addFieldToFieldsGroup(
+			sourceFieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		FormFields.viewTextLabel(fieldLabel = "Fields Group");
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "Text",
+			placeHolder = "Test Placeholder Text");
+
+		FormFields.viewTextField(
+			fieldHelpText = "Test Help Text",
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "Numeric",
+			placeHolder = "Test Placeholder Text Numeric");
+
+		FormFields.viewTextField(
+			fieldHelpText = "Test Help Text Numeric",
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+	}
+
+	@description = "Verify that a Fields Group can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.addFieldOutsideOfFieldsGroup(
+			fieldName = "Date",
+			index = "2");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Fields Group");
+
+		Form.save();
+
+		for (var label : list "Fields Group,Text,Numeric") {
+			FormFields.viewFieldLabelNotPresent(fieldLabel = "${label}");
+		}
+
+		FormFields.viewDateField(
+			fieldLabel = "Date",
+			fieldName = "Date");
+	}
+
+	@description = "Verify that a Fields Group can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.duplicateFieldsGroup(fieldName = "Fields Group");
+
+		for (var label : list "Fields Group,Copy of Fields Group,Text,Copy of Text,Numeric,Copy of Numeric") {
+			FormFields.viewLabel(
+				fieldLabel = "${label}",
+				fieldName = "${label}");
+		}
+	}
+
+	@description = "Verify that a Fields Group can be moved between pages"
+	@priority = "5"
+	test CanBeMovedBetweenPages {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.editPageTitle(
+			formPageName = "Page A",
+			formTitleNumber = "1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.addPage(formAddNewPageNumber = "1");
+
+		Form.editPageTitle(
+			formPageName = "Page B",
+			formTitleNumber = "2");
+
+		Form.closeSidebar();
+
+		DragAndDrop.javaScriptDragAndDropToObject(
+			key_fieldLabel = "Fields Group",
+			key_fieldPositionNumber = "0",
+			key_formPageNumber = "1",
+			locator1 = "FormFields#LABEL",
+			locator2 = "Form#ADD_FIELD_POSITION",
+			value1 = "");
+
+		FormFields.viewPaginationField(
+			key_currentPage = "2",
+			key_lastPage = "2");
+
+		FormFields.assertFieldsGroup(fieldName = "Fields Group");
+
+		Form.viewPageEmptyField(pageIndex = "0");
+	}
+
+	@description = "Verify that a Fields Group can be repeatable"
+	@priority = "5"
+	test CanBeRepeatable {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.gotoFieldContainer(fieldName = "Fields Group");
+
+		FormFields.enableSwitch(fieldName = "Repeatable");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.addRepeatableField(
+			fieldName = "FieldsGroup",
+			repeatableFieldNumber = "1");
+
+		FormFields.viewRepeatableFieldGroup(repeatableFieldNumber = "2");
+
+		FormFields.viewRepeatableFieldInFieldGroup(
+			fieldName = "Text",
+			repeatableFieldNumber = "1");
+
+		FormFields.viewRepeatableFieldInFieldGroup(
+			fieldName = "Text",
+			repeatableFieldNumber = "2");
+
+		FormFields.viewRepeatableFieldInFieldGroup(
+			fieldName = "Numeric",
+			repeatableFieldNumber = "1");
+
+		FormFields.viewRepeatableFieldInFieldGroup(
+			fieldName = "Numeric",
+			repeatableFieldNumber = "2");
+	}
+
+	@description = "LPS-115196, Verify that an Entry using a Group Field can be viewed in Forms Details"
+	@priority = "5"
+	test EntryWithGroupFieldCanBeViewedInFormsDetails {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "123");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Text",
+			fieldValue = "Test");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Numeric",
+			fieldValue = "123");
+	}
+
+	@description = "Verify that fields within a Fields Group can be reordered"
+	@priority = "4"
+	test FieldsCanBeReordered {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.reorderFieldsFromFieldsGroup(
+			key_fieldName = "Numeric",
+			key_pageNumber = "0",
+			key_rowNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		Form.assertFieldPositionAtFormsGroupOnPublishedForm(
+			key_formPageNumber = "0",
+			key_rowNumber = "0",
+			key_text = "Numeric");
+	}
+
+	@description = "Verify that a Fields Group's Label can be edited"
+	@priority = "5"
+	test LabelCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.closeSidebar();
+
+		Click(
+			key_fieldLabel = "Fields Group",
+			locator1 = "FormFields#LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Fields Group");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Test Fields Group",
+			fieldName = "Test Fields Group");
+	}
+
+	@description = "Verify that a Fields Group's Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.gotoFieldContainer(fieldName = "Fields Group");
+
+		FormFields.disableSwitch(fieldName = "Show Label");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Fields Group");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Fields Group");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+	}
+
+}

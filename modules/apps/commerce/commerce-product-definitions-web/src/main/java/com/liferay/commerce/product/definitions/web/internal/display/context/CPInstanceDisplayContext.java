@@ -38,23 +38,23 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.CustomAttributesUtil;
 
 import java.math.BigDecimal;
 
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionURL;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -199,6 +199,33 @@ public class CPInstanceDisplayContext extends BaseCPDefinitionsDisplayContext {
 		return creationMenu;
 	}
 
+	public int getDiscontinuedDateField(int field) throws PortalException {
+		CPInstance cpInstance = getCPInstance();
+
+		if (cpInstance == null) {
+			if (field == Calendar.MONTH) {
+				return -1;
+			}
+
+			return 0;
+		}
+
+		Date discontinuedDate = cpInstance.getDiscontinuedDate();
+
+		if (discontinuedDate != null) {
+			Calendar calendar = CalendarFactoryUtil.getCalendar(
+				discontinuedDate.getTime());
+
+			return calendar.get(field);
+		}
+
+		if (field == Calendar.MONTH) {
+			return -1;
+		}
+
+		return 0;
+	}
+
 	@Override
 	public PortletURL getPortletURL() throws PortalException {
 		PortletURL portletURL = super.getPortletURL();
@@ -248,6 +275,44 @@ public class CPInstanceDisplayContext extends BaseCPDefinitionsDisplayContext {
 		return round(commerceMoney.getPrice());
 	}
 
+	public long getReplacementCPInstanceId() throws PortalException {
+		CPInstance cpInstance = getCPInstance();
+
+		if (cpInstance == null) {
+			return 0;
+		}
+
+		CPInstance replacementCPInstance =
+			_cpInstanceHelper.fetchReplacementCPInstance(
+				cpInstance.getReplacementCProductId(),
+				cpInstance.getReplacementCPInstanceUuid());
+
+		if (replacementCPInstance == null) {
+			return 0;
+		}
+
+		return replacementCPInstance.getCPInstanceId();
+	}
+
+	public String getReplacementCPInstanceLabel() throws PortalException {
+		CPInstance cpInstance = getCPInstance();
+
+		if (cpInstance == null) {
+			return StringPool.BLANK;
+		}
+
+		CPInstance replacementCPInstance =
+			_cpInstanceHelper.fetchReplacementCPInstance(
+				cpInstance.getReplacementCProductId(),
+				cpInstance.getReplacementCPInstanceUuid());
+
+		if (replacementCPInstance == null) {
+			return StringPool.BLANK;
+		}
+
+		return replacementCPInstance.getSku();
+	}
+
 	@Override
 	public String getScreenNavigationCategoryKey() {
 		return CPDefinitionScreenNavigationConstants.CATEGORY_KEY_SKUS;
@@ -272,7 +337,7 @@ public class CPInstanceDisplayContext extends BaseCPDefinitionsDisplayContext {
 		return _ddmHelper.renderCPInstanceOptions(
 			getCPDefinitionId(), null, cpDefinition.isIgnoreSKUCombinations(),
 			renderRequest, renderResponse,
-			_cpInstanceHelper.getCPDefinitionOptionRelsMap(
+			_cpInstanceHelper.getCPDefinitionOptionValueRelsMap(
 				getCPDefinitionId(), true, false));
 	}
 
@@ -297,19 +362,17 @@ public class CPInstanceDisplayContext extends BaseCPDefinitionsDisplayContext {
 	}
 
 	private String _getAddMultipleCPInstancePortletURL() throws Exception {
-		LiferayPortletResponse liferayPortletResponse =
-			cpRequestHelper.getLiferayPortletResponse();
-
-		ActionURL portletURL = liferayPortletResponse.createActionURL();
-
-		portletURL.setParameter(
-			ActionRequest.ACTION_NAME, "/cp_definitions/edit_cp_instance");
-		portletURL.setParameter(Constants.CMD, Constants.ADD_MULTIPLE);
-		portletURL.setParameter("redirect", cpRequestHelper.getCurrentURL());
-		portletURL.setParameter(
-			"cpDefinitionId", String.valueOf(getCPDefinitionId()));
-
-		return portletURL.toString();
+		return PortletURLBuilder.createActionURL(
+			cpRequestHelper.getLiferayPortletResponse()
+		).setActionName(
+			"/cp_definitions/edit_cp_instance"
+		).setCMD(
+			Constants.ADD_MULTIPLE
+		).setRedirect(
+			cpRequestHelper.getCurrentURL()
+		).setParameter(
+			"cpDefinitionId", getCPDefinitionId()
+		).buildString();
 	}
 
 	private String _getEditCPInstancePortletURL() throws Exception {

@@ -17,6 +17,7 @@ package com.liferay.portal.dao.db;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
@@ -25,6 +26,11 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.io.IOException;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 
 import java.util.regex.Matcher;
@@ -67,31 +73,16 @@ public class SybaseDB extends BaseDB {
 
 	@Override
 	public String getPopulateSQL(String databaseName, String sqlContent) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("use ");
-		sb.append(databaseName);
-		sb.append("\n\n");
-		sb.append(sqlContent);
-
-		return sb.toString();
+		return StringBundler.concat("use ", databaseName, "\n\n", sqlContent);
 	}
 
 	@Override
 	public String getRecreateSQL(String databaseName) {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("use master\n");
-		sb.append("exec sp_dboption '");
-		sb.append(databaseName);
-		sb.append("', 'allow nulls by default' , true\n");
-		sb.append("go\n\n");
-		sb.append("exec sp_dboption '");
-		sb.append(databaseName);
-		sb.append("', 'select into/bulkcopy/pllsort' , true\n");
-		sb.append("go\n\n");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"use master\n", "exec sp_dboption '", databaseName,
+			"', 'allow nulls by default' , true\n", "go\n\n",
+			"exec sp_dboption '", databaseName,
+			"', 'select into/bulkcopy/pllsort' , true\n", "go\n\n");
 	}
 
 	@Override
@@ -105,8 +96,71 @@ public class SybaseDB extends BaseDB {
 	}
 
 	@Override
+	public void removePrimaryKey(Connection connection, String tableName)
+		throws Exception {
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		String normalizedTableName = dbInspector.normalizeName(
+			tableName, databaseMetaData);
+
+		if (!dbInspector.hasTable(normalizedTableName)) {
+			throw new SQLException(
+				StringBundler.concat(
+					"Table ", normalizedTableName, " does not exist"));
+		}
+
+		String primaryKeyConstraintName = null;
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"sp_helpconstraint ?")) {
+
+			preparedStatement.setString(1, normalizedTableName);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					String definition = resultSet.getString("definition");
+
+					if (definition.startsWith("PRIMARY KEY INDEX")) {
+						primaryKeyConstraintName = resultSet.getString("name");
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (primaryKeyConstraintName == null) {
+			throw new SQLException(
+				"No primary key constraint found for " + normalizedTableName);
+		}
+
+		if (dbInspector.hasIndex(
+				normalizedTableName, primaryKeyConstraintName)) {
+
+			runSQL(
+				StringBundler.concat(
+					"alter table ", normalizedTableName, " drop constraint ",
+					primaryKeyConstraintName));
+		}
+		else {
+			throw new SQLException(
+				StringBundler.concat(
+					"Primary key with name ", primaryKeyConstraintName,
+					" does not exist"));
+		}
+	}
+
+	@Override
 	protected int[] getSQLTypes() {
 		return _SQL_TYPES;
+	}
+
+	@Override
+	protected int[] getSQLVarcharSizes() {
+		return _SQL_VARCHAR_SIZES;
 	}
 
 	@Override
@@ -210,12 +264,18 @@ public class SybaseDB extends BaseDB {
 
 	protected static final String DROP_COLUMN = "drop column";
 
+	private static final int _SQL_STRING_SIZE = 4000;
+
 	private static final int _SQL_TYPE_TIMESTAMP = 11;
 
 	private static final int[] _SQL_TYPES = {
 		Types.LONGVARBINARY, Types.LONGVARBINARY, Types.INTEGER,
 		_SQL_TYPE_TIMESTAMP, Types.DOUBLE, Types.INTEGER, Types.DECIMAL,
 		Types.VARCHAR, Types.LONGVARCHAR, Types.VARCHAR
+	};
+
+	private static final int[] _SQL_VARCHAR_SIZES = {
+		_SQL_STRING_SIZE, SQL_SIZE_NONE
 	};
 
 	private static final boolean _SUPPORTS_INLINE_DISTINCT = false;

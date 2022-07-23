@@ -19,8 +19,4 @@ package com.liferay.document.library.model.impl;
  * @author Adolfo Pérez
  */
 public class DLFileVersionPreviewImpl extends DLFileVersionPreviewBaseImpl {
-
-	public DLFileVersionPreviewImpl() {
-	}
-
 }

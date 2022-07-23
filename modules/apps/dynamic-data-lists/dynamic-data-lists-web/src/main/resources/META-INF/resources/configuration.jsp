@@ -127,7 +127,7 @@ String orderByType = ParamUtil.getString(request, "orderByType", "asc");
 										/>
 									</liferay-ui:search-container-row>
 
-									<div class="separator"></div>
+									<hr class="separator" />
 
 									<liferay-ui:search-iterator
 										searchResultCssClass="show-quick-actions-on-hover table table-autofit"
@@ -157,7 +157,7 @@ String orderByType = ParamUtil.getString(request, "orderByType", "asc");
 						<aui:fieldset>
 							<div class="lfr-ddl-content">
 								<clay:sheet>
-									<aui:select helpMessage="select-the-display-template-used-to-diplay-the-list-records" label="display-template" name="preferences--displayDDMTemplateId--">
+									<aui:select helpMessage="select-the-display-template-used-to-display-the-list-records" label="display-template" name="preferences--displayDDMTemplateId--">
 										<aui:option label="default" value="<%= 0 %>" />
 
 										<%

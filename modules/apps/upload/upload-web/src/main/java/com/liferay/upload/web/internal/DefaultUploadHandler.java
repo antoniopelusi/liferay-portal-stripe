@@ -92,9 +92,6 @@ public class DefaultUploadHandler implements UploadHandler {
 			PortletRequest portletRequest)
 		throws PortalException {
 
-		UploadPortletRequest uploadPortletRequest =
-			_portal.getUploadPortletRequest(portletRequest);
-
 		UploadException uploadException =
 			(UploadException)portletRequest.getAttribute(
 				WebKeys.UPLOAD_EXCEPTION);
@@ -117,7 +114,7 @@ public class DefaultUploadHandler implements UploadHandler {
 			throw new PortalException(throwable);
 		}
 
-		return uploadPortletRequest;
+		return _portal.getUploadPortletRequest(portletRequest);
 	}
 
 	@Reference

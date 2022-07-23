@@ -15,7 +15,7 @@
 package com.liferay.commerce.account.item.selector.web.internal.display.context;
 
 import com.liferay.commerce.account.constants.CommerceAccountConstants;
-import com.liferay.commerce.account.item.selector.web.internal.display.context.util.CommerceAccountItemSelectorRequestHelper;
+import com.liferay.commerce.account.item.selector.web.internal.display.context.helper.CommerceAccountItemSelectorRequestHelper;
 import com.liferay.commerce.account.item.selector.web.internal.search.CommerceAccountGroupAccountItemSelectorChecker;
 import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.account.model.CommerceAccountGroup;
@@ -23,12 +23,9 @@ import com.liferay.commerce.account.service.CommerceAccountGroupCommerceAccountR
 import com.liferay.commerce.account.service.CommerceAccountGroupService;
 import com.liferay.commerce.account.service.CommerceAccountService;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.ParamUtil;
-
-import java.util.List;
 
 import javax.portlet.PortletURL;
 
@@ -63,7 +60,7 @@ public class CommerceAccountGroupAccountItemSelectorViewDisplayContext {
 			ParamUtil.getString(
 				_commerceAccountItemSelectorRequestHelper.getRenderRequest(),
 				"commerceAccountGroupId")
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getItemSelectedEventName() {
@@ -96,63 +93,27 @@ public class CommerceAccountGroupAccountItemSelectorViewDisplayContext {
 		_searchContainer = new SearchContainer<>(
 			_commerceAccountItemSelectorRequestHelper.
 				getLiferayPortletRequest(),
-			getPortletURL(), null, null);
-
-		_searchContainer.setEmptyResultsMessage("there-are-no-accounts");
+			getPortletURL(), null, "there-are-no-accounts");
 
 		_searchContainer.setOrderByCol(getOrderByCol());
 		_searchContainer.setOrderByType(getOrderByType());
-
-		RowChecker rowChecker =
-			new CommerceAccountGroupAccountItemSelectorChecker(
-				_commerceAccountItemSelectorRequestHelper.getRenderResponse(),
-				getCommerceAccountGroup(),
-				_commerceAccountGroupCommerceAccountRelLocalService);
-
-		_searchContainer.setRowChecker(rowChecker);
-
-		List<CommerceAccount> results =
-			_commerceAccountService.getUserCommerceAccounts(
+		_searchContainer.setResultsAndTotal(
+			() -> _commerceAccountService.getUserCommerceAccounts(
 				_commerceAccountItemSelectorRequestHelper.getUserId(),
 				CommerceAccountConstants.DEFAULT_PARENT_ACCOUNT_ID,
 				CommerceAccountConstants.SITE_TYPE_B2X, getKeywords(),
-				_searchContainer.getStart(), _searchContainer.getEnd());
-
-		_searchContainer.setResults(results);
-
-		int total = _commerceAccountService.getUserCommerceAccountsCount(
-			_commerceAccountItemSelectorRequestHelper.getUserId(),
-			CommerceAccountConstants.DEFAULT_PARENT_ACCOUNT_ID,
-			CommerceAccountConstants.SITE_TYPE_B2X, getKeywords());
-
-		_searchContainer.setTotal(total);
+				_searchContainer.getStart(), _searchContainer.getEnd()),
+			_commerceAccountService.getUserCommerceAccountsCount(
+				_commerceAccountItemSelectorRequestHelper.getUserId(),
+				CommerceAccountConstants.DEFAULT_PARENT_ACCOUNT_ID,
+				CommerceAccountConstants.SITE_TYPE_B2X, getKeywords()));
+		_searchContainer.setRowChecker(
+			new CommerceAccountGroupAccountItemSelectorChecker(
+				_commerceAccountItemSelectorRequestHelper.getRenderResponse(),
+				_getCommerceAccountGroup(),
+				_commerceAccountGroupCommerceAccountRelLocalService));
 
 		return _searchContainer;
-	}
-
-	protected CommerceAccountGroup getCommerceAccountGroup()
-		throws PortalException {
-
-		long commerceAccountGroupId = ParamUtil.getLong(
-			_commerceAccountItemSelectorRequestHelper.getRenderRequest(),
-			"commerceAccountGroupId");
-
-		if (commerceAccountGroupId > 0) {
-			return _commerceAccountGroupService.getCommerceAccountGroup(
-				commerceAccountGroupId);
-		}
-
-		return null;
-	}
-
-	protected long getCommerceAccountGroupId() throws PortalException {
-		CommerceAccountGroup commerceAccountGroup = getCommerceAccountGroup();
-
-		if (commerceAccountGroup == null) {
-			return 0;
-		}
-
-		return commerceAccountGroup.getCommerceAccountGroupId();
 	}
 
 	protected String getKeywords() {
@@ -165,6 +126,21 @@ public class CommerceAccountGroupAccountItemSelectorViewDisplayContext {
 			"keywords");
 
 		return _keywords;
+	}
+
+	private CommerceAccountGroup _getCommerceAccountGroup()
+		throws PortalException {
+
+		long commerceAccountGroupId = ParamUtil.getLong(
+			_commerceAccountItemSelectorRequestHelper.getRenderRequest(),
+			"commerceAccountGroupId");
+
+		if (commerceAccountGroupId > 0) {
+			return _commerceAccountGroupService.getCommerceAccountGroup(
+				commerceAccountGroupId);
+		}
+
+		return null;
 	}
 
 	private final CommerceAccountGroupCommerceAccountRelLocalService

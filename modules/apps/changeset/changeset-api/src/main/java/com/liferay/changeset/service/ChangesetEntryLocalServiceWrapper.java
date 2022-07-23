@@ -27,6 +27,10 @@ public class ChangesetEntryLocalServiceWrapper
 	implements ChangesetEntryLocalService,
 			   ServiceWrapper<ChangesetEntryLocalService> {
 
+	public ChangesetEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ChangesetEntryLocalServiceWrapper(
 		ChangesetEntryLocalService changesetEntryLocalService) {
 
@@ -153,6 +157,13 @@ public class ChangesetEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _changesetEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _changesetEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

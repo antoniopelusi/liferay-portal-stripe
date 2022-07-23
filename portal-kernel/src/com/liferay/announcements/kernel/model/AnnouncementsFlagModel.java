@@ -173,4 +173,7 @@ public interface AnnouncementsFlagModel
 	 */
 	public void setValue(int value);
 
+	@Override
+	public AnnouncementsFlag cloneWithOriginalValues();
+
 }

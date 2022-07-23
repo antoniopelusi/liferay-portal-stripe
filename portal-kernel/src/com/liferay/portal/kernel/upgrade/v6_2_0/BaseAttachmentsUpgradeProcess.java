@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.upgrade.v6_2_0;
 
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.store.DLStoreRequest;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -56,47 +57,44 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 
 		long fileEntryId = increment();
 
-		StringBundler sb = new StringBundler(8);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into DLFileEntry (uuid_, fileEntryId, groupId, ",
+					"companyId, userId, userName, createDate, modifiedDate, ",
+					"classNameId, classPK, repositoryId, folderId, name, ",
+					"extension, mimeType, title, description, extraSettings, ",
+					"fileEntryTypeId, version, size_, smallImageId, ",
+					"largeImageId, custom1ImageId, custom2ImageId) values (?, ",
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+					"?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into DLFileEntry (uuid_, fileEntryId, groupId, ");
-		sb.append("companyId, userId, userName, createDate, modifiedDate, ");
-		sb.append("classNameId, classPK, repositoryId, folderId, name, ");
-		sb.append("extension, mimeType, title, description, extraSettings, ");
-		sb.append("fileEntryTypeId, version, size_, smallImageId, ");
-		sb.append("largeImageId, custom1ImageId, custom2ImageId) values (?, ");
-		sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?, ?)");
+			preparedStatement.setString(1, PortalUUIDUtil.generate());
+			preparedStatement.setLong(2, fileEntryId);
+			preparedStatement.setLong(3, groupId);
+			preparedStatement.setLong(4, companyId);
+			preparedStatement.setLong(5, userId);
+			preparedStatement.setString(6, userName);
+			preparedStatement.setTimestamp(7, createDate);
+			preparedStatement.setTimestamp(8, createDate);
+			preparedStatement.setLong(9, PortalUtil.getClassNameId(className));
+			preparedStatement.setLong(10, classPK);
+			preparedStatement.setLong(11, repositoryId);
+			preparedStatement.setLong(12, folderId);
+			preparedStatement.setString(13, name);
+			preparedStatement.setString(14, extension);
+			preparedStatement.setString(15, mimeType);
+			preparedStatement.setString(16, title);
+			preparedStatement.setString(17, StringPool.BLANK);
+			preparedStatement.setString(18, StringPool.BLANK);
+			preparedStatement.setLong(19, 0);
+			preparedStatement.setString(20, "1.0");
+			preparedStatement.setLong(21, size);
+			preparedStatement.setInt(22, 0);
+			preparedStatement.setLong(23, 0);
+			preparedStatement.setLong(24, 0);
+			preparedStatement.setLong(25, 0);
 
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setString(1, PortalUUIDUtil.generate());
-			ps.setLong(2, fileEntryId);
-			ps.setLong(3, groupId);
-			ps.setLong(4, companyId);
-			ps.setLong(5, userId);
-			ps.setString(6, userName);
-			ps.setTimestamp(7, createDate);
-			ps.setTimestamp(8, createDate);
-			ps.setLong(9, PortalUtil.getClassNameId(className));
-			ps.setLong(10, classPK);
-			ps.setLong(11, repositoryId);
-			ps.setLong(12, folderId);
-			ps.setString(13, name);
-			ps.setString(14, extension);
-			ps.setString(15, mimeType);
-			ps.setString(16, title);
-			ps.setString(17, StringPool.BLANK);
-			ps.setString(18, StringPool.BLANK);
-			ps.setLong(19, 0);
-			ps.setString(20, "1.0");
-			ps.setLong(21, size);
-			ps.setInt(22, 0);
-			ps.setLong(23, 0);
-			ps.setLong(24, 0);
-			ps.setLong(25, 0);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 
 			long bitwiseValue = getBitwiseValue(
 				getBitwiseValues(
@@ -132,45 +130,43 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 			String title, long size)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(7);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into DLFileVersion (uuid_, fileVersionId, ",
+					"groupId, companyId, userId, userName, createDate, ",
+					"modifiedDate, repositoryId, folderId, fileEntryId, ",
+					"extension, mimeType, title, description, changeLog, ",
+					"extraSettings, fileEntryTypeId, version, size_, status, ",
+					"statusByUserId, statusByUserName, statusDate) values (?, ",
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+					"?, ?, ?, ?)"))) {
 
-		sb.append("insert into DLFileVersion (uuid_, fileVersionId, groupId, ");
-		sb.append("companyId, userId, userName, createDate, modifiedDate, ");
-		sb.append("repositoryId, folderId, fileEntryId, extension, mimeType, ");
-		sb.append("title, description, changeLog, extraSettings, ");
-		sb.append("fileEntryTypeId, version, size_, status, statusByUserId, ");
-		sb.append("statusByUserName, statusDate) values (?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			preparedStatement.setString(1, PortalUUIDUtil.generate());
+			preparedStatement.setLong(2, fileVersionId);
+			preparedStatement.setLong(3, groupId);
+			preparedStatement.setLong(4, companyId);
+			preparedStatement.setLong(5, userId);
+			preparedStatement.setString(6, userName);
+			preparedStatement.setTimestamp(7, createDate);
+			preparedStatement.setTimestamp(8, createDate);
+			preparedStatement.setLong(9, repositoryId);
+			preparedStatement.setLong(10, folderId);
+			preparedStatement.setLong(11, fileEntryId);
+			preparedStatement.setString(12, extension);
+			preparedStatement.setString(13, mimeType);
+			preparedStatement.setString(14, title);
+			preparedStatement.setString(15, StringPool.BLANK);
+			preparedStatement.setString(16, StringPool.BLANK);
+			preparedStatement.setString(17, StringPool.BLANK);
+			preparedStatement.setLong(18, 0);
+			preparedStatement.setString(19, "1.0");
+			preparedStatement.setLong(20, size);
+			preparedStatement.setInt(21, 0);
+			preparedStatement.setLong(22, userId);
+			preparedStatement.setString(23, userName);
+			preparedStatement.setTimestamp(24, createDate);
 
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setString(1, PortalUUIDUtil.generate());
-			ps.setLong(2, fileVersionId);
-			ps.setLong(3, groupId);
-			ps.setLong(4, companyId);
-			ps.setLong(5, userId);
-			ps.setString(6, userName);
-			ps.setTimestamp(7, createDate);
-			ps.setTimestamp(8, createDate);
-			ps.setLong(9, repositoryId);
-			ps.setLong(10, folderId);
-			ps.setLong(11, fileEntryId);
-			ps.setString(12, extension);
-			ps.setString(13, mimeType);
-			ps.setString(14, title);
-			ps.setString(15, StringPool.BLANK);
-			ps.setString(16, StringPool.BLANK);
-			ps.setString(17, StringPool.BLANK);
-			ps.setLong(18, 0);
-			ps.setString(19, "1.0");
-			ps.setLong(20, size);
-			ps.setInt(21, 0);
-			ps.setLong(22, userId);
-			ps.setString(23, userName);
-			ps.setTimestamp(24, createDate);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -188,42 +184,39 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 			boolean hidden)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(7);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into DLFolder (uuid_, folderId, groupId, ",
+					"companyId, userId, userName, createDate, modifiedDate, ",
+					"repositoryId, mountPoint, parentFolderId, name, ",
+					"description, lastPostDate, defaultFileEntryTypeId, ",
+					"hidden_, overrideFileEntryTypes, status, statusByUserId, ",
+					"statusByUserName, statusDate) values (?, ?, ?, ?, ?, ?, ",
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into DLFolder (uuid_, folderId, groupId, ");
-		sb.append("companyId, userId, userName, createDate, modifiedDate, ");
-		sb.append("repositoryId, mountPoint, parentFolderId, name, ");
-		sb.append("description, lastPostDate, defaultFileEntryTypeId, ");
-		sb.append("hidden_, overrideFileEntryTypes, status, statusByUserId, ");
-		sb.append("statusByUserName, statusDate) values (?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			preparedStatement.setString(1, PortalUUIDUtil.generate());
+			preparedStatement.setLong(2, folderId);
+			preparedStatement.setLong(3, groupId);
+			preparedStatement.setLong(4, companyId);
+			preparedStatement.setLong(5, userId);
+			preparedStatement.setString(6, userName);
+			preparedStatement.setTimestamp(7, createDate);
+			preparedStatement.setTimestamp(8, createDate);
+			preparedStatement.setLong(9, repositoryId);
+			preparedStatement.setBoolean(10, mountPoint);
+			preparedStatement.setLong(11, parentFolderId);
+			preparedStatement.setString(12, name);
+			preparedStatement.setString(13, StringPool.BLANK);
+			preparedStatement.setTimestamp(14, createDate);
+			preparedStatement.setLong(15, 0);
+			preparedStatement.setBoolean(16, hidden);
+			preparedStatement.setBoolean(17, false);
+			preparedStatement.setLong(18, 0);
+			preparedStatement.setLong(19, userId);
+			preparedStatement.setString(20, userName);
+			preparedStatement.setTimestamp(21, createDate);
 
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setString(1, PortalUUIDUtil.generate());
-			ps.setLong(2, folderId);
-			ps.setLong(3, groupId);
-			ps.setLong(4, companyId);
-			ps.setLong(5, userId);
-			ps.setString(6, userName);
-			ps.setTimestamp(7, createDate);
-			ps.setTimestamp(8, createDate);
-			ps.setLong(9, repositoryId);
-			ps.setBoolean(10, mountPoint);
-			ps.setLong(11, parentFolderId);
-			ps.setString(12, name);
-			ps.setString(13, StringPool.BLANK);
-			ps.setTimestamp(14, createDate);
-			ps.setLong(15, 0);
-			ps.setBoolean(16, hidden);
-			ps.setBoolean(17, false);
-			ps.setLong(18, 0);
-			ps.setLong(19, userId);
-			ps.setString(20, userName);
-			ps.setTimestamp(21, createDate);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 
 			Map<String, Long> bitwiseValues = getBitwiseValues(
 				"com.liferay.portlet.documentlibrary.model.DLFolder");
@@ -277,33 +270,30 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 			return -1;
 		}
 
-		StringBundler sb = new StringBundler(5);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into Repository (uuid_, repositoryId, groupId, ",
+					"companyId, userId, userName, createDate, modifiedDate, ",
+					"classNameId, name, description, portletId, typeSettings, ",
+					"dlFolderId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+					"?, ?)"))) {
 
-		sb.append("insert into Repository (uuid_, repositoryId, groupId, ");
-		sb.append("companyId, userId, userName, createDate, modifiedDate, ");
-		sb.append("classNameId, name, description, portletId, typeSettings, ");
-		sb.append("dlFolderId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?)");
+			preparedStatement.setString(1, PortalUUIDUtil.generate());
+			preparedStatement.setLong(2, repositoryId);
+			preparedStatement.setLong(3, groupId);
+			preparedStatement.setLong(4, companyId);
+			preparedStatement.setLong(5, userId);
+			preparedStatement.setString(6, userName);
+			preparedStatement.setTimestamp(7, createDate);
+			preparedStatement.setTimestamp(8, createDate);
+			preparedStatement.setLong(9, classNameId);
+			preparedStatement.setString(10, portletId);
+			preparedStatement.setString(11, StringPool.BLANK);
+			preparedStatement.setString(12, portletId);
+			preparedStatement.setString(13, StringPool.BLANK);
+			preparedStatement.setLong(14, folderId);
 
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			ps.setString(1, PortalUUIDUtil.generate());
-			ps.setLong(2, repositoryId);
-			ps.setLong(3, groupId);
-			ps.setLong(4, companyId);
-			ps.setLong(5, userId);
-			ps.setString(6, userName);
-			ps.setTimestamp(7, createDate);
-			ps.setTimestamp(8, createDate);
-			ps.setLong(9, classNameId);
-			ps.setString(10, portletId);
-			ps.setString(11, StringPool.BLANK);
-			ps.setString(12, portletId);
-			ps.setString(13, StringPool.BLANK);
-			ps.setLong(14, folderId);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 
 			return repositoryId;
 		}
@@ -326,25 +316,22 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 		long resourcePermissionId = increment(
 			ResourcePermission.class.getName());
 
-		StringBundler sb = new StringBundler(3);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into ResourcePermission (resourcePermissionId, ",
+					"companyId, name, scope, primKey, roleId, ownerId, ",
+					"actionIds) values (?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into ResourcePermission (resourcePermissionId, ");
-		sb.append("companyId, name, scope, primKey, roleId, ownerId, ");
-		sb.append("actionIds) values (?, ?, ?, ?, ?, ?, ?, ?)");
+			preparedStatement.setLong(1, resourcePermissionId);
+			preparedStatement.setLong(2, companyId);
+			preparedStatement.setString(3, className);
+			preparedStatement.setInt(4, ResourceConstants.SCOPE_INDIVIDUAL);
+			preparedStatement.setLong(5, primKey);
+			preparedStatement.setLong(6, roleId);
+			preparedStatement.setLong(7, 0);
+			preparedStatement.setLong(8, actionIds);
 
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setLong(1, resourcePermissionId);
-			ps.setLong(2, companyId);
-			ps.setString(3, className);
-			ps.setInt(4, ResourceConstants.SCOPE_INDIVIDUAL);
-			ps.setLong(5, primKey);
-			ps.setLong(6, roleId);
-			ps.setLong(7, 0);
-			ps.setLong(8, actionIds);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -394,18 +381,18 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 			return bitwiseValues;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select actionId, bitwiseValue from ResourceAction where " +
 					"name = ?")) {
 
-			ps.setString(1, name);
+			preparedStatement.setString(1, name);
 
-			try (ResultSet rs = ps.executeQuery()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
 				bitwiseValues = new HashMap<>();
 
-				while (rs.next()) {
-					String actionId = rs.getString("actionId");
-					long bitwiseValue = rs.getLong("bitwiseValue");
+				while (resultSet.next()) {
+					String actionId = resultSet.getString("actionId");
+					long bitwiseValue = resultSet.getLong("bitwiseValue");
 
 					bitwiseValues.put(actionId, bitwiseValue);
 				}
@@ -445,17 +432,17 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 			return -1;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select folderId from DLFolder where repositoryId = ? and " +
 					"parentFolderId = ? and name = ?")) {
 
-			ps.setLong(1, repositoryId);
-			ps.setLong(2, parentFolderId);
-			ps.setString(3, name);
+			preparedStatement.setLong(1, repositoryId);
+			preparedStatement.setLong(2, parentFolderId);
+			preparedStatement.setString(3, name);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					return rs.getLong(1);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					return resultSet.getLong(1);
 				}
 			}
 		}
@@ -472,17 +459,17 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 			Timestamp createDate, long classNameId, String portletId)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select repositoryId from Repository where groupId = ? and " +
 					"name = ? and portletId = ?")) {
 
-			ps.setLong(1, groupId);
-			ps.setString(2, portletId);
-			ps.setString(3, portletId);
+			preparedStatement.setLong(1, groupId);
+			preparedStatement.setString(2, portletId);
+			preparedStatement.setString(3, portletId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					return rs.getLong(1);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					return resultSet.getLong(1);
 				}
 			}
 		}
@@ -501,15 +488,15 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 			return roleId;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select roleId from Role_ where companyId = ? and name = ?")) {
 
-			ps.setLong(1, companyId);
-			ps.setString(2, name);
+			preparedStatement.setLong(1, companyId);
+			preparedStatement.setString(2, name);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					roleId = rs.getLong("roleId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					roleId = resultSet.getLong("roleId");
 				}
 
 				_roleIds.put(roleIdsKey, roleId);
@@ -585,7 +572,14 @@ public abstract class BaseAttachmentsUpgradeProcess extends UpgradeProcess {
 					companyId, CompanyConstants.SYSTEM, attachment);
 
 				DLStoreUtil.addFile(
-					companyId, containerModelFolderId, name, false, bytes);
+					DLStoreRequest.builder(
+						companyId, containerModelFolderId, name
+					).className(
+						this
+					).size(
+						bytes.length
+					).build(),
+					bytes);
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {

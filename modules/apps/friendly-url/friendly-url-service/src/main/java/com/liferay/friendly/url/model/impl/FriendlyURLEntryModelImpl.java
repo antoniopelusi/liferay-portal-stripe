@@ -31,13 +31,14 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -248,34 +249,6 @@ public class FriendlyURLEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, FriendlyURLEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			FriendlyURLEntry.class.getClassLoader(), FriendlyURLEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<FriendlyURLEntry> constructor =
-				(Constructor<FriendlyURLEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<FriendlyURLEntry, Object>>
@@ -761,6 +734,36 @@ public class FriendlyURLEntryModelImpl
 	}
 
 	@Override
+	public FriendlyURLEntry cloneWithOriginalValues() {
+		FriendlyURLEntryImpl friendlyURLEntryImpl = new FriendlyURLEntryImpl();
+
+		friendlyURLEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		friendlyURLEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		friendlyURLEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		friendlyURLEntryImpl.setDefaultLanguageId(
+			this.<String>getColumnOriginalValue("defaultLanguageId"));
+		friendlyURLEntryImpl.setFriendlyURLEntryId(
+			this.<Long>getColumnOriginalValue("friendlyURLEntryId"));
+		friendlyURLEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		friendlyURLEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		friendlyURLEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		friendlyURLEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		friendlyURLEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		friendlyURLEntryImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+
+		return friendlyURLEntryImpl;
+	}
+
+	@Override
 	public int compareTo(FriendlyURLEntry friendlyURLEntry) {
 		long primaryKey = friendlyURLEntry.getPrimaryKey();
 
@@ -891,7 +894,7 @@ public class FriendlyURLEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -902,9 +905,27 @@ public class FriendlyURLEntryModelImpl
 			Function<FriendlyURLEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((FriendlyURLEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(FriendlyURLEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -951,7 +972,9 @@ public class FriendlyURLEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, FriendlyURLEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					FriendlyURLEntry.class, ModelWrapper.class);
 
 	}
 

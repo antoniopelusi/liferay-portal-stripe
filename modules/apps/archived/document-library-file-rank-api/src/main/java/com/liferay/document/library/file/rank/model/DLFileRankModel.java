@@ -194,4 +194,7 @@ public interface DLFileRankModel
 	 */
 	public void setActive(boolean active);
 
+	@Override
+	public DLFileRank cloneWithOriginalValues();
+
 }

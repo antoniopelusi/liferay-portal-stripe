@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ResourceURL;
@@ -154,18 +152,19 @@ public class ViewDiscardDisplayContext {
 	}
 
 	public String getSubmitURL() {
-		ActionURL submitURL = _renderResponse.createActionURL();
-
-		submitURL.setParameter(
-			ActionRequest.ACTION_NAME, "/change_tracking/discard_changes");
-		submitURL.setParameter("redirect", getRedirectURL());
-		submitURL.setParameter(
-			"ctCollectionId", String.valueOf(_ctCollectionId));
-		submitURL.setParameter(
-			"modelClassNameId", String.valueOf(_modelClassNameId));
-		submitURL.setParameter("modelClassPK", String.valueOf(_modelClassPK));
-
-		return submitURL.toString();
+		return PortletURLBuilder.createActionURL(
+			_renderResponse
+		).setActionName(
+			"/change_tracking/discard_changes"
+		).setRedirect(
+			getRedirectURL()
+		).setParameter(
+			"ctCollectionId", _ctCollectionId
+		).setParameter(
+			"modelClassNameId", _modelClassNameId
+		).setParameter(
+			"modelClassPK", _modelClassPK
+		).buildString();
 	}
 
 	private final long _ctCollectionId;

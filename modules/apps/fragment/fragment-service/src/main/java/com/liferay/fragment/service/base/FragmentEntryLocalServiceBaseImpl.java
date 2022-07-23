@@ -25,10 +25,7 @@ import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryVersion;
 import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
-import com.liferay.fragment.service.persistence.FragmentCollectionPersistence;
 import com.liferay.fragment.service.persistence.FragmentEntryFinder;
-import com.liferay.fragment.service.persistence.FragmentEntryLinkFinder;
-import com.liferay.fragment.service.persistence.FragmentEntryLinkPersistence;
 import com.liferay.fragment.service.persistence.FragmentEntryPersistence;
 import com.liferay.fragment.service.persistence.FragmentEntryVersionPersistence;
 import com.liferay.petra.function.UnsafeFunction;
@@ -192,6 +189,13 @@ public abstract class FragmentEntryLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return fragmentEntryPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -967,6 +971,7 @@ public abstract class FragmentEntryLocalServiceBaseImpl
 		draftFragmentEntry.setCacheable(publishedFragmentEntry.getCacheable());
 		draftFragmentEntry.setConfiguration(
 			publishedFragmentEntry.getConfiguration());
+		draftFragmentEntry.setIcon(publishedFragmentEntry.getIcon());
 		draftFragmentEntry.setPreviewFileEntryId(
 			publishedFragmentEntry.getPreviewFileEntryId());
 		draftFragmentEntry.setReadOnly(publishedFragmentEntry.getReadOnly());
@@ -1080,23 +1085,6 @@ public abstract class FragmentEntryLocalServiceBaseImpl
 		counterLocalService;
 
 	@Reference
-	protected FragmentCollectionPersistence fragmentCollectionPersistence;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
 	protected FragmentEntryVersionPersistence fragmentEntryVersionPersistence;
-
-	@Reference
-	protected FragmentEntryLinkPersistence fragmentEntryLinkPersistence;
-
-	@Reference
-	protected FragmentEntryLinkFinder fragmentEntryLinkFinder;
 
 }

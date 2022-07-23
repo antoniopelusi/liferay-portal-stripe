@@ -107,9 +107,15 @@ public class LanguageExtension {
 					excludePortalResources = StringPool.FALSE;
 				}
 
-				resourceBundleLoader = processBaseName(
+				resourceBundleLoader = _processBaseName(
 					bundleWiring.getClassLoader(), (String)baseName,
 					GetterUtil.getBoolean(excludePortalResources));
+			}
+			else {
+				attributes.put("resource.bundle.base.name", "content.Language");
+
+				resourceBundleLoader =
+					ResourceBundleLoaderUtil.getPortalResourceBundleLoader();
 			}
 
 			if (Validator.isNotNull(serviceRanking)) {
@@ -142,7 +148,7 @@ public class LanguageExtension {
 		}
 	}
 
-	protected ResourceBundleLoader processBaseName(
+	private ResourceBundleLoader _processBaseName(
 		ClassLoader classLoader, String baseName,
 		boolean excludePortalResource) {
 

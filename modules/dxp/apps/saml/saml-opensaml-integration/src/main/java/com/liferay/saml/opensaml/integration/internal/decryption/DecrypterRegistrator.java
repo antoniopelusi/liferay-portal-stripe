@@ -14,7 +14,7 @@
 
 package com.liferay.saml.opensaml.integration.internal.decryption;
 
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.saml.opensaml.integration.internal.metadata.MetadataManager;
 import com.liferay.saml.runtime.SamlException;
 import com.liferay.saml.runtime.configuration.SamlProviderConfigurationHelper;
@@ -78,11 +78,9 @@ public class DecrypterRegistrator {
 
 		_decrypterServiceRegistration = bundleContext.registerService(
 			Decrypter.class, decrypter,
-			new HashMapDictionary<String, Object>() {
-				{
-					put(Constants.SERVICE_RANKING, Integer.MIN_VALUE);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				Constants.SERVICE_RANKING, Integer.MIN_VALUE
+			).build());
 	}
 
 	@Deactivate

@@ -56,10 +56,13 @@ public class SegmentsExperienceStagedModelRepository
 		}
 
 		return _segmentsExperienceLocalService.addSegmentsExperience(
+			serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 			segmentsExperience.getSegmentsEntryId(),
+			segmentsExperience.getSegmentsExperienceKey(),
 			segmentsExperience.getClassNameId(),
 			segmentsExperience.getClassPK(), segmentsExperience.getNameMap(),
 			segmentsExperience.getPriority(), segmentsExperience.isActive(),
+			segmentsExperience.getTypeSettingsUnicodeProperties(),
 			serviceContext);
 	}
 

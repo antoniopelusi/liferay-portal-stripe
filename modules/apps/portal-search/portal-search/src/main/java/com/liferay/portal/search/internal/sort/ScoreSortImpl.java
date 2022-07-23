@@ -20,7 +20,7 @@ import com.liferay.portal.search.sort.SortVisitor;
 /**
  * @author Michael C. Han
  */
-public class ScoreSortImpl extends SortImpl implements ScoreSort {
+public class ScoreSortImpl extends BaseSortImpl implements ScoreSort {
 
 	@Override
 	public <T> T accept(SortVisitor<T> sortVisitor) {

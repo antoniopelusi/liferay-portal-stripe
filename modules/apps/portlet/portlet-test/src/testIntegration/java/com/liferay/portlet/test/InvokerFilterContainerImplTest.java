@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.portlet.PortletInstanceFactory;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.servlet.ServletContextClassLoaderPool;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.model.impl.PortletAppImpl;
@@ -200,15 +200,13 @@ public class InvokerFilterContainerImplTest {
 
 		_serviceRegistration = _bundleContext.registerService(
 			PortletFilter.class, portletFilter,
-			new HashMapDictionary<String, Object>() {
-				{
-					put("javax.portlet.name", "InvokerFilterContainerImplTest");
-					put(
-						"preinitialized.filter",
-						Boolean.valueOf(preinitialized));
-					put("service.ranking", Integer.MAX_VALUE);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.name", "InvokerFilterContainerImplTest"
+			).put(
+				"preinitialized.filter", Boolean.valueOf(preinitialized)
+			).put(
+				"service.ranking", Integer.MAX_VALUE
+			).build());
 	}
 
 	private static BundleContext _bundleContext;

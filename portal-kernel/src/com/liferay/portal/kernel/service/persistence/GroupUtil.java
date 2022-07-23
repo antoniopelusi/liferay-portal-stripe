@@ -14,7 +14,6 @@
 
 package com.liferay.portal.kernel.service.persistence;
 
-import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -1983,10 +1982,11 @@ public class GroupUtil {
 	 * @param parentGroupId the parent group ID
 	 * @return the matching groups
 	 */
-	public static List<Group> findByG_C_P(
+	public static List<Group> findByGtG_C_P(
 		long groupId, long companyId, long parentGroupId) {
 
-		return getPersistence().findByG_C_P(groupId, companyId, parentGroupId);
+		return getPersistence().findByGtG_C_P(
+			groupId, companyId, parentGroupId);
 	}
 
 	/**
@@ -2003,10 +2003,10 @@ public class GroupUtil {
 	 * @param end the upper bound of the range of groups (not inclusive)
 	 * @return the range of matching groups
 	 */
-	public static List<Group> findByG_C_P(
+	public static List<Group> findByGtG_C_P(
 		long groupId, long companyId, long parentGroupId, int start, int end) {
 
-		return getPersistence().findByG_C_P(
+		return getPersistence().findByGtG_C_P(
 			groupId, companyId, parentGroupId, start, end);
 	}
 
@@ -2025,11 +2025,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByG_C_P(
+	public static List<Group> findByGtG_C_P(
 		long groupId, long companyId, long parentGroupId, int start, int end,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().findByG_C_P(
+		return getPersistence().findByGtG_C_P(
 			groupId, companyId, parentGroupId, start, end, orderByComparator);
 	}
 
@@ -2049,11 +2049,11 @@ public class GroupUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByG_C_P(
+	public static List<Group> findByGtG_C_P(
 		long groupId, long companyId, long parentGroupId, int start, int end,
 		OrderByComparator<Group> orderByComparator, boolean useFinderCache) {
 
-		return getPersistence().findByG_C_P(
+		return getPersistence().findByGtG_C_P(
 			groupId, companyId, parentGroupId, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -2068,12 +2068,12 @@ public class GroupUtil {
 	 * @return the first matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByG_C_P_First(
+	public static Group findByGtG_C_P_First(
 			long groupId, long companyId, long parentGroupId,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByG_C_P_First(
+		return getPersistence().findByGtG_C_P_First(
 			groupId, companyId, parentGroupId, orderByComparator);
 	}
 
@@ -2086,11 +2086,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByG_C_P_First(
+	public static Group fetchByGtG_C_P_First(
 		long groupId, long companyId, long parentGroupId,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByG_C_P_First(
+		return getPersistence().fetchByGtG_C_P_First(
 			groupId, companyId, parentGroupId, orderByComparator);
 	}
 
@@ -2104,12 +2104,12 @@ public class GroupUtil {
 	 * @return the last matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByG_C_P_Last(
+	public static Group findByGtG_C_P_Last(
 			long groupId, long companyId, long parentGroupId,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByG_C_P_Last(
+		return getPersistence().findByGtG_C_P_Last(
 			groupId, companyId, parentGroupId, orderByComparator);
 	}
 
@@ -2122,11 +2122,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByG_C_P_Last(
+	public static Group fetchByGtG_C_P_Last(
 		long groupId, long companyId, long parentGroupId,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByG_C_P_Last(
+		return getPersistence().fetchByGtG_C_P_Last(
 			groupId, companyId, parentGroupId, orderByComparator);
 	}
 
@@ -2137,10 +2137,10 @@ public class GroupUtil {
 	 * @param companyId the company ID
 	 * @param parentGroupId the parent group ID
 	 */
-	public static void removeByG_C_P(
+	public static void removeByGtG_C_P(
 		long groupId, long companyId, long parentGroupId) {
 
-		getPersistence().removeByG_C_P(groupId, companyId, parentGroupId);
+		getPersistence().removeByGtG_C_P(groupId, companyId, parentGroupId);
 	}
 
 	/**
@@ -2151,10 +2151,11 @@ public class GroupUtil {
 	 * @param parentGroupId the parent group ID
 	 * @return the number of matching groups
 	 */
-	public static int countByG_C_P(
+	public static int countByGtG_C_P(
 		long groupId, long companyId, long parentGroupId) {
 
-		return getPersistence().countByG_C_P(groupId, companyId, parentGroupId);
+		return getPersistence().countByGtG_C_P(
+			groupId, companyId, parentGroupId);
 	}
 
 	/**
@@ -2929,10 +2930,10 @@ public class GroupUtil {
 	 * @param site the site
 	 * @return the matching groups
 	 */
-	public static List<Group> findByC_T_S(
+	public static List<Group> findByC_LikeT_S(
 		long companyId, String treePath, boolean site) {
 
-		return getPersistence().findByC_T_S(companyId, treePath, site);
+		return getPersistence().findByC_LikeT_S(companyId, treePath, site);
 	}
 
 	/**
@@ -2949,10 +2950,10 @@ public class GroupUtil {
 	 * @param end the upper bound of the range of groups (not inclusive)
 	 * @return the range of matching groups
 	 */
-	public static List<Group> findByC_T_S(
+	public static List<Group> findByC_LikeT_S(
 		long companyId, String treePath, boolean site, int start, int end) {
 
-		return getPersistence().findByC_T_S(
+		return getPersistence().findByC_LikeT_S(
 			companyId, treePath, site, start, end);
 	}
 
@@ -2971,11 +2972,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByC_T_S(
+	public static List<Group> findByC_LikeT_S(
 		long companyId, String treePath, boolean site, int start, int end,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().findByC_T_S(
+		return getPersistence().findByC_LikeT_S(
 			companyId, treePath, site, start, end, orderByComparator);
 	}
 
@@ -2995,11 +2996,11 @@ public class GroupUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByC_T_S(
+	public static List<Group> findByC_LikeT_S(
 		long companyId, String treePath, boolean site, int start, int end,
 		OrderByComparator<Group> orderByComparator, boolean useFinderCache) {
 
-		return getPersistence().findByC_T_S(
+		return getPersistence().findByC_LikeT_S(
 			companyId, treePath, site, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -3014,12 +3015,12 @@ public class GroupUtil {
 	 * @return the first matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByC_T_S_First(
+	public static Group findByC_LikeT_S_First(
 			long companyId, String treePath, boolean site,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByC_T_S_First(
+		return getPersistence().findByC_LikeT_S_First(
 			companyId, treePath, site, orderByComparator);
 	}
 
@@ -3032,11 +3033,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByC_T_S_First(
+	public static Group fetchByC_LikeT_S_First(
 		long companyId, String treePath, boolean site,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByC_T_S_First(
+		return getPersistence().fetchByC_LikeT_S_First(
 			companyId, treePath, site, orderByComparator);
 	}
 
@@ -3050,12 +3051,12 @@ public class GroupUtil {
 	 * @return the last matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByC_T_S_Last(
+	public static Group findByC_LikeT_S_Last(
 			long companyId, String treePath, boolean site,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByC_T_S_Last(
+		return getPersistence().findByC_LikeT_S_Last(
 			companyId, treePath, site, orderByComparator);
 	}
 
@@ -3068,11 +3069,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByC_T_S_Last(
+	public static Group fetchByC_LikeT_S_Last(
 		long companyId, String treePath, boolean site,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByC_T_S_Last(
+		return getPersistence().fetchByC_LikeT_S_Last(
 			companyId, treePath, site, orderByComparator);
 	}
 
@@ -3087,12 +3088,12 @@ public class GroupUtil {
 	 * @return the previous, current, and next group
 	 * @throws NoSuchGroupException if a group with the primary key could not be found
 	 */
-	public static Group[] findByC_T_S_PrevAndNext(
+	public static Group[] findByC_LikeT_S_PrevAndNext(
 			long groupId, long companyId, String treePath, boolean site,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByC_T_S_PrevAndNext(
+		return getPersistence().findByC_LikeT_S_PrevAndNext(
 			groupId, companyId, treePath, site, orderByComparator);
 	}
 
@@ -3103,10 +3104,10 @@ public class GroupUtil {
 	 * @param treePath the tree path
 	 * @param site the site
 	 */
-	public static void removeByC_T_S(
+	public static void removeByC_LikeT_S(
 		long companyId, String treePath, boolean site) {
 
-		getPersistence().removeByC_T_S(companyId, treePath, site);
+		getPersistence().removeByC_LikeT_S(companyId, treePath, site);
 	}
 
 	/**
@@ -3117,10 +3118,10 @@ public class GroupUtil {
 	 * @param site the site
 	 * @return the number of matching groups
 	 */
-	public static int countByC_T_S(
+	public static int countByC_LikeT_S(
 		long companyId, String treePath, boolean site) {
 
-		return getPersistence().countByC_T_S(companyId, treePath, site);
+		return getPersistence().countByC_LikeT_S(companyId, treePath, site);
 	}
 
 	/**
@@ -3536,10 +3537,10 @@ public class GroupUtil {
 	 * @param parentGroupId the parent group ID
 	 * @return the matching groups
 	 */
-	public static List<Group> findByG_C_C_P(
+	public static List<Group> findByGtG_C_C_P(
 		long groupId, long companyId, long classNameId, long parentGroupId) {
 
-		return getPersistence().findByG_C_C_P(
+		return getPersistence().findByGtG_C_C_P(
 			groupId, companyId, classNameId, parentGroupId);
 	}
 
@@ -3558,11 +3559,11 @@ public class GroupUtil {
 	 * @param end the upper bound of the range of groups (not inclusive)
 	 * @return the range of matching groups
 	 */
-	public static List<Group> findByG_C_C_P(
+	public static List<Group> findByGtG_C_C_P(
 		long groupId, long companyId, long classNameId, long parentGroupId,
 		int start, int end) {
 
-		return getPersistence().findByG_C_C_P(
+		return getPersistence().findByGtG_C_C_P(
 			groupId, companyId, classNameId, parentGroupId, start, end);
 	}
 
@@ -3582,11 +3583,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByG_C_C_P(
+	public static List<Group> findByGtG_C_C_P(
 		long groupId, long companyId, long classNameId, long parentGroupId,
 		int start, int end, OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().findByG_C_C_P(
+		return getPersistence().findByGtG_C_C_P(
 			groupId, companyId, classNameId, parentGroupId, start, end,
 			orderByComparator);
 	}
@@ -3608,12 +3609,12 @@ public class GroupUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByG_C_C_P(
+	public static List<Group> findByGtG_C_C_P(
 		long groupId, long companyId, long classNameId, long parentGroupId,
 		int start, int end, OrderByComparator<Group> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_C_C_P(
+		return getPersistence().findByGtG_C_C_P(
 			groupId, companyId, classNameId, parentGroupId, start, end,
 			orderByComparator, useFinderCache);
 	}
@@ -3629,12 +3630,12 @@ public class GroupUtil {
 	 * @return the first matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByG_C_C_P_First(
+	public static Group findByGtG_C_C_P_First(
 			long groupId, long companyId, long classNameId, long parentGroupId,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByG_C_C_P_First(
+		return getPersistence().findByGtG_C_C_P_First(
 			groupId, companyId, classNameId, parentGroupId, orderByComparator);
 	}
 
@@ -3648,11 +3649,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByG_C_C_P_First(
+	public static Group fetchByGtG_C_C_P_First(
 		long groupId, long companyId, long classNameId, long parentGroupId,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByG_C_C_P_First(
+		return getPersistence().fetchByGtG_C_C_P_First(
 			groupId, companyId, classNameId, parentGroupId, orderByComparator);
 	}
 
@@ -3667,12 +3668,12 @@ public class GroupUtil {
 	 * @return the last matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByG_C_C_P_Last(
+	public static Group findByGtG_C_C_P_Last(
 			long groupId, long companyId, long classNameId, long parentGroupId,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByG_C_C_P_Last(
+		return getPersistence().findByGtG_C_C_P_Last(
 			groupId, companyId, classNameId, parentGroupId, orderByComparator);
 	}
 
@@ -3686,11 +3687,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByG_C_C_P_Last(
+	public static Group fetchByGtG_C_C_P_Last(
 		long groupId, long companyId, long classNameId, long parentGroupId,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByG_C_C_P_Last(
+		return getPersistence().fetchByGtG_C_C_P_Last(
 			groupId, companyId, classNameId, parentGroupId, orderByComparator);
 	}
 
@@ -3702,10 +3703,10 @@ public class GroupUtil {
 	 * @param classNameId the class name ID
 	 * @param parentGroupId the parent group ID
 	 */
-	public static void removeByG_C_C_P(
+	public static void removeByGtG_C_C_P(
 		long groupId, long companyId, long classNameId, long parentGroupId) {
 
-		getPersistence().removeByG_C_C_P(
+		getPersistence().removeByGtG_C_C_P(
 			groupId, companyId, classNameId, parentGroupId);
 	}
 
@@ -3718,10 +3719,10 @@ public class GroupUtil {
 	 * @param parentGroupId the parent group ID
 	 * @return the number of matching groups
 	 */
-	public static int countByG_C_C_P(
+	public static int countByGtG_C_C_P(
 		long groupId, long companyId, long classNameId, long parentGroupId) {
 
-		return getPersistence().countByG_C_C_P(
+		return getPersistence().countByGtG_C_C_P(
 			groupId, companyId, classNameId, parentGroupId);
 	}
 
@@ -3734,10 +3735,10 @@ public class GroupUtil {
 	 * @param site the site
 	 * @return the matching groups
 	 */
-	public static List<Group> findByG_C_P_S(
+	public static List<Group> findByGtG_C_P_S(
 		long groupId, long companyId, long parentGroupId, boolean site) {
 
-		return getPersistence().findByG_C_P_S(
+		return getPersistence().findByGtG_C_P_S(
 			groupId, companyId, parentGroupId, site);
 	}
 
@@ -3756,11 +3757,11 @@ public class GroupUtil {
 	 * @param end the upper bound of the range of groups (not inclusive)
 	 * @return the range of matching groups
 	 */
-	public static List<Group> findByG_C_P_S(
+	public static List<Group> findByGtG_C_P_S(
 		long groupId, long companyId, long parentGroupId, boolean site,
 		int start, int end) {
 
-		return getPersistence().findByG_C_P_S(
+		return getPersistence().findByGtG_C_P_S(
 			groupId, companyId, parentGroupId, site, start, end);
 	}
 
@@ -3780,11 +3781,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByG_C_P_S(
+	public static List<Group> findByGtG_C_P_S(
 		long groupId, long companyId, long parentGroupId, boolean site,
 		int start, int end, OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().findByG_C_P_S(
+		return getPersistence().findByGtG_C_P_S(
 			groupId, companyId, parentGroupId, site, start, end,
 			orderByComparator);
 	}
@@ -3806,12 +3807,12 @@ public class GroupUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching groups
 	 */
-	public static List<Group> findByG_C_P_S(
+	public static List<Group> findByGtG_C_P_S(
 		long groupId, long companyId, long parentGroupId, boolean site,
 		int start, int end, OrderByComparator<Group> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_C_P_S(
+		return getPersistence().findByGtG_C_P_S(
 			groupId, companyId, parentGroupId, site, start, end,
 			orderByComparator, useFinderCache);
 	}
@@ -3827,12 +3828,12 @@ public class GroupUtil {
 	 * @return the first matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByG_C_P_S_First(
+	public static Group findByGtG_C_P_S_First(
 			long groupId, long companyId, long parentGroupId, boolean site,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByG_C_P_S_First(
+		return getPersistence().findByGtG_C_P_S_First(
 			groupId, companyId, parentGroupId, site, orderByComparator);
 	}
 
@@ -3846,11 +3847,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByG_C_P_S_First(
+	public static Group fetchByGtG_C_P_S_First(
 		long groupId, long companyId, long parentGroupId, boolean site,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByG_C_P_S_First(
+		return getPersistence().fetchByGtG_C_P_S_First(
 			groupId, companyId, parentGroupId, site, orderByComparator);
 	}
 
@@ -3865,12 +3866,12 @@ public class GroupUtil {
 	 * @return the last matching group
 	 * @throws NoSuchGroupException if a matching group could not be found
 	 */
-	public static Group findByG_C_P_S_Last(
+	public static Group findByGtG_C_P_S_Last(
 			long groupId, long companyId, long parentGroupId, boolean site,
 			OrderByComparator<Group> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchGroupException {
 
-		return getPersistence().findByG_C_P_S_Last(
+		return getPersistence().findByGtG_C_P_S_Last(
 			groupId, companyId, parentGroupId, site, orderByComparator);
 	}
 
@@ -3884,11 +3885,11 @@ public class GroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching group, or <code>null</code> if a matching group could not be found
 	 */
-	public static Group fetchByG_C_P_S_Last(
+	public static Group fetchByGtG_C_P_S_Last(
 		long groupId, long companyId, long parentGroupId, boolean site,
 		OrderByComparator<Group> orderByComparator) {
 
-		return getPersistence().fetchByG_C_P_S_Last(
+		return getPersistence().fetchByGtG_C_P_S_Last(
 			groupId, companyId, parentGroupId, site, orderByComparator);
 	}
 
@@ -3900,10 +3901,10 @@ public class GroupUtil {
 	 * @param parentGroupId the parent group ID
 	 * @param site the site
 	 */
-	public static void removeByG_C_P_S(
+	public static void removeByGtG_C_P_S(
 		long groupId, long companyId, long parentGroupId, boolean site) {
 
-		getPersistence().removeByG_C_P_S(
+		getPersistence().removeByGtG_C_P_S(
 			groupId, companyId, parentGroupId, site);
 	}
 
@@ -3916,10 +3917,10 @@ public class GroupUtil {
 	 * @param site the site
 	 * @return the number of matching groups
 	 */
-	public static int countByG_C_P_S(
+	public static int countByGtG_C_P_S(
 		long groupId, long companyId, long parentGroupId, boolean site) {
 
-		return getPersistence().countByG_C_P_S(
+		return getPersistence().countByGtG_C_P_S(
 			groupId, companyId, parentGroupId, site);
 	}
 
@@ -5445,14 +5446,9 @@ public class GroupUtil {
 	}
 
 	public static GroupPersistence getPersistence() {
-		if (_persistence == null) {
-			_persistence = (GroupPersistence)PortalBeanLocatorUtil.locate(
-				GroupPersistence.class.getName());
-		}
-
 		return _persistence;
 	}
 
-	private static GroupPersistence _persistence;
+	private static volatile GroupPersistence _persistence;
 
 }

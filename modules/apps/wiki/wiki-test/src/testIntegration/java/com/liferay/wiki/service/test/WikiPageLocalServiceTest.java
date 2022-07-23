@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.AssertUtils;
@@ -59,6 +60,7 @@ import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
 import com.liferay.wiki.exception.DuplicatePageException;
+import com.liferay.wiki.exception.DuplicatePageExternalReferenceCodeException;
 import com.liferay.wiki.exception.NoSuchPageResourceException;
 import com.liferay.wiki.exception.PageTitleException;
 import com.liferay.wiki.model.WikiNode;
@@ -100,6 +102,7 @@ public class WikiPageLocalServiceTest {
 		_group = GroupTestUtil.addGroup();
 
 		_node = WikiTestUtil.addNode(_group.getGroupId());
+		_user = UserTestUtil.addUser(_group.getGroupId());
 	}
 
 	@Test
@@ -122,6 +125,43 @@ public class WikiPageLocalServiceTest {
 				WikiPage.class.getName(), frontPage.getResourcePrimKey());
 
 		Assert.assertTrue(ListUtil.isNull(categories));
+	}
+
+	@Test(expected = DuplicatePageExternalReferenceCodeException.class)
+	public void testAddPageWithExistingExternalReferenceCode()
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
+
+		WikiPage wikiPage = WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), _node.getNodeId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(), true,
+			serviceContext);
+
+		WikiPageLocalServiceUtil.addPage(
+			wikiPage.getExternalReferenceCode(), TestPropsValues.getUserId(),
+			_node.getNodeId(), RandomTestUtil.randomString(),
+			WorkflowConstants.ACTION_PUBLISH, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), false, "creole", true,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			serviceContext);
+	}
+
+	@Test
+	public void testAddPageWithExternalReferenceCode() throws Exception {
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		WikiPage wikiPage = WikiPageLocalServiceUtil.addPage(
+			externalReferenceCode, TestPropsValues.getUserId(),
+			_node.getNodeId(), RandomTestUtil.randomString(),
+			WorkflowConstants.ACTION_PUBLISH, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), false, "creole", true,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(
+			externalReferenceCode, wikiPage.getExternalReferenceCode());
 	}
 
 	@Test
@@ -159,6 +199,18 @@ public class WikiPageLocalServiceTest {
 		Assert.assertEquals("ChildPage 1", page.getTitle());
 	}
 
+	@Test
+	public void testAddPageWithoutExternalReferenceCode() throws Exception {
+		WikiPage wikiPage = WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), _node.getNodeId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(), true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(
+			wikiPage.getExternalReferenceCode(),
+			String.valueOf(wikiPage.getPageId()));
+	}
+
 	@Test(expected = AssetCategoryTestException.class)
 	public void testAddPageWithoutRequiredCategory() throws Exception {
 		AssetVocabulary assetVocabulary = getRequiredAssetVocabulary();
@@ -178,7 +230,7 @@ public class WikiPageLocalServiceTest {
 		}
 		catch (AssetCategoryException assetCategoryException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(assetCategoryException, assetCategoryException);
+				_log.debug(assetCategoryException);
 			}
 
 			throw new AssetCategoryTestException();
@@ -1022,6 +1074,21 @@ public class WikiPageLocalServiceTest {
 		testRevertPage(true);
 	}
 
+	@Test
+	public void testUpdatePagePreservesOriginalOwner() throws Exception {
+		WikiPage page = WikiTestUtil.addPage(
+			_group.getGroupId(), _node.getNodeId(), true);
+
+		WikiPage updatedPage = WikiPageLocalServiceUtil.updatePage(
+			_user.getUserId(), _node.getNodeId(), page.getTitle(),
+			page.getVersion(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), false, page.getFormat(), null, null,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertNotEquals(page.getPageId(), updatedPage.getPageId());
+		Assert.assertEquals(page.getUserId(), updatedPage.getUserId());
+	}
+
 	protected void addExpandoValueToPage(WikiPage page) throws Exception {
 		ExpandoValue value = ExpandoTestUtil.addValue(
 			PortalUtil.getClassNameId(WikiPage.class), page.getPrimaryKey(),
@@ -1081,15 +1148,10 @@ public class WikiPageLocalServiceTest {
 
 		long classNameId = PortalUtil.getClassNameId(WikiPage.class.getName());
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("multiValued=true\nrequiredClassNameIds=");
-		sb.append(classNameId);
-		sb.append(":-1\nselectedClassNameIds=");
-		sb.append(classNameId);
-		sb.append(":-1");
-
-		assetVocabulary.setSettings(sb.toString());
+		assetVocabulary.setSettings(
+			StringBundler.concat(
+				"multiValued=true\nrequiredClassNameIds=", classNameId,
+				":-1\nselectedClassNameIds=", classNameId, ":-1"));
 
 		AssetVocabularyLocalServiceUtil.updateAssetVocabulary(assetVocabulary);
 
@@ -1214,6 +1276,9 @@ public class WikiPageLocalServiceTest {
 	private Group _group;
 
 	private WikiNode _node;
+
+	@DeleteAfterTestRun
+	private User _user;
 
 	private static class AssetCategoryTestException extends PortalException {
 	}

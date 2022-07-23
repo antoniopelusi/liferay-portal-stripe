@@ -14,13 +14,20 @@
 
 package com.liferay.object.service;
 
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.security.access.control.AccessControlled;
 import com.liferay.portal.kernel.service.BaseService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.transaction.Isolation;
+import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+
+import java.io.Serializable;
+
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -47,6 +54,35 @@ public interface ObjectEntryService extends BaseService {
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectEntryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the object entry remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link ObjectEntryServiceUtil} if injection and service tracking are not available.
 	 */
+	public ObjectEntry addObjectEntry(
+			long groupId, long objectDefinitionId,
+			Map<String, Serializable> values, ServiceContext serviceContext)
+		throws PortalException;
+
+	public ObjectEntry addOrUpdateObjectEntry(
+			String externalReferenceCode, long groupId, long objectDefinitionId,
+			Map<String, Serializable> values, ServiceContext serviceContext)
+		throws PortalException;
+
+	public ObjectEntry deleteObjectEntry(long objectEntryId)
+		throws PortalException;
+
+	public ObjectEntry deleteObjectEntry(
+			String externalReferenceCode, long companyId, long groupId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectEntry fetchObjectEntry(long objectEntryId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectEntry getObjectEntry(long objectEntryId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectEntry getObjectEntry(
+			String externalReferenceCode, long companyId, long groupId)
+		throws PortalException;
 
 	/**
 	 * Returns the OSGi service identifier.
@@ -54,5 +90,15 @@ public interface ObjectEntryService extends BaseService {
 	 * @return the OSGi service identifier
 	 */
 	public String getOSGiServiceIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public boolean hasModelResourcePermission(
+			ObjectEntry objectEntry, String actionId)
+		throws PortalException;
+
+	public ObjectEntry updateObjectEntry(
+			long objectEntryId, Map<String, Serializable> values,
+			ServiceContext serviceContext)
+		throws PortalException;
 
 }

@@ -283,6 +283,8 @@ public interface ProductOptionResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -310,7 +312,7 @@ public interface ProductOptionResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-catalog/v1.0/productOptions/{id}/batch");
+						"/o/headless-commerce-admin-catalog/v1.0/productOptions/batch");
 
 			httpInvoker.path("id", id);
 

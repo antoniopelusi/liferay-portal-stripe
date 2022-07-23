@@ -1,0 +1,627 @@
+@component-name = "portal-calendar"
+definition {
+
+	property custom.properties = "default.layout.template.id=1_column${line.separator}company.default.time.zone=America/Los_Angeles";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Calendar";
+
+	var pageName = "Calendar Page";
+	var portletName = "Calendar";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(
+			pageName = "Calendar Page",
+			sitePageType = "Widget Page");
+
+		PagesAdmin.configurePage(
+			columnName = "1 Column",
+			pageName = "Calendar Page",
+			sitePageType = "Widget Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Portlet.addPG(
+			pageName = "Calendar Page",
+			portletName = "Calendar");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.gotoPage(pageName = "Calendar Page");
+
+			if (IsElementPresent(locator1 = "Calendar#SCHEDULER_EVENT_GENERIC")) {
+				CalendarEvent.tearDown();
+			}
+
+			Calendar.tearDown();
+
+			CalendarConfiguration.tearDown();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@priority = "4"
+	test AddCalendarToCurrentSiteCalendars {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		Calendar.add(
+			calendarName = "Site Calendar Name",
+			calendarType = "Current Site Calendars",
+			site = "${siteName}");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "Site Calendar Name",
+			calendarType = "Current Site Calendars",
+			site = "${siteName}");
+	}
+
+	@priority = "4"
+	test AddCalendarToMyCalendars {
+		Calendar.add(
+			calendarName = "My Calendar Name",
+			calendarType = "My Calendars",
+			user = "Test Test");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "My Calendar Name",
+			calendarType = "My Calendars",
+			user = "Test Test");
+	}
+
+	@priority = "4"
+	test AddUserCalendarToOtherCalendars {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.add(
+			calendarName = "userfn userln",
+			calendarType = "Other Calendars");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "userfn userln",
+			calendarType = "Other Calendars");
+
+		Calendar.viewOtherCalendarMenulist(
+			calendarName = "userfn userln",
+			color = "668CD9",
+			pageName = "Calendar Page");
+	}
+
+	@description = "LRQA-71605 - Verify that the user can add multiple calendars with the same name"
+	@priority = "4"
+	test CanAddCalendarsWithSameName {
+		for (var calendarsName : list "Same Name Calendar,Same Name Calendar") {
+			Navigator.gotoPage(pageName = "Calendar Page");
+
+			CalendarNavigator.gotoMyCalendarsManage();
+
+			CalendarMyCalendars.addMyCalendarByManageCalendars(calendarName = "${calendarsName}");
+
+			PortletEntry.save();
+		}
+
+		Navigator.gotoBack();
+
+		CalendarMyCalendars.viewManageCalendarsByPosition(
+			calendarName = "Same Name Calendar",
+			rowNumber = "1");
+
+		CalendarMyCalendars.viewManageCalendarsByPosition(
+			calendarName = "Same Name Calendar",
+			rowNumber = "2");
+	}
+
+	@description = "LRQA-71606 - Verify that the user can add calendars with Non-Ascii characters on the name field"
+	@priority = "4"
+	test CanAddCalendarWithNoAsciiCharactersOnNameField {
+		Calendar.add(
+			calendarName = "旧历",
+			calendarType = "My Calendars",
+			user = "Test Test");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "旧历",
+			calendarType = "My Calendars",
+			user = "Test Test");
+	}
+
+	@description = "LRQA-71604 - Verify that the user can cancel Adding a new calendar"
+	@priority = "5"
+	test CanCancelAddingCalendar {
+		CalendarNavigator.gotoAddMyCalendars();
+
+		Calendar._editName(calendarName = "My Calendar");
+
+		Button.clickCancel();
+
+		Calendar.viewDefault();
+	}
+
+	@description = "LRQA-71596 - Verify that user can choose the color of calendar in the -Add Calendar- Page"
+	@priority = "4"
+	test CanChooseAColor {
+		CalendarNavigator.gotoAddMyCalendars();
+
+		Calendar._editName(calendarName = "Calendar Name");
+
+		Calendar.chooseCalendarColor(myCalendarColor = "8C66D9");
+
+		Button.clickSave();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarMyCalendars.viewColorMyCalendars(myCalendarColor = "8C66D9");
+	}
+
+	@description = "LRQA-71797 - Verify that the user can Enable Comments on Calendar"
+	@priority = "3"
+	test CanEnableComments {
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		CalendarMyCalendars.addMyCalendarByManageCalendars(calendarName = "Calendar Name");
+
+		PortletEntry.save();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoAddEventViaMyCalendars(user = "Calendar Name");
+
+		CalendarEvent.editTitle(eventTitle = "Calendar Event Title");
+
+		CalendarEvent.publish();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarEvent.viewDetails(
+			calendarName = "Test Test - Calendar Name",
+			eventTitle = "Calendar Event Title",
+			eventType = "Regular");
+
+		CalendarEvent.viewCalendarCommentsNotPresent();
+
+		CalendarMyCalendars.gotoCalendarSettings(calendarName = "Calendar Name");
+
+		CalendarMyCalendars.checkboxOption(checkboxName = "Enable Comments");
+
+		PortletEntry.save();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarEvent.viewDetails(
+			calendarName = "Test Test - Calendar Name",
+			eventTitle = "Calendar Event Title",
+			eventType = "Regular");
+
+		CalendarEvent.viewCalendarCommentsMessagePresent();
+	}
+
+	@description = "Verify that the user can Enable Ratings on Calendar"
+	@priority = "3"
+	test CanEnableRatings {
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		CalendarMyCalendars.addMyCalendarByManageCalendars(calendarName = "Calendar Name");
+
+		PortletEntry.save();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoAddEventViaMyCalendars(user = "Calendar Name");
+
+		CalendarEvent.editTitle(eventTitle = "Calendar Event Title");
+
+		CalendarEvent.publish();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarEvent.viewDetails(
+			calendarName = "Test Test - Calendar Name",
+			eventTitle = "Calendar Event Title",
+			eventType = "Regular");
+
+		CalendarEvent.viewCalendarRatingNotPresent();
+
+		CalendarMyCalendars.gotoCalendarSettings(calendarName = "Calendar Name");
+
+		CalendarMyCalendars.checkboxOption(checkboxName = "Enable Ratings");
+
+		PortletEntry.save();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarEvent.viewDetails(
+			calendarName = "Test Test - Calendar Name",
+			eventTitle = "Calendar Event Title",
+			eventType = "Regular");
+
+		CalendarEvent.viewCalendarRatingPresent();
+	}
+
+	@description = "LRQA-71595 - Verify that the user can make the new Calendar as the Default Calendar"
+	@priority = "3"
+	test CanMakeNewCalendarAsDefault {
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		CalendarMyCalendars.viewManageCalendarDefault(
+			calendarDefault = "Yes",
+			calendarName = "Test Test");
+
+		CalendarMyCalendars.addMyCalendarByManageCalendars(calendarName = "Calendar Name");
+
+		CalendarMyCalendars.checkboxOption(checkboxName = "Default Calendar");
+
+		PortletEntry.save();
+
+		Navigator.gotoBack();
+
+		CalendarMyCalendars.viewManageCalendarDefault(
+			calendarDefault = "No",
+			calendarName = "Test Test");
+
+		CalendarMyCalendars.viewManageCalendarDefault(
+			calendarDefault = "Yes",
+			calendarName = "Calendar Name");
+	}
+
+	@description = "LRQA-71360 - Verify that the user can save a new calendar with permission viewable by Anyone"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanSaveCalendarViewableByAnyone {
+
+		// TODO LRQA-71602 CanSaveCalendarViewableByAnyone pending implementation
+
+	}
+
+	@description = "LRQA-71360 - Verify that the user can save a new calendar with permission viewable by Owner"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test CanSaveCalendarViewableByOwner {
+
+		// TODO LRQA-71599 CanSaveCalendarViewableByOwner pending implementation
+
+	}
+
+	@description = "LRQA-71360 - Verify that the user can save a new calendar with permission viewable by Site Members"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanSaveCalendarViewableBySiteMembers {
+
+		// TODO LRQA-71600 CanSaveCalendarViewableBySiteMembers pending implementation
+
+	}
+
+	@description = "LRQA-71598 - Verify that the Time Zone selected by default follows the User's preferences."
+	@priority = "3"
+	test DefaultTimeZoneFollowsUserPreferences {
+		Navigator.gotoAccountSettings();
+
+		UserNavigator.gotoPreferences();
+
+		Navigator.gotoNavNested(navNested = "Display Settings");
+
+		PortalSettings.configureTimeZone(timeZone = "(UTC -02:00) Fernando de Noronha Time");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoAddMyCalendars();
+
+		Calendar.viewSelectedTimeZone(timeZone = "(UTC -02:00) Fernando de Noronha Time");
+	}
+
+	@description = "LRQA-71360 - Verify that the name field is required"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test DescriptionTranslationIconHasEnglishByDefault {
+
+		// TODO LRQA-71603 DescriptionTranslationIconHasEnglishByDefault pending implementation
+
+	}
+
+	@description = "LRQA-71597 - Verify that the name is a required field"
+	@priority = "5"
+	test NameFieldIsRequired {
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		CalendarMyCalendars.gotoEditCalendarsManage(
+			calendarManage = "Test Test",
+			editNameCalendarManage = "");
+
+		Button.clickSave();
+
+		Alert.viewErrorMessage(errorMessage = "Error:Please enter a valid name.");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarMyCalendars.viewNameMyCalendars(userCalendarName = "Test Test");
+	}
+
+	@description = "This is a use case for LPS-45062."
+	@ignore = "true"
+	@priority = "5"
+	test ResizeAddedEventsViaEventBlock {
+		property portal.acceptance = "true";
+
+		CalendarNavigator.gotoView(viewType = "Day");
+
+		CalendarNavigator.gotoPreviousDay();
+
+		CalendarEvent.addViaDayView(eventTitle = "Calendar Event Title1");
+
+		Alert.viewSuccessMessage();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoPreviousDay();
+
+		Refresh();
+
+		CalendarEvent.resizeViaEventBlock();
+
+		Alert.viewSuccessMessage();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.editTitle(eventTitle = "Calendar Event Title2");
+
+		CalendarEvent.setTimes(
+			endDateTime = "06:00 AM",
+			startDateTime = "03:00 AM");
+
+		CalendarEvent.publish();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		ScrollWebElementIntoView(locator1 = "Calendar#SCHEDULER_EVENT_GENERIC");
+
+		Refresh();
+
+		CalendarEvent.resizeViaEventBlock();
+
+		Alert.viewSuccessMessage();
+	}
+
+	@description = "LRQA-71601 - Verify that the translation icon has the Instance Language by default"
+	@priority = "4"
+	test TranslationIconHasInstanceLanguageByDefault {
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Language",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureCurrentLanguagesCP(defaultPortalLanguage = "Portuguese (Brazil)");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.add(
+			calendarName = "My Calendar Name",
+			calendarType = "My Calendars",
+			user = "Test Test");
+
+		CalendarMyCalendars.gotoCalendarSettings(calendarName = "My Calendar Name");
+
+		Calendar.viewSelectedNameLanguage(language = "pt-BR");
+	}
+
+	@description = "LPS-60800, Verify that can save individual calendar permissions."
+	@priority = "3"
+	test ViewEntryPermissionsNotDefinedByRolePermissions {
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.editTitle(eventTitle = "Calendar Event Title");
+
+		CalendarEvent.publish();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoEditEvent(eventTitle = "Calendar Event Title");
+
+		Click(locator1 = "Button#PERMISSIONS");
+
+		SelectFrameTop();
+
+		IFrame.selectModalFrame();
+
+		Check(
+			key_roleTitle = "Site Member",
+			locator1 = "Permissions#CONTENT_PERMISSIONS_DELETE_CHECKBOX");
+
+		Check(
+			key_roleTitle = "Site Member",
+			locator1 = "Permissions#CONTENT_PERMISSIONS_UPDATE_CHECKBOX");
+
+		Button.clickSave();
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoViewNotHaveRolePermissions(
+			roleTitle = "Site Member",
+			roleType = "Site");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoEditEvent(eventTitle = "Calendar Event Title");
+
+		Click(locator1 = "Button#PERMISSIONS");
+
+		SelectFrameTop();
+
+		IFrame.selectModalFrame();
+
+		AssertChecked(
+			key_roleTitle = "Site Member",
+			locator1 = "Permissions#CONTENT_PERMISSIONS_DELETE_CHECKBOX");
+
+		AssertChecked(
+			key_roleTitle = "Site Member",
+			locator1 = "Permissions#CONTENT_PERMISSIONS_UPDATE_CHECKBOX");
+	}
+
+	@description = "This is a use case for LPS-56229."
+	@priority = "3"
+	test ViewUserCanAddSiteCalendarsWithCalendarPermissions {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoRoleType(roleType = "Site");
+
+		Role.add(roleTitle = "Calendar Site Role Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.definePermissionCP(
+			permissionDefinitionKey = "SITE_ADMIN_APPLICATIONS_CALENDAR_MANAGE_EVENTS_CHECKBOX",
+			permissionDefinitionValue = "Manage Events",
+			roleTitle = "Calendar Site Role Name",
+			roleType = "Site");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.definePermissionCP(
+			permissionDefinitionKey = "SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_UPDATE_CHECKBOX",
+			permissionDefinitionValue = "Update",
+			roleTitle = "Authenticated",
+			roleUser = "User");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "usersn@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			userEmailAddress = "usersn@liferay.com",
+			userScreenName = "usersn");
+
+		for (var siteName : list "Site A,Site B,Site C") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Sites",
+				panel = "Control Panel",
+				portlet = "Sites");
+
+			Site.addBlankCP(siteName = "${siteName}");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			User.editUserSiteCP(
+				siteName = "${siteName}",
+				userScreenName = "usersn");
+		}
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "Site A");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			portlet = "Memberships");
+
+		Site.assignSiteRoleCP(
+			resourceName = "userfn userln",
+			roleTitle = "Calendar Site Role Name");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "Site C");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			portlet = "Memberships");
+
+		Site.assignSiteRoleCP(
+			resourceName = "userfn userln",
+			roleTitle = "Calendar Site Role Name");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "usersn@liferay.com",
+			userScreenName = "usersn");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Dashboard");
+
+		Portlet.addPG(portletName = "Calendar");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "usersn@liferay.com",
+			userScreenName = "usersn");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Dashboard");
+
+		Calendar.searchOtherCalendars(searchValue = "site");
+
+		for (var calendarName : list "Site A,Site B,Site C") {
+			Calendar.viewOtherCalendarsSearchResult(calendarName = "${calendarName}");
+		}
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.viewAvailableCalendars(availableCalendarList = "userfn userln,Site A,Site C");
+
+		CalendarEvent.viewUnavailableCalendarsNotPresent(unavailableCalendarList = "Site B,Liferay");
+	}
+
+}

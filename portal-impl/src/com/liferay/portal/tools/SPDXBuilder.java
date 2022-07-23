@@ -14,8 +14,11 @@
 
 package com.liferay.portal.tools;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.xml.Dom4jUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CSVUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -82,15 +85,6 @@ public class SPDXBuilder {
 			licenseOverridePropertiesFileName);
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #SPDXBuilder(String[], String, String)}
-	 */
-	@Deprecated
-	public SPDXBuilder(String[] xmls, String spdxFileName) {
-		new SPDXBuilder(xmls, spdxFileName, null);
-	}
-
 	public SPDXBuilder(
 		String[] xmls, String spdxFileName,
 		String licenseOverridePropertiesFileName) {
@@ -138,7 +132,7 @@ public class SPDXBuilder {
 				new StreamResult(new FileOutputStream(versionHtmlFile)));
 		}
 		catch (Exception exception) {
-			exception.printStackTrace();
+			_log.error(exception);
 		}
 	}
 
@@ -307,7 +301,7 @@ public class SPDXBuilder {
 	}
 
 	private String _getKey(String type, Element libraryElement) {
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler(5);
 
 		sb.append(StringUtil.upperCase(type));
 		sb.append(StringPool.COLON);
@@ -394,7 +388,7 @@ public class SPDXBuilder {
 
 	@SuppressWarnings("unchecked")
 	private String _toCSV(Document document) {
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		sb.append("File Name,Version,Project,License,Comments");
 
@@ -447,6 +441,8 @@ public class SPDXBuilder {
 
 	private static final Namespace _NAMESPACE_SPDX = new Namespace(
 		"spdx", "http://spdx.org/rdf/terms#");
+
+	private static final Log _log = LogFactoryUtil.getLog(SPDXBuilder.class);
 
 	private static final Map<String, QName> _qNameMap = new HashMap<>();
 

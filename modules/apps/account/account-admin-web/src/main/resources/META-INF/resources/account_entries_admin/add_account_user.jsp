@@ -82,7 +82,20 @@ renderResponse.setTitle(LanguageUtil.format(request, "add-new-user-to-x", accoun
 						<liferay-ui:message key="<%= usne.screenNameValidator.getDescription(locale) %>" />
 					</liferay-ui:error>
 
-					<aui:input label="screen-name" name="screenName" required="<%= true %>" type="text" />
+					<aui:model-context model="<%= User.class %>" />
+
+					<aui:input name="screenName">
+
+						<%
+						ScreenNameValidator screenNameValidator = ScreenNameValidatorFactory.getInstance();
+						%>
+
+						<c:if test="<%= Validator.isNotNull(screenNameValidator.getAUIValidatorJS()) %>">
+							<aui:validator errorMessage="<%= screenNameValidator.getDescription(locale) %>" name="custom">
+								<%= screenNameValidator.getAUIValidatorJS() %>
+							</aui:validator>
+						</c:if>
+					</aui:input>
 
 					<liferay-ui:error exception="<%= UserEmailAddressException.MustNotBeDuplicate.class %>" focusField="emailAddress" message="the-email-address-you-requested-is-already-taken" />
 					<liferay-ui:error exception="<%= UserEmailAddressException.MustNotBeNull.class %>" focusField="emailAddress" message="please-enter-an-email-address" />
@@ -102,19 +115,23 @@ renderResponse.setTitle(LanguageUtil.format(request, "add-new-user-to-x", accoun
 					md="6"
 				>
 					<div class="text-center">
-
-						<%
-						UserFileUploadsConfiguration userFileUploadsConfiguration = (UserFileUploadsConfiguration)request.getAttribute(UserFileUploadsConfiguration.class.getName());
-						%>
-
 						<liferay-ui:logo-selector
 							currentLogoURL='<%= themeDisplay.getPathImage() + "/user_portrait?img_id=0" %>'
 							defaultLogo="<%= true %>"
 							defaultLogoURL='<%= themeDisplay.getPathImage() + "/user_portrait?img_id=0" %>'
-							maxFileSize="<%= userFileUploadsConfiguration.imageMaxSize() %>"
 							tempImageFileName="0"
 						/>
 					</div>
+
+					<aui:input
+						label="job-title"
+						maxlength='<%=
+							ModelHintsUtil.getMaxLength(Contact.class.getName(), "jobTitle")
+						%>'
+						name="jobTitle"
+						type="text"
+					>
+					</aui:input>
 				</clay:col>
 			</clay:row>
 		</clay:sheet-section>
@@ -127,7 +144,7 @@ renderResponse.setTitle(LanguageUtil.format(request, "add-new-user-to-x", accoun
 	</liferay-frontend:edit-form-footer>
 </liferay-frontend:edit-form>
 
-<c:if test="<%= !Objects.equals(accountEntryDisplay.getType(), AccountConstants.ACCOUNT_ENTRY_TYPE_PERSON) && (accountEntryDisplay.isValidateUserEmailAddress(themeDisplay) || Validator.isNotNull(AccountUserDisplay.getBlockedDomains(themeDisplay.getCompanyId()))) %>">
+<c:if test="<%= !Objects.equals(accountEntryDisplay.getType(), AccountConstants.ACCOUNT_ENTRY_TYPE_PERSON) && (accountEntryDisplay.isValidateUserEmailAddress(themeDisplay.getCompanyId()) || Validator.isNotNull(AccountUserDisplay.getBlockedDomains(themeDisplay.getCompanyId()))) %>">
 
 	<%
 	Map<String, Object> context = HashMapBuilder.<String, Object>put(
@@ -138,7 +155,7 @@ renderResponse.setTitle(LanguageUtil.format(request, "add-new-user-to-x", accoun
 		context.put("blockedDomains", AccountUserDisplay.getBlockedDomains(themeDisplay.getCompanyId()));
 	}
 
-	if (accountEntryDisplay.isValidateUserEmailAddress(themeDisplay)) {
+	if (accountEntryDisplay.isValidateUserEmailAddress(themeDisplay.getCompanyId())) {
 		context.put("validDomains", StringUtil.merge(accountEntryDisplay.getDomains(), StringPool.COMMA));
 
 		PortletURL viewValidDomainsURL = PortletURLBuilder.createRenderURL(
@@ -149,7 +166,7 @@ renderResponse.setTitle(LanguageUtil.format(request, "add-new-user-to-x", accoun
 			"validDomains", StringUtil.merge(accountEntryDisplay.getDomains(), StringPool.COMMA)
 		).setWindowState(
 			LiferayWindowState.POP_UP
-		).build();
+		).buildPortletURL();
 
 		context.put("viewValidDomainsURL", viewValidDomainsURL.toString());
 	}

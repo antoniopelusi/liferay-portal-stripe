@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -59,6 +60,10 @@ public class Product implements Serializable {
 
 	public static Product toDTO(String json) {
 		return ObjectMapperUtil.readValue(Product.class, json);
+	}
+
+	public static Product unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(Product.class, json);
 	}
 
 	@Schema
@@ -296,6 +301,35 @@ public class Product implements Serializable {
 	protected Date createDate;
 
 	@Schema
+	@Valid
+	public CustomField[] getCustomFields() {
+		return customFields;
+	}
+
+	public void setCustomFields(CustomField[] customFields) {
+		this.customFields = customFields;
+	}
+
+	@JsonIgnore
+	public void setCustomFields(
+		UnsafeSupplier<CustomField[], Exception> customFieldsUnsafeSupplier) {
+
+		try {
+			customFields = customFieldsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected CustomField[] customFields;
+
+	@Schema
 	public String getDefaultSku() {
 		return defaultSku;
 	}
@@ -352,6 +386,35 @@ public class Product implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Map<String, String> description;
+
+	@Schema
+	@Valid
+	public Diagram getDiagram() {
+		return diagram;
+	}
+
+	public void setDiagram(Diagram diagram) {
+		this.diagram = diagram;
+	}
+
+	@JsonIgnore
+	public void setDiagram(
+		UnsafeSupplier<Diagram, Exception> diagramUnsafeSupplier) {
+
+		try {
+			diagram = diagramUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Diagram diagram;
 
 	@Schema
 	public Date getDisplayDate() {
@@ -521,6 +584,36 @@ public class Product implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Attachment[] images;
+
+	@Schema
+	@Valid
+	public MappedProduct[] getMappedProducts() {
+		return mappedProducts;
+	}
+
+	public void setMappedProducts(MappedProduct[] mappedProducts) {
+		this.mappedProducts = mappedProducts;
+	}
+
+	@JsonIgnore
+	public void setMappedProducts(
+		UnsafeSupplier<MappedProduct[], Exception>
+			mappedProductsUnsafeSupplier) {
+
+		try {
+			mappedProducts = mappedProductsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected MappedProduct[] mappedProducts;
 
 	@Schema
 	@Valid
@@ -699,6 +792,97 @@ public class Product implements Serializable {
 	protected Boolean neverExpire;
 
 	@Schema
+	@Valid
+	public Pin[] getPins() {
+		return pins;
+	}
+
+	public void setPins(Pin[] pins) {
+		this.pins = pins;
+	}
+
+	@JsonIgnore
+	public void setPins(UnsafeSupplier<Pin[], Exception> pinsUnsafeSupplier) {
+		try {
+			pins = pinsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Pin[] pins;
+
+	@Schema
+	public Boolean getProductAccountGroupFilter() {
+		return productAccountGroupFilter;
+	}
+
+	public void setProductAccountGroupFilter(
+		Boolean productAccountGroupFilter) {
+
+		this.productAccountGroupFilter = productAccountGroupFilter;
+	}
+
+	@JsonIgnore
+	public void setProductAccountGroupFilter(
+		UnsafeSupplier<Boolean, Exception>
+			productAccountGroupFilterUnsafeSupplier) {
+
+		try {
+			productAccountGroupFilter =
+				productAccountGroupFilterUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean productAccountGroupFilter;
+
+	@Schema
+	@Valid
+	public ProductAccountGroup[] getProductAccountGroups() {
+		return productAccountGroups;
+	}
+
+	public void setProductAccountGroups(
+		ProductAccountGroup[] productAccountGroups) {
+
+		this.productAccountGroups = productAccountGroups;
+	}
+
+	@JsonIgnore
+	public void setProductAccountGroups(
+		UnsafeSupplier<ProductAccountGroup[], Exception>
+			productAccountGroupsUnsafeSupplier) {
+
+		try {
+			productAccountGroups = productAccountGroupsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected ProductAccountGroup[] productAccountGroups;
+
+	@Schema
 	public Boolean getProductChannelFilter() {
 		return productChannelFilter;
 	}
@@ -755,6 +939,38 @@ public class Product implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected ProductChannel[] productChannels;
+
+	@Schema
+	@Valid
+	public ProductConfiguration getProductConfiguration() {
+		return productConfiguration;
+	}
+
+	public void setProductConfiguration(
+		ProductConfiguration productConfiguration) {
+
+		this.productConfiguration = productConfiguration;
+	}
+
+	@JsonIgnore
+	public void setProductConfiguration(
+		UnsafeSupplier<ProductConfiguration, Exception>
+			productConfigurationUnsafeSupplier) {
+
+		try {
+			productConfiguration = productConfigurationUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected ProductConfiguration productConfiguration;
 
 	@Schema
 	public Long getProductId() {
@@ -1389,6 +1605,26 @@ public class Product implements Serializable {
 			sb.append("\"");
 		}
 
+		if (customFields != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"customFields\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < customFields.length; i++) {
+				sb.append(String.valueOf(customFields[i]));
+
+				if ((i + 1) < customFields.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (defaultSku != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1411,6 +1647,16 @@ public class Product implements Serializable {
 			sb.append("\"description\": ");
 
 			sb.append(_toJSON(description));
+		}
+
+		if (diagram != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"diagram\": ");
+
+			sb.append(String.valueOf(diagram));
 		}
 
 		if (displayDate != null) {
@@ -1495,6 +1741,26 @@ public class Product implements Serializable {
 			sb.append("]");
 		}
 
+		if (mappedProducts != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"mappedProducts\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < mappedProducts.length; i++) {
+				sb.append(String.valueOf(mappedProducts[i]));
+
+				if ((i + 1) < mappedProducts.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (metaDescription != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1559,6 +1825,56 @@ public class Product implements Serializable {
 			sb.append(neverExpire);
 		}
 
+		if (pins != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"pins\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < pins.length; i++) {
+				sb.append(String.valueOf(pins[i]));
+
+				if ((i + 1) < pins.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
+		if (productAccountGroupFilter != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"productAccountGroupFilter\": ");
+
+			sb.append(productAccountGroupFilter);
+		}
+
+		if (productAccountGroups != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"productAccountGroups\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < productAccountGroups.length; i++) {
+				sb.append(String.valueOf(productAccountGroups[i]));
+
+				if ((i + 1) < productAccountGroups.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (productChannelFilter != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1587,6 +1903,16 @@ public class Product implements Serializable {
 			}
 
 			sb.append("]");
+		}
+
+		if (productConfiguration != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"productConfiguration\": ");
+
+			sb.append(String.valueOf(productConfiguration));
 		}
 
 		if (productId != null) {
@@ -1842,9 +2168,9 @@ public class Product implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -1870,7 +2196,7 @@ public class Product implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -1902,7 +2228,7 @@ public class Product implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -1918,5 +2244,10 @@ public class Product implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

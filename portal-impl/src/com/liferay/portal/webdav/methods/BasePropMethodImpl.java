@@ -136,7 +136,8 @@ public abstract class BasePropMethodImpl implements Method {
 			props.remove(CREATIONDATE);
 
 			DocUtil.add(
-				successPropElement, CREATIONDATE, resource.getCreateDate());
+				successPropElement, CREATIONDATE,
+				resource.getCreateDateString());
 
 			hasSuccess = true;
 		}
@@ -399,7 +400,7 @@ public abstract class BasePropMethodImpl implements Method {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 

@@ -90,7 +90,7 @@ public class SetUtil {
 		return set;
 	}
 
-	public static <E> Set<E> fromArray(E[] array) {
+	public static <E> Set<E> fromArray(E... array) {
 		if (ArrayUtil.isEmpty(array)) {
 			return new HashSet<>();
 		}

@@ -15,12 +15,12 @@
 package com.liferay.sharing.document.library.internal.frontend.taglib.dynamic.section;
 
 import com.liferay.frontend.taglib.dynamic.section.DynamicSection;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.sharing.configuration.SharingConfiguration;
 import com.liferay.sharing.configuration.SharingConfigurationFactory;
-import com.liferay.taglib.servlet.PipingServletResponse;
 
 import java.io.ByteArrayOutputStream;
 
@@ -65,14 +65,18 @@ public class DLInfoPanelFileEntryOwnerDynamicSection implements DynamicSection {
 				"/META-INF/resources/dynamic_section" +
 					"/info_panel_file_entry.jsp");
 
-		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+		try (ByteArrayOutputStream byteArrayOutputStream =
+				new ByteArrayOutputStream()) {
+
 			HttpServletResponse httpServletResponse = new PipingServletResponse(
-				(HttpServletResponse)pageContext.getResponse(), outputStream);
+				(HttpServletResponse)pageContext.getResponse(),
+				byteArrayOutputStream);
 
 			requestDispatcher.include(
 				pageContext.getRequest(), httpServletResponse);
 
-			return new StringBundler(new String(outputStream.toByteArray()));
+			return new StringBundler(
+				new String(byteArrayOutputStream.toByteArray()));
 		}
 		catch (Exception exception) {
 			throw new RuntimeException(exception);

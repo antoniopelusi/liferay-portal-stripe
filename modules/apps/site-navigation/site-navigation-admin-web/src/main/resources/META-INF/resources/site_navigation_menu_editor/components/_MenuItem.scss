@@ -4,6 +4,13 @@
 	margin-bottom: 1.5rem;
 	width: 40ch;
 
+	&--selected {
+		& .card,
+		& .label.label-secondary {
+			background: $primary-l3;
+		}
+	}
+
 	&.dragging {
 		opacity: 0.4;
 	}
@@ -12,20 +19,20 @@
 		align-items: center;
 	}
 
-	&--selected .card {
-		background: $primary-l3;
-	}
-
 	.card-subtitle {
 		line-height: 1rem;
 	}
 
-	.custom-control-input,
-	.custom-control-label {
+	.custom-control.custom-checkbox .custom-control-input,
+	.custom-control.custom-checkbox .custom-control-label {
 		left: -99999px;
 		opacity: 0;
 		position: absolute;
 		top: -99999px;
+	}
+
+	.label.label-secondary {
+		max-width: fit-content;
 	}
 
 	.lexicon-icon-drag {

@@ -1,7 +1,151 @@
 definition {
 
+	macro addOrderType {
+		LexiconEntry.gotoAdd();
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			locator1 = "TextInput#NAME",
+			value1 = "${orderTypeName}");
+
+		Type(
+			locator1 = "CommerceEntry#DESCRIPTION_FIELD",
+			value1 = "${orderTypeDescription}");
+
+		Button.clickSubmitButton();
+
+		ClickNoError(locator1 = "ToggleSwitch#ACTIVE");
+
+		Button.clickPublish();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro assertOrderTypesEntry {
+		AssertTextEquals(
+			locator1 = "CommerceEntry#NAME_FIELD",
+			value1 = "${orderTypeName}");
+
+		AssertTextEquals(
+			locator1 = "CommerceEntry#DESCRIPTION_FIELD",
+			value1 = "${orderTypeDescription}");
+
+		if (isSet(displayOrder)) {
+			AssertTextEquals(
+				locator1 = "CommerceEntry#DISPLAY_ORDER_FIELD",
+				value1 = "${displayOrder}");
+		}
+	}
+
+	macro createShipment {
+		Click(
+			key_text = "Create Shipment",
+			locator1 = "Button#ANY");
+
+		if (isSet(carrierDetail)) {
+			Click(
+				key_text = "Carrier Details",
+				locator1 = "CommerceOrders#EDIT_SHIPMENT_DETAILS");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			Type(
+				key_fieldLabel = "Carrier",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${carrierDetail}");
+
+			if (isSet(trackingNumber)) {
+				Type(
+					key_fieldLabel = "Tracking Number",
+					locator1 = "TextInput#GENERIC_TEXT_INPUT",
+					value1 = "${trackingNumber}");
+			}
+			else {
+				Type(
+					key_fieldLabel = "Tracking Number",
+					locator1 = "TextInput#GENERIC_TEXT_INPUT",
+					value1 = "Test Tracking Number");
+			}
+
+			Button.clickSubmitButton();
+		}
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		for (var productSku : list "${productSkuList}") {
+			Check.checkToggleSwitch(
+				key_productSku = "${productSku}",
+				locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+		}
+
+		Button.clickSubmitButton();
+
+		for (var productSku : list "${productSkuList}") {
+			CommerceNavigator.gotoEntry(entryName = "${productSku}");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Type(
+				key_warehouseName = "${warehouseName}",
+				locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+				value1 = "1");
+
+			Button.clickSave();
+
+			Click(locator1 = "Icon#CLOSE");
+
+			Refresh();
+		}
+
+		Click(
+			key_text = "Finish Processing",
+			locator1 = "Button#ANY");
+
+		Click(
+			key_text = "Ship",
+			locator1 = "Button#ANY");
+
+		if (isSet(complement)) {
+			Click(
+				key_text = "${complement}",
+				locator1 = "Button#ANY");
+		}
+		else {
+			Click(locator1 = "Icon#BACK");
+		}
+	}
+
+	macro deleteOrderType {
+		CommerceNavigator.searchEntry(entryName = "${orderTypeName}");
+
+		Click(
+			key_value = "${orderTypeName}",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro editCartPortletOrderQuantity {
+		Type(
+			locator1 = "CommerceAccelerators#CART_PORTLET_ORDER_QUANTITY",
+			value1 = "${orderQuantity}");
+
+		Click(
+			key_text = "Update",
+			locator1 = "Button#ANY");
+
+		AssertTextEquals(
+			locator1 = "CommerceAccelerators#CART_PORTLET_ORDER_QUANTITY",
+			value1 = "${orderQuantity}");
+	}
+
 	macro editOrderItemDetails {
-		CommerceNavigator.gotoEntry(entryName = "${orderItemSKU}");
+		CommerceNavigator.gotoEntry(entryName = "${orderItemSku}");
 
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
@@ -42,6 +186,58 @@ definition {
 		IFrame.selectTopFrame();
 	}
 
+	macro editOrderType {
+		if (isSet(orderTypeName)) {
+			Type(
+				locator1 = "CommerceEntry#NAME_FIELD",
+				value1 = "${orderTypeName}");
+		}
+
+		if (isSet(orderTypeDescription)) {
+			Type(
+				locator1 = "CommerceEntry#DESCRIPTION_FIELD",
+				value1 = "${orderTypeDescription}");
+		}
+
+		if (isSet(displayOrder)) {
+			Type(
+				locator1 = "CommerceEntry#DISPLAY_ORDER_FIELD",
+				value1 = "${displayOrder}");
+		}
+
+		Button.clickPublish();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro editPaymentMethod {
+		Click(
+			key_titleName = "Payment Method",
+			locator1 = "CommerceOrders#ORDER_DETAILS_EDIT_BUTTON");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Click.clickAtNotVisible(
+			key_radioOption = "${paymentMethod}",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#MODAL_IFRAME_FOOTER_SUBMIT");
+
+		IFrame.selectTopFrame();
+	}
+
+	macro openOrdersAdmin {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/guest/~/control_panel/manage?p_p_id=com_liferay_commerce_order_web_internal_portlet_CommerceOrderPortlet");
+	}
+
+	macro openOrderTypesAdmin {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/control_panel/manage?p_p_id=com_liferay_commerce_order_web_internal_portlet_CommerceOrderTypePortlet");
+	}
+
 	macro viewOrdersEntry {
 		if (isSet(addressAddress) && isSet(addressCity) && isSet(addressZipCode)) {
 			AssertTextEquals.assertPartialText(
@@ -76,9 +272,9 @@ definition {
 		}
 
 		AssertTextEquals(
-			key_productSKU = "${productSKU}",
+			key_productSku = "${productSku}",
 			locator1 = "CommerceOrders#ORDER_DETAILS_PRODUCT_SKU",
-			value1 = "${productSKU}");
+			value1 = "${productSku}");
 
 		AssertTextEquals(
 			key_productName = "${productName}",

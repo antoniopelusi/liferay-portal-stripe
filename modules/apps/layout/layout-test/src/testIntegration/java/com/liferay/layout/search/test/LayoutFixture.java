@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -28,6 +27,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,9 +51,6 @@ public class LayoutFixture {
 			LocalizedValuesMap nameMap, LocalizedValuesMap titleMap)
 		throws PortalException {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext();
-
 		LocalizedValuesMap friendlyUrlMap = new LocalizedValuesMap() {
 			{
 				String randomString = FriendlyURLNormalizerUtil.normalize(
@@ -67,8 +64,12 @@ public class LayoutFixture {
 			TestPropsValues.getUserId(), _group.getGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, nameMap.getValues(),
 			titleMap.getValues(), null, null, null,
-			LayoutConstants.TYPE_CONTENT, null, false,
-			friendlyUrlMap.getValues(), serviceContext);
+			LayoutConstants.TYPE_CONTENT,
+			UnicodePropertiesBuilder.put(
+				"published", "true"
+			).buildString(),
+			false, friendlyUrlMap.getValues(),
+			ServiceContextTestUtil.getServiceContext());
 
 		_layouts.add(layout);
 
@@ -76,23 +77,13 @@ public class LayoutFixture {
 	}
 
 	public Layout createLayout(String name) throws PortalException {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext();
+		LocalizedValuesMap nameMap = new LocalizedValuesMap() {
+			{
+				put(LocaleUtil.getSiteDefault(), name);
+			}
+		};
 
-		String randomString = FriendlyURLNormalizerUtil.normalize(
-			RandomTestUtil.randomString());
-
-		String friendlyURL = StringPool.SLASH + randomString;
-
-		Layout layout = LayoutLocalServiceUtil.addLayout(
-			TestPropsValues.getUserId(), _group.getGroupId(), false,
-			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, name, null,
-			RandomTestUtil.randomString(), LayoutConstants.TYPE_CONTENT, false,
-			friendlyURL, serviceContext);
-
-		_layouts.add(layout);
-
-		return layout;
+		return createLayout(nameMap, new LocalizedValuesMap());
 	}
 
 	public List<Layout> getLayouts() {

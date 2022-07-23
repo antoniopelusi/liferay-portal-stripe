@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
-import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -52,35 +51,36 @@ public class CopyFragmentEntryMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		PortletURL redirectURL = PortletURLBuilder.createRenderURL(
-			_portal.getLiferayPortletResponse(actionResponse)
-		).setParameter(
-			"fragmentCollectionId",
-			() -> {
-				ServiceContext serviceContext =
-					ServiceContextFactory.getInstance(actionRequest);
+		sendRedirect(
+			actionRequest, actionResponse,
+			PortletURLBuilder.createRenderURL(
+				_portal.getLiferayPortletResponse(actionResponse)
+			).setParameter(
+				"fragmentCollectionId",
+				() -> {
+					ServiceContext serviceContext =
+						ServiceContextFactory.getInstance(actionRequest);
 
-				ThemeDisplay themeDisplay =
-					(ThemeDisplay)actionRequest.getAttribute(
-						WebKeys.THEME_DISPLAY);
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)actionRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
 
-				long[] fragmentEntryIds = StringUtil.split(
-					ParamUtil.getString(actionRequest, "fragmentEntryIds"), 0L);
+					long[] fragmentEntryIds = StringUtil.split(
+						ParamUtil.getString(actionRequest, "fragmentEntryIds"),
+						0L);
 
-				long fragmentCollectionId = ParamUtil.getLong(
-					actionRequest, "fragmentCollectionId");
+					long fragmentCollectionId = ParamUtil.getLong(
+						actionRequest, "fragmentCollectionId");
 
-				for (long fragmentEntryId : fragmentEntryIds) {
-					_fragmentEntryService.copyFragmentEntry(
-						themeDisplay.getScopeGroupId(), fragmentEntryId,
-						fragmentCollectionId, serviceContext);
+					for (long fragmentEntryId : fragmentEntryIds) {
+						_fragmentEntryService.copyFragmentEntry(
+							themeDisplay.getScopeGroupId(), fragmentEntryId,
+							fragmentCollectionId, serviceContext);
+					}
+
+					return fragmentCollectionId;
 				}
-
-				return fragmentCollectionId;
-			}
-		).build();
-
-		sendRedirect(actionRequest, actionResponse, redirectURL.toString());
+			).buildString());
 	}
 
 	@Reference

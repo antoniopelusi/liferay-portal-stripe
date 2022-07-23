@@ -14,8 +14,6 @@
 
 package com.liferay.frontend.taglib.form.navigator.internal.configuration;
 
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Iterator;
@@ -44,22 +42,18 @@ public class RetrieverWhenThereAreConfigurationsFormSeveralFormsTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		StringBundler sb1 = new StringBundler(4);
-
-		sb1.append("general");
-		sb1.append(StringPool.EQUAL);
-		sb1.append("formNavigatorEntryKey1,formNavigatorEntryKey2,");
-		sb1.append("formNavigatorEntryKey3");
-
-		StringBundler sb2 = new StringBundler(4);
-
-		sb2.append("general");
-		sb2.append(StringPool.EQUAL);
-		sb2.append("formNavigatorEntryKey4,formNavigatorEntryKey5,");
-		sb2.append("formNavigatorEntryKey6");
-
-		createConfiguration("form1", new String[] {sb1.toString()});
-		createConfiguration("form2", new String[] {sb2.toString()});
+		createConfiguration(
+			"form1",
+			new String[] {
+				"general=formNavigatorEntryKey1,formNavigatorEntryKey2," +
+					"formNavigatorEntryKey3"
+			});
+		createConfiguration(
+			"form2",
+			new String[] {
+				"general=formNavigatorEntryKey4,formNavigatorEntryKey5," +
+					"formNavigatorEntryKey6"
+			});
 	}
 
 	@Test
@@ -102,11 +96,11 @@ public class RetrieverWhenThereAreConfigurationsFormSeveralFormsTest
 	public void testDoesContainValuesForEntry2IfItIsDeleted() {
 		deleteConfiguration("form2");
 
-		Optional<List<String>> formNavigatorEntryKeys =
+		Optional<List<String>> formNavigatorEntryKeysOptional =
 			formNavigatorEntryConfigurationRetriever.getFormNavigatorEntryKeys(
 				"form2", "general", "update");
 
-		Assert.assertFalse(formNavigatorEntryKeys.isPresent());
+		Assert.assertFalse(formNavigatorEntryKeysOptional.isPresent());
 	}
 
 }

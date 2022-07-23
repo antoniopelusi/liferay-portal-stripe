@@ -145,4 +145,7 @@ public interface LocalizedEntryLocalizationModel
 	 */
 	public void setContent(String content);
 
+	@Override
+	public LocalizedEntryLocalization cloneWithOriginalValues();
+
 }

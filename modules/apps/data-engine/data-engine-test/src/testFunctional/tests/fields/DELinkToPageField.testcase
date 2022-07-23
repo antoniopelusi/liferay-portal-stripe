@@ -1,0 +1,473 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-68680. This test verifies that is possible to delete the field."
+	@priority = "5"
+	test CanBeDeleted {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-68680. This test verifies that is possible to duplicate the field."
+	@priority = "4"
+	test CanBeDuplicated {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.duplicate(fieldFieldLabel = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Copy of Link to Page",
+			fieldName = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-70110. This test verifies that is possible to clear the link"
+	@priority = "5"
+	test CanClearInput {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInLinkToPageField(
+			linkToPageContent = "Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.clearDataOnField(fieldLabel = "Link to Page");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertLinktoPageIsClear(
+			index = "1",
+			linkToPageFieldLabel = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-68680. This test verifies that Label and Help text can be edited."
+	@priority = "5"
+	test CanEditLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Link to Page",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Link to Page",
+			fieldFieldLabelEdit = "Link to Page Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Link to Page Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Link to Page Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-70110. This test verifies that upon duplicating a repeatable field, inputted data on both fields persists"
+	@priority = "5"
+	test CanInputDataOnDuplicatedField {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Link to Page");
+
+		DERenderer.inputDataInLinkToPageField(
+			index = "1",
+			linkToPageContent = "Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+
+		DERenderer.inputDataInLinkToPageField(
+			index = "2",
+			linkToPageContent = "Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertContentInLinktoPageField(
+			index = "1",
+			linkToPageContent = "Public Pages > Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+
+		DERenderer.assertContentInLinktoPageField(
+			index = "2",
+			linkToPageContent = "Public Pages > Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-70110. This test verifies that the Link to Page persists"
+	@priority = "5"
+	test CanInputLink {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInLinkToPageField(
+			linkToPageContent = "Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertContentInLinktoPageField(
+			linkToPageContent = "Public Pages > Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+	}
+
+	@description = "This is a use case for LPS-140253. View no private page in link to page structure."
+	@priority = "4"
+	test CanInputLinkFF {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInLinkToPageField(
+			linkToPageContent = "Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertContentInLinktoPageField(
+			linkToPageContent = "Pages > Test Page Name",
+			linkToPageFieldLabel = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-70110. This test verifies that is not possible to publish the Web Content with a required field blank"
+	@priority = "4"
+	test CanNotPublishBlankRequiredField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.editFieldRequired(fieldFieldLabel = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		Button.clickPublish();
+
+		FormViewBuilder.validateObjectLabelOptionTextIsShown(text = "This field is required.");
+	}
+
+	@description = "This is a test for LRQA-70110. This test verifies that is possible to remove a duplicated field (repeatable)"
+	@priority = "4"
+	test CanRemoveDuplicatedField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Link to Page");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.removeRepeatableField(fieldLabel = "Link to Page");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DEBuilder.assertFieldNotPresent(
+			fieldLabel = "Link to Page",
+			index = "2");
+	}
+
+	@description = "This is a test for LRQA-68680. This test verifies that Default Searchable property is 'Disable' when System Setting is left unchecked"
+	@priority = "3"
+	test CanSetDefaultSearchablePropertyToDisable {
+		property test.name.skip.portal.instance = "DELinkToPageField#CanSetDefaultSearchablePropertyToDisable";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Web Content",
+			configurationName = "Administration",
+			configurationScope = "System Scope");
+
+		FormFields.disableCheckbox(fieldName = "Structure Field Indexable Enable");
+
+		SystemSettings.saveConfiguration();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.viewFieldSearchable(
+			fieldFieldLabel = "Link to Page",
+			searchableType = "Disable");
+	}
+
+	@description = "This is a test for LRQA-68680. This test verifies that Default Searchable property is 'Keyword' when System Setting is checked"
+	@priority = "3"
+	test CanSetDefaultSearchablePropertyToKeyword {
+		property test.name.skip.portal.instance = "DELinkToPageField#CanSetDefaultSearchablePropertyToKeyword";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Web Content",
+			configurationName = "Administration",
+			configurationScope = "System Scope");
+
+		FormFields.enableCheckbox(fieldName = "Structure Field Indexable Enable");
+
+		SystemSettings.saveConfiguration();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.viewFieldSearchable(
+			fieldFieldLabel = "Link to Page",
+			searchableType = "Keyword");
+	}
+
+	@description = "This is a test for LRQA-68680. This test verifies that Label and Help text can be set."
+	@priority = "5"
+	test CanSetLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Link to Page",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Link to Page",
+			fieldHelp = "Help Text",
+			fieldName = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-68680. This test verifies that Label can be shown or hidden."
+	@priority = "3"
+	test CanSetLabelToShownOrHidden {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+
+		DataEngine.toggleShowLabel(fieldLabel = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Link to Page");
+
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "Link to Page");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Link to Page",
+			fieldName = "Link to Page");
+	}
+
+}

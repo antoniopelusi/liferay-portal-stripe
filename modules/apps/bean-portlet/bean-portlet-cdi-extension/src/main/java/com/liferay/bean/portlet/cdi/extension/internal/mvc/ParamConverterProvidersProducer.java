@@ -58,7 +58,7 @@ public class ParamConverterProvidersProducer {
 	private List<ParamConverterProvider> _paramConverterProviders;
 
 	private static class ParamConverterProviderPriorityComparator
-		extends DescendingPriorityComparator<ParamConverterProvider> {
+		extends BaseDescendingPriorityComparator<ParamConverterProvider> {
 
 		private ParamConverterProviderPriorityComparator() {
 			super(0);

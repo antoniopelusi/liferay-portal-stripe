@@ -371,4 +371,7 @@ public interface DDMFormInstanceRecordModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public DDMFormInstanceRecord cloneWithOriginalValues();
+
 }

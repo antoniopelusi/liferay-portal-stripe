@@ -46,29 +46,32 @@ definition {
 		}
 
 		AssertElementPresent(locator1 = "ItemSelector#URL_LABEL");
+
 		AssertElementNotPresent(locator1 = "ItemSelector#URL_IMAGE_PREVIEW");
 
 		AssertVisible(
 			key_text = "Add",
 			locator1 = "Button#ANY_DISABLED");
 
-		Type(
-			locator1 = "TextInput#URL",
-			value1 = "${imageSourceURL}");
+		Click(locator1 = "TextInput#URL");
+
+		RobotType(locator1 = "${imageSourceURL}");
 
 		AssertTextEquals(
 			locator1 = "TextInput#URL",
 			value1 = "${imageSourceURL}");
 
-		AssertElementPresent.pauseAssertVisible(locator1 = "ItemSelector#URL_IMAGE_SOURCE");
+		if (contains("${imageSourceURL}", "/documents/")) {
+			AssertElementPresent.pauseAssertVisible(locator1 = "ItemSelector#URL_IMAGE_SOURCE");
 
-		if (IsElementPresent(locator1 = "ItemSelector#URL_IMAGE_EXAMPLE")) {
-			Click(locator1 = "ItemSelector#URL_IMAGE_EXAMPLE");
+			if (IsElementPresent(locator1 = "ItemSelector#URL_IMAGE_EXAMPLE")) {
+				Click(locator1 = "ItemSelector#URL_IMAGE_EXAMPLE");
+			}
 		}
 
-		MouseOver(
+		WaitForElementPresent(
 			key_text = "Add",
-			locator1 = "Button#ANY");
+			locator1 = "Button#ANY_ENABLED");
 
 		Button.clickAdd();
 
@@ -156,6 +159,7 @@ definition {
 			value1 = "URL");
 
 		AssertElementPresent(locator1 = "ItemSelector#URL_LABEL");
+
 		AssertElementNotPresent(locator1 = "IFrame#EXTERNAL_VIDEO_IFRAME");
 
 		Type(
@@ -223,6 +227,10 @@ definition {
 		ManagementBar.setFilterAndOrder(filterBy = "${filterBy}");
 	}
 
+	macro gotoImageSelectorViaSelectButton {
+		Click(locator1 = "FormFields#UPLOAD_ON_WIDGET");
+	}
+
 	macro gotoItemSelectorViaAlloyEditor {
 		AlloyEditor.clickContentField();
 
@@ -240,7 +248,7 @@ definition {
 		if (isSet(video)) {
 			WaitForLiferayEvent.initializeLiferayEventLog();
 
-			Click.pauseClickAt(locator1 = "CKEditor#CONTENT_VIDEO_IMAGE");
+			Click.pauseClickAt(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
 		}
 		else {
 			Click(locator1 = "CKEditor#TOOLBAR_IMAGE_BUTTON");
@@ -251,6 +259,18 @@ definition {
 
 	macro gotoItemSelectorViaSelectButton {
 		Click(locator1 = "FormFields#SELECT_UPLOAD_FIELD");
+	}
+
+	macro gotoItemSelectorViaSelectButtonByGuest {
+		Click(
+			key_fieldName = "${fieldName}",
+			locator1 = "FormFields#UPLOAD_FIELD_GUEST_1");
+	}
+
+	macro gotoItemSelectorViaSelectButtonByIndex {
+		Click(
+			key_index = "${index}",
+			locator1 = "FormFields#SELECT_UPLOAD_FIELD_BY_INDEX");
 	}
 
 	macro gotoPreviewViaSelectFile {
@@ -375,7 +395,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Search#SEARCH_INFO",
-			value1 = "1 Results for ${imageFileName}");
+			value1 = "1 Results for &quot;${imageFileName}&quot;");
 
 		AssertElementPresent(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
 
@@ -412,7 +432,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Search#SEARCH_INFO",
-			value1 = "1 Results for ${imageFileName}");
+			value1 = "1 Results for &quot;${imageFileName}&quot;");
 
 		LexiconCard.viewCardPresent(card = "${imageFileName}");
 
@@ -494,6 +514,33 @@ definition {
 		else {
 			Click(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
 		}
+	}
+
+	macro selectSiteImage {
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+		Click(
+			key_breadcrumbName = "Sites and Libraries",
+			locator1 = "Breadcrumb#BREADCRUMB_ENTRY");
+
+		Click(
+			key_siteName = "${siteName}",
+			locator1 = "ItemSelector#SITE_SELECTOR");
+
+		Click(
+			key_imageFileName = "${imageFileName}",
+			locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+	}
+
+	macro switchTab {
+		AssertClick(
+			key_navTab = "${navTab}",
+			locator1 = "ItemSelector#NAVIGATION_SPECIFIC_TAB",
+			value1 = "${navTab}");
+
+		AssertElementPresent(
+			key_tab = "${navTab}",
+			locator1 = "NavTab#ACTIVE_TAB_LINK");
 	}
 
 	macro uploadFile {
@@ -879,19 +926,9 @@ definition {
 	}
 
 	macro viewLocationInfoViaWCD {
-		Portlet.gotoPortletOptions(
-			portletName = "Web Content Display",
-			portletOption = "Configuration");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		AssertClick(
-			locator1 = "WCDConfiguration#SELECT_WEB_CONTENT_BUTTON",
-			value1 = "Select");
-
-		WaitForElementPresent(locator1 = "IFrame#MODAL_BODY");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+		WebContentDisplayPortlet.gotoSelectWebContent(
+			depotName = "${depotName}",
+			portletName = "${portletName}");
 
 		ManagementBar.setFilterAndOrder(filterBy = "Everywhere");
 
@@ -934,6 +971,46 @@ definition {
 		AssertElementPresent(
 			key_imageFileName = "${imageFileName}",
 			locator1 = "ItemSelector#VIEWER_FOOTER_IMAGE");
+	}
+
+	macro viewRelevantSelections {
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+		if (isSet(addDocumentOptions)) {
+			ItemSelector.switchTab(navTab = "Documents and Media");
+
+			LexiconEntry.gotoAdd();
+
+			for (var menuItem : list "File Upload,Folder,Google Drive Shortcut,External Video Shortcut") {
+				MenuItem.viewPresent(menuItem = "${menuItem}");
+			}
+		}
+
+		if (isSet(addImageOptions)) {
+			LexiconEntry.gotoAdd();
+
+			for (var menuItem : list "File Upload,Folder") {
+				MenuItem.viewPresent(menuItem = "${menuItem}");
+			}
+
+			for (var menuItem : list "External Video Shortcut,Google Drive Shortcut") {
+				MenuItem.viewNotPresent(menuItem = "${menuItem}");
+			}
+		}
+
+		if (isSet(addVideoOptions)) {
+			ItemSelector.switchTab(navTab = "Documents and Media");
+
+			LexiconEntry.gotoAdd();
+
+			for (var menuItem : list "File Upload,Folder,External Video Shortcut") {
+				MenuItem.viewPresent(menuItem = "${menuItem}");
+			}
+
+			for (var menuItem : list "Google Drive Shortcut") {
+				MenuItem.viewNotPresent(menuItem = "${menuItem}");
+			}
+		}
 	}
 
 	macro viewWCCurrentSiteFilterResults {
@@ -996,7 +1073,7 @@ definition {
 			}
 		}
 
-		if (isSet(viewFolderWC)) {
+		if (isSet(viewFolderWc)) {
 			Click(
 				key_rowEntry = "${wcFolderName}",
 				locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME");

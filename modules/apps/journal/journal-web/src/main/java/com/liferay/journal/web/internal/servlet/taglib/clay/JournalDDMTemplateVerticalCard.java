@@ -17,7 +17,6 @@ package com.liferay.journal.web.internal.servlet.taglib.clay;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.frontend.taglib.clay.servlet.taglib.soy.BaseVerticalCard;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.journal.web.internal.constants.JournalWebConstants;
 import com.liferay.journal.web.internal.security.permission.resource.DDMTemplatePermission;
 import com.liferay.journal.web.internal.servlet.taglib.util.JournalDDMTemplateActionDropdownItemsProvider;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
@@ -69,17 +68,11 @@ public class JournalDDMTemplateVerticalCard extends BaseVerticalCard {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
 		return null;
-	}
-
-	@Override
-	public String getDefaultEventHandler() {
-		return JournalWebConstants.
-			JOURNAL_DDM_TEMPLATE_ELEMENTS_DEFAULT_EVENT_HANDLER;
 	}
 
 	@Override
@@ -104,7 +97,7 @@ public class JournalDDMTemplateVerticalCard extends BaseVerticalCard {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class MessageLocalServiceWrapper
 	implements MessageLocalService, ServiceWrapper<MessageLocalService> {
 
+	public MessageLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MessageLocalServiceWrapper(MessageLocalService messageLocalService) {
 		_messageLocalService = messageLocalService;
 	}
@@ -139,6 +143,13 @@ public class MessageLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _messageLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _messageLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

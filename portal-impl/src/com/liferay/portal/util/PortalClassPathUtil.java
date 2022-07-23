@@ -19,11 +19,10 @@ import com.liferay.petra.process.ProcessConfig;
 import com.liferay.petra.process.ProcessLog;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.AggregateClassLoader;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -31,6 +30,7 @@ import com.liferay.portal.kernel.util.URLCodec;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 
 import java.lang.reflect.Method;
 
@@ -39,28 +39,69 @@ import java.net.URLConnection;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleWire;
+import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * @author Shuyang Zhou
  */
 public class PortalClassPathUtil {
 
+	public static ProcessConfig createBundleProcessConfig(Class<?> seedClass) {
+		ProcessConfig.Builder builder = new ProcessConfig.Builder(
+			_portalProcessConfig);
+
+		builder.setRuntimeClassPath(
+			_buildRuntimeClasspath(
+				seedClass, _portalProcessConfig.getRuntimeClassPath()));
+
+		builder.setReactClassLoader(
+			AggregateClassLoader.getAggregateClassLoader(
+				PortalClassLoaderUtil.getClassLoader(),
+				seedClass.getClassLoader()));
+
+		return builder.build();
+	}
+
 	public static ProcessConfig createProcessConfig(Class<?>... classes) {
 		ProcessConfig.Builder builder = new ProcessConfig.Builder();
 
 		builder.setArguments(_processArgs);
 
-		String classpath = _buildClassPath(classes);
+		File[] files = _listClassPathFiles(classes);
 
-		classpath = StringBundler.concat(
-			classpath, File.pathSeparator,
-			_portalProcessConfig.getBootstrapClassPath());
+		if (files.length == 0) {
+			throw new IllegalStateException(
+				"Class path files could not be loaded");
+		}
+
+		StringBundler sb = new StringBundler((files.length * 2) + 1);
+
+		for (File file : files) {
+			sb.append(file.getAbsolutePath());
+			sb.append(File.pathSeparator);
+		}
+
+		sb.append(_portalProcessConfig.getBootstrapClassPath());
+
+		String classpath = sb.toString();
 
 		builder.setBootstrapClassPath(classpath);
 
@@ -108,95 +149,177 @@ public class PortalClassPathUtil {
 			classLoader = currentThread.getContextClassLoader();
 		}
 
-		StringBundler sb = new StringBundler(8);
+		Class<?> shieldedContainerInitializerClass = null;
 
-		String appServerGlobalClassPath = _buildClassPath(
-			classLoader, ServletException.class.getName());
-
-		sb.append(appServerGlobalClassPath);
-
-		sb.append(File.pathSeparator);
-
-		String portalGlobalClassPath = _buildClassPath(
-			classLoader, CentralizedThreadLocal.class.getName(),
-			PortalException.class.getName());
-
-		sb.append(portalGlobalClassPath);
-
-		String globalClassPath = sb.toString();
-
-		sb.append(File.pathSeparator);
-		sb.append(
-			_buildClassPath(
-				classLoader,
-				"com.liferay.portal.internal.servlet.MainServlet"));
-
-		if (servletContext != null) {
-			sb.append(File.pathSeparator);
-			sb.append(servletContext.getRealPath(""));
-			sb.append("/WEB-INF/classes");
+		try {
+			shieldedContainerInitializerClass = classLoader.loadClass(
+				"com.liferay.shielded.container.ShieldedContainerInitializer");
+		}
+		catch (ClassNotFoundException classNotFoundException) {
+			_log.error(
+				"Unable to load ShieldedContainerInitializer class",
+				classNotFoundException);
 		}
 
-		String portalClassPath = sb.toString();
+		File[] files = _listClassPathFiles(
+			ServletException.class, CentralizedThreadLocal.class,
+			shieldedContainerInitializerClass);
+
+		if (files.length == 0) {
+			throw new IllegalStateException(
+				"Class path files could not be loaded");
+		}
+
+		StringBundler runtimeClassPathSB = new StringBundler(
+			(files.length * 2) + 3);
+		StringBundler bootstrapClassPathSB = new StringBundler(
+			files.length * 2);
+
+		for (File file : files) {
+			if (_isPetraJar(file)) {
+				bootstrapClassPathSB.append(file.getAbsolutePath());
+				bootstrapClassPathSB.append(File.pathSeparator);
+			}
+
+			runtimeClassPathSB.append(file.getAbsolutePath());
+			runtimeClassPathSB.append(File.pathSeparator);
+		}
+
+		runtimeClassPathSB.setIndex(runtimeClassPathSB.index() - 1);
+
+		if (bootstrapClassPathSB.index() > 0) {
+			bootstrapClassPathSB.setIndex(bootstrapClassPathSB.index() - 1);
+		}
+
+		if (servletContext != null) {
+			runtimeClassPathSB.append(File.pathSeparator);
+			runtimeClassPathSB.append(servletContext.getRealPath(""));
+			runtimeClassPathSB.append("/WEB-INF/classes");
+		}
 
 		ProcessConfig.Builder builder = new ProcessConfig.Builder();
 
 		builder.setArguments(_processArgs);
-		builder.setBootstrapClassPath(globalClassPath);
+		builder.setBootstrapClassPath(bootstrapClassPathSB.toString());
 		builder.setReactClassLoader(classLoader);
-		builder.setRuntimeClassPath(portalClassPath);
+		builder.setRuntimeClassPath(runtimeClassPathSB.toString());
 
 		_portalProcessConfig = builder.build();
 	}
 
-	private static String _buildClassPath(Class<?>... classes) {
-		if (ArrayUtil.isEmpty(classes)) {
-			return StringPool.BLANK;
-		}
+	private static String _buildRuntimeClasspath(
+		Class<?> clazz, String portalRuntiemClasspath) {
 
-		StringBundler sb = new StringBundler(classes.length * 2);
+		Set<Bundle> bundles = new LinkedHashSet<>();
 
-		for (Class<?> clazz : classes) {
-			sb.append(_buildClassPath(clazz.getClassLoader(), clazz.getName()));
-			sb.append(File.pathSeparator);
-		}
+		Bundle currentBundle = FrameworkUtil.getBundle(clazz);
 
-		sb.setIndex(sb.index() - 1);
+		bundles.add(currentBundle);
 
-		return sb.toString();
-	}
+		BundleWiring bundleWiring = currentBundle.adapt(BundleWiring.class);
 
-	private static String _buildClassPath(
-		ClassLoader classLoader, String... classNames) {
+		List<BundleWire> requiredBundleWires = bundleWiring.getRequiredWires(
+			null);
 
-		Set<File> fileSet = new HashSet<>();
+		if (requiredBundleWires != null) {
+			for (BundleWire bundleWire : requiredBundleWires) {
+				BundleRevision bundleRevision = bundleWire.getProvider();
 
-		for (String className : classNames) {
-			File[] files = _listClassPathFiles(classLoader, className);
+				Bundle requiredBundle = bundleRevision.getBundle();
 
-			if (files != null) {
-				Collections.addAll(fileSet, files);
+				if (requiredBundle.getBundleId() != 0) {
+					bundles.add(requiredBundle);
+				}
 			}
 		}
 
-		File[] files = fileSet.toArray(new File[0]);
+		StringBundler sb = new StringBundler();
 
-		Arrays.sort(files);
+		for (Bundle bundle : bundles) {
+			File bundleDataDir = bundle.getDataFile(null);
 
-		StringBundler sb = new StringBundler(files.length * 2);
+			File bundleDir = bundleDataDir.getParentFile();
 
-		for (File file : files) {
-			sb.append(file.getAbsolutePath());
-			sb.append(File.pathSeparator);
+			File[] files = bundleDir.listFiles(
+				file -> file.isDirectory() && !file.equals(bundleDataDir));
+
+			if ((files != null) && (files.length > 0)) {
+				Arrays.sort(
+					files,
+					Comparator.comparing(
+						file -> GetterUtil.getInteger(file.getName(), -1),
+						Comparator.reverseOrder()));
+
+				File bundleRevisionDir = files[0];
+
+				File bundleFile = new File(bundleRevisionDir, "bundleFile");
+
+				sb.append(bundleFile.getAbsolutePath());
+
+				sb.append(File.pathSeparator);
+
+				File cpLibDir = new File(bundleRevisionDir, ".cp");
+
+				if (cpLibDir.exists()) {
+					Queue<File> queue = new LinkedList<>();
+
+					queue.add(cpLibDir);
+
+					File currentFile = null;
+
+					while ((currentFile = queue.poll()) != null) {
+						if (currentFile.isDirectory()) {
+							Collections.addAll(queue, currentFile.listFiles());
+						}
+						else {
+							sb.append(currentFile.getAbsolutePath());
+							sb.append(File.pathSeparator);
+						}
+					}
+				}
+			}
 		}
 
-		sb.setIndex(sb.index() - 1);
+		sb.append(portalRuntiemClasspath);
 
 		return sb.toString();
 	}
 
-	private static File[] _listClassPathFiles(
-		ClassLoader classLoader, String className) {
+	private static boolean _isPetraJar(File file) {
+		String filePath = file.getAbsolutePath();
+
+		if (filePath.contains("petra")) {
+			try (JarFile jarFile = new JarFile(new File(filePath))) {
+				Manifest manifest = jarFile.getManifest();
+
+				if (manifest == null) {
+					return false;
+				}
+
+				Attributes attributes = manifest.getMainAttributes();
+
+				if (attributes.containsKey(
+						new Attributes.Name("Liferay-Releng-App-Title"))) {
+
+					return false;
+				}
+
+				return true;
+			}
+			catch (IOException ioException) {
+				_log.error(
+					"Unable to resolve bootstrap entry: " + file.getName() +
+						" from bundle",
+					ioException);
+			}
+		}
+
+		return false;
+	}
+
+	private static File[] _listClassPathFiles(Class<?> clazz) {
+		String className = clazz.getName();
+		ClassLoader classLoader = clazz.getClassLoader();
 
 		String pathOfClass = StringUtil.replace(
 			className, CharPool.PERIOD, CharPool.SLASH);
@@ -215,9 +338,9 @@ public class PortalClassPathUtil {
 			try {
 				URLConnection urlConnection = url.openConnection();
 
-				Class<?> clazz = urlConnection.getClass();
+				Class<?> urlConnectionClass = urlConnection.getClass();
 
-				Method getLocalURLMethod = clazz.getDeclaredMethod(
+				Method getLocalURLMethod = urlConnectionClass.getDeclaredMethod(
 					"getLocalURL");
 
 				getLocalURLMethod.setAccessible(true);
@@ -331,6 +454,24 @@ public class PortalClassPathUtil {
 				}
 
 			});
+	}
+
+	private static File[] _listClassPathFiles(Class<?>... classes) {
+		Set<File> filesSet = new HashSet<>();
+
+		for (Class<?> clazz : classes) {
+			File[] files = _listClassPathFiles(clazz);
+
+			if (files != null) {
+				Collections.addAll(filesSet, files);
+			}
+		}
+
+		File[] files = filesSet.toArray(new File[0]);
+
+		Arrays.sort(files);
+
+		return files;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

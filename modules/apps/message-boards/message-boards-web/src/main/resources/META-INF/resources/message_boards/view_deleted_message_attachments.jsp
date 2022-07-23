@@ -51,7 +51,7 @@ String trashEntriesMaxAgeTimeDescription = LanguageUtil.getTimeDescription(local
 				"/message_boards/view_deleted_message_attachments"
 			).setParameter(
 				"messageId", messageId
-			).build()
+			).buildPortletURL()
 		%>'
 		total="<%= message.getDeletedAttachmentsFileEntriesCount() %>"
 	>

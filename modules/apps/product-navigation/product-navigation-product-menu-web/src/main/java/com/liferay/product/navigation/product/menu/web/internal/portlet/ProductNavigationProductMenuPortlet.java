@@ -24,6 +24,11 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.product.navigation.product.menu.constants.ProductNavigationProductMenuPortletKeys;
+import com.liferay.product.navigation.product.menu.web.internal.constants.ProductNavigationProductMenuWebKeys;
+import com.liferay.product.navigation.product.menu.web.internal.display.context.LayoutsTreeDisplayContext;
+import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService;
+import com.liferay.site.navigation.service.SiteNavigationMenuLocalService;
+import com.liferay.site.navigation.type.SiteNavigationMenuItemTypeRegistry;
 
 import java.io.IOException;
 
@@ -94,7 +99,24 @@ public class ProductNavigationProductMenuPortlet extends MVCPortlet {
 			ApplicationListWebKeys.PANEL_CATEGORY_REGISTRY,
 			_panelCategoryRegistry);
 
+		_setLayoutsTreeDisplayContextRequestAttribute(renderRequest);
+
 		super.doDispatch(renderRequest, renderResponse);
+	}
+
+	private void _setLayoutsTreeDisplayContextRequestAttribute(
+		RenderRequest renderRequest) {
+
+		LayoutsTreeDisplayContext layoutsTreeDisplayContext =
+			new LayoutsTreeDisplayContext(
+				_groupProvider, renderRequest,
+				_siteNavigationMenuItemLocalService,
+				_siteNavigationMenuItemTypeRegistry,
+				_siteNavigationMenuLocalService);
+
+		renderRequest.setAttribute(
+			ProductNavigationProductMenuWebKeys.LAYOUTS_TREE_DISPLAY_CONTEXT,
+			layoutsTreeDisplayContext);
 	}
 
 	@Reference
@@ -108,5 +130,16 @@ public class ProductNavigationProductMenuPortlet extends MVCPortlet {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SiteNavigationMenuItemLocalService
+		_siteNavigationMenuItemLocalService;
+
+	@Reference
+	private SiteNavigationMenuItemTypeRegistry
+		_siteNavigationMenuItemTypeRegistry;
+
+	@Reference
+	private SiteNavigationMenuLocalService _siteNavigationMenuLocalService;
 
 }

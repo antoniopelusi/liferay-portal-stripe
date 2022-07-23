@@ -1,8 +1,11 @@
+@import '../../../css/variables';
 @import 'atlas-variables';
 
-@import '../../../css/variables';
-
-$multiPanelSidebarButtonHeight: $multiPanelSidebarButtonWidth;
+$controlMenuHeight: 48px;
+$defaultTransitionDuration: 0.5s;
+$desktopControlMenuHeight: 56px;
+$managementBarHeight: 64px;
+$toolbarHeight: 64px;
 
 // z-indexes for children of page-editor-sidebar (which is a stacking context).
 
@@ -15,7 +18,6 @@ $zIndexContent: 0;
 	position: fixed;
 	right: 0;
 	top: $toolbarHeight;
-	z-index: $zIndexMultiPanelSidebar;
 
 	&-buttons {
 		background-color: $white;
@@ -135,6 +137,16 @@ $zIndexContent: 0;
 			&.display-settings .sidebar .sidebar-body {
 				height: calc(100vh - (248px - #{$displaySettingsHeight}));
 			}
+		}
+	}
+}
+
+.rtl .multi-panel-sidebar {
+	&-content {
+		transform: translateX(100%);
+
+		&-open {
+			transform: translateX(0);
 		}
 	}
 }

@@ -28,14 +28,12 @@ import aQute.lib.filter.Filter;
 import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.security.xml.SecureXMLFactoryProviderUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Node;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.security.xml.SecureXMLFactoryProviderImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.util.HttpImpl;
 import com.liferay.portal.xml.SAXReaderImpl;
 
 import java.io.File;
@@ -75,10 +73,6 @@ public class WabProcessorTest {
 
 	@BeforeClass
 	public static void setUpClass() {
-		HttpUtil httpUtil = new HttpUtil();
-
-		httpUtil.setHttp(new HttpImpl());
-
 		SAXReaderUtil saxReaderUtil = new SAXReaderUtil();
 
 		SAXReaderImpl secureSAXReaderImpl = new SAXReaderImpl();
@@ -96,9 +90,7 @@ public class WabProcessorTest {
 		UnsecureSAXReaderUtil unsecureSAXReaderUtil =
 			new UnsecureSAXReaderUtil();
 
-		SAXReaderImpl unsecureSAXReaderImpl = new SAXReaderImpl();
-
-		unsecureSAXReaderUtil.setSAXReader(unsecureSAXReaderImpl);
+		unsecureSAXReaderUtil.setSAXReader(new SAXReaderImpl());
 	}
 
 	@Test
@@ -199,9 +191,6 @@ public class WabProcessorTest {
 			Assert.assertTrue(
 				importedPackages.containsKey("com.liferay.portlet"));
 			Assert.assertTrue(importedPackages.containsKey("com.sun.el"));
-			Assert.assertTrue(
-				importedPackages.containsKey(
-					"org.apache.commons.chain.generic"));
 			Assert.assertTrue(
 				importedPackages.containsKey("org.apache.naming.java"));
 
@@ -365,7 +354,7 @@ public class WabProcessorTest {
 
 			Parameters requirements = domain.getRequireCapability();
 
-			Map.Entry<String, Attrs> entry = findRequirement(
+			Map.Entry<String, Attrs> entry = _findRequirement(
 				requirements, "osgi.extender",
 				HashMapBuilder.<String, Object>put(
 					"osgi.extender", "osgi.cdi"
@@ -388,7 +377,7 @@ public class WabProcessorTest {
 			// The bean portlet extension
 
 			Assert.assertNotNull(
-				findRequirement(
+				_findRequirement(
 					requirements, "osgi.cdi.extension",
 					Collections.singletonMap(
 						"osgi.cdi.extension",
@@ -397,7 +386,7 @@ public class WabProcessorTest {
 			// The http extension
 
 			Assert.assertNotNull(
-				findRequirement(
+				_findRequirement(
 					requirements, "osgi.cdi.extension",
 					Collections.singletonMap(
 						"osgi.cdi.extension", "aries.cdi.http")));
@@ -405,7 +394,7 @@ public class WabProcessorTest {
 			// The EL extension
 
 			Assert.assertNotNull(
-				findRequirement(
+				_findRequirement(
 					requirements, "osgi.cdi.extension",
 					Collections.singletonMap(
 						"osgi.cdi.extension", "aries.cdi.el.jsp")));
@@ -458,7 +447,7 @@ public class WabProcessorTest {
 
 			Parameters requirements = domain.getRequireCapability();
 
-			Map.Entry<String, Attrs> entry = findRequirement(
+			Map.Entry<String, Attrs> entry = _findRequirement(
 				requirements, "osgi.extender",
 				HashMapBuilder.<String, Object>put(
 					"osgi.extender", "osgi.cdi"
@@ -490,7 +479,7 @@ public class WabProcessorTest {
 			// The bean portlet extension
 
 			Assert.assertNotNull(
-				findRequirement(
+				_findRequirement(
 					requirements, "osgi.cdi.extension",
 					Collections.singletonMap(
 						"osgi.cdi.extension",
@@ -499,7 +488,7 @@ public class WabProcessorTest {
 			// The http extension
 
 			Assert.assertNotNull(
-				findRequirement(
+				_findRequirement(
 					requirements, "osgi.cdi.extension",
 					Collections.singletonMap(
 						"osgi.cdi.extension", "aries.cdi.http")));
@@ -507,14 +496,25 @@ public class WabProcessorTest {
 			// The EL extension
 
 			Assert.assertNotNull(
-				findRequirement(
+				_findRequirement(
 					requirements, "osgi.cdi.extension",
 					Collections.singletonMap(
 						"osgi.cdi.extension", "aries.cdi.el.jsp")));
 		}
 	}
 
-	protected Map.Entry<String, Attrs> findRequirement(
+	protected File getFile(String fileName) throws URISyntaxException {
+		URL url = WabProcessor.class.getResource(fileName);
+
+		Assert.assertEquals(
+			url + "is not file protocol", "file", url.getProtocol());
+
+		Path path = Paths.get(url.toURI());
+
+		return path.toFile();
+	}
+
+	private Map.Entry<String, Attrs> _findRequirement(
 			Parameters requirements, String namespace,
 			Map<String, Object> arguments)
 		throws Exception {
@@ -542,17 +542,6 @@ public class WabProcessorTest {
 		}
 
 		return null;
-	}
-
-	protected File getFile(String fileName) throws URISyntaxException {
-		URL url = WabProcessor.class.getResource(fileName);
-
-		Assert.assertEquals(
-			url + "is not file protocol", "file", url.getProtocol());
-
-		Path path = Paths.get(url.toURI());
-
-		return path.toFile();
 	}
 
 	private static class TestWabProcessor extends WabProcessor {

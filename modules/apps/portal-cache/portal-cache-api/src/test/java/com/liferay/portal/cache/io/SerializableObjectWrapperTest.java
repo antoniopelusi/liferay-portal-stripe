@@ -167,19 +167,24 @@ public class SerializableObjectWrapperTest {
 			SerializableObjectWrapper serializableObjectWrapper)
 		throws Exception {
 
-		try (UnsyncByteArrayOutputStream ubaos =
+		try (UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 				new UnsyncByteArrayOutputStream()) {
 
-			try (ObjectOutputStream oos = new ObjectOutputStream(ubaos)) {
-				oos.writeObject(serializableObjectWrapper);
+			try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+					unsyncByteArrayOutputStream)) {
+
+				objectOutputStream.writeObject(serializableObjectWrapper);
 			}
 
-			try (UnsyncByteArrayInputStream ubais =
+			try (UnsyncByteArrayInputStream unsyncByteArrayInputStream =
 					new UnsyncByteArrayInputStream(
-						ubaos.unsafeGetByteArray(), 0, ubaos.size());
-				ObjectInputStream ois = new ObjectInputStream(ubais)) {
+						unsyncByteArrayOutputStream.unsafeGetByteArray(), 0,
+						unsyncByteArrayOutputStream.size());
+				ObjectInputStream objectInputStream = new ObjectInputStream(
+					unsyncByteArrayInputStream)) {
 
-				return (SerializableObjectWrapper)ois.readObject();
+				return (SerializableObjectWrapper)
+					objectInputStream.readObject();
 			}
 		}
 	}

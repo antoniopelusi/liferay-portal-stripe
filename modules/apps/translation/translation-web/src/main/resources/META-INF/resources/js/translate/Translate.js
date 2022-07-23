@@ -15,7 +15,7 @@
 import ClayAlert from '@clayui/alert';
 import ClayLayout from '@clayui/layout';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
-import {fetch} from 'frontend-js-web';
+import {fetch, navigate} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useMemo, useReducer, useState} from 'react';
 
@@ -23,11 +23,37 @@ import TranslateActionBar from './components/TranslateActionBar';
 import TranslateFieldSetEntries from './components/TranslateFieldSetEntries';
 import TranslateHeader from './components/TranslateHeader';
 import {FETCH_STATUS} from './constants';
+import {setURLParameters} from './utils';
 
 const ACTION_TYPES = {
 	UPDATE_FETCH_STATUS: 'UPDATE_FETCH_STATUS',
 	UPDATE_FIELD: 'UPDATE_FIELD',
 	UPDATE_FIELDS_BULK: 'UPDATE_FIELDS_BULK',
+};
+
+const getInfoFields = (infoFieldSetEntries = []) => {
+	const sourceFields = {};
+	const targetFields = {};
+
+	infoFieldSetEntries.forEach(({fields}) => {
+		fields.forEach(({id: idSet, sourceContent, targetContent}) => {
+			sourceContent.forEach((content, index) => {
+				const id = `${idSet}${index}`;
+
+				sourceFields[id] = content;
+				targetFields[id] = {
+					content: targetContent[index],
+					message: '',
+					status: '',
+				};
+			});
+		});
+	});
+
+	return {
+		sourceFields,
+		targetFields,
+	};
 };
 
 const reducer = (state, action) => {
@@ -37,7 +63,10 @@ const reducer = (state, action) => {
 				...state,
 				fields: {
 					...state.fields,
-					...action.payload,
+					[action.payload.id]: {
+						...state.fields[action.payload.id],
+						...action.payload.field,
+					},
 				},
 				formHasChanges: true,
 			};
@@ -54,26 +83,11 @@ const reducer = (state, action) => {
 	}
 };
 
-const getInfoFields = (infoFieldSetEntries = []) => {
-	const sourceFields = [];
-	const targetFields = {};
-
-	infoFieldSetEntries.forEach(({fields}) => {
-		fields.forEach(({id, sourceContent, targetContent}) => {
-			sourceFields.push({[id]: sourceContent});
-			targetFields[id] = targetContent;
-		});
-	});
-
-	return {
-		sourceFields,
-		targetFields,
-	};
-};
-
 const Translate = ({
-	aditionalFields,
-	autoTranslateButtonVisible = false,
+	additionalFields,
+	autoTranslateEnabled = false,
+	currentUrl,
+	experiencesSelectorData,
 	getAutoTranslateURL,
 	infoFieldSetEntries,
 	portletNamespace,
@@ -111,18 +125,48 @@ const Translate = ({
 		formHasChanges: false,
 	});
 
+	const confirmChangesBeforeReload = (parameters = {}) => {
+		const url = setURLParameters(
+			Liferay.Util.ns(portletNamespace, parameters),
+			currentUrl
+		);
+
+		if (!state.formHasChanges) {
+			navigate(url);
+		}
+		else if (
+			confirm(
+				Liferay.Language.get(
+					'are-you-sure-you-want-to-leave-the-page-you-may-lose-your-changes'
+				)
+			)
+		) {
+			navigate(url);
+		}
+	};
+
 	const handleOnSaveDraft = () => {
 		setWorkflowAction(workflowActions.SAVE_DRAFT);
 	};
 
 	const handleOnChangeField = ({content, id}) => {
 		dispatch({
-			payload: {[id]: content},
+			payload: {field: {content}, id},
 			type: ACTION_TYPES.UPDATE_FIELD,
 		});
 	};
 
-	const fetchAutoTranslateFields = () => {
+	const fetchAutoTranslation = ({fields}) =>
+		fetch(getAutoTranslateURL, {
+			body: JSON.stringify({
+				fields,
+				sourceLanguageId,
+				targetLanguageId,
+			}),
+			method: 'POST',
+		}).then((response) => response.json());
+
+	const fetchAutoTranslateFieldsBulk = () => {
 		dispatch({
 			payload: {
 				status: FETCH_STATUS.LOADING,
@@ -130,15 +174,7 @@ const Translate = ({
 			type: ACTION_TYPES.UPDATE_FETCH_STATUS,
 		});
 
-		fetch(getAutoTranslateURL, {
-			body: JSON.stringify({
-				fields: sourceFields,
-				sourceLanguageId,
-				targetLanguageId,
-			}),
-			method: 'POST',
-		})
-			.then((response) => response.json())
+		fetchAutoTranslation({fields: sourceFields})
 			.then(({error, fields}) => {
 				if (error) {
 					throw error;
@@ -146,11 +182,16 @@ const Translate = ({
 
 				if (isMounted()) {
 					dispatch({
-						payload: fields.reduce((acc, field) => {
-							const [id, content] = Object.entries(field)[0];
+						payload: Object.entries(fields).reduce(
+							(acc, [id, content]) => {
+								acc[id] = {
+									content: Liferay.Util.unescapeHTML(content),
+								};
 
-							return {...acc, [id]: content};
-						}, {}),
+								return acc;
+							},
+							{}
+						),
 						type: ACTION_TYPES.UPDATE_FIELDS_BULK,
 					});
 
@@ -184,6 +225,60 @@ const Translate = ({
 			);
 	};
 
+	const fetchAutoTranslateField = (fieldId) => {
+		dispatch({
+			payload: {field: {status: FETCH_STATUS.LOADING}, id: fieldId},
+			type: ACTION_TYPES.UPDATE_FIELD,
+		});
+
+		fetchAutoTranslation({
+			fields: {[fieldId]: sourceFields[fieldId]},
+		})
+			.then(({error, fields}) => {
+				if (error) {
+					throw error;
+				}
+
+				if (isMounted()) {
+					dispatch({
+						payload: {
+							field: {
+								content: Liferay.Util.unescapeHTML(
+									fields[fieldId]
+								),
+								message: Liferay.Language.get(
+									'field-translated'
+								),
+								status: FETCH_STATUS.SUCCESS,
+							},
+							id: fieldId,
+						},
+						type: ACTION_TYPES.UPDATE_FIELD,
+					});
+				}
+			})
+			.catch(
+				({
+					message = Liferay.Language.get(
+						'an-unexpected-error-occurred'
+					),
+				}) => {
+					if (isMounted()) {
+						dispatch({
+							payload: {
+								field: {
+									message,
+									status: FETCH_STATUS.ERROR,
+								},
+								id: fieldId,
+							},
+							type: ACTION_TYPES.UPDATE_FIELD,
+						});
+					}
+				}
+			);
+	};
+
 	return (
 		<form
 			action={updateTranslationPortletURL}
@@ -196,7 +291,8 @@ const Translate = ({
 				name={`${portletNamespace}workflowAction`}
 				type="hidden"
 			/>
-			{Object.entries(aditionalFields).map(([name, value]) => (
+
+			{Object.entries(additionalFields).map(([name, value]) => (
 				<input
 					defaultValue={value}
 					key={name}
@@ -206,10 +302,11 @@ const Translate = ({
 			))}
 
 			<TranslateActionBar
-				autoTranslateButtonVisible={autoTranslateButtonVisible}
-				fetchAutoTranslateFields={fetchAutoTranslateFields}
+				autoTranslateEnabled={autoTranslateEnabled}
+				confirmChangesBeforeReload={confirmChangesBeforeReload}
+				experienceSelectorData={experiencesSelectorData}
+				fetchAutoTranslateFields={fetchAutoTranslateFieldsBulk}
 				fetchAutoTranslateStatus={state.fetchAutoTranslateStatus}
-				formHasChanges={state.formHasChanges}
 				onSaveButtonClick={handleOnSaveDraft}
 				portletNamespace={portletNamespace}
 				publishButtonDisabled={publishButtonDisabled}
@@ -231,11 +328,16 @@ const Translate = ({
 					) : (
 						<>
 							<TranslateHeader
+								autoTranslateEnabled={autoTranslateEnabled}
 								sourceLanguageIdTitle={sourceLanguageIdTitle}
 								targetLanguageIdTitle={targetLanguageIdTitle}
 							/>
 
 							<TranslateFieldSetEntries
+								autoTranslateEnabled={autoTranslateEnabled}
+								fetchAutoTranslateField={
+									fetchAutoTranslateField
+								}
 								infoFieldSetEntries={infoFieldSetEntries}
 								onChange={handleOnChangeField}
 								portletNamespace={portletNamespace}
@@ -250,7 +352,18 @@ const Translate = ({
 };
 
 Translate.propTypes = {
-	autoTranslateButtonVisible: PropTypes.bool,
+	autoTranslateEnabled: PropTypes.bool,
+	currentUrl: PropTypes.string.isRequired,
+	experiencesSelectorData: PropTypes.shape({
+		label: PropTypes.string.isRequired,
+		options: PropTypes.arrayOf(
+			PropTypes.shape({
+				label: PropTypes.string.isRequired,
+				value: PropTypes.string.isRequired,
+			})
+		),
+		value: PropTypes.string.isRequired,
+	}),
 	getAutoTranslateURL: PropTypes.string.isRequired,
 	infoFieldSetEntries: PropTypes.arrayOf(
 		PropTypes.shape({
@@ -261,13 +374,15 @@ Translate.propTypes = {
 					id: PropTypes.string.isRequired,
 					label: PropTypes.string.isRequired,
 					multiline: PropTypes.bool,
-					sourceContent: PropTypes.string.isRequired,
+					sourceContent: PropTypes.arrayOf(PropTypes.string)
+						.isRequired,
 					sourceContentDir: PropTypes.string.isRequired,
-					targetContent: PropTypes.string,
+					targetContent: PropTypes.arrayOf(PropTypes.string)
+						.isRequired,
 					targetContentDir: PropTypes.string,
 				})
 			),
-			legend: PropTypes.string,
+			legend: PropTypes.string.isRequired,
 		})
 	),
 	portletNamespace: PropTypes.string.isRequired,

@@ -1,14 +1,11 @@
-@import 'atlas-variables';
+@import 'cadmin-variables';
 
-.page-editor__item-selector__content {
-	&-input {
-		cursor: pointer;
-	}
-
-	&-button.btn.btn-secondary {
-		border-color: $gray-300;
-		display: block;
-		min-width: 2rem;
-		padding-top: 1px;
+html#{$cadmin-selector} {
+	.cadmin {
+		.page-editor__item-selector__content {
+			&-input {
+				cursor: pointer;
+			}
+		}
 	}
 }

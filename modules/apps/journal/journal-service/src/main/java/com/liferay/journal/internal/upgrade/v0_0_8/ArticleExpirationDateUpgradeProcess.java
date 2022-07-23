@@ -35,10 +35,10 @@ public class ArticleExpirationDateUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateArticleExpirationDate();
+		_updateArticleExpirationDate();
 	}
 
-	protected void updateArticleExpirationDate() throws Exception {
+	private void _updateArticleExpirationDate() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			JournalServiceConfiguration journalServiceConfiguration =
 				ConfigurationProviderUtil.getCompanyConfiguration(
@@ -51,57 +51,56 @@ public class ArticleExpirationDateUpgradeProcess extends UpgradeProcess {
 				return;
 			}
 
-			StringBundler sb = new StringBundler(15);
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select JournalArticle.* from JournalArticle left ",
+							"join JournalArticle tempJournalArticle on ",
+							"(JournalArticle.groupId = ",
+							"tempJournalArticle.groupId) and ",
+							"(JournalArticle.articleId = ",
+							"tempJournalArticle.articleId) and ",
+							"(JournalArticle.version < ",
+							"tempJournalArticle.version) and ",
+							"(JournalArticle.status = ",
+							"tempJournalArticle.status) where ",
+							"(JournalArticle.classNameId = ",
+							JournalArticleConstants.CLASS_NAME_ID_DEFAULT,
+							") and (tempJournalArticle.version is null) and ",
+							"(JournalArticle.expirationDate is not null) and ",
+							"(JournalArticle.status = ",
+							WorkflowConstants.STATUS_APPROVED, ")"));
+				ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			sb.append("select JournalArticle.* from JournalArticle left join ");
-			sb.append("JournalArticle tempJournalArticle on ");
-			sb.append("(JournalArticle.groupId = tempJournalArticle.groupId) ");
-			sb.append("and (JournalArticle.articleId = ");
-			sb.append("tempJournalArticle.articleId) and ");
-			sb.append("(JournalArticle.version < tempJournalArticle.version) ");
-			sb.append("and (JournalArticle.status = ");
-			sb.append("tempJournalArticle.status) where ");
-			sb.append("(JournalArticle.classNameId = ");
-			sb.append(JournalArticleConstants.CLASS_NAME_ID_DEFAULT);
-			sb.append(") and (tempJournalArticle.version is null) and ");
-			sb.append("(JournalArticle.expirationDate is not null) and ");
-			sb.append("(JournalArticle.status = ");
-			sb.append(WorkflowConstants.STATUS_APPROVED);
-			sb.append(")");
-
-			try (PreparedStatement ps = connection.prepareStatement(
-					sb.toString());
-				ResultSet rs = ps.executeQuery()) {
-
-				while (rs.next()) {
-					long groupId = rs.getLong("groupId");
-					String articleId = rs.getString("articleId");
-					Timestamp expirationDate = rs.getTimestamp(
+				while (resultSet.next()) {
+					long groupId = resultSet.getLong("groupId");
+					String articleId = resultSet.getString("articleId");
+					Timestamp expirationDate = resultSet.getTimestamp(
 						"expirationDate");
-					int status = rs.getInt("status");
+					int status = resultSet.getInt("status");
 
-					updateExpirationDate(
+					_updateExpirationDate(
 						groupId, articleId, expirationDate, status);
 				}
 			}
 		}
 	}
 
-	protected void updateExpirationDate(
+	private void _updateExpirationDate(
 			long groupId, String articleId, Timestamp expirationDate,
 			int status)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update JournalArticle set expirationDate = ? where groupId " +
 					"= ? and articleId = ? and status = ?")) {
 
-			ps.setTimestamp(1, expirationDate);
-			ps.setLong(2, groupId);
-			ps.setString(3, articleId);
-			ps.setInt(4, status);
+			preparedStatement.setTimestamp(1, expirationDate);
+			preparedStatement.setLong(2, groupId);
+			preparedStatement.setString(3, articleId);
+			preparedStatement.setInt(4, status);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

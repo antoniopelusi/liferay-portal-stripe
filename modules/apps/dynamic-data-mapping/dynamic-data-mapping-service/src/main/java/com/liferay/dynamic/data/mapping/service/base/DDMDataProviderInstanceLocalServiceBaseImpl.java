@@ -18,7 +18,6 @@ import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMDataProviderInstanceFinder;
-import com.liferay.dynamic.data.mapping.service.persistence.DDMDataProviderInstanceLinkPersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMDataProviderInstancePersistence;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
@@ -166,6 +165,13 @@ public abstract class DDMDataProviderInstanceLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return ddmDataProviderInstancePersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -662,17 +668,5 @@ public abstract class DDMDataProviderInstanceLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected DDMDataProviderInstanceLinkPersistence
-		ddmDataProviderInstanceLinkPersistence;
 
 }

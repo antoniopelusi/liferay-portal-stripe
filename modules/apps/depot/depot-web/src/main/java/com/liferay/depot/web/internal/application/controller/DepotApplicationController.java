@@ -164,15 +164,15 @@ public class DepotApplicationController {
 	}
 
 	private boolean _isTrashEnabled(long depotEntryId) {
-		int enabledDepotAppCustomizationCount =
+		int enabledDepotAppCustomizationsCount =
 			_depotAppCustomizationLocalService.getDepotAppCustomizationsCount(
 				depotEntryId, true);
-		int disabledDepotAppCustomizationCount =
+		int disabledDepotAppCustomizationsCount =
 			_depotAppCustomizationLocalService.getDepotAppCustomizationsCount(
 				depotEntryId, false);
 
-		if ((enabledDepotAppCustomizationCount == 0) &&
-			(disabledDepotAppCustomizationCount > 0)) {
+		if ((enabledDepotAppCustomizationsCount == 0) &&
+			(disabledDepotAppCustomizationsCount > 0)) {
 
 			return false;
 		}

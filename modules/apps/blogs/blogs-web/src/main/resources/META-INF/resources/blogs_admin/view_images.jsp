@@ -27,7 +27,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	"/blogs/view"
 ).setNavigation(
 	"images"
-).build();
+).buildPortletURL();
 
 if (delta > 0) {
 	portletURL.setParameter("delta", String.valueOf(delta));

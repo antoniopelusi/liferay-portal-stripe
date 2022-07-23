@@ -25,7 +25,7 @@ import java.util.List;
  * @author Michael C. Han
  * @author André de Oliveira
  */
-public class PointShapeImpl extends ShapeImpl implements PointShape {
+public class PointShapeImpl extends BaseShapeImpl implements PointShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

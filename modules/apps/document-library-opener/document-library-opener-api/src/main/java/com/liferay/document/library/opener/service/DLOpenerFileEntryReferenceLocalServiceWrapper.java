@@ -27,6 +27,10 @@ public class DLOpenerFileEntryReferenceLocalServiceWrapper
 	implements DLOpenerFileEntryReferenceLocalService,
 			   ServiceWrapper<DLOpenerFileEntryReferenceLocalService> {
 
+	public DLOpenerFileEntryReferenceLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLOpenerFileEntryReferenceLocalServiceWrapper(
 		DLOpenerFileEntryReferenceLocalService
 			dlOpenerFileEntryReferenceLocalService) {
@@ -223,6 +227,13 @@ public class DLOpenerFileEntryReferenceLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dlOpenerFileEntryReferenceLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlOpenerFileEntryReferenceLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -12,7 +12,7 @@
  * details.
  */
 
-import MapBase from 'map-common/js/MapBase.es';
+import MapBase from '@liferay/map-common/js/MapBase.es';
 
 import GoogleMapsDialog from './GoogleMapsDialog.es';
 import GoogleMapsGeoJSON from './GoogleMapsGeoJSON.es';
@@ -32,6 +32,12 @@ class MapGoogleMaps extends MapBase {
 	 * @review
 	 */
 	constructor(...args) {
+		MapBase.DialogImpl = GoogleMapsDialog;
+		MapBase.GeocoderImpl = GoogleMapsGeocoder;
+		MapBase.GeoJSONImpl = GoogleMapsGeoJSON;
+		MapBase.MarkerImpl = GoogleMapsMarker;
+		MapBase.SearchImpl = GoogleMapsSearch;
+
 		super(...args);
 
 		this._bounds = null;
@@ -111,16 +117,6 @@ class MapGoogleMaps extends MapBase {
 		}
 	}
 }
-
-MapBase.DialogImpl = GoogleMapsDialog;
-
-MapBase.GeocoderImpl = GoogleMapsGeocoder;
-
-MapBase.GeoJSONImpl = GoogleMapsGeoJSON;
-
-MapBase.MarkerImpl = GoogleMapsMarker;
-
-MapBase.SearchImpl = GoogleMapsSearch;
 
 MapGoogleMaps.CONTROLS_MAP = {
 	[MapBase.CONTROLS.OVERVIEW]: 'overviewMapControl',

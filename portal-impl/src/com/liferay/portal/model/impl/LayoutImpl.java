@@ -16,6 +16,7 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.LayoutFriendlyURLException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
@@ -56,7 +57,8 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.LayoutTypePortletFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -66,6 +68,7 @@ import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.LayoutClone;
@@ -299,6 +302,34 @@ public class LayoutImpl extends LayoutBaseImpl {
 		return layouts;
 	}
 
+	@Override
+	public String getBreadcrumb(Locale locale) throws PortalException {
+		List<Layout> layouts = getAncestors();
+
+		StringBundler sb = new StringBundler((4 * layouts.size()) + 5);
+
+		Group group = getGroup();
+
+		sb.append(group.getLayoutRootNodeName(isPrivateLayout(), locale));
+
+		sb.append(StringPool.SPACE);
+		sb.append(StringPool.GREATER_THAN);
+		sb.append(StringPool.SPACE);
+
+		Collections.reverse(layouts);
+
+		for (Layout layout : layouts) {
+			sb.append(HtmlUtil.escape(layout.getName(locale)));
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.GREATER_THAN);
+			sb.append(StringPool.SPACE);
+		}
+
+		sb.append(HtmlUtil.escape(getName(locale)));
+
+		return sb.toString();
+	}
+
 	/**
 	 * Returns all child layouts of the current layout, independent of user
 	 * access permissions.
@@ -405,7 +436,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -417,7 +448,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -539,7 +570,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -753,7 +784,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchGroupException, noSuchGroupException);
+				_log.debug(noSuchGroupException);
 			}
 		}
 
@@ -824,9 +855,11 @@ public class LayoutImpl extends LayoutBaseImpl {
 	@Override
 	public UnicodeProperties getTypeSettingsProperties() {
 		if (_typeSettingsUnicodeProperties == null) {
-			_typeSettingsUnicodeProperties = new UnicodeProperties(true);
-
-			_typeSettingsUnicodeProperties.fastLoad(super.getTypeSettings());
+			_typeSettingsUnicodeProperties = UnicodePropertiesBuilder.create(
+				true
+			).fastLoad(
+				super.getTypeSettings()
+			).build();
 		}
 
 		return _typeSettingsUnicodeProperties;
@@ -986,6 +1019,22 @@ public class LayoutImpl extends LayoutBaseImpl {
 		return false;
 	}
 
+	@Override
+	public boolean isDraftLayout() {
+		if (!isTypeAssetDisplay() && !isTypeContent()) {
+			return false;
+		}
+
+		if ((getClassPK() > 0) &&
+			(getClassNameId() == PortalUtil.getClassNameId(
+				Layout.class.getName()))) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * Returns <code>true</code> if the current layout is the first layout in
 	 * its parent's hierarchical list of children layouts.
@@ -1126,6 +1175,24 @@ public class LayoutImpl extends LayoutBaseImpl {
 	@Override
 	public boolean isPublicLayout() {
 		return !isPrivateLayout();
+	}
+
+	@Override
+	public boolean isPublished() {
+		if (!isTypeContent()) {
+			return true;
+		}
+
+		Layout draftLayout = fetchDraftLayout();
+
+		if ((draftLayout == null) ||
+			GetterUtil.getBoolean(
+				draftLayout.getTypeSettingsProperty("published"))) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -1396,9 +1463,11 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 			if (typeSettings != null) {
 				UnicodeProperties typeSettingsUnicodeProperties =
-					new UnicodeProperties(true);
-
-				typeSettingsUnicodeProperties.load(typeSettings);
+					UnicodePropertiesBuilder.create(
+						true
+					).load(
+						typeSettings
+					).build();
 
 				String stateMax = typeSettingsUnicodeProperties.getProperty(
 					LayoutTypePortletConstants.STATE_MAX);
@@ -1428,6 +1497,11 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 		if (getMasterLayoutPlid() <= 0) {
 			return null;
+		}
+
+		if (getMasterLayoutPlid() == getPlid()) {
+			throw new UnsupportedOperationException(
+				"Master page cannot point to itself");
 		}
 
 		_masterLayout = LayoutLocalServiceUtil.fetchLayout(
@@ -1532,9 +1606,9 @@ public class LayoutImpl extends LayoutBaseImpl {
 			(url.startsWith(PortalUtil.getPortalURL(httpServletRequest)) ||
 			 url.startsWith(StringPool.SLASH))) {
 
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
-			url = PortalUtil.getURLWithSessionId(url, session.getId());
+			url = PortalUtil.getURLWithSessionId(url, httpSession.getId());
 		}
 
 		if (!resetMaxState) {
@@ -1542,12 +1616,12 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 
 		if (PropsValues.LAYOUT_DEFAULT_P_L_RESET && !resetRenderParameters) {
-			url = HttpUtil.addParameter(url, "p_l_reset", 0);
+			url = HttpComponentsUtil.addParameter(url, "p_l_reset", 0);
 		}
 		else if (!PropsValues.LAYOUT_DEFAULT_P_L_RESET &&
 				 resetRenderParameters) {
 
-			url = HttpUtil.addParameter(url, "p_l_reset", 1);
+			url = HttpComponentsUtil.addParameter(url, "p_l_reset", 1);
 		}
 
 		return url;

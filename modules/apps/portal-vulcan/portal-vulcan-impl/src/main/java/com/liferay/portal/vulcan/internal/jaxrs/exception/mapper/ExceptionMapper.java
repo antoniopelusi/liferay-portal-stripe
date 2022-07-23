@@ -30,6 +30,22 @@ public class ExceptionMapper extends BaseExceptionMapper<Exception> {
 
 	@Override
 	public Response toResponse(Exception exception) {
+		Class<? extends Exception> exceptionClass = exception.getClass();
+
+		String exceptionClassName = exceptionClass.getSimpleName();
+
+		if (exceptionClassName.startsWith("Duplicate") &&
+			exceptionClassName.endsWith("ExternalReferenceCodeException")) {
+
+			return Response.status(
+				Response.Status.BAD_REQUEST
+			).entity(
+				exception.getMessage()
+			).type(
+				getMediaType()
+			).build();
+		}
+
 		Throwable throwable = exception.getCause();
 
 		if (throwable == null) {
@@ -49,7 +65,7 @@ public class ExceptionMapper extends BaseExceptionMapper<Exception> {
 
 	@Override
 	protected Problem getProblem(Exception exception) {
-		_log.error(exception, exception);
+		_log.error(exception);
 
 		return new Problem(
 			Response.Status.INTERNAL_SERVER_ERROR, exception.getMessage());

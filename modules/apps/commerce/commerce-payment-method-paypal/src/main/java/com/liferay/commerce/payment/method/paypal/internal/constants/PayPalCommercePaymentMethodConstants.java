@@ -14,8 +14,6 @@
 
 package com.liferay.commerce.payment.method.paypal.internal.constants;
 
-import com.paypal.base.Constants;
-
 /**
  * @author Luca Pellizzon
  */
@@ -24,6 +22,8 @@ public class PayPalCommercePaymentMethodConstants {
 	public static final String ACTIVE = "Active";
 
 	public static final String APPROVAL_URL = "approval_url";
+
+	public static final String APPROVE_URL = "approve";
 
 	public static final String AUTHORIZATION_STATE_COMPLETED = "completed";
 
@@ -39,11 +39,17 @@ public class PayPalCommercePaymentMethodConstants {
 
 	public static final String INITIAL_FAIL_AMOUNT_ACTION = "CONTINUE";
 
-	public static final String INTENT_AUTHORIZE = "authorize";
+	public static final String INTENT_AUTHORIZE = "AUTHORIZE";
+
+	public static final String INTENT_CAPTURE = "CAPTURE";
 
 	public static final String INTENT_SALE = "sale";
 
-	public static final String[] MODES = {Constants.LIVE, Constants.SANDBOX};
+	public static final String MODE_LIVE = "live";
+
+	public static final String MODE_SANDBOX = "sandbox";
+
+	public static final String[] MODES = {MODE_LIVE, MODE_SANDBOX};
 
 	public static final String MONTH = "month";
 
@@ -56,6 +62,15 @@ public class PayPalCommercePaymentMethodConstants {
 	public static final String PLAN_FIXED = "FIXED";
 
 	public static final String PLAN_INFINITE = "INFINITE";
+
+	public static final String REQUEST_DETAILS_FULL = "request-details-full";
+
+	public static final String REQUEST_DETAILS_MINIMAL =
+		"request-details-minimal";
+
+	public static final String[] REQUEST_DETAILS_OPTIONS = {
+		REQUEST_DETAILS_FULL, REQUEST_DETAILS_MINIMAL
+	};
 
 	public static final String SERVICE_NAME =
 		"com.liferay.commerce.payment.engine.method.paypal";

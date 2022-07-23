@@ -27,6 +27,10 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 	implements ServiceWrapper<WorkflowMetricsSLADefinitionVersionLocalService>,
 			   WorkflowMetricsSLADefinitionVersionLocalService {
 
+	public WorkflowMetricsSLADefinitionVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WorkflowMetricsSLADefinitionVersionLocalServiceWrapper(
 		WorkflowMetricsSLADefinitionVersionLocalService
 			workflowMetricsSLADefinitionVersionLocalService) {
@@ -148,6 +152,14 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _workflowMetricsSLADefinitionVersionLocalService.dslQuery(
+			dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _workflowMetricsSLADefinitionVersionLocalService.dslQueryCount(
 			dslQuery);
 	}
 

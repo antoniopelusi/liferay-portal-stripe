@@ -14,7 +14,7 @@
 
 package com.liferay.object.service.persistence;
 
-import com.liferay.object.exception.NoSuchLayoutException;
+import com.liferay.object.exception.NoSuchObjectLayoutException;
 import com.liferay.object.model.ObjectLayout;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 
@@ -107,13 +107,13 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object layout
-	 * @throws NoSuchLayoutException if a matching object layout could not be found
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
 	 */
 	public ObjectLayout findByUuid_First(
 			String uuid,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
 				orderByComparator)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	/**
 	 * Returns the first object layout in the ordered set where uuid = &#63;.
@@ -133,13 +133,13 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object layout
-	 * @throws NoSuchLayoutException if a matching object layout could not be found
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
 	 */
 	public ObjectLayout findByUuid_Last(
 			String uuid,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
 				orderByComparator)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	/**
 	 * Returns the last object layout in the ordered set where uuid = &#63;.
@@ -160,13 +160,13 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object layout
-	 * @throws NoSuchLayoutException if a object layout with the primary key could not be found
+	 * @throws NoSuchObjectLayoutException if a object layout with the primary key could not be found
 	 */
 	public ObjectLayout[] findByUuid_PrevAndNext(
 			long objectLayoutId, String uuid,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
 				orderByComparator)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	/**
 	 * Removes all the object layouts where uuid = &#63; from the database.
@@ -256,13 +256,13 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object layout
-	 * @throws NoSuchLayoutException if a matching object layout could not be found
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
 	 */
 	public ObjectLayout findByUuid_C_First(
 			String uuid, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
 				orderByComparator)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	/**
 	 * Returns the first object layout in the ordered set where uuid = &#63; and companyId = &#63;.
@@ -284,13 +284,13 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object layout
-	 * @throws NoSuchLayoutException if a matching object layout could not be found
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
 	 */
 	public ObjectLayout findByUuid_C_Last(
 			String uuid, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
 				orderByComparator)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	/**
 	 * Returns the last object layout in the ordered set where uuid = &#63; and companyId = &#63;.
@@ -313,13 +313,13 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object layout
-	 * @throws NoSuchLayoutException if a object layout with the primary key could not be found
+	 * @throws NoSuchObjectLayoutException if a object layout with the primary key could not be found
 	 */
 	public ObjectLayout[] findByUuid_C_PrevAndNext(
 			long objectLayoutId, String uuid, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
 				orderByComparator)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	/**
 	 * Removes all the object layouts where uuid = &#63; and companyId = &#63; from the database.
@@ -337,6 +337,311 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 * @return the number of matching object layouts
 	 */
 	public int countByUuid_C(String uuid, long companyId);
+
+	/**
+	 * Returns all the object layouts where objectDefinitionId = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @return the matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByObjectDefinitionId(
+		long objectDefinitionId);
+
+	/**
+	 * Returns a range of all the object layouts where objectDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param start the lower bound of the range of object layouts
+	 * @param end the upper bound of the range of object layouts (not inclusive)
+	 * @return the range of matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByObjectDefinitionId(
+		long objectDefinitionId, int start, int end);
+
+	/**
+	 * Returns an ordered range of all the object layouts where objectDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param start the lower bound of the range of object layouts
+	 * @param end the upper bound of the range of object layouts (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByObjectDefinitionId(
+		long objectDefinitionId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator);
+
+	/**
+	 * Returns an ordered range of all the object layouts where objectDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param start the lower bound of the range of object layouts
+	 * @param end the upper bound of the range of object layouts (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByObjectDefinitionId(
+		long objectDefinitionId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator,
+		boolean useFinderCache);
+
+	/**
+	 * Returns the first object layout in the ordered set where objectDefinitionId = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object layout
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
+	 */
+	public ObjectLayout findByObjectDefinitionId_First(
+			long objectDefinitionId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+				orderByComparator)
+		throws NoSuchObjectLayoutException;
+
+	/**
+	 * Returns the first object layout in the ordered set where objectDefinitionId = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object layout, or <code>null</code> if a matching object layout could not be found
+	 */
+	public ObjectLayout fetchByObjectDefinitionId_First(
+		long objectDefinitionId,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator);
+
+	/**
+	 * Returns the last object layout in the ordered set where objectDefinitionId = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object layout
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
+	 */
+	public ObjectLayout findByObjectDefinitionId_Last(
+			long objectDefinitionId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+				orderByComparator)
+		throws NoSuchObjectLayoutException;
+
+	/**
+	 * Returns the last object layout in the ordered set where objectDefinitionId = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object layout, or <code>null</code> if a matching object layout could not be found
+	 */
+	public ObjectLayout fetchByObjectDefinitionId_Last(
+		long objectDefinitionId,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator);
+
+	/**
+	 * Returns the object layouts before and after the current object layout in the ordered set where objectDefinitionId = &#63;.
+	 *
+	 * @param objectLayoutId the primary key of the current object layout
+	 * @param objectDefinitionId the object definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object layout
+	 * @throws NoSuchObjectLayoutException if a object layout with the primary key could not be found
+	 */
+	public ObjectLayout[] findByObjectDefinitionId_PrevAndNext(
+			long objectLayoutId, long objectDefinitionId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+				orderByComparator)
+		throws NoSuchObjectLayoutException;
+
+	/**
+	 * Removes all the object layouts where objectDefinitionId = &#63; from the database.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 */
+	public void removeByObjectDefinitionId(long objectDefinitionId);
+
+	/**
+	 * Returns the number of object layouts where objectDefinitionId = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @return the number of matching object layouts
+	 */
+	public int countByObjectDefinitionId(long objectDefinitionId);
+
+	/**
+	 * Returns all the object layouts where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @return the matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByODI_DOL(
+		long objectDefinitionId, boolean defaultObjectLayout);
+
+	/**
+	 * Returns a range of all the object layouts where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param start the lower bound of the range of object layouts
+	 * @param end the upper bound of the range of object layouts (not inclusive)
+	 * @return the range of matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByODI_DOL(
+		long objectDefinitionId, boolean defaultObjectLayout, int start,
+		int end);
+
+	/**
+	 * Returns an ordered range of all the object layouts where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param start the lower bound of the range of object layouts
+	 * @param end the upper bound of the range of object layouts (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByODI_DOL(
+		long objectDefinitionId, boolean defaultObjectLayout, int start,
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator);
+
+	/**
+	 * Returns an ordered range of all the object layouts where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param start the lower bound of the range of object layouts
+	 * @param end the upper bound of the range of object layouts (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object layouts
+	 */
+	public java.util.List<ObjectLayout> findByODI_DOL(
+		long objectDefinitionId, boolean defaultObjectLayout, int start,
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator,
+		boolean useFinderCache);
+
+	/**
+	 * Returns the first object layout in the ordered set where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object layout
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
+	 */
+	public ObjectLayout findByODI_DOL_First(
+			long objectDefinitionId, boolean defaultObjectLayout,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+				orderByComparator)
+		throws NoSuchObjectLayoutException;
+
+	/**
+	 * Returns the first object layout in the ordered set where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object layout, or <code>null</code> if a matching object layout could not be found
+	 */
+	public ObjectLayout fetchByODI_DOL_First(
+		long objectDefinitionId, boolean defaultObjectLayout,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator);
+
+	/**
+	 * Returns the last object layout in the ordered set where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object layout
+	 * @throws NoSuchObjectLayoutException if a matching object layout could not be found
+	 */
+	public ObjectLayout findByODI_DOL_Last(
+			long objectDefinitionId, boolean defaultObjectLayout,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+				orderByComparator)
+		throws NoSuchObjectLayoutException;
+
+	/**
+	 * Returns the last object layout in the ordered set where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object layout, or <code>null</code> if a matching object layout could not be found
+	 */
+	public ObjectLayout fetchByODI_DOL_Last(
+		long objectDefinitionId, boolean defaultObjectLayout,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+			orderByComparator);
+
+	/**
+	 * Returns the object layouts before and after the current object layout in the ordered set where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * @param objectLayoutId the primary key of the current object layout
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object layout
+	 * @throws NoSuchObjectLayoutException if a object layout with the primary key could not be found
+	 */
+	public ObjectLayout[] findByODI_DOL_PrevAndNext(
+			long objectLayoutId, long objectDefinitionId,
+			boolean defaultObjectLayout,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectLayout>
+				orderByComparator)
+		throws NoSuchObjectLayoutException;
+
+	/**
+	 * Removes all the object layouts where objectDefinitionId = &#63; and defaultObjectLayout = &#63; from the database.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 */
+	public void removeByODI_DOL(
+		long objectDefinitionId, boolean defaultObjectLayout);
+
+	/**
+	 * Returns the number of object layouts where objectDefinitionId = &#63; and defaultObjectLayout = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param defaultObjectLayout the default object layout
+	 * @return the number of matching object layouts
+	 */
+	public int countByODI_DOL(
+		long objectDefinitionId, boolean defaultObjectLayout);
 
 	/**
 	 * Caches the object layout in the entity cache if it is enabled.
@@ -365,22 +670,22 @@ public interface ObjectLayoutPersistence extends BasePersistence<ObjectLayout> {
 	 *
 	 * @param objectLayoutId the primary key of the object layout
 	 * @return the object layout that was removed
-	 * @throws NoSuchLayoutException if a object layout with the primary key could not be found
+	 * @throws NoSuchObjectLayoutException if a object layout with the primary key could not be found
 	 */
 	public ObjectLayout remove(long objectLayoutId)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	public ObjectLayout updateImpl(ObjectLayout objectLayout);
 
 	/**
-	 * Returns the object layout with the primary key or throws a <code>NoSuchLayoutException</code> if it could not be found.
+	 * Returns the object layout with the primary key or throws a <code>NoSuchObjectLayoutException</code> if it could not be found.
 	 *
 	 * @param objectLayoutId the primary key of the object layout
 	 * @return the object layout
-	 * @throws NoSuchLayoutException if a object layout with the primary key could not be found
+	 * @throws NoSuchObjectLayoutException if a object layout with the primary key could not be found
 	 */
 	public ObjectLayout findByPrimaryKey(long objectLayoutId)
-		throws NoSuchLayoutException;
+		throws NoSuchObjectLayoutException;
 
 	/**
 	 * Returns the object layout with the primary key or returns <code>null</code> if it could not be found.

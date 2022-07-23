@@ -27,6 +27,10 @@ public class PushNotificationsDeviceLocalServiceWrapper
 	implements PushNotificationsDeviceLocalService,
 			   ServiceWrapper<PushNotificationsDeviceLocalService> {
 
+	public PushNotificationsDeviceLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PushNotificationsDeviceLocalServiceWrapper(
 		PushNotificationsDeviceLocalService
 			pushNotificationsDeviceLocalService) {
@@ -155,6 +159,13 @@ public class PushNotificationsDeviceLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _pushNotificationsDeviceLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _pushNotificationsDeviceLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -765,9 +765,8 @@ public class StringBundlerTest {
 
 	@Test
 	public void testToStringEmpty() {
-		StringBundler sb = new StringBundler();
-
-		Assert.assertEquals(StringPool.BLANK, sb.toString());
+		Assert.assertEquals(
+			StringPool.BLANK, String.valueOf(new StringBundler()));
 	}
 
 	@NewEnv(type = NewEnv.Type.CLASSLOADER)

@@ -77,12 +77,12 @@ public interface KeywordResource {
 				Long assetLibraryId, String roleNames)
 		throws Exception;
 
-	public void putAssetLibraryKeywordPermission(
+	public Page<Permission> putAssetLibraryKeywordPermissionsPage(
 			Long assetLibraryId, Permission[] permissions)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			putAssetLibraryKeywordPermissionHttpResponse(
+			putAssetLibraryKeywordPermissionsPageHttpResponse(
 				Long assetLibraryId, Permission[] permissions)
 		throws Exception;
 
@@ -124,19 +124,16 @@ public interface KeywordResource {
 			String callbackURL, Object object)
 		throws Exception;
 
-	public Page<Permission> getKeywordPermissionsPage(
-			Long keywordId, String roleNames)
+	public void putKeywordSubscribe(Long keywordId) throws Exception;
+
+	public HttpInvoker.HttpResponse putKeywordSubscribeHttpResponse(
+			Long keywordId)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse getKeywordPermissionsPageHttpResponse(
-			Long keywordId, String roleNames)
-		throws Exception;
+	public void putKeywordUnsubscribe(Long keywordId) throws Exception;
 
-	public void putKeywordPermission(Long keywordId, Permission[] permissions)
-		throws Exception;
-
-	public HttpInvoker.HttpResponse putKeywordPermissionHttpResponse(
-			Long keywordId, Permission[] permissions)
+	public HttpInvoker.HttpResponse putKeywordUnsubscribeHttpResponse(
+			Long keywordId)
 		throws Exception;
 
 	public Page<Keyword> getSiteKeywordsPage(
@@ -172,10 +169,11 @@ public interface KeywordResource {
 			Long siteId, String roleNames)
 		throws Exception;
 
-	public void putSiteKeywordPermission(Long siteId, Permission[] permissions)
+	public Page<Permission> putSiteKeywordPermissionsPage(
+			Long siteId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putSiteKeywordPermissionHttpResponse(
+	public HttpInvoker.HttpResponse putSiteKeywordPermissionsPageHttpResponse(
 			Long siteId, Permission[] permissions)
 		throws Exception;
 
@@ -607,12 +605,12 @@ public interface KeywordResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putAssetLibraryKeywordPermission(
+		public Page<Permission> putAssetLibraryKeywordPermissionsPage(
 				Long assetLibraryId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putAssetLibraryKeywordPermissionHttpResponse(
+				putAssetLibraryKeywordPermissionsPageHttpResponse(
 					assetLibraryId, permissions);
 
 			String content = httpResponse.getContent();
@@ -641,7 +639,7 @@ public interface KeywordResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -653,7 +651,7 @@ public interface KeywordResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putAssetLibraryKeywordPermissionHttpResponse(
+				putAssetLibraryKeywordPermissionsPageHttpResponse(
 					Long assetLibraryId, Permission[] permissions)
 			throws Exception {
 
@@ -912,6 +910,8 @@ public interface KeywordResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -1184,98 +1184,9 @@ public interface KeywordResource {
 			return httpInvoker.invoke();
 		}
 
-		public Page<Permission> getKeywordPermissionsPage(
-				Long keywordId, String roleNames)
-			throws Exception {
-
+		public void putKeywordSubscribe(Long keywordId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse =
-				getKeywordPermissionsPageHttpResponse(keywordId, roleNames);
-
-			String content = httpResponse.getContent();
-
-			if ((httpResponse.getStatusCode() / 100) != 2) {
-				_logger.log(
-					Level.WARNING,
-					"Unable to process HTTP response content: " + content);
-				_logger.log(
-					Level.WARNING,
-					"HTTP response message: " + httpResponse.getMessage());
-				_logger.log(
-					Level.WARNING,
-					"HTTP response status code: " +
-						httpResponse.getStatusCode());
-
-				throw new Problem.ProblemException(Problem.toDTO(content));
-			}
-			else {
-				_logger.fine("HTTP response content: " + content);
-				_logger.fine(
-					"HTTP response message: " + httpResponse.getMessage());
-				_logger.fine(
-					"HTTP response status code: " +
-						httpResponse.getStatusCode());
-			}
-
-			try {
-				return Page.of(content, Permission::toDTO);
-			}
-			catch (Exception e) {
-				_logger.log(
-					Level.WARNING,
-					"Unable to process HTTP response: " + content, e);
-
-				throw new Problem.ProblemException(Problem.toDTO(content));
-			}
-		}
-
-		public HttpInvoker.HttpResponse getKeywordPermissionsPageHttpResponse(
-				Long keywordId, String roleNames)
-			throws Exception {
-
-			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			if (_builder._locale != null) {
-				httpInvoker.header(
-					"Accept-Language", _builder._locale.toLanguageTag());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._headers.entrySet()) {
-
-				httpInvoker.header(entry.getKey(), entry.getValue());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._parameters.entrySet()) {
-
-				httpInvoker.parameter(entry.getKey(), entry.getValue());
-			}
-
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
-
-			if (roleNames != null) {
-				httpInvoker.parameter("roleNames", String.valueOf(roleNames));
-			}
-
-			httpInvoker.path(
-				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
-						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}/permissions");
-
-			httpInvoker.path("keywordId", keywordId);
-
-			httpInvoker.userNameAndPassword(
-				_builder._login + ":" + _builder._password);
-
-			return httpInvoker.invoke();
-		}
-
-		public void putKeywordPermission(
-				Long keywordId, Permission[] permissions)
-			throws Exception {
-
-			HttpInvoker.HttpResponse httpResponse =
-				putKeywordPermissionHttpResponse(keywordId, permissions);
+				putKeywordSubscribeHttpResponse(keywordId);
 
 			String content = httpResponse.getContent();
 
@@ -1314,21 +1225,11 @@ public interface KeywordResource {
 			}
 		}
 
-		public HttpInvoker.HttpResponse putKeywordPermissionHttpResponse(
-				Long keywordId, Permission[] permissions)
+		public HttpInvoker.HttpResponse putKeywordSubscribeHttpResponse(
+				Long keywordId)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(
-				Stream.of(
-					permissions
-				).map(
-					value -> String.valueOf(value)
-				).collect(
-					Collectors.toList()
-				).toString(),
-				"application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -1352,7 +1253,86 @@ public interface KeywordResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}/permissions");
+						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}/subscribe");
+
+			httpInvoker.path("keywordId", keywordId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putKeywordUnsubscribe(Long keywordId) throws Exception {
+			HttpInvoker.HttpResponse httpResponse =
+				putKeywordUnsubscribeHttpResponse(keywordId);
+
+			String content = httpResponse.getContent();
+
+			if ((httpResponse.getStatusCode() / 100) != 2) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response content: " + content);
+				_logger.log(
+					Level.WARNING,
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.log(
+					Level.WARNING,
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+			else {
+				_logger.fine("HTTP response content: " + content);
+				_logger.fine(
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.fine(
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+			}
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse putKeywordUnsubscribeHttpResponse(
+				Long keywordId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}/unsubscribe");
 
 			httpInvoker.path("keywordId", keywordId);
 
@@ -1714,12 +1694,12 @@ public interface KeywordResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putSiteKeywordPermission(
+		public Page<Permission> putSiteKeywordPermissionsPage(
 				Long siteId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putSiteKeywordPermissionHttpResponse(siteId, permissions);
+				putSiteKeywordPermissionsPageHttpResponse(siteId, permissions);
 
 			String content = httpResponse.getContent();
 
@@ -1747,7 +1727,7 @@ public interface KeywordResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -1758,8 +1738,9 @@ public interface KeywordResource {
 			}
 		}
 
-		public HttpInvoker.HttpResponse putSiteKeywordPermissionHttpResponse(
-				Long siteId, Permission[] permissions)
+		public HttpInvoker.HttpResponse
+				putSiteKeywordPermissionsPageHttpResponse(
+					Long siteId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();

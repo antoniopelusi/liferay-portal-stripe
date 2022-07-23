@@ -46,14 +46,16 @@ public class MoneyOrderCommercePaymentMethod implements CommercePaymentMethod {
 		throws Exception {
 
 		return new CommercePaymentResult(
-			null, commercePaymentRequest.getCommerceOrderId(),
+			commercePaymentRequest.getTransactionId(),
+			commercePaymentRequest.getCommerceOrderId(),
 			CommerceOrderConstants.PAYMENT_STATUS_PENDING, false, null, null,
 			Collections.emptyList(), true);
 	}
 
 	@Override
 	public String getDescription(Locale locale) {
-		return null;
+		return LanguageUtil.get(
+			_getResourceBundle(locale), "money-order-description");
 	}
 
 	@Override
@@ -92,7 +94,8 @@ public class MoneyOrderCommercePaymentMethod implements CommercePaymentMethod {
 		throws Exception {
 
 		return new CommercePaymentResult(
-			null, commercePaymentRequest.getCommerceOrderId(),
+			commercePaymentRequest.getTransactionId(),
+			commercePaymentRequest.getCommerceOrderId(),
 			CommerceOrderConstants.PAYMENT_STATUS_AUTHORIZED, false, null, null,
 			Collections.emptyList(), true);
 	}

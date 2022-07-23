@@ -20,141 +20,156 @@ definition {
 		else {
 			WikiPage.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
-	@priority = "4"
-	test AssertNoWikiJavascript {
-		property portal.upstream = "quarantine";
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
-
-		SitePages.addPublicPage(pageName = "AntiSamy Test Page");
-
-		Navigator.gotoPage(pageName = "AntiSamy Test Page");
-
-		Portlet.addPG(portletName = "Wiki");
-
-		var wikiPageContent = '''
-				<p id='demo'>PASS</p>
-
-				<script type='text/javascript'>
-					document.getElementById('demo').innerHTML = 'FAIL';
-				</script>
-			''';
-
-		WikiPage.addFrontPagePG(
-			htmlSource = "true",
-			wikiPageContent = "${wikiPageContent}");
-
-		WikiPage.viewPG(
-			wikiPageContent = "PASS",
-			wikiPageTitle = "FrontPage");
-	}
-
-	@description = "This is a use case for LPS-112581 and LPS-115803"
+	@description = "LPS-112581 TC-4: AntiSamy configuration XML should be configurable through the Portal."
 	@priority = "5"
-	test AssertSpecificRulesWorksForModel {
+	test AntiSamyConfigXMLShouldBeConfigurableInPortal {
 		property antisamy.enabled = "true";
-		property test.name.skip.portal.instance = "AntiSamy#AssertSpecificRulesWorksForModel";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "AntiSamy#AntiSamyConfigXMLShouldBeConfigurableInPortal";
 
-		Pause(locator1 = "5000");
+		task ("Verify that AntiSamy module has been started") {
+			SAMLNavigation.viewConsoleValue(consoleValue = "STARTED com.liferay.portal.security.antisamy");
+		}
 
-		AssertConsoleTextPresent(value1 = "STARTED com.liferay.portal.security.antisamy");
+		task ("Edit the configuration file url of Knowledge Base Article") {
+			SystemSettings.openSystemSettingsAdmin();
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Knowledge Base");
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Security Tools",
+				configurationName = "AntiSamy Sanitizer by Class Name",
+				configurationScope = "System Scope");
 
-		KBArticle.addCP(
-			kbArticleAddViaSource = "true",
-			kbArticleContentSource = '''<p data-test="test">Hello Liferay</p>''',
-			kbArticleTitle = "Test AntiSamy");
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "com.liferay.knowledge.base.model.KBArticle");
 
-		KBAdmin.openKBAdmin(siteURLKey = "guest");
+			SystemSettings.editTextAreaSetting(
+				settingName = "Configuration File URL",
+				settingValue = "/META-INF/knowledge-base-sanitizer-configuration.xml");
 
-		KBArticle.viewCP(
-			kbArticleContent = "Hello Liferay",
-			kbArticleTitle = "Test AntiSamy");
+			SystemSettings.saveConfiguration();
+		}
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Knowledge Base");
-
-		Click(
-			key_rowEntry = "Test AntiSamy",
-			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
-
-		MenuItem.click(menuItem = "Edit");
-
-		Button.clickSaveAsDraft();
-
-		Click(locator1 = "CKEditor#TOOLBAR_SOURCE_BUTTON");
-
-		Click.clickAtNotVisible(locator1 = "CKEditor#BODY_FIELD_SOURCE_ON");
-
-		AssertTextEquals.assertValue(
-			locator1 = "CKEditor#BODY_SOURCE_VALUE",
-			value1 = "<p>Hello Liferay</p>");
-
-		Navigator.openURL();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "Security Tools",
-			configurationName = "AntiSamy Sanitizer by Class Name",
-			configurationScope = "System Scope");
-
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "com.liferay.knowledge.base.model.KBArticle");
-
-		Type(
-			key_label = "Configuration File URL",
-			locator1 = "TextArea#ANY_LABELED",
-			value1 = "/META-INF/knowledge-base-sanitizer-configuration.xml");
-
-		SystemSettings.saveConfiguration();
-
-		AssertElementNotPresent(locator1 = "Message#SUCCESS");
+		task ("Assert that configuration could be changed, but there is no .xml file") {
+			AssertElementNotPresent(locator1 = "Message#SUCCESS");
+		}
 	}
 
+	@description = "LPS-112581 TC-3: Knowledge base specific AntiSamy rule should work and sanitize dynamic parameter from KB article."
+	@priority = "5"
+	test ModelSpecificAntiSamyRulesShouldWorkForModel {
+		property antisamy.enabled = "true";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "AntiSamy#ModelSpecificAntiSamyRulesShouldWorkForModel";
+
+		task ("Verify that AntiSamy module has been started") {
+			SAMLNavigation.viewConsoleValue(consoleValue = "STARTED com.liferay.portal.security.antisamy");
+		}
+
+		task ("Add KB article with dynamic attribute and view it as guest") {
+			KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+			KBArticle.addCP(
+				kbArticleAddViaSource = "true",
+				kbArticleContentSource = '''<p data-test="test">Hello Liferay</p>''',
+				kbArticleTitle = "Test AntiSamy");
+
+			KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+			KBArticle.viewCP(
+				kbArticleContent = "Hello Liferay",
+				kbArticleTitle = "Test AntiSamy");
+		}
+
+		task ("Save KB article as Draft") {
+			KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+			KBArticle.editCP(
+				kbArticleTitle = "Test AntiSamy",
+				saveAsDraft = "true");
+		}
+
+		task ("Assert that dynamic attribute has been sanitized") {
+			CKEditor.assertSourceValue(sourceValue = "<p>Hello Liferay</p>");
+		}
+	}
+
+	@description = "LRQA-42763 TC-1: Javascript injected into Web Content Display page should be sanitized by AntiSamy."
 	@priority = "4"
-	test AssertWebContentJavascript {
-		property portal.upstream = "quarantine";
+	test ScriptInWebContentDisplayPortletShouldBeSanitized {
+		task ("Add public widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Web Content Display Page");
+		}
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
+		task ("Add Web Content Display portlet and insert JS as content") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Web Content Display Page",
+				widgetName = "Web Content Display");
 
-		SitePages.addPublicPage(pageName = "Web Content Display Page");
+			var webContentContent = '''
+					<p id='demo'>FAIL</p>
 
-		Navigator.gotoPage(pageName = "Web Content Display Page");
+					<script type='text/javascript'>
+						document.getElementById('demo').innerHTML = 'PASS';
+					</script>
+				''';
 
-		Portlet.addPG(portletName = "Web Content Display");
+			Navigator.gotoPage(pageName = "Web Content Display Page");
 
-		var webContentContent = '''
-				<p id='demo'>FAIL</p>
+			WebContentDisplayPortlet.add(
+				webContentContent = "${webContentContent}",
+				webContentTitle = "WC WebContent Title");
+		}
 
-				<script type='text/javascript'>
-					document.getElementById('demo').innerHTML = 'PASS';
-				</script>
-			''';
+		task ("Assert that script is sanitized so page content remains unchanged") {
+			WebContentDisplayPortlet.viewContent(
+				webContentContent = "p id='demo'>FAIL</p>",
+				webContentTitle = "WC WebContent Title");
+		}
+	}
 
-		WebContent.addPGViaWCD(
-			webContentContent = "${webContentContent}",
-			webContentTitle = "WC WebContent Title");
+	@description = "LRQA-4988 TC-1: Javascript injected into Wiki portlet should be sanitized by AntiSamy."
+	@priority = "4"
+	test ScriptInWikiPortletShouldBeSanitized {
+		task ("Add public widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "AntiSamy Test Page");
+		}
 
-		WebContent.viewPGViaWCD(
-			webContentContent = "PASS",
-			webContentTitle = "Web Content Title");
+		task ("Add Wiki portlet and insert JS as content") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "AntiSamy Test Page",
+				widgetName = "Wiki");
+
+			var wikiPageContent = '''
+					<p id='demo'>PASS</p>
+
+					<script type='text/javascript'>
+						document.getElementById('demo').innerHTML = 'FAIL';
+					</script>
+				''';
+
+			Navigator.gotoPage(pageName = "AntiSamy Test Page");
+
+			WikiPage.addFrontPagePG(
+				htmlSource = "true",
+				wikiPageContent = "${wikiPageContent}");
+		}
+
+		task ("Assert that script is sanitized so page content remains unchanged") {
+			WikiPage.viewPG(
+				wikiPageContent = "PASS",
+				wikiPageTitle = "FrontPage");
+		}
 	}
 
 }

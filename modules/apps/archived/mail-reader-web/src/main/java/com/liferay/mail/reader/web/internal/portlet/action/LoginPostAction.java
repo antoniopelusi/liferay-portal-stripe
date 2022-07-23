@@ -48,15 +48,14 @@ public class LoginPostAction extends Action {
 		throws ActionException {
 
 		try {
-			initiateSynchronization(httpServletRequest);
+			_initiateSynchronization(httpServletRequest);
 		}
 		catch (Exception exception) {
 			throw new ActionException(exception);
 		}
 	}
 
-	protected void initiateSynchronization(
-			HttpServletRequest httpServletRequest)
+	private void _initiateSynchronization(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
 		long userId = _portal.getUserId(httpServletRequest);

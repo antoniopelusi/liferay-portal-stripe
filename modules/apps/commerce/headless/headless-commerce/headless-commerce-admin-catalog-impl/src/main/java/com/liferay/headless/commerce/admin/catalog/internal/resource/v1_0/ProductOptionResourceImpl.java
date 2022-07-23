@@ -27,6 +27,7 @@ import com.liferay.headless.commerce.admin.catalog.internal.util.v1_0.ProductOpt
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.ProductOptionResource;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -56,6 +57,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	scope = ServiceScope.PROTOTYPE,
 	service = {NestedFieldSupport.class, ProductOptionResource.class}
 )
+@CTAware
 public class ProductOptionResourceImpl
 	extends BaseProductOptionResourceImpl implements NestedFieldSupport {
 
@@ -86,7 +88,7 @@ public class ProductOptionResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with externalReferenceCode: " +
+				"Unable to find product with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -172,7 +174,7 @@ public class ProductOptionResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with externalReferenceCode: " +
+				"Unable to find product with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -202,7 +204,7 @@ public class ProductOptionResourceImpl
 		throws Exception {
 
 		for (ProductOption productOption : productOptions) {
-			ProductOptionUtil.upsertCPDefinitionOptionRel(
+			ProductOptionUtil.addOrUpdateCPDefinitionOptionRel(
 				_cpDefinitionOptionRelService, _cpOptionService, productOption,
 				cpDefinition.getCPDefinitionId(),
 				_serviceContextHelper.getServiceContext(

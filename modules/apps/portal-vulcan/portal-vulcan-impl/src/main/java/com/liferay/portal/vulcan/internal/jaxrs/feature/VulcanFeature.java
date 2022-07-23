@@ -20,6 +20,7 @@ import com.fasterxml.jackson.jaxrs.xml.JacksonXMLProvider;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.util.DLValidator;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
@@ -30,7 +31,6 @@ import com.liferay.portal.odata.filter.ExpressionConvert;
 import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.odata.sort.SortParserProvider;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
-import com.liferay.portal.vulcan.internal.configuration.util.ConfigurationUtil;
 import com.liferay.portal.vulcan.internal.jaxrs.container.request.filter.CTContainerRequestFilter;
 import com.liferay.portal.vulcan.internal.jaxrs.container.request.filter.ContextContainerRequestFilter;
 import com.liferay.portal.vulcan.internal.jaxrs.container.request.filter.LogContainerRequestFilter;
@@ -142,7 +142,7 @@ public class VulcanFeature implements Feature {
 		featureContext.register(new CompanyContextProvider(_portal));
 		featureContext.register(
 			new ContextContainerRequestFilter(
-				ConfigurationUtil.getConfigurations(_configurationAdmin),
+				_configurationAdmin, _expressionConvert, _filterParserProvider,
 				_groupLocalService, _language, _portal,
 				_resourceActionLocalService, _resourcePermissionLocalService,
 				_roleLocalService, _getScopeChecker(),
@@ -152,7 +152,8 @@ public class VulcanFeature implements Feature {
 				_expressionConvert, _filterParserProvider, _language, _portal));
 		featureContext.register(
 			new MultipartBodyMessageBodyReader(
-				_dlValidator.getMaxAllowableSize()));
+				_dlValidator.getMaxAllowableSize(
+					GroupConstants.DEFAULT_PARENT_GROUP_ID, null)));
 
 		_nestedFieldsWriterInterceptor = new NestedFieldsWriterInterceptor(
 			_bundleContext);

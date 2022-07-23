@@ -13,16 +13,19 @@
  */
 
 import deleteItemAction from '../actions/deleteItem';
-import deleteWidgets from '../actions/deleteWidgets';
 import updatePageContents from '../actions/updatePageContents';
 import {LAYOUT_DATA_ITEM_TYPES} from '../config/constants/layoutDataItemTypes';
 import InfoItemService from '../services/InfoItemService';
 import LayoutService from '../services/LayoutService';
 import getFragmentEntryLinkIdsFromItemId from '../utils/getFragmentEntryLinkIdsFromItemId';
 
-export default function deleteItem({itemId, selectItem = () => {}, store}) {
-	return (dispatch) => {
-		const {fragmentEntryLinks, layoutData, segmentsExperienceId} = store;
+export default function deleteItem({itemId, selectItem = () => {}}) {
+	return (dispatch, getState) => {
+		const {
+			fragmentEntryLinks,
+			layoutData,
+			segmentsExperienceId,
+		} = getState();
 
 		return markItemForDeletion({
 			fragmentEntryLinks,
@@ -31,48 +34,27 @@ export default function deleteItem({itemId, selectItem = () => {}, store}) {
 			onNetworkStatus: dispatch,
 			segmentsExperienceId,
 		})
-			.then(
-				({
-					deletedFragmentEntryLinkIds = [],
-					portletIds = [],
+			.then(({portletIds = [], layoutData}) => {
+				selectItem(null);
+
+				const fragmentEntryLinkIds = getFragmentEntryLinkIdsFromItemId({
+					itemId,
 					layoutData,
-				}) => {
-					const deletedWidgets = deletedFragmentEntryLinkIds
-						.map(
-							(fragmentEntryLinkId) =>
-								store.fragmentEntryLinks[fragmentEntryLinkId]
-						)
-						.filter(
-							(fragmentEntryLink) =>
-								fragmentEntryLink.editableValues.portletId
-						);
+				});
 
-					if (deletedWidgets.length) {
-						dispatch(deleteWidgets(deletedWidgets));
-					}
-
-					selectItem(null);
-
-					const fragmentEntryLinkIds = getFragmentEntryLinkIdsFromItemId(
-						{
-							itemId,
-							layoutData,
-						}
-					);
-
-					dispatch(
-						deleteItemAction({
-							fragmentEntryLinkIds,
-							itemId,
-							layoutData,
-							portletIds,
-						})
-					);
-				}
-			)
+				dispatch(
+					deleteItemAction({
+						fragmentEntryLinkIds,
+						itemId,
+						layoutData,
+						portletIds,
+					})
+				);
+			})
 			.then(() => {
 				InfoItemService.getPageContents({
 					onNetworkStatus: dispatch,
+					segmentsExperienceId,
 				}).then((pageContents) => {
 					dispatch(
 						updatePageContents({

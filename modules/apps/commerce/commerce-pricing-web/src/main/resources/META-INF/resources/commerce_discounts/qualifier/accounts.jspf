@@ -1,0 +1,92 @@
+<%--
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+--%>
+
+<c:if test="<%= hasPermission %>">
+	<div id="item-finder-root"></div>
+
+	<aui:script require="commerce-frontend-js/components/item_finder/entry as itemFinder, commerce-frontend-js/utilities/slugify as slugify, commerce-frontend-js/utilities/eventsDefinitions as events, commerce-frontend-js/ServiceProvider/index as ServiceProvider">
+		var CommerceDiscountAccountsResource = ServiceProvider.default.AdminPricingAPI(
+			'v2'
+		);
+
+		var discountExternalReferenceCode =
+			'<%= HtmlUtil.escapeJS(commerceDiscount.getExternalReferenceCode()) %>';
+		var id = <%= commerceDiscountId %>;
+
+		function selectItem(account) {
+			var accountData = {
+				accountExternalReferenceCode: account.externalReferenceCode,
+				accountId: account.id,
+				discountExternalReferenceCode: discountExternalReferenceCode,
+				discountId: id,
+			};
+
+			return CommerceDiscountAccountsResource.addDiscountAccount(id, accountData)
+				.then(() => {
+					Liferay.fire(events.UPDATE_DATASET_DISPLAY, {
+						id:
+							'<%= CommercePricingFDSNames.DISCOUNT_QUALIFIER_ACCOUNTS %>',
+					});
+				})
+				.catch((error) => {
+					return Promise.reject(error);
+				});
+		}
+
+		function getSelectedItems() {
+			return Promise.resolve([]);
+		}
+
+		itemFinder.default('itemFinder', 'item-finder-root', {
+			apiUrl: '/o/headless-commerce-admin-account/v1.0/accounts/',
+			getSelectedItems: getSelectedItems,
+			inputPlaceholder: '<%= LanguageUtil.get(request, "find-an-account") %>',
+			itemCreation: false,
+			itemSelectedMessage: '<%= LanguageUtil.get(request, "account-selected") %>',
+			itemsKey: 'id',
+			linkedDatasetsId: [
+				'<%= CommercePricingFDSNames.DISCOUNT_QUALIFIER_ACCOUNTS %>',
+			],
+			onItemSelected: selectItem,
+			pageSize: 10,
+			panelHeaderLabel: '<%= LanguageUtil.get(request, "add-accounts") %>',
+			portletId: '<%= portletDisplay.getRootPortletId() %>',
+			schema: [
+				{
+					fieldName: 'name',
+				},
+			],
+			spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
+			titleLabel: '<%= LanguageUtil.get(request, "add-existing-account") %>',
+		});
+	</aui:script>
+
+	<commerce-ui:panel
+		bodyClasses="p-0"
+		title='<%= LanguageUtil.get(request, "accounts") %>'
+	>
+		<frontend-data-set:headless-display
+			apiURL="<%= commerceDiscountQualifiersDisplayContext.getDiscountAccountsAPIURL() %>"
+			fdsActionDropdownItems="<%= commerceDiscountQualifiersDisplayContext.getAccountFDSActionDropdownItems() %>"
+			formName="fm"
+			id="<%= CommercePricingFDSNames.DISCOUNT_QUALIFIER_ACCOUNTS %>"
+			itemsPerPage="<%= 10 %>"
+			namespace="<%= liferayPortletResponse.getNamespace() %>"
+			pageNumber="<%= 1 %>"
+			portletURL="<%= portletDiscountRuleURL %>"
+		/>
+	</commerce-ui:panel>
+</c:if>

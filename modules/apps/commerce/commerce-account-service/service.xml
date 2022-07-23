@@ -4,7 +4,7 @@
 <service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce.account">
 	<author>Marco Leo</author>
 	<namespace>Commerce</namespace>
-	<entity external-reference-code="true" local-service="true" name="CommerceAccount" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceAccount" persistence="false" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -43,7 +43,7 @@
 			<order-column name="name" />
 		</order>
 
-		<!-- Finders -->
+		<!-- Finder methods -->
 
 		<finder name="CompanyId" return-type="Collection">
 			<finder-column name="companyId" />
@@ -52,16 +52,8 @@
 			<finder-column name="userId" />
 			<finder-column name="type" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="AccountEntry" package-path="com.liferay.account" />
-		<reference entity="Organization" package-path="com.liferay.portal" />
-		<reference entity="Role" package-path="com.liferay.portal" />
-		<reference entity="UserGroupRole" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceAccountGroup" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceAccountGroup" persistence="false" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -87,9 +79,9 @@
 			<order-column name="name" />
 		</order>
 
-		<!-- Finders -->
+		<!-- Finder methods -->
 
-		<finder name="CommerceAccountGroupIds" return-type="Collection">
+		<finder name="CommerceAccountGroupId" return-type="Collection">
 			<finder-column arrayable-operator="OR" name="commerceAccountGroupId" />
 		</finder>
 		<finder name="CompanyId" return-type="Collection">
@@ -99,13 +91,8 @@
 			<finder-column name="companyId" />
 			<finder-column name="type" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Role" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceAccountGroupCommerceAccountRel" remote-service="true" table="CAccountGroupCAccountRel">
+	<entity external-reference-code="true" local-service="true" name="CommerceAccountGroupCommerceAccountRel" persistence="false" remote-service="true" table="CAccountGroupCAccountRel">
 
 		<!-- PK fields -->
 
@@ -124,7 +111,7 @@
 		<column name="commerceAccountGroupId" type="long" />
 		<column name="commerceAccountId" type="long" />
 
-		<!-- Finders -->
+		<!-- Finder methods -->
 
 		<finder name="CommerceAccountGroupId" return-type="Collection">
 			<finder-column name="commerceAccountGroupId" />
@@ -137,7 +124,7 @@
 			<finder-column name="commerceAccountId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CommerceAccountGroupRel" remote-service="true">
+	<entity local-service="true" name="CommerceAccountGroupRel" persistence="false" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -178,7 +165,7 @@
 			<finder-column name="commerceAccountGroupId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CommerceAccountOrganizationRel" remote-service="true">
+	<entity local-service="true" name="CommerceAccountOrganizationRel" persistence="false" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -199,7 +186,7 @@
 			<order-column name="userId" />
 		</order>
 
-		<!-- Finders -->
+		<!-- Finder methods -->
 
 		<finder name="CommerceAccountId" return-type="Collection">
 			<finder-column name="commerceAccountId" />
@@ -207,12 +194,8 @@
 		<finder name="OrganizationId" return-type="Collection">
 			<finder-column name="organizationId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="AccountEntryOrganizationRel" package-path="com.liferay.account" />
 	</entity>
-	<entity local-service="true" name="CommerceAccountUserRel" remote-service="true">
+	<entity local-service="true" name="CommerceAccountUserRel" persistence="false" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -233,7 +216,7 @@
 			<order-column name="userId" />
 		</order>
 
-		<!-- Finders -->
+		<!-- Finder methods -->
 
 		<finder name="CommerceAccountId" return-type="Collection">
 			<finder-column name="commerceAccountId" />
@@ -241,12 +224,6 @@
 		<finder name="CommerceAccountUserId" return-type="Collection">
 			<finder-column name="commerceAccountUserId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="AccountEntryUserRel" package-path="com.liferay.account" />
-		<reference entity="Role" package-path="com.liferay.portal" />
-		<reference entity="UserGroupRole" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>CommerceAccountGroupName</exception>

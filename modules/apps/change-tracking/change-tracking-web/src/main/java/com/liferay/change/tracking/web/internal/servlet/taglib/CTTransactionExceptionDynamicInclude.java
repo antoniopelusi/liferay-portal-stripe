@@ -21,13 +21,12 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.taglib.BaseDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.taglib.aui.ScriptTag;
 
 import java.io.IOException;
 import java.io.Writer;
 
-import java.util.ResourceBundle;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -84,18 +83,16 @@ public class CTTransactionExceptionDynamicInclude extends BaseDynamicInclude {
 			writer.write(
 				"Liferay.Util.openToast({autoClose: 10000, message: '");
 
-			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-				_portal.getLocale(httpServletRequest),
-				CTTransactionExceptionDynamicInclude.class);
+			Locale locale = _portal.getLocale(httpServletRequest);
 
 			writer.write(
 				_language.get(
-					resourceBundle,
+					locale,
 					"this-action-can-only-be-performed-in-production-mode"));
 
 			writer.write("', title: '");
 
-			writer.write(_language.get(resourceBundle, "error"));
+			writer.write(_language.get(locale, "error"));
 
 			writer.write(":', type: 'danger',});");
 		}

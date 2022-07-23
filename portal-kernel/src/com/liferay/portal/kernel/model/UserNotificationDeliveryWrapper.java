@@ -115,6 +115,11 @@ public class UserNotificationDeliveryWrapper
 		}
 	}
 
+	@Override
+	public UserNotificationDelivery cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this user notification delivery.
 	 *

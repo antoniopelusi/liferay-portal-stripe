@@ -20,11 +20,11 @@ import com.liferay.asset.auto.tagger.model.AssetAutoTaggerEntryTable;
 import com.liferay.asset.auto.tagger.model.impl.AssetAutoTaggerEntryImpl;
 import com.liferay.asset.auto.tagger.model.impl.AssetAutoTaggerEntryModelImpl;
 import com.liferay.asset.auto.tagger.service.persistence.AssetAutoTaggerEntryPersistence;
+import com.liferay.asset.auto.tagger.service.persistence.AssetAutoTaggerEntryUtil;
 import com.liferay.asset.auto.tagger.service.persistence.impl.constants.AssetAutoTaggerPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,19 +35,21 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -60,12 +62,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -1420,6 +1419,8 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			assetAutoTaggerEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the asset auto tagger entries in the entity cache if it is enabled.
 	 *
@@ -1427,6 +1428,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<AssetAutoTaggerEntry> assetAutoTaggerEntries) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (assetAutoTaggerEntries.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (AssetAutoTaggerEntry assetAutoTaggerEntry :
 				assetAutoTaggerEntries) {
 
@@ -1642,25 +1651,25 @@ public class AssetAutoTaggerEntryPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (assetAutoTaggerEntry.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				assetAutoTaggerEntry.setCreateDate(now);
+				assetAutoTaggerEntry.setCreateDate(date);
 			}
 			else {
 				assetAutoTaggerEntry.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!assetAutoTaggerEntryModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				assetAutoTaggerEntry.setModifiedDate(now);
+				assetAutoTaggerEntry.setModifiedDate(date);
 			}
 			else {
 				assetAutoTaggerEntry.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -1827,6 +1836,26 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 			if (assetAutoTaggerEntry != null) {
 				map.put(primaryKey, assetAutoTaggerEntry);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -2091,7 +2120,8 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -2125,7 +2155,6 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -2141,7 +2170,6 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK,
 			Collections.singleton("assetAutoTaggerEntryId"));
@@ -2156,13 +2184,9 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	 * Initializes the asset auto tagger entry persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new AssetAutoTaggerEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -2221,13 +2245,31 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByA_A",
 			new String[] {Long.class.getName(), Long.class.getName()},
 			new String[] {"assetEntryId", "assetTagId"}, false);
+
+		_setAssetAutoTaggerEntryUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(AssetAutoTaggerEntryImpl.class.getName());
+		_setAssetAutoTaggerEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(AssetAutoTaggerEntryImpl.class.getName());
+	}
+
+	private void _setAssetAutoTaggerEntryUtilPersistence(
+		AssetAutoTaggerEntryPersistence assetAutoTaggerEntryPersistence) {
+
+		try {
+			Field field = AssetAutoTaggerEntryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, assetAutoTaggerEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -2255,8 +2297,6 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -2296,116 +2336,8 @@ public class AssetAutoTaggerEntryPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class AssetAutoTaggerEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AssetAutoTaggerEntryModelImpl assetAutoTaggerEntryModelImpl =
-				(AssetAutoTaggerEntryModelImpl)baseModel;
-
-			long columnBitmask =
-				assetAutoTaggerEntryModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					assetAutoTaggerEntryModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						assetAutoTaggerEntryModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					assetAutoTaggerEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AssetAutoTaggerEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AssetAutoTaggerEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AssetAutoTaggerEntryModelImpl assetAutoTaggerEntryModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						assetAutoTaggerEntryModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = assetAutoTaggerEntryModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |=
-				AssetAutoTaggerEntryModelImpl.getColumnBitmask("createDate");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private AssetAutoTaggerEntryModelArgumentsResolver
+		_assetAutoTaggerEntryModelArgumentsResolver;
 
 }

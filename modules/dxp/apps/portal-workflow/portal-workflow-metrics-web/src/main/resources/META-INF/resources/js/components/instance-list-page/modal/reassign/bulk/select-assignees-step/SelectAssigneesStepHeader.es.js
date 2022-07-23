@@ -73,6 +73,10 @@ export default function Header({data}) {
 		[bulkReassign, tasks, setBulkReassign]
 	);
 
+	const handleSubmit = (event) => {
+		event.preventDefault();
+	};
+
 	return (
 		<PromisesResolver.Resolved>
 			<ClayManagementToolbar className="border-bottom mb-0 px-3">
@@ -88,7 +92,8 @@ export default function Header({data}) {
 						/>
 					</ClayManagementToolbar.Item>
 				</ClayManagementToolbar.ItemList>
-				<ClayManagementToolbar.Search>
+
+				<ClayManagementToolbar.Search onSubmit={handleSubmit}>
 					<Autocomplete
 						defaultValue={selectedAssignee?.name || ''}
 						disabled={disableBulk || !useSameAssignee}
@@ -99,11 +104,7 @@ export default function Header({data}) {
 						)}
 					>
 						<ClayInput.GroupInsetItem after tag="span">
-							<ClayIcon
-								className="m-2"
-								displayType="unstyled"
-								symbol="search"
-							/>
+							<ClayIcon className="m-2" symbol="search" />
 						</ClayInput.GroupInsetItem>
 					</Autocomplete>
 				</ClayManagementToolbar.Search>

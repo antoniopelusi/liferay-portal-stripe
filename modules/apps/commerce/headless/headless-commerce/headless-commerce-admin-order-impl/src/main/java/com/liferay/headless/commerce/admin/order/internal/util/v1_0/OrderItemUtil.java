@@ -18,6 +18,7 @@ import com.liferay.commerce.constants.CommerceActionKeys;
 import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderItem;
+import com.liferay.commerce.product.exception.CPInstanceSkuException;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.service.CPInstanceService;
 import com.liferay.commerce.service.CommerceOrderItemService;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.math.BigDecimal;
 
@@ -39,7 +41,7 @@ import java.util.Date;
  */
 public class OrderItemUtil {
 
-	public static CommerceOrderItem upsertCommerceOrderItem(
+	public static CommerceOrderItem addCommerceOrderItem(
 			CPInstanceService cpInstanceService,
 			CommerceOrderItemService commerceOrderItemService,
 			ModelResourcePermission<CommerceOrder>
@@ -62,13 +64,39 @@ public class OrderItemUtil {
 				serviceContext.getCompanyId());
 		}
 
-		CommerceOrderItem commerceOrderItem =
-			commerceOrderItemService.upsertCommerceOrderItem(
+		if (cpInstance == null) {
+			throw new CPInstanceSkuException();
+		}
+
+		CommerceOrderItem commerceOrderItem;
+
+		if (commerceOrder.isOpen()) {
+			commerceOrderItem = commerceOrderItemService.addCommerceOrderItem(
 				commerceOrder.getCommerceOrderId(),
 				cpInstance.getCPInstanceId(), null,
 				GetterUtil.get(orderItem.getQuantity(), 0),
 				GetterUtil.get(orderItem.getShippedQuantity(), 0),
 				commerceContext, serviceContext);
+		}
+		else {
+			BigDecimal decimalQuantity = (BigDecimal)GetterUtil.get(
+				orderItem.getDecimalQuantity(), BigDecimal.ZERO);
+
+			if (decimalQuantity == BigDecimal.ZERO) {
+				decimalQuantity = BigDecimal.valueOf(
+					GetterUtil.get(orderItem.getQuantity(), 0));
+			}
+
+			commerceOrderItem =
+				commerceOrderItemService.importCommerceOrderItem(
+					orderItem.getExternalReferenceCode(), orderItem.getId(),
+					commerceOrder.getCommerceOrderId(),
+					cpInstance.getCPInstanceId(),
+					GetterUtil.getString(orderItem.getUnitOfMeasure()),
+					decimalQuantity, GetterUtil.get(orderItem.getQuantity(), 0),
+					GetterUtil.get(orderItem.getShippedQuantity(), 0),
+					serviceContext);
+		}
 
 		commerceOrderItem =
 			commerceOrderItemService.updateCommerceOrderItemInfo(
@@ -84,6 +112,193 @@ public class OrderItemUtil {
 				commerceOrderItemService.updateCommerceOrderItemDeliveryDate(
 					commerceOrderItem.getCommerceOrderItemId(),
 					requestedDeliveryDate);
+		}
+
+		if (Validator.isNotNull(orderItem.getExternalReferenceCode())) {
+			commerceOrderItemService.updateExternalReferenceCode(
+				commerceOrderItem.getCommerceOrderItemId(),
+				orderItem.getExternalReferenceCode());
+		}
+
+		PortletResourcePermission portletResourcePermission =
+			commerceOrderModelResourcePermission.getPortletResourcePermission();
+
+		if (portletResourcePermission.contains(
+				PermissionThreadLocal.getPermissionChecker(),
+				commerceOrder.getGroupId(),
+				CommerceActionKeys.MANAGE_COMMERCE_ORDER_PRICES)) {
+
+			commerceOrderItem =
+				commerceOrderItemService.updateCommerceOrderItemPrices(
+					commerceOrderItem.getCommerceOrderItemId(),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountAmount(),
+						commerceOrderItem.getDiscountAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountWithTaxAmount(),
+						commerceOrderItem.getDiscountWithTaxAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel1(),
+						commerceOrderItem.getDiscountPercentageLevel1()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel1WithTaxAmount(),
+						commerceOrderItem.
+							getDiscountPercentageLevel1WithTaxAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel2(),
+						commerceOrderItem.getDiscountPercentageLevel2()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel2WithTaxAmount(),
+						commerceOrderItem.
+							getDiscountPercentageLevel2WithTaxAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel3(),
+						commerceOrderItem.getDiscountPercentageLevel3()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel3WithTaxAmount(),
+						commerceOrderItem.
+							getDiscountPercentageLevel3WithTaxAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel4(),
+						commerceOrderItem.getDiscountPercentageLevel4()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getDiscountPercentageLevel4WithTaxAmount(),
+						commerceOrderItem.
+							getDiscountPercentageLevel4WithTaxAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getFinalPrice(),
+						commerceOrderItem.getFinalPrice()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getFinalPriceWithTaxAmount(),
+						commerceOrderItem.getFinalPriceWithTaxAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getPromoPrice(),
+						commerceOrderItem.getPromoPrice()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getPromoPriceWithTaxAmount(),
+						commerceOrderItem.getPromoPriceWithTaxAmount()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getUnitPrice(),
+						commerceOrderItem.getUnitPrice()),
+					(BigDecimal)GetterUtil.get(
+						orderItem.getUnitPriceWithTaxAmount(),
+						commerceOrderItem.getUnitPriceWithTaxAmount()));
+		}
+
+		return commerceOrderItem;
+	}
+
+	public static CommerceOrderItem addOrUpdateCommerceOrderItem(
+			CPInstanceService cpInstanceService,
+			CommerceOrderItemService commerceOrderItemService,
+			ModelResourcePermission<CommerceOrder>
+				commerceOrderModelResourcePermission,
+			OrderItem orderItem, CommerceOrder commerceOrder,
+			CommerceContext commerceContext, ServiceContext serviceContext)
+		throws Exception {
+
+		ExportImportThreadLocal.setPortletImportInProcess(true);
+
+		CPInstance cpInstance = null;
+
+		if (orderItem.getSkuId() != null) {
+			cpInstance = cpInstanceService.getCPInstance(orderItem.getSkuId());
+		}
+
+		if (orderItem.getSkuExternalReferenceCode() != null) {
+			cpInstance = cpInstanceService.fetchByExternalReferenceCode(
+				orderItem.getSkuExternalReferenceCode(),
+				serviceContext.getCompanyId());
+		}
+
+		if (cpInstance == null) {
+			throw new CPInstanceSkuException();
+		}
+
+		BigDecimal decimalQuantity = BigDecimal.ZERO;
+		String deliveryGroup = StringPool.BLANK;
+		String json = null;
+		String printedNote = StringPool.BLANK;
+		int quantity = 0;
+		int shippedQuantity = 0;
+		long shippingAddressId = 0;
+
+		CommerceOrderItem commerceOrderItem =
+			commerceOrderItemService.fetchCommerceOrderItem(
+				GetterUtil.getLong(orderItem.getId()));
+
+		if ((commerceOrderItem == null) &&
+			!Validator.isBlank(orderItem.getExternalReferenceCode())) {
+
+			commerceOrderItem =
+				commerceOrderItemService.fetchByExternalReferenceCode(
+					orderItem.getExternalReferenceCode(),
+					serviceContext.getCompanyId());
+		}
+
+		if (commerceOrderItem != null) {
+			decimalQuantity = commerceOrderItem.getDecimalQuantity();
+			deliveryGroup = commerceOrderItem.getDeliveryGroup();
+			json = commerceOrderItem.getJson();
+			printedNote = commerceOrderItem.getPrintedNote();
+			quantity = commerceOrderItem.getQuantity();
+			shippedQuantity = commerceOrderItem.getShippedQuantity();
+			shippingAddressId = commerceOrderItem.getShippingAddressId();
+		}
+
+		if (commerceOrder.isOpen()) {
+			commerceOrderItem =
+				commerceOrderItemService.addOrUpdateCommerceOrderItem(
+					commerceOrder.getCommerceOrderId(),
+					cpInstance.getCPInstanceId(), json,
+					GetterUtil.get(orderItem.getQuantity(), quantity),
+					GetterUtil.get(
+						orderItem.getShippedQuantity(), shippedQuantity),
+					commerceContext, serviceContext);
+		}
+		else {
+			decimalQuantity = (BigDecimal)GetterUtil.get(
+				orderItem.getDecimalQuantity(), decimalQuantity);
+			quantity = GetterUtil.get(orderItem.getQuantity(), quantity);
+
+			if (decimalQuantity == BigDecimal.ZERO) {
+				decimalQuantity = BigDecimal.valueOf(quantity);
+			}
+
+			commerceOrderItem =
+				commerceOrderItemService.importCommerceOrderItem(
+					orderItem.getExternalReferenceCode(),
+					GetterUtil.getLong(orderItem.getId()),
+					commerceOrder.getCommerceOrderId(),
+					cpInstance.getCPInstanceId(),
+					GetterUtil.getString(orderItem.getUnitOfMeasure()),
+					decimalQuantity, quantity,
+					GetterUtil.get(
+						orderItem.getShippedQuantity(), shippedQuantity),
+					serviceContext);
+		}
+
+		commerceOrderItem =
+			commerceOrderItemService.updateCommerceOrderItemInfo(
+				commerceOrderItem.getCommerceOrderItemId(),
+				GetterUtil.get(
+					orderItem.getShippingAddressId(), shippingAddressId),
+				GetterUtil.get(orderItem.getDeliveryGroup(), deliveryGroup),
+				GetterUtil.get(orderItem.getPrintedNote(), printedNote));
+
+		Date requestedDeliveryDate = orderItem.getRequestedDeliveryDate();
+
+		if (requestedDeliveryDate != null) {
+			commerceOrderItem =
+				commerceOrderItemService.updateCommerceOrderItemDeliveryDate(
+					commerceOrderItem.getCommerceOrderItemId(),
+					requestedDeliveryDate);
+		}
+
+		if (Validator.isNotNull(orderItem.getExternalReferenceCode())) {
+			commerceOrderItemService.updateExternalReferenceCode(
+				commerceOrderItem.getCommerceOrderItemId(),
+				orderItem.getExternalReferenceCode());
 		}
 
 		// Pricing

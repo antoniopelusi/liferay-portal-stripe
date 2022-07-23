@@ -75,7 +75,7 @@ public class EditEntryPortletConfigurationIcon
 
 				return themeDisplay.getURLCurrent();
 			}
-		).build();
+		).buildPortletURL();
 
 		try {
 			AnnouncementsEntry entry = ActionUtil.getEntry(portletRequest);
@@ -85,7 +85,7 @@ public class EditEntryPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;

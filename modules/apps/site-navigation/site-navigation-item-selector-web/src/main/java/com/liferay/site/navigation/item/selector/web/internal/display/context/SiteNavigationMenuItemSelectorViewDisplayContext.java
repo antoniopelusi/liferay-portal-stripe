@@ -28,8 +28,6 @@ import com.liferay.site.navigation.service.SiteNavigationMenuServiceUtil;
 import com.liferay.site.navigation.util.comparator.SiteNavigationMenuCreateDateComparator;
 import com.liferay.site.navigation.util.comparator.SiteNavigationMenuNameComparator;
 
-import java.util.List;
-
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 
@@ -133,15 +131,10 @@ public class SiteNavigationMenuItemSelectorViewDisplayContext {
 				_getPortletRequest(), getPortletURL(), null,
 				"there-are-no-navigation-menus");
 
-		OrderByComparator<SiteNavigationMenu> orderByComparator =
-			_getOrderByComparator(getOrderByCol(), getOrderByType());
-
 		searchContainer.setOrderByCol(getOrderByCol());
-		searchContainer.setOrderByComparator(orderByComparator);
+		searchContainer.setOrderByComparator(
+			_getOrderByComparator(getOrderByCol(), getOrderByType()));
 		searchContainer.setOrderByType(getOrderByType());
-
-		List<SiteNavigationMenu> menus = null;
-		int menusCount = 0;
 
 		long[] groupIds = {themeDisplay.getScopeGroupId()};
 
@@ -152,27 +145,26 @@ public class SiteNavigationMenuItemSelectorViewDisplayContext {
 				groupIds, themeDisplay.getCompanyGroupId());
 		}
 
-		if (Validator.isNotNull(getKeywords())) {
-			menus = SiteNavigationMenuServiceUtil.getSiteNavigationMenus(
-				groupIds, getKeywords(), searchContainer.getStart(),
-				searchContainer.getEnd(), orderByComparator);
+		long[] siteNavigationMenuGroupIds = groupIds;
 
-			menusCount =
+		if (Validator.isNotNull(getKeywords())) {
+			searchContainer.setResultsAndTotal(
+				() -> SiteNavigationMenuServiceUtil.getSiteNavigationMenus(
+					siteNavigationMenuGroupIds, getKeywords(),
+					searchContainer.getStart(), searchContainer.getEnd(),
+					searchContainer.getOrderByComparator()),
 				SiteNavigationMenuServiceUtil.getSiteNavigationMenusCount(
-					groupIds, getKeywords());
+					siteNavigationMenuGroupIds, getKeywords()));
 		}
 		else {
-			menus = SiteNavigationMenuServiceUtil.getSiteNavigationMenus(
-				groupIds, searchContainer.getStart(), searchContainer.getEnd(),
-				orderByComparator);
-
-			menusCount =
+			searchContainer.setResultsAndTotal(
+				() -> SiteNavigationMenuServiceUtil.getSiteNavigationMenus(
+					siteNavigationMenuGroupIds, searchContainer.getStart(),
+					searchContainer.getEnd(),
+					searchContainer.getOrderByComparator()),
 				SiteNavigationMenuServiceUtil.getSiteNavigationMenusCount(
-					groupIds);
+					siteNavigationMenuGroupIds));
 		}
-
-		searchContainer.setResults(menus);
-		searchContainer.setTotal(menusCount);
 
 		_searchContainer = searchContainer;
 

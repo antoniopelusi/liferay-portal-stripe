@@ -14,7 +14,7 @@ import {PropTypes} from 'prop-types';
 import React, {Component} from 'react';
 
 const DEFAULT_DESCRIPTION = Liferay.Language.get(
-	'sorry-there-are-no-results-found'
+	'sorry,-no-results-were-found'
 );
 
 const DEFAULT_TITLE = Liferay.Language.get('no-results-found');

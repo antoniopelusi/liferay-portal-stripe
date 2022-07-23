@@ -23,9 +23,6 @@ import com.liferay.knowledge.base.model.KBComment;
  */
 public class KBCommentImpl extends KBCommentBaseImpl {
 
-	public KBCommentImpl() {
-	}
-
 	@Override
 	public StagedModelType getStagedModelType() {
 		return new StagedModelType(KBComment.class);

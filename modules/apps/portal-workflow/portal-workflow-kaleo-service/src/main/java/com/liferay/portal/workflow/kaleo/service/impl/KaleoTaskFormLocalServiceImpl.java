@@ -47,7 +47,7 @@ public class KaleoTaskFormLocalServiceImpl
 		throws PortalException {
 
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoTaskFormId = counterLocalService.increment();
 
@@ -58,8 +58,8 @@ public class KaleoTaskFormLocalServiceImpl
 		kaleoTaskForm.setCompanyId(user.getCompanyId());
 		kaleoTaskForm.setUserId(user.getUserId());
 		kaleoTaskForm.setUserName(user.getFullName());
-		kaleoTaskForm.setCreateDate(now);
-		kaleoTaskForm.setModifiedDate(now);
+		kaleoTaskForm.setCreateDate(date);
+		kaleoTaskForm.setModifiedDate(date);
 		kaleoTaskForm.setKaleoDefinitionId(kaleoDefinitionId);
 		kaleoTaskForm.setKaleoDefinitionVersionId(kaleoDefinitionVersionId);
 		kaleoTaskForm.setKaleoNodeId(kaleoNodeId);

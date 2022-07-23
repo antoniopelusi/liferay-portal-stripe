@@ -45,6 +45,7 @@ public class CommerceOrderWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("commerceOrderId", getCommerceOrderId());
@@ -56,6 +57,7 @@ public class CommerceOrderWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("commerceAccountId", getCommerceAccountId());
 		attributes.put("commerceCurrencyId", getCommerceCurrencyId());
+		attributes.put("commerceOrderTypeId", getCommerceOrderTypeId());
 		attributes.put("billingAddressId", getBillingAddressId());
 		attributes.put("shippingAddressId", getShippingAddressId());
 		attributes.put(
@@ -67,6 +69,21 @@ public class CommerceOrderWrapper
 		attributes.put("purchaseOrderNumber", getPurchaseOrderNumber());
 		attributes.put("couponCode", getCouponCode());
 		attributes.put("lastPriceUpdateDate", getLastPriceUpdateDate());
+		attributes.put(
+			"deliveryCommerceTermEntryId", getDeliveryCommerceTermEntryId());
+		attributes.put(
+			"deliveryCommerceTermEntryDescription",
+			getDeliveryCommerceTermEntryDescription());
+		attributes.put(
+			"deliveryCommerceTermEntryName",
+			getDeliveryCommerceTermEntryName());
+		attributes.put(
+			"paymentCommerceTermEntryId", getPaymentCommerceTermEntryId());
+		attributes.put(
+			"paymentCommerceTermEntryDescription",
+			getPaymentCommerceTermEntryDescription());
+		attributes.put(
+			"paymentCommerceTermEntryName", getPaymentCommerceTermEntryName());
 		attributes.put("subtotal", getSubtotal());
 		attributes.put("subtotalDiscountAmount", getSubtotalDiscountAmount());
 		attributes.put(
@@ -174,6 +191,12 @@ public class CommerceOrderWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -241,6 +264,12 @@ public class CommerceOrderWrapper
 			setCommerceCurrencyId(commerceCurrencyId);
 		}
 
+		Long commerceOrderTypeId = (Long)attributes.get("commerceOrderTypeId");
+
+		if (commerceOrderTypeId != null) {
+			setCommerceOrderTypeId(commerceOrderTypeId);
+		}
+
 		Long billingAddressId = (Long)attributes.get("billingAddressId");
 
 		if (billingAddressId != null) {
@@ -297,6 +326,50 @@ public class CommerceOrderWrapper
 
 		if (lastPriceUpdateDate != null) {
 			setLastPriceUpdateDate(lastPriceUpdateDate);
+		}
+
+		Long deliveryCommerceTermEntryId = (Long)attributes.get(
+			"deliveryCommerceTermEntryId");
+
+		if (deliveryCommerceTermEntryId != null) {
+			setDeliveryCommerceTermEntryId(deliveryCommerceTermEntryId);
+		}
+
+		String deliveryCommerceTermEntryDescription = (String)attributes.get(
+			"deliveryCommerceTermEntryDescription");
+
+		if (deliveryCommerceTermEntryDescription != null) {
+			setDeliveryCommerceTermEntryDescription(
+				deliveryCommerceTermEntryDescription);
+		}
+
+		String deliveryCommerceTermEntryName = (String)attributes.get(
+			"deliveryCommerceTermEntryName");
+
+		if (deliveryCommerceTermEntryName != null) {
+			setDeliveryCommerceTermEntryName(deliveryCommerceTermEntryName);
+		}
+
+		Long paymentCommerceTermEntryId = (Long)attributes.get(
+			"paymentCommerceTermEntryId");
+
+		if (paymentCommerceTermEntryId != null) {
+			setPaymentCommerceTermEntryId(paymentCommerceTermEntryId);
+		}
+
+		String paymentCommerceTermEntryDescription = (String)attributes.get(
+			"paymentCommerceTermEntryDescription");
+
+		if (paymentCommerceTermEntryDescription != null) {
+			setPaymentCommerceTermEntryDescription(
+				paymentCommerceTermEntryDescription);
+		}
+
+		String paymentCommerceTermEntryName = (String)attributes.get(
+			"paymentCommerceTermEntryName");
+
+		if (paymentCommerceTermEntryName != null) {
+			setPaymentCommerceTermEntryName(paymentCommerceTermEntryName);
 		}
 
 		BigDecimal subtotal = (BigDecimal)attributes.get("subtotal");
@@ -655,6 +728,11 @@ public class CommerceOrderWrapper
 		}
 	}
 
+	@Override
+	public CommerceOrder cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the advance status of this commerce order.
 	 *
@@ -753,6 +831,16 @@ public class CommerceOrderWrapper
 	}
 
 	/**
+	 * Returns the commerce order type ID of this commerce order.
+	 *
+	 * @return the commerce order type ID of this commerce order
+	 */
+	@Override
+	public long getCommerceOrderTypeId() {
+		return model.getCommerceOrderTypeId();
+	}
+
+	/**
 	 * Returns the commerce payment method key of this commerce order.
 	 *
 	 * @return the commerce payment method key of this commerce order
@@ -810,6 +898,36 @@ public class CommerceOrderWrapper
 	}
 
 	/**
+	 * Returns the delivery commerce term entry description of this commerce order.
+	 *
+	 * @return the delivery commerce term entry description of this commerce order
+	 */
+	@Override
+	public String getDeliveryCommerceTermEntryDescription() {
+		return model.getDeliveryCommerceTermEntryDescription();
+	}
+
+	/**
+	 * Returns the delivery commerce term entry ID of this commerce order.
+	 *
+	 * @return the delivery commerce term entry ID of this commerce order
+	 */
+	@Override
+	public long getDeliveryCommerceTermEntryId() {
+		return model.getDeliveryCommerceTermEntryId();
+	}
+
+	/**
+	 * Returns the delivery commerce term entry name of this commerce order.
+	 *
+	 * @return the delivery commerce term entry name of this commerce order
+	 */
+	@Override
+	public String getDeliveryCommerceTermEntryName() {
+		return model.getDeliveryCommerceTermEntryName();
+	}
+
+	/**
 	 * Returns the external reference code of this commerce order.
 	 *
 	 * @return the external reference code of this commerce order
@@ -860,6 +978,16 @@ public class CommerceOrderWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this commerce order.
+	 *
+	 * @return the mvcc version of this commerce order
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the order date of this commerce order.
 	 *
 	 * @return the order date of this commerce order
@@ -877,6 +1005,36 @@ public class CommerceOrderWrapper
 	@Override
 	public int getOrderStatus() {
 		return model.getOrderStatus();
+	}
+
+	/**
+	 * Returns the payment commerce term entry description of this commerce order.
+	 *
+	 * @return the payment commerce term entry description of this commerce order
+	 */
+	@Override
+	public String getPaymentCommerceTermEntryDescription() {
+		return model.getPaymentCommerceTermEntryDescription();
+	}
+
+	/**
+	 * Returns the payment commerce term entry ID of this commerce order.
+	 *
+	 * @return the payment commerce term entry ID of this commerce order
+	 */
+	@Override
+	public long getPaymentCommerceTermEntryId() {
+		return model.getPaymentCommerceTermEntryId();
+	}
+
+	/**
+	 * Returns the payment commerce term entry name of this commerce order.
+	 *
+	 * @return the payment commerce term entry name of this commerce order
+	 */
+	@Override
+	public String getPaymentCommerceTermEntryName() {
+		return model.getPaymentCommerceTermEntryName();
 	}
 
 	/**
@@ -1658,6 +1816,16 @@ public class CommerceOrderWrapper
 	}
 
 	/**
+	 * Sets the commerce order type ID of this commerce order.
+	 *
+	 * @param commerceOrderTypeId the commerce order type ID of this commerce order
+	 */
+	@Override
+	public void setCommerceOrderTypeId(long commerceOrderTypeId) {
+		model.setCommerceOrderTypeId(commerceOrderTypeId);
+	}
+
+	/**
 	 * Sets the commerce payment method key of this commerce order.
 	 *
 	 * @param commercePaymentMethodKey the commerce payment method key of this commerce order
@@ -1705,6 +1873,43 @@ public class CommerceOrderWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the delivery commerce term entry description of this commerce order.
+	 *
+	 * @param deliveryCommerceTermEntryDescription the delivery commerce term entry description of this commerce order
+	 */
+	@Override
+	public void setDeliveryCommerceTermEntryDescription(
+		String deliveryCommerceTermEntryDescription) {
+
+		model.setDeliveryCommerceTermEntryDescription(
+			deliveryCommerceTermEntryDescription);
+	}
+
+	/**
+	 * Sets the delivery commerce term entry ID of this commerce order.
+	 *
+	 * @param deliveryCommerceTermEntryId the delivery commerce term entry ID of this commerce order
+	 */
+	@Override
+	public void setDeliveryCommerceTermEntryId(
+		long deliveryCommerceTermEntryId) {
+
+		model.setDeliveryCommerceTermEntryId(deliveryCommerceTermEntryId);
+	}
+
+	/**
+	 * Sets the delivery commerce term entry name of this commerce order.
+	 *
+	 * @param deliveryCommerceTermEntryName the delivery commerce term entry name of this commerce order
+	 */
+	@Override
+	public void setDeliveryCommerceTermEntryName(
+		String deliveryCommerceTermEntryName) {
+
+		model.setDeliveryCommerceTermEntryName(deliveryCommerceTermEntryName);
 	}
 
 	/**
@@ -1758,6 +1963,16 @@ public class CommerceOrderWrapper
 	}
 
 	/**
+	 * Sets the mvcc version of this commerce order.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce order
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
+	}
+
+	/**
 	 * Sets the order date of this commerce order.
 	 *
 	 * @param orderDate the order date of this commerce order
@@ -1775,6 +1990,41 @@ public class CommerceOrderWrapper
 	@Override
 	public void setOrderStatus(int orderStatus) {
 		model.setOrderStatus(orderStatus);
+	}
+
+	/**
+	 * Sets the payment commerce term entry description of this commerce order.
+	 *
+	 * @param paymentCommerceTermEntryDescription the payment commerce term entry description of this commerce order
+	 */
+	@Override
+	public void setPaymentCommerceTermEntryDescription(
+		String paymentCommerceTermEntryDescription) {
+
+		model.setPaymentCommerceTermEntryDescription(
+			paymentCommerceTermEntryDescription);
+	}
+
+	/**
+	 * Sets the payment commerce term entry ID of this commerce order.
+	 *
+	 * @param paymentCommerceTermEntryId the payment commerce term entry ID of this commerce order
+	 */
+	@Override
+	public void setPaymentCommerceTermEntryId(long paymentCommerceTermEntryId) {
+		model.setPaymentCommerceTermEntryId(paymentCommerceTermEntryId);
+	}
+
+	/**
+	 * Sets the payment commerce term entry name of this commerce order.
+	 *
+	 * @param paymentCommerceTermEntryName the payment commerce term entry name of this commerce order
+	 */
+	@Override
+	public void setPaymentCommerceTermEntryName(
+		String paymentCommerceTermEntryName) {
+
+		model.setPaymentCommerceTermEntryName(paymentCommerceTermEntryName);
 	}
 
 	/**

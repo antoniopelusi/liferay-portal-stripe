@@ -146,14 +146,9 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 					continue;
 				}
 
-				StringBundler sb = new StringBundler(4);
-
-				sb.append(_WORK_DIR);
-				sb.append(bundle.getSymbolicName());
-				sb.append(StringPool.DASH);
-				sb.append(bundle.getVersion());
-
-				String scratchDir = sb.toString();
+				String scratchDir = StringBundler.concat(
+					_WORK_DIR, bundle.getSymbolicName(), StringPool.DASH,
+					bundle.getVersion());
 
 				if (PropsValues.WORK_DIR_OVERRIDE_ENABLED &&
 					_log.isInfoEnabled()) {

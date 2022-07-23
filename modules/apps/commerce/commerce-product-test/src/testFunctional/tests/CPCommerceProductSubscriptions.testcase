@@ -1,47 +1,26 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
-
-		CommerceConfiguration.commerceStoreFrontSetUp();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		CommerceConfiguration.commerceSetUp(storeFront = "true");
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-
-			User.logoutPG();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "This is a test for COMMERCE-6085. UseSubscriptions"
 	@priority = "3"
 	test UseSubscriptions {
-		property portal.acceptance = "false";
-		property test.name.skip.portal.instance = "CPCommerceProductSubscriptions#UseSubscriptions";
+		property portal.acceptance = "true";
+
+		// TODO Review
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",

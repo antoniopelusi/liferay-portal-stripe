@@ -13,6 +13,7 @@
  */
 
 export const OPERATOR_OPTIONS_TYPES = {
+	boolean: 'boolean',
 	double: 'number',
 	integer: 'number',
 	text: 'text',
@@ -20,6 +21,7 @@ export const OPERATOR_OPTIONS_TYPES = {
 };
 
 export const RIGHT_TYPES = {
+	checkbox: 'checkbox',
 	checkbox_multiple: 'option',
 	grid: 'json',
 	radio: 'option',
@@ -27,24 +29,13 @@ export const RIGHT_TYPES = {
 };
 
 export const RIGHT_OPERAND_TYPES = {
+	checkbox: 'select',
 	checkbox_multiple: 'select',
 	field: 'select',
 	grid: 'grid',
 	radio: 'select',
 	select: 'select',
 };
-
-export const BINARY_OPERATOR = [
-	'belongs-to',
-	'contains',
-	'equals-to',
-	'greater-than-equals',
-	'greater-than',
-	'less-than-equals',
-	'less-than',
-	'not-contains',
-	'not-equals-to',
-];
 
 export const DEFAULT_RULE = {
 	actions: [
@@ -73,7 +64,7 @@ export const ACTION_TARGET_SHAPE = {
 		inputs: {},
 		outputs: {},
 	},
-	calculate: {
+	'calculate': {
 		expression: '',
 	},
 };

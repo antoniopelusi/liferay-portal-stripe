@@ -23,12 +23,11 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.constants.SegmentsPortletKeys;
 import com.liferay.segments.criteria.Criteria;
@@ -98,7 +97,7 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 			boolean dynamic = ParamUtil.getBoolean(
 				actionRequest, "dynamic", true);
 
-			validateCriteria(criteria, dynamic);
+			_validateCriteria(criteria, dynamic);
 
 			if (segmentsEntryId <= 0) {
 				long groupId = ParamUtil.getLong(actionRequest, "groupId");
@@ -122,7 +121,7 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 
 			if (Validator.isNotNull(redirect)) {
-				redirect = _http.setParameter(
+				redirect = HttpComponentsUtil.setParameter(
 					redirect, "segmentsEntryId",
 					segmentsEntry.getSegmentsEntryId());
 			}
@@ -131,7 +130,7 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 				actionRequest, "saveAndContinue", false);
 
 			if (saveAndContinue) {
-				redirect = getSaveAndContinueRedirect(
+				redirect = _getSaveAndContinueRedirect(
 					actionRequest, segmentsEntry, redirect);
 			}
 
@@ -161,7 +160,7 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected String getSaveAndContinueRedirect(
+	private String _getSaveAndContinueRedirect(
 			ActionRequest actionRequest, SegmentsEntry segmentsEntry,
 			String redirect)
 		throws Exception {
@@ -187,19 +186,13 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 		return portletURL.toString();
 	}
 
-	protected void validateCriteria(Criteria criteria, boolean dynamic)
+	private void _validateCriteria(Criteria criteria, boolean dynamic)
 		throws SegmentsEntryCriteriaException {
 
 		if (dynamic && MapUtil.isEmpty(criteria.getCriteria())) {
 			throw new SegmentsEntryCriteriaException();
 		}
 	}
-
-	@Reference
-	private Http _http;
-
-	@Reference
-	private Portal _portal;
 
 	@Reference
 	private SegmentsCriteriaContributorRegistry

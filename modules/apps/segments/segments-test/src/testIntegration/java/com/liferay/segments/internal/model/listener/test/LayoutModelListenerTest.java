@@ -25,6 +25,8 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.segments.constants.SegmentsEntryConstants;
@@ -62,11 +64,13 @@ public class LayoutModelListenerTest {
 	public void testRelatedSegmentsExperiencesAreRemovedAfterRemovingLayout()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addLayout(_group);
+		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		_segmentsExperienceLocalService.addSegmentsExperience(
+			TestPropsValues.getUserId(), _group.getGroupId(),
 			SegmentsEntryConstants.ID_DEFAULT, _classNameId, layout.getPlid(),
 			RandomTestUtil.randomLocaleStringMap(), true,
+			new UnicodeProperties(true),
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		_layoutLocalService.deleteLayout(layout);

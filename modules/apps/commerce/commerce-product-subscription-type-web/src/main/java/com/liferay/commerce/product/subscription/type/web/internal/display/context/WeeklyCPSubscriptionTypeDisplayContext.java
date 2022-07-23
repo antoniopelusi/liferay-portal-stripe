@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.product.subscription.type.web.internal.display.context;
 
-import com.liferay.commerce.product.subscription.type.web.internal.display.context.util.CPSubscriptionTypeRequestHelper;
+import com.liferay.commerce.product.subscription.type.web.internal.display.context.helper.CPSubscriptionTypeRequestHelper;
 import com.liferay.commerce.product.subscription.type.web.internal.display.context.util.comparator.WeeklyCPSubscriptionTypeCalendarWeekDaysComparator;
 import com.liferay.commerce.util.CommerceSubscriptionTypeUtil;
 import com.liferay.petra.string.StringPool;
@@ -48,7 +48,7 @@ public class WeeklyCPSubscriptionTypeDisplayContext {
 		List<Integer> calendarWeekDays = new ArrayList<>();
 
 		Map<String, Integer> calendarWeekDaysDisplayNames =
-			getCalendarWeekDaysDisplayNames();
+			_getCalendarWeekDaysDisplayNames();
 
 		for (Map.Entry<String, Integer> entry :
 				calendarWeekDaysDisplayNames.entrySet()) {
@@ -84,7 +84,7 @@ public class WeeklyCPSubscriptionTypeDisplayContext {
 
 	public String getWeekDayDisplayName(int weekDay) {
 		Map<String, Integer> calendarWeekDaysDisplayNames =
-			getCalendarWeekDaysDisplayNames();
+			_getCalendarWeekDaysDisplayNames();
 
 		for (Map.Entry<String, Integer> entry :
 				calendarWeekDaysDisplayNames.entrySet()) {
@@ -101,7 +101,7 @@ public class WeeklyCPSubscriptionTypeDisplayContext {
 		return _payment;
 	}
 
-	protected Map<String, Integer> getCalendarWeekDaysDisplayNames() {
+	private Map<String, Integer> _getCalendarWeekDaysDisplayNames() {
 		Calendar calendar = CalendarFactoryUtil.getCalendar(
 			_cpSubscriptionTypeRequestHelper.getLocale());
 

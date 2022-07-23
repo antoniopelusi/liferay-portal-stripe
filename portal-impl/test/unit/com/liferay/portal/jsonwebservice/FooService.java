@@ -17,14 +17,15 @@ package com.liferay.portal.jsonwebservice;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -73,6 +74,10 @@ public class FooService {
 		return sb.toString();
 	}
 
+	public static String date(Date date) {
+		return date.toString();
+	}
+
 	public static FooData getFooData(int id) {
 		FooData fooData = new FooDataImpl();
 
@@ -108,13 +113,7 @@ public class FooService {
 	}
 
 	public static List<FooData> getFooDatas() {
-		List<FooData> fooDataList = new ArrayList<>();
-
-		fooDataList.add(getFooData(1));
-		fooDataList.add(getFooData(2));
-		fooDataList.add(getFooData(3));
-
-		return fooDataList;
+		return ListUtil.fromArray(getFooData(1), getFooData(2), getFooData(3));
 	}
 
 	public static FooData[] getFooDatas2() {

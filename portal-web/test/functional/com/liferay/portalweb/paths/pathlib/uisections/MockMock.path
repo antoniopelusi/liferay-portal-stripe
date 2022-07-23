@@ -2,11 +2,13 @@
 <head>
 <title>MockMock</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">MockMock</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>MOCKMOCK_HEADER_LINK</td>
@@ -16,6 +18,11 @@
 <tr>
 	<td>MOCKMOCK_HOME_LINK</td>
 	<td>//a[contains(.,'Home')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MOCKMOCK_NO_EMAIL_IN_QUEUE</td>
+	<td>//h2[contains(.,'No emails in queue')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,8 +66,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MOCKMOCK_HTML_BODY_FORMATTED_FIELD</td>
+	<td>//div[@name='bodyHTML_Formatted']//div[contains(@class,'well')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MOCKMOCK_HTML_BODY_LINK</td>
 	<td>//div[@name='bodyHTML_Formatted']//a[contains(.,'${key_bodyLink}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MOCKMOCK_HTML_BODY_UNFORMATTED_FIELD</td>
+	<td>//div[@name='bodyHTML_Unformatted']//div[contains(@class,'well')]</td>
 	<td></td>
 </tr>
 </tbody>

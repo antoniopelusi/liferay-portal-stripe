@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTag;
 
@@ -136,6 +137,11 @@ public class SearchContainerRowTag<R>
 		_resultRows = _searchContainer.getResultRows();
 
 		_results = _searchContainer.getResults();
+
+		HttpServletRequest httpServletRequest = getRequest();
+
+		httpServletRequest.setAttribute(
+			"liferay-ui:search-container-row:cssClass", _cssClass);
 
 		if ((_results != null) && !_results.isEmpty()) {
 			processRow();
@@ -331,6 +337,12 @@ public class SearchContainerRowTag<R>
 					FriendlyURLNormalizerUtil.normalizeWithPeriodsAndSlashes(
 						String.valueOf(rowIdObject));
 			}
+
+			HttpServletRequest httpServletRequest = getRequest();
+
+			httpServletRequest.setAttribute(
+				"liferay-ui:search-container-row:rowIdProperty",
+				_rowIdProperty);
 		}
 
 		_resultRow = new com.liferay.taglib.search.ResultRow(

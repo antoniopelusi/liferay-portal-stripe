@@ -152,4 +152,7 @@ public interface DepotAppCustomizationModel
 	 */
 	public void setPortletId(String portletId);
 
+	@Override
+	public DepotAppCustomization cloneWithOriginalValues();
+
 }

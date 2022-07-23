@@ -62,7 +62,7 @@ public class CPCompareHelperImpl implements CPCompareHelper {
 			}
 			catch (PortalException portalException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(portalException, portalException);
+					_log.warn(portalException);
 				}
 
 				continue;
@@ -76,6 +76,7 @@ public class CPCompareHelperImpl implements CPCompareHelper {
 		return cpCatalogEntries;
 	}
 
+	@Override
 	public List<Long> getCPDefinitionIds(
 		long groupId, long commerceAccountId,
 		String cpDefinitionIdsCookieValue) {
@@ -99,7 +100,7 @@ public class CPCompareHelperImpl implements CPCompareHelper {
 			}
 			catch (PortalException portalException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(portalException, portalException);
+					_log.warn(portalException);
 				}
 
 				continue;

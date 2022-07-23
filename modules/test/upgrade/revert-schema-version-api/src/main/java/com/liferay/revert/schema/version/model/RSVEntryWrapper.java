@@ -69,6 +69,11 @@ public class RSVEntryWrapper
 		}
 	}
 
+	@Override
+	public RSVEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this rsv entry.
 	 *

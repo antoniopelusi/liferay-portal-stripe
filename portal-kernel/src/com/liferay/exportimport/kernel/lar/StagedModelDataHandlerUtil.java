@@ -80,6 +80,14 @@ public class StagedModelDataHandlerUtil {
 		Portlet referrerPortlet = PortletLocalServiceUtil.getPortletById(
 			referrerPortletId);
 
+		if (!ExportImportHelperUtil.isPublishDisplayedContent(
+				portletDataContext, referrerPortlet)) {
+
+			return portletDataContext.addReferenceElement(
+				referrerPortlet, portletDataContext.getExportDataRootElement(),
+				stagedModel, PortletDataContext.REFERENCE_TYPE_WEAK, true);
+		}
+
 		if (!ExportImportHelperUtil.isAlwaysIncludeReference(
 				portletDataContext, stagedModel) ||
 			!ExportImportHelperUtil.isReferenceWithinExportScope(
@@ -501,7 +509,7 @@ public class StagedModelDataHandlerUtil {
 					}
 					catch (Exception exception) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(exception, exception);
+							_log.debug(exception);
 						}
 					}
 				}
@@ -551,7 +559,7 @@ public class StagedModelDataHandlerUtil {
 		}
 		catch (XMLStreamException xmlStreamException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(xmlStreamException, xmlStreamException);
+				_log.debug(xmlStreamException);
 			}
 		}
 

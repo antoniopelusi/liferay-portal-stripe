@@ -20,6 +20,8 @@ import {Treeview} from 'frontend-js-components-web';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
+import {SelectLayoutTree} from './SelectLayoutTree.es';
+
 function visit(nodes, callback) {
 	nodes.forEach((node) => {
 		callback(node);
@@ -30,25 +32,14 @@ function visit(nodes, callback) {
 	});
 }
 
-/**
- * SelectLayout
- *
- * This component shows a list of available layouts to select in expanded tree
- * and allows to filter them by searching.
- *
- * @review
- */
-
-const SelectLayout = ({
+const OldSelectLayoutTree = ({
+	filter,
 	followURLOnTitleClick,
 	itemSelectorSaveEvent,
+	items,
 	multiSelection,
-	namespace,
-	nodes,
 	selectedLayoutIds,
 }) => {
-	const [filter, setFilter] = useState();
-
 	const handleSelectionChange = (selectedNodeIds) => {
 		if (!selectedNodeIds.size) {
 			return;
@@ -56,7 +47,7 @@ const SelectLayout = ({
 
 		let data = [];
 
-		visit(nodes, (node) => {
+		visit(items, (node) => {
 			if (selectedNodeIds.has(node.id)) {
 				data.push({
 					groupId: node.groupId,
@@ -64,8 +55,9 @@ const SelectLayout = ({
 					layoutId: node.layoutId,
 					name: node.value,
 					privateLayout: node.privateLayout,
+					returnType: node.returnType,
 					title: node.name,
-					value: node.url,
+					value: node.payload,
 				});
 			}
 		});
@@ -87,6 +79,41 @@ const SelectLayout = ({
 			});
 		}
 	};
+
+	return (
+		<Treeview
+			NodeComponent={Treeview.Card}
+			filter={filter}
+			initialSelectedNodeIds={selectedLayoutIds}
+			multiSelection={multiSelection}
+			nodes={items}
+			onSelectedNodesChange={handleSelectionChange}
+		/>
+	);
+};
+
+const Tree = Liferay.__FF__.enableClayTreeView
+	? SelectLayoutTree
+	: OldSelectLayoutTree;
+
+/**
+ * SelectLayout
+ *
+ * This component shows a list of available layouts to select in expanded tree
+ * and allows to filter them by searching.
+ *
+ * @review
+ */
+
+const SelectLayout = ({
+	followURLOnTitleClick,
+	itemSelectorSaveEvent,
+	multiSelection,
+	namespace,
+	nodes,
+	selectedLayoutIds,
+}) => {
+	const [filter, setFilter] = useState();
 
 	const empty = nodes.length === 0;
 
@@ -110,6 +137,7 @@ const SelectLayout = ({
 								placeholder={Liferay.Language.get('search-for')}
 								type="text"
 							/>
+
 							<ClayInput.GroupInsetItem after tag="span">
 								<ClayButtonWithIcon
 									className="navbar-breakpoint-d-none"
@@ -117,6 +145,7 @@ const SelectLayout = ({
 									displayType="unstyled"
 									symbol="times"
 								/>
+
 								<ClayButtonWithIcon
 									className="navbar-breakpoint-d-block"
 									disabled={empty}
@@ -128,6 +157,7 @@ const SelectLayout = ({
 					</ClayInput.Group>
 				</ClayManagementToolbar.Search>
 			</ClayManagementToolbar>
+
 			<ClayLayout.ContainerFluid
 				className="layouts-selector"
 				id={`${namespace}selectLayoutFm`}
@@ -140,13 +170,13 @@ const SelectLayout = ({
 							className="layout-tree"
 							id={`${namespace}layoutContainer`}
 						>
-							<Treeview
-								NodeComponent={Treeview.Card}
+							<Tree
 								filter={filter}
-								initialSelectedNodeIds={selectedLayoutIds}
+								followURLOnTitleClick={followURLOnTitleClick}
+								itemSelectorSaveEvent={itemSelectorSaveEvent}
+								items={nodes}
 								multiSelection={multiSelection}
-								nodes={nodes}
-								onSelectedNodesChange={handleSelectionChange}
+								selectedLayoutIds={selectedLayoutIds}
 							/>
 						</div>
 					)}

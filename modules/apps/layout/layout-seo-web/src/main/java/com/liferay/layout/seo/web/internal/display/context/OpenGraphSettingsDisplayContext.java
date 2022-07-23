@@ -85,7 +85,7 @@ public class OpenGraphSettingsDisplayContext {
 	}
 
 	public LayoutSEOSite getLayoutSEOSite() {
-		Group group = _getGroup();
+		Group group = _themeDisplay.getScopeGroup();
 
 		return _layoutSEOSiteLocalService.fetchLayoutSEOSiteByGroupId(
 			group.getGroupId());
@@ -119,7 +119,7 @@ public class OpenGraphSettingsDisplayContext {
 			return fileEntry.getTitle();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return StringPool.BLANK;
 		}
@@ -143,22 +143,15 @@ public class OpenGraphSettingsDisplayContext {
 			return _dlurlHelper.getImagePreviewURL(fileEntry, _themeDisplay);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return StringPool.BLANK;
 		}
 	}
 
 	public boolean isOpenGraphEnabled() throws PortalException {
-		return _openGraphConfiguration.isOpenGraphEnabled(_getGroup());
-	}
-
-	private Group _getGroup() {
-		return Optional.ofNullable(
-			(Group)_httpServletRequest.getAttribute("site.liveGroup")
-		).orElseGet(
-			() -> (Group)_httpServletRequest.getAttribute("site.group")
-		);
+		return _openGraphConfiguration.isOpenGraphEnabled(
+			_themeDisplay.getScopeGroup());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

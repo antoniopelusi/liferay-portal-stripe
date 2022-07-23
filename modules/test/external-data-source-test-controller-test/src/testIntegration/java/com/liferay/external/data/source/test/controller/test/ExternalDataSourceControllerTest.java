@@ -16,32 +16,23 @@ package com.liferay.external.data.source.test.controller.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
-import com.liferay.portal.kernel.dao.db.DBType;
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncPrintWriter;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.AssumeTestRule;
+import com.liferay.portal.kernel.test.util.PropsValuesTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.InputStream;
 
-import java.net.URL;
-
-import java.sql.Connection;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
@@ -52,7 +43,6 @@ import java.util.zip.ZipEntry;
 import org.hsqldb.jdbc.JDBCDriver;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -75,14 +65,7 @@ public class ExternalDataSourceControllerTest {
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new AggregateTestRule(
-			new AssumeTestRule("assume"), new LiferayIntegrationTestRule());
-
-	public static void assume() {
-		DB db = DBManagerUtil.getDB();
-
-		Assume.assumeTrue(DBType.HYPERSONIC.equals(db.getDBType()));
-	}
+		new LiferayIntegrationTestRule();
 
 	@Before
 	public void setUp() throws Exception {
@@ -101,24 +84,14 @@ public class ExternalDataSourceControllerTest {
 			"/com.liferay.external.data.source.test.api.jar");
 		_serviceBundle = _installServiceBundle();
 
-		DB db = DBManagerUtil.getDB(DBType.HYPERSONIC, null);
-
-		Properties properties = new Properties();
-
-		properties.put("password", "");
-		properties.put("user", "sa");
-
-		URL resource = _serviceBundle.getResource("/META-INF/sql/tables.sql");
-
-		try (Connection con = JDBCDriver.getConnection(_JDBC_URL, properties);
-			InputStream is = resource.openStream()) {
-
-			db.runSQL(con, StringUtil.read(is));
-		}
-
 		_apiBundle.start();
 
-		_serviceBundle.start();
+		try (SafeCloseable safeCloseable =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"UPGRADE_DATABASE_AUTO_RUN", true)) {
+
+			_serviceBundle.start();
+		}
 	}
 
 	@After
@@ -128,12 +101,6 @@ public class ExternalDataSourceControllerTest {
 		_apiBundle.uninstall();
 
 		FileUtil.deltree(_HYPERSONIC_TEMP_DIR_NAME);
-
-		DB portalDB = DBManagerUtil.getDB();
-
-		try (Connection con = DataAccess.getConnection()) {
-			portalDB.runSQL(con, "drop table TestEntity");
-		}
 	}
 
 	@Test
@@ -174,10 +141,10 @@ public class ExternalDataSourceControllerTest {
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream();
 
-		try (InputStream is =
+		try (InputStream inputStream =
 				ExternalDataSourceControllerTest.class.getResourceAsStream(
 					path);
-			JarInputStream jarInputStream = new JarInputStream(is);
+			JarInputStream jarInputStream = new JarInputStream(inputStream);
 			JarOutputStream jarOutputStream = new JarOutputStream(
 				unsyncByteArrayOutputStream)) {
 
@@ -201,7 +168,7 @@ public class ExternalDataSourceControllerTest {
 				jarOutputStream.closeEntry();
 			}
 
-			try (InputStream extSpringInputSteam =
+			try (InputStream extSpringInputStream =
 					ExternalDataSourceControllerTest.class.getResourceAsStream(
 						getResourceSource())) {
 
@@ -209,7 +176,7 @@ public class ExternalDataSourceControllerTest {
 					new JarEntry(getResourceDestination()));
 
 				StreamUtil.transfer(
-					extSpringInputSteam, jarOutputStream, false);
+					extSpringInputStream, jarOutputStream, false);
 
 				jarOutputStream.closeEntry();
 			}
@@ -219,11 +186,11 @@ public class ExternalDataSourceControllerTest {
 	}
 
 	private Bundle _installBundle(String path) throws Exception {
-		try (InputStream is =
+		try (InputStream inputStream =
 				ExternalDataSourceControllerTest.class.getResourceAsStream(
 					path)) {
 
-			return _bundleContext.installBundle(path, is);
+			return _bundleContext.installBundle(path, inputStream);
 		}
 	}
 
@@ -277,10 +244,10 @@ public class ExternalDataSourceControllerTest {
 
 			try (UnsyncStringWriter unsyncStringWriter =
 					new UnsyncStringWriter();
-				UnsyncPrintWriter unsycPrintWriter = new UnsyncPrintWriter(
+				UnsyncPrintWriter unsyncPrintWriter = new UnsyncPrintWriter(
 					unsyncStringWriter)) {
 
-				throwable.printStackTrace(unsycPrintWriter);
+				throwable.printStackTrace(unsyncPrintWriter);
 
 				throw new ArquillianThrowable(unsyncStringWriter.toString());
 			}

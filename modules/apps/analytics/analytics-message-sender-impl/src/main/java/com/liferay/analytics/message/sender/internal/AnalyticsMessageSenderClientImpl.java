@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.settings.Settings;
 import com.liferay.portal.kernel.settings.SettingsDescriptor;
 import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.net.UnknownHostException;
@@ -99,7 +99,7 @@ public class AnalyticsMessageSenderClientImpl
 			analyticsConfiguration.
 				liferayAnalyticsFaroBackendSecuritySignature(),
 			HttpMethods.GET, analyticsConfiguration.liferayAnalyticsProjectId(),
-			analyticsConfiguration.liferayAnalyticsEndpointURL() +
+			analyticsConfiguration.liferayAnalyticsFaroBackendURL() +
 				"/api/1.0/data-sources/" +
 					analyticsConfiguration.liferayAnalyticsDataSourceId());
 
@@ -191,15 +191,16 @@ public class AnalyticsMessageSenderClientImpl
 				return;
 			}
 
-			UnicodeProperties unicodeProperties = new UnicodeProperties(true);
-
-			unicodeProperties.setProperty(
-				"liferayAnalyticsEndpointURL", liferayAnalyticsEndpointURL);
-			unicodeProperties.setProperty(
-				"liferayAnalyticsFaroBackendURL",
-				liferayAnalyticsFaroBackendURL);
-
-			companyLocalService.updatePreferences(companyId, unicodeProperties);
+			companyLocalService.updatePreferences(
+				companyId,
+				UnicodePropertiesBuilder.create(
+					true
+				).put(
+					"liferayAnalyticsEndpointURL", liferayAnalyticsEndpointURL
+				).put(
+					"liferayAnalyticsFaroBackendURL",
+					liferayAnalyticsFaroBackendURL
+				).build());
 
 			Dictionary<String, Object> configurationProperties =
 				_getConfigurationProperties(companyId);

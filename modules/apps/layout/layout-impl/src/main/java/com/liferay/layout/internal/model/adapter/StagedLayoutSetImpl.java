@@ -98,7 +98,7 @@ public class StagedLayoutSetImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 	}
@@ -168,16 +168,6 @@ public class StagedLayoutSetImpl
 		return String.valueOf(_layoutSet.isPrivateLayout());
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #getVirtualHostnames()}
-	 */
-	@Deprecated
-	@Override
-	public String getVirtualHostname() {
-		return _layoutSet.getVirtualHostname();
-	}
-
 	@Override
 	public void setLastPublishDate(Date lastPublishDate) {
 		_lastPublishDate = lastPublishDate;
@@ -214,16 +204,6 @@ public class StagedLayoutSetImpl
 	@Override
 	public void setUuid(String uuid) {
 		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #setVirtualHostnames(TreeMap)}
-	 */
-	@Deprecated
-	@Override
-	public void setVirtualHostname(String virtualHostname) {
-		_layoutSet.setVirtualHostname(virtualHostname);
 	}
 
 	@Override

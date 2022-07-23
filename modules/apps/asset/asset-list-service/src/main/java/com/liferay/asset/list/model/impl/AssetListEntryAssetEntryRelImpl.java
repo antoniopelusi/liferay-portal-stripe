@@ -24,9 +24,6 @@ import com.liferay.portal.kernel.util.Validator;
 public class AssetListEntryAssetEntryRelImpl
 	extends AssetListEntryAssetEntryRelBaseImpl {
 
-	public AssetListEntryAssetEntryRelImpl() {
-	}
-
 	@Override
 	public String getAssetEntryUuid() {
 		if (Validator.isNotNull(_assetEntryUuid)) {

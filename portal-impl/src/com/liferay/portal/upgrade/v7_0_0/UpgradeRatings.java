@@ -42,12 +42,12 @@ public class UpgradeRatings extends UpgradeProcess {
 
 	protected void upgradeRatingsEntry() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select distinct classNameId from RatingsEntry");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				upgradeRatingsEntry(rs.getLong("classNameId"));
+			while (resultSet.next()) {
+				upgradeRatingsEntry(resultSet.getLong("classNameId"));
 			}
 		}
 	}
@@ -82,64 +82,66 @@ public class UpgradeRatings extends UpgradeProcess {
 			long classNameId, int normalizationFactor)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update RatingsEntry set score = score / ? where classNameId " +
 					"= ?")) {
 
-			ps.setInt(1, normalizationFactor);
-			ps.setLong(2, classNameId);
+			preparedStatement.setInt(1, normalizationFactor);
+			preparedStatement.setLong(2, classNameId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
 	protected void upgradeRatingsEntryThumbs(long classNameId)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update RatingsEntry set score = ? where score = ? and " +
 					"classNameId = ?")) {
 
-			ps.setDouble(1, 0);
-			ps.setDouble(2, -1);
-			ps.setLong(3, classNameId);
+			preparedStatement.setDouble(1, 0);
+			preparedStatement.setDouble(2, -1);
+			preparedStatement.setLong(3, classNameId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
 	protected void upgradeRatingsStats() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("select classNameId, classPK, count(1) as ");
-			sb.append("totalEntries, sum(RatingsEntry.score) as totalScore, ");
-			sb.append("sum(RatingsEntry.score) / count(1) as averageScore ");
-			sb.append("from RatingsEntry group by classNameId, classPK");
-
-			String selectSQL = sb.toString();
+			String selectSQL = StringBundler.concat(
+				"select classNameId, classPK, count(1) as totalEntries, ",
+				"sum(RatingsEntry.score) as totalScore, ",
+				"sum(RatingsEntry.score) / count(1) as averageScore from ",
+				"RatingsEntry group by classNameId, classPK");
 
 			String updateSQL =
 				"update RatingsStats set totalEntries = ?, totalScore = ?, " +
 					"averageScore = ? where classNameId = ? and classPK = ?";
 
-			try (PreparedStatement ps1 = connection.prepareStatement(selectSQL);
-				ResultSet rs = ps1.executeQuery();
-				PreparedStatement ps2 =
+			try (PreparedStatement preparedStatement1 =
+					connection.prepareStatement(selectSQL);
+				ResultSet resultSet = preparedStatement1.executeQuery();
+				PreparedStatement preparedStatement2 =
 					AutoBatchPreparedStatementUtil.autoBatch(
 						connection.prepareStatement(updateSQL))) {
 
-				while (rs.next()) {
-					ps2.setInt(1, rs.getInt("totalEntries"));
-					ps2.setDouble(2, rs.getDouble("totalScore"));
-					ps2.setDouble(3, rs.getDouble("averageScore"));
-					ps2.setLong(4, rs.getLong("classNameId"));
-					ps2.setLong(5, rs.getLong("classPK"));
+				while (resultSet.next()) {
+					preparedStatement2.setInt(
+						1, resultSet.getInt("totalEntries"));
+					preparedStatement2.setDouble(
+						2, resultSet.getDouble("totalScore"));
+					preparedStatement2.setDouble(
+						3, resultSet.getDouble("averageScore"));
+					preparedStatement2.setLong(
+						4, resultSet.getLong("classNameId"));
+					preparedStatement2.setLong(5, resultSet.getLong("classPK"));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

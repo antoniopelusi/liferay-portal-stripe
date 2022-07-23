@@ -16,7 +16,6 @@ package com.liferay.portal.search.similar.results.web.internal.builder;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.similar.results.web.spi.contributor.SimilarResultsContributor;
 import com.liferay.portal.search.similar.results.web.spi.contributor.helper.RouteHelper;
@@ -41,24 +40,17 @@ public class SimilarResultsContributorsRegistryImpl
 			return Optional.empty();
 		}
 
-		String decodedURLString = _http.decodeURL(urlString);
-
 		Stream<SimilarResultsContributor> stream =
 			_similarResultsContributorsHolder.stream();
 
 		return stream.map(
 			similarResultsContributor -> _detectRoute(
-				similarResultsContributor, decodedURLString)
+				similarResultsContributor, urlString)
 		).filter(
 			Optional::isPresent
 		).map(
 			Optional::get
 		).findFirst();
-	}
-
-	@Reference(unbind = "-")
-	public void setHttp(Http http) {
-		_http = http;
 	}
 
 	@Reference(unbind = "-")
@@ -81,7 +73,7 @@ public class SimilarResultsContributorsRegistryImpl
 		}
 		catch (RuntimeException runtimeException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(runtimeException, runtimeException);
+				_log.debug(runtimeException);
 			}
 
 			return Optional.empty();
@@ -99,7 +91,6 @@ public class SimilarResultsContributorsRegistryImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		SimilarResultsContributorsRegistryImpl.class);
 
-	private Http _http;
 	private SimilarResultsContributorsHolder _similarResultsContributorsHolder;
 
 }

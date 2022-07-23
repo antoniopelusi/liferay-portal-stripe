@@ -23,7 +23,6 @@ import com.liferay.expando.kernel.model.ExpandoTableTable;
 import com.liferay.expando.kernel.model.ExpandoValueTable;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.Table;
-import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.ClassNameTable;
 
@@ -49,35 +48,37 @@ public class ExpandoTableReferenceAppender implements TableReferenceAppender {
 		}
 
 		childTableReferenceInfoBuilder.referenceInnerJoin(
-			fromStep -> {
-				Predicate predicate = primaryKeyColumn.eq(
-					ExpandoRowTable.INSTANCE.classPK);
+			fromStep -> fromStep.from(
+				ExpandoRowTable.INSTANCE
+			).innerJoinON(
+				table,
+				primaryKeyColumn.eq(
+					ExpandoRowTable.INSTANCE.classPK
+				).and(
+					() -> {
+						Column<T, Long> companyIdColumn = table.getColumn(
+							"companyId", Long.class);
 
-				Column<T, Long> companyIdColumn = table.getColumn(
-					"companyId", Long.class);
+						if (companyIdColumn != null) {
+							return companyIdColumn.eq(
+								ExpandoRowTable.INSTANCE.companyId);
+						}
 
-				if (companyIdColumn != null) {
-					predicate = predicate.and(
-						companyIdColumn.eq(ExpandoRowTable.INSTANCE.companyId));
-				}
-
-				return fromStep.from(
-					ExpandoRowTable.INSTANCE
-				).innerJoinON(
-					table, predicate
-				).innerJoinON(
-					ExpandoTableTable.INSTANCE,
-					ExpandoTableTable.INSTANCE.tableId.eq(
-						ExpandoRowTable.INSTANCE.tableId)
-				).innerJoinON(
-					ClassNameTable.INSTANCE,
-					ClassNameTable.INSTANCE.classNameId.eq(
-						ExpandoTableTable.INSTANCE.classNameId
-					).and(
-						ClassNameTable.INSTANCE.value.eq(modelClass.getName())
-					)
-				);
-			});
+						return null;
+					}
+				)
+			).innerJoinON(
+				ExpandoTableTable.INSTANCE,
+				ExpandoTableTable.INSTANCE.tableId.eq(
+					ExpandoRowTable.INSTANCE.tableId)
+			).innerJoinON(
+				ClassNameTable.INSTANCE,
+				ClassNameTable.INSTANCE.classNameId.eq(
+					ExpandoTableTable.INSTANCE.classNameId
+				).and(
+					ClassNameTable.INSTANCE.value.eq(modelClass.getName())
+				)
+			));
 	}
 
 	@Override

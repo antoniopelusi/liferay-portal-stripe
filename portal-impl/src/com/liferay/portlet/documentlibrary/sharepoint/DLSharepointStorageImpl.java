@@ -32,7 +32,7 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.sharepoint.BaseSharepointStorageImpl;
@@ -209,7 +209,8 @@ public class DLSharepointStorageImpl extends BaseSharepointStorageImpl {
 		long parentFolderId = folderIds.get(folderIds.size() - 1);
 
 		Folder folder = DLAppServiceUtil.getFolder(
-			groupId, parentFolderId, HttpUtil.decodePath(pathArray[0]));
+			groupId, parentFolderId,
+			HttpComponentsUtil.decodePath(pathArray[0]));
 
 		folderIds.add(folder.getFolderId());
 
@@ -287,9 +288,11 @@ public class DLSharepointStorageImpl extends BaseSharepointStorageImpl {
 				serviceContext.setAssetTagNames(assetTagNames);
 
 				fileEntry = DLAppServiceUtil.updateFileEntry(
-					fileEntryId, newName, mimeType, newName, description,
-					changeLog, DLVersionNumberIncrease.fromMajorVersion(false),
-					file, serviceContext);
+					fileEntryId, newName, mimeType, newName, StringPool.BLANK,
+					description, changeLog,
+					DLVersionNumberIncrease.fromMajorVersion(false), file,
+					fileEntry.getExpirationDate(), fileEntry.getReviewDate(),
+					serviceContext);
 
 				if (folderId != newParentFolderId) {
 					fileEntry = DLAppServiceUtil.moveFileEntry(
@@ -372,8 +375,6 @@ public class DLSharepointStorageImpl extends BaseSharepointStorageImpl {
 			try {
 				FileEntry fileEntry = getFileEntry(sharepointRequest);
 
-				long fileEntryId = fileEntry.getFileEntryId();
-
 				description = fileEntry.getDescription();
 
 				String[] assetTagNames = AssetTagLocalServiceUtil.getTagNames(
@@ -383,19 +384,21 @@ public class DLSharepointStorageImpl extends BaseSharepointStorageImpl {
 				serviceContext.setAssetTagNames(assetTagNames);
 
 				DLAppServiceUtil.updateFileEntry(
-					fileEntryId, title, contentType, title, description,
-					changeLog, DLVersionNumberIncrease.fromMajorVersion(false),
-					file, serviceContext);
+					fileEntry.getFileEntryId(), title, contentType, title,
+					StringPool.BLANK, description, changeLog,
+					DLVersionNumberIncrease.fromMajorVersion(false), file,
+					fileEntry.getExpirationDate(), fileEntry.getReviewDate(),
+					serviceContext);
 			}
 			catch (NoSuchFileEntryException noSuchFileEntryException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchFileEntryException, noSuchFileEntryException);
+					_log.debug(noSuchFileEntryException);
 				}
 
 				DLAppServiceUtil.addFileEntry(
-					groupId, parentFolderId, title, contentType, title,
-					description, changeLog, file, serviceContext);
+					null, groupId, parentFolderId, title, contentType, null,
+					null, description, changeLog, file, null, null,
+					serviceContext);
 			}
 		}
 		finally {

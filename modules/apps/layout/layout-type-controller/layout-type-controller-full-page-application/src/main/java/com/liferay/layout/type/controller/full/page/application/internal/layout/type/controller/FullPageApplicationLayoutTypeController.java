@@ -23,9 +23,9 @@ import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.service.PortletLocalService;
+import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.taglib.servlet.PipingServletResponse;
 
 import java.util.List;
 
@@ -116,22 +116,6 @@ public class FullPageApplicationLayoutTypeController
 			FullPageApplicationLayoutTypeControllerWebKeys.
 				FULL_PAGE_APPLICATION_PORTLETS,
 			portlets);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #createServletResponse(HttpServletResponse,
-	 *             UnsyncStringWriter)}
-	 */
-	@Deprecated
-	@Override
-	protected ServletResponse createServletResponse(
-		HttpServletResponse httpServletResponse,
-		com.liferay.portal.kernel.io.unsync.UnsyncStringWriter
-			unsyncStringWriter) {
-
-		return new PipingServletResponse(
-			httpServletResponse, unsyncStringWriter);
 	}
 
 	@Override

@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.proxy.ProxyMessageListener;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.security.audit.configuration.AuditConfiguration;
 
 import java.util.Dictionary;
@@ -90,9 +90,9 @@ public class AuditMessagingConfigurator {
 			destinationConfiguration);
 
 		Dictionary<String, Object> destinationProperties =
-			new HashMapDictionary<>();
-
-		destinationProperties.put("destination.name", destination.getName());
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		_destinationServiceRegistration = _bundleContext.registerService(
 			Destination.class, destination, destinationProperties);

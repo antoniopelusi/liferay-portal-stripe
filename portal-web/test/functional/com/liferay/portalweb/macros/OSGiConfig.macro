@@ -1,28 +1,35 @@
 definition {
 
-	macro deployOSGiConfigFile {
-		Variables.assertDefined(parameterList = "${OSGiConfigFileBaseDir},${OSGiConfigFileName}");
+	macro copyOSGiConfigFile {
+		Variables.assertDefined(parameterList = "${osgiConfigFileBaseDir},${osgiConfigFileName}");
 
-		var configs = FileUtil.read("${OSGiConfigFileBaseDir}/${OSGiConfigFileName}");
+		var configs = FileUtil.read("${osgiConfigFileBaseDir}/${osgiConfigFileName}");
+		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+
+		FileUtil.write("${liferayHome}/osgi/configs/${osgiConfigFileName}", "${configs}");
+	}
+
+	macro deleteOSGiConfigFile {
+		Variables.assertDefined(parameterList = "${osgiConfigFileName}");
 
 		var liferayHome = PropsUtil.get("liferay.home.dir.name");
 
-		FileUtil.write("${liferayHome}/osgi/configs/${OSGiConfigFileName}", "${configs}");
+		FileUtil.delete("${liferayHome}/osgi/configs/${osgiConfigFileName}");
 	}
 
-	macro deployOSGiConfigs {
-		Variables.assertDefined(parameterList = "${OSGiConfigs},${OSGiConfigFileName}");
+	macro deployOSGiConfigFile {
+		Variables.assertDefined(parameterList = "${osgiConfigs},${osgiConfigFileName}");
 
 		var configList = "";
 
-		for (var OSGiConfig : list "${OSGiConfigs}") {
-			var configList = '''${OSGiConfig}
+		for (var osgiConfig : list "${osgiConfigs}") {
+			var configList = '''${osgiConfig}
 ${configList}''';
 		}
 
 		var liferayHome = PropsUtil.get("liferay.home.dir.name");
 
-		FileUtil.write("${liferayHome}/osgi/configs/${OSGiConfigFileName}", "${configList}");
+		FileUtil.write("${liferayHome}/osgi/configs/${osgiConfigFileName}", "${configList}");
 	}
 
 }

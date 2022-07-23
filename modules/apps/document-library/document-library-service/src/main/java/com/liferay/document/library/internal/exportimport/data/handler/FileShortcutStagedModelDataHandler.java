@@ -94,7 +94,7 @@ public class FileShortcutStagedModelDataHandler
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return null;
@@ -259,11 +259,9 @@ public class FileShortcutStagedModelDataHandler
 		if (trashHandler.isRestorable(
 				existingFileShortcut.getFileShortcutId())) {
 
-			long userId = portletDataContext.getUserId(
-				fileShortcut.getUserUuid());
-
 			trashHandler.restoreTrashEntry(
-				userId, existingFileShortcut.getFileShortcutId());
+				portletDataContext.getUserId(fileShortcut.getUserUuid()),
+				existingFileShortcut.getFileShortcutId());
 		}
 	}
 

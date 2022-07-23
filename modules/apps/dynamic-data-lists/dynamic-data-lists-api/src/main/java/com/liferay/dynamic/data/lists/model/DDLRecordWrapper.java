@@ -194,6 +194,11 @@ public class DDLRecordWrapper
 		}
 	}
 
+	@Override
+	public DDLRecord cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the class name of this ddl record.
 	 *

@@ -53,7 +53,7 @@ public class ProductHelper {
 
 		return SearchUtil.search(
 			null, booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CPDefinition.class, search, pagination,
+			CPDefinition.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -88,7 +88,7 @@ public class ProductHelper {
 		throws Exception {
 
 		List<CommerceCatalog> commerceCatalogs =
-			_commerceCatalogLocalService.searchCommerceCatalogs(companyId);
+			_commerceCatalogLocalService.search(companyId);
 
 		Stream<CommerceCatalog> stream = commerceCatalogs.stream();
 

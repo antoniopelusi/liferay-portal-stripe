@@ -17,7 +17,6 @@ package com.liferay.layout.admin.web.internal.portlet.action;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.exception.GroupInheritContentException;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.RequiredLayoutException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
@@ -31,7 +30,7 @@ import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.GroupPermission;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
@@ -64,10 +63,28 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class DeleteLayoutMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteLayout(
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		long selPlid = ParamUtil.getLong(actionRequest, "selPlid");
+
+		long[] selPlids = ParamUtil.getLongValues(actionRequest, "rowIds");
+
+		if ((selPlid > 0) && ArrayUtil.isEmpty(selPlids)) {
+			selPlids = new long[] {selPlid};
+		}
+
+		for (long curSelPlid : selPlids) {
+			_deleteLayout(curSelPlid, actionRequest, actionResponse);
+		}
+	}
+
+	private void _deleteLayout(
 			long selPlid, ActionRequest actionRequest,
 			ActionResponse actionResponse)
-		throws PortalException {
+		throws Exception {
 
 		Layout layout = _layoutLocalService.fetchLayout(selPlid);
 
@@ -92,10 +109,10 @@ public class DeleteLayoutMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		if (group.isStagingGroup() &&
-			!GroupPermissionUtil.contains(
+			!_groupPermission.contains(
 				themeDisplay.getPermissionChecker(), group,
 				ActionKeys.MANAGE_STAGING) &&
-			!GroupPermissionUtil.contains(
+			!_groupPermission.contains(
 				themeDisplay.getPermissionChecker(), group,
 				ActionKeys.PUBLISH_STAGING)) {
 
@@ -156,23 +173,8 @@ public class DeleteLayoutMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		long selPlid = ParamUtil.getLong(actionRequest, "selPlid");
-
-		long[] selPlids = ParamUtil.getLongValues(actionRequest, "rowIds");
-
-		if ((selPlid > 0) && ArrayUtil.isEmpty(selPlids)) {
-			selPlids = new long[] {selPlid};
-		}
-
-		for (long curSelPlid : selPlids) {
-			deleteLayout(curSelPlid, actionRequest, actionResponse);
-		}
-	}
+	@Reference
+	private GroupPermission _groupPermission;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

@@ -601,4 +601,7 @@ public interface DDLRecordSetModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public DDLRecordSet cloneWithOriginalValues();
+
 }

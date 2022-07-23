@@ -12,7 +12,7 @@
  * details.
  */
 
-import ClayIcon, {ClayIconSpriteContext} from '@clayui/icon';
+import ClayIcon from '@clayui/icon';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -22,6 +22,7 @@ function Step(props) {
 		<div className={classnames(`step`, props.state || 'inactive')}>
 			<span className="step-label">
 				{props.label}
+
 				{props.state === 'completed' && (
 					<ClayIcon className="ml-3" symbol="check" />
 				)}
@@ -37,18 +38,15 @@ Step.propTypes = {
 
 function StepTracker(props) {
 	return (
-		<ClayIconSpriteContext.Provider value={props.spritemap}>
-			<div className="rounded step-tracker">
-				{props.steps.map((step) => (
-					<Step key={step.id} {...step} />
-				))}
-			</div>
-		</ClayIconSpriteContext.Provider>
+		<div className="rounded step-tracker">
+			{props.steps.map((step) => (
+				<Step key={step.id} {...step} />
+			))}
+		</div>
 	);
 }
 
 StepTracker.propTypes = {
-	spritemap: PropTypes.string.isRequired,
 	steps: PropTypes.array.isRequired,
 };
 

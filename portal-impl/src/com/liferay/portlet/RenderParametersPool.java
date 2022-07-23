@@ -129,22 +129,23 @@ public class RenderParametersPool {
 		_getRenderParametersPool(
 			HttpServletRequest httpServletRequest, boolean createIfAbsent) {
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		HttpSession portalSession = PortalSessionContext.get(session.getId());
+		HttpSession portalHttpSession = PortalSessionContext.get(
+			httpSession.getId());
 
-		if (portalSession != null) {
-			session = portalSession;
+		if (portalHttpSession != null) {
+			httpSession = portalHttpSession;
 		}
 
 		Map<Long, Map<String, Map<String, String[]>>> renderParametersPool =
-			(Map<Long, Map<String, Map<String, String[]>>>)session.getAttribute(
-				WebKeys.PORTLET_RENDER_PARAMETERS);
+			(Map<Long, Map<String, Map<String, String[]>>>)
+				httpSession.getAttribute(WebKeys.PORTLET_RENDER_PARAMETERS);
 
 		if (createIfAbsent && (renderParametersPool == null)) {
 			renderParametersPool = new ConcurrentHashMap<>();
 
-			session.setAttribute(
+			httpSession.setAttribute(
 				WebKeys.PORTLET_RENDER_PARAMETERS, renderParametersPool);
 		}
 

@@ -25,6 +25,10 @@ public class LayoutSetBranchLocalServiceWrapper
 	implements LayoutSetBranchLocalService,
 			   ServiceWrapper<LayoutSetBranchLocalService> {
 
+	public LayoutSetBranchLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutSetBranchLocalServiceWrapper(
 		LayoutSetBranchLocalService layoutSetBranchLocalService) {
 
@@ -191,6 +195,13 @@ public class LayoutSetBranchLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _layoutSetBranchLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutSetBranchLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

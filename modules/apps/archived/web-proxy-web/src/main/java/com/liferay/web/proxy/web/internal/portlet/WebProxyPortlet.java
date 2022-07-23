@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.LiferayPortletUtil;
@@ -29,8 +29,6 @@ import com.liferay.web.proxy.web.internal.constants.WebProxyPortletKeys;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import java.util.Dictionary;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletConfig;
@@ -105,7 +103,7 @@ public class WebProxyPortlet extends PortletBridgePortlet {
 		throws IOException, PortletException {
 
 		if (!_enabled) {
-			printError(renderResponse);
+			_printError(renderResponse);
 
 			return;
 		}
@@ -147,13 +145,13 @@ public class WebProxyPortlet extends PortletBridgePortlet {
 		try {
 			super.init();
 
-			doInit();
+			_init();
 
 			_enabled = true;
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception.getMessage());
+				_log.warn(exception);
 			}
 		}
 	}
@@ -168,52 +166,60 @@ public class WebProxyPortlet extends PortletBridgePortlet {
 		_componentContext = null;
 	}
 
-	protected void doInit() {
-		BundleContext bundleContext = _componentContext.getBundleContext();
+	@Reference(
+		target = "(&(release.bundle.symbolic.name=com.liferay.web.proxy.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))",
+		unbind = "-"
+	)
+	protected void setRelease(Release release) {
+	}
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
+	private void _init() {
+		BundleContext bundleContext = _componentContext.getBundleContext();
 
 		PortletConfig portletConfig = getPortletConfig();
 
-		PortletContext portletContext = getPortletContext();
-
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
-			portletContext.getPortletContextName());
-
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
-			PortletBridgeServlet.class.getName());
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN, "/pbhs/*");
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
-				"cssRegex",
-			portletConfig.getInitParameter("cssRegex"));
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
-				"ignorePostToGetRequestHeaders",
-			"content-type,content-length");
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
-				"ignoreRequestHeaders",
-			"accept-encoding,connection,keep-alive");
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
-				"jsRegex",
-			portletConfig.getInitParameter("jsRegex"));
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
-				"mementoSessionKey",
-			portletConfig.getInitParameter("mementoSessionKey"));
-
 		_serviceRegistration = bundleContext.registerService(
-			Servlet.class, new PortletBridgeServlet(), properties);
+			Servlet.class, new PortletBridgeServlet(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
+				() -> {
+					PortletContext portletContext = getPortletContext();
+
+					return portletContext.getPortletContextName();
+				}
+			).put(
+				HttpWhiteboardConstants.
+					HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
+						"ignorePostToGetRequestHeaders",
+				"content-type,content-length"
+			).put(
+				HttpWhiteboardConstants.
+					HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
+						"ignoreRequestHeaders",
+				"accept-encoding,connection,keep-alive"
+			).put(
+				HttpWhiteboardConstants.
+					HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX +
+						"mementoSessionKey",
+				portletConfig.getInitParameter("mementoSessionKey")
+			).put(
+				HttpWhiteboardConstants.
+					HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX + "cssRegex",
+				portletConfig.getInitParameter("cssRegex")
+			).put(
+				HttpWhiteboardConstants.
+					HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX + "jsRegex",
+				portletConfig.getInitParameter("jsRegex")
+			).put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
+				PortletBridgeServlet.class.getName()
+			).put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN,
+				"/pbhs/*"
+			).build());
 	}
 
-	protected void printError(RenderResponse renderResponse)
-		throws IOException {
-
+	private void _printError(RenderResponse renderResponse) throws IOException {
 		renderResponse.setContentType(ContentTypes.TEXT_HTML_UTF8);
 
 		try (PrintWriter writer = renderResponse.getWriter()) {
@@ -222,13 +228,6 @@ public class WebProxyPortlet extends PortletBridgePortlet {
 					"serializer.jar and xalan.jar files are copied to the " +
 						"JDK's endorsed directory");
 		}
-	}
-
-	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.web.proxy.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))",
-		unbind = "-"
-	)
-	protected void setRelease(Release release) {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

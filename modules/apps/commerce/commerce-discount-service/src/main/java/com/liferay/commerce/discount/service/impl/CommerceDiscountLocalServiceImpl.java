@@ -28,12 +28,26 @@ import com.liferay.commerce.discount.exception.DuplicateCommerceDiscountExceptio
 import com.liferay.commerce.discount.exception.NoSuchDiscountException;
 import com.liferay.commerce.discount.internal.search.CommerceDiscountIndexer;
 import com.liferay.commerce.discount.model.CommerceDiscount;
+import com.liferay.commerce.discount.model.CommerceDiscountAccountRelTable;
+import com.liferay.commerce.discount.model.CommerceDiscountCommerceAccountGroupRelTable;
+import com.liferay.commerce.discount.model.CommerceDiscountOrderTypeRelTable;
+import com.liferay.commerce.discount.model.CommerceDiscountRelTable;
+import com.liferay.commerce.discount.model.CommerceDiscountTable;
 import com.liferay.commerce.discount.service.base.CommerceDiscountLocalServiceBaseImpl;
 import com.liferay.commerce.discount.target.CommerceDiscountTarget;
 import com.liferay.commerce.discount.target.CommerceDiscountTargetRegistry;
 import com.liferay.commerce.discount.util.comparator.CommerceDiscountCreateDateComparator;
+import com.liferay.commerce.pricing.model.CommercePricingClass;
 import com.liferay.commerce.pricing.service.CommercePricingClassLocalService;
 import com.liferay.commerce.product.model.CPDefinition;
+import com.liferay.commerce.product.model.CPInstance;
+import com.liferay.commerce.product.model.CommerceChannelRelTable;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.sql.dsl.expression.Predicate;
+import com.liferay.petra.sql.dsl.query.FromStep;
+import com.liferay.petra.sql.dsl.query.GroupByStep;
+import com.liferay.petra.sql.dsl.query.JoinStep;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -54,6 +68,7 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -70,6 +85,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -270,7 +286,7 @@ public class CommerceDiscountLocalServiceImpl
 			serviceContext.getCompanyId(), 0, title, target, useCouponCode,
 			couponCode, limitationType);
 
-		Date now = new Date();
+		Date date = new Date();
 
 		Date displayDate = PortalUtil.getDate(
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
@@ -333,7 +349,7 @@ public class CommerceDiscountLocalServiceImpl
 		commerceDiscount.setDisplayDate(displayDate);
 		commerceDiscount.setExpirationDate(expirationDate);
 
-		if ((expirationDate == null) || expirationDate.after(now)) {
+		if ((expirationDate == null) || expirationDate.after(date)) {
 			commerceDiscount.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -341,7 +357,7 @@ public class CommerceDiscountLocalServiceImpl
 		}
 
 		commerceDiscount.setStatusByUserId(user.getUserId());
-		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(now));
+		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(date));
 		commerceDiscount.setExpandoBridgeAttributes(serviceContext);
 
 		commerceDiscount = commerceDiscountPersistence.update(commerceDiscount);
@@ -355,6 +371,180 @@ public class CommerceDiscountLocalServiceImpl
 
 		return startWorkflowInstance(
 			user.getUserId(), commerceDiscount, serviceContext);
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public CommerceDiscount addOrUpdateCommerceDiscount(
+			String externalReferenceCode, long userId, long commerceDiscountId,
+			String title, String target, boolean useCouponCode,
+			String couponCode, boolean usePercentage,
+			BigDecimal maximumDiscountAmount, BigDecimal level1,
+			BigDecimal level2, BigDecimal level3, BigDecimal level4,
+			String limitationType, int limitationTimes, boolean active,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire, ServiceContext serviceContext)
+		throws PortalException {
+
+		return addOrUpdateCommerceDiscount(
+			externalReferenceCode, userId, commerceDiscountId, title, target,
+			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
+			StringPool.BLANK, level1, level2, level3, level4, limitationType,
+			limitationTimes, 0, true, active, displayDateMonth, displayDateDay,
+			displayDateYear, displayDateHour, displayDateMinute,
+			expirationDateMonth, expirationDateDay, expirationDateYear,
+			expirationDateHour, expirationDateMinute, neverExpire,
+			serviceContext);
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public CommerceDiscount addOrUpdateCommerceDiscount(
+			String externalReferenceCode, long userId, long commerceDiscountId,
+			String title, String target, boolean useCouponCode,
+			String couponCode, boolean usePercentage,
+			BigDecimal maximumDiscountAmount, String level, BigDecimal level1,
+			BigDecimal level2, BigDecimal level3, BigDecimal level4,
+			String limitationType, int limitationTimes,
+			boolean rulesConjunction, boolean active, int displayDateMonth,
+			int displayDateDay, int displayDateYear, int displayDateHour,
+			int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire, ServiceContext serviceContext)
+		throws PortalException {
+
+		// Update
+
+		if (commerceDiscountId > 0) {
+			try {
+				return commerceDiscountLocalService.updateCommerceDiscount(
+					commerceDiscountId, title, target, useCouponCode,
+					couponCode, usePercentage, maximumDiscountAmount, level,
+					level1, level2, level3, level4, limitationType,
+					limitationTimes, rulesConjunction, active, displayDateMonth,
+					displayDateDay, displayDateYear, displayDateHour,
+					displayDateMinute, expirationDateMonth, expirationDateDay,
+					expirationDateYear, expirationDateHour,
+					expirationDateMinute, neverExpire, serviceContext);
+			}
+			catch (NoSuchDiscountException noSuchDiscountException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unable to find discount with ID: " +
+							commerceDiscountId,
+						noSuchDiscountException);
+				}
+			}
+		}
+
+		if (!Validator.isBlank(externalReferenceCode)) {
+			CommerceDiscount commerceDiscount =
+				commerceDiscountPersistence.fetchByC_ERC(
+					serviceContext.getCompanyId(), externalReferenceCode);
+
+			if (commerceDiscount != null) {
+				return commerceDiscountLocalService.updateCommerceDiscount(
+					commerceDiscountId, title, target, useCouponCode,
+					couponCode, usePercentage, maximumDiscountAmount, level,
+					level1, level2, level3, level4, limitationType,
+					limitationTimes, rulesConjunction, active, displayDateMonth,
+					displayDateDay, displayDateYear, displayDateHour,
+					displayDateMinute, expirationDateMonth, expirationDateDay,
+					expirationDateYear, expirationDateHour,
+					expirationDateMinute, neverExpire, serviceContext);
+			}
+		}
+
+		// Add
+
+		return commerceDiscountLocalService.addCommerceDiscount(
+			externalReferenceCode, userId, title, target, useCouponCode,
+			couponCode, usePercentage, maximumDiscountAmount, level, level1,
+			level2, level3, level4, limitationType, limitationTimes,
+			rulesConjunction, active, displayDateMonth, displayDateDay,
+			displayDateYear, displayDateHour, displayDateMinute,
+			expirationDateMonth, expirationDateDay, expirationDateYear,
+			expirationDateHour, expirationDateMinute, neverExpire,
+			serviceContext);
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public CommerceDiscount addOrUpdateCommerceDiscount(
+			String externalReferenceCode, long userId, long commerceDiscountId,
+			String title, String target, boolean useCouponCode,
+			String couponCode, boolean usePercentage,
+			BigDecimal maximumDiscountAmount, String level, BigDecimal level1,
+			BigDecimal level2, BigDecimal level3, BigDecimal level4,
+			String limitationType, int limitationTimes,
+			int limitationTimesPerAccount, boolean rulesConjunction,
+			boolean active, int displayDateMonth, int displayDateDay,
+			int displayDateYear, int displayDateHour, int displayDateMinute,
+			int expirationDateMonth, int expirationDateDay,
+			int expirationDateYear, int expirationDateHour,
+			int expirationDateMinute, boolean neverExpire,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		// Update
+
+		if (commerceDiscountId > 0) {
+			try {
+				return commerceDiscountLocalService.updateCommerceDiscount(
+					commerceDiscountId, title, target, useCouponCode,
+					couponCode, usePercentage, maximumDiscountAmount, level,
+					level1, level2, level3, level4, limitationType,
+					limitationTimes, limitationTimesPerAccount,
+					rulesConjunction, active, displayDateMonth, displayDateDay,
+					displayDateYear, displayDateHour, displayDateMinute,
+					expirationDateMonth, expirationDateDay, expirationDateYear,
+					expirationDateHour, expirationDateMinute, neverExpire,
+					serviceContext);
+			}
+			catch (NoSuchDiscountException noSuchDiscountException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unable to find discount with ID: " +
+							commerceDiscountId,
+						noSuchDiscountException);
+				}
+			}
+		}
+
+		if (!Validator.isBlank(externalReferenceCode)) {
+			CommerceDiscount commerceDiscount =
+				commerceDiscountPersistence.fetchByC_ERC(
+					serviceContext.getCompanyId(), externalReferenceCode);
+
+			if (commerceDiscount != null) {
+				return commerceDiscountLocalService.updateCommerceDiscount(
+					commerceDiscountId, title, target, useCouponCode,
+					couponCode, usePercentage, maximumDiscountAmount, level,
+					level1, level2, level3, level4, limitationType,
+					limitationTimes, limitationTimesPerAccount,
+					rulesConjunction, active, displayDateMonth, displayDateDay,
+					displayDateYear, displayDateHour, displayDateMinute,
+					expirationDateMonth, expirationDateDay, expirationDateYear,
+					expirationDateHour, expirationDateMinute, neverExpire,
+					serviceContext);
+			}
+		}
+
+		// Add
+
+		return commerceDiscountLocalService.addCommerceDiscount(
+			externalReferenceCode, userId, title, target, useCouponCode,
+			couponCode, usePercentage, maximumDiscountAmount, level, level1,
+			level2, level3, level4, limitationType, limitationTimes,
+			limitationTimesPerAccount, rulesConjunction, active,
+			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
+			displayDateMinute, expirationDateMonth, expirationDateDay,
+			expirationDateYear, expirationDateHour, expirationDateMinute,
+			neverExpire, serviceContext);
 	}
 
 	@Override
@@ -392,6 +582,12 @@ public class CommerceDiscountLocalServiceImpl
 			deleteCommerceDiscountCommerceAccountGroupRelsByCommerceDiscountId(
 				commerceDiscount.getCommerceDiscountId());
 
+		// Commerce discount order type rels
+
+		commerceDiscountOrderTypeRelLocalService.
+			deleteCommerceDiscountOrderTypeRels(
+				commerceDiscount.getCommerceDiscountId());
+
 		// Commerce discount
 
 		commerceDiscountPersistence.remove(commerceDiscount);
@@ -405,12 +601,12 @@ public class CommerceDiscountLocalServiceImpl
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			commerceDiscount.getCommerceDiscountId());
 
 		// Workflow
 
-		workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+		_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
 			commerceDiscount.getCompanyId(), 0L,
 			CommerceDiscount.class.getName(),
 			commerceDiscount.getCommerceDiscountId());
@@ -470,83 +666,208 @@ public class CommerceDiscountLocalServiceImpl
 	}
 
 	@Override
-	public List<CommerceDiscount> getAccountAndChannelCommerceDiscounts(
-		long commerceAccountId, long commerceChannelId, long cpDefinitionId) {
+	public List<CommerceDiscount>
+		getAccountAndChannelAndOrderTypeCommerceDiscounts(
+			long commerceAccountId, long commerceChannelId,
+			long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId) {
 
-		return commerceDiscountFinder.findByA_C_C_C_Product(
-			commerceAccountId, commerceChannelId, cpDefinitionId,
-			_getAssetCategoryIds(cpDefinitionId),
-			_commercePricingClassLocalService.
-				getCommercePricingClassByCPDefinition(cpDefinitionId));
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, commerceChannelId,
+				commerceOrderTypeId, cpDefinitionId, cpInstanceId, null));
+	}
+
+	@Override
+	public List<CommerceDiscount>
+		getAccountAndChannelAndOrderTypeCommerceDiscounts(
+			long commerceAccountId, long commerceChannelId,
+			long commerceOrderTypeId, String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, commerceChannelId,
+				commerceOrderTypeId, null, null, target));
 	}
 
 	@Override
 	public List<CommerceDiscount> getAccountAndChannelCommerceDiscounts(
-		long commerceAccountId, long commerceChannelId,
-		String commerceDiscountTargetType) {
+		long commerceAccountId, long commerceChannelId, long cpDefinitionId,
+		long cpInstanceId) {
 
-		return commerceDiscountFinder.findByA_C_C_C_Order(
-			commerceAccountId, commerceChannelId, commerceDiscountTargetType);
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, commerceChannelId, null,
+				cpDefinitionId, cpInstanceId, null));
+	}
+
+	@Override
+	public List<CommerceDiscount> getAccountAndChannelCommerceDiscounts(
+		long commerceAccountId, long commerceChannelId, String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, commerceChannelId, null, null,
+				null, target));
+	}
+
+	@Override
+	public List<CommerceDiscount> getAccountAndOrderTypeCommerceDiscounts(
+		long commerceAccountId, long commerceOrderTypeId, String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, null, commerceOrderTypeId, null,
+				null, target));
+	}
+
+	@Override
+	public List<CommerceDiscount> getAccountCommerceAndOrderTypeDiscounts(
+		long commerceAccountId, long commerceOrderTypeId, long cpDefinitionId,
+		long cpInstanceId) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, null, commerceOrderTypeId,
+				cpDefinitionId, cpInstanceId, null));
 	}
 
 	@Override
 	public List<CommerceDiscount> getAccountCommerceDiscounts(
-		long commerceAccountId, long cpDefinitionId) {
+		long commerceAccountId, long cpDefinitionId, long cpInstanceId) {
 
-		return commerceDiscountFinder.findByA_C_C_Product(
-			commerceAccountId, cpDefinitionId,
-			_getAssetCategoryIds(cpDefinitionId),
-			_commercePricingClassLocalService.
-				getCommercePricingClassByCPDefinition(cpDefinitionId));
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, null, null, cpDefinitionId,
+				cpInstanceId, null));
 	}
 
 	@Override
 	public List<CommerceDiscount> getAccountCommerceDiscounts(
-		long commerceAccountId, String commerceDiscountTargetType) {
+		long commerceAccountId, String target) {
 
-		return commerceDiscountFinder.findByA_C_C_Order(
-			commerceAccountId, commerceDiscountTargetType);
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, commerceAccountId, null, null, null, null, null, target));
+	}
+
+	@Override
+	public List<CommerceDiscount>
+		getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
+			long[] commerceAccountGroupIds, long commerceChannelId,
+			long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, commerceChannelId,
+				commerceOrderTypeId, cpDefinitionId, cpInstanceId, null));
+	}
+
+	@Override
+	public List<CommerceDiscount>
+		getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
+			long[] commerceAccountGroupIds, long commerceChannelId,
+			long commerceOrderTypeId, String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, commerceChannelId,
+				commerceOrderTypeId, null, null, target));
 	}
 
 	@Override
 	public List<CommerceDiscount> getAccountGroupAndChannelCommerceDiscount(
 		long[] commerceAccountGroupIds, long commerceChannelId,
-		long cpDefinitionId) {
+		long cpDefinitionId, long cpInstanceId) {
 
-		return commerceDiscountFinder.findByAG_C_C_C_Product(
-			commerceAccountGroupIds, commerceChannelId, cpDefinitionId,
-			_getAssetCategoryIds(cpDefinitionId),
-			_commercePricingClassLocalService.
-				getCommercePricingClassByCPDefinition(cpDefinitionId));
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, commerceChannelId, null,
+				cpDefinitionId, cpInstanceId, null));
 	}
 
 	@Override
 	public List<CommerceDiscount> getAccountGroupAndChannelCommerceDiscount(
-		long[] commerceAccountGroupIds, long commerceChannelId,
-		String commerceDiscountTargetType) {
+		long[] commerceAccountGroupIds, long commerceChannelId, String target) {
 
-		return commerceDiscountFinder.findByAG_C_C_C_Order(
-			commerceAccountGroupIds, commerceChannelId,
-			commerceDiscountTargetType);
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, commerceChannelId, null,
+				null, null, target));
+	}
+
+	@Override
+	public List<CommerceDiscount> getAccountGroupAndOrderTypeCommerceDiscount(
+		long[] commerceAccountGroupIds, long commerceOrderTypeId,
+		long cpDefinitionId, long cpInstanceId) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, null, commerceOrderTypeId,
+				cpDefinitionId, cpInstanceId, null));
+	}
+
+	@Override
+	public List<CommerceDiscount> getAccountGroupAndOrderTypeCommerceDiscount(
+		long[] commerceAccountGroupIds, long commerceOrderTypeId,
+		String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, null, commerceOrderTypeId,
+				null, null, target));
 	}
 
 	@Override
 	public List<CommerceDiscount> getAccountGroupCommerceDiscount(
-		long[] commerceAccountGroupIds, long cpDefinitionId) {
+		long[] commerceAccountGroupIds, long cpDefinitionId,
+		long cpInstanceId) {
 
-		return commerceDiscountFinder.findByAG_C_C_Product(
-			commerceAccountGroupIds, cpDefinitionId,
-			_getAssetCategoryIds(cpDefinitionId),
-			_commercePricingClassLocalService.
-				getCommercePricingClassByCPDefinition(cpDefinitionId));
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, null, null, cpDefinitionId,
+				cpInstanceId, null));
 	}
 
 	@Override
 	public List<CommerceDiscount> getAccountGroupCommerceDiscount(
-		long[] commerceAccountGroupIds, String commerceDiscountTargetType) {
+		long[] commerceAccountGroupIds, String target) {
 
-		return commerceDiscountFinder.findByAG_C_C_Order(
-			commerceAccountGroupIds, commerceDiscountTargetType);
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, commerceAccountGroupIds, null, null, null, null,
+				target));
 	}
 
 	@Override
@@ -567,22 +888,51 @@ public class CommerceDiscountLocalServiceImpl
 	}
 
 	@Override
-	public List<CommerceDiscount> getChannelCommerceDiscounts(
-		long commerceChannelId, long cpDefinitionId) {
+	public List<CommerceDiscount> getChannelAndOrderTypeCommerceDiscounts(
+		long commerceChannelId, long commerceOrderTypeId, long cpDefinitionId,
+		long cpInstanceId) {
 
-		return commerceDiscountFinder.findByC_C_C_Product(
-			commerceChannelId, cpDefinitionId,
-			_getAssetCategoryIds(cpDefinitionId),
-			_commercePricingClassLocalService.
-				getCommercePricingClassByCPDefinition(cpDefinitionId));
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, null, commerceChannelId, commerceOrderTypeId,
+				cpDefinitionId, cpInstanceId, null));
+	}
+
+	@Override
+	public List<CommerceDiscount> getChannelAndOrderTypeCommerceDiscounts(
+		long commerceChannelId, long commerceOrderTypeId, String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, null, commerceChannelId, commerceOrderTypeId, null,
+				null, target));
 	}
 
 	@Override
 	public List<CommerceDiscount> getChannelCommerceDiscounts(
-		long commerceChannelId, String commerceDiscountTargetType) {
+		long commerceChannelId, long cpDefinitionId, long cpInstanceId) {
 
-		return commerceDiscountFinder.findByC_C_C_Order(
-			commerceChannelId, commerceDiscountTargetType);
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, null, commerceChannelId, null, cpDefinitionId,
+				cpInstanceId, null));
+	}
+
+	@Override
+	public List<CommerceDiscount> getChannelCommerceDiscounts(
+		long commerceChannelId, String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, null, commerceChannelId, null, null, null, target));
 	}
 
 	/**
@@ -614,6 +964,30 @@ public class CommerceDiscountLocalServiceImpl
 	}
 
 	@Override
+	public List<CommerceDiscount> getOrderTypeCommerceDiscounts(
+		long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, null, null, commerceOrderTypeId, cpDefinitionId,
+				cpInstanceId, null));
+	}
+
+	@Override
+	public List<CommerceDiscount> getOrderTypeCommerceDiscounts(
+		long commerceOrderTypeId, String target) {
+
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				null, null, null, null, commerceOrderTypeId, null, null,
+				target));
+	}
+
+	@Override
 	public List<CommerceDiscount> getPriceListCommerceDiscounts(
 		long[] commerceDiscountIds, long cpDefinitionId) {
 
@@ -626,20 +1000,25 @@ public class CommerceDiscountLocalServiceImpl
 
 	@Override
 	public List<CommerceDiscount> getUnqualifiedCommerceDiscounts(
-		long companyId, long cpDefinitionId) {
+		long companyId, long cpDefinitionId, long cpInstanceId) {
 
-		return commerceDiscountFinder.findByUnqualifiedProduct(
-			companyId, cpDefinitionId, _getAssetCategoryIds(cpDefinitionId),
-			_commercePricingClassLocalService.
-				getCommercePricingClassByCPDefinition(cpDefinitionId));
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				companyId, null, null, null, null, cpDefinitionId, cpInstanceId,
+				null));
 	}
 
 	@Override
 	public List<CommerceDiscount> getUnqualifiedCommerceDiscounts(
-		long companyId, String commerceDiscountTargetType) {
+		long companyId, String target) {
 
-		return commerceDiscountFinder.findByUnqualifiedOrder(
-			companyId, commerceDiscountTargetType);
+		return dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommerceDiscountTable.INSTANCE),
+				companyId, null, null, null, null, null, null, target));
 	}
 
 	@Override
@@ -760,7 +1139,7 @@ public class CommerceDiscountLocalServiceImpl
 			serviceContext.getCompanyId(), commerceDiscountId, title, target,
 			useCouponCode, couponCode, limitationType);
 
-		Date now = new Date();
+		Date date = new Date();
 
 		Date displayDate = PortalUtil.getDate(
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
@@ -794,7 +1173,7 @@ public class CommerceDiscountLocalServiceImpl
 		commerceDiscount.setDisplayDate(displayDate);
 		commerceDiscount.setExpirationDate(expirationDate);
 
-		if ((expirationDate == null) || expirationDate.after(now)) {
+		if ((expirationDate == null) || expirationDate.after(date)) {
 			commerceDiscount.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -802,7 +1181,7 @@ public class CommerceDiscountLocalServiceImpl
 		}
 
 		commerceDiscount.setStatusByUserId(user.getUserId());
-		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(now));
+		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(date));
 		commerceDiscount.setExpandoBridgeAttributes(serviceContext);
 
 		commerceDiscount = commerceDiscountPersistence.update(commerceDiscount);
@@ -837,7 +1216,7 @@ public class CommerceDiscountLocalServiceImpl
 			serviceContext.getCompanyId(), commerceDiscountId, title, target,
 			useCouponCode, couponCode, limitationType);
 
-		Date now = new Date();
+		Date date = new Date();
 
 		Date displayDate = PortalUtil.getDate(
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
@@ -873,7 +1252,7 @@ public class CommerceDiscountLocalServiceImpl
 		commerceDiscount.setDisplayDate(displayDate);
 		commerceDiscount.setExpirationDate(expirationDate);
 
-		if ((expirationDate == null) || expirationDate.after(now)) {
+		if ((expirationDate == null) || expirationDate.after(date)) {
 			commerceDiscount.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -881,7 +1260,7 @@ public class CommerceDiscountLocalServiceImpl
 		}
 
 		commerceDiscount.setStatusByUserId(user.getUserId());
-		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(now));
+		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(date));
 		commerceDiscount.setExpandoBridgeAttributes(serviceContext);
 
 		commerceDiscount = commerceDiscountPersistence.update(commerceDiscount);
@@ -930,14 +1309,14 @@ public class CommerceDiscountLocalServiceImpl
 		throws PortalException {
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		CommerceDiscount commerceDiscount =
 			commerceDiscountPersistence.findByPrimaryKey(commerceDiscountId);
 
 		if ((status == WorkflowConstants.STATUS_APPROVED) &&
 			(commerceDiscount.getDisplayDate() != null) &&
-			now.before(commerceDiscount.getDisplayDate())) {
+			date.before(commerceDiscount.getDisplayDate())) {
 
 			commerceDiscount.setActive(false);
 
@@ -947,7 +1326,7 @@ public class CommerceDiscountLocalServiceImpl
 		if (status == WorkflowConstants.STATUS_APPROVED) {
 			Date expirationDate = commerceDiscount.getExpirationDate();
 
-			if ((expirationDate != null) && expirationDate.before(now)) {
+			if ((expirationDate != null) && expirationDate.before(date)) {
 				commerceDiscount.setExpirationDate(null);
 			}
 
@@ -960,20 +1339,20 @@ public class CommerceDiscountLocalServiceImpl
 
 		if (status == WorkflowConstants.STATUS_EXPIRED) {
 			commerceDiscount.setActive(false);
-			commerceDiscount.setExpirationDate(now);
+			commerceDiscount.setExpirationDate(date);
 		}
 
 		commerceDiscount.setStatus(status);
 		commerceDiscount.setStatusByUserId(user.getUserId());
 		commerceDiscount.setStatusByUserName(user.getFullName());
-		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(now));
+		commerceDiscount.setStatusDate(serviceContext.getModifiedDate(date));
 
 		return commerceDiscountPersistence.update(commerceDiscount);
 	}
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #upsertCommerceDiscount(String, long, long, String, String,
+	 *             #addOrUpdateCommerceDiscount(String, long, long, String, String,
 	 *             boolean, String, boolean, BigDecimal, BigDecimal,
 	 *             BigDecimal, BigDecimal, BigDecimal, String, int, boolean,
 	 *             int, int, int, int, int, int, int, int, int, int, boolean,
@@ -996,7 +1375,7 @@ public class CommerceDiscountLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		return upsertCommerceDiscount(
+		return addOrUpdateCommerceDiscount(
 			externalReferenceCode, userId, commerceDiscountId, title, target,
 			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
 			StringPool.BLANK, level1, level2, level3, level4, limitationType,
@@ -1009,7 +1388,7 @@ public class CommerceDiscountLocalServiceImpl
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #upsertCommerceDiscount(String, long, long, String, String,
+	 *             #addOrUpdateCommerceDiscount(String, long, long, String, String,
 	 *             boolean, String, boolean, BigDecimal, String, BigDecimal,
 	 *             BigDecimal, BigDecimal, BigDecimal, String, int, boolean,
 	 *             boolean, int, int, int, int, int, int, int, int, int, int,
@@ -1033,7 +1412,7 @@ public class CommerceDiscountLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		return upsertCommerceDiscount(
+		return addOrUpdateCommerceDiscount(
 			externalReferenceCode, userId, commerceDiscountId, title, target,
 			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
 			level, level1, level2, level3, level4, limitationType,
@@ -1046,7 +1425,7 @@ public class CommerceDiscountLocalServiceImpl
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #upsertCommerceDiscount(String, long, long, String, String,
+	 *             #addOrUpdateCommerceDiscount(String, long, long, String, String,
 	 *             boolean, String, boolean, BigDecimal, String, BigDecimal,
 	 *             BigDecimal, BigDecimal, BigDecimal, String, int, int,
 	 *             boolean, boolean, int, int, int, int, int, int, int, int,
@@ -1070,7 +1449,7 @@ public class CommerceDiscountLocalServiceImpl
 			boolean neverExpire, ServiceContext serviceContext)
 		throws PortalException {
 
-		return upsertCommerceDiscount(
+		return addOrUpdateCommerceDiscount(
 			externalReferenceCode, userId, commerceDiscountId, title, target,
 			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
 			level, level1, level2, level3, level4, limitationType,
@@ -1079,180 +1458,6 @@ public class CommerceDiscountLocalServiceImpl
 			displayDateHour, displayDateMinute, expirationDateMonth,
 			expirationDateDay, expirationDateYear, expirationDateHour,
 			expirationDateMinute, neverExpire, serviceContext);
-	}
-
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public CommerceDiscount upsertCommerceDiscount(
-			String externalReferenceCode, long userId, long commerceDiscountId,
-			String title, String target, boolean useCouponCode,
-			String couponCode, boolean usePercentage,
-			BigDecimal maximumDiscountAmount, BigDecimal level1,
-			BigDecimal level2, BigDecimal level3, BigDecimal level4,
-			String limitationType, int limitationTimes, boolean active,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, ServiceContext serviceContext)
-		throws PortalException {
-
-		return upsertCommerceDiscount(
-			externalReferenceCode, userId, commerceDiscountId, title, target,
-			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
-			StringPool.BLANK, level1, level2, level3, level4, limitationType,
-			limitationTimes, 0, true, active, displayDateMonth, displayDateDay,
-			displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire,
-			serviceContext);
-	}
-
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public CommerceDiscount upsertCommerceDiscount(
-			String externalReferenceCode, long userId, long commerceDiscountId,
-			String title, String target, boolean useCouponCode,
-			String couponCode, boolean usePercentage,
-			BigDecimal maximumDiscountAmount, String level, BigDecimal level1,
-			BigDecimal level2, BigDecimal level3, BigDecimal level4,
-			String limitationType, int limitationTimes,
-			boolean rulesConjunction, boolean active, int displayDateMonth,
-			int displayDateDay, int displayDateYear, int displayDateHour,
-			int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, ServiceContext serviceContext)
-		throws PortalException {
-
-		// Update
-
-		if (commerceDiscountId > 0) {
-			try {
-				return commerceDiscountLocalService.updateCommerceDiscount(
-					commerceDiscountId, title, target, useCouponCode,
-					couponCode, usePercentage, maximumDiscountAmount, level,
-					level1, level2, level3, level4, limitationType,
-					limitationTimes, rulesConjunction, active, displayDateMonth,
-					displayDateDay, displayDateYear, displayDateHour,
-					displayDateMinute, expirationDateMonth, expirationDateDay,
-					expirationDateYear, expirationDateHour,
-					expirationDateMinute, neverExpire, serviceContext);
-			}
-			catch (NoSuchDiscountException noSuchDiscountException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(
-						"Unable to find discount with ID: " +
-							commerceDiscountId,
-						noSuchDiscountException);
-				}
-			}
-		}
-
-		if (!Validator.isBlank(externalReferenceCode)) {
-			CommerceDiscount commerceDiscount =
-				commerceDiscountPersistence.fetchByC_ERC(
-					serviceContext.getCompanyId(), externalReferenceCode);
-
-			if (commerceDiscount != null) {
-				return commerceDiscountLocalService.updateCommerceDiscount(
-					commerceDiscountId, title, target, useCouponCode,
-					couponCode, usePercentage, maximumDiscountAmount, level,
-					level1, level2, level3, level4, limitationType,
-					limitationTimes, rulesConjunction, active, displayDateMonth,
-					displayDateDay, displayDateYear, displayDateHour,
-					displayDateMinute, expirationDateMonth, expirationDateDay,
-					expirationDateYear, expirationDateHour,
-					expirationDateMinute, neverExpire, serviceContext);
-			}
-		}
-
-		// Add
-
-		return commerceDiscountLocalService.addCommerceDiscount(
-			externalReferenceCode, userId, title, target, useCouponCode,
-			couponCode, usePercentage, maximumDiscountAmount, level, level1,
-			level2, level3, level4, limitationType, limitationTimes,
-			rulesConjunction, active, displayDateMonth, displayDateDay,
-			displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire,
-			serviceContext);
-	}
-
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public CommerceDiscount upsertCommerceDiscount(
-			String externalReferenceCode, long userId, long commerceDiscountId,
-			String title, String target, boolean useCouponCode,
-			String couponCode, boolean usePercentage,
-			BigDecimal maximumDiscountAmount, String level, BigDecimal level1,
-			BigDecimal level2, BigDecimal level3, BigDecimal level4,
-			String limitationType, int limitationTimes,
-			int limitationTimesPerAccount, boolean rulesConjunction,
-			boolean active, int displayDateMonth, int displayDateDay,
-			int displayDateYear, int displayDateHour, int displayDateMinute,
-			int expirationDateMonth, int expirationDateDay,
-			int expirationDateYear, int expirationDateHour,
-			int expirationDateMinute, boolean neverExpire,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		// Update
-
-		if (commerceDiscountId > 0) {
-			try {
-				return commerceDiscountLocalService.updateCommerceDiscount(
-					commerceDiscountId, title, target, useCouponCode,
-					couponCode, usePercentage, maximumDiscountAmount, level,
-					level1, level2, level3, level4, limitationType,
-					limitationTimes, limitationTimesPerAccount,
-					rulesConjunction, active, displayDateMonth, displayDateDay,
-					displayDateYear, displayDateHour, displayDateMinute,
-					expirationDateMonth, expirationDateDay, expirationDateYear,
-					expirationDateHour, expirationDateMinute, neverExpire,
-					serviceContext);
-			}
-			catch (NoSuchDiscountException noSuchDiscountException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(
-						"Unable to find discount with ID: " +
-							commerceDiscountId,
-						noSuchDiscountException);
-				}
-			}
-		}
-
-		if (!Validator.isBlank(externalReferenceCode)) {
-			CommerceDiscount commerceDiscount =
-				commerceDiscountPersistence.fetchByC_ERC(
-					serviceContext.getCompanyId(), externalReferenceCode);
-
-			if (commerceDiscount != null) {
-				return commerceDiscountLocalService.updateCommerceDiscount(
-					commerceDiscountId, title, target, useCouponCode,
-					couponCode, usePercentage, maximumDiscountAmount, level,
-					level1, level2, level3, level4, limitationType,
-					limitationTimes, limitationTimesPerAccount,
-					rulesConjunction, active, displayDateMonth, displayDateDay,
-					displayDateYear, displayDateHour, displayDateMinute,
-					expirationDateMonth, expirationDateDay, expirationDateYear,
-					expirationDateHour, expirationDateMinute, neverExpire,
-					serviceContext);
-			}
-		}
-
-		// Add
-
-		return commerceDiscountLocalService.addCommerceDiscount(
-			externalReferenceCode, userId, title, target, useCouponCode,
-			couponCode, usePercentage, maximumDiscountAmount, level, level1,
-			level2, level3, level4, limitationType, limitationTimes,
-			limitationTimesPerAccount, rulesConjunction, active,
-			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
-			displayDateMinute, expirationDateMonth, expirationDateDay,
-			expirationDateYear, expirationDateHour, expirationDateMinute,
-			neverExpire, serviceContext);
 	}
 
 	protected SearchContext buildSearchContext(
@@ -1480,10 +1685,225 @@ public class CommerceDiscountLocalServiceImpl
 			return longStream.toArray();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return new long[0];
+	}
+
+	private GroupByStep _getGroupByStep(
+		FromStep fromStep, Long companyId, Long commerceAccountId,
+		long[] commerceAccountGroupIds, Long commerceChannelId,
+		Long commerceOrderTypeId, Long cpDefinitionId, Long cpInstanceId,
+		String target) {
+
+		JoinStep joinStep = fromStep.from(CommerceDiscountTable.INSTANCE);
+
+		Predicate predicate = CommerceDiscountTable.INSTANCE.active.eq(
+			true
+		).and(
+			() -> {
+				if (companyId != null) {
+					return CommerceDiscountTable.INSTANCE.companyId.eq(
+						companyId);
+				}
+
+				return null;
+			}
+		);
+
+		if (commerceAccountId != null) {
+			joinStep = joinStep.innerJoinON(
+				CommerceDiscountAccountRelTable.INSTANCE,
+				CommerceDiscountAccountRelTable.INSTANCE.commerceDiscountId.eq(
+					CommerceDiscountTable.INSTANCE.commerceDiscountId));
+			predicate = predicate.and(
+				CommerceDiscountAccountRelTable.INSTANCE.commerceAccountId.eq(
+					commerceAccountId));
+		}
+		else {
+			joinStep = joinStep.leftJoinOn(
+				CommerceDiscountAccountRelTable.INSTANCE,
+				CommerceDiscountAccountRelTable.INSTANCE.commerceDiscountId.eq(
+					CommerceDiscountTable.INSTANCE.commerceDiscountId));
+			predicate = predicate.and(
+				CommerceDiscountAccountRelTable.INSTANCE.
+					commerceDiscountAccountRelId.isNull());
+		}
+
+		if (commerceAccountGroupIds != null) {
+			if (commerceAccountGroupIds.length == 0) {
+				commerceAccountGroupIds = new long[] {0};
+			}
+
+			joinStep = joinStep.innerJoinON(
+				CommerceDiscountCommerceAccountGroupRelTable.INSTANCE,
+				CommerceDiscountCommerceAccountGroupRelTable.INSTANCE.
+					commerceDiscountId.eq(
+						CommerceDiscountTable.INSTANCE.commerceDiscountId));
+
+			LongStream longStream = Arrays.stream(commerceAccountGroupIds);
+
+			predicate = predicate.and(
+				CommerceDiscountCommerceAccountGroupRelTable.INSTANCE.
+					commerceAccountGroupId.in(
+						longStream.boxed(
+						).toArray(
+							Long[]::new
+						)));
+		}
+		else {
+			joinStep = joinStep.leftJoinOn(
+				CommerceDiscountCommerceAccountGroupRelTable.INSTANCE,
+				CommerceDiscountCommerceAccountGroupRelTable.INSTANCE.
+					commerceDiscountId.eq(
+						CommerceDiscountTable.INSTANCE.commerceDiscountId));
+			predicate = predicate.and(
+				CommerceDiscountCommerceAccountGroupRelTable.INSTANCE.
+					commerceDiscountCommerceAccountGroupRelId.isNull());
+		}
+
+		if (commerceChannelId != null) {
+			joinStep = joinStep.innerJoinON(
+				CommerceChannelRelTable.INSTANCE,
+				CommerceChannelRelTable.INSTANCE.classPK.eq(
+					CommerceDiscountTable.INSTANCE.commerceDiscountId
+				).and(
+					CommerceChannelRelTable.INSTANCE.classNameId.eq(
+						classNameLocalService.getClassNameId(
+							CommerceDiscount.class.getName()))
+				));
+			predicate = predicate.and(
+				CommerceChannelRelTable.INSTANCE.commerceChannelId.eq(
+					commerceChannelId));
+		}
+		else {
+			joinStep = joinStep.leftJoinOn(
+				CommerceChannelRelTable.INSTANCE,
+				CommerceChannelRelTable.INSTANCE.classPK.eq(
+					CommerceDiscountTable.INSTANCE.commerceDiscountId
+				).and(
+					CommerceChannelRelTable.INSTANCE.classNameId.eq(
+						classNameLocalService.getClassNameId(
+							CommerceDiscount.class.getName()))
+				));
+			predicate = predicate.and(
+				CommerceChannelRelTable.INSTANCE.commerceChannelRelId.isNull());
+		}
+
+		if (commerceOrderTypeId != null) {
+			joinStep = joinStep.innerJoinON(
+				CommerceDiscountOrderTypeRelTable.INSTANCE,
+				CommerceDiscountOrderTypeRelTable.INSTANCE.commerceDiscountId.
+					eq(CommerceDiscountTable.INSTANCE.commerceDiscountId));
+			predicate = predicate.and(
+				CommerceDiscountOrderTypeRelTable.INSTANCE.commerceOrderTypeId.
+					eq(commerceOrderTypeId));
+		}
+		else {
+			joinStep = joinStep.leftJoinOn(
+				CommerceDiscountOrderTypeRelTable.INSTANCE,
+				CommerceDiscountOrderTypeRelTable.INSTANCE.commerceDiscountId.
+					eq(CommerceDiscountTable.INSTANCE.commerceDiscountId));
+			predicate = predicate.and(
+				CommerceDiscountOrderTypeRelTable.INSTANCE.
+					commerceDiscountOrderTypeRelId.isNull());
+		}
+
+		if (!Validator.isBlank(target)) {
+			return joinStep.where(
+				predicate.and(
+					CommerceDiscountTable.INSTANCE.target.eq(target)));
+		}
+
+		joinStep = joinStep.innerJoinON(
+			CommerceDiscountRelTable.INSTANCE,
+			CommerceDiscountRelTable.INSTANCE.commerceDiscountId.eq(
+				CommerceDiscountTable.INSTANCE.commerceDiscountId));
+
+		return joinStep.where(
+			predicate.and(_toTargetPredicate(cpDefinitionId, cpInstanceId)));
+	}
+
+	private Predicate _toTargetPredicate(
+		long cpDefinitionId, long cpInstanceId) {
+
+		Predicate predicate = CommerceDiscountTable.INSTANCE.target.eq(
+			CommerceDiscountConstants.TARGET_PRODUCTS
+		).and(
+			CommerceDiscountRelTable.INSTANCE.classPK.eq(cpDefinitionId)
+		).and(
+			CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+				classNameLocalService.getClassNameId(
+					CPDefinition.class.getName()))
+		);
+
+		predicate = predicate.or(
+			CommerceDiscountTable.INSTANCE.target.eq(
+				CommerceDiscountConstants.TARGET_SKUS
+			).and(
+				CommerceDiscountRelTable.INSTANCE.classPK.eq(cpInstanceId)
+			).and(
+				CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+					classNameLocalService.getClassNameId(
+						CPInstance.class.getName()))
+			));
+
+		long[] assetCategoryIds = _getAssetCategoryIds(cpDefinitionId);
+
+		if (assetCategoryIds != null) {
+			if (assetCategoryIds.length == 0) {
+				assetCategoryIds = new long[] {0};
+			}
+
+			LongStream assetCategoryIdsLongStream = Arrays.stream(
+				assetCategoryIds);
+
+			predicate = predicate.or(
+				CommerceDiscountTable.INSTANCE.target.eq(
+					CommerceDiscountConstants.TARGET_CATEGORIES
+				).and(
+					CommerceDiscountRelTable.INSTANCE.classPK.in(
+						assetCategoryIdsLongStream.boxed(
+						).toArray(
+							Long[]::new
+						))
+				).and(
+					CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+						classNameLocalService.getClassNameId(
+							AssetCategory.class.getName()))
+				));
+		}
+
+		long[] commercePricingClasses =
+			_commercePricingClassLocalService.
+				getCommercePricingClassByCPDefinition(cpDefinitionId);
+
+		if (commercePricingClasses != null) {
+			if (commercePricingClasses.length == 0) {
+				commercePricingClasses = new long[] {0};
+			}
+
+			LongStream commercePricingClassesLongStream = Arrays.stream(
+				commercePricingClasses);
+
+			predicate = predicate.or(
+				CommerceDiscountTable.INSTANCE.target.eq(
+					CommerceDiscountConstants.TARGET_PRODUCT_GROUPS
+				).and(
+					CommerceDiscountRelTable.INSTANCE.classPK.in(
+						commercePricingClassesLongStream.boxed(
+						).toArray(
+							Long[]::new
+						))
+				).and(
+					CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+						classNameLocalService.getClassNameId(
+							CommercePricingClass.class.getName()))
+				));
+		}
+
+		return predicate.withParentheses();
 	}
 
 	private static final String[] _SELECTED_FIELD_NAMES = {
@@ -1501,5 +1921,11 @@ public class CommerceDiscountLocalServiceImpl
 
 	@ServiceReference(type = CommercePricingClassLocalService.class)
 	private CommercePricingClassLocalService _commercePricingClassLocalService;
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
+
+	@ServiceReference(type = WorkflowInstanceLinkLocalService.class)
+	private WorkflowInstanceLinkLocalService _workflowInstanceLinkLocalService;
 
 }

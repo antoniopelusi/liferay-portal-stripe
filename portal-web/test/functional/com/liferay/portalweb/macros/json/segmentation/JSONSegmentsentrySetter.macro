@@ -43,7 +43,10 @@ definition {
 	macro setField {
 		Variables.assertDefined(parameterList = "${fieldName}");
 
-		if ("${fieldName}" == "Date Modified") {
+		if ("${fieldName}" == "Browser") {
+			var field = "browser";
+		}
+		else if ("${fieldName}" == "Date Modified") {
 			var field = "dateModified";
 		}
 		else if ("${fieldName}" == "Date of Birth") {
@@ -105,19 +108,19 @@ definition {
 			var serviceContext = JSONServiceContextUtil.setServiceContext(
 				addGroupPermissions = "true",
 				addGuestPermissions = "true",
-				groupName = "${groupName}",
-				site = "${site}",
 				assetCategoryIds = "${assetCategoryIds}",
 				assetTagNames = "${assetTagNames}",
+				groupName = "${groupName}",
+				site = "${site}",
 				workflowAction = "${workflowAction}");
 		}
 		else {
 			var serviceContext = JSONServiceContextUtil.setServiceContext(
 				addGroupPermissions = "true",
 				addGuestPermissions = "true",
-				groupName = "Guest",
 				assetCategoryIds = "${assetCategoryIds}",
 				assetTagNames = "${assetTagNames}",
+				groupName = "Guest",
 				workflowAction = "${workflowAction}");
 		}
 

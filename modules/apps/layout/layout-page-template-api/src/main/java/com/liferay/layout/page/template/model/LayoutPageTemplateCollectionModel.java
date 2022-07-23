@@ -303,4 +303,7 @@ public interface LayoutPageTemplateCollectionModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public LayoutPageTemplateCollection cloneWithOriginalValues();
+
 }

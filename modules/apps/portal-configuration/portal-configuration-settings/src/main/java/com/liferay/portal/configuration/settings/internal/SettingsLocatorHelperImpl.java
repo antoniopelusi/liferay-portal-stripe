@@ -15,7 +15,7 @@
 package com.liferay.portal.configuration.settings.internal;
 
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
-import com.liferay.portal.configuration.settings.internal.scoped.configuration.ScopedConfigurationManager;
+import com.liferay.portal.configuration.settings.internal.scoped.configuration.admin.service.ScopedConfigurationManagedServiceFactory;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.Group;
@@ -305,22 +305,26 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 		ExtendedObjectClassDefinition.Scope scope, Serializable scopePK,
 		String configurationPid, Settings parentSettings) {
 
-		ScopedConfigurationManager scopedConfigurationManager =
-			_scopedConfigurationManagers.get(configurationPid);
+		ScopedConfigurationManagedServiceFactory
+			scopedConfigurationManagedServiceFactory =
+				_scopedConfigurationManagedServiceFactories.get(
+					configurationPid);
 
-		if (scopedConfigurationManager == null) {
+		if (scopedConfigurationManagedServiceFactory == null) {
 			return parentSettings;
 		}
 
-		Object configurationBean = scopedConfigurationManager.getConfiguration(
-			scope, scopePK);
+		Object configurationBean =
+			scopedConfigurationManagedServiceFactory.getConfiguration(
+				scope, scopePK);
 
 		if (configurationBean == null) {
 			return parentSettings;
 		}
 
 		return new ConfigurationBeanSettings(
-			scopedConfigurationManager.getLocationVariableResolver(),
+			scopedConfigurationManagedServiceFactory.
+				getLocationVariableResolver(),
 			configurationBean, parentSettings);
 	}
 
@@ -330,7 +334,7 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 		<ConfigurationBeanDeclaration, ConfigurationBeanManagedService>
 			_configurationBeanDeclarationServiceTracker;
 	private ServiceTracker
-		<ConfigurationBeanDeclaration, ScopedConfigurationManager>
+		<ConfigurationBeanDeclaration, ScopedConfigurationManagedServiceFactory>
 			_configurationBeanDeclarationServiceTrackerFactory;
 	private final Map<Class<?>, Settings> _configurationBeanSettings =
 		new ConcurrentHashMap<>();
@@ -339,8 +343,8 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 	private Settings _portalPropertiesSettings;
 	private PortletPreferencesFactory _portletPreferencesFactory;
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
-	private final Map<String, ScopedConfigurationManager>
-		_scopedConfigurationManagers = new ConcurrentHashMap<>();
+	private final Map<String, ScopedConfigurationManagedServiceFactory>
+		_scopedConfigurationManagedServiceFactories = new ConcurrentHashMap<>();
 
 	private class ConfigurationBeanDeclarationServiceTracker
 		extends ServiceTracker
@@ -407,14 +411,15 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 
 	private class ConfigurationBeanDeclarationServiceTrackerFactory
 		extends ServiceTracker
-			<ConfigurationBeanDeclaration, ScopedConfigurationManager> {
+			<ConfigurationBeanDeclaration,
+			 ScopedConfigurationManagedServiceFactory> {
 
 		@Override
-		public ScopedConfigurationManager addingService(
-			ServiceReference<ConfigurationBeanDeclaration> reference) {
+		public ScopedConfigurationManagedServiceFactory addingService(
+			ServiceReference<ConfigurationBeanDeclaration> serviceReference) {
 
 			ConfigurationBeanDeclaration configurationBeanDeclaration =
-				context.getService(reference);
+				context.getService(serviceReference);
 
 			Class<?> configurationBeanClass =
 				configurationBeanDeclaration.getConfigurationBeanClass();
@@ -425,30 +430,33 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 						configurationBeanClass.getClassLoader()),
 					SettingsLocatorHelperImpl.this);
 
-			ScopedConfigurationManager scopedConfigurationManager =
-				new ScopedConfigurationManager(
-					context, configurationBeanClass, locationVariableResolver);
+			ScopedConfigurationManagedServiceFactory
+				scopedConfigurationManagedServiceFactory =
+					new ScopedConfigurationManagedServiceFactory(
+						context, configurationBeanClass,
+						locationVariableResolver);
 
-			scopedConfigurationManager.register();
+			scopedConfigurationManagedServiceFactory.register();
 
-			_scopedConfigurationManagers.put(
-				scopedConfigurationManager.getName(),
-				scopedConfigurationManager);
+			_scopedConfigurationManagedServiceFactories.put(
+				scopedConfigurationManagedServiceFactory.getName(),
+				scopedConfigurationManagedServiceFactory);
 
-			return scopedConfigurationManager;
+			return scopedConfigurationManagedServiceFactory;
 		}
 
 		@Override
 		public void removedService(
-			ServiceReference<ConfigurationBeanDeclaration> reference,
-			ScopedConfigurationManager scopedConfigurationManager) {
+			ServiceReference<ConfigurationBeanDeclaration> serviceReference,
+			ScopedConfigurationManagedServiceFactory
+				scopedConfigurationManagedServiceFactory) {
 
-			context.ungetService(reference);
+			context.ungetService(serviceReference);
 
-			_scopedConfigurationManagers.remove(
-				scopedConfigurationManager.getName());
+			_scopedConfigurationManagedServiceFactories.remove(
+				scopedConfigurationManagedServiceFactory.getName());
 
-			scopedConfigurationManager.unregister();
+			scopedConfigurationManagedServiceFactory.unregister();
 		}
 
 		private ConfigurationBeanDeclarationServiceTrackerFactory(

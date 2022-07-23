@@ -641,4 +641,7 @@ public interface MBThreadModel
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId);
 
+	@Override
+	public MBThread cloneWithOriginalValues();
+
 }

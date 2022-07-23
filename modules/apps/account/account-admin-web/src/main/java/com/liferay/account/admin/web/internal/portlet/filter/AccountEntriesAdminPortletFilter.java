@@ -121,7 +121,7 @@ public class AccountEntriesAdminPortletFilter
 					"screenNavigationCategoryKey",
 					AccountScreenNavigationEntryConstants.
 						CATEGORY_KEY_DEFINE_PERMISSIONS
-				).build();
+				).buildPortletURL();
 
 				long roleId = ParamUtil.getLong(renderRequest, "roleId");
 

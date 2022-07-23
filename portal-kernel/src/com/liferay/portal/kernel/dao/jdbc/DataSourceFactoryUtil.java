@@ -26,7 +26,7 @@ public class DataSourceFactoryUtil {
 	public static void destroyDataSource(DataSource dataSource)
 		throws Exception {
 
-		getDataSourceFactory().destroyDataSource(dataSource);
+		_dataSourceFactory.destroyDataSource(dataSource);
 	}
 
 	public static DataSourceFactory getDataSourceFactory() {
@@ -36,7 +36,7 @@ public class DataSourceFactoryUtil {
 	public static DataSource initDataSource(Properties properties)
 		throws Exception {
 
-		return getDataSourceFactory().initDataSource(properties);
+		return _dataSourceFactory.initDataSource(properties);
 	}
 
 	public static DataSource initDataSource(
@@ -44,7 +44,7 @@ public class DataSourceFactoryUtil {
 			String password, String jndiName)
 		throws Exception {
 
-		return getDataSourceFactory().initDataSource(
+		return _dataSourceFactory.initDataSource(
 			driverClassName, url, userName, password, jndiName);
 	}
 

@@ -21,7 +21,7 @@ import com.liferay.portal.search.aggregation.pipeline.SumBucketPipelineAggregati
  * @author Michael C. Han
  */
 public class SumBucketPipelineAggregationImpl
-	extends BucketMetricsPipelineAggregationImpl
+	extends BaseBucketMetricsPipelineAggregationImpl
 	implements SumBucketPipelineAggregation {
 
 	public SumBucketPipelineAggregationImpl(String name, String bucketsPath) {

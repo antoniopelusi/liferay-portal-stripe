@@ -44,15 +44,16 @@ public class RankingToDocumentTranslatorTest {
 
 	@Before
 	public void setUp() {
-		_documentToRankingTranslator = createDocumentToRankingTranslator();
-		_rankingToDocumentTranslator = createRankingToDocumentTranslator();
+		_documentToRankingTranslator = _createDocumentToRankingTranslator();
+		_rankingToDocumentTranslator = _createRankingToDocumentTranslator();
 	}
 
 	@Test
 	public void testBlocks() {
 		Ranking.RankingBuilder rankingBuilder = new Ranking.RankingBuilder();
 
-		rankingBuilder.blocks(Arrays.asList("142857", "285714", "428571"));
+		rankingBuilder.hiddenDocumentIds(
+			Arrays.asList("142857", "285714", "428571"));
 
 		Document document = translate(rankingBuilder.build());
 
@@ -65,7 +66,8 @@ public class RankingToDocumentTranslatorTest {
 			document, null);
 
 		Assert.assertEquals(
-			"[142857, 285714, 428571]", String.valueOf(ranking2.getBlockIds()));
+			"[142857, 285714, 428571]",
+			String.valueOf(ranking2.getHiddenDocumentIds()));
 	}
 
 	@Test
@@ -82,7 +84,8 @@ public class RankingToDocumentTranslatorTest {
 			document, null);
 
 		Assert.assertEquals("[]", String.valueOf(ranking2.getAliases()));
-		Assert.assertEquals("[]", String.valueOf(ranking2.getBlockIds()));
+		Assert.assertEquals(
+			"[]", String.valueOf(ranking2.getHiddenDocumentIds()));
 		Assert.assertEquals("[]", String.valueOf(ranking2.getPins()));
 		Assert.assertEquals("[]", String.valueOf(ranking2.getQueryStrings()));
 	}
@@ -130,14 +133,16 @@ public class RankingToDocumentTranslatorTest {
 			String.valueOf(ranking2.getQueryStrings()));
 	}
 
-	protected static DocumentToRankingTranslator
-		createDocumentToRankingTranslator() {
+	protected Document translate(Ranking ranking) {
+		return _rankingToDocumentTranslator.translate(ranking);
+	}
 
+	private DocumentToRankingTranslator _createDocumentToRankingTranslator() {
 		return new DocumentToRankingTranslatorImpl();
 	}
 
-	protected static RankingToDocumentTranslatorImpl
-		createRankingToDocumentTranslator() {
+	private RankingToDocumentTranslatorImpl
+		_createRankingToDocumentTranslator() {
 
 		return new RankingToDocumentTranslatorImpl() {
 			{
@@ -146,16 +151,12 @@ public class RankingToDocumentTranslatorTest {
 		};
 	}
 
-	protected Document translate(Ranking ranking) {
-		return _rankingToDocumentTranslator.translate(ranking);
-	}
-
 	private String _toString(List<Ranking.Pin> pins) {
 		Stream<Ranking.Pin> stream = pins.stream();
 
 		return String.valueOf(
 			stream.map(
-				pin -> pin.getPosition() + "=" + pin.getId()
+				pin -> pin.getPosition() + "=" + pin.getDocumentId()
 			).collect(
 				Collectors.toList()
 			));

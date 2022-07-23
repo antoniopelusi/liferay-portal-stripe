@@ -39,10 +39,6 @@
 			<finder-column name="userId" />
 			<finder-column name="credentialKeyHash" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>DuplicateMFAFIDO2CredentialEntry</exception>

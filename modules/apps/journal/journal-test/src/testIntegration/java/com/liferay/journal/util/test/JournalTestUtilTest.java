@@ -92,8 +92,8 @@ public class JournalTestUtilTest {
 		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
 			ddmStructure.getStructureId(),
 			PortalUtil.getClassNameId(JournalArticle.class),
-			TemplateConstants.LANG_TYPE_VM,
-			JournalTestUtil.getSampleTemplateXSL());
+			TemplateConstants.LANG_TYPE_FTL,
+			JournalTestUtil.getSampleTemplateFTL());
 
 		Assert.assertNotNull(
 			JournalTestUtil.addArticleWithXMLContent(
@@ -178,7 +178,7 @@ public class JournalTestUtilTest {
 	}
 
 	@Test
-	public void testAddDDMTemplateToDDMStructureWithXSLAndLanguage()
+	public void testAddDDMTemplateToDDMStructureWithLanguage()
 		throws Exception {
 
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
@@ -188,8 +188,8 @@ public class JournalTestUtilTest {
 			DDMTemplateTestUtil.addTemplate(
 				ddmStructure.getStructureId(),
 				PortalUtil.getClassNameId(JournalArticle.class),
-				TemplateConstants.LANG_TYPE_VM,
-				JournalTestUtil.getSampleTemplateXSL()));
+				TemplateConstants.LANG_TYPE_FTL,
+				JournalTestUtil.getSampleTemplateFTL()));
 	}
 
 	@Test
@@ -205,8 +205,7 @@ public class JournalTestUtilTest {
 		String content = (String)_transformMethod.invoke(
 			null, null, getTokens(), Constants.VIEW, "en_US",
 			UnsecureSAXReaderUtil.read(xml), null,
-			JournalTestUtil.getSampleTemplateXSL(),
-			TemplateConstants.LANG_TYPE_VM, false, new HashMap<>());
+			JournalTestUtil.getSampleTemplateFTL(), false, new HashMap<>());
 
 		Assert.assertEquals("Joe Bloggs", content);
 	}
@@ -244,7 +243,7 @@ public class JournalTestUtilTest {
 				ddmStructure.getStructureKey(), null,
 				LocaleUtil.getSiteDefault()));
 
-		DDMStructureLocalServiceUtil.deleteDDMStructure(ddmStructure);
+		DDMStructureLocalServiceUtil.deleteStructure(ddmStructure);
 
 		try {
 			Assert.assertNull(
@@ -264,8 +263,7 @@ public class JournalTestUtilTest {
 		String content = (String)_transformMethod.invoke(
 			null, null, getTokens(), Constants.VIEW, "en_US",
 			UnsecureSAXReaderUtil.read(xml), null,
-			JournalTestUtil.getSampleTemplateXSL(),
-			TemplateConstants.LANG_TYPE_VM, false, new HashMap<>());
+			JournalTestUtil.getSampleTemplateFTL(), false, new HashMap<>());
 
 		Assert.assertEquals("Joe Bloggs", content);
 	}
@@ -276,9 +274,9 @@ public class JournalTestUtilTest {
 	}
 
 	@Test
-	public void testGetSampleTemplateXSL() {
+	public void testGetSampleTemplateVM() {
 		Assert.assertEquals(
-			"$name.getData()", JournalTestUtil.getSampleTemplateXSL());
+			"$name.getData()", JournalTestUtil.getSampleTemplateVM());
 	}
 
 	@Test

@@ -2,16 +2,18 @@
 <head>
 <title>DDMSelectStructure</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">DDMSelectStructure</td></tr>
 </thead>
+
 <tbody>
 <!--DDM_STRUCTURE_TABLE-->
 <tr>
 	<td>DDM_STRUCTURE_ELLIPSIS</td>
-	<td>//tr[contains(.,'${key_ddlDataDefinitionName}')]//td[contains(@class,'entry-action')]//a[span/*[name()='svg'][contains(@class,'icon-ellipsis-v')]]</td>
+	<td>//tr[contains(.,'${key_ddlDataDefinitionName}')]//td[contains(@class,'entry-action')]//*[self::a or self::button][span/*[name()='svg'][contains(@class,'icon-ellipsis-v')]]</td>
 	<td></td>
 </tr>
 <tr>

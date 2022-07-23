@@ -17,7 +17,9 @@ package com.liferay.commerce.product.model;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.AuditedModel;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 
@@ -36,7 +38,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CommerceCatalogModel
-	extends AuditedModel, BaseModel<CommerceCatalog>, ShardedModel {
+	extends AuditedModel, BaseModel<CommerceCatalog>, CTModel<CommerceCatalog>,
+			MVCCModel, ShardedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -49,6 +52,7 @@ public interface CommerceCatalogModel
 	 *
 	 * @return the primary key of this commerce catalog
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -56,7 +60,40 @@ public interface CommerceCatalogModel
 	 *
 	 * @param primaryKey the primary key of this commerce catalog
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this commerce catalog.
+	 *
+	 * @return the mvcc version of this commerce catalog
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this commerce catalog.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce catalog
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this commerce catalog.
+	 *
+	 * @return the ct collection ID of this commerce catalog
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this commerce catalog.
+	 *
+	 * @param ctCollectionId the ct collection ID of this commerce catalog
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the external reference code of this commerce catalog.
@@ -249,5 +286,8 @@ public interface CommerceCatalogModel
 	 * @param system the system of this commerce catalog
 	 */
 	public void setSystem(boolean system);
+
+	@Override
+	public CommerceCatalog cloneWithOriginalValues();
 
 }

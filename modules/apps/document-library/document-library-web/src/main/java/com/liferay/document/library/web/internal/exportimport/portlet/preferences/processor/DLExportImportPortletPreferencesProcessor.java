@@ -21,7 +21,9 @@ import com.liferay.document.library.kernel.model.DLFileShortcut;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.exportimport.kernel.lar.ExportImportHelper;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
@@ -35,15 +37,21 @@ import com.liferay.exportimport.staged.model.repository.StagedModelRepositoryReg
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Repository;
-import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portlet.documentlibrary.constants.DLConstants;
 
@@ -97,37 +105,53 @@ public class DLExportImportPortletPreferencesProcessor
 
 		// Root folder ID is set, only export that
 
-		String portletId = portletDataContext.getPortletId();
-
 		long rootFolderId = GetterUtil.getLong(
 			portletPreferences.getValue("rootFolderId", null));
 
 		if (rootFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			Folder folder = null;
-
 			try {
-				folder = _dlAppLocalService.getFolder(rootFolderId);
+				Folder folder = _getFolder(rootFolderId, portletDataContext);
+
+				if (folder != null) {
+					portletPreferences.setValue(
+						"selectedRepositoryId",
+						String.valueOf(folder.getRepositoryId()));
+
+					if ((folder.getGroupId() ==
+							portletDataContext.getGroupId()) ||
+						!ExportImportThreadLocal.isStagingInProcess()) {
+
+						StagedModelDataHandlerUtil.exportReferenceStagedModel(
+							portletDataContext,
+							portletDataContext.getPortletId(), folder);
+					}
+					else {
+						_saveStagingPreferencesMapping(
+							folder.getRepositoryId(), folder.getUuid(),
+							portletDataContext);
+					}
+				}
+
+				return portletPreferences;
 			}
-			catch (PortalException portalException) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("Portlet ");
-				sb.append(portletId);
-				sb.append(" refers to an invalid root folder ID ");
-				sb.append(rootFolderId);
-
-				_log.error(sb.toString());
-
-				throw new PortletDataException(sb.toString(), portalException);
+			catch (ReadOnlyException readOnlyException) {
+				throw new PortletDataException(
+					"Unable to update portlet preferences during import",
+					readOnlyException);
 			}
-
-			StagedModelDataHandlerUtil.exportReferenceStagedModel(
-				portletDataContext, portletId, folder);
-
-			return portletPreferences;
 		}
 
-		if (!_exportImportHelper.isExportPortletData(portletDataContext)) {
+		long selectedRepositoryId = GetterUtil.getLong(
+			portletPreferences.getValue("selectedRepositoryId", null));
+
+		if (!_exportImportHelper.isExportPortletData(portletDataContext) ||
+			(selectedRepositoryId != portletDataContext.getGroupId())) {
+
+			if (ExportImportThreadLocal.isStagingInProcess()) {
+				_saveStagingPreferencesMapping(
+					selectedRepositoryId, null, portletDataContext);
+			}
+
 			return portletPreferences;
 		}
 
@@ -148,9 +172,9 @@ public class DLExportImportPortletPreferencesProcessor
 		}
 
 		try {
-			String namespace = _dlPortletDataHandler.getNamespace();
+			if (portletDataContext.getBooleanParameter(
+					_dlPortletDataHandler.getNamespace(), "folders")) {
 
-			if (portletDataContext.getBooleanParameter(namespace, "folders")) {
 				StagedModelRepository<?> stagedModelRepository =
 					StagedModelRepositoryRegistryUtil.getStagedModelRepository(
 						DLFolder.class.getName());
@@ -165,18 +189,18 @@ public class DLExportImportPortletPreferencesProcessor
 							return;
 						}
 
-						Folder folder = _dlAppLocalService.getFolder(
-							dlFolder.getFolderId());
-
 						StagedModelDataHandlerUtil.exportReferenceStagedModel(
-							portletDataContext, portletId, folder);
+							portletDataContext,
+							portletDataContext.getPortletId(),
+							_dlAppLocalService.getFolder(
+								dlFolder.getFolderId()));
 					});
 
 				folderActionableDynamicQuery.performActions();
 			}
 
 			if (portletDataContext.getBooleanParameter(
-					namespace, "documents")) {
+					_dlPortletDataHandler.getNamespace(), "documents")) {
 
 				StagedModelRepository<?> stagedModelRepository =
 					StagedModelRepositoryRegistryUtil.getStagedModelRepository(
@@ -187,19 +211,18 @@ public class DLExportImportPortletPreferencesProcessor
 						portletDataContext);
 
 				fileEntryActionableDynamicQuery.setPerformActionMethod(
-					(DLFileEntry dlFileEntry) -> {
-						FileEntry fileEntry = _dlAppLocalService.getFileEntry(
-							dlFileEntry.getFileEntryId());
-
+					(DLFileEntry dlFileEntry) ->
 						StagedModelDataHandlerUtil.exportReferenceStagedModel(
-							portletDataContext, portletId, fileEntry);
-					});
+							portletDataContext,
+							portletDataContext.getPortletId(),
+							_dlAppLocalService.getFileEntry(
+								dlFileEntry.getFileEntryId())));
 
 				fileEntryActionableDynamicQuery.performActions();
 			}
 
 			if (portletDataContext.getBooleanParameter(
-					namespace, "document-types")) {
+					_dlPortletDataHandler.getNamespace(), "document-types")) {
 
 				StagedModelRepository<?> stagedModelRepository =
 					StagedModelRepositoryRegistryUtil.getStagedModelRepository(
@@ -214,7 +237,8 @@ public class DLExportImportPortletPreferencesProcessor
 						if (dlFileEntryType.isExportable()) {
 							StagedModelDataHandlerUtil.
 								exportReferenceStagedModel(
-									portletDataContext, portletId,
+									portletDataContext,
+									portletDataContext.getPortletId(),
 									dlFileEntryType);
 						}
 					});
@@ -223,7 +247,7 @@ public class DLExportImportPortletPreferencesProcessor
 			}
 
 			if (portletDataContext.getBooleanParameter(
-					namespace, "repositories")) {
+					_dlPortletDataHandler.getNamespace(), "repositories")) {
 
 				StagedModelRepository<?> stagedModelRepository =
 					StagedModelRepositoryRegistryUtil.getStagedModelRepository(
@@ -236,13 +260,14 @@ public class DLExportImportPortletPreferencesProcessor
 				repositoryActionableDynamicQuery.setPerformActionMethod(
 					(Repository repository) ->
 						StagedModelDataHandlerUtil.exportReferenceStagedModel(
-							portletDataContext, portletId, repository));
+							portletDataContext,
+							portletDataContext.getPortletId(), repository));
 
 				repositoryActionableDynamicQuery.performActions();
 			}
 
 			if (portletDataContext.getBooleanParameter(
-					namespace, "shortcuts")) {
+					_dlPortletDataHandler.getNamespace(), "shortcuts")) {
 
 				StagedModelRepository<?> stagedModelRepository =
 					StagedModelRepositoryRegistryUtil.getStagedModelRepository(
@@ -253,14 +278,12 @@ public class DLExportImportPortletPreferencesProcessor
 						portletDataContext);
 
 				fileShortcutActionableDynamicQuery.setPerformActionMethod(
-					(DLFileShortcut dlFileShortcut) -> {
-						FileShortcut fileShortcut =
-							_dlAppLocalService.getFileShortcut(
-								dlFileShortcut.getFileShortcutId());
-
+					(DLFileShortcut dlFileShortcut) ->
 						StagedModelDataHandlerUtil.exportReferenceStagedModel(
-							portletDataContext, portletId, fileShortcut);
-					});
+							portletDataContext,
+							portletDataContext.getPortletId(),
+							_dlAppLocalService.getFileShortcut(
+								dlFileShortcut.getFileShortcutId())));
 
 				fileShortcutActionableDynamicQuery.performActions();
 			}
@@ -285,31 +308,77 @@ public class DLExportImportPortletPreferencesProcessor
 			PortletPreferences portletPreferences)
 		throws PortletDataException {
 
+		JSONObject stagingPreferencesMappingJSONObject =
+			_fetchStagingPreferencesMappingJSONObject(portletDataContext);
+
+		if (stagingPreferencesMappingJSONObject != null) {
+			try {
+				long folderRepositoryId =
+					stagingPreferencesMappingJSONObject.getLong(
+						"folderRepositoryId");
+				String folderUuid =
+					stagingPreferencesMappingJSONObject.getString("folderUuid");
+
+				long folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+
+				if (Validator.isNotNull(folderUuid)) {
+					DLFolder dlFolder =
+						_dlFolderLocalService.getDLFolderByUuidAndGroupId(
+							folderUuid, folderRepositoryId);
+
+					folderId = dlFolder.getFolderId();
+				}
+
+				portletPreferences.setValue(
+					"rootFolderId", String.valueOf(folderId));
+				portletPreferences.setValue(
+					"selectedRepositoryId", String.valueOf(folderRepositoryId));
+
+				return portletPreferences;
+			}
+			catch (PortalException | ReadOnlyException exception) {
+				throw new PortletDataException(exception);
+			}
+		}
+
 		// Root folder ID is set, only import that
 
 		long rootFolderId = GetterUtil.getLong(
 			portletPreferences.getValue("rootFolderId", null));
 
-		if (rootFolderId > 0) {
+		if (rootFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			Element foldersElement =
 				portletDataContext.getImportDataGroupElement(DLFolder.class);
 
 			List<Element> folderElements = foldersElement.elements();
 
 			if (!folderElements.isEmpty()) {
-				StagedModelDataHandlerUtil.importStagedModel(
-					portletDataContext, folderElements.get(0));
-
-				Map<Long, Long> folderIds =
-					(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-						Folder.class + ".folderIdsAndRepositoryEntryIds");
-
-				rootFolderId = MapUtil.getLong(
-					folderIds, rootFolderId, rootFolderId);
-
 				try {
+					StagedModelDataHandlerUtil.importStagedModel(
+						portletDataContext, folderElements.get(0));
+
+					Map<Long, Long> folderIds =
+						(Map<Long, Long>)
+							portletDataContext.getNewPrimaryKeysMap(
+								Folder.class +
+									".folderIdsAndRepositoryEntryIds");
+
+					long importedRootFolderId = MapUtil.getLong(
+						folderIds, rootFolderId, rootFolderId);
+
 					portletPreferences.setValue(
-						"rootFolderId", String.valueOf(rootFolderId));
+						"rootFolderId", String.valueOf(importedRootFolderId));
+
+					Folder folder = _getFolder(
+						importedRootFolderId, portletDataContext);
+
+					if (folder != null) {
+						portletPreferences.setValue(
+							"selectedRepositoryId",
+							String.valueOf(folder.getRepositoryId()));
+					}
+
+					return portletPreferences;
 				}
 				catch (ReadOnlyException readOnlyException) {
 					throw new PortletDataException(
@@ -319,7 +388,23 @@ public class DLExportImportPortletPreferencesProcessor
 			}
 		}
 
-		// Root folder is is not set, need to import everything
+		try {
+			long selectedRepositoryId = GetterUtil.getLong(
+				portletPreferences.getValue("selectedRepositoryId", null));
+
+			if (selectedRepositoryId == portletDataContext.getSourceGroupId()) {
+				portletPreferences.setValue(
+					"selectedRepositoryId",
+					String.valueOf(portletDataContext.getGroupId()));
+			}
+		}
+		catch (ReadOnlyException readOnlyException) {
+			throw new PortletDataException(
+				"Unable to update portlet preferences during import",
+				readOnlyException);
+		}
+
+		// Root folder is not set, need to import everything
 
 		try {
 			portletDataContext.importPortletPermissions(
@@ -336,75 +421,168 @@ public class DLExportImportPortletPreferencesProcessor
 			throw portletDataException;
 		}
 
-		String namespace = _dlPortletDataHandler.getNamespace();
+		if (portletDataContext.getBooleanParameter(
+				_dlPortletDataHandler.getNamespace(), "folders")) {
 
-		if (portletDataContext.getBooleanParameter(namespace, "folders")) {
 			Element foldersElement =
 				portletDataContext.getImportDataGroupElement(DLFolder.class);
 
-			List<Element> folderElements = foldersElement.elements();
-
-			for (Element folderElement : folderElements) {
+			for (Element folderElement : foldersElement.elements()) {
 				StagedModelDataHandlerUtil.importStagedModel(
 					portletDataContext, folderElement);
 			}
 		}
 
-		if (portletDataContext.getBooleanParameter(namespace, "documents")) {
+		if (portletDataContext.getBooleanParameter(
+				_dlPortletDataHandler.getNamespace(), "documents")) {
+
 			Element fileEntriesElement =
 				portletDataContext.getImportDataGroupElement(DLFileEntry.class);
 
-			List<Element> fileEntryElements = fileEntriesElement.elements();
-
-			for (Element fileEntryElement : fileEntryElements) {
+			for (Element fileEntryElement : fileEntriesElement.elements()) {
 				StagedModelDataHandlerUtil.importStagedModel(
 					portletDataContext, fileEntryElement);
 			}
 		}
 
 		if (portletDataContext.getBooleanParameter(
-				namespace, "document-types")) {
+				_dlPortletDataHandler.getNamespace(), "document-types")) {
 
 			Element fileEntryTypesElement =
 				portletDataContext.getImportDataGroupElement(
 					DLFileEntryType.class);
 
-			List<Element> fileEntryTypeElements =
-				fileEntryTypesElement.elements();
+			for (Element fileEntryTypeElement :
+					fileEntryTypesElement.elements()) {
 
-			for (Element fileEntryTypeElement : fileEntryTypeElements) {
 				StagedModelDataHandlerUtil.importStagedModel(
 					portletDataContext, fileEntryTypeElement);
 			}
 		}
 
-		if (portletDataContext.getBooleanParameter(namespace, "repositories")) {
+		if (portletDataContext.getBooleanParameter(
+				_dlPortletDataHandler.getNamespace(), "repositories")) {
+
 			Element repositoriesElement =
 				portletDataContext.getImportDataGroupElement(Repository.class);
 
-			List<Element> repositoryElements = repositoriesElement.elements();
-
-			for (Element repositoryElement : repositoryElements) {
+			for (Element repositoryElement : repositoriesElement.elements()) {
 				StagedModelDataHandlerUtil.importStagedModel(
 					portletDataContext, repositoryElement);
 			}
 		}
 
-		if (portletDataContext.getBooleanParameter(namespace, "shortcuts")) {
+		if (portletDataContext.getBooleanParameter(
+				_dlPortletDataHandler.getNamespace(), "shortcuts")) {
+
 			Element fileShortcutsElement =
 				portletDataContext.getImportDataGroupElement(
 					DLFileShortcut.class);
 
-			List<Element> fileShortcutElements =
-				fileShortcutsElement.elements();
+			for (Element fileShortcutElement :
+					fileShortcutsElement.elements()) {
 
-			for (Element fileShortcutElement : fileShortcutElements) {
 				StagedModelDataHandlerUtil.importStagedModel(
 					portletDataContext, fileShortcutElement);
 			}
 		}
 
 		return portletPreferences;
+	}
+
+	private JSONObject _fetchStagingPreferencesMappingJSONObject(
+			PortletDataContext portletDataContext)
+		throws PortletDataException {
+
+		try {
+			String stagingPreferencesMappingJSON =
+				portletDataContext.getZipEntryAsString(
+					String.format(
+						"%s/staging-preferences-mapping.json",
+						portletDataContext.getPortletId()));
+
+			if (Validator.isNull(stagingPreferencesMappingJSON)) {
+				return null;
+			}
+
+			return JSONFactoryUtil.createJSONObject(
+				stagingPreferencesMappingJSON);
+		}
+		catch (JSONException jsonException) {
+			throw new PortletDataException(jsonException);
+		}
+	}
+
+	private Folder _getFolder(
+			long folderId, PortletDataContext portletDataContext)
+		throws PortletDataException {
+
+		Folder folder = null;
+
+		try {
+			folder = _dlAppLocalService.getFolder(folderId);
+
+			DLFolder dlFolder = _dlFolderLocalService.getDLFolder(folderId);
+
+			if (dlFolder.isInTrash()) {
+				return null;
+			}
+		}
+		catch (PortalException portalException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Portlet ", portletDataContext.getPortletId(),
+						" refers to an invalid root folder ID ", folderId),
+					portalException);
+			}
+		}
+
+		return folder;
+	}
+
+	private long _getMirrorRepositoryId(long repositoryId) {
+		Group group = _groupLocalService.fetchGroup(repositoryId);
+
+		if (group == null) {
+			return repositoryId;
+		}
+
+		Group stagingGroup = group.getStagingGroup();
+
+		if (stagingGroup != null) {
+			return stagingGroup.getGroupId();
+		}
+
+		long liveGroupId = group.getLiveGroupId();
+
+		if (group.isStagedRemotely()) {
+			liveGroupId = group.getRemoteLiveGroupId();
+		}
+
+		if (liveGroupId == GroupConstants.DEFAULT_LIVE_GROUP_ID) {
+			liveGroupId = group.getGroupId();
+		}
+
+		return liveGroupId;
+	}
+
+	private void _saveStagingPreferencesMapping(
+		long folderRepositoryId, String folderUuid,
+		PortletDataContext portletDataContext) {
+
+		if (ExportImportThreadLocal.isStagingInProcess()) {
+			portletDataContext.addZipEntry(
+				String.format(
+					"%s/staging-preferences-mapping.json",
+					portletDataContext.getPortletId()),
+				JSONUtil.put(
+					"folderRepositoryId",
+					_getMirrorRepositoryId(folderRepositoryId)
+				).put(
+					"folderUuid", folderUuid
+				).toString());
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -417,6 +595,9 @@ public class DLExportImportPortletPreferencesProcessor
 	private DLCommentsAndRatingsExporterImporterCapability
 		_dlCommentsAndRatingsExporterImporterCapability;
 
+	@Reference
+	private DLFolderLocalService _dlFolderLocalService;
+
 	@Reference(
 		target = "(javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY + ")"
 	)
@@ -427,6 +608,9 @@ public class DLExportImportPortletPreferencesProcessor
 
 	@Reference
 	private ExportImportHelper _exportImportHelper;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference(target = "(name=PortletDisplayTemplateImporter)")
 	private Capability _importCapability;

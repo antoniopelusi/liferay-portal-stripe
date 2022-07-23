@@ -19,9 +19,6 @@ package com.liferay.commerce.frontend.model;
  */
 public class PanelActionModel {
 
-	public PanelActionModel() {
-	}
-
 	public String getIcon() {
 		return _icon;
 	}

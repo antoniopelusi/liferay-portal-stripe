@@ -18,29 +18,34 @@ export const ACTIONS = {
 	assignRoles(itemData, portletNamespace) {
 		openSelectionModal({
 			buttonAddLabel: Liferay.Language.get('done'),
+			getSelectedItemsOnly: false,
 			multiple: true,
-			onSelect: (selectedItems) => {
-				if (selectedItems.length) {
-					const editUserGroupRoleFm = document.getElementById(
-						`${portletNamespace}editUserGroupRoleFm`
-					);
+			onSelect: (items) => {
+				const editUserGroupRoleFm = document.getElementById(
+					`${portletNamespace}editUserGroupRoleFm`
+				);
 
-					if (!editUserGroupRoleFm) {
-						return;
-					}
-
-					const input = document.createElement('input');
-
-					input.name = `${portletNamespace}rowIds`;
-					input.value = selectedItems.map((item) => item.value);
-
-					editUserGroupRoleFm.appendChild(input);
-
-					submitForm(
-						editUserGroupRoleFm,
-						itemData.editUserGroupRoleURL
-					);
+				if (!editUserGroupRoleFm) {
+					return;
 				}
+
+				const allInput = document.createElement('input');
+
+				allInput.name = `${portletNamespace}availableRowIds`;
+				allInput.value = items.map((item) => item.value);
+
+				editUserGroupRoleFm.appendChild(allInput);
+
+				const checkedInput = document.createElement('input');
+
+				checkedInput.name = `${portletNamespace}rowIds`;
+				checkedInput.value = items
+					.filter((item) => item.checked)
+					.map((item) => item.value);
+
+				editUserGroupRoleFm.appendChild(checkedInput);
+
+				submitForm(editUserGroupRoleFm, itemData.editUserGroupRoleURL);
 			},
 			title: Liferay.Language.get('assign-roles'),
 			url: itemData.assignRolesURL,

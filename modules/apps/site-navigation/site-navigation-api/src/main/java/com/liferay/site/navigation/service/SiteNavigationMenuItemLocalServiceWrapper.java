@@ -30,6 +30,10 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 	implements ServiceWrapper<SiteNavigationMenuItemLocalService>,
 			   SiteNavigationMenuItemLocalService {
 
+	public SiteNavigationMenuItemLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SiteNavigationMenuItemLocalServiceWrapper(
 		SiteNavigationMenuItemLocalService siteNavigationMenuItemLocalService) {
 
@@ -140,6 +144,15 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 			siteNavigationMenuItemId);
 	}
 
+	@Override
+	public SiteNavigationMenuItem deleteSiteNavigationMenuItem(
+			long siteNavigationMenuItemId, boolean deleteChildren)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _siteNavigationMenuItemLocalService.deleteSiteNavigationMenuItem(
+			siteNavigationMenuItemId, deleteChildren);
+	}
+
 	/**
 	 * Deletes the site navigation menu item from the database. Also notifies the appropriate model listeners.
 	 *
@@ -173,6 +186,13 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _siteNavigationMenuItemLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _siteNavigationMenuItemLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -323,6 +343,15 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _siteNavigationMenuItemLocalService.getOSGiServiceIdentifier();
+	}
+
+	@Override
+	public java.util.List<Long> getParentSiteNavigationMenuItemIds(
+		long siteNavigationMenuId, String typeSettingsKeyword) {
+
+		return _siteNavigationMenuItemLocalService.
+			getParentSiteNavigationMenuItemIds(
+				siteNavigationMenuId, typeSettingsKeyword);
 	}
 
 	/**

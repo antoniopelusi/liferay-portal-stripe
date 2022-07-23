@@ -15,6 +15,10 @@
 package com.liferay.layout.admin.web.internal.exportimport.data.handler.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
+import com.liferay.document.library.util.DLURLHelperUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataContextFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleManagerUtil;
@@ -23,11 +27,13 @@ import com.liferay.exportimport.test.util.lar.BaseStagedModelDataHandlerTestCase
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalServiceUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutFriendlyURL;
 import com.liferay.portal.kernel.model.StagedModel;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
@@ -36,7 +42,13 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.DateTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.HashMap;
@@ -68,7 +80,7 @@ public class LayoutStagedModelDataHandlerTest
 		Map<String, List<StagedModel>> dependentStagedModelsMap =
 			new HashMap<>();
 
-		Layout linkedLayout = LayoutTestUtil.addLayout(stagingGroup);
+		Layout linkedLayout = LayoutTestUtil.addTypePortletLayout(stagingGroup);
 
 		List<LayoutFriendlyURL> linkedLayoutFriendlyURLs =
 			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
@@ -77,8 +89,8 @@ public class LayoutStagedModelDataHandlerTest
 		addDependentStagedModel(
 			dependentStagedModelsMap, Layout.class, linkedLayout);
 
-		addDependentFriendlyURLEntries(dependentStagedModelsMap, linkedLayout);
-		addDependentLayoutFriendlyURLs(dependentStagedModelsMap, linkedLayout);
+		_addDependentFriendlyURLEntries(dependentStagedModelsMap, linkedLayout);
+		_addDependentLayoutFriendlyURLs(dependentStagedModelsMap, linkedLayout);
 
 		Layout layout = LayoutTestUtil.addTypeLinkToLayoutLayout(
 			stagingGroup.getGroupId(), linkedLayout.getLayoutId());
@@ -87,8 +99,8 @@ public class LayoutStagedModelDataHandlerTest
 			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
 				layout.getPlid());
 
-		addDependentFriendlyURLEntries(dependentStagedModelsMap, layout);
-		addDependentLayoutFriendlyURLs(dependentStagedModelsMap, layout);
+		_addDependentFriendlyURLEntries(dependentStagedModelsMap, layout);
+		_addDependentLayoutFriendlyURLs(dependentStagedModelsMap, layout);
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
@@ -142,33 +154,89 @@ public class LayoutStagedModelDataHandlerTest
 			layoutFriendlyURL.getUuid(), liveGroup.getGroupId());
 	}
 
-	protected void addDependentFriendlyURLEntries(
-		Map<String, List<StagedModel>> dependentStagedModelsMap,
-		Layout layout) {
+	@Test
+	public void testTypeLinkToURL() throws Exception {
+		initExport();
 
-		for (FriendlyURLEntry friendlyURLEntry :
-				_getFriendlyURLEntries(layout)) {
+		Map<String, List<StagedModel>> dependentStagedModelsMap =
+			new HashMap<>();
 
-			addDependentStagedModel(
-				dependentStagedModelsMap, FriendlyURLEntry.class,
-				friendlyURLEntry);
-		}
-	}
+		String fileName = "PDF_Test.pdf";
 
-	protected void addDependentLayoutFriendlyURLs(
-			Map<String, List<StagedModel>> dependentStagedModelsMap,
-			Layout layout)
-		throws Exception {
+		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
+			null, TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, fileName,
+			ContentTypes.APPLICATION_PDF,
+			FileUtil.getBytes(getClass(), "dependencies/" + fileName), null,
+			null,
+			ServiceContextTestUtil.getServiceContext(
+				liveGroup.getGroupId(), TestPropsValues.getUserId()));
 
-		List<LayoutFriendlyURL> layoutFriendlyURLs =
-			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
-				layout.getPlid());
+		String stagingPreviewURL = DLURLHelperUtil.getPreviewURL(
+			fileEntry, fileEntry.getFileVersion(), null, StringPool.BLANK);
 
-		for (LayoutFriendlyURL layoutFriendlyURL : layoutFriendlyURLs) {
-			addDependentStagedModel(
-				dependentStagedModelsMap, LayoutFriendlyURL.class,
-				layoutFriendlyURL);
-		}
+		addDependentStagedModel(
+			dependentStagedModelsMap, DLFileEntry.class, fileEntry);
+
+		Layout layout = LayoutTestUtil.addTypeLinkToURLLayout(
+			stagingGroup.getGroupId(), stagingPreviewURL);
+
+		StagedModelDataHandlerUtil.exportStagedModel(
+			portletDataContext, fileEntry);
+		StagedModelDataHandlerUtil.exportStagedModel(
+			portletDataContext, layout);
+
+		validateExport(portletDataContext, layout, dependentStagedModelsMap);
+
+		initImport();
+
+		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+			ExportImportLifecycleConstants.
+				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+			portletDataContext.getExportImportProcessId(),
+			PortletDataContextFactoryUtil.clonePortletDataContext(
+				portletDataContext));
+
+		FileEntry exportedFileEntry = (FileEntry)readExportedStagedModel(
+			fileEntry);
+		Layout exportedLayout = (Layout)readExportedStagedModel(layout);
+
+		StagedModelDataHandlerUtil.importStagedModel(
+			portletDataContext, exportedFileEntry);
+		StagedModelDataHandlerUtil.importStagedModel(
+			portletDataContext, exportedLayout);
+
+		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+			ExportImportLifecycleConstants.
+				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+			portletDataContext.getExportImportProcessId(),
+			PortletDataContextFactoryUtil.clonePortletDataContext(
+				portletDataContext));
+
+		FileEntry importedFileEntry =
+			DLAppLocalServiceUtil.getFileEntryByUuidAndGroupId(
+				fileEntry.getUuid(), liveGroup.getGroupId());
+
+		String livePreviewURL = DLURLHelperUtil.getPreviewURL(
+			importedFileEntry, importedFileEntry.getFileVersion(), null,
+			StringPool.BLANK);
+
+		Layout importedLayout =
+			LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+				layout.getUuid(), liveGroup.getGroupId(),
+				layout.isPrivateLayout());
+
+		UnicodeProperties typeSettingsUnicodeProperties =
+			importedLayout.getTypeSettingsProperties();
+
+		String liveLinkedURL = GetterUtil.getString(
+			typeSettingsUnicodeProperties.getProperty("url"));
+
+		Assert.assertEquals(
+			HttpComponentsUtil.removeParameter(livePreviewURL, "t"),
+			HttpComponentsUtil.removeParameter(liveLinkedURL, "t"));
 	}
 
 	@Override
@@ -179,13 +247,13 @@ public class LayoutStagedModelDataHandlerTest
 		Map<String, List<StagedModel>> dependentStagedModelsMap =
 			new HashMap<>();
 
-		Layout parentLayout = LayoutTestUtil.addLayout(group);
+		Layout parentLayout = LayoutTestUtil.addTypePortletLayout(group);
 
 		addDependentStagedModel(
 			dependentStagedModelsMap, Layout.class, parentLayout);
 
-		addDependentFriendlyURLEntries(dependentStagedModelsMap, parentLayout);
-		addDependentLayoutFriendlyURLs(dependentStagedModelsMap, parentLayout);
+		_addDependentFriendlyURLEntries(dependentStagedModelsMap, parentLayout);
+		_addDependentLayoutFriendlyURLs(dependentStagedModelsMap, parentLayout);
 
 		return dependentStagedModelsMap;
 	}
@@ -201,10 +269,11 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout parentLayout = (Layout)dependentStagedModels.get(0);
 
-		Layout layout = LayoutTestUtil.addLayout(group, parentLayout.getPlid());
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			group, parentLayout.getPlid());
 
-		addDependentFriendlyURLEntries(dependentStagedModelsMap, layout);
-		addDependentLayoutFriendlyURLs(dependentStagedModelsMap, layout);
+		_addDependentFriendlyURLEntries(dependentStagedModelsMap, layout);
+		_addDependentLayoutFriendlyURLs(dependentStagedModelsMap, layout);
 
 		return layout;
 	}
@@ -328,6 +397,35 @@ public class LayoutStagedModelDataHandlerTest
 		Assert.assertEquals(
 			layout.getFriendlyURL(), importedLayout.getFriendlyURL());
 		Assert.assertEquals(layout.getCss(), importedLayout.getCss());
+	}
+
+	private void _addDependentFriendlyURLEntries(
+		Map<String, List<StagedModel>> dependentStagedModelsMap,
+		Layout layout) {
+
+		for (FriendlyURLEntry friendlyURLEntry :
+				_getFriendlyURLEntries(layout)) {
+
+			addDependentStagedModel(
+				dependentStagedModelsMap, FriendlyURLEntry.class,
+				friendlyURLEntry);
+		}
+	}
+
+	private void _addDependentLayoutFriendlyURLs(
+			Map<String, List<StagedModel>> dependentStagedModelsMap,
+			Layout layout)
+		throws Exception {
+
+		List<LayoutFriendlyURL> layoutFriendlyURLs =
+			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
+				layout.getPlid());
+
+		for (LayoutFriendlyURL layoutFriendlyURL : layoutFriendlyURLs) {
+			addDependentStagedModel(
+				dependentStagedModelsMap, LayoutFriendlyURL.class,
+				layoutFriendlyURL);
+		}
 	}
 
 	private List<FriendlyURLEntry> _getFriendlyURLEntries(Layout layout) {

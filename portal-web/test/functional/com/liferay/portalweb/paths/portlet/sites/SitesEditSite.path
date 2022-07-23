@@ -2,11 +2,13 @@
 <head>
 <title>SitesEditSite</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">SitesEditSite</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>MEMBERSHIP_TYPE</td>
@@ -43,11 +45,6 @@
 <tr>
 	<td>PARENT_SITE_LIMIT_MEMBERSHIP_CHECKBOX</td>
 	<td>//input[contains(@id,'membershipRestriction') and contains(@class,'toggle-switch')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PARENT_SITE_SELECT</td>
-	<td>//button[contains(@id,'selectParentSiteLink')]/span</td>
 	<td></td>
 </tr>
 <tr>

@@ -32,7 +32,8 @@ public class JavaMethod extends BaseJavaTerm {
 	public JavaSignature getSignature() {
 		if (_signature == null) {
 			_signature = JavaSignatureParser.parseJavaSignature(
-				getContent(), getAccessModifier(), true);
+				getContent(), getAccessModifier(), getPackageName(),
+				getImportNames(), true);
 		}
 
 		return _signature;

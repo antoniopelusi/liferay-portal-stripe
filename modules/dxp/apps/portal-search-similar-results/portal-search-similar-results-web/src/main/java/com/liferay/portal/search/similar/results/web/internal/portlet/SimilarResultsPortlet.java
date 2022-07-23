@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FastDateFormatFactory;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -90,18 +89,22 @@ public class SimilarResultsPortlet extends MVCPortlet {
 
 		renderRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT,
-			buildDisplayContext(
+			_buildDisplayContext(
 				portletSharedSearchResponse, renderRequest, renderResponse));
 
 		super.render(renderRequest, renderResponse);
 	}
 
-	protected SimilarResultsDisplayContext buildDisplayContext(
+	@Reference
+	protected SimilarResultsContributorsRegistry
+		similarResultsContributorsRegistry;
+
+	private SimilarResultsDisplayContext _buildDisplayContext(
 		PortletSharedSearchResponse portletSharedSearchResponse,
 		RenderRequest renderRequest, RenderResponse renderResponse) {
 
 		SimilarResultsDisplayContext similarResultsDisplayContext =
-			createSimilarResultsDisplayContext(renderRequest);
+			_createSimilarResultsDisplayContext(renderRequest);
 
 		SimilarResultsPortletPreferences similarResultsPortletPreferences =
 			new SimilarResultsPortletPreferencesImpl(
@@ -122,7 +125,7 @@ public class SimilarResultsPortlet extends MVCPortlet {
 
 		List<Document> legacyDocuments = searchResponse.getDocuments71();
 
-		legacyDocuments = excludingDocumentByUID(
+		legacyDocuments = _excludingDocumentByUID(
 			renderRequest, legacyDocuments);
 
 		int maxItemDisplay =
@@ -144,15 +147,15 @@ public class SimilarResultsPortlet extends MVCPortlet {
 		SimilarResultsRoute similarResultsRoute = optional.orElse(null);
 
 		similarResultsDisplayContext.setSimilarResultsDocumentDisplayContexts(
-			buildSimilarResultsDocumentDisplayContexts(
+			_buildSimilarResultsDocumentDisplayContexts(
 				legacyDocuments, similarResultsRoute, renderRequest,
 				renderResponse, themeDisplay));
 
 		return similarResultsDisplayContext;
 	}
 
-	protected List<SimilarResultsDocumentDisplayContext>
-		buildSimilarResultsDocumentDisplayContexts(
+	private List<SimilarResultsDocumentDisplayContext>
+		_buildSimilarResultsDocumentDisplayContexts(
 			List<Document> documents, SimilarResultsRoute similarResultsRoute,
 			RenderRequest renderRequest, RenderResponse renderResponse,
 			ThemeDisplay themeDisplay) {
@@ -162,7 +165,7 @@ public class SimilarResultsPortlet extends MVCPortlet {
 
 		for (Document document : documents) {
 			SimilarResultsDocumentDisplayContext
-				similarResultsDocumentDisplayContext = doBuildSummary(
+				similarResultsDocumentDisplayContext = _buildSummary(
 					document, similarResultsRoute, renderRequest,
 					renderResponse, themeDisplay);
 
@@ -177,19 +180,7 @@ public class SimilarResultsPortlet extends MVCPortlet {
 		return similarResultsDocumentDisplayContexts;
 	}
 
-	protected SimilarResultsDisplayContext createSimilarResultsDisplayContext(
-		RenderRequest renderRequest) {
-
-		try {
-			return new SimilarResultsDisplayContext(
-				getHttpServletRequest(renderRequest));
-		}
-		catch (ConfigurationException configurationException) {
-			throw new RuntimeException(configurationException);
-		}
-	}
-
-	protected SimilarResultsDocumentDisplayContext doBuildSummary(
+	private SimilarResultsDocumentDisplayContext _buildSummary(
 		Document document, SimilarResultsRoute similarResultsRoute,
 		RenderRequest renderRequest, RenderResponse renderResponse,
 		ThemeDisplay themeDisplay) {
@@ -209,8 +200,6 @@ public class SimilarResultsPortlet extends MVCPortlet {
 			_fastDateFormatFactory
 		).setHighlightEnabled(
 			false
-		).setHttp(
-			_http
 		).setIndexerRegistry(
 			_indexerRegistry
 		).setLocale(
@@ -232,7 +221,19 @@ public class SimilarResultsPortlet extends MVCPortlet {
 		return similarResultsDocumentDisplayContextBuilder.build();
 	}
 
-	protected List<Document> excludingDocumentByUID(
+	private SimilarResultsDisplayContext _createSimilarResultsDisplayContext(
+		RenderRequest renderRequest) {
+
+		try {
+			return new SimilarResultsDisplayContext(
+				_getHttpServletRequest(renderRequest));
+		}
+		catch (ConfigurationException configurationException) {
+			throw new RuntimeException(configurationException);
+		}
+	}
+
+	private List<Document> _excludingDocumentByUID(
 		RenderRequest renderRequest, List<Document> documents71) {
 
 		String uid = (String)renderRequest.getAttribute(Field.UID);
@@ -244,15 +245,10 @@ public class SimilarResultsPortlet extends MVCPortlet {
 		List<Document> legacyDocuments = new ArrayList<>(documents71.size());
 
 		for (Document legacyDocument : documents71) {
-			if (uid.equals(legacyDocument.getUID())) {
-				continue;
-			}
+			if (uid.equals(legacyDocument.getUID()) ||
+				_isReplyMBMessageDocument(legacyDocument) ||
+				!_isSupportedDocument(uid, legacyDocument)) {
 
-			if (_isReplyMBMessageDocument(legacyDocument)) {
-				continue;
-			}
-
-			if (!_isSupportedDocument(uid, legacyDocument)) {
 				continue;
 			}
 
@@ -262,7 +258,7 @@ public class SimilarResultsPortlet extends MVCPortlet {
 		return legacyDocuments;
 	}
 
-	protected HttpServletRequest getHttpServletRequest(
+	private HttpServletRequest _getHttpServletRequest(
 		RenderRequest renderRequest) {
 
 		LiferayPortletRequest liferayPortletRequest =
@@ -270,10 +266,6 @@ public class SimilarResultsPortlet extends MVCPortlet {
 
 		return liferayPortletRequest.getHttpServletRequest();
 	}
-
-	@Reference
-	protected SimilarResultsContributorsRegistry
-		similarResultsContributorsRegistry;
 
 	private boolean _isReplyMBMessageDocument(Document legacyDocument) {
 		String className = legacyDocument.get(Field.ENTRY_CLASS_NAME);
@@ -312,9 +304,6 @@ public class SimilarResultsPortlet extends MVCPortlet {
 
 	@Reference
 	private FastDateFormatFactory _fastDateFormatFactory;
-
-	@Reference
-	private Http _http;
 
 	@Reference
 	private IndexerRegistry _indexerRegistry;

@@ -17,7 +17,7 @@ package com.liferay.asset.list.web.internal.model.listener;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.model.AssetListEntryUsage;
 import com.liferay.asset.list.service.AssetListEntryUsageLocalService;
-import com.liferay.info.list.provider.InfoListProvider;
+import com.liferay.info.collection.provider.InfoCollectionProvider;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
@@ -33,10 +33,8 @@ import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import org.osgi.service.component.annotations.Component;
@@ -59,6 +57,8 @@ public class LayoutPageTemplateStructureRelModelListener
 
 	@Override
 	public void onAfterUpdate(
+			LayoutPageTemplateStructureRel
+				originalLayoutPageTemplateStructureRel,
 			LayoutPageTemplateStructureRel layoutPageTemplateStructureRel)
 		throws ModelListenerException {
 
@@ -94,8 +94,26 @@ public class LayoutPageTemplateStructureRelModelListener
 				plid, serviceContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
+	}
+
+	private boolean _isMapped(
+		JSONObject collectionJSONObject, String itemId,
+		LayoutStructure layoutStructure) {
+
+		if ((collectionJSONObject == null) ||
+			(!collectionJSONObject.has("classPK") &&
+			 !collectionJSONObject.has("key"))) {
+
+			return false;
+		}
+
+		if (layoutStructure.isItemMarkedForDeletion(itemId)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private void _updateAssetListEntryUsages(
@@ -129,15 +147,6 @@ public class LayoutPageTemplateStructureRelModelListener
 				continue;
 			}
 
-			if (ListUtil.exists(
-					layoutStructure.getDeletedLayoutStructureItems(),
-					deletedLayoutStructureItem -> Objects.equals(
-						deletedLayoutStructureItem.getItemId(),
-						layoutStructureItem.getItemId()))) {
-
-				continue;
-			}
-
 			CollectionStyledLayoutStructureItem
 				collectionStyledLayoutStructureItem =
 					(CollectionStyledLayoutStructureItem)layoutStructureItem;
@@ -145,7 +154,10 @@ public class LayoutPageTemplateStructureRelModelListener
 			JSONObject collectionJSONObject =
 				collectionStyledLayoutStructureItem.getCollectionJSONObject();
 
-			if (collectionJSONObject == null) {
+			if (!_isMapped(
+					collectionJSONObject, layoutStructureItem.getItemId(),
+					layoutStructure)) {
+
 				continue;
 			}
 
@@ -161,7 +173,7 @@ public class LayoutPageTemplateStructureRelModelListener
 
 			if (collectionJSONObject.has("key")) {
 				_addAssetListEntryUsage(
-					_portal.getClassNameId(InfoListProvider.class),
+					_portal.getClassNameId(InfoCollectionProvider.class),
 					layoutPageTemplateStructure.getGroupId(),
 					collectionJSONObject.getString("key"),
 					layoutPageTemplateStructure.

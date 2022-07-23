@@ -17,7 +17,7 @@ package com.liferay.scr.reference.dynamic.greedy.test.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.scr.reference.dynamic.greedy.test.ComponentController;
@@ -132,9 +132,10 @@ public class SCRReferenceDynamicGreedyTest {
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("reference.cardinality", referenceCardinality);
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"reference.cardinality", referenceCardinality
+			).build();
 
 		_componentController.enabledComponent(name);
 
@@ -210,9 +211,10 @@ public class SCRReferenceDynamicGreedyTest {
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("field.option", fieldOption);
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"field.option", fieldOption
+			).build();
 
 		_componentController.enabledComponent(name);
 

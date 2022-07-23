@@ -14,20 +14,18 @@
 
 package com.liferay.portal.kernel.portlet;
 
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceRegistration;
-import com.liferay.registry.collections.ServiceReferenceMapper;
-import com.liferay.registry.collections.ServiceRegistrationMap;
-import com.liferay.registry.collections.ServiceRegistrationMapImpl;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapper;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  * @author Eduardo García
@@ -38,7 +36,19 @@ public class FriendlyURLResolverRegistryUtil {
 	public static FriendlyURLResolver getFriendlyURLResolver(
 		String urlSeparator) {
 
-		return _serviceTrackerMap.getService(urlSeparator);
+		for (String key : _serviceTrackerMap.keySet()) {
+			FriendlyURLResolver friendlyURLResolver =
+				_serviceTrackerMap.getService(key);
+
+			if ((friendlyURLResolver != null) &&
+				Objects.equals(
+					friendlyURLResolver.getURLSeparator(), urlSeparator)) {
+
+				return friendlyURLResolver;
+			}
+		}
+
+		return null;
 	}
 
 	public static Collection<FriendlyURLResolver>
@@ -59,36 +69,26 @@ public class FriendlyURLResolverRegistryUtil {
 	}
 
 	public static String[] getURLSeparators() {
-		Set<String> urlSeparators = _serviceTrackerMap.keySet();
+		List<String> urlSeparators = new ArrayList<>();
+
+		for (String key : _serviceTrackerMap.keySet()) {
+			FriendlyURLResolver friendlyURLResolver =
+				_serviceTrackerMap.getService(key);
+
+			if (friendlyURLResolver != null) {
+				urlSeparators.add(friendlyURLResolver.getURLSeparator());
+			}
+		}
 
 		return urlSeparators.toArray(new String[0]);
 	}
 
-	public static void register(FriendlyURLResolver friendlyURLResolver) {
-		Registry registry = RegistryUtil.getRegistry();
-
-		ServiceRegistration<FriendlyURLResolver> serviceRegistration =
-			registry.registerService(
-				FriendlyURLResolver.class, friendlyURLResolver);
-
-		_serviceRegistrationMap.put(friendlyURLResolver, serviceRegistration);
-	}
-
-	public static void unregister(FriendlyURLResolver friendlyURLResolver) {
-		ServiceRegistration<FriendlyURLResolver> serviceRegistration =
-			_serviceRegistrationMap.remove(friendlyURLResolver);
-
-		if (serviceRegistration != null) {
-			serviceRegistration.unregister();
-		}
-	}
-
-	private static final ServiceRegistrationMap<FriendlyURLResolver>
-		_serviceRegistrationMap = new ServiceRegistrationMapImpl<>();
+	private static final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
 
 	private static final ServiceTrackerMap<String, FriendlyURLResolver>
-		_serviceTrackerMap = ServiceTrackerCollections.openSingleValueMap(
-			FriendlyURLResolver.class, null,
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			_bundleContext, FriendlyURLResolver.class, null,
 			new ServiceReferenceMapper<String, FriendlyURLResolver>() {
 
 				@Override
@@ -96,14 +96,15 @@ public class FriendlyURLResolverRegistryUtil {
 					ServiceReference<FriendlyURLResolver> serviceReference,
 					ServiceReferenceMapper.Emitter<String> emitter) {
 
-					Registry registry = RegistryUtil.getRegistry();
-
 					FriendlyURLResolver friendlyURLResolver =
-						registry.getService(serviceReference);
+						_bundleContext.getService(serviceReference);
 
-					emitter.emit(friendlyURLResolver.getURLSeparator());
+					Class<?> friendlyURLResolverClass =
+						friendlyURLResolver.getClass();
 
-					registry.ungetService(serviceReference);
+					emitter.emit(friendlyURLResolverClass.getName());
+
+					_bundleContext.ungetService(serviceReference);
 				}
 
 			});

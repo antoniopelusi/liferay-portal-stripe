@@ -53,7 +53,7 @@ public class ServerStatistics
 
 		if (companyStatistics == null) {
 			throw new MonitoringException(
-				"No statistics found for company id " + companyId);
+				"No statistics found for company ID " + companyId);
 		}
 
 		return companyStatistics;
@@ -67,7 +67,7 @@ public class ServerStatistics
 
 		if (companyStatistics == null) {
 			throw new MonitoringException(
-				"No statistics found for web id " + webId);
+				"No statistics found for web ID " + webId);
 		}
 
 		return companyStatistics;
@@ -111,7 +111,7 @@ public class ServerStatistics
 			}
 			catch (Exception exception) {
 				throw new IllegalStateException(
-					"Unable to get company with company id " + companyId,
+					"Unable to get company with company ID " + companyId,
 					exception);
 			}
 		}

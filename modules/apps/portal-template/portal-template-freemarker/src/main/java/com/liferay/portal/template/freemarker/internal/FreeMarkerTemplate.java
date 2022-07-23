@@ -276,13 +276,12 @@ public class FreeMarkerTemplate extends BaseTemplate {
 
 			_map = map;
 			_objectWrapper = objectWrapper;
-
-			_wrappedValueMap = new HashMap<>();
 		}
 
 		private final Map<String, Object> _map;
 		private final ObjectWrapper _objectWrapper;
-		private final Map<String, TemplateModel> _wrappedValueMap;
+		private final Map<String, TemplateModel> _wrappedValueMap =
+			new HashMap<>();
 
 	}
 

@@ -53,14 +53,14 @@ import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -117,14 +117,6 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 	}
 
 	@Override
-	public Layout generatePreviewLayout(long plid) throws Exception {
-		LayoutConversionResult layoutConversionResult = generatePreviewLayout(
-			plid, LocaleUtil.getSiteDefault());
-
-		return layoutConversionResult.getDraftLayout();
-	}
-
-	@Override
 	public LayoutConversionResult generatePreviewLayout(
 			long plid, Locale locale)
 		throws Exception {
@@ -136,32 +128,52 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 				"Layout with PLID " + layout.getPlid() + " is not convertible");
 		}
 
+		LayoutConverter layoutConverter = _getLayoutConversionResult(layout);
+
+		if (!layoutConverter.isConvertible(layout)) {
+			throw new LayoutConvertException(
+				"Layout with PLID " + layout.getPlid() + " is not convertible");
+		}
+
 		ServiceContext serviceContext = Optional.ofNullable(
 			ServiceContextThreadLocal.getServiceContext()
 		).orElse(
 			new ServiceContext()
 		);
 
-		Layout draftLayout = _getOrCreateDraftLayout(layout, serviceContext);
+		serviceContext.setScopeGroupId(layout.getGroupId());
 
-		LayoutConversionResult layoutConversionResult =
-			_getLayoutConversionResult(draftLayout, locale);
+		User user = _userLocalService.fetchUser(layout.getUserId());
 
-		_addOrUpdateLayoutPageTemplateStructure(
-			draftLayout, layoutConversionResult.getLayoutData(),
-			serviceContext);
+		if (user != null) {
+			serviceContext.setUserId(user.getUserId());
+		}
 
-		draftLayout = _layoutLocalService.fetchLayout(draftLayout.getPlid());
+		try {
+			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-		draftLayout.setType(LayoutConstants.TYPE_CONTENT);
+			Layout draftLayout = _getOrCreateDraftLayout(
+				layout, serviceContext);
 
-		draftLayout = _layoutLocalService.updateLayout(draftLayout);
+			LayoutConversionResult layoutConversionResult =
+				layoutConverter.convert(draftLayout, locale);
 
-		_updatePortletDecorator(draftLayout);
+			_addOrUpdateLayoutPageTemplateStructure(
+				draftLayout, layoutConversionResult.getLayoutData(),
+				serviceContext);
 
-		return LayoutConversionResult.of(
-			null, layoutConversionResult.getConversionWarningMessages(),
-			draftLayout);
+			draftLayout = _layoutLocalService.fetchLayout(
+				draftLayout.getPlid());
+
+			_updatePortletDecorator(draftLayout);
+
+			return LayoutConversionResult.of(
+				null, layoutConversionResult.getConversionWarningMessages(),
+				draftLayout);
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+		}
 	}
 
 	@Override
@@ -215,81 +227,77 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 		return ArrayUtil.toLongArray(convertibleLayoutPlids);
 	}
 
-	private LayoutPageTemplateStructure _addOrUpdateLayoutPageTemplateStructure(
+	private void _addOrUpdateLayoutPageTemplateStructure(
 			Layout layout, LayoutData layoutData, ServiceContext serviceContext)
-		throws PortalException {
+		throws Exception {
 
 		JSONObject layoutDataJSONObject = layoutData.getLayoutDataJSONObject();
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
 				fetchLayoutPageTemplateStructure(
-					layout.getGroupId(), _portal.getClassNameId(Layout.class),
-					layout.getPlid());
+					layout.getGroupId(), layout.getPlid());
+
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				layout.getPlid());
 
 		if (layoutPageTemplateStructure == null) {
-			return _layoutPageTemplateStructureLocalService.
+			_layoutPageTemplateStructureLocalService.
 				addLayoutPageTemplateStructure(
 					serviceContext.getUserId(), layout.getGroupId(),
-					_portal.getClassNameId(Layout.class), layout.getPlid(),
+					layout.getPlid(), defaultSegmentsExperienceId,
 					layoutDataJSONObject.toString(), serviceContext);
 		}
 
-		return _layoutPageTemplateStructureLocalService.
-			updateLayoutPageTemplateStructure(
-				layout.getGroupId(), _portal.getClassNameId(Layout.class),
-				layout.getPlid(), layoutDataJSONObject.toString());
+		_layoutPageTemplateStructureLocalService.
+			updateLayoutPageTemplateStructureData(
+				layout.getGroupId(), layout.getPlid(),
+				defaultSegmentsExperienceId, layoutDataJSONObject.toString());
 	}
 
 	private Layout _convertLayout(long plid) throws PortalException {
-		Layout layout = _layoutLocalService.getLayout(plid);
-
-		if (!Objects.equals(layout.getType(), LayoutConstants.TYPE_PORTLET)) {
-			throw new LayoutConvertException(
-				"Layout with PLID " + layout.getPlid() + " is not convertible");
-		}
-
-		ServiceContext serviceContext = Optional.ofNullable(
-			ServiceContextThreadLocal.getServiceContext()
-		).orElse(
-			new ServiceContext()
-		);
-
-		serviceContext.setScopeGroupId(layout.getGroupId());
-
-		User user = _userLocalService.fetchUser(layout.getUserId());
-
-		if (user != null) {
-			serviceContext.setUserId(user.getUserId());
-		}
-
 		try {
-			ServiceContextThreadLocal.pushServiceContext(serviceContext);
-
-			_updatePortletDecorator(layout);
-
 			LayoutConversionResult layoutConversionResult =
-				_getLayoutConversionResult(layout, LocaleUtil.getSiteDefault());
+				generatePreviewLayout(plid, LocaleUtil.getSiteDefault());
 
-			_addOrUpdateLayoutPageTemplateStructure(
-				layout, layoutConversionResult.getLayoutData(), serviceContext);
+			Layout draftLayout = layoutConversionResult.getDraftLayout();
 
-			layout = _layoutLocalService.updateType(
-				plid, LayoutConstants.TYPE_CONTENT);
+			Layout layout = _layoutLocalService.getLayout(
+				draftLayout.getClassPK());
 
-			_getOrCreateDraftLayout(layout, serviceContext);
+			_layoutCopyHelper.copyLayout(draftLayout, layout);
 
-			return _layoutLocalService.updateLayout(
-				layout.getGroupId(), layout.isPrivateLayout(),
-				layout.getLayoutId(), new Date());
+			draftLayout = _layoutLocalService.getLayout(draftLayout.getPlid());
+
+			draftLayout.setLayoutPrototypeLinkEnabled(false);
+
+			UnicodeProperties typeSettingsUnicodeProperties =
+				draftLayout.getTypeSettingsProperties();
+
+			typeSettingsUnicodeProperties.put(
+				"published", Boolean.TRUE.toString());
+
+			draftLayout.setStatus(WorkflowConstants.STATUS_APPROVED);
+
+			_layoutLocalService.updateLayout(draftLayout);
+
+			layout = _layoutLocalService.getLayout(layout.getPlid());
+
+			layout.setType(draftLayout.getType());
+			layout.setLayoutPrototypeUuid(StringPool.BLANK);
+			layout.setLayoutPrototypeLinkEnabled(false);
+			layout.setStatus(WorkflowConstants.STATUS_APPROVED);
+
+			return _layoutLocalService.updateLayout(layout);
 		}
-		finally {
-			ServiceContextThreadLocal.popServiceContext();
+		catch (Exception exception) {
+			throw new PortalException(exception);
 		}
 	}
 
 	private String _getDefaultPortletDecoratorId(Layout layout)
-		throws PortalException {
+		throws Exception {
 
 		Theme theme = layout.getTheme();
 
@@ -315,9 +323,8 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 		return defaultPortletDecorator.getPortletDecoratorId();
 	}
 
-	private LayoutConversionResult _getLayoutConversionResult(
-			Layout layout, Locale locale)
-		throws LayoutConvertException {
+	private LayoutConverter _getLayoutConversionResult(Layout layout)
+		throws Exception {
 
 		UnicodeProperties typeSettingsUnicodeProperties =
 			layout.getTypeSettingsProperties();
@@ -330,29 +337,18 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 				"Layout template ID cannot be null");
 		}
 
-		LayoutConverter layoutConverter =
-			_layoutConverterRegistry.getLayoutConverter(layoutTemplateId);
-
-		if (!layoutConverter.isConvertible(layout)) {
-			throw new LayoutConvertException(
-				"Layout with PLID " + layout.getPlid() + " is not convertible");
-		}
-
-		return layoutConverter.convert(layout, locale);
+		return _layoutConverterRegistry.getLayoutConverter(layoutTemplateId);
 	}
 
 	private Layout _getOrCreateDraftLayout(
 			Layout layout, ServiceContext serviceContext)
-		throws PortalException {
+		throws Exception {
 
-		if ((layout.getClassNameId() != 0) || (layout.getClassPK() != 0)) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("Layout with PLID ");
-			sb.append(layout.getPlid());
-			sb.append(" is a draft. You cannot get the draft of a draft.");
-
-			throw new PortalException(sb.toString());
+		if (layout.isDraftLayout()) {
+			throw new PortalException(
+				StringBundler.concat(
+					"Layout with PLID ", layout.getPlid(),
+					" is a draft. You cannot get the draft of a draft."));
 		}
 
 		Layout draftLayout = layout.fetchDraftLayout();
@@ -372,7 +368,7 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 				_classNameLocalService.getClassNameId(Layout.class),
 				layout.getPlid(), layout.getNameMap(), layout.getTitleMap(),
 				layout.getDescriptionMap(), layout.getKeywordsMap(),
-				layout.getRobotsMap(), layout.getType(),
+				layout.getRobotsMap(), LayoutConstants.TYPE_CONTENT,
 				layout.getTypeSettings(), true, true, Collections.emptyMap(),
 				layout.getMasterLayoutPlid(), serviceContext);
 		}
@@ -385,7 +381,7 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 		}
 	}
 
-	private void _updatePortletDecorator(Layout layout) throws PortalException {
+	private void _updatePortletDecorator(Layout layout) throws Exception {
 		String defaultPortletDecoratorId = _getDefaultPortletDecoratorId(
 			layout);
 
@@ -447,14 +443,14 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 		_layoutPageTemplateStructureLocalService;
 
 	@Reference
-	private Portal _portal;
-
-	@Reference
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
 
 	@Reference
 	private PortletPreferenceValueLocalService
 		_portletPreferenceValueLocalService;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

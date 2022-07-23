@@ -67,9 +67,9 @@ public class EditCommerceShippingFixedOptionMVCRenderCommand
 					new CommerceShippingFixedOptionsDisplayContext(
 						_commerceChannelLocalService,
 						_commerceCurrencyLocalService,
-						_commerceShippingMethodService,
-						_commerceShippingFixedOptionService, _portal,
-						renderRequest, renderResponse);
+						_commerceShippingFixedOptionService,
+						_commerceShippingMethodService, _portal, renderRequest,
+						renderResponse);
 
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
@@ -88,8 +88,7 @@ public class EditCommerceShippingFixedOptionMVCRenderCommand
 				return "/error.jsp";
 			}
 
-			throw new PortletException(
-				"Unable to include edit_shipping_option.jsp", exception);
+			throw new PortletException(exception);
 		}
 
 		return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;

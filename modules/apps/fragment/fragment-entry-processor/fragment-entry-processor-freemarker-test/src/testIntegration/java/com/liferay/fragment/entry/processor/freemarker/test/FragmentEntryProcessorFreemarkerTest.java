@@ -39,12 +39,12 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
-import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.LayoutSetLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.ThemeLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -61,9 +61,11 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -108,7 +110,49 @@ public class FragmentEntryProcessorFreemarkerTest {
 
 		_company = _companyLocalService.getCompany(_group.getCompanyId());
 
-		_layout = LayoutTestUtil.addLayout(_group);
+		_layout = LayoutTestUtil.addTypePortletLayout(_group);
+	}
+
+	@Test
+	public void testAddFragmentEntryWithFreemarkerVariable() throws Exception {
+		FragmentEntry fragmentEntry = _addFragmentEntry(
+			"fragment_entry_with_freemarker_variable.html", null);
+
+		Assert.assertNotNull(fragmentEntry);
+	}
+
+	@Test(expected = FragmentEntryContentException.class)
+	public void testAddFragmentEntryWithInvalidFreemarkerVariable()
+		throws Exception {
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"freemarker.runtime", LoggerTestUtil.ERROR)) {
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(
+					_group.getGroupId(), TestPropsValues.getUserId());
+
+			serviceContext.setRequest(_getMockHttpServletRequest());
+
+			FragmentCollection fragmentCollection =
+				_fragmentCollectionService.addFragmentCollection(
+					_group.getGroupId(), "Fragment Collection",
+					StringPool.BLANK, serviceContext);
+
+			FragmentEntry draftFragmentEntry =
+				_fragmentEntryService.addFragmentEntry(
+					_group.getGroupId(),
+					fragmentCollection.getFragmentCollectionId(),
+					"fragment-entry", "Fragment Entry", null,
+					_readFileToString(
+						"fragment_entry_with_invalid_freemarker_variable.html"),
+					null, false, null, null, 0, 0,
+					WorkflowConstants.STATUS_DRAFT, serviceContext);
+
+			ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+			_fragmentEntryService.publishDraft(draftFragmentEntry);
+		}
 	}
 
 	@Test
@@ -258,13 +302,13 @@ public class FragmentEntryProcessorFreemarkerTest {
 		String fileName = RandomTestUtil.randomString() + ".jpg";
 
 		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, fileName,
 			ContentTypes.IMAGE_JPEG,
 			FileUtil.getBytes(
 				FragmentEntryProcessorFreemarkerTest.class,
 				"dependencies/image.jpg"),
-			new ServiceContext());
+			null, null, new ServiceContext());
 
 		FragmentEntry fragmentEntry = _addFragmentEntry(
 			"fragment_entry_with_configuration_itemselector_file_entry.html",
@@ -324,27 +368,23 @@ public class FragmentEntryProcessorFreemarkerTest {
 	public void testProcessFragmentEntryLinkHTMLWithConfigurationItemSelectorJournalArticle()
 		throws Exception {
 
-		Map<Locale, String> titleMap = HashMapBuilder.put(
-			LocaleUtil.SPAIN, "t1-es"
-		).put(
-			LocaleUtil.US, "t1"
-		).build();
-
-		Map<Locale, String> contentMap = HashMapBuilder.put(
-			LocaleUtil.SPAIN, "c1-es"
-		).put(
-			LocaleUtil.US, "c1"
-		).build();
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
 		JournalArticle journalArticle = JournalTestUtil.addArticle(
 			_group.getGroupId(), 0,
-			PortalUtil.getClassNameId(JournalArticle.class), titleMap, null,
-			contentMap, LocaleUtil.getSiteDefault(), false, true,
-			serviceContext);
+			PortalUtil.getClassNameId(JournalArticle.class),
+			HashMapBuilder.put(
+				LocaleUtil.SPAIN, "t1-es"
+			).put(
+				LocaleUtil.US, "t1"
+			).build(),
+			null,
+			HashMapBuilder.put(
+				LocaleUtil.SPAIN, "c1-es"
+			).put(
+				LocaleUtil.US, "c1"
+			).build(),
+			LocaleUtil.getSiteDefault(), false, true,
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), TestPropsValues.getUserId()));
 
 		FragmentEntry fragmentEntry = _addFragmentEntry(
 			"fragment_entry_with_configuration_itemselector_journal_article." +
@@ -389,9 +429,9 @@ public class FragmentEntryProcessorFreemarkerTest {
 					"classPK",
 					String.valueOf(journalArticle.getResourcePrimKey())
 				).put(
-					"contentES", "c1-es"
+					"contentES", journalArticle.getContentByLocale("es_ES")
 				).put(
-					"contentUS", "c1"
+					"contentUS", journalArticle.getContentByLocale("en_US")
 				).put(
 					"titleES", "t1-es"
 				).put(
@@ -521,7 +561,7 @@ public class FragmentEntryProcessorFreemarkerTest {
 		return _fragmentEntryService.addFragmentEntry(
 			_group.getGroupId(), fragmentCollection.getFragmentCollectionId(),
 			"fragment-entry", "Fragment Entry", null,
-			_readFileToString(htmlFile), null, configuration, 0, 0,
+			_readFileToString(htmlFile), null, false, configuration, null, 0, 0,
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
 	}
 
@@ -567,10 +607,10 @@ public class FragmentEntryProcessorFreemarkerTest {
 		LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
 			_group.getGroupId(), false);
 
-		Theme theme = _themeLocalService.getTheme(
-			_company.getCompanyId(), layoutSet.getThemeId());
-
-		themeDisplay.setLookAndFeel(theme, null);
+		themeDisplay.setLookAndFeel(
+			_themeLocalService.getTheme(
+				_company.getCompanyId(), layoutSet.getThemeId()),
+			null);
 
 		themeDisplay.setRealUser(TestPropsValues.getUser());
 		themeDisplay.setUser(TestPropsValues.getUser());
@@ -579,27 +619,32 @@ public class FragmentEntryProcessorFreemarkerTest {
 	}
 
 	private String _getTypeSettings(long groupId, long classNameId) {
-		UnicodeProperties unicodeProperties = new UnicodeProperties(true);
-
-		unicodeProperties.put("anyAssetType", String.valueOf(classNameId));
-		unicodeProperties.put(
-			"anyClassTypeDLFileEntryAssetRendererFactory", "true");
-		unicodeProperties.put(
-			"anyClassTypeJournalArticleAssetRendererFactory", "true");
-		unicodeProperties.put("classNameIds", String.valueOf(classNameId));
-		unicodeProperties.put("groupIds", String.valueOf(groupId));
-		unicodeProperties.put("orderByColumn1", "modifiedDate");
-		unicodeProperties.put("orderByColumn2", "title");
-		unicodeProperties.put("orderByType1", "DESC");
-		unicodeProperties.put("orderByType2", "ASC");
-		unicodeProperties.put(
-			"subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory",
-			"false");
-		unicodeProperties.put(
+		return UnicodePropertiesBuilder.create(
+			true
+		).put(
+			"anyAssetType", String.valueOf(classNameId)
+		).put(
+			"anyClassTypeDLFileEntryAssetRendererFactory", "true"
+		).put(
+			"anyClassTypeJournalArticleAssetRendererFactory", "true"
+		).put(
+			"classNameIds", String.valueOf(classNameId)
+		).put(
+			"groupIds", String.valueOf(groupId)
+		).put(
+			"orderByColumn1", "modifiedDate"
+		).put(
+			"orderByColumn2", "title"
+		).put(
+			"orderByType1", "DESC"
+		).put(
+			"orderByType2", "ASC"
+		).put(
+			"subtypeFieldsFilterEnabledDLFileEntryAssetRendererFactory", "false"
+		).put(
 			"subtypeFieldsFilterEnabledJournalArticleAssetRendererFactory",
-			"false");
-
-		return unicodeProperties.toString();
+			"false"
+		).buildString();
 	}
 
 	private String _readFileToString(String fileName) throws Exception {

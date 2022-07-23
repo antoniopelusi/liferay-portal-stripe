@@ -559,4 +559,9 @@ public interface ${entity.name}Model extends ${entity.getModelBaseInterfaceNames
 		public String toXmlString();
 	</#if>
 
+	<#if serviceBuilder.isVersionGTE_7_4_0()>
+		@Override
+		public ${entity.name} cloneWithOriginalValues();
+	</#if>
+
 }

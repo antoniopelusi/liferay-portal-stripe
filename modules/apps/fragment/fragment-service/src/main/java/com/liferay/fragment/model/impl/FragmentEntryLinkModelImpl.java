@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.model.FragmentEntryLinkModel;
-import com.liferay.fragment.model.FragmentEntryLinkSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,21 +32,20 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -175,32 +173,38 @@ public class FragmentEntryLinkModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long PLID_COLUMN_BITMASK = 32L;
+	public static final long ORIGINALFRAGMENTENTRYLINKID_COLUMN_BITMASK = 32L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long RENDERERKEY_COLUMN_BITMASK = 64L;
+	public static final long PLID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long SEGMENTSEXPERIENCEID_COLUMN_BITMASK = 128L;
+	public static final long RENDERERKEY_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 256L;
+	public static final long SEGMENTSEXPERIENCEID_COLUMN_BITMASK = 256L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 512L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long POSITION_COLUMN_BITMASK = 512L;
+	public static final long POSITION_COLUMN_BITMASK = 1024L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -214,77 +218,6 @@ public class FragmentEntryLinkModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static FragmentEntryLink toModel(FragmentEntryLinkSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		FragmentEntryLink model = new FragmentEntryLinkImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setFragmentEntryLinkId(soapModel.getFragmentEntryLinkId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setOriginalFragmentEntryLinkId(
-			soapModel.getOriginalFragmentEntryLinkId());
-		model.setFragmentEntryId(soapModel.getFragmentEntryId());
-		model.setSegmentsExperienceId(soapModel.getSegmentsExperienceId());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setPlid(soapModel.getPlid());
-		model.setCss(soapModel.getCss());
-		model.setHtml(soapModel.getHtml());
-		model.setJs(soapModel.getJs());
-		model.setConfiguration(soapModel.getConfiguration());
-		model.setEditableValues(soapModel.getEditableValues());
-		model.setNamespace(soapModel.getNamespace());
-		model.setPosition(soapModel.getPosition());
-		model.setRendererKey(soapModel.getRendererKey());
-		model.setLastPropagationDate(soapModel.getLastPropagationDate());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<FragmentEntryLink> toModels(
-		FragmentEntryLinkSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<FragmentEntryLink> models = new ArrayList<FragmentEntryLink>(
-			soapModels.length);
-
-		for (FragmentEntryLinkSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public FragmentEntryLinkModelImpl() {
@@ -370,34 +303,6 @@ public class FragmentEntryLinkModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, FragmentEntryLink>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			FragmentEntryLink.class.getClassLoader(), FragmentEntryLink.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<FragmentEntryLink> constructor =
-				(Constructor<FragmentEntryLink>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<FragmentEntryLink, Object>>
@@ -787,6 +692,16 @@ public class FragmentEntryLinkModelImpl
 		}
 
 		_originalFragmentEntryLinkId = originalFragmentEntryLinkId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalOriginalFragmentEntryLinkId() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("originalFragmentEntryLinkId"));
 	}
 
 	@JSON
@@ -1225,6 +1140,66 @@ public class FragmentEntryLinkModelImpl
 	}
 
 	@Override
+	public FragmentEntryLink cloneWithOriginalValues() {
+		FragmentEntryLinkImpl fragmentEntryLinkImpl =
+			new FragmentEntryLinkImpl();
+
+		fragmentEntryLinkImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		fragmentEntryLinkImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		fragmentEntryLinkImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		fragmentEntryLinkImpl.setFragmentEntryLinkId(
+			this.<Long>getColumnOriginalValue("fragmentEntryLinkId"));
+		fragmentEntryLinkImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		fragmentEntryLinkImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		fragmentEntryLinkImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		fragmentEntryLinkImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		fragmentEntryLinkImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		fragmentEntryLinkImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		fragmentEntryLinkImpl.setOriginalFragmentEntryLinkId(
+			this.<Long>getColumnOriginalValue("originalFragmentEntryLinkId"));
+		fragmentEntryLinkImpl.setFragmentEntryId(
+			this.<Long>getColumnOriginalValue("fragmentEntryId"));
+		fragmentEntryLinkImpl.setSegmentsExperienceId(
+			this.<Long>getColumnOriginalValue("segmentsExperienceId"));
+		fragmentEntryLinkImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		fragmentEntryLinkImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		fragmentEntryLinkImpl.setPlid(
+			this.<Long>getColumnOriginalValue("plid"));
+		fragmentEntryLinkImpl.setCss(
+			this.<String>getColumnOriginalValue("css"));
+		fragmentEntryLinkImpl.setHtml(
+			this.<String>getColumnOriginalValue("html"));
+		fragmentEntryLinkImpl.setJs(this.<String>getColumnOriginalValue("js"));
+		fragmentEntryLinkImpl.setConfiguration(
+			this.<String>getColumnOriginalValue("configuration"));
+		fragmentEntryLinkImpl.setEditableValues(
+			this.<String>getColumnOriginalValue("editableValues"));
+		fragmentEntryLinkImpl.setNamespace(
+			this.<String>getColumnOriginalValue("namespace"));
+		fragmentEntryLinkImpl.setPosition(
+			this.<Integer>getColumnOriginalValue("position"));
+		fragmentEntryLinkImpl.setRendererKey(
+			this.<String>getColumnOriginalValue("rendererKey"));
+		fragmentEntryLinkImpl.setLastPropagationDate(
+			this.<Date>getColumnOriginalValue("lastPropagationDate"));
+		fragmentEntryLinkImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return fragmentEntryLinkImpl;
+	}
+
+	@Override
 	public int compareTo(FragmentEntryLink fragmentEntryLink) {
 		int value = 0;
 
@@ -1480,7 +1455,7 @@ public class FragmentEntryLinkModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1491,9 +1466,27 @@ public class FragmentEntryLinkModelImpl
 			Function<FragmentEntryLink, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((FragmentEntryLink)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(FragmentEntryLink)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1540,7 +1533,9 @@ public class FragmentEntryLinkModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, FragmentEntryLink>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					FragmentEntryLink.class, ModelWrapper.class);
 
 	}
 

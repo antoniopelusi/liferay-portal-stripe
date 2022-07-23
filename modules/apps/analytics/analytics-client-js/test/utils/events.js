@@ -12,7 +12,11 @@
  * details.
  */
 
-import {normalizeEvent, sortByEventDate} from '../../src/utils/events';
+import {
+	normalizeEvent,
+	removeDups,
+	sortByEventDate,
+} from '../../src/utils/events';
 
 describe('Event Utils', () => {
 	it('sorts events by eventDate, from oldest most recent events', () => {
@@ -61,5 +65,91 @@ describe('Event Utils', () => {
 				properties,
 			})
 		);
+	});
+
+	it('removes duplicated events and return an empty', () => {
+		const results = [
+			{
+				status: 'fulfilled',
+				value: {
+					events: [
+						{
+							contextHash:
+								'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+							eventDate: '2021-12-02T22:32:50.887Z',
+							eventId: 'pageUnloaded',
+						},
+						{
+							contextHash:
+								'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+							eventDate: '2021-12-02T22:32:51.659Z',
+							eventId: 'tabFocused',
+						},
+					],
+				},
+			},
+		];
+
+		const items = [
+			{
+				contextHash:
+					'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+				eventDate: '2021-12-02T22:32:51.659Z',
+				eventId: 'tabFocused',
+			},
+			{
+				contextHash:
+					'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+				eventDate: '2021-12-02T22:32:50.887Z',
+				eventId: 'pageUnloaded',
+			},
+		];
+
+		const events = removeDups(results, items);
+
+		expect(events).toHaveLength(0);
+	});
+
+	it('removes duplicated events and return non dupped events', () => {
+		const results = [
+			{
+				status: 'fulfilled',
+				value: {
+					events: [
+						{
+							contextHash:
+								'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+							eventDate: '2021-12-02T22:32:50.887Z',
+							eventId: 'pageUnloaded',
+						},
+						{
+							contextHash:
+								'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+							eventDate: '2021-12-02T22:32:51.421Z',
+							eventId: 'tabFocused',
+						},
+					],
+				},
+			},
+		];
+
+		const items = [
+			{
+				contextHash:
+					'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+				eventDate: '2021-12-02T22:32:51.659Z',
+				eventId: 'tabFocused',
+			},
+			{
+				contextHash:
+					'e45443beb1d1b7d58236d4df5aa985020ebf7740f5d152d5dbde8419df9b69b6',
+				eventDate: '2021-12-02T22:32:50.555Z',
+				eventId: 'pageUnloaded',
+			},
+		];
+
+		const events = removeDups(results, items);
+
+		expect(events).toHaveLength(2);
 	});
 });

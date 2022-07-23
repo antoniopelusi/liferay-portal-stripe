@@ -58,12 +58,13 @@ public class DLFileEntryTableReferenceDefinitionTest
 		InputStream inputStream = new ByteArrayInputStream(bytes);
 
 		return _dlFileEntryLocalService.addFileEntry(
-			group.getCreatorUserId(), group.getGroupId(), group.getGroupId(),
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			null, group.getCreatorUserId(), group.getGroupId(),
+			group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
-			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			StringPool.BLANK, StringPool.BLANK,
 			DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT, null,
-			null, inputStream, bytes.length,
+			null, inputStream, bytes.length, null, null,
 			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
 	}
 

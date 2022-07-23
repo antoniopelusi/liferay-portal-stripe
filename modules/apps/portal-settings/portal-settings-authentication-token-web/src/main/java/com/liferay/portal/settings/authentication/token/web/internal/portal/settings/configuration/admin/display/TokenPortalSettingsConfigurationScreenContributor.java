@@ -15,8 +15,6 @@
 package com.liferay.portal.settings.authentication.token.web.internal.portal.settings.configuration.admin.display;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.security.sso.token.configuration.TokenConfiguration;
 import com.liferay.portal.settings.configuration.admin.display.PortalSettingsConfigurationScreenContributor;
 
 import java.util.Locale;
@@ -55,9 +53,7 @@ public class TokenPortalSettingsConfigurationScreenContributor
 
 	@Override
 	public String getName(Locale locale) {
-		return LanguageUtil.get(
-			ResourceBundleUtil.getBundle(locale, TokenConfiguration.class),
-			"token-configuration-name");
+		return LanguageUtil.get(locale, "token-configuration-name");
 	}
 
 	@Override

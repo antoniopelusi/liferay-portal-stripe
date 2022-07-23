@@ -1,0 +1,1569 @@
+@component-name = "portal-batch-engine"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Batch Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			CommerceJSONChannelsAPI._deleteAllCommerceChannels();
+
+			JSONAccountEntryAPI._deleteAllAccountEntries();
+
+			BatchPlanner.batchPlannerTearDown();
+		}
+	}
+
+	@description = "Verify users can exclude fields from being exported in CSV format"
+	@priority = "3"
+	test CanExcludeCSVFieldsFromExport {
+		property portal.acceptance = "true";
+
+		task ("Given several channels") {
+			CommerceJSONChannelsAPI._addChannel(
+				channelName = "Test Channel 1",
+				channelType = "site",
+				currencyCode = "USD",
+				externalReferenceCode = "101");
+
+			CommerceJSONChannelsAPI._addChannel(
+				channelName = "Test Channel 2",
+				channelType = "site",
+				currencyCode = "CAD",
+				externalReferenceCode = "102");
+		}
+
+		task ("When the user selects specific channel fields for export and exports the channels in CSV format") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Channel",
+				exportFields = "name,type,currencyCode",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+		}
+
+		task ("Then only those fields should be imported") {
+			ImportExport.assertExportFileContent(
+				comparisonFileName = "csv_channel_import_auto_map.csv",
+				exportFileName = "export.csv");
+		}
+	}
+
+	@description = "Verify users can exclude fields from being imported"
+	@priority = "3"
+	test CanExcludeFieldsFromImport {
+		property portal.acceptance = "true";
+
+		task ("Given the user is importing CSV file with account data") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "csv_account_import.csv");
+
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user maps only specific fields and imports the file") {
+			ImportExport.mapImport(fieldMappings = "name:Account Name,type:Account Type,externalReferenceCode:External Reference Code");
+
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then only those fields should be imported") {
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+
+			Accounts.openAccountsAdmin();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "",
+				accountName = "Test Business Account",
+				accountType = "Business",
+				externalReferenceCode = "101");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "",
+				accountName = "Test Guest Account",
+				accountType = "Guest",
+				externalReferenceCode = "102");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "",
+				accountName = "Test Person Account",
+				accountType = "Person",
+				externalReferenceCode = "103");
+		}
+	}
+
+	@description = "Verify users can exclude fields from being exported in JSON format"
+	@priority = "3"
+	test CanExcludeJSONFieldsFromExport {
+		property portal.acceptance = "true";
+
+		task ("Given several channels") {
+			CommerceJSONChannelsAPI._addChannel(
+				channelName = "Test Channel 1",
+				channelType = "site",
+				currencyCode = "USD",
+				externalReferenceCode = "101");
+
+			CommerceJSONChannelsAPI._addChannel(
+				channelName = "Test Channel 2",
+				channelType = "site",
+				currencyCode = "CAD",
+				externalReferenceCode = "102");
+		}
+
+		task ("When the user selects specific channel fields for export and exports the channels in JSON format") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Channel",
+				exportFields = "name,type,currencyCode",
+				exportFileFormat = "JSON",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+		}
+
+		task ("Then only those fields should be imported") {
+			ImportExport.assertExportFileContent(
+				comparisonFileName = "json_channel_import.txt",
+				exportFileName = "export.json");
+		}
+	}
+
+	@description = "Verify users can export entity data via CSV files"
+	@priority = "3"
+	test CanExportCSVFiles {
+		property portal.acceptance = "true";
+
+		task ("Given several accounts") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Business Account Description",
+				accountEntryName = "Test Business Account",
+				accountEntryType = "Business",
+				externalReferenceCode = "101");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Guest Account Description",
+				accountEntryName = "Test Guest Account",
+				accountEntryType = "Guest",
+				externalReferenceCode = "102");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Person Account Description",
+				accountEntryName = "Test Person Account",
+				accountEntryType = "Person",
+				externalReferenceCode = "103");
+		}
+
+		task ("When the user selects CSV as Export File Format and exports the accounts") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then a CSV file should be generated for download which contains account data") {
+			ImportExport.assertExportFileContent(
+				comparisonFileName = "csv_account_import_auto_map.csv",
+				exportFileName = "export.csv");
+		}
+	}
+
+	@description = "Verify users can export entity data via CSV files without headers"
+	@priority = "3"
+	test CanExportCSVFileWithoutHeaders {
+		property portal.acceptance = "true";
+
+		task ("Given several accounts") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Business Account Description",
+				accountEntryName = "Test Business Account",
+				accountEntryType = "Business",
+				externalReferenceCode = "101");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Guest Account Description",
+				accountEntryName = "Test Guest Account",
+				accountEntryType = "Guest",
+				externalReferenceCode = "102");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Person Account Description",
+				accountEntryName = "Test Person Account",
+				accountEntryType = "Person",
+				externalReferenceCode = "103");
+		}
+
+		task ("When the user exports the accounts in CSV format with Contains Headers not checked") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				containsHeaders = "false",
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then the generated CSV file should contains account data with no headers") {
+			ImportExport.assertExportFileContent(
+				comparisonFileName = "csv_account_import_no_headers.csv",
+				exportFileName = "export.csv");
+		}
+	}
+
+	@description = "Verify users can export entity data via JSON files"
+	@priority = "3"
+	test CanExportJSONFiles {
+		property portal.acceptance = "true";
+
+		task ("Given several accounts") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Business Account Description",
+				accountEntryName = "Test Business Account",
+				accountEntryType = "Business",
+				externalReferenceCode = "101");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Guest Account Description",
+				accountEntryName = "Test Guest Account",
+				accountEntryType = "Guest",
+				externalReferenceCode = "102");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Person Account Description",
+				accountEntryName = "Test Person Account",
+				accountEntryType = "Person",
+				externalReferenceCode = "103");
+		}
+
+		task ("When the user selects JSON as Export File Format and exports the accounts") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then a JSON file should be generated for download which contains account data") {
+			ImportExport.assertExportFileContent(
+				comparisonFileName = "json_account_export.txt",
+				exportFileName = "export.json");
+		}
+	}
+
+	@description = "Verify users can export entity data via JSONL files"
+	@priority = "3"
+	test CanExportJSONLFiles {
+		property portal.acceptance = "true";
+
+		task ("Given several accounts") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Business Account Description",
+				accountEntryName = "Test Business Account",
+				accountEntryType = "Business",
+				externalReferenceCode = "101");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Guest Account Description",
+				accountEntryName = "Test Guest Account",
+				accountEntryType = "Guest",
+				externalReferenceCode = "102");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryDescription = "Test Person Account Description",
+				accountEntryName = "Test Person Account",
+				accountEntryType = "Person",
+				externalReferenceCode = "103");
+		}
+
+		task ("When the user selects JSONL as Export File Format and exports the accounts") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSONL",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then a JSONL file should be generated for download which contains account data") {
+			ImportExport.assertExportFileContent(
+				comparisonFileName = "jsonl_account_import.jsonl",
+				exportFileName = "export.jsonl");
+		}
+	}
+
+	@description = "Verify users can filter Import/Export executions by Action."
+	@priority = "3"
+	test CanFilterExecutionsByAction {
+		property portal.acceptance = "true";
+
+		task ("Given an account import and export") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.importFile(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When I go to the Import/Export Center and filter action by all") {
+			ImportExport.openImportExportAdmin();
+
+			ManagementBar.setFilterAndOrder(filterBy = "All");
+		}
+
+		task ("Then both the export and import should be shown") {
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Completed");
+		}
+
+		task ("When I filter Action by Import") {
+			ManagementBar.setFilterAndOrder(filterBy = "Import");
+		}
+
+		task ("Then only the import should be shown") {
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Completed");
+		}
+
+		task ("When I filter Action by Export") {
+			ManagementBar.setFilterAndOrder(filterBy = "Export");
+		}
+
+		task ("Then only the export should be shown") {
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import.csv",
+				executionStatus = "Completed");
+		}
+	}
+
+	@description = "Verify users can import entities via CSV files"
+	@priority = "3"
+	test CanImportCSVFiles {
+		property portal.acceptance = "true";
+
+		task ("Given a CSV file with data on multiple accounts") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user imports the file") {
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then the accounts should be imported successfully") {
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+
+			Accounts.openAccountsAdmin();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Business Account Description",
+				accountName = "Test Business Account",
+				accountType = "Business",
+				externalReferenceCode = "101");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Guest Account Description",
+				accountName = "Test Guest Account",
+				accountType = "Guest",
+				externalReferenceCode = "102");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Person Account Description",
+				accountName = "Test Person Account",
+				accountType = "Person",
+				externalReferenceCode = "103");
+		}
+	}
+
+	@description = "Verify users can import entities via a CSV file without headers"
+	@priority = "3"
+	test CanImportCSVFileWithoutHeaders {
+		property portal.acceptance = "true";
+
+		task ("Given a CSV file without headers and account data") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "csv_account_import_no_headers.csv");
+		}
+
+		task ("When the user unchecks "Contains Headers" and selects Account as Entity Type") {
+			Uncheck.uncheckNotVisible(
+				checkboxName = "Headers",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then the user should be able to map account fields to columns in the CSV file") {
+			ImportExport.mapImport(fieldMappings = "name:Column 3,type:Column 4,description:Column 1,externalReferenceCode:Column 2");
+		}
+
+		task ("When the user imports the file") {
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then the accounts in the file should be imported successfully") {
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+
+			Accounts.openAccountsAdmin();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Business Account Description",
+				accountName = "Test Business Account",
+				accountType = "Business",
+				externalReferenceCode = "101");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Guest Account Description",
+				accountName = "Test Guest Account",
+				accountType = "Guest",
+				externalReferenceCode = "102");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Person Account Description",
+				accountName = "Test Person Account",
+				accountType = "Person",
+				externalReferenceCode = "103");
+		}
+	}
+
+	@description = "Verify users can import entities via JSON files"
+	@priority = "3"
+	test CanImportJSONFiles {
+		property portal.acceptance = "true";
+
+		task ("Given a JSON file with data on multiple accounts") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:name,type:type,description:description,externalReferenceCode:externalReferenceCode",
+				fileName = "json_account_import.json",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user imports the file") {
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then the accounts should be imported successfully") {
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+
+			Accounts.openAccountsAdmin();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Business Account Description",
+				accountName = "Test Business Account",
+				accountType = "Business",
+				externalReferenceCode = "101");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Guest Account Description",
+				accountName = "Test Guest Account",
+				accountType = "Guest",
+				externalReferenceCode = "102");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Person Account Description",
+				accountName = "Test Person Account",
+				accountType = "Person",
+				externalReferenceCode = "103");
+		}
+	}
+
+	@description = "Verify users can import entities via JSONL files"
+	@priority = "3"
+	test CanImportJSONLFiles {
+		property portal.acceptance = "true";
+
+		task ("Given a JSONL file with data on multiple accounts") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:name,type:type,description:description,externalReferenceCode:externalReferenceCode",
+				fileName = "jsonl_account_import.jsonl",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user imports the file") {
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then the accounts should be imported successfully") {
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+
+			Accounts.openAccountsAdmin();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Business Account Description",
+				accountName = "Test Business Account",
+				accountType = "Business",
+				externalReferenceCode = "101");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Guest Account Description",
+				accountName = "Test Guest Account",
+				accountType = "Guest",
+				externalReferenceCode = "102");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Person Account Description",
+				accountName = "Test Person Account",
+				accountType = "Person",
+				externalReferenceCode = "103");
+		}
+	}
+
+	@description = "Verify users cannot import an entity without mapping the required fields."
+	@priority = "3"
+	test CannotImportWithoutRequiredFields {
+		property portal.acceptance = "true";
+
+		task ("Given the user is configuring an import") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Channel",
+				fieldMappings = "name:Channel Name,type:Channel Type",
+				fileName = "csv_channel_import.csv",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+		}
+
+		task ("When the user tries to import a file without mapping all the required fields") {
+			Button.click(button = "Next");
+		}
+
+		task ("Then the user should not be able to import the file and the missing field should be highlighted red") {
+			Alert.viewErrorMessage(errorMessage = "You must map all required fields before continuing.");
+
+			AssertElementNotPresent(
+				key_text = "Start Import",
+				locator1 = "Button#ANY");
+
+			AssertElementPresent(
+				key_destinationField = "currencyCode",
+				locator1 = "ImportExport#REQUIRED_IMPORT_FIELD_ERROR");
+		}
+
+		task ("When the user maps the missing required field and imports the file") {
+			ImportExport.mapImport(fieldMappings = "currencyCode:Currency Code");
+
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then the file should be imported successfully") {
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+
+			Button.clickDone();
+
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Test Channel 1");
+
+			CommerceEntry.viewChannelsEntry(
+				channelCurrency = "US Dollar",
+				channelName = "Test Channel 1",
+				channelType = "Site");
+
+			Navigator.gotoBack();
+
+			CommerceNavigator.gotoEntry(entryName = "Test Channel 2");
+
+			CommerceEntry.viewChannelsEntry(
+				channelCurrency = "Canadian Dollar",
+				channelName = "Test Channel 2",
+				channelType = "Site");
+		}
+	}
+
+	@description = "Verify users can order Import/Export executions by Create Date."
+	@priority = "3"
+	test CanOrderExecutionsByCreateDate {
+		property portal.acceptance = "true";
+
+		task ("Given an account import and export") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.importFile(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Account",
+				exportFields = "name,type,description",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When I go to the Import/Export Center and order by create date") {
+			ImportExport.openImportExportAdmin();
+
+			ManagementBar.setFilterAndOrder(orderBy = "Create Date");
+		}
+
+		task ("Then the executions should be ordered by create date in descending order") {
+			AssertTextEquals.assertPartialText(
+				key_rowNumber = "1",
+				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER",
+				value1 = "Export Account");
+
+			AssertTextEquals.assertPartialText(
+				key_rowNumber = "2",
+				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER",
+				value1 = "Import Account");
+		}
+
+		task ("When I click on the Reverse Sort Direction button") {
+			ManagementBar.toggleViewOrder();
+		}
+
+		task ("Then the executions should be ordered by create date in descending order") {
+			AssertTextEquals.assertPartialText(
+				key_rowNumber = "1",
+				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER",
+				value1 = "Import Account");
+
+			AssertTextEquals.assertPartialText(
+				key_rowNumber = "2",
+				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER",
+				value1 = "Export Account");
+		}
+	}
+
+	@description = "Verify users can save export configuration as a template during the export process"
+	@priority = "3"
+	test CanSaveTemplateDuringExport {
+		property portal.acceptance = "true";
+
+		task ("Given the user has configured an export") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			ImportExport.configureExport(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user saves the configuration as a template") {
+			ImportExport.saveAsTemplate(templateName = "Test Account Export Template");
+		}
+
+		task ("Then the export template should be created successfully") {
+			ImportExport.openImportExportAdmin();
+
+			Navigator.gotoNavTab(navTab = "Templates");
+
+			LexiconEntry.gotoEntry(rowEntry = "Test Account Export Template");
+
+			ImportExport.assertExportTemplate(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				headlessEndpoint = "/headless-admin-user",
+				templateName = "Test Account Export Template");
+		}
+	}
+
+	@description = "Verify users can save import configuration as a template during the import process"
+	@priority = "3"
+	test CanSaveTemplateDuringImport {
+		property portal.acceptance = "true";
+
+		task ("Given the user has configured an import") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user saves the configuration as a template") {
+			ImportExport.saveAsTemplate(templateName = "Test Account Import Template");
+		}
+
+		task ("Then the import template should be created successfully") {
+			ImportExport.openImportExportAdmin();
+
+			Navigator.gotoNavTab(navTab = "Templates");
+
+			LexiconEntry.gotoEntry(rowEntry = "Test Account Import Template");
+
+			ImportExport.assertImportTemplate(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user",
+				templateName = "Test Account Import Template");
+		}
+	}
+
+	@description = "Verify users can search Import/Exports executions by name and action."
+	@priority = "3"
+	test CanSearchExecutions {
+		property portal.acceptance = "true";
+
+		task ("Given an account import and export") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.importFile(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("And given a channel import and export") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.importFile(
+				entityType = "Channel",
+				fieldMappings = "name:Channel Name,type:Channel Type,currencyCode:Currency Code",
+				fileName = "csv_channel_import.csv",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Channel",
+				exportFields = "name,type,currencyCode",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+		}
+
+		task ("When I go to the Import/Export center and search executions by name") {
+			ImportExport.openImportExportAdmin();
+
+			Search.searchCP(searchTerm = "csv_account_import.csv");
+		}
+
+		task ("Then only executions with the name keyword should be shown") {
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Channel",
+				executionAction = "Import",
+				executionName = "csv_channel_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Channel",
+				executionAction = "Export",
+				executionName = "Channel Plan Execution",
+				executionStatus = "Completed");
+		}
+
+		task ("When I search executions by entity") {
+			Search.searchCP(searchTerm = "Channel");
+		}
+
+		task ("Then only executions with the entity keyword should be shown") {
+			ImportExport.assertExecutionEntry(
+				entityType = "Channel",
+				executionAction = "Import",
+				executionName = "csv_channel_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertExecutionEntry(
+				entityType = "Channel",
+				executionAction = "Export",
+				executionName = "Channel Plan Execution",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Completed");
+		}
+
+		task ("When I filter by Import and search by entity") {
+			ManagementBar.setFilterAndOrder(filterBy = "Import");
+
+			Search.searchCP(searchTerm = "Channel");
+		}
+
+		task ("Then only the Import executions with the entity keyword should be shown") {
+			ImportExport.assertExecutionEntry(
+				entityType = "Channel",
+				executionAction = "Import",
+				executionName = "csv_channel_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Channel",
+				executionAction = "Export",
+				executionName = "Channel Plan Execution",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import.csv",
+				executionStatus = "Completed");
+
+			ImportExport.assertNoExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Completed");
+		}
+	}
+
+	@description = "Verify users can search Import/Exports templates by name and action."
+	@priority = "3"
+	test CanSearchTemplates {
+		property portal.acceptance = "true";
+
+		task ("Given account import and export templates") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user",
+				templateName = "Test Account Import Template");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			ImportExport.configureExport(
+				entityType = "Account",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				headlessEndpoint = "/headless-admin-user",
+				templateName = "Test Account Export Template");
+		}
+
+		task ("And given channel import and export templates") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Channel",
+				fieldMappings = "name:Channel Name,type:Channel Type,currencyCode:Currency Code",
+				fileName = "csv_channel_import.csv",
+				headlessEndpoint = "/headless-commerce-admin-channel",
+				templateName = "Test Channel Import Template");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			ImportExport.configureExport(
+				entityType = "Channel",
+				exportFields = "name,type,currencyCode",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-commerce-admin-channel",
+				templateName = "Test Channel Export Template");
+		}
+
+		task ("When I go to the Import/Export templates list and search templates by name") {
+			ImportExport.openImportExportAdmin();
+
+			Navigator.gotoNavTab(navTab = "Templates");
+
+			Search.searchCP(searchTerm = "Test Account Import Template");
+		}
+
+		task ("Then only the templates with the name keyword should be shown") {
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Import Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Export Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Channel Import Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Channel Export Template");
+		}
+
+		task ("When I search templates by entity") {
+			Search.searchCP(searchTerm = "Channel");
+		}
+
+		task ("Then only templates with the entity keyword should be shown") {
+			LexiconEntry.viewEntryName(rowEntry = "Test Channel Import Template");
+
+			LexiconEntry.viewEntryName(rowEntry = "Test Channel Export Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Import Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Export Template");
+		}
+
+		task ("When I filter by Import and search by entity") {
+			ManagementBar.setFilterAndOrder(filterBy = "Import");
+
+			Search.searchCP(searchTerm = "Account");
+		}
+
+		task ("Then only the Import templates with the entity keyword should be shown") {
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Import Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Export Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Channel Import Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Channel Export Template");
+		}
+	}
+
+	@description = "Verify users receive a notification when an export is triggered."
+	@priority = "3"
+	test CanViewExportNotifications {
+		property portal.acceptance = "true";
+
+		task ("Given a failed export") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			ImportExport.configureExport(
+				entityType = "Account",
+				exportFields = "accountUserAccounts",
+				exportFileFormat = "CSV",
+				headlessEndpoint = "/headless-admin-user");
+
+			Button.click(button = "Export");
+
+			WaitForElementPresent(locator1 = "Message#ERROR_FORM_FIELD_REQUIRED");
+		}
+
+		task ("And given a succesful export") {
+			Button.clickCancel();
+
+			ImportExport.mapExport(exportFields = "name,type,description,externalReferenceCode");
+
+			Button.click(button = "Export");
+
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+		}
+
+		task ("When the exports are finished") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Failed");
+
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Export",
+				executionName = "Account Plan Execution",
+				executionStatus = "Completed");
+		}
+
+		task ("Then the the user should receive a notification for the failed and successful exports") {
+			Notifications.viewBadgeCount(notificationCount = "2");
+
+			Notifications.gotoNotifications();
+
+			AssertElementPresent(
+				key_body = "Accounts were exported to a ZIP file.",
+				key_title = "Accounts Exported",
+				locator1 = "ImportExport#EXECUTION_NOTIFICATION");
+
+			AssertElementPresent(
+				key_body = "Account entity export encountered an error while exporting to a ZIP file.",
+				key_title = "Accounts Export Stopped",
+				locator1 = "ImportExport#EXECUTION_NOTIFICATION");
+
+			PortletEntry.selectAll();
+
+			ClickNoError(locator1 = "Icon#DELETE");
+		}
+	}
+
+	@description = "Verify users receive a notification when an import is triggered."
+	@priority = "3"
+	test CanViewImportNotifications {
+		property portal.acceptance = "true";
+
+		task ("Given a failed import") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import_error.csv",
+				headlessEndpoint = "/headless-admin-user",
+				stopImportOnError = "true");
+
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+
+			WaitForElementPresent(locator1 = "Message#ERROR_FORM_FIELD_REQUIRED");
+		}
+
+		task ("And given a succesful import") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.importFile(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the imports are finished") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import_error.csv",
+				executionStatus = "Failed");
+
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import.csv",
+				executionStatus = "Completed");
+		}
+
+		task ("Then the the user should receive a notification for the failed and successful imports") {
+			Notifications.viewBadgeCount(notificationCount = "2");
+
+			Notifications.gotoNotifications();
+
+			AssertElementPresent(
+				key_body = "Accounts from csv_account_import.csv were imported to the Account entity.",
+				key_title = "Accounts Imported",
+				locator1 = "ImportExport#EXECUTION_NOTIFICATION");
+
+			AssertElementPresent(
+				key_body = "csv_account_import_error.csv encountered an error while importing to the Account entity.",
+				key_title = "Accounts Import Stopped",
+				locator1 = "ImportExport#EXECUTION_NOTIFICATION");
+
+			PortletEntry.selectAll();
+
+			ClickNoError(locator1 = "Icon#DELETE");
+		}
+	}
+
+	@description = "Verify import rows with errors are skipped during an import if 'Stop the Import on Error' is no checked."
+	@priority = "3"
+	test ContinueImportOnError {
+		property portal.acceptance = "true";
+
+		task ("Given the user is importing a file with an invalid field in one of the rows") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import_error.csv",
+				headlessEndpoint = "/headless-admin-user",
+				stopImportOnError = "true");
+		}
+
+		task ("When the user unchecks 'Stop the Import on Error' and imports the file") {
+			Uncheck.uncheckNotVisible(
+				checkboxName = "Stop the Import on Error",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then the only the rows without error should be imported") {
+			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
+
+			Button.clickDone();
+
+			Accounts.openAccountsAdmin();
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Guest Account");
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Business Account Description",
+				accountName = "Test Business Account",
+				accountType = "Business",
+				externalReferenceCode = "101");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Person Account Description",
+				accountName = "Test Person Account",
+				accountType = "Person",
+				externalReferenceCode = "103");
+		}
+	}
+
+	@description = "Verify CSV fields are automatically mapped to fields in Liferay when the names are the same"
+	@priority = "3"
+	test CSVFieldsAreAutoMapped {
+		property portal.acceptance = "true";
+
+		task ("Given a CSV file with field names that are the same as fields in Liferay is being imported") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "csv_account_import_auto_map.csv");
+		}
+
+		task ("When I select the entity type") {
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then the fields are automatically mapped") {
+			ImportExport.assertImportMappings(fieldMappings = "name:name,type:type,description:description");
+		}
+	}
+
+	@description = "Verify JSON fields are automatically mapped to fields in Liferay when the names are the same"
+	@priority = "3"
+	test JSONFieldsAreAutoMapped {
+		property portal.acceptance = "true";
+
+		task ("Given a JSON file with field names that are the same as fields in Liferay is being imported") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "json_account_import.json");
+		}
+
+		task ("When I select the entity type") {
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then the fields are automatically mapped") {
+			ImportExport.assertImportMappings(fieldMappings = "name:name,type:type,description:description");
+		}
+	}
+
+	@description = "Verify JSONL fields are automatically mapped to fields in Liferay when the names are the same"
+	@priority = "3"
+	test JSONLFieldsAreAutoMapped {
+		property portal.acceptance = "true";
+
+		task ("Given a JSONL file with field names that are the same as fields in Liferay is being imported") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "jsonl_account_import.jsonl");
+		}
+
+		task ("When I select the entity type") {
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("Then the fields are automatically mapped") {
+			ImportExport.assertImportMappings(fieldMappings = "name:name,type:type,description:description");
+		}
+	}
+
+	@description = "Verify imports are stopped if 'Stop the Import on Error' is checked when importing a file with an error in any of the rows."
+	@priority = "3"
+	test StopImportOnError {
+		property portal.acceptance = "true";
+
+		task ("Given the user is importing a file with an invalid field in one of the rows") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import_error.csv",
+				headlessEndpoint = "/headless-admin-user",
+				stopImportOnError = "true");
+		}
+
+		task ("When the user checks 'Stop the Import on Error' and imports the file") {
+			Check.checkNotVisible(
+				checkboxName = "Stop the Import on Error",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+		}
+
+		task ("Then the import should be stopped and no entity should be imported") {
+			AssertElementPresent(locator1 = "Message#ERROR_MODAL_CONTENT");
+
+			Accounts.openAccountsAdmin();
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Business Account");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Guest Account");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Person Account");
+		}
+	}
+
+	@description = "Verify users are shown a preview for the first row being imported in a CSV file."
+	@priority = "3"
+	test ViewCSVFirstRowPreview {
+		property portal.acceptance = "true";
+
+		task ("Given the user is importing a CSV file") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "csv_account_import.csv");
+
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user maps the import fields") {
+			ImportExport.mapImport(fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code");
+		}
+
+		task ("Then a preview of the first row being imported should be shown.") {
+			ImportExport.assertImportPreviews(importPreviews = "name:Test Business Account,type:business,description:Test Business Account Description,externalReferenceCode:101");
+		}
+	}
+
+	@description = "Verify users can view a preview of the CSV file being imported."
+	@priority = "3"
+	test ViewCSVImportPreview {
+		property portal.acceptance = "true";
+
+		task ("Given the user has configured an import for a CSV file") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user clicks Next") {
+			Button.clickNext();
+		}
+
+		task ("Then a preview should be shown of the csv file content.") {
+			ImportExport.assertPreviewLabels(previewLabels = "description,externalReferenceCode,name,type");
+
+			ImportExport.assertPreviewEntry(
+				entryName = "Test Business Account",
+				previewFields = "business,Test Business Account Description,101");
+
+			ImportExport.assertPreviewEntry(
+				entryName = "Test Guest Account",
+				previewFields = "guest,Test Guest Account Description,102");
+
+			ImportExport.assertPreviewEntry(
+				entryName = "Test Person Account",
+				previewFields = "person,Test Person Account Description,103");
+		}
+	}
+
+	@description = "Verify users are shown a preview for the first row being imported in a JSON file."
+	@priority = "3"
+	test ViewJSONFirstRowPreview {
+		property portal.acceptance = "true";
+
+		task ("Given the user is importing a JSON file") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "json_account_import.json");
+
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user maps the import fields") {
+			ImportExport.mapImport(fieldMappings = "name:name,type:type,description:description,externalReferenceCode:externalReferenceCode");
+		}
+
+		task ("Then a preview of the first row being imported should be shown.") {
+			ImportExport.assertImportPreviews(importPreviews = "name:Test Business Account,type:business,description:Test Business Account Description,externalReferenceCode:101");
+		}
+	}
+
+	@description = "Verify users can view a preview of the JSON file being imported."
+	@priority = "3"
+	test ViewJSONImportPreview {
+		property portal.acceptance = "true";
+
+		task ("Given the user has configured an import for a JSON file") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Channel",
+				fieldMappings = "currencyCode:currencyCode,name:name,type:type",
+				fileName = "json_channel_import.json",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+		}
+
+		task ("When the user clicks Next") {
+			Button.clickNext();
+		}
+
+		task ("Then a preview should be shown of the JSON file content.") {
+			ImportExport.assertPreviewLabels(previewLabels = "currencyCode,name,type");
+
+			ImportExport.assertPreviewEntry(
+				entryName = "Test Channel 1",
+				previewFields = "USD,site");
+
+			ImportExport.assertPreviewEntry(
+				entryName = "Test Channel 2",
+				previewFields = "CAD,site");
+		}
+	}
+
+	@description = "Verify users are shown a preview for the first row being imported in a JSONL file."
+	@priority = "3"
+	test ViewJSONLFirstRowPreview {
+		property portal.acceptance = "true";
+
+		task ("Given the user is importing a JSONL file") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			UploadDependencyFile.uploadFile(fileName = "jsonl_account_import.jsonl");
+
+			ImportExport.selectEntity(
+				entityType = "Account",
+				headlessEndpoint = "/headless-admin-user");
+		}
+
+		task ("When the user maps the import fields") {
+			ImportExport.mapImport(fieldMappings = "name:name,type:type,description:description,externalReferenceCode:externalReferenceCode");
+		}
+
+		task ("Then a preview of the first row being imported should be shown.") {
+			ImportExport.assertImportPreviews(importPreviews = "name:Test Business Account,type:business,description:Test Business Account Description,externalReferenceCode:101");
+		}
+	}
+
+	@description = "Verify users can view a preview of the JSONL file being imported."
+	@priority = "3"
+	test ViewJSONLImportPreview {
+		property portal.acceptance = "true";
+
+		task ("Given the user has configured an import for a JSONL file") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Channel",
+				fieldMappings = "currencyCode:currencyCode,name:name,type:type",
+				fileName = "jsonl_channel_import.jsonl",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+		}
+
+		task ("When the user clicks Next") {
+			Button.clickNext();
+		}
+
+		task ("Then a preview should be shown of the JSONL file content.") {
+			ImportExport.assertPreviewLabels(previewLabels = "currencyCode,name,type");
+
+			ImportExport.assertPreviewEntry(
+				entryName = "Test Channel 1",
+				previewFields = "USD,site");
+
+			ImportExport.assertPreviewEntry(
+				entryName = "Test Channel 2",
+				previewFields = "CAD,site");
+		}
+	}
+
+	@description = "Verify users are shown which fields are required for an import."
+	@priority = "3"
+	test ViewRequiredImportFields {
+		property portal.acceptance = "true";
+
+		task ("Given the user is configuring an import") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+		}
+
+		task ("When the user selects the import entity") {
+			ImportExport.selectEntity(
+				entityType = "Channel",
+				headlessEndpoint = "/headless-commerce-admin-channel");
+		}
+
+		task ("Then the required and optional fields should be shown for that entity.") {
+			ImportExport.assertRequiredImportFields(requiredFields = "currencyCode,name,type");
+
+			ImportExport.assertOptionalImportFields(optionalFields = "externalReferenceCode,id,siteGroupId");
+		}
+	}
+
+}

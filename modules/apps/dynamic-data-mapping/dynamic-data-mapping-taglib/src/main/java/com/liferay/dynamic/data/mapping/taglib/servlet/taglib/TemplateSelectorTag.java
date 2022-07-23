@@ -32,7 +32,10 @@ import javax.servlet.jsp.PageContext;
 
 /**
  * @author Juan Fernández
+ * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+ *             com.liferay.template.taglib.servlet.taglib.TemplateSelectorTag}
  */
+@Deprecated
 public class TemplateSelectorTag extends BaseTemplateSelectorTag {
 
 	@Override
@@ -59,8 +62,11 @@ public class TemplateSelectorTag extends BaseTemplateSelectorTag {
 			return displayStyleGroupId;
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		return themeDisplay.getScopeGroupId();
 	}
@@ -85,7 +91,7 @@ public class TemplateSelectorTag extends BaseTemplateSelectorTag {
 	}
 
 	protected ResourceBundle getResourceBundle() {
-		Locale locale = PortalUtil.getLocale(request);
+		Locale locale = PortalUtil.getLocale(getRequest());
 
 		Class<?> clazz = getClass();
 

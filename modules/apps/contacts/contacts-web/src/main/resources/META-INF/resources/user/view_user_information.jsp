@@ -25,17 +25,13 @@ boolean incompleteProfile = false;
 
 List<AssetTag> assetTags = AssetTagLocalServiceUtil.getTags(User.class.getName(), user2.getUserId());
 
-if (assetTags.isEmpty()) {
-	incompleteProfile = true;
-}
-
-if (Validator.isNull(user2.getComments())) {
+if (assetTags.isEmpty() || Validator.isNull(user2.getComments())) {
 	incompleteProfile = true;
 }
 %>
 
 <c:if test="<%= showComments && Validator.isNotNull(user2.getComments()) %>">
-	<div class="field-group lfr-user-comments section" data-title="<%= LanguageUtil.get(request, "introduction") %>">
+	<div class="lfr-field-group lfr-user-comments section" data-title="<%= LanguageUtil.get(request, "introduction") %>">
 
 		<%
 		PortletURL editCommentsURL = PortletURLFactoryUtil.create(request, PortletKeys.MY_ACCOUNT, embeddedPersonalApplicationLayout, PortletRequest.RENDER_PHASE);
@@ -66,7 +62,7 @@ if (phones.isEmpty()) {
 %>
 
 <c:if test="<%= showPhones && !phones.isEmpty() %>">
-	<div class="field-group lfr-user-phones section" data-title="<%= LanguageUtil.get(request, "phone-numbers") %>">
+	<div class="lfr-field-group lfr-user-phones section" data-title="<%= LanguageUtil.get(request, "phone-numbers") %>">
 
 		<%
 		PortletURL editPhonesURL = PortletURLBuilder.create(
@@ -75,7 +71,7 @@ if (phones.isEmpty()) {
 			"screenNavigationCategoryKey", "contact"
 		).setParameter(
 			"screenNavigationEntryKey", "contact-information"
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:icon
@@ -114,7 +110,7 @@ if (emailAddresses.isEmpty()) {
 %>
 
 <c:if test="<%= showAdditionalEmailAddresses && !emailAddresses.isEmpty() %>">
-	<div class="field-group lfr-user-email-addresses section" data-title="<%= LanguageUtil.get(request, "additional-email-addresses") %>">
+	<div class="lfr-field-group lfr-user-email-addresses section" data-title="<%= LanguageUtil.get(request, "additional-email-addresses") %>">
 
 		<%
 		PortletURL editAdditionalEmailAddressesURL = PortletURLBuilder.create(
@@ -123,7 +119,7 @@ if (emailAddresses.isEmpty()) {
 			"screenNavigationCategoryKey", "contact"
 		).setParameter(
 			"screenNavigationEntryKey", "contact-information"
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:icon
@@ -164,7 +160,7 @@ if (Validator.isNull(jabberSn) && Validator.isNull(skypeSn)) {
 %>
 
 <c:if test="<%= showInstantMessenger && (Validator.isNotNull(jabberSn) || Validator.isNotNull(skypeSn)) %>">
-	<div class="field-group section" data-title="<%= LanguageUtil.get(request, "instant-messenger") %>">
+	<div class="lfr-field-group section" data-title="<%= LanguageUtil.get(request, "instant-messenger") %>">
 		<liferay-ui:icon
 			icon="pencil"
 			markupView="lexicon"
@@ -210,14 +206,14 @@ if (addresses.isEmpty()) {
 %>
 
 <c:if test="<%= showAddresses && !addresses.isEmpty() %>">
-	<div class="field-group lfr-user-addresses section" data-title="<%= LanguageUtil.get(request, "addresses") %>">
+	<div class="lfr-field-group lfr-user-addresses section" data-title="<%= LanguageUtil.get(request, "addresses") %>">
 
 		<%
 		PortletURL editAddressesURL = PortletURLBuilder.create(
 			PortletURLFactoryUtil.create(request, PortletKeys.MY_ACCOUNT, embeddedPersonalApplicationLayout, PortletRequest.RENDER_PHASE)
 		).setParameter(
 			"screenNavigationCategoryKey", "contact"
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:icon
@@ -233,12 +229,10 @@ if (addresses.isEmpty()) {
 			<%
 			for (Address address : addresses) {
 				ListType listType = address.getType();
-
-				String mailingName = LanguageUtil.get(request, listType.getName());
 			%>
 
 				<li class="<%= address.isPrimary() ? "primary" : "" %>">
-					<span class="property-type"><%= mailingName %></span><br />
+					<span class="property-type"><%= LanguageUtil.get(request, listType.getName()) %></span><br />
 
 					<liferay-text-localizer:address-display
 						address="<%= address %>"
@@ -264,7 +258,7 @@ if (websites.isEmpty()) {
 %>
 
 <c:if test="<%= showWebsites && !websites.isEmpty() %>">
-	<div class="field-group lfr-user-websites section" data-title="<%= LanguageUtil.get(request, "websites") %>">
+	<div class="lfr-field-group lfr-user-websites section" data-title="<%= LanguageUtil.get(request, "websites") %>">
 
 		<%
 		PortletURL editWebsitesURL = PortletURLBuilder.create(
@@ -273,7 +267,7 @@ if (websites.isEmpty()) {
 			"screenNavigationCategoryKey", "contact"
 		).setParameter(
 			"screenNavigationEntryKey", "contact-information"
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:icon
@@ -315,7 +309,7 @@ if (Validator.isNull(facebook) && Validator.isNull(twitter)) {
 %>
 
 <c:if test="<%= showSocialNetwork && (Validator.isNotNull(facebook) || Validator.isNotNull(twitter)) %>">
-	<div class="field-group lfr-user-social-network section" data-title="<%= LanguageUtil.get(request, "social-network") %>">
+	<div class="lfr-field-group lfr-user-social-network section" data-title="<%= LanguageUtil.get(request, "social-network") %>">
 
 		<%
 		PortletURL editSocialNetworkURL = PortletURLBuilder.create(
@@ -324,7 +318,7 @@ if (Validator.isNull(facebook) && Validator.isNull(twitter)) {
 			"screenNavigationCategoryKey", "contact"
 		).setParameter(
 			"screenNavigationEntryKey", "contact-information"
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:icon
@@ -362,7 +356,7 @@ if (Validator.isNull(contact2.getSmsSn())) {
 %>
 
 <c:if test="<%= showSMS && Validator.isNotNull(contact2.getSmsSn()) %>">
-	<div class="field-group lfr-user-sms section" data-title="<%= LanguageUtil.get(request, "sms") %>">
+	<div class="lfr-field-group lfr-user-sms section" data-title="<%= LanguageUtil.get(request, "sms") %>">
 
 		<%
 		PortletURL editSmsURL = PortletURLBuilder.create(
@@ -371,7 +365,7 @@ if (Validator.isNull(contact2.getSmsSn())) {
 			"screenNavigationCategoryKey", "contact"
 		).setParameter(
 			"screenNavigationEntryKey", "contact-information"
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:icon

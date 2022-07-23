@@ -12,30 +12,34 @@
  * details.
  */
 
+import {ReactPortal} from '@liferay/frontend-js-react-web';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
-import {createPortal} from 'react-dom';
 
 import {StyleBookContextProvider} from '../../plugins/page-design-options/hooks/useStyleBook';
 import {INIT} from '../actions/types';
 import {LAYOUT_TYPES} from '../config/constants/layoutTypes';
 import {config} from '../config/index';
+import {CollectionActiveItemContextProvider} from '../contexts/CollectionActiveItemContext';
+import {ControlsProvider} from '../contexts/ControlsContext';
 import {DisplayPagePreviewItemContextProvider} from '../contexts/DisplayPagePreviewItemContext';
+import {EditableProcessorContextProvider} from '../contexts/EditableProcessorContext';
+import {GlobalContextProvider} from '../contexts/GlobalContext';
+import {StoreContextProvider, useSelector} from '../contexts/StoreContext';
+import {StyleErrorsContextProvider} from '../contexts/StyleErrorsContext';
+import {WidgetsContextProvider} from '../contexts/WidgetsContext';
 import {reducer} from '../reducers/index';
 import selectLanguageId from '../selectors/selectLanguageId';
-import {StoreContextProvider, useSelector} from '../store/index';
+import selectSegmentsExperienceId from '../selectors/selectSegmentsExperienceId';
 import {DragAndDropContextProvider} from '../utils/drag-and-drop/useDragAndDrop';
-import {CollectionActiveItemContextProvider} from './CollectionActiveItemContext';
-import {ControlsProvider} from './Controls';
+import CommonStylesManager from './CommonStylesManager';
 import {DisplayPagePreviewItemSelector} from './DisplayPagePreviewItemSelector';
 import DragPreview from './DragPreview';
-import {GlobalContextProvider} from './GlobalContext';
 import LayoutViewport from './LayoutViewport';
 import ShortcutManager from './ShortcutManager';
 import Sidebar from './Sidebar';
 import Toolbar from './Toolbar';
 import URLParser from './URLParser';
-import {EditableProcessorContextProvider} from './fragment-content/EditableProcessorContext';
 
 const DEFAULT_SESSION_LENGTH = 60 * 1000;
 
@@ -64,33 +68,50 @@ export default function App({state}) {
 
 	return (
 		<StoreContextProvider initialState={initialState} reducer={reducer}>
+			<BackURL />
+
 			<LanguageDirection />
+
 			<URLParser />
+
 			<ControlsProvider>
 				<CollectionActiveItemContextProvider>
 					<DragAndDropContextProvider>
 						<EditableProcessorContextProvider>
 							<DisplayPagePreviewItemContextProvider>
-								{displayPagePreviewItemSelectorWrapper
-									? createPortal(
+								<WidgetsContextProvider>
+									{displayPagePreviewItemSelectorWrapper ? (
+										<ReactPortal
+											container={
+												displayPagePreviewItemSelectorWrapper
+											}
+										>
 											<DisplayPagePreviewItemSelector
 												dark
-											/>,
-											displayPagePreviewItemSelectorWrapper
-									  )
-									: null}
+											/>
+										</ReactPortal>
+									) : null}
 
-								<DragPreview />
-								<Toolbar />
-								<ShortcutManager />
+									<DragPreview />
 
-								<GlobalContextProvider>
-									<LayoutViewport />
+									<StyleErrorsContextProvider>
+										<Toolbar />
 
-									<StyleBookContextProvider>
-										<Sidebar />
-									</StyleBookContextProvider>
-								</GlobalContextProvider>
+										<ShortcutManager />
+
+										<GlobalContextProvider>
+											{config.featureFlagLps132571 ? (
+												<CommonStylesManager />
+											) : null}
+
+											<LayoutViewport />
+
+											<StyleBookContextProvider>
+												<Sidebar />
+											</StyleBookContextProvider>
+										</GlobalContextProvider>
+									</StyleErrorsContextProvider>
+								</WidgetsContextProvider>
 							</DisplayPagePreviewItemContextProvider>
 						</EditableProcessorContextProvider>
 					</DragAndDropContextProvider>
@@ -102,6 +123,48 @@ export default function App({state}) {
 
 App.propTypes = {
 	state: PropTypes.object.isRequired,
+};
+
+const BackURL = () => {
+	const [backLinkElement, backLinkURL] = useMemo(() => {
+		const backLinkElement = document.querySelector('.lfr-back-link');
+
+		try {
+			return [backLinkElement, new URL(backLinkElement?.href)];
+		}
+		catch (error) {
+			return [];
+		}
+	}, []);
+
+	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
+
+	useEffect(() => {
+		if (backLinkElement && backLinkURL && segmentsExperienceId) {
+			backLinkURL.searchParams.set(
+				'segmentsExperienceId',
+				segmentsExperienceId
+			);
+			backLinkElement.href = backLinkURL.toString();
+
+			const currentURL = new URL(window.location.href);
+
+			if (currentURL.searchParams.has('p_l_back_url')) {
+				currentURL.searchParams.set(
+					'p_l_back_url',
+					backLinkURL.toString()
+				);
+
+				window.history.replaceState(
+					null,
+					document.title,
+					currentURL.toString()
+				);
+			}
+		}
+	}, [backLinkElement, backLinkURL, segmentsExperienceId]);
+
+	return null;
 };
 
 const LanguageDirection = () => {

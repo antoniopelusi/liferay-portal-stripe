@@ -19,8 +19,4 @@ package com.liferay.friendly.url.model.impl;
  */
 public class FriendlyURLEntryMappingImpl
 	extends FriendlyURLEntryMappingBaseImpl {
-
-	public FriendlyURLEntryMappingImpl() {
-	}
-
 }

@@ -21,7 +21,7 @@
 </#if>
 
 <@liferay_aui["field-wrapper"]
-	cssClass="field-wrapper-html form-builder-field"
+	cssClass="field-wrapper-html form-builder-field position-relative"
 	data=data
 	helpMessage=escape(fieldStructure.tip)
 	label=escape(label)
@@ -32,6 +32,7 @@
 
 	<div class="form-group">
 		<@liferay_ui["input-editor"]
+			configKey="rich_text"
 			contents="${fieldValue}"
 			contentsLanguageId="${requestedLocale}"
 			cssClass="${cssClass}"

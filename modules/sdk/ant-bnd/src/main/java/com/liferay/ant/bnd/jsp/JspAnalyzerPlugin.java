@@ -452,7 +452,9 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 	}
 
 	protected Set<String> getTaglibURIs(String originalContent) {
-		String content = _removeComments(originalContent);
+		String noCommentsContent = _removeComments(originalContent);
+
+		String content = noCommentsContent;
 
 		int contentX = -1;
 		int contentY = content.length();
@@ -487,11 +489,46 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 			contentY -= 3;
 		}
 
+		if (noCommentsContent.contains("jsp:root")) {
+			content = noCommentsContent;
+
+			contentX = -1;
+			contentY = content.length();
+
+			while (true) {
+				contentX = content.lastIndexOf("xmlns:", contentY);
+
+				if (contentX == -1) {
+					break;
+				}
+
+				contentY = contentX;
+
+				int importX = content.indexOf("xmlns:", contentY);
+
+				int importY = -1;
+
+				if (importX != -1) {
+					importX = content.indexOf("\"", importX) + 1;
+
+					importY = content.indexOf("\"", importX);
+				}
+
+				if ((importX != -1) && (importY != -1)) {
+					String s = content.substring(importX, importY);
+
+					taglibURis.add(s);
+				}
+
+				contentY -= 1;
+			}
+		}
+
 		return taglibURis;
 	}
 
 	protected boolean matchesURI(
-		Analyzer analyzer, String path, Resource resource, final String uri) {
+		Analyzer analyzer, String path, Resource resource, String uri) {
 
 		try {
 			URIFinder uriFinder = new URIFinder(uri);

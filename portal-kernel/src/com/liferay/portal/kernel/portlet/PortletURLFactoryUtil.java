@@ -32,7 +32,7 @@ public class PortletURLFactoryUtil {
 		HttpServletRequest httpServletRequest, Portlet portlet, Layout layout,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			httpServletRequest, portlet, layout, lifecycle);
 	}
 
@@ -40,7 +40,7 @@ public class PortletURLFactoryUtil {
 		HttpServletRequest httpServletRequest, Portlet portlet, Layout layout,
 		String lifecycle, MimeResponse.Copy copy) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			httpServletRequest, portlet, layout, lifecycle, copy);
 	}
 
@@ -48,7 +48,7 @@ public class PortletURLFactoryUtil {
 		HttpServletRequest httpServletRequest, Portlet portlet,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			httpServletRequest, portlet, lifecycle);
 	}
 
@@ -56,7 +56,7 @@ public class PortletURLFactoryUtil {
 		HttpServletRequest httpServletRequest, String portletId, Layout layout,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			httpServletRequest, portletId, layout, lifecycle);
 	}
 
@@ -64,7 +64,7 @@ public class PortletURLFactoryUtil {
 		HttpServletRequest httpServletRequest, String portletId, long plid,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			httpServletRequest, portletId, plid, lifecycle);
 	}
 
@@ -72,7 +72,7 @@ public class PortletURLFactoryUtil {
 		HttpServletRequest httpServletRequest, String portletId,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			httpServletRequest, portletId, lifecycle);
 	}
 
@@ -80,7 +80,7 @@ public class PortletURLFactoryUtil {
 		PortletRequest portletRequest, Portlet portlet, Layout layout,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			portletRequest, portlet, layout, lifecycle);
 	}
 
@@ -88,7 +88,7 @@ public class PortletURLFactoryUtil {
 		PortletRequest portletRequest, Portlet portlet, long plid,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			portletRequest, portlet, plid, lifecycle);
 	}
 
@@ -96,7 +96,7 @@ public class PortletURLFactoryUtil {
 		PortletRequest portletRequest, Portlet portlet, long plid,
 		String lifecycle, MimeResponse.Copy copy) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			portletRequest, portlet, plid, lifecycle, copy);
 	}
 
@@ -104,7 +104,7 @@ public class PortletURLFactoryUtil {
 		PortletRequest portletRequest, String portletId, Layout layout,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			portletRequest, portletId, layout, lifecycle);
 	}
 
@@ -112,7 +112,7 @@ public class PortletURLFactoryUtil {
 		PortletRequest portletRequest, String portletId, long plid,
 		String lifecycle) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			portletRequest, portletId, plid, lifecycle);
 	}
 
@@ -120,15 +120,14 @@ public class PortletURLFactoryUtil {
 		PortletRequest portletRequest, String portletId, long plid,
 		String lifecycle, MimeResponse.Copy copy) {
 
-		return getPortletURLFactory().create(
+		return _portletURLFactory.create(
 			portletRequest, portletId, plid, lifecycle, copy);
 	}
 
 	public static LiferayPortletURL create(
 		PortletRequest portletRequest, String portletId, String lifecycle) {
 
-		return getPortletURLFactory().create(
-			portletRequest, portletId, lifecycle);
+		return _portletURLFactory.create(portletRequest, portletId, lifecycle);
 	}
 
 	public static PortletURLFactory getPortletURLFactory() {

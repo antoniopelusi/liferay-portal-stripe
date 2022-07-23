@@ -26,8 +26,8 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 ).build();
 %>
 
-<c:if test="<%= CommerceCatalogPermission.contains(permissionChecker, cpAttachmentFileEntriesDisplayContext.getCPDefinition(), ActionKeys.UPDATE) %>">
-	<aui:form action="<%= portletURL.toString() %>" cssClass="pt-4" method="post" name="fm">
+<c:if test="<%= CommerceCatalogPermission.contains(permissionChecker, cpAttachmentFileEntriesDisplayContext.getCPDefinition(), ActionKeys.VIEW) %>">
+	<aui:form action="<%= portletURL %>" cssClass="pt-4" method="post" name="fm">
 		<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 
 		<liferay-ui:error exception="<%= NoSuchSkuContributorCPDefinitionOptionRelException.class %>" message="there-are-no-options-set-as-sku-contributor" />
@@ -40,12 +40,13 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 				contextParams="<%= contextParams %>"
 				creationMenu="<%= cpAttachmentFileEntriesDisplayContext.getCreationMenu(CPAttachmentFileEntryConstants.TYPE_IMAGE) %>"
 				dataProviderKey="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_IMAGES %>"
-				formId="fm"
+				formName="fm"
 				id="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_IMAGES %>"
 				itemsPerPage="<%= 10 %>"
 				namespace="<%= liferayPortletResponse.getNamespace() %>"
 				pageNumber="<%= 1 %>"
 				portletURL="<%= portletURL %>"
+				selectedItemsKey="cpattachmentFileEntryId"
 			/>
 		</commerce-ui:panel>
 
@@ -57,12 +58,13 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 				contextParams="<%= contextParams %>"
 				creationMenu="<%= cpAttachmentFileEntriesDisplayContext.getCreationMenu(CPAttachmentFileEntryConstants.TYPE_OTHER) %>"
 				dataProviderKey="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_ATTACHMENTS %>"
-				formId="fm"
+				formName="fm"
 				id="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_ATTACHMENTS %>"
 				itemsPerPage="<%= 10 %>"
 				namespace="<%= liferayPortletResponse.getNamespace() %>"
 				pageNumber="<%= 1 %>"
 				portletURL="<%= portletURL %>"
+				selectedItemsKey="cpattachmentFileEntryId"
 			/>
 		</commerce-ui:panel>
 	</aui:form>

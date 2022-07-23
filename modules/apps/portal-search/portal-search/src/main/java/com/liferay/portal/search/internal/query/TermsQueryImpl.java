@@ -41,6 +41,7 @@ public class TermsQueryImpl extends BaseQueryImpl implements TermsQuery {
 		_values.add(value);
 	}
 
+	@Override
 	public void addValues(Object... values) {
 		Collections.addAll(_values, values);
 	}
@@ -62,17 +63,8 @@ public class TermsQueryImpl extends BaseQueryImpl implements TermsQuery {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{(");
-		sb.append(_field);
-		sb.append("=");
-		sb.append(_values);
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(", _field, "=", _values, "), ", super.toString(), "}");
 	}
 
 	private static final long serialVersionUID = 1L;

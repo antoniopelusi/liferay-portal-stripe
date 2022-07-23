@@ -33,18 +33,18 @@ public class EntryUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateEntries();
+		_updateEntries();
 	}
 
-	protected void updateEntries() throws Exception {
+	private void _updateEntries() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select companyId, emailAddress, entryId from Contacts_Entry");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				long companyId = rs.getLong("companyId");
-				String emailAddress = rs.getString("emailAddress");
+			while (resultSet.next()) {
+				long companyId = resultSet.getLong("companyId");
+				String emailAddress = resultSet.getString("emailAddress");
 
 				User user = _userLocalService.fetchUserByEmailAddress(
 					companyId, emailAddress);
@@ -53,7 +53,7 @@ public class EntryUpgradeProcess extends UpgradeProcess {
 					continue;
 				}
 
-				long entryId = rs.getLong("entryId");
+				long entryId = resultSet.getLong("entryId");
 
 				runSQL("delete from Contacts_Entry where entryId = " + entryId);
 			}

@@ -17,7 +17,6 @@ package com.liferay.message.boards.uad.anonymizer;
 import com.liferay.message.boards.exception.RequiredMessageException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.user.associated.data.anonymizer.UADAnonymizer;
 
 import java.util.Locale;
@@ -36,8 +35,7 @@ public class MBMessageUADAnonymizer extends BaseMBMessageUADAnonymizer {
 		return HashMapBuilder.<Class<?>, String>put(
 			RequiredMessageException.class,
 			LanguageUtil.get(
-				ResourceBundleUtil.getBundle(
-					locale, BaseMBMessageUADAnonymizer.class),
+				locale,
 				"root-messages-with-multiple-replies-cannot-be-deleted.-" +
 					"delete-the-thread-instead")
 		).build();

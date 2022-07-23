@@ -42,9 +42,11 @@ if (Validator.isNull(redirect)) {
 	).setBackURL(
 		backURL
 	).setTabs1(
-		"define-permissions"
+		roleDisplayContext.getEditRolePermissionsTabs1()
 	).setTabs2(
 		tabs2
+	).setParameter(
+		"accountRoleGroupScope", roleDisplayContext.isAccountRoleGroupScope()
 	).setParameter(
 		"roleId", role.getRoleId()
 	).setParameter(

@@ -14,14 +14,16 @@
 
 package com.liferay.commerce.internal.messaging;
 
-import com.liferay.commerce.constants.CommerceDestinationNames;
 import com.liferay.commerce.constants.CommerceSubscriptionNotificationConstants;
 import com.liferay.commerce.model.CommerceSubscriptionEntry;
 import com.liferay.commerce.notification.util.CommerceNotificationHelper;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceSubscriptionEntryLocalService;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
+import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageListener;
 
@@ -33,7 +35,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	enabled = false, immediate = true,
-	property = "destination.name=" + CommerceDestinationNames.SUBSCRIPTION_STATUS,
+	property = "destination.name=" + DestinationNames.COMMERCE_SUBSCRIPTION_STATUS,
 	service = MessageListener.class
 )
 public class CommerceSubscriptionStatusMessageListener
@@ -41,9 +43,12 @@ public class CommerceSubscriptionStatusMessageListener
 
 	@Override
 	protected void doReceive(Message message) throws Exception {
-		int subscriptionStatus = message.getInteger("subscriptionStatus");
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			String.valueOf(message.getPayload()));
 
-		long commerceSubscriptionEntryId = message.getLong(
+		int subscriptionStatus = jsonObject.getInt("subscriptionStatus");
+
+		long commerceSubscriptionEntryId = jsonObject.getLong(
 			"commerceSubscriptionEntryId");
 
 		CommerceSubscriptionEntry commerceSubscriptionEntry =

@@ -68,14 +68,9 @@ public class DeleteDefinitionPortletConfigurationIcon
 
 		String deleteURL = getURL(portletRequest, portletResponse);
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(portletNamespace);
-		sb.append("confirmDeleteDefinition('");
-		sb.append(deleteURL);
-		sb.append("'); return false;");
-
-		return sb.toString();
+		return StringBundler.concat(
+			portletNamespace, "confirmDeleteDefinition('", deleteURL,
+			"'); return false;");
 	}
 
 	/**
@@ -137,7 +132,7 @@ public class DeleteDefinitionPortletConfigurationIcon
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

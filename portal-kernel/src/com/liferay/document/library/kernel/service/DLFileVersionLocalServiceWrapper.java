@@ -30,6 +30,10 @@ public class DLFileVersionLocalServiceWrapper
 	implements DLFileVersionLocalService,
 			   ServiceWrapper<DLFileVersionLocalService> {
 
+	public DLFileVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLFileVersionLocalServiceWrapper(
 		DLFileVersionLocalService dlFileVersionLocalService) {
 
@@ -120,6 +124,13 @@ public class DLFileVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dlFileVersionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlFileVersionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

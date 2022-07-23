@@ -21,11 +21,7 @@ import com.liferay.asset.test.util.AssetTestUtil;
 import com.liferay.headless.admin.taxonomy.client.dto.v1_0.Keyword;
 import com.liferay.headless.admin.taxonomy.client.pagination.Page;
 import com.liferay.headless.admin.taxonomy.client.pagination.Pagination;
-import com.liferay.headless.admin.taxonomy.client.permission.Permission;
-import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.Arrays;
@@ -68,6 +64,7 @@ public class KeywordResourceTest extends BaseKeywordResourceTestCase {
 		keywordResource.deleteKeyword(keyword2.getId());
 	}
 
+	@Override
 	@Test
 	public void testGetKeywordsRankedPageWithPagination() throws Exception {
 		Keyword keyword1 = testGetKeywordsRankedPage_addKeyword(
@@ -99,40 +96,6 @@ public class KeywordResourceTest extends BaseKeywordResourceTestCase {
 		assertEqualsIgnoringOrder(
 			Arrays.asList(keyword1, keyword2, keyword3),
 			(List<Keyword>)page3.getItems());
-	}
-
-	@Override
-	@Test
-	public void testPutKeywordPermission() throws Exception {
-		Keyword keyword = testPutKeywordPermission_addKeyword();
-
-		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
-
-		assertHttpResponseStatusCode(
-			204,
-			keywordResource.putKeywordPermissionHttpResponse(
-				keyword.getId(),
-				new Permission[] {
-					new Permission() {
-						{
-							setActionIds(new String[] {"MANAGE_TAG"});
-							setRoleName(role.getName());
-						}
-					}
-				}));
-
-		assertHttpResponseStatusCode(
-			404,
-			keywordResource.putKeywordPermissionHttpResponse(
-				0L,
-				new Permission[] {
-					new Permission() {
-						{
-							setActionIds(new String[] {"-"});
-							setRoleName("-");
-						}
-					}
-				}));
 	}
 
 	@Override

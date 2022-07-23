@@ -20,10 +20,10 @@ import com.liferay.dispatch.model.DispatchTriggerTable;
 import com.liferay.dispatch.model.impl.DispatchTriggerImpl;
 import com.liferay.dispatch.model.impl.DispatchTriggerModelImpl;
 import com.liferay.dispatch.service.persistence.DispatchTriggerPersistence;
+import com.liferay.dispatch.service.persistence.DispatchTriggerUtil;
 import com.liferay.dispatch.service.persistence.impl.constants.DispatchPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,7 +35,6 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -43,28 +42,29 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -4693,6 +4693,278 @@ public class DispatchTriggerPersistenceImpl
 		_FINDER_COLUMN_A_DTCM_DISPATCHTASKCLUSTERMODE_7 =
 			"dispatchTrigger.dispatchTaskClusterMode IN (";
 
+	private FinderPath _finderPathFetchByC_ERC;
+	private FinderPath _finderPathCountByC_ERC;
+
+	/**
+	 * Returns the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchTriggerException</code> if it could not be found.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching dispatch trigger
+	 * @throws NoSuchTriggerException if a matching dispatch trigger could not be found
+	 */
+	@Override
+	public DispatchTrigger findByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws NoSuchTriggerException {
+
+		DispatchTrigger dispatchTrigger = fetchByC_ERC(
+			companyId, externalReferenceCode);
+
+		if (dispatchTrigger == null) {
+			StringBundler sb = new StringBundler(6);
+
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+			sb.append("companyId=");
+			sb.append(companyId);
+
+			sb.append(", externalReferenceCode=");
+			sb.append(externalReferenceCode);
+
+			sb.append("}");
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(sb.toString());
+			}
+
+			throw new NoSuchTriggerException(sb.toString());
+		}
+
+		return dispatchTrigger;
+	}
+
+	/**
+	 * Returns the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching dispatch trigger, or <code>null</code> if a matching dispatch trigger could not be found
+	 */
+	@Override
+	public DispatchTrigger fetchByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return fetchByC_ERC(companyId, externalReferenceCode, true);
+	}
+
+	/**
+	 * Returns the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching dispatch trigger, or <code>null</code> if a matching dispatch trigger could not be found
+	 */
+	@Override
+	public DispatchTrigger fetchByC_ERC(
+		long companyId, String externalReferenceCode, boolean useFinderCache) {
+
+		externalReferenceCode = Objects.toString(externalReferenceCode, "");
+
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {companyId, externalReferenceCode};
+		}
+
+		Object result = null;
+
+		if (useFinderCache) {
+			result = finderCache.getResult(_finderPathFetchByC_ERC, finderArgs);
+		}
+
+		if (result instanceof DispatchTrigger) {
+			DispatchTrigger dispatchTrigger = (DispatchTrigger)result;
+
+			if ((companyId != dispatchTrigger.getCompanyId()) ||
+				!Objects.equals(
+					externalReferenceCode,
+					dispatchTrigger.getExternalReferenceCode())) {
+
+				result = null;
+			}
+		}
+
+		if (result == null) {
+			StringBundler sb = new StringBundler(4);
+
+			sb.append(_SQL_SELECT_DISPATCHTRIGGER_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
+
+			boolean bindExternalReferenceCode = false;
+
+			if (externalReferenceCode.isEmpty()) {
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
+			}
+			else {
+				bindExternalReferenceCode = true;
+
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				if (bindExternalReferenceCode) {
+					queryPos.add(externalReferenceCode);
+				}
+
+				List<DispatchTrigger> list = query.list();
+
+				if (list.isEmpty()) {
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByC_ERC, finderArgs, list);
+					}
+				}
+				else {
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							if (!useFinderCache) {
+								finderArgs = new Object[] {
+									companyId, externalReferenceCode
+								};
+							}
+
+							_log.warn(
+								"DispatchTriggerPersistenceImpl.fetchByC_ERC(long, String, boolean) with parameters (" +
+									StringUtil.merge(finderArgs) +
+										") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
+					}
+
+					DispatchTrigger dispatchTrigger = list.get(0);
+
+					result = dispatchTrigger;
+
+					cacheResult(dispatchTrigger);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		if (result instanceof List<?>) {
+			return null;
+		}
+		else {
+			return (DispatchTrigger)result;
+		}
+	}
+
+	/**
+	 * Removes the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the dispatch trigger that was removed
+	 */
+	@Override
+	public DispatchTrigger removeByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws NoSuchTriggerException {
+
+		DispatchTrigger dispatchTrigger = findByC_ERC(
+			companyId, externalReferenceCode);
+
+		return remove(dispatchTrigger);
+	}
+
+	/**
+	 * Returns the number of dispatch triggers where companyId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching dispatch triggers
+	 */
+	@Override
+	public int countByC_ERC(long companyId, String externalReferenceCode) {
+		externalReferenceCode = Objects.toString(externalReferenceCode, "");
+
+		FinderPath finderPath = _finderPathCountByC_ERC;
+
+		Object[] finderArgs = new Object[] {companyId, externalReferenceCode};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append(_SQL_COUNT_DISPATCHTRIGGER_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
+
+			boolean bindExternalReferenceCode = false;
+
+			if (externalReferenceCode.isEmpty()) {
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
+			}
+			else {
+				bindExternalReferenceCode = true;
+
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				if (bindExternalReferenceCode) {
+					queryPos.add(externalReferenceCode);
+				}
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_C_ERC_COMPANYID_2 =
+		"dispatchTrigger.companyId = ? AND ";
+
+	private static final String _FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2 =
+		"dispatchTrigger.externalReferenceCode = ?";
+
+	private static final String _FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3 =
+		"(dispatchTrigger.externalReferenceCode IS NULL OR dispatchTrigger.externalReferenceCode = '')";
+
 	public DispatchTriggerPersistenceImpl() {
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
@@ -4726,7 +4998,17 @@ public class DispatchTriggerPersistenceImpl
 				dispatchTrigger.getCompanyId(), dispatchTrigger.getName()
 			},
 			dispatchTrigger);
+
+		finderCache.putResult(
+			_finderPathFetchByC_ERC,
+			new Object[] {
+				dispatchTrigger.getCompanyId(),
+				dispatchTrigger.getExternalReferenceCode()
+			},
+			dispatchTrigger);
 	}
+
+	private int _valueObjectFinderCacheListThreshold;
 
 	/**
 	 * Caches the dispatch triggers in the entity cache if it is enabled.
@@ -4735,6 +5017,14 @@ public class DispatchTriggerPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<DispatchTrigger> dispatchTriggers) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (dispatchTriggers.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (DispatchTrigger dispatchTrigger : dispatchTriggers) {
 			if (entityCache.getResult(
 					DispatchTriggerImpl.class,
@@ -4799,6 +5089,15 @@ public class DispatchTriggerPersistenceImpl
 		finderCache.putResult(_finderPathCountByC_N, args, Long.valueOf(1));
 		finderCache.putResult(
 			_finderPathFetchByC_N, args, dispatchTriggerModelImpl);
+
+		args = new Object[] {
+			dispatchTriggerModelImpl.getCompanyId(),
+			dispatchTriggerModelImpl.getExternalReferenceCode()
+		};
+
+		finderCache.putResult(_finderPathCountByC_ERC, args, Long.valueOf(1));
+		finderCache.putResult(
+			_finderPathFetchByC_ERC, args, dispatchTriggerModelImpl);
 	}
 
 	/**
@@ -4932,25 +5231,25 @@ public class DispatchTriggerPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (dispatchTrigger.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				dispatchTrigger.setCreateDate(now);
+				dispatchTrigger.setCreateDate(date);
 			}
 			else {
 				dispatchTrigger.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!dispatchTriggerModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				dispatchTrigger.setModifiedDate(now);
+				dispatchTrigger.setModifiedDate(date);
 			}
 			else {
 				dispatchTrigger.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -5248,13 +5547,9 @@ public class DispatchTriggerPersistenceImpl
 	 * Initializes the dispatch trigger persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new DispatchTriggerModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -5357,13 +5652,41 @@ public class DispatchTriggerPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByA_DTCM",
 			new String[] {Boolean.class.getName(), Integer.class.getName()},
 			new String[] {"active_", "dispatchTaskClusterMode"}, false);
+
+		_finderPathFetchByC_ERC = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByC_ERC",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"companyId", "externalReferenceCode"}, true);
+
+		_finderPathCountByC_ERC = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_ERC",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"companyId", "externalReferenceCode"}, false);
+
+		_setDispatchTriggerUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(DispatchTriggerImpl.class.getName());
+		_setDispatchTriggerUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(DispatchTriggerImpl.class.getName());
+	}
+
+	private void _setDispatchTriggerUtilPersistence(
+		DispatchTriggerPersistence dispatchTriggerPersistence) {
+
+		try {
+			Field field = DispatchTriggerUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, dispatchTriggerPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -5391,8 +5714,6 @@ public class DispatchTriggerPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -5454,114 +5775,8 @@ public class DispatchTriggerPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class DispatchTriggerModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			DispatchTriggerModelImpl dispatchTriggerModelImpl =
-				(DispatchTriggerModelImpl)baseModel;
-
-			long columnBitmask = dispatchTriggerModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					dispatchTriggerModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						dispatchTriggerModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					dispatchTriggerModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return DispatchTriggerImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return DispatchTriggerTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			DispatchTriggerModelImpl dispatchTriggerModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						dispatchTriggerModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = dispatchTriggerModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= DispatchTriggerModelImpl.getColumnBitmask(
-				"modifiedDate");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private DispatchTriggerModelArgumentsResolver
+		_dispatchTriggerModelArgumentsResolver;
 
 }

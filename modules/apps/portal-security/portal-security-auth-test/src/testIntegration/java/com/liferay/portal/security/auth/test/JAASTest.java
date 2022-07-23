@@ -16,12 +16,10 @@ package com.liferay.portal.security.auth.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.events.Action;
+import com.liferay.portal.kernel.events.LifecycleAction;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.security.jaas.PortalPrincipal;
-import com.liferay.portal.kernel.security.jaas.PortalRole;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
@@ -31,6 +29,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.security.jaas.JAASHelper;
@@ -39,13 +38,8 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.PropsValues;
 
-import java.security.Principal;
-
 import java.util.Date;
-import java.util.Iterator;
-import java.util.Set;
 
-import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -70,6 +64,11 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -164,16 +163,6 @@ public class JAASTest {
 	}
 
 	@Test
-	public void testLoginEmailAddressWithEmailAddress() throws Exception {
-		_testLogin(_user.getEmailAddress(), "emailAddress");
-	}
-
-	@Test
-	public void testLoginEmailAddressWithLogin() throws Exception {
-		_testLogin(_user.getEmailAddress(), "login");
-	}
-
-	@Test
 	public void testLoginEmailAddressWithScreenName() throws Exception {
 		_testLoginFail(_user.getEmailAddress(), "screenName");
 	}
@@ -191,11 +180,6 @@ public class JAASTest {
 	@Test
 	public void testLoginScreenNameWithLogin() throws Exception {
 		_testLoginFail(_user.getScreenName(), "login");
-	}
-
-	@Test
-	public void testLoginScreenNameWithScreenName() throws Exception {
-		_testLogin(_user.getScreenName(), "screenName");
 	}
 
 	@Test
@@ -219,11 +203,6 @@ public class JAASTest {
 	}
 
 	@Test
-	public void testLoginUserIdWithUserId() throws Exception {
-		_testLogin(String.valueOf(_user.getUserId()), "userId");
-	}
-
-	@Test
 	public void testProcessLoginEvents() throws Exception {
 		Date lastLoginDate = _user.getLastLoginDate();
 
@@ -241,15 +220,24 @@ public class JAASTest {
 		mockHttpServletRequest.setAttribute(
 			AbsoluteRedirectsResponse.class.getName(), new Object());
 
+		Bundle bundle = FrameworkUtil.getBundle(getClass());
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
 		JAASAction preJAASAction = new JAASAction();
 		JAASAction postJAASAction = new JAASAction();
 
-		try {
-			EventsProcessorUtil.registerEvent(
-				PropsKeys.LOGIN_EVENTS_PRE, preJAASAction);
-			EventsProcessorUtil.registerEvent(
-				PropsKeys.LOGIN_EVENTS_POST, postJAASAction);
+		ServiceRegistration<?> serviceRegistration1 =
+			bundleContext.registerService(
+				LifecycleAction.class, preJAASAction,
+				MapUtil.singletonDictionary("key", PropsKeys.LOGIN_EVENTS_PRE));
+		ServiceRegistration<?> serviceRegistration2 =
+			bundleContext.registerService(
+				LifecycleAction.class, postJAASAction,
+				MapUtil.singletonDictionary(
+					"key", PropsKeys.LOGIN_EVENTS_POST));
 
+		try {
 			RequestDispatcher requestDispatcher =
 				servletContext.getRequestDispatcher("/c");
 
@@ -264,10 +252,8 @@ public class JAASTest {
 			Assert.assertFalse(lastLoginDate.after(_user.getLastLoginDate()));
 		}
 		finally {
-			EventsProcessorUtil.unregisterEvent(
-				PropsKeys.LOGIN_EVENTS_PRE, postJAASAction);
-			EventsProcessorUtil.unregisterEvent(
-				PropsKeys.LOGIN_EVENTS_POST, postJAASAction);
+			serviceRegistration1.unregister();
+			serviceRegistration2.unregister();
 		}
 	}
 
@@ -276,17 +262,6 @@ public class JAASTest {
 
 		return new LoginContext(
 			"PortalRealm", new JAASCallbackHandler(name, password));
-	}
-
-	private void _testLogin(String name, String authType) throws Exception {
-		ReflectionTestUtil.setFieldValue(
-			PropsValues.class, "PORTAL_JAAS_AUTH_TYPE", authType);
-
-		LoginContext loginContext = _getLoginContext(name, _user.getPassword());
-
-		loginContext.login();
-
-		_validateSubject(loginContext.getSubject(), name);
 	}
 
 	private void _testLoginFail(String name, String authType) throws Exception {
@@ -301,33 +276,6 @@ public class JAASTest {
 			Assert.fail();
 		}
 		catch (Exception exception) {
-		}
-	}
-
-	private void _validateSubject(Subject subject, String userIdString) {
-		Assert.assertNotNull(subject);
-
-		Set<Principal> userPrincipals = subject.getPrincipals();
-
-		Assert.assertNotNull(userPrincipals);
-
-		Iterator<Principal> iterator = userPrincipals.iterator();
-
-		Assert.assertTrue(iterator.hasNext());
-
-		while (iterator.hasNext()) {
-			Principal principal = iterator.next();
-
-			if (principal instanceof PortalRole) {
-				PortalRole portalRole = (PortalRole)principal;
-
-				Assert.assertEquals("users", portalRole.getName());
-			}
-			else {
-				PortalPrincipal portalPrincipal = (PortalPrincipal)principal;
-
-				Assert.assertEquals(userIdString, portalPrincipal.getName());
-			}
 		}
 	}
 

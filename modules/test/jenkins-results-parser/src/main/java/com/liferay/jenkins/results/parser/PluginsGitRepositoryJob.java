@@ -19,25 +19,14 @@ import java.io.IOException;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
+
+import org.json.JSONObject;
 
 /**
  * @author Peter Yoo
  */
 public abstract class PluginsGitRepositoryJob
 	extends GitRepositoryJob implements PortalTestClassJob {
-
-	public String getBranchName() {
-		return _branchName;
-	}
-
-	@Override
-	public Set<String> getDistTypes() {
-		String testBatchDistAppServers = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.dist.app.servers");
-
-		return getSetFromString(testBatchDistAppServers);
-	}
 
 	@Override
 	public GitWorkingDirectory getGitWorkingDirectory() {
@@ -65,12 +54,37 @@ public abstract class PluginsGitRepositoryJob
 	}
 
 	protected PluginsGitRepositoryJob(
-		String jobName, BuildProfile buildProfile, String branchName) {
+		BuildProfile buildProfile, String jobName, String upstreamBranchName) {
 
-		super(jobName, buildProfile);
+		super(buildProfile, jobName, upstreamBranchName);
 
-		_branchName = branchName;
+		_initialize();
+	}
 
+	protected PluginsGitRepositoryJob(JSONObject jsonObject) {
+		super(jsonObject);
+
+		_initialize();
+	}
+
+	protected String getBuildPropertyValue(String buildPropertyName) {
+		if (buildProperties == null) {
+			try {
+				buildProperties = JenkinsResultsParserUtil.getBuildProperties();
+			}
+			catch (IOException ioException) {
+				throw new RuntimeException(
+					"Unable to get build properties", ioException);
+			}
+		}
+
+		return buildProperties.getProperty(buildPropertyName);
+	}
+
+	protected Properties buildProperties;
+	protected PortalGitWorkingDirectory portalGitWorkingDirectory;
+
+	private void _initialize() {
 		getGitWorkingDirectory();
 
 		setGitRepositoryDir(gitWorkingDirectory.getWorkingDirectory());
@@ -94,31 +108,5 @@ public abstract class PluginsGitRepositoryJob
 				GitWorkingDirectoryFactory.newGitWorkingDirectory(
 					portalBranchName, portalGitRepositoryDir.getPath());
 	}
-
-	protected String getBuildPropertyValue(String buildPropertyName) {
-		if (buildProperties == null) {
-			try {
-				buildProperties = JenkinsResultsParserUtil.getBuildProperties();
-			}
-			catch (IOException ioException) {
-				throw new RuntimeException(
-					"Unable to get build properties", ioException);
-			}
-		}
-
-		return buildProperties.getProperty(buildPropertyName);
-	}
-
-	@Override
-	protected Set<String> getRawBatchNames() {
-		return getSetFromString(
-			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names", getJobName()));
-	}
-
-	protected Properties buildProperties;
-	protected PortalGitWorkingDirectory portalGitWorkingDirectory;
-
-	private final String _branchName;
 
 }

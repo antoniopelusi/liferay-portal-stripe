@@ -68,6 +68,11 @@ public class ClassNameWrapper
 		}
 	}
 
+	@Override
+	public ClassName cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this class name.
 	 *

@@ -16,15 +16,22 @@ package com.liferay.account.service.impl;
 
 import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.exception.DuplicateAccountGroupRelException;
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.model.AccountGroup;
 import com.liferay.account.model.AccountGroupRel;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountGroupLocalService;
 import com.liferay.account.service.base.AccountGroupRelLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.auth.GuestOrUserUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.util.OrderByComparator;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -54,15 +61,27 @@ public class AccountGroupRelLocalServiceImpl
 			throw new DuplicateAccountGroupRelException();
 		}
 
-		_accountGroupLocalService.getAccountGroup(accountGroupId);
+		if (Objects.equals(AccountEntry.class.getName(), className) &&
+			(classPK != AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT) &&
+			(classPK != AccountConstants.ACCOUNT_ENTRY_ID_GUEST)) {
 
-		if (classPK != AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT) {
 			_accountEntryLocalService.getAccountEntry(classPK);
 		}
 
 		accountGroupRel = createAccountGroupRel(
 			counterLocalService.increment());
 
+		AccountGroup accountGroup = _accountGroupLocalService.getAccountGroup(
+			accountGroupId);
+
+		User user = GuestOrUserUtil.getGuestOrUser(accountGroup.getCompanyId());
+
+		accountGroupRel.setCompanyId(user.getCompanyId());
+		accountGroupRel.setUserId(user.getUserId());
+		accountGroupRel.setUserName(user.getFullName());
+
+		accountGroupRel.setCreateDate(new Date());
+		accountGroupRel.setModifiedDate(new Date());
 		accountGroupRel.setAccountGroupId(accountGroupId);
 		accountGroupRel.setClassNameId(classNameId);
 		accountGroupRel.setClassPK(classPK);
@@ -93,6 +112,19 @@ public class AccountGroupRelLocalServiceImpl
 	}
 
 	@Override
+	public void deleteAccountGroupRels(String className, long[] classPKs) {
+		for (long classPK : classPKs) {
+			accountGroupRelPersistence.removeByC_C(
+				_classNameLocalService.getClassNameId(className), classPK);
+		}
+	}
+
+	@Override
+	public void deleteAccountGroupRelsByAccountGroupId(long accountGroupId) {
+		accountGroupRelPersistence.removeByAccountGroupId(accountGroupId);
+	}
+
+	@Override
 	public AccountGroupRel fetchAccountGroupRel(
 		long accountGroupId, String className, long classPK) {
 
@@ -110,10 +142,35 @@ public class AccountGroupRelLocalServiceImpl
 	}
 
 	@Override
+	public List<AccountGroupRel> getAccountGroupRels(
+		String className, long classPK, int start, int end,
+		OrderByComparator<AccountGroupRel> orderByComparator) {
+
+		return accountGroupRelPersistence.findByC_C(
+			_classNameLocalService.getClassNameId(className), classPK, start,
+			end, orderByComparator);
+	}
+
+	@Override
 	public List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(
 		long accountGroupId) {
 
 		return accountGroupRelPersistence.findByAccountGroupId(accountGroupId);
+	}
+
+	@Override
+	public List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(
+		long accountGroupId, int start, int end,
+		OrderByComparator<AccountGroupRel> orderByComparator) {
+
+		return accountGroupRelPersistence.findByAccountGroupId(
+			accountGroupId, start, end, orderByComparator);
+	}
+
+	@Override
+	public int getAccountGroupRelsCount(String className, long classPK) {
+		return accountGroupRelPersistence.countByC_C(
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override

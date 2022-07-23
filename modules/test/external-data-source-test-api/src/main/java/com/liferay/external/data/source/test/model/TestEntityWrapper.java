@@ -62,6 +62,11 @@ public class TestEntityWrapper
 		}
 	}
 
+	@Override
+	public TestEntity cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the data of this test entity.
 	 *

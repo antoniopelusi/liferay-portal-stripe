@@ -135,7 +135,7 @@ describe('RuleList', () => {
 			};
 			const rightOperand = {
 				type: 'string',
-				value: 'foo',
+				value: 'Foo',
 			};
 
 			const {container} = render(

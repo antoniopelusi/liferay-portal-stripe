@@ -27,6 +27,10 @@ public class CommerceDiscountUsageEntryLocalServiceWrapper
 	implements CommerceDiscountUsageEntryLocalService,
 			   ServiceWrapper<CommerceDiscountUsageEntryLocalService> {
 
+	public CommerceDiscountUsageEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceDiscountUsageEntryLocalServiceWrapper(
 		CommerceDiscountUsageEntryLocalService
 			commerceDiscountUsageEntryLocalService) {
@@ -164,6 +168,13 @@ public class CommerceDiscountUsageEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceDiscountUsageEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceDiscountUsageEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

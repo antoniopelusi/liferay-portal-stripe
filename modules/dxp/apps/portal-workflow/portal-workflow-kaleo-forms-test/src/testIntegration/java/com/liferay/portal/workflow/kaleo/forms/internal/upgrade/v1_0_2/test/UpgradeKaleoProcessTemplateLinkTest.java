@@ -32,10 +32,9 @@ import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -68,20 +67,20 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 		_group = GroupTestUtil.addGroup();
 		_timestamp = new Timestamp(System.currentTimeMillis());
 
-		setUpClassNameIds();
-		setUpPrimaryKeys();
-		setUpUpgradeKaleoProcessTemplateLink();
+		_setUpClassNameIds();
+		_setUpPrimaryKeys();
+		_setUpUpgradeKaleoProcessTemplateLink();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		deleteKaleoProcess(_kaleoProcessId);
-		deleteKaleoProcessLink(_kaleoProcessLinkId);
+		_deleteKaleoProcess(_kaleoProcessId);
+		_deleteKaleoProcessLink(_kaleoProcessLinkId);
 	}
 
 	@Test
 	public void testCreateKaleoProcess() throws Exception {
-		addKaleoProcess(_kaleoProcessId);
+		_addKaleoProcess(_kaleoProcessId);
 
 		_kaleoProcessTemplateLinkUpgradeProcess.upgrade();
 
@@ -96,7 +95,7 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 
 	@Test
 	public void testCreateKaleoProcessLink() throws Exception {
-		addKaleoProcessLink(_kaleoProcessLinkId);
+		_addKaleoProcessLink(_kaleoProcessLinkId);
 
 		_kaleoProcessTemplateLinkUpgradeProcess.upgrade();
 
@@ -109,61 +108,55 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 		_ddmTemplateLinks.add(ddmTemplateLink);
 	}
 
-	protected void addKaleoProcess(long kaleoProcessId) throws Exception {
-		StringBundler sb = new StringBundler(5);
+	private void _addKaleoProcess(long kaleoProcessId) throws Exception {
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into KaleoProcess (uuid_, kaleoProcessId, ",
+					"groupId, companyId, userId, userName, createDate, ",
+					"modifiedDate, DDLRecordSetId, DDMTemplateId, ",
+					"workflowDefinitionName, workflowDefinitionVersion) ",
+					"values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into KaleoProcess (uuid_, kaleoProcessId, groupId, ");
-		sb.append("companyId, userId, userName, createDate, modifiedDate, ");
-		sb.append("DDLRecordSetId, DDMTemplateId, workflowDefinitionName, ");
-		sb.append("workflowDefinitionVersion) values (?, ?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?)");
+			preparedStatement.setString(1, PortalUUIDUtil.generate());
+			preparedStatement.setLong(2, kaleoProcessId);
+			preparedStatement.setLong(3, _group.getGroupId());
+			preparedStatement.setLong(4, _group.getCompanyId());
+			preparedStatement.setLong(5, TestPropsValues.getUserId());
+			preparedStatement.setString(6, null);
+			preparedStatement.setTimestamp(7, _timestamp);
+			preparedStatement.setTimestamp(8, _timestamp);
+			preparedStatement.setLong(9, RandomTestUtil.randomLong());
+			preparedStatement.setLong(10, RandomTestUtil.randomLong());
+			preparedStatement.setString(11, StringUtil.randomString());
+			preparedStatement.setInt(12, RandomTestUtil.randomInt());
 
-		String sql = sb.toString();
-
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-
-			ps.setString(1, PortalUUIDUtil.generate());
-			ps.setLong(2, kaleoProcessId);
-			ps.setLong(3, _group.getGroupId());
-			ps.setLong(4, _group.getCompanyId());
-			ps.setLong(5, TestPropsValues.getUserId());
-			ps.setString(6, null);
-			ps.setTimestamp(7, _timestamp);
-			ps.setTimestamp(8, _timestamp);
-			ps.setLong(9, RandomTestUtil.randomLong());
-			ps.setLong(10, RandomTestUtil.randomLong());
-			ps.setString(11, StringUtil.randomString());
-			ps.setInt(12, RandomTestUtil.randomInt());
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void addKaleoProcessLink(long kaleoProcessLinkId)
+	private void _addKaleoProcessLink(long kaleoProcessLinkId)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(3);
+		String sql = StringBundler.concat(
+			"insert into KaleoProcessLink (kaleoProcessLinkId, ",
+			"kaleoProcessId, workflowTaskName, DDMTemplateId) values (?, ?, ",
+			"?, ?)");
 
-		sb.append("insert into KaleoProcessLink (kaleoProcessLinkId, ");
-		sb.append("kaleoProcessId, workflowTaskName, DDMTemplateId) values ");
-		sb.append("(?, ?, ?, ?)");
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				sql)) {
 
-		String sql = sb.toString();
+			preparedStatement.setLong(1, kaleoProcessLinkId);
+			preparedStatement.setLong(2, _kaleoProcessId);
+			preparedStatement.setString(3, StringUtil.randomString());
+			preparedStatement.setLong(4, RandomTestUtil.randomLong());
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-
-			ps.setLong(1, kaleoProcessLinkId);
-			ps.setLong(2, _kaleoProcessId);
-			ps.setString(3, StringUtil.randomString());
-			ps.setLong(4, RandomTestUtil.randomLong());
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void deleteKaleoProcess(long kaleoProcessId) throws Exception {
+	private void _deleteKaleoProcess(long kaleoProcessId) throws Exception {
 		DB db = DBManagerUtil.getDB();
 
 		db.runSQL(
@@ -171,7 +164,7 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 				kaleoProcessId);
 	}
 
-	protected void deleteKaleoProcessLink(long kaleoProcessLinkId)
+	private void _deleteKaleoProcessLink(long kaleoProcessLinkId)
 		throws Exception {
 
 		DB db = DBManagerUtil.getDB();
@@ -181,27 +174,20 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 				kaleoProcessLinkId);
 	}
 
-	protected void setUpClassNameIds() {
+	private void _setUpClassNameIds() {
 		_kaleoProcessLinkClassNameId = PortalUtil.getClassNameId(
 			"com.liferay.portal.workflow.kaleo.forms.model.KaleoProcessLink");
 		_kaleoProcessClassNameId = PortalUtil.getClassNameId(
 			"com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess");
 	}
 
-	protected void setUpPrimaryKeys() {
+	private void _setUpPrimaryKeys() {
 		_kaleoProcessId = RandomTestUtil.randomLong();
 		_kaleoProcessLinkId = RandomTestUtil.randomLong();
 	}
 
-	protected void setUpUpgradeKaleoProcessTemplateLink() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		UpgradeStepRegistrator upgradeStepRegistror = registry.getService(
-			registry.getServiceReference(
-				"com.liferay.portal.workflow.kaleo.forms.internal.upgrade." +
-					"KaleoFormsServiceUpgrade"));
-
-		upgradeStepRegistror.register(
+	private void _setUpUpgradeKaleoProcessTemplateLink() {
+		_upgradeStepRegistrator.register(
 			new UpgradeStepRegistrator.Registry() {
 
 				@Override
@@ -223,6 +209,11 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 					}
 				}
 
+				@Override
+				public void registerInitialUpgradeSteps(
+					UpgradeStep... upgradeSteps) {
+				}
+
 			});
 	}
 
@@ -238,5 +229,10 @@ public class UpgradeKaleoProcessTemplateLinkTest {
 	private long _kaleoProcessLinkId;
 	private UpgradeProcess _kaleoProcessTemplateLinkUpgradeProcess;
 	private Timestamp _timestamp;
+
+	@Inject(
+		filter = "component.name=com.liferay.portal.workflow.kaleo.forms.internal.upgrade.KaleoFormsServiceUpgrade"
+	)
+	private UpgradeStepRegistrator _upgradeStepRegistrator;
 
 }

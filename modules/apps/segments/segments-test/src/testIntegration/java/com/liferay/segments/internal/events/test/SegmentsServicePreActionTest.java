@@ -16,6 +16,8 @@ package com.liferay.segments.internal.events.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.layout.test.util.LayoutTestUtil;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.portal.kernel.events.LifecycleAction;
 import com.liferay.portal.kernel.events.LifecycleEvent;
 import com.liferay.portal.kernel.model.Company;
@@ -34,14 +36,10 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.registry.Filter;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceTracker;
 import com.liferay.segments.constants.SegmentsWebKeys;
 
 import java.util.Collections;
@@ -49,14 +47,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -71,24 +70,6 @@ public class SegmentsServicePreActionTest {
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
 		new LiferayIntegrationTestRule();
-
-	@BeforeClass
-	public static void setUpClass() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		Filter filter = registry.getFilter(
-			"(&(objectClass=" + LifecycleAction.class.getName() +
-				")(key=servlet.service.events.pre))");
-
-		_serviceTracker = registry.trackServices(filter);
-
-		_serviceTracker.open();
-	}
-
-	@AfterClass
-	public static void tearDownClass() {
-		_serviceTracker.close();
-	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -109,18 +90,15 @@ public class SegmentsServicePreActionTest {
 		Map<Locale, String> nameMap = Collections.singletonMap(
 			LocaleUtil.getDefault(), RandomTestUtil.randomString());
 
-		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		typeSettingsUnicodeProperties.put("published", "true");
-
 		Layout layout = _layoutLocalService.addLayout(
 			TestPropsValues.getUserId(), _group.getGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, 0, 0, nameMap, nameMap,
 			Collections.emptyMap(), Collections.emptyMap(),
 			Collections.emptyMap(), LayoutConstants.TYPE_COLLECTION,
-			typeSettingsUnicodeProperties.toString(), false, false,
-			Collections.emptyMap(), 0, serviceContext);
+			UnicodePropertiesBuilder.put(
+				"published", "true"
+			).buildString(),
+			false, false, Collections.emptyMap(), 0, serviceContext);
 
 		mockHttpServletRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, _getThemeDisplay(layout));
@@ -144,7 +122,8 @@ public class SegmentsServicePreActionTest {
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
-		Layout layout = LayoutTestUtil.addLayout(_group.getGroupId());
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId());
 
 		mockHttpServletRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, _getThemeDisplay(layout));
@@ -180,17 +159,23 @@ public class SegmentsServicePreActionTest {
 	}
 
 	private LifecycleAction _getLifecycleAction() {
-		Object[] services = _serviceTracker.getServices();
+		Bundle bundle = FrameworkUtil.getBundle(
+			SegmentsServicePreActionTest.class);
 
-		for (Object service : services) {
-			Class<?> clazz = service.getClass();
+		ServiceTrackerList<LifecycleAction> lifecycleActions =
+			ServiceTrackerListFactory.open(
+				bundle.getBundleContext(), LifecycleAction.class,
+				"(key=servlet.service.events.pre)");
+
+		for (LifecycleAction lifecycleAction : lifecycleActions) {
+			Class<?> clazz = lifecycleAction.getClass();
 
 			if (Objects.equals(
 					clazz.getName(),
 					"com.liferay.segments.internal.events." +
 						"SegmentsServicePreAction")) {
 
-				return (LifecycleAction)service;
+				return lifecycleAction;
 			}
 		}
 
@@ -211,9 +196,6 @@ public class SegmentsServicePreActionTest {
 
 		return themeDisplay;
 	}
-
-	private static ServiceTracker<LifecycleAction, LifecycleAction>
-		_serviceTracker;
 
 	@Inject
 	private CompanyLocalService _companyLocalService;

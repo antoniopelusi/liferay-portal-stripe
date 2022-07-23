@@ -56,15 +56,20 @@ export default function LayoutPrototypeDropdownPropsTransformer({
 		actions: actions?.map((item) => {
 			return {
 				...item,
-				onClick(event) {
-					const action = item.data?.action;
+				items: item.items?.map((child) => {
+					return {
+						...child,
+						onClick(event) {
+							const action = child.data?.action;
 
-					if (action) {
-						event.preventDefault();
+							if (action) {
+								event.preventDefault();
 
-						ACTIONS[action](item.data);
-					}
-				},
+								ACTIONS[action](child.data);
+							}
+						},
+					};
+				}),
 			};
 		}),
 	};

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -54,6 +55,11 @@ public class DisplayPageTemplate implements Serializable {
 
 	public static DisplayPageTemplate toDTO(String json) {
 		return ObjectMapperUtil.readValue(DisplayPageTemplate.class, json);
+	}
+
+	public static DisplayPageTemplate unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(
+			DisplayPageTemplate.class, json);
 	}
 
 	@Schema(description = "The display page template's content subtype.")
@@ -114,6 +120,38 @@ public class DisplayPageTemplate implements Serializable {
 	@GraphQLField(description = "The type of content.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected ContentType contentType;
+
+	@Schema(
+		description = "Specifies if the page template should be the default for the given content type/subtype."
+	)
+	public Boolean getDefaultTemplate() {
+		return defaultTemplate;
+	}
+
+	public void setDefaultTemplate(Boolean defaultTemplate) {
+		this.defaultTemplate = defaultTemplate;
+	}
+
+	@JsonIgnore
+	public void setDefaultTemplate(
+		UnsafeSupplier<Boolean, Exception> defaultTemplateUnsafeSupplier) {
+
+		try {
+			defaultTemplate = defaultTemplateUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(
+		description = "Specifies if the page template should be the default for the given content type/subtype."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean defaultTemplate;
 
 	@Schema(description = "The display page template's key.")
 	public String getKey() {
@@ -214,6 +252,16 @@ public class DisplayPageTemplate implements Serializable {
 			sb.append(String.valueOf(contentType));
 		}
 
+		if (defaultTemplate != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"defaultTemplate\": ");
+
+			sb.append(defaultTemplate);
+		}
+
 		if (key != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -255,9 +303,9 @@ public class DisplayPageTemplate implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -283,7 +331,7 @@ public class DisplayPageTemplate implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -315,7 +363,7 @@ public class DisplayPageTemplate implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -331,5 +379,10 @@ public class DisplayPageTemplate implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

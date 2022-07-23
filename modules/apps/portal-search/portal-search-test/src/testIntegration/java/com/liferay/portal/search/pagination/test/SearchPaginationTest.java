@@ -283,24 +283,12 @@ public class SearchPaginationTest {
 			returnedUsers.add(UserLocalServiceUtil.getUser(userId));
 		}
 
-		StringBundler sb = new StringBundler(13);
-
-		sb.append("{end=");
-		sb.append(end);
-		sb.append(", expectedRecalculatedStart=");
-		sb.append(expectedRecalculatedStart);
-		sb.append(", expectedTotal=");
-		sb.append(expectedTotal);
-		sb.append(", returnedUsers=");
-		sb.append(returnedUsers);
-		sb.append(", start=");
-		sb.append(start);
-		sb.append(", _users=");
-		sb.append(_users);
-		sb.append("}");
-
 		Assert.assertEquals(
-			sb.toString(),
+			StringBundler.concat(
+				"{end=", end, ", expectedRecalculatedStart=",
+				expectedRecalculatedStart, ", expectedTotal=", expectedTotal,
+				", returnedUsers=", returnedUsers, ", start=", start,
+				", _users=", _users, "}"),
 			_users.subList(
 				expectedRecalculatedStart,
 				expectedRecalculatedStart + docs.length),

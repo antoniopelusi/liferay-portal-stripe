@@ -21,14 +21,13 @@ TrashManagementToolbarDisplayContext trashManagementToolbarDisplayContext = new 
 %>
 
 <clay:management-toolbar
-	additionalProps="<%= trashManagementToolbarDisplayContext.getAdditionalProps() %>"
 	managementToolbarDisplayContext="<%= trashManagementToolbarDisplayContext %>"
 	propsTransformer="js/TrashManagementToolbarPropsTransformer"
 />
 
 <liferay-util:include page="/restore_path.jsp" servletContext="<%= application %>" />
 
-<div class="closed sidenav-container sidenav-right" id="<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>">
+<div class="closed sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/trash/info_panel" var="sidebarPanelURL" />
 
 	<liferay-frontend:sidebar-panel
@@ -126,7 +125,7 @@ TrashManagementToolbarDisplayContext trashManagementToolbarDisplayContext = new 
 								renderResponse
 							).setMVCPath(
 								"/view_content.jsp"
-							).build();
+							).buildPortletURL();
 
 							if (trashEntry.getRootEntry() != null) {
 								viewContentURL.setParameter("classNameId", String.valueOf(trashEntry.getClassNameId()));

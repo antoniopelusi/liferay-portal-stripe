@@ -15,12 +15,17 @@
 package com.liferay.jenkins.results.parser;
 
 import java.util.List;
-import java.util.Properties;
 
 /**
  * @author Michael Hashimoto
  */
 public interface WorkspaceGitRepository extends LocalGitRepository {
+
+	public void addPropertyOption(String propertyOption);
+
+	public String getBaseBranchSHA();
+
+	public String getBranchName();
 
 	public String getFileContent(String filePath);
 
@@ -30,18 +35,26 @@ public interface WorkspaceGitRepository extends LocalGitRepository {
 
 	public List<LocalGitCommit> getHistoricalLocalGitCommits();
 
-	public String getType();
+	public String getSenderBranchName();
 
-	public Properties getWorkspaceJobProperties(String propertyType, Job job);
+	public String getSenderBranchSHA();
+
+	public String getSenderBranchUsername();
 
 	public List<List<LocalGitCommit>> partitionLocalGitCommits(
 		List<LocalGitCommit> localGitCommits, int count);
 
-	public void setBranchSHA(String branchSHA);
+	public void setBaseBranchSHA(String branchSHA);
+
+	public void setGitHubURL(String gitHubURL);
+
+	public void setSenderBranchSHA(String branchSHA);
 
 	public void setUp();
 
 	public void storeCommitHistory(List<String> commitSHAs);
+
+	public void synchronizeToGitHubDev();
 
 	public void tearDown();
 

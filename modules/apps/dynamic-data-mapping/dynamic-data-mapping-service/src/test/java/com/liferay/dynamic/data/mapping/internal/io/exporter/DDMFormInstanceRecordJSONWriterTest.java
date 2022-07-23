@@ -79,13 +79,10 @@ public class DDMFormInstanceRecordJSONWriterTest {
 			ddmFormInstanceRecordWriterResponse =
 				ddmFormInstanceRecordJSONWriter.write(builder.build());
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("[{\"field1\":\"2\",\"field3\":\"11.7\",\"field2\":");
-		sb.append("\"false\"},{\"field1\":\"1\",\"field3\":\"10\",\"field2\":");
-		sb.append("\"\"}]");
-
-		String expectedJSON = sb.toString();
+		String expectedJSON = StringBundler.concat(
+			"[{\"field1\":\"2\",\"field3\":\"11.7\",\"field2\":",
+			"\"false\"},{\"field1\":\"1\",\"field3\":\"10\",\"field2\":",
+			"\"\"}]");
 
 		Assert.assertArrayEquals(
 			expectedJSON.getBytes(),

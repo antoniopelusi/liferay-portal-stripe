@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String protocol = HttpUtil.getProtocol(request);
+String protocol = HttpComponentsUtil.getProtocol(request);
 
 String bootstrapRequire = (String)request.getAttribute("liferay-map:map:bootstrapRequire");
 boolean geolocation = GetterUtil.getBoolean(request.getAttribute("liferay-map:map:geolocation"));

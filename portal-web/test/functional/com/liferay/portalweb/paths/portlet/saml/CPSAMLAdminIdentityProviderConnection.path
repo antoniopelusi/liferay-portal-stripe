@@ -2,11 +2,13 @@
 <head>
 <title>CPSAMLAdminIdentityProviderConnection</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">CPSAMLAdminIdentityProviderConnection</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_IDENTITY_PROVIDER_BUTTON</td>
@@ -14,11 +16,6 @@
 	<td></td>
 </tr>
 <!--IDENTITY_PROVIDER_CONNECTION-->
-<tr>
-	<td>IDENTITY_PROVIDER_CONNECTION_ATTRIBUTE_TEXTAREA</td>
-	<td>//textarea[contains(@id,'SamlAdminPortlet_userAttributeMappings')]</td>
-	<td></td>
-</tr>
 <tr>
 	<td>IDENTITY_PROVIDER_CONNECTION_ENABLED_CHECKBOX</td>
 	<td>//input[contains(@id,'SamlAdminPortlet_enabled')]</td>
@@ -30,8 +27,48 @@
 	<td></td>
 </tr>
 <tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_ERROR_NO_MAPPING_SELECTED</td>
+	<td>//div[contains(@class,'alert-danger')][contains(@class,'alert-dismissible')][contains(.,'No attribute mapping selected for user matching.')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>IDENTITY_PROVIDER_CONNECTION_FORCE_AUTHN_CHECKBOX</td>
 	<td>//input[contains(@id,'SamlAdminPortlet_forceAuthn')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_NAME</td>
+	<td>//td[contains(@class,'first')]//a[contains(.,'${idpEntityId}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_USER_RESOLUTION_NONE</td>
+	<td>//input[contains(@name,'userIdentifierExpression') and contains(@value,'none')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_USER_RESOLUTION_DYNAMIC</td>
+	<td>//input[contains(@name,'userIdentifierExpression') and contains(@value,'dynamic')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_USER_RESOLUTION_ATTRIBUTE</td>
+	<td>//input[contains(@name,'userIdentifierExpression') and contains(@value,'attribute')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_USE_TO_MATCH_USERS_RADIO</td>
+	<td>//input[contains(@id,'userIdentifierExpression') and @value=${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_USER_FIELD_EXPRESSION_DROPDOWN</td>
+	<td>//select[contains(@id,'userAttributeMappingFieldExpression-${key_index}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IDENTITY_PROVIDER_CONNECTION_SAML_ATTRIBUTE_TEXT</td>
+	<td>//input[contains(@id,'userAttributeMappingSamlAttribute-${key_index}')]</td>
 	<td></td>
 </tr>
 </tbody>

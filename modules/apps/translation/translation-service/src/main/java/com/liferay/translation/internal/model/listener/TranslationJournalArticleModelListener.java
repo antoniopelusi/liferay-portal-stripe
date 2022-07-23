@@ -35,8 +35,6 @@ public class TranslationJournalArticleModelListener
 	public void onAfterRemove(JournalArticle journalArticle)
 		throws ModelListenerException {
 
-		super.onAfterRemove(journalArticle);
-
 		try {
 			_translationEntryLocalService.deleteTranslationEntries(
 				JournalArticle.class.getName(),

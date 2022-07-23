@@ -27,6 +27,10 @@ public class BookmarksEntryLocalServiceWrapper
 	implements BookmarksEntryLocalService,
 			   ServiceWrapper<BookmarksEntryLocalService> {
 
+	public BookmarksEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public BookmarksEntryLocalServiceWrapper(
 		BookmarksEntryLocalService bookmarksEntryLocalService) {
 
@@ -166,6 +170,13 @@ public class BookmarksEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _bookmarksEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _bookmarksEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

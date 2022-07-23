@@ -123,11 +123,8 @@ public class PortletConfigurationPermissionsDisplayContext {
 			_getPortletResource(), getModelResource());
 
 		if (Objects.equals(getModelResource(), Group.class.getName())) {
-			long modelResourceGroupId = GetterUtil.getLong(
-				getResourcePrimKey());
-
 			Group modelResourceGroup = GroupLocalServiceUtil.getGroup(
-				modelResourceGroupId);
+				GetterUtil.getLong(getResourcePrimKey()));
 
 			if (modelResourceGroup.isLayoutPrototype() ||
 				modelResourceGroup.isLayoutSetPrototype() ||
@@ -148,10 +145,8 @@ public class PortletConfigurationPermissionsDisplayContext {
 			}
 		}
 		else if (Objects.equals(getModelResource(), Role.class.getName())) {
-			long modelResourceRoleId = GetterUtil.getLong(getResourcePrimKey());
-
 			Role modelResourceRole = RoleLocalServiceUtil.getRole(
-				modelResourceRoleId);
+				GetterUtil.getLong(getResourcePrimKey()));
 
 			String name = modelResourceRole.getName();
 
@@ -245,12 +240,12 @@ public class PortletConfigurationPermissionsDisplayContext {
 				PortletRequest.RENDER_PHASE)
 		).setMVCPath(
 			"/edit_permissions.jsp"
+		).setPortletResource(
+			_getPortletResource()
 		).setParameter(
 			"modelResource", getModelResource()
 		).setParameter(
-			"portletConfiguration", Boolean.TRUE.toString()
-		).setParameter(
-			"portletResource", _getPortletResource()
+			"portletConfiguration", true
 		).setParameter(
 			"resourceGroupId", _getResourceGroupId()
 		).setParameter(
@@ -261,7 +256,7 @@ public class PortletConfigurationPermissionsDisplayContext {
 			"roleTypes", _getRoleTypesParam()
 		).setWindowState(
 			LiferayWindowState.POP_UP
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getModelResource() {
@@ -349,10 +344,8 @@ public class PortletConfigurationPermissionsDisplayContext {
 			getModelResource());
 
 		if (Objects.equals(getModelResource(), Role.class.getName())) {
-			long modelResourceRoleId = GetterUtil.getLong(getResourcePrimKey());
-
 			Role modelResourceRole = RoleLocalServiceUtil.getRole(
-				modelResourceRoleId);
+				GetterUtil.getLong(getResourcePrimKey()));
 
 			RoleTypeContributor roleTypeContributor =
 				_roleTypeContributorProvider.getRoleTypeContributor(
@@ -372,8 +365,6 @@ public class PortletConfigurationPermissionsDisplayContext {
 		}
 
 		boolean filterGuestRole = false;
-		boolean permissionCheckGuestEnabled =
-			PropsValues.PERMISSIONS_CHECK_GUEST_ENABLED;
 
 		if (Objects.equals(getModelResource(), Layout.class.getName())) {
 			Layout resourceLayout = LayoutLocalServiceUtil.getLayout(
@@ -383,7 +374,7 @@ public class PortletConfigurationPermissionsDisplayContext {
 				Group resourceLayoutGroup = resourceLayout.getGroup();
 
 				if (!resourceLayoutGroup.isLayoutSetPrototype() &&
-					!permissionCheckGuestEnabled) {
+					!PropsValues.PERMISSIONS_CHECK_GUEST_ENABLED) {
 
 					filterGuestRole = true;
 				}
@@ -396,18 +387,15 @@ public class PortletConfigurationPermissionsDisplayContext {
 				PortletConstants.LAYOUT_SEPARATOR);
 
 			if (pos > 0) {
-				long resourcePlid = GetterUtil.getLong(
-					getResourcePrimKey().substring(0, pos));
-
 				Layout resourceLayout = LayoutLocalServiceUtil.getLayout(
-					resourcePlid);
+					GetterUtil.getLong(resourcePrimKey.substring(0, pos)));
 
 				if (resourceLayout.isPrivateLayout()) {
 					Group resourceLayoutGroup = resourceLayout.getGroup();
 
 					if (!resourceLayoutGroup.isLayoutPrototype() &&
 						!resourceLayoutGroup.isLayoutSetPrototype() &&
-						!permissionCheckGuestEnabled) {
+						!PropsValues.PERMISSIONS_CHECK_GUEST_ENABLED) {
 
 						filterGuestRole = true;
 					}
@@ -415,9 +403,11 @@ public class PortletConfigurationPermissionsDisplayContext {
 			}
 		}
 
-		Set<String> excludedRoleNamesSet = new HashSet<>();
-
-		excludedRoleNamesSet.add(RoleConstants.ADMINISTRATOR);
+		Set<String> excludedRoleNamesSet = new HashSet<String>() {
+			{
+				add(RoleConstants.ADMINISTRATOR);
+			}
+		};
 
 		if (filterGroupRoles) {
 			for (RoleTypeContributor roleTypeContributor :
@@ -442,43 +432,43 @@ public class PortletConfigurationPermissionsDisplayContext {
 			teamGroupId = _group.getParentGroupId();
 		}
 
+		long roleModelResourceRoleId = modelResourceRoleId;
+
+		long roleTeamGroupId = teamGroupId;
+
 		RoleVisibilityConfiguration stricterRoleVisibilityConfiguration =
 			ConfigurationProviderUtil.getCompanyConfiguration(
 				RoleVisibilityConfiguration.class, themeDisplay.getCompanyId());
 
 		if (Validator.isNull(searchTerms.getKeywords())) {
-			int count = 0;
-			List<Role> roles = null;
-
 			if (stricterRoleVisibilityConfiguration.
 					restrictPermissionSelectorRoleVisibility()) {
 
-				count = RoleServiceUtil.getGroupRolesAndTeamRolesCount(
-					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-					excludedRoleNames, getRoleTypes(), modelResourceRoleId,
-					teamGroupId);
-
-				roles = RoleServiceUtil.getGroupRolesAndTeamRoles(
-					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-					excludedRoleNames, getRoleTypes(), modelResourceRoleId,
-					teamGroupId, roleSearchContainer.getStart(),
-					roleSearchContainer.getEnd());
+				roleSearchContainer.setResultsAndTotal(
+					() -> RoleServiceUtil.getGroupRolesAndTeamRoles(
+						themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+						excludedRoleNames, getRoleTypes(),
+						roleModelResourceRoleId, roleTeamGroupId,
+						roleSearchContainer.getStart(),
+						roleSearchContainer.getEnd()),
+					RoleServiceUtil.getGroupRolesAndTeamRolesCount(
+						themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+						excludedRoleNames, getRoleTypes(),
+						roleModelResourceRoleId, roleTeamGroupId));
 			}
 			else {
-				count = RoleLocalServiceUtil.getGroupRolesAndTeamRolesCount(
-					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-					excludedRoleNames, getRoleTypes(), modelResourceRoleId,
-					teamGroupId);
-
-				roles = RoleLocalServiceUtil.getGroupRolesAndTeamRoles(
-					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-					excludedRoleNames, getRoleTypes(), modelResourceRoleId,
-					teamGroupId, roleSearchContainer.getStart(),
-					roleSearchContainer.getEnd());
+				roleSearchContainer.setResultsAndTotal(
+					() -> RoleLocalServiceUtil.getGroupRolesAndTeamRoles(
+						themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+						excludedRoleNames, getRoleTypes(),
+						roleModelResourceRoleId, roleTeamGroupId,
+						roleSearchContainer.getStart(),
+						roleSearchContainer.getEnd()),
+					RoleLocalServiceUtil.getGroupRolesAndTeamRolesCount(
+						themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+						excludedRoleNames, getRoleTypes(),
+						roleModelResourceRoleId, roleTeamGroupId));
 			}
-
-			roleSearchContainer.setResults(roles);
-			roleSearchContainer.setTotal(count);
 		}
 		else {
 			List<Role> roles = null;
@@ -498,26 +488,20 @@ public class PortletConfigurationPermissionsDisplayContext {
 					teamGroupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 			}
 
-			List<Role> filteredRoles = ListUtil.filter(
-				roles,
-				role -> {
-					String roleName = StringUtil.toLowerCase(
-						role.getTitle(themeDisplay.getLocale()),
-						themeDisplay.getLocale());
+			roleSearchContainer.setResultsAndTotal(
+				ListUtil.filter(
+					roles,
+					role -> {
+						String roleName = StringUtil.toLowerCase(
+							role.getTitle(themeDisplay.getLocale()),
+							themeDisplay.getLocale());
 
-					return (roleName != null) &&
-						   roleName.contains(
-							   StringUtil.toLowerCase(
-								   searchTerms.getKeywords(),
-								   themeDisplay.getLocale()));
-				});
-
-			roleSearchContainer.setResults(
-				ListUtil.subList(
-					filteredRoles, roleSearchContainer.getStart(),
-					roleSearchContainer.getEnd()));
-
-			roleSearchContainer.setTotal(filteredRoles.size());
+						return (roleName != null) &&
+							   roleName.contains(
+								   StringUtil.toLowerCase(
+									   searchTerms.getKeywords(),
+									   themeDisplay.getLocale()));
+					}));
 		}
 
 		_roleSearchContainer = roleSearchContainer;
@@ -617,13 +601,12 @@ public class PortletConfigurationPermissionsDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		Portlet portlet = PortletLocalServiceUtil.getPortletById(
-			themeDisplay.getCompanyId(), _getPortletResource());
-
-		HttpSession session = _httpServletRequest.getSession();
+		HttpSession httpSession = _httpServletRequest.getSession();
 
 		_selResourceDescription = PortalUtil.getPortletTitle(
-			portlet, session.getServletContext(), themeDisplay.getLocale());
+			PortletLocalServiceUtil.getPortletById(
+				themeDisplay.getCompanyId(), _getPortletResource()),
+			httpSession.getServletContext(), themeDisplay.getLocale());
 
 		return _selResourceDescription;
 	}
@@ -640,6 +623,8 @@ public class PortletConfigurationPermissionsDisplayContext {
 			"updateRolePermissions"
 		).setMVCPath(
 			"/edit_permissions.jsp"
+		).setPortletResource(
+			_getPortletResource()
 		).setParameter(
 			"cur",
 			ParamUtil.getInteger(
@@ -653,9 +638,7 @@ public class PortletConfigurationPermissionsDisplayContext {
 		).setParameter(
 			"modelResourceDescription", getModelResourceDescription()
 		).setParameter(
-			"portletConfiguration", Boolean.TRUE.toString()
-		).setParameter(
-			"portletResource", _getPortletResource()
+			"portletConfiguration", true
 		).setParameter(
 			"resourceGroupId", _getResourceGroupId()
 		).setParameter(
@@ -666,7 +649,7 @@ public class PortletConfigurationPermissionsDisplayContext {
 			"roleTypes", _getRoleTypesParam()
 		).setWindowState(
 			LiferayWindowState.POP_UP
-		).build();
+		).buildPortletURL();
 	}
 
 	private int[] _getGroupRoleTypes(Group group, int[] defaultRoleTypes) {

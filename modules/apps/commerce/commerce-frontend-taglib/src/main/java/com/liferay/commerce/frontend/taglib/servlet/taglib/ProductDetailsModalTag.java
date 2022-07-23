@@ -21,6 +21,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * @author Fabio Diego Mastrorilli
  */
@@ -39,10 +41,14 @@ public class ProductDetailsModalTag extends ComponentRendererTag {
 					"/006-fully-built-engine-by-the-experts.jpg");
 		putValue("settings", null);
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest httpServletRequest = getRequest();
 
-		putValue("spritemap", themeDisplay.getPathThemeImages() + "/icons.svg");
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		putValue(
+			"spritemap", themeDisplay.getPathThemeImages() + "/clay/icons.svg");
 
 		putValue("sku", "AR351184");
 

@@ -1,4 +1,4 @@
-@import 'speedwell';
+@import './speedwell/speedwell';
 
 #speedwell {
 	font-family: 'Open Sans', sans-serif;
@@ -84,8 +84,21 @@ button {
 		}
 	}
 
+	.portlet {
+		margin: 0;
+		position: relative;
+	}
+
 	.portlet-barebone {
 		margin-top: 0 !important;
+	}
+
+	.portlet-content-editable {
+		min-height: 28px;
+	}
+
+	.portlet-layout .portlet-header {
+		margin-bottom: 0;
 	}
 
 	&:not(&--wide) {

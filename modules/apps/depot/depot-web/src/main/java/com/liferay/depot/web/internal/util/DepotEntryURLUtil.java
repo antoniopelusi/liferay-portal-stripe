@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.taglib.security.PermissionsURLTag;
 
-import javax.portlet.ActionRequest;
 import javax.portlet.ActionURL;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -38,29 +37,28 @@ public class DepotEntryURLUtil {
 	public static ActionURL getAddDepotEntryActionURL(
 		String redirect, LiferayPortletResponse liferayPortletResponse) {
 
-		ActionURL addDepotEntryURL = liferayPortletResponse.createActionURL();
-
-		addDepotEntryURL.setParameter(
-			ActionRequest.ACTION_NAME, "/depot/add_depot_entry");
-		addDepotEntryURL.setParameter("redirect", redirect);
-
-		return addDepotEntryURL;
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse
+		).setActionName(
+			"/depot/add_depot_entry"
+		).setRedirect(
+			redirect
+		).buildActionURL();
 	}
 
 	public static ActionURL getDeleteDepotEntryActionURL(
 		long depotEntryId, String redirect,
 		LiferayPortletResponse liferayPortletResponse) {
 
-		ActionURL deleteDepotEntryActionURL =
-			liferayPortletResponse.createActionURL();
-
-		deleteDepotEntryActionURL.setParameter(
-			ActionRequest.ACTION_NAME, "/depot/delete_depot_entry");
-		deleteDepotEntryActionURL.setParameter("redirect", redirect);
-		deleteDepotEntryActionURL.setParameter(
-			"depotEntryId", String.valueOf(depotEntryId));
-
-		return deleteDepotEntryActionURL;
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse
+		).setActionName(
+			"/depot/delete_depot_entry"
+		).setRedirect(
+			redirect
+		).setParameter(
+			"depotEntryId", depotEntryId
+		).buildActionURL();
 	}
 
 	public static String getDepotEntryPermissionsURL(
@@ -80,16 +78,15 @@ public class DepotEntryURLUtil {
 		long depotEntryGroupRelId, String redirect,
 		LiferayPortletResponse liferayPortletResponse) {
 
-		ActionURL disconnectSiteActionURL =
-			liferayPortletResponse.createActionURL();
-
-		disconnectSiteActionURL.setParameter(
-			ActionRequest.ACTION_NAME, "/depot/disconnect_depot_entry");
-		disconnectSiteActionURL.setParameter("redirect", redirect);
-		disconnectSiteActionURL.setParameter(
-			"depotEntryGroupRelId", String.valueOf(depotEntryGroupRelId));
-
-		return disconnectSiteActionURL;
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse
+		).setActionName(
+			"/depot/disconnect_depot_entry"
+		).setRedirect(
+			redirect
+		).setParameter(
+			"depotEntryGroupRelId", depotEntryGroupRelId
+		).buildActionURL();
 	}
 
 	public static PortletURL getEditDepotEntryPortletURL(
@@ -106,45 +103,41 @@ public class DepotEntryURLUtil {
 			redirect
 		).setParameter(
 			"depotEntryId", depotEntry.getDepotEntryId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public static ActionURL getUpdateDDMStructuresAvailableActionURL(
 		long depotEntryGroupRelId, boolean ddmStructuresAvailable,
 		String redirect, LiferayPortletResponse liferayPortletResponse) {
 
-		ActionURL updateDDMStructuresAvailableActionURL =
-			liferayPortletResponse.createActionURL();
-
-		updateDDMStructuresAvailableActionURL.setParameter(
-			ActionRequest.ACTION_NAME,
-			"/depot/update_ddm_structures_available");
-		updateDDMStructuresAvailableActionURL.setParameter(
-			"redirect", redirect);
-		updateDDMStructuresAvailableActionURL.setParameter(
-			"depotEntryGroupRelId", String.valueOf(depotEntryGroupRelId));
-		updateDDMStructuresAvailableActionURL.setParameter(
-			"ddmStructuresAvailable", String.valueOf(ddmStructuresAvailable));
-
-		return updateDDMStructuresAvailableActionURL;
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse
+		).setActionName(
+			"/depot/update_ddm_structures_available"
+		).setRedirect(
+			redirect
+		).setParameter(
+			"ddmStructuresAvailable", ddmStructuresAvailable
+		).setParameter(
+			"depotEntryGroupRelId", depotEntryGroupRelId
+		).buildActionURL();
 	}
 
 	public static ActionURL getUpdateSearchableActionURL(
 		long depotEntryGroupRelId, boolean searchable, String redirect,
 		LiferayPortletResponse liferayPortletResponse) {
 
-		ActionURL updateSearchableActionURL =
-			liferayPortletResponse.createActionURL();
-
-		updateSearchableActionURL.setParameter(
-			ActionRequest.ACTION_NAME, "/depot/update_searchable");
-		updateSearchableActionURL.setParameter("redirect", redirect);
-		updateSearchableActionURL.setParameter(
-			"depotEntryGroupRelId", String.valueOf(depotEntryGroupRelId));
-		updateSearchableActionURL.setParameter(
-			"searchable", String.valueOf(searchable));
-
-		return updateSearchableActionURL;
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse
+		).setActionName(
+			"/depot/update_searchable"
+		).setRedirect(
+			redirect
+		).setParameter(
+			"depotEntryGroupRelId", depotEntryGroupRelId
+		).setParameter(
+			"searchable", searchable
+		).buildActionURL();
 	}
 
 }

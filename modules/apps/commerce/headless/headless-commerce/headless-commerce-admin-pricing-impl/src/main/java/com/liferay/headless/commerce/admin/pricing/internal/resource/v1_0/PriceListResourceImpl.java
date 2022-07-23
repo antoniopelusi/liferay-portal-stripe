@@ -17,6 +17,7 @@ package com.liferay.headless.commerce.admin.pricing.internal.resource.v1_0;
 import com.liferay.commerce.account.service.CommerceAccountGroupService;
 import com.liferay.commerce.currency.model.CommerceCurrency;
 import com.liferay.commerce.currency.service.CommerceCurrencyService;
+import com.liferay.commerce.price.list.constants.CommercePriceListConstants;
 import com.liferay.commerce.price.list.exception.NoSuchPriceListException;
 import com.liferay.commerce.price.list.model.CommercePriceEntry;
 import com.liferay.commerce.price.list.model.CommercePriceList;
@@ -58,6 +59,7 @@ import com.liferay.portal.vulcan.util.SearchUtil;
 import java.math.BigDecimal;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -99,7 +101,7 @@ public class PriceListResourceImpl
 
 		if (commercePriceList == null) {
 			throw new NoSuchPriceListException(
-				"Unable to find Price List with externalReferenceCode: " +
+				"Unable to find price list with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -134,7 +136,7 @@ public class PriceListResourceImpl
 
 		if (commercePriceList == null) {
 			throw new NoSuchPriceListException(
-				"Unable to find Price List with externalReferenceCode: " +
+				"Unable to find price list with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -147,8 +149,9 @@ public class PriceListResourceImpl
 		throws Exception {
 
 		return SearchUtil.search(
+			Collections.emptyMap(),
 			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CommercePriceList.class, StringPool.BLANK, pagination,
+			CommercePriceList.class.getName(), StringPool.BLANK, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -160,9 +163,9 @@ public class PriceListResourceImpl
 				}
 
 			},
+			sorts,
 			document -> _toPriceList(
-				GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK))),
-			sorts);
+				GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK))));
 	}
 
 	@Override
@@ -188,7 +191,7 @@ public class PriceListResourceImpl
 
 		if (commercePriceList == null) {
 			throw new NoSuchPriceListException(
-				"Unable to find Price List with externalReferenceCode: " +
+				"Unable to find price list with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -233,10 +236,12 @@ public class PriceListResourceImpl
 		DateConfig expirationDateConfig = new DateConfig(expirationCalendar);
 
 		CommercePriceList commercePriceList =
-			_commercePriceListService.upsertCommercePriceList(
+			_commercePriceListService.addOrUpdateCommercePriceList(
 				priceList.getExternalReferenceCode(),
-				commerceCatalog.getGroupId(), contextUser.getUserId(), 0L,
-				commerceCurrency.getCommerceCurrencyId(), priceList.getName(),
+				commerceCatalog.getGroupId(), 0L,
+				commerceCurrency.getCommerceCurrencyId(), true,
+				CommercePriceListConstants.TYPE_PRICE_LIST, 0, false,
+				priceList.getName(),
 				GetterUtil.get(priceList.getPriority(), 0D),
 				displayDateConfig.getMonth(), displayDateConfig.getDay(),
 				displayDateConfig.getYear(), displayDateConfig.getHour(),
@@ -311,7 +316,7 @@ public class PriceListResourceImpl
 		if (priceEntries != null) {
 			for (PriceEntry priceEntry : priceEntries) {
 				CommercePriceEntry commercePriceEntry =
-					_commercePriceEntryService.upsertCommercePriceEntry(
+					_commercePriceEntryService.addOrUpdateCommercePriceEntry(
 						priceEntry.getExternalReferenceCode(),
 						GetterUtil.getLong(priceEntry.getId()),
 						GetterUtil.getLong(priceEntry.getSkuId()), null,
@@ -326,7 +331,7 @@ public class PriceListResourceImpl
 
 				if (tierPrices != null) {
 					for (TierPrice tierPrice : tierPrices) {
-						TierPriceUtil.upsertCommerceTierPriceEntry(
+						TierPriceUtil.addOrUpdateCommerceTierPriceEntry(
 							_commerceTierPriceEntryService, tierPrice,
 							commercePriceEntry, serviceContext);
 					}
@@ -362,7 +367,7 @@ public class PriceListResourceImpl
 
 		commercePriceList = _commercePriceListService.updateCommercePriceList(
 			commercePriceList.getCommercePriceListId(),
-			commerceCurrency.getCommerceCurrencyId(),
+			commerceCurrency.getCommerceCurrencyId(), true, 0,
 			GetterUtil.get(priceList.getName(), commercePriceList.getName()),
 			GetterUtil.get(
 				priceList.getPriority(), commercePriceList.getPriority()),

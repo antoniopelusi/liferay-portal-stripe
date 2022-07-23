@@ -16,6 +16,8 @@ package com.liferay.headless.admin.user.internal.graphql.servlet.v1_0;
 
 import com.liferay.headless.admin.user.internal.graphql.mutation.v1_0.Mutation;
 import com.liferay.headless.admin.user.internal.graphql.query.v1_0.Query;
+import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
+import com.liferay.headless.admin.user.resource.v1_0.AccountRoleResource;
 import com.liferay.headless.admin.user.resource.v1_0.EmailAddressResource;
 import com.liferay.headless.admin.user.resource.v1_0.OrganizationResource;
 import com.liferay.headless.admin.user.resource.v1_0.PhoneResource;
@@ -26,6 +28,7 @@ import com.liferay.headless.admin.user.resource.v1_0.SegmentUserResource;
 import com.liferay.headless.admin.user.resource.v1_0.SiteResource;
 import com.liferay.headless.admin.user.resource.v1_0.SubscriptionResource;
 import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
+import com.liferay.headless.admin.user.resource.v1_0.UserGroupResource;
 import com.liferay.headless.admin.user.resource.v1_0.WebUrlResource;
 import com.liferay.portal.vulcan.graphql.servlet.ServletData;
 
@@ -48,6 +51,10 @@ public class ServletDataImpl implements ServletData {
 
 	@Activate
 	public void activate(BundleContext bundleContext) {
+		Mutation.setAccountResourceComponentServiceObjects(
+			_accountResourceComponentServiceObjects);
+		Mutation.setAccountRoleResourceComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects);
 		Mutation.setOrganizationResourceComponentServiceObjects(
 			_organizationResourceComponentServiceObjects);
 		Mutation.setRoleResourceComponentServiceObjects(
@@ -56,7 +63,13 @@ public class ServletDataImpl implements ServletData {
 			_subscriptionResourceComponentServiceObjects);
 		Mutation.setUserAccountResourceComponentServiceObjects(
 			_userAccountResourceComponentServiceObjects);
+		Mutation.setUserGroupResourceComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects);
 
+		Query.setAccountResourceComponentServiceObjects(
+			_accountResourceComponentServiceObjects);
+		Query.setAccountRoleResourceComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects);
 		Query.setEmailAddressResourceComponentServiceObjects(
 			_emailAddressResourceComponentServiceObjects);
 		Query.setOrganizationResourceComponentServiceObjects(
@@ -77,6 +90,8 @@ public class ServletDataImpl implements ServletData {
 			_subscriptionResourceComponentServiceObjects);
 		Query.setUserAccountResourceComponentServiceObjects(
 			_userAccountResourceComponentServiceObjects);
+		Query.setUserGroupResourceComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects);
 		Query.setWebUrlResourceComponentServiceObjects(
 			_webUrlResourceComponentServiceObjects);
 	}
@@ -97,6 +112,14 @@ public class ServletDataImpl implements ServletData {
 	}
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<AccountResource>
+		_accountResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<AccountRoleResource>
+		_accountRoleResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<OrganizationResource>
 		_organizationResourceComponentServiceObjects;
 
@@ -111,6 +134,10 @@ public class ServletDataImpl implements ServletData {
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<UserAccountResource>
 		_userAccountResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<UserGroupResource>
+		_userGroupResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<EmailAddressResource>

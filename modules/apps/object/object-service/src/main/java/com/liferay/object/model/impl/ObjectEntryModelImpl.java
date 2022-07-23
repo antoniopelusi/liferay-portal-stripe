@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryModel;
-import com.liferay.object.model.ObjectEntrySoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,21 +32,20 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -80,7 +78,9 @@ public class ObjectEntryModelImpl
 		{"objectEntryId", Types.BIGINT}, {"groupId", Types.BIGINT},
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
-		{"modifiedDate", Types.TIMESTAMP}, {"objectDefinitionId", Types.BIGINT},
+		{"modifiedDate", Types.TIMESTAMP},
+		{"externalReferenceCode", Types.VARCHAR},
+		{"objectDefinitionId", Types.BIGINT},
 		{"lastPublishDate", Types.TIMESTAMP}, {"status", Types.INTEGER},
 		{"statusByUserId", Types.BIGINT}, {"statusByUserName", Types.VARCHAR},
 		{"statusDate", Types.TIMESTAMP}
@@ -99,6 +99,7 @@ public class ObjectEntryModelImpl
 		TABLE_COLUMNS_MAP.put("userName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("externalReferenceCode", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("objectDefinitionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("lastPublishDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("status", Types.INTEGER);
@@ -108,7 +109,7 @@ public class ObjectEntryModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ObjectEntry (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectDefinitionId LONG,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table ObjectEntry (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,externalReferenceCode VARCHAR(75) null,objectDefinitionId LONG,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table ObjectEntry";
 
@@ -134,26 +135,38 @@ public class ObjectEntryModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long GROUPID_COLUMN_BITMASK = 2L;
+	public static final long EXTERNALREFERENCECODE_COLUMN_BITMASK = 2L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long OBJECTDEFINITIONID_COLUMN_BITMASK = 4L;
+	public static final long GROUPID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 8L;
+	public static final long OBJECTDEFINITIONID_COLUMN_BITMASK = 8L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long STATUS_COLUMN_BITMASK = 16L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 32L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long OBJECTENTRYID_COLUMN_BITMASK = 16L;
+	public static final long OBJECTENTRYID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -167,63 +180,6 @@ public class ObjectEntryModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ObjectEntry toModel(ObjectEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ObjectEntry model = new ObjectEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setObjectEntryId(soapModel.getObjectEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setObjectDefinitionId(soapModel.getObjectDefinitionId());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ObjectEntry> toModels(ObjectEntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ObjectEntry> models = new ArrayList<ObjectEntry>(
-			soapModels.length);
-
-		for (ObjectEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public ObjectEntryModelImpl() {
@@ -311,34 +267,6 @@ public class ObjectEntryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, ObjectEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ObjectEntry.class.getClassLoader(), ObjectEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ObjectEntry> constructor =
-				(Constructor<ObjectEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<ObjectEntry, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<ObjectEntry, Object>>
@@ -386,6 +314,12 @@ public class ObjectEntryModelImpl
 		attributeSetterBiConsumers.put(
 			"modifiedDate",
 			(BiConsumer<ObjectEntry, Date>)ObjectEntry::setModifiedDate);
+		attributeGetterFunctions.put(
+			"externalReferenceCode", ObjectEntry::getExternalReferenceCode);
+		attributeSetterBiConsumers.put(
+			"externalReferenceCode",
+			(BiConsumer<ObjectEntry, String>)
+				ObjectEntry::setExternalReferenceCode);
 		attributeGetterFunctions.put(
 			"objectDefinitionId", ObjectEntry::getObjectDefinitionId);
 		attributeSetterBiConsumers.put(
@@ -617,6 +551,35 @@ public class ObjectEntryModelImpl
 
 	@JSON
 	@Override
+	public String getExternalReferenceCode() {
+		if (_externalReferenceCode == null) {
+			return "";
+		}
+		else {
+			return _externalReferenceCode;
+		}
+	}
+
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_externalReferenceCode = externalReferenceCode;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public String getOriginalExternalReferenceCode() {
+		return getColumnOriginalValue("externalReferenceCode");
+	}
+
+	@JSON
+	@Override
 	public long getObjectDefinitionId() {
 		return _objectDefinitionId;
 	}
@@ -668,6 +631,16 @@ public class ObjectEntryModelImpl
 		}
 
 		_status = status;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public int getOriginalStatus() {
+		return GetterUtil.getInteger(
+			this.<Integer>getColumnOriginalValue("status"));
 	}
 
 	@JSON
@@ -894,6 +867,7 @@ public class ObjectEntryModelImpl
 		objectEntryImpl.setUserName(getUserName());
 		objectEntryImpl.setCreateDate(getCreateDate());
 		objectEntryImpl.setModifiedDate(getModifiedDate());
+		objectEntryImpl.setExternalReferenceCode(getExternalReferenceCode());
 		objectEntryImpl.setObjectDefinitionId(getObjectDefinitionId());
 		objectEntryImpl.setLastPublishDate(getLastPublishDate());
 		objectEntryImpl.setStatus(getStatus());
@@ -902,6 +876,44 @@ public class ObjectEntryModelImpl
 		objectEntryImpl.setStatusDate(getStatusDate());
 
 		objectEntryImpl.resetOriginalValues();
+
+		return objectEntryImpl;
+	}
+
+	@Override
+	public ObjectEntry cloneWithOriginalValues() {
+		ObjectEntryImpl objectEntryImpl = new ObjectEntryImpl();
+
+		objectEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		objectEntryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		objectEntryImpl.setObjectEntryId(
+			this.<Long>getColumnOriginalValue("objectEntryId"));
+		objectEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		objectEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		objectEntryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		objectEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		objectEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		objectEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		objectEntryImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		objectEntryImpl.setObjectDefinitionId(
+			this.<Long>getColumnOriginalValue("objectDefinitionId"));
+		objectEntryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		objectEntryImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		objectEntryImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		objectEntryImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		objectEntryImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
 
 		return objectEntryImpl;
 	}
@@ -1032,6 +1044,18 @@ public class ObjectEntryModelImpl
 			objectEntryCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
+		objectEntryCacheModel.externalReferenceCode =
+			getExternalReferenceCode();
+
+		String externalReferenceCode =
+			objectEntryCacheModel.externalReferenceCode;
+
+		if ((externalReferenceCode != null) &&
+			(externalReferenceCode.length() == 0)) {
+
+			objectEntryCacheModel.externalReferenceCode = null;
+		}
+
 		objectEntryCacheModel.objectDefinitionId = getObjectDefinitionId();
 
 		Date lastPublishDate = getLastPublishDate();
@@ -1064,6 +1088,8 @@ public class ObjectEntryModelImpl
 			objectEntryCacheModel.statusDate = Long.MIN_VALUE;
 		}
 
+		setValues(null);
+
 		objectEntryCacheModel._values = getValues();
 
 		return objectEntryCacheModel;
@@ -1075,7 +1101,7 @@ public class ObjectEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1086,9 +1112,26 @@ public class ObjectEntryModelImpl
 			Function<ObjectEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ObjectEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ObjectEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1135,7 +1178,9 @@ public class ObjectEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ObjectEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ObjectEntry.class, ModelWrapper.class);
 
 	}
 
@@ -1149,6 +1194,7 @@ public class ObjectEntryModelImpl
 	private Date _createDate;
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
+	private String _externalReferenceCode;
 	private long _objectDefinitionId;
 	private Date _lastPublishDate;
 	private int _status;
@@ -1194,6 +1240,8 @@ public class ObjectEntryModelImpl
 		_columnOriginalValues.put("userName", _userName);
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
+		_columnOriginalValues.put(
+			"externalReferenceCode", _externalReferenceCode);
 		_columnOriginalValues.put("objectDefinitionId", _objectDefinitionId);
 		_columnOriginalValues.put("lastPublishDate", _lastPublishDate);
 		_columnOriginalValues.put("status", _status);
@@ -1241,17 +1289,19 @@ public class ObjectEntryModelImpl
 
 		columnBitmasks.put("modifiedDate", 256L);
 
-		columnBitmasks.put("objectDefinitionId", 512L);
+		columnBitmasks.put("externalReferenceCode", 512L);
 
-		columnBitmasks.put("lastPublishDate", 1024L);
+		columnBitmasks.put("objectDefinitionId", 1024L);
 
-		columnBitmasks.put("status", 2048L);
+		columnBitmasks.put("lastPublishDate", 2048L);
 
-		columnBitmasks.put("statusByUserId", 4096L);
+		columnBitmasks.put("status", 4096L);
 
-		columnBitmasks.put("statusByUserName", 8192L);
+		columnBitmasks.put("statusByUserId", 8192L);
 
-		columnBitmasks.put("statusDate", 16384L);
+		columnBitmasks.put("statusByUserName", 16384L);
+
+		columnBitmasks.put("statusDate", 32768L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

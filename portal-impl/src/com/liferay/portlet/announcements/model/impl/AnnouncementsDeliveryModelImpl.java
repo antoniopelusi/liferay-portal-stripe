@@ -16,7 +16,6 @@ package com.liferay.portlet.announcements.model.impl;
 
 import com.liferay.announcements.kernel.model.AnnouncementsDelivery;
 import com.liferay.announcements.kernel.model.AnnouncementsDeliveryModel;
-import com.liferay.announcements.kernel.model.AnnouncementsDeliverySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -31,19 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -154,60 +153,6 @@ public class AnnouncementsDeliveryModelImpl
 	@Deprecated
 	public static final long DELIVERYID_COLUMN_BITMASK = 8L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AnnouncementsDelivery toModel(
-		AnnouncementsDeliverySoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		AnnouncementsDelivery model = new AnnouncementsDeliveryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setDeliveryId(soapModel.getDeliveryId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setType(soapModel.getType());
-		model.setEmail(soapModel.isEmail());
-		model.setSms(soapModel.isSms());
-		model.setWebsite(soapModel.isWebsite());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AnnouncementsDelivery> toModels(
-		AnnouncementsDeliverySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AnnouncementsDelivery> models =
-			new ArrayList<AnnouncementsDelivery>(soapModels.length);
-
-		for (AnnouncementsDeliverySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.announcements.kernel.model.AnnouncementsDelivery"));
@@ -296,34 +241,6 @@ public class AnnouncementsDeliveryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AnnouncementsDelivery>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AnnouncementsDelivery.class.getClassLoader(),
-			AnnouncementsDelivery.class, ModelWrapper.class);
-
-		try {
-			Constructor<AnnouncementsDelivery> constructor =
-				(Constructor<AnnouncementsDelivery>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AnnouncementsDelivery, Object>>
@@ -653,6 +570,31 @@ public class AnnouncementsDeliveryModelImpl
 	}
 
 	@Override
+	public AnnouncementsDelivery cloneWithOriginalValues() {
+		AnnouncementsDeliveryImpl announcementsDeliveryImpl =
+			new AnnouncementsDeliveryImpl();
+
+		announcementsDeliveryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		announcementsDeliveryImpl.setDeliveryId(
+			this.<Long>getColumnOriginalValue("deliveryId"));
+		announcementsDeliveryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		announcementsDeliveryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		announcementsDeliveryImpl.setType(
+			this.<String>getColumnOriginalValue("type_"));
+		announcementsDeliveryImpl.setEmail(
+			this.<Boolean>getColumnOriginalValue("email"));
+		announcementsDeliveryImpl.setSms(
+			this.<Boolean>getColumnOriginalValue("sms"));
+		announcementsDeliveryImpl.setWebsite(
+			this.<Boolean>getColumnOriginalValue("website"));
+
+		return announcementsDeliveryImpl;
+	}
+
+	@Override
 	public int compareTo(AnnouncementsDelivery announcementsDelivery) {
 		long primaryKey = announcementsDelivery.getPrimaryKey();
 
@@ -756,7 +698,7 @@ public class AnnouncementsDeliveryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -767,10 +709,27 @@ public class AnnouncementsDeliveryModelImpl
 			Function<AnnouncementsDelivery, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((AnnouncementsDelivery)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AnnouncementsDelivery)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -818,7 +777,9 @@ public class AnnouncementsDeliveryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AnnouncementsDelivery>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AnnouncementsDelivery.class, ModelWrapper.class);
 
 	}
 

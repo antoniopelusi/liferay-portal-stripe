@@ -64,24 +64,20 @@ public class PasswordModifiedFilter extends BasePortalFilter {
 	}
 
 	private boolean _isPasswordModified(HttpServletRequest httpServletRequest) {
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
-		if (session == null) {
-			return false;
-		}
+		if ((httpSession == null) ||
+			!httpServletRequest.isRequestedSessionIdValid()) {
 
-		if (!httpServletRequest.isRequestedSessionIdValid()) {
 			return false;
 		}
 
 		try {
 			User user = PortalUtil.getUser(httpServletRequest);
 
-			if ((user == null) || user.isDefaultUser()) {
-				return false;
-			}
+			if ((user == null) || user.isDefaultUser() ||
+				!_isValidRealUserId(httpSession, user)) {
 
-			if (!_isValidRealUserId(session, user)) {
 				return false;
 			}
 
@@ -92,7 +88,8 @@ public class PasswordModifiedFilter extends BasePortalFilter {
 			}
 
 			if (!httpServletRequest.isRequestedSessionIdValid() ||
-				(session.getCreationTime() < passwordModifiedDate.getTime())) {
+				(httpSession.getCreationTime() <
+					passwordModifiedDate.getTime())) {
 
 				return true;
 			}
@@ -100,14 +97,14 @@ public class PasswordModifiedFilter extends BasePortalFilter {
 			return false;
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return false;
 		}
 	}
 
-	private boolean _isValidRealUserId(HttpSession session, User user) {
-		Long realUserId = (Long)session.getAttribute(WebKeys.USER_ID);
+	private boolean _isValidRealUserId(HttpSession httpSession, User user) {
+		Long realUserId = (Long)httpSession.getAttribute(WebKeys.USER_ID);
 
 		if ((realUserId == null) || (user.getUserId() != realUserId)) {
 			return false;

@@ -22,7 +22,13 @@ long previewClassPK = ParamUtil.getLong(request, "previewClassPK");
 int previewType = ParamUtil.getInteger(request, "previewType");
 
 AssetEntryResult assetEntryResult = (AssetEntryResult)request.getAttribute("view.jsp-assetEntryResult");
+%>
 
+<c:if test="<%= Validator.isNotNull(assetEntryResult.getTitle()) %>">
+	<p class="asset-entries-group-label h3"><%= HtmlUtil.escape(assetEntryResult.getTitle()) %></p>
+</c:if>
+
+<%
 for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 	AssetRendererFactory<?> assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassNameId(assetEntry.getClassNameId());
 
@@ -42,7 +48,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 	}
 	catch (Exception e) {
 		if (_log.isWarnEnabled()) {
-			_log.warn(e, e);
+			_log.warn(e);
 		}
 	}
 
@@ -55,7 +61,9 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 	request.setAttribute("view.jsp-assetRendererFactory", assetRendererFactory);
 %>
 
-	<liferay-util:include page="/view_asset_entry_full_content.jsp" servletContext="<%= application %>" />
+	<liferay-util:include page="/view_asset_entry_full_content.jsp" servletContext="<%= application %>">
+		<liferay-util:param name="viewSingleAsset" value="false" />
+	</liferay-util:include>
 
 <%
 }

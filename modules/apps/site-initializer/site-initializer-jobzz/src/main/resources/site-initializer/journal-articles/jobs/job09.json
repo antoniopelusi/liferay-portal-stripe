@@ -1,0 +1,13 @@
+{
+	"articleId": "job09",
+	"assetCategoryERCs": [
+		"CAT_MARKETING"
+	],
+	"assetTagNames": [
+		"highlight"
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "Head of Marketing"
+}

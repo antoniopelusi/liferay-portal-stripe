@@ -27,6 +27,10 @@ public class ChangesetCollectionLocalServiceWrapper
 	implements ChangesetCollectionLocalService,
 			   ServiceWrapper<ChangesetCollectionLocalService> {
 
+	public ChangesetCollectionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ChangesetCollectionLocalServiceWrapper(
 		ChangesetCollectionLocalService changesetCollectionLocalService) {
 
@@ -144,6 +148,13 @@ public class ChangesetCollectionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _changesetCollectionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _changesetCollectionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

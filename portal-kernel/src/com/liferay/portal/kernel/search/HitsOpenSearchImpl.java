@@ -111,13 +111,12 @@ public abstract class HitsOpenSearchImpl extends BaseOpenSearchImpl {
 
 			Hits results = indexer.search(searchContext);
 
-			String[] queryTerms = results.getQueryTerms();
-
 			int total = results.getLength();
 
 			Object[] values = addSearchResults(
-				queryTerms, keywords, startPage, itemsPerPage, total, start,
-				getTitle(keywords), getSearchPath(), format, themeDisplay);
+				results.getQueryTerms(), keywords, startPage, itemsPerPage,
+				total, start, getTitle(keywords), getSearchPath(), format,
+				themeDisplay);
 
 			com.liferay.portal.kernel.xml.Document doc =
 				(com.liferay.portal.kernel.xml.Document)values[0];
@@ -157,12 +156,9 @@ public abstract class HitsOpenSearchImpl extends BaseOpenSearchImpl {
 				Summary summary = getSummary(
 					indexer, result, themeDisplay.getLocale(), snippet);
 
-				String title = summary.getTitle();
-
 				String url = getURL(
 					themeDisplay, resultScopeGroupId, result, portletURL);
 				Date modifiedDate = result.getDate(Field.MODIFIED_DATE);
-				String content = summary.getContent();
 
 				String[] tags = new String[0];
 
@@ -194,8 +190,8 @@ public abstract class HitsOpenSearchImpl extends BaseOpenSearchImpl {
 
 				addSearchResult(
 					root, resultGroupId, resultScopeGroupId, entryClassName,
-					entryClassPK, title, url, modifiedDate, content, tags,
-					ratings, score, format);
+					entryClassPK, summary.getTitle(), url, modifiedDate,
+					summary.getContent(), tags, ratings, score, format);
 			}
 
 			if (_log.isDebugEnabled()) {

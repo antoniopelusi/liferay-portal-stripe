@@ -10,7 +10,7 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {cleanup, render} from '@testing-library/react';
+import {act, cleanup, render} from '@testing-library/react';
 import React from 'react';
 
 import PerformanceByStepPage from '../../../src/main/resources/META-INF/resources/js/components/performance-by-step-page/PerformanceByStepPage.es';
@@ -49,7 +49,7 @@ describe('The performance by step page body should', () => {
 
 	afterEach(cleanup);
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		const renderResult = render(
 			<PerformanceByStepPage.Body
 				{...{items, totalCount: items.length}}
@@ -59,9 +59,13 @@ describe('The performance by step page body should', () => {
 		);
 
 		getAllByRole = renderResult.getAllByRole;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Be rendered with step names', () => {
+	it('Be rendered with step names', () => {
 		const rows = getAllByRole('row');
 
 		expect(rows[1]).toHaveTextContent('Review');
@@ -72,7 +76,7 @@ describe('The performance by step page body should', () => {
 describe('The subcomponents from workload by assignee page body should', () => {
 	afterEach(cleanup);
 
-	test('Be rendered with empty view and no content message', async () => {
+	it('Be rendered with empty view and no content message', async () => {
 		const {getByText} = render(
 			<PerformanceByStepPage.Body items={[]} totalCount={0} />
 		);
@@ -82,7 +86,7 @@ describe('The subcomponents from workload by assignee page body should', () => {
 		expect(emptyStateMessage).toBeTruthy();
 	});
 
-	test('Be rendered with empty view and no results message', async () => {
+	it('Be rendered with empty view and no results message', async () => {
 		const {getByText} = render(
 			<PerformanceByStepPage.Body filtered items={[]} totalCount={0} />
 		);

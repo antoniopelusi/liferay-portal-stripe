@@ -30,6 +30,10 @@ public class AssetVocabularyLocalServiceWrapper
 	implements AssetVocabularyLocalService,
 			   ServiceWrapper<AssetVocabularyLocalService> {
 
+	public AssetVocabularyLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetVocabularyLocalServiceWrapper(
 		AssetVocabularyLocalService assetVocabularyLocalService) {
 
@@ -101,20 +105,6 @@ public class AssetVocabularyLocalServiceWrapper
 			long userId, long groupId, String name, String title,
 			java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
-			String settings, int visibilityType,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _assetVocabularyLocalService.addVocabulary(
-			userId, groupId, name, title, titleMap, descriptionMap, settings,
-			visibilityType, serviceContext);
-	}
-
-	@Override
-	public AssetVocabulary addVocabulary(
-			long userId, long groupId, String name, String title,
-			java.util.Map<java.util.Locale, String> titleMap,
-			java.util.Map<java.util.Locale, String> descriptionMap,
 			String settings,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -122,6 +112,21 @@ public class AssetVocabularyLocalServiceWrapper
 		return _assetVocabularyLocalService.addVocabulary(
 			userId, groupId, name, title, titleMap, descriptionMap, settings,
 			serviceContext);
+	}
+
+	@Override
+	public AssetVocabulary addVocabulary(
+			String externalReferenceCode, long userId, long groupId,
+			String name, String title,
+			java.util.Map<java.util.Locale, String> titleMap,
+			java.util.Map<java.util.Locale, String> descriptionMap,
+			String settings, int visibilityType,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _assetVocabularyLocalService.addVocabulary(
+			externalReferenceCode, userId, groupId, name, title, titleMap,
+			descriptionMap, settings, visibilityType, serviceContext);
 	}
 
 	@Override
@@ -242,6 +247,13 @@ public class AssetVocabularyLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetVocabularyLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _assetVocabularyLocalService.dynamicQuery();
 	}
@@ -338,19 +350,19 @@ public class AssetVocabularyLocalServiceWrapper
 	}
 
 	/**
-	 * Returns the asset vocabulary with the matching external reference code and company.
+	 * Returns the asset vocabulary with the matching external reference code and group.
 	 *
-	 * @param companyId the primary key of the company
+	 * @param groupId the primary key of the group
 	 * @param externalReferenceCode the asset vocabulary's external reference code
 	 * @return the matching asset vocabulary, or <code>null</code> if a matching asset vocabulary could not be found
 	 */
 	@Override
 	public AssetVocabulary fetchAssetVocabularyByExternalReferenceCode(
-		long companyId, String externalReferenceCode) {
+		long groupId, String externalReferenceCode) {
 
 		return _assetVocabularyLocalService.
 			fetchAssetVocabularyByExternalReferenceCode(
-				companyId, externalReferenceCode);
+				groupId, externalReferenceCode);
 	}
 
 	/**
@@ -359,10 +371,10 @@ public class AssetVocabularyLocalServiceWrapper
 	@Deprecated
 	@Override
 	public AssetVocabulary fetchAssetVocabularyByReferenceCode(
-		long companyId, String externalReferenceCode) {
+		long groupId, String externalReferenceCode) {
 
 		return _assetVocabularyLocalService.fetchAssetVocabularyByReferenceCode(
-			companyId, externalReferenceCode);
+			groupId, externalReferenceCode);
 	}
 
 	/**
@@ -472,21 +484,21 @@ public class AssetVocabularyLocalServiceWrapper
 	}
 
 	/**
-	 * Returns the asset vocabulary with the matching external reference code and company.
+	 * Returns the asset vocabulary with the matching external reference code and group.
 	 *
-	 * @param companyId the primary key of the company
+	 * @param groupId the primary key of the group
 	 * @param externalReferenceCode the asset vocabulary's external reference code
 	 * @return the matching asset vocabulary
 	 * @throws PortalException if a matching asset vocabulary could not be found
 	 */
 	@Override
 	public AssetVocabulary getAssetVocabularyByExternalReferenceCode(
-			long companyId, String externalReferenceCode)
+			long groupId, String externalReferenceCode)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _assetVocabularyLocalService.
 			getAssetVocabularyByExternalReferenceCode(
-				companyId, externalReferenceCode);
+				groupId, externalReferenceCode);
 	}
 
 	/**

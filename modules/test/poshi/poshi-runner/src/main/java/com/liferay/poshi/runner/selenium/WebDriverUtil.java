@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -67,9 +68,7 @@ public class WebDriverUtil extends PropsValues {
 	}
 
 	private WebDriver _getChromeDriver() {
-		System.setProperty(
-			"webdriver.chrome.driver",
-			SELENIUM_EXECUTABLE_DIR_NAME + SELENIUM_CHROME_DRIVER_EXECUTABLE);
+		_validateWebDriverBinary("webdriver.chrome.driver", "chromedriver");
 
 		ChromeOptions chromeOptions = new ChromeOptions();
 
@@ -150,9 +149,8 @@ public class WebDriverUtil extends PropsValues {
 
 	private WebDriver _getFirefoxDriver() {
 		System.setProperty("webdriver.firefox.marionette", "false");
-		System.setProperty(
-			"webdriver.gecko.driver",
-			SELENIUM_EXECUTABLE_DIR_NAME + SELENIUM_GECKO_DRIVER_EXECUTABLE);
+
+		_validateWebDriverBinary("webdriver.gecko.driver", "geckodriver");
 
 		FirefoxOptions firefoxOptions = new FirefoxOptions();
 
@@ -232,9 +230,7 @@ public class WebDriverUtil extends PropsValues {
 	}
 
 	private WebDriver _getSafariDriver() {
-		SafariOptions safariOptions = new SafariOptions();
-
-		_setGenericCapabilities(safariOptions);
+		_setGenericCapabilities(new SafariOptions());
 
 		return new SafariDriver();
 	}
@@ -258,6 +254,11 @@ public class WebDriverUtil extends PropsValues {
 				_genericCapabilities.entrySet()) {
 
 			mutableCapabilities.setCapability(entry.getKey(), entry.getValue());
+		}
+
+		if (PropsValues.PROXY_SERVER_ENABLED) {
+			mutableCapabilities.setCapability(
+				CapabilityType.PROXY, ProxyUtil.getSeleniumProxy());
 		}
 	}
 
@@ -325,16 +326,51 @@ public class WebDriverUtil extends PropsValues {
 		_webDriver = null;
 	}
 
+	private void _validateWebDriverBinary(
+		String webDriverBinaryPropertyName, String webDriverBinaryName) {
+
+		if ((SELENIUM_EXECUTABLE_DIR_NAME != null) &&
+			(SELENIUM_CHROME_DRIVER_EXECUTABLE != null)) {
+
+			System.setProperty(
+				webDriverBinaryPropertyName,
+				SELENIUM_EXECUTABLE_DIR_NAME +
+					SELENIUM_CHROME_DRIVER_EXECUTABLE);
+		}
+
+		String webDriverChromeDriverPath = System.getProperty(
+			webDriverBinaryPropertyName);
+
+		if (webDriverChromeDriverPath == null) {
+			throw new RuntimeException(
+				StringUtil.combine(
+					"Please set the system property \"",
+					webDriverBinaryPropertyName, "\" to a valid ",
+					webDriverBinaryName, " binary"));
+		}
+
+		System.out.println(
+			StringUtil.combine(
+				"Using \"", webDriverChromeDriverPath, "\" as \"",
+				webDriverBinaryPropertyName, "\" path"));
+	}
+
 	private static final URL _REMOTE_DRIVER_URL;
 
 	private static final Map<String, Object> _genericCapabilities =
 		new HashMap<String, Object>() {
 			{
 				if (PropsValues.PROXY_SERVER_ENABLED) {
-					put(CapabilityType.PROXY, ProxyUtil.getSeleniumProxy());
+					put(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+					put(CapabilityType.ACCEPT_SSL_CERTS, true);
 				}
+
+				put(
+					CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR,
+					UnexpectedAlertBehaviour.IGNORE);
 			}
 		};
+
 	private static final WebDriverUtil _webDriverUtil = new WebDriverUtil();
 
 	static {

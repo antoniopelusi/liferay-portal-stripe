@@ -99,6 +99,11 @@ public class SamlIdpSsoSessionWrapper
 		}
 	}
 
+	@Override
+	public SamlIdpSsoSession cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this saml idp sso session.
 	 *

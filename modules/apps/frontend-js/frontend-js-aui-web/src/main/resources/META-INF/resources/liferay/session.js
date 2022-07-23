@@ -27,11 +27,15 @@ AUI.add(
 			active: 'activated',
 		};
 
+		const SESSION_STATE_CHECK_INTERVAL = 1000;
+
 		var SRC = {};
 
 		var SRC_EVENT_OBJ = {
 			src: SRC,
 		};
+
+		const TOAST_ID = 'sessionToast';
 
 		var URL_BASE = themeDisplay.getPathMain() + '/portal/';
 
@@ -52,6 +56,10 @@ AUI.add(
 				},
 				sessionState: {
 					value: 'active',
+				},
+				sessionTimeoutOffset: {
+					getter: '_getLengthInMillis',
+					value: 0,
 				},
 				timestamp: {
 					getter: '_getTimestamp',
@@ -94,7 +102,7 @@ AUI.add(
 
 					instance.set('timestamp');
 
-					if (event.src == SRC) {
+					if (event.src === SRC) {
 						Liferay.Util.fetch(URL_BASE + 'extend_session');
 					}
 				},
@@ -103,8 +111,6 @@ AUI.add(
 					var instance = this;
 
 					A.clearInterval(instance._intervalId);
-
-					instance.set('timestamp', 'expired');
 
 					if (event.src === SRC) {
 						instance._expireSession();
@@ -199,10 +205,10 @@ AUI.add(
 					var newVal = event.newVal;
 					var prevVal = event.prevVal;
 
-					if (prevVal == 'expired' && prevVal != newVal) {
+					if (prevVal === 'expired' && prevVal !== newVal) {
 						event.preventDefault();
 					}
-					else if (prevVal == 'active' && prevVal == newVal) {
+					else if (prevVal === 'active' && prevVal === newVal) {
 						instance._afterSessionStateChange(event);
 					}
 				},
@@ -230,100 +236,62 @@ AUI.add(
 				},
 
 				_startTimer() {
-					var instance = this;
+					const instance = this;
 
-					var sessionLength = instance.get('sessionLength');
-					var warningTime = instance.get('warningTime');
-
-					var registered = instance._registered;
-
-					var interval = 1000;
+					const sessionLength = instance.get('sessionLength');
+					const sessionTimeoutOffset = instance.get(
+						'sessionTimeoutOffset'
+					);
+					const warningTime = instance.get('warningTime');
 
 					instance._intervalId = A.setInterval(() => {
-						var sessionState = instance.get('sessionState');
+						const sessionState = instance.get('sessionState');
+						const timestamp = instance.get('timestamp');
 
-						var timeOffset;
+						// LPS-82336 Maintain session state in multiple tabs
 
-						var timestamp = instance.get('timestamp');
+						if (instance._initTimestamp !== timestamp) {
+							instance.set('timestamp', timestamp);
 
-						var elapsed = sessionLength;
-
-						if (Lang.toInt(timestamp)) {
-							timeOffset =
-								Math.floor((Date.now() - timestamp) / 1000) *
-								1000;
-
-							elapsed = timeOffset;
-
-							if (instance._initTimestamp !== timestamp) {
-								instance.set('timestamp', timestamp);
-
-								if (sessionState != 'active') {
-									instance.set(
-										'sessionState',
-										'active',
-										SRC_EVENT_OBJ
-									);
-								}
-							}
-						}
-						else {
-							timestamp = 'expired';
-						}
-
-						var extend = instance.get('autoExtend');
-
-						var expirationMoment = false;
-						var warningMoment = false;
-
-						var hasExpired = elapsed >= sessionLength;
-						var hasWarned = elapsed >= warningTime;
-
-						if (hasWarned) {
-							if (timestamp == 'expired') {
-								expirationMoment = true;
-								extend = false;
-								hasExpired = true;
-							}
-
-							if (hasExpired && sessionState != 'expired') {
-								if (extend) {
-									expirationMoment = false;
-									hasExpired = false;
-									hasWarned = false;
-									warningMoment = false;
-
-									instance.extend();
-								}
-								else {
-									instance.expire();
-
-									expirationMoment = true;
-								}
-							}
-							else if (
-								hasWarned &&
-								!hasExpired &&
-								!extend &&
-								sessionState != 'warned'
-							) {
-								instance.warn();
-
-								warningMoment = true;
+							if (sessionState !== 'active') {
+								instance.set(
+									'sessionState',
+									'active',
+									SRC_EVENT_OBJ
+								);
 							}
 						}
 
-						for (var i in registered) {
-							registered[i](
-								elapsed,
-								interval,
-								hasWarned,
-								hasExpired,
-								warningMoment,
-								expirationMoment
-							);
+						const elapsed =
+							Math.floor((Date.now() - timestamp) / 1000) * 1000;
+
+						const autoExtend = instance.get('autoExtend');
+
+						const hasExpired = elapsed >= sessionLength;
+						const hasExpiredTimeoutOffset =
+							elapsed >= sessionLength - sessionTimeoutOffset;
+						const hasWarned = elapsed >= warningTime;
+
+						if (hasExpired && sessionState !== 'expired') {
+							instance.expire();
 						}
-					}, interval);
+						else if (autoExtend && hasExpiredTimeoutOffset) {
+							instance.extend();
+						}
+						else if (
+							!autoExtend &&
+							hasWarned &&
+							sessionState !== 'warned'
+						) {
+							instance.warn();
+						}
+
+						const registered = instance._registered;
+
+						for (const i in registered) {
+							registered[i](elapsed, hasWarned, hasExpired);
+						}
+					}, SESSION_STATE_CHECK_INTERVAL);
 				},
 
 				_stopTimer() {
@@ -370,6 +338,10 @@ AUI.add(
 					instance._initEvents();
 
 					instance._startTimer();
+
+					Liferay.fire('sessionInitialized', {
+						session: instance,
+					});
 				},
 
 				registerInterval(fn) {
@@ -446,83 +418,64 @@ AUI.add(
 				},
 
 				_beforeHostWarned() {
-					var instance = this;
+					const instance = this;
 
-					var host = instance._host;
+					const host = instance._host;
 
-					var sessionLength = host.get('sessionLength');
-					var timestamp = host.get('timestamp');
-					var warningLength = host.get('warningLength');
+					const sessionLength = host.get('sessionLength');
+					const timestamp = host.get('timestamp');
+					const warningLength = host.get('warningLength');
 
-					var elapsed = sessionLength;
+					let elapsed = sessionLength;
 
 					if (Lang.toInt(timestamp)) {
 						elapsed =
 							Math.floor((Date.now() - timestamp) / 1000) * 1000;
 					}
 
-					var remainingTime = sessionLength - elapsed;
+					let remainingTime = sessionLength - elapsed;
 
 					if (remainingTime > warningLength) {
 						remainingTime = warningLength;
 					}
 
-					var banner = instance._getBanner();
+					instance._getBanner();
 
-					var counterTextNode = banner
-						.one('.countdown-timer')
-						.getDOMNode();
+					const counterTextNode = document.querySelector(
+						`#${TOAST_ID} .countdown-timer`
+					);
 
 					instance._uiSetRemainingTime(
 						remainingTime,
 						counterTextNode
 					);
 
-					banner.show();
-
 					instance._intervalId = host.registerInterval(
-						(
-							elapsed,
-							interval,
-							hasWarned,
-							hasExpired,
-							warningMoment
-						) => {
+						(elapsed, hasWarned, hasExpired) => {
 							if (!hasWarned) {
 								instance._uiSetActivated();
 							}
 							else if (!hasExpired) {
-								if (warningMoment) {
-									if (remainingTime <= 0) {
-										remainingTime = warningLength;
-									}
-
-									banner.show();
-								}
-
-								elapsed =
-									Math.floor(
-										(Date.now() - timestamp) / 1000
-									) * 1000;
-
-								remainingTime = sessionLength - elapsed;
-
 								instance._uiSetRemainingTime(
-									remainingTime,
+									sessionLength - elapsed,
 									counterTextNode
 								);
 							}
-
-							remainingTime -= interval;
 						}
 					);
 				},
 
 				_destroyBanner() {
-					var instance = this;
+					const instance = this;
 
-					if (Lang.isFunction(instance._banner.destroy)) {
-						instance._banner.destroy();
+					const toast = document.getElementById(TOAST_ID);
+
+					const toastRootElement = toast?.parentElement;
+
+					Liferay.destroyComponent(TOAST_ID);
+
+					if (toastRootElement) {
+						toastRootElement.remove();
 					}
 
 					instance._banner = false;
@@ -566,7 +519,6 @@ AUI.add(
 
 					if (!banner) {
 						var openToast = instance.get('openToast');
-						var toastId = 'sessionToast';
 
 						var toastDefaultConfig = {
 							onClick({event}) {
@@ -578,17 +530,12 @@ AUI.add(
 									instance._host.extend();
 								}
 							},
-							onClose({event}) {
-								event.preventDefault();
-
-								A.one(`#${toastId}`).toggleClass('hide', true);
-							},
 							renderData: {
-								componentId: toastId,
+								componentId: TOAST_ID,
 							},
 							toastProps: {
 								autoClose: false,
-								id: toastId,
+								id: TOAST_ID,
 								role: 'alert',
 							},
 						};
@@ -599,20 +546,16 @@ AUI.add(
 							...toastDefaultConfig,
 						});
 
-						var toastComponent = Liferay.component(toastId);
+						var toastComponent = Liferay.component(TOAST_ID);
 
 						banner = {
-							one: A.one(`#${toastId}`).one,
-							setAttrs(attrs) {
-								toastComponent.destroy();
+							open(props) {
+								instance._destroyBanner();
 
 								openToast({
-									...attrs,
+									...props,
 									...toastDefaultConfig,
 								});
-							},
-							show() {
-								A.one(`#${toastId}`).toggleClass('hide', false);
 							},
 							...toastComponent,
 						};
@@ -626,7 +569,7 @@ AUI.add(
 				_onHostSessionStateChange(event) {
 					var instance = this;
 
-					if (event.newVal == 'warned') {
+					if (event.newVal === 'warned') {
 						instance._beforeHostWarned(event);
 					}
 				},
@@ -638,9 +581,7 @@ AUI.add(
 
 					instance._host.unregisterInterval(instance._intervalId);
 
-					var banner = instance._getBanner();
-
-					if (banner) {
+					if (instance._banner) {
 						instance._destroyBanner();
 					}
 				},
@@ -650,7 +591,7 @@ AUI.add(
 
 					var banner = instance._getBanner();
 
-					banner.setAttrs({
+					banner.open({
 						message: instance._expiredText,
 						title: Liferay.Language.get('danger'),
 						type: 'danger',
@@ -701,7 +642,7 @@ AUI.add(
 
 					var host = instance.get('host');
 
-					if (Liferay.Util.getTop() == CONFIG.win) {
+					if (Liferay.Util.getTop() === CONFIG.win) {
 						instance._host = host;
 
 						instance._toggleText = {

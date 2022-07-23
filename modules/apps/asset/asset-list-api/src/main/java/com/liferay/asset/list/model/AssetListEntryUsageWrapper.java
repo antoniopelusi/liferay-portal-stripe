@@ -193,6 +193,11 @@ public class AssetListEntryUsageWrapper
 		}
 	}
 
+	@Override
+	public AssetListEntryUsage cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the asset list entry ID of this asset list entry usage.
 	 *

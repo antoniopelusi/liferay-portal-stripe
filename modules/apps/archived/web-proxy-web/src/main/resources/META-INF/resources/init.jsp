@@ -38,14 +38,14 @@ page import="com.liferay.portal.kernel.util.WebKeys" %>
 
 <%
 String initUrl = portletPreferences.getValue("initUrl", StringPool.BLANK);
-String scope = portletPreferences.getValue("scope", StringPool.BLANK);
+String proxyAuthentication = portletPreferences.getValue("proxyAuthentication", StringPool.BLANK);
+String proxyAuthenticationDomain = portletPreferences.getValue("proxyAuthenticationDomain", StringPool.BLANK);
+String proxyAuthenticationHost = portletPreferences.getValue("proxyAuthenticationHost", StringPool.BLANK);
+String proxyAuthenticationPassword = portletPreferences.getValue("proxyAuthenticationPassword", StringPool.BLANK);
+String proxyAuthenticationUsername = portletPreferences.getValue("proxyAuthenticationUsername", StringPool.BLANK);
 String proxyHost = portletPreferences.getValue("proxyHost", StringPool.BLANK);
 String proxyPort = portletPreferences.getValue("proxyPort", StringPool.BLANK);
-String proxyAuthentication = portletPreferences.getValue("proxyAuthentication", StringPool.BLANK);
-String proxyAuthenticationUsername = portletPreferences.getValue("proxyAuthenticationUsername", StringPool.BLANK);
-String proxyAuthenticationPassword = portletPreferences.getValue("proxyAuthenticationPassword", StringPool.BLANK);
-String proxyAuthenticationHost = portletPreferences.getValue("proxyAuthenticationHost", StringPool.BLANK);
-String proxyAuthenticationDomain = portletPreferences.getValue("proxyAuthenticationDomain", StringPool.BLANK);
+String scope = portletPreferences.getValue("scope", StringPool.BLANK);
 String stylesheet = portletPreferences.getValue("stylesheet", StringPool.BLANK);
 %>
 

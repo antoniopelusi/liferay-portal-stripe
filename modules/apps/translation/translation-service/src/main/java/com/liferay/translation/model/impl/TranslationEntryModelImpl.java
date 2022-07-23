@@ -30,25 +30,23 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.translation.model.TranslationEntry;
 import com.liferay.translation.model.TranslationEntryModel;
-import com.liferay.translation.model.TranslationEntrySoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -188,69 +186,6 @@ public class TranslationEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static TranslationEntry toModel(TranslationEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		TranslationEntry model = new TranslationEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setTranslationEntryId(soapModel.getTranslationEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setContent(soapModel.getContent());
-		model.setContentType(soapModel.getContentType());
-		model.setLanguageId(soapModel.getLanguageId());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<TranslationEntry> toModels(
-		TranslationEntrySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<TranslationEntry> models = new ArrayList<TranslationEntry>(
-			soapModels.length);
-
-		for (TranslationEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public TranslationEntryModelImpl() {
 	}
 
@@ -334,34 +269,6 @@ public class TranslationEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, TranslationEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			TranslationEntry.class.getClassLoader(), TranslationEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<TranslationEntry> constructor =
-				(Constructor<TranslationEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<TranslationEntry, Object>>
@@ -1082,6 +989,52 @@ public class TranslationEntryModelImpl
 	}
 
 	@Override
+	public TranslationEntry cloneWithOriginalValues() {
+		TranslationEntryImpl translationEntryImpl = new TranslationEntryImpl();
+
+		translationEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		translationEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		translationEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		translationEntryImpl.setTranslationEntryId(
+			this.<Long>getColumnOriginalValue("translationEntryId"));
+		translationEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		translationEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		translationEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		translationEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		translationEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		translationEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		translationEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		translationEntryImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		translationEntryImpl.setContent(
+			this.<String>getColumnOriginalValue("content"));
+		translationEntryImpl.setContentType(
+			this.<String>getColumnOriginalValue("contentType"));
+		translationEntryImpl.setLanguageId(
+			this.<String>getColumnOriginalValue("languageId"));
+		translationEntryImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		translationEntryImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		translationEntryImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		translationEntryImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return translationEntryImpl;
+	}
+
+	@Override
 	public int compareTo(TranslationEntry translationEntry) {
 		long primaryKey = translationEntry.getPrimaryKey();
 
@@ -1259,7 +1212,7 @@ public class TranslationEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1270,9 +1223,27 @@ public class TranslationEntryModelImpl
 			Function<TranslationEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((TranslationEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(TranslationEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1319,7 +1290,9 @@ public class TranslationEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, TranslationEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					TranslationEntry.class, ModelWrapper.class);
 
 	}
 

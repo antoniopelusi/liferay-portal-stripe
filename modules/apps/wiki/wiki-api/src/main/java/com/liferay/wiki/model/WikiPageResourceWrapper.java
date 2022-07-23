@@ -97,6 +97,11 @@ public class WikiPageResourceWrapper
 		}
 	}
 
+	@Override
+	public WikiPageResource cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this wiki page resource.
 	 *

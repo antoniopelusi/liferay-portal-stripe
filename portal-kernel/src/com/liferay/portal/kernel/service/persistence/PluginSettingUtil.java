@@ -14,7 +14,6 @@
 
 package com.liferay.portal.kernel.service.persistence;
 
-import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.model.PluginSetting;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -301,12 +300,12 @@ public class PluginSettingUtil {
 	 * @return the matching plugin setting
 	 * @throws NoSuchPluginSettingException if a matching plugin setting could not be found
 	 */
-	public static PluginSetting findByC_I_T(
+	public static PluginSetting findByC_P_P(
 			long companyId, String pluginId, String pluginType)
 		throws com.liferay.portal.kernel.exception.
 			NoSuchPluginSettingException {
 
-		return getPersistence().findByC_I_T(companyId, pluginId, pluginType);
+		return getPersistence().findByC_P_P(companyId, pluginId, pluginType);
 	}
 
 	/**
@@ -317,10 +316,10 @@ public class PluginSettingUtil {
 	 * @param pluginType the plugin type
 	 * @return the matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
 	 */
-	public static PluginSetting fetchByC_I_T(
+	public static PluginSetting fetchByC_P_P(
 		long companyId, String pluginId, String pluginType) {
 
-		return getPersistence().fetchByC_I_T(companyId, pluginId, pluginType);
+		return getPersistence().fetchByC_P_P(companyId, pluginId, pluginType);
 	}
 
 	/**
@@ -332,11 +331,11 @@ public class PluginSettingUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
 	 */
-	public static PluginSetting fetchByC_I_T(
+	public static PluginSetting fetchByC_P_P(
 		long companyId, String pluginId, String pluginType,
 		boolean useFinderCache) {
 
-		return getPersistence().fetchByC_I_T(
+		return getPersistence().fetchByC_P_P(
 			companyId, pluginId, pluginType, useFinderCache);
 	}
 
@@ -348,12 +347,12 @@ public class PluginSettingUtil {
 	 * @param pluginType the plugin type
 	 * @return the plugin setting that was removed
 	 */
-	public static PluginSetting removeByC_I_T(
+	public static PluginSetting removeByC_P_P(
 			long companyId, String pluginId, String pluginType)
 		throws com.liferay.portal.kernel.exception.
 			NoSuchPluginSettingException {
 
-		return getPersistence().removeByC_I_T(companyId, pluginId, pluginType);
+		return getPersistence().removeByC_P_P(companyId, pluginId, pluginType);
 	}
 
 	/**
@@ -364,10 +363,10 @@ public class PluginSettingUtil {
 	 * @param pluginType the plugin type
 	 * @return the number of matching plugin settings
 	 */
-	public static int countByC_I_T(
+	public static int countByC_P_P(
 		long companyId, String pluginId, String pluginType) {
 
-		return getPersistence().countByC_I_T(companyId, pluginId, pluginType);
+		return getPersistence().countByC_P_P(companyId, pluginId, pluginType);
 	}
 
 	/**
@@ -521,15 +520,9 @@ public class PluginSettingUtil {
 	}
 
 	public static PluginSettingPersistence getPersistence() {
-		if (_persistence == null) {
-			_persistence =
-				(PluginSettingPersistence)PortalBeanLocatorUtil.locate(
-					PluginSettingPersistence.class.getName());
-		}
-
 		return _persistence;
 	}
 
-	private static PluginSettingPersistence _persistence;
+	private static volatile PluginSettingPersistence _persistence;
 
 }

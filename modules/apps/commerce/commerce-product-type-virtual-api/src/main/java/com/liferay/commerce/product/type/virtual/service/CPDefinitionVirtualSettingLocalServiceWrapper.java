@@ -27,6 +27,10 @@ public class CPDefinitionVirtualSettingLocalServiceWrapper
 	implements CPDefinitionVirtualSettingLocalService,
 			   ServiceWrapper<CPDefinitionVirtualSettingLocalService> {
 
+	public CPDefinitionVirtualSettingLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CPDefinitionVirtualSettingLocalServiceWrapper(
 		CPDefinitionVirtualSettingLocalService
 			cpDefinitionVirtualSettingLocalService) {
@@ -209,6 +213,13 @@ public class CPDefinitionVirtualSettingLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cpDefinitionVirtualSettingLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cpDefinitionVirtualSettingLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

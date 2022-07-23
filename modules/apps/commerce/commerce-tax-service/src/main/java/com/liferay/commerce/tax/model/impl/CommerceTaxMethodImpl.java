@@ -18,8 +18,4 @@ package com.liferay.commerce.tax.model.impl;
  * @author Marco Leo
  */
 public class CommerceTaxMethodImpl extends CommerceTaxMethodBaseImpl {
-
-	public CommerceTaxMethodImpl() {
-	}
-
 }

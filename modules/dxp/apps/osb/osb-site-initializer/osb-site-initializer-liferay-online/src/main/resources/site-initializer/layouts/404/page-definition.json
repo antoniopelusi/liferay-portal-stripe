@@ -1,0 +1,73 @@
+{
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"fragment": {
+						"key": "BASIC_COMPONENT-heading"
+					},
+					"fragmentConfig": {
+						"headingLevel": "h1"
+					},
+					"fragmentFields": [
+						{
+							"id": "element-text",
+							"value": {
+								"fragmentLink": {
+									"value_i18n": {
+									}
+								},
+								"text": {
+									"value_i18n": {
+										"en_US": "404"
+									}
+								}
+							}
+						}
+					],
+					"fragmentStyle": {
+						"marginBottom": "3",
+						"textAlign": "center"
+					}
+				},
+				"type": "Fragment"
+			},
+			{
+				"definition": {
+					"fragment": {
+						"key": "BASIC_COMPONENT-paragraph"
+					},
+					"fragmentConfig": {
+					},
+					"fragmentFields": [
+						{
+							"id": "element-text",
+							"value": {
+								"fragmentLink": {
+									"value_i18n": {
+									}
+								},
+								"text": {
+									"value_i18n": {
+										"en_US": "Page not found, try to use our navigation menus"
+									}
+								}
+							}
+						}
+					],
+					"fragmentStyle": {
+						"marginBottom": "3",
+						"textAlign": "center"
+					}
+				},
+				"type": "Fragment"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "main"
+		}
+	}
+}

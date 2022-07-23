@@ -18,6 +18,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 
 import java.sql.PreparedStatement;
@@ -34,36 +35,46 @@ public abstract class BaseAdminPortletsUpgradeProcess extends UpgradeProcess {
 			String primKey, long roleId, long actionIds)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
-				"insert into ResourcePermission (resourcePermissionId, " +
-					"companyId, name, scope, primKey, roleId, actionIds) " +
-						"values (?, ?, ?, ?, ?, ?, ?)")) {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into ResourcePermission (resourcePermissionId, ",
+					"companyId, name, scope, primKey, primKeyId, roleId, ",
+					"actionIds, viewActionId) values (?, ?, ?, ?, ?, ?, ?, ?, ",
+					"?)"))) {
 
-			ps.setLong(1, resourcePermissionId);
-			ps.setLong(2, companyId);
-			ps.setString(3, name);
-			ps.setInt(4, scope);
-			ps.setString(5, primKey);
-			ps.setLong(6, roleId);
-			ps.setLong(7, actionIds);
+			boolean viewActionId = false;
 
-			ps.executeUpdate();
+			if ((actionIds % 2) == 1) {
+				viewActionId = true;
+			}
+
+			preparedStatement.setLong(1, resourcePermissionId);
+			preparedStatement.setLong(2, companyId);
+			preparedStatement.setString(3, name);
+			preparedStatement.setInt(4, scope);
+			preparedStatement.setString(5, primKey);
+			preparedStatement.setLong(6, GetterUtil.getLong(primKey));
+			preparedStatement.setLong(7, roleId);
+			preparedStatement.setLong(8, actionIds);
+			preparedStatement.setBoolean(9, viewActionId);
+
+			preparedStatement.executeUpdate();
 		}
 	}
 
 	protected long getBitwiseValue(String name, String actionId)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select bitwiseValue from ResourceAction where name = ? and " +
 					"actionId = ?")) {
 
-			ps.setString(1, name);
-			ps.setString(2, actionId);
+			preparedStatement.setString(1, name);
+			preparedStatement.setString(2, actionId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getLong("bitwiseValue");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getLong("bitwiseValue");
 				}
 
 				return 0;
@@ -72,13 +83,13 @@ public abstract class BaseAdminPortletsUpgradeProcess extends UpgradeProcess {
 	}
 
 	protected long getControlPanelGroupId() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select groupId from Group_ where name = '" +
 					GroupConstants.CONTROL_PANEL + "'");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			if (rs.next()) {
-				return rs.getLong("groupId");
+			if (resultSet.next()) {
+				return resultSet.getLong("groupId");
 			}
 
 			return 0;
@@ -93,14 +104,15 @@ public abstract class BaseAdminPortletsUpgradeProcess extends UpgradeProcess {
 			long bitwiseValue = getBitwiseValue(
 				portletFrom, ActionKeys.ACCESS_IN_CONTROL_PANEL);
 
-			try (PreparedStatement ps = connection.prepareStatement(
-					"select * from ResourcePermission where name = ?")) {
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select * from ResourcePermission where name = ?")) {
 
-				ps.setString(1, portletFrom);
+				preparedStatement.setString(1, portletFrom);
 
-				try (ResultSet rs = ps.executeQuery()) {
-					while (rs.next()) {
-						long actionIds = rs.getLong("actionIds");
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					while (resultSet.next()) {
+						long actionIds = resultSet.getLong("actionIds");
 
 						if ((actionIds & bitwiseValue) == 0) {
 							continue;
@@ -108,7 +120,7 @@ public abstract class BaseAdminPortletsUpgradeProcess extends UpgradeProcess {
 
 						actionIds = actionIds & ~bitwiseValue;
 
-						long resourcePermissionId = rs.getLong(
+						long resourcePermissionId = resultSet.getLong(
 							"resourcePermissionId");
 
 						runSQL(
@@ -120,12 +132,12 @@ public abstract class BaseAdminPortletsUpgradeProcess extends UpgradeProcess {
 						resourcePermissionId = increment(
 							ResourcePermission.class.getName());
 
-						long companyId = rs.getLong("companyId");
-						int scope = rs.getInt("scope");
-						String primKey = rs.getString("primKey");
-						long roleId = rs.getLong("roleId");
+						long companyId = resultSet.getLong("companyId");
+						int scope = resultSet.getInt("scope");
+						String primKey = resultSet.getString("primKey");
+						long roleId = resultSet.getLong("roleId");
 
-						actionIds = rs.getLong("actionIds");
+						actionIds = resultSet.getLong("actionIds");
 
 						actionIds |= bitwiseValue;
 

@@ -199,6 +199,11 @@ public class DLFileShortcutWrapper
 		return model.buildTreePath();
 	}
 
+	@Override
+	public DLFileShortcut cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this document library file shortcut.
 	 *

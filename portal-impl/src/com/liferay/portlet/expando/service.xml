@@ -12,6 +12,7 @@
 		<!-- Audit fields -->
 
 		<column name="companyId" type="long" />
+		<column name="modifiedDate" type="Date" />
 
 		<!-- Other fields -->
 
@@ -36,10 +37,6 @@
 			<finder-column name="tableId" />
 			<finder-column arrayable-operator="OR" name="name" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="SystemEvent" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="ExpandoRow" remote-service="false">
 

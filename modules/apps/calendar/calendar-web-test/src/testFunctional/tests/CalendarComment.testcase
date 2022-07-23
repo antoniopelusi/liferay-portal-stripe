@@ -3,7 +3,7 @@ definition {
 
 	property custom.properties = "default.layout.template.id=1_column${line.separator}company.default.time.zone=America/Los_Angeles";
 	property portal.release = "true";
-	property portal.upstream = "quarantine";
+	property portal.upstream = "true";
 	property testray.main.component.name = "Calendar";
 
 	var pageName = "Calendar Page";
@@ -18,14 +18,13 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Calendar Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Calendar Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Calendar Page");
@@ -62,7 +61,7 @@ definition {
 
 			CalendarConfiguration.tearDown();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -93,10 +92,9 @@ definition {
 			user = "Test Test");
 	}
 
+	@ignore = "true"
 	@priority = "4"
 	test AddToEventRegular {
-		property portal.acceptance = "true";
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		CalendarNavigator.gotoAddEvent();
@@ -122,6 +120,7 @@ definition {
 			user = "Test Test");
 	}
 
+	@ignore = "true"
 	@priority = "3"
 	test AddToEventRepeating {
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");

@@ -48,9 +48,6 @@ public class DLFileShortcutUADExporterTest
 	public static final AggregateTestRule aggregateTestRule =
 		new LiferayIntegrationTestRule();
 
-	public DLFileShortcutUADExporterTest() {
-	}
-
 	@Override
 	public DLFileShortcut addBaseModelWithStatusByUserId(
 			long userId, long statusByUserId)

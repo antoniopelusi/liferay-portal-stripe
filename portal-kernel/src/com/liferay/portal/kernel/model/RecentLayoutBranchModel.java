@@ -181,4 +181,7 @@ public interface RecentLayoutBranchModel
 	 */
 	public void setPlid(long plid);
 
+	@Override
+	public RecentLayoutBranch cloneWithOriginalValues();
+
 }

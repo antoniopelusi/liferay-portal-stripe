@@ -37,13 +37,54 @@ public class DDMFormInstanceSettingsUpgradeProcess extends UpgradeProcess {
 		_jsonFactory = jsonFactory;
 	}
 
-	protected String addNewSetting(
+	@Override
+	protected void doUpgrade() throws Exception {
+		String sql = "select formInstanceId, settings_ from DDMFormInstance";
+
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				sql);
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					"update DDMFormInstance set settings_ = ? where " +
+						"formInstanceId = ?")) {
+
+			while (resultSet.next()) {
+				String settings = resultSet.getString("settings_");
+
+				if (Validator.isNotNull(settings)) {
+					JSONObject settingsJSONObject =
+						_jsonFactory.createJSONObject(settings);
+
+					_addNewSetting(
+						settingsJSONObject, "autosaveEnabled", "true");
+					_addNewSetting(
+						settingsJSONObject, "requireAuthentication", "false");
+
+					_updateSettings(settingsJSONObject);
+
+					preparedStatement2.setString(
+						1, settingsJSONObject.toJSONString());
+
+					preparedStatement2.setLong(
+						2, resultSet.getLong("formInstanceId"));
+
+					preparedStatement2.addBatch();
+				}
+			}
+
+			preparedStatement2.executeBatch();
+		}
+	}
+
+	private String _addNewSetting(
 		JSONObject settingsJSONObject, String propertyName, String value) {
 
 		JSONArray fieldValuesJSONArray = settingsJSONObject.getJSONArray(
 			"fieldValues");
 
-		JSONObject settingJSONObject = createSettingJSONObject(
+		JSONObject settingJSONObject = _createSettingJSONObject(
 			propertyName, value);
 
 		fieldValuesJSONArray.put(settingJSONObject);
@@ -53,7 +94,7 @@ public class DDMFormInstanceSettingsUpgradeProcess extends UpgradeProcess {
 		return settingsJSONObject.toJSONString();
 	}
 
-	protected void convertToJSONArrayValue(
+	private void _convertToJSONArrayValue(
 		JSONObject fieldJSONObject, String defaultValue) {
 
 		JSONArray valueJSONArray = _jsonFactory.createJSONArray();
@@ -63,7 +104,7 @@ public class DDMFormInstanceSettingsUpgradeProcess extends UpgradeProcess {
 		fieldJSONObject.put("value", valueJSONArray);
 	}
 
-	protected JSONObject createSettingJSONObject(
+	private JSONObject _createSettingJSONObject(
 		String propertyName, String value) {
 
 		JSONObject settingJSONObject = _jsonFactory.createJSONObject();
@@ -79,45 +120,7 @@ public class DDMFormInstanceSettingsUpgradeProcess extends UpgradeProcess {
 		return settingJSONObject;
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		String sql = "select formInstanceId, settings_ from DDMFormInstance";
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sql);
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 =
-				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection,
-					"update DDMFormInstance set settings_ = ? where " +
-						"formInstanceId = ?")) {
-
-			while (rs.next()) {
-				String settings = rs.getString("settings_");
-
-				if (Validator.isNotNull(settings)) {
-					JSONObject settingsJSONObject =
-						_jsonFactory.createJSONObject(settings);
-
-					addNewSetting(
-						settingsJSONObject, "autosaveEnabled", "true");
-					addNewSetting(
-						settingsJSONObject, "requireAuthentication", "false");
-
-					updateSettings(settingsJSONObject);
-
-					ps2.setString(1, settingsJSONObject.toJSONString());
-
-					ps2.setLong(2, rs.getLong("formInstanceId"));
-
-					ps2.addBatch();
-				}
-			}
-
-			ps2.executeBatch();
-		}
-	}
-
-	protected JSONObject getFieldValueJSONObject(
+	private JSONObject _getFieldValueJSONObject(
 		String fieldName, JSONArray fieldValuesJSONArray) {
 
 		for (int i = 0; i < fieldValuesJSONArray.length(); i++) {
@@ -131,15 +134,16 @@ public class DDMFormInstanceSettingsUpgradeProcess extends UpgradeProcess {
 		return _jsonFactory.createJSONObject();
 	}
 
-	protected void updateSettings(JSONObject settingsJSONObject) {
+	private void _updateSettings(JSONObject settingsJSONObject) {
 		JSONArray fieldValuesJSONArray = settingsJSONObject.getJSONArray(
 			"fieldValues");
 
-		convertToJSONArrayValue(
-			getFieldValueJSONObject("storageType", fieldValuesJSONArray),
+		_convertToJSONArrayValue(
+			_getFieldValueJSONObject("storageType", fieldValuesJSONArray),
 			"json");
-		convertToJSONArrayValue(
-			getFieldValueJSONObject("workflowDefinition", fieldValuesJSONArray),
+		_convertToJSONArrayValue(
+			_getFieldValueJSONObject(
+				"workflowDefinition", fieldValuesJSONArray),
 			"no-workflow");
 	}
 

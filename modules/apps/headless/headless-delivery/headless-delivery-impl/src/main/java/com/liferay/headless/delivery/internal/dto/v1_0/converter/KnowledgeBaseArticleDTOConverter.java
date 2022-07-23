@@ -21,9 +21,9 @@ import com.liferay.asset.kernel.service.AssetLinkLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.headless.delivery.dto.v1_0.KnowledgeBaseArticle;
 import com.liferay.headless.delivery.dto.v1_0.TaxonomyCategoryBrief;
+import com.liferay.headless.delivery.dto.v1_0.util.CreatorUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.AggregateRatingUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CreatorUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.ParentKnowledgeBaseFolderUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.RelatedContentUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.TaxonomyCategoryBriefUtil;
@@ -92,6 +92,7 @@ public class KnowledgeBaseArticleDTOConverter
 				dateModified = kbArticle.getModifiedDate();
 				description = kbArticle.getDescription();
 				encodingFormat = "text/html";
+				externalReferenceCode = kbArticle.getExternalReferenceCode();
 				friendlyUrlPath = kbArticle.getUrlTitle();
 				id = kbArticle.getResourcePrimKey();
 				keywords = ListUtil.toArray(
@@ -109,6 +110,8 @@ public class KnowledgeBaseArticleDTOConverter
 					_kbArticleService.getKBArticlesCount(
 						kbArticle.getGroupId(), kbArticle.getResourcePrimKey(),
 						WorkflowConstants.STATUS_APPROVED);
+				parentKnowledgeBaseArticleId =
+					kbArticle.getParentResourcePrimKey();
 				parentKnowledgeBaseFolderId = kbArticle.getKbFolderId();
 				relatedContents = RelatedContentUtil.toRelatedContents(
 					_assetEntryLocalService, _assetLinkLocalService,

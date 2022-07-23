@@ -39,26 +39,27 @@ public class CompoundSessionIdServletRequest
 
 	@Override
 	public HttpSession getSession(boolean create) {
-		HttpSession session = super.getSession(create);
+		HttpSession httpSession = super.getSession(create);
 
-		if (session == null) {
-			return session;
+		if (httpSession == null) {
+			return httpSession;
 		}
 
-		return _getCompoundSessionIdHttpSession(session);
+		return _getCompoundSessionIdHttpSession(httpSession);
 	}
 
 	private CompoundSessionIdHttpSession _getCompoundSessionIdHttpSession(
-		HttpSession session) {
+		HttpSession httpSession) {
 
 		if ((_compoundSessionIdHttpSession != null) &&
-			(session == _compoundSessionIdHttpSession.getWrappedSession())) {
+			(httpSession ==
+				_compoundSessionIdHttpSession.getWrappedSession())) {
 
 			return _compoundSessionIdHttpSession;
 		}
 
 		_compoundSessionIdHttpSession = new CompoundSessionIdHttpSession(
-			session);
+			httpSession);
 
 		return _compoundSessionIdHttpSession;
 	}

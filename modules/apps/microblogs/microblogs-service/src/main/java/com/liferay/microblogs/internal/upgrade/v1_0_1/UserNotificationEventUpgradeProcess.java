@@ -31,35 +31,35 @@ public class UserNotificationEventUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeNotifications();
+		_upgradeNotifications();
 	}
 
-	protected void updateNotification(
+	private void _updateNotification(
 			long userNotificationEventId, JSONObject jsonObject)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update UserNotificationEvent set payload = ? where " +
 					"userNotificationEventId = ?")) {
 
-			ps.setString(1, jsonObject.toString());
-			ps.setLong(2, userNotificationEventId);
+			preparedStatement.setString(1, jsonObject.toString());
+			preparedStatement.setLong(2, userNotificationEventId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void upgradeNotifications() throws Exception {
+	private void _upgradeNotifications() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select userNotificationEventId, payload from " +
 					"UserNotificationEvent where type_ = ?")) {
 
-			ps.setString(1, MicroblogsPortletKeys.MICROBLOGS);
+			preparedStatement.setString(1, MicroblogsPortletKeys.MICROBLOGS);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					String payload = rs.getString("payload");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					String payload = resultSet.getString("payload");
 
 					JSONObject payloadJSONObject =
 						JSONFactoryUtil.createJSONObject(payload);
@@ -71,14 +71,14 @@ public class UserNotificationEventUpgradeProcess extends UpgradeProcess {
 						return;
 					}
 
-					long userNotificationEventId = rs.getLong(
+					long userNotificationEventId = resultSet.getLong(
 						"userNotificationEventId");
 
 					payloadJSONObject.put(
 						"notificationType",
 						MicroblogsEntryConstants.NOTIFICATION_TYPE_REPLY);
 
-					updateNotification(
+					_updateNotification(
 						userNotificationEventId, payloadJSONObject);
 				}
 			}

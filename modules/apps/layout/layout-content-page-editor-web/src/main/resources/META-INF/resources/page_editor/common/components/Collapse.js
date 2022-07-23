@@ -17,9 +17,12 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 
+import './Collapse.scss';
+
 export default function Collapse({children, label, open}) {
 	const [isOpen, setIsOpen] = useState(open);
-	const collapseIcon = isOpen ? 'angle-down-small' : 'angle-right-small';
+	const collapseIcon = isOpen ? 'angle-down' : 'angle-right';
+
 	const collapseIconClassName = isOpen ? 'open' : 'closed';
 
 	useEffect(() => {
@@ -33,8 +36,7 @@ export default function Collapse({children, label, open}) {
 	return (
 		<div
 			className={classNames(
-				'panel-group-flush',
-				'page-editor__collapse panel-group'
+				'panel-group panel-group-flush page-editor__collapse'
 			)}
 		>
 			<button
@@ -49,9 +51,11 @@ export default function Collapse({children, label, open}) {
 					}
 				)}
 				onClick={handleClick}
+				type="button"
 			>
-				<span className="c-inner ellipsis" tabIndex="-1">
+				<span className="c-inner text-truncate" tabIndex="-1">
 					{label}
+
 					<span className={`collapse-icon-${collapseIconClassName}`}>
 						<ClayIcon key={collapseIcon} symbol={collapseIcon} />
 					</span>

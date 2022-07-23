@@ -16,12 +16,17 @@ package com.liferay.headless.delivery.internal.dto.v1_0.mapper;
 
 import com.liferay.headless.delivery.dto.v1_0.FragmentInlineValue;
 import com.liferay.headless.delivery.dto.v1_0.FragmentLink;
+import com.liferay.headless.delivery.dto.v1_0.HtmlProperties;
 import com.liferay.headless.delivery.dto.v1_0.Layout;
 import com.liferay.headless.delivery.dto.v1_0.PageElement;
 import com.liferay.headless.delivery.dto.v1_0.PageSectionDefinition;
 import com.liferay.headless.delivery.internal.dto.v1_0.mapper.util.FragmentMappedValueUtil;
+import com.liferay.headless.delivery.internal.dto.v1_0.mapper.util.LocalizedValueUtil;
 import com.liferay.layout.page.template.util.AlignConverter;
 import com.liferay.layout.page.template.util.BorderRadiusConverter;
+import com.liferay.layout.page.template.util.ContentDisplayConverter;
+import com.liferay.layout.page.template.util.FlexWrapConverter;
+import com.liferay.layout.page.template.util.HtmlTagConverter;
 import com.liferay.layout.page.template.util.JustifyConverter;
 import com.liferay.layout.page.template.util.MarginConverter;
 import com.liferay.layout.page.template.util.PaddingConverter;
@@ -29,6 +34,7 @@ import com.liferay.layout.page.template.util.ShadowConverter;
 import com.liferay.layout.util.structure.ContainerStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -62,6 +68,8 @@ public class ContainerLayoutStructureItemMapper
 							containerStyledLayoutStructureItem.
 								getLinkJSONObject(),
 							saveMappingConfiguration);
+						indexed =
+							containerStyledLayoutStructureItem.isIndexed();
 						layout = _toLayout(containerStyledLayoutStructureItem);
 
 						setFragmentStyle(
@@ -75,16 +83,13 @@ public class ContainerLayoutStructureItemMapper
 										"styles"),
 									saveMappingConfiguration);
 							});
-
 						setFragmentViewports(
-							() -> {
-								JSONObject itemConfigJSONObject =
-									containerStyledLayoutStructureItem.
-										getItemConfigJSONObject();
-
-								return getFragmentViewPorts(
-									itemConfigJSONObject);
-							});
+							() -> getFragmentViewPorts(
+								containerStyledLayoutStructureItem.
+									getItemConfigJSONObject()));
+						setHtmlProperties(
+							() -> _toHtmlProperties(
+								containerStyledLayoutStructureItem));
 					}
 				};
 				type = Type.SECTION;
@@ -119,7 +124,9 @@ public class ContainerLayoutStructureItemMapper
 
 						return new FragmentInlineValue() {
 							{
-								value = jsonObject.getString("href");
+								value_i18n =
+									LocalizedValueUtil.toLocalizedValues(
+										jsonObject.getJSONObject("href"));
 							}
 						};
 					});
@@ -145,43 +152,41 @@ public class ContainerLayoutStructureItemMapper
 		};
 	}
 
+	private HtmlProperties _toHtmlProperties(
+		ContainerStyledLayoutStructureItem containerStyledLayoutStructureItem) {
+
+		String value = containerStyledLayoutStructureItem.getHtmlTag();
+
+		if (Validator.isNull(value)) {
+			return null;
+		}
+
+		return new HtmlProperties() {
+			{
+				setHtmlTag(
+					() -> HtmlTag.create(
+						HtmlTagConverter.convertToExternalValue(value)));
+			}
+		};
+	}
+
 	private Layout _toLayout(
 		ContainerStyledLayoutStructureItem containerStyledLayoutStructureItem) {
 
 		return new Layout() {
 			{
-				align = Align.create(
-					AlignConverter.convertToExternalValue(
-						containerStyledLayoutStructureItem.getAlign()));
-				borderRadius = BorderRadius.create(
-					BorderRadiusConverter.convertToExternalValue(
-						containerStyledLayoutStructureItem.getBorderRadius()));
-				borderWidth =
-					containerStyledLayoutStructureItem.getBorderWidth();
-				justify = Justify.create(
-					JustifyConverter.convertToExternalValue(
-						containerStyledLayoutStructureItem.getJustify()));
-				marginBottom = MarginConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getMarginBottom());
-				marginLeft = MarginConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getMarginLeft());
-				marginRight = MarginConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getMarginRight());
-				marginTop = MarginConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getMarginTop());
-				opacity = containerStyledLayoutStructureItem.getOpacity();
-				paddingBottom = PaddingConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getPaddingBottom());
-				paddingLeft = PaddingConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getPaddingLeft());
-				paddingRight = PaddingConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getPaddingRight());
-				paddingTop = PaddingConverter.convertToExternalValue(
-					containerStyledLayoutStructureItem.getPaddingTop());
-				shadow = Shadow.create(
-					ShadowConverter.convertToExternalValue(
-						containerStyledLayoutStructureItem.getShadow()));
+				setAlign(
+					() -> {
+						String align =
+							containerStyledLayoutStructureItem.getAlign();
 
+						if (Validator.isNull(align)) {
+							return null;
+						}
+
+						return Align.create(
+							AlignConverter.convertToExternalValue(align));
+					});
 				setBorderColor(
 					() -> {
 						String borderColor =
@@ -192,6 +197,31 @@ public class ContainerLayoutStructureItemMapper
 						}
 
 						return borderColor;
+					});
+				setBorderRadius(
+					() -> {
+						String borderRadius =
+							containerStyledLayoutStructureItem.
+								getBorderRadius();
+
+						if (Validator.isNull(borderRadius)) {
+							return null;
+						}
+
+						return BorderRadius.create(
+							BorderRadiusConverter.convertToExternalValue(
+								borderRadius));
+					});
+				setBorderWidth(
+					() -> {
+						String borderWidth =
+							containerStyledLayoutStructureItem.getBorderWidth();
+
+						if (Validator.isNull(borderWidth)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(borderWidth);
 					});
 				setContentDisplay(
 					() -> {
@@ -204,7 +234,160 @@ public class ContainerLayoutStructureItemMapper
 						}
 
 						return ContentDisplay.create(
-							StringUtil.upperCaseFirstLetter(contentDisplay));
+							ContentDisplayConverter.convertToExternalValue(
+								contentDisplay));
+					});
+				setFlexWrap(
+					() -> {
+						String flexWrap =
+							containerStyledLayoutStructureItem.getFlexWrap();
+
+						if (Validator.isNull(flexWrap)) {
+							return null;
+						}
+
+						return FlexWrap.create(
+							FlexWrapConverter.convertToExternalValue(flexWrap));
+					});
+				setJustify(
+					() -> {
+						String justify =
+							containerStyledLayoutStructureItem.getJustify();
+
+						if (Validator.isNull(justify)) {
+							return null;
+						}
+
+						return Justify.create(
+							JustifyConverter.convertToExternalValue(justify));
+					});
+				setMarginBottom(
+					() -> {
+						String marginBottom =
+							containerStyledLayoutStructureItem.
+								getMarginBottom();
+
+						if (Validator.isNull(marginBottom)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							MarginConverter.convertToExternalValue(
+								marginBottom));
+					});
+				setMarginLeft(
+					() -> {
+						String marginLeft =
+							containerStyledLayoutStructureItem.getMarginLeft();
+
+						if (Validator.isNull(marginLeft)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							MarginConverter.convertToExternalValue(marginLeft));
+					});
+				setMarginRight(
+					() -> {
+						String marginRight =
+							containerStyledLayoutStructureItem.getMarginRight();
+
+						if (Validator.isNull(marginRight)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							MarginConverter.convertToExternalValue(
+								marginRight));
+					});
+				setMarginTop(
+					() -> {
+						String marginTop =
+							containerStyledLayoutStructureItem.getMarginTop();
+
+						if (Validator.isNull(marginTop)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							MarginConverter.convertToExternalValue(marginTop));
+					});
+				setOpacity(
+					() -> {
+						String opacity =
+							containerStyledLayoutStructureItem.getOpacity();
+
+						if (Validator.isNull(opacity)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(opacity, 100);
+					});
+				setPaddingBottom(
+					() -> {
+						String paddingBottom =
+							containerStyledLayoutStructureItem.
+								getPaddingBottom();
+
+						if (Validator.isNull(paddingBottom)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							PaddingConverter.convertToExternalValue(
+								paddingBottom));
+					});
+				setPaddingLeft(
+					() -> {
+						String paddingLeft =
+							containerStyledLayoutStructureItem.getPaddingLeft();
+
+						if (Validator.isNull(paddingLeft)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							PaddingConverter.convertToExternalValue(
+								paddingLeft));
+					});
+				setPaddingRight(
+					() -> {
+						String paddingRight =
+							containerStyledLayoutStructureItem.
+								getPaddingRight();
+
+						if (Validator.isNull(paddingRight)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							PaddingConverter.convertToExternalValue(
+								paddingRight));
+					});
+				setPaddingTop(
+					() -> {
+						String paddingTop =
+							containerStyledLayoutStructureItem.getPaddingTop();
+
+						if (Validator.isNull(paddingTop)) {
+							return null;
+						}
+
+						return GetterUtil.getInteger(
+							PaddingConverter.convertToExternalValue(
+								paddingTop));
+					});
+				setShadow(
+					() -> {
+						String shadow =
+							containerStyledLayoutStructureItem.getShadow();
+
+						if (Validator.isNull(shadow)) {
+							return null;
+						}
+
+						return Shadow.create(
+							ShadowConverter.convertToExternalValue(shadow));
 					});
 				setWidthType(
 					() -> {
@@ -214,15 +397,6 @@ public class ContainerLayoutStructureItemMapper
 						if (Validator.isNotNull(widthType)) {
 							return WidthType.create(
 								StringUtil.upperCaseFirstLetter(widthType));
-						}
-
-						String containerType =
-							containerStyledLayoutStructureItem.
-								getContainerType();
-
-						if (Validator.isNotNull(containerType)) {
-							return WidthType.create(
-								StringUtil.upperCaseFirstLetter(containerType));
 						}
 
 						return null;

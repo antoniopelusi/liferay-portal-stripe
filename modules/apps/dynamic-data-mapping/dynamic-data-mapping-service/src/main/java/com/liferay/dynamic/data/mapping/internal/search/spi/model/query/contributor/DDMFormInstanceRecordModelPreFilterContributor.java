@@ -113,7 +113,7 @@ public class DDMFormInstanceRecordModelPreFilterContributor
 			);
 		}
 
-		addSearchClassTypeIds(booleanFilter, searchContext);
+		_addSearchClassTypeIds(booleanFilter, searchContext);
 
 		String ddmStructureFieldName = (String)searchContext.getAttribute(
 			"ddmStructureFieldName");
@@ -133,13 +133,16 @@ public class DDMFormInstanceRecordModelPreFilterContributor
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
 	}
 
-	protected Filter addSearchClassTypeIds(
+	@Reference
+	protected DDMIndexer ddmIndexer;
+
+	private Filter _addSearchClassTypeIds(
 		BooleanFilter contextBooleanFilter, SearchContext searchContext) {
 
 		long[] classTypeIds = searchContext.getClassTypeIds();
@@ -157,9 +160,6 @@ public class DDMFormInstanceRecordModelPreFilterContributor
 		return contextBooleanFilter.add(
 			classTypeIdsTermsFilter, BooleanClauseOccur.MUST);
 	}
-
-	@Reference
-	protected DDMIndexer ddmIndexer;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMFormInstanceRecordModelPreFilterContributor.class);

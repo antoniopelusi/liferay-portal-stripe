@@ -27,6 +27,7 @@ import com.liferay.headless.commerce.admin.catalog.internal.odata.entity.v1_0.Ca
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.CatalogResource;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
 import com.liferay.petra.function.UnsafeConsumer;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
@@ -44,6 +45,7 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
+import java.util.Collections;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -62,6 +64,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	scope = ServiceScope.PROTOTYPE,
 	service = {CatalogResource.class, NestedFieldSupport.class}
 )
+@CTAware
 public class CatalogResourceImpl
 	extends BaseCatalogResourceImpl
 	implements EntityModelResource, NestedFieldSupport {
@@ -86,7 +89,7 @@ public class CatalogResourceImpl
 
 		if (commerceCatalog == null) {
 			throw new NoSuchCatalogException(
-				"Unable to find Catalog with externalReferenceCode: " +
+				"Unable to find catalog with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -119,7 +122,7 @@ public class CatalogResourceImpl
 
 		if (commerceCatalog == null) {
 			throw new NoSuchCatalogException(
-				"Unable to find Catalog with externalReferenceCode: " +
+				"Unable to find catalog with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -132,8 +135,9 @@ public class CatalogResourceImpl
 		throws Exception {
 
 		return SearchUtil.search(
+			Collections.emptyMap(),
 			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CommerceCatalog.class, search, pagination,
+			CommerceCatalog.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -145,10 +149,10 @@ public class CatalogResourceImpl
 				}
 
 			},
+			sorts,
 			document -> _toCatalog(
 				_commerceCatalogService.getCommerceCatalog(
-					GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK)))),
-			sorts);
+					GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	@Override
@@ -170,7 +174,7 @@ public class CatalogResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with externalReferenceCode: " +
+				"Unable to find product with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -224,7 +228,7 @@ public class CatalogResourceImpl
 
 		if (commerceCatalog == null) {
 			throw new NoSuchCatalogException(
-				"Unable to find Catalog with externalReferenceCode: " +
+				"Unable to find catalog with external reference code " +
 					externalReferenceCode);
 		}
 

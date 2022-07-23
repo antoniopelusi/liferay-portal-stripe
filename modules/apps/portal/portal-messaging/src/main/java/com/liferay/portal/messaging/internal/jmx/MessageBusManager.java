@@ -18,7 +18,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.MessageBus;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Collections;
 import java.util.Dictionary;
@@ -104,13 +104,13 @@ public class MessageBusManager
 				new DestinationStatisticsManager(destination);
 
 			Dictionary<String, Object> mBeanProperties =
-				new HashMapDictionary<>();
-
-			mBeanProperties.put(
-				"jmx.objectname", destinationStatisticsManager.getObjectName());
-			mBeanProperties.put(
-				"jmx.objectname.cache.key",
-				destinationStatisticsManager.getObjectNameCacheKey());
+				HashMapDictionaryBuilder.<String, Object>put(
+					"jmx.objectname",
+					destinationStatisticsManager.getObjectName()
+				).put(
+					"jmx.objectname.cache.key",
+					destinationStatisticsManager.getObjectNameCacheKey()
+				).build();
 
 			ServiceRegistration<DynamicMBean> serviceRegistration =
 				_bundleContext.registerService(

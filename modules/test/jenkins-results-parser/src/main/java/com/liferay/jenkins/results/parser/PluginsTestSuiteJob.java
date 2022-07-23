@@ -18,13 +18,27 @@ import java.io.File;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
  */
 public abstract class PluginsTestSuiteJob
 	extends PluginsGitRepositoryJob implements TestSuiteJob {
+
+	@Override
+	public JSONObject getJSONObject() {
+		if (jsonObject != null) {
+			return jsonObject;
+		}
+
+		jsonObject = super.getJSONObject();
+
+		jsonObject.put("plugin_name", _pluginName);
+
+		return jsonObject;
+	}
 
 	public String getPluginName() {
 		return _pluginName;
@@ -41,23 +55,22 @@ public abstract class PluginsTestSuiteJob
 	}
 
 	protected PluginsTestSuiteJob(
-		String jobName, String pluginName, BuildProfile buildProfile,
-		String branchName) {
+		BuildProfile buildProfile, String jobName, String pluginName,
+		String upstreamBranchName) {
 
-		super(jobName, buildProfile, branchName);
+		super(buildProfile, jobName, upstreamBranchName);
 
 		_pluginName = pluginName;
 
-		jobPropertiesFiles.add(
-			new File(_getPluginTestBaseDir(), "test.properties"));
+		_initialize();
 	}
 
-	@Override
-	protected Set<String> getRawBatchNames() {
-		return getSetFromString(
-			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names", getJobName(),
-				getTestSuiteName()));
+	protected PluginsTestSuiteJob(JSONObject jsonObject) {
+		super(jsonObject);
+
+		_pluginName = jsonObject.getString("plugin_name");
+
+		_initialize();
 	}
 
 	private File _getPluginTestBaseDir() {
@@ -68,6 +81,11 @@ public abstract class PluginsTestSuiteJob
 			pluginsGitWorkingDirectory.getWorkingDirectory(),
 			JenkinsResultsParserUtil.combine(
 				"portlets/", getPluginName(), "/test/functional"));
+	}
+
+	private void _initialize() {
+		jobPropertiesFiles.add(
+			new File(_getPluginTestBaseDir(), "test.properties"));
 	}
 
 	private final String _pluginName;

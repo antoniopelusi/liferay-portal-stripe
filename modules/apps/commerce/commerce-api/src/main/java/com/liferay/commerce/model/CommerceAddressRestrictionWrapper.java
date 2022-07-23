@@ -45,6 +45,7 @@ public class CommerceAddressRestrictionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"commerceAddressRestrictionId", getCommerceAddressRestrictionId());
 		attributes.put("groupId", getGroupId());
@@ -62,6 +63,12 @@ public class CommerceAddressRestrictionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long commerceAddressRestrictionId = (Long)attributes.get(
 			"commerceAddressRestrictionId");
 
@@ -122,6 +129,11 @@ public class CommerceAddressRestrictionWrapper
 		if (countryId != null) {
 			setCountryId(countryId);
 		}
+	}
+
+	@Override
+	public CommerceAddressRestriction cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -219,6 +231,16 @@ public class CommerceAddressRestrictionWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce address restriction.
+	 *
+	 * @return the mvcc version of this commerce address restriction
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -351,6 +373,16 @@ public class CommerceAddressRestrictionWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce address restriction.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce address restriction
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

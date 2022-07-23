@@ -18,6 +18,7 @@ import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.service.CommercePriceListAccountRelService;
 import com.liferay.commerce.price.list.service.CommercePriceListChannelRelService;
 import com.liferay.commerce.price.list.service.CommercePriceListCommerceAccountGroupRelService;
+import com.liferay.commerce.price.list.service.CommercePriceListOrderTypeRelService;
 import com.liferay.commerce.price.list.service.CommercePriceListService;
 import com.liferay.commerce.pricing.web.internal.display.context.CommercePriceListQualifiersDisplayContext;
 import com.liferay.commerce.pricing.web.internal.servlet.taglib.ui.constants.CommercePriceListScreenNavigationConstants;
@@ -32,6 +33,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -105,7 +107,7 @@ public class CommercePriceListQualifiersScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -126,20 +128,21 @@ public class CommercePriceListQualifiersScreenNavigationCategory
 						_commercePriceListAccountRelService,
 						_commercePriceListChannelRelService,
 						_commercePriceListCommerceAccountGroupRelService,
+						_commercePriceListOrderTypeRelService,
 						_commercePriceListModelResourcePermission,
-						_commercePriceListService, httpServletRequest);
+						_commercePriceListService, _portal, httpServletRequest);
 
 			httpServletRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
 				commercePriceListQualifiersDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		_jspRenderer.renderJSP(
 			_setServletContext, httpServletRequest, httpServletResponse,
-			"/price_lists/qualifiers.jsp");
+			"/commerce_price_lists/qualifiers.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -167,10 +170,17 @@ public class CommercePriceListQualifiersScreenNavigationCategory
 		_commercePriceListModelResourcePermission;
 
 	@Reference
+	private CommercePriceListOrderTypeRelService
+		_commercePriceListOrderTypeRelService;
+
+	@Reference
 	private CommercePriceListService _commercePriceListService;
 
 	@Reference
 	private JSPRenderer _jspRenderer;
+
+	@Reference
+	private Portal _portal;
 
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.commerce.pricing.web)"

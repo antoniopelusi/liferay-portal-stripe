@@ -16,7 +16,6 @@ package com.liferay.dynamic.data.mapping.model.impl;
 
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordModel;
-import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -187,70 +185,6 @@ public class DDMFormInstanceRecordModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DDMFormInstanceRecord toModel(
-		DDMFormInstanceRecordSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		DDMFormInstanceRecord model = new DDMFormInstanceRecordImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setFormInstanceRecordId(soapModel.getFormInstanceRecordId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setVersionUserId(soapModel.getVersionUserId());
-		model.setVersionUserName(soapModel.getVersionUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setFormInstanceId(soapModel.getFormInstanceId());
-		model.setFormInstanceVersion(soapModel.getFormInstanceVersion());
-		model.setStorageId(soapModel.getStorageId());
-		model.setVersion(soapModel.getVersion());
-		model.setIpAddress(soapModel.getIpAddress());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DDMFormInstanceRecord> toModels(
-		DDMFormInstanceRecordSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DDMFormInstanceRecord> models =
-			new ArrayList<DDMFormInstanceRecord>(soapModels.length);
-
-		for (DDMFormInstanceRecordSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DDMFormInstanceRecordModelImpl() {
 	}
 
@@ -335,34 +269,6 @@ public class DDMFormInstanceRecordModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DDMFormInstanceRecord>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DDMFormInstanceRecord.class.getClassLoader(),
-			DDMFormInstanceRecord.class, ModelWrapper.class);
-
-		try {
-			Constructor<DDMFormInstanceRecord> constructor =
-				(Constructor<DDMFormInstanceRecord>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DDMFormInstanceRecord, Object>>
@@ -981,6 +887,51 @@ public class DDMFormInstanceRecordModelImpl
 	}
 
 	@Override
+	public DDMFormInstanceRecord cloneWithOriginalValues() {
+		DDMFormInstanceRecordImpl ddmFormInstanceRecordImpl =
+			new DDMFormInstanceRecordImpl();
+
+		ddmFormInstanceRecordImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ddmFormInstanceRecordImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ddmFormInstanceRecordImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		ddmFormInstanceRecordImpl.setFormInstanceRecordId(
+			this.<Long>getColumnOriginalValue("formInstanceRecordId"));
+		ddmFormInstanceRecordImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		ddmFormInstanceRecordImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ddmFormInstanceRecordImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		ddmFormInstanceRecordImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		ddmFormInstanceRecordImpl.setVersionUserId(
+			this.<Long>getColumnOriginalValue("versionUserId"));
+		ddmFormInstanceRecordImpl.setVersionUserName(
+			this.<String>getColumnOriginalValue("versionUserName"));
+		ddmFormInstanceRecordImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ddmFormInstanceRecordImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		ddmFormInstanceRecordImpl.setFormInstanceId(
+			this.<Long>getColumnOriginalValue("formInstanceId"));
+		ddmFormInstanceRecordImpl.setFormInstanceVersion(
+			this.<String>getColumnOriginalValue("formInstanceVersion"));
+		ddmFormInstanceRecordImpl.setStorageId(
+			this.<Long>getColumnOriginalValue("storageId"));
+		ddmFormInstanceRecordImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		ddmFormInstanceRecordImpl.setIpAddress(
+			this.<String>getColumnOriginalValue("ipAddress"));
+		ddmFormInstanceRecordImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return ddmFormInstanceRecordImpl;
+	}
+
+	@Override
 	public int compareTo(DDMFormInstanceRecord ddmFormInstanceRecord) {
 		long primaryKey = ddmFormInstanceRecord.getPrimaryKey();
 
@@ -1165,7 +1116,7 @@ public class DDMFormInstanceRecordModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1176,10 +1127,27 @@ public class DDMFormInstanceRecordModelImpl
 			Function<DDMFormInstanceRecord, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((DDMFormInstanceRecord)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DDMFormInstanceRecord)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1227,7 +1195,9 @@ public class DDMFormInstanceRecordModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DDMFormInstanceRecord>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DDMFormInstanceRecord.class, ModelWrapper.class);
 
 	}
 

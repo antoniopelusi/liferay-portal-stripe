@@ -101,7 +101,7 @@ public class SiteAdminDisplayContext {
 			_liferayPortletResponse
 		).setMVCPath(
 			"/view.jsp"
-		).build();
+		).buildPortletURL();
 
 		breadcrumbEntry.setURL(mainURL.toString());
 
@@ -185,15 +185,10 @@ public class SiteAdminDisplayContext {
 
 		SiteChecker siteChecker = new SiteChecker(_liferayPortletResponse);
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("^(?!.*");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append("redirect).*(groupId=");
-		sb.append(getGroupId());
-		sb.append(")");
-
-		siteChecker.setRememberCheckBoxStateURLRegex(sb.toString());
+		siteChecker.setRememberCheckBoxStateURLRegex(
+			StringBundler.concat(
+				"^(?!.*", _liferayPortletResponse.getNamespace(),
+				"redirect).*(groupId=", getGroupId(), ")"));
 
 		groupSearch.setRowChecker(siteChecker);
 
@@ -236,7 +231,7 @@ public class SiteAdminDisplayContext {
 			"displayStyle", getDisplayStyle()
 		).setParameter(
 			"groupId", getGroupId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public int getUserGroupsCount(Group group) {

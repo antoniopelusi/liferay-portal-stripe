@@ -27,6 +27,10 @@ public class CommerceAddressRestrictionLocalServiceWrapper
 	implements CommerceAddressRestrictionLocalService,
 			   ServiceWrapper<CommerceAddressRestrictionLocalService> {
 
+	public CommerceAddressRestrictionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceAddressRestrictionLocalServiceWrapper(
 		CommerceAddressRestrictionLocalService
 			commerceAddressRestrictionLocalService) {
@@ -178,6 +182,13 @@ public class CommerceAddressRestrictionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceAddressRestrictionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceAddressRestrictionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

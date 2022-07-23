@@ -32,8 +32,8 @@ definition {
 
 	@description = "This ensures that a shortcut can be added to a depot."
 	@priority = "3"
-	@refactorneeded
-	test AccessShortcut {
+	@refactordone
+	test CanAccessShortcut {
 		JSONGroup.addGroup(groupName = "Site Name");
 
 		JSONDocument.addFile(
@@ -59,8 +59,8 @@ definition {
 
 	@description = "This ensures that a document with document type and metadata set can be added in a depot."
 	@priority = "5"
-	@refactorneeded
-	test AddDocumentTypeAndMetadata {
+	@refactordone
+	test CanAddDocumentTypeAndMetadata {
 		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
@@ -95,9 +95,9 @@ definition {
 			numericField = "1234",
 			textField = "Text");
 
-		LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+		DepotNavigator.openToDMEntryInDepot(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "DM Document Title");
 
 		DMDocument.viewDocumentTypePG(
 			numericValue = "1234",
@@ -106,25 +106,28 @@ definition {
 
 	@description = "This ensures that a folder can be deleted in a depot."
 	@priority = "5"
-	@refactorneeded
-	test DeleteFolder {
+	@refactordone
+	test CanDeleteFolder {
 		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
 
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Test Depot Name");
 
-		DMFolder.addCP(dmFolderName = "DM Folder Name");
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
 
 		DMFolder.deleteCP(dmFolderName = "DM Folder Name");
 
-		DMDocument.viewDefaultCP();
+		DMDocument.viewDefault();
 	}
 
 	@description = "This test makes sure that all files are deleted when user selects all in a depot."
 	@priority = "4"
-	@refactorneeded
-	test DeleteMultipleImages {
+	@refactordone
+	test CanDeleteMultipleImages {
 		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
@@ -139,13 +142,14 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		DMDocument.viewDefaultCP();
+		DMDocument.viewDefault();
 	}
 
 	@description = "This test edits the title and description of a document in a depot."
 	@priority = "5"
-	@refactorneeded
-	test EditDocument {
+	@refactordone
+	@uitest
+	test CanEditDocument {
 		property portal.acceptance = "true";
 
 		JSONDepot.addDepot(
@@ -164,20 +168,24 @@ definition {
 
 		DMDocument.editCP(
 			displayPageTemplateDisabled = "true",
-			dmDocumentDescription = "DM Document Description1",
+			dmDocumentDescription = "DM Document Description",
 			dmDocumentDescriptionEdit = "DM Document Description Edit",
+			dmDocumentFileEdit = "Document_3.jpg",
+			dmDocumentFileNameEdit = "Document_3.jpg",
 			dmDocumentTitle = "DM Document Title",
 			dmDocumentTitleEdit = "DM Document Title Edit");
 
 		DMDocument.viewEditCP(
+			dmDocumentFileName = "Document_3.jpg",
 			dmDocumentTitleEdit = "DM Document Title Edit",
-			dmDocumentVersionNumber = "1.1");
+			dmDocumentVersionNumber = "2.0");
 	}
 
 	@description = "This ensures that a folder can be edited in a depot."
 	@priority = "5"
-	@refactorneeded
-	test EditFolder {
+	@refactordone
+	@uitest
+	test CanEditFolder {
 		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
@@ -194,58 +202,15 @@ definition {
 			dmFolderDescription = "DM Folder Description",
 			dmFolderDescriptionEdit = "DM Folder Description Edit",
 			dmFolderName = "DM Folder Name",
-			dmFolderNameEdit = "DM Folder Name Name");
+			dmFolderNameEdit = "DM Folder Name Edit");
 
-		DMFolder.viewCP(dmFolderName = "DM Folder Name Name");
-	}
-
-	@description = "This ensures that a LAR file consisting of a DL document and image can be imported in a depot."
-	@priority = "4"
-	@refactorneeded
-	test ImportFile {
-		JSONDocument.addFile(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentTitle = "Document_1.jpg",
-			groupName = "Guest");
-
-		JSONDocument.addFile(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentTitle = "Document_1.doc",
-			groupName = "Guest");
-
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
-
-		LAR.exportPortlet(larFileName = "DM_Test.lar");
-
-		JSONDepot.addDepot(
-			depotDescription = "This is the description of a depot",
-			depotName = "Test Depot Name");
-
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
-
-		LAR.importPortlet(larFileName = "DM_Test.lar");
-
-		Navigator.openURL();
-
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
-
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_1.doc");
-
-		DMDocument.viewCP(dmDocumentTitle = "Document_1.doc");
-
-		Navigator.openURL();
-
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
-
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_1.jpg");
-
-		DMDocument.viewCP(dmDocumentTitle = "Document_1.jpg");
+		DMFolder.viewCP(dmFolderName = "DM Folder Name Edit");
 	}
 
 	@description = "This ensures that a document can be moved to a folder in a depot."
 	@priority = "5"
-	@refactorneeded
-	test MoveDocumentToFolder {
+	@refactordone
+	test CanMoveDocumentToFolder {
 		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
@@ -255,11 +220,10 @@ definition {
 			dmDocumentTitle = "DM Document Title",
 			groupName = "Test Depot Name");
 
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
-
-		DMFolder.addCP(
+		JSONFolder.addFolder(
 			dmFolderDescription = "DM Folder Description",
-			dmFolderName = "DM Folder Name");
+			dmFolderName = "DM Folder Name",
+			groupName = "Test Depot Name");
 
 		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
 
@@ -271,7 +235,10 @@ definition {
 			dmDocumentTitle = "DM Document Title",
 			dmFolderName = "DM Folder Name");
 
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+		DepotNavigator.openToDMEntryInDepot(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "DM Document Title",
+			folderName = "DM Folder Name");
 
 		DMDocument.viewCP(
 			dmDocumentTitle = "DM Document Title",
@@ -281,8 +248,8 @@ definition {
 
 	@description = "This ensures that document can be restored to a depot."
 	@priority = "5"
-	@refactorneeded
-	test RestoreDocument {
+	@refactordone
+	test CanRestoreDocument {
 		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
@@ -296,7 +263,7 @@ definition {
 
 		DMDocument.deleteCP(dmDocumentTitle = "DM Document Title");
 
-		DMDocument.viewDefaultCP();
+		DMDocument.viewDefault();
 
 		DepotNavigator.openDepotRecycleBinAdmin(depotName = "Test Depot Name");
 
@@ -310,57 +277,6 @@ definition {
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
 
 		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
-	}
-
-	@description = "This ensures that a document can be shared with another user in a depot."
-	@priority = "4"
-	@refactorneeded
-	test ShareDocument {
-		property custom.properties = "jsonws.web.service.paths.excludes=";
-
-		JSONUser.addUser(
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
-
-		JSONUser.setFirstPassword(
-			agreeToTermsAndAnswerReminderQuery = "true",
-			requireReset = "false",
-			userEmailAddress = "userea@liferay.com");
-
-		JSONDepot.addDepot(
-			depotDescription = "This is the description of a depot",
-			depotName = "Test Depot Name");
-
-		JSONDocument.addFile(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentTitle = "DM Document Title",
-			groupName = "Test Depot Name");
-
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
-
-		DMNavigator.gotoShareInfoPanel(dmDocumentTitle = "DM Document Title");
-
-		DMDocument.sharePG(
-			userEmailAddress = "userea@liferay.com",
-			userName = "userfn userln");
-
-		User.logoutPG();
-
-		User.loginUserPG(
-			password = "test",
-			userEmailAddress = "userea@liferay.com");
-
-		Notifications.viewBadgeCount(notificationCount = "1");
-
-		Notifications.gotoNotifications();
-
-		Notifications.viewNewSharedContent(
-			contentSharingPermission = "viewing",
-			contentTitle = "DM Document Title",
-			openNotification = "true",
-			ownerName = "Test Test");
 	}
 
 }

@@ -1,53 +1,81 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceNavigator.gotoPortlet(
-				category = "Produt Management",
-				portlet = "Catalogs");
-
-			CommerceConfiguration.commerceCatalogsTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "This is a test for COMMERCE-6278. AddAnImageToCatalogAndRemove"
-	@ignore = "true"
 	@priority = "3"
 	test AddAnImageToCatalogAndRemove {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6278 AddAnImageToCatalogAndRemove
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Catalogs");
 
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewCatalogsEntry(
+			catalogCurrency = "US Dollar",
+			catalogLanguage = "English (United States)",
+			catalogName = "Test Catalog");
+
+		AssertClickNoError(
+			locator1 = "Button#SUBMIT",
+			value1 = "Submit");
+
+		AssertClick(
+			locator1 = "CommerceEntry#PRODUCT_IMAGE_SELECT_FILE",
+			value1 = "Select File");
+
+		SelectFrameTop();
+
+		CommerceItemSelector.uploadSingleFile(uploadFileName = "Commerce_Black.jpg");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click.clickNoWaitForVisible(
+			key_value = "Test Catalog",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Edit");
+
+		Click.clickNoMouseOver(
+			key_value = "Remove Image",
+			locator1 = "Button#SECONDARY_BY_TITLE");
+
+		AssertElementNotPresent(
+			key_imageTitle = "Commerce_Black.jpg",
+			locator1 = "WCPreview#PREVIEW_IMAGE");
+
+		Button.clickSave();
+
+		Click.clickNoWaitForVisible(
+			key_value = "Test Catalog",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Edit");
+
+		AssertElementNotPresent(
+			key_imageTitle = "Commerce_Black.jpg",
+			locator1 = "WCPreview#PREVIEW_IMAGE");
 	}
 
 	test CreateNewCatalog {
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CPCommerceCatalogs#CreateNewCatalog";
+		property portal.acceptance = "false";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -79,30 +107,193 @@ definition {
 	}
 
 	@description = "This is a test for COMMERCE-6273. EditACatalog"
-	@ignore = "true"
 	@priority = "3"
 	test EditACatalog {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6273 EditACatalog
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Catalogs");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewCatalogsEntry(
+			catalogCurrency = "US Dollar",
+			catalogLanguage = "English (United States)",
+			catalogName = "Test Catalog");
+
+		AssertClickNoError(
+			locator1 = "Button#SUBMIT",
+			value1 = "Submit");
+
+		Click(locator1 = "Icon#BACK");
+
+		AssertElementPresent(
+			key_entryName = "Test Catalog",
+			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
+
+		ClickNoError(
+			key_entryName = "Test Catalog",
+			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
+
+		CommerceEntry.clickNoError(menuItem = "Edit");
+
+		Type(
+			locator1 = "CommerceEntry#NAME_FIELD",
+			value1 = "Test Catalog Edited");
+
+		Select(
+			key_title = "Currency",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "Euro");
+
+		AssertClick(
+			locator1 = "CommerceEntry#PRODUCT_IMAGE_SELECT_FILE",
+			value1 = "Select File");
+
+		SelectFrameTop();
+
+		CommerceItemSelector.uploadSingleFile(uploadFileName = "Commerce_Black.jpg");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		ClickNoError(
+			key_entryName = "Test Catalog Edited",
+			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
+
+		CommerceEntry.clickNoError(menuItem = "Edit");
+
+		AssertElementPresent(
+			key_title = "Name",
+			locator1 = "CommerceEntry#NAME_FIELD",
+			value1 = "Test Catalog Edited");
+
+		AssertElementPresent(
+			key_title = "Currency",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "Euro");
+
+		AssertElementPresent(
+			key_imageTitle = "Commerce_Black",
+			locator1 = "WCPreview#PREVIEW_IMAGE");
 	}
 
 	@description = "This is a test for COMMERCE-6279. EditAPermissionOnACatalog"
-	@ignore = "true"
 	@priority = "3"
 	test EditAPermissionOnACatalog {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6279 EditAPermissionOnACatalog
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Catalogs");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewCatalogsEntry(
+			catalogCurrency = "US Dollar",
+			catalogLanguage = "English (United States)",
+			catalogName = "Test Catalog");
+
+		AssertClickNoError(
+			locator1 = "Button#SUBMIT",
+			value1 = "Submit");
+
+		Click(locator1 = "Icon#BACK");
+
+		Click(
+			key_value = "Test Catalog",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Permissions");
+
+		IFrame.selectPermissionsFrame();
+
+		Check.checkToggleSwitch(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_VIEW_CHECKBOX");
+
+		Check.checkToggleSwitch(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_PERMISSIONS_CHECKBOX");
+
+		Check.checkToggleSwitch(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_DELETE_CHECKBOX");
+
+		Check.checkToggleSwitch(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_UPDATE_CHECKBOX");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		SelectFrameTop();
+
+		ClickNoError(
+			key_modalTitle = "Permissions",
+			locator1 = "Button#CLOSE_MODAL");
+
+		Click(
+			key_value = "Test Catalog",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Permissions");
+
+		IFrame.selectPermissionsFrame();
+
+		AssertChecked(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_UPDATE_CHECKBOX");
+
+		AssertChecked(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_DELETE_CHECKBOX");
+
+		AssertChecked(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_PERMISSIONS_CHECKBOX");
+
+		AssertChecked(
+			key_roleTitle = "user",
+			locator1 = "Permissions#INLINE_PERMISSIONS_VIEW_CHECKBOX");
 	}
 
 	@description = "This is a test for COMMERCE-6272. RemoveACatalog"
-	@ignore = "true"
 	@priority = "3"
 	test RemoveACatalog {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6272 RemoveACatalog
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Catalogs");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewCatalogsEntry(
+			catalogCurrency = "US Dollar",
+			catalogLanguage = "English (United States)",
+			catalogName = "Test Catalog");
+
+		AssertClickNoError(
+			locator1 = "Button#SUBMIT",
+			value1 = "Submit");
+
+		Click(locator1 = "Icon#BACK");
+
+		ClickNoError(
+			key_entryName = "Test Catalog",
+			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
+
+		CommerceEntry.clickNoError(menuItem = "Delete");
+
+		Alert.viewSuccessMessage();
+
+		AssertElementNotPresent(
+			key_entryName = "Test Catalog",
+			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
 	}
 
 }

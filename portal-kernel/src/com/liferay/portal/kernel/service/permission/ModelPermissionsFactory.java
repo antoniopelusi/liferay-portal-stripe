@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.HashMap;
@@ -86,7 +87,7 @@ public class ModelPermissionsFactory {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 		}
@@ -188,8 +189,12 @@ public class ModelPermissionsFactory {
 			_addClassNamePostfix("groupPermissions", className));
 		String[] guestPermissions = parameterMap.get(
 			_addClassNamePostfix("guestPermissions", className));
+		String inputPermissionsViewRole = MapUtil.getString(
+			parameterMap, "inputPermissionsViewRole");
 
-		if ((groupPermissions != null) || (guestPermissions != null)) {
+		if ((groupPermissions != null) || (guestPermissions != null) ||
+			Validator.isNotNull(inputPermissionsViewRole)) {
+
 			return create(groupPermissions, guestPermissions, className);
 		}
 

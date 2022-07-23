@@ -25,6 +25,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.util.Portal;
 
@@ -48,8 +49,12 @@ public class CardinalityAssetEntryValidator implements AssetEntryValidator {
 
 		long classNameId = _classNameLocalService.getClassNameId(className);
 
-		if (!isCategorizable(groupId, classNameId, classPK)) {
+		if (!_isCategorizable(groupId, classNameId, classPK)) {
 			return;
+		}
+
+		if (className.equals(Group.class.getName())) {
+			groupId = classPK;
 		}
 
 		for (AssetVocabulary assetVocabulary :
@@ -73,7 +78,33 @@ public class CardinalityAssetEntryValidator implements AssetEntryValidator {
 		validate(groupId, className, 0L, classTypePK, categoryIds, entryNames);
 	}
 
-	protected boolean isCategorizable(
+	protected void validate(
+			long classNameId, long classTypePK, long[] categoryIds,
+			AssetVocabulary assetVocabulary)
+		throws PortalException {
+
+		if (!assetVocabulary.isAssociatedToClassNameIdAndClassTypePK(
+				classNameId, classTypePK)) {
+
+			return;
+		}
+
+		if (assetVocabulary.isMissingRequiredCategory(
+				classNameId, classTypePK, categoryIds)) {
+
+			throw new AssetCategoryException(
+				assetVocabulary, AssetCategoryException.AT_LEAST_ONE_CATEGORY);
+		}
+
+		if (!assetVocabulary.isMultiValued() &&
+			assetVocabulary.hasMoreThanOneCategorySelected(categoryIds)) {
+
+			throw new AssetCategoryException(
+				assetVocabulary, AssetCategoryException.TOO_MANY_CATEGORIES);
+		}
+	}
+
+	private boolean _isCategorizable(
 		long groupId, long classNameId, long classPK) {
 
 		AssetRendererFactory<?> assetRendererFactory =
@@ -110,32 +141,6 @@ public class CardinalityAssetEntryValidator implements AssetEntryValidator {
 		}
 
 		return true;
-	}
-
-	protected void validate(
-			long classNameId, long classTypePK, final long[] categoryIds,
-			AssetVocabulary assetVocabulary)
-		throws PortalException {
-
-		if (!assetVocabulary.isAssociatedToClassNameIdAndClassTypePK(
-				classNameId, classTypePK)) {
-
-			return;
-		}
-
-		if (assetVocabulary.isMissingRequiredCategory(
-				classNameId, classTypePK, categoryIds)) {
-
-			throw new AssetCategoryException(
-				assetVocabulary, AssetCategoryException.AT_LEAST_ONE_CATEGORY);
-		}
-
-		if (!assetVocabulary.isMultiValued() &&
-			assetVocabulary.hasMoreThanOneCategorySelected(categoryIds)) {
-
-			throw new AssetCategoryException(
-				assetVocabulary, AssetCategoryException.TOO_MANY_CATEGORIES);
-		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -1,0 +1,71 @@
+<html>
+<head>
+<title>WorkflowMetricsAllItemsListUpdateDueDate</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">WorkflowMetricsAllItemsListUpdateDueDate</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>FILTER_CLEAR_ALL</td>
+	<td>//div[contains(@class, 'modal-content')]//button[contains(@class, 'component-link tbar-link btn btn-sm btn-link')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_UPDATE_DUE_DATE_CARD_FILTER_ASSIGNEE</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), 'Assignee')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_UPDATE_DUA_DATE_CARD_FILTER_OPTION_ASSIGNEE</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//span[contains(@class, 'dropdown-item')]//*[text()='${key_workflowAssignee}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_UPDATE_DUE_DATE_NO_RESULTS_MESSAGE</td>
+	<td>//p[@class='small' and contains(.,'There is no data at the moment.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_UPDATE_DUE_DATE_CARD_FILTER_PROCESS_STEP</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), 'Process Step')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_UPDATE_DUE_DATE_CARD_FILTER_OPTION_PROCESS_STEP</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//span[contains(@class, 'dropdown-item')]//*[text()='${key_workflowStep}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_UPDATE_DUE_DATE_LIST_ORDER</td>
+	<td>//div[contains(@class, 'modal-content')]//tbody//tr[@class]//td[text()='${key_title}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DUE_DATE_BUTTON_ALL_ITEMS_LIST</td>
+	<td>//button[contains(@class,'component-action quick-action-item')][2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DUE_DATE_MODAL_ALL_ITEMS_LIST</td>
+	<td>//div[contains(@class, 'modal-content')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEW_DUE_DATE_INPUT_ALL_ITEMS_LIST</td>
+	<td>//input[contains(@placeholder,'mm/dd/yyyy')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEW_DUE_DATE_INPUT_ALL_ITEMS_LIST_TIME</td>
+	<td>//input[contains(@placeholder, 'HH:mm am/pm')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

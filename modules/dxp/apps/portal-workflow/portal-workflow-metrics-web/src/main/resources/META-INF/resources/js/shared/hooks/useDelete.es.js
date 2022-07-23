@@ -9,16 +9,29 @@
  * distribution rights of the Software.
  */
 
-import {useCallback, useContext} from 'react';
+import {fetch} from 'frontend-js-web';
+import {useCallback} from 'react';
 
-import {AppContext} from '../../components/AppContext.es';
+import {adminBaseURL, headers, metricsBaseURL} from '../rest/fetch.es';
 
-const useDelete = ({admin = false, url}) => {
-	const {getClient} = useContext(AppContext);
+const useDelete = ({admin = false, callback = () => {}, url}) => {
+	const fetchURL = admin
+		? `${adminBaseURL}${url}`
+		: `${metricsBaseURL}${url}`;
 
-	const client = getClient(admin);
+	return useCallback(async () => {
+		const response = await fetch(fetchURL, {headers, method: 'DELETE'});
 
-	return useCallback(() => client.delete(url), [client, url]);
+		if (response.ok) {
+			return callback();
+		}
+
+		const requestFailedMessage = Liferay.Language.get(
+			'your-request-has-failed'
+		);
+
+		throw new Error(requestFailedMessage);
+	}, [callback, fetchURL]);
 };
 
 export {useDelete};

@@ -1,14 +1,14 @@
 definition {
 
 	macro _addPage {
-		SitePages._selectPageType(
+		PagesAdmin._selectPageType(
 			collectionName = "${collectionName}",
 			pageTemplateName = "${pageTemplateName}",
 			sitePageType = "${sitePageType}");
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		SitePages._addPageToNavigationMenu(
+		PagesAdmin._addPageToNavigationMenu(
 			assertCheckboxMissing = "${assertCheckboxMissing}",
 			navigationMenus = "${navigationMenus}");
 
@@ -37,7 +37,7 @@ definition {
 		}
 
 		if (isSet(inheritChanges)) {
-			Page.togglePageTemplateInheritChanges(toggleValue = "${inheritChanges}");
+			PagesAdmin.togglePageTemplateInheritChanges(toggleValue = "${inheritChanges}");
 		}
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
@@ -45,7 +45,7 @@ definition {
 		AssertVisible(locator1 = "TextInput#NAME");
 
 		if (isSet(openGraph)) {
-			SitePages._configureOpenGraph(
+			PagesAdmin._configureOpenGraph(
 				customDescription = "${customDescription}",
 				customTitle = "${customTitle}");
 		}
@@ -53,6 +53,124 @@ definition {
 		Button.click(button = "Save");
 
 		WaitForSPARefresh();
+	}
+
+	macro addChildPage {
+		PagesFinder.selectPageType(optionValue = "Pages Hierarchy");
+
+		Click(
+			key_pageName = "${parentPageName}",
+			locator1 = "PagesFinder#PAGE_ELLIPSIS_ICON");
+
+		MenuItem.click(menuItem = "Add Child Page");
+
+		PagesFinder._addPage(
+			assertCheckboxMissing = "${assertCheckboxMissing}",
+			navigationMenus = "${navigationMenus}",
+			pageName = "${childPageName}",
+			pageTemplateName = "${pageTemplateName}",
+			sitePageType = "${sitePageType}");
+	}
+
+	macro addCollectionPage {
+		PagesFinder.selectPageType(optionValue = "Pages Hierarchy");
+
+		Click(locator1 = "PagesFinder#PAGE_TYPE_SELECTOR_ELLIPSIS_ICON");
+
+		MenuItem.click(menuItem = "Add Collection Page");
+
+		Navigator.gotoNavTab(navTab = "${tabName}");
+
+		if (isSet(menuItem)) {
+			AssetListsAdmin.addSelection(
+				collectionName = "${collectionName}",
+				menuItem = "${menuItem}",
+				selectedAsset = "${selectedAsset}");
+
+			Click(locator1 = "Icon#BACK");
+		}
+
+		LexiconCard.clickCard(card = "${collectionName}");
+
+		if (isSet(masterLayoutName)) {
+			LexiconCard.clickCard(card = "${masterLayoutName}");
+		}
+		else {
+			LexiconCard.clickCard(card = "Blank");
+		}
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		PortletEntry.inputName(name = "${pageName}");
+
+		if (isSet(categoryName)) {
+			AssetCategorization.addCategory(
+				categoryName = "${categoryName}",
+				vocabularyName = "${vocabularyName}");
+		}
+
+		if (isSet(categoryNameList)) {
+			AssetCategorization.addMultipleCategories(
+				categoryNameList = "${categoryNameList}",
+				vocabularyName = "${vocabularyName}");
+		}
+
+		Button.clickAdd();
+
+		SelectFrame.selectFrameTop();
+
+		PageEditor.assertFragmentSidebarLoaded();
+	}
+
+	macro addContentPage {
+		PagesFinder.selectPageType(optionValue = "Pages Hierarchy");
+
+		Click(locator1 = "PagesFinder#PAGE_TYPE_SELECTOR_ELLIPSIS_ICON");
+
+		MenuItem.click(menuItem = "Add Page");
+
+		ContentPages._selectCard(
+			collectionName = "${collectionName}",
+			pageTemplateName = "${pageTemplateName}");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		PortletEntry.inputName(name = "${pageName}");
+
+		if (isSet(categoryName)) {
+			AssetCategorization.addCategory(
+				categoryName = "${categoryName}",
+				vocabularyName = "${vocabularyName}");
+		}
+
+		Button.clickAdd();
+
+		SelectFrame.selectFrameTop();
+
+		PageEditor.assertFragmentSidebarLoaded();
+	}
+
+	macro addPage {
+		PagesFinder.selectPageType(optionValue = "Pages Hierarchy");
+
+		Click(locator1 = "PagesFinder#PAGE_TYPE_SELECTOR_ELLIPSIS_ICON");
+
+		MenuItem.click(menuItem = "Add Page");
+
+		PagesFinder._addPage(
+			assertCheckboxMissing = "${assertCheckboxMissing}",
+			categoryName = "${categoryName}",
+			collectionName = "${collectionName}",
+			customDescription = "${customDescription}",
+			customTitle = "${customTitle}",
+			inheritChanges = "${inheritChanges}",
+			navigationMenus = "${navigationMenus}",
+			openGraph = "${openGraph}",
+			pageName = "${pageName}",
+			pageTemplateName = "${pageTemplateName}",
+			pageTypeURL = "${pageTypeURL}",
+			sitePageType = "${sitePageType}",
+			vocabularyName = "${vocabularyName}");
 	}
 
 	macro addPrivatePage {
@@ -113,7 +231,7 @@ definition {
 			Click(locator1 = "Icon#BACK");
 		}
 
-		LexiconCard.clickCardTitle(card = "${collectionName}");
+		LexiconCard.clickCard(card = "${collectionName}");
 
 		if (isSet(masterLayoutName)) {
 			LexiconCard.clickCard(card = "${masterLayoutName}");
@@ -196,20 +314,26 @@ definition {
 			vocabularyName = "${vocabularyName}");
 	}
 
-	macro goToFindAPage {
-		ProductMenuHelper.openProductMenu();
-
-		if (IsElementNotPresent(locator1 = "PagesFinder#INPUT_FIELD")) {
-			Click(locator1 = "PagesFinder#OUTLINE_ICON");
-		}
-	}
-
 	macro gotoPageEllipsisItem {
 		Click.mouseOverClick(
 			key_pageName = "${pageName}",
 			locator1 = "PagesFinder#PAGE_ELLIPSIS_ICON");
 
 		MenuItem.clickNoError(menuItem = "${item}");
+	}
+
+	macro goToPagesFinder {
+		ProductMenuHelper.openProductMenu();
+
+		if (IsElementPresent(key_text = "Page Tree", locator1 = "Button#ANY_DISABLED")) {
+			ProductMenu.gotoHomePage();
+		}
+
+		if (IsElementNotPresent(locator1 = "PagesFinder#INPUT_FIELD")) {
+			Click(
+				key_text = "Page Tree",
+				locator1 = "Button#ANY");
+		}
 	}
 
 	macro inputPageSearch {
@@ -242,9 +366,9 @@ definition {
 	}
 
 	macro selectPageType {
-		Select(
-			locator1 = "PagesFinder#PAGE_TYPE_SELECTOR",
-			value1 = "${optionValue}");
+		Click(locator1 = "PagesFinder#PAGE_TYPE_SELECTOR");
+
+		DropdownMenuItem.click(menuItem = "${optionValue}");
 	}
 
 	macro viewInPagesAdministration {

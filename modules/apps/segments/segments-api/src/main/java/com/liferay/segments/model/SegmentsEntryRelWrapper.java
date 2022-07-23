@@ -135,6 +135,11 @@ public class SegmentsEntryRelWrapper
 		}
 	}
 
+	@Override
+	public SegmentsEntryRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this segments entry rel.
 	 *

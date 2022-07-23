@@ -14,6 +14,7 @@
 
 package com.liferay.message.boards.service.impl;
 
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.message.boards.constants.MBCategoryConstants;
 import com.liferay.message.boards.exception.CategoryNameException;
 import com.liferay.message.boards.model.MBCategory;
@@ -35,11 +36,14 @@ import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.kernel.exception.RestoreEntryException;
 import com.liferay.trash.kernel.exception.TrashEntryException;
@@ -92,7 +96,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Category
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long groupId = serviceContext.getScopeGroupId();
 
@@ -185,7 +189,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 			boolean addGuestPermissions)
 		throws PortalException {
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			category.getCompanyId(), category.getGroupId(),
 			category.getUserId(), MBCategory.class.getName(),
 			category.getCategoryId(), false, addGroupPermissions,
@@ -197,7 +201,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 			MBCategory category, ModelPermissions modelPermissions)
 		throws PortalException {
 
-		resourceLocalService.addModelResources(
+		_resourceLocalService.addModelResources(
 			category.getCompanyId(), category.getGroupId(),
 			category.getUserId(), MBCategory.class.getName(),
 			category.getCategoryId(), modelPermissions);
@@ -271,16 +275,16 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(category.getCategoryId());
+		_expandoRowLocalService.deleteRows(category.getCategoryId());
 
 		// Ratings
 
-		ratingsStatsLocalService.deleteStats(
+		_ratingsStatsLocalService.deleteStats(
 			MBCategory.class.getName(), category.getCategoryId());
 
 		// Resources
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			category.getCompanyId(), MBCategory.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL, category.getCategoryId());
 
@@ -652,7 +656,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 			// Categories and threads
 
-			User user = userLocalService.getUser(userId);
+			User user = _userLocalService.getUser(userId);
 
 			List<Object> categoriesAndThreads = getCategoriesAndThreads(
 				category.getGroupId(), categoryId,
@@ -689,7 +693,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Categories and threads
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		List<Object> categoriesAndThreads = getCategoriesAndThreads(
 			category.getGroupId(), categoryId);
@@ -724,13 +728,11 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Categories and threads
 
-		User user = userLocalService.getUser(userId);
-
-		List<Object> categoriesAndThreads = getCategoriesAndThreads(
-			category.getGroupId(), categoryId,
-			WorkflowConstants.STATUS_IN_TRASH);
-
-		restoreDependentsFromTrash(user, categoriesAndThreads);
+		restoreDependentsFromTrash(
+			_userLocalService.getUser(userId),
+			getCategoriesAndThreads(
+				category.getGroupId(), categoryId,
+				WorkflowConstants.STATUS_IN_TRASH));
 
 		// Trash
 
@@ -850,7 +852,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Category
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		MBCategory category = mbCategoryPersistence.findByPrimaryKey(
 			categoryId);
@@ -1146,6 +1148,9 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	}
 
 	@Reference
+	private ExpandoRowLocalService _expandoRowLocalService;
+
+	@Reference
 	private MBMailingListLocalService _mbMailingListLocalService;
 
 	@Reference
@@ -1158,6 +1163,12 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	private MBThreadPersistence _mbThreadPersistence;
 
 	@Reference
+	private RatingsStatsLocalService _ratingsStatsLocalService;
+
+	@Reference
+	private ResourceLocalService _resourceLocalService;
+
+	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;
 
 	@Reference
@@ -1165,5 +1176,8 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 	@Reference
 	private TrashVersionLocalService _trashVersionLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

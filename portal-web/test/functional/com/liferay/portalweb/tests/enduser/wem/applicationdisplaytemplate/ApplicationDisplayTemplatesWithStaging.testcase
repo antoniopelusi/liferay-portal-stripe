@@ -1,16 +1,14 @@
 @component-name = "portal-wcm"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Content and Application Templates";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
@@ -46,13 +44,70 @@ definition {
 		task ("Publish to Live") {
 			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
 
-			Staging.publishCustomPublication(checkContentNameList = "PortletDisplayTemplate");
+			Staging.publishCustomPublication(checkContentNameList = "Template");
 		}
 
 		task ("View the widget template in live site") {
 			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
 
 			ApplicationDisplayTemplates.viewTemplate(adtType = "Asset Publisher");
+		}
+	}
+
+	@description = "This is a use case for LPS-137903. View the new GUI in Widget Templates in staging model."
+	@priority = "4"
+	@uitest
+	test ViewTemplateEditorSidebarPanel {
+		task ("Enable Staging Model") {
+			JSONStaging.enableLocalStaging(
+				branchingPrivate = "false",
+				branchingPublic = "false",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a widget template for Asset Publisher") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name-staging");
+
+			ApplicationDisplayTemplates.addADTWithFieldEntryCP(
+				fieldName = "Asset Entry",
+				portletName = "Asset Publisher");
+
+			Alert.viewSuccessMessage();
+
+			ApplicationDisplayTemplates.viewTemplate(adtType = "Asset Publisher");
+		}
+
+		task ("View sidebar panels in template editor") {
+			ApplicationDisplayTemplates.gotoWidgetTemplatesEllipsisItem(
+				item = "Edit",
+				widgetTemplateName = "Asset Publisher Test ADT");
+		}
+
+		task ("View Elements panel") {
+			Navigator.gotoSidebarTab(tabName = "Elements");
+
+			for (var fieldName : list "Asset Entries*,Asset Entry,Current URL,Locale,Portlet Preferences,Template ID,Theme Display,HTTP Request,Render Request,Render Response,Asset Publisher Helper") {
+				AssertElementPresent(
+					key_fieldName = "${fieldName}",
+					locator1 = "DDMEditTemplate#SCRIPT_FIELD");
+			}
+		}
+
+		task ("View Properties panel") {
+			Navigator.gotoSidebarTab(tabName = "Properties");
+
+			for (var fieldName : list "Template Key,URL,WebDAV URL") {
+				AssertVisible(
+					key_text = "${fieldName}",
+					locator1 = "TextInput#ANY");
+			}
+
+			AssertVisible(locator1 = "TextArea#DESCRIPTION");
+
+			AssertSelectedLabel(
+				locator1 = "Select#SELECT_ID",
+				selectFieldId = "smallImageSource",
+				value1 = "No Image");
 		}
 	}
 
@@ -63,7 +118,7 @@ definition {
 
 		task ("Add a widget page") {
 			JSONLayout.addPublicLayout(
-				groupName = "Test Site Name-staging",
+				groupName = "Test Site Name (Staging)",
 				layoutName = "ADT Test Page",
 				site = "false");
 		}
@@ -97,10 +152,10 @@ definition {
 
 		task ("Add a Categories Navigation to page") {
 			JSONLayout.addWidgetToPublicLayout(
-				groupName = "Test Site Name-staging",
+				groupName = "Test Site Name (Staging)",
 				layoutName = "ADT Test Page",
 				site = "false",
-				widgetName = "Categories Navigation");
+				widgetName = "Category Filter");
 		}
 
 		task ("View the displayed content in Categories Navigation") {
@@ -117,11 +172,12 @@ definition {
 				vocabularyName = "Vocabulary Name 3");
 		}
 
-		task ("Add a widget template via Categories Navigation") {
-			ApplicationDisplayTemplates.addPG(
+		task ("Add a widget template for Categories Navigation") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name-staging");
+
+			ApplicationDisplayTemplates.addCP(
 				adtFile = "adt_categories_navigation_multi_column.ftl",
-				adtType = "Categories Navigation",
-				siteName = "Test Site Name");
+				adtType = "Category Filter");
 		}
 
 		task ("Select the widget template in Categories Navigation") {
@@ -129,7 +185,7 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			ApplicationDisplayTemplates.selectPortletADT(templateName = "Categories Navigation Test ADT");
+			ApplicationDisplayTemplates.selectPortletADT(templateName = "Category Filter Test ADT");
 		}
 
 		task ("View the widget template applied to Categories Navigation in staging site") {

@@ -2,11 +2,13 @@
 <head>
 <title>KaleoFormsAdmin</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">KaleoFormsAdmin</td></tr>
 </thead>
+
 <tbody>
 <!--PROCESS_TABLE-->
 <tr>
@@ -24,10 +26,31 @@
 	<td>//div[contains(@class,'empty-result')]//div[contains(text(),'There are no unpublished definitions.')]</td>
 	<td></td>
 </tr>
+<!--PROCESS_DETAILS-->
+<tr>
+	<td>DESCRIPTION_FIELD</td>
+	<td>//div[contains(@class,'form-group')]//label[contains(text(), '${key_fieldName}')]/following-sibling::div[contains(@class, 'input-group')]//textarea</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_VERSION</td>
+	<td>//section[contains(@id,'KaleoFormsAdminPortlet')]//span[contains(@class,'mr-2 workflow-Version')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_TABLE_NAME_BY_INDEX</td>
+	<td>//tr[contains(.,'${key_kfProcessName}')]/td[${key_itemPosition}]</td>
+	<td></td>
+</tr>
 <!--WORKFLOW_MODAL-->
 <tr>
 	<td>CLOSE_BUTTON</td>
 	<td>//button[contains(@aria-label,'close')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_ORDER_SUBMISSIONS</td>
+	<td>//tr[${key_rowNumber}]//span[contains(text(),"${key_fieldName}")]</td>
 	<td></td>
 </tr>
 </tbody>

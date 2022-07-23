@@ -61,7 +61,7 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = MVCRenderCommand.class
 )
-public class DLViewMVCRenderCommand extends GetFolderMVCRenderCommand {
+public class DLViewMVCRenderCommand extends BaseFolderMVCRenderCommand {
 
 	@Override
 	public String render(

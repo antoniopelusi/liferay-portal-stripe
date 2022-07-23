@@ -52,8 +52,8 @@ public class ProgressTracker implements Serializable {
 		finish(httpServletRequest.getSession());
 	}
 
-	public void finish(HttpSession session) {
-		session.removeAttribute(PERCENT + _progressId);
+	public void finish(HttpSession httpSession) {
+		httpSession.removeAttribute(PERCENT + _progressId);
 	}
 
 	public void finish(PortletRequest portletRequest) {
@@ -83,8 +83,8 @@ public class ProgressTracker implements Serializable {
 		initialize(httpServletRequest.getSession());
 	}
 
-	public void initialize(HttpSession session) {
-		session.setAttribute(PERCENT + _progressId, this);
+	public void initialize(HttpSession httpSession) {
+		httpSession.setAttribute(PERCENT + _progressId, this);
 	}
 
 	public void initialize(PortletRequest portletRequest) {
@@ -112,8 +112,8 @@ public class ProgressTracker implements Serializable {
 		start(httpServletRequest.getSession());
 	}
 
-	public void start(HttpSession session) {
-		initialize(session);
+	public void start(HttpSession httpSession) {
+		initialize(httpSession);
 
 		setPercent(1);
 	}

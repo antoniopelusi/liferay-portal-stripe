@@ -64,7 +64,7 @@ public class EditCommerceTaxMethodMVCActionCommand
 
 		try {
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateCommerceTaxMethod(actionRequest);
+				_updateCommerceTaxMethod(actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -92,7 +92,7 @@ public class EditCommerceTaxMethodMVCActionCommand
 		}
 	}
 
-	protected CommerceTaxMethod updateCommerceTaxMethod(
+	private CommerceTaxMethod _updateCommerceTaxMethod(
 			ActionRequest actionRequest)
 		throws PortalException {
 
@@ -120,9 +120,8 @@ public class EditCommerceTaxMethodMVCActionCommand
 				actionRequest, "commerceTaxMethodEngineKey");
 
 			commerceTaxMethod = _commerceTaxMethodService.addCommerceTaxMethod(
-				_portal.getUserId(actionRequest), commerceChannel.getGroupId(),
-				nameMap, descriptionMap, commerceTaxMethodEngineKey, percentage,
-				active);
+				commerceChannel.getGroupId(), nameMap, descriptionMap,
+				commerceTaxMethodEngineKey, percentage, active);
 		}
 		else {
 			commerceTaxMethod =

@@ -86,9 +86,9 @@ public class CTClosureImpl implements CTClosure {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler();
+		StringBundler sb1 = new StringBundler();
 
-		sb.append("{\n");
+		sb1.append("{\n");
 
 		Map<Long, List<Long>> pksMap = getRootPKsMap();
 
@@ -112,21 +112,21 @@ public class CTClosureImpl implements CTClosure {
 
 			int indent = indentEntry.getValue();
 
-			StringBuilder stringBuilder = new StringBuilder(indent);
+			StringBundler sb2 = new StringBundler(indent);
 
 			for (int i = 0; i < indent; i++) {
-				stringBuilder.append(CharPool.TAB);
+				sb2.append(CharPool.TAB);
 			}
 
-			String indentString = stringBuilder.toString();
+			String indentString = sb2.toString();
 
 			for (long classPK : entry.getValue()) {
-				sb.append(indentString);
-				sb.append("(classNameId=");
-				sb.append(classNameId);
-				sb.append(", classPK=");
-				sb.append(classPK);
-				sb.append(")\n");
+				sb1.append(indentString);
+				sb1.append("(classNameId=");
+				sb1.append(classNameId);
+				sb1.append(", classPK=");
+				sb1.append(classPK);
+				sb1.append(")\n");
 
 				Map<Long, ? extends Collection<Long>> childPKsMap =
 					getChildPKsMap(classNameId, classPK);
@@ -141,9 +141,9 @@ public class CTClosureImpl implements CTClosure {
 			}
 		}
 
-		sb.append("}");
+		sb1.append("}");
 
-		return sb.toString();
+		return sb1.toString();
 	}
 
 	private Map<Long, List<Long>> _getPrimaryKeysMap(

@@ -1,0 +1,184 @@
+@component-name = "portal-workflow"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Workflow";
+
+	var workflowAssetType = "Web Content Article";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Web Content");
+
+		Workflow.configureWCWorkflowViaFolderInfo(workflowDefinition = "Single Approver");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			WebContent.tearDownCP();
+
+			Workflow.tearDownPortalWorkflow();
+
+			Workflow.tearDownSiteWorkflow();
+		}
+	}
+
+	@description = "LPS-135888 - Verify that the user with Account role type receives the notification for review"
+	@priority = "4"
+	test AccountUserReceivesNotification {
+		property test.name.skip.portal.instance = "WorkflowNotifications#AccountUserReceivesNotification";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceEntry.addAccountEntryUser(
+			accountName = "Commerce Account",
+			accountType = "Business",
+			agreeToTermsAndAnswerReminderQuery = "true",
+			createNewAccount = "true",
+			requireReset = "false",
+			userEmailAddress = "buyer@liferay.com",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userRole = "Buyer",
+			userScreenName = "buyeruser",
+			userSiteMembership = "Minium");
+
+		Accounts.addAssigneeToRoleViaRolesTab(
+			accountRoleTitle = "Account Administrator",
+			assigneeName = "Buyer");
+
+		User.openUsersAdmin();
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "test",
+			requirePasswordReset = "false",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Store Management",
+			panel = "Commerce",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		Workflow.setWorkflowToMiniumChannel(workflowDefinition = "Single Approver (Version 1)");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "Transmission Cooler Line Assembly",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Submit");
+
+		Workflow.viewWorkflowStatus(status = "Pending");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		Workflow.openNotifications();
+
+		Notifications.viewSuccessfulPublication(
+			contentBody = "for review in the workflow.",
+			portletName = "Test Test",
+			publicationType = "sent you a Commerce Order");
+	}
+
+	@description = "Verify that the user can open new user details by notifications"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test CanOpenNewUserDetailsByNotifications {
+
+		// TODO LRQA-70881 CanOpenNewUserDetailsByNotifications pending implementation
+
+	}
+
+	@description = "LPS-135888 - Verify that when the user delete the order, the notifications are not displayed"
+	@priority = "4"
+	test NotificationIsNotAvailableWhenOrderIsDeleted {
+		property test.name.skip.portal.instance = "WorkflowNotifications#NotificationIsNotAvailableWhenOrderIsDeleted";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceEntry.addAccountEntryUser(
+			accountName = "Commerce Account",
+			accountType = "Business",
+			agreeToTermsAndAnswerReminderQuery = "true",
+			createNewAccount = "true",
+			requireReset = "false",
+			userEmailAddress = "buyer@liferay.com",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userRole = "Buyer",
+			userScreenName = "buyeruser",
+			userSiteMembership = "Minium");
+
+		Accounts.addAssigneeToRoleViaRolesTab(
+			accountRoleTitle = "Account Administrator",
+			assigneeName = "Buyer");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Store Management",
+			panel = "Commerce",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		Workflow.setWorkflowToMiniumChannel(workflowDefinition = "Single Approver (Version 1)");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "Transmission Cooler Line Assembly",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Submit");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceJSONOrdersAPI._deleteAllCommerceOrders();
+
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "Notifications");
+
+		AssertTextEquals(
+			locator1 = "Sharing#NOTIFICATIONS_DELETE_ENTRY_TITLE",
+			value1 = "Notification no longer applies.");
+	}
+
+}

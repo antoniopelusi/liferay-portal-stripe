@@ -12,37 +12,41 @@
  * details.
  */
 
-import {MockedProvider} from '@apollo/client/testing';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
 import {render} from '@testing-library/react';
+import {ClientContext, GraphQLClient} from 'graphql-hooks';
 import {createMemoryHistory} from 'history';
 import {Router} from 'react-router-dom';
 
 import {AppContext} from '../src/main/resources/META-INF/resources/js/AppContext.es';
 
-export const renderComponent = ({
-	apolloAddTypename = false,
-	apolloMocks = null,
+export function renderComponent({
 	contextValue = {},
-	link,
+	fetch,
 	ui,
 	route = '/',
 	history = createMemoryHistory({initialEntries: [route]}),
-}) => ({
-	...render(
-		<Router history={history}>
-			<AppContext.Provider value={contextValue}>
-				<MockedProvider
-					addTypename={apolloAddTypename}
-					link={link}
-					mocks={apolloMocks}
-				>
-					{ui}
-				</MockedProvider>
-			</AppContext.Provider>
-		</Router>
-	),
-	history,
-});
+}) {
+	window.scrollTo = jest.fn();
+
+	const client = new GraphQLClient({
+		fetch,
+		method: 'POST',
+		url: '/o/graphql',
+	});
+
+	return {
+		...render(
+			<ClientContext.Provider value={client}>
+				<Router history={history}>
+					<AppContext.Provider value={contextValue}>
+						{ui}
+					</AppContext.Provider>
+				</Router>
+			</ClientContext.Provider>
+		),
+		history,
+	};
+}

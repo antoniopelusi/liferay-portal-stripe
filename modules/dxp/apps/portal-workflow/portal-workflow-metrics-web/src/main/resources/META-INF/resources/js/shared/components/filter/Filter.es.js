@@ -9,19 +9,15 @@
  * distribution rights of the Software.
  */
 
+import ClayButton from '@clayui/button';
+import ClayDropDown, {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import getCN from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {useFilter} from '../../hooks/useFilter.es';
 import {useRouter} from '../../hooks/useRouter.es';
 import {FilterItem} from './FilterItem.es';
 import {FilterSearch} from './FilterSearch.es';
-import {
-	addClickOutsideListener,
-	handleClickOutside,
-	removeClickOutsideListener,
-} from './util/filterEvents.es';
 import {
 	getCapitalizedFilterKey,
 	getSelectedItemsQuery,
@@ -29,8 +25,8 @@ import {
 } from './util/filterUtil.es';
 
 const Filter = ({
-	buttonClassName = 'btn-secondary btn-sm',
 	children,
+	childrenVisibility,
 	defaultItem,
 	disabled,
 	elementClasses,
@@ -41,9 +37,8 @@ const Filter = ({
 	multiple = true,
 	name,
 	onClickFilter,
-	position = 'left',
 	prefixKey = '',
-	preventClick,
+	show = true,
 	withoutRouteParams,
 }) => {
 	const {dispatchFilter} = useFilter({withoutRouteParams});
@@ -54,22 +49,6 @@ const Filter = ({
 
 	const prefixedFilterKey = getCapitalizedFilterKey(prefixKey, filterKey);
 	const routerProps = useRouter();
-	const wrapperRef = useRef();
-
-	const classes = {
-		children: getCN(
-			'custom dropdown-menu',
-			children && 'show',
-			position && `dropdown-menu-${position}`
-		),
-		custom: getCN('btn dropdown-toggle nav-link', buttonClassName),
-		dropdown: getCN('dropdown nav-item', elementClasses),
-		menu: getCN(
-			'dropdown-menu',
-			expanded && 'show',
-			position && `dropdown-menu-${position}`
-		),
-	};
 
 	const getSelectedItems = (items) => items.filter((item) => item.active);
 
@@ -94,19 +73,21 @@ const Filter = ({
 		setSearchTerm('');
 	};
 
-	const onClick = (item) => (onClickFilter ? onClickFilter(item) : true);
-
 	const onSelect = useCallback(
 		(item) => {
-			if (!preventClick) {
-				if (!multiple) {
-					items.forEach((item) => {
-						item.active = false;
-					});
-				}
+			if (!multiple) {
+				items.forEach((item) => {
+					item.active = false;
+				});
+			}
 
-				item.active = !item.active;
+			item.active = !item.active;
 
+			if (onClickFilter) {
+				onClickFilter(item);
+				closeDropdown();
+			}
+			else {
 				if (!multiple) {
 					applyFilterChanges();
 					closeDropdown();
@@ -114,9 +95,6 @@ const Filter = ({
 				else {
 					setChanged(true);
 				}
-			}
-			else {
-				onClick(item);
 			}
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,11 +112,11 @@ const Filter = ({
 
 				items[index].active = true;
 
-				if (!preventClick) {
+				if (!onClickFilter) {
 					applyFilterChanges();
 				}
 				else {
-					onClick(items[index]);
+					onClickFilter(items[index]);
 				}
 			}
 		}
@@ -148,27 +126,7 @@ const Filter = ({
 	useEffect(() => {
 		selectDefaultItem();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [defaultItem]);
-
-	useEffect(() => {
-		const callback = handleClickOutside(() => {
-			if (expanded) {
-				closeDropdown();
-
-				if (changed) {
-					setChanged(false);
-					applyFilterChanges();
-				}
-			}
-		}, wrapperRef.current);
-
-		addClickOutsideListener(callback);
-
-		return () => {
-			removeClickOutsideListener(callback);
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [applyFilterChanges, expanded, changed]);
+	}, [defaultItem, getSelectedItems(items).length]);
 
 	useEffect(() => {
 		setFilteredItems(
@@ -182,30 +140,51 @@ const Filter = ({
 		);
 	}, [items, labelPropertyName, searchTerm]);
 
+	useEffect(() => {
+		if (!expanded && multiple && changed) {
+			setChanged(false);
+			applyFilterChanges();
+		}
+		else if (!expanded && !multiple && childrenVisibility) {
+			setExpanded(true);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [expanded]);
+
 	return (
-		<li className={classes.dropdown} ref={wrapperRef}>
-			<button
-				className={classes.custom}
-				disabled={disabled}
-				onClick={() => {
-					setExpanded(!expanded);
+		show && (
+			<ClayDropDown
+				active={expanded}
+				alignmentPosition={Align.BottomLeft}
+				className={elementClasses}
+				menuElementAttrs={{
+					className:
+						childrenVisibility && 'dropdown-menu-inline-table',
 				}}
+				onActiveChange={(newActive) => setExpanded(newActive)}
+				trigger={
+					<ClayButton
+						className="filter-dropdown-button"
+						disabled={disabled}
+						displayType="secondary"
+					>
+						{name}
+
+						<ClayIcon className="ml-1" symbol="caret-bottom" />
+					</ClayButton>
+				}
 			>
-				<span className="mr-2 navbar-text-truncate">{name}</span>
-
-				<ClayIcon symbol="caret-bottom" />
-			</button>
-
-			<div className={classes.menu} role="menu">
-				<FilterSearch
-					filteredItems={filteredItems}
-					onChange={({target}) => {
-						setSearchTerm(target.value);
-					}}
-					searchTerm={searchTerm}
-					totalCount={items.length}
-				>
-					<ul className="list-unstyled">
+				{childrenVisibility ? (
+					children
+				) : (
+					<FilterSearch
+						filteredItems={filteredItems}
+						onChange={({target}) => {
+							setSearchTerm(target.value);
+						}}
+						searchTerm={searchTerm}
+						totalCount={items.length}
+					>
 						{filteredItems.map((item, index) => (
 							<FilterItem
 								{...item}
@@ -214,15 +193,12 @@ const Filter = ({
 								labelPropertyName={labelPropertyName}
 								multiple={multiple}
 								onClick={() => onSelect(item)}
-								preventClick={preventClick}
 							/>
 						))}
-					</ul>
-				</FilterSearch>
-			</div>
-
-			<div className={classes.children}>{children}</div>
-		</li>
+					</FilterSearch>
+				)}
+			</ClayDropDown>
+		)
 	);
 };
 export default Filter;

@@ -49,7 +49,7 @@ import org.osgi.service.component.annotations.Reference;
 	service = MVCActionCommand.class
 )
 public class CompleteTaskMVCActionCommand
-	extends WorkflowTaskBaseMVCActionCommand {
+	extends BaseWorkflowTaskMVCActionCommand {
 
 	@Override
 	protected void doProcessAction(

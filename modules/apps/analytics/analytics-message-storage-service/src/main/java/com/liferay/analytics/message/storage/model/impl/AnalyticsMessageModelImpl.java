@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.util.ProxyUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
 import java.sql.Blob;
@@ -217,34 +216,6 @@ public class AnalyticsMessageModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AnalyticsMessage>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AnalyticsMessage.class.getClassLoader(), AnalyticsMessage.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AnalyticsMessage> constructor =
-				(Constructor<AnalyticsMessage>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AnalyticsMessage, Object>>
@@ -523,6 +494,26 @@ public class AnalyticsMessageModelImpl
 	}
 
 	@Override
+	public AnalyticsMessage cloneWithOriginalValues() {
+		AnalyticsMessageImpl analyticsMessageImpl = new AnalyticsMessageImpl();
+
+		analyticsMessageImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		analyticsMessageImpl.setAnalyticsMessageId(
+			this.<Long>getColumnOriginalValue("analyticsMessageId"));
+		analyticsMessageImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		analyticsMessageImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		analyticsMessageImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		analyticsMessageImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+
+		return analyticsMessageImpl;
+	}
+
+	@Override
 	public int compareTo(AnalyticsMessage analyticsMessage) {
 		int value = 0;
 
@@ -638,18 +629,29 @@ public class AnalyticsMessageModelImpl
 	public String toString() {
 		StringBundler sb = new StringBundler(15);
 
-		sb.append("{mvccVersion=");
+		sb.append("{\"mvccVersion\": ");
+
 		sb.append(getMvccVersion());
-		sb.append(", analyticsMessageId=");
+
+		sb.append(", \"analyticsMessageId\": ");
+
 		sb.append(getAnalyticsMessageId());
-		sb.append(", companyId=");
+
+		sb.append(", \"companyId\": ");
+
 		sb.append(getCompanyId());
-		sb.append(", userId=");
+
+		sb.append(", \"userId\": ");
+
 		sb.append(getUserId());
-		sb.append(", userName=");
-		sb.append(getUserName());
-		sb.append(", createDate=");
-		sb.append(getCreateDate());
+
+		sb.append(", \"userName\": ");
+
+		sb.append("\"" + getUserName() + "\"");
+
+		sb.append(", \"createDate\": ");
+
+		sb.append("\"" + getCreateDate() + "\"");
 
 		return sb.toString();
 	}
@@ -665,27 +667,39 @@ public class AnalyticsMessageModelImpl
 
 		sb.append(
 			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+
 		sb.append(getMvccVersion());
+
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>analyticsMessageId</column-name><column-value><![CDATA[");
+
 		sb.append(getAnalyticsMessageId());
+
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>companyId</column-name><column-value><![CDATA[");
+
 		sb.append(getCompanyId());
+
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>userId</column-name><column-value><![CDATA[");
+
 		sb.append(getUserId());
+
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>userName</column-name><column-value><![CDATA[");
+
 		sb.append(getUserName());
+
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>createDate</column-name><column-value><![CDATA[");
+
 		sb.append(getCreateDate());
+
 		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
@@ -696,7 +710,9 @@ public class AnalyticsMessageModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AnalyticsMessage>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AnalyticsMessage.class, ModelWrapper.class);
 
 	}
 

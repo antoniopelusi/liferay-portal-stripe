@@ -28,8 +28,6 @@ public class ClayDataSetDataRow {
 
 	public ClayDataSetDataRow(Object item) {
 		_item = item;
-
-		_actionDropdownItems = new ArrayList<>();
 	}
 
 	public void addActionDropdownItems(List<DropdownItem> actionDropdownItems) {
@@ -45,7 +43,7 @@ public class ClayDataSetDataRow {
 		return _item;
 	}
 
-	private final List<DropdownItem> _actionDropdownItems;
+	private final List<DropdownItem> _actionDropdownItems = new ArrayList<>();
 	private final Object _item;
 
 }

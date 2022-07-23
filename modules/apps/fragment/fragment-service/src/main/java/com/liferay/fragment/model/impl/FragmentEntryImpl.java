@@ -20,7 +20,6 @@ import com.liferay.fragment.constants.FragmentExportImportConstants;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
-import com.liferay.fragment.util.FragmentEntryRenderUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
@@ -51,7 +50,7 @@ public class FragmentEntryImpl extends FragmentEntryBaseImpl {
 
 	@Override
 	public String getContent() {
-		return FragmentEntryRenderUtil.renderFragmentEntry(this);
+		return StringPool.BLANK;
 	}
 
 	@Override
@@ -62,7 +61,7 @@ public class FragmentEntryImpl extends FragmentEntryBaseImpl {
 
 	@Override
 	public String getIcon() {
-		if (_icon == null) {
+		if (Validator.isNull(_icon)) {
 			if (getType() == FragmentConstants.TYPE_REACT) {
 				_icon = "react";
 			}
@@ -113,8 +112,9 @@ public class FragmentEntryImpl extends FragmentEntryBaseImpl {
 
 	@Override
 	public int getUsageCount() {
-		return FragmentEntryLinkLocalServiceUtil.getFragmentEntryLinksCount(
-			getGroupId(), getFragmentEntryId());
+		return FragmentEntryLinkLocalServiceUtil.
+			getAllFragmentEntryLinksCountByFragmentEntryId(
+				getGroupId(), getFragmentEntryId());
 	}
 
 	@Override
@@ -147,6 +147,15 @@ public class FragmentEntryImpl extends FragmentEntryBaseImpl {
 			"cssPath", "index.css"
 		).put(
 			"htmlPath", "index.html"
+		).put(
+			"icon",
+			() -> {
+				if (Validator.isNotNull(_icon)) {
+					return _icon;
+				}
+
+				return null;
+			}
 		).put(
 			"jsPath", "index.js"
 		).put(

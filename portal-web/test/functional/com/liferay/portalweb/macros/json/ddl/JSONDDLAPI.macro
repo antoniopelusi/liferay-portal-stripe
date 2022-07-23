@@ -1,0 +1,41 @@
+definition {
+
+	macro _getRecordId {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/ddl.ddlrecord/get-records \
+			-u test@liferay.com:test \
+			-d recordSetId=${recordSetId}
+		''';
+		var recordId = JSONCurlUtil.post("${curl}", "$.[?(@['recordSetId'] == '${recordSetId}')]['recordId']");
+
+		if ("${recordId}" == "") {
+			fail("FAIL. Cannot find recordId.");
+		}
+
+		return "${recordId}";
+	}
+
+	macro _getRecordSetId {
+		Variables.assertDefined(parameterList = "${groupName},${ddlListName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var groupId = JSONDDLSetter.setGroupId(groupName = "${groupName}");
+
+		var curl = '''
+			${portalURL}/api/jsonws/ddl.ddlrecordset/get-record-sets \
+			-u test@liferay.com:test \
+			-d groupIds=${groupId}
+		''';
+		var recordSetId = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${ddlListName}')]['recordSetId']");
+
+		if ("${recordSetId}" == "") {
+			fail("FAIL. Cannot find recordSetId.");
+		}
+
+		return "${recordSetId}";
+	}
+
+}

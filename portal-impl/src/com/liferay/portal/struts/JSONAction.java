@@ -75,19 +75,13 @@ public abstract class JSONAction implements Action {
 			json = getJSON(httpServletRequest, httpServletResponse);
 
 			if (Validator.isNotNull(callback)) {
-				StringBundler sb = new StringBundler(5);
-
-				sb.append("/**/");
-				sb.append(callback);
-				sb.append(StringPool.OPEN_PARENTHESIS);
-				sb.append(json);
-				sb.append(StringPool.CLOSE_PARENTHESIS);
-
-				json = sb.toString();
+				json = StringBundler.concat(
+					"/**/", callback, StringPool.OPEN_PARENTHESIS, json,
+					StringPool.CLOSE_PARENTHESIS);
 			}
 		}
 		catch (PrincipalException principalException) {
-			_log.error(principalException.getMessage());
+			_log.error(principalException);
 
 			PortalUtil.sendError(
 				HttpServletResponse.SC_FORBIDDEN, principalException,
@@ -97,7 +91,7 @@ public abstract class JSONAction implements Action {
 		}
 		catch (SecurityException securityException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(securityException.getMessage());
+				_log.warn(securityException);
 			}
 
 			if (PropsValues.JSON_SERVICE_SERIALIZE_THROWABLE) {
@@ -112,7 +106,7 @@ public abstract class JSONAction implements Action {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception.getMessage());
+			_log.error(exception);
 
 			PortalUtil.sendError(
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception,

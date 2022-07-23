@@ -2,11 +2,13 @@
 <head>
 <title>Gmail</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Gmail</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>PAGE_TITLE</td>
@@ -250,7 +252,7 @@
 </tr>
 <tr>
 	<td>GMAIL_HTML_MODE_MESSAGE_BODY_ARTICLE_DATE</td>
-	<td>//tr//td//div[contains(.,'${gmailKBArticleDate}')]</td>
+	<td>//tr//td//div[contains(.,'${gmailKbArticleDate}')]</td>
 	<td></td>
 </tr>
 <tr>

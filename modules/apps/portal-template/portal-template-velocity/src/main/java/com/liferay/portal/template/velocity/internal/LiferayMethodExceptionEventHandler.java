@@ -39,24 +39,17 @@ public class LiferayMethodExceptionEventHandler
 			Exception exception)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("Unable to execute method ");
-		sb.append(method);
-		sb.append(StringPool.SPACE);
-		sb.append(StringPool.OPEN_CURLY_BRACE);
-		sb.append("exception=");
-		sb.append(exception);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append(getKeyValuePair(clazz));
-		sb.append(StringPool.CLOSE_CURLY_BRACE);
-
-		_log.error(sb.toString(), exception);
+		_log.error(
+			StringBundler.concat(
+				"Unable to execute method ", method, " {exception=", exception,
+				StringPool.COMMA_AND_SPACE, _getKeyValuePair(clazz),
+				StringPool.CLOSE_CURLY_BRACE),
+			exception);
 
 		return null;
 	}
 
-	protected String getKeyValuePair(Class<?> clazz) {
+	private String _getKeyValuePair(Class<?> clazz) {
 		if (clazz == null) {
 			return "class=null";
 		}

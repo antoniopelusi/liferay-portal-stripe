@@ -1,0 +1,20 @@
+Bundle-Name: Liferay Shared Dependencies XStream
+Bundle-SymbolicName: com.liferay.shared.dependencies.xstream
+Bundle-Version: 1.0.3
+Import-Package:\
+	!com.bea.*,\
+	\
+	!net.sf.cglib.*,\
+	\
+	!nu.xom,\
+	\
+	!org.codehaus.jettison.*,\
+	\
+	!org.jdom.*,\
+	\
+	!org.joda.time.*,\
+	\
+	!org.xmlpull.mxp1,\
+	\
+	*
+-exportcontents: com.thoughtworks.xstream.*

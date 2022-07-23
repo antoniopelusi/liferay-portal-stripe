@@ -27,6 +27,10 @@ public class AccountGroupRelLocalServiceWrapper
 	implements AccountGroupRelLocalService,
 			   ServiceWrapper<AccountGroupRelLocalService> {
 
+	public AccountGroupRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AccountGroupRelLocalServiceWrapper(
 		AccountGroupRelLocalService accountGroupRelLocalService) {
 
@@ -140,6 +144,18 @@ public class AccountGroupRelLocalServiceWrapper
 			accountGroupId, className, classPKs);
 	}
 
+	@Override
+	public void deleteAccountGroupRels(String className, long[] classPKs) {
+		_accountGroupRelLocalService.deleteAccountGroupRels(
+			className, classPKs);
+	}
+
+	@Override
+	public void deleteAccountGroupRelsByAccountGroupId(long accountGroupId) {
+		_accountGroupRelLocalService.deleteAccountGroupRelsByAccountGroupId(
+			accountGroupId);
+	}
+
 	/**
 	 * @throws PortalException
 	 */
@@ -155,6 +171,13 @@ public class AccountGroupRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _accountGroupRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _accountGroupRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -308,10 +331,32 @@ public class AccountGroupRelLocalServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.account.model.AccountGroupRel>
+		getAccountGroupRels(
+			String className, long classPK, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.account.model.AccountGroupRel> orderByComparator) {
+
+		return _accountGroupRelLocalService.getAccountGroupRels(
+			className, classPK, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.account.model.AccountGroupRel>
 		getAccountGroupRelsByAccountGroupId(long accountGroupId) {
 
 		return _accountGroupRelLocalService.getAccountGroupRelsByAccountGroupId(
 			accountGroupId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.account.model.AccountGroupRel>
+		getAccountGroupRelsByAccountGroupId(
+			long accountGroupId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.account.model.AccountGroupRel> orderByComparator) {
+
+		return _accountGroupRelLocalService.getAccountGroupRelsByAccountGroupId(
+			accountGroupId, start, end, orderByComparator);
 	}
 
 	/**
@@ -322,6 +367,12 @@ public class AccountGroupRelLocalServiceWrapper
 	@Override
 	public int getAccountGroupRelsCount() {
 		return _accountGroupRelLocalService.getAccountGroupRelsCount();
+	}
+
+	@Override
+	public int getAccountGroupRelsCount(String className, long classPK) {
+		return _accountGroupRelLocalService.getAccountGroupRelsCount(
+			className, classPK);
 	}
 
 	@Override

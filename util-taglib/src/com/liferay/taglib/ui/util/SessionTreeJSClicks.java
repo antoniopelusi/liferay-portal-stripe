@@ -33,7 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Brian Wing Shun Chan
  * @author Eduardo Lundgren
+ * @deprecated As of Cavanaugh (7.4.x), replaced by {@link com.liferay.portal.kernel.util.SessionTreeJSClicks}
  */
+@Deprecated
 public class SessionTreeJSClicks {
 
 	public static void closeLayoutNodes(
@@ -54,7 +56,7 @@ public class SessionTreeJSClicks {
 				httpServletRequest, treeId, layoutIds.toArray(new String[0]));
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -83,13 +85,11 @@ public class SessionTreeJSClicks {
 						concurrentModificationException) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						concurrentModificationException,
-						concurrentModificationException);
+					_log.debug(concurrentModificationException);
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return;
 			}
@@ -115,13 +115,11 @@ public class SessionTreeJSClicks {
 						concurrentModificationException) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						concurrentModificationException,
-						concurrentModificationException);
+					_log.debug(concurrentModificationException);
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return;
 			}
@@ -156,13 +154,11 @@ public class SessionTreeJSClicks {
 						concurrentModificationException) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						concurrentModificationException,
-						concurrentModificationException);
+					_log.debug(concurrentModificationException);
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return;
 			}
@@ -181,7 +177,7 @@ public class SessionTreeJSClicks {
 				SessionTreeJSClicks.class.getName(), treeId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return null;
 		}
@@ -205,7 +201,7 @@ public class SessionTreeJSClicks {
 				httpServletRequest, treeId, layoutIds.toArray(new String[0]));
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -233,13 +229,11 @@ public class SessionTreeJSClicks {
 						concurrentModificationException) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						concurrentModificationException,
-						concurrentModificationException);
+					_log.debug(concurrentModificationException);
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return;
 			}
@@ -273,13 +267,11 @@ public class SessionTreeJSClicks {
 						concurrentModificationException) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						concurrentModificationException,
-						concurrentModificationException);
+					_log.debug(concurrentModificationException);
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return;
 			}

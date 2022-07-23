@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Tuple;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,7 +59,7 @@ public class ContentFlagsFragmentRenderer
 					"fields",
 					JSONUtil.putAll(
 						JSONUtil.put(
-							"label", "content"
+							"label", "item"
 						).put(
 							"name", "itemSelector"
 						).put(
@@ -83,10 +82,7 @@ public class ContentFlagsFragmentRenderer
 
 	@Override
 	public String getLabel(Locale locale) {
-		ResourceBundle resourceBundle = resourceBundleLoader.loadResourceBundle(
-			locale);
-
-		return LanguageUtil.get(resourceBundle, "content-flags");
+		return LanguageUtil.get(locale, "content-flags");
 	}
 
 	@Override

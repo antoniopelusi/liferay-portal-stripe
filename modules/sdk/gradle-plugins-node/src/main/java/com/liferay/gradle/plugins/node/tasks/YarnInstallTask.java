@@ -60,11 +60,13 @@ public class YarnInstallTask extends ExecutePackageManagerTask {
 			completeArgs.add("--frozen-lockfile");
 		}
 
+		completeArgs.add("--ignore-engines");
+
 		return completeArgs;
 	}
 
 	private void _createYarnrcFile(File yarnrcFile) throws Exception {
-		List<String> contents = new ArrayList<>(2);
+		List<String> contents = new ArrayList<>();
 
 		contents.add("disable-self-update-check true");
 		contents.add("yarn-offline-mirror \"./node_modules_cache\"");

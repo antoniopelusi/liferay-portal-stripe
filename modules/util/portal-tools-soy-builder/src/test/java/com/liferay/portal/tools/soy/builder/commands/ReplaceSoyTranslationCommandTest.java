@@ -14,6 +14,8 @@
 
 package com.liferay.portal.tools.soy.builder.commands;
 
+import com.liferay.petra.string.StringBundler;
+
 import java.io.File;
 
 import org.junit.runner.RunWith;
@@ -31,9 +33,9 @@ public class ReplaceSoyTranslationCommandTest extends BaseSoyCommandTestCase {
 	}
 
 	public ReplaceSoyTranslationCommandTest(String testDirName) {
-		_testDirName =
-			"com/liferay/portal/tools/soy/builder/commands/dependencies" +
-				"/replace_soy_translation/" + testDirName + "/";
+		_testDirName = StringBundler.concat(
+			"com/liferay/portal/tools/soy/builder/commands/dependencies",
+			"/replace_soy_translation/", testDirName, "/");
 	}
 
 	@Override

@@ -103,7 +103,7 @@ public class JournalContentConfigurationAction
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -116,7 +116,7 @@ public class JournalContentConfigurationAction
 			ActionResponse actionResponse)
 		throws Exception {
 
-		setPreference(actionRequest, "articleId", getArticleId(actionRequest));
+		setPreference(actionRequest, "articleId", _getArticleId(actionRequest));
 
 		String[] contentMetadataAssetAddonEntryKeys =
 			ParamUtil.getParameterValues(
@@ -128,7 +128,7 @@ public class JournalContentConfigurationAction
 
 		setPreference(
 			actionRequest, "groupId",
-			String.valueOf(getArticleGroupId(actionRequest)));
+			String.valueOf(_getArticleGroupId(actionRequest)));
 
 		String[] userToolAssetAddonEntryKeys = ParamUtil.getParameterValues(
 			actionRequest, "userToolAssetAddonEntryKeys");
@@ -151,7 +151,36 @@ public class JournalContentConfigurationAction
 		super.setServletContext(servletContext);
 	}
 
-	protected long getArticleGroupId(PortletRequest portletRequest) {
+	private void _addDDMTemplateLinks(ActionRequest actionRequest)
+		throws Exception {
+
+		JournalArticle journalArticle =
+			_journalArticleLocalService.fetchArticle(
+				_getArticleGroupId(actionRequest),
+				_getArticleId(actionRequest));
+
+		if (journalArticle == null) {
+			return;
+		}
+
+		String compositeClassName = ResourceActionsUtil.getCompositeModelName(
+			JournalArticle.class.getName(), DDMTemplate.class.getName());
+
+		_ddmTemplateLinkLocalService.deleteTemplateLink(
+			_portal.getClassNameId(compositeClassName), journalArticle.getId());
+
+		long ddmTemplateId = _getDDMTemplateId(actionRequest);
+
+		if (ddmTemplateId == 0) {
+			return;
+		}
+
+		_ddmTemplateLinkLocalService.addTemplateLink(
+			_portal.getClassNameId(compositeClassName), journalArticle.getId(),
+			ddmTemplateId);
+	}
+
+	private long _getArticleGroupId(PortletRequest portletRequest) {
 		long assetEntryId = GetterUtil.getLong(
 			getParameter(portletRequest, "assetEntryId"));
 
@@ -165,8 +194,8 @@ public class JournalContentConfigurationAction
 		return assetEntry.getGroupId();
 	}
 
-	protected String getArticleId(PortletRequest portletRequest)
-		throws PortalException {
+	private String _getArticleId(PortletRequest portletRequest)
+		throws Exception {
 
 		long assetEntryId = GetterUtil.getLong(
 			getParameter(portletRequest, "assetEntryId"));
@@ -191,8 +220,8 @@ public class JournalContentConfigurationAction
 		return StringUtil.toUpperCase(article.getArticleId());
 	}
 
-	protected long getDDMTemplateId(PortletRequest portletRequest)
-		throws PortalException {
+	private long _getDDMTemplateId(PortletRequest portletRequest)
+		throws Exception {
 
 		String ddmTemplateKey = getParameter(portletRequest, "ddmTemplateKey");
 
@@ -201,7 +230,7 @@ public class JournalContentConfigurationAction
 		}
 
 		DDMTemplate ddmTemplate = _ddmTemplateLocalService.fetchTemplate(
-			getArticleGroupId(portletRequest), _CLASS_NAME_ID, ddmTemplateKey,
+			_getArticleGroupId(portletRequest), _CLASS_NAME_ID, ddmTemplateKey,
 			true);
 
 		if (ddmTemplate == null) {
@@ -209,34 +238,6 @@ public class JournalContentConfigurationAction
 		}
 
 		return ddmTemplate.getTemplateId();
-	}
-
-	private void _addDDMTemplateLinks(ActionRequest actionRequest)
-		throws Exception {
-
-		JournalArticle journalArticle =
-			_journalArticleLocalService.fetchArticle(
-				getArticleGroupId(actionRequest), getArticleId(actionRequest));
-
-		if (journalArticle == null) {
-			return;
-		}
-
-		String compositeClassName = ResourceActionsUtil.getCompositeModelName(
-			JournalArticle.class.getName(), DDMTemplate.class.getName());
-
-		_ddmTemplateLinkLocalService.deleteTemplateLink(
-			_portal.getClassNameId(compositeClassName), journalArticle.getId());
-
-		long ddmTemplateId = getDDMTemplateId(actionRequest);
-
-		if (ddmTemplateId == 0) {
-			return;
-		}
-
-		_ddmTemplateLinkLocalService.addTemplateLink(
-			_portal.getClassNameId(compositeClassName), journalArticle.getId(),
-			ddmTemplateId);
 	}
 
 	private static final long _CLASS_NAME_ID = PortalUtil.getClassNameId(

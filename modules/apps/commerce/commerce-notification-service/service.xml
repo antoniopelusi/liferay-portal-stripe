@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce.notification">
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.notification">
 	<author>Alessio Antonio Rendina</author>
 	<namespace>Commerce</namespace>
 	<entity local-service="true" name="CommerceNotificationAttachment" remote-service="false" table="CNotificationAttachment" uuid="true">
@@ -39,10 +39,6 @@
 		<finder name="CommerceNotificationQueueEntryId" return-type="Collection">
 			<finder-column name="commerceNotificationQueueEntryId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="DLApp" package-path="com.liferay.portlet.documentlibrary" />
 	</entity>
 	<entity local-service="true" name="CommerceNotificationQueueEntry" remote-service="true" uuid="false">
 
@@ -96,7 +92,7 @@
 		<finder name="Sent" return-type="Collection">
 			<finder-column name="sent" />
 		</finder>
-		<finder name="LtS" return-type="Collection">
+		<finder name="LtSentDate" return-type="Collection">
 			<finder-column comparator="&lt;" name="sentDate" />
 		</finder>
 		<finder name="G_C_C_S" return-type="Collection">
@@ -159,10 +155,6 @@
 			<finder-column name="type" />
 			<finder-column name="enabled" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CommerceNotificationTemplateCommerceAccountGroupRel" remote-service="true" table="CNTemplateCAccountGroupRel">
 

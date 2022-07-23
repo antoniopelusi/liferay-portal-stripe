@@ -186,6 +186,11 @@ public class MBCategoryWrapper
 	}
 
 	@Override
+	public MBCategory cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public java.util.List<Long> getAncestorCategoryIds()
 		throws com.liferay.portal.kernel.exception.PortalException {
 

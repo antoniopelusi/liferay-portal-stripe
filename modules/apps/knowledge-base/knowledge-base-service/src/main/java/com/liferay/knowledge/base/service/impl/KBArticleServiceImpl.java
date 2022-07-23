@@ -18,7 +18,7 @@ import com.liferay.knowledge.base.constants.KBActionKeys;
 import com.liferay.knowledge.base.constants.KBConstants;
 import com.liferay.knowledge.base.constants.KBFolderConstants;
 import com.liferay.knowledge.base.constants.KBPortletKeys;
-import com.liferay.knowledge.base.internal.util.KBArticleSiblingNavigationHelper;
+import com.liferay.knowledge.base.internal.helper.KBArticleSiblingNavigationHelper;
 import com.liferay.knowledge.base.internal.util.KBSectionEscapeUtil;
 import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.knowledge.base.model.KBArticleSearchDisplay;
@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.security.permission.resource.PortletResourcePer
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -84,28 +85,19 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 
 	@Override
 	public KBArticle addKBArticle(
-			String portletId, long parentResourceClassNameId,
-			long parentResourcePrimKey, String title, String urlTitle,
-			String content, String description, String sourceURL,
-			String[] sections, String[] selectedFileNames,
+			String externalReferenceCode, String portletId,
+			long parentResourceClassNameId, long parentResourcePrimKey,
+			String title, String urlTitle, String content, String description,
+			String sourceURL, String[] sections, String[] selectedFileNames,
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		if (portletId.equals(KBPortletKeys.KNOWLEDGE_BASE_ADMIN)) {
-			_adminPortletResourcePermission.check(
-				getPermissionChecker(), serviceContext.getScopeGroupId(),
-				KBActionKeys.ADD_KB_ARTICLE);
-		}
-		else if (portletId.equals(KBPortletKeys.KNOWLEDGE_BASE_DISPLAY)) {
-			_displayPortletResourcePermission.check(
-				getPermissionChecker(), serviceContext.getScopeGroupId(),
-				KBActionKeys.ADD_KB_ARTICLE);
-		}
+		_checkKBArticlePermissions(portletId, serviceContext);
 
 		return kbArticleLocalService.addKBArticle(
-			getUserId(), parentResourceClassNameId, parentResourcePrimKey,
-			title, urlTitle, content, description, sourceURL, sections,
-			selectedFileNames, serviceContext);
+			externalReferenceCode, getUserId(), parentResourceClassNameId,
+			parentResourcePrimKey, title, urlTitle, content, description,
+			sourceURL, sections, selectedFileNames, serviceContext);
 	}
 
 	@Override
@@ -225,6 +217,25 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 
 		KBArticle kbArticle = kbArticleLocalService.fetchLatestKBArticle(
 			resourcePrimKey, status);
+
+		if ((kbArticle != null) &&
+			_kbArticleModelResourcePermission.contains(
+				getPermissionChecker(), kbArticle, ActionKeys.VIEW)) {
+
+			return kbArticle;
+		}
+
+		return null;
+	}
+
+	@Override
+	public KBArticle fetchLatestKBArticleByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		KBArticle kbArticle =
+			kbArticleLocalService.fetchLatestKBArticleByExternalReferenceCode(
+				groupId, externalReferenceCode);
 
 		if ((kbArticle != null) &&
 			_kbArticleModelResourcePermission.contains(
@@ -594,6 +605,21 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 	}
 
 	@Override
+	public KBArticle getLatestKBArticleByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		KBArticle kbArticle =
+			kbArticleLocalService.getLatestKBArticleByExternalReferenceCode(
+				groupId, externalReferenceCode);
+
+		_kbArticleModelResourcePermission.check(
+			getPermissionChecker(), kbArticle, KBActionKeys.VIEW);
+
+		return kbArticle;
+	}
+
+	@Override
 	public KBArticle[] getPreviousAndNextKBArticles(long kbArticleId)
 		throws PortalException {
 
@@ -622,15 +648,15 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 		}
 
 		if (status == WorkflowConstants.STATUS_ANY) {
-			return kbArticlePersistence.filterFindByG_S_L(
+			return kbArticlePersistence.filterFindByG_LikeS_L(
 				groupId, array, true, start, end, orderByComparator);
 		}
 		else if (status == WorkflowConstants.STATUS_APPROVED) {
-			return kbArticlePersistence.filterFindByG_S_M(
+			return kbArticlePersistence.filterFindByG_LikeS_M(
 				groupId, array, true, start, end, orderByComparator);
 		}
 
-		return kbArticlePersistence.filterFindByG_S_S(
+		return kbArticlePersistence.filterFindByG_LikeS_S(
 			groupId, array, status, start, end, orderByComparator);
 	}
 
@@ -645,15 +671,16 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 		}
 
 		if (status == WorkflowConstants.STATUS_ANY) {
-			return kbArticlePersistence.filterCountByG_S_L(
+			return kbArticlePersistence.filterCountByG_LikeS_L(
 				groupId, array, true);
 		}
 		else if (status == WorkflowConstants.STATUS_APPROVED) {
-			return kbArticlePersistence.filterCountByG_S_M(
+			return kbArticlePersistence.filterCountByG_LikeS_M(
 				groupId, array, true);
 		}
 
-		return kbArticlePersistence.filterCountByG_S_S(groupId, array, status);
+		return kbArticlePersistence.filterCountByG_LikeS_S(
+			groupId, array, status);
 	}
 
 	@Override
@@ -848,11 +875,11 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 			String value = null;
 
 			if (rssDisplayStyle.equals(RSSUtil.DISPLAY_STYLE_ABSTRACT)) {
-				value = HtmlUtil.extractText(kbArticle.getDescription());
+				value = _htmlParser.extractText(kbArticle.getDescription());
 
 				if (Validator.isNull(value)) {
 					value = StringUtil.shorten(
-						HtmlUtil.extractText(kbArticle.getContent()), 200);
+						_htmlParser.extractText(kbArticle.getContent()), 200);
 				}
 			}
 			else if (rssDisplayStyle.equals(RSSUtil.DISPLAY_STYLE_TITLE)) {
@@ -886,11 +913,10 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 			syndEntries.add(syndEntry);
 		}
 
-		String feedType = RSSUtil.getFeedType(
-			RSSUtil.getFormatType(rssFormat),
-			RSSUtil.getFormatVersion(rssFormat));
-
-		syndFeed.setFeedType(feedType);
+		syndFeed.setFeedType(
+			RSSUtil.getFeedType(
+				RSSUtil.getFormatType(rssFormat),
+				RSSUtil.getFormatVersion(rssFormat)));
 
 		List<SyndLink> syndLinks = new ArrayList<>();
 
@@ -956,6 +982,22 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 		}
 	}
 
+	private void _checkKBArticlePermissions(
+			String portletId, ServiceContext serviceContext)
+		throws PortalException {
+
+		if (portletId.equals(KBPortletKeys.KNOWLEDGE_BASE_ADMIN)) {
+			_adminPortletResourcePermission.check(
+				getPermissionChecker(), serviceContext.getScopeGroupId(),
+				KBActionKeys.ADD_KB_ARTICLE);
+		}
+		else if (portletId.equals(KBPortletKeys.KNOWLEDGE_BASE_DISPLAY)) {
+			_displayPortletResourcePermission.check(
+				getPermissionChecker(), serviceContext.getScopeGroupId(),
+				KBActionKeys.ADD_KB_ARTICLE);
+		}
+	}
+
 	private void _getAllDescendantKBArticles(
 		List<KBArticle> kbArticles, long groupId, long resourcePrimKey,
 		int status, OrderByComparator<KBArticle> orderByComparator) {
@@ -998,6 +1040,9 @@ public class KBArticleServiceImpl extends KBArticleServiceBaseImpl {
 		target = "(resource.name=" + KBConstants.RESOURCE_NAME_DISPLAY + ")"
 	)
 	private PortletResourcePermission _displayPortletResourcePermission;
+
+	@Reference
+	private HtmlParser _htmlParser;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.knowledge.base.model.KBArticle)"

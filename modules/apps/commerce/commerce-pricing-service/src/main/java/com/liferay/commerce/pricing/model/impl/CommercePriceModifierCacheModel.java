@@ -18,6 +18,7 @@ import com.liferay.commerce.pricing.model.CommercePriceModifier;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import java.util.Date;
  * @generated
  */
 public class CommercePriceModifierCacheModel
-	implements CacheModel<CommercePriceModifier>, Externalizable {
+	implements CacheModel<CommercePriceModifier>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object object) {
@@ -50,8 +51,9 @@ public class CommercePriceModifierCacheModel
 		CommercePriceModifierCacheModel commercePriceModifierCacheModel =
 			(CommercePriceModifierCacheModel)object;
 
-		if (commercePriceModifierId ==
-				commercePriceModifierCacheModel.commercePriceModifierId) {
+		if ((commercePriceModifierId ==
+				commercePriceModifierCacheModel.commercePriceModifierId) &&
+			(mvccVersion == commercePriceModifierCacheModel.mvccVersion)) {
 
 			return true;
 		}
@@ -61,14 +63,30 @@ public class CommercePriceModifierCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, commercePriceModifierId);
+		int hashCode = HashUtil.hash(0, commercePriceModifierId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(47);
+		StringBundler sb = new StringBundler(51);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", ctCollectionId=");
+		sb.append(ctCollectionId);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", externalReferenceCode=");
 		sb.append(externalReferenceCode);
@@ -123,6 +141,9 @@ public class CommercePriceModifierCacheModel
 	public CommercePriceModifier toEntityModel() {
 		CommercePriceModifierImpl commercePriceModifierImpl =
 			new CommercePriceModifierImpl();
+
+		commercePriceModifierImpl.setMvccVersion(mvccVersion);
+		commercePriceModifierImpl.setCtCollectionId(ctCollectionId);
 
 		if (uuid == null) {
 			commercePriceModifierImpl.setUuid("");
@@ -243,6 +264,9 @@ public class CommercePriceModifierCacheModel
 	public void readExternal(ObjectInput objectInput)
 		throws ClassNotFoundException, IOException {
 
+		mvccVersion = objectInput.readLong();
+
+		ctCollectionId = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		externalReferenceCode = objectInput.readUTF();
 
@@ -279,6 +303,10 @@ public class CommercePriceModifierCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		objectOutput.writeLong(ctCollectionId);
+
 		if (uuid == null) {
 			objectOutput.writeUTF("");
 		}
@@ -357,6 +385,8 @@ public class CommercePriceModifierCacheModel
 		objectOutput.writeLong(statusDate);
 	}
 
+	public long mvccVersion;
+	public long ctCollectionId;
 	public String uuid;
 	public String externalReferenceCode;
 	public long commercePriceModifierId;

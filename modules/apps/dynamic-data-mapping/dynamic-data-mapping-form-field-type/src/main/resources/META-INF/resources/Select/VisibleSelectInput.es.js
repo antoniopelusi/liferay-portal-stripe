@@ -12,18 +12,20 @@
  * details.
  */
 
+import './VisibleSelectInput.scss';
+
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import classNames from 'classnames';
 import React, {forwardRef} from 'react';
 
-const LabelOptionListItem = ({onCloseButtonClicked, option}) => (
+const LabelOptionListItem = ({onCloseButtonClicked, option, readOnly}) => (
 	<li>
 		<ClayLabel
 			className="ddm-select-option-label"
 			closeButtonProps={{
 				'data-testid': `closeButton${option.value}`,
-				onClick: (event) => {
+				'onClick': (event) => {
 					event.preventDefault();
 					event.stopPropagation();
 
@@ -31,6 +33,7 @@ const LabelOptionListItem = ({onCloseButtonClicked, option}) => (
 				},
 			}}
 			value={option.value}
+			withClose={!readOnly}
 		>
 			{option.label}
 		</ClayLabel>
@@ -94,7 +97,7 @@ const VisibleSelectInput = forwardRef(
 					className={classNames(
 						'form-control results-chosen select-field-trigger',
 						{
-							disabled: readOnly,
+							'disabled': readOnly,
 							'multiple-label-list': multiple,
 						}
 					)}
@@ -122,6 +125,7 @@ const VisibleSelectInput = forwardRef(
 												onCloseButtonClicked
 											}
 											option={option}
+											readOnly={readOnly}
 										/>
 									)}
 								</>

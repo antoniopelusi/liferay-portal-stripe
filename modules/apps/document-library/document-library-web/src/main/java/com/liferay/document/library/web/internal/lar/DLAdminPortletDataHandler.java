@@ -39,6 +39,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepositoryRegistryUtil;
+import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
@@ -168,9 +169,14 @@ public class DLAdminPortletDataHandler extends BasePortletDataHandler {
 			return portletPreferences;
 		}
 
-		_dlAppLocalService.deleteAll(portletDataContext.getScopeGroupId());
+		_dlAppLocalService.deleteAllRepositories(
+			portletDataContext.getScopeGroupId());
 		_dlFileEntryTypeLocalService.deleteFileEntryTypes(
 			portletDataContext.getScopeGroupId());
+
+		_ddmStructureLocalService.deleteStructures(
+			portletDataContext.getScopeGroupId(),
+			_portal.getClassNameId(DLFileEntryMetadata.class));
 
 		if (portletPreferences == null) {
 			return portletPreferences;
@@ -181,7 +187,9 @@ public class DLAdminPortletDataHandler extends BasePortletDataHandler {
 		portletPreferences.setValue("fileEntryColumns", StringPool.BLANK);
 		portletPreferences.setValue("folderColumns", StringPool.BLANK);
 		portletPreferences.setValue("foldersPerPage", StringPool.BLANK);
+		portletPreferences.setValue("repositoryId", StringPool.BLANK);
 		portletPreferences.setValue("rootFolderId", StringPool.BLANK);
+		portletPreferences.setValue("selectedRepositoryId", StringPool.BLANK);
 		portletPreferences.setValue("showFoldersSearch", StringPool.BLANK);
 		portletPreferences.setValue("showSubfolders", StringPool.BLANK);
 
@@ -380,6 +388,18 @@ public class DLAdminPortletDataHandler extends BasePortletDataHandler {
 				StagedModelDataHandlerUtil.importStagedModel(
 					portletDataContext, fileShortcutElement);
 			}
+		}
+
+		Element friendlyURLEntriesElement =
+			portletDataContext.getImportDataGroupElement(
+				FriendlyURLEntry.class);
+
+		List<Element> friendlyURLEntryElements =
+			friendlyURLEntriesElement.elements();
+
+		for (Element friendlyURLEntryElement : friendlyURLEntryElements) {
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, friendlyURLEntryElement);
 		}
 
 		return portletPreferences;

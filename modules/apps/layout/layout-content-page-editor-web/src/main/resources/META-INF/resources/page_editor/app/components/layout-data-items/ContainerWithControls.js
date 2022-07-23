@@ -18,12 +18,18 @@ import React, {useEffect, useState} from 'react';
 import useSetRef from '../../../core/hooks/useSetRef';
 import {getLayoutDataItemPropTypes} from '../../../prop-types/index';
 import {CONTAINER_WIDTH_TYPES} from '../../config/constants/containerWidthTypes';
+import {config} from '../../config/index';
+import {
+	useHoveredItemId,
+	useHoveredItemType,
+} from '../../contexts/ControlsContext';
+import {useSelector} from '../../contexts/StoreContext';
 import selectCanUpdateItemConfiguration from '../../selectors/selectCanUpdateItemConfiguration';
-import {useSelector} from '../../store/index';
 import {getFrontendTokenValue} from '../../utils/getFrontendTokenValue';
+import getLayoutDataItemTopperUniqueClassName from '../../utils/getLayoutDataItemTopperUniqueClassName';
 import {getResponsiveConfig} from '../../utils/getResponsiveConfig';
-import {useHoveredItemId, useHoveredItemType} from '../Controls';
-import Topper from '../Topper';
+import {isValidSpacingOption} from '../../utils/isValidSpacingOption';
+import Topper from '../topper/Topper';
 import Container from './Container';
 import isHovered from './isHovered';
 
@@ -45,6 +51,7 @@ const ContainerWithControls = React.forwardRef(({children, item}, ref) => {
 	const {widthType} = itemConfig;
 
 	const {
+		display,
 		height,
 		marginLeft,
 		marginRight,
@@ -57,6 +64,7 @@ const ContainerWithControls = React.forwardRef(({children, item}, ref) => {
 	const style = {};
 
 	style.boxShadow = getFrontendTokenValue(shadow);
+	style.display = display;
 	style.maxWidth = maxWidth;
 	style.minWidth = minWidth;
 	style.width = width;
@@ -78,11 +86,17 @@ const ContainerWithControls = React.forwardRef(({children, item}, ref) => {
 	return (
 		<Topper
 			className={classNames({
+				[getLayoutDataItemTopperUniqueClassName(
+					item.itemId
+				)]: config.featureFlagLps132571,
 				[`container-fluid`]: widthType === CONTAINER_WIDTH_TYPES.fixed,
 				[`container-fluid-max-xl`]:
 					widthType === CONTAINER_WIDTH_TYPES.fixed,
-				[`ml-${marginLeft}`]: widthType !== CONTAINER_WIDTH_TYPES.fixed,
+				[`ml-${marginLeft}`]:
+					isValidSpacingOption(marginLeft) &&
+					widthType !== CONTAINER_WIDTH_TYPES.fixed,
 				[`mr-${marginRight}`]:
+					isValidSpacingOption(marginRight) &&
 					widthType !== CONTAINER_WIDTH_TYPES.fixed,
 				'p-0': widthType === CONTAINER_WIDTH_TYPES.fixed,
 				'page-editor__topper--hovered': hovered,
@@ -93,7 +107,7 @@ const ContainerWithControls = React.forwardRef(({children, item}, ref) => {
 		>
 			<Container
 				className={classNames({
-					empty: !item.children.length && !height,
+					'empty': !item.children.length && !height,
 					'page-editor__container': canUpdateItemConfiguration,
 				})}
 				item={item}

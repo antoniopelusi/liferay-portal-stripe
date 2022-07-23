@@ -38,19 +38,19 @@ public class CalendarBookingModelPreFilterContributor
 		BooleanFilter booleanFilter, ModelSearchSettings modelSearchSettings,
 		SearchContext searchContext) {
 
-		addWorkflowStatusFilter(
+		_addWorkflowStatusFilter(
 			booleanFilter, modelSearchSettings, searchContext);
 	}
 
-	protected void addWorkflowStatusFilter(
+	@Reference(target = "(model.pre.filter.contributor.id=WorkflowStatus)")
+	protected ModelPreFilterContributor workflowStatusModelPreFilterContributor;
+
+	private void _addWorkflowStatusFilter(
 		BooleanFilter booleanFilter, ModelSearchSettings modelSearchSettings,
 		SearchContext searchContext) {
 
 		workflowStatusModelPreFilterContributor.contribute(
 			booleanFilter, modelSearchSettings, searchContext);
 	}
-
-	@Reference(target = "(model.pre.filter.contributor.id=WorkflowStatus)")
-	protected ModelPreFilterContributor workflowStatusModelPreFilterContributor;
 
 }

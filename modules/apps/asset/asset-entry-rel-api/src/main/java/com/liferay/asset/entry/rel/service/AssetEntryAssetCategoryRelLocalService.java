@@ -154,6 +154,9 @@ public interface AssetEntryAssetCategoryRelLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -300,6 +303,10 @@ public interface AssetEntryAssetCategoryRelLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getAssetEntryAssetCategoryRelsCount(long assetEntryId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getAssetEntryAssetCategoryRelsCountByAssetCategoryId(
+		long assetCategoryId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long[] getAssetEntryPrimaryKeys(long assetCategoryId);

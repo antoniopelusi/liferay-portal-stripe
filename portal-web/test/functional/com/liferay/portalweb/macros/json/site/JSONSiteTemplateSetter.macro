@@ -1,0 +1,43 @@
+definition {
+
+	macro setPrivateLayout {
+		if (!(isSet(privateLayout))) {
+			var privateLayout = "false";
+		}
+
+		return "${privateLayout}";
+	}
+
+	macro setTemplateDescription {
+		if (isSet(description)) {
+			var description = URLUtil.encodeUTF8("${description}");
+		}
+
+		return "${description}";
+	}
+
+	macro setTemplateIsUpdateable {
+		if (!(isSet(layoutsUpdateable))) {
+			var layoutsUpdateable = "true";
+		}
+
+		return "${layoutsUpdateable}";
+	}
+
+	macro setTemplatePropagation {
+		if (!(isSet(readyForPropagation))) {
+			var readyForPropagation = "true";
+		}
+
+		return "${readyForPropagation}";
+	}
+
+	macro setTemplateStatus {
+		if (!(isSet(active))) {
+			var active = "true";
+		}
+
+		return "${active}";
+	}
+
+}

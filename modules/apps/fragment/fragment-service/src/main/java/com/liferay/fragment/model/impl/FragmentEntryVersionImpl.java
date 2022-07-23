@@ -37,7 +37,5 @@ public class FragmentEntryVersionImpl extends FragmentEntryVersionBaseImpl {
 	 * entry version model instance should use the {@link
 	 * com.liferay.fragment.model.FragmentEntryVersion} interface instead.
 	 */
-	public FragmentEntryVersionImpl() {
-	}
 
 }

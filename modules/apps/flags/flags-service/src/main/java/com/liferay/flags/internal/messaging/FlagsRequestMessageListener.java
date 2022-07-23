@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserGroupGroupRole;
 import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
@@ -41,6 +42,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -177,12 +179,12 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 
 		// Recipients
 
-		Set<User> recipients = getRecipients(
+		Set<User> recipients = _getRecipients(
 			companyId, serviceContext.getScopeGroupId());
 
 		for (User recipient : recipients) {
 			try {
-				notify(
+				_notify(
 					reporterUser.getUserId(), company, group,
 					reporterEmailAddress, reporterUserName,
 					reportedEmailAddress, reportedUserName, reportedURL,
@@ -193,14 +195,28 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 			}
 			catch (IOException ioException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(ioException, ioException);
+					_log.warn(ioException);
 				}
 			}
 		}
 	}
 
-	protected Set<User> getRecipients(long companyId, long groupId)
-		throws PortalException {
+	private String _getGroupDescriptiveName(Group group, Locale locale) {
+		try {
+			return group.getDescriptiveName(locale);
+		}
+		catch (PortalException portalException) {
+			_log.error(
+				"Unable to get descriptive name for group " +
+					group.getGroupId(),
+				portalException);
+		}
+
+		return StringPool.BLANK;
+	}
+
+	private Set<User> _getRecipients(long companyId, long groupId)
+		throws Exception {
 
 		Set<User> recipients = new LinkedHashSet<>();
 
@@ -231,6 +247,17 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 			for (UserGroupRole userGroupRole : userGroupRoles) {
 				recipients.add(userGroupRole.getUser());
 			}
+
+			List<UserGroupGroupRole> userGroupGroupRoles =
+				_userGroupGroupRoleLocalService.
+					getUserGroupGroupRolesByGroupAndRole(
+						groupId, role.getRoleId());
+
+			for (UserGroupGroupRole userGroupGroupRole : userGroupGroupRoles) {
+				recipients.addAll(
+					_userLocalService.getUserGroupUsers(
+						userGroupGroupRole.getUserGroupId()));
+			}
 		}
 
 		if (recipients.isEmpty()) {
@@ -243,7 +270,7 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 		return recipients;
 	}
 
-	protected void notify(
+	private void _notify(
 			long reporterUserId, Company company, Group group,
 			String reporterEmailAddress, String reporterUserName,
 			String reportedEmailAddress, String reportedUserName,
@@ -254,7 +281,7 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		Date now = new Date();
+		Date date = new Date();
 
 		SubscriptionSender subscriptionSender = new SubscriptionSender();
 
@@ -263,7 +290,7 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 		subscriptionSender.setContextAttributes(
 			"[$CONTENT_ID$]", contentId, "[$CONTENT_TITLE$]", contentTitle,
 			"[$CONTENT_TYPE$]", contentType, "[$CONTENT_URL$]", contentURL,
-			"[$DATE$]", now.toString(), "[$REASON$]", reason,
+			"[$DATE$]", date.toString(), "[$REASON$]", reason,
 			"[$REPORTED_USER_ADDRESS$]", reportedEmailAddress,
 			"[$REPORTED_USER_NAME$]", reportedUserName, "[$REPORTED_USER_URL$]",
 			reportedUserURL, "[$REPORTER_USER_ADDRESS$]", reporterEmailAddress,
@@ -283,65 +310,30 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 		subscriptionSender.flushNotificationsAsync();
 	}
 
-	@Reference(unbind = "-")
-	protected void setCompanyLocalService(
-		CompanyLocalService companyLocalService) {
-
-		_companyLocalService = companyLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setGroupLocalService(GroupLocalService groupLocalService) {
-		_groupLocalService = groupLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutLocalService(
-		LayoutLocalService layoutLocalService) {
-
-		_layoutLocalService = layoutLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setRoleLocalService(RoleLocalService roleLocalService) {
-		_roleLocalService = roleLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setUserGroupRoleLocalService(
-		UserGroupRoleLocalService userGroupRoleLocalService) {
-
-		_userGroupRoleLocalService = userGroupRoleLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setUserLocalService(UserLocalService userLocalService) {
-		_userLocalService = userLocalService;
-	}
-
-	private String _getGroupDescriptiveName(Group group, Locale locale) {
-		try {
-			return group.getDescriptiveName(locale);
-		}
-		catch (PortalException portalException) {
-			_log.error(
-				"Unable to get descriptive name for group " +
-					group.getGroupId(),
-				portalException);
-		}
-
-		return StringPool.BLANK;
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		FlagsRequestMessageListener.class);
 
+	@Reference
 	private CompanyLocalService _companyLocalService;
+
 	private DefaultMessagingConfigurator _defaultMessagingConfigurator;
+
+	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
 	private RoleLocalService _roleLocalService;
+
+	@Reference
+	private UserGroupGroupRoleLocalService _userGroupGroupRoleLocalService;
+
+	@Reference
 	private UserGroupRoleLocalService _userGroupRoleLocalService;
+
+	@Reference
 	private UserLocalService _userLocalService;
 
 }

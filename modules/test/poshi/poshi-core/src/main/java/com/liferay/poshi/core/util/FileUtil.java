@@ -124,9 +124,7 @@ public class FileUtil {
 	public static String getFileName(String filePath) {
 		Path path = Paths.get(filePath);
 
-		Path fileName = path.getFileName();
-
-		return fileName.toString();
+		return String.valueOf(path.getFileName());
 	}
 
 	public static List<URL> getIncludedResourceURLs(

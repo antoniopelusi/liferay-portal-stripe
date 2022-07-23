@@ -23,7 +23,7 @@ CPOptionDisplayContext cpOptionDisplayContext = (CPOptionDisplayContext)request.
 <commerce-ui:modal-content
 	title='<%= LanguageUtil.get(request, "create-new-option") %>'
 >
-	<aui:form cssClass="container-fluid container-fluid-max-xl" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "apiSubmit();" %>'>
+	<aui:form method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "apiSubmit();" %>'>
 		<aui:input autoFocus="<%= true %>" name="name" required="<%= true %>" type="text" />
 
 		<aui:select label="option-field-type" name="DDMFormFieldTypeName" required="<%= true %>" showEmptyOption="<%= true %>">

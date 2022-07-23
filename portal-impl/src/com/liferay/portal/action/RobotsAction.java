@@ -51,7 +51,7 @@ public class RobotsAction implements Action {
 
 		try {
 			String host = GetterUtil.getString(
-				PortalUtil.getHost(httpServletRequest));
+				PortalUtil.getForwardedHost(httpServletRequest));
 
 			LayoutSet layoutSet = null;
 
@@ -85,7 +85,7 @@ public class RobotsAction implements Action {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			PortalUtil.sendError(

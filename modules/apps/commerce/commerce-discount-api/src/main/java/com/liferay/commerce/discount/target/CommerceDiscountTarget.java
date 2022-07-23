@@ -31,7 +31,7 @@ public interface CommerceDiscountTarget {
 	public enum Type {
 
 		APPLY_TO_PRODUCT("APPLY_TO_PRODUCT"),
-		APPLY_TO_SHIPPING("APPLY_TO_SHIPPING"),
+		APPLY_TO_SHIPPING("APPLY_TO_SHIPPING"), APPLY_TO_SKU("APPLY_TO_SKU"),
 		APPLY_TO_SUBTOTAL("APPLY_TO_SUBTOTAL"),
 		APPLY_TO_TOTAL("APPLY_TO_TOTAL");
 
@@ -44,7 +44,7 @@ public interface CommerceDiscountTarget {
 			return getValue();
 		}
 
-		private Type(final String value) {
+		private Type(String value) {
 			_value = value;
 		}
 

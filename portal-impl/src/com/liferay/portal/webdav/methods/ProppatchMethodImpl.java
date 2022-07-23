@@ -58,9 +58,7 @@ public class ProppatchMethodImpl extends BasePropMethodImpl {
 		}
 		catch (InvalidRequestException invalidRequestException) {
 			if (_log.isInfoEnabled()) {
-				_log.info(
-					invalidRequestException.getMessage(),
-					invalidRequestException);
+				_log.info(invalidRequestException);
 			}
 
 			return HttpServletResponse.SC_BAD_REQUEST;
@@ -70,7 +68,7 @@ public class ProppatchMethodImpl extends BasePropMethodImpl {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(lockException, lockException);
+				_log.debug(lockException);
 			}
 
 			return WebDAVUtil.SC_LOCKED;

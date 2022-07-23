@@ -133,6 +133,11 @@ public class CommerceInventoryBookedQuantityWrapper
 		}
 	}
 
+	@Override
+	public CommerceInventoryBookedQuantity cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the booked note of this commerce inventory booked quantity.
 	 *

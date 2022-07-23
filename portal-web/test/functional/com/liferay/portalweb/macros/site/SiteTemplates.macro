@@ -23,7 +23,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addChildPage(
+		PagesAdmin.addChildPage(
 			childPageName = "${siteChildPageName}",
 			parentPageName = "${pageName}");
 	}
@@ -68,13 +68,13 @@ definition {
 
 		LexiconEntry.gotoAddMenuItem(menuItem = "Add Site Template Page");
 
-		if (contains("${sitePageType}", "{sitePageType}")) {
+		if (!(isSet(sitePageType))) {
 			var sitePageType = "Widget Page";
 		}
 
 		var rowEntry = "${sitePageType}";
 
-		if (!(contains("${pageTemplateName}", "{pageTemplateName}"))) {
+		if (isSet(pageTemplateName)) {
 			Navigator.gotoNavNested(navNested = "Global Templates");
 
 			var rowEntry = "${pageTemplateName}";
@@ -104,12 +104,42 @@ definition {
 		SelectFrame.selectFrameTop();
 
 		if (isSet(inheritChanges)) {
-			Page.togglePageTemplateInheritChanges(toggleValue = "${inheritChanges}");
+			PagesAdmin.togglePageTemplateInheritChanges(toggleValue = "${inheritChanges}");
 		}
 
 		if ("${sitePageType}" != "Content Page") {
 			Button.click(button = "Save");
 		}
+	}
+
+	macro AddSiteTemplateJavaScript {
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		if (isSet(pageName)) {
+			Click(
+				key_pageName = "${pageName}",
+				locator1 = "Icon#COG_PAGE");
+		}
+		else {
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Configuration");
+		}
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		Panel.expandPanel(panel = "JavaScript");
+
+		Type(
+			key_text = "javascript",
+			locator1 = "TextArea#ANY",
+			value1 = "${javaScript}");
+
+		AssertClickNoError(
+			locator1 = "Button#SAVE",
+			value1 = "Save");
 	}
 
 	macro deactivateCP {
@@ -169,12 +199,12 @@ definition {
 			portlet = "Pages");
 
 		if (isSet(hasChildren)) {
-			SitePages.deletePage(
+			PagesAdmin.deletePage(
 				hasChildren = "true",
 				pageName = "${pageName}");
 		}
 		else {
-			SitePages.deletePage(pageName = "${pageName}");
+			PagesAdmin.deletePage(pageName = "${pageName}");
 		}
 	}
 
@@ -223,7 +253,7 @@ definition {
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "Message#ALERT_DISMISSIBLE",
-			value1 = "Info:Propagation is disabled. Connected sites might not have been updated yet. Propagation is only triggered when a site created from the template is visited.");
+			value1 = "Propagation is disabled. Connected sites might not have been updated yet. Propagation is only triggered when a site created from the template is visited.");
 	}
 
 	macro editCP {
@@ -251,6 +281,23 @@ definition {
 		}
 
 		Button.clickSave();
+	}
+
+	macro enableActionsOnDMInSiteTemplate {
+		Portlet.gotoPortletOptions(
+			portletName = "Documents and Media",
+			portletOption = "Configuration",
+			siteTemplate = "true");
+
+		SelectFrame(locator1 = "DocumentsAndMedia#CONFIGURATION_IFRAME");
+
+		AssertElementPresent.pauseAssertVisible(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
+
+		Check(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro enablePropagation {
@@ -286,7 +333,28 @@ definition {
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "Message#ALERT_DISMISSIBLE",
-			value1 = "Info:Propagation is enabled. Connected sites will be updated once a site page is visited.");
+			value1 = "Propagation is enabled. Connected sites will be updated once a site page is visited.");
+	}
+
+	macro getPageModificationDate {
+		Variables.assertDefined(parameterList = "${groupName},${pageNameFilter}");
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "true");
+
+		var mysqlStatement = "SELECT modifiedDate FROM Layout WHERE name LIKE '${pageNameFilter}' AND groupId = '${groupId}' AND hidden_ = 0;";
+
+		var sqlResults = SQL.executeMySQLStatement(mysqlStatement = "${mysqlStatement}");
+
+		echo("## * SQL Query Result is: ${sqlResults}");
+
+		var modifiedDate = StringUtil.regexReplaceAll("${sqlResults}", "[\r\n]", "");
+		var modifiedDate = StringUtil.extractDigits("${modifiedDate}");
+
+		echo("## * Modification Date is: ${modifiedDate}");
+
+		return "${modifiedDate}";
 	}
 
 	macro getSiteTemplateID {
@@ -297,12 +365,13 @@ definition {
 		Pause(locator1 = "1000");
 
 		var currentURL = Navigator.getCurrentURL();
+
 		var siteTemplateURL = StringUtil.extractFirst("${currentURL}", "/~/");
-		var siteTemplateID = StringUtil.extractLast("${siteTemplateURL}", "/");
+		var siteTemplateId = StringUtil.extractLast("${siteTemplateURL}", "/");
 
-		echo("siteTemplateID: ${siteTemplateID}");
+		echo("siteTemplateID: ${siteTemplateId}");
 
-		return "${siteTemplateID}";
+		return "${siteTemplateId}";
 	}
 
 	macro gotoSettingsCP {
@@ -341,6 +410,17 @@ definition {
 		SelectWindow(locator1 = "Home - ${siteTemplateName} - ${siteName}");
 	}
 
+	macro openSiteTemplateInEditMode {
+		var templateId = SiteTemplates.getSiteTemplateID(siteTemplateName = "${siteTemplateName}");
+
+		if (isSet(widgetPage)) {
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/${templateId}");
+		}
+		else {
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/${templateId}?p_l_mode=edit");
+		}
+	}
+
 	macro resetPageChanges {
 		WaitForElementPresent(locator1 = "ControlMenu#INFO");
 
@@ -360,10 +440,10 @@ definition {
 				locator1 = "Home#PORTLET_BORDERLESS");
 		}
 		else {
-			var key_portletTitleName = "${portletName}";
-
 			AssertTextEquals(
-				locator1 = "Home#PAGE_COLUMN_PORTLET_COLUMN_${columnNumberTo}_PORTLET_TITLE",
+				key_pageColumnNumber = "${columnNumberTo}",
+				key_portletName = "${portletName}",
+				locator1 = "Portlet#PORTLET_TITLE_INSIDE_PAGE_COLUMN",
 				value1 = "${portletName}");
 		}
 
@@ -466,11 +546,37 @@ definition {
 			locator1 = "Button#RESET_CHANGES",
 			value1 = "Reset Changes");
 
-		var key_portletTitleName = "${portletName}";
+		AssertTextEquals(
+			key_pageColumnNumber = "${columnNumberFrom}",
+			key_portletName = "${portletName}",
+			locator1 = "Portlet#PORTLET_TITLE_INSIDE_PAGE_COLUMN",
+			value1 = "${portletName}");
+	}
+
+	macro ViewSiteTemplateJavaScript {
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		if (isSet(pageName)) {
+			Click(
+				key_pageName = "${pageName}",
+				locator1 = "Icon#COG_PAGE");
+		}
+		else {
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Configuration");
+		}
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		Panel.expandPanel(panel = "JavaScript");
 
 		AssertTextEquals(
-			locator1 = "Home#PAGE_COLUMN_PORTLET_COLUMN_${columnNumberFrom}_PORTLET_TITLE",
-			value1 = "${portletName}");
+			key_text = "javascript",
+			locator1 = "TextArea#ANY",
+			value1 = "${javaScript}");
 	}
 
 	macro viewTemplateStatusCP {

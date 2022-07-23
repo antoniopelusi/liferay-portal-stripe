@@ -193,4 +193,7 @@ public interface SocialRelationModel
 	 */
 	public void setType(int type);
 
+	@Override
+	public SocialRelation cloneWithOriginalValues();
+
 }

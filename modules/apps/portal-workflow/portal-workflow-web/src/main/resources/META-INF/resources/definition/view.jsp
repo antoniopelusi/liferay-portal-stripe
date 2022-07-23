@@ -32,7 +32,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setParameter(
 	"definitionsNavigation", definitionsNavigation
-).build();
+).buildPortletURL();
 %>
 
 <clay:management-toolbar
@@ -85,7 +85,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 				"name", workflowDefinition.getName()
 			).setParameter(
 				"version", workflowDefinition.getVersion()
-			).build();
+			).buildPortletURL();
 			%>
 
 			<liferay-ui:search-container-column-text

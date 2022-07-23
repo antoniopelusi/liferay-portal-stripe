@@ -22,9 +22,6 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
  */
 public class CommerceOrderNoteImpl extends CommerceOrderNoteBaseImpl {
 
-	public CommerceOrderNoteImpl() {
-	}
-
 	@Override
 	public User getUser() {
 		return UserLocalServiceUtil.fetchUser(getUserId());

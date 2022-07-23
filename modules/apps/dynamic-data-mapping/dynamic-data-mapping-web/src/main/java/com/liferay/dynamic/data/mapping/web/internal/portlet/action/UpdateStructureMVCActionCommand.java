@@ -47,14 +47,14 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = MVCActionCommand.class
 )
-public class UpdateStructureMVCActionCommand extends DDMBaseMVCActionCommand {
+public class UpdateStructureMVCActionCommand extends BaseDDMMVCActionCommand {
 
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		DDMStructure structure = updateStructure(actionRequest);
+		DDMStructure structure = _updateStructure(actionRequest);
 
 		addSuccessMessage(actionRequest, actionResponse);
 
@@ -73,7 +73,7 @@ public class UpdateStructureMVCActionCommand extends DDMBaseMVCActionCommand {
 		_ddmStructureService = ddmStructureService;
 	}
 
-	protected DDMStructure updateStructure(ActionRequest actionRequest)
+	private DDMStructure _updateStructure(ActionRequest actionRequest)
 		throws Exception {
 
 		long classPK = ParamUtil.getLong(actionRequest, "classPK");

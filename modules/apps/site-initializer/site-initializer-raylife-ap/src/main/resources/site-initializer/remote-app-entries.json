@@ -1,0 +1,21 @@
+[
+	{
+		"cssURLs": [
+			"[$DOCUMENT_URL:/site-initializer/documents/company/remote-app/site-initializer-raylife-ap/main.css$]"
+		],
+		"elementURLs": [
+			"[$DOCUMENT_URL:/site-initializer/documents/company/remote-app/site-initializer-raylife-ap/2.js$]",
+			"[$DOCUMENT_URL:/site-initializer/documents/company/remote-app/site-initializer-raylife-ap/main.js$]",
+			"[$DOCUMENT_URL:/site-initializer/documents/company/remote-app/site-initializer-raylife-ap/runtime-main.js$]"
+		],
+		"externalReferenceCode": "RAYLIFEAGENTPORTAL001",
+		"htmlElementName": "liferay-remote-app-raylife-ap",
+		"instanceable": "true",
+		"name_i18n": {
+			"en_US": "Raylife Agent Portal"
+		},
+		"portletCategoryName": "category.remote-apps",
+		"remoteAppEntryKey": "RAYLIFEAGENTPORTAL",
+		"widgetName": "com_liferay_remote_app_web_internal_portlet_RemoteAppEntryPortlet_[$REMOTE_APP_ENTRY_ID:RAYLIFEAGENTPORTAL$]"
+	}
+]

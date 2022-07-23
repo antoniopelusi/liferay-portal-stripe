@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutModel;
-import com.liferay.portal.kernel.model.LayoutSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -36,22 +35,21 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -91,7 +89,7 @@ public class LayoutModelImpl
 		{"parentPlid", Types.BIGINT}, {"privateLayout", Types.BOOLEAN},
 		{"layoutId", Types.BIGINT}, {"parentLayoutId", Types.BIGINT},
 		{"classNameId", Types.BIGINT}, {"classPK", Types.BIGINT},
-		{"name", Types.VARCHAR}, {"title", Types.VARCHAR},
+		{"name", Types.VARCHAR}, {"title", Types.CLOB},
 		{"description", Types.CLOB}, {"keywords", Types.VARCHAR},
 		{"robots", Types.VARCHAR}, {"type_", Types.VARCHAR},
 		{"typeSettings", Types.CLOB}, {"hidden_", Types.BOOLEAN},
@@ -129,7 +127,7 @@ public class LayoutModelImpl
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
-		TABLE_COLUMNS_MAP.put("title", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("title", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("description", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("keywords", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("robots", Types.VARCHAR);
@@ -157,7 +155,7 @@ public class LayoutModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table Layout (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,plid LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentPlid LONG,privateLayout BOOLEAN,layoutId LONG,parentLayoutId LONG,classNameId LONG,classPK LONG,name STRING null,title STRING null,description TEXT null,keywords STRING null,robots STRING null,type_ VARCHAR(75) null,typeSettings TEXT null,hidden_ BOOLEAN,system_ BOOLEAN,friendlyURL VARCHAR(255) null,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,styleBookEntryId LONG,css TEXT null,priority INTEGER,masterLayoutPlid LONG,layoutPrototypeUuid VARCHAR(75) null,layoutPrototypeLinkEnabled BOOLEAN,sourcePrototypeLayoutUuid VARCHAR(75) null,publishDate DATE null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (plid, ctCollectionId))";
+		"create table Layout (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,plid LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentPlid LONG,privateLayout BOOLEAN,layoutId LONG,parentLayoutId LONG,classNameId LONG,classPK LONG,name STRING null,title TEXT null,description TEXT null,keywords STRING null,robots STRING null,type_ VARCHAR(75) null,typeSettings TEXT null,hidden_ BOOLEAN,system_ BOOLEAN,friendlyURL VARCHAR(255) null,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,styleBookEntryId LONG,css TEXT null,priority INTEGER,masterLayoutPlid LONG,layoutPrototypeUuid VARCHAR(75) null,layoutPrototypeLinkEnabled BOOLEAN,sourcePrototypeLayoutUuid VARCHAR(75) null,publishDate DATE null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (plid, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table Layout";
 
@@ -285,98 +283,25 @@ public class LayoutModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long TYPE_COLUMN_BITMASK = 32768L;
+	public static final long STATUS_COLUMN_BITMASK = 32768L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 65536L;
+	public static final long SYSTEM_COLUMN_BITMASK = 65536L;
 
 	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static Layout toModel(LayoutSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Layout model = new LayoutImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setPlid(soapModel.getPlid());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentPlid(soapModel.getParentPlid());
-		model.setPrivateLayout(soapModel.isPrivateLayout());
-		model.setLayoutId(soapModel.getLayoutId());
-		model.setParentLayoutId(soapModel.getParentLayoutId());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setName(soapModel.getName());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setKeywords(soapModel.getKeywords());
-		model.setRobots(soapModel.getRobots());
-		model.setType(soapModel.getType());
-		model.setTypeSettings(soapModel.getTypeSettings());
-		model.setHidden(soapModel.isHidden());
-		model.setSystem(soapModel.isSystem());
-		model.setFriendlyURL(soapModel.getFriendlyURL());
-		model.setIconImageId(soapModel.getIconImageId());
-		model.setThemeId(soapModel.getThemeId());
-		model.setColorSchemeId(soapModel.getColorSchemeId());
-		model.setStyleBookEntryId(soapModel.getStyleBookEntryId());
-		model.setCss(soapModel.getCss());
-		model.setPriority(soapModel.getPriority());
-		model.setMasterLayoutPlid(soapModel.getMasterLayoutPlid());
-		model.setLayoutPrototypeUuid(soapModel.getLayoutPrototypeUuid());
-		model.setLayoutPrototypeLinkEnabled(
-			soapModel.isLayoutPrototypeLinkEnabled());
-		model.setSourcePrototypeLayoutUuid(
-			soapModel.getSourcePrototypeLayoutUuid());
-		model.setPublishDate(soapModel.getPublishDate());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
+	public static final long TYPE_COLUMN_BITMASK = 131072L;
 
 	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static List<Layout> toModels(LayoutSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Layout> models = new ArrayList<Layout>(soapModels.length);
-
-		for (LayoutSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
+	public static final long UUID_COLUMN_BITMASK = 262144L;
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
@@ -461,33 +386,6 @@ public class LayoutModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Layout>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Layout.class.getClassLoader(), Layout.class, ModelWrapper.class);
-
-		try {
-			Constructor<Layout> constructor =
-				(Constructor<Layout>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Layout, Object>>
@@ -1694,6 +1592,16 @@ public class LayoutModelImpl
 		_system = system;
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public boolean getOriginalSystem() {
+		return GetterUtil.getBoolean(
+			this.<Boolean>getColumnOriginalValue("system_"));
+	}
+
 	@JSON
 	@Override
 	public String getFriendlyURL() {
@@ -1997,6 +1905,16 @@ public class LayoutModelImpl
 		}
 
 		_status = status;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public int getOriginalStatus() {
+		return GetterUtil.getInteger(
+			this.<Integer>getColumnOriginalValue("status"));
 	}
 
 	@JSON
@@ -2407,6 +2325,80 @@ public class LayoutModelImpl
 	}
 
 	@Override
+	public Layout cloneWithOriginalValues() {
+		LayoutImpl layoutImpl = new LayoutImpl();
+
+		layoutImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		layoutImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		layoutImpl.setPlid(this.<Long>getColumnOriginalValue("plid"));
+		layoutImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		layoutImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		layoutImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		layoutImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		layoutImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutImpl.setParentPlid(
+			this.<Long>getColumnOriginalValue("parentPlid"));
+		layoutImpl.setPrivateLayout(
+			this.<Boolean>getColumnOriginalValue("privateLayout"));
+		layoutImpl.setLayoutId(this.<Long>getColumnOriginalValue("layoutId"));
+		layoutImpl.setParentLayoutId(
+			this.<Long>getColumnOriginalValue("parentLayoutId"));
+		layoutImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		layoutImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		layoutImpl.setName(this.<String>getColumnOriginalValue("name"));
+		layoutImpl.setTitle(this.<String>getColumnOriginalValue("title"));
+		layoutImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		layoutImpl.setKeywords(this.<String>getColumnOriginalValue("keywords"));
+		layoutImpl.setRobots(this.<String>getColumnOriginalValue("robots"));
+		layoutImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		layoutImpl.setTypeSettings(
+			this.<String>getColumnOriginalValue("typeSettings"));
+		layoutImpl.setHidden(this.<Boolean>getColumnOriginalValue("hidden_"));
+		layoutImpl.setSystem(this.<Boolean>getColumnOriginalValue("system_"));
+		layoutImpl.setFriendlyURL(
+			this.<String>getColumnOriginalValue("friendlyURL"));
+		layoutImpl.setIconImageId(
+			this.<Long>getColumnOriginalValue("iconImageId"));
+		layoutImpl.setThemeId(this.<String>getColumnOriginalValue("themeId"));
+		layoutImpl.setColorSchemeId(
+			this.<String>getColumnOriginalValue("colorSchemeId"));
+		layoutImpl.setStyleBookEntryId(
+			this.<Long>getColumnOriginalValue("styleBookEntryId"));
+		layoutImpl.setCss(this.<String>getColumnOriginalValue("css"));
+		layoutImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
+		layoutImpl.setMasterLayoutPlid(
+			this.<Long>getColumnOriginalValue("masterLayoutPlid"));
+		layoutImpl.setLayoutPrototypeUuid(
+			this.<String>getColumnOriginalValue("layoutPrototypeUuid"));
+		layoutImpl.setLayoutPrototypeLinkEnabled(
+			this.<Boolean>getColumnOriginalValue("layoutPrototypeLinkEnabled"));
+		layoutImpl.setSourcePrototypeLayoutUuid(
+			this.<String>getColumnOriginalValue("sourcePrototypeLayoutUuid"));
+		layoutImpl.setPublishDate(
+			this.<Date>getColumnOriginalValue("publishDate"));
+		layoutImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		layoutImpl.setStatus(this.<Integer>getColumnOriginalValue("status"));
+		layoutImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		layoutImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		layoutImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return layoutImpl;
+	}
+
+	@Override
 	public int compareTo(Layout layout) {
 		int value = 0;
 
@@ -2730,7 +2722,7 @@ public class LayoutModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -2740,9 +2732,26 @@ public class LayoutModelImpl
 			String attributeName = entry.getKey();
 			Function<Layout, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Layout)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Layout)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -2788,7 +2797,9 @@ public class LayoutModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Layout>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Layout.class, ModelWrapper.class);
 
 	}
 

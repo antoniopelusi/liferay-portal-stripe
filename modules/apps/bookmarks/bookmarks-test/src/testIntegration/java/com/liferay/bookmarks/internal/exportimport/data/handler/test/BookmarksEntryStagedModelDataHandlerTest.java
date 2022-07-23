@@ -27,9 +27,9 @@ import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,12 +88,9 @@ public class BookmarksEntryStagedModelDataHandlerTest
 	protected List<StagedModel> addWorkflowedStagedModels(Group group)
 		throws Exception {
 
-		List<StagedModel> stagedModels = new ArrayList<>();
-
-		stagedModels.add(BookmarksTestUtil.addEntry(group.getGroupId(), true));
-		stagedModels.add(BookmarksTestUtil.addEntry(group.getGroupId(), false));
-
-		return stagedModels;
+		return ListUtil.fromArray(
+			BookmarksTestUtil.addEntry(group.getGroupId(), true),
+			BookmarksTestUtil.addEntry(group.getGroupId(), false));
 	}
 
 	@Override

@@ -25,6 +25,10 @@ public class UserTrackerPathLocalServiceWrapper
 	implements ServiceWrapper<UserTrackerPathLocalService>,
 			   UserTrackerPathLocalService {
 
+	public UserTrackerPathLocalServiceWrapper() {
+		this(null);
+	}
+
 	public UserTrackerPathLocalServiceWrapper(
 		UserTrackerPathLocalService userTrackerPathLocalService) {
 
@@ -127,6 +131,13 @@ public class UserTrackerPathLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _userTrackerPathLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _userTrackerPathLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

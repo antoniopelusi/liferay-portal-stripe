@@ -150,11 +150,9 @@ public class VersionsXmlReportRenderer implements ReportRenderer {
 			return previousName;
 		}
 
-		if (Validator.isNull(previousName)) {
-			return name;
-		}
+		if (Validator.isNull(previousName) ||
+			((name.indexOf(' ') != -1) && (previousName.indexOf(' ') == -1))) {
 
-		if ((name.indexOf(' ') != -1) && (previousName.indexOf(' ') == -1)) {
 			return name;
 		}
 

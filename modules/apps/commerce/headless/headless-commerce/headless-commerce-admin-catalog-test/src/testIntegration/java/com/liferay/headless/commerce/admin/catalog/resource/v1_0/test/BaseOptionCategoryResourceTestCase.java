@@ -25,15 +25,16 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.liferay.headless.commerce.admin.catalog.client.dto.v1_0.OptionCategory;
 import com.liferay.headless.commerce.admin.catalog.client.http.HttpInvoker;
 import com.liferay.headless.commerce.admin.catalog.client.pagination.Page;
+import com.liferay.headless.commerce.admin.catalog.client.pagination.Pagination;
 import com.liferay.headless.commerce.admin.catalog.client.resource.v1_0.OptionCategoryResource;
 import com.liferay.headless.commerce.admin.catalog.client.serdes.v1_0.OptionCategorySerDes;
+import com.liferay.petra.function.UnsafeTriConsumer;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -42,21 +43,24 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.search.test.util.SearchTestRule;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +72,9 @@ import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -194,7 +200,315 @@ public abstract class BaseOptionCategoryResourceTestCase {
 
 	@Test
 	public void testGetOptionCategoriesPage() throws Exception {
-		Assert.assertTrue(false);
+		Page<OptionCategory> page =
+			optionCategoryResource.getOptionCategoriesPage(
+				null, Pagination.of(1, 10), null);
+
+		long totalCount = page.getTotalCount();
+
+		OptionCategory optionCategory1 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		OptionCategory optionCategory2 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		page = optionCategoryResource.getOptionCategoriesPage(
+			null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
+
+		assertContains(optionCategory1, (List<OptionCategory>)page.getItems());
+		assertContains(optionCategory2, (List<OptionCategory>)page.getItems());
+		assertValid(page);
+
+		optionCategoryResource.deleteOptionCategory(optionCategory1.getId());
+
+		optionCategoryResource.deleteOptionCategory(optionCategory2.getId());
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithFilterDateTimeEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DATE_TIME);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		OptionCategory optionCategory1 = randomOptionCategory();
+
+		optionCategory1 = testGetOptionCategoriesPage_addOptionCategory(
+			optionCategory1);
+
+		for (EntityField entityField : entityFields) {
+			Page<OptionCategory> page =
+				optionCategoryResource.getOptionCategoriesPage(
+					getFilterString(entityField, "between", optionCategory1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(optionCategory1),
+				(List<OptionCategory>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		OptionCategory optionCategory1 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		OptionCategory optionCategory2 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		for (EntityField entityField : entityFields) {
+			Page<OptionCategory> page =
+				optionCategoryResource.getOptionCategoriesPage(
+					getFilterString(entityField, "eq", optionCategory1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(optionCategory1),
+				(List<OptionCategory>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithFilterStringEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.STRING);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		OptionCategory optionCategory1 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		OptionCategory optionCategory2 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		for (EntityField entityField : entityFields) {
+			Page<OptionCategory> page =
+				optionCategoryResource.getOptionCategoriesPage(
+					getFilterString(entityField, "eq", optionCategory1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(optionCategory1),
+				(List<OptionCategory>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithPagination() throws Exception {
+		Page<OptionCategory> totalPage =
+			optionCategoryResource.getOptionCategoriesPage(null, null, null);
+
+		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+
+		OptionCategory optionCategory1 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		OptionCategory optionCategory2 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		OptionCategory optionCategory3 =
+			testGetOptionCategoriesPage_addOptionCategory(
+				randomOptionCategory());
+
+		Page<OptionCategory> page1 =
+			optionCategoryResource.getOptionCategoriesPage(
+				null, Pagination.of(1, totalCount + 2), null);
+
+		List<OptionCategory> optionCategories1 =
+			(List<OptionCategory>)page1.getItems();
+
+		Assert.assertEquals(
+			optionCategories1.toString(), totalCount + 2,
+			optionCategories1.size());
+
+		Page<OptionCategory> page2 =
+			optionCategoryResource.getOptionCategoriesPage(
+				null, Pagination.of(2, totalCount + 2), null);
+
+		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+		List<OptionCategory> optionCategories2 =
+			(List<OptionCategory>)page2.getItems();
+
+		Assert.assertEquals(
+			optionCategories2.toString(), 1, optionCategories2.size());
+
+		Page<OptionCategory> page3 =
+			optionCategoryResource.getOptionCategoriesPage(
+				null, Pagination.of(1, totalCount + 3), null);
+
+		assertContains(optionCategory1, (List<OptionCategory>)page3.getItems());
+		assertContains(optionCategory2, (List<OptionCategory>)page3.getItems());
+		assertContains(optionCategory3, (List<OptionCategory>)page3.getItems());
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithSortDateTime() throws Exception {
+		testGetOptionCategoriesPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, optionCategory1, optionCategory2) -> {
+				BeanUtils.setProperty(
+					optionCategory1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithSortDouble() throws Exception {
+		testGetOptionCategoriesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, optionCategory1, optionCategory2) -> {
+				BeanUtils.setProperty(
+					optionCategory1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					optionCategory2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithSortInteger() throws Exception {
+		testGetOptionCategoriesPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, optionCategory1, optionCategory2) -> {
+				BeanUtils.setProperty(
+					optionCategory1, entityField.getName(), 0);
+				BeanUtils.setProperty(
+					optionCategory2, entityField.getName(), 1);
+			});
+	}
+
+	@Test
+	public void testGetOptionCategoriesPageWithSortString() throws Exception {
+		testGetOptionCategoriesPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, optionCategory1, optionCategory2) -> {
+				Class<?> clazz = optionCategory1.getClass();
+
+				String entityFieldName = entityField.getName();
+
+				java.lang.reflect.Method method = clazz.getMethod(
+					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						optionCategory1, entityFieldName,
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						optionCategory2, entityFieldName,
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else if (entityFieldName.contains("email")) {
+					BeanUtils.setProperty(
+						optionCategory1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+					BeanUtils.setProperty(
+						optionCategory2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+				}
+				else {
+					BeanUtils.setProperty(
+						optionCategory1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+					BeanUtils.setProperty(
+						optionCategory2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+				}
+			});
+	}
+
+	protected void testGetOptionCategoriesPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer
+				<EntityField, OptionCategory, OptionCategory, Exception>
+					unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		OptionCategory optionCategory1 = randomOptionCategory();
+		OptionCategory optionCategory2 = randomOptionCategory();
+
+		for (EntityField entityField : entityFields) {
+			unsafeTriConsumer.accept(
+				entityField, optionCategory1, optionCategory2);
+		}
+
+		optionCategory1 = testGetOptionCategoriesPage_addOptionCategory(
+			optionCategory1);
+
+		optionCategory2 = testGetOptionCategoriesPage_addOptionCategory(
+			optionCategory2);
+
+		for (EntityField entityField : entityFields) {
+			Page<OptionCategory> ascPage =
+				optionCategoryResource.getOptionCategoriesPage(
+					null, Pagination.of(1, 2), entityField.getName() + ":asc");
+
+			assertEquals(
+				Arrays.asList(optionCategory1, optionCategory2),
+				(List<OptionCategory>)ascPage.getItems());
+
+			Page<OptionCategory> descPage =
+				optionCategoryResource.getOptionCategoriesPage(
+					null, Pagination.of(1, 2), entityField.getName() + ":desc");
+
+			assertEquals(
+				Arrays.asList(optionCategory2, optionCategory1),
+				(List<OptionCategory>)descPage.getItems());
+		}
+	}
+
+	protected OptionCategory testGetOptionCategoriesPage_addOptionCategory(
+			OptionCategory optionCategory)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -204,7 +518,7 @@ public abstract class BaseOptionCategoryResourceTestCase {
 			new HashMap<String, Object>() {
 				{
 					put("page", 1);
-					put("pageSize", 2);
+					put("pageSize", 10);
 				}
 			},
 			new GraphQLField("items", getGraphQLFields()),
@@ -214,24 +528,37 @@ public abstract class BaseOptionCategoryResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/optionCategories");
 
-		Assert.assertEquals(0, optionCategoriesJSONObject.get("totalCount"));
+		long totalCount = optionCategoriesJSONObject.getLong("totalCount");
 
 		OptionCategory optionCategory1 =
-			testGraphQLOptionCategory_addOptionCategory();
+			testGraphQLGetOptionCategoriesPage_addOptionCategory();
 		OptionCategory optionCategory2 =
-			testGraphQLOptionCategory_addOptionCategory();
+			testGraphQLGetOptionCategoriesPage_addOptionCategory();
 
 		optionCategoriesJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/optionCategories");
 
-		Assert.assertEquals(2, optionCategoriesJSONObject.get("totalCount"));
+		Assert.assertEquals(
+			totalCount + 2, optionCategoriesJSONObject.getLong("totalCount"));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(optionCategory1, optionCategory2),
+		assertContains(
+			optionCategory1,
 			Arrays.asList(
 				OptionCategorySerDes.toDTOs(
 					optionCategoriesJSONObject.getString("items"))));
+		assertContains(
+			optionCategory2,
+			Arrays.asList(
+				OptionCategorySerDes.toDTOs(
+					optionCategoriesJSONObject.getString("items"))));
+	}
+
+	protected OptionCategory
+			testGraphQLGetOptionCategoriesPage_addOptionCategory()
+		throws Exception {
+
+		return testGraphQLOptionCategory_addOptionCategory();
 	}
 
 	@Test
@@ -285,7 +612,7 @@ public abstract class BaseOptionCategoryResourceTestCase {
 	@Test
 	public void testGraphQLDeleteOptionCategory() throws Exception {
 		OptionCategory optionCategory =
-			testGraphQLOptionCategory_addOptionCategory();
+			testGraphQLDeleteOptionCategory_addOptionCategory();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -298,7 +625,6 @@ public abstract class BaseOptionCategoryResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteOptionCategory"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -312,6 +638,12 @@ public abstract class BaseOptionCategoryResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected OptionCategory testGraphQLDeleteOptionCategory_addOptionCategory()
+		throws Exception {
+
+		return testGraphQLOptionCategory_addOptionCategory();
 	}
 
 	@Test
@@ -337,7 +669,7 @@ public abstract class BaseOptionCategoryResourceTestCase {
 	@Test
 	public void testGraphQLGetOptionCategory() throws Exception {
 		OptionCategory optionCategory =
-			testGraphQLOptionCategory_addOptionCategory();
+			testGraphQLGetOptionCategory_addOptionCategory();
 
 		Assert.assertTrue(
 			equals(
@@ -376,16 +708,42 @@ public abstract class BaseOptionCategoryResourceTestCase {
 				"Object/code"));
 	}
 
+	protected OptionCategory testGraphQLGetOptionCategory_addOptionCategory()
+		throws Exception {
+
+		return testGraphQLOptionCategory_addOptionCategory();
+	}
+
 	@Test
 	public void testPatchOptionCategory() throws Exception {
 		Assert.assertTrue(false);
 	}
+
+	@Rule
+	public SearchTestRule searchTestRule = new SearchTestRule();
 
 	protected OptionCategory testGraphQLOptionCategory_addOptionCategory()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		OptionCategory optionCategory, List<OptionCategory> optionCategories) {
+
+		boolean contains = false;
+
+		for (OptionCategory item : optionCategories) {
+			if (equals(optionCategory, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			optionCategories + " does not contain " + optionCategory, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -515,8 +873,8 @@ public abstract class BaseOptionCategoryResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.catalog.dto.v1_0.
 						OptionCategory.class)) {
 
@@ -532,12 +890,13 @@ public abstract class BaseOptionCategoryResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -551,7 +910,7 @@ public abstract class BaseOptionCategoryResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -662,6 +1021,19 @@ public abstract class BaseOptionCategoryResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -732,8 +1104,9 @@ public abstract class BaseOptionCategoryResourceTestCase {
 		}
 
 		if (entityFieldName.equals("priority")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(optionCategory.getPriority()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("title")) {
@@ -878,8 +1251,8 @@ public abstract class BaseOptionCategoryResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseOptionCategoryResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseOptionCategoryResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

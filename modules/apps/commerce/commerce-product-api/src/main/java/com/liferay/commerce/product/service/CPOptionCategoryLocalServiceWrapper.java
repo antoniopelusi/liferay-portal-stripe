@@ -14,7 +14,10 @@
 
 package com.liferay.commerce.product.service;
 
+import com.liferay.commerce.product.model.CPOptionCategory;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link CPOptionCategoryLocalService}.
@@ -26,6 +29,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CPOptionCategoryLocalServiceWrapper
 	implements CPOptionCategoryLocalService,
 			   ServiceWrapper<CPOptionCategoryLocalService> {
+
+	public CPOptionCategoryLocalServiceWrapper() {
+		this(null);
+	}
 
 	public CPOptionCategoryLocalServiceWrapper(
 		CPOptionCategoryLocalService cpOptionCategoryLocalService) {
@@ -44,22 +51,19 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @return the cp option category that was added
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-		addCPOptionCategory(
-			com.liferay.commerce.product.model.CPOptionCategory
-				cpOptionCategory) {
+	public CPOptionCategory addCPOptionCategory(
+		CPOptionCategory cpOptionCategory) {
 
 		return _cpOptionCategoryLocalService.addCPOptionCategory(
 			cpOptionCategory);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-			addCPOptionCategory(
-				long userId, java.util.Map<java.util.Locale, String> titleMap,
-				java.util.Map<java.util.Locale, String> descriptionMap,
-				double priority, String key,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CPOptionCategory addCPOptionCategory(
+			long userId, java.util.Map<java.util.Locale, String> titleMap,
+			java.util.Map<java.util.Locale, String> descriptionMap,
+			double priority, String key,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.addCPOptionCategory(
@@ -73,9 +77,7 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @return the new cp option category
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-		createCPOptionCategory(long CPOptionCategoryId) {
-
+	public CPOptionCategory createCPOptionCategory(long CPOptionCategoryId) {
 		return _cpOptionCategoryLocalService.createCPOptionCategory(
 			CPOptionCategoryId);
 	}
@@ -111,10 +113,8 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @throws PortalException
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-			deleteCPOptionCategory(
-				com.liferay.commerce.product.model.CPOptionCategory
-					cpOptionCategory)
+	public CPOptionCategory deleteCPOptionCategory(
+			CPOptionCategory cpOptionCategory)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.deleteCPOptionCategory(
@@ -133,8 +133,7 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @throws PortalException if a cp option category with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-			deleteCPOptionCategory(long CPOptionCategoryId)
+	public CPOptionCategory deleteCPOptionCategory(long CPOptionCategoryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.deleteCPOptionCategory(
@@ -156,6 +155,13 @@ public class CPOptionCategoryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cpOptionCategoryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cpOptionCategoryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -250,17 +256,13 @@ public class CPOptionCategoryLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-		fetchCPOptionCategory(long CPOptionCategoryId) {
-
+	public CPOptionCategory fetchCPOptionCategory(long CPOptionCategoryId) {
 		return _cpOptionCategoryLocalService.fetchCPOptionCategory(
 			CPOptionCategoryId);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-		fetchCPOptionCategory(long companyId, String key) {
-
+	public CPOptionCategory fetchCPOptionCategory(long companyId, String key) {
 		return _cpOptionCategoryLocalService.fetchCPOptionCategory(
 			companyId, key);
 	}
@@ -273,8 +275,8 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @return the matching cp option category, or <code>null</code> if a matching cp option category could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-		fetchCPOptionCategoryByUuidAndCompanyId(String uuid, long companyId) {
+	public CPOptionCategory fetchCPOptionCategoryByUuidAndCompanyId(
+		String uuid, long companyId) {
 
 		return _cpOptionCategoryLocalService.
 			fetchCPOptionCategoryByUuidAndCompanyId(uuid, companyId);
@@ -299,15 +301,15 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @return the range of cp option categories
 	 */
 	@Override
-	public java.util.List<com.liferay.commerce.product.model.CPOptionCategory>
-		getCPOptionCategories(int start, int end) {
+	public java.util.List<CPOptionCategory> getCPOptionCategories(
+		int start, int end) {
 
 		return _cpOptionCategoryLocalService.getCPOptionCategories(start, end);
 	}
 
 	@Override
-	public java.util.List<com.liferay.commerce.product.model.CPOptionCategory>
-		getCPOptionCategories(long companyId, int start, int end) {
+	public java.util.List<CPOptionCategory> getCPOptionCategories(
+		long companyId, int start, int end) {
 
 		return _cpOptionCategoryLocalService.getCPOptionCategories(
 			companyId, start, end);
@@ -331,8 +333,7 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @throws PortalException if a cp option category with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-			getCPOptionCategory(long CPOptionCategoryId)
+	public CPOptionCategory getCPOptionCategory(long CPOptionCategoryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.getCPOptionCategory(
@@ -340,8 +341,7 @@ public class CPOptionCategoryLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-			getCPOptionCategory(long companyId, String key)
+	public CPOptionCategory getCPOptionCategory(long companyId, String key)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.getCPOptionCategory(
@@ -357,8 +357,8 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @throws PortalException if a matching cp option category could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-			getCPOptionCategoryByUuidAndCompanyId(String uuid, long companyId)
+	public CPOptionCategory getCPOptionCategoryByUuidAndCompanyId(
+			String uuid, long companyId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.
@@ -406,10 +406,9 @@ public class CPOptionCategoryLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.kernel.search.BaseModelSearchResult
-		<com.liferay.commerce.product.model.CPOptionCategory>
-				searchCPOptionCategories(
-					long companyId, String keywords, int start, int end,
-					com.liferay.portal.kernel.search.Sort sort)
+		<CPOptionCategory> searchCPOptionCategories(
+				long companyId, String keywords, int start, int end,
+				com.liferay.portal.kernel.search.Sort sort)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.searchCPOptionCategories(
@@ -427,26 +426,43 @@ public class CPOptionCategoryLocalServiceWrapper
 	 * @return the cp option category that was updated
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-		updateCPOptionCategory(
-			com.liferay.commerce.product.model.CPOptionCategory
-				cpOptionCategory) {
+	public CPOptionCategory updateCPOptionCategory(
+		CPOptionCategory cpOptionCategory) {
 
 		return _cpOptionCategoryLocalService.updateCPOptionCategory(
 			cpOptionCategory);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionCategory
-			updateCPOptionCategory(
-				long cpOptionCategoryId,
-				java.util.Map<java.util.Locale, String> titleMap,
-				java.util.Map<java.util.Locale, String> descriptionMap,
-				double priority, String key)
+	public CPOptionCategory updateCPOptionCategory(
+			long cpOptionCategoryId,
+			java.util.Map<java.util.Locale, String> titleMap,
+			java.util.Map<java.util.Locale, String> descriptionMap,
+			double priority, String key)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionCategoryLocalService.updateCPOptionCategory(
 			cpOptionCategoryId, titleMap, descriptionMap, priority, key);
+	}
+
+	@Override
+	public CTPersistence<CPOptionCategory> getCTPersistence() {
+		return _cpOptionCategoryLocalService.getCTPersistence();
+	}
+
+	@Override
+	public Class<CPOptionCategory> getModelClass() {
+		return _cpOptionCategoryLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CPOptionCategory>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return _cpOptionCategoryLocalService.updateWithUnsafeFunction(
+			updateUnsafeFunction);
 	}
 
 	@Override

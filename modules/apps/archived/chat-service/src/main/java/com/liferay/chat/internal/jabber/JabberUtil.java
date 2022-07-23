@@ -43,15 +43,15 @@ public class JabberUtil {
 			return;
 		}
 
-		getJabber().disconnect(userId);
+		_jabber.disconnect(userId);
 	}
 
 	public static String getResource(String jabberId) {
-		return getJabber().getResource(jabberId);
+		return _jabber.getResource(jabberId);
 	}
 
 	public static String getScreenName(String jabberId) {
-		return getJabber().getScreenName(jabberId);
+		return _jabber.getScreenName(jabberId);
 	}
 
 	public static List<Object[]> getStatuses(
@@ -61,7 +61,7 @@ public class JabberUtil {
 			return buddies;
 		}
 
-		return getJabber().getStatuses(companyId, userId, buddies);
+		return _jabber.getStatuses(companyId, userId, buddies);
 	}
 
 	public static void login(long userId, String password) {
@@ -69,7 +69,7 @@ public class JabberUtil {
 			return;
 		}
 
-		getJabber().login(userId, password);
+		_jabber.login(userId, password);
 	}
 
 	public static void sendMessage(
@@ -79,7 +79,7 @@ public class JabberUtil {
 			return;
 		}
 
-		getJabber().sendMessage(fromUserId, toUserId, content);
+		_jabber.sendMessage(fromUserId, toUserId, content);
 	}
 
 	public static void updatePassword(long userId, String password) {
@@ -87,7 +87,7 @@ public class JabberUtil {
 			return;
 		}
 
-		getJabber().updatePassword(userId, password);
+		_jabber.updatePassword(userId, password);
 	}
 
 	public static void updateStatus(long userId, int online) {
@@ -95,20 +95,17 @@ public class JabberUtil {
 			return;
 		}
 
-		getJabber().updateStatus(userId, online);
-	}
-
-	protected static Jabber getJabber() {
-		return _jabber;
+		_jabber.updateStatus(userId, online);
 	}
 
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_chatGroupServiceConfiguration = ConfigurableUtil.createConfigurable(
-			ChatGroupServiceConfiguration.class, properties);
+		ChatGroupServiceConfiguration chatGroupServiceConfiguration =
+			ConfigurableUtil.createConfigurable(
+				ChatGroupServiceConfiguration.class, properties);
 
-		_jabberEnabled = _chatGroupServiceConfiguration.jabberEnabled();
+		_jabberEnabled = chatGroupServiceConfiguration.jabberEnabled();
 	}
 
 	@Reference(unbind = "-")
@@ -116,9 +113,7 @@ public class JabberUtil {
 		_jabber = jabber;
 	}
 
-	private static volatile ChatGroupServiceConfiguration
-		_chatGroupServiceConfiguration;
 	private static Jabber _jabber;
-	private static boolean _jabberEnabled;
+	private static volatile boolean _jabberEnabled;
 
 }

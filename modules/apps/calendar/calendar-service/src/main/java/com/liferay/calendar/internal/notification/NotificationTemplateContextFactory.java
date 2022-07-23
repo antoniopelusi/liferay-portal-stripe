@@ -18,7 +18,6 @@ import com.liferay.calendar.configuration.CalendarServiceConfigurationValues;
 import com.liferay.calendar.constants.CalendarPortletKeys;
 import com.liferay.calendar.model.Calendar;
 import com.liferay.calendar.model.CalendarBooking;
-import com.liferay.calendar.model.CalendarNotificationTemplate;
 import com.liferay.calendar.notification.NotificationTemplateContext;
 import com.liferay.calendar.notification.NotificationTemplateType;
 import com.liferay.calendar.notification.NotificationType;
@@ -41,9 +40,8 @@ import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
@@ -81,15 +79,11 @@ public class NotificationTemplateContextFactory {
 				CalendarServiceConfigurationValues.
 					CALENDAR_NOTIFICATION_DEFAULT_TYPE);
 
-		CalendarNotificationTemplate calendarNotificationTemplate =
+		notificationTemplateContext.setCalendarNotificationTemplate(
 			CalendarNotificationTemplateLocalServiceUtil.
 				fetchCalendarNotificationTemplate(
 					calendar.getCalendarId(), notificationType,
-					notificationTemplateType);
-
-		notificationTemplateContext.setCalendarNotificationTemplate(
-			calendarNotificationTemplate);
-
+					notificationTemplateType));
 		notificationTemplateContext.setCompanyId(
 			calendarBooking.getCompanyId());
 		notificationTemplateContext.setGroupId(calendarBooking.getGroupId());
@@ -148,8 +142,7 @@ public class NotificationTemplateContextFactory {
 			).put(
 				"portletName",
 				LanguageUtil.get(
-					ResourceBundleUtil.getBundle(
-						user.getLocale(), "com.liferay.calendar.web"),
+					user.getLocale(),
 					"javax.portlet.title.".concat(CalendarPortletKeys.CALENDAR))
 			).put(
 				"siteName",
@@ -260,15 +253,15 @@ public class NotificationTemplateContextFactory {
 		String namespace = PortalUtil.getPortletNamespace(
 			CalendarPortletKeys.CALENDAR);
 
-		url = HttpUtil.addParameter(
+		url = HttpComponentsUtil.addParameter(
 			url, namespace + "mvcPath", "/view_calendar_booking.jsp");
 
-		url = HttpUtil.addParameter(
+		url = HttpComponentsUtil.addParameter(
 			url, "p_p_id", CalendarPortletKeys.CALENDAR);
-		url = HttpUtil.addParameter(url, "p_p_lifecycle", "0");
-		url = HttpUtil.addParameter(
+		url = HttpComponentsUtil.addParameter(url, "p_p_lifecycle", "0");
+		url = HttpComponentsUtil.addParameter(
 			url, "p_p_state", WindowState.MAXIMIZED.toString());
-		url = HttpUtil.addParameter(
+		url = HttpComponentsUtil.addParameter(
 			url, namespace + "calendarBookingId", calendarBookingId);
 
 		return url;

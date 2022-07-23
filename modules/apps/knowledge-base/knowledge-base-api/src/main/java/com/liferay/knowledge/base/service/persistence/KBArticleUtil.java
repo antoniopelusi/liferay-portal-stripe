@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the kb article service. This utility wraps <code>com.liferay.knowledge.base.service.persistence.impl.KBArticlePersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -1879,6 +1875,285 @@ public class KBArticleUtil {
 	 */
 	public static int countByR_S(long[] resourcePrimKeys, int status) {
 		return getPersistence().countByR_S(resourcePrimKeys, status);
+	}
+
+	/**
+	 * Returns all the kb articles where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching kb articles
+	 */
+	public static List<KBArticle> findByG_ERC(
+		long groupId, String externalReferenceCode) {
+
+		return getPersistence().findByG_ERC(groupId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns a range of all the kb articles where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>KBArticleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param start the lower bound of the range of kb articles
+	 * @param end the upper bound of the range of kb articles (not inclusive)
+	 * @return the range of matching kb articles
+	 */
+	public static List<KBArticle> findByG_ERC(
+		long groupId, String externalReferenceCode, int start, int end) {
+
+		return getPersistence().findByG_ERC(
+			groupId, externalReferenceCode, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the kb articles where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>KBArticleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param start the lower bound of the range of kb articles
+	 * @param end the upper bound of the range of kb articles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching kb articles
+	 */
+	public static List<KBArticle> findByG_ERC(
+		long groupId, String externalReferenceCode, int start, int end,
+		OrderByComparator<KBArticle> orderByComparator) {
+
+		return getPersistence().findByG_ERC(
+			groupId, externalReferenceCode, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns an ordered range of all the kb articles where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>KBArticleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param start the lower bound of the range of kb articles
+	 * @param end the upper bound of the range of kb articles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching kb articles
+	 */
+	public static List<KBArticle> findByG_ERC(
+		long groupId, String externalReferenceCode, int start, int end,
+		OrderByComparator<KBArticle> orderByComparator,
+		boolean useFinderCache) {
+
+		return getPersistence().findByG_ERC(
+			groupId, externalReferenceCode, start, end, orderByComparator,
+			useFinderCache);
+	}
+
+	/**
+	 * Returns the first kb article in the ordered set where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching kb article
+	 * @throws NoSuchArticleException if a matching kb article could not be found
+	 */
+	public static KBArticle findByG_ERC_First(
+			long groupId, String externalReferenceCode,
+			OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+
+		return getPersistence().findByG_ERC_First(
+			groupId, externalReferenceCode, orderByComparator);
+	}
+
+	/**
+	 * Returns the first kb article in the ordered set where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching kb article, or <code>null</code> if a matching kb article could not be found
+	 */
+	public static KBArticle fetchByG_ERC_First(
+		long groupId, String externalReferenceCode,
+		OrderByComparator<KBArticle> orderByComparator) {
+
+		return getPersistence().fetchByG_ERC_First(
+			groupId, externalReferenceCode, orderByComparator);
+	}
+
+	/**
+	 * Returns the last kb article in the ordered set where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching kb article
+	 * @throws NoSuchArticleException if a matching kb article could not be found
+	 */
+	public static KBArticle findByG_ERC_Last(
+			long groupId, String externalReferenceCode,
+			OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+
+		return getPersistence().findByG_ERC_Last(
+			groupId, externalReferenceCode, orderByComparator);
+	}
+
+	/**
+	 * Returns the last kb article in the ordered set where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching kb article, or <code>null</code> if a matching kb article could not be found
+	 */
+	public static KBArticle fetchByG_ERC_Last(
+		long groupId, String externalReferenceCode,
+		OrderByComparator<KBArticle> orderByComparator) {
+
+		return getPersistence().fetchByG_ERC_Last(
+			groupId, externalReferenceCode, orderByComparator);
+	}
+
+	/**
+	 * Returns the kb articles before and after the current kb article in the ordered set where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param kbArticleId the primary key of the current kb article
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next kb article
+	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
+	 */
+	public static KBArticle[] findByG_ERC_PrevAndNext(
+			long kbArticleId, long groupId, String externalReferenceCode,
+			OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+
+		return getPersistence().findByG_ERC_PrevAndNext(
+			kbArticleId, groupId, externalReferenceCode, orderByComparator);
+	}
+
+	/**
+	 * Returns all the kb articles that the user has permission to view where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching kb articles that the user has permission to view
+	 */
+	public static List<KBArticle> filterFindByG_ERC(
+		long groupId, String externalReferenceCode) {
+
+		return getPersistence().filterFindByG_ERC(
+			groupId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns a range of all the kb articles that the user has permission to view where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>KBArticleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param start the lower bound of the range of kb articles
+	 * @param end the upper bound of the range of kb articles (not inclusive)
+	 * @return the range of matching kb articles that the user has permission to view
+	 */
+	public static List<KBArticle> filterFindByG_ERC(
+		long groupId, String externalReferenceCode, int start, int end) {
+
+		return getPersistence().filterFindByG_ERC(
+			groupId, externalReferenceCode, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the kb articles that the user has permissions to view where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>KBArticleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param start the lower bound of the range of kb articles
+	 * @param end the upper bound of the range of kb articles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching kb articles that the user has permission to view
+	 */
+	public static List<KBArticle> filterFindByG_ERC(
+		long groupId, String externalReferenceCode, int start, int end,
+		OrderByComparator<KBArticle> orderByComparator) {
+
+		return getPersistence().filterFindByG_ERC(
+			groupId, externalReferenceCode, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns the kb articles before and after the current kb article in the ordered set of kb articles that the user has permission to view where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param kbArticleId the primary key of the current kb article
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next kb article
+	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
+	 */
+	public static KBArticle[] filterFindByG_ERC_PrevAndNext(
+			long kbArticleId, long groupId, String externalReferenceCode,
+			OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+
+		return getPersistence().filterFindByG_ERC_PrevAndNext(
+			kbArticleId, groupId, externalReferenceCode, orderByComparator);
+	}
+
+	/**
+	 * Removes all the kb articles where groupId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 */
+	public static void removeByG_ERC(
+		long groupId, String externalReferenceCode) {
+
+		getPersistence().removeByG_ERC(groupId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the number of kb articles where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching kb articles
+	 */
+	public static int countByG_ERC(long groupId, String externalReferenceCode) {
+		return getPersistence().countByG_ERC(groupId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the number of kb articles that the user has permission to view where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching kb articles that the user has permission to view
+	 */
+	public static int filterCountByG_ERC(
+		long groupId, String externalReferenceCode) {
+
+		return getPersistence().filterCountByG_ERC(
+			groupId, externalReferenceCode);
 	}
 
 	/**
@@ -5587,6 +5862,86 @@ public class KBArticleUtil {
 	}
 
 	/**
+	 * Returns the kb article where groupId = &#63; and externalReferenceCode = &#63; and version = &#63; or throws a <code>NoSuchArticleException</code> if it could not be found.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param version the version
+	 * @return the matching kb article
+	 * @throws NoSuchArticleException if a matching kb article could not be found
+	 */
+	public static KBArticle findByG_ERC_V(
+			long groupId, String externalReferenceCode, int version)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+
+		return getPersistence().findByG_ERC_V(
+			groupId, externalReferenceCode, version);
+	}
+
+	/**
+	 * Returns the kb article where groupId = &#63; and externalReferenceCode = &#63; and version = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param version the version
+	 * @return the matching kb article, or <code>null</code> if a matching kb article could not be found
+	 */
+	public static KBArticle fetchByG_ERC_V(
+		long groupId, String externalReferenceCode, int version) {
+
+		return getPersistence().fetchByG_ERC_V(
+			groupId, externalReferenceCode, version);
+	}
+
+	/**
+	 * Returns the kb article where groupId = &#63; and externalReferenceCode = &#63; and version = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param version the version
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching kb article, or <code>null</code> if a matching kb article could not be found
+	 */
+	public static KBArticle fetchByG_ERC_V(
+		long groupId, String externalReferenceCode, int version,
+		boolean useFinderCache) {
+
+		return getPersistence().fetchByG_ERC_V(
+			groupId, externalReferenceCode, version, useFinderCache);
+	}
+
+	/**
+	 * Removes the kb article where groupId = &#63; and externalReferenceCode = &#63; and version = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param version the version
+	 * @return the kb article that was removed
+	 */
+	public static KBArticle removeByG_ERC_V(
+			long groupId, String externalReferenceCode, int version)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+
+		return getPersistence().removeByG_ERC_V(
+			groupId, externalReferenceCode, version);
+	}
+
+	/**
+	 * Returns the number of kb articles where groupId = &#63; and externalReferenceCode = &#63; and version = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param version the version
+	 * @return the number of matching kb articles
+	 */
+	public static int countByG_ERC_V(
+		long groupId, String externalReferenceCode, int version) {
+
+		return getPersistence().countByG_ERC_V(
+			groupId, externalReferenceCode, version);
+	}
+
+	/**
 	 * Returns all the kb articles where groupId = &#63; and parentResourcePrimKey = &#63; and latest = &#63;.
 	 *
 	 * @param groupId the group ID
@@ -7946,10 +8301,10 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String sections, boolean latest) {
 
-		return getPersistence().findByG_S_L(groupId, sections, latest);
+		return getPersistence().findByG_LikeS_L(groupId, sections, latest);
 	}
 
 	/**
@@ -7966,10 +8321,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String sections, boolean latest, int start, int end) {
 
-		return getPersistence().findByG_S_L(
+		return getPersistence().findByG_LikeS_L(
 			groupId, sections, latest, start, end);
 	}
 
@@ -7988,11 +8343,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String sections, boolean latest, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().findByG_S_L(
+		return getPersistence().findByG_LikeS_L(
 			groupId, sections, latest, start, end, orderByComparator);
 	}
 
@@ -8012,12 +8367,12 @@ public class KBArticleUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String sections, boolean latest, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_S_L(
+		return getPersistence().findByG_LikeS_L(
 			groupId, sections, latest, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -8032,12 +8387,12 @@ public class KBArticleUtil {
 	 * @return the first matching kb article
 	 * @throws NoSuchArticleException if a matching kb article could not be found
 	 */
-	public static KBArticle findByG_S_L_First(
+	public static KBArticle findByG_LikeS_L_First(
 			long groupId, String sections, boolean latest,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_L_First(
+		return getPersistence().findByG_LikeS_L_First(
 			groupId, sections, latest, orderByComparator);
 	}
 
@@ -8050,11 +8405,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching kb article, or <code>null</code> if a matching kb article could not be found
 	 */
-	public static KBArticle fetchByG_S_L_First(
+	public static KBArticle fetchByG_LikeS_L_First(
 		long groupId, String sections, boolean latest,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().fetchByG_S_L_First(
+		return getPersistence().fetchByG_LikeS_L_First(
 			groupId, sections, latest, orderByComparator);
 	}
 
@@ -8068,12 +8423,12 @@ public class KBArticleUtil {
 	 * @return the last matching kb article
 	 * @throws NoSuchArticleException if a matching kb article could not be found
 	 */
-	public static KBArticle findByG_S_L_Last(
+	public static KBArticle findByG_LikeS_L_Last(
 			long groupId, String sections, boolean latest,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_L_Last(
+		return getPersistence().findByG_LikeS_L_Last(
 			groupId, sections, latest, orderByComparator);
 	}
 
@@ -8086,11 +8441,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching kb article, or <code>null</code> if a matching kb article could not be found
 	 */
-	public static KBArticle fetchByG_S_L_Last(
+	public static KBArticle fetchByG_LikeS_L_Last(
 		long groupId, String sections, boolean latest,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().fetchByG_S_L_Last(
+		return getPersistence().fetchByG_LikeS_L_Last(
 			groupId, sections, latest, orderByComparator);
 	}
 
@@ -8105,12 +8460,12 @@ public class KBArticleUtil {
 	 * @return the previous, current, and next kb article
 	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
 	 */
-	public static KBArticle[] findByG_S_L_PrevAndNext(
+	public static KBArticle[] findByG_LikeS_L_PrevAndNext(
 			long kbArticleId, long groupId, String sections, boolean latest,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_L_PrevAndNext(
+		return getPersistence().findByG_LikeS_L_PrevAndNext(
 			kbArticleId, groupId, sections, latest, orderByComparator);
 	}
 
@@ -8122,10 +8477,11 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_L(
+	public static List<KBArticle> filterFindByG_LikeS_L(
 		long groupId, String sections, boolean latest) {
 
-		return getPersistence().filterFindByG_S_L(groupId, sections, latest);
+		return getPersistence().filterFindByG_LikeS_L(
+			groupId, sections, latest);
 	}
 
 	/**
@@ -8142,10 +8498,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_L(
+	public static List<KBArticle> filterFindByG_LikeS_L(
 		long groupId, String sections, boolean latest, int start, int end) {
 
-		return getPersistence().filterFindByG_S_L(
+		return getPersistence().filterFindByG_LikeS_L(
 			groupId, sections, latest, start, end);
 	}
 
@@ -8164,11 +8520,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_L(
+	public static List<KBArticle> filterFindByG_LikeS_L(
 		long groupId, String sections, boolean latest, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().filterFindByG_S_L(
+		return getPersistence().filterFindByG_LikeS_L(
 			groupId, sections, latest, start, end, orderByComparator);
 	}
 
@@ -8183,12 +8539,12 @@ public class KBArticleUtil {
 	 * @return the previous, current, and next kb article
 	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
 	 */
-	public static KBArticle[] filterFindByG_S_L_PrevAndNext(
+	public static KBArticle[] filterFindByG_LikeS_L_PrevAndNext(
 			long kbArticleId, long groupId, String sections, boolean latest,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().filterFindByG_S_L_PrevAndNext(
+		return getPersistence().filterFindByG_LikeS_L_PrevAndNext(
 			kbArticleId, groupId, sections, latest, orderByComparator);
 	}
 
@@ -8200,10 +8556,11 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_L(
+	public static List<KBArticle> filterFindByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest) {
 
-		return getPersistence().filterFindByG_S_L(groupId, sectionses, latest);
+		return getPersistence().filterFindByG_LikeS_L(
+			groupId, sectionses, latest);
 	}
 
 	/**
@@ -8220,10 +8577,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_L(
+	public static List<KBArticle> filterFindByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest, int start, int end) {
 
-		return getPersistence().filterFindByG_S_L(
+		return getPersistence().filterFindByG_LikeS_L(
 			groupId, sectionses, latest, start, end);
 	}
 
@@ -8242,11 +8599,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_L(
+	public static List<KBArticle> filterFindByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().filterFindByG_S_L(
+		return getPersistence().filterFindByG_LikeS_L(
 			groupId, sectionses, latest, start, end, orderByComparator);
 	}
 
@@ -8262,10 +8619,10 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest) {
 
-		return getPersistence().findByG_S_L(groupId, sectionses, latest);
+		return getPersistence().findByG_LikeS_L(groupId, sectionses, latest);
 	}
 
 	/**
@@ -8282,10 +8639,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest, int start, int end) {
 
-		return getPersistence().findByG_S_L(
+		return getPersistence().findByG_LikeS_L(
 			groupId, sectionses, latest, start, end);
 	}
 
@@ -8304,11 +8661,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().findByG_S_L(
+		return getPersistence().findByG_LikeS_L(
 			groupId, sectionses, latest, start, end, orderByComparator);
 	}
 
@@ -8328,12 +8685,12 @@ public class KBArticleUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_L(
+	public static List<KBArticle> findByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_S_L(
+		return getPersistence().findByG_LikeS_L(
 			groupId, sectionses, latest, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -8345,10 +8702,10 @@ public class KBArticleUtil {
 	 * @param sections the sections
 	 * @param latest the latest
 	 */
-	public static void removeByG_S_L(
+	public static void removeByG_LikeS_L(
 		long groupId, String sections, boolean latest) {
 
-		getPersistence().removeByG_S_L(groupId, sections, latest);
+		getPersistence().removeByG_LikeS_L(groupId, sections, latest);
 	}
 
 	/**
@@ -8359,10 +8716,10 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the number of matching kb articles
 	 */
-	public static int countByG_S_L(
+	public static int countByG_LikeS_L(
 		long groupId, String sections, boolean latest) {
 
-		return getPersistence().countByG_S_L(groupId, sections, latest);
+		return getPersistence().countByG_LikeS_L(groupId, sections, latest);
 	}
 
 	/**
@@ -8373,10 +8730,10 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the number of matching kb articles
 	 */
-	public static int countByG_S_L(
+	public static int countByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest) {
 
-		return getPersistence().countByG_S_L(groupId, sectionses, latest);
+		return getPersistence().countByG_LikeS_L(groupId, sectionses, latest);
 	}
 
 	/**
@@ -8387,10 +8744,11 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the number of matching kb articles that the user has permission to view
 	 */
-	public static int filterCountByG_S_L(
+	public static int filterCountByG_LikeS_L(
 		long groupId, String sections, boolean latest) {
 
-		return getPersistence().filterCountByG_S_L(groupId, sections, latest);
+		return getPersistence().filterCountByG_LikeS_L(
+			groupId, sections, latest);
 	}
 
 	/**
@@ -8401,10 +8759,11 @@ public class KBArticleUtil {
 	 * @param latest the latest
 	 * @return the number of matching kb articles that the user has permission to view
 	 */
-	public static int filterCountByG_S_L(
+	public static int filterCountByG_LikeS_L(
 		long groupId, String[] sectionses, boolean latest) {
 
-		return getPersistence().filterCountByG_S_L(groupId, sectionses, latest);
+		return getPersistence().filterCountByG_LikeS_L(
+			groupId, sectionses, latest);
 	}
 
 	/**
@@ -8415,10 +8774,10 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String sections, boolean main) {
 
-		return getPersistence().findByG_S_M(groupId, sections, main);
+		return getPersistence().findByG_LikeS_M(groupId, sections, main);
 	}
 
 	/**
@@ -8435,10 +8794,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String sections, boolean main, int start, int end) {
 
-		return getPersistence().findByG_S_M(
+		return getPersistence().findByG_LikeS_M(
 			groupId, sections, main, start, end);
 	}
 
@@ -8457,11 +8816,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String sections, boolean main, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().findByG_S_M(
+		return getPersistence().findByG_LikeS_M(
 			groupId, sections, main, start, end, orderByComparator);
 	}
 
@@ -8481,12 +8840,12 @@ public class KBArticleUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String sections, boolean main, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_S_M(
+		return getPersistence().findByG_LikeS_M(
 			groupId, sections, main, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -8501,12 +8860,12 @@ public class KBArticleUtil {
 	 * @return the first matching kb article
 	 * @throws NoSuchArticleException if a matching kb article could not be found
 	 */
-	public static KBArticle findByG_S_M_First(
+	public static KBArticle findByG_LikeS_M_First(
 			long groupId, String sections, boolean main,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_M_First(
+		return getPersistence().findByG_LikeS_M_First(
 			groupId, sections, main, orderByComparator);
 	}
 
@@ -8519,11 +8878,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching kb article, or <code>null</code> if a matching kb article could not be found
 	 */
-	public static KBArticle fetchByG_S_M_First(
+	public static KBArticle fetchByG_LikeS_M_First(
 		long groupId, String sections, boolean main,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().fetchByG_S_M_First(
+		return getPersistence().fetchByG_LikeS_M_First(
 			groupId, sections, main, orderByComparator);
 	}
 
@@ -8537,12 +8896,12 @@ public class KBArticleUtil {
 	 * @return the last matching kb article
 	 * @throws NoSuchArticleException if a matching kb article could not be found
 	 */
-	public static KBArticle findByG_S_M_Last(
+	public static KBArticle findByG_LikeS_M_Last(
 			long groupId, String sections, boolean main,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_M_Last(
+		return getPersistence().findByG_LikeS_M_Last(
 			groupId, sections, main, orderByComparator);
 	}
 
@@ -8555,11 +8914,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching kb article, or <code>null</code> if a matching kb article could not be found
 	 */
-	public static KBArticle fetchByG_S_M_Last(
+	public static KBArticle fetchByG_LikeS_M_Last(
 		long groupId, String sections, boolean main,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().fetchByG_S_M_Last(
+		return getPersistence().fetchByG_LikeS_M_Last(
 			groupId, sections, main, orderByComparator);
 	}
 
@@ -8574,12 +8933,12 @@ public class KBArticleUtil {
 	 * @return the previous, current, and next kb article
 	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
 	 */
-	public static KBArticle[] findByG_S_M_PrevAndNext(
+	public static KBArticle[] findByG_LikeS_M_PrevAndNext(
 			long kbArticleId, long groupId, String sections, boolean main,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_M_PrevAndNext(
+		return getPersistence().findByG_LikeS_M_PrevAndNext(
 			kbArticleId, groupId, sections, main, orderByComparator);
 	}
 
@@ -8591,10 +8950,10 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_M(
+	public static List<KBArticle> filterFindByG_LikeS_M(
 		long groupId, String sections, boolean main) {
 
-		return getPersistence().filterFindByG_S_M(groupId, sections, main);
+		return getPersistence().filterFindByG_LikeS_M(groupId, sections, main);
 	}
 
 	/**
@@ -8611,10 +8970,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_M(
+	public static List<KBArticle> filterFindByG_LikeS_M(
 		long groupId, String sections, boolean main, int start, int end) {
 
-		return getPersistence().filterFindByG_S_M(
+		return getPersistence().filterFindByG_LikeS_M(
 			groupId, sections, main, start, end);
 	}
 
@@ -8633,11 +8992,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_M(
+	public static List<KBArticle> filterFindByG_LikeS_M(
 		long groupId, String sections, boolean main, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().filterFindByG_S_M(
+		return getPersistence().filterFindByG_LikeS_M(
 			groupId, sections, main, start, end, orderByComparator);
 	}
 
@@ -8652,12 +9011,12 @@ public class KBArticleUtil {
 	 * @return the previous, current, and next kb article
 	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
 	 */
-	public static KBArticle[] filterFindByG_S_M_PrevAndNext(
+	public static KBArticle[] filterFindByG_LikeS_M_PrevAndNext(
 			long kbArticleId, long groupId, String sections, boolean main,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().filterFindByG_S_M_PrevAndNext(
+		return getPersistence().filterFindByG_LikeS_M_PrevAndNext(
 			kbArticleId, groupId, sections, main, orderByComparator);
 	}
 
@@ -8669,10 +9028,11 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_M(
+	public static List<KBArticle> filterFindByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main) {
 
-		return getPersistence().filterFindByG_S_M(groupId, sectionses, main);
+		return getPersistence().filterFindByG_LikeS_M(
+			groupId, sectionses, main);
 	}
 
 	/**
@@ -8689,10 +9049,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_M(
+	public static List<KBArticle> filterFindByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main, int start, int end) {
 
-		return getPersistence().filterFindByG_S_M(
+		return getPersistence().filterFindByG_LikeS_M(
 			groupId, sectionses, main, start, end);
 	}
 
@@ -8711,11 +9071,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_M(
+	public static List<KBArticle> filterFindByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().filterFindByG_S_M(
+		return getPersistence().filterFindByG_LikeS_M(
 			groupId, sectionses, main, start, end, orderByComparator);
 	}
 
@@ -8731,10 +9091,10 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main) {
 
-		return getPersistence().findByG_S_M(groupId, sectionses, main);
+		return getPersistence().findByG_LikeS_M(groupId, sectionses, main);
 	}
 
 	/**
@@ -8751,10 +9111,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main, int start, int end) {
 
-		return getPersistence().findByG_S_M(
+		return getPersistence().findByG_LikeS_M(
 			groupId, sectionses, main, start, end);
 	}
 
@@ -8773,11 +9133,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().findByG_S_M(
+		return getPersistence().findByG_LikeS_M(
 			groupId, sectionses, main, start, end, orderByComparator);
 	}
 
@@ -8797,12 +9157,12 @@ public class KBArticleUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_M(
+	public static List<KBArticle> findByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_S_M(
+		return getPersistence().findByG_LikeS_M(
 			groupId, sectionses, main, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -8814,10 +9174,10 @@ public class KBArticleUtil {
 	 * @param sections the sections
 	 * @param main the main
 	 */
-	public static void removeByG_S_M(
+	public static void removeByG_LikeS_M(
 		long groupId, String sections, boolean main) {
 
-		getPersistence().removeByG_S_M(groupId, sections, main);
+		getPersistence().removeByG_LikeS_M(groupId, sections, main);
 	}
 
 	/**
@@ -8828,10 +9188,10 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the number of matching kb articles
 	 */
-	public static int countByG_S_M(
+	public static int countByG_LikeS_M(
 		long groupId, String sections, boolean main) {
 
-		return getPersistence().countByG_S_M(groupId, sections, main);
+		return getPersistence().countByG_LikeS_M(groupId, sections, main);
 	}
 
 	/**
@@ -8842,10 +9202,10 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the number of matching kb articles
 	 */
-	public static int countByG_S_M(
+	public static int countByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main) {
 
-		return getPersistence().countByG_S_M(groupId, sectionses, main);
+		return getPersistence().countByG_LikeS_M(groupId, sectionses, main);
 	}
 
 	/**
@@ -8856,10 +9216,10 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the number of matching kb articles that the user has permission to view
 	 */
-	public static int filterCountByG_S_M(
+	public static int filterCountByG_LikeS_M(
 		long groupId, String sections, boolean main) {
 
-		return getPersistence().filterCountByG_S_M(groupId, sections, main);
+		return getPersistence().filterCountByG_LikeS_M(groupId, sections, main);
 	}
 
 	/**
@@ -8870,10 +9230,11 @@ public class KBArticleUtil {
 	 * @param main the main
 	 * @return the number of matching kb articles that the user has permission to view
 	 */
-	public static int filterCountByG_S_M(
+	public static int filterCountByG_LikeS_M(
 		long groupId, String[] sectionses, boolean main) {
 
-		return getPersistence().filterCountByG_S_M(groupId, sectionses, main);
+		return getPersistence().filterCountByG_LikeS_M(
+			groupId, sectionses, main);
 	}
 
 	/**
@@ -8884,10 +9245,10 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String sections, int status) {
 
-		return getPersistence().findByG_S_S(groupId, sections, status);
+		return getPersistence().findByG_LikeS_S(groupId, sections, status);
 	}
 
 	/**
@@ -8904,10 +9265,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String sections, int status, int start, int end) {
 
-		return getPersistence().findByG_S_S(
+		return getPersistence().findByG_LikeS_S(
 			groupId, sections, status, start, end);
 	}
 
@@ -8926,11 +9287,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String sections, int status, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().findByG_S_S(
+		return getPersistence().findByG_LikeS_S(
 			groupId, sections, status, start, end, orderByComparator);
 	}
 
@@ -8950,12 +9311,12 @@ public class KBArticleUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String sections, int status, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_S_S(
+		return getPersistence().findByG_LikeS_S(
 			groupId, sections, status, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -8970,12 +9331,12 @@ public class KBArticleUtil {
 	 * @return the first matching kb article
 	 * @throws NoSuchArticleException if a matching kb article could not be found
 	 */
-	public static KBArticle findByG_S_S_First(
+	public static KBArticle findByG_LikeS_S_First(
 			long groupId, String sections, int status,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_S_First(
+		return getPersistence().findByG_LikeS_S_First(
 			groupId, sections, status, orderByComparator);
 	}
 
@@ -8988,11 +9349,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching kb article, or <code>null</code> if a matching kb article could not be found
 	 */
-	public static KBArticle fetchByG_S_S_First(
+	public static KBArticle fetchByG_LikeS_S_First(
 		long groupId, String sections, int status,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().fetchByG_S_S_First(
+		return getPersistence().fetchByG_LikeS_S_First(
 			groupId, sections, status, orderByComparator);
 	}
 
@@ -9006,12 +9367,12 @@ public class KBArticleUtil {
 	 * @return the last matching kb article
 	 * @throws NoSuchArticleException if a matching kb article could not be found
 	 */
-	public static KBArticle findByG_S_S_Last(
+	public static KBArticle findByG_LikeS_S_Last(
 			long groupId, String sections, int status,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_S_Last(
+		return getPersistence().findByG_LikeS_S_Last(
 			groupId, sections, status, orderByComparator);
 	}
 
@@ -9024,11 +9385,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching kb article, or <code>null</code> if a matching kb article could not be found
 	 */
-	public static KBArticle fetchByG_S_S_Last(
+	public static KBArticle fetchByG_LikeS_S_Last(
 		long groupId, String sections, int status,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().fetchByG_S_S_Last(
+		return getPersistence().fetchByG_LikeS_S_Last(
 			groupId, sections, status, orderByComparator);
 	}
 
@@ -9043,12 +9404,12 @@ public class KBArticleUtil {
 	 * @return the previous, current, and next kb article
 	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
 	 */
-	public static KBArticle[] findByG_S_S_PrevAndNext(
+	public static KBArticle[] findByG_LikeS_S_PrevAndNext(
 			long kbArticleId, long groupId, String sections, int status,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().findByG_S_S_PrevAndNext(
+		return getPersistence().findByG_LikeS_S_PrevAndNext(
 			kbArticleId, groupId, sections, status, orderByComparator);
 	}
 
@@ -9060,10 +9421,11 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_S(
+	public static List<KBArticle> filterFindByG_LikeS_S(
 		long groupId, String sections, int status) {
 
-		return getPersistence().filterFindByG_S_S(groupId, sections, status);
+		return getPersistence().filterFindByG_LikeS_S(
+			groupId, sections, status);
 	}
 
 	/**
@@ -9080,10 +9442,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_S(
+	public static List<KBArticle> filterFindByG_LikeS_S(
 		long groupId, String sections, int status, int start, int end) {
 
-		return getPersistence().filterFindByG_S_S(
+		return getPersistence().filterFindByG_LikeS_S(
 			groupId, sections, status, start, end);
 	}
 
@@ -9102,11 +9464,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_S(
+	public static List<KBArticle> filterFindByG_LikeS_S(
 		long groupId, String sections, int status, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().filterFindByG_S_S(
+		return getPersistence().filterFindByG_LikeS_S(
 			groupId, sections, status, start, end, orderByComparator);
 	}
 
@@ -9121,12 +9483,12 @@ public class KBArticleUtil {
 	 * @return the previous, current, and next kb article
 	 * @throws NoSuchArticleException if a kb article with the primary key could not be found
 	 */
-	public static KBArticle[] filterFindByG_S_S_PrevAndNext(
+	public static KBArticle[] filterFindByG_LikeS_S_PrevAndNext(
 			long kbArticleId, long groupId, String sections, int status,
 			OrderByComparator<KBArticle> orderByComparator)
 		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
 
-		return getPersistence().filterFindByG_S_S_PrevAndNext(
+		return getPersistence().filterFindByG_LikeS_S_PrevAndNext(
 			kbArticleId, groupId, sections, status, orderByComparator);
 	}
 
@@ -9138,10 +9500,11 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_S(
+	public static List<KBArticle> filterFindByG_LikeS_S(
 		long groupId, String[] sectionses, int status) {
 
-		return getPersistence().filterFindByG_S_S(groupId, sectionses, status);
+		return getPersistence().filterFindByG_LikeS_S(
+			groupId, sectionses, status);
 	}
 
 	/**
@@ -9158,10 +9521,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_S(
+	public static List<KBArticle> filterFindByG_LikeS_S(
 		long groupId, String[] sectionses, int status, int start, int end) {
 
-		return getPersistence().filterFindByG_S_S(
+		return getPersistence().filterFindByG_LikeS_S(
 			groupId, sectionses, status, start, end);
 	}
 
@@ -9180,11 +9543,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles that the user has permission to view
 	 */
-	public static List<KBArticle> filterFindByG_S_S(
+	public static List<KBArticle> filterFindByG_LikeS_S(
 		long groupId, String[] sectionses, int status, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().filterFindByG_S_S(
+		return getPersistence().filterFindByG_LikeS_S(
 			groupId, sectionses, status, start, end, orderByComparator);
 	}
 
@@ -9200,10 +9563,10 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String[] sectionses, int status) {
 
-		return getPersistence().findByG_S_S(groupId, sectionses, status);
+		return getPersistence().findByG_LikeS_S(groupId, sectionses, status);
 	}
 
 	/**
@@ -9220,10 +9583,10 @@ public class KBArticleUtil {
 	 * @param end the upper bound of the range of kb articles (not inclusive)
 	 * @return the range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String[] sectionses, int status, int start, int end) {
 
-		return getPersistence().findByG_S_S(
+		return getPersistence().findByG_LikeS_S(
 			groupId, sectionses, status, start, end);
 	}
 
@@ -9242,11 +9605,11 @@ public class KBArticleUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String[] sectionses, int status, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator) {
 
-		return getPersistence().findByG_S_S(
+		return getPersistence().findByG_LikeS_S(
 			groupId, sectionses, status, start, end, orderByComparator);
 	}
 
@@ -9266,12 +9629,12 @@ public class KBArticleUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kb articles
 	 */
-	public static List<KBArticle> findByG_S_S(
+	public static List<KBArticle> findByG_LikeS_S(
 		long groupId, String[] sectionses, int status, int start, int end,
 		OrderByComparator<KBArticle> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByG_S_S(
+		return getPersistence().findByG_LikeS_S(
 			groupId, sectionses, status, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -9283,10 +9646,10 @@ public class KBArticleUtil {
 	 * @param sections the sections
 	 * @param status the status
 	 */
-	public static void removeByG_S_S(
+	public static void removeByG_LikeS_S(
 		long groupId, String sections, int status) {
 
-		getPersistence().removeByG_S_S(groupId, sections, status);
+		getPersistence().removeByG_LikeS_S(groupId, sections, status);
 	}
 
 	/**
@@ -9297,8 +9660,10 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the number of matching kb articles
 	 */
-	public static int countByG_S_S(long groupId, String sections, int status) {
-		return getPersistence().countByG_S_S(groupId, sections, status);
+	public static int countByG_LikeS_S(
+		long groupId, String sections, int status) {
+
+		return getPersistence().countByG_LikeS_S(groupId, sections, status);
 	}
 
 	/**
@@ -9309,10 +9674,10 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the number of matching kb articles
 	 */
-	public static int countByG_S_S(
+	public static int countByG_LikeS_S(
 		long groupId, String[] sectionses, int status) {
 
-		return getPersistence().countByG_S_S(groupId, sectionses, status);
+		return getPersistence().countByG_LikeS_S(groupId, sectionses, status);
 	}
 
 	/**
@@ -9323,10 +9688,11 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the number of matching kb articles that the user has permission to view
 	 */
-	public static int filterCountByG_S_S(
+	public static int filterCountByG_LikeS_S(
 		long groupId, String sections, int status) {
 
-		return getPersistence().filterCountByG_S_S(groupId, sections, status);
+		return getPersistence().filterCountByG_LikeS_S(
+			groupId, sections, status);
 	}
 
 	/**
@@ -9337,10 +9703,11 @@ public class KBArticleUtil {
 	 * @param status the status
 	 * @return the number of matching kb articles that the user has permission to view
 	 */
-	public static int filterCountByG_S_S(
+	public static int filterCountByG_LikeS_S(
 		long groupId, String[] sectionses, int status) {
 
-		return getPersistence().filterCountByG_S_S(groupId, sectionses, status);
+		return getPersistence().filterCountByG_LikeS_S(
+			groupId, sectionses, status);
 	}
 
 	/**
@@ -10523,24 +10890,9 @@ public class KBArticleUtil {
 	}
 
 	public static KBArticlePersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker<KBArticlePersistence, KBArticlePersistence>
-		_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(KBArticlePersistence.class);
-
-		ServiceTracker<KBArticlePersistence, KBArticlePersistence>
-			serviceTracker =
-				new ServiceTracker<KBArticlePersistence, KBArticlePersistence>(
-					bundle.getBundleContext(), KBArticlePersistence.class,
-					null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile KBArticlePersistence _persistence;
 
 }

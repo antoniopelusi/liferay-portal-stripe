@@ -28,19 +28,19 @@ public class PortletConfigFactoryUtil {
 	public static PortletConfig create(
 		Portlet portlet, ServletContext servletContext) {
 
-		return getPortletConfigFactory().create(portlet, servletContext);
+		return _portletConfigFactory.create(portlet, servletContext);
 	}
 
 	public static void destroy(Portlet portlet) {
-		getPortletConfigFactory().destroy(portlet);
+		_portletConfigFactory.destroy(portlet);
 	}
 
 	public static PortletConfig get(Portlet portlet) {
-		return getPortletConfigFactory().get(portlet);
+		return _portletConfigFactory.get(portlet);
 	}
 
 	public static PortletConfig get(String portletId) {
-		return getPortletConfigFactory().get(portletId);
+		return _portletConfigFactory.get(portletId);
 	}
 
 	public static PortletConfigFactory getPortletConfigFactory() {
@@ -48,7 +48,7 @@ public class PortletConfigFactoryUtil {
 	}
 
 	public static PortletConfig update(Portlet portlet) {
-		return getPortletConfigFactory().update(portlet);
+		return _portletConfigFactory.update(portlet);
 	}
 
 	public void setPortletConfigFactory(

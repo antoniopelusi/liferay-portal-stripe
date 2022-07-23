@@ -17,7 +17,7 @@ package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 /**
  * @author Rafael Praxedes
  */
-public class CalculateFunction extends SetPropertyFunction<String> {
+public class CalculateFunction extends BaseSetPropertyFunction<String> {
 
 	public static final String NAME = "calculate";
 

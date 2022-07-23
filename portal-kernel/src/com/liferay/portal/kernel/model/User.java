@@ -98,9 +98,11 @@ public interface User extends PersistedModel, UserModel {
 	/**
 	 * Returns a digest for the user, incorporating the password.
 	 *
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 	 * @param password a password to incorporate with the digest
 	 * @return a digest for the user, incorporating the password
 	 */
+	@Deprecated
 	public String getDigest(String password);
 
 	/**
@@ -349,6 +351,8 @@ public interface User extends PersistedModel, UserModel {
 	public boolean isSetupComplete();
 
 	public boolean isTermsOfUseComplete();
+
+	public void setContact(Contact contact);
 
 	public void setPasswordModified(boolean passwordModified);
 

@@ -142,6 +142,11 @@ public class KaleoTaskWrapper
 		}
 	}
 
+	@Override
+	public KaleoTask cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this kaleo task.
 	 *

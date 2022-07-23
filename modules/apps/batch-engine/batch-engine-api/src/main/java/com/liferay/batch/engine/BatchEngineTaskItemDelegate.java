@@ -16,6 +16,7 @@ package com.liferay.batch.engine;
 
 import com.liferay.batch.engine.pagination.Page;
 import com.liferay.batch.engine.pagination.Pagination;
+import com.liferay.batch.engine.strategy.BatchEngineImportStrategy;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
@@ -52,6 +53,9 @@ public interface BatchEngineTaskItemDelegate<T> {
 			Filter filter, Pagination pagination, Sort[] sorts,
 			Map<String, Serializable> parameters, String search)
 		throws Exception;
+
+	public void setBatchEngineImportStrategy(
+		BatchEngineImportStrategy batchEngineImportStrategy);
 
 	public void setContextCompany(Company contextCompany);
 

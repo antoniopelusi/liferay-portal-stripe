@@ -27,6 +27,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class AssetVocabularyServiceWrapper
 	implements AssetVocabularyService, ServiceWrapper<AssetVocabularyService> {
 
+	public AssetVocabularyServiceWrapper() {
+		this(null);
+	}
+
 	public AssetVocabularyServiceWrapper(
 		AssetVocabularyService assetVocabularyService) {
 
@@ -82,6 +86,20 @@ public class AssetVocabularyServiceWrapper
 		return _assetVocabularyService.addVocabulary(
 			groupId, name, title, titleMap, descriptionMap, settings,
 			serviceContext);
+	}
+
+	@Override
+	public AssetVocabulary addVocabulary(
+			String externalReferenceCode, long groupId, String name,
+			String title, java.util.Map<java.util.Locale, String> titleMap,
+			java.util.Map<java.util.Locale, String> descriptionMap,
+			String settings, int visibilityType,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _assetVocabularyService.addVocabulary(
+			externalReferenceCode, groupId, name, title, titleMap,
+			descriptionMap, settings, visibilityType, serviceContext);
 	}
 
 	@Override

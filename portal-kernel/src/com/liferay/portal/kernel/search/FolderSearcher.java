@@ -62,12 +62,11 @@ public class FolderSearcher extends BaseSearcher {
 			BooleanFilter fullQueryBooleanFilter, SearchContext searchContext)
 		throws Exception {
 
-		long[] folderIds = searchContext.getFolderIds();
-
 		TermsFilter entryClassPKTermsFilter = new TermsFilter(
 			Field.ENTRY_CLASS_PK);
 
-		entryClassPKTermsFilter.addValues(ArrayUtil.toStringArray(folderIds));
+		entryClassPKTermsFilter.addValues(
+			ArrayUtil.toStringArray(searchContext.getFolderIds()));
 
 		fullQueryBooleanFilter.add(
 			entryClassPKTermsFilter, BooleanClauseOccur.MUST);

@@ -16,12 +16,7 @@ definition {
 		User.firstLoginPG();
 
 		if ("${testPortalInstance}" != "true") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Search");
-
-			SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+			SearchAdministration.executeReindex();
 
 			ApplicationsMenu.gotoSite(site = "${siteName}");
 		}
@@ -31,14 +26,13 @@ definition {
 			panel = "Site Administration",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Calendar Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Calendar Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Calendar Page");
@@ -85,10 +79,42 @@ definition {
 
 			Calendar.tearDown();
 
-			Page.tearDownPG();
+			PagesAdmin.tearDownCP();
 
 			Workflow.tearDownSiteWorkflow();
 		}
+	}
+
+	@description = "Verify that an approved Calendar Event can be deleted"
+	@priority = "4"
+	test ApprovedEventCanBeDeleted {
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Click(
+			key_eventTitle = "Calendar Event Title",
+			locator1 = "WorkflowCalendar#CALENDAR_EVENT_BY_TITLE");
+
+		Button.clickNoError(button = "Delete");
+
+		AssertConfirm(value1 = "Deleting this event will cancel the meeting with your guests. Would you like to delete?");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		AssertElementNotPresent(
+			key_eventTitle = "Calendar Event Title",
+			locator1 = "WorkflowCalendar#CALENDAR_EVENT_BY_TITLE");
 	}
 
 	@priority = "5"
@@ -142,11 +168,174 @@ definition {
 			userCalendarName = "Test Test");
 	}
 
+	@description = "Verify that a calendar event created on the pop up can be approved"
+	@priority = "4"
+	test CalendarPopUpCanBeApproved {
+		CalendarScheduler.selectSpecificEvent(eventTitle = "Calendar Event Title");
+
+		CalendarScheduler.gotoDetailsViaDialogBox();
+
+		CalendarEvent.viewStatusViaDetails(status = "Pending");
+
+		CalendarNavigator.closeModal(modalTitle = "View Event Details");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarScheduler.selectSpecificEvent(eventTitle = "Calendar Event Title");
+
+		CalendarScheduler.gotoDetailsViaDialogBox();
+
+		CalendarEvent.viewStatusViaDetails(status = "Approved");
+	}
+
+	@description = "Verify that a calendar event created on the pop up can be rejected"
+	@priority = "3"
+	test CalendarPopUpCanBeRejected {
+		CalendarNavigator.gotoEventDetails(eventTitle = "Calendar Event Title");
+
+		CalendarEvent.viewStatusViaDetails(status = "PENDING");
+
+		CalendarNavigator.closeModal(modalTitle = "View Event Details");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Navigator.gotoNavTab(navTab = "Assigned to My Roles");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Assign to Me");
+
+		Workflow.confirmWorkflowAction();
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Reject");
+
+		Workflow.confirmWorkflowAction();
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoEventDetails(eventTitle = "Calendar Event Title");
+
+		CalendarEvent.viewStatusViaDetails(status = "PENDING");
+	}
+
+	@description = "Verify that a calendar event on draft can be approved"
+	@priority = "4"
+	test CalendarWithDraftStatusCanBecomeApproved {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.editTitle(eventTitle = "Event Title Draft");
+
+		AssertClick(
+			locator1 = "Button#SAVE_AS_DRAFT",
+			value1 = "Save as Draft");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarEvent.viewDetails(
+			calendarName = "${siteName}",
+			eventTitle = "Event Title Draft",
+			eventType = "Regular");
+
+		CalendarEvent.viewStatusViaDetails(status = "Draft");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoEditEvent(eventTitle = "Event Title Draft");
+
+		AssertClick(
+			locator1 = "Button#SUBMIT_FOR_PUBLICATION",
+			value1 = "Submit for Publication");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Event Title Draft",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Event Title Draft",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarEvent.viewDetails(
+			calendarName = "${siteName}",
+			eventTitle = "Event Title Draft",
+			eventType = "Regular");
+
+		CalendarEvent.viewStatusViaDetails(status = "Approved");
+	}
+
+	@description = "Verify that the user can approve calendar events on Single Approver workflow"
+	@priority = "5"
+	test CanApproveCalendarEventOnSingleApprover {
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Click(
+			key_eventTitle = "Calendar Event Title",
+			locator1 = "WorkflowCalendar#CALENDAR_EVENT_BY_TITLE");
+
+		Button.click(button = "View Details");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		AssertTextEquals(
+			locator1 = "WorkflowCalendar#CALENDAR_EVENT_DETAILS_WORKFLOW_STATUS",
+			value1 = "Approved");
+	}
+
+	@description = "Verify that the user can assign a Workflow to Calendar Event"
+	@priority = "5"
+	test CanAssignWorkflowToCalendarEvent {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Calendar Event");
+
+		Alert.viewSuccessMessage();
+
+		Workflow.viewConfigurationSelected(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Calendar Event");
+	}
+
 	@description = "This is a use case for LPS-59572."
 	@priority = "3"
 	test DeleteAndRestoreEvent {
-		property portal.upstream = "quarantine";
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		CalendarNavigator.gotoView(viewType = "Week");
@@ -315,6 +504,83 @@ definition {
 			eventTitle = "Calendar Event Title",
 			siteCalendarName = "${siteName}",
 			userCalendarName = "Test Test");
+	}
+
+	@description = "Verify that the Calendar Event status become pending after submit"
+	@priority = "4"
+	test StatusBecomePendingAfterSubmit {
+		CalendarScheduler.selectSpecificEvent(eventTitle = "Calendar Event Title");
+
+		CalendarScheduler.gotoDetailsViaDialogBox();
+
+		CalendarEvent.viewStatusViaDetails(status = "Pending");
+	}
+
+	@description = "Verify that the Calendar Event status changes when approved"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test StatusChangesWhenApproved {
+
+		// TODO LRQA-68597 StatusChangesWhenApproved pending implementation
+
+	}
+
+	@description = "Verify that the Calendar Event status stay on pending when rejected after submitted"
+	@priority = "3"
+	test StatusStayPendingAfterRejected {
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Workflow.rejectTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Click(
+			key_eventTitle = "Calendar Event Title",
+			locator1 = "WorkflowCalendar#CALENDAR_EVENT_BY_TITLE");
+
+		Button.click(button = "View Details");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		AssertTextEquals(
+			locator1 = "WorkflowCalendar#CALENDAR_EVENT_DETAILS_WORKFLOW_STATUS",
+			value1 = "PENDING");
+	}
+
+	@description = "Verify that a Unpublish warning message appears when the user edit a approved event"
+	@priority = "3"
+	test UnpublishWarningMessageIsDisplayedOnEdit {
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Calendar Event Title",
+			workflowAssetType = "Calendar Event",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Click(
+			key_userCalendarName = "Test Test",
+			locator1 = "Calendar#MY_CALENDARS_CALENDAR");
+
+		CalendarNavigator.gotoView(viewType = "Week");
+
+		CalendarNavigator.gotoEditEvent(eventTitle = "Calendar Event Title");
+
+		Alert.viewInfoMessageSpecific(infoMessage = "This Calendar Event is approved. Publishing these changes will cause it to be unpublished and go through the approval process again.");
 	}
 
 	@priority = "3"

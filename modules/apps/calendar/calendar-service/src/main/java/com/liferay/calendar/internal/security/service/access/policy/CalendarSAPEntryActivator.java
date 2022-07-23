@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.resource.bundle.AggregateResourceBundleLoader;
-import com.liferay.portal.kernel.resource.bundle.ClassResourceBundleLoader;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -56,7 +53,14 @@ public class CalendarSAPEntryActivator {
 			new CalendarPortalInstanceLifecycleListener(), null);
 	}
 
-	protected void addSAPEntry(long companyId) throws PortalException {
+	@Deactivate
+	protected void deactivate() {
+		if (_serviceRegistration != null) {
+			_serviceRegistration.unregister();
+		}
+	}
+
+	private void _addSAPEntry(long companyId) throws PortalException {
 		SAPEntry sapEntry = _sapEntryLocalService.fetchSAPEntry(
 			companyId, _SAP_ENTRY_NAME);
 
@@ -64,38 +68,19 @@ public class CalendarSAPEntryActivator {
 			return;
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(CalendarBookingService.class.getName());
-		sb.append("#search");
-		sb.append(StringPool.NEW_LINE);
-		sb.append(CalendarBookingService.class.getName());
-		sb.append("#searchCount");
-
-		String allowedServiceSignatures = sb.toString();
-
-		ResourceBundleLoader resourceBundleLoader =
-			new AggregateResourceBundleLoader(
-				new ClassResourceBundleLoader(
-					"content.Language",
-					CalendarSAPEntryActivator.class.getClassLoader()),
-				LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER);
+		String allowedServiceSignatures = StringBundler.concat(
+			CalendarBookingService.class.getName(), "#search",
+			StringPool.NEW_LINE, CalendarBookingService.class.getName(),
+			"#searchCount");
 
 		Map<Locale, String> titleMap = ResourceBundleUtil.getLocalizationMap(
-			resourceBundleLoader,
+			LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER,
 			"service-access-policy-entry-default-calendar-title");
 
 		_sapEntryLocalService.addSAPEntry(
 			_userLocalService.getDefaultUserId(companyId),
 			allowedServiceSignatures, true, true, _SAP_ENTRY_NAME, titleMap,
 			new ServiceContext());
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		if (_serviceRegistration != null) {
-			_serviceRegistration.unregister();
-		}
 	}
 
 	private static final String _SAP_ENTRY_NAME = "CALENDAR_DEFAULT";
@@ -117,7 +102,7 @@ public class CalendarSAPEntryActivator {
 
 		public void portalInstanceRegistered(Company company) throws Exception {
 			try {
-				addSAPEntry(company.getCompanyId());
+				_addSAPEntry(company.getCompanyId());
 			}
 			catch (PortalException portalException) {
 				_log.error(

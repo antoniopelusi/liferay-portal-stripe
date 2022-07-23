@@ -30,6 +30,10 @@ public class AssetDisplayPageEntryLocalServiceWrapper
 	implements AssetDisplayPageEntryLocalService,
 			   ServiceWrapper<AssetDisplayPageEntryLocalService> {
 
+	public AssetDisplayPageEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetDisplayPageEntryLocalServiceWrapper(
 		AssetDisplayPageEntryLocalService assetDisplayPageEntryLocalService) {
 
@@ -166,6 +170,13 @@ public class AssetDisplayPageEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _assetDisplayPageEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetDisplayPageEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

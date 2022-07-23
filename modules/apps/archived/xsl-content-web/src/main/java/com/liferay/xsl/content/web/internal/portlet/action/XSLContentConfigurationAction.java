@@ -79,7 +79,7 @@ public class XSLContentConfigurationAction extends DefaultConfigurationAction {
 			ActionResponse actionResponse)
 		throws Exception {
 
-		validateUrls(actionRequest);
+		_validateUrls(actionRequest);
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
@@ -100,7 +100,7 @@ public class XSLContentConfigurationAction extends DefaultConfigurationAction {
 			XSLContentConfiguration.class, properties);
 	}
 
-	protected String[] getValidUrlPrefixes(
+	private String[] _getValidUrlPrefixes(
 		ThemeDisplay themeDisplay, String contextPath) {
 
 		String validUrlPrefixes = XSLContentUtil.replaceUrlTokens(
@@ -110,7 +110,7 @@ public class XSLContentConfigurationAction extends DefaultConfigurationAction {
 		return StringUtil.split(validUrlPrefixes);
 	}
 
-	protected boolean hasValidUrlPrefix(String[] validUrlPrefixes, String url) {
+	private boolean _hasValidUrlPrefix(String[] validUrlPrefixes, String url) {
 		if (validUrlPrefixes.length == 0) {
 			return true;
 		}
@@ -124,11 +124,11 @@ public class XSLContentConfigurationAction extends DefaultConfigurationAction {
 		return false;
 	}
 
-	protected void validateUrls(ActionRequest actionRequest) {
+	private void _validateUrls(ActionRequest actionRequest) {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String[] validUrlPrefixes = getValidUrlPrefixes(
+		String[] validUrlPrefixes = _getValidUrlPrefixes(
 			themeDisplay, actionRequest.getContextPath());
 
 		String xmlUrl = getParameter(actionRequest, "xmlUrl");
@@ -136,7 +136,7 @@ public class XSLContentConfigurationAction extends DefaultConfigurationAction {
 		xmlUrl = XSLContentUtil.replaceUrlTokens(
 			themeDisplay, actionRequest.getContextPath(), xmlUrl);
 
-		if (!hasValidUrlPrefix(validUrlPrefixes, xmlUrl)) {
+		if (!_hasValidUrlPrefix(validUrlPrefixes, xmlUrl)) {
 			SessionErrors.add(actionRequest, "xmlUrl");
 		}
 
@@ -145,7 +145,7 @@ public class XSLContentConfigurationAction extends DefaultConfigurationAction {
 		xslUrl = XSLContentUtil.replaceUrlTokens(
 			themeDisplay, actionRequest.getContextPath(), xslUrl);
 
-		if (!hasValidUrlPrefix(validUrlPrefixes, xslUrl)) {
+		if (!_hasValidUrlPrefix(validUrlPrefixes, xslUrl)) {
 			SessionErrors.add(actionRequest, "xslUrl");
 		}
 	}

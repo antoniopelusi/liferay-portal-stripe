@@ -18,8 +18,4 @@ package com.liferay.commerce.product.model.impl;
  * @author Ethan Bustad
  */
 public class CProductImpl extends CProductBaseImpl {
-
-	public CProductImpl() {
-	}
-
 }

@@ -28,6 +28,8 @@ import com.liferay.portal.workflow.kaleo.forms.service.KaleoProcessLinkLocalServ
 import com.liferay.portal.workflow.kaleo.forms.service.KaleoProcessLocalService;
 import com.liferay.portal.workflow.kaleo.forms.service.permission.KaleoProcessPermission;
 
+import javax.portlet.Portlet;
+
 import javax.servlet.ServletContext;
 
 import org.osgi.service.component.annotations.Component;
@@ -60,10 +62,6 @@ public class KaleoProcessAssetRendererFactory
 
 		DDLRecord record = _ddlRecordLocalService.fetchDDLRecord(classPK);
 
-		KaleoProcess kaleoProcess =
-			_kaleoProcessLocalService.getDDLRecordSetKaleoProcess(
-				record.getRecordSetId());
-
 		DDLRecordVersion recordVersion = null;
 
 		if (type == TYPE_LATEST) {
@@ -76,6 +74,10 @@ public class KaleoProcessAssetRendererFactory
 			throw new IllegalArgumentException(
 				"Unknown asset renderer type " + type);
 		}
+
+		KaleoProcess kaleoProcess =
+			_kaleoProcessLocalService.getDDLRecordSetKaleoProcess(
+				record.getRecordSetId());
 
 		KaleoProcessAssetRenderer kaleoProcessAssetRenderer =
 			new KaleoProcessAssetRenderer(kaleoProcess, record, recordVersion);
@@ -139,6 +141,13 @@ public class KaleoProcessAssetRendererFactory
 		KaleoProcessLocalService kaleoProcessLocalService) {
 
 		_kaleoProcessLocalService = kaleoProcessLocalService;
+	}
+
+	@Reference(
+		target = "(javax.portlet.name=" + KaleoFormsPortletKeys.KALEO_FORMS_ADMIN + ")",
+		unbind = "-"
+	)
+	protected void setPortlet(Portlet portlet) {
 	}
 
 	private DDLRecordLocalService _ddlRecordLocalService;

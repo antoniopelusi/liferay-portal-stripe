@@ -30,6 +30,10 @@ public class SocialRelationLocalServiceWrapper
 	implements ServiceWrapper<SocialRelationLocalService>,
 			   SocialRelationLocalService {
 
+	public SocialRelationLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SocialRelationLocalServiceWrapper(
 		SocialRelationLocalService socialRelationLocalService) {
 
@@ -199,6 +203,13 @@ public class SocialRelationLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _socialRelationLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _socialRelationLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

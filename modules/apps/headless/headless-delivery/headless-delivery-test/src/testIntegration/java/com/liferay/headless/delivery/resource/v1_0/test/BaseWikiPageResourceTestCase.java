@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import com.liferay.headless.delivery.client.dto.v1_0.Field;
 import com.liferay.headless.delivery.client.dto.v1_0.WikiPage;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
@@ -36,7 +37,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -56,9 +56,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -194,6 +192,7 @@ public abstract class BaseWikiPageResourceTestCase {
 		wikiPage.setContent(regex);
 		wikiPage.setDescription(regex);
 		wikiPage.setEncodingFormat(regex);
+		wikiPage.setExternalReferenceCode(regex);
 		wikiPage.setHeadline(regex);
 
 		String json = WikiPageSerDes.toJSON(wikiPage);
@@ -205,21 +204,199 @@ public abstract class BaseWikiPageResourceTestCase {
 		Assert.assertEquals(regex, wikiPage.getContent());
 		Assert.assertEquals(regex, wikiPage.getDescription());
 		Assert.assertEquals(regex, wikiPage.getEncodingFormat());
+		Assert.assertEquals(regex, wikiPage.getExternalReferenceCode());
 		Assert.assertEquals(regex, wikiPage.getHeadline());
 	}
 
 	@Test
+	public void testDeleteSiteWikiPageByExternalReferenceCode()
+		throws Exception {
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		WikiPage wikiPage =
+			testDeleteSiteWikiPageByExternalReferenceCode_addWikiPage();
+
+		assertHttpResponseStatusCode(
+			204,
+			wikiPageResource.
+				deleteSiteWikiPageByExternalReferenceCodeHttpResponse(
+					wikiPage.getSiteId(), wikiPage.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			404,
+			wikiPageResource.getSiteWikiPageByExternalReferenceCodeHttpResponse(
+				wikiPage.getSiteId(), wikiPage.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			404,
+			wikiPageResource.getSiteWikiPageByExternalReferenceCodeHttpResponse(
+				wikiPage.getSiteId(), wikiPage.getExternalReferenceCode()));
+	}
+
+	protected WikiPage
+			testDeleteSiteWikiPageByExternalReferenceCode_addWikiPage()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGetSiteWikiPageByExternalReferenceCode() throws Exception {
+		WikiPage postWikiPage =
+			testGetSiteWikiPageByExternalReferenceCode_addWikiPage();
+
+		WikiPage getWikiPage =
+			wikiPageResource.getSiteWikiPageByExternalReferenceCode(
+				postWikiPage.getSiteId(),
+				postWikiPage.getExternalReferenceCode());
+
+		assertEquals(postWikiPage, getWikiPage);
+		assertValid(getWikiPage);
+	}
+
+	protected WikiPage testGetSiteWikiPageByExternalReferenceCode_addWikiPage()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetSiteWikiPageByExternalReferenceCode()
+		throws Exception {
+
+		WikiPage wikiPage =
+			testGraphQLGetSiteWikiPageByExternalReferenceCode_addWikiPage();
+
+		Assert.assertTrue(
+			equals(
+				wikiPage,
+				WikiPageSerDes.toDTO(
+					JSONUtil.getValueAsString(
+						invokeGraphQLQuery(
+							new GraphQLField(
+								"wikiPageByExternalReferenceCode",
+								new HashMap<String, Object>() {
+									{
+										put(
+											"siteKey",
+											"\"" + wikiPage.getSiteId() + "\"");
+										put(
+											"externalReferenceCode",
+											"\"" +
+												wikiPage.
+													getExternalReferenceCode() +
+														"\"");
+									}
+								},
+								getGraphQLFields())),
+						"JSONObject/data",
+						"Object/wikiPageByExternalReferenceCode"))));
+	}
+
+	@Test
+	public void testGraphQLGetSiteWikiPageByExternalReferenceCodeNotFound()
+		throws Exception {
+
+		String irrelevantExternalReferenceCode =
+			"\"" + RandomTestUtil.randomString() + "\"";
+
+		Assert.assertEquals(
+			"Not Found",
+			JSONUtil.getValueAsString(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"wikiPageByExternalReferenceCode",
+						new HashMap<String, Object>() {
+							{
+								put(
+									"siteKey",
+									"\"" + irrelevantGroup.getGroupId() + "\"");
+								put(
+									"externalReferenceCode",
+									irrelevantExternalReferenceCode);
+							}
+						},
+						getGraphQLFields())),
+				"JSONArray/errors", "Object/0", "JSONObject/extensions",
+				"Object/code"));
+	}
+
+	protected WikiPage
+			testGraphQLGetSiteWikiPageByExternalReferenceCode_addWikiPage()
+		throws Exception {
+
+		return testGraphQLWikiPage_addWikiPage();
+	}
+
+	@Test
+	public void testPutSiteWikiPageByExternalReferenceCode() throws Exception {
+		WikiPage postWikiPage =
+			testPutSiteWikiPageByExternalReferenceCode_addWikiPage();
+
+		WikiPage randomWikiPage = randomWikiPage();
+
+		WikiPage putWikiPage =
+			wikiPageResource.putSiteWikiPageByExternalReferenceCode(
+				postWikiPage.getSiteId(),
+				postWikiPage.getExternalReferenceCode(), randomWikiPage);
+
+		assertEquals(randomWikiPage, putWikiPage);
+		assertValid(putWikiPage);
+
+		WikiPage getWikiPage =
+			wikiPageResource.getSiteWikiPageByExternalReferenceCode(
+				putWikiPage.getSiteId(),
+				putWikiPage.getExternalReferenceCode());
+
+		assertEquals(randomWikiPage, getWikiPage);
+		assertValid(getWikiPage);
+
+		WikiPage newWikiPage =
+			testPutSiteWikiPageByExternalReferenceCode_createWikiPage();
+
+		putWikiPage = wikiPageResource.putSiteWikiPageByExternalReferenceCode(
+			newWikiPage.getSiteId(), newWikiPage.getExternalReferenceCode(),
+			newWikiPage);
+
+		assertEquals(newWikiPage, putWikiPage);
+		assertValid(putWikiPage);
+
+		getWikiPage = wikiPageResource.getSiteWikiPageByExternalReferenceCode(
+			putWikiPage.getSiteId(), putWikiPage.getExternalReferenceCode());
+
+		assertEquals(newWikiPage, getWikiPage);
+
+		Assert.assertEquals(
+			newWikiPage.getExternalReferenceCode(),
+			putWikiPage.getExternalReferenceCode());
+	}
+
+	protected WikiPage
+			testPutSiteWikiPageByExternalReferenceCode_createWikiPage()
+		throws Exception {
+
+		return randomWikiPage();
+	}
+
+	protected WikiPage testPutSiteWikiPageByExternalReferenceCode_addWikiPage()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
 	public void testGetWikiNodeWikiPagesPage() throws Exception {
-		Page<WikiPage> page = wikiPageResource.getWikiNodeWikiPagesPage(
-			testGetWikiNodeWikiPagesPage_getWikiNodeId(),
-			RandomTestUtil.randomString(), null, null, Pagination.of(1, 2),
-			null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long wikiNodeId = testGetWikiNodeWikiPagesPage_getWikiNodeId();
 		Long irrelevantWikiNodeId =
 			testGetWikiNodeWikiPagesPage_getIrrelevantWikiNodeId();
+
+		Page<WikiPage> page = wikiPageResource.getWikiNodeWikiPagesPage(
+			wikiNodeId, null, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantWikiNodeId != null) {
 			WikiPage irrelevantWikiPage =
@@ -245,7 +422,7 @@ public abstract class BaseWikiPageResourceTestCase {
 			wikiNodeId, randomWikiPage());
 
 		page = wikiPageResource.getWikiNodeWikiPagesPage(
-			wikiNodeId, null, null, null, Pagination.of(1, 2), null);
+			wikiNodeId, null, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -281,6 +458,38 @@ public abstract class BaseWikiPageResourceTestCase {
 			Page<WikiPage> page = wikiPageResource.getWikiNodeWikiPagesPage(
 				wikiNodeId, null, null,
 				getFilterString(entityField, "between", wikiPage1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(wikiPage1),
+				(List<WikiPage>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetWikiNodeWikiPagesPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long wikiNodeId = testGetWikiNodeWikiPagesPage_getWikiNodeId();
+
+		WikiPage wikiPage1 = testGetWikiNodeWikiPagesPage_addWikiPage(
+			wikiNodeId, randomWikiPage());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		WikiPage wikiPage2 = testGetWikiNodeWikiPagesPage_addWikiPage(
+			wikiNodeId, randomWikiPage());
+
+		for (EntityField entityField : entityFields) {
+			Page<WikiPage> page = wikiPageResource.getWikiNodeWikiPagesPage(
+				wikiNodeId, null, null,
+				getFilterString(entityField, "eq", wikiPage1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -372,6 +581,16 @@ public abstract class BaseWikiPageResourceTestCase {
 	}
 
 	@Test
+	public void testGetWikiNodeWikiPagesPageWithSortDouble() throws Exception {
+		testGetWikiNodeWikiPagesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, wikiPage1, wikiPage2) -> {
+				BeanUtils.setProperty(wikiPage1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(wikiPage2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetWikiNodeWikiPagesPageWithSortInteger() throws Exception {
 		testGetWikiNodeWikiPagesPageWithSort(
 			EntityField.Type.INTEGER,
@@ -390,7 +609,7 @@ public abstract class BaseWikiPageResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -518,15 +737,15 @@ public abstract class BaseWikiPageResourceTestCase {
 
 	@Test
 	public void testGetWikiPageWikiPagesPage() throws Exception {
-		Page<WikiPage> page = wikiPageResource.getWikiPageWikiPagesPage(
-			testGetWikiPageWikiPagesPage_getParentWikiPageId());
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long parentWikiPageId =
 			testGetWikiPageWikiPagesPage_getParentWikiPageId();
 		Long irrelevantParentWikiPageId =
 			testGetWikiPageWikiPagesPage_getIrrelevantParentWikiPageId();
+
+		Page<WikiPage> page = wikiPageResource.getWikiPageWikiPagesPage(
+			parentWikiPageId);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantParentWikiPageId != null) {
 			WikiPage irrelevantWikiPage =
@@ -625,7 +844,7 @@ public abstract class BaseWikiPageResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteWikiPage() throws Exception {
-		WikiPage wikiPage = testGraphQLWikiPage_addWikiPage();
+		WikiPage wikiPage = testGraphQLDeleteWikiPage_addWikiPage();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -638,7 +857,6 @@ public abstract class BaseWikiPageResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteWikiPage"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -652,6 +870,12 @@ public abstract class BaseWikiPageResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected WikiPage testGraphQLDeleteWikiPage_addWikiPage()
+		throws Exception {
+
+		return testGraphQLWikiPage_addWikiPage();
 	}
 
 	@Test
@@ -672,7 +896,7 @@ public abstract class BaseWikiPageResourceTestCase {
 
 	@Test
 	public void testGraphQLGetWikiPage() throws Exception {
-		WikiPage wikiPage = testGraphQLWikiPage_addWikiPage();
+		WikiPage wikiPage = testGraphQLGetWikiPage_addWikiPage();
 
 		Assert.assertTrue(
 			equals(
@@ -709,6 +933,10 @@ public abstract class BaseWikiPageResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected WikiPage testGraphQLGetWikiPage_addWikiPage() throws Exception {
+		return testGraphQLWikiPage_addWikiPage();
 	}
 
 	@Test
@@ -752,16 +980,17 @@ public abstract class BaseWikiPageResourceTestCase {
 	}
 
 	@Test
-	public void testPutWikiPagePermission() throws Exception {
+	public void testPutWikiPagePermissionsPage() throws Exception {
 		@SuppressWarnings("PMD.UnusedLocalVariable")
-		WikiPage wikiPage = testPutWikiPagePermission_addWikiPage();
+		WikiPage wikiPage = testPutWikiPagePermissionsPage_addWikiPage();
 
+		@SuppressWarnings("PMD.UnusedLocalVariable")
 		com.liferay.portal.kernel.model.Role role = RoleTestUtil.addRole(
 			RoleConstants.TYPE_REGULAR);
 
 		assertHttpResponseStatusCode(
-			204,
-			wikiPageResource.putWikiPagePermissionHttpResponse(
+			200,
+			wikiPageResource.putWikiPagePermissionsPageHttpResponse(
 				wikiPage.getId(),
 				new Permission[] {
 					new Permission() {
@@ -774,7 +1003,7 @@ public abstract class BaseWikiPageResourceTestCase {
 
 		assertHttpResponseStatusCode(
 			404,
-			wikiPageResource.putWikiPagePermissionHttpResponse(
+			wikiPageResource.putWikiPagePermissionsPageHttpResponse(
 				0L,
 				new Permission[] {
 					new Permission() {
@@ -786,7 +1015,7 @@ public abstract class BaseWikiPageResourceTestCase {
 				}));
 	}
 
-	protected WikiPage testPutWikiPagePermission_addWikiPage()
+	protected WikiPage testPutWikiPagePermissionsPage_addWikiPage()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
@@ -839,6 +1068,21 @@ public abstract class BaseWikiPageResourceTestCase {
 	protected WikiPage testGraphQLWikiPage_addWikiPage() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(WikiPage wikiPage, List<WikiPage> wikiPages) {
+		boolean contains = false;
+
+		for (WikiPage item : wikiPages) {
+			if (equals(wikiPage, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			wikiPages + " does not contain " + wikiPage, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -967,6 +1211,16 @@ public abstract class BaseWikiPageResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"externalReferenceCode", additionalAssertFieldName)) {
+
+				if (wikiPage.getExternalReferenceCode() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("headline", additionalAssertFieldName)) {
 				if (wikiPage.getHeadline() == null) {
 					valid = false;
@@ -1055,6 +1309,14 @@ public abstract class BaseWikiPageResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("wikiNodeId", additionalAssertFieldName)) {
+				if (wikiPage.getWikiNodeId() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			throw new IllegalArgumentException(
 				"Invalid additional assert field name " +
 					additionalAssertFieldName);
@@ -1089,8 +1351,8 @@ public abstract class BaseWikiPageResourceTestCase {
 
 		graphQLFields.add(new GraphQLField("siteId"));
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.delivery.dto.v1_0.WikiPage.class)) {
 
 			if (!ArrayUtil.contains(
@@ -1105,12 +1367,13 @@ public abstract class BaseWikiPageResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -1124,7 +1387,7 @@ public abstract class BaseWikiPageResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1240,6 +1503,19 @@ public abstract class BaseWikiPageResourceTestCase {
 				if (!Objects.deepEquals(
 						wikiPage1.getEncodingFormat(),
 						wikiPage2.getEncodingFormat())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"externalReferenceCode", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						wikiPage1.getExternalReferenceCode(),
+						wikiPage2.getExternalReferenceCode())) {
 
 					return false;
 				}
@@ -1369,6 +1645,16 @@ public abstract class BaseWikiPageResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("wikiNodeId", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						wikiPage1.getWikiNodeId(), wikiPage2.getWikiNodeId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			throw new IllegalArgumentException(
 				"Invalid additional assert field name " +
 					additionalAssertFieldName);
@@ -1401,6 +1687,19 @@ public abstract class BaseWikiPageResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1559,6 +1858,14 @@ public abstract class BaseWikiPageResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("externalReferenceCode")) {
+			sb.append("'");
+			sb.append(String.valueOf(wikiPage.getExternalReferenceCode()));
+			sb.append("'");
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("headline")) {
 			sb.append("'");
 			sb.append(String.valueOf(wikiPage.getHeadline()));
@@ -1578,13 +1885,15 @@ public abstract class BaseWikiPageResourceTestCase {
 		}
 
 		if (entityFieldName.equals("numberOfAttachments")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(wikiPage.getNumberOfAttachments()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("numberOfWikiPages")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(wikiPage.getNumberOfWikiPages()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("parentWikiPageId")) {
@@ -1618,6 +1927,11 @@ public abstract class BaseWikiPageResourceTestCase {
 		}
 
 		if (entityFieldName.equals("viewableBy")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("wikiNodeId")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -1673,6 +1987,8 @@ public abstract class BaseWikiPageResourceTestCase {
 					RandomTestUtil.randomString());
 				encodingFormat = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				externalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				headline = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
@@ -1681,6 +1997,7 @@ public abstract class BaseWikiPageResourceTestCase {
 				parentWikiPageId = RandomTestUtil.randomLong();
 				siteId = testGroup.getGroupId();
 				subscribed = RandomTestUtil.randomBoolean();
+				wikiNodeId = RandomTestUtil.randomLong();
 			}
 		};
 	}
@@ -1773,8 +2090,8 @@ public abstract class BaseWikiPageResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseWikiPageResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseWikiPageResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

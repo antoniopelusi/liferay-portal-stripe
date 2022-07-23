@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the ct comment service. This utility wraps <code>com.liferay.change.tracking.service.persistence.impl.CTCommentPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -129,8 +125,8 @@ public class CTCommentUtil {
 	 * @param ctCollectionId the ct collection ID
 	 * @return the matching ct comments
 	 */
-	public static List<CTComment> findByCTCollectionId(long ctCollectionId) {
-		return getPersistence().findByCTCollectionId(ctCollectionId);
+	public static List<CTComment> findByCtCollectionId(long ctCollectionId) {
+		return getPersistence().findByCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -145,10 +141,10 @@ public class CTCommentUtil {
 	 * @param end the upper bound of the range of ct comments (not inclusive)
 	 * @return the range of matching ct comments
 	 */
-	public static List<CTComment> findByCTCollectionId(
+	public static List<CTComment> findByCtCollectionId(
 		long ctCollectionId, int start, int end) {
 
-		return getPersistence().findByCTCollectionId(
+		return getPersistence().findByCtCollectionId(
 			ctCollectionId, start, end);
 	}
 
@@ -165,11 +161,11 @@ public class CTCommentUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching ct comments
 	 */
-	public static List<CTComment> findByCTCollectionId(
+	public static List<CTComment> findByCtCollectionId(
 		long ctCollectionId, int start, int end,
 		OrderByComparator<CTComment> orderByComparator) {
 
-		return getPersistence().findByCTCollectionId(
+		return getPersistence().findByCtCollectionId(
 			ctCollectionId, start, end, orderByComparator);
 	}
 
@@ -187,12 +183,12 @@ public class CTCommentUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ct comments
 	 */
-	public static List<CTComment> findByCTCollectionId(
+	public static List<CTComment> findByCtCollectionId(
 		long ctCollectionId, int start, int end,
 		OrderByComparator<CTComment> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByCTCollectionId(
+		return getPersistence().findByCtCollectionId(
 			ctCollectionId, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -204,11 +200,11 @@ public class CTCommentUtil {
 	 * @return the first matching ct comment
 	 * @throws NoSuchCommentException if a matching ct comment could not be found
 	 */
-	public static CTComment findByCTCollectionId_First(
+	public static CTComment findByCtCollectionId_First(
 			long ctCollectionId, OrderByComparator<CTComment> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchCommentException {
 
-		return getPersistence().findByCTCollectionId_First(
+		return getPersistence().findByCtCollectionId_First(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -219,10 +215,10 @@ public class CTCommentUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching ct comment, or <code>null</code> if a matching ct comment could not be found
 	 */
-	public static CTComment fetchByCTCollectionId_First(
+	public static CTComment fetchByCtCollectionId_First(
 		long ctCollectionId, OrderByComparator<CTComment> orderByComparator) {
 
-		return getPersistence().fetchByCTCollectionId_First(
+		return getPersistence().fetchByCtCollectionId_First(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -234,11 +230,11 @@ public class CTCommentUtil {
 	 * @return the last matching ct comment
 	 * @throws NoSuchCommentException if a matching ct comment could not be found
 	 */
-	public static CTComment findByCTCollectionId_Last(
+	public static CTComment findByCtCollectionId_Last(
 			long ctCollectionId, OrderByComparator<CTComment> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchCommentException {
 
-		return getPersistence().findByCTCollectionId_Last(
+		return getPersistence().findByCtCollectionId_Last(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -249,10 +245,10 @@ public class CTCommentUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching ct comment, or <code>null</code> if a matching ct comment could not be found
 	 */
-	public static CTComment fetchByCTCollectionId_Last(
+	public static CTComment fetchByCtCollectionId_Last(
 		long ctCollectionId, OrderByComparator<CTComment> orderByComparator) {
 
-		return getPersistence().fetchByCTCollectionId_Last(
+		return getPersistence().fetchByCtCollectionId_Last(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -265,12 +261,12 @@ public class CTCommentUtil {
 	 * @return the previous, current, and next ct comment
 	 * @throws NoSuchCommentException if a ct comment with the primary key could not be found
 	 */
-	public static CTComment[] findByCTCollectionId_PrevAndNext(
+	public static CTComment[] findByCtCollectionId_PrevAndNext(
 			long ctCommentId, long ctCollectionId,
 			OrderByComparator<CTComment> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchCommentException {
 
-		return getPersistence().findByCTCollectionId_PrevAndNext(
+		return getPersistence().findByCtCollectionId_PrevAndNext(
 			ctCommentId, ctCollectionId, orderByComparator);
 	}
 
@@ -279,8 +275,8 @@ public class CTCommentUtil {
 	 *
 	 * @param ctCollectionId the ct collection ID
 	 */
-	public static void removeByCTCollectionId(long ctCollectionId) {
-		getPersistence().removeByCTCollectionId(ctCollectionId);
+	public static void removeByCtCollectionId(long ctCollectionId) {
+		getPersistence().removeByCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -289,8 +285,8 @@ public class CTCommentUtil {
 	 * @param ctCollectionId the ct collection ID
 	 * @return the number of matching ct comments
 	 */
-	public static int countByCTCollectionId(long ctCollectionId) {
-		return getPersistence().countByCTCollectionId(ctCollectionId);
+	public static int countByCtCollectionId(long ctCollectionId) {
+		return getPersistence().countByCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -299,8 +295,8 @@ public class CTCommentUtil {
 	 * @param ctEntryId the ct entry ID
 	 * @return the matching ct comments
 	 */
-	public static List<CTComment> findByCTEntryId(long ctEntryId) {
-		return getPersistence().findByCTEntryId(ctEntryId);
+	public static List<CTComment> findByCtEntryId(long ctEntryId) {
+		return getPersistence().findByCtEntryId(ctEntryId);
 	}
 
 	/**
@@ -315,10 +311,10 @@ public class CTCommentUtil {
 	 * @param end the upper bound of the range of ct comments (not inclusive)
 	 * @return the range of matching ct comments
 	 */
-	public static List<CTComment> findByCTEntryId(
+	public static List<CTComment> findByCtEntryId(
 		long ctEntryId, int start, int end) {
 
-		return getPersistence().findByCTEntryId(ctEntryId, start, end);
+		return getPersistence().findByCtEntryId(ctEntryId, start, end);
 	}
 
 	/**
@@ -334,11 +330,11 @@ public class CTCommentUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching ct comments
 	 */
-	public static List<CTComment> findByCTEntryId(
+	public static List<CTComment> findByCtEntryId(
 		long ctEntryId, int start, int end,
 		OrderByComparator<CTComment> orderByComparator) {
 
-		return getPersistence().findByCTEntryId(
+		return getPersistence().findByCtEntryId(
 			ctEntryId, start, end, orderByComparator);
 	}
 
@@ -356,12 +352,12 @@ public class CTCommentUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ct comments
 	 */
-	public static List<CTComment> findByCTEntryId(
+	public static List<CTComment> findByCtEntryId(
 		long ctEntryId, int start, int end,
 		OrderByComparator<CTComment> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByCTEntryId(
+		return getPersistence().findByCtEntryId(
 			ctEntryId, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -373,11 +369,11 @@ public class CTCommentUtil {
 	 * @return the first matching ct comment
 	 * @throws NoSuchCommentException if a matching ct comment could not be found
 	 */
-	public static CTComment findByCTEntryId_First(
+	public static CTComment findByCtEntryId_First(
 			long ctEntryId, OrderByComparator<CTComment> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchCommentException {
 
-		return getPersistence().findByCTEntryId_First(
+		return getPersistence().findByCtEntryId_First(
 			ctEntryId, orderByComparator);
 	}
 
@@ -388,10 +384,10 @@ public class CTCommentUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching ct comment, or <code>null</code> if a matching ct comment could not be found
 	 */
-	public static CTComment fetchByCTEntryId_First(
+	public static CTComment fetchByCtEntryId_First(
 		long ctEntryId, OrderByComparator<CTComment> orderByComparator) {
 
-		return getPersistence().fetchByCTEntryId_First(
+		return getPersistence().fetchByCtEntryId_First(
 			ctEntryId, orderByComparator);
 	}
 
@@ -403,11 +399,11 @@ public class CTCommentUtil {
 	 * @return the last matching ct comment
 	 * @throws NoSuchCommentException if a matching ct comment could not be found
 	 */
-	public static CTComment findByCTEntryId_Last(
+	public static CTComment findByCtEntryId_Last(
 			long ctEntryId, OrderByComparator<CTComment> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchCommentException {
 
-		return getPersistence().findByCTEntryId_Last(
+		return getPersistence().findByCtEntryId_Last(
 			ctEntryId, orderByComparator);
 	}
 
@@ -418,10 +414,10 @@ public class CTCommentUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching ct comment, or <code>null</code> if a matching ct comment could not be found
 	 */
-	public static CTComment fetchByCTEntryId_Last(
+	public static CTComment fetchByCtEntryId_Last(
 		long ctEntryId, OrderByComparator<CTComment> orderByComparator) {
 
-		return getPersistence().fetchByCTEntryId_Last(
+		return getPersistence().fetchByCtEntryId_Last(
 			ctEntryId, orderByComparator);
 	}
 
@@ -434,12 +430,12 @@ public class CTCommentUtil {
 	 * @return the previous, current, and next ct comment
 	 * @throws NoSuchCommentException if a ct comment with the primary key could not be found
 	 */
-	public static CTComment[] findByCTEntryId_PrevAndNext(
+	public static CTComment[] findByCtEntryId_PrevAndNext(
 			long ctCommentId, long ctEntryId,
 			OrderByComparator<CTComment> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchCommentException {
 
-		return getPersistence().findByCTEntryId_PrevAndNext(
+		return getPersistence().findByCtEntryId_PrevAndNext(
 			ctCommentId, ctEntryId, orderByComparator);
 	}
 
@@ -448,8 +444,8 @@ public class CTCommentUtil {
 	 *
 	 * @param ctEntryId the ct entry ID
 	 */
-	public static void removeByCTEntryId(long ctEntryId) {
-		getPersistence().removeByCTEntryId(ctEntryId);
+	public static void removeByCtEntryId(long ctEntryId) {
+		getPersistence().removeByCtEntryId(ctEntryId);
 	}
 
 	/**
@@ -458,8 +454,8 @@ public class CTCommentUtil {
 	 * @param ctEntryId the ct entry ID
 	 * @return the number of matching ct comments
 	 */
-	public static int countByCTEntryId(long ctEntryId) {
-		return getPersistence().countByCTEntryId(ctEntryId);
+	public static int countByCtEntryId(long ctEntryId) {
+		return getPersistence().countByCtEntryId(ctEntryId);
 	}
 
 	/**
@@ -610,24 +606,9 @@ public class CTCommentUtil {
 	}
 
 	public static CTCommentPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker<CTCommentPersistence, CTCommentPersistence>
-		_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(CTCommentPersistence.class);
-
-		ServiceTracker<CTCommentPersistence, CTCommentPersistence>
-			serviceTracker =
-				new ServiceTracker<CTCommentPersistence, CTCommentPersistence>(
-					bundle.getBundleContext(), CTCommentPersistence.class,
-					null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CTCommentPersistence _persistence;
 
 }

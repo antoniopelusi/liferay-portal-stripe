@@ -20,11 +20,11 @@ import com.liferay.asset.category.property.model.AssetCategoryPropertyTable;
 import com.liferay.asset.category.property.model.impl.AssetCategoryPropertyImpl;
 import com.liferay.asset.category.property.model.impl.AssetCategoryPropertyModelImpl;
 import com.liferay.asset.category.property.service.persistence.AssetCategoryPropertyPersistence;
+import com.liferay.asset.category.property.service.persistence.AssetCategoryPropertyUtil;
 import com.liferay.asset.category.property.service.persistence.impl.constants.AssetPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,20 +35,22 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -62,12 +64,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2052,6 +2051,8 @@ public class AssetCategoryPropertyPersistenceImpl
 			assetCategoryProperty);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the asset category properties in the entity cache if it is enabled.
 	 *
@@ -2060,6 +2061,14 @@ public class AssetCategoryPropertyPersistenceImpl
 	@Override
 	public void cacheResult(
 		List<AssetCategoryProperty> assetCategoryProperties) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (assetCategoryProperties.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (AssetCategoryProperty assetCategoryProperty :
 				assetCategoryProperties) {
@@ -2280,25 +2289,25 @@ public class AssetCategoryPropertyPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (assetCategoryProperty.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				assetCategoryProperty.setCreateDate(now);
+				assetCategoryProperty.setCreateDate(date);
 			}
 			else {
 				assetCategoryProperty.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!assetCategoryPropertyModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				assetCategoryProperty.setModifiedDate(now);
+				assetCategoryProperty.setModifiedDate(date);
 			}
 			else {
 				assetCategoryProperty.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -2465,6 +2474,26 @@ public class AssetCategoryPropertyPersistenceImpl
 
 			if (assetCategoryProperty != null) {
 				map.put(primaryKey, assetCategoryProperty);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -2734,7 +2763,8 @@ public class AssetCategoryPropertyPersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -2768,7 +2798,6 @@ public class AssetCategoryPropertyPersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -2786,7 +2815,6 @@ public class AssetCategoryPropertyPersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK,
 			Collections.singleton("categoryPropertyId"));
@@ -2800,13 +2828,9 @@ public class AssetCategoryPropertyPersistenceImpl
 	 * Initializes the asset category property persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new AssetCategoryPropertyModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -2884,13 +2908,31 @@ public class AssetCategoryPropertyPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCA_K",
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"categoryId", "key_"}, false);
+
+		_setAssetCategoryPropertyUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(AssetCategoryPropertyImpl.class.getName());
+		_setAssetCategoryPropertyUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(AssetCategoryPropertyImpl.class.getName());
+	}
+
+	private void _setAssetCategoryPropertyUtilPersistence(
+		AssetCategoryPropertyPersistence assetCategoryPropertyPersistence) {
+
+		try {
+			Field field = AssetCategoryPropertyUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, assetCategoryPropertyPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -2918,8 +2960,6 @@ public class AssetCategoryPropertyPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -2962,117 +3002,8 @@ public class AssetCategoryPropertyPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class AssetCategoryPropertyModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AssetCategoryPropertyModelImpl assetCategoryPropertyModelImpl =
-				(AssetCategoryPropertyModelImpl)baseModel;
-
-			long columnBitmask =
-				assetCategoryPropertyModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					assetCategoryPropertyModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						assetCategoryPropertyModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					assetCategoryPropertyModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AssetCategoryPropertyImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AssetCategoryPropertyTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AssetCategoryPropertyModelImpl assetCategoryPropertyModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						assetCategoryPropertyModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] =
-						assetCategoryPropertyModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |=
-				AssetCategoryPropertyModelImpl.getColumnBitmask("key_");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private AssetCategoryPropertyModelArgumentsResolver
+		_assetCategoryPropertyModelArgumentsResolver;
 
 }

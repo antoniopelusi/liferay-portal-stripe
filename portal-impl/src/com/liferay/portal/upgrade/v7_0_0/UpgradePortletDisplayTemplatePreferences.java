@@ -43,16 +43,16 @@ public class UpgradePortletDisplayTemplatePreferences
 			return companyGroupId;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select groupId from Group_ where classNameId = ? and " +
 					"classPK = ?")) {
 
-			ps.setLong(1, _COMPANY_CLASS_NAME_ID);
-			ps.setLong(2, companyId);
+			preparedStatement.setLong(1, _COMPANY_CLASS_NAME_ID);
+			preparedStatement.setLong(2, companyId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					companyGroupId = rs.getLong("groupId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					companyGroupId = resultSet.getLong("groupId");
 				}
 				else {
 					companyGroupId = 0L;
@@ -71,22 +71,22 @@ public class UpgradePortletDisplayTemplatePreferences
 
 		String uuid = displayStyle.substring(DISPLAY_STYLE_PREFIX_6_2.length());
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select groupId, templateKey from DDMTemplate where (groupId " +
 					"= ? or groupId = ?) and uuid_ = ?")) {
 
-			ps.setLong(1, displayStyleGroupId);
-			ps.setLong(2, _companyGroupId);
-			ps.setString(3, uuid);
+			preparedStatement.setLong(1, displayStyleGroupId);
+			preparedStatement.setLong(2, _companyGroupId);
+			preparedStatement.setString(3, uuid);
 
 			ObjectValuePair<Long, String> objectValuePair = null;
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					long groupId = rs.getLong("groupId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					long groupId = resultSet.getLong("groupId");
 
 					objectValuePair = new ObjectValuePair<>(
-						groupId, rs.getString("templateKey"));
+						groupId, resultSet.getString("templateKey"));
 
 					if (groupId == displayStyleGroupId) {
 						return objectValuePair;
@@ -122,9 +122,9 @@ public class UpgradePortletDisplayTemplatePreferences
 			displayStyleGroupId, displayStyle);
 
 		if (objectValuePair != null) {
-			Long key = objectValuePair.getKey();
-
-			portletPreferences.setValue("displayStyleGroupId", key.toString());
+			portletPreferences.setValue(
+				"displayStyleGroupId",
+				String.valueOf(objectValuePair.getKey()));
 
 			portletPreferences.setValue(
 				"displayStyle",

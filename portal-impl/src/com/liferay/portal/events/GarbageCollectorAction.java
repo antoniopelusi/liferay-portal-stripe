@@ -29,7 +29,7 @@ import javax.servlet.http.HttpSession;
 public class GarbageCollectorAction extends SessionAction {
 
 	@Override
-	public void run(HttpSession session) {
+	public void run(HttpSession httpSession) {
 		Runtime runtime = Runtime.getRuntime();
 
 		NumberFormat nf = NumberFormat.getInstance();

@@ -26,97 +26,97 @@ import java.nio.ByteBuffer;
 public class DigesterUtil {
 
 	public static String digest(ByteBuffer byteBuffer) {
-		return getDigester().digest(byteBuffer);
+		return _digester.digest(byteBuffer);
 	}
 
 	public static String digest(InputStream inputStream) {
-		return getDigester().digest(inputStream);
+		return _digester.digest(inputStream);
 	}
 
 	public static String digest(String text) {
-		return getDigester().digest(text);
+		return _digester.digest(text);
 	}
 
 	public static String digest(String algorithm, ByteBuffer byteBuffer) {
-		return getDigester().digest(algorithm, byteBuffer);
+		return _digester.digest(algorithm, byteBuffer);
 	}
 
 	public static String digest(String algorithm, InputStream inputStream) {
-		return getDigester().digest(algorithm, inputStream);
+		return _digester.digest(algorithm, inputStream);
 	}
 
 	public static String digest(String algorithm, String... text) {
-		return getDigester().digest(algorithm, text);
+		return _digester.digest(algorithm, text);
 	}
 
 	public static String digestBase64(ByteBuffer byteBuffer) {
-		return getDigester().digestBase64(byteBuffer);
+		return _digester.digestBase64(byteBuffer);
 	}
 
 	public static String digestBase64(InputStream inputStream) {
-		return getDigester().digestBase64(inputStream);
+		return _digester.digestBase64(inputStream);
 	}
 
 	public static String digestBase64(String text) {
-		return getDigester().digestBase64(text);
+		return _digester.digestBase64(text);
 	}
 
 	public static String digestBase64(String algorithm, ByteBuffer byteBuffer) {
-		return getDigester().digestBase64(algorithm, byteBuffer);
+		return _digester.digestBase64(algorithm, byteBuffer);
 	}
 
 	public static String digestBase64(
 		String algorithm, InputStream inputStream) {
 
-		return getDigester().digestBase64(algorithm, inputStream);
+		return _digester.digestBase64(algorithm, inputStream);
 	}
 
 	public static String digestBase64(String algorithm, String... text) {
-		return getDigester().digestBase64(algorithm, text);
+		return _digester.digestBase64(algorithm, text);
 	}
 
 	public static String digestHex(ByteBuffer byteBuffer) {
-		return getDigester().digestHex(byteBuffer);
+		return _digester.digestHex(byteBuffer);
 	}
 
 	public static String digestHex(InputStream inputStream) {
-		return getDigester().digestHex(inputStream);
+		return _digester.digestHex(inputStream);
 	}
 
 	public static String digestHex(String text) {
-		return getDigester().digestHex(text);
+		return _digester.digestHex(text);
 	}
 
 	public static String digestHex(String algorithm, ByteBuffer byteBuffer) {
-		return getDigester().digestHex(algorithm, byteBuffer);
+		return _digester.digestHex(algorithm, byteBuffer);
 	}
 
 	public static String digestHex(String algorithm, InputStream inputStream) {
-		return getDigester().digestHex(algorithm, inputStream);
+		return _digester.digestHex(algorithm, inputStream);
 	}
 
 	public static String digestHex(String algorithm, String... text) {
-		return getDigester().digestHex(algorithm, text);
+		return _digester.digestHex(algorithm, text);
 	}
 
 	public static byte[] digestRaw(ByteBuffer byteBuffer) {
-		return getDigester().digestRaw(byteBuffer);
+		return _digester.digestRaw(byteBuffer);
 	}
 
 	public static byte[] digestRaw(String text) {
-		return getDigester().digestRaw(text);
+		return _digester.digestRaw(text);
 	}
 
 	public static byte[] digestRaw(String algorithm, ByteBuffer byteBuffer) {
-		return getDigester().digestRaw(algorithm, byteBuffer);
+		return _digester.digestRaw(algorithm, byteBuffer);
 	}
 
 	public static byte[] digestRaw(String algorithm, InputStream inputStream) {
-		return getDigester().digestRaw(algorithm, inputStream);
+		return _digester.digestRaw(algorithm, inputStream);
 	}
 
 	public static byte[] digestRaw(String algorithm, String... text) {
-		return getDigester().digestRaw(algorithm, text);
+		return _digester.digestRaw(algorithm, text);
 	}
 
 	public static Digester getDigester() {

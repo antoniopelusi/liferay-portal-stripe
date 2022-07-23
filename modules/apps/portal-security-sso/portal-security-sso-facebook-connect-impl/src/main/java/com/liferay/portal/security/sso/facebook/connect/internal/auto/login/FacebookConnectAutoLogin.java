@@ -14,7 +14,6 @@
 
 package com.liferay.portal.security.sso.facebook.connect.internal.auto.login;
 
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.facebook.FacebookConnect;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auto.login.AutoLogin;
@@ -61,7 +60,7 @@ public class FacebookConnectAutoLogin extends BaseAutoLogin {
 			return null;
 		}
 
-		User user = getUser(httpServletRequest, companyId);
+		User user = _getUser(httpServletRequest, companyId);
 
 		if (user == null) {
 			return null;
@@ -76,33 +75,6 @@ public class FacebookConnectAutoLogin extends BaseAutoLogin {
 		return credentials;
 	}
 
-	protected User getUser(
-			HttpServletRequest httpServletRequest, long companyId)
-		throws PortalException {
-
-		HttpSession session = httpServletRequest.getSession();
-
-		String emailAddress = (String)session.getAttribute(
-			WebKeys.FACEBOOK_USER_EMAIL_ADDRESS);
-
-		if (Validator.isNotNull(emailAddress)) {
-			session.removeAttribute(WebKeys.FACEBOOK_USER_EMAIL_ADDRESS);
-
-			return _userLocalService.getUserByEmailAddress(
-				companyId, emailAddress);
-		}
-
-		long facebookId = GetterUtil.getLong(
-			(String)session.getAttribute(
-				FacebookConnectWebKeys.FACEBOOK_USER_ID));
-
-		if (facebookId > 0) {
-			return _userLocalService.getUserByFacebookId(companyId, facebookId);
-		}
-
-		return null;
-	}
-
 	@Reference(unbind = "-")
 	protected void setFacebookConnect(FacebookConnect facebookConnect) {
 		_facebookConnect = facebookConnect;
@@ -111,6 +83,32 @@ public class FacebookConnectAutoLogin extends BaseAutoLogin {
 	@Reference(unbind = "-")
 	protected void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
+	}
+
+	private User _getUser(HttpServletRequest httpServletRequest, long companyId)
+		throws Exception {
+
+		HttpSession httpSession = httpServletRequest.getSession();
+
+		String emailAddress = (String)httpSession.getAttribute(
+			WebKeys.FACEBOOK_USER_EMAIL_ADDRESS);
+
+		if (Validator.isNotNull(emailAddress)) {
+			httpSession.removeAttribute(WebKeys.FACEBOOK_USER_EMAIL_ADDRESS);
+
+			return _userLocalService.getUserByEmailAddress(
+				companyId, emailAddress);
+		}
+
+		long facebookId = GetterUtil.getLong(
+			(String)httpSession.getAttribute(
+				FacebookConnectWebKeys.FACEBOOK_USER_ID));
+
+		if (facebookId > 0) {
+			return _userLocalService.getUserByFacebookId(companyId, facebookId);
+		}
+
+		return null;
 	}
 
 	private FacebookConnect _facebookConnect;

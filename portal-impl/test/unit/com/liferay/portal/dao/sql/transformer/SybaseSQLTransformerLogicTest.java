@@ -40,15 +40,9 @@ public class SybaseSQLTransformerLogicTest
 
 	@Override
 	public String getDropTableIfExistsTextTransformedSQL() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("IF EXISTS(select 1 from sysobjects where name = 'Foo' and ");
-		sb.append("type = 'U')\n");
-		sb.append("BEGIN\n");
-		sb.append("DROP TABLE Foo\n");
-		sb.append("END");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"IF EXISTS(select 1 from sysobjects where name = 'Foo' and type = ",
+			"'U')\n", "BEGIN\n", "DROP TABLE Foo\n", "END");
 	}
 
 	@Test

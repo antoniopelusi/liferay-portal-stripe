@@ -1,0 +1,12 @@
+{
+	"articleId": "job08",
+	"assetCategoryERCs": [
+		"CAT_IT"
+	],
+	"assetTagNames": [
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "Frontend Developer"
+}

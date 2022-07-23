@@ -14,7 +14,6 @@
 
 package com.liferay.layout.content.page.editor.web.internal.util.layout.structure;
 
-import com.liferay.fragment.processor.PortletRegistry;
 import com.liferay.layout.content.page.editor.listener.ContentPageEditorListenerTracker;
 import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkUtil;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
@@ -22,6 +21,7 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalServiceUtil;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalServiceUtil;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureServiceUtil;
+import com.liferay.layout.util.constants.LayoutDataItemTypeConstants;
 import com.liferay.layout.util.structure.DeletedLayoutStructureItem;
 import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
@@ -32,7 +32,9 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.ArrayUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Víctor Galán
@@ -40,9 +42,8 @@ import java.util.List;
 public class LayoutStructureUtil {
 
 	public static void deleteMarkedForDeletionItems(
-			long companyId,
 			ContentPageEditorListenerTracker contentPageEditorListenerTracker,
-			long groupId, long plid, PortletRegistry portletRegistry)
+			long groupId, long plid)
 		throws PortalException {
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
@@ -76,8 +77,8 @@ public class LayoutStructureUtil {
 						getFragmentEntryLinkIds(deletedLayoutStructureItems)) {
 
 					FragmentEntryLinkUtil.deleteFragmentEntryLink(
-						companyId, contentPageEditorListenerTracker,
-						fragmentEntryLinkId, plid, portletRegistry);
+						contentPageEditorListenerTracker, fragmentEntryLinkId,
+						plid);
 				}
 			}
 
@@ -87,6 +88,48 @@ public class LayoutStructureUtil {
 					layoutPageTemplateStructureRel.getSegmentsExperienceId(),
 					layoutStructure.toString());
 		}
+	}
+
+	public static List<String> getCollectionStyledLayoutStructureItemIds(
+		long fragmentEntryLinkId, LayoutStructure layoutStructure) {
+
+		if (layoutStructure == null) {
+			return Collections.emptyList();
+		}
+
+		LayoutStructureItem layoutStructureItem =
+			layoutStructure.getLayoutStructureItemByFragmentEntryLinkId(
+				fragmentEntryLinkId);
+
+		if (layoutStructureItem == null) {
+			return Collections.emptyList();
+		}
+
+		LayoutStructureItem currentLayoutStructureItem =
+			layoutStructure.getLayoutStructureItem(
+				layoutStructureItem.getParentItemId());
+
+		List<String> collectionStyledLayoutStructureItemIds = new ArrayList<>();
+
+		while (!Objects.equals(
+					currentLayoutStructureItem.getItemId(),
+					layoutStructure.getMainItemId())) {
+
+			if (Objects.equals(
+					LayoutDataItemTypeConstants.TYPE_COLLECTION,
+					currentLayoutStructureItem.getItemType())) {
+
+				collectionStyledLayoutStructureItemIds.add(
+					currentLayoutStructureItem.getItemId());
+			}
+
+			currentLayoutStructureItem = layoutStructure.getLayoutStructureItem(
+				currentLayoutStructureItem.getParentItemId());
+		}
+
+		Collections.reverse(collectionStyledLayoutStructureItemIds);
+
+		return collectionStyledLayoutStructureItemIds;
 	}
 
 	public static long[] getFragmentEntryLinkIds(
@@ -130,26 +173,16 @@ public class LayoutStructureUtil {
 			layoutPageTemplateStructure.getData(segmentsExperienceId));
 	}
 
-	public static boolean isPortletMarkedForDeletion(
-			long groupId, long plid, String portletId,
-			long segmentsExperienceId)
+	public static LayoutStructure getLayoutStructure(
+			long groupId, long plid, String segmentsExperienceKey)
 		throws PortalException {
 
-		LayoutStructure layoutStructure = getLayoutStructure(
-			groupId, plid, segmentsExperienceId);
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			LayoutPageTemplateStructureLocalServiceUtil.
+				fetchLayoutPageTemplateStructure(groupId, plid, true);
 
-		List<DeletedLayoutStructureItem> deletedLayoutStructureItems =
-			layoutStructure.getDeletedLayoutStructureItems();
-
-		for (DeletedLayoutStructureItem deletedLayoutStructureItem :
-				deletedLayoutStructureItems) {
-
-			if (deletedLayoutStructureItem.contains(portletId)) {
-				return true;
-			}
-		}
-
-		return false;
+		return LayoutStructure.of(
+			layoutPageTemplateStructure.getData(segmentsExperienceKey));
 	}
 
 	public static JSONObject updateLayoutPageTemplateData(

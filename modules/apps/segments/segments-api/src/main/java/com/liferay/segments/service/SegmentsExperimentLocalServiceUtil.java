@@ -159,6 +159,10 @@ public class SegmentsExperimentLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -234,6 +238,13 @@ public class SegmentsExperimentLocalServiceUtil {
 		com.liferay.portal.kernel.dao.orm.Projection projection) {
 
 		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
+	public static com.liferay.segments.model.SegmentsExperience
+		fetchControlSegmentExperience(
+			com.liferay.segments.model.SegmentsExperience segmentsExperience) {
+
+		return getService().fetchControlSegmentExperience(segmentsExperience);
 	}
 
 	public static SegmentsExperiment fetchSegmentsExperiment(

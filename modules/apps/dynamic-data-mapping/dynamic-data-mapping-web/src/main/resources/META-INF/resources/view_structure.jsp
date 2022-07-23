@@ -46,8 +46,8 @@ PortletURL backURL = PortletURLBuilder.createRenderURL(
 ).setRedirect(
 	redirect
 ).setParameter(
-	"structureId", String.valueOf(structureVersion.getStructureId())
-).build();
+	"structureId", structureVersion.getStructureId()
+).buildPortletURL();
 %>
 
 <clay:container-fluid>

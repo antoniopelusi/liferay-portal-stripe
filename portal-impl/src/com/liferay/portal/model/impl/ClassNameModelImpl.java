@@ -22,27 +22,26 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.ClassNameModel;
-import com.liferay.portal.kernel.model.ClassNameSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -132,50 +131,6 @@ public class ClassNameModelImpl
 	@Deprecated
 	public static final long CLASSNAMEID_COLUMN_BITMASK = 2L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ClassName toModel(ClassNameSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ClassName model = new ClassNameImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setValue(soapModel.getValue());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ClassName> toModels(ClassNameSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ClassName> models = new ArrayList<ClassName>(soapModels.length);
-
-		for (ClassNameSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.ClassName"));
@@ -262,34 +217,6 @@ public class ClassNameModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ClassName>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ClassName.class.getClassLoader(), ClassName.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ClassName> constructor =
-				(Constructor<ClassName>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<ClassName, Object>>
@@ -466,6 +393,19 @@ public class ClassNameModelImpl
 	}
 
 	@Override
+	public ClassName cloneWithOriginalValues() {
+		ClassNameImpl classNameImpl = new ClassNameImpl();
+
+		classNameImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		classNameImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		classNameImpl.setValue(this.<String>getColumnOriginalValue("value"));
+
+		return classNameImpl;
+	}
+
+	@Override
 	public int compareTo(ClassName className) {
 		long primaryKey = className.getPrimaryKey();
 
@@ -557,7 +497,7 @@ public class ClassNameModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -568,9 +508,26 @@ public class ClassNameModelImpl
 			Function<ClassName, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ClassName)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ClassName)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -617,7 +574,9 @@ public class ClassNameModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ClassName>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ClassName.class, ModelWrapper.class);
 
 	}
 

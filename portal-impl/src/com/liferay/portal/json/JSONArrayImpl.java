@@ -14,6 +14,7 @@
 
 package com.liferay.portal.json;
 
+import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -172,7 +173,7 @@ public class JSONArrayImpl implements JSONArray {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -229,6 +230,24 @@ public class JSONArrayImpl implements JSONArray {
 	@Override
 	public JSONArray put(String value) {
 		_jsonArray.put(value);
+
+		return this;
+	}
+
+	@Override
+	public JSONArray put(
+		UnsafeSupplier<Object, Exception> valueUnsafeSupplier) {
+
+		try {
+			Object value = valueUnsafeSupplier.get();
+
+			if (value != null) {
+				return put(value);
+			}
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
 
 		return this;
 	}

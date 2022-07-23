@@ -68,17 +68,10 @@ public class LayoutListUtil {
 		long groupId, boolean privateLayout, String rootNodeName,
 		Locale locale) {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append(StringUtil.toHexString(groupId));
-		sb.append(StringPool.POUND);
-		sb.append(privateLayout);
-		sb.append(StringPool.POUND);
-		sb.append(rootNodeName);
-		sb.append(StringPool.POUND);
-		sb.append(LocaleUtil.toLanguageId(locale));
-
-		return sb.toString();
+		return StringBundler.concat(
+			StringUtil.toHexString(groupId), StringPool.POUND, privateLayout,
+			StringPool.POUND, rootNodeName, StringPool.POUND,
+			LocaleUtil.toLanguageId(locale));
 	}
 
 	protected static List<LayoutDescription> doGetLayoutDescriptions(

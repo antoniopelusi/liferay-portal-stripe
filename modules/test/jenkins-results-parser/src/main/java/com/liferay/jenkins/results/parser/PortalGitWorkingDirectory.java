@@ -107,7 +107,7 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 			List<PathMatcher> includesPathMatchers)
 		throws IOException {
 
-		final File modulesDir = new File(getWorkingDirectory(), "modules");
+		File modulesDir = new File(getWorkingDirectory(), "modules");
 
 		if (!modulesDir.exists()) {
 			return new ArrayList<>();
@@ -151,7 +151,7 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 
 				@Override
 				public FileVisitResult preVisitDirectory(
-					Path filePath, BasicFileAttributes attrs) {
+					Path filePath, BasicFileAttributes basicFileAttributes) {
 
 					if (!JenkinsResultsParserUtil.isFileIncluded(
 							excludedModulesPathMatchers,
@@ -191,10 +191,16 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 	}
 
 	public List<File> getModulePullSubrepoDirs() {
+		File modulesDir = new File(getWorkingDirectory(), "modules");
+
+		if (!modulesDir.exists()) {
+			return new ArrayList<>();
+		}
+
 		List<File> moduleSubrepoDirs = new ArrayList<>();
 
 		List<File> gitrepoFiles = JenkinsResultsParserUtil.findFiles(
-			new File(getWorkingDirectory(), "modules"), "\\.gitrepo");
+			modulesDir, "\\.gitrepo");
 
 		for (File gitrepoFile : gitrepoFiles) {
 			Properties gitrepoProperties =
@@ -236,7 +242,7 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 		}
 
 		throw new RuntimeException(
-			"Could not find a plugins git working directory");
+			"Unable to find a plugins Git working directory");
 	}
 
 	public Properties getReleaseProperties() {
@@ -255,8 +261,15 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 			return _testProperties;
 		}
 
+		File testPropertiesFile = new File(
+			getWorkingDirectory(), "test.properties");
+
+		if (!testPropertiesFile.exists()) {
+			return _testProperties;
+		}
+
 		_testProperties = JenkinsResultsParserUtil.getProperties(
-			new File(getWorkingDirectory(), "test.properties"));
+			testPropertiesFile);
 
 		return _testProperties;
 	}

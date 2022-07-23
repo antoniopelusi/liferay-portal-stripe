@@ -20,12 +20,9 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
-import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
-import com.liferay.portal.kernel.util.PortletKeys;
-import com.liferay.portal.workflow.constants.MyWorkflowTasksConstants;
 import com.liferay.portal.workflow.kaleo.definition.NotificationReceptionType;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
-import com.liferay.portal.workflow.kaleo.runtime.internal.util.NotificationMessageHelper;
+import com.liferay.portal.workflow.kaleo.runtime.internal.helper.NotificationMessageHelper;
 import com.liferay.portal.workflow.kaleo.runtime.notification.BaseNotificationSender;
 import com.liferay.portal.workflow.kaleo.runtime.notification.NotificationRecipient;
 import com.liferay.portal.workflow.kaleo.runtime.notification.NotificationSender;
@@ -63,13 +60,48 @@ public class PushNotificationMessageSender
 		_fromName = (String)properties.get("fromName");
 	}
 
-	protected Message createMessage(
+	@Override
+	protected void doSendNotification(
+			Map<NotificationReceptionType, Set<NotificationRecipient>>
+				notificationRecipientsMap,
+			String defaultSubject, String notificationMessage,
+			ExecutionContext executionContext)
+		throws Exception {
+
+		Collection<Set<NotificationRecipient>>
+			notificationRecipientsCollection =
+				notificationRecipientsMap.values();
+
+		Iterator<Set<NotificationRecipient>> iterator =
+			notificationRecipientsCollection.iterator();
+
+		List<NotificationRecipient> notificationRecipients = new ArrayList<>(
+			getDeliverableNotificationRecipients(
+				iterator.next(), UserNotificationDeliveryConstants.TYPE_PUSH));
+
+		Message message = _createMessage(
+			notificationRecipients, notificationMessage, executionContext);
+
+		messageBus.sendMessage(
+			PushNotificationsDestinationNames.PUSH_NOTIFICATION, message);
+	}
+
+	@Reference
+	protected JSONFactory jsonFactory;
+
+	@Reference
+	protected MessageBus messageBus;
+
+	@Reference
+	protected NotificationMessageHelper notificationMessageHelper;
+
+	private Message _createMessage(
 		List<NotificationRecipient> notificationRecipients,
 		String notificationMessage, ExecutionContext executionContext) {
 
 		Message message = new Message();
 
-		JSONObject payloadJSONObject = createPayloadJSONObject(
+		JSONObject payloadJSONObject = _createPayloadJSONObject(
 			notificationRecipients, notificationMessage, executionContext);
 
 		message.setPayload(payloadJSONObject);
@@ -77,7 +109,7 @@ public class PushNotificationMessageSender
 		return message;
 	}
 
-	protected JSONObject createPayloadJSONObject(
+	private JSONObject _createPayloadJSONObject(
 		List<NotificationRecipient> notificationRecipients,
 		String notificationMessage, ExecutionContext executionContext) {
 
@@ -91,13 +123,13 @@ public class PushNotificationMessageSender
 			PushNotificationsConstants.KEY_FROM, _fromName
 		).put(
 			PushNotificationsConstants.KEY_TO_USER_IDS,
-			createUserIdsRecipientsJSONArray(notificationRecipients)
+			_createUserIdsRecipientsJSONArray(notificationRecipients)
 		);
 
 		return jsonObject;
 	}
 
-	protected JSONArray createUserIdsRecipientsJSONArray(
+	private JSONArray _createUserIdsRecipientsJSONArray(
 		List<NotificationRecipient> notificationRecipients) {
 
 		JSONArray jsonArray = jsonFactory.createJSONArray();
@@ -113,51 +145,6 @@ public class PushNotificationMessageSender
 
 		return jsonArray;
 	}
-
-	@Override
-	protected void doSendNotification(
-			Map<NotificationReceptionType, Set<NotificationRecipient>>
-				notificationRecipientsMap,
-			String defaultSubject, String notificationMessage,
-			ExecutionContext executionContext)
-		throws Exception {
-
-		List<NotificationRecipient> notificationRecipients = new ArrayList<>();
-
-		Collection<Set<NotificationRecipient>>
-			notificationRecipientsCollection =
-				notificationRecipientsMap.values();
-
-		Iterator<Set<NotificationRecipient>> iterator =
-			notificationRecipientsCollection.iterator();
-
-		for (NotificationRecipient notificationRecipient : iterator.next()) {
-			if (UserNotificationManagerUtil.isDeliver(
-					notificationRecipient.getUserId(),
-					PortletKeys.MY_WORKFLOW_TASK, 0,
-					MyWorkflowTasksConstants.
-						NOTIFICATION_TYPE_MY_WORKFLOW_TASKS,
-					UserNotificationDeliveryConstants.TYPE_PUSH)) {
-
-				notificationRecipients.add(notificationRecipient);
-			}
-		}
-
-		Message message = createMessage(
-			notificationRecipients, notificationMessage, executionContext);
-
-		messageBus.sendMessage(
-			PushNotificationsDestinationNames.PUSH_NOTIFICATION, message);
-	}
-
-	@Reference
-	protected JSONFactory jsonFactory;
-
-	@Reference
-	protected MessageBus messageBus;
-
-	@Reference
-	protected NotificationMessageHelper notificationMessageHelper;
 
 	private String _fromName;
 

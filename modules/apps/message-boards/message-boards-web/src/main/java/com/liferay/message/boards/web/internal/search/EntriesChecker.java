@@ -102,7 +102,7 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -122,7 +122,7 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -131,7 +131,7 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			return StringPool.BLANK;
 		}
 
-		String checkBoxRowIds = getEntryRowIds();
+		String checkBoxRowIds = _getEntryRowIds();
 
 		return getRowCheckBox(
 			httpServletRequest, checked, disabled,
@@ -140,20 +140,12 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			StringPool.BLANK);
 	}
 
-	protected String getEntryRowIds() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("['");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(MBCategory.class.getSimpleName());
-		sb.append("', '");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(MBThread.class.getSimpleName());
-		sb.append("']");
-
-		return sb.toString();
+	private String _getEntryRowIds() {
+		return StringBundler.concat(
+			"['", _liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			MBCategory.class.getSimpleName(), "', '",
+			_liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			MBThread.class.getSimpleName(), "']");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(EntriesChecker.class);

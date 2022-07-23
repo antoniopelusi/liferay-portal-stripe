@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.model.Layout;
 public class LayoutServiceWrapper
 	implements LayoutService, ServiceWrapper<LayoutService> {
 
+	public LayoutServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutServiceWrapper(LayoutService layoutService) {
 		_layoutService = layoutService;
 	}
@@ -524,6 +528,19 @@ public class LayoutServiceWrapper
 	}
 
 	@Override
+	public java.util.List<Layout> getLayouts(
+			long groupId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<Layout>
+				orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutService.getLayouts(
+			groupId, privateLayout, keywords, types, statuses, start, end,
+			orderByComparator);
+	}
+
+	@Override
 	public java.util.List<Layout> getLayouts(long groupId, String type) {
 		return _layoutService.getLayouts(groupId, type);
 	}
@@ -575,6 +592,16 @@ public class LayoutServiceWrapper
 	}
 
 	@Override
+	public int getLayoutsCount(
+			long groupId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutService.getLayoutsCount(
+			groupId, privateLayout, keywords, types, statuses);
+	}
+
+	@Override
 	public int getLayoutsCount(long groupId, String type) {
 		return _layoutService.getLayoutsCount(groupId, type);
 	}
@@ -619,6 +646,11 @@ public class LayoutServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _layoutService.hasPortletId(plid, portletId);
+	}
+
+	@Override
+	public Layout publishLayout(long plid) throws Exception {
+		return _layoutService.publishLayout(plid);
 	}
 
 	/**

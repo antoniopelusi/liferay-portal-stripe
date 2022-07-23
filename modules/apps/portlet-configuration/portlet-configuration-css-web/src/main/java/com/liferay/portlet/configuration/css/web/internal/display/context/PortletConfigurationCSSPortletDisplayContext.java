@@ -152,9 +152,9 @@ public class PortletConfigurationCSSPortletDisplayContext {
 		HttpServletRequest httpServletRequest =
 			PortalUtil.getHttpServletRequest(_renderRequest);
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		ServletContext servletContext = session.getServletContext();
+		ServletContext servletContext = httpSession.getServletContext();
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
 			_portletResource);

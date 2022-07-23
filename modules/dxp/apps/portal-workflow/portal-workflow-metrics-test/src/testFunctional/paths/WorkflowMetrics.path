@@ -2,12 +2,24 @@
 <head>
 <title>WorkflowMetrics</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WorkflowMetrics</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>DASHBOARD_AND_PERFORMANCE_CARD_BY_PROCESS_STATUS</td>
+	<td>//div[@class='header'][span[contains(text(),'${key_statusName}')]]/following-sibling::div[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DASHBOARD_TOTAL_COMPLETED_ITEMS_BUTTON</td>
+	<td>//div[contains(@class,'d-flex')]/a[${key_index}]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>DASHBOARD_TOTAL_COMPLETED_ITEMS_TITLE</td>
 	<td>//div[@class='header'][span[contains(text(),'Total Completed')]]</td>
@@ -64,8 +76,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ERROR_MESSAGE_CUSTOM_RANGE</td>
+	<td>//div[contains(@class,'has-error')]//span[contains(text(), '${key_errorMessage}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FILTER_CLEAR_ALL</td>
 	<td>//span[contains(text(),'Clear All')] | //button[contains(text(),'Clear All')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PERFORMANCE_COMPLETED_ITEMS_BY_STATUS</td>
+	<td>//div[@class='header'][span[contains(text(),'${key_status}')]]/following-sibling::div[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GENERIC_TABLE_HEADER</td>
+	<td>//tr//th[text()='${key_columnName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GENERIC_TABLE_HEADER_WITH_ORDER_OPTION</td>
+	<td>//tr//span[text()='${key_columnName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -89,6 +121,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>METRICS_ALL_ITEMS_TABLE_CREATION_DATE</td>
+	<td>//span[contains(@data-title,'Creation Date')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_ALL_ITEMS_TABLE_CREATION_DATE_UNDERLINE</td>
+	<td>//span[contains(@data-title,'Creation Date') and contains(@data-restore-title,'Creation Date')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>METRICS_ALL_ITEMS_TABLE_INSTANCE</td>
 	<td>//td[(3) and contains(text(),'${key_instanceInfo}')]</td>
 	<td></td>
@@ -105,7 +147,7 @@
 </tr>
 <tr>
 	<td>METRICS_COMPLETED_ITEMS_DATE_RANGE_DROPDOWN</td>
-	<td>xpath=(//button[contains(@class, 'dropdown-toggle')]//span[contains(@class, 'navbar-text-truncate')])[1]</td>
+	<td>xpath=(//button[contains(@class, 'dropdown-toggle filter-dropdown-button')])[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -145,22 +187,37 @@
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN</td>
-	<td>xpath=(//button[contains(@class, 'dropdown-toggle')]//span[contains(@class, 'navbar-text-truncate')])[2]</td>
+	<td>xpath=(//button[contains(@class, 'dropdown-toggle filter-dropdown-button')])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_COMPLETION_VELOCITY_TOOLTIP</td>
+	<td>//div[contains(@class,'flex-row autofit-row')]/span[*[name()='svg'][contains(@class,'icon-question')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_PERFORMANCE_BY_ASSIGNEE_DATE_RANGE_DROPDOWN</td>
-	<td>xpath=(//button[contains(@class, 'dropdown-toggle')]//span[contains(@class, 'navbar-text-truncate')])[6]</td>
+	<td>xpath=(//button[contains(@class, 'dropdown-toggle filter-dropdown-button')])[7]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_PERFORMANCE_BY_ASSIGNEE_VIEW_STEPS_DROPDOWN</td>
-	<td>xpath=(//button[contains(@class, 'dropdown-toggle')]//span[contains(@class, 'navbar-text-truncate')])[5]</td>
+	<td>xpath=(//button[contains(@class, 'dropdown-toggle filter-dropdown-button')])[6]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_DATE_FORMAT_DROPDOWN_YESTERDAY</td>
+	<td>//div[contains(text(),', 12:00 AM -') and contains(text(),', 11:59 PM')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_DATE_RANGE_DROPDOWN_BY_TITLE</td>
+	<td>//div//span[contains(text(),'${key_title}')]/../../../..//button[contains(@class, 'dropdown-toggle filter-dropdown-button') and contains(text(), '${key_dateRange}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN_OPTION</td>
-	<td>//div[@class='dropdown-menu show dropdown-menu-right']//span[@class='custom-control-label-text'][contains(text(),'${completionVelocityDateRange}')]</td>
+	<td>//div[@class='dropdown-menu show']//span[contains(@class, 'dropdown-item')]//div[contains(text(), '${completionVelocityDateRange}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -175,32 +232,42 @@
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN</td>
-	<td>xpath=(//button[contains(@class, 'dropdown-toggle')]//span[contains(@class, 'navbar-text-truncate')])[3]</td>
+	<td>xpath=(//button[contains(@class, 'dropdown-toggle filter-dropdown-button')])[3]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_INST_DAY</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'Inst / Day')]</td>
+	<td>//div[@class='dropdown-menu show']//div[contains(text(),'Inst / Day')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_INST_HOUR</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'Inst / Hour')]</td>
+	<td>//div[@class='dropdown-menu show']//div[contains(text(),'Inst / Hour')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_INST_MONTH</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'Inst / Month')]</td>
+	<td>//div[@class='dropdown-menu show']//div[contains(text(),'Inst / Month')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_INST_WEEK</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'Inst / Week')]</td>
+	<td>//div[@class='dropdown-menu show']//div[contains(text(),'Inst / Week')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_INST_YEAR</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'Inst / Year')]</td>
+	<td>//div[@class='dropdown-menu show']//div[contains(text(),'Inst / Year')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_DROPDOWN_FILTER_ACTIVATED</td>
+	<td>//body[@id="senna_surface1"]//div[@class='dropdown-menu show']/li[${key_taskPosition}]//div[contains(text(),'${key_taskName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_ITEMS_PER_PAGE_SELECT</td>
+	<td>//div[contains(@class,'pagination-items-per-page')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -215,7 +282,7 @@
 </tr>
 <tr>
 	<td>METRICS_PERFORMANCE_BY_STEP_RANGE_DROPDOWN</td>
-	<td>xpath=(//button[contains(@class, 'dropdown-toggle')]//span[contains(@class, 'navbar-text-truncate')])[4]</td>
+	<td>xpath=(//button[contains(@class, 'filter-dropdown-button')])[5]</td>
 	<td></td>
 </tr>
 <tr>
@@ -239,14 +306,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>METRICS_PERFORMANCE_BY_STEP_TOOLTIP</td>
+	<td>//div[contains(@class,'flex-row autofit-row')]/span[@title='View the average completion time and percentage of SLA breaches over the selected time period for each step of the workflow process.']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>METRICS_DASHBOARD_TAB</td>
 	<td>//li[contains(@class,'nav-item')]//a[contains(@href, 'dashboard')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_PERFORMANCE_BY_ASSIGNEE_AVG_COMPLETION_TIME</td>
-	<td>xpath=(//span[contains(text(),'${key_assignee}')]/ancestor::td[1]/following-sibling::td//span)[2]
-</td>
+	<td>xpath=(//span[contains(text(),'${key_assignee}')]/ancestor::td[1]/following-sibling::td//span)[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -265,18 +336,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>METRICS_PERFORMANCE_BY_ASSIGNEE_CARD_VIEW_ALL_ASSIGNEES_LINK_NEW_LANGUAGE</td>
+	<td>//a//span[contains(text(), '${key_newLangText} (${key_assigneesNumber})')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>METRICS_PERFORMANCE_BY_ASSIGNEE_CARD_NO_RESULTS</td>
 	<td>//span[contains(text(),'Performance by Assignee')]/ancestor::div[contains(@class, 'panel-header')]/following-sibling::div//p[contains(.,'No results were found.')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_PERFORMANCE_BY_ASSIGNEE_DROPDOWN_STEP_REVIEW</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'Review')]</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//div[contains(text(),'Review')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_PERFORMANCE_BY_ASSIGNEE_DROPDOWN_STEP_UPDATE</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'Update')]</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//div[contains(text(),'Update')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -297,6 +373,16 @@
 <tr>
 	<td>METRICS_PERFORMANCE_TAB</td>
 	<td>//a[contains(@href, 'performance')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKFLOW_ALL_ITEMS_ITEM_SUBJECT</td>
+	<td>//td[contains(@title,'${key_workflowItemSubject}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKFLOW_ALL_ITEMS_PROCESS_STEP_DISPLAYS_UPDATE_STATUS</td>
+	<td>//td[contains(@title,'${key_workflowAssetTitle}')]/following-sibling::td[contains(@class,'bounded-column') and contains(text(),'Update')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -330,13 +416,33 @@
 	<td></td>
 </tr>
 <tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_CARD_FILTER_ORDER</td>
+	<td>//li[${key_order}]//span[contains(@class, "dropdown-item control-hidden")]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_CARD_FILTER_OPTION</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//span[contains(text(),'${key_workflowStep}')]</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//span[contains(@class, 'dropdown-item')]//*[text()='${key_workflowStep}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_CARD_FILTER_OPTION2</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//span[contains(@class, 'dropdown-item')]//*[contains(text(),'${key_workflowStep}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_CARD_FILTER_PROCESS_STEP</td>
-	<td>//li[3]//button[contains(@class, 'btn-secondary')]</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), 'Process Step')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_CARD_FILTER_ROLE</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), 'Role')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_CARD_FILTER_OPTIONS</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//li[${key_rowNumber}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -355,8 +461,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_CARD_VIEW_ALL_ASSIGNEES_LINK</td>
+	<td>//a//span[contains(text(), 'View All Assignees (${key_assigneesNumber})')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_ALL_ASSIGNEES_DROPDOWN_INDEX</td>
+	<td>//div[contains(@class,'dropdown-menu show')]//li[contains(@aria-selected,'false')][${key_index}]//span[contains(@class,'text')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_PAGE_NAME</td>
-	<td>//td[contains(@class,'table-title')]//span[contains(text(),'${key_assigneeName}')]</td>
+	<td>//td//a[contains(@class, 'workload-by-step-link')]//span[contains(text(),'${key_assigneeName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -366,27 +482,57 @@
 </tr>
 <tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_PAGE_TASKCOUNT</td>
-	<td>//td[contains(@class,'table-title')]//span[contains(text(),'${key_assigneeName}')]/../../following-sibling::td[3]//a[contains(text(),'${key_taskCount}')]</td>
+	<td>//span[contains(text(),'${key_assigneeName}')]/../../following-sibling::td[3]//a[contains(text(),'${key_taskCount}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_TASKCOUNT_ON_TIME</td>
-	<td>xpath=(//span[contains(text(),'${assigneeName}')]/ancestor::td[contains(@class,'table-title')]/following-sibling::td//a)[2]</td>
+	<td>xpath=(//td//a[contains(@class, 'workload-by-step-link')])[3]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_TASKCOUNT_OVERDUE</td>
-	<td>xpath=(//span[contains(text(),'${assigneeName}')]/ancestor::td[contains(@class,'table-title')]/following-sibling::td//a)[1]</td>
+	<td>xpath=(//td//a[contains(@class, 'workload-by-step-link')])[2]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_TASKCOUNT_TOTAL_PENDING</td>
-	<td>xpath=(//span[contains(text(),'${assigneeName}')]/ancestor::td[contains(@class,'table-title')]/following-sibling::td//a)[3]</td>
+	<td>xpath=(//td//a[contains(@class, 'workload-by-step-link')])[4]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>METRICS_WORKLOAD_BY_ASSIGNEE_SEARCH_ASSIGNEE_NAME</td>
 	<td>//input[@placeholder='Search for Assignee Name']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_SEARCH_STEPS</td>
+	<td>//input[@placeholder='Search for']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_PERCENTAGE</td>
+	<td>//span[contains(@class, "task-count-percentage")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEW_LANGUAGE_DASHBOARD_TOTAL_PENDING_ITEMS_TITLE</td>
+	<td>//div[@class='header']//span[contains(text(),'${newLanguageCardName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_SEARCH_ASSIGNEE_NAME_NEW_LANGUAGE</td>
+	<td>//input[@placeholder='${key_newLangText}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_ICON</td>
+	<td>//div[contains(@class, "p-0 col-md-3")]//span[contains(@class, "workflow-tooltip")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_WORKLOAD_BY_ASSIGNEE_ICON_MESSAGE</td>
+	<td>//div[contains(@class, "flex-row autofit-row")]//span[contains(@data-restore-title, "Monitor the workload and performance of users assigned to the process's pending items.")]</td>
 	<td></td>
 </tr>
 <tr>
@@ -396,7 +542,7 @@
 </tr>
 <tr>
 	<td>SEARCH_FIELD_MAPPINGS_HEADER</td>
-	<td>//a[contains(text(),'Field Mappings')]</td>
+	<td>//span[contains(text(),'Field Mappings')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -404,8 +550,12 @@
 	<td>//a[contains(text(),'${key_index}')]</td>
 	<td></td>
 </tr>
+<tr>
+	<td>WARNING_SLA_BLOCKED</td>
+	<td>//div[contains(text(),'1 SLA is blocked. Fix the SLA configuration to resume accurate reporting')]</td>
+	<td></td>
+</tr>
 </tbody>
 </table>
 </body>
 </html>
-

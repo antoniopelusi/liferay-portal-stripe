@@ -28,8 +28,14 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.service.permission.LayoutPermission;
+import com.liferay.portal.kernel.service.permission.PortletPermission;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -39,6 +45,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.ui.UserPortraitTag;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -94,7 +101,9 @@ public class MentionsPortlet extends MVCPortlet {
 				_getSupplier(
 					themeDisplay,
 					ParamUtil.getString(resourceRequest, "strategy"),
-					ParamUtil.getString(resourceRequest, "query")),
+					ParamUtil.getString(resourceRequest, "query"),
+					ParamUtil.getString(
+						resourceRequest, "discussionPortletId")),
 				themeDisplay);
 
 			HttpServletResponse httpServletResponse =
@@ -106,7 +115,7 @@ public class MentionsPortlet extends MVCPortlet {
 				httpServletResponse, jsonArray.toString());
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -134,9 +143,6 @@ public class MentionsPortlet extends MVCPortlet {
 				continue;
 			}
 
-			JSONObject jsonObject = JSONUtil.put(
-				"fullName", user.getFullName());
-
 			String mention = "@" + user.getScreenName();
 
 			String profileURL = user.getDisplayURL(themeDisplay);
@@ -147,17 +153,18 @@ public class MentionsPortlet extends MVCPortlet {
 					"</a>");
 			}
 
-			jsonObject.put(
-				"mention", mention
-			).put(
-				"portraitHTML",
-				UserPortraitTag.getUserPortraitHTML(
-					StringPool.BLANK, user, themeDisplay)
-			).put(
-				"screenName", user.getScreenName()
-			);
-
-			jsonArray.put(jsonObject);
+			jsonArray.put(
+				JSONUtil.put(
+					"fullName", user.getFullName()
+				).put(
+					"mention", mention
+				).put(
+					"portraitHTML",
+					UserPortraitTag.getUserPortraitHTML(
+						StringPool.BLANK, user, themeDisplay)
+				).put(
+					"screenName", user.getScreenName()
+				));
 		}
 
 		return jsonArray;
@@ -182,7 +189,8 @@ public class MentionsPortlet extends MVCPortlet {
 	}
 
 	private Supplier<List<User>> _getSupplier(
-			ThemeDisplay themeDisplay, String strategyString, String query)
+			ThemeDisplay themeDisplay, String strategyString, String query,
+			String discussionPortletId)
 		throws PortalException {
 
 		JSONObject jsonObject = _getJSONObject(strategyString);
@@ -199,12 +207,33 @@ public class MentionsPortlet extends MVCPortlet {
 
 		return () -> {
 			try {
-				return mentionsStrategy.getUsers(
+				List<User> filteredUsers = new ArrayList<>();
+
+				List<User> users = mentionsStrategy.getUsers(
 					themeDisplay.getCompanyId(), themeDisplay.getUserId(),
 					query, jsonObject);
+
+				for (User user : users) {
+					PermissionChecker permissionChecker =
+						PermissionCheckerFactoryUtil.create(user);
+
+					Layout layout = themeDisplay.getLayout();
+
+					if ((layout != null) &&
+						_layoutPermission.contains(
+							permissionChecker, layout, true, ActionKeys.VIEW) &&
+						_portletPermission.contains(
+							permissionChecker, layout, discussionPortletId,
+							ActionKeys.VIEW)) {
+
+						filteredUsers.add(user);
+					}
+				}
+
+				return filteredUsers;
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 
 				return Collections.emptyList();
 			}
@@ -215,7 +244,13 @@ public class MentionsPortlet extends MVCPortlet {
 		MentionsPortlet.class);
 
 	@Reference
+	private LayoutPermission _layoutPermission;
+
+	@Reference
 	private Portal _portal;
+
+	@Reference
+	private PortletPermission _portletPermission;
 
 	private ServiceTrackerMap<String, MentionsStrategy> _serviceTrackerMap;
 

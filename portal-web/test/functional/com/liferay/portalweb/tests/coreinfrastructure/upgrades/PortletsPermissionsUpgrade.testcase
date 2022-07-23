@@ -11,14 +11,9 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		AssertLocation(value1 = "${portalURL}/web/guest/home");
+		AssertLocation(value1 = "${portalURL}/web/guest?SM_USER=test@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 	}
 
 	@priority = "4"

@@ -25,9 +25,6 @@ import java.util.Arrays;
  */
 public class CPDefinitionInventoryImpl extends CPDefinitionInventoryBaseImpl {
 
-	public CPDefinitionInventoryImpl() {
-	}
-
 	@Override
 	public int[] getAllowedOrderQuantitiesArray() {
 		String allowedOrderQuantitiesString = getAllowedOrderQuantities();

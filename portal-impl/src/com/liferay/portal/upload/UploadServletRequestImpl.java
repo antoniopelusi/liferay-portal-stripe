@@ -84,9 +84,9 @@ public class UploadServletRequestImpl
 		LiferayServletRequest liferayServletRequest = null;
 
 		try {
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
-			session.removeAttribute(ProgressTracker.PERCENT);
+			httpSession.removeAttribute(ProgressTracker.PERCENT);
 
 			ServletFileUpload servletFileUpload;
 
@@ -146,15 +146,11 @@ public class UploadServletRequestImpl
 					if ((uploadServletRequestImplSize + itemSize) >
 							uploadServletRequestImplMaxSize) {
 
-						StringBundler sb = new StringBundler(3);
-
-						sb.append(
-							"Request reached the maximum permitted size of ");
-						sb.append(uploadServletRequestImplMaxSize);
-						sb.append(" bytes");
-
 						UploadException uploadException = new UploadException(
-							sb.toString());
+							StringBundler.concat(
+								"Request reached the maximum permitted size ",
+								"of ", uploadServletRequestImplMaxSize,
+								" bytes"));
 
 						uploadException.setExceededUploadRequestSizeLimit(true);
 
@@ -183,16 +179,11 @@ public class UploadServletRequestImpl
 					if (liferayFileItem.getSize() >
 							LiferayFileItem.THRESHOLD_SIZE) {
 
-						StringBundler sb = new StringBundler(5);
-
-						sb.append("The field ");
-						sb.append(fieldName);
-						sb.append(" exceeds its maximum permitted size of ");
-						sb.append(LiferayFileItem.THRESHOLD_SIZE);
-						sb.append(" bytes");
-
 						UploadException uploadException = new UploadException(
-							sb.toString());
+							StringBundler.concat(
+								"The field ", fieldName,
+								" exceeds its maximum permitted size of ",
+								LiferayFileItem.THRESHOLD_SIZE, " bytes"));
 
 						uploadException.setExceededLiferayFileItemSizeLimit(
 							true);
@@ -248,7 +239,7 @@ public class UploadServletRequestImpl
 				WebKeys.UPLOAD_EXCEPTION, uploadException);
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 			else if (_log.isWarnEnabled()) {
 				_log.warn(
@@ -697,11 +688,9 @@ public class UploadServletRequestImpl
 				return 0;
 			}
 
-			if (_key.equals(groupedFileItems._key)) {
-				return 1;
-			}
+			if (_key.equals(groupedFileItems._key) ||
+				(getFileItemsSize() >= groupedFileItems.getFileItemsSize())) {
 
-			if (getFileItemsSize() >= groupedFileItems.getFileItemsSize()) {
 				return 1;
 			}
 

@@ -12,13 +12,17 @@
  * details.
  */
 
-import {ClayButtonWithIcon} from '@clayui/button';
+import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
+import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
-import React, {useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 
 import getDataAttributes from '../get_data_attributes';
+import FeatureFlagContext from './FeatureFlagContext';
 import LinkOrButton from './LinkOrButton';
+
+import './CreationMenu.scss';
 
 const CreationMenu = ({
 	maxPrimaryItems,
@@ -32,6 +36,7 @@ const CreationMenu = ({
 	viewMoreURL,
 }) => {
 	const [active, setActive] = useState(false);
+	const {showDesignImprovements} = useContext(FeatureFlagContext);
 
 	const secondaryItemsCountRef = useRef(
 		secondaryItems?.reduce((acc, cur) => {
@@ -109,7 +114,7 @@ const CreationMenu = ({
 				symbolLeft={item.icon}
 				{...getDataAttributes(item.data)}
 			>
-				{item.label}
+				{Liferay.Util.unescapeHTML(item.label)}
 			</ClayDropDown.Item>
 		);
 	};
@@ -151,7 +156,7 @@ const CreationMenu = ({
 						})}
 
 						{secondaryItemsGroup.separator && (
-							<ClayDropDown.Item className="dropdown-divider" />
+							<ClayDropDown.Divider />
 						)}
 					</ClayDropDown.Group>
 				))}
@@ -164,14 +169,32 @@ const CreationMenu = ({
 			{totalItemsCountRef.current > 1 ? (
 				<ClayDropDown
 					active={active}
+					className="creation-menu"
 					onActiveChange={setActive}
 					trigger={
-						<ClayButtonWithIcon
-							aria-label={getPlusIconLabel()}
-							className="nav-btn nav-btn-monospaced"
-							symbol="plus"
-							title={getPlusIconLabel()}
-						/>
+						showDesignImprovements ? (
+							<ClayButton
+								aria-label={getPlusIconLabel()}
+								className="nav-btn"
+								title={getPlusIconLabel()}
+							>
+								<ClayIcon
+									className="d-md-none dropdown-icon"
+									symbol="plus"
+								/>
+
+								<span className="d-md-block d-none pl-3 pr-3">
+									{getPlusIconLabel()}
+								</span>
+							</ClayButton>
+						) : (
+							<ClayButtonWithIcon
+								aria-label={getPlusIconLabel()}
+								className="nav-btn nav-btn-monospaced"
+								symbol="plus"
+								title={getPlusIconLabel()}
+							/>
+						)
 					}
 				>
 					{visibleItemsCount < totalItemsCountRef.current ? (
@@ -224,6 +247,26 @@ const CreationMenu = ({
 						/>
 					)}
 				</ClayDropDown>
+			) : showDesignImprovements ? (
+				<>
+					<LinkOrButton
+						aria-label={getPlusIconLabel()}
+						button={true}
+						className="nav-btn"
+						displayType="primary"
+						href={firstItemRef.current.href}
+						onClick={(event) => {
+							onCreateButtonClick(event, {
+								item: firstItemRef.current,
+							});
+						}}
+						symbol="plus"
+						title={getPlusIconLabel()}
+						wide
+					>
+						{Liferay.Language.get('new')}
+					</LinkOrButton>
+				</>
 			) : (
 				<LinkOrButton
 					aria-label={getPlusIconLabel()}

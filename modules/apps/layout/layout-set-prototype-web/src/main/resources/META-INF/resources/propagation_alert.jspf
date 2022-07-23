@@ -35,3 +35,14 @@
 		});
 	</aui:script>
 </c:if>
+
+<c:if test='<%= SessionMessages.contains(renderRequest, "triggerPropagation") %>'>
+	<aui:script>
+		Liferay.Util.openToast({
+			autoClose: 10000,
+			message:
+				'<liferay-ui:message key="propagation-is-enabled-connected-sites-are-being-updated" />',
+			type: 'info',
+		});
+	</aui:script>
+</c:if>

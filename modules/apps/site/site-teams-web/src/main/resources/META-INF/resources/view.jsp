@@ -52,7 +52,7 @@ SiteTeamsManagementToolbarDisplayContext siteTeamsManagementToolbarDisplayContex
 					"/edit_team_assignments.jsp"
 				).setParameter(
 					"teamId", team.getTeamId()
-				).build();
+				).buildPortletURL();
 			}
 
 			row.setData(

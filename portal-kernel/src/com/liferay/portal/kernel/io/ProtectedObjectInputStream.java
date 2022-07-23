@@ -45,11 +45,10 @@ public class ProtectedObjectInputStream extends ObjectInputStream {
 	protected Class<?> doResolveClass(ObjectStreamClass objectStreamClass)
 		throws ClassNotFoundException, IOException {
 
-		String name = objectStreamClass.getName();
-
 		Thread thread = Thread.currentThread();
 
-		return ClassResolverUtil.resolve(name, thread.getContextClassLoader());
+		return ClassResolverUtil.resolve(
+			objectStreamClass.getName(), thread.getContextClassLoader());
 	}
 
 	@Override

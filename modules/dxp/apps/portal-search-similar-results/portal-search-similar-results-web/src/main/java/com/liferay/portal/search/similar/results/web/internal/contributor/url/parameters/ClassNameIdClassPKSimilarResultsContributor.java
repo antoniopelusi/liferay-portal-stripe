@@ -17,7 +17,8 @@ package com.liferay.portal.search.similar.results.web.internal.contributor.url.p
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.search.similar.results.web.internal.util.http.HttpHelper;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.search.similar.results.web.internal.helper.HttpHelper;
 import com.liferay.portal.search.similar.results.web.spi.contributor.SimilarResultsContributor;
 import com.liferay.portal.search.similar.results.web.spi.contributor.helper.CriteriaBuilder;
 import com.liferay.portal.search.similar.results.web.spi.contributor.helper.CriteriaHelper;
@@ -45,7 +46,8 @@ public class ClassNameIdClassPKSimilarResultsContributor
 	public void detectRoute(
 		RouteBuilder routeBuilder, RouteHelper routeHelper) {
 
-		String urlString = routeHelper.getURLString();
+		String urlString = HttpComponentsUtil.decodePath(
+			routeHelper.getURLString());
 
 		routeBuilder.addAttribute(
 			CLASS_NAME_ID,

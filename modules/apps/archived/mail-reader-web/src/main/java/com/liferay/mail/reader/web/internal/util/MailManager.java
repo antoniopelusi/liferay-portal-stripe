@@ -56,7 +56,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletConfig;
 
@@ -131,20 +130,20 @@ public class MailManager {
 
 			synchronizeAccount(account.getAccountId());
 
-			return createJSONResult("success", "account-has-been-created");
+			return _createJSONResult("success", "account-has-been-created");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() ==
 					MailException.ACCOUNT_ALREADY_EXISTS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure",
 					"an-account-with-the-same-address-already-exists");
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-add-account");
+			return _createJSONResult("failure", "unable-to-add-account");
 		}
 	}
 
@@ -168,19 +167,19 @@ public class MailManager {
 
 			mailbox.addFolder(displayName);
 
-			return createJSONResult("success", "folder-has-been-created");
+			return _createJSONResult("success", "folder-has-been-created");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() ==
 					MailException.FOLDER_ALREADY_EXISTS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "a-folder-with-the-same-name-already-exists");
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-create-folder");
+			return _createJSONResult("failure", "unable-to-create-folder");
 		}
 	}
 
@@ -195,17 +194,17 @@ public class MailManager {
 			if (mailbox.hasNewMessages(folderId)) {
 				mailbox.synchronizeFolder(folderId);
 
-				return createJSONResult("success", StringPool.BLANK, "true");
+				return _createJSONResult("success", StringPool.BLANK, "true");
 			}
 
-			return createJSONResult("success", StringPool.BLANK, "false");
+			return _createJSONResult("success", StringPool.BLANK, "false");
 		}
 		catch (MailException mailException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(mailException, mailException);
+				_log.debug(mailException);
 			}
 
-			return createJSONResult("failure", StringPool.BLANK);
+			return _createJSONResult("failure", StringPool.BLANK);
 		}
 	}
 
@@ -219,12 +218,12 @@ public class MailManager {
 
 			mailbox.deleteAccount();
 
-			return createJSONResult("success", "account-has-been-deleted");
+			return _createJSONResult("success", "account-has-been-deleted");
 		}
 		catch (MailException mailException) {
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-delete-account");
+			return _createJSONResult("failure", "unable-to-delete-account");
 		}
 	}
 
@@ -242,12 +241,12 @@ public class MailManager {
 
 			mailbox.deleteAttachment(attachmentId);
 
-			return createJSONResult("success", "attachment-has-been-deleted");
+			return _createJSONResult("success", "attachment-has-been-deleted");
 		}
 		catch (MailException mailException) {
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-delete-attachment");
+			return _createJSONResult("failure", "unable-to-delete-attachment");
 		}
 	}
 
@@ -262,32 +261,32 @@ public class MailManager {
 
 			mailbox.deleteFolder(folderId);
 
-			return createJSONResult("success", "folder-has-been-deleted");
+			return _createJSONResult("success", "folder-has-been-deleted");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() == MailException.FOLDER_REQUIRED) {
-				return createJSONResult(
+				return _createJSONResult(
 					"failure",
 					"this-is-a-required-folder-and-can-not-be-deleted");
 			}
 			else if (mailException.getType() ==
 						MailException.FOLDER_DELETE_FAILED) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure",
 					"the-mail-server-will-not-allow-this-folder-to-be-deleted");
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-delete-folder");
+			return _createJSONResult("failure", "unable-to-delete-folder");
 		}
 	}
 
 	public JSONObject deleteMessages(long[] messageIds) throws PortalException {
 		try {
 			if (messageIds.length == 0) {
-				return createJSONResult("failure", "no-messages-selected");
+				return _createJSONResult("failure", "no-messages-selected");
 			}
 
 			Message message = MessageLocalServiceUtil.getMessage(messageIds[0]);
@@ -300,7 +299,7 @@ public class MailManager {
 					MessageLocalServiceUtil.deleteMessage(messageId);
 				}
 
-				return createJSONResult(
+				return _createJSONResult(
 					"success", "drafts-have-been-discarded");
 			}
 
@@ -311,12 +310,12 @@ public class MailManager {
 
 			mailbox.deleteMessages(message.getFolderId(), messageIds);
 
-			return createJSONResult("success", "messages-have-been-deleted");
+			return _createJSONResult("success", "messages-have-been-deleted");
 		}
 		catch (MailException mailException) {
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-delete-messages");
+			return _createJSONResult("failure", "unable-to-delete-messages");
 		}
 	}
 
@@ -325,7 +324,7 @@ public class MailManager {
 
 		try {
 			if (messageIds.length == 0) {
-				return createJSONResult("failure", "no-messages-selected");
+				return _createJSONResult("failure", "no-messages-selected");
 			}
 
 			Message message = MessageLocalServiceUtil.getMessage(messageIds[0]);
@@ -337,17 +336,17 @@ public class MailManager {
 
 			mailbox.updateFlags(message.getFolderId(), messageIds, flag, value);
 
-			return createJSONResult("success", "messages-have-been-flagged");
+			return _createJSONResult("success", "messages-have-been-flagged");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() == MailException.MESSAGE_INVALID_FLAG) {
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "this-flag-is-not-supported");
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-flag-messages");
+			return _createJSONResult("failure", "unable-to-flag-messages");
 		}
 	}
 
@@ -580,7 +579,7 @@ public class MailManager {
 
 		try {
 			if (messageIds.length == 0) {
-				return createJSONResult("failure", "no-messages-selected");
+				return _createJSONResult("failure", "no-messages-selected");
 			}
 
 			Folder folder = FolderLocalServiceUtil.getFolder(folderId);
@@ -604,19 +603,19 @@ public class MailManager {
 
 			mailbox.moveMessages(folderId, messageIds);
 
-			return createJSONResult("success", "messages-have-been-moved");
+			return _createJSONResult("success", "messages-have-been-moved");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() ==
 					MailException.FOLDER_INVALID_DESTINATION) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "cannot-move-messages-to-this-folder");
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-move-messages");
+			return _createJSONResult("failure", "unable-to-move-messages");
 		}
 	}
 
@@ -633,23 +632,23 @@ public class MailManager {
 
 			mailbox.renameFolder(folderId, displayName);
 
-			return createJSONResult("success", "folder-renamed-successfully");
+			return _createJSONResult("success", "folder-renamed-successfully");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() == MailException.FOLDER_RENAME_FAILED) {
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "cannot-move-messages-to-this-folder");
 			}
 			else if (mailException.getType() ==
 						MailException.FOLDER_ALREADY_EXISTS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "a-folder-with-the-same-name-already-exists");
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-rename-folder");
+			return _createJSONResult("failure", "unable-to-rename-folder");
 		}
 	}
 
@@ -666,7 +665,7 @@ public class MailManager {
 			Message message = mailbox.saveDraft(
 				accountId, messageId, to, cc, bcc, subject, body, mailFiles);
 
-			return createJSONResult(
+			return _createJSONResult(
 				"success", "saved-successfully",
 				String.valueOf(message.getMessageId()));
 		}
@@ -674,22 +673,22 @@ public class MailManager {
 			if (mailException.getType() ==
 					MailException.MESSAGE_HAS_NO_RECIPIENTS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "please-specify-at-least-one-recipient");
 			}
 			else if (mailException.getType() ==
 						MailException.MESSAGE_INVALID_ADDRESS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure",
 					"please-make-sure-the-following-address-is-properly-" +
 						"formatted",
 					mailException.getValue());
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-save-draft");
+			return _createJSONResult("failure", "unable-to-save-draft");
 		}
 	}
 
@@ -708,38 +707,38 @@ public class MailManager {
 
 			mailbox.sendMessage(accountId, message.getMessageId());
 
-			return createJSONResult("success", "sent-successfully");
+			return _createJSONResult("success", "sent-successfully");
 		}
 		catch (FileSizeException fileSizeException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(fileSizeException, fileSizeException);
+				_log.debug(fileSizeException);
 			}
 
-			return createJSONResult("failure", "attachment-is-too-large");
+			return _createJSONResult("failure", "attachment-is-too-large");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() ==
 					MailException.MESSAGE_HAS_NO_RECIPIENTS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "please-specify-at-least-one-recipient");
 			}
 			else if (mailException.getType() ==
 						MailException.MESSAGE_INVALID_ADDRESS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure",
 					"please-make-sure-the-following-address-is-properly-" +
 						"formatted",
 					HtmlUtil.escape(mailException.getValue()));
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-send-message");
+			return _createJSONResult("failure", "unable-to-send-message");
 		}
 	}
 
@@ -762,36 +761,36 @@ public class MailManager {
 
 				_passwordRetriever.setPassword(accountId, password);
 
-				return createJSONResult("success", "logged-in-successfully");
+				return _createJSONResult("success", "logged-in-successfully");
 			}
 			catch (MailException mailException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(mailException, mailException);
+					_log.debug(mailException);
 				}
 
-				return createJSONResult("failure", "incorrect-password");
+				return _createJSONResult("failure", "incorrect-password");
 			}
 		}
 		else {
-			return createJSONResult(
+			return _createJSONResult(
 				"success", "password-has-already-been-saved");
 		}
 	}
 
 	public void synchronizeAccount(long accountId) throws PortalException {
-		synchronize(accountId, 0, 0, 0, 0);
+		_synchronize(accountId, 0, 0, 0, 0);
 	}
 
 	public void synchronizeFolder(long folderId) throws PortalException {
 		Folder folder = FolderLocalServiceUtil.getFolder(folderId);
 
-		synchronize(folder.getAccountId(), folderId, 0, 0, 0);
+		_synchronize(folder.getAccountId(), folderId, 0, 0, 0);
 	}
 
 	public void synchronizeMessage(long messageId) throws PortalException {
 		Message message = MessageLocalServiceUtil.getMessage(messageId);
 
-		synchronize(message.getAccountId(), 0, messageId, 0, 0);
+		_synchronize(message.getAccountId(), 0, messageId, 0, 0);
 	}
 
 	public void synchronizePage(
@@ -800,7 +799,7 @@ public class MailManager {
 
 		Folder folder = FolderLocalServiceUtil.getFolder(folderId);
 
-		synchronize(
+		_synchronize(
 			folder.getAccountId(), folderId, 0, pageNumber, messagesPerPage);
 	}
 
@@ -852,79 +851,29 @@ public class MailManager {
 				mailbox.updateFolders();
 			}
 
-			return createJSONResult("success", "account-has-been-updated");
+			return _createJSONResult("success", "account-has-been-updated");
 		}
 		catch (MailException mailException) {
 			if (mailException.getType() ==
 					MailException.MESSAGE_HAS_NO_RECIPIENTS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure", "please-specify-at-least-one-recipient");
 			}
 			else if (mailException.getType() ==
 						MailException.MESSAGE_INVALID_ADDRESS) {
 
-				return createJSONResult(
+				return _createJSONResult(
 					"failure",
 					"please-make-sure-the-following-address-is-properly-" +
 						"formatted",
 					mailException.getValue());
 			}
 
-			_log.error(mailException, mailException);
+			_log.error(mailException);
 
-			return createJSONResult("failure", "unable-to-update-account");
+			return _createJSONResult("failure", "unable-to-update-account");
 		}
-	}
-
-	protected JSONObject createJSONResult(String status, String message) {
-		return createJSONResult(status, message, null);
-	}
-
-	protected JSONObject createJSONResult(
-		String status, String message, String value) {
-
-		ResourceBundle resourceBundle = _portletConfig.getResourceBundle(
-			_user.getLocale());
-
-		JSONObject jsonObject = JSONUtil.put(
-			"message", LanguageUtil.get(resourceBundle, message)
-		).put(
-			"status", status
-		);
-
-		if (Validator.isNotNull(value)) {
-			jsonObject.put("value", value);
-		}
-
-		return jsonObject;
-	}
-
-	protected void synchronize(
-			long accountId, long folderId, long messageId, int pageNumber,
-			int messagesPerPage)
-		throws PortalException {
-
-		String password = _passwordRetriever.getPassword(accountId);
-
-		if (Validator.isNull(password)) {
-			return;
-		}
-
-		com.liferay.portal.kernel.messaging.Message message =
-			new com.liferay.portal.kernel.messaging.Message();
-
-		message.put("command", "synchronize");
-
-		message.put("userId", _user.getUserId());
-		message.put("accountId", accountId);
-		message.put("password", password);
-		message.put("folderId", folderId);
-		message.put("messageId", messageId);
-		message.put("pageNumber", pageNumber);
-		message.put("messagesPerPage", messagesPerPage);
-
-		MessageBusUtil.sendMessage(DestinationNames.MAIL_SYNCHRONIZER, message);
 	}
 
 	private static Mailbox _getMailbox(
@@ -952,6 +901,58 @@ public class MailManager {
 		}
 
 		return mailboxFactory.getMailbox(user, protocol);
+	}
+
+	private JSONObject _createJSONResult(String status, String message) {
+		return _createJSONResult(status, message, null);
+	}
+
+	private JSONObject _createJSONResult(
+		String status, String message, String value) {
+
+		return JSONUtil.put(
+			"message",
+			LanguageUtil.get(
+				_portletConfig.getResourceBundle(_user.getLocale()), message)
+		).put(
+			"status", status
+		).put(
+			"value",
+			() -> {
+				if (Validator.isNotNull(value)) {
+					return value;
+				}
+
+				return null;
+			}
+		);
+	}
+
+	private void _synchronize(
+			long accountId, long folderId, long messageId, int pageNumber,
+			int messagesPerPage)
+		throws PortalException {
+
+		String password = _passwordRetriever.getPassword(accountId);
+
+		if (Validator.isNull(password)) {
+			return;
+		}
+
+		com.liferay.portal.kernel.messaging.Message message =
+			new com.liferay.portal.kernel.messaging.Message();
+
+		message.put("command", "synchronize");
+
+		message.put("userId", _user.getUserId());
+		message.put("accountId", accountId);
+		message.put("password", password);
+		message.put("folderId", folderId);
+		message.put("messageId", messageId);
+		message.put("pageNumber", pageNumber);
+		message.put("messagesPerPage", messagesPerPage);
+
+		MessageBusUtil.sendMessage(DestinationNames.MAIL_SYNCHRONIZER, message);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(MailManager.class);

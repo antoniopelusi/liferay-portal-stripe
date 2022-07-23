@@ -1,0 +1,137 @@
+@component-name = "portal-solutions"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Raylife";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		Raylife.createRaylifeSite(siteName = "Raylife");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		Raylife.tearDownCP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.logoutPG();
+		}
+	}
+
+	@description = "LPS-142582 - Verify clicking 'Dismiss' on the Information Panel closes it (Information Panel from 'Hang tight...' page)"
+	@priority = "3"
+	test CanDismissLoadingPageInfoPanel {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.typeAllBusinessInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeEmployees.typeAllEmployeesInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeProperty.typeAllPropertyInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		Click(locator1 = "Raylife#BUTTON_DISMISS");
+
+		AssertElementPresent(
+			locator1 = "Raylife#INFO_PANEL_DISMISS_BUTTON",
+			value1 = "Did you know");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_QUOTE_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+	@description = "LPS-142580 - Verify Loading Page is reachable after pressing Continue on Property page"
+	@priority = "5"
+	test CanReachLoadingPageByPropertyPage {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.typeAllBusinessInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeEmployees.typeAllEmployeesInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeProperty.typeAllPropertyInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		AssertElementPresent(locator1 = "RaylifeLoadingPage#HANG_TIGHT_PAGE");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_QUOTE_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+	@description = "LPS-142581 - Verify Loading Page redirects automatically to Quote Profile Page"
+	@priority = "5"
+	test CanRedirectToQuotePage {
+		ApplicationsMenu.gotoSite(key_site = "Raylife");
+
+		RaylifeHomePage.startFlow();
+
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.typeAllBusinessInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeEmployees.typeAllEmployeesInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeProperty.typeAllPropertyInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		AssertElementPresent(locator1 = "RaylifeQuoteProfile#CUSTOM_QUOTE_PAGE");
+
+		Click(locator1 = "Raylife#BTN_BACK_TO_EDIT_INFO_QUOTE_PAGE");
+
+		Click(
+			locator1 = "RaylifeNavigation#SECTION_COMPLETED",
+			section = "Basics");
+
+		Click(locator1 = "Raylife#BUTTON_PREVIOUS");
+	}
+
+}

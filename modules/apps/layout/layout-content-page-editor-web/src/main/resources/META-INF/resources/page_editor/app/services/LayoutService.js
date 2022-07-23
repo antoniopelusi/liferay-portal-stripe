@@ -92,24 +92,21 @@ export default {
 		);
 	},
 
-	/**
-	 * Remove an item inside layoutData
-	 * @param {object} options
-	 * @param {object} options.itemId id of the item to be removed
-	 * @param {function} options.onNetworkStatus
-	 * @param {object} options.segmentsExperienceId
-	 * @return {Promise<object>}
-	 */
-	deleteItem({itemId, onNetworkStatus, segmentsExperienceId}) {
+	createLayoutPageTemplateEntry(
+		layoutPageTemplateCollectionId,
+		name,
+		segmentsExperienceId
+	) {
 		return layoutServiceFetch(
-			config.deleteItemURL,
+			config.createLayoutPageTemplateEntryURL,
 			{
 				body: {
-					itemId,
+					layoutPageTemplateCollectionId,
+					name,
 					segmentsExperienceId,
 				},
 			},
-			onNetworkStatus
+			() => {}
 		);
 	},
 
@@ -123,6 +120,14 @@ export default {
 			{
 				body: layout,
 			},
+			() => {}
+		);
+	},
+
+	getLayoutPageTemplateCollections() {
+		return layoutServiceFetch(
+			config.getLayoutPageTemplateCollectionsURL,
+			{},
 			() => {}
 		);
 	},
@@ -188,6 +193,39 @@ export default {
 	},
 
 	/**
+	 * Updates a config into an item
+	 * @param {object} options
+	 * @param {Array<{fragmentEntryLinkId: string, editableValues: object}>} filterFragmentEntryLinks
+	 * @param {object} options.itemConfig Updated item config
+	 * @param {string} options.itemId id of the collection display to be updated
+	 * @param {string} options.segmentsExperienceId Language id
+	 * @param {function} options.onNetworkStatus
+	 * @return {Promise<void>}
+	 */
+	restoreCollectionDisplayConfig({
+		filterFragmentEntryLinks,
+		itemConfig,
+		itemId,
+		onNetworkStatus,
+		segmentsExperienceId,
+	}) {
+		return layoutServiceFetch(
+			config.restoreCollectionDisplayConfigURL,
+			{
+				body: {
+					filterFragmentEntryLinks: JSON.stringify(
+						filterFragmentEntryLinks
+					),
+					itemConfig: JSON.stringify(itemConfig),
+					itemId,
+					segmentsExperienceId,
+				},
+			},
+			onNetworkStatus
+		);
+	},
+
+	/**
 	 * Unmarks an item for deletion
 	 * @param {object} options
 	 * @param {string} options.itemId id of the item to be updated
@@ -201,6 +239,37 @@ export default {
 			{
 				body: {
 					itemId,
+					segmentsExperienceId,
+				},
+			},
+			onNetworkStatus
+		);
+	},
+
+	/**
+	 * Updates a config into an item
+	 * @param {object} options
+	 * @param {object} options.itemConfig Updated item config
+	 * @param {string} options.itemId id of the collection display to be updated
+	 * @param {string} options.languageId Language id
+	 * @param {string} options.segmentsExperienceId Segments experience id
+	 * @param {function} options.onNetworkStatus
+	 * @return {Promise<void>}
+	 */
+	updateCollectionDisplayConfig({
+		itemConfig,
+		itemId,
+		languageId,
+		onNetworkStatus,
+		segmentsExperienceId,
+	}) {
+		return layoutServiceFetch(
+			config.updateCollectionDisplayConfigURL,
+			{
+				body: {
+					itemConfig: JSON.stringify(itemConfig),
+					itemId,
+					languageId,
 					segmentsExperienceId,
 				},
 			},

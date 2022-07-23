@@ -66,14 +66,14 @@ public class KBContentCKEditorConfigContributor
 		).put(
 			"toolbar", "kb"
 		).put(
-			"toolbar_kb", getToolbarKBJSONArray(inputEditorTaglibAttributes)
+			"toolbar_kb", _getToolbarKBJSONArray(inputEditorTaglibAttributes)
 		);
 	}
 
-	protected JSONArray getToolbarKBJSONArray(
+	private JSONArray _getToolbarKBJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
-		JSONArray jsonArray = JSONUtil.putAll(
+		return JSONUtil.putAll(
 			super.toJSONArray("['Bold', 'Italic', 'Underline']"),
 			super.toJSONArray(
 				"['JustifyLeft', 'JustifyCenter', 'JustifyRight']"),
@@ -81,15 +81,18 @@ public class KBContentCKEditorConfigContributor
 			super.toJSONArray("['Styles']"),
 			super.toJSONArray("['Link', 'Unlink']"),
 			super.toJSONArray(
-				"['Table','ImageSelector','VideoSelector', 'HorizontalRule']"));
+				"['Table','ImageSelector','VideoSelector', 'HorizontalRule']")
+		).put(
+			() -> {
+				if (_isShowSource(inputEditorTaglibAttributes)) {
+					return toJSONArray("['Source']");
+				}
 
-		if (_isShowSource(inputEditorTaglibAttributes)) {
-			jsonArray.put(toJSONArray("['Source']"));
-		}
-
-		jsonArray.put(toJSONArray("['A11YBtn']"));
-
-		return jsonArray;
+				return null;
+			}
+		).put(
+			toJSONArray("['A11YBtn']")
+		);
 	}
 
 	private boolean _isShowSource(

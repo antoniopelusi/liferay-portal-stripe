@@ -20,11 +20,11 @@ import com.liferay.dynamic.data.mapping.model.DDMFormInstanceReportTable;
 import com.liferay.dynamic.data.mapping.model.impl.DDMFormInstanceReportImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMFormInstanceReportModelImpl;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceReportPersistence;
+import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceReportUtil;
 import com.liferay.dynamic.data.mapping.service.persistence.impl.constants.DDMPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,21 +35,23 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -62,12 +64,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -374,6 +373,8 @@ public class DDMFormInstanceReportPersistenceImpl
 			ddmFormInstanceReport);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the ddm form instance reports in the entity cache if it is enabled.
 	 *
@@ -382,6 +383,14 @@ public class DDMFormInstanceReportPersistenceImpl
 	@Override
 	public void cacheResult(
 		List<DDMFormInstanceReport> ddmFormInstanceReports) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (ddmFormInstanceReports.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (DDMFormInstanceReport ddmFormInstanceReport :
 				ddmFormInstanceReports) {
@@ -601,25 +610,25 @@ public class DDMFormInstanceReportPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (ddmFormInstanceReport.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				ddmFormInstanceReport.setCreateDate(now);
+				ddmFormInstanceReport.setCreateDate(date);
 			}
 			else {
 				ddmFormInstanceReport.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!ddmFormInstanceReportModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				ddmFormInstanceReport.setModifiedDate(now);
+				ddmFormInstanceReport.setModifiedDate(date);
 			}
 			else {
 				ddmFormInstanceReport.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -786,6 +795,26 @@ public class DDMFormInstanceReportPersistenceImpl
 
 			if (ddmFormInstanceReport != null) {
 				map.put(primaryKey, ddmFormInstanceReport);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -1055,7 +1084,8 @@ public class DDMFormInstanceReportPersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -1089,7 +1119,6 @@ public class DDMFormInstanceReportPersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -1105,7 +1134,6 @@ public class DDMFormInstanceReportPersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK,
 			Collections.singleton("formInstanceReportId"));
@@ -1117,13 +1145,9 @@ public class DDMFormInstanceReportPersistenceImpl
 	 * Initializes the ddm form instance report persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new DDMFormInstanceReportModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1146,13 +1170,31 @@ public class DDMFormInstanceReportPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByFormInstanceId",
 			new String[] {Long.class.getName()},
 			new String[] {"formInstanceId"}, false);
+
+		_setDDMFormInstanceReportUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(DDMFormInstanceReportImpl.class.getName());
+		_setDDMFormInstanceReportUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(DDMFormInstanceReportImpl.class.getName());
+	}
+
+	private void _setDDMFormInstanceReportUtilPersistence(
+		DDMFormInstanceReportPersistence ddmFormInstanceReportPersistence) {
+
+		try {
+			Field field = DDMFormInstanceReportUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, ddmFormInstanceReportPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -1180,8 +1222,6 @@ public class DDMFormInstanceReportPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -1224,99 +1264,8 @@ public class DDMFormInstanceReportPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class DDMFormInstanceReportModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			DDMFormInstanceReportModelImpl ddmFormInstanceReportModelImpl =
-				(DDMFormInstanceReportModelImpl)baseModel;
-
-			long columnBitmask =
-				ddmFormInstanceReportModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					ddmFormInstanceReportModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						ddmFormInstanceReportModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					ddmFormInstanceReportModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return DDMFormInstanceReportImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return DDMFormInstanceReportTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			DDMFormInstanceReportModelImpl ddmFormInstanceReportModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						ddmFormInstanceReportModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] =
-						ddmFormInstanceReportModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private DDMFormInstanceReportModelArgumentsResolver
+		_ddmFormInstanceReportModelArgumentsResolver;
 
 }

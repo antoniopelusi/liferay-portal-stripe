@@ -17,15 +17,13 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String redirectUrlAttribute = (String)request.getAttribute("redirectUrl");
+String redirectURL = URLCodec.decodeURL((String)request.getAttribute(CommercePaymentWebKeys.REDIRECT_URL));
 
-String redirectUrl = URLCodec.decodeURL(redirectUrlAttribute);
-
-String tokenAttribute = (String)request.getAttribute("token");
+String tokenAttribute = (String)request.getAttribute(CommercePaymentWebKeys.TOKEN);
 %>
 
-<form action="<%= redirectUrl %>" class="hide" id="formAuthorizeNet" method="post" name="formAuthorizeNet">
-	<input name="token" type="hidden" value="<%= URLDecoder.decode(tokenAttribute, "UTF-8") %>" />
+<form action="<%= HtmlUtil.escapeHREF(redirectURL) %>" class="hide" id="formAuthorizeNet" method="post" name="formAuthorizeNet">
+	<input name="token" type="hidden" value="<%= HtmlUtil.escapeAttribute(URLDecoder.decode(tokenAttribute, StringPool.UTF8)) %>" />
 	<button id="btnContinue">Continue</button>
 </form>
 

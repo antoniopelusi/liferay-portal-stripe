@@ -12,8 +12,6 @@
  * details.
  */
 
-'use strict';
-
 import {debounce, fetch} from 'frontend-js-web';
 import Component from 'metal-component';
 import Soy, {Config} from 'metal-soy';
@@ -25,6 +23,8 @@ import 'clay-modal';
 import '../user_utils/UserListItem.es';
 
 import '../user_utils/UserInputItem.es';
+
+import '../css/main.scss';
 
 const EMAIL_REGEX = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -47,8 +47,8 @@ class UserInvitationModal extends Component {
 		}
 	}
 
-	_handleCloseModal(e) {
-		e.preventDefault();
+	_handleCloseModal(event) {
+		event.preventDefault();
 		this._modalVisible = false;
 	}
 
@@ -58,8 +58,8 @@ class UserInvitationModal extends Component {
 		return this._debouncedFetchUser();
 	}
 
-	_handleFormSubmit(evt) {
-		evt.preventDefault();
+	_handleFormSubmit(event) {
+		event.preventDefault();
 		if (this.query.match(EMAIL_REGEX)) {
 			this.addedUsers = [
 				...this.addedUsers,
@@ -73,21 +73,21 @@ class UserInvitationModal extends Component {
 		return this.query;
 	}
 
-	_handleInputBox(evt) {
-		if (evt.keyCode === 8 && !this.query.length) {
+	_handleInputBox(event) {
+		if (event.keyCode === 8 && !this.query.length) {
 			this.addedUsers = this.addedUsers.slice(0, -1);
 		}
 		else {
-			this.query = evt.target.value;
+			this.query = event.target.value;
 		}
 
-		return evt;
+		return event;
 	}
 
-	_handleInputName(evt) {
-		this.accountName = evt.target.value;
+	_handleInputName(event) {
+		this.accountName = event.target.value;
 
-		return evt;
+		return event;
 	}
 
 	_toggleInvitation(userToBeToggled) {

@@ -74,7 +74,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + SAPPortletKeys.SERVICE_ACCESS_POLICY,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator"
+		"javax.portlet.security-role-ref=administrator",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -102,7 +103,7 @@ public class SAPPortlet extends MVCPortlet {
 
 		Map<String, Set<JSONWebServiceActionMapping>>
 			jsonWebServiceActionMappingsMap =
-				getServiceJSONWebServiceActionMappingsMap(contextName);
+				_getServiceJSONWebServiceActionMappingsMap(contextName);
 
 		String serviceClassName = ParamUtil.getString(
 			resourceRequest, "serviceClassName");
@@ -113,12 +114,14 @@ public class SAPPortlet extends MVCPortlet {
 		for (JSONWebServiceActionMapping jsonWebServiceActionMapping :
 				jsonWebServiceActionMappingsSet) {
 
-			Method method = jsonWebServiceActionMapping.getActionMethod();
-
-			String actionMethodName = method.getName();
-
 			JSONObject jsonObject = JSONUtil.put(
-				"actionMethodName", actionMethodName);
+				"actionMethodName",
+				() -> {
+					Method method =
+						jsonWebServiceActionMapping.getActionMethod();
+
+					return method.getName();
+				});
 
 			jsonArray.put(jsonObject);
 		}
@@ -136,7 +139,7 @@ public class SAPPortlet extends MVCPortlet {
 		if (mvcPath.equals("/edit_entry.jsp")) {
 			renderRequest.setAttribute(
 				SAPWebKeys.SERVICE_CLASS_NAMES_TO_CONTEXT_NAMES,
-				getServiceClassNamesToContextNamesJSONArray());
+				_getServiceClassNamesToContextNamesJSONArray());
 		}
 
 		super.render(renderRequest, renderResponse);
@@ -172,7 +175,19 @@ public class SAPPortlet extends MVCPortlet {
 		}
 	}
 
-	protected JSONArray getServiceClassNamesToContextNamesJSONArray() {
+	@Reference(unbind = "-")
+	protected void setJSONWebServiceActionsManager(
+		JSONWebServiceActionsManager jsonWebServiceActionsManager) {
+
+		_jsonWebServiceActionsManager = jsonWebServiceActionsManager;
+	}
+
+	@Reference(unbind = "-")
+	protected void setSAPEntryService(SAPEntryService sapEntryService) {
+		_sapEntryService = sapEntryService;
+	}
+
+	private JSONArray _getServiceClassNamesToContextNamesJSONArray() {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
 		Set<String> contextNames =
@@ -181,36 +196,40 @@ public class SAPPortlet extends MVCPortlet {
 		for (String contextName : contextNames) {
 			Map<String, Set<JSONWebServiceActionMapping>>
 				jsonWebServiceActionMappingsMap =
-					getServiceJSONWebServiceActionMappingsMap(contextName);
+					_getServiceJSONWebServiceActionMappingsMap(contextName);
 
 			for (Map.Entry<String, Set<JSONWebServiceActionMapping>> entry :
 					jsonWebServiceActionMappingsMap.entrySet()) {
 
-				JSONObject jsonObject = JSONUtil.put(
-					"serviceClassName", entry.getKey());
+				jsonArray.put(
+					JSONUtil.put(
+						"contextName",
+						() -> {
+							Set<JSONWebServiceActionMapping>
+								jsonWebServiceActionMappingsSet =
+									entry.getValue();
 
-				Set<JSONWebServiceActionMapping>
-					jsonWebServiceActionMappingsSet = entry.getValue();
+							Iterator<JSONWebServiceActionMapping> iterator =
+								jsonWebServiceActionMappingsSet.iterator();
 
-				Iterator<JSONWebServiceActionMapping> iterator =
-					jsonWebServiceActionMappingsSet.iterator();
+							JSONWebServiceActionMapping
+								firstJSONWebServiceActionMapping =
+									iterator.next();
 
-				JSONWebServiceActionMapping firstJSONWebServiceActionMapping =
-					iterator.next();
-
-				jsonObject.put(
-					"contextName",
-					firstJSONWebServiceActionMapping.getContextName());
-
-				jsonArray.put(jsonObject);
+							return firstJSONWebServiceActionMapping.
+								getContextName();
+						}
+					).put(
+						"serviceClassName", entry.getKey()
+					));
 			}
 		}
 
 		return jsonArray;
 	}
 
-	protected Map<String, Set<JSONWebServiceActionMapping>>
-		getServiceJSONWebServiceActionMappingsMap(String contextName) {
+	private Map<String, Set<JSONWebServiceActionMapping>>
+		_getServiceJSONWebServiceActionMappingsMap(String contextName) {
 
 		Map<String, Set<JSONWebServiceActionMapping>>
 			jsonWebServiceActionMappingsMap = new LinkedHashMap<>();
@@ -258,18 +277,6 @@ public class SAPPortlet extends MVCPortlet {
 		}
 
 		return jsonWebServiceActionMappingsMap;
-	}
-
-	@Reference(unbind = "-")
-	protected void setJSONWebServiceActionsManager(
-		JSONWebServiceActionsManager jsonWebServiceActionsManager) {
-
-		_jsonWebServiceActionsManager = jsonWebServiceActionsManager;
-	}
-
-	@Reference(unbind = "-")
-	protected void setSAPEntryService(SAPEntryService sapEntryService) {
-		_sapEntryService = sapEntryService;
 	}
 
 	private JSONWebServiceActionsManager _jsonWebServiceActionsManager;

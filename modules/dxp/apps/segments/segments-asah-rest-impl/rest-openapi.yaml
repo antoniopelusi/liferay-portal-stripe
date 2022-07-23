@@ -69,7 +69,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.segments.asah.rest.client', and version '3.0.2'."
+        'com.liferay.segments.asah.rest.client', and version '3.0.12'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -91,8 +91,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Experiment"]
         get:
             operationId: getExperiment
@@ -111,8 +109,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Experiment"
-                    description:
-                        ""
             tags: ["Experiment"]
     "/experiments/{experimentId}/run":
         post:
@@ -141,8 +137,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/ExperimentRun"
-                    description:
-                        ""
             tags: ["ExperimentRun"]
     "/experiments/{experimentId}/status":
         post:
@@ -171,6 +165,4 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Experiment"
-                    description:
-                        ""
             tags: ["Status"]

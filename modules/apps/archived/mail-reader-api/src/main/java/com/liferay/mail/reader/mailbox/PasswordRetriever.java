@@ -44,21 +44,21 @@ public class PasswordRetriever {
 			return account.getPasswordDecrypted();
 		}
 
-		HttpSession session = _httpServletRequest.getSession();
+		HttpSession httpSession = _httpServletRequest.getSession();
 
-		return (String)session.getAttribute(encodeKey(accountId));
+		return (String)httpSession.getAttribute(encodeKey(accountId));
 	}
 
 	public void removePassword(long accountId) {
-		HttpSession session = _httpServletRequest.getSession();
+		HttpSession httpSession = _httpServletRequest.getSession();
 
-		session.removeAttribute(encodeKey(accountId));
+		httpSession.removeAttribute(encodeKey(accountId));
 	}
 
 	public void setPassword(long accountId, String password) {
-		HttpSession session = _httpServletRequest.getSession();
+		HttpSession httpSession = _httpServletRequest.getSession();
 
-		session.setAttribute(encodeKey(accountId), password);
+		httpSession.setAttribute(encodeKey(accountId), password);
 	}
 
 	protected String encodeKey(long accountId) {

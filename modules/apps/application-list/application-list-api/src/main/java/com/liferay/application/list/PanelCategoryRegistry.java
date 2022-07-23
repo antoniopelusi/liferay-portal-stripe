@@ -54,8 +54,8 @@ public class PanelCategoryRegistry {
 	}
 
 	public List<PanelCategory> getChildPanelCategories(
-		PanelCategory panelCategory, final PermissionChecker permissionChecker,
-		final Group group) {
+		PanelCategory panelCategory, PermissionChecker permissionChecker,
+		Group group) {
 
 		return getChildPanelCategories(
 			panelCategory.getKey(), permissionChecker, group);
@@ -75,8 +75,8 @@ public class PanelCategoryRegistry {
 	}
 
 	public List<PanelCategory> getChildPanelCategories(
-		String panelCategoryKey, final PermissionChecker permissionChecker,
-		final Group group) {
+		String panelCategoryKey, PermissionChecker permissionChecker,
+		Group group) {
 
 		List<PanelCategory> panelCategories = getChildPanelCategories(
 			panelCategoryKey);
@@ -92,7 +92,7 @@ public class PanelCategoryRegistry {
 					return panelCategory.isShow(permissionChecker, group);
 				}
 				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+					_log.error(portalException);
 				}
 
 				return false;
@@ -119,7 +119,7 @@ public class PanelCategoryRegistry {
 				}
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 
@@ -140,7 +140,7 @@ public class PanelCategoryRegistry {
 				}
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 
@@ -160,7 +160,7 @@ public class PanelCategoryRegistry {
 	}
 
 	@Activate
-	protected void activate(final BundleContext bundleContext) {
+	protected void activate(BundleContext bundleContext) {
 		_childPanelCategoriesServiceTrackerMap =
 			ServiceTrackerMapBuilder.SelectorFactory.newSelector(
 				bundleContext, PanelCategory.class

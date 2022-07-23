@@ -14,11 +14,12 @@ task copyRepo(type: Copy)
 task downloadBundle(type: Download)
 task downloadHotFixZip(type: Download)
 task downloadPluginsSdk(type: Download)
+task downloadProductInfo(type: Download)
 
 String bundleUrl = "https://releases-cdn.liferay.com/portal/7.1.2-ga3/liferay-ce-portal-tomcat-7.1.2-ga3-20190107144105508.tar.gz"
 File gradleTestDependenciesDir = new File(buildDir, "gradle-test-dependencies")
 String gradleVersion = "6.6.1"
-String hotFixZipUrl = "https://dl.bintray.com/gamerson/liferay-ide-files/zips/liferay-hotfix-1072-7210.zip"
+String hotFixZipUrl = "https://us-east-1.linodeobjects.com/devtools-s3.liferay.com/gradle-plugins-workspace/liferay-hotfix-1072-7210.zip"
 String pluginsSdkUrl = "https://repository-cdn.liferay.com/nexus/service/local/repositories/liferay-public-releases/content/com/liferay/portal/com.liferay.portal.plugins.sdk/1.0.22/com.liferay.portal.plugins.sdk-1.0.22-withdependencies.zip"
 
 if (System.properties["http.proxyHost"] == "squid.lax.liferay.com") {
@@ -89,22 +90,23 @@ copyRepo {
 
 dependencies {
 	compile group: "com.bmuschko", name: "gradle-docker-plugin", version: "6.6.1"
+	compile group: "com.github.docker-java", name: "docker-java", version: "3.2.8"
 	compile group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
-	compile group: "com.liferay", name: "com.liferay.ant.bnd", version: "3.2.6"
-	compile(group: "com.liferay", name: "com.liferay.gradle.plugins", version: "13.1.50") {
+	compile group: "com.liferay", name: "com.liferay.ant.bnd", version: "3.2.8"
+	compile(group: "com.liferay", name: "com.liferay.gradle.plugins", version: "13.2.164") {
 		exclude group: "biz.aQute.bnd", module: "biz.aQute.bnd"
 	}
-	compile(group: "com.liferay", name: "com.liferay.gradle.plugins.css.builder", version: "5.0.1") {
+	compile(group: "com.liferay", name: "com.liferay.gradle.plugins.css.builder", version: "5.0.4") {
 		exclude group: "biz.aQute.bnd", module: "biz.aQute.bnd"
 	}
-	compile(group: "com.liferay", name: "com.liferay.gradle.plugins.poshi.runner", version: "3.0.11") {
+	compile(group: "com.liferay", name: "com.liferay.gradle.plugins.poshi.runner", version: "3.0.36") {
 		exclude group: "biz.aQute.bnd", module: "biz.aQute.bnd"
 	}
-	compile group: "com.liferay", name: "com.liferay.gradle.plugins.target.platform", version: "2.1.32"
-	compile(group: "com.liferay", name: "com.liferay.gradle.plugins.theme.builder", version: "2.0.15") {
+	compile group: "com.liferay", name: "com.liferay.gradle.plugins.target.platform", version: "2.1.42"
+	compile(group: "com.liferay", name: "com.liferay.gradle.plugins.theme.builder", version: "2.0.19") {
 		exclude group: "biz.aQute.bnd", module: "biz.aQute.bnd"
 	}
-	compile(group: "com.liferay", name: "com.liferay.portal.tools.bundle.support", version: "3.7.2") {
+	compile(group: "com.liferay", name: "com.liferay.portal.tools.bundle.support", version: "3.7.3") {
 		exclude group: "biz.aQute.bnd", module: "biz.aQute.bnd"
 	}
 	compile(group: "com.liferay", name: "com.liferay.portal.tools.soy.builder", version: "3.0.4") {
@@ -113,6 +115,7 @@ dependencies {
 		exclude group: "org.sonatype.plexus"
 	}
 	compile group: "de.undercouch", name: "gradle-download-task", version: "3.2.0"
+	compile group: "net.java.dev.jna", name: "jna", version: "5.8.0"
 
 	compileInclude files("lib/com.liferay.workspace.bundle.url.codec-1.0.0.jar")
 
@@ -127,12 +130,20 @@ downloadBundle {
 
 downloadHotFixZip {
 	dest new File(buildDir, "liferay-hotfix-1072-7210.zip")
+	onlyIfModified true
 	src hotFixZipUrl
 }
 
 downloadPluginsSdk {
 	dest new File(buildDir, "plugins-sdk.zip")
+	onlyIfModified true
 	src pluginsSdkUrl
+}
+
+downloadProductInfo {
+	dest buildDir
+	onlyIfNewer true
+	src "https://releases-cdn.liferay.com/tools/workspace/.product_info.json"
 }
 
 eclipse.classpath.file {
@@ -164,4 +175,8 @@ gradleTest {
 
 liferayOSGi {
 	expandCompileInclude = true
+}
+
+processResources {
+	from downloadProductInfo
 }

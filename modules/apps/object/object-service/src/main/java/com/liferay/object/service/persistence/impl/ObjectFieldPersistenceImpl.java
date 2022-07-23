@@ -14,16 +14,16 @@
 
 package com.liferay.object.service.persistence.impl;
 
-import com.liferay.object.exception.NoSuchFieldException;
+import com.liferay.object.exception.NoSuchObjectFieldException;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldTable;
 import com.liferay.object.model.impl.ObjectFieldImpl;
 import com.liferay.object.model.impl.ObjectFieldModelImpl;
 import com.liferay.object.service.persistence.ObjectFieldPersistence;
+import com.liferay.object.service.persistence.ObjectFieldUtil;
 import com.liferay.object.service.persistence.impl.constants.ObjectPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,22 +34,24 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
@@ -59,12 +61,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -282,12 +281,12 @@ public class ObjectFieldPersistenceImpl
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	@Override
 	public ObjectField findByUuid_First(
 			String uuid, OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByUuid_First(uuid, orderByComparator);
 
@@ -304,7 +303,7 @@ public class ObjectFieldPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchFieldException(sb.toString());
+		throw new NoSuchObjectFieldException(sb.toString());
 	}
 
 	/**
@@ -333,12 +332,12 @@ public class ObjectFieldPersistenceImpl
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	@Override
 	public ObjectField findByUuid_Last(
 			String uuid, OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByUuid_Last(uuid, orderByComparator);
 
@@ -355,7 +354,7 @@ public class ObjectFieldPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchFieldException(sb.toString());
+		throw new NoSuchObjectFieldException(sb.toString());
 	}
 
 	/**
@@ -392,13 +391,13 @@ public class ObjectFieldPersistenceImpl
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	@Override
 	public ObjectField[] findByUuid_PrevAndNext(
 			long objectFieldId, String uuid,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		uuid = Objects.toString(uuid, "");
 
@@ -828,13 +827,13 @@ public class ObjectFieldPersistenceImpl
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	@Override
 	public ObjectField findByUuid_C_First(
 			String uuid, long companyId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByUuid_C_First(
 			uuid, companyId, orderByComparator);
@@ -855,7 +854,7 @@ public class ObjectFieldPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchFieldException(sb.toString());
+		throw new NoSuchObjectFieldException(sb.toString());
 	}
 
 	/**
@@ -888,13 +887,13 @@ public class ObjectFieldPersistenceImpl
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	@Override
 	public ObjectField findByUuid_C_Last(
 			String uuid, long companyId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByUuid_C_Last(
 			uuid, companyId, orderByComparator);
@@ -915,7 +914,7 @@ public class ObjectFieldPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchFieldException(sb.toString());
+		throw new NoSuchObjectFieldException(sb.toString());
 	}
 
 	/**
@@ -955,13 +954,13 @@ public class ObjectFieldPersistenceImpl
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	@Override
 	public ObjectField[] findByUuid_C_PrevAndNext(
 			long objectFieldId, String uuid, long companyId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		uuid = Objects.toString(uuid, "");
 
@@ -1209,6 +1208,519 @@ public class ObjectFieldPersistenceImpl
 	private static final String _FINDER_COLUMN_UUID_C_COMPANYID_2 =
 		"objectField.companyId = ?";
 
+	private FinderPath _finderPathWithPaginationFindByListTypeDefinitionId;
+	private FinderPath _finderPathWithoutPaginationFindByListTypeDefinitionId;
+	private FinderPath _finderPathCountByListTypeDefinitionId;
+
+	/**
+	 * Returns all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @return the matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId) {
+
+		return findByListTypeDefinitionId(
+			listTypeDefinitionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @return the range of matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end) {
+
+		return findByListTypeDefinitionId(
+			listTypeDefinitionId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return findByListTypeDefinitionId(
+			listTypeDefinitionId, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator,
+		boolean useFinderCache) {
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath =
+					_finderPathWithoutPaginationFindByListTypeDefinitionId;
+				finderArgs = new Object[] {listTypeDefinitionId};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByListTypeDefinitionId;
+			finderArgs = new Object[] {
+				listTypeDefinitionId, start, end, orderByComparator
+			};
+		}
+
+		List<ObjectField> list = null;
+
+		if (useFinderCache) {
+			list = (List<ObjectField>)finderCache.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (ObjectField objectField : list) {
+					if (listTypeDefinitionId !=
+							objectField.getListTypeDefinitionId()) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					3 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(3);
+			}
+
+			sb.append(_SQL_SELECT_OBJECTFIELD_WHERE);
+
+			sb.append(
+				_FINDER_COLUMN_LISTTYPEDEFINITIONID_LISTTYPEDEFINITIONID_2);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(ObjectFieldModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(listTypeDefinitionId);
+
+				list = (List<ObjectField>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField findByListTypeDefinitionId_First(
+			long listTypeDefinitionId,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws NoSuchObjectFieldException {
+
+		ObjectField objectField = fetchByListTypeDefinitionId_First(
+			listTypeDefinitionId, orderByComparator);
+
+		if (objectField != null) {
+			return objectField;
+		}
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("listTypeDefinitionId=");
+		sb.append(listTypeDefinitionId);
+
+		sb.append("}");
+
+		throw new NoSuchObjectFieldException(sb.toString());
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField fetchByListTypeDefinitionId_First(
+		long listTypeDefinitionId,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		List<ObjectField> list = findByListTypeDefinitionId(
+			listTypeDefinitionId, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField findByListTypeDefinitionId_Last(
+			long listTypeDefinitionId,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws NoSuchObjectFieldException {
+
+		ObjectField objectField = fetchByListTypeDefinitionId_Last(
+			listTypeDefinitionId, orderByComparator);
+
+		if (objectField != null) {
+			return objectField;
+		}
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("listTypeDefinitionId=");
+		sb.append(listTypeDefinitionId);
+
+		sb.append("}");
+
+		throw new NoSuchObjectFieldException(sb.toString());
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField fetchByListTypeDefinitionId_Last(
+		long listTypeDefinitionId,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		int count = countByListTypeDefinitionId(listTypeDefinitionId);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<ObjectField> list = findByListTypeDefinitionId(
+			listTypeDefinitionId, count - 1, count, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the object fields before and after the current object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param objectFieldId the primary key of the current object field
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object field
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
+	 */
+	@Override
+	public ObjectField[] findByListTypeDefinitionId_PrevAndNext(
+			long objectFieldId, long listTypeDefinitionId,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws NoSuchObjectFieldException {
+
+		ObjectField objectField = findByPrimaryKey(objectFieldId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			ObjectField[] array = new ObjectFieldImpl[3];
+
+			array[0] = getByListTypeDefinitionId_PrevAndNext(
+				session, objectField, listTypeDefinitionId, orderByComparator,
+				true);
+
+			array[1] = objectField;
+
+			array[2] = getByListTypeDefinitionId_PrevAndNext(
+				session, objectField, listTypeDefinitionId, orderByComparator,
+				false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected ObjectField getByListTypeDefinitionId_PrevAndNext(
+		Session session, ObjectField objectField, long listTypeDefinitionId,
+		OrderByComparator<ObjectField> orderByComparator, boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(3);
+		}
+
+		sb.append(_SQL_SELECT_OBJECTFIELD_WHERE);
+
+		sb.append(_FINDER_COLUMN_LISTTYPEDEFINITIONID_LISTTYPEDEFINITIONID_2);
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(ObjectFieldModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(listTypeDefinitionId);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(objectField)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<ObjectField> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the object fields where listTypeDefinitionId = &#63; from the database.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 */
+	@Override
+	public void removeByListTypeDefinitionId(long listTypeDefinitionId) {
+		for (ObjectField objectField :
+				findByListTypeDefinitionId(
+					listTypeDefinitionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+					null)) {
+
+			remove(objectField);
+		}
+	}
+
+	/**
+	 * Returns the number of object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @return the number of matching object fields
+	 */
+	@Override
+	public int countByListTypeDefinitionId(long listTypeDefinitionId) {
+		FinderPath finderPath = _finderPathCountByListTypeDefinitionId;
+
+		Object[] finderArgs = new Object[] {listTypeDefinitionId};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(2);
+
+			sb.append(_SQL_COUNT_OBJECTFIELD_WHERE);
+
+			sb.append(
+				_FINDER_COLUMN_LISTTYPEDEFINITIONID_LISTTYPEDEFINITIONID_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(listTypeDefinitionId);
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String
+		_FINDER_COLUMN_LISTTYPEDEFINITIONID_LISTTYPEDEFINITIONID_2 =
+			"objectField.listTypeDefinitionId = ?";
+
 	private FinderPath _finderPathWithPaginationFindByObjectDefinitionId;
 	private FinderPath _finderPathWithoutPaginationFindByObjectDefinitionId;
 	private FinderPath _finderPathCountByObjectDefinitionId;
@@ -1386,13 +1898,13 @@ public class ObjectFieldPersistenceImpl
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	@Override
 	public ObjectField findByObjectDefinitionId_First(
 			long objectDefinitionId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByObjectDefinitionId_First(
 			objectDefinitionId, orderByComparator);
@@ -1410,7 +1922,7 @@ public class ObjectFieldPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchFieldException(sb.toString());
+		throw new NoSuchObjectFieldException(sb.toString());
 	}
 
 	/**
@@ -1441,13 +1953,13 @@ public class ObjectFieldPersistenceImpl
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	@Override
 	public ObjectField findByObjectDefinitionId_Last(
 			long objectDefinitionId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByObjectDefinitionId_Last(
 			objectDefinitionId, orderByComparator);
@@ -1465,7 +1977,7 @@ public class ObjectFieldPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchFieldException(sb.toString());
+		throw new NoSuchObjectFieldException(sb.toString());
 	}
 
 	/**
@@ -1503,13 +2015,13 @@ public class ObjectFieldPersistenceImpl
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	@Override
 	public ObjectField[] findByObjectDefinitionId_PrevAndNext(
 			long objectFieldId, long objectDefinitionId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = findByPrimaryKey(objectFieldId);
 
@@ -1717,20 +2229,607 @@ public class ObjectFieldPersistenceImpl
 		_FINDER_COLUMN_OBJECTDEFINITIONID_OBJECTDEFINITIONID_2 =
 			"objectField.objectDefinitionId = ?";
 
+	private FinderPath _finderPathWithPaginationFindByODI_DTN;
+	private FinderPath _finderPathWithoutPaginationFindByODI_DTN;
+	private FinderPath _finderPathCountByODI_DTN;
+
+	/**
+	 * Returns all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @return the matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName) {
+
+		return findByODI_DTN(
+			objectDefinitionId, dbTableName, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @return the range of matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end) {
+
+		return findByODI_DTN(objectDefinitionId, dbTableName, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return findByODI_DTN(
+			objectDefinitionId, dbTableName, start, end, orderByComparator,
+			true);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object fields
+	 */
+	@Override
+	public List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator,
+		boolean useFinderCache) {
+
+		dbTableName = Objects.toString(dbTableName, "");
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByODI_DTN;
+				finderArgs = new Object[] {objectDefinitionId, dbTableName};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByODI_DTN;
+			finderArgs = new Object[] {
+				objectDefinitionId, dbTableName, start, end, orderByComparator
+			};
+		}
+
+		List<ObjectField> list = null;
+
+		if (useFinderCache) {
+			list = (List<ObjectField>)finderCache.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (ObjectField objectField : list) {
+					if ((objectDefinitionId !=
+							objectField.getObjectDefinitionId()) ||
+						!dbTableName.equals(objectField.getDBTableName())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					4 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(4);
+			}
+
+			sb.append(_SQL_SELECT_OBJECTFIELD_WHERE);
+
+			sb.append(_FINDER_COLUMN_ODI_DTN_OBJECTDEFINITIONID_2);
+
+			boolean bindDBTableName = false;
+
+			if (dbTableName.isEmpty()) {
+				sb.append(_FINDER_COLUMN_ODI_DTN_DBTABLENAME_3);
+			}
+			else {
+				bindDBTableName = true;
+
+				sb.append(_FINDER_COLUMN_ODI_DTN_DBTABLENAME_2);
+			}
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(ObjectFieldModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(objectDefinitionId);
+
+				if (bindDBTableName) {
+					queryPos.add(dbTableName);
+				}
+
+				list = (List<ObjectField>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField findByODI_DTN_First(
+			long objectDefinitionId, String dbTableName,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws NoSuchObjectFieldException {
+
+		ObjectField objectField = fetchByODI_DTN_First(
+			objectDefinitionId, dbTableName, orderByComparator);
+
+		if (objectField != null) {
+			return objectField;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("objectDefinitionId=");
+		sb.append(objectDefinitionId);
+
+		sb.append(", dbTableName=");
+		sb.append(dbTableName);
+
+		sb.append("}");
+
+		throw new NoSuchObjectFieldException(sb.toString());
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField fetchByODI_DTN_First(
+		long objectDefinitionId, String dbTableName,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		List<ObjectField> list = findByODI_DTN(
+			objectDefinitionId, dbTableName, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField findByODI_DTN_Last(
+			long objectDefinitionId, String dbTableName,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws NoSuchObjectFieldException {
+
+		ObjectField objectField = fetchByODI_DTN_Last(
+			objectDefinitionId, dbTableName, orderByComparator);
+
+		if (objectField != null) {
+			return objectField;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("objectDefinitionId=");
+		sb.append(objectDefinitionId);
+
+		sb.append(", dbTableName=");
+		sb.append(dbTableName);
+
+		sb.append("}");
+
+		throw new NoSuchObjectFieldException(sb.toString());
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	@Override
+	public ObjectField fetchByODI_DTN_Last(
+		long objectDefinitionId, String dbTableName,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		int count = countByODI_DTN(objectDefinitionId, dbTableName);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<ObjectField> list = findByODI_DTN(
+			objectDefinitionId, dbTableName, count - 1, count,
+			orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the object fields before and after the current object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectFieldId the primary key of the current object field
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object field
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
+	 */
+	@Override
+	public ObjectField[] findByODI_DTN_PrevAndNext(
+			long objectFieldId, long objectDefinitionId, String dbTableName,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws NoSuchObjectFieldException {
+
+		dbTableName = Objects.toString(dbTableName, "");
+
+		ObjectField objectField = findByPrimaryKey(objectFieldId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			ObjectField[] array = new ObjectFieldImpl[3];
+
+			array[0] = getByODI_DTN_PrevAndNext(
+				session, objectField, objectDefinitionId, dbTableName,
+				orderByComparator, true);
+
+			array[1] = objectField;
+
+			array[2] = getByODI_DTN_PrevAndNext(
+				session, objectField, objectDefinitionId, dbTableName,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected ObjectField getByODI_DTN_PrevAndNext(
+		Session session, ObjectField objectField, long objectDefinitionId,
+		String dbTableName, OrderByComparator<ObjectField> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		sb.append(_SQL_SELECT_OBJECTFIELD_WHERE);
+
+		sb.append(_FINDER_COLUMN_ODI_DTN_OBJECTDEFINITIONID_2);
+
+		boolean bindDBTableName = false;
+
+		if (dbTableName.isEmpty()) {
+			sb.append(_FINDER_COLUMN_ODI_DTN_DBTABLENAME_3);
+		}
+		else {
+			bindDBTableName = true;
+
+			sb.append(_FINDER_COLUMN_ODI_DTN_DBTABLENAME_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(ObjectFieldModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(objectDefinitionId);
+
+		if (bindDBTableName) {
+			queryPos.add(dbTableName);
+		}
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(objectField)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<ObjectField> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the object fields where objectDefinitionId = &#63; and dbTableName = &#63; from the database.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 */
+	@Override
+	public void removeByODI_DTN(long objectDefinitionId, String dbTableName) {
+		for (ObjectField objectField :
+				findByODI_DTN(
+					objectDefinitionId, dbTableName, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, null)) {
+
+			remove(objectField);
+		}
+	}
+
+	/**
+	 * Returns the number of object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @return the number of matching object fields
+	 */
+	@Override
+	public int countByODI_DTN(long objectDefinitionId, String dbTableName) {
+		dbTableName = Objects.toString(dbTableName, "");
+
+		FinderPath finderPath = _finderPathCountByODI_DTN;
+
+		Object[] finderArgs = new Object[] {objectDefinitionId, dbTableName};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append(_SQL_COUNT_OBJECTFIELD_WHERE);
+
+			sb.append(_FINDER_COLUMN_ODI_DTN_OBJECTDEFINITIONID_2);
+
+			boolean bindDBTableName = false;
+
+			if (dbTableName.isEmpty()) {
+				sb.append(_FINDER_COLUMN_ODI_DTN_DBTABLENAME_3);
+			}
+			else {
+				bindDBTableName = true;
+
+				sb.append(_FINDER_COLUMN_ODI_DTN_DBTABLENAME_2);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(objectDefinitionId);
+
+				if (bindDBTableName) {
+					queryPos.add(dbTableName);
+				}
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_ODI_DTN_OBJECTDEFINITIONID_2 =
+		"objectField.objectDefinitionId = ? AND ";
+
+	private static final String _FINDER_COLUMN_ODI_DTN_DBTABLENAME_2 =
+		"objectField.dbTableName = ?";
+
+	private static final String _FINDER_COLUMN_ODI_DTN_DBTABLENAME_3 =
+		"(objectField.dbTableName IS NULL OR objectField.dbTableName = '')";
+
 	private FinderPath _finderPathFetchByODI_N;
 	private FinderPath _finderPathCountByODI_N;
 
 	/**
-	 * Returns the object field where objectDefinitionId = &#63; and name = &#63; or throws a <code>NoSuchFieldException</code> if it could not be found.
+	 * Returns the object field where objectDefinitionId = &#63; and name = &#63; or throws a <code>NoSuchObjectFieldException</code> if it could not be found.
 	 *
 	 * @param objectDefinitionId the object definition ID
 	 * @param name the name
 	 * @return the matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	@Override
 	public ObjectField findByODI_N(long objectDefinitionId, String name)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByODI_N(objectDefinitionId, name);
 
@@ -1751,7 +2850,7 @@ public class ObjectFieldPersistenceImpl
 				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchFieldException(sb.toString());
+			throw new NoSuchObjectFieldException(sb.toString());
 		}
 
 		return objectField;
@@ -1898,7 +2997,7 @@ public class ObjectFieldPersistenceImpl
 	 */
 	@Override
 	public ObjectField removeByODI_N(long objectDefinitionId, String name)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = findByODI_N(objectDefinitionId, name);
 
@@ -1985,7 +3084,6 @@ public class ObjectFieldPersistenceImpl
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
-		dbColumnNames.put("type", "type_");
 
 		setDBColumnNames(dbColumnNames);
 
@@ -2015,6 +3113,8 @@ public class ObjectFieldPersistenceImpl
 			objectField);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the object fields in the entity cache if it is enabled.
 	 *
@@ -2022,6 +3122,13 @@ public class ObjectFieldPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<ObjectField> objectFields) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (objectFields.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (ObjectField objectField : objectFields) {
 			if (entityCache.getResult(
 					ObjectFieldImpl.class, objectField.getPrimaryKey()) ==
@@ -2100,7 +3207,7 @@ public class ObjectFieldPersistenceImpl
 		objectField.setNew(true);
 		objectField.setPrimaryKey(objectFieldId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		objectField.setUuid(uuid);
 
@@ -2114,10 +3221,12 @@ public class ObjectFieldPersistenceImpl
 	 *
 	 * @param objectFieldId the primary key of the object field
 	 * @return the object field that was removed
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	@Override
-	public ObjectField remove(long objectFieldId) throws NoSuchFieldException {
+	public ObjectField remove(long objectFieldId)
+		throws NoSuchObjectFieldException {
+
 		return remove((Serializable)objectFieldId);
 	}
 
@@ -2126,11 +3235,11 @@ public class ObjectFieldPersistenceImpl
 	 *
 	 * @param primaryKey the primary key of the object field
 	 * @return the object field that was removed
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	@Override
 	public ObjectField remove(Serializable primaryKey)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		Session session = null;
 
@@ -2145,13 +3254,13 @@ public class ObjectFieldPersistenceImpl
 					_log.debug(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 				}
 
-				throw new NoSuchFieldException(
+				throw new NoSuchObjectFieldException(
 					_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 			}
 
 			return remove(objectField);
 		}
-		catch (NoSuchFieldException noSuchEntityException) {
+		catch (NoSuchObjectFieldException noSuchEntityException) {
 			throw noSuchEntityException;
 		}
 		catch (Exception exception) {
@@ -2216,7 +3325,7 @@ public class ObjectFieldPersistenceImpl
 			(ObjectFieldModelImpl)objectField;
 
 		if (Validator.isNull(objectField.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			objectField.setUuid(uuid);
 		}
@@ -2224,24 +3333,24 @@ public class ObjectFieldPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (objectField.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				objectField.setCreateDate(now);
+				objectField.setCreateDate(date);
 			}
 			else {
-				objectField.setCreateDate(serviceContext.getCreateDate(now));
+				objectField.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!objectFieldModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				objectField.setModifiedDate(now);
+				objectField.setModifiedDate(date);
 			}
 			else {
 				objectField.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -2283,11 +3392,11 @@ public class ObjectFieldPersistenceImpl
 	 *
 	 * @param primaryKey the primary key of the object field
 	 * @return the object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	@Override
 	public ObjectField findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		ObjectField objectField = fetchByPrimaryKey(primaryKey);
 
@@ -2296,7 +3405,7 @@ public class ObjectFieldPersistenceImpl
 				_log.debug(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 			}
 
-			throw new NoSuchFieldException(
+			throw new NoSuchObjectFieldException(
 				_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 		}
 
@@ -2304,15 +3413,15 @@ public class ObjectFieldPersistenceImpl
 	}
 
 	/**
-	 * Returns the object field with the primary key or throws a <code>NoSuchFieldException</code> if it could not be found.
+	 * Returns the object field with the primary key or throws a <code>NoSuchObjectFieldException</code> if it could not be found.
 	 *
 	 * @param objectFieldId the primary key of the object field
 	 * @return the object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	@Override
 	public ObjectField findByPrimaryKey(long objectFieldId)
-		throws NoSuchFieldException {
+		throws NoSuchObjectFieldException {
 
 		return findByPrimaryKey((Serializable)objectFieldId);
 	}
@@ -2536,12 +3645,9 @@ public class ObjectFieldPersistenceImpl
 	 * Initializes the object field persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new ObjectFieldModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -2592,6 +3698,25 @@ public class ObjectFieldPersistenceImpl
 			new String[] {String.class.getName(), Long.class.getName()},
 			new String[] {"uuid_", "companyId"}, false);
 
+		_finderPathWithPaginationFindByListTypeDefinitionId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
+			"findByListTypeDefinitionId",
+			new String[] {
+				Long.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"listTypeDefinitionId"}, true);
+
+		_finderPathWithoutPaginationFindByListTypeDefinitionId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
+			"findByListTypeDefinitionId", new String[] {Long.class.getName()},
+			new String[] {"listTypeDefinitionId"}, true);
+
+		_finderPathCountByListTypeDefinitionId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
+			"countByListTypeDefinitionId", new String[] {Long.class.getName()},
+			new String[] {"listTypeDefinitionId"}, false);
+
 		_finderPathWithPaginationFindByObjectDefinitionId = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByObjectDefinitionId",
 			new String[] {
@@ -2610,6 +3735,25 @@ public class ObjectFieldPersistenceImpl
 			"countByObjectDefinitionId", new String[] {Long.class.getName()},
 			new String[] {"objectDefinitionId"}, false);
 
+		_finderPathWithPaginationFindByODI_DTN = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByODI_DTN",
+			new String[] {
+				Long.class.getName(), String.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
+			},
+			new String[] {"objectDefinitionId", "dbTableName"}, true);
+
+		_finderPathWithoutPaginationFindByODI_DTN = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByODI_DTN",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"objectDefinitionId", "dbTableName"}, true);
+
+		_finderPathCountByODI_DTN = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByODI_DTN",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"objectDefinitionId", "dbTableName"}, false);
+
 		_finderPathFetchByODI_N = new FinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByODI_N",
 			new String[] {Long.class.getName(), String.class.getName()},
@@ -2619,13 +3763,31 @@ public class ObjectFieldPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByODI_N",
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"objectDefinitionId", "name"}, false);
+
+		_setObjectFieldUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(ObjectFieldImpl.class.getName());
+		_setObjectFieldUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(ObjectFieldImpl.class.getName());
+	}
+
+	private void _setObjectFieldUtilPersistence(
+		ObjectFieldPersistence objectFieldPersistence) {
+
+		try {
+			Field field = ObjectFieldUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, objectFieldPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -2653,8 +3815,6 @@ public class ObjectFieldPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -2686,118 +3846,18 @@ public class ObjectFieldPersistenceImpl
 		ObjectFieldPersistenceImpl.class);
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
-		new String[] {"uuid", "type"});
+		new String[] {"uuid"});
 
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class ObjectFieldModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			ObjectFieldModelImpl objectFieldModelImpl =
-				(ObjectFieldModelImpl)baseModel;
-
-			long columnBitmask = objectFieldModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(objectFieldModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						objectFieldModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(objectFieldModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return ObjectFieldImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return ObjectFieldTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			ObjectFieldModelImpl objectFieldModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = objectFieldModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = objectFieldModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= ObjectFieldModelImpl.getColumnBitmask(
-				"name");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private ObjectFieldModelArgumentsResolver
+		_objectFieldModelArgumentsResolver;
 
 }

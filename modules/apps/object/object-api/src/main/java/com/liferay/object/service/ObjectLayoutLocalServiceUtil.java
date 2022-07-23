@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the local service utility for ObjectLayout. This utility wraps
@@ -44,6 +45,16 @@ public class ObjectLayoutLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectLayoutLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static ObjectLayout addObjectLayout(
+			long userId, long objectDefinitionId, boolean defaultObjectLayout,
+			Map<java.util.Locale, String> nameMap,
+			List<com.liferay.object.model.ObjectLayoutTab> objectLayoutTabs)
+		throws PortalException {
+
+		return getService().addObjectLayout(
+			userId, objectDefinitionId, defaultObjectLayout, nameMap,
+			objectLayoutTabs);
+	}
 
 	/**
 	 * Adds the object layout to the database. Also notifies the appropriate model listeners.
@@ -105,8 +116,11 @@ public class ObjectLayoutLocalServiceUtil {
 	 *
 	 * @param objectLayout the object layout
 	 * @return the object layout that was removed
+	 * @throws PortalException
 	 */
-	public static ObjectLayout deleteObjectLayout(ObjectLayout objectLayout) {
+	public static ObjectLayout deleteObjectLayout(ObjectLayout objectLayout)
+		throws PortalException {
+
 		return getService().deleteObjectLayout(objectLayout);
 	}
 
@@ -122,6 +136,10 @@ public class ObjectLayoutLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -225,6 +243,12 @@ public class ObjectLayoutLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
+	public static ObjectLayout getDefaultObjectLayout(long objectDefinitionId)
+		throws PortalException {
+
+		return getService().getDefaultObjectLayout(objectDefinitionId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
 		getExportActionableDynamicQuery(
 			com.liferay.exportimport.kernel.lar.PortletDataContext
@@ -283,6 +307,16 @@ public class ObjectLayoutLocalServiceUtil {
 		return getService().getObjectLayouts(start, end);
 	}
 
+	public static List<ObjectLayout> getObjectLayouts(long objectDefinitionId) {
+		return getService().getObjectLayouts(objectDefinitionId);
+	}
+
+	public static List<ObjectLayout> getObjectLayouts(
+		long objectDefinitionId, int start, int end) {
+
+		return getService().getObjectLayouts(objectDefinitionId, start, end);
+	}
+
 	/**
 	 * Returns the number of object layouts.
 	 *
@@ -290,6 +324,10 @@ public class ObjectLayoutLocalServiceUtil {
 	 */
 	public static int getObjectLayoutsCount() {
 		return getService().getObjectLayoutsCount();
+	}
+
+	public static int getObjectLayoutsCount(long objectDefinitionId) {
+		return getService().getObjectLayoutsCount(objectDefinitionId);
 	}
 
 	/**
@@ -308,6 +346,16 @@ public class ObjectLayoutLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static ObjectLayout updateObjectLayout(
+			long objectLayoutId, boolean defaultObjectLayout,
+			Map<java.util.Locale, String> nameMap,
+			List<com.liferay.object.model.ObjectLayoutTab> objectLayoutTabs)
+		throws PortalException {
+
+		return getService().updateObjectLayout(
+			objectLayoutId, defaultObjectLayout, nameMap, objectLayoutTabs);
 	}
 
 	/**

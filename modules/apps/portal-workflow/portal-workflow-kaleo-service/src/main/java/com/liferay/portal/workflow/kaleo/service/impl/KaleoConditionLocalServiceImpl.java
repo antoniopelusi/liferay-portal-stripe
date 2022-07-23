@@ -46,7 +46,7 @@ public class KaleoConditionLocalServiceImpl
 		throws PortalException {
 
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoConditionId = counterLocalService.increment();
 
@@ -56,8 +56,8 @@ public class KaleoConditionLocalServiceImpl
 		kaleoCondition.setCompanyId(user.getCompanyId());
 		kaleoCondition.setUserId(user.getUserId());
 		kaleoCondition.setUserName(user.getFullName());
-		kaleoCondition.setCreateDate(now);
-		kaleoCondition.setModifiedDate(now);
+		kaleoCondition.setCreateDate(date);
+		kaleoCondition.setModifiedDate(date);
 		kaleoCondition.setKaleoDefinitionId(kaleoDefinitionId);
 		kaleoCondition.setKaleoDefinitionVersionId(kaleoDefinitionVersionId);
 		kaleoCondition.setKaleoNodeId(kaleoNodeId);

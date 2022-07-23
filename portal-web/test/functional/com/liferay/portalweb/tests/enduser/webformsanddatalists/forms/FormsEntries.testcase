@@ -1,0 +1,924 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that Entries can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Text",
+			fieldValue = "Test Text");
+
+		FormsAdmin.deleteFormEntry(formEntryValue = "Text");
+
+		FormsAdmin.viewFormTableEntryNotPresent(
+			fieldLabel = "Text",
+			fieldValue = "Test Text");
+	}
+
+	@description = "Verify that Entries can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Text",
+			fieldValue = "Test Text");
+
+		FormsAdmin.editFormEntry(
+			fieldValue = "Test Text Edit",
+			formEntryValue = "Text");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Text",
+			fieldValue = "Test Text Edit");
+	}
+
+	@description = "Verify that a user can navigate to the correct metric by using the list on the right"
+	@priority = "5"
+	test CanBeNavigatedUsingNavigationList {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Select from List");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormFields.selectSelectOption(
+			fieldName = "Select from List",
+			selectOption = "Option 1");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "5");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEntries();
+
+		FormsAdminNavigator.gotoEntriesLabel(
+			key_type = "Numeric",
+			key_value = "Numeric");
+
+		FormsAdminNavigator.gotoEntriesLabel(
+			key_type = "Text",
+			key_value = "Text");
+	}
+
+	@description = "Verify that Entries can be viewed"
+	@priority = "5"
+	test CanBeViewed {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdminNavigator.gotoView();
+
+		FormsAdmin.viewTextEntry(
+			fieldLabel = "Text",
+			fieldName = "Text",
+			fieldValue = "Test Text");
+	}
+
+	@description = "LPS-74997 - Verify that editing a Form does not affect previously submitted Form Entries"
+	@priority = "4"
+	test CanBeViewedAfterEditingTheForm {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Delete Select Option Test");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Select from List");
+
+		var fieldName = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Select");
+
+		for (var number : list "1,2,3") {
+			FormFields.editOptionsRow(
+				optionName = "Select${number}",
+				optionValue = "Select ${number}",
+				rowNumber = "${number}");
+		}
+
+		Form.closeSidebar();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.selectSelectOption(
+			fieldName = "Select",
+			selectOption = "Select 2");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdminNavigator.gotoView();
+
+		FormsAdmin.viewSelectEntry(
+			fieldLabel = "Select",
+			fieldName = "${fieldName}",
+			selectOption = "Select 2");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Delete Select Option Test");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Select");
+
+		FormFields.deleteOptionsRow(rowNumber = "2");
+
+		FormFields.viewDeletedSelectOptionsRowFieldValue(
+			fieldValue = "Select 2",
+			rowNumber = "2");
+
+		Form.closeSidebar();
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdminNavigator.gotoView();
+
+		FormsAdmin.viewSelectEntry(
+			fieldLabel = "Select",
+			fieldName = "${fieldName}",
+			selectOption = "Select 2");
+	}
+
+	@description = "Verify that Entries Previews display the correct information"
+	@priority = "5"
+	test DisplayCorrectInfoInPreviews {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		FormFields.editText(
+			fieldName = "label",
+			fieldValue = "Text Label");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "5");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		FormsAdminNavigator.closePublishedFormWindow();
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableHeader(fieldHeader = "Text Label");
+
+		FormsAdmin.viewFormTableHeader(fieldHeader = "Numeric");
+
+		FormsAdmin.viewFormEntryWorkflowStatus(formEntryWorkflowStatus = "Test Text");
+
+		FormsAdmin.viewFormEntryWorkflowStatus(formEntryWorkflowStatus = "5");
+
+		FormsAdmin.viewFormEntryWorkflowStatus(formEntryWorkflowStatus = "Approved");
+
+		FormsAdmin.viewFormEntryWorkflowStatus(formEntryWorkflowStatus = "Test Test");
+	}
+
+	@description = "Verify that the correct number of Entries are displayed"
+	@priority = "3"
+	test DisplayCorrectNumberOfEntries {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		FormsAdminNavigator.closePublishedFormWindow();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form1");
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text2");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		FormsAdminNavigator.closePublishedFormWindow();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form1");
+
+		FormsAdminNavigator.gotoEntries();
+
+		FormViewBuilder.viewEntriesTitle(key_entriesTitle = "2 Entries");
+	}
+
+	@description = "Verify that Entries for the Color, Date and Text Fields display a Field List in the Summary Tab"
+	@priority = "5"
+	test DisplayFieldListInSummaryTab {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Color",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Date",
+			formPageNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormViewBuilder.editColor(
+			fieldName = "Color",
+			fieldValue = "5f5f5f");
+
+		FormViewBuilder.editDate(
+			fieldName = "Date",
+			fieldValue = "01/01/2001");
+
+		Click(
+			key_text = "Submit",
+			locator1 = "Button#ANY");
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEntries();
+
+		FormViewBuilder.viewSummaryEntry(
+			key_card = "Text",
+			key_entryName = "Test Text",
+			key_entryNumber = "1 entry");
+
+		FormViewBuilder.viewSummaryEntry(
+			key_card = "Color",
+			key_entryName = "5f5f5f",
+			key_entryNumber = "1 entry");
+
+		FormViewBuilder.viewSummaryEntry(
+			key_card = "Date",
+			key_entryName = "01/01/2001",
+			key_entryNumber = "1 entry");
+	}
+
+	@description = "Verify that Entries for the Paragraph, Rich Text, Separator, Image, and Upload Fields do not display any metrics in the Summary Tab"
+	@priority = "5"
+	test DisplayNoMetricsInSummaryTab {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Paragraph");
+
+		FormFields.editParagraphBody(content = "Hello");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Rich Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Separator");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "3",
+			fieldType = "Image");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "4",
+			fieldType = "Upload");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editParagraphBody(content = "Test Text");
+
+		ItemSelector.gotoImageSelectorViaSelectButton();
+
+		ItemSelector.uploadFile(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_1.jpg");
+
+		ItemSelector.gotoItemSelectorViaSelectButton();
+
+		ItemSelector.uploadFile(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_2.jpg");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEntries();
+
+		AssertElementPresent(
+			key_text = "1 Entry",
+			locator1 = "FormViewBuilder#ENTRIES_TITLE_CONTENT");
+
+		AssertElementPresent(
+			key_value = "There are no entries",
+			locator1 = "FormFields#VALIDATION_ERROR_ENTRIES");
+	}
+
+	@description = "Verify that Entries for the Numeric Field display a Field List, Average, Maximum Value, Minimum Value, and Sum in the Summary Tab"
+	@priority = "5"
+	test DisplayStatisticsInSummaryTab {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.editText(
+			fieldName = "Numeric",
+			fieldValue = "5");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.editText(
+			fieldName = "Numeric",
+			fieldValue = "11");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEntries();
+
+		FormViewBuilder.viewSummaryEntryNumeric(
+			key_averageValue = "8",
+			key_maxValue = "11",
+			key_minValue = "5",
+			key_sumValue = "16");
+	}
+
+	@description = "LPS-61197 - Verify that with Single Approver Workflow enabled, the Date Field is properly displayed on an Entry submitted from the Forms Widget"
+	@priority = "5"
+	test FromWidgetWithWorkflowEnabledDisplaysDateField {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Date");
+
+		FormsAdminNavigator.gotoSettings();
+
+		Form.configureWorkflow(workflowDefinition = "Single Approver");
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			panel = "Site Administration",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(pageName = "Form Page");
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		Portlet.addPG(
+			pageName = "Form Page",
+			portletName = "Form");
+
+		FormPortletNavigator.gotoSelectForm();
+
+		FormPortletConfiguration.selectForm();
+
+		PortletEntry.save();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormFields.viewDateLabel(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		FormFields.editDate(
+			fieldName = "Date",
+			fieldValue = "02/01/2016");
+
+		Button.clickSubmitForPublication();
+
+		Alert.viewSuccessMessage();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByDetails(
+			workflowAssetTitle = "Created Form Name",
+			workflowAssetType = "Form Record",
+			workflowTask = "Review");
+
+		Workflow.viewTaskAssignedToMe(
+			workflowAssetTitle = "Created Form Name",
+			workflowAssetType = "Form Record",
+			workflowTask = "Review");
+
+		Workflow.viewTaskAssignedToMeDetails(
+			workflowAssetContent = "Date",
+			workflowAssetTitle = "Created Form Name",
+			workflowTask = "Review");
+
+		Workflow.gotoPreviewView();
+
+		FormFields.viewDateField(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Created Form Name",
+			workflowAssetType = "Form Record",
+			workflowTask = "Review");
+
+		Workflow.viewCompletedTask(
+			workflowAssetTitle = "Created Form Name",
+			workflowAssetType = "Form Record",
+			workflowTask = "Review");
+	}
+
+	@description = "Verify that with Single Approver Workflow enabled and after the form entry was approved, the entry will have an approved label"
+	@priority = "5"
+	test WorkflowApprovalChangesLabelToApproved {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoSettings();
+
+		Form.configureWorkflow(workflowDefinition = "Single Approver");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishCopyURLLink();
+
+		var publishedFormURL = Form.getPublishedFormPublicURL(publishedFormPublicURL = "${publishedFormPublicURL}");
+
+		JSONUser.addUser(
+			userEmailAddress = "user1@liferay.com",
+			userFirstName = "user1",
+			userLastName = "user1",
+			userScreenName = "user1");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "user1@liferay.com");
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "user1@liferay.com",
+			userScreenName = "user1");
+
+		Navigator.openURL();
+
+		Navigator.openSpecificURL(url = "${publishedFormURL}");
+
+		FormViewBuilder.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		AssertClick(
+			locator1 = "Button#SUBMIT_FOR_PUBLICATION",
+			value1 = "Submit for Publication");
+
+		Alert.viewSuccessMessage();
+
+		Navigator.openURL();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userScreenName = "Test Test");
+
+		WorkflowAsset.gotoViaNotification(
+			assetType = "Form Record",
+			user = "user1 user1");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Assign to Me");
+
+		Workflow.confirmWorkflowAction();
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Approve");
+
+		Workflow.confirmWorkflowAction();
+
+		Alert.viewSuccessMessage();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+	}
+
+	@description = "Verify that with Single Approver Workflow enabled, the Submit button now reads "Submit for Publication""
+	@priority = "5"
+	test WorkflowChangesSubmitButtonToSubmitForPublication {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoSettings();
+
+		Form.configureWorkflow(workflowDefinition = "Single Approver");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		Form.viewSubmitButtonText(key_buttonText = "Submit for Publication");
+	}
+
+	@description = "This is a use case for LPS-103694. Verify that with Single Approver Workflow enabled and after the user Submit for Publication, the form entry will have a pending label and the admin is notified of form submission"
+	@priority = "5"
+	test WorkflowSubmissionChangesLabelToPending {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		FormsAdminNavigator.gotoSettings();
+
+		Form.configureWorkflow(workflowDefinition = "Single Approver");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishCopyURLLink();
+
+		var publishFormURL = Form.getPublishedFormPublicURL();
+
+		Navigator.openSpecificURL(url = "${publishFormURL}");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "Submit for Publication");
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormEntryWorkflowStatus(formEntryWorkflowStatus = "Pending");
+
+		Pause(locator1 = "120000");
+
+		Navigator.openSpecificURL(url = "${publishFormURL}");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text1");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "Submit for Publication");
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "Notifications");
+
+		AssertTextPresent(value1 = "Test Test sent you a Form Record for review in the workflow.");
+	}
+
+}

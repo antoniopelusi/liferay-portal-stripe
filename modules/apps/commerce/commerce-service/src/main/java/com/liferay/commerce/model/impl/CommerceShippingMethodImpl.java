@@ -14,8 +14,8 @@
 
 package com.liferay.commerce.model.impl;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.webserver.WebServerServletTokenUtil;
 
 /**
@@ -23,24 +23,16 @@ import com.liferay.portal.kernel.webserver.WebServerServletTokenUtil;
  */
 public class CommerceShippingMethodImpl extends CommerceShippingMethodBaseImpl {
 
-	public CommerceShippingMethodImpl() {
-	}
-
 	@Override
 	public String getImageURL(ThemeDisplay themeDisplay) {
 		if (getImageId() <= 0) {
 			return null;
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(themeDisplay.getPathImage());
-		sb.append("/shipping/method?img_id=");
-		sb.append(getImageId());
-		sb.append("&t=");
-		sb.append(WebServerServletTokenUtil.getToken(getImageId()));
-
-		return sb.toString();
+		return StringBundler.concat(
+			themeDisplay.getPathImage(), "/shipping/method?img_id=",
+			getImageId(), "&t=",
+			WebServerServletTokenUtil.getToken(getImageId()));
 	}
 
 }

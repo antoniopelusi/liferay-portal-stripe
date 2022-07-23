@@ -20,7 +20,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutBranch;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
@@ -29,7 +28,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetBranchLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -104,25 +103,15 @@ public class LayoutRevisionAssetRenderer
 
 		Locale locale = getLocale(portletRequest);
 
-		StringBundler sb = new StringBundler(15);
-
-		sb.append(LanguageUtil.get(locale, "page"));
-		sb.append(": ");
-		sb.append(_layoutRevision.getHTMLTitle(locale));
-		sb.append("\n");
-		sb.append(LanguageUtil.get(locale, "site-pages-variation"));
-		sb.append(": ");
-		sb.append(LanguageUtil.get(locale, _layoutSetBranch.getName()));
-		sb.append("\n");
-		sb.append(LanguageUtil.get(locale, "page-variation"));
-		sb.append(": ");
-		sb.append(LanguageUtil.get(locale, _layoutBranch.getName()));
-		sb.append("\n");
-		sb.append(LanguageUtil.get(locale, "revision-id"));
-		sb.append(": ");
-		sb.append(_layoutRevision.getLayoutRevisionId());
-
-		return sb.toString();
+		return StringBundler.concat(
+			LanguageUtil.get(locale, "page"), ": ",
+			_layoutRevision.getHTMLTitle(locale), "\n",
+			LanguageUtil.get(locale, "site-pages-variation"), ": ",
+			LanguageUtil.get(locale, _layoutSetBranch.getName()), "\n",
+			LanguageUtil.get(locale, "page-variation"), ": ",
+			LanguageUtil.get(locale, _layoutBranch.getName()), "\n",
+			LanguageUtil.get(locale, "revision-id"), ": ",
+			_layoutRevision.getLayoutRevisionId());
 	}
 
 	@Override
@@ -141,15 +130,14 @@ public class LayoutRevisionAssetRenderer
 				(ThemeDisplay)liferayPortletRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
 
-			Layout layout = LayoutLocalServiceUtil.getLayout(
-				_layoutRevision.getPlid());
+			String layoutURL = PortalUtil.getLayoutURL(
+				LayoutLocalServiceUtil.getLayout(_layoutRevision.getPlid()),
+				themeDisplay);
 
-			String layoutURL = PortalUtil.getLayoutURL(layout, themeDisplay);
-
-			layoutURL = HttpUtil.addParameter(
+			layoutURL = HttpComponentsUtil.addParameter(
 				layoutURL, "layoutSetBranchId",
 				_layoutRevision.getLayoutSetBranchId());
-			layoutURL = HttpUtil.addParameter(
+			layoutURL = HttpComponentsUtil.addParameter(
 				layoutURL, "layoutRevisionId",
 				_layoutRevision.getLayoutRevisionId());
 
@@ -157,7 +145,7 @@ public class LayoutRevisionAssetRenderer
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;

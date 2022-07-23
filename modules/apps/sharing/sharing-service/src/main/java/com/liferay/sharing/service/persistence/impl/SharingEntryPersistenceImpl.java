@@ -16,7 +16,6 @@ package com.liferay.sharing.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,28 +26,31 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.sharing.exception.NoSuchEntryException;
 import com.liferay.sharing.model.SharingEntry;
 import com.liferay.sharing.model.SharingEntryTable;
 import com.liferay.sharing.model.impl.SharingEntryImpl;
 import com.liferay.sharing.model.impl.SharingEntryModelImpl;
 import com.liferay.sharing.service.persistence.SharingEntryPersistence;
+import com.liferay.sharing.service.persistence.SharingEntryUtil;
 import com.liferay.sharing.service.persistence.impl.constants.SharingPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.sql.Timestamp;
@@ -59,12 +61,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2935,8 +2934,8 @@ public class SharingEntryPersistenceImpl
 	private static final String _FINDER_COLUMN_TOUSERID_TOUSERID_2 =
 		"sharingEntry.toUserId = ?";
 
-	private FinderPath _finderPathWithPaginationFindByExpirationDate;
-	private FinderPath _finderPathWithPaginationCountByExpirationDate;
+	private FinderPath _finderPathWithPaginationFindByLtExpirationDate;
+	private FinderPath _finderPathWithPaginationCountByLtExpirationDate;
 
 	/**
 	 * Returns all the sharing entries where expirationDate &lt; &#63;.
@@ -2945,8 +2944,8 @@ public class SharingEntryPersistenceImpl
 	 * @return the matching sharing entries
 	 */
 	@Override
-	public List<SharingEntry> findByExpirationDate(Date expirationDate) {
-		return findByExpirationDate(
+	public List<SharingEntry> findByLtExpirationDate(Date expirationDate) {
+		return findByLtExpirationDate(
 			expirationDate, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2963,10 +2962,10 @@ public class SharingEntryPersistenceImpl
 	 * @return the range of matching sharing entries
 	 */
 	@Override
-	public List<SharingEntry> findByExpirationDate(
+	public List<SharingEntry> findByLtExpirationDate(
 		Date expirationDate, int start, int end) {
 
-		return findByExpirationDate(expirationDate, start, end, null);
+		return findByLtExpirationDate(expirationDate, start, end, null);
 	}
 
 	/**
@@ -2983,11 +2982,11 @@ public class SharingEntryPersistenceImpl
 	 * @return the ordered range of matching sharing entries
 	 */
 	@Override
-	public List<SharingEntry> findByExpirationDate(
+	public List<SharingEntry> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		OrderByComparator<SharingEntry> orderByComparator) {
 
-		return findByExpirationDate(
+		return findByLtExpirationDate(
 			expirationDate, start, end, orderByComparator, true);
 	}
 
@@ -3006,7 +3005,7 @@ public class SharingEntryPersistenceImpl
 	 * @return the ordered range of matching sharing entries
 	 */
 	@Override
-	public List<SharingEntry> findByExpirationDate(
+	public List<SharingEntry> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		OrderByComparator<SharingEntry> orderByComparator,
 		boolean useFinderCache) {
@@ -3014,7 +3013,7 @@ public class SharingEntryPersistenceImpl
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByExpirationDate;
+		finderPath = _finderPathWithPaginationFindByLtExpirationDate;
 		finderArgs = new Object[] {
 			_getTime(expirationDate), start, end, orderByComparator
 		};
@@ -3055,12 +3054,12 @@ public class SharingEntryPersistenceImpl
 			boolean bindExpirationDate = false;
 
 			if (expirationDate == null) {
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1);
 			}
 			else {
 				bindExpirationDate = true;
 
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2);
 			}
 
 			if (orderByComparator != null) {
@@ -3115,12 +3114,12 @@ public class SharingEntryPersistenceImpl
 	 * @throws NoSuchEntryException if a matching sharing entry could not be found
 	 */
 	@Override
-	public SharingEntry findByExpirationDate_First(
+	public SharingEntry findByLtExpirationDate_First(
 			Date expirationDate,
 			OrderByComparator<SharingEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		SharingEntry sharingEntry = fetchByExpirationDate_First(
+		SharingEntry sharingEntry = fetchByLtExpirationDate_First(
 			expirationDate, orderByComparator);
 
 		if (sharingEntry != null) {
@@ -3147,11 +3146,11 @@ public class SharingEntryPersistenceImpl
 	 * @return the first matching sharing entry, or <code>null</code> if a matching sharing entry could not be found
 	 */
 	@Override
-	public SharingEntry fetchByExpirationDate_First(
+	public SharingEntry fetchByLtExpirationDate_First(
 		Date expirationDate,
 		OrderByComparator<SharingEntry> orderByComparator) {
 
-		List<SharingEntry> list = findByExpirationDate(
+		List<SharingEntry> list = findByLtExpirationDate(
 			expirationDate, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -3170,12 +3169,12 @@ public class SharingEntryPersistenceImpl
 	 * @throws NoSuchEntryException if a matching sharing entry could not be found
 	 */
 	@Override
-	public SharingEntry findByExpirationDate_Last(
+	public SharingEntry findByLtExpirationDate_Last(
 			Date expirationDate,
 			OrderByComparator<SharingEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		SharingEntry sharingEntry = fetchByExpirationDate_Last(
+		SharingEntry sharingEntry = fetchByLtExpirationDate_Last(
 			expirationDate, orderByComparator);
 
 		if (sharingEntry != null) {
@@ -3202,17 +3201,17 @@ public class SharingEntryPersistenceImpl
 	 * @return the last matching sharing entry, or <code>null</code> if a matching sharing entry could not be found
 	 */
 	@Override
-	public SharingEntry fetchByExpirationDate_Last(
+	public SharingEntry fetchByLtExpirationDate_Last(
 		Date expirationDate,
 		OrderByComparator<SharingEntry> orderByComparator) {
 
-		int count = countByExpirationDate(expirationDate);
+		int count = countByLtExpirationDate(expirationDate);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<SharingEntry> list = findByExpirationDate(
+		List<SharingEntry> list = findByLtExpirationDate(
 			expirationDate, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -3232,7 +3231,7 @@ public class SharingEntryPersistenceImpl
 	 * @throws NoSuchEntryException if a sharing entry with the primary key could not be found
 	 */
 	@Override
-	public SharingEntry[] findByExpirationDate_PrevAndNext(
+	public SharingEntry[] findByLtExpirationDate_PrevAndNext(
 			long sharingEntryId, Date expirationDate,
 			OrderByComparator<SharingEntry> orderByComparator)
 		throws NoSuchEntryException {
@@ -3246,12 +3245,12 @@ public class SharingEntryPersistenceImpl
 
 			SharingEntry[] array = new SharingEntryImpl[3];
 
-			array[0] = getByExpirationDate_PrevAndNext(
+			array[0] = getByLtExpirationDate_PrevAndNext(
 				session, sharingEntry, expirationDate, orderByComparator, true);
 
 			array[1] = sharingEntry;
 
-			array[2] = getByExpirationDate_PrevAndNext(
+			array[2] = getByLtExpirationDate_PrevAndNext(
 				session, sharingEntry, expirationDate, orderByComparator,
 				false);
 
@@ -3265,7 +3264,7 @@ public class SharingEntryPersistenceImpl
 		}
 	}
 
-	protected SharingEntry getByExpirationDate_PrevAndNext(
+	protected SharingEntry getByLtExpirationDate_PrevAndNext(
 		Session session, SharingEntry sharingEntry, Date expirationDate,
 		OrderByComparator<SharingEntry> orderByComparator, boolean previous) {
 
@@ -3285,12 +3284,12 @@ public class SharingEntryPersistenceImpl
 		boolean bindExpirationDate = false;
 
 		if (expirationDate == null) {
-			sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1);
+			sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1);
 		}
 		else {
 			bindExpirationDate = true;
 
-			sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2);
+			sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -3390,9 +3389,9 @@ public class SharingEntryPersistenceImpl
 	 * @param expirationDate the expiration date
 	 */
 	@Override
-	public void removeByExpirationDate(Date expirationDate) {
+	public void removeByLtExpirationDate(Date expirationDate) {
 		for (SharingEntry sharingEntry :
-				findByExpirationDate(
+				findByLtExpirationDate(
 					expirationDate, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null)) {
 
@@ -3407,8 +3406,9 @@ public class SharingEntryPersistenceImpl
 	 * @return the number of matching sharing entries
 	 */
 	@Override
-	public int countByExpirationDate(Date expirationDate) {
-		FinderPath finderPath = _finderPathWithPaginationCountByExpirationDate;
+	public int countByLtExpirationDate(Date expirationDate) {
+		FinderPath finderPath =
+			_finderPathWithPaginationCountByLtExpirationDate;
 
 		Object[] finderArgs = new Object[] {_getTime(expirationDate)};
 
@@ -3422,12 +3422,12 @@ public class SharingEntryPersistenceImpl
 			boolean bindExpirationDate = false;
 
 			if (expirationDate == null) {
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1);
 			}
 			else {
 				bindExpirationDate = true;
 
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2);
 			}
 
 			String sql = sb.toString();
@@ -3460,11 +3460,13 @@ public class SharingEntryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1 =
-		"sharingEntry.expirationDate IS NULL";
+	private static final String
+		_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1 =
+			"sharingEntry.expirationDate IS NULL";
 
-	private static final String _FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2 =
-		"sharingEntry.expirationDate < ?";
+	private static final String
+		_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2 =
+			"sharingEntry.expirationDate < ?";
 
 	private FinderPath _finderPathWithPaginationFindByU_C;
 	private FinderPath _finderPathWithoutPaginationFindByU_C;
@@ -5367,6 +5369,8 @@ public class SharingEntryPersistenceImpl
 			sharingEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the sharing entries in the entity cache if it is enabled.
 	 *
@@ -5374,6 +5378,13 @@ public class SharingEntryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<SharingEntry> sharingEntries) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (sharingEntries.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (SharingEntry sharingEntry : sharingEntries) {
 			if (entityCache.getResult(
 					SharingEntryImpl.class, sharingEntry.getPrimaryKey()) ==
@@ -5461,7 +5472,7 @@ public class SharingEntryPersistenceImpl
 		sharingEntry.setNew(true);
 		sharingEntry.setPrimaryKey(sharingEntryId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		sharingEntry.setUuid(uuid);
 
@@ -5580,7 +5591,7 @@ public class SharingEntryPersistenceImpl
 			(SharingEntryModelImpl)sharingEntry;
 
 		if (Validator.isNull(sharingEntry.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			sharingEntry.setUuid(uuid);
 		}
@@ -5588,24 +5599,24 @@ public class SharingEntryPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (sharingEntry.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				sharingEntry.setCreateDate(now);
+				sharingEntry.setCreateDate(date);
 			}
 			else {
-				sharingEntry.setCreateDate(serviceContext.getCreateDate(now));
+				sharingEntry.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!sharingEntryModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				sharingEntry.setModifiedDate(now);
+				sharingEntry.setModifiedDate(date);
 			}
 			else {
 				sharingEntry.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -5900,12 +5911,9 @@ public class SharingEntryPersistenceImpl
 	 * Initializes the sharing entry persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new SharingEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -6019,16 +6027,16 @@ public class SharingEntryPersistenceImpl
 			new String[] {Long.class.getName()}, new String[] {"toUserId"},
 			false);
 
-		_finderPathWithPaginationFindByExpirationDate = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByExpirationDate",
+		_finderPathWithPaginationFindByLtExpirationDate = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByLtExpirationDate",
 			new String[] {
 				Date.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
 			},
 			new String[] {"expirationDate"}, true);
 
-		_finderPathWithPaginationCountByExpirationDate = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByExpirationDate",
+		_finderPathWithPaginationCountByLtExpirationDate = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByLtExpirationDate",
 			new String[] {Date.class.getName()},
 			new String[] {"expirationDate"}, false);
 
@@ -6102,13 +6110,31 @@ public class SharingEntryPersistenceImpl
 				Long.class.getName(), Long.class.getName(), Long.class.getName()
 			},
 			new String[] {"toUserId", "classNameId", "classPK"}, false);
+
+		_setSharingEntryUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(SharingEntryImpl.class.getName());
+		_setSharingEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(SharingEntryImpl.class.getName());
+	}
+
+	private void _setSharingEntryUtilPersistence(
+		SharingEntryPersistence sharingEntryPersistence) {
+
+		try {
+			Field field = SharingEntryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, sharingEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -6136,8 +6162,6 @@ public class SharingEntryPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -6184,93 +6208,11 @@ public class SharingEntryPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class SharingEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			SharingEntryModelImpl sharingEntryModelImpl =
-				(SharingEntryModelImpl)baseModel;
-
-			long columnBitmask = sharingEntryModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(sharingEntryModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						sharingEntryModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(sharingEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return SharingEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return SharingEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			SharingEntryModelImpl sharingEntryModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = sharingEntryModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = sharingEntryModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private SharingEntryModelArgumentsResolver
+		_sharingEntryModelArgumentsResolver;
 
 }

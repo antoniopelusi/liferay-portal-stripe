@@ -16,7 +16,6 @@ package com.liferay.commerce.price.list.model.impl;
 
 import com.liferay.commerce.price.list.model.CommercePriceEntry;
 import com.liferay.commerce.price.list.model.CommercePriceEntryModel;
-import com.liferay.commerce.price.list.model.CommercePriceEntrySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -34,23 +33,22 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
 import java.math.BigDecimal;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -80,6 +78,7 @@ public class CommercePriceEntryModelImpl
 	public static final String TABLE_NAME = "CommercePriceEntry";
 
 	public static final Object[][] TABLE_COLUMNS = {
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"uuid_", Types.VARCHAR}, {"externalReferenceCode", Types.VARCHAR},
 		{"commercePriceEntryId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
@@ -101,6 +100,8 @@ public class CommercePriceEntryModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("externalReferenceCode", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("commercePriceEntryId", Types.BIGINT);
@@ -131,7 +132,7 @@ public class CommercePriceEntryModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CommercePriceEntry (uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,commercePriceEntryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commercePriceListId LONG,CPInstanceUuid VARCHAR(75) null,CProductId LONG,price DECIMAL(30, 16) null,promoPrice DECIMAL(30, 16) null,discountDiscovery BOOLEAN,discountLevel1 DECIMAL(30, 16) null,discountLevel2 DECIMAL(30, 16) null,discountLevel3 DECIMAL(30, 16) null,discountLevel4 DECIMAL(30, 16) null,hasTierPrice BOOLEAN,bulkPricing BOOLEAN,displayDate DATE null,expirationDate DATE null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table CommercePriceEntry (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,commercePriceEntryId LONG not null,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commercePriceListId LONG,CPInstanceUuid VARCHAR(75) null,CProductId LONG,price DECIMAL(30, 16) null,promoPrice DECIMAL(30, 16) null,discountDiscovery BOOLEAN,discountLevel1 DECIMAL(30, 16) null,discountLevel2 DECIMAL(30, 16) null,discountLevel3 DECIMAL(30, 16) null,discountLevel4 DECIMAL(30, 16) null,hasTierPrice BOOLEAN,bulkPricing BOOLEAN,displayDate DATE null,expirationDate DATE null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (commercePriceEntryId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table CommercePriceEntry";
 
@@ -219,77 +220,6 @@ public class CommercePriceEntryModelImpl
 	 */
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 256L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CommercePriceEntry toModel(CommercePriceEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		CommercePriceEntry model = new CommercePriceEntryImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setCommercePriceEntryId(soapModel.getCommercePriceEntryId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setCommercePriceListId(soapModel.getCommercePriceListId());
-		model.setCPInstanceUuid(soapModel.getCPInstanceUuid());
-		model.setCProductId(soapModel.getCProductId());
-		model.setPrice(soapModel.getPrice());
-		model.setPromoPrice(soapModel.getPromoPrice());
-		model.setDiscountDiscovery(soapModel.isDiscountDiscovery());
-		model.setDiscountLevel1(soapModel.getDiscountLevel1());
-		model.setDiscountLevel2(soapModel.getDiscountLevel2());
-		model.setDiscountLevel3(soapModel.getDiscountLevel3());
-		model.setDiscountLevel4(soapModel.getDiscountLevel4());
-		model.setHasTierPrice(soapModel.isHasTierPrice());
-		model.setBulkPricing(soapModel.isBulkPricing());
-		model.setDisplayDate(soapModel.getDisplayDate());
-		model.setExpirationDate(soapModel.getExpirationDate());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CommercePriceEntry> toModels(
-		CommercePriceEntrySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CommercePriceEntry> models = new ArrayList<CommercePriceEntry>(
-			soapModels.length);
-
-		for (CommercePriceEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.price.list.service.util.ServiceProps.get(
@@ -380,34 +310,6 @@ public class CommercePriceEntryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CommercePriceEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommercePriceEntry.class.getClassLoader(), CommercePriceEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CommercePriceEntry> constructor =
-				(Constructor<CommercePriceEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CommercePriceEntry, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CommercePriceEntry, Object>>
@@ -422,6 +324,18 @@ public class CommercePriceEntryModelImpl
 			attributeSetterBiConsumers =
 				new LinkedHashMap<String, BiConsumer<CommercePriceEntry, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", CommercePriceEntry::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CommercePriceEntry, Long>)
+				CommercePriceEntry::setMvccVersion);
+		attributeGetterFunctions.put(
+			"ctCollectionId", CommercePriceEntry::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<CommercePriceEntry, Long>)
+				CommercePriceEntry::setCtCollectionId);
 		attributeGetterFunctions.put("uuid", CommercePriceEntry::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -587,6 +501,36 @@ public class CommercePriceEntryModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -1294,6 +1238,8 @@ public class CommercePriceEntryModelImpl
 		CommercePriceEntryImpl commercePriceEntryImpl =
 			new CommercePriceEntryImpl();
 
+		commercePriceEntryImpl.setMvccVersion(getMvccVersion());
+		commercePriceEntryImpl.setCtCollectionId(getCtCollectionId());
 		commercePriceEntryImpl.setUuid(getUuid());
 		commercePriceEntryImpl.setExternalReferenceCode(
 			getExternalReferenceCode());
@@ -1325,6 +1271,73 @@ public class CommercePriceEntryModelImpl
 		commercePriceEntryImpl.setStatusDate(getStatusDate());
 
 		commercePriceEntryImpl.resetOriginalValues();
+
+		return commercePriceEntryImpl;
+	}
+
+	@Override
+	public CommercePriceEntry cloneWithOriginalValues() {
+		CommercePriceEntryImpl commercePriceEntryImpl =
+			new CommercePriceEntryImpl();
+
+		commercePriceEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		commercePriceEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		commercePriceEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		commercePriceEntryImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		commercePriceEntryImpl.setCommercePriceEntryId(
+			this.<Long>getColumnOriginalValue("commercePriceEntryId"));
+		commercePriceEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commercePriceEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commercePriceEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commercePriceEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commercePriceEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commercePriceEntryImpl.setCommercePriceListId(
+			this.<Long>getColumnOriginalValue("commercePriceListId"));
+		commercePriceEntryImpl.setCPInstanceUuid(
+			this.<String>getColumnOriginalValue("CPInstanceUuid"));
+		commercePriceEntryImpl.setCProductId(
+			this.<Long>getColumnOriginalValue("CProductId"));
+		commercePriceEntryImpl.setPrice(
+			this.<BigDecimal>getColumnOriginalValue("price"));
+		commercePriceEntryImpl.setPromoPrice(
+			this.<BigDecimal>getColumnOriginalValue("promoPrice"));
+		commercePriceEntryImpl.setDiscountDiscovery(
+			this.<Boolean>getColumnOriginalValue("discountDiscovery"));
+		commercePriceEntryImpl.setDiscountLevel1(
+			this.<BigDecimal>getColumnOriginalValue("discountLevel1"));
+		commercePriceEntryImpl.setDiscountLevel2(
+			this.<BigDecimal>getColumnOriginalValue("discountLevel2"));
+		commercePriceEntryImpl.setDiscountLevel3(
+			this.<BigDecimal>getColumnOriginalValue("discountLevel3"));
+		commercePriceEntryImpl.setDiscountLevel4(
+			this.<BigDecimal>getColumnOriginalValue("discountLevel4"));
+		commercePriceEntryImpl.setHasTierPrice(
+			this.<Boolean>getColumnOriginalValue("hasTierPrice"));
+		commercePriceEntryImpl.setBulkPricing(
+			this.<Boolean>getColumnOriginalValue("bulkPricing"));
+		commercePriceEntryImpl.setDisplayDate(
+			this.<Date>getColumnOriginalValue("displayDate"));
+		commercePriceEntryImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+		commercePriceEntryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		commercePriceEntryImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		commercePriceEntryImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		commercePriceEntryImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		commercePriceEntryImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
 
 		return commercePriceEntryImpl;
 	}
@@ -1403,6 +1416,10 @@ public class CommercePriceEntryModelImpl
 	public CacheModel<CommercePriceEntry> toCacheModel() {
 		CommercePriceEntryCacheModel commercePriceEntryCacheModel =
 			new CommercePriceEntryCacheModel();
+
+		commercePriceEntryCacheModel.mvccVersion = getMvccVersion();
+
+		commercePriceEntryCacheModel.ctCollectionId = getCtCollectionId();
 
 		commercePriceEntryCacheModel.uuid = getUuid();
 
@@ -1547,7 +1564,7 @@ public class CommercePriceEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1558,9 +1575,27 @@ public class CommercePriceEntryModelImpl
 			Function<CommercePriceEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CommercePriceEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CommercePriceEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1607,10 +1642,14 @@ public class CommercePriceEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CommercePriceEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CommercePriceEntry.class, ModelWrapper.class);
 
 	}
 
+	private long _mvccVersion;
+	private long _ctCollectionId;
 	private String _uuid;
 	private String _externalReferenceCode;
 	private long _commercePriceEntryId;
@@ -1669,6 +1708,8 @@ public class CommercePriceEntryModelImpl
 	private void _setColumnOriginalValues() {
 		_columnOriginalValues = new HashMap<String, Object>();
 
+		_columnOriginalValues.put("mvccVersion", _mvccVersion);
+		_columnOriginalValues.put("ctCollectionId", _ctCollectionId);
 		_columnOriginalValues.put("uuid_", _uuid);
 		_columnOriginalValues.put(
 			"externalReferenceCode", _externalReferenceCode);
@@ -1721,59 +1762,63 @@ public class CommercePriceEntryModelImpl
 	static {
 		Map<String, Long> columnBitmasks = new HashMap<>();
 
-		columnBitmasks.put("uuid_", 1L);
+		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("externalReferenceCode", 2L);
+		columnBitmasks.put("ctCollectionId", 2L);
 
-		columnBitmasks.put("commercePriceEntryId", 4L);
+		columnBitmasks.put("uuid_", 4L);
 
-		columnBitmasks.put("companyId", 8L);
+		columnBitmasks.put("externalReferenceCode", 8L);
 
-		columnBitmasks.put("userId", 16L);
+		columnBitmasks.put("commercePriceEntryId", 16L);
 
-		columnBitmasks.put("userName", 32L);
+		columnBitmasks.put("companyId", 32L);
 
-		columnBitmasks.put("createDate", 64L);
+		columnBitmasks.put("userId", 64L);
 
-		columnBitmasks.put("modifiedDate", 128L);
+		columnBitmasks.put("userName", 128L);
 
-		columnBitmasks.put("commercePriceListId", 256L);
+		columnBitmasks.put("createDate", 256L);
 
-		columnBitmasks.put("CPInstanceUuid", 512L);
+		columnBitmasks.put("modifiedDate", 512L);
 
-		columnBitmasks.put("CProductId", 1024L);
+		columnBitmasks.put("commercePriceListId", 1024L);
 
-		columnBitmasks.put("price", 2048L);
+		columnBitmasks.put("CPInstanceUuid", 2048L);
 
-		columnBitmasks.put("promoPrice", 4096L);
+		columnBitmasks.put("CProductId", 4096L);
 
-		columnBitmasks.put("discountDiscovery", 8192L);
+		columnBitmasks.put("price", 8192L);
 
-		columnBitmasks.put("discountLevel1", 16384L);
+		columnBitmasks.put("promoPrice", 16384L);
 
-		columnBitmasks.put("discountLevel2", 32768L);
+		columnBitmasks.put("discountDiscovery", 32768L);
 
-		columnBitmasks.put("discountLevel3", 65536L);
+		columnBitmasks.put("discountLevel1", 65536L);
 
-		columnBitmasks.put("discountLevel4", 131072L);
+		columnBitmasks.put("discountLevel2", 131072L);
 
-		columnBitmasks.put("hasTierPrice", 262144L);
+		columnBitmasks.put("discountLevel3", 262144L);
 
-		columnBitmasks.put("bulkPricing", 524288L);
+		columnBitmasks.put("discountLevel4", 524288L);
 
-		columnBitmasks.put("displayDate", 1048576L);
+		columnBitmasks.put("hasTierPrice", 1048576L);
 
-		columnBitmasks.put("expirationDate", 2097152L);
+		columnBitmasks.put("bulkPricing", 2097152L);
 
-		columnBitmasks.put("lastPublishDate", 4194304L);
+		columnBitmasks.put("displayDate", 4194304L);
 
-		columnBitmasks.put("status", 8388608L);
+		columnBitmasks.put("expirationDate", 8388608L);
 
-		columnBitmasks.put("statusByUserId", 16777216L);
+		columnBitmasks.put("lastPublishDate", 16777216L);
 
-		columnBitmasks.put("statusByUserName", 33554432L);
+		columnBitmasks.put("status", 33554432L);
 
-		columnBitmasks.put("statusDate", 67108864L);
+		columnBitmasks.put("statusByUserId", 67108864L);
+
+		columnBitmasks.put("statusByUserName", 134217728L);
+
+		columnBitmasks.put("statusDate", 268435456L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

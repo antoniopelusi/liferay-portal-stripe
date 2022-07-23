@@ -160,6 +160,27 @@ public class WorkflowDefinition implements Cloneable, Serializable {
 
 	protected String name;
 
+	public Node[] getNodes() {
+		return nodes;
+	}
+
+	public void setNodes(Node[] nodes) {
+		this.nodes = nodes;
+	}
+
+	public void setNodes(
+		UnsafeSupplier<Node[], Exception> nodesUnsafeSupplier) {
+
+		try {
+			nodes = nodesUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Node[] nodes;
+
 	public String getTitle() {
 		return title;
 	}
@@ -202,6 +223,27 @@ public class WorkflowDefinition implements Cloneable, Serializable {
 	}
 
 	protected Map<String, String> title_i18n;
+
+	public Transition[] getTransitions() {
+		return transitions;
+	}
+
+	public void setTransitions(Transition[] transitions) {
+		this.transitions = transitions;
+	}
+
+	public void setTransitions(
+		UnsafeSupplier<Transition[], Exception> transitionsUnsafeSupplier) {
+
+		try {
+			transitions = transitionsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Transition[] transitions;
 
 	public String getVersion() {
 		return version;

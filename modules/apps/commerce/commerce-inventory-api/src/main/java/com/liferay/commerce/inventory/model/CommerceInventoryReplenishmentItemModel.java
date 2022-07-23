@@ -246,4 +246,7 @@ public interface CommerceInventoryReplenishmentItemModel
 	 */
 	public void setQuantity(int quantity);
 
+	@Override
+	public CommerceInventoryReplenishmentItem cloneWithOriginalValues();
+
 }

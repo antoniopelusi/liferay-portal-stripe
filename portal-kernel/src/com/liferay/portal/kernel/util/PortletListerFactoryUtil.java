@@ -22,7 +22,7 @@ package com.liferay.portal.kernel.util;
 public class PortletListerFactoryUtil {
 
 	public static PortletLister getPortletLister() {
-		return getPortletListerFactory().getPortletLister();
+		return _portletListerFactory.getPortletLister();
 	}
 
 	public static PortletListerFactory getPortletListerFactory() {

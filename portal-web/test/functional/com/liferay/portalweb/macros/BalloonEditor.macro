@@ -1,0 +1,45 @@
+definition {
+
+	macro addTable {
+		VerifyElementPresent(locator1 = "CKEditor#INSERT_BTN");
+
+		Click(locator1 = "CKEditor#INSERT_BTN");
+
+		Click(locator1 = "CKEditor#INSERT_TABLE_BTN");
+
+		Click(locator1 = "CKEditor#CHK_BTN_TABLE");
+	}
+
+	macro clearParagraphWithBackspace {
+		BalloonEditor.highlightText(paragraph_number = "${paragraph_number}");
+
+		KeyPress(
+			locator1 = "CKEditorBalloonEditorSample#BODY_TEXT",
+			value1 = "\BACK_SPACE");
+	}
+
+	macro goToAddVideo {
+		VerifyVisible(locator1 = "CKEditor#INSERT_BTN");
+
+		Click(locator1 = "CKEditor#INSERT_BTN");
+
+		Click(locator1 = "CKEditor#INSERT_VIDEO_BTN");
+	}
+
+	macro highlightText {
+		TripleClick(
+			locator1 = "CKEditorBalloonEditorSample#BODY_TEXT",
+			paragraph_number = "${paragraph_number}");
+	}
+
+	macro toggleBalloonEditorContentStyle {
+		ScrollWebElementIntoView(
+			key_titleName = "${optionTool}",
+			locator1 = "CKEditor#TOOLBAR_ANY_ITEM_BUTTON");
+
+		Click(
+			key_titleName = "${optionTool}",
+			locator1 = "CKEditor#TOOLBAR_ANY_ITEM_BUTTON");
+	}
+
+}

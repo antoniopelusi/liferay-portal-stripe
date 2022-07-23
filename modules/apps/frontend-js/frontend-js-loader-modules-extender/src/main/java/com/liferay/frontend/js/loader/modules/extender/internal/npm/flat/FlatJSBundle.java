@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.Version;
 
 /**
  * Provides a complete implementation of {@link JSBundle}.
@@ -74,22 +73,13 @@ public class FlatJSBundle implements JSBundle {
 
 	@Override
 	public String getVersion() {
-		Version version = _bundle.getVersion();
-
-		return version.toString();
+		return String.valueOf(_bundle.getVersion());
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(getId());
-		sb.append(StringPool.COLON);
-		sb.append(getName());
-		sb.append(StringPool.AT);
-		sb.append(getVersion());
-
-		return sb.toString();
+		return StringBundler.concat(
+			getId(), StringPool.COLON, getName(), StringPool.AT, getVersion());
 	}
 
 	private final Bundle _bundle;

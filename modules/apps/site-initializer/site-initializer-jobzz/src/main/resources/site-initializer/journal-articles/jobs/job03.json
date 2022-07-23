@@ -1,0 +1,12 @@
+{
+	"articleId": "job03",
+	"assetCategoryERCs": [
+		"CAT_SALES"
+	],
+	"assetTagNames": [
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "Account Manager"
+}

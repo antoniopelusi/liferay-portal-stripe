@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.Validator;
@@ -84,7 +85,7 @@ public class DLVideoEmbedFilter extends BasePortalFilter {
 			}
 			catch (ActionException actionException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(actionException, actionException);
+					_log.debug(actionException);
 				}
 			}
 
@@ -109,7 +110,7 @@ public class DLVideoEmbedFilter extends BasePortalFilter {
 		}
 		catch (WindowStateException windowStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(windowStateException, windowStateException);
+				_log.debug(windowStateException);
 			}
 		}
 
@@ -121,20 +122,35 @@ public class DLVideoEmbedFilter extends BasePortalFilter {
 		return getEmbedVideoURL.toString();
 	}
 
+	private FileEntry _getFileEntry(List<String> pathParts)
+		throws PortalException {
+
+		long groupId = GetterUtil.getLong(pathParts.get(1));
+
+		if (pathParts.size() == 5) {
+			String uuid = pathParts.get(4);
+
+			return _dlAppLocalService.getFileEntryByUuidAndGroupId(
+				uuid, groupId);
+		}
+
+		long folderId = GetterUtil.getLong(pathParts.get(2));
+		String fileName = HttpComponentsUtil.decodeURL(pathParts.get(3));
+
+		return _dlAppLocalService.getFileEntryByFileName(
+			groupId, folderId, fileName);
+	}
+
 	private String _getFileVersionId(HttpServletRequest httpServletRequest) {
 		List<String> pathParts = StringUtil.split(
 			httpServletRequest.getRequestURI(), CharPool.SLASH);
 
-		if (pathParts.size() < 5) {
+		if (pathParts.size() < 4) {
 			return StringPool.BLANK;
 		}
 
-		long groupId = GetterUtil.getLong(pathParts.get(1));
-		String uuid = pathParts.get(4);
-
 		try {
-			FileEntry fileEntry =
-				_dlAppLocalService.getFileEntryByUuidAndGroupId(uuid, groupId);
+			FileEntry fileEntry = _getFileEntry(pathParts);
 
 			String version = ParamUtil.getString(httpServletRequest, "version");
 
@@ -146,9 +162,7 @@ public class DLVideoEmbedFilter extends BasePortalFilter {
 				}
 				catch (NoSuchFileVersionException noSuchFileVersionException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							noSuchFileVersionException,
-							noSuchFileVersionException);
+						_log.debug(noSuchFileVersionException);
 					}
 
 					fileVersion = fileEntry.getFileVersion();
@@ -161,7 +175,7 @@ public class DLVideoEmbedFilter extends BasePortalFilter {
 			return String.valueOf(fileVersion.getFileVersionId());
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return StringPool.BLANK;

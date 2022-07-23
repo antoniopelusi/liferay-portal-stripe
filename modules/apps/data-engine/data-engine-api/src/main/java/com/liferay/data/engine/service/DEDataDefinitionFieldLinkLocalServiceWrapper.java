@@ -30,6 +30,10 @@ public class DEDataDefinitionFieldLinkLocalServiceWrapper
 	implements DEDataDefinitionFieldLinkLocalService,
 			   ServiceWrapper<DEDataDefinitionFieldLinkLocalService> {
 
+	public DEDataDefinitionFieldLinkLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DEDataDefinitionFieldLinkLocalServiceWrapper(
 		DEDataDefinitionFieldLinkLocalService
 			deDataDefinitionFieldLinkLocalService) {
@@ -195,6 +199,13 @@ public class DEDataDefinitionFieldLinkLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _deDataDefinitionFieldLinkLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _deDataDefinitionFieldLinkLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

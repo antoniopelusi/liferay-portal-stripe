@@ -14,6 +14,7 @@
 
 package com.liferay.knowledge.base.internal.upgrade.v2_0_2;
 
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
@@ -34,11 +35,9 @@ public class KBArticleUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL(
-			"create index IX_TEMP on KBArticle (groupId, kbFolderId, " +
-				"urlTitle[$COLUMN_LENGTH:75$])");
+		try (SafeCloseable safeCloseable = addTempIndex(
+				"KBArticle", false, "groupId", "kbFolderId", "urlTitle")) {
 
-		try {
 			boolean changed = true;
 
 			while (changed) {
@@ -50,9 +49,6 @@ public class KBArticleUpgradeProcess extends UpgradeProcess {
 			while (changed) {
 				changed = _renameConflictingKBFolderFriendlyURLs();
 			}
-		}
-		finally {
-			runSQL("drop index IX_TEMP on KBArticle");
 		}
 	}
 
@@ -89,29 +85,31 @@ public class KBArticleUpgradeProcess extends UpgradeProcess {
 			String selectSQL, String updateSQL)
 		throws SQLException {
 
-		try (PreparedStatement ps1 =
+		try (PreparedStatement preparedStatement1 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, updateSQL);
-			PreparedStatement ps2 = connection.prepareStatement(selectSQL);
-			ResultSet rs = ps2.executeQuery()) {
+			PreparedStatement preparedStatement2 = connection.prepareStatement(
+				selectSQL);
+			ResultSet resultSet = preparedStatement2.executeQuery()) {
 
 			int count = 0;
 
-			while (rs.next()) {
+			while (resultSet.next()) {
 				count++;
 
-				long id = rs.getLong(1);
+				long id = resultSet.getLong(1);
 
-				String urlTitle = rs.getString(2);
+				String urlTitle = resultSet.getString(2);
 
-				ps1.setString(1, _getUniqueUrlTitle(urlTitle, count));
+				preparedStatement1.setString(
+					1, _getUniqueUrlTitle(urlTitle, count));
 
-				ps1.setLong(2, id);
+				preparedStatement1.setLong(2, id);
 
-				ps1.addBatch();
+				preparedStatement1.addBatch();
 			}
 
-			ps1.executeBatch();
+			preparedStatement1.executeBatch();
 
 			if (count > 0) {
 				return true;

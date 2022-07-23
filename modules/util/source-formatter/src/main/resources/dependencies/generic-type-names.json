@@ -645,34 +645,6 @@
 			"name": "com.liferay.portal.deploy.hot.ServiceBag"
 		},
 		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.fabric.netty.codec.serialization.ObjectDecodeChannelInboundHandler"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.fabric.netty.worker.NettyFabricWorkerConfig"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.fabric.netty.worker.NettyFabricWorkerStub"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.fabric.repository.Repository"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.fabric.worker.FabricWorker"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.kernel.atom.BaseAtomCollectionAdapter"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.kernel.atom.BaseMediaAtomCollectionAdapter"
-		},
-		{
 			"genericTypeCount": 2,
 			"name": "com.liferay.portal.kernel.cache.PortalCache"
 		},
@@ -795,14 +767,6 @@
 		{
 			"genericTypeCount": 1,
 			"name": "com.liferay.portal.kernel.monitoring.DataSampleProcessor"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.kernel.nio.intraband.CompletionHandler"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.kernel.nio.intraband.RecordCompletionHandler"
 		},
 		{
 			"genericTypeCount": 1,
@@ -1019,10 +983,6 @@
 		{
 			"genericTypeCount": 1,
 			"name": "com.liferay.portal.kernel.workflow.search.WorkflowModelSearchResult"
-		},
-		{
-			"genericTypeCount": 1,
-			"name": "com.liferay.portal.nio.intraband.proxy.StubMap"
 		},
 		{
 			"genericTypeCount": 1,

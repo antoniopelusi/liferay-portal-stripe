@@ -1,0 +1,369 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+
+		ACSettings.takeTokenFromAnalyticsCloud();
+
+		TestCase.setUpPortalInstance();
+
+		ACUtils.launchDXP();
+
+		ACUtils.addSiteAndPage();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		JSONUser.tearDownNonAdminUsers();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8504 | Test Summary: Segment Overview distribution filtered by boolean"
+	@priority = "3"
+	test SegmentOverviewDistributionFilteredByBoolean {
+		var users = "user1,user2";
+		var emailList = "user1@liferay.com,user2@liferay.com";
+		var nameList = "user1 user1,user2 user2";
+
+		task ("Add a new user") {
+			for (var user : list "${users}") {
+				JSONUser.addUser(
+					userEmailAddress = "${user}@liferay.com",
+					userFirstName = "${user}",
+					userLastName = "${user}",
+					userScreenName = "${user}");
+			}
+		}
+
+		task ("Connect the DXP to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("View AC Page as new user") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "${emailList}",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Add a CSV Data Source") {
+			ACSettings.addCSVDataSource(
+				dataSourceName = "CSV Call List",
+				sourceFileName = "contacts_doNotCall.csv");
+		}
+
+		task ("Exit Settings") {
+			ACNavigation.exitSettings();
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMultiMember(tableMember = "${nameList}");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute by Boolean identifier in Overview") {
+			ACSegments.addBreakdownByAttribute(
+				attribute = "doNotCall",
+				breakdownName = "Segment Overview Test");
+		}
+
+		task ("View Breakdown Chart") {
+			ACIndividualsDashboard.viewBreakdownRecharts(
+				fillColor = "#4B9BFF",
+				tick = "false");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8505 | Test Summary: Segment Overview distribution filtered by date"
+	@priority = "3"
+	test SegmentOverviewDistributionFilteredByDate {
+		var users = "ac1,ac2";
+		var emailList = "ac1@liferay.com,ac2@liferay.com";
+		var nameList = "ac1 ac1,ac2 ac2";
+
+		task ("Create two new users") {
+			JSONUser.addUser(
+				birthdayDay = "15",
+				birthdayMonth = "2",
+				birthdayYear = "1972",
+				userEmailAddress = "ac1@liferay.com",
+				userFirstName = "ac1",
+				userLastName = "ac1",
+				userScreenName = "ac1");
+
+			JSONUser.addUser(
+				userEmailAddress = "ac2@liferay.com",
+				userFirstName = "ac2",
+				userLastName = "ac2",
+				userScreenName = "ac2");
+		}
+
+		task ("Connect AC to DXP") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("View AC Page as new user") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "${emailList}",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close all sessions, lauch AC, change the property and go to segments") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToSegments();
+		}
+
+		task ("Create a static segment, add two static members and save segment") {
+			ACSegments.createStaticSegment();
+
+			ACUtils.setItemName(itemName = "Static Segment Test");
+
+			ACSegments.addStaticMultiMember(tableMember = "${nameList}");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to segments, select a segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute by date identifier in Overview") {
+			ACSegments.addBreakdownByAttribute(
+				attribute = "birthDate",
+				breakdownName = "Segment Overview Test");
+		}
+
+		task ("View chart entry") {
+			ACIndividualsDashboard.viewBreakdownRecharts(
+				fillColor = "#4B9BFF",
+				index = "1",
+				tick = "1972-03-15T00:00:00.000Z");
+
+			ACIndividualsDashboard.viewBreakdownRecharts(
+				fillColor = "#4B9BFF",
+				index = "2",
+				tick = "1986-05-31T00:00:00.000Z");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8506 | Test Summary: Segment Overview distribution filtered by number"
+	@ignore = "true"
+	@priority = "3"
+	test SegmentOverviewDistributionFilteredByNumber {
+
+		// AC Refactor: It is not possible to filter the segment distribution by an attribute of type number
+		// AC Refactor ticket: LRAC-9336
+
+		var users = "user1,user2";
+		var emailList = "user1@liferay.com,user2@liferay.com";
+		var nameList = "user1 user1,user2 user2";
+
+		task ("Add a new site with a public widget page") {
+			ACUtils.addSiteAndPage();
+		}
+
+		task ("Add a new user") {
+			for (var user : list "${users}") {
+				JSONUser.addUser(
+					userEmailAddress = "${user}@liferay.com",
+					userFirstName = "${user}",
+					userLastName = "${user}",
+					userScreenName = "${user}");
+			}
+		}
+
+		task ("Connect the DXP to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("View AC Page as new user") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "${emailList}",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Add a CSV Data Source") {
+			ACSettings.addCSVDataSource(
+				dataSourceName = "CSV Age",
+				fieldName = "age",
+				fieldType = "Number",
+				newField = "true",
+				selectAnalyticsCloudField = "true",
+				sourceFileName = "contacts_age.csv");
+		}
+
+		task ("Exit Settings") {
+			ACNavigation.exitSettings();
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMultiMember(tableMember = "${nameList}");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute") {
+			ACSegments.addBreakdownByAttribute(
+				attribute = "age",
+				binsAmount = "10",
+				breakdownName = "AC Breakdown Test");
+		}
+
+		task ("View Chart Entry") {
+
+			// Graphic does not show up on the screen.
+
+			for (var user : list "${users}") {
+				ACIndividualsDashboard.viewBreakdownRecharts(
+					fillColor = "#4B9BFF",
+					tick = "${user} - 50.0%");
+			}
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8507 | Test Summary: Segment Overview distribution filtered by text"
+	@priority = "3"
+	test SegmentOverviewDistributionFilteredByText {
+		var users = "ac,liferay";
+		var emailList = "ac@liferay.com,liferay@liferay.com";
+		var nameList = "ac ac,liferay liferay";
+
+		task ("Connect Analytics Cloud to DXP") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+		}
+
+		task ("Create page") {
+			ACUtils.addPage(layoutName = "AC Page");
+		}
+
+		task ("Add two new users") {
+			for (var name : list "${users}") {
+				JSONUser.addUser(
+					jobTitle = "QA",
+					userEmailAddress = "${name}@liferay.com",
+					userFirstName = "${name}",
+					userLastName = "${name}",
+					userScreenName = "${name}");
+			}
+
+			ACDXPSettings.syncNewContactData();
+		}
+
+		task ("View AC Page as new user") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "${emailList}",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMultiMember(tableMember = "${nameList}");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute by Boolean identifier in Overview") {
+			ACSegments.addBreakdownByAttribute(
+				attribute = "jobTitle",
+				breakdownName = "QA");
+		}
+
+		task ("View Breakdown Chart") {
+			ACIndividualsDashboard.viewBreakdownRecharts(
+				fillColor = "#4B9BFF",
+				tick = "QA");
+		}
+	}
+
+}

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -60,6 +61,38 @@ public class Instance implements Serializable {
 	public static Instance toDTO(String json) {
 		return ObjectMapperUtil.readValue(Instance.class, json);
 	}
+
+	public static Instance unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(Instance.class, json);
+	}
+
+	@Schema
+	public Boolean getActive() {
+		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
+
+	@JsonIgnore
+	public void setActive(
+		UnsafeSupplier<Boolean, Exception> activeUnsafeSupplier) {
+
+		try {
+			active = activeUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean active;
 
 	@Schema
 	public String getAssetTitle() {
@@ -667,6 +700,16 @@ public class Instance implements Serializable {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (active != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"active\": ");
+
+			sb.append(active);
+		}
+
 		if (assetTitle != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -962,13 +1005,17 @@ public class Instance implements Serializable {
 
 		@JsonCreator
 		public static SLAStatus create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (SLAStatus slaStatus : values()) {
 				if (Objects.equals(slaStatus.getValue(), value)) {
 					return slaStatus;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -990,9 +1037,9 @@ public class Instance implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -1018,7 +1065,7 @@ public class Instance implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -1050,7 +1097,7 @@ public class Instance implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -1066,5 +1113,10 @@ public class Instance implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

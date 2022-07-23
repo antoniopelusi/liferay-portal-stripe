@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.log.SanitizerLogWrapper;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.osgi.debug.spring.extender.test.reference.SpringExtenderTestComponentReference;
@@ -236,11 +237,10 @@ public class SpringExtenderDependencyManagerTest {
 
 			});
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("unavailableComponentScanningInterval", "1");
-
-		_unavailableComponentScannerConfiguration.update(properties);
+		_unavailableComponentScannerConfiguration.update(
+			HashMapDictionaryBuilder.<String, Object>put(
+				"unavailableComponentScanningInterval", "1"
+			).build());
 
 		countDownLatch.await();
 

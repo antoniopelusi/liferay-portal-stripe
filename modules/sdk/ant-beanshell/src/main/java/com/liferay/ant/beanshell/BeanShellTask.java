@@ -36,8 +36,6 @@ public class BeanShellTask extends Task {
 
 	@Override
 	public void execute() throws BuildException {
-		Interpreter interpreter = new Interpreter();
-
 		Class<?> clazz = getClass();
 
 		ClassLoader classLoader = clazz.getClassLoader();
@@ -52,6 +50,8 @@ public class BeanShellTask extends Task {
 
 			classLoader = new AntClassLoader(getProject(), path);
 		}
+
+		Interpreter interpreter = new Interpreter();
 
 		interpreter.setClassLoader(classLoader);
 

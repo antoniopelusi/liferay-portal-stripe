@@ -18,10 +18,8 @@ import com.liferay.change.tracking.spi.display.BaseCTDisplayRenderer;
 import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -34,17 +32,24 @@ public class FriendlyURLEntryCTDisplayRenderer
 	extends BaseCTDisplayRenderer<FriendlyURLEntry> {
 
 	@Override
+	public String[] getAvailableLanguageIds(FriendlyURLEntry friendlyURLEntry) {
+		return friendlyURLEntry.getAvailableLanguageIds();
+	}
+
+	@Override
+	public String getDefaultLanguageId(FriendlyURLEntry friendlyURLEntry) {
+		return friendlyURLEntry.getDefaultLanguageId();
+	}
+
+	@Override
 	public Class<FriendlyURLEntry> getModelClass() {
 		return FriendlyURLEntry.class;
 	}
 
 	@Override
 	public String getTitle(Locale locale, FriendlyURLEntry friendlyURLEntry) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
 		return _language.format(
-			resourceBundle, "x-for-x",
+			locale, "x-for-x",
 			new String[] {
 				"model.resource." + FriendlyURLEntry.class.getName(),
 				friendlyURLEntry.getUrlTitle(locale.getLanguage())

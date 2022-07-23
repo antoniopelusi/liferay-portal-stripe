@@ -21,8 +21,8 @@ import com.liferay.commerce.discount.service.CommerceDiscountRuleService;
 import com.liferay.commerce.discount.service.CommerceDiscountService;
 import com.liferay.commerce.discount.target.CommerceDiscountTargetRegistry;
 import com.liferay.commerce.percentage.PercentageFormatter;
-import com.liferay.commerce.pricing.web.internal.constants.CommerceDiscountScreenNavigationConstants;
 import com.liferay.commerce.pricing.web.internal.display.context.CommerceDiscountDisplayContext;
+import com.liferay.commerce.pricing.web.internal.servlet.taglib.ui.constants.CommerceDiscountScreenNavigationConstants;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
@@ -104,7 +104,7 @@ public class CommerceDiscountDetailsScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -130,7 +130,8 @@ public class CommerceDiscountDetailsScreenNavigationCategory
 			WebKeys.PORTLET_DISPLAY_CONTEXT, commerceDiscountDisplayContext);
 
 		_jspRenderer.renderJSP(
-			httpServletRequest, httpServletResponse, "/discount/details.jsp");
+			httpServletRequest, httpServletResponse,
+			"/commerce_discounts/details.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

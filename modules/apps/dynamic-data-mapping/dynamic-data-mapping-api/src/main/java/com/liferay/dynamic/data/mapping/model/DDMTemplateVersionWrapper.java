@@ -192,6 +192,11 @@ public class DDMTemplateVersionWrapper
 	}
 
 	@Override
+	public DDMTemplateVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

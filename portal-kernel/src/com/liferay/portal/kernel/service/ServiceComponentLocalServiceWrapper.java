@@ -25,6 +25,10 @@ public class ServiceComponentLocalServiceWrapper
 	implements ServiceComponentLocalService,
 			   ServiceWrapper<ServiceComponentLocalService> {
 
+	public ServiceComponentLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ServiceComponentLocalServiceWrapper(
 		ServiceComponentLocalService serviceComponentLocalService) {
 
@@ -139,6 +143,13 @@ public class ServiceComponentLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _serviceComponentLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _serviceComponentLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

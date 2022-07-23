@@ -645,4 +645,7 @@ public interface DDMStructureVersionModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public DDMStructureVersion cloneWithOriginalValues();
+
 }

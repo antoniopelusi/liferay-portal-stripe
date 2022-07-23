@@ -21,11 +21,11 @@ definition {
 	macro addChildPage {
 		MouseOver(
 			key_itemName = "${parentPageName}",
-			locator1 = "SitePages#LIST_GROUP_ITEM");
+			locator1 = "PagesAdmin#LIST_GROUP_ITEM");
 
 		Click(
 			key_pageName = "${parentPageName}",
-			locator1 = "SitePages#LIST_GROUP_ITEM_PLUS_ICON");
+			locator1 = "PagesAdmin#LIST_GROUP_ITEM_PLUS_ICON");
 
 		ContentPages._selectCard(
 			basicTemplate = "${basicTemplate}",
@@ -71,116 +71,16 @@ definition {
 		}
 	}
 
-	macro addPage {
+	macro addCollectionPage {
 		if (IsTextNotEqual(locator1 = "ControlMenu#HEADING", value1 = "Pages")) {
 			ProductMenu.gotoPortlet(
 				category = "Site Builder",
 				portlet = "Pages");
 		}
-
-		var key_breadcrumbName="Pages";
-
-		Pause(locator1 = "3000");
-
-		if (IsElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB")) {
-			SitePages.gotoAddFirstPage(pageType = "Public Page");
-		}
-		else {
-			AssertClick(
-				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
-				value1 = "Pages");
-
-			LexiconEntry.gotoAddMenuItem(menuItem = "Public Page");
-		}
-
-		ContentPages._selectCard(
-			basicTemplate = "${basicTemplate}",
-			collectionName = "${collectionName}",
-			masterLayoutName = "${masterLayoutName}",
-			pageTemplateName = "${pageTemplateName}");
-
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-		PortletEntry.inputName(name = "${pageName}");
-
-		if (isSet(categoryName)) {
-			AssetCategorization.addCategory(
-				categoryName = "${categoryName}",
-				vocabularyName = "${vocabularyName}");
-		}
-
-		if (isSet(categoryNameList)) {
-			AssetCategorization.addMultipleCategories(
-				categoryNameList = "${categoryNameList}",
-				vocabularyName = "${vocabularyName}");
-		}
-
-		SitePages._addPageToNavigationMenu(
-			assertCheckboxMissing = "${assertCheckboxMissing}",
-			navigationMenus = "${navigationMenus}");
-
-		Button.clickAdd();
-
-		Pause(locator1 = "3000");
-
-		Refresh();
-
-		SelectFrame.selectFrameTop();
-
-		PageEditor.assertFragmentSidebarLoaded();
-	}
-
-	macro addPrivatePage {
-		if (IsTextNotEqual(locator1 = "ControlMenu#HEADING", value1 = "Pages")) {
-			ProductMenu.gotoPortlet(
-				category = "Site Builder",
-				portlet = "Pages");
-		}
-
-		var key_breadcrumbName="Pages";
-
-		Pause(locator1 = "3000");
-
-		if (IsElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB")) {
-			SitePages.gotoAddFirstPage(pageType = "Private Page");
-		}
-		else {
-			AssertClick(
-				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
-				value1 = "Pages");
-
-			LexiconEntry.gotoAddMenuItem(menuItem = "Private Page");
-		}
-
-		ContentPages._selectCard(
-			basicTemplate = "${basicTemplate}",
-			collectionName = "${collectionName}",
-			masterLayoutName = "${masterLayoutName}",
-			pageTemplateName = "${pageTemplateName}");
-
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-		PortletEntry.inputName(name = "${pageName}");
-
-		Button.clickAdd();
-
-		SelectFrame.selectFrameTop();
-
-		PageEditor.assertFragmentSidebarLoaded();
-	}
-
-	macro addPublicCollectionPage {
-		if (IsTextNotEqual(locator1 = "ControlMenu#HEADING", value1 = "Pages")) {
-			ProductMenu.gotoPortlet(
-				category = "Site Builder",
-				portlet = "Pages");
-		}
-
-		Pause(locator1 = "3000");
 
 		LexiconEntry.gotoAdd();
 
-		MenuItem.click(menuItem = "Public Collection Page");
+		MenuItem.click(menuItem = "Collection Page");
 
 		Navigator.gotoNavTab(navTab = "${tabName}");
 
@@ -193,7 +93,7 @@ definition {
 			Click(locator1 = "Icon#BACK");
 		}
 
-		LexiconCard.clickCardTitle(card = "${collectionName}");
+		LexiconCard.clickCard(card = "${collectionName}");
 
 		if (isSet(masterLayoutName)) {
 			LexiconCard.clickCard(card = "${masterLayoutName}");
@@ -224,25 +124,337 @@ definition {
 
 		PageEditor.assertFragmentSidebarLoaded();
 
-		AssertTextEquals(
-			locator1 = "ControlMenu#HEADING",
-			value1 = "${pageName}");
+		ControlMenu.viewHeaderTitle(headerTitle = "${pageName} *");
 
-		AssertTextEquals(
-			id = "element-text",
-			key_fragmentName = "Heading",
-			locator1 = "Fragment#CONTRIBUTED_FRAGMENT_EDITABLE_FIELD",
-			value1 = "${collectionName}");
+		PageEditor.viewFragmentEditableText(
+			editableText = "${collectionName}",
+			fragmentName = "Heading",
+			id = "element-text");
 
-		AssertElementPresent(
-			key_fragmentName = "Collection Display",
-			locator1 = "Fragment#FRAGMENT_HEADER");
+		PageEditor.viewFragment(fragmentName = "Collection Display");
 	}
 
-	macro clickPencil {
+	macro addPage {
+		if (IsTextNotEqual(locator1 = "ControlMenu#HEADING", value1 = "Pages")) {
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				portlet = "Pages");
+		}
+
+		if (IsElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB")) {
+			PagesAdmin.gotoAddFirstPage(pageType = "Page");
+		}
+		else {
+			AssertClick(
+				key_breadcrumbName = "Pages",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+				value1 = "Pages");
+
+			LexiconEntry.gotoAddMenuItem(menuItem = "Page");
+		}
+
+		ContentPages._selectCard(
+			basicTemplate = "${basicTemplate}",
+			collectionName = "${collectionName}",
+			masterLayoutName = "${masterLayoutName}",
+			pageTemplateName = "${pageTemplateName}");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		PortletEntry.inputName(name = "${pageName}");
+
+		if (isSet(categoryName)) {
+			AssetCategorization.addCategory(
+				categoryName = "${categoryName}",
+				vocabularyName = "${vocabularyName}");
+		}
+
+		if (isSet(categoryNameList)) {
+			AssetCategorization.addMultipleCategories(
+				categoryNameList = "${categoryNameList}",
+				vocabularyName = "${vocabularyName}");
+		}
+
+		PagesAdmin._addPageToNavigationMenu(
+			assertCheckboxMissing = "${assertCheckboxMissing}",
+			navigationMenus = "${navigationMenus}");
+
+		Button.clickAdd();
+
+		SelectFrameTop();
+
+		PageEditor.assertFragmentSidebarLoaded();
+	}
+
+	macro addPrivatePage {
+		if (IsTextNotEqual(locator1 = "ControlMenu#HEADING", value1 = "Pages")) {
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				portlet = "Pages");
+		}
+
+		if (IsElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB")) {
+			PagesAdmin.gotoAddFirstPage(pageType = "Private Page");
+		}
+		else {
+			AssertClick(
+				key_breadcrumbName = "Pages",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+				value1 = "Pages");
+
+			LexiconEntry.gotoAddMenuItem(menuItem = "Private Page");
+		}
+
+		ContentPages._selectCard(
+			basicTemplate = "${basicTemplate}",
+			collectionName = "${collectionName}",
+			masterLayoutName = "${masterLayoutName}",
+			pageTemplateName = "${pageTemplateName}");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		PortletEntry.inputName(name = "${pageName}");
+
+		Button.clickAdd();
+
+		SelectFrame.selectFrameTop();
+
+		PageEditor.assertFragmentSidebarLoaded();
+	}
+
+	macro addPublicCollectionPage {
+		if (IsTextNotEqual(locator1 = "ControlMenu#HEADING", value1 = "Pages")) {
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				portlet = "Pages");
+		}
+
+		LexiconEntry.gotoAdd();
+
+		MenuItem.click(menuItem = "Public Collection Page");
+
+		Navigator.gotoNavTab(navTab = "${tabName}");
+
+		if (isSet(menuItem)) {
+			AssetListsAdmin.addSelection(
+				collectionName = "${collectionName}",
+				menuItem = "${menuItem}",
+				selectedAsset = "${selectedAsset}");
+
+			Click(locator1 = "Icon#BACK");
+		}
+
+		LexiconCard.clickCard(card = "${collectionName}");
+
+		if (isSet(masterLayoutName)) {
+			LexiconCard.clickCard(card = "${masterLayoutName}");
+		}
+		else {
+			LexiconCard.clickCard(card = "Blank");
+		}
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		PortletEntry.inputName(name = "${pageName}");
+
+		if (isSet(categoryName)) {
+			AssetCategorization.addCategory(
+				categoryName = "${categoryName}",
+				vocabularyName = "${vocabularyName}");
+		}
+
+		if (isSet(categoryNameList)) {
+			AssetCategorization.addMultipleCategories(
+				categoryNameList = "${categoryNameList}",
+				vocabularyName = "${vocabularyName}");
+		}
+
+		Button.clickAdd();
+
+		SelectFrame.selectFrameTop();
+
+		PageEditor.assertFragmentSidebarLoaded();
+
+		ControlMenu.viewHeaderTitle(headerTitle = "${pageName} *");
+
+		PageEditor.viewFragmentEditableText(
+			editableText = "${collectionName}",
+			fragmentName = "Heading",
+			id = "element-text");
+
+		PageEditor.viewFragment(fragmentName = "Collection Display");
+	}
+
+	macro addPublicPage {
+		if (IsTextNotEqual(locator1 = "ControlMenu#HEADING", value1 = "Pages")) {
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				portlet = "Pages");
+		}
+
+		if (IsElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB")) {
+			PagesAdmin.gotoAddFirstPage(pageType = "Public Page");
+		}
+		else {
+			AssertClick(
+				key_breadcrumbName = "Pages",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+				value1 = "Pages");
+
+			LexiconEntry.gotoAddMenuItem(menuItem = "Public Page");
+		}
+
+		ContentPages._selectCard(
+			basicTemplate = "${basicTemplate}",
+			collectionName = "${collectionName}",
+			masterLayoutName = "${masterLayoutName}",
+			pageTemplateName = "${pageTemplateName}");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		PortletEntry.inputName(name = "${pageName}");
+
+		Button.clickAdd();
+
+		SelectFrame.selectFrameTop();
+
+		PageEditor.assertFragmentSidebarLoaded();
+	}
+
+	macro changeExperience {
+		ContentPages.openExperienceMenu();
+
+		MenuItem.click(menuItem = "${experienceName}");
+
+		ContentPages.viewCurrentExperience(experienceName = "${experienceName}");
+	}
+
+	macro focusSlide {
+		Click(
+			ariaLabel = "Focus slide ${slideNumber}",
+			locator1 = "Button#ANY_WITH_ARIA_LABEL");
+	}
+
+	macro gotoPageEditor {
 		Click(locator1 = "Icon#EDIT_PENCIL");
 
 		PageEditor.assertFragmentSidebarLoaded();
+	}
+
+	macro openExperienceMenu {
+		Click(
+			key_text = "caret-double",
+			locator1 = "Icon#ANY");
+	}
+
+	macro viewCurrentExperience {
+		AssertVisible(
+			key_text = "${experienceName}",
+			locator1 = "Button#ANY");
+	}
+
+	macro viewExperienceOrder {
+		ContentPages.openExperienceMenu();
+
+		MenuItem.viewOrder(menuItemList = "${experienceNameList}");
+
+		Click(
+			key_text = "caret-double",
+			locator1 = "Icon#ANY");
+	}
+
+	macro viewFragmentBackgroundImage {
+		if (!(isSet(position))) {
+			var position = "1";
+		}
+
+		AssertVisible(
+			image = "${image}",
+			index = "${position}",
+			locator1 = "Fragment#FRAGMENT_BACKGROUND_IMAGE");
+	}
+
+	macro viewFragmentImage {
+		if (!(isSet(position))) {
+			var position = "1";
+		}
+
+		if ("${fragmentName}" == "Content Display") {
+			if (!(isSet(assetType))) {
+				AssertVisible(
+					image = "${image}",
+					index = "${position}",
+					locator1 = "Fragment#CONTENT_DISPLAY_PREVIEW_IMAGE");
+			}
+			else {
+				AssertVisible(
+					assetType = "${assetType}",
+					image = "${image}",
+					index = "${position}",
+					locator1 = "Fragment#CONTENT_DISPLAY_IMAGE");
+			}
+		}
+		else {
+			AssertVisible(
+				fragmentName = "${fragmentName}",
+				id = "${id}",
+				image = "${image}",
+				index = "${position}",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_IMAGE");
+		}
+	}
+
+	macro viewFragmentText {
+		if (!(isSet(position))) {
+			var position = "1";
+		}
+
+		if ("${contributed}" == "false") {
+			AssertTextEquals(
+				fragmentName = "${fragmentName}",
+				index = "${position}",
+				locator1 = "Fragment#EDITABLE_FIELD_ANY",
+				value1 = "${text}");
+		}
+		else if (("${fragmentName}" == "Content Display") || ("${fragmentName}" == "Display Page Content")) {
+			if (!(isSet(assetType))) {
+				AssertTextEquals(
+					index = "${position}",
+					locator1 = "Fragment#CONTENT_DISPLAY_ASSET_SUMMARY",
+					value1 = "${text}");
+			}
+			else {
+				AssertTextEquals(
+					assetType = "${assetType}",
+					index = "${position}",
+					locator1 = "Fragment#CONTENT_DISPLAY_TEXT",
+					value1 = "${text}");
+			}
+		}
+		else {
+			AssertTextEquals(
+				fragmentName = "${fragmentName}",
+				id = "${id}",
+				index = "${position}",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				value1 = "${text}");
+		}
+	}
+
+	macro viewFragmentTextInCollectionDisplay {
+		if (!(isSet(row))) {
+			var row = "1";
+		}
+
+		if (!(isSet(column))) {
+			var column = "1";
+		}
+
+		AssertTextEquals(
+			column = "${column}",
+			locator1 = "Fragment#FRAGMENT_TEXT_IN_COLLECTION_DISPLAY",
+			row = "${row}",
+			value1 = "${text}");
 	}
 
 }

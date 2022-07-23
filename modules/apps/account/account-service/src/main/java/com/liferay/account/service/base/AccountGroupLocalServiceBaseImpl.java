@@ -18,7 +18,6 @@ import com.liferay.account.model.AccountGroup;
 import com.liferay.account.service.AccountGroupLocalService;
 import com.liferay.account.service.AccountGroupLocalServiceUtil;
 import com.liferay.account.service.persistence.AccountGroupPersistence;
-import com.liferay.account.service.persistence.AccountGroupRelPersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -134,16 +133,26 @@ public abstract class AccountGroupLocalServiceBaseImpl
 	 *
 	 * @param accountGroup the account group
 	 * @return the account group that was removed
+	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public AccountGroup deleteAccountGroup(AccountGroup accountGroup) {
+	public AccountGroup deleteAccountGroup(AccountGroup accountGroup)
+		throws PortalException {
+
 		return accountGroupPersistence.remove(accountGroup);
 	}
 
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return accountGroupPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -503,12 +512,5 @@ public abstract class AccountGroupLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected AccountGroupRelPersistence accountGroupRelPersistence;
 
 }

@@ -28,6 +28,10 @@ public class FragmentCollectionServiceWrapper
 	implements FragmentCollectionService,
 			   ServiceWrapper<FragmentCollectionService> {
 
+	public FragmentCollectionServiceWrapper() {
+		this(null);
+	}
+
 	public FragmentCollectionServiceWrapper(
 		FragmentCollectionService fragmentCollectionService) {
 
@@ -77,6 +81,15 @@ public class FragmentCollectionServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _fragmentCollectionService.fetchFragmentCollection(
+			fragmentCollectionId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
+			getFragmentCollectionFileEntries(long fragmentCollectionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _fragmentCollectionService.getFragmentCollectionFileEntries(
 			fragmentCollectionId);
 	}
 

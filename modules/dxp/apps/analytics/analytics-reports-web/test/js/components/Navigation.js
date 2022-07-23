@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import React from 'react';
 
 import Navigation from '../../../src/main/resources/META-INF/resources/js/components/Navigation';
@@ -20,11 +20,11 @@ import {StoreContextProvider} from '../../../src/main/resources/META-INF/resourc
 import '@testing-library/jest-dom/extend-expect';
 
 const mockEndpoints = {
-	analyticsReportsHistoricalReadsURL: 'analyticsReportsHistoricalReadsURL',
-	analyticsReportsHistoricalViewsURL: 'analyticsReportsHistoricalViewsURL',
-	analyticsReportsTotalReadsURL: 'analyticsReportsTotalReadsURL',
-	analyticsReportsTotalViewsURL: 'analyticsReportsTotalViewsURL',
-	analyticsReportsTrafficSourcesURL: 'analyticsReportsTrafficSourcesURL',
+	analyticsReportsHistoricalReadsURL: '/o/analyticsReportsHistoricalReadsURL',
+	analyticsReportsHistoricalViewsURL: '/o/analyticsReportsHistoricalViewsURL',
+	analyticsReportsTotalReadsURL: '/o/analyticsReportsTotalReadsURL',
+	analyticsReportsTotalViewsURL: '/o/analyticsReportsTotalViewsURL',
+	analyticsReportsTrafficSourcesURL: '/o/analyticsReportsTrafficSourcesURL',
 };
 
 const mockLanguageTag = 'en-US';
@@ -70,7 +70,6 @@ describe('Navigation', () => {
 
 	afterEach(() => {
 		jest.clearAllMocks();
-		cleanup();
 	});
 
 	it('displays an alert error message if there is no valid connection', () => {

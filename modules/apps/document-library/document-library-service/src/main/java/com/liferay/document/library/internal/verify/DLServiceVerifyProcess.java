@@ -68,7 +68,58 @@ import org.osgi.service.component.annotations.Reference;
 @Deprecated
 public class DLServiceVerifyProcess extends VerifyProcess {
 
-	protected void checkDLFileEntryMetadata() throws Exception {
+	@Override
+	protected void doVerify() throws Exception {
+		_checkDLFileEntryMetadata();
+		_checkMimeTypes();
+		_updateClassNameId();
+		_updateFileEntryAssets();
+		_updateFolderAssets();
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLAppHelperLocalService(
+		DLAppHelperLocalService dlAppHelperLocalService) {
+
+		_dlAppHelperLocalService = dlAppHelperLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLFileEntryLocalService(
+		DLFileEntryLocalService dlFileEntryLocalService) {
+
+		_dlFileEntryLocalService = dlFileEntryLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLFileEntryMetadataLocalService(
+		DLFileEntryMetadataLocalService dlFileEntryMetadataLocalService) {
+
+		_dlFileEntryMetadataLocalService = dlFileEntryMetadataLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLFileVersionLocalService(
+		DLFileVersionLocalService dlFileVersionLocalService) {
+
+		_dlFileVersionLocalService = dlFileVersionLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLFolderLocalService(
+		DLFolderLocalService dlFolderLocalService) {
+
+		_dlFolderLocalService = dlFolderLocalService;
+	}
+
+	@Reference(
+		target = "(&(release.bundle.symbolic.name=com.liferay.document.library.service)(&(release.schema.version>=3.0.0)(!(release.schema.version>=4.0.0))))",
+		unbind = "-"
+	)
+	protected void setRelease(Release release) {
+	}
+
+	private void _checkDLFileEntryMetadata() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			List<DLFileEntryMetadata> mismatchedCompanyIdDLFileEntryMetadatas =
 				_dlFileEntryMetadataLocalService.
@@ -86,7 +137,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 			for (DLFileEntryMetadata dlFileEntryMetadata :
 					mismatchedCompanyIdDLFileEntryMetadatas) {
 
-				deleteUnusedDLFileEntryMetadata(dlFileEntryMetadata);
+				_deleteUnusedDLFileEntryMetadata(dlFileEntryMetadata);
 			}
 
 			List<DLFileEntryMetadata> noStructuresDLFileEntryMetadatas =
@@ -102,12 +153,12 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 			for (DLFileEntryMetadata dlFileEntryMetadata :
 					noStructuresDLFileEntryMetadatas) {
 
-				deleteUnusedDLFileEntryMetadata(dlFileEntryMetadata);
+				_deleteUnusedDLFileEntryMetadata(dlFileEntryMetadata);
 			}
 		}
 	}
 
-	protected void checkFileVersionMimeTypes(final String[] originalMimeTypes)
+	private void _checkFileVersionMimeTypes(String[] originalMimeTypes)
 		throws Exception {
 
 		ActionableDynamicQuery actionableDynamicQuery =
@@ -185,14 +236,12 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 								exception);
 						}
 						else {
-							StringBundler sb = new StringBundler(4);
-
-							sb.append("Unable to find file version ");
-							sb.append(dlFileVersion.getVersion());
-							sb.append(" for file entry ");
-							sb.append(dlFileEntry.getName());
-
-							_log.warn(sb.toString(), exception);
+							_log.warn(
+								StringBundler.concat(
+									"Unable to find file version ",
+									dlFileVersion.getVersion(),
+									" for file entry ", dlFileEntry.getName()),
+								exception);
 						}
 					}
 				}
@@ -210,9 +259,9 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 		actionableDynamicQuery.performActions();
 	}
 
-	protected void checkMimeTypes() throws Exception {
+	private void _checkMimeTypes() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			checkFileVersionMimeTypes(
+			_checkFileVersionMimeTypes(
 				new String[] {
 					ContentTypes.APPLICATION_OCTET_STREAM,
 					_MS_OFFICE_2010_TEXT_XML_UTF8
@@ -224,7 +273,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 		}
 	}
 
-	protected void deleteUnusedDLFileEntryMetadata(
+	private void _deleteUnusedDLFileEntryMetadata(
 			DLFileEntryMetadata dlFileEntryMetadata)
 		throws Exception {
 
@@ -232,58 +281,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 			dlFileEntryMetadata);
 	}
 
-	@Override
-	protected void doVerify() throws Exception {
-		checkDLFileEntryMetadata();
-		checkMimeTypes();
-		updateClassNameId();
-		updateFileEntryAssets();
-		updateFolderAssets();
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLAppHelperLocalService(
-		DLAppHelperLocalService dlAppHelperLocalService) {
-
-		_dlAppHelperLocalService = dlAppHelperLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLFileEntryLocalService(
-		DLFileEntryLocalService dlFileEntryLocalService) {
-
-		_dlFileEntryLocalService = dlFileEntryLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLFileEntryMetadataLocalService(
-		DLFileEntryMetadataLocalService dlFileEntryMetadataLocalService) {
-
-		_dlFileEntryMetadataLocalService = dlFileEntryMetadataLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLFileVersionLocalService(
-		DLFileVersionLocalService dlFileVersionLocalService) {
-
-		_dlFileVersionLocalService = dlFileVersionLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLFolderLocalService(
-		DLFolderLocalService dlFolderLocalService) {
-
-		_dlFolderLocalService = dlFolderLocalService;
-	}
-
-	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.document.library.service)(&(release.schema.version>=3.0.0)(!(release.schema.version>=4.0.0))))",
-		unbind = "-"
-	)
-	protected void setRelease(Release release) {
-	}
-
-	protected void updateClassNameId() {
+	private void _updateClassNameId() {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			runSQL(
 				"update DLFileEntry set classNameId = 0 where classNameId is " +
@@ -298,7 +296,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 		}
 	}
 
-	protected void updateFileEntryAssets() throws Exception {
+	private void _updateFileEntryAssets() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			List<DLFileEntry> dlFileEntries =
 				_dlFileEntryLocalService.getNoAssetFileEntries();
@@ -336,7 +334,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 		}
 	}
 
-	protected void updateFolderAssets() throws Exception {
+	private void _updateFolderAssets() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			List<DLFolder> dlFolders =
 				_dlFolderLocalService.getNoAssetFolders();

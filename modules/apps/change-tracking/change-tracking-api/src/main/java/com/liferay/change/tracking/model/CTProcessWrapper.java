@@ -98,6 +98,11 @@ public class CTProcessWrapper
 		}
 	}
 
+	@Override
+	public CTProcess cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the background task ID of this ct process.
 	 *

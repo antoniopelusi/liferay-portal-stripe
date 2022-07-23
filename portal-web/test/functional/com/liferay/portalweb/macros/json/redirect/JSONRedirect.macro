@@ -8,7 +8,9 @@ definition {
 			var site = "true";
 		}
 
-		var groupId = JSONGroupAPI._getGroupIdByName(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var portalURL = JSONCompany.getPortalURL();
 
@@ -22,9 +24,17 @@ definition {
 			var permanent = "false";
 		}
 
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
 		var curl = '''
 			${portalURL}/api/jsonws/redirect.redirectentry/add-redirect-entry \
-			-u test@liferay.com:test \
+			-u ${userEmailAddress}:${userPassword} \
 			-d groupId=${groupId} \
 			-d destinationURL=${destinationURL} \
 			-d expirationDate=${expirationDate} \
@@ -39,6 +49,96 @@ definition {
 		echo("## * DestinationURL: ${destinationURL}");
 
 		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to delete an entry"
+	macro deleteEntry {
+		var redirectEntryId = JSONRedirect.getRedirectEntryId(
+			destinationURL = "${destinationURL}",
+			groupName = "${groupName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/redirect.redirectentry/delete-redirect-entry \
+				-u ${userEmailAddress}:${userPassword} \
+				-d redirectEntryId=${redirectEntryId} \
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to get the redirectEntryId"
+	macro getRedirectEntryId {
+		Variables.assertDefined(parameterList = "${destinationURL},${groupName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var groupId = JSONGroupSetter.setGroupId(groupName = "${groupName}");
+
+		var curl = '''
+			${portalURL}/api/jsonws/redirect.redirectentry/get-redirect-entries \
+			-u test@liferay.com:test \
+			-d groupId=${groupId} \
+			-d "start=-1" \
+			-d "end=-1" \
+			-d -orderByComparator=
+		''';
+		var redirectEntryId = JSONCurlUtil.post("${curl}", "$.[?(@['destinationURL'] == '${destinationURL}')]['redirectEntryId']");
+
+		if ("${redirectEntryId}" == "") {
+			fail("FAIL. Cannot find category.");
+		}
+
+		return "${redirectEntryId}";
+	}
+
+	@summary = "This calls the JSON WS API to update an entry"
+	macro updateEntry {
+		var redirectEntryId = JSONRedirect.getRedirectEntryId(
+			destinationURL = "${destinationURL}",
+			groupName = "${groupName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var destinationURL = StringUtil.replace("${destinationURL}", ":", "%3A");
+
+		if (!(isSet(expirationDate))) {
+			var expirationDate = "2100-01-01";
+		}
+
+		if (!(isSet(permanent))) {
+			var permanent = "false";
+		}
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/redirect.redirectentry/update-redirect-entry \
+				-u ${userEmailAddress}:${userPassword} \
+				-d redirectEntryId=${redirectEntryId} \
+				-d destinationURL=${destinationURL} \
+				-d expirationDate=${expirationDate} \
+				-d permanent=${permanent} \
+				-d sourceURL=${sourceURL}
+
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
 	}
 
 }

@@ -97,11 +97,8 @@ public class CommercePriceModifierPricingClassesScreenNavigationCategory
 	public boolean isVisible(
 		User user, CommercePriceModifier commercePriceModifier) {
 
-		if (commercePriceModifier == null) {
-			return false;
-		}
-
-		if (!CommercePriceModifierConstants.TARGET_PRODUCT_GROUPS.equals(
+		if ((commercePriceModifier == null) ||
+			!CommercePriceModifierConstants.TARGET_PRODUCT_GROUPS.equals(
 				commercePriceModifier.getTarget())) {
 
 			return false;
@@ -117,7 +114,7 @@ public class CommercePriceModifierPricingClassesScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -143,12 +140,13 @@ public class CommercePriceModifierPricingClassesScreenNavigationCategory
 				commercePriceListDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		_jspRenderer.renderJSP(
 			_setServletContext, httpServletRequest, httpServletResponse,
-			"/price_lists/price_modifier/pricing_classes.jsp");
+			"/commerce_price_lists/commerce_price_modifier" +
+				"/pricing_classes.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

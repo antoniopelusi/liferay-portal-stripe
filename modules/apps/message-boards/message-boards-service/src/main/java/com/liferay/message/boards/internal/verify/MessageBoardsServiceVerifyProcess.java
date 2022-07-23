@@ -39,17 +39,17 @@ public class MessageBoardsServiceVerifyProcess extends VerifyProcess {
 
 	@Override
 	protected void doVerify() throws Exception {
-		verifyGroupedModels();
+		_verifyGroupedModels();
 	}
 
 	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.message.boards.service)(&(release.schema.version>=5.0.0)(!(release.schema.version>=6.0.0))))",
+		target = "(&(release.bundle.symbolic.name=com.liferay.message.boards.service)(&(release.schema.version>=6.0.0)(!(release.schema.version>=7.0.0))))",
 		unbind = "-"
 	)
 	protected void setRelease(Release release) {
 	}
 
-	protected void verifyGroupedModels() throws Exception {
+	private void _verifyGroupedModels() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			_verifyGroupedModel.verify(
 				new MBDiscussionVerifiableModel(),

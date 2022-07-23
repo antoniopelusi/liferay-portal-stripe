@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.configuration.icon.BasePortletConfigurationIcon;
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.service.permission.UserGroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.UserGroupPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -72,7 +72,7 @@ public class AssignMembersPortletConfigurationIcon
 				"/edit_user_group_assignments.jsp"
 			).setRedirect(
 				_portal.getCurrentURL(portletRequest)
-			).build();
+			).buildPortletURL();
 
 			UserGroup userGroup = ActionUtil.getUserGroup(portletRequest);
 
@@ -83,7 +83,7 @@ public class AssignMembersPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -104,13 +104,13 @@ public class AssignMembersPortletConfigurationIcon
 
 			UserGroup userGroup = ActionUtil.getUserGroup(portletRequest);
 
-			return UserGroupPermissionUtil.contains(
+			return _userGroupPermission.contains(
 				themeDisplay.getPermissionChecker(), userGroup.getUserGroupId(),
 				ActionKeys.ASSIGN_MEMBERS);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -122,5 +122,8 @@ public class AssignMembersPortletConfigurationIcon
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private UserGroupPermission _userGroupPermission;
 
 }

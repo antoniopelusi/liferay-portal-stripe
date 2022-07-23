@@ -14,6 +14,7 @@
 
 package com.liferay.portal.language.extender.internal;
 
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.language.LanguageResources;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public class LanguageExtender
 		List<BundleCapability> bundleCapabilities =
 			bundleWiring.getCapabilities("liferay.resource.bundle");
 
-		if ((bundleCapabilities == null) || bundleCapabilities.isEmpty()) {
+		if (ListUtil.isEmpty(bundleCapabilities)) {
 			return null;
 		}
 

@@ -58,14 +58,14 @@ public class UpgradeModules extends UpgradeProcess {
 	protected boolean hasServiceComponent(String buildNamespace)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select serviceComponentId from ServiceComponent where " +
 					"buildNamespace = ?")) {
 
-			ps.setString(1, buildNamespace);
+			preparedStatement.setString(1, buildNamespace);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
 					return true;
 				}
 			}
@@ -82,14 +82,17 @@ public class UpgradeModules extends UpgradeProcess {
 				String oldServletContextName = convertedLegacyModule[0];
 				String newServletContextName = convertedLegacyModule[1];
 
-				try (PreparedStatement ps = connection.prepareStatement(
-						"select servletContextName, buildNumber from " +
-							"Release_ where servletContextName = ?")) {
+				try (PreparedStatement preparedStatement =
+						connection.prepareStatement(
+							"select servletContextName, buildNumber from " +
+								"Release_ where servletContextName = ?")) {
 
-					ps.setString(1, oldServletContextName);
+					preparedStatement.setString(1, oldServletContextName);
 
-					try (ResultSet rs = ps.executeQuery()) {
-						if (!rs.next()) {
+					try (ResultSet resultSet =
+							preparedStatement.executeQuery()) {
+
+						if (!resultSet.next()) {
 							String buildNamespace = convertedLegacyModule[2];
 
 							if (hasServiceComponent(buildNamespace)) {
@@ -145,12 +148,14 @@ public class UpgradeModules extends UpgradeProcess {
 		"com.liferay.invitation.web", "com.liferay.item.selector.web",
 		"com.liferay.journal.content.search.web",
 		"com.liferay.journal.content.web", "com.liferay.journal.service",
-		"com.liferay.journal.web", "com.liferay.layout.admin.web",
-		"com.liferay.license.manager.web", "com.liferay.loan.calculator.web",
-		"com.liferay.login.web", "com.liferay.message.boards.web",
+		"com.liferay.journal.web", "com.liferay.knowledge.base.web",
+		"com.liferay.layout.admin.web", "com.liferay.license.manager.web",
+		"com.liferay.loan.calculator.web", "com.liferay.login.web",
+		"com.liferay.message.boards.web",
 		"com.liferay.mobile.device.rules.service",
 		"com.liferay.mobile.device.rules.web", "com.liferay.my.account.web",
-		"com.liferay.nested.portlets.web", "com.liferay.network.utilities.web",
+		"com.liferay.my.subscriptions.web", "com.liferay.nested.portlets.web",
+		"com.liferay.network.utilities.web",
 		"com.liferay.password.generator.web", "com.liferay.plugins.admin.web",
 		"com.liferay.polls.service",
 		"com.liferay.portal.background.task.service",
@@ -162,7 +167,8 @@ public class UpgradeModules extends UpgradeProcess {
 		"com.liferay.product.navigation.product.menu.web",
 		"com.liferay.quick.note.web", "com.liferay.ratings.page.ratings.web",
 		"com.liferay.rss.web", "com.liferay.server.admin.web",
-		"com.liferay.site.browser.web", "com.liferay.site.my.sites.web",
+		"com.liferay.shopping.service", "com.liferay.site.browser.web",
+		"com.liferay.site.my.sites.web",
 		"com.liferay.site.navigation.breadcrumb.web",
 		"com.liferay.site.navigation.directory.web",
 		"com.liferay.site.navigation.language.web",
@@ -171,11 +177,12 @@ public class UpgradeModules extends UpgradeProcess {
 		"com.liferay.social.activities.web", "com.liferay.social.activity.web",
 		"com.liferay.social.group.statistics.web",
 		"com.liferay.social.requests.web",
-		"com.liferay.social.user.statistics.web", "com.liferay.staging.bar.web",
+		"com.liferay.social.user.statistics.web",
+		"com.liferay.softwarecatalog.service", "com.liferay.staging.bar.web",
 		"com.liferay.translator.web", "com.liferay.trash.web",
 		"com.liferay.unit.converter.web", "com.liferay.web.proxy.web",
-		"com.liferay.wiki.service", "com.liferay.wiki.web",
-		"com.liferay.xsl.content.web"
+		"com.liferay.wiki.navigation.web", "com.liferay.wiki.service",
+		"com.liferay.wiki.web", "com.liferay.xsl.content.web"
 	};
 
 	private static final String[][] _CONVERTED_LEGACY_MODULES = {
@@ -191,11 +198,13 @@ public class UpgradeModules extends UpgradeProcess {
 			"com.liferay.portal.workflow.kaleo.forms.service", "KaleoForms"
 		},
 		{"kaleo-web", "com.liferay.portal.workflow.kaleo.service", "Kaleo"},
+		{"knowledge-base-portlet", "com.liferay.knowledge.base.service", "KB"},
 		{
 			"marketplace-portlet", "com.liferay.marketplace.service",
 			"Marketplace"
 		},
 		{"microblogs-portlet", "com.liferay.microblogs.service", "Microblogs"},
+		{"opensocial-portlet", "opensocial-portlet", "OpenSocial"},
 		{
 			"private-messaging-portlet",
 			"com.liferay.social.privatemessaging.service", "PM"

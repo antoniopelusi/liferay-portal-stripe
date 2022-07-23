@@ -35,56 +35,62 @@ public class DDMTemplateUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _upgradeDDMTemplate() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select templateId, script FROM DDMTemplate where " +
 					"classNameId = ?");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMTemplate set script = ? where templateId = ?")) {
 
-			ps1.setLong(1, PortalUtil.getClassNameId(DDMStructure.class));
+			preparedStatement1.setLong(
+				1, PortalUtil.getClassNameId(DDMStructure.class));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					ps2.setString(
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					preparedStatement2.setString(
 						1,
 						StringUtil.replace(
-							rs.getString("script"), "randomizer.", "random."));
-					ps2.setLong(2, rs.getLong("templateId"));
+							resultSet.getString("script"), "randomizer.",
+							"random."));
+					preparedStatement2.setLong(
+						2, resultSet.getLong("templateId"));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
 
 	private void _upgradeDDMTemplateVersion() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select templateVersionId, script FROM DDMTemplateVersion " +
 					"where classNameId = ?");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMTemplateVersion set script = ? where " +
 						"templateVersionId = ?")) {
 
-			ps1.setLong(1, PortalUtil.getClassNameId(DDMStructure.class));
+			preparedStatement1.setLong(
+				1, PortalUtil.getClassNameId(DDMStructure.class));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					ps2.setString(
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					preparedStatement2.setString(
 						1,
 						StringUtil.replace(
-							rs.getString("script"), "randomizer.", "random."));
-					ps2.setLong(2, rs.getLong("templateVersionId"));
+							resultSet.getString("script"), "randomizer.",
+							"random."));
+					preparedStatement2.setLong(
+						2, resultSet.getLong("templateVersionId"));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

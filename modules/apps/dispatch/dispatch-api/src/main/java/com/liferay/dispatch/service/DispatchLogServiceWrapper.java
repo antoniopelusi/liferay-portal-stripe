@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class DispatchLogServiceWrapper
 	implements DispatchLogService, ServiceWrapper<DispatchLogService> {
 
+	public DispatchLogServiceWrapper() {
+		this(null);
+	}
+
 	public DispatchLogServiceWrapper(DispatchLogService dispatchLogService) {
 		_dispatchLogService = dispatchLogService;
 	}
@@ -52,6 +56,18 @@ public class DispatchLogServiceWrapper
 
 		return _dispatchLogService.getDispatchLogs(
 			dispatchTriggerId, start, end);
+	}
+
+	@Override
+	public java.util.List<com.liferay.dispatch.model.DispatchLog>
+			getDispatchLogs(
+				long dispatchTriggerId, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.dispatch.model.DispatchLog> orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dispatchLogService.getDispatchLogs(
+			dispatchTriggerId, start, end, orderByComparator);
 	}
 
 	@Override

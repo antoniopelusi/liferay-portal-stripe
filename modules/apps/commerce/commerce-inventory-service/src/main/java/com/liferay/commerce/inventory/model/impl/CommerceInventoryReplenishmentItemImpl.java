@@ -25,9 +25,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public class CommerceInventoryReplenishmentItemImpl
 	extends CommerceInventoryReplenishmentItemBaseImpl {
 
-	public CommerceInventoryReplenishmentItemImpl() {
-	}
-
 	@Override
 	public CommerceInventoryWarehouse getCommerceInventoryWarehouse()
 		throws PortalException {

@@ -72,7 +72,7 @@ public class PollerServlet extends HttpServlet {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception.getMessage());
+			_log.error(exception);
 
 			PortalUtil.sendError(
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception,
@@ -95,11 +95,7 @@ public class PollerServlet extends HttpServlet {
 		PollerHeader pollerHeader = PollerRequestHandlerUtil.getPollerHeader(
 			pollerRequestString);
 
-		if (pollerHeader == null) {
-			return StringPool.BLANK;
-		}
-
-		if (userId != pollerHeader.getUserId()) {
+		if ((pollerHeader == null) || (userId != pollerHeader.getUserId())) {
 			return StringPool.BLANK;
 		}
 
@@ -152,7 +148,7 @@ public class PollerServlet extends HttpServlet {
 			}
 			catch (InterruptedException interruptedException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(interruptedException, interruptedException);
+					_log.debug(interruptedException);
 				}
 			}
 

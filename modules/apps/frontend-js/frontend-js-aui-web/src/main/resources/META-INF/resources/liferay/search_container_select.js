@@ -39,10 +39,13 @@ AUI.add(
 
 		var STR_ROW_SELECTOR = 'rowSelector';
 
-		var TPL_HIDDEN_INPUT =
+		var TPL_HIDDEN_INPUT_CHECKED =
 			'<input class="hide" name="{name}" value="{value}" type="checkbox" ' +
 			STR_CHECKED +
 			' />';
+
+		var TPL_HIDDEN_INPUT_UNCHECKED =
+			'<input class="hide" name="{name}" value="{value}" type="checkbox"/>';
 
 		var TPL_INPUT_SELECTOR = 'input[type="checkbox"][value="{value}"]';
 
@@ -82,7 +85,7 @@ AUI.add(
 				rowSelector: {
 					validator: Lang.isString,
 					value:
-						'li[data-selectable="true"],tr[data-selectable="true"]',
+						'dd[data-selectable="true"],li[data-selectable="true"],tr[data-selectable="true"]',
 				},
 			},
 
@@ -120,10 +123,11 @@ AUI.add(
 
 					var elements = [];
 
-					var selectedElements = instance.getAllSelectedElements();
+					var allElements = instance._getAllElements(false);
 
-					selectedElements.each((item) => {
+					allElements.each((item) => {
 						elements.push({
+							checked: item.attr('checked'),
 							name: item.attr('name'),
 							value: item.val(),
 						});
@@ -170,7 +174,7 @@ AUI.add(
 
 					return actions.reduce((commonActions, elementActions) => {
 						return commonActions.filter((action) => {
-							return elementActions.indexOf(action) != -1;
+							return elementActions.indexOf(action) !== -1;
 						});
 					}, actions[0]);
 				},
@@ -206,9 +210,9 @@ AUI.add(
 				},
 
 				_isActionUrl(url) {
-					var uri = new A.Url(url);
+					const uri = new URL(url);
 
-					return Number(uri.getParameter('p_p_lifecycle')) === 1;
+					return Number(uri.searchParams.get('p_p_lifecycle')) === 1;
 				},
 
 				_notifyRowToggle() {
@@ -392,14 +396,22 @@ AUI.add(
 						);
 
 						if (input) {
-							input.attr(STR_CHECKED, true);
-							input
-								.ancestor(params.rowSelector)
-								.addClass(params.rowClassNameActive);
+							if (item.checked) {
+								input.attr(STR_CHECKED, true);
+								input
+									.ancestor(params.rowSelector)
+									.addClass(params.rowClassNameActive);
+							}
+						}
+						else if (item.checked) {
+							offScreenElementsHtml += Lang.sub(
+								TPL_HIDDEN_INPUT_CHECKED,
+								item
+							);
 						}
 						else {
 							offScreenElementsHtml += Lang.sub(
-								TPL_HIDDEN_INPUT,
+								TPL_HIDDEN_INPUT_UNCHECKED,
 								item
 							);
 						}

@@ -1,0 +1,2550 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Fragments";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name",
+				type = "content");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a use case for LPS-127024. The user can add a Collection Display with Categories for This Item into another Collection Display with a dynamic collection."
+	@priority = "5"
+	test AddCollectionDisplayWithCategoriesForThisItemToAnotherCollectionDisplayWithDynamicCollection {
+		property portal.acceptance = "true";
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add three categories in vocabulary") {
+			var firstCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 1",
+				vocabularyName = "Vocabulary Name");
+
+			var secondCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 2",
+				vocabularyName = "Vocabulary Name");
+
+			var thirdCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 3",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with the first category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${firstCategoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with the first and second categories") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document entry with all three categories") {
+			JSONDocument.addFileWithUploadedFile(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId},${thirdCategoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a dynamic collection for All Types") {
+			JSONAssetlist.addDynamicAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemType = "All Types",
+				title = "Dynamic Collection");
+		}
+
+		task ("Add a Grid to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Grid");
+		}
+
+		task ("Change the Number of Modules to 2") {
+			PageEditor.editLayoutGrid(
+				columnCount = "2",
+				panel = "General");
+		}
+
+		task ("Add a Collection Display to the first module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "1",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the dynamic collection in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Dynamic Collection",
+				columnNumber = "1",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Add a Heading fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Document Title",
+				fragmentName = "Heading");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Add a Collection Display to the second module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "2",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the dynamic collection in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Dynamic Collection",
+				columnNumber = "2",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Add a Collection Display fragment into the second module Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "Document Title",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Categories for This Item in inner Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				index = "3",
+				infoItemRelatedListProviderName = "Categories for This Item");
+		}
+
+		task ("Add a Button fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Category Name 1",
+				fragmentName = "Button");
+		}
+
+		task ("Map Name of categories to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Name",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("View the title of assets are shown in the first module") {
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title,Web Content Title") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_element = "//div[@aria-label='Heading']//*[contains(@data-lfr-editable-id,'element-text')]",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "${n}",
+					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("View the name of associated categories are shown in the second module") {
+			var n = "1";
+
+			for (var title : list "Category Name 1,Category Name 2,Category Name 3") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "1",
+					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+
+			var n = "1";
+
+			for (var title : list "Category Name 1,Category Name 2") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "2",
+					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+
+			AssertTextEquals(
+				key_colPosition = "1",
+				key_element = "//div[@class='row']//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+				key_fragmentName = "Collection Display",
+				key_rowPosition = "3",
+				locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+				value1 = "Category Name 1");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("View the title of assets are shown in the first module") {
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title,Web Content Title") {
+				ContentPages.viewFragmentText(
+					fragmentName = "heading",
+					id = "element-text",
+					position = "${n}",
+					text = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("View the name of associated categories are shown in the second module") {
+			var n = "1";
+
+			for (var title : list "Category Name 1,Category Name 2,Category Name 3,Category Name 1,Category Name 2,Category Name 1") {
+				ContentPages.viewFragmentText(
+					fragmentName = "button",
+					id = "link",
+					position = "${n}",
+					text = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a use case for LPS-127024. The user can add a Collection Display with Items with This Category into another Collection Display with Categories for This Item."
+	@priority = "4"
+	test AddCollectionDisplayWithItemsWithThisCategoryToAnotherCollectionDisplayWithCategoriesForThisItem {
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category in vocabulary") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with the category") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${categoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document entry with category") {
+			JSONDocument.addFileWithUploadedFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a Grid to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Grid");
+		}
+
+		task ("Change the Number of Modules to 2") {
+			PageEditor.editLayoutGrid(
+				columnCount = "2",
+				panel = "General");
+		}
+
+		task ("Add a Collection Display to the first module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "1",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the Categories for This Item in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				columnNumber = "1",
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Categories for This Item");
+		}
+
+		task ("Add a Heading fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "",
+				fragmentName = "Heading");
+		}
+
+		task ("Map Name of category to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Name",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Add a Collection Display to the second module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "2",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the Categories for This Item in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				columnNumber = "2",
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Categories for This Item");
+		}
+
+		task ("Add a Collection Display fragment into the second module Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Items with This Category in inner Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				index = "3",
+				infoItemRelatedListProviderName = "Items with This Category");
+		}
+
+		task ("Add a Button fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "",
+				fragmentName = "Button");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Button",
+				id = "link");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Select the display page template in web content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Display Page Name",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Navigate to associated display page template via View Content") {
+			WebContentNavigator.gotoEntryMenuItem(
+				entry = "Web Content Title",
+				menuItem = "View Content");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+		}
+
+		task ("View the name of associated categories are shown in the first module") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Category Name");
+		}
+
+		task ("View the title of assets are shown in the second module") {
+			var n = "1";
+
+			for (var title : list "Web Content Title,Document Title,Blogs Entry Title") {
+				ContentPages.viewFragmentText(
+					fragmentName = "button",
+					id = "link",
+					position = "${n}",
+					text = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a use case for LPS-127024. The user can add a Collection Display with Related Assets into another Collection Display with the Highest Rated Assets."
+	@priority = "5"
+	test AddCollectionDisplayWithRelatedAssetsToAnotherCollectionDisplayWithHighestRatedAssets {
+		property portal.acceptance = "true";
+
+		task ("Add a web content,a blogs entry and a document") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Select the web content as related assets in blogs entry") {
+			BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+
+			BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Web Content Title",
+				assetType = "Basic Web Content");
+
+			PortletEntry.publish();
+		}
+
+		task ("Select the web content and blogs entry as related assets in document") {
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Document Title");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Web Content Title",
+				assetType = "Basic Web Content");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add a Grid to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Grid");
+		}
+
+		task ("Change the Number of Modules to 2") {
+			PageEditor.editLayoutGrid(
+				columnCount = "2",
+				panel = "General");
+		}
+
+		task ("Add a Collection Display to the first module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "1",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the Highest Rated Assets in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				columnNumber = "1",
+				fragmentName = "Collection Display",
+				infoListProviderName = "Highest Rated Assets");
+		}
+
+		task ("Add a Heading fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Document Title",
+				fragmentName = "Heading");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Add a Collection Display to the second module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "2",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the Highest Rated Assets in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				columnNumber = "2",
+				fragmentName = "Collection Display",
+				infoListProviderName = "Highest Rated Assets");
+		}
+
+		task ("Add a Collection Display fragment into the second module Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "Document Title",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Related Assets in inner Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				index = "3",
+				infoItemRelatedListProviderName = "Related Assets");
+		}
+
+		task ("Add a Button fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Document Title",
+				fragmentName = "Button");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("View the title of assets are shown in the first module") {
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title,Web Content Title") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_element = "//div[@aria-label='Heading']//*[contains(@data-lfr-editable-id,'element-text')]",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "${n}",
+					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("View the title of related assets are shown in the second module") {
+			var n = "1";
+
+			for (var title : list "Blogs Entry Title,Web Content Title") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "1",
+					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+
+			var n = "1";
+
+			for (var title : list "Document Title,Web Content Title") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "2",
+					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_fragmentName = "Collection Display",
+					key_rowPosition = "3",
+					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("View the title of assets are shown in the first module") {
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title,Web Content Title") {
+				ContentPages.viewFragmentText(
+					fragmentName = "heading",
+					id = "element-text",
+					position = "${n}",
+					text = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("View the title of related assets are shown in the second module") {
+			var n = "1";
+
+			for (var title : list "Blogs Entry Title,Web Content Title,Document Title,Web Content Title,Document Title,Blogs Entry Title") {
+				ContentPages.viewFragmentText(
+					fragmentName = "button",
+					id = "link",
+					position = "${n}",
+					text = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a use case for LPS-127024. The user can add a Collection Display with Related Assets into another Collection Display with Items with This Category."
+	@priority = "4"
+	test AddCollectionDisplayWithRelatedAssetsToAnotherCollectionDisplayWithItemsWithThisCategory {
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Grid to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Grid");
+		}
+
+		task ("Change the Number of Modules to 2") {
+			PageEditor.editLayoutGrid(
+				columnCount = "2",
+				panel = "General");
+		}
+
+		task ("Add a Collection Display to the first module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "1",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the Items with This Category in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				columnNumber = "1",
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Items with This Category");
+		}
+
+		task ("Add a Heading fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "",
+				fragmentName = "Heading");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Add a Collection Display to the second module") {
+			PageEditor.addElementToColumn(
+				collectionName = "Content Display",
+				columnNumber = "2",
+				fragmentName = "Collection Display",
+				navTab = "Fragments");
+		}
+
+		task ("Select the Items with This Category in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				columnNumber = "2",
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Items with This Category");
+		}
+
+		task ("Add a Collection Display fragment into the second module Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Related Assets in inner Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				index = "3",
+				infoItemRelatedListProviderName = "Related Assets");
+		}
+
+		task ("Add a Button fragment into Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "",
+				fragmentName = "Button");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Button",
+				id = "link");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category in vocabulary") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry") {
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document entry") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Select the display page template in category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.editCP(
+				categoryName = "Category Name",
+				displayPageName = "Display Page Name",
+				displayPageTemplateType = "Specific",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Select the web content as related assets in blogs entry") {
+			BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+
+			BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Web Content Title",
+				assetType = "Basic Web Content");
+
+			PortletEntry.publish();
+		}
+
+		task ("Select the web content as related assets in document") {
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Document Title");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Web Content Title",
+				assetType = "Basic Web Content");
+
+			PortletEntry.publish();
+		}
+
+		task ("Navigate to associated display page template via View Display Page") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+		}
+
+		task ("View the title of web content is shown in the first module") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Web Content Title");
+		}
+
+		task ("View the title of related assets are shown in the second module") {
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title") {
+				ContentPages.viewFragmentText(
+					fragmentName = "button",
+					id = "link",
+					position = "${n}",
+					text = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-127025. The DPT author can preview the mapped content of collection item in DPT for Category."
+	@priority = "4"
+	test PreviewMappedContentOfCollectionItemOnDisplayPageTemplateForCategory {
+		property test.name.skip.portal.instance = "CollectionDisplayWithRelatedItemsCollectionProviders#PreviewMappedContentOfCollectionItemOnDisplayPageTemplateForCategory";
+
+		task ("Enable the DDMStructure and DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with category") {
+			BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+
+			Blogs.addEntryWithCategory(
+				categoryName = "Category Name",
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a document with category") {
+			JSONDocument.addFileWithUploadedFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add three display page templates for Category") {
+			for (var n : list "1,2,3") {
+				JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+					contentType = "Category",
+					displayPageTemplateEntryName = "Display Page Name ${n}",
+					groupName = "Test Site Name");
+			}
+		}
+
+		task ("Add a Collection display fragment to the first display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 1");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Basic Web Content related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Basic Web Content");
+		}
+
+		task ("Add a Heading fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Heading");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Select the category via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Category Name",
+				assetType = "Category");
+		}
+
+		task ("View the title of web content shown in Heading fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Add a Collection display fragment to the second display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 2");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Blogs with This Category related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Blogs with This Category");
+		}
+
+		task ("Add a Button fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Button");
+		}
+
+		task ("Map Content of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Content",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("Select the category via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Category Name",
+				assetType = "Category");
+		}
+
+		task ("View the content of blogs entry shown in Button fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Blogs Entry Content",
+				fragmentName = "Button",
+				id = "link");
+		}
+
+		task ("Add a Collection display fragment to the third display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 3");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Basic Document related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Basic Document");
+		}
+
+		task ("Add an Image fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Image");
+		}
+
+		task ("Map Preview Image of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Preview Image",
+				fragmentName = "Image",
+				id = "image-square");
+		}
+
+		task ("Select the category via preview item selector") {
+			DisplayPageTemplate.selectPreviewItem(
+				assetTitle = "Category Name",
+				assetType = "Category");
+		}
+
+		task ("View the image of document shown in Image fragment") {
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "Document_1.jpg");
+		}
+
+		task ("Disable the DDMStructure and DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	@description = "This is a test for LPS-127025. The DPT author can view the available mappable fields of collection item in DPT for Category."
+	@priority = "4"
+	test ViewAvailableMappableFieldsOfCollectionItemOnDisplayPageTemplateForCategory {
+		property test.name.skip.portal.instance = "CollectionDisplayWithRelatedItemsCollectionProviders#ViewAvailableMappableFieldsOfCollectionItemOnDisplayPageTemplateForCategory";
+
+		task ("Enable the DDMStructure and DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+
+		task ("Add a web content structure with a Text field") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(structureName = "WC Structure Name");
+
+			DataEngine.addField(
+				fieldFieldLabel = "Text",
+				fieldName = "Text");
+
+			WebContentStructures.saveCP();
+		}
+
+		task ("Add a custom document type with a Text field") {
+			DMNavigator.openDocumentTypesAdmin(siteURLKey = "test-site-name");
+
+			DMDocumentType.add(
+				dmDocumentTypeFieldNames = "Text",
+				dmDocumentTypeName = "DM Document Type Name");
+		}
+
+		task ("Add five display page templates for Category") {
+			for (var n : list "1,2,3,4,5") {
+				JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+					contentType = "Category",
+					displayPageTemplateEntryName = "Display Page Name ${n}",
+					groupName = "Test Site Name");
+			}
+		}
+
+		task ("Add a Collection display fragment to the first display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 1");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Basic Web Content related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Basic Web Content");
+		}
+
+		task ("Add a Heading fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Heading");
+		}
+
+		task ("View available mappable fields") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			for (var field : list "Title,Description,Publish Date,Author Name,Last Editor Name") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Basic Information",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "Content (Basic Web Content)",
+				key_value = "Content",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "Templates",
+				key_value = "Basic Web Content",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "Display Page",
+				key_value = "Display Page URL",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			for (var field : list "All Categories,Topic,Tags") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Categorization",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "Display Date,Expiration Date") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Schedule",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+		}
+
+		task ("Add a Collection display fragment to the second display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 2");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Blogs with This Category related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Blogs with This Category");
+		}
+
+		task ("Add a Heading fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Heading");
+		}
+
+		task ("View available mappable fields") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			for (var field : list "Title,Author Name") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Basic Information",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "Subtitle,Cover Image Caption,Content") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Content",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "Display Page URL,Description,Display Date") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Configuration",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "All Categories,Topic,Tags") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Categorization",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "Reading Time (Simple),Reading Time (Descriptive)") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Fields",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+		}
+
+		task ("Add a Collection display fragment to the third display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 3");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Basic Document related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Basic Document");
+		}
+
+		task ("Add a Heading fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Heading");
+		}
+
+		task ("View available mappable fields") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			for (var field : list "Title,Description,Version,Publish Date,Author Name") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Basic Information",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "File Name,Download URL,MIME Type,Size") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "File Information",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "Display Page",
+				key_value = "Display Page URL",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			for (var field : list "All Categories,Topic,Tags") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Categorization",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+		}
+
+		task ("Add a Collection display fragment to the fourth display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 4");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the WC Structure Name related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "WC Structure Name");
+		}
+
+		task ("Add a Heading fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Heading");
+		}
+
+		task ("View available mappable fields") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			for (var field : list "Title,Description,Publish Date,Author Name,Last Editor Name") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Basic Information",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "Content (WC Structure Name)",
+				key_value = "Text",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "Display Page",
+				key_value = "Display Page URL",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			for (var field : list "All Categories,Topic,Tags") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Categorization",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "Display Date,Expiration Date") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Schedule",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+		}
+
+		task ("Add a Collection display fragment to the fifth display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name 5");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the DM Document Type Name related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "DM Document Type Name");
+		}
+
+		task ("Add a Heading fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Heading");
+		}
+
+		task ("View available mappable fields") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			for (var field : list "Title,Description,Version,Publish Date,Author Name") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Basic Information",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			for (var field : list "File Name,Download URL,MIME Type,Size") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "File Information",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "DM Document Type Name",
+				key_value = "Text",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			AssertElementPresent(
+				key_fieldLabel = "Field",
+				key_groupLabel = "Display Page",
+				key_value = "Display Page URL",
+				locator1 = "Select#GROUPED_SELECT_VALUE");
+
+			for (var field : list "All Categories,Topic,Tags") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_groupLabel = "Categorization",
+					key_value = "${field}",
+					locator1 = "Select#GROUPED_SELECT_VALUE");
+			}
+		}
+
+		task ("Disable the DDMStructure and DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	@description = "This is a test for LPS-127025. The DPT author can use Basic Document related item collection provider in DPT for Category."
+	@priority = "5"
+	test ViewCollectionItemsBasedOnBasicDocumentOnDisplayPageTemplateForCategory {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "CollectionDisplayWithRelatedItemsCollectionProviders#ViewCollectionItemsBasedOnBasicDocumentOnDisplayPageTemplateForCategory";
+
+		task ("Enable the DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with category") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${categoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document with category") {
+			JSONDocument.addFileWithUploadedFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Collection display fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Basic Document related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Basic Document");
+		}
+
+		task ("Add a Content display fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Content Display");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Associate the display page template to category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.editCP(
+				categoryName = "Category Name",
+				displayPageName = "Display Page Name",
+				displayPageTemplateType = "Specific",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View only the image of document shown in display page template") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			AssertVisible(
+				key_colPosition = "1",
+				key_image = "Document_1.jpg",
+				key_rowPosition = "1",
+				locator1 = "Fragment#CONTENT_DISPLAY_FRAGMENT_IMAGE");
+
+			AssertElementNotPresent(
+				key_colPosition = "1",
+				key_rowPosition = "2",
+				locator1 = "PageEditor#COLLECTION_ITEM");
+		}
+
+		task ("Disable the DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	@description = "This is a test for LPS-127025. The DPT author can use Basic Web Content related item collection provider in DPT for Category."
+	@priority = "5"
+	test ViewCollectionItemsBasedOnBasicWebContentOnDisplayPageTemplateForCategory {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "CollectionDisplayWithRelatedItemsCollectionProviders#ViewCollectionItemsBasedOnBasicWebContentOnDisplayPageTemplateForCategory";
+
+		task ("Enable the DDMStructure feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with category") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${categoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document with category") {
+			JSONDocument.addFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Collection display fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Basic Web Content related items collection provider and Select the Bordered List") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Basic Web Content",
+				listStyle = "Bordered List");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Associate the display page template to category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.editCP(
+				categoryName = "Category Name",
+				displayPageName = "Display Page Name",
+				displayPageTemplateType = "Specific",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View only the title of web content shown in display page template") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			AssertVisible(
+				key_entryContent = "[normalize-space()='Web Content Title']",
+				key_fragmentName = "Collection Display",
+				key_position = "1",
+				locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BORDERED_LIST_AT_VIEW_MODE");
+
+			AssertElementNotPresent(
+				key_entryContent = "",
+				key_fragmentName = "Collection Display",
+				key_position = "2",
+				locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BORDERED_LIST_AT_VIEW_MODE");
+		}
+
+		task ("Disable the DDMStructure feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	@description = "This is a test for LPS-127025. The DPT author can use Blogs related item collection provider in DPT for Category."
+	@priority = "5"
+	test ViewCollectionItemsBasedOnBlogsOnDisplayPageTemplateForCategory {
+		property portal.acceptance = "true";
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with category") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${categoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document with category") {
+			JSONDocument.addFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Collection display fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the Blogs with This Category related items collection provider") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Blogs with This Category");
+		}
+
+		task ("Add a Heading fragment into the Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "Sample Collection Item",
+				fragmentName = "Heading");
+		}
+
+		task ("Map Title of collection items to editable field") {
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Associate the display page template to category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.editCP(
+				categoryName = "Category Name",
+				displayPageName = "Display Page Name",
+				displayPageTemplateType = "Specific",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View only the title of blogs entry shown in display page template") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			AssertTextEquals(
+				key_colPosition = "1",
+				key_fragmentName = "heading",
+				key_rowPosition = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_INLINE_CONTENT_IN_COLLECTION_DISPLAY",
+				value1 = "Blogs Entry Title");
+
+			AssertElementNotPresent(
+				key_colPosition = "1",
+				key_fragmentName = "heading",
+				key_rowPosition = "2",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_INLINE_CONTENT_IN_COLLECTION_DISPLAY");
+		}
+	}
+
+	@description = "This is a test for LPS-127025. The DPT author can use custom document type related item collection provider in DPT for Category."
+	@priority = "4"
+	test ViewCollectionItemsBasedOnCustomDocumentTypeOnDisplayPageTemplateForCategory {
+		property test.name.skip.portal.instance = "CollectionDisplayWithRelatedItemsCollectionProviders#ViewCollectionItemsBasedOnCustomDocumentTypeOnDisplayPageTemplateForCategory";
+
+		task ("Enable the DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with category") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${categoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document with category") {
+			JSONDocument.addFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a custom document type with a Text field") {
+			DMNavigator.openDocumentTypesAdmin(siteURLKey = "test-site-name");
+
+			DMDocumentType.add(
+				dmDocumentTypeFieldNames = "Text",
+				dmDocumentTypeName = "DM Document Type Name");
+		}
+
+		task ("Add a document based on new document type with category") {
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+			DMDocument.addCP(
+				categoryNameList = "Category Name",
+				dmDocumentTitle = "DM Text Title",
+				dmDocumentTypeName = "DM Document Type Name",
+				textField = "DM Document Text",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Collection display fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the DM Document Type Name related items collection provider and Select the Bordered List") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "DM Document Type Name",
+				listStyle = "Bordered List");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Associate the display page template to category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.editCP(
+				categoryName = "Category Name",
+				displayPageName = "Display Page Name",
+				displayPageTemplateType = "Specific",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View only the title of document based on custom document type shown in display page template") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			AssertVisible(
+				key_entryContent = "[normalize-space()='DM Text Title']",
+				key_fragmentName = "Collection Display",
+				key_position = "1",
+				locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BORDERED_LIST_AT_VIEW_MODE");
+
+			AssertElementNotPresent(
+				key_entryContent = "",
+				key_fragmentName = "Collection Display",
+				key_position = "2",
+				locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BORDERED_LIST_AT_VIEW_MODE");
+		}
+
+		task ("Disable the DLFileEntry feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.document.library.web.internal.model.listener.DLFileEntryTypeModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	@description = "This is a test for LPS-127025. The DPT author can use custom web content structure related item collection provider in DPT for Category."
+	@priority = "4"
+	test ViewCollectionItemsBasedOnCustomWebContentStructureOnDisplayPageTemplateForCategory {
+		property test.name.skip.portal.instance = "CollectionDisplayWithRelatedItemsCollectionProviders#ViewCollectionItemsBasedOnCustomWebContentStructureOnDisplayPageTemplateForCategory";
+
+		task ("Enable the DDMStructure feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with category") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add a blogs entry with category") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${categoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add a document with category") {
+			JSONDocument.addFile(
+				assetCategoryIds = "${categoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a web content structure with a Text field") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(structureName = "WC Structure Name");
+
+			DataEngine.addField(
+				fieldFieldLabel = "Text",
+				fieldName = "Text");
+
+			WebContentStructures.saveCP();
+		}
+
+		task ("Add a web content based on new structure with category") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+
+			WebContent.addWithStructureCP(
+				webContentText = "WC Text Content",
+				webContentTitle = "WC Text Title");
+
+			WebContent.selectCategory(
+				categoryName = "Category Name",
+				vocabularyName = "Vocabulary Name");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a Collection display fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select the WC Structure Name related items collection provider and Select the Bordered List") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "WC Structure Name",
+				listStyle = "Bordered List");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Associate the display page template to category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Category.editCP(
+				categoryName = "Category Name",
+				displayPageName = "Display Page Name",
+				displayPageTemplateType = "Specific",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View only the title of web content based on custom structure shown in display page template") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			AssertVisible(
+				key_entryContent = "[normalize-space()='WC Text Title']",
+				key_fragmentName = "Collection Display",
+				key_position = "1",
+				locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BORDERED_LIST_AT_VIEW_MODE");
+
+			AssertElementNotPresent(
+				key_entryContent = "",
+				key_fragmentName = "Collection Display",
+				key_position = "2",
+				locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BORDERED_LIST_AT_VIEW_MODE");
+		}
+
+		task ("Disable the DDMStructure feature via gogo shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:disable com.liferay.journal.web.internal.instance.lifecycle.DDMStructureModelListener");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	@description = "This is a use case for LPS-127023 and LPS-112360. The related assets should be in Collection Display when select Related Assets from Related Items Collection Provider."
+	@priority = "5"
+	test ViewRelatedAssetsInCollectionDisplay {
+		property portal.acceptance = "true";
+		property testray.main.component.name = "Display Pages";
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Web Content DPT",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a display page template for Blogs Entry") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Blogs Entry",
+				displayPageTemplateEntryName = "Blogs Entry DPT",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a display page template for Document and Basic Document") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Document",
+				displayPageTemplateEntryName = "Document DPT",
+				groupName = "Test Site Name",
+				subType = "Basic Document");
+		}
+
+		task ("Add a Collection Display to Web Content DPT and Select Related Assets in Related Items Collection Providers") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Web Content DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Related Assets");
+		}
+
+		task ("Add a Heading to Collection Display and Map the Title field to editable field") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Basic Components",
+				entryTitle = "",
+				fragmentName = "Heading");
+
+			PageEditorMapping.mapEditableFieldToCollectionItems(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Web Content Article, a Blogs Entry and a Document") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Edit the web content, Select display page template and Select related assets") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Web Content DPT",
+				pageType = "Display Page Templates");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+
+			WaitForElementNotPresent(locator1 = "IFrame#DIALOG");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Document Title",
+				assetType = "Basic Document");
+
+			WaitForElementNotPresent(locator1 = "IFrame#DIALOG");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add a widget page and Add an Asset Publisher to page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Assert related assets displayed in display page template") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "Web Content Title");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Web Content DPT");
+
+			var n = "1";
+
+			for (var title : list "Document Title,Blogs Entry Title") {
+				AssertTextEquals(
+					key_colPosition = "1",
+					key_fragmentName = "heading",
+					key_rowPosition = "${n}",
+					locator1 = "Fragment#CONTRIBUTED_FRAGMENT_INLINE_CONTENT_IN_COLLECTION_DISPLAY",
+					value1 = "${title}");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Add a Collection Display to Blogs Entry DPT") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Blogs Entry DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Select Related Assets in Related Items Collection Providers and Bordered List style") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Related Assets",
+				listStyle = "Bordered List");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Edit the blogs entry, Select display page template and Select related assets") {
+			BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+
+			BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Blogs Entry DPT",
+				pageType = "Display Page Templates");
+
+			RelatedAssets.selectAsset(
+				assetTitle = "Document Title",
+				assetType = "Basic Document");
+
+			WaitForElementNotPresent(locator1 = "IFrame#DIALOG");
+
+			PortletEntry.publish();
+		}
+
+		task ("Assert related assets displayed in display page template") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "Blogs Entry Title");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Blogs Entry DPT");
+
+			var n = "1";
+
+			for (var title : list "Web Content Title,Document Title") {
+				AssertVisible(
+					key_entryContent = "[normalize-space(text())='${title}']",
+					key_fragmentName = "Collection Display",
+					key_position = "${n}",
+					locator1 = "PageEditor#COLLECTION_ITEM_CONTENT_IN_BORDERED_LIST_AT_VIEW_MODE");
+
+				var n = ${n} + 1;
+			}
+		}
+
+		task ("Add a Collection Display to Document DPT and Select Related Assets in Related Items Collection Providers") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Document DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Related Assets");
+		}
+
+		task ("Add a Content Display to Collection Display") {
+			PageEditor.addFragmentToCollectionDisplay(
+				collectionName = "Content Display",
+				entryTitle = "",
+				fragmentName = "Content Display");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Edit the document, Select display page template") {
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Document Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Document DPT",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Assert related assets displayed in display page template") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "Document Title");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Document DPT");
+
+			var n = "1";
+
+			for (var content : list "Blogs Entry Title,Web Content Title") {
+				ContentPages.viewFragmentTextInCollectionDisplay(
+					row = "${n}",
+					text = "${content}");
+
+				var n = ${n} + 1;
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-132081. View related categories shown in display page template for non-category assets when apply Categories for This Item to Collection Display."
+	@priority = "5"
+	test ViewRelatedCategoriesInCollectionDisplayWithCategoriesForThisItem {
+		property portal.acceptance = "true";
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Web Content DPT",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add a display page template for Blogs Entry") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Blogs Entry",
+				displayPageTemplateEntryName = "Blogs Entry DPT",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a display page template for Document and Basic Document") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Document",
+				displayPageTemplateEntryName = "Document DPT",
+				groupName = "Test Site Name",
+				subType = "Basic Document");
+		}
+
+		task ("Add a Collection Display with Categories for This Item then map the Name field to Heading inside Collection Display in each display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			for (var displayPageName : list "Web Content DPT,Blogs Entry DPT,Document DPT") {
+				DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "${displayPageName}");
+
+				PageEditor.addFragment(
+					collectionName = "Content Display",
+					fragmentName = "Collection Display");
+
+				PageEditor.editCollectionDisplay(
+					fragmentName = "Collection Display",
+					infoItemRelatedListProviderName = "Categories for This Item");
+
+				PageEditor.addFragmentToCollectionDisplay(
+					collectionName = "Basic Components",
+					entryTitle = "",
+					fragmentName = "Heading");
+
+				PageEditorMapping.mapEditableFieldToCollectionItems(
+					field = "Name",
+					fragmentName = "Heading",
+					id = "element-text");
+
+				PageEditor.clickPublish();
+			}
+		}
+
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add three categories in vocabulary") {
+			var firstCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 1",
+				vocabularyName = "Vocabulary Name");
+
+			var secondCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 2",
+				vocabularyName = "Vocabulary Name");
+
+			var thirdCategoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name 3",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a web content with all three categories") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId},${thirdCategoryId}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Select the display page template in web content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Web Content DPT",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add a blogs entry with all three categories") {
+			HeadlessBlog.addBlogEntry(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId},${thirdCategoryId}",
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Select the display page template in blogs entry") {
+			BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+
+			BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Blogs Entry DPT",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add a document entry with all three categories") {
+			JSONDocument.addFileWithUploadedFile(
+				assetCategoryIds = "${firstCategoryId},${secondCategoryId},${thirdCategoryId}",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Select the display page template in document") {
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Document Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Document DPT",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add a widget page then add an Asset Publisher to page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Assert related categories displayed in display page template") {
+			for (var assetType : list "Web Content,Blogs Entry,Document") {
+				Navigator.gotoSitePage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				AssetPublisherPortlet.clickAssetTitle(assetTitle = "${assetType} Title");
+
+				ControlMenu.viewHeaderTitle(headerTitle = "${assetType} DPT");
+
+				for (var n : list "1,2,3") {
+					AssertTextEquals(
+						key_colPosition = "1",
+						key_fragmentName = "heading",
+						key_rowPosition = "${n}",
+						locator1 = "Fragment#CONTRIBUTED_FRAGMENT_INLINE_CONTENT_IN_COLLECTION_DISPLAY",
+						value1 = "Category Name ${n}");
+				}
+			}
+		}
+	}
+
+}

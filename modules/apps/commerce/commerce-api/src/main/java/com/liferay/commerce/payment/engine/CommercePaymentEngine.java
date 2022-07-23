@@ -65,9 +65,14 @@ public interface CommercePaymentEngine {
 
 	public String getPaymentMethodName(String paymentMethodKey, Locale locale);
 
-	public CommercePaymentResult partiallyRefundPayment(long commerceOrderId);
+	public CommercePaymentResult partiallyRefundPayment(
+			long commerceOrderId, String transactionId,
+			HttpServletRequest httpServletRequest)
+		throws Exception;
 
-	public CommercePaymentResult postProcessPayment(long commerceOrderId)
+	public CommercePaymentResult postProcessPayment(
+			long commerceOrderId, String transactionId,
+			HttpServletRequest httpServletRequest)
 		throws Exception;
 
 	public CommercePaymentResult processPayment(
@@ -79,10 +84,6 @@ public interface CommercePaymentEngine {
 			long commerceOrderId, String transactionId,
 			HttpServletRequest httpServletRequest)
 		throws Exception;
-
-	public CommerceOrder updateOrderPaymentStatus(
-			long commerceOrderId, int paymentStatus, String transactionId)
-		throws PortalException;
 
 	public CommerceOrder updateOrderPaymentStatus(
 			long commerceOrderId, int paymentStatus, String transactionId,

@@ -28,6 +28,7 @@ public class PythonImportPackage extends ImportPackage {
 		_importString = importString;
 	}
 
+	@Override
 	public String getPackageLevel() {
 		int pos = _importString.indexOf(StringPool.PERIOD);
 

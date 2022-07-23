@@ -179,6 +179,11 @@ public class SiteNavigationMenuItemWrapper
 		}
 	}
 
+	@Override
+	public SiteNavigationMenuItem cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this site navigation menu item.
 	 *

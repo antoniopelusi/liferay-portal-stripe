@@ -30,16 +30,6 @@ package com.liferay.oauth2.provider.model.impl;
  */
 public class OAuth2AuthorizationImpl extends OAuth2AuthorizationBaseImpl {
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never reference this class directly. All methods that expect a o auth2
-	 * authorization model instance should use the {@link
-	 * com.liferay.oauth2.provider.model.OAuth2Authorization} interface instead.
-	 */
-	public OAuth2AuthorizationImpl() {
-	}
-
 	@Override
 	public void setAccessTokenContent(String accessTokenContent) {
 		super.setAccessTokenContent(accessTokenContent);

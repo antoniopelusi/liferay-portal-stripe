@@ -20,10 +20,10 @@ import com.liferay.knowledge.base.model.KBFolderTable;
 import com.liferay.knowledge.base.model.impl.KBFolderImpl;
 import com.liferay.knowledge.base.model.impl.KBFolderModelImpl;
 import com.liferay.knowledge.base.service.persistence.KBFolderPersistence;
+import com.liferay.knowledge.base.service.persistence.KBFolderUtil;
 import com.liferay.knowledge.base.service.persistence.impl.constants.KBPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,23 +35,25 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
@@ -61,12 +63,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -3462,6 +3461,272 @@ public class KBFolderPersistenceImpl
 	private static final String _FINDER_COLUMN_G_P_UT_URLTITLE_3 =
 		"(kbFolder.urlTitle IS NULL OR kbFolder.urlTitle = '')";
 
+	private FinderPath _finderPathFetchByG_ERC;
+	private FinderPath _finderPathCountByG_ERC;
+
+	/**
+	 * Returns the kb folder where groupId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchFolderException</code> if it could not be found.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching kb folder
+	 * @throws NoSuchFolderException if a matching kb folder could not be found
+	 */
+	@Override
+	public KBFolder findByG_ERC(long groupId, String externalReferenceCode)
+		throws NoSuchFolderException {
+
+		KBFolder kbFolder = fetchByG_ERC(groupId, externalReferenceCode);
+
+		if (kbFolder == null) {
+			StringBundler sb = new StringBundler(6);
+
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+			sb.append("groupId=");
+			sb.append(groupId);
+
+			sb.append(", externalReferenceCode=");
+			sb.append(externalReferenceCode);
+
+			sb.append("}");
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(sb.toString());
+			}
+
+			throw new NoSuchFolderException(sb.toString());
+		}
+
+		return kbFolder;
+	}
+
+	/**
+	 * Returns the kb folder where groupId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching kb folder, or <code>null</code> if a matching kb folder could not be found
+	 */
+	@Override
+	public KBFolder fetchByG_ERC(long groupId, String externalReferenceCode) {
+		return fetchByG_ERC(groupId, externalReferenceCode, true);
+	}
+
+	/**
+	 * Returns the kb folder where groupId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching kb folder, or <code>null</code> if a matching kb folder could not be found
+	 */
+	@Override
+	public KBFolder fetchByG_ERC(
+		long groupId, String externalReferenceCode, boolean useFinderCache) {
+
+		externalReferenceCode = Objects.toString(externalReferenceCode, "");
+
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {groupId, externalReferenceCode};
+		}
+
+		Object result = null;
+
+		if (useFinderCache) {
+			result = finderCache.getResult(_finderPathFetchByG_ERC, finderArgs);
+		}
+
+		if (result instanceof KBFolder) {
+			KBFolder kbFolder = (KBFolder)result;
+
+			if ((groupId != kbFolder.getGroupId()) ||
+				!Objects.equals(
+					externalReferenceCode,
+					kbFolder.getExternalReferenceCode())) {
+
+				result = null;
+			}
+		}
+
+		if (result == null) {
+			StringBundler sb = new StringBundler(4);
+
+			sb.append(_SQL_SELECT_KBFOLDER_WHERE);
+
+			sb.append(_FINDER_COLUMN_G_ERC_GROUPID_2);
+
+			boolean bindExternalReferenceCode = false;
+
+			if (externalReferenceCode.isEmpty()) {
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_3);
+			}
+			else {
+				bindExternalReferenceCode = true;
+
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_2);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(groupId);
+
+				if (bindExternalReferenceCode) {
+					queryPos.add(externalReferenceCode);
+				}
+
+				List<KBFolder> list = query.list();
+
+				if (list.isEmpty()) {
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByG_ERC, finderArgs, list);
+					}
+				}
+				else {
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							if (!useFinderCache) {
+								finderArgs = new Object[] {
+									groupId, externalReferenceCode
+								};
+							}
+
+							_log.warn(
+								"KBFolderPersistenceImpl.fetchByG_ERC(long, String, boolean) with parameters (" +
+									StringUtil.merge(finderArgs) +
+										") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
+					}
+
+					KBFolder kbFolder = list.get(0);
+
+					result = kbFolder;
+
+					cacheResult(kbFolder);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		if (result instanceof List<?>) {
+			return null;
+		}
+		else {
+			return (KBFolder)result;
+		}
+	}
+
+	/**
+	 * Removes the kb folder where groupId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the kb folder that was removed
+	 */
+	@Override
+	public KBFolder removeByG_ERC(long groupId, String externalReferenceCode)
+		throws NoSuchFolderException {
+
+		KBFolder kbFolder = findByG_ERC(groupId, externalReferenceCode);
+
+		return remove(kbFolder);
+	}
+
+	/**
+	 * Returns the number of kb folders where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching kb folders
+	 */
+	@Override
+	public int countByG_ERC(long groupId, String externalReferenceCode) {
+		externalReferenceCode = Objects.toString(externalReferenceCode, "");
+
+		FinderPath finderPath = _finderPathCountByG_ERC;
+
+		Object[] finderArgs = new Object[] {groupId, externalReferenceCode};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append(_SQL_COUNT_KBFOLDER_WHERE);
+
+			sb.append(_FINDER_COLUMN_G_ERC_GROUPID_2);
+
+			boolean bindExternalReferenceCode = false;
+
+			if (externalReferenceCode.isEmpty()) {
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_3);
+			}
+			else {
+				bindExternalReferenceCode = true;
+
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_2);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(groupId);
+
+				if (bindExternalReferenceCode) {
+					queryPos.add(externalReferenceCode);
+				}
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_G_ERC_GROUPID_2 =
+		"kbFolder.groupId = ? AND ";
+
+	private static final String _FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_2 =
+		"kbFolder.externalReferenceCode = ?";
+
+	private static final String _FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_3 =
+		"(kbFolder.externalReferenceCode IS NULL OR kbFolder.externalReferenceCode = '')";
+
 	public KBFolderPersistenceImpl() {
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
@@ -3506,7 +3771,16 @@ public class KBFolderPersistenceImpl
 				kbFolder.getUrlTitle()
 			},
 			kbFolder);
+
+		finderCache.putResult(
+			_finderPathFetchByG_ERC,
+			new Object[] {
+				kbFolder.getGroupId(), kbFolder.getExternalReferenceCode()
+			},
+			kbFolder);
 	}
+
+	private int _valueObjectFinderCacheListThreshold;
 
 	/**
 	 * Caches the kb folders in the entity cache if it is enabled.
@@ -3515,6 +3789,13 @@ public class KBFolderPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<KBFolder> kbFolders) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (kbFolders.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (KBFolder kbFolder : kbFolders) {
 			if (entityCache.getResult(
 					KBFolderImpl.class, kbFolder.getPrimaryKey()) == null) {
@@ -3594,6 +3875,14 @@ public class KBFolderPersistenceImpl
 		finderCache.putResult(_finderPathCountByG_P_UT, args, Long.valueOf(1));
 		finderCache.putResult(
 			_finderPathFetchByG_P_UT, args, kbFolderModelImpl);
+
+		args = new Object[] {
+			kbFolderModelImpl.getGroupId(),
+			kbFolderModelImpl.getExternalReferenceCode()
+		};
+
+		finderCache.putResult(_finderPathCountByG_ERC, args, Long.valueOf(1));
+		finderCache.putResult(_finderPathFetchByG_ERC, args, kbFolderModelImpl);
 	}
 
 	/**
@@ -3609,7 +3898,7 @@ public class KBFolderPersistenceImpl
 		kbFolder.setNew(true);
 		kbFolder.setPrimaryKey(kbFolderId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		kbFolder.setUuid(uuid);
 
@@ -3724,7 +4013,7 @@ public class KBFolderPersistenceImpl
 		KBFolderModelImpl kbFolderModelImpl = (KBFolderModelImpl)kbFolder;
 
 		if (Validator.isNull(kbFolder.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			kbFolder.setUuid(uuid);
 		}
@@ -3732,23 +4021,23 @@ public class KBFolderPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (kbFolder.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				kbFolder.setCreateDate(now);
+				kbFolder.setCreateDate(date);
 			}
 			else {
-				kbFolder.setCreateDate(serviceContext.getCreateDate(now));
+				kbFolder.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!kbFolderModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				kbFolder.setModifiedDate(now);
+				kbFolder.setModifiedDate(date);
 			}
 			else {
-				kbFolder.setModifiedDate(serviceContext.getModifiedDate(now));
+				kbFolder.setModifiedDate(serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4043,12 +4332,9 @@ public class KBFolderPersistenceImpl
 	 * Initializes the kb folder persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new KBFolderModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4177,13 +4463,40 @@ public class KBFolderPersistenceImpl
 				String.class.getName()
 			},
 			new String[] {"groupId", "parentKBFolderId", "urlTitle"}, false);
+
+		_finderPathFetchByG_ERC = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByG_ERC",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"groupId", "externalReferenceCode"}, true);
+
+		_finderPathCountByG_ERC = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_ERC",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"groupId", "externalReferenceCode"}, false);
+
+		_setKBFolderUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(KBFolderImpl.class.getName());
+		_setKBFolderUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(KBFolderImpl.class.getName());
+	}
+
+	private void _setKBFolderUtilPersistence(
+		KBFolderPersistence kbFolderPersistence) {
+
+		try {
+			Field field = KBFolderUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, kbFolderPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -4211,8 +4524,6 @@ public class KBFolderPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -4274,91 +4585,10 @@ public class KBFolderPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class KBFolderModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			KBFolderModelImpl kbFolderModelImpl = (KBFolderModelImpl)baseModel;
-
-			long columnBitmask = kbFolderModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(kbFolderModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						kbFolderModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(kbFolderModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return KBFolderImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return KBFolderTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			KBFolderModelImpl kbFolderModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = kbFolderModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = kbFolderModelImpl.getColumnValue(columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private KBFolderModelArgumentsResolver _kbFolderModelArgumentsResolver;
 
 }

@@ -40,13 +40,16 @@ definition {
 			-d css= \
 			-d <CURL_DATA[html=${html}]CURL_DATA> \
 			-d js= \
+			-d cacheable=false \
 			-d configuration=${configuration} \
+			-d icon= \
 			-d previewFileEntryId=0 \
 			-d type=${type} \
 			-d status=${status}
 		''';
+		var fragmentEntryId = JSONCurlUtil.post("${curl}", "$..fragmentEntryId");
 
-		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+		return "${fragmentEntryId}";
 	}
 
 	@summary = "Directly calls the JSON WS API to delete a fragment collection"
@@ -79,12 +82,9 @@ definition {
 			-d <CURL_DATA[end=-1]CURL_DATA> \
 			-d -orderByComparator=
 		''';
-
 		var collectionId = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${collectionName}')]['fragmentCollectionId']");
-		var collectionId = StringUtil.replace("${collectionId}", "[&quot;", "");
-		var collectionId = StringUtil.replace("${collectionId}", "&quot;]", "");
 
-		if ("${collectionId}" == "[]") {
+		if ("${collectionId}" == "") {
 			fail("FAIL. Cannot find collection.");
 		}
 
@@ -104,7 +104,6 @@ definition {
 			-d <CURL_DATA[end=-1]CURL_DATA> \
 			-d -orderByComparator=
 		''';
-
 		var collectionNameResult = JSONCurlUtil.post("${curl}", "$..[?(@['name'] == '${collectionName}')]");
 
 		return "${collectionNameResult}";
@@ -122,7 +121,6 @@ definition {
 			-d <CURL_DATA[start=-1]CURL_DATA> \
 			-d <CURL_DATA[end=-1]CURL_DATA>
 		''';
-
 		var fragmentNameResult = JSONCurlUtil.post("${curl}", "$..[?(@['name'] == '${fragmentName}')]");
 
 		return "${fragmentNameResult}";

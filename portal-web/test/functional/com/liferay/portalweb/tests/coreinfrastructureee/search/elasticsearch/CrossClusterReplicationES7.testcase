@@ -3,7 +3,8 @@ definition {
 
 	property elasticsearch.ccr.enabled = "true";
 	property elasticsearch.multiple.connections = "true";
-	property osgi.app.includes = "portal-search-elasticsearch-cross-cluster-replication";
+	property environment.acceptance = "false";
+	property minimum.slave.ram = "24";
 	property portal.release = "true";
 	property portal.suite.search.engine = "elasticsearch7";
 	property portal.upstream = "true";
@@ -28,13 +29,12 @@ definition {
 
 			DMDocument.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
 	@priority = "4"
 	test AssertReplicationAfterReindex {
-		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "CrossClusterReplicationES7#AssertReplicationAfterReindex";
 
 		JSONDocument.addFile(
@@ -52,12 +52,7 @@ definition {
 			searchAssetTitle = "Apple1",
 			searchAssetType = "Document");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 
 		JSONDocument.addFile(
 			dmDocumentDescription = "DM Description",
@@ -75,7 +70,6 @@ definition {
 
 	@priority = "3"
 	test BreakWorkflowSLA {
-		property portal.upstream = "false";
 		property test.name.skip.portal.instance = "CrossClusterReplicationES7#BreakWorkflowSLA";
 
 		CrossClusterReplication.setupCrossClusterReplication();
@@ -387,7 +381,7 @@ definition {
 			workflowResourceValue = "Blogs Entry");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Blogs");
 
@@ -418,45 +412,6 @@ definition {
 			searchAssetTitle = "Blogs Entry Title",
 			searchAssetType = "Blogs Entry",
 			searchTerm = "Blogs");
-	}
-
-	@priority = "3"
-	test HotDeployApp {
-		property hot.deploy.osgi.app.includes = "portal-search-elasticsearch-cross-cluster-replication";
-		property osgi.app.includes = "";
-		property test.assert.warning.exceptions = "true";
-		property test.name.skip.portal.instance = "CrossClusterReplicationES7#HotDeployApp";
-
-		var appName = "Liferay Enterprise Search Cross-Cluster Replication";
-
-		AssertConsoleTextNotPresent(value1 = "The portal instance needs to be restarted");
-
-		AssertConsoleTextPresent(value1 = "STARTED ${appName}");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "App Manager");
-
-		AppManager.viewApp(
-			appName = "${appName}",
-			appStatus = "Active",
-			searchTerm = "Replication");
-
-		AppManager.deactivateApp(appName = "${appName}");
-
-		AppManager.viewApp(
-			appName = "${appName}",
-			appStatus = "Resolved",
-			searchTerm = "Replication");
-
-		AssertConsoleTextPresent(value1 = "STOPPED com.liferay.portal.search.elasticsearch.cross.cluster.replication.impl");
-
-		AppManager.activateApp(appName = "${appName}");
-
-		AssertConsoleTextPresent(value1 = "STARTED com.liferay.portal.search.elasticsearch.cross.cluster.replication.impl");
-
-		AssertConsoleTextNotPresent(value1 = "The portal instance needs to be restarted");
 	}
 
 	@priority = "3"
@@ -572,7 +527,7 @@ definition {
 		Navigator.openSpecificURL(url = "http://www.able.com:8080");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMDocument.addCP(
@@ -597,7 +552,6 @@ definition {
 	test Smoke {
 		property osgi.module.configuration.file.names = "com.liferay.portal.bundle.blacklist.internal.configuration.BundleBlacklistConfiguration.config";
 		property osgi.module.configurations = "blacklistBundleSymbolicNames=&quot;com.liferay.portal.search.tuning.rankings.web&quot;";
-		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "CrossClusterReplicationES7#Smoke";
 
 		JSONDocument.addFile(
@@ -607,22 +561,19 @@ definition {
 
 		CrossClusterReplication.setupCrossClusterReplication();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
+		SearchAdministration.openSearchAdmin();
 
 		AssertTextEquals(
 			locator1 = "Portlet#HEADER",
 			value1 = "Search");
 
 		AssertTextEquals.assertPartialText(
-			key_connectionID = "__REMOTE__",
+			key_connectionId = "__REMOTE__",
 			locator1 = "SearchAdmin#CLUSTER_NAME",
 			value1 = "LiferayElasticsearchCluster");
 
 		AssertTextEquals.assertPartialText(
-			key_connectionID = "localcluster",
+			key_connectionId = "localcluster",
 			locator1 = "SearchAdmin#CLUSTER_NAME",
 			value1 = "LiferayElasticsearchClusterTwo");
 
@@ -638,17 +589,14 @@ definition {
 			locator1 = "build-test-elasticsearch7.xml",
 			value1 = "stop-elasticsearch -Delasticsearch.bundle.number=1");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
+		SearchAdministration.openSearchAdmin();
 
 		AssertTextEquals(
 			locator1 = "Portlet#HEADER",
 			value1 = "Search");
 
 		AssertTextEquals.assertPartialText(
-			key_connectionID = "localcluster",
+			key_connectionId = "localcluster",
 			locator1 = "SearchAdmin#CLUSTER_NAME",
 			value1 = "LiferayElasticsearchClusterTwo");
 
@@ -657,7 +605,7 @@ definition {
 			value1 = "Connection refused");
 
 		AssertElementNotPresent(
-			key_connectionID = "__REMOTE__",
+			key_connectionId = "__REMOTE__",
 			locator1 = "SearchAdmin#CLUSTER_NAME");
 
 		Navigator.openURL();
@@ -676,17 +624,14 @@ definition {
 			locator1 = "build-test-elasticsearch7.xml",
 			value1 = "stop-elasticsearch -Delasticsearch.bundle.number=2");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
+		SearchAdministration.openSearchAdmin();
 
 		AssertTextEquals(
 			locator1 = "Portlet#HEADER",
 			value1 = "Search");
 
 		AssertTextEquals.assertPartialText(
-			key_connectionID = "__REMOTE__",
+			key_connectionId = "__REMOTE__",
 			locator1 = "SearchAdmin#CLUSTER_NAME",
 			value1 = "LiferayElasticsearchCluster");
 
@@ -695,7 +640,7 @@ definition {
 			value1 = "Connection refused");
 
 		AssertElementNotPresent(
-			key_connectionID = "localcluster",
+			key_connectionId = "localcluster",
 			locator1 = "SearchAdmin#CLUSTER_NAME");
 
 		Navigator.openURL();

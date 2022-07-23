@@ -11,16 +11,29 @@ definition {
 			  -u test@liferay.com:test \
 			  -d groupIds=[${groupId}]
 		''';
-
 		var fileEntryTypeId = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${fileEntryTypeName}')]['fileEntryTypeId']");
-		var fileEntryTypeId = StringUtil.replace("${fileEntryTypeId}", "[&quot;", "");
-		var fileEntryTypeId = StringUtil.replace("${fileEntryTypeId}", "&quot;]", "");
 
-		if ("${fileEntryTypeId}" == "[]") {
-			fail("FAIL. Cannot find fileEntryTypeId.");
+		if ("${fileEntryTypeId}" == "") {
+			echo("The ${fileEntryTypeName} doesn't exist.");
 		}
 
 		return "${fileEntryTypeId}";
+	}
+
+	@summary = "Get fileEntryTypeId of dlFileEntryTypes in specific group."
+	macro _getFileEntryTypeIds {
+		Variables.assertDefined(parameterList = "${groupId}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/dlfileentrytype/get-file-entry-types \
+			  -u test@liferay.com:test \
+			  -d groupIds=[${groupId}]
+		''';
+		var fileEntryTypeIds = JSONCurlUtil.post("${curl}", "$..fileEntryTypeId");
+
+		return "${fileEntryTypeIds}";
 	}
 
 }

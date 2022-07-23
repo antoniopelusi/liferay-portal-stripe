@@ -33,8 +33,10 @@ definition {
 	macro gotoNavigationMenuWidgetConfig {
 		WaitForElementPresent(locator1 = "//script[contains(@src,'/o/frontend-js-aui-web/liferay/menu_toggle.js')]");
 
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
 		Portlet.gotoPortletOptions(
-			portletName = "Navigation Menu",
+			portletName = "Menu Display",
 			portletOption = "Configuration");
 
 		IFrame.selectModalFrame();
@@ -84,6 +86,19 @@ definition {
 		Select(
 			locator1 = "NavigationMenusWidget#SELECT_NAVIGATION",
 			value1 = "${menuType}");
+	}
+
+	macro viewMenuItemsOrder {
+		var index = "1";
+
+		for (var menuItem : list "${menuItemList}") {
+			AssertTextEquals(
+				key_index = "${index}",
+				locator1 = "NavigationMenusWidget#MENU_ITEM",
+				value1 = "${menuItem}");
+
+			var index = ${index} + 1;
+		}
 	}
 
 }

@@ -16,7 +16,8 @@
 
 <%@ include file="/init.jsp" %>
 
-<%@ page import="com.liferay.social.kernel.model.SocialActivity" %><%@
+<%@ page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
+page import="com.liferay.social.kernel.model.SocialActivity" %><%@
 page import="com.liferay.social.kernel.model.SocialActivityFeedEntry" %><%@
 page import="com.liferay.social.kernel.service.SocialActivityLocalServiceUtil" %><%@
 page import="com.liferay.social.kernel.util.SocialActivityDescriptor" %>
@@ -46,10 +47,10 @@ if (activityDescriptors == null) {
 
 String selector = StringPool.BLANK;
 
-Format dateFormatDate = FastDateFormatFactoryUtil.getSimpleDateFormat("MMMM d", locale, timeZone);
-Format yearDateFormatDate = FastDateFormatFactoryUtil.getSimpleDateFormat("MMMM d, yyyy", locale, timeZone);
+Format dateFormat = FastDateFormatFactoryUtil.getSimpleDateFormat(LanguageUtil.get(request, "mmm-d"), locale, timeZone);
+Format yearDateFormat = FastDateFormatFactoryUtil.getSimpleDateFormat(LanguageUtil.get(request, "mmmm-d-yyyy"), locale, timeZone);
 
-Format timeFormatDate = FastDateFormatFactoryUtil.getTime(locale, timeZone);
+Format timeFormat = FastDateFormatFactoryUtil.getTime(locale, timeZone);
 %>
 
 <%@ include file="/social_activities/init-ext.jsp" %>

@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class AssetLinkLocalServiceWrapper
 	implements AssetLinkLocalService, ServiceWrapper<AssetLinkLocalService> {
 
+	public AssetLinkLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetLinkLocalServiceWrapper(
 		AssetLinkLocalService assetLinkLocalService) {
 
@@ -191,6 +195,13 @@ public class AssetLinkLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _assetLinkLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetLinkLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -1,17 +1,17 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property custom.properties = "jsonws.web.service.paths.excludes=";
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property testray.component.names = "Message Boards";
 	property testray.main.component.name = "Mentions";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -25,12 +25,10 @@ definition {
 			userEmailAddress = "userea@liferay.com");
 
 		User.logoutAndLoginPG(
-			freeLogin = "true",
 			userLoginEmailAddress = "userea@liferay.com",
 			userLoginFullName = "userfn userln");
 
 		User.logoutAndLoginPG(
-			freeLogin = "true",
 			userLoginEmailAddress = "test@liferay.com",
 			userLoginFullName = "Test Test");
 	}
@@ -42,72 +40,27 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
-			MessageboardsCategory.tearDownCP();
-
-			MessageboardsThread.tearDownCP(assetType = "Message Boards Thread");
-
-			Page.tearDownCP();
+			MessageboardsThread.tearDownCP(assetType = "Thread Subject");
 		}
 	}
 
-	@description = "This test covers LPS-117986. It ensures that multiple mentions can be added to thread."
-	@priority = "4"
-	@refactorneeded
-	test MultipleMentionsCanBeAddedToThread {
-		JSONUser.addUser(
-			userEmailAddress = "userea2@liferay.com",
-			userFirstName = "userfn2",
-			userLastName = "userln2",
-			userScreenName = "usersn2");
+	@description = "This test covers LPS-117986. It validates that consecutive mentions can be added in a message boards post."
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanAddConsecutiveMentions {
 
-		JSONUser.setFirstPassword(
-			agreeToTermsAndAnswerReminderQuery = "true",
-			requireReset = "false",
-			userEmailAddress = "userea2@liferay.com");
+		// TODO LPS-149588
 
-		User.logoutAndLoginPG(
-			freeLogin = "true",
-			userLoginEmailAddress = "userea2@liferay.com",
-			userLoginFullName = "userfn2 userln2");
-
-		User.logoutAndLoginPG(
-			freeLogin = "true",
-			userLoginEmailAddress = "test@liferay.com",
-			userLoginFullName = "Test Test");
-
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
-		Mentions.addMentionViaMessageBoardThread(
-			mentionsUserScreenNameList = "usersn,usersn2",
-			multipleMentions = "true",
-			threadSubject = "Thread Subject");
-
-		Mentions.viewMentionTagLink(
-			mentionsUserFullName = "userfn userln",
-			mentionsUserScreenName = "usersn");
-
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
-		MessageboardsThread.gotoCP(threadSubject = "Thread Subject");
-
-		Mentions.viewMentionTagLink(
-			mentionsUserFullName = "userfn2 userln2",
-			mentionsUserScreenName = "usersn2");
 	}
 
 	@priority = "5"
-	@refactorneeded
-	test ViewMentionViaMessageBoardsThread {
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
+	@refactordone
+	test CanViewMentionViaMBThread {
 		Mentions.addMentionViaMessageBoardThread(
 			mentionsUserFullName = "userfn userln",
 			mentionsUserScreenName = "usersn",
+			siteURLKey = "guest",
 			threadSubject = "Thread Subject");
-
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
-		MessageboardsThread.gotoCP(threadSubject = "Thread Subject");
 
 		Mentions.viewMentionTagLink(
 			mentionsUserFullName = "userfn userln",
@@ -115,34 +68,21 @@ definition {
 	}
 
 	@priority = "5"
-	@refactorneeded
-	test ViewMentionViaMessageBoardsThreadReply {
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
-		MessageboardsThread.addCP(
+	@refactordone
+	test CanViewMentionViaMBThreadReply {
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
 			threadBody = "Thread Body",
 			threadSubject = "Thread Subject");
 
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
 		Mentions.addMentionViaMessageBoardsReply(
+			groupName = "Guest",
 			mentionsUserFullName = "userfn userln",
 			mentionsUserScreenName = "usersn",
+			siteURLKey = "guest",
 			threadBody = "Thread Reply Body",
 			threadSubject = "Thread Subject");
 
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
-		MessageboardsThread.gotoCP(threadSubject = "Thread Subject");
-
-		MessageboardsThread.viewReplyCP(
-			replyCount = "2",
-			threadBody = "Thread Body",
-			threadBody2 = "Thread Reply Body",
-			threadSubject = "Thread Subject",
-			userName = "Test Test",
-			userName2 = "Test Test");
-
 		Mentions.viewMentionTagLink(
 			mentionsUserFullName = "userfn userln",
 			mentionsUserScreenName = "usersn");
@@ -150,18 +90,17 @@ definition {
 
 	@priority = "5"
 	@refactorneeded
-	test ViewMentionViaUpdatedMessageBoardsThread {
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
-		MessageboardsThread.addCP(
+	test CanViewMentionViaUpdatedMBThread {
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
 			threadBody = "Thread Body",
 			threadSubject = "Thread Subject");
 
-		MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
-
 		Mentions.addMentionViaMessageBoardThreadEdit(
+			groupName = "Guest",
 			mentionsUserFullName = "userfn userln",
 			mentionsUserScreenName = "usersn",
+			siteURLKey = "guest",
 			threadBody = "Thread Body Edit",
 			threadSubject = "Thread Subject");
 
@@ -175,6 +114,49 @@ definition {
 		Mentions.viewMentionTagLink(
 			mentionsUserFullName = "userfn userln",
 			mentionsUserScreenName = "usersn");
+	}
+
+	@description = "This test covers LPS-117986. It ensures that multiple mentions can be added to thread."
+	@priority = "4"
+	@refactordone
+	test MultipleMentionsCanBeAddedToThread {
+		JSONUser.addUser(
+			userEmailAddress = "userea2@liferay.com",
+			userFirstName = "userfn2",
+			userLastName = "userln2",
+			userScreenName = "usersn2");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea2@liferay.com");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea2@liferay.com",
+			userLoginFullName = "userfn2 userln2");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Mentions.addMentionViaMessageBoardThread(
+			mentionsUserScreenNameList = "usersn,usersn2",
+			multipleMentions = "true",
+			siteURLKey = "guest",
+			threadSubject = "Thread Subject");
+
+		Mentions.viewMentionTagLink(
+			mentionsUserFullName = "userfn userln",
+			mentionsUserScreenName = "usersn");
+
+		MessageboardsThread.openToThread(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			threadSubject = "Thread Subject");
+
+		Mentions.viewMentionTagLink(
+			mentionsUserFullName = "userfn2 userln2",
+			mentionsUserScreenName = "usersn2");
 	}
 
 }

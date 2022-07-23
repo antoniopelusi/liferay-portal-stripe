@@ -19,8 +19,10 @@ import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceOrderLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BaseIndexer;
@@ -30,15 +32,20 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.ParseException;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.search.WildcardQuery;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.search.filter.MissingFilter;
 import com.liferay.portal.kernel.search.filter.TermFilter;
+import com.liferay.portal.kernel.search.generic.WildcardQueryImpl;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.filter.FilterBuilders;
 
 import java.util.Locale;
@@ -153,6 +160,21 @@ public class CommerceOrderIndexer extends BaseIndexer<CommerceOrder> {
 		addSearchTerm(searchQuery, searchContext, "purchaseOrderNumber", false);
 		addSearchTerm(
 			searchQuery, searchContext, "externalReferenceCode", false);
+
+		String keywords = searchContext.getKeywords();
+
+		if (Validator.isNotNull(keywords)) {
+			try {
+				keywords = StringUtil.toLowerCase(keywords);
+
+				searchQuery.add(
+					_getTrailingWildcardQuery(Field.ENTRY_CLASS_PK, keywords),
+					BooleanClauseOccur.SHOULD);
+			}
+			catch (ParseException parseException) {
+				throw new SystemException(parseException);
+			}
+		}
 	}
 
 	@Override
@@ -183,7 +205,7 @@ public class CommerceOrderIndexer extends BaseIndexer<CommerceOrder> {
 			"commerceAccountId", commerceOrder.getCommerceAccountId());
 		document.addKeyword(
 			"commerceChannelId", commerceChannel.getCommerceChannelId());
-		document.addNumber("itemsQuantity", getItemsQuantity(commerceOrder));
+		document.addNumber("itemsQuantity", _getItemsQuantity(commerceOrder));
 		document.addKeyword("orderStatus", commerceOrder.getOrderStatus());
 		document.addKeyword(
 			"purchaseOrderNumber", commerceOrder.getPurchaseOrderNumber());
@@ -225,19 +247,7 @@ public class CommerceOrderIndexer extends BaseIndexer<CommerceOrder> {
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCommerceOrders(companyId);
-	}
-
-	protected int getItemsQuantity(CommerceOrder commerceOrder) {
-		int count = 0;
-
-		for (CommerceOrderItem commerceOrderItem :
-				commerceOrder.getCommerceOrderItems()) {
-
-			count += commerceOrderItem.getQuantity();
-		}
-
-		return count;
+		_reindexCommerceOrders(companyId);
 	}
 
 	@Override
@@ -255,8 +265,26 @@ public class CommerceOrderIndexer extends BaseIndexer<CommerceOrder> {
 		return super.isUseSearchResultPermissionFilter(searchContext);
 	}
 
-	protected void reindexCommerceOrders(long companyId) throws Exception {
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+	private int _getItemsQuantity(CommerceOrder commerceOrder) {
+		int count = 0;
+
+		for (CommerceOrderItem commerceOrderItem :
+				commerceOrder.getCommerceOrderItems()) {
+
+			count += commerceOrderItem.getQuantity();
+		}
+
+		return count;
+	}
+
+	private WildcardQuery _getTrailingWildcardQuery(
+		String field, String value) {
+
+		return new WildcardQueryImpl(field, value + StringPool.STAR);
+	}
+
+	private void _reindexCommerceOrders(long companyId) throws Exception {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_commerceOrderLocalService.getIndexableActionableDynamicQuery();
 
 		indexableActionableDynamicQuery.setCompanyId(companyId);

@@ -29,6 +29,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormLayoutPage;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutRow;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.util.DDMFormDeserializeUtil;
+import com.liferay.dynamic.data.mapping.util.DDMFormFieldUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormLayoutDeserializeUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormSerializeUtil;
 import com.liferay.petra.string.StringBundler;
@@ -52,7 +53,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -80,19 +80,6 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 		_upgradeDDMStructureVersion();
 
 		_upgradeDDMStructure();
-	}
-
-	private String _generateDDMFormFieldName() {
-		String ddmFormFieldName = "Field";
-
-		Random random = new Random();
-
-		for (int i = 0; i < _DDM_FORM_FIELD_NAME_RANDOM_NUMBERS_LENGTH; i++) {
-			ddmFormFieldName = ddmFormFieldName.concat(
-				String.valueOf(random.nextInt(10)));
-		}
-
-		return ddmFormFieldName;
 	}
 
 	private boolean _hasMoreThanOneDDMFormFieldPerColumn(
@@ -150,8 +137,9 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 
 		sb.append(")");
 
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				sb.toString());
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
@@ -159,64 +147,62 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 
 			int parameterIndex = 1;
 
-			ps1.setLong(
+			preparedStatement1.setLong(
 				parameterIndex,
 				PortalUtil.getClassNameId(DDMFormInstance.class.getName()));
 
 			for (long structureId : _structureIds) {
 				parameterIndex++;
 
-				ps1.setLong(parameterIndex, structureId);
+				preparedStatement1.setLong(parameterIndex, structureId);
 			}
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String definition = rs.getString("definition");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String definition = resultSet.getString("definition");
 
-					ps2.setString(1, definition);
+					preparedStatement2.setString(1, definition);
 
-					long structureId = rs.getLong("structureId");
+					long structureId = resultSet.getLong("structureId");
 
-					ps2.setLong(2, structureId);
+					preparedStatement2.setLong(2, structureId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
 
 	private void _upgradeDDMStructureLayout() throws Exception {
-		StringBundler sb = new StringBundler(10);
-
-		sb.append("select DDMStructure.structureId, ");
-		sb.append("DDMStructureLayout.structureLayoutId, ");
-		sb.append("DDMStructureLayout.structureVersionId, ");
-		sb.append("DDMStructureLayout.definition from DDMStructureLayout ");
-		sb.append("inner join DDMStructureVersion on ");
-		sb.append("DDMStructureLayout.structureVersionId = ");
-		sb.append("DDMStructureVersion.structureVersionId inner join ");
-		sb.append("DDMStructure on DDMStructure.structureId = ");
-		sb.append("DDMStructureVersion.structureId where ");
-		sb.append("DDMStructure.classNameId = ?");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMStructure.structureId, ",
+					"DDMStructureLayout.structureLayoutId, ",
+					"DDMStructureLayout.structureVersionId, ",
+					"DDMStructureLayout.definition from DDMStructureLayout ",
+					"inner join DDMStructureVersion on ",
+					"DDMStructureLayout.structureVersionId = ",
+					"DDMStructureVersion.structureVersionId inner join ",
+					"DDMStructure on DDMStructure.structureId = ",
+					"DDMStructureVersion.structureId where ",
+					"DDMStructure.classNameId = ?"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureLayout set definition = ? where " +
 						"structureLayoutId = ?")) {
 
-			ps1.setLong(
+			preparedStatement1.setLong(
 				1, PortalUtil.getClassNameId(DDMFormInstance.class.getName()));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
 					DDMFormLayout ddmFormLayout =
 						DDMFormLayoutDeserializeUtil.deserialize(
 							_ddmFormLayoutDeserializer,
-							rs.getString("definition"));
+							resultSet.getString("definition"));
 
 					boolean pagination = Objects.equals(
 						ddmFormLayout.getPaginationMode(), "pagination");
@@ -230,13 +216,13 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 						_hasMoreThanOneDDMFormFieldPerColumn(ddmFormLayout);
 
 					if (hasMoreThanOneDDMFormFieldPerColumn) {
-						long structureVersionId = rs.getLong(
+						long structureVersionId = resultSet.getLong(
 							"structureVersionId");
 
 						ddmFormLayout = _upgradeDDMStructureLayoutDefinition(
 							ddmFormLayout, structureVersionId);
 
-						_structureIds.add(rs.getLong("structureId"));
+						_structureIds.add(resultSet.getLong("structureId"));
 					}
 
 					if (pagination || hasMoreThanOneDDMFormFieldPerColumn) {
@@ -248,21 +234,21 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 											ddmFormLayout
 										).build());
 
-						ps2.setString(
+						preparedStatement2.setString(
 							1,
 							ddmFormLayoutSerializerSerializeResponse.
 								getContent());
 
-						long structureLayoutId = rs.getLong(
+						long structureLayoutId = resultSet.getLong(
 							"structureLayoutId");
 
-						ps2.setLong(2, structureLayoutId);
+						preparedStatement2.setLong(2, structureLayoutId);
 
-						ps2.addBatch();
+						preparedStatement2.addBatch();
 					}
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
@@ -286,7 +272,8 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 						ddmFormLayoutColumn.getDDMFormFieldNames();
 
 					if (ddmFormFieldNames.size() > 1) {
-						String ddmFormFieldName = _generateDDMFormFieldName();
+						String ddmFormFieldName =
+							DDMFormFieldUtil.getDDMFormFieldName("Field");
 
 						ddmFormFieldTuples.add(
 							new Tuple(
@@ -313,42 +300,41 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 			return;
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("select DDMStructureVersion.structureVersionId, ");
-		sb.append("DDMStructureVersion.definition from DDMStructure inner ");
-		sb.append("join DDMStructureVersion on DDMStructure.structureId = ");
-		sb.append("DDMStructureVersion.structureId where ");
-		sb.append("DDMStructure.classNameId = ?");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMStructureVersion.structureVersionId, ",
+					"DDMStructureVersion.definition from DDMStructure inner ",
+					"join DDMStructureVersion on DDMStructure.structureId = ",
+					"DDMStructureVersion.structureId where ",
+					"DDMStructure.classNameId = ?"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureVersion set definition = ? where " +
 						"structureVersionId = ?")) {
 
-			ps1.setLong(
+			preparedStatement1.setLong(
 				1, PortalUtil.getClassNameId(DDMFormInstance.class.getName()));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					long structureVersionId = rs.getLong("structureVersionId");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					long structureVersionId = resultSet.getLong(
+						"structureVersionId");
 
 					if (_nestedFieldsMap.get(structureVersionId) != null) {
-						ps2.setString(
+						preparedStatement2.setString(
 							1,
 							_upgradeDDMStructureVersionDefinition(
-								rs.getString("definition"),
+								resultSet.getString("definition"),
 								structureVersionId));
 
-						ps2.setLong(2, structureVersionId);
+						preparedStatement2.setLong(2, structureVersionId);
 
-						ps2.addBatch();
+						preparedStatement2.addBatch();
 					}
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
@@ -431,8 +417,6 @@ public class DDMStructureUpgradeProcess extends UpgradeProcess {
 
 		return DDMFormSerializeUtil.serialize(ddmForm, _ddmFormSerializer);
 	}
-
-	private static final int _DDM_FORM_FIELD_NAME_RANDOM_NUMBERS_LENGTH = 8;
 
 	private static final int _DDM_FORM_FIELD_TUPLE_COLUMN_SIZE = 2;
 

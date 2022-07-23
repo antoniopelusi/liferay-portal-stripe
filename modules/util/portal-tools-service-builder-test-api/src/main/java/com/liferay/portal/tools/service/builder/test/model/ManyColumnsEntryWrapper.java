@@ -503,6 +503,11 @@ public class ManyColumnsEntryWrapper
 		}
 	}
 
+	@Override
+	public ManyColumnsEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the column1 of this many columns entry.
 	 *

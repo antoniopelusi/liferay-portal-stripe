@@ -20,6 +20,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
+import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
@@ -183,6 +184,15 @@ public class LayoutPageTemplateStructureStagedModelDataHandler
 			deleteLayoutPageTemplateStructureRels(
 				layoutPageTemplateStructureId);
 
+		LayoutPageTemplateStructure referrerLayoutPageTemplateStructure =
+			_layoutPageTemplateStructureLocalService.
+				fetchLayoutPageTemplateStructure(layoutPageTemplateStructureId);
+
+		_fragmentEntryLinkLocalService.
+			deleteLayoutPageTemplateEntryFragmentEntryLinks(
+				portletDataContext.getScopeGroupId(),
+				referrerLayoutPageTemplateStructure.getPlid());
+
 		List<Element> layoutPageTemplateStructureRelElements =
 			portletDataContext.getReferenceDataElements(
 				layoutPageTemplateStructure,
@@ -196,6 +206,9 @@ public class LayoutPageTemplateStructureStagedModelDataHandler
 				portletDataContext, layoutPageTemplateStructureRelElement);
 		}
 	}
+
+	@Reference
+	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
 
 	@Reference
 	private LayoutPageTemplateStructureLocalService

@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class AssetTagLocalServiceWrapper
 	implements AssetTagLocalService, ServiceWrapper<AssetTagLocalService> {
 
+	public AssetTagLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetTagLocalServiceWrapper(
 		AssetTagLocalService assetTagLocalService) {
 
@@ -283,6 +287,13 @@ public class AssetTagLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _assetTagLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetTagLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -924,6 +935,20 @@ public class AssetTagLocalServiceWrapper
 	@Override
 	public void setAssetEntryAssetTags(long entryId, long[] tagIds) {
 		_assetTagLocalService.setAssetEntryAssetTags(entryId, tagIds);
+	}
+
+	@Override
+	public void subscribeTag(long userId, long groupId, long tagId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_assetTagLocalService.subscribeTag(userId, groupId, tagId);
+	}
+
+	@Override
+	public void unsubscribeTag(long userId, long tagId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_assetTagLocalService.unsubscribeTag(userId, tagId);
 	}
 
 	/**

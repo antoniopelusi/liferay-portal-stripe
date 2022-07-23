@@ -90,6 +90,11 @@ public class PasswordTrackerWrapper
 		}
 	}
 
+	@Override
+	public PasswordTracker cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this password tracker.
 	 *

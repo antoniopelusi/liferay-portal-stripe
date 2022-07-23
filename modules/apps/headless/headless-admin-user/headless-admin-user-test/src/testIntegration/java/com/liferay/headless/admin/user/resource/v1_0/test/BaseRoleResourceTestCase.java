@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.liferay.headless.admin.user.client.dto.v1_0.Role;
 import com.liferay.headless.admin.user.client.http.HttpInvoker;
 import com.liferay.headless.admin.user.client.pagination.Page;
+import com.liferay.headless.admin.user.client.pagination.Pagination;
 import com.liferay.headless.admin.user.client.resource.v1_0.RoleResource;
 import com.liferay.headless.admin.user.client.serdes.v1_0.RoleSerDes;
 import com.liferay.petra.reflect.ReflectionUtil;
@@ -32,7 +33,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -49,7 +50,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -197,7 +197,62 @@ public abstract class BaseRoleResourceTestCase {
 
 	@Test
 	public void testGetRolesPage() throws Exception {
-		Assert.assertTrue(false);
+		Page<Role> page = roleResource.getRolesPage(null, Pagination.of(1, 10));
+
+		long totalCount = page.getTotalCount();
+
+		Role role1 = testGetRolesPage_addRole(randomRole());
+
+		Role role2 = testGetRolesPage_addRole(randomRole());
+
+		page = roleResource.getRolesPage(null, Pagination.of(1, 10));
+
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
+
+		assertContains(role1, (List<Role>)page.getItems());
+		assertContains(role2, (List<Role>)page.getItems());
+		assertValid(page);
+	}
+
+	@Test
+	public void testGetRolesPageWithPagination() throws Exception {
+		Page<Role> totalPage = roleResource.getRolesPage(null, null);
+
+		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+
+		Role role1 = testGetRolesPage_addRole(randomRole());
+
+		Role role2 = testGetRolesPage_addRole(randomRole());
+
+		Role role3 = testGetRolesPage_addRole(randomRole());
+
+		Page<Role> page1 = roleResource.getRolesPage(
+			null, Pagination.of(1, totalCount + 2));
+
+		List<Role> roles1 = (List<Role>)page1.getItems();
+
+		Assert.assertEquals(roles1.toString(), totalCount + 2, roles1.size());
+
+		Page<Role> page2 = roleResource.getRolesPage(
+			null, Pagination.of(2, totalCount + 2));
+
+		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+		List<Role> roles2 = (List<Role>)page2.getItems();
+
+		Assert.assertEquals(roles2.toString(), 1, roles2.size());
+
+		Page<Role> page3 = roleResource.getRolesPage(
+			null, Pagination.of(1, totalCount + 3));
+
+		assertContains(role1, (List<Role>)page3.getItems());
+		assertContains(role2, (List<Role>)page3.getItems());
+		assertContains(role3, (List<Role>)page3.getItems());
+	}
+
+	protected Role testGetRolesPage_addRole(Role role) throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -207,7 +262,7 @@ public abstract class BaseRoleResourceTestCase {
 			new HashMap<String, Object>() {
 				{
 					put("page", 1);
-					put("pageSize", 2);
+					put("pageSize", 10);
 				}
 			},
 			new GraphQLField("items", getGraphQLFields()),
@@ -217,21 +272,30 @@ public abstract class BaseRoleResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/roles");
 
-		Assert.assertEquals(0, rolesJSONObject.get("totalCount"));
+		long totalCount = rolesJSONObject.getLong("totalCount");
 
-		Role role1 = testGraphQLRole_addRole();
-		Role role2 = testGraphQLRole_addRole();
+		Role role1 = testGraphQLGetRolesPage_addRole();
+		Role role2 = testGraphQLGetRolesPage_addRole();
 
 		rolesJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/roles");
 
-		Assert.assertEquals(2, rolesJSONObject.get("totalCount"));
+		Assert.assertEquals(
+			totalCount + 2, rolesJSONObject.getLong("totalCount"));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(role1, role2),
+		assertContains(
+			role1,
 			Arrays.asList(
 				RoleSerDes.toDTOs(rolesJSONObject.getString("items"))));
+		assertContains(
+			role2,
+			Arrays.asList(
+				RoleSerDes.toDTOs(rolesJSONObject.getString("items"))));
+	}
+
+	protected Role testGraphQLGetRolesPage_addRole() throws Exception {
+		return testGraphQLRole_addRole();
 	}
 
 	@Test
@@ -251,7 +315,7 @@ public abstract class BaseRoleResourceTestCase {
 
 	@Test
 	public void testGraphQLGetRole() throws Exception {
-		Role role = testGraphQLRole_addRole();
+		Role role = testGraphQLGetRole_addRole();
 
 		Assert.assertTrue(
 			equals(
@@ -290,6 +354,10 @@ public abstract class BaseRoleResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Role testGraphQLGetRole_addRole() throws Exception {
+		return testGraphQLRole_addRole();
+	}
+
 	@Test
 	public void testDeleteRoleUserAccountAssociation() throws Exception {
 		@SuppressWarnings("PMD.UnusedLocalVariable")
@@ -298,7 +366,15 @@ public abstract class BaseRoleResourceTestCase {
 		assertHttpResponseStatusCode(
 			204,
 			roleResource.deleteRoleUserAccountAssociationHttpResponse(
-				role.getId(), null));
+				role.getId(),
+				testDeleteRoleUserAccountAssociation_getUserAccountId()));
+	}
+
+	protected Long testDeleteRoleUserAccountAssociation_getUserAccountId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Role testDeleteRoleUserAccountAssociation_addRole()
@@ -341,7 +417,25 @@ public abstract class BaseRoleResourceTestCase {
 			204,
 			roleResource.
 				deleteOrganizationRoleUserAccountAssociationHttpResponse(
-					role.getId(), null, null));
+					role.getId(),
+					testDeleteOrganizationRoleUserAccountAssociation_getUserAccountId(),
+					testDeleteOrganizationRoleUserAccountAssociation_getOrganizationId()));
+	}
+
+	protected Long
+			testDeleteOrganizationRoleUserAccountAssociation_getUserAccountId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected Long
+			testDeleteOrganizationRoleUserAccountAssociation_getOrganizationId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Role testDeleteOrganizationRoleUserAccountAssociation_addRole()
@@ -384,7 +478,23 @@ public abstract class BaseRoleResourceTestCase {
 		assertHttpResponseStatusCode(
 			204,
 			roleResource.deleteSiteRoleUserAccountAssociationHttpResponse(
-				role.getId(), null, null));
+				role.getId(),
+				testDeleteSiteRoleUserAccountAssociation_getUserAccountId(),
+				testDeleteSiteRoleUserAccountAssociation_getSiteId()));
+	}
+
+	protected Long testDeleteSiteRoleUserAccountAssociation_getUserAccountId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected Long testDeleteSiteRoleUserAccountAssociation_getSiteId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Role testDeleteSiteRoleUserAccountAssociation_addRole()
@@ -420,6 +530,20 @@ public abstract class BaseRoleResourceTestCase {
 	protected Role testGraphQLRole_addRole() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Role role, List<Role> roles) {
+		boolean contains = false;
+
+		for (Role item : roles) {
+			if (equals(role, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(roles + " does not contain " + role, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -483,6 +607,14 @@ public abstract class BaseRoleResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("actions", additionalAssertFieldName)) {
+				if (role.getActions() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
 
 			if (Objects.equals(
 					"availableLanguages", additionalAssertFieldName)) {
@@ -574,8 +706,8 @@ public abstract class BaseRoleResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.admin.user.dto.v1_0.Role.class)) {
 
 			if (!ArrayUtil.contains(
@@ -590,12 +722,13 @@ public abstract class BaseRoleResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -609,7 +742,7 @@ public abstract class BaseRoleResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -630,6 +763,14 @@ public abstract class BaseRoleResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("actions", additionalAssertFieldName)) {
+				if (!equals((Map)role1.getActions(), (Map)role2.getActions())) {
+					return false;
+				}
+
+				continue;
+			}
 
 			if (Objects.equals(
 					"availableLanguages", additionalAssertFieldName)) {
@@ -765,6 +906,19 @@ public abstract class BaseRoleResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -814,6 +968,11 @@ public abstract class BaseRoleResourceTestCase {
 		sb.append(" ");
 		sb.append(operator);
 		sb.append(" ");
+
+		if (entityFieldName.equals("actions")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
 
 		if (entityFieldName.equals("availableLanguages")) {
 			throw new IllegalArgumentException(
@@ -1068,8 +1227,8 @@ public abstract class BaseRoleResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseRoleResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseRoleResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

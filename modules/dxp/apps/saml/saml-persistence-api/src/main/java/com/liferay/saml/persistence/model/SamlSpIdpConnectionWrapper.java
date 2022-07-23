@@ -48,7 +48,6 @@ public class SamlSpIdpConnectionWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
-		attributes.put("samlIdpEntityId", getSamlIdpEntityId());
 		attributes.put(
 			"assertionSignatureRequired", isAssertionSignatureRequired());
 		attributes.put("clockSkew", getClockSkew());
@@ -60,10 +59,13 @@ public class SamlSpIdpConnectionWrapper
 		attributes.put("metadataXml", getMetadataXml());
 		attributes.put("name", getName());
 		attributes.put("nameIdFormat", getNameIdFormat());
+		attributes.put("samlIdpEntityId", getSamlIdpEntityId());
 		attributes.put("signAuthnRequest", isSignAuthnRequest());
 		attributes.put(
 			"unknownUsersAreStrangers", isUnknownUsersAreStrangers());
 		attributes.put("userAttributeMappings", getUserAttributeMappings());
+		attributes.put(
+			"userIdentifierExpression", getUserIdentifierExpression());
 
 		return attributes;
 	}
@@ -105,12 +107,6 @@ public class SamlSpIdpConnectionWrapper
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
-		}
-
-		String samlIdpEntityId = (String)attributes.get("samlIdpEntityId");
-
-		if (samlIdpEntityId != null) {
-			setSamlIdpEntityId(samlIdpEntityId);
 		}
 
 		Boolean assertionSignatureRequired = (Boolean)attributes.get(
@@ -175,6 +171,12 @@ public class SamlSpIdpConnectionWrapper
 			setNameIdFormat(nameIdFormat);
 		}
 
+		String samlIdpEntityId = (String)attributes.get("samlIdpEntityId");
+
+		if (samlIdpEntityId != null) {
+			setSamlIdpEntityId(samlIdpEntityId);
+		}
+
 		Boolean signAuthnRequest = (Boolean)attributes.get("signAuthnRequest");
 
 		if (signAuthnRequest != null) {
@@ -194,6 +196,18 @@ public class SamlSpIdpConnectionWrapper
 		if (userAttributeMappings != null) {
 			setUserAttributeMappings(userAttributeMappings);
 		}
+
+		String userIdentifierExpression = (String)attributes.get(
+			"userIdentifierExpression");
+
+		if (userIdentifierExpression != null) {
+			setUserIdentifierExpression(userIdentifierExpression);
+		}
+	}
+
+	@Override
+	public SamlSpIdpConnection cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -326,6 +340,13 @@ public class SamlSpIdpConnectionWrapper
 		return model.getNameIdFormat();
 	}
 
+	@Override
+	public java.util.Properties getNormalizedUserAttributeMappings()
+		throws java.io.IOException {
+
+		return model.getNormalizedUserAttributeMappings();
+	}
+
 	/**
 	 * Returns the primary key of this saml sp idp connection.
 	 *
@@ -394,6 +415,16 @@ public class SamlSpIdpConnectionWrapper
 	@Override
 	public long getUserId() {
 		return model.getUserId();
+	}
+
+	/**
+	 * Returns the user identifier expression of this saml sp idp connection.
+	 *
+	 * @return the user identifier expression of this saml sp idp connection
+	 */
+	@Override
+	public String getUserIdentifierExpression() {
+		return model.getUserIdentifierExpression();
 	}
 
 	/**
@@ -681,6 +712,16 @@ public class SamlSpIdpConnectionWrapper
 	@Override
 	public void setUserId(long userId) {
 		model.setUserId(userId);
+	}
+
+	/**
+	 * Sets the user identifier expression of this saml sp idp connection.
+	 *
+	 * @param userIdentifierExpression the user identifier expression of this saml sp idp connection
+	 */
+	@Override
+	public void setUserIdentifierExpression(String userIdentifierExpression) {
+		model.setUserIdentifierExpression(userIdentifierExpression);
 	}
 
 	/**

@@ -16,7 +16,6 @@ package com.liferay.document.library.opener.google.drive.web.internal.service;
 
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
-import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLAppServiceWrapper;
 import com.liferay.document.library.kernel.util.DLValidator;
 import com.liferay.document.library.opener.constants.DLOpenerFileEntryReferenceConstants;
@@ -51,14 +50,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = ServiceWrapper.class)
 public class DLOpenerGoogleDriveDLAppServiceWrapper
 	extends DLAppServiceWrapper {
-
-	public DLOpenerGoogleDriveDLAppServiceWrapper() {
-		super(null);
-	}
-
-	public DLOpenerGoogleDriveDLAppServiceWrapper(DLAppService dlAppService) {
-		super(dlAppService);
-	}
 
 	@Override
 	public void cancelCheckOut(long fileEntryId) throws PortalException {
@@ -185,9 +176,9 @@ public class DLOpenerGoogleDriveDLAppServiceWrapper
 
 			updateFileEntry(
 				fileEntry.getFileEntryId(), sourceFileName,
-				fileEntry.getMimeType(), title, fileEntry.getDescription(),
-				StringPool.BLANK, DLVersionNumberIncrease.NONE, file,
-				serviceContext);
+				fileEntry.getMimeType(), title, StringPool.BLANK,
+				fileEntry.getDescription(), StringPool.BLANK,
+				DLVersionNumberIncrease.NONE, file, null, null, serviceContext);
 		}
 		finally {
 			if ((file != null) && !file.delete()) {

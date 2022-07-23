@@ -25,6 +25,10 @@ public class PortletItemLocalServiceWrapper
 	implements PortletItemLocalService,
 			   ServiceWrapper<PortletItemLocalService> {
 
+	public PortletItemLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PortletItemLocalServiceWrapper(
 		PortletItemLocalService portletItemLocalService) {
 
@@ -132,6 +136,13 @@ public class PortletItemLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _portletItemLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _portletItemLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -14,6 +14,8 @@
 
 package com.liferay.document.library.opener.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.document.library.opener.model.DLOpenerFileEntryReference;
 import com.liferay.document.library.opener.service.DLOpenerFileEntryReferenceLocalService;
 import com.liferay.document.library.opener.uad.constants.DLOpenerUADConstants;
@@ -48,6 +50,8 @@ public abstract class BaseDLOpenerFileEntryReferenceUADAnonymizer
 		if (dlOpenerFileEntryReference.getUserId() == userId) {
 			dlOpenerFileEntryReference.setUserId(anonymousUser.getUserId());
 			dlOpenerFileEntryReference.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(dlOpenerFileEntryReference, anonymousUser);
 		}
 
 		dlOpenerFileEntryReferenceLocalService.updateDLOpenerFileEntryReference(
@@ -67,6 +71,20 @@ public abstract class BaseDLOpenerFileEntryReferenceUADAnonymizer
 		return DLOpenerFileEntryReference.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		DLOpenerFileEntryReference dlOpenerFileEntryReference,
+		User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(dlOpenerFileEntryReference);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return dlOpenerFileEntryReferenceLocalService.
@@ -78,6 +96,17 @@ public abstract class BaseDLOpenerFileEntryReferenceUADAnonymizer
 		return DLOpenerUADConstants.
 			USER_ID_FIELD_NAMES_DL_OPENER_FILE_ENTRY_REFERENCE;
 	}
+
+	protected AssetEntry fetchAssetEntry(
+		DLOpenerFileEntryReference dlOpenerFileEntryReference) {
+
+		return assetEntryLocalService.fetchEntry(
+			DLOpenerFileEntryReference.class.getName(),
+			dlOpenerFileEntryReference.getDlOpenerFileEntryReferenceId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected DLOpenerFileEntryReferenceLocalService

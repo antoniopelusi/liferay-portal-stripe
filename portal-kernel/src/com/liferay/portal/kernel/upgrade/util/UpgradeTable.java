@@ -28,7 +28,7 @@ public interface UpgradeTable {
 		throws Exception;
 
 	public void appendColumn(
-			StringBuilder sb, ResultSet rs, String name, Integer type,
+			StringBuilder sb, ResultSet resultSet, String name, Integer type,
 			boolean last)
 		throws Exception;
 
@@ -56,7 +56,8 @@ public interface UpgradeTable {
 		throws Exception;
 
 	public void setColumn(
-			PreparedStatement ps, int index, Integer type, String value)
+			PreparedStatement preparedStatement, int index, Integer type,
+			String value)
 		throws Exception;
 
 	public void setCreateSQL(String createSQL) throws Exception;

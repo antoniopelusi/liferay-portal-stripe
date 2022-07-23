@@ -32,8 +32,6 @@ public class CustomJspBagImpl implements CustomJspBag {
 		_urlContainer = urlContainer;
 		_customJspDir = customJspDir;
 		_customJspGlobal = customJspGlobal;
-
-		_customJsps = new ArrayList<>();
 	}
 
 	@Override
@@ -58,7 +56,7 @@ public class CustomJspBagImpl implements CustomJspBag {
 
 	private final String _customJspDir;
 	private final boolean _customJspGlobal;
-	private final List<String> _customJsps;
+	private final List<String> _customJsps = new ArrayList<>();
 	private final URLContainer _urlContainer;
 
 }

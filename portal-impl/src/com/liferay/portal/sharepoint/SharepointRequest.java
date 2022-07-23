@@ -20,11 +20,10 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import java.util.HashMap;
@@ -116,12 +115,12 @@ public class SharepointRequest {
 		}
 
 		try {
-			InputStream inputStream = _httpServletRequest.getInputStream();
-
 			UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 				new UnsyncByteArrayOutputStream();
 
-			StreamUtil.transfer(inputStream, unsyncByteArrayOutputStream);
+			StreamUtil.transfer(
+				_httpServletRequest.getInputStream(),
+				unsyncByteArrayOutputStream);
 
 			byte[] bytes = unsyncByteArrayOutputStream.toByteArray();
 
@@ -136,20 +135,18 @@ public class SharepointRequest {
 			for (String param : params) {
 				String[] kvp = param.split(StringPool.EQUAL);
 
-				String key = HttpUtil.decodeURL(kvp[0]);
+				String key = HttpComponentsUtil.decodeURL(kvp[0]);
 
 				String value = StringPool.BLANK;
 
 				if (kvp.length > 1) {
-					value = HttpUtil.decodeURL(kvp[1]);
+					value = HttpComponentsUtil.decodeURL(kvp[1]);
 				}
 
 				addParam(key, value);
 			}
 
-			bytes = ArrayUtil.subset(bytes, url.length() + 1, bytes.length);
-
-			setBytes(bytes);
+			setBytes(ArrayUtil.subset(bytes, url.length() + 1, bytes.length));
 		}
 		catch (Exception exception) {
 			throw new SharepointException(exception);

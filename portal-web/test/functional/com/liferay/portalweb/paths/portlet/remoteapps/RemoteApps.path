@@ -2,15 +2,32 @@
 <head>
 <title>RemoteApps</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">RemoteApps</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>REMOTE_APPS_HEADER</td>
+	<td>//span[contains(@data-qa-id,'headerTitle') and contains(@value,'Remote Apps')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>EMPTY_REMOTE_TABLE_MESSAGE</td>
 	<td>//div[contains(@class,'sheet-text') and contains(.,'No items were found.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>APPLICATION_SEARCH_FIELD_WIDGET_SEARCH_REMOTE_APP</td>
+	<td>//div[contains(@class,'sidebar-body__add-panel')]//div[contains(@class, 'text-truncate title')][contains(text(),'${key_remoteAppName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REMOTE_APP_PROPERTY_HTML</td>
+	<td>//${key_customElementHtmlName}[contains(@test-data-user,'${key_customElementProperty}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -25,12 +42,22 @@
 </tr>
 <tr>
 	<td>TABLE_ENTRY_NAME</td>
-	<td>//table//tbody//td//*[contains(@class,'table-list-title')]//*[contains(text(),'${key_tableEntryName}')]</td>
+	<td>//table//tbody//td//*[contains(@class,'table-list-title')]//*[text() = '${key_tableEntryName}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TABLE_ENTRY_NAME_REMOTE_TABLE</td>
-	<td>//div[contains(@class,'dnd-td')]//div[contains(@class,'table-list-title')]//*[contains(text(),'${key_tableEntryName}')]</td>
+	<td>//div[contains(@class,'dnd-td')]//div[contains(@class,'table-list-title')]//*[text() = '${key_tableEntryName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_ENTRY_TYPE_REMOTE_TABLE</td>
+	<td>//div[contains(@class,'dnd-td') and contains(text(), '${key_tableEntryType}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_ENTRY_STATUS_REMOTE_TABLE</td>
+	<td>//div[contains(@class,'dnd-td')]//*[contains(@class,'workflow-status') and contains(.,'${key_tableEntryStatus}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -41,6 +68,16 @@
 <tr>
 	<td>TABLE_ENTRY_URL_REMOTE_TABLE</td>
 	<td>//div[contains(@class,'dnd-td') and contains(text(),'${key_tableEntryURL}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VANILLA_COUNTER_PAGE_COLUMN_N</td>
+	<td>//div[contains(@id,'main-content')]//div[contains(@class, 'col')]['${column_number}']//vanilla-counter</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VANILLA_COUNTER_REMOTE_APP</td>
+	<td>//vanilla-counter</td>
 	<td></td>
 </tr>
 </tbody>

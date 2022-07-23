@@ -56,7 +56,37 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCommerceTaxFixedRateAddressRelMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void deleteCommerceTaxFixedRateAddressRels(
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
+		try {
+			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
+				_updateCommerceTaxFixedRateAddressRel(actionRequest);
+			}
+			else if (cmd.equals(Constants.DELETE)) {
+				_deleteCommerceTaxFixedRateAddressRels(actionRequest);
+			}
+			else if (cmd.equals("updateConfiguration")) {
+				_updateConfiguration(actionRequest);
+			}
+		}
+		catch (Exception exception) {
+			if (exception instanceof NoSuchTaxFixedRateAddressRelException ||
+				exception instanceof PrincipalException) {
+
+				SessionErrors.add(actionRequest, exception.getClass());
+			}
+			else {
+				throw exception;
+			}
+		}
+	}
+
+	private void _deleteCommerceTaxFixedRateAddressRels(
 			ActionRequest actionRequest)
 		throws PortalException {
 
@@ -86,47 +116,13 @@ public class EditCommerceTaxFixedRateAddressRelMVCActionCommand
 		}
 	}
 
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
-		try {
-			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateCommerceTaxFixedRateAddressRel(actionRequest);
-			}
-			else if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceTaxFixedRateAddressRels(actionRequest);
-			}
-			else if (cmd.equals("updateConfiguration")) {
-				updateConfiguration(actionRequest);
-			}
-		}
-		catch (Exception exception) {
-			if (exception instanceof NoSuchTaxFixedRateAddressRelException ||
-				exception instanceof PrincipalException) {
-
-				SessionErrors.add(actionRequest, exception.getClass());
-			}
-			else {
-				throw exception;
-			}
-		}
-	}
-
-	protected void updateCommerceTaxFixedRateAddressRel(
+	private void _updateCommerceTaxFixedRateAddressRel(
 			ActionRequest actionRequest)
 		throws Exception {
 
 		long commerceTaxFixedRateAddressRelId = ParamUtil.getLong(
 			actionRequest, "commerceTaxFixedRateAddressRelId");
 
-		long commerceTaxMethodId = ParamUtil.getLong(
-			actionRequest, "commerceTaxMethodId");
-		long cpTaxCategoryId = ParamUtil.getLong(
-			actionRequest, "CPTaxCategoryId");
 		long countryId = ParamUtil.getLong(actionRequest, "countryId");
 		long regionId = ParamUtil.getLong(actionRequest, "regionId");
 		String zip = ParamUtil.getString(actionRequest, "zip");
@@ -144,20 +140,24 @@ public class EditCommerceTaxFixedRateAddressRelMVCActionCommand
 					rate.doubleValue());
 		}
 		else {
+			long commerceTaxMethodId = ParamUtil.getLong(
+				actionRequest, "commerceTaxMethodId");
+			long cpTaxCategoryId = ParamUtil.getLong(
+				actionRequest, "CPTaxCategoryId");
+
 			CommerceTaxMethod commerceTaxMethod =
 				_commerceTaxMethodService.getCommerceTaxMethod(
 					commerceTaxMethodId);
 
 			_commerceTaxFixedRateAddressRelService.
 				addCommerceTaxFixedRateAddressRel(
-					_portal.getUserId(actionRequest),
 					commerceTaxMethod.getGroupId(),
 					commerceTaxMethod.getCommerceTaxMethodId(), cpTaxCategoryId,
 					countryId, regionId, zip, rate.doubleValue());
 		}
 	}
 
-	protected void updateConfiguration(ActionRequest actionRequest)
+	private void _updateConfiguration(ActionRequest actionRequest)
 		throws Exception {
 
 		long commerceTaxMethodId = ParamUtil.getLong(

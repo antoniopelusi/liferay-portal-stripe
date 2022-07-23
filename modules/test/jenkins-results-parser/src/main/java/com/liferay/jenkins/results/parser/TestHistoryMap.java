@@ -24,8 +24,6 @@ import com.liferay.jenkins.results.parser.testray.TestrayServer;
 
 import java.io.IOException;
 
-import java.net.URL;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -171,10 +169,9 @@ public class TestHistoryMap
 
 				TestrayCaseResult.Status status = testrayCaseResult.getStatus();
 
-				URL url = testrayCaseResult.getURL();
-
 				put(
-					name, jobVariant, url.toString(), 0,
+					name, jobVariant,
+					String.valueOf(testrayCaseResult.getURL()), 0,
 					testrayCaseResult.getErrors(), status.getName());
 			}
 		}

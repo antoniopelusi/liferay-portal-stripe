@@ -72,16 +72,9 @@ public class BundleBlacklistSetUpBatchTest {
 				outputStream);
 		}
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("blacklistBundleSymbolicNames=");
-		sb.append(StringPool.QUOTE);
-		sb.append(_JAR_BUNDLE_SYMBOLIC_NAME);
-		sb.append(StringPool.COMMA);
-		sb.append(_WAR_BUNDLE_SYMBOLIC_NAME);
-		sb.append(StringPool.QUOTE);
-
-		String configBody = sb.toString();
+		String configBody = StringBundler.concat(
+			"blacklistBundleSymbolicNames=\"", _JAR_BUNDLE_SYMBOLIC_NAME,
+			StringPool.COMMA, _WAR_BUNDLE_SYMBOLIC_NAME, StringPool.QUOTE);
 
 		try (OutputStream outputStream = new FileOutputStream(
 				liferayHome + "/osgi/configs/" + blacklistConfigName)) {

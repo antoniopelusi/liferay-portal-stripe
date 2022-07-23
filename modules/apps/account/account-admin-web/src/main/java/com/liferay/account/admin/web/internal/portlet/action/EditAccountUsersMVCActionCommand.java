@@ -48,15 +48,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditAccountUsersMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteUsers(ActionRequest actionRequest) throws Exception {
-		long[] accountUserIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "accountUserIds"), 0L);
-
-		for (long accountUserId : accountUserIds) {
-			_userService.deleteUser(accountUserId);
-		}
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -68,10 +59,10 @@ public class EditAccountUsersMVCActionCommand extends BaseMVCActionCommand {
 			if (cmd.equals(Constants.DEACTIVATE) ||
 				cmd.equals(Constants.RESTORE)) {
 
-				updateAccountUsersStatus(actionRequest);
+				_updateAccountUsersStatus(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteUsers(actionRequest);
+				_deleteUsers(actionRequest);
 			}
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
@@ -98,7 +89,16 @@ public class EditAccountUsersMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void updateAccountUsersStatus(ActionRequest actionRequest)
+	private void _deleteUsers(ActionRequest actionRequest) throws Exception {
+		long[] accountUserIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "accountUserIds"), 0L);
+
+		for (long accountUserId : accountUserIds) {
+			_userService.deleteUser(accountUserId);
+		}
+	}
+
+	private void _updateAccountUsersStatus(ActionRequest actionRequest)
 		throws Exception {
 
 		long[] accountUserIds = StringUtil.split(

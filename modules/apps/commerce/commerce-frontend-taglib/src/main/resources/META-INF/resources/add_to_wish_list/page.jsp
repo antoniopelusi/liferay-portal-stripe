@@ -27,7 +27,6 @@
 		large: <%= large %>,
 		isInWishList: <%= inWishList %>,
 		skuId: <%= skuId %>,
-		spritemap: '<%= spritemap %>',
 	};
 
 	AddToWishList.default(

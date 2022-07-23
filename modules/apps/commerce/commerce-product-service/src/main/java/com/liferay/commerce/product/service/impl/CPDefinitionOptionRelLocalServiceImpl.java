@@ -27,6 +27,7 @@ import com.liferay.commerce.product.model.CPInstanceOptionValueRel;
 import com.liferay.commerce.product.model.CPOption;
 import com.liferay.commerce.product.service.base.CPDefinitionOptionRelLocalServiceBaseImpl;
 import com.liferay.commerce.product.util.JsonHelper;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -57,6 +58,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.spring.extender.service.ServiceReference;
@@ -238,7 +240,7 @@ public class CPDefinitionOptionRelLocalServiceImpl
 			cpDefinitionOptionValueRelPersistence.remove(
 				cpDefinitionOptionValueRel);
 
-			expandoRowLocalService.deleteRows(
+			_expandoRowLocalService.deleteRows(
 				cpDefinitionOptionValueRel.getCPDefinitionOptionValueRelId());
 		}
 
@@ -248,7 +250,7 @@ public class CPDefinitionOptionRelLocalServiceImpl
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			cpDefinitionOptionRel.getCPDefinitionOptionRelId());
 
 		// Commerce product instances
@@ -343,12 +345,9 @@ public class CPDefinitionOptionRelLocalServiceImpl
 					fetchCPDefinitionOptionRelByKey(
 						cpDefinitionId, jsonObject.getString("key"));
 
-			if (cpDefinitionOptionRel == null) {
-				continue;
-			}
-
-			if (skuContributorsOnly &&
-				!cpDefinitionOptionRel.isSkuContributor()) {
+			if ((cpDefinitionOptionRel == null) ||
+				(skuContributorsOnly &&
+				 !cpDefinitionOptionRel.isSkuContributor())) {
 
 				continue;
 			}
@@ -901,9 +900,7 @@ public class CPDefinitionOptionRelLocalServiceImpl
 			cpDefinitionOptionValueRelLocalService.
 				getCPDefinitionOptionValueRels(cpDefinitionOptionRelId);
 
-		if ((cpDefinitionOptionValueRels == null) ||
-			cpDefinitionOptionValueRels.isEmpty()) {
-
+		if (ListUtil.isEmpty(cpDefinitionOptionValueRels)) {
 			return;
 		}
 
@@ -965,19 +962,11 @@ public class CPDefinitionOptionRelLocalServiceImpl
 
 		if (cpDefinitionOptionRel.isNew() ||
 			!cpDefinitionOptionRel.isPriceContributor() ||
-			Objects.equals(cpDefinitionOptionRel.getPriceType(), priceType)) {
-
-			return;
-		}
-
-		if (!cpDefinitionOptionValueRelLocalService.
+			Objects.equals(cpDefinitionOptionRel.getPriceType(), priceType) ||
+			!cpDefinitionOptionValueRelLocalService.
 				hasCPDefinitionOptionValueRels(
-					cpDefinitionOptionRel.getCPDefinitionOptionRelId())) {
-
-			return;
-		}
-
-		if (Objects.equals(
+					cpDefinitionOptionRel.getCPDefinitionOptionRelId()) ||
+			Objects.equals(
 				priceType, CPConstants.PRODUCT_OPTION_PRICE_TYPE_STATIC)) {
 
 			return;
@@ -992,6 +981,9 @@ public class CPDefinitionOptionRelLocalServiceImpl
 
 	@ServiceReference(type = ConfigurationProvider.class)
 	private ConfigurationProvider _configurationProvider;
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 	@ServiceReference(type = JSONFactory.class)
 	private JSONFactory _jsonFactory;

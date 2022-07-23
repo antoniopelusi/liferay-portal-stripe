@@ -38,7 +38,7 @@ import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.settings.SystemSettingsLocator;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 
 import java.math.BigDecimal;
 
@@ -97,9 +97,9 @@ public class CommercePriceEntriesImporter {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(commerceCatalog.getCompanyId());
 		serviceContext.setScopeGroupId(commerceCatalog.getGroupId());
 		serviceContext.setUserId(commerceCatalog.getUserId());
-		serviceContext.setCompanyId(commerceCatalog.getCompanyId());
 
 		for (CPDefinition cpDefinition : cpDefinitions) {
 			_importBaseCommercePriceListEntries(
@@ -115,9 +115,9 @@ public class CommercePriceEntriesImporter {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(user.getCompanyId());
 		serviceContext.setScopeGroupId(scopeGroupId);
 		serviceContext.setUserId(userId);
-		serviceContext.setCompanyId(user.getCompanyId());
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			_importCommercePriceEntry(
@@ -154,10 +154,10 @@ public class CommercePriceEntriesImporter {
 			JSONObject jsonObject, ServiceContext serviceContext)
 		throws PortalException {
 
-		String name = jsonObject.getString("PriceList");
+		String name = jsonObject.getString("priceList");
 
 		String priceListExternalReferenceCode =
-			FriendlyURLNormalizerUtil.normalize(name);
+			_friendlyURLNormalizer.normalize(name);
 
 		CommercePriceList commercePriceList =
 			_commercePriceListLocalService.fetchByExternalReferenceCode(
@@ -168,9 +168,9 @@ public class CommercePriceEntriesImporter {
 				"No price list found with name " + name);
 		}
 
-		String sku = jsonObject.getString("Sku");
+		String sku = jsonObject.getString("sku");
 
-		String externalReferenceCode = FriendlyURLNormalizerUtil.normalize(sku);
+		String externalReferenceCode = _friendlyURLNormalizer.normalize(sku);
 
 		CPInstance cpInstance =
 			_cpInstanceLocalService.fetchByExternalReferenceCode(
@@ -193,8 +193,8 @@ public class CommercePriceEntriesImporter {
 		CPDefinition cpDefinition = _cpDefinitionLocalService.fetchCPDefinition(
 			cpInstance.getCPDefinitionId());
 
-		double price = jsonObject.getDouble("Price", 0);
-		double promoPrice = jsonObject.getDouble("PromoPrice", 0);
+		double price = jsonObject.getDouble("price", 0);
+		double promoPrice = jsonObject.getDouble("promoPrice", 0);
 
 		_commercePriceEntryLocalService.addCommercePriceEntry(
 			cpDefinition.getCProductId(), cpInstance.getCPInstanceUuid(),
@@ -220,6 +220,9 @@ public class CommercePriceEntriesImporter {
 
 	@Reference
 	private CPInstanceLocalService _cpInstanceLocalService;
+
+	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 	@Reference
 	private UserLocalService _userLocalService;

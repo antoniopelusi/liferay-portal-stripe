@@ -63,6 +63,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.io.File;
 
@@ -126,26 +127,31 @@ public class ExportImportLayoutPageTemplateEntriesTest {
 			_group1.getGroupId(), "test-text-fragment", "Test Text Fragment",
 			html);
 
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				layoutPageTemplateEntry1.getPlid());
+
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
 				TestPropsValues.getUserId(), _group1.getGroupId(), 0,
-				fragmentEntry.getFragmentEntryId(), 0,
+				fragmentEntry.getFragmentEntryId(), defaultSegmentsExperienceId,
 				layoutPageTemplateEntry1.getPlid(), StringPool.BLANK, html,
 				StringPool.BLANK,
 				_read("export_import_fragment_field_text_config.json"),
 				_read("export_import_fragment_field_text_editable_values.json"),
 				StringPool.BLANK, 0, null, _serviceContext1);
 
-		_layoutPageTemplateStructureLocalService.addLayoutPageTemplateStructure(
-			TestPropsValues.getUserId(), _group1.getGroupId(),
-			layoutPageTemplateEntry1.getPlid(),
-			StringUtil.replace(
-				_read("export_import_layout_data.json"), "${", "}",
-				HashMapBuilder.put(
-					"FRAGMENT_ENTRY_LINK1_ID",
-					String.valueOf(fragmentEntryLink.getFragmentEntryLinkId())
-				).build()),
-			_serviceContext1);
+		_layoutPageTemplateStructureLocalService.
+			updateLayoutPageTemplateStructureData(
+				_group1.getGroupId(), layoutPageTemplateEntry1.getPlid(),
+				defaultSegmentsExperienceId,
+				StringUtil.replace(
+					_read("export_import_layout_data.json"), "${", "}",
+					HashMapBuilder.put(
+						"FRAGMENT_ENTRY_LINK1_ID",
+						String.valueOf(
+							fragmentEntryLink.getFragmentEntryLinkId())
+					).build()));
 
 		Repository repository = PortletFileRepositoryUtil.addPortletRepository(
 			_group1.getGroupId(), RandomTestUtil.randomString(),
@@ -227,9 +233,9 @@ public class ExportImportLayoutPageTemplateEntriesTest {
 					layoutPageTemplateEntry2.getPlid());
 
 		LayoutStructure layoutStructure1 = LayoutStructure.of(
-			layoutPageTemplateStructure1.getData(0));
+			layoutPageTemplateStructure1.getDefaultSegmentsExperienceData());
 		LayoutStructure layoutStructure2 = LayoutStructure.of(
-			layoutPageTemplateStructure2.getData(0));
+			layoutPageTemplateStructure2.getDefaultSegmentsExperienceData());
 
 		ContainerStyledLayoutStructureItem containerStyledLayoutStructureItem1 =
 			_getContainerLayoutStructureItem(layoutStructure1);
@@ -306,9 +312,9 @@ public class ExportImportLayoutPageTemplateEntriesTest {
 		return _fragmentEntryLocalService.addFragmentEntry(
 			TestPropsValues.getUserId(), groupId,
 			fragmentCollection.getFragmentCollectionId(), key, name,
-			StringPool.BLANK, html, StringPool.BLANK, StringPool.BLANK, 0,
-			FragmentConstants.TYPE_COMPONENT, WorkflowConstants.STATUS_APPROVED,
-			serviceContext);
+			StringPool.BLANK, html, StringPool.BLANK, false, StringPool.BLANK,
+			null, 0, FragmentConstants.TYPE_COMPONENT,
+			WorkflowConstants.STATUS_APPROVED, serviceContext);
 	}
 
 	private ContainerStyledLayoutStructureItem _getContainerLayoutStructureItem(
@@ -377,9 +383,6 @@ public class ExportImportLayoutPageTemplateEntriesTest {
 			expectedBackgroundImageJSONObject.toJSONString(),
 			actualBackgroundImageJSONObject.toJSONString());
 
-		Assert.assertEquals(
-			expectedContainerStyledLayoutStructureItem.getContainerType(),
-			actualContainerStyledLayoutStructureItem.getContainerType());
 		Assert.assertEquals(
 			expectedContainerStyledLayoutStructureItem.getPaddingBottom(),
 			actualContainerStyledLayoutStructureItem.getPaddingBottom());
@@ -538,6 +541,9 @@ public class ExportImportLayoutPageTemplateEntriesTest {
 		filter = "mvc.command.name=/layout_page_template_admin/export_layout_page_template_entries"
 	)
 	private MVCResourceCommand _mvcResourceCommand;
+
+	@Inject
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	private ServiceContext _serviceContext1;
 	private ServiceContext _serviceContext2;

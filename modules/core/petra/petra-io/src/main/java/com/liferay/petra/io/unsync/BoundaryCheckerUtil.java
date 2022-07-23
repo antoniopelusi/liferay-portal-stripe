@@ -27,17 +27,10 @@ class BoundaryCheckerUtil {
 		if ((offset < 0) || (offset > count) || (length < 0) || (end > count) ||
 			(end < 0)) {
 
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("{count=");
-			sb.append(count);
-			sb.append(", offset=");
-			sb.append(offset);
-			sb.append(", length=");
-			sb.append(length);
-			sb.append("}");
-
-			throw new IndexOutOfBoundsException(sb.toString());
+			throw new IndexOutOfBoundsException(
+				StringBundler.concat(
+					"{count=", count, ", offset=", offset, ", length=", length,
+					"}"));
 		}
 	}
 

@@ -158,13 +158,6 @@ public abstract class OAuthApplicationServiceBaseImpl
 		classNameService;
 
 	@Reference
-	protected com.liferay.portal.kernel.service.ImageLocalService
-		imageLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ImageService imageService;
-
-	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService
 		resourceLocalService;
 

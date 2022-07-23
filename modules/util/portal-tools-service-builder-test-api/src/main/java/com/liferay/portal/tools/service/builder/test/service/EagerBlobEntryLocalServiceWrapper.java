@@ -27,6 +27,10 @@ public class EagerBlobEntryLocalServiceWrapper
 	implements EagerBlobEntryLocalService,
 			   ServiceWrapper<EagerBlobEntryLocalService> {
 
+	public EagerBlobEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public EagerBlobEntryLocalServiceWrapper(
 		EagerBlobEntryLocalService eagerBlobEntryLocalService) {
 
@@ -130,6 +134,13 @@ public class EagerBlobEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _eagerBlobEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _eagerBlobEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

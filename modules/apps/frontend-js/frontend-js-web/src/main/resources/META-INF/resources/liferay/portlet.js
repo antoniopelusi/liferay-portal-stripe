@@ -12,6 +12,9 @@
  * details.
  */
 
+/* eslint-disable @liferay/aui/no-node */
+/* eslint-disable @liferay/aui/no-one */
+
 (function (A) {
 	var Lang = A.Lang;
 
@@ -77,8 +80,6 @@
 				response.footerJavaScriptPaths || []
 			);
 
-			var body = A.getBody();
-
 			var head = A.one(STR_HEAD);
 
 			if (headerCssPaths.length) {
@@ -87,7 +88,7 @@
 				});
 			}
 
-			var lastChild = body.get('lastChild').getDOM();
+			var lastChild = document.body.lastChild;
 
 			if (footerCssPaths.length) {
 				A.Get.css(footerCssPaths, {
@@ -207,7 +208,9 @@
 				return;
 			}
 
-			var currentColumnId = Util.getColumnId(container.attr('id'));
+			var containerId = container.attr('id');
+
+			var currentColumnId = containerId.replace(/layout-column_/, '');
 
 			var portletPosition = 0;
 
@@ -488,7 +491,7 @@
 
 			var canEditTitle = options.canEditTitle;
 			var columnPos = options.columnPos;
-			var isStatic = options.isStatic == 'no' ? null : options.isStatic;
+			var isStatic = options.isStatic === 'no' ? null : options.isStatic;
 			var namespacedId = options.namespacedId;
 			var portletId = options.portletId;
 			var refreshURL = options.refreshURL;
@@ -523,6 +526,7 @@
 					var handle = portlet.on(events, () => {
 						Util.portletTitleEdit({
 							doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
+							// eslint-disable-next-line @liferay/no-abbreviations
 							obj: portlet,
 							plid: themeDisplay.getPlid(),
 							portletId,
@@ -552,13 +556,21 @@
 	Liferay.provide(
 		Portlet,
 		'refresh',
-		function (portlet, data) {
+		function (portlet, data, mergeWithRefreshURLData) {
 			var instance = this;
 
 			portlet = A.one(portlet);
 
 			if (portlet) {
-				data = data || portlet.refreshURLData || {};
+				if (mergeWithRefreshURLData) {
+					data = {
+						...(portlet.refreshURLData || {}),
+						...(data || {}),
+					};
+				}
+				else {
+					data = data || portlet.refreshURLData || {};
+				}
 
 				if (
 					!Object.prototype.hasOwnProperty.call(

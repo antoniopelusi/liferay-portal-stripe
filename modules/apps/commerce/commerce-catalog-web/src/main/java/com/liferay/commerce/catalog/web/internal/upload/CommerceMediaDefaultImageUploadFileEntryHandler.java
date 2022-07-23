@@ -71,7 +71,7 @@ public class CommerceMediaDefaultImageUploadFileEntryHandler
 		try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
 				_PARAMETER_NAME)) {
 
-			return addFileEntry(
+			return _addFileEntry(
 				fileName, contentType, inputStream, themeDisplay);
 		}
 	}
@@ -82,7 +82,7 @@ public class CommerceMediaDefaultImageUploadFileEntryHandler
 			AttachmentsConfiguration.class, properties);
 	}
 
-	protected FileEntry addFileEntry(
+	private FileEntry _addFileEntry(
 			String fileName, String contentType, InputStream inputStream,
 			ThemeDisplay themeDisplay)
 		throws PortalException {
@@ -111,7 +111,7 @@ public class CommerceMediaDefaultImageUploadFileEntryHandler
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

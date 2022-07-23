@@ -47,18 +47,18 @@ public class UserModelListener extends BaseModelListener<User> {
 		auditOnCreateOrRemove(EventTypes.DELETE, user);
 	}
 
-	public void onBeforeUpdate(User newUser) throws ModelListenerException {
-		try {
-			User oldUser = _userLocalService.getUser(newUser.getUserId());
+	public void onBeforeUpdate(User originalUser, User user)
+		throws ModelListenerException {
 
+		try {
 			List<Attribute> attributes = getModifiedAttributes(
-				newUser, oldUser);
+				originalUser, user);
 
 			if (!attributes.isEmpty()) {
 				AuditMessage auditMessage =
 					AuditMessageBuilder.buildAuditMessage(
 						EventTypes.UPDATE, User.class.getName(),
-						newUser.getUserId(), attributes);
+						user.getUserId(), attributes);
 
 				_auditRouter.route(auditMessage);
 			}
@@ -96,10 +96,10 @@ public class UserModelListener extends BaseModelListener<User> {
 	}
 
 	protected List<Attribute> getModifiedAttributes(
-		User newUser, User oldUser) {
+		User originalUser, User user) {
 
 		AttributesBuilder attributesBuilder = new AttributesBuilder(
-			newUser, oldUser);
+			user, originalUser);
 
 		attributesBuilder.add("active");
 		attributesBuilder.add("agreedToTermsOfUse");
@@ -113,7 +113,7 @@ public class UserModelListener extends BaseModelListener<User> {
 
 		List<Attribute> attributes = attributesBuilder.getAttributes();
 
-		if (newUser.isPasswordModified()) {
+		if (user.isPasswordModified()) {
 			attributes.add(new Attribute("password"));
 		}
 

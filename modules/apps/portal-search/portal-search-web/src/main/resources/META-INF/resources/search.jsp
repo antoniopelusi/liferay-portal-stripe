@@ -37,7 +37,7 @@ String format = ParamUtil.getString(request, SearchPortletParameterNames.FORMAT)
 	<aui:input name="<%= SearchContainer.DEFAULT_CUR_PARAM %>" type="hidden" value="<%= ParamUtil.getInteger(request, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_CUR) %>" />
 	<aui:input name="format" type="hidden" value="<%= format %>" />
 
-	<aui:fieldset id='<%= liferayPortletResponse.getNamespace() + "searchContainer" %>'>
+	<div id="<portlet:namespace />searchContainer">
 		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" inlineField="<%= true %>" label="" name="keywords" size="30" title="search" value="<%= HtmlUtil.escape(searchDisplayContext.getKeywords()) %>" />
 		<aui:input name="scope" type="hidden" value="<%= searchDisplayContext.getSearchScopeParameterString() %>" />
 		<aui:input name="useAdvancedSearchSyntax" type="hidden" value="<%= searchDisplayContext.isUseAdvancedSearchSyntax() %>" />
@@ -45,7 +45,7 @@ String format = ParamUtil.getString(request, SearchPortletParameterNames.FORMAT)
 		<aui:field-wrapper cssClass="search-button-field-wrapper" inlineField="<%= true %>">
 			<aui:button icon="icon-search" onClick='<%= liferayPortletResponse.getNamespace() + "search();" %>' type="submit" value="search" />
 		</aui:field-wrapper>
-	</aui:fieldset>
+	</div>
 
 	<%@ include file="/main_search.jspf" %>
 

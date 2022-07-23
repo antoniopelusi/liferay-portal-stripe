@@ -37,21 +37,21 @@ public class FragmentEntryLinkEditableValuesUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select fragmentEntryLinkId,editableValues,rendererKey from " +
 					"FragmentEntryLink where rendererKey like " +
 						"'BASIC_COMPONENT%'");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update FragmentEntryLink set editableValues = ? where " +
 						"fragmentEntryLinkId = ?");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
+			while (resultSet.next()) {
 				JSONObject editablesJSONObject =
 					JSONFactoryUtil.createJSONObject(
-						rs.getString("editableValues"));
+						resultSet.getString("editableValues"));
 
 				JSONObject configurationJSONObject =
 					editablesJSONObject.getJSONObject(
@@ -68,7 +68,7 @@ public class FragmentEntryLinkEditableValuesUpgradeProcess
 				_replaceShadow(configurationJSONObject);
 				_replaceTextColor(configurationJSONObject);
 
-				String rendererKey = rs.getString("rendererKey");
+				String rendererKey = resultSet.getString("rendererKey");
 
 				if (Objects.equals(rendererKey, "BASIC_COMPONENT-separator") &&
 					configurationJSONObject.has("borderColor")) {
@@ -92,13 +92,14 @@ public class FragmentEntryLinkEditableValuesUpgradeProcess
 					}
 				}
 
-				ps2.setString(1, editablesJSONObject.toString());
-				ps2.setLong(2, rs.getLong("fragmentEntryLinkId"));
+				preparedStatement2.setString(1, editablesJSONObject.toString());
+				preparedStatement2.setLong(
+					2, resultSet.getLong("fragmentEntryLinkId"));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

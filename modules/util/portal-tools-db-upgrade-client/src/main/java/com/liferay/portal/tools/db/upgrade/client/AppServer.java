@@ -41,7 +41,7 @@ public class AppServer {
 
 	public static AppServer getTomcatAppServer() {
 		return new AppServer(
-			"../../tomcat-9.0.43", "/bin", "/lib", "/webapps/ROOT", "tomcat");
+			"../../tomcat-9.0.56", "/bin", "/lib", "/webapps/ROOT", "tomcat");
 	}
 
 	public static AppServer getWebLogicAppServer() {
@@ -120,6 +120,10 @@ public class AppServer {
 
 	public File getPortalLibDir() {
 		return new File(getPortalDir(), "/WEB-INF/lib");
+	}
+
+	public File getPortalShieldedContainerLibDir() {
+		return new File(getPortalDir(), "/WEB-INF/shielded-container-lib");
 	}
 
 	public String getServerDetectorServerId() {

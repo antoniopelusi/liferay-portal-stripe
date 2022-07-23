@@ -47,7 +47,7 @@ AssetEntryUsagesDisplayContext assetEntryUsagesDisplayContext = new AssetEntryUs
 										).setNavigation(
 											"all"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>
@@ -63,7 +63,7 @@ AssetEntryUsagesDisplayContext assetEntryUsagesDisplayContext = new AssetEntryUs
 										).setNavigation(
 											"pages"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>
@@ -79,7 +79,7 @@ AssetEntryUsagesDisplayContext assetEntryUsagesDisplayContext = new AssetEntryUs
 										).setNavigation(
 											"page-templates"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>
@@ -95,7 +95,7 @@ AssetEntryUsagesDisplayContext assetEntryUsagesDisplayContext = new AssetEntryUs
 										).setNavigation(
 											"display-page-templates"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>

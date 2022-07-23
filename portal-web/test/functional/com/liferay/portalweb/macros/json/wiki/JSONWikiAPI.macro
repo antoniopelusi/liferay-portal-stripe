@@ -1,0 +1,299 @@
+definition {
+
+	@summary = "Helper function to send an attachment to wiki page via JSON"
+	macro _addAttachmentToWikiPage {
+		Variables.assertDefined(parameterList = "${nodeId},${title},${mimeType},${fileName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var baseDir = PropsUtil.get("test.base.dir.name");
+		var dependenciesDir = PropsUtil.get("test.dependencies.dir.name");
+		var filePath = "${baseDir}${dependenciesDir}/${fileName}";
+
+		var curl = '''
+			${portalURL}/api/jsonws/wiki.wikipage/add-page-attachment \
+			-u test@liferay.com:test \
+			-F nodeId=${nodeId} \
+			-F fileName=${fileName} \
+			-F mimeType=${mimeType} \
+			-F title=${title} \
+			-F file=@${filePath}
+		''';
+
+		echo("## Adding a 'File' with the following info using JSONWS:");
+
+		echo("## * Title: ${title}");
+
+		echo("## * File Name: ${fileName}");
+
+		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "Helper function to add a wiki child page via JSON"
+	macro _addWikiChildPage {
+		Variables.assertDefined(parameterList = "${parentResourcePrimKey},${headline}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (isSet(viewableBy)) {
+			var viewableBy = "${viewableBy}";
+		}
+		else {
+			var viewableBy = "Anyone";
+		}
+
+		if (isSet(encodingFormat)) {
+			var encodingFormat = "${encodingFormat}";
+		}
+		else {
+			var encodingFormat = "creole";
+		}
+
+		if (isSet(tagName)) {
+			var tagName = '''"${tagName}"''';
+		}
+		else {
+			var tagName = "";
+		}
+
+		if (isSet(assetCategoryIds)) {
+			var assetCategoryIds = "${assetCategoryIds}";
+		}
+		else {
+			var assetCategoryIds = "0";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/wiki-pages/${parentResourcePrimKey}/wiki-pages \
+			-H 'Content-Type: application/json' \
+			-u 'test@liferay.com:test' \
+			-d '{
+				"content": "${content}",
+				"creator": {},
+				"encodingFormat": "${encodingFormat}",
+				"headline": "${headline}",
+				"keywords": [${tagName}],
+				"parentWikiPageId": 0,
+				"taxonomyCategoryIds": [${assetCategoryIds}],
+				"viewableBy": "${viewableBy}"
+			}'
+		''';
+		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "Helper function to add a wiki node via JSON"
+	macro _addWikiNode {
+		Variables.assertDefined(parameterList = "${name}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (isSet(description)) {
+			var description = "${description}";
+		}
+		else {
+			var description = "";
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/wiki.wikinode/add-node \
+				-u test@liferay.com:test \
+				-d name=${name} \
+				-d description=${description} \
+				-d serviceContext=${serviceContext}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "Helper function to add a wiki page via JSON"
+	macro _addWikiPage {
+		Variables.assertDefined(parameterList = "${nodeId},${headline}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (isSet(viewableBy)) {
+			var viewableBy = "${viewableBy}";
+		}
+		else {
+			var viewableBy = "Anyone";
+		}
+
+		if (isSet(encodingFormat)) {
+			var encodingFormat = "${encodingFormat}";
+		}
+		else {
+			var encodingFormat = "creole";
+		}
+
+		if (isSet(tagName)) {
+			var tagName = '''"${tagName}"''';
+		}
+		else {
+			var tagName = "";
+		}
+
+		if (isSet(assetCategoryIds)) {
+			var assetCategoryIds = "${assetCategoryIds}";
+		}
+		else {
+			var assetCategoryIds = "0";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/wiki-nodes/${nodeId}/wiki-pages \
+			-H 'Content-Type: application/json' \
+			-u 'test@liferay.com:test' \
+			-d '{
+				"content": "${content}",
+				"creator": {},
+				"encodingFormat": "${encodingFormat}",
+				"headline": "${headline}",
+				"keywords": [${tagName}],
+				"taxonomyCategoryIds": [${assetCategoryIds}],
+				"viewableBy": "${viewableBy}"
+			}'
+		''';
+		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "Get the nodeId from any existing site by using groupName"
+	macro _getNodeIdByName {
+		Variables.assertDefined(parameterList = "${groupId},${name}");
+
+		if (!(isSet(portalURL))) {
+			var portalURL = JSONCompany.getPortalURL();
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/wiki.wikinode/get-nodes/group-id/${groupId} \
+				-u test@liferay.com:test
+		''';
+		var nodeId = JSONCurlUtil.get("${curl}", "$.[?(@['name'] == '${name}')]['nodeId']");
+
+		if ("${nodeId}" == "") {
+			fail("FAIL. Cannot find node.");
+		}
+
+		echo("## * NodeId: ${nodeId}");
+
+		return "${nodeId}";
+	}
+
+	@summary = "Get the pageId from any existing node by nodeName"
+	macro _getPageIdByName {
+		Variables.assertDefined(parameterList = "${nodeId},${title}");
+
+		if (!(isSet(portalURL))) {
+			var portalURL = JSONCompany.getPortalURL();
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/wiki.wikipage/get-page \
+				-u test@liferay.com:test \
+				-d nodeId=${nodeId} \
+				-d title=${title}
+		''';
+		var pageId = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${title}')]['pageId']");
+
+		if ("${pageId}" == "") {
+			fail("FAIL. Cannot find wiki page.");
+		}
+
+		echo("## * PageId: ${pageId}");
+
+		return "${pageId}";
+	}
+
+	@summary = "Get the resourcePrimKey by pagename"
+	macro _getPageResourcePrimKey {
+		Variables.assertDefined(parameterList = "${nodeId},${title}");
+
+		if (!(isSet(portalURL))) {
+			var portalURL = JSONCompany.getPortalURL();
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/wiki.wikipage/get-page \
+				-u test@liferay.com:test \
+				-d nodeId=${nodeId} \
+				-d title=${title}
+		''';
+		var resourcePrimKey = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${title}')]['resourcePrimKey']");
+
+		if ("${resourcePrimKey}" == "[]") {
+			fail("FAIL. Cannot find wiki page resourcePrimKey.");
+		}
+
+		echo("## * resourcePrimKey: ${resourcePrimKey}");
+
+		return "${resourcePrimKey}";
+	}
+
+	@summary = "Helper function to move the wiki page to trash via JSON."
+	macro _movePageToTrash {
+		Variables.assertDefined(parameterList = "${title},${nodeId}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/wiki.wikipage/move-page-to-trash \
+				-u test@liferay.com:test \
+				-d nodeId=${nodeId} \
+				-d title=${title}
+		''';
+		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "Helper function to update the existing wiki page via JSON."
+	macro _updateWikiPage {
+		Variables.assertDefined(parameterList = "${resourcePrimKey}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (isSet(viewableBy)) {
+			var viewableBy = "${viewableBy}";
+		}
+		else {
+			var viewableBy = "Anyone";
+		}
+
+		if (isSet(encodingFormat)) {
+			var encodingFormat = "${encodingFormat}";
+		}
+		else {
+			var encodingFormat = "creole";
+		}
+
+		if (isSet(tagName)) {
+			var tagName = '''"${tagName}"''';
+		}
+		else {
+			var tagName = "";
+		}
+
+		if (isSet(assetCategoryIds)) {
+			var assetCategoryIds = "${assetCategoryIds}";
+		}
+		else {
+			var assetCategoryIds = "0";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/wiki-pages/${resourcePrimKey} \
+			-H 'Content-Type: application/json' \
+			-u 'test@liferay.com:test' \
+			-d '{
+				"content": "${content}",
+				"creator": {},
+				"encodingFormat": "${encodingFormat}",
+				"headline": "${headline}",
+				"keywords": [${tagName}],
+				"taxonomyCategoryIds": [${assetCategoryIds}],
+				"viewableBy": "${viewableBy}",
+				"wikiNodeId": 0
+			}'
+		''';
+		var messageId = JSONCurlUtil.put("${curl}");
+	}
+
+}

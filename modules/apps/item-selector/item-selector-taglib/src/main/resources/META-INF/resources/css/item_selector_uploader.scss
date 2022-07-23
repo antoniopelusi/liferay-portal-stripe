@@ -1,0 +1,91 @@
+@import 'atlas-variables';
+
+.dropzone {
+	$component: &;
+
+	align-items: center;
+	background-color: $light;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	display: flex;
+	font-size: 0.875rem;
+	font-weight: $font-weight-semi-bold;
+	justify-content: center;
+	min-height: 6rem;
+	outline: 2px dashed $secondary-l2;
+	transition-duration: 0.2s;
+	transition-property: bakground-color, outline;
+	transition-timing-function: ease-in-out;
+
+	@include media-breakpoint-up(md) {
+		padding: 0 25%;
+	}
+
+	&:focus,
+	&-drag-active {
+		background-color: $primary-l3;
+		outline-color: $primary;
+	}
+
+	&-disabled {
+		cursor: not-allowed;
+		opacity: 0.6;
+	}
+
+	&-uploading {
+		background-color: $primary-l3;
+		outline: 1px solid $primary;
+	}
+
+	&-error {
+		animation: dropzone-error-in-out 1s;
+	}
+
+	&-drag-file-icon-wrapper {
+		margin-right: 2rem;
+		position: relative;
+
+		#{$component}-drag-file-type-icon {
+			bottom: 0.4375rem;
+			color: $white;
+			font-size: 1.5rem;
+			position: absolute;
+			right: 0.8125rem;
+		}
+	}
+
+	&-wrapper {
+		margin-top: 1rem;
+
+		&-search-container-empty {
+			#{$component} {
+				flex-direction: column;
+				height: 25rem;
+			}
+
+			#{$component}-drag-file-icon-wrapper {
+				margin-bottom: 3rem;
+				margin-right: 0;
+			}
+
+			#{$component}-drag-file-icon {
+				height: 140px;
+				width: 188px;
+			}
+
+			#{$component}-drag-file-type-icon {
+				bottom: 1.4rem;
+				font-size: 2.5rem;
+				right: 2.4rem;
+			}
+		}
+	}
+
+	@keyframes dropzone-error-in-out {
+		5%,
+		80% {
+			background: $danger-l2;
+			outline-color: $danger-l1;
+		}
+	}
+}

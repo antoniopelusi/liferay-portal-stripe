@@ -12,8 +12,6 @@
  * details.
  */
 
-'use strict';
-
 import PortletBase from '../../src/main/resources/META-INF/resources/liferay/PortletBase.es';
 
 describe('PortletBase', () => {
@@ -74,7 +72,7 @@ describe('PortletBase', () => {
 
 		beforeEach(() => {
 			globalFetch = global.fetch;
-			portletBase.ns = (obj) => obj;
+			portletBase.ns = (object) => object;
 		});
 
 		afterEach(() => {
@@ -166,7 +164,7 @@ describe('PortletBase', () => {
 		});
 
 		it('appends all object keys inside a new FormData element', () => {
-			portletBase.ns = (obj) => obj;
+			portletBase.ns = (object) => object;
 
 			const sampleBody = {
 				fieldA: 'valueA',

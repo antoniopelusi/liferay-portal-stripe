@@ -27,6 +27,10 @@ public class BackgroundTaskLocalServiceWrapper
 	implements BackgroundTaskLocalService,
 			   ServiceWrapper<BackgroundTaskLocalService> {
 
+	public BackgroundTaskLocalServiceWrapper() {
+		this(null);
+	}
+
 	public BackgroundTaskLocalServiceWrapper(
 		BackgroundTaskLocalService backgroundTaskLocalService) {
 
@@ -239,6 +243,13 @@ public class BackgroundTaskLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _backgroundTaskLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _backgroundTaskLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

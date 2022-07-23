@@ -32,7 +32,7 @@ ClickToChatConfiguration clickToChatConfiguration = (ClickToChatConfiguration)re
 			<aui:option label="" value="" />
 
 			<%
-			for (String clickToChatSiteSettingsStrategy : ClickToChatConstants.CLICK_TO_CHAT_SITE_SETTINGS_STRATEGIES) {
+			for (String clickToChatSiteSettingsStrategy : ClickToChatConstants.SITE_SETTINGS_STRATEGIES) {
 			%>
 
 				<aui:option label='<%= "site-settings-strategy-" + clickToChatSiteSettingsStrategy %>' value="<%= clickToChatSiteSettingsStrategy %>" />
@@ -44,18 +44,18 @@ ClickToChatConfiguration clickToChatConfiguration = (ClickToChatConfiguration)re
 		</aui:select>
 
 		<label class="text-secondary">
-			<liferay-ui:message key="site-settings-strategy-description" />
+			<liferay-ui:message arguments="click-to-chat" key="site-settings-strategy-description" />
 		</label>
 	</div>
 </div>
 
-<div class="form-group row" id="<%= liferayPortletResponse.getNamespace() + "clickToChatChatProviders" %>">
+<div class="form-group row" id="<portlet:namespace />clickToChatChatProviders">
 	<div class="col-md-6">
 		<aui:select label="chat-provider" name="chatProviderId" onchange='<%= liferayPortletResponse.getNamespace() + "onChangeClickToChatChatProviderId(event);" %>' value="<%= clickToChatConfiguration.chatProviderId() %>">
 			<aui:option label="" value="" />
 
 			<%
-			for (String clickToChatChatProviderId : ClickToChatConstants.CLICK_TO_CHAT_CHAT_PROVIDER_IDS) {
+			for (String clickToChatChatProviderId : ClickToChatConstants.CHAT_PROVIDER_IDS) {
 			%>
 
 				<aui:option label='<%= "chat-provider-" + clickToChatChatProviderId %>' value="<%= clickToChatChatProviderId %>" />
@@ -67,18 +67,20 @@ ClickToChatConfiguration clickToChatConfiguration = (ClickToChatConfiguration)re
 		</aui:select>
 
 		<aui:input checked="<%= clickToChatConfiguration.guestUsersAllowed() %>" inlineLabel="right" label='<%= LanguageUtil.get(resourceBundle, "guest-users-allowed") %>' labelCssClass="simple-toggle-switch" name="guestUsersAllowed" type="toggle-switch" value="<%= clickToChatConfiguration.guestUsersAllowed() %>" />
+
+		<aui:input checked="<%= clickToChatConfiguration.hideInControlPanel() %>" inlineLabel="right" label='<%= LanguageUtil.get(resourceBundle, "hide-in-control-panel") %>' labelCssClass="simple-toggle-switch" name="hideInControlPanel" type="toggle-switch" value="<%= clickToChatConfiguration.hideInControlPanel() %>" />
 	</div>
 
 	<div class="col-md-6">
 		<aui:input label="chat-provider-account-id" name="chatProviderAccountId" type="text" value="<%= clickToChatConfiguration.chatProviderAccountId() %>" />
 
 		<%
-		for (String clickToChatChatProviderId : ClickToChatConstants.CLICK_TO_CHAT_CHAT_PROVIDER_IDS) {
+		for (String clickToChatChatProviderId : ClickToChatConstants.CHAT_PROVIDER_IDS) {
 		%>
 
 			<div class="hide mb-2" id="<portlet:namespace />clickToChatChatProviderLearnMessage<%= clickToChatChatProviderId %>">
 				<liferay-learn:message
-					key='<%= "chat-provider-account-id-help-" + clickToChatChatProviderId %>'
+					key='<%= "chat-provider-account-id-" + clickToChatChatProviderId %>'
 					resource="click-to-chat-web"
 				/>
 			</div>
@@ -93,7 +95,7 @@ ClickToChatConfiguration clickToChatConfiguration = (ClickToChatConfiguration)re
 <script>
 	function <portlet:namespace />hideUnselectedClickToChatProviderLearnMessages() {
 		var clickToChatChatProviderIdElement = document.getElementById(
-			'<portlet:namespace />clickToChatChatProviderId'
+			'<portlet:namespace />chatProviderId'
 		);
 
 		var clickToChatProviderIdOptions = clickToChatChatProviderIdElement.querySelectorAll(
@@ -122,7 +124,7 @@ ClickToChatConfiguration clickToChatConfiguration = (ClickToChatConfiguration)re
 		);
 
 		var clickToChatSiteSettingsStrategyElement = document.getElementById(
-			'<portlet:namespace />clickToChatSiteSettingsStrategy'
+			'<portlet:namespace />siteSettingsStrategy'
 		);
 
 		if (clickToChatSiteSettingsStrategyElement.value === 'always-override') {
@@ -155,7 +157,7 @@ ClickToChatConfiguration clickToChatConfiguration = (ClickToChatConfiguration)re
 
 	<portlet:namespace />onChangeClickToChatSiteSettingsStrategy();
 	<portlet:namespace />toggleClickToChatChatProviderLearnMessage(
-		'<%= clickToChatConfiguration.chatProviderId() %>',
+		document.getElementById('<portlet:namespace />chatProviderId').value,
 		true
 	);
 </script>

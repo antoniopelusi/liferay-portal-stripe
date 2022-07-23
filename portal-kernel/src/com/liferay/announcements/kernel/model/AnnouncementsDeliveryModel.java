@@ -208,4 +208,7 @@ public interface AnnouncementsDeliveryModel
 	 */
 	public void setWebsite(boolean website);
 
+	@Override
+	public AnnouncementsDelivery cloneWithOriginalValues();
+
 }

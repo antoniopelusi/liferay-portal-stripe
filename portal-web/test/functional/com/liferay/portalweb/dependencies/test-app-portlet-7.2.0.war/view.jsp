@@ -40,7 +40,9 @@
 
 <h3>custom-jsp-dir</h3>
 
-<liferay-util:buffer var="setupWizardJsp">
+<liferay-util:buffer
+	var="setupWizardJsp"
+>
 	<liferay-util:include page="/html/portal/setup_wizard.jsp" />
 </liferay-util:buffer>
 
@@ -53,7 +55,9 @@
 <p>
 
 	<%
-	Class<?> clazz = UserLocalServiceUtil.getUserByEmailAddress(themeDisplay.getCompanyId(), "test@liferay.com").getClass();
+	Class<?> clazz = UserLocalServiceUtil.getUserByEmailAddress(
+		themeDisplay.getCompanyId(), "test@liferay.com"
+	).getClass();
 	%>
 
 	com.liferay.portal.kernel.service.UserLocalService=<%= _assertEquals(TestHookUserImpl.class.getName(), clazz.getName()) %>

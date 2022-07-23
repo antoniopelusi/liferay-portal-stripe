@@ -28,14 +28,13 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.lang.reflect.Field;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,42 +43,42 @@ import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.mockito.Mock;
-
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * @author Marcellus Tavares
  */
-@PrepareForTest(ServiceContextThreadLocal.class)
-@RunWith(PowerMockRunner.class)
 public class DDMFormRuleToDDMFormRuleModelConverterTest
 	extends BaseDDMConverterTestCase {
 
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
+
 	@Before
 	public void setUp() throws Exception {
-		setUpDDMExpressionFactory();
-		setUpDDMFormRuleConverter();
-		setUpDDMFormRuleDeserializer();
+		_setUpDDMExpressionFactory();
+		_setUpDDMFormRuleConverter();
+		_setUpDDMFormRuleDeserializer();
 	}
 
 	@Test
 	public void testAndOrCondition1() throws Exception {
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-and-or-condition.json",
 			"ddm-form-rules-model-and-or-condition.json");
 	}
 
 	@Test
 	public void testAndOrCondition2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-and-or-condition.json",
 			"ddm-form-rules-and-or-condition.json");
 	}
@@ -124,10 +123,10 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 		String actualCallFunction = actualActionDDMRuleJSONArray.getString(0);
 
 		List<String> expectedCallFunctionParameters =
-			extractCallFunctionParameters(expectedCallFunction);
+			_extractCallFunctionParameters(expectedCallFunction);
 
 		List<String> actualCallFunctionParameters =
-			extractCallFunctionParameters(actualCallFunction);
+			_extractCallFunctionParameters(actualCallFunction);
 
 		String expectedDDMDataProviderInstanceUUID =
 			expectedCallFunctionParameters.get(0);
@@ -145,7 +144,7 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 		String actualInputParametersExpression =
 			actualCallFunctionParameters.get(1);
 
-		assertCallFunctionParametersExpression(
+		_assertCallFunctionParametersExpression(
 			expectedInputParametersExpression, actualInputParametersExpression);
 
 		String expectedOutputParametersExpression =
@@ -154,42 +153,42 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 		String actualOutputParametersExpression =
 			actualCallFunctionParameters.get(2);
 
-		assertCallFunctionParametersExpression(
+		_assertCallFunctionParametersExpression(
 			expectedOutputParametersExpression,
 			actualOutputParametersExpression);
 	}
 
 	@Test
 	public void testAutoFillActions2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-auto-fill-actions.json",
 			"ddm-form-rules-auto-fill-actions.json");
 	}
 
 	@Test
 	public void testBelongsToCondition1() throws Exception {
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-belongs-to-condition.json",
 			"ddm-form-rules-model-belongs-to-condition.json");
 	}
 
 	@Test
 	public void testBelongsToCondition2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-belongs-to-condition.json",
 			"ddm-form-rules-belongs-to-condition-without-user-operand.json");
 	}
 
 	@Test
 	public void testBooleanActions1() throws Exception {
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-boolean-actions.json",
 			"ddm-form-rules-model-boolean-actions.json");
 	}
 
 	@Test
 	public void testBooleanActions2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-boolean-actions.json",
 			"ddm-form-rules-boolean-actions.json");
 	}
@@ -208,81 +207,103 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 		ddmForm.setDDMFormFields(
 			Arrays.asList(ddmFormField0, ddmFormField1, ddmFormField2));
 
-		PowerMockito.when(
+		Mockito.when(
 			_spiDDMFormRuleSerializerContext.getAttribute("form")
 		).thenReturn(
 			ddmForm
 		);
 
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-calculate-action.json",
 			"ddm-form-rules-model-calculate-action.json");
 	}
 
 	@Test
 	public void testCalculateAction2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-calculate-action.json",
 			"ddm-form-rules-calculate-action.json");
 	}
 
 	@Test
 	public void testComparisonOperatorsCondition1() throws Exception {
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-comparison-operators-condition.json",
 			"ddm-form-rules-model-comparison-operators-condition.json");
 	}
 
 	@Test
 	public void testComparisonOperatorsCondition2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-comparison-operators-condition.json",
 			"ddm-form-rules-comparison-operators-condition.json");
 	}
 
 	@Test
+	public void testCustomCondition1() throws Exception {
+		_assertConversionToModel(
+			"ddm-form-rules-custom-condition.json",
+			"ddm-form-rules-model-custom-condition.json");
+	}
+
+	@Test
+	public void testCustomCondition2() throws Exception {
+		_assertConversionToConvertModel(
+			"ddm-form-rules-model-custom-condition.json",
+			"ddm-form-rules-custom-condition.json");
+	}
+
+	@Test
 	public void testIsEmptyCondition1() throws Exception {
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-is-empty-condition.json",
 			"ddm-form-rules-model-is-empty-condition.json");
 	}
 
 	@Test
 	public void testIsEmptyCondition2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-is-empty-condition.json",
 			"ddm-form-rules-is-empty-condition.json");
 	}
 
 	@Test
 	public void testIsNotEmptyCondition1() throws Exception {
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-is-not-empty-condition.json",
 			"ddm-form-rules-model-is-not-empty-condition.json");
 	}
 
 	@Test
 	public void testIsNotEmptyCondition2() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-is-not-empty-condition.json",
 			"ddm-form-rules-is-not-empty-condition.json");
 	}
 
 	@Test
 	public void testJumpToPageActions1() throws Exception {
-		assertConversionToConvertModel(
+		_assertConversionToConvertModel(
 			"ddm-form-rules-model-jump-to-page-actions.json",
 			"ddm-form-rules-jump-to-page-actions.json");
 	}
 
 	@Test
 	public void testJumpToPageActions2() throws Exception {
-		assertConversionToModel(
+		_assertConversionToModel(
 			"ddm-form-rules-jump-to-page-actions.json",
 			"ddm-form-rules-model-jump-to-page-actions.json");
 	}
 
-	protected void assertCallFunctionParametersExpression(
+	protected List<DDMFormRule> convert(String fileName) throws Exception {
+		String serializedDDMFormRules = read(fileName);
+
+		return _ddmFormRuleConverterImpl.convert(
+			_ddmFormRuleDeserializerImpl.deserialize(serializedDDMFormRules),
+			_spiDDMFormRuleSerializerContext);
+	}
+
+	private void _assertCallFunctionParametersExpression(
 		String expectedParametersExpression,
 		String actualParametersExpression) {
 
@@ -322,7 +343,7 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 		}
 	}
 
-	protected void assertConversionToConvertModel(
+	private void _assertConversionToConvertModel(
 			String fromFileName, String toFileName)
 		throws Exception {
 
@@ -338,7 +359,7 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 			read(toFileName), serialize(spiDDMFormRules), false);
 	}
 
-	protected void assertConversionToModel(
+	private void _assertConversionToModel(
 			String fromFileName, String toFileName)
 		throws Exception {
 
@@ -348,29 +369,16 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 			read(toFileName), serialize(ddmFormRules), false);
 	}
 
-	protected List<DDMFormRule> convert(String fileName) throws Exception {
-		String serializedDDMFormRules = read(fileName);
-
-		return _ddmFormRuleConverterImpl.convert(
-			_ddmFormRuleDeserializerImpl.deserialize(serializedDDMFormRules),
-			_spiDDMFormRuleSerializerContext);
-	}
-
-	protected List<String> extractCallFunctionParameters(String callFunction) {
+	private List<String> _extractCallFunctionParameters(String callFunction) {
 		Matcher matcher = _callFunctionPattern.matcher(callFunction);
 
 		matcher.find();
 
-		List<String> callFunctionParameters = new ArrayList<>(3);
-
-		callFunctionParameters.add(matcher.group(1));
-		callFunctionParameters.add(matcher.group(2));
-		callFunctionParameters.add(matcher.group(3));
-
-		return callFunctionParameters;
+		return ListUtil.fromArray(
+			matcher.group(1), matcher.group(2), matcher.group(3));
 	}
 
-	protected void setUpDDMExpressionFactory() throws Exception {
+	private void _setUpDDMExpressionFactory() throws Exception {
 		Field field = ReflectionUtil.getDeclaredField(
 			_ddmExpressionFactoryImpl.getClass(),
 			"ddmExpressionFunctionTracker");
@@ -379,14 +387,14 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 			_ddmExpressionFactoryImpl, new DDMExpressionFunctionTrackerImpl());
 	}
 
-	protected void setUpDDMFormRuleConverter() throws Exception {
+	private void _setUpDDMFormRuleConverter() throws Exception {
 		Field field = ReflectionUtil.getDeclaredField(
 			_ddmFormRuleConverterImpl.getClass(), "ddmExpressionFactory");
 
 		field.set(_ddmFormRuleConverterImpl, _ddmExpressionFactoryImpl);
 	}
 
-	protected void setUpDDMFormRuleDeserializer() throws Exception {
+	private void _setUpDDMFormRuleDeserializer() throws Exception {
 		Field field = ReflectionUtil.getDeclaredField(
 			_ddmFormRuleDeserializerImpl.getClass(), "_jsonFactory");
 
@@ -409,8 +417,8 @@ public class DDMFormRuleToDDMFormRuleModelConverterTest
 		new DDMFormRuleConverterImpl();
 	private final DDMFormRuleDeserializerImpl _ddmFormRuleDeserializerImpl =
 		new DDMFormRuleDeserializerImpl();
-
-	@Mock
-	private SPIDDMFormRuleSerializerContext _spiDDMFormRuleSerializerContext;
+	private final SPIDDMFormRuleSerializerContext
+		_spiDDMFormRuleSerializerContext = Mockito.mock(
+			SPIDDMFormRuleSerializerContext.class);
 
 }

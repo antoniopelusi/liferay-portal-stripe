@@ -45,9 +45,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceTracker;
 
 import java.io.Writer;
 
@@ -63,10 +60,8 @@ import javax.portlet.annotations.PortletSerializable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -87,28 +82,12 @@ public class DLAdminDisplayContextTest {
 			PermissionCheckerMethodTestRule.INSTANCE,
 			SynchronousDestinationTestRule.INSTANCE);
 
-	@BeforeClass
-	public static void setUpClass() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_serviceTracker = registry.trackServices(
-			"com.liferay.document.library.web.internal.display.context." +
-				"DLAdminDisplayContextProvider");
-
-		_serviceTracker.open();
-	}
-
-	@AfterClass
-	public static void tearDownClass() {
-		_serviceTracker.close();
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
 		_company = _companyLocalService.getCompany(_group.getCompanyId());
-		_layout = LayoutTestUtil.addLayout(_group);
+		_layout = LayoutTestUtil.addTypePortletLayout(_group);
 	}
 
 	@Test
@@ -142,11 +121,11 @@ public class DLAdminDisplayContextTest {
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 
 		return _dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
+			null, TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, fileName,
 			ContentTypes.TEXT_PLAIN, RandomTestUtil.randomString(),
-			StringPool.BLANK, StringPool.BLANK, content.getBytes(),
-			serviceContext);
+			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+			content.getBytes(), null, null, serviceContext);
 	}
 
 	private MockLiferayPortletActionRequest
@@ -186,10 +165,8 @@ public class DLAdminDisplayContextTest {
 	private SearchContainer<Object> _getSearchContainer(
 		MockLiferayPortletActionRequest mockLiferayPortletActionRequest) {
 
-		Object dlAdminDisplayContextProvider = _serviceTracker.getService();
-
 		Object dlAdminDisplayContext = ReflectionTestUtil.invoke(
-			dlAdminDisplayContextProvider, "getDLAdminDisplayContext",
+			_dlAdminDisplayContextProvider, "getDLAdminDisplayContext",
 			new Class<?>[] {
 				HttpServletRequest.class, HttpServletResponse.class
 			},
@@ -206,18 +183,24 @@ public class DLAdminDisplayContextTest {
 		themeDisplay.setLayout(_layout);
 		themeDisplay.setPermissionChecker(
 			PermissionThreadLocal.getPermissionChecker());
+		themeDisplay.setRealUser(TestPropsValues.getUser());
 		themeDisplay.setScopeGroupId(_layout.getGroupId());
+		themeDisplay.setSiteGroupId(_layout.getGroupId());
 		themeDisplay.setUser(TestPropsValues.getUser());
 
 		return themeDisplay;
 	}
 
-	private static ServiceTracker<Object, Object> _serviceTracker;
-
 	private Company _company;
 
 	@Inject
 	private CompanyLocalService _companyLocalService;
+
+	@Inject(
+		filter = "component.name=com.liferay.document.library.web.internal.display.context.DLAdminDisplayContextProvider",
+		type = Inject.NoType.class
+	)
+	private Object _dlAdminDisplayContextProvider;
 
 	@Inject
 	private DLAppLocalService _dlAppLocalService;

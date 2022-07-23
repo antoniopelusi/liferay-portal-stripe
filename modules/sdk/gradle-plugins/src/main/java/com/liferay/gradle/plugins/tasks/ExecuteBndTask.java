@@ -21,7 +21,6 @@ import aQute.bnd.osgi.Constants;
 import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Processor;
 import aQute.bnd.version.MavenVersion;
-import aQute.bnd.version.Version;
 
 import aQute.lib.utf8properties.UTF8Properties;
 
@@ -125,15 +124,12 @@ public class ExecuteBndTask extends DefaultTask {
 				 Constants.EMPTY_HEADER.equals(bundleVersion)) &&
 				(project.getVersion() != null)) {
 
-				Object version = project.getVersion();
-
 				MavenVersion mavenVersion = MavenVersion.parseString(
-					version.toString());
-
-				Version osgiVersion = mavenVersion.getOSGiVersion();
+					String.valueOf(project.getVersion()));
 
 				builder.setProperty(
-					Constants.BUNDLE_VERSION, osgiVersion.toString());
+					Constants.BUNDLE_VERSION,
+					String.valueOf(mavenVersion.getOSGiVersion()));
 			}
 
 			if (logger.isDebugEnabled()) {

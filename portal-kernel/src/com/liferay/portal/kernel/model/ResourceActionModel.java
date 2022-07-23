@@ -127,4 +127,7 @@ public interface ResourceActionModel
 	 */
 	public void setBitwiseValue(long bitwiseValue);
 
+	@Override
+	public ResourceAction cloneWithOriginalValues();
+
 }

@@ -54,7 +54,7 @@ else {
 					"/message_boards/select_category"
 				).setParameter(
 					"mbCategoryId", categoryId
-				).build()
+				).buildPortletURL()
 			%>'
 			total="<%= MBCategoryServiceUtil.getCategoriesCount(scopeGroupId, excludedCategoryId, categoryId, WorkflowConstants.STATUS_APPROVED) %>"
 		>

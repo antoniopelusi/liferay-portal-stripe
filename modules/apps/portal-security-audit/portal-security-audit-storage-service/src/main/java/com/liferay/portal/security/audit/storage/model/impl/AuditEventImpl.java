@@ -18,8 +18,4 @@ package com.liferay.portal.security.audit.storage.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class AuditEventImpl extends AuditEventBaseImpl {
-
-	public AuditEventImpl() {
-	}
-
 }

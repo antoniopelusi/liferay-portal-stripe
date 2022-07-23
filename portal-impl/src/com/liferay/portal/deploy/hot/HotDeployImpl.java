@@ -52,10 +52,6 @@ public class HotDeployImpl implements HotDeploy {
 		if (_log.isDebugEnabled()) {
 			_log.debug("Initializing hot deploy manager " + hashCode());
 		}
-
-		_dependentHotDeployEvents = new ConcurrentLinkedQueue<>();
-		_deployedServletContextNames = new HashSet<>();
-		_hotDeployListeners = new ArrayList<>();
 	}
 
 	@Override
@@ -107,7 +103,7 @@ public class HotDeployImpl implements HotDeploy {
 				hotDeployListener.invokeUndeploy(hotDeployEvent);
 			}
 			catch (HotDeployException hotDeployException) {
-				_log.error(hotDeployException, hotDeployException);
+				_log.error(hotDeployException);
 			}
 			finally {
 				PortletClassLoaderUtil.setServletContextName(null);
@@ -210,7 +206,7 @@ public class HotDeployImpl implements HotDeploy {
 					hotDeployListener.invokeDeploy(hotDeployEvent);
 				}
 				catch (HotDeployException hotDeployException) {
-					_log.error(hotDeployException, hotDeployException);
+					_log.error(hotDeployException);
 				}
 				finally {
 					PortletClassLoaderUtil.setServletContextName(null);
@@ -247,14 +243,11 @@ public class HotDeployImpl implements HotDeploy {
 		else {
 			if (!_dependentHotDeployEvents.contains(hotDeployEvent)) {
 				if (_log.isInfoEnabled()) {
-					StringBundler sb = new StringBundler(4);
-
-					sb.append("Queueing ");
-					sb.append(servletContextName);
-					sb.append(" for deploy because it is missing ");
-					sb.append(getRequiredServletContextNames(hotDeployEvent));
-
-					_log.info(sb.toString());
+					_log.info(
+						StringBundler.concat(
+							"Queueing ", servletContextName,
+							" for deploy because it is missing ",
+							getRequiredServletContextNames(hotDeployEvent)));
 				}
 
 				_dependentHotDeployEvents.add(hotDeployEvent);
@@ -264,15 +257,12 @@ public class HotDeployImpl implements HotDeploy {
 					for (HotDeployEvent dependentHotDeployEvent :
 							_dependentHotDeployEvents) {
 
-						StringBundler sb = new StringBundler(3);
-
-						sb.append(servletContextName);
-						sb.append(" is still in queue because it is missing ");
-						sb.append(
-							getRequiredServletContextNames(
-								dependentHotDeployEvent));
-
-						_log.info(sb.toString());
+						_log.info(
+							StringBundler.concat(
+								servletContextName,
+								" is still in queue because it is missing ",
+								getRequiredServletContextNames(
+									dependentHotDeployEvent)));
 					}
 				}
 			}
@@ -314,8 +304,10 @@ public class HotDeployImpl implements HotDeploy {
 	private static final Log _log = LogFactoryUtil.getLog(HotDeployImpl.class);
 
 	private boolean _capturePrematureEvents = true;
-	private final Queue<HotDeployEvent> _dependentHotDeployEvents;
-	private final Set<String> _deployedServletContextNames;
-	private final List<HotDeployListener> _hotDeployListeners;
+	private final Queue<HotDeployEvent> _dependentHotDeployEvents =
+		new ConcurrentLinkedQueue<>();
+	private final Set<String> _deployedServletContextNames = new HashSet<>();
+	private final List<HotDeployListener> _hotDeployListeners =
+		new ArrayList<>();
 
 }

@@ -16,7 +16,6 @@ package com.liferay.commerce.product.type.grouped.internal.upgrade.v1_1_0;
 
 import com.liferay.commerce.product.type.grouped.model.impl.CPDefinitionGroupedEntryModelImpl;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -33,26 +32,25 @@ public class CPDefinitionGroupedEntryUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		_addColumn(
-			CPDefinitionGroupedEntryModelImpl.class,
-			CPDefinitionGroupedEntryModelImpl.TABLE_NAME, "entryCProductId",
-			"LONG");
+		_addColumn("CPDefinitionGroupedEntry", "entryCProductId", "LONG");
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update CPDefinitionGroupedEntry set entryCProductId = ? " +
 					"where entryCPDefinitionId = ?");
 			Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select * from CPDefinitionGroupedEntry")) {
 
-			while (rs.next()) {
-				long entryCPDefinitionId = rs.getLong("entryCPDefinitionId");
+			while (resultSet.next()) {
+				long entryCPDefinitionId = resultSet.getLong(
+					"entryCPDefinitionId");
 
-				ps.setLong(1, _getCProductId(entryCPDefinitionId));
+				preparedStatement.setLong(
+					1, _getCProductId(entryCPDefinitionId));
 
-				ps.setLong(2, entryCPDefinitionId);
+				preparedStatement.setLong(2, entryCPDefinitionId);
 
-				ps.execute();
+				preparedStatement.execute();
 			}
 		}
 
@@ -62,8 +60,7 @@ public class CPDefinitionGroupedEntryUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _addColumn(
-			Class<?> entityClass, String tableName, String columnName,
-			String columnType)
+			String tableName, String columnName, String columnType)
 		throws Exception {
 
 		if (_log.isInfoEnabled()) {
@@ -73,10 +70,7 @@ public class CPDefinitionGroupedEntryUpgradeProcess extends UpgradeProcess {
 		}
 
 		if (!hasColumn(tableName, columnName)) {
-			alter(
-				entityClass,
-				new AlterTableAddColumn(
-					columnName + StringPool.SPACE + columnType));
+			alterTableAddColumn(tableName, columnName, columnType);
 		}
 		else {
 			if (_log.isInfoEnabled()) {
@@ -114,12 +108,12 @@ public class CPDefinitionGroupedEntryUpgradeProcess extends UpgradeProcess {
 
 	private long _getCProductId(long cpDefinitionId) throws Exception {
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select CProductId from CPDefinition where CPDefinitionId = " +
 					cpDefinitionId)) {
 
-			if (rs.next()) {
-				return rs.getLong("CProductId");
+			if (resultSet.next()) {
+				return resultSet.getLong("CProductId");
 			}
 		}
 

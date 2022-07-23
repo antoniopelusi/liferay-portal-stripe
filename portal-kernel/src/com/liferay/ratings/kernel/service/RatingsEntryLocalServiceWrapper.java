@@ -30,6 +30,10 @@ public class RatingsEntryLocalServiceWrapper
 	implements RatingsEntryLocalService,
 			   ServiceWrapper<RatingsEntryLocalService> {
 
+	public RatingsEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public RatingsEntryLocalServiceWrapper(
 		RatingsEntryLocalService ratingsEntryLocalService) {
 
@@ -136,6 +140,13 @@ public class RatingsEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ratingsEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ratingsEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

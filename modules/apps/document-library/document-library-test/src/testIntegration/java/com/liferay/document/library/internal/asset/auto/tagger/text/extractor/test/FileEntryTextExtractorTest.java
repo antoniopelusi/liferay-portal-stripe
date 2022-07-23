@@ -57,12 +57,12 @@ public class FileEntryTextExtractorTest {
 		byte[] bytes = content.getBytes();
 
 		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
+			null, TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
 			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
-			new ByteArrayInputStream(bytes), bytes.length,
-			ServiceContextTestUtil.getServiceContext());
+			StringPool.BLANK, new ByteArrayInputStream(bytes), bytes.length,
+			null, null, ServiceContextTestUtil.getServiceContext());
 
 		TextExtractor<FileEntry> textExtractor =
 			(TextExtractor<FileEntry>)_textExtractorTracker.getTextExtractor(

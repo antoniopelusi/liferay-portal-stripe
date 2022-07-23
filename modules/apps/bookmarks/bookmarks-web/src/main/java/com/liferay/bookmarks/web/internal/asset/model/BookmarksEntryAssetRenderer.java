@@ -151,8 +151,8 @@ public class BookmarksEntryAssetRenderer
 		).setParameter(
 			"folderId", _entry.getFolderId()
 		).setParameter(
-			"showFolderSelector", Boolean.TRUE.toString()
-		).build();
+			"showFolderSelector", true
+		).buildPortletURL();
 	}
 
 	@Override
@@ -198,7 +198,7 @@ public class BookmarksEntryAssetRenderer
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;
@@ -213,7 +213,7 @@ public class BookmarksEntryAssetRenderer
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

@@ -14,7 +14,6 @@
 
 package com.liferay.fragment.internal.upgrade.v2_6_0;
 
-import com.liferay.fragment.internal.upgrade.v2_6_0.util.FragmentEntryTable;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
@@ -30,14 +29,14 @@ public class FragmentEntryUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeSchema();
+		_upgradeSchema();
 
-		upgradeFragmentEntryCounter();
-		upgradeFragmentEntryHeadIdAndHeadStatusApproved();
-		upgradeFragmentEntryHeadIdAndHeadStatusDraft();
+		_upgradeFragmentEntryCounter();
+		_upgradeFragmentEntryHeadIdAndHeadStatusApproved();
+		_upgradeFragmentEntryHeadIdAndHeadStatusDraft();
 	}
 
-	protected void upgradeFragmentEntryCounter() throws Exception {
+	private void _upgradeFragmentEntryCounter() throws Exception {
 		runSQL(
 			StringBundler.concat(
 				"insert into Counter (name, currentId) select '",
@@ -45,38 +44,35 @@ public class FragmentEntryUpgradeProcess extends UpgradeProcess {
 				"', max(fragmentEntryId) from FragmentEntry"));
 	}
 
-	protected void upgradeFragmentEntryHeadIdAndHeadStatusApproved()
+	private void _upgradeFragmentEntryHeadIdAndHeadStatusApproved()
 		throws Exception {
 
 		try (Statement s = connection.createStatement()) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("update FragmentEntry set headId = -1 * fragmentEntryId");
-			sb.append(", head = [$TRUE$] where status = ");
-			sb.append(WorkflowConstants.STATUS_APPROVED);
-
-			s.execute(SQLTransformer.transform(sb.toString()));
+			s.execute(
+				SQLTransformer.transform(
+					StringBundler.concat(
+						"update FragmentEntry set headId = -1 * ",
+						"fragmentEntryId, head = [$TRUE$] where status = ",
+						WorkflowConstants.STATUS_APPROVED)));
 		}
 	}
 
-	protected void upgradeFragmentEntryHeadIdAndHeadStatusDraft()
+	private void _upgradeFragmentEntryHeadIdAndHeadStatusDraft()
 		throws Exception {
 
 		try (Statement s = connection.createStatement()) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("update FragmentEntry set headId = fragmentEntryId, ");
-			sb.append("head = [$FALSE$] where status != ");
-			sb.append(WorkflowConstants.STATUS_APPROVED);
-
-			s.execute(SQLTransformer.transform(sb.toString()));
+			s.execute(
+				SQLTransformer.transform(
+					StringBundler.concat(
+						"update FragmentEntry set headId = fragmentEntryId, ",
+						"head = [$FALSE$] where status != ",
+						WorkflowConstants.STATUS_APPROVED)));
 		}
 	}
 
-	protected void upgradeSchema() throws Exception {
-		alter(
-			FragmentEntryTable.class, new AlterTableAddColumn("headId", "LONG"),
-			new AlterTableAddColumn("head", "BOOLEAN"));
+	private void _upgradeSchema() throws Exception {
+		alterTableAddColumn("FragmentEntry", "headId", "LONG");
+		alterTableAddColumn("FragmentEntry", "head", "BOOLEAN");
 	}
 
 }

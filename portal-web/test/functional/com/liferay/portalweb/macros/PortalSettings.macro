@@ -6,6 +6,7 @@ definition {
 
 	macro addLDAPServer {
 		PortalSettings.gotoConfiguration(
+			baseURL = "${baseURL}",
 			configurationCategory = "LDAP",
 			configurationName = "Servers",
 			configurationScope = "Virtual Instance Scope");
@@ -16,7 +17,7 @@ definition {
 
 		Type(
 			locator1 = "PortalSettingsAuthentication#LDAP_SERVER_SERVER_NAME",
-			value1 = "${LDAPServerName}");
+			value1 = "${ldapServerName}");
 
 		Click(locator1 = "PortalSettingsAuthentication#LDAP_SERVER_DEFAULT_VALUES_APACHE_DIRECTORY_SERVER_RADIO");
 
@@ -41,22 +42,6 @@ definition {
 		}
 
 		PortletEntry.save();
-	}
-
-	macro configureBlogsRatingType {
-		Select(
-			locator1 = "Select#BLOGS_RATING",
-			value1 = "${ratingType}");
-
-		AssertClickNoError(
-			locator1 = "Button#SAVE",
-			value1 = "Save");
-
-		AssertConfirm(value1 = "Existing ratings data values will be adapted to match the new ratings type even though it may not be accurate. Do you want to continue?");
-
-		AssertSelectedLabel(
-			locator1 = "Select#BLOGS_RATING",
-			value1 = "${ratingType}");
 	}
 
 	macro configureContentSharingAcrossSitesCP {
@@ -143,6 +128,10 @@ definition {
 			Select(
 				locator1 = "Select#DEFAULT_LANGUAGE",
 				value1 = "${defaultPortalLanguage}");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#ERROR_3",
+				value1 = "This change will only affect the newly created localized content.");
 		}
 
 		if ("${failExpected}" == "true") {
@@ -171,18 +160,18 @@ definition {
 		Type(
 			key_text = "clientId",
 			locator1 = "TextArea#ANY",
-			value1 = "${googleClientID}");
+			value1 = "${googleClientId}");
 
 		Type(
 			key_text = "clientSecret",
 			locator1 = "TextArea#ANY",
 			value1 = "${googleClientSecret}");
 
-		if (isSet(googlePickerAPIKey)) {
+		if (isSet(googlePickerApiKey)) {
 			Type(
 				key_text = "pickerAPIKey",
 				locator1 = "TextArea#ANY",
-				value1 = "${googlePickerAPIKey}");
+				value1 = "${googlePickerApiKey}");
 		}
 
 		AssertClick(
@@ -226,17 +215,37 @@ definition {
 
 		FormFields.editText(
 			fieldName = "loginURL",
-			fieldValue = "${OpenSSOLoginURL}");
+			fieldValue = "${openSsoLoginURL}");
 
 		FormFields.editText(
 			fieldName = "logoutURL",
-			fieldValue = "${OpenSSOLogoutURL}");
+			fieldValue = "${openSsoLogoutURL}");
 
 		FormFields.editText(
 			fieldName = "serviceURL",
-			fieldValue = "${OpenSSOServiceURL}");
+			fieldValue = "${openSsoServiceURL}");
 
 		PortletEntry.save();
+	}
+
+	macro configureRatingType {
+		if ("${configureBlogsRatingType}" == "true") {
+			Select(
+				locator1 = "Select#BLOGS_RATING",
+				value1 = "${ratingType}");
+		}
+
+		if ("${configureKbRatingType}" == "true") {
+			Select(
+				locator1 = "Select#KNOWLEDGE_BASE_RATING",
+				value1 = "${ratingType}");
+		}
+
+		AssertClickNoError(
+			locator1 = "Button#SAVE",
+			value1 = "Save");
+
+		AssertConfirm(value1 = "Existing ratings data values will be adapted to match the new ratings type even though it may not be accurate. Do you want to continue?");
 	}
 
 	macro configureTimeZone {
@@ -285,48 +294,12 @@ definition {
 		AssertElementNotPresent(locator1 = "ApplicationsMenu#TOGGLE");
 	}
 
-	macro editConfigurationAuthenticationCAS {
-		Check(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_ENABLED_CHECKBOX");
-
-		FormFields.editText(
-			fieldName = "loginURL",
-			fieldValue = "http://localhost:8080/cas-web/login");
-
-		FormFields.editText(
-			fieldName = "logoutURL",
-			fieldValue = "http://localhost:8080/cas-web/logout");
-
-		FormFields.editText(
-			fieldName = "serverName",
-			fieldValue = "http://localhost:8080");
-
-		FormFields.editText(
-			fieldName = "serverURL",
-			fieldValue = "http://localhost:8080/cas-web");
-
-		FormFields.editText(
-			fieldName = "serviceURL",
-			fieldValue = "http://localhost:8080/c/portal/login");
-
-		Click.waitForMenuToggleJSClick(locator1 = "PortalSettingsAuthentication#VERTICAL_ELLIPSIS");
-
-		AssertClick(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_TEST_CAS_CONFIGURATION_BUTTON",
-			value1 = "Test CAS Configuration");
-
-		AssertElementNotPresent(locator1 = "//span[.='Unreachable']");
-
-		Click(locator1 = "Icon#CLOSE");
-
-		PortletEntry.save();
-	}
-
 	macro editConfigurationAuthenticationFacebook {
 		Check(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_FACEBOOK_ENABLED_CHECKBOX");
 
 		Type(
 			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_FACEBOOK_APPLICATION_ID",
-			value1 = "${facebookApplicationID}");
+			value1 = "${facebookApplicationId}");
 
 		Type(
 			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_FACEBOOK_APPLICATION_SECRET",
@@ -346,7 +319,7 @@ definition {
 
 		Type(
 			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_FACEBOOK_REDIRECT_URL",
-			value1 = "http://localhost:8080/c/portal/facebook_connect_oauth");
+			value1 = "https://localhost:8443/c/portal/facebook_connect_oauth");
 
 		PortletEntry.save();
 	}
@@ -364,138 +337,93 @@ definition {
 		PortletEntry.save();
 	}
 
-	macro editConfigurationUsersDefaultUserAssociationsOrganizationSitesCP {
+	macro editConfigurationUsersDefaultUserAssociationsCP {
 		PortalSettings.gotoConfiguration(
 			configurationCategory = "Users",
 			configurationName = "Default User Associations",
 			configurationScope = "Virtual Instance Scope");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_HEADER",
-			value1 = "Organization Sites");
+		if (isSet(orgName)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_HEADER",
+				value1 = "Organization Sites");
 
-		Type(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_FIELD",
-			value1 = "${orgName}");
+			Type(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_FIELD",
+				value1 = "${orgName}");
 
-		PortletEntry.save();
+			PortletEntry.save();
 
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
+			AssertTextEquals(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_FIELD",
+				value1 = "${orgName}");
+		}
 
-		AssertTextEquals(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_FIELD",
-			value1 = "${orgName}");
-	}
+		if (isSet(roleTitle)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ROLES_HEADER",
+				value1 = "Roles");
 
-	macro editConfigurationUsersDefaultUserAssociationsRolesCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
+			Type(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ROLES_FIELD",
+				value1 = "${roleTitle}");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ROLES_HEADER",
-			value1 = "Roles");
+			PortletEntry.save();
 
-		Type(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ROLES_FIELD",
-			value1 = "${roleTitle}");
+			AssertTextEquals(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ROLES_FIELD",
+				value1 = "${roleTitle}");
+		}
 
-		PortletEntry.save();
+		if (isSet(userGroupName)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_USER_GROUPS_HEADER",
+				value1 = "User Groups");
 
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
+			Type(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_USER_GROUPS_FIELD",
+				value1 = "${userGroupName}");
 
-		Type.clickAtType(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ROLES_FIELD",
-			value1 = "${roleTitle}");
-	}
+			PortletEntry.save();
 
-	macro editConfigurationUsersDefaultUserAssociationsSitesCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
+			AssertTextEquals(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_USER_GROUPS_FIELD",
+				value1 = "${userGroupName}");
+		}
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_SITES_HEADER",
-			value1 = "Sites");
+		if (isSet(siteName)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_HEADER",
+				value1 = "Organization Sites");
 
-		Type(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_SITES_FIELD",
-			value1 = "${siteName}");
+			Type(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_SITES_FIELD",
+				value1 = "${siteName}");
 
-		PortletEntry.save();
+			PortletEntry.save();
 
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_SITES_FIELD",
-			value1 = "${siteName}");
-	}
-
-	macro editConfigurationUsersDefaultUserAssociationsUserGroupsCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_USER_GROUPS_HEADER",
-			value1 = "User Groups");
-
-		Type(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_USER_GROUPS_FIELD",
-			value1 = "${userGroupName}");
-
-		PortletEntry.save();
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_USER_GROUPS_FIELD",
-			value1 = "${userGroupName}");
+			AssertTextEquals(
+				locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_SITES_FIELD",
+				value1 = "${siteName}");
+		}
 	}
 
 	macro editConfigurationUsersEmailNotificationsCP {
 		PortalSettings.gotoConfiguration(
 			configurationCategory = "Email",
-			configurationName = "Account Created Notification",
+			configurationName = "${configurationName}",
 			configurationScope = "Virtual Instance Scope");
 
-		Type.typeCKEditor(
-			locator1 = "CKEditor#BODY_FIELD",
-			value1 = "[$USER_PASSWORD$]");
-
-		PortletEntry.save();
-	}
-
-	macro editConfigurationUsersEmailVerificationNotificationsCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Email",
-			configurationName = "Email Verification Notification",
-			configurationScope = "Virtual Instance Scope");
-
-		if ("${emailVerificationURL}" == "true") {
-			Type.typeCKEditor(
-				locator1 = "CKEditor#BODY_FIELD",
-				value1 = "[$EMAIL_VERIFICATION_URL$]");
+		if (isSet(notificationsSubject)) {
+			FormFields.editText(
+				fieldName = "Subject",
+				fieldValue = "${notificationsSubject}");
 		}
-		else {
+
+		if (isSet(notificationsBody)) {
 			Type.typeCKEditor(
 				locator1 = "CKEditor#BODY_FIELD",
-				value1 = "[$EMAIL_VERIFICATION_CODE$]");
+				value1 = "${notificationsBody}");
 		}
 
 		PortletEntry.save();
@@ -509,7 +437,6 @@ definition {
 		if (IsElementPresent(locator1 = "Button#UPDATE")) {
 			PortletEntry.update();
 		}
-
 		else if (IsElementPresent(locator1 = "Button#SAVE")) {
 			PortletEntry.save();
 		}
@@ -523,7 +450,6 @@ definition {
 		if (IsElementPresent(locator1 = "Button#UPDATE")) {
 			PortletEntry.update();
 		}
-
 		else if (IsElementPresent(locator1 = "Button#SAVE")) {
 			PortletEntry.save();
 		}
@@ -539,11 +465,12 @@ definition {
 
 	macro editLDAPServer {
 		PortalSettings.gotoConfiguration(
+			baseURL = "${baseURL}",
 			configurationCategory = "LDAP",
 			configurationName = "Servers",
 			configurationScope = "Virtual Instance Scope");
 
-		var key_LDAPServerName = "${LDAPServerName}";
+		var key_ldapServerName = "${ldapServerName}";
 
 		Click(locator1 = "PortalSettingsAuthentication#LDAP_SERVERS_TABLE_EDIT");
 	}
@@ -600,7 +527,7 @@ definition {
 
 		FormFields.editText(
 			fieldName = "clientId",
-			fieldValue = "${googleClientID}");
+			fieldValue = "${googleClientId}");
 
 		FormFields.editText(
 			fieldName = "clientSecret",
@@ -679,10 +606,7 @@ definition {
 	}
 
 	macro gotoConfiguration {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Instance Settings");
+		PortalSettings.openInstanceSettingsAdmin(baseURL = "${baseURL}");
 
 		SystemSettings.gotoConfiguration(
 			configurationCategory = "${configurationCategory}",
@@ -700,6 +624,12 @@ definition {
 			configurationCategory = "Portal Settings",
 			configurationName = "Portal Settings",
 			configurationScope = "Virtual Instance Scope");
+	}
+
+	macro openInstanceSettingsAdmin {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet");
 	}
 
 	macro setCurrentInstanceLanguageCP {
@@ -720,27 +650,6 @@ definition {
 		Select(
 			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_GENERAL_HOW_DO_USERS_AUTHENTICATE_SELECT",
 			value1 = "By Email Address");
-
-		PortletEntry.save();
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "CAS Server",
-			configurationScope = "Virtual Instance Scope");
-
-		Uncheck(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_ENABLED_CHECKBOX");
-
-		Type(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_LOGIN_URL_FIELD",
-			value1 = "https://localhost:8443/cas-web/login");
-
-		Type(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_LOGOUT_URL_FIELD",
-			value1 = "https://localhost:8443/cas-web/logout");
-
-		Type(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_SERVER_URL_FIELD",
-			value1 = "https://localhost:8443/cas-web");
 
 		PortletEntry.save();
 	}
@@ -839,69 +748,6 @@ definition {
 		Uncheck(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_GENERAL_REQUIRE_STRANGERS_TO_VERIFY_THEIR_EMAIL_ADDRESS_CHECKBOX");
 
 		PortletEntry.save();
-	}
-
-	macro viewAuthenticationCASCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "CAS Server",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertElementPresent(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_ENABLED_CHECKBOX");
-
-		AssertElementPresent(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_IMPORT_FROM_LDAP_CHECKBOX");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_LOGIN_URL_HEADER",
-			value1 = "Login URL");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_LOGIN_URL_FIELD",
-			value1 = "https://localhost:8443/cas-web/login");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_LOGOUT_URL_HEADER",
-			value1 = "Logout URL");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_LOGOUT_URL_FIELD",
-			value1 = "https://localhost:8443/cas-web/logout");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_SERVER_NAME_HEADER",
-			value1 = "Server Name");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_SERVER_NAME_FIELD",
-			value1 = "http://localhost:8080");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_SERVER_URL_HEADER",
-			value1 = "Server URL");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_SERVER_URL_FIELD",
-			value1 = "https://localhost:8443/cas-web");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_SERVICE_URL_HEADER",
-			value1 = "Service URL");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_SERVICE_URL_FIELD",
-			value1 = "");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_NO_SUCH_USER_REDIRECT_URL_HEADER",
-			value1 = "No Such User Redirect URL");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_NO_SUCH_USER_REDIRECT_URL_FIELD",
-			value1 = "http://localhost:8080");
-
-		Click.waitForMenuToggleJSClick(locator1 = "PortalSettingsAuthentication#VERTICAL_ELLIPSIS");
-
-		AssertElementPresent(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_CAS_TEST_CAS_CONFIGURATION_BUTTON");
 	}
 
 	macro viewAuthenticationGeneralCP {
@@ -1003,55 +849,6 @@ definition {
 		AssertElementPresent(locator1 = "PortalSettingsAuthentication#LDAP_SERVER_TEST_LDAP_GROUPS_BUTTON");
 	}
 
-	macro viewAuthenticationNTLMCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "NTLM",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertElementPresent(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_ENABLED_CHECKBOX");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_HEADER",
-			value1 = "Domain Controller");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_FIELD",
-			value1 = "127.0.0.1");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_NAME_HEADER",
-			value1 = "Domain Controller Name");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_NAME_FIELD",
-			value1 = "EXAMPLE");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_DOMAIN_HEADER",
-			value1 = "Domain");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_DOMAIN_FIELD",
-			value1 = "EXAMPLE");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_SERVICE_ACCOUNT_HEADER",
-			value1 = "Service Account");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_SERVICE_ACCOUNT_FIELD",
-			value1 = "LIFERAY$@EXAMPLE.COM");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_SERVICE_PASSWORD_HEADER",
-			value1 = "Service Password");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsAuthentication#AUTHENTICATION_NTLM_SERVICE_PASSWORD_FIELD",
-			value1 = "TEMP_OBFUSCATION_VALUE");
-	}
-
 	macro viewAuthenticationOpenSSOCP {
 		PortalSettings.gotoConfiguration(
 			configurationCategory = "SSO",
@@ -1119,50 +916,6 @@ definition {
 			value1 = "sn");
 
 		AssertElementPresent(locator1 = "PortalSettingsAuthentication#AUTHENTICATION_OPEN_SSO_TEST_OPEN_SSO_CONFIGURATION_BUTTON");
-	}
-
-	macro viewConfigurationUsersDefaultUserAssociationsOrganizationSitesCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ORGANIZATION_SITES_FIELD",
-			value1 = "${orgName}");
-	}
-
-	macro viewConfigurationUsersDefaultUserAssociationsRolesCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		Type.clickAtType(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_ROLES_FIELD",
-			value1 = "${roleTitle}");
-	}
-
-	macro viewConfigurationUsersDefaultUserAssociationsSitesCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_SITES_FIELD",
-			value1 = "${siteName}");
-	}
-
-	macro viewConfigurationUsersDefaultUserAssociationsUserGroupsCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		AssertTextEquals(
-			locator1 = "PortalSettingsUsers#DEFAULT_USER_ASSOCIATIONS_USER_GROUPS_FIELD",
-			value1 = "${userGroupName}");
 	}
 
 	macro viewCurrentDefaultPortalLanguageCP {

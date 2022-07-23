@@ -32,6 +32,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class DDMContentLocalServiceWrapper
 	implements DDMContentLocalService, ServiceWrapper<DDMContentLocalService> {
 
+	public DDMContentLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMContentLocalServiceWrapper(
 		DDMContentLocalService ddmContentLocalService) {
 
@@ -143,6 +147,13 @@ public class DDMContentLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmContentLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmContentLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

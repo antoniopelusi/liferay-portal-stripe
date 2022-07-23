@@ -78,11 +78,11 @@ public class UpdateLayoutPrototypeMVCActionCommand
 				layoutPrototypeId, nameMap, new HashMap<>(), true,
 				serviceContext);
 
-			String redirect = ParamUtil.getString(actionRequest, "redirect");
-
 			JSONPortletResponseUtil.writeJSON(
 				actionRequest, actionResponse,
-				JSONUtil.put("redirectURL", redirect));
+				JSONUtil.put(
+					"redirectURL",
+					ParamUtil.getString(actionRequest, "redirect")));
 		}
 		catch (Throwable throwable) {
 			if (_log.isDebugEnabled()) {
@@ -100,17 +100,19 @@ public class UpdateLayoutPrototypeMVCActionCommand
 						layoutPageTemplateEntryNameException);
 			}
 			else {
-				ThemeDisplay themeDisplay =
-					(ThemeDisplay)actionRequest.getAttribute(
-						WebKeys.THEME_DISPLAY);
-
 				JSONPortletResponseUtil.writeJSON(
 					actionRequest, actionResponse,
 					JSONUtil.put(
 						"error",
-						LanguageUtil.get(
-							themeDisplay.getRequest(),
-							"an-unexpected-error-occurred")));
+						() -> {
+							ThemeDisplay themeDisplay =
+								(ThemeDisplay)actionRequest.getAttribute(
+									WebKeys.THEME_DISPLAY);
+
+							return LanguageUtil.get(
+								themeDisplay.getRequest(),
+								"an-unexpected-error-occurred");
+						}));
 			}
 		}
 	}

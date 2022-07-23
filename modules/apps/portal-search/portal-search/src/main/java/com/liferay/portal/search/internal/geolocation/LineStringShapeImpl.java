@@ -25,7 +25,8 @@ import java.util.List;
  * @author Michael C. Han
  * @author André de Oliveira
  */
-public class LineStringShapeImpl extends ShapeImpl implements LineStringShape {
+public class LineStringShapeImpl
+	extends BaseShapeImpl implements LineStringShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

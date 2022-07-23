@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -51,7 +50,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -276,7 +274,7 @@ public abstract class BaseAccountAddressResourceTestCase {
 		throws Exception {
 
 		AccountAddress accountAddress =
-			testGraphQLAccountAddress_addAccountAddress();
+			testGraphQLGetAccountAddressByExternalReferenceCode_addAccountAddress();
 
 		Assert.assertTrue(
 			equals(
@@ -326,6 +324,13 @@ public abstract class BaseAccountAddressResourceTestCase {
 				"Object/code"));
 	}
 
+	protected AccountAddress
+			testGraphQLGetAccountAddressByExternalReferenceCode_addAccountAddress()
+		throws Exception {
+
+		return testGraphQLAccountAddress_addAccountAddress();
+	}
+
 	@Test
 	public void testPatchAccountAddressByExternalReferenceCode()
 		throws Exception {
@@ -365,7 +370,7 @@ public abstract class BaseAccountAddressResourceTestCase {
 	@Test
 	public void testGraphQLDeleteAccountAddress() throws Exception {
 		AccountAddress accountAddress =
-			testGraphQLAccountAddress_addAccountAddress();
+			testGraphQLDeleteAccountAddress_addAccountAddress();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -378,7 +383,6 @@ public abstract class BaseAccountAddressResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteAccountAddress"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -392,6 +396,12 @@ public abstract class BaseAccountAddressResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected AccountAddress testGraphQLDeleteAccountAddress_addAccountAddress()
+		throws Exception {
+
+		return testGraphQLAccountAddress_addAccountAddress();
 	}
 
 	@Test
@@ -417,7 +427,7 @@ public abstract class BaseAccountAddressResourceTestCase {
 	@Test
 	public void testGraphQLGetAccountAddress() throws Exception {
 		AccountAddress accountAddress =
-			testGraphQLAccountAddress_addAccountAddress();
+			testGraphQLGetAccountAddress_addAccountAddress();
 
 		Assert.assertTrue(
 			equals(
@@ -454,6 +464,12 @@ public abstract class BaseAccountAddressResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected AccountAddress testGraphQLGetAccountAddress_addAccountAddress()
+		throws Exception {
+
+		return testGraphQLAccountAddress_addAccountAddress();
 	}
 
 	@Test
@@ -520,18 +536,17 @@ public abstract class BaseAccountAddressResourceTestCase {
 	public void testGetAccountByExternalReferenceCodeAccountAddressesPage()
 		throws Exception {
 
-		Page<AccountAddress> page =
-			accountAddressResource.
-				getAccountByExternalReferenceCodeAccountAddressesPage(
-					testGetAccountByExternalReferenceCodeAccountAddressesPage_getExternalReferenceCode(),
-					Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		String externalReferenceCode =
 			testGetAccountByExternalReferenceCodeAccountAddressesPage_getExternalReferenceCode();
 		String irrelevantExternalReferenceCode =
 			testGetAccountByExternalReferenceCodeAccountAddressesPage_getIrrelevantExternalReferenceCode();
+
+		Page<AccountAddress> page =
+			accountAddressResource.
+				getAccountByExternalReferenceCodeAccountAddressesPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantExternalReferenceCode != null) {
 			AccountAddress irrelevantAccountAddress =
@@ -563,7 +578,7 @@ public abstract class BaseAccountAddressResourceTestCase {
 		page =
 			accountAddressResource.
 				getAccountByExternalReferenceCodeAccountAddressesPage(
-					externalReferenceCode, Pagination.of(1, 2));
+					externalReferenceCode, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -666,23 +681,6 @@ public abstract class BaseAccountAddressResourceTestCase {
 
 		assertEquals(randomAccountAddress, postAccountAddress);
 		assertValid(postAccountAddress);
-
-		randomAccountAddress = randomAccountAddress();
-
-		assertHttpResponseStatusCode(
-			404,
-			accountAddressResource.
-				getAccountAddressByExternalReferenceCodeHttpResponse(
-					randomAccountAddress.getExternalReferenceCode()));
-
-		testPostAccountByExternalReferenceCodeAccountAddress_addAccountAddress(
-			randomAccountAddress);
-
-		assertHttpResponseStatusCode(
-			200,
-			accountAddressResource.
-				getAccountAddressByExternalReferenceCodeHttpResponse(
-					randomAccountAddress.getExternalReferenceCode()));
 	}
 
 	protected AccountAddress
@@ -696,16 +694,15 @@ public abstract class BaseAccountAddressResourceTestCase {
 
 	@Test
 	public void testGetAccountIdAccountAddressesPage() throws Exception {
-		Page<AccountAddress> page =
-			accountAddressResource.getAccountIdAccountAddressesPage(
-				testGetAccountIdAccountAddressesPage_getId(),
-				Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetAccountIdAccountAddressesPage_getId();
 		Long irrelevantId =
 			testGetAccountIdAccountAddressesPage_getIrrelevantId();
+
+		Page<AccountAddress> page =
+			accountAddressResource.getAccountIdAccountAddressesPage(
+				id, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			AccountAddress irrelevantAccountAddress =
@@ -732,7 +729,7 @@ public abstract class BaseAccountAddressResourceTestCase {
 				id, randomAccountAddress());
 
 		page = accountAddressResource.getAccountIdAccountAddressesPage(
-			id, Pagination.of(1, 2));
+			id, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -827,22 +824,6 @@ public abstract class BaseAccountAddressResourceTestCase {
 
 		assertEquals(randomAccountAddress, postAccountAddress);
 		assertValid(postAccountAddress);
-
-		randomAccountAddress = randomAccountAddress();
-
-		assertHttpResponseStatusCode(
-			404,
-			accountAddressResource.
-				getAccountAddressByExternalReferenceCodeHttpResponse(
-					randomAccountAddress.getExternalReferenceCode()));
-
-		testPostAccountIdAccountAddress_addAccountAddress(randomAccountAddress);
-
-		assertHttpResponseStatusCode(
-			200,
-			accountAddressResource.
-				getAccountAddressByExternalReferenceCodeHttpResponse(
-					randomAccountAddress.getExternalReferenceCode()));
 	}
 
 	protected AccountAddress testPostAccountIdAccountAddress_addAccountAddress(
@@ -858,6 +839,23 @@ public abstract class BaseAccountAddressResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		AccountAddress accountAddress, List<AccountAddress> accountAddresses) {
+
+		boolean contains = false;
+
+		for (AccountAddress item : accountAddresses) {
+			if (equals(accountAddress, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			accountAddresses + " does not contain " + accountAddress, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -1085,8 +1083,8 @@ public abstract class BaseAccountAddressResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.account.dto.v1_0.
 						AccountAddress.class)) {
 
@@ -1102,12 +1100,13 @@ public abstract class BaseAccountAddressResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -1121,7 +1120,7 @@ public abstract class BaseAccountAddressResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1363,6 +1362,19 @@ public abstract class BaseAccountAddressResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -1463,13 +1475,15 @@ public abstract class BaseAccountAddressResourceTestCase {
 		}
 
 		if (entityFieldName.equals("latitude")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(accountAddress.getLatitude()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("longitude")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(accountAddress.getLongitude()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("name")) {
@@ -1521,8 +1535,9 @@ public abstract class BaseAccountAddressResourceTestCase {
 		}
 
 		if (entityFieldName.equals("type")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(accountAddress.getType()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("zip")) {
@@ -1689,8 +1704,8 @@ public abstract class BaseAccountAddressResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseAccountAddressResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseAccountAddressResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

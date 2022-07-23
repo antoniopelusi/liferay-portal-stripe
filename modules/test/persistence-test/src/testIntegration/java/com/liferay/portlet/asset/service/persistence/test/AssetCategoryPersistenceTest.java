@@ -359,12 +359,12 @@ public class AssetCategoryPersistenceTest {
 	}
 
 	@Test
-	public void testCountByC_ERC() throws Exception {
-		_persistence.countByC_ERC(RandomTestUtil.nextLong(), "");
+	public void testCountByG_ERC() throws Exception {
+		_persistence.countByG_ERC(RandomTestUtil.nextLong(), "");
 
-		_persistence.countByC_ERC(0L, "null");
+		_persistence.countByG_ERC(0L, "null");
 
-		_persistence.countByC_ERC(0L, (String)null);
+		_persistence.countByG_ERC(0L, (String)null);
 	}
 
 	@Test
@@ -402,8 +402,8 @@ public class AssetCategoryPersistenceTest {
 			"uuid", true, "externalReferenceCode", true, "categoryId", true,
 			"groupId", true, "companyId", true, "userId", true, "userName",
 			true, "createDate", true, "modifiedDate", true, "parentCategoryId",
-			true, "treePath", true, "name", true, "title", true, "description",
-			true, "vocabularyId", true, "lastPublishDate", true);
+			true, "treePath", true, "name", true, "vocabularyId", true,
+			"lastPublishDate", true);
 	}
 
 	@Test
@@ -698,10 +698,10 @@ public class AssetCategoryPersistenceTest {
 				new Class<?>[] {String.class}, "vocabularyId"));
 
 		Assert.assertEquals(
-			Long.valueOf(assetCategory.getCompanyId()),
+			Long.valueOf(assetCategory.getGroupId()),
 			ReflectionTestUtil.<Long>invoke(
 				assetCategory, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "companyId"));
+				new Class<?>[] {String.class}, "groupId"));
 		Assert.assertEquals(
 			assetCategory.getExternalReferenceCode(),
 			ReflectionTestUtil.invoke(

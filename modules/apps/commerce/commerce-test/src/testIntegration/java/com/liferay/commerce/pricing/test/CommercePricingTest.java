@@ -57,14 +57,10 @@ import com.liferay.commerce.test.util.CommerceInventoryTestUtil;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.commerce.test.util.context.TestCommerceContext;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -92,7 +88,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Riccardo Alberti
  */
-@DataGuard(scope = DataGuard.Scope.NONE)
 @RunWith(Arquillian.class)
 public class CommercePricingTest {
 
@@ -104,12 +99,9 @@ public class CommercePricingTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceAccount =
 			_commerceAccountLocalService.getPersonalCommerceAccount(
@@ -124,7 +116,7 @@ public class CommercePricingTest {
 			_group.getCompanyId());
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
-			_company.getCompanyId(), _group.getGroupId(), _user.getUserId());
+			_group.getCompanyId(), _group.getGroupId(), _user.getUserId());
 	}
 
 	@Test
@@ -237,7 +229,7 @@ public class CommercePricingTest {
 				catalog.getGroupId(), 0.0);
 
 		_commercePriceListAccountRelLocalService.addCommercePriceListAccountRel(
-			commercePriceList1.getCommercePriceListId(),
+			_user.getUserId(), commercePriceList1.getCommercePriceListId(),
 			_commerceAccount.getCommerceAccountId(), 0,
 			ServiceContextTestUtil.getServiceContext());
 
@@ -588,7 +580,7 @@ public class CommercePricingTest {
 				catalog.getGroupId(), 0.0);
 
 		_commercePriceListAccountRelLocalService.addCommercePriceListAccountRel(
-			commercePriceList1.getCommercePriceListId(),
+			_user.getUserId(), commercePriceList1.getCommercePriceListId(),
 			_commerceAccount.getCommerceAccountId(), 0,
 			ServiceContextTestUtil.getServiceContext());
 
@@ -702,7 +694,7 @@ public class CommercePricingTest {
 				catalog.getGroupId(), 0.0);
 
 		_commercePriceListAccountRelLocalService.addCommercePriceListAccountRel(
-			commercePriceList1.getCommercePriceListId(),
+			_user.getUserId(), commercePriceList1.getCommercePriceListId(),
 			_commerceAccount.getCommerceAccountId(), 0,
 			ServiceContextTestUtil.getServiceContext());
 
@@ -1064,7 +1056,7 @@ public class CommercePricingTest {
 				catalog.getGroupId(), true, 0.0);
 
 		_commercePriceListAccountRelLocalService.addCommercePriceListAccountRel(
-			commercePriceList1.getCommercePriceListId(),
+			_user.getUserId(), commercePriceList1.getCommercePriceListId(),
 			_commerceAccount.getCommerceAccountId(), 0,
 			ServiceContextTestUtil.getServiceContext());
 
@@ -1123,7 +1115,7 @@ public class CommercePricingTest {
 			CommercePriceListTestUtil.addPromotion(catalog.getGroupId(), 0.0);
 
 		_commercePriceListAccountRelLocalService.addCommercePriceListAccountRel(
-			commercePromotion.getCommercePriceListId(),
+			_user.getUserId(), commercePromotion.getCommercePriceListId(),
 			_commerceAccount.getCommerceAccountId(), 0,
 			ServiceContextTestUtil.getServiceContext());
 
@@ -1178,7 +1170,7 @@ public class CommercePricingTest {
 				catalog.getGroupId(), true, 0.0);
 
 		_commercePriceListAccountRelLocalService.addCommercePriceListAccountRel(
-			commercePriceList1.getCommercePriceListId(),
+			_user.getUserId(), commercePriceList1.getCommercePriceListId(),
 			_commerceAccount.getCommerceAccountId(), 0,
 			ServiceContextTestUtil.getServiceContext());
 
@@ -1237,7 +1229,7 @@ public class CommercePricingTest {
 			CommercePriceListTestUtil.addPromotion(catalog.getGroupId(), 0.0);
 
 		_commercePriceListAccountRelLocalService.addCommercePriceListAccountRel(
-			commercePromotion.getCommercePriceListId(),
+			_user.getUserId(), commercePromotion.getCommercePriceListId(),
 			_commerceAccount.getCommerceAccountId(), 0,
 			ServiceContextTestUtil.getServiceContext());
 
@@ -1301,6 +1293,8 @@ public class CommercePricingTest {
 
 	private static final int _SCALE = 10;
 
+	private static User _user;
+
 	private CommerceAccount _commerceAccount;
 	private CommerceAccountGroup _commerceAccountGroup;
 
@@ -1347,13 +1341,7 @@ public class CommercePricingTest {
 	@Inject
 	private CommerceProductPriceCalculation _commerceProductPriceCalculation;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private Group _group;
 	private ServiceContext _serviceContext;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

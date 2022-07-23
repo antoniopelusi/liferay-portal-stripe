@@ -148,20 +148,18 @@ public class JournalFolderFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
-				getFoldersSQL(
-					COUNT_F_BY_G_F, groupId, queryDefinition, inlineSQLHelper));
-			sb.append(") UNION ALL (");
-			sb.append(
-				getArticlesSQL(
-					COUNT_A_BY_G_U_F, groupId, queryDefinition,
-					inlineSQLHelper));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			String sql = updateSQL(sb.toString(), folderId);
+			String sql = updateSQL(
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					getFoldersSQL(
+						COUNT_F_BY_G_F, groupId, queryDefinition,
+						inlineSQLHelper),
+					") UNION ALL (",
+					getArticlesSQL(
+						COUNT_A_BY_G_U_F, groupId, queryDefinition,
+						inlineSQLHelper),
+					StringPool.CLOSE_PARENTHESIS),
+				folderId);
 
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
@@ -220,20 +218,18 @@ public class JournalFolderFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
-				getFoldersSQL(
-					FIND_F_BY_G_F, groupId, queryDefinition, inlineSQLHelper));
-			sb.append(") UNION ALL (");
-			sb.append(
-				getArticlesSQL(
-					FIND_A_BY_G_U_F, groupId, queryDefinition,
-					inlineSQLHelper));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			String sql = updateSQL(sb.toString(), folderId);
+			String sql = updateSQL(
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					getFoldersSQL(
+						FIND_F_BY_G_F, groupId, queryDefinition,
+						inlineSQLHelper),
+					") UNION ALL (",
+					getArticlesSQL(
+						FIND_A_BY_G_U_F, groupId, queryDefinition,
+						inlineSQLHelper),
+					StringPool.CLOSE_PARENTHESIS),
+				folderId);
 
 			sql = _customSQL.replaceOrderBy(
 				sql, queryDefinition.getOrderByComparator());
@@ -315,21 +311,18 @@ public class JournalFolderFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
-				getFoldersSQL(
-					FIND_F_BY_G_F_L, groupId, queryDefinition,
-					inlineSQLHelper));
-			sb.append(") UNION ALL (");
-			sb.append(
-				getArticlesSQL(
-					FIND_A_BY_G_U_F_L, groupId, queryDefinition,
-					inlineSQLHelper));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			String sql = updateSQL(sb.toString(), folderId);
+			String sql = updateSQL(
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					getFoldersSQL(
+						FIND_F_BY_G_F_L, groupId, queryDefinition,
+						inlineSQLHelper),
+					") UNION ALL (",
+					getArticlesSQL(
+						FIND_A_BY_G_U_F_L, groupId, queryDefinition,
+						inlineSQLHelper),
+					StringPool.CLOSE_PARENTHESIS),
+				folderId);
 
 			sql = _customSQL.replaceOrderBy(
 				sql, queryDefinition.getOrderByComparator());

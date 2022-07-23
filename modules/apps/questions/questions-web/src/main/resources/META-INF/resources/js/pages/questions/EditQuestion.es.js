@@ -12,20 +12,19 @@
  * details.
  */
 
-import {useMutation, useQuery} from '@apollo/client';
 import ClayButton from '@clayui/button';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
-import React, {useContext, useState} from 'react';
+import {useMutation, useQuery} from 'graphql-hooks';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {withRouter} from 'react-router-dom';
 
 import {AppContext} from '../../AppContext.es';
+import DefaultQuestionsEditor from '../../components/DefaultQuestionsEditor.es';
 import Link from '../../components/Link.es';
-import QuestionsEditor from '../../components/QuestionsEditor';
 import TagSelector from '../../components/TagSelector.es';
-import TextLengthValidation from '../../components/TextLengthValidation.es';
 import {getThreadContentQuery, updateThreadQuery} from '../../utils/client.es';
-import {getContextLink, stripHTML} from '../../utils/utils.es';
+import {getContextLink} from '../../utils/utils.es';
 
 export default withRouter(
 	({
@@ -36,20 +35,31 @@ export default withRouter(
 	}) => {
 		const context = useContext(AppContext);
 
-		const [articleBody, setArticleBody] = useState('');
+		const editorRef = useRef('');
+		const [hasEnoughContent, setHasEnoughContent] = useState(false);
+
 		const [headline, setHeadline] = useState('');
 		const [id, setId] = useState('');
 		const [tags, setTags] = useState([]);
 		const [tagsLoaded, setTagsLoaded] = useState(true);
 
-		useQuery(getThreadContentQuery, {
-			onCompleted({messageBoardThreadByFriendlyUrlPath}) {
-				setArticleBody(messageBoardThreadByFriendlyUrlPath.articleBody);
-				setHeadline(messageBoardThreadByFriendlyUrlPath.headline);
-				setId(messageBoardThreadByFriendlyUrlPath.id);
-				if (messageBoardThreadByFriendlyUrlPath.keywords) {
+		const {data = {}} = useQuery(getThreadContentQuery, {
+			variables: {
+				friendlyUrlPath: questionId,
+				siteKey: context.siteKey,
+			},
+		});
+
+		useEffect(() => {
+			if (data.messageBoardThreadByFriendlyUrlPath) {
+				editorRef.current.setContent(
+					data.messageBoardThreadByFriendlyUrlPath.articleBody
+				);
+				setHeadline(data.messageBoardThreadByFriendlyUrlPath.headline);
+				setId(data.messageBoardThreadByFriendlyUrlPath.id);
+				if (data.messageBoardThreadByFriendlyUrlPath.keywords) {
 					setTags(
-						messageBoardThreadByFriendlyUrlPath.keywords.map(
+						data.messageBoardThreadByFriendlyUrlPath.keywords.map(
 							(keyword) => ({
 								label: keyword,
 								value: keyword,
@@ -57,23 +67,10 @@ export default withRouter(
 						)
 					);
 				}
-			},
-			variables: {
-				friendlyUrlPath: questionId,
-				siteKey: context.siteKey,
-			},
-		});
+			}
+		}, [data]);
 
-		const [updateThread] = useMutation(updateThreadQuery, {
-			context: getContextLink(`${sectionTitle}/${questionId}`),
-			onCompleted() {
-				history.goBack();
-			},
-			update(proxy) {
-				proxy.evict(`MessageBoardThread:${id}`);
-				proxy.gc();
-			},
-		});
+		const [updateThread] = useMutation(updateThreadQuery);
 
 		return (
 			<section className="c-mt-5 questions-section questions-section-edit">
@@ -114,35 +111,14 @@ export default withRouter(
 								</ClayForm.FeedbackGroup>
 							</ClayForm.Group>
 
-							<ClayForm.Group className="c-mt-4">
-								<label htmlFor="basicInput">
-									{Liferay.Language.get('body')}
-
-									<span className="c-ml-2 reference-mark">
-										<ClayIcon symbol="asterisk" />
-									</span>
-								</label>
-
-								<QuestionsEditor
-									contents={articleBody}
-									onChange={(event) => {
-										setArticleBody(event.editor.getData());
-									}}
-								/>
-
-								<ClayForm.FeedbackGroup>
-									<ClayForm.FeedbackItem>
-										<span className="small text-secondary">
-											{Liferay.Language.get(
-												'include-all-the-information-someone-would-need-to-answer-your-question'
-											)}
-										</span>
-										<TextLengthValidation
-											text={articleBody}
-										/>
-									</ClayForm.FeedbackItem>
-								</ClayForm.FeedbackGroup>
-							</ClayForm.Group>
+							<DefaultQuestionsEditor
+								additionalInformation={Liferay.Language.get(
+									'include-all-the-information-someone-would-need-to-answer-your-question'
+								)}
+								label={Liferay.Language.get('body')}
+								onContentLengthValid={setHasEnoughContent}
+								ref={editorRef}
+							/>
 
 							<ClayForm.Group className="c-mt-4">
 								<TagSelector
@@ -157,26 +133,36 @@ export default withRouter(
 							<ClayButton
 								className="c-mt-4 c-mt-sm-0"
 								disabled={
-									!articleBody ||
-									!headline ||
-									!tagsLoaded ||
-									stripHTML(articleBody).length < 15
+									hasEnoughContent || !headline || !tagsLoaded
 								}
 								displayType="primary"
 								onClick={() => {
-									updateThread({
-										variables: {
-											articleBody,
-											headline,
-											keywords: tags.map(
-												(tag) => tag.value
-											),
-											messageBoardThreadId: id,
+									updateThread(
+										{
+											variables: {
+												articleBody: editorRef.current.getContent(),
+												headline,
+												keywords: tags.map(
+													(tag) => tag.value
+												),
+												messageBoardThreadId: id,
+											},
 										},
-									});
+										{
+											fetchOptionsOverrides: getContextLink(
+												`${sectionTitle}/${questionId}`
+											),
+										}
+									).then(() => history.goBack());
 								}}
 							>
-								{Liferay.Language.get('update-your-question')}
+								{context.trustedUser
+									? Liferay.Language.get(
+											'update-your-question'
+									  )
+									: Liferay.Language.get(
+											'submit-for-publication'
+									  )}
 							</ClayButton>
 
 							<Link

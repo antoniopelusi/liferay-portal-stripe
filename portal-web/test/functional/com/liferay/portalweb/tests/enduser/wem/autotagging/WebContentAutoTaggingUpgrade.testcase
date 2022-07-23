@@ -1,25 +1,21 @@
 @component-name = "portal-upgrades"
 definition {
 
-	property database.types = "db2,mariadb,mysql,oracle,postgresql,sybase";
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.component.names = "Documents Management";
-	property testray.main.component.name = "Upgrades Collaboration";
+	property test.assert.warning.exceptions = "true";
+	property testray.component.names = "Auto Tagging";
+	property testray.main.component.name = "Upgrades Lima";
 
 	setUp {
 		SignIn.signIn();
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		AssertLocation(value1 = "${portalURL}/web/guest/home");
+		AssertLocation(value1 = "${portalURL}/web/guest?SM_USER=test@liferay.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 	}
 
 	@priority = "5"
@@ -27,9 +23,47 @@ definition {
 		property data.archive.type = "data-archive-auto-tagging";
 		property portal.version = "7.2.10.1";
 
-		Upgrade.viewAndDeleteAutoTaggedWebContent();
+		Upgrade.editTagsAndDeleteAutoTaggedWebContent(
+			tagName = "dxp",
+			webContentTitle = "Digital Transformation or Digital Experience?");
 
-		Upgrade.addAutoTaggedWebContent();
+		Upgrade.editTagsAndDeleteAutoTaggedWebContent(
+			tagName = "computers",
+			webContentTitle = "WC Google Text AutoTagging");
+
+		Upgrade.addAutoTaggedWebContent(
+			tagName = "adventures",
+			webContentContent = "Alice's Adventures in Wonderland",
+			webContentTitle = "WC New OpenNLP AutoTagging");
+
+		Upgrade.addAutoTaggedWebContent(
+			tagName = "value people",
+			webContentContent = "Serving a wide range of enterprises, we strive to stay true to our core values: Produce Excellence, Lead by Serving, Value People, Grow and Get Better.",
+			webContentTitle = "WC New Google AutoTagging");
+	}
+
+	@priority = "5"
+	test ViewWebContentArchive73101 {
+		property data.archive.type = "data-archive-auto-tagging";
+		property portal.version = "7.3.10.1";
+
+		Upgrade.editTagsAndDeleteAutoTaggedWebContent(
+			tagName = "dxp",
+			webContentTitle = "Digital Transformation or Digital Experience?");
+
+		Upgrade.editTagsAndDeleteAutoTaggedWebContent(
+			tagName = "computers",
+			webContentTitle = "WC Google Text AutoTagging");
+
+		Upgrade.addAutoTaggedWebContent(
+			tagName = "adventures",
+			webContentContent = "Alice's Adventures in Wonderland",
+			webContentTitle = "WC New OpenNLP AutoTagging");
+
+		Upgrade.addAutoTaggedWebContent(
+			tagName = "value people",
+			webContentContent = "Serving a wide range of enterprises, we strive to stay true to our core values: Produce Excellence, Lead by Serving, Value People, Grow and Get Better.",
+			webContentTitle = "WC New Google AutoTagging");
 	}
 
 }

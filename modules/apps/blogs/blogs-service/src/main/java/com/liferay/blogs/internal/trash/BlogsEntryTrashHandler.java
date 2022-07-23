@@ -67,7 +67,7 @@ public class BlogsEntryTrashHandler extends BaseTrashHandler {
 		BlogsEntry entry = _blogsEntryLocalService.getEntry(classPK);
 
 		return PortletURLBuilder.create(
-			getRestoreURL(portletRequest, classPK, false)
+			_getRestoreURL(portletRequest, classPK, false)
 		).setParameter(
 			"entryId", entry.getEntryId()
 		).setParameter(
@@ -80,7 +80,7 @@ public class BlogsEntryTrashHandler extends BaseTrashHandler {
 			PortletRequest portletRequest, long classPK)
 		throws PortalException {
 
-		PortletURL portletURL = getRestoreURL(portletRequest, classPK, true);
+		PortletURL portletURL = _getRestoreURL(portletRequest, classPK, true);
 
 		return portletURL.toString();
 	}
@@ -123,7 +123,16 @@ public class BlogsEntryTrashHandler extends BaseTrashHandler {
 		_blogsEntryLocalService.restoreEntryFromTrash(userId, classPK);
 	}
 
-	protected PortletURL getRestoreURL(
+	@Override
+	protected boolean hasPermission(
+			PermissionChecker permissionChecker, long classPK, String actionId)
+		throws PortalException {
+
+		return _blogsEntryModelResourcePermission.contains(
+			permissionChecker, classPK, actionId);
+	}
+
+	private PortletURL _getRestoreURL(
 			PortletRequest portletRequest, long classPK, boolean containerModel)
 		throws PortalException {
 
@@ -153,15 +162,6 @@ public class BlogsEntryTrashHandler extends BaseTrashHandler {
 		}
 
 		return portletURL;
-	}
-
-	@Override
-	protected boolean hasPermission(
-			PermissionChecker permissionChecker, long classPK, String actionId)
-		throws PortalException {
-
-		return _blogsEntryModelResourcePermission.contains(
-			permissionChecker, classPK, actionId);
 	}
 
 	@Reference

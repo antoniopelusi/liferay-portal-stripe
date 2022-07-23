@@ -20,9 +20,7 @@ import com.liferay.exportimport.kernel.staging.permission.StagingPermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.StagedPortletPermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -39,17 +37,15 @@ public class CalendarPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.name", CalendarConstants.RESOURCE_NAME);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
 				CalendarConstants.RESOURCE_NAME,
 				new StagedPortletPermissionLogic(
 					_stagingPermission, CalendarPortletKeys.CALENDAR)),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", CalendarConstants.RESOURCE_NAME
+			).build());
 	}
 
 	@Deactivate

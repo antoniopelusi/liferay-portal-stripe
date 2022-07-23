@@ -119,4 +119,7 @@ public interface CTSchemaVersionModel
 	 */
 	public void setSchemaContext(Map<String, Serializable> schemaContext);
 
+	@Override
+	public CTSchemaVersion cloneWithOriginalValues();
+
 }

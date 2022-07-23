@@ -6,8 +6,15 @@ definition {
 			locator1 = "Button#LOCALIZATION_OPEN_GRAPH");
 
 		Click(
-			key_locale = StringUtil.replace("${locale}", "-", "_"),
+			key_locale = "${locale}",
 			locator1 = "Translation#LOCALIZATION_NAME");
+	}
+
+	macro clearImage {
+		Click(
+			key_fieldLabel = "Image",
+			key_text = "Clear",
+			locator1 = "Button#ANY_WITH_LABEL");
 	}
 
 	macro configureOpenGraph {
@@ -39,15 +46,19 @@ definition {
 		if (isSet(customImage)) {
 			var key_uploadFileName = "${uploadFileName}";
 
-			AssertElementPresent.pauseAssertVisible(locator1 = "Button#SELECT_OPEN_GRAPH_IMAGE");
+			AssertElementPresent.pauseAssertVisible(
+				key_fieldLabel = "Image",
+				key_text = "Select",
+				locator1 = "Button#ANY_WITH_LABEL");
 
-			Click.pauseClickAt(locator1 = "Button#SELECT_OPEN_GRAPH_IMAGE");
+			Click.pauseClickAt(
+				key_fieldLabel = "Image",
+				key_text = "Select",
+				locator1 = "Button#ANY_WITH_LABEL");
 
 			AssertTextEquals(
 				locator1 = "Modal#HEADER",
 				value1 = "Open Graph Image");
-
-			Pause(locator1 = "3000");
 
 			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
@@ -63,8 +74,6 @@ definition {
 				UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
 					locator1 = "TextInput#FILE",
 					value1 = "${uploadFileName}");
-
-				Pause(locator1 = "2000");
 
 				AssertElementPresent.pauseAssertVisible(
 					locator1 = "ItemSelector#ADD_BUTTON",
@@ -98,17 +107,9 @@ definition {
 	}
 
 	macro disableOpenGraphAtSiteLevel {
-		ProductMenu.gotoPortlet(
-			category = "Configuration",
-			portlet = "Site Settings");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage/-/site/settings?_com_liferay_site_admin_web_portlet_SiteSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fview_configuration_screen&_com_liferay_site_admin_web_portlet_SiteSettingsPortlet_configurationScreenKey=site-configuration-open-graph");
 
-		Click(
-			key_url = "site-configuration",
-			locator1 = "ListGroupItem#CONFIGURATION_ITEM_LINK");
-
-		Panel.expandPanel(panel = "Open Graph");
-
-		if (IsChecked(locator1 = "Checkbox#ANY_CHECKBOX", checkboxName = "Enable Open Graph")) {
+		if (IsChecked(checkboxName = "Enable Open Graph", locator1 = "Checkbox#ANY_CHECKBOX")) {
 			Click(
 				checkboxName = "Enable Open Graph",
 				locator1 = "Checkbox#ANY_CHECKBOX");
@@ -119,19 +120,83 @@ definition {
 		Button.click(button = "Save");
 	}
 
+	macro disableOpenGraphCustomSettings {
+		if (isSet(customTitle)) {
+			var checkboxName = "Use Custom Title";
+
+			if (IsChecked(locator1 = "Checkbox#ANY_CHECKBOX")) {
+				Click(locator1 = "Checkbox#ANY_CHECKBOX");
+			}
+		}
+
+		if (isSet(customDescription)) {
+			var checkboxName = "Use Custom Description";
+
+			if (IsChecked(locator1 = "Checkbox#ANY_CHECKBOX")) {
+				Click(locator1 = "Checkbox#ANY_CHECKBOX");
+			}
+		}
+	}
+
 	macro mapEditableTextToField {
-		Click(
-			key_mappedField = "${mappedField}",
-			locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_MAP_BUTTON_SPECIFIC");
+		if ("${textType}" == "TextInput") {
+			Type(
+				key_text = "${mappedField}",
+				locator1 = "TextInput#ANY",
+				value1 = "${mappedFieldText}");
+		}
+		else if ("${textType}" == "TextArea") {
+			Type(
+				key_text = "${mappedField}",
+				locator1 = "TextArea#ANY",
+				value1 = "${mappedFieldText}");
+		}
 
-		Select(
-			key_fieldLabel = "Field",
-			locator1 = "Select#GENERIC_SELECT_FIELD",
-			value1 = "${field}");
-
 		Click(
-			key_mappedField = "${mappedField}",
-			locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_MAP_BUTTON_SPECIFIC");
+			key_fieldLabel = "${mappedFieldName}",
+			key_text = "bolt",
+			locator1 = "Icon#ANY_ITEM_SELECTOR");
+
+		for (var field : list "${field}") {
+			if ("${textType}" == "TextInput") {
+				Type.sendKeys(
+					key_text = "${mappedField}",
+					locator1 = "TextInput#ANY",
+					value1 = "${field}:");
+			}
+			else if ("${textType}" == "TextArea") {
+				Type.sendKeys(
+					key_text = "${mappedField}",
+					locator1 = "TextArea#ANY",
+					value1 = "${field}:");
+			}
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "${field}");
+
+			if ("${mappedFieldName}" == "Image") {
+				Click(
+					key_text = "Map Content",
+					locator1 = "Button#ANY");
+			}
+			else {
+				Click(
+					key_text = "Add Field",
+					locator1 = "Button#ANY");
+			}
+		}
+	}
+
+	macro openToConfigInSystemSettings {
+		var baseURL = PropsUtil.get("portal.url");
+
+		if ("${portlet}" == "SEO") {
+			var portletId = "com.liferay.layout.seo.internal.configuration.LayoutSEOCompanyConfiguration";
+		}
+
+		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=${portletId}&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fedit_configuration");
 	}
 
 	macro viewDefaultConfiguration {
@@ -173,39 +238,111 @@ definition {
 				locator1 = "FormFields#OPEN_GRAPH_LABEL",
 				value1 = "Image Alt Description");
 
-			AssertElementPresent(locator1 = "Button#SELECT_OPEN_GRAPH_IMAGE");
+			AssertElementPresent(
+				key_fieldLabel = "Image",
+				key_text = "Select",
+				locator1 = "Button#ANY_WITH_LABEL");
 		}
 	}
 
-	macro viewMappedField {
-		AssertTextEquals(
-			key_mappedField = "${mappedField}",
-			locator1 = "TextInput#SEO_MAPPED_FIELD",
-			value1 = "${mappedFieldValue}");
+	macro viewDefaultMappedField {
+		if ("${portlet}" == "Open Graph") {
+			AssertAttributeValue(
+				attribute1 = "value",
+				key_mappedField = "Title",
+				locator1 = "TextInput#SEO_MAPPED_FIELD",
+				value1 = "${title}");
 
-		if ("${mappedFieldValue}" == "-- Unmapped --") {
-			AssertElementPresent(
-				key_mappedField = "${mappedField}",
-				locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_UNMAPPED_BUTTON");
+			AssertTextEquals(
+				key_mappedField = "Description",
+				locator1 = "TextInput#SEO_MAPPED_FIELD",
+				value1 = "${description}");
+
+			AssertAttributeValue(
+				attribute1 = "value",
+				key_mappedField = "Image",
+				locator1 = "TextInput#SEO_MAPPED_FIELD",
+				value1 = "-- Unmapped --");
+
+			AssertTextEquals(
+				key_mappedField = "ImageAlt",
+				locator1 = "TextInput#SEO_MAPPED_FIELD",
+				value1 = "");
 		}
 
-		else {
+		if ("${portlet}" == "SEO") {
 			AssertElementPresent(
+				key_text = "Title",
+				locator1 = "TextInput#ANY",
+				mappedFieldValue = "title");
+
+			AssertElementPresent(
+				key_mappedField = "description",
+				locator1 = "TextInput#SEO_MAPPED_FIELD",
+				mappedFieldValue = "description");
+		}
+	}
+
+	macro viewImageAltDescriptionDefault {
+		AssertElementPresent(
+			key_text = "openGraphImageAlt",
+			locator1 = "TextInput#OPEN_GRAPH_IMAGE_ALT_DESCRIPTION_DISABLED");
+	}
+
+	macro viewImageFieldDefault {
+		AssertElementPresent(locator1 = "TextInput#OPEN_GRAPH_CUSTOM_IMAGE_DEFAULT_VALUE");
+	}
+
+	macro viewMappedField {
+		if (isSet(textType)) {
+			AssertTextEquals(
 				key_mappedField = "${mappedField}",
-				locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_MAPPED_BUTTON");
+				locator1 = "TextInput#SEO_MAPPED_FIELD",
+				value1 = "${mappedFieldValue}");
+		}
+		else {
+			AssertAttributeValue(
+				attribute1 = "value",
+				key_mappedField = "${mappedField}",
+				locator1 = "TextInput#SEO_MAPPED_FIELD",
+				value1 = "${mappedFieldValue}");
 		}
 	}
 
 	macro viewNoOpenGraphProperties {
-		for (var ogProperty : list "${ogPropertyList}" ) {
+		for (var ogProperty : list "${ogPropertyList}") {
 			AssertHTMLSourceTextNotPresent(value1 = "${ogProperty}");
 		}
 	}
 
+	macro viewNoPreviewDescription {
+		AssertTextEquals(
+			locator1 = "PagesAdmin#PREVIEW_DESCRIPTION",
+			value1 = "");
+	}
+
+	macro viewNoPreviewImage {
+		AssertElementNotPresent(
+			key_imageName = "${imageName}",
+			locator1 = "PagesAdmin#PREVIEW_IMAGE");
+	}
+
+	macro viewNoTab {
+		AssertElementNotPresent(
+			key_panel = "Open Graph",
+			locator1 = "NavTab#TAB_LINK");
+	}
+
 	macro viewOpenGraphProperties {
-		for (var ogProperty : list "${ogPropertyList}" ) {
+		for (var ogProperty : list "${ogPropertyList}") {
 			AssertHTMLSourceTextPresent(value1 = "${ogProperty}");
 		}
+	}
+
+	macro viewPreviewImage {
+		AssertVisible(
+			key_imageName = "${imageName}",
+			locator1 = "PagesAdmin#PREVIEW_IMAGE");
 	}
 
 }

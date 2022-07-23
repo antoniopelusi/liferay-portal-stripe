@@ -4,6 +4,7 @@ String errorMessage = ""
 
 gradle.liferayWorkspace {
 	bundleChecksumMD5 = "bad_md5sum"
+	product = "portal-7.1-ga3"
 }
 
 gradle.taskGraph.afterTask {

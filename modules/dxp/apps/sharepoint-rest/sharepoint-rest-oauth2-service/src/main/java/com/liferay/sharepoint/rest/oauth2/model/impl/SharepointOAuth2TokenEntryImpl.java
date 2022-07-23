@@ -19,8 +19,4 @@ package com.liferay.sharepoint.rest.oauth2.model.impl;
  */
 public class SharepointOAuth2TokenEntryImpl
 	extends SharepointOAuth2TokenEntryBaseImpl {
-
-	public SharepointOAuth2TokenEntryImpl() {
-	}
-
 }

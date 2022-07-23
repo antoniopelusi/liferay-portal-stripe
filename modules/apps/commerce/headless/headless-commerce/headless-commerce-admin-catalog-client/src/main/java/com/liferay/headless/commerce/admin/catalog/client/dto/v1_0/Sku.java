@@ -80,6 +80,48 @@ public class Sku implements Cloneable, Serializable {
 
 	protected Double depth;
 
+	public Boolean getDiscontinued() {
+		return discontinued;
+	}
+
+	public void setDiscontinued(Boolean discontinued) {
+		this.discontinued = discontinued;
+	}
+
+	public void setDiscontinued(
+		UnsafeSupplier<Boolean, Exception> discontinuedUnsafeSupplier) {
+
+		try {
+			discontinued = discontinuedUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean discontinued;
+
+	public Date getDiscontinuedDate() {
+		return discontinuedDate;
+	}
+
+	public void setDiscontinuedDate(Date discontinuedDate) {
+		this.discontinuedDate = discontinuedDate;
+	}
+
+	public void setDiscontinuedDate(
+		UnsafeSupplier<Date, Exception> discontinuedDateUnsafeSupplier) {
+
+		try {
+			discontinuedDate = discontinuedDateUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Date discontinuedDate;
+
 	public Date getDisplayDate() {
 		return displayDate;
 	}
@@ -266,27 +308,6 @@ public class Sku implements Cloneable, Serializable {
 
 	protected Boolean neverExpire;
 
-	public Map<String, String> getOptions() {
-		return options;
-	}
-
-	public void setOptions(Map<String, String> options) {
-		this.options = options;
-	}
-
-	public void setOptions(
-		UnsafeSupplier<Map<String, String>, Exception> optionsUnsafeSupplier) {
-
-		try {
-			options = optionsUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected Map<String, String> options;
-
 	public BigDecimal getPrice() {
 		return price;
 	}
@@ -414,6 +435,53 @@ public class Sku implements Cloneable, Serializable {
 
 	protected Boolean purchasable;
 
+	public String getReplacementSkuExternalReferenceCode() {
+		return replacementSkuExternalReferenceCode;
+	}
+
+	public void setReplacementSkuExternalReferenceCode(
+		String replacementSkuExternalReferenceCode) {
+
+		this.replacementSkuExternalReferenceCode =
+			replacementSkuExternalReferenceCode;
+	}
+
+	public void setReplacementSkuExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			replacementSkuExternalReferenceCodeUnsafeSupplier) {
+
+		try {
+			replacementSkuExternalReferenceCode =
+				replacementSkuExternalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String replacementSkuExternalReferenceCode;
+
+	public Long getReplacementSkuId() {
+		return replacementSkuId;
+	}
+
+	public void setReplacementSkuId(Long replacementSkuId) {
+		this.replacementSkuId = replacementSkuId;
+	}
+
+	public void setReplacementSkuId(
+		UnsafeSupplier<Long, Exception> replacementSkuIdUnsafeSupplier) {
+
+		try {
+			replacementSkuId = replacementSkuIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long replacementSkuId;
+
 	public String getSku() {
 		return sku;
 	}
@@ -432,6 +500,27 @@ public class Sku implements Cloneable, Serializable {
 	}
 
 	protected String sku;
+
+	public SkuOption[] getSkuOptions() {
+		return skuOptions;
+	}
+
+	public void setSkuOptions(SkuOption[] skuOptions) {
+		this.skuOptions = skuOptions;
+	}
+
+	public void setSkuOptions(
+		UnsafeSupplier<SkuOption[], Exception> skuOptionsUnsafeSupplier) {
+
+		try {
+			skuOptions = skuOptionsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected SkuOption[] skuOptions;
 
 	public String getUnspsc() {
 		return unspsc;

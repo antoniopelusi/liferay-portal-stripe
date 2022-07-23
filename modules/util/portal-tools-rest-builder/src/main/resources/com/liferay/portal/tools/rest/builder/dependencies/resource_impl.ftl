@@ -14,6 +14,7 @@ import org.osgi.service.component.annotations.ServiceScope;
  * @author ${configYAML.author}
  */
 @Component(
+	<#if configYAML.liferayEnterpriseApp>enabled = false,</#if>
 	properties = "OSGI-INF/liferay/rest/${escapedVersion}/${stringUtil.toLowerCase(schemaPath)}.properties",
 	scope = ServiceScope.PROTOTYPE,
 	service = ${schemaName}Resource.class

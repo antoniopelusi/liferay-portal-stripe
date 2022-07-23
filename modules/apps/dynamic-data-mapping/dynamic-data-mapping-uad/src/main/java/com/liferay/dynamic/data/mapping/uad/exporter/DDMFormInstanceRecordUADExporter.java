@@ -46,19 +46,14 @@ public class DDMFormInstanceRecordUADExporter
 
 	@Override
 	protected String toXmlString(DDMFormInstanceRecord ddmFormInstanceRecord) {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append(
+		return StringBundler.concat(
 			StringUtil.removeSubstring(
-				super.toXmlString(ddmFormInstanceRecord), "</model>"));
-		sb.append("<column><column-name>");
-		sb.append("formInstanceName</column-name><column-value><![CDATA[");
-		sb.append(_getFormInstanceName(ddmFormInstanceRecord));
-		sb.append("]]></column-value></column>");
-		sb.append(_getFieldValuesXMLString(ddmFormInstanceRecord));
-		sb.append("</model>");
-
-		return sb.toString();
+				super.toXmlString(ddmFormInstanceRecord), "</model>"),
+			"<column><column-name>",
+			"formInstanceName</column-name><column-value><![CDATA[",
+			_getFormInstanceName(ddmFormInstanceRecord),
+			"]]></column-value></column>",
+			_getFieldValuesXMLString(ddmFormInstanceRecord), "</model>");
 	}
 
 	private String _getFieldValuesXMLString(

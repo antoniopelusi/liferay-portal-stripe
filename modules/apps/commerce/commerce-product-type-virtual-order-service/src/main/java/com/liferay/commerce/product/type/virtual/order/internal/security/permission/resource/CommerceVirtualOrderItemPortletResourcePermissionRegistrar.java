@@ -20,9 +20,7 @@ import com.liferay.exportimport.kernel.staging.permission.StagingPermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.StagedPortletPermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -42,11 +40,6 @@ public class CommerceVirtualOrderItemPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"resource.name", CommerceVirtualOrderConstants.RESOURCE_NAME);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
@@ -55,7 +48,9 @@ public class CommerceVirtualOrderItemPortletResourcePermissionRegistrar {
 					_stagingPermission,
 					CommerceVirtualOrderPortletKeys.
 						COMMERCE_VIRTUAL_ORDER_ITEM_CONTENT)),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", CommerceVirtualOrderConstants.RESOURCE_NAME
+			).build());
 	}
 
 	@Deactivate

@@ -12,6 +12,8 @@
  * details.
  */
 
+/* eslint-disable @liferay/no-get-data-attribute */
+
 CKEDITOR.dialog.add('video', (editor) => {
 	var TPL_SCRIPT =
 		'boundingBox: "#" + mediaId,' +

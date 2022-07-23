@@ -19,6 +19,10 @@ import com.liferay.asset.kernel.model.AssetRenderer;
 import com.liferay.asset.list.asset.entry.provider.AssetListAssetEntryProvider;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
+import com.liferay.info.filter.CategoriesInfoFilter;
+import com.liferay.info.filter.InfoFilter;
+import com.liferay.info.filter.KeywordsInfoFilter;
+import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.pagination.Pagination;
 import com.liferay.item.selector.criteria.InfoListItemSelectorReturnType;
 import com.liferay.layout.list.retriever.ClassedModelListObjectReference;
@@ -28,6 +32,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -63,12 +68,6 @@ public class AssetEntryListLayoutListRetriever
 		long[] segmentsEntryIds = segmentsEntryIdsOptional.orElse(
 			new long[] {0});
 
-		Optional<long[][]> assetCategoryIdsOptional =
-			layoutListRetrieverContext.getAssetCategoryIdsOptional();
-
-		long[][] assetCategoryIds = assetCategoryIdsOptional.orElse(
-			new long[0][]);
-
 		Optional<Pagination> paginationOptional =
 			layoutListRetrieverContext.getPaginationOptional();
 
@@ -77,8 +76,10 @@ public class AssetEntryListLayoutListRetriever
 
 		List<AssetEntry> assetEntries =
 			_assetListAssetEntryProvider.getAssetEntries(
-				assetListEntry, segmentsEntryIds, assetCategoryIds,
-				StringPool.BLANK, pagination.getStart(), pagination.getEnd());
+				assetListEntry, segmentsEntryIds,
+				_getAssetCategoryIds(layoutListRetrieverContext),
+				_getKeywords(layoutListRetrieverContext), StringPool.BLANK,
+				pagination.getStart(), pagination.getEnd());
 
 		if (Objects.equals(
 				AssetEntry.class.getName(),
@@ -109,15 +110,50 @@ public class AssetEntryListLayoutListRetriever
 		long[] segmentsEntryIds = segmentsEntryIdsOptional.orElse(
 			new long[] {0});
 
-		Optional<long[][]> assetCategoryIdsOptional =
-			layoutListRetrieverContext.getAssetCategoryIdsOptional();
-
-		long[][] assetCategoryIds = assetCategoryIdsOptional.orElse(
-			new long[0][]);
-
 		return _assetListAssetEntryProvider.getAssetEntriesCount(
-			assetListEntry, segmentsEntryIds, assetCategoryIds,
-			StringPool.BLANK);
+			assetListEntry, segmentsEntryIds,
+			_getAssetCategoryIds(layoutListRetrieverContext),
+			_getKeywords(layoutListRetrieverContext), StringPool.BLANK);
+	}
+
+	@Override
+	public List<InfoFilter> getSupportedInfoFilters(
+		ClassedModelListObjectReference classedModelListObjectReference) {
+
+		return _supportedInfoFilters;
+	}
+
+	private long[][] _getAssetCategoryIds(
+		LayoutListRetrieverContext layoutListRetrieverContext) {
+
+		Optional<CategoriesInfoFilter> infoFilterOptional =
+			layoutListRetrieverContext.getInfoFilterOptional(
+				CategoriesInfoFilter.class);
+
+		CategoriesInfoFilter categoriesInfoFilter = infoFilterOptional.orElse(
+			null);
+
+		if (categoriesInfoFilter == null) {
+			return new long[0][];
+		}
+
+		return categoriesInfoFilter.getCategoryIds();
+	}
+
+	private String _getKeywords(
+		LayoutListRetrieverContext layoutListRetrieverContext) {
+
+		Optional<KeywordsInfoFilter> infoFilterOptional =
+			layoutListRetrieverContext.getInfoFilterOptional(
+				KeywordsInfoFilter.class);
+
+		KeywordsInfoFilter keywordsInfoFilter = infoFilterOptional.orElse(null);
+
+		if (keywordsInfoFilter == null) {
+			return StringPool.BLANK;
+		}
+
+		return keywordsInfoFilter.getKeywords();
 	}
 
 	private List<Object> _toAssetObjects(List<AssetEntry> assetEntries) {
@@ -132,10 +168,16 @@ public class AssetEntryListLayoutListRetriever
 		return assetObjects;
 	}
 
+	private static final List<InfoFilter> _supportedInfoFilters = Arrays.asList(
+		new CategoriesInfoFilter(), new KeywordsInfoFilter());
+
 	@Reference
 	private AssetListAssetEntryProvider _assetListAssetEntryProvider;
 
 	@Reference
 	private AssetListEntryLocalService _assetListEntryLocalService;
+
+	@Reference
+	private InfoItemServiceTracker _infoItemServiceTracker;
 
 }

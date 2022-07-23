@@ -1,0 +1,96 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Asset Publisher";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Add a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("Add an Asset Publisher widget to page") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				widgetName = "Asset Publisher");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-124704. No alert popup on view asset in Asset Publisher when replace the value of assetEntryId by XSS in URL."
+	@priority = "4"
+	@uitest
+	test ViewAssetWhenReplaceValueOfAssetEntryIdByXSSInURL {
+		task ("Add three web contents") {
+			for (var i : list "1,2,3") {
+				JSONWebcontent.addWebContent(
+					content = "WC WebContent Content",
+					groupName = "Test Site Name",
+					title = "WC WebContent Title ${i}");
+			}
+		}
+
+		task ("View the first web content details via Asset Publisher") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.viewAssetDetailsPG(
+				assetContent = "WC WebContent Content",
+				assetTitle = "WC WebContent Title 1");
+		}
+
+		task ("Click the back button of Asset Publisher") {
+			Navigator.gotoBack();
+		}
+
+		task ("Replace the value of assetEntryId by XSS in URL") {
+			WaitForSPARefresh();
+
+			var url = selenium.getLocation();
+			var value = StringUtil.extractLast("${url}", "assetEntryId=");
+
+			var script = '''</script> <script> alert (1) </script>''';
+			var url = StringUtil.replace("${url}", "${value}", "${script}");
+
+			Navigator.openSpecificURL(url = "${url}");
+		}
+
+		task ("View the alert not shown") {
+			AssertAlertNotPresent();
+		}
+
+		task ("View the web contents shown in Asset Publisher") {
+			for (var i : list "1,2,3") {
+				AssetPublisherPortlet.viewAssetPG(
+					assetContent = "WC WebContent Content",
+					assetTitle = "WC WebContent Title ${i}");
+			}
+		}
+	}
+
+}

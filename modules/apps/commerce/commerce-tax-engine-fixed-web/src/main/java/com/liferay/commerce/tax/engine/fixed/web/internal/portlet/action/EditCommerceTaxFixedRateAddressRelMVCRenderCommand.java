@@ -95,8 +95,7 @@ public class EditCommerceTaxFixedRateAddressRelMVCRenderCommand
 				return "/error.jsp";
 			}
 
-			throw new PortletException(
-				"Unable to include edit_address_tax_fixed_rate.jsp", exception);
+			throw new PortletException(exception);
 		}
 
 		return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;

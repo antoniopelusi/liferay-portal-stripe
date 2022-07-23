@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.service.OrganizationService;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.users.admin.constants.UserScreenNavigationEntryConstants;
 import com.liferay.users.admin.constants.UsersAdminPortletKeys;
@@ -66,10 +65,7 @@ public class OrganizationScreenNavigationEntry
 
 	@Override
 	public String getLabel(Locale locale) {
-		return LanguageUtil.get(
-			ResourceBundleUtil.getBundle(
-				locale, OrganizationScreenNavigationEntry.class),
-			_entryKey);
+		return LanguageUtil.get(locale, _entryKey);
 	}
 
 	@Override
@@ -126,6 +122,15 @@ public class OrganizationScreenNavigationEntry
 			).setParameter(
 				"organizationId",
 				ParamUtil.getString(httpServletRequest, "organizationId")
+			).setParameter(
+				"screenNavigationCategoryKey",
+				ParamUtil.getString(
+					httpServletRequest, "screenNavigationCategoryKey",
+					UserScreenNavigationEntryConstants.CATEGORY_KEY_GENERAL)
+			).setParameter(
+				"screenNavigationEntryKey",
+				ParamUtil.getString(
+					httpServletRequest, "screenNavigationEntryKey")
 			).buildString();
 		}
 
@@ -146,7 +151,7 @@ public class OrganizationScreenNavigationEntry
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

@@ -67,58 +67,42 @@ public class RoleResourceTest extends BaseRoleResourceTestCase {
 
 	@Override
 	@Test
-	public void testDeleteOrganizationRoleUserAccountAssociation()
-		throws Exception {
-
-		Role role = testDeleteOrganizationRoleUserAccountAssociation_addRole();
-		Organization organization = OrganizationTestUtil.addOrganization();
-
-		assertHttpResponseStatusCode(
-			204,
-			roleResource.
-				deleteOrganizationRoleUserAccountAssociationHttpResponse(
-					role.getId(), _user.getUserId(),
-					organization.getOrganizationId()));
-	}
-
-	@Override
-	@Test
-	public void testDeleteRoleUserAccountAssociation() throws Exception {
-		Role role = testDeleteRoleUserAccountAssociation_addRole();
-
-		assertHttpResponseStatusCode(
-			204,
-			roleResource.deleteRoleUserAccountAssociationHttpResponse(
-				role.getId(), _user.getUserId()));
-	}
-
-	@Override
-	@Test
-	public void testDeleteSiteRoleUserAccountAssociation() throws Exception {
-		Role role = testDeleteSiteRoleUserAccountAssociation_addRole();
-
-		assertHttpResponseStatusCode(
-			204,
-			roleResource.deleteSiteRoleUserAccountAssociationHttpResponse(
-				role.getId(), _user.getUserId(), testGroup.getGroupId()));
-	}
-
-	@Override
-	@Test
 	public void testGetRolesPage() throws Exception {
-		Page<Role> page = roleResource.getRolesPage(Pagination.of(1, 100));
+		Page<Role> page = roleResource.getRolesPage(
+			null, Pagination.of(1, 100));
 
 		List<Role> roles = new ArrayList<>(page.getItems());
 
 		roles.add(_addRole(randomRole()));
 		roles.add(_addRole(randomRole()));
 
-		page = roleResource.getRolesPage(Pagination.of(1, roles.size()));
+		page = roleResource.getRolesPage(null, Pagination.of(1, roles.size()));
 
 		Assert.assertEquals(roles.size(), page.getTotalCount());
 
 		assertEqualsIgnoringOrder(roles, (List<Role>)page.getItems());
 		assertValid(page);
+	}
+
+	@Override
+	@Test
+	public void testGetRolesPageWithPagination() throws Exception {
+		Page<Role> rolesPage = roleResource.getRolesPage(null, null);
+
+		testGetRolesPage_addRole(randomRole());
+		testGetRolesPage_addRole(randomRole());
+		testGetRolesPage_addRole(randomRole());
+
+		Page<Role> page1 = roleResource.getRolesPage(null, Pagination.of(1, 2));
+
+		List<Role> roles1 = (List<Role>)page1.getItems();
+
+		Assert.assertEquals(roles1.toString(), 2, roles1.size());
+
+		Page<Role> page2 = roleResource.getRolesPage(null, Pagination.of(2, 2));
+
+		Assert.assertEquals(
+			rolesPage.getTotalCount() + 3, page2.getTotalCount());
 	}
 
 	@Override
@@ -270,10 +254,35 @@ public class RoleResourceTest extends BaseRoleResourceTestCase {
 	}
 
 	@Override
+	protected Long
+			testDeleteOrganizationRoleUserAccountAssociation_getOrganizationId()
+		throws Exception {
+
+		Organization organization = OrganizationTestUtil.addOrganization();
+
+		return organization.getOrganizationId();
+	}
+
+	@Override
+	protected Long
+			testDeleteOrganizationRoleUserAccountAssociation_getUserAccountId()
+		throws Exception {
+
+		return _user.getUserId();
+	}
+
+	@Override
 	protected Role testDeleteRoleUserAccountAssociation_addRole()
 		throws Exception {
 
 		return _addRole(RoleConstants.TYPE_REGULAR);
+	}
+
+	@Override
+	protected Long testDeleteRoleUserAccountAssociation_getUserAccountId()
+		throws Exception {
+
+		return _user.getUserId();
 	}
 
 	@Override
@@ -284,8 +293,27 @@ public class RoleResourceTest extends BaseRoleResourceTestCase {
 	}
 
 	@Override
+	protected Long testDeleteSiteRoleUserAccountAssociation_getSiteId()
+		throws Exception {
+
+		return testGroup.getGroupId();
+	}
+
+	@Override
+	protected Long testDeleteSiteRoleUserAccountAssociation_getUserAccountId()
+		throws Exception {
+
+		return _user.getUserId();
+	}
+
+	@Override
 	protected Role testGetRole_addRole() throws Exception {
 		return _addRole(randomRole());
+	}
+
+	@Override
+	protected Role testGetRolesPage_addRole(Role role) throws Exception {
+		return _addRole(role);
 	}
 
 	@Override

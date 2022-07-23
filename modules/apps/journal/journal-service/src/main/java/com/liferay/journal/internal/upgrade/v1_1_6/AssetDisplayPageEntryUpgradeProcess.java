@@ -17,6 +17,7 @@ package com.liferay.journal.internal.upgrade.v1_1_6;
 import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
 import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
 import com.liferay.journal.model.JournalArticle;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -24,9 +25,7 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
@@ -34,16 +33,10 @@ import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * @author Vendel Toreki
@@ -61,85 +54,12 @@ public class AssetDisplayPageEntryUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		_companyLocalService.forEachCompany(
-			company -> updateAssetDisplayPageEntry(company));
-	}
+			company -> {
+				_init(company.getCompanyId());
 
-	protected void updateAssetDisplayPageEntry(Company company)
-		throws Exception {
-
-		_init(company.getCompanyId());
-
-		StringBuilder sb = new StringBuilder(17);
-
-		sb.append("select JournalArticle.groupId, ");
-		sb.append("JournalArticle.resourcePrimKey, AssetEntry.classUuid from ");
-		sb.append("JournalArticle inner join AssetEntry on ( ");
-		sb.append("AssetEntry.classNameId = ? and AssetEntry.classPK = ");
-		sb.append("JournalArticle.resourcePrimKey ) inner join Group_ on ( ");
-		sb.append("Group_.groupId = JournalArticle.groupId) where ");
-		sb.append("JournalArticle.companyId = ? and ");
-		sb.append("JournalArticle.layoutUuid is not null and ");
-		sb.append("JournalArticle.layoutUuid != '' and ");
-		sb.append("Group_.remoteStagingGroupCount = 0 and not exists ( ");
-		sb.append("select 1 from AssetDisplayPageEntry where ");
-		sb.append("AssetDisplayPageEntry.groupId = JournalArticle.groupId ");
-		sb.append("and AssetDisplayPageEntry.classNameId = ? and ");
-		sb.append("AssetDisplayPageEntry.classPK = ");
-		sb.append("JournalArticle.resourcePrimKey) group by ");
-		sb.append("JournalArticle.groupId, JournalArticle.resourcePrimKey, ");
-		sb.append("AssetEntry.classUuid ");
-
-		long journalArticleClassNameId = PortalUtil.getClassNameId(
-			JournalArticle.class);
-		User user = company.getDefaultUser();
-
-		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
-				SQLTransformer.transform(sb.toString()))) {
-
-			ps1.setLong(1, journalArticleClassNameId);
-			ps1.setLong(2, company.getCompanyId());
-			ps1.setLong(3, journalArticleClassNameId);
-
-			List<SaveAssetDisplayPageEntryCallable>
-				saveAssetDisplayPageEntryCallables = new ArrayList<>();
-
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					long groupId = rs.getLong("groupId");
-					long resourcePrimKey = rs.getLong("resourcePrimKey");
-					String journalArticleUuid = rs.getString("classUuid");
-
-					SaveAssetDisplayPageEntryCallable
-						saveAssetDisplayPageEntryCallable =
-							new SaveAssetDisplayPageEntryCallable(
-								groupId, user.getUserId(),
-								journalArticleClassNameId, resourcePrimKey,
-								_generateLocalStagingAwareUUID(
-									groupId, journalArticleUuid));
-
-					saveAssetDisplayPageEntryCallables.add(
-						saveAssetDisplayPageEntryCallable);
-				}
-			}
-
-			ExecutorService executorService = Executors.newWorkStealingPool();
-
-			List<Future<Boolean>> futures = executorService.invokeAll(
-				saveAssetDisplayPageEntryCallables);
-
-			executorService.shutdown();
-
-			for (Future<Boolean> future : futures) {
-				boolean success = GetterUtil.get(future.get(), true);
-
-				if (!success) {
-					throw new UpgradeException(
-						"Unable to add asset display pages for the journal " +
-							"articles");
-				}
-			}
-		}
+				_updateAssetDisplayPageEntry(company, true);
+				_updateAssetDisplayPageEntry(company, false);
+			});
 	}
 
 	private String _generateLocalStagingAwareUUID(
@@ -177,22 +97,20 @@ public class AssetDisplayPageEntryUpgradeProcess extends UpgradeProcess {
 		_stagedGroupIds.clear();
 		_uuidsMaps.clear();
 
-		StringBuilder sb = new StringBuilder(3);
-
-		sb.append("select groupId, liveGroupId from Group_ where ");
-		sb.append("companyId = ? and liveGroupId is not null and ");
-		sb.append("liveGroupId != 0 and remoteStagingGroupCount = 0");
-
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
-				SQLTransformer.transform(sb.toString()))) {
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				SQLTransformer.transform(
+					StringBundler.concat(
+						"select groupId, liveGroupId from Group_ where ",
+						"companyId = ? and liveGroupId is not null and ",
+						"liveGroupId != 0 and remoteStagingGroupCount = 0")))) {
 
-			ps.setLong(1, companyId);
+			preparedStatement.setLong(1, companyId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					long groupId = rs.getLong("groupId");
-					long liveGroupId = rs.getLong("liveGroupId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					long groupId = resultSet.getLong("groupId");
+					long liveGroupId = resultSet.getLong("liveGroupId");
 
 					_liveGroupIdsMap.put(groupId, liveGroupId);
 
@@ -200,6 +118,76 @@ public class AssetDisplayPageEntryUpgradeProcess extends UpgradeProcess {
 					_stagedGroupIds.add(liveGroupId);
 				}
 			}
+		}
+	}
+
+	private void _updateAssetDisplayPageEntry(
+			Company company, boolean stagingGroups)
+		throws Exception {
+
+		long journalArticleClassNameId = PortalUtil.getClassNameId(
+			JournalArticle.class);
+		User user = company.getDefaultUser();
+
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			processConcurrently(
+				StringBundler.concat(
+					"select JournalArticle.groupId, ",
+					"JournalArticle.resourcePrimKey, AssetEntry.classUuid ",
+					"from JournalArticle inner join AssetEntry on ( ",
+					"AssetEntry.classNameId = ", journalArticleClassNameId,
+					" and AssetEntry.classPK = JournalArticle.resourcePrimKey ",
+					") inner join Group_ on (Group_.groupId = ",
+					"JournalArticle.groupId and Group_.liveGroupId ",
+					stagingGroups ? "" : "!",
+					"= 0) where JournalArticle.companyId = ",
+					company.getCompanyId(),
+					" and JournalArticle.layoutUuid is not null and ",
+					"JournalArticle.layoutUuid != '' and ",
+					"Group_.remoteStagingGroupCount = 0 and not exists ( ",
+					"select 1 from AssetDisplayPageEntry where ",
+					"AssetDisplayPageEntry.groupId = JournalArticle.groupId ",
+					"and AssetDisplayPageEntry.classNameId = ",
+					journalArticleClassNameId,
+					" and AssetDisplayPageEntry.classPK = ",
+					"JournalArticle.resourcePrimKey) group by ",
+					"JournalArticle.groupId, JournalArticle.resourcePrimKey, ",
+					"AssetEntry.classUuid"),
+				resultSet -> new Object[] {
+					resultSet.getLong("groupId"),
+					resultSet.getLong("resourcePrimKey"),
+					resultSet.getString("classUuid")
+				},
+				values -> {
+					long groupId = (Long)values[0];
+					long resourcePrimKey = (Long)values[1];
+
+					String journalArticleUuid = (String)values[2];
+
+					try {
+						ServiceContext serviceContext = new ServiceContext();
+
+						serviceContext.setUuid(
+							_generateLocalStagingAwareUUID(
+								groupId, journalArticleUuid));
+
+						_assetDisplayPageEntryLocalService.
+							addAssetDisplayPageEntry(
+								user.getUserId(), groupId,
+								journalArticleClassNameId, resourcePrimKey, 0,
+								AssetDisplayPageConstants.TYPE_SPECIFIC,
+								serviceContext);
+					}
+					catch (Exception exception) {
+						_log.error(
+							"Unable to add asset display page entry for " +
+								"article " + resourcePrimKey,
+							exception);
+
+						throw exception;
+					}
+				},
+				"Unable to add asset display pages for the journal articles");
 		}
 	}
 
@@ -212,50 +200,5 @@ public class AssetDisplayPageEntryUpgradeProcess extends UpgradeProcess {
 	private final Map<Long, Long> _liveGroupIdsMap = new HashMap<>();
 	private final Set<Long> _stagedGroupIds = new HashSet<>();
 	private final Map<Long, Map<String, String>> _uuidsMaps = new HashMap<>();
-
-	private class SaveAssetDisplayPageEntryCallable
-		implements Callable<Boolean> {
-
-		public SaveAssetDisplayPageEntryCallable(
-			long groupId, long userId, long classNameId, long classPK,
-			String uuid) {
-
-			_groupId = groupId;
-			_userId = userId;
-			_classNameId = classNameId;
-			_classPK = classPK;
-			_uuid = uuid;
-		}
-
-		@Override
-		public Boolean call() throws Exception {
-			try {
-				ServiceContext serviceContext = new ServiceContext();
-
-				serviceContext.setUuid(_uuid);
-
-				_assetDisplayPageEntryLocalService.addAssetDisplayPageEntry(
-					_userId, _groupId, _classNameId, _classPK, 0,
-					AssetDisplayPageConstants.TYPE_SPECIFIC, serviceContext);
-			}
-			catch (Exception exception) {
-				_log.error(
-					"Unable to add asset display page entry for article " +
-						_classPK,
-					exception);
-
-				return false;
-			}
-
-			return true;
-		}
-
-		private final long _classNameId;
-		private final long _classPK;
-		private final long _groupId;
-		private final long _userId;
-		private final String _uuid;
-
-	}
 
 }

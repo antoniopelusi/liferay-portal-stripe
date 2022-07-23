@@ -43,11 +43,11 @@ public class BookmarksServiceVerifyProcess extends VerifyProcess {
 
 	@Override
 	protected void doVerify() throws Exception {
-		updateFolderAssets();
-		verifyTree();
+		_updateFolderAssets();
+		_verifyTree();
 	}
 
-	protected void updateFolderAssets() throws Exception {
+	private void _updateFolderAssets() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			List<BookmarksFolder> folders =
 				_bookmarksFolderLocalService.getNoAssetFolders();
@@ -79,7 +79,7 @@ public class BookmarksServiceVerifyProcess extends VerifyProcess {
 		}
 	}
 
-	protected void verifyTree() throws Exception {
+	private void _verifyTree() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			_companyLocalService.forEachCompanyId(
 				companyId -> _bookmarksFolderLocalService.rebuildTree(

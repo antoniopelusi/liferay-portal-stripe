@@ -180,9 +180,9 @@ public abstract class BaseSharepointStorageImpl implements SharepointStorage {
 	}
 
 	protected Tree getFolderTree(String name) {
-		Date now = new Date();
+		Date date = new Date();
 
-		return getFolderTree(name, now, now, now);
+		return getFolderTree(name, date, date, date);
 	}
 
 	protected Tree getFolderTree(

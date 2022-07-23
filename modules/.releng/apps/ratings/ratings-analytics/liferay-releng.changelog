@@ -17,3 +17,18 @@ fbc25130e2a94828bef457e3c4bdb7ae34a9622f^..8436127b442f6f767f327e4278308a4550ad4
 # Bundle Version 4.0.0
 #
 fa81457b6d087689b9c3b60858ef0650e3223b82^..f947ee63b2489d575efcdbb643b0ea795cae96ce=LPS-121824
+
+#
+# Bundle Version 4.0.1
+#
+f947ee63b2489d575efcdbb643b0ea795cae96ce^..cf80dcde79871f4c6fe325ac4927b04f165d3a8b=LPS-133200
+
+#
+# Bundle Version 4.0.5
+#
+cf80dcde79871f4c6fe325ac4927b04f165d3a8b^..0b0ca264fc9a4b2ee3e4b1316eeabdaad889f1c6=LPS-105380
+
+#
+# Bundle Version 4.0.7
+#
+0b0ca264fc9a4b2ee3e4b1316eeabdaad889f1c6^..b2e9e7b4ee60d72b1da61abd0efe6935604f789a=LRAC-8284

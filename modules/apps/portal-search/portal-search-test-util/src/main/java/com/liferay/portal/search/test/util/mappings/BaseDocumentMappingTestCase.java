@@ -14,11 +14,12 @@
 
 package com.liferay.portal.search.test.util.mappings;
 
-import com.liferay.portal.kernel.search.BooleanClauseOccur;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.Query;
-import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
-import com.liferay.portal.kernel.search.generic.MatchQuery;
+import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
+import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
+import com.liferay.portal.search.engine.adapter.search.SearchSearchResponse;
 import com.liferay.portal.search.test.util.document.BaseDocumentTestCase;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -33,11 +35,26 @@ import org.junit.Test;
  */
 public abstract class BaseDocumentMappingTestCase extends BaseDocumentTestCase {
 
+	@Before
+	public void setUp() throws Exception {
+		super.setUp();
+
+		addDocuments(
+			screenName -> document -> populate(document, screenName),
+			getScreenNamesStream());
+	}
+
 	@Test
 	public void testFirstNamesSearchResults() throws Exception {
 		Stream<String> stream = getScreenNamesStream();
 
-		stream.forEach(this::assertMappings);
+		stream.forEach(
+			screenName -> {
+				String firstName = screenName.replaceFirst(
+					"user", StringPool.BLANK);
+
+				assertMappings(firstName);
+			});
 	}
 
 	@Test
@@ -79,16 +96,28 @@ public abstract class BaseDocumentMappingTestCase extends BaseDocumentTestCase {
 	protected void assertMappings(String keywords) {
 		assertSearch(
 			indexingTestHelper -> {
-				indexingTestHelper.setQuery(getQuery(keywords));
+				SearchEngineAdapter searchEngineAdapter =
+					getSearchEngineAdapter();
 
-				indexingTestHelper.search();
+				SearchSearchResponse searchSearchResponse =
+					searchEngineAdapter.execute(
+						new SearchSearchRequest() {
+							{
+								setIndexNames(String.valueOf(getCompanyId()));
+								setQuery(
+									BaseDocumentTestCase.getQuery(keywords));
+							}
+						});
 
-				indexingTestHelper.verify(
-					hits -> {
-						for (Document document : hits.getDocs()) {
-							assertMappings(document);
-						}
-					});
+				Hits hits = searchSearchResponse.getHits();
+
+				Document[] documents = hits.getDocs();
+
+				Assert.assertNotEquals(0, documents.length);
+
+				for (Document document : hits.getDocs()) {
+					assertMappings(document);
+				}
 			});
 	}
 
@@ -130,17 +159,6 @@ public abstract class BaseDocumentMappingTestCase extends BaseDocumentTestCase {
 		}
 
 		return list.toArray(new Long[0]);
-	}
-
-	protected Query getQuery(String keywords) {
-		BooleanQueryImpl booleanQueryImpl = new BooleanQueryImpl();
-
-		booleanQueryImpl.add(
-			new MatchQuery("firstName", keywords), BooleanClauseOccur.SHOULD);
-		booleanQueryImpl.add(
-			new MatchQuery("lastName", keywords), BooleanClauseOccur.SHOULD);
-
-		return booleanQueryImpl;
 	}
 
 }

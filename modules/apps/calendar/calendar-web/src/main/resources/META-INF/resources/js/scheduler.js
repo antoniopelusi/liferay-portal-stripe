@@ -57,6 +57,10 @@ AUI.add(
 			Liferay.Language.get('today') +
 			'</button>';
 
+		var TPL_SCHEDULER_VIEWS =
+			'<div aria-label="{ariaLabel}" class="col-xs-5 form-inline scheduler-base-views" role="listbox">' +
+			'</div>';
+
 		var WEEKLY = 'WEEKLY';
 
 		var Time = Liferay.Time;
@@ -175,6 +179,18 @@ AUI.add(
 						);
 					},
 				},
+
+				viewsNode: {
+					valueFn() {
+						var instance = this;
+
+						return A.Node.create(
+							A.Lang.sub(TPL_SCHEDULER_VIEWS, {
+								ariaLabel: instance.getAriaLabel('calendar'),
+							})
+						);
+					},
+				},
 			},
 
 			AUGMENTS: [Liferay.RecurrenceConverter],
@@ -263,16 +279,16 @@ AUI.add(
 
 					var viewName = view.get('name');
 
-					if (viewName == 'agenda') {
+					if (viewName === 'agenda') {
 						schedulerViewText = Liferay.Language.get('agenda-view');
 					}
-					else if (viewName == 'day') {
+					else if (viewName === 'day') {
 						schedulerViewText = Liferay.Language.get('day-view');
 					}
-					else if (viewName == 'month') {
+					else if (viewName === 'month') {
 						schedulerViewText = Liferay.Language.get('month-view');
 					}
-					else if (viewName == 'week') {
+					else if (viewName === 'week') {
 						schedulerViewText = Liferay.Language.get('week-view');
 					}
 
@@ -961,9 +977,15 @@ AUI.add(
 							if (startDate.getHours() >= 12) {
 								startDateMask += 'pm';
 							}
+							else {
+								startDateMask += 'am';
+							}
 
 							if (endDate.getHours() >= 12) {
 								endDateMask += 'pm';
+							}
+							else {
+								endDateMask += 'am';
 							}
 						}
 
@@ -1109,6 +1131,7 @@ AUI.add(
 			'aui-datatype',
 			'aui-scheduler',
 			'dd-plugin',
+			'liferay-calendar-a11y',
 			'liferay-calendar-message-util',
 			'liferay-calendar-recurrence-converter',
 			'liferay-calendar-recurrence-util',

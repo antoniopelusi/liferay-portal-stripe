@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -77,7 +78,7 @@ public class ImageDDMFormFieldTemplateContextContributor
 
 		return HashMapBuilder.<String, Object>put(
 			"itemSelectorURL",
-			getItemSelectorURL(
+			_getItemSelectorURL(
 				ddmFormFieldRenderingContext.getHttpServletRequest(),
 				ddmFormFieldRenderingContext)
 		).put(
@@ -94,53 +95,15 @@ public class ImageDDMFormFieldTemplateContextContributor
 				ddmFormField, ddmFormFieldRenderingContext.getLocale(),
 				"predefinedValue")
 		).put(
+			"requiredDescription",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("requiredDescription"), true)
+		).put(
 			"value",
 			getValue(
 				DDMFormFieldTypeUtil.getPropertyValue(
 					ddmFormFieldRenderingContext, "value"))
 		).build();
-	}
-
-	protected String getItemSelectorURL(
-		HttpServletRequest httpServletRequest,
-		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
-
-		if (_itemSelector == null) {
-			return null;
-		}
-
-		List<ItemSelectorCriterion> itemSelectorCriteria = new ArrayList<>();
-
-		ImageItemSelectorCriterion imageItemSelectorCriterion =
-			new ImageItemSelectorCriterion();
-
-		imageItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
-			new DownloadFileEntryItemSelectorReturnType());
-
-		itemSelectorCriteria.add(imageItemSelectorCriterion);
-
-		for (ImageDDMFormFieldItemSelectorCriterionContributor
-				imageDDMFormFieldItemSelectorCriterionContributor :
-					_imageDDMFormFieldItemSelectorCriterionContributors) {
-
-			if (!imageDDMFormFieldItemSelectorCriterionContributor.isVisible(
-					ddmFormFieldRenderingContext)) {
-
-				continue;
-			}
-
-			itemSelectorCriteria.add(
-				imageDDMFormFieldItemSelectorCriterionContributor.
-					getItemSelectorCriterion(ddmFormFieldRenderingContext));
-		}
-
-		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
-			RequestBackedPortletURLFactoryUtil.create(httpServletRequest),
-			ddmFormFieldRenderingContext.getPortletNamespace() +
-				"selectDocumentLibrary",
-			itemSelectorCriteria.toArray(new ItemSelectorCriterion[0]));
-
-		return itemSelectorURL.toString();
 	}
 
 	protected String getValue(String value) {
@@ -170,7 +133,7 @@ public class ImageDDMFormFieldTemplateContextContributor
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -212,6 +175,48 @@ public class ImageDDMFormFieldTemplateContextContributor
 		}
 	}
 
+	private String _getItemSelectorURL(
+		HttpServletRequest httpServletRequest,
+		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
+
+		if (_itemSelector == null) {
+			return null;
+		}
+
+		List<ItemSelectorCriterion> itemSelectorCriteria = new ArrayList<>();
+
+		ImageItemSelectorCriterion imageItemSelectorCriterion =
+			new ImageItemSelectorCriterion();
+
+		imageItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+			new DownloadFileEntryItemSelectorReturnType());
+
+		itemSelectorCriteria.add(imageItemSelectorCriterion);
+
+		for (ImageDDMFormFieldItemSelectorCriterionContributor
+				imageDDMFormFieldItemSelectorCriterionContributor :
+					_imageDDMFormFieldItemSelectorCriterionContributors) {
+
+			if (!imageDDMFormFieldItemSelectorCriterionContributor.isVisible(
+					ddmFormFieldRenderingContext)) {
+
+				continue;
+			}
+
+			itemSelectorCriteria.add(
+				imageDDMFormFieldItemSelectorCriterionContributor.
+					getItemSelectorCriterion(ddmFormFieldRenderingContext));
+		}
+
+		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
+			RequestBackedPortletURLFactoryUtil.create(httpServletRequest),
+			ddmFormFieldRenderingContext.getPortletNamespace() +
+				"selectDocumentLibrary",
+			itemSelectorCriteria.toArray(new ItemSelectorCriterion[0]));
+
+		return itemSelectorURL.toString();
+	}
+
 	private String _getMessage(Locale defaultLocale, String value) {
 		if (Validator.isNull(value)) {
 			return StringPool.BLANK;
@@ -219,11 +224,8 @@ public class ImageDDMFormFieldTemplateContextContributor
 
 		JSONObject valueJSONObject = _getValueJSONObject(value);
 
-		if ((valueJSONObject == null) || (valueJSONObject.length() <= 0)) {
-			return StringPool.BLANK;
-		}
-
-		if (Validator.isNull(valueJSONObject.getString("uuid")) ||
+		if ((valueJSONObject == null) || (valueJSONObject.length() <= 0) ||
+			Validator.isNull(valueJSONObject.getString("uuid")) ||
 			Validator.isNull(valueJSONObject.getLong("groupId"))) {
 
 			return StringPool.BLANK;
@@ -262,7 +264,7 @@ public class ImageDDMFormFieldTemplateContextContributor
 		}
 		catch (JSONException jsonException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(jsonException, jsonException);
+				_log.debug(jsonException);
 			}
 
 			return null;

@@ -16,7 +16,6 @@ package com.liferay.document.library.opener.onedrive.web.internal.service;
 
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
-import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLAppServiceWrapper;
 import com.liferay.document.library.kernel.util.DLValidator;
 import com.liferay.document.library.opener.constants.DLOpenerFileEntryReferenceConstants;
@@ -42,6 +41,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import java.io.File;
 import java.io.InputStream;
 
+import java.util.Date;
 import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
@@ -56,14 +56,6 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = ServiceWrapper.class)
 public class DLOpenerOneDriveDLAppServiceWrapper extends DLAppServiceWrapper {
-
-	public DLOpenerOneDriveDLAppServiceWrapper() {
-		super(null);
-	}
-
-	public DLOpenerOneDriveDLAppServiceWrapper(DLAppService dlAppService) {
-		super(dlAppService);
-	}
 
 	@Override
 	public void cancelCheckOut(long fileEntryId) throws PortalException {
@@ -166,9 +158,10 @@ public class DLOpenerOneDriveDLAppServiceWrapper extends DLAppServiceWrapper {
 	@Override
 	public FileEntry updateFileEntryAndCheckIn(
 			long fileEntryId, String sourceFileName, String mimeType,
-			String title, String description, String changeLog,
+			String title, String urlTitle, String description, String changeLog,
 			DLVersionNumberIncrease dlVersionNumberIncrease,
-			InputStream inputStream, long size, ServiceContext serviceContext)
+			InputStream inputStream, long size, Date expirationDate,
+			Date revisionDate, ServiceContext serviceContext)
 		throws PortalException {
 
 		FileEntry fileEntry = getFileEntry(fileEntryId);
@@ -177,16 +170,18 @@ public class DLOpenerOneDriveDLAppServiceWrapper extends DLAppServiceWrapper {
 			!_dlOpenerOneDriveManager.isOneDriveFile(fileEntry)) {
 
 			return super.updateFileEntryAndCheckIn(
-				fileEntryId, sourceFileName, mimeType, title, description,
-				changeLog, dlVersionNumberIncrease, null, serviceContext);
+				fileEntryId, sourceFileName, mimeType, title, urlTitle,
+				description, changeLog, dlVersionNumberIncrease, null,
+				expirationDate, revisionDate, serviceContext);
 		}
 
 		checkInFileEntry(
 			fileEntryId, dlVersionNumberIncrease, changeLog, serviceContext);
 
 		return super.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, dlVersionNumberIncrease, null, 0, serviceContext);
+			fileEntryId, sourceFileName, mimeType, title, urlTitle, description,
+			changeLog, dlVersionNumberIncrease, null, 0, expirationDate,
+			revisionDate, serviceContext);
 	}
 
 	private long _getUserId() {
@@ -227,9 +222,9 @@ public class DLOpenerOneDriveDLAppServiceWrapper extends DLAppServiceWrapper {
 		try {
 			updateFileEntry(
 				fileEntry.getFileEntryId(), sourceFileName,
-				fileEntry.getMimeType(), title, fileEntry.getDescription(),
-				StringPool.BLANK, DLVersionNumberIncrease.NONE, file,
-				serviceContext);
+				fileEntry.getMimeType(), title, StringPool.BLANK,
+				fileEntry.getDescription(), StringPool.BLANK,
+				DLVersionNumberIncrease.NONE, file, null, null, serviceContext);
 		}
 		finally {
 			if ((file != null) && !file.delete()) {

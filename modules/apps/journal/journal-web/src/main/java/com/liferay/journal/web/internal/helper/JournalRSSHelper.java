@@ -49,7 +49,7 @@ import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -189,10 +189,9 @@ public class JournalRSSHelper {
 	public FileEntry getFileEntry(String url) {
 		FileEntry fileEntry = null;
 
-		String queryString = _http.getQueryString(url);
-
-		Map<String, String[]> parameters = _http.parameterMapFromString(
-			queryString);
+		Map<String, String[]> parameters =
+			HttpComponentsUtil.parameterMapFromString(
+				HttpComponentsUtil.getQueryString(url));
 
 		if (url.startsWith("/documents/")) {
 			String[] pathArray = StringUtil.split(url, CharPool.SLASH);
@@ -207,7 +206,7 @@ public class JournalRSSHelper {
 			}
 			else if (pathArray.length == 5) {
 				folderId = GetterUtil.getLong(pathArray[3]);
-				title = _http.decodeURL(pathArray[4]);
+				title = HttpComponentsUtil.decodeURL(pathArray[4]);
 			}
 			else if (pathArray.length > 5) {
 				uuid = pathArray[5];
@@ -225,7 +224,7 @@ public class JournalRSSHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		}
@@ -240,7 +239,7 @@ public class JournalRSSHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		}
@@ -256,7 +255,7 @@ public class JournalRSSHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		}
@@ -267,7 +266,7 @@ public class JournalRSSHelper {
 	public List<SyndEnclosure> getIGEnclosures(String portalURL, String url) {
 		List<SyndEnclosure> syndEnclosures = new ArrayList<>();
 
-		Object[] imageProperties = getImageProperties(url);
+		Object[] imageProperties = _getImageProperties(url);
 
 		if (imageProperties == null) {
 			return syndEnclosures;
@@ -289,7 +288,7 @@ public class JournalRSSHelper {
 	public List<SyndLink> getIGLinks(String portalURL, String url) {
 		List<SyndLink> syndLinks = new ArrayList<>();
 
-		Object[] imageProperties = getImageProperties(url);
+		Object[] imageProperties = _getImageProperties(url);
 
 		if (imageProperties == null) {
 			return syndLinks;
@@ -312,10 +311,9 @@ public class JournalRSSHelper {
 	public Image getImage(String url) {
 		Image image = null;
 
-		String queryString = _http.getQueryString(url);
-
-		Map<String, String[]> parameters = _http.parameterMapFromString(
-			queryString);
+		Map<String, String[]> parameters =
+			HttpComponentsUtil.parameterMapFromString(
+				HttpComponentsUtil.getQueryString(url));
 
 		if (parameters.containsKey("image_id") ||
 			parameters.containsKey("img_id") ||
@@ -338,7 +336,7 @@ public class JournalRSSHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		}
@@ -363,7 +361,7 @@ public class JournalRSSHelper {
 			}
 			catch (NoSuchFeedException noSuchFeedException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchFeedException, noSuchFeedException);
+					_log.debug(noSuchFeedException);
 				}
 
 				// Backward compatibility with old URLs
@@ -394,14 +392,14 @@ public class JournalRSSHelper {
 			layout = themeDisplay.getLayout();
 		}
 
-		String rss = exportToRSS(
+		String rss = _exportToRSS(
 			resourceRequest, resourceResponse, feed, languageId, layout,
 			themeDisplay);
 
 		return rss.getBytes(StringPool.UTF8);
 	}
 
-	protected String exportToRSS(
+	private String _exportToRSS(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse,
 			JournalFeed feed, String languageId, Layout layout,
 			ThemeDisplay themeDisplay)
@@ -433,13 +431,13 @@ public class JournalRSSHelper {
 			String value = article.getDescription(languageId);
 
 			try {
-				value = processContent(
+				value = _processContent(
 					resourceRequest, resourceResponse, feed, article,
 					languageId, themeDisplay, syndEntry, syndContent);
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 
@@ -447,7 +445,7 @@ public class JournalRSSHelper {
 
 			syndEntry.setDescription(syndContent);
 
-			String link = getEntryURL(
+			String link = _getEntryURL(
 				resourceRequest, feed, article, layout, themeDisplay);
 
 			syndEntry.setLink(link);
@@ -485,7 +483,7 @@ public class JournalRSSHelper {
 		return _rssExporter.export(syndFeed);
 	}
 
-	protected String getEntryURL(
+	private String _getEntryURL(
 			ResourceRequest resourceRequest, JournalFeed feed,
 			JournalArticle article, Layout layout, ThemeDisplay themeDisplay)
 		throws Exception {
@@ -524,7 +522,7 @@ public class JournalRSSHelper {
 		).buildString();
 	}
 
-	protected Object[] getImageProperties(String url) {
+	private Object[] _getImageProperties(String url) {
 		String type = null;
 		long size = 0;
 
@@ -554,7 +552,7 @@ public class JournalRSSHelper {
 		return null;
 	}
 
-	protected String processContent(
+	private String _processContent(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse,
 			JournalFeed feed, JournalArticle article, String languageId,
 			ThemeDisplay themeDisplay, SyndEntry syndEntry,
@@ -627,7 +625,7 @@ public class JournalRSSHelper {
 						fileEntry, fileEntry.getFileVersion(), null,
 						StringPool.BLANK, false, true);
 
-					url = processURL(feed, url, themeDisplay, syndEntry);
+					url = _processURL(feed, url, themeDisplay, syndEntry);
 
 					content = StringBundler.concat(
 						content, "<br /><br /><a href=\"",
@@ -637,7 +635,7 @@ public class JournalRSSHelper {
 			else if (elType.equals("image") || elType.equals("image_gallery")) {
 				String url = element.elementText("dynamic-content");
 
-				url = processURL(feed, url, themeDisplay, syndEntry);
+				url = _processURL(feed, url, themeDisplay, syndEntry);
 
 				content = StringBundler.concat(
 					content, "<br /><br /><img alt=\"\" src=\"\"",
@@ -656,7 +654,7 @@ public class JournalRSSHelper {
 		return content;
 	}
 
-	protected String processURL(
+	private String _processURL(
 		JournalFeed feed, String url, ThemeDisplay themeDisplay,
 		SyndEntry syndEntry) {
 
@@ -696,9 +694,6 @@ public class JournalRSSHelper {
 
 	@Reference
 	private DLURLHelper _dlURLHelper;
-
-	@Reference
-	private Http _http;
 
 	@Reference
 	private ImageLocalService _imageLocalService;

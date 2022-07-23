@@ -21,15 +21,16 @@
 <aui:script require="commerce-frontend-js/components/mini_cart/entry as Cart">
 	var initialProps = {
 		cartActionURLs: {
-			checkoutURL: '<%= checkoutURL %>',
-			orderDetailURL: '<%= orderDetailURL %>',
-			siteDefaultURL: '<%= siteDefaultURL %>',
+			checkoutURL: '<%= HtmlUtil.escapeJS(checkoutURL) %>',
+			orderDetailURL: '<%= HtmlUtil.escapeJS(orderDetailURL) %>',
+			productURLSeparator: '<%= HtmlUtil.escapeJS(productURLSeparator) %>',
+			siteDefaultURL: '<%= HtmlUtil.escapeJS(siteDefaultURL) %>',
 		},
 		displayDiscountLevels: <%= displayDiscountLevels %>,
 		displayTotalItemsQuantity: <%= displayTotalItemsQuantity %>,
 		itemsQuantity: <%= itemsQuantity %>,
 		orderId: <%= orderId %>,
-		spritemap: '<%= spritemap %>',
+		spritemap: '<%= HtmlUtil.escapeJS(spritemap) %>',
 		toggleable: <%= toggleable %>,
 	};
 

@@ -21,41 +21,59 @@ definition {
 			value1 = "${propertyOption}");
 	}
 
-	macro changeCriterionInputDate {
-		Click(
-			key_criterion = "date",
-			locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL");
+	macro assetLanguageTag {
+		Click(locator1 = "Segmentation#TRANSLATION_BUTTON");
 
-		KeyPress(
-			key_criterion = "date",
-			locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
-			value1 = "\BACK_SPACE");
-
-		RobotType(locator1 = "${year}");
-
-		KeyPress(
-			key_criterion = "date",
-			locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
-			value1 = "\RIGHT");
-
-		RobotType(locator1 = "${month}");
-
-		KeyPress(
-			key_criterion = "date",
-			locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
-			value1 = "\RIGHT");
-
-		RobotType(locator1 = "${day}");
+		AssertTextEquals(
+			key_locale = StringUtil.replace("${locale}", "_", "-"),
+			locator1 = "Segmentation#TRANSLATION_STATUS_TITLE",
+			value1 = "${tagName}");
 	}
 
-	macro changeCriterionInputEmailAddress {
-		var key_criterionInputOption = "${criterionInputOption}";
-
-		Click(locator1 = "Segmentation#CRITERION_INPUT");
+	macro changeCriterionConjunction {
+		Click(locator1 = "Segmentation#CRITERION_CONJUNCTION");
 
 		Click(
-			locator1 = "Segmentation#CRITERION_INPUT_OPTION",
+			key_criterionConjunctionItem = "${criterionConjunctionItem}",
+			locator1 = "Segmentation#CRITERION_CONJUNCTION_ITEM");
+	}
+
+	macro changeCriterionInput {
+		var key_criterionInputOption = "${criterionInputOption}";
+
+		Select(
+			locator1 = "Segmentation#CRITERION_INPUT",
 			value1 = "${criterionInputOption}");
+	}
+
+	macro changeLocale {
+		Click(locator1 = "Segmentation#TRANSLATION_BUTTON");
+
+		Click(
+			key_locale = StringUtil.replace("${locale}", "_", "-"),
+			locator1 = "Segmentation#TRANSLATION_STATUS_TITLE");
+	}
+
+	macro checkModifiedDate {
+		var displayDateDay = DateUtil.getCurrentDate();
+		var displayDateMonth = DateUtil.getCurrentMonth();
+
+		if (("${displayDateMonth}" != "10") && ("${displayDateMonth}" != "11") && ("${displayDateMonth}" != "12")) {
+			var displayDateMonth = "0${displayDateMonth}";
+		}
+
+		var displayDateYear = DateUtil.getCurrentYear();
+		var i = ${displayDateDay} / 10;
+
+		if ("${i}" == "0") {
+			var displayDateDay = "0${displayDateDay}";
+		}
+
+		var displayDate = "${displayDateYear}-${displayDateMonth}-${displayDateDay}";
+
+		Segmentation.viewSegment(
+			criterion = "date",
+			value = "${displayDate}");
 	}
 
 	macro clickAssignSiteRolesOption {
@@ -70,8 +88,46 @@ definition {
 			value1 = "Assign Site Roles");
 	}
 
+	macro createExperienceWithSegment {
+		Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+		Click(
+			key_text = "New Experience",
+			locator1 = "Button#ANY");
+
+		Click(locator1 = "PageEditor#EXPERIENCE_CREATE_SEGMENT");
+
+		Segmentation.fillTitle(titleField = "${newSegment}");
+
+		Segmentation.addProperties(propertyOption = "Screen Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "test");
+
+		Button.clickSave();
+
+		Type.type(
+			locator1 = "PageEditor#EXPERIENCE_NAME",
+			value1 = "${newExperience}");
+
+		Click(locator1 = "Button#SAVE");
+	}
+
 	macro deleteProperties {
 		Click(locator1 = "Segmentation#DELETE_SEGMENT");
+	}
+
+	macro deleteSegment {
+		Click.waitForMenuToggleJSClick(
+			key_tableEntry = "${entry}",
+			locator1 = "LexiconTable#TABLE_ENTRY_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertConfirm.waitForConfirmation(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro disableAssingRolesBySegmentsCheckbox {
@@ -116,26 +172,81 @@ definition {
 
 	macro fillProperty {
 		if (isSet(criterionKey)) {
-			Type(
+			Type.type(
 				key_criterion = "key",
 				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
 				value1 = "${criterionKey}");
 
-			Type(
+			Type.type(
 				key_criterion = "value",
 				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
 				value1 = "${criterionValue}");
 		}
-
 		else if (isSet(resolutionValue)) {
-			Type(
+			Type.type(
 				key_criterion = "decimal-number",
 				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
 				value1 = "${resolutionValue}");
 		}
+		else if (isSet(selectCheckbox)) {
+			Click(locator1 = "Button#SELECT");
 
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			Check(
+				key_checkboxName = "${selectCheckbox}",
+				locator1 = "Checkbox#ENABLE_CHECKBOX");
+
+			SelectFrame(value1 = "relative=top");
+
+			Click(locator1 = "Modal#SELECT_BUTTON");
+		}
+		else if (isSet(chooseItem)) {
+			Click(locator1 = "Button#SELECT");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertClick(
+				key_rowEntry = "${chooseItem}",
+				locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_CHOOSE",
+				value1 = "Choose");
+
+			SelectFrame(value1 = "relative=top");
+		}
+		else if (isSet(selectLink)) {
+			if (isSet(indexNumber)) {
+				Click(
+					key_indexNumber = "${indexNumber}",
+					key_text = "Select",
+					locator1 = "Button#ANY_N");
+			}
+			else {
+				Click(locator1 = "Button#SELECT");
+			}
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertClick(
+				key_rowEntry = "${selectLink}",
+				locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME_LINK",
+				value1 = "${selectLink}");
+
+			SelectFrame(value1 = "relative=top");
+		}
+		else if (isSet(dateValue)) {
+			Type.sendKeys(
+				key_criterion = "date",
+				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
+				value1 = "${dateValue}");
+		}
+		else if (isSet(optionsValue)) {
+			Select(
+				key_criterion = "options",
+				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
+				value1 = "${optionsValue}");
+		}
 		else {
-			Type(
+			Type.type(
 				locator1 = "Segmentation#PROPERTY_FIELD",
 				value1 = "${propertyField}");
 		}
@@ -144,15 +255,39 @@ definition {
 	macro fillTitle {
 		Click(locator1 = "Segmentation#TITLE_FIELD");
 
-		Type(
+		Type.type(
 			locator1 = "Segmentation#TITLE_FIELD",
 			value1 = "${titleField}");
+	}
+
+	macro getPortalInstanceDefaultLanguageId {
+		var portalURL = PropsUtil.get("portal.url");
+
+		var companyId = JSONCompany.getCompanyId(portalInstanceName = "${portalInstanceName}");
+
+		var curl = '''
+			${portalURL}/api/jsonws/country/get-company-countries \
+			-u test@liferay.com:test \
+			-d companyId=${companyId} \
+			-d start=0 \
+			-d end=1 \
+			-d -orderByComparator=
+		''';
+		var languageId = JSONCurlUtil.post("${curl}", "$..defaultLanguageId");
+
+		return "${languageId}";
+	}
+
+	macro gotoSidebar {
+		Click(
+			key_typeName = "${fieldType}",
+			locator1 = "Segmentation#SEGMENT_FIELDS_TYPE");
 	}
 
 	macro openSegmentOptions {
 		Click(locator1 = "Segmentation#SEARCH_FIELD");
 
-		Type(
+		Type.type(
 			locator1 = "Segmentation#SEARCH_FIELD",
 			value1 = "${segmentName}");
 
@@ -169,14 +304,6 @@ definition {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_segments_web_internal_portlet_SegmentsPortlet");
 	}
 
-	macro selectOrganization {
-		Click(locator1 = "Segmentation#ORGANIZATION_MENU");
-	}
-
-	macro selectSession {
-		Click(locator1 = "Segmentation#SESSION_MENU");
-	}
-
 	macro selectTag {
 		Click(locator1 = "Segmentation#ADD_TAG_BUTTON");
 
@@ -184,7 +311,7 @@ definition {
 
 		Click(locator1 = "Segmentation#SEARCH_TAG_FIELD");
 
-		Type(
+		Type.type(
 			locator1 = "Segmentation#SEARCH_TAG_FIELD",
 			value1 = "${tagOption}");
 
@@ -197,12 +324,51 @@ definition {
 		SelectFrameTop();
 	}
 
+	macro setVocabularySessionPropertyDropdown {
+		Click(locator1 = "Segmentation#SESSION_PROPERTY_SESSION_LINK_PROPERTY");
+
+		Click(locator1 = "Segmentation#SESSION_PROPERTY_SESSION_LINK_PROPERTY_OPTION");
+
+		Click(locator1 = "Segmentation#SESSION_PROPERTY_SESSION_LINK_VOCABULARY");
+
+		Click(locator1 = "Segmentation#SESSION_PROPERTY_SESSION_LINK_VOCABULARY_OPTION");
+
+		Button.click(button = "Save");
+	}
+
 	macro tearDown {
 		while (IsElementPresent(locator1 = "Segmentation#SEGMENT_LIST")) {
 			Segmentation._deleteAllSegments();
 		}
 
 		AssertElementNotPresent(locator1 = "Segmentation#SEGMENT_LIST");
+	}
+
+	macro updateACSegmentSystemSettings {
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Segments",
+			configurationName = "Segments Analytics Cloud",
+			configurationScope = "System Scope");
+
+		if (IsElementPresent(locator1 = "SystemSettings#SAVE_BUTTON_SEGMENTS_AC")) {
+			Click(locator1 = "SystemSettings#SAVE_BUTTON_SEGMENTS_AC");
+		}
+
+		AssertClick(
+			key_text = "Update",
+			locator1 = "Button#ANY",
+			value1 = "Update");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro viewEntryNotPresent {
+		LexiconEntry.viewNoEntry(rowEntry = "${segmentName}");
 	}
 
 	macro viewMembers {
@@ -212,9 +378,14 @@ definition {
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
-		AssertTextPresent(
-			locator1 = "Segmentation#MEMBER_NAME_LISTED",
-			value1 = "Test Test");
+		if (isSet(memberNameList)) {
+			for (var key_memberName : list "${memberNameList}") {
+				AssertElementPresent(locator1 = "Segmentation#MEMBER_NAME_LISTED");
+			}
+		}
+		else {
+			AssertElementPresent(locator1 = "Segmentation#MEMBER_NAME_LISTED");
+		}
 
 		SelectFrame(value1 = "relative=top");
 
@@ -235,21 +406,17 @@ definition {
 				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
 				value1 = "${criterionValue}");
 		}
-
-		else if (isSet(resolutionValue)) {
+		else if (isSet(criterionInputOption)) {
 			AssertValue(
-				key_criterion = "decimal-number",
-				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
-				value1 = "${resolutionValue}");
+				locator1 = "Segmentation#CRITERION_INPUT",
+				value1 = "${criterionInputOption}");
 		}
-
-		else if (isSet(date)) {
+		else if (isSet(criterion)) {
 			AssertValue(
-				key_criterion = "date",
+				key_criterion = "${criterion}",
 				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
-				value1 = "${date}");
+				value1 = "${value}");
 		}
-
 		else {
 			AssertValue(
 				locator1 = "Segmentation#PROPERTY_FIELD",

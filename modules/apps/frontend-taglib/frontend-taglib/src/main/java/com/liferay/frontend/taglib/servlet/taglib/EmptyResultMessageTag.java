@@ -119,7 +119,7 @@ public class EmptyResultMessageTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setPropsTransformer(String propsTransformer) {
@@ -164,7 +164,7 @@ public class EmptyResultMessageTag extends IncludeTag {
 			return _propsTransformerServletContext;
 		}
 
-		return servletContext;
+		return getServletContext();
 	}
 
 	@Override

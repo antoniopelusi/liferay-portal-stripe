@@ -89,6 +89,11 @@ public class SPAHelper {
 			ResourceBundleLoaderUtil.
 				getResourceBundleLoaderByServletContextName(servletContextName);
 
+		if (resourceBundleLoader == null) {
+			resourceBundleLoader =
+				ResourceBundleLoaderUtil.getPortalResourceBundleLoader();
+		}
+
 		return resourceBundleLoader.loadResourceBundle(locale);
 	}
 
@@ -131,7 +136,7 @@ public class SPAHelper {
 	}
 
 	public boolean isClearScreensCache(
-		HttpServletRequest httpServletRequest, HttpSession session) {
+		HttpServletRequest httpServletRequest, HttpSession httpSession) {
 
 		boolean singlePageApplicationClearCache = GetterUtil.getBoolean(
 			httpServletRequest.getAttribute(
@@ -148,7 +153,7 @@ public class SPAHelper {
 		}
 
 		String singlePageApplicationLastPortletId =
-			(String)session.getAttribute(
+			(String)httpSession.getAttribute(
 				WebKeys.SINGLE_PAGE_APPLICATION_LAST_PORTLET_ID);
 
 		if (Validator.isNotNull(singlePageApplicationLastPortletId) &&
@@ -286,7 +291,7 @@ public class SPAHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -299,7 +304,7 @@ public class SPAHelper {
 		_REDIRECT_PARAM_NAME = portletNamespace.concat("redirect");
 	}
 
-	private long _cacheExpirationTime;
+	private volatile long _cacheExpirationTime;
 	private ServiceTracker<Object, Object> _navigationExceptionSelectorTracker;
 
 	@Reference
@@ -307,7 +312,7 @@ public class SPAHelper {
 
 	private PortletLocalService _portletLocalService;
 	private volatile SPAConfiguration _spaConfiguration;
-	private JSONArray _spaExcludedPathsJSONArray;
+	private volatile JSONArray _spaExcludedPathsJSONArray;
 
 	private static final class NavigationExceptionSelectorTrackerCustomizer
 		implements ServiceTrackerCustomizer<Object, Object> {
@@ -319,46 +324,48 @@ public class SPAHelper {
 		}
 
 		@Override
-		public Object addingService(ServiceReference<Object> reference) {
+		public Object addingService(ServiceReference<Object> serviceReference) {
 			List<String> selectors = StringPlus.asList(
-				reference.getProperty(_SPA_NAVIGATION_EXCEPTION_SELECTOR_KEY));
+				serviceReference.getProperty(
+					_SPA_NAVIGATION_EXCEPTION_SELECTOR_KEY));
 
 			_navigationExceptionSelectors.addAll(selectors);
 
 			_navigationExceptionSelectorsString = ListUtil.toString(
 				_navigationExceptionSelectors, (String)null, StringPool.BLANK);
 
-			Object service = _bundleContext.getService(reference);
+			Object service = _bundleContext.getService(serviceReference);
 
-			_serviceReferences.add(reference);
+			_serviceReferences.add(serviceReference);
 
 			return service;
 		}
 
 		@Override
 		public void modifiedService(
-			ServiceReference<Object> reference, Object service) {
+			ServiceReference<Object> serviceReference, Object service) {
 
-			removedService(reference, service);
+			removedService(serviceReference, service);
 
-			addingService(reference);
+			addingService(serviceReference);
 		}
 
 		@Override
 		public void removedService(
-			ServiceReference<Object> reference, Object service) {
+			ServiceReference<Object> serviceReference, Object service) {
 
 			List<String> selectors = StringPlus.asList(
-				reference.getProperty(_SPA_NAVIGATION_EXCEPTION_SELECTOR_KEY));
+				serviceReference.getProperty(
+					_SPA_NAVIGATION_EXCEPTION_SELECTOR_KEY));
 
 			_navigationExceptionSelectors.removeAll(selectors);
 
 			_navigationExceptionSelectorsString = ListUtil.toString(
 				_navigationExceptionSelectors, (String)null, StringPool.BLANK);
 
-			_serviceReferences.remove(reference);
+			_serviceReferences.remove(serviceReference);
 
-			_bundleContext.ungetService(reference);
+			_bundleContext.ungetService(serviceReference);
 		}
 
 		private final BundleContext _bundleContext;

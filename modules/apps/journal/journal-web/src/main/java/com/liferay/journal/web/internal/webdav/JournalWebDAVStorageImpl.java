@@ -23,6 +23,7 @@ import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalFolderService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.webdav.BaseWebDAVStorageImpl;
 import com.liferay.portal.kernel.webdav.Resource;
@@ -78,16 +79,16 @@ public class JournalWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 			String[] pathArray = webDAVRequest.getPathArray();
 
 			if (pathArray.length == 2) {
-				return getFolders(webDAVRequest);
+				return _getFolders(webDAVRequest);
 			}
 			else if (pathArray.length == 3) {
 				String type = pathArray[2];
 
 				if (type.equals(DDMWebDAV.TYPE_STRUCTURES)) {
-					return getStructures(webDAVRequest);
+					return _getStructures(webDAVRequest);
 				}
 				else if (type.equals(DDMWebDAV.TYPE_TEMPLATES)) {
-					return getTemplates(webDAVRequest);
+					return _getTemplates(webDAVRequest);
 				}
 			}
 
@@ -105,22 +106,36 @@ public class JournalWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 			_portal.getClassNameId(JournalArticle.class));
 	}
 
-	protected List<Resource> getFolders(WebDAVRequest webDAVRequest)
-		throws Exception {
+	@Reference(unbind = "-")
+	protected void setDDMTemplateLocalService(
+		DDMTemplateLocalService ddmTemplateLocalService) {
 
-		List<Resource> resources = new ArrayList<>();
-
-		resources.add(
-			_ddmWebDAV.toResource(
-				webDAVRequest, DDMWebDAV.TYPE_STRUCTURES, getRootPath(), true));
-		resources.add(
-			_ddmWebDAV.toResource(
-				webDAVRequest, DDMWebDAV.TYPE_TEMPLATES, getRootPath(), true));
-
-		return resources;
+		_ddmTemplateLocalService = ddmTemplateLocalService;
 	}
 
-	protected List<Resource> getStructures(WebDAVRequest webDAVRequest)
+	@Reference(unbind = "-")
+	protected void setDDMWebDAV(DDMWebDAV ddmWebDAV) {
+		_ddmWebDAV = ddmWebDAV;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJournalFolderService(
+		JournalFolderService journalFolderService) {
+
+		_journalFolderService = journalFolderService;
+	}
+
+	private List<Resource> _getFolders(WebDAVRequest webDAVRequest)
+		throws Exception {
+
+		return ListUtil.fromArray(
+			_ddmWebDAV.toResource(
+				webDAVRequest, DDMWebDAV.TYPE_STRUCTURES, getRootPath(), true),
+			_ddmWebDAV.toResource(
+				webDAVRequest, DDMWebDAV.TYPE_TEMPLATES, getRootPath(), true));
+	}
+
+	private List<Resource> _getStructures(WebDAVRequest webDAVRequest)
 		throws Exception {
 
 		List<Resource> resources = new ArrayList<>();
@@ -141,7 +156,7 @@ public class JournalWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 		return resources;
 	}
 
-	protected List<Resource> getTemplates(WebDAVRequest webDAVRequest)
+	private List<Resource> _getTemplates(WebDAVRequest webDAVRequest)
 		throws Exception {
 
 		List<Resource> resources = new ArrayList<>();
@@ -161,25 +176,6 @@ public class JournalWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 		}
 
 		return resources;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDDMTemplateLocalService(
-		DDMTemplateLocalService ddmTemplateLocalService) {
-
-		_ddmTemplateLocalService = ddmTemplateLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDDMWebDAV(DDMWebDAV ddmWebDAV) {
-		_ddmWebDAV = ddmWebDAV;
-	}
-
-	@Reference(unbind = "-")
-	protected void setJournalFolderService(
-		JournalFolderService journalFolderService) {
-
-		_journalFolderService = journalFolderService;
 	}
 
 	private DDMTemplateLocalService _ddmTemplateLocalService;

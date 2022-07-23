@@ -79,6 +79,12 @@
 			<finder-column name="groupId" />
 		</finder>
 	</entity>
+	<entity cache-enabled="false" change-tracking-enabled="true" local-service="true" mvcc-enabled="true" name="CacheMissEntry" remote-service="false">
+
+		<!-- PK fields -->
+
+		<column name="cacheMissEntryId" primary="true" type="long" />
+	</entity>
 	<entity cache-enabled="true" local-service="true" name="DataLimitEntry" remote-service="false">
 
 		<!-- PK fields -->
@@ -330,6 +336,22 @@
 		<column name="parentNestedSetsTreeEntryId" type="long" />
 		<column name="leftNestedSetsTreeEntryId" type="long" />
 		<column name="rightNestedSetsTreeEntryId" type="long" />
+	</entity>
+	<entity cache-enabled="false" local-service="true" name="NullConvertibleEntry" remote-service="false">
+
+		<!-- PK fields -->
+
+		<column name="nullConvertibleEntryId" primary="true" type="long" />
+
+		<!-- Other fields -->
+
+		<column convert-null="true" name="name" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="Name" return-type="NullConvertibleEntry" unique="true">
+			<finder-column name="name" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="UADPartialEntry" remote-service="false">
 

@@ -160,6 +160,13 @@ public abstract class KBTemplateLocalServiceBaseImpl
 	}
 
 	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
+	@Override
 	public DynamicQuery dynamicQuery() {
 		Class<?> clazz = getClass();
 
@@ -627,9 +634,5 @@ public abstract class KBTemplateLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.portal.kernel.service.UserLocalService
 		userLocalService;
-
-	@Reference
-	protected com.liferay.social.kernel.service.SocialActivityLocalService
-		socialActivityLocalService;
 
 }

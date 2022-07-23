@@ -12,8 +12,6 @@
  * details.
  */
 
-'use strict';
-
 import Component from 'metal-component';
 import Soy, {Config} from 'metal-soy';
 
@@ -28,8 +26,8 @@ class ProductDetailsModal extends Component {
 		}, 2000);
 	}
 
-	_handleCloseModal(evt) {
-		evt.preventDefault();
+	_handleCloseModal(event) {
+		event.preventDefault();
 
 		return this.refs.modal.show();
 	}

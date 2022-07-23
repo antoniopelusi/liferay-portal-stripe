@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -59,6 +60,10 @@ public class Account implements Serializable {
 
 	public static Account toDTO(String json) {
 		return ObjectMapperUtil.readValue(Account.class, json);
+	}
+
+	public static Account unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(Account.class, json);
 	}
 
 	@Schema
@@ -152,6 +157,34 @@ public class Account implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected AccountOrganization[] accountOrganizations;
+
+	@Schema
+	public Boolean getActive() {
+		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
+
+	@JsonIgnore
+	public void setActive(
+		UnsafeSupplier<Boolean, Exception> activeUnsafeSupplier) {
+
+		try {
+			active = activeUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean active;
 
 	@Schema
 	@Valid
@@ -644,6 +677,16 @@ public class Account implements Serializable {
 			sb.append("]");
 		}
 
+		if (active != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"active\": ");
+
+			sb.append(active);
+		}
+
 		if (customFields != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -835,9 +878,9 @@ public class Account implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -863,7 +906,7 @@ public class Account implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -895,7 +938,7 @@ public class Account implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -911,5 +954,10 @@ public class Account implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

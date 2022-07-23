@@ -43,8 +43,6 @@ public class EncryptedServletRequest extends HttpServletRequestWrapper {
 
 		_key = key;
 
-		_params = new HashMap<>();
-
 		Map<String, String[]> parameters = httpServletRequest.getParameterMap();
 
 		for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
@@ -59,7 +57,7 @@ public class EncryptedServletRequest extends HttpServletRequestWrapper {
 					}
 					catch (EncryptorException encryptorException) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(encryptorException, encryptorException);
+							_log.debug(encryptorException);
 						}
 
 						values[i] = StringPool.BLANK;
@@ -96,6 +94,6 @@ public class EncryptedServletRequest extends HttpServletRequestWrapper {
 		EncryptedServletRequest.class);
 
 	private final Key _key;
-	private final Map<String, String[]> _params;
+	private final Map<String, String[]> _params = new HashMap<>();
 
 }

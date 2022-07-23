@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class LockLocalServiceWrapper
 	implements LockLocalService, ServiceWrapper<LockLocalService> {
 
+	public LockLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LockLocalServiceWrapper(LockLocalService lockLocalService) {
 		_lockLocalService = lockLocalService;
 	}
@@ -123,6 +127,13 @@ public class LockLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _lockLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _lockLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

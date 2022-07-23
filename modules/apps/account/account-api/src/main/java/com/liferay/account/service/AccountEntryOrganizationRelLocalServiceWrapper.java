@@ -27,6 +27,10 @@ public class AccountEntryOrganizationRelLocalServiceWrapper
 	implements AccountEntryOrganizationRelLocalService,
 			   ServiceWrapper<AccountEntryOrganizationRelLocalService> {
 
+	public AccountEntryOrganizationRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AccountEntryOrganizationRelLocalServiceWrapper(
 		AccountEntryOrganizationRelLocalService
 			accountEntryOrganizationRelLocalService) {
@@ -190,6 +194,13 @@ public class AccountEntryOrganizationRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _accountEntryOrganizationRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _accountEntryOrganizationRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

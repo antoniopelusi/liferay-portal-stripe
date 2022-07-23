@@ -23,11 +23,11 @@
 </style>
 
 <%
-CPOptionFacetsDisplayContext cpOptionFacetsDisplayContext = (CPOptionFacetsDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
+CPOptionsSearchFacetDisplayContext cpOptionsSearchFacetDisplayContext = (CPOptionsSearchFacetDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 %>
 
 <c:choose>
-	<c:when test="<%= !cpOptionFacetsDisplayContext.hasCommerceChannel() %>">
+	<c:when test="<%= !cpOptionsSearchFacetDisplayContext.hasCommerceChannel() %>">
 		<div class="alert alert-info mx-auto">
 			<liferay-ui:message key="this-site-does-not-have-a-channel" />
 		</div>
@@ -35,7 +35,7 @@ CPOptionFacetsDisplayContext cpOptionFacetsDisplayContext = (CPOptionFacetsDispl
 	<c:otherwise>
 
 		<%
-		List<Facet> facets = cpOptionFacetsDisplayContext.getFacets();
+		List<Facet> facets = cpOptionsSearchFacetDisplayContext.getFacets();
 
 		long companyId = company.getCompanyId();
 		%>
@@ -51,25 +51,51 @@ CPOptionFacetsDisplayContext cpOptionFacetsDisplayContext = (CPOptionFacetsDispl
 				%>
 
 					<c:if test="<%= !termCollectors.isEmpty() %>">
-
-				<liferay-ui:panel-container
-					extended="<%= true %>"
-					markupView="lexicon"
-					persistState="<%= true %>"
-				>
-					<liferay-ui:panel
-						collapsible="<%= true %>"
-						cssClass="search-facet"
-						markupView="lexicon"
-						persistState="<%= true %>"
-						title="<%= cpOptionFacetsDisplayContext.getCPOptionName(companyId, facet.getFieldName()) %>"
-					>
 						<aui:form method="post" name='<%= "assetEntriesFacetForm_" + facet.getFieldName() %>'>
-							<aui:input cssClass="facet-parameter-name" name="facet-parameter-name" type="hidden" value="<%= cpOptionFacetsDisplayContext.getCPOptionKey(companyId, facet.getFieldName()) %>" />
-							<aui:input cssClass="start-parameter-name" name="start-parameter-name" type="hidden" value="<%= cpOptionFacetsDisplayContext.getPaginationStartParameterName() %>" />
+							<aui:input cssClass="facet-parameter-name" name="facet-parameter-name" type="hidden" value="<%= cpOptionsSearchFacetDisplayContext.getCPOptionKey(companyId, facet.getFieldName()) %>" />
+							<aui:input cssClass="start-parameter-name" name="start-parameter-name" type="hidden" value="<%= cpOptionsSearchFacetDisplayContext.getPaginationStartParameterName() %>" />
+
+							<liferay-ddm:template-renderer
+								className="<%= CPOptionsSearchFacetDisplayContext.class.getName() %>"
+								contextObjects='<%=
+									HashMapBuilder.<String, Object>put(
+										"companyId", companyId
+									).put(
+										"cpOptionsSearchFacetDisplayContext", cpOptionsSearchFacetDisplayContext
+									).put(
+										"fieldName", facet.getFieldName()
+									).put(
+										"name", liferayPortletResponse.getNamespace() + "term_" + facet.getFieldName()
+									).put(
+										"namespace", liferayPortletResponse.getNamespace()
+									).put(
+										"showFrequencies", GetterUtil.getBoolean(portletPreferences.getValue("frequenciesVisible", null), true)
+									).put(
+										"title", HtmlUtil.escape(cpOptionsSearchFacetDisplayContext.getCPOptionName(companyId, facet.getFieldId()))
+									).build()
+								%>'
+								displayStyle='<%= portletPreferences.getValue("displayStyle", "") %>'
+								displayStyleGroupId="<%= cpOptionsSearchFacetDisplayContext.getDisplayStyleGroupId() %>"
+								entries="<%= cpOptionsSearchFacetDisplayContext.getTermDisplayContexts() %>"
+							>
+
+							<liferay-ui:panel-container
+								extended="<%= true %>"
+								id='<%= liferayPortletResponse.getNamespace() + "facetCPOptionsPanelContainer" %>'
+								markupView="lexicon"
+								persistState="<%= true %>"
+							>
+							<liferay-ui:panel
+								collapsible="<%= true %>"
+								cssClass="search-facet"
+								id='<%= liferayPortletResponse.getNamespace() + "facetCPOptionsPanel" %>'
+								markupView="lexicon"
+								persistState="<%= true %>"
+								title="<%= HtmlUtil.escape(cpOptionsSearchFacetDisplayContext.getCPOptionName(companyId, facet.getFieldId())) %>"
+							>
 
 							<aui:fieldset>
-								<ul class="asset-type list-unstyled">
+								<ul class="list-unstyled" data-qa-id="<%= HtmlUtil.escape(cpOptionsSearchFacetDisplayContext.getCPOptionName(companyId, facet.getFieldId())) %>">
 
 								<%
 								int i = 0;
@@ -79,25 +105,29 @@ CPOptionFacetsDisplayContext cpOptionFacetsDisplayContext = (CPOptionFacetsDispl
 								%>
 
 								<li class="facet-value">
-									<label class="facet-checkbox-label" for="<portlet:namespace />term_<%= facet.getFieldName() + i %>">
-										<input
-											class="facet-term"
-											data-term-id="<%= termCollector.getTerm() %>"
-											id="<portlet:namespace />term_<%= facet.getFieldName() + i %>"
-											name="<portlet:namespace />term_<%= facet.getFieldName() + i %>"
-											onChange="Liferay.Search.FacetUtil.changeSelection(event);"
-											type="checkbox"
-											<%= cpOptionFacetsDisplayContext.isCPOptionValueSelected(companyId, facet.getFieldName(), termCollector.getTerm()) ? "checked" : "" %>
-										/>
+									<div class="custom-checkbox custom-control">
+										<label class="facet-checkbox-label" for="<portlet:namespace />term_<%= facet.getFieldName() + i %>">
+											<input
+												class="custom-control-input facet-term"
+												data-term-id="<%= HtmlUtil.escapeAttribute(termCollector.getTerm()) %>"
+												id="<portlet:namespace />term_<%= facet.getFieldName() + i %>"
+												name="<portlet:namespace />term_<%= facet.getFieldName() + i %>"
+												onChange="Liferay.Search.FacetUtil.changeSelection(event);"
+												type="checkbox"
+												<%= cpOptionsSearchFacetDisplayContext.isCPOptionValueSelected(companyId, facet.getFieldName(), termCollector.getTerm()) ? "checked" : "" %>
+											/>
 
-										<span class="term-name">
-											<%= HtmlUtil.escape(termCollector.getTerm()) %>
-										</span>
+											<span class="custom-control-label term-name <%= cpOptionsSearchFacetDisplayContext.isCPOptionValueSelected(companyId, facet.getFieldName(), termCollector.getTerm()) ? "facet-term-selected" : "facet-term-unselected" %>">
+												<span class="custom-control-label-text"><%= HtmlUtil.escape(termCollector.getTerm()) %></span>
+											</span>
 
-										<small class="term-count">
-											(<%= termCollector.getFrequency() %>)
-										</small>
-									</label>
+											<c:if test='<%= GetterUtil.getBoolean(portletPreferences.getValue("frequenciesVisible", null), true) %>'>
+												<small class="term-count">
+													(<%= termCollector.getFrequency() %>)
+												</small>
+											</c:if>
+										</label>
+									</div>
 								</li>
 
 								<%
@@ -105,10 +135,10 @@ CPOptionFacetsDisplayContext cpOptionFacetsDisplayContext = (CPOptionFacetsDispl
 								%>
 
 							</aui:fieldset>
+							</liferay-ui:panel>
+							</liferay-ui:panel-container>
+							</liferay-ddm:template-renderer>
 						</aui:form>
-					</liferay-ui:panel>
-				</liferay-ui:panel-container>
-
 					</c:if>
 
 				<%

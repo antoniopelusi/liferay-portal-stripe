@@ -37,9 +37,9 @@ public class ChannelLoginPostAction extends Action {
 		HttpServletResponse httpServletResponse) {
 
 		try {
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
-			User user = (User)session.getAttribute(WebKeys.USER);
+			User user = (User)httpSession.getAttribute(WebKeys.USER);
 
 			if (!user.isDefaultUser()) {
 				ChannelHubManagerUtil.getChannel(
@@ -47,7 +47,7 @@ public class ChannelLoginPostAction extends Action {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 

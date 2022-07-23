@@ -18,8 +18,10 @@ import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.LocalizedModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 import java.util.Locale;
@@ -40,8 +42,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CPMeasurementUnitModel
-	extends BaseModel<CPMeasurementUnit>, LocalizedModel, ShardedModel,
-			StagedGroupedModel {
+	extends BaseModel<CPMeasurementUnit>, CTModel<CPMeasurementUnit>,
+			LocalizedModel, MVCCModel, ShardedModel, StagedGroupedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -54,6 +56,7 @@ public interface CPMeasurementUnitModel
 	 *
 	 * @return the primary key of this cp measurement unit
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -61,7 +64,40 @@ public interface CPMeasurementUnitModel
 	 *
 	 * @param primaryKey the primary key of this cp measurement unit
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this cp measurement unit.
+	 *
+	 * @return the mvcc version of this cp measurement unit
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this cp measurement unit.
+	 *
+	 * @param mvccVersion the mvcc version of this cp measurement unit
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this cp measurement unit.
+	 *
+	 * @return the ct collection ID of this cp measurement unit
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this cp measurement unit.
+	 *
+	 * @param ctCollectionId the ct collection ID of this cp measurement unit
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the uuid of this cp measurement unit.
@@ -412,5 +448,8 @@ public interface CPMeasurementUnitModel
 	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
+
+	@Override
+	public CPMeasurementUnit cloneWithOriginalValues();
 
 }

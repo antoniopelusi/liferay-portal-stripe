@@ -100,7 +100,7 @@ public abstract class BaseWorkflowPortlet extends MVCPortlet {
 	protected void addRenderRequestAttributes(RenderRequest renderRequest) {
 		renderRequest.setAttribute(
 			WorkflowWebKeys.SELECTED_WORKFLOW_PORTLET_TAB,
-			getSelectedWorkflowPortletTab(renderRequest));
+			_getSelectedWorkflowPortletTab(renderRequest));
 		renderRequest.setAttribute(
 			WorkflowWebKeys.WORKFLOW_PORTLET_TABS, getWorkflowPortletTabs());
 	}
@@ -122,7 +122,7 @@ public abstract class BaseWorkflowPortlet extends MVCPortlet {
 		super.doDispatch(renderRequest, renderResponse);
 	}
 
-	protected WorkflowPortletTab getSelectedWorkflowPortletTab(
+	private WorkflowPortletTab _getSelectedWorkflowPortletTab(
 		RenderRequest renderRequest) {
 
 		String workflowPortletTabName = ParamUtil.get(
@@ -130,10 +130,6 @@ public abstract class BaseWorkflowPortlet extends MVCPortlet {
 
 		return _workflowPortletTabServiceTrackerMap.getService(
 			workflowPortletTabName);
-	}
-
-	protected WorkflowPortletTab getWorkflowPortletTab(String name) {
-		return _workflowPortletTabServiceTrackerMap.getService(name);
 	}
 
 	private ServiceTrackerMap<String, WorkflowPortletTab>

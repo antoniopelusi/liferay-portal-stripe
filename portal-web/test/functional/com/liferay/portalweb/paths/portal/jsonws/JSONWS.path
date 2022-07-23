@@ -2,11 +2,13 @@
 <head>
 <title>JSONWS</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">JSONWS</td></tr>
 </thead>
+
 <tbody>
 <!--ADDRESS-->
 <tr>
@@ -48,7 +50,7 @@
 </tr>
 <tr>
 	<td>USER_UPDATE_USER</td>
-	<td>//div[@id='apiServiceUserServiceImplPanelContent']/div/ul/li/a[contains(.,'update-user')]</td>
+	<td>//div[@id='apiServiceUserServiceImplPanelContent']/div/ul/li/a[normalize-space(text())='update-user']</td>
 	<td></td>
 </tr>
 <tr>

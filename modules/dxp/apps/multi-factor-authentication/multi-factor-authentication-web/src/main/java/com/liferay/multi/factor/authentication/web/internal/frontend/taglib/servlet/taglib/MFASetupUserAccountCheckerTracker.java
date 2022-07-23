@@ -22,7 +22,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Dictionary;
 import java.util.Map;
@@ -135,16 +135,13 @@ public class MFASetupUserAccountCheckerTracker {
 		private Dictionary<String, Object> _buildProperties(
 			ServiceReference<Object> serviceReference) {
 
-			Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-			dictionary.put(
+			return HashMapDictionaryBuilder.<String, Object>put(
 				"screen.navigation.entry.order",
 				GetterUtil.getInteger(
 					serviceReference.getProperty(
 						"user.account.screen.navigation.entry.order"),
-					Integer.MAX_VALUE));
-
-			return dictionary;
+					Integer.MAX_VALUE)
+			).build();
 		}
 
 	}

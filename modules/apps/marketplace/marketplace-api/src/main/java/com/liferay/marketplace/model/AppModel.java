@@ -296,4 +296,7 @@ public interface AppModel
 	 */
 	public void setRequired(boolean required);
 
+	@Override
+	public App cloneWithOriginalValues();
+
 }

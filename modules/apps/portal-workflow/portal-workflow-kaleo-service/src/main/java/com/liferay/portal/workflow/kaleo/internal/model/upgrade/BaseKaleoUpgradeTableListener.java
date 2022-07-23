@@ -39,16 +39,16 @@ public class BaseKaleoUpgradeTableListener extends BaseUpgradeTableListener {
 
 		Map<Long, Long> keyValueMap = new HashMap<>();
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select ", keyColumnName, ", ", valueColumnName, " from ",
 					tableName));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				long key = rs.getLong(keyColumnName);
-				long value = rs.getLong(valueColumnName);
+			while (resultSet.next()) {
+				long key = resultSet.getLong(keyColumnName);
+				long value = resultSet.getLong(valueColumnName);
 
 				if (_log.isDebugEnabled()) {
 					_log.debug(
@@ -83,20 +83,11 @@ public class BaseKaleoUpgradeTableListener extends BaseUpgradeTableListener {
 		throws Exception {
 
 		for (Map.Entry<Long, Long> entry : keyValueMap.entrySet()) {
-			StringBundler sb = new StringBundler(10);
-
-			sb.append("update ");
-			sb.append(tableName);
-			sb.append(" set kaleoClassName = '");
-			sb.append(kaleoClassName);
-			sb.append("', kaleoClassPK = ");
-			sb.append(entry.getValue());
-			sb.append(" where ");
-			sb.append(keyColumnName);
-			sb.append(" = ");
-			sb.append(entry.getKey());
-
-			runSQL(sb.toString());
+			runSQL(
+				StringBundler.concat(
+					"update ", tableName, " set kaleoClassName = '",
+					kaleoClassName, "', kaleoClassPK = ", entry.getValue(),
+					" where ", keyColumnName, " = ", entry.getKey()));
 		}
 	}
 

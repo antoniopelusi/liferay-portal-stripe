@@ -27,16 +27,18 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -252,34 +254,6 @@ public class FriendlyURLEntryLocalizationModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, FriendlyURLEntryLocalization>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			FriendlyURLEntryLocalization.class.getClassLoader(),
-			FriendlyURLEntryLocalization.class, ModelWrapper.class);
-
-		try {
-			Constructor<FriendlyURLEntryLocalization> constructor =
-				(Constructor<FriendlyURLEntryLocalization>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -674,6 +648,36 @@ public class FriendlyURLEntryLocalizationModelImpl
 	}
 
 	@Override
+	public FriendlyURLEntryLocalization cloneWithOriginalValues() {
+		FriendlyURLEntryLocalizationImpl friendlyURLEntryLocalizationImpl =
+			new FriendlyURLEntryLocalizationImpl();
+
+		friendlyURLEntryLocalizationImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		friendlyURLEntryLocalizationImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		friendlyURLEntryLocalizationImpl.setFriendlyURLEntryLocalizationId(
+			this.<Long>getColumnOriginalValue(
+				"friendlyURLEntryLocalizationId"));
+		friendlyURLEntryLocalizationImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		friendlyURLEntryLocalizationImpl.setFriendlyURLEntryId(
+			this.<Long>getColumnOriginalValue("friendlyURLEntryId"));
+		friendlyURLEntryLocalizationImpl.setLanguageId(
+			this.<String>getColumnOriginalValue("languageId"));
+		friendlyURLEntryLocalizationImpl.setUrlTitle(
+			this.<String>getColumnOriginalValue("urlTitle"));
+		friendlyURLEntryLocalizationImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		friendlyURLEntryLocalizationImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		friendlyURLEntryLocalizationImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+
+		return friendlyURLEntryLocalizationImpl;
+	}
+
+	@Override
 	public int compareTo(
 		FriendlyURLEntryLocalization friendlyURLEntryLocalization) {
 
@@ -793,7 +797,7 @@ public class FriendlyURLEntryLocalizationModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -804,11 +808,27 @@ public class FriendlyURLEntryLocalizationModelImpl
 			Function<FriendlyURLEntryLocalization, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply(
-					(FriendlyURLEntryLocalization)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(FriendlyURLEntryLocalization)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -859,7 +879,8 @@ public class FriendlyURLEntryLocalizationModelImpl
 		private static final Function
 			<InvocationHandler, FriendlyURLEntryLocalization>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						FriendlyURLEntryLocalization.class, ModelWrapper.class);
 
 	}
 

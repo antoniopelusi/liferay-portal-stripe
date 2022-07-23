@@ -1,0 +1,407 @@
+@component-name = "portal-workflow-ee"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.run.environment = "EE";
+	property testray.main.component.name = "Workflow Metrics";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		User.firstLoginPG();
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "LPS-105498 - Verify that when the user selects an instance with more than 1 pending task, the bulk update due date modal is triggered"
+	@priority = "5"
+	test BulkUpdateModalIsDisplayedWhenMoreThan1PendingTaskIsSelected {
+		property test.name.skip.portal.instance = "WorkflowMetricsAllItemsListUpdateDueDate#BulkUpdateModalIsDisplayedWhenMoreThan1PendingTaskIsSelected";
+
+		Workflow.duplicateSingleApproverWorkflow(workflowName = "Multi Task Process");
+
+		Navigator.gotoBack();
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Multi Task Process",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Multi Task Process");
+
+		MouseOver(
+			key_workflowInstanceName = "Blogs Entry Title",
+			locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_NAME");
+
+		MouseOver(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#DUE_DATE_BUTTON_ALL_ITEMS_LIST");
+
+		AssertElementPresent(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#DUE_DATE_BUTTON_ALL_ITEMS_LIST");
+
+		Click(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#DUE_DATE_BUTTON_ALL_ITEMS_LIST");
+
+		AssertElementPresent(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#DUE_DATE_MODAL_ALL_ITEMS_LIST");
+	}
+
+	@description = "LPS-105498 - Verify that the user can filter the tasks by Assignee on Select Tasks to Update step"
+	@priority = "3"
+	test CanFilterTasksByAssignee {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 1");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 2");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		WorkflowMetrics.goToUpdateDueDateTasks();
+
+		WorkflowMetricsAllItemsListUpdateDueDate.selectUpdateDueDateTasksCardFilterValueAssignee(workflowAssignee = "Test Test");
+
+		AssertElementPresent(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#METRICS_UPDATE_DUE_DATE_NO_RESULTS_MESSAGE");
+
+		Click(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#FILTER_CLEAR_ALL");
+
+		WorkflowMetricsAllItemsListUpdateDueDate.selectUpdateDueDateTasksCardFilterValueAssignee(workflowAssignee = "Unassigned");
+
+		AssertElementPresent(
+			key_title = "Blogs Entry: Blogs Entry Title 1",
+			locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#METRICS_UPDATE_DUE_DATE_LIST_ORDER");
+
+		AssertElementPresent(
+			key_title = "Blogs Entry: Blogs Entry Title 2",
+			locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#METRICS_UPDATE_DUE_DATE_LIST_ORDER");
+	}
+
+	@description = "LPS-105498 - Verify that the user can filter the tasks by Step on Select Tasks to Update step"
+	@priority = "3"
+	test CanFilterTasksByStep {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Workflow.rejectTaskByActions(
+			workflowAssetContent = "Blogs Entry Content",
+			workflowAssetTitle = "Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		WorkflowMetrics.goToUpdateDueDateTasks();
+
+		WorkflowMetricsAllItemsListUpdateDueDate.selectUpdateDueDateCardFilterValueProcessStep(workflowStep = "Review");
+
+		AssertElementPresent(
+			key_title = "Blogs Entry: Blogs Entry Title",
+			locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#METRICS_UPDATE_DUE_DATE_LIST_ORDER");
+
+		Click(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#FILTER_CLEAR_ALL");
+
+		WorkflowMetricsAllItemsListUpdateDueDate.selectUpdateDueDateCardFilterValueProcessStep(workflowStep = "Update");
+
+		AssertElementPresent(
+			key_title = "Blogs Entry: Blogs Entry Title",
+			locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#METRICS_UPDATE_DUE_DATE_LIST_ORDER");
+
+		Click(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#FILTER_CLEAR_ALL");
+	}
+
+	@description = "LPS-105498 - Verify that the user cannot update the due date of unassigned tasks that are also not assigned to its current role"
+	@ignore = "true"
+	@priority = "4"
+	test CanNotUpdateDueDateOfUnassignedTasks {
+		property test.name.skip.portal.instance = "WorkflowMetricsAllItemsListUpdateDueDate#CanNotUpdateDueDateOfUnassignedTasks";
+
+		JSONUser.addUser(
+			userEmailAddress = "user@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Administrator",
+			userEmailAddress = "user@liferay.com");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Portal Content Reviewer",
+			userEmailAddress = "user@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Workflow.uploadDefinition(
+			workflowDefinitionFile = "single-approver-assignments-workflow-definition.xml",
+			workflowDefinitionTitle = "Single Approver Process");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver Process",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver Process");
+
+		WorkflowMetrics.viewButtonUpdateDueDateIsNotAvailable();
+
+		WorkflowMetrics.viewKebabMenuOptionsIsNotAvailable();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "user@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver Process");
+
+		WorkflowMetrics.viewButtonUpdateDueDateIsAvailable();
+
+		WorkflowMetrics.viewKebabMenuOptionsIsAvailable(dropdownItem = "Update Due Date");
+	}
+
+	@description = "LPS-105497 - Verify that users can hover over a row to see action options and select to Update Task Due Date by hovering over the calendar icon"
+	@priority = "3"
+	test CanSelectUpDateDueDateByHoveringOverIcon {
+		var currentYear = DateUtil.getCurrentYear();
+		var futureYear = ${currentYear} + 1;
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_PENDING_ITEMS_VALUE");
+
+		MouseOver(
+			key_rowNumber = "1",
+			locator1 = "WorkflowAllItems#METRICS_PROCESS_NAME_TABLE_ROW");
+
+		Click(locator1 = "WorkflowAllItems#CALENDAR_ICON");
+
+		Type(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
+			value1 = "04/11/${futureYear}");
+
+		Type(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE_TIME",
+			value1 = "04:30 PM");
+
+		Button.clickDone();
+	}
+
+	@description = "LPS-105497 - Verify that the user can select Update Task Due Date in the kebab menu for a particular row"
+	@priority = "4"
+	test CanSelectUpDateDueDateInKebabMenu {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		WorkflowMetrics.goToUpdateDueDateTasks();
+
+		var currentYear = DateUtil.getCurrentYear();
+		var futureYear = ${currentYear} + 1;
+
+		Type(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
+			value1 = "04/11/${futureYear}");
+
+		Type(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE_TIME",
+			value1 = "04:30 PM");
+
+		Button.clickDone();
+	}
+
+	@description = "LPS-105497 - Verify that the current date/time is pre-populated into the Update Task Due Date form getting the data how it is in My Workflow Tasks"
+	@priority = "3"
+	test CurrentDateTimeIsPrePopulated {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		MouseOver(
+			key_workflowInstanceName = "Blogs Entry Title",
+			locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_NAME");
+
+		MouseOver(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#DUE_DATE_BUTTON_ALL_ITEMS_LIST");
+
+		AssertElementPresent(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#DUE_DATE_BUTTON_ALL_ITEMS_LIST");
+
+		Click(locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#DUE_DATE_BUTTON_ALL_ITEMS_LIST");
+
+		var displayDateDay = DateUtil.getCurrentDate();
+		var displayDateMonth = DateUtil.getCurrentMonth();
+		var displayDateYear = DateUtil.getCurrentYear();
+		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
+
+		AssertElementPresent(
+			locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#NEW_DUE_DATE_INPUT_ALL_ITEMS_LIST",
+			value1 = "${displayDate}");
+
+		var displayTimeHour = DateUtil.getCurrentHour();
+		var displayTimeMinute = "${displayTimeMinute}";
+		var displayTime = "${displayTimeHour}:${displayTimeMinute}";
+
+		AssertElementPresent(
+			locator1 = "WorkflowMetricsAllItemsListUpdateDueDate#NEW_DUE_DATE_INPUT_ALL_ITEMS_LIST_TIME",
+			value1 = "${displayTime}");
+	}
+
+	@description = "LPS-105498 - Verify that the message The due dates for theses tasks have been updated is displayed when the bulk update due date action is successful"
+	@priority = "3"
+	test MessageIsDisplayedWhenBulkUpdateActionIsSuccessful {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content 1",
+			entryTitle = "Blogs Entry Title 1");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content 2",
+			entryTitle = "Blogs Entry Title 2");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.goToUpdateDueDateTasks();
+
+		Check.checkNotVisible(locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_SELECT_ALL_MODAL");
+
+		Click(locator1 = "WorkflowReassignModal#NEXT_BUTTON");
+
+		Type(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
+			value1 = "04/11/2022");
+
+		Button.clickDone();
+
+		Alert.viewSuccessMessage();
+	}
+
+}

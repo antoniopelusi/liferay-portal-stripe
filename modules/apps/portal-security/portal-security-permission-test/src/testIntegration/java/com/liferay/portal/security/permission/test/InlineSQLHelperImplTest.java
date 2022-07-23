@@ -162,7 +162,7 @@ public class InlineSQLHelperImplTest {
 			_groupThree.getCompanyId(), RoleConstants.USER);
 
 		long[] roleIds = ReflectionTestUtil.invoke(
-			_inlineSQLHelper, "getRoleIds", new Class<?>[] {long.class},
+			_inlineSQLHelper, "_getRoleIds", new Class<?>[] {long.class},
 			_groupThree.getGroupId());
 
 		String msg = StringUtil.merge(roleIds);
@@ -185,15 +185,12 @@ public class InlineSQLHelperImplTest {
 
 		String sql = _replacePermissionCheckJoin(_SQL_PLAIN, _groupIds);
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(" OR (");
-		sb.append(_GROUP_ID_FIELD);
-		sb.append(" IN (");
-		sb.append(_groupOne.getGroupId());
-		sb.append("))");
-
-		Assert.assertTrue(sql, sql.contains(sb.toString()));
+		Assert.assertTrue(
+			sql,
+			sql.contains(
+				StringBundler.concat(
+					" OR (", _GROUP_ID_FIELD, " IN (", _groupOne.getGroupId(),
+					"))")));
 	}
 
 	@Test
@@ -395,17 +392,16 @@ public class InlineSQLHelperImplTest {
 
 		_setPermissionChecker();
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("SELECT COUNT(*) FROM JournalArticle LEFT JOIN (SELECT ");
-		sb.append("JournalArticleLocalization.articlePK FROM ");
-		sb.append("JournalArticleLocalization WHERE ");
-		sb.append("JournalArticleLocalization.languageId = 'en_US') ");
-		sb.append("JournalArticleLocalization ON (JournalArticle.id_ = ");
-		sb.append("JournalArticleLocalization.articlePK) WHERE ");
-		sb.append("JournalArticle.urlTitle like '%test%'");
-
-		String sql = _replacePermissionCheckJoin(sb.toString(), _groupIds);
+		String sql = _replacePermissionCheckJoin(
+			StringBundler.concat(
+				"SELECT COUNT(*) FROM JournalArticle LEFT JOIN (SELECT ",
+				"JournalArticleLocalization.articlePK FROM ",
+				"JournalArticleLocalization WHERE ",
+				"JournalArticleLocalization.languageId = 'en_US') ",
+				"JournalArticleLocalization ON (JournalArticle.id_ = ",
+				"JournalArticleLocalization.articlePK) WHERE ",
+				"JournalArticle.urlTitle like '%test%'"),
+			_groupIds);
 
 		_checkSQLComposition(sql);
 	}
@@ -464,50 +460,41 @@ public class InlineSQLHelperImplTest {
 
 	private void _assertValidSql(String sql) throws Exception {
 		try (Connection connection = DataAccess.getConnection();
-			PreparedStatement ps = connection.prepareStatement(sql)) {
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				sql)) {
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
 	private void _assertWhereClause(String sql, String classPK) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(_WHERE_CLAUSE);
-		sb.append("(");
-		sb.append(classPK);
-		sb.append(" IN (");
-
-		Assert.assertTrue(sql, sql.contains(sb.toString()));
+		Assert.assertTrue(
+			sql,
+			sql.contains(
+				StringBundler.concat(_WHERE_CLAUSE, "(", classPK, " IN (")));
 	}
 
 	private void _checkSQLComposition(String sql) throws Exception {
 		_assertWhereClause(sql, _CLASS_PK_FIELD);
 
-		StringBundler sb = new StringBundler(4);
+		Assert.assertTrue(
+			sql,
+			sql.contains(
+				StringBundler.concat(
+					_RESOURCE_PERMISSION, ".name = '", _CLASS_NAME, "'")));
 
-		sb.append(_RESOURCE_PERMISSION);
-		sb.append(".name = '");
-		sb.append(_CLASS_NAME);
-		sb.append("'");
+		Assert.assertTrue(
+			sql,
+			sql.contains(
+				StringBundler.concat(
+					_RESOURCE_PERMISSION, ".companyId = ",
+					CompanyThreadLocal.getCompanyId())));
 
-		Assert.assertTrue(sql, sql.contains(sb.toString()));
-
-		sb = new StringBundler(3);
-
-		sb.append(_RESOURCE_PERMISSION);
-		sb.append(".companyId = ");
-		sb.append(CompanyThreadLocal.getCompanyId());
-
-		Assert.assertTrue(sql, sql.contains(sb.toString()));
-
-		sb = new StringBundler(3);
-
-		sb.append(_USER_ID_FIELD);
-		sb.append(" = ");
-		sb.append(_user.getUserId());
-
-		Assert.assertTrue(sql, sql.contains(sb.toString()));
+		Assert.assertTrue(
+			sql,
+			sql.contains(
+				StringBundler.concat(
+					_USER_ID_FIELD, " = ", _user.getUserId())));
 
 		_assertValidSql(sql);
 	}

@@ -350,6 +350,11 @@ public class LayoutWrapper
 	}
 
 	@Override
+	public Layout cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public Layout fetchDraftLayout() {
 		return model.fetchDraftLayout();
 	}
@@ -409,6 +414,13 @@ public class LayoutWrapper
 	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
+	}
+
+	@Override
+	public String getBreadcrumb(java.util.Locale locale)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getBreadcrumb(locale);
 	}
 
 	/**
@@ -1585,6 +1597,11 @@ public class LayoutWrapper
 		return model.isDraft();
 	}
 
+	@Override
+	public boolean isDraftLayout() {
+		return model.isDraftLayout();
+	}
+
 	/**
 	 * Returns <code>true</code> if this layout is expired.
 	 *
@@ -1730,6 +1747,11 @@ public class LayoutWrapper
 	@Override
 	public boolean isPublicLayout() {
 		return model.isPublicLayout();
+	}
+
+	@Override
+	public boolean isPublished() {
+		return model.isPublished();
 	}
 
 	/**

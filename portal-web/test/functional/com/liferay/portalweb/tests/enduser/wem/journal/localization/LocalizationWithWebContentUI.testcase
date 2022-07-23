@@ -63,7 +63,9 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "Space Program Academy of Continuing Education Dare to Dream out of this world");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Space Program Academy of Continuing Education Dare to Dream out of this world",
+			webContentTitle = "Basic S.P.A.C.E. Banner");
 
 		WebContentDisplayPortletNavigator.gotoEdit(
 			menuItem = "Edit Web Content",
@@ -75,7 +77,7 @@ definition {
 
 		CKEditor.addContentInWebContent(
 			content = "A Japanese translation of the basic front page banner",
-			fieldLabel = "Summary");
+			fieldLabel = "Description");
 
 		CKEditor.addSourceContent(content = '''
 <h2 class="text-center">Space Program 大学生涯教育</h2>
@@ -102,7 +104,9 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "Space Program 大学生涯教育 地球から、宇宙の果てへ");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Space Program 大学生涯教育 地球から、宇宙の果てへ",
+			webContentTitle = "Basic S.P.A.C.E. Banner (Japanese Translation)");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Page Name",
@@ -116,18 +120,22 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "Space Program Academy of Continuing Education Dare to Dream out of this world");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Space Program Academy of Continuing Education Dare to Dream out of this world",
+			webContentTitle = "Basic S.P.A.C.E. Banner");
 
-		AssertTextNotPresent(
+		AssertTextNotEquals(
+			index = "1",
 			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "Space Program 大学生涯教育 地球から、宇宙の果てへ");
 	}
 
+	@description = "This test is assigned as usecase test for CKEditor and localization in LPS-141232."
 	@priority = "5"
 	test AddWCWithTranslation {
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "LocalizationWithWebContent#AddWCWithTranslation";
-		property testray.component.names = "Localization,Web Content Administration";
+		property testray.component.names = "Localization,Web Content Administration,WYSIWYG";
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
@@ -155,13 +163,15 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		Content.addPG(assetTitle = "WC Title");
+		WidgetPages.addRecentContent(assetTitle = "WC Title");
 
 		LanguagePortlet.selectLanguagePG(
 			locale = "es_ES",
 			textIcon = "español-España");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC Contenido");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC Contenido",
+			webContentTitle = "WC Titulo");
 
 		WebContentDisplayPortletNavigator.gotoEdit(
 			menuItem = "Editar contenido web",
@@ -208,8 +218,8 @@ definition {
 		PortletEntry.inputDescriptionTextInput(description = "WC Structure Description");
 
 		WebContentStructures.addLocalization(
-			locale = "fr_FR",
-			locale2 = "zh_CN",
+			locale = "fr-FR",
+			locale2 = "zh-CN",
 			localization1Name = "nom de la structure de wc",
 			localization2Name = "wc 结构名称");
 
@@ -230,8 +240,8 @@ definition {
 			templateName = "WC Template Name");
 
 		WebContentTemplates.localizeTemplateName(
-			locale = "fr_FR",
-			locale2 = "zh_CN",
+			locale = "fr-FR",
+			locale2 = "zh-CN",
 			localization1Name = "nom de la template de wc",
 			localization2Name = "wc 模板名称",
 			templateName = "WC Template Name");
@@ -272,13 +282,17 @@ definition {
 			pageName = "Web Content Display Page",
 			siteName = "Test Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Text");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Text",
+			webContentTitle = "WC WebContent Title");
 
 		LanguagePortlet.selectLanguagePG(
 			locale = "fr_FR",
 			textIcon = "français-France");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC contenu WebContent");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC contenu WebContent",
+			webContentTitle = "WC WebContent Titre");
 
 		WebContentDisplayPortletNavigator.gotoEdit(
 			menuItem = "Modifier le contenu de Web",
@@ -308,7 +322,9 @@ definition {
 			locale = "zh-CN",
 			textIcon = "中文-中国");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Text");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Text",
+			webContentTitle = "WC WebContent Title");
 
 		WebContentDisplayPortletNavigator.gotoEdit(
 			menuItem = "编辑 Web 内容",

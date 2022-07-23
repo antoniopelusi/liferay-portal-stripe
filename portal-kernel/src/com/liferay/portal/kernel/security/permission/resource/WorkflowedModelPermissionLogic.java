@@ -65,17 +65,17 @@ public class WorkflowedModelPermissionLogic<T extends GroupedModel>
 				return null;
 			}
 
-			if (model.getGroupId() == GroupConstants.DEFAULT_LIVE_GROUP_ID) {
-				return false;
-			}
+			if ((model.getGroupId() == GroupConstants.DEFAULT_LIVE_GROUP_ID) ||
+				!(model instanceof StagedModel)) {
 
-			if (!(model instanceof StagedModel)) {
 				return false;
 			}
 
 			Group group = _groupLocalService.getGroup(model.getGroupId());
 
-			if (!group.isStaged() || group.isStagingGroup()) {
+			if (!group.isStaged() || group.isStagingGroup() ||
+				group.isStagedRemotely()) {
+
 				return false;
 			}
 

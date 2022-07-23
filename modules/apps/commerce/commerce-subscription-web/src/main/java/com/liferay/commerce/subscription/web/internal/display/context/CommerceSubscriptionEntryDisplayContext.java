@@ -22,7 +22,7 @@ import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.commerce.model.CommerceSubscriptionEntry;
 import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
 import com.liferay.commerce.payment.service.CommercePaymentMethodGroupRelLocalService;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.commerce.product.util.CPSubscriptionType;
 import com.liferay.commerce.product.util.CPSubscriptionTypeJSPContributor;
 import com.liferay.commerce.product.util.CPSubscriptionTypeJSPContributorRegistry;
@@ -33,6 +33,8 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
@@ -369,7 +371,7 @@ public class CommerceSubscriptionEntryDisplayContext {
 			portletURL.setParameter("keywords", keywords);
 		}
 
-		portletURL.setParameter("navigation", getNavigation());
+		portletURL.setParameter("navigation", _getNavigation());
 
 		return portletURL;
 	}
@@ -386,7 +388,7 @@ public class CommerceSubscriptionEntryDisplayContext {
 		).setParameter(
 			"commerceSubscriptionEntryId",
 			_commerceSubscriptionEntry.getCommerceSubscriptionEntryId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public boolean hasManageCommerceSubscriptionEntryPermission() {
@@ -396,21 +398,32 @@ public class CommerceSubscriptionEntryDisplayContext {
 	}
 
 	public boolean isPaymentMethodActive(String engineKey) {
-		CommercePaymentMethodGroupRel commercePaymentMethodGroupRel =
-			_commercePaymentMethodGroupRelLocalService.
-				fetchCommercePaymentMethodGroupRel(
-					_cpRequestHelper.getScopeGroupId(), engineKey);
+		try {
+			CommercePaymentMethodGroupRel commercePaymentMethodGroupRel =
+				_commercePaymentMethodGroupRelLocalService.
+					fetchCommercePaymentMethodGroupRel(
+						_cpRequestHelper.getCommerceChannelGroupId(),
+						engineKey);
 
-		if (commercePaymentMethodGroupRel == null) {
-			return false;
+			if (commercePaymentMethodGroupRel == null) {
+				return false;
+			}
+
+			return commercePaymentMethodGroupRel.isActive();
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
 		}
 
-		return commercePaymentMethodGroupRel.isActive();
+		return false;
 	}
 
-	protected String getNavigation() {
+	private String _getNavigation() {
 		return ParamUtil.getString(_httpServletRequest, "navigation", "all");
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		CommerceSubscriptionEntryDisplayContext.class);
 
 	private final CommerceOrderItemLocalService _commerceOrderItemLocalService;
 	private final CommercePaymentMethodGroupRelLocalService

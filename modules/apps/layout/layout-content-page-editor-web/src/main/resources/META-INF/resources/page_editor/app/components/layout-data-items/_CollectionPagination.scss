@@ -1,0 +1,12 @@
+.page-editor__collection__pagination {
+	position: relative;
+
+	&__overlay:after {
+		content: '';
+		height: 100%;
+		left: 0;
+		position: absolute;
+		top: 0;
+		width: 100%;
+	}
+}

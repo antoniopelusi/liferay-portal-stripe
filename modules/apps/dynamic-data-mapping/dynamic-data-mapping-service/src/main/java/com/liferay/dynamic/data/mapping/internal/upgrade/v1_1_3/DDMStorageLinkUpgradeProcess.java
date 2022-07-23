@@ -14,7 +14,6 @@
 
 package com.liferay.dynamic.data.mapping.internal.upgrade.v1_1_3;
 
-import com.liferay.dynamic.data.mapping.internal.upgrade.v1_1_3.util.DDMStorageLinkTable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -30,12 +29,10 @@ public class DDMStorageLinkUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		if (!hasColumn("DDMStorageLink", "structureVersionId")) {
-			alter(
-				DDMStorageLinkTable.class,
-				new AlterTableAddColumn("structureVersionId", "LONG"));
+			alterTableAddColumn("DDMStorageLink", "structureVersionId", "LONG");
 		}
 
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				StringBundler.concat(
 					"select distinct DDMStorageLink.structureId, ",
 					"TEMP_TABLE.structureVersionId from DDMStorageLink inner ",
@@ -43,25 +40,27 @@ public class DDMStorageLinkUpgradeProcess extends UpgradeProcess {
 					"structureVersionId from DDMStructureVersion group by ",
 					"DDMStructureVersion.structureId) TEMP_TABLE on ",
 					"DDMStorageLink.structureId = TEMP_TABLE.structureId"));
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStorageLink set structureVersionId = ? where " +
 						"structureId = ?");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				long ddmStructureVersionId = rs.getLong("structureVersionId");
+			while (resultSet.next()) {
+				long ddmStructureVersionId = resultSet.getLong(
+					"structureVersionId");
 
 				if (ddmStructureVersionId > 0) {
-					ps2.setLong(1, ddmStructureVersionId);
-					ps2.setLong(2, rs.getLong("structureId"));
+					preparedStatement2.setLong(1, ddmStructureVersionId);
+					preparedStatement2.setLong(
+						2, resultSet.getLong("structureId"));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

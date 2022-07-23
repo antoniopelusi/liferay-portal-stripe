@@ -53,6 +53,16 @@ public class DDMStructureTestHelper {
 
 		_classNameId = classNameId;
 		_group = group;
+
+		_userId = TestPropsValues.getUserId();
+	}
+
+	public DDMStructureTestHelper(long classNameId, Group group, long userId)
+		throws Exception {
+
+		_classNameId = classNameId;
+		_group = group;
+		_userId = userId;
 	}
 
 	public DDMStructure addStructure(
@@ -86,8 +96,8 @@ public class DDMStructureTestHelper {
 		serviceContext.setAttribute("status", status);
 
 		return DDMStructureLocalServiceUtil.addStructure(
-			TestPropsValues.getUserId(), group.getGroupId(), parentStructureId,
-			classNameId, structureKey, getDefaultLocaleMap(name),
+			_userId, group.getGroupId(), parentStructureId, classNameId,
+			structureKey, getDefaultLocaleMap(name),
 			getDefaultLocaleMap(description), ddmForm, ddmFormLayout,
 			storageType, type, serviceContext);
 	}
@@ -135,7 +145,7 @@ public class DDMStructureTestHelper {
 		throws Exception {
 
 		return DDMStructureLocalServiceUtil.addStructure(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			_userId, _group.getGroupId(),
 			DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID, classNameId,
 			structureKey, getDefaultLocaleMap(name),
 			getDefaultLocaleMap(StringPool.BLANK), definition, storageType,
@@ -165,7 +175,7 @@ public class DDMStructureTestHelper {
 		throws Exception {
 
 		return DDMStructureLocalServiceUtil.updateStructure(
-			TestPropsValues.getUserId(), structureId,
+			_userId, structureId,
 			DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
 			getDefaultLocaleMap(name), getDefaultLocaleMap(description),
 			ddmForm, ddmFormLayout,
@@ -174,5 +184,6 @@ public class DDMStructureTestHelper {
 
 	private final long _classNameId;
 	private final Group _group;
+	private final long _userId;
 
 }

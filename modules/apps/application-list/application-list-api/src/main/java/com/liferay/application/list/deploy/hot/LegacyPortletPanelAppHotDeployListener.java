@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.deploy.hot.HotDeployException;
 import com.liferay.portal.kernel.deploy.hot.HotDeployListener;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
@@ -160,28 +160,30 @@ public class LegacyPortletPanelAppHotDeployListener
 				PortletCategoryUtil.getPortletCategoryKey(
 					controlPanelEntryCategory);
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
+			propertiesList.add(
+				HashMapDictionaryBuilder.<String, Object>put(
+					"panel.app.order",
+					() -> {
+						String controlPanelEntryWeight =
+							portletElement.elementText(
+								"control-panel-entry-weight");
 
-			String portletName = portletElement.elementText("portlet-name");
+						if (Validator.isNotNull(controlPanelEntryWeight)) {
+							return (int)Math.ceil(
+								GetterUtil.getDouble(controlPanelEntryWeight) *
+									100);
+						}
 
-			String portletId = getPortletId(
-				hotDeployEvent.getServletContextName(), portletName);
-
-			properties.put("panel.app.portlet.id", portletId);
-
-			properties.put("panel.category.key", controlPanelEntryCategory);
-
-			String controlPanelEntryWeight = portletElement.elementText(
-				"control-panel-entry-weight");
-
-			if (Validator.isNotNull(controlPanelEntryWeight)) {
-				int panelAppOrder = (int)Math.ceil(
-					GetterUtil.getDouble(controlPanelEntryWeight) * 100);
-
-				properties.put("panel.app.order", panelAppOrder);
-			}
-
-			propertiesList.add(properties);
+						return null;
+					}
+				).put(
+					"panel.app.portlet.id",
+					getPortletId(
+						hotDeployEvent.getServletContextName(),
+						portletElement.elementText("portlet-name"))
+				).put(
+					"panel.category.key", controlPanelEntryCategory
+				).build());
 		}
 
 		return propertiesList;

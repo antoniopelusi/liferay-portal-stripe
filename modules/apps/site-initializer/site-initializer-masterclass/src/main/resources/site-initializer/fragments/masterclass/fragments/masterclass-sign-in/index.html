@@ -1,0 +1,30 @@
+[#assign
+	publicFriendlyURL = themeDisplay.getPathFriendlyURLPublic() + themeDisplay.getSiteGroup().getFriendlyURL()
+/]
+
+<div class="sign-in vh-100">
+	<div class="form-box">
+		<a href="${themeDisplay.getPathFriendlyURLPublic() + themeDisplay.getSiteGroup().getFriendlyURL()}">
+			<img alt="" class="sign-in-logo" src="[resources:masterclass_logo.svg]" />
+		</a>
+
+		<div class="sign-in-form">
+			<h1 class="font-weight-normal sign-in-text">
+				Take charge of your future with Masterclass online.
+			</h1>
+
+			[@liferay_portlet.runtime
+				portletName="com_liferay_login_web_portlet_LoginPortlet"
+			/]
+
+		</div>
+	</div>
+</div>
+
+<script>
+	const redirect = document.querySelector('#_com_liferay_login_web_portlet_LoginPortlet_redirect');
+
+	if (redirect) {
+		redirect.setAttribute('value', '${publicFriendlyURL}/home');
+	}
+</script>

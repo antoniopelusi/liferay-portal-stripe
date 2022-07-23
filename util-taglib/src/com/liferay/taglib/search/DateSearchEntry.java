@@ -50,13 +50,9 @@ public class DateSearchEntry extends TextSearchEntry {
 			Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(
 				locale, (TimeZone)localeAndTimeZone[1]);
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("<span class=\"lfr-portal-tooltip\" title=\"");
-			sb.append(dateFormatDateTime.format(_date));
-			sb.append("\">");
-
-			sb.append(
+			return StringBundler.concat(
+				"<span class=\"lfr-portal-tooltip\" title=\"",
+				dateFormatDateTime.format(_date), "\">",
 				LanguageUtil.format(
 					locale, _getMessageKey(),
 					new Object[] {
@@ -64,11 +60,8 @@ public class DateSearchEntry extends TextSearchEntry {
 							locale, _getTimeDelta(), true),
 						HtmlUtil.escape(_userName)
 					},
-					false));
-
-			sb.append("</span>");
-
-			return sb.toString();
+					false),
+				"</span>");
 		}
 
 		return StringPool.BLANK;

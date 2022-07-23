@@ -14,41 +14,23 @@
 
 package com.liferay.data.cleanup.internal.upgrade;
 
-import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-
 /**
  * @author Preston Crary
  */
-public class ChatUpgradeProcess extends UpgradeProcess {
+public class ChatUpgradeProcess extends BaseUpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.chat.model.Entry'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.chat.model.Status'");
+		removePortletData(
+			new String[] {"com.liferay.chat.web"}, null,
+			new String[] {"com_liferay_chat_web_portlet_ChatPortlet"});
 
-		runSQL(
-			"delete from Portlet where portletId = " +
-				"'com_liferay_chat_web_portlet_ChatPortlet'");
-
-		runSQL(
-			"delete from PortletPreferences where portletId =" +
-				"'com_liferay_chat_web_portlet_ChatPortlet'");
-
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.chat.service'");
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.chat.web'");
-
-		runSQL("delete from ServiceComponent where buildNamespace = 'Chat'");
-
-		runSQL("drop table Chat_Entry");
-		runSQL("drop table Chat_Status");
+		removeServiceData(
+			"Chat", new String[] {"com.liferay.chat.service"},
+			new String[] {
+				"com.liferay.chat.model.Entry", "com.liferay.chat.model.Status"
+			},
+			new String[] {"Chat_Entry", "Chat_Status"});
 	}
 
 }

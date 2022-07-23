@@ -7,7 +7,9 @@ definition {
 			var site = "true";
 		}
 
-		var groupId = JSONGroupAPI._getGroupIdByName(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		return "${groupId}";
 	}
@@ -31,12 +33,51 @@ definition {
 		return "${newPassword}";
 	}
 
+	macro setPortalInstanceName {
+		if (isSet(portalURL)) {
+			var portalInstanceName = JSONCompany.parsePortalInstanceURL(portalURL = "${portalURL}");
+		}
+
+		return "${portalInstanceName}";
+	}
+
 	macro setRequireReset {
 		if (!(isSet(requireReset))) {
 			var requireReset = "true";
 		}
 
 		return "${requireReset}";
+	}
+
+	macro setServiceContext {
+		if (!(isSet(serviceContext))) {
+			var serviceContext = JSONServiceContextUtil.setServiceContext(
+				addGroupPermissions = "true",
+				addGuestPermissions = "true",
+				assetCategoryIds = "${assetCategoryIds}",
+				assetTagNames = "${assetTagNames}",
+				workflowAction = "${workflowAction}");
+		}
+
+		return "${serviceContext}";
+	}
+
+	macro setStatus {
+		if (!(isSet(userStatus))) {
+			var userStatus = "Active";
+		}
+
+		if ("${userStatus}" == "Active") {
+			var status = "0";
+		}
+		else if ("${userStatus}" == "Inactive") {
+			var status = "5";
+		}
+		else {
+			fail("'userStatus' is either invalid or not yet set.");
+		}
+
+		return "${status}";
 	}
 
 	macro setUserFirstName {
@@ -51,8 +92,21 @@ definition {
 		Variables.assertDefined(parameterList = "${userEmailAddress}");
 
 		var userId = JSONUserAPI._getUserIdByEmailAddress(
+			creatorEmailAddress = "${creatorEmailAddress}",
+			creatorPassword = "${creatorPassword}",
 			portalInstanceName = "${portalInstanceName}",
 			userEmailAddress = "${userEmailAddress}");
+
+		return "${userId}";
+	}
+
+	macro setUserIdByScreenName {
+		Variables.assertDefined(parameterList = "${userScreenName}");
+
+		var userId = JSONUserAPI._getUserIdByScreenName(
+			creatorPassword = "${creatorPassword}",
+			portalInstanceName = "${portalInstanceName}",
+			userScreenName = "${userScreenName}");
 
 		return "${userId}";
 	}

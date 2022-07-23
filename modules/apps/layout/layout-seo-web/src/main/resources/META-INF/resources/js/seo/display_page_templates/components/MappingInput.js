@@ -13,43 +13,59 @@
  */
 
 import ClayForm, {ClayInput} from '@clayui/form';
+import {useIsMounted} from '@liferay/frontend-js-react-web';
 import {PropTypes} from 'prop-types';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 import MappingPanel from './MappingPanel';
 
-const UNMAPPED_OPTION = {
-	key: 'unmapped',
-	label: `-- ${Liferay.Language.get('unmapped')} --`,
-};
+const sanitizeLabel = (label) => label.replace(/}|[\r\n]+/gm, '');
+const fieldTemplate = (key, label) => ` $\{${key}:${sanitizeLabel(label)}} `;
 
 function MappingInput({
+	component,
 	fieldType,
+	fields,
 	helpMessage,
-	initialFields,
 	label,
 	name,
-	selectedFieldKey,
 	selectedSource,
+	value: initialValue,
 }) {
-	const fields = [
-		UNMAPPED_OPTION,
-		...initialFields.filter(({type}) => type === fieldType),
-	];
 	const [source, setSource] = useState(selectedSource);
-	const [field, setField] = useState(
-		fields.find(({key}) => key === selectedFieldKey) || UNMAPPED_OPTION
-	);
+	const [value, setValue] = useState(initialValue || '');
+	const inputElRef = useRef(null);
+	const isMounted = useIsMounted();
 
-	const isActive = !!field && field.key !== UNMAPPED_OPTION.key;
+	const isActive = !!value.trim();
 
 	const inititalSourceLabel = selectedSource
 		? selectedSource.classTypeLabel || selectedSource.classNameLabel
 		: '';
 
-	const handleOnchange = ({field, source}) => {
+	const handleOnSelect = ({field, source}) => {
 		setSource(source);
-		setField(field);
+		addNewVar(field);
+	};
+
+	const addNewVar = ({key, label}) => {
+		const selectionStart = inputElRef.current.selectionStart;
+		const selectionEnd = inputElRef.current.selectionEnd;
+		const fieldVariable = fieldTemplate(key, label);
+
+		setValue((value) =>
+			`${value.slice(0, selectionStart)}${fieldVariable}${value.slice(
+				selectionEnd
+			)}`.trim()
+		);
+
+		setTimeout(() => {
+			if (isMounted()) {
+				inputElRef.current.selectionStart = inputElRef.current.selectionEnd =
+					selectionStart + fieldVariable.length;
+				inputElRef.current.focus();
+			}
+		}, 100);
 	};
 
 	return (
@@ -57,29 +73,29 @@ function MappingInput({
 			<label className="control-label" htmlFor={name}>
 				{label}
 			</label>
+
 			<ClayInput.Group>
 				<ClayInput.GroupItem>
 					<ClayInput
-						className="dpt-mapping-input"
+						component={component}
 						id={name}
-						readOnly
-						type="text"
-						value={`${
-							(isActive &&
-								inititalSourceLabel &&
-								`${inititalSourceLabel}: `) ||
-							''
-						}${field.label}`}
+						name={name}
+						onChange={(event) => {
+							setValue(event.target.value);
+						}}
+						ref={inputElRef}
+						value={value}
 					/>
-					<ClayInput name={name} type="hidden" value={field.key} />
 				</ClayInput.GroupItem>
+
 				<ClayInput.GroupItem shrink>
 					<MappingPanel
-						field={field}
+						clearSelectionOnClose
+						fieldType={fieldType}
 						fields={fields}
 						isActive={isActive}
 						name={name}
-						onChange={handleOnchange}
+						onSelect={handleOnSelect}
 						source={{
 							...source,
 							initialValue: inititalSourceLabel,
@@ -87,19 +103,21 @@ function MappingInput({
 					/>
 				</ClayInput.GroupItem>
 			</ClayInput.Group>
+
 			{helpMessage && <ClayForm.Text>{helpMessage}</ClayForm.Text>}
 		</ClayForm.Group>
 	);
 }
 
 MappingInput.propTypes = {
+	component: PropTypes.string,
 	helpMessage: PropTypes.string,
 	name: PropTypes.string.isRequired,
-	selectedFieldKey: PropTypes.string,
 	selectedSource: PropTypes.shape({
 		classNameLabel: PropTypes.string,
 		classTypeLabel: PropTypes.string,
 	}).isRequired,
+	value: PropTypes.string,
 };
 
 export default MappingInput;

@@ -14,17 +14,24 @@
 
 package com.liferay.account.retriever.test;
 
+import com.liferay.account.constants.AccountActionKeys;
 import com.liferay.account.model.AccountEntry;
+import com.liferay.account.model.AccountRole;
 import com.liferay.account.retriever.AccountUserRetriever;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
+import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.account.service.test.util.AccountEntryTestUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -66,17 +73,17 @@ public class AccountUserRetrieverTest {
 
 	@Test
 	public void testGetAccountUsers() throws Exception {
-		_users.add(UserTestUtil.addUser());
-		_users.add(UserTestUtil.addUser());
-		_users.add(UserTestUtil.addUser());
+		List<User> users = Arrays.asList(
+			UserTestUtil.addUser(), UserTestUtil.addUser(),
+			UserTestUtil.addUser());
 
-		for (User user : _users) {
+		for (User user : users) {
 			_accountEntryUserRelLocalService.addAccountEntryUserRel(
 				_accountEntry.getAccountEntryId(), user.getUserId());
 		}
 
 		long[] expectedUserIds = ListUtil.toLongArray(
-			_users, User.USER_ID_ACCESSOR);
+			users, User.USER_ID_ACCESSOR);
 
 		Arrays.sort(expectedUserIds);
 
@@ -97,17 +104,18 @@ public class AccountUserRetrieverTest {
 		// Add a user that is part of the account but will not hit a keyword
 		// search
 
-		_users.add(UserTestUtil.addUser());
+		List<User> users = new ArrayList<>(
+			Arrays.asList(UserTestUtil.addUser()));
 
 		// Add a user that is part of the account and will hit a keyword search
 
 		String keywords = RandomTestUtil.randomString();
 
-		_users.add(
+		users.add(
 			UserTestUtil.addUser(
 				keywords + RandomTestUtil.randomString(), null));
 
-		for (User user : _users) {
+		for (User user : users) {
 			_accountEntryUserRelLocalService.addAccountEntryUserRel(
 				_accountEntry.getAccountEntryId(), user.getUserId());
 		}
@@ -128,29 +136,19 @@ public class AccountUserRetrieverTest {
 
 		User user1 = UserTestUtil.addUser();
 
-		_users.add(user1);
-
 		AccountEntry accountEntry1 = AccountEntryTestUtil.addAccountEntry(
 			_accountEntryLocalService);
-
-		_accountEntries.add(accountEntry1);
 
 		_accountEntryUserRelLocalService.addAccountEntryUserRel(
 			accountEntry1.getAccountEntryId(), user1.getUserId());
 
 		User user2 = UserTestUtil.addUser();
 
-		_users.add(user2);
-
 		AccountEntry accountEntry2 = AccountEntryTestUtil.addAccountEntry(
 			_accountEntryLocalService);
 
-		_accountEntries.add(accountEntry2);
-
 		_accountEntryUserRelLocalService.addAccountEntryUserRel(
 			accountEntry2.getAccountEntryId(), user2.getUserId());
-
-		_users.add(UserTestUtil.addUser());
 
 		BaseModelSearchResult<User> baseModelSearchResult = _searchAccountUsers(
 			new long[] {
@@ -172,7 +170,7 @@ public class AccountUserRetrieverTest {
 
 		// Add a user that is not part of the account
 
-		_users.add(UserTestUtil.addUser());
+		UserTestUtil.addUser();
 
 		// Assert that null keyword search does not hit non-account users
 
@@ -181,6 +179,8 @@ public class AccountUserRetrieverTest {
 
 	@Test
 	public void testSearchAccountUsersWithPagination() throws Exception {
+		List<User> expectedUsers = new ArrayList<>();
+
 		String keywords = RandomTestUtil.randomString();
 
 		for (int i = 1; i < 5; i++) {
@@ -192,7 +192,7 @@ public class AccountUserRetrieverTest {
 				LocaleUtil.getDefault(), name, RandomTestUtil.randomString(),
 				null, ServiceContextTestUtil.getServiceContext());
 
-			_users.add(user);
+			expectedUsers.add(user);
 
 			_accountEntryUserRelLocalService.addAccountEntryUserRel(
 				_accountEntry.getAccountEntryId(), user.getUserId());
@@ -208,7 +208,7 @@ public class AccountUserRetrieverTest {
 		List<User> users = baseModelSearchResult.getBaseModels();
 
 		Assert.assertEquals(users.toString(), 4, users.size());
-		Assert.assertEquals(_users.get(0), users.get(0));
+		Assert.assertEquals(expectedUsers.get(0), users.get(0));
 
 		// Test paginated search has a partial list, but full count
 
@@ -219,7 +219,7 @@ public class AccountUserRetrieverTest {
 		users = baseModelSearchResult.getBaseModels();
 
 		Assert.assertEquals(users.toString(), 2, users.size());
-		Assert.assertEquals(_users.get(1), users.get(0));
+		Assert.assertEquals(expectedUsers.get(1), users.get(0));
 
 		// Test reversed sorting
 
@@ -230,7 +230,7 @@ public class AccountUserRetrieverTest {
 		users = baseModelSearchResult.getBaseModels();
 
 		Assert.assertEquals(users.toString(), 4, users.size());
-		Assert.assertEquals(_users.get(3), users.get(0));
+		Assert.assertEquals(expectedUsers.get(3), users.get(0));
 
 		// Test sort by non-keyword-mapped non-sortable field name
 
@@ -242,7 +242,7 @@ public class AccountUserRetrieverTest {
 		users = baseModelSearchResult.getBaseModels();
 
 		Assert.assertEquals(users.toString(), 4, users.size());
-		Assert.assertEquals(_users.get(3), users.get(0));
+		Assert.assertEquals(expectedUsers.get(3), users.get(0));
 
 		// Test sort by non-keyword-mapped sortable field name
 
@@ -254,7 +254,50 @@ public class AccountUserRetrieverTest {
 		users = baseModelSearchResult.getBaseModels();
 
 		Assert.assertEquals(users.toString(), 4, users.size());
-		Assert.assertEquals(_users.get(3), users.get(0));
+		Assert.assertEquals(expectedUsers.get(3), users.get(0));
+	}
+
+	@Test
+	public void testSearchAccountUsersWithViewUsersPermission()
+		throws Exception {
+
+		List<User> users = Arrays.asList(
+			UserTestUtil.addUser(), UserTestUtil.addUser(),
+			UserTestUtil.addUser());
+
+		for (User user : users) {
+			_accountEntryUserRelLocalService.addAccountEntryUserRel(
+				_accountEntry.getAccountEntryId(), user.getUserId());
+		}
+
+		AccountRole accountRole = _accountRoleLocalService.addAccountRole(
+			TestPropsValues.getUserId(), _accountEntry.getAccountEntryId(),
+			RandomTestUtil.randomString(), null, null);
+
+		_resourcePermissionLocalService.addResourcePermission(
+			TestPropsValues.getCompanyId(), AccountEntry.class.getName(),
+			ResourceConstants.SCOPE_GROUP_TEMPLATE, "0",
+			accountRole.getRoleId(), AccountActionKeys.VIEW_USERS);
+
+		User roleUser = users.get(0);
+
+		_accountRoleLocalService.associateUser(
+			_accountEntry.getAccountEntryId(), accountRole.getAccountRoleId(),
+			roleUser.getUserId());
+
+		PermissionChecker originalPermissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		try {
+			PermissionThreadLocal.setPermissionChecker(
+				PermissionCheckerFactoryUtil.create(roleUser));
+
+			_assertSearch(null, users.size());
+		}
+		finally {
+			PermissionThreadLocal.setPermissionChecker(
+				originalPermissionChecker);
+		}
 	}
 
 	@Rule
@@ -279,8 +322,8 @@ public class AccountUserRetrieverTest {
 		throws Exception {
 
 		return _accountUserRetriever.searchAccountUsers(
-			accountEntryIds, keywords, WorkflowConstants.STATUS_APPROVED, cur,
-			delta, sortField, reverse);
+			accountEntryIds, keywords, null, WorkflowConstants.STATUS_APPROVED,
+			cur, delta, sortField, reverse);
 	}
 
 	private BaseModelSearchResult<User> _searchAccountUsers(
@@ -296,14 +339,10 @@ public class AccountUserRetrieverTest {
 		throws Exception {
 
 		return _accountUserRetriever.searchAccountUsers(
-			_accountEntry.getAccountEntryId(), keywords,
+			new long[] {_accountEntry.getAccountEntryId()}, keywords, null,
 			WorkflowConstants.STATUS_APPROVED, cur, delta, sortField, reverse);
 	}
 
-	@DeleteAfterTestRun
-	private final List<AccountEntry> _accountEntries = new ArrayList<>();
-
-	@DeleteAfterTestRun
 	private AccountEntry _accountEntry;
 
 	@Inject
@@ -313,9 +352,12 @@ public class AccountUserRetrieverTest {
 	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
 
 	@Inject
+	private AccountRoleLocalService _accountRoleLocalService;
+
+	@Inject
 	private AccountUserRetriever _accountUserRetriever;
 
-	@DeleteAfterTestRun
-	private final List<User> _users = new ArrayList<>();
+	@Inject
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 }

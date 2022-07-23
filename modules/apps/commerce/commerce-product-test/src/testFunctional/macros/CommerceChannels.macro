@@ -20,6 +20,76 @@ definition {
 		Button.clickSave();
 
 		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
+	macro addCategory {
+		if ("${edit}" != "true") {
+			Click(locator1 = "Button#PLUS");
+		}
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.click(button = "Select");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		Click(locator1 = "Treeview#NODE_COLLAPSED");
+
+		Click(
+			key_card = "${key_card}",
+			locator1 = "Card#CARD_TITLE");
+
+		SelectFrame.selectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.click(button = "Done");
+	}
+
+	macro addCategoryDiplayPage {
+		SelectFrame.selectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.click(button = "Choose");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		Click(
+			key_card = "${key_card}",
+			locator1 = "Card#CARD_TITLE");
+
+		SelectFrame.selectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.clickSave();
+	}
+
+	macro addProduct {
+		if ("${edit}" != "true") {
+			Click(locator1 = "Button#PLUS");
+		}
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.click(button = "Select Product");
+
+		SelectFrame.selectFrameTop();
+
+		SelectFrame(
+			key_title = "Select Product",
+			locator1 = "IFrame#MODAL_ANY");
+
+		CommerceNavigator.searchEntry(entryName = "${product}");
+
+		Click(
+			key_entryName = "${product}",
+			locator1 = "CommerceEntry#CHOOSE_ENTRY_BUTTON");
+
+		SelectFrame.selectFrameTop();
 	}
 
 	macro assertMercanetConfigurationEnvironment {
@@ -42,6 +112,11 @@ definition {
 
 		Alert.viewSuccessMessage();
 
+		AssertElementPresent(
+			key_fieldLabel = "Environment",
+			key_value = "${key_value}",
+			locator1 = "CommerceEntry#SELECT_ASSERT_SELECTED_VALUE");
+
 		Click(locator1 = "Icon#CLOSE");
 	}
 
@@ -51,6 +126,241 @@ definition {
         	key_table = "Payment Methods",
         	key_entryName = "${paymentMethod}",
         	value1 = "${paymentMethodStatus}");
+	macro chooseDefaultDisplayPage {
+		Button.click(button = "Choose");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		if ("${pageType}" == "Private") {
+			CommerceEntry.gotoMenuTab(menuTab = "Private Pages");
+		}
+
+		CommerceNavigator.searchEntry(entryName = "${pageName}");
+
+		LexiconCard.clickCard(card = "${pageName}");
+
+		SelectFrame.selectFrameTop();
+
+		if (IsElementPresent(locator1 = "Button#DONE")) {
+			Button.clickDone();
+		}
+
+		Button.clickSave();
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
+	}
+
+	macro chooseDisplayPageFromSidePanel {
+		SelectFrame.selectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.click(button = "Choose");
+
+		if (IsElementNotPresent(locator1 = "IFrame#MODAL_BODY")) {
+			SelectFrame.selectFrameTop();
+		}
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		if ("${pageType}" == "Private") {
+			CommerceEntry.gotoMenuTab(menuTab = "Private Pages");
+		}
+
+		CommerceNavigator.searchEntry(entryName = "${pageName}");
+
+		LexiconCard.clickCard(card = "${pageName}");
+
+		SelectFrame.selectFrameTop();
+
+		if (IsElementPresent(locator1 = "Button#DONE")) {
+			Button.clickDone();
+		}
+	}
+
+	macro configurationPaypal {
+		CommerceEntry.clickTableEntryEditButton(
+			entryName = "PayPal",
+			table = "Payment Methods");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Click(
+			locator1 = "CommerceEntry#PAYMENT_METHODS_SIDE_PANEL_NAV_ITEMS",
+			navItem = "Configuration");
+
+		Type(
+			key_text = "Client ID",
+			locator1 = "TextInput#ANY",
+			value1 = "PayPal Client ID");
+
+		Type(
+			key_text = "Client Secret",
+			locator1 = "TextInput#ANY",
+			value1 = "PayPal Client Secret");
+
+		Select(
+			key_fieldLabel = "Mode",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${mode}");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+	}
+
+	macro createCategoryDisplayPage {
+		CommerceChannels.addCategory(key_card = "${vocabulary}");
+
+		CommerceChannels.addCategoryDiplayPage(key_card = "${page}");
+	}
+
+	macro editCategoryDisplayPage {
+		Click(
+			key_value = "${name}",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		ClickNoError(
+			key_selectAction = "Edit",
+			locator1 = "FormViewBuilder#FIELD_ELLIPSIS_ACTION");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.click(button = "Choose");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		if ("${tabName}" == "Private+Pages") {
+			if (IsElementNotPresent(key_tabName = "Private+Pages", locator1 = "AppBuilderAppAdmin#APP_TAB")) {
+				Click(
+					key_text = "Public Pages",
+					locator1 = "Button#ANY_WITH_SPAN");
+			}
+
+			Click(
+				key_tabName = "Private+Pages",
+				locator1 = "AppBuilderAppAdmin#APP_TAB");
+		}
+
+		Click(
+			key_card = "${key_card}",
+			locator1 = "Card#CARD_TITLE");
+
+		SelectFrame.selectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.clickSave();
+	}
+
+	macro editOverrideCategoryDisplayPage {
+		Click(
+			key_value = "${category}",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Edit");
+
+		if (isSet(newCategory)) {
+			CommerceChannels.addCategory(
+				edit = "true",
+				key_card = "${newCategory}");
+		}
+
+		if (isSet(newPageName) && isSet(newPageType)) {
+			CommerceChannels.chooseDisplayPageFromSidePanel(
+				pageName = "${newPageName}",
+				pageType = "${newPageType}");
+		}
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
+	macro editOverrideProductDisplayPage {
+		Click(
+			key_value = "${product}",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Edit");
+
+		if (isSet(newProduct)) {
+			CommerceChannels.addProduct(
+				edit = "true",
+				product = "${newProduct}");
+		}
+
+		if (isSet(newPageName) && isSet(newPageType)) {
+			CommerceChannels.chooseDisplayPageFromSidePanel(
+				pageName = "${newPageName}",
+				pageType = "${newPageType}");
+		}
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
+	macro openChannelsAdmin {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/guest/~/control_panel/manage?p_p_id=com_liferay_commerce_channel_web_internal_portlet_CommerceChannelsPortlet");
+	}
+
+	macro overrideCategoryDisplayPage {
+		CommerceChannels.addCategory(key_card = "${category}");
+
+		CommerceChannels.chooseDisplayPageFromSidePanel(
+			pageName = "${pageName}",
+			pageType = "${pageType}");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
+	macro overrideProductDisplayPage {
+		CommerceChannels.addProduct(product = "${product}");
+
+		CommerceChannels.chooseDisplayPageFromSidePanel(
+			pageName = "${pageName}",
+			pageType = "${pageType}");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
+	macro removeDefaultDisplayPage {
+		Click(locator1 = "CommerceEntry#DISPLAY_PAGE_ITEM_REMOVE");
+
+		Button.clickSave();
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
 	}
 
 }

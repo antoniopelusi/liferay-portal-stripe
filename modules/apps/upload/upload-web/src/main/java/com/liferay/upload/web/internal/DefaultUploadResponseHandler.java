@@ -59,57 +59,63 @@ public class DefaultUploadResponseHandler implements UploadResponseHandler {
 			PortletRequest portletRequest, PortalException portalException)
 		throws PortalException {
 
-		JSONObject jsonObject = JSONUtil.put("success", Boolean.FALSE);
+		return JSONUtil.put(
+			"error",
+			() -> {
+				if (!(portalException instanceof AntivirusScannerException) &&
+					!(portalException instanceof FileExtensionException) &&
+					!(portalException instanceof FileNameException) &&
+					!(portalException instanceof FileSizeException) &&
+					!(portalException instanceof UploadRequestSizeException)) {
 
-		if (portalException instanceof AntivirusScannerException ||
-			portalException instanceof FileExtensionException ||
-			portalException instanceof FileNameException ||
-			portalException instanceof FileSizeException ||
-			portalException instanceof UploadRequestSizeException) {
+					return null;
+				}
 
-			String errorMessage = StringPool.BLANK;
-			int errorType = 0;
+				String errorMessage = StringPool.BLANK;
+				int errorType = 0;
 
-			if (portalException instanceof AntivirusScannerException) {
-				errorType =
-					ServletResponseConstants.SC_FILE_ANTIVIRUS_EXCEPTION;
-				AntivirusScannerException antivirusScannerException =
-					(AntivirusScannerException)portalException;
+				if (portalException instanceof AntivirusScannerException) {
+					errorType =
+						ServletResponseConstants.SC_FILE_ANTIVIRUS_EXCEPTION;
+					AntivirusScannerException antivirusScannerException =
+						(AntivirusScannerException)portalException;
 
-				ThemeDisplay themeDisplay =
-					(ThemeDisplay)portletRequest.getAttribute(
-						WebKeys.THEME_DISPLAY);
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)portletRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
 
-				errorMessage = themeDisplay.translate(
-					antivirusScannerException.getMessageKey());
-			}
-			else if (portalException instanceof FileExtensionException) {
-				errorType =
-					ServletResponseConstants.SC_FILE_EXTENSION_EXCEPTION;
+					errorMessage = themeDisplay.translate(
+						antivirusScannerException.getMessageKey());
+				}
+				else if (portalException instanceof FileExtensionException) {
+					errorType =
+						ServletResponseConstants.SC_FILE_EXTENSION_EXCEPTION;
 
-				errorMessage = _getAllowedFileExtensions();
-			}
-			else if (portalException instanceof FileNameException) {
-				errorType = ServletResponseConstants.SC_FILE_NAME_EXCEPTION;
-			}
-			else if (portalException instanceof FileSizeException) {
-				errorType = ServletResponseConstants.SC_FILE_SIZE_EXCEPTION;
-			}
-			else if (portalException instanceof UploadRequestSizeException) {
-				errorType =
-					ServletResponseConstants.SC_UPLOAD_REQUEST_SIZE_EXCEPTION;
-			}
+					errorMessage = _getAllowedFileExtensions();
+				}
+				else if (portalException instanceof FileNameException) {
+					errorType = ServletResponseConstants.SC_FILE_NAME_EXCEPTION;
+				}
+				else if (portalException instanceof FileSizeException) {
+					errorType = ServletResponseConstants.SC_FILE_SIZE_EXCEPTION;
+				}
+				else if (portalException instanceof
+							UploadRequestSizeException) {
 
-			jsonObject.put(
-				"error",
-				JSONUtil.put(
+					errorType =
+						ServletResponseConstants.
+							SC_UPLOAD_REQUEST_SIZE_EXCEPTION;
+				}
+
+				return JSONUtil.put(
 					"errorType", errorType
 				).put(
 					"message", errorMessage
-				));
-		}
-
-		return jsonObject;
+				);
+			}
+		).put(
+			"success", Boolean.FALSE
+		);
 	}
 
 	@Override
@@ -117,41 +123,36 @@ public class DefaultUploadResponseHandler implements UploadResponseHandler {
 			UploadPortletRequest uploadPortletRequest, FileEntry fileEntry)
 		throws PortalException {
 
-		JSONObject imageJSONObject = JSONUtil.put(
-			"attributeDataImageId", EditorConstants.ATTRIBUTE_DATA_IMAGE_ID
-		).put(
-			"fileEntryId", fileEntry.getFileEntryId()
-		).put(
-			"groupId", fileEntry.getGroupId()
-		).put(
-			"mimeType", fileEntry.getMimeType()
-		);
-
-		String randomId = ParamUtil.getString(uploadPortletRequest, "randomId");
-
-		imageJSONObject.put(
-			"randomId", randomId
-		).put(
-			"title", fileEntry.getTitle()
-		).put(
-			"type", "document"
-		);
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)uploadPortletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		String url = PortletFileRepositoryUtil.getPortletFileEntryURL(
-			themeDisplay, fileEntry, StringPool.BLANK);
-
-		imageJSONObject.put(
-			"url", url
-		).put(
-			"uuid", fileEntry.getUuid()
-		);
-
 		return JSONUtil.put(
-			"file", imageJSONObject
+			"file",
+			JSONUtil.put(
+				"attributeDataImageId", EditorConstants.ATTRIBUTE_DATA_IMAGE_ID
+			).put(
+				"fileEntryId", fileEntry.getFileEntryId()
+			).put(
+				"groupId", fileEntry.getGroupId()
+			).put(
+				"mimeType", fileEntry.getMimeType()
+			).put(
+				"randomId",
+				ParamUtil.getString(uploadPortletRequest, "randomId")
+			).put(
+				"title", fileEntry.getTitle()
+			).put(
+				"type", "document"
+			).put(
+				"url",
+				() -> {
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)uploadPortletRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
+
+					return PortletFileRepositoryUtil.getPortletFileEntryURL(
+						themeDisplay, fileEntry, StringPool.BLANK);
+				}
+			).put(
+				"uuid", fileEntry.getUuid()
+			)
 		).put(
 			"success", Boolean.TRUE
 		);

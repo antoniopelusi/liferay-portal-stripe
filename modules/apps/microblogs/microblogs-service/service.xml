@@ -83,13 +83,6 @@
 			<finder-column name="type" />
 			<finder-column name="socialRelationType" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="UserNotificationEvent" package-path="com.liferay.portal" />
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="SocialActivity" package-path="com.liferay.portlet.social" />
 	</entity>
 	<exceptions>
 		<exception>UnsupportedMicroblogsEntry</exception>

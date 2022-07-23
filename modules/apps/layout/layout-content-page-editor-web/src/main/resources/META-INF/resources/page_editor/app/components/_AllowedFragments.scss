@@ -1,52 +1,69 @@
-@import 'atlas-variables';
+@import 'cadmin-variables';
 
-.page-editor__allowed-fragment__modal {
-	.modal-body {
-		padding: 0;
-	}
+html#{$cadmin-selector} {
+	.cadmin {
+		.page-editor__allowed-fragment__modal {
+			.page-editor__allowed-fragment__new-fragments-checkbox {
+				background: $cadmin-gray-100;
 
-	.page-editor__allowed-fragment__new-fragments-checkbox {
-		background: $gray-100;
-		padding: 12px 24px;
+				.custom-control {
+					margin-bottom: 0;
+				}
 
-		.custom-control {
-			margin-bottom: 0;
-		}
-
-		span {
-			font-weight: normal;
-		}
-	}
-
-	.page-editor__allowed-fragment__tree {
-		height: 40vh;
-		overflow-y: auto;
-
-		.lfr-treeview-node-list-item {
-			margin-bottom: 0;
-
-			&:not(.with-children) span {
-				font-weight: normal;
+				span {
+					font-weight: normal;
+				}
 			}
-		}
 
-		.lfr-treeview-node-list-item__children {
-			padding-left: 32px;
-		}
+			.page-editor__allowed-fragment__tree {
+				height: 40vh;
+				overflow-y: auto;
 
-		.lfr-treeview-node-list-item__button-icon {
-			background-color: $light;
-			color: $secondary;
-		}
+				.lfr-treeview-node-list-item {
+					margin-bottom: 0;
+					padding-left: 16px;
 
-		& > .lfr-treeview-node-list {
-			margin-left: 8px;
+					@include media-breakpoint-up(md, $cadmin-grid-breakpoints) {
+						padding-left: 24px;
+					}
 
-			border-left: 1px solid $secondary-l2;
+					&:not(.with-children) span {
+						font-weight: normal;
+					}
+				}
 
-			.lfr-treeview-node-list {
-				border-left-color: $secondary-l2;
-				border-left-style: solid;
+				.lfr-treeview-node-list-item__children {
+					padding-left: 32px;
+				}
+
+				.lfr-treeview-node-list-item__button {
+					background-color: $cadmin-modal-content-bg;
+					display: inline-flex;
+					margin-left: -8px;
+					margin-top: -2px;
+					padding: 12px 0;
+					top: -5px;
+
+					&-icon {
+						background-color: $cadmin-light;
+						color: $cadmin-secondary;
+						height: 14px;
+						padding: 3px;
+						width: 14px;
+					}
+				}
+
+				.lfr-treeview-node-list-item__node {
+					cursor: $cadmin-link-cursor;
+				}
+
+				.lfr-treeview-label {
+					pointer-events: none;
+				}
+
+				.lfr-treeview-node-list {
+					border-left: 1px solid $cadmin-secondary-l2;
+				}
 			}
 		}
 	}

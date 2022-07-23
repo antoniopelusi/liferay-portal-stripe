@@ -135,6 +135,11 @@ public class MBBanWrapper
 		}
 	}
 
+	@Override
+	public MBBan cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the ban ID of this message boards ban.
 	 *

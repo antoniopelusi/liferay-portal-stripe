@@ -180,6 +180,10 @@ public class KaleoInstanceTokenLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -308,6 +312,12 @@ public class KaleoInstanceTokenLocalServiceUtil {
 	}
 
 	public static List<KaleoInstanceToken> getKaleoInstanceTokens(
+		long kaleoInstanceId) {
+
+		return getService().getKaleoInstanceTokens(kaleoInstanceId);
+	}
+
+	public static List<KaleoInstanceToken> getKaleoInstanceTokens(
 		long parentKaleoInstanceTokenId, java.util.Date completionDate,
 		com.liferay.portal.kernel.service.ServiceContext serviceContext) {
 
@@ -378,26 +388,28 @@ public class KaleoInstanceTokenLocalServiceUtil {
 	public static com.liferay.portal.kernel.search.Hits search(
 		Long userId, String assetClassName, String assetTitle,
 		String assetDescription, String currentKaleoNodeName,
-		String kaleoDefinitionName, Boolean completed, int start, int end,
+		String kaleoDefinitionName, Boolean completed,
+		boolean searchByActiveWorkflowHandlers, int start, int end,
 		com.liferay.portal.kernel.search.Sort[] sorts,
 		com.liferay.portal.kernel.service.ServiceContext serviceContext) {
 
 		return getService().search(
 			userId, assetClassName, assetTitle, assetDescription,
-			currentKaleoNodeName, kaleoDefinitionName, completed, start, end,
-			sorts, serviceContext);
+			currentKaleoNodeName, kaleoDefinitionName, completed,
+			searchByActiveWorkflowHandlers, start, end, sorts, serviceContext);
 	}
 
 	public static int searchCount(
 		Long userId, String assetClassName, String assetTitle,
 		String assetDescription, String currentKaleoNodeName,
 		String kaleoDefinitionName, Boolean completed,
+		boolean searchByActiveWorkflowHandlers,
 		com.liferay.portal.kernel.service.ServiceContext serviceContext) {
 
 		return getService().searchCount(
 			userId, assetClassName, assetTitle, assetDescription,
 			currentKaleoNodeName, kaleoDefinitionName, completed,
-			serviceContext);
+			searchByActiveWorkflowHandlers, serviceContext);
 	}
 
 	/**

@@ -45,32 +45,16 @@ public interface JSONWebServiceActionsManager {
 	public List<JSONWebServiceActionMapping> getJSONWebServiceActionMappings(
 		String contextName);
 
-	public int getJSONWebServiceActionsCount(String contextName);
-
-	public JSONWebServiceNaming getJSONWebServiceNaming();
-
-	public void registerJSONWebServiceAction(
-		String contextName, String contextPath, Class<?> actionClass,
-		Method actionMethod, String path, String method);
-
 	public void registerJSONWebServiceAction(
 		String contextName, String contextPath, Object actionObject,
 		Class<?> actionClass, Method actionMethod, String path, String method);
 
-	public int registerService(String contextPath, Object service);
-
 	public int registerService(
 		String contextName, String contextPath, Object service);
-
-	public int registerService(
-		String contextName, String contextPath, Object service,
-		JSONWebServiceRegistrator jsonWebServiceRegistrator);
 
 	public int registerServletContext(ServletContext servletContext);
 
 	public int unregisterJSONWebServiceActions(Object actionObject);
-
-	public int unregisterJSONWebServiceActions(String contextPath);
 
 	public int unregisterServletContext(ServletContext servletContext);
 

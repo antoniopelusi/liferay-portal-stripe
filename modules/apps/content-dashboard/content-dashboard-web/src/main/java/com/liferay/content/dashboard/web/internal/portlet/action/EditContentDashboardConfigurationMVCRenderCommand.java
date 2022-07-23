@@ -18,11 +18,12 @@ import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.content.dashboard.web.internal.constants.ContentDashboardPortletKeys;
 import com.liferay.content.dashboard.web.internal.constants.ContentDashboardWebKeys;
 import com.liferay.content.dashboard.web.internal.display.context.ContentDashboardAdminConfigurationDisplayContext;
+import com.liferay.content.dashboard.web.internal.util.ContentDashboardUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.Portal;
 
 import javax.portlet.PortletException;
-import javax.portlet.PortletPreferences;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
@@ -48,15 +49,13 @@ public class EditContentDashboardConfigurationMVCRenderCommand
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws PortletException {
 
-		PortletPreferences portletPreferences = renderRequest.getPreferences();
-
 		renderRequest.setAttribute(
 			ContentDashboardWebKeys.
 				CONTENT_DASHBOARD_ADMIN_CONFIGURATION_DISPLAY_CONTEXT,
 			new ContentDashboardAdminConfigurationDisplayContext(
 				_assetVocabularyLocalService,
-				portletPreferences.getValues(
-					"assetVocabularyNames", new String[0]),
+				ContentDashboardUtil.getAssetVocabularyIds(renderRequest),
+				_groupLocalService,
 				_portal.getHttpServletRequest(renderRequest), renderResponse));
 
 		return "/edit_content_dashboard_configuration.jsp";
@@ -64,6 +63,9 @@ public class EditContentDashboardConfigurationMVCRenderCommand
 
 	@Reference
 	private AssetVocabularyLocalService _assetVocabularyLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private Portal _portal;

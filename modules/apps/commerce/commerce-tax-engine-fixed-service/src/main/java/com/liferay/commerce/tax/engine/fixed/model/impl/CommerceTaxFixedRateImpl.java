@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CommerceTaxFixedRateImpl extends CommerceTaxFixedRateBaseImpl {
 
-	public CommerceTaxFixedRateImpl() {
-	}
-
 	@Override
 	public CPTaxCategory getCPTaxCategory() throws PortalException {
 		return CPTaxCategoryLocalServiceUtil.getCPTaxCategory(

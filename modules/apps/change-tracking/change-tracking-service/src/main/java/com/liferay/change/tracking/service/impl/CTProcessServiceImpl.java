@@ -14,7 +14,7 @@
 
 package com.liferay.change.tracking.service.impl;
 
-import com.liferay.change.tracking.model.CTCollection;
+import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.model.CTCollectionTable;
 import com.liferay.change.tracking.model.CTProcess;
 import com.liferay.change.tracking.model.CTProcessTable;
@@ -28,7 +28,10 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.background.task.model.BackgroundTaskTable;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelper;
+import com.liferay.portal.kernel.service.permission.PortletPermission;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -51,8 +54,13 @@ public class CTProcessServiceImpl extends CTProcessServiceBaseImpl {
 
 	@Override
 	public List<CTProcess> getCTProcesses(
-		long companyId, long userId, String keywords, int status, int start,
-		int end, OrderByComparator<CTProcess> orderByComparator) {
+			long companyId, long userId, String keywords, int status, int start,
+			int end, OrderByComparator<CTProcess> orderByComparator)
+		throws PortalException {
+
+		_portletPermission.check(
+			getPermissionChecker(), CTPortletKeys.PUBLICATIONS,
+			ActionKeys.VIEW);
 
 		DSLQuery dslQuery = DSLQueryFactoryUtil.select(
 			CTProcessTable.INSTANCE
@@ -72,11 +80,11 @@ public class CTProcessServiceImpl extends CTProcessServiceBaseImpl {
 			orderByStep -> {
 				if (orderByComparator != null) {
 					LimitStep limitStep = orderByStep.orderBy(
-						CTCollectionTable.INSTANCE, orderByComparator);
+						CTProcessTable.INSTANCE, orderByComparator);
 
 					if (limitStep == orderByStep) {
 						return orderByStep.orderBy(
-							CTProcessTable.INSTANCE, orderByComparator);
+							CTCollectionTable.INSTANCE, orderByComparator);
 					}
 
 					return limitStep;
@@ -111,25 +119,31 @@ public class CTProcessServiceImpl extends CTProcessServiceBaseImpl {
 			_getPredicate(companyId, keywords, status, userId)
 		);
 
-		Long count = ctProcessPersistence.dslQuery(dslQuery);
-
-		return count.intValue();
+		return ctProcessPersistence.dslQueryCount(dslQuery);
 	}
 
 	private Predicate _getPredicate(
 		long companyId, String keywords, int status, long userId) {
 
-		Predicate predicate = CTProcessTable.INSTANCE.companyId.eq(companyId);
+		Predicate predicate = CTProcessTable.INSTANCE.companyId.eq(
+			companyId
+		).and(
+			() -> {
+				if (userId > 0) {
+					return CTProcessTable.INSTANCE.userId.eq(userId);
+				}
 
-		if (userId > 0) {
-			predicate = predicate.and(
-				CTProcessTable.INSTANCE.userId.eq(userId));
-		}
+				return null;
+			}
+		).and(
+			() -> {
+				if (status != WorkflowConstants.STATUS_ANY) {
+					return BackgroundTaskTable.INSTANCE.status.eq(status);
+				}
 
-		if (status != WorkflowConstants.STATUS_ANY) {
-			predicate = predicate.and(
-				BackgroundTaskTable.INSTANCE.status.eq(status));
-		}
+				return null;
+			}
+		);
 
 		Predicate keywordsPredicate = null;
 
@@ -160,13 +174,11 @@ public class CTProcessServiceImpl extends CTProcessServiceBaseImpl {
 			}
 		}
 
-		if (keywordsPredicate != null) {
-			predicate = predicate.and(keywordsPredicate.withParentheses());
+		if (keywordsPredicate == null) {
+			return predicate;
 		}
 
-		return predicate.and(
-			_inlineSQLHelper.getPermissionWherePredicate(
-				CTCollection.class, CTCollectionTable.INSTANCE.ctCollectionId));
+		return predicate.and(keywordsPredicate.withParentheses());
 	}
 
 	@Reference
@@ -174,5 +186,8 @@ public class CTProcessServiceImpl extends CTProcessServiceBaseImpl {
 
 	@Reference
 	private InlineSQLHelper _inlineSQLHelper;
+
+	@Reference
+	private PortletPermission _portletPermission;
 
 }

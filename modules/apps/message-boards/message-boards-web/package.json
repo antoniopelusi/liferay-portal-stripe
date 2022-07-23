@@ -1,6 +1,5 @@
 {
 	"dependencies": {
-		"frontend-js-web": "*"
 	},
 	"name": "message-boards-web",
 	"scripts": {
@@ -8,5 +7,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "5.0.7"
+	"version": "5.0.43"
 }

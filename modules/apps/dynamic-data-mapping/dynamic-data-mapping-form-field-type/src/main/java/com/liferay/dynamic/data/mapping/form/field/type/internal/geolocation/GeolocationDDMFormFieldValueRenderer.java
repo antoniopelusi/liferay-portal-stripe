@@ -23,6 +23,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Locale;
@@ -56,21 +58,22 @@ public class GeolocationDDMFormFieldValueRenderer
 				jsonObject = JSONFactoryUtil.createJSONObject(valueString);
 			}
 			catch (JSONException jsonException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(jsonException);
+				}
+
 				return StringPool.BLANK;
 			}
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("Latitude: ");
-			sb.append(jsonObject.get("lat"));
-			sb.append(StringPool.COMMA_AND_SPACE);
-			sb.append("Longitude: ");
-			sb.append(jsonObject.get("lng"));
-
-			return sb.toString();
+			return StringBundler.concat(
+				"Latitude: ", jsonObject.get("lat"), ", Longitude: ",
+				jsonObject.get("lng"));
 		}
 
 		return StringPool.BLANK;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		GeolocationDDMFormFieldValueRenderer.class);
 
 }

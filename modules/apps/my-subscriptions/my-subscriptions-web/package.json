@@ -1,6 +1,5 @@
 {
 	"dependencies": {
-		"frontend-js-web": "*"
 	},
 	"name": "my-subscriptions-web",
 	"private": true,
@@ -9,5 +8,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "5.0.4"
+	"version": "5.0.19"
 }

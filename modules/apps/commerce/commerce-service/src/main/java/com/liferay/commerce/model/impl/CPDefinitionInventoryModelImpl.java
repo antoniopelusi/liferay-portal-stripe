@@ -16,7 +16,6 @@ package com.liferay.commerce.model.impl;
 
 import com.liferay.commerce.model.CPDefinitionInventory;
 import com.liferay.commerce.model.CPDefinitionInventoryModel;
-import com.liferay.commerce.model.CPDefinitionInventorySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -76,6 +74,7 @@ public class CPDefinitionInventoryModelImpl
 	public static final String TABLE_NAME = "CPDefinitionInventory";
 
 	public static final Object[][] TABLE_COLUMNS = {
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"uuid_", Types.VARCHAR}, {"CPDefinitionInventoryId", Types.BIGINT},
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
@@ -96,6 +95,8 @@ public class CPDefinitionInventoryModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("CPDefinitionInventoryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -118,7 +119,7 @@ public class CPDefinitionInventoryModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CPDefinitionInventory (uuid_ VARCHAR(75) null,CPDefinitionInventoryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,CPDefinitionId LONG,CPDefinitionInventoryEngine VARCHAR(75) null,lowStockActivity VARCHAR(75) null,displayAvailability BOOLEAN,displayStockQuantity BOOLEAN,minStockQuantity INTEGER,backOrders BOOLEAN,minOrderQuantity INTEGER,maxOrderQuantity INTEGER,allowedOrderQuantities VARCHAR(75) null,multipleOrderQuantity INTEGER)";
+		"create table CPDefinitionInventory (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,CPDefinitionInventoryId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,CPDefinitionId LONG,CPDefinitionInventoryEngine VARCHAR(75) null,lowStockActivity VARCHAR(75) null,displayAvailability BOOLEAN,displayStockQuantity BOOLEAN,minStockQuantity INTEGER,backOrders BOOLEAN,minOrderQuantity INTEGER,maxOrderQuantity INTEGER,allowedOrderQuantities VARCHAR(75) null,multipleOrderQuantity INTEGER,primary key (CPDefinitionInventoryId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CPDefinitionInventory";
@@ -183,73 +184,6 @@ public class CPDefinitionInventoryModelImpl
 	 */
 	@Deprecated
 	public static final long CPDEFINITIONINVENTORYID_COLUMN_BITMASK = 16L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CPDefinitionInventory toModel(
-		CPDefinitionInventorySoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		CPDefinitionInventory model = new CPDefinitionInventoryImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setCPDefinitionInventoryId(
-			soapModel.getCPDefinitionInventoryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setCPDefinitionId(soapModel.getCPDefinitionId());
-		model.setCPDefinitionInventoryEngine(
-			soapModel.getCPDefinitionInventoryEngine());
-		model.setLowStockActivity(soapModel.getLowStockActivity());
-		model.setDisplayAvailability(soapModel.isDisplayAvailability());
-		model.setDisplayStockQuantity(soapModel.isDisplayStockQuantity());
-		model.setMinStockQuantity(soapModel.getMinStockQuantity());
-		model.setBackOrders(soapModel.isBackOrders());
-		model.setMinOrderQuantity(soapModel.getMinOrderQuantity());
-		model.setMaxOrderQuantity(soapModel.getMaxOrderQuantity());
-		model.setAllowedOrderQuantities(soapModel.getAllowedOrderQuantities());
-		model.setMultipleOrderQuantity(soapModel.getMultipleOrderQuantity());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CPDefinitionInventory> toModels(
-		CPDefinitionInventorySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CPDefinitionInventory> models =
-			new ArrayList<CPDefinitionInventory>(soapModels.length);
-
-		for (CPDefinitionInventorySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.service.util.ServiceProps.get(
@@ -341,34 +275,6 @@ public class CPDefinitionInventoryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CPDefinitionInventory>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CPDefinitionInventory.class.getClassLoader(),
-			CPDefinitionInventory.class, ModelWrapper.class);
-
-		try {
-			Constructor<CPDefinitionInventory> constructor =
-				(Constructor<CPDefinitionInventory>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CPDefinitionInventory, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CPDefinitionInventory, Object>>
@@ -384,6 +290,18 @@ public class CPDefinitionInventoryModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<CPDefinitionInventory, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", CPDefinitionInventory::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CPDefinitionInventory, Long>)
+				CPDefinitionInventory::setMvccVersion);
+		attributeGetterFunctions.put(
+			"ctCollectionId", CPDefinitionInventory::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<CPDefinitionInventory, Long>)
+				CPDefinitionInventory::setCtCollectionId);
 		attributeGetterFunctions.put("uuid", CPDefinitionInventory::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -508,6 +426,36 @@ public class CPDefinitionInventoryModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -964,6 +912,8 @@ public class CPDefinitionInventoryModelImpl
 		CPDefinitionInventoryImpl cpDefinitionInventoryImpl =
 			new CPDefinitionInventoryImpl();
 
+		cpDefinitionInventoryImpl.setMvccVersion(getMvccVersion());
+		cpDefinitionInventoryImpl.setCtCollectionId(getCtCollectionId());
 		cpDefinitionInventoryImpl.setUuid(getUuid());
 		cpDefinitionInventoryImpl.setCPDefinitionInventoryId(
 			getCPDefinitionInventoryId());
@@ -991,6 +941,57 @@ public class CPDefinitionInventoryModelImpl
 			getMultipleOrderQuantity());
 
 		cpDefinitionInventoryImpl.resetOriginalValues();
+
+		return cpDefinitionInventoryImpl;
+	}
+
+	@Override
+	public CPDefinitionInventory cloneWithOriginalValues() {
+		CPDefinitionInventoryImpl cpDefinitionInventoryImpl =
+			new CPDefinitionInventoryImpl();
+
+		cpDefinitionInventoryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		cpDefinitionInventoryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		cpDefinitionInventoryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		cpDefinitionInventoryImpl.setCPDefinitionInventoryId(
+			this.<Long>getColumnOriginalValue("CPDefinitionInventoryId"));
+		cpDefinitionInventoryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		cpDefinitionInventoryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		cpDefinitionInventoryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		cpDefinitionInventoryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		cpDefinitionInventoryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		cpDefinitionInventoryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		cpDefinitionInventoryImpl.setCPDefinitionId(
+			this.<Long>getColumnOriginalValue("CPDefinitionId"));
+		cpDefinitionInventoryImpl.setCPDefinitionInventoryEngine(
+			this.<String>getColumnOriginalValue("CPDefinitionInventoryEngine"));
+		cpDefinitionInventoryImpl.setLowStockActivity(
+			this.<String>getColumnOriginalValue("lowStockActivity"));
+		cpDefinitionInventoryImpl.setDisplayAvailability(
+			this.<Boolean>getColumnOriginalValue("displayAvailability"));
+		cpDefinitionInventoryImpl.setDisplayStockQuantity(
+			this.<Boolean>getColumnOriginalValue("displayStockQuantity"));
+		cpDefinitionInventoryImpl.setMinStockQuantity(
+			this.<Integer>getColumnOriginalValue("minStockQuantity"));
+		cpDefinitionInventoryImpl.setBackOrders(
+			this.<Boolean>getColumnOriginalValue("backOrders"));
+		cpDefinitionInventoryImpl.setMinOrderQuantity(
+			this.<Integer>getColumnOriginalValue("minOrderQuantity"));
+		cpDefinitionInventoryImpl.setMaxOrderQuantity(
+			this.<Integer>getColumnOriginalValue("maxOrderQuantity"));
+		cpDefinitionInventoryImpl.setAllowedOrderQuantities(
+			this.<String>getColumnOriginalValue("allowedOrderQuantities"));
+		cpDefinitionInventoryImpl.setMultipleOrderQuantity(
+			this.<Integer>getColumnOriginalValue("multipleOrderQuantity"));
 
 		return cpDefinitionInventoryImpl;
 	}
@@ -1069,6 +1070,10 @@ public class CPDefinitionInventoryModelImpl
 	public CacheModel<CPDefinitionInventory> toCacheModel() {
 		CPDefinitionInventoryCacheModel cpDefinitionInventoryCacheModel =
 			new CPDefinitionInventoryCacheModel();
+
+		cpDefinitionInventoryCacheModel.mvccVersion = getMvccVersion();
+
+		cpDefinitionInventoryCacheModel.ctCollectionId = getCtCollectionId();
 
 		cpDefinitionInventoryCacheModel.uuid = getUuid();
 
@@ -1179,7 +1184,7 @@ public class CPDefinitionInventoryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1190,10 +1195,27 @@ public class CPDefinitionInventoryModelImpl
 			Function<CPDefinitionInventory, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((CPDefinitionInventory)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CPDefinitionInventory)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1241,10 +1263,14 @@ public class CPDefinitionInventoryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CPDefinitionInventory>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CPDefinitionInventory.class, ModelWrapper.class);
 
 	}
 
+	private long _mvccVersion;
+	private long _ctCollectionId;
 	private String _uuid;
 	private long _CPDefinitionInventoryId;
 	private long _groupId;
@@ -1295,6 +1321,8 @@ public class CPDefinitionInventoryModelImpl
 	private void _setColumnOriginalValues() {
 		_columnOriginalValues = new HashMap<String, Object>();
 
+		_columnOriginalValues.put("mvccVersion", _mvccVersion);
+		_columnOriginalValues.put("ctCollectionId", _ctCollectionId);
 		_columnOriginalValues.put("uuid_", _uuid);
 		_columnOriginalValues.put(
 			"CPDefinitionInventoryId", _CPDefinitionInventoryId);
@@ -1342,43 +1370,47 @@ public class CPDefinitionInventoryModelImpl
 	static {
 		Map<String, Long> columnBitmasks = new HashMap<>();
 
-		columnBitmasks.put("uuid_", 1L);
+		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("CPDefinitionInventoryId", 2L);
+		columnBitmasks.put("ctCollectionId", 2L);
 
-		columnBitmasks.put("groupId", 4L);
+		columnBitmasks.put("uuid_", 4L);
 
-		columnBitmasks.put("companyId", 8L);
+		columnBitmasks.put("CPDefinitionInventoryId", 8L);
 
-		columnBitmasks.put("userId", 16L);
+		columnBitmasks.put("groupId", 16L);
 
-		columnBitmasks.put("userName", 32L);
+		columnBitmasks.put("companyId", 32L);
 
-		columnBitmasks.put("createDate", 64L);
+		columnBitmasks.put("userId", 64L);
 
-		columnBitmasks.put("modifiedDate", 128L);
+		columnBitmasks.put("userName", 128L);
 
-		columnBitmasks.put("CPDefinitionId", 256L);
+		columnBitmasks.put("createDate", 256L);
 
-		columnBitmasks.put("CPDefinitionInventoryEngine", 512L);
+		columnBitmasks.put("modifiedDate", 512L);
 
-		columnBitmasks.put("lowStockActivity", 1024L);
+		columnBitmasks.put("CPDefinitionId", 1024L);
 
-		columnBitmasks.put("displayAvailability", 2048L);
+		columnBitmasks.put("CPDefinitionInventoryEngine", 2048L);
 
-		columnBitmasks.put("displayStockQuantity", 4096L);
+		columnBitmasks.put("lowStockActivity", 4096L);
 
-		columnBitmasks.put("minStockQuantity", 8192L);
+		columnBitmasks.put("displayAvailability", 8192L);
 
-		columnBitmasks.put("backOrders", 16384L);
+		columnBitmasks.put("displayStockQuantity", 16384L);
 
-		columnBitmasks.put("minOrderQuantity", 32768L);
+		columnBitmasks.put("minStockQuantity", 32768L);
 
-		columnBitmasks.put("maxOrderQuantity", 65536L);
+		columnBitmasks.put("backOrders", 65536L);
 
-		columnBitmasks.put("allowedOrderQuantities", 131072L);
+		columnBitmasks.put("minOrderQuantity", 131072L);
 
-		columnBitmasks.put("multipleOrderQuantity", 262144L);
+		columnBitmasks.put("maxOrderQuantity", 262144L);
+
+		columnBitmasks.put("allowedOrderQuantities", 524288L);
+
+		columnBitmasks.put("multipleOrderQuantity", 1048576L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

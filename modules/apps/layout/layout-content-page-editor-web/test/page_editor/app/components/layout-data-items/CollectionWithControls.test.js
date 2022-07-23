@@ -18,25 +18,32 @@ import React from 'react';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 
-import {
-	ControlsProvider,
-	useSelectItem,
-} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/components/Controls';
 import {CollectionWithControls} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/components/layout-data-items';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/layoutDataItemTypes';
 import {VIEWPORT_SIZES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/viewportSizes';
-import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/store';
+import {config} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/index';
+import {
+	ControlsProvider,
+	useSelectItem,
+} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/ControlsContext';
+import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
+import getLayoutDataItemClassName from '../../../../../src/main/resources/META-INF/resources/page_editor/app/utils/getLayoutDataItemClassName';
+import getLayoutDataItemTopperUniqueClassName from '../../../../../src/main/resources/META-INF/resources/page_editor/app/utils/getLayoutDataItemTopperUniqueClassName';
+import getLayoutDataItemUniqueClassName from '../../../../../src/main/resources/META-INF/resources/page_editor/app/utils/getLayoutDataItemUniqueClassName';
+
+const COLLECTION_ID = 'COLLECTION_ID';
 
 const renderCollection = ({
 	isActive = true,
+	collectionConfig = {styles: {}},
 	viewportSize = VIEWPORT_SIZES.desktop,
 	lockedSegment = false,
 	hasUpdatePermission = true,
 } = {}) => {
 	const collection = {
 		children: [],
-		config: {},
-		itemId: 'collection',
+		config: collectionConfig,
+		itemId: COLLECTION_ID,
 		parentId: null,
 		type: LAYOUT_DATA_ITEM_TYPES.collection,
 	};
@@ -65,6 +72,7 @@ const renderCollection = ({
 					})}
 				>
 					<AutoSelector />
+
 					<CollectionWithControls
 						item={collection}
 						layoutData={layoutData}
@@ -103,5 +111,55 @@ describe('CollectionWithControls', () => {
 
 		expect(queryByText('delete')).not.toBeInTheDocument();
 		expect(queryByText('duplicate')).not.toBeInTheDocument();
+	});
+
+	it('does not show the collection if it has been hidden by the user', async () => {
+		const {baseElement} = renderCollection({
+			collectionConfig: {
+				styles: {
+					display: 'none',
+				},
+			},
+		});
+
+		const collection = baseElement.querySelector(
+			'.page-editor__collection'
+		);
+
+		expect(collection).not.toBeVisible();
+	});
+
+	it('shows the collection if it has not been hidden by the user', async () => {
+		const {baseElement} = renderCollection({
+			collectionConfig: {
+				styles: {
+					display: 'block',
+				},
+			},
+		});
+
+		const collection = baseElement.querySelector(
+			'.page-editor__collection'
+		);
+
+		expect(collection).toBeVisible();
+	});
+
+	it('set classes for referencing the item', () => {
+		config.featureFlagLps132571 = true;
+
+		const {baseElement} = renderCollection();
+
+		const classes = [
+			getLayoutDataItemClassName(LAYOUT_DATA_ITEM_TYPES.collection),
+			getLayoutDataItemTopperUniqueClassName(COLLECTION_ID),
+			getLayoutDataItemUniqueClassName(COLLECTION_ID),
+		];
+
+		classes.forEach((className) => {
+			const item = baseElement.querySelector(`.${className}`);
+
+			expect(item).toBeVisible();
+		});
 	});
 });

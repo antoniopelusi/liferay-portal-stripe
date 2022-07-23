@@ -16,7 +16,6 @@ package com.liferay.dynamic.data.lists.model.impl;
 
 import com.liferay.dynamic.data.lists.model.DDLRecordSetVersion;
 import com.liferay.dynamic.data.lists.model.DDLRecordSetVersionModel;
-import com.liferay.dynamic.data.lists.model.DDLRecordSetVersionSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -34,22 +33,21 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -174,70 +172,6 @@ public class DDLRecordSetVersionModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DDLRecordSetVersion toModel(
-		DDLRecordSetVersionSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		DDLRecordSetVersion model = new DDLRecordSetVersionImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setRecordSetVersionId(soapModel.getRecordSetVersionId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setRecordSetId(soapModel.getRecordSetId());
-		model.setDDMStructureVersionId(soapModel.getDDMStructureVersionId());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setSettings(soapModel.getSettings());
-		model.setVersion(soapModel.getVersion());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DDLRecordSetVersion> toModels(
-		DDLRecordSetVersionSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DDLRecordSetVersion> models = new ArrayList<DDLRecordSetVersion>(
-			soapModels.length);
-
-		for (DDLRecordSetVersionSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DDLRecordSetVersionModelImpl() {
 	}
 
@@ -321,34 +255,6 @@ public class DDLRecordSetVersionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DDLRecordSetVersion>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DDLRecordSetVersion.class.getClassLoader(),
-			DDLRecordSetVersion.class, ModelWrapper.class);
-
-		try {
-			Constructor<DDLRecordSetVersion> constructor =
-				(Constructor<DDLRecordSetVersion>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DDLRecordSetVersion, Object>>
@@ -1270,6 +1176,51 @@ public class DDLRecordSetVersionModelImpl
 	}
 
 	@Override
+	public DDLRecordSetVersion cloneWithOriginalValues() {
+		DDLRecordSetVersionImpl ddlRecordSetVersionImpl =
+			new DDLRecordSetVersionImpl();
+
+		ddlRecordSetVersionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ddlRecordSetVersionImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ddlRecordSetVersionImpl.setRecordSetVersionId(
+			this.<Long>getColumnOriginalValue("recordSetVersionId"));
+		ddlRecordSetVersionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		ddlRecordSetVersionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ddlRecordSetVersionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		ddlRecordSetVersionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		ddlRecordSetVersionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ddlRecordSetVersionImpl.setRecordSetId(
+			this.<Long>getColumnOriginalValue("recordSetId"));
+		ddlRecordSetVersionImpl.setDDMStructureVersionId(
+			this.<Long>getColumnOriginalValue("DDMStructureVersionId"));
+		ddlRecordSetVersionImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		ddlRecordSetVersionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		ddlRecordSetVersionImpl.setSettings(
+			this.<String>getColumnOriginalValue("settings_"));
+		ddlRecordSetVersionImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		ddlRecordSetVersionImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		ddlRecordSetVersionImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		ddlRecordSetVersionImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		ddlRecordSetVersionImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return ddlRecordSetVersionImpl;
+	}
+
+	@Override
 	public int compareTo(DDLRecordSetVersion ddlRecordSetVersion) {
 		long primaryKey = ddlRecordSetVersion.getPrimaryKey();
 
@@ -1439,7 +1390,7 @@ public class DDLRecordSetVersionModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1450,9 +1401,27 @@ public class DDLRecordSetVersionModelImpl
 			Function<DDLRecordSetVersion, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DDLRecordSetVersion)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DDLRecordSetVersion)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1499,7 +1468,9 @@ public class DDLRecordSetVersionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DDLRecordSetVersion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DDLRecordSetVersion.class, ModelWrapper.class);
 
 	}
 

@@ -332,4 +332,7 @@ public interface SocialActivityModel
 	 */
 	public void setReceiverUserUuid(String receiverUserUuid);
 
+	@Override
+	public SocialActivity cloneWithOriginalValues();
+
 }

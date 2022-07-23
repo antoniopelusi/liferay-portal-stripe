@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.proxy.ProxyMessageListener;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Dictionary;
 
@@ -54,9 +54,10 @@ public class SchedulerProxyMessagingConfigurator {
 
 		destination.register(_proxyMessageListener);
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("destination.name", destination.getName());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		_destinationServiceRegistration = bundleContext.registerService(
 			Destination.class, destination, properties);

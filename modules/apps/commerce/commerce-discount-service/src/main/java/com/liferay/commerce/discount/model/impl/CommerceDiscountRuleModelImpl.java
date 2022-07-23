@@ -16,7 +16,6 @@ package com.liferay.commerce.discount.model.impl;
 
 import com.liferay.commerce.discount.model.CommerceDiscountRule;
 import com.liferay.commerce.discount.model.CommerceDiscountRuleModel;
-import com.liferay.commerce.discount.model.CommerceDiscountRuleSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -32,20 +31,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -75,17 +73,19 @@ public class CommerceDiscountRuleModelImpl
 	public static final String TABLE_NAME = "CommerceDiscountRule";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"commerceDiscountRuleId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
-		{"name", Types.VARCHAR}, {"commerceDiscountId", Types.BIGINT},
-		{"type_", Types.VARCHAR}, {"typeSettings", Types.CLOB}
+		{"mvccVersion", Types.BIGINT}, {"commerceDiscountRuleId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"modifiedDate", Types.TIMESTAMP}, {"name", Types.VARCHAR},
+		{"commerceDiscountId", Types.BIGINT}, {"type_", Types.VARCHAR},
+		{"typeSettings", Types.CLOB}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("commerceDiscountRuleId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("userId", Types.BIGINT);
@@ -99,7 +99,7 @@ public class CommerceDiscountRuleModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CommerceDiscountRule (commerceDiscountRuleId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,commerceDiscountId LONG,type_ VARCHAR(75) null,typeSettings TEXT null)";
+		"create table CommerceDiscountRule (mvccVersion LONG default 0 not null,commerceDiscountRuleId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,commerceDiscountId LONG,type_ VARCHAR(75) null,typeSettings TEXT null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CommerceDiscountRule";
@@ -146,62 +146,6 @@ public class CommerceDiscountRuleModelImpl
 	 */
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 2L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CommerceDiscountRule toModel(
-		CommerceDiscountRuleSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		CommerceDiscountRule model = new CommerceDiscountRuleImpl();
-
-		model.setCommerceDiscountRuleId(soapModel.getCommerceDiscountRuleId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setCommerceDiscountId(soapModel.getCommerceDiscountId());
-		model.setType(soapModel.getType());
-		model.setTypeSettings(soapModel.getTypeSettings());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CommerceDiscountRule> toModels(
-		CommerceDiscountRuleSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CommerceDiscountRule> models = new ArrayList<CommerceDiscountRule>(
-			soapModels.length);
-
-		for (CommerceDiscountRuleSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.discount.service.util.ServiceProps.get(
@@ -292,34 +236,6 @@ public class CommerceDiscountRuleModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CommerceDiscountRule>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommerceDiscountRule.class.getClassLoader(),
-			CommerceDiscountRule.class, ModelWrapper.class);
-
-		try {
-			Constructor<CommerceDiscountRule> constructor =
-				(Constructor<CommerceDiscountRule>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CommerceDiscountRule, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CommerceDiscountRule, Object>>
@@ -335,6 +251,12 @@ public class CommerceDiscountRuleModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<CommerceDiscountRule, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", CommerceDiscountRule::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CommerceDiscountRule, Long>)
+				CommerceDiscountRule::setMvccVersion);
 		attributeGetterFunctions.put(
 			"commerceDiscountRuleId",
 			CommerceDiscountRule::getCommerceDiscountRuleId);
@@ -398,6 +320,21 @@ public class CommerceDiscountRuleModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -660,6 +597,7 @@ public class CommerceDiscountRuleModelImpl
 		CommerceDiscountRuleImpl commerceDiscountRuleImpl =
 			new CommerceDiscountRuleImpl();
 
+		commerceDiscountRuleImpl.setMvccVersion(getMvccVersion());
 		commerceDiscountRuleImpl.setCommerceDiscountRuleId(
 			getCommerceDiscountRuleId());
 		commerceDiscountRuleImpl.setCompanyId(getCompanyId());
@@ -673,6 +611,37 @@ public class CommerceDiscountRuleModelImpl
 		commerceDiscountRuleImpl.setTypeSettings(getTypeSettings());
 
 		commerceDiscountRuleImpl.resetOriginalValues();
+
+		return commerceDiscountRuleImpl;
+	}
+
+	@Override
+	public CommerceDiscountRule cloneWithOriginalValues() {
+		CommerceDiscountRuleImpl commerceDiscountRuleImpl =
+			new CommerceDiscountRuleImpl();
+
+		commerceDiscountRuleImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		commerceDiscountRuleImpl.setCommerceDiscountRuleId(
+			this.<Long>getColumnOriginalValue("commerceDiscountRuleId"));
+		commerceDiscountRuleImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commerceDiscountRuleImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commerceDiscountRuleImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commerceDiscountRuleImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commerceDiscountRuleImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commerceDiscountRuleImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		commerceDiscountRuleImpl.setCommerceDiscountId(
+			this.<Long>getColumnOriginalValue("commerceDiscountId"));
+		commerceDiscountRuleImpl.setType(
+			this.<String>getColumnOriginalValue("type_"));
+		commerceDiscountRuleImpl.setTypeSettings(
+			this.<String>getColumnOriginalValue("typeSettings"));
 
 		return commerceDiscountRuleImpl;
 	}
@@ -753,6 +722,8 @@ public class CommerceDiscountRuleModelImpl
 		CommerceDiscountRuleCacheModel commerceDiscountRuleCacheModel =
 			new CommerceDiscountRuleCacheModel();
 
+		commerceDiscountRuleCacheModel.mvccVersion = getMvccVersion();
+
 		commerceDiscountRuleCacheModel.commerceDiscountRuleId =
 			getCommerceDiscountRuleId();
 
@@ -823,7 +794,7 @@ public class CommerceDiscountRuleModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -834,10 +805,27 @@ public class CommerceDiscountRuleModelImpl
 			Function<CommerceDiscountRule, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((CommerceDiscountRule)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CommerceDiscountRule)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -885,10 +873,13 @@ public class CommerceDiscountRuleModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CommerceDiscountRule>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CommerceDiscountRule.class, ModelWrapper.class);
 
 	}
 
+	private long _mvccVersion;
 	private long _commerceDiscountRuleId;
 	private long _companyId;
 	private long _userId;
@@ -930,6 +921,7 @@ public class CommerceDiscountRuleModelImpl
 	private void _setColumnOriginalValues() {
 		_columnOriginalValues = new HashMap<String, Object>();
 
+		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put(
 			"commerceDiscountRuleId", _commerceDiscountRuleId);
 		_columnOriginalValues.put("companyId", _companyId);
@@ -964,25 +956,27 @@ public class CommerceDiscountRuleModelImpl
 	static {
 		Map<String, Long> columnBitmasks = new HashMap<>();
 
-		columnBitmasks.put("commerceDiscountRuleId", 1L);
+		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("companyId", 2L);
+		columnBitmasks.put("commerceDiscountRuleId", 2L);
 
-		columnBitmasks.put("userId", 4L);
+		columnBitmasks.put("companyId", 4L);
 
-		columnBitmasks.put("userName", 8L);
+		columnBitmasks.put("userId", 8L);
 
-		columnBitmasks.put("createDate", 16L);
+		columnBitmasks.put("userName", 16L);
 
-		columnBitmasks.put("modifiedDate", 32L);
+		columnBitmasks.put("createDate", 32L);
 
-		columnBitmasks.put("name", 64L);
+		columnBitmasks.put("modifiedDate", 64L);
 
-		columnBitmasks.put("commerceDiscountId", 128L);
+		columnBitmasks.put("name", 128L);
 
-		columnBitmasks.put("type_", 256L);
+		columnBitmasks.put("commerceDiscountId", 256L);
 
-		columnBitmasks.put("typeSettings", 512L);
+		columnBitmasks.put("type_", 512L);
+
+		columnBitmasks.put("typeSettings", 1024L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

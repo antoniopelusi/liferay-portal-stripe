@@ -157,10 +157,10 @@ public class SamlSpAuthRequestPersistenceTest {
 	}
 
 	@Test
-	public void testCountByCreateDate() throws Exception {
-		_persistence.countByCreateDate(RandomTestUtil.nextDate());
+	public void testCountByLtCreateDate() throws Exception {
+		_persistence.countByLtCreateDate(RandomTestUtil.nextDate());
 
-		_persistence.countByCreateDate(RandomTestUtil.nextDate());
+		_persistence.countByLtCreateDate(RandomTestUtil.nextDate());
 	}
 
 	@Test

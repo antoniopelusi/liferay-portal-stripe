@@ -22,50 +22,82 @@
 			cssClass="devices"
 		>
 			<clay:row
-				cssClass="default-devices"
+				cssClass="default-devices mb-2"
 			>
-				<button class="btn btn-unstyled col-4 d-lg-block d-none lfr-device-item selected text-center" data-device="desktop" type="button">
-					<aui:icon cssClass="icon icon-monospaced" image="desktop" markupView="lexicon" />
-
-					<small><%= LanguageUtil.get(resourceBundle, "desktop") %></small>
+				<button class="btn btn-unstyled col-4 d-lg-block d-none lfr-device-item mb-3 selected text-center" data-device="desktop" type="button">
+					<div class="c-inner px-0" tabindex="-1">
+						<span class="icon icon-monospaced">
+							<clay:icon
+								symbol="desktop"
+							/>
+						</span>
+						<span class="d-block mb-3 mt-1"><liferay-ui:message key="desktop" /></span>
+					</div>
 				</button>
 
-				<button class="btn btn-unstyled col-4 d-lg-block d-none lfr-device-item text-center" data-device="tablet" type="button">
-					<aui:icon cssClass="icon icon-monospaced" image="tablet-portrait" markupView="lexicon" />
-
-					<aui:icon cssClass="hide icon icon-monospaced icon-rotate" image="tablet-landscape" markupView="lexicon" />
-
-					<small><%= LanguageUtil.get(resourceBundle, "tablet") %></small>
+				<button class="btn btn-unstyled col-4 d-lg-block d-none lfr-device-item mb-3 text-center" data-device="tablet" type="button">
+					<div class="c-inner px-0" tabindex="-1">
+						<span class="icon icon-monospaced">
+							<clay:icon
+								symbol="tablet-portrait"
+							/>
+						</span>
+						<span class="hide icon icon-monospaced icon-rotate">
+							<clay:icon
+								symbol="tablet-landscape"
+							/>
+						</span>
+						<span class="d-block mb-3 mt-1"><liferay-ui:message key="tablet" /></span>
+					</div>
 				</button>
 
-				<button class="btn btn-unstyled col-4 lfr-device-item text-center" data-device="smartphone" type="button">
-					<aui:icon cssClass="icon icon-monospaced" image="mobile-portrait" markupView="lexicon" />
-
-					<aui:icon cssClass="hide icon icon-monospaced icon-rotate" image="mobile-landscape" markupView="lexicon" />
-
-					<small><%= LanguageUtil.get(resourceBundle, "mobile") %></small>
+				<button class="btn btn-unstyled col-4 lfr-device-item mb-3 text-center" data-device="smartphone" type="button">
+					<div class="c-inner px-0" tabindex="-1">
+						<span class="icon icon-monospaced">
+							<clay:icon
+								symbol="mobile-portrait"
+							/>
+						</span>
+						<span class="hide icon icon-monospaced icon-rotate">
+							<clay:icon
+								symbol="mobile-landscape"
+							/>
+						</span>
+						<span class="d-block mb-3 mt-1"><liferay-ui:message key="mobile" /></span>
+					</div>
 				</button>
 
 				<button class="btn btn-unstyled col-4 d-lg-block d-none lfr-device-item text-center" data-device="autosize" type="button">
-					<aui:icon cssClass="icon icon-monospaced" image="autosize" markupView="lexicon" />
-
-					<small><%= LanguageUtil.get(resourceBundle, "autosize") %></small>
+					<div class="c-inner px-0" tabindex="-1">
+						<span class="icon icon-monospaced">
+							<clay:icon
+								symbol="autosize"
+							/>
+						</span>
+						<span class="d-block mb-3 mt-1"><liferay-ui:message key="autosize" /></span>
+					</div>
 				</button>
 
 				<button class="btn btn-unstyled col-4 d-lg-block d-none lfr-device-item text-center" data-device="custom" type="button">
-					<aui:icon cssClass="icon icon-monospaced" image="custom-size" markupView="lexicon" />
-
-					<small><liferay-ui:message key="custom" /></small>
+					<div class="c-inner px-0" tabindex="-1">
+						<span class="icon icon-monospaced">
+							<clay:icon
+								symbol="custom-size"
+							/>
+						</span>
+						<span class="d-block mb-3 mt-1"><liferay-ui:message key="custom" /></span>
+					</div>
 				</button>
 			</clay:row>
 
 			<clay:row
-				cssClass="custom-devices d-lg-flex d-none hide"
+				cssClass="custom-devices flex-nowrap hide mt-3"
+				hidden="hidden"
 				id='<%= liferayPortletResponse.getNamespace() + "customDeviceContainer" %>'
 			>
-				<aui:input cssClass="input-sm" inlineField="<%= true %>" label='<%= LanguageUtil.get(request, "height") + " (px):" %>' name="height" size="4" value="600" wrapperCssClass="col-6" />
+				<aui:input cssClass="input-sm" inlineField="<%= true %>" label='<%= LanguageUtil.get(request, "height") + " (px):" %>' name="height" size="4" type="number" value="600" wrapperCssClass="flex-grow-1 mr-3" />
 
-				<aui:input cssClass="input-sm" inlineField="<%= true %>" label='<%= LanguageUtil.get(request, "width") + " (px):" %>' name="width" size="4" value="600" wrapperCssClass="col-6" />
+				<aui:input cssClass="input-sm" inlineField="<%= true %>" label='<%= LanguageUtil.get(request, "width") + " (px):" %>' name="width" size="4" type="number" value="600" wrapperCssClass="flex-grow-1" />
 			</clay:row>
 		</clay:container-fluid>
 	</div>
@@ -80,11 +112,13 @@
 			custom: {
 				height: '#<portlet:namespace />height',
 				resizable: true,
+				skin: 'custom',
 				width: '#<portlet:namespace />width',
 			},
 			desktop: {
 				height: 1050,
 				selected: true,
+				skin: 'desktop',
 				width: 1300,
 			},
 			smartphone: {

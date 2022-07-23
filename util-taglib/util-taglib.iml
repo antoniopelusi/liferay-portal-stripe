@@ -5,10 +5,12 @@
 		<exclude-output />
 		<content url="file://$MODULE_DIR$">
 			<sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+			<sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
 			<excludeFolder url="file://$MODULE_DIR$/classes" />
 		</content>
 		<orderEntry type="inheritedJdk" />
 		<orderEntry type="sourceFolder" forTests="false" />
+		<orderEntry type="module" module-name="osgi-service-tracker-collections" scope="PROVIDED" />
 		<orderEntry type="module" module-name="petra-concurrent" scope="PROVIDED" />
 		<orderEntry type="module" module-name="petra-content" scope="PROVIDED" />
 		<orderEntry type="module" module-name="petra-encryptor" scope="PROVIDED" />
@@ -29,7 +31,6 @@
 		<orderEntry type="module" module-name="petra-url-pattern-mapper" scope="PROVIDED" />
 		<orderEntry type="module" module-name="petra-xml" scope="PROVIDED" />
 		<orderEntry type="module" module-name="portal-kernel" scope="PROVIDED" />
-		<orderEntry type="module" module-name="registry-api" />
 		<orderEntry type="module" module-name="util-java" />
 		<orderEntry type="library" scope="PROVIDED" name="development" level="project" />
 		<orderEntry type="library" scope="PROVIDED" name="global" level="project" />

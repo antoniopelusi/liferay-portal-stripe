@@ -52,6 +52,7 @@ class CriteriaBuilder extends Component {
 		modelLabel: PropTypes.string,
 		onChange: PropTypes.func,
 		propertyKey: PropTypes.string.isRequired,
+		renderEmptyValuesErrors: PropTypes.bool,
 		supportedConjunctions: PropTypes.arrayOf(conjunctionShape),
 		supportedOperators: PropTypes.array,
 		supportedProperties: PropTypes.arrayOf(propertyShape).isRequired,
@@ -219,6 +220,7 @@ class CriteriaBuilder extends Component {
 			entityName,
 			modelLabel,
 			propertyKey,
+			renderEmptyValuesErrors,
 			supportedConjunctions,
 			supportedOperators,
 			supportedProperties,
@@ -246,6 +248,7 @@ class CriteriaBuilder extends Component {
 						onChange={this._handleCriteriaChange}
 						onMove={this._handleCriterionMove}
 						propertyKey={propertyKey}
+						renderEmptyValuesErrors={renderEmptyValuesErrors}
 						root
 						supportedConjunctions={supportedConjunctions}
 						supportedOperators={supportedOperators}

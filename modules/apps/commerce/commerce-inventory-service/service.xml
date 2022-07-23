@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce.inventory">
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.inventory">
 	<author>Luca Pellizzon</author>
 	<namespace>Commerce</namespace>
 	<entity local-service="true" name="CommerceInventoryAudit" remote-service="true" table="CIAudit">
@@ -170,10 +170,6 @@
 			<finder-column name="active" />
 			<finder-column name="countryTwoLettersISOCode" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" mvcc-enabled="true" name="CommerceInventoryWarehouseItem" remote-service="true" table="CIWarehouseItem">
 

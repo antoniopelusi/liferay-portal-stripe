@@ -50,7 +50,7 @@ long orgLaborId = ParamUtil.getLong(request, "orgLaborId");
 		%>'
 	/>
 
-	<portlet:actionURL name="/users_admin/update_contact_information" var="removeOpeningHoursUrl">
+	<portlet:actionURL name="/users_admin/update_contact_information" var="removeOpeningHoursURL">
 		<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
 		<portlet:param name="redirect" value="<%= currentURL %>" />
 		<portlet:param name="className" value="<%= Organization.class.getName() %>" />
@@ -61,6 +61,6 @@ long orgLaborId = ParamUtil.getLong(request, "orgLaborId");
 
 	<liferay-ui:icon
 		message="remove"
-		url="<%= removeOpeningHoursUrl %>"
+		url="<%= removeOpeningHoursURL %>"
 	/>
 </liferay-ui:icon-menu>

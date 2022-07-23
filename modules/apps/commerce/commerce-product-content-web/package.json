@@ -1,8 +1,5 @@
 {
 	"dependencies": {
-		"metal-component": "2.16.8",
-		"metal-soy": "2.16.9",
-		"metal-state": "2.16.8"
 	},
 	"name": "commerce-product-content-web",
 	"scripts": {
@@ -10,5 +7,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "4.0.3"
+	"version": "4.0.43"
 }

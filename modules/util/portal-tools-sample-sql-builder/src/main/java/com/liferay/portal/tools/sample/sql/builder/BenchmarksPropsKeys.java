@@ -19,6 +19,9 @@ package com.liferay.portal.tools.sample.sql.builder;
  */
 public interface BenchmarksPropsKeys {
 
+	public static final String COMMERCE_LAYOUT_EXCLUDED_PORTLETS =
+		"sample.sql.commerce.layout.excluded.portlets";
+
 	public static final String DB_TYPE = "sample.sql.db.type";
 
 	public static final String MAX_ASSET_CATEGORY_COUNT =
@@ -57,6 +60,9 @@ public interface BenchmarksPropsKeys {
 	public static final String MAX_COMMERCE_INVENTORY_WAREHOUSE_COUNT =
 		"sample.sql.max.commerce.inventory.warehouse.count";
 
+	public static final String MAX_COMMERCE_INVENTORY_WAREHOUSE_ITEM_QUANTITY =
+		"sample.sql.max.commerce.inventory.warehouse.item.quantity";
+
 	public static final String MAX_COMMERCE_ORDER_STATUS_CANCELLED_COUNT =
 		"sample.sql.max.commerce.order.status.cancelled.count";
 
@@ -80,6 +86,12 @@ public interface BenchmarksPropsKeys {
 
 	public static final String MAX_COMMERCE_PRODUCT_OPTION_CATEGORY_COUNT =
 		"sample.sql.max.commerce.product.option.category.count";
+
+	public static final String MAX_COMPANY_COUNT =
+		"sample.sql.max.company.count";
+
+	public static final String MAX_COMPANY_USER_COUNT =
+		"sample.sql.max.company.user.count";
 
 	public static final String MAX_CONTENT_LAYOUT_COUNT =
 		"sample.sql.max.content.layout.count";

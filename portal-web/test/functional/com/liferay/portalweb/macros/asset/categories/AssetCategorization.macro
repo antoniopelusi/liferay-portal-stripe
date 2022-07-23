@@ -34,6 +34,26 @@ definition {
 			value1 = "${categoryName}");
 	}
 
+	macro addCategoryViaSelect {
+		Panel.expandPanel(panel = "Categorization");
+
+		Click(
+			key_vocabularyName = "${vocabularyName}",
+			locator1 = "AssetCategorization#CATEGORY_SELECT");
+
+		IFrame.selectCategoryFrame();
+
+		LexiconEntry.gotoAdd();
+
+		PortletEntry.inputName(name = "${categoryName}");
+
+		IFrame.selectTopFrame();
+
+		Click(locator1 = "Modal#SAVE_BUTTON");
+
+		IFrame.closeFrame();
+	}
+
 	macro addDuplicateTag {
 		AssetCategorization._addTag(tagName = "${tagName}");
 
@@ -60,15 +80,25 @@ definition {
 	}
 
 	macro gotoSelectCategory {
-		SelectFrameTop();
-
-		if (IsElementPresent(locator1 = "IFrame#SELECT_CATEGORY")) {
-			IFrame.selectCategoryFrame();
-		}
-
-		Pause(locator1 = "3000");
+		IFrame.selectCategoryFrame();
 
 		Portlet.expandTree();
+	}
+
+	macro removeCategories {
+		for (var categoryName : list "${categoryNameList}") {
+			var key_categoryName = "${categoryName}";
+
+			AssertTextEquals(
+				locator1 = "AssetCategorization#CATEGORY",
+				value1 = "${categoryName}");
+
+			Click(
+				key_itemName = "${categoryName}",
+				locator1 = "AssetCategorization#ITEM_REMOVE");
+
+			AssertElementNotPresent(locator1 = "AssetCategorization#CATEGORY");
+		}
 	}
 
 	macro removeTag {
@@ -78,7 +108,9 @@ definition {
 			locator1 = "AssetCategorization#TAG",
 			value1 = "${tagName}");
 
-		Click(locator1 = "AssetCategorization#TAG_REMOVE");
+		Click(
+			key_itemName = "${tagName}",
+			locator1 = "AssetCategorization#ITEM_REMOVE");
 
 		AssertElementNotPresent(locator1 = "AssetCategorization#TAG");
 	}
@@ -86,30 +118,23 @@ definition {
 	macro selectCategory {
 		AssetCategorization.gotoSelectCategory();
 
-		Pause(locator1 = "3000");
+		AssertVisible(
+			key_nodeName = "${categoryName}",
+			locator1 = "Treeview#NODE_ITEM");
 
 		Portlet.selectTreeNode(nodeName = "${categoryName}");
 
 		SelectFrameTop();
 
-		if (IsElementPresent(locator1 = "//button[contains(@class,'toolbar') and contains(.,'Add')]")) {
-			AssertClick(
-				locator1 = "//button[contains(@class,'toolbar') and contains(.,'Add')]",
-				value1 = "Add");
+		if (IsElementPresent(key_text = "Add", locator1 = "Modal#MODAL_FOOTER_BUTTON")) {
+			Click(
+				key_text = "Add",
+				locator1 = "Modal#MODAL_FOOTER_BUTTON");
 		}
-		else if (IsElementPresent(locator1 = "Button#DONE")) {
-			AssertClick(
-				locator1 = "Button#DONE",
-				value1 = "Done");
-		}
-		else {
-			Click(locator1 = "Icon#CLOSE");
-		}
-
-		Pause(locator1 = "3000");
-
-		if (IsElementPresent(locator1 = "IFrame#MODAL_IFRAME")) {
-			IFrame.selectModalFrame();
+		else if (IsElementPresent(key_text = "Done", locator1 = "Modal#MODAL_FOOTER_BUTTON")) {
+			Click(
+				key_text = "Done",
+				locator1 = "Modal#MODAL_FOOTER_BUTTON");
 		}
 	}
 
@@ -145,6 +170,44 @@ definition {
 			key_categoryName = "${categoryName}",
 			locator1 = "AssetCategorization#CATEGORY",
 			value1 = "${categoryName}");
+	}
+
+	macro viewNoAddPermissions {
+		Panel.expandPanel(panel = "Categorization");
+
+		Click(
+			key_vocabularyName = "${vocabularyName}",
+			locator1 = "AssetCategorization#CATEGORY_SELECT");
+
+		IFrame.selectCategoryFrame();
+
+		AssertElementNotPresent(locator1 = "Button#PLUS");
+	}
+
+	macro viewNoTag {
+		var tagName = StringUtil.lowerCase("${tagName}");
+
+		AssertElementNotPresent(
+			key_tagName = "${tagName}",
+			locator1 = "AssetCategorization#TAG",
+			value1 = "${tagName}");
+	}
+
+	macro viewNoVocabularyField {
+		Panel.expandPanel(panel = "Categorization");
+
+		AssertElementNotPresent(
+			key_vocabularyName = "${vocabularyName}",
+			locator1 = "AssetCategorization#CATEGORIES_FIELD");
+	}
+
+	macro viewTag {
+		var tagName = StringUtil.lowerCase("${tagName}");
+
+		AssertTextEquals(
+			key_tagName = "${tagName}",
+			locator1 = "AssetCategorization#TAG",
+			value1 = "${tagName}");
 	}
 
 	macro viewVocabulary {

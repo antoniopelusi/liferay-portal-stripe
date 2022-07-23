@@ -12,19 +12,14 @@
  * details.
  */
 
-import {
-	ItemSelectorDialog,
-	addParams,
-	navigate,
-	openSelectionModal,
-} from 'frontend-js-web';
+import {addParams, navigate, openSelectionModal} from 'frontend-js-web';
 
 export default function propsTransformer({portletNamespace, ...otherProps}) {
 	const selectAuthor = (itemData) => {
 		openSelectionModal({
 			buttonAddLabel: Liferay.Language.get('select'),
 			multiple: true,
-			onSelect(selectedItem) {
+			onSelect: (selectedItem) => {
 				if (selectedItem) {
 					let redirectURL = itemData?.redirectURL;
 
@@ -45,44 +40,41 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 	};
 
 	const selectAssetCategory = (itemData) => {
-		const itemSelectorDialog = new ItemSelectorDialog({
+		openSelectionModal({
 			buttonAddLabel: Liferay.Language.get('select'),
-			eventName: `${portletNamespace}selectedAssetCategory`,
+			iframeBodyCssClass: '',
+			multiple: true,
+			onSelect: (selectedItem) => {
+				if (selectedItem) {
+					const assetCategories = Object.keys(selectedItem).filter(
+						(key) => !selectedItem[key].unchecked
+					);
+
+					let redirectURL = itemData?.redirectURL;
+
+					assetCategories.forEach((assetCategory) => {
+						redirectURL = addParams(
+							`${portletNamespace}assetCategoryId=${selectedItem[assetCategory].categoryId}`,
+							redirectURL
+						);
+					});
+
+					navigate(redirectURL);
+				}
+			},
+			selectEventName: `${portletNamespace}selectedAssetCategory`,
 			title: itemData?.dialogTitle,
 			url: itemData?.selectAssetCategoryURL,
 		});
-
-		itemSelectorDialog.on('selectedItemChange', (event) => {
-			const selectedItem = event.selectedItem;
-
-			if (selectedItem) {
-				const assetCategories = Object.keys(selectedItem).filter(
-					(key) => !selectedItem[key].unchecked
-				);
-
-				let redirectURL = itemData?.redirectURL;
-
-				assetCategories.forEach((assetCategory) => {
-					redirectURL = addParams(
-						`${portletNamespace}assetCategoryId=${selectedItem[assetCategory].categoryId}`,
-						redirectURL
-					);
-				});
-
-				navigate(redirectURL);
-			}
-		});
-
-		itemSelectorDialog.open();
 	};
 
 	const selectAssetTag = (itemData) => {
 		openSelectionModal({
 			buttonAddLabel: Liferay.Language.get('select'),
 			multiple: true,
-			onSelect(selectedItem) {
+			onSelect: (selectedItem) => {
 				if (selectedItem) {
-					const assetTags = selectedItem['items'].split(',');
+					const assetTags = selectedItem.map((tag) => tag.value);
 
 					let redirectURL = itemData?.redirectURL;
 
@@ -102,36 +94,60 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 		});
 	};
 
-	const selectContentDashboardItemType = (itemData) => {
+	const selectContentDashboardItemSubtype = (itemData) => {
 		openSelectionModal({
 			buttonAddLabel: Liferay.Language.get('select'),
+			height: '70vh',
 			multiple: true,
-			onSelect(selectedItem) {
-				if (selectedItem) {
-					let redirectURL = itemData?.redirectURL;
+			onSelect: (selectedItems) => {
+				let redirectURL = itemData?.redirectURL;
 
-					selectedItem.forEach((item) => {
-						redirectURL = addParams(
-							`${portletNamespace}contentDashboardItemTypePayload=${JSON.stringify(
-								item
-							)}`,
-							redirectURL
-						);
-					});
+				selectedItems.forEach((item) => {
+					redirectURL = addParams(
+						`${portletNamespace}contentDashboardItemSubtypePayload=${JSON.stringify(
+							item
+						)}`,
+						redirectURL
+					);
+				});
 
-					navigate(redirectURL);
-				}
+				navigate(redirectURL);
 			},
-			selectEventName: `${portletNamespace}selectedContentDashboardItemTypeItem`,
+			selectEventName: `${portletNamespace}selectedContentDashboardItemSubtype`,
+			size: 'md',
 			title: itemData?.dialogTitle,
-			url: itemData?.selectContentDashboardItemTypeURL,
+			url: itemData?.selectContentDashboardItemSubtypeURL,
+		});
+	};
+
+	const selectFileExtension = (itemData) => {
+		openSelectionModal({
+			buttonAddLabel: Liferay.Language.get('select'),
+			height: '70vh',
+			multiple: true,
+			onSelect: (selectedItems) => {
+				let redirectURL = itemData?.redirectURL;
+
+				selectedItems.forEach((item) => {
+					redirectURL = addParams(
+						`${portletNamespace}fileExtension=${item}`,
+						redirectURL
+					);
+				});
+
+				navigate(redirectURL);
+			},
+			selectEventName: `${portletNamespace}selectedFileExtension`,
+			size: 'md',
+			title: itemData?.dialogTitle,
+			url: itemData?.selectFileExtensionURL,
 		});
 	};
 
 	const selectScope = (itemData) => {
 		openSelectionModal({
 			id: `${portletNamespace}selectedScopeIdItem`,
-			onSelect(selectedItem) {
+			onSelect: (selectedItem) => {
 				navigate(
 					addParams(
 						`${portletNamespace}scopeId=${selectedItem.groupid}`,
@@ -161,11 +177,14 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 			else if (action === 'selectAuthor') {
 				selectAuthor(data);
 			}
-			else if (action === 'selectContentDashboardItemType') {
-				selectContentDashboardItemType(data);
+			else if (action === 'selectContentDashboardItemSubtype') {
+				selectContentDashboardItemSubtype(data);
 			}
 			else if (action === 'selectScope') {
 				selectScope(data);
+			}
+			else if (action === 'selectFileExtension') {
+				selectFileExtension(data);
 			}
 		},
 	};

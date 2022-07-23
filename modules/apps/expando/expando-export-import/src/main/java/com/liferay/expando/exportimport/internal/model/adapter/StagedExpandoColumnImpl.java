@@ -76,6 +76,11 @@ public class StagedExpandoColumnImpl implements StagedExpandoColumn {
 	}
 
 	@Override
+	public ExpandoColumn cloneWithOriginalValues() {
+		return (ExpandoColumn)clone();
+	}
+
+	@Override
 	public int compareTo(ExpandoColumn expandoColumn) {
 		return _expandoColumn.compareTo(expandoColumn);
 	}

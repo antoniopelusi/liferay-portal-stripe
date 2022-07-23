@@ -59,22 +59,12 @@ public class SQLServerLimitStringUtil {
 		String innerSelectFrom = _getInnerSelectFrom(
 			selectFrom, innerOrderBy, limit);
 
-		StringBundler sb = new StringBundler(12);
-
-		sb.append("select * from (select *, row_number() over (");
-		sb.append(outerOrderBy);
-		sb.append(") as _page_row_num from (");
-		sb.append(innerSelectFrom);
-		sb.append(selectFromWhere);
-		sb.append(innerOrderBy);
-		sb.append(" ) _temp_table_1 ) _temp_table_2 where _page_row_num ");
-		sb.append("between ");
-		sb.append(offset + 1);
-		sb.append(" and ");
-		sb.append(limit);
-		sb.append(" order by _page_row_num");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"select * from (select *, row_number() over (", outerOrderBy,
+			") as _page_row_num from (", innerSelectFrom, selectFromWhere,
+			innerOrderBy,
+			" ) _temp_table_1 ) _temp_table_2 where _page_row_num between ",
+			offset + 1, " and ", limit, " order by _page_row_num");
 	}
 
 	private static String _getInnerSelectFrom(
@@ -86,7 +76,7 @@ public class SQLServerLimitStringUtil {
 			Matcher matcher = _selectPattern.matcher(innerSelectFrom);
 
 			innerSelectFrom = matcher.replaceAll(
-				StringBundler.concat("select top ", limit, StringPool.SPACE));
+				StringBundler.concat("$1 top ", limit, StringPool.SPACE));
 		}
 
 		return innerSelectFrom;
@@ -183,6 +173,6 @@ public class SQLServerLimitStringUtil {
 	private static final Pattern _qualifiedColumnPattern = Pattern.compile(
 		"\\w+\\.([\\w\\*]+)");
 	private static final Pattern _selectPattern = Pattern.compile(
-		"SELECT ", Pattern.CASE_INSENSITIVE);
+		"(SELECT(?: DISTINCT)?) ", Pattern.CASE_INSENSITIVE);
 
 }

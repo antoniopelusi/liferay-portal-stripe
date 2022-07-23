@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class EntryLocalServiceWrapper
 	implements EntryLocalService, ServiceWrapper<EntryLocalService> {
 
+	public EntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public EntryLocalServiceWrapper(EntryLocalService entryLocalService) {
 		_entryLocalService = entryLocalService;
 	}
@@ -166,6 +170,13 @@ public class EntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _entryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _entryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

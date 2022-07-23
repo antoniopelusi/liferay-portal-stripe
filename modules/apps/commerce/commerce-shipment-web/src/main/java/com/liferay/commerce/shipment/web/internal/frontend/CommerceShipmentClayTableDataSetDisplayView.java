@@ -42,11 +42,11 @@ public class CommerceShipmentClayTableDataSetDisplayView
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField shipmentIdField =
+		ClayTableSchemaField shipmentIdClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField(
 				"shipmentId", "shipment-id");
 
-		shipmentIdField.setContentRenderer("actionLink");
+		shipmentIdClayTableSchemaField.setContentRenderer("actionLink");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
 			"accountName", "account");
@@ -61,18 +61,18 @@ public class CommerceShipmentClayTableDataSetDisplayView
 			"tracking", "tracking-number");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
-			"createDate", "create-date");
+			"createDateString", "create-date");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
-			"expectedShipDate", "estimated-shipping-date");
+			"expectedShipDateString", "estimated-shipping-date");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
-			"expectedDeliveryDate", "estimated-delivery-date");
+			"expectedDeliveryDateString", "estimated-delivery-date");
 
-		ClayTableSchemaField statusField =
+		ClayTableSchemaField statusClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("status", "status");
 
-		statusField.setContentRenderer("label");
+		statusClayTableSchemaField.setContentRenderer("label");
 
 		return clayTableSchemaBuilder.build();
 	}

@@ -2,11 +2,13 @@
 <head>
 <title>CPSAMLAdminServiceProviderConnections</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">CPSAMLAdminServiceProviderConnections</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_SERVICE_PROVIDER_BUTTON</td>
@@ -41,6 +43,11 @@
 <tr>
 	<td>SERVICE_PROVIDER_CONNECTION_FORCE_ENCRYPTION</td>
 	<td>//input[contains(@id,'SamlAdminPortlet_encryptionForced')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SERVICE_PROVIDER_CONNECTION_NAME</td>
+	<td>//td[contains(@class,'first')]//a[contains(.,'${spEntityId}')]</td>
 	<td></td>
 </tr>
 <tr>

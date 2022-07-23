@@ -55,6 +55,7 @@ public class RowLayoutStructureItemMapper
 				definition = new PageRowDefinition() {
 					{
 						gutters = rowStyledLayoutStructureItem.isGutters();
+						indexed = rowStyledLayoutStructureItem.isIndexed();
 						modulesPerRow =
 							rowStyledLayoutStructureItem.getModulesPerRow();
 						numberOfColumns =
@@ -76,23 +77,18 @@ public class RowLayoutStructureItemMapper
 									saveMappingConfiguration);
 							});
 						setFragmentViewports(
-							() -> {
-								JSONObject itemConfigJSONObject =
-									rowStyledLayoutStructureItem.
-										getItemConfigJSONObject();
-
-								return getFragmentViewPorts(
-									itemConfigJSONObject);
-							});
+							() -> getFragmentViewPorts(
+								rowStyledLayoutStructureItem.
+									getItemConfigJSONObject()));
 						setRowViewports(
 							() -> {
 								Map<String, JSONObject>
-									rowViewportConfigurations =
+									rowViewportConfigurationJSONObjects =
 										rowStyledLayoutStructureItem.
-											getViewportConfigurations();
+											getViewportConfigurationJSONObjects();
 
 								if (MapUtil.isEmpty(
-										rowViewportConfigurations)) {
+										rowViewportConfigurationJSONObjects)) {
 
 									return null;
 								}
@@ -102,17 +98,17 @@ public class RowLayoutStructureItemMapper
 										{
 											add(
 												_toRowViewport(
-													rowViewportConfigurations,
+													rowViewportConfigurationJSONObjects,
 													ViewportSize.
 														MOBILE_LANDSCAPE));
 											add(
 												_toRowViewport(
-													rowViewportConfigurations,
+													rowViewportConfigurationJSONObjects,
 													ViewportSize.
 														PORTRAIT_MOBILE));
 											add(
 												_toRowViewport(
-													rowViewportConfigurations,
+													rowViewportConfigurationJSONObjects,
 													ViewportSize.TABLET));
 										}
 									};
@@ -127,29 +123,29 @@ public class RowLayoutStructureItemMapper
 	}
 
 	private RowViewport _toRowViewport(
-		Map<String, JSONObject> rowViewportConfigurationsMap,
+		Map<String, JSONObject> rowViewportConfigurationJSONObjects,
 		ViewportSize viewportSize) {
 
 		return new RowViewport() {
 			{
 				id = viewportSize.getViewportSizeId();
 				rowViewportDefinition = _toRowViewportDefinition(
-					rowViewportConfigurationsMap, viewportSize);
+					rowViewportConfigurationJSONObjects, viewportSize);
 			}
 		};
 	}
 
 	private RowViewportDefinition _toRowViewportDefinition(
-		Map<String, JSONObject> rowViewportConfigurations,
+		Map<String, JSONObject> rowViewportConfigurationJSONObjects,
 		ViewportSize viewportSize) {
 
-		if (!rowViewportConfigurations.containsKey(
+		if (!rowViewportConfigurationJSONObjects.containsKey(
 				viewportSize.getViewportSizeId())) {
 
 			return null;
 		}
 
-		JSONObject jsonObject = rowViewportConfigurations.get(
+		JSONObject jsonObject = rowViewportConfigurationJSONObjects.get(
 			viewportSize.getViewportSizeId());
 
 		return new RowViewportDefinition() {

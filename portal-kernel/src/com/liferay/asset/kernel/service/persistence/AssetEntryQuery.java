@@ -47,7 +47,7 @@ public class AssetEntryQuery {
 
 	public static final String[] ORDER_BY_COLUMNS = {
 		"title", "createDate", "modifiedDate", "publishDate", "expirationDate",
-		"priority", "viewCount", "ratings"
+		"priority", "viewCount", "ratings", "ratingsTotalScore"
 	};
 
 	public static String checkOrderByCol(String orderByCol) {
@@ -73,10 +73,10 @@ public class AssetEntryQuery {
 	}
 
 	public AssetEntryQuery() {
-		Date now = new Date();
+		Date date = new Date();
 
-		_expirationDate = now;
-		_publishDate = now;
+		_expirationDate = date;
+		_publishDate = date;
 	}
 
 	public AssetEntryQuery(AssetEntryQuery assetEntryQuery) {

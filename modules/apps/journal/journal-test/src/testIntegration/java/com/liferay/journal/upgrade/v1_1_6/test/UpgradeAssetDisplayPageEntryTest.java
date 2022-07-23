@@ -135,24 +135,21 @@ public class UpgradeAssetDisplayPageEntryTest {
 			String classUuid)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(2);
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into AssetEntry (entryId, groupId, companyId, ",
+					"classNameId, classPK, classUuid) values (?, ?, ?, ?, ?, ",
+					"?)"))) {
 
-		sb.append("insert into AssetEntry (entryId, groupId, companyId, ");
-		sb.append("classNameId, classPK, classUuid) values (?, ?, ?, ?, ?, ?)");
+			preparedStatement.setLong(1, _counterLocalService.increment());
+			preparedStatement.setLong(2, groupId);
+			preparedStatement.setLong(3, companyId);
+			preparedStatement.setLong(4, classNameId);
+			preparedStatement.setLong(5, classPK);
+			preparedStatement.setString(6, classUuid);
 
-		String sql = sb.toString();
-
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-
-			ps.setLong(1, _counterLocalService.increment());
-			ps.setLong(2, groupId);
-			ps.setLong(3, companyId);
-			ps.setLong(4, classNameId);
-			ps.setLong(5, classPK);
-			ps.setString(6, classUuid);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
@@ -161,37 +158,33 @@ public class UpgradeAssetDisplayPageEntryTest {
 			String layoutUuid)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(5);
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into JournalArticle (uuid_, id_, resourcePrimKey, ",
+					"groupId, companyId, userId, userName, createDate, ",
+					"modifiedDate, folderId, classNameId, classPK, treePath, ",
+					"articleId, version, layoutUuid) values (?, ?, ?, ?, ?, ",
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into JournalArticle (uuid_, id_, resourcePrimKey, ");
-		sb.append("groupId, companyId, userId, userName, createDate, ");
-		sb.append("modifiedDate, folderId, classNameId, classPK, treePath, ");
-		sb.append("articleId, version, layoutUuid) values (?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			preparedStatement.setString(1, PortalUUIDUtil.generate());
+			preparedStatement.setLong(2, _counterLocalService.increment());
+			preparedStatement.setLong(3, resourcePrimKey);
+			preparedStatement.setLong(4, groupId);
+			preparedStatement.setLong(5, companyId);
+			preparedStatement.setLong(6, TestPropsValues.getUserId());
+			preparedStatement.setString(7, null);
+			preparedStatement.setTimestamp(8, _timestamp);
+			preparedStatement.setTimestamp(9, _timestamp);
+			preparedStatement.setLong(10, 0);
+			preparedStatement.setLong(11, 0);
+			preparedStatement.setLong(12, 0);
+			preparedStatement.setString(13, "/");
+			preparedStatement.setString(14, RandomTestUtil.randomString());
+			preparedStatement.setDouble(15, version);
+			preparedStatement.setString(16, layoutUuid);
 
-		String sql = sb.toString();
-
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-
-			ps.setString(1, PortalUUIDUtil.generate());
-			ps.setLong(2, _counterLocalService.increment());
-			ps.setLong(3, resourcePrimKey);
-			ps.setLong(4, groupId);
-			ps.setLong(5, companyId);
-			ps.setLong(6, TestPropsValues.getUserId());
-			ps.setString(7, null);
-			ps.setTimestamp(8, _timestamp);
-			ps.setTimestamp(9, _timestamp);
-			ps.setLong(10, 0);
-			ps.setLong(11, 0);
-			ps.setLong(12, 0);
-			ps.setString(13, "/");
-			ps.setString(14, RandomTestUtil.randomString());
-			ps.setDouble(15, version);
-			ps.setString(16, layoutUuid);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
@@ -381,6 +374,11 @@ public class UpgradeAssetDisplayPageEntryTest {
 					}
 				}
 
+				@Override
+				public void registerInitialUpgradeSteps(
+					UpgradeStep... upgradeSteps) {
+				}
+
 			});
 	}
 
@@ -391,6 +389,7 @@ public class UpgradeAssetDisplayPageEntryTest {
 		Group liveGroup = createGroup();
 
 		GroupTestUtil.enableLocalStaging(liveGroup);
+
 		Group stagingGroup = liveGroup.getStagingGroup();
 
 		String layoutUuid = PortalUUIDUtil.generate();

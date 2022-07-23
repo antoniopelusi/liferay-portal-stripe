@@ -2,20 +2,52 @@
 <head>
 <title>StagingPublishToLive</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">StagingPublishToLive</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ACTIVE_TAB_NAME</td>
+	<td>//*[contains(@class,'nav-link active') and contains(.,'${key_tabName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TAB_NAME</td>
+	<td>//ul[contains(@class,'navbar-nav')]//a[contains(@class,'nav-link') and contains(.,'${key_tabName}')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>SWITCH_TO_ADVANCED_PUBLICATION</td>
 	<td>//a[contains(.,'Switch to Advanced Publish Process')]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>SWITCH_TO_SIMPLE_PUBLICATION</td>
+	<td>//a[contains(.,'Switch to Simple Publish Process')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHANGES_SINCE_LAST_PUBLISH_PROCESS</td>
+	<td>//span[contains(.,'Changes Since Last Publish Process')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_EVENT_BUTTON</td>
 	<td>//button[contains(@id,'addButton')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MODAL_TITLE</td>
+	<td>//div[contains(@class,'modal-header')]//h3[contains(@class,'modal-title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLISH_SIMPLE_HELP_TEXT</td>
+	<td>//span[contains(@class,'publish-simple-help-text')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -93,6 +125,16 @@
 <tr>
 	<td>PAGES_TO_PUBLISH_CHECKBOX_UNCHECKED</td>
 	<td>//div[@class='pages-selector']//div[normalize-space()='${key_entryName}' and not(contains(@class,'checked'))]//span[contains(@class,'icon-check')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGES_TO_PUBLISH_PAGE_NAME</td>
+	<td>//span[contains(@class,'tree-label') and contains(.,'${key_pageName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGES_TO_PUBLISH_PAGE_NAME_SPAN_TITLE</td>
+	<td>//span[contains(@class,'tree-label') and contains(.,'${key_pageName}')]//span[contains(@title,'${key_title}')]</td>
 	<td></td>
 </tr>
 <tr>

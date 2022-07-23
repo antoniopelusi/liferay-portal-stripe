@@ -16,7 +16,6 @@ package com.liferay.commerce.wish.list.model.impl;
 
 import com.liferay.commerce.wish.list.model.CommerceWishListItem;
 import com.liferay.commerce.wish.list.model.CommerceWishListItemModel;
-import com.liferay.commerce.wish.list.model.CommerceWishListItemSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -32,20 +31,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -75,18 +73,19 @@ public class CommerceWishListItemModelImpl
 	public static final String TABLE_NAME = "CommerceWishListItem";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"commerceWishListItemId", Types.BIGINT}, {"groupId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
-		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
-		{"modifiedDate", Types.TIMESTAMP}, {"commerceWishListId", Types.BIGINT},
-		{"CPInstanceUuid", Types.VARCHAR}, {"CProductId", Types.BIGINT},
-		{"json", Types.CLOB}
+		{"mvccVersion", Types.BIGINT}, {"commerceWishListItemId", Types.BIGINT},
+		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"commerceWishListId", Types.BIGINT}, {"CPInstanceUuid", Types.VARCHAR},
+		{"CProductId", Types.BIGINT}, {"json", Types.CLOB}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("commerceWishListItemId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -101,7 +100,7 @@ public class CommerceWishListItemModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CommerceWishListItem (commerceWishListItemId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commerceWishListId LONG,CPInstanceUuid VARCHAR(75) null,CProductId LONG,json TEXT null)";
+		"create table CommerceWishListItem (mvccVersion LONG default 0 not null,commerceWishListItemId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commerceWishListId LONG,CPInstanceUuid VARCHAR(75) null,CProductId LONG,json TEXT null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CommerceWishListItem";
@@ -160,63 +159,6 @@ public class CommerceWishListItemModelImpl
 	 */
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 8L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CommerceWishListItem toModel(
-		CommerceWishListItemSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		CommerceWishListItem model = new CommerceWishListItemImpl();
-
-		model.setCommerceWishListItemId(soapModel.getCommerceWishListItemId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setCommerceWishListId(soapModel.getCommerceWishListId());
-		model.setCPInstanceUuid(soapModel.getCPInstanceUuid());
-		model.setCProductId(soapModel.getCProductId());
-		model.setJson(soapModel.getJson());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CommerceWishListItem> toModels(
-		CommerceWishListItemSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CommerceWishListItem> models = new ArrayList<CommerceWishListItem>(
-			soapModels.length);
-
-		for (CommerceWishListItemSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.wish.list.service.util.ServiceProps.get(
@@ -307,34 +249,6 @@ public class CommerceWishListItemModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CommerceWishListItem>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommerceWishListItem.class.getClassLoader(),
-			CommerceWishListItem.class, ModelWrapper.class);
-
-		try {
-			Constructor<CommerceWishListItem> constructor =
-				(Constructor<CommerceWishListItem>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CommerceWishListItem, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CommerceWishListItem, Object>>
@@ -350,6 +264,12 @@ public class CommerceWishListItemModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<CommerceWishListItem, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", CommerceWishListItem::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CommerceWishListItem, Long>)
+				CommerceWishListItem::setMvccVersion);
 		attributeGetterFunctions.put(
 			"commerceWishListItemId",
 			CommerceWishListItem::getCommerceWishListItemId);
@@ -420,6 +340,21 @@ public class CommerceWishListItemModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -711,6 +646,7 @@ public class CommerceWishListItemModelImpl
 		CommerceWishListItemImpl commerceWishListItemImpl =
 			new CommerceWishListItemImpl();
 
+		commerceWishListItemImpl.setMvccVersion(getMvccVersion());
 		commerceWishListItemImpl.setCommerceWishListItemId(
 			getCommerceWishListItemId());
 		commerceWishListItemImpl.setGroupId(getGroupId());
@@ -725,6 +661,39 @@ public class CommerceWishListItemModelImpl
 		commerceWishListItemImpl.setJson(getJson());
 
 		commerceWishListItemImpl.resetOriginalValues();
+
+		return commerceWishListItemImpl;
+	}
+
+	@Override
+	public CommerceWishListItem cloneWithOriginalValues() {
+		CommerceWishListItemImpl commerceWishListItemImpl =
+			new CommerceWishListItemImpl();
+
+		commerceWishListItemImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		commerceWishListItemImpl.setCommerceWishListItemId(
+			this.<Long>getColumnOriginalValue("commerceWishListItemId"));
+		commerceWishListItemImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		commerceWishListItemImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commerceWishListItemImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commerceWishListItemImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commerceWishListItemImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commerceWishListItemImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commerceWishListItemImpl.setCommerceWishListId(
+			this.<Long>getColumnOriginalValue("commerceWishListId"));
+		commerceWishListItemImpl.setCPInstanceUuid(
+			this.<String>getColumnOriginalValue("CPInstanceUuid"));
+		commerceWishListItemImpl.setCProductId(
+			this.<Long>getColumnOriginalValue("CProductId"));
+		commerceWishListItemImpl.setJson(
+			this.<String>getColumnOriginalValue("json"));
 
 		return commerceWishListItemImpl;
 	}
@@ -805,6 +774,8 @@ public class CommerceWishListItemModelImpl
 		CommerceWishListItemCacheModel commerceWishListItemCacheModel =
 			new CommerceWishListItemCacheModel();
 
+		commerceWishListItemCacheModel.mvccVersion = getMvccVersion();
+
 		commerceWishListItemCacheModel.commerceWishListItemId =
 			getCommerceWishListItemId();
 
@@ -871,7 +842,7 @@ public class CommerceWishListItemModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -882,10 +853,27 @@ public class CommerceWishListItemModelImpl
 			Function<CommerceWishListItem, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((CommerceWishListItem)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CommerceWishListItem)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -933,10 +921,13 @@ public class CommerceWishListItemModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CommerceWishListItem>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CommerceWishListItem.class, ModelWrapper.class);
 
 	}
 
+	private long _mvccVersion;
 	private long _commerceWishListItemId;
 	private long _groupId;
 	private long _companyId;
@@ -977,6 +968,7 @@ public class CommerceWishListItemModelImpl
 	private void _setColumnOriginalValues() {
 		_columnOriginalValues = new HashMap<String, Object>();
 
+		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put(
 			"commerceWishListItemId", _commerceWishListItemId);
 		_columnOriginalValues.put("groupId", _groupId);
@@ -1002,27 +994,29 @@ public class CommerceWishListItemModelImpl
 	static {
 		Map<String, Long> columnBitmasks = new HashMap<>();
 
-		columnBitmasks.put("commerceWishListItemId", 1L);
+		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("groupId", 2L);
+		columnBitmasks.put("commerceWishListItemId", 2L);
 
-		columnBitmasks.put("companyId", 4L);
+		columnBitmasks.put("groupId", 4L);
 
-		columnBitmasks.put("userId", 8L);
+		columnBitmasks.put("companyId", 8L);
 
-		columnBitmasks.put("userName", 16L);
+		columnBitmasks.put("userId", 16L);
 
-		columnBitmasks.put("createDate", 32L);
+		columnBitmasks.put("userName", 32L);
 
-		columnBitmasks.put("modifiedDate", 64L);
+		columnBitmasks.put("createDate", 64L);
 
-		columnBitmasks.put("commerceWishListId", 128L);
+		columnBitmasks.put("modifiedDate", 128L);
 
-		columnBitmasks.put("CPInstanceUuid", 256L);
+		columnBitmasks.put("commerceWishListId", 256L);
 
-		columnBitmasks.put("CProductId", 512L);
+		columnBitmasks.put("CPInstanceUuid", 512L);
 
-		columnBitmasks.put("json", 1024L);
+		columnBitmasks.put("CProductId", 1024L);
+
+		columnBitmasks.put("json", 2048L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

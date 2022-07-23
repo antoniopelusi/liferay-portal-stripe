@@ -14,9 +14,10 @@
 
 package com.liferay.portal.kernel.layoutconfiguration.util;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.layoutconfiguration.util.xml.RuntimeLogic;
+import com.liferay.portal.kernel.model.LayoutTemplate;
 import com.liferay.portal.kernel.template.TemplateResource;
-import com.liferay.portal.kernel.util.StringBundler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,13 +29,17 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class RuntimePageUtil {
 
+	public static LayoutTemplate getLayoutTemplate(String velocityTemplateId) {
+		return _runtimePage.getLayoutTemplate(velocityTemplateId);
+	}
+
 	public static StringBundler getProcessedTemplate(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse, String portletId,
 			TemplateResource templateResource)
 		throws Exception {
 
-		return getRuntimePage().getProcessedTemplate(
+		return _runtimePage.getProcessedTemplate(
 			httpServletRequest, httpServletResponse, portletId,
 			templateResource);
 	}
@@ -43,34 +48,13 @@ public class RuntimePageUtil {
 		return _runtimePage;
 	}
 
-	public static void processCustomizationSettings(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse,
-			TemplateResource templateResource)
-		throws Exception {
-
-		getRuntimePage().processCustomizationSettings(
-			httpServletRequest, httpServletResponse, templateResource);
-	}
-
-	public static void processCustomizationSettings(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse,
-			TemplateResource templateResource, String langType)
-		throws Exception {
-
-		getRuntimePage().processCustomizationSettings(
-			httpServletRequest, httpServletResponse, templateResource,
-			langType);
-	}
-
 	public static void processTemplate(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse, String portletId,
 			TemplateResource templateResource)
 		throws Exception {
 
-		getRuntimePage().processTemplate(
+		_runtimePage.processTemplate(
 			httpServletRequest, httpServletResponse, portletId,
 			templateResource);
 	}
@@ -81,7 +65,7 @@ public class RuntimePageUtil {
 			TemplateResource templateResource, String langType)
 		throws Exception {
 
-		getRuntimePage().processTemplate(
+		_runtimePage.processTemplate(
 			httpServletRequest, httpServletResponse, portletId,
 			templateResource, langType);
 	}
@@ -92,7 +76,7 @@ public class RuntimePageUtil {
 			TemplateResource templateResource)
 		throws Exception {
 
-		getRuntimePage().processTemplate(
+		_runtimePage.processTemplate(
 			httpServletRequest, httpServletResponse, templateResource);
 	}
 
@@ -102,7 +86,7 @@ public class RuntimePageUtil {
 			TemplateResource templateResource, String langType)
 		throws Exception {
 
-		getRuntimePage().processTemplate(
+		_runtimePage.processTemplate(
 			httpServletRequest, httpServletResponse, templateResource,
 			langType);
 	}
@@ -112,7 +96,7 @@ public class RuntimePageUtil {
 			HttpServletResponse httpServletResponse, String content)
 		throws Exception {
 
-		return getRuntimePage().processXML(
+		return _runtimePage.processXML(
 			httpServletRequest, httpServletResponse, content);
 	}
 
@@ -121,7 +105,7 @@ public class RuntimePageUtil {
 			RuntimeLogic runtimeLogic)
 		throws Exception {
 
-		return getRuntimePage().processXML(
+		return _runtimePage.processXML(
 			httpServletRequest, content, runtimeLogic);
 	}
 

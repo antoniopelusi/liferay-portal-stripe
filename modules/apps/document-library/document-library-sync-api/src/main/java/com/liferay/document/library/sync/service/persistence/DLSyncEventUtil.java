@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the dl sync event service. This utility wraps <code>com.liferay.document.library.sync.service.persistence.impl.DLSyncEventPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -129,8 +125,8 @@ public class DLSyncEventUtil {
 	 * @param modifiedTime the modified time
 	 * @return the matching dl sync events
 	 */
-	public static List<DLSyncEvent> findByModifiedTime(long modifiedTime) {
-		return getPersistence().findByModifiedTime(modifiedTime);
+	public static List<DLSyncEvent> findByGtModifiedTime(long modifiedTime) {
+		return getPersistence().findByGtModifiedTime(modifiedTime);
 	}
 
 	/**
@@ -145,10 +141,10 @@ public class DLSyncEventUtil {
 	 * @param end the upper bound of the range of dl sync events (not inclusive)
 	 * @return the range of matching dl sync events
 	 */
-	public static List<DLSyncEvent> findByModifiedTime(
+	public static List<DLSyncEvent> findByGtModifiedTime(
 		long modifiedTime, int start, int end) {
 
-		return getPersistence().findByModifiedTime(modifiedTime, start, end);
+		return getPersistence().findByGtModifiedTime(modifiedTime, start, end);
 	}
 
 	/**
@@ -164,11 +160,11 @@ public class DLSyncEventUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching dl sync events
 	 */
-	public static List<DLSyncEvent> findByModifiedTime(
+	public static List<DLSyncEvent> findByGtModifiedTime(
 		long modifiedTime, int start, int end,
 		OrderByComparator<DLSyncEvent> orderByComparator) {
 
-		return getPersistence().findByModifiedTime(
+		return getPersistence().findByGtModifiedTime(
 			modifiedTime, start, end, orderByComparator);
 	}
 
@@ -186,12 +182,12 @@ public class DLSyncEventUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching dl sync events
 	 */
-	public static List<DLSyncEvent> findByModifiedTime(
+	public static List<DLSyncEvent> findByGtModifiedTime(
 		long modifiedTime, int start, int end,
 		OrderByComparator<DLSyncEvent> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByModifiedTime(
+		return getPersistence().findByGtModifiedTime(
 			modifiedTime, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -203,12 +199,12 @@ public class DLSyncEventUtil {
 	 * @return the first matching dl sync event
 	 * @throws NoSuchEventException if a matching dl sync event could not be found
 	 */
-	public static DLSyncEvent findByModifiedTime_First(
+	public static DLSyncEvent findByGtModifiedTime_First(
 			long modifiedTime, OrderByComparator<DLSyncEvent> orderByComparator)
 		throws com.liferay.document.library.sync.exception.
 			NoSuchEventException {
 
-		return getPersistence().findByModifiedTime_First(
+		return getPersistence().findByGtModifiedTime_First(
 			modifiedTime, orderByComparator);
 	}
 
@@ -219,10 +215,10 @@ public class DLSyncEventUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching dl sync event, or <code>null</code> if a matching dl sync event could not be found
 	 */
-	public static DLSyncEvent fetchByModifiedTime_First(
+	public static DLSyncEvent fetchByGtModifiedTime_First(
 		long modifiedTime, OrderByComparator<DLSyncEvent> orderByComparator) {
 
-		return getPersistence().fetchByModifiedTime_First(
+		return getPersistence().fetchByGtModifiedTime_First(
 			modifiedTime, orderByComparator);
 	}
 
@@ -234,12 +230,12 @@ public class DLSyncEventUtil {
 	 * @return the last matching dl sync event
 	 * @throws NoSuchEventException if a matching dl sync event could not be found
 	 */
-	public static DLSyncEvent findByModifiedTime_Last(
+	public static DLSyncEvent findByGtModifiedTime_Last(
 			long modifiedTime, OrderByComparator<DLSyncEvent> orderByComparator)
 		throws com.liferay.document.library.sync.exception.
 			NoSuchEventException {
 
-		return getPersistence().findByModifiedTime_Last(
+		return getPersistence().findByGtModifiedTime_Last(
 			modifiedTime, orderByComparator);
 	}
 
@@ -250,10 +246,10 @@ public class DLSyncEventUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching dl sync event, or <code>null</code> if a matching dl sync event could not be found
 	 */
-	public static DLSyncEvent fetchByModifiedTime_Last(
+	public static DLSyncEvent fetchByGtModifiedTime_Last(
 		long modifiedTime, OrderByComparator<DLSyncEvent> orderByComparator) {
 
-		return getPersistence().fetchByModifiedTime_Last(
+		return getPersistence().fetchByGtModifiedTime_Last(
 			modifiedTime, orderByComparator);
 	}
 
@@ -266,13 +262,13 @@ public class DLSyncEventUtil {
 	 * @return the previous, current, and next dl sync event
 	 * @throws NoSuchEventException if a dl sync event with the primary key could not be found
 	 */
-	public static DLSyncEvent[] findByModifiedTime_PrevAndNext(
+	public static DLSyncEvent[] findByGtModifiedTime_PrevAndNext(
 			long syncEventId, long modifiedTime,
 			OrderByComparator<DLSyncEvent> orderByComparator)
 		throws com.liferay.document.library.sync.exception.
 			NoSuchEventException {
 
-		return getPersistence().findByModifiedTime_PrevAndNext(
+		return getPersistence().findByGtModifiedTime_PrevAndNext(
 			syncEventId, modifiedTime, orderByComparator);
 	}
 
@@ -281,8 +277,8 @@ public class DLSyncEventUtil {
 	 *
 	 * @param modifiedTime the modified time
 	 */
-	public static void removeByModifiedTime(long modifiedTime) {
-		getPersistence().removeByModifiedTime(modifiedTime);
+	public static void removeByGtModifiedTime(long modifiedTime) {
+		getPersistence().removeByGtModifiedTime(modifiedTime);
 	}
 
 	/**
@@ -291,8 +287,8 @@ public class DLSyncEventUtil {
 	 * @param modifiedTime the modified time
 	 * @return the number of matching dl sync events
 	 */
-	public static int countByModifiedTime(long modifiedTime) {
-		return getPersistence().countByModifiedTime(modifiedTime);
+	public static int countByGtModifiedTime(long modifiedTime) {
+		return getPersistence().countByGtModifiedTime(modifiedTime);
 	}
 
 	/**
@@ -505,25 +501,9 @@ public class DLSyncEventUtil {
 	}
 
 	public static DLSyncEventPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<DLSyncEventPersistence, DLSyncEventPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(DLSyncEventPersistence.class);
-
-		ServiceTracker<DLSyncEventPersistence, DLSyncEventPersistence>
-			serviceTracker =
-				new ServiceTracker
-					<DLSyncEventPersistence, DLSyncEventPersistence>(
-						bundle.getBundleContext(), DLSyncEventPersistence.class,
-						null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile DLSyncEventPersistence _persistence;
 
 }

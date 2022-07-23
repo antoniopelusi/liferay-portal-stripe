@@ -128,8 +128,7 @@ public class CounterFinderImpl implements CacheRegistryItem, CounterFinder {
 			}
 			catch (ObjectNotFoundException objectNotFoundException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						objectNotFoundException, objectNotFoundException);
+					_log.debug(objectNotFoundException);
 				}
 			}
 			catch (Exception exception) {
@@ -161,8 +160,7 @@ public class CounterFinderImpl implements CacheRegistryItem, CounterFinder {
 			}
 			catch (ObjectNotFoundException objectNotFoundException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						objectNotFoundException, objectNotFoundException);
+					_log.debug(objectNotFoundException);
 				}
 			}
 			catch (Exception exception) {
@@ -195,12 +193,12 @@ public class CounterFinderImpl implements CacheRegistryItem, CounterFinder {
 		long rangeMin = -1;
 
 		try (Connection connection = getConnection();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				_SQL_SELECT_ID_BY_NAME)) {
 
-			ps1.setString(1, name);
+			preparedStatement1.setString(1, name);
 
-			try (ResultSet resultSet = ps1.executeQuery()) {
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
 				if (!resultSet.next()) {
 					rangeMin = _DEFAULT_CURRENT_ID;
 
@@ -208,13 +206,13 @@ public class CounterFinderImpl implements CacheRegistryItem, CounterFinder {
 						rangeMin = size;
 					}
 
-					try (PreparedStatement ps2 = connection.prepareStatement(
-							_SQL_INSERT)) {
+					try (PreparedStatement preparedStatement2 =
+							connection.prepareStatement(_SQL_INSERT)) {
 
-						ps2.setString(1, name);
-						ps2.setLong(2, rangeMin);
+						preparedStatement2.setString(1, name);
+						preparedStatement2.setLong(2, rangeMin);
 
-						ps2.executeUpdate();
+						preparedStatement2.executeUpdate();
 					}
 				}
 			}
@@ -296,7 +294,7 @@ public class CounterFinderImpl implements CacheRegistryItem, CounterFinder {
 			_log.error("Caught unexpected exception", exception);
 		}
 		else if (_log.isDebugEnabled()) {
-			_log.debug(exception, exception);
+			_log.debug(exception);
 		}
 
 		return new SystemException(exception);

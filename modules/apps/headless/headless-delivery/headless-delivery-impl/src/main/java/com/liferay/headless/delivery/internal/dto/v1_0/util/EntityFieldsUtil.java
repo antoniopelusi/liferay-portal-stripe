@@ -19,7 +19,7 @@ import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
-import com.liferay.expando.kernel.util.ExpandoBridgeIndexerUtil;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -28,6 +28,7 @@ import com.liferay.portal.odata.entity.DateTimeEntityField;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.StringEntityField;
 import com.liferay.portal.odata.normalizer.Normalizer;
+import com.liferay.portal.search.expando.ExpandoBridgeIndexer;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +43,7 @@ public class EntityFieldsUtil {
 
 	public static List<EntityField> getEntityFields(
 		long classNameId, long companyId,
+		ExpandoBridgeIndexer expandoBridgeIndexer,
 		ExpandoColumnLocalService expandoColumnLocalService,
 		ExpandoTableLocalService expandoTableLocalService) {
 
@@ -55,10 +57,11 @@ public class EntityFieldsUtil {
 		List<ExpandoColumn> expandoColumns =
 			expandoColumnLocalService.getColumns(expandoTable.getTableId());
 
-		Stream<ExpandoColumn> expandoColumnStream = expandoColumns.stream();
+		Stream<ExpandoColumn> expandoColumnsStream = expandoColumns.stream();
 
-		return expandoColumnStream.map(
-			EntityFieldsUtil::_getEntityField
+		return expandoColumnsStream.map(
+			expandoColumn -> _getEntityField(
+				expandoBridgeIndexer, expandoColumn)
 		).filter(
 			Objects::nonNull
 		).collect(
@@ -66,7 +69,10 @@ public class EntityFieldsUtil {
 		);
 	}
 
-	private static EntityField _getEntityField(ExpandoColumn expandoColumn) {
+	private static EntityField _getEntityField(
+		ExpandoBridgeIndexer expandoBridgeIndexer,
+		ExpandoColumn expandoColumn) {
+
 		UnicodeProperties unicodeProperties =
 			expandoColumn.getTypeSettingsProperties();
 
@@ -82,8 +88,8 @@ public class EntityFieldsUtil {
 		String externalName = Normalizer.normalizeIdentifier(
 			expandoColumn.getName());
 
-		String internalName = ExpandoBridgeIndexerUtil.encodeFieldName(
-			expandoColumn.getName(), indexType);
+		String internalName = expandoBridgeIndexer.encodeFieldName(
+			expandoColumn);
 
 		if (type == ExpandoColumnConstants.BOOLEAN) {
 			return new BooleanEntityField(externalName, locale -> internalName);
@@ -100,7 +106,18 @@ public class EntityFieldsUtil {
 				locale -> Field.getLocalizedName(locale, internalName));
 		}
 
-		return new StringEntityField(externalName, locale -> internalName);
+		return new StringEntityField(
+			externalName,
+			locale -> {
+				String numericSuffix = expandoBridgeIndexer.getNumericSuffix(
+					type);
+
+				if (!numericSuffix.equals(StringPool.BLANK)) {
+					return internalName.concat(".keyword");
+				}
+
+				return internalName;
+			});
 	}
 
 }

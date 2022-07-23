@@ -953,7 +953,7 @@ public class WikiPageDependentsTrashHandlerTest {
 	public void testTrashVersionDeletionWhenRestoringFromTrash()
 		throws Exception {
 
-		int initialTrashVersionCount =
+		int initialTrashVersionsCount =
 			TrashVersionLocalServiceUtil.getTrashVersionsCount();
 
 		RelatedPages relatedPages = buildRelatedPages();
@@ -966,7 +966,7 @@ public class WikiPageDependentsTrashHandlerTest {
 		restoreFromTrash(page);
 
 		Assert.assertEquals(
-			initialTrashVersionCount,
+			initialTrashVersionsCount,
 			TrashVersionLocalServiceUtil.getTrashVersionsCount());
 	}
 

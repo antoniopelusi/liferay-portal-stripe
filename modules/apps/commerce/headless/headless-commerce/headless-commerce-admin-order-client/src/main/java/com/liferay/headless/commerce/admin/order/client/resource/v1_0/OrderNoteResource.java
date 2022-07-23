@@ -540,6 +540,8 @@ public interface OrderNoteResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -567,7 +569,7 @@ public interface OrderNoteResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-order/v1.0/orderNotes/{id}/batch");
+						"/o/headless-commerce-admin-order/v1.0/orderNotes/batch");
 
 			httpInvoker.path("id", id);
 
@@ -1144,7 +1146,7 @@ public interface OrderNoteResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-order/v1.0/orders/{id}/orderNotes/batch");
+						"/o/headless-commerce-admin-order/v1.0/orders/orderNotes/batch");
 
 			httpInvoker.path("id", id);
 

@@ -16,10 +16,12 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 
 import com.liferay.headless.delivery.dto.v1_0.NavigationMenu;
 import com.liferay.headless.delivery.resource.v1_0.NavigationMenuResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.ResourceAction;
-import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -29,10 +31,14 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
@@ -43,13 +49,6 @@ import com.liferay.portal.vulcan.permission.PermissionUtil;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.io.Serializable;
 
@@ -63,18 +62,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -85,7 +72,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v1.0")
+@javax.ws.rs.Path("/v1.0")
 public abstract class BaseNavigationMenuResourceImpl
 	implements EntityModelResource, NavigationMenuResource,
 			   VulcanBatchEngineTaskItemDelegate<NavigationMenu> {
@@ -95,20 +82,31 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/navigation-menus/{navigationMenuId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Deletes the navigation menu and returns a 204 if the operation succeeds"
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "navigationMenuId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "navigationMenuId"
+			)
+		}
 	)
-	@Path("/navigation-menus/{navigationMenuId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/navigation-menus/{navigationMenuId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteNavigationMenu(
-			@NotNull @Parameter(hidden = true) @PathParam("navigationMenuId")
-				Long navigationMenuId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("navigationMenuId")
+			Long navigationMenuId)
 		throws Exception {
 	}
 
@@ -117,18 +115,28 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/navigation-menus/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/navigation-menus/batch")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/navigation-menus/batch")
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response deleteNavigationMenuBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -153,18 +161,28 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/navigation-menus/{navigationMenuId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "navigationMenuId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "navigationMenuId"
+			)
+		}
 	)
-	@Path("/navigation-menus/{navigationMenuId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/navigation-menus/{navigationMenuId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public NavigationMenu getNavigationMenu(
-			@NotNull @Parameter(hidden = true) @PathParam("navigationMenuId")
-				Long navigationMenuId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("navigationMenuId")
+			Long navigationMenuId)
 		throws Exception {
 
 		return new NavigationMenu();
@@ -175,21 +193,32 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/navigation-menus/{navigationMenuId}' -d $'{"name": ___, "navigationMenuItems": ___, "navigationType": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Replaces the navigation menu with the information sent in the request body. Any missing fields are deleted, unless they are required."
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "navigationMenuId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "navigationMenuId"
+			)
+		}
 	)
-	@Path("/navigation-menus/{navigationMenuId}")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/navigation-menus/{navigationMenuId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public NavigationMenu putNavigationMenu(
-			@NotNull @Parameter(hidden = true) @PathParam("navigationMenuId")
-				Long navigationMenuId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("navigationMenuId")
+			Long navigationMenuId,
 			NavigationMenu navigationMenu)
 		throws Exception {
 
@@ -201,18 +230,28 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/navigation-menus/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/navigation-menus/batch")
-	@Produces("application/json")
-	@PUT
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/navigation-menus/batch")
+	@javax.ws.rs.Produces("application/json")
+	@javax.ws.rs.PUT
+	@Override
 	public Response putNavigationMenuBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -237,24 +276,36 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/navigation-menus/{navigationMenuId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "navigationMenuId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "navigationMenuId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/navigation-menus/{navigationMenuId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/navigation-menus/{navigationMenuId}/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getNavigationMenuPermissionsPage(
-				@NotNull @Parameter(hidden = true)
-				@PathParam("navigationMenuId")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("navigationMenuId")
 				Long navigationMenuId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -265,7 +316,19 @@ public abstract class BaseNavigationMenuResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, resourceName, resourceId,
 			getPermissionCheckerGroupId(navigationMenuId));
 
-		return toPermissionPage(resourceId, resourceName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS, "getNavigationMenuPermissionsPage",
+					resourceName, resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS, "putNavigationMenuPermissionsPage",
+					resourceName, resourceId)
+			).build(),
+			resourceId, resourceName, roleNames);
 	}
 
 	/**
@@ -273,18 +336,30 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/navigation-menus/{navigationMenuId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "navigationMenuId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "navigationMenuId"
+			)
+		}
 	)
-	@Path("/navigation-menus/{navigationMenuId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "NavigationMenu")})
-	public void putNavigationMenuPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("navigationMenuId")
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.Path("/navigation-menus/{navigationMenuId}/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putNavigationMenuPermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("navigationMenuId")
 				Long navigationMenuId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -296,12 +371,27 @@ public abstract class BaseNavigationMenuResourceImpl
 			getPermissionCheckerGroupId(navigationMenuId));
 
 		resourcePermissionLocalService.updateResourcePermissions(
-			contextCompany.getCompanyId(), 0, resourceName,
+			contextCompany.getCompanyId(),
+			getPermissionCheckerGroupId(navigationMenuId), resourceName,
 			String.valueOf(resourceId),
 			ModelPermissionsUtil.toModelPermissions(
 				contextCompany.getCompanyId(), permissions, resourceId,
 				resourceName, resourceActionLocalService,
 				resourcePermissionLocalService, roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS, "getNavigationMenuPermissionsPage",
+					resourceName, resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS, "putNavigationMenuPermissionsPage",
+					resourceName, resourceId)
+			).build(),
+			resourceId, resourceName, null);
 	}
 
 	/**
@@ -309,22 +399,37 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/navigation-menus'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/navigation-menus")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/sites/{siteId}/navigation-menus")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<NavigationMenu> getSiteNavigationMenusPage(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Context Pagination pagination)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@javax.ws.rs.core.Context Pagination pagination)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -335,16 +440,32 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/navigation-menus' -d $'{"name": ___, "navigationMenuItems": ___, "navigationType": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(description = "Creates a new navigation menu.")
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Creates a new navigation menu."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/sites/{siteId}/navigation-menus")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
 	@Override
-	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
-	@Path("/sites/{siteId}/navigation-menus")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "NavigationMenu")})
 	public NavigationMenu postSiteNavigationMenu(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
 			NavigationMenu navigationMenu)
 		throws Exception {
 
@@ -356,22 +477,36 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/navigation-menus/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/navigation-menus/batch")
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/sites/{siteId}/navigation-menus/batch")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postSiteNavigationMenuBatch(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -396,23 +531,36 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/navigation-menus/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/navigation-menus/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "NavigationMenu")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/sites/{siteId}/navigation-menus/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getSiteNavigationMenuPermissionsPage(
-				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
-					siteId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(siteId);
@@ -421,7 +569,19 @@ public abstract class BaseNavigationMenuResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, portletName, siteId,
 			siteId);
 
-		return toPermissionPage(siteId, portletName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getSiteNavigationMenuPermissionsPage", portletName, siteId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putSiteNavigationMenuPermissionsPage", portletName, siteId)
+			).build(),
+			siteId, portletName, roleNames);
 	}
 
 	/**
@@ -429,15 +589,30 @@ public abstract class BaseNavigationMenuResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/navigation-menus/permissions'  -u 'test@liferay.com:test'
 	 */
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "NavigationMenu")
+		}
+	)
+	@javax.ws.rs.Path("/sites/{siteId}/navigation-menus/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
 	@Override
-	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
-	@Path("/sites/{siteId}/navigation-menus/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "NavigationMenu")})
-	public void putSiteNavigationMenuPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putSiteNavigationMenuPermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(siteId);
@@ -453,6 +628,20 @@ public abstract class BaseNavigationMenuResourceImpl
 				contextCompany.getCompanyId(), permissions, siteId, portletName,
 				resourceActionLocalService, resourcePermissionLocalService,
 				roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getSiteNavigationMenuPermissionsPage", portletName, siteId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putSiteNavigationMenuPermissionsPage", portletName, siteId)
+			).build(),
+			siteId, portletName, null);
 	}
 
 	@Override
@@ -462,9 +651,24 @@ public abstract class BaseNavigationMenuResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (NavigationMenu navigationMenu : navigationMenus) {
-			postSiteNavigationMenu(
-				(Long)parameters.get("siteId"), navigationMenu);
+		UnsafeConsumer<NavigationMenu, Exception> navigationMenuUnsafeConsumer =
+			navigationMenu -> {
+			};
+
+		if (parameters.containsKey("siteId")) {
+			navigationMenuUnsafeConsumer =
+				navigationMenu -> postSiteNavigationMenu(
+					(Long)parameters.get("siteId"), navigationMenu);
+		}
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				navigationMenus, navigationMenuUnsafeConsumer);
+		}
+		else {
+			for (NavigationMenu navigationMenu : navigationMenus) {
+				navigationMenuUnsafeConsumer.accept(navigationMenu);
+			}
 		}
 	}
 
@@ -494,14 +698,23 @@ public abstract class BaseNavigationMenuResourceImpl
 		return null;
 	}
 
+	public String getVersion() {
+		return "v1.0";
+	}
+
 	@Override
 	public Page<NavigationMenu> read(
 			Filter filter, Pagination pagination, Sort[] sorts,
 			Map<String, Serializable> parameters, String search)
 		throws Exception {
 
-		return getSiteNavigationMenusPage(
-			(Long)parameters.get("siteId"), pagination);
+		if (parameters.containsKey("siteId")) {
+			return getSiteNavigationMenusPage(
+				(Long)parameters.get("siteId"), pagination);
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -535,7 +748,7 @@ public abstract class BaseNavigationMenuResourceImpl
 		for (NavigationMenu navigationMenu : navigationMenus) {
 			putNavigationMenu(
 				navigationMenu.getId() != null ? navigationMenu.getId() :
-					(Long)parameters.get("navigationMenuId"),
+					Long.parseLong((String)parameters.get("navigationMenuId")),
 				navigationMenu);
 		}
 	}
@@ -570,7 +783,9 @@ public abstract class BaseNavigationMenuResourceImpl
 	}
 
 	protected Page<com.liferay.portal.vulcan.permission.Permission>
-			toPermissionPage(long id, String resourceName, String roleNames)
+			toPermissionPage(
+				Map<String, Map<String, String>> actions, long id,
+				String resourceName, String roleNames)
 		throws Exception {
 
 		List<ResourceAction> resourceActions =
@@ -578,6 +793,7 @@ public abstract class BaseNavigationMenuResourceImpl
 
 		if (Validator.isNotNull(roleNames)) {
 			return Page.of(
+				actions,
 				transform(
 					PermissionUtil.getRoles(
 						contextCompany, roleLocalService,
@@ -588,10 +804,11 @@ public abstract class BaseNavigationMenuResourceImpl
 		}
 
 		return Page.of(
+			actions,
 			transform(
-				resourcePermissionLocalService.getResourcePermissions(
-					contextCompany.getCompanyId(), resourceName,
-					ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(id)),
+				PermissionUtil.getResourcePermissions(
+					contextCompany.getCompanyId(), id, resourceName,
+					resourcePermissionLocalService),
 				resourcePermission -> PermissionUtil.toPermission(
 					resourceActions, resourcePermission,
 					roleLocalService.getRole(resourcePermission.getRoleId()))));
@@ -599,6 +816,15 @@ public abstract class BaseNavigationMenuResourceImpl
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
+	}
+
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<NavigationMenu>,
+			 UnsafeConsumer<NavigationMenu, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
 	}
 
 	public void setContextCompany(
@@ -629,12 +855,69 @@ public abstract class BaseNavigationMenuResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
+	}
+
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
+	}
+
+	@Override
+	public Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		try {
+			EntityModel entityModel = getEntityModel(multivaluedMap);
+
+			FilterParser filterParser = filterParserProvider.provide(
+				entityModel);
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(filterString));
+
+			return expressionConvert.convert(
+				oDataFilter.getExpression(),
+				contextAcceptLanguage.getPreferredLocale(), entityModel);
+		}
+		catch (Exception exception) {
+			_log.error("Invalid filter " + filterString, exception);
+		}
+
+		return null;
 	}
 
 	protected Map<String, String> addAction(
@@ -700,17 +983,26 @@ public abstract class BaseNavigationMenuResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<NavigationMenu>,
+		 UnsafeConsumer<NavigationMenu, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
 	protected VulcanBatchEngineImportTaskResource
 		vulcanBatchEngineImportTaskResource;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseNavigationMenuResourceImpl.class);
 
 }

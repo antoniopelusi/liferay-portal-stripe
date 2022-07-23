@@ -150,6 +150,11 @@ public class KaleoConditionWrapper
 		}
 	}
 
+	@Override
+	public KaleoCondition cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this kaleo condition.
 	 *

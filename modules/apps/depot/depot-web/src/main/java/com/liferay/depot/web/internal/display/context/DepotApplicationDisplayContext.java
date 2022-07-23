@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -65,8 +64,7 @@ public class DepotApplicationDisplayContext {
 
 		if (Validator.isNotNull(_portletId)) {
 			return LanguageUtil.format(
-				ResourceBundleUtil.getBundle(
-					_themeDisplay.getLocale(), getClass()),
+				_themeDisplay.getLocale(),
 				"x-application-is-disabled-for-this-scope.-please-go-back-to-" +
 					"selection",
 				new Object[] {
@@ -75,7 +73,7 @@ public class DepotApplicationDisplayContext {
 		}
 
 		return LanguageUtil.format(
-			ResourceBundleUtil.getBundle(_themeDisplay.getLocale(), getClass()),
+			_themeDisplay.getLocale(),
 			"application-is-not-supported.-please-go-back-to-selection",
 			new Object[] {viewGroupSelectorLink, "</a>"});
 	}
@@ -104,7 +102,7 @@ public class DepotApplicationDisplayContext {
 		).setParameter(
 			"groupType", "site"
 		).setParameter(
-			"showGroupSelector", Boolean.TRUE.toString()
+			"showGroupSelector", true
 		).buildString();
 	}
 

@@ -30,7 +30,7 @@
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
 		</finder>
-		<finder name="C_U" return-type="Collection">
+		<finder name="C_LikeU" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column case-sensitive="false" comparator="LIKE" name="userName" />
 		</finder>
@@ -59,7 +59,7 @@
 		<finder name="FileEntryId" return-type="Collection">
 			<finder-column name="fileEntryId" />
 		</finder>
-		<finder name="ExpirationDate" return-type="Collection">
+		<finder name="LtExpirationDate" return-type="Collection">
 			<finder-column comparator="&lt;" name="expirationDate" />
 		</finder>
 		<finder name="F_S_T" return-type="SyncDLFileVersionDiff" unique="true">
@@ -67,11 +67,6 @@
 			<finder-column name="sourceFileVersionId" />
 			<finder-column name="targetFileVersionId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Company" package-path="com.liferay.portal" />
-		<reference entity="DLApp" package-path="com.liferay.portlet.documentlibrary" />
 	</entity>
 	<entity local-service="true" name="SyncDLObject" remote-service="true">
 
@@ -121,10 +116,10 @@
 
 		<!-- Finder methods -->
 
-		<finder name="TreePath" return-type="Collection">
+		<finder name="LikeTreePath" return-type="Collection">
 			<finder-column comparator="LIKE" name="treePath" />
 		</finder>
-		<finder name="M_R" return-type="Collection">
+		<finder name="GtM_R" return-type="Collection">
 			<finder-column comparator="&gt;" name="modifiedTime" />
 			<finder-column name="repositoryId" />
 		</finder>
@@ -140,7 +135,7 @@
 			<finder-column name="repositoryId" />
 			<finder-column name="type" />
 		</finder>
-		<finder name="T_NotE" return-type="Collection">
+		<finder name="LikeT_NotE" return-type="Collection">
 			<finder-column comparator="LIKE" name="treePath" />
 			<finder-column comparator="!=" name="event" />
 		</finder>
@@ -152,7 +147,7 @@
 			<finder-column name="type" />
 			<finder-column name="typePK" />
 		</finder>
-		<finder name="M_R_NotE" return-type="Collection">
+		<finder name="GtM_R_NotE" return-type="Collection">
 			<finder-column comparator="&gt;" name="modifiedTime" />
 			<finder-column name="repositoryId" />
 			<finder-column arrayable-operator="AND" comparator="!=" name="event" />
@@ -162,18 +157,6 @@
 			<finder-column name="parentFolderId" />
 			<finder-column arrayable-operator="OR" name="type" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="Organization" package-path="com.liferay.portal" />
-		<reference entity="Repository" package-path="com.liferay.portal" />
-		<reference entity="ResourcePermission" package-path="com.liferay.portal" />
-		<reference entity="DLApp" package-path="com.liferay.portlet.documentlibrary" />
-		<reference entity="DLFileEntry" package-path="com.liferay.portlet.documentlibrary" />
-		<reference entity="DLFileVersion" package-path="com.liferay.portlet.documentlibrary" />
-		<reference entity="DLFolder" package-path="com.liferay.portlet.documentlibrary" />
-		<reference entity="DLTrash" package-path="com.liferay.portlet.documentlibrary" />
 	</entity>
 	<exceptions>
 		<exception>SyncDeviceActive</exception>

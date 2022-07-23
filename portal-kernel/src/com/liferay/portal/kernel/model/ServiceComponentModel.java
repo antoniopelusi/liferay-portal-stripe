@@ -141,4 +141,7 @@ public interface ServiceComponentModel
 	 */
 	public void setData(String data);
 
+	@Override
+	public ServiceComponent cloneWithOriginalValues();
+
 }

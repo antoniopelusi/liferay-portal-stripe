@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.model.PortletPreferencesIds;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.workflow.kaleo.internal.upgrade.v1_3_0.WorkflowContextUpgradeHelper;
+import com.liferay.portal.workflow.kaleo.internal.upgrade.helper.v1_3_0.WorkflowContextUpgradeHelper;
 import com.liferay.portal.workflow.kaleo.runtime.util.WorkflowContextUtil;
 
 import java.io.Serializable;
@@ -45,12 +45,12 @@ public class WorkflowContextUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateTable("KaleoInstance", "kaleoInstanceId");
-		updateTable("KaleoLog", "kaleoLogId");
-		updateTable("KaleoTaskInstanceToken", "kaleoTaskInstanceTokenId");
+		_updateTable("KaleoInstance", "kaleoInstanceId");
+		_updateTable("KaleoLog", "kaleoLogId");
+		_updateTable("KaleoTaskInstanceToken", "kaleoTaskInstanceTokenId");
 	}
 
-	protected JSONSerializer getJSONSerializer() throws Exception {
+	private JSONSerializer _getJSONSerializer() throws Exception {
 		if (_jsonSerializer == null) {
 			_jsonSerializer = new JSONSerializer();
 
@@ -63,27 +63,28 @@ public class WorkflowContextUpgradeProcess extends UpgradeProcess {
 		return _jsonSerializer;
 	}
 
-	protected void updateTable(String tableName, String fieldName)
+	private void _updateTable(String tableName, String fieldName)
 		throws Exception {
 
 		try (LoggingTimer loggingTimer = new LoggingTimer(tableName);
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select ", fieldName, ", workflowContext from ", tableName,
 					" where workflowContext is not null and workflowContext ",
 					"not like '%serializable%'"));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			JSONSerializer jsonSerializer = getJSONSerializer();
+			JSONSerializer jsonSerializer = _getJSONSerializer();
 
-			while (rs.next()) {
-				String workflowContextJSON = rs.getString("workflowContext");
+			while (resultSet.next()) {
+				String workflowContextJSON = resultSet.getString(
+					"workflowContext");
 
 				if (Validator.isNull(workflowContextJSON)) {
 					continue;
 				}
 
-				long fieldValue = rs.getLong(fieldName);
+				long fieldValue = resultSet.getLong(fieldName);
 
 				workflowContextJSON =
 					_workflowContextUpgradeHelper.renamePortalClassNames(
@@ -97,27 +98,27 @@ public class WorkflowContextUpgradeProcess extends UpgradeProcess {
 					_workflowContextUpgradeHelper.renameEntryClassName(
 						workflowContext);
 
-				updateWorkflowContext(
+				_updateWorkflowContext(
 					tableName, fieldName, fieldValue,
 					WorkflowContextUtil.convert(workflowContext));
 			}
 		}
 	}
 
-	protected void updateWorkflowContext(
+	private void _updateWorkflowContext(
 			String tableName, String primaryKeyName, long primaryKeyValue,
 			String workflowContext)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"update ", tableName, " set workflowContext = ? where ",
 					primaryKeyName, " = ?"))) {
 
-			ps.setString(1, workflowContext);
-			ps.setLong(2, primaryKeyValue);
+			preparedStatement.setString(1, workflowContext);
+			preparedStatement.setLong(2, primaryKeyValue);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

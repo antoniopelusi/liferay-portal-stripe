@@ -45,9 +45,6 @@ public class SamlIdpSsoSessionLocalServiceImpl
 			String samlIdpSsoSessionKey, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUserById(serviceContext.getUserId());
-		Date now = new Date();
-
 		SamlIdpSsoSession samlIdpSsoSession =
 			samlIdpSsoSessionPersistence.fetchBySamlIdpSsoSessionKey(
 				samlIdpSsoSessionKey);
@@ -56,6 +53,9 @@ public class SamlIdpSsoSessionLocalServiceImpl
 			throw new DuplicateSamlIdpSsoSessionException(
 				"Duplicate SAML IDP SSO session for " + samlIdpSsoSessionKey);
 		}
+
+		User user = userLocalService.getUserById(serviceContext.getUserId());
+		Date date = new Date();
 
 		long samlIdpSsoSessionId = counterLocalService.increment(
 			SamlIdpSsoSession.class.getName());
@@ -66,8 +66,8 @@ public class SamlIdpSsoSessionLocalServiceImpl
 		samlIdpSsoSession.setCompanyId(serviceContext.getCompanyId());
 		samlIdpSsoSession.setUserId(user.getUserId());
 		samlIdpSsoSession.setUserName(user.getFullName());
-		samlIdpSsoSession.setCreateDate(now);
-		samlIdpSsoSession.setModifiedDate(now);
+		samlIdpSsoSession.setCreateDate(date);
+		samlIdpSsoSession.setModifiedDate(date);
 		samlIdpSsoSession.setSamlIdpSsoSessionKey(samlIdpSsoSessionKey);
 
 		return samlIdpSsoSessionPersistence.update(samlIdpSsoSession);
@@ -84,8 +84,8 @@ public class SamlIdpSsoSessionLocalServiceImpl
 			createDate.getTime() -
 				samlProviderConfiguration.sessionMaximumAge());
 
-		samlIdpSsoSessionPersistence.removeByCreateDate(createDate);
-		samlIdpSpSessionPersistence.removeByCreateDate(createDate);
+		samlIdpSsoSessionPersistence.removeByLtCreateDate(createDate);
+		samlIdpSpSessionPersistence.removeByLtCreateDate(createDate);
 	}
 
 	@Override

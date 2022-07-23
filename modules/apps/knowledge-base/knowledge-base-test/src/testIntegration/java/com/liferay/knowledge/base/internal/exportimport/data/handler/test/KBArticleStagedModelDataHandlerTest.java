@@ -102,6 +102,9 @@ public class KBArticleStagedModelDataHandlerTest
 			kbArticle.getUuid(), liveGroup);
 
 		Assert.assertEquals(
+			kbArticle.getExternalReferenceCode(),
+			importedKBArticle.getExternalReferenceCode());
+		Assert.assertEquals(
 			ClassNameLocalServiceUtil.getClassNameId(
 				KBFolderConstants.getClassName()),
 			importedKBArticle.getParentResourceClassNameId());
@@ -166,7 +169,7 @@ public class KBArticleStagedModelDataHandlerTest
 		throws Exception {
 
 		return KBArticleLocalServiceUtil.addKBArticle(
-			serviceContext.getUserId(), parentResourceClassNameId,
+			null, serviceContext.getUserId(), parentResourceClassNameId,
 			parentResourcePrimKey, StringUtil.randomString(),
 			StringUtil.randomString(), StringUtil.randomString(),
 			StringUtil.randomString(), null, null, null, serviceContext);

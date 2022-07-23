@@ -117,11 +117,14 @@ public class MultipleUploadResponseHandler implements UploadResponseHandler {
 					"please-enter-a-file-with-a-valid-file-name");
 			}
 			else if (portalException instanceof FileSizeException) {
+				FileSizeException fileSizeException =
+					(FileSizeException)portalException;
+
 				errorMessage = themeDisplay.translate(
 					"please-enter-a-file-with-a-valid-file-size-no-larger-" +
 						"than-x",
 					_language.formatStorageSize(
-						_dlValidator.getMaxAllowableSize(),
+						fileSizeException.getMaxSize(),
 						themeDisplay.getLocale()));
 			}
 			else if (portalException instanceof UploadRequestSizeException) {
@@ -144,14 +147,12 @@ public class MultipleUploadResponseHandler implements UploadResponseHandler {
 			UploadPortletRequest uploadPortletRequest, FileEntry fileEntry)
 		throws PortalException {
 
-		String sourceFileName = uploadPortletRequest.getFileName("file");
-
 		return JSONUtil.put(
 			"groupId", fileEntry.getGroupId()
 		).put(
 			"name", fileEntry.getTitle()
 		).put(
-			"title", sourceFileName
+			"title", uploadPortletRequest.getFileName("file")
 		).put(
 			"uuid", fileEntry.getUuid()
 		);

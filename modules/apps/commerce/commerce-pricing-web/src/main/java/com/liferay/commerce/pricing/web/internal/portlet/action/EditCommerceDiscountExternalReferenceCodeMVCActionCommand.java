@@ -52,7 +52,7 @@ public class EditCommerceDiscountExternalReferenceCodeMVCActionCommand
 		throws Exception {
 
 		try {
-			updateCommerceDiscountExternalReferenceCode(actionRequest);
+			_updateCommerceDiscountExternalReferenceCode(actionRequest);
 		}
 		catch (Exception exception) {
 			if (exception instanceof NoSuchDiscountException ||
@@ -63,7 +63,7 @@ public class EditCommerceDiscountExternalReferenceCodeMVCActionCommand
 				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				String redirect = ParamUtil.getString(
 					actionRequest, "redirect");
@@ -73,7 +73,7 @@ public class EditCommerceDiscountExternalReferenceCodeMVCActionCommand
 		}
 	}
 
-	protected void updateCommerceDiscountExternalReferenceCode(
+	private void _updateCommerceDiscountExternalReferenceCode(
 			ActionRequest actionRequest)
 		throws Exception {
 

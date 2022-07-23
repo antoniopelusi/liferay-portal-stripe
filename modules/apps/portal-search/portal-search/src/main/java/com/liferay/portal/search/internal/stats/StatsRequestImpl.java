@@ -94,31 +94,11 @@ public class StatsRequestImpl implements Serializable, StatsRequest {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
-
-		sb.append("{_cardinality=");
-		sb.append(_cardinality);
-		sb.append(", _count=");
-		sb.append(_count);
-		sb.append(", field=");
-		sb.append(_field);
-		sb.append(", max=");
-		sb.append(_max);
-		sb.append(", mean=");
-		sb.append(_mean);
-		sb.append(", min=");
-		sb.append(_min);
-		sb.append(", missing=");
-		sb.append(_missing);
-		sb.append(", standardDeviation=");
-		sb.append(_standardDeviation);
-		sb.append(", sum=");
-		sb.append(_sum);
-		sb.append(", sumOfSquares=");
-		sb.append(_sumOfSquares);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{_cardinality=", _cardinality, ", _count=", _count, ", field=",
+			_field, ", max=", _max, ", mean=", _mean, ", min=", _min,
+			", missing=", _missing, ", standardDeviation=", _standardDeviation,
+			", sum=", _sum, ", sumOfSquares=", _sumOfSquares, "}");
 	}
 
 	private final boolean _cardinality;

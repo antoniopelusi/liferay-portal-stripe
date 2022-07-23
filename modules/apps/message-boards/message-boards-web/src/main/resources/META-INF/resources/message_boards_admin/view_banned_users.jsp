@@ -23,7 +23,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCRenderCommandName(
 	"/message_boards_admin/view_banned_users"
-).build();
+).buildPortletURL();
 %>
 
 <%@ include file="/message_boards/nav.jspf" %>
@@ -47,7 +47,7 @@ int totalBannedUsers = MBBanLocalServiceUtil.getBansCount(scopeGroupId);
 />
 
 <clay:container-fluid>
-	<aui:form action="<%= portletURL.toString() %>" method="get" name="fm">
+	<aui:form action="<%= portletURL %>" method="get" name="fm">
 		<aui:input name="<%= Constants.CMD %>" type="hidden" />
 		<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 

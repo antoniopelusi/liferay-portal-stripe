@@ -1,0 +1,116 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Blogs";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			BlogsEntry.tearDownCP();
+		}
+	}
+
+	@description = "This is a test for LPS-136776. It checks that a blog can be properly displayed in Arabic in the Blogs widget."
+	@priority = "3"
+	test CanViewBlogInArabic {
+		JSONBlog.addEntry(
+			entryContent = "محتوى دخول المدونات",
+			entryTitle = "عنوان إدخال المدونات");
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		BlogsEntry.viewPG(
+			entryContent = "محتوى دخول المدونات",
+			entryTitle = "عنوان إدخال المدونات");
+	}
+
+	@description = "This is a test for LPS-136774. It checks that a blog can be properly displayed in Arabic in the Blogs Aggregator."
+	@priority = "3"
+	test CanViewBlogInArabicViaBlogsAggregator {
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs Aggregator");
+
+		JSONBlog.addEntry(
+			entryContent = "محتوى دخول المدونات",
+			entryTitle = "عنوان إدخال المدونات");
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		BlogsAggregatorPortlet.viewBlogsEntryViaBAPortletPG(
+			entryContent = "محتوى دخول المدونات",
+			entryTitle = "عنوان إدخال المدونات");
+	}
+
+	@description = "This is a test for LPS-136777. It checks that a blog can be properly displayed in Japanese in the Blogs widget."
+	@priority = "3"
+	test CanViewBlogInJapanese {
+		JSONBlog.addEntry(
+			entryContent = "ブログエントリコンテンツ",
+			entryTitle = "ブログエントリタイトル");
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		BlogsEntry.viewPG(
+			entryContent = "ブログエントリコンテンツ",
+			entryTitle = "ブログエントリタイトル");
+	}
+
+	@description = "This is a test for LPS-136775. It checks that a blog can be properly displayed in Japanese in the Blogs Aggregator."
+	@priority = "3"
+	test CanViewBlogInJapaneseViaBlogsAggregator {
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs Aggregator");
+
+		JSONBlog.addEntry(
+			entryContent = "ブログエントリコンテンツ",
+			entryTitle = "ブログエントリタイトル");
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		BlogsAggregatorPortlet.viewBlogsEntryViaBAPortletPG(
+			entryContent = "ブログエントリコンテンツ",
+			entryTitle = "ブログエントリタイトル");
+	}
+
+	@description = "This is a test for LPS-136778. It checks that social bookmarks for a Blog can be viewed in Japanese."
+	@priority = "3"
+	test CanViewSocialBookmarksInJapanese {
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "ja/web/guest/blogs-page");
+
+		SocialBookmarks.viewDefaultSharableBookmarks();
+	}
+
+}

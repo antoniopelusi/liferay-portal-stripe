@@ -18,10 +18,9 @@ import com.liferay.configuration.admin.constants.ConfigurationAdminPortletKeys;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.settings.portlet.action.PortalSettingsFormContributor;
 
-import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
@@ -49,10 +48,10 @@ public class PortalSettingsContributorServiceTrackerCustomizer
 
 	@Override
 	public PortalSettingsFormContributor addingService(
-		ServiceReference<PortalSettingsFormContributor> reference) {
+		ServiceReference<PortalSettingsFormContributor> serviceReference) {
 
-		final PortalSettingsFormContributor portalSettingsFormContributor =
-			_bundleContext.getService(reference);
+		PortalSettingsFormContributor portalSettingsFormContributor =
+			_bundleContext.getService(serviceReference);
 
 		MVCActionCommandServiceRegistrationHolder
 			mvcActionCommandServiceRegistrationHolder =
@@ -72,7 +71,7 @@ public class PortalSettingsContributorServiceTrackerCustomizer
 
 				mvcActionCommandServiceRegistrationHolder.
 					_deleteMVCActionCommandServiceReference =
-						registerMVCActionCommand(
+						_registerMVCActionCommand(
 							mvcActionName,
 							deletePortalSettingsFormMVCActionCommand);
 			});
@@ -89,7 +88,7 @@ public class PortalSettingsContributorServiceTrackerCustomizer
 
 				mvcActionCommandServiceRegistrationHolder.
 					_saveMVCActionCommandServiceReference =
-						registerMVCActionCommand(
+						_registerMVCActionCommand(
 							mvcActionName,
 							savePortalSettingsFormMVCActionCommand);
 			});
@@ -103,20 +102,20 @@ public class PortalSettingsContributorServiceTrackerCustomizer
 
 	@Override
 	public void modifiedService(
-		ServiceReference<PortalSettingsFormContributor> reference,
+		ServiceReference<PortalSettingsFormContributor> serviceReference,
 		PortalSettingsFormContributor service) {
 
-		unregister(service);
+		_unregister(service);
 
-		addingService(reference);
+		addingService(serviceReference);
 	}
 
 	@Override
 	public void removedService(
-		ServiceReference<PortalSettingsFormContributor> reference,
+		ServiceReference<PortalSettingsFormContributor> serviceReference,
 		PortalSettingsFormContributor service) {
 
-		unregister(service);
+		_unregister(service);
 	}
 
 	@Activate
@@ -134,21 +133,20 @@ public class PortalSettingsContributorServiceTrackerCustomizer
 		_serviceTracker.close();
 	}
 
-	protected ServiceRegistration<MVCActionCommand> registerMVCActionCommand(
+	private ServiceRegistration<MVCActionCommand> _registerMVCActionCommand(
 		String mvcActionCommandName, MVCActionCommand mvcActionCommand) {
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"javax.portlet.name",
-			ConfigurationAdminPortletKeys.INSTANCE_SETTINGS);
-		properties.put("mvc.command.name", mvcActionCommandName);
-
 		return _bundleContext.registerService(
-			MVCActionCommand.class, mvcActionCommand, properties);
+			MVCActionCommand.class, mvcActionCommand,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.name",
+				ConfigurationAdminPortletKeys.INSTANCE_SETTINGS
+			).put(
+				"mvc.command.name", mvcActionCommandName
+			).build());
 	}
 
-	protected void unregister(
+	private void _unregister(
 		PortalSettingsFormContributor portalSettingsFormContributor) {
 
 		MVCActionCommandServiceRegistrationHolder

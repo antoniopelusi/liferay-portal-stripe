@@ -1,30 +1,28 @@
 @component-name = "portal-upgrades"
 definition {
 
-	property database.types = "mariadb,mysql,postgresql";
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.assert.warning.exceptions = "true";
 	property testray.component.names = "SEO";
-	property testray.main.component.name = "Upgrades Collaboration";
+	property testray.main.component.name = "Upgrades Lima";
 
 	setUp {
 		SignIn.signIn();
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		AssertLocation(value1 = "${portalURL}/web/guest/home");
+		AssertLocation.assertPartialLocation(value1 = "${portalURL}/web/guest");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 	}
 
 	@priority = "5"
 	@refactorneeded
-	test ViewOpenGraph730 {
+	test ViewOpenGraph73101 {
 		property data.archive.type = "data-archive-open-graph";
-		property portal.version = "7.3.0";
+		property portal.version = "7.3.10.1";
 
 		Upgrade.viewAndEditOpenGraph();
 	}

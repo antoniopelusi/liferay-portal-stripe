@@ -57,7 +57,9 @@ public class DDMFormInstanceRecordStagingModelListener
 	}
 
 	@Override
-	public void onAfterUpdate(DDMFormInstanceRecord ddmFormInstanceRecord)
+	public void onAfterUpdate(
+			DDMFormInstanceRecord originalDDMFormInstanceRecord,
+			DDMFormInstanceRecord ddmFormInstanceRecord)
 		throws ModelListenerException {
 
 		if (_isSkipEvent(ddmFormInstanceRecord)) {
@@ -94,7 +96,7 @@ public class DDMFormInstanceRecordStagingModelListener
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

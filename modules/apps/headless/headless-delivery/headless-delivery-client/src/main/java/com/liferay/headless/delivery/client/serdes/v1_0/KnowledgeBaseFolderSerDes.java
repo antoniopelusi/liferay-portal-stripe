@@ -61,7 +61,7 @@ public class KnowledgeBaseFolderSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (knowledgeBaseFolder.getActions() != null) {
 			if (sb.length() > 1) {
@@ -148,6 +148,20 @@ public class KnowledgeBaseFolderSerDes {
 			sb.append("\"");
 
 			sb.append(_escape(knowledgeBaseFolder.getDescription()));
+
+			sb.append("\"");
+		}
+
+		if (knowledgeBaseFolder.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(knowledgeBaseFolder.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -264,7 +278,7 @@ public class KnowledgeBaseFolderSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (knowledgeBaseFolder.getActions() == null) {
 			map.put("actions", null);
@@ -318,6 +332,15 @@ public class KnowledgeBaseFolderSerDes {
 			map.put(
 				"description",
 				String.valueOf(knowledgeBaseFolder.getDescription()));
+		}
+
+		if (knowledgeBaseFolder.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(knowledgeBaseFolder.getExternalReferenceCode()));
 		}
 
 		if (knowledgeBaseFolder.getId() == null) {
@@ -451,6 +474,14 @@ public class KnowledgeBaseFolderSerDes {
 			else if (Objects.equals(jsonParserFieldName, "description")) {
 				if (jsonParserFieldValue != null) {
 					knowledgeBaseFolder.setDescription(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					knowledgeBaseFolder.setExternalReferenceCode(
 						(String)jsonParserFieldValue);
 				}
 			}

@@ -23,18 +23,9 @@ import com.liferay.portal.kernel.util.LoggingTimer;
 public class UpgradeLastPublishDate
 	extends com.liferay.portal.upgrade.v7_0_0.UpgradeLastPublishDate {
 
-	protected void addLastPublishDateColumns() throws Exception {
-		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			addLastPublishDateColumn("Calendar");
-			addLastPublishDateColumn("CalendarBooking");
-			addLastPublishDateColumn("CalendarNotificationTemplate");
-			addLastPublishDateColumn("CalendarResource");
-		}
-	}
-
 	@Override
 	protected void doUpgrade() throws Exception {
-		addLastPublishDateColumns();
+		_addLastPublishDateColumns();
 
 		updateLastPublishDates(CalendarPortletKeys.CALENDAR, "Calendar");
 		updateLastPublishDates(CalendarPortletKeys.CALENDAR, "CalendarBooking");
@@ -42,6 +33,15 @@ public class UpgradeLastPublishDate
 			CalendarPortletKeys.CALENDAR, "CalendarNotificationTemplate");
 		updateLastPublishDates(
 			CalendarPortletKeys.CALENDAR, "CalendarResource");
+	}
+
+	private void _addLastPublishDateColumns() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			addLastPublishDateColumn("Calendar");
+			addLastPublishDateColumn("CalendarBooking");
+			addLastPublishDateColumn("CalendarNotificationTemplate");
+			addLastPublishDateColumn("CalendarResource");
+		}
 	}
 
 }

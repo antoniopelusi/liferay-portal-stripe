@@ -197,6 +197,11 @@ public class BookmarksEntryWrapper
 		return model.buildTreePath();
 	}
 
+	@Override
+	public BookmarksEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this bookmarks entry.
 	 *

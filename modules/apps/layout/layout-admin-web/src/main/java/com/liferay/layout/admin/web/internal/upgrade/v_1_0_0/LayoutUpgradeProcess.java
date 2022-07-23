@@ -17,6 +17,7 @@ package com.liferay.layout.admin.web.internal.upgrade.v_1_0_0;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.sql.PreparedStatement;
@@ -29,58 +30,57 @@ public class LayoutUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateLayouts();
+		_updateLayouts();
 	}
 
-	protected void updateLayout(long plid, String typeSettings)
+	private void _updateLayout(long plid, String typeSettings)
 		throws Exception {
 
 		if (Validator.isNull(typeSettings)) {
 			return;
 		}
 
-		UnicodeProperties typeSettingsUnicodeProperties = new UnicodeProperties(
-			true);
-
-		typeSettingsUnicodeProperties.load(typeSettings);
+		UnicodeProperties typeSettingsUnicodeProperties =
+			UnicodePropertiesBuilder.create(
+				true
+			).load(
+				typeSettings
+			).build();
 
 		typeSettingsUnicodeProperties.setProperty(
-			"embeddedLayoutURL",
-			typeSettingsUnicodeProperties.getProperty("url"));
+			"embeddedLayoutURL", typeSettingsUnicodeProperties.remove("url"));
 
-		typeSettingsUnicodeProperties.remove("url");
-
-		updateTypeSettings(plid, typeSettingsUnicodeProperties.toString());
+		_updateTypeSettings(plid, typeSettingsUnicodeProperties.toString());
 	}
 
-	protected void updateLayouts() throws Exception {
+	private void _updateLayouts() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select plid, typeSettings from Layout where type_ = ?")) {
 
-			ps.setString(1, "embedded");
+			preparedStatement.setString(1, "embedded");
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					long plid = rs.getLong("plid");
-					String typeSettings = rs.getString("typeSettings");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					long plid = resultSet.getLong("plid");
+					String typeSettings = resultSet.getString("typeSettings");
 
-					updateLayout(plid, typeSettings);
+					_updateLayout(plid, typeSettings);
 				}
 			}
 		}
 	}
 
-	protected void updateTypeSettings(long plid, String typeSettings)
+	private void _updateTypeSettings(long plid, String typeSettings)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update Layout set typeSettings = ? where plid = ?")) {
 
-			ps.setString(1, typeSettings);
-			ps.setLong(2, plid);
+			preparedStatement.setString(1, typeSettings);
+			preparedStatement.setLong(2, plid);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

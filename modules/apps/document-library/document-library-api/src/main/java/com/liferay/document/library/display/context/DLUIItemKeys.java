@@ -31,6 +31,9 @@ public class DLUIItemKeys {
 	public static final String CHECKOUT =
 		DLUIItemKeys.class.getName() + "#checkout";
 
+	public static final String COLLECT_DIGITAL_SIGNATURE =
+		DLUIItemKeys.class.getName() + "#collect-digital-signature";
+
 	public static final String COMPARE_TO =
 		DLUIItemKeys.class.getName() + "#compare-to";
 
@@ -64,6 +67,9 @@ public class DLUIItemKeys {
 
 	public static final String REVERT =
 		DLUIItemKeys.class.getName() + "#revert";
+
+	public static final String UPLOAD =
+		DLUIItemKeys.class.getName() + "#upload";
 
 	public static final String VIEW_ORIGINAL_FILE =
 		DLUIItemKeys.class.getName() + "#view-original-file";

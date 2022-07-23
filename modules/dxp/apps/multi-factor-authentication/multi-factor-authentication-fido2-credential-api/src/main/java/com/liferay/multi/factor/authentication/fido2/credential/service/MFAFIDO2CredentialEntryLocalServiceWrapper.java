@@ -27,6 +27,10 @@ public class MFAFIDO2CredentialEntryLocalServiceWrapper
 	implements MFAFIDO2CredentialEntryLocalService,
 			   ServiceWrapper<MFAFIDO2CredentialEntryLocalService> {
 
+	public MFAFIDO2CredentialEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MFAFIDO2CredentialEntryLocalServiceWrapper(
 		MFAFIDO2CredentialEntryLocalService
 			mfaFIDO2CredentialEntryLocalService) {
@@ -149,6 +153,13 @@ public class MFAFIDO2CredentialEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mfaFIDO2CredentialEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mfaFIDO2CredentialEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

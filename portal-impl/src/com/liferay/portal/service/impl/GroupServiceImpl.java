@@ -16,9 +16,12 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetTag;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -46,6 +49,7 @@ import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
 import com.liferay.portal.kernel.service.permission.RolePermissionUtil;
 import com.liferay.portal.kernel.service.permission.UserPermissionUtil;
+import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
@@ -428,7 +432,7 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 
 		GroupPermissionUtil.check(getPermissionChecker(), ActionKeys.VIEW);
 
-		return groupPersistence.findByG_C_P_S(
+		return groupPersistence.findByGtG_C_P_S(
 			gtGroupId, companyId, parentGroupId, site, 0, size,
 			new GroupIdComparator(true));
 	}
@@ -620,7 +624,7 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 			long userId, String[] classNames, int max)
 		throws PortalException {
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = _userPersistence.findByPrimaryKey(userId);
 
 		boolean checkPermissions = true;
 
@@ -802,7 +806,7 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(principalException, principalException);
+				_log.debug(principalException);
 			}
 
 			GroupPermissionUtil.check(
@@ -1016,10 +1020,10 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 			Group oldGroup = group;
 
 			List<AssetCategory> oldAssetCategories =
-				assetCategoryLocalService.getCategories(
+				_assetCategoryLocalService.getCategories(
 					Group.class.getName(), groupId);
 
-			List<AssetTag> oldAssetTags = assetTagLocalService.getTags(
+			List<AssetTag> oldAssetTags = _assetTagLocalService.getTags(
 				Group.class.getName(), groupId);
 
 			ExpandoBridge oldExpandoBridge = oldGroup.getExpandoBridge();
@@ -1133,5 +1137,14 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		GroupServiceImpl.class);
+
+	@BeanReference(type = AssetCategoryLocalService.class)
+	private AssetCategoryLocalService _assetCategoryLocalService;
+
+	@BeanReference(type = AssetTagLocalService.class)
+	private AssetTagLocalService _assetTagLocalService;
+
+	@BeanReference(type = UserPersistence.class)
+	private UserPersistence _userPersistence;
 
 }

@@ -2,11 +2,13 @@
 <head>
 <title>RSSFeed</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">RSSFeed</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>UNDO_LINK</td>
@@ -102,7 +104,7 @@
 </tr>
 <tr>
 	<td>FEED_PANEL_HEADING</td>
-	<td>//fieldset[contains(@aria-labelledby,'feed_0_panelId_0Title')]//a[contains(.,'${key_feedHeading}')]</td>
+	<td>//fieldset[contains(@id,'feed_0_panelId_0')]//a[contains(.,'${key_feedHeading}')]</td>
 	<td></td>
 </tr>
 </tbody>

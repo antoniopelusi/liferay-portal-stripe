@@ -2,12 +2,29 @@
 <head>
 <title>WorkflowAllItems</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WorkflowAllItems</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>CALENDAR_ICON</td>
+	<td>//div[@class="quick-action-menu"]//button[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_COMMENT_BUTTON</td>
+	<td>//button[@type='button' and contains(.,'Add Comment')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_COMMENT_TEXTBOX</td>
+	<td>//textarea[@placeholder='Comment']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>WORKFLOW_ALL_ITEMS_SELECT_ALL</td>
 	<td>//li[@class='nav-item ml-2']//label</td>
@@ -19,8 +36,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>REASSIGN_CHECKBOX_DISABLED_BY_TITLE</td>
+	<td>//tr[@class]//td[@title='${key_itemTitle}']//..//div[contains(@class,'custom-control')]//input[@type='checkbox' and @disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REASSIGN_CHECKBOX_DISABLED</td>
+	<td>//div[contains(@class,'custom-control')]//input[@type='checkbox' and @disabled]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>REASSIGN_ICON</td>
 	<td>xpath=(//div[@class="quick-action-menu"]//button[1])[${task}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REASSIGN_ICON_2</td>
+	<td>//div[@class="quick-action-menu"]//button[3]</td>
 	<td></td>
 </tr>
 <tr>
@@ -29,8 +61,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DUE_DATE_COLUMN</td>
+	<td>//th//a[contains(@class, 'inline-item text-truncate-inline')]//span[contains(.,'Due Date')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DUE_DATE_ICON</td>
 	<td>//div[@class="quick-action-menu"]//button[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DUE_DATE_POPOVER_SLA_INFO</td>
+	<td>//div[@class='popover-body']//div[${key_slaPosition}]//div[contains(text(), '${key_slaName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -39,8 +81,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>UPDATE_DUE_DATE_DROPDOWN</td>
+	<td>//div[@class='dropdown-menu show']//button[@class='dropdown-item'][contains(text(),'Update Due Date')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>KEBAB_MENU_OPTIONS</td>
+	<td>//div[@class='dropdown-menu show']//button[@class='dropdown-item'][contains(text(),'${key_menuOption}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TRANSITION_DROPDOWN</td>
 	<td>//div[@class='dropdown-menu show']//button[@class='dropdown-item'][contains(text(),'Transition')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_DROPDOWN_KEBAB</td>
+	<td>//div[contains(@class, "dropdown-menu show")]</td>
 	<td></td>
 </tr>
 <tr>
@@ -49,13 +106,33 @@
 	<td></td>
 </tr>
 <tr>
+	<td>REJECT_DROPDOWN</td>
+	<td>//div[@class='dropdown-menu show']//button[@class='dropdown-item'][contains(text(),'Reject')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>WORKFLOW_ALL_ITEMS_SELECT_ROW</td>
-	<td>//tr['${key_rowNumber}']//label</td>
+	<td>//tr['${key_rowNumber}']//label//input[contains(@type,'checkbox')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>WORKFLOW_ALL_ITEMS_SELECTED_TEXT</td>
 	<td>//span[@class='ml-0 mr-0 navbar-text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_ASSET_TIME_LEFT</td>
+	<td>//div[contains(@class,'sla-result')]//span[@class='small'][contains(.,'${key_days}d ${key_hours}h ${key_mins}min Left')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_SLA_STATUS_TITLE</td>
+	<td>//h4[text()='Due Date by SLA']/following-sibling::h5[contains(text(), '${key_slaStatusTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_SLA_STATUS_INFO</td>
+	<td>//span[contains(text(),'${key_slaName}')]/following-sibling::span[contains(text(), '${key_slaInfo}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -99,8 +176,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DETAIL_PAGE_NOT_STARTED_SLA_NUMBER</td>
+	<td>//div[contains(@class,'modal-body')]/h5[contains(.,'NOT STARTED (${key_slaNumber})')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_GO_TO_SUBMISSION_PAGE</td>
+	<td>//button[contains(text(),'Go to Submission Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_GO_TO_SUBMISSION_PAGE_TOOLTIP</td>
+	<td>//button[contains(@title,'Open Page in a New Tab') and contains (@data-tooltip-align,'bottom')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DETAIL_PAGE_PROCESS_STATUS</td>
 	<td>//h4[contains(.,'Process Details')]//following-sibling::p[1][contains(.,'Process Status')]//following-sibling::span[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_SLA_ENGLISH_HOUR_FORMAT</td>
+	<td>//span[contains(text(),'${key_slaName}')]/following-sibling::span[contains(text(), 'PM') or contains(text(), 'AM')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -109,23 +206,88 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DETAIL_PAGE_SLA_NAME</td>
+	<td>//div[contains(@class,'modal-body')]//span[contains(.,'${key_slaName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_SLA_UNTRACKED</td>
+	<td>//div[contains(@class,'sla-result')]//span[@class='small'][contains(.,'(Untracked)')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_OPEN_SLA_NUMBER</td>
+	<td>//div[contains(@class,'modal-body')]/h5[contains(.,'OPEN (${key_slaNumber})')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_SLA_PAUSED</td>
+	<td>//div[contains(@class,'modal-body')]//span[contains(.,'SLA Paused')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DETAIL_PAGE_TITLE</td>
 	<td>//div[contains(@class,'modal-header')]/div[contains(@class,'modal-title')]</td>
 	<td></td>
 </tr>
 <tr>
-    <td>METRICS_ALL_ITEMS_TABLE_ROW</td>
-    <td>//tr[${key_rowNumber}]//td[4]</td>
-    <td></td>
+	<td>METRICS_ALL_ITEMS_TABLE_ROW</td>
+	<td>//tr[${key_rowNumber}]//td[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_PROCESS_NAME_TABLE_ROW</td>
+	<td>//tr[${key_rowNumber}]//td[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_ASSIGNEE_HEADER</td>
+	<td>//span[contains(@data-title,'Assignee')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_PROCESS_STEP_TABLE_ROW</td>
+	<td>//tr[${key_rowNumber}]//td[5]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TOOLTIP_MESSAGE</td>
+	<td>//td[contains(@data-restore-title, '${key_tooltip}')]</td>
+	<td></td>
 </tr>
 <tr>
 	<td>WORKFLOW_ALL_ITEMS_FILTER_BY</td>
-	<td>//ul[contains(@class,'navbar-nav')]//li[contains(@class,'dropdown nav-item')]//button[contains(.,'${key_allItemsFilterName}')]</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), '${key_allItemsFilterName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_ITEM_SUBJECT</td>
+	<td>//span[contains(@class, "text-truncate title") and text()="Item Subject"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_CREATION_DATE</td>
+	<td>//span[contains(@class, "text-truncate title") and text()="Creation Date"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_ITEM_ORDER</td>
+	<td>//tbody//tr[${key_order}]//td[4][@title='${key_itemSubject}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ASSIGNEE_DROPDOWN_SEARCHBAR</td>
+	<td>//div//input[@placeholder='Search for']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ASSIGNEE_DROPDOWN_SEARCHBAR_OPTION</td>
+	<td>//div[@class='dropdown-menu show']//span[text()='${key_userName}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>WORKFLOW_ALL_ITEMS_FILTER_BY_ASSIGNEE_VALUE</td>
-	<td>//div[@class='dropdown-menu show dropdown-menu-left']/ul[@class='list-unstyled']//span[contains(.,'${assigneeName}')]</td>
+	<td>//span[contains(@class, 'dropdown-item')]//span[contains(@class, 'custom-control-label-text')][contains(text(), '${assigneeName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -144,6 +306,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>WORKFLOW_ALL_ITEMS_ORDER_BY</td>
+	<td>//tr//span[@data-title="${key_orderBy}"]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>WORKFLOW_ALL_ITEMS_TABLE_CURRENT_ASSIGNEE</td>
 	<td>//div[@class='table-responsive']//table//th[contains(.,'Current Assignee')]</td>
 	<td></td>
@@ -154,8 +321,43 @@
 	<td></td>
 </tr>
 <tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_BY_INDEXES</td>
+	<td>//tr[${key_entryIndex}]//td[contains(@class,'bounded-column')][${key_itemIndex}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_DROPDOWN_DISABLED</td>
+	<td>//td[contains(@style,'padding-right')]//div[contains(@class,'dropdown')]//button[contains(@disabled,'')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_BUTTON_CREATION_DATE</td>
+	<td>//thead//tr//th[8]//a[contains(@class, "inline-item text-truncate-inline")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_ORDER</td>
+	<td>//tbody//tr[${key_order}]//td[5][@title="${key_processStep}"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_ASSIGNEE_ORDER</td>
+	<td>//tbody//tr[${key_order}]//td[6][contains(@title, "${key_assigneeName}")]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>WORKFLOW_INSTANCE_ID</td>
 	<td>//td[contains(@class,'table-title')]//strong | //span[contains(@class,'link-text')]//strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_INSTANCE_ITEMS_POSITION</td>
+	<td>//tr[${key_rowNumber}]//td[${key_itemPosition}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_DIFFERENTS_INSTANCE_ID</td>
+	<td>//tbody//tr[@class]//td[@title='${key_itemName}']//..//span[contains(@class,'link-text')]//strong </td>
 	<td></td>
 </tr>
 <tr>
@@ -169,8 +371,148 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PROCESS_STEP_FILTER</td>
+	<td>//span[contains(@class,'control-label-text') and contains(.,'${key_processFilter}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>WORKFLOW_ALL_ITEMS_SELECT_ALL_MODAL</td>
-	<td>xpath=(//li[@class='nav-item ml-2']//label)[2]</td>
+	<td>xpath=(//li[contains(@class,'nav-item')]//label//input[contains(@type,'checkbox')])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_FILTER_TAB_NAME</td>
+	<td>//div[contains(@class,'label-section')]//*[contains(text(),'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_HEADER_TITLE</td>
+	<td>//div[contains(@id,'headerTitle') and contains(text(),'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_SLA_ICON</td>
+	<td>//div[contains(@class,'sla-result')]//*[contains(@class,'lexicon-icon-${key_status}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_PAGE_SLA_DEFINITION_RESOLVED</td>
+	<td>//span[contains(@class,'small')]/../..//div[contains(.,'SLA Definition (Resolved ${key_status})')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MODAL_TITLE_ICON</td>
+	<td>//span[contains(@class,'bg-muted')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_ID</td>
+	<td>//thead//th[2][contains(text(), "ID")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_DUE_DATE</td>
+	<td>//thead//th[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_ITEM_SUBJECT</td>
+	<td>//thead//th[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_PROCESS_STEP</td>
+	<td>//thead//th[5][contains(text(), "Process Step")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_ASSIGNEE</td>
+	<td>//thead//th[6]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_CREATE_BY</td>
+	<td>//thead//th[7]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_TABLE_CREATION_DATE</td>
+	<td>//thead//th[8]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAIL_SLA_STATUS</td>
+	<td>//div[contains(@class,'modal-header')]/div[contains(@class,'modal-title')]/../..//div[contains(@class,'modal-body')]/h4[contains(.,'Due Date by SLA')]/..//div[contains(@class,'sla-result')]//*[contains(@class,'lexicon-icon-${key_status}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_ASSERT_SPAN</td>
+	<td>//span[contains(text(),'${key_columnName}')]/../../../../..//td[contains(.,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_ASSERT_TH</td>
+	<td>//th[contains(text(),'${key_columnName}')]/../../../../..//td[contains(.,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BUTTON_GO_TO_SUBMISSION_PAGE</td>
+	<td>//button[@title="Open Page in a New Tab"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_SLA_STATUS_BEFORE_TITLE</td>
+	<td>//div[contains(@class,'modal-header')]/div[contains(@class,'modal-title')]/../..//div[contains(@class,'modal-body')]/h4[contains(.,'Due Date by SLA')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WORKFLOW_ALL_ITEMS_ASSERT_ITEM</td>
+	<td>//span[contains(text(),'${key_columnName}')]/../../../../..//tr[contains(.,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECKBOX_CUSTOM_CONTROL</td>
+	<td>//input[@class='custom-control-input']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRACK_APPROVAL_PANEL</td>
+	<td>//div[contains(@class,'workflow-instance-tracker')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRACK_APPROVAL_CURRENT_NODE</td>
+	<td>//div[contains(@class,'current-node')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRACK_APPROVAL_CURRENT_NODE_LINK</td>
+	<td>//div[contains(@class,'current-node')]//a[@class='current-node-link']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRACK_APPROVAL_REACT_CONTROLS</td>
+	<td>//div[contains(@class,'react-flow__controls')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRACK_APPROVAL_NODE</td>
+	<td>//span[contains(@class, 'truncate-container')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRACK_APPROVAL_BODY</td>
+	<td>//div[contains(@class, 'modal-title') and contains(.,'Track Workflow')]//..//..//div[contains(@class,'modal-body')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CURRENT_NODE_CIRCLE_ICON</td>
+	<td>//div[contains(@class, 'current-task') and contains(@title,'${key_currentNode}')]//*[name()='svg'][contains(@class,'lexicon-icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_NAME_HOVER</td>
+	<td>//*[contains(@class, 'react-flow__edge react-flow__edge-transition')]//..//*[contains(text(),'${nameOverTransition}')]</td>
 	<td></td>
 </tr>
 </tbody>

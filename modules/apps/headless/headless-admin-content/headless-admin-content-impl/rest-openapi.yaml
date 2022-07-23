@@ -186,7 +186,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.admin.content.client', and version '2.0.3'."
+        'com.liferay.headless.admin.content.client', and version '2.0.14'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -232,8 +232,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/DisplayPageTemplate"
                                 type: array
-                    description:
-                        ""
             tags: ["DisplayPageTemplate"]
     "/sites/{siteId}/display-page-templates/{displayPageTemplateKey}":
         get:
@@ -266,8 +264,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DisplayPageTemplate"
-                    description:
-                        ""
             tags: ["DisplayPageTemplate"]
     "/sites/{siteId}/page-definitions/preview":
         # @review
@@ -296,8 +292,6 @@ paths:
                         text/html:
                             schema:
                                 type: string
-                    description:
-                        ""
             tags: ["PageDefinition"]
     "/sites/{siteId}/structured-contents":
         get:
@@ -360,41 +354,37 @@ paths:
                                 items:
                                     $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContent"]
-    "/structured-contents/{structuredContentId}":
-        get:
-            # @review
+    "/sites/{siteId}/structured-contents/draft":
+        # @review
+        post:
             description:
-                Retrieves all versions of a structured content via its ID.
-            operationId: getStructuredContentsStructuredContentPage
+                Creates a draft of a structured content
+            operationId: postSiteStructuredContentDraft
             parameters:
                 - in: path
-                  name: structuredContentId
+                  name: siteId
                   required: true
                   schema:
                       format: int64
                       type: integer
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
+                    application/xml:
+                        schema:
+                            $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
             responses:
                 200:
                     content:
                         application/json:
                             schema:
-                                items:
-                                    $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
-                                type: array
+                                $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
                         application/xml:
                             schema:
-                                items:
-                                    $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
-                                type: array
-                    description:
-                        ""
+                                $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
             tags: ["StructuredContent"]
     "/structured-contents/{structuredContentId}/by-version/{version}":
         delete:
@@ -418,10 +408,8 @@ paths:
             responses:
                 204:
                     content:
-                        application/json: { }
-                        application/xml: { }
-                    description:
-                        ""
+                        application/json: {}
+                        application/xml: {}
             tags: ["StructuredContent"]
         get:
             # @review
@@ -450,6 +438,35 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
-                    description:
-                        ""
+            tags: ["StructuredContent"]
+    "/structured-contents/{structuredContentId}/versions":
+        get:
+            # @review
+            description:
+                Retrieves all versions of a structured content via its ID.
+            operationId: getStructuredContentsVersionsPage
+            parameters:
+                - in: path
+                  name: structuredContentId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "../../headless-delivery/headless-delivery-impl/rest-openapi.yaml#StructuredContent"
+                                type: array
             tags: ["StructuredContent"]

@@ -75,17 +75,9 @@ public class Index {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{indexName=");
-		sb.append(_indexName);
-		sb.append(", tableName=");
-		sb.append(_tableName);
-		sb.append(", unique=");
-		sb.append(_unique);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{indexName=", _indexName, ", tableName=", _tableName, ", unique=",
+			_unique, "}");
 	}
 
 	private final String _indexName;

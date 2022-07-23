@@ -1,16 +1,14 @@
 @component-name = "portal-breadcrumb"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Breadcrumb";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
@@ -42,14 +40,12 @@ definition {
 				widgetName = "Breadcrumb");
 		}
 
-		task ("Add a widget template via Breadcrumb widget") {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
+		task ("Add a widget template for Breadcrumb widget") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
 
-			ApplicationDisplayTemplates.addPortletADTWithFieldEntry(
-				fieldName = "Breadcrumb Entry",
-				portletName = "Breadcrumb");
+			ApplicationDisplayTemplates.addCP(
+				adtType = "Breadcrumb",
+				fieldNameList = "Breadcrumb Entry");
 		}
 
 		task ("Select the widget template in Breadcrumb widget") {
@@ -328,7 +324,7 @@ definition {
 	@uitest
 	test DisableShowParentSite {
 		task ("Add a child site") {
-			JSONGroup.addChildSite(
+			JSONGroup.addChildGroup(
 				groupName = "Child SiteName",
 				parentGroupName = "Test Site Name");
 		}
@@ -464,11 +460,11 @@ definition {
 
 			Breadcrumb.viewPG(breadcrumbListVisible = "${siteName},Test Site Name,Test Page Name");
 
-			var key_URL = "${portalURL}";
+			var key_url = "${portalURL}";
 
 			AssertElementNotPresent(locator1 = "BreadcrumbPortlet#BREADCRUMB_PAGE_LINK");
 
-			var key_URL = "/web/guest";
+			var key_url = "/web/guest";
 
 			AssertTextEquals(
 				locator1 = "BreadcrumbPortlet#BREADCRUMB_PAGE_LINK",

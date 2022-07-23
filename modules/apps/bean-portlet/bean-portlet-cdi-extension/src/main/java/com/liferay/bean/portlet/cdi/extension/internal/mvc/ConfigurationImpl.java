@@ -38,8 +38,6 @@ public class ConfigurationImpl implements Configuration {
 	public ConfigurationImpl(
 		PortletConfig portletConfig, PortletContext portletContext) {
 
-		_properties = new HashMap<>();
-
 		Enumeration<String> enumeration = portletConfig.getInitParameterNames();
 
 		while (enumeration.hasMoreElements()) {
@@ -124,6 +122,6 @@ public class ConfigurationImpl implements Configuration {
 		return false;
 	}
 
-	private final Map<String, Object> _properties;
+	private final Map<String, Object> _properties = new HashMap<>();
 
 }

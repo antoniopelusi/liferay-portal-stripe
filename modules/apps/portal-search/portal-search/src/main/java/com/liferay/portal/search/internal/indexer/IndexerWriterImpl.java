@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Props;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.search.batch.BatchIndexingActionable;
+import com.liferay.portal.search.batch.BatchIndexingHelper;
 import com.liferay.portal.search.index.IndexStatusManager;
 import com.liferay.portal.search.index.UpdateDocumentIndexWriter;
 import com.liferay.portal.search.indexer.BaseModelRetriever;
@@ -53,6 +54,7 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 	public IndexerWriterImpl(
 		ModelSearchSettings modelSearchSettings,
 		BaseModelRetriever baseModelRetriever,
+		BatchIndexingHelper batchIndexingHelper,
 		ModelIndexerWriterContributor<T> modelIndexerWriterContributor,
 		IndexerDocumentBuilder indexerDocumentBuilder,
 		SearchPermissionIndexWriter searchPermissionIndexWriter,
@@ -62,6 +64,7 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 
 		_modelSearchSettings = modelSearchSettings;
 		_baseModelRetriever = baseModelRetriever;
+		_batchIndexingHelper = batchIndexingHelper;
 		_modelIndexerWriterContributor = modelIndexerWriterContributor;
 		_indexerDocumentBuilder = indexerDocumentBuilder;
 		_searchPermissionIndexWriter = searchPermissionIndexWriter;
@@ -105,6 +108,9 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 		BatchIndexingActionable batchIndexingActionable =
 			_modelIndexerWriterContributor.getBatchIndexingActionable();
 
+		batchIndexingActionable.setInterval(
+			_batchIndexingHelper.getBulkSize(
+				_modelSearchSettings.getClassName()));
 		batchIndexingActionable.setSearchEngineId(
 			_modelSearchSettings.getSearchEngineId());
 
@@ -136,11 +142,7 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 
 	@Override
 	public void reindex(Collection<T> baseModels) {
-		if (!isEnabled()) {
-			return;
-		}
-
-		if ((baseModels == null) || baseModels.isEmpty()) {
+		if (!isEnabled() || (baseModels == null) || baseModels.isEmpty()) {
 			return;
 		}
 
@@ -151,11 +153,7 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 
 	@Override
 	public void reindex(long classPK) {
-		if (!isEnabled()) {
-			return;
-		}
-
-		if (classPK <= 0) {
+		if (!isEnabled() || (classPK <= 0)) {
 			return;
 		}
 
@@ -168,11 +166,7 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 
 	@Override
 	public void reindex(String[] ids) {
-		if (!isEnabled()) {
-			return;
-		}
-
-		if (ArrayUtil.isEmpty(ids)) {
+		if (!isEnabled() || ArrayUtil.isEmpty(ids)) {
 			return;
 		}
 
@@ -200,14 +194,12 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 				}
 				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
-						StringBundler sb = new StringBundler(4);
-
-						sb.append("Error reindexing all ");
-						sb.append(_modelSearchSettings.getClassName());
-						sb.append(" for company: ");
-						sb.append(companyId);
-
-						_log.warn(sb.toString(), exception);
+						_log.warn(
+							StringBundler.concat(
+								"Error reindexing all ",
+								_modelSearchSettings.getClassName(),
+								" for company: ", companyId),
+							exception);
 					}
 				}
 			}
@@ -219,11 +211,7 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 
 	@Override
 	public void reindex(T baseModel) {
-		if (!isEnabled()) {
-			return;
-		}
-
-		if (baseModel == null) {
+		if (!isEnabled() || (baseModel == null)) {
 			return;
 		}
 
@@ -290,6 +278,7 @@ public class IndexerWriterImpl<T extends BaseModel<?>>
 		IndexerWriterImpl.class);
 
 	private final BaseModelRetriever _baseModelRetriever;
+	private final BatchIndexingHelper _batchIndexingHelper;
 	private final IndexerDocumentBuilder _indexerDocumentBuilder;
 	private Boolean _indexerEnabled;
 	private final IndexStatusManager _indexStatusManager;

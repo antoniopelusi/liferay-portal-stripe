@@ -185,8 +185,10 @@ JournalMoveEntriesDisplayContext journalMovesEntriesDisplayContext = new Journal
 <liferay-frontend:component
 	context='<%=
 		HashMapBuilder.<String, Object>put(
+			"inputName", "newFolderId"
+		).put(
 			"selectFolderURL", selectFolderURL
 		).build()
 	%>'
-	module="js/MoveEntries.es"
+	module="js/SelectFolderButton.es"
 />

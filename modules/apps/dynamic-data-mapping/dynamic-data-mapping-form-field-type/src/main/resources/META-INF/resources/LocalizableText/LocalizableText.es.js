@@ -19,8 +19,6 @@ import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import ClayLayout from '@clayui/layout';
 import classNames from 'classnames';
-import {usePage} from 'dynamic-data-mapping-form-renderer';
-import {delegate} from 'frontend-js-web';
 import React, {useEffect, useRef, useState} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
@@ -99,10 +97,12 @@ const LocalesDropdown = ({
 				<span className="inline-item">
 					<ClayIcon symbol={editingLocale.icon} />
 				</span>
+
 				<span className="btn-section" data-testid="triggerText">
 					{editingLocale.icon}
 				</span>
 			</ClayButton>
+
 			<ClayDropDown.Menu
 				active={dropdownActive}
 				alignElementRef={alignElementRef}
@@ -136,6 +136,7 @@ const LocalesDropdown = ({
 											<span className="inline-item inline-item-before">
 												<ClayIcon symbol={icon} />
 											</span>
+
 											{displayName}
 										</ClayLayout.ContentSection>
 									</ClayLayout.ContentCol>
@@ -204,61 +205,45 @@ const LocalizableText = ({
 		? currentInternalValue
 		: predefinedValue;
 
-	const {portletNamespace} = usePage();
-
 	useEffect(() => {
-		const onClickDDMFormSettingsButton = function () {
-			const translationManager = Liferay.component('translationManager');
+		const translationManager = Liferay.component('translationManager');
 
-			const newAvailableLocales = translationManager.get(
-				'availableLocales'
-			);
+		if (!translationManager) {
+			return;
+		}
 
-			const {availableLocales} = {
-				...transformAvailableLocales(
-					[...newAvailableLocales],
-					defaultLocale,
-					currentValue
-				),
-			};
+		const newAvailableLocales = translationManager.get('availableLocales');
 
-			const newEditingLocale = transformEditingLocale({
+		const {availableLocales} = {
+			...transformAvailableLocales(
+				[...newAvailableLocales],
 				defaultLocale,
-				editingLocale: newAvailableLocales.get(
-					translationManager.get('editingLocale')
-				),
-				value: currentValue,
-			});
-
-			setCurrentAvailableLocales(availableLocales);
-
-			setCurrentEditingLocale(newEditingLocale);
-
-			setCurrentInternalValue(
-				getEditingValue({
-					defaultLocale,
-					editingLocale: newEditingLocale,
-					fieldName,
-					value: currentValue,
-				})
-			);
+				currentValue
+			),
 		};
 
-		const clickDDMFormSettingsButton = delegate(
-			document.body,
-			'click',
-			`#${portletNamespace}ddmFormInstanceSettingsIcon`,
-			onClickDDMFormSettingsButton
-		);
+		const newEditingLocale = transformEditingLocale({
+			defaultLocale,
+			editingLocale: newAvailableLocales.get(
+				translationManager.get('editingLocale')
+			),
+			value: currentValue,
+		});
 
-		return () => clickDDMFormSettingsButton.dispose();
-	}, [
-		currentAvailableLocales,
-		currentValue,
-		defaultLocale,
-		fieldName,
-		portletNamespace,
-	]);
+		setCurrentAvailableLocales(availableLocales);
+
+		setCurrentEditingLocale(newEditingLocale);
+
+		setCurrentInternalValue(
+			getEditingValue({
+				defaultLocale,
+				editingLocale: newEditingLocale,
+				fieldName,
+				value: currentValue,
+			})
+		);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [defaultLocale, fieldName]);
 
 	return (
 		<ClayInput.Group>

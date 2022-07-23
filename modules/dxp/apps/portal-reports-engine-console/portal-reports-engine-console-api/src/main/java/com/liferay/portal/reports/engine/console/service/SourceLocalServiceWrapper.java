@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class SourceLocalServiceWrapper
 	implements ServiceWrapper<SourceLocalService>, SourceLocalService {
 
+	public SourceLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SourceLocalServiceWrapper(SourceLocalService sourceLocalService) {
 		_sourceLocalService = sourceLocalService;
 	}
@@ -144,6 +148,13 @@ public class SourceLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _sourceLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _sourceLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -178,6 +178,10 @@ public class AddressLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -424,6 +428,22 @@ public class AddressLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static List<Address> getTypeAddresses(
+		long companyId, String className, long classPK, long[] typeIds) {
+
+		return getService().getTypeAddresses(
+			companyId, className, classPK, typeIds);
+	}
+
+	public static List<Address> getTypeAddresses(
+		long companyId, String className, long classPK, long[] typeIds,
+		int start, int end, OrderByComparator<Address> orderByComparator) {
+
+		return getService().getTypeAddresses(
+			companyId, className, classPK, typeIds, start, end,
+			orderByComparator);
 	}
 
 	public static com.liferay.portal.kernel.search.BaseModelSearchResult

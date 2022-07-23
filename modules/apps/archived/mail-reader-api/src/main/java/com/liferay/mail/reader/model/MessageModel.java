@@ -374,4 +374,7 @@ public interface MessageModel
 	 */
 	public void setContentType(String contentType);
 
+	@Override
+	public Message cloneWithOriginalValues();
+
 }

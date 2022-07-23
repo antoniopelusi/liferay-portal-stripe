@@ -82,6 +82,11 @@ public class BrowserTrackerWrapper
 		}
 	}
 
+	@Override
+	public BrowserTracker cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the browser key of this browser tracker.
 	 *

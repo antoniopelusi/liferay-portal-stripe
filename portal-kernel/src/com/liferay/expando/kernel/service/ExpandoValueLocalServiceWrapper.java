@@ -30,6 +30,10 @@ public class ExpandoValueLocalServiceWrapper
 	implements ExpandoValueLocalService,
 			   ServiceWrapper<ExpandoValueLocalService> {
 
+	public ExpandoValueLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ExpandoValueLocalServiceWrapper(
 		ExpandoValueLocalService expandoValueLocalService) {
 
@@ -198,12 +202,12 @@ public class ExpandoValueLocalServiceWrapper
 			long companyId, String className, String tableName,
 			String columnName, long classPK,
 			java.util.Map<java.util.Locale, ?> dataMap,
-			java.util.Locale defautlLocale)
+			java.util.Locale defaultLocale)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _expandoValueLocalService.addValue(
 			companyId, className, tableName, columnName, classPK, dataMap,
-			defautlLocale);
+			defaultLocale);
 	}
 
 	@Override
@@ -441,6 +445,13 @@ public class ExpandoValueLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _expandoValueLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _expandoValueLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

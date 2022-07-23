@@ -173,6 +173,13 @@ public abstract class KaleoTaskAssignmentLocalServiceBaseImpl
 	}
 
 	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
+	@Override
 	public DynamicQuery dynamicQuery() {
 		Class<?> clazz = getClass();
 
@@ -574,10 +581,6 @@ public abstract class KaleoTaskAssignmentLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService
 		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.RoleLocalService
-		roleLocalService;
 
 	@Reference
 	protected com.liferay.portal.kernel.service.UserLocalService

@@ -14,11 +14,14 @@
 
 package com.liferay.util.transport;
 
+import com.liferay.portal.kernel.util.Validator;
+
 import java.io.IOException;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,13 +37,17 @@ import org.apache.commons.logging.LogFactory;
  */
 public class MulticastTransport extends Thread implements Transport {
 
-	public MulticastTransport(DatagramHandler handler, String host, int port) {
-		super("MulticastListener-" + host + port);
+	public MulticastTransport(
+		DatagramHandler handler, String multicastAddress, int port,
+		String bindAddress) {
+
+		super("MulticastListener-" + multicastAddress + port);
 
 		setDaemon(true);
 		_handler = handler;
-		_host = host;
+		_multicastAddress = multicastAddress;
 		_port = port;
+		_bindAddress = bindAddress;
 	}
 
 	@Override
@@ -52,9 +59,15 @@ public class MulticastTransport extends Thread implements Transport {
 			return;
 		}
 
-		_address = InetAddress.getByName(_host);
+		_address = InetAddress.getByName(_multicastAddress);
 
 		_socket.joinGroup(_address);
+
+		if (Validator.isNotNull(_bindAddress)) {
+			_socket.setNetworkInterface(
+				NetworkInterface.getByInetAddress(
+					InetAddress.getByName(_bindAddress)));
+		}
 
 		_connected = true;
 
@@ -131,12 +144,13 @@ public class MulticastTransport extends Thread implements Transport {
 	private static final Log _log = LogFactory.getLog(MulticastTransport.class);
 
 	private InetAddress _address;
+	private final String _bindAddress;
 	private boolean _connected;
 	private final DatagramHandler _handler;
-	private final String _host;
 	private final byte[] _inboundBuffer = new byte[4096];
 	private final DatagramPacket _inboundPacket = new DatagramPacket(
 		_inboundBuffer, _inboundBuffer.length);
+	private final String _multicastAddress;
 	private final byte[] _outboundBuffer = new byte[4096];
 	private final DatagramPacket _outboundPacket = new DatagramPacket(
 		_outboundBuffer, _outboundBuffer.length);

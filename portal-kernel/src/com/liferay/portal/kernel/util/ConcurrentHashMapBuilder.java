@@ -23,6 +23,31 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ConcurrentHashMapBuilder<K, V> extends BaseMapBuilder {
 
+	public static <K, V> ConcurrentHashMapWrapper<K, V> create(
+		int initialCapacity) {
+
+		return new ConcurrentHashMapWrapper<>(initialCapacity);
+	}
+
+	public static <K, V> ConcurrentHashMapWrapper<K, V> create(
+		int initialCapacity, float loadFactor) {
+
+		return new ConcurrentHashMapWrapper<>(initialCapacity, loadFactor);
+	}
+
+	public static <K, V> ConcurrentHashMapWrapper<K, V> create(
+		int initialCapacity, float loadFactor, int concurrencyLevel) {
+
+		return new ConcurrentHashMapWrapper<>(
+			initialCapacity, loadFactor, concurrencyLevel);
+	}
+
+	public static <K, V> ConcurrentHashMapWrapper<K, V> create(
+		Map<? extends K, ? extends V> map) {
+
+		return new ConcurrentHashMapWrapper<>(map);
+	}
+
 	public static <K, V> ConcurrentHashMapWrapper<K, V> put(
 		Collection<? extends K> inputCollection,
 		UnsafeFunction<K, V, Exception> unsafeFunction) {
@@ -81,6 +106,30 @@ public class ConcurrentHashMapBuilder<K, V> extends BaseMapBuilder {
 	public static final class ConcurrentHashMapWrapper<K, V>
 		extends BaseMapWrapper<K, V> {
 
+		public ConcurrentHashMapWrapper() {
+			_concurrentHashMap = new ConcurrentHashMap<>();
+		}
+
+		public ConcurrentHashMapWrapper(int initialCapacity) {
+			_concurrentHashMap = new ConcurrentHashMap<>(initialCapacity);
+		}
+
+		public ConcurrentHashMapWrapper(int initialCapacity, float loadFactor) {
+			_concurrentHashMap = new ConcurrentHashMap<>(
+				initialCapacity, loadFactor);
+		}
+
+		public ConcurrentHashMapWrapper(
+			int initialCapacity, float loadFactor, int concurrencyLevel) {
+
+			_concurrentHashMap = new ConcurrentHashMap<>(
+				initialCapacity, loadFactor, concurrencyLevel);
+		}
+
+		public ConcurrentHashMapWrapper(Map<? extends K, ? extends V> map) {
+			_concurrentHashMap = new ConcurrentHashMap<>(map);
+		}
+
 		public ConcurrentHashMap<K, V> build() {
 			return _concurrentHashMap;
 		}
@@ -138,8 +187,7 @@ public class ConcurrentHashMapBuilder<K, V> extends BaseMapBuilder {
 			return _concurrentHashMap;
 		}
 
-		private final ConcurrentHashMap<K, V> _concurrentHashMap =
-			new ConcurrentHashMap<>();
+		private final ConcurrentHashMap<K, V> _concurrentHashMap;
 
 	}
 

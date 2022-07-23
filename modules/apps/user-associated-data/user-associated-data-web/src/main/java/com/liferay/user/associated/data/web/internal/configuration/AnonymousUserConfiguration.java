@@ -22,7 +22,8 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
  * @author Drew Brokke
  */
 @ExtendedObjectClassDefinition(
-	category = "users", scope = ExtendedObjectClassDefinition.Scope.COMPANY
+	category = "users", scope = ExtendedObjectClassDefinition.Scope.COMPANY,
+	strictScope = true
 )
 @Meta.OCD(
 	id = "com.liferay.user.associated.data.web.internal.configuration.AnonymousUserConfiguration",
@@ -30,12 +31,6 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 	name = "anonymous-user-configuration-name"
 )
 public interface AnonymousUserConfiguration {
-
-	@Meta.AD(
-		deflt = "0", description = "company-id-description",
-		name = "company-id", required = false
-	)
-	public long companyId();
 
 	@Meta.AD(
 		deflt = "0", description = "user-id-description", name = "user-id",

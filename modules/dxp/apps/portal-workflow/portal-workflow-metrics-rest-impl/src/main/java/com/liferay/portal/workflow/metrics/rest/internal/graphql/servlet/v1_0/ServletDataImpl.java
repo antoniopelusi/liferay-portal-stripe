@@ -27,9 +27,11 @@ import com.liferay.portal.workflow.metrics.rest.resource.v1_0.NodeMetricResource
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.NodeResource;
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.ProcessMetricResource;
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.ProcessResource;
+import com.liferay.portal.workflow.metrics.rest.resource.v1_0.ProcessVersionResource;
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.ReindexStatusResource;
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.RoleResource;
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.SLAResource;
+import com.liferay.portal.workflow.metrics.rest.resource.v1_0.SLAResultResource;
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.TaskResource;
 import com.liferay.portal.workflow.metrics.rest.resource.v1_0.TimeRangeResource;
 
@@ -85,12 +87,16 @@ public class ServletDataImpl implements ServletData {
 			_processResourceComponentServiceObjects);
 		Query.setProcessMetricResourceComponentServiceObjects(
 			_processMetricResourceComponentServiceObjects);
+		Query.setProcessVersionResourceComponentServiceObjects(
+			_processVersionResourceComponentServiceObjects);
 		Query.setReindexStatusResourceComponentServiceObjects(
 			_reindexStatusResourceComponentServiceObjects);
 		Query.setRoleResourceComponentServiceObjects(
 			_roleResourceComponentServiceObjects);
 		Query.setSLAResourceComponentServiceObjects(
 			_slaResourceComponentServiceObjects);
+		Query.setSLAResultResourceComponentServiceObjects(
+			_slaResultResourceComponentServiceObjects);
 		Query.setTaskResourceComponentServiceObjects(
 			_taskResourceComponentServiceObjects);
 		Query.setTimeRangeResourceComponentServiceObjects(
@@ -161,12 +167,20 @@ public class ServletDataImpl implements ServletData {
 		_processMetricResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<ProcessVersionResource>
+		_processVersionResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<ReindexStatusResource>
 		_reindexStatusResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<RoleResource>
 		_roleResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<SLAResultResource>
+		_slaResultResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<TimeRangeResource>

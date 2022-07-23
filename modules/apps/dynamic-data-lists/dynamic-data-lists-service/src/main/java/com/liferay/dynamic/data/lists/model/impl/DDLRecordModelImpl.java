@@ -16,7 +16,6 @@ package com.liferay.dynamic.data.lists.model.impl;
 
 import com.liferay.dynamic.data.lists.model.DDLRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecordModel;
-import com.liferay.dynamic.data.lists.model.DDLRecordSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -199,67 +197,6 @@ public class DDLRecordModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DDLRecord toModel(DDLRecordSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DDLRecord model = new DDLRecordImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setRecordId(soapModel.getRecordId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setVersionUserId(soapModel.getVersionUserId());
-		model.setVersionUserName(soapModel.getVersionUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setDDMStorageId(soapModel.getDDMStorageId());
-		model.setRecordSetId(soapModel.getRecordSetId());
-		model.setRecordSetVersion(soapModel.getRecordSetVersion());
-		model.setClassName(soapModel.getClassName());
-		model.setClassPK(soapModel.getClassPK());
-		model.setVersion(soapModel.getVersion());
-		model.setDisplayIndex(soapModel.getDisplayIndex());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DDLRecord> toModels(DDLRecordSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DDLRecord> models = new ArrayList<DDLRecord>(soapModels.length);
-
-		for (DDLRecordSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DDLRecordModelImpl() {
 	}
 
@@ -342,34 +279,6 @@ public class DDLRecordModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DDLRecord>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DDLRecord.class.getClassLoader(), DDLRecord.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DDLRecord> constructor =
-				(Constructor<DDLRecord>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DDLRecord, Object>>
@@ -1001,6 +910,50 @@ public class DDLRecordModelImpl
 	}
 
 	@Override
+	public DDLRecord cloneWithOriginalValues() {
+		DDLRecordImpl ddlRecordImpl = new DDLRecordImpl();
+
+		ddlRecordImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ddlRecordImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ddlRecordImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		ddlRecordImpl.setRecordId(
+			this.<Long>getColumnOriginalValue("recordId"));
+		ddlRecordImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		ddlRecordImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ddlRecordImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		ddlRecordImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		ddlRecordImpl.setVersionUserId(
+			this.<Long>getColumnOriginalValue("versionUserId"));
+		ddlRecordImpl.setVersionUserName(
+			this.<String>getColumnOriginalValue("versionUserName"));
+		ddlRecordImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ddlRecordImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		ddlRecordImpl.setDDMStorageId(
+			this.<Long>getColumnOriginalValue("DDMStorageId"));
+		ddlRecordImpl.setRecordSetId(
+			this.<Long>getColumnOriginalValue("recordSetId"));
+		ddlRecordImpl.setRecordSetVersion(
+			this.<String>getColumnOriginalValue("recordSetVersion"));
+		ddlRecordImpl.setClassName(
+			this.<String>getColumnOriginalValue("className"));
+		ddlRecordImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		ddlRecordImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		ddlRecordImpl.setDisplayIndex(
+			this.<Integer>getColumnOriginalValue("displayIndex"));
+		ddlRecordImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return ddlRecordImpl;
+	}
+
+	@Override
 	public int compareTo(DDLRecord ddlRecord) {
 		long primaryKey = ddlRecord.getPrimaryKey();
 
@@ -1179,7 +1132,7 @@ public class DDLRecordModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1190,9 +1143,26 @@ public class DDLRecordModelImpl
 			Function<DDLRecord, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DDLRecord)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DDLRecord)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1239,7 +1209,9 @@ public class DDLRecordModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DDLRecord>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DDLRecord.class, ModelWrapper.class);
 
 	}
 

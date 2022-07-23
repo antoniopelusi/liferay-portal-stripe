@@ -135,13 +135,20 @@ public class RepositoryLocalServiceUtil {
 	 *
 	 * @param repository the repository
 	 * @return the repository that was removed
+	 * @throws PortalException
 	 */
-	public static Repository deleteRepository(Repository repository) {
+	public static Repository deleteRepository(Repository repository)
+		throws PortalException {
+
 		return getService().deleteRepository(repository);
 	}
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {

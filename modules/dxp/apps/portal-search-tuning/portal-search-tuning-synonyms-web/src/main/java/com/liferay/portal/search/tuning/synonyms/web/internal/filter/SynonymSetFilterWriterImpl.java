@@ -16,6 +16,7 @@ package com.liferay.portal.search.tuning.synonyms.web.internal.filter;
 
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
 import com.liferay.portal.search.engine.adapter.index.CloseIndexRequest;
 import com.liferay.portal.search.engine.adapter.index.OpenIndexRequest;
@@ -32,25 +33,36 @@ public class SynonymSetFilterWriterImpl implements SynonymSetFilterWriter {
 
 	@Override
 	public void updateSynonymSets(
-		String companyIndexName, String filterName, String[] synonymSets) {
+		String companyIndexName, String filterName, String[] synonymSets,
+		boolean deletion) {
 
-		closeIndex(companyIndexName);
+		if (ArrayUtil.isEmpty(synonymSets) && !deletion) {
+			return;
+		}
+
+		_closeIndex(companyIndexName);
 
 		try {
 			UpdateIndexSettingsIndexRequest updateIndexSettingsIndexRequest =
 				new UpdateIndexSettingsIndexRequest(companyIndexName);
 
 			updateIndexSettingsIndexRequest.setSettings(
-				buildSettings(filterName, synonymSets));
+				_buildSettings(filterName, synonymSets));
 
 			searchEngineAdapter.execute(updateIndexSettingsIndexRequest);
 		}
 		finally {
-			openIndex(companyIndexName);
+			_openIndex(companyIndexName);
 		}
 	}
 
-	protected String buildSettings(String filterName, String[] synonymSets) {
+	@Reference
+	protected JSONFactory jsonFactory;
+
+	@Reference
+	protected SearchEngineAdapter searchEngineAdapter;
+
+	private String _buildSettings(String filterName, String[] synonymSets) {
 		return JSONUtil.put(
 			"analysis",
 			JSONUtil.put(
@@ -67,24 +79,18 @@ public class SynonymSetFilterWriterImpl implements SynonymSetFilterWriter {
 		).toString();
 	}
 
-	protected void closeIndex(String indexName) {
+	private void _closeIndex(String indexName) {
 		CloseIndexRequest closeIndexRequest = new CloseIndexRequest(indexName);
 
 		searchEngineAdapter.execute(closeIndexRequest);
 	}
 
-	protected void openIndex(String indexName) {
+	private void _openIndex(String indexName) {
 		OpenIndexRequest openIndexRequest = new OpenIndexRequest(indexName);
 
 		openIndexRequest.setWaitForActiveShards(1);
 
 		searchEngineAdapter.execute(openIndexRequest);
 	}
-
-	@Reference
-	protected JSONFactory jsonFactory;
-
-	@Reference
-	protected SearchEngineAdapter searchEngineAdapter;
 
 }

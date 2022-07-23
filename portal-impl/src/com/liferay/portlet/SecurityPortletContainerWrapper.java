@@ -55,16 +55,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class SecurityPortletContainerWrapper implements PortletContainer {
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static PortletContainer createSecurityPortletContainerWrapper(
-		PortletContainer portletContainer) {
-
-		return new SecurityPortletContainerWrapper(portletContainer);
-	}
-
 	public SecurityPortletContainerWrapper(PortletContainer portletContainer) {
 		_portletContainer = portletContainer;
 	}
@@ -149,7 +139,7 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(principalException, principalException);
+				_log.debug(principalException);
 			}
 
 			processRenderException(
@@ -180,7 +170,7 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(principalException, principalException);
+				_log.debug(principalException);
 			}
 
 			processRenderException(
@@ -402,10 +392,13 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 		PrincipalException principalException) {
 
 		if (_log.isDebugEnabled()) {
-			_log.debug(principalException, principalException);
+			_log.debug(principalException);
 		}
 
-		if (_log.isWarnEnabled()) {
+		if (_log.isWarnEnabled() &&
+			!(principalException instanceof
+				PrincipalException.MustHaveSessionCSRFToken)) {
+
 			String url = getOriginalURL(httpServletRequest);
 
 			_log.warn(
@@ -456,7 +449,7 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 		PrincipalException principalException) {
 
 		if (_log.isDebugEnabled()) {
-			_log.debug(principalException, principalException);
+			_log.debug(principalException);
 		}
 
 		httpServletResponse.setHeader(
@@ -464,6 +457,12 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 			HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE);
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+		if (principalException instanceof
+				PrincipalException.MustHaveSessionCSRFToken) {
+
+			return;
+		}
 
 		if (_log.isWarnEnabled()) {
 			String url = getOriginalURL(httpServletRequest);

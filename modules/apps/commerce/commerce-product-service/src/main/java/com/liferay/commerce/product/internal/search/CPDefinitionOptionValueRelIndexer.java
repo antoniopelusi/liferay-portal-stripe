@@ -193,13 +193,13 @@ public class CPDefinitionOptionValueRelIndexer
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCPDefinitionOptionValueRels(companyId);
+		_reindexCPDefinitionOptionValueRels(companyId);
 	}
 
-	protected void reindexCPDefinitionOptionValueRels(long companyId)
-		throws PortalException {
+	private void _reindexCPDefinitionOptionValueRels(long companyId)
+		throws Exception {
 
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_cpDefinitionOptionValueRelLocalService.
 				getIndexableActionableDynamicQuery();
 

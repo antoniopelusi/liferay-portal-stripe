@@ -16,13 +16,20 @@ package com.liferay.poshi.core.elements;
 
 import com.liferay.poshi.core.PoshiContext;
 import com.liferay.poshi.core.script.PoshiScriptParserException;
+import com.liferay.poshi.core.script.PoshiScriptParserUtil;
+import com.liferay.poshi.core.util.CharPool;
+import com.liferay.poshi.core.util.ListUtil;
+import com.liferay.poshi.core.util.NaturalOrderStringComparator;
 import com.liferay.poshi.core.util.RegexUtil;
 import com.liferay.poshi.core.util.StringUtil;
 import com.liferay.poshi.core.util.Validator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -70,31 +77,16 @@ public class ExecutePoshiElement extends PoshiElement {
 
 			addAttribute("selenium", getCommandName(poshiScript));
 
-			List<String> methodParameters = getMethodParameters(
-				poshiScriptParentheticalContent);
-
-			for (int i = 0; i < methodParameters.size(); i++) {
-				String methodParameter = methodParameters.get(i);
-
-				String value = getDoubleQuotedContent(methodParameter);
-
-				addAttribute("argument" + (i + 1), value);
-			}
-
-			return;
-		}
-
-		if (isValidUtilityClassName(poshiScript)) {
-			addAttribute("class", getClassName(poshiScript));
-			addAttribute("method", getCommandName(poshiScript));
-
-			if (!PoshiContext.ignoreUtilClassesErrors()) {
-				List<String> methodParameters = getMethodParameters(
+			List<String> methodParameterValues =
+				PoshiScriptParserUtil.getMethodParameterValues(
 					poshiScriptParentheticalContent);
 
-				for (String methodParameter : methodParameters) {
-					add(PoshiNodeFactory.newPoshiNode(this, methodParameter));
-				}
+			for (int i = 0; i < methodParameterValues.size(); i++) {
+				String methodParameterValue = methodParameterValues.get(i);
+
+				addAttribute(
+					"argument" + (i + 1),
+					getDoubleQuotedContent(methodParameterValue));
 			}
 
 			return;
@@ -131,12 +123,10 @@ public class ExecutePoshiElement extends PoshiElement {
 				executeCommandName, '.', '#');
 		}
 
-		if (fileExtension.equals("function") ||
-			isValidFunctionFileName(poshiScript)) {
-
+		if (isValidFunctionFileName(poshiScript)) {
 			addAttribute("function", executeCommandName);
 		}
-		else {
+		else if (isValidMacroFileName(poshiScript)) {
 			addAttribute("macro", executeCommandName);
 
 			if (poshiScript.startsWith("var ")) {
@@ -148,25 +138,55 @@ public class ExecutePoshiElement extends PoshiElement {
 				}
 			}
 		}
+		else {
+			addAttribute("class", getClassName(poshiScript));
+			addAttribute("method", getCommandName(poshiScript));
 
-		for (String parameter :
-				getMethodParameters(
+			for (String methodParameterValue :
+					PoshiScriptParserUtil.getMethodParameterValues(
+						poshiScriptParentheticalContent)) {
+
+				add(PoshiNodeFactory.newPoshiNode(this, methodParameterValue));
+			}
+
+			return;
+		}
+
+		for (String methodParameterValue :
+				PoshiScriptParserUtil.getMethodParameterValues(
 					poshiScriptParentheticalContent,
 					_executeParameterPattern)) {
 
-			parameter = parameter.trim();
+			methodParameterValue = methodParameterValue.trim();
 
 			boolean functionAttributeAdded = false;
 
 			for (String functionAttributeName : _functionAttributeNames) {
-				if (parameter.startsWith(functionAttributeName)) {
-					String name = getNameFromAssignment(parameter);
+				String name = getNameFromAssignment(methodParameterValue);
 
-					String value = getDoubleQuotedContent(parameter);
+				if (name.equals(functionAttributeName)) {
+					String value = getValueFromAssignment(methodParameterValue);
+
+					Matcher matcher = quotedPattern.matcher(value);
+
+					if (!matcher.matches()) {
+						StringBuilder sb = new StringBuilder();
+
+						sb.append("Invalid function parameter syntax, must ");
+						sb.append("match: (locator|value)(1|2) = \".*\"");
+
+						throw new PoshiScriptParserException(
+							sb.toString(), methodParameterValue,
+							(PoshiElement)getParent());
+					}
+
+					value = getDoubleQuotedContent(value);
 
 					value = StringEscapeUtils.unescapeXml(value);
 
-					add(new PoshiElementAttribute(name, value, parameter));
+					add(
+						new PoshiElementAttribute(
+							name, value, methodParameterValue));
 
 					functionAttributeAdded = true;
 
@@ -178,7 +198,7 @@ public class ExecutePoshiElement extends PoshiElement {
 				continue;
 			}
 
-			add(PoshiNodeFactory.newPoshiNode(this, parameter));
+			add(PoshiNodeFactory.newPoshiNode(this, methodParameterValue));
 		}
 	}
 
@@ -286,52 +306,69 @@ public class ExecutePoshiElement extends PoshiElement {
 	protected String createPoshiScriptSnippet(List<String> assignments) {
 		StringBuilder sb = new StringBuilder();
 
-		String blockName = getBlockName();
 		String pad = getPad();
 
 		sb.append("\n\n");
 		sb.append(pad);
-		sb.append(StringUtil.replace(blockName, '#', '.'));
+		sb.append(StringUtil.replace(getBlockName(), '#', '.'));
 		sb.append("(");
 
 		boolean multilineSnippet = false;
 
-		String assignmentsString = assignments.toString();
+		String assignmentsString = ListUtil.toString(assignments);
 
-		int invocationStringLength =
-			blockName.length() + assignmentsString.length();
-
-		if ((invocationStringLength > 80) &&
+		if ((assignments.size() > 1) &&
+			assignmentsString.matches("(?s)\\w+\\s*=.+") &&
 			!isConditionValidInParent((PoshiElement)getParent())) {
 
 			multilineSnippet = true;
 		}
 
+		Collections.sort(
+			assignments,
+			new Comparator<String>() {
+
+				@Override
+				public int compare(String assignment1, String assignment2) {
+					if (!assignment1.matches("\\w+ = .+") &&
+						!assignment2.matches("\\w+ = .+")) {
+
+						return 0;
+					}
+
+					String name1 = assignment1.substring(
+						0, assignment1.indexOf(CharPool.EQUAL));
+					String name2 = assignment2.substring(
+						0, assignment2.indexOf(CharPool.EQUAL));
+
+					NaturalOrderStringComparator naturalOrderStringComparator =
+						new NaturalOrderStringComparator();
+
+					return naturalOrderStringComparator.compare(name1, name2);
+				}
+
+			});
+
 		for (String assignment : assignments) {
+			String s = sb.toString();
+
+			s = s.substring(s.lastIndexOf("\n"));
+
 			if (multilineSnippet) {
+				if (s.endsWith(" ")) {
+					sb.setLength(sb.length() - 1);
+				}
+
 				sb.append("\n\t");
 				sb.append(pad);
 			}
 
 			sb.append(assignment);
-			sb.append(",");
-
-			if (!multilineSnippet) {
-				sb.append(" ");
-			}
+			sb.append(", ");
 		}
 
 		if (!assignments.isEmpty()) {
-			sb.setLength(sb.length() - 1);
-
-			if (!multilineSnippet) {
-				sb.setLength(sb.length() - 1);
-			}
-		}
-
-		if (multilineSnippet) {
-			sb.append("\n");
-			sb.append(pad);
+			sb.setLength(sb.length() - 2);
 		}
 
 		sb.append(");");
@@ -368,7 +405,8 @@ public class ExecutePoshiElement extends PoshiElement {
 			!isValidPoshiScriptStatement(
 				_utilityInvocationStatementPattern, poshiScript)) {
 
-			return isBalancedPoshiScript(getParentheticalContent(poshiScript));
+			return PoshiScriptParserUtil.isBalancedPoshiScript(
+				getParentheticalContent(poshiScript));
 		}
 
 		return false;
@@ -384,7 +422,7 @@ public class ExecutePoshiElement extends PoshiElement {
 			"\\w*\\s=\\s*[\\w\\.]*\\(.*?\\))[\\s]*$",
 		Pattern.DOTALL);
 	private static final List<String> _functionAttributeNames = Arrays.asList(
-		"locator1", "locator2", "value1", "value2");
+		"locator1", "locator2", "value1", "value2", "value3");
 	private static final Pattern _statementPattern = Pattern.compile(
 		"^" + INVOCATION_REGEX + STATEMENT_END_REGEX, Pattern.DOTALL);
 	private static final Pattern _utilityInvocationStatementPattern =

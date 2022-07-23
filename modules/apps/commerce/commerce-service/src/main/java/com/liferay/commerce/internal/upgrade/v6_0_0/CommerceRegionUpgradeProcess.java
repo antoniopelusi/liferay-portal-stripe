@@ -16,7 +16,7 @@ package com.liferay.commerce.internal.upgrade.v6_0_0;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.Region;
-import com.liferay.portal.kernel.service.RegionLocalServiceUtil;
+import com.liferay.portal.kernel.service.RegionLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
 import java.sql.ResultSet;
@@ -29,22 +29,27 @@ import java.util.Date;
  */
 public class CommerceRegionUpgradeProcess extends UpgradeProcess {
 
+	public CommerceRegionUpgradeProcess(RegionLocalService regionLocalService) {
+		_regionLocalService = regionLocalService;
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
 		try (Statement selectStatement = connection.createStatement()) {
-			ResultSet rs = selectStatement.executeQuery(
+			ResultSet resultSet = selectStatement.executeQuery(
 				"select * from CommerceRegion order by commerceRegionId asc");
 
-			while (rs.next()) {
-				boolean active = rs.getBoolean("active_");
-				String code = rs.getString("code_");
-				long commerceCountryId = rs.getLong("commerceCountryId");
-				long commerceRegionId = rs.getLong("commerceRegionId");
-				Date lastPublishDate = rs.getTimestamp("lastPublishDate");
-				String name = rs.getString("name");
-				Double priority = rs.getDouble("priority");
+			while (resultSet.next()) {
+				boolean active = resultSet.getBoolean("active_");
+				String code = resultSet.getString("code_");
+				long commerceCountryId = resultSet.getLong("commerceCountryId");
+				long commerceRegionId = resultSet.getLong("commerceRegionId");
+				Date lastPublishDate = resultSet.getTimestamp(
+					"lastPublishDate");
+				String name = resultSet.getString("name");
+				Double priority = resultSet.getDouble("priority");
 
-				Region region = RegionLocalServiceUtil.fetchRegion(
+				Region region = _regionLocalService.fetchRegion(
 					commerceCountryId, code);
 
 				if (region != null) {
@@ -53,11 +58,13 @@ public class CommerceRegionUpgradeProcess extends UpgradeProcess {
 				}
 				else {
 					region = _addRegion(
-						commerceRegionId, rs.getLong("companyId"),
-						rs.getLong("userId"), rs.getString("userName"),
-						rs.getTimestamp("createDate"),
-						rs.getTimestamp("modifiedDate"), commerceCountryId,
-						active, name, priority, code, lastPublishDate);
+						commerceRegionId, resultSet.getLong("companyId"),
+						resultSet.getLong("userId"),
+						resultSet.getString("userName"),
+						resultSet.getTimestamp("createDate"),
+						resultSet.getTimestamp("modifiedDate"),
+						commerceCountryId, active, name, priority, code,
+						lastPublishDate);
 				}
 
 				if (region.getRegionId() != commerceRegionId) {
@@ -77,11 +84,11 @@ public class CommerceRegionUpgradeProcess extends UpgradeProcess {
 		Date createDate, Date modifiedDate, long countryId, boolean active,
 		String name, Double position, String regionCode, Date lastPublishDate) {
 
-		if (RegionLocalServiceUtil.fetchRegion(regionId) != null) {
+		if (_regionLocalService.fetchRegion(regionId) != null) {
 			regionId = increment();
 		}
 
-		Region region = RegionLocalServiceUtil.createRegion(regionId);
+		Region region = _regionLocalService.createRegion(regionId);
 
 		region.setCompanyId(companyId);
 		region.setUserId(userId);
@@ -95,7 +102,7 @@ public class CommerceRegionUpgradeProcess extends UpgradeProcess {
 		region.setRegionCode(regionCode);
 		region.setLastPublishDate(lastPublishDate);
 
-		return RegionLocalServiceUtil.addRegion(region);
+		return _regionLocalService.addRegion(region);
 	}
 
 	private Region _updateRegion(
@@ -108,28 +115,24 @@ public class CommerceRegionUpgradeProcess extends UpgradeProcess {
 		region.setRegionCode(regionCode);
 		region.setLastPublishDate(lastPublishDate);
 
-		return RegionLocalServiceUtil.updateRegion(region);
+		return _regionLocalService.updateRegion(region);
 	}
 
 	private void _updateRegionId(
 			String tableName, long newRegionId, long oldRegionId)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("update ");
-		sb.append(tableName);
-		sb.append(" set regionId = ");
-		sb.append(newRegionId);
-		sb.append(" where regionId = ");
-		sb.append(oldRegionId);
-
-		runSQL(sb.toString());
+		runSQL(
+			StringBundler.concat(
+				"update ", tableName, " set regionId = ", newRegionId,
+				" where regionId = ", oldRegionId));
 	}
 
 	private static final String[] _TABLE_NAMES = {
 		"CommerceAddress", "CommerceTaxFixedRateAddressRel",
 		"CShippingFixedOptionRel"
 	};
+
+	private final RegionLocalService _regionLocalService;
 
 }

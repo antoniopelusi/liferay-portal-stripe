@@ -115,22 +115,20 @@ public class AddSegmentsExperimentMVCActionCommand
 				ParamUtil.getString(actionRequest, "goalTarget"),
 				ServiceContextFactory.getInstance(actionRequest));
 
-		JSONObject jsonObject = JSONUtil.put(
-			"segmentsExperiment",
-			SegmentsExperimentUtil.toSegmentsExperimentJSONObject(
-				themeDisplay.getLocale(), segmentsExperiment));
-
 		SegmentsExperimentRel segmentsExperimentRel =
 			_segmentsExperimentRelService.getSegmentsExperimentRel(
 				segmentsExperiment.getSegmentsExperimentId(),
 				segmentsExperiment.getSegmentsExperienceId());
 
-		jsonObject.put(
+		return JSONUtil.put(
+			"segmentsExperiment",
+			SegmentsExperimentUtil.toSegmentsExperimentJSONObject(
+				themeDisplay.getLocale(), segmentsExperiment)
+		).put(
 			"segmentsExperimentRel",
 			SegmentsExperimentUtil.toSegmentsExperimentRelJSONObject(
-				themeDisplay.getLocale(), segmentsExperimentRel));
-
-		return jsonObject;
+				themeDisplay.getLocale(), segmentsExperimentRel)
+		);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

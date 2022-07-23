@@ -20,6 +20,7 @@ import com.liferay.dynamic.data.mapping.exception.StructureDefinitionException;
 import com.liferay.dynamic.data.mapping.exception.StructureLayoutException;
 import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormContextDeserializer;
 import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormContextDeserializerRequest;
+import com.liferay.dynamic.data.mapping.form.web.internal.portlet.action.helper.SaveFormInstanceMVCCommandHelper;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
@@ -88,7 +89,7 @@ public class SaveStructureMVCActionCommand extends BaseMVCActionCommand {
 		Map<Locale, String> nameMap =
 			saveFormInstanceMVCCommandHelper.getNameMap(
 				ddmForm, name, "untitled-element-set");
-		Map<Locale, String> descriptionMap = getLocalizedMap(
+		Map<Locale, String> descriptionMap = _getLocalizedMap(
 			description, ddmForm.getAvailableLocales(),
 			ddmForm.getDefaultLocale());
 
@@ -158,27 +159,6 @@ public class SaveStructureMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected Map<Locale, String> getLocalizedMap(
-			String value, Set<Locale> availableLocales, Locale defaultLocale)
-		throws PortalException {
-
-		Map<Locale, String> localizedMap = new HashMap<>();
-
-		JSONObject jsonObject = jsonFactory.createJSONObject(value);
-
-		String defaultValueString = jsonObject.getString(
-			LocaleUtil.toLanguageId(defaultLocale));
-
-		for (Locale availableLocale : availableLocales) {
-			String valueString = jsonObject.getString(
-				LocaleUtil.toLanguageId(availableLocale), defaultValueString);
-
-			localizedMap.put(availableLocale, valueString);
-		}
-
-		return localizedMap;
-	}
-
 	@Reference(
 		target = "(dynamic.data.mapping.form.builder.context.deserializer.type=form)"
 	)
@@ -196,6 +176,27 @@ public class SaveStructureMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	protected SaveFormInstanceMVCCommandHelper saveFormInstanceMVCCommandHelper;
+
+	private Map<Locale, String> _getLocalizedMap(
+			String value, Set<Locale> availableLocales, Locale defaultLocale)
+		throws Exception {
+
+		Map<Locale, String> localizedMap = new HashMap<>();
+
+		JSONObject jsonObject = jsonFactory.createJSONObject(value);
+
+		String defaultValueString = jsonObject.getString(
+			LocaleUtil.toLanguageId(defaultLocale));
+
+		for (Locale availableLocale : availableLocales) {
+			String valueString = jsonObject.getString(
+				LocaleUtil.toLanguageId(availableLocale), defaultValueString);
+
+			localizedMap.put(availableLocale, valueString);
+		}
+
+		return localizedMap;
+	}
 
 	@Reference
 	private DDMStructureService _ddmStructureService;

@@ -18,8 +18,4 @@ package com.liferay.portal.security.wedeploy.auth.model.impl;
  * @author Supritha Sundaram
  */
 public class WeDeployAuthAppImpl extends WeDeployAuthAppBaseImpl {
-
-	public WeDeployAuthAppImpl() {
-	}
-
 }

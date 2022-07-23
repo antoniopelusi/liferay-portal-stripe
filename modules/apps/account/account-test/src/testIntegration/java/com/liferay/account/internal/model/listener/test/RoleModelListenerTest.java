@@ -18,10 +18,13 @@ import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.constants.AccountRoleConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountRole;
+import com.liferay.account.model.AccountRoleTable;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.account.service.test.util.AccountEntryTestUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.RequiredRoleException;
 import com.liferay.portal.kernel.model.Company;
@@ -30,7 +33,7 @@ import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -43,6 +46,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,6 +55,7 @@ import org.junit.runner.RunWith;
 /**
  * @author Drew Brokke
  */
+@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class RoleModelListenerTest {
 
@@ -59,9 +64,14 @@ public class RoleModelListenerTest {
 	public static final AggregateTestRule aggregateTestRule =
 		new LiferayIntegrationTestRule();
 
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		_company = CompanyTestUtil.addCompany();
+	}
+
 	@Test
 	public void testAddAccountScopedRole() throws Exception {
-		_role = _roleLocalService.addRole(
+		Role role = _roleLocalService.addRole(
 			TestPropsValues.getUserId(), AccountRole.class.getName(),
 			AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
 			RandomTestUtil.randomString(),
@@ -70,11 +80,42 @@ public class RoleModelListenerTest {
 			null, null);
 
 		AccountRole accountRole =
-			_accountRoleLocalService.fetchAccountRoleByRoleId(
-				_role.getRoleId());
+			_accountRoleLocalService.fetchAccountRoleByRoleId(role.getRoleId());
 
 		Assert.assertNotNull(accountRole);
-		Assert.assertEquals(_role.getRoleId(), accountRole.getRoleId());
+		Assert.assertEquals(role.getRoleId(), accountRole.getRoleId());
+	}
+
+	@Test
+	public void testDefaultAccountRoles() throws Exception {
+		String[] defaultAccountRoleNames = {
+			AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_ADMINISTRATOR,
+			AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_MEMBER
+		};
+
+		for (String roleName : defaultAccountRoleNames) {
+			Role role = _roleLocalService.getRole(
+				_company.getCompanyId(), roleName);
+
+			DSLQuery dslQuery = DSLQueryFactoryUtil.countDistinct(
+				AccountRoleTable.INSTANCE.accountRoleId
+			).from(
+				AccountRoleTable.INSTANCE
+			).where(
+				AccountRoleTable.INSTANCE.companyId.eq(
+					_company.getCompanyId()
+				).and(
+					AccountRoleTable.INSTANCE.accountEntryId.eq(
+						AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT
+					).and(
+						AccountRoleTable.INSTANCE.roleId.eq(role.getRoleId())
+					)
+				)
+			);
+
+			Assert.assertEquals(
+				1, _accountRoleLocalService.dslQueryCount(dslQuery));
+		}
 	}
 
 	@Test
@@ -102,22 +143,20 @@ public class RoleModelListenerTest {
 
 	@Test
 	public void testDeleteCompany() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		Company company = CompanyTestUtil.addCompany();
 
 		List<Long> requiredRoleIds = Stream.of(
 			AccountRoleConstants.REQUIRED_ROLE_NAMES
 		).map(
 			requiredRoleName -> _roleLocalService.fetchRole(
-				_company.getCompanyId(), requiredRoleName)
+				company.getCompanyId(), requiredRoleName)
 		).map(
 			Role::getRoleId
 		).collect(
 			Collectors.toList()
 		);
 
-		_companyLocalService.deleteCompany(_company);
-
-		_company = null;
+		_companyLocalService.deleteCompany(company);
 
 		for (long requiredRoleId : requiredRoleIds) {
 			Assert.assertNull(_roleLocalService.fetchRole(requiredRoleId));
@@ -126,8 +165,6 @@ public class RoleModelListenerTest {
 
 	@Test
 	public void testDeleteDefaultAccountRole() throws Exception {
-		_company = CompanyTestUtil.addCompany();
-
 		for (String requiredRoleName :
 				AccountRoleConstants.REQUIRED_ROLE_NAMES) {
 
@@ -154,11 +191,11 @@ public class RoleModelListenerTest {
 
 	@Test(expected = ModelListenerException.class)
 	public void testDeleteRole() throws Exception {
-		_accountEntry = AccountEntryTestUtil.addAccountEntry(
+		AccountEntry accountEntry = AccountEntryTestUtil.addAccountEntry(
 			_accountEntryLocalService, WorkflowConstants.STATUS_APPROVED);
 
 		AccountRole accountRole = _accountRoleLocalService.addAccountRole(
-			TestPropsValues.getUserId(), _accountEntry.getAccountEntryId(),
+			TestPropsValues.getUserId(), accountEntry.getAccountEntryId(),
 			RandomTestUtil.randomString(), null, null);
 
 		try {
@@ -181,8 +218,7 @@ public class RoleModelListenerTest {
 		}
 	}
 
-	@DeleteAfterTestRun
-	private AccountEntry _accountEntry;
+	private static Company _company;
 
 	@Inject
 	private AccountEntryLocalService _accountEntryLocalService;
@@ -190,14 +226,8 @@ public class RoleModelListenerTest {
 	@Inject
 	private AccountRoleLocalService _accountRoleLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	@Inject
 	private CompanyLocalService _companyLocalService;
-
-	@DeleteAfterTestRun
-	private Role _role;
 
 	@Inject
 	private RoleLocalService _roleLocalService;

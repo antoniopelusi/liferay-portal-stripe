@@ -15,11 +15,12 @@
 package com.liferay.blogs.web.internal.layout.display.page;
 
 import com.liferay.blogs.model.BlogsEntry;
-import com.liferay.blogs.service.BlogsEntryService;
+import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -42,10 +43,12 @@ public class BlogsLayoutDisplayPageProvider
 			InfoItemReference infoItemReference) {
 
 		try {
-			BlogsEntry blogsEntry = _blogsEntryService.getEntry(
+			BlogsEntry blogsEntry = _blogsEntryLocalService.fetchBlogsEntry(
 				infoItemReference.getClassPK());
 
-			if (blogsEntry.isDraft() || blogsEntry.isInTrash()) {
+			if ((blogsEntry == null) || blogsEntry.isDraft() ||
+				blogsEntry.isInTrash()) {
+
 				return null;
 			}
 
@@ -61,7 +64,7 @@ public class BlogsLayoutDisplayPageProvider
 		getLayoutDisplayPageObjectProvider(long groupId, String urlTitle) {
 
 		try {
-			BlogsEntry blogsEntry = _blogsEntryService.getEntry(
+			BlogsEntry blogsEntry = _blogsEntryLocalService.getEntry(
 				groupId, urlTitle);
 
 			if (blogsEntry.isInTrash()) {
@@ -77,10 +80,10 @@ public class BlogsLayoutDisplayPageProvider
 
 	@Override
 	public String getURLSeparator() {
-		return "/b/";
+		return FriendlyURLResolverConstants.URL_SEPARATOR_BLOGS_ENTRY;
 	}
 
 	@Reference
-	private BlogsEntryService _blogsEntryService;
+	private BlogsEntryLocalService _blogsEntryLocalService;
 
 }

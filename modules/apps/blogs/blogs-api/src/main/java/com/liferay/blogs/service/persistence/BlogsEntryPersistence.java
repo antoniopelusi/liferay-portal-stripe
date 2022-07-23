@@ -17,6 +17,7 @@ package com.liferay.blogs.service.persistence;
 import com.liferay.blogs.exception.NoSuchEntryException;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import java.util.Date;
 
@@ -34,7 +35,8 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface BlogsEntryPersistence extends BasePersistence<BlogsEntry> {
+public interface BlogsEntryPersistence
+	extends BasePersistence<BlogsEntry>, CTPersistence<BlogsEntry> {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -5261,6 +5263,56 @@ public interface BlogsEntryPersistence extends BasePersistence<BlogsEntry> {
 	 */
 	public int filterCountByG_U_LtD_NotS(
 		long groupId, long userId, Date displayDate, int status);
+
+	/**
+	 * Returns the blogs entry where groupId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchEntryException</code> if it could not be found.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching blogs entry
+	 * @throws NoSuchEntryException if a matching blogs entry could not be found
+	 */
+	public BlogsEntry findByG_ERC(long groupId, String externalReferenceCode)
+		throws NoSuchEntryException;
+
+	/**
+	 * Returns the blogs entry where groupId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching blogs entry, or <code>null</code> if a matching blogs entry could not be found
+	 */
+	public BlogsEntry fetchByG_ERC(long groupId, String externalReferenceCode);
+
+	/**
+	 * Returns the blogs entry where groupId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching blogs entry, or <code>null</code> if a matching blogs entry could not be found
+	 */
+	public BlogsEntry fetchByG_ERC(
+		long groupId, String externalReferenceCode, boolean useFinderCache);
+
+	/**
+	 * Removes the blogs entry where groupId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the blogs entry that was removed
+	 */
+	public BlogsEntry removeByG_ERC(long groupId, String externalReferenceCode)
+		throws NoSuchEntryException;
+
+	/**
+	 * Returns the number of blogs entries where groupId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching blogs entries
+	 */
+	public int countByG_ERC(long groupId, String externalReferenceCode);
 
 	/**
 	 * Caches the blogs entry in the entity cache if it is enabled.

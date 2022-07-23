@@ -30,18 +30,18 @@ public class SessionLayoutClone implements LayoutClone {
 
 	@Override
 	public String get(HttpServletRequest httpServletRequest, long plid) {
-		HttpSession session = getPortalSession(httpServletRequest);
+		HttpSession httpSession = getPortalSession(httpServletRequest);
 
-		return (String)session.getAttribute(encodeKey(plid));
+		return (String)httpSession.getAttribute(encodeKey(plid));
 	}
 
 	@Override
 	public void update(
 		HttpServletRequest httpServletRequest, long plid, String typeSettings) {
 
-		HttpSession session = getPortalSession(httpServletRequest);
+		HttpSession httpSession = getPortalSession(httpServletRequest);
 
-		session.setAttribute(encodeKey(plid), typeSettings);
+		httpSession.setAttribute(encodeKey(plid), typeSettings);
 	}
 
 	protected String encodeKey(long plid) {

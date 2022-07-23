@@ -141,10 +141,10 @@ renderResponse.setTitle(title);
 															"edit"
 														).setRedirect(
 															currentURL
+														).setPortletResource(
+															portlet.getPortletId()
 														).setTabs1(
 															"roles"
-														).setParameter(
-															"portletResource", portlet.getPortletId()
 														).setParameter(
 															"roleId", role.getRoleId()
 														).buildString()
@@ -198,10 +198,10 @@ renderResponse.setTitle(title);
 															PortletProviderUtil.getPortletURL(request, Role.class.getName(), PortletProvider.Action.MANAGE)
 														).setCMD(
 															"edit"
+														).setPortletResource(
+															portlet.getPortletId()
 														).setTabs1(
 															"roles"
-														).setParameter(
-															"portletResource", portlet.getPortletId()
 														).setParameter(
 															"roleId", role.getRoleId()
 														).buildString()

@@ -22,26 +22,24 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.Image;
 import com.liferay.portal.kernel.model.ImageModel;
-import com.liferay.portal.kernel.model.ImageSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -137,56 +135,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	@Deprecated
 	public static final long IMAGEID_COLUMN_BITMASK = 2L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Image toModel(ImageSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Image model = new ImageImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setImageId(soapModel.getImageId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setType(soapModel.getType());
-		model.setHeight(soapModel.getHeight());
-		model.setWidth(soapModel.getWidth());
-		model.setSize(soapModel.getSize());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Image> toModels(ImageSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Image> models = new ArrayList<Image>(soapModels.length);
-
-		for (ImageSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.Image"));
@@ -269,33 +217,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Image>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Image.class.getClassLoader(), Image.class, ModelWrapper.class);
-
-		try {
-			Constructor<Image> constructor =
-				(Constructor<Image>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Image, Object>>
@@ -411,8 +332,14 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		return _modifiedDate;
 	}
 
+	public boolean hasSetModifiedDate() {
+		return _setModifiedDate;
+	}
+
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
+		_setModifiedDate = true;
+
 		if (_columnOriginalValues == Collections.EMPTY_MAP) {
 			_setColumnOriginalValues();
 		}
@@ -567,6 +494,26 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@Override
+	public Image cloneWithOriginalValues() {
+		ImageImpl imageImpl = new ImageImpl();
+
+		imageImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		imageImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		imageImpl.setImageId(this.<Long>getColumnOriginalValue("imageId"));
+		imageImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		imageImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		imageImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		imageImpl.setHeight(this.<Integer>getColumnOriginalValue("height"));
+		imageImpl.setWidth(this.<Integer>getColumnOriginalValue("width"));
+		imageImpl.setSize(this.<Integer>getColumnOriginalValue("size_"));
+
+		return imageImpl;
+	}
+
+	@Override
 	public int compareTo(Image image) {
 		int value = 0;
 
@@ -636,6 +583,8 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	public void resetOriginalValues() {
 		_columnOriginalValues = Collections.emptyMap();
 
+		_setModifiedDate = false;
+
 		_columnBitmask = 0;
 	}
 
@@ -683,7 +632,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -693,9 +642,26 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 			String attributeName = entry.getKey();
 			Function<Image, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Image)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Image)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -741,7 +707,9 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Image>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Image.class, ModelWrapper.class);
 
 	}
 
@@ -750,6 +718,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	private long _imageId;
 	private long _companyId;
 	private Date _modifiedDate;
+	private boolean _setModifiedDate;
 	private String _type;
 	private int _height;
 	private int _width;

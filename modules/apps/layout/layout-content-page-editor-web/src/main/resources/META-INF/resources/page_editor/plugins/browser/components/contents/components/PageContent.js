@@ -13,50 +13,108 @@
  */
 
 import ClayButton from '@clayui/button';
-import ClayDropDown from '@clayui/drop-down';
+import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import classNames from 'classnames';
-import {openModal} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
+import {fromControlsId} from '../../../../../app/components/layout-data-items/Collection';
+import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../app/config/constants/editableFragmentEntryProcessor';
+import {ITEM_ACTIVATION_ORIGINS} from '../../../../../app/config/constants/itemActivationOrigins';
+import {ITEM_TYPES} from '../../../../../app/config/constants/itemTypes';
 import {
 	useHoverItem,
 	useHoveredItemId,
 	useSelectItem,
-} from '../../../../../app/components/Controls';
-import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../app/config/constants/editableFragmentEntryProcessor';
-import {ITEM_ACTIVATION_ORIGINS} from '../../../../../app/config/constants/itemActivationOrigins';
-import {ITEM_TYPES} from '../../../../../app/config/constants/itemTypes';
-import {useSelector} from '../../../../../app/store/index';
+} from '../../../../../app/contexts/ControlsContext';
+import {
+	useEditableProcessorUniqueId,
+	useSetEditableProcessorUniqueId,
+} from '../../../../../app/contexts/EditableProcessorContext';
+import {
+	useSelector,
+	useSelectorCallback,
+} from '../../../../../app/contexts/StoreContext';
+import selectCanUpdateEditables from '../../../../../app/selectors/selectCanUpdateEditables';
+import {selectPageContentDropdownItems} from '../../../../../app/selectors/selectPageContentDropdownItems';
+import getFirstControlsId from '../../../../../app/utils/getFirstControlsId';
+import ImageEditorModal from './ImageEditorModal';
 
 export default function PageContent({
-	actions,
 	classNameId,
 	classPK,
 	editableId,
 	icon,
 	subtype,
 	title,
-	type,
 }) {
-	const [active, setActive] = useState(false);
+	const editableProcessorUniqueId = useEditableProcessorUniqueId();
 	const hoverItem = useHoverItem();
 	const hoveredItemId = useHoveredItemId();
+	const canUpdateEditables = useSelector(selectCanUpdateEditables);
 	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
 	const [isHovered, setIsHovered] = useState(false);
+	const layoutData = useSelector((state) => state.layoutData);
+	const [
+		nextEditableProcessorUniqueId,
+		setNextEditableProcessorUniqueId,
+	] = useState(null);
 	const selectItem = useSelectItem();
+	const setEditableProcessorUniqueId = useSetEditableProcessorUniqueId();
+	const [imageEditorParams, setImageEditorParams] = useState(null);
 
-	let editURL = null;
-	let permissionsURL = null;
-	let viewUsagesURL = null;
+	const isBeingEdited = useMemo(
+		() => editableId === fromControlsId(editableProcessorUniqueId),
+		[editableId, editableProcessorUniqueId]
+	);
 
-	if (actions) {
-		editURL = actions.editURL;
-		permissionsURL = actions.permissionsURL;
-		viewUsagesURL = actions.viewUsagesURL;
-	}
+	const dropdownItems = useSelectorCallback(
+		(state) => {
+			const pageContentDropdownItems = selectPageContentDropdownItems(
+				classPK
+			)(state);
+
+			return pageContentDropdownItems?.map((item) => {
+				if (item.label === Liferay.Language.get('edit-image')) {
+					const {
+						editImageURL,
+						fileEntryId,
+						previewURL,
+						...editImageItem
+					} = item;
+
+					return {
+						...editImageItem,
+						onClick: () => {
+							setImageEditorParams({
+								editImageURL,
+								fileEntryId,
+								previewURL,
+							});
+						},
+					};
+				}
+
+				return item;
+			});
+		},
+		[classPK]
+	);
+
+	useEffect(() => {
+		if (editableProcessorUniqueId || !nextEditableProcessorUniqueId) {
+			return;
+		}
+
+		setEditableProcessorUniqueId(nextEditableProcessorUniqueId);
+		setNextEditableProcessorUniqueId(null);
+	}, [
+		editableProcessorUniqueId,
+		nextEditableProcessorUniqueId,
+		setEditableProcessorUniqueId,
+	]);
 
 	useEffect(() => {
 		if (hoveredItemId) {
@@ -115,10 +173,29 @@ export default function PageContent({
 	};
 
 	const onClickEditInlineText = () => {
-		selectItem(`${editableId}`, {
+		if (isBeingEdited) {
+			return;
+		}
+
+		const itemId = getFirstControlsId({
+			item: {
+				id: editableId,
+				itemType: ITEM_TYPES.editable,
+				parentId: Object.values(layoutData.items).find(
+					(item) =>
+						item.config.fragmentEntryLinkId ===
+						editableId.split('-')[0]
+				)?.itemId,
+			},
+			layoutData,
+		});
+
+		selectItem(itemId, {
 			itemType: ITEM_TYPES.editable,
 			origin: ITEM_ACTIVATION_ORIGINS.sidebar,
 		});
+
+		setNextEditableProcessorUniqueId(itemId);
 	};
 
 	return (
@@ -131,37 +208,37 @@ export default function PageContent({
 		>
 			<div
 				className={classNames('d-flex', {
-					'align-items-baseline': subtype,
 					'align-items-center': !subtype,
 				})}
 			>
 				<ClayIcon
-					className="mr-3"
+					className={classNames('mr-3', {
+						'mt-1': subtype,
+					})}
 					focusable="false"
 					monospaced="true"
 					role="presentation"
 					symbol={icon || 'document-text'}
 				/>
+
 				<ClayLayout.ContentCol expand>
-					<span
-						className={classNames('text-truncate', {
-							title: type,
-						})}
-					>
+					<span className="font-weight-semi-bold text-truncate">
 						{title}
 					</span>
 
 					{subtype && (
-						<span className="text-secondary text-truncate">
-							{subtype}
-						</span>
+						<span className="text-secondary">{subtype}</span>
 					)}
 				</ClayLayout.ContentCol>
 
-				{editURL || permissionsURL || viewUsagesURL || type ? (
-					<ClayDropDown
-						active={active}
-						onActiveChange={setActive}
+				{dropdownItems?.length ? (
+					<ClayDropDownWithItems
+						items={dropdownItems}
+						menuElementAttrs={{
+							containerProps: {
+								className: 'cadmin',
+							},
+						}}
 						trigger={
 							<ClayButton
 								className="btn-monospaced btn-sm text-secondary"
@@ -170,63 +247,38 @@ export default function PageContent({
 								<span className="sr-only">
 									{Liferay.Language.get('open-actions-menu')}
 								</span>
+
 								<ClayIcon symbol="ellipsis-v" />
 							</ClayButton>
 						}
-					>
-						<ClayDropDown.ItemList>
-							{editURL && (
-								<ClayDropDown.Item href={editURL} key="editURL">
-									{Liferay.Language.get('edit')}
-								</ClayDropDown.Item>
-							)}
-
-							{permissionsURL && (
-								<ClayDropDown.Item
-									key="permissionsURL"
-									onClick={() => {
-										openModal({
-											title: Liferay.Language.get(
-												'permissions'
-											),
-											url: permissionsURL,
-										});
-									}}
-								>
-									{Liferay.Language.get('permissions')}
-								</ClayDropDown.Item>
-							)}
-
-							{viewUsagesURL && (
-								<ClayDropDown.Item
-									key="viewUsagesURL"
-									onClick={() => {
-										openModal({
-											title: Liferay.Language.get(
-												'view-usages'
-											),
-											url: viewUsagesURL,
-										});
-									}}
-								>
-									{Liferay.Language.get('view-usages')}
-								</ClayDropDown.Item>
-							)}
-						</ClayDropDown.ItemList>
-					</ClayDropDown>
+					/>
 				) : (
 					<ClayButton
-						className="btn-monospaced btn-sm text-secondary"
+						className={classNames('btn-sm mr-2 text-secondary', {
+							'not-allowed': isBeingEdited || !canUpdateEditables,
+						})}
+						disabled={isBeingEdited || !canUpdateEditables}
 						displayType="unstyled"
 						onClick={onClickEditInlineText}
 					>
 						<span className="sr-only">
 							{Liferay.Language.get('edit-inline-text')}
 						</span>
+
 						<ClayIcon symbol="pencil" />
 					</ClayButton>
 				)}
 			</div>
+
+			{imageEditorParams && (
+				<ImageEditorModal
+					editImageURL={imageEditorParams.editImageURL}
+					fileEntryId={imageEditorParams.fileEntryId}
+					fragmentEntryLinks={fragmentEntryLinks}
+					onCloseModal={() => setImageEditorParams(null)}
+					previewURL={imageEditorParams.previewURL}
+				/>
+			)}
 		</li>
 	);
 }

@@ -21,9 +21,7 @@ import com.liferay.message.boards.service.MBBanLocalService;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.StagedPortletPermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -40,18 +38,16 @@ public class MBPortletPermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.name", MBConstants.RESOURCE_NAME);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
 				MBConstants.RESOURCE_NAME,
-				new MBPortletPermissionLogic(_mbBanLocalService),
+				new MBPortletResourcePermissionLogic(_mbBanLocalService),
 				new StagedPortletPermissionLogic(
 					_stagingPermission, MBPortletKeys.MESSAGE_BOARDS_ADMIN)),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", MBConstants.RESOURCE_NAME
+			).build());
 	}
 
 	@Deactivate

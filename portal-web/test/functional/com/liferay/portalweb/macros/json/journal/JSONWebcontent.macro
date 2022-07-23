@@ -6,12 +6,11 @@ definition {
 
 		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
 
-		var contentXML = JSONWebcontentSetter.setContentXML(
+		var contentXml = JSONWebcontentSetter.setContentXML(
 			content = "${content}",
 			contentMap = "${contentMap}");
 
-		var descriptionMap = JSONWebcontentSetter.setDescriptionMap(
-			description = "${description}");
+		var descriptionMap = JSONWebcontentSetter.setDescriptionMap(description = "${description}");
 
 		var folderId = JSONWebcontentSetter.setFolderId(
 			folderName = "${folderName}",
@@ -28,7 +27,7 @@ definition {
 			titleMap = "${titleMap}");
 
 		JSONWebcontentAPI._addWebContent(
-			contentXML = "${contentXML}",
+			contentXml = "${contentXml}",
 			descriptionMap = "${descriptionMap}",
 			folderId = "${folderId}",
 			groupId = "${groupId}",
@@ -42,7 +41,9 @@ definition {
 	macro addFolder {
 		Variables.assertDefined(parameterList = "${folderName},${groupName}");
 
-		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONWebcontentSetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var parentFolderId = JSONWebcontentSetter.setFolderId(
 			folderName = "${parentFolderName}",
@@ -61,9 +62,13 @@ definition {
 	macro addWebContent {
 		Variables.assertDefined(parameterList = "${content},${groupName},${title}");
 
-		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONWebcontentSetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
-		var contentXML = JSONWebcontentSetter.setContentXML(content = "${content}");
+		var contentXml = JSONWebcontentSetter.setContentXML(
+			content = "${content}",
+			source = "${source}");
 
 		var descriptionMap = JSONWebcontentSetter.setDescriptionMap(description = "${description}");
 
@@ -80,7 +85,7 @@ definition {
 		var titleMap = JSONWebcontentSetter.setTitleMap(title = "${title}");
 
 		JSONWebcontentAPI._addWebContent(
-			contentXML = "${contentXML}",
+			contentXml = "${contentXml}",
 			descriptionMap = "${descriptionMap}",
 			folderId = "${folderId}",
 			groupId = "${groupId}",
@@ -94,10 +99,13 @@ definition {
 	macro deleteWebContent {
 		Variables.assertDefined(parameterList = "${groupName},${title}");
 
-		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
+		var groupId = JSONWebcontentSetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var articleId = JSONWebcontentSetter.setArticleId(
 			groupName = "${groupName}",
+			site = "${site}",
 			title = "${title}");
 
 		JSONWebcontentAPI._deleteWebContent(
@@ -116,6 +124,73 @@ definition {
 			groupId = "${groupId}");
 
 		return "${folderId}";
+	}
+
+	@summary = "Get the 'resourcePrimKey' via JSON"
+	macro getResourcePrimKeyByURLTitle {
+		Variables.assertDefined(parameterList = "${groupName},${title}");
+
+		var urlTitle = StringUtil.replace("${title}", " ", "-");
+		var urlTitle = StringUtil.lowerCase("${urlTitle}");
+
+		var resourcePrimKey = JSONWebcontentAPI._getResourcePrimKeyByURLTitle(
+			groupName = "${groupName}",
+			urlTitle = "${urlTitle}");
+
+		return "${resourcePrimKey}";
+	}
+
+	@summary = "Move a WC Article to trash under an existing site"
+	macro moveWebContentToTrash {
+		Variables.assertDefined(parameterList = "${groupName},${title}");
+
+		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
+
+		var articleId = JSONWebcontentSetter.setArticleId(
+			groupName = "${groupName}",
+			title = "${title}");
+
+		JSONWebcontentAPI._moveWebContentToTrash(
+			articleId = "${articleId}",
+			groupId = "${groupId}");
+	}
+
+	@summary = "Restore a WC Article from the trash via 'resourcePrimKey' by JSON"
+	macro restoreWebContentFromTrashViaResourcePrimKey {
+		var resourcePrimKey = "${resourcePrimKey}";
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/journal.journalarticle/restore-article-from-trash \
+				-u test@liferay.com:test \
+				-d resourcePrimKey=${resourcePrimKey}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "Update status of a WC Article under an existing site via article title"
+	macro updateStatus {
+		Variables.assertDefined(parameterList = "${groupName},${statusKey},${title}");
+
+		var articleId = JSONWebcontentSetter.setArticleId(
+			groupName = "${groupName}",
+			title = "${title}");
+
+		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
+
+		var status = JSONWebcontentSetter.setStatus(statusKey = "${statusKey}");
+
+		if (!(isSet(version))) {
+			var version = "1.0";
+		}
+
+		JSONWebcontentAPI._updateStatus(
+			articleId = "${articleId}",
+			groupId = "${groupId}",
+			status = "${status}",
+			version = "${version}");
 	}
 
 }

@@ -78,18 +78,16 @@ public class HttpServiceRuntimeOSGiCommands {
 			for (ServiceReference<?> serviceReference :
 					navigableSet.headSet(lastServiceReference, false)) {
 
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("Servlet context with path ");
-				sb.append(
-					serviceReference.getProperty(
-						HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_PATH));
-				sb.append(" and service ID ");
-				sb.append(serviceReference.getProperty("service.id"));
-				sb.append(" might fail because it is shadowed by service ");
-				sb.append(lastServiceReference.getProperty("service.id"));
-
-				System.out.println(sb.toString());
+				System.out.println(
+					StringBundler.concat(
+						"Servlet context with path ",
+						serviceReference.getProperty(
+							HttpWhiteboardConstants.
+								HTTP_WHITEBOARD_CONTEXT_PATH),
+						" and service ID ",
+						serviceReference.getProperty("service.id"),
+						" might fail because it is shadowed by service ",
+						lastServiceReference.getProperty("service.id")));
 			}
 		}
 	}

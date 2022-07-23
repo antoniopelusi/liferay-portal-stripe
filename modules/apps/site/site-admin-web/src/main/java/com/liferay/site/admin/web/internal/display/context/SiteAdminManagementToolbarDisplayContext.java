@@ -37,8 +37,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.List;
 
-import javax.portlet.PortletURL;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -114,26 +112,31 @@ public class SiteAdminManagementToolbarDisplayContext
 		}
 
 		try {
-			PortletURL addSiteURL = PortletURLBuilder.createRenderURL(
-				liferayPortletResponse
-			).setMVCRenderCommandName(
-				"/site_admin/select_site_initializer"
-			).setRedirect(
-				themeDisplay.getURLCurrent()
-			).build();
-
-			Group group = _siteAdminDisplayContext.getGroup();
-
-			if ((group != null) &&
-				_siteAdminDisplayContext.hasAddChildSitePermission(group)) {
-
-				addSiteURL.setParameter(
-					"parentGroupId", String.valueOf(group.getGroupId()));
-			}
-
 			return CreationMenuBuilder.addPrimaryDropdownItem(
 				dropdownItem -> {
-					dropdownItem.setHref(addSiteURL.toString());
+					dropdownItem.setHref(
+						PortletURLBuilder.createRenderURL(
+							liferayPortletResponse
+						).setMVCRenderCommandName(
+							"/site_admin/select_site_initializer"
+						).setRedirect(
+							themeDisplay.getURLCurrent()
+						).setParameter(
+							"parentGroupId",
+							() -> {
+								Group group =
+									_siteAdminDisplayContext.getGroup();
+
+								if ((group != null) &&
+									_siteAdminDisplayContext.
+										hasAddChildSitePermission(group)) {
+
+									return group.getGroupId();
+								}
+
+								return null;
+							}
+						).buildString());
 					dropdownItem.setLabel(
 						LanguageUtil.get(httpServletRequest, "add"));
 				}
@@ -141,7 +144,7 @@ public class SiteAdminManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -223,12 +226,9 @@ public class SiteAdminManagementToolbarDisplayContext
 
 		if (!GroupPermissionUtil.contains(
 				themeDisplay.getPermissionChecker(), group,
-				ActionKeys.DELETE)) {
+				ActionKeys.DELETE) ||
+			PortalUtil.isSystemGroup(group.getGroupKey())) {
 
-			return false;
-		}
-
-		if (PortalUtil.isSystemGroup(group.getGroupKey())) {
 			return false;
 		}
 

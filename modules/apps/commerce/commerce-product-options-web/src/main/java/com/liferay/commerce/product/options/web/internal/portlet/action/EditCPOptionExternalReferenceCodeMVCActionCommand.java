@@ -52,7 +52,7 @@ public class EditCPOptionExternalReferenceCodeMVCActionCommand
 		throws Exception {
 
 		try {
-			updateCPOptionExternalReferenceCode(actionRequest);
+			_updateCPOptionExternalReferenceCode(actionRequest);
 		}
 		catch (Exception exception) {
 			if (exception instanceof NoSuchCPOptionException ||
@@ -63,7 +63,7 @@ public class EditCPOptionExternalReferenceCodeMVCActionCommand
 				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				String redirect = ParamUtil.getString(
 					actionRequest, "redirect");
@@ -73,7 +73,7 @@ public class EditCPOptionExternalReferenceCodeMVCActionCommand
 		}
 	}
 
-	protected void updateCPOptionExternalReferenceCode(
+	private void _updateCPOptionExternalReferenceCode(
 			ActionRequest actionRequest)
 		throws Exception {
 

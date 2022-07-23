@@ -122,6 +122,11 @@ public class DDMFieldAttributeWrapper
 		}
 	}
 
+	@Override
+	public DDMFieldAttribute cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the attribute name of this ddm field attribute.
 	 *

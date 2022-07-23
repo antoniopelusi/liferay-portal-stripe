@@ -758,6 +758,8 @@ public interface DiscountResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -785,7 +787,7 @@ public interface DiscountResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-pricing/v1.0/discounts/{id}/batch");
+						"/o/headless-commerce-admin-pricing/v1.0/discounts/batch");
 
 			httpInvoker.path("id", id);
 

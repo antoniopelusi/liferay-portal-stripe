@@ -28,10 +28,13 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceLinkLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceLocalServiceUtil;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
+import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
@@ -49,7 +52,6 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -57,6 +59,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -196,12 +199,10 @@ public class DDMStructureLocalServiceTest extends BaseDDMServiceTestCase {
 
 		DDMStructureLocalServiceUtil.deleteStructure(structure);
 
-		dataProviderInstanceLink =
+		Assert.assertNull(
 			DDMDataProviderInstanceLinkLocalServiceUtil.
 				fetchDataProviderInstanceLink(
-					ddmDataProviderInstanceId, structure.getStructureId());
-
-		Assert.assertNull(dataProviderInstanceLink);
+					ddmDataProviderInstanceId, structure.getStructureId()));
 	}
 
 	@Test
@@ -240,12 +241,10 @@ public class DDMStructureLocalServiceTest extends BaseDDMServiceTestCase {
 
 		DDMStructureLocalServiceUtil.deleteStructure(structure);
 
-		dataProviderInstanceLink =
+		Assert.assertNull(
 			DDMDataProviderInstanceLinkLocalServiceUtil.
 				fetchDataProviderInstanceLink(
-					ddmDataProviderInstanceId, structure.getStructureId());
-
-		Assert.assertNull(dataProviderInstanceLink);
+					ddmDataProviderInstanceId, structure.getStructureId()));
 	}
 
 	@Test
@@ -321,6 +320,36 @@ public class DDMStructureLocalServiceTest extends BaseDDMServiceTestCase {
 
 		DDMStructureLocalServiceUtil.deleteStructure(
 			structure.getStructureId());
+	}
+
+	@Test
+	public void testDeleteStructureWithLayoutRemoved() throws Exception {
+		DDMStructure ddmStructure = ddmStructureTestHelper.addStructure(
+			DDMFormTestUtil.createDDMForm("Field1"),
+			StorageType.DEFAULT.getValue());
+
+		DDMStructureLayout ddmStructureLayout =
+			ddmStructure.fetchDDMStructureLayout();
+
+		Assert.assertNotNull(ddmStructureLayout);
+
+		DDMStructureLayoutLocalServiceUtil.deleteDDMStructureLayout(
+			ddmStructureLayout.getStructureLayoutId());
+
+		Assert.assertNull(ddmStructure.fetchDDMStructureLayout());
+
+		Assert.assertTrue(
+			ListUtil.isNotEmpty(
+				DDMStructureVersionLocalServiceUtil.getStructureVersions(
+					ddmStructure.getStructureId())));
+
+		DDMStructureLocalServiceUtil.deleteStructure(
+			ddmStructure.getStructureId());
+
+		Assert.assertTrue(
+			ListUtil.isEmpty(
+				DDMStructureVersionLocalServiceUtil.getStructureVersions(
+					ddmStructure.getStructureId())));
 	}
 
 	@Test
@@ -717,13 +746,11 @@ public class DDMStructureLocalServiceTest extends BaseDDMServiceTestCase {
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			new StructureIdComparator(true));
 
-		Assert.assertEquals(structures.toString(), 1, structures.size());
-		Assert.assertEquals(
-			"Global Structure", getStructureName(structures.get(0)));
+		Assert.assertEquals(structures.toString(), 0, structures.size());
 
 		PermissionThreadLocal.setPermissionChecker(originalPermissionChecker);
 
-		DDMStructureLocalServiceUtil.deleteDDMStructure(structure);
+		DDMStructureLocalServiceUtil.deleteStructure(structure);
 
 		UserLocalServiceUtil.deleteUser(user);
 	}
@@ -985,13 +1012,11 @@ public class DDMStructureLocalServiceTest extends BaseDDMServiceTestCase {
 		DDMFormValues ddmFormValues = DDMFormValuesTestUtil.createDDMFormValues(
 			ddmForm);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				group.getGroupId(), TestPropsValues.getUserId());
-
 		return DDMDataProviderInstanceLocalServiceUtil.addDataProviderInstance(
 			TestPropsValues.getUserId(), group.getGroupId(), nameMap, nameMap,
-			ddmFormValues, "rest", serviceContext);
+			ddmFormValues, "rest",
+			ServiceContextTestUtil.getServiceContext(
+				group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	protected String getStructureName(DDMStructure structure) {

@@ -47,9 +47,7 @@ public class CommerceOrderUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		addColumn(
-			CommerceOrderModelImpl.class, CommerceOrderModelImpl.TABLE_NAME,
-			"commerceAccountId", "LONG");
+		addColumn("CommerceOrder", "commerceAccountId", "LONG");
 
 		if (hasColumn(CommerceOrderModelImpl.TABLE_NAME, "siteGroupId")) {
 			runSQL("update CommerceOrder set groupId = siteGroupId");
@@ -71,26 +69,25 @@ public class CommerceOrderUpgradeProcess
 			"update CommerceOrder set commerceAccountId = ? where " +
 				"orderUserId = ?";
 
-		try (PreparedStatement ps1 =
+		try (PreparedStatement preparedStatement1 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, updateCommerceOrderSQL1);
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, updateCommerceOrderSQL2);
 			Statement s = connection.createStatement(
 				ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select distinct orderOrganizationId, orderUserId from " +
 					"CommerceOrder")) {
 
-			while (rs.next()) {
-				long commerceAccountId = 0;
-
-				long orderOrganizationId = rs.getLong("orderOrganizationId");
-				long orderUserId = rs.getLong("orderUserId");
+			while (resultSet.next()) {
+				long orderOrganizationId = resultSet.getLong(
+					"orderOrganizationId");
+				long orderUserId = resultSet.getLong("orderUserId");
 
 				if (orderOrganizationId > 0) {
-					commerceAccountId = _getCommerceAccountId(
+					long commerceAccountId = _getCommerceAccountId(
 						orderOrganizationId);
 
 					if (commerceAccountId == 0) {
@@ -101,10 +98,10 @@ public class CommerceOrderUpgradeProcess
 						continue;
 					}
 
-					ps1.setLong(1, commerceAccountId);
-					ps1.setLong(2, orderOrganizationId);
+					preparedStatement1.setLong(1, commerceAccountId);
+					preparedStatement1.setLong(2, orderOrganizationId);
 
-					ps1.execute();
+					preparedStatement1.execute();
 				}
 				else if (orderUserId > 0) {
 					User user = _userLocalService.getUser(orderUserId);
@@ -119,18 +116,17 @@ public class CommerceOrderUpgradeProcess
 							user.getUserId(), StringPool.BLANK,
 							StringPool.BLANK, serviceContext);
 
-					commerceAccountId = commerceAccount.getCommerceAccountId();
+					preparedStatement2.setLong(
+						1, commerceAccount.getCommerceAccountId());
 
-					ps2.setLong(1, commerceAccountId);
+					preparedStatement2.setLong(2, orderUserId);
 
-					ps2.setLong(2, orderUserId);
-
-					ps2.execute();
+					preparedStatement2.execute();
 				}
 			}
 
-			ps1.executeBatch();
-			ps2.executeBatch();
+			preparedStatement1.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 
 		dropColumn(CommerceOrderModelImpl.TABLE_NAME, "orderOrganizationId");
@@ -145,10 +141,10 @@ public class CommerceOrderUpgradeProcess
 				"where organizationId = " + organizationId;
 
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(sql)) {
+			ResultSet resultSet = s.executeQuery(sql)) {
 
-			if (rs.next()) {
-				return rs.getLong("commerceAccountId");
+			if (resultSet.next()) {
+				return resultSet.getLong("commerceAccountId");
 			}
 		}
 

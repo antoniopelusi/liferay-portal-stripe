@@ -19,9 +19,6 @@ package com.liferay.portal.kernel.util;
  */
 public class ArrayWrapper {
 
-	public ArrayWrapper() {
-	}
-
 	public Object[] getArray() {
 		return _array;
 	}

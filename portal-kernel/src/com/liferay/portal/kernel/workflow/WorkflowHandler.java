@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.GetterUtil;
 
 import java.io.Serializable;
 
@@ -51,6 +52,13 @@ public interface WorkflowHandler<T> {
 
 	public String getClassName();
 
+	public default long getDiscussionClassPK(
+		Map<String, Serializable> workflowContext) {
+
+		return GetterUtil.getLong(
+			workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
+	}
+
 	public String getIconCssClass();
 
 	public default String getNotificationLink(
@@ -72,15 +80,6 @@ public interface WorkflowHandler<T> {
 		long classPK, LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse);
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #getNotificationLink(long, ServiceContext)}}
-	 */
-	@Deprecated
-	public String getURLEditWorkflowTask(
-			long workflowTaskId, ServiceContext serviceContext)
-		throws PortalException;
-
 	public PortletURL getURLViewDiffs(
 		long classPK, LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse);
@@ -100,6 +99,10 @@ public interface WorkflowHandler<T> {
 
 	public boolean isAssetTypeSearchable();
 
+	public default boolean isCommentable() {
+		return true;
+	}
+
 	public boolean isScopeable();
 
 	public boolean isVisible();
@@ -115,5 +118,12 @@ public interface WorkflowHandler<T> {
 
 	public T updateStatus(int status, Map<String, Serializable> workflowContext)
 		throws PortalException;
+
+	public default T updateStatus(
+			T model, int status, Map<String, Serializable> workflowContext)
+		throws PortalException {
+
+		return updateStatus(status, workflowContext);
+	}
 
 }

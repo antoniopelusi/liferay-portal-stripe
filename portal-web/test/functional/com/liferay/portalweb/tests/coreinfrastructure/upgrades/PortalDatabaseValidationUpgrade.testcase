@@ -1,0 +1,36 @@
+@component-name = "portal-upgrades"
+definition {
+
+	property app.server.types = "tomcat";
+	property database.types = "mysql";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Upgrades Core Infrastructure";
+
+	@priority = "4"
+	test CompareUpgradedAndFreshDatabaseSchemas7310 {
+		property data.archive.type = "data-archive-portal";
+		property portal.version = "7.3.10";
+
+		Portlet.shutdownServer();
+
+		AntCommand(
+			locator1 = "build-test.xml",
+			value1 = "export-database-schema -Ddatabase.file.prefix=upgraded");
+
+		AntCommand(
+			locator1 = "build-test.xml",
+			value1 = "rebuild-database -Ddatabase.type=mysql -Dsql.dir=sql/create-bare/ -Dsql.file=create-bare-mysql.sql");
+
+		Portlet.startServer();
+
+		Portlet.shutdownServer();
+
+		AntCommand(
+			locator1 = "build-test.xml",
+			value1 = "export-database-schema -Ddatabase.file.prefix=fresh");
+
+		UpgradeSchema.validateSchemas();
+	}
+
+}

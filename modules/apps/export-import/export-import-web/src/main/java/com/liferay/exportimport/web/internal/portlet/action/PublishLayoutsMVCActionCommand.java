@@ -33,9 +33,9 @@ import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.SessionTreeJSClicks;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.taglib.ui.util.SessionTreeJSClicks;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -168,13 +168,12 @@ public class PublishLayoutsMVCActionCommand extends BaseMVCActionCommand {
 
 		String treeId = ParamUtil.getString(actionRequest, "treeId");
 
-		String openNodes = SessionTreeJSClicks.getOpenNodes(
-			httpServletRequest, treeId + "SelectedNode");
-
-		String selectedLayoutsJSON = _exportImportHelper.getSelectedLayoutsJSON(
-			groupId, privateLayout, openNodes);
-
-		actionRequest.setAttribute("layoutIdMap", selectedLayoutsJSON);
+		actionRequest.setAttribute(
+			"layoutIdMap",
+			_exportImportHelper.getSelectedLayoutsJSON(
+				groupId, privateLayout,
+				SessionTreeJSClicks.getOpenNodes(
+					httpServletRequest, treeId + "SelectedNode")));
 	}
 
 	protected void setRedirect(

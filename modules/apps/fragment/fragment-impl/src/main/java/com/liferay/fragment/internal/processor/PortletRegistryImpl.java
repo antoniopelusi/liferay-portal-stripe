@@ -15,7 +15,6 @@
 package com.liferay.fragment.internal.processor;
 
 import com.liferay.fragment.contributor.PortletAliasRegistration;
-import com.liferay.fragment.internal.constants.PortletFragmentEntryProcessorWebKeys;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.processor.PortletRegistry;
 import com.liferay.petra.string.StringPool;
@@ -24,22 +23,18 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
-import com.liferay.portal.kernel.portlet.PortletJSONUtil;
+import com.liferay.portal.kernel.portlet.PortletPathsUtil;
 import com.liferay.portal.kernel.service.PortletLocalService;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -155,11 +150,9 @@ public class PortletRegistryImpl implements PortletRegistry {
 				fragmentEntryLinkPortletId)
 		).filter(
 			portlet -> {
-				if (portlet == null) {
-					return false;
-				}
+				if ((portlet == null) || !portlet.isActive() ||
+					portlet.isUndeployedPortlet()) {
 
-				if (!portlet.isActive() || portlet.isUndeployedPortlet()) {
 					return false;
 				}
 
@@ -170,21 +163,14 @@ public class PortletRegistryImpl implements PortletRegistry {
 			Collectors.toList()
 		);
 
-		List<Portlet> allPortlets = _getAllPortlets(httpServletRequest);
-
 		for (Portlet portlet : portlets) {
-			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-
 			try {
-				PortletJSONUtil.populatePortletJSONObject(
-					httpServletRequest, StringPool.BLANK, portlet, allPortlets,
-					jsonObject);
+				Map<String, Object> paths = PortletPathsUtil.getPortletPaths(
+					httpServletRequest, StringPool.BLANK, portlet);
 
-				PortletJSONUtil.writeHeaderPaths(
-					httpServletResponse, jsonObject);
+				PortletPathsUtil.writeHeaderPaths(httpServletResponse, paths);
 
-				PortletJSONUtil.writeFooterPaths(
-					httpServletResponse, jsonObject);
+				PortletPathsUtil.writeFooterPaths(httpServletResponse, paths);
 			}
 			catch (Exception exception) {
 				_log.error(
@@ -213,17 +199,13 @@ public class PortletRegistryImpl implements PortletRegistry {
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		Dictionary<String, Object> aliasRegistrationProperties =
-			new HashMapDictionary<>();
-
-		aliasRegistrationProperties.put(
-			"com.liferay.fragment.entry.processor.portlet.alias", alias);
-
 		bundleContext.registerService(
 			PortletAliasRegistration.class,
 			new PortletAliasRegistration() {
 			},
-			aliasRegistrationProperties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"com.liferay.fragment.entry.processor.portlet.alias", alias
+			).build());
 	}
 
 	protected void unsetPortlet(
@@ -235,32 +217,6 @@ public class PortletRegistryImpl implements PortletRegistry {
 			properties, "javax.portlet.name");
 
 		_portletNames.remove(alias, portletName);
-	}
-
-	private List<Portlet> _getAllPortlets(
-		HttpServletRequest httpServletRequest) {
-
-		List<Portlet> allPortlets =
-			(List<Portlet>)httpServletRequest.getAttribute(
-				PortletFragmentEntryProcessorWebKeys.ALL_PORTLETS);
-
-		if (ListUtil.isNotEmpty(allPortlets)) {
-			return allPortlets;
-		}
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		LayoutTypePortlet layoutTypePortlet =
-			themeDisplay.getLayoutTypePortlet();
-
-		allPortlets = layoutTypePortlet.getAllPortlets();
-
-		httpServletRequest.setAttribute(
-			PortletFragmentEntryProcessorWebKeys.ALL_PORTLETS, allPortlets);
-
-		return allPortlets;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

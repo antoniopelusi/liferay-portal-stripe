@@ -38,7 +38,6 @@ public class PortalHookConfigurator
 
 	public PortalHookConfigurator() {
 		_bundleStartStopLogger = new BundleStartStopLogger(_portalStarted);
-		_portalSynchronousLogListener = new PortalSynchronousLogListener();
 	}
 
 	@Override
@@ -111,7 +110,8 @@ public class PortalHookConfigurator
 
 	private final BundleStartStopLogger _bundleStartStopLogger;
 	private final AtomicBoolean _portalStarted = new AtomicBoolean();
-	private final PortalSynchronousLogListener _portalSynchronousLogListener;
+	private final PortalSynchronousLogListener _portalSynchronousLogListener =
+		new PortalSynchronousLogListener();
 	private ServiceTracker<Object, Void> _serviceTracker;
 
 }

@@ -25,7 +25,7 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(immediate = true, service = ModelListener.class)
 public class UserGroupRoleModelListener
-	extends SyncBaseModelListener<UserGroupRole> {
+	extends BaseSyncModelListener<UserGroupRole> {
 
 	@Override
 	public void onAfterCreate(UserGroupRole userGroupRole)

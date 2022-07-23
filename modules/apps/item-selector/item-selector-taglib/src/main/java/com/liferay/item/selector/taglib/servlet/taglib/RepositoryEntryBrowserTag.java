@@ -56,6 +56,10 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 		return _dlMimeTypeDisplayContext;
 	}
 
+	public PortletURL getEditImageURL() {
+		return _editImageURL;
+	}
+
 	public String getEmptyResultsMessage() {
 		return _emptyResultsMessage;
 	}
@@ -76,6 +80,10 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 
 	public long getMaxFileSize() {
 		return _maxFileSize;
+	}
+
+	public String getMimeTypeRestriction() {
+		return _mimeTypeRestriction;
 	}
 
 	public PortletURL getPortletURL() {
@@ -140,6 +148,10 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 		_dlMimeTypeDisplayContext = dlMimeTypeDisplayContext;
 	}
 
+	public void setEditImageURL(PortletURL editImageURL) {
+		_editImageURL = editImageURL;
+	}
+
 	public void setEmptyResultsMessage(String emptyResultsMessage) {
 		_emptyResultsMessage = emptyResultsMessage;
 	}
@@ -162,11 +174,15 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 		_maxFileSize = maxFileSize;
 	}
 
+	public void setMimeTypeRestriction(String mimeTypeRestriction) {
+		_mimeTypeRestriction = mimeTypeRestriction;
+	}
+
 	@Override
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setPortletURL(PortletURL portletURL) {
@@ -209,11 +225,13 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 		_desiredItemSelectorReturnTypes = null;
 		_displayStyle = null;
 		_dlMimeTypeDisplayContext = null;
+		_editImageURL = null;
 		_emptyResultsMessage = null;
 		_extensions = new ArrayList<>();
 		_itemSelectedEventName = null;
 		_itemSelectorReturnTypeResolver = null;
 		_maxFileSize = UploadServletRequestConfigurationHelperUtil.getMaxSize();
+		_mimeTypeRestriction = null;
 		_portletURL = null;
 		_repositoryEntries = new ArrayList<>();
 		_repositoryEntriesCount = 0;
@@ -225,10 +243,14 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 	}
 
 	protected String getDisplayStyle() {
-		PortalPreferences portalPreferences =
-			PortletPreferencesFactoryUtil.getPortalPreferences(request);
+		HttpServletRequest httpServletRequest = getRequest();
 
-		String displayStyle = ParamUtil.getString(request, "displayStyle");
+		PortalPreferences portalPreferences =
+			PortletPreferencesFactoryUtil.getPortalPreferences(
+				httpServletRequest);
+
+		String displayStyle = ParamUtil.getString(
+			httpServletRequest, "displayStyle");
 
 		if (Validator.isNotNull(displayStyle)) {
 			displayStyle = getSafeDisplayStyle(displayStyle);
@@ -290,8 +312,19 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 		}
 
 		httpServletRequest.setAttribute(
+			"liferay-item-selector:repository-entry-browser:editImageURL",
+			_editImageURL);
+		httpServletRequest.setAttribute(
 			"liferay-item-selector:repository-entry-browser:extensions",
 			_extensions);
+
+		if (_mimeTypeRestriction != null) {
+			httpServletRequest.setAttribute(
+				"liferay-item-selector:repository-entry-browser:" +
+					"mimeTypeRestriction",
+				_mimeTypeRestriction);
+		}
+
 		httpServletRequest.setAttribute(
 			"liferay-item-selector:repository-entry-browser:" +
 				"itemSelectedEventName",
@@ -352,6 +385,7 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 	private List<ItemSelectorReturnType> _desiredItemSelectorReturnTypes;
 	private String _displayStyle;
 	private DLMimeTypeDisplayContext _dlMimeTypeDisplayContext;
+	private PortletURL _editImageURL;
 	private String _emptyResultsMessage;
 	private List<String> _extensions = new ArrayList<>();
 	private String _itemSelectedEventName;
@@ -359,6 +393,7 @@ public class RepositoryEntryBrowserTag extends IncludeTag {
 		_itemSelectorReturnTypeResolver;
 	private long _maxFileSize =
 		UploadServletRequestConfigurationHelperUtil.getMaxSize();
+	private String _mimeTypeRestriction;
 	private PortletURL _portletURL;
 	private List<RepositoryEntry> _repositoryEntries = new ArrayList<>();
 	private int _repositoryEntriesCount;

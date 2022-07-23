@@ -82,6 +82,11 @@ public class ResourceActionWrapper
 		}
 	}
 
+	@Override
+	public ResourceAction cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the action ID of this resource action.
 	 *

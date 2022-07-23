@@ -24,17 +24,19 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.service.builder.test.model.ManyColumnsEntry;
 import com.liferay.portal.tools.service.builder.test.model.ManyColumnsEntryModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -292,34 +294,6 @@ public class ManyColumnsEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ManyColumnsEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ManyColumnsEntry.class.getClassLoader(), ManyColumnsEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ManyColumnsEntry> constructor =
-				(Constructor<ManyColumnsEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<ManyColumnsEntry, Object>>
@@ -1682,6 +1656,144 @@ public class ManyColumnsEntryModelImpl
 	}
 
 	@Override
+	public ManyColumnsEntry cloneWithOriginalValues() {
+		ManyColumnsEntryImpl manyColumnsEntryImpl = new ManyColumnsEntryImpl();
+
+		manyColumnsEntryImpl.setManyColumnsEntryId(
+			this.<Long>getColumnOriginalValue("manyColumnsEntryId"));
+		manyColumnsEntryImpl.setColumn1(
+			this.<Integer>getColumnOriginalValue("column1"));
+		manyColumnsEntryImpl.setColumn2(
+			this.<Integer>getColumnOriginalValue("column2"));
+		manyColumnsEntryImpl.setColumn3(
+			this.<Integer>getColumnOriginalValue("column3"));
+		manyColumnsEntryImpl.setColumn4(
+			this.<Integer>getColumnOriginalValue("column4"));
+		manyColumnsEntryImpl.setColumn5(
+			this.<Integer>getColumnOriginalValue("column5"));
+		manyColumnsEntryImpl.setColumn6(
+			this.<Integer>getColumnOriginalValue("column6"));
+		manyColumnsEntryImpl.setColumn7(
+			this.<Integer>getColumnOriginalValue("column7"));
+		manyColumnsEntryImpl.setColumn8(
+			this.<Integer>getColumnOriginalValue("column8"));
+		manyColumnsEntryImpl.setColumn9(
+			this.<Integer>getColumnOriginalValue("column9"));
+		manyColumnsEntryImpl.setColumn10(
+			this.<Integer>getColumnOriginalValue("column10"));
+		manyColumnsEntryImpl.setColumn11(
+			this.<Integer>getColumnOriginalValue("column11"));
+		manyColumnsEntryImpl.setColumn12(
+			this.<Integer>getColumnOriginalValue("column12"));
+		manyColumnsEntryImpl.setColumn13(
+			this.<Integer>getColumnOriginalValue("column13"));
+		manyColumnsEntryImpl.setColumn14(
+			this.<Integer>getColumnOriginalValue("column14"));
+		manyColumnsEntryImpl.setColumn15(
+			this.<Integer>getColumnOriginalValue("column15"));
+		manyColumnsEntryImpl.setColumn16(
+			this.<Integer>getColumnOriginalValue("column16"));
+		manyColumnsEntryImpl.setColumn17(
+			this.<Integer>getColumnOriginalValue("column17"));
+		manyColumnsEntryImpl.setColumn18(
+			this.<Integer>getColumnOriginalValue("column18"));
+		manyColumnsEntryImpl.setColumn19(
+			this.<Integer>getColumnOriginalValue("column19"));
+		manyColumnsEntryImpl.setColumn20(
+			this.<Integer>getColumnOriginalValue("column20"));
+		manyColumnsEntryImpl.setColumn21(
+			this.<Integer>getColumnOriginalValue("column21"));
+		manyColumnsEntryImpl.setColumn22(
+			this.<Integer>getColumnOriginalValue("column22"));
+		manyColumnsEntryImpl.setColumn23(
+			this.<Integer>getColumnOriginalValue("column23"));
+		manyColumnsEntryImpl.setColumn24(
+			this.<Integer>getColumnOriginalValue("column24"));
+		manyColumnsEntryImpl.setColumn25(
+			this.<Integer>getColumnOriginalValue("column25"));
+		manyColumnsEntryImpl.setColumn26(
+			this.<Integer>getColumnOriginalValue("column26"));
+		manyColumnsEntryImpl.setColumn27(
+			this.<Integer>getColumnOriginalValue("column27"));
+		manyColumnsEntryImpl.setColumn28(
+			this.<Integer>getColumnOriginalValue("column28"));
+		manyColumnsEntryImpl.setColumn29(
+			this.<Integer>getColumnOriginalValue("column29"));
+		manyColumnsEntryImpl.setColumn30(
+			this.<Integer>getColumnOriginalValue("column30"));
+		manyColumnsEntryImpl.setColumn31(
+			this.<Integer>getColumnOriginalValue("column31"));
+		manyColumnsEntryImpl.setColumn32(
+			this.<Integer>getColumnOriginalValue("column32"));
+		manyColumnsEntryImpl.setColumn33(
+			this.<Integer>getColumnOriginalValue("column33"));
+		manyColumnsEntryImpl.setColumn34(
+			this.<Integer>getColumnOriginalValue("column34"));
+		manyColumnsEntryImpl.setColumn35(
+			this.<Integer>getColumnOriginalValue("column35"));
+		manyColumnsEntryImpl.setColumn36(
+			this.<Integer>getColumnOriginalValue("column36"));
+		manyColumnsEntryImpl.setColumn37(
+			this.<Integer>getColumnOriginalValue("column37"));
+		manyColumnsEntryImpl.setColumn38(
+			this.<Integer>getColumnOriginalValue("column38"));
+		manyColumnsEntryImpl.setColumn39(
+			this.<Integer>getColumnOriginalValue("column39"));
+		manyColumnsEntryImpl.setColumn40(
+			this.<Integer>getColumnOriginalValue("column40"));
+		manyColumnsEntryImpl.setColumn41(
+			this.<Integer>getColumnOriginalValue("column41"));
+		manyColumnsEntryImpl.setColumn42(
+			this.<Integer>getColumnOriginalValue("column42"));
+		manyColumnsEntryImpl.setColumn43(
+			this.<Integer>getColumnOriginalValue("column43"));
+		manyColumnsEntryImpl.setColumn44(
+			this.<Integer>getColumnOriginalValue("column44"));
+		manyColumnsEntryImpl.setColumn45(
+			this.<Integer>getColumnOriginalValue("column45"));
+		manyColumnsEntryImpl.setColumn46(
+			this.<Integer>getColumnOriginalValue("column46"));
+		manyColumnsEntryImpl.setColumn47(
+			this.<Integer>getColumnOriginalValue("column47"));
+		manyColumnsEntryImpl.setColumn48(
+			this.<Integer>getColumnOriginalValue("column48"));
+		manyColumnsEntryImpl.setColumn49(
+			this.<Integer>getColumnOriginalValue("column49"));
+		manyColumnsEntryImpl.setColumn50(
+			this.<Integer>getColumnOriginalValue("column50"));
+		manyColumnsEntryImpl.setColumn51(
+			this.<Integer>getColumnOriginalValue("column51"));
+		manyColumnsEntryImpl.setColumn52(
+			this.<Integer>getColumnOriginalValue("column52"));
+		manyColumnsEntryImpl.setColumn53(
+			this.<Integer>getColumnOriginalValue("column53"));
+		manyColumnsEntryImpl.setColumn54(
+			this.<Integer>getColumnOriginalValue("column54"));
+		manyColumnsEntryImpl.setColumn55(
+			this.<Integer>getColumnOriginalValue("column55"));
+		manyColumnsEntryImpl.setColumn56(
+			this.<Integer>getColumnOriginalValue("column56"));
+		manyColumnsEntryImpl.setColumn57(
+			this.<Integer>getColumnOriginalValue("column57"));
+		manyColumnsEntryImpl.setColumn58(
+			this.<Integer>getColumnOriginalValue("column58"));
+		manyColumnsEntryImpl.setColumn59(
+			this.<Integer>getColumnOriginalValue("column59"));
+		manyColumnsEntryImpl.setColumn60(
+			this.<Integer>getColumnOriginalValue("column60"));
+		manyColumnsEntryImpl.setColumn61(
+			this.<Integer>getColumnOriginalValue("column61"));
+		manyColumnsEntryImpl.setColumn62(
+			this.<Integer>getColumnOriginalValue("column62"));
+		manyColumnsEntryImpl.setColumn63(
+			this.<Integer>getColumnOriginalValue("column63"));
+		manyColumnsEntryImpl.setColumn64(
+			this.<Integer>getColumnOriginalValue("column64"));
+
+		return manyColumnsEntryImpl;
+	}
+
+	@Override
 	public int compareTo(ManyColumnsEntry manyColumnsEntry) {
 		long primaryKey = manyColumnsEntry.getPrimaryKey();
 
@@ -1890,7 +2002,7 @@ public class ManyColumnsEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1901,9 +2013,27 @@ public class ManyColumnsEntryModelImpl
 			Function<ManyColumnsEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ManyColumnsEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(ManyColumnsEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1950,7 +2080,9 @@ public class ManyColumnsEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ManyColumnsEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ManyColumnsEntry.class, ModelWrapper.class);
 
 	}
 

@@ -26,19 +26,31 @@ PortletURL portletURL = currentURLObj;
 	navigationItems='<%=
 		new JSPNavigationItemList(pageContext) {
 			{
-				add(
-					navigationItem -> {
-						navigationItem.setActive(!privateLayout);
-						navigationItem.setHref(portletURL, "privateLayout", false);
-						navigationItem.setLabel(LanguageUtil.get(httpServletRequest, "public-pages"));
-					});
+				Group group = themeDisplay.getScopeGroup();
 
-				add(
-					navigationItem -> {
-						navigationItem.setActive(privateLayout);
-						navigationItem.setHref(portletURL, "privateLayout", true);
-						navigationItem.setLabel(LanguageUtil.get(httpServletRequest, "private-pages"));
-					});
+				if (group.isPrivateLayoutsEnabled()) {
+					add(
+						navigationItem -> {
+							navigationItem.setActive(!privateLayout);
+							navigationItem.setHref(portletURL, "privateLayout", false);
+							navigationItem.setLabel(LanguageUtil.get(httpServletRequest, "public-pages"));
+						});
+
+					add(
+						navigationItem -> {
+							navigationItem.setActive(privateLayout);
+							navigationItem.setHref(portletURL, "privateLayout", true);
+							navigationItem.setLabel(LanguageUtil.get(httpServletRequest, "private-pages"));
+						});
+				}
+				else {
+					add(
+						navigationItem -> {
+							navigationItem.setActive(!privateLayout);
+							navigationItem.setHref(portletURL, "privateLayout", false);
+							navigationItem.setLabel(LanguageUtil.get(httpServletRequest, "pages"));
+						});
+				}
 			}
 		}
 	%>'

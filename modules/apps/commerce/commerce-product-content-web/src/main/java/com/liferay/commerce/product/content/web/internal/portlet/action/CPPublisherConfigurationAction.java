@@ -22,12 +22,13 @@ import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.content.render.list.CPContentListRendererRegistry;
 import com.liferay.commerce.product.content.render.list.entry.CPContentListEntryRendererRegistry;
 import com.liferay.commerce.product.content.web.internal.display.context.CPPublisherConfigurationDisplayContext;
-import com.liferay.commerce.product.content.web.internal.util.CPPublisherWebHelper;
+import com.liferay.commerce.product.content.web.internal.helper.CPPublisherWebHelper;
 import com.liferay.commerce.product.content.web.internal.util.CPQueryRule;
 import com.liferay.commerce.product.data.source.CPDataSourceRegistry;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.service.CPDefinitionService;
 import com.liferay.commerce.product.type.CPTypeServicesTracker;
+import com.liferay.commerce.product.util.CPDefinitionHelper;
 import com.liferay.commerce.product.util.CPInstanceHelper;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.petra.string.StringPool;
@@ -86,16 +87,16 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 						_assetCategoryLocalService, _assetTagLocalService,
 						_cpContentListEntryRendererRegistry,
 						_cpContentListRendererRegistry, _cpDataSourceRegistry,
-						_cpInstanceHelper, _cpPublisherWebHelper,
-						_cpTypeServicesTracker, httpServletRequest,
-						_itemSelector);
+						_cpDefinitionHelper, _cpInstanceHelper,
+						_cpPublisherWebHelper, _cpTypeServicesTracker,
+						httpServletRequest, _itemSelector);
 
 			httpServletRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
 				cpPublisherConfigurationDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return "/product_publisher/configuration.jsp";
@@ -123,7 +124,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 					actionRequest, "selectionStyle");
 
 				if (selectionStyle.equals("dynamic")) {
-					updateQueryLogic(actionRequest, preferences);
+					_updateQueryLogic(actionRequest, preferences);
 				}
 
 				super.processAction(
@@ -142,16 +143,16 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 			}
 		}
 		else if (cmd.equals("add-selection")) {
-			addSelection(actionRequest, preferences);
+			_addSelection(actionRequest, preferences);
 		}
 		else if (cmd.equals("move-selection-down")) {
-			moveSelectionDown(actionRequest, preferences);
+			_moveSelectionDown(actionRequest, preferences);
 		}
 		else if (cmd.equals("move-selection-up")) {
-			moveSelectionUp(actionRequest, preferences);
+			_moveSelectionUp(actionRequest, preferences);
 		}
 		else if (cmd.equals("remove-selection")) {
-			removeSelection(actionRequest, preferences);
+			_removeSelection(actionRequest, preferences);
 		}
 		else if (cmd.equals("render-selection")) {
 			String renderSelection = getParameter(
@@ -160,10 +161,10 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 			preferences.setValue("renderSelection", renderSelection);
 		}
 		else if (cmd.equals("select-data-source")) {
-			setDataSource(actionRequest, preferences);
+			_setDataSource(actionRequest, preferences);
 		}
 		else if (cmd.equals("selection-style")) {
-			setSelectionStyle(actionRequest, preferences);
+			_setSelectionStyle(actionRequest, preferences);
 		}
 
 		if (SessionErrors.isEmpty(actionRequest)) {
@@ -198,7 +199,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		super.setServletContext(servletContext);
 	}
 
-	protected void addSelection(
+	private void _addSelection(
 			PortletPreferences portletPreferences, long cpDefinitionId,
 			int productEntryOrder)
 		throws Exception {
@@ -232,7 +233,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		}
 	}
 
-	protected void addSelection(
+	private void _addSelection(
 			PortletRequest portletRequest,
 			PortletPreferences portletPreferences)
 		throws Exception {
@@ -241,11 +242,42 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 			portletRequest, "cpDefinitionIds");
 
 		for (long cpDefinitionId : cpDefinitionIds) {
-			addSelection(portletPreferences, cpDefinitionId, -1);
+			_addSelection(portletPreferences, cpDefinitionId, -1);
 		}
 	}
 
-	protected CPQueryRule getQueryRule(ActionRequest actionRequest, int index) {
+	private String _getAssetEntryXml(
+		String productEntryType, long cpDefinitionId) {
+
+		String xml = null;
+
+		try {
+			Document document = SAXReaderUtil.createDocument(StringPool.UTF8);
+
+			Element productEntryElement = document.addElement("product-entry");
+
+			Element productEntryTypeElement = productEntryElement.addElement(
+				"product-entry-type");
+
+			productEntryTypeElement.addText(productEntryType);
+
+			Element productEntryIdElement = productEntryElement.addElement(
+				"product-id");
+
+			productEntryIdElement.addText(String.valueOf(cpDefinitionId));
+
+			xml = document.formattedString(StringPool.BLANK);
+		}
+		catch (IOException ioException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(ioException);
+			}
+		}
+
+		return xml;
+	}
+
+	private CPQueryRule _getQueryRule(ActionRequest actionRequest, int index) {
 		boolean contains = ParamUtil.getBoolean(
 			actionRequest, "queryContains" + index);
 		boolean andOperator = ParamUtil.getBoolean(
@@ -267,7 +299,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		return new CPQueryRule(contains, andOperator, name, values);
 	}
 
-	protected void moveSelectionDown(
+	private void _moveSelectionDown(
 			ActionRequest actionRequest, PortletPreferences preferences)
 		throws Exception {
 
@@ -291,7 +323,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		preferences.setValues("catalogEntryXml", manualEntries);
 	}
 
-	protected void moveSelectionUp(
+	private void _moveSelectionUp(
 			ActionRequest actionRequest, PortletPreferences preferences)
 		throws Exception {
 
@@ -315,7 +347,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		preferences.setValues("catalogEntryXml", manualEntries);
 	}
 
-	protected void removeSelection(
+	private void _removeSelection(
 			ActionRequest actionRequest, PortletPreferences preferences)
 		throws Exception {
 
@@ -343,7 +375,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		preferences.setValues("catalogEntryXml", newEntries);
 	}
 
-	protected void setDataSource(
+	private void _setDataSource(
 			ActionRequest actionRequest, PortletPreferences preferences)
 		throws Exception {
 
@@ -352,7 +384,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		preferences.setValue("dataSource", dataSource);
 	}
 
-	protected void setSelectionStyle(
+	private void _setSelectionStyle(
 			ActionRequest actionRequest, PortletPreferences preferences)
 		throws Exception {
 
@@ -365,7 +397,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		}
 	}
 
-	protected void updateQueryLogic(
+	private void _updateQueryLogic(
 			ActionRequest actionRequest, PortletPreferences preferences)
 		throws Exception {
 
@@ -383,10 +415,10 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		List<CPQueryRule> queryRules = new ArrayList<>();
 
 		for (int queryRulesIndex : queryRulesIndexes) {
-			CPQueryRule queryRule = getQueryRule(
+			CPQueryRule queryRule = _getQueryRule(
 				actionRequest, queryRulesIndex);
 
-			validateQueryRule(userId, groupId, queryRules, queryRule);
+			_validateQueryRule(userId, groupId, queryRules, queryRule);
 
 			queryRules.add(queryRule);
 
@@ -421,7 +453,7 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 		}
 	}
 
-	protected void validateQueryRule(
+	private void _validateQueryRule(
 			long userId, long groupId, List<CPQueryRule> queryRules,
 			CPQueryRule queryRule)
 		throws Exception {
@@ -438,37 +470,6 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 				queryRule.isContains(), queryRule.isAndOperator(),
 				queryRule.getName());
 		}
-	}
-
-	private String _getAssetEntryXml(
-		String productEntryType, long cpDefinitionId) {
-
-		String xml = null;
-
-		try {
-			Document document = SAXReaderUtil.createDocument(StringPool.UTF8);
-
-			Element productEntryElement = document.addElement("product-entry");
-
-			Element productEntryTypeElement = productEntryElement.addElement(
-				"product-entry-type");
-
-			productEntryTypeElement.addText(productEntryType);
-
-			Element productEntryIdElement = productEntryElement.addElement(
-				"product-id");
-
-			productEntryIdElement.addText(String.valueOf(cpDefinitionId));
-
-			xml = document.formattedString(StringPool.BLANK);
-		}
-		catch (IOException ioException) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(ioException, ioException);
-			}
-		}
-
-		return xml;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -489,6 +490,9 @@ public class CPPublisherConfigurationAction extends DefaultConfigurationAction {
 
 	@Reference
 	private CPDataSourceRegistry _cpDataSourceRegistry;
+
+	@Reference
+	private CPDefinitionHelper _cpDefinitionHelper;
 
 	@Reference
 	private CPDefinitionService _cpDefinitionService;

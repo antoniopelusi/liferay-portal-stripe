@@ -1,66 +1,162 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Shopping Experience";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "COMMERCE-6169. As a buyer, I want to filter products using Category Facet widget and the results should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductsAreFilteredByCategoryFacet {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6169 AssertProductsAreFilteredByCategoryFacet pending implementation
+		// TODO Review
 
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Check.checkToggleSwitch(
+			key_fieldName = "Exhaust System",
+			locator1 = "FormFields#CHECKBOX");
+
+		for (var i : list "Catalytic Converters,Exhaust Clamps,Muffler/Resonators,Lift Support") {
+			AssertElementPresent(
+				key_productName = "${i}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		AssertElementNotPresent(
+			key_value = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
 	}
 
 	@description = "COMMERCE-6165. As a buyer, I want to filter products using Option Facet widget and the results should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductsAreFilteredByOptionFacet {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6165 AssertProductsAreFilteredByOptionFacet pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Check.checkToggleSwitch(
+			key_fieldName = "48",
+			locator1 = "FormFields#CHECKBOX");
+
+		for (var i : list "Hoses,Brake Fluid") {
+			AssertElementPresent(
+				key_productName = "${i}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		AssertElementNotPresent(
+			key_value = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
 	}
 
 	@description = "COMMERCE-6170. As a buyer, I want to filter products using Price Range Facet widget and the results should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductsAreFilteredByPriceRangeFacet {
-		property portal.acceptance = "false";
+		property portal.acceptance = "Intern Test";
 
-		// TODO COMMERCE-6170 AssertProductsAreFilteredByPriceRangeFacet pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Check.checkToggleSwitch(
+			key_fieldName = "$ 500.00 - $ 999.99",
+			locator1 = "FormFields#CHECKBOX");
+
+		for (var i : list "Cams,Timing Belt") {
+			AssertElementPresent(
+				key_productName = "${i}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		AssertElementNotPresent(
+			key_value = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			key_name = "Minimum",
+			locator1 = "FormFields#TEXT_FIELD_PRICE_RANGE",
+			value1 = "10.00");
+
+		Type(
+			key_name = "Maximum",
+			locator1 = "FormFields#TEXT_FIELD_PRICE_RANGE",
+			value1 = "15.00");
+
+		Click(
+			key_text = "Go",
+			locator1 = "Button#ANY");
+
+		for (var i : list "Piston,Transmission Cooler Line Assembly") {
+			AssertElementPresent(
+				key_productName = "${i}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		AssertElementNotPresent(
+			key_value = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
 	}
 
 	@description = "COMMERCE-6166. As a buyer, I want to filter products using Specification Facet widget and the results should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test AssertProductsAreFilteredBySpecificationFacet {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6166 AssertProductsAreFilteredBySpecificationFacet pending implementation
+		// TODO
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Check.checkToggleSwitch(
+			key_fieldName = "3 Year Unlimited Mileage Warranty",
+			locator1 = "FormFields#CHECKBOX");
+
+		for (var i : list "Hub Bearing Assembly - Rear,Master Cylinder") {
+			AssertElementPresent(
+				key_productName = "${i}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		AssertElementNotPresent(
+			key_value = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		Check.checkToggleSwitch(
+			key_fieldName = "Ceramic",
+			locator1 = "FormFields#CHECKBOX");
+
+		AssertElementPresent(
+			key_productName = "Premium Brake Pads",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		AssertElementNotPresent(
+			key_value = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
 	}
 
 }

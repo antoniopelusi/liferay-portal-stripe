@@ -1,4 +1,0 @@
-dependencies {
-	compileOnly group: "biz.aQute.bnd", name: "biz.aQute.bnd.annotation", version: "4.2.0"
-	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
-}

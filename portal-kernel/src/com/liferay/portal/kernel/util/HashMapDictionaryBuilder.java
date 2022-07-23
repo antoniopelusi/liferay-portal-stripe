@@ -15,12 +15,17 @@
 package com.liferay.portal.kernel.util;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.Map;
 
 /**
  * @author Hugo Huijser
  */
 public class HashMapDictionaryBuilder<K, V> extends BaseMapBuilder {
+
+	public static <K, V> HashMapDictionaryWrapper<K, V> create(Map<K, V> map) {
+		return new HashMapDictionaryWrapper<>(map);
+	}
 
 	public static <K, V> HashMapDictionaryWrapper<K, V> put(
 		Collection<? extends K> inputCollection,
@@ -69,6 +74,15 @@ public class HashMapDictionaryBuilder<K, V> extends BaseMapBuilder {
 	}
 
 	public static <K, V> HashMapDictionaryWrapper<K, V> putAll(
+		Dictionary<? extends K, ? extends V> dictionary) {
+
+		HashMapDictionaryWrapper<K, V> hashMapDictionaryWrapper =
+			new HashMapDictionaryWrapper<>();
+
+		return hashMapDictionaryWrapper.putAll(dictionary);
+	}
+
+	public static <K, V> HashMapDictionaryWrapper<K, V> putAll(
 		Map<? extends K, ? extends V> inputMap) {
 
 		HashMapDictionaryWrapper<K, V> hashMapDictionaryWrapper =
@@ -78,6 +92,14 @@ public class HashMapDictionaryBuilder<K, V> extends BaseMapBuilder {
 	}
 
 	public static final class HashMapDictionaryWrapper<K, V> {
+
+		public HashMapDictionaryWrapper() {
+			_hashMapDictionary = new HashMapDictionary<>();
+		}
+
+		public HashMapDictionaryWrapper(Map<K, V> map) {
+			_hashMapDictionary = new HashMapDictionary<>(map);
+		}
 
 		public HashMapDictionary<K, V> build() {
 			return _hashMapDictionary;
@@ -180,6 +202,16 @@ public class HashMapDictionaryBuilder<K, V> extends BaseMapBuilder {
 		}
 
 		public HashMapDictionaryWrapper<K, V> putAll(
+			Dictionary<? extends K, ? extends V> dictionary) {
+
+			if (dictionary != null) {
+				_hashMapDictionary.putAll(dictionary);
+			}
+
+			return this;
+		}
+
+		public HashMapDictionaryWrapper<K, V> putAll(
 			Map<? extends K, ? extends V> inputMap) {
 
 			if (inputMap != null) {
@@ -193,8 +225,7 @@ public class HashMapDictionaryBuilder<K, V> extends BaseMapBuilder {
 			return _hashMapDictionary;
 		}
 
-		private final HashMapDictionary<K, V> _hashMapDictionary =
-			new HashMapDictionary<>();
+		private final HashMapDictionary<K, V> _hashMapDictionary;
 
 	}
 

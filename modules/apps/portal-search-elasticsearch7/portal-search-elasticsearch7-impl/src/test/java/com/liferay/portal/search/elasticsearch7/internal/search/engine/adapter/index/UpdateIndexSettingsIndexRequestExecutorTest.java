@@ -58,20 +58,13 @@ public class UpdateIndexSettingsIndexRequestExecutorTest {
 		UpdateIndexSettingsIndexRequest updateIndexSettingsIndexRequest =
 			new UpdateIndexSettingsIndexRequest(_INDEX_NAME);
 
-		StringBundler sb = new StringBundler(10);
-
-		sb.append("{\n");
-		sb.append("    \"analysis\": {\n");
-		sb.append("        \"analyzer\": {\n");
-		sb.append("            \"content\": {\n");
-		sb.append("                \"tokenizer\": \"whitespace\",\n");
-		sb.append("                \"type\": \"custom\"\n");
-		sb.append("            }\n");
-		sb.append("        }\n");
-		sb.append("    }\n");
-		sb.append("}");
-
-		updateIndexSettingsIndexRequest.setSettings(sb.toString());
+		updateIndexSettingsIndexRequest.setSettings(
+			StringBundler.concat(
+				"{\n", "    \"analysis\": {\n", "        \"analyzer\": {\n",
+				"            \"content\": {\n",
+				"                \"tokenizer\": \"whitespace\",\n",
+				"                \"type\": \"custom\"\n", "            }\n",
+				"        }\n", "    }\n", "}"));
 
 		UpdateIndexSettingsIndexRequestExecutorImpl
 			updateIndexSettingsIndexRequestExecutorImpl =

@@ -45,7 +45,7 @@ definition {
 
 		PortletEntry.save();
 
-		Navigator.gotoNavTab(navTab = "Documents and Media");
+		Navigator.gotoNavTab(navTab = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type");
 
@@ -79,7 +79,7 @@ definition {
 			fieldFieldLabel = "Rich Text",
 			fieldHelp = "Help Text");
 
-		PortletEntry.changeLocale(locale = "pt_BR");
+		PortletEntry.changeLocale(locale = "pt-BR");
 
 		PortletEntry.inputName(name = "DM Tipo de Documento");
 
@@ -95,7 +95,7 @@ definition {
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type");
 
-		PortletEntry.changeLocale(locale = "pt_BR");
+		PortletEntry.changeLocale(locale = "pt-BR");
 
 		AssertTextEquals(
 			locator1 = "TextInput#NAME",
@@ -112,17 +112,17 @@ definition {
 	test RepeatRichTextOnUpload {
 		property portal.acceptance = "false";
 
-		DataEngine.editFieldRepeatable(fieldFieldLabel = "Rich Text");
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Rich Text");
 
 		DDLDataDefinition.save();
 
-		DMNavigator.gotoDocumentsAndMedia();
+		Navigator.gotoNavItem(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type");
 
 		PortletEntry.inputTitle(title = "DM Document Type");
 
-		DataEngine.addRepeatableField(fieldName = "Rich Text");
+		DataEngine.addRepeatableField(fieldLabel = "Rich Text");
 
 		PortletEntry.publish();
 
@@ -149,12 +149,11 @@ definition {
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type");
 
-		DataEngine.viewFieldReference(
-			fieldFieldLabel = "Rich Text",
-			fieldName = "Rich Text",
+		DEBuilder.assertFieldReference(
+			fieldLabel = "Rich Text",
 			fieldReference = "TestValidReference");
 
-		DataEngine.editFieldReferenceWithInvalidCharacters(
+		DataEngine.editFieldReference(
 			assertFieldReference = "TestInvalidReference",
 			fieldFieldLabel = "Rich Text",
 			fieldReference = "Test!Invalid@#Reference");
@@ -163,9 +162,8 @@ definition {
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type");
 
-		DataEngine.viewFieldReference(
-			fieldFieldLabel = "Rich Text",
-			fieldName = "Rich Text",
+		DEBuilder.assertFieldReference(
+			fieldLabel = "Rich Text",
 			fieldReference = "TestInvalidReference");
 	}
 
@@ -219,9 +217,7 @@ definition {
 	@description = "This is a test for LPS-98076. Verify that a user can hide/show the field label"
 	@priority = "3"
 	test ShowAndHideRichTextLabel {
-		DataEngine.editShowOrHideLabel(
-			fieldFieldLabel = "Rich Text",
-			showLabel = "false");
+		DataEngine.toggleShowLabel(fieldLabel = "Rich Text");
 
 		DDLDataDefinition.save();
 
@@ -231,9 +227,7 @@ definition {
 			key_fieldFieldLabel = "Rich Text",
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
 
-		DataEngine.editShowOrHideLabel(
-			fieldLabelHidden = "true",
-			showLabel = "true");
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "Rich Text");
 
 		DDLDataDefinition.save();
 
@@ -253,7 +247,7 @@ definition {
 
 		DDLDataDefinition.save();
 
-		DMNavigator.gotoDocumentsAndMedia();
+		Navigator.gotoNavItem(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type");
 
@@ -277,15 +271,13 @@ definition {
 	@description = "This is a test for LPS-98076. Verify that a user can see the Help Text on the Upload"
 	@priority = "4"
 	test VerifyRichFieldHelpTextOnUpload {
-		property portal.upstream = "quarantine";
-
 		DataEngine.editFieldTip(
 			fieldFieldLabel = "Rich Text",
 			fieldHelp = "Help Text");
 
 		DDLDataDefinition.save();
 
-		DMNavigator.gotoDocumentsAndMedia();
+		Navigator.gotoNavItem(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type");
 

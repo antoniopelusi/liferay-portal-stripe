@@ -56,24 +56,27 @@ public class AssetCategoryUtil {
 
 		BreadcrumbEntry vocabularyBreadcrumbEntry = new BreadcrumbEntry();
 
+		vocabularyBreadcrumbEntry.setTitle(
+			vocabulary.getTitle(themeDisplay.getLocale()));
+
 		PortletURL portletURL = PortletURLBuilder.createRenderURL(
 			renderResponse
 		).setMVCPath(
 			"/view.jsp"
-		).build();
+		).setNavigation(
+			() -> {
+				String navigation = ParamUtil.getString(
+					httpServletRequest, "navigation");
 
-		String navigation = ParamUtil.getString(
-			httpServletRequest, "navigation");
+				if (Validator.isNotNull(navigation)) {
+					return navigation;
+				}
 
-		if (Validator.isNotNull(navigation)) {
-			portletURL.setParameter("navigation", navigation);
-		}
-
-		vocabularyBreadcrumbEntry.setTitle(
-			vocabulary.getTitle(themeDisplay.getLocale()));
-
-		portletURL.setParameter(
-			"vocabularyId", String.valueOf(vocabulary.getVocabularyId()));
+				return null;
+			}
+		).setParameter(
+			"vocabularyId", vocabulary.getVocabularyId()
+		).buildPortletURL();
 
 		vocabularyBreadcrumbEntry.setURL(portletURL.toString());
 

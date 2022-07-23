@@ -27,6 +27,10 @@ public class CommercePaymentMethodGroupRelLocalServiceWrapper
 	implements CommercePaymentMethodGroupRelLocalService,
 			   ServiceWrapper<CommercePaymentMethodGroupRelLocalService> {
 
+	public CommercePaymentMethodGroupRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommercePaymentMethodGroupRelLocalServiceWrapper(
 		CommercePaymentMethodGroupRelLocalService
 			commercePaymentMethodGroupRelLocalService) {
@@ -203,6 +207,14 @@ public class CommercePaymentMethodGroupRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commercePaymentMethodGroupRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commercePaymentMethodGroupRelLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override

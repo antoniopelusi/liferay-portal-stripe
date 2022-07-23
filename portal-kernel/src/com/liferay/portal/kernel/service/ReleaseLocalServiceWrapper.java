@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class ReleaseLocalServiceWrapper
 	implements ReleaseLocalService, ServiceWrapper<ReleaseLocalService> {
 
+	public ReleaseLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ReleaseLocalServiceWrapper(ReleaseLocalService releaseLocalService) {
 		_releaseLocalService = releaseLocalService;
 	}
@@ -85,15 +89,6 @@ public class ReleaseLocalServiceWrapper
 	}
 
 	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void createTablesAndPopulate() {
-		_releaseLocalService.createTablesAndPopulate();
-	}
-
-	/**
 	 * @throws PortalException
 	 */
 	@Override
@@ -142,6 +137,13 @@ public class ReleaseLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _releaseLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _releaseLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -254,17 +256,6 @@ public class ReleaseLocalServiceWrapper
 		return _releaseLocalService.getActionableDynamicQuery();
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public int getBuildNumberOrCreate()
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _releaseLocalService.getBuildNumberOrCreate();
-	}
-
 	@Override
 	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery
 		getIndexableActionableDynamicQuery() {
@@ -373,24 +364,6 @@ public class ReleaseLocalServiceWrapper
 		_releaseLocalService.updateRelease(
 			servletContextName, upgradeProcesses, buildNumber,
 			previousBuildNumber);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateRelease(String, List, int, int)}
-	 */
-	@Deprecated
-	@Override
-	public void updateRelease(
-			java.lang.String servletContextName,
-			java.util.List<com.liferay.portal.kernel.upgrade.UpgradeProcess>
-				upgradeProcesses,
-			int buildNumber, int previousBuildNumber, boolean indexOnUpgrade)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_releaseLocalService.updateRelease(
-			servletContextName, upgradeProcesses, buildNumber,
-			previousBuildNumber, indexOnUpgrade);
 	}
 
 	@Override

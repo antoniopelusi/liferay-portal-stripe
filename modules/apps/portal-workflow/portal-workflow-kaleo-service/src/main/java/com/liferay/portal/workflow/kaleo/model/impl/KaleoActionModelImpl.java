@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoAction;
 import com.liferay.portal.workflow.kaleo.model.KaleoActionModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -258,34 +259,6 @@ public class KaleoActionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoAction>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoAction.class.getClassLoader(), KaleoAction.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KaleoAction> constructor =
-				(Constructor<KaleoAction>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoAction, Object>>
@@ -876,6 +849,52 @@ public class KaleoActionModelImpl
 	}
 
 	@Override
+	public KaleoAction cloneWithOriginalValues() {
+		KaleoActionImpl kaleoActionImpl = new KaleoActionImpl();
+
+		kaleoActionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoActionImpl.setKaleoActionId(
+			this.<Long>getColumnOriginalValue("kaleoActionId"));
+		kaleoActionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		kaleoActionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoActionImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		kaleoActionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoActionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoActionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoActionImpl.setKaleoClassName(
+			this.<String>getColumnOriginalValue("kaleoClassName"));
+		kaleoActionImpl.setKaleoClassPK(
+			this.<Long>getColumnOriginalValue("kaleoClassPK"));
+		kaleoActionImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoActionImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoActionImpl.setKaleoNodeName(
+			this.<String>getColumnOriginalValue("kaleoNodeName"));
+		kaleoActionImpl.setName(this.<String>getColumnOriginalValue("name"));
+		kaleoActionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		kaleoActionImpl.setExecutionType(
+			this.<String>getColumnOriginalValue("executionType"));
+		kaleoActionImpl.setScript(
+			this.<String>getColumnOriginalValue("script"));
+		kaleoActionImpl.setScriptLanguage(
+			this.<String>getColumnOriginalValue("scriptLanguage"));
+		kaleoActionImpl.setScriptRequiredContexts(
+			this.<String>getColumnOriginalValue("scriptRequiredContexts"));
+		kaleoActionImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
+
+		return kaleoActionImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoAction kaleoAction) {
 		int value = 0;
 
@@ -1077,7 +1096,7 @@ public class KaleoActionModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1088,9 +1107,26 @@ public class KaleoActionModelImpl
 			Function<KaleoAction, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KaleoAction)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KaleoAction)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1137,7 +1173,9 @@ public class KaleoActionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoAction>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoAction.class, ModelWrapper.class);
 
 	}
 

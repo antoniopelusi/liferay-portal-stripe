@@ -19,7 +19,7 @@ import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
 import com.liferay.change.tracking.service.CTCollectionService;
 import com.liferay.change.tracking.service.CTEntryLocalService;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
@@ -52,8 +52,8 @@ public abstract class BaseTableReferenceDefinitionTestCase {
 			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					_ctCollection.getCtCollectionId())) {
 
 			CTModel<?> ctModel = addCTModel();

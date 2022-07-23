@@ -28,15 +28,14 @@ public class UnicodeLanguageUtil {
 		HttpServletRequest httpServletRequest, String pattern,
 		LanguageWrapper argument) {
 
-		return getUnicodeLanguage().format(
-			httpServletRequest, pattern, argument);
+		return _unicodeLanguage.format(httpServletRequest, pattern, argument);
 	}
 
 	public static String format(
 		HttpServletRequest httpServletRequest, String pattern,
 		LanguageWrapper argument, boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			httpServletRequest, pattern, argument, translateArguments);
 	}
 
@@ -44,15 +43,14 @@ public class UnicodeLanguageUtil {
 		HttpServletRequest httpServletRequest, String pattern,
 		LanguageWrapper[] arguments) {
 
-		return getUnicodeLanguage().format(
-			httpServletRequest, pattern, arguments);
+		return _unicodeLanguage.format(httpServletRequest, pattern, arguments);
 	}
 
 	public static String format(
 		HttpServletRequest httpServletRequest, String pattern,
 		LanguageWrapper[] arguments, boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			httpServletRequest, pattern, arguments, translateArguments);
 	}
 
@@ -60,15 +58,14 @@ public class UnicodeLanguageUtil {
 		HttpServletRequest httpServletRequest, String pattern,
 		Object argument) {
 
-		return getUnicodeLanguage().format(
-			httpServletRequest, pattern, argument);
+		return _unicodeLanguage.format(httpServletRequest, pattern, argument);
 	}
 
 	public static String format(
 		HttpServletRequest httpServletRequest, String pattern, Object argument,
 		boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			httpServletRequest, pattern, argument, translateArguments);
 	}
 
@@ -76,116 +73,115 @@ public class UnicodeLanguageUtil {
 		HttpServletRequest httpServletRequest, String pattern,
 		Object[] arguments) {
 
-		return getUnicodeLanguage().format(
-			httpServletRequest, pattern, arguments);
+		return _unicodeLanguage.format(httpServletRequest, pattern, arguments);
 	}
 
 	public static String format(
 		HttpServletRequest httpServletRequest, String pattern,
 		Object[] arguments, boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			httpServletRequest, pattern, arguments, translateArguments);
 	}
 
 	public static String format(
 		Locale locale, String pattern, Object argument) {
 
-		return getUnicodeLanguage().format(locale, pattern, argument);
+		return _unicodeLanguage.format(locale, pattern, argument);
 	}
 
 	public static String format(
 		Locale locale, String pattern, Object argument,
 		boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			locale, pattern, argument, translateArguments);
 	}
 
 	public static String format(
 		Locale locale, String pattern, Object[] arguments) {
 
-		return getUnicodeLanguage().format(locale, pattern, arguments);
+		return _unicodeLanguage.format(locale, pattern, arguments);
 	}
 
 	public static String format(
 		Locale locale, String pattern, Object[] arguments,
 		boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			locale, pattern, arguments, translateArguments);
 	}
 
 	public static String format(
 		ResourceBundle resourceBundle, String pattern, Object argument) {
 
-		return getUnicodeLanguage().format(resourceBundle, pattern, argument);
+		return _unicodeLanguage.format(resourceBundle, pattern, argument);
 	}
 
 	public static String format(
 		ResourceBundle resourceBundle, String pattern, Object argument,
 		boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			resourceBundle, pattern, argument, translateArguments);
 	}
 
 	public static String format(
 		ResourceBundle resourceBundle, String pattern, Object[] arguments) {
 
-		return getUnicodeLanguage().format(resourceBundle, pattern, arguments);
+		return _unicodeLanguage.format(resourceBundle, pattern, arguments);
 	}
 
 	public static String format(
 		ResourceBundle resourceBundle, String pattern, Object[] arguments,
 		boolean translateArguments) {
 
-		return getUnicodeLanguage().format(
+		return _unicodeLanguage.format(
 			resourceBundle, pattern, arguments, translateArguments);
 	}
 
 	public static String get(
 		HttpServletRequest httpServletRequest, String key) {
 
-		return getUnicodeLanguage().get(httpServletRequest, key);
+		return _unicodeLanguage.get(httpServletRequest, key);
 	}
 
 	public static String get(
 		HttpServletRequest httpServletRequest, String key,
 		String defaultValue) {
 
-		return getUnicodeLanguage().get(httpServletRequest, key, defaultValue);
+		return _unicodeLanguage.get(httpServletRequest, key, defaultValue);
 	}
 
 	public static String get(Locale locale, String key) {
-		return getUnicodeLanguage().get(locale, key);
+		return _unicodeLanguage.get(locale, key);
 	}
 
 	public static String get(Locale locale, String key, String defaultValue) {
-		return getUnicodeLanguage().get(locale, key, defaultValue);
+		return _unicodeLanguage.get(locale, key, defaultValue);
 	}
 
 	public static String get(ResourceBundle resourceBundle, String key) {
-		return getUnicodeLanguage().get(resourceBundle, key);
+		return _unicodeLanguage.get(resourceBundle, key);
 	}
 
 	public static String get(
 		ResourceBundle resourceBundle, String key, String defaultValue) {
 
-		return getUnicodeLanguage().get(resourceBundle, key, defaultValue);
+		return _unicodeLanguage.get(resourceBundle, key, defaultValue);
 	}
 
 	public static String getTimeDescription(
 		HttpServletRequest httpServletRequest, long milliseconds) {
 
-		return getUnicodeLanguage().getTimeDescription(
+		return _unicodeLanguage.getTimeDescription(
 			httpServletRequest, milliseconds);
 	}
 
 	public static String getTimeDescription(
 		HttpServletRequest httpServletRequest, Long milliseconds) {
 
-		return getUnicodeLanguage().getTimeDescription(
+		return _unicodeLanguage.getTimeDescription(
 			httpServletRequest, milliseconds);
 	}
 

@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class ExpandoRowLocalServiceWrapper
 	implements ExpandoRowLocalService, ServiceWrapper<ExpandoRowLocalService> {
 
+	public ExpandoRowLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ExpandoRowLocalServiceWrapper(
 		ExpandoRowLocalService expandoRowLocalService) {
 
@@ -173,6 +177,13 @@ public class ExpandoRowLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _expandoRowLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _expandoRowLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -22,11 +22,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.internal.util.SystemCheckerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.ServiceTrackerCustomizer;
-import com.liferay.registry.ServiceTrackerFieldUpdaterCustomizer;
+import com.liferay.portal.kernel.module.util.ServiceTrackerFieldUpdaterCustomizer;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 
 import java.lang.ref.Reference;
 import java.lang.reflect.Field;
@@ -39,6 +36,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Tina Tian
@@ -191,23 +192,21 @@ public class ServiceProxyFactory {
 
 		String serviceName = serviceClass.getName();
 
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		if (Validator.isNull(filterString)) {
-			serviceTracker = registry.trackServices(
-				serviceName, serviceTrackerCustomizer);
+			serviceTracker = new ServiceTracker<>(
+				bundleContext, serviceClass, serviceTrackerCustomizer);
 		}
 		else {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("(&(objectClass=");
-			sb.append(serviceName);
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-			sb.append(filterString);
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			serviceTracker = registry.trackServices(
-				registry.getFilter(sb.toString()), serviceTrackerCustomizer);
+			serviceTracker = new ServiceTracker<>(
+				bundleContext,
+				SystemBundleUtil.createFilter(
+					StringBundler.concat(
+						"(&(objectClass=", serviceName,
+						StringPool.CLOSE_PARENTHESIS, filterString,
+						StringPool.CLOSE_PARENTHESIS)),
+				serviceTrackerCustomizer);
 		}
 
 		serviceTracker.open();

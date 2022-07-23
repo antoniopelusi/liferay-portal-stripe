@@ -39,8 +39,9 @@ public class CommerceShipmentItemServiceImpl
 
 	@Override
 	public CommerceShipmentItem addCommerceShipmentItem(
-			long commerceShipmentId, long commerceOrderItemId,
-			long commerceInventoryWarehouseId, int quantity,
+			String externalReferenceCode, long commerceShipmentId,
+			long commerceOrderItemId, long commerceInventoryWarehouseId,
+			int quantity, boolean validateInventory,
 			ServiceContext serviceContext)
 		throws PortalException {
 
@@ -49,8 +50,27 @@ public class CommerceShipmentItemServiceImpl
 			CommerceActionKeys.MANAGE_COMMERCE_SHIPMENTS);
 
 		return commerceShipmentItemLocalService.addCommerceShipmentItem(
-			commerceShipmentId, commerceOrderItemId,
-			commerceInventoryWarehouseId, quantity, serviceContext);
+			externalReferenceCode, commerceShipmentId, commerceOrderItemId,
+			commerceInventoryWarehouseId, quantity, validateInventory,
+			serviceContext);
+	}
+
+	@Override
+	public CommerceShipmentItem addOrUpdateCommerceShipmentItem(
+			String externalReferenceCode, long commerceShipmentId,
+			long commerceOrderItemId, long commerceInventoryWarehouseId,
+			int quantity, boolean validateInventory,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_portletResourcePermission.contains(
+			getPermissionChecker(), null,
+			CommerceActionKeys.MANAGE_COMMERCE_SHIPMENTS);
+
+		return commerceShipmentItemLocalService.addOrUpdateCommerceShipmentItem(
+			externalReferenceCode, commerceShipmentId, commerceOrderItemId,
+			commerceInventoryWarehouseId, quantity, validateInventory,
+			serviceContext);
 	}
 
 	/**
@@ -82,6 +102,19 @@ public class CommerceShipmentItemServiceImpl
 	}
 
 	@Override
+	public void deleteCommerceShipmentItems(
+			long commerceShipmentId, boolean restoreStockQuantity)
+		throws PortalException {
+
+		_portletResourcePermission.contains(
+			getPermissionChecker(), null,
+			CommerceActionKeys.MANAGE_COMMERCE_SHIPMENTS);
+
+		commerceShipmentItemLocalService.deleteCommerceShipmentItems(
+			commerceShipmentId, restoreStockQuantity);
+	}
+
+	@Override
 	public CommerceShipmentItem fetchCommerceShipmentItem(
 			long commerceShipmentId, long commerceOrderItemId,
 			long commerceInventoryWarehouseId)
@@ -94,6 +127,21 @@ public class CommerceShipmentItemServiceImpl
 		return commerceShipmentItemLocalService.fetchCommerceShipmentItem(
 			commerceShipmentId, commerceOrderItemId,
 			commerceInventoryWarehouseId);
+	}
+
+	@Override
+	public CommerceShipmentItem
+			fetchCommerceShipmentItemByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		_portletResourcePermission.contains(
+			getPermissionChecker(), null,
+			CommerceActionKeys.MANAGE_COMMERCE_SHIPMENTS);
+
+		return commerceShipmentItemLocalService.
+			fetchCommerceShipmentItemByExternalReferenceCode(
+				companyId, externalReferenceCode);
 	}
 
 	@Override
@@ -196,7 +244,8 @@ public class CommerceShipmentItemServiceImpl
 
 	@Override
 	public CommerceShipmentItem updateCommerceShipmentItem(
-			long commerceShipmentItemId, int quantity)
+			long commerceShipmentItemId, long commerceInventoryWarehouseId,
+			int quantity, boolean validateInventory)
 		throws PortalException {
 
 		_portletResourcePermission.contains(
@@ -204,21 +253,21 @@ public class CommerceShipmentItemServiceImpl
 			CommerceActionKeys.MANAGE_COMMERCE_SHIPMENTS);
 
 		return commerceShipmentItemLocalService.updateCommerceShipmentItem(
-			commerceShipmentItemId, quantity);
+			commerceShipmentItemId, commerceInventoryWarehouseId, quantity,
+			validateInventory);
 	}
 
 	@Override
-	public CommerceShipmentItem updateCommerceShipmentItem(
-			long commerceShipmentItemId, long commerceInventoryWarehouseId,
-			int quantity)
+	public CommerceShipmentItem updateExternalReferenceCode(
+			long commerceShipmentItemId, String externalReferenceCode)
 		throws PortalException {
 
 		_portletResourcePermission.contains(
 			getPermissionChecker(), null,
 			CommerceActionKeys.MANAGE_COMMERCE_SHIPMENTS);
 
-		return commerceShipmentItemLocalService.updateCommerceShipmentItem(
-			commerceShipmentItemId, commerceInventoryWarehouseId, quantity);
+		return commerceShipmentItemLocalService.updateExternalReferenceCode(
+			commerceShipmentItemId, externalReferenceCode);
 	}
 
 	private static volatile ModelResourcePermission<CommerceOrder>
@@ -231,6 +280,6 @@ public class CommerceShipmentItemServiceImpl
 			PortletResourcePermissionFactory.getInstance(
 				CommerceShipmentItemServiceImpl.class,
 				"_portletResourcePermission",
-				CommerceConstants.RESOURCE_NAME_SHIPMENT);
+				CommerceConstants.RESOURCE_NAME_COMMERCE_SHIPMENT);
 
 }

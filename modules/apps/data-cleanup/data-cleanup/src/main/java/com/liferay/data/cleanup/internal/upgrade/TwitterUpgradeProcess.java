@@ -14,44 +14,21 @@
 
 package com.liferay.data.cleanup.internal.upgrade;
 
-import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-
 /**
  * @author Alejandro Tardín
  */
-public class TwitterUpgradeProcess extends UpgradeProcess {
+public class TwitterUpgradeProcess extends BaseUpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.twitter.model.Feed'");
+		removePortletData(
+			new String[] {"com.liferay.twitter.web"}, null,
+			new String[] {"com_liferay_twitter_web_portlet_TwitterPortlet"});
 
-		LayoutTypeSettingsUtil.removePortletId(
-			connection, "com_liferay_twitter_web_portlet_TwitterPortlet");
-
-		runSQL(
-			"delete from Portlet where portletId = " +
-				"'com_liferay_twitter_web_portlet_TwitterPortlet'");
-
-		runSQL(
-			"delete from PortletPreferences where portletId = " +
-				"'com_liferay_twitter_web_portlet_TwitterPortlet'");
-
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.twitter.service'");
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.twitter.web'");
-
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.twitter.model.Feed'");
-
-		runSQL("delete from ServiceComponent where buildNamespace = 'Twitter'");
-
-		runSQL("drop table Twitter_Feed");
+		removeServiceData(
+			"Twitter", new String[] {"com.liferay.twitter.service"},
+			new String[] {"com.liferay.twitter.model.Feed"},
+			new String[] {"Twitter_Feed"});
 	}
 
 }

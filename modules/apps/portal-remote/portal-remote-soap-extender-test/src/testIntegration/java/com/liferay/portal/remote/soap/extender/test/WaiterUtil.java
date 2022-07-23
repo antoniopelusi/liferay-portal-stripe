@@ -62,7 +62,7 @@ public class WaiterUtil {
 
 				@Override
 				public void removedService(
-					ServiceReference<Object> reference, Object service) {
+					ServiceReference<Object> serviceReference, Object service) {
 
 					countDownLatch.countDown();
 

@@ -44,7 +44,7 @@ if (portletTitleBasedNavigation) {
 <c:if test="<%= portletTitleBasedNavigation %>">
 	<liferay-frontend:info-bar>
 		<span class="text-secondary">
-			<liferay-ui:message arguments="<%= new String[] {entry.getUserName(), LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - entry.getModifiedDate().getTime(), true)} %>" key="x-modified-x-ago" translateArguments="<%= false %>" />
+			<liferay-ui:message arguments="<%= new String[] {HtmlUtil.escape(entry.getUserName()), LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - entry.getModifiedDate().getTime(), true)} %>" key="x-modified-x-ago" translateArguments="<%= false %>" />
 		</span>
 	</liferay-frontend:info-bar>
 </c:if>
@@ -61,7 +61,7 @@ if (portletTitleBasedNavigation) {
 			<div class="autofit-col autofit-col-expand">
 
 				<%
-				String userDisplayText = PortalUtil.getUserName(entry) + StringPool.COMMA_AND_SPACE + Time.getRelativeTimeDescription(entry.getDisplayDate(), locale, timeZone, announcementsDisplayContext.getDateFormatDate());
+				String userDisplayText = HtmlUtil.escape(PortalUtil.getUserName(entry) + StringPool.COMMA_AND_SPACE + Time.getRelativeTimeDescription(entry.getDisplayDate(), locale, timeZone, announcementsDisplayContext.getDateFormatDate()));
 				%>
 
 				<div class="autofit-row">
@@ -94,9 +94,11 @@ if (portletTitleBasedNavigation) {
 						</div>
 					</div>
 
-					<div class="autofit-col">
-						<%@ include file="/announcements/entry_action.jspf" %>
-					</div>
+					<c:if test="<%= !StringUtil.equals(announcementsRequestHelper.getPortletId(), AnnouncementsPortletKeys.ANNOUNCEMENTS_ADMIN) %>">
+						<div class="autofit-col">
+							<%@ include file="/announcements/entry_action.jspf" %>
+						</div>
+					</c:if>
 				</div>
 
 				<div class="c-mt-3 entry-content">

@@ -140,6 +140,11 @@ public class SegmentsExperimentRelWrapper
 		}
 	}
 
+	@Override
+	public SegmentsExperimentRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this segments experiment rel.
 	 *

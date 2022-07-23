@@ -87,11 +87,11 @@ public class CommerceProductDisplayPageClayTable
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField nameField =
+		ClayTableSchemaField productNameClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField(
 				"productName", "product-name");
 
-		nameField.setContentRenderer("actionLink");
+		productNameClayTableSchemaField.setContentRenderer("actionLink");
 
 		clayTableSchemaBuilder.addClayTableSchemaField("layout", "layout");
 
@@ -205,10 +205,6 @@ public class CommerceProductDisplayPageClayTable
 	private String _getProductDisplayPageDeleteURL(
 		HttpServletRequest httpServletRequest, long productDisplayPageId) {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				httpServletRequest, CPPortletKeys.COMMERCE_CHANNELS,
@@ -218,7 +214,9 @@ public class CommerceProductDisplayPageClayTable
 		).setCMD(
 			Constants.DELETE
 		).setRedirect(
-			redirect
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"cpDisplayLayoutId", productDisplayPageId
 		).buildString();
@@ -234,7 +232,7 @@ public class CommerceProductDisplayPageClayTable
 				PortletProvider.Action.MANAGE)
 		).setMVCRenderCommandName(
 			"/commerce_channels/edit_cp_definition_cp_display_layout"
-		).build();
+		).buildPortletURL();
 
 		long commerceChannelId = ParamUtil.getLong(
 			httpServletRequest, "commerceChannelId");

@@ -23,6 +23,7 @@ import com.liferay.info.item.provider.InfoItemFormProvider;
 import com.liferay.info.localized.InfoLocalizedValue;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.template.info.item.provider.TemplateInfoItemFieldSetProvider;
 
 import java.util.Locale;
 import java.util.Set;
@@ -55,6 +56,11 @@ public class AssetCategoryInfoItemFormProvider
 		).infoFieldSetEntry(
 			_getBasicInformationInfoFieldSet()
 		).infoFieldSetEntry(
+			_templateInfoItemFieldSetProvider.getInfoFieldSet(
+				AssetCategory.class.getName())
+		).infoFieldSetEntry(
+			_getDisplayPageInfoFieldSet()
+		).infoFieldSetEntry(
 			_infoItemFieldReaderFieldSetProvider.getInfoFieldSet(
 				AssetCategory.class.getName())
 		).labelInfoLocalizedValue(
@@ -79,8 +85,22 @@ public class AssetCategoryInfoItemFormProvider
 		).build();
 	}
 
+	private InfoFieldSet _getDisplayPageInfoFieldSet() {
+		return InfoFieldSet.builder(
+		).infoFieldSetEntry(
+			AssetCategoryInfoItemFields.displayPageURLInfoField
+		).labelInfoLocalizedValue(
+			InfoLocalizedValue.localize(getClass(), "display-page")
+		).name(
+			"display-page"
+		).build();
+	}
+
 	@Reference
 	private InfoItemFieldReaderFieldSetProvider
 		_infoItemFieldReaderFieldSetProvider;
+
+	@Reference
+	private TemplateInfoItemFieldSetProvider _templateInfoItemFieldSetProvider;
 
 }

@@ -23,9 +23,7 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.StagedModelPermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -42,10 +40,6 @@ public class AssetListEntryModelResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", AssetListEntry.class.getName());
-
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<AssetListEntry>>)
 				(Class<?>)ModelResourcePermission.class,
@@ -57,7 +51,9 @@ public class AssetListEntryModelResourcePermissionRegistrar {
 					new StagedModelPermissionLogic<>(
 						_stagingPermission, AssetListPortletKeys.ASSET_LIST,
 						AssetListEntry::getAssetListEntryId))),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", AssetListEntry.class.getName()
+			).build());
 	}
 
 	@Deactivate

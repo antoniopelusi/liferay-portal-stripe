@@ -36,7 +36,10 @@ import org.slf4j.LoggerFactory;
  * @author Ivica Cardic
  * @author Igor Beslic
  */
-@Component(factory = "JSONWebServiceClient", service = {})
+@Component(
+	factory = "com.liferay.petra.json.web.service.client.JSONWebServiceClient",
+	service = {}
+)
 public class JSONWebServiceClientImpl extends BaseJSONWebServiceClientImpl {
 
 	@Override
@@ -76,6 +79,11 @@ public class JSONWebServiceClientImpl extends BaseJSONWebServiceClientImpl {
 				Integer.parseInt(getString("proxyHostPort", properties)));
 			setProxyLogin(getString("proxyLogin", properties));
 			setProxyPassword(getString("proxyPassword", properties));
+		}
+
+		if (properties.containsKey("trustSelfSignedCertificates")) {
+			setTrustSelfSignedCertificates(
+				(boolean)properties.get("trustSelfSignedCertificates"));
 		}
 
 		afterPropertiesSet();

@@ -21,7 +21,7 @@ import com.liferay.oauth2.provider.scope.spi.scope.finder.ScopeFinder;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -79,11 +79,11 @@ public class ScopeFinderTest extends BaseClientTestCase {
 		// Get a new token. This token should be restricted to current scopes
 		// returned by the scope finder.
 
-		token = getToken(
-			"oauthTestClientCredentials", null,
-			this::getClientCredentialsResponse, this::parseTokenString);
-
-		invocationBuilder = authorize(webTarget.request(), token);
+		invocationBuilder = authorize(
+			webTarget.request(),
+			getToken(
+				"oauthTestClientCredentials", null,
+				this::getClientCredentialsResponse, this::parseTokenString));
 
 		Assert.assertEquals(
 			403,
@@ -98,15 +98,19 @@ public class ScopeFinderTest extends BaseClientTestCase {
 		protected void prepareTest() throws Exception {
 			ScopeFinder scopeFinder = Collections::emptyList;
 
-			Dictionary<String, Object> properties1 = new HashMapDictionary<>();
+			Dictionary<String, Object> properties1 =
+				HashMapDictionaryBuilder.<String, Object>put(
+					"oauth2.scope.checker.type", "annotations"
+				).put(
+					"osgi.jaxrs.name", "Test.Application"
+				).build();
 
-			properties1.put("oauth2.scope.checker.type", "annotations");
-			properties1.put("osgi.jaxrs.name", "Test.Application");
-
-			Dictionary<String, Object> properties2 = new HashMapDictionary<>();
-
-			properties2.put("osgi.jaxrs.name", "Test.Application");
-			properties2.put("service.ranking", Integer.MAX_VALUE);
+			Dictionary<String, Object> properties2 =
+				HashMapDictionaryBuilder.<String, Object>put(
+					"osgi.jaxrs.name", "Test.Application"
+				).put(
+					"service.ranking", Integer.MAX_VALUE
+				).build();
 
 			registerJaxRsApplication(
 				new TestRunnablePostHandlingApplication(

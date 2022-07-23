@@ -7,27 +7,41 @@ definition {
 	macro _add {
 		if (IsTextNotEqual(locator1 = "Portlet#HEADER", value1 = "Data Definitions")) {
 			AssertTextEquals(
-				locator1 = "Portlet#MODAL_TITLE",
+				locator1 = "DataEngineModal#MODAL_TITLE",
 				value1 = "Data Definitions");
 
-			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+			SelectFrame(
+				key_title = "Data Definitions",
+				locator1 = "IFrame#MODAL_ANY");
 		}
 
 		LexiconEntry.gotoAdd();
 
 		DDLDataDefinition.editName(ddlDataDefinitionName = "${ddlDataDefinitionName}");
 
-		DDLDataDefinition._showDetails();
-
 		if (isSet(ddlDataDefinitionDescription)) {
+			DDLDataDefinition._showDetails();
+
 			Type.clickAtType(
 				locator1 = "TextInput#DESCRIPTION",
 				value1 = "${ddlDataDefinitionDescription}");
+
+			DDLDataDefinition._closeDetails();
 		}
 	}
 
+	macro _closeDetails {
+		if (IsElementPresent.isVisible(locator1 = "TextInput#DESCRIPTION")) {
+			Click(locator1 = "DDMEditStructure#DETAILS_TOGGLE");
+		}
+
+		AssertNotVisible(locator1 = "TextInput#DESCRIPTION");
+	}
+
 	macro _select {
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+		SelectFrame(
+			key_title = "Data Definitions",
+			locator1 = "IFrame#MODAL_ANY");
 
 		var key_ddlDataDefinitionName = "${ddlDataDefinitionName}";
 
@@ -116,7 +130,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Dynamic Data Lists");
 
 		DDLNavigator.gotoManageDataDefinitions();
@@ -228,7 +242,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Dynamic Data Lists");
 
 		DDLNavigator.gotoManageDataDefinitions();
@@ -319,9 +333,16 @@ definition {
 
 		var key_iframeTitle = "${assetTitle}";
 
-		AssertTextEquals(
-			locator1 = "IFrame#IFRAME_TITLE",
-			value1 = "${assetTitle}");
+		if (IsElementNotPresent(locator1 = "IFrame#IFRAME_TITLE")) {
+			AssertTextEquals(
+				locator1 = "Modal#HEADER",
+				value1 = "${assetTitle}");
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "IFrame#IFRAME_TITLE",
+				value1 = "${assetTitle}");
+		}
 	}
 
 }

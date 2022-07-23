@@ -44,7 +44,7 @@ SiteAdminManagementToolbarDisplayContext siteAdminManagementToolbarDisplayContex
 	propsTransformer="js/SiteManagementToolbarPropsTransformer"
 />
 
-<div class="closed sidenav-container sidenav-right" id="<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>">
+<div class="closed sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/site_admin/info_panel" var="sidebarPanelURL" />
 
 	<liferay-frontend:sidebar-panel

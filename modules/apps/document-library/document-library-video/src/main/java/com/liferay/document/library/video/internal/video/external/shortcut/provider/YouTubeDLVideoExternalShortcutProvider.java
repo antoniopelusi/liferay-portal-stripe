@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.net.HttpURLConnection;
@@ -76,10 +77,11 @@ public class YouTubeDLVideoExternalShortcutProvider
 				String iframeSrc =
 					"https://www.youtube.com/embed/" + youTubeVideoId +
 						"?rel=0";
-				String start = _http.getParameter(url, "t", false);
+				String start = HttpComponentsUtil.getParameter(url, "t", false);
 
 				if (Validator.isNotNull(start)) {
-					iframeSrc = _http.addParameter(iframeSrc, "start", start);
+					iframeSrc = HttpComponentsUtil.addParameter(
+						iframeSrc, "start", start);
 				}
 
 				return StringBundler.concat(
@@ -103,7 +105,7 @@ public class YouTubeDLVideoExternalShortcutProvider
 
 			Http.Response response = options.getResponse();
 
-			final JSONObject jsonObject;
+			JSONObject jsonObject;
 
 			if (response.getResponseCode() != HttpURLConnection.HTTP_OK) {
 				jsonObject = JSONFactoryUtil.createJSONObject();
@@ -116,7 +118,7 @@ public class YouTubeDLVideoExternalShortcutProvider
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return JSONFactoryUtil.createJSONObject();

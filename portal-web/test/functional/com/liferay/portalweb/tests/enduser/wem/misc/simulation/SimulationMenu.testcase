@@ -1,0 +1,103 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Simulation";
+	property testray.main.component.name = "Web Content Administration";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "The user could navigate to page under simulation mode."
+	@priority = "3"
+	@uitest
+	test NavigateToPageInSimulationMode {
+		task ("Add an Asset Publisher to a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page Name");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page Name",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Navigate to the widget page") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Guest");
+		}
+
+		task ("Access to Mobile Device mode via simulation menu") {
+			MobileDevice.previewPG(deviceType = "smartphone");
+		}
+
+		task ("View the Asset Publisher is shown") {
+			Portlet.viewTitle(portletName = "Asset Publisher");
+		}
+
+		task ("Navigate to Home page via Navigation Menu") {
+			Click(locator1 = "NavBar#TOGGLE_NAVIGATION");
+
+			Click(
+				key_pageName = "Home",
+				locator1 = "Home#PAGE");
+
+			Smoke.viewWelcomeContentPage();
+		}
+
+		task ("Quit simulation mode") {
+			SelectFrameTop();
+
+			Click(locator1 = "ControlMenu#SIMULATION");
+		}
+
+		task ("Delete the widget page") {
+			JSONLayout.deletePublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page Name");
+		}
+	}
+
+	@priority = "3"
+	test PreviewCustomDefault {
+		MobileDevice.previewPG(deviceType = "custom");
+	}
+
+	@priority = "3"
+	test PreviewCustomHeightWidth {
+		MobileDevice.previewPG(
+			deviceType = "custom",
+			height = "500",
+			width = "500");
+	}
+
+	@priority = "3"
+	test PreviewDesktop {
+		MobileDevice.previewPG(deviceType = "desktop");
+	}
+
+	@priority = "3"
+	test PreviewSmartphone {
+		MobileDevice.previewPG(deviceType = "smartphone");
+	}
+
+	@priority = "3"
+	test PreviewTablet {
+		MobileDevice.previewPG(deviceType = "tablet");
+	}
+
+}

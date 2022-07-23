@@ -45,7 +45,6 @@ components:
 info:
   title: ""
   version: v1.0
-  description: ""
 openapi: 3.0.1
 paths:
   /addresses/{address-id}:
@@ -63,7 +62,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostalAddress"
-          description: ""
       tags: ["PostalAddress"]
   /addresses:
     get:
@@ -75,7 +73,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PostalAddress"
-          description: ""
       tags: ["PostalAddress"]
       parameters:
         - in: query

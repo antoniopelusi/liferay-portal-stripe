@@ -33,10 +33,16 @@ public class CucumberAxisBuild extends AxisBuild {
 			return _cucumberFeatureResults;
 		}
 
+		Document document = _getDocument();
+
+		if (document == null) {
+			return new ArrayList<>();
+		}
+
 		_cucumberFeatureResults = new ArrayList<>();
 
 		List<Node> nodes = Dom4JUtil.getNodesByXPath(
-			_getDocument(), "//tbody/tr/td[@class='tagname']");
+			document, "//tbody/tr/td[@class='tagname']");
 
 		for (Node node : nodes) {
 			CucumberFeatureResult cucumberFeatureResult =
@@ -75,11 +81,8 @@ public class CucumberAxisBuild extends AxisBuild {
 		List<CucumberTestResult> cucumberTestResults = new ArrayList<>();
 
 		for (TestResult testResult : getTestResults()) {
-			if (!(testResult instanceof CucumberTestResult)) {
-				continue;
-			}
-
-			if (JenkinsResultsParserUtil.isNullOrEmpty(testStatus) ||
+			if (!(testResult instanceof CucumberTestResult) ||
+				JenkinsResultsParserUtil.isNullOrEmpty(testStatus) ||
 				!testStatus.equals(testResult.getStatus())) {
 
 				continue;
@@ -148,6 +151,10 @@ public class CucumberAxisBuild extends AxisBuild {
 			String content = JenkinsResultsParserUtil.toString(
 				getBuildURL() +
 					"/cucumber-html-reports/overview-features.html");
+
+			if (content.contains("None report file was added!")) {
+				return null;
+			}
 
 			content = content.replaceAll("&nbsp;", " ");
 			content = content.replaceAll("<br>", "<br/>");

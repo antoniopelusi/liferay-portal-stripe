@@ -20,203 +20,230 @@ definition {
 		else {
 			PortalSettings.tearDownAuthenticationCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
-	@description = "This is a use case for LPS-65498."
+	@description = "This is a use case for LPS-143257. LDAP credentials should not expose in URL."
 	@priority = "5"
-	test ImportLDAPUserWithBlankPassword {
+	test AssertLDAPCredentialsDoesNotExposeInURL {
+		property apacheds.multiple.users.enabled = "true";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "LDAP#AssertLDAPCredentialsDoesNotExposeInURL";
+
+		task ("Add LDAP server and test connection") {
+			LDAP.addLDAPServerAndTestConnection(ldapServerName = "ApacheDS Server");
+		}
+
+		task ("Assert no pagination display in the page") {
+			LDAP.assertNoPagination(ldapServerName = "ApacheDS Server");
+		}
+
+		task ("Assert LDAP security credentials are obscured") {
+			AssertTextEquals(
+				locator1 = "LDAP#LDAP_CONNECTION_CREDENTIAL_FIELD",
+				value1 = "TEMP_OBFUSCATION_VALUE");
+		}
+	}
+
+	@description = "This is a use case for LPS-65498. LDAP user can be imported with blank password."
+	@priority = "5"
+	test CanImportLDAPUserWithBlankPassword {
 		property apacheds.blank.user.password.enabled = "true";
-		property apacheds.enabled = "true";
 		property app.server.types = "tomcat";
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
 		property environment.acceptance = "false";
-		property operating.system.types = "centos";
-		property portal.upstream = "quarantine";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "LDAP#ImportLDAPUserWithBlankPassword";
 
-		PortalSettings.addLDAPServer(LDAPServerName = "ApacheDS Server");
+		task ("Add LDAP server and test connection") {
+			PortalSettings.addLDAPServer(ldapServerName = "ApacheDS Server");
 
-		PortalSettings.editLDAPServer(LDAPServerName = "ApacheDS Server");
+			PortalSettings.editLDAPServer(ldapServerName = "ApacheDS Server");
 
-		PortalSettings.testLDAPConnection();
+			PortalSettings.testLDAPConnection();
+		}
 
-		var enableSettingList = "enabled,ldapImportEnabled,importOnStartup";
+		task ("Configure LDAP settings") {
+			var enableSettingList = "enabled,ldapImportEnabled,importOnStartup";
 
-		PortalSettings.configureLDAPSetting(enableSettingList = "${enableSettingList}");
+			PortalSettings.configureLDAPSetting(enableSettingList = "${enableSettingList}");
 
-		PortalSettings.viewEnabledLDAPSetting(enableSettingList = "${enableSettingList}");
+			PortalSettings.viewEnabledLDAPSetting(enableSettingList = "${enableSettingList}");
+		}
 
-		Portlet.shutdownServer();
+		task ("shutdown and start server") {
+			Portlet.shutdownServer();
 
-		Portlet.startServer(deleteLiferayHome = "false");
+			Portlet.startServer(deleteLiferayHome = "false");
+		}
 
-		User.firstLoginPG();
+		task ("Login and reindex search indexes") {
+			User.firstLoginPG();
 
-		// LRQA-46018
+			SearchAdministration.executeReindex();
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
+		task ("View user information and assert -Unable to encrypt blank password- message not present on console") {
+			User.openUsersAdmin();
 
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+			User.viewCP(
+				userEmailAddress = "ldapuseremail@liferay.com",
+				userFirstName = "ldapusergivenname",
+				userLastName = "ldapusersn",
+				userScreenName = "ldapusercn");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.viewCP(
-			userEmailAddress = "ldapuseremail@liferay.com",
-			userFirstName = "ldapusergivenname",
-			userLastName = "ldapusersn",
-			userScreenName = "ldapusercn");
-
-		AssertConsoleTextNotPresent(value1 = "Unable to encrypt blank password");
+			AssertConsoleTextNotPresent(value1 = "Unable to encrypt blank password");
+		}
 	}
 
-	@description = "This is a use case for LPS-30529."
+	@description = "This is a use case for LPS-30529. User fields are not reset to default when signing in with imported LDAP user."
 	@priority = "4"
-	test ResetFieldsValueForImportedLDAPUser {
+	test FieldValuesNotResetForImportedLDAPUser {
 		property apacheds.enabled = "true";
 		property custom.properties = "field.enable.com.liferay.portal.kernel.model.Contact.male=true";
-		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "LDAP#ResetFieldsValueForImportedLDAPUser";
 
-		PortalSettings.addLDAPServer(LDAPServerName = "ApacheDS Server");
+		task ("Add LDAP server and test connection") {
+			PortalSettings.addLDAPServer(ldapServerName = "ApacheDS Server");
 
-		PortalSettings.editLDAPServer(LDAPServerName = "ApacheDS Server");
+			PortalSettings.editLDAPServer(ldapServerName = "ApacheDS Server");
 
-		PortalSettings.testLDAPConnection();
+			PortalSettings.testLDAPConnection();
+		}
 
-		var enableSettingList = "enabled,ldapImportEnabled,importOnStartup";
+		task ("Configure LDAP settings") {
+			var enableSettingList = "enabled,ldapImportEnabled,importOnStartup";
 
-		PortalSettings.configureLDAPSetting(enableSettingList = "${enableSettingList}");
+			PortalSettings.configureLDAPSetting(enableSettingList = "${enableSettingList}");
 
-		PortalSettings.viewEnabledLDAPSetting(enableSettingList = "${enableSettingList}");
+			PortalSettings.viewEnabledLDAPSetting(enableSettingList = "${enableSettingList}");
+		}
 
-		Portlet.shutdownServer();
+		task ("Shutdown and start server") {
+			Portlet.shutdownServer();
 
-		Portlet.startServer(deleteLiferayHome = "false");
+			Portlet.startServer(deleteLiferayHome = "false");
+		}
 
-		User.firstLoginPG();
+		task ("Login and reindex search indexes") {
+			User.firstLoginPG();
 
-		// LRQA-46018
+			SearchAdministration.executeReindex();
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
+		task ("View user information") {
+			User.openUsersAdmin();
 
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+			User.viewCP(
+				userEmailAddress = "ldapuseremail@liferay.com",
+				userFirstName = "ldapusergivenname",
+				userLastName = "ldapusersn",
+				userScreenName = "ldapusercn");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Edit user gender") {
+			Navigator.gotoBack();
 
-		User.viewCP(
-			userEmailAddress = "ldapuseremail@liferay.com",
-			userFirstName = "ldapusergivenname",
-			userLastName = "ldapusersn",
-			userScreenName = "ldapusercn");
+			User.editUserGenderCP(
+				userGender = "Female",
+				userName = "ldapusergivenname ldapusersn");
+		}
 
-		Navigator.gotoBack();
+		task ("Edit user job title") {
+			Navigator.gotoBack();
 
-		User.editUserGenderCP(
-			userGender = "Female",
-			userName = "ldapusergivenname ldapusersn");
+			User.editUserJobTitleCP(
+				userJobTitle = "QA",
+				userName = "ldapusergivenname ldapusersn");
+		}
 
-		Navigator.gotoBack();
+		task ("Edit user suffix") {
+			Navigator.gotoBack();
 
-		User.editUserJobTitleCP(
-			userJobTitle = "QA",
-			userName = "ldapusergivenname ldapusersn");
+			User.editUserSuffixCP(
+				userName = "ldapusergivenname ldapusersn",
+				userSuffix = "Phd");
+		}
 
-		Navigator.gotoBack();
+		task ("Edit user password") {
+			Navigator.gotoBack();
 
-		User.editUserSuffixCP(
-			userName = "ldapusergivenname ldapusersn",
-			userSuffix = "Phd");
+			User.editPasswordCP(
+				userEmailAddress = "ldapuseremail@liferay.com",
+				userScreenName = "ldapusercn");
+		}
 
-		Navigator.gotoBack();
+		task ("Logout, login and assert configurations persisted") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "ldapuseremail@liferay.com",
+				userLoginFullName = "ldapusergivenname ldapusersn");
 
-		User.editPasswordCP(
-			userEmailAddress = "ldapuseremail@liferay.com",
-			userScreenName = "ldapusercn");
+			UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
 
-		User.logoutAndLoginPG(
-			userLoginEmailAddress = "ldapuseremail@liferay.com",
-			userLoginFullName = "ldapusergivenname ldapusersn");
+			AssertTextEquals(
+				key_userGender = "Female",
+				locator1 = "UsersAndOrganizationsEditUser#DETAILS_GENDER_SELECTED",
+				value1 = "Female");
 
-		UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
+			AssertTextEquals(
+				locator1 = "UsersAndOrganizationsEditUser#DETAILS_JOB_TITLE_FIELD",
+				value1 = "QA");
 
-		AssertTextEquals(
-			key_userGender = "Female",
-			locator1 = "UsersAndOrganizationsEditUser#DETAILS_GENDER_SELECTED",
-			value1 = "Female");
-
-		AssertTextEquals(
-			locator1 = "UsersAndOrganizationsEditUser#DETAILS_JOB_TITLE_FIELD",
-			value1 = "QA");
-
-		AssertTextEquals(
-			key_userSuffix = "Phd",
-			locator1 = "UsersAndOrganizationsEditUser#DETAILS_SUFFIX_SELECTED",
-			value1 = "Phd");
+			AssertTextEquals(
+				key_userSuffix = "Phd",
+				locator1 = "UsersAndOrganizationsEditUser#DETAILS_SUFFIX_SELECTED",
+				value1 = "Phd");
+		}
 	}
 
-	@description = "This is a use case for LPS-73381."
-	@priority = "4"
-	test ViewHiddenSecurityCredential {
-		property test.name.skip.portal.instance = "LDAP#ViewHiddenSecurityCredential";
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "LDAP",
-			configurationName = "Servers",
-			configurationScope = "Virtual Instance Scope");
-
-		Button.clickAdd();
-
-		SystemSettings.editSecurityCredential(securityCredential = "123456");
-	}
-
+	@description = "This is a use case for LPS-73381. LDAP instance settings do not affect system settings."
 	@priority = "3"
-	test ViewLDAPInstanceSettingsDoNotAffectSystemSettings {
+	test LDAPInstanceSettingsDoNotAffectSystemSettings {
 		property test.name.skip.portal.instance = "LDAP#ViewInstanceSettingsEnableLDAPAuthNotAffectSystemSetting";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
+		task ("Enable LDAP Authentication") {
+			SystemSettings.openSystemSettingsAdmin();
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "LDAP",
-			configurationName = "Authentication",
-			configurationScope = "Virtual Instance Scope");
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "LDAP",
+				configurationName = "Authentication",
+				configurationScope = "Virtual Instance Scope");
 
-		FormFields.viewCheckboxNotChecked(fieldName = "Enabled");
+			FormFields.viewCheckboxNotChecked(fieldName = "Enabled");
 
-		PortalSettings.configureLDAPSetting(enableSettingList = "enabled");
+			PortalSettings.configureLDAPSetting(enableSettingList = "enabled");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
+		task ("Assert LDAP Authentication enabled checkbox is not checked") {
+			SystemSettings.openSystemSettingsAdmin();
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "LDAP",
-			configurationName = "Authentication",
-			configurationScope = "Virtual Instance Scope");
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "LDAP",
+				configurationName = "Authentication",
+				configurationScope = "Virtual Instance Scope");
 
-		FormFields.viewCheckboxNotChecked(fieldName = "Enabled");
+			FormFields.viewCheckboxNotChecked(fieldName = "Enabled");
+		}
+	}
+
+	@description = "This is a use case for LPS-73381. LDAP security credentials are obscured when entered."
+	@priority = "4"
+	test LDAPSecurityCredentialsAreHidden {
+		property test.name.skip.portal.instance = "LDAP#ViewHiddenSecurityCredential";
+
+		task ("Add Server and edit security credential") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "LDAP",
+				configurationName = "Servers",
+				configurationScope = "Virtual Instance Scope");
+
+			Button.clickAdd();
+
+			SystemSettings.editSecurityCredential(securityCredential = "123456");
+		}
 	}
 
 }

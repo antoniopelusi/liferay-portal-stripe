@@ -90,8 +90,8 @@ public class MonitoringGateKeeper {
 		while (enumeration.hasMoreElements()) {
 			URL url = enumeration.nextElement();
 
-			try (InputStream is = url.openStream()) {
-				Document document = documentBuilder.parse(is);
+			try (InputStream inputStream = url.openStream()) {
+				Document document = documentBuilder.parse(inputStream);
 
 				Element element = document.getDocumentElement();
 

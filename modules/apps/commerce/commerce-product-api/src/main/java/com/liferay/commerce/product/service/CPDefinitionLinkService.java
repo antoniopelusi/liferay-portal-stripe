@@ -15,6 +15,7 @@
 package com.liferay.commerce.product.service;
 
 import com.liferay.commerce.product.model.CPDefinitionLink;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -41,6 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -71,6 +73,11 @@ public interface CPDefinitionLinkService extends BaseService {
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public CPDefinitionLink fetchCPDefinitionLink(long cpDefinitionLinkId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPDefinitionLink fetchCPDefinitionLink(
+			long cpDefinitionId, long cProductId, String type)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)

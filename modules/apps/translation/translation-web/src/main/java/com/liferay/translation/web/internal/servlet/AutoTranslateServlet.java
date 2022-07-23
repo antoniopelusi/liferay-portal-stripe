@@ -17,17 +17,21 @@ package com.liferay.translation.web.internal.servlet;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.translation.exception.TranslatorException;
 import com.liferay.translation.translator.JSONTranslatorPacket;
 import com.liferay.translation.translator.Translator;
 import com.liferay.translation.translator.TranslatorPacket;
+import com.liferay.translation.translator.TranslatorRegistry;
 
 import java.io.IOException;
 
@@ -64,44 +68,78 @@ public class AutoTranslateServlet extends HttpServlet {
 			String content = StreamUtil.toString(
 				httpServletRequest.getInputStream());
 
-			TranslatorPacket translatedTranslatorPacket = _translator.translate(
-				new JSONTranslatorPacket(
-					JSONFactoryUtil.createJSONObject(content)));
+			long companyId = _portal.getCompanyId(httpServletRequest);
 
-			_writeJSON(
-				httpServletResponse, _toJSON(translatedTranslatorPacket));
+			Translator translator = _translatorRegistry.getCompanyTranslator(
+				companyId);
+
+			if (translator != null) {
+				TranslatorPacket translatedTranslatorPacket =
+					translator.translate(
+						new JSONTranslatorPacket(
+							companyId,
+							JSONFactoryUtil.createJSONObject(content)));
+
+				_writeJSON(
+					httpServletResponse, _toJSON(translatedTranslatorPacket));
+			}
+			else {
+				_writeErrorJSON(
+					httpServletResponse,
+					_language.get(
+						_portal.getLocale(httpServletRequest),
+						"there-is-no-translation-service-enabled.-please-" +
+							"contact-your-administrator"));
+			}
+		}
+		catch (TranslatorException translatorException) {
+			_log.error(translatorException);
+
+			_writeErrorJSON(
+				httpServletResponse,
+				StringUtil.replace(
+					translatorException.getMessage(), CharPool.QUOTE, "\\\""));
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
-			_writeJSON(
+			_writeErrorJSON(
 				httpServletResponse,
-				StringBundler.concat(
-					"{\"error\": {\"message\": \"",
-					StringUtil.replace(
-						exception.getMessage(), CharPool.QUOTE, "\\\""),
-					"\"}}"));
+				_language.get(
+					_portal.getLocale(httpServletRequest),
+					"there-is-a-problem-with-the-translation-service.-please-" +
+						"contact-your-administrator"));
 		}
 	}
 
-	private JSONArray _getContentJSONArray(Map<String, String> fieldsMap) {
-		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+	private JSONObject _getFieldsJSONObject(Map<String, String> fieldsMap) {
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 		for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
-			jsonArray.put(JSONUtil.put(entry.getKey(), entry.getValue()));
+			jsonObject.put(entry.getKey(), entry.getValue());
 		}
 
-		return jsonArray;
+		return jsonObject;
 	}
 
 	private String _toJSON(TranslatorPacket translatorPacket) {
 		return JSONUtil.put(
-			"fields", _getContentJSONArray(translatorPacket.getFieldsMap())
+			"fields", _getFieldsJSONObject(translatorPacket.getFieldsMap())
 		).put(
 			"sourceLanguageId", translatorPacket.getSourceLanguageId()
 		).put(
 			"targetLanguageId", translatorPacket.getTargetLanguageId()
 		).toString();
+	}
+
+	private void _writeErrorJSON(
+			HttpServletResponse httpServletResponse, String message)
+		throws IOException {
+
+		_writeJSON(
+			httpServletResponse,
+			StringBundler.concat(
+				"{\"error\": {\"message\": \"", message, "\"}}"));
 	}
 
 	private void _writeJSON(
@@ -119,6 +157,12 @@ public class AutoTranslateServlet extends HttpServlet {
 		AutoTranslateServlet.class);
 
 	@Reference
-	private Translator _translator;
+	private Language _language;
+
+	@Reference
+	private Portal _portal;
+
+	@Reference
+	private TranslatorRegistry _translatorRegistry;
 
 }

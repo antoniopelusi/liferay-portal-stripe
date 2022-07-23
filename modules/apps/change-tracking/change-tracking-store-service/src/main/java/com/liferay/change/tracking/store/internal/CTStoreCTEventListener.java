@@ -24,7 +24,7 @@ import com.liferay.change.tracking.store.service.CTSContentLocalService;
 import com.liferay.document.library.kernel.store.Store;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.change.tracking.sql.CTSQLModeThreadLocal;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -71,10 +71,12 @@ public class CTStoreCTEventListener implements CTEventListener {
 		// Deleted CTEntries need to read CTSContent from CTCollection
 
 		if (!deletedCTEnties.isEmpty()) {
-			try (SafeClosable safeClosable1 = CTSQLModeThreadLocal.setCTSQLMode(
-					CTSQLModeThreadLocal.CTSQLMode.CT_ONLY);
-				SafeClosable safeClosable2 =
-					CTCollectionThreadLocal.setCTCollectionId(ctCollectionId)) {
+			try (SafeCloseable safeCloseable1 =
+					CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(
+						CTSQLModeThreadLocal.CTSQLMode.CT_ONLY);
+				SafeCloseable safeCloseable2 =
+					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+						ctCollectionId)) {
 
 				for (CTEntry ctEntry : deletedCTEnties) {
 					CTSContent ctsContent =
@@ -97,8 +99,8 @@ public class CTStoreCTEventListener implements CTEventListener {
 		// Add or modifed CTEntries need to read CTSContent from production
 
 		if (!addOrModifiedCTEntries.isEmpty()) {
-			try (SafeClosable safeClosable =
-					CTCollectionThreadLocal.setCTCollectionId(
+			try (SafeCloseable safeCloseable =
+					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 						CTConstants.CT_COLLECTION_ID_PRODUCTION)) {
 
 				for (CTEntry ctEntry : addOrModifiedCTEntries) {
@@ -132,8 +134,8 @@ public class CTStoreCTEventListener implements CTEventListener {
 			return;
 		}
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					CTConstants.CT_COLLECTION_ID_PRODUCTION)) {
 
 			for (long ctsContentId : ctsContentIds) {

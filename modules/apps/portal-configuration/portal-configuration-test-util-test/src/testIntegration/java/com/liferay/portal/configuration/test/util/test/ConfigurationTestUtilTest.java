@@ -16,7 +16,7 @@ package com.liferay.portal.configuration.test.util.test;
 
 import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Dictionary;
 
@@ -52,11 +52,12 @@ public class ConfigurationTestUtilTest
 
 	@Test
 	public void testSaveConfiguration() throws Exception {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
 		String value1 = RandomTestUtil.randomString();
 
-		properties.put(_TEST_KEY, value1);
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				_TEST_KEY, value1
+			).build();
 
 		ConfigurationTestUtil.saveConfiguration(configurationPid, properties);
 

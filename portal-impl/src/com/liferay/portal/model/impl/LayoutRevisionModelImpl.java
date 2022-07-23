@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutRevisionModel;
-import com.liferay.portal.kernel.model.LayoutRevisionSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -35,22 +34,21 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -212,79 +210,6 @@ public class LayoutRevisionModelImpl
 	@Deprecated
 	public static final long MODIFIEDDATE_COLUMN_BITMASK = 64L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static LayoutRevision toModel(LayoutRevisionSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		LayoutRevision model = new LayoutRevisionImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setLayoutRevisionId(soapModel.getLayoutRevisionId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setLayoutSetBranchId(soapModel.getLayoutSetBranchId());
-		model.setLayoutBranchId(soapModel.getLayoutBranchId());
-		model.setParentLayoutRevisionId(soapModel.getParentLayoutRevisionId());
-		model.setHead(soapModel.isHead());
-		model.setMajor(soapModel.isMajor());
-		model.setPlid(soapModel.getPlid());
-		model.setPrivateLayout(soapModel.isPrivateLayout());
-		model.setName(soapModel.getName());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setKeywords(soapModel.getKeywords());
-		model.setRobots(soapModel.getRobots());
-		model.setTypeSettings(soapModel.getTypeSettings());
-		model.setIconImageId(soapModel.getIconImageId());
-		model.setThemeId(soapModel.getThemeId());
-		model.setColorSchemeId(soapModel.getColorSchemeId());
-		model.setCss(soapModel.getCss());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<LayoutRevision> toModels(
-		LayoutRevisionSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<LayoutRevision> models = new ArrayList<LayoutRevision>(
-			soapModels.length);
-
-		for (LayoutRevisionSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.LayoutRevision"));
@@ -372,34 +297,6 @@ public class LayoutRevisionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutRevision>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutRevision.class.getClassLoader(), LayoutRevision.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<LayoutRevision> constructor =
-				(Constructor<LayoutRevision>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutRevision, Object>>
@@ -1936,6 +1833,69 @@ public class LayoutRevisionModelImpl
 	}
 
 	@Override
+	public LayoutRevision cloneWithOriginalValues() {
+		LayoutRevisionImpl layoutRevisionImpl = new LayoutRevisionImpl();
+
+		layoutRevisionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutRevisionImpl.setLayoutRevisionId(
+			this.<Long>getColumnOriginalValue("layoutRevisionId"));
+		layoutRevisionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		layoutRevisionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutRevisionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		layoutRevisionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		layoutRevisionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutRevisionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutRevisionImpl.setLayoutSetBranchId(
+			this.<Long>getColumnOriginalValue("layoutSetBranchId"));
+		layoutRevisionImpl.setLayoutBranchId(
+			this.<Long>getColumnOriginalValue("layoutBranchId"));
+		layoutRevisionImpl.setParentLayoutRevisionId(
+			this.<Long>getColumnOriginalValue("parentLayoutRevisionId"));
+		layoutRevisionImpl.setHead(
+			this.<Boolean>getColumnOriginalValue("head"));
+		layoutRevisionImpl.setMajor(
+			this.<Boolean>getColumnOriginalValue("major"));
+		layoutRevisionImpl.setPlid(this.<Long>getColumnOriginalValue("plid"));
+		layoutRevisionImpl.setPrivateLayout(
+			this.<Boolean>getColumnOriginalValue("privateLayout"));
+		layoutRevisionImpl.setName(this.<String>getColumnOriginalValue("name"));
+		layoutRevisionImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+		layoutRevisionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		layoutRevisionImpl.setKeywords(
+			this.<String>getColumnOriginalValue("keywords"));
+		layoutRevisionImpl.setRobots(
+			this.<String>getColumnOriginalValue("robots"));
+		layoutRevisionImpl.setTypeSettings(
+			this.<String>getColumnOriginalValue("typeSettings"));
+		layoutRevisionImpl.setIconImageId(
+			this.<Long>getColumnOriginalValue("iconImageId"));
+		layoutRevisionImpl.setThemeId(
+			this.<String>getColumnOriginalValue("themeId"));
+		layoutRevisionImpl.setColorSchemeId(
+			this.<String>getColumnOriginalValue("colorSchemeId"));
+		layoutRevisionImpl.setCss(this.<String>getColumnOriginalValue("css"));
+		layoutRevisionImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		layoutRevisionImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		layoutRevisionImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		layoutRevisionImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return layoutRevisionImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutRevision layoutRevision) {
 		int value = 0;
 
@@ -2165,7 +2125,7 @@ public class LayoutRevisionModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -2176,9 +2136,26 @@ public class LayoutRevisionModelImpl
 			Function<LayoutRevision, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((LayoutRevision)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((LayoutRevision)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -2225,7 +2202,9 @@ public class LayoutRevisionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, LayoutRevision>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					LayoutRevision.class, ModelWrapper.class);
 
 	}
 

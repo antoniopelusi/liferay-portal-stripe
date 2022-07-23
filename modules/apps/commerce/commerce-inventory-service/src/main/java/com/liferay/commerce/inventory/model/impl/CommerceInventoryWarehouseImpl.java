@@ -27,9 +27,6 @@ import java.util.List;
 public class CommerceInventoryWarehouseImpl
 	extends CommerceInventoryWarehouseBaseImpl {
 
-	public CommerceInventoryWarehouseImpl() {
-	}
-
 	@Override
 	public List<CommerceInventoryWarehouseItem>
 		getCommerceInventoryWarehouseItems() {

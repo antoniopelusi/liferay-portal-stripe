@@ -17,9 +17,13 @@ package com.liferay.layout.type.controller.model;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.model.PortletPreferences;
+import com.liferay.portal.kernel.model.PortletPreferencesIds;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.impl.DefaultLayoutTypeAccessPolicyImpl;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -42,25 +46,42 @@ public abstract class BaseLayoutTypeAccessPolicy
 			Portlet portlet)
 		throws PortalException {
 
-		if (layout.getMasterLayoutPlid() > 0) {
-			Layout masterLayout = layoutLocalService.fetchLayout(
-				layout.getMasterLayoutPlid());
+		if (layout.getMasterLayoutPlid() == 0) {
+			return super.hasAccessPermission(
+				httpServletRequest, layout, portlet);
+		}
 
-			if (masterLayout != null) {
-				String resourcePrimKey = PortletPermissionUtil.getPrimaryKey(
-					masterLayout.getPlid(), portlet.getPortletId());
+		Layout masterLayout = layoutLocalService.fetchLayout(
+			layout.getMasterLayoutPlid());
 
-				List<ResourcePermission> resourcePermissions =
-					resourcePermissionLocalService.
-						getResourceResourcePermissions(
-							masterLayout.getCompanyId(),
-							masterLayout.getGroupId(), portlet.getPortletName(),
-							resourcePrimKey);
+		if (masterLayout == null) {
+			return super.hasAccessPermission(
+				httpServletRequest, layout, portlet);
+		}
 
-				if (ListUtil.isNotEmpty(resourcePermissions)) {
-					layout = masterLayout;
-				}
-			}
+		PortletPreferencesIds portletPreferencesIds =
+			portletPreferencesFactory.getPortletPreferencesIds(
+				httpServletRequest, masterLayout, portlet.getPortletId());
+
+		javax.portlet.PortletPreferences jxPortletPreferences =
+			portletPreferencesLocalService.fetchPreferences(
+				portletPreferencesIds);
+
+		if (jxPortletPreferences == null) {
+			return super.hasAccessPermission(
+				httpServletRequest, layout, portlet);
+		}
+
+		String resourcePrimKey = PortletPermissionUtil.getPrimaryKey(
+			masterLayout.getPlid(), portlet.getPortletId());
+
+		List<ResourcePermission> resourcePermissions =
+			resourcePermissionLocalService.getResourceResourcePermissions(
+				masterLayout.getCompanyId(), masterLayout.getGroupId(),
+				portlet.getPortletName(), resourcePrimKey);
+
+		if (ListUtil.isNotEmpty(resourcePermissions)) {
+			layout = masterLayout;
 		}
 
 		return super.hasAccessPermission(httpServletRequest, layout, portlet);
@@ -68,6 +89,12 @@ public abstract class BaseLayoutTypeAccessPolicy
 
 	@Reference
 	protected LayoutLocalService layoutLocalService;
+
+	@Reference
+	protected PortletPreferencesFactory portletPreferencesFactory;
+
+	@Reference
+	protected PortletPreferencesLocalService portletPreferencesLocalService;
 
 	@Reference
 	protected ResourcePermissionLocalService resourcePermissionLocalService;

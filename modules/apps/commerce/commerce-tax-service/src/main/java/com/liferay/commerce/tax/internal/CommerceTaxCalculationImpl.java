@@ -165,7 +165,7 @@ public class CommerceTaxCalculationImpl implements CommerceTaxCalculation {
 				CommerceShippingTaxConfiguration.class,
 				new GroupServiceSettingsLocator(
 					commerceOrder.getGroupId(),
-					CommerceConstants.SERVICE_NAME_TAX));
+					CommerceConstants.SERVICE_NAME_COMMERCE_TAX));
 
 		List<CommerceTaxValue> commerceTaxValues = _getCommerceTaxValues(
 			commerceOrder.getGroupId(), commerceOrder.getBillingAddressId(),
@@ -230,7 +230,7 @@ public class CommerceTaxCalculationImpl implements CommerceTaxCalculation {
 			commerceShippingAddressId);
 		commerceTaxCalculateRequest.setPrice(amount);
 		commerceTaxCalculateRequest.setIncludeTax(includeTax);
-		commerceTaxCalculateRequest.setChannelGroupId(groupId);
+		commerceTaxCalculateRequest.setCommerceChannelGroupId(groupId);
 		commerceTaxCalculateRequest.setTaxCategoryId(taxCategoryId);
 
 		List<CommerceTaxMethod> commerceTaxMethods =
@@ -256,8 +256,7 @@ public class CommerceTaxCalculationImpl implements CommerceTaxCalculation {
 				}
 			}
 			catch (CommerceTaxEngineException commerceTaxEngineException) {
-				_log.error(
-					commerceTaxEngineException, commerceTaxEngineException);
+				_log.error(commerceTaxEngineException);
 			}
 		}
 

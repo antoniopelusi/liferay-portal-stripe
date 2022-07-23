@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleModel;
-import com.liferay.portal.kernel.model.RoleSoap;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -36,21 +35,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -188,63 +186,6 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	@Deprecated
 	public static final long UUID_COLUMN_BITMASK = 64L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Role toModel(RoleSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Role model = new RoleImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setRoleId(soapModel.getRoleId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setName(soapModel.getName());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setType(soapModel.getType());
-		model.setSubtype(soapModel.getSubtype());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Role> toModels(RoleSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Role> models = new ArrayList<Role>(soapModels.length);
-
-		for (RoleSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final String MAPPING_TABLE_GROUPS_ROLES_NAME = "Groups_Roles";
 
 	public static final Object[][] MAPPING_TABLE_GROUPS_ROLES_COLUMNS = {
@@ -359,33 +300,6 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Role>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Role.class.getClassLoader(), Role.class, ModelWrapper.class);
-
-		try {
-			Constructor<Role> constructor =
-				(Constructor<Role>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Role, Object>>
@@ -1186,6 +1100,35 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	}
 
 	@Override
+	public Role cloneWithOriginalValues() {
+		RoleImpl roleImpl = new RoleImpl();
+
+		roleImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		roleImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		roleImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		roleImpl.setRoleId(this.<Long>getColumnOriginalValue("roleId"));
+		roleImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		roleImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		roleImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		roleImpl.setCreateDate(this.<Date>getColumnOriginalValue("createDate"));
+		roleImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		roleImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		roleImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		roleImpl.setName(this.<String>getColumnOriginalValue("name"));
+		roleImpl.setTitle(this.<String>getColumnOriginalValue("title"));
+		roleImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		roleImpl.setType(this.<Integer>getColumnOriginalValue("type_"));
+		roleImpl.setSubtype(this.<String>getColumnOriginalValue("subtype"));
+
+		return roleImpl;
+	}
+
+	@Override
 	public int compareTo(Role role) {
 		int value = 0;
 
@@ -1347,7 +1290,7 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1357,9 +1300,26 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 			String attributeName = entry.getKey();
 			Function<Role, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Role)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Role)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1405,7 +1365,9 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Role>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Role.class, ModelWrapper.class);
 
 	}
 

@@ -12,23 +12,26 @@
  * details.
  */
 
-// Gateway
-
 import uuidv4 from 'uuid/v4';
 
-import Client from './client';
-import EventQueue from './eventQueue';
-import MessageQueue from './messageQueue';
 import middlewares from './middlewares/defaults';
 import defaultPlugins from './plugins/defaults';
+import QueueFlushService from './queueFlushService';
+import EventMessageQueue from './queues/eventMessageQueue';
+import EventQueue from './queues/eventsQueue';
+import IdentityMessageQueue from './queues/identityMessageQueue';
 import {
+	ANALYTICS_CLIENT_VERSION,
 	FLUSH_INTERVAL,
+	QUEUE_PRIORITY_DEFAULT,
 	QUEUE_PRIORITY_IDENTITY,
 	STORAGE_KEY_EVENTS,
 	STORAGE_KEY_IDENTITY,
+	STORAGE_KEY_MESSAGES,
 	STORAGE_KEY_MESSAGE_IDENTITY,
 	STORAGE_KEY_USER_ID,
 	TRACK_DEFAULT_OPTIONS,
+	VALIDATION_CONTEXT_VALUE_MAXIMUM_LENGTH,
 } from './utils/constants';
 import {getContexts, setContexts} from './utils/contexts';
 import {normalizeEvent} from './utils/events';
@@ -63,20 +66,17 @@ class Analytics {
 			return instance;
 		}
 
-		instance.delay = config.flushInterval || FLUSH_INTERVAL;
-		instance.projectId = config.projectId;
-
-		const client = new Client({
-			delay: instance.delay,
-			projectId: instance.projectId,
-		});
+		instance._disposed = false;
 
 		const endpointUrl = (config.endpointUrl || '').replace(/\/$/, '');
 
-		instance.client = client;
-		instance.config = config;
-		instance.identityEndpoint = `${endpointUrl}/identity`;
-		instance._disposed = false;
+		instance.config = Object.assign(config, {
+			endpointUrl,
+			flushInterval: config.flushInterval || FLUSH_INTERVAL,
+			identityEndpoint: `${endpointUrl}/identity`,
+		});
+
+		instance.version = ANALYTICS_CLIENT_VERSION;
 
 		// Register initial middlewares
 
@@ -84,8 +84,11 @@ class Analytics {
 			instance.registerMiddleware(middleware)
 		);
 
+		instance._queueFlushService = new QueueFlushService(instance.config);
+
 		this._initializeEventQueue();
-		this._initializeIdentityQueue();
+		this._initializeEventMessageQueue();
+		this._initializeIdentityMessageQueue();
 
 		// Upgrade storage
 
@@ -100,50 +103,6 @@ class Analytics {
 		this._ensureIntegrity();
 
 		return instance;
-	}
-
-	/**
-	 * Create member instance of EventQueue to store events.
-	 */
-	_initializeEventQueue() {
-		const eventQueue = new EventQueue(STORAGE_KEY_EVENTS, {
-			analyticsInstance: instance,
-			flushDelay: instance.delay,
-			onFlushSuccess: (unflushedEvents) => {
-				if (!unflushedEvents.length) {
-					this.resetContext();
-				}
-
-				instance.client.flush();
-			},
-			shouldFlush: () => {
-				if (this._isTrackingDisabled()) {
-					this.disposeInternal();
-
-					return false;
-				}
-				else {
-					return true;
-				}
-			},
-		});
-
-		instance._eventQueue = eventQueue;
-	}
-
-	/**
-	 * Create member instance of MessageQueue to store identity messages.
-	 */
-	_initializeIdentityQueue() {
-		const identityQueue = new MessageQueue(STORAGE_KEY_MESSAGE_IDENTITY);
-
-		instance._identityQueue = identityQueue;
-
-		instance.client.addQueue(identityQueue, {
-			endpointUrl: instance.identityEndpoint,
-			name: STORAGE_KEY_MESSAGE_IDENTITY,
-			priority: QUEUE_PRIORITY_IDENTITY,
-		});
 	}
 
 	/**
@@ -180,37 +139,12 @@ class Analytics {
 		const self = ENV.Analytics;
 
 		if (self && !self._isTrackingDisabled()) {
-			self.disposeInternal();
+			self._disposeInternal();
 		}
 	}
 
 	getEvents() {
-		return this._eventQueue.getEvents();
-	}
-
-	/**
-	 * Clear event queue and set stored context to the current context.
-	 */
-	reset() {
-		if (this._isTrackingDisabled()) {
-			return;
-		}
-
-		this._eventQueue.reset();
-
-		this.resetContext();
-	}
-
-	/**
-	 * Set stored context to the current context.
-	 */
-	resetContext() {
-		const context = this._getContext();
-
-		const contextsMap = new Map();
-		contextsMap.set(hash(context), context);
-
-		setContexts(contextsMap);
+		return this[STORAGE_KEY_EVENTS].getItems();
 	}
 
 	/**
@@ -245,30 +179,59 @@ class Analytics {
 	}
 
 	/**
+	 * Clear event queue and set stored context to the current context.
+	 */
+	reset() {
+		if (this._isTrackingDisabled()) {
+			return;
+		}
+
+		this[STORAGE_KEY_EVENTS].reset();
+
+		this.resetContext();
+	}
+
+	/**
+	 * Set stored context to the current context.
+	 */
+	resetContext() {
+		const context = this._getContext();
+
+		const contextsMap = new Map();
+		contextsMap.set(hash(context), context);
+
+		setContexts(contextsMap);
+	}
+
+	/**
 	 * Registers an event that is to be sent to Analytics Cloud
 	 * @param {string} eventId Id of the event
 	 * @param {Object} eventProps Complementary information about the event
 	 * @param {Object} options Complementary information about the request
 	 */
 	track(eventId, eventProps, options = {}) {
+		const {assetType, ...otherEventProps} = eventProps || {};
+
 		if (
 			this._isTrackingDisabled() ||
 			instance._disposed ||
-			!isValidEvent({eventId, eventProps})
+			!isValidEvent({eventId, eventProps: otherEventProps})
 		) {
 			return;
 		}
 
-		//eslint-disable-next-line
+		// eslint-disable-next-line
 		const mergedOptions = Object.assign({}, TRACK_DEFAULT_OPTIONS, options);
+
+		const applicationId = assetType || mergedOptions.applicationId;
 
 		const currentContextHash = this._getCurrentContextHash();
 
-		instance._eventQueue.addItem(
+		instance[STORAGE_KEY_EVENTS].addItem(
 			normalizeEvent(
 				eventId,
-				mergedOptions.applicationId,
-				eventProps,
+				applicationId,
+				otherEventProps,
 				currentContextHash
 			)
 		);
@@ -307,30 +270,24 @@ class Analytics {
 			);
 		}
 
-		const hashedIdentity = {emailAddressHashed: hash(identity.email)};
+		const hashedIdentity = {
+			emailAddressHashed: hash(identity.email.toLowerCase()),
+		};
 
 		this.config.identity = hashedIdentity;
 
-		return this._getUserId().then((userId) =>
-			this._sendIdentity(hashedIdentity, userId)
-		);
-	}
+		const userId = this._getUserId();
+		this._sendIdentity(hashedIdentity, userId);
 
-	_ensureIntegrity() {
-		const userId = getItem(STORAGE_KEY_USER_ID);
-
-		if (userId) {
-			this._setCookie(STORAGE_KEY_USER_ID, userId);
-		}
+		return Promise.resolve(userId);
 	}
 
 	/**
 	 * Clears interval and calls plugins disposers if available
 	 */
-	disposeInternal() {
+	_disposeInternal() {
 		instance._disposed = true;
-		instance._eventQueue.dispose();
-		instance.client.dispose();
+		instance._queueFlushService.dispose();
 
 		if (instance._pluginDisposers) {
 			instance._pluginDisposers
@@ -338,24 +295,13 @@ class Analytics {
 				.forEach((disposer) => disposer());
 		}
 	}
+	_ensureIntegrity() {
+		const userId = getItem(STORAGE_KEY_USER_ID);
 
-	/**
-	 * Returns a unique identifier for a user, additionally it stores
-	 * the generated token to the local storage cache and clears
-	 * previously stored identity hash.
-	 * @returns {string} The generated id
-	 */
-	_generateUserId() {
-		const userId = uuidv4();
-
-		setItem(STORAGE_KEY_USER_ID, userId);
-		this._setCookie(STORAGE_KEY_USER_ID, userId);
-
-		localStorage.removeItem(STORAGE_KEY_IDENTITY);
-
-		return userId;
+		if (userId) {
+			this._setCookie(STORAGE_KEY_USER_ID, userId);
+		}
 	}
-
 	_getCurrentContextHash() {
 		const currentContext = this._getContext();
 		const currentContextHash = hash(currentContext);
@@ -373,8 +319,15 @@ class Analytics {
 	_getContext() {
 		const {context} = middlewares.reduce(
 			(request, middleware) => middleware(request, this),
-			{context: {}}
+			{context: {channelId: instance.config.channelId}}
 		);
+
+		for (const key in context) {
+			context[key] = String(context[key]).slice(
+				0,
+				VALIDATION_CONTEXT_VALUE_MAXIMUM_LENGTH
+			);
+		}
 
 		return context;
 	}
@@ -399,18 +352,34 @@ class Analytics {
 	_getUserId() {
 		const newUserIdRequired = this._isNewUserIdRequired();
 
-		let userId = Promise.resolve(getItem(STORAGE_KEY_USER_ID));
+		let userId = getItem(STORAGE_KEY_USER_ID);
 
 		if (newUserIdRequired) {
-			userId = Promise.resolve(this._generateUserId());
+			userId = this._generateUserId();
 		}
 
 		return userId;
 	}
 
+	/**
+	 * Returns a unique identifier for a user, additionally it stores
+	 * the generated token to the local storage cache and clears
+	 * previously stored identity hash.
+	 * @returns {string} The generated id
+	 */
+	_generateUserId() {
+		const userId = uuidv4();
+
+		setItem(STORAGE_KEY_USER_ID, userId);
+		this._setCookie(STORAGE_KEY_USER_ID, userId);
+
+		localStorage.removeItem(STORAGE_KEY_IDENTITY);
+
+		return userId;
+	}
+
 	_isNewUserIdRequired() {
-		const {dataSourceId} = this.config;
-		const {identity} = this.config;
+		const {dataSourceId, identity} = this.config;
 
 		const storedIdentityHash = getItem(STORAGE_KEY_IDENTITY);
 		const storedUserId = getItem(STORAGE_KEY_USER_ID);
@@ -446,8 +415,8 @@ class Analytics {
 	_isTrackingDisabled() {
 		return (
 			ENV.ac_client_disable_tracking ||
-			navigator.doNotTrack == '1' ||
-			navigator.doNotTrack == 'yes'
+			navigator.doNotTrack === '1' ||
+			navigator.doNotTrack === 'yes'
 		);
 	}
 
@@ -458,8 +427,7 @@ class Analytics {
 	 * @returns {Promise} A promise returned by the fetch request.
 	 */
 	_sendIdentity(identity, userId) {
-		const {channelId, dataSourceId} = this.config;
-		const {emailAddressHashed} = identity;
+		const {dataSourceId} = this.config;
 
 		const newIdentityHash = this._getIdentityHash(
 			dataSourceId,
@@ -471,17 +439,18 @@ class Analytics {
 		let identityHash = Promise.resolve(storedIdentityHash);
 
 		if (newIdentityHash !== storedIdentityHash) {
+			const {channelId} = this._getContext();
+			const {emailAddressHashed} = identity;
+
 			setItem(STORAGE_KEY_IDENTITY, newIdentityHash);
 
-			instance._identityQueue.addItem({
+			instance[STORAGE_KEY_MESSAGE_IDENTITY].addItem({
 				channelId,
 				dataSourceId,
 				emailAddressHashed,
 				id: newIdentityHash,
 				userId,
 			});
-
-			instance.client.flush();
 
 			identityHash = newIdentityHash;
 		}
@@ -498,7 +467,49 @@ class Analytics {
 
 		expirationDate.setDate(expirationDate.getDate() + 365);
 
-		document.cookie = `${key}=${data}; expires= ${expirationDate.toUTCString()}; path=/`;
+		document.cookie = `${key}=${data}; expires=${expirationDate.toUTCString()}; path=/; Secure`;
+	}
+
+	/**
+	 * Create member instance of EventQueue to store events.
+	 */
+	_initializeEventQueue() {
+		const eventQueue = new EventQueue({
+			analyticsInstance: instance,
+		});
+
+		instance[STORAGE_KEY_EVENTS] = eventQueue;
+		instance._queueFlushService.addQueue(eventQueue, {
+			priority: QUEUE_PRIORITY_DEFAULT,
+		});
+	}
+
+	/**
+	 * Create member instance of EventMessageQueue to store event messages.
+	 */
+	_initializeEventMessageQueue() {
+		const eventMessageQueue = new EventMessageQueue({
+			analyticsInstance: instance,
+		});
+
+		instance[STORAGE_KEY_MESSAGES] = eventMessageQueue;
+		instance._queueFlushService.addQueue(eventMessageQueue, {
+			priority: QUEUE_PRIORITY_DEFAULT,
+		});
+	}
+
+	/**
+	 * Create member instance of IdentityMessageQueue to store identity messages.
+	 */
+	_initializeIdentityMessageQueue() {
+		const identityMessageQueue = new IdentityMessageQueue({
+			analyticsInstance: instance,
+		});
+
+		instance[STORAGE_KEY_MESSAGE_IDENTITY] = identityMessageQueue;
+		instance._queueFlushService.addQueue(identityMessageQueue, {
+			priority: QUEUE_PRIORITY_IDENTITY,
+		});
 	}
 }
 

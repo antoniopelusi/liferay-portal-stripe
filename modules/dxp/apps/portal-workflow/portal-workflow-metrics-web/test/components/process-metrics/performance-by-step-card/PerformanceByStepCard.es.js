@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {act, cleanup, render} from '@testing-library/react';
 import React from 'react';
 
 import PerformanceByStepCard from '../../../../src/main/resources/META-INF/resources/js/components/process-metrics/performance-by-step-card/PerformanceByStepCard.es';
@@ -21,6 +21,7 @@ import '@testing-library/jest-dom/extend-expect';
 
 const {filters, processId} = {
 	filters: {
+		processVersion: '1.0',
 		stepDateEnd: '2019-12-09T00:00:00Z',
 		stepDateStart: '2019-12-03T00:00:00Z',
 		stepTimeRange: ['7'],
@@ -53,7 +54,6 @@ const items = [
 		},
 	},
 ];
-const data = {items, totalCount: items.length};
 const query = stringify({filters});
 const timeRangeData = {
 	items: [
@@ -74,24 +74,31 @@ const timeRangeData = {
 	],
 	totalCount: 2,
 };
+const processVersions = {items: [{name: '1.0'}]};
 
 describe('The performance by step card component should', () => {
-	let container, getAllByText, getByText;
+	let getAllByText;
+	let getByText;
 
 	beforeAll(() => {
 		jsonSessionStorage.set('timeRanges', timeRangeData);
 	});
 
 	describe('Be rendered with results', () => {
-		beforeAll(() => {
-			const clientMock = {
-				get: jest.fn().mockResolvedValue({data}),
-			};
+		beforeAll(async () => {
+			fetch
+				.mockResolvedValueOnce({
+					json: () => Promise.resolve(processVersions),
+					ok: true,
+				})
+				.mockResolvedValue({
+					json: () =>
+						Promise.resolve({items, totalCount: items.length}),
+					ok: true,
+				});
 
 			const wrapper = ({children}) => (
-				<MockRouter client={clientMock} query={query}>
-					{children}
-				</MockRouter>
+				<MockRouter query={query}>{children}</MockRouter>
 			);
 
 			const renderResult = render(
@@ -99,19 +106,22 @@ describe('The performance by step card component should', () => {
 				{wrapper}
 			);
 
-			container = renderResult.container;
 			getAllByText = renderResult.getAllByText;
 			getByText = renderResult.getByText;
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Be rendered with time range filter', async () => {
-			const activeItem = container.querySelector('.active');
+		it('Be rendered with time range filter', async () => {
+			const activeItems = document.querySelectorAll('.active');
 
 			expect(getAllByText('Last 7 Days').length).toEqual(2);
-			expect(activeItem).toHaveTextContent('Last 7 Days');
+			expect(activeItems[1]).toHaveTextContent('Last 7 Days');
 		});
 
-		test('Be rendered with "View All Steps" button and total "(3)"', () => {
+		it('Be rendered with "View All Steps" button and total "(3)"', () => {
 			const viewAllSteps = getByText('view-all-steps (3)');
 
 			expect(viewAllSteps).toBeTruthy();
@@ -124,17 +134,19 @@ describe('The performance by step card component should', () => {
 	describe('Be rendered without results', () => {
 		afterEach(cleanup);
 
-		beforeEach(() => {
-			const clientMock = {
-				get: jest
-					.fn()
-					.mockResolvedValue({data: {items: [], totalCount: 0}}),
-			};
+		beforeEach(async () => {
+			fetch
+				.mockResolvedValueOnce({
+					json: () => Promise.resolve(processVersions),
+					ok: true,
+				})
+				.mockResolvedValue({
+					json: () => Promise.resolve({items: [], totalCount: 0}),
+					ok: true,
+				});
 
 			const wrapper = ({children}) => (
-				<MockRouter client={clientMock} query={query}>
-					{children}
-				</MockRouter>
+				<MockRouter query={query}>{children}</MockRouter>
 			);
 
 			const renderResult = render(
@@ -143,9 +155,13 @@ describe('The performance by step card component should', () => {
 			);
 
 			getByText = renderResult.getByText;
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Be rendered with empty state view', () => {
+		it('Be rendered with empty state view', () => {
 			const emptyStateMessage = getByText(
 				'there-is-no-data-at-the-moment'
 			);

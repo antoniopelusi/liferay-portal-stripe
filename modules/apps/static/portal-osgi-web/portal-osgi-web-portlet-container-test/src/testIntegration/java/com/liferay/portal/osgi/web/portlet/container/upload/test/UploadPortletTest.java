@@ -28,8 +28,8 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -43,9 +43,6 @@ import com.liferay.upload.UniqueFileNameProvider;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import java.util.Dictionary;
-import java.util.Map;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletRequest;
@@ -98,14 +95,11 @@ public class UploadPortletTest extends BasePortletContainerTestCase {
 
 				PortletURL portletURL = resourceResponse.createActionURL();
 
-				String queryString = HttpUtil.getQueryString(
+				String queryString = HttpComponentsUtil.getQueryString(
 					portletURL.toString());
 
-				Map<String, String[]> parameterMap = HttpUtil.getParameterMap(
-					queryString);
-
 				String portalAuthenticationToken = MapUtil.getString(
-					parameterMap, "p_auth");
+					HttpComponentsUtil.getParameterMap(queryString), "p_auth");
 
 				printWriter.write(portalAuthenticationToken);
 			}
@@ -169,53 +163,59 @@ public class UploadPortletTest extends BasePortletContainerTestCase {
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("javax.portlet.name", TestUploadPortlet.PORTLET_NAME);
-		properties.put("mvc.command.name", TestUploadPortlet.MVC_COMMAND_NAME);
-
 		ServiceRegistration<MVCActionCommand> serviceRegistration =
 			bundleContext.registerService(
-				MVCActionCommand.class, mvcActionCommand, properties);
+				MVCActionCommand.class, mvcActionCommand,
+				HashMapDictionaryBuilder.<String, Object>put(
+					"javax.portlet.name", TestUploadPortlet.PORTLET_NAME
+				).put(
+					"mvc.command.name", TestUploadPortlet.MVC_COMMAND_NAME
+				).build());
 
 		serviceRegistrations.add(serviceRegistration);
 	}
 
 	protected void registerMVCPortlet(Portlet portlet) throws Exception {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"com.liferay.portlet.private-request-attributes",
-			Boolean.FALSE.toString());
-		properties.put(
-			"com.liferay.portlet.private-session-attributes",
-			Boolean.FALSE.toString());
-		properties.put(
-			"com.liferay.portlet.scopeable", Boolean.TRUE.toString());
-		properties.put(
-			"com.liferay.portlet.struts-path", TestUploadPortlet.MVC_PATH);
-		properties.put(
-			"com.liferay.portlet.use-default-template",
-			Boolean.TRUE.toString());
-		properties.put("javax.portlet.display-name", "Test Upload Portlet");
-		properties.put("javax.portlet.expiration-cache", "0");
-		properties.put(
-			"javax.portlet.init-param.check-auth-token",
-			Boolean.FALSE.toString());
-		properties.put(
-			"javax.portlet.init-param.single-page-application-cacheable",
-			Boolean.FALSE.toString());
-		properties.put("javax.portlet.init-param.template-path", "/");
-		properties.put(
-			"javax.portlet.init-param.view-template",
-			"/" + TestUploadPortlet.PORTLET_NAME + "/view.jsp");
-		properties.put("javax.portlet.name", TestUploadPortlet.PORTLET_NAME);
-		properties.put("javax.portlet.resource-bundle", "content.Language");
-		properties.put(
-			"javax.portlet.security-role-ref", "guest,power-user,user");
-		properties.put("javax.portlet.supports.mime-type", "text/html");
-
-		setUpPortlet(portlet, properties, TestUploadPortlet.PORTLET_NAME);
+		setUpPortlet(
+			portlet,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"com.liferay.portlet.private-request-attributes",
+				Boolean.FALSE.toString()
+			).put(
+				"com.liferay.portlet.private-session-attributes",
+				Boolean.FALSE.toString()
+			).put(
+				"com.liferay.portlet.scopeable", Boolean.TRUE.toString()
+			).put(
+				"com.liferay.portlet.struts-path", TestUploadPortlet.MVC_PATH
+			).put(
+				"com.liferay.portlet.use-default-template",
+				Boolean.TRUE.toString()
+			).put(
+				"javax.portlet.display-name", "Test Upload Portlet"
+			).put(
+				"javax.portlet.expiration-cache", "0"
+			).put(
+				"javax.portlet.init-param.check-auth-token",
+				Boolean.FALSE.toString()
+			).put(
+				"javax.portlet.init-param.single-page-application-cacheable",
+				Boolean.FALSE.toString()
+			).put(
+				"javax.portlet.init-param.template-path", "/"
+			).put(
+				"javax.portlet.init-param.view-template",
+				"/" + TestUploadPortlet.PORTLET_NAME + "/view.jsp"
+			).put(
+				"javax.portlet.name", TestUploadPortlet.PORTLET_NAME
+			).put(
+				"javax.portlet.resource-bundle", "content.Language"
+			).put(
+				"javax.portlet.security-role-ref", "guest,power-user,user"
+			).put(
+				"javax.portlet.supports.mime-type", "text/html"
+			).build(),
+			TestUploadPortlet.PORTLET_NAME);
 	}
 
 	protected void setUp(

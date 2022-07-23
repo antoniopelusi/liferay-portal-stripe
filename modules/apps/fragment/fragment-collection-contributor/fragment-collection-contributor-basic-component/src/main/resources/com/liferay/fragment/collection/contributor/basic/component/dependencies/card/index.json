@@ -4,40 +4,6 @@
 			"fields": [
 				{
 					"dataType": "string",
-					"defaultValue": "h2",
-					"label": "card-title-heading-level",
-					"name": "headingLevel",
-					"type": "select",
-					"typeOptions": {
-						"validValues": [
-							{
-								"value": "h1"
-							},
-							{
-								"value": "h2"
-							},
-							{
-								"value": "h3"
-							},
-							{
-								"value": "h4"
-							},
-							{
-								"value": "h5"
-							},
-							{
-								"value": "h6"
-							}
-						]
-					}
-				}
-			]
-		},
-		{
-			"configurationRole": "style",
-			"fields": [
-				{
-					"dataType": "string",
 					"defaultValue": "w-100",
 					"label": "image-size",
 					"name": "imageSize",
@@ -55,7 +21,8 @@
 						]
 					}
 				}
-			]
+			],
+			"label": "card-options"
 		}
 	]
 }

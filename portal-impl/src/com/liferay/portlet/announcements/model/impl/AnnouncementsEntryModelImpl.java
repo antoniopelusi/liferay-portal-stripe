@@ -16,7 +16,6 @@ package com.liferay.portlet.announcements.model.impl;
 
 import com.liferay.announcements.kernel.model.AnnouncementsEntry;
 import com.liferay.announcements.kernel.model.AnnouncementsEntryModel;
-import com.liferay.announcements.kernel.model.AnnouncementsEntrySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -34,21 +33,20 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -198,68 +196,6 @@ public class AnnouncementsEntryModelImpl
 	@Deprecated
 	public static final long MODIFIEDDATE_COLUMN_BITMASK = 128L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AnnouncementsEntry toModel(AnnouncementsEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		AnnouncementsEntry model = new AnnouncementsEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setEntryId(soapModel.getEntryId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setTitle(soapModel.getTitle());
-		model.setContent(soapModel.getContent());
-		model.setUrl(soapModel.getUrl());
-		model.setType(soapModel.getType());
-		model.setDisplayDate(soapModel.getDisplayDate());
-		model.setExpirationDate(soapModel.getExpirationDate());
-		model.setPriority(soapModel.getPriority());
-		model.setAlert(soapModel.isAlert());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AnnouncementsEntry> toModels(
-		AnnouncementsEntrySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AnnouncementsEntry> models = new ArrayList<AnnouncementsEntry>(
-			soapModels.length);
-
-		for (AnnouncementsEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.announcements.kernel.model.AnnouncementsEntry"));
@@ -347,34 +283,6 @@ public class AnnouncementsEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AnnouncementsEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AnnouncementsEntry.class.getClassLoader(), AnnouncementsEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AnnouncementsEntry> constructor =
-				(Constructor<AnnouncementsEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AnnouncementsEntry, Object>>
@@ -991,6 +899,51 @@ public class AnnouncementsEntryModelImpl
 	}
 
 	@Override
+	public AnnouncementsEntry cloneWithOriginalValues() {
+		AnnouncementsEntryImpl announcementsEntryImpl =
+			new AnnouncementsEntryImpl();
+
+		announcementsEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		announcementsEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		announcementsEntryImpl.setEntryId(
+			this.<Long>getColumnOriginalValue("entryId"));
+		announcementsEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		announcementsEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		announcementsEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		announcementsEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		announcementsEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		announcementsEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		announcementsEntryImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		announcementsEntryImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+		announcementsEntryImpl.setContent(
+			this.<String>getColumnOriginalValue("content"));
+		announcementsEntryImpl.setUrl(
+			this.<String>getColumnOriginalValue("url"));
+		announcementsEntryImpl.setType(
+			this.<String>getColumnOriginalValue("type_"));
+		announcementsEntryImpl.setDisplayDate(
+			this.<Date>getColumnOriginalValue("displayDate"));
+		announcementsEntryImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+		announcementsEntryImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
+		announcementsEntryImpl.setAlert(
+			this.<Boolean>getColumnOriginalValue("alert"));
+
+		return announcementsEntryImpl;
+	}
+
+	@Override
 	public int compareTo(AnnouncementsEntry announcementsEntry) {
 		int value = 0;
 
@@ -1187,7 +1140,7 @@ public class AnnouncementsEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1198,9 +1151,27 @@ public class AnnouncementsEntryModelImpl
 			Function<AnnouncementsEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AnnouncementsEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AnnouncementsEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1247,7 +1218,9 @@ public class AnnouncementsEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AnnouncementsEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AnnouncementsEntry.class, ModelWrapper.class);
 
 	}
 

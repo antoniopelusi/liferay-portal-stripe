@@ -50,24 +50,22 @@ public class DefaultBearerTokenProvider implements BearerTokenProvider {
 
 	@Override
 	public void onBeforeCreate(AccessToken accessToken) {
-		String tokenKey = generateTokenKey(
-			_defaultBearerTokenProviderConfiguration.accessTokenKeyByteSize());
-
-		accessToken.setTokenKey(tokenKey);
-
 		accessToken.setExpiresIn(
 			_defaultBearerTokenProviderConfiguration.accessTokenExpiresIn());
+		accessToken.setTokenKey(
+			generateTokenKey(
+				_defaultBearerTokenProviderConfiguration.
+					accessTokenKeyByteSize()));
 	}
 
 	@Override
 	public void onBeforeCreate(RefreshToken refreshToken) {
-		String tokenKey = generateTokenKey(
-			_defaultBearerTokenProviderConfiguration.refreshTokenKeyByteSize());
-
-		refreshToken.setTokenKey(tokenKey);
-
 		refreshToken.setExpiresIn(
 			_defaultBearerTokenProviderConfiguration.refreshTokenExpiresIn());
+		refreshToken.setTokenKey(
+			generateTokenKey(
+				_defaultBearerTokenProviderConfiguration.
+					refreshTokenKeyByteSize()));
 	}
 
 	@Activate
@@ -108,11 +106,9 @@ public class DefaultBearerTokenProvider implements BearerTokenProvider {
 
 		long issuedAtMillis = issuedAt * 1000;
 
-		if (issuedAtMillis > System.currentTimeMillis()) {
-			return false;
-		}
+		if ((issuedAtMillis > System.currentTimeMillis()) ||
+			((issuedAtMillis + expiresInMillis) < System.currentTimeMillis())) {
 
-		if ((issuedAtMillis + expiresInMillis) < System.currentTimeMillis()) {
 			return false;
 		}
 

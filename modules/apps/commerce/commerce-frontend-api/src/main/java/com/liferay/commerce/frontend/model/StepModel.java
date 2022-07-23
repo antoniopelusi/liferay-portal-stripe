@@ -19,9 +19,6 @@ package com.liferay.commerce.frontend.model;
  */
 public class StepModel {
 
-	public StepModel() {
-	}
-
 	public String getId() {
 		return _id;
 	}

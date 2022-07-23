@@ -147,7 +147,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 
@@ -172,7 +172,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 				_extraSettingsUnicodeProperties.load(super.getExtraSettings());
 			}
 			catch (IOException ioException) {
-				_log.error(ioException, ioException);
+				_log.error(ioException);
 			}
 		}
 
@@ -245,6 +245,10 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 			DLFileEntry.class.getName(), getFileEntryId());
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Override
 	public String getLuceneProperties() {
 		UnicodeProperties extraSettingsUnicodeProperties =
@@ -293,7 +297,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return WorkflowConstants.STATUS_APPROVED;
@@ -314,7 +318,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 
@@ -340,7 +344,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 

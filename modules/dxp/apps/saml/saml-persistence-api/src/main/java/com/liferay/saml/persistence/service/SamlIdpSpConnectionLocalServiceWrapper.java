@@ -27,10 +27,33 @@ public class SamlIdpSpConnectionLocalServiceWrapper
 	implements SamlIdpSpConnectionLocalService,
 			   ServiceWrapper<SamlIdpSpConnectionLocalService> {
 
+	public SamlIdpSpConnectionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SamlIdpSpConnectionLocalServiceWrapper(
 		SamlIdpSpConnectionLocalService samlIdpSpConnectionLocalService) {
 
 		_samlIdpSpConnectionLocalService = samlIdpSpConnectionLocalService;
+	}
+
+	@Override
+	public com.liferay.saml.persistence.model.SamlIdpSpConnection
+			addSamlIdpSpConnection(
+				int assertionLifetime, String attributeNames,
+				boolean attributesEnabled, boolean attributesNamespaceEnabled,
+				boolean enabled, boolean encryptionForced, String metadataUrl,
+				java.io.InputStream metadataXmlInputStream, String name,
+				String nameIdAttribute, String nameIdFormat,
+				String samlSpEntityId,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _samlIdpSpConnectionLocalService.addSamlIdpSpConnection(
+			assertionLifetime, attributeNames, attributesEnabled,
+			attributesNamespaceEnabled, enabled, encryptionForced, metadataUrl,
+			metadataXmlInputStream, name, nameIdAttribute, nameIdFormat,
+			samlSpEntityId, serviceContext);
 	}
 
 	/**
@@ -51,25 +74,6 @@ public class SamlIdpSpConnectionLocalServiceWrapper
 
 		return _samlIdpSpConnectionLocalService.addSamlIdpSpConnection(
 			samlIdpSpConnection);
-	}
-
-	@Override
-	public com.liferay.saml.persistence.model.SamlIdpSpConnection
-			addSamlIdpSpConnection(
-				String samlSpEntityId, int assertionLifetime,
-				String attributeNames, boolean attributesEnabled,
-				boolean attributesNamespaceEnabled, boolean enabled,
-				boolean encryptionForced, String metadataUrl,
-				java.io.InputStream metadataXmlInputStream, String name,
-				String nameIdAttribute, String nameIdFormat,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _samlIdpSpConnectionLocalService.addSamlIdpSpConnection(
-			samlSpEntityId, assertionLifetime, attributeNames,
-			attributesEnabled, attributesNamespaceEnabled, enabled,
-			encryptionForced, metadataUrl, metadataXmlInputStream, name,
-			nameIdAttribute, nameIdFormat, serviceContext);
 	}
 
 	/**
@@ -153,6 +157,13 @@ public class SamlIdpSpConnectionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _samlIdpSpConnectionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _samlIdpSpConnectionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -393,20 +404,21 @@ public class SamlIdpSpConnectionLocalServiceWrapper
 	@Override
 	public com.liferay.saml.persistence.model.SamlIdpSpConnection
 			updateSamlIdpSpConnection(
-				long samlIdpSpConnectionId, String samlSpEntityId,
-				int assertionLifetime, String attributeNames,
-				boolean attributesEnabled, boolean attributesNamespaceEnabled,
-				boolean enabled, boolean encryptionForced, String metadataUrl,
+				long samlIdpSpConnectionId, int assertionLifetime,
+				String attributeNames, boolean attributesEnabled,
+				boolean attributesNamespaceEnabled, boolean enabled,
+				boolean encryptionForced, String metadataUrl,
 				java.io.InputStream metadataXmlInputStream, String name,
 				String nameIdAttribute, String nameIdFormat,
+				String samlSpEntityId,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _samlIdpSpConnectionLocalService.updateSamlIdpSpConnection(
-			samlIdpSpConnectionId, samlSpEntityId, assertionLifetime,
-			attributeNames, attributesEnabled, attributesNamespaceEnabled,
-			enabled, encryptionForced, metadataUrl, metadataXmlInputStream,
-			name, nameIdAttribute, nameIdFormat, serviceContext);
+			samlIdpSpConnectionId, assertionLifetime, attributeNames,
+			attributesEnabled, attributesNamespaceEnabled, enabled,
+			encryptionForced, metadataUrl, metadataXmlInputStream, name,
+			nameIdAttribute, nameIdFormat, samlSpEntityId, serviceContext);
 	}
 
 	/**

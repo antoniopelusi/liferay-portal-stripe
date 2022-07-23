@@ -46,15 +46,14 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Marco Leo
- * @see CPDisplayLayoutServiceSoap
  * @generated
  */
 public class CPDisplayLayoutServiceHttp {
 
 	public static com.liferay.commerce.product.model.CPDisplayLayout
 			addCPDisplayLayout(
-				HttpPrincipal httpPrincipal, long userId, long groupId,
-				Class<?> clazz, long classPK, String layoutUuid)
+				HttpPrincipal httpPrincipal, long groupId, Class<?> clazz,
+				long classPK, String layoutUuid)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -63,7 +62,7 @@ public class CPDisplayLayoutServiceHttp {
 				_addCPDisplayLayoutParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, userId, groupId, clazz, classPK, layoutUuid);
+				methodKey, groupId, clazz, classPK, layoutUuid);
 
 			Object returnObj = null;
 
@@ -221,7 +220,7 @@ public class CPDisplayLayoutServiceHttp {
 	public static com.liferay.commerce.product.model.CPDisplayLayout
 			updateCPDisplayLayout(
 				HttpPrincipal httpPrincipal, long cpDisplayLayoutId,
-				String layoutUuid)
+				long classPK, String layoutUuid)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -230,7 +229,7 @@ public class CPDisplayLayoutServiceHttp {
 				_updateCPDisplayLayoutParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, cpDisplayLayoutId, layoutUuid);
+				methodKey, cpDisplayLayoutId, classPK, layoutUuid);
 
 			Object returnObj = null;
 
@@ -265,9 +264,7 @@ public class CPDisplayLayoutServiceHttp {
 		CPDisplayLayoutServiceHttp.class);
 
 	private static final Class<?>[] _addCPDisplayLayoutParameterTypes0 =
-		new Class[] {
-			long.class, long.class, Class.class, long.class, String.class
-		};
+		new Class[] {long.class, Class.class, long.class, String.class};
 	private static final Class<?>[] _deleteCPDisplayLayoutParameterTypes1 =
 		new Class[] {long.class};
 	private static final Class<?>[] _fetchCPDisplayLayoutParameterTypes2 =
@@ -278,6 +275,6 @@ public class CPDisplayLayoutServiceHttp {
 			int.class, com.liferay.portal.kernel.search.Sort.class
 		};
 	private static final Class<?>[] _updateCPDisplayLayoutParameterTypes4 =
-		new Class[] {long.class, String.class};
+		new Class[] {long.class, long.class, String.class};
 
 }

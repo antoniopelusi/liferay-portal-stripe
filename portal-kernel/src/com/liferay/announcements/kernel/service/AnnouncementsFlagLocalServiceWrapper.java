@@ -27,6 +27,10 @@ public class AnnouncementsFlagLocalServiceWrapper
 	implements AnnouncementsFlagLocalService,
 			   ServiceWrapper<AnnouncementsFlagLocalService> {
 
+	public AnnouncementsFlagLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AnnouncementsFlagLocalServiceWrapper(
 		AnnouncementsFlagLocalService announcementsFlagLocalService) {
 
@@ -158,6 +162,13 @@ public class AnnouncementsFlagLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _announcementsFlagLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _announcementsFlagLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -14,6 +14,7 @@
 
 package com.liferay.headless.commerce.admin.pricing.internal.dto.v2_0.converter;
 
+import com.liferay.commerce.account.constants.CommerceAccountConstants;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.service.CPDefinitionService;
@@ -35,7 +36,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	enabled = false,
-	property = "model.class.name=com.liferay.commerce.product.model.CPDefinition",
+	property = "dto.class.name=com.liferay.commerce.product.model.CPDefinition",
 	service = {DTOConverter.class, ProductDTOConverter.class}
 )
 public class ProductDTOConverter
@@ -59,7 +60,8 @@ public class ProductDTOConverter
 				name = LanguageUtils.getLanguageIdMap(
 					cpDefinition.getNameMap());
 				sku = _getSku(cpDefinition, dtoConverterContext.getLocale());
-				thumbnail = cpDefinition.getDefaultImageThumbnailSrc();
+				thumbnail = cpDefinition.getDefaultImageThumbnailSrc(
+					CommerceAccountConstants.ACCOUNT_ID_ADMIN);
 			}
 		};
 	}

@@ -1,0 +1,584 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Notifications";
+	property testray.main.component.name = "Message Boards";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Message Boards Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Message Boards Page",
+			widgetName = "Message Boards");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Administrator",
+			userEmailAddress = "userea@liferay.com");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			MessageboardsCategory.tearDownCP();
+
+			MessageboardsThread.tearDownCP();
+
+			MessageboardsPortlet.tearDownConfigurationGeneralCP();
+		}
+	}
+
+	@description = "This is a test for LPS-136925. It checks that an email notification can be received in HTML format."
+	@priority = "3"
+	test CanReceiveEmailInHTMLFormat {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}message.boards.email.bulk=false";
+		property portal.acceptance = "false";
+		property test.smtp.server.enabled = "true";
+
+		MessageboardsPortlet.configureMessageFormat(
+			messageFormat = "HTML",
+			siteURLKey = "guest");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsPortlet.subscribePG();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		MessageboardsThread.addPG(
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			source = "true",
+			threadBody = '''<p><a href="http://www.liferay.com">Welcome to LIFERAY</a></p>''',
+			threadSubject = "MB Thread Message HTML Subject");
+
+		MockMock.openMockMock();
+
+		MockMock.clickBodyLink(
+			asset = "MB Thread Message HTML Subject",
+			bodyLink = "Welcome to LIFERAY",
+			recipient = "userfn userln");
+
+		AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
+	}
+
+	@description = "This is a test for LPS-136924. It checks that an email notification can be received when a post is flagged."
+	@priority = "3"
+	test CanReceiveEmailWhenPostIsFlagged {
+		property custom.properties = "message.boards.email.bulk=false";
+		property portal.acceptance = "false";
+		property test.smtp.server.enabled = "true";
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		MessageboardsThread.openToThread(
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadSubject = "MB Thread Message Subject");
+
+		MessageboardsThread.flagThread(
+			flagReason = "Spam",
+			siteName = "${siteName}");
+
+		MockMock.viewMail(
+			asset = "Inappropriate Content Flagged in ${siteName}",
+			content = "flagged as inappropriate by Test Test",
+			recipient = "Test Test",
+			sender = "Joe Bloggs",
+			subject = "Inappropriate Content Flagged in ${siteName}");
+	}
+
+	@description = "This is a test for LPS-136927. It checks that an email with a localized template can be received."
+	@priority = "3"
+	test CanReceiveEmailWithLocalizedTemplate {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}message.boards.email.bulk=false";
+		property portal.acceptance = "false";
+		property test.smtp.server.enabled = "true";
+
+		MessageboardsPortlet.configureMessageAddedEmail(
+			bodyContent = "[$MESSAGE_BODY$] este es un campo de tablero de mensajes",
+			siteURLKey = "guest");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsPortlet.subscribePG();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		MessageboardsThread.addPG(
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadBody = "MB Localized Template Body",
+			threadSubject = "MB Localized Template Subject");
+
+		MockMock.viewUnformattedHTMLText(
+			asset = "MB Localized Template Subject",
+			recipient = "userfn userln",
+			sender = "Test Test",
+			subject = "MB Localized Template Subject",
+			unFormattedContent = "MB Localized Template Body este es un campo de tablero de mensajes");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewDefaultEmailFromConfigurationAndSubscriptionEmail {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}message.boards.email.bulk=false";
+		property test.smtp.server.enabled = "true";
+
+		MessageboardsPortlet.viewDefaultEmailFromCP(
+			emailFromAddress = "testadmin@liferay.com",
+			siteURLKey = "guest");
+
+		JSONMBMessage.addCategory(
+			categoryDescription = "MB Category Description",
+			categoryName = "MB Category Name",
+			userEmailAddress = "test@liferay.com");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		MessageboardsCategory.openToCategory(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest");
+
+		MessageboardsPortlet.subscribePG();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		User.openUsersAdmin();
+
+		UserNavigator.gotoUser(userScreenName = "test");
+
+		User.editUserInformation(userEmailAddressEdit = "testadmin@liferay.com");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.gotoPG(categoryName = "MB Category Name");
+
+		MessageboardsThread.addPG(
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		MockMock.viewMail(
+			asset = "MB Category Name",
+			content = "MB Category Name",
+			recipient = "userfn userln",
+			sender = "Test Test",
+			subject = "MB Category Name");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewWebsiteNotificationForNewThreadInCategory {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONMBMessage.addCategory(
+			categoryDescription = "MB Category Description",
+			categoryName = "MB Category Name",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.subscribePG(categoryName = "MB Category Name");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		JSONMBMessage.addMessage(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject",
+			userEmailAddress = "userea@liferay.com",
+			userPassword = "test");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Notifications.viewBadgeCount(notificationCount = "1");
+
+		Notifications.gotoNotifications();
+
+		Notifications.viewNewContent(
+			assetType = "message boards message",
+			contentBody = "MB Thread Message Subject",
+			user = "userfn userln");
+
+		Notifications.navigateToContent(contentBody = "MB Thread Message Subject");
+
+		MessageboardsThread.viewPG(
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject",
+			userName = "userfn userln");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewWebsiteNotificationForUpdatedThreadInCategory {
+		JSONMBMessage.addCategory(
+			categoryDescription = "MB Category Description",
+			categoryName = "MB Category Name",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.subscribePG(categoryName = "MB Category Name");
+
+		JSONMBMessage.addMessage(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		MessageboardsCategory.openToCategory(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		MessageboardsThread.viewCP(
+			replyCount = "0",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject",
+			userName = "Test Test");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		MessageboardsThread.editPG(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadBodyEdit = "MB Thread Message Body Edit",
+			threadSubject = "MB Thread Message Subject",
+			threadSubjectEdit = "MB Thread Message Subject Edit");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Notifications.viewBadgeCount(notificationCount = "1");
+
+		Notifications.gotoNotifications();
+
+		Notifications.navigateToContent(contentBody = "MB Thread Message Subject Edit");
+
+		MessageboardsThread.viewPG(
+			threadBody = "MB Thread Message Body Edit",
+			threadSubject = "MB Thread Message Subject Edit");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+	}
+
+	@priority = "4"
+	@refactordone
+	test NoWebsiteNotificationAppearsForNewThreadInCategory {
+		Navigator.gotoNotifications();
+
+		Portlet.gotoPortletOptions(portletOption = "Configuration");
+
+		IFrame.selectConfigurationFrame();
+
+		NotificationsPortlet.disableUserDeliveries(
+			actionType = "Adds",
+			contentType = "Message Boards",
+			notificationType = "Website");
+
+		JSONMBMessage.addCategory(
+			categoryDescription = "MB Category Description",
+			categoryName = "MB Category Name",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.subscribePG(categoryName = "MB Category Name");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		MessageboardsThread.addPG(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+	}
+
+	@priority = "4"
+	@refactordone
+	test NoWebsiteNotificationAppearsForUpdatedThreadInCategory {
+		Navigator.gotoNotifications();
+
+		Portlet.gotoPortletOptions(portletOption = "Configuration");
+
+		IFrame.selectConfigurationFrame();
+
+		NotificationsPortlet.disableUserDeliveries(
+			actionType = "Updates",
+			contentType = "Message Boards",
+			notificationType = "Website");
+
+		JSONMBMessage.addCategory(
+			categoryDescription = "MB Category Description",
+			categoryName = "MB Category Name",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.subscribePG(categoryName = "MB Category Name");
+
+		JSONMBMessage.addMessage(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject");
+
+		MessageboardsCategory.openToCategory(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		MessageboardsThread.viewCP(
+			replyCount = "0",
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject",
+			userName = "Test Test");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		MessageboardsThread.editPG(
+			categoryName = "MB Category Name",
+			groupName = "Guest",
+			layoutName = "message-boards-page",
+			siteURLKey = "guest",
+			threadBodyEdit = "MB Thread Message Body Edit",
+			threadSubject = "MB Thread Message Subject",
+			threadSubjectEdit = "MB Thread Message Subject Edit");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Notifications.viewBadgeCount(notificationCount = "0");
+	}
+
+	@ignore = "true"
+	@priority = "4"
+	@refactorneeded
+	test ViewMBThreadAndReplyThreadInGmail {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}message.boards.message.formats.default=html${line.separator}pop.server.notifications.enabled=true${line.separator}pop.server.subdomain=${line.separator}mail.session.mail.smtp.auth=true${line.separator}mail.session.mail.store.protocol=pop3${line.separator}mail.session.mail.transport.protocol=smtp";
+		property test.name.skip.portal.instance = "MessageboardsUsecase#ViewMBThreadAndReplyThreadInGmail";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Server Administration");
+
+		ServerAdministration.configureMailServerSettings(
+			needsReply = "true",
+			userName = PropsUtil.get("email.address.2"),
+			userPassword = PropsUtil.get("email.password.2"));
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.editCP(
+			mailDomain = "gmail.com",
+			virtualHost = "localhost");
+
+		JSONUser.addUser(
+			userEmailAddress = PropsUtil.get("email.address.3"),
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = PropsUtil.get("email.address.3"));
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editUserSiteCP(
+			siteName = "${siteName}",
+			userScreenName = "usersn");
+
+		Navigator.openURL();
+
+		Navigator.gotoAccountSettings();
+
+		User.editUserInformation(userEmailAddressEdit = PropsUtil.get("email.address.4"));
+
+		MessageboardsPortlet.configureMessageEmailFromCP(emailFromAddress = PropsUtil.get("email.address.2"));
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(
+			pageName = "Message Boards Page",
+			sitePageType = "Widget Page");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		Portlet.addPG(portletName = "Message Boards");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.addPG(categoryName = "MB Category Name");
+
+		User.logoutPG();
+
+		User.loginPG(
+			password = "test",
+			userEmailAddress = PropsUtil.get("email.address.3"));
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.gotoPG(categoryName = "MB Category Name");
+
+		MessageboardsPortlet.subscribePG();
+
+		User.logoutPG();
+
+		User.loginPG(
+			password = "test",
+			userEmailAddress = PropsUtil.get("email.address.4"));
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.gotoPG(categoryName = "MB Category Name");
+
+		MessageboardsThread.addPG(
+			threadBody = "MB Thread Message Body",
+			threadSubject = "MB Thread Message Subject GMMB1");
+
+		Pause(locator1 = "15000");
+
+		Gmail.login(
+			userEmailAddress = PropsUtil.get("email.address.3"),
+			userPassword = PropsUtil.get("email.password.3"));
+
+		Gmail.gotoHtmlMode();
+
+		Gmail.viewMail(
+			emailFromUserName = "Joe Bloggs",
+			gmailAssetType = "GMMB1",
+			gmailMessageBody = "MB Thread Message Body",
+			gmailMessageTitle = "MB Category Name New Message: MB Thread Message Subject GMMB1");
+
+		Gmail.replyMail(gmailReplyMessage = "MB Thread Message Subject GMMB1 Reply");
+
+		Navigator.openSpecificURL(url = "${portalURL}");
+
+		Pause(locator1 = "30000");
+
+		Refresh();
+
+		AssertVisible(locator1 = "Notifications#PROFILE_BADGE_COUNT");
+
+		Navigator.gotoPage(pageName = "Message Boards Page");
+
+		MessageboardsCategory.gotoPG(categoryName = "MB Category Name");
+
+		MessageboardsThread.viewReplyPG(
+			replyCount = "1",
+			threadBody = "MB Thread Message Body",
+			threadReplyBody = "MB Thread Message Subject GMMB1 Reply",
+			threadSubject = "MB Thread Message Subject GMMB1",
+			userName = "userfn userln");
+
+		Gmail.gotoHtmlMode();
+
+		Gmail.deleteSpecificMail(gmailMessageTitleList = "MB Category Name New Message: MB Thread Message Subject GMMB1,Your New Account,Your New Password,GMMB1");
+	}
+
+}

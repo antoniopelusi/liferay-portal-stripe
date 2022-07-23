@@ -617,24 +617,16 @@ public class ExpandoValueImpl extends ExpandoValueBaseImpl {
 	protected void validate(int type) throws PortalException {
 		ExpandoColumn column = getColumn();
 
-		if (column == null) {
+		if ((column == null) || (column.getType() == type)) {
 			return;
 		}
 
-		if (column.getType() == type) {
-			return;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("Column ");
-		sb.append(getColumnId());
-		sb.append(" has type ");
-		sb.append(ExpandoColumnConstants.getTypeLabel(column.getType()));
-		sb.append(" and is not compatible with type ");
-		sb.append(ExpandoColumnConstants.getTypeLabel(type));
-
-		throw new ValueDataException(sb.toString());
+		throw new ValueDataException(
+			StringBundler.concat(
+				"Column ", getColumnId(), " has type ",
+				ExpandoColumnConstants.getTypeLabel(column.getType()),
+				" and is not compatible with type ",
+				ExpandoColumnConstants.getTypeLabel(type)));
 	}
 
 	private static final String _EXPANDO_COMMA = "[$LIFERAY_EXPANDO_COMMA$]";

@@ -65,13 +65,19 @@
 		<hr /><hr />
 
 		<img src="/i/a.jpg" />
+
 		<img src="/i/b.jpg" />
+
 		<img src="/i/c.jpg" />
+
 		<img src="/i/d.jpg" />
 
 		<input name="name1" type="text" />
+
 		<input name="na<me2" type="text" />
+
 		<input name="name3" type="text" /><input name='na>me4' type="text" />
+
 		<input name="name5" type="text" />
 
 		<keygen />

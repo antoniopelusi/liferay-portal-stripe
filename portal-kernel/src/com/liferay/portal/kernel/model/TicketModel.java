@@ -215,4 +215,7 @@ public interface TicketModel
 	 */
 	public void setExpirationDate(Date expirationDate);
 
+	@Override
+	public Ticket cloneWithOriginalValues();
+
 }

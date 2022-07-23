@@ -30,7 +30,7 @@ import com.liferay.portal.workflow.constants.WorkflowWebKeys;
 import com.liferay.portal.workflow.portlet.tab.BaseWorkflowPortletTab;
 import com.liferay.portal.workflow.portlet.tab.WorkflowPortletTab;
 import com.liferay.portal.workflow.web.internal.display.context.WorkflowDefinitionDisplayContext;
-import com.liferay.portal.workflow.web.internal.request.prepocessor.WorkflowPreprocessorHelper;
+import com.liferay.portal.workflow.web.internal.request.preprocessor.helper.WorkflowPreprocessorHelper;
 
 import java.util.Map;
 import java.util.Objects;
@@ -80,9 +80,7 @@ public class WorkflowDefinitionPortletTab extends BaseWorkflowPortletTab {
 			WorkflowDefinitionDisplayContext displayContext =
 				new WorkflowDefinitionDisplayContext(
 					renderRequest,
-					ResourceBundleLoaderUtil.
-						getResourceBundleLoaderByBundleSymbolicName(
-							"com.liferay.portal.workflow.web"),
+					ResourceBundleLoaderUtil.getPortalResourceBundleLoader(),
 					userLocalService);
 
 			displayContext.setCompanyAdministratorCanPublish(
@@ -97,7 +95,7 @@ public class WorkflowDefinitionPortletTab extends BaseWorkflowPortletTab {
 				Objects.equals(
 					path, "/definition/view_workflow_definition.jsp")) {
 
-				setWorkflowDefinitionRenderRequestAttribute(renderRequest);
+				_setWorkflowDefinitionRenderRequestAttribute(renderRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -138,7 +136,13 @@ public class WorkflowDefinitionPortletTab extends BaseWorkflowPortletTab {
 		super.setServletContext(servletContext);
 	}
 
-	protected void setWorkflowDefinitionRenderRequestAttribute(
+	@Reference
+	protected UserLocalService userLocalService;
+
+	@Reference
+	protected WorkflowPreprocessorHelper workflowPreprocessorHelper;
+
+	private void _setWorkflowDefinitionRenderRequestAttribute(
 			RenderRequest renderRequest)
 		throws PortalException {
 
@@ -161,12 +165,6 @@ public class WorkflowDefinitionPortletTab extends BaseWorkflowPortletTab {
 			WebKeys.WORKFLOW_DEFINITION, workflowDefinition);
 	}
 
-	@Reference
-	protected UserLocalService userLocalService;
-
-	@Reference
-	protected WorkflowPreprocessorHelper workflowPreprocessorHelper;
-
-	private boolean _companyAdministratorCanPublish;
+	private volatile boolean _companyAdministratorCanPublish;
 
 }

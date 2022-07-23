@@ -17,9 +17,15 @@ package com.liferay.commerce.order.content.web.internal.frontend.util;
 import com.liferay.commerce.constants.CommerceOrderConstants;
 import com.liferay.commerce.currency.model.CommerceMoney;
 import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.model.CommerceOrderType;
 import com.liferay.commerce.order.content.web.internal.frontend.constants.CommerceOrderDataSetConstants;
+import com.liferay.commerce.order.content.web.internal.importer.type.CSVCommerceOrderImporterTypeImpl;
+import com.liferay.commerce.order.content.web.internal.importer.type.CommerceOrdersCommerceOrderImporterTypeImpl;
+import com.liferay.commerce.order.content.web.internal.importer.type.CommerceWishListsCommerceOrderImporterTypeImpl;
 import com.liferay.commerce.order.content.web.internal.model.Order;
+import com.liferay.commerce.order.content.web.internal.model.WishList;
 import com.liferay.commerce.pricing.constants.CommercePricingConstants;
+import com.liferay.commerce.service.CommerceOrderTypeLocalService;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -29,6 +35,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletQName;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
@@ -44,7 +52,9 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -57,6 +67,34 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class CommerceOrderClayTableUtil {
 
+	public static String getCSVCommerceOrderPreviewURL(
+		long fileEntryId, HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		return PortletURLBuilder.create(
+			PortletURLFactoryUtil.create(
+				PortalUtil.getOriginalServletRequest(httpServletRequest),
+				portletDisplay.getId(), themeDisplay.getPlid(),
+				PortletRequest.RENDER_PHASE)
+		).setMVCRenderCommandName(
+			"/commerce_open_order_content/view_commerce_order_importer_type"
+		).setParameter(
+			"commerceOrderId",
+			ParamUtil.getLong(httpServletRequest, "commerceOrderId")
+		).setParameter(
+			"commerceOrderImporterTypeKey", CSVCommerceOrderImporterTypeImpl.KEY
+		).setParameter(
+			"fileEntryId", fileEntryId
+		).setWindowState(
+			LiferayWindowState.POP_UP
+		).buildString();
+	}
+
 	public static String getEditOrderURL(
 			long commerceOrderId, HttpServletRequest httpServletRequest)
 		throws PortalException {
@@ -67,13 +105,11 @@ public class CommerceOrderClayTableUtil {
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
-		HttpServletRequest originalHttpServletRequest =
-			PortalUtil.getOriginalServletRequest(httpServletRequest);
-
 		return PortletURLBuilder.create(
 			PortletURLFactoryUtil.create(
-				originalHttpServletRequest, portletDisplay.getId(),
-				themeDisplay.getPlid(), PortletRequest.ACTION_PHASE)
+				PortalUtil.getOriginalServletRequest(httpServletRequest),
+				portletDisplay.getId(), themeDisplay.getPlid(),
+				PortletRequest.ACTION_PHASE)
 		).setActionName(
 			"/commerce_open_order_content/edit_commerce_order"
 		).setCMD(
@@ -87,9 +123,42 @@ public class CommerceOrderClayTableUtil {
 		).buildString();
 	}
 
+	public static String getOrderCommerceOrderPreviewURL(
+		Order order, HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		return PortletURLBuilder.create(
+			PortletURLFactoryUtil.create(
+				PortalUtil.getOriginalServletRequest(httpServletRequest),
+				portletDisplay.getId(), themeDisplay.getPlid(),
+				PortletRequest.RENDER_PHASE)
+		).setMVCRenderCommandName(
+			"/commerce_open_order_content/view_commerce_order_importer_type"
+		).setParameter(
+			"commerceOrderId",
+			ParamUtil.getLong(httpServletRequest, "commerceOrderId")
+		).setParameter(
+			"commerceOrderImporterTypeKey",
+			CommerceOrdersCommerceOrderImporterTypeImpl.KEY
+		).setParameter(
+			"selectedCommerceOrderId", order.getOrderId()
+		).setWindowState(
+			LiferayWindowState.POP_UP
+		).buildString();
+	}
+
 	public static List<Order> getOrders(
-			List<CommerceOrder> commerceOrders, ThemeDisplay themeDisplay,
-			String priceDisplayType)
+			List<CommerceOrder> commerceOrders,
+			CommerceOrderTypeLocalService commerceOrderTypeLocalService,
+			ModelResourcePermission<CommerceOrderType>
+				commerceOrderTypeModelResourcePermission,
+			String priceDisplayType, boolean showCommerceOrderCreateTime,
+			ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		List<Order> orders = new ArrayList<>();
@@ -108,10 +177,6 @@ public class CommerceOrderClayTableUtil {
 			if (totalCommerceMoney != null) {
 				amount = totalCommerceMoney.format(themeDisplay.getLocale());
 			}
-
-			Format dateFormat = FastDateFormatFactoryUtil.getDate(
-				DateFormat.MEDIUM, themeDisplay.getLocale(),
-				themeDisplay.getTimeZone());
 
 			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 				"content.Language", themeDisplay.getLocale(),
@@ -132,12 +197,38 @@ public class CommerceOrderClayTableUtil {
 				orderDate = commerceOrder.getOrderDate();
 			}
 
+			String commerceOrderTypeName = StringPool.BLANK;
+
+			if ((commerceOrderTypeModelResourcePermission != null) &&
+				(commerceOrderTypeLocalService != null)) {
+
+				CommerceOrderType commerceOrderType =
+					commerceOrderTypeLocalService.fetchCommerceOrderType(
+						commerceOrder.getCommerceOrderTypeId());
+
+				if ((commerceOrderType != null) &&
+					commerceOrderTypeModelResourcePermission.contains(
+						themeDisplay.getPermissionChecker(), commerceOrderType,
+						ActionKeys.VIEW)) {
+
+					commerceOrderTypeName = commerceOrderType.getName(
+						themeDisplay.getLocale());
+				}
+			}
+
 			orders.add(
 				new Order(
+					commerceOrder.getExternalReferenceCode(),
 					commerceOrder.getCommerceOrderId(),
 					commerceOrder.getCommerceAccountName(),
-					dateFormat.format(orderDate), commerceOrder.getUserName(),
-					commerceOrderStatusLabel, workflowStatusLabel, amount));
+					_formatCommerceOrderCreateDate(
+						themeDisplay.getLocale(), orderDate,
+						showCommerceOrderCreateTime,
+						themeDisplay.getTimeZone()),
+					commerceOrder.getUserName(), commerceOrderStatusLabel,
+					commerceOrderTypeName,
+					commerceOrder.getPurchaseOrderNumber(), workflowStatusLabel,
+					amount));
 		}
 
 		return orders;
@@ -153,21 +244,21 @@ public class CommerceOrderClayTableUtil {
 			themeDisplay.getRequest(), portletDisplay.getId(),
 			themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
 
-		PortletURL backURL = PortletURLBuilder.create(
-			portletURL
-		).setParameter(
-			"itemsPerPage",
-			ParamUtil.getString(themeDisplay.getRequest(), "pageSize")
-		).setParameter(
-			"pageNumber", ParamUtil.getString(themeDisplay.getRequest(), "page")
-		).setParameter(
-			"tableName",
-			CommerceOrderDataSetConstants.COMMERCE_DATA_SET_KEY_PLACED_ORDERS
-		).build();
-
 		portletURL.setParameter(
 			PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE + "backURL",
-			backURL.toString());
+			PortletURLBuilder.create(
+				portletURL
+			).setParameter(
+				"itemsPerPage",
+				ParamUtil.getString(themeDisplay.getRequest(), "pageSize")
+			).setParameter(
+				"pageNumber",
+				ParamUtil.getString(themeDisplay.getRequest(), "page")
+			).setParameter(
+				"tableName",
+				CommerceOrderDataSetConstants.
+					COMMERCE_DATA_SET_KEY_PLACED_ORDERS
+			).buildString());
 
 		portletURL.setParameter(
 			"mvcRenderCommandName",
@@ -191,18 +282,66 @@ public class CommerceOrderClayTableUtil {
 			"/commerce_order_content/view_commerce_order_shipments"
 		).setParameter(
 			"commerceOrderItemId", commerceOrderItemId
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		portletURL.setParameter("backURL", portletURL.toString());
 
 		return portletURL.toString();
+	}
+
+	public static String getWishListCommerceOrderPreviewURL(
+		WishList wishList, HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		return PortletURLBuilder.create(
+			PortletURLFactoryUtil.create(
+				PortalUtil.getOriginalServletRequest(httpServletRequest),
+				portletDisplay.getId(), themeDisplay.getPlid(),
+				PortletRequest.RENDER_PHASE)
+		).setMVCRenderCommandName(
+			"/commerce_open_order_content/view_commerce_order_importer_type"
+		).setParameter(
+			"commerceOrderId",
+			ParamUtil.getLong(httpServletRequest, "commerceOrderId")
+		).setParameter(
+			"commerceOrderImporterTypeKey",
+			CommerceWishListsCommerceOrderImporterTypeImpl.KEY
+		).setParameter(
+			"commerceWishListId", wishList.getWishListId()
+		).setWindowState(
+			LiferayWindowState.POP_UP
+		).buildString();
+	}
+
+	private static String _formatCommerceOrderCreateDate(
+		Locale locale, Date orderDate, boolean showCommerceOrderCreateTime,
+		TimeZone timeZone) {
+
+		Format commerceOrderDateFormatDate = FastDateFormatFactoryUtil.getDate(
+			DateFormat.MEDIUM, locale, timeZone);
+
+		if (showCommerceOrderCreateTime) {
+			Format commerceOrderDateFormatTime =
+				FastDateFormatFactoryUtil.getTime(
+					DateFormat.MEDIUM, locale, timeZone);
+
+			return commerceOrderDateFormatDate.format(orderDate) + " " +
+				commerceOrderDateFormatTime.format(orderDate);
+		}
+
+		return commerceOrderDateFormatDate.format(orderDate);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

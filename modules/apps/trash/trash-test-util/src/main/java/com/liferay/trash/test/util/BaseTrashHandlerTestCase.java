@@ -1049,7 +1049,7 @@ public abstract class BaseTrashHandlerTestCase {
 		}
 		catch (NoSuchModelException noSuchModelException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchModelException, noSuchModelException);
+				_log.debug(noSuchModelException);
 			}
 		}
 	}
@@ -1144,7 +1144,7 @@ public abstract class BaseTrashHandlerTestCase {
 		}
 		catch (NoSuchModelException noSuchModelException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchModelException, noSuchModelException);
+				_log.debug(noSuchModelException);
 			}
 		}
 
@@ -1908,7 +1908,7 @@ public abstract class BaseTrashHandlerTestCase {
 		}
 		catch (NoSuchModelException noSuchModelException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchModelException, noSuchModelException);
+				_log.debug(noSuchModelException);
 			}
 		}
 	}
@@ -1952,7 +1952,7 @@ public abstract class BaseTrashHandlerTestCase {
 		}
 		catch (NoSuchModelException noSuchModelException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchModelException, noSuchModelException);
+				_log.debug(noSuchModelException);
 			}
 		}
 
@@ -3387,10 +3387,10 @@ public abstract class BaseTrashHandlerTestCase {
 	}
 
 	protected long getDeletionSystemEventCount(
-			TrashHandler trashHandler, final long systemEventSetKey)
+			TrashHandler trashHandler, long systemEventSetKey)
 		throws Exception {
 
-		final long systemEventClassNameId = PortalUtil.getClassNameId(
+		long systemEventClassNameId = PortalUtil.getClassNameId(
 			trashHandler.getSystemEventClassName());
 
 		ActionableDynamicQuery actionableDynamicQuery =

@@ -59,13 +59,13 @@ Map<String, String[]> parameterMap = (Map<String, String[]>)settingsMap.get("par
 			).setTabs1(
 				privateLayout ? "private-pages" : "public-pages"
 			).setParameter(
-				"groupId", String.valueOf(groupDisplayContextHelper.getGroupId())
+				"groupId", groupDisplayContextHelper.getGroupId()
 			).setParameter(
 				"layoutSetBranchId", MapUtil.getString(parameterMap, "layoutSetBranchId")
 			).setParameter(
-				"privateLayout", String.valueOf(privateLayout)
+				"privateLayout", privateLayout
 			).setParameter(
-				"selPlid", String.valueOf(selPlid)
+				"selPlid", selPlid
 			).buildString()
 		%>'
 		label="switch-to-advanced-publish-process"
@@ -181,6 +181,8 @@ Map<String, String[]> parameterMap = (Map<String, String[]>)settingsMap.get("par
 
 									<%
 									}
+
+									settingsMap.remove("portletId");
 									%>
 
 									<c:if test="<%= !displayingChanges %>">

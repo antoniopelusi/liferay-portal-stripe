@@ -16,7 +16,7 @@
 
 <%@ include file="/html/portal/init.jsp" %>
 
-<div class="pt-0" id="wrapper">
+<div class="position-relative pt-0" id="wrapper">
 	<header class="mb-4" id="banner">
 		<div class="mb-4 navbar navbar-classic navbar-top py-3">
 			<div class="container">
@@ -53,7 +53,7 @@
 					boolean defaultDatabase = SetupWizardUtil.isDefaultDatabase(request);
 					%>
 
-					<aui:form action='<%= themeDisplay.getPathMain() + "/portal/setup_wizard" %>' method="post" name="fm" onSubmit="event.preventDefault();">
+					<aui:form action='<%= themeDisplay.getPathMain() + "/portal/setup_wizard" %>' method="post" name="fm" onSubmit="updateConfiguration(event);">
 						<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 
 						<div class="row">
@@ -171,7 +171,12 @@
 									</c:choose>
 
 									<c:if test="<%= Validator.isNull(PropsValues.JDBC_DEFAULT_JNDI_NAME) %>">
-										<a href="<%= HttpUtil.addParameter(themeDisplay.getPathMain() + "/portal/setup_wizard", "defaultDatabase", false) %>" id="customDatabaseOptionsLink">
+										<a
+											href="<%=
+												HttpComponentsUtil.addParameter(themeDisplay.getPathMain() + "/portal/setup_wizard", "defaultDatabase", false)
+											%>"
+											id="customDatabaseOptionsLink"
+										>
 											(<liferay-ui:message key="change" />)
 										</a>
 									</c:if>
@@ -180,7 +185,7 @@
 								<div class="hide" id="customDatabaseOptions">
 									<div class="connection-messages" id="connectionMessages"></div>
 
-									<a class="d-inline-block database-options mb-3" href="<%= HttpUtil.addParameter(themeDisplay.getPathMain() + "/portal/setup_wizard", "defaultDatabase", true) %>" id="defaultDatabaseOptionsLink">
+									<a class="d-inline-block database-options mb-3" href="<%= HttpComponentsUtil.addParameter(themeDisplay.getPathMain() + "/portal/setup_wizard", "defaultDatabase", true) %>" id="defaultDatabaseOptionsLink">
 										&laquo; <liferay-ui:message key='<%= defaultDatabase ? "use-default-database" : "use-configured-database" %>' />
 									</a>
 
@@ -241,14 +246,30 @@
 
 						<aui:button-row>
 							<aui:button name="finishButton" type="submit" value="finish-configuration" />
+
+							<div class="btn float-right" id="basicConfiguration">
+
+								<%
+								request.setAttribute("liferay-learn:message:key", "setup-wizard-basic-configuration");
+								request.setAttribute("liferay-learn:message:resource", "portal-web");
+								%>
+
+								<liferay-util:dynamic-include key="/html/portal/setup_wizard.jsp#help_link" />
+							</div>
+
+							<div class="btn float-right hide" id="databaseConfiguration">
+
+								<%
+								request.setAttribute("liferay-learn:message:key", "setup-wizard-database-configuration");
+								request.setAttribute("liferay-learn:message:resource", "portal-web");
+								%>
+
+								<liferay-util:dynamic-include key="/html/portal/setup_wizard.jsp#help_link" />
+							</div>
 						</aui:button-row>
 					</aui:form>
 
 					<aui:script use="aui-base,aui-loading-mask-deprecated,io">
-						var adminEmailAddress = A.one('#<portlet:namespace />adminEmailAddress');
-						var adminFirstName = A.one('#<portlet:namespace />adminFirstName');
-						var adminLastName = A.one('#<portlet:namespace />adminLastName');
-						var companyName = A.one('#<portlet:namespace />companyName');
 						var customDatabaseOptions = A.one('#customDatabaseOptions');
 						var customDatabaseOptionsLink = A.one('#customDatabaseOptionsLink');
 						var databaseSelector = A.one('#databaseType');
@@ -262,6 +283,9 @@
 
 						var sampleData = A.one('#sampleData');
 						var addSampleData = A.one('#addSampleData');
+
+						var basicConfiguration = A.one('#basicConfiguration');
+						var databaseConfiguration = A.one('#databaseConfiguration');
 
 						var command = A.one('#<%= Constants.CMD %>');
 						var setupForm = A.one('#fm');
@@ -280,6 +304,10 @@
 							sampleData.toggle(!showDefault);
 
 							defaultDatabase.val(showDefault);
+
+							databaseConfiguration.toggle(!showDefault);
+
+							basicConfiguration.toggle(showDefault);
 						};
 
 						databaseSelector.on(
@@ -351,58 +379,53 @@
 							loadingMask.show();
 						};
 
-						A.one('#fm').on(
-							'submit',
-							function(event) {
-								var form = document.fm;
+						var updateConfiguration = function(event) {
+							var form = document.fm;
 
-								if ((adminEmailAddress && (adminEmailAddress.val() != '')) && (adminFirstName && (adminFirstName.val() != '')) && (adminLastName && (adminLastName.val() != '')) && (companyName && (companyName.val() != '')) && (jdbcDefaultDriverClassName && (jdbcDefaultDriverClassName.val() != '')) && (jdbcDefaultURL && (jdbcDefaultURL.val() != ''))) {
-									if (defaultDatabase.val() == 'true') {
-										startInstall();
+							if (defaultDatabase.val() == 'true') {
+								startInstall();
 
+								command.val('<%= Constants.UPDATE %>');
+
+								submitForm(form);
+							}
+							else {
+								command.val('<%= Constants.TEST %>');
+
+								startInstall();
+
+								Liferay.Util.fetch(
+									form.action,
+									{
+										body: new FormData(form),
+										method: 'POST'
+									}
+								).then(
+									function(response) {
+										return response.json();
+									}
+								).then(
+									function(responseData) {
 										command.val('<%= Constants.UPDATE %>');
 
-										submitForm(form);
+										if (!responseData.success) {
+											updateMessage(responseData.message);
+
+											loadingMask.hide();
+										}
+										else {
+											submitForm(form);
+										}
 									}
-									else {
-										command.val('<%= Constants.TEST %>');
+								).catch(
+									function() {
+										loadingMask.hide();
 
-										startInstall();
-
-										Liferay.Util.fetch(
-											form.action,
-											{
-												body: new FormData(form),
-												method: 'POST'
-											}
-										).then(
-											function(response) {
-												return response.json();
-											}
-										).then(
-											function(responseData) {
-												command.val('<%= Constants.UPDATE %>');
-
-												if (!responseData.success) {
-													updateMessage(responseData.message);
-
-													loadingMask.hide();
-												}
-												else {
-													submitForm(form);
-												}
-											}
-										).catch(
-											function() {
-												loadingMask.hide();
-
-												updateMessage('<%= UnicodeLanguageUtil.get(request, "an-unexpected-error-occurred-while-connecting-to-the-database") %>');
-											}
-										);
+										updateMessage('<%= UnicodeLanguageUtil.get(request, "an-unexpected-error-occurred-while-connecting-to-the-database") %>');
 									}
-								}
+								);
 							}
-						);
+						};
 					</aui:script>
 				</c:when>
 				<c:otherwise>
@@ -415,7 +438,7 @@
 									</svg>
 								</span>
 
-								<strong class="lead"><liferay-ui:message key="success-colon" /></strong><liferay-ui:message key="your-configuration-was-saved-sucessfully" />
+								<strong class="lead"><liferay-ui:message key="success-colon" /></strong><liferay-ui:message key="your-configuration-was-saved-successfully" />
 							</div>
 
 							<p class="lfr-setup-notice">
@@ -476,7 +499,13 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-12 text-center text-md-left">
-					<liferay-ui:message key="powered-by" /> <a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>
+					<liferay-util:buffer
+						var="poweredByLiferay"
+					>
+						<a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>
+					</liferay-util:buffer>
+
+					<liferay-ui:message arguments="<%= poweredByLiferay %>" key="powered-by-x" />
 				</div>
 			</div>
 		</div>

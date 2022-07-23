@@ -17,7 +17,6 @@ package com.liferay.sharing.web.internal.portlet.action;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
@@ -116,7 +115,7 @@ public class AutocompleteUserMVCResourceCommand extends BaseMVCResourceCommand {
 			return Collections.emptyList();
 		}
 
-		return _userLocalService.searchSocial(
+		return _userLocalService.searchBySocial(
 			themeDisplay.getCompanyId(), user.getGroupIds(), query, 0, 20,
 			new UserScreenNameComparator());
 	}
@@ -137,25 +136,22 @@ public class AutocompleteUserMVCResourceCommand extends BaseMVCResourceCommand {
 				continue;
 			}
 
-			JSONObject jsonObject = JSONUtil.put(
-				"emailAddress", user.getEmailAddress()
-			).put(
-				"fullName", user.getFullName()
-			);
-
 			String portraitURL = StringPool.BLANK;
 
 			if (user.getPortraitId() > 0) {
 				portraitURL = user.getPortraitURL(themeDisplay);
 			}
 
-			jsonObject.put(
-				"portraitURL", portraitURL
-			).put(
-				"userId", Long.valueOf(user.getUserId())
-			);
-
-			jsonArray.put(jsonObject);
+			jsonArray.put(
+				JSONUtil.put(
+					"emailAddress", user.getEmailAddress()
+				).put(
+					"fullName", user.getFullName()
+				).put(
+					"portraitURL", portraitURL
+				).put(
+					"userId", Long.valueOf(user.getUserId())
+				));
 		}
 
 		return jsonArray;

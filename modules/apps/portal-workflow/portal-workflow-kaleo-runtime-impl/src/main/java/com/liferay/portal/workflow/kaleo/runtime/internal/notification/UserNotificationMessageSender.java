@@ -16,13 +16,11 @@ package com.liferay.portal.workflow.kaleo.runtime.internal.notification;
 
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
-import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
 import com.liferay.portal.kernel.util.PortletKeys;
-import com.liferay.portal.workflow.constants.MyWorkflowTasksConstants;
 import com.liferay.portal.workflow.kaleo.definition.NotificationReceptionType;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
-import com.liferay.portal.workflow.kaleo.runtime.internal.util.NotificationMessageHelper;
+import com.liferay.portal.workflow.kaleo.runtime.internal.helper.NotificationMessageHelper;
 import com.liferay.portal.workflow.kaleo.runtime.notification.BaseNotificationSender;
 import com.liferay.portal.workflow.kaleo.runtime.notification.NotificationRecipient;
 import com.liferay.portal.workflow.kaleo.runtime.notification.NotificationSender;
@@ -59,26 +57,14 @@ public class UserNotificationMessageSender
 				entry : notificationRecipients.entrySet()) {
 
 			for (NotificationRecipient notificationRecipient :
-					entry.getValue()) {
-
-				if (notificationRecipient.getUserId() <= 0) {
-					continue;
-				}
-
-				if (UserNotificationManagerUtil.isDeliver(
-						notificationRecipient.getUserId(),
-						PortletKeys.MY_WORKFLOW_TASK, 0,
-						MyWorkflowTasksConstants.
-							NOTIFICATION_TYPE_MY_WORKFLOW_TASKS,
+					getDeliverableNotificationRecipients(
+						entry.getValue(),
 						UserNotificationDeliveryConstants.TYPE_WEBSITE)) {
 
-					_userNotificationEventLocalService.
-						sendUserNotificationEvents(
-							notificationRecipient.getUserId(),
-							PortletKeys.MY_WORKFLOW_TASK,
-							UserNotificationDeliveryConstants.TYPE_WEBSITE,
-							jsonObject);
-				}
+				_userNotificationEventLocalService.sendUserNotificationEvents(
+					notificationRecipient.getUserId(),
+					PortletKeys.MY_WORKFLOW_TASK,
+					UserNotificationDeliveryConstants.TYPE_WEBSITE, jsonObject);
 			}
 		}
 	}

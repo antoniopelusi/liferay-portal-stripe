@@ -193,4 +193,7 @@ public interface DLFileEntryMetadataModel
 	 */
 	public void setFileVersionId(long fileVersionId);
 
+	@Override
+	public DLFileEntryMetadata cloneWithOriginalValues();
+
 }

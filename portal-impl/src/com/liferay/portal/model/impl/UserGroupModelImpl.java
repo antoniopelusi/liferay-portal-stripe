@@ -26,27 +26,25 @@ import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.UserGroupModel;
-import com.liferay.portal.kernel.model.UserGroupSoap;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -172,61 +170,6 @@ public class UserGroupModelImpl
 	 */
 	@Deprecated
 	public static final long UUID_COLUMN_BITMASK = 32L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static UserGroup toModel(UserGroupSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		UserGroup model = new UserGroupImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setUserGroupId(soapModel.getUserGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentUserGroupId(soapModel.getParentUserGroupId());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setAddedByLDAPImport(soapModel.isAddedByLDAPImport());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<UserGroup> toModels(UserGroupSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<UserGroup> models = new ArrayList<UserGroup>(soapModels.length);
-
-		for (UserGroupSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final String MAPPING_TABLE_GROUPS_USERGROUPS_NAME =
 		"Groups_UserGroups";
@@ -365,34 +308,6 @@ public class UserGroupModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, UserGroup>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			UserGroup.class.getClassLoader(), UserGroup.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<UserGroup> constructor =
-				(Constructor<UserGroup>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<UserGroup, Object>>
@@ -872,6 +787,39 @@ public class UserGroupModelImpl
 	}
 
 	@Override
+	public UserGroup cloneWithOriginalValues() {
+		UserGroupImpl userGroupImpl = new UserGroupImpl();
+
+		userGroupImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		userGroupImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		userGroupImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		userGroupImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		userGroupImpl.setUserGroupId(
+			this.<Long>getColumnOriginalValue("userGroupId"));
+		userGroupImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		userGroupImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		userGroupImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		userGroupImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		userGroupImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		userGroupImpl.setParentUserGroupId(
+			this.<Long>getColumnOriginalValue("parentUserGroupId"));
+		userGroupImpl.setName(this.<String>getColumnOriginalValue("name"));
+		userGroupImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		userGroupImpl.setAddedByLDAPImport(
+			this.<Boolean>getColumnOriginalValue("addedByLDAPImport"));
+
+		return userGroupImpl;
+	}
+
+	@Override
 	public int compareTo(UserGroup userGroup) {
 		int value = 0;
 
@@ -1026,7 +974,7 @@ public class UserGroupModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1037,9 +985,26 @@ public class UserGroupModelImpl
 			Function<UserGroup, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((UserGroup)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((UserGroup)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1086,7 +1051,9 @@ public class UserGroupModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, UserGroup>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					UserGroup.class, ModelWrapper.class);
 
 	}
 

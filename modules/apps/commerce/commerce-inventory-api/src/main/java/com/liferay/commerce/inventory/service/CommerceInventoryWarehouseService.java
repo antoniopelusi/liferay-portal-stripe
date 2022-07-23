@@ -157,7 +157,7 @@ public interface CommerceInventoryWarehouseService extends BaseService {
 	public String getOSGiServiceIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CommerceInventoryWarehouse> searchCommerceInventoryWarehouses(
+	public List<CommerceInventoryWarehouse> search(
 			long companyId, Boolean active, String commerceCountryCode,
 			String keywords, int start, int end, Sort sort)
 		throws PortalException;

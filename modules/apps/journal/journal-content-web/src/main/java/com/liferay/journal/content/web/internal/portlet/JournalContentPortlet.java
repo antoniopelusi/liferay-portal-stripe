@@ -18,14 +18,12 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.journal.constants.JournalWebKeys;
-import com.liferay.journal.content.web.internal.constants.JournalContentWebKeys;
 import com.liferay.journal.content.web.internal.display.context.JournalContentDisplayContext;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.util.ExportArticleHelper;
 import com.liferay.journal.util.JournalContent;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -120,8 +118,8 @@ public class JournalContentPortlet extends MVCPortlet {
 
 		JournalContentDisplayContext journalContentDisplayContext =
 			(JournalContentDisplayContext)renderRequest.getAttribute(
-				JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT +
-					StringPool.POUND + portletDisplay.getId());
+				JournalContentDisplayContext.getRequestAttributeName(
+					portletDisplay.getId()));
 
 		if (journalContentDisplayContext != null) {
 			try {
@@ -162,7 +160,7 @@ public class JournalContentPortlet extends MVCPortlet {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 
 				renderRequest.removeAttribute(WebKeys.JOURNAL_ARTICLE);
@@ -199,7 +197,7 @@ public class JournalContentPortlet extends MVCPortlet {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -256,7 +254,7 @@ public class JournalContentPortlet extends MVCPortlet {
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 

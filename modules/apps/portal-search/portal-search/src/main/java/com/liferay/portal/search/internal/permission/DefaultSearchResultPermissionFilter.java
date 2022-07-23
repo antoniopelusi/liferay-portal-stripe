@@ -17,9 +17,12 @@ package com.liferay.portal.search.internal.permission;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
+import com.liferay.portal.kernel.exception.NoSuchResourceActionException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
@@ -35,6 +38,8 @@ import com.liferay.portal.kernel.search.facet.Facet;
 import com.liferay.portal.kernel.search.facet.FacetPostProcessor;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -47,6 +52,7 @@ import com.liferay.portal.search.configuration.DefaultSearchResultPermissionFilt
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,7 +85,7 @@ public class DefaultSearchResultPermissionFilter
 			defaultSearchResultPermissionFilterConfiguration.
 				searchQueryResultWindowLimit();
 
-		setProps(props);
+		_setProps(props);
 	}
 
 	@Override
@@ -88,17 +94,17 @@ public class DefaultSearchResultPermissionFilter
 
 		if (!queryConfig.isAllFieldsSelected()) {
 			queryConfig.setSelectedFieldNames(
-				getSelectedFieldNames(queryConfig.getSelectedFieldNames()));
+				_getSelectedFieldNames(queryConfig.getSelectedFieldNames()));
 		}
 
 		int end = searchContext.getEnd();
 		int start = searchContext.getStart();
 
 		if ((end == QueryUtil.ALL_POS) && (start == QueryUtil.ALL_POS)) {
-			Hits hits = getHits(searchContext);
+			Hits hits = _getHits(searchContext);
 
-			if (!isGroupAdmin(searchContext)) {
-				filterHits(hits, searchContext);
+			if (!_isGroupAdmin(searchContext)) {
+				_filterHits(hits, searchContext);
 			}
 
 			return hits;
@@ -108,8 +114,8 @@ public class DefaultSearchResultPermissionFilter
 			return new HitsImpl();
 		}
 
-		if (isGroupAdmin(searchContext)) {
-			return getHits(searchContext);
+		if (_isGroupAdmin(searchContext)) {
+			return _getHits(searchContext);
 		}
 
 		SlidingWindowSearcher slidingWindowSearcher =
@@ -118,7 +124,8 @@ public class DefaultSearchResultPermissionFilter
 		return slidingWindowSearcher.search(start, end, searchContext);
 	}
 
-	protected void filterHits(Hits hits, SearchContext searchContext) {
+	private void _filterHits(Hits hits, SearchContext searchContext) {
+		Map<String, Boolean> companyScopeViewPermissions = new HashMap<>();
 		List<Document> docs = new ArrayList<>();
 		List<Document> excludeDocs = new ArrayList<>();
 		List<Float> scores = new ArrayList<>();
@@ -134,7 +141,7 @@ public class DefaultSearchResultPermissionFilter
 		for (int i = 0; i < documents.length; i++) {
 			if (_isIncludeDocument(
 					documents[i], _permissionChecker.getCompanyId(),
-					companyAdmin, status)) {
+					companyAdmin, status, companyScopeViewPermissions)) {
 
 				docs.add(documents[i]);
 				scores.add(hits.score(i));
@@ -160,7 +167,7 @@ public class DefaultSearchResultPermissionFilter
 		hits.setLength(hits.getLength() - excludeDocs.size());
 	}
 
-	protected Hits getHits(SearchContext searchContext) {
+	private Hits _getHits(SearchContext searchContext) {
 		if ((searchContext != null) &&
 			(searchContext.getEnd() != QueryUtil.ALL_POS)) {
 
@@ -186,7 +193,7 @@ public class DefaultSearchResultPermissionFilter
 		return _searchFunction.apply(searchContext);
 	}
 
-	protected String[] getSelectedFieldNames(String[] selectedFieldNames) {
+	private String[] _getSelectedFieldNames(String[] selectedFieldNames) {
 		Set<String> set = SetUtil.fromArray(selectedFieldNames);
 
 		Collections.addAll(set, _PERMISSION_SELECTED_FIELD_NAMES);
@@ -194,31 +201,61 @@ public class DefaultSearchResultPermissionFilter
 		return set.toArray(new String[0]);
 	}
 
-	protected boolean isGroupAdmin(SearchContext searchContext) {
+	private Boolean _hasCompanyScopeViewPermission(String className) {
+		try {
+			ResourcePermissionLocalService resourcePermissionLocalService =
+				ResourcePermissionLocalServiceUtil.getService();
+
+			if (resourcePermissionLocalService == null) {
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						"Skipping company resource check because resource " +
+							"permission service is not available");
+				}
+
+				return false;
+			}
+
+			if (resourcePermissionLocalService.hasResourcePermission(
+					_permissionChecker.getCompanyId(), className,
+					ResourceConstants.SCOPE_COMPANY,
+					String.valueOf(_permissionChecker.getCompanyId()),
+					_permissionChecker.getRoleIds(
+						_permissionChecker.getUserId(), 0),
+					ActionKeys.VIEW)) {
+
+				return true;
+			}
+		}
+		catch (NoSuchResourceActionException noSuchResourceActionException) {
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"No company scoped resource permissions found for class " +
+						"name " + className,
+					noSuchResourceActionException);
+			}
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
+		}
+
+		return false;
+	}
+
+	private boolean _isGroupAdmin(SearchContext searchContext) {
 		long groupId = GetterUtil.getLong(
 			searchContext.getAttribute(Field.GROUP_ID));
 
-		if (groupId == 0) {
-			return false;
-		}
-
-		if (!_permissionChecker.isGroupAdmin(groupId)) {
+		if ((groupId == 0) || !_permissionChecker.isGroupAdmin(groupId)) {
 			return false;
 		}
 
 		return true;
 	}
 
-	protected void setProps(Props props) {
-		_props = props;
-
-		_indexPermissionFilterSearchAmplificationFactor = GetterUtil.getDouble(
-			_props.get(
-				PropsKeys.INDEX_PERMISSION_FILTER_SEARCH_AMPLIFICATION_FACTOR));
-	}
-
 	private boolean _isIncludeDocument(
-		Document document, long companyId, boolean companyAdmin, int status) {
+		Document document, long companyId, boolean companyAdmin, int status,
+		Map<String, Boolean> companyScopeViewPermissions) {
 
 		long entryCompanyId = GetterUtil.getLong(
 			document.get(Field.COMPANY_ID));
@@ -233,13 +270,17 @@ public class DefaultSearchResultPermissionFilter
 
 		String entryClassName = document.get(Field.ENTRY_CLASS_NAME);
 
-		Indexer<?> indexer = _indexerRegistry.getIndexer(entryClassName);
+		boolean hasCompanyScopeViewPermission =
+			companyScopeViewPermissions.computeIfAbsent(
+				entryClassName, this::_hasCompanyScopeViewPermission);
 
-		if (indexer == null) {
+		if (hasCompanyScopeViewPermission) {
 			return true;
 		}
 
-		if (!indexer.isFilterSearch()) {
+		Indexer<?> indexer = _indexerRegistry.getIndexer(entryClassName);
+
+		if ((indexer == null) || !indexer.isFilterSearch()) {
 			return true;
 		}
 
@@ -272,11 +313,19 @@ public class DefaultSearchResultPermissionFilter
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
 		return false;
+	}
+
+	private void _setProps(Props props) {
+		_props = props;
+
+		_indexPermissionFilterSearchAmplificationFactor = GetterUtil.getDouble(
+			_props.get(
+				PropsKeys.INDEX_PERMISSION_FILTER_SEARCH_AMPLIFICATION_FACTOR));
 	}
 
 	private static final String[] _PERMISSION_SELECTED_FIELD_NAMES = {
@@ -328,7 +377,7 @@ public class DefaultSearchResultPermissionFilter
 
 				searchContext.setStart(offset);
 
-				Hits hits = getHits(searchContext);
+				Hits hits = _getHits(searchContext);
 
 				if (startTime == 0) {
 					hitsSize = hits.getLength();
@@ -337,7 +386,7 @@ public class DefaultSearchResultPermissionFilter
 
 				Document[] oldDocs = hits.getDocs();
 
-				filterHits(hits, searchContext);
+				_filterHits(hits, searchContext);
 
 				Document[] newDocs = hits.getDocs();
 

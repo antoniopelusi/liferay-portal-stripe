@@ -1,6 +1,7 @@
 create table WikiNode (
 	mvccVersion LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
+	externalReferenceCode VARCHAR(75) null,
 	nodeId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
@@ -29,6 +30,7 @@ create table WikiPage (
 	userName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
+	externalReferenceCode VARCHAR(75) null,
 	nodeId LONG,
 	title VARCHAR(255) null,
 	version DOUBLE,

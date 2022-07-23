@@ -24,9 +24,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public class CPDAvailabilityEstimateImpl
 	extends CPDAvailabilityEstimateBaseImpl {
 
-	public CPDAvailabilityEstimateImpl() {
-	}
-
 	@Override
 	public CommerceAvailabilityEstimate getCommerceAvailabilityEstimate()
 		throws PortalException {

@@ -15,12 +15,12 @@
 import {
 	EVENT_TYPES as CORE_EVENT_TYPES,
 	useForm,
-} from 'dynamic-data-mapping-form-renderer';
+} from 'data-engine-js-components-web';
 import {useEffect} from 'react';
 
 import {EVENT_TYPES} from '../eventTypes.es';
 
-export const TranslationManager = () => {
+export function TranslationManager() {
 	const dispatch = useForm();
 
 	useEffect(() => {
@@ -94,4 +94,4 @@ export const TranslationManager = () => {
 	}, [dispatch]);
 
 	return null;
-};
+}

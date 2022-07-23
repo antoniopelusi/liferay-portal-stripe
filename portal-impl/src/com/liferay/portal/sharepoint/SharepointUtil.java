@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -63,7 +63,7 @@ public class SharepointUtil {
 	}
 
 	public static String[] getPathArray(String path) {
-		path = HttpUtil.fixPath(path, true, true);
+		path = HttpComponentsUtil.fixPath(path, true, true);
 
 		return StringUtil.split(path, CharPool.SLASH);
 	}
@@ -117,8 +117,6 @@ public class SharepointUtil {
 	}
 
 	private SharepointUtil() {
-		_storageMap = new HashMap<>();
-
 		String[] tokens = PropsUtil.getArray(
 			PropsKeys.SHAREPOINT_STORAGE_TOKENS);
 
@@ -184,6 +182,6 @@ public class SharepointUtil {
 
 	private static final SharepointUtil _sharepointUtil = new SharepointUtil();
 
-	private final Map<String, String> _storageMap;
+	private final Map<String, String> _storageMap = new HashMap<>();
 
 }

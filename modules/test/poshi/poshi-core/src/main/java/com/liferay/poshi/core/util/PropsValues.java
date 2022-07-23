@@ -53,6 +53,9 @@ public class PropsValues {
 	public static final String IGNORE_ERRORS_FILE_NAME = PropsUtil.get(
 		"ignore.errors.file.name");
 
+	public static final Boolean LIFERAY_DATA_GUARD_ENABLED = GetterUtil.get(
+		PropsUtil.get("liferay.data.guard.enabled"), false);
+
 	public static final String LIFERAY_PORTAL_BRANCH = PropsUtil.get(
 		"liferay.portal.branch");
 
@@ -141,6 +144,9 @@ public class PropsValues {
 	public static final String TEST_BATCH_RUN_TYPE = PropsUtil.get(
 		"test.batch.run.type");
 
+	public static final String TEST_CASE_AVAILABLE_PROPERTY_NAMES =
+		PropsUtil.get("test.case.available.property.names");
+
 	public static final String TEST_CASE_REQUIRED_PROPERTY_NAMES =
 		PropsUtil.get("test.case.required.property.names");
 
@@ -155,6 +161,9 @@ public class PropsValues {
 
 	public static final String TEST_DEPENDENCIES_DIR_NAME = PropsUtil.get(
 		"test.dependencies.dir.name");
+
+	public static final String[] TEST_DIRS = StringUtil.split(
+		PropsUtil.get("test.dirs"));
 
 	public static final String[] TEST_INCLUDE_DIR_NAMES = StringUtil.split(
 		PropsUtil.get("test.include.dir.names"));
@@ -184,6 +193,9 @@ public class PropsValues {
 
 	public static final String[] TEST_SUBREPO_DIRS = StringUtil.split(
 		PropsUtil.get("test.subrepo.dirs"));
+
+	public static final String[] TEST_SUPPORT_DIRS = StringUtil.split(
+		PropsUtil.get("test.support.dirs"));
 
 	public static final int TEST_TESTCASE_MAX_RETRIES = GetterUtil.getInteger(
 		PropsUtil.get("test.testcase.max.retries"));

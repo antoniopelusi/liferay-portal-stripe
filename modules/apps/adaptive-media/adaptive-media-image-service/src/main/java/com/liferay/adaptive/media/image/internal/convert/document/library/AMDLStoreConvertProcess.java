@@ -23,7 +23,6 @@ import com.liferay.portal.convert.documentlibrary.DLStoreConvertProcess;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.CompanyConstants;
-import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.util.MaintenanceUtil;
 
 import java.io.IOException;
@@ -65,18 +64,17 @@ public class AMDLStoreConvertProcess implements DLStoreConvertProcess {
 
 		actionableDynamicQuery.setPerformActionMethod(
 			(AMImageEntry amImageEntry) -> {
-				FileVersion fileVersion = _dlAppService.getFileVersion(
-					amImageEntry.getFileVersionId());
-
 				String fileVersionPath = AMStoreUtil.getFileVersionPath(
-					fileVersion, amImageEntry.getConfigurationUuid());
+					_dlAppService.getFileVersion(
+						amImageEntry.getFileVersionId()),
+					amImageEntry.getConfigurationUuid());
 
 				for (String versionLabel :
 						sourceStore.getFileVersions(
 							amImageEntry.getCompanyId(),
 							CompanyConstants.SYSTEM, fileVersionPath)) {
 
-					try (InputStream is = sourceStore.getFileAsStream(
+					try (InputStream inputStream = sourceStore.getFileAsStream(
 							amImageEntry.getCompanyId(),
 							CompanyConstants.SYSTEM, fileVersionPath,
 							versionLabel)) {
@@ -84,7 +82,7 @@ public class AMDLStoreConvertProcess implements DLStoreConvertProcess {
 						targetStore.addFile(
 							amImageEntry.getCompanyId(),
 							CompanyConstants.SYSTEM, fileVersionPath,
-							versionLabel, is);
+							versionLabel, inputStream);
 
 						if (delete) {
 							sourceStore.deleteFile(

@@ -27,9 +27,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public class CPDefinitionGroupedEntryImpl
 	extends CPDefinitionGroupedEntryBaseImpl {
 
-	public CPDefinitionGroupedEntryImpl() {
-	}
-
 	@Override
 	public CPDefinition getCPDefinition() throws PortalException {
 		return CPDefinitionLocalServiceUtil.getCPDefinition(

@@ -98,7 +98,7 @@ public class PortletConfigurationCSSPortlet extends MVCPortlet {
 		PortletPreferences portletSetup =
 			themeDisplay.getStrictLayoutPortletSetup(layout, portletId);
 
-		String css = getCSS(actionRequest);
+		String css = _getCSS(actionRequest);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Updating css " + css);
@@ -160,366 +160,254 @@ public class PortletConfigurationCSSPortlet extends MVCPortlet {
 			portletId);
 	}
 
-	protected JSONObject getAdvancedDataJSONObject(
-		ActionRequest actionRequest) {
-
-		String customCSS = ParamUtil.getString(actionRequest, "customCSS");
-
-		JSONObject advancedDataJSONObject = JSONUtil.put(
-			"customCSS", customCSS);
-
-		String customCSSClassName = ParamUtil.getString(
-			actionRequest, "customCSSClassName");
-
-		advancedDataJSONObject.put("customCSSClassName", customCSSClassName);
-
-		return advancedDataJSONObject;
-	}
-
-	protected JSONObject getBgDataJSONObject(ActionRequest actionRequest) {
-		String backgroundColor = ParamUtil.getString(
-			actionRequest, "backgroundColor");
-
-		JSONObject bgDataJSONObject = JSONUtil.put(
-			"backgroundColor", backgroundColor
-		).put(
-			"backgroundImage", StringPool.BLANK
-		);
-
-		JSONObject backgroundPositionJSONObject = JSONUtil.put(
-			"left",
-			JSONUtil.put(
-				"unit", StringPool.BLANK
-			).put(
-				"value", StringPool.BLANK
-			));
-
-		backgroundPositionJSONObject.put(
-			"top",
-			JSONUtil.put(
-				"unit", StringPool.BLANK
-			).put(
-				"value", StringPool.BLANK
-			));
-
-		bgDataJSONObject.put(
-			"backgroundPosition", backgroundPositionJSONObject
-		).put(
-			"backgroundRepeat", StringPool.BLANK
-		).put(
-			"useBgImage", false
-		);
-
-		return bgDataJSONObject;
-	}
-
-	protected JSONObject getBorderDataJSONObject(ActionRequest actionRequest) {
-		String borderColorBottom = ParamUtil.getString(
-			actionRequest, "borderColorBottom");
-
-		JSONObject borderColorJSONObject = JSONUtil.put(
-			"bottom", borderColorBottom);
-
-		String borderColorLeft = ParamUtil.getString(
-			actionRequest, "borderColorLeft");
-
-		borderColorJSONObject.put("left", borderColorLeft);
-
-		String borderColorRight = ParamUtil.getString(
-			actionRequest, "borderColorRight");
-
-		borderColorJSONObject.put("right", borderColorRight);
-
-		boolean useForAllColor = ParamUtil.getBoolean(
-			actionRequest, "useForAllColor");
-
-		borderColorJSONObject.put("sameForAll", useForAllColor);
-
-		String borderColorTop = ParamUtil.getString(
-			actionRequest, "borderColorTop");
-
-		borderColorJSONObject.put("top", borderColorTop);
-
-		JSONObject borderDataJSONObject = JSONUtil.put(
-			"borderColor", borderColorJSONObject);
-
-		String borderStyleBottom = ParamUtil.getString(
-			actionRequest, "borderStyleBottom");
-
-		JSONObject borderStyleJSONObject = JSONUtil.put(
-			"bottom", borderStyleBottom);
-
-		String borderStyleLeft = ParamUtil.getString(
-			actionRequest, "borderStyleLeft");
-
-		borderStyleJSONObject.put("left", borderStyleLeft);
-
-		String borderStyleRight = ParamUtil.getString(
-			actionRequest, "borderStyleRight");
-
-		borderStyleJSONObject.put("right", borderStyleRight);
-
-		boolean useForAllStyle = ParamUtil.getBoolean(
-			actionRequest, "useForAllStyle");
-
-		borderStyleJSONObject.put("sameForAll", useForAllStyle);
-
-		String borderStyleTop = ParamUtil.getString(
-			actionRequest, "borderStyleTop");
-
-		borderStyleJSONObject.put("top", borderStyleTop);
-
-		borderDataJSONObject.put("borderStyle", borderStyleJSONObject);
-
-		String borderWidthBottomUnit = ParamUtil.getString(
-			actionRequest, "borderWidthBottomUnit");
-
-		JSONObject borderWidthBottomJSONObject = JSONUtil.put(
-			"unit", borderWidthBottomUnit);
-
-		String borderWidthBottom = ParamUtil.getString(
-			actionRequest, "borderWidthBottom");
-
-		borderWidthBottomJSONObject.put("value", borderWidthBottom);
-
-		JSONObject borderWidthJSONObject = JSONUtil.put(
-			"bottom", borderWidthBottomJSONObject);
-
-		String borderWidthLeftUnit = ParamUtil.getString(
-			actionRequest, "borderWidthLeftUnit");
-
-		JSONObject borderWidthLeftJSONObject = JSONUtil.put(
-			"unit", borderWidthLeftUnit);
-
-		String borderWidthLeft = ParamUtil.getString(
-			actionRequest, "borderWidthLeft");
-
-		borderWidthLeftJSONObject.put("value", borderWidthLeft);
-
-		borderWidthJSONObject.put("left", borderWidthLeftJSONObject);
-
-		String borderWidthRightUnit = ParamUtil.getString(
-			actionRequest, "borderWidthRightUnit");
-
-		JSONObject borderWidthRightJSONObject = JSONUtil.put(
-			"unit", borderWidthRightUnit);
-
-		String borderWidthRight = ParamUtil.getString(
-			actionRequest, "borderWidthRight");
-
-		borderWidthRightJSONObject.put("value", borderWidthRight);
-
-		borderWidthJSONObject.put("right", borderWidthRightJSONObject);
-
-		boolean useForAllWidth = ParamUtil.getBoolean(
-			actionRequest, "useForAllWidth");
-
-		borderWidthJSONObject.put("sameForAll", useForAllWidth);
-
-		String borderWidthTopUnit = ParamUtil.getString(
-			actionRequest, "borderWidthTopUnit");
-
-		JSONObject borderWidthTopJSONObject = JSONUtil.put(
-			"unit", borderWidthTopUnit);
-
-		String borderWidthTop = ParamUtil.getString(
-			actionRequest, "borderWidthTop");
-
-		borderWidthTopJSONObject.put("value", borderWidthTop);
-
-		borderWidthJSONObject.put("top", borderWidthTopJSONObject);
-
-		borderDataJSONObject.put("borderWidth", borderWidthJSONObject);
-
-		return borderDataJSONObject;
-	}
-
-	protected String getCSS(ActionRequest actionRequest) {
-		JSONObject cssJSONObject = JSONUtil.put(
-			"advancedData", getAdvancedDataJSONObject(actionRequest)
-		).put(
-			"bgData", getBgDataJSONObject(actionRequest)
-		).put(
-			"borderData", getBorderDataJSONObject(actionRequest)
-		).put(
-			"spacingData", getSpacingDataJSONObject(actionRequest)
-		).put(
-			"textData", getTextDataJSONObject(actionRequest)
-		);
-
-		return cssJSONObject.toString();
-	}
-
-	protected JSONObject getSpacingDataJSONObject(ActionRequest actionRequest) {
-		String marginBottomUnit = ParamUtil.getString(
-			actionRequest, "marginBottomUnit");
-
-		JSONObject marginBottomJSONObject = JSONUtil.put(
-			"unit", marginBottomUnit);
-
-		String marginBottom = ParamUtil.getString(
-			actionRequest, "marginBottom");
-
-		marginBottomJSONObject.put("value", marginBottom);
-
-		JSONObject marginJSONObject = JSONUtil.put(
-			"bottom", marginBottomJSONObject);
-
-		String marginLeftUnit = ParamUtil.getString(
-			actionRequest, "marginLeftUnit");
-
-		JSONObject marginLeftJSONObject = JSONUtil.put("unit", marginLeftUnit);
-
-		String marginLeft = ParamUtil.getString(actionRequest, "marginLeft");
-
-		marginLeftJSONObject.put("value", marginLeft);
-
-		marginJSONObject.put("left", marginLeftJSONObject);
-
-		String marginRightUnit = ParamUtil.getString(
-			actionRequest, "marginRightUnit");
-
-		JSONObject marginRightJSONObject = JSONUtil.put(
-			"unit", marginRightUnit);
-
-		String marginRight = ParamUtil.getString(actionRequest, "marginRight");
-
-		marginRightJSONObject.put("value", marginRight);
-
-		marginJSONObject.put("right", marginRightJSONObject);
-
-		boolean useForAllMargin = ParamUtil.getBoolean(
-			actionRequest, "useForAllMargin");
-
-		marginJSONObject.put("sameForAll", useForAllMargin);
-
-		String marginTopUnit = ParamUtil.getString(
-			actionRequest, "marginTopUnit");
-
-		JSONObject marginTopJSONObject = JSONUtil.put("unit", marginTopUnit);
-
-		String marginTop = ParamUtil.getString(actionRequest, "marginTop");
-
-		marginTopJSONObject.put("value", marginTop);
-
-		marginJSONObject.put("top", marginTopJSONObject);
-
-		JSONObject spacingDataJSONObject = JSONUtil.put(
-			"margin", marginJSONObject);
-
-		String paddingBottomUnit = ParamUtil.getString(
-			actionRequest, "paddingBottomUnit");
-
-		JSONObject paddingBottomJSONObject = JSONUtil.put(
-			"unit", paddingBottomUnit);
-
-		String paddingBottom = ParamUtil.getString(
-			actionRequest, "paddingBottom");
-
-		paddingBottomJSONObject.put("value", paddingBottom);
-
-		JSONObject paddingJSONObject = JSONUtil.put(
-			"bottom", paddingBottomJSONObject);
-
-		String paddingLeftUnit = ParamUtil.getString(
-			actionRequest, "paddingLeftUnit");
-
-		JSONObject paddingLeftJSONObject = JSONUtil.put(
-			"unit", paddingLeftUnit);
-
-		String paddingLeft = ParamUtil.getString(actionRequest, "paddingLeft");
-
-		paddingLeftJSONObject.put("value", paddingLeft);
-
-		paddingJSONObject.put("left", paddingLeftJSONObject);
-
-		String paddingRightUnit = ParamUtil.getString(
-			actionRequest, "paddingRightUnit");
-
-		JSONObject paddingRightJSONObject = JSONUtil.put(
-			"unit", paddingRightUnit);
-
-		String paddingRight = ParamUtil.getString(
-			actionRequest, "paddingRight");
-
-		paddingRightJSONObject.put("value", paddingRight);
-
-		paddingJSONObject.put("right", paddingRightJSONObject);
-
-		boolean useForAllPadding = ParamUtil.getBoolean(
-			actionRequest, "useForAllPadding");
-
-		paddingJSONObject.put("sameForAll", useForAllPadding);
-
-		String paddingTopUnit = ParamUtil.getString(
-			actionRequest, "paddingTopUnit");
-
-		JSONObject paddingTopJSONObject = JSONUtil.put("unit", paddingTopUnit);
-
-		String paddingTop = ParamUtil.getString(actionRequest, "paddingTop");
-
-		paddingTopJSONObject.put("value", paddingTop);
-
-		paddingJSONObject.put("top", paddingTopJSONObject);
-
-		spacingDataJSONObject.put("padding", paddingJSONObject);
-
-		return spacingDataJSONObject;
-	}
-
-	protected JSONObject getTextDataJSONObject(ActionRequest actionRequest) {
-		String fontColor = ParamUtil.getString(actionRequest, "fontColor");
-
-		JSONObject textDataJSONObject = JSONUtil.put("color", fontColor);
-
-		String fontFamily = ParamUtil.getString(actionRequest, "fontFamily");
-
-		textDataJSONObject.put("fontFamily", fontFamily);
-
-		String fontSize = ParamUtil.getString(actionRequest, "fontSize");
-
-		textDataJSONObject.put("fontSize", fontSize);
-
-		boolean fontItalic = ParamUtil.getBoolean(actionRequest, "fontItalic");
-
-		textDataJSONObject.put(
-			"fontStyle", fontItalic ? "italic" : StringPool.BLANK);
-
-		boolean fontBold = ParamUtil.getBoolean(actionRequest, "fontBold");
-
-		textDataJSONObject.put(
-			"fontWeight", fontBold ? "bold" : StringPool.BLANK);
-
-		String letterSpacing = ParamUtil.getString(
-			actionRequest, "letterSpacing");
-
-		textDataJSONObject.put("letterSpacing", letterSpacing);
-
-		String lineHeight = ParamUtil.getString(actionRequest, "lineHeight");
-
-		textDataJSONObject.put("lineHeight", lineHeight);
-
-		String textAlign = ParamUtil.getString(actionRequest, "textAlign");
-
-		textDataJSONObject.put("textAlign", textAlign);
-
-		String textDecoration = ParamUtil.getString(
-			actionRequest, "textDecoration");
-
-		textDataJSONObject.put("textDecoration", textDecoration);
-
-		String wordSpacing = ParamUtil.getString(actionRequest, "wordSpacing");
-
-		textDataJSONObject.put("wordSpacing", wordSpacing);
-
-		return textDataJSONObject;
-	}
-
 	@Reference(
 		target = "(&(release.bundle.symbolic.name=com.liferay.portlet.configuration.css.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))",
 		unbind = "-"
 	)
 	protected void setRelease(Release release) {
+	}
+
+	private JSONObject _getAdvancedDataJSONObject(ActionRequest actionRequest) {
+		return JSONUtil.put(
+			"customCSS", ParamUtil.getString(actionRequest, "customCSS")
+		).put(
+			"customCSSClassName",
+			ParamUtil.getString(actionRequest, "customCSSClassName")
+		);
+	}
+
+	private JSONObject _getBgDataJSONObject(ActionRequest actionRequest) {
+		return JSONUtil.put(
+			"backgroundColor",
+			ParamUtil.getString(actionRequest, "backgroundColor")
+		).put(
+			"backgroundImage", StringPool.BLANK
+		).put(
+			"backgroundPosition",
+			JSONUtil.put(
+				"left",
+				JSONUtil.put(
+					"unit", StringPool.BLANK
+				).put(
+					"value", StringPool.BLANK
+				)
+			).put(
+				"top",
+				JSONUtil.put(
+					"unit", StringPool.BLANK
+				).put(
+					"value", StringPool.BLANK
+				)
+			)
+		).put(
+			"backgroundRepeat", StringPool.BLANK
+		).put(
+			"useBgImage", false
+		);
+	}
+
+	private JSONObject _getBorderDataJSONObject(ActionRequest actionRequest) {
+		return JSONUtil.put(
+			"borderColor",
+			JSONUtil.put(
+				"bottom",
+				ParamUtil.getString(actionRequest, "borderColorBottom")
+			).put(
+				"left", ParamUtil.getString(actionRequest, "borderColorLeft")
+			).put(
+				"right", ParamUtil.getString(actionRequest, "borderColorRight")
+			).put(
+				"sameForAll",
+				ParamUtil.getBoolean(actionRequest, "useForAllColor")
+			).put(
+				"top", ParamUtil.getString(actionRequest, "borderColorTop")
+			)
+		).put(
+			"borderStyle",
+			JSONUtil.put(
+				"bottom",
+				ParamUtil.getString(actionRequest, "borderStyleBottom")
+			).put(
+				"left", ParamUtil.getString(actionRequest, "borderStyleLeft")
+			).put(
+				"right", ParamUtil.getString(actionRequest, "borderStyleRight")
+			).put(
+				"sameForAll",
+				ParamUtil.getBoolean(actionRequest, "useForAllStyle")
+			).put(
+				"top", ParamUtil.getString(actionRequest, "borderStyleTop")
+			)
+		).put(
+			"borderWidth",
+			JSONUtil.put(
+				"bottom",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "borderWidthBottomUnit")
+				).put(
+					"value",
+					ParamUtil.getString(actionRequest, "borderWidthBottom")
+				)
+			).put(
+				"left",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "borderWidthLeftUnit")
+				).put(
+					"value",
+					ParamUtil.getString(actionRequest, "borderWidthLeft")
+				)
+			).put(
+				"right",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "borderWidthRightUnit")
+				).put(
+					"value",
+					ParamUtil.getString(actionRequest, "borderWidthRight")
+				)
+			).put(
+				"sameForAll",
+				ParamUtil.getBoolean(actionRequest, "useForAllWidth")
+			).put(
+				"top",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "borderWidthTopUnit")
+				).put(
+					"value",
+					ParamUtil.getString(actionRequest, "borderWidthTop")
+				)
+			)
+		);
+	}
+
+	private String _getCSS(ActionRequest actionRequest) {
+		return JSONUtil.put(
+			"advancedData", _getAdvancedDataJSONObject(actionRequest)
+		).put(
+			"bgData", _getBgDataJSONObject(actionRequest)
+		).put(
+			"borderData", _getBorderDataJSONObject(actionRequest)
+		).put(
+			"spacingData", _getSpacingDataJSONObject(actionRequest)
+		).put(
+			"textData", _getTextDataJSONObject(actionRequest)
+		).toString();
+	}
+
+	private JSONObject _getSpacingDataJSONObject(ActionRequest actionRequest) {
+		return JSONUtil.put(
+			"margin",
+			JSONUtil.put(
+				"bottom",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "marginBottomUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "marginBottom")
+				)
+			).put(
+				"left",
+				JSONUtil.put(
+					"unit", ParamUtil.getString(actionRequest, "marginLeftUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "marginLeft")
+				)
+			).put(
+				"right",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "marginRightUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "marginRight")
+				)
+			).put(
+				"sameForAll",
+				ParamUtil.getBoolean(actionRequest, "useForAllMargin")
+			).put(
+				"top",
+				JSONUtil.put(
+					"unit", ParamUtil.getString(actionRequest, "marginTopUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "marginTop")
+				)
+			)
+		).put(
+			"padding",
+			JSONUtil.put(
+				"bottom",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "paddingBottomUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "paddingBottom")
+				)
+			).put(
+				"left",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "paddingLeftUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "paddingLeft")
+				)
+			).put(
+				"right",
+				JSONUtil.put(
+					"unit",
+					ParamUtil.getString(actionRequest, "paddingRightUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "paddingRight")
+				)
+			).put(
+				"sameForAll",
+				ParamUtil.getBoolean(actionRequest, "useForAllPadding")
+			).put(
+				"top",
+				JSONUtil.put(
+					"unit", ParamUtil.getString(actionRequest, "paddingTopUnit")
+				).put(
+					"value", ParamUtil.getString(actionRequest, "paddingTop")
+				)
+			)
+		);
+	}
+
+	private JSONObject _getTextDataJSONObject(ActionRequest actionRequest) {
+		String fontStyle = StringPool.BLANK;
+
+		if (ParamUtil.getBoolean(actionRequest, "fontItalic")) {
+			fontStyle = "italic";
+		}
+
+		String fontWeight = StringPool.BLANK;
+
+		if (ParamUtil.getBoolean(actionRequest, "fontBold")) {
+			fontWeight = "bold";
+		}
+
+		return JSONUtil.put(
+			"color", ParamUtil.getString(actionRequest, "fontColor")
+		).put(
+			"fontFamily", ParamUtil.getString(actionRequest, "fontFamily")
+		).put(
+			"fontSize", ParamUtil.getString(actionRequest, "fontSize")
+		).put(
+			"fontStyle", fontStyle
+		).put(
+			"fontWeight", fontWeight
+		).put(
+			"letterSpacing", ParamUtil.getString(actionRequest, "letterSpacing")
+		).put(
+			"lineHeight", ParamUtil.getString(actionRequest, "lineHeight")
+		).put(
+			"textAlign", ParamUtil.getString(actionRequest, "textAlign")
+		).put(
+			"textDecoration",
+			ParamUtil.getString(actionRequest, "textDecoration")
+		).put(
+			"wordSpacing", ParamUtil.getString(actionRequest, "wordSpacing")
+		);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

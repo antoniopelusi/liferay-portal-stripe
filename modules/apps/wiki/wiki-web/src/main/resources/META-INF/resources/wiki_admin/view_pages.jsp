@@ -53,18 +53,9 @@ wikiPagesSearchContainer.setRowChecker(new PagesChecker(liferayPortletRequest, l
 
 wikiListPagesDisplayContext.populateResultsAndTotal(wikiPagesSearchContainer);
 
-boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
-
 WikiURLHelper wikiURLHelper = new WikiURLHelper(wikiRequestHelper, renderResponse, wikiGroupServiceConfiguration);
 
 PortletURL backToNodeURL = wikiURLHelper.getBackToNodeURL(node);
-
-if (portletTitleBasedNavigation) {
-	portletDisplay.setShowBackIcon(true);
-	portletDisplay.setURLBack(backToNodeURL.toString());
-
-	renderResponse.setTitle(node.getName());
-}
 
 String displayStyle = ParamUtil.getString(request, "displayStyle");
 
@@ -103,7 +94,7 @@ WikiPagesManagementToolbarDisplayContext wikiPagesManagementToolbarDisplayContex
 	viewTypeItems="<%= wikiPagesManagementToolbarDisplayContext.getViewTypes() %>"
 />
 
-<div class="closed sidenav-container sidenav-right" id="<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>">
+<div class="closed sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/wiki/page_info_panel" var="sidebarPanelURL">
 		<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
 		<portlet:param name="showSidebarHeader" value="<%= Boolean.TRUE.toString() %>" />

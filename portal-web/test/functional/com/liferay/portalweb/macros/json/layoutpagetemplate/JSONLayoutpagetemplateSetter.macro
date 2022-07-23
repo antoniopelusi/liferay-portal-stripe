@@ -12,6 +12,9 @@ definition {
 		else if ("${contentType}" == "Blogs Entry") {
 			var value = "com.liferay.blogs.model.BlogsEntry";
 		}
+		else if ("${contentType}" == "Category") {
+			var value = "com.liferay.asset.kernel.model.AssetCategory";
+		}
 		else {
 			fail("'value' is either invalid or not yet set.");
 		}
@@ -50,7 +53,11 @@ definition {
 			var site = "true";
 		}
 
-		var groupId = JSONGroupAPI._getGroupIdByGroupKey(groupKey = "${groupKey}", parentGroupName = "${parentGroupName}", grandParentGroupName = "${grandParentGroupName}", site = "${site}");
+		var groupId = JSONGroupAPI._getGroupIdByGroupKey(
+			grandParentGroupName = "${grandParentGroupName}",
+			groupKey = "${groupKey}",
+			parentGroupName = "${parentGroupName}",
+			site = "${site}");
 
 		return "${groupId}";
 	}

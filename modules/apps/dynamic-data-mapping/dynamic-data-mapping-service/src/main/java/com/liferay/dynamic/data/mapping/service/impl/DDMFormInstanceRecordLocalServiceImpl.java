@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.service.impl;
 
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.dynamic.data.mapping.exception.FormInstanceRecordGroupIdException;
 import com.liferay.dynamic.data.mapping.exception.NoSuchFormInstanceRecordException;
@@ -32,6 +33,8 @@ import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordVersionLoca
 import com.liferay.dynamic.data.mapping.service.DDMStorageLinkLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.base.DDMFormInstanceRecordLocalServiceBaseImpl;
+import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstancePersistence;
+import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceRecordVersionPersistence;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.DDMStorageAdapter;
 import com.liferay.dynamic.data.mapping.storage.DDMStorageAdapterDeleteRequest;
@@ -64,6 +67,8 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -72,6 +77,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.TimeZoneUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 
@@ -84,6 +90,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -107,10 +114,10 @@ public class DDMFormInstanceRecordLocalServiceImpl
 			DDMFormValues ddmFormValues, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		DDMFormInstance ddmFormInstance =
-			ddmFormInstancePersistence.findByPrimaryKey(ddmFormInstanceId);
+			_ddmFormInstancePersistence.findByPrimaryKey(ddmFormInstanceId);
 
 		validate(groupId, ddmFormInstance);
 
@@ -128,7 +135,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		ddmFormInstanceRecord.setVersionUserName(user.getFullName());
 
 		long ddmStorageId = createDDMContent(
-			ddmFormInstanceId, ddmFormValues, serviceContext);
+			groupId, ddmFormInstanceId, ddmFormValues, serviceContext);
 
 		ddmFormInstanceRecord.setStorageId(ddmStorageId);
 
@@ -175,7 +182,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 			if (isEmailNotificationEnabled(ddmFormInstance)) {
 				_ddmFormEmailNotificationSender.sendEmailNotification(
-					serviceContext, ddmFormInstanceRecord);
+					ddmFormInstanceRecord, serviceContext);
 			}
 		}
 
@@ -195,7 +202,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		ddmFormInstanceRecordPersistence.remove(ddmFormInstanceRecord);
 
 		List<DDMFormInstanceRecordVersion> ddmFormInstanceRecordVersions =
-			ddmFormInstanceRecordVersionPersistence.findByFormInstanceRecordId(
+			_ddmFormInstanceRecordVersionPersistence.findByFormInstanceRecordId(
 				ddmFormInstanceRecord.getFormInstanceRecordId());
 
 		String storageType = ddmFormInstanceRecord.getStorageType();
@@ -203,12 +210,14 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		for (DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion :
 				ddmFormInstanceRecordVersions) {
 
-			ddmFormInstanceRecordVersionPersistence.remove(
+			_ddmFormInstanceRecordVersionPersistence.remove(
 				ddmFormInstanceRecordVersion);
 
 			long storageId = ddmFormInstanceRecordVersion.getStorageId();
 
-			deleteStorage(storageId, storageType);
+			if (!StringUtil.equals(storageType, "object")) {
+				deleteStorage(storageId, storageType);
+			}
 
 			_ddmStorageLinkLocalService.deleteClassStorageLink(storageId);
 
@@ -218,7 +227,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 				ddmFormInstanceRecordVersion.getPrimaryKey());
 		}
 
-		assetEntryLocalService.deleteEntry(
+		_assetEntryLocalService.deleteEntry(
 			DDMFormInstanceRecord.class.getName(),
 			ddmFormInstanceRecord.getFormInstanceRecordId());
 
@@ -415,7 +424,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 		validate(ddmFormValues, serviceContext);
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		DDMFormInstanceRecord ddmFormInstanceRecord =
 			ddmFormInstanceRecordPersistence.findByPrimaryKey(
@@ -435,6 +444,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 		if (ddmFormInstanceRecordVersion.isApproved()) {
 			long ddmStorageId = createDDMContent(
+				ddmFormInstanceRecord.getGroupId(),
 				ddmFormInstance.getFormInstanceId(), ddmFormValues,
 				serviceContext);
 
@@ -448,6 +458,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		}
 		else {
 			updateDDMContent(
+				ddmFormInstanceRecord.getGroupId(),
 				ddmFormInstanceRecordVersion, ddmFormValues, serviceContext);
 
 			String version = ddmFormInstanceRecordVersion.getVersion();
@@ -457,7 +468,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 				ddmFormInstanceRecordVersion.getStatus(), version,
 				serviceContext);
 
-			ddmFormInstanceRecordVersionPersistence.clearCache(
+			_ddmFormInstanceRecordVersionPersistence.clearCache(
 				ddmFormInstanceRecordVersion);
 		}
 
@@ -473,7 +484,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 				ddmFormInstanceRecord.getFormInstanceRecordVersion(),
 				ddmFormInstanceRecordVersion, serviceContext)) {
 
-			ddmFormInstanceRecordVersionPersistence.remove(
+			_ddmFormInstanceRecordVersionPersistence.remove(
 				ddmFormInstanceRecordVersion);
 
 			deleteStorage(
@@ -494,7 +505,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 			if (isEmailNotificationEnabled(ddmFormInstance)) {
 				_ddmFormEmailNotificationSender.sendEmailNotification(
-					serviceContext, ddmFormInstanceRecord);
+					ddmFormInstanceRecord, serviceContext);
 			}
 		}
 
@@ -510,10 +521,10 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 		// Record version
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		DDMFormInstanceRecordVersion formInstanceRecordVersion =
-			ddmFormInstanceRecordVersionPersistence.findByPrimaryKey(
+			_ddmFormInstanceRecordVersionPersistence.findByPrimaryKey(
 				recordVersionId);
 
 		formInstanceRecordVersion.setStatus(status);
@@ -522,7 +533,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		formInstanceRecordVersion.setStatusDate(new Date());
 
 		formInstanceRecordVersion =
-			ddmFormInstanceRecordVersionPersistence.update(
+			_ddmFormInstanceRecordVersionPersistence.update(
 				formInstanceRecordVersion);
 
 		// Record
@@ -560,7 +571,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 				String newVersion = _VERSION_DEFAULT;
 
 				List<DDMFormInstanceRecordVersion> approvedRecordVersions =
-					ddmFormInstanceRecordVersionPersistence.findByF_S(
+					_ddmFormInstanceRecordVersionPersistence.findByF_S(
 						formInstanceRecord.getFormInstanceRecordId(),
 						WorkflowConstants.STATUS_APPROVED);
 
@@ -583,11 +594,6 @@ public class DDMFormInstanceRecordLocalServiceImpl
 			else if (formInstanceRecord.getStatus() ==
 						WorkflowConstants.STATUS_APPROVED) {
 
-				updateFormInstanceRecordVersion(
-					user, formInstanceRecordVersion,
-					WorkflowConstants.STATUS_APPROVED,
-					formInstanceRecordVersion.getVersion(), serviceContext);
-
 				formInstanceRecord.setVersion(
 					formInstanceRecordVersion.getVersion());
 
@@ -606,7 +612,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		long ddmFormInstanceRecordVersionId = counterLocalService.increment();
 
 		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion =
-			ddmFormInstanceRecordVersionPersistence.create(
+			_ddmFormInstanceRecordVersionPersistence.create(
 				ddmFormInstanceRecordVersionId);
 
 		ddmFormInstanceRecordVersion.setGroupId(
@@ -631,19 +637,19 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		ddmFormInstanceRecordVersion.setStatusDate(
 			ddmFormInstanceRecord.getModifiedDate());
 
-		return ddmFormInstanceRecordVersionPersistence.update(
+		return _ddmFormInstanceRecordVersionPersistence.update(
 			ddmFormInstanceRecordVersion);
 	}
 
 	protected long createDDMContent(
-			long ddmFormInstanceId, DDMFormValues ddmFormValues,
+			long groupId, long ddmFormInstanceId, DDMFormValues ddmFormValues,
 			ServiceContext serviceContext)
 		throws PortalException {
 
 		validate(ddmFormValues, serviceContext);
 
 		DDMFormInstance ddmFormInstance =
-			ddmFormInstancePersistence.findByPrimaryKey(ddmFormInstanceId);
+			_ddmFormInstancePersistence.findByPrimaryKey(ddmFormInstanceId);
 
 		DDMStorageAdapter ddmStorageAdapter = getDDMStorageAdapter(
 			ddmFormInstance.getStorageType());
@@ -651,14 +657,17 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		DDMStorageAdapterSaveResponse ddmStorageAdapterSaveResponse =
 			ddmStorageAdapter.save(
 				DDMStorageAdapterSaveRequest.Builder.newBuilder(
-					serviceContext.getUserId(),
-					serviceContext.getScopeGroupId(), ddmFormValues
+					serviceContext.getUserId(), ddmFormValues
+				).withClassName(
+					DDMStorageLink.class.getName()
+				).withDDMFormInstance(
+					ddmFormInstance
+				).withGroupId(
+					groupId
 				).withStructureId(
 					ddmFormInstance.getStructureId()
 				).withUuid(
 					serviceContext.getUuid()
-				).withClassName(
-					DDMStorageLink.class.getName()
 				).build());
 
 		long primaryKey = ddmStorageAdapterSaveResponse.getPrimaryKey();
@@ -690,7 +699,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 			long companyId, long groupId, long ddmFormInstanceRecordVersionId)
 		throws PortalException {
 
-		workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+		_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
 			companyId, groupId, DDMFormInstanceRecord.class.getName(),
 			ddmFormInstanceRecordVersionId);
 	}
@@ -780,17 +789,10 @@ public class DDMFormInstanceRecordLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		if (Objects.equals(serviceContext.getCommand(), Constants.REVERT)) {
-			return false;
-		}
-
-		if (serviceContext.getWorkflowAction() ==
-				WorkflowConstants.ACTION_SAVE_DRAFT) {
-
-			return false;
-		}
-
-		if (Objects.equals(
+		if (Objects.equals(serviceContext.getCommand(), Constants.REVERT) ||
+			(serviceContext.getWorkflowAction() ==
+				WorkflowConstants.ACTION_SAVE_DRAFT) ||
+			Objects.equals(
 				lastDDMFormInstanceRecordVersion.getVersion(),
 				latestDDMFormInstanceRecordVersion.getVersion())) {
 
@@ -850,7 +852,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 			if (!version.equals(_VERSION_DEFAULT)) {
 				int approvedRecordVersionsCount =
-					ddmFormInstanceRecordVersionPersistence.countByF_S(
+					_ddmFormInstanceRecordVersionPersistence.countByF_S(
 						formInstanceRecord.getFormInstanceRecordId(),
 						WorkflowConstants.STATUS_APPROVED);
 
@@ -867,7 +869,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 			formInstance.getName(locale), false);
 
 		if (addDraftAssetEntry) {
-			assetEntryLocalService.updateEntry(
+			_assetEntryLocalService.updateEntry(
 				userId, formInstanceRecord.getGroupId(),
 				formInstanceRecord.getCreateDate(),
 				formInstanceRecord.getModifiedDate(),
@@ -879,7 +881,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 				null, 0, 0, priority);
 		}
 		else {
-			assetEntryLocalService.updateEntry(
+			_assetEntryLocalService.updateEntry(
 				userId, formInstanceRecord.getGroupId(),
 				formInstanceRecord.getCreateDate(),
 				formInstanceRecord.getModifiedDate(),
@@ -893,6 +895,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 	}
 
 	protected void updateDDMContent(
+			long groupId,
 			DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion,
 			DDMFormValues ddmFormValues, ServiceContext serviceContext)
 		throws PortalException {
@@ -907,12 +910,15 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 		ddmStorageAdapter.save(
 			DDMStorageAdapterSaveRequest.Builder.newBuilder(
-				serviceContext.getUserId(), serviceContext.getScopeGroupId(),
-				ddmFormValues
-			).withStructureId(
-				ddmFormInstance.getStructureId()
+				serviceContext.getUserId(), ddmFormValues
+			).withDDMFormInstance(
+				ddmFormInstance
+			).withGroupId(
+				groupId
 			).withPrimaryKey(
 				ddmFormInstanceRecordVersion.getStorageId()
+			).withStructureId(
+				ddmFormInstance.getStructureId()
 			).build());
 	}
 
@@ -929,7 +935,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		ddmFormInstanceRecordVersion.setStatusDate(
 			serviceContext.getModifiedDate(null));
 
-		ddmFormInstanceRecordVersionPersistence.update(
+		_ddmFormInstanceRecordVersionPersistence.update(
 			ddmFormInstanceRecordVersion);
 	}
 
@@ -944,7 +950,13 @@ public class DDMFormInstanceRecordLocalServiceImpl
 			return;
 		}
 
-		_ddmFormValuesValidator.validate(ddmFormValues);
+		TimeZone timeZone = serviceContext.getTimeZone();
+
+		if (timeZone == null) {
+			timeZone = TimeZoneUtil.getDefault();
+		}
+
+		_ddmFormValuesValidator.validate(ddmFormValues, timeZone.getID());
 	}
 
 	protected void validate(long groupId, DDMFormInstance ddmFormInstance)
@@ -963,7 +975,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		throws PortalException {
 
 		DDMFormInstance ddmFormInstance =
-			ddmFormInstancePersistence.findByPrimaryKey(formInstanceId);
+			_ddmFormInstancePersistence.findByPrimaryKey(formInstanceId);
 
 		SearchContext searchContext = new SearchContext();
 
@@ -1004,14 +1016,24 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		DDMFormInstanceRecordLocalServiceImpl.class);
 
 	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Reference
 	private ClassNameLocalService _classNameLocalService;
 
 	@Reference
 	private DDMFormEmailNotificationSender _ddmFormEmailNotificationSender;
 
 	@Reference
+	private DDMFormInstancePersistence _ddmFormInstancePersistence;
+
+	@Reference
 	private DDMFormInstanceRecordVersionLocalService
 		_ddmFormInstanceRecordVersionLocalService;
+
+	@Reference
+	private DDMFormInstanceRecordVersionPersistence
+		_ddmFormInstanceRecordVersionPersistence;
 
 	@Reference
 	private DDMFormValuesValidator _ddmFormValuesValidator;
@@ -1030,5 +1052,11 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
+	private WorkflowInstanceLinkLocalService _workflowInstanceLinkLocalService;
 
 }

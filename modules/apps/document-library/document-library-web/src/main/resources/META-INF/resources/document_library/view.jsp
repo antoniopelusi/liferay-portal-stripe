@@ -18,6 +18,7 @@
 
 <%
 DLAdminDisplayContext dlAdminDisplayContext = (DLAdminDisplayContext)request.getAttribute(DLAdminDisplayContext.class.getName());
+DLAdminManagementToolbarDisplayContext dlAdminManagementToolbarDisplayContext = (DLAdminManagementToolbarDisplayContext)request.getAttribute(DLAdminManagementToolbarDisplayContext.class.getName());
 
 DLViewDisplayContext dlViewDisplayContext = new DLViewDisplayContext(dlAdminDisplayContext, request, renderRequest, renderResponse);
 %>
@@ -49,6 +50,8 @@ DLViewDisplayContext dlViewDisplayContext = new DLViewDisplayContext(dlAdminDisp
 		<clay:management-toolbar
 			additionalProps='<%=
 				HashMapBuilder.<String, Object>put(
+					"collectDigitalSignaturePortlet", DigitalSignaturePortletKeys.COLLECT_DIGITAL_SIGNATURE
+				).put(
 					"downloadEntryURL", dlViewDisplayContext.getDownloadEntryURL()
 				).put(
 					"editEntryURL", dlViewDisplayContext.getEditEntryURL()
@@ -78,7 +81,7 @@ DLViewDisplayContext dlViewDisplayContext = new DLViewDisplayContext(dlAdminDisp
 					"viewFileEntryURL", dlViewDisplayContext.getViewFileEntryURL()
 				).build()
 			%>'
-			managementToolbarDisplayContext="<%= (DLAdminManagementToolbarDisplayContext)request.getAttribute(DLAdminManagementToolbarDisplayContext.class.getName()) %>"
+			managementToolbarDisplayContext="<%= dlAdminManagementToolbarDisplayContext %>"
 			propsTransformer="document_library/js/DLManagementToolbarPropsTransformer"
 		/>
 
@@ -156,59 +159,58 @@ DLViewDisplayContext dlViewDisplayContext = new DLViewDisplayContext(dlAdminDisp
 							<liferay-ui:error exception="<%= FileEntryLockException.MustOwnLock.class %>" message="you-can-only-checkin-documents-you-have-checked-out-yourself" />
 							<liferay-ui:error key="externalServiceFailed" message="you-cannot-access-external-service-because-you-are-not-allowed-to-or-it-is-unavailable" />
 
-							<div class="document-container">
-								<c:choose>
-									<c:when test="<%= dlViewDisplayContext.isSearch() %>">
-										<liferay-util:include page="/document_library/search_resources.jsp" servletContext="<%= application %>" />
-									</c:when>
-									<c:otherwise>
-										<liferay-util:include page="/document_library/view_entries.jsp" servletContext="<%= application %>" />
-									</c:otherwise>
-								</c:choose>
+							<c:choose>
+								<c:when test="<%= dlViewDisplayContext.isSearch() %>">
+									<liferay-util:include page="/document_library/search_resources.jsp" servletContext="<%= application %>" />
+								</c:when>
+								<c:otherwise>
+									<liferay-util:include page="/document_library/view_entries.jsp" servletContext="<%= application %>" />
+								</c:otherwise>
+							</c:choose>
 
-								<div class="lfr-template" id="<portlet:namespace />appViewEntryTemplates">
+							<div class="d-none" id="<portlet:namespace />appViewEntryTemplates">
+								<liferay-frontend:icon-vertical-card
+									cssClass="card-type-asset display-icon entry-display-style file-card form-check form-check-card"
+									icon="documents-and-media"
+									title="{title}"
+									url="<%= dlViewDisplayContext.getUploadURL() %>"
+								>
+									<liferay-frontend:vertical-card-sticker-bottom>
+										<clay:sticker
+											cssClass="file-icon-color-0 sticker-bottom-left sticker-document"
+											icon="document-default"
+										/>
+									</liferay-frontend:vertical-card-sticker-bottom>
 
-									<%
-									String thumbnailSrc = themeDisplay.getPathThemeImages() + "/file_system/large/default.png";
-									%>
+									<liferay-frontend:vertical-card-header>
+										<liferay-ui:message arguments="<%= HtmlUtil.escape(user.getFullName()) %>" key="right-now-by-x" />
+									</liferay-frontend:vertical-card-header>
+								</liferay-frontend:icon-vertical-card>
 
-									<liferay-frontend:vertical-card
-										cssClass="card-type-asset display-icon entry-display-style file-card form-check form-check-card"
-										imageUrl="<%= thumbnailSrc %>"
-										title="{title}"
-										url="<%= dlViewDisplayContext.getUploadURL() %>"
-									>
-										<liferay-frontend:vertical-card-header>
+								<dd class="display-descriptive entry-display-style list-group-item list-group-item-flex">
+									<div class="autofit-col"></div>
+
+									<div class="autofit-col">
+										<clay:sticker
+											cssClass="file-icon-color-0"
+											icon="document-default"
+										/>
+									</div>
+
+									<div class="autofit-col autofit-col-expand">
+										<h2 class="h5">
+											<aui:a href="<%= dlViewDisplayContext.getUploadURL() %>">
+												{title}
+											</aui:a>
+										</h2>
+
+										<span>
 											<liferay-ui:message arguments="<%= HtmlUtil.escape(user.getFullName()) %>" key="right-now-by-x" />
-										</liferay-frontend:vertical-card-header>
-									</liferay-frontend:vertical-card>
+										</span>
+									</div>
 
-									<li class="display-descriptive entry-display-style list-group-item list-group-item-flex">
-										<div class="autofit-col"></div>
-
-										<div class="autofit-col">
-											<div class="click-selector sticker">
-												<div class="sticker-overlay">
-													<img alt="thumbnail" class="sticker-img" src="<%= thumbnailSrc %>" />
-												</div>
-											</div>
-										</div>
-
-										<div class="autofit-col autofit-col-expand">
-											<h2 class="h5">
-												<aui:a href="<%= dlViewDisplayContext.getUploadURL() %>">
-													{title}
-												</aui:a>
-											</h2>
-
-											<span>
-												<liferay-ui:message arguments="<%= HtmlUtil.escape(user.getFullName()) %>" key="right-now-by-x" />
-											</span>
-										</div>
-
-										<div class="autofit-col"></div>
-									</li>
-								</div>
+									<div class="autofit-col"></div>
+								</dd>
 							</div>
 						</aui:form>
 					</div>
@@ -272,7 +274,7 @@ DLViewDisplayContext dlViewDisplayContext = new DLViewDisplayContext(dlAdminDisp
 						method: 'POST',
 						node: A.one(document.<portlet:namespace />fm2),
 					},
-					maxFileSize: <%= dlConfiguration.fileMaxSize() %>,
+					maxFileSize: <%= DLValidatorUtil.getMaxAllowableSize(themeDisplay.getScopeGroupId(), null) %>,
 					namespace: '<portlet:namespace />',
 					openViewMoreFileEntryTypesURL:
 						'<%= dlViewDisplayContext.getViewMoreFileEntryTypesURL() %>',

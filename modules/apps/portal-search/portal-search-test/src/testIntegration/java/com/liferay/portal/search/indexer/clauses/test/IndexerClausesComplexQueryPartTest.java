@@ -125,10 +125,6 @@ public class IndexerClausesComplexQueryPartTest {
 		assertSearch("[Gamma Article, Omega Article]", shouldAdditive());
 		assertSearch("[Omega Article]", mustAdditive());
 
-		if (!_LPS_123611_FIXED) {
-			return;
-		}
-
 		assertSearch("[Gamma Article, Omega Article]", withoutIndexerClauses());
 		assertSearch(
 			"[Gamma Article, Omega Article]", should(),
@@ -164,10 +160,6 @@ public class IndexerClausesComplexQueryPartTest {
 		assertSearch("[]", must());
 		assertSearch("[Gamma Blog, Omega Blog]", shouldAdditive());
 		assertSearch("[Omega Blog]", mustAdditive());
-
-		if (!_LPS_123611_FIXED) {
-			return;
-		}
 
 		assertSearch("[Gamma Blog, Omega Blog]", withoutIndexerClauses());
 		assertSearch(
@@ -206,10 +198,6 @@ public class IndexerClausesComplexQueryPartTest {
 			shouldAdditive());
 		assertSearch(
 			"[Omega Article, Omega Blog, Omega Message]", mustAdditive());
-
-		if (!_LPS_123611_FIXED) {
-			return;
-		}
 
 		assertSearch(
 			"[Gamma Article, Gamma Blog, Omega Article, Omega Blog]",
@@ -389,8 +377,6 @@ public class IndexerClausesComplexQueryPartTest {
 		return ServiceContextTestUtil.getServiceContext(
 			_group.getGroupId(), _user.getUserId());
 	}
-
-	private static final boolean _LPS_123611_FIXED = false;
 
 	private static final String _TITLE_EN_US = StringBundler.concat(
 		Field.TITLE, StringPool.UNDERLINE, LocaleUtil.US);

@@ -31,7 +31,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Html;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -42,10 +42,10 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsPortletKeys;
-import com.liferay.segments.constants.SegmentsWebKeys;
 import com.liferay.segments.experiment.web.internal.util.SegmentsExperimentUtil;
+import com.liferay.segments.manager.SegmentsExperienceManager;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.taglib.aui.IconTag;
 import com.liferay.taglib.portletext.RuntimeTag;
 import com.liferay.taglib.util.BodyBottomTag;
@@ -53,13 +53,11 @@ import com.liferay.taglib.util.BodyBottomTag;
 import java.io.IOException;
 import java.io.Writer;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.stream.LongStream;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -145,7 +143,7 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 					RenderRequest.RENDER_PHASE)
 			).setMVCPath(
 				"/segments_experiment_panel.jsp"
-			).build();
+			).buildPortletURL();
 
 			try {
 				portletURL.setWindowState(LiferayWindowState.EXCLUSIVE);
@@ -154,9 +152,13 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 				ReflectionUtil.throwException(windowStateException);
 			}
 
-			String dataURL = _http.setParameter(
+			SegmentsExperienceManager segmentsExperienceManager =
+				new SegmentsExperienceManager(_segmentsExperienceLocalService);
+
+			String dataURL = HttpComponentsUtil.setParameter(
 				portletURL.toString(), "segmentsExperienceId",
-				_getSegmentsExperienceId(httpServletRequest));
+				segmentsExperienceManager.getSegmentsExperienceId(
+					httpServletRequest));
 
 			values.put("dataURL", "data-url='" + dataURL + "'");
 		}
@@ -193,8 +195,7 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 
 	public boolean isPanelStateOpen(HttpServletRequest httpServletRequest) {
 		String segmentsExperimentPanelState = SessionClicks.get(
-			httpServletRequest,
-			"com.liferay.segments.experiment.web_panelState", "closed");
+			httpServletRequest, _SESSION_CLICKS_KEY, "closed");
 
 		if (Objects.equals(segmentsExperimentPanelState, "open")) {
 			return true;
@@ -227,19 +228,10 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
-
-		if (isEmbeddedPersonalApplicationLayout(layout)) {
-			return false;
-		}
-
-		if (!layout.isTypeContent()) {
-			return false;
-		}
-
-		if (!LayoutPermissionUtil.contains(
+		if (layout.isTypeControlPanel() ||
+			isEmbeddedPersonalApplicationLayout(layout) ||
+			!layout.isTypeContent() ||
+			!LayoutPermissionUtil.contains(
 				themeDisplay.getPermissionChecker(), layout,
 				ActionKeys.UPDATE)) {
 
@@ -271,24 +263,16 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 		return super.isShow(httpServletRequest);
 	}
 
+	public void setPanelState(
+		HttpServletRequest httpServletRequest, String panelState) {
+
+		SessionClicks.put(httpServletRequest, _SESSION_CLICKS_KEY, panelState);
+	}
+
 	@Activate
 	protected void activate() {
 		_portletNamespace = _portal.getPortletNamespace(
 			SegmentsPortletKeys.SEGMENTS_EXPERIMENT);
-	}
-
-	private long _getSegmentsExperienceId(
-		HttpServletRequest httpServletRequest) {
-
-		LongStream longStream = Arrays.stream(
-			GetterUtil.getLongValues(
-				httpServletRequest.getAttribute(
-					SegmentsWebKeys.SEGMENTS_EXPERIENCE_IDS)));
-
-		return longStream.findFirst(
-		).orElse(
-			SegmentsExperienceConstants.ID_DEFAULT
-		);
 	}
 
 	private void _processBodyBottomTagBody(PageContext pageContext) {
@@ -312,9 +296,9 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 
 			jspWriter.write(
 				StringBundler.concat(
-					"d-print-none lfr-admin-panel lfr-product-menu-panel ",
-					"lfr-segments-experiment-panel sidenav-fixed ",
-					"sidenav-menu-slider sidenav-right\" id=\""));
+					"cadmin d-print-none lfr-admin-panel ",
+					"lfr-product-menu-panel lfr-segments-experiment-panel ",
+					"sidenav-fixed sidenav-menu-slider sidenav-right\" id=\""));
 
 			String portletNamespace = _portal.getPortletNamespace(
 				SegmentsPortletKeys.SEGMENTS_EXPERIMENT);
@@ -342,11 +326,11 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 	private static final String _ICON_TMPL_CONTENT = StringUtil.read(
 		SegmentsExperimentProductNavigationControlMenuEntry.class, "icon.tmpl");
 
-	@Reference
-	private Html _html;
+	private static final String _SESSION_CLICKS_KEY =
+		"com.liferay.segments.experiment.web_panelState";
 
 	@Reference
-	private Http _http;
+	private Html _html;
 
 	@Reference
 	private Language _language;
@@ -358,5 +342,8 @@ public class SegmentsExperimentProductNavigationControlMenuEntry
 
 	@Reference
 	private PortletURLFactory _portletURLFactory;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 }

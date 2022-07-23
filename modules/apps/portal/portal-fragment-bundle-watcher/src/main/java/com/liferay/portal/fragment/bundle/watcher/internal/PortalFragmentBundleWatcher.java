@@ -17,20 +17,25 @@ package com.liferay.portal.fragment.bundle.watcher.internal;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
+import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.resource.Requirement;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -69,19 +74,46 @@ public class PortalFragmentBundleWatcher {
 			FrameworkWiring.class);
 
 		_resolvedBundleListener = bundleEvent -> {
+			Map<Bundle, String> installedFragmentBundles =
+				_installedFragmentBundleTracker.getTracked();
+
+			if (installedFragmentBundles.isEmpty()) {
+				return;
+			}
+
 			Bundle bundleEventBundle = bundleEvent.getBundle();
 
-			if (((bundleEvent.getType() == BundleEvent.INSTALLED) &&
-				 (bundleEventBundle.getState() != Bundle.UNINSTALLED) &&
-				 _isFragment(bundleEventBundle)) ||
-				(bundleEvent.getType() == BundleEvent.RESOLVED)) {
+			Bundle originBundle = bundleEvent.getOrigin();
 
-				Map<Bundle, String> installedFragmentBundles =
-					_installedFragmentBundleTracker.getTracked();
+			List<Bundle> hostBundles = new ArrayList<>();
 
-				if (installedFragmentBundles.isEmpty()) {
-					return;
+			if ((bundleEvent.getType() == BundleEvent.INSTALLED) &&
+				(bundleEventBundle.getState() != Bundle.UNINSTALLED) &&
+				_isFragment(bundleEventBundle) &&
+				!Objects.equals(
+					originBundle.getSymbolicName(),
+					"com.liferay.portal.file.install.impl") &&
+				!_hasMissingRequirements(frameworkWiring, bundleEventBundle)) {
+
+				String hostBundleSymbolicName = installedFragmentBundles.remove(
+					bundleEventBundle);
+
+				if (Validator.isNotNull(hostBundleSymbolicName)) {
+					for (Bundle bundle : bundleContext.getBundles()) {
+						if (Objects.equals(
+								bundle.getSymbolicName(),
+								hostBundleSymbolicName) &&
+							_isHostBundleStateValid(bundle)) {
+
+							hostBundles.add(bundle);
+
+							break;
+						}
+					}
 				}
+			}
+			else if ((bundleEvent.getType() == BundleEvent.RESOLVED) &&
+					 !_isFragment(bundleEventBundle)) {
 
 				Map<String, List<Bundle>> fragmentBundlesMap = new HashMap<>();
 
@@ -95,11 +127,7 @@ public class PortalFragmentBundleWatcher {
 					fragmentBundles.add(entry.getKey());
 				}
 
-				Bundle originBundle = bundleEvent.getOrigin();
-
 				long originBundleId = originBundle.getBundleId();
-
-				List<Bundle> hostBundles = new ArrayList<>();
 
 				for (Bundle bundle : bundleContext.getBundles()) {
 					List<Bundle> fragmantBundles = fragmentBundlesMap.remove(
@@ -113,14 +141,18 @@ public class PortalFragmentBundleWatcher {
 						boolean needRefresh = false;
 
 						for (Bundle fragmentBundle : fragmantBundles) {
-							if (fragmentBundle.getState() == Bundle.INSTALLED) {
+							if ((fragmentBundle.getState() ==
+									Bundle.INSTALLED) &&
+								!_hasMissingRequirements(
+									frameworkWiring, fragmentBundle)) {
+
 								needRefresh = true;
 
 								break;
 							}
 						}
 
-						if (needRefresh) {
+						if (needRefresh && _isHostBundleStateValid(bundle)) {
 							hostBundles.add(bundle);
 						}
 					}
@@ -129,10 +161,10 @@ public class PortalFragmentBundleWatcher {
 						break;
 					}
 				}
+			}
 
-				if (!hostBundles.isEmpty()) {
-					frameworkWiring.refreshBundles(hostBundles);
-				}
+			if (!hostBundles.isEmpty()) {
+				frameworkWiring.refreshBundles(hostBundles);
 			}
 		};
 
@@ -165,6 +197,23 @@ public class PortalFragmentBundleWatcher {
 		return fragmentHost;
 	}
 
+	private boolean _hasMissingRequirements(
+		FrameworkWiring frameworkWiring, Bundle bundle) {
+
+		BundleRevision bundleRevision = bundle.adapt(BundleRevision.class);
+
+		for (Requirement requirement : bundleRevision.getRequirements(null)) {
+			Collection<BundleCapability> providers =
+				frameworkWiring.findProviders(requirement);
+
+			if (providers.isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * @see com.liferay.portal.file.install.internal.DirectoryWatcher#_isFragment
 	 */
@@ -172,6 +221,19 @@ public class PortalFragmentBundleWatcher {
 		BundleRevision bundleRevision = bundle.adapt(BundleRevision.class);
 
 		if ((bundleRevision.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean _isHostBundleStateValid(Bundle bundle) {
+		int hostBundleState = bundle.getState();
+
+		if ((hostBundleState == Bundle.ACTIVE) ||
+			(hostBundleState == Bundle.RESOLVED) ||
+			(hostBundleState == Bundle.STARTING)) {
+
 			return true;
 		}
 

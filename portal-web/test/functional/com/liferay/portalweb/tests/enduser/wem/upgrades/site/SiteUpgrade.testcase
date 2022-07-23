@@ -1,0 +1,55 @@
+@component-name = "portal-upgrades"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Site Administration,Upgrades WEM";
+	property testray.main.component.name = "Upgrades WEM";
+
+	setUp {
+		SignIn.signIn();
+
+		SearchAdministration.executeReindex();
+	}
+
+	@description = "This is a test for LPS-131694. The user can import a default site with an Asset Publisher into a new site after Upgrade."
+	@priority = "4"
+	test CanImportDefaultSiteWithAnAssetPublisherIntoNewSiteAfterUpgrade706 {
+		property data.archive.type = "data-archive-import-site";
+		property database.types = "mariadb,mysql,postgresql";
+		property portal.version = "7.0.6";
+
+		Upgrade.exportDefaultSiteIntoNewSite();
+	}
+
+	@description = "This is a test for LPS-131694. The user can import a default site with an Asset Publisher into a new site after Upgrade."
+	@priority = "4"
+	test CanImportDefaultSiteWithAnAssetPublisherIntoNewSiteAfterUpgrade701016 {
+		property data.archive.type = "data-archive-import-site";
+		property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property portal.version = "7.0.10.16";
+
+		Upgrade.exportDefaultSiteIntoNewSite();
+	}
+
+	@description = "This is a test for LPS-102711."
+	@priority = "4"
+	test ViewCustomSiteSettingAfterUpgrade735 {
+		property data.archive.type = "data-archive-site-setting";
+		property database.types = "mariadb,mysql,postgresql";
+		property portal.version = "7.3.5";
+
+		Upgrade.viewCustomSiteSetting();
+	}
+
+	@description = "This is a test for LPS-102711."
+	@priority = "4"
+	test ViewCustomSiteSettingAfterUpgrade73101 {
+		property data.archive.type = "data-archive-site-setting";
+		property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property portal.version = "7.3.10.1";
+
+		Upgrade.viewCustomSiteSetting();
+	}
+
+}

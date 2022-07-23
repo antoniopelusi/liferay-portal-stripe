@@ -1,9 +1,9 @@
 @component-name = "portal-user-management-and-portal-configuration"
 definition {
 
-	property portal.release = "false";
+	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Accounts";
+	property testray.main.component.name = "Account";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -24,158 +24,145 @@ definition {
 
 	@description = "This test adds an account user via Account Users portlet"
 	@priority = "5"
-	test AddAccountUser {
+	test CanAddAccountUser {
 		property portal.acceptance = "true";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
-
-		Accounts.addCP(
-			accountDescription = "This is an Account with User.",
-			accountName = "Account with User");
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Account with User",
+			accountEntryType = "Business");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Accounts",
-			panel = "Applications",
+			panel = "Control Panel",
 			portlet = "Account Users");
 
-		AccountUsers.addUsers(
+		AccountUsers.addUser(
 			accountName = "Account with User",
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
 		LexiconEntry.viewEntryName(rowEntry = "userfn userln");
 	}
 
-	@description = "This test adds a new user via the Users tab of an Account"
+	@description = "This test adds an account user to an account via Edit User page"
 	@priority = "4"
-	test AddAccountUserViaAssignUser {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+	test CanAddUserToAccountViaEditUser {
+		for (var accountNumber : list "1,2") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryName = "Accounts Name ${accountNumber}",
+				accountEntryType = "Business");
+		}
 
-		Accounts.addCP(
-			accountDescription = "Add account user via assign user.",
-			accountName = "Assign Account User");
+		AccountUsers.openAccountUsersAdmin();
 
-		Accounts.gotoAssigneeTab(assigneeTab = "Users");
-
-		Accounts.addAssignee(
-			accountName = "Assign Account User",
-			addNewAssignee = "true",
-			assigneeName = "userfn",
-			assigneeType = "Users",
+		AccountUsers.addUser(
+			accountName = "Accounts Name 1",
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+		AccountUsers.openAccountUsersAdmin();
 
-		LexiconEntry.gotoEntry(rowEntry = "Assign Account User");
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "userfn userln");
 
-		Accounts.gotoAssigneeTab(assigneeTab = "Users");
+		AssertTextEquals.assertPartialText(
+			locator1 = "Portlet#HEADER",
+			value1 = "Edit User userfn userln");
 
-		Accounts.viewAssignee(assigneeName = "userfn");
+		Navigator.gotoNavNested(navNested = "Accounts");
+
+		AssertClick(
+			key_text = "Select",
+			locator1 = "Button#ANY",
+			value1 = "Select");
+
+		SelectFrame(
+			key_title = "Select Account",
+			locator1 = "IFrame#MODAL_ANY");
+
+		AssertClick(
+			key_accountName = "Accounts Name 2",
+			locator1 = "AccountUsers#SELECT_AN_ACCOUNT_CHOOSE_BUTTON",
+			value1 = "Choose");
+
+		Button.clickSave();
+
+		AccountUsers.openAccountUsersAdmin();
+
+		AccountUsers.viewEntryAccounts(
+			accountName = "Accounts Name 1, Accounts Name 2",
+			accountUserName = "userfn userln");
 	}
 
-	@description = "This test assigns an existing user to account through the Users tab"
-	@priority = "4"
-	test AssignExistingUserToAccount {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+	@description = "This test adds more than 4 account users and asserts correct pagination."
+	@priority = "3"
+	test CanChangePaginationInAccountUsersList {
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Account Name",
+			accountEntryType = "Business");
 
-		Accounts.addCP(
-			accountDescription = "This is an account with user.",
-			accountName = "Account Name");
+		for (var accountUser : list "1,2,3,4,5,6") {
+			AccountUsers.openAccountUsersAdmin();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+			AccountUsers.addUser(
+				accountName = "Account Name",
+				userEmailAddress = "userea${accountUser}@liferay.com",
+				userFirstName = "userfn${accountUser}",
+				userLastName = "userln${accountUser}",
+				userScreenName = "usersn${accountUser}");
+		}
 
-		AccountUsers.addUsers(
-			accountName = "Account Name",
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		AccountUsers.openAccountUsersAdmin();
 
-		AccountConfiguration.enableAccountEmailDomain();
+		Pagination.changePagination(itemsPerPage = "4");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+		for (var accountUser : list "1,2,3,4") {
+			LexiconEntry.viewEntryName(rowEntry = "userfn${accountUser} userln${accountUser}");
+		}
 
-		Accounts.addCP(
-			accountDescription = "This is a test for adding user to account.",
-			accountName = "Account with Exist User",
-			domainEnable = "true",
-			domainNames = "liferay.com");
+		for (var accountUser : list "5,6") {
+			LexiconEntry.viewNoEntry(rowEntry = "userfn${accountUser} userln${accountUser}");
+		}
 
-		Accounts.gotoAssigneeTab(assigneeTab = "Users");
+		Pagination.viewResults(results = "Showing 1 to 4 of 6 entries.");
 
-		Accounts.addAssignee(
-			accountName = "Account with Exist User",
-			assigneeName = "userfn",
-			assigneeType = "Users");
+		Click(locator1 = "Pagination#NEXT_LINK");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+		for (var accountUser : list "5,6") {
+			LexiconEntry.viewEntryName(rowEntry = "userfn${accountUser} userln${accountUser}");
+		}
 
-		LexiconEntry.gotoEntry(rowEntry = "Account with Exist User");
+		for (var accountUser : list "1,2,3,4") {
+			LexiconEntry.viewNoEntry(rowEntry = "userfn${accountUser} userln${accountUser}");
+		}
 
-		Accounts.gotoAssigneeTab(assigneeTab = "Users");
-
-		Accounts.viewAssignee(assigneeName = "userfn");
+		Pagination.viewResults(results = "Showing 5 to 6 of 6 entries.");
 	}
 
 	@description = "This test deactivates an active user"
 	@priority = "4"
-	test DeactivateUser {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+	test CanDeactivateUser {
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Account with User",
+			accountEntryType = "Business");
 
-		Accounts.addCP(
-			accountDescription = "This is an Account with User.",
-			accountName = "Account with User");
+		AccountUsers.openAccountUsersAdmin();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
-
-		AccountUsers.addUsers(
+		AccountUsers.addUser(
 			accountName = "Account with User",
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
 		LexiconEntry.viewEntryName(rowEntry = "userfn userln");
 
@@ -190,32 +177,23 @@ definition {
 
 	@description = "This test edits a user via Account Users portlet"
 	@priority = "5"
-	test EditAccountUser {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+	test CanEditAccountUser {
+		Accounts.openAccountsAdmin();
 
-		Accounts.addCP(
+		Accounts.addBusinessAccount(
 			accountDescription = "This is an Account with User.",
 			accountName = "Account with User");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
-		AccountUsers.addUsers(
+		AccountUsers.addUser(
 			accountName = "Account with User",
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
 		AccountUsers.editUser(
 			accountUser = "userfn userln",
@@ -223,17 +201,11 @@ definition {
 			editFirstName = "edituserfn",
 			password = "test");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
 		LexiconEntry.viewEntryName(rowEntry = "edituserfn userln");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+		Accounts.openAccountsAdmin();
 
 		LexiconEntry.gotoEntry(rowEntry = "Account with User");
 
@@ -244,24 +216,16 @@ definition {
 		Accounts.viewAssignee(assigneeName = "edituserfn");
 	}
 
-	@description = "This is a use case for LPS-107598."
+	@description = "This is a use case for LPS-107598 and LPS-129713"
 	@priority = "3"
-	test FilterAccountUserInTheUsersAdminPortlet {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+	test CanFilterAccountUserInTheUsersAdminPortlet {
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Account with User",
+			accountEntryType = "Business");
 
-		Accounts.addCP(
-			accountDescription = "This is an Account with User.",
-			accountName = "Account with User");
+		AccountUsers.openAccountUsersAdmin();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
-
-		AccountUsers.addUsers(
+		AccountUsers.addUser(
 			accountName = "Account with User",
 			userEmailAddress = "userac@liferay.com",
 			userFirstName = "userac",
@@ -274,20 +238,17 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		User.openUsersAdmin();
+
+		LexiconEntry.viewEntryName(rowEntry = "userfn userln");
+
+		LexiconEntry.viewEntryName(rowEntry = "userac userac");
+
+		ManagementBar.setFilterAndOrder(filterBy = "Company Users");
 
 		LexiconEntry.viewEntryName(rowEntry = "userfn userln");
 
 		LexiconEntry.viewNoEntry(rowEntry = "userac userac");
-
-		ManagementBar.setFilterAndOrder(filterBy = "All");
-
-		LexiconEntry.viewEntryName(rowEntry = "userac userac");
-
-		LexiconEntry.viewEntryName(rowEntry = "userfn userln");
 
 		ManagementBar.setFilterAndOrder(filterBy = "Account Users");
 
@@ -296,63 +257,119 @@ definition {
 		LexiconEntry.viewNoEntry(rowEntry = "userfn userln");
 	}
 
-	@description = "This filters users by accounts, choosing a specific account to view"
+	@description = "The filter by Any Account filters all users that assigned account"
 	@priority = "3"
-	test FilterByAccounts {
-		for (var accountType : list "Business,Person") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Accounts",
-				panel = "Applications",
-				portlet = "Accounts");
+	test CanFilterByAnyAccount {
+		for (var newEntryNum : list "1,2,3") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryName = "Account ${newEntryNum} with User",
+				accountEntryType = "Business");
 
-			Accounts.addCP(
-				accountDescription = "This is a ${accountType} Account.",
-				accountName = "${accountType} Account",
-				accountType = "${accountType}");
+			JSONAccountEntryUser.addAccountEntryUser(
+				accountEntryName = "Account ${newEntryNum} with User",
+				userEmailAddress = "userea${newEntryNum}@liferay.com",
+				userFirstName = "userfn${newEntryNum}",
+				userLastName = "userln${newEntryNum}",
+				userScreenName = "usersn${newEntryNum}");
 		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
-		AccountUsers.addUsers(
+		AccountUsers.removeAccount(
+			accountName = "Account 1 with User",
+			accountUser = "userfn1 userln1");
+
+		AccountUsers.openAccountUsersAdmin();
+
+		ManagementBar.setFilterAndOrder(filterBy = "Any Account");
+
+		LexiconEntry.viewEntryName(rowEntry = "userfn2 userln2");
+
+		LexiconEntry.viewEntryName(rowEntry = "userfn3 userln3");
+
+		LexiconEntry.viewNoEntry(rowEntry = "userfn1 userln1");
+	}
+
+	@description = "This filters users that do not have any assigned account"
+	@priority = "3"
+	test CanFilterByNoAssignedAccount {
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Account with User",
+			accountEntryType = "Business");
+
+		for (var accountUser : list "1,2") {
+			AccountUsers.openAccountUsersAdmin();
+
+			AccountUsers.addUser(
+				accountName = "Account with User",
+				userEmailAddress = "userea${accountUser}@liferay.com",
+				userFirstName = "userfn${accountUser}",
+				userLastName = "userln${accountUser}",
+				userScreenName = "usersn${accountUser}");
+		}
+
+		AccountUsers.openAccountUsersAdmin();
+
+		AccountUsers.removeAccount(
+			accountName = "Account with User",
+			accountUser = "userfn1 userln1");
+
+		AccountUsers.openAccountUsersAdmin();
+
+		ManagementBar.setFilterAndOrder(filterBy = "No Assigned Account");
+
+		LexiconEntry.viewEntryName(rowEntry = "userfn1 userln1");
+
+		LexiconEntry.viewNoEntry(rowEntry = "userfn2 userln2");
+
+		ManagementBar.setFilterAndOrder(filterBy = "Any Account");
+
+		LexiconEntry.viewEntryName(rowEntry = "userfn2 userln2");
+
+		LexiconEntry.viewNoEntry(rowEntry = "userfn1 userln1");
+	}
+
+	@description = "This filters users by Selected Accounts, choosing a specific account to view"
+	@priority = "3"
+	test CanFilterBySelectedAccounts {
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Business Account",
+			accountEntryType = "Business");
+
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Person Account",
+			accountEntryType = "Person");
+
+		AccountUsers.openAccountUsersAdmin();
+
+		AccountUsers.addUser(
 			accountName = "Business Account",
 			userEmailAddress = "businessuser@liferay.com",
 			userFirstName = "business",
 			userLastName = "user",
 			userScreenName = "businessuser");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
-		AccountUsers.addUsers(
+		AccountUsers.addUser(
 			accountName = "Business Account",
 			userEmailAddress = "userbusiness@liferay.com",
 			userFirstName = "user",
 			userLastName = "business",
 			userScreenName = "userbusiness");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
-		AccountUsers.addUsers(
+		AccountUsers.addUser(
 			accountName = "Person Account",
 			userEmailAddress = "personuser@liferay.com",
 			userFirstName = "person",
 			userLastName = "user",
 			userScreenName = "personuser");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
-		ManagementBar.setFilterAndOrder(filterBy = "Accounts");
+		ManagementBar.setFilterAndOrder(filterBy = "Selected Accounts");
 
 		AccountUsers.selectAccounts(accountName = "Person Account");
 
@@ -362,7 +379,7 @@ definition {
 
 		LexiconEntry.viewNoEntry(rowEntry = "business user");
 
-		ManagementBar.setFilterAndOrder(filterBy = "Accounts");
+		ManagementBar.setFilterAndOrder(filterBy = "Selected Accounts");
 
 		AccountUsers.selectAccounts(accountName = "Business Account");
 
@@ -373,78 +390,17 @@ definition {
 		LexiconEntry.viewNoEntry(rowEntry = "person user");
 	}
 
-	@description = "This filters users that do not have any assigned account"
-	@priority = "3"
-	test FilterByNoAssignedAccount {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
-
-		Accounts.addCP(
-			accountDescription = "This is an Account with User.",
-			accountName = "Account with User");
-
-		for (var accountUser : list "1,2") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Accounts",
-				panel = "Applications",
-				portlet = "Account Users");
-
-			AccountUsers.addUsers(
-				accountName = "Account with User",
-				userEmailAddress = "userea${accountUser}@liferay.com",
-				userFirstName = "userfn${accountUser}",
-				userLastName = "userln${accountUser}",
-				userScreenName = "usersn${accountUser}");
-		}
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
-
-		AccountUsers.removeAccount(
-			accountName = "Account with User",
-			accountUser = "userfn1 userln1");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
-
-		ManagementBar.setFilterAndOrder(filterBy = "No Assigned Account");
-
-		LexiconEntry.viewEntryName(rowEntry = "userfn1 userln1");
-
-		LexiconEntry.viewNoEntry(rowEntry = "userfn2 userln2");
-
-		ManagementBar.setFilterAndOrder(filterBy = "All");
-
-		LexiconEntry.viewEntryName(rowEntry = "userfn1 userln1");
-
-		LexiconEntry.viewEntryName(rowEntry = "userfn2 userln2");
-	}
-
 	@description = "This filters users by status: active and inactive"
 	@priority = "3"
-	test FilterByStatus {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
-
-		Accounts.addCP(
-			accountDescription = "Filter AccountUser in Account By Navigation.",
-			accountName = "Filter Account User");
+	test CanFilterByStatus {
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Filter Account User",
+			accountEntryType = "Business");
 
 		for (var accountUser : list "1,2") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Accounts",
-				panel = "Applications",
-				portlet = "Account Users");
+			AccountUsers.openAccountUsersAdmin();
 
-			AccountUsers.addUsers(
+			AccountUsers.addUser(
 				accountName = "Filter Account User",
 				userEmailAddress = "userea${accountUser}@liferay.com",
 				userFirstName = "userfn${accountUser}",
@@ -452,17 +408,11 @@ definition {
 				userScreenName = "usersn${accountUser}");
 		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
 		AccountUsers.deactivateUser(userFirstName = "userfn2");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+		Accounts.openAccountsAdmin();
 
 		LexiconEntry.gotoEntry(rowEntry = "Filter Account User");
 
@@ -481,34 +431,23 @@ definition {
 
 	@description = "This test impersonates an account user via Account Users portlet"
 	@priority = "4"
-	test ImpersonateUser {
+	test CanImpersonateUser {
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Account with User",
+			accountEntryType = "Business");
 
-		Accounts.addCP(
-			accountDescription = "This is an Account with User.",
-			accountName = "Account with User");
+		AccountUsers.openAccountUsersAdmin();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
-
-		AccountUsers.addUsers(
+		AccountUsers.addUser(
 			accountName = "Account with User",
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+		AccountUsers.openAccountUsersAdmin();
 
 		LexiconEntry.viewEntryName(rowEntry = "userfn userln");
 
@@ -517,51 +456,117 @@ definition {
 			userName = "userfn");
 	}
 
-	@description = "This test removes a user from account via Users tab"
-	@priority = "5"
-	test RemoveUserFromAccount {
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+	@description = "This test asserts that a person account cannot be selected in Edit User when a user is already assigned to a Person Account."
+	@priority = "4"
+	test CannotSelectPersonAccountWithUserAssigned {
+		task ("Given there is a Person account with a user assigned") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryName = "Person Account",
+				accountEntryType = "Person");
 
-		Accounts.addCP(
-			accountDescription = "This is a test to remove account user.",
-			accountName = "Remove Account User");
+			AccountUsers.openAccountUsersAdmin();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Account Users");
+			AccountUsers.addUser(
+				accountName = "Person Account",
+				userEmailAddress = "personuser@liferay.com",
+				userFirstName = "person",
+				userLastName = "user",
+				userScreenName = "personuser");
+		}
 
-		AccountUsers.addUsers(
-			accountName = "Remove Account User",
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		task ("When an admin attempts to add a new user in Account Users portlet") {
+			AccountUsers.openAccountUsersAdmin();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+			LexiconEntry.gotoAdd();
 
-		LexiconEntry.gotoEntry(rowEntry = "Remove Account User");
+			Pause(locator1 = "3000");
 
-		Accounts.gotoAssigneeTab(assigneeTab = "Users");
+			SelectFrame(locator1 = "IFrame#SELECT_ACCOUNT");
+		}
 
-		Accounts.unassignAssignee(
-			assigneeName = "userfn",
-			assigneeType = "Users");
+		task ("Then Person accounts with assigned users do not display") {
+			AssertTextEquals(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "No accounts were found.");
+		}
+	}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+	@description = "This test clicks on the cancel button and back icon upon account user creation. It then asserts that the account user was not saved."
+	@priority = "3"
+	test ClickingCancelOrBackWillNotSaveAccountUser {
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Account with User",
+			accountEntryType = "Business");
 
-		Accounts.viewNoAssignee(
-			accountName = "Remove Account User",
-			assigneeType = "Users");
+		AccountUsers.openAccountUsersAdmin();
+
+		LexiconEntry.gotoAdd();
+
+		SelectFrame(locator1 = "IFrame#SELECT_ACCOUNT");
+
+		AssertClick(
+			key_accountName = "Account with User",
+			locator1 = "AccountUsers#SELECT_AN_ACCOUNT_CHOOSE_BUTTON",
+			value1 = "Choose");
+
+		SelectFrame(value1 = "relative=top");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD",
+			value1 = "usersn");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_EMAIL_ADDRESS_FIELD",
+			value1 = "userea@liferay.com");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_FIRST_NAME_FIELD",
+			value1 = "userfn");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_LAST_NAME_FIELD",
+			value1 = "userln");
+
+		Button.clickCancel();
+
+		AccountUsers.openAccountUsersAdmin();
+
+		LexiconEntry.viewNoEntry(rowEntry = "userfn userln");
+
+		AccountUsers.openAccountUsersAdmin();
+
+		LexiconEntry.gotoAdd();
+
+		SelectFrame(locator1 = "IFrame#SELECT_ACCOUNT");
+
+		AssertClick(
+			key_accountName = "Account with User",
+			locator1 = "AccountUsers#SELECT_AN_ACCOUNT_CHOOSE_BUTTON",
+			value1 = "Choose");
+
+		SelectFrame(value1 = "relative=top");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD",
+			value1 = "usersn");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_EMAIL_ADDRESS_FIELD",
+			value1 = "userea@liferay.com");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_FIRST_NAME_FIELD",
+			value1 = "userfn");
+
+		Type(
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_LAST_NAME_FIELD",
+			value1 = "userln");
+
+		Navigator.gotoBack();
+
+		AccountUsers.openAccountUsersAdmin();
+
+		LexiconEntry.viewNoEntry(rowEntry = "userfn userln");
 	}
 
 }

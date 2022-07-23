@@ -15,15 +15,19 @@
 package com.liferay.jenkins.results.parser.test.clazz.group;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
-import com.liferay.jenkins.results.parser.Job;
 import com.liferay.jenkins.results.parser.PortalTestClassJob;
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
 
 import java.io.File;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * @author Leslie Wong
@@ -39,26 +43,44 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 		return super.getAxisCount();
 	}
 
-	public static class ModulesBatchTestClass extends BaseTestClass {
-
-		protected ModulesBatchTestClass(File moduleBaseDir) {
-			super(moduleBaseDir);
+	@Override
+	public JSONObject getJSONObject() {
+		if (jsonObject != null) {
+			return jsonObject;
 		}
 
-		protected void initTestClassMethods(
-			List<File> modulesProjectDirs, File modulesDir, String taskName) {
+		jsonObject = super.getJSONObject();
 
-			for (File modulesProjectDir : modulesProjectDirs) {
-				String path = JenkinsResultsParserUtil.getPathRelativeTo(
-					modulesProjectDir, modulesDir);
+		jsonObject.put("exclude_globs", getGlobs(getExcludesJobProperties()));
+		jsonObject.put("include_globs", getGlobs(getIncludesJobProperties()));
+		jsonObject.put("modified_dirs_list", moduleDirsList);
 
-				String moduleTaskCall = JenkinsResultsParserUtil.combine(
-					":", path.replaceAll("/", ":"), ":", taskName);
+		return jsonObject;
+	}
 
-				addTestClassMethod(moduleTaskCall);
+	protected ModulesBatchTestClassGroup(
+		JSONObject jsonObject, PortalTestClassJob portalTestClassJob) {
+
+		super(jsonObject, portalTestClassJob);
+
+		JSONArray modifiedDirsJSONArray = jsonObject.optJSONArray(
+			"modified_dirs_list");
+
+		if ((modifiedDirsJSONArray == null) ||
+			modifiedDirsJSONArray.isEmpty()) {
+
+			return;
+		}
+
+		for (int i = 0; i < modifiedDirsJSONArray.length(); i++) {
+			String modifiedDirPath = modifiedDirsJSONArray.getString(i);
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(modifiedDirPath)) {
+				continue;
 			}
-		}
 
+			moduleDirsList.add(new File(modifiedDirPath));
+		}
 	}
 
 	protected ModulesBatchTestClassGroup(
@@ -67,82 +89,12 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 		super(batchName, portalTestClassJob);
 
 		try {
-			File modulesDir = new File(
-				portalGitWorkingDirectory.getWorkingDirectory(), "modules");
-
-			String upstreamBranchName =
-				portalGitWorkingDirectory.getUpstreamBranchName();
-
-			if (upstreamBranchName.startsWith("ee-") ||
-				upstreamBranchName.endsWith("-private")) {
-
-				excludesPathMatchers.addAll(
-					getPathMatchers(
-						getFirstPropertyValue("modules.excludes.private"),
-						modulesDir));
-
-				includesPathMatchers.addAll(
-					getPathMatchers(
-						getFirstPropertyValue("modules.includes.private"),
-						modulesDir));
-
-				if (includeStableTestSuite && isStableTestSuiteBatch()) {
-					excludesPathMatchers.addAll(
-						getPathMatchers(
-							getFirstPropertyValue(
-								"modules.excludes.private", batchName,
-								NAME_STABLE_TEST_SUITE),
-							modulesDir));
-
-					includesPathMatchers.addAll(
-						getPathMatchers(
-							getFirstPropertyValue(
-								"modules.includes.private", batchName,
-								NAME_STABLE_TEST_SUITE),
-							modulesDir));
-				}
-			}
-			else {
-				excludesPathMatchers.addAll(
-					getPathMatchers(
-						getFirstPropertyValue("modules.excludes.public"),
-						modulesDir));
-
-				includesPathMatchers.addAll(
-					getPathMatchers(
-						getFirstPropertyValue("modules.includes.public"),
-						modulesDir));
-
-				if (includeStableTestSuite && isStableTestSuiteBatch()) {
-					excludesPathMatchers.addAll(
-						getPathMatchers(
-							getFirstPropertyValue(
-								"modules.excludes.public", batchName,
-								NAME_STABLE_TEST_SUITE),
-							modulesDir));
-
-					includesPathMatchers.addAll(
-						getPathMatchers(
-							getFirstPropertyValue(
-								"modules.includes.public", batchName,
-								NAME_STABLE_TEST_SUITE),
-							modulesDir));
-				}
-			}
-
-			Job.BuildProfile buildProfile =
-				portalTestClassJob.getBuildProfile();
-
-			excludesPathMatchers.addAll(
-				getPathMatchers(
-					getFirstPropertyValue("modules.excludes." + buildProfile),
-					modulesDir));
-
 			if (testRelevantChanges) {
 				moduleDirsList.addAll(
 					getRequiredModuleDirs(
 						portalGitWorkingDirectory.getModifiedModuleDirsList(
-							excludesPathMatchers, includesPathMatchers)));
+							getPathMatchers(getExcludesJobProperties()),
+							getPathMatchers(getIncludesJobProperties()))));
 			}
 
 			setTestClasses();
@@ -154,6 +106,110 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);
 		}
+	}
+
+	protected List<JobProperty> getExcludesJobProperties() {
+		List<JobProperty> excludesJobProperties = new ArrayList<>();
+
+		File modulesDir = new File(
+			portalGitWorkingDirectory.getWorkingDirectory(), "modules");
+
+		String upstreamBranchName =
+			portalGitWorkingDirectory.getUpstreamBranchName();
+
+		if (upstreamBranchName.startsWith("ee-") ||
+			upstreamBranchName.endsWith("-private")) {
+
+			excludesJobProperties.add(
+				getJobProperty(
+					"modules.excludes.private", modulesDir,
+					JobProperty.Type.EXCLUDE_GLOB));
+
+			if (includeStableTestSuite && isStableTestSuiteBatch()) {
+				excludesJobProperties.add(
+					getJobProperty(
+						"modules.excludes.private", NAME_STABLE_TEST_SUITE,
+						modulesDir, JobProperty.Type.EXCLUDE_GLOB));
+			}
+		}
+		else {
+			excludesJobProperties.add(
+				getJobProperty(
+					"modules.excludes.public", modulesDir,
+					JobProperty.Type.EXCLUDE_GLOB));
+
+			if (includeStableTestSuite && isStableTestSuiteBatch()) {
+				excludesJobProperties.add(
+					getJobProperty(
+						"modules.excludes.public", NAME_STABLE_TEST_SUITE,
+						modulesDir, JobProperty.Type.EXCLUDE_GLOB));
+			}
+		}
+
+		excludesJobProperties.add(
+			getJobProperty(
+				"modules.excludes", modulesDir, JobProperty.Type.EXCLUDE_GLOB));
+
+		excludesJobProperties.add(
+			getJobProperty(
+				"modules.excludes." + portalTestClassJob.getBuildProfile(),
+				modulesDir, JobProperty.Type.EXCLUDE_GLOB));
+
+		recordJobProperties(excludesJobProperties);
+
+		return excludesJobProperties;
+	}
+
+	protected List<JobProperty> getIncludesJobProperties() {
+		List<JobProperty> includesJobProperties = new ArrayList<>();
+
+		File modulesDir = new File(
+			portalGitWorkingDirectory.getWorkingDirectory(), "modules");
+
+		String upstreamBranchName =
+			portalGitWorkingDirectory.getUpstreamBranchName();
+
+		if (upstreamBranchName.startsWith("ee-") ||
+			upstreamBranchName.endsWith("-private")) {
+
+			includesJobProperties.add(
+				getJobProperty(
+					"modules.includes.private", modulesDir,
+					JobProperty.Type.INCLUDE_GLOB));
+
+			if (includeStableTestSuite && isStableTestSuiteBatch()) {
+				includesJobProperties.add(
+					getJobProperty(
+						"modules.includes.private", NAME_STABLE_TEST_SUITE,
+						modulesDir, JobProperty.Type.INCLUDE_GLOB));
+			}
+		}
+		else {
+			includesJobProperties.add(
+				getJobProperty(
+					"modules.includes.public", modulesDir,
+					JobProperty.Type.INCLUDE_GLOB));
+
+			if (includeStableTestSuite && isStableTestSuiteBatch()) {
+				includesJobProperties.add(
+					getJobProperty(
+						"modules.includes.public", NAME_STABLE_TEST_SUITE,
+						modulesDir, JobProperty.Type.INCLUDE_GLOB));
+			}
+		}
+
+		includesJobProperties.add(
+			getJobProperty(
+				"modules.includes", modulesDir, JobProperty.Type.INCLUDE_GLOB));
+
+		includesJobProperties.add(
+			getJobProperty(
+				"modules.includes." + portalTestClassJob.getBuildProfile(),
+				modulesDir, JobProperty.Type.INCLUDE_GLOB));
+
+		recordJobProperties(includesJobProperties);
+
+		return includesJobProperties;
 	}
 
 	protected abstract void setTestClasses() throws IOException;

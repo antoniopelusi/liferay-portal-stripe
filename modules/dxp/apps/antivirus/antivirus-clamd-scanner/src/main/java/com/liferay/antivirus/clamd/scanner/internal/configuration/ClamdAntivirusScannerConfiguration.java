@@ -21,7 +21,10 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 /**
  * @author Shuyang Zhou
  */
-@ExtendedObjectClassDefinition(category = "antivirus")
+@ExtendedObjectClassDefinition(
+	category = "antivirus", liferayLearnMessageKey = "general",
+	liferayLearnMessageResource = "antivirus-clamd-scanner"
+)
 @Meta.OCD(
 	id = "com.liferay.antivirus.clamd.scanner.internal.configuration.ClamdAntivirusScannerConfiguration",
 	localization = "content/Language",
@@ -35,7 +38,10 @@ public interface ClamdAntivirusScannerConfiguration {
 	@Meta.AD(deflt = "3310", name = "port", required = false)
 	public int port();
 
-	@Meta.AD(deflt = "10000", name = "timeout", required = false)
+	@Meta.AD(
+		deflt = "10000", name = "timeout[socket-connection-so]",
+		required = false
+	)
 	public int timeout();
 
 }

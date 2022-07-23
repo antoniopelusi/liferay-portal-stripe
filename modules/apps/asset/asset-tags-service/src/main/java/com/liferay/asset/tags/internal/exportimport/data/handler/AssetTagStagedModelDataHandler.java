@@ -96,18 +96,6 @@ public class AssetTagStagedModelDataHandler
 		return assetTag.getName();
 	}
 
-	protected ServiceContext createServiceContext(
-		PortletDataContext portletDataContext, AssetTag assetTag) {
-
-		ServiceContext serviceContext = new ServiceContext();
-
-		serviceContext.setCreateDate(assetTag.getCreateDate());
-		serviceContext.setModifiedDate(assetTag.getModifiedDate());
-		serviceContext.setScopeGroupId(portletDataContext.getScopeGroupId());
-
-		return serviceContext;
-	}
-
 	@Override
 	protected void doExportStagedModel(
 			PortletDataContext portletDataContext, AssetTag assetTag)
@@ -147,7 +135,7 @@ public class AssetTagStagedModelDataHandler
 
 		long userId = portletDataContext.getUserId(assetTag.getUserUuid());
 
-		ServiceContext serviceContext = createServiceContext(
+		ServiceContext serviceContext = _createServiceContext(
 			portletDataContext, assetTag);
 
 		AssetTag existingAssetTag = fetchStagedModelByUuidAndGroupId(
@@ -186,7 +174,7 @@ public class AssetTagStagedModelDataHandler
 			}
 			catch (DuplicateTagException duplicateTagException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(duplicateTagException, duplicateTagException);
+					_log.debug(duplicateTagException);
 				}
 
 				importedAssetTag = _assetTagLocalService.addTag(
@@ -202,7 +190,7 @@ public class AssetTagStagedModelDataHandler
 			}
 			catch (DuplicateTagException duplicateTagException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(duplicateTagException, duplicateTagException);
+					_log.debug(duplicateTagException);
 				}
 
 				importedAssetTag = _assetTagLocalService.updateTag(
@@ -212,6 +200,18 @@ public class AssetTagStagedModelDataHandler
 		}
 
 		portletDataContext.importClassedModel(assetTag, importedAssetTag);
+	}
+
+	private ServiceContext _createServiceContext(
+		PortletDataContext portletDataContext, AssetTag assetTag) {
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCreateDate(assetTag.getCreateDate());
+		serviceContext.setModifiedDate(assetTag.getModifiedDate());
+		serviceContext.setScopeGroupId(portletDataContext.getScopeGroupId());
+
+		return serviceContext;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

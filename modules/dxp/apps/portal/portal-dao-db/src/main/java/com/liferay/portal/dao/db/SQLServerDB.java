@@ -16,10 +16,13 @@ package com.liferay.portal.dao.db;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.db.Index;
+import com.liferay.portal.kernel.dao.db.IndexMetadata;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.IOException;
@@ -46,6 +49,48 @@ public class SQLServerDB extends BaseDB {
 	}
 
 	@Override
+	public void alterColumnType(
+			Connection connection, String tableName, String columnName,
+			String newColumnType)
+		throws Exception {
+
+		List<IndexMetadata> indexMetadatas = dropIndexes(
+			connection, tableName, columnName);
+
+		String[] primaryKeyColumnNames = getPrimaryKeyColumnNames(
+			connection, tableName);
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		boolean primaryKey = ArrayUtil.contains(
+			primaryKeyColumnNames, dbInspector.normalizeName(columnName));
+
+		if (primaryKey) {
+			removePrimaryKey(connection, tableName);
+		}
+
+		super.alterColumnType(connection, tableName, columnName, newColumnType);
+
+		if (primaryKey) {
+			addPrimaryKey(connection, tableName, primaryKeyColumnNames);
+		}
+
+		if (!indexMetadatas.isEmpty()) {
+			addIndexes(connection, indexMetadatas);
+		}
+	}
+
+	@Override
+	public void alterTableDropColumn(
+			Connection connection, String tableName, String columnName)
+		throws Exception {
+
+		dropIndexes(connection, tableName, columnName);
+
+		super.alterTableDropColumn(connection, tableName, columnName);
+	}
+
+	@Override
 	public String buildSQL(String template) throws IOException {
 		template = replaceTemplate(template);
 
@@ -59,32 +104,28 @@ public class SQLServerDB extends BaseDB {
 	}
 
 	@Override
-	public List<Index> getIndexes(Connection con) throws SQLException {
+	public List<Index> getIndexes(Connection connection) throws SQLException {
 		List<Index> indexes = new ArrayList<>();
 
-		DatabaseMetaData databaseMetaData = con.getMetaData();
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
 
 		if (databaseMetaData.getDatabaseMajorVersion() <= _SQL_SERVER_2000) {
 			return indexes;
 		}
 
-		StringBundler sb = new StringBundler(5);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select sys.tables.name as table_name, sys.indexes.name ",
+					"as index_name, is_unique from sys.indexes inner join ",
+					"sys.tables on sys.tables.object_id = ",
+					"sys.indexes.object_id where sys.indexes.name like ",
+					"'LIFERAY_%' or sys.indexes.name like 'IX_%'"));
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-		sb.append("select sys.tables.name as table_name, sys.indexes.name as ");
-		sb.append("index_name, is_unique from sys.indexes inner join ");
-		sb.append("sys.tables on sys.tables.object_id = ");
-		sb.append("sys.indexes.object_id where sys.indexes.name like ");
-		sb.append("'LIFERAY_%' or sys.indexes.name like 'IX_%'");
-
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = con.prepareStatement(sql);
-			ResultSet rs = ps.executeQuery()) {
-
-			while (rs.next()) {
-				String indexName = rs.getString("index_name");
-				String tableName = rs.getString("table_name");
-				boolean unique = !rs.getBoolean("is_unique");
+			while (resultSet.next()) {
+				String indexName = resultSet.getString("index_name");
+				String tableName = resultSet.getString("table_name");
+				boolean unique = !resultSet.getBoolean("is_unique");
 
 				indexes.add(new Index(indexName, tableName, unique));
 			}
@@ -100,31 +141,14 @@ public class SQLServerDB extends BaseDB {
 
 	@Override
 	public String getPopulateSQL(String databaseName, String sqlContent) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("use ");
-		sb.append(databaseName);
-		sb.append(";\n\n");
-		sb.append(sqlContent);
-
-		return sb.toString();
+		return StringBundler.concat("use ", databaseName, ";\n\n", sqlContent);
 	}
 
 	@Override
 	public String getRecreateSQL(String databaseName) {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("drop database ");
-		sb.append(databaseName);
-		sb.append(";\n");
-		sb.append("create database ");
-		sb.append(databaseName);
-		sb.append(";\n");
-		sb.append("\n");
-		sb.append("go\n");
-		sb.append("\n");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"drop database ", databaseName, ";\n", "create database ",
+			databaseName, ";\n\n", "go\n\n");
 	}
 
 	@Override
@@ -133,8 +157,66 @@ public class SQLServerDB extends BaseDB {
 	}
 
 	@Override
+	public void removePrimaryKey(Connection connection, String tableName)
+		throws Exception {
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		String normalizedTableName = dbInspector.normalizeName(
+			tableName, databaseMetaData);
+
+		if (!dbInspector.hasTable(normalizedTableName)) {
+			throw new SQLException(
+				StringBundler.concat(
+					"Table ", normalizedTableName, " does not exist"));
+		}
+
+		String primaryKeyConstraintName = null;
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"select name from sys.key_constraints where type = 'PK' and " +
+					"OBJECT_NAME(parent_object_id) = ?")) {
+
+			preparedStatement.setString(1, normalizedTableName);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					primaryKeyConstraintName = resultSet.getString("name");
+				}
+			}
+		}
+
+		if (primaryKeyConstraintName == null) {
+			throw new SQLException(
+				"No primary key constraint found for " + normalizedTableName);
+		}
+
+		if (dbInspector.hasIndex(
+				normalizedTableName, primaryKeyConstraintName)) {
+
+			runSQL(
+				StringBundler.concat(
+					"alter table ", normalizedTableName, " drop constraint ",
+					primaryKeyConstraintName));
+		}
+		else {
+			throw new SQLException(
+				StringBundler.concat(
+					"Primary key with name ", primaryKeyConstraintName,
+					" does not exist"));
+		}
+	}
+
+	@Override
 	protected int[] getSQLTypes() {
 		return _SQL_TYPES;
+	}
+
+	@Override
+	protected int[] getSQLVarcharSizes() {
+		return _SQL_VARCHAR_SIZES;
 	}
 
 	@Override
@@ -208,10 +290,16 @@ public class SQLServerDB extends BaseDB {
 
 	private static final int _SQL_SERVER_2000 = 8;
 
+	private static final int _SQL_STRING_SIZE = 4000;
+
 	private static final int[] _SQL_TYPES = {
 		Types.LONGVARBINARY, Types.LONGVARBINARY, Types.BIT, Types.TIMESTAMP,
 		Types.DOUBLE, Types.INTEGER, Types.BIGINT, Types.NVARCHAR,
 		Types.NVARCHAR, Types.NVARCHAR
+	};
+
+	private static final int[] _SQL_VARCHAR_SIZES = {
+		_SQL_STRING_SIZE, SQL_VARCHAR_MAX_SIZE
 	};
 
 	private static final boolean _SUPPORTS_NEW_UUID_FUNCTION = true;

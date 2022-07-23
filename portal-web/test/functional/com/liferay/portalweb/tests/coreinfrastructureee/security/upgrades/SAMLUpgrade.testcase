@@ -12,68 +12,130 @@ definition {
 	setUp {
 		SignIn.signIn();
 
-		var portalURL = PropsUtil.get("portal.url");
-
-		AssertLocation(value1 = "${portalURL}/web/guest/home");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 	}
 
+	@description = "This is a use case for LRQA-64613. View SAML configuration after upgrade 7.3.10."
 	@priority = "5"
 	test ViewSAMLConfigurationAfterUpgrade7310 {
 		property data.archive.type = "data-archive-saml";
-		property database.types = "db2,mariadb,mysql,postgresql,sqlserver,sybase";
 		property portal.version = "7.3.10";
 
-		Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+		task ("View SAML general IdP and connection configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
 
-		Upgrade.viewSAMLSPConnectionConfiguration();
+			Upgrade.viewSAMLSPConnectionConfiguration();
+		}
 	}
 
+	@description = "This is a use case for LRQA-61620. View SAML configuration after upgrade 7.4.12. Blocked by COMMERCE-8225."
+	@priority = "5"
+	test ViewSAMLConfigurationAfterUpgrade7412 {
+		property data.archive.type = "data-archive-saml";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
+		property portal.version = "7.4.12";
+
+		task ("View SAML general IdP and connection configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+
+			Upgrade.viewSAMLSPConnectionConfiguration();
+		}
+	}
+
+	@description = "View SAML configuration after upgrade 7.1.10.3."
 	@priority = "5"
 	test ViewSAMLConfigurationAfterUpgrade71103 {
 		property data.archive.type = "data-archive-saml";
 		property portal.version = "7.1.10.3";
 
-		Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+		task ("View SAML general IdP and connection configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
 
-		Upgrade.viewSAMLSPConnectionConfiguration();
+			Upgrade.viewSAMLSPConnectionConfiguration();
+		}
 	}
 
+	@description = "This is a use case for LRQA-61620. View SAML configuration after upgrade 7.2.10.1."
 	@priority = "5"
 	test ViewSAMLConfigurationAfterUpgrade72101 {
 		property data.archive.type = "data-archive-saml";
 		property portal.version = "7.2.10.1";
 
-		Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+		task ("View SAML general IdP and connection configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
 
-		Upgrade.viewSAMLSPConnectionConfiguration();
+			Upgrade.viewSAMLSPConnectionConfiguration();
+		}
 	}
 
+	@description = "This is a use case for LPS-136367. View SAML configuration after upgrade 7.3.10.1."
+	@priority = "5"
+	test ViewSAMLConfigurationAfterUpgrade73101 {
+		property data.archive.type = "data-archive-saml";
+		property database.types = "db2,mariadb,mysql,postgresql,sqlserver,sybase";
+		property portal.version = "7.3.10.1";
+
+		task ("View SAML general IdP and connection configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+
+			Upgrade.viewSAMLSPConnectionConfiguration();
+		}
+	}
+
+	@description = "This is a use case for LPS-132679. View SAML configuration after upgrade 7.0.10.10."
+	@priority = "5"
+	test ViewSAMLConfigurationAfterUpgrade701016 {
+		property data.archive.type = "data-archive-saml";
+		property portal.version = "7.0.10.16";
+
+		task ("View SAML general IdP and connection configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+
+			Upgrade.viewSAMLSPConnectionConfiguration();
+		}
+	}
+
+	@description = "This is a use case for LRQA-64613. View SAML with encryption configuration after upgrade 7.3.10."
 	@priority = "5"
 	test ViewSAMLWithEncryptionConfigurationAfterUpgrade7310 {
 		property data.archive.type = "data-archive-saml-encryption";
 		property database.types = "db2,mariadb,mysql,postgresql,sqlserver,sybase";
 		property portal.version = "7.3.10";
 
-		Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+		task ("View SAML general IdP and connection with encryption configuration ") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
 
-		Upgrade.viewSAMLSPConnectionConfiguration(forceEncryption = "true");
+			Upgrade.viewSAMLSPConnectionConfiguration(forceEncryption = "true");
+		}
 	}
 
+	@description = "This is a use case for LRQA-61620. View SAML configuration after upgrade 7.4.12. Blocked by COMMERCE-8225."
+	@priority = "5"
+	test ViewSAMLWithEncryptionConfigurationAfterUpgrade7412 {
+		property data.archive.type = "data-archive-saml-encryption";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
+		property portal.version = "7.4.12";
+
+		task ("View SAML general IdP and connection with encryption configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+
+			Upgrade.viewSAMLSPConnectionConfiguration(forceEncryption = "true");
+		}
+	}
+
+	@description = "View SAML configuration after upgrade 7.2.10.1."
 	@priority = "5"
 	test ViewSAMLWithEncryptionConfigurationAfterUpgrade72101 {
 		property data.archive.type = "data-archive-saml-encryption";
 		property portal.version = "7.2.10.1";
 
-		Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
+		task ("View SAML general IdP and connection with encryption configuration") {
+			Upgrade.viewSAMLGeneralConfiguration(samlRoleType = "Identity Provider");
 
-		Upgrade.viewSAMLSPConnectionConfiguration(forceEncryption = "true");
+			Upgrade.viewSAMLSPConnectionConfiguration(forceEncryption = "true");
+		}
 	}
 
 }

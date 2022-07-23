@@ -19,8 +19,4 @@ package com.liferay.account.model.impl;
  */
 public class AccountEntryOrganizationRelImpl
 	extends AccountEntryOrganizationRelBaseImpl {
-
-	public AccountEntryOrganizationRelImpl() {
-	}
-
 }

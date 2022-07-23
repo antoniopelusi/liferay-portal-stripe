@@ -9,6 +9,10 @@ definition {
 
 		SelectFrame(value1 = "relative=top");
 
+		if (IsElementNotPresent(locator1 = "Button#REPLY")) {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+		}
+
 		AssertClick(
 			locator1 = "Button#REPLY",
 			value1 = "Reply");
@@ -42,6 +46,12 @@ definition {
 		AssertClick(
 			locator1 = "Link#GUEST",
 			value1 = "Guest");
+
+		AssertElementPresent(locator1 = "TextInput#FIRST_NAME");
+
+		AssertElementPresent(locator1 = "TextInput#LAST_NAME");
+
+		AssertElementPresent(locator1 = "TextInput#EMAIL_ADDRESS");
 
 		Type(
 			locator1 = "TextInput#FIRST_NAME",
@@ -150,6 +160,37 @@ definition {
 		}
 	}
 
+	macro getCommentId {
+		var currentURL = selenium.getCurrentUrl();
+		var commentId = StringUtil.extractLast("${currentURL}", "message_");
+
+		echo("commentId: ${commentId}");
+
+		return "${commentId}";
+	}
+
+	macro replyToComment {
+		AssertClick(
+			key_entryComment = "Reply",
+			key_text = "Reply",
+			locator1 = "Comments#ANY_BUTTON_IN_COMMENT",
+			value1 = "Reply");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
+
+		Type(
+			locator1 = "CKEditor#BODY",
+			value1 = "${commentReply}");
+
+		SelectFrame(value1 = "relative=top");
+
+		AssertClick(
+			locator1 = "Button#REPLY_LAST",
+			value1 = "Reply");
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro subscribePG {
 		AssertElementPresent.pauseAssertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
@@ -166,6 +207,26 @@ definition {
 		AssertTextEquals(
 			locator1 = "Comments#COMMENT_INFO",
 			value1 = "INFO:Comments are unavailable in staged sites.");
+	}
+
+	macro viewNoActions {
+		Click.mouseOverClick(
+			key_entryComment = "${entryComment}",
+			locator1 = "Comments#COMMENT_BODY_SPECIFIC");
+
+		AssertElementNotPresent(
+			key_entryComment = "${entryComment}",
+			locator1 = "Comments#COMMENT_ACTIONS");
+	}
+
+	macro viewNoComments {
+		AssertElementNotPresent(
+			locator1 = "Comments#ENTRY_COUNT_PANEL",
+			value1 = "0 COMMENTS");
+
+		AssertElementNotPresent(
+			key_entryComment = "${entryComment}",
+			locator1 = "Comments#COMMENT_BODY_SPECIFIC");
 	}
 
 	macro viewNoPG {
@@ -192,22 +253,31 @@ definition {
 				locator1 = "Comments#ENTRY_COUNT_PANEL",
 				value1 = "${commentCount} COMMENT");
 		}
-
 		else {
 			AssertTextEquals.assertPartialText(
 				locator1 = "Comments#ENTRY_COUNT_PANEL",
 				value1 = "${commentCount} COMMENT");
 		}
 
-		var key_userFullName = "${userFullName}";
+		if (isSet(importedComment)) {
+			AssertTextEquals.assertPartialText(
+				key_userFullName = "${userFullName}",
+				locator1 = "Comments#USER_NAME_2",
+				value1 = "${userFullName}");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "Comments#USER_NAME",
-			value1 = "${userFullName}");
+			AssertElementPresent(locator1 = "Comments#COMMENT_BODY");
+		}
+		else {
+			var key_userFullName = "${userFullName}";
 
-		AssertTextEquals(
-			locator1 = "Comments#COMMENT_BODY_SPECIFIC",
-			value1 = "${entryComment}");
+			AssertTextEquals.assertPartialText(
+				locator1 = "Comments#USER_NAME",
+				value1 = "${userFullName}");
+
+			AssertTextEquals(
+				locator1 = "Comments#COMMENT_BODY_SPECIFIC",
+				value1 = "${entryComment}");
+		}
 	}
 
 	macro viewSubscribedPG {

@@ -19,8 +19,4 @@ package com.liferay.portal.workflow.kaleo.model.impl;
  */
 public class KaleoTaskAssignmentInstanceImpl
 	extends KaleoTaskAssignmentInstanceBaseImpl {
-
-	public KaleoTaskAssignmentInstanceImpl() {
-	}
-
 }

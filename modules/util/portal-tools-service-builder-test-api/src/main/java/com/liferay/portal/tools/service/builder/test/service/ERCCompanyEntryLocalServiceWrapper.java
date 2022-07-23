@@ -27,6 +27,10 @@ public class ERCCompanyEntryLocalServiceWrapper
 	implements ERCCompanyEntryLocalService,
 			   ServiceWrapper<ERCCompanyEntryLocalService> {
 
+	public ERCCompanyEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ERCCompanyEntryLocalServiceWrapper(
 		ERCCompanyEntryLocalService ercCompanyEntryLocalService) {
 
@@ -132,6 +136,13 @@ public class ERCCompanyEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ercCompanyEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ercCompanyEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

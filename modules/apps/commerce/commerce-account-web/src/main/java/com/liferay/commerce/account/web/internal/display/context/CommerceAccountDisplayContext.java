@@ -14,362 +14,163 @@
 
 package com.liferay.commerce.account.web.internal.display.context;
 
-import com.liferay.commerce.account.configuration.CommerceAccountGroupServiceConfiguration;
-import com.liferay.commerce.account.constants.CommerceAccountActionKeys;
-import com.liferay.commerce.account.constants.CommerceAccountConstants;
-import com.liferay.commerce.account.model.CommerceAccount;
-import com.liferay.commerce.account.service.CommerceAccountService;
-import com.liferay.commerce.account.web.internal.display.context.util.CommerceAccountRequestHelper;
-import com.liferay.commerce.constants.CommerceWebKeys;
-import com.liferay.commerce.context.CommerceContext;
-import com.liferay.commerce.model.CommerceAddress;
-import com.liferay.commerce.service.CommerceAddressService;
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.service.AccountEntryService;
+import com.liferay.commerce.model.CommerceShippingMethod;
+import com.liferay.commerce.model.CommerceShippingOptionAccountEntryRel;
+import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.commerce.product.service.CommerceChannelService;
+import com.liferay.commerce.service.CommerceShippingMethodService;
+import com.liferay.commerce.service.CommerceShippingOptionAccountEntryRelService;
+import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOption;
+import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionService;
+import com.liferay.commerce.shipping.engine.fixed.util.comparator.CommerceShippingFixedOptionNameComparator;
+import com.liferay.commerce.util.comparator.CommerceShippingMethodNameComparator;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Country;
-import com.liferay.portal.kernel.model.Region;
-import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
-import com.liferay.portal.kernel.portlet.PortletQName;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
-import com.liferay.portal.kernel.service.CountryService;
-import com.liferay.portal.kernel.service.RegionService;
-import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.webserver.WebServerServletTokenUtil;
-import com.liferay.users.admin.configuration.UserFileUploadsConfiguration;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import javax.portlet.PortletURL;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author Marco Leo
+ * @author Andrea Sbarra
  * @author Alessio Antonio Rendina
  */
 public class CommerceAccountDisplayContext {
 
 	public CommerceAccountDisplayContext(
-		CommerceAccountService commerceAccountService,
-		CommerceAddressService commerceAddressService,
-		ConfigurationProvider configurationProvider,
-		CountryService countryService, HttpServletRequest httpServletRequest,
-		ModelResourcePermission<CommerceAccount> modelResourcePermission,
-		RegionService regionService,
-		UserFileUploadsConfiguration userFileUploadsConfiguration,
-		UserLocalService userLocalService) {
-
-		_commerceAccountService = commerceAccountService;
-		_commerceAddressService = commerceAddressService;
-		_configurationProvider = configurationProvider;
-		_countryService = countryService;
-		_modelResourcePermission = modelResourcePermission;
-		_regionService = regionService;
-		_userFileUploadsConfiguration = userFileUploadsConfiguration;
-		_userLocalService = userLocalService;
-
-		_commerceAccountRequestHelper = new CommerceAccountRequestHelper(
-			httpServletRequest);
-
-		_commerceContext = (CommerceContext)httpServletRequest.getAttribute(
-			CommerceWebKeys.COMMERCE_CONTEXT);
-	}
-
-	public List<CommerceAddress> getBillingCommerceAddresses()
+			AccountEntryService accountEntryService,
+			CommerceChannelService commerceChannelService,
+			CommerceShippingFixedOptionService
+				commerceShippingFixedOptionService,
+			CommerceShippingMethodService commerceShippingMethodService,
+			CommerceShippingOptionAccountEntryRelService
+				commerceShippingOptionAccountEntryRelService,
+			HttpServletRequest httpServletRequest, Portal portal)
 		throws PortalException {
 
-		CommerceAccount commerceAccount = getCurrentCommerceAccount();
+		_accountEntryService = accountEntryService;
+		_commerceChannelService = commerceChannelService;
+		_commerceShippingFixedOptionService =
+			commerceShippingFixedOptionService;
+		_commerceShippingMethodService = commerceShippingMethodService;
+		_commerceShippingOptionAccountEntryRelService =
+			commerceShippingOptionAccountEntryRelService;
+		_httpServletRequest = httpServletRequest;
+		_portal = portal;
 
-		if (commerceAccount == null) {
-			return null;
+		long accountEntryId = ParamUtil.getLong(
+			_httpServletRequest, "accountEntryId");
+
+		_accountEntry = _accountEntryService.fetchAccountEntry(accountEntryId);
+
+		long commerceChannelId = ParamUtil.getLong(
+			_httpServletRequest, "commerceChannelId");
+
+		_commerceChannel = _commerceChannelService.fetchCommerceChannel(
+			commerceChannelId);
+
+		_commerceShippingOptionAccountEntryRel =
+			_commerceShippingOptionAccountEntryRelService.
+				fetchCommerceShippingOptionAccountEntryRel(
+					accountEntryId, commerceChannelId);
+	}
+
+	public long getAccountEntryId() {
+		if (_accountEntry == null) {
+			return 0;
 		}
 
-		return _commerceAddressService.getBillingCommerceAddresses(
-			commerceAccount.getCompanyId(), CommerceAccount.class.getName(),
-			commerceAccount.getCommerceAccountId());
+		return _accountEntry.getAccountEntryId();
 	}
 
-	public List<CommerceAccount> getCommerceAccounts() throws PortalException {
-		return _commerceAccountService.getUserCommerceAccounts(
-			_commerceAccountRequestHelper.getUserId(),
-			CommerceAccountConstants.DEFAULT_PARENT_ACCOUNT_ID,
-			_commerceContext.getCommerceSiteType(), StringPool.BLANK,
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-	}
-
-	public int getCommerceSiteType() throws PortalException {
-		CommerceAccountGroupServiceConfiguration
-			commerceAccountGroupServiceConfiguration =
-				_configurationProvider.getConfiguration(
-					CommerceAccountGroupServiceConfiguration.class,
-					new GroupServiceSettingsLocator(
-						_commerceContext.getCommerceChannelGroupId(),
-						CommerceAccountConstants.SERVICE_NAME));
-
-		return commerceAccountGroupServiceConfiguration.commerceSiteType();
-	}
-
-	public List<Country> getCountries() {
-		return _countryService.getCompanyCountries(
-			_commerceAccountRequestHelper.getCompanyId(), true);
-	}
-
-	public CommerceAccount getCurrentCommerceAccount() throws PortalException {
-		long commerceAccountId = ParamUtil.getLong(
-			_commerceAccountRequestHelper.getRequest(), "commerceAccountId");
-
-		if (commerceAccountId > 0) {
-			return _commerceAccountService.getCommerceAccount(
-				commerceAccountId);
+	public long getCommerceChannelId() {
+		if (_commerceChannel == null) {
+			return 0;
 		}
 
-		return getCurrentAccount();
+		return _commerceChannel.getCommerceChannelId();
 	}
 
-	public long getCurrentCommerceAccountId() throws PortalException {
-		CommerceAccount commerceAccount = getCurrentCommerceAccount();
-
-		if (commerceAccount != null) {
-			return commerceAccount.getCommerceAccountId();
-		}
-
-		return 0;
-	}
-
-	public CommerceAddress getDefaultBillingCommerceAddress()
+	public List<CommerceShippingFixedOption> getCommerceShippingFixedOptions()
 		throws PortalException {
 
-		CommerceAccount commerceAccount = getCurrentCommerceAccount();
-
-		if (commerceAccount == null) {
-			return null;
+		if (_commerceChannel == null) {
+			return Collections.emptyList();
 		}
 
-		return _commerceAddressService.fetchCommerceAddress(
-			commerceAccount.getDefaultBillingAddressId());
+		Locale locale = _portal.getLocale(_httpServletRequest);
+
+		List<CommerceShippingFixedOption> commerceShippingFixedOptions =
+			new ArrayList<>();
+
+		for (CommerceShippingMethod commerceShippingMethod :
+				_commerceShippingMethodService.getCommerceShippingMethods(
+					_commerceChannel.getGroupId(), QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS,
+					new CommerceShippingMethodNameComparator(true, locale))) {
+
+			commerceShippingFixedOptions.addAll(
+				_commerceShippingFixedOptionService.
+					getCommerceShippingFixedOptions(
+						commerceShippingMethod.getCommerceShippingMethodId(),
+						QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+						new CommerceShippingFixedOptionNameComparator(
+							true, locale)));
+		}
+
+		return commerceShippingFixedOptions;
 	}
 
-	public CommerceAddress getDefaultShippingCommerceAddress()
+	public CommerceShippingOptionAccountEntryRel
+		getCommerceShippingOptionAccountEntryRel() {
+
+		return _commerceShippingOptionAccountEntryRel;
+	}
+
+	public String getCommerceShippingOptionLabel(
+			CommerceShippingFixedOption commerceShippingFixedOption)
 		throws PortalException {
 
-		CommerceAccount commerceAccount = getCurrentCommerceAccount();
+		CommerceShippingMethod commerceShippingMethod =
+			_commerceShippingMethodService.getCommerceShippingMethod(
+				commerceShippingFixedOption.getCommerceShippingMethodId());
 
-		if (commerceAccount == null) {
-			return null;
-		}
+		StringBundler sb = new StringBundler(3);
 
-		return _commerceAddressService.fetchCommerceAddress(
-			commerceAccount.getDefaultShippingAddressId());
-	}
+		Locale locale = _portal.getLocale(_httpServletRequest);
 
-	public String getKeywords() {
-		if (Validator.isNotNull(_keywords)) {
-			return _keywords;
-		}
+		sb.append(commerceShippingMethod.getName(locale));
 
-		HttpServletRequest httpServletRequest =
-			PortalUtil.getOriginalServletRequest(
-				_commerceAccountRequestHelper.getRequest());
-
-		_keywords = ParamUtil.getString(httpServletRequest, "q", null);
-
-		if (_keywords == null) {
-			return StringPool.BLANK;
-		}
-
-		return _keywords;
-	}
-
-	public String getLogo(CommerceAccount commerceAccount) {
-		ThemeDisplay themeDisplay =
-			_commerceAccountRequestHelper.getThemeDisplay();
-
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(themeDisplay.getPathImage());
-		sb.append("/organization_logo?img_id=");
-		sb.append(commerceAccount.getLogoId());
-		sb.append("&t=");
-		sb.append(
-			WebServerServletTokenUtil.getToken(commerceAccount.getLogoId()));
+		sb.append(" / ");
+		sb.append(commerceShippingFixedOption.getName(locale));
 
 		return sb.toString();
 	}
 
-	public PortletURL getPortletURL() throws PortalException {
-		LiferayPortletResponse liferayPortletResponse =
-			_commerceAccountRequestHelper.getLiferayPortletResponse();
-
-		PortletURL portletURL = liferayPortletResponse.createRenderURL();
-
-		HttpServletRequest httpServletRequest =
-			PortalUtil.getOriginalServletRequest(
-				_commerceAccountRequestHelper.getRequest());
-
-		String backURL = ParamUtil.getString(
-			httpServletRequest,
-			PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE + "backURL");
-
-		if (Validator.isNotNull(backURL)) {
-			portletURL.setParameter(
-				PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE + "backURL",
-				backURL);
-		}
-
-		String redirect = ParamUtil.getString(
-			_commerceAccountRequestHelper.getRequest(), "redirect");
-
-		if (Validator.isNotNull(redirect)) {
-			portletURL.setParameter("redirect", redirect);
-		}
-
-		String delta = ParamUtil.getString(
-			_commerceAccountRequestHelper.getRequest(), "delta");
-
-		if (Validator.isNotNull(delta)) {
-			portletURL.setParameter("delta", delta);
-		}
-
-		String deltaEntry = ParamUtil.getString(
-			_commerceAccountRequestHelper.getRequest(), "deltaEntry");
-
-		if (Validator.isNotNull(deltaEntry)) {
-			portletURL.setParameter("deltaEntry", deltaEntry);
-		}
-
-		String keywords = getKeywords();
-
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		CommerceAccount commerceAccount = getCurrentCommerceAccount();
-
-		if (commerceAccount != null) {
-			portletURL.setParameter(
-				"commerceAccountId",
-				String.valueOf(commerceAccount.getCommerceAccountId()));
-		}
-
-		return portletURL;
+	public String getName() {
+		return _accountEntry.getName();
 	}
 
-	public List<Region> getRegions(long countryId) {
-		return _regionService.getRegions(countryId, true);
-	}
+	public boolean isCommerceShippingFixedOptionChecked(String key) {
+		if ((_commerceShippingOptionAccountEntryRel == null) &&
+			Validator.isBlank(key)) {
 
-	public User getSelectedUser() throws PortalException {
-		if (getCommerceSiteType() == CommerceAccountConstants.SITE_TYPE_B2C) {
-			return _commerceAccountRequestHelper.getUser();
-		}
-
-		return _userLocalService.getUser(getSelectedUserId());
-	}
-
-	public long getSelectedUserId() throws PortalException {
-		long userId = ParamUtil.getLong(
-			_commerceAccountRequestHelper.getRequest(), "userId");
-
-		if (userId > 0) {
-			return userId;
-		}
-
-		return _commerceAccountRequestHelper.getUserId();
-	}
-
-	public List<CommerceAddress> getShippingCommerceAddresses()
-		throws PortalException {
-
-		CommerceAccount commerceAccount = getCurrentCommerceAccount();
-
-		if (commerceAccount == null) {
-			return null;
-		}
-
-		return _commerceAddressService.getShippingCommerceAddresses(
-			commerceAccount.getCompanyId(), CommerceAccount.class.getName(),
-			commerceAccount.getCommerceAccountId());
-	}
-
-	public UserFileUploadsConfiguration getUserFileUploadsConfiguration() {
-		return _userFileUploadsConfiguration;
-	}
-
-	public boolean hasAddAccountPermissions() {
-		PortletResourcePermission portletResourcePermission =
-			_modelResourcePermission.getPortletResourcePermission();
-
-		return portletResourcePermission.contains(
-			_commerceAccountRequestHelper.getPermissionChecker(), null,
-			CommerceAccountActionKeys.ADD_ACCOUNT);
-	}
-
-	public boolean hasCommerceAccountModelPermissions(
-			CommerceAccount commerceAccount, String actionId)
-		throws PortalException {
-
-		if (commerceAccount == null) {
-			return false;
-		}
-
-		return _modelResourcePermission.contains(
-			_commerceAccountRequestHelper.getPermissionChecker(),
-			commerceAccount, actionId);
-	}
-
-	public boolean hasCommerceAccountModelPermissions(
-			long commerceAccountId, String actionId)
-		throws PortalException {
-
-		return _modelResourcePermission.contains(
-			_commerceAccountRequestHelper.getPermissionChecker(),
-			commerceAccountId, actionId);
-	}
-
-	public boolean hasCommerceAccountModelPermissions(String actionId)
-		throws PortalException {
-
-		return hasCommerceAccountModelPermissions(
-			getCurrentCommerceAccount(), actionId);
-	}
-
-	public boolean hasCommerceChannel() throws PortalException {
-		HttpServletRequest httpServletRequest =
-			_commerceAccountRequestHelper.getRequest();
-
-		CommerceContext commerceContext =
-			(CommerceContext)httpServletRequest.getAttribute(
-				CommerceWebKeys.COMMERCE_CONTEXT);
-
-		long commerceChannelId = commerceContext.getCommerceChannelId();
-
-		if (commerceChannelId > 0) {
 			return true;
 		}
 
-		return false;
-	}
-
-	public boolean hasManageCommerceAccountPermissions() {
-		PortletResourcePermission portletResourcePermission =
-			_modelResourcePermission.getPortletResourcePermission();
-
-		if (portletResourcePermission.contains(
-				_commerceAccountRequestHelper.getPermissionChecker(), null,
-				CommerceAccountActionKeys.MANAGE_ALL_ACCOUNTS) ||
-			portletResourcePermission.contains(
-				_commerceAccountRequestHelper.getPermissionChecker(), null,
-				CommerceAccountActionKeys.MANAGE_AVAILABLE_ACCOUNTS)) {
+		if ((_commerceShippingOptionAccountEntryRel != null) &&
+			key.equals(
+				_commerceShippingOptionAccountEntryRel.
+					getCommerceShippingOptionKey())) {
 
 			return true;
 		}
@@ -377,21 +178,18 @@ public class CommerceAccountDisplayContext {
 		return false;
 	}
 
-	protected CommerceAccount getCurrentAccount() throws PortalException {
-		return _commerceContext.getCommerceAccount();
-	}
-
-	private final CommerceAccountRequestHelper _commerceAccountRequestHelper;
-	private final CommerceAccountService _commerceAccountService;
-	private final CommerceAddressService _commerceAddressService;
-	private final CommerceContext _commerceContext;
-	private final ConfigurationProvider _configurationProvider;
-	private final CountryService _countryService;
-	private String _keywords;
-	private final ModelResourcePermission<CommerceAccount>
-		_modelResourcePermission;
-	private final RegionService _regionService;
-	private final UserFileUploadsConfiguration _userFileUploadsConfiguration;
-	private final UserLocalService _userLocalService;
+	private final AccountEntry _accountEntry;
+	private final AccountEntryService _accountEntryService;
+	private final CommerceChannel _commerceChannel;
+	private final CommerceChannelService _commerceChannelService;
+	private final CommerceShippingFixedOptionService
+		_commerceShippingFixedOptionService;
+	private final CommerceShippingMethodService _commerceShippingMethodService;
+	private final CommerceShippingOptionAccountEntryRel
+		_commerceShippingOptionAccountEntryRel;
+	private final CommerceShippingOptionAccountEntryRelService
+		_commerceShippingOptionAccountEntryRelService;
+	private final HttpServletRequest _httpServletRequest;
+	private final Portal _portal;
 
 }

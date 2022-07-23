@@ -18,6 +18,7 @@ import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import java.util.Date;
  * @generated
  */
 public class CommerceOrderItemCacheModel
-	implements CacheModel<CommerceOrderItem>, Externalizable {
+	implements CacheModel<CommerceOrderItem>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object object) {
@@ -50,8 +51,9 @@ public class CommerceOrderItemCacheModel
 		CommerceOrderItemCacheModel commerceOrderItemCacheModel =
 			(CommerceOrderItemCacheModel)object;
 
-		if (commerceOrderItemId ==
-				commerceOrderItemCacheModel.commerceOrderItemId) {
+		if ((commerceOrderItemId ==
+				commerceOrderItemCacheModel.commerceOrderItemId) &&
+			(mvccVersion == commerceOrderItemCacheModel.mvccVersion)) {
 
 			return true;
 		}
@@ -61,14 +63,28 @@ public class CommerceOrderItemCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, commerceOrderItemId);
+		int hashCode = HashUtil.hash(0, commerceOrderItemId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(115);
+		StringBundler sb = new StringBundler(121);
 
-		sb.append("{externalReferenceCode=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", externalReferenceCode=");
 		sb.append(externalReferenceCode);
 		sb.append(", commerceOrderItemId=");
 		sb.append(commerceOrderItemId);
@@ -92,12 +108,14 @@ public class CommerceOrderItemCacheModel
 		sb.append(commercePriceListId);
 		sb.append(", CPInstanceId=");
 		sb.append(CPInstanceId);
+		sb.append(", CPMeasurementUnitId=");
+		sb.append(CPMeasurementUnitId);
 		sb.append(", CProductId=");
 		sb.append(CProductId);
 		sb.append(", parentCommerceOrderItemId=");
 		sb.append(parentCommerceOrderItemId);
-		sb.append(", shippingAddressId=");
-		sb.append(shippingAddressId);
+		sb.append(", decimalQuantity=");
+		sb.append(decimalQuantity);
 		sb.append(", deliveryGroup=");
 		sb.append(deliveryGroup);
 		sb.append(", deliveryMaxSubscriptionCycles=");
@@ -156,6 +174,8 @@ public class CommerceOrderItemCacheModel
 		sb.append(quantity);
 		sb.append(", requestedDeliveryDate=");
 		sb.append(requestedDeliveryDate);
+		sb.append(", shippingAddressId=");
+		sb.append(shippingAddressId);
 		sb.append(", shipSeparately=");
 		sb.append(shipSeparately);
 		sb.append(", shippable=");
@@ -191,6 +211,8 @@ public class CommerceOrderItemCacheModel
 	public CommerceOrderItem toEntityModel() {
 		CommerceOrderItemImpl commerceOrderItemImpl =
 			new CommerceOrderItemImpl();
+
+		commerceOrderItemImpl.setMvccVersion(mvccVersion);
 
 		if (externalReferenceCode == null) {
 			commerceOrderItemImpl.setExternalReferenceCode("");
@@ -230,10 +252,11 @@ public class CommerceOrderItemCacheModel
 		commerceOrderItemImpl.setCommerceOrderId(commerceOrderId);
 		commerceOrderItemImpl.setCommercePriceListId(commercePriceListId);
 		commerceOrderItemImpl.setCPInstanceId(CPInstanceId);
+		commerceOrderItemImpl.setCPMeasurementUnitId(CPMeasurementUnitId);
 		commerceOrderItemImpl.setCProductId(CProductId);
 		commerceOrderItemImpl.setParentCommerceOrderItemId(
 			parentCommerceOrderItemId);
-		commerceOrderItemImpl.setShippingAddressId(shippingAddressId);
+		commerceOrderItemImpl.setDecimalQuantity(decimalQuantity);
 
 		if (deliveryGroup == null) {
 			commerceOrderItemImpl.setDeliveryGroup("");
@@ -325,6 +348,7 @@ public class CommerceOrderItemCacheModel
 				new Date(requestedDeliveryDate));
 		}
 
+		commerceOrderItemImpl.setShippingAddressId(shippingAddressId);
 		commerceOrderItemImpl.setShipSeparately(shipSeparately);
 		commerceOrderItemImpl.setShippable(shippable);
 		commerceOrderItemImpl.setShippedQuantity(shippedQuantity);
@@ -369,6 +393,7 @@ public class CommerceOrderItemCacheModel
 	public void readExternal(ObjectInput objectInput)
 		throws ClassNotFoundException, IOException {
 
+		mvccVersion = objectInput.readLong();
 		externalReferenceCode = objectInput.readUTF();
 
 		commerceOrderItemId = objectInput.readLong();
@@ -390,11 +415,12 @@ public class CommerceOrderItemCacheModel
 
 		CPInstanceId = objectInput.readLong();
 
+		CPMeasurementUnitId = objectInput.readLong();
+
 		CProductId = objectInput.readLong();
 
 		parentCommerceOrderItemId = objectInput.readLong();
-
-		shippingAddressId = objectInput.readLong();
+		decimalQuantity = (BigDecimal)objectInput.readObject();
 		deliveryGroup = objectInput.readUTF();
 
 		deliveryMaxSubscriptionCycles = objectInput.readLong();
@@ -437,6 +463,8 @@ public class CommerceOrderItemCacheModel
 		quantity = objectInput.readInt();
 		requestedDeliveryDate = objectInput.readLong();
 
+		shippingAddressId = objectInput.readLong();
+
 		shipSeparately = objectInput.readBoolean();
 
 		shippable = objectInput.readBoolean();
@@ -461,6 +489,8 @@ public class CommerceOrderItemCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (externalReferenceCode == null) {
 			objectOutput.writeUTF("");
 		}
@@ -494,11 +524,12 @@ public class CommerceOrderItemCacheModel
 
 		objectOutput.writeLong(CPInstanceId);
 
+		objectOutput.writeLong(CPMeasurementUnitId);
+
 		objectOutput.writeLong(CProductId);
 
 		objectOutput.writeLong(parentCommerceOrderItemId);
-
-		objectOutput.writeLong(shippingAddressId);
+		objectOutput.writeObject(decimalQuantity);
 
 		if (deliveryGroup == null) {
 			objectOutput.writeUTF("");
@@ -574,6 +605,8 @@ public class CommerceOrderItemCacheModel
 		objectOutput.writeInt(quantity);
 		objectOutput.writeLong(requestedDeliveryDate);
 
+		objectOutput.writeLong(shippingAddressId);
+
 		objectOutput.writeBoolean(shipSeparately);
 
 		objectOutput.writeBoolean(shippable);
@@ -615,6 +648,7 @@ public class CommerceOrderItemCacheModel
 		objectOutput.writeDouble(width);
 	}
 
+	public long mvccVersion;
 	public String externalReferenceCode;
 	public long commerceOrderItemId;
 	public long groupId;
@@ -627,9 +661,10 @@ public class CommerceOrderItemCacheModel
 	public long commerceOrderId;
 	public long commercePriceListId;
 	public long CPInstanceId;
+	public long CPMeasurementUnitId;
 	public long CProductId;
 	public long parentCommerceOrderItemId;
-	public long shippingAddressId;
+	public BigDecimal decimalQuantity;
 	public String deliveryGroup;
 	public long deliveryMaxSubscriptionCycles;
 	public int deliverySubscriptionLength;
@@ -659,6 +694,7 @@ public class CommerceOrderItemCacheModel
 	public BigDecimal promoPriceWithTaxAmount;
 	public int quantity;
 	public long requestedDeliveryDate;
+	public long shippingAddressId;
 	public boolean shipSeparately;
 	public boolean shippable;
 	public int shippedQuantity;

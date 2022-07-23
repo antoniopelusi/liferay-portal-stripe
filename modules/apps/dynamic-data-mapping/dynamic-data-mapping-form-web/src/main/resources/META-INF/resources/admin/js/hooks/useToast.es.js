@@ -14,12 +14,12 @@
 
 import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
-import {getUid} from 'dynamic-data-mapping-form-renderer';
+import {getUid} from 'data-engine-js-components-web';
 import React, {useCallback, useContext, useState} from 'react';
 
 const ToastContext = React.createContext();
 
-export const ToastProvider = ({children}) => {
+export function ToastProvider({children}) {
 	const [toastItems, setToastItems] = useState([]);
 
 	const addToast = useCallback(
@@ -65,8 +65,8 @@ export const ToastProvider = ({children}) => {
 			{children}
 		</ToastContext.Provider>
 	);
-};
+}
 
-export const useToast = () => {
+export function useToast() {
 	return useContext(ToastContext);
-};
+}

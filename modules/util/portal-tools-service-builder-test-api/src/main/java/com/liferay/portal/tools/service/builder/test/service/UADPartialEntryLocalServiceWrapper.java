@@ -27,6 +27,10 @@ public class UADPartialEntryLocalServiceWrapper
 	implements ServiceWrapper<UADPartialEntryLocalService>,
 			   UADPartialEntryLocalService {
 
+	public UADPartialEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public UADPartialEntryLocalServiceWrapper(
 		UADPartialEntryLocalService uadPartialEntryLocalService) {
 
@@ -132,6 +136,13 @@ public class UADPartialEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _uadPartialEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _uadPartialEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

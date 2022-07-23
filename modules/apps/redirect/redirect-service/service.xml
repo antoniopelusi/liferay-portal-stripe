@@ -42,10 +42,6 @@
 			<finder-column name="groupId" />
 			<finder-column name="sourceURL" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Resource" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="RedirectNotFoundEntry" remote-service="false" trash-enabled="false">
 

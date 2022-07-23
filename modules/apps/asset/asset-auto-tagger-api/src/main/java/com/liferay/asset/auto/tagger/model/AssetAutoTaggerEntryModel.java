@@ -193,4 +193,7 @@ public interface AssetAutoTaggerEntryModel
 	 */
 	public void setAssetTagId(long assetTagId);
 
+	@Override
+	public AssetAutoTaggerEntry cloneWithOriginalValues();
+
 }

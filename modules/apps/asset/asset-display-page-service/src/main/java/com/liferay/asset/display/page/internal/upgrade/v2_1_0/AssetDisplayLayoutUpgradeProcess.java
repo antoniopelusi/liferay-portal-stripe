@@ -14,7 +14,6 @@
 
 package com.liferay.asset.display.page.internal.upgrade.v2_1_0;
 
-import com.liferay.asset.display.page.internal.upgrade.v2_1_0.util.AssetDisplayPageEntryTable;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -124,29 +123,26 @@ public class AssetDisplayLayoutUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _upgradeSchema() throws Exception {
-		alter(
-			AssetDisplayPageEntryTable.class,
-			new AlterTableAddColumn("plid", "LONG"));
-
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("select assetDisplayPageEntryId, userId, groupId, ");
-		sb.append("classNameId, classPK, layoutPageTemplateEntryId from ");
-		sb.append("AssetDisplayPageEntry where plid is null or plid = 0");
+		alterTableAddColumn("AssetDisplayPageEntry", "plid", "LONG");
 
 		ServiceContext serviceContext = new ServiceContext();
 
 		try (LoggingTimer loggingTimer = new LoggingTimer();
 			Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(sb.toString());
-			PreparedStatement ps = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update AssetDisplayPageEntry set plid = ? where " +
-						"assetDisplayPageEntryId = ?"))) {
+			ResultSet resultSet = s.executeQuery(
+				StringBundler.concat(
+					"select assetDisplayPageEntryId, userId, groupId, ",
+					"classNameId, classPK, layoutPageTemplateEntryId from ",
+					"AssetDisplayPageEntry where plid is null or plid = 0"));
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update AssetDisplayPageEntry set plid = ? where " +
+							"assetDisplayPageEntryId = ?"))) {
 
-			while (rs.next()) {
-				long classNameId = rs.getLong("classNameId");
-				long classPK = rs.getLong("classPK");
+			while (resultSet.next()) {
+				long classNameId = resultSet.getLong("classNameId");
+				long classPK = resultSet.getLong("classPK");
 
 				AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
 					classNameId, classPK);
@@ -155,26 +151,26 @@ public class AssetDisplayLayoutUpgradeProcess extends UpgradeProcess {
 					continue;
 				}
 
-				long userId = rs.getLong("userId");
-				long groupId = rs.getLong("groupId");
-				long layoutPageTemplateEntryId = rs.getLong(
+				long userId = resultSet.getLong("userId");
+				long groupId = resultSet.getLong("groupId");
+				long layoutPageTemplateEntryId = resultSet.getLong(
 					"layoutPageTemplateEntryId");
 
-				ps.setLong(
+				preparedStatement.setLong(
 					1,
 					_getPlid(
 						assetEntry, userId, groupId, layoutPageTemplateEntryId,
 						serviceContext));
 
-				long assetDisplayPageEntryId = rs.getLong(
+				long assetDisplayPageEntryId = resultSet.getLong(
 					"assetDisplayPageEntryId");
 
-				ps.setLong(2, assetDisplayPageEntryId);
+				preparedStatement.setLong(2, assetDisplayPageEntryId);
 
-				ps.addBatch();
+				preparedStatement.addBatch();
 			}
 
-			ps.executeBatch();
+			preparedStatement.executeBatch();
 		}
 	}
 

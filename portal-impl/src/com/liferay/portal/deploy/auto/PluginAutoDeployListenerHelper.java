@@ -36,12 +36,6 @@ public class PluginAutoDeployListenerHelper {
 		_file = file;
 	}
 
-	public boolean isExtPlugin() {
-		Matcher matcher = _extPluginPattern.matcher(_file.getName());
-
-		return matcher.find();
-	}
-
 	public boolean isHookPlugin() throws AutoDeployException {
 		Matcher matcher = _hookPluginPattern.matcher(_file.getName());
 
@@ -121,7 +115,7 @@ public class PluginAutoDeployListenerHelper {
 				}
 				catch (IOException ioException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(ioException, ioException);
+						_log.debug(ioException);
 					}
 				}
 			}
@@ -217,8 +211,6 @@ public class PluginAutoDeployListenerHelper {
 	private static final Log _log = LogFactoryUtil.getLog(
 		PluginAutoDeployListenerHelper.class);
 
-	private static final Pattern _extPluginPattern = Pattern.compile(
-		"-(E|e)xt[-0-9.]*\\+?\\.(war|zip)$");
 	private static final Pattern _hookPluginPattern = Pattern.compile(
 		"-(H|h)ook[-0-9.]*\\+?\\.(war|zip)$");
 	private static final Pattern _themePluginPattern = Pattern.compile(

@@ -34,22 +34,22 @@ public class KaleoNotificationUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select kaleoNotificationId, notificationTypes  from " +
 					"KaleoNotification where notificationTypes like ? OR " +
 						"notificationTypes like ?");
-			PreparedStatement ps2 = connection.prepareStatement(
+			PreparedStatement preparedStatement2 = connection.prepareStatement(
 				"update KaleoNotification set notificationTypes = ? where " +
 					"kaleoNotificationId = ?")) {
 
-			ps1.setString(1, "%im%");
-			ps1.setString(2, "%private-message%");
+			preparedStatement1.setString(1, "%im%");
+			preparedStatement1.setString(2, "%private-message%");
 
-			ResultSet rs = ps1.executeQuery();
+			ResultSet resultSet = preparedStatement1.executeQuery();
 
-			while (rs.next()) {
+			while (resultSet.next()) {
 				String[] notificationTypes = Stream.of(
-					StringUtil.split(rs.getString("notificationTypes"))
+					StringUtil.split(resultSet.getString("notificationTypes"))
 				).filter(
 					notificationType -> !Objects.equals(notificationType, "im")
 				).filter(
@@ -65,14 +65,16 @@ public class KaleoNotificationUpgradeProcess extends UpgradeProcess {
 					};
 				}
 
-				ps2.setString(1, StringUtil.merge(notificationTypes));
+				preparedStatement2.setString(
+					1, StringUtil.merge(notificationTypes));
 
-				ps2.setLong(2, rs.getLong("kaleoNotificationId"));
+				preparedStatement2.setLong(
+					2, resultSet.getLong("kaleoNotificationId"));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 		catch (SQLException sqlException) {
 			throw new UpgradeException(sqlException);

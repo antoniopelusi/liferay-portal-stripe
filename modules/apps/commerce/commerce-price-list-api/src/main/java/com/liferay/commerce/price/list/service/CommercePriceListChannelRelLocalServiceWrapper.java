@@ -14,7 +14,10 @@
 
 package com.liferay.commerce.price.list.service;
 
+import com.liferay.commerce.price.list.model.CommercePriceListChannelRel;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link CommercePriceListChannelRelLocalService}.
@@ -26,6 +29,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CommercePriceListChannelRelLocalServiceWrapper
 	implements CommercePriceListChannelRelLocalService,
 			   ServiceWrapper<CommercePriceListChannelRelLocalService> {
+
+	public CommercePriceListChannelRelLocalServiceWrapper() {
+		this(null);
+	}
 
 	public CommercePriceListChannelRelLocalServiceWrapper(
 		CommercePriceListChannelRelLocalService
@@ -46,25 +53,24 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @return the commerce price list channel rel that was added
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-		addCommercePriceListChannelRel(
-			com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-				commercePriceListChannelRel) {
+	public CommercePriceListChannelRel addCommercePriceListChannelRel(
+		CommercePriceListChannelRel commercePriceListChannelRel) {
 
 		return _commercePriceListChannelRelLocalService.
 			addCommercePriceListChannelRel(commercePriceListChannelRel);
 	}
 
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-			addCommercePriceListChannelRel(
-				long commercePriceListId, long commerceChannelId, int order,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CommercePriceListChannelRel addCommercePriceListChannelRel(
+			long userId, long commercePriceListId, long commerceChannelId,
+			int order,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commercePriceListChannelRelLocalService.
 			addCommercePriceListChannelRel(
-				commercePriceListId, commerceChannelId, order, serviceContext);
+				userId, commercePriceListId, commerceChannelId, order,
+				serviceContext);
 	}
 
 	/**
@@ -74,8 +80,8 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @return the new commerce price list channel rel
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-		createCommercePriceListChannelRel(long CommercePriceListChannelRelId) {
+	public CommercePriceListChannelRel createCommercePriceListChannelRel(
+		long CommercePriceListChannelRelId) {
 
 		return _commercePriceListChannelRelLocalService.
 			createCommercePriceListChannelRel(CommercePriceListChannelRelId);
@@ -105,10 +111,8 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @throws PortalException
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-			deleteCommercePriceListChannelRel(
-				com.liferay.commerce.price.list.model.
-					CommercePriceListChannelRel commercePriceListChannelRel)
+	public CommercePriceListChannelRel deleteCommercePriceListChannelRel(
+			CommercePriceListChannelRel commercePriceListChannelRel)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commercePriceListChannelRelLocalService.
@@ -127,9 +131,8 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @throws PortalException if a commerce price list channel rel with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-			deleteCommercePriceListChannelRel(
-				long CommercePriceListChannelRelId)
+	public CommercePriceListChannelRel deleteCommercePriceListChannelRel(
+			long CommercePriceListChannelRelId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commercePriceListChannelRelLocalService.
@@ -159,6 +162,13 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commercePriceListChannelRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commercePriceListChannelRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -255,17 +265,16 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-		fetchCommercePriceListChannelRel(long CommercePriceListChannelRelId) {
+	public CommercePriceListChannelRel fetchCommercePriceListChannelRel(
+		long CommercePriceListChannelRelId) {
 
 		return _commercePriceListChannelRelLocalService.
 			fetchCommercePriceListChannelRel(CommercePriceListChannelRelId);
 	}
 
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-		fetchCommercePriceListChannelRel(
-			long commerceChannelId, long commercePriceListId) {
+	public CommercePriceListChannelRel fetchCommercePriceListChannelRel(
+		long commerceChannelId, long commercePriceListId) {
 
 		return _commercePriceListChannelRelLocalService.
 			fetchCommercePriceListChannelRel(
@@ -280,7 +289,7 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @return the matching commerce price list channel rel, or <code>null</code> if a matching commerce price list channel rel could not be found
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
+	public CommercePriceListChannelRel
 		fetchCommercePriceListChannelRelByUuidAndCompanyId(
 			String uuid, long companyId) {
 
@@ -304,8 +313,8 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @throws PortalException if a commerce price list channel rel with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-			getCommercePriceListChannelRel(long CommercePriceListChannelRelId)
+	public CommercePriceListChannelRel getCommercePriceListChannelRel(
+			long CommercePriceListChannelRelId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commercePriceListChannelRelLocalService.
@@ -321,7 +330,7 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @throws PortalException if a matching commerce price list channel rel could not be found
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
+	public CommercePriceListChannelRel
 			getCommercePriceListChannelRelByUuidAndCompanyId(
 				String uuid, long companyId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -342,31 +351,27 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @return the range of commerce price list channel rels
 	 */
 	@Override
-	public java.util.List
-		<com.liferay.commerce.price.list.model.CommercePriceListChannelRel>
-			getCommercePriceListChannelRels(int start, int end) {
+	public java.util.List<CommercePriceListChannelRel>
+		getCommercePriceListChannelRels(int start, int end) {
 
 		return _commercePriceListChannelRelLocalService.
 			getCommercePriceListChannelRels(start, end);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.price.list.model.CommercePriceListChannelRel>
-			getCommercePriceListChannelRels(long commercePriceListId) {
+	public java.util.List<CommercePriceListChannelRel>
+		getCommercePriceListChannelRels(long commercePriceListId) {
 
 		return _commercePriceListChannelRelLocalService.
 			getCommercePriceListChannelRels(commercePriceListId);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.price.list.model.CommercePriceListChannelRel>
-			getCommercePriceListChannelRels(
-				long commercePriceListId, int start, int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.commerce.price.list.model.
-						CommercePriceListChannelRel> orderByComparator) {
+	public java.util.List<CommercePriceListChannelRel>
+		getCommercePriceListChannelRels(
+			long commercePriceListId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<CommercePriceListChannelRel> orderByComparator) {
 
 		return _commercePriceListChannelRelLocalService.
 			getCommercePriceListChannelRels(
@@ -374,10 +379,9 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.price.list.model.CommercePriceListChannelRel>
-			getCommercePriceListChannelRels(
-				long commercePriceListId, String name, int start, int end) {
+	public java.util.List<CommercePriceListChannelRel>
+		getCommercePriceListChannelRels(
+			long commercePriceListId, String name, int start, int end) {
 
 		return _commercePriceListChannelRelLocalService.
 			getCommercePriceListChannelRels(
@@ -461,13 +465,31 @@ public class CommercePriceListChannelRelLocalServiceWrapper
 	 * @return the commerce price list channel rel that was updated
 	 */
 	@Override
-	public com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-		updateCommercePriceListChannelRel(
-			com.liferay.commerce.price.list.model.CommercePriceListChannelRel
-				commercePriceListChannelRel) {
+	public CommercePriceListChannelRel updateCommercePriceListChannelRel(
+		CommercePriceListChannelRel commercePriceListChannelRel) {
 
 		return _commercePriceListChannelRelLocalService.
 			updateCommercePriceListChannelRel(commercePriceListChannelRel);
+	}
+
+	@Override
+	public CTPersistence<CommercePriceListChannelRel> getCTPersistence() {
+		return _commercePriceListChannelRelLocalService.getCTPersistence();
+	}
+
+	@Override
+	public Class<CommercePriceListChannelRel> getModelClass() {
+		return _commercePriceListChannelRelLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CommercePriceListChannelRel>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return _commercePriceListChannelRelLocalService.
+			updateWithUnsafeFunction(updateUnsafeFunction);
 	}
 
 	@Override

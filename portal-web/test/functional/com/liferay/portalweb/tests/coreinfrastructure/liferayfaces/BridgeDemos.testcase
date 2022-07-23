@@ -14,7 +14,7 @@ definition {
 
 		JSONGroup.addGroup(groupName = "Bridge Demos");
 
-		SitePages.openPagesAdmin(siteURLKey = "Bridge Demos");
+		PagesAdmin.openPagesAdmin(siteURLKey = "Bridge Demos");
 	}
 
 	tearDown {
@@ -38,10 +38,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "alloy-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/alloy-applicant");
@@ -120,6 +119,7 @@ definition {
 			state = "FL");
 	}
 
+	@ignore = "true"
 	@priority = "5"
 	test BootsFacesApplicantPortletSmoke {
 		JSONLayout.addPublicLayout(
@@ -130,10 +130,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "bootsfaces-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/bootsfaces-applicant");
@@ -226,10 +225,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "butterfaces-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/butterfaces-applicant");
@@ -322,10 +320,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-events",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-events");
@@ -379,10 +376,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-prp",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-prp");
@@ -436,10 +432,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-applicant");
@@ -528,10 +523,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-cdi-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-cdi-applicant");
@@ -620,10 +614,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-pdf",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-pdf");
@@ -647,10 +640,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf flows",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-flows");
@@ -732,10 +724,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-html5-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-html5-applicant");
@@ -824,10 +815,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-jsp-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/jsf-jsp-applicant");
@@ -908,10 +898,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "jsf-spring-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos");
@@ -1000,10 +989,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "primefaces-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/primefaces-applicant");
@@ -1099,10 +1087,9 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "richfaces-applicant",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-demos/richfaces-applicant");

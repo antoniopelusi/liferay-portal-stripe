@@ -40,14 +40,14 @@ public class ViewCountUpgradeProcess extends UpgradeProcess {
 			return;
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"insert into ViewCountEntry (companyId, classNameId, ",
 					"classPK, viewCount) select companyId, ",
 					PortalUtil.getClassNameId(_clazz), ", ", _primaryColumnName,
 					", ", _viewCountColumnName, " from ", _tableName))) {
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 
 		runSQL(

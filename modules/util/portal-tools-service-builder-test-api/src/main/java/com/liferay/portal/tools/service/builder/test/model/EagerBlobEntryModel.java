@@ -112,4 +112,7 @@ public interface EagerBlobEntryModel extends BaseModel<EagerBlobEntry> {
 	 */
 	public void setBlob(Blob blob);
 
+	@Override
+	public EagerBlobEntry cloneWithOriginalValues();
+
 }

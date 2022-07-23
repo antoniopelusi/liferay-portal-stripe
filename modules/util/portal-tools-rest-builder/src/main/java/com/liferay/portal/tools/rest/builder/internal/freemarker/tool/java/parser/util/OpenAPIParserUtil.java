@@ -26,6 +26,7 @@ import com.liferay.portal.tools.rest.builder.internal.yaml.YAMLUtil;
 import com.liferay.portal.tools.rest.builder.internal.yaml.config.ConfigYAML;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Components;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Content;
+import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Info;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Items;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.OpenAPIYAML;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Operation;
@@ -182,6 +183,10 @@ public class OpenAPIParserUtil {
 					operation.getResponses();
 
 				for (Response response : responses.values()) {
+					if (response == null) {
+						continue;
+					}
+
 					_getExternalReferences(
 						response.getContent(), externalReferences, schemas);
 				}
@@ -219,7 +224,13 @@ public class OpenAPIParserUtil {
 			externalReferencesMap.putAll(
 				OpenAPIUtil.getAllSchemas(openAPIYAML));
 
-			queue.addAll(getExternalReferences(openAPIYAML));
+			for (String curExternalReference :
+					getExternalReferences(openAPIYAML)) {
+
+				queue.add(
+					path.substring(0, path.lastIndexOf("/") + 1) +
+						curExternalReference);
+			}
 		}
 
 		return externalReferencesMap;
@@ -320,6 +331,12 @@ public class OpenAPIParserUtil {
 				OpenAPIYAML externalOpenAPIYAML = YAMLUtil.loadOpenAPIYAML(
 					FileUtil.read(new File(path)));
 
+				if ((externalConfigYAML == null) ||
+					(externalOpenAPIYAML == null)) {
+
+					continue;
+				}
+
 				Map<String, String> externalJavaDataTypeMap =
 					getJavaDataTypeMap(externalConfigYAML, externalOpenAPIYAML);
 
@@ -370,15 +387,11 @@ public class OpenAPIParserUtil {
 			OpenAPIUtil.getGlobalEnumSchemas(openAPIYAML);
 
 		for (String schemaName : globalEnumSchemas.keySet()) {
-			StringBuilder sb = new StringBuilder();
-
-			sb.append(configYAML.getApiPackagePath());
-			sb.append(".constant.");
-			sb.append(OpenAPIUtil.escapeVersion(openAPIYAML));
-			sb.append('.');
-			sb.append(schemaName);
-
-			javaDataTypeMap.put(schemaName, sb.toString());
+			javaDataTypeMap.put(
+				schemaName,
+				StringBundler.concat(
+					configYAML.getApiPackagePath(), ".constant.",
+					OpenAPIUtil.escapeVersion(openAPIYAML), '.', schemaName));
 		}
 
 		return javaDataTypeMap;
@@ -421,7 +434,7 @@ public class OpenAPIParserUtil {
 	public static String getParameter(
 		JavaMethodParameter javaMethodParameter, String parameterAnnotation) {
 
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler(6);
 
 		if (Validator.isNotNull(parameterAnnotation)) {
 			sb.append(parameterAnnotation);
@@ -474,6 +487,12 @@ public class OpenAPIParserUtil {
 
 	public static String getSchemaVarName(String schemaName) {
 		return TextFormatter.format(schemaName, TextFormatter.I);
+	}
+
+	public static String getVersion(OpenAPIYAML openAPIYAML) {
+		Info info = openAPIYAML.getInfo();
+
+		return info.getVersion();
 	}
 
 	public static boolean hasHTTPMethod(

@@ -1,16 +1,10 @@
 Bundle-Name: Liferay Frontend Editor AlloyEditor Web
 Bundle-SymbolicName: com.liferay.frontend.editor.alloyeditor.web
-Bundle-Version: 5.0.1
+Bundle-Version: 5.0.20
 Liferay-JS-Config: /META-INF/resources/js/config.js
 Provide-Capability:\
 	alloyeditor.link.browse;\
-		alloyeditor.link.browse:String="default",\
-	liferay.resource.bundle;\
-		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.frontend.editor.lang)";\
-		resource.bundle.base.name="content.Language"
-Require-Capability:\
-	liferay.resource.bundle;\
-		filter:="(bundle.symbolic.name=com.liferay.frontend.editor.lang)"
+		alloyeditor.link.browse:String="default"
 Web-ContextPath: /frontend-editor-alloyeditor-web
 -donotcopy: (\.touch|.*_diffs.*|.*.properties)
 -dsannotations-options: inherit

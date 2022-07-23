@@ -22,6 +22,7 @@ import com.liferay.commerce.service.CommerceAddressService;
 import com.liferay.commerce.service.CommerceOrderItemService;
 import com.liferay.commerce.service.CommerceOrderLocalService;
 import com.liferay.commerce.shipment.web.internal.display.context.CommerceShipmentDisplayContext;
+import com.liferay.commerce.shipment.web.internal.portlet.action.helper.ActionHelper;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.CountryService;
@@ -66,7 +67,7 @@ public class EditCommerceShipmentExpectedDateMVCRenderCommand
 		renderRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT, commerceShipmentDisplayContext);
 
-		return "/shipment/edit_commerce_shipment_expected_date.jsp";
+		return "/commerce_shipment/edit_commerce_shipment_expected_date.jsp";
 	}
 
 	@Reference
@@ -94,7 +95,7 @@ public class EditCommerceShipmentExpectedDateMVCRenderCommand
 	private Portal _portal;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_SHIPMENT + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_SHIPMENT + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

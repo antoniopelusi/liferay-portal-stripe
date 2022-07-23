@@ -2,11 +2,13 @@
 <head>
 <title>Panel</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Panel</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>PANEL_NAV_ITEM_LINK</td>
@@ -30,17 +32,22 @@
 </tr>
 <tr>
 	<td>PANEL</td>
-	<td>//div[contains(@class,'panel')]//*[normalize-space(text())='${key_panel}'][not(contains(@data-qa-id,'app'))]</td>
+	<td>//*[contains(@class,'panel')]//*[normalize-space()='${key_panel}'][contains(@class,'collapse')][not(contains(@data-qa-id,'app'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PANEL_BY_INDEX</td>
+	<td>xpath=(//*[contains(@class,'panel')]//*[contains(@class,'collapse')][@aria-expanded][not(contains(@data-qa-id,'app'))])[${index}]//*[normalize-space()='${key_panel}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PANEL_COLLAPSED</td>
-	<td>//div[contains(@class,'panel')]//*[@aria-expanded='false']//parent::*[normalize-space(text())='${key_panel}'][not(contains(@data-qa-id,'app'))]</td>
+	<td>//*[contains(@class,'panel')]//*[normalize-space()='${key_panel}'][@aria-expanded='false'][contains(@class,'collapse')][not(contains(@data-qa-id,'app'))]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PANEL_EXPANDED</td>
-	<td>//div[contains(@class,'panel')]//*[@aria-expanded='true']//parent::*[normalize-space(text())='${key_panel}'][not(contains(@data-qa-id,'app'))]</td>
+	<td>//*[contains(@class,'panel')]//*[normalize-space()='${key_panel}'][@aria-expanded='true'][contains(@class,'collapse')][not(contains(@data-qa-id,'app'))]</td>
 	<td></td>
 </tr>
 <tr>
@@ -67,7 +74,7 @@
 </tr>
 <tr>
 	<td>ENTRY_REPORT_PARAMETERS</td>
-	<td>xpath=(//fieldset[contains(@aria-labelledby,'report-parametersTitle')]//span)[1]</td>
+	<td>//fieldset[contains(@id,'report-parameters')]//span/span[1]</td>
 	<td></td>
 </tr>
 </tbody>

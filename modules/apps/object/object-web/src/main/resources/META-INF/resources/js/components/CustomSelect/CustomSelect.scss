@@ -1,0 +1,16 @@
+.custom-select {
+	&__icon {
+		color: #666;
+	}
+
+	&__content {
+		display: flex;
+		justify-content: space-between;
+	}
+}
+
+.label-inside-custom-select {
+	font-size: 0.625rem !important;
+	height: auto !important;
+	text-transform: uppercase !important;
+}

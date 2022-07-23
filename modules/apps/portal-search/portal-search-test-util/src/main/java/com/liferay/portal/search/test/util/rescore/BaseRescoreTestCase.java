@@ -37,6 +37,7 @@ import org.junit.Test;
 
 /**
  * @author Adam Brandizzi
+ * @author Wade Cao
  */
 public abstract class BaseRescoreTestCase extends BaseIndexingTestCase {
 
@@ -49,12 +50,12 @@ public abstract class BaseRescoreTestCase extends BaseIndexingTestCase {
 		Query query = queries.string(_TITLE.concat(":alpha"));
 
 		assertSearch(
-			_TITLE, query, (List<Rescore>)null,
-			Arrays.asList("alpha alpha", "alpha zeta", "alpha beta beta"));
+			Arrays.asList("alpha alpha", "alpha zeta", "alpha beta beta"),
+			_TITLE, query, null, null);
 
 		assertSearch(
-			_TITLE, query, Arrays.asList(buildRescore(_TITLE, "beta")),
-			Arrays.asList("alpha beta beta", "alpha alpha", "alpha zeta"));
+			Arrays.asList("alpha beta beta", "alpha alpha", "alpha zeta"),
+			_TITLE, query, null, Arrays.asList(buildRescore(_TITLE, "beta")));
 	}
 
 	@Test
@@ -67,16 +68,14 @@ public abstract class BaseRescoreTestCase extends BaseIndexingTestCase {
 		Query query = queries.string(_TITLE.concat(":alpha"));
 
 		assertSearch(
-			_TITLE, query, (Query)null,
 			Arrays.asList(
-				"alpha alpha", "alpha gamma gamma", "alpha beta beta"));
-
-		Query rescoreQuery = queries.match(_TITLE, "beta");
+				"alpha alpha", "alpha gamma gamma", "alpha beta beta"),
+			_TITLE, query, null, null);
 
 		assertSearch(
-			_TITLE, query, rescoreQuery,
 			Arrays.asList(
-				"alpha beta beta", "alpha alpha", "alpha gamma gamma"));
+				"alpha beta beta", "alpha alpha", "alpha gamma gamma"),
+			_TITLE, query, queries.match(_TITLE, "beta"), null);
 	}
 
 	@Test
@@ -89,50 +88,59 @@ public abstract class BaseRescoreTestCase extends BaseIndexingTestCase {
 		Query query = queries.string(_TITLE.concat(":alpha"));
 
 		assertSearch(
-			_TITLE, query, (List<Rescore>)null,
 			Arrays.asList(
-				"alpha alpha", "alpha gamma gamma", "alpha beta beta beta"));
+				"alpha alpha", "alpha gamma gamma", "alpha beta beta beta"),
+			_TITLE, query, null, null);
 
 		assertSearch(
-			_TITLE, query,
 			Arrays.asList(
-				buildRescore(_TITLE, "beta"), buildRescore(_TITLE, "gamma")),
+				"alpha beta beta beta", "alpha gamma gamma", "alpha alpha"),
+			_TITLE, query, null,
 			Arrays.asList(
-				"alpha beta beta beta", "alpha gamma gamma", "alpha alpha"));
+				buildRescore(_TITLE, "beta"), buildRescore(_TITLE, "gamma")));
 	}
 
 	protected void assertSearch(
-		String fieldName, Query query, List<Rescore> rescores,
-		List<String> expectedValues) {
+		List<String> expectedValues, String fieldName, Query query,
+		Query rescoreQuery, List<Rescore> rescores) {
 
 		assertSearch(
 			indexingTestHelper -> {
 				SearchSearchRequest searchSearchRequest =
-					getSearchSearchRequest(query);
+					new SearchSearchRequest();
 
-				searchSearchRequest.setRescores(rescores);
-
-				List<String> actualValues = getFieldValues(
-					searchSearchRequest, fieldName);
-
-				Assert.assertEquals(
-					expectedValues.toString(), actualValues.toString());
-			});
-	}
-
-	protected void assertSearch(
-		String fieldName, Query query, Query rescoreQuery,
-		List<String> expectedValues) {
-
-		assertSearch(
-			indexingTestHelper -> {
-				SearchSearchRequest searchSearchRequest =
-					getSearchSearchRequest(query);
-
+				searchSearchRequest.setIndexNames(
+					String.valueOf(getCompanyId()));
+				searchSearchRequest.setQuery(query);
 				searchSearchRequest.setRescoreQuery(rescoreQuery);
+				searchSearchRequest.setRescores(rescores);
+				searchSearchRequest.setSize(30);
 
-				List<String> actualValues = getFieldValues(
-					searchSearchRequest, fieldName);
+				SearchEngineAdapter searchEngineAdapter =
+					getSearchEngineAdapter();
+
+				SearchSearchResponse searchSearchResponse =
+					searchEngineAdapter.execute(searchSearchRequest);
+
+				SearchHits searchHits = searchSearchResponse.getSearchHits();
+
+				List<SearchHit> searchHitsList = searchHits.getSearchHits();
+
+				Stream<SearchHit> stream = searchHitsList.stream();
+
+				List<String> actualValues = stream.map(
+					searchHit -> {
+						Document document = searchHit.getDocument();
+
+						Map<String, Field> fields = document.getFields();
+
+						Field field = fields.get(fieldName);
+
+						return (String)field.getValue();
+					}
+				).collect(
+					Collectors.toList()
+				);
 
 				Assert.assertEquals(
 					expectedValues.toString(), actualValues.toString());
@@ -145,47 +153,6 @@ public abstract class BaseRescoreTestCase extends BaseIndexingTestCase {
 		).windowSize(
 			100
 		).build();
-	}
-
-	protected String getFieldValue(String fieldName, SearchHit searchHit) {
-		Document document = searchHit.getDocument();
-
-		Map<String, Field> fields = document.getFields();
-
-		Field field = fields.get(fieldName);
-
-		return (String)field.getValue();
-	}
-
-	protected List<String> getFieldValues(
-		SearchSearchRequest searchSearchRequest, String fieldName) {
-
-		SearchEngineAdapter searchEngineAdapter = getSearchEngineAdapter();
-
-		SearchSearchResponse searchSearchResponse = searchEngineAdapter.execute(
-			searchSearchRequest);
-
-		SearchHits searchHits = searchSearchResponse.getSearchHits();
-
-		List<SearchHit> searchHitsList = searchHits.getSearchHits();
-
-		Stream<SearchHit> stream = searchHitsList.stream();
-
-		return stream.map(
-			searchHit -> getFieldValue(fieldName, searchHit)
-		).collect(
-			Collectors.toList()
-		);
-	}
-
-	protected SearchSearchRequest getSearchSearchRequest(Query query) {
-		SearchSearchRequest searchSearchRequest = new SearchSearchRequest();
-
-		searchSearchRequest.setIndexNames("_all");
-		searchSearchRequest.setQuery(query);
-		searchSearchRequest.setSize(30);
-
-		return searchSearchRequest;
 	}
 
 	private static final String _TITLE = "title";

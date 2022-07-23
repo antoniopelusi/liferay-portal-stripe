@@ -30,9 +30,6 @@ import com.liferay.portal.kernel.service.RegionLocalServiceUtil;
 public class CommerceTaxFixedRateAddressRelImpl
 	extends CommerceTaxFixedRateAddressRelBaseImpl {
 
-	public CommerceTaxFixedRateAddressRelImpl() {
-	}
-
 	@Override
 	public CommerceTaxMethod getCommerceTaxMethod() throws PortalException {
 		if (getCommerceTaxMethodId() > 0) {

@@ -432,7 +432,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.form.client', and version '4.0.2'."
+        'com.liferay.headless.form.client', and version '4.0.11'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -456,8 +456,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["FormDocument"]
         get:
             deprecated: true
@@ -478,8 +476,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormDocument"
-                    description:
-                        ""
             tags: ["FormDocument"]
     "/form-records/{formRecordId}":
         get:
@@ -501,8 +497,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormRecord"
-                    description:
-                        ""
             tags: ["FormRecord"]
         put:
             deprecated: true
@@ -535,8 +529,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormRecord"
-                    description:
-                        ""
             tags: ["FormRecord"]
     "/form-structures/{formStructureId}":
         get:
@@ -558,8 +550,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormStructure"
-                    description:
-                        ""
             tags: ["FormStructure"]
     "/forms/{formId}":
         get:
@@ -581,8 +571,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Form"
-                    description:
-                        ""
             tags: ["Form"]
     "/forms/{formId}/evaluate-context":
         post:
@@ -616,8 +604,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormContext"
-                    description:
-                        ""
             tags: ["Form"]
     "/forms/{formId}/form-document":
         post:
@@ -650,8 +636,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormDocument"
-                    description:
-                        ""
             tags: ["Form"]
     "/forms/{formId}/form-records":
         get:
@@ -685,8 +669,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/FormRecord"
                                 type: array
-                    description:
-                        ""
             tags: ["FormRecord"]
         post:
             deprecated: true
@@ -719,8 +701,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormRecord"
-                    description:
-                        ""
             tags: ["FormRecord"]
     "/forms/{formId}/form-records/by-latest-draft":
         get:
@@ -742,8 +722,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/FormRecord"
-                    description:
-                        ""
             tags: ["FormRecord"]
     "/sites/{siteId}/form-structures":
         get:
@@ -777,8 +755,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/FormStructure"
                                 type: array
-                    description:
-                        ""
             tags: ["FormStructure"]
     "/sites/{siteId}/forms":
         get:
@@ -812,6 +788,4 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Form"
                                 type: array
-                    description:
-                        ""
             tags: ["Form"]

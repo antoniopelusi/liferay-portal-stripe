@@ -1,5 +1,7 @@
 @import 'atlas-variables';
 
+@import 'variables';
+
 .portlet-asset-publisher,
 .portlet-message-boards,
 .portlet-trash {
@@ -420,4 +422,66 @@
 .portal-popup .portlet-message-boards .lfr-dynamic-uploader {
 	position: relative;
 	top: 0;
+}
+
+.lfr-code {
+	background: $white;
+	border: 1px solid $secondary;
+	font-family: $font-family-monospace;
+	overflow: hidden;
+	overflow-wrap: normal;
+	overflow-x: auto;
+	white-space: pre;
+	word-break: normal;
+	word-wrap: normal;
+
+	table {
+		table-layout: auto;
+		width: 100%;
+
+		tr td {
+			&.lines,
+			&.line-numbers {
+				border-width: 0;
+			}
+
+			&.line-numbers {
+				background: $light;
+				border-right-width: 1px;
+				color: $secondary;
+				cursor: default;
+				padding: 0 8px;
+				text-align: right;
+				text-shadow: 1px 1px $white;
+
+				@include user-select(none);
+
+				vertical-align: top;
+				width: 1%;
+			}
+		}
+	}
+}
+
+.card-tab-group {
+	.card-tab:nth-child(n + 2) {
+		border-left: $card-tab-border-left-width solid
+			$card-tab-border-left-color;
+		padding-left: $card-tab-padding-left-width;
+
+		.card-tab {
+			border-left: $card-tab-border-left-width solid
+				lighten($card-tab-border-left-color, 10%);
+			padding-left: $card-tab-padding-left-width;
+
+			.card-tab {
+				border-left-color: lighten($card-tab-border-left-color, 20%);
+
+				.card-tab {
+					border-left-width: 0;
+					padding-left: 0;
+				}
+			}
+		}
+	}
 }

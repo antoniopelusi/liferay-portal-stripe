@@ -141,6 +141,11 @@ public class ResourcePermissionWrapper
 		model.addResourceAction(actionId);
 	}
 
+	@Override
+	public ResourcePermission cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the action IDs of this resource permission.
 	 *

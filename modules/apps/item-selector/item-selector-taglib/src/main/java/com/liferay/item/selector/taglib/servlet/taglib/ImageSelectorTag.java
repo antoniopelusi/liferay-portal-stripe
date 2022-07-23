@@ -40,13 +40,16 @@ public class ImageSelectorTag extends IncludeTag {
 
 	@Override
 	public int doStartTag() throws JspException {
+		HttpServletRequest httpServletRequest = getRequest();
+
 		if (_fileEntryId != 0) {
 			try {
 				FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(
 					_fileEntryId);
 
-				ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-					WebKeys.THEME_DISPLAY);
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
 
 				_imageURL = DLURLHelperUtil.getPreviewURL(
 					fileEntry, fileEntry.getFileVersion(), themeDisplay,
@@ -60,14 +63,15 @@ public class ImageSelectorTag extends IncludeTag {
 
 		if (Validator.isNotNull(_paramName)) {
 			_imageCropRegion = ParamUtil.getString(
-				request, _paramName + "CropRegion");
+				httpServletRequest, _paramName + "CropRegion");
 		}
 
 		return super.doStartTag();
 	}
 
 	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #getImageCropDirection()}
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 *             #getImageCropDirection()}
 	 */
 	@Deprecated
 	public String getDraggableImage() {
@@ -111,7 +115,8 @@ public class ImageSelectorTag extends IncludeTag {
 	}
 
 	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #setImageCropDirection()}
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 *             #setImageCropDirection()}
 	 */
 	@Deprecated
 	public void setDraggableImage(String draggableImage) {
@@ -142,7 +147,7 @@ public class ImageSelectorTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setParamName(String paramName) {

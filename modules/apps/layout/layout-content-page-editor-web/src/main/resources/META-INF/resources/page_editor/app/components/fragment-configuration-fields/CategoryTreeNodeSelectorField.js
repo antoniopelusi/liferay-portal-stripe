@@ -20,11 +20,7 @@ import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
 import {config} from '../../config/index';
 import itemSelectorValueToCategoryTreeNode from '../../utils/item-selector-value/itemSelectorValueToCategoryTreeNode';
 
-export const CategoryTreeNodeSelectorField = ({
-	field,
-	onValueSelect,
-	value,
-}) => {
+export function CategoryTreeNodeSelectorField({field, onValueSelect, value}) {
 	const eventName = `${config.portletNamespace}selectAssetCategoryTreeNode`;
 
 	return (
@@ -36,12 +32,12 @@ export const CategoryTreeNodeSelectorField = ({
 			onItemSelect={(categoryTreeNode) => {
 				onValueSelect(field.name, categoryTreeNode);
 			}}
-			selectedItemTitle={value ? value.title : null}
+			selectedItem={value}
 			showMappedItems={false}
 			transformValueCallback={itemSelectorValueToCategoryTreeNode}
 		/>
 	);
-};
+}
 
 CategoryTreeNodeSelectorField.propTypes = {
 	field: PropTypes.shape(ConfigurationFieldPropTypes).isRequired,

@@ -105,6 +105,11 @@ public class LVEntryWrapper
 	}
 
 	@Override
+	public LVEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

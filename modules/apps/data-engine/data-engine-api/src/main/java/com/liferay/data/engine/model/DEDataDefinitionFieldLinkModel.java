@@ -276,4 +276,7 @@ public interface DEDataDefinitionFieldLinkModel
 	 */
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public DEDataDefinitionFieldLink cloneWithOriginalValues();
+
 }

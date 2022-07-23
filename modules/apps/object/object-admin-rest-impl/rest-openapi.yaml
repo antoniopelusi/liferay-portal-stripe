@@ -1,0 +1,1469 @@
+components:
+    schemas:
+        ObjectAction:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                active:
+                    type: boolean
+                dateCreated:
+                    format: date
+                    readOnly: true
+                    type: string
+                dateModified:
+                    format: date
+                    readOnly: true
+                    type: string
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    type: string
+                objectActionExecutorKey:
+                    type: string
+                objectActionTriggerKey:
+                    type: string
+                parameters:
+                    additionalProperties: true
+                    type: object
+            type: object
+        ObjectDefinition:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                active:
+                    type: boolean
+                dateCreated:
+                    format: date
+                    readOnly: true
+                    type: string
+                dateModified:
+                    format: date
+                    readOnly: true
+                    type: string
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                label:
+                    additionalProperties:
+                        type: string
+                    type: object
+                name:
+                    type: string
+                objectActions:
+                    items:
+                        $ref: "#/components/schemas/ObjectAction"
+                    type: array
+                objectFields:
+                    items:
+                        $ref: "#/components/schemas/ObjectField"
+                    type: array
+                objectLayouts:
+                    items:
+                        $ref: "#/components/schemas/ObjectLayout"
+                    type: array
+                objectRelationships:
+                    items:
+                        $ref: "#/components/schemas/ObjectRelationship"
+                    type: array
+                objectViews:
+                    items:
+                        $ref: "#/components/schemas/ObjectView"
+                    type: array
+                panelAppOrder:
+                    type: string
+                panelCategoryKey:
+                    type: string
+                pluralLabel:
+                    additionalProperties:
+                        type: string
+                    type: object
+                portlet:
+                    type: boolean
+                scope:
+                    type: string
+                status:
+                    $ref: "#/components/schemas/Status"
+                    readOnly: true
+                system:
+                    readOnly: true
+                    type: boolean
+                titleObjectFieldId:
+                    format: int64
+                    type: integer
+            type: object
+        ObjectField:
+            properties:
+                DBType:
+                    enum: [BigDecimal, Boolean, Clob, Date, Double, Integer, Long, String]
+                    type: string
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                businessType:
+                    enum: [Attachment, Boolean, Date, Decimal, Integer, LongInteger, LongText, Picklist, PrecisionDecimal, Relationship, RichText, Text]
+                    type: string
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                indexed:
+                    type: boolean
+                indexedAsKeyword:
+                    type: boolean
+                indexedLanguageId:
+                    type: string
+                label:
+                    additionalProperties:
+                        type: string
+                    type: object
+                listTypeDefinitionId:
+                    format: int64
+                    type: integer
+                name:
+                    type: string
+                objectFieldSettings:
+                    items:
+                        $ref: "#/components/schemas/ObjectFieldSetting"
+                    type: array
+                relationshipType:
+                    enum: [oneToMany, oneToOne]
+                    readOnly: true
+                    type: string
+                required:
+                    type: boolean
+                type:
+                    deprecated: true
+                    enum: [BigDecimal, Boolean, Clob, Date, Double, Integer, Long, String]
+                    type: string
+        ObjectFieldSetting:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    type: string
+                objectFieldId:
+                    format: int64
+                    type: integer
+                value:
+                    type: string
+        ObjectLayout:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                dateCreated:
+                    format: date
+                    readOnly: true
+                    type: string
+                dateModified:
+                    format: date
+                    readOnly: true
+                    type: string
+                defaultObjectLayout:
+                    type: boolean
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    additionalProperties:
+                        type: string
+                    type: object
+                objectDefinitionId:
+                    format: int64
+                    type: integer
+                objectLayoutTabs:
+                    items:
+                        $ref: "#/components/schemas/ObjectLayoutTab"
+                    type: array
+        ObjectLayoutBox:
+            properties:
+                collapsable:
+                    type: boolean
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    additionalProperties:
+                        type: string
+                    type: object
+                objectLayoutRows:
+                    items:
+                        $ref: "#/components/schemas/ObjectLayoutRow"
+                    type: array
+                priority:
+                    format: int32
+                    type: integer
+        ObjectLayoutColumn:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                objectFieldId:
+                    format: int64
+                    type: integer
+                priority:
+                    format: int32
+                    type: integer
+                size:
+                    format: int32
+                    type: integer
+        ObjectLayoutRow:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                objectLayoutColumns:
+                    items:
+                        $ref: "#/components/schemas/ObjectLayoutColumn"
+                    type: array
+                priority:
+                    format: int32
+                    type: integer
+        ObjectLayoutTab:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    additionalProperties:
+                        type: string
+                    type: object
+                objectLayoutBoxes:
+                    items:
+                        $ref: "#/components/schemas/ObjectLayoutBox"
+                    type: array
+                objectRelationshipId:
+                    format: int64
+                    type: integer
+                priority:
+                    format: int32
+                    type: integer
+        ObjectRelationship:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                deletionType:
+                    enum: [cascade, disassociate, prevent]
+                    type: string
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                label:
+                    additionalProperties:
+                        type: string
+                    type: object
+                name:
+                    type: string
+                objectDefinitionId1:
+                    format: int64
+                    type: integer
+                objectDefinitionId2:
+                    format: int64
+                    type: integer
+                objectDefinitionName2:
+                    type: string
+                type:
+                    enum: [oneToMany, oneToOne, manyToMany]
+                    type: string
+        ObjectValidationRule:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                active:
+                    type: boolean
+                dateCreated:
+                    format: date
+                    readOnly: true
+                    type: string
+                dateModified:
+                    format: date
+                    readOnly: true
+                    type: string
+                engine:
+                    type: string
+                errorLabel:
+                    additionalProperties:
+                        type: string
+                    type: object
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    additionalProperties:
+                        type: string
+                    type: object
+                objectDefinitionId:
+                    format: int64
+                    type: integer
+                script:
+                    type: string
+            type: object
+        ObjectView:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                dateCreated:
+                    format: date
+                    readOnly: true
+                    type: string
+                dateModified:
+                    format: date
+                    readOnly: true
+                    type: string
+                defaultObjectView:
+                    type: boolean
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    additionalProperties:
+                        type: string
+                    type: object
+                objectDefinitionId:
+                    format: int64
+                    type: integer
+                objectViewColumns:
+                    items:
+                        $ref: "#/components/schemas/ObjectViewColumn"
+                    type: array
+                objectViewSortColumns:
+                    items:
+                        $ref: "#/components/schemas/ObjectViewSortColumn"
+                    type: array
+        ObjectViewColumn:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                label:
+                    additionalProperties:
+                        type: string
+                    type: object
+                objectFieldName:
+                    type: string
+                priority:
+                    format: int32
+                    type: integer
+        ObjectViewSortColumn:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                objectFieldName:
+                    type: string
+                priority:
+                    format: int32
+                    type: integer
+                sortOrder:
+                    enum: [asc, desc]
+                    type: string
+        Status:
+            properties:
+                code:
+                    format: int32
+                    readOnly: true
+                    type: integer
+                label:
+                    type: string
+                label_i18n:
+                    type: string
+            type: object
+info:
+    description:
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
+        'com.liferay.object.admin.rest.client', and version '1.0.20'."
+    license:
+        name: "Apache 2.0"
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+    title: "Object"
+    version: v1.0
+openapi: 3.0.1
+paths:
+    "/object-actions/{objectActionId}":
+        delete:
+            operationId: deleteObjectAction
+            parameters:
+                - in: path
+                  name: objectActionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectAction"]
+        get:
+            operationId: getObjectAction
+            parameters:
+                - in: path
+                  name: objectActionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+            tags: ["ObjectAction"]
+        patch:
+            operationId: patchObjectAction
+            parameters:
+                - in: path
+                  name: objectActionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectAction"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectAction"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+            tags: ["ObjectAction"]
+        put:
+            operationId: putObjectAction
+            parameters:
+                - in: path
+                  name: objectActionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectAction"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectAction"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+            tags: ["ObjectAction"]
+    "/object-definitions":
+        get:
+            operationId: getObjectDefinitionsPage
+            parameters:
+                - in: query
+                  name: aggregationTerms
+                  schema:
+                      items:
+                          type: string
+                      type: array
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectDefinition"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectDefinition"
+                                type: array
+            tags: ["ObjectDefinition"]
+        post:
+            operationId: postObjectDefinition
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectDefinition"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectDefinition"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+            tags: ["ObjectDefinition"]
+    "/object-definitions/{objectDefinitionId}":
+        delete:
+            operationId: deleteObjectDefinition
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectDefinition"]
+        get:
+            operationId: getObjectDefinition
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+            tags: ["ObjectDefinition"]
+        patch:
+            operationId: patchObjectDefinition
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectDefinition"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectDefinition"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+            tags: ["ObjectDefinition"]
+        put:
+            operationId: putObjectDefinition
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectDefinition"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectDefinition"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectDefinition"
+            tags: ["ObjectDefinition"]
+    "/object-definitions/{objectDefinitionId}/object-actions":
+        get:
+            operationId: getObjectDefinitionObjectActionsPage
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectAction"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectAction"
+                                type: array
+            tags: ["ObjectAction"]
+        post:
+            operationId: postObjectDefinitionObjectAction
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectAction"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectAction"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectAction"
+            tags: ["ObjectAction"]
+    "/object-definitions/{objectDefinitionId}/object-fields":
+        get:
+            operationId: getObjectDefinitionObjectFieldsPage
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectField"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectField"
+                                type: array
+            tags: ["ObjectField"]
+        post:
+            operationId: postObjectDefinitionObjectField
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectField"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectField"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+            tags: ["ObjectField"]
+    "/object-definitions/{objectDefinitionId}/object-layouts":
+        get:
+            operationId: getObjectDefinitionObjectLayoutsPage
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectLayout"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectLayout"
+                                type: array
+            tags: ["ObjectLayout"]
+        post:
+            operationId: postObjectDefinitionObjectLayout
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectLayout"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectLayout"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectLayout"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectLayout"
+            tags: ["ObjectLayout"]
+    "/object-definitions/{objectDefinitionId}/object-relationships":
+        get:
+            operationId: getObjectDefinitionObjectRelationshipsPage
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectRelationship"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectRelationship"
+                                type: array
+            tags: ["ObjectRelationship"]
+        post:
+            operationId: postObjectDefinitionObjectRelationship
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectRelationship"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectRelationship"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectRelationship"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectRelationship"
+            tags: ["ObjectRelationship"]
+    "/object-definitions/{objectDefinitionId}/object-validation-rules":
+        get:
+            operationId: getObjectDefinitionObjectValidationRulesPage
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectValidationRule"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectValidationRule"
+                                type: array
+            tags: ["ObjectValidationRule"]
+        post:
+            operationId: postObjectDefinitionObjectValidationRule
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectValidationRule"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectValidationRule"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+            tags: ["ObjectValidationRule"]
+    "/object-definitions/{objectDefinitionId}/object-views":
+        get:
+            operationId: getObjectDefinitionObjectViewsPage
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectView"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ObjectView"
+                                type: array
+            tags: ["ObjectView"]
+        post:
+            operationId: postObjectDefinitionObjectView
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectView"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectView"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+            tags: ["ObjectView"]
+    "/object-definitions/{objectDefinitionId}/publish":
+        post:
+            operationId: postObjectDefinitionPublish
+            parameters:
+                - in: path
+                  name: objectDefinitionId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectDefinition"]
+    "/object-fields/{objectFieldId}":
+        delete:
+            operationId: deleteObjectField
+            parameters:
+                - in: path
+                  name: objectFieldId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectField"]
+        get:
+            operationId: getObjectField
+            parameters:
+                - in: path
+                  name: objectFieldId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+            tags: ["ObjectField"]
+        patch:
+            operationId: patchObjectField
+            parameters:
+                - in: path
+                  name: objectFieldId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectField"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectField"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+            tags: ["ObjectField"]
+        put:
+            operationId: putObjectField
+            parameters:
+                - in: path
+                  name: objectFieldId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectField"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectField"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectField"
+            tags: ["ObjectField"]
+    "/object-layouts/{objectLayoutId}":
+        delete:
+            operationId: deleteObjectLayout
+            parameters:
+                - in: path
+                  name: objectLayoutId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectLayout"]
+        get:
+            operationId: getObjectLayout
+            parameters:
+                - in: path
+                  name: objectLayoutId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectLayout"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectLayout"
+            tags: ["ObjectLayout"]
+        put:
+            operationId: putObjectLayout
+            parameters:
+                - in: path
+                  name: objectLayoutId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectLayout"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectLayout"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectLayout"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectLayout"
+            tags: ["ObjectLayout"]
+    "/object-relationships/{objectRelationshipId}":
+        delete:
+            operationId: deleteObjectRelationship
+            parameters:
+                - in: path
+                  name: objectRelationshipId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectRelationship"]
+        get:
+            operationId: getObjectRelationship
+            parameters:
+                - in: path
+                  name: objectRelationshipId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectRelationship"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectRelationship"
+            tags: ["ObjectRelationship"]
+        put:
+            operationId: putObjectRelationship
+            parameters:
+                - in: path
+                  name: objectRelationshipId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectRelationship"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectRelationship"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectRelationship"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectRelationship"
+            tags: ["ObjectRelationship"]
+    "/object-validation-rules/{objectValidationRuleId}":
+        delete:
+            operationId: deleteObjectValidationRule
+            parameters:
+                - in: path
+                  name: objectValidationRuleId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectValidationRule"]
+        get:
+            operationId: getObjectValidationRule
+            parameters:
+                - in: path
+                  name: objectValidationRuleId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+            tags: ["ObjectValidationRule"]
+        patch:
+            operationId: patchObjectValidationRule
+            parameters:
+                - in: path
+                  name: objectValidationRuleId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectValidationRule"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectValidationRule"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+            tags: ["ObjectValidationRule"]
+        put:
+            operationId: putObjectValidationRule
+            parameters:
+                - in: path
+                  name: objectValidationRuleId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectValidationRule"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectValidationRule"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectValidationRule"
+            tags: ["ObjectValidationRule"]
+    "/object-views/{objectViewId}":
+        delete:
+            operationId: deleteObjectView
+            parameters:
+                - in: path
+                  name: objectViewId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ObjectView"]
+        get:
+            operationId: getObjectView
+            parameters:
+                - in: path
+                  name: objectViewId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+            tags: ["ObjectView"]
+        put:
+            operationId: putObjectView
+            parameters:
+                - in: path
+                  name: objectViewId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ObjectView"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ObjectView"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+            tags: ["ObjectView"]
+    "/object-views/{objectViewId}/copy":
+        post:
+            operationId: postObjectViewCopy
+            parameters:
+                - in: path
+                  name: objectViewId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+            tags: ["ObjectView"]

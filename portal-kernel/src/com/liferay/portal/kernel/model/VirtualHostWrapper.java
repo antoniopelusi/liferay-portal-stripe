@@ -106,6 +106,11 @@ public class VirtualHostWrapper
 		}
 	}
 
+	@Override
+	public VirtualHost cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this virtual host.
 	 *

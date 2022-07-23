@@ -15,13 +15,11 @@
 package com.liferay.portal.search.elasticsearch7.internal.document;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.search.elasticsearch7.internal.ElasticsearchIndexingFixture;
 import com.liferay.portal.search.elasticsearch7.internal.LiferayElasticsearchIndexingFixtureFactory;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchClientResolver;
-import com.liferay.portal.search.elasticsearch7.internal.connection.IndexCreationHelper;
+import com.liferay.portal.search.elasticsearch7.internal.connection.helper.IndexCreationHelper;
 import com.liferay.portal.search.test.util.DocumentsAssert;
 import com.liferay.portal.search.test.util.indexing.BaseIndexingTestCase;
 import com.liferay.portal.search.test.util.indexing.DocumentCreationHelpers;
@@ -30,17 +28,14 @@ import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.io.IOException;
 
-import java.util.Arrays;
-
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.PutMappingRequest;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.xcontent.XContentType;
 
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,20 +52,33 @@ public class GeoLocationPointFieldTest extends BaseIndexingTestCase {
 
 	@Test
 	public void testCustomField() throws Exception {
-		assertGeoLocationPointField(_CUSTOM_FIELD);
+		_assertGeoLocationPointField(_CUSTOM_FIELD);
 	}
 
 	@Test
 	public void testDefaultField() throws Exception {
-		assertGeoLocationPointField(Field.GEO_LOCATION);
+		_assertGeoLocationPointField(Field.GEO_LOCATION);
 	}
 
 	@Test
 	public void testDefaultTemplate() throws Exception {
-		assertGeoLocationPointField(_CUSTOM_FIELD.concat("_geolocation"));
+		_assertGeoLocationPointField(_CUSTOM_FIELD.concat("_geolocation"));
 	}
 
-	protected void assertGeoLocationPointField(String fieldName) {
+	@Override
+	protected IndexingFixture createIndexingFixture() throws Exception {
+		ElasticsearchIndexingFixture elasticsearchIndexingFixture =
+			LiferayElasticsearchIndexingFixtureFactory.builder(
+			).build();
+
+		elasticsearchIndexingFixture.setIndexCreationHelper(
+			new CustomFieldLiferayIndexCreationHelper(
+				elasticsearchIndexingFixture.getElasticsearchClientResolver()));
+
+		return elasticsearchIndexingFixture;
+	}
+
+	private void _assertGeoLocationPointField(String fieldName) {
 		double latitude = 33.99772698059678;
 		double longitude = -117.814457193017;
 
@@ -90,29 +98,6 @@ public class GeoLocationPointFieldTest extends BaseIndexingTestCase {
 						searchResponse.getDocumentsStream(), fieldName,
 						"[" + expected + "]"));
 			});
-	}
-
-	@Override
-	protected IndexingFixture createIndexingFixture() throws Exception {
-		ElasticsearchIndexingFixture elasticsearchIndexingFixture =
-			LiferayElasticsearchIndexingFixtureFactory.builder(
-			).build();
-
-		elasticsearchIndexingFixture.setIndexCreationHelper(
-			new CustomFieldLiferayIndexCreationHelper(
-				elasticsearchIndexingFixture.getElasticsearchClientResolver()));
-
-		return elasticsearchIndexingFixture;
-	}
-
-	protected Document searchOneDocument() throws Exception {
-		Hits hits = search(createSearchContext());
-
-		Document[] documents = hits.getDocs();
-
-		Assert.assertEquals(Arrays.toString(documents), 1, documents.length);
-
-		return documents[0];
 	}
 
 	private static final String _CUSTOM_FIELD = "customField";

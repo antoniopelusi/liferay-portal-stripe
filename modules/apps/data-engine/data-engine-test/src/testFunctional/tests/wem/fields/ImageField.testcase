@@ -74,7 +74,10 @@ definition {
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "${webTitle}");
 
-		AssertElementNotPresent(locator1 = "WCD#WEB_CONTENT_CONTENT_IMAGE");
+		AssertElementNotPresent(
+			key_fieldFieldLabel = "Image",
+			key_image = "Document_1.jpg",
+			locator1 = "WCEditWebContent#IMAGE_PICKER_PREVIEW");
 	}
 
 	@description = "This test ensures that a user can add the image field to the builder."
@@ -112,7 +115,7 @@ definition {
 			fieldFieldLabel = "Image",
 			fieldName = "Image");
 
-		DataEngine.editFieldRepeatable(fieldFieldLabel = "Image");
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Image");
 
 		WebContentStructures.saveCP();
 
@@ -122,7 +125,7 @@ definition {
 
 		WebContent.addWithStructureCP(webContentTitle = "Web Content Title");
 
-		DataEngine.addRepeatableField(fieldName = "Image");
+		DataEngine.addRepeatableField(fieldLabel = "Image");
 
 		Button.clickPublish();
 
@@ -146,39 +149,41 @@ definition {
 		property portal.acceptance = "false";
 
 		var structureTitle = "Test";
-		var structureTitlePT = "Teste";
-		var fieldLabelEN = "Text EN";
-		var fieldLabelPT = "Text PT";
+		var structureTitlePt = "Teste";
+		var fieldLabelEn = "Text EN";
+		var fieldLabelPt = "Text PT";
 
 		WebContentStructures.addCP(
 			structureDescription = "I'm a test",
 			structureName = "${structureTitle}");
 
 		DataEngine.addField(
-			fieldFieldLabel = "${fieldLabelEN}",
+			fieldFieldLabel = "${fieldLabelEn}",
 			fieldName = "Image");
 
 		Button.clickSave();
 
 		WebContentNavigator.gotoEditStructure(structureName = "${structureTitle}");
 
-		WebContentStructures.addLocalization(
-			locale = "pt_BR",
-			localization1Name = "${structureTitlePT}");
+		WebContentStructures.addTranslations(localeList = "pt-BR");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		WebContentStructures.addName(structureName = "${structureTitlePt}");
 
 		FormViewBuilder.editFieldLabel(
-			fieldLabel = "${fieldLabelEN}",
-			label = "${fieldLabelPT}");
+			fieldLabel = "${fieldLabelEn}",
+			label = "${fieldLabelPt}");
 
 		Button.clickSave();
 
 		WebContentNavigator.gotoEditStructure(structureName = "${structureTitle}");
 
-		PortletEntry.changeLocale(locale = "pt_BR");
+		PortletEntry.changeLocale(locale = "pt-BR");
 
 		AssertTextEquals(
 			locator1 = "TextInput#NAME",
-			value1 = "${structureTitlePT}");
+			value1 = "${structureTitlePt}");
 	}
 
 	@description = "This test aims to verify if the user is required to define a description for an uploaded image."
@@ -342,7 +347,7 @@ definition {
 			fieldFieldLabel = "Image",
 			fieldName = "Image");
 
-		DataEngine.editFieldRepeatable(fieldFieldLabel = "Image");
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Image");
 
 		WebContentStructures.saveCP();
 
@@ -387,40 +392,6 @@ definition {
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
 	}
 
-	@description = "This test ensures that user can toggle show/hide of field label."
-	@priority = "3"
-	test ShowAndHideImageFieldLabel {
-		WebContentStructures.addCP(structureName = "WC Structure Name");
-
-		DataEngine.addField(
-			fieldFieldLabel = "Image",
-			fieldName = "Image");
-
-		DataEngine.editShowOrHideLabel(
-			fieldFieldLabel = "Image",
-			showLabel = "true");
-
-		WebContentStructures.saveCP();
-
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
-
-		AssertElementPresent(
-			key_fieldFieldLabel = "Image",
-			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
-
-		DataEngine.editShowOrHideLabel(
-			fieldFieldLabel = "Image",
-			showLabel = "false");
-
-		WebContentStructures.saveCP(structureName = "WC Structure Name");
-
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
-
-		AssertElementNotPresent(
-			key_fieldFieldLabel = "Image",
-			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
-	}
-
 	@description = "This test ensures that a user can upload an image from Liferay Documents and Media."
 	@priority = "5"
 	test UploadImageFromDocumentsAndMedia {
@@ -456,11 +427,9 @@ definition {
 
 		Button.clickPublish();
 
-		WebContentNavigator.gotoEditCP(webContentTitle = "${webTitle}");
-
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_1.jpg");
+		WebContent.viewWithStructureCP(
+			webContentImage = "Document Title",
+			webContentTitle = "${webTitle}");
 	}
 
 }

@@ -2,11 +2,13 @@
 <head>
 <title>Sites</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Sites</td></tr>
 </thead>
+
 <tbody>
 <!--SELECT_SITE_MODAL-->
 <tr>
@@ -43,11 +45,6 @@
 <tr>
 	<td>SITE_TABLE_TYPE</td>
 	<td>//table[contains(@class,'table-autofit')]//tr[contains(.,'${key_siteName}')]/td[4]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SITE_TABLE_MEMBERS_USERS</td>
-	<td>//tr[contains(.,'${key_siteName}')]//td//span/div[@class='user-count']</td>
 	<td></td>
 </tr>
 <tr>

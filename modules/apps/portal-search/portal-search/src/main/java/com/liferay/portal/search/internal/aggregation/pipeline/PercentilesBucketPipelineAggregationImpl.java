@@ -21,7 +21,7 @@ import com.liferay.portal.search.aggregation.pipeline.PipelineAggregationVisitor
  * @author Michael C. Han
  */
 public class PercentilesBucketPipelineAggregationImpl
-	extends BucketMetricsPipelineAggregationImpl
+	extends BaseBucketMetricsPipelineAggregationImpl
 	implements PercentilesBucketPipelineAggregation {
 
 	public PercentilesBucketPipelineAggregationImpl(

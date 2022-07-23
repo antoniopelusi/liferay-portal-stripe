@@ -1,0 +1,69 @@
+@component-name = "portal-knowledge-base"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Knowledge Base";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Knowledge Base Article Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Knowledge Base Article Page",
+			widgetName = "Knowledge Base Article");
+
+		Navigator.gotoPage(pageName = "Knowledge Base Article Page");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			PagesAdmin.tearDownCP();
+
+			KBArticle.tearDownCP();
+		}
+	}
+
+	@priority = "3"
+	@refactorneeded
+	test DeleteKBArticleViaKBArticle {
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.addCP(
+			kbArticleContent = "Knowledge Base Article Content",
+			kbArticleTitle = "Knowledge Base Article Title");
+
+		Navigator.gotoPage(pageName = "Knowledge Base Article Page");
+
+		KBArticle.selectPGViaKBArticle(
+			kbArticleTitle = "Knowledge Base Article Title",
+			pageName = "Knowledge Base Article Page");
+
+		Navigator.gotoPage(pageName = "Knowledge Base Article Page");
+
+		KBArticle.viewPG(
+			kbArticleContent = "Knowledge Base Article Content",
+			kbArticleTitle = "Knowledge Base Article Title");
+
+		KBArticle.deletePG(
+			deleteViaKbArticle = "true",
+			kbArticleTitle = "Knowledge Base Article Title");
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.viewDefaultCP();
+	}
+
+}

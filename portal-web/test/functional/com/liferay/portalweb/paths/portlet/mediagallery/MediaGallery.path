@@ -2,11 +2,13 @@
 <head>
 <title>MediaGallery</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">MediaGallery</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>BREADCRUMB</td>
@@ -30,8 +32,13 @@
 </tr>
 <!--ENTRY-->
 <tr>
+	<td>ENTRY_IMAGE_PREVIEW</td>
+	<td>//div[contains(@class,'aspect-ratio')]//img[contains(@src,'${key_mgImageName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ENTRY_THUMBNAIL</td>
-	<td>//div[contains(@title,'${key_mgDocumentTitle}')]//div/img</td>
+	<td>//div[contains(@class,'card')][contains(.,'${key_mgDocumentTitle}')]//img</td>
 	<td></td>
 </tr>
 <tr>

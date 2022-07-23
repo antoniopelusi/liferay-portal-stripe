@@ -41,6 +41,10 @@ public class BatchEngineImportTaskTable
 			"mvccVersion", Long.class, Types.BIGINT, Column.FLAG_NULLITY);
 	public final Column<BatchEngineImportTaskTable, String> uuid = createColumn(
 		"uuid_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<BatchEngineImportTaskTable, String>
+		externalReferenceCode = createColumn(
+			"externalReferenceCode", String.class, Types.VARCHAR,
+			Column.FLAG_DEFAULT);
 	public final Column<BatchEngineImportTaskTable, Long>
 		batchEngineImportTaskId = createColumn(
 			"batchEngineImportTaskId", Long.class, Types.BIGINT,
@@ -73,26 +77,38 @@ public class BatchEngineImportTaskTable
 	public final Column<BatchEngineImportTaskTable, Date> endTime =
 		createColumn(
 			"endTime", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
-	public final Column<BatchEngineImportTaskTable, String> errorMessage =
+	public final Column<BatchEngineImportTaskTable, Clob> errorMessage =
 		createColumn(
-			"errorMessage", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+			"errorMessage", Clob.class, Types.CLOB, Column.FLAG_DEFAULT);
 	public final Column<BatchEngineImportTaskTable, String> executeStatus =
 		createColumn(
 			"executeStatus", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<BatchEngineImportTaskTable, Clob> fieldNameMapping =
 		createColumn(
 			"fieldNameMapping", Clob.class, Types.CLOB, Column.FLAG_DEFAULT);
+	public final Column<BatchEngineImportTaskTable, Integer> importStrategy =
+		createColumn(
+			"importStrategy", Integer.class, Types.INTEGER,
+			Column.FLAG_DEFAULT);
 	public final Column<BatchEngineImportTaskTable, String> operation =
 		createColumn(
 			"operation", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<BatchEngineImportTaskTable, Clob> parameters =
 		createColumn("parameters", Clob.class, Types.CLOB, Column.FLAG_DEFAULT);
+	public final Column<BatchEngineImportTaskTable, Integer>
+		processedItemsCount = createColumn(
+			"processedItemsCount", Integer.class, Types.INTEGER,
+			Column.FLAG_DEFAULT);
 	public final Column<BatchEngineImportTaskTable, Date> startTime =
 		createColumn(
 			"startTime", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
 	public final Column<BatchEngineImportTaskTable, String>
 		taskItemDelegateName = createColumn(
 			"taskItemDelegateName", String.class, Types.VARCHAR,
+			Column.FLAG_DEFAULT);
+	public final Column<BatchEngineImportTaskTable, Integer> totalItemsCount =
+		createColumn(
+			"totalItemsCount", Integer.class, Types.INTEGER,
 			Column.FLAG_DEFAULT);
 
 	private BatchEngineImportTaskTable() {

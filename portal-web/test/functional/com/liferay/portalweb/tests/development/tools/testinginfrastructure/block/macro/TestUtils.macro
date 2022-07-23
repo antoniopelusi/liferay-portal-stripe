@@ -9,7 +9,7 @@ definition {
 			echo("PASSED");
 		}
 		else {
-			TestUtils.fail(message = "FAILED: expected &apos;${expected}&apos;, actual was &apos;${actual}&apos;");
+			TestUtils.fail(message = "FAILED: expected '${expected}', actual was '${actual}'");
 		}
 	}
 
@@ -22,7 +22,7 @@ definition {
 			echo("PASSED");
 		}
 		else {
-			TestUtils.fail(message = "FAILED: &apos;${expected}&apos; equals &apos;${actual}&apos;");
+			TestUtils.fail(message = "FAILED: '${expected}' equals '${actual}'");
 		}
 	}
 
@@ -36,6 +36,32 @@ definition {
 		fail("${message}");
 	}
 
+	macro getElementTextContent {
+		WaitForSPARefresh();
+
+		var javascript = '''
+var element = document.evaluate("${element}", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+return element.textContent;
+		''';
+		var textContent = selenium.getEval("${javascript}");
+
+		return "${textContent}";
+	}
+
+	macro hardRefresh {
+		var mac = OSDetector.isApple();
+
+		if ("${mac}" == "true") {
+			RobotType.robotTypeShortcut(locator1 = "Shift + Command + r");
+		}
+		else {
+			RobotType.robotTypeShortcut(locator1 = "Ctrl + Shift + r");
+		}
+
+		WaitForPageLoad();
+	}
+
 	macro isGreaterThan {
 		echo("${expected}");
 
@@ -47,7 +73,22 @@ definition {
 			echo("PASSED");
 		}
 		else {
-			TestUtils.fail(message = "FAILED: actual &apos;${actual}&apos; is less than or equals to expected &apos;${expected}&apos;");
+			TestUtils.fail(message = "FAILED: actual '${actual}' is less than or equals to expected '${expected}'");
+		}
+	}
+
+	macro isLessThan {
+		echo("${expected}");
+
+		echo("${actual}");
+
+		var result = MathUtil.isLessThan("${actual}", "${expected}");
+
+		if ("${result}" == "true") {
+			echo("PASSED");
+		}
+		else {
+			TestUtils.fail(message = "FAILED: actual '${actual}' is greater than or equals to expected '${expected}'");
 		}
 	}
 
@@ -66,7 +107,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Test Page Name");
+		PagesAdmin.addPage(pageName = "Test Page Name");
 	}
 
 }

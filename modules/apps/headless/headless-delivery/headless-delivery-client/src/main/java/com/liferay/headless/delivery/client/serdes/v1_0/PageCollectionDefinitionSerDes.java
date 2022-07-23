@@ -14,6 +14,7 @@
 
 package com.liferay.headless.delivery.client.serdes.v1_0;
 
+import com.liferay.headless.delivery.client.dto.v1_0.CollectionViewport;
 import com.liferay.headless.delivery.client.dto.v1_0.FragmentViewport;
 import com.liferay.headless.delivery.client.dto.v1_0.PageCollectionDefinition;
 import com.liferay.headless.delivery.client.json.BaseJSONParser;
@@ -68,6 +69,54 @@ public class PageCollectionDefinitionSerDes {
 
 			sb.append(
 				String.valueOf(pageCollectionDefinition.getCollectionConfig()));
+		}
+
+		if (pageCollectionDefinition.getCollectionViewports() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"collectionViewports\": ");
+
+			sb.append("[");
+
+			for (int i = 0;
+				 i < pageCollectionDefinition.getCollectionViewports().length;
+				 i++) {
+
+				sb.append(
+					String.valueOf(
+						pageCollectionDefinition.getCollectionViewports()[i]));
+
+				if ((i + 1) <
+						pageCollectionDefinition.
+							getCollectionViewports().length) {
+
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
+		if (pageCollectionDefinition.getDisplayAllItems() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"displayAllItems\": ");
+
+			sb.append(pageCollectionDefinition.getDisplayAllItems());
+		}
+
+		if (pageCollectionDefinition.getDisplayAllPages() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"displayAllPages\": ");
+
+			sb.append(pageCollectionDefinition.getDisplayAllPages());
 		}
 
 		if (pageCollectionDefinition.getFragmentStyle() != null) {
@@ -157,6 +206,50 @@ public class PageCollectionDefinitionSerDes {
 			sb.append(pageCollectionDefinition.getNumberOfItems());
 		}
 
+		if (pageCollectionDefinition.getNumberOfItemsPerPage() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfItemsPerPage\": ");
+
+			sb.append(pageCollectionDefinition.getNumberOfItemsPerPage());
+		}
+
+		if (pageCollectionDefinition.getNumberOfPages() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfPages\": ");
+
+			sb.append(pageCollectionDefinition.getNumberOfPages());
+		}
+
+		if (pageCollectionDefinition.getPaginationType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"paginationType\": ");
+
+			sb.append("\"");
+
+			sb.append(pageCollectionDefinition.getPaginationType());
+
+			sb.append("\"");
+		}
+
+		if (pageCollectionDefinition.getShowAllItems() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"showAllItems\": ");
+
+			sb.append(pageCollectionDefinition.getShowAllItems());
+		}
+
 		if (pageCollectionDefinition.getTemplateKey() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -199,6 +292,34 @@ public class PageCollectionDefinitionSerDes {
 			map.put(
 				"collectionConfig",
 				String.valueOf(pageCollectionDefinition.getCollectionConfig()));
+		}
+
+		if (pageCollectionDefinition.getCollectionViewports() == null) {
+			map.put("collectionViewports", null);
+		}
+		else {
+			map.put(
+				"collectionViewports",
+				String.valueOf(
+					pageCollectionDefinition.getCollectionViewports()));
+		}
+
+		if (pageCollectionDefinition.getDisplayAllItems() == null) {
+			map.put("displayAllItems", null);
+		}
+		else {
+			map.put(
+				"displayAllItems",
+				String.valueOf(pageCollectionDefinition.getDisplayAllItems()));
+		}
+
+		if (pageCollectionDefinition.getDisplayAllPages() == null) {
+			map.put("displayAllPages", null);
+		}
+		else {
+			map.put(
+				"displayAllPages",
+				String.valueOf(pageCollectionDefinition.getDisplayAllPages()));
 		}
 
 		if (pageCollectionDefinition.getFragmentStyle() == null) {
@@ -256,6 +377,43 @@ public class PageCollectionDefinitionSerDes {
 				String.valueOf(pageCollectionDefinition.getNumberOfItems()));
 		}
 
+		if (pageCollectionDefinition.getNumberOfItemsPerPage() == null) {
+			map.put("numberOfItemsPerPage", null);
+		}
+		else {
+			map.put(
+				"numberOfItemsPerPage",
+				String.valueOf(
+					pageCollectionDefinition.getNumberOfItemsPerPage()));
+		}
+
+		if (pageCollectionDefinition.getNumberOfPages() == null) {
+			map.put("numberOfPages", null);
+		}
+		else {
+			map.put(
+				"numberOfPages",
+				String.valueOf(pageCollectionDefinition.getNumberOfPages()));
+		}
+
+		if (pageCollectionDefinition.getPaginationType() == null) {
+			map.put("paginationType", null);
+		}
+		else {
+			map.put(
+				"paginationType",
+				String.valueOf(pageCollectionDefinition.getPaginationType()));
+		}
+
+		if (pageCollectionDefinition.getShowAllItems() == null) {
+			map.put("showAllItems", null);
+		}
+		else {
+			map.put(
+				"showAllItems",
+				String.valueOf(pageCollectionDefinition.getShowAllItems()));
+		}
+
 		if (pageCollectionDefinition.getTemplateKey() == null) {
 			map.put("templateKey", null);
 		}
@@ -291,6 +449,33 @@ public class PageCollectionDefinitionSerDes {
 					pageCollectionDefinition.setCollectionConfig(
 						CollectionConfigSerDes.toDTO(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "collectionViewports")) {
+
+				if (jsonParserFieldValue != null) {
+					pageCollectionDefinition.setCollectionViewports(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> CollectionViewportSerDes.toDTO(
+								(String)object)
+						).toArray(
+							size -> new CollectionViewport[size]
+						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "displayAllItems")) {
+				if (jsonParserFieldValue != null) {
+					pageCollectionDefinition.setDisplayAllItems(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "displayAllPages")) {
+				if (jsonParserFieldValue != null) {
+					pageCollectionDefinition.setDisplayAllPages(
+						(Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "fragmentStyle")) {
@@ -335,6 +520,33 @@ public class PageCollectionDefinitionSerDes {
 				if (jsonParserFieldValue != null) {
 					pageCollectionDefinition.setNumberOfItems(
 						Integer.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "numberOfItemsPerPage")) {
+
+				if (jsonParserFieldValue != null) {
+					pageCollectionDefinition.setNumberOfItemsPerPage(
+						Integer.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "numberOfPages")) {
+				if (jsonParserFieldValue != null) {
+					pageCollectionDefinition.setNumberOfPages(
+						Integer.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "paginationType")) {
+				if (jsonParserFieldValue != null) {
+					pageCollectionDefinition.setPaginationType(
+						PageCollectionDefinition.PaginationType.create(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "showAllItems")) {
+				if (jsonParserFieldValue != null) {
+					pageCollectionDefinition.setShowAllItems(
+						(Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "templateKey")) {

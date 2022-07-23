@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the commerce price list channel rel service. This utility wraps <code>com.liferay.commerce.price.list.service.persistence.impl.CommercePriceListChannelRelPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -679,12 +675,12 @@ public class CommercePriceListChannelRelUtil {
 	 * @return the matching commerce price list channel rel
 	 * @throws NoSuchPriceListChannelRelException if a matching commerce price list channel rel could not be found
 	 */
-	public static CommercePriceListChannelRel findByC_C(
+	public static CommercePriceListChannelRel findByCCI_CPI(
 			long commerceChannelId, long commercePriceListId)
 		throws com.liferay.commerce.price.list.exception.
 			NoSuchPriceListChannelRelException {
 
-		return getPersistence().findByC_C(
+		return getPersistence().findByCCI_CPI(
 			commerceChannelId, commercePriceListId);
 	}
 
@@ -695,10 +691,10 @@ public class CommercePriceListChannelRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the matching commerce price list channel rel, or <code>null</code> if a matching commerce price list channel rel could not be found
 	 */
-	public static CommercePriceListChannelRel fetchByC_C(
+	public static CommercePriceListChannelRel fetchByCCI_CPI(
 		long commerceChannelId, long commercePriceListId) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCCI_CPI(
 			commerceChannelId, commercePriceListId);
 	}
 
@@ -710,11 +706,11 @@ public class CommercePriceListChannelRelUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching commerce price list channel rel, or <code>null</code> if a matching commerce price list channel rel could not be found
 	 */
-	public static CommercePriceListChannelRel fetchByC_C(
+	public static CommercePriceListChannelRel fetchByCCI_CPI(
 		long commerceChannelId, long commercePriceListId,
 		boolean useFinderCache) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCCI_CPI(
 			commerceChannelId, commercePriceListId, useFinderCache);
 	}
 
@@ -725,12 +721,12 @@ public class CommercePriceListChannelRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the commerce price list channel rel that was removed
 	 */
-	public static CommercePriceListChannelRel removeByC_C(
+	public static CommercePriceListChannelRel removeByCCI_CPI(
 			long commerceChannelId, long commercePriceListId)
 		throws com.liferay.commerce.price.list.exception.
 			NoSuchPriceListChannelRelException {
 
-		return getPersistence().removeByC_C(
+		return getPersistence().removeByCCI_CPI(
 			commerceChannelId, commercePriceListId);
 	}
 
@@ -741,10 +737,10 @@ public class CommercePriceListChannelRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the number of matching commerce price list channel rels
 	 */
-	public static int countByC_C(
+	public static int countByCCI_CPI(
 		long commerceChannelId, long commercePriceListId) {
 
-		return getPersistence().countByC_C(
+		return getPersistence().countByCCI_CPI(
 			commerceChannelId, commercePriceListId);
 	}
 
@@ -915,29 +911,9 @@ public class CommercePriceListChannelRelUtil {
 	}
 
 	public static CommercePriceListChannelRelPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CommercePriceListChannelRelPersistence,
-		 CommercePriceListChannelRelPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommercePriceListChannelRelPersistence.class);
-
-		ServiceTracker
-			<CommercePriceListChannelRelPersistence,
-			 CommercePriceListChannelRelPersistence> serviceTracker =
-				new ServiceTracker
-					<CommercePriceListChannelRelPersistence,
-					 CommercePriceListChannelRelPersistence>(
-						 bundle.getBundleContext(),
-						 CommercePriceListChannelRelPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CommercePriceListChannelRelPersistence _persistence;
 
 }

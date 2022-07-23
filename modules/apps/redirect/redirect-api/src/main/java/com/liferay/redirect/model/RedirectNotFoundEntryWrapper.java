@@ -122,6 +122,11 @@ public class RedirectNotFoundEntryWrapper
 		}
 	}
 
+	@Override
+	public RedirectNotFoundEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this redirect not found entry.
 	 *

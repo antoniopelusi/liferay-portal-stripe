@@ -1,6 +1,8 @@
 create table CPLCommerceGroupAccountRel (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	CPLCommerceAccountGroupRelId LONG not null primary key,
+	CPLCommerceAccountGroupRelId LONG not null,
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
@@ -9,13 +11,16 @@ create table CPLCommerceGroupAccountRel (
 	commercePriceListId LONG,
 	commerceAccountGroupId LONG,
 	order_ INTEGER,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (CPLCommerceAccountGroupRelId, ctCollectionId)
 );
 
 create table CommercePriceEntry (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	externalReferenceCode VARCHAR(75) null,
-	commercePriceEntryId LONG not null primary key,
+	commercePriceEntryId LONG not null,
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
@@ -39,13 +44,16 @@ create table CommercePriceEntry (
 	status INTEGER,
 	statusByUserId LONG,
 	statusByUserName VARCHAR(75) null,
-	statusDate DATE null
+	statusDate DATE null,
+	primary key (commercePriceEntryId, ctCollectionId)
 );
 
 create table CommercePriceList (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	externalReferenceCode VARCHAR(75) null,
-	commercePriceListId LONG not null primary key,
+	commercePriceListId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -65,12 +73,15 @@ create table CommercePriceList (
 	status INTEGER,
 	statusByUserId LONG,
 	statusByUserName VARCHAR(75) null,
-	statusDate DATE null
+	statusDate DATE null,
+	primary key (commercePriceListId, ctCollectionId)
 );
 
 create table CommercePriceListAccountRel (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	commercePriceListAccountRelId LONG not null primary key,
+	commercePriceListAccountRelId LONG not null,
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
@@ -79,12 +90,15 @@ create table CommercePriceListAccountRel (
 	commerceAccountId LONG,
 	commercePriceListId LONG,
 	order_ INTEGER,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (commercePriceListAccountRelId, ctCollectionId)
 );
 
 create table CommercePriceListChannelRel (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	CommercePriceListChannelRelId LONG not null primary key,
+	CommercePriceListChannelRelId LONG not null,
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
@@ -93,12 +107,15 @@ create table CommercePriceListChannelRel (
 	commerceChannelId LONG,
 	commercePriceListId LONG,
 	order_ INTEGER,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (CommercePriceListChannelRelId, ctCollectionId)
 );
 
 create table CommercePriceListDiscountRel (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	commercePriceListDiscountRelId LONG not null primary key,
+	commercePriceListDiscountRelId LONG not null,
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
@@ -107,13 +124,33 @@ create table CommercePriceListDiscountRel (
 	commerceDiscountId LONG,
 	commercePriceListId LONG,
 	order_ INTEGER,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (commercePriceListDiscountRelId, ctCollectionId)
+);
+
+create table CommercePriceListOrderTypeRel (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
+	uuid_ VARCHAR(75) null,
+	CPriceListOrderTypeRelId LONG not null,
+	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
+	commercePriceListId LONG,
+	commerceOrderTypeId LONG,
+	priority INTEGER,
+	lastPublishDate DATE null,
+	primary key (CPriceListOrderTypeRelId, ctCollectionId)
 );
 
 create table CommerceTierPriceEntry (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	externalReferenceCode VARCHAR(75) null,
-	commerceTierPriceEntryId LONG not null primary key,
+	commerceTierPriceEntryId LONG not null,
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
@@ -134,5 +171,6 @@ create table CommerceTierPriceEntry (
 	status INTEGER,
 	statusByUserId LONG,
 	statusByUserName VARCHAR(75) null,
-	statusDate DATE null
+	statusDate DATE null,
+	primary key (commerceTierPriceEntryId, ctCollectionId)
 );

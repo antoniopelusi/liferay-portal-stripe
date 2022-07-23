@@ -15,12 +15,17 @@
 package com.liferay.fragment.web.internal.portlet.action;
 
 import com.liferay.fragment.constants.FragmentPortletKeys;
+import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
+import com.liferay.fragment.model.FragmentEntry;
+import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
+import com.liferay.portal.kernel.util.ParamUtil;
 
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
@@ -39,7 +44,33 @@ public class EditFragmentEntryMVCRenderCommand implements MVCRenderCommand {
 	public String render(
 		RenderRequest renderRequest, RenderResponse renderResponse) {
 
-		return "/edit_fragment_entry.jsp";
+		long fragmentEntryId = ParamUtil.getLong(
+			renderRequest, "fragmentEntryId");
+
+		FragmentEntry fragmentEntry =
+			_fragmentEntryLocalService.fetchFragmentEntry(fragmentEntryId);
+
+		if (fragmentEntry == null) {
+			String fragmentEntryKey = ParamUtil.getString(
+				renderRequest, "fragmentEntryKey");
+
+			fragmentEntry =
+				_fragmentCollectionContributorTracker.getFragmentEntry(
+					fragmentEntryKey);
+		}
+
+		if (fragmentEntry != null) {
+			return "/edit_fragment_entry.jsp";
+		}
+
+		return "/error.jsp";
 	}
+
+	@Reference
+	private FragmentCollectionContributorTracker
+		_fragmentCollectionContributorTracker;
+
+	@Reference
+	private FragmentEntryLocalService _fragmentEntryLocalService;
 
 }

@@ -17,12 +17,16 @@ package com.liferay.commerce.price.list.service.impl;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.model.CommercePriceListChannelRel;
 import com.liferay.commerce.price.list.service.base.CommercePriceListChannelRelLocalServiceBaseImpl;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
 
@@ -35,11 +39,11 @@ public class CommercePriceListChannelRelLocalServiceImpl
 
 	@Override
 	public CommercePriceListChannelRel addCommercePriceListChannelRel(
-			long commercePriceListId, long commerceChannelId, int order,
-			ServiceContext serviceContext)
+			long userId, long commercePriceListId, long commerceChannelId,
+			int order, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = userLocalService.getUser(userId);
 
 		CommercePriceListChannelRel commercePriceListChannelRel =
 			commercePriceListChannelRelPersistence.create(
@@ -53,20 +57,20 @@ public class CommercePriceListChannelRelLocalServiceImpl
 		commercePriceListChannelRel.setOrder(order);
 		commercePriceListChannelRel.setExpandoBridgeAttributes(serviceContext);
 
-		// Commerce price list
+		commercePriceListChannelRel =
+			commercePriceListChannelRelPersistence.update(
+				commercePriceListChannelRel);
 
 		reindexCommercePriceList(commercePriceListId);
-
-		// Cache
 
 		commercePriceListLocalService.cleanPriceListCache(
 			serviceContext.getCompanyId());
 
-		return commercePriceListChannelRelPersistence.update(
-			commercePriceListChannelRel);
+		return commercePriceListChannelRel;
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceListChannelRel deleteCommercePriceListChannelRel(
 			CommercePriceListChannelRel commercePriceListChannelRel)
 		throws PortalException {
@@ -74,12 +78,11 @@ public class CommercePriceListChannelRelLocalServiceImpl
 		commercePriceListChannelRelPersistence.remove(
 			commercePriceListChannelRel);
 
-		// Commerce price list
+		_expandoRowLocalService.deleteRows(
+			commercePriceListChannelRel.getCommercePriceListChannelRelId());
 
 		reindexCommercePriceList(
 			commercePriceListChannelRel.getCommercePriceListId());
-
-		// Cache
 
 		commercePriceListLocalService.cleanPriceListCache(
 			commercePriceListChannelRel.getCompanyId());
@@ -120,7 +123,7 @@ public class CommercePriceListChannelRelLocalServiceImpl
 	public CommercePriceListChannelRel fetchCommercePriceListChannelRel(
 		long commerceChannelId, long commercePriceListId) {
 
-		return commercePriceListChannelRelPersistence.fetchByC_C(
+		return commercePriceListChannelRelPersistence.fetchByCCI_CPI(
 			commerceChannelId, commercePriceListId);
 	}
 
@@ -171,5 +174,8 @@ public class CommercePriceListChannelRelLocalServiceImpl
 
 		indexer.reindex(CommercePriceList.class.getName(), commercePriceListId);
 	}
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 }

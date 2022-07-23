@@ -29,6 +29,14 @@ describe('UnsafeHTML', () => {
 		expect(getByRole('heading')).toBeInTheDocument();
 	});
 
+	it('allows adding any id', () => {
+		const {container} = render(
+			<UnsafeHTML id="food" markup="Pi<strong>zz</strong>a" />
+		);
+
+		expect(container.querySelector('#food')).toBeInTheDocument();
+	});
+
 	it('allows adding any className', () => {
 		const {container} = render(
 			<UnsafeHTML className="food" markup="Pi<strong>zz</strong>a" />
@@ -108,5 +116,12 @@ describe('UnsafeHTML', () => {
 
 		expect(portalContent).toBeInTheDocument();
 		expect(portalContent.innerHTML).toBe('Some portal 123');
+	});
+
+	it('does nothing if there is no markup', () => {
+		const onRender = jest.fn();
+
+		render(<UnsafeHTML markup="" onRender={onRender} />);
+		expect(onRender).not.toHaveBeenCalled();
 	});
 });

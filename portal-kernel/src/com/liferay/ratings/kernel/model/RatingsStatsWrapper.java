@@ -128,6 +128,11 @@ public class RatingsStatsWrapper
 		}
 	}
 
+	@Override
+	public RatingsStats cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the average score of this ratings stats.
 	 *

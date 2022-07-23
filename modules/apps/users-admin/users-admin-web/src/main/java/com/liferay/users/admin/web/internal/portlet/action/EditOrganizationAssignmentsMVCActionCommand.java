@@ -14,7 +14,7 @@
 
 package com.liferay.users.admin.web.internal.portlet.action;
 
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.exception.NoSuchOrganizationException;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
 import com.liferay.portal.kernel.model.Group;
@@ -60,7 +60,7 @@ public class EditOrganizationAssignmentsMVCActionCommand
 		throws Exception {
 
 		try {
-			updateOrganizationUsers(actionRequest);
+			_updateOrganizationUsers(actionRequest);
 
 			String redirect = ParamUtil.getString(
 				actionRequest, "assignmentsRedirect");
@@ -90,7 +90,7 @@ public class EditOrganizationAssignmentsMVCActionCommand
 		_userService = userService;
 	}
 
-	protected void updateOrganizationUsers(ActionRequest actionRequest)
+	private void _updateOrganizationUsers(ActionRequest actionRequest)
 		throws Exception {
 
 		long organizationId = ParamUtil.getLong(
@@ -101,8 +101,8 @@ public class EditOrganizationAssignmentsMVCActionCommand
 		long[] removeUserIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "removeUserIds"), 0L);
 
-		try (SafeClosable safeClosable =
-				ProxyModeThreadLocal.setWithSafeClosable(true)) {
+		try (SafeCloseable safeCloseable =
+				ProxyModeThreadLocal.setWithSafeCloseable(true)) {
 
 			_userService.addOrganizationUsers(organizationId, addUserIds);
 			_userService.unsetOrganizationUsers(organizationId, removeUserIds);

@@ -34,8 +34,6 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 	@Override
 	public void onBeforeRemove(Layout layout) throws ModelListenerException {
 		try {
-			super.onBeforeRemove(layout);
-
 			LayoutSEOEntry layoutSEOEntry =
 				_layoutSEOEntryLocalService.fetchLayoutSEOEntry(
 					layout.getGroupId(), layout.isPrivateLayout(),

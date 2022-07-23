@@ -25,11 +25,9 @@ import com.liferay.adaptive.media.image.media.query.MediaQueryProvider;
 import com.liferay.adaptive.media.image.url.AMImageURLFactory;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.layout.adaptive.media.LayoutAdaptiveMediaProcessor;
-import com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration;
 import com.liferay.layout.responsive.ViewportSize;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -42,7 +40,6 @@ import java.net.URI;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,16 +50,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Pavel Savinov
  */
-@Component(
-	configurationPid = "com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration",
-	immediate = true, service = LayoutAdaptiveMediaProcessor.class
-)
+@Component(immediate = true, service = LayoutAdaptiveMediaProcessor.class)
 public class LayoutAdaptiveMediaProcessorImpl
 	implements LayoutAdaptiveMediaProcessor {
 
@@ -74,7 +67,7 @@ public class LayoutAdaptiveMediaProcessorImpl
 		Document document = Jsoup.parse(processedContent);
 
 		try {
-			for (ViewportSize viewportSize : ViewportSize.values()) {
+			for (ViewportSize viewportSize : _viewportSizes) {
 				Elements elements = document.getElementsByAttribute(
 					"data-" + viewportSize.getViewportSizeId() +
 						"-configuration");
@@ -139,13 +132,6 @@ public class LayoutAdaptiveMediaProcessorImpl
 		return bodyElement.html();
 	}
 
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_ffLayoutContentPageEditorConfiguration =
-			ConfigurableUtil.createConfigurable(
-				FFLayoutContentPageEditorConfiguration.class, properties);
-	}
-
 	private void _appendSourceElement(
 		Document document, Element element, URI uri,
 		ViewportSize viewportSize) {
@@ -200,12 +186,9 @@ public class LayoutAdaptiveMediaProcessorImpl
 			sb.append(StringPool.OPEN_CURLY_BRACE);
 			sb.append(StringPool.POUND);
 			sb.append(elementId);
-			sb.append(StringPool.OPEN_CURLY_BRACE);
-			sb.append("background-image: url(");
+			sb.append("{background-image: url(");
 			sb.append(mediaQuery.getSrc());
-			sb.append(") !important;");
-			sb.append(StringPool.CLOSE_CURLY_BRACE);
-			sb.append(StringPool.CLOSE_CURLY_BRACE);
+			sb.append(") !important;}}");
 		}
 
 		return sb.toString();
@@ -254,6 +237,7 @@ public class LayoutAdaptiveMediaProcessorImpl
 
 	private static final Pattern _cssPropertyPattern = Pattern.compile(
 		"--background-image-file-entry-id:\\s*(\\d+);");
+	private static final ViewportSize[] _viewportSizes = ViewportSize.values();
 
 	@Reference
 	private AMImageConfigurationHelper _amImageConfigurationHelper;
@@ -266,9 +250,6 @@ public class LayoutAdaptiveMediaProcessorImpl
 
 	@Reference
 	private DLAppService _dlAppService;
-
-	private volatile FFLayoutContentPageEditorConfiguration
-		_ffLayoutContentPageEditorConfiguration;
 
 	@Reference
 	private MediaQueryProvider _mediaQueryProvider;

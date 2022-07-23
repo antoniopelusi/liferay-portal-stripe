@@ -19,6 +19,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.comment.Discussion;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
 
@@ -140,9 +141,9 @@ public class DiscussionTag extends IncludeTag {
 
 		return StringBundler.concat(
 			themeDisplay.getPathMain(),
-			"/portal/comment/discussion/get_editor?p_p_isolated=1&",
-			"doAsUserId=", themeDisplay.getDoAsUserId(), "&portletId=",
-			portletId);
+			"/portal/comment/discussion/get_editor?p_l_id=",
+			themeDisplay.getPlid(), "&p_p_id=", portletId, "&p_p_isolated=1&",
+			"doAsUserId=", URLCodec.encodeURL(themeDisplay.getDoAsUserId()));
 	}
 
 	protected String getFormAction(HttpServletRequest httpServletRequest) {
@@ -154,10 +155,15 @@ public class DiscussionTag extends IncludeTag {
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		String portletId = portletDisplay.getId();
+
 		return StringBundler.concat(
 			themeDisplay.getPathMain(),
 			"/portal/comment/discussion/edit?doAsUserId=",
-			themeDisplay.getDoAsUserId());
+			URLCodec.encodeURL(themeDisplay.getDoAsUserId()), "&p_p_id=",
+			portletId, "&p_l_id=", themeDisplay.getPlid());
 	}
 
 	@Override
@@ -177,8 +183,8 @@ public class DiscussionTag extends IncludeTag {
 		return StringBundler.concat(
 			themeDisplay.getPathMain(),
 			"/portal/comment/discussion/get_comments?p_p_isolated=1&",
-			"doAsUserId=", themeDisplay.getDoAsUserId(), "&portletId=",
-			portletId);
+			"doAsUserId=", URLCodec.encodeURL(themeDisplay.getDoAsUserId()),
+			"&p_p_id=", portletId, "&p_l_id=", themeDisplay.getPlid());
 	}
 
 	@Override

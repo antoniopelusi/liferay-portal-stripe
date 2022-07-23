@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.directory.api.ldap.model.entry.Value;
-import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.filter.AndNode;
 import org.apache.directory.api.ldap.model.filter.BranchNode;
 import org.apache.directory.api.ldap.model.filter.EqualityNode;
@@ -65,13 +64,13 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		List<Response> responses = new ArrayList<>();
 
 		try {
-			addObjectEntries(searchRequest, responses);
+			_addObjectEntries(searchRequest, responses);
 
 			responses.add(getResultResponse(searchRequest));
 		}
 		catch (SearchSizeLimitException searchSizeLimitException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(searchSizeLimitException, searchSizeLimitException);
+				_log.debug(searchSizeLimitException);
 			}
 
 			responses.add(
@@ -80,7 +79,7 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		}
 		catch (SearchTimeLimitException searchTimeLimitException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(searchTimeLimitException, searchTimeLimitException);
+				_log.debug(searchTimeLimitException);
 			}
 
 			responses.add(
@@ -88,20 +87,20 @@ public class SearchLdapHandler extends BaseLdapHandler {
 					searchRequest, ResultCodeEnum.TIME_LIMIT_EXCEEDED));
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return responses;
 	}
 
-	protected void addObjectEntries(
+	private void _addObjectEntries(
 			SearchRequest searchRequest, List<Response> responses)
 		throws Exception {
 
 		DirectoryTree directoryTree = new DirectoryTree();
 
 		SearchBase searchBase = directoryTree.getSearchBase(
-			searchRequest.getBase(), getSizeLimit(searchRequest));
+			searchRequest.getBase(), _getSizeLimit(searchRequest));
 
 		if (searchBase == null) {
 			return;
@@ -113,19 +112,19 @@ public class SearchLdapHandler extends BaseLdapHandler {
 			return;
 		}
 
-		searchBase.setSizeLimit(getSizeLimit(searchRequest));
+		searchBase.setSizeLimit(_getSizeLimit(searchRequest));
 
 		SearchScope searchScope = searchRequest.getScope();
 
 		if ((searchScope.equals(SearchScope.OBJECT) ||
 			 searchScope.equals(SearchScope.SUBTREE)) &&
-			isMatch(directory, searchRequest.getFilter())) {
+			_isMatch(directory, searchRequest.getFilter())) {
 
 			StopWatch stopWatch = new StopWatch();
 
 			stopWatch.start();
 
-			addObjectEntry(searchRequest, responses, directory, stopWatch);
+			_addObjectEntry(searchRequest, responses, directory, stopWatch);
 
 			searchBase.setSizeLimit(searchBase.getSizeLimit() - 1);
 		}
@@ -141,16 +140,16 @@ public class SearchLdapHandler extends BaseLdapHandler {
 				searchBase, searchRequest.getFilter(), searchScope);
 
 			for (Directory subdirectory : subdirectories) {
-				addObjectEntry(
+				_addObjectEntry(
 					searchRequest, responses, subdirectory, stopWatch);
 			}
 		}
 	}
 
-	protected void addObjectEntry(
+	private void _addObjectEntry(
 			SearchRequest searchRequest, List<Response> responses,
 			Directory directory, StopWatch stopWatch)
-		throws LdapException {
+		throws Exception {
 
 		SearchResultEntry searchResponseEntry = new SearchResultEntryImpl(
 			searchRequest.getMessageId());
@@ -158,18 +157,20 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		searchResponseEntry.setEntry(
 			directory.toEntry(searchRequest.getAttributes()));
 
-		if (responses.size() >= getSizeLimit(searchRequest)) {
+		if (responses.size() >= _getSizeLimit(searchRequest)) {
 			throw new SearchSizeLimitException();
 		}
 
-		if ((stopWatch.getTime() / Time.SECOND) > getTimeLimit(searchRequest)) {
+		if ((stopWatch.getTime() / Time.SECOND) > _getTimeLimit(
+				searchRequest)) {
+
 			throw new SearchTimeLimitException();
 		}
 
 		responses.add(searchResponseEntry);
 	}
 
-	protected long getSizeLimit(SearchRequest searchRequest) {
+	private long _getSizeLimit(SearchRequest searchRequest) {
 		long sizeLimit = searchRequest.getSizeLimit();
 
 		if ((sizeLimit == 0) ||
@@ -181,7 +182,7 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		return sizeLimit;
 	}
 
-	protected int getTimeLimit(SearchRequest searchRequest) {
+	private int _getTimeLimit(SearchRequest searchRequest) {
 		int timeLimit = searchRequest.getTimeLimit();
 
 		if ((timeLimit == 0) ||
@@ -193,24 +194,24 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		return timeLimit;
 	}
 
-	protected boolean isMatch(Directory directory, ExprNode exprNode) {
+	private boolean _isMatch(Directory directory, ExprNode exprNode) {
 		if (exprNode.isLeaf()) {
 			LeafNode leafNode = (LeafNode)exprNode;
 
-			return isMatchLeafNode(directory, leafNode);
+			return _isMatchLeafNode(directory, leafNode);
 		}
 
 		BranchNode branchNode = (BranchNode)exprNode;
 
-		return isMatchBranchNode(directory, branchNode);
+		return _isMatchBranchNode(directory, branchNode);
 	}
 
-	protected boolean isMatchBranchNode(
+	private boolean _isMatchBranchNode(
 		Directory directory, BranchNode branchNode) {
 
 		if (branchNode instanceof AndNode) {
 			for (ExprNode exprNode : branchNode.getChildren()) {
-				if (!isMatch(directory, exprNode)) {
+				if (!_isMatch(directory, exprNode)) {
 					return false;
 				}
 			}
@@ -219,7 +220,7 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		}
 		else if (branchNode instanceof NotNode) {
 			for (ExprNode exprNode : branchNode.getChildren()) {
-				if (!isMatch(directory, exprNode)) {
+				if (!_isMatch(directory, exprNode)) {
 					return true;
 				}
 
@@ -230,7 +231,7 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		}
 		else if (branchNode instanceof OrNode) {
 			for (ExprNode exprNode : branchNode.getChildren()) {
-				if (isMatch(directory, exprNode)) {
+				if (_isMatch(directory, exprNode)) {
 					return true;
 				}
 			}
@@ -245,7 +246,7 @@ public class SearchLdapHandler extends BaseLdapHandler {
 		return true;
 	}
 
-	protected boolean isMatchLeafNode(Directory directory, LeafNode leafNode) {
+	private boolean _isMatchLeafNode(Directory directory, LeafNode leafNode) {
 		if (leafNode instanceof EqualityNode<?>) {
 			EqualityNode<?> equalityNode = (EqualityNode<?>)leafNode;
 

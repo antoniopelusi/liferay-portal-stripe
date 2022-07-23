@@ -22,9 +22,11 @@ import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +59,7 @@ public class GroupSelectorTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	@Override
@@ -92,9 +94,11 @@ public class GroupSelectorTag extends IncludeTag {
 	}
 
 	private List<Group> _getGroups(HttpServletRequest httpServletRequest) {
+		String groupType = _getGroupType(httpServletRequest);
+
 		Optional<GroupItemSelectorProvider> groupItemSelectorProviderOptional =
 			GroupItemSelectorTrackerUtil.getGroupItemSelectorProviderOptional(
-				_getGroupType(httpServletRequest));
+				groupType);
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
@@ -102,48 +106,70 @@ public class GroupSelectorTag extends IncludeTag {
 
 		Group group = _getGroup(themeDisplay);
 
-		String keywords = ParamUtil.getString(httpServletRequest, "keywords");
+		String scopeGroupType = ParamUtil.getString(
+			httpServletRequest, "scopeGroupType");
 
-		int cur = ParamUtil.getInteger(
-			httpServletRequest, SearchContainer.DEFAULT_CUR_PARAM,
-			SearchContainer.DEFAULT_CUR);
-		int delta = ParamUtil.getInteger(
-			httpServletRequest, SearchContainer.DEFAULT_DELTA_PARAM,
-			SearchContainer.DEFAULT_DELTA);
+		if (Validator.isNotNull(scopeGroupType) && groupType.equals("site")) {
+			_groups = new ArrayList<>();
 
-		int[] startAndEnd = SearchPaginationUtil.calculateStartAndEnd(
-			cur, delta);
+			_groups.add(group);
+		}
+		else {
+			String keywords = ParamUtil.getString(
+				httpServletRequest, "keywords");
 
-		_groups = groupItemSelectorProviderOptional.map(
-			groupItemSelectorProvider -> groupItemSelectorProvider.getGroups(
-				group.getCompanyId(), group.getGroupId(), keywords,
-				startAndEnd[0], startAndEnd[1])
-		).orElse(
-			Collections.emptyList()
-		);
+			int cur = ParamUtil.getInteger(
+				httpServletRequest, SearchContainer.DEFAULT_CUR_PARAM,
+				SearchContainer.DEFAULT_CUR);
+			int delta = ParamUtil.getInteger(
+				httpServletRequest, SearchContainer.DEFAULT_DELTA_PARAM,
+				SearchContainer.DEFAULT_DELTA);
+
+			int[] startAndEnd = SearchPaginationUtil.calculateStartAndEnd(
+				cur, delta);
+
+			_groups = groupItemSelectorProviderOptional.map(
+				groupItemSelectorProvider ->
+					groupItemSelectorProvider.getGroups(
+						group.getCompanyId(), group.getGroupId(), keywords,
+						startAndEnd[0], startAndEnd[1])
+			).orElse(
+				Collections.emptyList()
+			);
+		}
 
 		return _groups;
 	}
 
 	private int _getGroupsCount(HttpServletRequest httpServletRequest) {
-		Optional<GroupItemSelectorProvider> groupSelectorProviderOptional =
-			GroupItemSelectorTrackerUtil.getGroupItemSelectorProviderOptional(
-				_getGroupType(httpServletRequest));
+		String scopeGroupType = ParamUtil.getString(
+			httpServletRequest, "scopeGroupType");
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
+		if (Validator.isNotNull(scopeGroupType)) {
+			_groupsCount = 1;
+		}
+		else {
+			Optional<GroupItemSelectorProvider> groupSelectorProviderOptional =
+				GroupItemSelectorTrackerUtil.
+					getGroupItemSelectorProviderOptional(
+						_getGroupType(httpServletRequest));
 
-		Group group = _getGroup(themeDisplay);
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
 
-		String keywords = ParamUtil.getString(httpServletRequest, "keywords");
+			Group group = _getGroup(themeDisplay);
 
-		_groupsCount = groupSelectorProviderOptional.map(
-			groupSelectorProvider -> groupSelectorProvider.getGroupsCount(
-				group.getCompanyId(), group.getGroupId(), keywords)
-		).orElse(
-			0
-		);
+			String keywords = ParamUtil.getString(
+				httpServletRequest, "keywords");
+
+			_groupsCount = groupSelectorProviderOptional.map(
+				groupSelectorProvider -> groupSelectorProvider.getGroupsCount(
+					group.getCompanyId(), group.getGroupId(), keywords)
+			).orElse(
+				0
+			);
+		}
 
 		return _groupsCount;
 	}

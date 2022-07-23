@@ -30,6 +30,10 @@ public class AssetEntryAssetCategoryRelLocalServiceWrapper
 	implements AssetEntryAssetCategoryRelLocalService,
 			   ServiceWrapper<AssetEntryAssetCategoryRelLocalService> {
 
+	public AssetEntryAssetCategoryRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetEntryAssetCategoryRelLocalServiceWrapper(
 		AssetEntryAssetCategoryRelLocalService
 			assetEntryAssetCategoryRelLocalService) {
@@ -176,6 +180,13 @@ public class AssetEntryAssetCategoryRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _assetEntryAssetCategoryRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetEntryAssetCategoryRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -411,6 +422,15 @@ public class AssetEntryAssetCategoryRelLocalServiceWrapper
 	public int getAssetEntryAssetCategoryRelsCount(long assetEntryId) {
 		return _assetEntryAssetCategoryRelLocalService.
 			getAssetEntryAssetCategoryRelsCount(assetEntryId);
+	}
+
+	@Override
+	public int getAssetEntryAssetCategoryRelsCountByAssetCategoryId(
+		long assetCategoryId) {
+
+		return _assetEntryAssetCategoryRelLocalService.
+			getAssetEntryAssetCategoryRelsCountByAssetCategoryId(
+				assetCategoryId);
 	}
 
 	@Override

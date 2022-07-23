@@ -198,4 +198,7 @@ public interface CommerceAccountUserRelModel
 	@Override
 	public void setModifiedDate(Date modifiedDate);
 
+	@Override
+	public CommerceAccountUserRel cloneWithOriginalValues();
+
 }

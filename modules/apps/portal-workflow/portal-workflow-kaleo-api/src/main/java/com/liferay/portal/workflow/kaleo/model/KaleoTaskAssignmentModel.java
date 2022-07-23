@@ -364,4 +364,7 @@ public interface KaleoTaskAssignmentModel
 	public void setAssigneeScriptRequiredContexts(
 		String assigneeScriptRequiredContexts);
 
+	@Override
+	public KaleoTaskAssignment cloneWithOriginalValues();
+
 }

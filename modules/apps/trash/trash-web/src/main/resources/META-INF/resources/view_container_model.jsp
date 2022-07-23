@@ -68,7 +68,7 @@ TrashContainerModelDisplayContext trashContainerModelDisplayContext = new TrashC
 				trashContainerModelDisplayContext.getContainerURL()
 			).setParameter(
 				"containerModelId", curContainerModelId
-			).build();
+			).buildPortletURL();
 
 			TrashHandler curContainerTrashHandler = TrashHandlerRegistryUtil.getTrashHandler(curContainerModel.getModelClassName());
 			%>

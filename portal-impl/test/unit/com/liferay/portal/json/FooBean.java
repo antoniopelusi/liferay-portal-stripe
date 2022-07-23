@@ -23,8 +23,6 @@ import java.util.HashSet;
 public class FooBean {
 
 	public FooBean() {
-		_collection = new HashSet<>();
-
 		_collection.add("element");
 	}
 
@@ -52,7 +50,7 @@ public class FooBean {
 		_value = value;
 	}
 
-	private Collection<Object> _collection;
+	private Collection<Object> _collection = new HashSet<>();
 	private String _name = "bar";
 	private int _value = 173;
 

@@ -24,10 +24,10 @@ public class CalendarBookingUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateCalendarBooking();
+		_updateCalendarBooking();
 	}
 
-	protected void updateCalendarBooking() throws Exception {
+	private void _updateCalendarBooking() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			if (!hasColumn("CalendarBooking", "vEventUid")) {
 				runSQL("alter table CalendarBooking add vEventUid STRING null");

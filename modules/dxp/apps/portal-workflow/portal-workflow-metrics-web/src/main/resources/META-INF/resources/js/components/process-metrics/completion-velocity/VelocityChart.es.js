@@ -9,10 +9,17 @@
  * distribution rights of the Software.
  */
 
-import LineChart from '@clayui/charts';
 import React, {useContext} from 'react';
+import {
+	CartesianGrid,
+	Line,
+	LineChart,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from 'recharts';
 
-import TooltipChart from '../../../shared/components/chart/TooltipChart.es';
 import moment from '../../../shared/util/moment.es';
 import {AppContext} from '../../AppContext.es';
 import {
@@ -21,7 +28,6 @@ import {
 	formatXAxisDate,
 	formatYearDate,
 	getAxisMeasuresFromData,
-	getXAxisIntervals,
 } from './util/chart.es';
 import {HOURS, MONTHS, WEEKS, YEARS} from './util/chartConstants.es';
 
@@ -32,118 +38,67 @@ function VelocityChart({timeRange, velocityData = {}, velocityUnit}) {
 
 	const {histograms = []} = velocityData;
 
-	const keys = histograms.map((item) => moment.utc(item.key).toDate());
-
 	const dataValues = [[...histograms.map((item) => item.value)]];
 
 	const {intervals, maxValue} = getAxisMeasuresFromData(dataValues);
 
-	const CHART_DATA_ID_1 = 'data_1';
+	const dataChart = histograms.map((data) => {
+		const date = moment.utc(data.key).toDate();
+		data.name = formatXAxisDate(date, isAmPm, unitKey, timeRange);
 
-	const data = {
-		columns: [
-			['x', ...keys],
-			[CHART_DATA_ID_1, ...histograms.map((item) => item.value)],
-		],
-		x: 'x',
-	};
-
-	let dataX = [];
-
-	if (keys.length) {
-		dataX = getXAxisIntervals(timeRange, keys, unitKey);
-	}
+		return data;
+	});
 
 	return (
 		<div className="velocity-chart">
 			{histograms.length > 0 && (
-				<LineChart
-					axis={{
-						x: {
-							padding: {
-								left: 0,
-								right: 0,
-							},
-							tick: {
-								centered: false,
-								fit: true,
-								format: (date) =>
-									formatXAxisDate(
-										date,
-										isAmPm,
-										unitKey,
-										timeRange
-									),
-								outer: false,
-								values: dataX,
-							},
-							type: 'timeseries',
-						},
-						y: {
-							inner: false,
-							inverted: false,
-							max: maxValue,
-							min: 0,
-							padding: {
-								bottom: 0,
-								top: 0,
-							},
-							show: true,
-							tick: {
-								outer: false,
-								values: intervals,
-							},
-						},
-					}}
-					data={data}
-					grid={{
-						lines: {
-							front: false,
-						},
-						x: {
-							lines: dataX.map((key) => ({value: key})),
-						},
-					}}
-					height={190}
-					legend={{show: false}}
-					line={{
-						classes: ['bb-line', 'bb-line-dashed-4-4'],
-					}}
-					padding={{
-						top: 0,
-					}}
-					point={{
-						focus: {expand: {enabled: true, r: 5}},
-						pattern: ['circle'],
-						r: 0.01,
-						select: {r: 5},
-					}}
-					resize={{
-						auto: true,
-					}}
-					tooltip={{
-						contents: VelocityChart.Tooltip(
-							isAmPm,
-							timeRange,
-							unitKey,
-							unitName
-						),
-					}}
-				/>
+				<ResponsiveContainer height="100%" width="100%">
+					<LineChart
+						data={dataChart}
+						height={300}
+						margin={{
+							bottom: 5,
+							left: 20,
+							right: 20,
+							top: 5,
+						}}
+						width={1180}
+					>
+						<CartesianGrid strokeDasharray="3 3" />
+
+						<XAxis dataKey="name" interval="preserveStartEnd" />
+
+						<YAxis
+							domain={[intervals, maxValue]}
+							interval="preserveStartEnd"
+						/>
+
+						<Tooltip
+							content={
+								<CustomTooltip
+									isAmPm={isAmPm}
+									timeRange={timeRange}
+									unit={unitName}
+									unitKey={unitKey}
+								/>
+							}
+						/>
+
+						<Line
+							activeDot={{r: 8}}
+							dataKey="value"
+							type="monotone"
+						/>
+					</LineChart>
+				</ResponsiveContainer>
 			)}
 		</div>
 	);
 }
 
-const Tooltip = (isAmPm, timeRange, unitKey, unitName) => (dataPoints) => {
-	const isValidDate = (date) => {
-		if (date instanceof Date && !isNaN(date.getTime())) {
-			return true;
-		}
+const CLASSNAME = 'workflow-tooltip-chart';
 
-		return false;
-	};
-
+const CustomTooltip = ({active, isAmPm, payload, timeRange, unit, unitKey}) => {
 	const formatTooltipDate = (date, isAmPm, timeRange, unitKey) => {
 		let datePattern = Liferay.Language.get('ddd-mmm-d');
 
@@ -173,40 +128,46 @@ const Tooltip = (isAmPm, timeRange, unitKey, unitName) => (dataPoints) => {
 	};
 
 	const getDateTitle = (date, isAmPm, timeRange, unitKey) => {
-		if (!isValidDate(date)) {
+		if (!(date instanceof Date && !isNaN(date.getTime()))) {
+
+			// is valid date
+
 			return '';
 		}
 
 		return formatTooltipDate(date, isAmPm, timeRange, unitKey);
 	};
 
-	const selectedDataPoint = dataPoints[0];
+	if (active && payload?.length) {
+		const date = new Date(payload[0].payload.key);
+		const label = getDateTitle(date, isAmPm, timeRange, unitKey);
 
-	const currentPeriodTitle = getDateTitle(
-		selectedDataPoint.x,
-		isAmPm,
-		timeRange,
-		unitKey
-	);
+		return (
+			<div className={CLASSNAME}>
+				<div className={`${CLASSNAME}-header`}>
+					<div
+						className={`${CLASSNAME}-content ${CLASSNAME}-column font-weight-semibold`}
+					>
+						{label}
+					</div>
+				</div>
 
-	const header = [
-		{label: currentPeriodTitle, weight: 'semibold', width: 160},
-	].filter(Boolean);
+				<div className={`${CLASSNAME}-body`}>
+					<div className={`${CLASSNAME}-row`}>
+						<div
+							className={`${CLASSNAME}-content ${CLASSNAME}-column font-weight-normal`}
+						>
+							{payload[0].value} {unit}
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-	const rows = [
-		{
-			columns: [
-				{
-					label: `${selectedDataPoint.value} ${unitName}`,
-					weight: 'normal',
-				},
-			].filter(Boolean),
-		},
-	].filter(Boolean);
-
-	return TooltipChart({header, rows});
+	return null;
 };
 
-VelocityChart.Tooltip = Tooltip;
+VelocityChart.Tooltip = CustomTooltip;
 
 export default VelocityChart;

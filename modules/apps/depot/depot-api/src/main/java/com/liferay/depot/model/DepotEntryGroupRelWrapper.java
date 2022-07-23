@@ -150,6 +150,11 @@ public class DepotEntryGroupRelWrapper
 		}
 	}
 
+	@Override
+	public DepotEntryGroupRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this depot entry group rel.
 	 *

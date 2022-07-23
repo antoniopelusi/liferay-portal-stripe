@@ -17,10 +17,17 @@ package com.liferay.layout.content.page.editor.web.internal.util;
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRenderer;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.asset.kernel.model.ClassType;
+import com.liferay.asset.kernel.model.ClassTypeReader;
+import com.liferay.document.library.constants.DLPortletKeys;
+import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.util.DLURLHelperUtil;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
+import com.liferay.layout.content.page.editor.web.internal.info.display.url.provider.InfoEditURLProviderUtil;
+import com.liferay.layout.content.page.editor.web.internal.layout.display.page.LayoutDisplayPageProviderTrackerUtil;
 import com.liferay.layout.content.page.editor.web.internal.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.layout.content.page.editor.web.internal.util.layout.structure.LayoutStructureUtil;
 import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
@@ -42,13 +49,17 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -66,9 +77,12 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Víctor Galán
@@ -109,90 +123,16 @@ public class ContentUtil {
 	}
 
 	public static JSONArray getPageContentsJSONArray(
-			long plid, HttpServletRequest httpServletRequest)
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, long plid,
+			long segmentsExperienceId)
 		throws PortalException {
 
-		JSONArray mappedContentsJSONArray = JSONFactoryUtil.createJSONArray();
-
-		long fragmentEntryLinkClassNameId = PortalUtil.getClassNameId(
-			FragmentEntryLink.class);
-		LayoutStructure layoutStructure = null;
-		Set<String> uniqueLayoutClassedModelUsageKeys = new HashSet<>();
-
-		List<LayoutClassedModelUsage> layoutClassedModelUsages =
-			LayoutClassedModelUsageLocalServiceUtil.
-				getLayoutClassedModelUsagesByPlid(plid);
-
-		for (LayoutClassedModelUsage layoutClassedModelUsage :
-				layoutClassedModelUsages) {
-
-			if (uniqueLayoutClassedModelUsageKeys.contains(
-					_generateUniqueLayoutClassedModelUsageKey(
-						layoutClassedModelUsage))) {
-
-				continue;
-			}
-
-			if (layoutClassedModelUsage.getContainerType() ==
-					fragmentEntryLinkClassNameId) {
-
-				FragmentEntryLink fragmentEntryLink =
-					FragmentEntryLinkLocalServiceUtil.fetchFragmentEntryLink(
-						GetterUtil.getLong(
-							layoutClassedModelUsage.getContainerKey()));
-
-				if (fragmentEntryLink == null) {
-					LayoutClassedModelUsageLocalServiceUtil.
-						deleteLayoutClassedModelUsage(layoutClassedModelUsage);
-
-					continue;
-				}
-
-				if (layoutStructure == null) {
-					layoutStructure = LayoutStructureUtil.getLayoutStructure(
-						fragmentEntryLink.getGroupId(),
-						fragmentEntryLink.getPlid(),
-						fragmentEntryLink.getSegmentsExperienceId());
-				}
-
-				LayoutStructureItem layoutStructureItem =
-					layoutStructure.getLayoutStructureItemByFragmentEntryLinkId(
-						fragmentEntryLink.getFragmentEntryLinkId());
-
-				if (ListUtil.exists(
-						layoutStructure.getDeletedLayoutStructureItems(),
-						deletedLayoutStructureItem -> Objects.equals(
-							deletedLayoutStructureItem.getItemId(),
-							layoutStructureItem.getItemId()))) {
-
-					continue;
-				}
-			}
-
-			try {
-				mappedContentsJSONArray.put(
-					_getPageContentJSONObject(
-						layoutClassedModelUsage, httpServletRequest));
-			}
-			catch (Exception exception) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(
-						StringBundler.concat(
-							"An error occurred while getting mapped content ",
-							"with class PK ",
-							layoutClassedModelUsage.getClassPK(),
-							" and class name ID ",
-							layoutClassedModelUsage.getClassNameId()),
-						exception);
-				}
-			}
-
-			uniqueLayoutClassedModelUsageKeys.add(
-				_generateUniqueLayoutClassedModelUsageKey(
-					layoutClassedModelUsage));
-		}
-
-		return mappedContentsJSONArray;
+		return JSONUtil.concat(
+			_getLayoutClassedModelPageContentsJSONArray(
+				httpServletRequest, plid, segmentsExperienceId),
+			AssetListEntryUsagesUtil.getPageContentsJSONArray(
+				httpServletRequest, httpServletResponse, plid));
 	}
 
 	private static String _generateUniqueLayoutClassedModelUsageKey(
@@ -233,6 +173,43 @@ public class ContentUtil {
 			if (editURL != null) {
 				jsonObject.put("editURL", editURL);
 			}
+
+			if (Objects.equals(
+					layoutClassedModelUsage.getClassName(),
+					FileEntry.class.getName())) {
+
+				FileEntry fileEntry =
+					(FileEntry)
+						layoutDisplayPageObjectProvider.getDisplayObject();
+
+				PortletResponse portletResponse =
+					(PortletResponse)httpServletRequest.getAttribute(
+						JavaConstants.JAVAX_PORTLET_RESPONSE);
+
+				LiferayPortletResponse liferayPortletResponse =
+					PortalUtil.getLiferayPortletResponse(portletResponse);
+
+				LiferayPortletURL portletURL =
+					liferayPortletResponse.createActionURL(
+						DLPortletKeys.DOCUMENT_LIBRARY_ADMIN);
+
+				portletURL.setParameter(
+					ActionRequest.ACTION_NAME,
+					"/document_library/edit_file_entry_image_editor");
+
+				jsonObject.put(
+					"editImage",
+					JSONUtil.put(
+						"editImageURL", portletURL.toString()
+					).put(
+						"fileEntryId", fileEntry.getFileEntryId()
+					).put(
+						"previewURL",
+						DLURLHelperUtil.getPreviewURL(
+							fileEntry, fileEntry.getFileVersion(), themeDisplay,
+							StringPool.BLANK)
+					));
+			}
 		}
 
 		if (ModelResourcePermissionUtil.contains(
@@ -269,6 +246,19 @@ public class ContentUtil {
 			).setWindowState(
 				LiferayWindowState.POP_UP
 			).buildString());
+	}
+
+	private static AssetRendererFactory<?> _getAssetRendererFactory(
+		String className) {
+
+		// LPS-111037
+
+		if (Objects.equals(className, FileEntry.class.getName())) {
+			className = DLFileEntry.class.getName();
+		}
+
+		return AssetRendererFactoryRegistryUtil.
+			getAssetRendererFactoryByClassName(className);
 	}
 
 	private static Set<LayoutDisplayPageObjectProvider<?>>
@@ -319,6 +309,10 @@ public class ContentUtil {
 				if (editableJSONObject == null) {
 					continue;
 				}
+
+				layoutDisplayPageObjectProviders.addAll(
+					_getLocalizedLayoutDisplayPageObjectProviders(
+						editableJSONObject, mappedClassPKs));
 
 				JSONObject configJSONObject = editableJSONObject.getJSONObject(
 					"config");
@@ -395,6 +389,121 @@ public class ContentUtil {
 		return layoutDisplayPageObjectProviders;
 	}
 
+	private static String _getIcon(String className, long classPK)
+		throws Exception {
+
+		AssetRendererFactory<?> assetRendererFactory = _getAssetRendererFactory(
+			className);
+
+		if (assetRendererFactory == null) {
+			return "web-content";
+		}
+
+		AssetRenderer<?> assetRenderer = assetRendererFactory.getAssetRenderer(
+			classPK);
+
+		if (assetRenderer == null) {
+			return "web-content";
+		}
+
+		return assetRenderer.getIconCssClass();
+	}
+
+	private static JSONArray _getLayoutClassedModelPageContentsJSONArray(
+			HttpServletRequest httpServletRequest, long plid,
+			long segmentsExperienceId)
+		throws PortalException {
+
+		JSONArray mappedContentsJSONArray = JSONFactoryUtil.createJSONArray();
+
+		long fragmentEntryLinkClassNameId = PortalUtil.getClassNameId(
+			FragmentEntryLink.class);
+		LayoutStructure layoutStructure = null;
+		Set<String> uniqueLayoutClassedModelUsageKeys = new HashSet<>();
+
+		List<LayoutClassedModelUsage> layoutClassedModelUsages =
+			LayoutClassedModelUsageLocalServiceUtil.
+				getLayoutClassedModelUsagesByPlid(plid);
+
+		for (LayoutClassedModelUsage layoutClassedModelUsage :
+				layoutClassedModelUsages) {
+
+			if (uniqueLayoutClassedModelUsageKeys.contains(
+					_generateUniqueLayoutClassedModelUsageKey(
+						layoutClassedModelUsage))) {
+
+				continue;
+			}
+
+			if (layoutClassedModelUsage.getContainerType() ==
+					fragmentEntryLinkClassNameId) {
+
+				FragmentEntryLink fragmentEntryLink =
+					FragmentEntryLinkLocalServiceUtil.fetchFragmentEntryLink(
+						GetterUtil.getLong(
+							layoutClassedModelUsage.getContainerKey()));
+
+				if (fragmentEntryLink == null) {
+					LayoutClassedModelUsageLocalServiceUtil.
+						deleteLayoutClassedModelUsage(layoutClassedModelUsage);
+
+					continue;
+				}
+
+				if (!Objects.equals(
+						fragmentEntryLink.getSegmentsExperienceId(),
+						segmentsExperienceId)) {
+
+					continue;
+				}
+
+				if (layoutStructure == null) {
+					layoutStructure = LayoutStructureUtil.getLayoutStructure(
+						fragmentEntryLink.getGroupId(),
+						fragmentEntryLink.getPlid(),
+						fragmentEntryLink.getSegmentsExperienceId());
+				}
+
+				LayoutStructureItem layoutStructureItem =
+					layoutStructure.getLayoutStructureItemByFragmentEntryLinkId(
+						fragmentEntryLink.getFragmentEntryLinkId());
+
+				if (ListUtil.exists(
+						layoutStructure.getDeletedLayoutStructureItems(),
+						deletedLayoutStructureItem -> Objects.equals(
+							deletedLayoutStructureItem.getItemId(),
+							layoutStructureItem.getItemId()))) {
+
+					continue;
+				}
+			}
+
+			try {
+				mappedContentsJSONArray.put(
+					_getPageContentJSONObject(
+						layoutClassedModelUsage, httpServletRequest));
+			}
+			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						StringBundler.concat(
+							"An error occurred while getting mapped content ",
+							"with class PK ",
+							layoutClassedModelUsage.getClassPK(),
+							" and class name ID ",
+							layoutClassedModelUsage.getClassNameId()),
+						exception);
+				}
+			}
+
+			uniqueLayoutClassedModelUsageKeys.add(
+				_generateUniqueLayoutClassedModelUsageKey(
+					layoutClassedModelUsage));
+		}
+
+		return mappedContentsJSONArray;
+	}
+
 	private static LayoutDisplayPageObjectProvider<?>
 		_getLayoutDisplayPageObjectProvider(
 			JSONObject jsonObject, Set<Long> mappedClassPKs) {
@@ -405,15 +514,9 @@ public class ContentUtil {
 
 		long classPK = jsonObject.getLong("classPK");
 
-		if (classPK <= 0) {
+		if ((classPK <= 0) || mappedClassPKs.contains(classPK)) {
 			return null;
 		}
-
-		if (mappedClassPKs.contains(classPK)) {
-			return null;
-		}
-
-		mappedClassPKs.add(classPK);
 
 		long classNameId = jsonObject.getLong("classNameId");
 
@@ -431,6 +534,8 @@ public class ContentUtil {
 			return null;
 		}
 
+		mappedClassPKs.add(classPK);
+
 		return layoutDisplayPageProvider.getLayoutDisplayPageObjectProvider(
 			new InfoItemReference(className, classPK));
 	}
@@ -446,7 +551,9 @@ public class ContentUtil {
 				layoutStructure.getLayoutStructureItems()) {
 
 			if (!(layoutStructureItem instanceof
-					ContainerStyledLayoutStructureItem)) {
+					ContainerStyledLayoutStructureItem) ||
+				layoutStructure.isItemMarkedForDeletion(
+					layoutStructureItem.getItemId())) {
 
 				continue;
 			}
@@ -499,12 +606,10 @@ public class ContentUtil {
 				long groupId, long plid, Set<Long> mappedClassPKs)
 		throws PortalException {
 
-		LayoutStructure layoutStructure =
-			LayoutStructureUtil.getLayoutStructure(
-				groupId, plid, SegmentsExperienceConstants.ID_DEFAULT);
-
 		return _getLayoutMappedLayoutDisplayPageObjectProviders(
-			layoutStructure, mappedClassPKs);
+			LayoutStructureUtil.getLayoutStructure(
+				groupId, plid, SegmentsExperienceConstants.KEY_DEFAULT),
+			mappedClassPKs);
 	}
 
 	private static Set<LayoutDisplayPageObjectProvider<?>>
@@ -559,6 +664,11 @@ public class ContentUtil {
 			"classNameId", layoutClassedModelUsage.getClassNameId()
 		).put(
 			"classPK", layoutClassedModelUsage.getClassPK()
+		).put(
+			"icon",
+			_getIcon(
+				layoutClassedModelUsage.getClassName(),
+				layoutClassedModelUsage.getClassPK())
 		);
 
 		LayoutDisplayPageProvider<?> layoutDisplayPageProvider =
@@ -572,15 +682,23 @@ public class ContentUtil {
 					layoutClassedModelUsage.getClassPK()));
 
 		return mappedContentJSONObject.put(
-			"name",
-			ResourceActionsUtil.getModelResource(
-				themeDisplay.getLocale(),
-				layoutClassedModelUsage.getClassName())
+			"classTypeId", layoutDisplayPageObjectProvider.getClassTypeId()
 		).put(
 			"status", _getStatusJSONObject(layoutClassedModelUsage)
 		).put(
+			"subtype",
+			_getSubtype(
+				layoutClassedModelUsage.getClassName(),
+				layoutDisplayPageObjectProvider.getClassTypeId(),
+				themeDisplay.getLocale())
+		).put(
 			"title",
 			layoutDisplayPageObjectProvider.getTitle(themeDisplay.getLocale())
+		).put(
+			"type",
+			ResourceActionsUtil.getModelResource(
+				themeDisplay.getLocale(),
+				layoutClassedModelUsage.getClassName())
 		).put(
 			"usagesCount",
 			LayoutClassedModelUsageLocalServiceUtil.
@@ -644,6 +762,30 @@ public class ContentUtil {
 			"style",
 			WorkflowConstants.getStatusStyle(latestAssetRenderer.getStatus())
 		);
+	}
+
+	private static String _getSubtype(
+		String className, long classTypeId, Locale locale) {
+
+		AssetRendererFactory<?> assetRendererFactory = _getAssetRendererFactory(
+			className);
+
+		if (assetRendererFactory == null) {
+			return StringPool.BLANK;
+		}
+
+		ClassTypeReader classTypeReader =
+			assetRendererFactory.getClassTypeReader();
+
+		try {
+			ClassType classType = classTypeReader.getClassType(
+				classTypeId, locale);
+
+			return classType.getName();
+		}
+		catch (Exception exception) {
+			return StringPool.BLANK;
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(ContentUtil.class);

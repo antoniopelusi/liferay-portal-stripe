@@ -52,7 +52,7 @@ public class CKEditorEmbedConfigContributor
 		ThemeDisplay themeDisplay,
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory) {
 
-		jsonObject.put("embedProviders", getEditorEmbedProvidersJSONArray());
+		jsonObject.put("embedProviders", _getEditorEmbedProvidersJSONArray());
 	}
 
 	@Activate
@@ -75,32 +75,34 @@ public class CKEditorEmbedConfigContributor
 		_serviceTrackerMap.close();
 	}
 
-	protected JSONObject getEditorEmbedProviderJSONObject(
+	private JSONObject _getEditorEmbedProviderJSONObject(
 		String editorEmbedProviderType,
 		EditorEmbedProvider editorEmbedProvider) {
 
-		JSONObject jsonObject = JSONUtil.put(
+		return JSONUtil.put(
 			"id", editorEmbedProvider.getId()
 		).put(
 			"tpl", editorEmbedProvider.getTpl()
 		).put(
 			"type", editorEmbedProviderType
+		).put(
+			"urlSchemes",
+			() -> {
+				JSONArray urlSchemesJSONArray =
+					JSONFactoryUtil.createJSONArray();
+
+				String[] urlSchemes = editorEmbedProvider.getURLSchemes();
+
+				for (String urlScheme : urlSchemes) {
+					urlSchemesJSONArray.put(urlScheme);
+				}
+
+				return urlSchemesJSONArray;
+			}
 		);
-
-		JSONArray urlSchemesJSONArray = JSONFactoryUtil.createJSONArray();
-
-		jsonObject.put("urlSchemes", urlSchemesJSONArray);
-
-		String[] urlSchemes = editorEmbedProvider.getURLSchemes();
-
-		for (String urlScheme : urlSchemes) {
-			urlSchemesJSONArray.put(urlScheme);
-		}
-
-		return jsonObject;
 	}
 
-	protected JSONArray getEditorEmbedProvidersJSONArray() {
+	private JSONArray _getEditorEmbedProvidersJSONArray() {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
 		Set<String> editorEmbedProviderTypes = _serviceTrackerMap.keySet();
@@ -112,7 +114,7 @@ public class CKEditorEmbedConfigContributor
 
 				editorEmbedProviders.forEach(
 					editorEmbedProvider -> jsonArray.put(
-						getEditorEmbedProviderJSONObject(
+						_getEditorEmbedProviderJSONObject(
 							editorEmbedProviderType, editorEmbedProvider)));
 			});
 

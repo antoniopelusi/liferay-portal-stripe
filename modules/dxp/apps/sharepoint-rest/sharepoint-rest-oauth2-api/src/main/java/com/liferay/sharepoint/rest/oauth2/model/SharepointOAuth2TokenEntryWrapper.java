@@ -117,6 +117,11 @@ public class SharepointOAuth2TokenEntryWrapper
 		}
 	}
 
+	@Override
+	public SharepointOAuth2TokenEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the access token of this sharepoint o auth2 token entry.
 	 *

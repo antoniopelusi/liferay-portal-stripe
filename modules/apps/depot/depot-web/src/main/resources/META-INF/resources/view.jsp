@@ -23,7 +23,6 @@ DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayCont
 %>
 
 <clay:management-toolbar
-	additionalProps="<%= depotAdminManagementToolbarDisplayContext.getAdditionalProps() %>"
 	managementToolbarDisplayContext="<%= depotAdminManagementToolbarDisplayContext %>"
 	propsTransformer="js/DepotAdminManagementToolbarPropsTransformer"
 />
@@ -31,6 +30,9 @@ DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayCont
 <div class="closed sidenav-container sidenav-right">
 	<div class="sidenav-content">
 		<clay:container-fluid>
+			<liferay-ui:error exception="<%= DepotEntryStagedException.class %>" message="cannot-delete-a-staged-asset-library.-unstage-the-asset-library-and-try-again" />
+			<liferay-ui:error exception="<%= RequiredFileEntryTypeException.class %>" message="cannot-delete-a-document-type-that-is-presently-used-by-one-or-more-documents-in-a-connected-site" />
+
 			<portlet:actionURL name="deleteGroups" var="deleteGroupsURL" />
 
 			<aui:form action="<%= depotAdminDisplayContext.getIteratorURL() %>" name="fm">

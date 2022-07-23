@@ -83,12 +83,12 @@ public interface DocumentFolderResource {
 				Long assetLibraryId, String roleNames)
 		throws Exception;
 
-	public void putAssetLibraryDocumentFolderPermission(
+	public Page<Permission> putAssetLibraryDocumentFolderPermissionsPage(
 			Long assetLibraryId, Permission[] permissions)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			putAssetLibraryDocumentFolderPermissionHttpResponse(
+			putAssetLibraryDocumentFolderPermissionsPageHttpResponse(
 				Long assetLibraryId, Permission[] permissions)
 		throws Exception;
 
@@ -144,12 +144,13 @@ public interface DocumentFolderResource {
 				Long documentFolderId, String roleNames)
 		throws Exception;
 
-	public void putDocumentFolderPermission(
+	public Page<Permission> putDocumentFolderPermissionsPage(
 			Long documentFolderId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putDocumentFolderPermissionHttpResponse(
-			Long documentFolderId, Permission[] permissions)
+	public HttpInvoker.HttpResponse
+			putDocumentFolderPermissionsPageHttpResponse(
+				Long documentFolderId, Permission[] permissions)
 		throws Exception;
 
 	public void putDocumentFolderSubscribe(Long documentFolderId)
@@ -225,12 +226,13 @@ public interface DocumentFolderResource {
 				Long siteId, String roleNames)
 		throws Exception;
 
-	public void putSiteDocumentFolderPermission(
+	public Page<Permission> putSiteDocumentFolderPermissionsPage(
 			Long siteId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putSiteDocumentFolderPermissionHttpResponse(
-			Long siteId, Permission[] permissions)
+	public HttpInvoker.HttpResponse
+			putSiteDocumentFolderPermissionsPageHttpResponse(
+				Long siteId, Permission[] permissions)
 		throws Exception;
 
 	public static class Builder {
@@ -671,12 +673,12 @@ public interface DocumentFolderResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putAssetLibraryDocumentFolderPermission(
+		public Page<Permission> putAssetLibraryDocumentFolderPermissionsPage(
 				Long assetLibraryId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putAssetLibraryDocumentFolderPermissionHttpResponse(
+				putAssetLibraryDocumentFolderPermissionsPageHttpResponse(
 					assetLibraryId, permissions);
 
 			String content = httpResponse.getContent();
@@ -705,7 +707,7 @@ public interface DocumentFolderResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -717,7 +719,7 @@ public interface DocumentFolderResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putAssetLibraryDocumentFolderPermissionHttpResponse(
+				putAssetLibraryDocumentFolderPermissionsPageHttpResponse(
 					Long assetLibraryId, Permission[] permissions)
 			throws Exception {
 
@@ -883,6 +885,8 @@ public interface DocumentFolderResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -1332,12 +1336,12 @@ public interface DocumentFolderResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putDocumentFolderPermission(
+		public Page<Permission> putDocumentFolderPermissionsPage(
 				Long documentFolderId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putDocumentFolderPermissionHttpResponse(
+				putDocumentFolderPermissionsPageHttpResponse(
 					documentFolderId, permissions);
 
 			String content = httpResponse.getContent();
@@ -1366,7 +1370,7 @@ public interface DocumentFolderResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -1377,8 +1381,9 @@ public interface DocumentFolderResource {
 			}
 		}
 
-		public HttpInvoker.HttpResponse putDocumentFolderPermissionHttpResponse(
-				Long documentFolderId, Permission[] permissions)
+		public HttpInvoker.HttpResponse
+				putDocumentFolderPermissionsPageHttpResponse(
+					Long documentFolderId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -1474,8 +1479,6 @@ public interface DocumentFolderResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
-			httpInvoker.body(documentFolderId.toString(), "application/json");
-
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -1556,8 +1559,6 @@ public interface DocumentFolderResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(documentFolderId.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -2151,12 +2152,12 @@ public interface DocumentFolderResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putSiteDocumentFolderPermission(
+		public Page<Permission> putSiteDocumentFolderPermissionsPage(
 				Long siteId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putSiteDocumentFolderPermissionHttpResponse(
+				putSiteDocumentFolderPermissionsPageHttpResponse(
 					siteId, permissions);
 
 			String content = httpResponse.getContent();
@@ -2185,7 +2186,7 @@ public interface DocumentFolderResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -2197,7 +2198,7 @@ public interface DocumentFolderResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putSiteDocumentFolderPermissionHttpResponse(
+				putSiteDocumentFolderPermissionsPageHttpResponse(
 					Long siteId, Permission[] permissions)
 			throws Exception {
 

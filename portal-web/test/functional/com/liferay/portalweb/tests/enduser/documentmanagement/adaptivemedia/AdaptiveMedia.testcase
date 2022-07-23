@@ -1,7 +1,8 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property custom.properties = "default.layout.template.id=1_column";
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Adaptive Media";
@@ -17,10 +18,88 @@ definition {
 	}
 
 	@priority = "5"
-	@refactorneeded
-	test AddAMIWithHighDensityResolution {
-		property portal.acceptance = "true";
+	@refactordone
+	test CanAdaptImageInBlogsEntry {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "Adaptive Media Image Description",
+			dmDocumentTitle = "high_resolution_photo.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "high_resolution_photo.jpg");
 
+		BlogsNavigator.openToAddEntry(siteURLKey = "guest");
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry With Adaptive Media Image");
+
+		ItemSelector.gotoItemSelectorViaAlloyEditor();
+
+		ItemSelector.selectDMImage(
+			imageFileName = "high_resolution_photo.jpg",
+			navTab = "Documents and Media");
+
+		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo.jpg");
+
+		PortletEntry.publish();
+	}
+
+	@priority = "5"
+	@refactordone
+	test CanAdaptImageInWebContent {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "Adaptive Media Image Description",
+			dmDocumentTitle = "high_resolution_photo.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "high_resolution_photo.jpg");
+
+		WebContentNavigator.openToAddBasicArticle(
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		WebContent.addWithDocumentCP(
+			dmDocumentTitle = "high_resolution_photo.jpg",
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		SelectFrame.selectFrameNoLoading(
+			key_fieldLabel = "content",
+			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
+
+		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo.jpg");
+	}
+
+	@description = "This ensures that the SVG image can be added and optimized in a blog entry."
+	@priority = "5"
+	@refactordone
+	test CanAdaptSVGImageInBlogsEntry {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "Adaptive Media Image Description",
+			dmDocumentTitle = "Document_1.svg",
+			groupName = "Guest",
+			mimeType = "image/svg+xml",
+			sourceFileName = "Document_1.svg");
+
+		BlogsNavigator.openToAddEntry(siteURLKey = "guest");
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry With Adaptive Media SVG Image");
+
+		ItemSelector.gotoItemSelectorViaAlloyEditor();
+
+		ItemSelector.selectDMImage(
+			imageFileName = "Document_1.svg",
+			navTab = "Documents and Media");
+
+		AdaptiveMedia.viewImageVariantURL(imageName = "Document_1.svg");
+
+		PortletEntry.publish();
+	}
+
+	@priority = "5"
+	@refactordone
+	@uitest
+	test CanAddEntryWithHighDensityResolution {
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
@@ -48,69 +127,278 @@ definition {
 		AdaptiveMedia.gotoImageVariantEntry(imageName = "Low Resolution");
 
 		AdaptiveMedia.viewImageVariantDescription(description = "Low resolution variant");
-	}
 
-	@priority = "5"
-	@refactorneeded
-	test AddAMIWithZeroPixels {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
+		AdaptiveMedia.openAdaptiveMediaAdmin();
 
-		AdaptiveMedia.addImageResolution(
-			imageName = "Zero Resolution",
-			maxHeight = "0",
-			maxWidth = "0",
-			zero = "true");
+		AdaptiveMedia.gotoImageVariantEntry(imageName = "Low Resolution-2x");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.viewNoImageResolution(imageName = "Zero Resolution");
+		AdaptiveMedia.viewImageVariantDescription(description = "2x Low resolution variant");
 	}
 
 	@priority = "4"
-	@refactorneeded
-	test AddAndEditEntriesWithSpecialCharacters {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
+	@refactordone
+	test CanAddImageResolutionWithSingleDimension {
+		AdaptiveMedia.openToAddImageResolution();
 
 		AdaptiveMedia.addImageResolution(
-			description = "1234567890!@#$%^&amp;*()~`",
-			imageName = "abcdefghijklmnopqrstuvwxyz",
+			description = "Image Resolution Width",
+			imageName = "testResolutionWidth",
+			maxHeight = "0",
+			maxWidth = "1000");
+
+		AdaptiveMedia.viewImageResolutionTableEntry(
+			imageName = "testResolutionWidth",
+			maxHeight = "Auto",
+			maxWidth = "1000");
+
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			description = "Image Resolution Height",
+			imageName = "testResolutionHeight",
+			maxHeight = "1000",
+			maxWidth = "0");
+
+		AdaptiveMedia.viewImageResolutionTableEntry(
+			imageName = "testResolutionHeight",
+			maxHeight = "1000",
+			maxWidth = "Auto");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanBulkAdaptImageResolutions {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			imageName = "Small Image Variant",
+			maxHeight = "100",
+			maxWidth = "100");
+
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			imageName = "Medium Image Variant",
+			maxHeight = "500",
+			maxWidth = "500");
+
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			imageName = "Large Image Variant",
+			maxHeight = "1000",
+			maxWidth = "1000");
+
+		AdaptiveMedia.adaptAllImages();
+	}
+
+	@priority = "5"
+	@refactordone
+	test CanDeleteDisabledResolution {
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			imageName = "Small Image Variant",
+			maxHeight = "100",
+			maxWidth = "100");
+
+		AdaptiveMedia.disableImageResolution(
+			imageName = "Small Image Variant",
+			imageState = "Disabled",
+			percentAdapted = "0");
+
+		AdaptiveMedia.deleteImageResolution(imageName = "Small Image Variant");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanEditEntryWithSpecialCharacters {
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			description = '''1234567890!@#$%^&amp;*()~`''',
+			imageName = '''1234567890!@#$%^&amp;*()~`''',
 			maxHeight = "25",
 			maxWidth = "25");
 
 		AdaptiveMedia.editImageResolution(
-			imageName = "abcdefghijklmnopqrstuvwxyz",
-			imageNameEdit = "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+			imageName = '''1234567890!@#$%^&amp;*()~`''',
+			imageNameEdit = '''[]\{}|:&quot;;&apos;,./&gt;&lt;?''');
+
+		AdaptiveMedia.gotoImageVariantEntry(imageName = '''[]\{}|:&quot;;&apos;,./&gt;&lt;?''');
+
+		AdaptiveMedia.viewImageVariantDescription(description = '''1234567890!@#$%^&amp;*()~`''');
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanGenerateAutomaticImageVariantID {
+		AdaptiveMedia.openToAddImageResolution();
 
 		AdaptiveMedia.addImageResolution(
-			imageName = "1234567890!@#$%^&amp;*()~`",
-			maxHeight = "75",
-			maxWidth = "75");
+			imageName = "Small Image Variant",
+			maxHeight = "100",
+			maxWidth = "100");
 
-		AdaptiveMedia.editImageResolution(
-			imageName = "1234567890!@#$%^&amp;*()~`",
-			imageNameEdit = "[]\{}|:&quot;;&apos;,./&gt;&lt;?");
+		AdaptiveMedia.gotoImageVariantEntry(imageName = "Small Image Variant");
 
-		AdaptiveMedia.gotoImageVariantEntry(imageName = "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+		AdaptiveMedia.viewImageVariantID(imageVariantId = "small-image-variant");
+	}
 
-		AdaptiveMedia.viewImageVariantDescription(description = "1234567890!@#$%^&amp;*()~`");
+	@priority = "4"
+	@refactordone
+	test CannotAddDuplicateImageResolution {
+		property portal.acceptance = "false";
+
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			customId = "custom-id",
+			imageName = "Image Variant With Custom ID",
+			maxHeight = "350",
+			maxWidth = "450");
+
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			customId = "custom-id",
+			duplicate = "true",
+			imageName = "Image Variant With Duplicate Custom ID",
+			maxHeight = "350",
+			maxWidth = "450");
+
+		AdaptiveMedia.openAdaptiveMediaAdmin();
+
+		AdaptiveMedia.viewNoImageResolution();
 	}
 
 	@priority = "5"
-	@refactorneeded
-	test AddAndUpdateAMIWithImagesInDM {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
+	@refactordone
+	test CannotAddImageResolutionWithNoDimensions {
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			imageName = "testResolutionNoDimensions",
+			maxHeight = "",
+			maxWidth = "",
+			noDimensions = "true");
+
+		AdaptiveMedia.openAdaptiveMediaAdmin();
+
+		AdaptiveMedia.viewNoImageResolution(imageName = "testResolutionNoDimensions");
+	}
+
+	@priority = "5"
+	@refactordone
+	test CannotAddNonNumericWidthOrHeight {
+		AdaptiveMedia.openAdaptiveMediaAdmin();
+
+		AdaptiveMedia.addNonNumericImageResolution(
+			imageName = "Small Image Variant",
+			maxHeight = "notallowed",
+			maxWidth = "notallowed");
+
+		AdaptiveMedia.openAdaptiveMediaAdmin();
+
+		AdaptiveMedia.viewNoImageResolution(imageName = "Small Image Variant");
+	}
+
+	@priority = "4"
+	@refactordone
+	test CannotUpdateResolutionWithNullValues {
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			imageName = "testResolution",
+			maxHeight = "1000",
+			maxWidth = "1000");
+
+		AdaptiveMedia.viewImageResolutionTableEntry(
+			imageName = "testResolution",
+			maxHeight = "1000",
+			maxWidth = "1000");
+
+		AdaptiveMedia.editImageResolution(
+			imageName = "testResolution",
+			imageNameEdit = "testResolutionEdit",
+			maxHeightEdit = "0",
+			maxWidthEdit = "0",
+			zero = "true");
+
+		AdaptiveMedia.openAdaptiveMediaAdmin();
+
+		AdaptiveMedia.viewNoImageResolution(imageName = "testResolutionEdit");
+	}
+
+	@description = "This is a test for LPS-78626. It ensures that a reloaded image can be viewed after changing the screen resolution."
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanRenderImageAfterChangingScreenResolution {
+
+		// TODO LPS-148675 CanRenderImageAfterChangingScreenResolution pending implementation
+
+	}
+
+	@priority = "5"
+	@refactordone
+	test DisabledResolutionsWillNotAdaptNewImages {
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		AdaptiveMedia.openToAddImageResolution();
+
+		AdaptiveMedia.addImageResolution(
+			imageName = "Low Resolution",
+			maxHeight = "480",
+			maxWidth = "320");
+
+		AdaptiveMedia.viewImageResolutionTableEntry(
+			imageName = "Low Resolution",
+			maxHeight = "480",
+			maxWidth = "320",
+			percentAdapted = "0");
+
+		for (var entryCount : list "1,2") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document_${entryCount}.jpg",
+				groupName = "Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_${entryCount}.jpg");
+		}
+
+		AdaptiveMedia.openAdaptiveMediaAdmin();
+
+		AdaptiveMedia.adaptRemainingImages(imageName = "Low Resolution");
+
+		AdaptiveMedia.disableImageResolution(
+			imageName = "Low Resolution",
+			imageState = "Disabled");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_3.jpg",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_3.jpg");
+
+		AdaptiveMedia.openAdaptiveMediaAdmin();
+
+		AdaptiveMedia.selectAdaptiveMediaImage(imageName = "Low Resolution");
+
+		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "2/3");
+	}
+
+	@priority = "5"
+	@refactordone
+	test ImageMustBeReadaptedForUpdatedResolutionToTakeEffect {
+		AdaptiveMedia.openToAddImageResolution();
 
 		AdaptiveMedia.addImageResolution(
 			imageName = "Low Resolution",
@@ -129,10 +417,7 @@ definition {
 			mimeType = "image/jpeg",
 			sourceFileName = "Document_1.jpg");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
+		AdaptiveMedia.openAdaptiveMediaAdmin();
 
 		AdaptiveMedia.adaptRemainingImages(imageName = "Low Resolution");
 
@@ -163,542 +448,16 @@ definition {
 	}
 
 	@priority = "4"
-	@refactorneeded
-	test AddDuplicateImageResolution {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			customID = "custom-id",
-			imageName = "Image Variant With Custom ID",
-			maxHeight = "350",
-			maxWidth = "450");
-
-		Navigator.openURL();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			customID = "custom-id",
-			duplicate = "true",
-			imageName = "Image Variant With Duplicate Custom ID",
-			maxHeight = "350",
-			maxWidth = "450");
-
-		Navigator.openURL();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.viewNoImageResolution();
-	}
-
-	@priority = "4"
-	@refactorneeded
-	test AddImageResolutionWithNoDimensions {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "testResolutionNoDimensions",
-			maxHeight = "",
-			maxWidth = "",
-			noDimensions = "true");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.viewNoImageResolution(imageName = "testResolutionNoDimensions");
-	}
-
-	@priority = "4"
-	@refactorneeded
-	test AddImageResolutionWithSingleDimension {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			description = "Image Resolution Width",
-			imageName = "testResolutionWidth",
-			maxHeight = "0",
-			maxWidth = "1000");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "testResolutionWidth",
-			maxHeight = "Auto",
-			maxWidth = "1000");
-
-		AdaptiveMedia.addImageResolution(
-			description = "Image Resolution Height",
-			imageName = "testResolutionHeight",
-			maxHeight = "1000",
-			maxWidth = "0");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "testResolutionHeight",
-			maxHeight = "1000",
-			maxWidth = "Auto");
-	}
-
-	@priority = "5"
-	@refactorneeded
-	test AssertAdaptedImageInBlogsEntry {
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Documents and Media");
-
-		JSONDocument.addFileWithUploadedFile(
-			dmDocumentDescription = "Adaptive Media Image Description",
-			dmDocumentTitle = "high_resolution_photo.jpg",
-			groupName = "Guest",
-			mimeType = "image/jpeg",
-			sourceFileName = "high_resolution_photo.jpg");
-
-		Pause(locator1 = "3000");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Blogs");
-
-		BlogsNavigator.gotoAddEntry();
-
-		BlogsEntry.addTitle(entryTitle = "Blogs Entry With Adaptive Media Image");
-
-		ItemSelector.gotoItemSelectorViaAlloyEditor();
-
-		ItemSelector.selectDMImage(
-			imageFileName = "high_resolution_photo.jpg",
-			navTab = "Documents and Media");
-
-		Pause(locator1 = "2000");
-
-		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo.jpg");
-
-		Button.clickPublish();
-	}
-
-	@priority = "5"
-	@refactorneeded
-	test AssertAdaptedImageInWebContent {
-		property portal.acceptance = "true";
-
-		JSONDocument.addFileWithUploadedFile(
-			dmDocumentDescription = "Adaptive Media Image Description",
-			dmDocumentTitle = "high_resolution_photo.jpg",
-			groupName = "Guest",
-			mimeType = "image/jpeg",
-			sourceFileName = "high_resolution_photo.jpg");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Web Content");
-
-		WebContentNavigator.gotoAddCP();
-
-		WebContent.addWithDocumentCP(
-			dmDocumentTitle = "high_resolution_photo.jpg",
-			webContentContent = "Web Content Content",
-			webContentTitle = "Web Content Title");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
-
-		WebContent.viewCP(
-			webContentContent = "Web Content Content",
-			webContentTitle = "Web Content Title");
-
-		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "content",
-			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
-
-		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo.jpg");
-
-		SelectFrameTop();
-
-		Button.clickPublish();
-	}
-
-	@description = "This ensures that the SVG image can be added and optimized in a blog entry."
-	@priority = "5"
-	@refactorneeded
-	test AssertAdaptedSVGImageInBlogsEntry {
-		property portal.acceptance = "true";
-
-		JSONDocument.addFileWithUploadedFile(
-			dmDocumentDescription = "Adaptive Media Image Description",
-			dmDocumentTitle = "Document_1.svg",
-			groupName = "Guest",
-			mimeType = "image/svg+xml",
-			sourceFileName = "Document_1.svg");
-
-		Pause(locator1 = "3000");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Blogs");
-
-		BlogsNavigator.gotoAddEntry();
-
-		BlogsEntry.addTitle(entryTitle = "Blogs Entry With Adaptive Media SVG Image");
-
-		ItemSelector.gotoItemSelectorViaAlloyEditor();
-
-		ItemSelector.selectDMImage(
-			imageFileName = "Document_1.svg",
-			navTab = "Documents and Media");
-
-		Pause(locator1 = "2000");
-
-		AdaptiveMedia.viewImageVariantURL(imageName = "Document_1.svg");
-
-		Button.clickPublish();
-	}
-
-	@priority = "5"
-	@refactorneeded
-	test CannotAddNonNumericWidthOrHeight {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addNonNumericImageResolution(
-			imageName = "Small Image Variant",
-			maxHeight = "notallowed",
-			maxWidth = "notallowed");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.viewNoImageResolution(imageName = "Small Image Variant");
-	}
-
-	@priority = "5"
-	@refactorneeded
-	test EditAndDeleteDisabledAMI {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "Small Image Variant",
-			maxHeight = "100",
-			maxWidth = "100");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "Small Image Variant",
-			imageState = "Enabled",
-			maxHeight = "100",
-			maxWidth = "100",
-			percentAdapted = "0");
-
-		AdaptiveMedia.disableImageResolution(
-			imageName = "Small Image Variant",
-			imageState = "Disabled",
-			percentAdapted = "0");
-
-		AdaptiveMedia.editImageResolution(
-			imageName = "Small Image Variant",
-			imageNameEdit = "Large Image Variant",
-			maxHeightEdit = "1000",
-			maxWidthEdit = "1000");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "Large Image Variant",
-			imageState = "Disabled",
-			maxHeight = "1000",
-			maxWidth = "1000",
-			percentAdapted = "0");
-
-		AdaptiveMedia.deleteImageResolution(imageName = "Large Image Variant");
-	}
-
-	@priority = "5"
-	@refactorneeded
-	test EditImageResolutionWithAdaptedImages {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		LexiconEntry.gotoAdd();
-
-		PortletEntry.inputName(name = "Small Image Variant");
-
-		Type(
-			locator1 = "TextInput#MAX_WIDTH",
-			value1 = "100");
-
-		Type(
-			locator1 = "TextInput#MAX_HEIGHT",
-			value1 = "100");
-
-		AssertClick(
-			locator1 = "Button#SAVE",
-			value1 = "Save");
-
-		Alert.viewSuccessMessage();
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "Small Image Variant",
-			imageState = "Enabled",
-			maxHeight = "100",
-			maxWidth = "100",
-			percentAdapted = "0");
-
-		JSONDocument.addFileWithUploadedFile(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentTitle = "Document_1.jpg",
-			groupName = "Guest",
-			mimeType = "image/jpeg",
-			sourceFileName = "Document_1.jpg");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.editImageResolution(
-			imageName = "Small Image Variant",
-			imageNameEdit = "Small Image Variant Edited");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "Small Image Variant Edited",
-			imageState = "Enabled",
-			maxHeight = "100",
-			maxWidth = "100");
-	}
-
-	@priority = "4"
-	@refactorneeded
-	test EditImageResolutionWithNoDimensions {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "testResolution",
-			maxHeight = "1000",
-			maxWidth = "1000");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "testResolution",
-			maxHeight = "1000",
-			maxWidth = "1000");
-
-		AdaptiveMedia.editImageResolution(
-			imageName = "testResolution",
-			imageNameEdit = "testResolutionEdit",
-			maxHeightEdit = "0",
-			maxWidthEdit = "0",
-			zero = "true");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.viewNoImageResolution(imageName = "testResolutionEdit");
-	}
-
-	@priority = "5"
-	@refactorneeded
-	test EditImageResolutionWithoutAdaptedImage {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "Small Image Variant",
-			maxHeight = "100",
-			maxWidth = "100");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "Small Image Variant",
-			imageState = "Enabled",
-			maxHeight = "100",
-			maxWidth = "100",
-			percentAdapted = "0");
-
-		AdaptiveMedia.editImageResolution(
-			imageIDEdit = "large-image",
-			imageName = "Small Image Variant",
-			imageNameEdit = "Large Image Variant",
-			maxHeightEdit = "1000",
-			maxWidthEdit = "1000");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "Large Image Variant",
-			imageState = "Enabled",
-			maxHeight = "1000",
-			maxWidth = "1000",
-			percentAdapted = "0");
-	}
-
-	@priority = "4"
-	@refactorneeded
-	test EditImageResolutionWithSingleDimension {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "testResolutionWidth",
-			maxHeight = "1000",
-			maxWidth = "1000");
-
-		AdaptiveMedia.editImageResolution(
-			imageName = "testResolutionWidth",
-			imageNameEdit = "testResolutionWidthEdit",
-			maxHeightEdit = "0");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "testResolutionWidthEdit",
-			maxHeight = "Auto",
-			maxWidth = "1000");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "testResolutionHeight",
-			maxHeight = "1000",
-			maxWidth = "1000");
-
-		AdaptiveMedia.editImageResolution(
-			imageName = "testResolutionHeight",
-			imageNameEdit = "testResolutionHeightEdit",
-			maxWidthEdit = "0");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "testResolutionHeightEdit",
-			maxHeight = "1000",
-			maxWidth = "Auto");
-	}
-
-	@priority = "4"
-	@refactorneeded
-	test OptimizeAllImageResolutions {
-		JSONDocument.addFileWithUploadedFile(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentTitle = "Document_1.jpg",
-			groupName = "Guest",
-			mimeType = "image/jpeg",
-			sourceFileName = "Document_1.jpg");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "Small Image Variant",
-			maxHeight = "100",
-			maxWidth = "100");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "Medium Image Variant",
-			maxHeight = "500",
-			maxWidth = "500");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "Large Image Variant",
-			maxHeight = "1000",
-			maxWidth = "1000");
-
-		AdaptiveMedia.adaptAllImages();
-	}
-
-	@priority = "4"
-	@refactorneeded
-	test ViewAutomaticAndCustomImageVariantIDs {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "Small Image Variant",
-			maxHeight = "100",
-			maxWidth = "100");
-
-		AdaptiveMedia.gotoImageVariantEntry(imageName = "Small Image Variant");
-
-		AdaptiveMedia.viewImageVariantID(imageVariantID = "small-image-variant");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.editImageResolution(
-			imageName = "Small Image Variant",
-			imageNameEdit = "Edited Small Image Variant");
-
-		AdaptiveMedia.gotoImageVariantEntry(imageName = "Edited Small Image Variant");
-
-		AdaptiveMedia.viewImageVariantID(imageVariantID = "edited-small-image-variant");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			customID = "custom-id",
-			imageName = "Image Variant With Custom ID",
-			maxHeight = "200",
-			maxWidth = "200");
-
-		AdaptiveMedia.gotoImageVariantEntry(imageName = "Image Variant With Custom ID");
-
-		AdaptiveMedia.viewImageVariantID(imageVariantID = "custom-id");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.editImageResolution(
-			imageName = "Image Variant With Custom ID",
-			imageNameEdit = "Custom ID Should Not Change");
-
-		AdaptiveMedia.gotoImageVariantEntry(imageName = "Custom ID Should Not Change");
-
-		AdaptiveMedia.viewImageVariantID(imageVariantID = "custom-id");
-	}
-
-	@priority = "4"
-	@refactorneeded
-	test ViewNoImageResolutionInNewVirtualInstance {
-		property test.name.skip.portal.instance = "AdaptiveMedia#ViewNoImageResolutionInNewVirtualInstance";
-
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
+	@refactordone
+	test ImageResolutionIsScopedToInstance {
+		property test.name.skip.portal.instance = "AdaptiveMedia#ImageResolutionIsScopedToInstance";
+
+		PortalInstances.openVirtualInstancesAdmin();
 
 		PortalInstances.addCP(
 			mailDomain = "www.able.com",
 			virtualHost = "www.able.com",
 			webId = "www.able.com");
-
-		PortalInstances.viewCP(virtualHost = "www.able.com");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -725,80 +484,13 @@ definition {
 		AdaptiveMedia.viewNoImageResolution(imageName = "This should not appear on new virtual instance");
 	}
 
-	@priority = "5"
-	@refactorneeded
-	test ViewNumberOfAdaptedImagesAfterAdaptingImages {
-		JSONGroup.addGroup(groupName = "Site Name");
+	@description = "This test covers LPS-136280. It validates that an image can be adapted in a web content after it is updated."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ImageVariantsAreGeneratedAfterEditingWebContentWithImage {
 
-		SitePages.openPagesAdmin(siteURLKey = "Site Name");
+		// TODO LPS-149586
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.addImageResolution(
-			imageName = "Low Resolution",
-			maxHeight = "480",
-			maxWidth = "320");
-
-		AdaptiveMedia.viewImageResolutionTableEntry(
-			imageName = "Low Resolution",
-			maxHeight = "480",
-			maxWidth = "320",
-			percentAdapted = "0");
-
-		for (var entryCount : list "1,2") {
-			JSONDocument.addFileWithUploadedFile(
-				dmDocumentDescription = "DM Document Description",
-				dmDocumentTitle = "Document_${entryCount}.jpg",
-				groupName = "Site Name",
-				mimeType = "image/jpeg",
-				sourceFileName = "Document_${entryCount}.jpg");
-		}
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.adaptRemainingImages(imageName = "Low Resolution");
-
-		AdaptiveMedia.disableImageResolution(
-			imageName = "Low Resolution",
-			imageState = "Disabled");
-
-		JSONGroup.addGroup(groupName = "Another Site Name");
-
-		for (var entryCount : list "1,2") {
-			JSONDocument.addFileWithUploadedFile(
-				dmDocumentDescription = "DM Document Description",
-				dmDocumentTitle = "Document_${entryCount}.jpg",
-				groupName = "Another Site Name",
-				mimeType = "image/jpeg",
-				sourceFileName = "Document_${entryCount}.jpg");
-		}
-
-		SitePages.openPagesAdmin(siteURLKey = "Site Name");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Adaptive Media");
-
-		AdaptiveMedia.selectAdaptiveMediaImage(imageName = "Low Resolution");
-
-		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "2/4");
-
-		AdaptiveMedia.enableImageResolution(
-			imageName = "Low Resolution",
-			imageState = "Enabled");
-
-		AdaptiveMedia.adaptRemainingImages(imageName = "Low Resolution");
-
-		AdaptiveMedia.selectAdaptiveMediaImage(imageName = "Low Resolution");
-
-		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "4/4");
 	}
 
 }

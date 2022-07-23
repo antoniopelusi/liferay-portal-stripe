@@ -15,11 +15,19 @@
 package com.liferay.bulk.rest.resource.v1_0;
 
 import com.liferay.bulk.rest.dto.v1_0.TaxonomyCategoryBulkSelection;
+import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Generated;
 
@@ -75,9 +83,32 @@ public interface TaxonomyCategoryResource {
 	public void setContextUser(
 		com.liferay.portal.kernel.model.User contextUser);
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert);
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider);
+
 	public void setGroupLocalService(GroupLocalService groupLocalService);
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService);
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService);
+
 	public void setRoleLocalService(RoleLocalService roleLocalService);
+
+	public default Filter toFilter(String filterString) {
+		return toFilter(
+			filterString, Collections.<String, List<String>>emptyMap());
+	}
+
+	public default Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		return null;
+	}
 
 	public static class FactoryHolder {
 
@@ -94,6 +125,9 @@ public interface TaxonomyCategoryResource {
 
 		public Builder httpServletRequest(
 			HttpServletRequest httpServletRequest);
+
+		public Builder httpServletResponse(
+			HttpServletResponse httpServletResponse);
 
 		public Builder preferredLocale(Locale preferredLocale);
 

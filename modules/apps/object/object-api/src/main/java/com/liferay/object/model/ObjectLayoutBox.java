@@ -15,7 +15,6 @@
 package com.liferay.object.model;
 
 import com.liferay.portal.kernel.annotation.ImplementationClassName;
-import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.util.Accessor;
 
 import org.osgi.annotation.versioning.ProviderType;
@@ -29,7 +28,7 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ImplementationClassName("com.liferay.object.model.impl.ObjectLayoutBoxImpl")
 @ProviderType
-public interface ObjectLayoutBox extends ObjectLayoutBoxModel, PersistedModel {
+public interface ObjectLayoutBox extends ObjectLayoutBoxModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -55,5 +54,10 @@ public interface ObjectLayoutBox extends ObjectLayoutBoxModel, PersistedModel {
 			}
 
 		};
+
+	public java.util.List<ObjectLayoutRow> getObjectLayoutRows();
+
+	public void setObjectLayoutRows(
+		java.util.List<ObjectLayoutRow> objectLayoutRows);
 
 }

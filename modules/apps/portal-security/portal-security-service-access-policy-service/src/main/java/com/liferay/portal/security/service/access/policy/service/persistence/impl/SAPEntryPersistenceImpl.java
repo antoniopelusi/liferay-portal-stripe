@@ -16,7 +16,6 @@ package com.liferay.portal.security.service.access.policy.service.persistence.im
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -28,30 +27,33 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.security.service.access.policy.exception.NoSuchEntryException;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.model.SAPEntryTable;
 import com.liferay.portal.security.service.access.policy.model.impl.SAPEntryImpl;
 import com.liferay.portal.security.service.access.policy.model.impl.SAPEntryModelImpl;
 import com.liferay.portal.security.service.access.policy.service.persistence.SAPEntryPersistence;
+import com.liferay.portal.security.service.access.policy.service.persistence.SAPEntryUtil;
 import com.liferay.portal.security.service.access.policy.service.persistence.impl.constants.SAPPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
@@ -61,12 +63,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -4148,6 +4147,8 @@ public class SAPEntryPersistenceImpl
 			sapEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the sap entries in the entity cache if it is enabled.
 	 *
@@ -4155,6 +4156,13 @@ public class SAPEntryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<SAPEntry> sapEntries) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (sapEntries.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (SAPEntry sapEntry : sapEntries) {
 			if (entityCache.getResult(
 					SAPEntryImpl.class, sapEntry.getPrimaryKey()) == null) {
@@ -4230,7 +4238,7 @@ public class SAPEntryPersistenceImpl
 		sapEntry.setNew(true);
 		sapEntry.setPrimaryKey(sapEntryId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		sapEntry.setUuid(uuid);
 
@@ -4345,7 +4353,7 @@ public class SAPEntryPersistenceImpl
 		SAPEntryModelImpl sapEntryModelImpl = (SAPEntryModelImpl)sapEntry;
 
 		if (Validator.isNull(sapEntry.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			sapEntry.setUuid(uuid);
 		}
@@ -4353,23 +4361,23 @@ public class SAPEntryPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (sapEntry.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				sapEntry.setCreateDate(now);
+				sapEntry.setCreateDate(date);
 			}
 			else {
-				sapEntry.setCreateDate(serviceContext.getCreateDate(now));
+				sapEntry.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!sapEntryModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				sapEntry.setModifiedDate(now);
+				sapEntry.setModifiedDate(date);
 			}
 			else {
-				sapEntry.setModifiedDate(serviceContext.getModifiedDate(now));
+				sapEntry.setModifiedDate(serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4664,12 +4672,9 @@ public class SAPEntryPersistenceImpl
 	 * Initializes the sap entry persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new SAPEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4766,13 +4771,30 @@ public class SAPEntryPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_N",
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"companyId", "name"}, false);
+
+		_setSAPEntryUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(SAPEntryImpl.class.getName());
+		_setSAPEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(SAPEntryImpl.class.getName());
+	}
+
+	private void _setSAPEntryUtilPersistence(
+		SAPEntryPersistence sapEntryPersistence) {
+
+		try {
+			Field field = SAPEntryUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, sapEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -4800,8 +4822,6 @@ public class SAPEntryPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -4863,91 +4883,10 @@ public class SAPEntryPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class SAPEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			SAPEntryModelImpl sapEntryModelImpl = (SAPEntryModelImpl)baseModel;
-
-			long columnBitmask = sapEntryModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(sapEntryModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						sapEntryModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(sapEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return SAPEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return SAPEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			SAPEntryModelImpl sapEntryModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = sapEntryModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = sapEntryModelImpl.getColumnValue(columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private SAPEntryModelArgumentsResolver _sapEntryModelArgumentsResolver;
 
 }

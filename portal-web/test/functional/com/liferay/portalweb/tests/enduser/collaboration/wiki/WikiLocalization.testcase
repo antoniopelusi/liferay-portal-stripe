@@ -1,0 +1,95 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Wiki";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Wiki Test Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Wiki Test Page",
+			widgetName = "Wiki");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			WikiPage.tearDownCP();
+
+			WikiNode.tearDownCP();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "This is a test for LPS-136991. It checks that a wiki page can be viewed in Arabic."
+	@priority = "3"
+	test CanViewEntryInArabic {
+		WikiPage.addPG(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "محتوى صفحة ويكي",
+			wikiPageTitle = "عنوان صفحة ويكي");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "عنوان صفحة ويكي");
+
+		WikiPage.viewPG(
+			wikiPageContent = "محتوى صفحة ويكي",
+			wikiPageTitle = "عنوان صفحة ويكي");
+	}
+
+	@description = "This is a test for LPS-136990. It checks that a wiki page can be viewed in Japanese."
+	@priority = "3"
+	test CanViewEntryInJapanese {
+		WikiPage.addPG(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wikiページのコンテンツ",
+			wikiPageTitle = "Wikiページのタイトル");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wikiページのタイトル");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wikiページのコンテンツ",
+			wikiPageTitle = "Wikiページのタイトル");
+	}
+
+	@description = "This test covers LPS-144498. It validates that once localized, the Table of Contents uses the current language translation."
+	@ignore = "Test Stub"
+	@priority = "3"
+	test CanViewTableOfContentsInNorwegian {
+
+		// TODO LPS-149401
+
+	}
+
+}

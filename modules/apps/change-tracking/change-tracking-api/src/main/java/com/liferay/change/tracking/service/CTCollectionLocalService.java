@@ -15,6 +15,7 @@
 package com.liferay.change.tracking.service;
 
 import com.liferay.change.tracking.conflict.ConflictInfo;
+import com.liferay.change.tracking.mapping.CTMappingTableInfo;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
@@ -147,6 +148,9 @@ public interface CTCollectionLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -255,6 +259,9 @@ public interface CTCollectionLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getCTCollectionsCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CTMappingTableInfo> getCTMappingTableInfos(long ctCollectionId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CTEntry> getDiscardCTEntries(

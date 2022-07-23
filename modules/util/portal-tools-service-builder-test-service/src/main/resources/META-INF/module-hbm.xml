@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
-<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping auto-import="false" default-lazy="false">
 	<import class="com.liferay.portal.tools.service.builder.test.model.BigDecimalEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.CacheDisabledEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.CacheFieldEntry" />
+	<import class="com.liferay.portal.tools.service.builder.test.model.CacheMissEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.DataLimitEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.DSLQueryEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.DSLQueryStatusEntry" />
@@ -21,6 +22,7 @@
 	<import class="com.liferay.portal.tools.service.builder.test.model.LVEntryVersion" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.ManyColumnsEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.NestedSetsTreeEntry" />
+	<import class="com.liferay.portal.tools.service.builder.test.model.NullConvertibleEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.UADPartialEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.VersionedEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.VersionedEntryVersion" />
@@ -43,6 +45,13 @@
 		</id>
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="groupId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+	</class>
+	<class dynamic-update="true" name="com.liferay.portal.tools.service.builder.test.model.impl.CacheMissEntryImpl" table="CacheMissEntry">
+		<id access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="cacheMissEntryId" type="long">
+			<generator class="assigned" />
+		</id>
+		<version access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" name="mvccVersion" type="long" />
+		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="ctCollectionId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 	</class>
 	<class name="com.liferay.portal.tools.service.builder.test.model.impl.DataLimitEntryImpl" table="DataLimitEntry">
 		<id access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="dataLimitEntryId" type="long">
@@ -104,8 +113,8 @@
 		</id>
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" column="uuid_" name="uuid" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="groupId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
-		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob1BlobModel" constrained="true" name="blob1BlobModel" outer-join="false" />
-		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob2BlobModel" constrained="true" name="blob2BlobModel" outer-join="false" />
+		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob1BlobModel" constrained="false" name="blob1BlobModel" outer-join="false" />
+		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob2BlobModel" constrained="false" name="blob2BlobModel" outer-join="false" />
 	</class>
 	<class lazy="true" name="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob1BlobModel" table="LazyBlobEntry">
 		<id column="lazyBlobEntryId" name="lazyBlobEntryId">
@@ -266,6 +275,12 @@
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="parentNestedSetsTreeEntryId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="leftNestedSetsTreeEntryId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="rightNestedSetsTreeEntryId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+	</class>
+	<class name="com.liferay.portal.tools.service.builder.test.model.impl.NullConvertibleEntryImpl" table="NullConvertibleEntry">
+		<id access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="nullConvertibleEntryId" type="long">
+			<generator class="assigned" />
+		</id>
+		<property access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 	</class>
 	<class name="com.liferay.portal.tools.service.builder.test.model.impl.UADPartialEntryImpl" table="UADPartialEntry">
 		<id access="com.liferay.portal.dao.orm.hibernate.LiferayPropertyAccessor" name="uadPartialEntryId" type="long">

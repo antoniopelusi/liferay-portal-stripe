@@ -40,9 +40,9 @@ definition {
 			var displayDateHour = "0${displayDateHour}";
 		}
 
-		var displayDateAMPM = selenium.getAttribute("//input[contains(@id,'displayDateAmPm')]@value");
-		var displayDateAMPM = StringUtil.replace("${displayDateAMPM}", "0", "AM");
-		var displayDateAMPM = StringUtil.replace("${displayDateAMPM}", "1", "PM");
+		var displayDateAmpm = selenium.getAttribute("//input[contains(@id,'displayDateAmPm')]@value");
+		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "0", "AM");
+		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "1", "PM");
 		var displayDateMinute = selenium.getAttribute("//input[contains(@id,'displayDateMinute')]@value");
 		var displayDateMinuteFuture = ${displayDateMinute} + 2;
 		var displayDateMinuteFutureLength = StringUtil.length("${displayDateMinuteFuture}");
@@ -51,7 +51,7 @@ definition {
 			var displayDateMinuteFuture = "0${displayDateMinuteFuture}";
 		}
 
-		var displayDate = "${displayDateHour}:${displayDateMinuteFuture} ${displayDateAMPM}";
+		var displayDate = "${displayDateHour}:${displayDateMinuteFuture} ${displayDateAmpm}";
 
 		Type(
 			locator1 = "TextInput#DISPLAY_DATE_TIME",
@@ -108,30 +108,14 @@ definition {
 	}
 
 	macro deletePG {
-		var key_distributionScope = "${distributionScope}";
-		var key_entryTitle = "${entryTitle}";
-
 		AssertTextEquals(
+			key_entryTitle = "${entryTitle}",
 			locator1 = "Announcements#CARD_VIEW_ENTRY_TITLE",
 			value1 = "${entryTitle}");
-
-		AssertTextEquals(
-			locator1 = "Announcements#CARD_VIEW_ENTRY_SCOPE",
-			value1 = "${distributionScope}");
-
-		var key_entryContent = "${entryContent}";
-
-		AssertTextEquals(
-			locator1 = "Announcements#CARD_VIEW_ENTRY_CONTENT",
-			value1 = "${entryContent}");
 
 		LexiconEntry.gotoEllipsisMenuItemNoError(menuItem = "Delete");
 
 		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
-
-		AssertTextNotPresent(value1 = "${entryTitle}");
-
-		AssertTextNotPresent(value1 = "${entryContent}");
 	}
 
 	macro editPG {
@@ -181,6 +165,11 @@ definition {
 	macro markAsReadPG {
 		var key_entryContent = "${entryContent}";
 
+		AnnouncementsNavigator.openToEntriesTab(
+			layoutName = "${layoutName}",
+			siteURLKey = "${siteURLKey}",
+			tabName = "${tabName}");
+
 		AssertVisible(locator1 = "Announcements#CARD_VIEW_ENTRY_CONTENT");
 
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Mark as Read");
@@ -188,26 +177,22 @@ definition {
 		AssertElementNotPresent(locator1 = "Announcements#CARD_VIEW_ENTRY_CONTENT");
 	}
 
-	macro tearDownPG {
-		Click(locator1 = "Announcements#NAVIGATION_MANAGE_ENTRIES");
+	macro tearDownCP {
+		AnnouncementsNavigator.opentoAdmin(
+			groupName = "Guest",
+			siteURLKey = "guest");
 
-		Select(
-			locator1 = "AnnouncementsManageEntries#DISTRIBUTION_SCOPE_SELECT",
-			value1 = "General");
+		while (IsElementNotPresent(locator1 = "Message#EMPTY_INFO")) {
+			PortletEntry.selectAll();
 
-		while (IsElementPresent(locator1 = "AnnouncementsManageEntries#ENTRY_TABLE_ACTIONS_GENERIC")) {
-			Click(locator1 = "AnnouncementsManageEntries#ENTRY_TABLE_ACTIONS_GENERIC");
+			ClickNoError(locator1 = "Icon#DELETE");
 
-			MenuItem.clickNoError(menuItem = "Delete");
-
-			AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+			AssertConfirm(value1 = "Are you sure you want to delete the selected entries? They will be deleted immediately.");
 		}
-	}
 
-	macro viewDeletePG {
-		AssertTextNotPresent(value1 = "${entryTitle}");
-
-		AssertTextNotPresent(value1 = "${entryContent}");
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "No entries were found.");
 	}
 
 	macro viewList {
@@ -220,6 +205,12 @@ definition {
 		AssertTextEquals(
 			locator1 = "Blogs#ENTRY_TABLE_AUTHOR",
 			value1 = "${distributionScope}");
+	}
+
+	macro viewNoAdmin {
+		AssertTextEquals(
+			locator1 = "Message#NO_ENTRIES",
+			value1 = "No entries were found.");
 	}
 
 	macro viewNoPG {
@@ -242,6 +233,12 @@ definition {
 			locator1 = "Announcements#CARD_VIEW_ENTRY_SCOPE",
 			value1 = "${distributionScope}");
 
+		if (isSet(priority)) {
+			AssertTextEquals(
+				locator1 = "Announcements#PRIORITY_IMPORTANT",
+				value1 = "${priority}");
+		}
+
 		var key_entryContent = "${entryContent}";
 
 		AssertTextEquals(
@@ -261,25 +258,6 @@ definition {
 			entryTitle = "${entryTitle}",
 			key_distributionScope = "${distributionScope}",
 			key_entryTitle = "${entryTitle}");
-	}
-
-	macro viewViaEntriesPG {
-		var key_distributionScope = "${distributionScope}";
-		var key_entryTitle = "${entryTitle}";
-
-		AssertTextEquals(
-			locator1 = "Announcements#CARD_VIEW_ENTRY_TITLE",
-			value1 = "${entryTitle}");
-
-		AssertTextEquals(
-			locator1 = "Announcements#CARD_VIEW_ENTRY_SCOPE",
-			value1 = "${distributionScope}");
-
-		var key_entryContent = "${entryContent}";
-
-		AssertTextEquals(
-			locator1 = "Announcements#CARD_VIEW_ENTRY_CONTENT",
-			value1 = "${entryContent}");
 	}
 
 }

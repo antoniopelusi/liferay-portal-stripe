@@ -52,10 +52,6 @@ public class FieldQueryFactoryImpl implements FieldQueryFactory {
 		_fieldQueryBuilderFactories.add(fieldQueryBuilderFactory);
 	}
 
-	protected FieldQueryBuilder getDefaultQueryBuilder() {
-		return descriptionFieldQueryBuilder;
-	}
-
 	protected FieldQueryBuilder getQueryBuilder(String fieldName) {
 		for (FieldQueryBuilderFactory fieldQueryBuilderFactory :
 				_fieldQueryBuilderFactories) {
@@ -68,7 +64,7 @@ public class FieldQueryFactoryImpl implements FieldQueryFactory {
 			}
 		}
 
-		return getDefaultQueryBuilder();
+		return descriptionFieldQueryBuilder;
 	}
 
 	protected void removeFieldQueryBuilderFactory(

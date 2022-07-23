@@ -20,8 +20,9 @@ definition {
 		}
 	}
 
+	@description = "Verify poshi function AssertAccessible passes atleast one portal page based on WCAG 2.0 AA standards"
 	@priority = "5"
-	test Smoke {
+	test CanAssertAccessible {
 		property portal.acceptance = "true";
 
 		AssertAccessible();
@@ -31,116 +32,14 @@ definition {
 		AssertAccessible();
 	}
 
-	@ignore = "true"
-	@priority = "4"
-	test ViewCollaborationPortlets {
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
+	@description = "Verify poshi function AssertAccessible can fail a page that has a WCAG 2.0 AA violation"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanAssertNotAccessible {
+		property portal.acceptance = "false";
 
-		SitePages.addPublicPage(pageName = "Collaboration Page");
+		// TODO LPS-133020 CanAssertNotAccessible pending implementation
 
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Blogs");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Blogs Aggregator");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Recent Bloggers");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Documents and Media");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Media Gallery");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Wiki");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Wiki Display");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Message Boards");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Knowledge Base Display");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Knowledge Base Article");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Knowledge Base Search");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Knowledge Base Section");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Microblogs");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Microblogs Status Update");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Bookmarks");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Friends Directory");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Page Comments");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Page Flags");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Page Ratings");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Alerts");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Announcements");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Activities");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Group Statistics");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "Requests");
-
-		Navigator.gotoPage(pageName = "Collaboration Page");
-
-		Portlet.addPG(portletName = "User Statistics");
-
-		AssertAccessible();
 	}
 
 }

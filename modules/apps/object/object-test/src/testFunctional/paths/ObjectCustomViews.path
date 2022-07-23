@@ -1,0 +1,121 @@
+<html>
+<head>
+<title>ObjectCustomViews</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">ObjectCustomViews</td></tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td>ADD_VIEW_NAME</td>
+		<td>//input[contains(@id,'listObjectCustomViewName')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_VIEW_LABEL</td>
+		<td>//div[(@class = 'dnd-td') and contains (.,'${key_viewLabel}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_VIEWS_TAB</td>
+		<td>//*[contains(@class,'nav-link')]//span[contains(text(),'Views')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_OBJECT_VIEWS</td>
+		<td>//a[contains(text(),'${key_label}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_VIEWS_NAME</td>
+		<td>//label[contains(text(),'Name')]/..//input[contains(@class,'form-control')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_VIEW_KEBAB_MENU</td>
+		<td>//a[contains(text(),'${key_objectCustomViewLabel}')]/ancestor::div[contains(@class,'dnd-tr')]//*[contains(@class,'lexicon-icon-ellipsis')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>CUSTOM_VIEW_BOOLEAN_CHECKBOX</td>
+		<td>//input[contains(@class,'custom-control-input')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_BUILDER_TAB</td>
+		<td>//button[contains(text(), 'View Builder')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>CHECKBOX_COLUMN_OPTION</td>
+		<td>//label[contains(.,'${key_columnOption}')]/input[@type='checkbox']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_BUILDER_DROPDOWN_SPECIFIC_COLUMN</td>
+		<td>//p[contains(@class,'list-group-title') and contains(text(),'${key_columnName}')]/../..//div[contains(@class,'dropdown')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_BUILDER_EMPTY_STATE_TEXT</td>
+		<td>//div[(@class='c-empty-state-title')]/..//*[contains(text(),'${key_text}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_BUILDER_SEARCH_BAR</td>
+		<td>//input[contains(@aria-label,'Search')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_BUILDER_SEARCH_RESULT</td>
+		<td>//p[contains(@class,'list-group-title') and contains(text(),'${key_columnName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_COLUMNS_SEARCH_BAR</td>
+		<td>//div[contains(@class,'modal-body')]//input[contains(@aria-label,'Search')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_COLUMNS_COLUMN_LABEL</td>
+		<td>//span[@class="custom-control-label-text" and contains(text(),'${key_columnName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_LIST_COLUMNS_BY_POSITION</td>
+		<td>//ul[@class='list-group show-quick-actions-on-hover']//li[@class='lfr-object__object-custom-view-builder-item list-group-item list-group-item-flex'][${key_position}]//p[contains(text(),'${key_colunmName1}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>MARK_AS_DEFAULT</td>
+		<td>//input[contains(@class,'custom-control-input')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_COLUMN_ENTRIES</td>
+		<td>//div[${key_position}]//button[contains(text(),'${key_columnName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_PERMISSIONS_TO_REGULAR_ROLE</td>
+		<td>//input[@id='regular-role_ACTION_${key_permissionName}']</td>
+		<td></td>
+	</tr>
+	 <tr>
+		<td>CUSTOM_VIEW_FIELD_REQUIRED</td>
+		<td>//input[@id='listObjectCustomViewName']/..//div[contains(@class, 'form-feedback-group') and contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	 <tr>
+		<td>SELECT_ANY_PERMISSIONS</td>
+		<td>//input[@id='${key_roleName}_ACTION_${key_permissionName}']</td>
+		<td></td>
+	</tr>
+</tbody>
+</table>
+</body>
+</html>

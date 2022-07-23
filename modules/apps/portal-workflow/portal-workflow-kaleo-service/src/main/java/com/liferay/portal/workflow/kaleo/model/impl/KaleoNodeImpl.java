@@ -25,9 +25,6 @@ import java.util.List;
  */
 public class KaleoNodeImpl extends KaleoNodeBaseImpl {
 
-	public KaleoNodeImpl() {
-	}
-
 	@Override
 	public KaleoTransition getDefaultKaleoTransition() throws PortalException {
 		return KaleoTransitionLocalServiceUtil.getDefaultKaleoTransition(

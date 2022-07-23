@@ -15,7 +15,9 @@
 package com.liferay.portal.kernel.util;
 
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -23,12 +25,13 @@ import java.util.Vector;
  */
 public class OrderedProperties extends Properties {
 
-	public OrderedProperties() {
-		_names = new Vector<>();
+	@Override
+	public synchronized Enumeration<Object> keys() {
+		return _names.elements();
 	}
 
 	@Override
-	public Enumeration<String> propertyNames() {
+	public Enumeration<?> propertyNames() {
 		return _names.elements();
 	}
 
@@ -50,6 +53,11 @@ public class OrderedProperties extends Properties {
 		return super.remove(key);
 	}
 
-	private final Vector<String> _names;
+	@Override
+	public Set<String> stringPropertyNames() {
+		return new LinkedHashSet(_names);
+	}
+
+	private final Vector<Object> _names = new Vector<>();
 
 }

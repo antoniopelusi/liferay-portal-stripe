@@ -29,12 +29,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -212,33 +213,6 @@ public class FolderModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Folder>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Folder.class.getClassLoader(), Folder.class, ModelWrapper.class);
-
-		try {
-			Constructor<Folder> constructor =
-				(Constructor<Folder>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Folder, Object>>
@@ -560,6 +534,28 @@ public class FolderModelImpl
 	}
 
 	@Override
+	public Folder cloneWithOriginalValues() {
+		FolderImpl folderImpl = new FolderImpl();
+
+		folderImpl.setFolderId(this.<Long>getColumnOriginalValue("folderId"));
+		folderImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		folderImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		folderImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		folderImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		folderImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		folderImpl.setAccountId(this.<Long>getColumnOriginalValue("accountId"));
+		folderImpl.setFullName(this.<String>getColumnOriginalValue("fullName"));
+		folderImpl.setDisplayName(
+			this.<String>getColumnOriginalValue("displayName"));
+		folderImpl.setRemoteMessageCount(
+			this.<Integer>getColumnOriginalValue("remoteMessageCount"));
+
+		return folderImpl;
+	}
+
+	@Override
 	public int compareTo(Folder folder) {
 		int value = 0;
 
@@ -691,7 +687,7 @@ public class FolderModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -701,9 +697,26 @@ public class FolderModelImpl
 			String attributeName = entry.getKey();
 			Function<Folder, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Folder)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Folder)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -749,7 +762,9 @@ public class FolderModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Folder>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Folder.class, ModelWrapper.class);
 
 	}
 

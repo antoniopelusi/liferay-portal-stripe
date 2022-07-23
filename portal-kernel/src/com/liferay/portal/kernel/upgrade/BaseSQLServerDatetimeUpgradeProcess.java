@@ -61,10 +61,10 @@ public class BaseSQLServerDatetimeUpgradeProcess extends UpgradeProcess {
 		String tableName = dbInspector.normalizeName(
 			getTableName(tableClass), databaseMetaData);
 
-		try (ResultSet tableRS = databaseMetaData.getTables(
+		try (ResultSet tableResultSet = databaseMetaData.getTables(
 				catalog, schema, tableName, null)) {
 
-			if (!tableRS.next()) {
+			if (!tableResultSet.next()) {
 				_log.error(
 					StringBundler.concat(
 						"Table ", tableName, " does not exist"));
@@ -90,10 +90,10 @@ public class BaseSQLServerDatetimeUpgradeProcess extends UpgradeProcess {
 				String columnName = dbInspector.normalizeName(
 					entry.getKey(), databaseMetaData);
 
-				try (ResultSet columnRS = databaseMetaData.getColumns(
+				try (ResultSet columnResultSet = databaseMetaData.getColumns(
 						null, null, tableName, columnName)) {
 
-					if (!columnRS.next()) {
+					if (!columnResultSet.next()) {
 						_log.error(
 							StringBundler.concat(
 								"Column ", columnName,
@@ -102,8 +102,10 @@ public class BaseSQLServerDatetimeUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					if (newTypeName.equals(columnRS.getString("TYPE_NAME")) &&
-						(_NEW_SIZE == columnRS.getInt("DECIMAL_DIGITS"))) {
+					if (newTypeName.equals(
+							columnResultSet.getString("TYPE_NAME")) &&
+						(_NEW_SIZE == columnResultSet.getInt(
+							"DECIMAL_DIGITS"))) {
 
 						if (_log.isWarnEnabled()) {
 							_log.warn(
@@ -116,9 +118,7 @@ public class BaseSQLServerDatetimeUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					alter(
-						tableClass,
-						new AlterColumnType(columnName, newTypeDefinition));
+					alterColumnType(tableName, columnName, newTypeDefinition);
 				}
 			}
 		}

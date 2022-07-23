@@ -184,10 +184,10 @@ public class JaxRsComponentRegistrationTest {
 
 					@Override
 					public void removedService(
-						ServiceReference<ServletContextHelper> reference,
+						ServiceReference<ServletContextHelper> serviceReference,
 						ServletContextHelper service) {
 
-						Object contextName = reference.getProperty(
+						Object contextName = serviceReference.getProperty(
 							HttpWhiteboardConstants.
 								HTTP_WHITEBOARD_CONTEXT_NAME);
 

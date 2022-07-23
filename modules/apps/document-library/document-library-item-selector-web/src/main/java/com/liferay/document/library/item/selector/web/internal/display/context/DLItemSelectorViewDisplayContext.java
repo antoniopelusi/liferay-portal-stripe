@@ -125,6 +125,18 @@ public class DLItemSelectorViewDisplayContext<T extends ItemSelectorCriterion> {
 			getAllowedCreationMenuUIItemKeys(_itemSelectorCriterion);
 	}
 
+	public PortletURL getEditImageURL(
+		LiferayPortletResponse liferayPortletResponse) {
+
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse, PortletKeys.DOCUMENT_LIBRARY
+		).setActionName(
+			"/document_library/image_editor"
+		).setParameter(
+			"folderId", _getFolderId()
+		).buildPortletURL();
+	}
+
 	public String[] getExtensions() {
 		return _dlItemSelectorView.getExtensions();
 	}
@@ -141,6 +153,10 @@ public class DLItemSelectorViewDisplayContext<T extends ItemSelectorCriterion> {
 				_itemSelectorCriterion, _dlItemSelectorView, FileEntry.class);
 	}
 
+	public String getMimeTypeRestriction() {
+		return _itemSelectorCriterion.getMimeTypeRestriction();
+	}
+
 	public PortletURL getPortletURL(
 			LiferayPortletResponse liferayPortletResponse)
 		throws PortletException {
@@ -151,7 +167,7 @@ public class DLItemSelectorViewDisplayContext<T extends ItemSelectorCriterion> {
 			"folderId", _getFolderId()
 		).setParameter(
 			"selectedTab", getTitle()
-		).build();
+		).buildPortletURL();
 	}
 
 	public List<Object> getRepositoryEntries() throws Exception {
@@ -298,7 +314,7 @@ public class DLItemSelectorViewDisplayContext<T extends ItemSelectorCriterion> {
 			"/document_library/upload_file_entry"
 		).setParameter(
 			"folderId", _getFolderId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public boolean isShowDragAndDropZone() throws PortalException {
@@ -315,14 +331,11 @@ public class DLItemSelectorViewDisplayContext<T extends ItemSelectorCriterion> {
 			_showDragAndDropZone = false;
 		}
 		else {
-			long defaultFileEntryTypeId =
-				DLFileEntryTypeLocalServiceUtil.getDefaultFileEntryTypeId(
-					_getFolderId());
-
 			if (DLUtil.hasWorkflowDefinitionLink(
 					_themeDisplay.getCompanyId(),
 					_themeDisplay.getScopeGroupId(), _getFolderId(),
-					defaultFileEntryTypeId)) {
+					DLFileEntryTypeLocalServiceUtil.getDefaultFileEntryTypeId(
+						_getFolderId()))) {
 
 				_showDragAndDropZone = false;
 			}

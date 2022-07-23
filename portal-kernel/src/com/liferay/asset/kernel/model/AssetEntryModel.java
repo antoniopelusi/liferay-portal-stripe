@@ -796,4 +796,7 @@ public interface AssetEntryModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public AssetEntry cloneWithOriginalValues();
+
 }

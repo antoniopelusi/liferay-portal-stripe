@@ -2,12 +2,24 @@
 <head>
 <title>ReportContent</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ReportContent</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>FLAG_LINK</td>
+	<td>//button/span[*[name()='svg'][contains(@class,'lexicon-icon-flag-empty')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FLAG_MODAL</td>
+	<td>//div[@class='modal-body']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>WARNING</td>
 	<td>//p[contains(.,'You are about to report a violation')]</td>

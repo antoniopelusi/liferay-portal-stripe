@@ -25,12 +25,10 @@ import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.test.util.PropsTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.util.HtmlImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,7 +71,6 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 
 		PropsTestUtil.setProps("collator.rules", "<<<");
 
-		_setUpHtmlUtil();
 		_setUpJSONFactory();
 		_setUpLocaleThreadLocal();
 	}
@@ -91,8 +88,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 
 		ddmFormFieldRenderingContext.setProperty("changedProperties", null);
 
-		Assert.assertEquals(
-			true,
+		Assert.assertTrue(
 			_selectDDMFormFieldTemplateContextContributor.getMultiple(
 				ddmFormField, ddmFormFieldRenderingContext));
 	}
@@ -111,8 +107,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		ddmFormFieldRenderingContext.setProperty(
 			"changedProperties", changedProperties);
 
-		Assert.assertEquals(
-			true,
+		Assert.assertTrue(
 			_selectDDMFormFieldTemplateContextContributor.getMultiple(
 				ddmFormField, ddmFormFieldRenderingContext));
 	}
@@ -132,8 +127,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 				"multiple", true
 			).build());
 
-		Assert.assertEquals(
-			true,
+		Assert.assertTrue(
 			_selectDDMFormFieldTemplateContextContributor.getMultiple(
 				ddmFormField, ddmFormFieldRenderingContext));
 	}
@@ -155,11 +149,11 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		DDMFormFieldOptions ddmFormFieldOptions =
 			DDMFormFieldOptionsTestUtil.createDDMFormFieldOptions();
 
-		List<Map<String, String>> actualOptions = _getActualOptions(
-			new DDMFormField("field", "select"), ddmFormFieldOptions,
-			LocaleUtil.US);
-
-		Assert.assertEquals(expectedOptions, actualOptions);
+		Assert.assertEquals(
+			expectedOptions,
+			_getActualOptions(
+				new DDMFormField("field", "select"), ddmFormFieldOptions,
+				LocaleUtil.US));
 	}
 
 	@Test
@@ -194,10 +188,10 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 
 		ddmFormField.setProperty("alphabeticalOrder", "true");
 
-		actualOptions = _getActualOptions(
-			ddmFormField, ddmFormFieldOptions, LocaleUtil.US);
-
-		Assert.assertEquals(expectedOptions, actualOptions);
+		Assert.assertEquals(
+			expectedOptions,
+			_getActualOptions(
+				ddmFormField, ddmFormFieldOptions, LocaleUtil.US));
 	}
 
 	@Test
@@ -226,7 +220,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		Assert.assertEquals("data-provider", parameters.get("dataSourceType"));
 
 		Assert.assertTrue(parameters.containsKey("multiple"));
-		Assert.assertEquals(false, parameters.get("multiple"));
+		Assert.assertFalse((boolean)parameters.get("multiple"));
 
 		Assert.assertTrue(parameters.containsKey("options"));
 
@@ -249,7 +243,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		Assert.assertEquals("Label 3", optionMap.get("label"));
 		Assert.assertEquals("value 3", optionMap.get("value"));
 
-		Assert.assertEquals(true, parameters.get("showEmptyOption"));
+		Assert.assertTrue((boolean)parameters.get("showEmptyOption"));
 
 		List<String> value = (List<String>)parameters.get("value");
 
@@ -291,7 +285,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		Assert.assertEquals("manual", parameters.get("dataSourceType"));
 
 		Assert.assertTrue(parameters.containsKey("multiple"));
-		Assert.assertEquals(true, parameters.get("multiple"));
+		Assert.assertTrue((boolean)parameters.get("multiple"));
 
 		Assert.assertTrue(parameters.containsKey("options"));
 
@@ -327,7 +321,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 			predefinedValueParameter.toString(),
 			predefinedValueParameter.contains("value 3"));
 
-		Assert.assertEquals(false, parameters.get("showEmptyOption"));
+		Assert.assertFalse((boolean)parameters.get("showEmptyOption"));
 	}
 
 	@Test
@@ -343,10 +337,9 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 	@Test
 	public void testGetValue2() {
 		List<String> values =
-			_selectDDMFormFieldTemplateContextContributor.getValue(
-				"INVALID_JSON");
+			_selectDDMFormFieldTemplateContextContributor.getValue("value");
 
-		Assert.assertTrue(values.toString(), values.isEmpty());
+		Assert.assertTrue(values.toString(), values.contains("value"));
 	}
 
 	private SelectDDMFormFieldTemplateContextContributor _createSpy() {
@@ -370,12 +363,9 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		DDMFormField ddmFormField, DDMFormFieldOptions ddmFormFieldOptions,
 		Locale locale) {
 
-		DDMFormFieldRenderingContext ddmFormFieldRenderingContext =
-			new DDMFormFieldRenderingContext();
-
 		return _selectDDMFormFieldTemplateContextContributor.getOptions(
 			ddmFormField, ddmFormFieldOptions, locale,
-			ddmFormFieldRenderingContext);
+			new DDMFormFieldRenderingContext());
 	}
 
 	private void _setUpDDMFormFieldOptionsFactory(
@@ -400,12 +390,6 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		).thenReturn(
 			ddmFormFieldOptions
 		);
-	}
-
-	private void _setUpHtmlUtil() {
-		HtmlUtil htmlUtil = new HtmlUtil();
-
-		htmlUtil.setHtml(new HtmlImpl());
 	}
 
 	private void _setUpJSONFactory() throws Exception {

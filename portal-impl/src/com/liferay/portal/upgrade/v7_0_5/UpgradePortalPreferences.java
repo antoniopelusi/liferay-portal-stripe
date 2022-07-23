@@ -40,14 +40,14 @@ public class UpgradePortalPreferences extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select companyId from Company");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
 			upgradePortalPreferences(PortletKeys.PREFS_OWNER_ID_DEFAULT);
 
-			while (rs.next()) {
-				upgradePortalPreferences(rs.getLong("companyId"));
+			while (resultSet.next()) {
+				upgradePortalPreferences(resultSet.getLong("companyId"));
 			}
 		}
 	}
@@ -58,11 +58,12 @@ public class UpgradePortalPreferences extends UpgradeProcess {
 			"where ownerId = ", companyId, " and ownerType = ",
 			PortletKeys.PREFS_OWNER_TYPE_COMPANY);
 
-		try (PreparedStatement ps1 = connection.prepareStatement(sql);
-			ResultSet rs = ps1.executeQuery()) {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				sql);
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				String preferences = rs.getString("preferences");
+			while (resultSet.next()) {
+				String preferences = resultSet.getString("preferences");
 
 				Document document = SAXReaderUtil.read(preferences);
 
@@ -87,20 +88,17 @@ public class UpgradePortalPreferences extends UpgradeProcess {
 
 							String value = valueElement.getStringValue();
 
-							StringBundler sb = new StringBundler(10);
-
-							sb.append("Detected a value of \"");
-							sb.append(value);
-							sb.append("\" for portal property ");
-							sb.append(obsoletePortalPreference);
-							sb.append(" stored in portal preferences. ");
-							sb.append("Storing this property in portal ");
-							sb.append("preferences is no longer supported; ");
-							sb.append("please set this property to this ");
-							sb.append("value in portal-ext.properties if you ");
-							sb.append("wish to retain it.");
-
-							_log.warn(sb.toString());
+							_log.warn(
+								StringBundler.concat(
+									"Detected a value of \"", value,
+									"\" for portal property ",
+									obsoletePortalPreference,
+									" stored in portal preferences. Storing ",
+									"this property in portal preferences is ",
+									"no longer supported; please set this ",
+									"property to this value in ",
+									"portal-ext.properties if you wish to ",
+									"retain it."));
 						}
 
 						portletPreferencesElement.remove(element);
@@ -110,14 +108,16 @@ public class UpgradePortalPreferences extends UpgradeProcess {
 				}
 
 				if (updatedDocument) {
-					try (PreparedStatement ps2 = connection.prepareStatement(
-							"update PortalPreferences set preferences = ? " +
-								"where portalPreferencesId = ?")) {
+					try (PreparedStatement preparedStatement2 =
+							connection.prepareStatement(
+								"update PortalPreferences set preferences = " +
+									"? where portalPreferencesId = ?")) {
 
-						ps2.setString(1, document.asXML());
-						ps2.setLong(2, rs.getLong("portalPreferencesId"));
+						preparedStatement2.setString(1, document.asXML());
+						preparedStatement2.setLong(
+							2, resultSet.getLong("portalPreferencesId"));
 
-						ps2.executeUpdate();
+						preparedStatement2.executeUpdate();
 					}
 				}
 			}
@@ -126,15 +126,12 @@ public class UpgradePortalPreferences extends UpgradeProcess {
 
 	private static final String[] _OBSOLETE_PORTAL_PREFERENCES = {
 		PropsKeys.AUTO_DEPLOY_CUSTOM_PORTLET_XML,
-		PropsKeys.AUTO_DEPLOY_DEPLOY_DIR, PropsKeys.AUTO_DEPLOY_DEST_DIR,
+		PropsKeys.AUTO_DEPLOY_DEPLOY_DIR, "auto.deploy.dest.dir",
 		PropsKeys.AUTO_DEPLOY_ENABLED, PropsKeys.AUTO_DEPLOY_INTERVAL,
-		PropsKeys.AUTO_DEPLOY_JBOSS_PREFIX,
-		PropsKeys.AUTO_DEPLOY_TOMCAT_CONF_DIR,
-		PropsKeys.AUTO_DEPLOY_TOMCAT_LIB_DIR, PropsKeys.AUTO_DEPLOY_UNPACK_WAR,
-		PropsKeys.PLUGIN_NOTIFICATIONS_ENABLED,
-		PropsKeys.PLUGIN_NOTIFICATIONS_PACKAGES_IGNORED,
-		PropsKeys.PLUGIN_REPOSITORIES_TRUSTED,
-		PropsKeys.PLUGIN_REPOSITORIES_UNTRUSTED
+		"auto.deploy.jboss.prefix", PropsKeys.AUTO_DEPLOY_TOMCAT_CONF_DIR,
+		"auto.deploy.tomcat.lib.dir", "auto.deploy.unpack.war",
+		"plugin.notifications.enabled", "plugin.notifications.packages.ignored",
+		"plugin.repositories.trusted", "plugin.repositories.untrusted"
 	};
 
 	private static final Log _log = LogFactoryUtil.getLog(

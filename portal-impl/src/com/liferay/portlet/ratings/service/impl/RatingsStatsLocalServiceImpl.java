@@ -39,10 +39,10 @@ public class RatingsStatsLocalServiceImpl
 
 		RatingsStats stats = ratingsStatsPersistence.create(statsId);
 
-		Date now = new Date();
+		Date date = new Date();
 
-		stats.setCreateDate(now);
-		stats.setModifiedDate(now);
+		stats.setCreateDate(date);
+		stats.setModifiedDate(date);
 
 		stats.setClassNameId(classNameId);
 		stats.setClassPK(classPK);
@@ -81,7 +81,7 @@ public class RatingsStatsLocalServiceImpl
 		}
 		catch (NoSuchStatsException noSuchStatsException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(noSuchStatsException, noSuchStatsException);
+				_log.warn(noSuchStatsException);
 			}
 		}
 

@@ -51,7 +51,7 @@ public class KaleoTransitionLocalServiceImpl
 		// Kaleo transition
 
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoTransitionId = counterLocalService.increment();
 
@@ -61,12 +61,13 @@ public class KaleoTransitionLocalServiceImpl
 		kaleoTransition.setCompanyId(user.getCompanyId());
 		kaleoTransition.setUserId(user.getUserId());
 		kaleoTransition.setUserName(user.getFullName());
-		kaleoTransition.setCreateDate(now);
-		kaleoTransition.setModifiedDate(now);
+		kaleoTransition.setCreateDate(date);
+		kaleoTransition.setModifiedDate(date);
 		kaleoTransition.setKaleoDefinitionId(kaleoDefinitionId);
 		kaleoTransition.setKaleoDefinitionVersionId(kaleoDefinitionVersionId);
 		kaleoTransition.setKaleoNodeId(kaleoNodeId);
 		kaleoTransition.setName(transition.getName());
+		kaleoTransition.setLabelMap(transition.getLabelMap());
 		kaleoTransition.setSourceKaleoNodeId(sourceKaleoNode.getKaleoNodeId());
 		kaleoTransition.setSourceKaleoNodeName(sourceKaleoNode.getName());
 		kaleoTransition.setTargetKaleoNodeId(targetKaleoNode.getKaleoNodeId());

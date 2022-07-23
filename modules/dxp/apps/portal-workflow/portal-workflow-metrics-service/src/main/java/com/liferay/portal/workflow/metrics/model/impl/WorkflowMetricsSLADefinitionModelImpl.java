@@ -30,15 +30,16 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.workflow.metrics.model.WorkflowMetricsSLADefinition;
 import com.liferay.portal.workflow.metrics.model.WorkflowMetricsSLADefinitionModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -295,34 +296,6 @@ public class WorkflowMetricsSLADefinitionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, WorkflowMetricsSLADefinition>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			WorkflowMetricsSLADefinition.class.getClassLoader(),
-			WorkflowMetricsSLADefinition.class, ModelWrapper.class);
-
-		try {
-			Constructor<WorkflowMetricsSLADefinition> constructor =
-				(Constructor<WorkflowMetricsSLADefinition>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -1196,6 +1169,63 @@ public class WorkflowMetricsSLADefinitionModelImpl
 	}
 
 	@Override
+	public WorkflowMetricsSLADefinition cloneWithOriginalValues() {
+		WorkflowMetricsSLADefinitionImpl workflowMetricsSLADefinitionImpl =
+			new WorkflowMetricsSLADefinitionImpl();
+
+		workflowMetricsSLADefinitionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		workflowMetricsSLADefinitionImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		workflowMetricsSLADefinitionImpl.setWorkflowMetricsSLADefinitionId(
+			this.<Long>getColumnOriginalValue("wmSLADefinitionId"));
+		workflowMetricsSLADefinitionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		workflowMetricsSLADefinitionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		workflowMetricsSLADefinitionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		workflowMetricsSLADefinitionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		workflowMetricsSLADefinitionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		workflowMetricsSLADefinitionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		workflowMetricsSLADefinitionImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+		workflowMetricsSLADefinitionImpl.setCalendarKey(
+			this.<String>getColumnOriginalValue("calendarKey"));
+		workflowMetricsSLADefinitionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		workflowMetricsSLADefinitionImpl.setDuration(
+			this.<Long>getColumnOriginalValue("duration"));
+		workflowMetricsSLADefinitionImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		workflowMetricsSLADefinitionImpl.setPauseNodeKeys(
+			this.<String>getColumnOriginalValue("pauseNodeKeys"));
+		workflowMetricsSLADefinitionImpl.setProcessId(
+			this.<Long>getColumnOriginalValue("processId"));
+		workflowMetricsSLADefinitionImpl.setProcessVersion(
+			this.<String>getColumnOriginalValue("processVersion"));
+		workflowMetricsSLADefinitionImpl.setStartNodeKeys(
+			this.<String>getColumnOriginalValue("startNodeKeys"));
+		workflowMetricsSLADefinitionImpl.setStopNodeKeys(
+			this.<String>getColumnOriginalValue("stopNodeKeys"));
+		workflowMetricsSLADefinitionImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		workflowMetricsSLADefinitionImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		workflowMetricsSLADefinitionImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		workflowMetricsSLADefinitionImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		workflowMetricsSLADefinitionImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return workflowMetricsSLADefinitionImpl;
+	}
+
+	@Override
 	public int compareTo(
 		WorkflowMetricsSLADefinition workflowMetricsSLADefinition) {
 
@@ -1433,7 +1463,7 @@ public class WorkflowMetricsSLADefinitionModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1444,11 +1474,27 @@ public class WorkflowMetricsSLADefinitionModelImpl
 			Function<WorkflowMetricsSLADefinition, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply(
-					(WorkflowMetricsSLADefinition)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(WorkflowMetricsSLADefinition)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1499,7 +1545,8 @@ public class WorkflowMetricsSLADefinitionModelImpl
 		private static final Function
 			<InvocationHandler, WorkflowMetricsSLADefinition>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						WorkflowMetricsSLADefinition.class, ModelWrapper.class);
 
 	}
 

@@ -57,10 +57,10 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 
 	@Override
 	public String spellCheckKeywords(SearchContext searchContext) {
-		Suggester suggester = createSpellCheckSuggester(searchContext, 1);
+		Suggester suggester = _createSpellCheckSuggester(searchContext, 1);
 
 		SuggestSearchResponse suggestSearchResponse =
-			executeSuggestSearchRequest(suggester, searchContext);
+			_executeSuggestSearchRequest(suggester, searchContext);
 
 		if (suggestSearchResponse == null) {
 			return StringPool.BLANK;
@@ -73,8 +73,7 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 			return StringPool.BLANK;
 		}
 
-		List<String> words = getHighestRankedSuggestResults(
-			suggestSearchResult);
+		List<String> words = _getHighestRankedSuggestions(suggestSearchResult);
 
 		return StringUtil.merge(words, StringPool.SPACE);
 	}
@@ -83,10 +82,10 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 	public Map<String, List<String>> spellCheckKeywords(
 		SearchContext searchContext, int max) {
 
-		Suggester suggester = createSpellCheckSuggester(searchContext, max);
+		Suggester suggester = _createSpellCheckSuggester(searchContext, max);
 
 		SuggestSearchResponse suggestSearchResponse =
-			executeSuggestSearchRequest(suggester, searchContext);
+			_executeSuggestSearchRequest(suggester, searchContext);
 
 		if (suggestSearchResponse == null) {
 			return Collections.emptyMap();
@@ -112,7 +111,7 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 
 				String keyword = suggestSearchResultEntry.getText();
 
-				final List<String> wordsList = results.computeIfAbsent(
+				List<String> wordsList = results.computeIfAbsent(
 					keyword, keywords -> new ArrayList<>());
 
 				suggestSearchResultEntryOptions.forEach(
@@ -133,7 +132,7 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 		SearchContext searchContext, Suggester suggester) {
 
 		SuggestSearchResponse suggestSearchResponse =
-			executeSuggestSearchRequest(suggester, searchContext);
+			_executeSuggestSearchRequest(suggester, searchContext);
 
 		if (suggestSearchResponse == null) {
 			return new SuggesterResults();
@@ -146,10 +145,10 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 	public String[] suggestKeywordQueries(
 		SearchContext searchContext, int max) {
 
-		Suggester suggester = createQuerySuggester(searchContext, max);
+		Suggester suggester = _createQuerySuggester(searchContext, max);
 
 		SuggestSearchResponse suggestSearchResponse =
-			executeSuggestSearchRequest(suggester, searchContext);
+			_executeSuggestSearchRequest(suggester, searchContext);
 
 		if (suggestSearchResponse == null) {
 			return StringPool.EMPTY_ARRAY;
@@ -162,115 +161,10 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 			return StringPool.EMPTY_ARRAY;
 		}
 
-		List<String> keywordQueries = getHighestRankedSuggestResults(
+		List<String> keywordQueries = _getHighestRankedSuggestions(
 			suggestSearchResult);
 
 		return keywordQueries.toArray(new String[0]);
-	}
-
-	protected PhraseSuggester createQuerySuggester(
-		SearchContext searchContext, int max) {
-
-		Localization localization = getLocalization();
-
-		String field = localization.getLocalizedName(
-			Field.KEYWORD_SEARCH, searchContext.getLanguageId());
-
-		PhraseSuggester phraseSuggester = new PhraseSuggester(
-			_KEY_WORD_REQUEST_NAME, field, searchContext.getKeywords());
-
-		phraseSuggester.setSize(max);
-
-		return phraseSuggester;
-	}
-
-	protected Suggester createSpellCheckSuggester(
-		SearchContext searchContext, int max) {
-
-		Localization localization = getLocalization();
-
-		String field = localization.getLocalizedName(
-			Field.SPELL_CHECK_WORD, searchContext.getLanguageId());
-
-		TermSuggester termSuggester = new TermSuggester(
-			_SPELL_CHECK_REQUEST_NAME, field, searchContext.getKeywords());
-
-		termSuggester.setSize(max);
-
-		return termSuggester;
-	}
-
-	protected SuggestSearchResponse executeSuggestSearchRequest(
-		Suggester suggester, SearchContext searchContext) {
-
-		StopWatch stopWatch = new StopWatch();
-
-		stopWatch.start();
-
-		try {
-			SuggestSearchRequest suggestSearchRequest =
-				new SuggestSearchRequest(
-					_indexNameBuilder.getIndexName(
-						searchContext.getCompanyId()));
-
-			suggestSearchRequest.addSuggester(suggester);
-
-			return _searchEngineAdapter.execute(suggestSearchRequest);
-		}
-		catch (RuntimeException runtimeException) {
-			String message = runtimeException.getMessage();
-
-			if (!message.contains("no mapping found for field")) {
-				Throwable throwable = runtimeException.getCause();
-
-				if (throwable != null) {
-					message = throwable.getMessage();
-				}
-			}
-
-			if (message.contains("no mapping found for field")) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("No dictionary indexed", runtimeException);
-				}
-
-				return null;
-			}
-
-			throw runtimeException;
-		}
-		finally {
-			if (_log.isInfoEnabled()) {
-				stopWatch.stop();
-
-				_log.info(
-					"Spell checked keywords in " + stopWatch.getTime() + "ms");
-			}
-		}
-	}
-
-	protected List<String> getHighestRankedSuggestResults(
-		SuggestSearchResult suggestSearchResult) {
-
-		List<String> texts = new ArrayList<>();
-
-		List<SuggestSearchResult.Entry> suggestSearchResultEntries =
-			suggestSearchResult.getEntries();
-
-		suggestSearchResultEntries.forEach(
-			suggestSearchResultEntry -> {
-				List<SuggestSearchResult.Entry.Option>
-					suggestSearchResultEntryOptions =
-						suggestSearchResultEntry.getOptions();
-
-				for (SuggestSearchResult.Entry.Option
-						suggestSearchResultEntryOption :
-							suggestSearchResultEntryOptions) {
-
-					texts.add(suggestSearchResultEntryOption.getText());
-				}
-			});
-
-		return texts;
 	}
 
 	protected Localization getLocalization() {
@@ -354,6 +248,122 @@ public class ElasticsearchQuerySuggester implements QuerySuggester {
 			});
 
 		return suggesterResults;
+	}
+
+	private PhraseSuggester _createQuerySuggester(
+		SearchContext searchContext, int max) {
+
+		Localization localization = getLocalization();
+
+		String field = localization.getLocalizedName(
+			Field.KEYWORD_SEARCH, searchContext.getLanguageId());
+
+		PhraseSuggester phraseSuggester = new PhraseSuggester(
+			_KEY_WORD_REQUEST_NAME, field, searchContext.getKeywords());
+
+		phraseSuggester.setSize(max);
+
+		return phraseSuggester;
+	}
+
+	private Suggester _createSpellCheckSuggester(
+		SearchContext searchContext, int max) {
+
+		Localization localization = getLocalization();
+
+		String field = localization.getLocalizedName(
+			Field.SPELL_CHECK_WORD, searchContext.getLanguageId());
+
+		TermSuggester termSuggester = new TermSuggester(
+			_SPELL_CHECK_REQUEST_NAME, field, searchContext.getKeywords());
+
+		termSuggester.setSize(max);
+
+		return termSuggester;
+	}
+
+	private SuggestSearchResponse _executeSuggestSearchRequest(
+		Suggester suggester, SearchContext searchContext) {
+
+		StopWatch stopWatch = new StopWatch();
+
+		stopWatch.start();
+
+		try {
+			SuggestSearchRequest suggestSearchRequest =
+				new SuggestSearchRequest(
+					_indexNameBuilder.getIndexName(
+						searchContext.getCompanyId()));
+
+			suggestSearchRequest.addSuggester(suggester);
+
+			return _searchEngineAdapter.execute(suggestSearchRequest);
+		}
+		catch (RuntimeException runtimeException) {
+			String message = runtimeException.getMessage();
+
+			if (!message.contains("no mapping found for field")) {
+				Throwable throwable = runtimeException.getCause();
+
+				if (throwable != null) {
+					message = throwable.getMessage();
+				}
+			}
+
+			if (message.contains("no mapping found for field")) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("No dictionary indexed", runtimeException);
+				}
+
+				return null;
+			}
+
+			throw runtimeException;
+		}
+		finally {
+			if (_log.isInfoEnabled()) {
+				stopWatch.stop();
+
+				_log.info(
+					"Spell checked keywords in " + stopWatch.getTime() + "ms");
+			}
+		}
+	}
+
+	private List<String> _getHighestRankedSuggestions(
+		SuggestSearchResult suggestSearchResult) {
+
+		List<String> suggestions = new ArrayList<>();
+
+		boolean hasDifferences = false;
+
+		for (SuggestSearchResult.Entry suggestSearchResultEntry :
+				suggestSearchResult.getEntries()) {
+
+			List<SuggestSearchResult.Entry.Option>
+				suggestSearchResultEntryOptions =
+					suggestSearchResultEntry.getOptions();
+
+			if (!suggestSearchResultEntryOptions.isEmpty()) {
+				hasDifferences = true;
+
+				for (SuggestSearchResult.Entry.Option
+						suggestSearchResultEntryOption :
+							suggestSearchResultEntryOptions) {
+
+					suggestions.add(suggestSearchResultEntryOption.getText());
+				}
+			}
+			else {
+				suggestions.add(suggestSearchResultEntry.getText());
+			}
+		}
+
+		if (hasDifferences) {
+			return suggestions;
+		}
+
+		return new ArrayList<>();
 	}
 
 	private static final String _KEY_WORD_REQUEST_NAME = "keywordQueryRequest";

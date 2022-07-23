@@ -39,21 +39,18 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = ModelListener.class)
 public class ContactModelListener extends BaseModelListener<Contact> {
 
-	public void onBeforeUpdate(Contact newContact)
+	public void onBeforeUpdate(Contact originalContact, Contact contact)
 		throws ModelListenerException {
 
 		try {
-			Contact oldContact = _contactLocalService.getContact(
-				newContact.getContactId());
-
 			List<Attribute> attributes = getModifiedAttributes(
-				newContact, oldContact);
+				originalContact, contact);
 
 			if (!attributes.isEmpty()) {
 				AuditMessage auditMessage =
 					AuditMessageBuilder.buildAuditMessage(
 						EventTypes.UPDATE, User.class.getName(),
-						newContact.getClassPK(), attributes);
+						contact.getClassPK(), attributes);
 
 				_auditRouter.route(auditMessage);
 			}
@@ -64,10 +61,10 @@ public class ContactModelListener extends BaseModelListener<Contact> {
 	}
 
 	protected List<Attribute> getModifiedAttributes(
-		Contact newContact, Contact oldContact) {
+		Contact originalContact, Contact contact) {
 
 		AttributesBuilder attributesBuilder = new AttributesBuilder(
-			newContact, oldContact);
+			contact, originalContact);
 
 		//attributesBuilder.add("aimSn");
 		//attributesBuilder.add("icqSn");

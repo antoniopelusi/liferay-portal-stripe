@@ -22,9 +22,6 @@ import com.liferay.portal.kernel.model.Resource;
  */
 public class ResourceImpl implements Resource {
 
-	public ResourceImpl() {
-	}
-
 	@Override
 	public long getCodeId() {
 		return _codeId;
@@ -87,19 +84,9 @@ public class ResourceImpl implements Resource {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{companyid=");
-		sb.append(_companyId);
-		sb.append(", name=");
-		sb.append(_name);
-		sb.append(", primKey=");
-		sb.append(_primKey);
-		sb.append(", scope=");
-		sb.append(_scope);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{companyid=", _companyId, ", name=", _name, ", primKey=", _primKey,
+			", scope=", _scope, "}");
 	}
 
 	private long _codeId;

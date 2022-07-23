@@ -18,8 +18,4 @@ package com.liferay.chat.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class StatusImpl extends StatusBaseImpl {
-
-	public StatusImpl() {
-	}
-
 }

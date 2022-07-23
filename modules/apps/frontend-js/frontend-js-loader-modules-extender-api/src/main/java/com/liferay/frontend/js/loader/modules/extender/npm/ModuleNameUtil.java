@@ -151,13 +151,8 @@ public class ModuleNameUtil {
 	 * @review
 	 */
 	public static String getModuleId(JSPackage jsPackage, String moduleName) {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(jsPackage.getId());
-		sb.append(StringPool.SLASH);
-		sb.append(moduleName);
-
-		return sb.toString();
+		return StringBundler.concat(
+			jsPackage.getId(), StringPool.SLASH, moduleName);
 	}
 
 	/**
@@ -171,13 +166,8 @@ public class ModuleNameUtil {
 	public static String getModuleResolvedId(
 		JSPackage jsPackage, String moduleName) {
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(jsPackage.getResolvedId());
-		sb.append(StringPool.SLASH);
-		sb.append(moduleName);
-
-		return sb.toString();
+		return StringBundler.concat(
+			jsPackage.getResolvedId(), StringPool.SLASH, moduleName);
 	}
 
 	/**
@@ -199,11 +189,7 @@ public class ModuleNameUtil {
 	 *         reserved or local one
 	 */
 	public static String getPackageName(String moduleName) {
-		if (isLocalModuleName(moduleName)) {
-			return null;
-		}
-
-		if (isReservedModuleName(moduleName)) {
+		if (isLocalModuleName(moduleName) || isReservedModuleName(moduleName)) {
 			return null;
 		}
 

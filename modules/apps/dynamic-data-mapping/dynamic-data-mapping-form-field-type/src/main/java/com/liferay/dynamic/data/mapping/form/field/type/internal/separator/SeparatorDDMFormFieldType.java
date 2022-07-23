@@ -29,11 +29,11 @@ import org.osgi.service.component.annotations.Component;
 	property = {
 		"ddm.form.field.type.data.domain=separator",
 		"ddm.form.field.type.description=separator-field-type-description",
-		"ddm.form.field.type.display.order:Integer=11",
+		"ddm.form.field.type.display.order:Integer=12",
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=separator",
 		"ddm.form.field.type.label=separator-field-type-label",
 		"ddm.form.field.type.name=" + DDMFormFieldTypeConstants.SEPARATOR,
-		"ddm.form.field.type.scope=forms"
+		"ddm.form.field.type.scope=document-library,forms,journal"
 	},
 	service = DDMFormFieldType.class
 )

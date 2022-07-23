@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.List;
 
-import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ResourceURL;
@@ -70,15 +69,6 @@ public class InheritedFragmentEntryActionDropdownItemsProvider {
 			_getCopyToFragmentEntryActionUnsafeConsumer()
 		throws Exception {
 
-		PortletURL selectFragmentCollectionURL =
-			PortletURLBuilder.createRenderURL(
-				_renderResponse
-			).setMVCRenderCommandName(
-				"/fragment/select_fragment_collection"
-			).setWindowState(
-				LiferayWindowState.POP_UP
-			).build();
-
 		return dropdownItem -> {
 			dropdownItem.putData("action", "copyToFragmentEntry");
 			dropdownItem.putData(
@@ -95,7 +85,14 @@ public class InheritedFragmentEntryActionDropdownItemsProvider {
 				String.valueOf(_fragmentEntry.getFragmentEntryId()));
 			dropdownItem.putData(
 				"selectFragmentCollectionURL",
-				selectFragmentCollectionURL.toString());
+				PortletURLBuilder.createRenderURL(
+					_renderResponse
+				).setMVCRenderCommandName(
+					"/fragment/select_fragment_collection"
+				).setWindowState(
+					LiferayWindowState.POP_UP
+				).buildString());
+			dropdownItem.setIcon("copy");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "copy-to"));
 		};
@@ -115,6 +112,7 @@ public class InheritedFragmentEntryActionDropdownItemsProvider {
 
 		return dropdownItem -> {
 			dropdownItem.setHref(exportFragmentEntryURL);
+			dropdownItem.setIcon("upload");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "export"));
 		};

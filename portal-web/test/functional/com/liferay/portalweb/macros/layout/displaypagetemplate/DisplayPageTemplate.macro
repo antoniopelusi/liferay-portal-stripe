@@ -1,5 +1,17 @@
 definition {
 
+	macro addFragment {
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "${siteURLKey}");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "${displayPageName}");
+
+		PageEditor.addFragment(
+			collectionName = "${collectionName}",
+			fragmentName = "${fragmentName}");
+
+		Button.clickPublish();
+	}
+
 	macro clickPencil {
 		Click(locator1 = "Button#PENCIL");
 	}
@@ -8,6 +20,124 @@ definition {
 		DisplayPageTemplate.clickPencil();
 
 		MenuItem.clickNoError(menuItem = "${item}");
+	}
+
+	macro selectDisplayPageTemplateForAsset {
+		if ("${assetType}" == "Blogs Entry") {
+			BlogsNavigator.openToEditEntryInSite(
+				entryTitle = "${entryTitle}",
+				groupName = "${groupName}",
+				siteURLKey = "${siteURLKey}");
+		}
+		else if ("${assetType}" == "Document") {
+			DMNavigator.openToEditEntryInSite(
+				dmDocumentTitle = "${entryTitle}",
+				groupName = "${groupName}",
+				siteURLKey = "${siteURLKey}");
+		}
+		else if ("${assetType}" == "Web Content") {
+			WebContentNavigator.openToEditWCInSite(
+				groupName = "${groupName}",
+				siteURLKey = "${siteURLKey}",
+				webContentTitle = "${entryTitle}");
+		}
+
+		WebContent.editDisplayPage(pageName = "Display Page Template Name");
+
+		PortletEntry.publish();
+	}
+
+	macro selectPreviewItem {
+		if (isSet(modal)) {
+			Click(locator1 = "Modal#DISPLAY_PAGE_PREVIEW_ITEM_SELECTOR");
+
+			if (isSet(item)) {
+				DropdownMenuItem.click(menuItem = "${item}");
+			}
+			else {
+				DropdownMenuItem.click(menuItem = "Select Other Item");
+
+				SelectFrame(
+					key_title = "Select",
+					locator1 = "IFrame#MODAL_ANY");
+
+				if ("${assetType}" == "Web Content Article") {
+					Click(
+						key_listEntry = "${assetTitle}",
+						locator1 = "LexiconList#LIST_ENTRY_TITLE");
+				}
+				else if (("${assetType}" == "Blogs Entry") || ("${assetType}" == "Document")) {
+					Click(
+						key_card = "${assetTitle}",
+						locator1 = "Card#CARD_TITLE");
+				}
+				else if ("${assetType}" == "Category") {
+					Portlet.expandTree();
+
+					AssertVisible(
+						key_nodeName = "${assetTitle}",
+						locator1 = "Treeview#NODE_ITEM");
+
+					Click(
+						key_nodeName = "${assetTitle}",
+						locator1 = "Treeview#NODE_UNSELECTED");
+				}
+
+				SelectFrameTop();
+			}
+
+			AssertTextEquals(
+				locator1 = "Modal#DISPLAY_PAGE_PREVIEW_ITEM_SELECTOR",
+				value1 = "${assetTitle}");
+		}
+		else {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			Click(locator1 = "ControlMenu#DISPLAY_PAGE_PREVIEW_ITEM_SELECTOR");
+
+			if (isSet(item)) {
+				DropdownMenuItem.click(menuItem = "${item}");
+			}
+			else {
+				DropdownMenuItem.click(menuItem = "Select Other Item");
+
+				SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+				if ("${assetType}" == "Web Content Article") {
+					if (isSet(searchTerm)) {
+						Search.searchCP(
+							modal = "true",
+							searchTerm = "${searchTerm}");
+
+						AssertTextEquals(
+							locator1 = "Search#SEARCH_INFO",
+							value1 = "1 Results for &quot;${searchTerm}&quot;");
+					}
+
+					Click(
+						key_listEntry = "${assetTitle}",
+						locator1 = "LexiconList#LIST_ENTRY_TITLE");
+				}
+				else if (("${assetType}" == "Blogs Entry") || ("${assetType}" == "Document")) {
+					LexiconCard.clickCardTitle(card = "${assetTitle}");
+				}
+				else if ("${assetType}" == "Category") {
+					Portlet.expandTree();
+
+					Pause(locator1 = "3000");
+
+					Click(
+						key_nodeName = "${assetTitle}",
+						locator1 = "Treeview#NODE_UNSELECTED");
+				}
+
+				SelectFrameTop();
+			}
+
+			AssertTextEquals(
+				locator1 = "ControlMenu#DISPLAY_PAGE_PREVIEW_ITEM_SELECTOR",
+				value1 = "${assetTitle}");
+		}
 	}
 
 }

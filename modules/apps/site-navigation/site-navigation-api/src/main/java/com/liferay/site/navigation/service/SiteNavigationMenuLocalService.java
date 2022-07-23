@@ -157,10 +157,13 @@ public interface SiteNavigationMenuLocalService
 			SiteNavigationMenu siteNavigationMenu)
 		throws PortalException;
 
-	public void deleteSiteNavigationMenus(long groupId);
+	public void deleteSiteNavigationMenus(long groupId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -237,6 +240,10 @@ public interface SiteNavigationMenuLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public SiteNavigationMenu fetchSiteNavigationMenu(long groupId, int type);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public SiteNavigationMenu fetchSiteNavigationMenuByName(
+		long groupId, String name);
 
 	/**
 	 * Returns the site navigation menu matching the UUID and group.

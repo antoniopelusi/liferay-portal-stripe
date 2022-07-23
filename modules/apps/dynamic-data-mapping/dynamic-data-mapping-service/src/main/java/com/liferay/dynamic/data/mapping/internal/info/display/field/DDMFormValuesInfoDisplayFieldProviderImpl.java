@@ -64,6 +64,7 @@ import org.osgi.service.component.annotations.Reference;
 public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 	implements DDMFormValuesInfoDisplayFieldProvider<T> {
 
+	@Override
 	public Map<String, Object> getInfoDisplayFieldsValues(
 			T t, DDMFormValues ddmFormValues, Locale locale)
 		throws PortalException {
@@ -219,7 +220,7 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 
 				return valueString;
@@ -270,7 +271,7 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

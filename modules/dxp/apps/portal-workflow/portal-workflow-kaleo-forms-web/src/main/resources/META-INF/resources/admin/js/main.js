@@ -146,16 +146,16 @@ AUI.add(
 						instance.ns('name')
 					);
 
-					var sessionMap = A.merge(
-						instance._getInputLocalizedValuesMap(
+					var sessionMap = {
+						...instance._getInputLocalizedValuesMap(
 							descriptionInputLocalized,
 							'description'
 						),
-						instance._getInputLocalizedValuesMap(
+						...instance._getInputLocalizedValuesMap(
 							nameInputLocalized,
 							'name'
-						)
-					);
+						),
+					};
 
 					var ddmStructureId = instance.one('#ddmStructureId').val();
 					var ddmStructureName = instance
@@ -169,13 +169,14 @@ AUI.add(
 						.one('#workflowDefinition')
 						.val();
 
-					return A.merge(sessionMap, {
+					return {
+						...sessionMap,
 						ddmStructureId,
 						ddmStructureName,
 						ddmTemplateId,
 						kaleoTaskFormPairsData,
 						workflowDefinition,
-					});
+					};
 				},
 
 				_hideSuccessMessage() {
@@ -336,6 +337,7 @@ AUI.add(
 				saveInPortletSession(data) {
 					var instance = this;
 
+					// eslint-disable-next-line @liferay/aui/no-io
 					A.io.request(instance.get('saveInPortletSessionURL'), {
 						data: instance.ns(data),
 					});
@@ -386,6 +388,14 @@ AUI.add(
 					}
 				},
 			},
+		});
+
+		const inputElement = document.querySelector('.lfr-input-text');
+
+		inputElement.addEventListener('keydown', (event) => {
+			if (event.keyCode === 13) {
+				event.preventDefault();
+			}
 		});
 
 		Liferay.KaleoFormsAdmin = KaleoFormsAdmin;

@@ -46,10 +46,6 @@ AUI.add(
 
 		var CSS_SEARCHCONTAINER = 'searchcontainer';
 
-		var CSS_TAGLIB_ICON = 'taglib-icon';
-
-		var CSS_TAGLIB_TEXT = 'taglib-text';
-
 		var CSS_UPLOAD_ERROR = 'upload-error';
 
 		var CSS_UPLOAD_SUCCESS = 'upload-success';
@@ -91,8 +87,6 @@ AUI.add(
 
 		var SELECTOR_SEARCH_CONTAINER = STR_DOT + CSS_SEARCHCONTAINER;
 
-		var SELECTOR_TAGLIB_ICON = STR_DOT + CSS_TAGLIB_ICON;
-
 		var STR_BLANK = '';
 
 		var STR_BOUNDING_BOX = 'boundingBox';
@@ -119,40 +113,38 @@ AUI.add(
 
 		var STR_SPACE = ' ';
 
-		var STR_THUMBNAIL_EXTENSION = '.png';
+		var STR_ICON_DEFAULT = 'document-default';
 
-		var STR_THUMBNAIL_DEFAULT = 'default' + STR_THUMBNAIL_EXTENSION;
+		var STR_ICON_PDF = 'document-vector';
 
-		var STR_THUMBNAIL_PDF = 'pdf' + STR_THUMBNAIL_EXTENSION;
+		var STR_ICON_IMAGE = 'document-image';
 
-		var STR_THUMBNAIL_AUDIO = 'music' + STR_THUMBNAIL_EXTENSION;
+		var STR_ICON_COMPRESSED = 'document-compressed';
 
-		var STR_THUMBNAIL_COMPRESSED = 'compressed' + STR_THUMBNAIL_EXTENSION;
+		var STR_ICON_MULTIMEDIA = 'document-multimedia';
 
-		var STR_THUMBNAIL_VIDEO = 'video' + STR_THUMBNAIL_EXTENSION;
+		var TPL_ENTRIES_CONTAINER = '<dl class="{cssClass}"></dl>';
 
-		var STR_THUMBNAIL_PATH = PATH_THEME_IMAGES + '/file_system/large/';
+		var TPL_ENTRY_ROW_TITLE = `<div class="autofit-row ${
+			CSS_APP_VIEW_ENTRY + STR_SPACE + CSS_ENTRY_DISPLAY_STYLE
+		}">
+			<div class="autofit-col">
+				<span class="sticker sticker-rounded sticker-document sticker-secondary file-icon-color-0">
+					<span class="sticker-overlay">
+						${Liferay.Util.getLexiconIconTpl(STR_ICON_DEFAULT)}
+					</span>
+				</span>
+			</div>
 
-		var TPL_ENTRIES_CONTAINER = '<ul class="{cssClass}"></ul>';
-
-		var TPL_ENTRY_ROW_TITLE =
-			'<span class="' +
-			CSS_APP_VIEW_ENTRY +
-			STR_SPACE +
-			CSS_ENTRY_DISPLAY_STYLE +
-			'">' +
-			'<a class="' +
-			CSS_TAGLIB_ICON +
-			'">' +
-			Liferay.Util.getLexiconIconTpl('document') +
-			'<span class="' +
-			CSS_TAGLIB_TEXT +
-			'">{0}</span>' +
-			'</a>' +
-			'</span>';
+			<div class="autofit-col autofit-col-expand">
+				<div class="table-title">
+					<a>{0}</a>
+				</div>
+			</div>
+		</div>`;
 
 		var TPL_ENTRY_WRAPPER =
-			'<li class="card-page-item card-page-item-asset" data-title="{title}"></li>';
+			'<dd class="card-page-item card-page-item-asset" data-title="{title}"></dd>';
 
 		var TPL_ERROR_FOLDER = new A.Template(
 			'<span class="lfr-status-success-label">{validFilesLength}</span>',
@@ -177,6 +169,7 @@ AUI.add(
 		var DocumentLibraryUpload = A.Component.create({
 			ATTRS: {
 				appViewEntryTemplates: {
+					// eslint-disable-next-line @liferay/aui/no-one
 					validator: A.one,
 					value: {},
 				},
@@ -202,6 +195,7 @@ AUI.add(
 				},
 
 				entriesContainer: {
+					// eslint-disable-next-line @liferay/aui/no-one
 					validator: A.one,
 					value: {},
 				},
@@ -327,7 +321,7 @@ AUI.add(
 
 				_bindDragDropUI() {
 					var instance = this;
-
+					// eslint-disable-next-line @liferay/aui/no-one
 					var docElement = A.one(DOC.documentElement);
 
 					var entriesContainer = instance._entriesContainer;
@@ -450,7 +444,7 @@ AUI.add(
 
 								parentElement.toggleClass(
 									CSS_ACTIVE_AREA,
-									event.type == 'dragover'
+									event.type === 'dragover'
 								);
 							}
 						},
@@ -509,7 +503,7 @@ AUI.add(
 
 					searchContainer
 						.one('.searchcontainer-content')
-						.prepend(entriesContainer);
+						.append(entriesContainer);
 
 					return entriesContainer;
 				},
@@ -532,11 +526,19 @@ AUI.add(
 					}
 					else {
 						var entriesContainerSelector =
-							'ul.list-group:last-of-type';
+							'dl.list-group:last-of-type';
 
 						if (displayStyle === CSS_ICON) {
 							entriesContainerSelector =
-								'ul.card-page:last-of-type';
+								'dl.card-page:last-of-type';
+
+							if (
+								entriesContainer
+									.one(entriesContainerSelector)
+									?.one('.card-type-directory')
+							) {
+								entriesContainerSelector = null;
+							}
 						}
 
 						entriesContainer =
@@ -571,21 +573,23 @@ AUI.add(
 
 						instance._removeEmptyResultsMessage(searchContainer);
 
-						var searchContainerWrapper = A.one(
+						var searchContainerWrapper = document.querySelector(
 							'div.lfr-search-container-wrapper'
 						);
 
 						if (searchContainerWrapper) {
-							searchContainerWrapper.show();
+							searchContainerWrapper.style.display = 'block';
+
+							searchContainerWrapper.classList.remove('hide');
 						}
 					}
 
 					entryNode.attr({
 						'data-title': name,
-						id: A.guid(),
+						'id': A.guid(),
 					});
 
-					if (displayStyle == CSS_ICON) {
+					if (displayStyle === CSS_ICON) {
 						var entryNodeWrapper = ANode.create(
 							Lang.sub(TPL_ENTRY_WRAPPER, {
 								title: name,
@@ -619,13 +623,13 @@ AUI.add(
 						(item, index) => {
 							var value = STR_BLANK;
 
-							if (item == STR_NAME) {
+							if (item === STR_NAME) {
 								value = sub(TPL_ENTRY_ROW_TITLE, [name]);
 							}
-							else if (item == STR_SIZE) {
+							else if (item === STR_SIZE) {
 								value = Liferay.Util.formatStorage(size);
 							}
-							else if (item == 'downloads') {
+							else if (item === 'downloads') {
 								value = '0';
 							}
 							else if (index === 0) {
@@ -648,9 +652,15 @@ AUI.add(
 				},
 
 				_createOverlay(target, background) {
+					var instance = this;
+
+					var displayStyle = instance._getDisplayStyle();
 					var overlay = new A.OverlayMask({
 						background: background || null,
-						target,
+						target:
+							displayStyle !== CSS_ICON
+								? target
+								: target.one('.card'),
 					}).render();
 
 					overlay
@@ -661,12 +671,8 @@ AUI.add(
 				},
 
 				_createProgressBar(target) {
-					var height = target.height() / 5;
-
-					var width = target.width() * 0.8;
-
 					return new A.ProgressBar({
-						height,
+						height: 16,
 						on: {
 							complete() {
 								this.set(STR_LABEL, 'complete!');
@@ -675,7 +681,7 @@ AUI.add(
 								this.set(STR_LABEL, event.newVal + '%');
 							},
 						},
-						width,
+						width: target.width() * 0.8,
 					});
 				},
 
@@ -747,7 +753,7 @@ AUI.add(
 				_displayEntryError(node, message, displayStyle) {
 					var instance = this;
 
-					if (displayStyle == STR_LIST) {
+					if (displayStyle === STR_LIST) {
 						var imageIcon = node.one(SELECTOR_IMAGE_ICON);
 
 						imageIcon.attr(
@@ -798,7 +804,7 @@ AUI.add(
 							if (error === true) {
 								uploadResultClass = CSS_UPLOAD_ERROR;
 							}
-							else if (error == ERROR_RESULTS_MIXED) {
+							else if (error === ERROR_RESULTS_MIXED) {
 								uploadResultClass = CSS_UPLOAD_WARNING;
 							}
 						}
@@ -844,7 +850,7 @@ AUI.add(
 					var displayStyle = instance._displayStyle;
 
 					if (style) {
-						displayStyle = style == displayStyle;
+						displayStyle = style === displayStyle;
 					}
 
 					return displayStyle;
@@ -897,41 +903,41 @@ AUI.add(
 					return folderEntry;
 				},
 
-				_getMediaThumbnail(fileName) {
+				_getImageThumbnail(fileName) {
 					var instance = this;
 
-					var thumbnailName = STR_THUMBNAIL_DEFAULT;
+					return sub(TPL_IMAGE_THUMBNAIL, [
+						instance._scopeGroupId,
+						instance.get(STR_FOLDER_ID),
+						fileName,
+					]);
+				},
+
+				_getMediaIcon(fileName) {
+					var iconName = STR_ICON_DEFAULT;
 
 					if (REGEX_IMAGE.test(fileName)) {
-						thumbnailName = sub(TPL_IMAGE_THUMBNAIL, [
-							instance._scopeGroupId,
-							instance.get(STR_FOLDER_ID),
-							fileName,
-						]);
+						iconName = STR_ICON_IMAGE;
 					}
-					else {
-						if (
-							LString.endsWith(
-								fileName.toLowerCase(),
-								STR_EXTENSION_PDF
-							)
-						) {
-							thumbnailName = STR_THUMBNAIL_PDF;
-						}
-						else if (REGEX_AUDIO.test(fileName)) {
-							thumbnailName = STR_THUMBNAIL_AUDIO;
-						}
-						else if (REGEX_VIDEO.test(fileName)) {
-							thumbnailName = STR_THUMBNAIL_VIDEO;
-						}
-						else if (REGEX_COMPRESSED.test(fileName)) {
-							thumbnailName = STR_THUMBNAIL_COMPRESSED;
-						}
-
-						thumbnailName = STR_THUMBNAIL_PATH + thumbnailName;
+					else if (
+						LString.endsWith(
+							fileName.toLowerCase(),
+							STR_EXTENSION_PDF
+						)
+					) {
+						iconName = STR_ICON_PDF;
+					}
+					else if (
+						REGEX_AUDIO.test(fileName) ||
+						REGEX_VIDEO.test(fileName)
+					) {
+						iconName = STR_ICON_MULTIMEDIA;
+					}
+					else if (REGEX_COMPRESSED.test(fileName)) {
+						iconName = STR_ICON_COMPRESSED;
 					}
 
-					return thumbnailName;
+					return iconName;
 				},
 
 				_getNavigationOverlays() {
@@ -991,7 +997,7 @@ AUI.add(
 					try {
 						responseData = JSON.parse(responseData);
 					}
-					catch (e) {}
+					catch (error) {}
 
 					if (Lang.isObject(responseData)) {
 						error =
@@ -1026,23 +1032,19 @@ AUI.add(
 				_getUploadURL(folderId) {
 					var instance = this;
 
-					var uploadURL = instance._uploadURL;
-
-					if (!uploadURL) {
-						var redirect = instance.get('redirect');
-
-						uploadURL = instance.get('uploadURL');
-
-						instance._uploadURL = Liferay.Util.addParams(
-							{
-								redirect,
-								ts: Date.now(),
-							},
-							uploadURL
+					if (!instance._uploadURL) {
+						instance._uploadURL = instance._decodeURI(
+							Liferay.Util.addParams(
+								{
+									redirect: instance.get('redirect'),
+									ts: Date.now(),
+								},
+								instance.get('uploadURL')
+							)
 						);
 					}
 
-					return sub(uploadURL, {
+					return sub(instance._uploadURL, {
 						folderId,
 					});
 				},
@@ -1111,8 +1113,9 @@ AUI.add(
 						!!queue &&
 						(queue.queuedFiles.length > 0 ||
 							queue.numberOfUploads > 0 ||
+							// eslint-disable-next-line @liferay/aui/no-object
 							!A.Object.isEmpty(queue.currentFiles)) &&
-						queue._currentState == UploaderQueue.UPLOADING
+						queue._currentState === UploaderQueue.UPLOADING
 					);
 				},
 
@@ -1188,12 +1191,14 @@ AUI.add(
 				_removeEmptyResultsMessage(searchContainer) {
 					var id = searchContainer.getAttribute('id');
 
-					var emptyResultsMessage = A.one(
-						'#' + id + 'EmptyResultsMessage'
+					var emptyResultsMessage = document.getElementById(
+						`${id}EmptyResultsMessage`
 					);
 
 					if (emptyResultsMessage) {
-						emptyResultsMessage.hide();
+						emptyResultsMessage.style.display = 'none';
+
+						emptyResultsMessage.classList.remove('hide');
 					}
 				},
 
@@ -1217,14 +1222,14 @@ AUI.add(
 							);
 						}
 						else {
-							var displayStyleList = displayStyle == STR_LIST;
-
 							var fileEntryId = JSON.parse(event.data)
 								.fileEntryId;
 
-							if (!displayStyleList) {
-								instance._updateThumbnail(fileNode, file.name);
-							}
+							instance._updateEntryUI(
+								fileNode,
+								file.name,
+								displayStyle
+							);
 
 							instance._updateFileLink(
 								fileNode,
@@ -1378,6 +1383,27 @@ AUI.add(
 					}
 				},
 
+				_updateEntryIcon(node, fileName) {
+					var instance = this;
+
+					var stickerNode = node.one('.sticker-overlay');
+					var mediaIcon = instance._getMediaIcon(fileName);
+
+					stickerNode.html(Liferay.Util.getLexiconIconTpl(mediaIcon));
+				},
+
+				_updateEntryUI(node, fileName, displayStyle) {
+					var instance = this;
+
+					var displayStyleList = displayStyle === STR_LIST;
+
+					instance._updateEntryIcon(node, fileName);
+
+					if (!displayStyleList && REGEX_IMAGE.test(fileName)) {
+						instance._updateThumbnail(node, fileName, displayStyle);
+					}
+				},
+
 				_updateFileHiddenInput(node, id) {
 					var inputNode = node.one('input');
 
@@ -1393,12 +1419,6 @@ AUI.add(
 
 					if (displayStyle === CSS_ICON) {
 						selector = SELECTOR_ENTRY_LINK;
-					}
-					else if (displayStyle === STR_LIST) {
-						selector =
-							SELECTOR_ENTRY_DISPLAY_STYLE +
-							STR_SPACE +
-							SELECTOR_TAGLIB_ICON;
 					}
 
 					var link = node.all(selector);
@@ -1433,12 +1453,12 @@ AUI.add(
 						var folderEntryNodeOverlay = folderEntryNode.overlay;
 
 						if (folderEntryNodeOverlay) {
-							folderEntryNodeOverlay.show();
-
 							instance._updateProgress(
 								folderEntryNode.progressBar,
 								0
 							);
+
+							folderEntryNodeOverlay.show();
 						}
 						else {
 							instance._createUploadStatus(folderEntryNode);
@@ -1475,24 +1495,34 @@ AUI.add(
 					}
 				},
 
-				_updateThumbnail(node, fileName) {
+				_updateThumbnail(node, fileName, displayStyle) {
 					var instance = this;
 
 					var imageNode = node.one('img');
+					var thumbnailPath = instance._getImageThumbnail(fileName);
 
-					var thumbnailPath = instance._getMediaThumbnail(fileName);
+					if (!imageNode) {
+						var targetNodeSelector = '.sticker-overlay svg';
+						var imageClassName = 'sticker-img';
 
-					imageNode.attr('src', thumbnailPath);
+						if (displayStyle === CSS_ICON) {
+							targetNodeSelector = '.card-type-asset-icon';
+							imageClassName =
+								'aspect-ratio-item-center-middle aspect-ratio-item-fluid';
+						}
 
-					if (instance._getDisplayStyle() === CSS_ICON) {
-						var divNode = imageNode.ancestor('div');
-
-						divNode.setStyle(
-							'backgroundImage',
-							'url("' + thumbnailPath + '")'
+						imageNode = A.Node.create(
+							`<img alt="" class="${imageClassName}" src="${thumbnailPath}" />`
 						);
-						divNode.setStyle('backgroundPosition', 'center');
-						divNode.setStyle('backgroundRepeat', 'no-repeat');
+
+						var targetNode = node.one(targetNodeSelector);
+
+						targetNode
+							.get('parentNode')
+							.replaceChild(imageNode, targetNode);
+					}
+					else {
+						imageNode.attr('src', thumbnailPath);
 					}
 				},
 

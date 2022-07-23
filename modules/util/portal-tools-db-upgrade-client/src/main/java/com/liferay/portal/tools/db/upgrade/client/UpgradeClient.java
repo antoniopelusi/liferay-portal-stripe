@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jline.console.ConsoleReader;
 
@@ -187,7 +189,9 @@ public class UpgradeClient {
 		String jvmOptsCommands = _jvmOpts.concat(
 			" -Dexternal-properties=portal-upgrade.properties " +
 				"-Dserver.detector.server.id=" +
-					_appServer.getServerDetectorServerId());
+					_appServer.getServerDetectorServerId() +
+						" -Dliferay.shielded.container.lib.portal.dir=" +
+							_appServer.getPortalShieldedContainerLibDir());
 
 		System.out.println("JVM arguments: " + jvmOptsCommands);
 
@@ -216,10 +220,7 @@ public class UpgradeClient {
 			String line = null;
 
 			while ((line = bufferedReader.readLine()) != null) {
-				if (line.equals(
-						"Running modules upgrades. Connect to Gogo shell to " +
-							"check the status.")) {
-
+				if (line.equals("Exiting DBUpgrader#main(String[]).")) {
 					break;
 				}
 
@@ -232,7 +233,7 @@ public class UpgradeClient {
 			ioException.printStackTrace();
 		}
 
-		try (GogoShellClient gogoShellClient = new GogoShellClient()) {
+		try (GogoShellClient gogoShellClient = _initGogoShellClient()) {
 			boolean finished = _isFinished(gogoShellClient);
 
 			if (!finished || _shell) {
@@ -352,16 +353,38 @@ public class UpgradeClient {
 
 		_appendClassPath(sb, _jarDir);
 
-		_appendClassPath(sb, _appServer.getGlobalLibDir());
-
 		sb.append(_appServer.getPortalClassesDir());
 		sb.append(File.pathSeparator);
 
 		_appendClassPath(sb, _appServer.getPortalLibDir());
 
+		_appendClassPath(sb, _appServer.getPortalShieldedContainerLibDir());
+
+		_appendClassPath(sb, _appServer.getGlobalLibDir());
+
 		_appendClassPath(sb, _appServer.getExtraLibDirs());
 
 		return sb.toString();
+	}
+
+	private GogoShellClient _initGogoShellClient() throws IOException {
+		String value = _portalUpgradeExtProperties.getProperty(
+			"module.framework.properties.osgi.console");
+
+		if (value == null) {
+			return new GogoShellClient();
+		}
+
+		Matcher matcher = _gogoShellAddressPattern.matcher(value);
+
+		if (!matcher.find()) {
+			return new GogoShellClient();
+		}
+
+		String host = matcher.group(1);
+		int port = Integer.parseInt(matcher.group(2));
+
+		return new GogoShellClient(host, port);
 	}
 
 	private boolean _isFinished(GogoShellClient gogoShellClient)
@@ -735,6 +758,8 @@ public class UpgradeClient {
 				put("sybase", Database.getSybaseDatabase());
 			}
 		};
+	private static final Pattern _gogoShellAddressPattern = Pattern.compile(
+		"^([^\\:]+):([0-9]{1,5})$");
 	private static File _jarDir;
 
 	static {

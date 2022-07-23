@@ -176,4 +176,7 @@ public interface PortletPreferencesModel
 	 */
 	public void setPortletId(String portletId);
 
+	@Override
+	public PortletPreferences cloneWithOriginalValues();
+
 }

@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -205,34 +207,6 @@ public class CTSchemaVersionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CTSchemaVersion>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CTSchemaVersion.class.getClassLoader(), CTSchemaVersion.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CTSchemaVersion> constructor =
-				(Constructor<CTSchemaVersion>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CTSchemaVersion, Object>>
@@ -409,6 +383,22 @@ public class CTSchemaVersionModelImpl
 	}
 
 	@Override
+	public CTSchemaVersion cloneWithOriginalValues() {
+		CTSchemaVersionImpl ctSchemaVersionImpl = new CTSchemaVersionImpl();
+
+		ctSchemaVersionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ctSchemaVersionImpl.setSchemaVersionId(
+			this.<Long>getColumnOriginalValue("schemaVersionId"));
+		ctSchemaVersionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ctSchemaVersionImpl.setSchemaContext(
+			this.<Map>getColumnOriginalValue("schemaContext"));
+
+		return ctSchemaVersionImpl;
+	}
+
+	@Override
 	public int compareTo(CTSchemaVersion ctSchemaVersion) {
 		int value = 0;
 
@@ -505,7 +495,7 @@ public class CTSchemaVersionModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -516,9 +506,26 @@ public class CTSchemaVersionModelImpl
 			Function<CTSchemaVersion, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CTSchemaVersion)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CTSchemaVersion)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -565,7 +572,9 @@ public class CTSchemaVersionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CTSchemaVersion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CTSchemaVersion.class, ModelWrapper.class);
 
 	}
 

@@ -54,6 +54,20 @@ public class CartItemSerDes {
 
 		sb.append("{");
 
+		if (cartItem.getAdaptiveMediaImageHTMLTag() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"adaptiveMediaImageHTMLTag\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(cartItem.getAdaptiveMediaImageHTMLTag()));
+
+			sb.append("\"");
+		}
+
 		if (cartItem.getCartItems() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -176,6 +190,16 @@ public class CartItemSerDes {
 			sb.append(cartItem.getProductId());
 		}
 
+		if (cartItem.getProductURLs() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"productURLs\": ");
+
+			sb.append(_toJSON(cartItem.getProductURLs()));
+		}
+
 		if (cartItem.getQuantity() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -272,6 +296,15 @@ public class CartItemSerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
+		if (cartItem.getAdaptiveMediaImageHTMLTag() == null) {
+			map.put("adaptiveMediaImageHTMLTag", null);
+		}
+		else {
+			map.put(
+				"adaptiveMediaImageHTMLTag",
+				String.valueOf(cartItem.getAdaptiveMediaImageHTMLTag()));
+		}
+
 		if (cartItem.getCartItems() == null) {
 			map.put("cartItems", null);
 		}
@@ -336,6 +369,13 @@ public class CartItemSerDes {
 		}
 		else {
 			map.put("productId", String.valueOf(cartItem.getProductId()));
+		}
+
+		if (cartItem.getProductURLs() == null) {
+			map.put("productURLs", null);
+		}
+		else {
+			map.put("productURLs", String.valueOf(cartItem.getProductURLs()));
 		}
 
 		if (cartItem.getQuantity() == null) {
@@ -407,7 +447,15 @@ public class CartItemSerDes {
 			CartItem cartItem, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "cartItems")) {
+			if (Objects.equals(
+					jsonParserFieldName, "adaptiveMediaImageHTMLTag")) {
+
+				if (jsonParserFieldValue != null) {
+					cartItem.setAdaptiveMediaImageHTMLTag(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "cartItems")) {
 				if (jsonParserFieldValue != null) {
 					cartItem.setCartItems(
 						Stream.of(
@@ -463,6 +511,13 @@ public class CartItemSerDes {
 				if (jsonParserFieldValue != null) {
 					cartItem.setProductId(
 						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "productURLs")) {
+				if (jsonParserFieldValue != null) {
+					cartItem.setProductURLs(
+						(Map)CartItemSerDes.toMap(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "quantity")) {

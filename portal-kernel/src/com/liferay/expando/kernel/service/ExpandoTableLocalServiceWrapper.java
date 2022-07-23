@@ -30,6 +30,10 @@ public class ExpandoTableLocalServiceWrapper
 	implements ExpandoTableLocalService,
 			   ServiceWrapper<ExpandoTableLocalService> {
 
+	public ExpandoTableLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ExpandoTableLocalServiceWrapper(
 		ExpandoTableLocalService expandoTableLocalService) {
 
@@ -111,9 +115,12 @@ public class ExpandoTableLocalServiceWrapper
 	 *
 	 * @param expandoTable the expando table
 	 * @return the expando table that was removed
+	 * @throws PortalException
 	 */
 	@Override
-	public ExpandoTable deleteExpandoTable(ExpandoTable expandoTable) {
+	public ExpandoTable deleteExpandoTable(ExpandoTable expandoTable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		return _expandoTableLocalService.deleteExpandoTable(expandoTable);
 	}
 
@@ -147,7 +154,9 @@ public class ExpandoTableLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteTable(ExpandoTable table) {
+	public void deleteTable(ExpandoTable table)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_expandoTableLocalService.deleteTable(table);
 	}
 
@@ -173,18 +182,29 @@ public class ExpandoTableLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteTables(long companyId, long classNameId) {
+	public void deleteTables(long companyId, long classNameId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_expandoTableLocalService.deleteTables(companyId, classNameId);
 	}
 
 	@Override
-	public void deleteTables(long companyId, String className) {
+	public void deleteTables(long companyId, String className)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		_expandoTableLocalService.deleteTables(companyId, className);
 	}
 
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _expandoTableLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _expandoTableLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

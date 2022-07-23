@@ -27,6 +27,10 @@ public class BookmarksFolderLocalServiceWrapper
 	implements BookmarksFolderLocalService,
 			   ServiceWrapper<BookmarksFolderLocalService> {
 
+	public BookmarksFolderLocalServiceWrapper() {
+		this(null);
+	}
+
 	public BookmarksFolderLocalServiceWrapper(
 		BookmarksFolderLocalService bookmarksFolderLocalService) {
 
@@ -178,6 +182,13 @@ public class BookmarksFolderLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _bookmarksFolderLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _bookmarksFolderLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

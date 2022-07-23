@@ -52,7 +52,7 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.xcontent.XContentType;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -96,24 +96,23 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 
 		_createIndex();
 
-		StringBundler sb = new StringBundler(14);
-
-		sb.append("{\n\"dynamic_templates\": [\n{\n");
-		sb.append("\"template_en\": {\n\"mapping\": {\n");
-		sb.append("\"analyzer\": \"english\",\n\"store\": true,\n");
-		sb.append("\"term_vector\": \"with_positions_offsets\",\n");
-		sb.append("\"type\": \"text\"\n},\n");
-		sb.append("\"match\": \"\\\\w+_en\\\\b|\\\\w+_en_[A-Z]{2}\\\\b\",\n");
-		sb.append("\"match_mapping_type\": \"string\",\n");
-		sb.append("\"match_pattern\": \"regex\"\n}\n}\n],\n");
-		sb.append("\"properties\": {\n\"companyId\": {\n");
-		sb.append("\"store\": true,\n\"type\": \"keyword\"\n},\n");
-		sb.append("\"languageId\": {\n\"index\": false,\n");
-		sb.append("\"store\": true,\n\"type\": \"keyword\"\n},");
-		sb.append("\"keywordSuggestion\" : {\n\"type\" : \"completion\"\n");
-		sb.append("}\n\n}\n}");
-
-		_putMapping(_MAPPING_NAME, sb.toString());
+		_putMapping(
+			_MAPPING_NAME,
+			StringBundler.concat(
+				"{\n\"dynamic_templates\": [\n{\n",
+				"\"template_en\": {\n\"mapping\": {\n",
+				"\"analyzer\": \"english\",\n\"store\": true,\n",
+				"\"term_vector\": \"with_positions_offsets\",\n",
+				"\"type\": \"text\"\n},\n",
+				"\"match\": \"\\\\w+_en\\\\b|\\\\w+_en_[A-Z]{2}\\\\b\",\n",
+				"\"match_mapping_type\": \"string\",\n",
+				"\"match_pattern\": \"regex\"\n}\n}\n],\n",
+				"\"properties\": {\n\"companyId\": {\n",
+				"\"store\": true,\n\"type\": \"keyword\"\n},\n",
+				"\"languageId\": {\n\"index\": false,\n",
+				"\"store\": true,\n\"type\": \"keyword\"\n},",
+				"\"keywordSuggestion\" : {\n\"type\" : \"completion\"\n",
+				"}\n\n}\n}"));
 	}
 
 	@After
@@ -125,8 +124,8 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 
 	@Test
 	public void testCompletionSuggester() throws IOException {
-		indexSuggestKeyword("message");
-		indexSuggestKeyword("search");
+		_indexSuggestKeyword("message");
+		_indexSuggestKeyword("search");
 
 		SuggestSearchRequest suggestSearchRequest = new SuggestSearchRequest(
 			_INDEX_NAME);
@@ -144,14 +143,14 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		SuggestSearchResponse suggestSearchResponse =
 			_searchEngineAdapter.execute(suggestSearchRequest);
 
-		assertSuggestion(
+		_assertSuggestion(
 			suggestSearchResponse.getSuggestSearchResultMap(),
 			"completion|[search]", "completion2|[message]");
 	}
 
 	@Test
 	public void testGlobalText() throws IOException {
-		indexSuggestKeyword("search");
+		_indexSuggestKeyword("search");
 
 		SuggestSearchRequest suggestSearchRequest = new SuggestSearchRequest(
 			_INDEX_NAME);
@@ -170,15 +169,15 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		SuggestSearchResponse suggestSearchResponse =
 			_searchEngineAdapter.execute(suggestSearchRequest);
 
-		assertSuggestion(
+		_assertSuggestion(
 			suggestSearchResponse.getSuggestSearchResultMap(),
 			"completion|[search]", "term|[search]");
 	}
 
 	@Test
 	public void testGlobalTextOverride() throws IOException {
-		indexSuggestKeyword("message");
-		indexSuggestKeyword("search");
+		_indexSuggestKeyword("message");
+		_indexSuggestKeyword("search");
 
 		SuggestSearchRequest suggestSearchRequest = new SuggestSearchRequest(
 			_INDEX_NAME);
@@ -197,14 +196,14 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		SuggestSearchResponse suggestSearchResponse =
 			_searchEngineAdapter.execute(suggestSearchRequest);
 
-		assertSuggestion(
+		_assertSuggestion(
 			suggestSearchResponse.getSuggestSearchResultMap(),
 			"completion|[message]", "term|[search]");
 	}
 
 	@Test
 	public void testPhraseSuggester() throws IOException {
-		indexSuggestKeyword("indexed this phrase");
+		_indexSuggestKeyword("indexed this phrase");
 
 		SuggestSearchRequest suggestSearchRequest = new SuggestSearchRequest(
 			_INDEX_NAME);
@@ -219,15 +218,15 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		SuggestSearchResponse suggestSearchResponse =
 			_searchEngineAdapter.execute(suggestSearchRequest);
 
-		assertSuggestion(
+		_assertSuggestion(
 			suggestSearchResponse.getSuggestSearchResultMap(), 2,
 			"phrase|[indexef phrase, index phrasd]");
 	}
 
 	@Test
 	public void testTermSuggester() throws IOException {
-		indexSuggestKeyword("message");
-		indexSuggestKeyword("search");
+		_indexSuggestKeyword("message");
+		_indexSuggestKeyword("search");
 
 		SuggestSearchRequest suggestSearchRequest = new SuggestSearchRequest(
 			_INDEX_NAME);
@@ -240,12 +239,23 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		SuggestSearchResponse suggestSearchResponse =
 			_searchEngineAdapter.execute(suggestSearchRequest);
 
-		assertSuggestion(
+		_assertSuggestion(
 			suggestSearchResponse.getSuggestSearchResultMap(),
 			"termSuggestion|[search]");
 	}
 
-	protected void assertSuggestion(
+	protected SearchEngineAdapter createSearchEngineAdapter(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
+
+		return new ElasticsearchSearchEngineAdapterImpl() {
+			{
+				setSearchRequestExecutor(
+					_createSearchRequestExecutor(elasticsearchClientResolver));
+			}
+		};
+	}
+
+	private void _assertSuggestion(
 		Map<String, SuggestSearchResult> suggestSearchResultMap, int size,
 		String... expectedSuggestionsString) {
 
@@ -278,89 +288,18 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 				suggestSearchResultEntryOptions.size());
 
 			String actualSuggestions = String.valueOf(
-				toList(suggestSearchResultEntryOptions));
+				_toList(suggestSearchResultEntryOptions));
 
 			Assert.assertEquals(expectedSuggestions, actualSuggestions);
 		}
 	}
 
-	protected void assertSuggestion(
+	private void _assertSuggestion(
 		Map<String, SuggestSearchResult> suggestSearchResultsMap,
 		String... expectedSuggestionsString) {
 
-		assertSuggestion(suggestSearchResultsMap, 1, expectedSuggestionsString);
-	}
-
-	protected SearchEngineAdapter createSearchEngineAdapter(
-		ElasticsearchClientResolver elasticsearchClientResolver) {
-
-		return new ElasticsearchSearchEngineAdapterImpl() {
-			{
-				setSearchRequestExecutor(
-					createSearchRequestExecutor(elasticsearchClientResolver));
-			}
-		};
-	}
-
-	protected SearchRequestExecutor createSearchRequestExecutor(
-		ElasticsearchClientResolver elasticsearchClientResolver) {
-
-		SearchRequestExecutorFixture searchRequestExecutorFixture =
-			new SearchRequestExecutorFixture() {
-				{
-					setElasticsearchClientResolver(elasticsearchClientResolver);
-				}
-			};
-
-		searchRequestExecutorFixture.setUp();
-
-		return searchRequestExecutorFixture.getSearchRequestExecutor();
-	}
-
-	protected String getUID(String value) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(_DEFAULT_COMPANY_ID);
-		sb.append("_");
-		sb.append(_LOCALIZED_FIELD_NAME);
-		sb.append("_");
-		sb.append(value);
-
-		return sb.toString();
-	}
-
-	protected void indexSuggestKeyword(String value) throws IOException {
-		Document document = new DocumentImpl();
-
-		document.addKeyword(_LOCALIZED_FIELD_NAME, value);
-		document.addKeyword("keywordSuggestion", value);
-
-		document.addKeyword(Field.COMPANY_ID, _DEFAULT_COMPANY_ID);
-		document.addKeyword(Field.LANGUAGE_ID, _EN_US_LANGUAGE_ID);
-		document.addKeyword(Field.TYPE, "spellCheckKeyword");
-		document.addKeyword(Field.UID, getUID(value));
-
-		_indexDocument(document);
-
-		GetResponse getResponse = _getDocument(getUID(value));
-
-		Assert.assertTrue(
-			"Expected document added: " + value, getResponse.isExists());
-	}
-
-	protected List<String> toList(
-		List<SuggestSearchResult.Entry.Option>
-			suggestSearchResultEntryOptions) {
-
-		List<String> options = new ArrayList<>();
-
-		for (SuggestSearchResult.Entry.Option suggestSearchResultEntryOption :
-				suggestSearchResultEntryOptions) {
-
-			options.add(suggestSearchResultEntryOption.getText());
-		}
-
-		return options;
+		_assertSuggestion(
+			suggestSearchResultsMap, 1, expectedSuggestionsString);
 	}
 
 	private void _createIndex() {
@@ -373,6 +312,21 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);
 		}
+	}
+
+	private SearchRequestExecutor _createSearchRequestExecutor(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
+
+		SearchRequestExecutorFixture searchRequestExecutorFixture =
+			new SearchRequestExecutorFixture() {
+				{
+					setElasticsearchClientResolver(elasticsearchClientResolver);
+				}
+			};
+
+		searchRequestExecutorFixture.setUp();
+
+		return searchRequestExecutorFixture.getSearchRequestExecutor();
 	}
 
 	private void _deleteIndex() {
@@ -401,6 +355,11 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		}
 	}
 
+	private String _getUID(String value) {
+		return StringBundler.concat(
+			_DEFAULT_COMPANY_ID, "_", _LOCALIZED_FIELD_NAME, "_", value);
+	}
+
 	private void _indexDocument(Document document) {
 		IndexRequest indexRequest = new IndexRequest(_INDEX_NAME);
 
@@ -423,6 +382,25 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		}
 	}
 
+	private void _indexSuggestKeyword(String value) throws IOException {
+		Document document = new DocumentImpl();
+
+		document.addKeyword(_LOCALIZED_FIELD_NAME, value);
+		document.addKeyword("keywordSuggestion", value);
+
+		document.addKeyword(Field.COMPANY_ID, _DEFAULT_COMPANY_ID);
+		document.addKeyword(Field.LANGUAGE_ID, _EN_US_LANGUAGE_ID);
+		document.addKeyword(Field.TYPE, "spellCheckKeyword");
+		document.addKeyword(Field.UID, _getUID(value));
+
+		_indexDocument(document);
+
+		GetResponse getResponse = _getDocument(_getUID(value));
+
+		Assert.assertTrue(
+			"Expected document added: " + value, getResponse.isExists());
+	}
+
 	private void _putMapping(String mappingName, String mappingSource) {
 		PutMappingRequest putMappingRequest = new PutMappingRequest(
 			_INDEX_NAME);
@@ -437,6 +415,21 @@ public class ElasticsearchSearchEngineAdapterSearchRequestTest {
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);
 		}
+	}
+
+	private List<String> _toList(
+		List<SuggestSearchResult.Entry.Option>
+			suggestSearchResultEntryOptions) {
+
+		List<String> options = new ArrayList<>();
+
+		for (SuggestSearchResult.Entry.Option suggestSearchResultEntryOption :
+				suggestSearchResultEntryOptions) {
+
+			options.add(suggestSearchResultEntryOption.getText());
+		}
+
+		return options;
 	}
 
 	private static final long _DEFAULT_COMPANY_ID = 12345;

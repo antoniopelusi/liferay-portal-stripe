@@ -131,6 +131,11 @@ public class DLOpenerFileEntryReferenceWrapper
 		}
 	}
 
+	@Override
+	public DLOpenerFileEntryReference cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this dl opener file entry reference.
 	 *

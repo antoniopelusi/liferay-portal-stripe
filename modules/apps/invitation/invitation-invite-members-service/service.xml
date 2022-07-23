@@ -52,11 +52,6 @@
 			<finder-column name="receiverUserId" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="UserGroupRole" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>MemberRequestAlreadyUsed</exception>

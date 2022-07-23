@@ -185,6 +185,11 @@ public class LayoutSetBranchWrapper
 	}
 
 	@Override
+	public LayoutSetBranch cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public ColorScheme getColorScheme() {
 		return model.getColorScheme();
 	}

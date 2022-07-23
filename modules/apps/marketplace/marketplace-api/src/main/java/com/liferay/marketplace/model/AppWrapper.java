@@ -152,6 +152,11 @@ public class AppWrapper
 		return model.addContextName(contextName);
 	}
 
+	@Override
+	public App cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the app ID of this app.
 	 *

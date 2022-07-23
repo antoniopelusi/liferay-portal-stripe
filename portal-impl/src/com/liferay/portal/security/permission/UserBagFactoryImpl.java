@@ -76,30 +76,29 @@ public class UserBagFactoryImpl implements UserBagFactory {
 			allGroupIds.add(groupId);
 		}
 
-		long[] userGroupIds = null;
+		long[] userGroupIds = UserLocalServiceUtil.getGroupPrimaryKeys(userId);
 
-		if (userOrgs.isEmpty() && userUserGroups.isEmpty()) {
-			userGroupIds = UserLocalServiceUtil.getGroupPrimaryKeys(userId);
+		Set<Long> userGroupIdsSet = new HashSet<>();
 
-			for (long userGroupId : userGroupIds) {
-				allGroupIds.add(userGroupId);
-			}
+		for (long userGroupId : userGroupIds) {
+			userGroupIdsSet.add(userGroupId);
+
+			allGroupIds.add(userGroupId);
 		}
-		else {
+
+		if (!userOrgs.isEmpty() || !userUserGroups.isEmpty()) {
 			List<Group> userGroups = GroupLocalServiceUtil.getUserGroups(
 				userId, true);
 
-			userGroupIds = new long[userGroups.size()];
-
-			for (int i = 0; i < userGroups.size(); i++) {
-				Group userGroup = userGroups.get(i);
-
+			for (Group userGroup : userGroups) {
 				long groupId = userGroup.getGroupId();
 
-				userGroupIds[i] = groupId;
+				userGroupIdsSet.add(groupId);
 
 				allGroupIds.add(groupId);
 			}
+
+			userGroupIds = ArrayUtil.toLongArray(userGroupIdsSet);
 		}
 
 		if (allGroupIds.isEmpty()) {

@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationModel;
-import com.liferay.portal.kernel.model.OrganizationSoap;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -190,68 +188,6 @@ public class OrganizationModelImpl
 	@Deprecated
 	public static final long UUID_COLUMN_BITMASK = 64L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Organization toModel(OrganizationSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Organization model = new OrganizationImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setOrganizationId(soapModel.getOrganizationId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentOrganizationId(soapModel.getParentOrganizationId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setName(soapModel.getName());
-		model.setType(soapModel.getType());
-		model.setRecursable(soapModel.isRecursable());
-		model.setRegionId(soapModel.getRegionId());
-		model.setCountryId(soapModel.getCountryId());
-		model.setStatusId(soapModel.getStatusId());
-		model.setComments(soapModel.getComments());
-		model.setLogoId(soapModel.getLogoId());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Organization> toModels(OrganizationSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Organization> models = new ArrayList<Organization>(
-			soapModels.length);
-
-		for (OrganizationSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final String MAPPING_TABLE_GROUPS_ORGS_NAME = "Groups_Orgs";
 
 	public static final Object[][] MAPPING_TABLE_GROUPS_ORGS_COLUMNS = {
@@ -371,34 +307,6 @@ public class OrganizationModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Organization>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Organization.class.getClassLoader(), Organization.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<Organization> constructor =
-				(Constructor<Organization>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Organization, Object>>
@@ -1020,6 +928,49 @@ public class OrganizationModelImpl
 	}
 
 	@Override
+	public Organization cloneWithOriginalValues() {
+		OrganizationImpl organizationImpl = new OrganizationImpl();
+
+		organizationImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		organizationImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		organizationImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		organizationImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		organizationImpl.setOrganizationId(
+			this.<Long>getColumnOriginalValue("organizationId"));
+		organizationImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		organizationImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		organizationImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		organizationImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		organizationImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		organizationImpl.setParentOrganizationId(
+			this.<Long>getColumnOriginalValue("parentOrganizationId"));
+		organizationImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		organizationImpl.setName(this.<String>getColumnOriginalValue("name"));
+		organizationImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		organizationImpl.setRecursable(
+			this.<Boolean>getColumnOriginalValue("recursable"));
+		organizationImpl.setRegionId(
+			this.<Long>getColumnOriginalValue("regionId"));
+		organizationImpl.setCountryId(
+			this.<Long>getColumnOriginalValue("countryId"));
+		organizationImpl.setStatusId(
+			this.<Long>getColumnOriginalValue("statusId"));
+		organizationImpl.setComments(
+			this.<String>getColumnOriginalValue("comments"));
+		organizationImpl.setLogoId(this.<Long>getColumnOriginalValue("logoId"));
+
+		return organizationImpl;
+	}
+
+	@Override
 	public int compareTo(Organization organization) {
 		int value = 0;
 
@@ -1200,7 +1151,7 @@ public class OrganizationModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1211,9 +1162,26 @@ public class OrganizationModelImpl
 			Function<Organization, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Organization)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Organization)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1260,7 +1228,9 @@ public class OrganizationModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Organization>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Organization.class, ModelWrapper.class);
 
 	}
 

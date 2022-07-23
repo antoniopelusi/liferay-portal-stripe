@@ -119,15 +119,8 @@ public class Version implements Comparable<Version> {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(_major);
-		sb.append(StringPool.PERIOD);
-		sb.append(_minor);
-		sb.append(StringPool.PERIOD);
-		sb.append(_micro);
-
-		return sb.toString();
+		return StringBundler.concat(
+			_major, StringPool.PERIOD, _minor, StringPool.PERIOD, _micro);
 	}
 
 	private static final Pattern _versionPattern = Pattern.compile(

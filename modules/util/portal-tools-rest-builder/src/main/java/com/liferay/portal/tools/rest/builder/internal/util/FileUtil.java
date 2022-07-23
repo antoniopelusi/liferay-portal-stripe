@@ -112,11 +112,7 @@ public class FileUtil {
 
 					String name = file.getName();
 
-					if (!name.startsWith(prefix)) {
-						return false;
-					}
-
-					if (!name.endsWith(suffix)) {
+					if (!name.startsWith(prefix) || !name.endsWith(suffix)) {
 						return false;
 					}
 

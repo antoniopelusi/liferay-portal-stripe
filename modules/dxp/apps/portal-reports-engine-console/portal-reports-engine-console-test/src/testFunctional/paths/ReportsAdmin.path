@@ -2,22 +2,14 @@
 <head>
 <title>ReportsAdmin</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ReportsAdmin</td></tr>
 </thead>
+
 <tbody>
-<tr>
-	<td>REPORT_PDF_CLASS_NAME_PNG</td>
-	<td>portal/screenshots/reports/report_pdf_class_name.png</td>
-	<td></td>
-</tr>
-<tr>
-	<td>REPORT_PDF_LIST_TYPE_PNG</td>
-	<td>portal/screenshots/reports/report_pdf_list_type.png</td>
-	<td></td>
-</tr>
 <tr>
 	<td></td>
 	<td></td>
@@ -48,6 +40,11 @@
 <tr>
 	<td>REPORTS_ENTRY_TABLE_ACTIONS_1</td>
 	<td>xpath=(//tr/td[4]//div/a)[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMPTY_TABLE</td>
+	<td>//div[contains(@class,'sheet-text')]</td>
 	<td></td>
 </tr>
 <tr>

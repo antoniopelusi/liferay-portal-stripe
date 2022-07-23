@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.Website;
 import com.liferay.portal.kernel.model.WebsiteModel;
-import com.liferay.portal.kernel.model.WebsiteSoap;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
@@ -34,21 +33,20 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -184,61 +182,6 @@ public class WebsiteModelImpl
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 64L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Website toModel(WebsiteSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Website model = new WebsiteImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setWebsiteId(soapModel.getWebsiteId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setUrl(soapModel.getUrl());
-		model.setTypeId(soapModel.getTypeId());
-		model.setPrimary(soapModel.isPrimary());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Website> toModels(WebsiteSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Website> models = new ArrayList<Website>(soapModels.length);
-
-		for (WebsiteSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.Website"));
@@ -325,33 +268,6 @@ public class WebsiteModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Website>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Website.class.getClassLoader(), Website.class, ModelWrapper.class);
-
-		try {
-			Constructor<Website> constructor =
-				(Constructor<Website>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Website, Object>>
@@ -831,6 +747,37 @@ public class WebsiteModelImpl
 	}
 
 	@Override
+	public Website cloneWithOriginalValues() {
+		WebsiteImpl websiteImpl = new WebsiteImpl();
+
+		websiteImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		websiteImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		websiteImpl.setWebsiteId(
+			this.<Long>getColumnOriginalValue("websiteId"));
+		websiteImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		websiteImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		websiteImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		websiteImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		websiteImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		websiteImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		websiteImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		websiteImpl.setUrl(this.<String>getColumnOriginalValue("url"));
+		websiteImpl.setTypeId(this.<Long>getColumnOriginalValue("typeId"));
+		websiteImpl.setPrimary(
+			this.<Boolean>getColumnOriginalValue("primary_"));
+		websiteImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return websiteImpl;
+	}
+
+	@Override
 	public int compareTo(Website website) {
 		int value = 0;
 
@@ -977,7 +924,7 @@ public class WebsiteModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -988,9 +935,26 @@ public class WebsiteModelImpl
 			Function<Website, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Website)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Website)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1037,7 +1001,9 @@ public class WebsiteModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Website>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Website.class, ModelWrapper.class);
 
 	}
 

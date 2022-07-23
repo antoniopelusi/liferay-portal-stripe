@@ -70,13 +70,16 @@ public class GetAvailableListItemRenderersMVCResourceCommand
 		InfoListRenderer<?> infoListRenderer =
 			_infoListRendererTracker.getInfoListRenderer(listStyle);
 
-		List<InfoItemRenderer<?>> infoItemRenderers =
-			infoListRenderer.getAvailableInfoItemRenderers();
-
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		for (InfoItemRenderer<?> infoItemRenderer : infoItemRenderers) {
+		for (InfoItemRenderer<?> infoItemRenderer :
+				infoListRenderer.getAvailableInfoItemRenderers()) {
+
+			if (!infoItemRenderer.isAvailable()) {
+				continue;
+			}
+
 			if (infoItemRenderer instanceof InfoItemTemplatedRenderer) {
 				JSONArray templatesJSONArray =
 					JSONFactoryUtil.createJSONArray();
@@ -87,6 +90,10 @@ public class GetAvailableListItemRenderersMVCResourceCommand
 				List<InfoItemRendererTemplate> infoItemRendererTemplates =
 					infoItemTemplatedRenderer.getInfoItemRendererTemplates(
 						itemType, itemSubtype, themeDisplay.getLocale());
+
+				if (infoItemRendererTemplates.isEmpty()) {
+					continue;
+				}
 
 				Collections.sort(
 					infoItemRendererTemplates,

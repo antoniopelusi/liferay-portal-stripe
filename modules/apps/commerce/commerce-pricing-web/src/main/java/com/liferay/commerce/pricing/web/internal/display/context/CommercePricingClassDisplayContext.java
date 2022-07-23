@@ -148,7 +148,7 @@ public class CommercePricingClassDisplayContext
 				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/commerce_pricing_classes/edit_commerce_pricing_class"
-		).build();
+		).buildPortletURL();
 	}
 
 	public List<HeaderActionModel> getHeaderActionModels() throws Exception {

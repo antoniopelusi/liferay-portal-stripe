@@ -126,14 +126,17 @@ public class RegionLocalServiceUtil {
 	 *
 	 * @param region the region
 	 * @return the region that was removed
-	 * @throws PortalException
 	 */
-	public static Region deleteRegion(Region region) throws PortalException {
+	public static Region deleteRegion(Region region) {
 		return getService().deleteRegion(region);
 	}
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {

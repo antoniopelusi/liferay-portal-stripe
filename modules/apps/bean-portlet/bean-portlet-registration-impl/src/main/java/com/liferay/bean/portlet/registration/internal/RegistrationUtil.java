@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.resource.bundle.ClassResourceBundleLoader;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -57,13 +57,13 @@ public class RegistrationUtil {
 
 		if (Objects.equals(portletName, "*")) {
 			for (String curPortletName : allPortletNames) {
-				String portletId = _getPortletId(
-					curPortletName, servletContext.getServletContextName());
-
 				serviceRegistrations.add(
 					_registerBeanFilter(
 						beanFilter, beanFilterMethodFactory,
-						beanFilterMethodInvoker, bundleContext, portletId));
+						beanFilterMethodInvoker, bundleContext,
+						_getPortletId(
+							curPortletName,
+							servletContext.getServletContextName())));
 			}
 		}
 		else {
@@ -75,13 +75,13 @@ public class RegistrationUtil {
 						portletName));
 			}
 			else {
-				String portletId = _getPortletId(
-					portletName, servletContext.getServletContextName());
-
 				serviceRegistrations.add(
 					_registerBeanFilter(
 						beanFilter, beanFilterMethodFactory,
-						beanFilterMethodInvoker, bundleContext, portletId));
+						beanFilterMethodInvoker, bundleContext,
+						_getPortletId(
+							portletName,
+							servletContext.getServletContextName())));
 			}
 		}
 
@@ -131,7 +131,7 @@ public class RegistrationUtil {
 			return portletServiceRegistration;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return null;
@@ -152,15 +152,15 @@ public class RegistrationUtil {
 			new ClassResourceBundleLoader(
 				resourceBundle, servletContext.getClassLoader());
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.bundle.base.name", resourceBundle);
-		properties.put("service.ranking", Integer.MIN_VALUE);
-		properties.put(
-			"servlet.context.name", servletContext.getServletContextName());
-
 		return bundleContext.registerService(
-			ResourceBundleLoader.class, resourceBundleLoader, properties);
+			ResourceBundleLoader.class, resourceBundleLoader,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.bundle.base.name", resourceBundle
+			).put(
+				"service.ranking", Integer.MIN_VALUE
+			).put(
+				"servlet.context.name", servletContext.getServletContextName()
+			).build());
 	}
 
 	private static String _getPortletId(

@@ -147,6 +147,9 @@ public interface WorkflowDefinitionLinkLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -298,6 +301,11 @@ public interface WorkflowDefinitionLinkLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<WorkflowDefinitionLink> getWorkflowDefinitionLinks(
 		int start, int end);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<WorkflowDefinitionLink> getWorkflowDefinitionLinks(
+			long companyId, long groupId, long classPK)
+		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<WorkflowDefinitionLink> getWorkflowDefinitionLinks(

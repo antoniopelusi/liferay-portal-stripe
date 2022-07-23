@@ -2,11 +2,13 @@
 <head>
 <title>AuditReports</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">AuditReports</td></tr>
 </thead>
+
 <tbody>
 <!--REPORTS_TABLE -->
 <tr>
@@ -36,7 +38,7 @@
 </tr>
 <tr>
 	<td>REPORTS_TABLE_RESOURCE_ACTION</td>
-	<td>//tbody[@class='table-data']/tr[contains(.,'${key_resourceAction}') and contains(.,'${key_resourceName}')]/td[5]</td>
+	<td>//tbody[@class='table-data']//tr[contains(.,'${key_resourceAction}') and contains(.,'${key_resourceName}')]/td[5]//a[contains(text(),'${key_resourceAction}')]</td>
 	<td></td>
 </tr>
 <tr>

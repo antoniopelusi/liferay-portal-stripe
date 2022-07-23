@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.props.test.util.PropsTemporarySwapper;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -78,24 +79,49 @@ public class AssetAutoTaggerTest extends BaseAssetAutoTaggerTestCase {
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
 
 		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
-			group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			null, group.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
 			RandomTestUtil.randomString(), StringUtil.randomString(),
-			StringUtil.randomString(), new byte[0], serviceContext);
+			StringUtil.randomString(), StringUtil.randomString(), new byte[0],
+			null, null, serviceContext);
 
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
 
 		DLAppServiceUtil.updateFileEntry(
 			fileEntry.getFileEntryId(), fileEntry.getFileName(),
 			fileEntry.getMimeType(), fileEntry.getTitle(),
-			fileEntry.getDescription(), RandomTestUtil.randomString(),
-			DLVersionNumberIncrease.MAJOR, fileEntry.getContentStream(),
-			fileEntry.getSize(), serviceContext);
+			StringUtil.randomString(), fileEntry.getDescription(),
+			RandomTestUtil.randomString(), DLVersionNumberIncrease.MAJOR,
+			fileEntry.getContentStream(), fileEntry.getSize(),
+			fileEntry.getExpirationDate(), fileEntry.getReviewDate(),
+			serviceContext);
 
 		AssetEntry assetEntry = AssetEntryLocalServiceUtil.getEntry(
 			DLFileEntryConstants.getClassName(), fileEntry.getFileEntryId());
 
 		assertContainsAssetTagName(assetEntry, ASSET_TAG_NAME_AUTO);
+	}
+
+	@Test
+	public void testAutoTagsAssetOnUpdateIfEnabled() throws Exception {
+		try (PropsTemporarySwapper propsTemporarySwapper =
+				new PropsTemporarySwapper(
+					"feature.flag.LPS-150762", Boolean.TRUE.toString())) {
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(group.getGroupId(), 0);
+
+			FileEntry fileEntry = addFileEntry(serviceContext);
+
+			serviceContext.setAssetTagNames(new String[0]);
+			serviceContext.setAttribute("updateAutoTags", Boolean.TRUE);
+
+			AssetEntry assetEntry = updateFileEntryAssetEntry(
+				fileEntry, serviceContext);
+
+			assertContainsAssetTagName(assetEntry, ASSET_TAG_NAME_AUTO);
+		}
 	}
 
 	@Test
@@ -148,6 +174,27 @@ public class AssetAutoTaggerTest extends BaseAssetAutoTaggerTestCase {
 		AssetEntry assetEntry = addFileEntryAssetEntry(serviceContext);
 
 		assertDoesNotContainAssetTagName(assetEntry, ASSET_TAG_NAME_AUTO);
+	}
+
+	@Test
+	public void testDoesNotAutoTagAssetOnUpdateIfDisabled() throws Exception {
+		try (PropsTemporarySwapper propsTemporarySwapper =
+				new PropsTemporarySwapper(
+					"feature.flag.LPS-150762", Boolean.TRUE.toString())) {
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(group.getGroupId(), 0);
+
+			FileEntry fileEntry = addFileEntry(serviceContext);
+
+			serviceContext.setAssetTagNames(new String[0]);
+			serviceContext.setAttribute("updateAutoTags", Boolean.FALSE);
+
+			AssetEntry assetEntry = updateFileEntryAssetEntry(
+				fileEntry, serviceContext);
+
+			assertDoesNotContainAssetTagName(assetEntry, ASSET_TAG_NAME_AUTO);
+		}
 	}
 
 	@Test

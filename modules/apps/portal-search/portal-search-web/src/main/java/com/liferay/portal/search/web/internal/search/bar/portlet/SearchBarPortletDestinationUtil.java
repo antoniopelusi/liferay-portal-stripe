@@ -14,14 +14,36 @@
 
 package com.liferay.portal.search.web.internal.search.bar.portlet;
 
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Optional;
+
+import javax.portlet.PortletPreferences;
 
 /**
  * @author André de Oliveira
  */
 public class SearchBarPortletDestinationUtil {
+
+	public static boolean isSameDestination(
+		PortletPreferences portletPreferences, ThemeDisplay themeDisplay) {
+
+		String destination = GetterUtil.getString(
+			portletPreferences.getValue("destination", StringPool.BLANK));
+
+		if (Validator.isNull(destination) ||
+			isSameDestination(
+				destination,
+				themeDisplay.getLayoutFriendlyURL(themeDisplay.getLayout()))) {
+
+			return true;
+		}
+
+		return false;
+	}
 
 	public static boolean isSameDestination(
 		SearchBarPortletPreferences searchBarPortletPreferences,
@@ -30,11 +52,8 @@ public class SearchBarPortletDestinationUtil {
 		Optional<String> optional =
 			searchBarPortletPreferences.getDestination();
 
-		if (!optional.isPresent()) {
-			return true;
-		}
-
-		if (isSameDestination(
+		if (!optional.isPresent() ||
+			isSameDestination(
 				optional.get(),
 				themeDisplay.getLayoutFriendlyURL(themeDisplay.getLayout()))) {
 
@@ -53,7 +72,8 @@ public class SearchBarPortletDestinationUtil {
 			offset = 1;
 		}
 
-		if (destination.regionMatches(
+		if ((destination.length() == (friendlyURL.length() - offset)) &&
+			destination.regionMatches(
 				0, friendlyURL, offset, friendlyURL.length() - offset)) {
 
 			return true;

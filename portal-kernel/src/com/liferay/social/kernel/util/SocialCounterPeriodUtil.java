@@ -103,16 +103,16 @@ public class SocialCounterPeriodUtil {
 
 	public static int getOffset(int activityDay) {
 		if (_isMonthlyPeriod()) {
-			Calendar calendar = new GregorianCalendar();
+			Calendar calendar1 = new GregorianCalendar();
 
 			Calendar calendar2 = new GregorianCalendar();
 
 			calendar2.setTimeInMillis(_BASE_TIME + (activityDay * Time.DAY));
 
 			int monthDelta =
-				calendar.get(Calendar.MONTH) - calendar2.get(Calendar.MONTH);
+				calendar1.get(Calendar.MONTH) - calendar2.get(Calendar.MONTH);
 			int yearDelta =
-				calendar.get(Calendar.YEAR) - calendar2.get(Calendar.YEAR);
+				calendar1.get(Calendar.YEAR) - calendar2.get(Calendar.YEAR);
 
 			return -((yearDelta * 12) + monthDelta);
 		}

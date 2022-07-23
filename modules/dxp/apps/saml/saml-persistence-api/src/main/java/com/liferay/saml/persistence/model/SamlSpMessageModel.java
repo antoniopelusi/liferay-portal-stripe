@@ -145,4 +145,7 @@ public interface SamlSpMessageModel
 	 */
 	public void setExpirationDate(Date expirationDate);
 
+	@Override
+	public SamlSpMessage cloneWithOriginalValues();
+
 }

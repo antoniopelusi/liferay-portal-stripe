@@ -1,0 +1,452 @@
+@component-name = "portal-frontend-infrastructure"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.document.library.web.internal.configuration.FFManagementToolbarConfiguration.config:com.liferay.frontend.taglib.clay.internal.configuration.FFManagementToolbarConfiguration.config";
+	property osgi.module.configurations = "enableDesignImprovements=&quot;true&quot;:showDesignImprovements=&quot;true&quot;";
+	property osgi.modules.includes = "frontend-taglib-clay-sample-web";
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Management Toolbar";
+	property testray.main.component.name = "User Interface";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		task ("Given a Clay Sample Portlet") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Clay Sample Test Page");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Clay Sample Test Page",
+				widgetName = "Clay Sample");
+
+			JSONLayout.updateLayoutTemplateOfPublicLayout(
+				groupName = "Guest",
+				layoutName = "Clay Sample Test Page",
+				layoutTemplate = "1 Column");
+
+			Navigator.gotoPage(pageName = "Clay Sample Test Page");
+		}
+
+		task ("When navigate to Management Toolbars tab") {
+			Navigator.gotoNavTab(navTab = "Management Toolbars");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONLayout.deletePublicLayout(
+				groupName = "Guest",
+				layoutName = "Clay Sample Test Page");
+		}
+	}
+
+	@description = "LPS-147854. Assert the info button remains displayed on the right after clicking an action"
+	@priority = "5"
+	test InfoButtonAndActionsRender {
+		task ("Given window size is set") {
+			SetWindowSize(value1 = "800,800");
+		}
+
+		task ("Then the info button is displayed on the right") {
+			OcularAssertElementImage(
+				locator1 = "ClaySamplePortlet#DISPLAY_CONTEXT_CONTAINER",
+				value1 = "management_toolbar/info_button_and_actions_render/info_button_before.png",
+				value2 = "80");
+		}
+
+		task ("And when clicking on an action item") {
+			Check.checkNotVisibleNoErrors(locator1 = "ClaySamplePortlet#DISPLAY_CONTEXT_CHECKBOX");
+
+			AssertConfirm(value1 = "Select all checkbox changed");
+		}
+
+		task ("Then the info button remains displayed in the same initial position") {
+			ScrollBy(value1 = "0, 250");
+
+			OcularAssertElementImage(
+				locator1 = "ClaySamplePortlet#DISPLAY_CONTEXT_CONTAINER",
+				value1 = "management_toolbar/info_button_and_actions_render/info_button_after.png",
+				value2 = "80");
+		}
+
+		task ("And there is a separator between info and action buttons") {
+			AssertElementPresent(locator1 = "ManagementBar#ACTION_INFO_BUTTON_SEPARATOR");
+		}
+	}
+
+	@description = "LPS-147404. Assert the more actions button is displayed"
+	@priority = "5"
+	test MoreActionsButtonCanRender {
+		task ("Assert the 'more actions' button is displayed") {
+			AssertElementPresent(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Assert all the actions are displayed as icon and text buttons") {
+			AssertElementPresent(
+				key_action = "Download",
+				key_icon = "download",
+				locator1 = "ManagementBar#ICON_AND_TEXT_ACTION_BUTTON");
+
+			AssertElementPresent(
+				key_action = "Delete",
+				key_icon = "trash",
+				locator1 = "ManagementBar#ICON_AND_TEXT_ACTION_BUTTON");
+		}
+	}
+
+	@description = "LPS-147832. Assert the more actions button can display quick actions"
+	@priority = "5"
+	test MoreActionsButtonRenderQuickActions {
+		task ("Click on 'more actions' button") {
+			Click(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Assert quick actions are displayed") {
+			AssertElementPresent(
+				key_item = "Edit",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM");
+
+			AssertElementPresent(
+				key_item = "Download",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM");
+
+			AssertElementPresent(
+				key_item = "Delete",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM");
+		}
+	}
+
+	@description = "LPS-147864. Assert the New button is displayed as a text button"
+	@priority = "5"
+	test NewButtonRender {
+		task ("Assert the new button is displayed as a text button") {
+			AssertTextEquals(
+				locator1 = "ManagementBar#NEW_BUTTON",
+				value1 = "New");
+		}
+	}
+
+	@description = "LPS-147852. Assert a tooltip message will be displayed when hovered over the order toggle button"
+	@priority = "3"
+	test OrderButtonAsAToggleCanDisplayTooltip {
+		task ("When the user opens any section with the management toolbar") {
+
+			// Using message boards as workaround until LPS-150056
+
+			MessageBoardsAdmin.openMessageBoardsAdmin(siteURLKey = "guest");
+
+			MessageboardsCategory.addCP(categoryName = "Test Category");
+		}
+
+		task ("And clicks on the order button") {
+			Click(
+				key_text = "order-list-up",
+				locator1 = "ManagementBar#ANY_ICON");
+		}
+
+		task ("Then there is no dropdown menu") {
+			AssertElementNotPresent(
+				key_item = "",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM");
+		}
+
+		task ("And the button is changed to the other order direction") {
+			AssertElementPresent(
+				key_icon = "order-list-down",
+				locator1 = "ManagementBar#ORDER_TOGGLE_BUTTON");
+		}
+
+		task ("And a tooltip message will be displayed") {
+			Refresh();
+
+			MouseOver(
+				key_text = "order-list-down",
+				locator1 = "ManagementBar#ANY_ICON");
+
+			AssertTextEquals(
+				locator1 = "Message#TOOLTIP",
+				value1 = "Reverse Order Direction");
+		}
+	}
+
+	@description = "LPS-147850. Assert the order button can sort results by descending order"
+	@priority = "5"
+	test OrderButtonCanSortOptionsByDescending {
+		task ("When the user opens any section with the management toolbar") {
+
+			// Using tags as workaround until LPS-150056
+
+			JSONAssettag.addTag(
+				groupName = "Guest",
+				tagName = "a");
+
+			JSONAssettag.addTag(
+				groupName = "Guest",
+				tagName = "b");
+
+			Tag.openTagsAdmin(siteURLKey = "guest");
+		}
+
+		task ("And clicks on the order button") {
+			Click(
+				key_filter = "Order",
+				locator1 = "ManagementBar#FILTER_OR_ORDER",
+				value1 = "Order");
+		}
+
+		task ("Then the user can select one item to order the results") {
+			AssertClick(
+				key_item = "Descending",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM",
+				value1 = "Descending");
+		}
+
+		task ("And the results are displayed accordingly to the selected option") {
+			AssertElementPresent(locator1 = "xpath=(//*[@data-qa-id='row'][1]//*[contains(.,'b')])");
+
+			AssertElementPresent(locator1 = "xpath=(//*[@data-qa-id='row'][2]//*[contains(.,'a')])");
+		}
+	}
+
+	@description = "LPS-147849. Assert the filter and order buttons are independent dropdowns"
+	@priority = "5"
+	test RendersIndependentFilterAndOrderButtons {
+		task ("Then 'filter' and 'order' button is not rendered together") {
+			AssertElementNotPresent(locator1 = "ManagementBar#FILTER_AND_ORDER");
+		}
+
+		task ("Then 'filter' button is an independent dropdown") {
+			AssertClick(
+				key_filter = "Show Filter Options",
+				locator1 = "ManagementBar#FILTER_OR_ORDER",
+				value1 = "Filter");
+
+			AssertElementPresent(
+				key_item = "Filter",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM");
+		}
+
+		task ("Then 'order' button is an independent dropdown") {
+			AssertClick(
+				key_filter = "Show Order Options",
+				locator1 = "ManagementBar#FILTER_OR_ORDER",
+				value1 = "Order");
+
+			AssertElementPresent(
+				key_item = "Order",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM");
+
+			AssertElementPresent(
+				key_item = "Ascending",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM");
+		}
+	}
+
+	@description = "LPS-147835. Assert the action buttons are displayed as icon buttons in responsive mode"
+	@priority = "3"
+	test ResponsiveModeActionButtonsShouldDisplayAsIcons {
+		task ("Given window size set to tablet size") {
+			SetWindowSize(value1 = "800,1024");
+		}
+
+		task ("Then action buttons are not displayed as icon and text buttons") {
+			AssertNotVisible(
+				key_action = "Download",
+				key_icon = "download",
+				locator1 = "ManagementBar#ICON_AND_TEXT_ACTION_BUTTON");
+
+			AssertNotVisible(
+				key_action = "Delete",
+				key_icon = "trash",
+				locator1 = "ManagementBar#ICON_AND_TEXT_ACTION_BUTTON");
+		}
+
+		task ("Then action buttons are displayed as icon buttons") {
+			AssertElementPresent(
+				key_text = "download",
+				locator1 = "ManagementBar#ANY_ICON");
+
+			AssertElementPresent(
+				key_text = "trash",
+				locator1 = "ManagementBar#ANY_ICON");
+		}
+	}
+
+	@description = "LPS-147836. Assert tooltip message will be displayed when hovered over an action button in responsive mode"
+	@priority = "3"
+	test ResponsiveModeActionButtonsShouldDisplayTooltips {
+		task ("Given a window size set to tablet size") {
+			SetWindowSize(value1 = "800,1024");
+		}
+
+		task ("And hovers over an action button") {
+			MouseOver(
+				key_text = "download",
+				locator1 = "ManagementBar#ANY_ICON");
+		}
+
+		task ("Then a tooltip message will be displayed") {
+			AssertTextEquals(
+				locator1 = "Message#TOOLTIP",
+				value1 = "Download");
+		}
+	}
+
+	@description = "LPS-147859. Assert the clear button will be displayed as an icon button in responsive mode"
+	@priority = "4"
+	test ResponsiveModeClearButtonShouldDisplayAsIcon {
+		task ("Given a window size set to phone size") {
+			SetWindowSize(value1 = "360,720");
+		}
+
+		task ("Then clear button is not displayed as a text button") {
+			AssertNotVisible(locator1 = "ManagementBar#CLEAR_BUTTON");
+		}
+
+		task ("Then clear button is displayed as an icon button") {
+			AssertElementPresent(locator1 = "ManagementBar#CLEAR_BUTTON_MOBILE");
+		}
+	}
+
+	@description = "LPS-147860. Assert tooltip message will be displayed when hovered over the clear button in responsive mode"
+	@priority = "3"
+	test ResponsiveModeClearButtonShouldDisplayTooltip {
+		task ("Given a window size set to phone size") {
+			SetWindowSize(value1 = "360,720");
+		}
+
+		task ("When mouse hover over the clear button") {
+			ScrollWebElementIntoView(locator1 = "ManagementBar#CLEAR_BUTTON_MOBILE");
+
+			MouseOver.javaScriptMouseOver(locator1 = "ManagementBar#CLEAR_BUTTON_MOBILE");
+		}
+
+		task ("Then a tooltip message will be displayed") {
+			AssertTextEquals(
+				locator1 = "Message#TOOLTIP",
+				value1 = "Clear");
+		}
+	}
+
+	@description = "LPS-147853. Assert tooltip messages will be displayed when hovered over the filter and order buttons in responsive mode"
+	@priority = "4"
+	test ResponsiveModeFilterAndOrderButtonsShouldDisplayAsIcons {
+		task ("Given a window size set to phone size") {
+			SetWindowSize(value1 = "360,720");
+		}
+
+		task ("Then the 'filter' and 'order' buttons will be displayed as icon buttons") {
+			AssertElementPresent(
+				key_icon = "filter",
+				key_title = "Show Filter Options",
+				locator1 = "ManagementBar#FILTER_OR_ORDER_MOBILE");
+
+			AssertElementPresent(
+				key_icon = "order-list-down",
+				key_title = "Show Order Options",
+				locator1 = "ManagementBar#FILTER_OR_ORDER_MOBILE");
+		}
+
+		task ("And a tooltip message will be displayed") {
+			MouseOver.javaScriptMouseOver(
+				key_icon = "filter",
+				key_title = "Show Filter Options",
+				locator1 = "ManagementBar#FILTER_OR_ORDER_MOBILE");
+
+			AssertTextEquals(
+				locator1 = "Message#TOOLTIP",
+				value1 = "Show Filter Options");
+
+			MouseOver.javaScriptMouseOver(
+				key_icon = "order-list-down",
+				key_title = "Show Order Options",
+				locator1 = "ManagementBar#FILTER_OR_ORDER_MOBILE");
+
+			AssertTextEquals(
+				locator1 = "Message#TOOLTIP",
+				value1 = "Show Order Options");
+		}
+	}
+
+	@description = "LPS-147865. Assert the new button is displayed as an icon button in responsive mode"
+	@priority = "5"
+	test ResponsiveModeNewButtonAsIconButton {
+		task ("Set window size to phone size") {
+			SetWindowSize(value1 = "360,720");
+		}
+
+		task ("Assert the new button is displayed as an icon button") {
+			AssertElementPresent(locator1 = "ManagementBar#NEW_BUTTON_MOBILE");
+
+			AssertTextNotEquals(
+				locator1 = "ManagementBar#NEW_BUTTON",
+				value1 = "New");
+		}
+	}
+
+	@description = "LPS-147866. Assert the tooltip message is displayed when hovered over the new button in responsive mode"
+	@priority = "3"
+	test ResponsiveModeNewButtonTooltip {
+		property portal.acceptance = "false";
+		property portal.release = "false";
+		property portal.upstream = "quarantine";
+
+		task ("When window size to phone size") {
+			SetWindowSize(value1 = "360,720");
+		}
+
+		task ("And hovers over the new button") {
+			WaitForPageLoad();
+
+			MouseOver(locator1 = "ManagementBar#NEW_BUTTON_MOBILE");
+		}
+
+		task ("Then tooltip message is displayed") {
+			AssertTextEquals(
+				locator1 = "Message#TOOLTIP",
+				value1 = "New");
+		}
+	}
+
+	@description = "LPS-147844. Assert the tooltip message is displayed when hovered over the view button"
+	@priority = "3"
+	test ViewButtonCanDisplayTooltip {
+		task ("Hover over the view button") {
+			MouseOver(
+				key_text = "caret-double",
+				locator1 = "ManagementBar#VIEW_BUTTON");
+		}
+
+		task ("Assert tooltip message is displayed") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#TOOLTIP",
+				value1 = "Show View Options");
+		}
+	}
+
+	@description = "LPS-147839. Assert the view button displays a double caret icon"
+	@priority = "5"
+	test ViewButtonCanRenderDoubleCaret {
+		task ("Assert the view button also has a double caret icon") {
+			AssertElementPresent(
+				key_text = "cards",
+				locator1 = "ManagementBar#VIEW_BUTTON");
+
+			AssertElementPresent(
+				key_text = "caret-double",
+				locator1 = "ManagementBar#VIEW_BUTTON");
+		}
+	}
+
+}

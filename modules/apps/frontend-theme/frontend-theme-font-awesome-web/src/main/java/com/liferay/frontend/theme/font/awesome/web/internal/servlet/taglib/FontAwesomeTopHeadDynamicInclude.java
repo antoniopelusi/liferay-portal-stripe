@@ -66,7 +66,7 @@ public class FontAwesomeTopHeadDynamicInclude extends BaseDynamicInclude {
 		printWriter.println(
 			StringBundler.concat(
 				"<link data-senna-track=\"permanent\" href=\"",
-				absolutePortalURLBuilder.forModule(
+				absolutePortalURLBuilder.forModuleStylesheet(
 					_bundleContext.getBundle(), "css/main.css"
 				).build(),
 				"\" rel=\"stylesheet\" type=\"text/css\" />"));
@@ -95,9 +95,9 @@ public class FontAwesomeTopHeadDynamicInclude extends BaseDynamicInclude {
 	@Reference
 	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
 
-	private BundleContext _bundleContext;
+	private volatile BundleContext _bundleContext;
 	private volatile CSSFontAwesomeConfiguration _cssFontAwesomeConfiguration;
-	private long _lastModified;
+	private volatile long _lastModified;
 
 	@Reference
 	private Portal _portal;

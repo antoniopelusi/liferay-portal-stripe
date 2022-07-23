@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
  * @author Sergio González
  */
 public class OptimizeImagesSingleConfigurationBackgroundTaskExecutor
-	extends OptimizeImagesBackgroundTaskExecutor {
+	extends BaseOptimizeImagesBackgroundTaskExecutor {
 
 	@Override
 	public BackgroundTaskExecutor clone() {

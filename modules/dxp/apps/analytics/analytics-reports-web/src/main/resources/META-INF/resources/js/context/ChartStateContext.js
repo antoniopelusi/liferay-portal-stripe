@@ -9,138 +9,30 @@
  * distribution rights of the Software.
  */
 
-import React, {createContext, useCallback, useContext, useReducer} from 'react';
+import React, {createContext, useContext, useReducer} from 'react';
 
-import ConnectionContext from './ConnectionContext';
-
-const ADD_DATA_SET_ITEMS = 'add-data-keys';
-const CHANGE_TIME_SPAN_KEY = 'change-time-span-key';
-const NEXT_TIME_SPAN = 'next-time-span';
-const PREV_TIME_SPAN = 'previous-time-span';
-const SET_LOADING = 'set-loading';
+const ADD_DATA_SET_ITEMS = 'ADD_DATA_SET_ITEMS';
+const CHANGE_TIME_SPAN_KEY = 'CHANGE_TIME_SPAN_KEY';
+const NEXT_TIME_SPAN = 'NEXT_TIME_SPAN';
+const PREV_TIME_SPAN = 'PREV_TIME_SPAN';
+const SET_LOADING = 'SET_LOADING';
+const SET_PIE_CHART_LOADING = 'SET_PIE_CHART_LOADING';
 
 const INITIAL_STATE = {
 	dataSet: {histogram: [], keyList: [], totals: []},
-	loading: true,
+	lineChartloading: true,
+	pieChartLoading: true,
 	publishDate: null,
 	timeRange: null,
 	timeSpanKey: null,
 	timeSpanOffset: 0,
 };
 
-const FALLBACK_DATA_SET_ITEM = {histogram: [], value: null};
-
-const ChartStateContext = createContext(INITIAL_STATE);
-
-export const ChartStateContextProvider = ({
-	children,
-	publishDate,
-	timeRange,
-	timeSpanKey,
-}) => {
-	const stateAndDispatch = useReducer(reducer, {
-		...INITIAL_STATE,
-		publishDate,
-		timeRange,
-		timeSpanKey,
-	});
-
-	return (
-		<ChartStateContext.Provider value={stateAndDispatch}>
-			{children}
-		</ChartStateContext.Provider>
-	);
-};
-
-export const useAddDataSetItems = () => {
-	const [, dispatch] = useContext(ChartStateContext);
-	const {validAnalyticsConnection} = useContext(ConnectionContext);
-
-	return useCallback(
-		(payload) =>
-			dispatch({
-				payload,
-				type: ADD_DATA_SET_ITEMS,
-				validAnalyticsConnection,
-			}),
-		[dispatch, validAnalyticsConnection]
-	);
-};
-
-export const useChangeTimeSpanKey = () => {
-	const [, dispatch] = useContext(ChartStateContext);
-
-	return (payload) => dispatch({payload, type: CHANGE_TIME_SPAN_KEY});
-};
-
-export const useChartState = () => {
-	const [state] = useContext(ChartStateContext);
-
-	return state;
-};
-
-export function useDateTitle() {
-	const [state] = useContext(ChartStateContext);
-
-	const {histogram} = state.dataSet;
-	const {timeRange} = state;
-
-	if (histogram.length) {
-		const firstDateLabel = histogram[0].label;
-		const lastDateLabel = histogram[histogram.length - 1].label;
-
-		return {
-			firstDate: new Date(firstDateLabel),
-			lastDate: new Date(lastDateLabel),
-		};
-	}
-	else {
-		return {
-			firstDate: new Date(timeRange.startDate),
-			lastDate: new Date(timeRange.endDate),
-		};
-	}
-}
-
-export function useIsPreviousPeriodButtonDisabled() {
-	const [state] = useContext(ChartStateContext);
-
-	const {histogram} = state.dataSet;
-	const {publishDate} = state;
-
-	if (histogram.length) {
-		const firstDateLabel = histogram[0].label;
-
-		const firstDate = new Date(firstDateLabel);
-		const publishedDate = new Date(publishDate);
-
-		return firstDate < publishedDate;
-	}
-
-	return true;
-}
-
-export const useNextTimeSpan = () => {
-	const [, dispatch] = useContext(ChartStateContext);
-
-	return () => dispatch({type: NEXT_TIME_SPAN});
-};
-
-export const useSetLoading = () => {
-	const [, dispatch] = useContext(ChartStateContext);
-
-	return useCallback(() => dispatch({type: SET_LOADING}), [dispatch]);
-};
-
-export const usePreviousTimeSpan = () => {
-	const [, dispatch] = useContext(ChartStateContext);
-
-	return () => dispatch({type: PREV_TIME_SPAN});
-};
-
 /**
+ * Example state
  * {
-		"loading": false,
+		"lineChartloading": false,
+		"pieChartloading": false,
 		"timeSpanOffset": 1,
 		"timeSpanKey": "last-7-days",
 		"dataSet": {
@@ -164,11 +56,88 @@ export const usePreviousTimeSpan = () => {
 	}
  *
  */
+
+const FALLBACK_DATA_SET_ITEM = {histogram: [], value: null};
+
+const LAST_7_DAYS = 'last-7-days';
+const LAST_30_DAYS = 'last-30-days';
+
+export const ChartDispatchContext = createContext(() => {});
+export const ChartStateContext = createContext(INITIAL_STATE);
+
+export function ChartStateContextProvider({
+	children,
+	publishDate,
+	timeRange,
+	timeSpanKey,
+}) {
+	const [state, dispatch] = useReducer(reducer, {
+		...INITIAL_STATE,
+		publishDate,
+		timeRange,
+		timeSpanKey,
+	});
+
+	return (
+		<ChartDispatchContext.Provider value={dispatch}>
+			<ChartStateContext.Provider value={state}>
+				{children}
+			</ChartStateContext.Provider>
+		</ChartDispatchContext.Provider>
+	);
+}
+
+export function useDateTitle() {
+	const {timeRange, timeSpanKey, timeSpanOffset} = useContext(
+		ChartStateContext
+	);
+
+	const firstDate = new Date(timeRange.startDate.concat('T00:00:00'));
+	const lastDate = new Date(timeRange.endDate.concat('T00:00:00'));
+
+	const increment =
+		timeSpanKey === LAST_7_DAYS ? 7 : timeSpanKey === LAST_30_DAYS ? 30 : 0;
+
+	// Default interval between firstDate and lastDate is 7 days.
+	// First date must be calculated from last date if timespan is 30.
+
+	if (timeSpanKey === LAST_30_DAYS) {
+		firstDate.setDate(firstDate.getDate() + 6 - (increment - 1));
+	}
+
+	if (timeSpanOffset > 0) {
+		lastDate.setDate(lastDate.getDate() - increment * timeSpanOffset);
+		firstDate.setDate(firstDate.getDate() - increment * timeSpanOffset);
+
+		return {
+			firstDate,
+			lastDate,
+		};
+	}
+	else {
+		return {
+			firstDate,
+			lastDate,
+		};
+	}
+}
+
+export function useIsPreviousPeriodButtonDisabled() {
+	const {publishDate} = useContext(ChartStateContext);
+
+	const {firstDate} = useDateTitle();
+
+	const publishedDate = new Date(publishDate);
+
+	return firstDate < publishedDate;
+}
+
 function reducer(state, action) {
 	let nextState;
 
 	switch (action.type) {
 		case ADD_DATA_SET_ITEMS:
+			nextState = setLineChartLoadingState(state);
 			nextState = [...action.payload.keys].reduce((state, key) => {
 				const dataSetItem =
 					action.payload.dataSetItems?.[key] ??
@@ -188,6 +157,7 @@ function reducer(state, action) {
 		case CHANGE_TIME_SPAN_KEY:
 			nextState = {
 				...state,
+				lineChartLoading: true,
 				timeSpanKey: action.payload.key,
 				timeSpanOffset: 0,
 			};
@@ -195,20 +165,28 @@ function reducer(state, action) {
 		case NEXT_TIME_SPAN:
 			nextState = {
 				...state,
+				lineChartLoading: true,
 				timeSpanOffset: state.timeSpanOffset - 1,
 			};
 			break;
 		case PREV_TIME_SPAN:
 			nextState = {
 				...state,
+				lineChartLoading: true,
 				timeSpanOffset: state.timeSpanOffset + 1,
 			};
 			break;
 		case SET_LOADING:
-			nextState = setLoadingState(state);
+			nextState = setLineChartLoadingState(state);
+			break;
+		case SET_PIE_CHART_LOADING:
+			nextState = {
+				...state,
+				pieChartLoading: action.payload.loading,
+			};
 			break;
 		default:
-			state = nextState;
+			nextState = state;
 			break;
 	}
 
@@ -218,13 +196,20 @@ function reducer(state, action) {
 /**
  * Declares the state as loading and resets the dataSet histogram values
  */
-function setLoadingState(state) {
+function setLineChartLoadingState(state) {
 
 	/**
 	 * The dataSet does not need to be reset
 	 */
 	if (!state.dataSet) {
-		return {...state, loading: true};
+		return {...state, lineChartLoading: true};
+	}
+
+	/**
+	 * The dataSet is already formatted
+	 */
+	if (state.dataSet.histogram.length) {
+		return {...state, lineChartLoading: false};
 	}
 
 	const histogram = state.dataSet.histogram.map((set) => {
@@ -263,7 +248,7 @@ function setLoadingState(state) {
 			histogram,
 			totals,
 		},
-		loading: true,
+		lineChartLoading: true,
 	};
 
 	return nextState;
@@ -362,7 +347,8 @@ function addDataSetItem(state, payload, validAnalyticsConnection) {
 	 * The dataSetItem is recognized as substitutive when the
 	 * previous state was in loading state.
 	 */
-	const previousDataSet = state.loading === true ? undefined : state.dataSet;
+	const previousDataSet =
+		state.lineChartLoading === true ? undefined : state.dataSet;
 
 	return {
 		...state,
@@ -374,6 +360,6 @@ function addDataSetItem(state, payload, validAnalyticsConnection) {
 			timeSpanComparator: payload.timeSpanComparator,
 			validAnalyticsConnection,
 		}),
-		loading: false,
+		lineChartLoading: false,
 	};
 }

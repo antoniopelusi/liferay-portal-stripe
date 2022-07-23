@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
@@ -18,6 +18,7 @@ import {SLAContext} from '../../../../src/main/resources/META-INF/resources/js/c
 import SLAFormPage from '../../../../src/main/resources/META-INF/resources/js/components/sla/form-page/SLAFormPage.es';
 import ToasterProvider from '../../../../src/main/resources/META-INF/resources/js/shared/components/toaster/ToasterProvider.es';
 import {MockRouter} from '../../../mock/MockRouter.es';
+import FetchMock, {fetchMockResponse} from '../../../mock/fetch.es';
 
 describe('The SLAFormPage component should', () => {
 	const calendars = [
@@ -69,18 +70,19 @@ describe('The SLAFormPage component should', () => {
 	];
 
 	describe('Create a new SLA', () => {
-		let alertMessage,
-			container,
-			durationDaysField,
-			durationHoursField,
-			durationHoursInput,
-			getByText,
-			nameField,
-			nameInput,
-			renderResult,
-			saveButton,
-			startField,
-			stopField;
+		let alertMessage;
+		let container;
+		let durationDaysField;
+		let durationHoursField;
+		let durationHoursInput;
+		let fetchMock;
+		let getByText;
+		let nameField;
+		let nameInput;
+		let renderResult;
+		let saveButton;
+		let startField;
+		let stopField;
 
 		const data = {
 			calendarKey: '',
@@ -111,37 +113,42 @@ describe('The SLAFormPage component should', () => {
 			},
 		};
 
-		const clientMock = {
-			get: jest
-				.fn()
-				.mockResolvedValueOnce({data: {items: calendars}})
-				.mockResolvedValue({data: {items: nodes}}),
-			post: jest
-				.fn()
-				.mockRejectedValueOnce({})
-				.mockRejectedValueOnce({
-					response: {
-						data: [
-							{
-								fieldName: 'name',
-								message:
-									'An SLA with the same name already exists.',
-							},
-						],
-					},
-				})
-				.mockResolvedValue({data}),
-		};
-
 		const historyMock = {
 			goBack: jest.fn(),
 		};
 
-		beforeAll(() => {
+		beforeAll(async () => {
 			cleanup();
 
+			fetchMock = new FetchMock({
+				GET: {
+					'/o/portal-workflow-metrics/v1.0/calendars': fetchMockResponse(
+						{
+							items: calendars,
+						}
+					),
+					'default': fetchMockResponse({items: nodes}),
+				},
+				POST: {
+					'/o/portal-workflow-metrics/v1.0/processes/5678/slas': [
+						fetchMockResponse({}, false),
+						fetchMockResponse(
+							[
+								{
+									fieldName: 'name',
+									message:
+										'An SLA with the same name already exists.',
+								},
+							],
+							false
+						),
+						fetchMockResponse(data),
+					],
+				},
+			});
+
 			renderResult = render(
-				<MockRouter client={clientMock}>
+				<MockRouter>
 					<ToasterProvider>
 						<SLAContext.Provider value={{}}>
 							<SLAFormPage
@@ -156,9 +163,21 @@ describe('The SLAFormPage component should', () => {
 
 			container = renderResult.container;
 			getByText = renderResult.getByText;
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Be rendered correctly', () => {
+		beforeEach(() => {
+			fetchMock.mock();
+		});
+
+		afterEach(() => {
+			fetchMock.reset();
+		});
+
+		it('Be rendered correctly', () => {
 			durationDaysField = getByText('days').parentNode;
 			durationHoursField = getByText('hours').parentNode;
 			durationHoursInput = container.querySelector('#slaDurationHours');
@@ -215,7 +234,7 @@ describe('The SLAFormPage component should', () => {
 			expect(durationHoursField.classList).not.toContain('has-error');
 		});
 
-		test('Display errors when submitting the form with empty values', () => {
+		it('Display errors when submitting the form with empty values', () => {
 			fireEvent.click(saveButton);
 
 			alertMessage = getByText('please-fill-in-the-required-fields');
@@ -236,7 +255,7 @@ describe('The SLAFormPage component should', () => {
 			expect(alertMessage).toBeTruthy();
 		});
 
-		test('Display a field error when the duration receives an invalid value', () => {
+		it('Display a field error when the duration receives an invalid value', () => {
 			fireEvent.change(durationHoursInput, {target: {value: '99:99'}});
 
 			fireEvent.blur(durationHoursInput);
@@ -252,7 +271,7 @@ describe('The SLAFormPage component should', () => {
 			expect(durationHoursField.classList).not.toContain('has-error');
 		});
 
-		test('Dismiss errors when the inputs receive valid values and submit', () => {
+		it('Dismiss errors when the inputs receive valid values and submit', async () => {
 			const dropDownListItems = document.querySelectorAll(
 				'.dropdown-item'
 			);
@@ -276,9 +295,13 @@ describe('The SLAFormPage component should', () => {
 			expect(durationHoursField.classList).not.toContain('has-error');
 
 			fireEvent.click(saveButton);
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Display an error when a SLA submission failure happens and resubmit', async () => {
+		it('Display an error when a SLA submission failure happens and resubmit', async () => {
 			const alertToast = await document.querySelector(
 				'.alert-dismissible'
 			);
@@ -294,23 +317,34 @@ describe('The SLAFormPage component should', () => {
 			expect(alertContainer.children[0].children.length).toBe(0);
 
 			fireEvent.click(saveButton);
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Display an error when trying to submit a SLA with a name that already exists', () => {
+		it('Display an error when trying to submit a SLA with a name that already exists', async () => {
 			expect(nameField).toHaveTextContent(
 				'An SLA with the same name already exists.'
 			);
 
 			fireEvent.click(saveButton);
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Redirect to SLAListPage after successful submit', async () => {
+		it('Redirect to SLAListPage after successful submit', async () => {
 			expect(historyMock.goBack).toHaveBeenCalled();
 		});
 	});
 
 	describe('Edit a SLA', () => {
-		let container, getByText, renderResult;
+		let container;
+		let fetchMock;
+		let getByText;
+		let renderResult;
 
 		const data = {
 			calendarKey: 'default',
@@ -341,26 +375,36 @@ describe('The SLAFormPage component should', () => {
 			},
 		};
 
-		const clientMock = {
-			get: jest
-				.fn()
-				.mockResolvedValueOnce({data: {items: calendars}})
-				.mockResolvedValueOnce({data: {items: nodes}})
-				.mockResolvedValue({data}),
-			put: jest.fn().mockResolvedValue({}),
-		};
-
 		const historyMock = {
 			goBack: jest.fn(),
 		};
 
 		const contextMock = {setSLAUpdated: jest.fn()};
 
-		beforeAll(() => {
+		beforeAll(async () => {
 			cleanup();
 
+			fetchMock = new FetchMock({
+				GET: {
+					'/o/portal-workflow-metrics/v1.0/calendars': fetchMockResponse(
+						{
+							items: calendars,
+						}
+					),
+					'/o/portal-workflow-metrics/v1.0/processes/5678/nodes': fetchMockResponse(
+						{
+							items: nodes,
+						}
+					),
+					'default': fetchMockResponse(data),
+				},
+				PUT: {
+					default: fetchMockResponse({}),
+				},
+			});
+
 			renderResult = render(
-				<MockRouter client={clientMock}>
+				<MockRouter>
 					<ToasterProvider>
 						<SLAContext.Provider value={contextMock}>
 							<SLAFormPage
@@ -375,9 +419,21 @@ describe('The SLAFormPage component should', () => {
 
 			container = renderResult.container;
 			getByText = renderResult.getByText;
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Render form in edit mode with correct data', () => {
+		beforeEach(() => {
+			fetchMock.mock();
+		});
+
+		afterEach(() => {
+			fetchMock.reset();
+		});
+
+		it('Render form in edit mode with correct data', async () => {
 			const calendar = container.querySelector('#slaCalendarKey');
 			const durationDaysField = getByText('days').parentNode;
 			const durationHoursField = getByText('hours').parentNode;
@@ -405,16 +461,22 @@ describe('The SLAFormPage component should', () => {
 			expect(durationHoursField.classList).not.toContain('has-error');
 
 			fireEvent.click(updateButton);
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Redirect to SLAListPage after successful submit', async () => {
+		it('Redirect to SLAListPage after successful submit', async () => {
 			expect(historyMock.goBack).toHaveBeenCalled();
 			expect(contextMock.setSLAUpdated).toHaveBeenCalledWith(true);
 		});
 	});
 
 	describe('Edit a Blocked SLA', () => {
-		let getByText, renderResult;
+		let fetchMock;
+		let getByText;
+		let renderResult;
 
 		const nodes = [
 			{
@@ -463,19 +525,27 @@ describe('The SLAFormPage component should', () => {
 			status: 2,
 		};
 
-		const clientMock = {
-			get: jest
-				.fn()
-				.mockResolvedValueOnce({data: {items: calendars}})
-				.mockResolvedValueOnce({data: {items: nodes}})
-				.mockResolvedValueOnce({data}),
-		};
-
-		beforeAll(() => {
+		beforeAll(async () => {
 			cleanup();
 
+			fetchMock = new FetchMock({
+				GET: {
+					'/o/portal-workflow-metrics/v1.0/calendars': fetchMockResponse(
+						{
+							items: calendars,
+						}
+					),
+					'/o/portal-workflow-metrics/v1.0/processes/35901/nodes': fetchMockResponse(
+						{
+							items: nodes,
+						}
+					),
+					'default': fetchMockResponse(data),
+				},
+			});
+
 			renderResult = render(
-				<MockRouter client={clientMock}>
+				<MockRouter>
 					<ToasterProvider>
 						<SLAContext.Provider value={{}}>
 							<SLAFormPage id="37741" processId="35901" />
@@ -485,9 +555,21 @@ describe('The SLAFormPage component should', () => {
 			);
 
 			getByText = renderResult.getByText;
+
+			await act(async () => {
+				jest.runAllTimers();
+			});
 		});
 
-		test('Handle errors at start and stop node keys', () => {
+		beforeEach(() => {
+			fetchMock.mock();
+		});
+
+		afterEach(() => {
+			fetchMock.reset();
+		});
+
+		it('Handle errors at start and stop node keys', () => {
 			const alertChange = getByText(
 				'the-time-frame-options-changed-in-the-workflow-definition'
 			);

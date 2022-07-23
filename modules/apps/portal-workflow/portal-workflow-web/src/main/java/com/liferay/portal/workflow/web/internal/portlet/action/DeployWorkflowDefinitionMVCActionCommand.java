@@ -62,9 +62,6 @@ public class DeployWorkflowDefinitionMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(
 			actionRequest, "title");
 
@@ -76,6 +73,9 @@ public class DeployWorkflowDefinitionMVCActionCommand
 			throw new WorkflowDefinitionFileException(
 				"please-enter-a-valid-definition-before-publishing");
 		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		validateWorkflowDefinition(actionRequest, content.getBytes());
 
@@ -111,7 +111,7 @@ public class DeployWorkflowDefinitionMVCActionCommand
 		}
 		catch (WorkflowException workflowException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(workflowException, workflowException);
+				_log.debug(workflowException);
 			}
 
 			return null;

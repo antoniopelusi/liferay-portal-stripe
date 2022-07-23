@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.trash.TrashHelper;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.engine.WikiEngineRenderer;
@@ -79,7 +80,7 @@ public class WikiPageAssetRendererFactory
 				}
 				catch (NoSuchPageException noSuchPageException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(noSuchPageException, noSuchPageException);
+						_log.debug(noSuchPageException);
 					}
 
 					page = _wikiPageLocalService.getPage(
@@ -96,7 +97,7 @@ public class WikiPageAssetRendererFactory
 		}
 
 		WikiPageAssetRenderer wikiPageAssetRenderer = new WikiPageAssetRenderer(
-			page, _wikiEngineRenderer, _trashHelper);
+			_htmlParser, _trashHelper, _wikiEngineRenderer, page);
 
 		wikiPageAssetRenderer.setAssetDisplayPageFriendlyURLProvider(
 			_assetDisplayPageFriendlyURLProvider);
@@ -135,7 +136,7 @@ public class WikiPageAssetRendererFactory
 		}
 		catch (WindowStateException windowStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(windowStateException, windowStateException);
+				_log.debug(windowStateException);
 			}
 		}
 
@@ -157,6 +158,9 @@ public class WikiPageAssetRendererFactory
 	@Reference
 	private AssetDisplayPageFriendlyURLProvider
 		_assetDisplayPageFriendlyURLProvider;
+
+	@Reference
+	private HtmlParser _htmlParser;
 
 	@Reference(target = "(osgi.web.symbolicname=com.liferay.wiki.web)")
 	private ServletContext _servletContext;

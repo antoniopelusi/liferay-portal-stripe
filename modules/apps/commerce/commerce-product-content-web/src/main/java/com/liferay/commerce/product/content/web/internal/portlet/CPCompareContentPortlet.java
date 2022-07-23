@@ -62,7 +62,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/compare_products/view.jsp",
 		"javax.portlet.name=" + CPPortletKeys.CP_COMPARE_CONTENT_WEB,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CPCompareContentPortlet.class, Portlet.class}
 )
@@ -92,7 +93,7 @@ public class CPCompareContentPortlet extends MVCPortlet {
 				cpCompareContentDisplayContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		super.render(renderRequest, renderResponse);

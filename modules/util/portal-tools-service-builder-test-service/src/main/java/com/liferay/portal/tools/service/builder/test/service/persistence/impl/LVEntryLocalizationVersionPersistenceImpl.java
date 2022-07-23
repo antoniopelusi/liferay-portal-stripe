@@ -15,7 +15,6 @@
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -25,11 +24,12 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.tools.service.builder.test.exception.NoSuchLVEntryLocalizationVersionException;
@@ -38,21 +38,17 @@ import com.liferay.portal.tools.service.builder.test.model.LVEntryLocalizationVe
 import com.liferay.portal.tools.service.builder.test.model.impl.LVEntryLocalizationVersionImpl;
 import com.liferay.portal.tools.service.builder.test.model.impl.LVEntryLocalizationVersionModelImpl;
 import com.liferay.portal.tools.service.builder.test.service.persistence.LVEntryLocalizationVersionPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.LVEntryLocalizationVersionUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the lv entry localization version service.
@@ -2839,6 +2835,8 @@ public class LVEntryLocalizationVersionPersistenceImpl
 			lvEntryLocalizationVersion);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the lv entry localization versions in the entity cache if it is enabled.
 	 *
@@ -2847,6 +2845,14 @@ public class LVEntryLocalizationVersionPersistenceImpl
 	@Override
 	public void cacheResult(
 		List<LVEntryLocalizationVersion> lvEntryLocalizationVersions) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (lvEntryLocalizationVersions.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (LVEntryLocalizationVersion lvEntryLocalizationVersion :
 				lvEntryLocalizationVersions) {
@@ -3383,15 +3389,8 @@ public class LVEntryLocalizationVersionPersistenceImpl
 	 * Initializes the lv entry localization version persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			LVEntryLocalizationVersionPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new LVEntryLocalizationVersionModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -3514,15 +3513,32 @@ public class LVEntryLocalizationVersionPersistenceImpl
 				Integer.class.getName()
 			},
 			new String[] {"lvEntryId", "languageId", "version"}, false);
+
+		_setLVEntryLocalizationVersionUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(LVEntryLocalizationVersionImpl.class.getName());
+		_setLVEntryLocalizationVersionUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(LVEntryLocalizationVersionImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setLVEntryLocalizationVersionUtilPersistence(
+		LVEntryLocalizationVersionPersistence
+			lvEntryLocalizationVersionPersistence) {
+
+		try {
+			Field field = LVEntryLocalizationVersionUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, lvEntryLocalizationVersionPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -3557,121 +3573,6 @@ public class LVEntryLocalizationVersionPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class LVEntryLocalizationVersionModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			LVEntryLocalizationVersionModelImpl
-				lvEntryLocalizationVersionModelImpl =
-					(LVEntryLocalizationVersionModelImpl)baseModel;
-
-			long columnBitmask =
-				lvEntryLocalizationVersionModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					lvEntryLocalizationVersionModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						lvEntryLocalizationVersionModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					lvEntryLocalizationVersionModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return LVEntryLocalizationVersionImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return LVEntryLocalizationVersionTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			LVEntryLocalizationVersionModelImpl
-				lvEntryLocalizationVersionModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						lvEntryLocalizationVersionModelImpl.
-							getColumnOriginalValue(columnName);
-				}
-				else {
-					arguments[i] =
-						lvEntryLocalizationVersionModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |=
-				LVEntryLocalizationVersionModelImpl.getColumnBitmask("version");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
 	}
 
 }

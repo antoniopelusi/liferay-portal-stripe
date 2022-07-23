@@ -35,6 +35,8 @@ AUI.add(
 
 		var EVENT_CLICK = 'click';
 
+		var EVENT_KEYDOWN = 'keydown';
+
 		var PARENT_NODE = 'parentNode';
 
 		var STR_BOTTOM = 'b';
@@ -48,6 +50,11 @@ AUI.add(
 		var STR_RTL = 'rtl';
 
 		var STR_TOP = 't';
+
+		var MAP_ALIGN_DOWN = {
+			downleft: ['tr', 'br'],
+			downright: DEFAULT_ALIGN_POINTS,
+		};
 
 		var MAP_ALIGN_HORIZONTAL_OVERLAY = {
 			left: STR_RIGHT,
@@ -81,7 +88,7 @@ AUI.add(
 
 		var MAP_LIVE_SEARCH = {};
 
-		var REGEX_DIRECTION = /\bdirection-(down|left|right|up)\b/;
+		var REGEX_DIRECTION = /\bdirection-(downleft|downright|down|left|right|up)\b/;
 
 		var REGEX_MAX_DISPLAY_ITEMS = /max-display-items-(\d+)/;
 
@@ -127,6 +134,10 @@ AUI.add(
 					instance._activeMenu = null;
 					instance._activeTrigger = null;
 
+					trigger.attr({
+						'aria-expanded': false,
+					});
+
 					if (trigger.hasClass(CSS_EXTENDED)) {
 						trigger.removeClass(CSS_BTN_PRIMARY);
 					}
@@ -171,7 +182,12 @@ AUI.add(
 					var direction =
 						(directionMatch && directionMatch[1]) || AUTO;
 
-					if (direction != 'down') {
+					if (direction.startsWith('down')) {
+						alignPoints =
+							MAP_ALIGN_DOWN[direction] ||
+							MAP_ALIGN_DOWN.downright;
+					}
+					else {
 						var overlayHorizontal =
 							mapAlignHorizontalOverlay[direction] ||
 							defaultOverlayHorizontalAlign;
@@ -225,6 +241,7 @@ AUI.add(
 						},
 						constrain: true,
 						hideClass: false,
+						modal: Util.isPhone() || Util.isTablet(),
 						preventOverlap: true,
 						zIndex: Liferay.zIndex.MENU,
 					}).render();
@@ -382,26 +399,20 @@ AUI.add(
 
 					var listNode = menu.one('ul');
 
+					overlay.show();
+
 					var listNodeHeight = listNode.get('offsetHeight');
 					var listNodeWidth = listNode.get('offsetWidth');
-
-					var modalMask = false;
 
 					align.points = instance._getAlignPoints(cssClass);
 
 					menu.addClass('lfr-icon-menu-open');
 
-					if (Util.isPhone() || Util.isTablet()) {
-						overlay.hide();
-
-						modalMask = true;
-					}
-
 					overlay.setAttrs({
 						align,
 						centered: false,
 						height: listNodeHeight,
-						modal: modalMask,
+						modal: Util.isPhone() || Util.isTablet(),
 						width: listNodeWidth,
 					});
 
@@ -412,8 +423,6 @@ AUI.add(
 							focusManager.focus(0);
 						}
 					}
-
-					overlay.show();
 
 					if (cssClass.indexOf(CSS_EXTENDED) > -1) {
 						trigger.addClass(CSS_BTN_PRIMARY);
@@ -450,7 +459,6 @@ AUI.add(
 
 				trigger.attr({
 					'aria-haspopup': true,
-					role: 'button',
 				});
 
 				listNode.setAttribute('aria-labelledby', trigger.guid());
@@ -494,7 +502,10 @@ AUI.add(
 			if (buffer.length) {
 				var nodes = A.all(buffer);
 
-				nodes.on(EVENT_CLICK, A.bind('_registerMenu', Menu));
+				nodes.on(
+					[EVENT_CLICK, EVENT_KEYDOWN],
+					A.bind('_registerMenu', Menu)
+				);
 
 				buffer.length = 0;
 			}
@@ -605,6 +616,7 @@ AUI.add(
 
 					liveSearch = new Liferay.MenuFilter({
 						content: listNode,
+						menu: Menu._INSTANCE,
 						minQueryLength: 0,
 						queryDelay: 0,
 						resultFilters: 'phraseMatch',
@@ -625,6 +637,15 @@ AUI.add(
 			Menu,
 			'_registerMenu',
 			(event) => {
+				var key = event.key || event.keyCode;
+
+				if (
+					event.type === EVENT_KEYDOWN &&
+					key !== A.Event.KeyMap.SPACE
+				) {
+					return;
+				}
+
 				var menuInstance = Menu._INSTANCE;
 
 				var handles = menuInstance._handles;
@@ -634,7 +655,7 @@ AUI.add(
 				var activeTrigger = menuInstance._activeTrigger;
 
 				if (activeTrigger) {
-					if (activeTrigger != trigger) {
+					if (activeTrigger !== trigger) {
 						activeTrigger.removeClass(CSS_BTN_PRIMARY);
 
 						activeTrigger.get(PARENT_NODE).removeClass(CSS_OPEN);
@@ -657,6 +678,10 @@ AUI.add(
 
 					menuInstance._activeMenu = menu;
 					menuInstance._activeTrigger = trigger;
+
+					trigger.attr({
+						'aria-expanded': true,
+					});
 
 					if (!handles.length) {
 						var listContainer = trigger.getData(

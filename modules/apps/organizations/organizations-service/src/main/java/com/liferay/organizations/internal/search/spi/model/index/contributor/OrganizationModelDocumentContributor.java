@@ -69,6 +69,7 @@ public class OrganizationModelDocumentContributor
 				"nameTreePath", _buildNameTreePath(organization));
 			document.addKeyword(
 				"parentOrganizationId", organization.getParentOrganizationId());
+			document.remove(Field.USER_NAME);
 
 			_populateAddresses(
 				document, organization.getAddresses(),
@@ -142,7 +143,7 @@ public class OrganizationModelDocumentContributor
 			}
 			catch (NoSuchCountryException noSuchCountryException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(noSuchCountryException.getMessage());
+					_log.warn(noSuchCountryException);
 				}
 			}
 		}
@@ -157,7 +158,7 @@ public class OrganizationModelDocumentContributor
 			}
 			catch (NoSuchRegionException noSuchRegionException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(noSuchRegionException.getMessage());
+					_log.warn(noSuchRegionException);
 				}
 			}
 		}

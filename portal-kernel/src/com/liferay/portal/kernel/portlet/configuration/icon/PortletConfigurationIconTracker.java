@@ -14,17 +14,19 @@
 
 package com.liferay.portal.kernel.portlet.configuration.icon;
 
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.configuration.icon.locator.PortletConfigurationIconLocator;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerList;
-import com.liferay.registry.collections.ServiceTrackerMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +41,8 @@ import javax.portlet.filter.PortletRequestWrapper;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.osgi.framework.BundleContext;
+
 /**
  * @author Eudaldo Alonso
  */
@@ -51,7 +55,7 @@ public class PortletConfigurationIconTracker {
 	}
 
 	public static List<PortletConfigurationIcon> getPortletConfigurationIcons(
-		String portletId, final PortletRequest portletRequest,
+		String portletId, PortletRequest portletRequest,
 		Comparator<?> comparator) {
 
 		List<PortletConfigurationIcon> portletConfigurationIcons =
@@ -189,15 +193,17 @@ public class PortletConfigurationIconTracker {
 		return portletConfigurationIcons;
 	}
 
+	private static final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
 	private static final Set<String> _defaultPaths = Collections.singleton(
 		StringPool.DASH);
 	private static final ServiceTrackerList<PortletConfigurationIconLocator>
-		_serviceTrackerList = ServiceTrackerCollections.openList(
-			PortletConfigurationIconLocator.class);
+		_serviceTrackerList = ServiceTrackerListFactory.open(
+			_bundleContext, PortletConfigurationIconLocator.class);
 	private static final ServiceTrackerMap
 		<String, List<PortletConfigurationIcon>> _serviceTrackerMap =
-			ServiceTrackerCollections.openMultiValueMap(
-				PortletConfigurationIcon.class, null,
+			ServiceTrackerMapFactory.openMultiValueMap(
+				_bundleContext, PortletConfigurationIcon.class, null,
 				new PortletConfigurationIconServiceReferenceMapper());
 
 }

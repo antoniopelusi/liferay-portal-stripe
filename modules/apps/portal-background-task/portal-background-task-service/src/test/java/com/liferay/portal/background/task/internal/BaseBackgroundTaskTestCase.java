@@ -31,8 +31,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.registry.BasicRegistryImpl;
-import com.liferay.registry.RegistryUtil;
 
 import java.io.Serializable;
 
@@ -53,8 +51,6 @@ public abstract class BaseBackgroundTaskTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		RegistryUtil.setRegistry(new BasicRegistryImpl());
-
 		backgroundTaskThreadLocalManagerImpl =
 			new BackgroundTaskThreadLocalManagerImpl();
 
@@ -105,7 +101,7 @@ public abstract class BaseBackgroundTaskTestCase {
 
 	@After
 	public void tearDown() throws Exception {
-		resetThreadLocals();
+		_resetThreadLocals();
 	}
 
 	protected void assertThreadLocalValues() {
@@ -174,14 +170,14 @@ public abstract class BaseBackgroundTaskTestCase {
 		).build();
 	}
 
-	protected void resetThreadLocals() {
+	protected BackgroundTaskThreadLocalManagerImpl
+		backgroundTaskThreadLocalManagerImpl;
+
+	private void _resetThreadLocals() {
 		ThreadLocalCacheManager.clearAll(Lifecycle.REQUEST);
 
 		CentralizedThreadLocal.clearShortLivedThreadLocals();
 	}
-
-	protected BackgroundTaskThreadLocalManagerImpl
-		backgroundTaskThreadLocalManagerImpl;
 
 	private static final boolean _CLUSTER_INVOKE_ENABLED = true;
 

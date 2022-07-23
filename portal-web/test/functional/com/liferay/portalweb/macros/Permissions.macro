@@ -149,8 +149,8 @@ definition {
 			portlet = "Users and Organizations");
 
 		User.editPasswordCP(
+			currentPassword = "${currentPassword}",
 			newPassword = "${newPassword}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 			userEmailAddress = "${userEmailAddress}",
 			userScreenName = "${userScreenName}");
 
@@ -162,7 +162,7 @@ definition {
 			organizationName = "${orgName}",
 			userEmailAddress = "${userEmailAddress}");
 
-		JSONLayout.addPublicLayoutByGroupName(
+		JSONLayout.addPublicLayout(
 			groupName = "${orgName}",
 			layoutName = "${pageName}");
 
@@ -191,8 +191,8 @@ definition {
 			portlet = "Users and Organizations");
 
 		User.editPasswordCP(
+			currentPassword = "${currentPassword}",
 			newPassword = "${newPassword}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 			userEmailAddress = "${userEmailAddress}",
 			userScreenName = "${userScreenName}");
 
@@ -204,7 +204,7 @@ definition {
 			organizationName = "${orgName}",
 			userEmailAddress = "${userEmailAddress}");
 
-		JSONLayout.addPublicLayoutByGroupName(
+		JSONLayout.addPublicLayout(
 			groupName = "${orgName}",
 			layoutName = "${pageName}");
 
@@ -232,12 +232,7 @@ definition {
 	}
 
 	macro setUpRegRoleLoginUserCP {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Users",
-			configurationName = "Default User Associations",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsRolesCP(roleTitle = "");
+		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(roleTitle = "");
 
 		JSONUser.addUser(
 			userEmailAddress = "${userEmailAddress}",
@@ -273,6 +268,8 @@ definition {
 	}
 
 	macro setUpRegRolePG {
+		JSONUserAPI._disablePasswordChangeRequired();
+
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",
 			layoutName = "${pageName}");
@@ -296,8 +293,8 @@ definition {
 			portlet = "Users and Organizations");
 
 		User.editPasswordCP(
+			currentPassword = "${currentPassword}",
 			newPassword = "${newPassword}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 			userEmailAddress = "${userEmailAddress}",
 			userScreenName = "${userScreenName}");
 
@@ -348,7 +345,7 @@ definition {
 
 		Portlet.waitForForm();
 
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsRolesCP(roleTitle = "");
+		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(roleTitle = "");
 
 		JSONUser.addUser(
 			userEmailAddress = "${userEmailAddress}",
@@ -362,8 +359,8 @@ definition {
 			portlet = "Users and Organizations");
 
 		User.editPasswordCP(
+			currentPassword = "${currentPassword}",
 			newPassword = "${newPassword}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 			userEmailAddress = "${userEmailAddress}",
 			userScreenName = "${userScreenName}");
 
@@ -395,7 +392,6 @@ definition {
 			pageName = "${pageName}",
 			roleTitle = "${roleTitle}",
 			siteName = "${siteName}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 			userEmailAddress = "${userEmailAddress}",
 			userFirstName = "${userFirstName}",
 			userLastName = "${userLastName}",
@@ -471,8 +467,8 @@ definition {
 			portlet = "Users and Organizations");
 
 		User.editPasswordCP(
+			currentPassword = "${currentPassword}",
 			newPassword = "${newPassword}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 			userEmailAddress = "${userEmailAddress}",
 			userScreenName = "${userScreenName}");
 
@@ -493,7 +489,7 @@ definition {
 			userMiddleName = "${userMiddleName}",
 			userScreenName = "${userScreenName}");
 
-		SitePages.openPagesAdmin(siteURLKey = "${siteName}");
+		PagesAdmin.openPagesAdmin(siteURLKey = "${siteName}");
 
 		ProductMenu.gotoPortlet(
 			category = "People",
@@ -515,7 +511,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "${pageName}");
+		PagesAdmin.addPage(pageName = "${pageName}");
 
 		Navigator.gotoSitePage(
 			pageName = "${pageName}",

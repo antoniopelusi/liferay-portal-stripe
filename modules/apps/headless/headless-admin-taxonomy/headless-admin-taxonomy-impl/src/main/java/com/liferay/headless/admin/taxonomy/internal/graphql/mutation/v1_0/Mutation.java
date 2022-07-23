@@ -26,8 +26,10 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
+import com.liferay.portal.vulcan.pagination.Page;
 
 import java.util.function.BiFunction;
 
@@ -102,19 +104,24 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	public boolean updateAssetLibraryKeywordPermission(
-			@GraphQLName("assetLibraryId") @NotEmpty String assetLibraryId,
-			@GraphQLName("permissions")
-				com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public java.util.Collection<com.liferay.portal.vulcan.permission.Permission>
+			updateAssetLibraryKeywordPermissionsPage(
+				@GraphQLName("assetLibraryId") @NotEmpty String assetLibraryId,
+				@GraphQLName("permissions")
+					com.liferay.portal.vulcan.permission.Permission[]
+						permissions)
 		throws Exception {
 
-		_applyVoidComponentServiceObjects(
+		return _applyComponentServiceObjects(
 			_keywordResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			keywordResource -> keywordResource.putAssetLibraryKeywordPermission(
-				Long.valueOf(assetLibraryId), permissions));
+			keywordResource -> {
+				Page paginationPage =
+					keywordResource.putAssetLibraryKeywordPermissionsPage(
+						Long.valueOf(assetLibraryId), permissions);
 
-		return true;
+				return paginationPage.getItems();
+			});
 	}
 
 	@GraphQLField(
@@ -172,17 +179,28 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	public boolean updateKeywordPermission(
-			@GraphQLName("keywordId") Long keywordId,
-			@GraphQLName("permissions")
-				com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public boolean updateKeywordSubscribe(
+			@GraphQLName("keywordId") Long keywordId)
 		throws Exception {
 
 		_applyVoidComponentServiceObjects(
 			_keywordResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			keywordResource -> keywordResource.putKeywordPermission(
-				keywordId, permissions));
+			keywordResource -> keywordResource.putKeywordSubscribe(keywordId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean updateKeywordUnsubscribe(
+			@GraphQLName("keywordId") Long keywordId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_keywordResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			keywordResource -> keywordResource.putKeywordUnsubscribe(
+				keywordId));
 
 		return true;
 	}
@@ -215,19 +233,24 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	public boolean updateSiteKeywordPermission(
-			@GraphQLName("siteKey") @NotEmpty String siteKey,
-			@GraphQLName("permissions")
-				com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public java.util.Collection<com.liferay.portal.vulcan.permission.Permission>
+			updateSiteKeywordPermissionsPage(
+				@GraphQLName("siteKey") @NotEmpty String siteKey,
+				@GraphQLName("permissions")
+					com.liferay.portal.vulcan.permission.Permission[]
+						permissions)
 		throws Exception {
 
-		_applyVoidComponentServiceObjects(
+		return _applyComponentServiceObjects(
 			_keywordResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			keywordResource -> keywordResource.putSiteKeywordPermission(
-				Long.valueOf(siteKey), permissions));
+			keywordResource -> {
+				Page paginationPage =
+					keywordResource.putSiteKeywordPermissionsPage(
+						Long.valueOf(siteKey), permissions);
 
-		return true;
+				return paginationPage.getItems();
+			});
 	}
 
 	@GraphQLField(description = "Inserts a new child taxonomy category.")
@@ -323,20 +346,24 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	public boolean updateTaxonomyCategoryPermission(
-			@GraphQLName("taxonomyCategoryId") String taxonomyCategoryId,
-			@GraphQLName("permissions")
-				com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public java.util.Collection<com.liferay.portal.vulcan.permission.Permission>
+			updateTaxonomyCategoryPermissionsPage(
+				@GraphQLName("taxonomyCategoryId") String taxonomyCategoryId,
+				@GraphQLName("permissions")
+					com.liferay.portal.vulcan.permission.Permission[]
+						permissions)
 		throws Exception {
 
-		_applyVoidComponentServiceObjects(
+		return _applyComponentServiceObjects(
 			_taxonomyCategoryResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			taxonomyCategoryResource ->
-				taxonomyCategoryResource.putTaxonomyCategoryPermission(
-					taxonomyCategoryId, permissions));
+			taxonomyCategoryResource -> {
+				Page paginationPage =
+					taxonomyCategoryResource.putTaxonomyCategoryPermissionsPage(
+						taxonomyCategoryId, permissions);
 
-		return true;
+				return paginationPage.getItems();
+			});
 	}
 
 	@GraphQLField(
@@ -371,6 +398,49 @@ public class Mutation {
 						taxonomyVocabularyId, callbackURL, object));
 	}
 
+	@GraphQLField(
+		description = "Deletes the site's taxonomy category by external reference code."
+	)
+	public boolean
+			deleteTaxonomyVocabularyTaxonomyCategoryByExternalReferenceCode(
+				@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_taxonomyCategoryResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			taxonomyCategoryResource ->
+				taxonomyCategoryResource.
+					deleteTaxonomyVocabularyTaxonomyCategoryByExternalReferenceCode(
+						taxonomyVocabularyId, externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the site's taxonomy category with the given external reference code, or creates it if it not exists."
+	)
+	public TaxonomyCategory
+			updateTaxonomyVocabularyTaxonomyCategoryByExternalReferenceCode(
+				@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("taxonomyCategory") TaxonomyCategory
+					taxonomyCategory)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_taxonomyCategoryResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			taxonomyCategoryResource ->
+				taxonomyCategoryResource.
+					putTaxonomyVocabularyTaxonomyCategoryByExternalReferenceCode(
+						taxonomyVocabularyId, externalReferenceCode,
+						taxonomyCategory));
+	}
+
 	@GraphQLField
 	public TaxonomyVocabulary createAssetLibraryTaxonomyVocabulary(
 			@GraphQLName("assetLibraryId") @NotEmpty String assetLibraryId,
@@ -403,21 +473,25 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	public boolean updateAssetLibraryTaxonomyVocabularyPermission(
-			@GraphQLName("assetLibraryId") @NotEmpty String assetLibraryId,
-			@GraphQLName("permissions")
-				com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public java.util.Collection<com.liferay.portal.vulcan.permission.Permission>
+			updateAssetLibraryTaxonomyVocabularyPermissionsPage(
+				@GraphQLName("assetLibraryId") @NotEmpty String assetLibraryId,
+				@GraphQLName("permissions")
+					com.liferay.portal.vulcan.permission.Permission[]
+						permissions)
 		throws Exception {
 
-		_applyVoidComponentServiceObjects(
+		return _applyComponentServiceObjects(
 			_taxonomyVocabularyResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			taxonomyVocabularyResource ->
-				taxonomyVocabularyResource.
-					putAssetLibraryTaxonomyVocabularyPermission(
-						Long.valueOf(assetLibraryId), permissions));
+			taxonomyVocabularyResource -> {
+				Page paginationPage =
+					taxonomyVocabularyResource.
+						putAssetLibraryTaxonomyVocabularyPermissionsPage(
+							Long.valueOf(assetLibraryId), permissions);
 
-		return true;
+				return paginationPage.getItems();
+			});
 	}
 
 	@GraphQLField(description = "Inserts a new taxonomy vocabulary in a Site.")
@@ -450,21 +524,67 @@ public class Mutation {
 					Long.valueOf(siteKey), callbackURL, object));
 	}
 
-	@GraphQLField
-	public boolean updateSiteTaxonomyVocabularyPermission(
+	@GraphQLField(
+		description = "Deletes the site's taxonomy vocabulary by external reference code."
+	)
+	public boolean deleteSiteTaxonomyVocabularyByExternalReferenceCode(
 			@GraphQLName("siteKey") @NotEmpty String siteKey,
-			@GraphQLName("permissions")
-				com.liferay.portal.vulcan.permission.Permission[] permissions)
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
 		throws Exception {
 
 		_applyVoidComponentServiceObjects(
 			_taxonomyVocabularyResourceComponentServiceObjects,
 			this::_populateResourceContext,
 			taxonomyVocabularyResource ->
-				taxonomyVocabularyResource.putSiteTaxonomyVocabularyPermission(
-					Long.valueOf(siteKey), permissions));
+				taxonomyVocabularyResource.
+					deleteSiteTaxonomyVocabularyByExternalReferenceCode(
+						Long.valueOf(siteKey), externalReferenceCode));
 
 		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the site's taxonomy vocabulary with the given external reference code, or creates it if it not exists."
+	)
+	public TaxonomyVocabulary
+			updateSiteTaxonomyVocabularyByExternalReferenceCode(
+				@GraphQLName("siteKey") @NotEmpty String siteKey,
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("taxonomyVocabulary") TaxonomyVocabulary
+					taxonomyVocabulary)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_taxonomyVocabularyResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			taxonomyVocabularyResource ->
+				taxonomyVocabularyResource.
+					putSiteTaxonomyVocabularyByExternalReferenceCode(
+						Long.valueOf(siteKey), externalReferenceCode,
+						taxonomyVocabulary));
+	}
+
+	@GraphQLField
+	public java.util.Collection<com.liferay.portal.vulcan.permission.Permission>
+			updateSiteTaxonomyVocabularyPermissionsPage(
+				@GraphQLName("siteKey") @NotEmpty String siteKey,
+				@GraphQLName("permissions")
+					com.liferay.portal.vulcan.permission.Permission[]
+						permissions)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_taxonomyVocabularyResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			taxonomyVocabularyResource -> {
+				Page paginationPage =
+					taxonomyVocabularyResource.
+						putSiteTaxonomyVocabularyPermissionsPage(
+							Long.valueOf(siteKey), permissions);
+
+				return paginationPage.getItems();
+			});
 	}
 
 	@GraphQLField(
@@ -547,20 +667,25 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	public boolean updateTaxonomyVocabularyPermission(
-			@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
-			@GraphQLName("permissions")
-				com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public java.util.Collection<com.liferay.portal.vulcan.permission.Permission>
+			updateTaxonomyVocabularyPermissionsPage(
+				@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
+				@GraphQLName("permissions")
+					com.liferay.portal.vulcan.permission.Permission[]
+						permissions)
 		throws Exception {
 
-		_applyVoidComponentServiceObjects(
+		return _applyComponentServiceObjects(
 			_taxonomyVocabularyResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			taxonomyVocabularyResource ->
-				taxonomyVocabularyResource.putTaxonomyVocabularyPermission(
-					taxonomyVocabularyId, permissions));
+			taxonomyVocabularyResource -> {
+				Page paginationPage =
+					taxonomyVocabularyResource.
+						putTaxonomyVocabularyPermissionsPage(
+							taxonomyVocabularyId, permissions);
 
-		return true;
+				return paginationPage.getItems();
+			});
 	}
 
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R
@@ -612,6 +737,9 @@ public class Mutation {
 		keywordResource.setContextUser(_user);
 		keywordResource.setGroupLocalService(_groupLocalService);
 		keywordResource.setRoleLocalService(_roleLocalService);
+
+		keywordResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
 	}
 
 	private void _populateResourceContext(
@@ -628,6 +756,9 @@ public class Mutation {
 		taxonomyCategoryResource.setContextUser(_user);
 		taxonomyCategoryResource.setGroupLocalService(_groupLocalService);
 		taxonomyCategoryResource.setRoleLocalService(_roleLocalService);
+
+		taxonomyCategoryResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
 	}
 
 	private void _populateResourceContext(
@@ -644,6 +775,9 @@ public class Mutation {
 		taxonomyVocabularyResource.setContextUser(_user);
 		taxonomyVocabularyResource.setGroupLocalService(_groupLocalService);
 		taxonomyVocabularyResource.setRoleLocalService(_roleLocalService);
+
+		taxonomyVocabularyResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
 	}
 
 	private static ComponentServiceObjects<KeywordResource>
@@ -662,5 +796,7 @@ public class Mutation {
 	private BiFunction<Object, String, Sort[]> _sortsBiFunction;
 	private UriInfo _uriInfo;
 	private com.liferay.portal.kernel.model.User _user;
+	private VulcanBatchEngineImportTaskResource
+		_vulcanBatchEngineImportTaskResource;
 
 }

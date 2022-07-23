@@ -118,4 +118,7 @@ public interface VersionedEntryModel
 	 */
 	public void setGroupId(long groupId);
 
+	@Override
+	public VersionedEntry cloneWithOriginalValues();
+
 }

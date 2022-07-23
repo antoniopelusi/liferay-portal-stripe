@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class SyncDeviceLocalServiceWrapper
 	implements ServiceWrapper<SyncDeviceLocalService>, SyncDeviceLocalService {
 
+	public SyncDeviceLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SyncDeviceLocalServiceWrapper(
 		SyncDeviceLocalService syncDeviceLocalService) {
 
@@ -132,6 +136,13 @@ public class SyncDeviceLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _syncDeviceLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _syncDeviceLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -136,8 +136,6 @@ public class UserPortraitTag extends IncludeTag {
 	public int processEndTag() throws Exception {
 		JspWriter jspWriter = pageContext.getOut();
 
-		User user = getUser();
-
 		HttpServletRequest httpServletRequest = getRequest();
 
 		ThemeDisplay themeDisplay =
@@ -145,7 +143,7 @@ public class UserPortraitTag extends IncludeTag {
 				WebKeys.THEME_DISPLAY);
 
 		String userPortraitHTML = getUserPortraitHTML(
-			_cssClass, _size, user, themeDisplay);
+			_cssClass, _size, getUser(), themeDisplay);
 
 		jspWriter.write(userPortraitHTML);
 
@@ -232,7 +230,7 @@ public class UserPortraitTag extends IncludeTag {
 			return user.getPortraitURL(themeDisplay);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return null;
 		}

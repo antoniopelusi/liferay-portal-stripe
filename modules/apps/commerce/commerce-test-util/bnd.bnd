@@ -1,6 +1,7 @@
 Bundle-Name: Liferay Commerce Test Utilities
 Bundle-SymbolicName: com.liferay.commerce.test.util
-Bundle-Version: 12.0.1
+Bundle-Version: 13.0.6
 Export-Package:\
 	com.liferay.commerce.test.util,\
-	com.liferay.commerce.test.util.context
+	com.liferay.commerce.test.util.context,\
+	com.liferay.commerce.test.util.order.status

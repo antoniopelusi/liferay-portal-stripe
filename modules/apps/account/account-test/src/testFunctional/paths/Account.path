@@ -2,34 +2,185 @@
 <head>
 <title>Account</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Account</td></tr>
 </thead>
+
 <tbody>
 <tr>
-	<td>ACCOUNT_DOMAIN_ADD_LINK</td>
-	<td>//a[contains(@id,'addDomains')]/span</td>
+	<td>2B_ACCOUNT_MANAGEMENT_HEADING</td>
+	<td>//div[contains(@class, 'portlet-content')]//h2[contains(text(), 'Account Management')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_USER_HEADER</td>
-	<td>//ul[contains(@class,'control-menu-nav')]//span[contains(@data-qa-id,'headerTitle') and contains(.,'Add New User to ${key_accountName}')]</td>
+	<td>ACCOUNT_MANAGEMENT</td>
+	<td>//div[contains(@class, 'dnd-tbody')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>CHOOSE_ACCOUNT</td>
-	<td>//tr[contains(.,'${key_accountName}')]/td[3]//button[contains(.,'Choose')]</td>
+	<td>SELECT_ACCOUNT_ENTRY_CHECKMARK</td>
+	<td>//div[contains(@class,'table')]//tr[contains(.,'${key_entryName}')]//*[*[name()='svg'][contains(@class,'check')]]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>CHOOSE_ACCOUNT_USER</td>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ASSIGN_USER-->
+<tr>
+	<td>ASSIGN_USER_CHOOSE_BUTTON</td>
 	<td>//tr[contains(.,'${key_accountUserName}')]//button[contains(.,'Choose')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>USER_SELECT</td>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--DEFAULT_ACCOUNT_ADDRESSES-->
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_HEADING</td>
+	<td>//div[contains(@class,'section')]//span[normalize-space(text())='Default Account Addresses']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_DEFAULT_BILLING_ADDRESS</td>
+	<td>//a[@data-type='billing']/../../preceding-sibling::address</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_DEFAULT_SHIPPING_ADDRESS</td>
+	<td>//a[@data-type='shipping']/../../preceding-sibling::address</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_BILLING_TEXT</td>
+	<td>//a[@data-type='billing']/../../preceding-sibling::div[normalize-space(text())='Billing']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_SHIPPING_TEXT</td>
+	<td>//a[@data-type='shipping']/../../preceding-sibling::div[normalize-space(text())='Shipping']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_REMOVE_DEFAULT_BILLING</td>
+	<td>//a[@data-type='billing']/..//following-sibling::span//span[normalize-space(text())='Remove']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_REMOVE_DEFAULT_SHIPPING</td>
+	<td>//a[@data-type='shipping']/..//following-sibling::span//span[normalize-space(text())='Remove']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_SET_DEFAULT_BILLING</td>
+	<td>//a[@data-type='billing']//span[normalize-space(text())='Set Default Address']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_SET_DEFAULT_SHIPPING</td>
+	<td>//a[@data-type='shipping']//span[normalize-space(text())='Set Default Address']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_CHANGE_DEFAULT_BILLING</td>
+	<td>//a[@data-type='billing']//span[normalize-space(text())='Change']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_CHANGE_DEFAULT_SHIPPING</td>
+	<td>//a[@data-type='shipping']//span[normalize-space(text())='Change']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_SAVE_BUTTON</td>
+	<td>//button[contains(@class,'btn')][normalize-space(text())='Save']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_ADDRESSES_SELECT_ADDRESS_RADIO</td>
+	<td>//input[contains(@name,'selectAddress')]//following-sibling::span/span[normalize-space()='${key_addressName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--DEFAULT_ACCOUNT_TERMS_AND_CONDITION-->
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_DELIVERY_ENTRY</td>
+	<td>//a[@data-type='delivery-terms']/../../preceding-sibling::h4</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_DELIVERY_ENTRY_INACTIVE_ICON</td>
+	<td>//a[@data-type='delivery-terms']/../../preceding-sibling::h4/strong[contains(@style,'orange')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_DELIVERY_USE_PRIORITY_SETTINGS</td>
+	<td>//a[@data-type='delivery-terms']/../../preceding-sibling::span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DELIVERY_TEXT</td>
+	<td>//a[@data-type='delivery-terms']/../../preceding-sibling::div[normalize-space(text())='Delivery']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_PAYMENT_ENTRY</td>
+	<td>//a[@data-type='payment-terms']/../../preceding-sibling::h4</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_PAYMENT_ENTRY_INACTIVE_ICON</td>
+	<td>//a[@data-type='payment-terms']/../../preceding-sibling::h4/strong[contains(@style,'orange')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_PAYMENT_USE_PRIORITY_SETTINGS</td>
+	<td>//a[@data-type='payment-terms']/../../preceding-sibling::span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_HEADING</td>
+	<td>//div[contains(@class,'section')]//span[normalize-space(text())='Default Account Terms and Conditions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_PAYMENT_TEXT</td>
+	<td>//a[@data-type='payment-terms']/../../preceding-sibling::div[normalize-space(text())='Payment']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_SELECT_TERM_ENTRY_RADIO</td>
+	<td>//input[contains(@name,'selectCommerceTermEntry')]//following-sibling::span/span[normalize-space()='${key_termEntry}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_SET_DEFAULT_DELIVERY</td>
+	<td>//a[@data-type='delivery-terms']//span[normalize-space(text())='Set Default Delivery Commerce Terms Entry']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_ACCOUNT_TERMS_AND_CONDITION_SET_DEFAULT_PAYMENT</td>
+	<td>//a[@data-type='payment-terms']//span[normalize-space(text())='Set Default Payment Commerce Terms Entry']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--USER-->
+<tr>
+	<td>USER_SELECT_BUTTON</td>
 	<td>//span[normalize-space(text())='User']//../following-sibling::span//*[normalize-space(text())='Select']</td>
 	<td></td>
 </tr>
@@ -39,63 +190,39 @@
 	<td></td>
 </tr>
 <tr>
-	<td>DOMAIN_REMOVE_DOMAIN</td>
-	<td>//tr[contains(.,'${key_domainName}')]//span[contains(@class,' lfr-portal-tooltip')]</td>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--VALID_DOMAINS-->
+<tr>
+	<td>VALID_DOMAINS_ADD_BUTTON</td>
+	<td>//a[contains(@id,'addDomains')]/span</td>
 	<td></td>
 </tr>
 <tr>
-	<td>DOMAIN_SECTION</td>
-	<td>//div[contains(@class,'section')]//span[normalize-space(text())='Valid Domains']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DOMAIN_TABLE_NAME</td>
+	<td>VALID_DOMAINS_DOMAIN_NAME</td>
 	<td>//tr[contains(.,'${key_domainName}')]/td[1]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ENTRY_CONTENT_ENTRY_ACCOUNTS</td>
-	<td>//*[@data-qa-id='row'][contains(.,'${key_rowEntry}')]//td[contains(.,'${key_rowEntryAccount}')]</td>
+	<td>VALID_DOMAINS_EMPTY_INFO_MESSAGE</td>
+	<td>//p[normalize-space(text())='This account does not have a valid domain.']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>DEFAULT_ACCOUNT_ADDRESSES_SECTION</td>
-	<td>//div[contains(@class,'section')]//span[normalize-space(text())='Default Account Addresses']</td>
+	<td>VALID_DOMAINS_HEADING</td>
+	<td>//div[contains(@class,'section')]//span[normalize-space(text())='Valid Domains']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ACCOUNT_ADDRESSES</td>
-	<td>//a[@data-type='${key_addressDataType}']/../../preceding-sibling::address</td>
+	<td>VALID_DOMAINS_REMOVE_TOOLTIP</td>
+	<td>//tr[contains(.,'${key_domainName}')]//span[contains(@class,' lfr-portal-tooltip')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ACCOUNT_ADDRESS_BILLING</td>
-	<td>//a[@data-type='billing']/../../preceding-sibling::div[normalize-space(text())='Billing']</td>
 	<td></td>
-</tr>
-<tr>
-	<td>ACCOUNT_ADDRESS_SHIPPING</td>
-	<td>//a[@data-type='shipping']/../../preceding-sibling::div[normalize-space(text())='Shipping']</td>
 	<td></td>
-</tr>
-<tr>
-	<td>REMOVE_ACCOUNT_DEFAULT_ADDRESS</td>
-	<td>//a[@data-type='${key_addressDataType}']/..//following-sibling::span//span[normalize-space(text())='Remove']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SET_ACCOUNT_DEFAULT_ADDRESS</td>
-	<td>//a[@data-type='${key_addressDataType}']//span[normalize-space(text())='${key_text}']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SELECT_ADDRESS_RADIO</td>
-	<td>//input[contains(@name,'selectAddress')]//following-sibling::span[normalize-space()='${key_addressName}']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SAVE_BUTTON</td>
-	<td>//button[contains(@class,'btn')][normalize-space(text())='Save']</td>
 	<td></td>
 </tr>
 </tbody>

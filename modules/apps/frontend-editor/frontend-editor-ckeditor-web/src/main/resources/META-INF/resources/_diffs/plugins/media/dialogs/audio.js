@@ -12,6 +12,8 @@
  * details.
  */
 
+/* eslint-disable @liferay/no-get-data-attribute */
+
 CKEDITOR.dialog.add('audio', (editor) => {
 	var TPL_SCRIPT =
 		'boundingBox: "#" + mediaId,' + 'oggUrl: "{oggUrl}",' + 'url: "{url}"';

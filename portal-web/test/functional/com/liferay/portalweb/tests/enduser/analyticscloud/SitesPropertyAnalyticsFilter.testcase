@@ -1,0 +1,333 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+
+		ACSettings.takeTokenFromAnalyticsCloud();
+
+		TestCase.setUpPortalInstance();
+
+		ACUtils.launchDXP();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		JSONUser.tearDownNonAdminUsers();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8319 | Test Summary: Custom Range time period filter in Sites"
+	@ignore = "true"
+	@priority = "5"
+	test CustomRangeTimePeriodFilterSites {
+
+		// AC Refactor: the test needs data from a past date
+		// AC Refactor ticket: LRAC-8744
+
+		task ("Site and page creation and connection with AC") {
+			ACUtils.addSiteAndPage();
+
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Interation with page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("AC launch") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Asset Custom Range time period filter") {
+
+			// It is not possible to perform the assert because this test needs data from the past
+
+			var displayDateDay = DateUtil.getCurrentDate();
+			var displayMonth = DateUtil.getCurrentMonth();
+			var displayDateMonth = DateUtil.getCurrentMonthName();
+			var displayDateYear = DateUtil.getCurrentYear();
+			var previousDay = DateUtil.getFormattedDate("-1", "d");
+			var previousMonth = DateUtil.getFormattedDate("-1", "MMMM");
+			var previousYear = DateUtil.getFormattedDate("-1", "yyyy");
+
+			ACNavigation.switchTab(tabName = "Overview");
+
+			var cardNameList = "${propertyName} Activities,Top Pages,Acquisitions,Visitors by Day and Time,Search Terms,Interests,Sessions by Location,Session Technology";
+
+			for (var cardName : list "${cardNameList}") {
+				ACTimeFilter.setCustomRange(
+					cardName = "${cardName}",
+					endDay = "${displayDateDay}",
+					endMonth = "${displayDateMonth}",
+					endYear = "${displayDateYear}",
+					startDay = "${previousDay}",
+					startMonth = "${previousMonth}",
+					startYear = "${previousYear}");
+			}
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8317 | Test Summary: 180 Days time period filter in Sites"
+	@ignore = "true"
+	@priority = "3"
+	test PeriodFilter180Days {
+
+		// AC Refactor: the test needs data from a past date
+		// AC Refactor ticket: LRAC-8723
+
+		task ("Site and blogs creation and connection with AC") {
+			ACUtils.addSiteAndPage();
+
+			ACUtils.createBlogsAndAddToPage(entryTitle = "Test 2");
+
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Interation with pages") {
+			ACUtils.navigateToSitePage(
+				actionType = "View Blog",
+				documentTitleList = "Test 2",
+				pageName = "AC Page",
+				siteName = "Site Name");
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("AC launch") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Asset 180 Days time period filter") {
+
+			// It is not possible to perform the assert because this test needs data from the past
+
+			ACNavigation.switchTab(tabName = "Overview");
+
+			ACTimeFilter.clickTimeFilterButton(cardName = "${propertyName} Activities");
+
+			ACTimeFilter.setLast180Days();
+
+			ACUtils.assertXAxisTimedGraph(parentName = "${propertyName} Activities");
+
+			for (var cardTitle : list "Top Pages,Acquisitions,Visitors by Day and Time,Search Terms,Interests,Sessions by Location,Session Technology") {
+				ACCards.viewCards(cardTitle = "${cardTitle}");
+
+				ACTimeFilter.clickTimeFilterButton(cardName = "${cardTitle}");
+
+				ACTimeFilter.setLast180Days();
+			}
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8318 | Test Summary: Last Year time period filter in Sites"
+	@ignore = "true"
+	@priority = "3"
+	test PeriodFilterLastYear {
+
+		// AC Refactor: the test needs data from a past date
+		// AC Refactor ticket: LRAC-8726
+
+		task ("Site and blogs creation and connection with AC") {
+			ACUtils.addSiteAndPage();
+
+			ACUtils.createBlogsAndAddToPage(entryTitle = "Test 2");
+
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Interation with pages") {
+			ACUtils.navigateToSitePage(
+				actionType = "View Blog",
+				documentTitleList = "Test 2",
+				pageName = "AC Page",
+				siteName = "Site Name");
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("AC launch") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Asset Last Year time period filter") {
+
+			// It is not possible to perform the assert because this test needs data from the past
+
+			ACNavigation.switchTab(tabName = "Overview");
+
+			ACTimeFilter.clickTimeFilterButton(cardName = "${propertyName} Activities");
+
+			ACTimeFilter.setLastYear();
+
+			ACUtils.assertXAxisTimedGraph(parentName = "${propertyName} Activities");
+
+			for (var cardTitle : list "Top Pages,Acquisitions,Visitors by Day and Time,Search Terms,Interests,Sessions by Location,Session Technology") {
+				ACCards.viewCards(cardTitle = "${cardTitle}");
+
+				ACTimeFilter.clickTimeFilterButton(cardName = "${cardTitle}");
+
+				ACTimeFilter.setLastYear();
+			}
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8323 | Test Summary: A user lost access to a given property (because the admin removed the user's access or someone deleted the property of the system)"
+	@priority = "4"
+	test UserLostAccess {
+		task ("AC launch and go to the porpreties menu") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+		}
+
+		task ("Create property 1, check if it was created and add an admin user") {
+			ACProperties.addNewProperty(propertyName = "Property Name 1");
+
+			ACProperties.assertNewCreatedProperty(propertyName = "Property Name 1");
+
+			ACProperties.addUserProperty(emailAddress = "corbin.murakami@faro.io");
+		}
+
+		task ("Log in as the user corbin.murakami@faro.io and go to the properties menu") {
+			ACWorkspace.signOut();
+
+			ACLogin.loginAs(
+				emailAddress = "corbin.murakami@faro.io",
+				password = "test");
+
+			ACWorkspace.openWorkspace();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+		}
+
+		task ("Checks if only property 2 and property 3 are present") {
+			ACProperties.assertPropertyTitleList(propertyName = "Property Name 1");
+		}
+
+		task ("Log in as the user test@liferay.com, go to the properties menu and delete all properties") {
+			ACWorkspace.signOut();
+
+			ACLogin.loginAs(
+				emailAddress = "test@liferay.com",
+				password = "test");
+
+			ACWorkspace.openWorkspace();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+
+			ACSettings.deleteAllProperties();
+		}
+
+		task ("Log in as the user corbin.murakami@faro.io, go to the properties menu and checks if the property has been deleted for the user") {
+			ACWorkspace.signOut();
+
+			ACLogin.loginAs(
+				emailAddress = "corbin.murakami@faro.io",
+				password = "test");
+
+			ACWorkspace.openWorkspace();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+
+			ACProperties.assertPropertyNotPresent(propertyName = "Property Name 1");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8322 | Test Summary: A user (independent of user role) should only see the properties they are invited to by the AC admin or the properties which the user is owner"
+	@priority = "4"
+	test UserShouldOnlySeePropertiesAreInvitedByACAdminOrPropertiesWhichUserOwner {
+		task ("AC launch and go to the porpreties menu") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+		}
+
+		task ("Create property 1, check if it was created and add an admin user") {
+			ACProperties.addNewProperty(propertyName = "Property Name 1");
+
+			ACProperties.assertNewCreatedProperty(propertyName = "Property Name 1");
+
+			ACProperties.addUserProperty(emailAddress = "bryan.cheung@faro.io");
+		}
+
+		task ("Go back to the properties menu, create property 2, check if it was created and add an admin user") {
+			ACSettings.goToProperties();
+
+			ACProperties.addNewProperty(propertyName = "Property Name 2");
+
+			ACProperties.assertNewCreatedProperty(propertyName = "Property Name 2");
+
+			ACProperties.addUserProperty(emailAddress = "corbin.murakami@faro.io");
+		}
+
+		task ("Go back to the properties menu, create property 3, check if it was created and select all users as admin") {
+			ACSettings.goToProperties();
+
+			ACProperties.addNewProperty(propertyName = "Property Name 3");
+
+			ACProperties.assertNewCreatedProperty(propertyName = "Property Name 3");
+
+			ACSettings.goToProperties();
+		}
+
+		task ("Log in as the user corbin.murakami@faro.io and go to the properties menu") {
+			ACWorkspace.signOut();
+
+			ACLogin.loginAs(
+				emailAddress = "corbin.murakami@faro.io",
+				password = "test");
+
+			ACWorkspace.openWorkspace();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToProperties();
+		}
+
+		task ("Checks if only property 2 and property 3 are present") {
+			ACProperties.assertPropertyNotPresent(propertyName = "Property Name 1");
+
+			ACProperties.assertPropertyTitleList(propertyName = "Property Name 2");
+
+			ACProperties.assertPropertyTitleList(propertyName = "Property Name 3");
+		}
+	}
+
+}

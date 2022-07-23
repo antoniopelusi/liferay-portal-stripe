@@ -65,9 +65,6 @@ public class CommerceAccountOrganizationRelImpl
 		return commerceAccountOrganizationRelImpl;
 	}
 
-	public CommerceAccountOrganizationRelImpl() {
-	}
-
 	@Override
 	public Organization getOrganization() throws PortalException {
 		return OrganizationLocalServiceUtil.getOrganization(

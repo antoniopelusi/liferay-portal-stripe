@@ -18,6 +18,20 @@ definition {
 		CalendarResource.view(calendarResourceName = "${calendarResourceName}");
 	}
 
+	macro addCalendarByResource {
+		Click(locator1 = "CalendarManageCalendars#ADD_CALENDAR");
+
+		Calendar._editName(calendarName = "${calendarName}");
+
+		Button.clickSave();
+
+		Navigator.gotoBack();
+	}
+
+	macro clearSearchResults {
+		Click(locator1 = "WorkflowConfiguration#CLEAR_BUTTON");
+	}
+
 	macro deactivate {
 		CalendarResource._expandDetailsPanel();
 
@@ -70,8 +84,28 @@ definition {
 		CalendarResource.view(calendarResourceName = "${calendarResourceNameEdit}");
 	}
 
+	macro editResourceDescription {
+		CalendarResource._expandDetailsPanel();
+
+		PortletEntry.inputDescription(description = "${calendarResourceDescription}");
+	}
+
 	macro editResourceName {
 		PortletEntry.inputName(name = "${calendarResourceName}");
+	}
+
+	macro gotoPermissions {
+		Click(locator1 = "CalendarResources#VERTICAL_ELLIPSIS_BY_RESOURCE_NAME");
+
+		MenuItem.clickNoError(menuItem = "Permissions");
+	}
+
+	macro notDisplayResultBar {
+		AssertElementNotPresent(locator1 = "CalendarResources#VIEW_RESOURCE_RESULT_BAR");
+	}
+
+	macro resourceSetFilterAndOrder {
+		ManagementBar.setFilterAndOrder(filterBy = "${filterBy}");
 	}
 
 	macro save {
@@ -80,6 +114,12 @@ definition {
 		var key_calendarResourceName = "${calendarResourceName}";
 
 		Alert.viewSuccessMessage();
+	}
+
+	macro search {
+		Search.searchPG(
+			portletName = "Calendar",
+			searchTerm = "${searchTerm}");
 	}
 
 	macro tearDown {
@@ -120,6 +160,10 @@ definition {
 		AssertElementPresent(locator1 = "CalendarResources#RESOURCE_TABLE_ACTIONS");
 	}
 
+	macro viewCalendarNameByResourceOntable {
+		AssertElementPresent(locator1 = "CalendarManageCalendars#CALENDAR_TABLE_NAME");
+	}
+
 	macro viewDefault {
 		CalendarNavigator.gotoResources();
 
@@ -130,6 +174,10 @@ definition {
 			value1 = "No resources were found.");
 
 		AssertElementNotPresent(locator1 = "CalendarResources#RESOURCE_TABLE_NAME");
+	}
+
+	macro viewMenuPermissionsModal {
+		AssertElementPresent(locator1 = "CalendarResources#RESOURCE_PERMISSIONS_MODAL");
 	}
 
 	macro viewResourceCalendars {
@@ -158,6 +206,18 @@ definition {
 		AssertElementNotPresent(locator1 = "CalendarResources#RESOURCE_TABLE_NAME");
 
 		AssertTextNotPresent(value1 = "${calendarResourceName}");
+	}
+
+	macro viewSearchSummaryResults {
+		AssertTextEquals(
+			locator1 = "ManagementBar#SEARCH_RESULT_SUMMARY",
+			value1 = "${searchResults}");
+	}
+
+	macro viewTableEmpty {
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "No resources were found.");
 	}
 
 }

@@ -69,7 +69,7 @@ public class EditKBArticlePortletConfigurationIcon
 			"/admin/edit_article.jsp"
 		).setRedirect(
 			_portal.getCurrentURL(portletRequest)
-		).build();
+		).buildPortletURL();
 
 		KBArticle kbArticle = getKBArticle(portletRequest);
 
@@ -105,7 +105,7 @@ public class EditKBArticlePortletConfigurationIcon
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 

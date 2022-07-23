@@ -39,6 +39,14 @@ public final class CreateExpressionRequest {
 		return _expression;
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
+	public boolean isDDMExpressionDateValidation() {
+		return _ddmExpressionDateValidation;
+	}
+
 	public static class Builder {
 
 		public static Builder newBuilder(String expression) {
@@ -54,6 +62,19 @@ public final class CreateExpressionRequest {
 
 			_createExpressionRequest._ddmExpressionActionHandler =
 				ddmExpressionActionHandler;
+
+			return this;
+		}
+
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
+		@Deprecated
+		public Builder withDDMExpressionDateValidation(
+			boolean ddmExpressionDateValidation) {
+
+			_createExpressionRequest._ddmExpressionDateValidation =
+				ddmExpressionDateValidation;
 
 			return this;
 		}
@@ -98,6 +119,7 @@ public final class CreateExpressionRequest {
 	}
 
 	private DDMExpressionActionHandler _ddmExpressionActionHandler;
+	private boolean _ddmExpressionDateValidation;
 	private DDMExpressionFieldAccessor _ddmExpressionFieldAccessor;
 	private DDMExpressionObserver _ddmExpressionObserver;
 	private DDMExpressionParameterAccessor _ddmExpressionParameterAccessor;

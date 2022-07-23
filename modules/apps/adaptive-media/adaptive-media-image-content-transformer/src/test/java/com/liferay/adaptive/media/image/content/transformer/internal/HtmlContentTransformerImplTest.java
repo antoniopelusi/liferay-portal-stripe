@@ -191,15 +191,12 @@ public class HtmlContentTransformerImplTest {
 			"<whatever></whatever>"
 		);
 
-		StringBundler originalSB = new StringBundler(3);
-
-		originalSB.append("<img data-fileentryid=\"1989\" ");
-		originalSB.append(CharPool.NEW_LINE);
-		originalSB.append("src=\"adaptable\"/>");
-
 		Assert.assertEquals(
 			"<whatever></whatever>",
-			_htmlContentTransformerImpl.transform(originalSB.toString()));
+			_htmlContentTransformerImpl.transform(
+				StringBundler.concat(
+					"<img data-fileentryid=\"1989\" ", CharPool.NEW_LINE,
+					"src=\"adaptable\"/>")));
 	}
 
 	@Test
@@ -212,10 +209,6 @@ public class HtmlContentTransformerImplTest {
 			"<whatever></whatever>"
 		);
 
-		StringBundler expectedSB = new StringBundler(1);
-
-		expectedSB.append("<div><div><whatever></whatever></div></div><br/>");
-
 		StringBundler originalSB = new StringBundler(4);
 
 		originalSB.append("<div><div>");
@@ -224,7 +217,7 @@ public class HtmlContentTransformerImplTest {
 		originalSB.append("</div></div><br/>");
 
 		Assert.assertEquals(
-			expectedSB.toString(),
+			"<div><div><whatever></whatever></div></div><br/>",
 			_htmlContentTransformerImpl.transform(
 				StringUtil.toLowerCase(originalSB.toString())));
 	}

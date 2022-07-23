@@ -32,7 +32,6 @@ import com.liferay.commerce.service.CommerceOrderLocalServiceUtil;
 import com.liferay.commerce.service.CommerceSubscriptionEntryLocalService;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
@@ -40,9 +39,6 @@ import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUti
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -64,7 +60,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommercePaymentSubscriptionsTest {
 
@@ -76,17 +71,14 @@ public class CommercePaymentSubscriptionsTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
+		_user = UserTestUtil.addUser();
 
 		PermissionThreadLocal.setPermissionChecker(
 			PermissionCheckerFactoryUtil.create(_user));
 
 		PrincipalThreadLocal.setName(_user.getUserId());
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
 
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
@@ -122,7 +114,7 @@ public class CommercePaymentSubscriptionsTest {
 
 	@Test
 	public void testPaymentSubscription() throws Exception {
-		_commerceOrder = CommerceTestUtil.addCheckoutDetailsToUserOrder(
+		_commerceOrder = CommerceTestUtil.addCheckoutDetailsToCommerceOrder(
 			_commerceOrder, _user.getUserId(), true, false);
 
 		_commerceOrder.setPaymentStatus(
@@ -185,20 +177,16 @@ public class CommercePaymentSubscriptionsTest {
 			commerceSubscriptionEntry.getSubscriptionStatus());
 	}
 
-	@DeleteAfterTestRun
+	private static User _user;
+
 	private CommerceAccount _commerceAccount;
-
-	@DeleteAfterTestRun
 	private CommerceChannel _commerceChannel;
-
-	@DeleteAfterTestRun
 	private CommerceCurrency _commerceCurrency;
 
 	@Inject
 	private CommerceInventoryWarehouseItemLocalService
 		_commerceInventoryWarehouseItemLocalService;
 
-	@DeleteAfterTestRun
 	private CommerceOrder _commerceOrder;
 
 	@Inject
@@ -211,12 +199,6 @@ public class CommercePaymentSubscriptionsTest {
 	private CommerceSubscriptionEntryLocalService
 		_commerceSubscriptionEntryLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private Group _group;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

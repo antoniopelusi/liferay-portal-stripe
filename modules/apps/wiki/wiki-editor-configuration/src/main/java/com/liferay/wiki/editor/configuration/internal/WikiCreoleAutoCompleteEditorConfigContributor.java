@@ -14,6 +14,7 @@
 
 package com.liferay.wiki.editor.configuration.internal;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.editor.configuration.BaseEditorConfigContributor;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigContributor;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -54,48 +55,56 @@ public class WikiCreoleAutoCompleteEditorConfigContributor
 		ThemeDisplay themeDisplay,
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory) {
 
-		JSONObject autoCompleteConfigJSONObject = JSONUtil.put(
-			"requestTemplate", "query={query}");
+		jsonObject.put(
+			"autocomplete",
+			JSONUtil.put(
+				"requestTemplate", "query={query}"
+			).put(
+				"trigger",
+				JSONUtil.put(
+					JSONUtil.put(
+						"resultFilters",
+						"function(query, results) {return results;}"
+					).put(
+						"resultTextLocator", "title"
+					).put(
+						"source",
+						() -> {
+							PortletDisplay portletDisplay =
+								themeDisplay.getPortletDisplay();
 
-		JSONObject triggerJSONObject = JSONUtil.put(
-			"resultFilters", "function(query, results) {return results;}"
-		).put(
-			"resultTextLocator", "title"
-		);
+							ResourceURL autoCompletePageTitleURL =
+								(ResourceURL)
+									requestBackedPortletURLFactory.
+										createResourceURL(
+											portletDisplay.getId());
 
-		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+							Map<String, String> fileBrowserParams =
+								(Map<String, String>)
+									inputEditorTaglibAttributes.get(
+										"liferay-ui:input-editor:" +
+											"fileBrowserParams");
 
-		ResourceURL autoCompletePageTitleURL =
-			(ResourceURL)requestBackedPortletURLFactory.createResourceURL(
-				portletDisplay.getId());
+							autoCompletePageTitleURL.setParameter(
+								"nodeId", fileBrowserParams.get("nodeId"));
 
-		Map<String, String> fileBrowserParams =
-			(Map<String, String>)inputEditorTaglibAttributes.get(
-				"liferay-ui:input-editor:fileBrowserParams");
+							autoCompletePageTitleURL.setResourceID(
+								"/wiki/autocomplete_page_title");
 
-		autoCompletePageTitleURL.setParameter(
-			"nodeId", fileBrowserParams.get("nodeId"));
-
-		autoCompletePageTitleURL.setResourceID("/wiki/autocomplete_page_title");
-
-		String source =
-			autoCompletePageTitleURL.toString() + "&" +
-				_portal.getPortletNamespace(portletDisplay.getId());
-
-		triggerJSONObject.put(
-			"source", source
-		).put(
-			"term", "["
-		).put(
-			"tplReplace", "<a href=\"{title}\">{title}</a>"
-		).put(
-			"tplResults", "<span class=\"h5 text-truncate\">{title}</span>"
-		);
-
-		autoCompleteConfigJSONObject.put(
-			"trigger", JSONUtil.put(triggerJSONObject));
-
-		jsonObject.put("autocomplete", autoCompleteConfigJSONObject);
+							return StringBundler.concat(
+								autoCompletePageTitleURL.toString(), "&",
+								_portal.getPortletNamespace(
+									portletDisplay.getId()));
+						}
+					).put(
+						"term", "["
+					).put(
+						"tplReplace", "<a href=\"{title}\">{title}</a>"
+					).put(
+						"tplResults",
+						"<span class=\"h5 text-truncate\">{title}</span>"
+					))
+			));
 
 		String extraPlugins = jsonObject.getString("extraPlugins");
 

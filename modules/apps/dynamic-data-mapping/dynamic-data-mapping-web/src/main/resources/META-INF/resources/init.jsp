@@ -143,7 +143,6 @@ page import="org.osgi.framework.FrameworkUtil" %>
 
 <%
 String refererWebDAVToken = ParamUtil.getString(request, "refererWebDAVToken", portletConfig.getInitParameter("refererWebDAVToken"));
-String scopeTitle = ParamUtil.getString(request, "scopeTitle");
 boolean showManageTemplates = ParamUtil.getBoolean(request, "showManageTemplates", true);
 
 DDMDisplay ddmDisplay = null;
@@ -154,6 +153,7 @@ String scopeAvailableFields = StringPool.BLANK;
 long scopeClassNameId = 0;
 String scopeStorageType = StringPool.BLANK;
 String scopeTemplateType = StringPool.BLANK;
+String scopeTitle = StringPool.BLANK;
 
 DDMDisplayContext ddmDisplayContext = (DDMDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 

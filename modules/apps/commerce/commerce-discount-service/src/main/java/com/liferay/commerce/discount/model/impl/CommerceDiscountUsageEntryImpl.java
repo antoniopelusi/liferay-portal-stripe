@@ -19,8 +19,4 @@ package com.liferay.commerce.discount.model.impl;
  */
 public class CommerceDiscountUsageEntryImpl
 	extends CommerceDiscountUsageEntryBaseImpl {
-
-	public CommerceDiscountUsageEntryImpl() {
-	}
-
 }

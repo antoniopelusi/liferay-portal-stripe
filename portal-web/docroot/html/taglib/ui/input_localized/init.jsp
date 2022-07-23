@@ -22,6 +22,8 @@ page import="com.liferay.taglib.ui.InputEditorTag" %>
 <%
 String randomNamespace = PortalUtil.generateRandomKey(request, "taglib_ui_input_localized") + StringPool.UNDERLINE;
 
+List<String> activeLanguageIds = (List<String>)request.getAttribute("liferay-ui:input-localized:activeLanguageIds");
+boolean adminMode = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-localized:adminMode"));
 boolean autoFocus = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-localized:autoFocus"));
 boolean autoSize = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-localized:autoSize"));
 Set<Locale> availableLocales = (Set<Locale>)request.getAttribute("liferay-ui:input-localized:availableLocales");
@@ -37,6 +39,7 @@ String id = HtmlUtil.getAUICompatibleId((String)request.getAttribute("liferay-ui
 boolean ignoreRequestValue = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-localized:ignoreRequestValue"));
 String inputAddon = (String)request.getAttribute("liferay-ui:input-localized:inputAddon");
 String languageId = (String)request.getAttribute("liferay-ui:input-localized:languageId");
+String languagesDropdownDirection = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-localized:languagesDropdownDirection"));
 String maxLength = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-localized:maxLength"));
 String name = (String)request.getAttribute("liferay-ui:input-localized:name");
 String placeholder = (String)request.getAttribute("liferay-ui:input-localized:placeholder");

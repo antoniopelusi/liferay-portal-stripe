@@ -17,6 +17,7 @@ package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemServiceTracker;
+import com.liferay.info.item.provider.InfoItemDetailsProvider;
 import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
 import com.liferay.info.item.provider.InfoItemObjectProvider;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
@@ -39,7 +40,6 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsWebKeys;
 import com.liferay.taglib.util.ThemeUtil;
 
@@ -84,8 +84,7 @@ public class GetPagePreviewMVCResourceCommand extends BaseMVCResourceCommand {
 
 		long[] currentSegmentsExperienceIds = GetterUtil.getLongValues(
 			resourceRequest.getAttribute(
-				SegmentsWebKeys.SEGMENTS_EXPERIENCE_IDS),
-			new long[] {SegmentsExperienceConstants.ID_DEFAULT});
+				SegmentsWebKeys.SEGMENTS_EXPERIENCE_IDS));
 		boolean currentPortletDecorate = GetterUtil.getBoolean(
 			resourceRequest.getAttribute(WebKeys.PORTLET_DECORATE));
 		User currentUser = (User)resourceRequest.getAttribute(WebKeys.USER);
@@ -185,6 +184,14 @@ public class GetPagePreviewMVCResourceCommand extends BaseMVCResourceCommand {
 			new ClassPKInfoItemIdentifier(classPK));
 
 		httpServletRequest.setAttribute(InfoDisplayWebKeys.INFO_ITEM, infoItem);
+
+		InfoItemDetailsProvider infoItemDetailsProvider =
+			_infoItemServiceTracker.getFirstInfoItemService(
+				InfoItemDetailsProvider.class, className);
+
+		httpServletRequest.setAttribute(
+			InfoDisplayWebKeys.INFO_ITEM_DETAILS,
+			infoItemDetailsProvider.getInfoItemDetails(infoItem));
 
 		httpServletRequest.setAttribute(
 			InfoDisplayWebKeys.INFO_ITEM_FIELD_VALUES_PROVIDER,

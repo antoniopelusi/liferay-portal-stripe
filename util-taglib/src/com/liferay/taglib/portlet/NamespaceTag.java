@@ -39,11 +39,9 @@ public class NamespaceTag extends TagSupport {
 					JavaConstants.JAVAX_PORTLET_RESPONSE);
 
 			if (portletResponse != null) {
-				String namespace = portletResponse.getNamespace();
-
 				JspWriter jspWriter = pageContext.getOut();
 
-				jspWriter.write(namespace);
+				jspWriter.write(portletResponse.getNamespace());
 			}
 		}
 		catch (Exception exception) {

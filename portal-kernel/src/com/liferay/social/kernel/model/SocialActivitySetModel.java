@@ -276,4 +276,7 @@ public interface SocialActivitySetModel
 	 */
 	public void setActivityCount(int activityCount);
 
+	@Override
+	public SocialActivitySet cloneWithOriginalValues();
+
 }

@@ -42,11 +42,11 @@ public class TargetPlatformRootProjectConfigurator implements Plugin<Project> {
 		new TargetPlatformRootProjectConfigurator();
 
 	@Override
-	public void apply(final Project project) {
+	public void apply(Project project) {
 		WorkspaceExtension workspaceExtension = GradleUtil.getExtension(
 			(ExtensionAware)project.getGradle(), WorkspaceExtension.class);
 
-		final String targetPlatformVersion =
+		String targetPlatformVersion =
 			workspaceExtension.getTargetPlatformVersion();
 
 		if (Validator.isNull(targetPlatformVersion)) {

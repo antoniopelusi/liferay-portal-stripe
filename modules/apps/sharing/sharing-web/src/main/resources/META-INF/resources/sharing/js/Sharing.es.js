@@ -96,7 +96,7 @@ const Sharing = ({
 	const [multiSelectValue, setMultiSelectValue] = useState('');
 	const [allowSharingChecked, setAllowSharingChecked] = useState(true);
 	const [sharingPermission, setSharingPermission] = useState('VIEW');
-	const emailValidationInProgress = useRef(false);
+	const emailValidationInProgressRef = useRef(false);
 
 	const closeDialog = () => {
 		Liferay.Util.getOpener().Liferay.fire('closeModal', {
@@ -170,7 +170,7 @@ const Sharing = ({
 
 	const handleItemsChange = useCallback(
 		(items) => {
-			emailValidationInProgress.current = true;
+			emailValidationInProgressRef.current = true;
 
 			Promise.all(
 				items.map((item) => {
@@ -213,7 +213,7 @@ const Sharing = ({
 						}));
 				})
 			).then((results) => {
-				emailValidationInProgress.current = false;
+				emailValidationInProgressRef.current = false;
 
 				const erroredResults = results.filter(({error}) => !!error);
 
@@ -242,12 +242,14 @@ const Sharing = ({
 	);
 
 	const handleChange = useCallback((value) => {
-		if (!emailValidationInProgress.current) {
+		if (!emailValidationInProgressRef.current) {
 			setMultiSelectValue(value);
+
+			if (value.trim() === '') {
+				setEmailAddressErrorMessages([]);
+			}
 		}
 	}, []);
-
-	const multiSelectFilter = useCallback(() => true, []);
 
 	const {resource} = useResource({
 		fetchOptions: {
@@ -281,7 +283,6 @@ const Sharing = ({
 							</label>
 
 							<ClayMultiSelect
-								filter={multiSelectFilter}
 								inputName={`${portletNamespace}userEmailAddress`}
 								inputValue={multiSelectValue}
 								items={selectedItems}
@@ -308,6 +309,7 @@ const Sharing = ({
 										: []
 								}
 							/>
+
 							<ClayForm.FeedbackGroup>
 								<ClayForm.Text>
 									{Liferay.Language.get(
@@ -392,7 +394,15 @@ const Sharing = ({
 							{Liferay.Language.get('cancel')}
 						</ClayButton>
 
-						<ClayButton displayType="primary" type="submit">
+						<ClayButton
+							disabled={
+								!selectedItems.length ||
+								!!emailAddressErrorMessages.length ||
+								multiSelectValue.trim() !== ''
+							}
+							displayType="primary"
+							type="submit"
+						>
 							{Liferay.Language.get('share')}
 						</ClayButton>
 					</ClayButton.Group>

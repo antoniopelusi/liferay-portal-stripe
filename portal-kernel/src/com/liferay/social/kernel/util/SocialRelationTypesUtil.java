@@ -22,7 +22,7 @@ import java.util.List;
 public class SocialRelationTypesUtil {
 
 	public static List<Integer> getAllSocialRelationTypes() {
-		return getSocialRelationTypes().getAllSocialRelationTypes();
+		return _socialRelationTypes.getAllSocialRelationTypes();
 	}
 
 	public static SocialRelationTypes getSocialRelationTypes() {
@@ -30,15 +30,15 @@ public class SocialRelationTypesUtil {
 	}
 
 	public static String getTypeLabel(int type) {
-		return getSocialRelationTypes().getTypeLabel(type);
+		return _socialRelationTypes.getTypeLabel(type);
 	}
 
 	public static boolean isTypeBi(int type) {
-		return getSocialRelationTypes().isTypeBi(type);
+		return _socialRelationTypes.isTypeBi(type);
 	}
 
 	public static boolean isTypeUni(int type) {
-		return getSocialRelationTypes().isTypeUni(type);
+		return _socialRelationTypes.isTypeUni(type);
 	}
 
 	public void setSocialRelationTypes(

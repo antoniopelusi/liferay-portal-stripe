@@ -12,52 +12,85 @@
  * details.
  */
 
+import {COLLECTION_APPLIED_FILTERS_FRAGMENT_ENTRY_KEY} from '../../../../../app/config/constants/collectionAppliedFiltersFragmentKey';
+import {COLLECTION_FILTER_FRAGMENT_ENTRY_KEY} from '../../../../../app/config/constants/collectionFilterFragmentEntryKey';
+import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../app/config/constants/editableFragmentEntryProcessor';
 import {EDITABLE_TYPES} from '../../../../../app/config/constants/editableTypes';
-import {FRAGMENT_CONFIGURATION_ROLES} from '../../../../../app/config/constants/fragmentConfigurationRoles';
 import {ITEM_TYPES} from '../../../../../app/config/constants/itemTypes';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../app/config/constants/layoutDataItemTypes';
 import {VIEWPORT_SIZES} from '../../../../../app/config/constants/viewportSizes';
+import {config} from '../../../../../app/config/index';
 import selectCanUpdateEditables from '../../../../../app/selectors/selectCanUpdateEditables';
 import selectCanUpdateItemConfiguration from '../../../../../app/selectors/selectCanUpdateItemConfiguration';
-import {CollectionGeneralPanel} from '../components/item-configuration-panels/CollectionGeneralPanel';
+import {CollectionAppliedFiltersGeneralPanel} from '../components/item-configuration-panels/CollectionAppliedFiltersGeneralPanel';
+import {CollectionFilterGeneralPanel} from '../components/item-configuration-panels/CollectionFilterGeneralPanel';
+import ContainerAdvancedPanel from '../components/item-configuration-panels/ContainerAdvancedPanel';
 import ContainerGeneralPanel from '../components/item-configuration-panels/ContainerGeneralPanel';
 import {ContainerStylesPanel} from '../components/item-configuration-panels/ContainerStylesPanel';
 import EditableLinkPanel from '../components/item-configuration-panels/EditableLinkPanel';
+import {FragmentAdvancedPanel} from '../components/item-configuration-panels/FragmentAdvancedPanel';
 import {FragmentGeneralPanel} from '../components/item-configuration-panels/FragmentGeneralPanel';
 import {FragmentStylesPanel} from '../components/item-configuration-panels/FragmentStylesPanel';
 import ImageSourcePanel from '../components/item-configuration-panels/ImageSourcePanel';
 import {MappingPanel} from '../components/item-configuration-panels/MappingPanel';
+import {RowAdvancedPanel} from '../components/item-configuration-panels/RowAdvancedPanel';
 import {RowGeneralPanel} from '../components/item-configuration-panels/RowGeneralPanel';
 import {RowStylesPanel} from '../components/item-configuration-panels/RowStylesPanel';
+import {CollectionGeneralPanel} from '../components/item-configuration-panels/collection-general-panel/CollectionGeneralPanel';
+
+const FRAGMENT_WITH_CUSTOM_PANEL = [
+	COLLECTION_FILTER_FRAGMENT_ENTRY_KEY,
+	COLLECTION_APPLIED_FILTERS_FRAGMENT_ENTRY_KEY,
+];
 
 export const PANEL_IDS = {
+	collectionAppliedFiltersGeneral: 'collectionAppliedFiltersGeneral',
+	collectionFilterGeneral: 'collectionFilterGeneral',
 	collectionGeneral: 'collectionGeneral',
+	containerAdvanced: 'containerAdvanced',
 	containerGeneral: 'containerGeneral',
 	containerStyles: 'containerStyles',
 	editableLink: 'editableLink',
 	editableMapping: 'editableMapping',
+	fragmentAdvanced: 'fragmentAdvanced',
 	fragmentGeneral: 'fragmentGeneral',
 	fragmentStyles: 'fragmentStyles',
 	imageSource: 'imageSource',
+	rowAdvanced: 'rowAdvanced',
 	rowGeneral: 'rowGeneral',
 	rowStyles: 'rowStyles',
 };
 
 export const PANELS = {
+	[PANEL_IDS.collectionAppliedFiltersGeneral]: {
+		component: CollectionAppliedFiltersGeneralPanel,
+		label: Liferay.Language.get('general'),
+		priority: 2,
+	},
+	[PANEL_IDS.collectionFilterGeneral]: {
+		component: CollectionFilterGeneralPanel,
+		label: Liferay.Language.get('general'),
+		priority: 2,
+	},
 	[PANEL_IDS.collectionGeneral]: {
 		component: CollectionGeneralPanel,
 		label: Liferay.Language.get('general'),
 		priority: 0,
 	},
+	[PANEL_IDS.containerAdvanced]: {
+		component: ContainerAdvancedPanel,
+		label: Liferay.Language.get('advanced'),
+		priority: 0,
+	},
 	[PANEL_IDS.containerGeneral]: {
 		component: ContainerGeneralPanel,
 		label: Liferay.Language.get('general'),
-		priority: 0,
+		priority: 2,
 	},
 	[PANEL_IDS.containerStyles]: {
 		component: ContainerStylesPanel,
 		label: Liferay.Language.get('styles'),
-		priority: 0,
+		priority: 1,
 	},
 	[PANEL_IDS.editableLink]: {
 		component: EditableLinkPanel,
@@ -69,34 +102,44 @@ export const PANELS = {
 		label: Liferay.Language.get('mapping'),
 		priority: 1,
 	},
+	[PANEL_IDS.fragmentAdvanced]: {
+		component: FragmentAdvancedPanel,
+		label: Liferay.Language.get('advanced'),
+		priority: 0,
+	},
 	[PANEL_IDS.fragmentGeneral]: {
 		component: FragmentGeneralPanel,
 		label: Liferay.Language.get('general'),
-		priority: 1,
+		priority: 2,
 	},
 	[PANEL_IDS.fragmentStyles]: {
 		component: FragmentStylesPanel,
 		label: Liferay.Language.get('styles'),
-		priority: 0,
+		priority: 1,
 	},
 	[PANEL_IDS.imageSource]: {
 		component: ImageSourcePanel,
 		label: Liferay.Language.get('image-source'),
 		priority: 3,
 	},
+	[PANEL_IDS.rowAdvanced]: {
+		component: RowAdvancedPanel,
+		label: Liferay.Language.get('advanced'),
+		priority: 0,
+	},
 	[PANEL_IDS.rowGeneral]: {
 		component: RowGeneralPanel,
 		label: Liferay.Language.get('general'),
-		priority: 1,
+		priority: 2,
 	},
 	[PANEL_IDS.rowStyles]: {
 		component: RowStylesPanel,
 		label: Liferay.Language.get('styles'),
-		priority: 0,
+		priority: 1,
 	},
 };
 
-export const selectPanels = (activeItemId, activeItemType, state) => {
+export function selectPanels(activeItemId, activeItemType, state) {
 	let activeItem = null;
 	let panelsIds = {};
 
@@ -106,13 +149,21 @@ export const selectPanels = (activeItemId, activeItemType, state) => {
 	else if (activeItemType === ITEM_TYPES.editable) {
 		const [fragmentEntryLinkId] = activeItemId.split('-');
 
-		const {itemId} =
-			Object.values(state.layoutData.items).find(
-				(item) =>
-					item.config.fragmentEntryLinkId === fragmentEntryLinkId
-			) || {};
+		const editableId = activeItemId.substr(
+			activeItemId.indexOf('-') + 1,
+			activeItemId.length
+		);
 
-		activeItem = state.editables[itemId]?.[activeItemId];
+		activeItem = {
+			editableId,
+			editableValueNamespace: EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
+			fragmentEntryLinkId,
+			itemId: activeItemId,
+			type:
+				state.fragmentEntryLinks[fragmentEntryLinkId].editableTypes[
+					editableId
+				],
+		};
 	}
 
 	if (!activeItem) {
@@ -140,46 +191,57 @@ export const selectPanels = (activeItemId, activeItemType, state) => {
 				activeItem.type !== EDITABLE_TYPES.backgroundImage,
 		};
 	}
+	else if (!canUpdateItemConfiguration) {
+		return {activeItem, panelsIds};
+	}
 	else if (activeItem.type === LAYOUT_DATA_ITEM_TYPES.collection) {
 		panelsIds = {
 			[PANEL_IDS.collectionGeneral]:
-				state.selectedViewportSize === VIEWPORT_SIZES.desktop &&
-				canUpdateItemConfiguration,
+				config.featureFlagLps119551 ||
+				state.selectedViewportSize === VIEWPORT_SIZES.desktop,
 		};
 	}
 	else if (activeItem.type === LAYOUT_DATA_ITEM_TYPES.container) {
 		panelsIds = {
-			[PANEL_IDS.containerGeneral]:
-				state.selectedViewportSize === VIEWPORT_SIZES.desktop &&
-				canUpdateItemConfiguration,
-			[PANEL_IDS.containerStyles]: canUpdateItemConfiguration,
+			[PANEL_IDS.containerAdvanced]:
+				config.fragmentAdvancedOptionsEnabled &&
+				state.selectedViewportSize === VIEWPORT_SIZES.desktop,
+			[PANEL_IDS.containerGeneral]: true,
+			[PANEL_IDS.containerStyles]: true,
 		};
 	}
 	else if (activeItem.type === LAYOUT_DATA_ITEM_TYPES.fragment) {
-		const fieldSets =
-			state.fragmentEntryLinks[activeItem.config.fragmentEntryLinkId]
-				?.configuration?.fieldSets ?? [];
+		const fragmentEntryLink =
+			state.fragmentEntryLinks[activeItem.config.fragmentEntryLinkId];
+
+		const fragmentEntryKey = fragmentEntryLink.fragmentEntryKey;
 
 		panelsIds = {
-			[PANEL_IDS.fragmentStyles]: canUpdateItemConfiguration,
-			[PANEL_IDS.fragmentGeneral]:
-				state.selectedViewportSize === VIEWPORT_SIZES.desktop &&
-				canUpdateItemConfiguration &&
-				fieldSets.some(
-					(fieldSet) =>
-						fieldSet.configurationRole !==
-						FRAGMENT_CONFIGURATION_ROLES.style
-				),
+			[PANEL_IDS.fragmentAdvanced]:
+				config.fragmentAdvancedOptionsEnabled &&
+				state.selectedViewportSize === VIEWPORT_SIZES.desktop,
+			[PANEL_IDS.fragmentStyles]: true,
+			[PANEL_IDS.fragmentGeneral]: !FRAGMENT_WITH_CUSTOM_PANEL.includes(
+				fragmentEntryKey
+			),
+			[PANEL_IDS.collectionAppliedFiltersGeneral]:
+				fragmentEntryKey ===
+					COLLECTION_APPLIED_FILTERS_FRAGMENT_ENTRY_KEY &&
+				state.selectedViewportSize === VIEWPORT_SIZES.desktop,
+			[PANEL_IDS.collectionFilterGeneral]:
+				fragmentEntryKey === COLLECTION_FILTER_FRAGMENT_ENTRY_KEY &&
+				state.selectedViewportSize === VIEWPORT_SIZES.desktop,
 		};
 	}
 	else if (activeItem.type === LAYOUT_DATA_ITEM_TYPES.row) {
 		panelsIds = {
-			[PANEL_IDS.rowStyles]: canUpdateItemConfiguration,
-			[PANEL_IDS.rowGeneral]:
-				canUpdateItemConfiguration &&
-				state.selectedViewportSize === VIEWPORT_SIZES.desktop,
+			[PANEL_IDS.rowStyles]: true,
+			[PANEL_IDS.rowGeneral]: true,
+			[PANEL_IDS.rowAdvanced]:
+				state.selectedViewportSize === VIEWPORT_SIZES.desktop &&
+				config.fragmentAdvancedOptionsEnabled,
 		};
 	}
 
 	return {activeItem, panelsIds};
-};
+}

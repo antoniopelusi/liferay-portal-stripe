@@ -15,8 +15,11 @@
 package com.liferay.account.internal.security.permission.contributor;
 
 import com.liferay.account.constants.AccountRoleConstants;
+import com.liferay.account.internal.manager.CurrentAccountEntryManagerStore;
 import com.liferay.account.model.AccountEntry;
+import com.liferay.account.model.AccountRole;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
+import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -28,6 +31,7 @@ import com.liferay.portal.kernel.security.permission.contributor.RoleContributor
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
@@ -49,24 +53,44 @@ public class AccountRoleContributor implements RoleContributor {
 			Group group = _groupLocalService.getGroup(
 				roleCollection.getGroupId());
 
-			if (!Objects.equals(
-					AccountEntry.class.getName(), group.getClassName())) {
+			User user = roleCollection.getUser();
 
+			if (group.getCompanyId() != user.getCompanyId()) {
 				return;
 			}
 
-			User user = roleCollection.getUser();
+			if (!Objects.equals(
+					AccountEntry.class.getName(), group.getClassName())) {
 
-			if (_accountEntryUserRelLocalService.hasAccountEntryUserRel(
-					group.getClassPK(), user.getUserId())) {
+				AccountEntry currentAccountEntry =
+					_currentAccountEntryManagerStore.getCurrentAccountEntry(
+						roleCollection.getGroupId(), user.getUserId());
 
-				_addRoleId(
-					roleCollection,
-					AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_MEMBER);
+				if ((currentAccountEntry != null) &&
+					(currentAccountEntry.getAccountEntryId() > 0)) {
+
+					List<AccountRole> accountRoles =
+						_accountRoleLocalService.getAccountRoles(
+							currentAccountEntry.getAccountEntryId(),
+							user.getUserId());
+
+					for (AccountRole accountRole : accountRoles) {
+						roleCollection.addRoleId(accountRole.getRoleId());
+					}
+				}
+			}
+			else {
+				if (_accountEntryUserRelLocalService.hasAccountEntryUserRel(
+						group.getClassPK(), user.getUserId())) {
+
+					_addRoleId(
+						roleCollection,
+						AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_MEMBER);
+				}
 			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 	}
 
@@ -84,6 +108,12 @@ public class AccountRoleContributor implements RoleContributor {
 
 	@Reference
 	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
+
+	@Reference
+	private AccountRoleLocalService _accountRoleLocalService;
+
+	@Reference
+	private CurrentAccountEntryManagerStore _currentAccountEntryManagerStore;
 
 	@Reference
 	private GroupLocalService _groupLocalService;

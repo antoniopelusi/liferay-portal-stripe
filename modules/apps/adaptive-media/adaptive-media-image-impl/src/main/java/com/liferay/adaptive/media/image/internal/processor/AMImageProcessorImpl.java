@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.repository.model.FileVersion;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.Date;
 import java.util.Optional;
 
 import org.osgi.service.component.annotations.Component;
@@ -97,13 +98,11 @@ public final class AMImageProcessorImpl implements AMImageProcessor {
 			fileVersion.getFileVersionId());
 
 		try {
-			FileEntry fileEntry = fileVersion.getFileEntry();
-
-			if ((amImageEntry != null) && !fileEntry.isCheckedOut()) {
+			if (!_isUpdateImageEntry(fileVersion, amImageEntry)) {
 				return;
 			}
 
-			if ((amImageEntry != null) && fileEntry.isCheckedOut()) {
+			if (amImageEntry != null) {
 				_amImageEntryLocalService.deleteAMImageEntry(
 					amImageEntry.getAmImageEntryId());
 			}
@@ -132,6 +131,27 @@ public final class AMImageProcessorImpl implements AMImageProcessor {
 		catch (IOException ioException) {
 			throw new AMRuntimeException.IOException(ioException);
 		}
+	}
+
+	private boolean _isUpdateImageEntry(
+			FileVersion fileVersion, AMImageEntry amImageEntry)
+		throws PortalException {
+
+		if (amImageEntry == null) {
+			return true;
+		}
+
+		FileEntry fileEntry = fileVersion.getFileEntry();
+
+		Date amImageEntryCreationDate = amImageEntry.getCreateDate();
+
+		if (fileEntry.isCheckedOut() ||
+			amImageEntryCreationDate.before(fileVersion.getModifiedDate())) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	@Reference

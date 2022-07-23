@@ -1,0 +1,13 @@
+Bundle-Name: Liferay Commerce Order Rule API
+Bundle-SymbolicName: com.liferay.commerce.order.rule.api
+Bundle-Version: 4.1.1
+Export-Package:\
+	com.liferay.commerce.order.rule.configuration,\
+	com.liferay.commerce.order.rule.constants,\
+	com.liferay.commerce.order.rule.entry.type,\
+	com.liferay.commerce.order.rule.exception,\
+	com.liferay.commerce.order.rule.model,\
+	com.liferay.commerce.order.rule.permission,\
+	com.liferay.commerce.order.rule.service,\
+	com.liferay.commerce.order.rule.service.persistence
+Liferay-Enterprise-App: product.id=9a473157-06a6-44b6-b017-a360ffaf5f38

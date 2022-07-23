@@ -16,6 +16,8 @@ package com.liferay.asset.categories.admin.web.internal.exportimport.data.handle
 
 import com.liferay.asset.category.property.model.AssetCategoryProperty;
 import com.liferay.asset.category.property.service.AssetCategoryPropertyLocalService;
+import com.liferay.asset.display.page.model.AssetDisplayPageEntry;
+import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
 import com.liferay.asset.kernel.model.AssetVocabulary;
@@ -31,6 +33,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -169,6 +172,8 @@ public class AssetCategoryStagedModelDataHandler
 
 		categoryElement.addAttribute("path", categoryPath);
 
+		_exportAssetDisplayPage(portletDataContext, category);
+
 		portletDataContext.addReferenceElement(
 			category, categoryElement, category,
 			PortletDataContext.REFERENCE_TYPE_DEPENDENCY, false);
@@ -248,27 +253,28 @@ public class AssetCategoryStagedModelDataHandler
 			category.getUuid(), portletDataContext.getScopeGroupId());
 
 		if (existingCategory == null) {
-			String name = getCategoryName(
+			String name = _getCategoryName(
 				null, portletDataContext.getScopeGroupId(), parentCategoryId,
 				category.getName(), vocabularyId, 2);
 
 			serviceContext.setUuid(category.getUuid());
 
 			importedCategory = _assetCategoryLocalService.addCategory(
-				userId, portletDataContext.getScopeGroupId(), parentCategoryId,
-				getCategoryTitleMap(
+				category.getExternalReferenceCode(), userId,
+				portletDataContext.getScopeGroupId(), parentCategoryId,
+				_getCategoryTitleMap(
 					portletDataContext.getScopeGroupId(), category, name),
 				category.getDescriptionMap(), vocabularyId, properties,
 				serviceContext);
 		}
 		else {
-			String name = getCategoryName(
+			String name = _getCategoryName(
 				category.getUuid(), portletDataContext.getScopeGroupId(),
 				parentCategoryId, category.getName(), vocabularyId, 2);
 
 			importedCategory = _assetCategoryLocalService.updateCategory(
 				userId, existingCategory.getCategoryId(), parentCategoryId,
-				getCategoryTitleMap(
+				_getCategoryTitleMap(
 					portletDataContext.getScopeGroupId(), category, name),
 				category.getDescriptionMap(), vocabularyId, properties,
 				serviceContext);
@@ -286,43 +292,8 @@ public class AssetCategoryStagedModelDataHandler
 		portletDataContext.importPermissions(
 			AssetCategory.class, category.getCategoryId(),
 			importedCategory.getCategoryId());
-	}
 
-	protected String getCategoryName(
-			String uuid, long groupId, long parentCategoryId, String name,
-			long vocabularyId, int count)
-		throws Exception {
-
-		AssetCategory category = _assetCategoryLocalService.fetchCategory(
-			groupId, parentCategoryId, name, vocabularyId);
-
-		if ((category == null) ||
-			(Validator.isNotNull(uuid) && uuid.equals(category.getUuid()))) {
-
-			return name;
-		}
-
-		name = StringUtil.appendParentheticalSuffix(name, count);
-
-		return getCategoryName(
-			uuid, groupId, parentCategoryId, name, vocabularyId, ++count);
-	}
-
-	protected Map<Locale, String> getCategoryTitleMap(
-			long groupId, AssetCategory category, String name)
-		throws PortalException {
-
-		Map<Locale, String> titleMap = category.getTitleMap();
-
-		Locale locale = _portal.getSiteDefaultLocale(groupId);
-
-		if (titleMap.isEmpty() || !Objects.equals(category.getName(), name) ||
-			!titleMap.containsKey(locale)) {
-
-			titleMap.put(locale, name);
-		}
-
-		return titleMap;
+		_importAssetDisplayPage(portletDataContext, category, importedCategory);
 	}
 
 	private boolean _exists(
@@ -339,12 +310,136 @@ public class AssetCategoryStagedModelDataHandler
 		return false;
 	}
 
+	private void _exportAssetDisplayPage(
+			PortletDataContext portletDataContext, AssetCategory category)
+		throws Exception {
+
+		AssetDisplayPageEntry assetDisplayPageEntry =
+			_assetDisplayPageEntryLocalService.fetchAssetDisplayPageEntry(
+				category.getGroupId(),
+				_portal.getClassNameId(AssetCategory.class),
+				category.getCategoryId());
+
+		if (assetDisplayPageEntry != null) {
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, category, assetDisplayPageEntry,
+				PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
+		}
+	}
+
+	private String _getCategoryName(
+			String uuid, long groupId, long parentCategoryId, String name,
+			long vocabularyId, int count)
+		throws Exception {
+
+		AssetCategory category = _assetCategoryLocalService.fetchCategory(
+			groupId, parentCategoryId, name, vocabularyId);
+
+		if ((category == null) ||
+			(Validator.isNotNull(uuid) && uuid.equals(category.getUuid()))) {
+
+			return name;
+		}
+
+		name = StringUtil.appendParentheticalSuffix(name, count);
+
+		return _getCategoryName(
+			uuid, groupId, parentCategoryId, name, vocabularyId, ++count);
+	}
+
+	private Map<Locale, String> _getCategoryTitleMap(
+			long groupId, AssetCategory category, String name)
+		throws Exception {
+
+		Map<Locale, String> titleMap = category.getTitleMap();
+
+		Locale locale = _portal.getSiteDefaultLocale(groupId);
+
+		if (titleMap.isEmpty() || !Objects.equals(category.getName(), name) ||
+			!titleMap.containsKey(locale)) {
+
+			titleMap.put(locale, name);
+		}
+
+		return titleMap;
+	}
+
+	private void _importAssetDisplayPage(
+			PortletDataContext portletDataContext, AssetCategory category,
+			AssetCategory importedCategory)
+		throws Exception {
+
+		List<Element> assetDisplayPageEntryElements =
+			portletDataContext.getReferenceDataElements(
+				category, AssetDisplayPageEntry.class);
+
+		Map<Long, Long> categoryNewPrimaryKeys =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				AssetCategory.class);
+
+		categoryNewPrimaryKeys.put(
+			category.getCategoryId(), importedCategory.getCategoryId());
+
+		if (ListUtil.isEmpty(assetDisplayPageEntryElements)) {
+			AssetDisplayPageEntry existingAssetDisplayPageEntry =
+				_assetDisplayPageEntryLocalService.fetchAssetDisplayPageEntry(
+					importedCategory.getGroupId(),
+					_portal.getClassNameId(AssetCategory.class.getName()),
+					importedCategory.getCategoryId());
+
+			if (existingAssetDisplayPageEntry != null) {
+				_assetDisplayPageEntryLocalService.deleteAssetDisplayPageEntry(
+					existingAssetDisplayPageEntry);
+			}
+
+			return;
+		}
+
+		for (Element assetDisplayPageEntryElement :
+				assetDisplayPageEntryElements) {
+
+			String path = assetDisplayPageEntryElement.attributeValue("path");
+
+			AssetDisplayPageEntry assetDisplayPageEntry =
+				(AssetDisplayPageEntry)portletDataContext.getZipEntryAsObject(
+					path);
+
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, assetDisplayPageEntryElement);
+
+			Map<Long, Long> assetDisplayPageEntries =
+				(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+					AssetDisplayPageEntry.class);
+
+			long assetDisplayPageEntryId = MapUtil.getLong(
+				assetDisplayPageEntries,
+				assetDisplayPageEntry.getAssetDisplayPageEntryId(),
+				assetDisplayPageEntry.getAssetDisplayPageEntryId());
+
+			AssetDisplayPageEntry existingAssetDisplayPageEntry =
+				_assetDisplayPageEntryLocalService.fetchAssetDisplayPageEntry(
+					assetDisplayPageEntryId);
+
+			if (existingAssetDisplayPageEntry != null) {
+				existingAssetDisplayPageEntry.setClassPK(
+					importedCategory.getCategoryId());
+
+				_assetDisplayPageEntryLocalService.updateAssetDisplayPageEntry(
+					existingAssetDisplayPageEntry);
+			}
+		}
+	}
+
 	@Reference
 	private AssetCategoryLocalService _assetCategoryLocalService;
 
 	@Reference
 	private AssetCategoryPropertyLocalService
 		_assetCategoryPropertyLocalService;
+
+	@Reference
+	private AssetDisplayPageEntryLocalService
+		_assetDisplayPageEntryLocalService;
 
 	@Reference
 	private AssetVocabularyLocalService _assetVocabularyLocalService;

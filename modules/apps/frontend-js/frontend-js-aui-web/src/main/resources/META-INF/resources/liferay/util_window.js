@@ -24,9 +24,9 @@ AUI.add(
 		var Util = Liferay.Util;
 		var Window = Util.Window;
 
-		var IE9 = IE == 9;
+		var IE9 = IE === 9;
 
-		var IE11 = IE == 11;
+		var IE11 = IE === 11;
 
 		var setWidth = function (modal, width) {
 			if (IE9) {
@@ -93,9 +93,9 @@ AUI.add(
 					},
 				},
 			},
-
+			// eslint-disable-next-line @liferay/aui/no-modal
 			EXTENDS: A.Modal,
-
+			// eslint-disable-next-line @liferay/aui/no-modal
 			NAME: A.Modal.NAME,
 
 			prototype: {},
@@ -214,9 +214,9 @@ AUI.add(
 						);
 					}
 
-					var iframeURL = new A.Url(uri);
+					const iframeURL = new URL(uri);
 
-					var namespace = iframeURL.getParameter('p_p_id');
+					const namespace = iframeURL.searchParams.get('p_p_id');
 
 					var bodyCssClass = ['dialog-iframe-popup'];
 
@@ -227,8 +227,8 @@ AUI.add(
 						bodyCssClass.push(config.dialogIframe.bodyCssClass);
 					}
 
-					iframeURL.addParameter(
-						'_' + namespace + '_bodyCssClass',
+					iframeURL.searchParams.set(
+						`_${namespace}_bodyCssClass`,
 						bodyCssClass.join(' ')
 					);
 
@@ -238,45 +238,43 @@ AUI.add(
 						bodyCssClass: '',
 					};
 
-					dialogIframeConfig = A.merge(
-						defaultDialogIframeConfig,
-						config.dialogIframe,
-						{
-							bindLoadHandler() {
-								var instance = this;
+					dialogIframeConfig = {
+						...defaultDialogIframeConfig,
+						...config.dialogIframe,
+						bindLoadHandler() {
+							var instance = this;
 
-								var modal = instance.get('host');
+							var modal = instance.get('host');
 
-								var popupReady = false;
+							var popupReady = false;
 
-								var liferayHandles = modal._liferayHandles;
+							var liferayHandles = modal._liferayHandles;
 
-								liferayHandles.push(
-									Liferay.on('popupReady', (event) => {
-										instance.fire('load', event);
+							liferayHandles.push(
+								Liferay.on('popupReady', (event) => {
+									instance.fire('load', event);
 
-										popupReady = true;
-									})
-								);
+									popupReady = true;
+								})
+							);
 
-								liferayHandles.push(
-									instance.node.on('load', () => {
-										if (!popupReady) {
-											Liferay.fire('popupReady', {
-												windowName: iframeId,
-											});
-										}
+							liferayHandles.push(
+								instance.node.on('load', () => {
+									if (!popupReady) {
+										Liferay.fire('popupReady', {
+											windowName: iframeId,
+										});
+									}
 
-										popupReady = false;
-									})
-								);
-							},
+									popupReady = false;
+								})
+							);
+						},
 
-							iframeId,
-							iframeTitle: config.title || '',
-							uri,
-						}
-					);
+						iframeId,
+						iframeTitle: config.title || '',
+						uri,
+					};
 				}
 
 				return dialogIframeConfig;
@@ -304,16 +302,12 @@ AUI.add(
 						});
 					}
 
-					modal = new LiferayModal(
-						A.merge(
-							{
-								cssClass: 'modal-full-screen',
-								headerContent: titleNode,
-								id,
-							},
-							modalConfig
-						)
-					);
+					modal = new LiferayModal({
+						cssClass: 'modal-full-screen',
+						headerContent: titleNode,
+						id,
+						...modalConfig,
+					});
 
 					Liferay.once('screenLoad', () => {
 						modal.destroy();
@@ -352,10 +346,15 @@ AUI.add(
 						try {
 							originalFn.call(this);
 						}
-						catch (err) {}
+						catch (error) {}
 					};
 
-					modal.get('boundingBox').addClass('dialog-iframe-modal');
+					var boundingBox = modal.get('boundingBox');
+
+					boundingBox.addClass('cadmin');
+					boundingBox.addClass('dialog-iframe-modal');
+					boundingBox.addClass('modal');
+					boundingBox.addClass('show');
 				}
 
 				if (!Lang.isValue(config.title)) {
@@ -372,7 +371,10 @@ AUI.add(
 			_getWindowConfig(config) {
 				var instance = this;
 
-				var modalConfig = A.merge(instance.DEFAULTS, config.dialog);
+				var modalConfig = {
+					...instance.DEFAULTS,
+					...config.dialog,
+				};
 
 				var height = modalConfig.height;
 				var width = modalConfig.width;
@@ -459,7 +461,7 @@ AUI.add(
 
 						width *= modal.get('autoWidthRatio');
 
-						if (width != widthInitial) {
+						if (width !== widthInitial) {
 							modal.set('width', width);
 						}
 						else {
@@ -533,7 +535,7 @@ AUI.add(
 
 				var mask = modal.get('maskNode');
 
-				if (mask.getStyle('position') == 'absolute') {
+				if (mask.getStyle('position') === 'absolute') {
 					mask.setStyle('height', '100%');
 					mask.setStyle(
 						'top',

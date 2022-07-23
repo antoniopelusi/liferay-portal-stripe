@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.scheduler.SchedulerException;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalRunMode;
@@ -57,7 +58,8 @@ public class DispatchTriggerLocalServiceImpl
 
 	@Override
 	public DispatchTrigger addDispatchTrigger(
-			long userId, String dispatchTaskExecutorType,
+			String externalReferenceCode, long userId,
+			String dispatchTaskExecutorType,
 			UnicodeProperties dispatchTaskSettingsUnicodeProperties,
 			String name, boolean system)
 		throws PortalException {
@@ -69,6 +71,7 @@ public class DispatchTriggerLocalServiceImpl
 		DispatchTrigger dispatchTrigger = dispatchTriggerPersistence.create(
 			counterLocalService.increment());
 
+		dispatchTrigger.setExternalReferenceCode(externalReferenceCode);
 		dispatchTrigger.setCompanyId(user.getCompanyId());
 		dispatchTrigger.setUserId(user.getUserId());
 		dispatchTrigger.setUserName(user.getFullName());
@@ -94,7 +97,10 @@ public class DispatchTriggerLocalServiceImpl
 			DispatchTrigger dispatchTrigger)
 		throws PortalException {
 
-		if (dispatchTrigger.isSystem() && !PortalRunMode.isTestMode()) {
+		if (dispatchTrigger.isSystem() &&
+			!CompanyThreadLocal.isDeleteInProcess() &&
+			!PortalRunMode.isTestMode()) {
+
 			return dispatchTrigger;
 		}
 
@@ -131,6 +137,21 @@ public class DispatchTriggerLocalServiceImpl
 	}
 
 	@Override
+	public Date fetchNextFireDate(long dispatchTriggerId) {
+		try {
+			return getNextFireDate(dispatchTriggerId);
+		}
+		catch (PortalException portalException) {
+			_log.error(
+				"Unable to resolve next fire date for dispatch trigger ID " +
+					dispatchTriggerId,
+				portalException);
+		}
+
+		return null;
+	}
+
+	@Override
 	public Date fetchPreviousFireDate(long dispatchTriggerId) {
 		DispatchTrigger dispatchTrigger =
 			dispatchTriggerPersistence.fetchByPrimaryKey(dispatchTriggerId);
@@ -154,13 +175,11 @@ public class DispatchTriggerLocalServiceImpl
 		}
 		catch (SchedulerException schedulerException) {
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(3);
-
-				sb.append("Unable to fetch previous fire date for dispatch ");
-				sb.append("trigger ID ");
-				sb.append(dispatchTriggerId);
-
-				_log.warn(sb.toString(), schedulerException);
+				_log.warn(
+					StringBundler.concat(
+						"Unable to fetch previous fire date for dispatch ",
+						"trigger ID ", dispatchTriggerId),
+					schedulerException);
 			}
 		}
 
@@ -204,15 +223,8 @@ public class DispatchTriggerLocalServiceImpl
 			DispatchTaskClusterMode.valueOf(
 				dispatchTrigger.getDispatchTaskClusterMode());
 
-		try {
-			return _dispatchTriggerHelper.getNextFireDate(
-				dispatchTriggerId, dispatchTaskClusterMode.getStorageType());
-		}
-		catch (SchedulerException schedulerException) {
-			_log.error(schedulerException, schedulerException);
-		}
-
-		return null;
+		return _dispatchTriggerHelper.getNextFireDate(
+			dispatchTriggerId, dispatchTaskClusterMode.getStorageType());
 	}
 
 	@Override
@@ -317,18 +329,15 @@ public class DispatchTriggerLocalServiceImpl
 
 		if (Validator.isNull(name)) {
 			throw new DispatchTriggerNameException(
-				"Dispatch trigger name is null for company ID " + companyId);
+				"Dispatch trigger name is null for company " + companyId);
 		}
 
 		DispatchTrigger dispatchTrigger = dispatchTriggerPersistence.fetchByC_N(
 			companyId, name);
 
-		if (dispatchTrigger == null) {
-			return;
-		}
-
-		if ((dispatchTriggerId > 0) &&
-			(dispatchTrigger.getDispatchTriggerId() == dispatchTriggerId)) {
+		if ((dispatchTrigger == null) ||
+			((dispatchTriggerId > 0) &&
+			 (dispatchTrigger.getDispatchTriggerId() == dispatchTriggerId))) {
 
 			return;
 		}
@@ -336,7 +345,7 @@ public class DispatchTriggerLocalServiceImpl
 		throw new DuplicateDispatchTriggerException(
 			StringBundler.concat(
 				"Dispatch trigger name \"", name,
-				"\" already exists for company ID ", companyId));
+				"\" already exists for company ", companyId));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

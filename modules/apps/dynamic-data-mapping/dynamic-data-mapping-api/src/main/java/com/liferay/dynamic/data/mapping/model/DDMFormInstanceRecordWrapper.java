@@ -182,6 +182,11 @@ public class DDMFormInstanceRecordWrapper
 		}
 	}
 
+	@Override
+	public DDMFormInstanceRecord cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ddm form instance record.
 	 *

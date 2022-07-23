@@ -54,6 +54,7 @@ public class ObjectEntryWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("objectDefinitionId", getObjectDefinitionId());
 		attributes.put("lastPublishDate", getLastPublishDate());
 		attributes.put("status", getStatus());
@@ -120,6 +121,13 @@ public class ObjectEntryWrapper
 			setModifiedDate(modifiedDate);
 		}
 
+		String externalReferenceCode = (String)attributes.get(
+			"externalReferenceCode");
+
+		if (externalReferenceCode != null) {
+			setExternalReferenceCode(externalReferenceCode);
+		}
+
 		Long objectDefinitionId = (Long)attributes.get("objectDefinitionId");
 
 		if (objectDefinitionId != null) {
@@ -157,6 +165,11 @@ public class ObjectEntryWrapper
 		}
 	}
 
+	@Override
+	public ObjectEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this object entry.
 	 *
@@ -175,6 +188,16 @@ public class ObjectEntryWrapper
 	@Override
 	public Date getCreateDate() {
 		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the external reference code of this object entry.
+	 *
+	 * @return the external reference code of this object entry
+	 */
+	@Override
+	public String getExternalReferenceCode() {
+		return model.getExternalReferenceCode();
 	}
 
 	/**
@@ -197,6 +220,11 @@ public class ObjectEntryWrapper
 		return model.getLastPublishDate();
 	}
 
+	@Override
+	public String getModelClassName() {
+		return model.getModelClassName();
+	}
+
 	/**
 	 * Returns the modified date of this object entry.
 	 *
@@ -215,6 +243,13 @@ public class ObjectEntryWrapper
 	@Override
 	public long getMvccVersion() {
 		return model.getMvccVersion();
+	}
+
+	@Override
+	public long getNonzeroGroupId()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getNonzeroGroupId();
 	}
 
 	/**
@@ -295,6 +330,13 @@ public class ObjectEntryWrapper
 	@Override
 	public Date getStatusDate() {
 		return model.getStatusDate();
+	}
+
+	@Override
+	public String getTitleValue()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getTitleValue();
 	}
 
 	/**
@@ -448,6 +490,16 @@ public class ObjectEntryWrapper
 	}
 
 	/**
+	 * Sets the external reference code of this object entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this object entry
+	 */
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		model.setExternalReferenceCode(externalReferenceCode);
+	}
+
+	/**
 	 * Sets the group ID of this object entry.
 	 *
 	 * @param groupId the group ID of this object entry
@@ -565,6 +617,11 @@ public class ObjectEntryWrapper
 	@Override
 	public void setStatusDate(Date statusDate) {
 		model.setStatusDate(statusDate);
+	}
+
+	@Override
+	public void setTransientValues(Map<String, Serializable> values) {
+		model.setTransientValues(values);
 	}
 
 	/**

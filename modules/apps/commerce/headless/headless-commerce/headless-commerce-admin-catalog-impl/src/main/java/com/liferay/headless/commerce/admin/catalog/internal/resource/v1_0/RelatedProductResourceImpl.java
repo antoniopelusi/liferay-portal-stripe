@@ -25,6 +25,7 @@ import com.liferay.headless.commerce.admin.catalog.internal.dto.v1_0.converter.R
 import com.liferay.headless.commerce.admin.catalog.internal.util.v1_0.RelatedProductUtil;
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.RelatedProductResource;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
@@ -52,6 +53,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	scope = ServiceScope.PROTOTYPE,
 	service = {NestedFieldSupport.class, RelatedProductResource.class}
 )
+@CTAware
 public class RelatedProductResourceImpl
 	extends BaseRelatedProductResourceImpl implements NestedFieldSupport {
 
@@ -78,7 +80,7 @@ public class RelatedProductResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with externalReferenceCode: " +
+				"Unable to find product with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -120,7 +122,7 @@ public class RelatedProductResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with externalReferenceCode: " +
+				"Unable to find product with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -148,7 +150,7 @@ public class RelatedProductResourceImpl
 		throws Exception {
 
 		CPDefinitionLink cpDefinitionLink =
-			RelatedProductUtil.upsertCPDefinitionLink(
+			RelatedProductUtil.addOrUpdateCPDefinitionLink(
 				_cpDefinitionLinkService, _cpDefinitionService, relatedProduct,
 				cpDefinition.getCPDefinitionId(),
 				_serviceContextHelper.getServiceContext(

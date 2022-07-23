@@ -18,7 +18,6 @@ import com.liferay.application.list.PanelAppRegistry;
 import com.liferay.application.list.PanelCategory;
 import com.liferay.application.list.PanelCategoryRegistry;
 import com.liferay.application.list.constants.PanelCategoryKeys;
-import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -42,8 +41,8 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true,
 	property = {
-		"product.navigation.control.menu.category.key=" + ProductNavigationControlMenuCategoryKeys.SITES,
-		"product.navigation.control.menu.entry.order:Integer=100"
+		"product.navigation.control.menu.category.key=" + ProductNavigationControlMenuCategoryKeys.USER,
+		"product.navigation.control.menu.entry.order:Integer=600"
 	},
 	service = ProductNavigationControlMenuEntry.class
 )
@@ -65,15 +64,6 @@ public class ApplicationsMenuApplicationMenuProductNavigationControlMenuEntry
 
 		if (!ApplicationsMenuUtil.isEnableApplicationsMenu(
 				themeDisplay.getCompanyId(), _configurationProvider)) {
-
-			return false;
-		}
-
-		PanelCategoryHelper panelCategoryHelper = new PanelCategoryHelper(
-			_panelAppRegistry, _panelCategoryRegistry);
-
-		if (!ApplicationsMenuUtil.isApplicationsMenuApp(
-				panelCategoryHelper, themeDisplay)) {
 
 			return false;
 		}

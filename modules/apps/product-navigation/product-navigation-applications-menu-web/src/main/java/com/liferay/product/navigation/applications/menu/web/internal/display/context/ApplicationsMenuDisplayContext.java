@@ -52,8 +52,6 @@ public class ApplicationsMenuDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		Company company = themeDisplay.getCompany();
-
 		return HashMapBuilder.<String, Object>put(
 			"liferayLogoURL",
 			() -> {
@@ -94,19 +92,23 @@ public class ApplicationsMenuDisplayContext {
 			"selectedPortletId", themeDisplay.getPpid()
 		).put(
 			"virtualInstance",
-			HashMapBuilder.<String, Object>put(
-				"label", company.getName()
-			).put(
-				"logoURL",
-				StringBundler.concat(
-					themeDisplay.getPathImage(), "/company_logo?img_id=",
-					company.getLogoId(), "&t=",
-					WebServerServletTokenUtil.getToken(company.getLogoId()))
-			).put(
-				"url",
-				PortalUtil.addPreservedParameters(
-					themeDisplay, themeDisplay.getURLPortal(), false, true)
-			).build()
+			() -> {
+				Company company = themeDisplay.getCompany();
+
+				return HashMapBuilder.<String, Object>put(
+					"label", company.getName()
+				).put(
+					"logoURL",
+					StringBundler.concat(
+						themeDisplay.getPathImage(), "/company_logo?img_id=",
+						company.getLogoId(), "&t=",
+						WebServerServletTokenUtil.getToken(company.getLogoId()))
+				).put(
+					"url",
+					PortalUtil.addPreservedParameters(
+						themeDisplay, themeDisplay.getURLPortal(), false, true)
+				).build();
+			}
 		).build();
 	}
 

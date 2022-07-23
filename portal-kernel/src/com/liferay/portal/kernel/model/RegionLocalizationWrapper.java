@@ -90,6 +90,11 @@ public class RegionLocalizationWrapper
 		}
 	}
 
+	@Override
+	public RegionLocalization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this region localization.
 	 *

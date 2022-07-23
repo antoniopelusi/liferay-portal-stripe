@@ -62,16 +62,13 @@ public class ContainerStyledLayoutStructureItem
 		return super.equals(object);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getWidthType()}
-	 */
-	@Deprecated
-	public String getContainerType() {
-		return _widthType;
-	}
-
+	@Override
 	public String getContentDisplay() {
 		return _contentDisplay;
+	}
+
+	public String getHtmlTag() {
+		return _htmlTag;
 	}
 
 	@Override
@@ -82,6 +79,12 @@ public class ContainerStyledLayoutStructureItem
 			"align", _align
 		).put(
 			"contentDisplay", _contentDisplay
+		).put(
+			"flexWrap", _flexWrap
+		).put(
+			"htmlTag", _htmlTag
+		).put(
+			"indexed", _indexed
 		).put(
 			"justify", _justify
 		).put(
@@ -100,15 +103,6 @@ public class ContainerStyledLayoutStructureItem
 		return _linkJSONObject;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getPaddingLeft()} and {@link #getPaddingRight()}
-	 */
-	@Deprecated
-	public int getPaddingHorizontal() {
-		return 0;
-	}
-
 	public String getWidthType() {
 		return _widthType;
 	}
@@ -118,57 +112,28 @@ public class ContainerStyledLayoutStructureItem
 		return HashUtil.hash(0, getItemId());
 	}
 
+	public boolean isIndexed() {
+		return _indexed;
+	}
+
 	public void setAlign(String align) {
 		_align = align;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBackgroundColorCssClass(String backgroundColorCssClass) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBackgroundImageJSONObject(
-		JSONObject backgroundImageJSONObject) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBorderColor(String borderColor) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBorderRadius(String borderRadius) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBorderWidth(int borderWidth) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #setWidthType(String)}
-	 */
-	@Deprecated
-	public void setContainerType(String containerType) {
-		_widthType = containerType;
-	}
-
 	public void setContentDisplay(String contentDisplay) {
 		_contentDisplay = contentDisplay;
+	}
+
+	public void setFlexWrap(String flexWrap) {
+		_flexWrap = flexWrap;
+	}
+
+	public void setHtmlTag(String htmlTag) {
+		_htmlTag = htmlTag;
+	}
+
+	public void setIndexed(boolean indexed) {
+		_indexed = indexed;
 	}
 
 	public void setJustify(String justify) {
@@ -177,84 +142,6 @@ public class ContainerStyledLayoutStructureItem
 
 	public void setLinkJSONObject(JSONObject linkJSONObject) {
 		_linkJSONObject = linkJSONObject;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginBottom(int marginBottom) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginLeft(int marginLeft) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginRight(int marginRight) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginTop(int marginTop) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setOpacity(int opacity) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingBottom(int paddingBottom) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #setPaddingLeft(int)} and {@link #setPaddingRight(int)}
-	 */
-	@Deprecated
-	public void setPaddingHorizontal(int paddingHorizontal) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingLeft(int paddingLeft) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingRight(int paddingRight) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingTop(int paddingTop) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setShadow(String shadow) {
 	}
 
 	public void setWidthType(String widthType) {
@@ -275,12 +162,24 @@ public class ContainerStyledLayoutStructureItem
 			setContentDisplay(itemConfigJSONObject.getString("contentDisplay"));
 		}
 
+		if (itemConfigJSONObject.has("flexWrap")) {
+			setFlexWrap(itemConfigJSONObject.getString("flexWrap"));
+		}
+
+		if (itemConfigJSONObject.has("htmlTag")) {
+			setHtmlTag(itemConfigJSONObject.getString("htmlTag"));
+		}
+
 		if (itemConfigJSONObject.has("justify")) {
 			setJustify(itemConfigJSONObject.getString("justify"));
 		}
 
 		if (itemConfigJSONObject.has("link")) {
 			setLinkJSONObject(itemConfigJSONObject.getJSONObject("link"));
+		}
+
+		if (itemConfigJSONObject.has("indexed")) {
+			setIndexed(itemConfigJSONObject.getBoolean("indexed"));
 		}
 
 		if (itemConfigJSONObject.has("containerType") ||
@@ -379,6 +278,9 @@ public class ContainerStyledLayoutStructureItem
 
 	private String _align = "";
 	private String _contentDisplay = "";
+	private String _flexWrap = "";
+	private String _htmlTag = "";
+	private boolean _indexed = true;
 	private String _justify = "";
 	private JSONObject _linkJSONObject;
 	private String _widthType = "fluid";

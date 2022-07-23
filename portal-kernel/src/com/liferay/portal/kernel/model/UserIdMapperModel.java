@@ -172,4 +172,7 @@ public interface UserIdMapperModel
 	 */
 	public void setExternalUserId(String externalUserId);
 
+	@Override
+	public UserIdMapper cloneWithOriginalValues();
+
 }

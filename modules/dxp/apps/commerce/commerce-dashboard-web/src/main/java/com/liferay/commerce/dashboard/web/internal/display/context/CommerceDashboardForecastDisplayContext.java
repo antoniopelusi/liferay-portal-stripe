@@ -16,7 +16,7 @@ package com.liferay.commerce.dashboard.web.internal.display.context;
 
 import com.liferay.commerce.account.permission.CommerceAccountPermission;
 import com.liferay.commerce.dashboard.web.internal.configuration.CommerceDashboardForecastPortletInstanceConfiguration;
-import com.liferay.commerce.dashboard.web.internal.display.context.util.CommerceDashboardForecastRequestHelper;
+import com.liferay.commerce.dashboard.web.internal.display.context.helper.CommerceDashboardForecastRequestHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -66,7 +66,7 @@ public class CommerceDashboardForecastDisplayContext {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

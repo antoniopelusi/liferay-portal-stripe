@@ -14,6 +14,8 @@
 
 package com.liferay.journal.web.internal.util;
 
+import com.liferay.diff.DiffVersion;
+import com.liferay.diff.DiffVersionsInfo;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.journal.configuration.JournalGroupServiceConfiguration;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
@@ -25,19 +27,19 @@ import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.journal.util.comparator.ArticleVersionComparator;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.diff.DiffVersion;
-import com.liferay.portal.kernel.diff.DiffVersionsInfo;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -239,6 +241,43 @@ public class JournalUtil {
 		return themeDisplay.getPlid();
 	}
 
+	public static boolean hasWorkflowDefinitionsLinks(
+		ThemeDisplay themeDisplay) {
+
+		int count =
+			WorkflowDefinitionLinkLocalServiceUtil.
+				getWorkflowDefinitionLinksCount(
+					themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
+					JournalFolder.class.getName());
+
+		if (count > 0) {
+			return true;
+		}
+
+		count =
+			WorkflowDefinitionLinkLocalServiceUtil.
+				getWorkflowDefinitionLinksCount(
+					themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
+					JournalArticle.class.getName());
+
+		if (count > 0) {
+			return true;
+		}
+
+		count =
+			WorkflowDefinitionLinkLocalServiceUtil.
+				getWorkflowDefinitionLinksCount(
+					themeDisplay.getCompanyId(),
+					GroupConstants.DEFAULT_PARENT_GROUP_ID,
+					JournalArticle.class.getName());
+
+		if (count > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static boolean isIncludeVersionHistory() {
 		try {
 			JournalServiceConfiguration journalServiceConfiguration =
@@ -336,6 +375,7 @@ public class JournalUtil {
 			if (contains(item)) {
 				if (!item.equals(peek())) {
 					remove(item);
+
 					super.push(item);
 				}
 			}

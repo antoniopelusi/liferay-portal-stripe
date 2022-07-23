@@ -27,6 +27,10 @@ public class KaleoTimerInstanceTokenLocalServiceWrapper
 	implements KaleoTimerInstanceTokenLocalService,
 			   ServiceWrapper<KaleoTimerInstanceTokenLocalService> {
 
+	public KaleoTimerInstanceTokenLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoTimerInstanceTokenLocalServiceWrapper(
 		KaleoTimerInstanceTokenLocalService
 			kaleoTimerInstanceTokenLocalService) {
@@ -220,6 +224,13 @@ public class KaleoTimerInstanceTokenLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoTimerInstanceTokenLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoTimerInstanceTokenLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

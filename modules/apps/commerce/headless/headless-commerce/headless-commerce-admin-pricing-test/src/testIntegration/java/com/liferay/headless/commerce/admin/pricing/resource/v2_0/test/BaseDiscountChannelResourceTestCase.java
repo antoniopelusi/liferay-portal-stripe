@@ -34,7 +34,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -52,9 +51,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -217,18 +214,17 @@ public abstract class BaseDiscountChannelResourceTestCase {
 	public void testGetDiscountByExternalReferenceCodeDiscountChannelsPage()
 		throws Exception {
 
-		Page<DiscountChannel> page =
-			discountChannelResource.
-				getDiscountByExternalReferenceCodeDiscountChannelsPage(
-					testGetDiscountByExternalReferenceCodeDiscountChannelsPage_getExternalReferenceCode(),
-					Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		String externalReferenceCode =
 			testGetDiscountByExternalReferenceCodeDiscountChannelsPage_getExternalReferenceCode();
 		String irrelevantExternalReferenceCode =
 			testGetDiscountByExternalReferenceCodeDiscountChannelsPage_getIrrelevantExternalReferenceCode();
+
+		Page<DiscountChannel> page =
+			discountChannelResource.
+				getDiscountByExternalReferenceCodeDiscountChannelsPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantExternalReferenceCode != null) {
 			DiscountChannel irrelevantDiscountChannel =
@@ -260,7 +256,7 @@ public abstract class BaseDiscountChannelResourceTestCase {
 		page =
 			discountChannelResource.
 				getDiscountByExternalReferenceCodeDiscountChannelsPage(
-					externalReferenceCode, Pagination.of(1, 2));
+					externalReferenceCode, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -372,16 +368,15 @@ public abstract class BaseDiscountChannelResourceTestCase {
 
 	@Test
 	public void testGetDiscountIdDiscountChannelsPage() throws Exception {
-		Page<DiscountChannel> page =
-			discountChannelResource.getDiscountIdDiscountChannelsPage(
-				testGetDiscountIdDiscountChannelsPage_getId(),
-				RandomTestUtil.randomString(), null, Pagination.of(1, 2), null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetDiscountIdDiscountChannelsPage_getId();
 		Long irrelevantId =
 			testGetDiscountIdDiscountChannelsPage_getIrrelevantId();
+
+		Page<DiscountChannel> page =
+			discountChannelResource.getDiscountIdDiscountChannelsPage(
+				id, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			DiscountChannel irrelevantDiscountChannel =
@@ -408,7 +403,7 @@ public abstract class BaseDiscountChannelResourceTestCase {
 				id, randomDiscountChannel());
 
 		page = discountChannelResource.getDiscountIdDiscountChannelsPage(
-			id, null, null, Pagination.of(1, 2), null);
+			id, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -442,6 +437,41 @@ public abstract class BaseDiscountChannelResourceTestCase {
 				discountChannelResource.getDiscountIdDiscountChannelsPage(
 					id, null,
 					getFilterString(entityField, "between", discountChannel1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(discountChannel1),
+				(List<DiscountChannel>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetDiscountIdDiscountChannelsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long id = testGetDiscountIdDiscountChannelsPage_getId();
+
+		DiscountChannel discountChannel1 =
+			testGetDiscountIdDiscountChannelsPage_addDiscountChannel(
+				id, randomDiscountChannel());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DiscountChannel discountChannel2 =
+			testGetDiscountIdDiscountChannelsPage_addDiscountChannel(
+				id, randomDiscountChannel());
+
+		for (EntityField entityField : entityFields) {
+			Page<DiscountChannel> page =
+				discountChannelResource.getDiscountIdDiscountChannelsPage(
+					id, null,
+					getFilterString(entityField, "eq", discountChannel1),
 					Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -548,6 +578,20 @@ public abstract class BaseDiscountChannelResourceTestCase {
 	}
 
 	@Test
+	public void testGetDiscountIdDiscountChannelsPageWithSortDouble()
+		throws Exception {
+
+		testGetDiscountIdDiscountChannelsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, discountChannel1, discountChannel2) -> {
+				BeanUtils.setProperty(
+					discountChannel1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					discountChannel2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetDiscountIdDiscountChannelsPageWithSortInteger()
 		throws Exception {
 
@@ -572,7 +616,7 @@ public abstract class BaseDiscountChannelResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -711,6 +755,25 @@ public abstract class BaseDiscountChannelResourceTestCase {
 
 	@Rule
 	public SearchTestRule searchTestRule = new SearchTestRule();
+
+	protected void assertContains(
+		DiscountChannel discountChannel,
+		List<DiscountChannel> discountChannels) {
+
+		boolean contains = false;
+
+		for (DiscountChannel item : discountChannels) {
+			if (equals(discountChannel, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			discountChannels + " does not contain " + discountChannel,
+			contains);
+	}
 
 	protected void assertHttpResponseStatusCode(
 		int expectedHttpResponseStatusCode,
@@ -872,8 +935,8 @@ public abstract class BaseDiscountChannelResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v2_0.
 						DiscountChannel.class)) {
 
@@ -889,12 +952,13 @@ public abstract class BaseDiscountChannelResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -908,7 +972,7 @@ public abstract class BaseDiscountChannelResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1049,6 +1113,19 @@ public abstract class BaseDiscountChannelResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1291,8 +1368,8 @@ public abstract class BaseDiscountChannelResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseDiscountChannelResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseDiscountChannelResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

@@ -16,11 +16,13 @@ package com.liferay.data.engine.rest.internal.resource.v2_0;
 
 import com.liferay.data.engine.rest.dto.v2_0.DataDefinition;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.ResourceAction;
-import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -30,10 +32,14 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
@@ -44,12 +50,6 @@ import com.liferay.portal.vulcan.permission.PermissionUtil;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.io.Serializable;
 
@@ -63,19 +63,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -86,7 +73,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v2.0")
+@javax.ws.rs.Path("/v2.0")
 public abstract class BaseDataDefinitionResourceImpl
 	implements DataDefinitionResource, EntityModelResource,
 			   VulcanBatchEngineTaskItemDelegate<DataDefinition> {
@@ -96,25 +83,49 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "contentType"),
-			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "contentType"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "keywords"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/data-definitions/by-content-type/{contentType}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-definitions/by-content-type/{contentType}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DataDefinition> getDataDefinitionByContentTypeContentTypePage(
-			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
-				contentType,
-			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
-			@Context Pagination pagination, @Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("contentType")
+			String contentType,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("keywords")
+			String keywords,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -125,18 +136,29 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}' -d $'{"availableLanguageIds": ___, "contentType": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "defaultDataLayout": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "contentType")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "contentType"
+			)
+		}
 	)
-	@Path("/data-definitions/by-content-type/{contentType}")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/data-definitions/by-content-type/{contentType}")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataDefinition postDataDefinitionByContentType(
-			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
-				contentType,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("contentType")
+			String contentType,
 			DataDefinition dataDefinition)
 		throws Exception {
 
@@ -148,11 +170,15 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/data-definition-fields/field-types'  -u 'test@liferay.com:test'
 	 */
-	@GET
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-definitions/data-definition-fields/field-types")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
 	@Override
-	@Path("/data-definitions/data-definition-fields/field-types")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
 	public String getDataDefinitionDataDefinitionFieldFieldTypes()
 		throws Exception {
 
@@ -164,17 +190,28 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteDataDefinition(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId)
 		throws Exception {
 	}
 
@@ -183,18 +220,28 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/data-definitions/batch")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/data-definitions/batch")
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response deleteDataDefinitionBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -219,17 +266,28 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataDefinition getDataDefinition(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId)
 		throws Exception {
 
 		return new DataDefinition();
@@ -240,18 +298,29 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'PATCH' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}' -d $'{"availableLanguageIds": ___, "contentType": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "defaultDataLayout": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@PATCH
-	@Path("/data-definitions/{dataDefinitionId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.PATCH
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataDefinition patchDataDefinition(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
 			DataDefinition dataDefinition)
 		throws Exception {
 
@@ -281,11 +350,6 @@ public abstract class BaseDataDefinitionResourceImpl
 		if (dataDefinition.getDateModified() != null) {
 			existingDataDefinition.setDateModified(
 				dataDefinition.getDateModified());
-		}
-
-		if (dataDefinition.getDefaultDataLayout() != null) {
-			existingDataDefinition.setDefaultDataLayout(
-				dataDefinition.getDefaultDataLayout());
 		}
 
 		if (dataDefinition.getDefaultLanguageId() != null) {
@@ -325,18 +389,29 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}' -d $'{"availableLanguageIds": ___, "contentType": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "defaultDataLayout": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public DataDefinition putDataDefinition(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
 			DataDefinition dataDefinition)
 		throws Exception {
 
@@ -348,18 +423,28 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/data-definitions/batch")
-	@Produces("application/json")
-	@PUT
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/data-definitions/batch")
+	@javax.ws.rs.Produces("application/json")
+	@javax.ws.rs.PUT
+	@Override
 	public Response putDataDefinitionBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -384,24 +469,36 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getDataDefinitionPermissionsPage(
-				@NotNull @Parameter(hidden = true)
-				@PathParam("dataDefinitionId")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("dataDefinitionId")
 				Long dataDefinitionId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -412,7 +509,19 @@ public abstract class BaseDataDefinitionResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, resourceName, resourceId,
 			getPermissionCheckerGroupId(dataDefinitionId));
 
-		return toPermissionPage(resourceId, resourceName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS, "getDataDefinitionPermissionsPage",
+					resourceName, resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS, "putDataDefinitionPermissionsPage",
+					resourceName, resourceId)
+			).build(),
+			resourceId, resourceName, roleNames);
 	}
 
 	/**
@@ -420,18 +529,30 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DataDefinition")})
-	public void putDataDefinitionPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putDataDefinitionPermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("dataDefinitionId")
 				Long dataDefinitionId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -443,12 +564,27 @@ public abstract class BaseDataDefinitionResourceImpl
 			getPermissionCheckerGroupId(dataDefinitionId));
 
 		resourcePermissionLocalService.updateResourcePermissions(
-			contextCompany.getCompanyId(), 0, resourceName,
+			contextCompany.getCompanyId(),
+			getPermissionCheckerGroupId(dataDefinitionId), resourceName,
 			String.valueOf(resourceId),
 			ModelPermissionsUtil.toModelPermissions(
 				contextCompany.getCompanyId(), permissions, resourceId,
 				resourceName, resourceActionLocalService,
 				resourcePermissionLocalService, roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS, "getDataDefinitionPermissionsPage",
+					resourceName, resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS, "putDataDefinitionPermissionsPage",
+					resourceName, resourceId)
+			).build(),
+			resourceId, resourceName, null);
 	}
 
 	/**
@@ -456,30 +592,60 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "contentType"),
-			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "contentType"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "keywords"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/data-definitions/by-content-type/{contentType}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
+		"/sites/{siteId}/data-definitions/by-content-type/{contentType}"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DataDefinition>
 			getSiteDataDefinitionByContentTypeContentTypePage(
-				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
-					siteId,
-				@NotNull @Parameter(hidden = true) @PathParam("contentType")
-					String contentType,
-				@Parameter(hidden = true) @QueryParam("keywords") String
-					keywords,
-				@Context Pagination pagination, @Context Sort[] sorts)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("contentType")
+				String contentType,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("keywords")
+				String keywords,
+				@javax.ws.rs.core.Context Pagination pagination,
+				@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -490,22 +656,39 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}' -d $'{"availableLanguageIds": ___, "contentType": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "defaultDataLayout": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "contentType")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "contentType"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/data-definitions/by-content-type/{contentType}")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
+		"/sites/{siteId}/data-definitions/by-content-type/{contentType}"
+	)
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataDefinition postSiteDataDefinitionByContentType(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
-				contentType,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("contentType")
+			String contentType,
 			DataDefinition dataDefinition)
 		throws Exception {
 
@@ -517,26 +700,46 @@ public abstract class BaseDataDefinitionResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}/by-data-definition-key/{dataDefinitionKey}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "contentType"),
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionKey")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "contentType"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionKey"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "DataDefinition")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
 		"/sites/{siteId}/data-definitions/by-content-type/{contentType}/by-data-definition-key/{dataDefinitionKey}"
 	)
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataDefinition")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataDefinition getSiteDataDefinitionByContentTypeByDataDefinitionKey(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
-				contentType,
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionKey")
-				String dataDefinitionKey)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("contentType")
+			String contentType,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionKey")
+			String dataDefinitionKey)
 		throws Exception {
 
 		return new DataDefinition();
@@ -574,6 +777,10 @@ public abstract class BaseDataDefinitionResourceImpl
 		throws Exception {
 
 		return null;
+	}
+
+	public String getVersion() {
+		return "v2.0";
 	}
 
 	@Override
@@ -616,7 +823,7 @@ public abstract class BaseDataDefinitionResourceImpl
 		for (DataDefinition dataDefinition : dataDefinitions) {
 			putDataDefinition(
 				dataDefinition.getId() != null ? dataDefinition.getId() :
-					(Long)parameters.get("dataDefinitionId"),
+					Long.parseLong((String)parameters.get("dataDefinitionId")),
 				dataDefinition);
 		}
 	}
@@ -651,7 +858,9 @@ public abstract class BaseDataDefinitionResourceImpl
 	}
 
 	protected Page<com.liferay.portal.vulcan.permission.Permission>
-			toPermissionPage(long id, String resourceName, String roleNames)
+			toPermissionPage(
+				Map<String, Map<String, String>> actions, long id,
+				String resourceName, String roleNames)
 		throws Exception {
 
 		List<ResourceAction> resourceActions =
@@ -659,6 +868,7 @@ public abstract class BaseDataDefinitionResourceImpl
 
 		if (Validator.isNotNull(roleNames)) {
 			return Page.of(
+				actions,
 				transform(
 					PermissionUtil.getRoles(
 						contextCompany, roleLocalService,
@@ -669,10 +879,11 @@ public abstract class BaseDataDefinitionResourceImpl
 		}
 
 		return Page.of(
+			actions,
 			transform(
-				resourcePermissionLocalService.getResourcePermissions(
-					contextCompany.getCompanyId(), resourceName,
-					ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(id)),
+				PermissionUtil.getResourcePermissions(
+					contextCompany.getCompanyId(), id, resourceName,
+					resourcePermissionLocalService),
 				resourcePermission -> PermissionUtil.toPermission(
 					resourceActions, resourcePermission,
 					roleLocalService.getRole(resourcePermission.getRoleId()))));
@@ -680,6 +891,15 @@ public abstract class BaseDataDefinitionResourceImpl
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
+	}
+
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<DataDefinition>,
+			 UnsafeConsumer<DataDefinition, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
 	}
 
 	public void setContextCompany(
@@ -710,12 +930,69 @@ public abstract class BaseDataDefinitionResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
+	}
+
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
+	}
+
+	@Override
+	public Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		try {
+			EntityModel entityModel = getEntityModel(multivaluedMap);
+
+			FilterParser filterParser = filterParserProvider.provide(
+				entityModel);
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(filterString));
+
+			return expressionConvert.convert(
+				oDataFilter.getExpression(),
+				contextAcceptLanguage.getPreferredLocale(), entityModel);
+		}
+		catch (Exception exception) {
+			_log.error("Invalid filter " + filterString, exception);
+		}
+
+		return null;
 	}
 
 	protected Map<String, String> addAction(
@@ -785,17 +1062,26 @@ public abstract class BaseDataDefinitionResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<DataDefinition>,
+		 UnsafeConsumer<DataDefinition, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
 	protected VulcanBatchEngineImportTaskResource
 		vulcanBatchEngineImportTaskResource;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseDataDefinitionResourceImpl.class);
 
 }

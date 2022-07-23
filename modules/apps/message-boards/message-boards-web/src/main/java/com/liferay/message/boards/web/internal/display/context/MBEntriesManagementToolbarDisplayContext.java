@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -208,10 +209,10 @@ public class MBEntriesManagementToolbarDisplayContext {
 	public CreationMenu getCreationMenu() throws PortalException {
 		CreationMenu creationMenu = null;
 
-		MBCategory category = (MBCategory)_httpServletRequest.getAttribute(
-			WebKeys.MESSAGE_BOARDS_CATEGORY);
-
-		long categoryId = MBUtil.getCategoryId(_httpServletRequest, category);
+		long categoryId = MBUtil.getCategoryId(
+			_httpServletRequest,
+			(MBCategory)_httpServletRequest.getAttribute(
+				WebKeys.MESSAGE_BOARDS_CATEGORY));
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)_httpServletRequest.getAttribute(
@@ -308,56 +309,33 @@ public class MBEntriesManagementToolbarDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		if (_orderByCol != null) {
+		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
 		}
 
-		String orderByCol = ParamUtil.getString(
-			_httpServletRequest, "orderByCol");
-
-		if (Validator.isNotNull(orderByCol)) {
-			_portalPreferences.setValue(
-				MBPortletKeys.MESSAGE_BOARDS_ADMIN, "order-by-col", orderByCol);
-		}
-		else {
-			orderByCol = _portalPreferences.getValue(
-				MBPortletKeys.MESSAGE_BOARDS_ADMIN, "order-by-col",
-				"modified-date");
-		}
-
-		_orderByCol = orderByCol;
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, MBPortletKeys.MESSAGE_BOARDS_ADMIN,
+			"modified-date");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (_orderByType != null) {
+		if (Validator.isNotNull(_orderByType)) {
 			return _orderByType;
 		}
 
-		String orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType");
-
-		if (Validator.isNotNull(orderByType)) {
-			_portalPreferences.setValue(
-				MBPortletKeys.MESSAGE_BOARDS_ADMIN, "order-by-type",
-				orderByType);
-		}
-		else {
-			orderByType = _portalPreferences.getValue(
-				MBPortletKeys.MESSAGE_BOARDS_ADMIN, "order-by-type", "asc");
-		}
-
-		_orderByType = orderByType;
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, MBPortletKeys.MESSAGE_BOARDS_ADMIN, "asc");
 
 		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		MBCategory category = (MBCategory)_httpServletRequest.getAttribute(
-			WebKeys.MESSAGE_BOARDS_CATEGORY);
-
-		long categoryId = MBUtil.getCategoryId(_httpServletRequest, category);
+		long categoryId = MBUtil.getCategoryId(
+			_httpServletRequest,
+			(MBCategory)_httpServletRequest.getAttribute(
+				WebKeys.MESSAGE_BOARDS_CATEGORY));
 
 		PortletURL portletURL = _liferayPortletResponse.createRenderURL();
 
@@ -393,17 +371,17 @@ public class MBEntriesManagementToolbarDisplayContext {
 	}
 
 	public String getSearchActionURL() {
-		MBCategory category = (MBCategory)_httpServletRequest.getAttribute(
-			WebKeys.MESSAGE_BOARDS_CATEGORY);
-
-		long categoryId = MBUtil.getCategoryId(_httpServletRequest, category);
+		long categoryId = MBUtil.getCategoryId(
+			_httpServletRequest,
+			(MBCategory)_httpServletRequest.getAttribute(
+				WebKeys.MESSAGE_BOARDS_CATEGORY));
 
 		return PortletURLBuilder.createRenderURL(
 			_liferayPortletResponse
 		).setMVCRenderCommandName(
 			"/message_boards_admin/search"
 		).setRedirect(
-			_currentURLObj.toString()
+			_currentURLObj
 		).setParameter(
 			"breadcrumbsCategoryId", categoryId
 		).setParameter(
@@ -417,7 +395,7 @@ public class MBEntriesManagementToolbarDisplayContext {
 		).setParameter(
 			"orderByType",
 			Objects.equals(getOrderByType(), "asc") ? "desc" : "asc"
-		).build();
+		).buildPortletURL();
 	}
 
 	public void populateOrder(SearchContainer searchContainer) {
@@ -425,11 +403,11 @@ public class MBEntriesManagementToolbarDisplayContext {
 
 		String orderByCol = getOrderByCol();
 
+		searchContainer.setOrderByCol(orderByCol);
+
 		boolean orderByAsc = false;
 
-		String orderByType = getOrderByType();
-
-		if (orderByType.equals("asc")) {
+		if (Objects.equals(getOrderByType(), "asc")) {
 			orderByAsc = true;
 		}
 
@@ -457,19 +435,18 @@ public class MBEntriesManagementToolbarDisplayContext {
 			}
 		}
 
-		searchContainer.setOrderByCol(orderByCol);
 		searchContainer.setOrderByComparator(orderByComparator);
-		searchContainer.setOrderByType(orderByType);
+		searchContainer.setOrderByType(getOrderByType());
 	}
 
 	private PortletURL _getCurrentSortingURL() throws PortletException {
 		PortletURL sortingURL = PortletURLUtil.clone(
 			_currentURLObj, _liferayPortletResponse);
 
-		MBCategory category = (MBCategory)_httpServletRequest.getAttribute(
-			WebKeys.MESSAGE_BOARDS_CATEGORY);
-
-		long categoryId = MBUtil.getCategoryId(_httpServletRequest, category);
+		long categoryId = MBUtil.getCategoryId(
+			_httpServletRequest,
+			(MBCategory)_httpServletRequest.getAttribute(
+				WebKeys.MESSAGE_BOARDS_CATEGORY));
 
 		if (categoryId == MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
 			sortingURL.setParameter(

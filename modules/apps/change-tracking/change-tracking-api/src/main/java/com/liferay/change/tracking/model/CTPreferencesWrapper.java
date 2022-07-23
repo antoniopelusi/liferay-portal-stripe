@@ -99,6 +99,11 @@ public class CTPreferencesWrapper
 		}
 	}
 
+	@Override
+	public CTPreferences cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ct preferences.
 	 *

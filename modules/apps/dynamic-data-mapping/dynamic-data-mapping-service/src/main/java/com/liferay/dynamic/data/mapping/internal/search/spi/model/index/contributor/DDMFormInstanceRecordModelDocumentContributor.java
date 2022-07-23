@@ -20,7 +20,6 @@ import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordVersion;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -79,18 +78,24 @@ public class DDMFormInstanceRecordModelDocumentContributor
 			DDMFormValues ddmFormValues =
 				ddmFormInstanceRecordVersion.getDDMFormValues();
 
-			addContent(ddmFormInstanceRecordVersion, ddmFormValues, document);
+			_addContent(ddmFormInstanceRecordVersion, ddmFormValues, document);
 
 			ddmIndexer.addAttributes(document, ddmStructure, ddmFormValues);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 	}
 
-	protected void addContent(
+	@Reference
+	protected ClassNameLocalService classNameLocalService;
+
+	@Reference
+	protected DDMIndexer ddmIndexer;
+
+	private void _addContent(
 			DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion,
 			DDMFormValues ddmFormValues, Document document)
 		throws Exception {
@@ -98,19 +103,13 @@ public class DDMFormInstanceRecordModelDocumentContributor
 		Set<Locale> locales = ddmFormValues.getAvailableLocales();
 
 		for (Locale locale : locales) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("ddmContent");
-			sb.append(StringPool.UNDERLINE);
-			sb.append(LocaleUtil.toLanguageId(locale));
-
 			document.addText(
-				sb.toString(),
-				extractContent(ddmFormInstanceRecordVersion, locale));
+				"ddmContent_" + LocaleUtil.toLanguageId(locale),
+				_extractContent(ddmFormInstanceRecordVersion, locale));
 		}
 	}
 
-	protected String extractContent(
+	private String _extractContent(
 			DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion,
 			Locale locale)
 		throws Exception {
@@ -128,12 +127,6 @@ public class DDMFormInstanceRecordModelDocumentContributor
 		return ddmIndexer.extractIndexableAttributes(
 			ddmFormInstance.getStructure(), ddmFormValues, locale);
 	}
-
-	@Reference
-	protected ClassNameLocalService classNameLocalService;
-
-	@Reference
-	protected DDMIndexer ddmIndexer;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMFormInstanceRecordModelDocumentContributor.class);

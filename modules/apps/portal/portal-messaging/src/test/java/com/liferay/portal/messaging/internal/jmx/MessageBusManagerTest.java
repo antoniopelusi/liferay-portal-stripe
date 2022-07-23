@@ -15,6 +15,8 @@
 package com.liferay.portal.messaging.internal.jmx;
 
 import com.liferay.portal.kernel.messaging.MessageBus;
+import com.liferay.portal.kernel.util.ProxyFactory;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.lang.management.ManagementFactory;
 
@@ -22,46 +24,37 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.mockito.Mock;
-
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Michael C. Han
  * @author Miguel Pastor
  */
-@PowerMockIgnore("javax.management.*")
-@RunWith(PowerMockRunner.class)
 public class MessageBusManagerTest {
 
-	@Before
-	public void setUp() throws Exception {
-		_mBeanServer = ManagementFactory.getPlatformMBeanServer();
-	}
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Test
 	public void testRegisterMBean() throws Exception {
+		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+
 		MessageBusManager messageBusManager = new MessageBusManager();
 
-		messageBusManager.setMessageBus(_messageBus);
+		messageBusManager.setMessageBus(
+			ProxyFactory.newDummyInstance(MessageBus.class));
 
 		ObjectName objectName = new ObjectName(
 			"com.liferay.portal.messaging:classification=message_bus," +
 				"name=MessageBusManager");
 
-		_mBeanServer.registerMBean(messageBusManager, objectName);
+		mBeanServer.registerMBean(messageBusManager, objectName);
 
-		Assert.assertTrue(_mBeanServer.isRegistered(objectName));
+		Assert.assertTrue(mBeanServer.isRegistered(objectName));
 	}
-
-	private MBeanServer _mBeanServer;
-
-	@Mock
-	private MessageBus _messageBus;
 
 }

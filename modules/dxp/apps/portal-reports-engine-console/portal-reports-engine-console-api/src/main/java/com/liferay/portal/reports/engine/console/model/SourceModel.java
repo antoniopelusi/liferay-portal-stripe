@@ -395,4 +395,7 @@ public interface SourceModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public Source cloneWithOriginalValues();
+
 }

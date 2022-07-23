@@ -42,21 +42,34 @@ int startDateMonth = startDateCalendar.get(Calendar.MONTH);
 int startDateYear = startDateCalendar.get(Calendar.YEAR);
 
 boolean neverEnd = ParamUtil.getBoolean(request, "neverEnd", true);
+boolean dispatchTaskExecutorReady = true;
 
-if ((dispatchTrigger != null) && (dispatchTrigger.getEndDate() != null)) {
-	neverEnd = false;
+if (dispatchTrigger != null) {
+	if (dispatchTrigger.getEndDate() != null) {
+		neverEnd = false;
+	}
+
+	DispatchTriggerDisplayContext dispatchTriggerDisplayContext = (DispatchTriggerDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
+
+	DispatchTriggerMetadata dispatchTriggerMetadata = dispatchTriggerDisplayContext.getDispatchTriggerMetadata(dispatchTrigger.getDispatchTriggerId());
+
+	dispatchTaskExecutorReady = dispatchTriggerMetadata.isDispatchTaskExecutorReady();
 }
 %>
 
 <portlet:actionURL name="/dispatch/edit_dispatch_trigger" var="editDispatchTriggerActionURL" />
 
 <aui:form action="<%= editDispatchTriggerActionURL %>" cssClass="container-fluid container-fluid-max-xl container-form-lg" method="post" name="fm">
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="schedule" />
 	<aui:input name="dispatchTriggerId" type="hidden" value="<%= String.valueOf(dispatchTrigger.getDispatchTriggerId()) %>" />
 
+	<div class="alert alert-warning <%= dispatchTaskExecutorReady ? "hide":"" %>">
+		<liferay-ui:message key="task-executor-is-not-ready" />
+	</div>
+
 	<aui:fieldset-group markupView="lexicon">
-		<aui:fieldset>
+		<aui:fieldset disabled="<%= !dispatchTaskExecutorReady %>">
 			<aui:model-context bean="<%= dispatchTrigger %>" model="<%= DispatchTrigger.class %>" />
 
 			<div class="lfr-form-content">

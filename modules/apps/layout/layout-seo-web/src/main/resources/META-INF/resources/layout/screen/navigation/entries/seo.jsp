@@ -58,6 +58,11 @@ UnicodeProperties layoutTypeSettings = selLayout.getTypeSettingsProperties();
 
 			<h4><liferay-ui:message key="general-settings" /></h4>
 
+			<clay:alert
+				displayType="info"
+				message='<%= LanguageUtil.get(request, "add-multiple-fields-to-define-how-the-meta-tags-will-be-filled") %>'
+			/>
+
 			<aui:model-context bean="<%= selLayout %>" model="<%= Layout.class %>" />
 
 			<c:choose>
@@ -72,7 +77,7 @@ UnicodeProperties layoutTypeSettings = selLayout.getTypeSettingsProperties();
 								<liferay-ui:message arguments='<%= new String[] {"text", "html-title"} %>' key="map-a-x-field-it-will-be-used-as-x" />
 							</div>
 
-							<aui:input disabled="<%= true %>" id="descriptionSEO" localized="<%= false %>" name="description" placeholder="description" />
+							<aui:input disabled="<%= true %>" id="descriptionSEO" localized="<%= false %>" name="description" placeholder="description" type="textarea" />
 
 							<div class="form-text">
 								<liferay-ui:message arguments='<%= new String[] {"text", "description"} %>' key="map-a-x-field-it-will-be-used-as-x" />

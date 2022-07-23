@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.PortletRequest;
-import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -58,15 +57,14 @@ public class AssetCategoryInfoEditURLProvider
 			group = themeDisplay.getScopeGroup();
 		}
 
-		PortletURL portletURL = PortletURLBuilder.create(
+		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				httpServletRequest, group,
 				AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN, 0, 0,
 				PortletRequest.RENDER_PHASE)
 		).setMVCPath(
 			"/edit_category.jsp"
-		).setParameter(
-			"redirect",
+		).setRedirect(
 			() -> {
 				String redirect = ParamUtil.getString(
 					httpServletRequest, "redirect");
@@ -78,12 +76,10 @@ public class AssetCategoryInfoEditURLProvider
 				return themeDisplay.getURLCurrent();
 			}
 		).setParameter(
-			"categoryId", String.valueOf(assetCategory.getCategoryId())
+			"categoryId", assetCategory.getCategoryId()
 		).setParameter(
-			"vocabularyId", String.valueOf(assetCategory.getVocabularyId())
-		).build();
-
-		return portletURL.toString();
+			"vocabularyId", assetCategory.getVocabularyId()
+		).buildString();
 	}
 
 	@Reference

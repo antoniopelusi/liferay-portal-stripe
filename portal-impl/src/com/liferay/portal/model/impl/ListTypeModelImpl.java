@@ -22,25 +22,24 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ListType;
 import com.liferay.portal.kernel.model.ListTypeModel;
-import com.liferay.portal.kernel.model.ListTypeSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -128,51 +127,6 @@ public class ListTypeModelImpl
 	@Deprecated
 	public static final long TYPE_COLUMN_BITMASK = 2L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ListType toModel(ListTypeSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ListType model = new ListTypeImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setListTypeId(soapModel.getListTypeId());
-		model.setName(soapModel.getName());
-		model.setType(soapModel.getType());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ListType> toModels(ListTypeSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ListType> models = new ArrayList<ListType>(soapModels.length);
-
-		for (ListTypeSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.ListType"));
@@ -259,34 +213,6 @@ public class ListTypeModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ListType>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ListType.class.getClassLoader(), ListType.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ListType> constructor =
-				(Constructor<ListType>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<ListType, Object>>
@@ -475,6 +401,20 @@ public class ListTypeModelImpl
 	}
 
 	@Override
+	public ListType cloneWithOriginalValues() {
+		ListTypeImpl listTypeImpl = new ListTypeImpl();
+
+		listTypeImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		listTypeImpl.setListTypeId(
+			this.<Long>getColumnOriginalValue("listTypeId"));
+		listTypeImpl.setName(this.<String>getColumnOriginalValue("name"));
+		listTypeImpl.setType(this.<String>getColumnOriginalValue("type_"));
+
+		return listTypeImpl;
+	}
+
+	@Override
 	public int compareTo(ListType listType) {
 		int value = 0;
 
@@ -572,7 +512,7 @@ public class ListTypeModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -583,9 +523,26 @@ public class ListTypeModelImpl
 			Function<ListType, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ListType)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ListType)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -632,7 +589,9 @@ public class ListTypeModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ListType>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ListType.class, ModelWrapper.class);
 
 	}
 

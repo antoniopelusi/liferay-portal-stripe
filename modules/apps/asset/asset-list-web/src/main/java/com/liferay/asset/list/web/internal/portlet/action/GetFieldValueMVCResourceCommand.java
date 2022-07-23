@@ -14,6 +14,11 @@
 
 package com.liferay.asset.list.web.internal.portlet.action;
 
+import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
+import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.asset.kernel.model.ClassType;
+import com.liferay.asset.kernel.model.ClassTypeField;
+import com.liferay.asset.kernel.model.ClassTypeReader;
 import com.liferay.asset.list.constants.AssetListPortletKeys;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
@@ -67,24 +72,41 @@ public class GetFieldValueMVCResourceCommand extends BaseMVCResourceCommand {
 			WebKeys.THEME_DISPLAY);
 
 		try {
+			String className = ParamUtil.getString(
+				resourceRequest, "className");
+
+			AssetRendererFactory<?> assetRendererFactory =
+				AssetRendererFactoryRegistryUtil.
+					getAssetRendererFactoryByClassName(className);
+
+			ClassTypeReader classTypeReader =
+				assetRendererFactory.getClassTypeReader();
+
+			long classTypeId = ParamUtil.getLong(
+				resourceRequest, "classTypeId");
+
+			ClassType classType = classTypeReader.getClassType(
+				classTypeId, themeDisplay.getLocale());
+
+			String fieldName = ParamUtil.getString(resourceRequest, "name");
+
+			ClassTypeField classTypeField = classType.getClassTypeField(
+				fieldName);
+
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(
 				resourceRequest);
 
-			long structureId = ParamUtil.getLong(
-				resourceRequest, "structureId");
-
 			Fields fields = (Fields)serviceContext.getAttribute(
-				Fields.class.getName() + structureId);
+				Fields.class.getName() + classTypeField.getClassTypeId());
 
 			if (fields == null) {
 				String fieldsNamespace = ParamUtil.getString(
 					resourceRequest, "fieldsNamespace");
 
 				fields = DDMUtil.getFields(
-					structureId, fieldsNamespace, serviceContext);
+					classTypeField.getClassTypeId(), fieldsNamespace,
+					serviceContext);
 			}
-
-			String fieldName = ParamUtil.getString(resourceRequest, "name");
 
 			Field field = fields.get(fieldName);
 
@@ -106,33 +128,41 @@ public class GetFieldValueMVCResourceCommand extends BaseMVCResourceCommand {
 			}
 
 			jsonObject.put(
-				"displayValue", _getDisplayFieldValue(field, themeDisplay));
+				"displayValue", _getDisplayFieldValue(field, themeDisplay)
+			).put(
+				"value",
+				() -> {
+					if (fieldValue instanceof Boolean) {
+						return (Boolean)fieldValue;
+					}
 
-			if (fieldValue instanceof Boolean) {
-				jsonObject.put("value", (Boolean)fieldValue);
-			}
-			else if (fieldValue instanceof Date) {
-				DateFormat dateFormat =
-					DateFormatFactoryUtil.getSimpleDateFormat(
-						"yyyyMM ddHHmmss");
+					if (fieldValue instanceof Date) {
+						DateFormat dateFormat =
+							DateFormatFactoryUtil.getSimpleDateFormat(
+								"yyyyMM ddHHmmss");
 
-				jsonObject.put("value", dateFormat.format(fieldValue));
-			}
-			else if (fieldValue instanceof Double) {
-				jsonObject.put("value", (Double)fieldValue);
-			}
-			else if (fieldValue instanceof Float) {
-				jsonObject.put("value", (Float)fieldValue);
-			}
-			else if (fieldValue instanceof Integer) {
-				jsonObject.put("value", (Integer)fieldValue);
-			}
-			else if (fieldValue instanceof Number) {
-				jsonObject.put("value", String.valueOf(fieldValue));
-			}
-			else {
-				jsonObject.put("value", (String)fieldValue);
-			}
+						return dateFormat.format(fieldValue);
+					}
+
+					if (fieldValue instanceof Double) {
+						return (Double)fieldValue;
+					}
+
+					if (fieldValue instanceof Float) {
+						return (Float)fieldValue;
+					}
+
+					if (fieldValue instanceof Integer) {
+						return (Integer)fieldValue;
+					}
+
+					if (fieldValue instanceof Number) {
+						return String.valueOf(fieldValue);
+					}
+
+					return (String)fieldValue;
+				}
+			);
 
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse, jsonObject);

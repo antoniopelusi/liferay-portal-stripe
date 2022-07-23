@@ -40,7 +40,7 @@ AUI.add(
 
 		var STR_YOUR_SCORE = 'yourScore';
 
-		var TPL_LABEL_SCORE = '{desc} ({totalEntries} {voteLabel})';
+		var TPL_LABEL_SCORE = '{description} ({totalEntries} {voteLabel})';
 		var TPL_LABEL_SCORE_STACKED = '({totalEntries} {voteLabel})';
 
 		var buffer = [];
@@ -100,8 +100,8 @@ AUI.add(
 
 			_thumbScoreMap: {
 				'-1': -1,
-				down: 0,
-				up: 1,
+				'down': 0,
+				'up': 1,
 			},
 
 			ATTRS: {
@@ -180,7 +180,7 @@ AUI.add(
 					return prefix + score;
 				},
 
-				_getLabel(desc, totalEntries) {
+				_getLabel(description, totalEntries) {
 					var instance = this;
 
 					var tplLabel = '';
@@ -202,7 +202,7 @@ AUI.add(
 					}
 
 					return Lang.sub(tplLabel, {
-						desc,
+						description,
 						totalEntries,
 						voteLabel,
 					});

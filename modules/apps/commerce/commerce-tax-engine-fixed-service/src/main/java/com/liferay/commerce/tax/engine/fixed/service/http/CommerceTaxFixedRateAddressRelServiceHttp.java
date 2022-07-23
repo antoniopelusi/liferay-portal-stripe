@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Alessio Antonio Rendina
- * @see CommerceTaxFixedRateAddressRelServiceSoap
  * @generated
  */
 public class CommerceTaxFixedRateAddressRelServiceHttp {
@@ -54,7 +53,7 @@ public class CommerceTaxFixedRateAddressRelServiceHttp {
 	public static
 		com.liferay.commerce.tax.engine.fixed.model.
 			CommerceTaxFixedRateAddressRel addCommerceTaxFixedRateAddressRel(
-					HttpPrincipal httpPrincipal, long userId, long groupId,
+					HttpPrincipal httpPrincipal, long groupId,
 					long commerceTaxMethodId, long cpTaxCategoryId,
 					long countryId, long regionId, String zip, double rate)
 				throws com.liferay.portal.kernel.exception.PortalException {
@@ -66,8 +65,8 @@ public class CommerceTaxFixedRateAddressRelServiceHttp {
 				_addCommerceTaxFixedRateAddressRelParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, userId, groupId, commerceTaxMethodId,
-				cpTaxCategoryId, countryId, regionId, zip, rate);
+				methodKey, groupId, commerceTaxMethodId, cpTaxCategoryId,
+				countryId, regionId, zip, rate);
 
 			Object returnObj = null;
 
@@ -375,7 +374,7 @@ public class CommerceTaxFixedRateAddressRelServiceHttp {
 	private static final Class<?>[]
 		_addCommerceTaxFixedRateAddressRelParameterTypes0 = new Class[] {
 			long.class, long.class, long.class, long.class, long.class,
-			long.class, String.class, double.class
+			String.class, double.class
 		};
 	private static final Class<?>[]
 		_addCommerceTaxFixedRateAddressRelParameterTypes1 = new Class[] {

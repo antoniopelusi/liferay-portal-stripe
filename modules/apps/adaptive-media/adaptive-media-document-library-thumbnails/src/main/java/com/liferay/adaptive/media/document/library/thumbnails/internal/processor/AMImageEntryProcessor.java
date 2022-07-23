@@ -70,13 +70,14 @@ import org.osgi.service.component.annotations.Reference;
 		"service.ranking:Integer=100",
 		"type=" + DLProcessorConstants.IMAGE_PROCESSOR
 	},
-	service = {AMImageEntryProcessor.class, DLProcessor.class}
+	service = {
+		AMImageEntryProcessor.class, DLProcessor.class, ImageProcessor.class
+	}
 )
 public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 
 	@Override
 	public void afterPropertiesSet() {
-		_imageProcessor = new ImageProcessorImpl();
 	}
 
 	@Override
@@ -153,6 +154,8 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 
 		if (!adaptiveMediaOptional.isPresent()) {
 			_processAMImage(fileVersion);
+
+			return fileVersion.getSize();
 		}
 
 		return adaptiveMediaOptional.flatMap(
@@ -240,7 +243,7 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 
 			return false;
@@ -288,8 +291,6 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
-		afterPropertiesSet();
-
 		_amSystemImagesConfiguration = ConfigurableUtil.createConfigurable(
 			AMSystemImagesConfiguration.class, properties);
 	}
@@ -407,7 +408,7 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 	@Reference
 	private ConfigurationProvider _configurationProvider;
 
-	private ImageProcessor _imageProcessor;
+	private final ImageProcessor _imageProcessor = new ImageProcessorImpl();
 
 	@Reference
 	private InputStreamSanitizer _inputStreamSanitizer;

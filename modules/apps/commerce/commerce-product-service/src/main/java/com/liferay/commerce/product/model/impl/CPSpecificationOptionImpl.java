@@ -24,9 +24,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CPSpecificationOptionImpl extends CPSpecificationOptionBaseImpl {
 
-	public CPSpecificationOptionImpl() {
-	}
-
 	@Override
 	public CPOptionCategory getCPOptionCategory() throws PortalException {
 		long cpOptionCategoryId = getCPOptionCategoryId();

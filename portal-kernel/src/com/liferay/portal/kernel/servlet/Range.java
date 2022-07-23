@@ -52,16 +52,9 @@ public class Range {
 	}
 
 	public String getContentRange() {
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("bytes ");
-		sb.append(getStart());
-		sb.append(StringPool.DASH);
-		sb.append(getEnd());
-		sb.append(StringPool.SLASH);
-		sb.append(getTotal());
-
-		return sb.toString();
+		return StringBundler.concat(
+			"bytes ", getStart(), StringPool.DASH, getEnd(), StringPool.SLASH,
+			getTotal());
 	}
 
 	public long getEnd() {

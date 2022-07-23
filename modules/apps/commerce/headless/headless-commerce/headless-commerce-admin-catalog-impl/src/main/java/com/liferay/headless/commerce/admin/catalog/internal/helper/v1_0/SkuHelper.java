@@ -79,7 +79,7 @@ public class SkuHelper {
 
 		return SearchUtil.search(
 			null, booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CPInstance.class, search, pagination,
+			CPInstance.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {

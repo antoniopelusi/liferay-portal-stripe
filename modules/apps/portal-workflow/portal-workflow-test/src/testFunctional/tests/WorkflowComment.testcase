@@ -1,0 +1,227 @@
+@component-name = "portal-workflow"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Comment,Workflow";
+	property testray.main.component.name = "Workflow";
+
+	var portletName = "Page Comments";
+	var workflowAssetType = "Comment";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Site Administration",
+			portlet = "Workflow");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Comment");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			panel = "Site Administration",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(pageName = "Page Comments Page");
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		Portlet.addPG(portletName = "Page Comments");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			PageComment.tearDownPG(pageName = "Page Comments Page");
+
+			PagesAdmin.tearDownCP();
+
+			Workflow.tearDownPortalWorkflow();
+
+			Workflow.tearDownSiteWorkflow();
+		}
+	}
+
+	@priority = "5"
+	test ApprovePageCommentPG {
+		property portal.acceptance = "true";
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.addWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment");
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.viewWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment",
+			commentStatus = "Pending (Review)");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Page Comment Comment",
+			workflowAssetType = "Comment",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.viewWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment",
+			commentStatus = "Pending (Review)");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Page Comment Comment",
+			workflowAssetType = "Comment",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.viewPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment");
+
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Submissions");
+
+		Workflow.gotoViewCompletedAssetViaMySubmissions(workflowAssetTitle = "Page Comment Comment");
+
+		PageComment.viewAsWorkflowAsset(commentBody = "Page Comment Comment");
+	}
+
+	@description = "This is a use case for LPS-54707."
+	@priority = "4"
+	test DeleteComment {
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.addWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment");
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.viewWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment",
+			commentStatus = "Pending (Review)");
+
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Submissions");
+
+		Workflow.viewMySubmissions(
+			workflowAssetTitle = "Page Comment Comment",
+			workflowAssetType = "Comment",
+			workflowDefinition = "Single Approver",
+			workflowTask = "Review");
+
+		PageComment.tearDownPG(pageName = "Page Comments Page");
+
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Submissions");
+
+		Workflow.viewDefaultMySubmissionsCP();
+	}
+
+	@description = "This is a use case for LPS-68780."
+	@priority = "5"
+	test EditCommentAssignedToMe {
+		property portal.acceptance = "true";
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.addWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Page Comment Comment",
+			workflowAssetType = "Comment",
+			workflowTask = "Review");
+
+		Workflow.viewTaskAssignedToMeDetails(
+			workflowAssetContent = "Page Comment Comment",
+			workflowAssetTitle = "Page Comment Comment",
+			workflowTask = "Review");
+
+		Workflow.gotoPreviewEdit();
+
+		PageComment.editCommentField(commentBody = "EDIT Comment");
+
+		Button.clickSave();
+
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.viewTaskAssignedToMeDetails(
+			workflowAssetContent = "EDIT Comment",
+			workflowAssetTitle = "EDIT Comment",
+			workflowTask = "Review");
+	}
+
+	@priority = "4"
+	test RejectPageCommentPG {
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.addWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment");
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.viewWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment",
+			commentStatus = "Pending (Review)");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Page Comment Comment",
+			workflowAssetType = "Comment",
+			workflowTask = "Review");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.rejectTaskByActions(
+			workflowAssetTitle = "Page Comment Comment",
+			workflowAssetType = "Comment",
+			workflowTask = "Review");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.viewRejectedTask(
+			workflowAssetTitle = "Page Comment Comment",
+			workflowAssetType = "Comment");
+
+		Navigator.gotoPage(pageName = "Page Comments Page");
+
+		PageComment.viewWithWorkflowPG(
+			commentAuthor = "Test Test (You)",
+			commentBody = "Page Comment Comment",
+			commentStatus = "Pending (Update)");
+	}
+
+}

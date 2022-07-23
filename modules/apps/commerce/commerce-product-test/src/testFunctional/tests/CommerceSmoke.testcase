@@ -1,61 +1,23 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceNavigator.gotoPortlet(
-				category = "Product Management",
-				portlet = "Products");
-
-			while (IsElementPresent(locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS") && (maxIterations = "50")) {
-				CommerceEntry.deleteCommerceEntry();
-			}
-
-			CommerceNavigator.gotoPortlet(
-				category = "Product Management",
-				portlet = "Specifications");
-
-			while (IsElementNotPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER")) {
-				PortletEntry.deleteViaMenuItem(rowEntry = "");
-			}
-
-			CommerceNavigator.gotoCommercePortletNavItem(navItem = "Specification Groups");
-
-			while (IsElementNotPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER")) {
-				PortletEntry.deleteViaMenuItem(rowEntry = "");
-			}
-
-			User.logoutPG();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	test CreateNewSpecificationOptions {
 		property environment.acceptance = "true";
-		property portal.acceptance = "true";
+		property portal.acceptance = "false";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -86,8 +48,7 @@ definition {
 
 	test PublishSimpleProduct {
 		property environment.acceptance = "true";
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CommerceSmoke#PublishSimpleProduct";
+		property portal.acceptance = "false";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -107,6 +68,24 @@ definition {
 			productFullDescription = "Simple T-Shirt Full Description",
 			productName = "Simple T-Shirt",
 			productShortDescription = "Simple T-Shirt Short Description");
+
+		Click(locator1 = "Icon#BACK");
+
+		CommerceNavigator.searchEntry(entryName = "Simple T-Shirt");
+
+		Click(
+			key_entryName = "Simple T-Shirt",
+			locator1 = "CommerceEntry#ENTRY_MENU_DROPDOWN_BUTTON");
+
+		Click(
+			filterOption = "Delete",
+			locator1 = "ContentDashboard#FILTER_BY_OPTION");
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
+
+		AssertElementNotPresent(
+			key_entryName = "Simple T-Shirt",
+			locator1 = "CommerceEntry#VALUE_PRODUCT_RELATIONS");
 	}
 
 }

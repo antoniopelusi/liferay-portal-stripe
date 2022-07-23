@@ -18,12 +18,10 @@ import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.roles.admin.role.type.contributor.RoleTypeContributor;
 
 import java.util.Locale;
 import java.util.Objects;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -59,18 +57,12 @@ public class DepotRoleTypeContributor implements RoleTypeContributor {
 
 	@Override
 	public String getTabTitle(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, DepotRoleTypeContributor.class);
-
-		return _language.get(resourceBundle, "asset-library-roles");
+		return _language.get(locale, "asset-library-roles");
 	}
 
 	@Override
 	public String getTitle(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, DepotRoleTypeContributor.class);
-
-		return _language.get(resourceBundle, "asset-library-role");
+		return _language.get(locale, "asset-library-role");
 	}
 
 	@Override
@@ -85,11 +77,8 @@ public class DepotRoleTypeContributor implements RoleTypeContributor {
 
 	@Override
 	public boolean isAllowDelete(Role role) {
-		if (role == null) {
-			return false;
-		}
-
-		if (Objects.equals(
+		if ((role == null) ||
+			Objects.equals(
 				role.getName(),
 				DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR) ||
 			Objects.equals(

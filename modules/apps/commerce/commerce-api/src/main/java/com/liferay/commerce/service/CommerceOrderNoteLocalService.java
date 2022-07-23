@@ -87,6 +87,12 @@ public interface CommerceOrderNoteLocalService
 			boolean restricted, ServiceContext serviceContext)
 		throws PortalException;
 
+	public CommerceOrderNote addOrUpdateCommerceOrderNote(
+			String externalReferenceCode, long commerceOrderNoteId,
+			long commerceOrderId, String content, boolean restricted,
+			ServiceContext serviceContext)
+		throws PortalException;
+
 	/**
 	 * Creates a new commerce order note with the primary key. Does not add the commerce order note to the database.
 	 *
@@ -142,6 +148,9 @@ public interface CommerceOrderNoteLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -338,12 +347,6 @@ public interface CommerceOrderNoteLocalService
 	public CommerceOrderNote updateCommerceOrderNote(
 			String externalReferenceCode, long commerceOrderNoteId,
 			String content, boolean restricted)
-		throws PortalException;
-
-	public CommerceOrderNote upsertCommerceOrderNote(
-			String externalReferenceCode, long commerceOrderNoteId,
-			long commerceOrderId, String content, boolean restricted,
-			ServiceContext serviceContext)
 		throws PortalException;
 
 }

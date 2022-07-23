@@ -32,16 +32,13 @@ import com.liferay.commerce.service.CommerceSubscriptionEntryLocalService;
 import com.liferay.commerce.subscription.CommerceSubscriptionEntryHelper;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.test.rule.Inject;
@@ -61,7 +58,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommerceDeliverySubscriptionsTest {
 
@@ -73,17 +69,14 @@ public class CommerceDeliverySubscriptionsTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
+		_user = UserTestUtil.addUser();
 
 		PermissionThreadLocal.setPermissionChecker(
 			PermissionCheckerFactoryUtil.create(_user));
 
 		PrincipalThreadLocal.setName(_user.getUserId());
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
 			_group.getCompanyId());
@@ -98,7 +91,7 @@ public class CommerceDeliverySubscriptionsTest {
 
 	@Test
 	public void testDeliveryAndPaymentSubscription() throws Exception {
-		_commerceOrder = CommerceTestUtil.addCheckoutDetailsToUserOrder(
+		_commerceOrder = CommerceTestUtil.addCheckoutDetailsToCommerceOrder(
 			_commerceOrder, _user.getUserId(), true, true);
 
 		_commerceOrder.setPaymentStatus(
@@ -194,7 +187,7 @@ public class CommerceDeliverySubscriptionsTest {
 
 	@Test
 	public void testDeliverySubscriptionRenew() throws Exception {
-		_commerceOrder = CommerceTestUtil.addCheckoutDetailsToUserOrder(
+		_commerceOrder = CommerceTestUtil.addCheckoutDetailsToCommerceOrder(
 			_commerceOrder, _user.getUserId(), true, true);
 
 		_commerceOrder.setPaymentStatus(
@@ -254,6 +247,8 @@ public class CommerceDeliverySubscriptionsTest {
 			commerceShipments.toString(), 1, commerceShipments.size());
 	}
 
+	private static User _user;
+
 	@DeleteAfterTestRun
 	private CommerceChannel _commerceChannel;
 
@@ -283,12 +278,6 @@ public class CommerceDeliverySubscriptionsTest {
 	private CommerceSubscriptionEntryLocalService
 		_commerceSubscriptionEntryLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private Group _group;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

@@ -20,6 +20,8 @@ import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelService;
 import com.liferay.commerce.service.CommerceShippingMethodService;
+import com.liferay.commerce.util.comparator.CommerceShippingMethodPriorityComparator;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Country;
@@ -90,8 +92,7 @@ public class EditCommerceShippingMethodAddressRestrictionMVCActionCommand
 		}
 	}
 
-	protected void updateCommerceAddressRestrictions(
-			ActionRequest actionRequest)
+	private void _updateCommerceAddressRestrictions(ActionRequest actionRequest)
 		throws Exception {
 
 		long commerceChannelId = ParamUtil.getLong(
@@ -102,7 +103,9 @@ public class EditCommerceShippingMethodAddressRestrictionMVCActionCommand
 
 		List<CommerceShippingMethod> commerceShippingMethods =
 			_commerceShippingMethodService.getCommerceShippingMethods(
-				commerceChannel.getGroupId(), true);
+				commerceChannel.getGroupId(), true, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS,
+				new CommerceShippingMethodPriorityComparator());
 
 		for (CommerceShippingMethod commerceShippingMethod :
 				commerceShippingMethods) {
@@ -130,7 +133,6 @@ public class EditCommerceShippingMethodAddressRestrictionMVCActionCommand
 				}
 
 				_commerceShippingMethodService.addCommerceAddressRestriction(
-					_portal.getUserId(actionRequest),
 					commerceChannel.getGroupId(),
 					commercePaymentMethodGroupRelId, country.getCountryId());
 			}
@@ -161,7 +163,7 @@ public class EditCommerceShippingMethodAddressRestrictionMVCActionCommand
 
 		@Override
 		public Object call() throws Exception {
-			updateCommerceAddressRestrictions(_actionRequest);
+			_updateCommerceAddressRestrictions(_actionRequest);
 
 			return null;
 		}

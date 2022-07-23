@@ -30,7 +30,7 @@
 			<order-column name="createDate" />
 		</order>
 
-		<!-- Finders -->
+		<!-- Finder methods -->
 
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
@@ -52,9 +52,5 @@
 			<finder-column name="userId" />
 			<finder-column name="fileEntryId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="DLFolder" package-path="com.liferay.portlet.documentlibrary" />
 	</entity>
 </service-builder>

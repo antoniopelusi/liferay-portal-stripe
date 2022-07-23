@@ -18,8 +18,4 @@ package com.liferay.contacts.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class EntryImpl extends EntryBaseImpl {
-
-	public EntryImpl() {
-	}
-
 }

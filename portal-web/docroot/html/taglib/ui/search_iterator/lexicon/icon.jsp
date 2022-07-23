@@ -42,13 +42,19 @@ for (int i = 0; i < resultRowSplitterEntries.size(); i++) {
 	List<com.liferay.portal.kernel.dao.search.ResultRow> curResultRows = resultRowSplitterEntry.getResultRows();
 %>
 
-	<c:if test="<%= Validator.isNotNull(resultRowSplitterEntry.getTitle()) %>">
-		<div class="card-section-header">
-			<liferay-ui:message key="<%= resultRowSplitterEntry.getTitle() %>" />
-		</div>
-	</c:if>
-
-	<ul class="<%= searchResultCssClass %>" data-qa-id="rows<%= i %>">
+	<dl class="<%= searchResultCssClass %>" data-qa-id="rows<%= i %>">
+		<c:choose>
+			<c:when test="<%= Validator.isNotNull(resultRowSplitterEntry.getTitle()) %>">
+				<dt class="card-section-header container-fluid">
+					<liferay-ui:message key="<%= resultRowSplitterEntry.getTitle() %>" />
+				</dt>
+			</c:when>
+			<c:otherwise>
+				<dt class="sr-only">
+					<%= PortalUtil.getPortletTitle(portletRequest) %>
+				</dt>
+			</c:otherwise>
+		</c:choose>
 
 		<%
 		for (int j = 0; j < curResultRows.size(); j++) {
@@ -100,7 +106,7 @@ for (int i = 0; i < resultRowSplitterEntries.size(); i++) {
 			}
 		%>
 
-			<li class="<%= GetterUtil.getString(row.getClassName()) %> <%= rowCssClass %> <%= rowIsChecked ? "active" : StringPool.BLANK %>" data-qa-id="row" <%= AUIUtil.buildData(data) %>>
+			<dd class="<%= GetterUtil.getString(row.getClassName()) %> <%= rowCssClass %> <%= rowIsChecked ? "active" : StringPool.BLANK %>" data-qa-id="row" <%= AUIUtil.buildData(data) %>>
 
 				<%
 				for (int k = 0; k < entries.size(); k++) {
@@ -114,7 +120,7 @@ for (int i = 0; i < resultRowSplitterEntries.size(); i++) {
 				}
 				%>
 
-			</li>
+			</dd>
 
 		<%
 			request.removeAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
@@ -125,14 +131,14 @@ for (int i = 0; i < resultRowSplitterEntries.size(); i++) {
 		%>
 
 		<c:if test="<%= i == (resultRowSplitterEntries.size() - 1) %>">
-			<li></li>
+			<dd></dd>
 		</c:if>
-	</ul>
+	</dl>
 
 <%
 }
 
-String rowHtmlTag = "li";
+String rowHtmlTag = "dd";
 %>
 
 <%@ include file="/html/taglib/ui/search_iterator/lexicon/bottom.jspf" %>

@@ -25,25 +25,24 @@ import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.UserGroupRoleModel;
-import com.liferay.portal.kernel.model.UserGroupRoleSoap;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -151,55 +150,6 @@ public class UserGroupRoleModelImpl
 	@Deprecated
 	public static final long USERGROUPROLEID_COLUMN_BITMASK = 8L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static UserGroupRole toModel(UserGroupRoleSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		UserGroupRole model = new UserGroupRoleImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUserGroupRoleId(soapModel.getUserGroupRoleId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setRoleId(soapModel.getRoleId());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<UserGroupRole> toModels(UserGroupRoleSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<UserGroupRole> models = new ArrayList<UserGroupRole>(
-			soapModels.length);
-
-		for (UserGroupRoleSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.UserGroupRole"));
@@ -287,34 +237,6 @@ public class UserGroupRoleModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, UserGroupRole>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			UserGroupRole.class.getClassLoader(), UserGroupRole.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<UserGroupRole> constructor =
-				(Constructor<UserGroupRole>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<UserGroupRole, Object>>
@@ -584,6 +506,28 @@ public class UserGroupRoleModelImpl
 	}
 
 	@Override
+	public UserGroupRole cloneWithOriginalValues() {
+		UserGroupRoleImpl userGroupRoleImpl = new UserGroupRoleImpl();
+
+		userGroupRoleImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		userGroupRoleImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		userGroupRoleImpl.setUserGroupRoleId(
+			this.<Long>getColumnOriginalValue("userGroupRoleId"));
+		userGroupRoleImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		userGroupRoleImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		userGroupRoleImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		userGroupRoleImpl.setRoleId(
+			this.<Long>getColumnOriginalValue("roleId"));
+
+		return userGroupRoleImpl;
+	}
+
+	@Override
 	public int compareTo(UserGroupRole userGroupRole) {
 		long primaryKey = userGroupRole.getPrimaryKey();
 
@@ -678,7 +622,7 @@ public class UserGroupRoleModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -689,9 +633,26 @@ public class UserGroupRoleModelImpl
 			Function<UserGroupRole, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((UserGroupRole)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((UserGroupRole)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -738,7 +699,9 @@ public class UserGroupRoleModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, UserGroupRole>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					UserGroupRole.class, ModelWrapper.class);
 
 	}
 

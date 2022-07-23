@@ -27,6 +27,10 @@ public class CommerceInventoryReplenishmentItemServiceWrapper
 	implements CommerceInventoryReplenishmentItemService,
 			   ServiceWrapper<CommerceInventoryReplenishmentItemService> {
 
+	public CommerceInventoryReplenishmentItemServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceInventoryReplenishmentItemServiceWrapper(
 		CommerceInventoryReplenishmentItemService
 			commerceInventoryReplenishmentItemService) {
@@ -39,14 +43,13 @@ public class CommerceInventoryReplenishmentItemServiceWrapper
 	public
 		com.liferay.commerce.inventory.model.CommerceInventoryReplenishmentItem
 				addCommerceInventoryReplenishmentItem(
-					long userId, long commerceInventoryWarehouseId, String sku,
+					long commerceInventoryWarehouseId, String sku,
 					java.util.Date availabilityDate, int quantity)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceInventoryReplenishmentItemService.
 			addCommerceInventoryReplenishmentItem(
-				userId, commerceInventoryWarehouseId, sku, availabilityDate,
-				quantity);
+				commerceInventoryWarehouseId, sku, availabilityDate, quantity);
 	}
 
 	@Override

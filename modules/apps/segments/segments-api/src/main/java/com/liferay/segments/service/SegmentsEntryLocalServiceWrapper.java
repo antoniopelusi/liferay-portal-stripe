@@ -30,6 +30,10 @@ public class SegmentsEntryLocalServiceWrapper
 	implements SegmentsEntryLocalService,
 			   ServiceWrapper<SegmentsEntryLocalService> {
 
+	public SegmentsEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SegmentsEntryLocalServiceWrapper(
 		SegmentsEntryLocalService segmentsEntryLocalService) {
 
@@ -184,6 +188,13 @@ public class SegmentsEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _segmentsEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _segmentsEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -494,25 +505,6 @@ public class SegmentsEntryLocalServiceWrapper
 
 		return _segmentsEntryLocalService.getSegmentsEntryByUuidAndGroupId(
 			uuid, groupId);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #searchSegmentsEntries(long, long, String, boolean,
-	 LinkedHashMap, int, int, Sort)}
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.search.BaseModelSearchResult<SegmentsEntry>
-			searchSegmentsEntries(
-				long companyId, long groupId, String keywords,
-				boolean includeAncestorSegmentsEntries, int start, int end,
-				com.liferay.portal.kernel.search.Sort sort)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _segmentsEntryLocalService.searchSegmentsEntries(
-			companyId, groupId, keywords, includeAncestorSegmentsEntries, start,
-			end, sort);
 	}
 
 	@Override

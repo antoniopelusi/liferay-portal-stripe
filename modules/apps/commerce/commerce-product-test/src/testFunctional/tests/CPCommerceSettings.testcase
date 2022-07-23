@@ -1,32 +1,43 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
+		CommerceConfiguration.commerceTearDown();
+	}
 
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
+	@description = "This is a test for COMMERCE-6912. Bulk delete countries"
+	@priority = "3"
+	test BulkDeleteCountries {
+		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "CPCommerceSettings#BulkDeleteCountries";
 
-			CommerceConfiguration.commerceAdminTearDown();
+		CommerceNavigator.gotoPortlet(
+			category = "Settings",
+			portlet = "Countries");
+
+		AssertElementPresent(locator1 = "CommerceEntry#ROW_VERTICAL_ELLIPSIS");
+
+		Pagination.changePagination(itemsPerPage = "60");
+
+		while (IsElementPresent(locator1 = "CommerceEntry#ROW_VERTICAL_ELLIPSIS")) {
+			CommerceProducts.deleteEntries(deleteMessage = "Are you sure you want to delete the selected countries?");
 		}
+
+		AssertElementNotPresent(locator1 = "CommerceEntry#ROW_VERTICAL_ELLIPSIS");
 	}
 
 	test CreateNewAvailabilityEstimate {
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CPCommerceSettings#CreateNewAvailabilityEstimate";
+		property portal.acceptance = "false";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Settings",
@@ -44,7 +55,6 @@ definition {
 	test CreateNewCountry {
 		property portal.acceptance = "false";
 		property portal.upstream = "false";
-		property test.name.skip.portal.instance = "CPCommerceSettings#CreateNewCountry";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Settings",
@@ -80,8 +90,7 @@ definition {
 	}
 
 	test CreateNewMeasurementUnits {
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CPCommerceSettings#CreateNewMeasurementUnits";
+		property portal.acceptance = "false";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Settings",
@@ -108,8 +117,7 @@ definition {
 
 	test ViewInstanceCurrenciesAvailable {
 		property environment.acceptance = "true";
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CommerceSmoke#ViewAvailableCurrencies";
+		property portal.acceptance = "false";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",

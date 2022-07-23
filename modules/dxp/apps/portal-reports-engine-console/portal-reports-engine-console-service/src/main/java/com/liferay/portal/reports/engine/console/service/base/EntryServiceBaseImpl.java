@@ -172,14 +172,6 @@ public abstract class EntryServiceBaseImpl
 		classNameService;
 
 	@Reference
-	protected com.liferay.portal.kernel.service.PortletPreferencesLocalService
-		portletPreferencesLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.PortletPreferencesService
-		portletPreferencesService;
-
-	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService
 		resourceLocalService;
 

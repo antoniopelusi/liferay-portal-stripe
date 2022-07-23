@@ -31,7 +31,7 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = MVCRenderCommand.class
 )
-public class ViewSlideShowMVCRenderCommand extends GetFolderMVCRenderCommand {
+public class ViewSlideShowMVCRenderCommand extends BaseFolderMVCRenderCommand {
 
 	@Override
 	protected DLTrashHelper getDLTrashHelper() {

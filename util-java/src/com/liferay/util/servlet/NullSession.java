@@ -34,7 +34,6 @@ import javax.servlet.http.HttpSessionContext;
 public class NullSession implements HttpSession {
 
 	public NullSession() {
-		_attributes = new HashMap<>();
 		_creationTime = System.currentTimeMillis();
 		_id =
 			NullSession.class.getName() + StringPool.POUND +
@@ -152,7 +151,7 @@ public class NullSession implements HttpSession {
 		_maxInactiveInterval = maxInactiveInterval;
 	}
 
-	private final Map<String, Object> _attributes;
+	private final Map<String, Object> _attributes = new HashMap<>();
 	private final long _creationTime;
 	private final String _id;
 	private final long _lastAccessedTime;

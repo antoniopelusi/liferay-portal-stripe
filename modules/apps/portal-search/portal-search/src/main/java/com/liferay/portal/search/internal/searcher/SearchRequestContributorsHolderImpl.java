@@ -50,9 +50,9 @@ public class SearchRequestContributorsHolderImpl
 	public Stream<SearchRequestContributor> stream(
 		Collection<String> includeIds, Collection<String> excludeIds) {
 
-		Collection<SearchRequestContributor> collection = include(includeIds);
+		Collection<SearchRequestContributor> collection = _include(includeIds);
 
-		exclude(collection, excludeIds);
+		_exclude(collection, excludeIds);
 
 		return collection.stream();
 	}
@@ -80,22 +80,26 @@ public class SearchRequestContributorsHolderImpl
 		_serviceTrackerMap.close();
 	}
 
-	protected void exclude(
+	protected void removeSearchRequestContributor(
+		SearchRequestContributor searchRequestContributor) {
+
+		_searchRequestContributors.remove(searchRequestContributor);
+	}
+
+	private void _exclude(
 		Collection<SearchRequestContributor> collection,
 		Collection<String> ids) {
 
-		Stream<String> stream = ids.stream();
+		for (String id : ids) {
+			Object searchRequestContributor = _serviceTrackerMap.getService(id);
 
-		stream.map(
-			_serviceTrackerMap::getService
-		).filter(
-			Objects::nonNull
-		).forEach(
-			collection::removeAll
-		);
+			if (Objects.nonNull(searchRequestContributor)) {
+				collection.remove(searchRequestContributor);
+			}
+		}
 	}
 
-	protected Collection<SearchRequestContributor> include(
+	private Collection<SearchRequestContributor> _include(
 		Collection<String> ids) {
 
 		if ((ids == null) || ids.isEmpty()) {
@@ -109,12 +113,6 @@ public class SearchRequestContributorsHolderImpl
 		}
 
 		return collection;
-	}
-
-	protected void removeSearchRequestContributor(
-		SearchRequestContributor searchRequestContributor) {
-
-		_searchRequestContributors.remove(searchRequestContributor);
 	}
 
 	private final Collection<SearchRequestContributor>

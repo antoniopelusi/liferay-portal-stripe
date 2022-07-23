@@ -18,6 +18,7 @@ import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -51,8 +52,10 @@ import java.sql.SQLException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -66,17 +69,7 @@ import javax.servlet.http.HttpServletRequest;
 public class PortalInstances {
 
 	public static void addCompanyId(long companyId) {
-		if (ArrayUtil.contains(_companyIds, companyId)) {
-			return;
-		}
-
-		long[] companyIds = new long[_companyIds.length + 1];
-
-		System.arraycopy(_companyIds, 0, companyIds, 0, _companyIds.length);
-
-		companyIds[_companyIds.length] = companyId;
-
-		_companyIds = companyIds;
+		_companyIds.addIfAbsent(companyId);
 	}
 
 	public static long getCompanyId(HttpServletRequest httpServletRequest) {
@@ -128,7 +121,7 @@ public class PortalInstances {
 					}
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 		}
@@ -164,13 +157,16 @@ public class PortalInstances {
 				TreeMap<String, String> virtualHostnames =
 					layoutSet.getVirtualHostnames();
 
-				if (virtualHostnames.isEmpty()) {
+				if (virtualHostnames.isEmpty() ||
+					_isCompanyVirtualHostname(
+						companyId, httpServletRequest.getServerName())) {
+
 					httpServletRequest.setAttribute(
 						WebKeys.VIRTUAL_HOST_LAYOUT_SET, layoutSet);
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -178,20 +174,29 @@ public class PortalInstances {
 	}
 
 	public static long[] getCompanyIds() {
-		return _companyIds;
+		return ArrayUtil.toArray(_companyIds.toArray(new Long[0]));
 	}
 
 	public static long[] getCompanyIdsBySQL() throws SQLException {
 		List<Long> companyIds = new ArrayList<>();
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(_GET_COMPANY_IDS);
-			ResultSet rs = ps.executeQuery()) {
+		long defaultCompanyId = getDefaultCompanyIdBySQL();
 
-			while (rs.next()) {
-				long companyId = rs.getLong("companyId");
+		if (defaultCompanyId != 0) {
+			companyIds.add(defaultCompanyId);
+		}
 
-				companyIds.add(companyId);
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				_GET_COMPANY_IDS);
+			ResultSet resultSet = preparedStatement.executeQuery()) {
+
+			while (resultSet.next()) {
+				long companyId = resultSet.getLong("companyId");
+
+				if (companyId != defaultCompanyId) {
+					companyIds.add(companyId);
+				}
 			}
 		}
 
@@ -199,7 +204,22 @@ public class PortalInstances {
 	}
 
 	public static long getDefaultCompanyId() {
-		return _companyIds[0];
+		return _companyIds.get(0);
+	}
+
+	public static long getDefaultCompanyIdBySQL() throws SQLException {
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				"select companyId from Company where webId = '" +
+					PropsValues.COMPANY_DEFAULT_WEB_ID + "'");
+			ResultSet resultSet = preparedStatement.executeQuery()) {
+
+			if (resultSet.next()) {
+				return resultSet.getLong(1);
+			}
+		}
+
+		return 0;
 	}
 
 	public static String[] getWebIds() {
@@ -212,26 +232,24 @@ public class PortalInstances {
 		}
 
 		try {
-			List<Company> companies = CompanyLocalServiceUtil.getCompanies(
-				false);
+			List<String> webIdsList = new ArrayList<>();
 
-			List<String> webIdsList = new ArrayList<>(companies.size());
+			CompanyLocalServiceUtil.forEachCompany(
+				company -> {
+					String webId = company.getWebId();
 
-			for (Company company : companies) {
-				String webId = company.getWebId();
-
-				if (webId.equals(PropsValues.COMPANY_DEFAULT_WEB_ID)) {
-					webIdsList.add(0, webId);
-				}
-				else {
-					webIdsList.add(webId);
-				}
-			}
+					if (webId.equals(PropsValues.COMPANY_DEFAULT_WEB_ID)) {
+						webIdsList.add(0, webId);
+					}
+					else {
+						webIdsList.add(webId);
+					}
+				});
 
 			_webIds = webIdsList.toArray(new String[0]);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		if (ArrayUtil.isEmpty(_webIds)) {
@@ -258,7 +276,7 @@ public class PortalInstances {
 			companyId = company.getCompanyId();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return companyId;
 		}
@@ -274,7 +292,7 @@ public class PortalInstances {
 				CompanyLocalServiceUtil.checkCompany(webId);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 
 			String principalName = null;
@@ -329,7 +347,7 @@ public class PortalInstances {
 					companyId, WebKeys.PORTLET_CATEGORY, portletCategory);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 
 			// Process application startup events
@@ -345,7 +363,7 @@ public class PortalInstances {
 					new String[] {String.valueOf(companyId)});
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 
 			// End initializing company
@@ -386,7 +404,7 @@ public class PortalInstances {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;
@@ -401,7 +419,7 @@ public class PortalInstances {
 	}
 
 	public static void reload(ServletContext servletContext) {
-		_companyIds = new long[0];
+		_companyIds.clear();
 		_webIds = null;
 
 		String[] webIds = getWebIds();
@@ -419,10 +437,10 @@ public class PortalInstances {
 				new String[] {String.valueOf(companyId)});
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
-		_companyIds = ArrayUtil.remove(_companyIds, companyId);
+		_companyIds.remove(companyId);
 		_webIds = null;
 
 		getWebIds();
@@ -489,10 +507,29 @@ public class PortalInstances {
 			return virtualHost.getCompanyId();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return 0;
+	}
+
+	private static boolean _isCompanyVirtualHostname(
+			long companyId, String serverName)
+		throws PortalException {
+
+		Company company = CompanyLocalServiceUtil.getCompany(companyId);
+
+		String virtualHostname = company.getVirtualHostname();
+
+		if (Validator.isNull(virtualHostname)) {
+			virtualHostname = "localhost";
+		}
+
+		if (Objects.equals(virtualHostname, serverName)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private PortalInstances() {
@@ -506,13 +543,13 @@ public class PortalInstances {
 
 	private static final Set<String> _autoLoginIgnoreHosts;
 	private static final Set<String> _autoLoginIgnorePaths;
-	private static long[] _companyIds;
+	private static final CopyOnWriteArrayList<Long> _companyIds;
 	private static final Set<String> _virtualHostsIgnoreHosts;
 	private static final Set<String> _virtualHostsIgnorePaths;
 	private static String[] _webIds;
 
 	static {
-		_companyIds = new long[0];
+		_companyIds = new CopyOnWriteArrayList<>();
 		_autoLoginIgnoreHosts = SetUtil.fromArray(
 			PropsUtil.getArray(PropsKeys.AUTO_LOGIN_IGNORE_HOSTS));
 		_autoLoginIgnorePaths = SetUtil.fromArray(

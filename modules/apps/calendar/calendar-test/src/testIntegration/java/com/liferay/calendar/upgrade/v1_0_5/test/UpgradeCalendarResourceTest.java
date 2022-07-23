@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -123,44 +124,43 @@ public class UpgradeCalendarResourceTest {
 	protected long getCalendarResourceUserId(CalendarResource calendarResource)
 		throws SQLException {
 
-		try (Connection con = DataAccess.getConnection()) {
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection()) {
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select userId from CalendarResource where " +
 					"calendarResourceId = ?");
 
-			ps.setLong(1, calendarResource.getCalendarResourceId());
+			preparedStatement.setLong(
+				1, calendarResource.getCalendarResourceId());
 
-			ResultSet rs = ps.executeQuery();
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-			rs.next();
+			resultSet.next();
 
-			return rs.getLong(1);
+			return resultSet.getLong(1);
 		}
 	}
 
 	protected long getCalendarUserId(Calendar calendar) throws SQLException {
-		try (Connection con = DataAccess.getConnection()) {
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection()) {
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select userId from Calendar where calendarId = ?");
 
-			ps.setLong(1, calendar.getCalendarId());
+			preparedStatement.setLong(1, calendar.getCalendarId());
 
-			ResultSet rs = ps.executeQuery();
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-			rs.next();
+			resultSet.next();
 
-			return rs.getLong(1);
+			return resultSet.getLong(1);
 		}
 	}
 
 	protected CalendarResource getDefaultUserCalendarResource()
 		throws PortalException {
 
-		ServiceContext serviceContext = new ServiceContext();
-
 		CalendarResource calendarResource =
 			CalendarResourceUtil.getGroupCalendarResource(
-				_group.getGroupId(), serviceContext);
+				_group.getGroupId(), new ServiceContext());
 
 		Calendar calendar = calendarResource.getDefaultCalendar();
 
@@ -177,8 +177,8 @@ public class UpgradeCalendarResourceTest {
 	}
 
 	protected void setUpUpgradeCalendarResource() {
-		_upgradeProcess = CalendarUpgradeTestUtil.getServiceUpgradeStep(
-			"v1_0_5.CalendarResourceUpgradeProcess");
+		_upgradeProcess = CalendarUpgradeTestUtil.getUpgradeStep(
+			_upgradeStepRegistrator, "v1_0_5.CalendarResourceUpgradeProcess");
 	}
 
 	@Inject
@@ -193,6 +193,11 @@ public class UpgradeCalendarResourceTest {
 	private RoleLocalService _roleLocalService;
 
 	private UpgradeProcess _upgradeProcess;
+
+	@Inject(
+		filter = "component.name=com.liferay.calendar.internal.upgrade.CalendarServiceUpgrade"
+	)
+	private UpgradeStepRegistrator _upgradeStepRegistrator;
 
 	@Inject
 	private UserLocalService _userLocalService;

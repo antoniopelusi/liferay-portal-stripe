@@ -33,7 +33,7 @@ import org.osgi.service.component.annotations.Component;
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=globe",
 		"ddm.form.field.type.label=geolocation-field-type-label",
 		"ddm.form.field.type.name=" + DDMFormFieldTypeConstants.GEOLOCATION,
-		"ddm.form.field.type.scope=forms"
+		"ddm.form.field.type.scope=document-library,forms,journal"
 	},
 	service = DDMFormFieldType.class
 )

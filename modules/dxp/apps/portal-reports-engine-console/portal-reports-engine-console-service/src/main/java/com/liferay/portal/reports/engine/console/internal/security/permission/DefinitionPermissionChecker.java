@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.reports.engine.console.model.Definition;
-import com.liferay.portal.reports.engine.console.service.DefinitionLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -80,10 +79,6 @@ public class DefinitionPermissionChecker implements BaseModelPermissionChecker {
 
 		_definitionModelResourcePermission.check(
 			permissionChecker, primaryKey, actionId);
-	}
-
-	protected void setDefinitionLocalService(
-		DefinitionLocalService definitionLocalService) {
 	}
 
 	@Reference(

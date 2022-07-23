@@ -18,7 +18,6 @@ import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.type.grouped.model.CPDefinitionGroupedEntry;
 import com.liferay.commerce.product.type.grouped.service.CPDefinitionGroupedEntryService;
 import com.liferay.commerce.product.type.grouped.web.internal.constants.GroupedCPTypeWebKeys;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -53,16 +52,16 @@ public class CPDefinitionGroupedEntryInfoPanelMVCResourceCommand
 
 		resourceRequest.setAttribute(
 			GroupedCPTypeWebKeys.CP_DEFINITION_GROUPED_ENTRIES,
-			getCPDefinitionGroupedEntries(resourceRequest));
+			_getCPDefinitionGroupedEntries(resourceRequest));
 
 		include(
 			resourceRequest, resourceResponse,
 			"/cp_definition_grouped_entry_info_panel.jsp");
 	}
 
-	protected List<CPDefinitionGroupedEntry> getCPDefinitionGroupedEntries(
+	private List<CPDefinitionGroupedEntry> _getCPDefinitionGroupedEntries(
 			ResourceRequest resourceRequest)
-		throws PortalException {
+		throws Exception {
 
 		List<CPDefinitionGroupedEntry> cpDefinitionGroupedEntries =
 			new ArrayList<>();

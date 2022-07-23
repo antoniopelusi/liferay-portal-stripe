@@ -1,7 +1,5 @@
 {
 	"dependencies": {
-		"frontend-js-web": "*",
-		"metal-state": "2.16.8"
 	},
 	"name": "users-admin-web",
 	"scripts": {
@@ -9,5 +7,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "6.0.6"
+	"version": "6.0.44"
 }

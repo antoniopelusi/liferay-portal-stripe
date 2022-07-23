@@ -75,6 +75,11 @@ public class CompanyInfoWrapper
 		}
 	}
 
+	@Override
+	public CompanyInfo cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this company info.
 	 *

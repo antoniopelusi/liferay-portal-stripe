@@ -15,7 +15,7 @@
 import {PropTypes} from 'prop-types';
 import React from 'react';
 
-import MappingInputs from './components/MappingInputs';
+import MappingFields from './components/MappingFields';
 import lang from './utils/lang';
 
 export default function SeoMapping({
@@ -26,7 +26,7 @@ export default function SeoMapping({
 	title,
 }) {
 	return (
-		<MappingInputs
+		<MappingFields
 			fields={fields}
 			inputs={[
 				{
@@ -40,9 +40,10 @@ export default function SeoMapping({
 					),
 					label: Liferay.Language.get('html-title'),
 					name: `${portletNamespace}TypeSettingsProperties--mapped-title--`,
-					selectedFieldKey: title,
+					value: title,
 				},
 				{
+					component: 'textarea',
 					fieldType: 'text',
 					helpMessage: lang.sub(
 						Liferay.Language.get(
@@ -53,7 +54,7 @@ export default function SeoMapping({
 					),
 					label: Liferay.Language.get('description'),
 					name: `${portletNamespace}TypeSettingsProperties--mapped-description--`,
-					selectedFieldKey: description,
+					value: description,
 				},
 			]}
 			selectedSource={selectedSource}

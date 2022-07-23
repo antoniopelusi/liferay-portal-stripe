@@ -63,8 +63,7 @@ public abstract class BaseAlloyEditorConfigContributor
 		).put(
 			"extraPlugins",
 			"addimages,ae_dragresize,ae_imagealignment,ae_placeholder," +
-				"ae_selectionregion,ae_tableresize,ae_tabletools,ae_uicore," +
-					"autolink"
+				"ae_selectionregion,ae_tableresize,ae_tabletools,ae_uicore"
 		).put(
 			"imageScaleResize", "scale"
 		).put(
@@ -72,8 +71,8 @@ public abstract class BaseAlloyEditorConfigContributor
 			StringUtil.replace(getLanguageId(themeDisplay), "iw_", "he_")
 		).put(
 			"removePlugins",
-			"contextmenu,elementspath,floatingspace,image2,link,liststyle," +
-				"resize,table,tabletools,toolbar"
+			"autolink,contextmenu,elementspath,floatingspace,image2,link," +
+				"liststyle,resize,table,tabletools,toolbar"
 		).put(
 			"skin", "moono-lisa"
 		);
@@ -90,12 +89,17 @@ public abstract class BaseAlloyEditorConfigContributor
 
 		jsonObject.put("srcNode", name);
 
-		populateFileBrowserURL(
+		_populateFileBrowserURL(
 			jsonObject, requestBackedPortletURLFactory,
 			name + "selectDocument");
 	}
 
-	protected void populateFileBrowserURL(
+	@Reference(unbind = "-")
+	protected void setItemSelector(ItemSelector itemSelector) {
+		_itemSelector = itemSelector;
+	}
+
+	private void _populateFileBrowserURL(
 		JSONObject jsonObject,
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory,
 		String eventName) {
@@ -118,11 +122,6 @@ public abstract class BaseAlloyEditorConfigContributor
 			fileItemSelectorCriterion, layoutItemSelectorCriterion);
 
 		jsonObject.put("documentBrowseLinkUrl", itemSelectorURL.toString());
-	}
-
-	@Reference(unbind = "-")
-	protected void setItemSelector(ItemSelector itemSelector) {
-		_itemSelector = itemSelector;
 	}
 
 	private ItemSelector _itemSelector;

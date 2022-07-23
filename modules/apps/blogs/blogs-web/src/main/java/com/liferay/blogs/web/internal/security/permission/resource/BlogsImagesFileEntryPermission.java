@@ -14,7 +14,6 @@
 
 package com.liferay.blogs.web.internal.security.permission.resource;
 
-import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -46,10 +45,6 @@ public class BlogsImagesFileEntryPermission {
 		ModelResourcePermission<FileEntry> modelResourcePermission) {
 
 		_fileEntryModelResourcePermission = modelResourcePermission;
-	}
-
-	protected void unsetDLFileEntryModelResourcePermission(
-		ModelResourcePermission<DLFileEntry> modelResourcePermission) {
 	}
 
 	private static ModelResourcePermission<FileEntry>

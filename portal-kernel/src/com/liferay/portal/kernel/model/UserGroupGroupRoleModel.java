@@ -160,4 +160,7 @@ public interface UserGroupGroupRoleModel
 	 */
 	public void setRoleId(long roleId);
 
+	@Override
+	public UserGroupGroupRole cloneWithOriginalValues();
+
 }

@@ -20,7 +20,7 @@ import com.liferay.oauth2.provider.internal.test.TestApplication;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -78,14 +78,14 @@ public class AnnotationsAndHttpApplicationClientTest
 			User user = UserTestUtil.getAdminUser(defaultCompanyId);
 
 			Dictionary<String, Object> annotatedApplicationProperties =
-				new HashMapDictionary<>();
+				HashMapDictionaryBuilder.<String, Object>put(
+					"oauth2.scope.checker.type", "annotations"
+				).build();
 
-			annotatedApplicationProperties.put(
-				"oauth2.scope.checker.type", "annotations");
-
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put("osgi.jaxrs.name", TestApplication.class.getName());
+			Dictionary<String, Object> properties =
+				HashMapDictionaryBuilder.<String, Object>put(
+					"osgi.jaxrs.name", TestApplication.class.getName()
+				).build();
 
 			registerJaxRsApplication(
 				new TestAnnotatedApplication(), "annotated",

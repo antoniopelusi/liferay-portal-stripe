@@ -28,7 +28,6 @@ import com.liferay.headless.commerce.core.util.DateConfig;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
@@ -39,11 +38,8 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import javax.ws.rs.core.Response;
 
@@ -77,7 +73,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commerceTierPriceEntry == null) {
 			throw new NoSuchTierPriceEntryException(
-				"Unable to find Tier Price with externalReferenceCode: " +
+				"Unable to find tier price with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -96,7 +92,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commercePriceEntry == null) {
 			throw new NoSuchPriceEntryException(
-				"Unable to find Price Entry with externalReferenceCode: " +
+				"Unable to find price entry with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -153,7 +149,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commerceTierPriceEntry == null) {
 			throw new NoSuchTierPriceEntryException(
-				"Unable to find Tier Price with externalReferenceCode: " +
+				"Unable to find tier price with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -185,7 +181,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commerceTierPriceEntry == null) {
 			throw new NoSuchTierPriceEntryException(
-				"Unable to find Tier Price with externalReferenceCode: " +
+				"Unable to find tier price with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -207,12 +203,12 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commercePriceEntry == null) {
 			throw new NoSuchPriceEntryException(
-				"Unable to find Price Entry with externalReferenceCode: " +
+				"Unable to find price entry with external reference code " +
 					externalReferenceCode);
 		}
 
 		CommerceTierPriceEntry commerceTierPriceEntry =
-			TierPriceUtil.upsertCommerceTierPriceEntry(
+			TierPriceUtil.addOrUpdateCommerceTierPriceEntry(
 				_commerceTierPriceEntryService, tierPrice, commercePriceEntry,
 				_serviceContextHelper);
 
@@ -225,7 +221,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 		throws Exception {
 
 		CommerceTierPriceEntry commerceTierPriceEntry =
-			TierPriceUtil.upsertCommerceTierPriceEntry(
+			TierPriceUtil.addOrUpdateCommerceTierPriceEntry(
 				_commerceTierPriceEntryService, tierPrice,
 				_commercePriceEntryService.getCommercePriceEntry(id),
 				_serviceContextHelper);
@@ -256,33 +252,6 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 				"patchTierPrice",
 				_commerceTierPriceEntryModelResourcePermission)
 		).build();
-	}
-
-	private DateConfig _getDisplayDateConfig(Date date, TimeZone timeZone) {
-		if (date == null) {
-			return new DateConfig(CalendarFactoryUtil.getCalendar(timeZone));
-		}
-
-		Calendar calendar = CalendarFactoryUtil.getCalendar(
-			date.getTime(), timeZone);
-
-		return new DateConfig(calendar);
-	}
-
-	private DateConfig _getExpirationDateConfig(Date date, TimeZone timeZone) {
-		if (date == null) {
-			Calendar expirationCalendar = CalendarFactoryUtil.getCalendar(
-				timeZone);
-
-			expirationCalendar.add(Calendar.MONTH, 1);
-
-			return new DateConfig(expirationCalendar);
-		}
-
-		Calendar calendar = CalendarFactoryUtil.getCalendar(
-			date.getTime(), timeZone);
-
-		return new DateConfig(calendar);
 	}
 
 	private TierPrice _toTierPrice(Long commerceTierPriceEntryId)
@@ -322,16 +291,15 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 			CommerceTierPriceEntry commerceTierPriceEntry, TierPrice tierPrice)
 		throws Exception {
 
-		ServiceContext serviceContext =
-			_serviceContextHelper.getServiceContext();
-
 		CommercePriceEntry commercePriceEntry =
 			commerceTierPriceEntry.getCommercePriceEntry();
 
-		DateConfig displayDateConfig = _getDisplayDateConfig(
-			tierPrice.getDisplayDate(), serviceContext.getTimeZone());
+		ServiceContext serviceContext =
+			_serviceContextHelper.getServiceContext();
 
-		DateConfig expirationDateConfig = _getExpirationDateConfig(
+		DateConfig displayDateConfig = DateConfig.toDisplayDateConfig(
+			tierPrice.getDisplayDate(), serviceContext.getTimeZone());
+		DateConfig expirationDateConfig = DateConfig.toExpirationDateConfig(
 			tierPrice.getExpirationDate(), serviceContext.getTimeZone());
 
 		return _commerceTierPriceEntryService.updateCommerceTierPriceEntry(

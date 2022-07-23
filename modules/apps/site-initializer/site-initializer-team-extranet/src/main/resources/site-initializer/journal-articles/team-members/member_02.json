@@ -1,0 +1,11 @@
+{
+	"articleId": "MEMBER-02",
+	"assetCategoryERCs": [
+		"ROLCAT0002",
+		"REGCAT0002"
+	],
+	"ddmStructureKey": "MEMBER",
+	"ddmTemplateKey": "MEMBER",
+	"folder": "Team Members",
+	"name": "Jacob Jones"
+}

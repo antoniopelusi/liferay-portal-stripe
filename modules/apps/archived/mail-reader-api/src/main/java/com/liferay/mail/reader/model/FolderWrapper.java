@@ -119,6 +119,11 @@ public class FolderWrapper
 		}
 	}
 
+	@Override
+	public Folder cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the account ID of this folder.
 	 *

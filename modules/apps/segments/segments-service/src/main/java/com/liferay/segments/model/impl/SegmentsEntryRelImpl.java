@@ -36,7 +36,5 @@ public class SegmentsEntryRelImpl extends SegmentsEntryRelBaseImpl {
 	 * entry rel model instance should use the {@link
 	 * com.liferay.segments.model.SegmentsEntryRel} interface instead.
 	 */
-	public SegmentsEntryRelImpl() {
-	}
 
 }

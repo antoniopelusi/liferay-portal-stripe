@@ -61,7 +61,7 @@ public class JournalArticleVerticalCard extends BaseVerticalCard {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -84,22 +84,15 @@ public class JournalArticleVerticalCard extends BaseVerticalCard {
 		}
 
 		try {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(title);
-			sb.append(StringPool.SPACE);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
+			return StringBundler.concat(
+				title, StringPool.SPACE, StringPool.OPEN_PARENTHESIS,
 				HtmlUtil.escape(
-					articleGroup.getDescriptiveName(
-						_themeDisplay.getLocale())));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			return sb.toString();
+					articleGroup.getDescriptiveName(_themeDisplay.getLocale())),
+				StringPool.CLOSE_PARENTHESIS);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return title;

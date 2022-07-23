@@ -6,7 +6,6 @@ exports[`Grid has a label 1`] = `
     class="form-group hide"
   >
     <label
-      aria-describedby="undefined_fieldDetails"
       class="ddm-label"
       tabindex="0"
     >
@@ -16,8 +15,6 @@ exports[`Grid has a label 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
@@ -99,8 +96,6 @@ exports[`Grid has a tip 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
@@ -166,18 +161,19 @@ exports[`Grid has a tip 1`] = `
       type="hidden"
       value="false"
     />
-    <span
+    <div
       aria-hidden="true"
-      class="form-text"
+      class="form-feedback-group lfr-de__field-feedback"
     >
-      Type something
-    </span>
+      <div>
+        Type something
+      </div>
+    </div>
     <span
       class="sr-only"
       id="undefined_fieldDetails"
     >
       Type something
-      <br />
     </span>
   </div>
 </div>
@@ -186,7 +182,7 @@ exports[`Grid has a tip 1`] = `
 exports[`Grid has an id 1`] = `
 <div>
   <div
-    aria-labelledby="undefined_fieldDetails"
+    aria-labelledby="Id_fieldDetails"
     class="form-group hide"
     tabindex="0"
   >
@@ -194,8 +190,6 @@ exports[`Grid has an id 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
@@ -355,8 +349,6 @@ exports[`Grid is not required 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
@@ -433,7 +425,6 @@ exports[`Grid renders Label if showLabel is true 1`] = `
     class="form-group hide"
   >
     <label
-      aria-describedby="undefined_fieldDetails"
       class="ddm-label"
       tabindex="0"
     >
@@ -443,8 +434,6 @@ exports[`Grid renders Label if showLabel is true 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
@@ -526,8 +515,6 @@ exports[`Grid renders columns 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
@@ -636,8 +623,6 @@ exports[`Grid renders no columns when columns comes empty 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
@@ -736,14 +721,10 @@ exports[`Grid renders rows 1`] = `
       class="table-responsive"
     >
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />
       <input
-        aria-hidden="true"
-        class="form-control"
         type="hidden"
         value=""
       />

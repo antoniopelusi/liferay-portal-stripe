@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Brian Wing Shun Chan
@@ -34,29 +35,29 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 
 	public EntityColumn(ServiceBuilder serviceBuilder, String name) {
 		this(
-			serviceBuilder, name, null, null, null, false, false, false, null,
-			null, true, true, false, null, null, false, null, null, true, true,
-			false, false, CTColumnResolutionType.STRICT, false, false, null,
-			false);
+			serviceBuilder, name, null, null, null, null, false, false, false,
+			null, null, true, true, false, null, null, false, null, null, true,
+			true, false, false, CTColumnResolutionType.STRICT, false, false,
+			null, false);
 	}
 
 	public EntityColumn(
 		ServiceBuilder serviceBuilder, String name, String dbName) {
 
 		this(
-			serviceBuilder, name, null, dbName, "String", false, false, false,
-			null, null, null, null, true, false, false, false,
+			serviceBuilder, name, null, dbName, null, "String", false, false,
+			false, null, null, null, null, true, false, false, false,
 			CTColumnResolutionType.STRICT, false, false, null, false);
 	}
 
 	public EntityColumn(
 		ServiceBuilder serviceBuilder, String name, String pluralName,
-		String dbName, String type, boolean primary, boolean accessor,
-		boolean filterPrimary, String entityName, String mappingTableName,
-		boolean caseSensitive, boolean orderByAscending, boolean orderColumn,
-		String comparator, String arrayableOperator,
-		boolean arrayablePagination, String idType, String idParam,
-		boolean convertNull, boolean lazy, boolean localized,
+		String dbName, String methodName, String type, boolean primary,
+		boolean accessor, boolean filterPrimary, String entityName,
+		String mappingTableName, boolean caseSensitive,
+		boolean orderByAscending, boolean orderColumn, String comparator,
+		String arrayableOperator, boolean arrayablePagination, String idType,
+		String idParam, boolean convertNull, boolean lazy, boolean localized,
 		boolean jsonEnabled, CTColumnResolutionType ctColumnResolutionType,
 		boolean containerModel, boolean parentContainerModel,
 		String uadAnonymizeFieldName, boolean uadNonanonymizable) {
@@ -66,6 +67,8 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 		_pluralName = GetterUtil.getString(
 			pluralName, serviceBuilder.formatPlural(name));
 		_dbName = dbName;
+		_methodName = GetterUtil.getString(
+			methodName, TextFormatter.format(name, TextFormatter.G));
 		_type = type;
 		_primary = primary;
 		_accessor = accessor;
@@ -91,37 +94,45 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 		_uadNonanonymizable = uadNonanonymizable;
 
 		_humanName = ServiceBuilder.toHumanName(name);
-		_methodName = TextFormatter.format(name, TextFormatter.G);
+
+		if (Objects.equals(
+				_methodName, TextFormatter.format(name, TextFormatter.G))) {
+
+			_modelHintsName = name;
+		}
+		else {
+			_modelHintsName = methodName;
+		}
 	}
 
 	public EntityColumn(
 		ServiceBuilder serviceBuilder, String name, String pluralName,
-		String dbName, String type, boolean primary, boolean accessor,
-		boolean filterPrimary, String ejbName, String mappingTable,
-		String idType, String idParam, boolean convertNull, boolean lazy,
-		boolean localized, boolean jsonEnabled,
+		String dbName, String methodName, String type, boolean primary,
+		boolean accessor, boolean filterPrimary, String ejbName,
+		String mappingTable, String idType, String idParam, boolean convertNull,
+		boolean lazy, boolean localized, boolean jsonEnabled,
 		CTColumnResolutionType ctColumnResolutionType, boolean containerModel,
 		boolean parentContainerModel, String uadAnonymizeFieldName,
 		boolean uadNonanonymizable) {
 
 		this(
-			serviceBuilder, name, pluralName, dbName, type, primary, accessor,
-			filterPrimary, ejbName, mappingTable, true, true, false, null, null,
-			false, idType, idParam, convertNull, lazy, localized, jsonEnabled,
-			ctColumnResolutionType, containerModel, parentContainerModel,
-			uadAnonymizeFieldName, uadNonanonymizable);
+			serviceBuilder, name, pluralName, dbName, methodName, type, primary,
+			accessor, filterPrimary, ejbName, mappingTable, true, true, false,
+			null, null, false, idType, idParam, convertNull, lazy, localized,
+			jsonEnabled, ctColumnResolutionType, containerModel,
+			parentContainerModel, uadAnonymizeFieldName, uadNonanonymizable);
 	}
 
 	@Override
 	public Object clone() {
 		return new EntityColumn(
-			_serviceBuilder, getName(), getPluralName(), getDBName(), getType(),
-			isPrimary(), isAccessor(), isFilterPrimary(), getEntityName(),
-			getMappingTableName(), isCaseSensitive(), isOrderByAscending(),
-			isOrderColumn(), getComparator(), getArrayableOperator(),
-			hasArrayablePagination(), getIdType(), getIdParam(),
-			isConvertNull(), isLazy(), isLocalized(), isJsonEnabled(),
-			getCTColumnResolutionType(), isContainerModel(),
+			_serviceBuilder, getName(), getPluralName(), getDBName(),
+			getMethodName(), getType(), isPrimary(), isAccessor(),
+			isFilterPrimary(), getEntityName(), getMappingTableName(),
+			isCaseSensitive(), isOrderByAscending(), isOrderColumn(),
+			getComparator(), getArrayableOperator(), hasArrayablePagination(),
+			getIdType(), getIdParam(), isConvertNull(), isLazy(), isLocalized(),
+			isJsonEnabled(), getCTColumnResolutionType(), isContainerModel(),
 			isParentContainerModel(), getUADAnonymizeFieldName(),
 			isUADNonanonymizable());
 	}
@@ -173,6 +184,13 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 
 	public CTColumnResolutionType getCTColumnResolutionType() {
 		return _ctColumnResolutionType;
+	}
+
+	public String getCTColumnResolutionTypeName() {
+		String name = StringUtil.toLowerCase(
+			_ctColumnResolutionType.toString());
+
+		return StringUtil.upperCaseFirstLetter(name);
 	}
 
 	public String getDBName() {
@@ -239,6 +257,10 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 
 	public String getMethodUserUuidName() {
 		return _methodName.substring(0, _methodName.length() - 2) + "Uuid";
+	}
+
+	public String getModelHintsName() {
+		return _modelHintsName;
 	}
 
 	public String getName() {
@@ -318,26 +340,6 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 		return _caseSensitive;
 	}
 
-	public boolean isChangeTrackingControl() {
-		return _ctColumnResolutionType.equals(CTColumnResolutionType.CONTROL);
-	}
-
-	public boolean isChangeTrackingIgnore() {
-		return _ctColumnResolutionType.equals(CTColumnResolutionType.IGNORE);
-	}
-
-	public boolean isChangeTrackingMerge() {
-		return _ctColumnResolutionType.equals(CTColumnResolutionType.MERGE);
-	}
-
-	public boolean isChangeTrackingPK() {
-		return _ctColumnResolutionType.equals(CTColumnResolutionType.PK);
-	}
-
-	public boolean isChangeTrackingStrict() {
-		return _ctColumnResolutionType.equals(CTColumnResolutionType.STRICT);
-	}
-
 	public boolean isCollection() {
 		if (_type.equals("Collection")) {
 			return true;
@@ -403,11 +405,9 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 	}
 
 	public boolean isPrimitiveType(boolean includeWrappers) {
-		if (Character.isLowerCase(_type.charAt(0))) {
-			return true;
-		}
+		if (Character.isLowerCase(_type.charAt(0)) ||
+			(includeWrappers && isPrimitiveTypeWrapper())) {
 
-		if (includeWrappers && isPrimitiveTypeWrapper()) {
 			return true;
 		}
 
@@ -639,6 +639,7 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 	private boolean _localized;
 	private final String _mappingTableName;
 	private final String _methodName;
+	private String _modelHintsName;
 	private final String _name;
 	private boolean _orderByAscending;
 	private boolean _orderColumn;

@@ -70,13 +70,13 @@ public class AMAttributeDistanceComparator
 			Optional<?> valueOptional2 = adaptiveMedia2.getValueOptional(
 				amAttribute);
 
-			Optional<Long> valueOptional = valueOptional1.flatMap(
+			Optional<Long> valueOptional3 = valueOptional1.flatMap(
 				value1 -> valueOptional2.map(
 					value2 -> amAttribute.compare(value1, value2)));
 
 			AMImageQueryBuilder.SortOrder sortOrder = sortCriterion.getValue();
 
-			long result = valueOptional.map(
+			long result = valueOptional3.map(
 				sortOrder::getSortValue
 			).orElse(
 				0L

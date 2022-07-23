@@ -39,6 +39,10 @@ public class DLFileEntryTable extends BaseTable<DLFileEntryTable> {
 		"ctCollectionId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
 	public final Column<DLFileEntryTable, String> uuid = createColumn(
 		"uuid_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<DLFileEntryTable, String> externalReferenceCode =
+		createColumn(
+			"externalReferenceCode", String.class, Types.VARCHAR,
+			Column.FLAG_DEFAULT);
 	public final Column<DLFileEntryTable, Long> fileEntryId = createColumn(
 		"fileEntryId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
 	public final Column<DLFileEntryTable, Long> groupId = createColumn(
@@ -95,6 +99,10 @@ public class DLFileEntryTable extends BaseTable<DLFileEntryTable> {
 		createColumn(
 			"manualCheckInRequired", Boolean.class, Types.BOOLEAN,
 			Column.FLAG_DEFAULT);
+	public final Column<DLFileEntryTable, Date> expirationDate = createColumn(
+		"expirationDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
+	public final Column<DLFileEntryTable, Date> reviewDate = createColumn(
+		"reviewDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
 	public final Column<DLFileEntryTable, Date> lastPublishDate = createColumn(
 		"lastPublishDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
 

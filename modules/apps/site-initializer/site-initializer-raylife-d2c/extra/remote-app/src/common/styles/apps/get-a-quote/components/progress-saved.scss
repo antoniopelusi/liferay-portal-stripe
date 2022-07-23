@@ -1,0 +1,16 @@
+.progress-saved-content {
+	.progress-saved-body {
+		width: 362px;
+
+		.progress-saved-icon {
+			height: 56px;
+			width: 56px;
+
+			svg {
+				fill: $color-neutral-white;
+				height: 45px !important;
+				width: 45px !important;
+			}
+		}
+	}
+}

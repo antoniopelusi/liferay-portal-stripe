@@ -92,16 +92,12 @@ const ACTIONS = {
 		});
 	},
 
-	expireArticles({itemData}) {
-		this.send(itemData.expireURL);
+	discardArticleDraft({itemData}) {
+		this.send(itemData.discardArticleDraftURL);
 	},
 
-	exportTranslation({itemData, portletNamespace}) {
-		Liferay.componentReady(
-			`${portletNamespace}ExportForTranslationComponent`
-		).then((exportTranslationComponent) => {
-			exportTranslationComponent.open([itemData.articleEntryId]);
-		});
+	expireArticles({itemData}) {
+		this.send(itemData.expireURL);
 	},
 
 	permissions({itemData}) {
@@ -113,6 +109,7 @@ const ACTIONS = {
 
 	preview({itemData}) {
 		openModal({
+			iframeBodyCssClass: '',
 			title: itemData.title,
 			url: itemData.previewURL,
 		});
@@ -156,30 +153,39 @@ const ACTIONS = {
 };
 
 export default function propsTransformer({
+	actions,
 	additionalProps: {trashEnabled},
 	items,
 	portletNamespace,
 	...props
 }) {
+	const bindAction = (item) => {
+		const action = ACTIONS[item.data?.action];
+
+		const transformedItem = {...item};
+
+		if (typeof action === 'function') {
+			transformedItem.onClick = (event) => {
+				event.preventDefault();
+
+				action.call(ACTIONS, {
+					itemData: item.data,
+					portletNamespace,
+					trashEnabled,
+				});
+			};
+		}
+
+		if (Array.isArray(item.items)) {
+			transformedItem.items = item.items.map(bindAction);
+		}
+
+		return transformedItem;
+	};
+
 	return {
 		...props,
-		items: items.map((item) => {
-			return {
-				...item,
-				onClick(event) {
-					const action = item.data?.action;
-
-					if (action) {
-						event.preventDefault();
-
-						ACTIONS[action]({
-							itemData: item.data,
-							portletNamespace,
-							trashEnabled,
-						});
-					}
-				},
-			};
-		}),
+		actions: actions?.map(bindAction),
+		items: items?.map(bindAction),
 	};
 }

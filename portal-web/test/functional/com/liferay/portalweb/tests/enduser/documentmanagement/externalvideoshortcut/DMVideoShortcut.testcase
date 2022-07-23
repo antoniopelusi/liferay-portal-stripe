@@ -1,0 +1,913 @@
+@component-name = "portal-document-management"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Document Management";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Documents and Media Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Documents and Media Page",
+			widgetName = "Documents and Media");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMDocument.enableActionsMenuOnPortlet();
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			DMDocument.tearDownCP();
+
+			DMFolder.tearDownCP();
+
+			User.logoutPG();
+		}
+	}
+
+	@description = "This test ensures that a user is able to embed a Twitch live stream in a blog."
+	@priority = "5"
+	@refactorneeded
+	test AddBlogWithTwitchStream {
+		property portal.acceptance = "true";
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blog Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blog Page",
+			widgetName = "Blogs");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Twitch Twitch live stream",
+			videoURL = "https://www.twitch.tv/esl_csgo");
+
+		Navigator.gotoSitePage(
+			pageName = "Blog Page",
+			siteName = "Guest");
+
+		Blogs.addEntry(
+			embedVideo = "true",
+			entryContent = "video",
+			entryTitle = "Blogs Entry Title",
+			navTab = "Documents and Media",
+			videoShortcutPreview = "https://player.twitch.tv",
+			videoShortcutTitle = "Test Twitch Twitch live stream");
+
+		Navigator.gotoSitePage(
+			pageName = "Blog Page",
+			siteName = "Guest");
+
+		BlogsNavigator.gotoEntryPG(
+			entryContent = "video",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntryPG(
+			embedVideo = "twitch",
+			entryContent = "video",
+			entryTitle = "Blogs Entry Title");
+	}
+
+	@description = "This ensures that a video shortcut can be added with Facebook."
+	@priority = "5"
+	@refactorneeded
+	test AddFacebookCP {
+		property portal.acceptance = "true";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutPreview = "https://www.facebook.com",
+			videoShortcutTitle = "Test Facebook Video Name",
+			videoURL = "https://www.facebook.com/Cristiano/videos/1710977485745946");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.viewCP(videoShortcutTitle = "Test Facebook Video Name");
+	}
+
+	@description = "This test ensures that a Facebook video added via item selector can be embedded when adding a KB."
+	@priority = "5"
+	@refactorneeded
+	test AddFacebookToKBViaItemSelector {
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.addCP(
+			embedVideo = "true",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://www.facebook.com",
+			videoShortcutTitle = "Test Facebook Video",
+			videoURL = "https://www.facebook.com/Cristiano/videos/1710977485745946");
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.viewCP(
+			embedVideo = "true",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title",
+			service = "facebook");
+	}
+
+	@description = "This test ensures that a user is able to embed an external video in a KB article."
+	@priority = "5"
+	@refactorneeded
+	test AddKBArticleWithEmbeddedVideo {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Twitch Video Name",
+			videoURL = "https://www.twitch.tv/videos/806178790");
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.addCP(
+			embedVideo = "true",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title",
+			navTab = "Documents and Media",
+			videoShortcutTitle = "Test Twitch Video Name");
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.viewCP(
+			embedVideo = "true",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title",
+			service = "twitch");
+	}
+
+	@description = "This test ensures that a user is able to embed a Twitch live stream in a KB article."
+	@priority = "5"
+	@refactorneeded
+	test AddKBArticleWithTwitchStream {
+		property portal.acceptance = "true";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Twitch Twitch live stream",
+			videoURL = "https://www.twitch.tv/esl_csgo");
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.addCP(
+			embedVideo = "true",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title",
+			navTab = "Documents and Media",
+			videoShortcutPreview = "https://player.twitch.tv",
+			videoShortcutTitle = "Test Twitch Twitch live stream");
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.viewCP(
+			embedVideo = "true",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title",
+			service = "twitch");
+	}
+
+	@description = "This ensures that a video shortcut can be added with Twitch live stream."
+	@priority = "5"
+	@refactorneeded
+	test AddTwitchLiveStreamCP {
+		property portal.acceptance = "true";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://player.twitch.tv",
+			videoShortcutTitle = "Test Twitch Twitch live stream",
+			videoURL = "https://www.twitch.tv/esl_csgo");
+
+		VideoShortcut.viewCP(videoShortcutTitle = "Test Twitch Twitch live stream");
+
+		VideoShortcut.viewPlayedVideo();
+	}
+
+	@description = "This ensures that a video shortcut can be added with Twitch."
+	@priority = "5"
+	@refactorneeded
+	test AddTwitchPG {
+		property portal.acceptance = "true";
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		VideoShortcut.addPG(
+			videoShortcutPreview = "https://player.twitch.tv",
+			videoShortcutTitle = "Test Twitch Video Name",
+			videoURL = "https://www.twitch.tv/videos/806178790");
+
+		VideoShortcut.viewPG(videoShortcutTitle = "Test Twitch Video Name");
+	}
+
+	@description = "This test ensures that a Twitch video added via item selector can be embedded when adding a WC."
+	@priority = "5"
+	@refactorneeded
+	test AddTwitchToWCViaItemSelector {
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedVideo = "true",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://player.twitch.tv",
+			videoShortcutTitle = "Test Twitch Video Name",
+			videoURL = "https://www.twitch.tv/videos/806178790",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
+
+		WebContent.viewVideoPreview(
+			service = "https://player.twitch.tv",
+			webContentTitle = "WC WebContent Title");
+	}
+
+	@description = "This ensures that a video shortcut can be added with Vimeo."
+	@priority = "5"
+	@refactorneeded
+	test AddVimeoCP {
+		property portal.acceptance = "true";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			extractedVideoShortcutTitle = "Air",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://player.vimeo.com",
+			videoShortcutTitle = "Test Vimeo Video Name",
+			videoURL = "https://vimeo.com/483035084");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.viewCP(videoShortcutTitle = "Test Vimeo Video Name");
+	}
+
+	@description = "This test ensures that a Vimeo video added via item selector can be embedded when adding a blog."
+	@priority = "5"
+	@refactorneeded
+	test AddVimeoToBlogViaItemSelector {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blog Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blog Page",
+			widgetName = "Blogs");
+
+		Navigator.gotoSitePage(
+			pageName = "Blog Page",
+			siteName = "Guest");
+
+		Blogs.addEntry(
+			embedVideo = "true",
+			entryContent = "video",
+			entryTitle = "Blogs Entry Title",
+			extractedVideoShortcutTitle = "Air",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://player.vimeo.com",
+			videoShortcutTitle = "Test Vimeo Video",
+			videoURL = "https://vimeo.com/483035084");
+
+		Navigator.gotoSitePage(
+			pageName = "Blog Page",
+			siteName = "Guest");
+
+		BlogsNavigator.gotoEntryPG(
+			entryContent = "video",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntryPG(
+			embedVideo = "vimeo",
+			entryContent = "video",
+			entryTitle = "Blogs Entry Title");
+	}
+
+	@description = "This test ensures that a user is able to embed an external Twitch video in a WC article."
+	@priority = "5"
+	@refactorneeded
+	test AddWCWithEmbeddedTwitchVideo {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Twitch Video Name",
+			videoURL = "https://www.twitch.tv/videos/806178790");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedVideo = "true",
+			navTab = "Documents and Media",
+			videoShortcutTitle = "Test Twitch Video Name",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentNavigator.gotoPreviewEntryCP(webContentTitle = "WC WebContent Title");
+
+		Pause(locator1 = "5000");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		AssertVisible(
+			key_service = "twitch",
+			locator1 = "BlogsEntry#CONTENT_VIDEO");
+	}
+
+	@description = "This test ensures that a user is able to embed an external video in web content."
+	@priority = "5"
+	@refactorneeded
+	test AddWCWithEmbeddedVideo {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video Name",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedVideo = "true",
+			navTab = "Documents and Media",
+			videoShortcutTitle = "Test YouTube Video Name",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContent.viewVideoPreview(
+			service = "https://www.youtube.com",
+			webContentTitle = "WC WebContent Title");
+	}
+
+	@description = "It ensures that a message is displayed in the preview section When pasting an invalid URL."
+	@priority = "4"
+	@refactorneeded
+	test AddWithInvalidURL {
+		property portal.acceptance = "true";
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddDocumentTypePG(dmDocumentTypeName = "External Video Shortcut");
+
+		VideoShortcut.validateURL(invalidURL = "https://www.test.com/watch?v=8TnGFvSY-08");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddDocumentTypePG(dmDocumentTypeName = "External Video Shortcut");
+
+		VideoShortcut.validateURL(
+			invalidURL = "https://www.youtube.com/watch?v=test",
+			youtube = "true");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddDocumentTypePG(dmDocumentTypeName = "External Video Shortcut");
+
+		VideoShortcut.validateURL(
+			invalidURL = "https://youtu.be/IxNczRyywXYtest",
+			youtube = "true");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddDocumentTypePG(dmDocumentTypeName = "External Video Shortcut");
+
+		VideoShortcut.validateURL(
+			facebook = "true",
+			invalidURL = "https://www.facebook.com/Cristiano/videos/test");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddDocumentTypePG(dmDocumentTypeName = "External Video Shortcut");
+
+		VideoShortcut.validateURL(
+			invalidURL = "https://vimeo.com/test",
+			vimeo = "true");
+	}
+
+	@description = "This ensures that a video shortcut can be added with a YouTube shortened URL on a content page."
+	@priority = "5"
+	@refactorneeded
+	test AddWithShortenedURL {
+		property portal.acceptance = "true";
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Test Content Page Name",
+			type = "content");
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Test Content Page Name",
+			siteName = "Guest");
+
+		PageEditor.addWidget(portletName = "Documents and Media");
+
+		DMDocument.enableActionsMenuOnPortlet();
+
+		PageEditor.clickPublish();
+
+		ContentPagesNavigator.openViewContentPage(
+			pageName = "Test Content Page Name",
+			siteName = "Guest");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		Navigator.gotoPage(pageName = "Test Content Page Name");
+
+		VideoShortcut.addPG(
+			contentPage = "true",
+			extractedVideoShortcutTitle = "Liferay Digital Experience Platform",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://www.youtube.com",
+			videoShortcutTitle = "Test YouTube Video Shortened URL",
+			videoURL = "https://youtu.be/HOdbzGCI5ME");
+
+		VideoShortcut.viewPG(
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutTitle = "Test YouTube Video Shortened URL");
+	}
+
+	@description = "This ensures that a video shortcut can be added with YouTube."
+	@priority = "5"
+	@refactorneeded
+	test AddYouTubePG {
+		property portal.acceptance = "true";
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		VideoShortcut.addPG(
+			extractedVideoShortcutTitle = "Liferay Digital Experience Platform",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://www.youtube.com",
+			videoShortcutTitle = "Test YouTube Video Adding",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		VideoShortcut.viewPG(
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutTitle = "Test YouTube Video Adding");
+	}
+
+	@description = "This test ensures that a YouTube video added via item selector can be embedded when adding a WC."
+	@priority = "5"
+	@refactorneeded
+	test AddYouTubeToWCViaItemSelector {
+		property portal.acceptance = "true";
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedVideo = "true",
+			extractedVideoShortcutTitle = "Liferay Digital Experience Platform",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://www.youtube.com",
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContent.viewVideoPreview(
+			service = "https://www.youtube.com",
+			webContentTitle = "WC WebContent Title");
+	}
+
+	@description = "This ensures that the video shortcut can be viewed with different views in the item selector."
+	@priority = "5"
+	@refactorneeded
+	test ChangeViewsInItemSelector {
+		property portal.acceptance = "true";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Facebook Video",
+			videoURL = "https://www.facebook.com/Cristiano/videos/1710977485745946");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Vimeo Video",
+			videoURL = "https://vimeo.com/483035084");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=2EPZxIC5ogU");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Twitch Video",
+			videoURL = "https://www.twitch.tv/videos/806178790");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		for (var videoShortcutTitle : list "Test Facebook Video,Test Vimeo Video,Test YouTube Video,Test Facebook Video") {
+			LexiconList.viewListEntryTitle(listEntry = "${videoShortcutTitle}");
+		}
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		LexiconEntry.gotoAddMenuItem(menuItem = "Basic Article");
+
+		ItemSelector.gotoItemSelectorViaCKEditor(video = "true");
+
+		ItemSelector.viewExternalVideoInDifferentViews(
+			navTab = "Documents and Media",
+			videoShortcutList = "Test Facebook Video,Test Vimeo Video,Test YouTube Video,Test Facebook Video");
+	}
+
+	@description = "This ensures that a video shortcut can be edited with a YouTube shortened URL."
+	@priority = "5"
+	@refactorneeded
+	test EditWithShortenedURL {
+		property portal.acceptance = "true";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutTitle = "Test YouTube Video Name",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.editCP(
+			videoShortcutDescriptionEdit = "Video Shortcut Description Edit",
+			videoShortcutPreview = "https://www.youtube.com",
+			videoShortcutPreviousDescription = "Video Shortcut Description",
+			videoShortcutPreviousTitle = "Test YouTube Video Name",
+			videoShortcutTitle = "Test YouTube Video Name",
+			videoShortcutTitleEdit = "Test YouTube Video Name Edit",
+			videoURLEdit = "https://youtu.be/HOdbzGCI5ME");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.viewCP(
+			videoShortcutDescription = "Video Shortcut Description Edit",
+			videoShortcutTitle = "Test YouTube Video Name Edit");
+	}
+
+	@description = "This ensures that a video shortcut associated with a category can be searched."
+	@priority = "5"
+	@refactorneeded
+	test SearchForCategory {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name",
+			widgetName = "Search Bar");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name",
+			widgetName = "Search Results");
+
+		JSONCategory.addVocabulary(
+			groupName = "Guest",
+			title = "Vocabulary Name");
+
+		JSONCategory.addCategory(
+			groupName = "Guest",
+			title = "Category Name",
+			vocabularyName = "Vocabulary Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Facebook Video",
+			videoURL = "https://www.facebook.com/Cristiano/videos/1710977485745946");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			categoryName = "Category Name",
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME",
+			vocabularyName = "Vocabulary Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			categoryName = "Category Name",
+			videoShortcutTitle = "Test Vimeo Video",
+			videoURL = "https://vimeo.com/483035084",
+			vocabularyName = "Vocabulary Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			categoryName = "Category Name",
+			videoShortcutTitle = "Test Twitch Video",
+			videoURL = "https://www.twitch.tv/videos/806178790",
+			vocabularyName = "Vocabulary Name");
+
+		Navigator.gotoSitePage(
+			pageName = "Page Name",
+			siteName = "Guest");
+
+		Search.searchCP(searchTerm = "Category");
+
+		for (var videoShortcutTitle : list "Test YouTube Video,Test Vimeo Video,Test Twitch Video") {
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "${videoShortcutTitle}",
+				searchAssetType = "Document");
+		}
+
+		SearchResultPortlet.viewSearchResultNotPresent(
+			searchAssetTitle = "Test Facebook Video",
+			searchAssetType = "Document");
+
+		Search.searchCP(searchTerm = "Name");
+
+		for (var videoShortcutTitle : list "Test YouTube Video,Test Vimeo Video,Test Twitch Video") {
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "${videoShortcutTitle}",
+				searchAssetType = "Document");
+		}
+
+		SearchResultPortlet.viewSearchResultNotPresent(
+			searchAssetTitle = "Test Facebook Video",
+			searchAssetType = "Document");
+
+		Search.searchCP(searchTerm = "Category Name");
+
+		for (var videoShortcutTitle : list "Test YouTube Video,Test Vimeo Video,Test Twitch Video") {
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "${videoShortcutTitle}",
+				searchAssetType = "Document");
+		}
+
+		SearchResultPortlet.viewSearchResultNotPresent(
+			searchAssetTitle = "Test Facebook Video",
+			searchAssetType = "Document");
+	}
+
+	@description = "This ensures that a video shortcut associated with a tag can be searched."
+	@priority = "5"
+	@refactorneeded
+	test SearchForTag {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name",
+			widgetName = "Search Bar");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name",
+			widgetName = "Search Results");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Facebook Video",
+			videoURL = "https://www.facebook.com/Cristiano/videos/1710977485745946");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			tagNameList = "tag name",
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			tagNameList = "tag name",
+			videoShortcutTitle = "Test Vimeo Video",
+			videoURL = "https://vimeo.com/483035084");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			tagNameList = "tag name",
+			videoShortcutTitle = "Test Twitch Video",
+			videoURL = "https://www.twitch.tv/videos/806178790");
+
+		Navigator.gotoSitePage(
+			pageName = "Page Name",
+			siteName = "Guest");
+
+		Search.searchCP(searchTerm = "tag");
+
+		for (var videoShortcutTitle : list "Test YouTube Video,Test Vimeo Video,Test Twitch Video") {
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "${videoShortcutTitle}",
+				searchAssetType = "Document");
+		}
+
+		SearchResultPortlet.viewSearchResultNotPresent(
+			searchAssetTitle = "Test Facebook Video",
+			searchAssetType = "Document");
+
+		Search.searchCP(searchTerm = "name");
+
+		for (var videoShortcutTitle : list "Test YouTube Video,Test Vimeo Video,Test Twitch Video") {
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "${videoShortcutTitle}",
+				searchAssetType = "Document");
+		}
+
+		SearchResultPortlet.viewSearchResultNotPresent(
+			searchAssetTitle = "Test Facebook Video",
+			searchAssetType = "Document");
+
+		Search.searchCP(searchTerm = "tag name");
+
+		for (var videoShortcutTitle : list "Test YouTube Video,Test Vimeo Video,Test Twitch Video") {
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "${videoShortcutTitle}",
+				searchAssetType = "Document");
+		}
+
+		SearchResultPortlet.viewSearchResultNotPresent(
+			searchAssetTitle = "Test Facebook Video",
+			searchAssetType = "Document");
+	}
+
+	@description = "This test covers LPS-123911. It ensures that a preview of the video can be shown when checking video shortcut from search result."
+	@priority = "4"
+	@refactorneeded
+	test ViewSearchResult {
+		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+
+		PagesAdmin.deletePage(pageName = "Documents and Media Page");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		Navigator.gotoSitePage(
+			pageName = "Home",
+			siteName = "Guest");
+
+		Search.searchCP(searchTerm = "Test YouTube Video");
+
+		SearchResultPortlet.viewSearchResults(
+			searchAssetTitle = "Test YouTube Video",
+			searchAssetType = "Document");
+
+		SearchPortlets.gotoResultDetails(searchAssetTitle = "Test YouTube Video");
+
+		SearchPortlets.viewResultDetails(searchAssetTitle = "Test YouTube Video");
+
+		Pause(locator1 = "3000");
+
+		AssertVisible(
+			key_videoShortcutPreview = "https://www.youtube.com",
+			locator1 = "DocumentsAndMediaDocument#VIDEO_SHORTCUT_PREVIEW");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#EXTERNAL_VIDEO_IFRAME");
+
+		AssertElementPresent(locator1 = "Button#YOUTUBE_PLAY");
+	}
+
+	@description = "This test covers LPS-124246 and LPS-124309. It ensures that YouTube shortcut can be added with the invalid file name and the thumbnail can be displayed in AP."
+	@priority = "4"
+	@refactorneeded
+	test ViewThumbnailViaAP {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Page Name",
+			widgetName = "Asset Publisher");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		VideoShortcut.addPG(
+			extractedVideoShortcutTitle = "RONALDINHO vs NEYMAR. ¿A quién eliges? Los disfrutamos. #MundoMaldini",
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutPreview = "https://www.youtube.com",
+			videoURL = "https://www.youtube.com/watch?v=2ewB-7_VMGU");
+
+		VideoShortcut.viewPG(
+			videoShortcutDescription = "Video Shortcut Description",
+			videoShortcutTitle = "RONALDINHO vs NEYMAR. ¿A quién eliges? Los disfrutamos. #MundoMaldini");
+
+		Navigator.gotoSitePage(
+			pageName = "Page Name",
+			siteName = "Guest");
+
+		AssetPublisherPortlet.viewVideoThumbnail(thumbnailName = "https://i.ytimg.com");
+	}
+
+	@description = "This ensures that the thumbnail of Vimeo video can be viewed in DM."
+	@priority = "5"
+	@refactorneeded
+	test ViewVimeoThumbnail {
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		VideoShortcut.addPG(
+			videoShortcutTitle = "Test Vimeo Video",
+			videoURL = "https://vimeo.com/483035084");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "cards");
+
+		LexiconCard.viewCardThumbnail(card = "Test Vimeo Video");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		AssertVisible(
+			key_list = "Test Vimeo Video",
+			locator1 = "DocumentsAndMediaDocument#VIDEO_SHORTCUT_THUMBNAIL_LIST");
+	}
+
+	@description = "This ensures that the thumbnail of YouTube video can be viewed in DM. It also asserts the icon of External Video Shortcut."
+	@priority = "5"
+	@refactorneeded
+	test ViewYouTubeThumbnail {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://youtu.be/HOdbzGCI5ME");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		AssertVisible(
+			key_list = "Test YouTube Video",
+			locator1 = "DocumentsAndMediaDocument#VIDEO_SHORTCUT_THUMBNAIL_LIST");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "cards");
+
+		LexiconCard.viewCardThumbnail(card = "Test YouTube Video");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.editCP(
+			videoShortcutTitle = "Test YouTube Video",
+			videoShortcutTitleEdit = "Test YouTube Video Edit",
+			videoURLEdit = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		AssertVisible(
+			key_list = "Test YouTube Video",
+			locator1 = "DocumentsAndMediaDocument#VIDEO_SHORTCUT_THUMBNAIL_LIST");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "cards");
+
+		LexiconCard.viewCardThumbnail(card = "Test YouTube Video");
+	}
+
+}

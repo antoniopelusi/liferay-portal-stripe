@@ -97,6 +97,10 @@ describe('ApplicationsMenu', () => {
 		global.Liferay.Browser = {isMac: () => true};
 		jest.useFakeTimers();
 		fetch.mockResponseOnce(JSON.stringify(mockedData));
+
+		global.Liferay.on = jest.fn().mockReturnValue({
+			detach: jest.fn(),
+		});
 	});
 
 	afterAll(() => {
@@ -243,5 +247,21 @@ describe('ApplicationsMenu', () => {
 		});
 
 		expect(closeButton).not.toBeInTheDocument();
+	});
+
+	it('attaches closeApplicationsMenu event on mount', async () => {
+		renderApplicationsMenu();
+		expect(global.Liferay.on).toHaveBeenCalledWith(
+			'closeApplicationsMenu',
+			expect.any(Function)
+		);
+	});
+
+	it('detaches closeApplicationsMenu event on unmount', async () => {
+		const {unmount} = renderApplicationsMenu();
+
+		const eventHandler = global.Liferay.on();
+		unmount();
+		expect(eventHandler.detach).toHaveBeenCalledTimes(1);
 	});
 });

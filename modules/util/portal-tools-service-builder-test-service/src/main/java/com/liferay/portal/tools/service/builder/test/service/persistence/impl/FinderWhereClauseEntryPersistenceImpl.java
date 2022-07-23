@@ -15,7 +15,6 @@
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -25,10 +24,11 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.tools.service.builder.test.exception.NoSuchFinderWhereClauseEntryException;
@@ -37,21 +37,17 @@ import com.liferay.portal.tools.service.builder.test.model.FinderWhereClauseEntr
 import com.liferay.portal.tools.service.builder.test.model.impl.FinderWhereClauseEntryImpl;
 import com.liferay.portal.tools.service.builder.test.model.impl.FinderWhereClauseEntryModelImpl;
 import com.liferay.portal.tools.service.builder.test.service.persistence.FinderWhereClauseEntryPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.FinderWhereClauseEntryUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the finder where clause entry service.
@@ -650,6 +646,8 @@ public class FinderWhereClauseEntryPersistenceImpl
 			finderWhereClauseEntry.getPrimaryKey(), finderWhereClauseEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the finder where clause entries in the entity cache if it is enabled.
 	 *
@@ -658,6 +656,14 @@ public class FinderWhereClauseEntryPersistenceImpl
 	@Override
 	public void cacheResult(
 		List<FinderWhereClauseEntry> finderWhereClauseEntries) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (finderWhereClauseEntries.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (FinderWhereClauseEntry finderWhereClauseEntry :
 				finderWhereClauseEntries) {
@@ -1147,15 +1153,8 @@ public class FinderWhereClauseEntryPersistenceImpl
 	 * Initializes the finder where clause entry persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			FinderWhereClauseEntryPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new FinderWhereClauseEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1185,15 +1184,31 @@ public class FinderWhereClauseEntryPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByName_Nickname",
 			new String[] {String.class.getName()}, new String[] {"name"},
 			false);
+
+		_setFinderWhereClauseEntryUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(FinderWhereClauseEntryImpl.class.getName());
+		_setFinderWhereClauseEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(FinderWhereClauseEntryImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setFinderWhereClauseEntryUtilPersistence(
+		FinderWhereClauseEntryPersistence finderWhereClauseEntryPersistence) {
+
+		try {
+			Field field = FinderWhereClauseEntryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, finderWhereClauseEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -1228,101 +1243,6 @@ public class FinderWhereClauseEntryPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class FinderWhereClauseEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			FinderWhereClauseEntryModelImpl finderWhereClauseEntryModelImpl =
-				(FinderWhereClauseEntryModelImpl)baseModel;
-
-			long columnBitmask =
-				finderWhereClauseEntryModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					finderWhereClauseEntryModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						finderWhereClauseEntryModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					finderWhereClauseEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return FinderWhereClauseEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return FinderWhereClauseEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			FinderWhereClauseEntryModelImpl finderWhereClauseEntryModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						finderWhereClauseEntryModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] =
-						finderWhereClauseEntryModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
 	}
 
 }

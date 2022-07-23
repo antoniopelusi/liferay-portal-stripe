@@ -40,59 +40,63 @@ public class DDMFormFieldValidationUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select structureId, definition from DDMStructure where " +
 					"classNameId = ? ");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
 						"structureId = ?");
-			PreparedStatement ps3 = connection.prepareStatement(
+			PreparedStatement preparedStatement3 = connection.prepareStatement(
 				"select structureVersionId, definition from " +
 					"DDMStructureVersion where structureId = ?");
-			PreparedStatement ps4 =
+			PreparedStatement preparedStatement4 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureVersion set definition = ? where " +
 						"structureVersionId = ?")) {
 
-			ps1.setLong(1, getClassNameId());
+			preparedStatement1.setLong(1, getClassNameId());
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String definition = rs.getString("definition");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String definition = resultSet.getString("definition");
 
-					ps2.setString(1, makeFieldsLocalizable(definition));
+					preparedStatement2.setString(
+						1, _makeFieldsLocalizable(definition));
 
-					long structureId = rs.getLong("structureId");
+					long structureId = resultSet.getLong("structureId");
 
-					ps2.setLong(2, structureId);
+					preparedStatement2.setLong(2, structureId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 
-					ps3.setLong(1, structureId);
+					preparedStatement3.setLong(1, structureId);
 
-					try (ResultSet rs2 = ps3.executeQuery()) {
-						while (rs2.next()) {
-							definition = rs2.getString("definition");
+					try (ResultSet resultSet2 =
+							preparedStatement3.executeQuery()) {
 
-							ps4.setString(1, makeFieldsLocalizable(definition));
+						while (resultSet2.next()) {
+							definition = resultSet2.getString("definition");
 
-							long structureVersionId = rs2.getLong(
+							preparedStatement4.setString(
+								1, _makeFieldsLocalizable(definition));
+
+							long structureVersionId = resultSet2.getLong(
 								"structureVersionId");
 
-							ps4.setLong(2, structureVersionId);
+							preparedStatement4.setLong(2, structureVersionId);
 
-							ps4.addBatch();
+							preparedStatement4.addBatch();
 						}
 					}
 				}
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 
-			ps4.executeBatch();
+			preparedStatement4.executeBatch();
 		}
 	}
 
@@ -101,7 +105,18 @@ public class DDMFormFieldValidationUpgradeProcess extends UpgradeProcess {
 			"com.liferay.dynamic.data.mapping.model.DDMFormInstance");
 	}
 
-	protected void makeFieldsLocalizable(
+	private boolean _hasValidation(JSONObject fieldJSONObject) {
+		JSONObject validationJSONObject = fieldJSONObject.getJSONObject(
+			"validation");
+
+		if (validationJSONObject == null) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private void _makeFieldsLocalizable(
 		JSONArray availableLanguageIdsJSONArray, JSONArray fieldsJSONArray) {
 
 		for (int i = 0; i < fieldsJSONArray.length(); i++) {
@@ -134,13 +149,13 @@ public class DDMFormFieldValidationUpgradeProcess extends UpgradeProcess {
 				"nestedFields");
 
 			if (nestedFieldsJSONArray != null) {
-				makeFieldsLocalizable(
+				_makeFieldsLocalizable(
 					availableLanguageIdsJSONArray, nestedFieldsJSONArray);
 			}
 		}
 	}
 
-	protected String makeFieldsLocalizable(String definition)
+	private String _makeFieldsLocalizable(String definition)
 		throws PortalException {
 
 		JSONObject jsonObject = _jsonFactory.createJSONObject(definition);
@@ -150,20 +165,9 @@ public class DDMFormFieldValidationUpgradeProcess extends UpgradeProcess {
 
 		JSONArray fieldsJSONArray = jsonObject.getJSONArray("fields");
 
-		makeFieldsLocalizable(availableLanguageIdsJSONArray, fieldsJSONArray);
+		_makeFieldsLocalizable(availableLanguageIdsJSONArray, fieldsJSONArray);
 
 		return jsonObject.toJSONString();
-	}
-
-	private boolean _hasValidation(JSONObject fieldJSONObject) {
-		JSONObject validationJSONObject = fieldJSONObject.getJSONObject(
-			"validation");
-
-		if (validationJSONObject == null) {
-			return false;
-		}
-
-		return true;
 	}
 
 	private final JSONFactory _jsonFactory;

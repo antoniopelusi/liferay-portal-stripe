@@ -29,12 +29,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -225,34 +226,6 @@ public class MFATimeBasedOTPEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, MFATimeBasedOTPEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			MFATimeBasedOTPEntry.class.getClassLoader(),
-			MFATimeBasedOTPEntry.class, ModelWrapper.class);
-
-		try {
-			Constructor<MFATimeBasedOTPEntry> constructor =
-				(Constructor<MFATimeBasedOTPEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<MFATimeBasedOTPEntry, Object>>
@@ -667,6 +640,41 @@ public class MFATimeBasedOTPEntryModelImpl
 	}
 
 	@Override
+	public MFATimeBasedOTPEntry cloneWithOriginalValues() {
+		MFATimeBasedOTPEntryImpl mfaTimeBasedOTPEntryImpl =
+			new MFATimeBasedOTPEntryImpl();
+
+		mfaTimeBasedOTPEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		mfaTimeBasedOTPEntryImpl.setMfaTimeBasedOTPEntryId(
+			this.<Long>getColumnOriginalValue("mfaTimeBasedOTPEntryId"));
+		mfaTimeBasedOTPEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		mfaTimeBasedOTPEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		mfaTimeBasedOTPEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		mfaTimeBasedOTPEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		mfaTimeBasedOTPEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		mfaTimeBasedOTPEntryImpl.setFailedAttempts(
+			this.<Integer>getColumnOriginalValue("failedAttempts"));
+		mfaTimeBasedOTPEntryImpl.setLastFailDate(
+			this.<Date>getColumnOriginalValue("lastFailDate"));
+		mfaTimeBasedOTPEntryImpl.setLastFailIP(
+			this.<String>getColumnOriginalValue("lastFailIP"));
+		mfaTimeBasedOTPEntryImpl.setLastSuccessDate(
+			this.<Date>getColumnOriginalValue("lastSuccessDate"));
+		mfaTimeBasedOTPEntryImpl.setLastSuccessIP(
+			this.<String>getColumnOriginalValue("lastSuccessIP"));
+		mfaTimeBasedOTPEntryImpl.setSharedSecret(
+			this.<String>getColumnOriginalValue("sharedSecret"));
+
+		return mfaTimeBasedOTPEntryImpl;
+	}
+
+	@Override
 	public int compareTo(MFATimeBasedOTPEntry mfaTimeBasedOTPEntry) {
 		long primaryKey = mfaTimeBasedOTPEntry.getPrimaryKey();
 
@@ -832,7 +840,7 @@ public class MFATimeBasedOTPEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -843,10 +851,27 @@ public class MFATimeBasedOTPEntryModelImpl
 			Function<MFATimeBasedOTPEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((MFATimeBasedOTPEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(MFATimeBasedOTPEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -894,7 +919,9 @@ public class MFATimeBasedOTPEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, MFATimeBasedOTPEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					MFATimeBasedOTPEntry.class, ModelWrapper.class);
 
 	}
 

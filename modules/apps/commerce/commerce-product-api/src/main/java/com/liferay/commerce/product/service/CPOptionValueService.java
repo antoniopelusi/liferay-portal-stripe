@@ -15,6 +15,7 @@
 package com.liferay.commerce.product.service;
 
 import com.liferay.commerce.product.model.CPOptionValue;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -44,6 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -67,6 +69,12 @@ public interface CPOptionValueService extends BaseService {
 	public CPOptionValue addCPOptionValue(
 			long cpOptionId, Map<Locale, String> titleMap, double priority,
 			String key, ServiceContext serviceContext)
+		throws PortalException;
+
+	public CPOptionValue addOrUpdateCPOptionValue(
+			String externalReferenceCode, long cpOptionId,
+			Map<Locale, String> nameMap, double priority, String key,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	public void deleteCPOptionValue(long cpOptionValueId)
@@ -114,12 +122,6 @@ public interface CPOptionValueService extends BaseService {
 	public CPOptionValue updateCPOptionValue(
 			long cpOptionValueId, Map<Locale, String> titleMap, double priority,
 			String key, ServiceContext serviceContext)
-		throws PortalException;
-
-	public CPOptionValue upsertCPOptionValue(
-			String externalReferenceCode, long cpOptionId,
-			Map<Locale, String> nameMap, double priority, String key,
-			ServiceContext serviceContext)
 		throws PortalException;
 
 }

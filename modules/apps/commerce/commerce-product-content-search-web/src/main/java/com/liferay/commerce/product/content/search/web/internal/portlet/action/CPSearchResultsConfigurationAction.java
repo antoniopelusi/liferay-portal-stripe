@@ -18,7 +18,7 @@ import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.content.render.list.CPContentListRendererRegistry;
 import com.liferay.commerce.product.content.render.list.entry.CPContentListEntryRendererRegistry;
 import com.liferay.commerce.product.content.search.web.internal.display.context.CPSearchResultsDisplayContext;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.commerce.product.type.CPTypeServicesTracker;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
 import com.liferay.portal.kernel.log.Log;
@@ -67,7 +67,7 @@ public class CPSearchResultsConfigurationAction
 				WebKeys.PORTLET_DISPLAY_CONTEXT, cpSearchResultsDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return "/search_results/configuration.jsp";

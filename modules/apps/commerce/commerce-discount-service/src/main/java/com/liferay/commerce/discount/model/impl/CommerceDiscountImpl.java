@@ -26,9 +26,6 @@ import java.util.List;
  */
 public class CommerceDiscountImpl extends CommerceDiscountBaseImpl {
 
-	public CommerceDiscountImpl() {
-	}
-
 	@Override
 	public List<CommerceDiscountCommerceAccountGroupRel>
 		getCommerceDiscountCommerceAccountGroupRels() {

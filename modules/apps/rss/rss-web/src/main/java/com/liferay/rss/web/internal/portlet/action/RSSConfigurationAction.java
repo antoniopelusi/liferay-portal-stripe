@@ -58,7 +58,7 @@ public class RSSConfigurationAction extends DefaultConfigurationAction {
 			ActionResponse actionResponse)
 		throws Exception {
 
-		updateSubscriptions(actionRequest);
+		_updateSubscriptions(actionRequest);
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
@@ -71,11 +71,11 @@ public class RSSConfigurationAction extends DefaultConfigurationAction {
 		super.setServletContext(servletContext);
 	}
 
-	protected void updateSubscriptions(ActionRequest actionRequest)
+	private void _updateSubscriptions(ActionRequest actionRequest)
 		throws Exception {
 
 		UnicodeProperties unicodeProperties = PropertiesParamUtil.getProperties(
-			actionRequest, _PARAMETER_NAME_PREFIX);
+			actionRequest, "preferences--");
 
 		long entriesPerFeed = GetterUtil.getLong(
 			unicodeProperties.getProperty("entriesPerFeed"));
@@ -120,7 +120,5 @@ public class RSSConfigurationAction extends DefaultConfigurationAction {
 		setPreference(actionRequest, "urls", urls);
 		setPreference(actionRequest, "titles", titles);
 	}
-
-	private static final String _PARAMETER_NAME_PREFIX = "preferences--";
 
 }

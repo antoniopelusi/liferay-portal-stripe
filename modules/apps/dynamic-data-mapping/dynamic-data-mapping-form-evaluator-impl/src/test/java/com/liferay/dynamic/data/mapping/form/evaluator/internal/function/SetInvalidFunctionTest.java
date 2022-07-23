@@ -44,11 +44,8 @@ public class SetInvalidFunctionTest extends PowerMockito {
 
 	@Test
 	public void testApply() {
-		DefaultDDMExpressionObserver defaultDDMExpressionObserver =
-			new DefaultDDMExpressionObserver();
-
 		DefaultDDMExpressionObserver spyDefaultDDMExpressionObserver = spy(
-			defaultDDMExpressionObserver);
+			new DefaultDDMExpressionObserver());
 
 		SetInvalidFunction setInvalidFunction = new SetInvalidFunction();
 
@@ -81,7 +78,8 @@ public class SetInvalidFunctionTest extends PowerMockito {
 			updateFieldPropertyRequest.getPropertyOptional(
 				"errorMessage"
 			).get());
-		Assert.assertEquals(false, properties.get("valid"));
+
+		Assert.assertFalse((boolean)properties.get("valid"));
 
 		Assert.assertTrue(result);
 	}

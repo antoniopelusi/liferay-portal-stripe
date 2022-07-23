@@ -16,7 +16,6 @@ package com.liferay.sync.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,12 +26,13 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.sync.exception.NoSuchDLFileVersionDiffException;
@@ -41,10 +41,12 @@ import com.liferay.sync.model.SyncDLFileVersionDiffTable;
 import com.liferay.sync.model.impl.SyncDLFileVersionDiffImpl;
 import com.liferay.sync.model.impl.SyncDLFileVersionDiffModelImpl;
 import com.liferay.sync.service.persistence.SyncDLFileVersionDiffPersistence;
+import com.liferay.sync.service.persistence.SyncDLFileVersionDiffUtil;
 import com.liferay.sync.service.persistence.impl.constants.SyncPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.sql.Timestamp;
@@ -54,12 +56,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -606,8 +605,8 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	private static final String _FINDER_COLUMN_FILEENTRYID_FILEENTRYID_2 =
 		"syncDLFileVersionDiff.fileEntryId = ?";
 
-	private FinderPath _finderPathWithPaginationFindByExpirationDate;
-	private FinderPath _finderPathWithPaginationCountByExpirationDate;
+	private FinderPath _finderPathWithPaginationFindByLtExpirationDate;
+	private FinderPath _finderPathWithPaginationCountByLtExpirationDate;
 
 	/**
 	 * Returns all the sync dl file version diffs where expirationDate &lt; &#63;.
@@ -616,10 +615,10 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @return the matching sync dl file version diffs
 	 */
 	@Override
-	public List<SyncDLFileVersionDiff> findByExpirationDate(
+	public List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate) {
 
-		return findByExpirationDate(
+		return findByLtExpirationDate(
 			expirationDate, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -636,10 +635,10 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @return the range of matching sync dl file version diffs
 	 */
 	@Override
-	public List<SyncDLFileVersionDiff> findByExpirationDate(
+	public List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate, int start, int end) {
 
-		return findByExpirationDate(expirationDate, start, end, null);
+		return findByLtExpirationDate(expirationDate, start, end, null);
 	}
 
 	/**
@@ -656,11 +655,11 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @return the ordered range of matching sync dl file version diffs
 	 */
 	@Override
-	public List<SyncDLFileVersionDiff> findByExpirationDate(
+	public List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator) {
 
-		return findByExpirationDate(
+		return findByLtExpirationDate(
 			expirationDate, start, end, orderByComparator, true);
 	}
 
@@ -679,7 +678,7 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @return the ordered range of matching sync dl file version diffs
 	 */
 	@Override
-	public List<SyncDLFileVersionDiff> findByExpirationDate(
+	public List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator,
 		boolean useFinderCache) {
@@ -687,7 +686,7 @@ public class SyncDLFileVersionDiffPersistenceImpl
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
-		finderPath = _finderPathWithPaginationFindByExpirationDate;
+		finderPath = _finderPathWithPaginationFindByLtExpirationDate;
 		finderArgs = new Object[] {
 			_getTime(expirationDate), start, end, orderByComparator
 		};
@@ -728,12 +727,12 @@ public class SyncDLFileVersionDiffPersistenceImpl
 			boolean bindExpirationDate = false;
 
 			if (expirationDate == null) {
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1);
 			}
 			else {
 				bindExpirationDate = true;
 
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2);
 			}
 
 			if (orderByComparator != null) {
@@ -788,13 +787,13 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @throws NoSuchDLFileVersionDiffException if a matching sync dl file version diff could not be found
 	 */
 	@Override
-	public SyncDLFileVersionDiff findByExpirationDate_First(
+	public SyncDLFileVersionDiff findByLtExpirationDate_First(
 			Date expirationDate,
 			OrderByComparator<SyncDLFileVersionDiff> orderByComparator)
 		throws NoSuchDLFileVersionDiffException {
 
 		SyncDLFileVersionDiff syncDLFileVersionDiff =
-			fetchByExpirationDate_First(expirationDate, orderByComparator);
+			fetchByLtExpirationDate_First(expirationDate, orderByComparator);
 
 		if (syncDLFileVersionDiff != null) {
 			return syncDLFileVersionDiff;
@@ -820,11 +819,11 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @return the first matching sync dl file version diff, or <code>null</code> if a matching sync dl file version diff could not be found
 	 */
 	@Override
-	public SyncDLFileVersionDiff fetchByExpirationDate_First(
+	public SyncDLFileVersionDiff fetchByLtExpirationDate_First(
 		Date expirationDate,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator) {
 
-		List<SyncDLFileVersionDiff> list = findByExpirationDate(
+		List<SyncDLFileVersionDiff> list = findByLtExpirationDate(
 			expirationDate, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -843,13 +842,13 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @throws NoSuchDLFileVersionDiffException if a matching sync dl file version diff could not be found
 	 */
 	@Override
-	public SyncDLFileVersionDiff findByExpirationDate_Last(
+	public SyncDLFileVersionDiff findByLtExpirationDate_Last(
 			Date expirationDate,
 			OrderByComparator<SyncDLFileVersionDiff> orderByComparator)
 		throws NoSuchDLFileVersionDiffException {
 
 		SyncDLFileVersionDiff syncDLFileVersionDiff =
-			fetchByExpirationDate_Last(expirationDate, orderByComparator);
+			fetchByLtExpirationDate_Last(expirationDate, orderByComparator);
 
 		if (syncDLFileVersionDiff != null) {
 			return syncDLFileVersionDiff;
@@ -875,17 +874,17 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @return the last matching sync dl file version diff, or <code>null</code> if a matching sync dl file version diff could not be found
 	 */
 	@Override
-	public SyncDLFileVersionDiff fetchByExpirationDate_Last(
+	public SyncDLFileVersionDiff fetchByLtExpirationDate_Last(
 		Date expirationDate,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator) {
 
-		int count = countByExpirationDate(expirationDate);
+		int count = countByLtExpirationDate(expirationDate);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<SyncDLFileVersionDiff> list = findByExpirationDate(
+		List<SyncDLFileVersionDiff> list = findByLtExpirationDate(
 			expirationDate, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -905,7 +904,7 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @throws NoSuchDLFileVersionDiffException if a sync dl file version diff with the primary key could not be found
 	 */
 	@Override
-	public SyncDLFileVersionDiff[] findByExpirationDate_PrevAndNext(
+	public SyncDLFileVersionDiff[] findByLtExpirationDate_PrevAndNext(
 			long syncDLFileVersionDiffId, Date expirationDate,
 			OrderByComparator<SyncDLFileVersionDiff> orderByComparator)
 		throws NoSuchDLFileVersionDiffException {
@@ -920,13 +919,13 @@ public class SyncDLFileVersionDiffPersistenceImpl
 
 			SyncDLFileVersionDiff[] array = new SyncDLFileVersionDiffImpl[3];
 
-			array[0] = getByExpirationDate_PrevAndNext(
+			array[0] = getByLtExpirationDate_PrevAndNext(
 				session, syncDLFileVersionDiff, expirationDate,
 				orderByComparator, true);
 
 			array[1] = syncDLFileVersionDiff;
 
-			array[2] = getByExpirationDate_PrevAndNext(
+			array[2] = getByLtExpirationDate_PrevAndNext(
 				session, syncDLFileVersionDiff, expirationDate,
 				orderByComparator, false);
 
@@ -940,7 +939,7 @@ public class SyncDLFileVersionDiffPersistenceImpl
 		}
 	}
 
-	protected SyncDLFileVersionDiff getByExpirationDate_PrevAndNext(
+	protected SyncDLFileVersionDiff getByLtExpirationDate_PrevAndNext(
 		Session session, SyncDLFileVersionDiff syncDLFileVersionDiff,
 		Date expirationDate,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator,
@@ -962,12 +961,12 @@ public class SyncDLFileVersionDiffPersistenceImpl
 		boolean bindExpirationDate = false;
 
 		if (expirationDate == null) {
-			sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1);
+			sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1);
 		}
 		else {
 			bindExpirationDate = true;
 
-			sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2);
+			sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -1068,9 +1067,9 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @param expirationDate the expiration date
 	 */
 	@Override
-	public void removeByExpirationDate(Date expirationDate) {
+	public void removeByLtExpirationDate(Date expirationDate) {
 		for (SyncDLFileVersionDiff syncDLFileVersionDiff :
-				findByExpirationDate(
+				findByLtExpirationDate(
 					expirationDate, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null)) {
 
@@ -1085,8 +1084,9 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * @return the number of matching sync dl file version diffs
 	 */
 	@Override
-	public int countByExpirationDate(Date expirationDate) {
-		FinderPath finderPath = _finderPathWithPaginationCountByExpirationDate;
+	public int countByLtExpirationDate(Date expirationDate) {
+		FinderPath finderPath =
+			_finderPathWithPaginationCountByLtExpirationDate;
 
 		Object[] finderArgs = new Object[] {_getTime(expirationDate)};
 
@@ -1100,12 +1100,12 @@ public class SyncDLFileVersionDiffPersistenceImpl
 			boolean bindExpirationDate = false;
 
 			if (expirationDate == null) {
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1);
 			}
 			else {
 				bindExpirationDate = true;
 
-				sb.append(_FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2);
+				sb.append(_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2);
 			}
 
 			String sql = sb.toString();
@@ -1138,11 +1138,13 @@ public class SyncDLFileVersionDiffPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_1 =
-		"syncDLFileVersionDiff.expirationDate IS NULL";
+	private static final String
+		_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_1 =
+			"syncDLFileVersionDiff.expirationDate IS NULL";
 
-	private static final String _FINDER_COLUMN_EXPIRATIONDATE_EXPIRATIONDATE_2 =
-		"syncDLFileVersionDiff.expirationDate < ?";
+	private static final String
+		_FINDER_COLUMN_LTEXPIRATIONDATE_EXPIRATIONDATE_2 =
+			"syncDLFileVersionDiff.expirationDate < ?";
 
 	private FinderPath _finderPathFetchByF_S_T;
 	private FinderPath _finderPathCountByF_S_T;
@@ -1437,6 +1439,8 @@ public class SyncDLFileVersionDiffPersistenceImpl
 			syncDLFileVersionDiff);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the sync dl file version diffs in the entity cache if it is enabled.
 	 *
@@ -1445,6 +1449,14 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	@Override
 	public void cacheResult(
 		List<SyncDLFileVersionDiff> syncDLFileVersionDiffs) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (syncDLFileVersionDiffs.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (SyncDLFileVersionDiff syncDLFileVersionDiff :
 				syncDLFileVersionDiffs) {
@@ -1954,13 +1966,9 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	 * Initializes the sync dl file version diff persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new SyncDLFileVersionDiffModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1992,16 +2000,16 @@ public class SyncDLFileVersionDiffPersistenceImpl
 			new String[] {Long.class.getName()}, new String[] {"fileEntryId"},
 			false);
 
-		_finderPathWithPaginationFindByExpirationDate = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByExpirationDate",
+		_finderPathWithPaginationFindByLtExpirationDate = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByLtExpirationDate",
 			new String[] {
 				Date.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
 			},
 			new String[] {"expirationDate"}, true);
 
-		_finderPathWithPaginationCountByExpirationDate = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByExpirationDate",
+		_finderPathWithPaginationCountByLtExpirationDate = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByLtExpirationDate",
 			new String[] {Date.class.getName()},
 			new String[] {"expirationDate"}, false);
 
@@ -2024,13 +2032,31 @@ public class SyncDLFileVersionDiffPersistenceImpl
 				"fileEntryId", "sourceFileVersionId", "targetFileVersionId"
 			},
 			false);
+
+		_setSyncDLFileVersionDiffUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(SyncDLFileVersionDiffImpl.class.getName());
+		_setSyncDLFileVersionDiffUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(SyncDLFileVersionDiffImpl.class.getName());
+	}
+
+	private void _setSyncDLFileVersionDiffUtilPersistence(
+		SyncDLFileVersionDiffPersistence syncDLFileVersionDiffPersistence) {
+
+		try {
+			Field field = SyncDLFileVersionDiffUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, syncDLFileVersionDiffPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -2058,8 +2084,6 @@ public class SyncDLFileVersionDiffPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -2107,99 +2131,8 @@ public class SyncDLFileVersionDiffPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class SyncDLFileVersionDiffModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			SyncDLFileVersionDiffModelImpl syncDLFileVersionDiffModelImpl =
-				(SyncDLFileVersionDiffModelImpl)baseModel;
-
-			long columnBitmask =
-				syncDLFileVersionDiffModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					syncDLFileVersionDiffModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						syncDLFileVersionDiffModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					syncDLFileVersionDiffModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return SyncDLFileVersionDiffImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return SyncDLFileVersionDiffTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			SyncDLFileVersionDiffModelImpl syncDLFileVersionDiffModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						syncDLFileVersionDiffModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] =
-						syncDLFileVersionDiffModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private SyncDLFileVersionDiffModelArgumentsResolver
+		_syncDLFileVersionDiffModelArgumentsResolver;
 
 }

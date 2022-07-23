@@ -56,8 +56,8 @@ public class DLAppServiceWhenUpdatingAndCheckingInAFileEntryTest
 		fileEntry = DLAppServiceUtil.updateFileEntryAndCheckIn(
 			fileEntry.getFileEntryId(), fileEntry.getFileName(),
 			fileEntry.getMimeType(), fileEntry.getTitle(),
-			RandomTestUtil.randomString(), StringPool.BLANK,
-			DLVersionNumberIncrease.MINOR, null,
+			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
+			DLVersionNumberIncrease.MINOR, null, null, null,
 			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
 
 		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(

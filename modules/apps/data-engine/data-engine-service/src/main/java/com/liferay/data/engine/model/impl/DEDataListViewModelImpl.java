@@ -35,13 +35,14 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -254,34 +255,6 @@ public class DEDataListViewModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DEDataListView>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DEDataListView.class.getClassLoader(), DEDataListView.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DEDataListView> constructor =
-				(Constructor<DEDataListView>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DEDataListView, Object>>
@@ -911,6 +884,43 @@ public class DEDataListViewModelImpl
 	}
 
 	@Override
+	public DEDataListView cloneWithOriginalValues() {
+		DEDataListViewImpl deDataListViewImpl = new DEDataListViewImpl();
+
+		deDataListViewImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		deDataListViewImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		deDataListViewImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		deDataListViewImpl.setDeDataListViewId(
+			this.<Long>getColumnOriginalValue("deDataListViewId"));
+		deDataListViewImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		deDataListViewImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		deDataListViewImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		deDataListViewImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		deDataListViewImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		deDataListViewImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		deDataListViewImpl.setAppliedFilters(
+			this.<String>getColumnOriginalValue("appliedFilters"));
+		deDataListViewImpl.setDdmStructureId(
+			this.<Long>getColumnOriginalValue("ddmStructureId"));
+		deDataListViewImpl.setFieldNames(
+			this.<String>getColumnOriginalValue("fieldNames"));
+		deDataListViewImpl.setName(this.<String>getColumnOriginalValue("name"));
+		deDataListViewImpl.setSortField(
+			this.<String>getColumnOriginalValue("sortField"));
+
+		return deDataListViewImpl;
+	}
+
+	@Override
 	public int compareTo(DEDataListView deDataListView) {
 		long primaryKey = deDataListView.getPrimaryKey();
 
@@ -1073,7 +1083,7 @@ public class DEDataListViewModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1084,9 +1094,26 @@ public class DEDataListViewModelImpl
 			Function<DEDataListView, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DEDataListView)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DEDataListView)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1133,7 +1160,9 @@ public class DEDataListViewModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DEDataListView>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DEDataListView.class, ModelWrapper.class);
 
 	}
 

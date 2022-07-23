@@ -22,7 +22,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.audit.AuditMessageFactoryUtil;
 import com.liferay.portal.kernel.audit.AuditRouterUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.image.ImageToolUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -31,12 +30,14 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Theme;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletModeFactory_IW;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.portlet.PortletRequestModelFactory;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.WindowStateFactory_IW;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -44,8 +45,8 @@ import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.OrganizationService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserService;
-import com.liferay.portal.kernel.service.permission.AccountPermissionUtil;
 import com.liferay.portal.kernel.service.permission.CommonPermissionUtil;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
@@ -96,7 +97,6 @@ import com.liferay.portal.struts.TilesUtil;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.net.URI;
 import java.net.URL;
 
 import java.util.Collections;
@@ -108,7 +108,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.portlet.ActionRequest;
 import javax.portlet.PortletConfig;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
@@ -294,7 +293,6 @@ public class TemplateContextHelper {
 
 		if (themeDisplay != null) {
 			Layout layout = themeDisplay.getLayout();
-			List<Layout> layouts = themeDisplay.getLayouts();
 
 			HttpServletRequest originalHttpServletRequest =
 				PortalUtil.getOriginalServletRequest(httpServletRequest);
@@ -310,7 +308,7 @@ public class TemplateContextHelper {
 			contextObjects.put("colorScheme", themeDisplay.getColorScheme());
 			contextObjects.put("company", themeDisplay.getCompany());
 			contextObjects.put("layout", layout);
-			contextObjects.put("layouts", layouts);
+			contextObjects.put("layouts", themeDisplay.getLayouts());
 			contextObjects.put(
 				"layoutTypePortlet", themeDisplay.getLayoutTypePortlet());
 			contextObjects.put("locale", themeDisplay.getLocale());
@@ -324,7 +322,15 @@ public class TemplateContextHelper {
 				"scopeGroupId", Long.valueOf(themeDisplay.getScopeGroupId()));
 			contextObjects.put("themeDisplay", themeDisplay);
 			contextObjects.put("timeZone", themeDisplay.getTimeZone());
-			contextObjects.put("user", themeDisplay.getUser());
+
+			User user = UserLocalServiceUtil.fetchUser(
+				PrincipalThreadLocal.getUserId());
+
+			if (user == null) {
+				user = themeDisplay.getUser();
+			}
+
+			contextObjects.put("user", user);
 
 			// Navigation items
 
@@ -335,8 +341,8 @@ public class TemplateContextHelper {
 
 					contextObjects.put("navItems", navItems);
 				}
-				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+				catch (Exception exception) {
+					_log.error(exception);
 				}
 			}
 
@@ -410,7 +416,7 @@ public class TemplateContextHelper {
 				AuditMessageFactoryUtil.getAuditMessageFactory());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Audit router util
@@ -419,7 +425,7 @@ public class TemplateContextHelper {
 			variables.put("auditRouterUtil", AuditRouterUtil.getAuditRouter());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Browser sniffer
@@ -429,7 +435,7 @@ public class TemplateContextHelper {
 				"browserSniffer", BrowserSnifferUtil.getBrowserSniffer());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Calendar factory
@@ -439,7 +445,7 @@ public class TemplateContextHelper {
 				"calendarFactory", CalendarFactoryUtil.getCalendarFactory());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Date format
@@ -450,7 +456,7 @@ public class TemplateContextHelper {
 				FastDateFormatFactoryUtil.getFastDateFormatFactory());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Date util
@@ -473,7 +479,7 @@ public class TemplateContextHelper {
 						ExpandoColumnLocalService.class.getName()));
 			}
 			catch (SecurityException securityException) {
-				_log.error(securityException, securityException);
+				_log.error(securityException);
 			}
 
 			// Expando row service
@@ -485,7 +491,7 @@ public class TemplateContextHelper {
 						ExpandoRowLocalService.class.getName()));
 			}
 			catch (SecurityException securityException) {
-				_log.error(securityException, securityException);
+				_log.error(securityException);
 			}
 
 			// Expando table service
@@ -497,7 +503,7 @@ public class TemplateContextHelper {
 						ExpandoTableLocalService.class.getName()));
 			}
 			catch (SecurityException securityException) {
-				_log.error(securityException, securityException);
+				_log.error(securityException);
 			}
 
 			// Expando value service
@@ -509,11 +515,11 @@ public class TemplateContextHelper {
 						ExpandoValueLocalService.class.getName()));
 			}
 			catch (SecurityException securityException) {
-				_log.error(securityException, securityException);
+				_log.error(securityException);
 			}
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Getter util
@@ -526,7 +532,7 @@ public class TemplateContextHelper {
 			variables.put("htmlUtil", HtmlUtil.getHtml());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Http util
@@ -535,7 +541,7 @@ public class TemplateContextHelper {
 			variables.put("httpUtil", new HttpWrapper(HttpUtil.getHttp()));
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -543,7 +549,7 @@ public class TemplateContextHelper {
 				"httpUtilUnsafe", new HttpWrapper(HttpUtil.getHttp(), false));
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Image tool util
@@ -552,7 +558,7 @@ public class TemplateContextHelper {
 			variables.put("imageToolUtil", ImageToolUtil.getImageTool());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// JSON factory util
@@ -561,7 +567,7 @@ public class TemplateContextHelper {
 			variables.put("jsonFactoryUtil", JSONFactoryUtil.getJSONFactory());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Language util
@@ -570,7 +576,7 @@ public class TemplateContextHelper {
 			variables.put("languageUtil", LanguageUtil.getLanguage());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -579,7 +585,7 @@ public class TemplateContextHelper {
 				UnicodeLanguageUtil.getUnicodeLanguage());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Locale util
@@ -588,7 +594,7 @@ public class TemplateContextHelper {
 			variables.put("localeUtil", LocaleUtil.getInstance());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Param util
@@ -601,14 +607,14 @@ public class TemplateContextHelper {
 			variables.put("portalUtil", PortalUtil.getPortal());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
 			variables.put("portal", PortalUtil.getPortal());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Prefs props util
@@ -617,7 +623,7 @@ public class TemplateContextHelper {
 			variables.put("prefsPropsUtil", PrefsPropsUtil.getPrefsProps());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Props util
@@ -626,7 +632,7 @@ public class TemplateContextHelper {
 			variables.put("propsUtil", PropsUtil.getProps());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Portlet mode factory
@@ -642,7 +648,7 @@ public class TemplateContextHelper {
 				PortletURLFactoryUtil.getPortletURLFactory());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -660,11 +666,11 @@ public class TemplateContextHelper {
 					utilLocator.findUtil(SAXReader.class.getName()));
 			}
 			catch (SecurityException securityException) {
-				_log.error(securityException, securityException);
+				_log.error(securityException);
 			}
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Session clicks
@@ -703,7 +709,7 @@ public class TemplateContextHelper {
 				WebServerServletTokenUtil.getWebServerServletToken());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Window state factory
@@ -715,19 +721,10 @@ public class TemplateContextHelper {
 
 		try {
 			variables.put(
-				"accountPermission",
-				AccountPermissionUtil.getAccountPermission());
-		}
-		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
-		}
-
-		try {
-			variables.put(
 				"commonPermission", CommonPermissionUtil.getCommonPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -735,7 +732,7 @@ public class TemplateContextHelper {
 				"groupPermission", GroupPermissionUtil.getGroupPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -743,7 +740,7 @@ public class TemplateContextHelper {
 				"layoutPermission", LayoutPermissionUtil.getLayoutPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -752,7 +749,7 @@ public class TemplateContextHelper {
 				OrganizationPermissionUtil.getOrganizationPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -761,7 +758,7 @@ public class TemplateContextHelper {
 				PasswordPolicyPermissionUtil.getPasswordPolicyPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -769,7 +766,7 @@ public class TemplateContextHelper {
 				"portalPermission", PortalPermissionUtil.getPortalPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -778,7 +775,7 @@ public class TemplateContextHelper {
 				PortletPermissionUtil.getPortletPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		Map<String, PortletProvider.Action> portletProviderActionMap =
@@ -792,7 +789,7 @@ public class TemplateContextHelper {
 			variables.put("portletProviderAction", portletProviderActionMap);
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -800,7 +797,7 @@ public class TemplateContextHelper {
 				"rolePermission", RolePermissionUtil.getRolePermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -809,7 +806,7 @@ public class TemplateContextHelper {
 				UserGroupPermissionUtil.getUserGroupPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -817,7 +814,7 @@ public class TemplateContextHelper {
 				"userPermission", UserPermissionUtil.getUserPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		// Deprecated
@@ -835,7 +832,7 @@ public class TemplateContextHelper {
 				FastDateFormatFactoryUtil.getFastDateFormatFactory());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -844,7 +841,7 @@ public class TemplateContextHelper {
 				WebServerServletTokenUtil.getWebServerServletToken());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
@@ -853,23 +850,15 @@ public class TemplateContextHelper {
 				OrganizationPermissionUtil.getOrganizationPermission());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
 
 		try {
 			variables.put("random", new Random());
 		}
 		catch (SecurityException securityException) {
-			_log.error(securityException, securityException);
+			_log.error(securityException);
 		}
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #populateExtraHelperUtilities(Map, boolean)}
-	 */
-	@Deprecated
-	protected void populateExtraHelperUtilities(Map<String, Object> variables) {
 	}
 
 	protected void populateExtraHelperUtilities(
@@ -933,168 +922,13 @@ public class TemplateContextHelper {
 		}
 
 		@Override
-		public String addParameter(String url, String name, boolean value) {
-			return _http.addParameter(url, name, value);
-		}
-
-		@Override
-		public String addParameter(String url, String name, double value) {
-			return _http.addParameter(url, name, value);
-		}
-
-		@Override
-		public String addParameter(String url, String name, int value) {
-			return _http.addParameter(url, name, value);
-		}
-
-		@Override
-		public String addParameter(String url, String name, long value) {
-			return _http.addParameter(url, name, value);
-		}
-
-		@Override
-		public String addParameter(String url, String name, short value) {
-			return _http.addParameter(url, name, value);
-		}
-
-		@Override
-		public String addParameter(String url, String name, String value) {
-			return _http.addParameter(url, name, value);
-		}
-
-		@Override
-		public String decodePath(String path) {
-			return _http.decodePath(path);
-		}
-
-		@Override
-		public String decodeURL(String url) {
-			return _http.decodeURL(url);
-		}
-
-		@Override
-		public String encodeParameters(String url) {
-			return _http.encodeParameters(url);
-		}
-
-		@Override
-		public String encodePath(String path) {
-			return _http.encodePath(path);
-		}
-
-		@Override
-		public String fixPath(String path) {
-			return _http.fixPath(path);
-		}
-
-		@Override
-		public String fixPath(String path, boolean leading, boolean trailing) {
-			return _http.fixPath(path, leading, trailing);
-		}
-
-		@Override
-		public String getCompleteURL(HttpServletRequest httpServletRequest) {
-			return _http.getCompleteURL(httpServletRequest);
-		}
-
-		@Override
 		public Cookie[] getCookies() {
 			return _http.getCookies();
 		}
 
 		@Override
-		public String getDomain(String url) {
-			return _http.getDomain(url);
-		}
-
-		@Override
-		public String getIpAddress(String url) {
-			return _http.getIpAddress(url);
-		}
-
-		@Override
-		public String getParameter(String url, String name) {
-			return _http.getParameter(url, name);
-		}
-
-		@Override
-		public String getParameter(String url, String name, boolean escaped) {
-			return _http.getParameter(url, name, escaped);
-		}
-
-		@Override
-		public Map<String, String[]> getParameterMap(String queryString) {
-			return _http.getParameterMap(queryString);
-		}
-
-		@Override
-		public String getPath(String url) {
-			return _http.getPath(url);
-		}
-
-		@Override
-		public String getProtocol(ActionRequest actionRequest) {
-			return _http.getProtocol(actionRequest);
-		}
-
-		@Override
-		public String getProtocol(boolean secure) {
-			return _http.getProtocol(secure);
-		}
-
-		@Override
-		public String getProtocol(HttpServletRequest httpServletRequest) {
-			return _http.getProtocol(httpServletRequest);
-		}
-
-		@Override
-		public String getProtocol(RenderRequest renderRequest) {
-			return _http.getProtocol(renderRequest);
-		}
-
-		@Override
-		public String getProtocol(String url) {
-			return _http.getProtocol(url);
-		}
-
-		@Override
-		public String getQueryString(HttpServletRequest httpServletRequest) {
-			return _http.getQueryString(httpServletRequest);
-		}
-
-		@Override
-		public String getQueryString(String url) {
-			return _http.getQueryString(url);
-		}
-
-		@Override
-		public String getRequestURL(HttpServletRequest httpServletRequest) {
-			return _http.getRequestURL(httpServletRequest);
-		}
-
-		@Override
-		public URI getURI(String uriString) {
-			return _http.getURI(uriString);
-		}
-
-		@Override
-		public boolean hasDomain(String url) {
-			return _http.hasDomain(url);
-		}
-
-		@Override
-		public boolean hasProtocol(String url) {
-			return _http.hasProtocol(url);
-		}
-
-		@Override
 		public boolean hasProxyConfig() {
 			return _http.hasProxyConfig();
-		}
-
-		@Override
-		public boolean isForwarded(HttpServletRequest httpServletRequest) {
-			return _http.isForwarded(httpServletRequest);
 		}
 
 		@Override
@@ -1105,122 +939,6 @@ public class TemplateContextHelper {
 		@Override
 		public boolean isProxyHost(String host) {
 			return _http.isProxyHost(host);
-		}
-
-		@Override
-		public boolean isSecure(String url) {
-			return _http.isSecure(url);
-		}
-
-		@Override
-		public String normalizePath(String uri) {
-			return _http.normalizePath(uri);
-		}
-
-		@Override
-		public Map<String, String[]> parameterMapFromString(
-			String queryString) {
-
-			return _http.parameterMapFromString(queryString);
-		}
-
-		@Override
-		public String parameterMapToString(Map<String, String[]> parameterMap) {
-			return _http.parameterMapToString(parameterMap);
-		}
-
-		@Override
-		public String parameterMapToString(
-			Map<String, String[]> parameterMap, boolean addQuestion) {
-
-			return _http.parameterMapToString(parameterMap, addQuestion);
-		}
-
-		@Override
-		public String protocolize(String url, ActionRequest actionRequest) {
-			return _http.protocolize(url, actionRequest);
-		}
-
-		@Override
-		public String protocolize(String url, boolean secure) {
-			return _http.protocolize(url, secure);
-		}
-
-		@Override
-		public String protocolize(
-			String url, HttpServletRequest httpServletRequest) {
-
-			return _http.protocolize(url, httpServletRequest);
-		}
-
-		@Override
-		public String protocolize(String url, int port, boolean secure) {
-			return _http.protocolize(url, port, secure);
-		}
-
-		@Override
-		public String protocolize(String url, RenderRequest renderRequest) {
-			return _http.protocolize(url, renderRequest);
-		}
-
-		@Override
-		public String removeDomain(String url) {
-			return _http.removeDomain(url);
-		}
-
-		@Override
-		public String removeParameter(String url, String name) {
-			return _http.removeParameter(url, name);
-		}
-
-		@Override
-		public String removePathParameters(String uri) {
-			return _http.removePathParameters(uri);
-		}
-
-		@Override
-		public String removeProtocol(String url) {
-			return _http.removeProtocol(url);
-		}
-
-		@Override
-		public String sanitizeHeader(String header) {
-			return _http.sanitizeHeader(header);
-		}
-
-		@Override
-		public String setParameter(String url, String name, boolean value) {
-			return _http.setParameter(url, name, value);
-		}
-
-		@Override
-		public String setParameter(String url, String name, double value) {
-			return _http.setParameter(url, name, value);
-		}
-
-		@Override
-		public String setParameter(String url, String name, int value) {
-			return _http.setParameter(url, name, value);
-		}
-
-		@Override
-		public String setParameter(String url, String name, long value) {
-			return _http.setParameter(url, name, value);
-		}
-
-		@Override
-		public String setParameter(String url, String name, short value) {
-			return _http.setParameter(url, name, value);
-		}
-
-		@Override
-		public String setParameter(String url, String name, String value) {
-			return _http.setParameter(url, name, value);
-		}
-
-		@Override
-		public String shortenURL(String url) {
-			return _http.shortenURL(url);
 		}
 
 		@Override

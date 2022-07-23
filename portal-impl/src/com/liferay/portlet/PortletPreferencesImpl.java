@@ -119,11 +119,9 @@ public class PortletPreferencesImpl
 		Map<String, String[]> map = new HashMap<>();
 
 		for (Map.Entry<String, Preference> entry : preferences.entrySet()) {
-			String key = entry.getKey();
-
 			Preference preference = entry.getValue();
 
-			map.put(key, _getActualValues(preference.getValues()));
+			map.put(entry.getKey(), _getActualValues(preference.getValues()));
 		}
 
 		return map;
@@ -246,7 +244,7 @@ public class PortletPreferencesImpl
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		}

@@ -19,6 +19,7 @@ import com.liferay.commerce.machine.learning.internal.forecast.constants.Commerc
 import com.liferay.commerce.machine.learning.internal.forecast.constants.CommerceMLForecastPeriod;
 import com.liferay.commerce.machine.learning.internal.search.api.CommerceMLIndexer;
 import com.liferay.petra.lang.HashUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -192,7 +193,7 @@ public abstract class BaseCommerceMLForecastServiceImpl
 		}
 		catch (ParseException parseException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(parseException, parseException);
+				_log.debug(parseException);
 			}
 		}
 
@@ -283,7 +284,7 @@ public abstract class BaseCommerceMLForecastServiceImpl
 	}
 
 	protected long getHash(Object... values) {
-		StringBuilder sb = new StringBuilder(values.length);
+		StringBundler sb = new StringBundler(values.length);
 
 		for (Object value : values) {
 			sb.append(value);

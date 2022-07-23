@@ -1,0 +1,31 @@
+assemble {
+	dependsOn packageRunBuild
+}
+
+task copyClassicTheme(type: Copy)
+task copyCommerceIcons(type: Copy)
+
+copyClassicTheme {
+	from("../frontend-theme-classic/src/") {
+		exclude "**/WEB-INF/**"
+		exclude "/images/**"
+		exclude "/css/custom_properties/_custom_properties_set.scss"
+	}
+
+	includeEmptyDirs = false
+	into file("src")
+
+	rename '^_clay_variables.scss$', '_classic_clay_variables.scss'
+	rename '^_custom.scss$', '_classic_custom.scss'
+}
+
+copyCommerceIcons {
+	from("../../commerce/commerce-theme-minium/commerce-theme-minium/src/images/icons.svg")
+
+	into file("src/images")
+}
+
+packageRunBuild {
+	dependsOn copyClassicTheme
+	dependsOn copyCommerceIcons
+}

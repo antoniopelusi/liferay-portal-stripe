@@ -55,7 +55,7 @@ public class DDMFormBrowsePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/browser/view.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 	@Reference(

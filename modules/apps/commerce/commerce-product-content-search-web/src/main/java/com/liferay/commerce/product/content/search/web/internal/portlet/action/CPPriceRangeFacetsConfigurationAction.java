@@ -17,7 +17,7 @@ package com.liferay.commerce.product.content.search.web.internal.portlet.action;
 import com.liferay.commerce.currency.util.CommercePriceFormatter;
 import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.content.search.web.internal.display.context.CPPriceRangeFacetsDisplayContext;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
@@ -59,7 +59,7 @@ public class CPPriceRangeFacetsConfigurationAction
 				new CPPriceRangeFacetsDisplayContext(
 					_commercePriceFormatter, cpRequestHelper.getRenderRequest(),
 					null,
-					getPaginationStartParameterName(
+					_getPaginationStartParameterName(
 						portletSharedSearchResponse),
 					portletSharedSearchResponse);
 
@@ -68,7 +68,7 @@ public class CPPriceRangeFacetsConfigurationAction
 				cpPriceRangeFacetsDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return "/price_range_facets/configuration.jsp";
@@ -83,7 +83,7 @@ public class CPPriceRangeFacetsConfigurationAction
 		super.setServletContext(servletContext);
 	}
 
-	protected String getPaginationStartParameterName(
+	private String _getPaginationStartParameterName(
 		PortletSharedSearchResponse portletSharedSearchResponse) {
 
 		SearchResponse searchResponse =

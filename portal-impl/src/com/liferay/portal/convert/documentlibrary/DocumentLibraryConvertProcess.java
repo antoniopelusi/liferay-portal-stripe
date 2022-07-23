@@ -16,11 +16,13 @@ package com.liferay.portal.convert.documentlibrary;
 
 import com.liferay.document.library.kernel.store.Store;
 import com.liferay.document.library.kernel.util.comparator.FileVersionVersionComparator;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.convert.BaseConvertProcess;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -30,9 +32,8 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.util.MaintenanceUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.store.StoreFactory;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -157,14 +158,15 @@ public class DocumentLibraryConvertProcess extends BaseConvertProcess {
 	}
 
 	private Collection<DLStoreConvertProcess> _getDLStoreConvertProcesses() {
-		try {
-			Registry registry = RegistryUtil.getRegistry();
+		List<DLStoreConvertProcess> dlStoreConvertProcesses = new ArrayList<>();
 
-			return registry.getServices(DLStoreConvertProcess.class, null);
-		}
-		catch (Exception exception) {
-			throw new SystemException(exception);
-		}
+		_dlStoreConvertProcesses.forEach(dlStoreConvertProcesses::add);
+
+		return dlStoreConvertProcesses;
 	}
+
+	private static final ServiceTrackerList<DLStoreConvertProcess>
+		_dlStoreConvertProcesses = ServiceTrackerListFactory.open(
+			SystemBundleUtil.getBundleContext(), DLStoreConvertProcess.class);
 
 }

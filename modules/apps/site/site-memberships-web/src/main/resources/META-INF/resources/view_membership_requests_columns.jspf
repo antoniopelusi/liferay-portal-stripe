@@ -39,8 +39,8 @@ PortletURL previewURL = PortletURLBuilder.createRenderURL(
 ).setRedirect(
 	currentURL
 ).setParameter(
-	"membershipRequestId", String.valueOf(membershipRequest.getMembershipRequestId())
-).build();
+	"membershipRequestId", membershipRequest.getMembershipRequestId()
+).buildPortletURL();
 %>
 
 <c:choose>

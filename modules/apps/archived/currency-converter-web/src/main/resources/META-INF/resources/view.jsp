@@ -190,7 +190,7 @@ NumberFormat decimalFormat = NumberFormat.getNumberInstance(locale);
 								"number", number
 							).setParameter(
 								"to", currencyConverter.getToSymbol()
-							).build();
+							).buildPortletURL();
 							%>
 
 							<c:choose>

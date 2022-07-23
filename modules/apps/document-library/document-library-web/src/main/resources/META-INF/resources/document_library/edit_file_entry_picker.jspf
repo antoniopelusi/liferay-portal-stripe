@@ -20,22 +20,41 @@ DLFilePicker dlFilePicker = dlEditFileEntryDisplayContext.getDLFilePicker(lifera
 
 <c:choose>
 	<c:when test="<%= dlFilePicker == null %>">
-		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" name="file" onChange='<%= liferayPortletResponse.getNamespace() + "updateFileNameAndTitle();" %>' type="file">
-			<aui:validator name="acceptFiles">
-				'<%= StringUtil.merge(dlConfiguration.fileExtensions()) %>'
-			</aui:validator>
+		<label class="control-label">
+			<liferay-ui:message key="file-upload" />
+		</label>
 
-			<aui:validator errorMessage='<%= LanguageUtil.format(locale, "please-enter-a-file-with-a-valid-file-size-no-larger-than-x", LanguageUtil.formatStorageSize(dlEditFileEntryDisplayContext.getMaximumUploadSize(), locale)) %>' name="maxFileSize"><%= dlEditFileEntryDisplayContext.getMaximumUploadSize() %></aui:validator>
-		</aui:input>
+		<div class="form-group">
+			<aui:button value="select-file" />
+
+			<react:component
+				module="document_library/js/FileEntryPicker"
+				props='<%=
+					HashMapBuilder.<String, Object>put(
+						"maxFileSize", dlEditFileEntryDisplayContext.getMaximumUploadSize()
+					).put(
+						"namespace", liferayPortletResponse.getNamespace()
+					).put(
+						"validExtensions", StringUtil.merge(dlConfiguration.fileExtensions())
+					).build()
+				%>'
+			/>
+		</div>
 	</c:when>
 	<c:otherwise>
 		<c:if test="<%= dlFilePicker.isCustomizedFileButtonVisible() %>">
-			<aui:field-wrapper label="file">
+			<label class="control-label">
+				<liferay-ui:message key="file-upload" />
+			</label>
+
+			<aui:field-wrapper>
 				<aui:button cssClass="customized-file-button disabled" disabled="<%= true %>" name="file" value="select-file" />
 
-				<img class="pick-button-icon" id="<portlet:namespace />pickButtonIcon" src="<%= GetterUtil.getString(dlFilePicker.getCurrentIconURL()) %>" />
+				<span class="inline-item inline-item-middle">
+					<img id="<portlet:namespace />pickButtonIcon" src="<%= GetterUtil.getString(dlFilePicker.getCurrentIconURL()) %>" />
+				</span>
 
-				<span id="<portlet:namespace />pickButtonTitle"><%= GetterUtil.getString(dlFilePicker.getCurrentTitle()) %></span>
+				<small><strong id="<portlet:namespace />pickButtonTitle"><%= GetterUtil.getString(dlFilePicker.getCurrentTitle()) %></strong></small>
 			</aui:field-wrapper>
 		</c:if>
 

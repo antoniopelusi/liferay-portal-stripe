@@ -9,155 +9,102 @@
  * distribution rights of the Software.
  */
 
-import ClayAlert from '@clayui/alert';
-import ClayLoadingIndicator from '@clayui/loading-indicator';
-import {useIsMounted} from '@liferay/frontend-js-react-web';
-import {fetch} from 'frontend-js-web';
-import React, {useCallback, useEffect, useReducer} from 'react';
+import {useEventListener} from '@liferay/frontend-js-react-web';
+import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
 
-import Navigation from './components/Navigation';
-import {ChartStateContextProvider} from './context/ChartStateContext';
-import ConnectionContext from './context/ConnectionContext';
-import {StoreContextProvider} from './context/StoreContext';
+import AnalyticsReports from './components/AnalyticsReports';
 
-import '../css/analytics-reports-app.scss';
+const setInitialOpenPanelState = async (stateCallback) => {
+	const ANALYTICS_REPORTS_OPEN_PANEL_VALUE = 'open';
+	const ANALYTICS_REPORTS_PANEL_ID =
+		'com.liferay.analytics.reports.web_panelState';
 
-const initialState = {
-	data: null,
-	error: null,
-	loading: false,
+	const _panelState = await Liferay.Util.Session.get(
+		ANALYTICS_REPORTS_PANEL_ID
+	);
+
+	stateCallback(_panelState === ANALYTICS_REPORTS_OPEN_PANEL_VALUE);
 };
 
-const dataReducer = (state, action) => {
-	switch (action.type) {
-		case 'LOAD_DATA':
-			return {
-				...state,
-				loading: true,
-			};
-
-		case 'SET_ERROR':
-			return {
-				...state,
-				error: action.error,
-				loading: false,
-			};
-
-		case 'SET_DATA':
-			return {
-				data: {
-					...action.data,
-					publishedToday:
-						new Date().toDateString() ===
-						new Date(action.data?.publishDate).toDateString(),
-				},
-				error: action.data?.error,
-				loading: false,
-			};
-
-		default:
-			return initialState;
-	}
-};
-
-export default function ({context}) {
-	const {analyticsReportsDataURL} = context;
-
-	const isMounted = useIsMounted();
-
-	const [state, dispatch] = useReducer(dataReducer, initialState);
-
-	const safeDispatch = (action) => {
-		if (isMounted()) {
-			dispatch(action);
-		}
-	};
-
-	const getData = (fetchURL, timeSpanKey, timeSpanOffset) => {
-		safeDispatch({type: 'LOAD_DATA'});
-
-		const body =
-			!timeSpanOffset && !!timeSpanKey
-				? {timeSpanKey, timeSpanOffset}
-				: {};
-
-		fetch(fetchURL, {
-			body,
-			method: 'POST',
-		})
-			.then((response) =>
-				response.json().then((data) =>
-					safeDispatch({
-						data: data.context,
-						type: 'SET_DATA',
-					})
-				)
-			)
-			.catch(() => {
-				safeDispatch({
-					error: Liferay.Language.get('an-unexpected-error-occurred'),
-					type: 'SET_ERROR',
-				});
-			});
-	};
+const useInitialPanelState = () => {
+	const [isPanelStateOpen, setIsPanelStateOpen] = useState(false);
 
 	useEffect(() => {
-		getData(analyticsReportsDataURL);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [analyticsReportsDataURL]);
+		setInitialOpenPanelState(setIsPanelStateOpen);
+	}, []);
 
-	const handleSelectedLanguageClick = useCallback(
-		(url, timeSpanKey, timeSpanOffset) => {
-			getData(url, timeSpanKey, timeSpanOffset);
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[]
+	return [isPanelStateOpen];
+};
+
+export default function AnalyticsReportsApp({context, portletNamespace}) {
+	const {analyticsReportsDataURL} = context;
+
+	const [
+		hoverOrFocusEventTriggered,
+		setHoverOrFocusEventTriggered,
+	] = useState(false);
+
+	const analyticsReportsPanelToggle = document.getElementById(
+		`${portletNamespace}analyticsReportsPanelToggleId`
 	);
 
-	return state.loading ? (
-		<ClayLoadingIndicator small />
-	) : state.error ? (
-		<ClayAlert displayType="danger" variant="stripe">
-			{state.error}
-		</ClayAlert>
-	) : (
-		state.data && (
-			<ConnectionContext.Provider
-				value={{
-					validAnalyticsConnection:
-						state.data.validAnalyticsConnection,
-				}}
-			>
-				<StoreContextProvider
-					value={{
-						endpoints: {...state.data.endpoints},
-						languageTag: state.data.languageTag,
-						namespace: state.data.namespace,
-						page: state.data.page,
-						publishedToday: state.data.publishedToday,
-					}}
-				>
-					<ChartStateContextProvider
-						publishDate={state.data.publishDate}
-						timeRange={state.data.timeRange}
-						timeSpanKey={state.data.timeSpanKey}
-					>
-						<div className="analytics-reports-app">
-							<Navigation
-								author={state.data.author}
-								canonicalURL={state.data.canonicalURL}
-								onSelectedLanguageClick={
-									handleSelectedLanguageClick
-								}
-								pagePublishDate={state.data.publishDate}
-								pageTitle={state.data.title}
-								timeSpanOptions={state.data.timeSpans}
-								viewURLs={state.data.viewURLs}
-							/>
-						</div>
-					</ChartStateContextProvider>
-				</StoreContextProvider>
-			</ConnectionContext.Provider>
-		)
+	const [isPanelStateOpen] = useInitialPanelState();
+
+	useEffect(() => {
+		if (analyticsReportsPanelToggle) {
+			const sidenavInstance = Liferay.SideNavigation.initialize(
+				analyticsReportsPanelToggle
+			);
+
+			sidenavInstance.on('open.lexicon.sidenav', () => {
+				Liferay.Util.Session.set(
+					'com.liferay.analytics.reports.web_panelState',
+					'open'
+				);
+			});
+
+			sidenavInstance.on('closed.lexicon.sidenav', () => {
+				Liferay.Util.Session.set(
+					'com.liferay.analytics.reports.web_panelState',
+					'closed'
+				);
+			});
+
+			Liferay.once('screenLoad', () => {
+				Liferay.SideNavigation.destroy(analyticsReportsPanelToggle);
+			});
+		}
+	}, [analyticsReportsPanelToggle, portletNamespace]);
+
+	useEventListener(
+		'mouseenter',
+		() => setHoverOrFocusEventTriggered(true),
+		{once: true},
+		analyticsReportsPanelToggle
+	);
+
+	useEventListener(
+		'focus',
+		() => setHoverOrFocusEventTriggered(true),
+		{once: true},
+		analyticsReportsPanelToggle
+	);
+
+	return (
+		<div id={`${portletNamespace}-analytics-reports-root`}>
+			<AnalyticsReports
+				analyticsReportsDataURL={analyticsReportsDataURL}
+				hoverOrFocusEventTriggered={hoverOrFocusEventTriggered}
+				isPanelStateOpen={isPanelStateOpen}
+			/>
+		</div>
 	);
 }
+
+AnalyticsReportsApp.propTypes = {
+	context: PropTypes.shape({
+		analyticsReportsDataURL: PropTypes.string.isRequired,
+	}).isRequired,
+	portletNamespace: PropTypes.string.isRequired,
+};

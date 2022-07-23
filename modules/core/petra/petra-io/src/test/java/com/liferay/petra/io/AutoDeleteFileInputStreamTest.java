@@ -57,10 +57,10 @@ public class AutoDeleteFileInputStreamTest {
 
 	@Test
 	public void testCloseWithFileChannel() throws IOException {
-		try (AutoDeleteFileInputStream autoRemoveFileInputStream =
+		try (AutoDeleteFileInputStream autoDeleteFileInputStream =
 				new AutoDeleteFileInputStream(_tempFile)) {
 
-			Assert.assertNotNull(autoRemoveFileInputStream.getChannel());
+			Assert.assertNotNull(autoDeleteFileInputStream.getChannel());
 
 			Assert.assertTrue(_tempFile.exists());
 		}
@@ -70,11 +70,11 @@ public class AutoDeleteFileInputStreamTest {
 
 	@Test
 	public void testFileNotExistOnClose() throws IOException {
-		try (AutoDeleteFileInputStream autoRemoveFileInputStream =
+		try (AutoDeleteFileInputStream autoDeleteFileInputStream =
 				new AutoDeleteFileInputStream(_tempFile)) {
 
 			ReflectionTestUtil.setFieldValue(
-				autoRemoveFileInputStream, "_file", new File("NotExist"));
+				autoDeleteFileInputStream, "_file", new File("NotExist"));
 		}
 
 		Assert.assertTrue(_tempFile.exists());
@@ -82,7 +82,7 @@ public class AutoDeleteFileInputStreamTest {
 
 	@Test
 	public void testNormalClose() throws IOException {
-		try (AutoDeleteFileInputStream autoRemoveFileInputStream =
+		try (AutoDeleteFileInputStream autoDeleteFileInputStream =
 				new AutoDeleteFileInputStream(_tempFile)) {
 
 			Assert.assertTrue(_tempFile.exists());
@@ -107,7 +107,7 @@ public class AutoDeleteFileInputStreamTest {
 
 			autoCloseSwappableSecurityManager.install();
 
-			try (AutoDeleteFileInputStream autoRemoveFileInputStream =
+			try (AutoDeleteFileInputStream autoDeleteFileInputStream =
 					new AutoDeleteFileInputStream(_tempFile)) {
 
 				Assert.assertTrue(_tempFile.exists());

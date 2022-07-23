@@ -1,3 +1,13 @@
+$table-responsive-margin-left-md: 375px !default;
+
+.lfr-search-container .entry-action {
+	width: 1px;
+
+	.taglib-icon {
+		white-space: nowrap;
+	}
+}
+
 .lfr-search-container-wrapper {
 	&.lfr-search-container-fixed-first-column {
 		position: relative;
@@ -63,6 +73,14 @@
 
 	a:not(.component-action) {
 		color: $dark;
+	}
+
+	.dropdown-action .dropdown-toggle {
+		color: $secondary;
+
+		&:hover {
+			color: $dark;
+		}
 	}
 
 	.lfr-icon-menu > .dropdown-toggle {
@@ -150,69 +168,43 @@
 	}
 }
 
-.lfr-asset-type-column,
-.lfr-author-column,
-.lfr-city-column,
-.lfr-country-column,
-.lfr-email-address-column,
-.lfr-job-title-column,
-.lfr-region-column,
-.lfr-removed-by-column,
-.lfr-replier-column,
-.lfr-scope-column,
-.lfr-screen-name-column,
-.lfr-type-column,
-.lfr-user-column,
-.lfr-users-column {
-	word-wrap: break-word;
+.user-info {
+	display: flex;
 
-	@include media-breakpoint-up(sm) {
-		max-width: 125px;
-		min-width: 100px;
+	.sticker {
+		align-self: center;
+	}
+
+	.user-details {
+		margin-left: 1rem;
+	}
+
+	.user-name {
+		color: $dark;
+		font-weight: 600;
+	}
+
+	.date-info {
+		color: $secondary;
 	}
 }
 
-.lfr-completion-date-column,
-.lfr-create-date-column,
-.lfr-date-column,
-.lfr-display-date-column,
-.lfr-expiration-date-column,
-.lfr-last-post-date-column,
-.lfr-modified-date-column,
-.lfr-removed-date-column,
-.lfr-reply-date-column,
-.lfr-revision-column,
-.lfr-size-column {
-	white-space: nowrap;
-}
+.user-status-tooltip {
+	.user-status-avatar {
+		float: left;
+		margin-right: 5px;
 
-.lfr-description-column,
-.lfr-role-column {
-	max-width: $table-responsive-margin-left-md;
-	min-width: $table-responsive-margin-left-md;
-}
-
-.lfr-email-address-column,
-.lfr-name-column,
-.lfr-parent-organization-column,
-.lfr-screen-name-column,
-.lfr-title-column,
-.lfr-url-column,
-.lfr-wiki-column {
-	max-width: 200px;
-	min-width: 200px;
-}
-
-.lfr-email-column,
-.lfr-mobile-column,
-.lfr-website-column {
-	min-width: 100px;
-
-	@include media-breakpoint-up(sm) {
-		min-width: 115px;
+		.user-status-avatar-image {
+			width: 27px;
+		}
 	}
 
-	.checkbox-container .form-group {
-		margin-bottom: 0;
+	.user-status-info {
+		display: inline-block;
+		overflow: hidden;
+
+		.user-status-date {
+			font-size: 11px;
+		}
 	}
 }

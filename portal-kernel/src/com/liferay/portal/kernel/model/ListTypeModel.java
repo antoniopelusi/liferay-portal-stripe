@@ -112,4 +112,7 @@ public interface ListTypeModel extends BaseModel<ListType>, MVCCModel {
 	 */
 	public void setType(String type);
 
+	@Override
+	public ListType cloneWithOriginalValues();
+
 }

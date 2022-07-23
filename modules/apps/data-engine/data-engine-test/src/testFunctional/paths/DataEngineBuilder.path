@@ -1,0 +1,136 @@
+<html>
+<head>
+<title>DataEngineBuilder</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">DataEngineBuilder</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>DROPDOWN_MENU_ITEM</td>
+	<td>//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//li//button//span[text()='${key_locale}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_ACTIONS_CONTAINER_INDEXED</td>
+	<td>xpath=((//label[normalize-space(text())='${key_fieldLabel}'] | //legend[normalize-space(text())='${key_fieldLabel}'])[${index}])/ancestor::div[contains(@class,'ddm-field-container')][1]/div[contains(@class,'ddm-field-actions-container')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_CONTAINER_IN_MODAL_INDEXED</td>
+	<td>xpath=(//div[contains(@class,'modal-dialog')]//div[contains(@class,'ddm-field-container')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_CONTAINER_INDEXED</td>
+	<td>xpath=(//div[contains(@class,'ddm-field-container')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_LABEL_IN_MODAL_INDEXED</td>
+	<td>xpath=(//div[contains(@class,'modal-dialog')]//label[normalize-space(text())='${key_fieldLabel}'] | //div[contains(@class,'modal-dialog')]//legend[normalize-space(text())='${key_fieldLabel}'])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_LABEL_INDEXED</td>
+	<td>xpath=(//label[not(contains(@class,'sr-only'))][normalize-space(text())='${key_fieldLabel}'] | //legend[normalize-space(text())='${key_fieldLabel}'])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_NAME_INDEXED</td>
+	<td>xpath=(//span[contains(@class,'actions-label') and contains (text(),'${key_fieldName}')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_REFERENCE_ERROR</td>
+	<td>//div[@data-field-name='fieldReference']//div[contains(@class,'form-feedback-item')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELDS_GROUP_FIELD_WITH_DEPTH</td>
+	<td>//div[contains(@class, 'fields-group')]//label[text()='${key_fieldGroupLabel}'][count(ancestor::div[contains(@class, 'fields-group')]) = ${key_fieldGroupDepth}]/..//label[text()='${key_fieldFieldLabel}'][contains(@class, 'ddm-label')][count(ancestor::div[contains(@class, 'fields-group')]) = ${key_fieldGroupDepth}] | //div[contains(@class, 'fields-group')]//label[text()='${key_fieldGroupLabel}'][count(ancestor::div[contains(@class, 'fields-group')]) = ${key_fieldGroupDepth}]/..//label[text()='${key_fieldFieldLabel}'][not(contains(@class, 'ddm-label'))][count(ancestor::div[contains(@class, 'fields-group')]) = ${key_fieldGroupDepth} + 1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FORM_FIELD_NESTED</td>
+	<td>//label[normalize-space(text())='${key_fieldsGroupLabel}']/following::div//label[normalize-space(text())='${key_fieldFieldLabel}'] | //label[normalize-space(text())='${key_fieldsGroupLabel}']/following::div//legend[normalize-space(text())='${key_fieldFieldLabel}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PANEL_EXPANDED</td>
+	<td>//div[contains(@class,'collapsable-panel')]//button[contains(@class,'collapse-icon') and not (contains(@class,'collapsed'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PANEL_COLLAPSED</td>
+	<td>//div[contains(@class,'collapsable-panel')]//button[contains(@class,'collapse-icon') and contains(@class,'collapsed')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PANEL_COLLAPSE_BUTTON</td>
+	<td>//div[contains(@class,'collapsable-panel')]//button[contains(@class,'collapse-icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTION_REFERENCE_ERROR</td>
+	<td>xpath=(//div[contains(@class,'ddm-option-entry')])[${index}]//div[contains(@class,'form-feedback-item')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTION_REFERENCE_ERROR_WITH_LABEL</td>
+	<td>xpath=(//label[normalize-space(text())='${key_optionFieldLabel}']//following-sibling::div[contains(@class,'options-container')]//div[contains(@class,'ddm-option-entry')])[${index}]//div[contains(@class,'form-feedback-item')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONS_CHECKBOX_INDEXED</td>
+	<td>xpath=(((//label[normalize-space(text())='${key_fieldLabel}'] | //legend[normalize-space(text())='${key_fieldLabel}'])[${fieldIndex}])//following-sibling::div//div[contains(@class,'custom-checkbox')]//label[.='${key_optionLabel}'])[${optionIndex}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONS_INLINE_INDEXED</td>
+	<td>xpath=(((//label[normalize-space(text())='${key_fieldLabel}'] | //legend[normalize-space(text())='${key_fieldLabel}'])[${fieldIndex}])//following-sibling::div//div[contains(@class,'custom-control-inline')]//label[.='${key_optionLabel}'])[${optionIndex}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONS_NOT_INLINE_INDEXED</td>
+	<td>xpath=(((//label[normalize-space(text())='${key_fieldLabel}'] | //legend[normalize-space(text())='${key_fieldLabel}'])[${fieldIndex}])//following-sibling::div//div[not(contains(@class,'custom-control-inline'))]//label[.='${key_optionLabel}'])[${optionIndex}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTION_REMOVE_BUTTON_WITH_LABEL_INDEXED</td>
+	<td>xpath=(//label[normalize-space(text())='${key_optionFieldLabel}']//following-sibling::div[contains(@class,'options-container')]//div[contains(@class,'ddm-option-entry')]//button[contains(@class,'close')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTION_REMOVE_BUTTON_INDEXED</td>
+	<td>xpath=(//div[contains(@class,'ddm-option-entry')]//button[contains(@class,'close')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTION_SELECTED</td>
+	<td>//input[contains(@class,'custom-control-input') and contains(@value,'${key_optionValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONS_SWITCH_INDEXED</td>
+	<td>xpath=(((//label[normalize-space(text())='${key_fieldLabel}'] | //legend[normalize-space(text())='${key_fieldLabel}'])[${fieldIndex}])//following-sibling::div//div[contains(@class,'lfr-ddm-form-field-checkbox-switch')]//label[.='${key_optionLabel}'])[${optionIndex}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTION_VALUE_INPUT_WITH_LABEL</td>
+	<td>//label[normalize-space(text())='${key_optionFieldLabel}']//following-sibling::div[contains(@class,'options-container')]//div[contains(@class,'ddm-option-entry')]//input[contains(@class,'ddm-field-text')][@value='${key_optionValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTION_VALUE_INPUT</td>
+	<td>//div[contains(@class,'ddm-option-entry')]//input[contains(@class,'ddm-field-text')][@value='${key_optionValue}']</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

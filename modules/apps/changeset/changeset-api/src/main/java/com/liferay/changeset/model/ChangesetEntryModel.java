@@ -243,4 +243,7 @@ public interface ChangesetEntryModel
 	@Override
 	public void setClassPK(long classPK);
 
+	@Override
+	public ChangesetEntry cloneWithOriginalValues();
+
 }

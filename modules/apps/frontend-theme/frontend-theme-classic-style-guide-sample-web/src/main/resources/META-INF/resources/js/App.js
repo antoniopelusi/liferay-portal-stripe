@@ -100,14 +100,23 @@ const THEME_COLORS = [
 	'dark',
 ];
 
-const TokenGroup = ({children, group, md, title}) => {
+const BUTTONS = [
+	'primary',
+	'secondary',
+	'outline-primary',
+	'outline-secondary',
+	'link',
+];
+
+const TokenGroup = ({children, group, medium, title}) => {
 	return (
 		<ClayLayout.Col
 			className={'token-group token-group-' + group}
-			md={md}
-			size={!md && '12'}
+			md={medium}
+			size={!medium && '12'}
 		>
 			{title && <h2>{title}</h2>}
+
 			{children && <div className="token-items">{children}</div>}
 		</ClayLayout.Col>
 	);
@@ -233,13 +242,16 @@ export default function App() {
 									})}
 								></span>
 							</span>
+
 							<span className="token-label">transition-fade</span>
+
 							<input
 								onChange={() => setFade(!fade)}
 								type="checkbox"
 								value={fade}
 							/>
 						</label>
+
 						<label className="token-item">
 							<span className="token-sample">
 								<span
@@ -248,9 +260,11 @@ export default function App() {
 									})}
 								></span>
 							</span>
+
 							<span className="token-label">
 								transition-collapse
 							</span>
+
 							<input
 								onChange={() => setCollapse(!collapse)}
 								type="checkbox"
@@ -311,14 +325,31 @@ export default function App() {
 						title={Liferay.Language.get('others')}
 					>
 						<TokenItem sample="lead">{SAMPLE_TEXT}</TokenItem>
-						<TokenItem sample="muted">{SAMPLE_TEXT}</TokenItem>
+
+						<TokenItem sample="text-muted">{SAMPLE_TEXT}</TokenItem>
+
 						<TokenItem label="blockquote">
 							<span className="blockquote">{SAMPLE_TEXT}</span>
+
 							<span className="blockquote-footer">Liferay</span>
 						</TokenItem>
+
 						<TokenItem label="separator">
 							<hr />
 						</TokenItem>
+					</TokenGroup>
+
+					<TokenGroup
+						group="buttons"
+						title={Liferay.Language.get('buttons')}
+					>
+						{BUTTONS.map((item) => (
+							<TokenItem key={item} sample={item}>
+								<button className={'btn btn-' + item}>
+									Button
+								</button>
+							</TokenItem>
+						))}
 					</TokenGroup>
 				</ClayLayout.Row>
 			</ClayLayout.ContainerFluid>

@@ -230,13 +230,10 @@ public class WikiPageFinderImpl
 			closeSession(session);
 		}
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("No WikiPage exists with the key {resourcePrimKey");
-		sb.append(resourcePrimKey);
-		sb.append("}");
-
-		throw new NoSuchPageException(sb.toString());
+		throw new NoSuchPageException(
+			StringBundler.concat(
+				"No WikiPage exists with the key {resourcePrimKey",
+				resourcePrimKey, "}"));
 	}
 
 	@Override

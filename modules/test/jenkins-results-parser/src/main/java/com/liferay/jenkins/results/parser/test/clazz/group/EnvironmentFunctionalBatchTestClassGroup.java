@@ -17,11 +17,14 @@ package com.liferay.jenkins.results.parser.test.clazz.group;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.PortalEnvironmentJob;
 import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
+import com.liferay.jenkins.results.parser.PortalTestClassJob;
 
 import java.io.File;
 
 import java.util.Arrays;
 import java.util.List;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
@@ -51,27 +54,15 @@ public class EnvironmentFunctionalBatchTestClassGroup
 	}
 
 	protected EnvironmentFunctionalBatchTestClassGroup(
+		JSONObject jsonObject, PortalTestClassJob portalTestClassJob) {
+
+		super(jsonObject, portalTestClassJob);
+	}
+
+	protected EnvironmentFunctionalBatchTestClassGroup(
 		String batchName, PortalEnvironmentJob portalEnvironmentJob) {
 
 		super(batchName, portalEnvironmentJob);
-	}
-
-	@Override
-	protected String getDefaultTestBatchRunPropertyQuery(
-		File testBaseDir, String testSuiteName) {
-
-		String propertyQuery = System.getenv("TEST_BATCH_RUN_PROPERTY_QUERY");
-
-		if ((propertyQuery != null) && !propertyQuery.isEmpty()) {
-			return propertyQuery;
-		}
-
-		String jobName = portalTestClassJob.getJobName();
-
-		return JenkinsResultsParserUtil.getProperty(
-			portalTestClassJob.getJobProperties(),
-			"test.batch.run.property.query",
-			jobName.replaceAll("([^\\(]+)\\([^\\)]+\\)", "$1"));
 	}
 
 }

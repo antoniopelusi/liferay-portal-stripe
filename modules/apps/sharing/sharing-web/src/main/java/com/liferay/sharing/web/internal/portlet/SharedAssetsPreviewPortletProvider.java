@@ -52,7 +52,7 @@ public class SharedAssetsPreviewPortletProvider
 			super.getPortletURL(httpServletRequest, group)
 		).setMVCRenderCommandName(
 			"/sharing/view_sharing_entry"
-		).build();
+		).buildPortletURL();
 	}
 
 }

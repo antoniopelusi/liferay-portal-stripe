@@ -343,12 +343,15 @@ public class WorkflowLog implements Cloneable, Serializable {
 
 	public static enum Type {
 
-		TASK_ASSIGN("TaskAssign"), TASK_COMPLETION("TaskCompletion"),
-		TASK_UPDATE("TaskUpdate"), TRANSITION("Transition");
+		NODE_ENTRY("NodeEntry"), TASK_ASSIGN("TaskAssign"),
+		TASK_COMPLETION("TaskCompletion"), TASK_UPDATE("TaskUpdate"),
+		TRANSITION("Transition");
 
 		public static Type create(String value) {
 			for (Type type : values()) {
-				if (Objects.equals(type.getValue(), value)) {
+				if (Objects.equals(type.getValue(), value) ||
+					Objects.equals(type.name(), value)) {
+
 					return type;
 				}
 			}

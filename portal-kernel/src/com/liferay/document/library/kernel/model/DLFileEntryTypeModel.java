@@ -515,4 +515,7 @@ public interface DLFileEntryTypeModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public DLFileEntryType cloneWithOriginalValues();
+
 }

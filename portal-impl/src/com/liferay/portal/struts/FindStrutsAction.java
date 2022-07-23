@@ -24,13 +24,12 @@ import com.liferay.portal.kernel.portlet.PortletLayoutFinder;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.struts.StrutsAction;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -77,7 +76,7 @@ public abstract class FindStrutsAction implements StrutsAction {
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}
@@ -95,7 +94,7 @@ public abstract class FindStrutsAction implements StrutsAction {
 					ActionKeys.VIEW)) {
 
 				if (!themeDisplay.isSignedIn() && result.isSignInRequired()) {
-					String redirect = HttpUtil.addParameter(
+					String redirect = HttpComponentsUtil.addParameter(
 						PortalUtil.getPathMain() + "/portal/login", "redirect",
 						PortalUtil.getCurrentCompleteURL(httpServletRequest));
 
@@ -126,10 +125,10 @@ public abstract class FindStrutsAction implements StrutsAction {
 				String noSuchEntryRedirect = ParamUtil.getString(
 					httpServletRequest, "noSuchEntryRedirect");
 
-				redirect = HttpUtil.getParameter(
+				redirect = HttpComponentsUtil.getParameter(
 					noSuchEntryRedirect, "redirect", false);
 
-				redirect = HttpUtil.decodeURL(redirect);
+				redirect = HttpComponentsUtil.decodeURL(redirect);
 			}
 			else {
 				redirect = ParamUtil.getString(httpServletRequest, "redirect");
@@ -203,9 +202,6 @@ public abstract class FindStrutsAction implements StrutsAction {
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		PermissionChecker permissionChecker =
-			themeDisplay.getPermissionChecker();
-
 		Group group = GroupLocalServiceUtil.getGroup(groupId);
 		Layout layout = LayoutLocalServiceUtil.getLayout(plid);
 
@@ -213,7 +209,7 @@ public abstract class FindStrutsAction implements StrutsAction {
 			(group.getParentGroupId() == layout.getGroupId()) ||
 			(layout.isPrivateLayout() &&
 			 !SitesUtil.isUserGroupLayoutSetViewable(
-				 permissionChecker, layout.getGroup()))) {
+				 themeDisplay.getPermissionChecker(), layout.getGroup()))) {
 
 			return layout;
 		}

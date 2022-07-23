@@ -22,6 +22,7 @@ describe('AddToCart', () => {
 	const INITIAL_PROPS = {
 		channel: {
 			currencyCode: 'USD',
+			groupId: 12345,
 			id: 12345,
 		},
 		cpInstance: {
@@ -64,25 +65,6 @@ describe('AddToCart', () => {
 
 			expect(WrapperWithQuantityContainer).toBeInTheDocument();
 			expect(QuantitySelectorInputElement).toBeInTheDocument();
-			expect(AddToCartButtonElement).toBeInTheDocument();
-		});
-
-		it('renders a Button alone if no quantity settings are provided', () => {
-			const props = {
-				...INITIAL_PROPS,
-				settings: {
-					withQuantity: false,
-				},
-			};
-
-			const {container} = render(<AddToCart {...props} />);
-
-			const QuantitySelectorSelectElement = container.querySelector(
-				'input'
-			);
-			const AddToCartButtonElement = container.querySelector('button');
-
-			expect(QuantitySelectorSelectElement).not.toBeInTheDocument();
 			expect(AddToCartButtonElement).toBeInTheDocument();
 		});
 	});

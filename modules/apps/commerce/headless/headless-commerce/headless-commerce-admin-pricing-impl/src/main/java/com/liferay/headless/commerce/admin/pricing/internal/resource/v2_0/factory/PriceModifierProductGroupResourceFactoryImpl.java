@@ -17,27 +17,38 @@ package com.liferay.headless.commerce.admin.pricing.internal.resource.v2_0.facto
 import com.liferay.headless.commerce.admin.pricing.resource.v2_0.PriceModifierProductGroupResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 import javax.annotation.Generated;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.ComponentServiceObjects;
 import org.osgi.service.component.annotations.Activate;
@@ -51,7 +62,8 @@ import org.osgi.service.component.annotations.ReferenceScope;
  * @generated
  */
 @Component(
-	immediate = true, service = PriceModifierProductGroupResource.Factory.class
+	enabled = false, immediate = true,
+	service = PriceModifierProductGroupResource.Factory.class
 )
 @Generated("")
 public class PriceModifierProductGroupResourceFactoryImpl
@@ -67,16 +79,12 @@ public class PriceModifierProductGroupResourceFactoryImpl
 					throw new IllegalArgumentException("User is not set");
 				}
 
-				return (PriceModifierProductGroupResource)
-					ProxyUtil.newProxyInstance(
-						PriceModifierProductGroupResource.class.
-							getClassLoader(),
-						new Class<?>[] {
-							PriceModifierProductGroupResource.class
-						},
+				return _priceModifierProductGroupResourceProxyProviderFunction.
+					apply(
 						(proxy, method, arguments) -> _invoke(
 							method, arguments, _checkPermissions,
-							_httpServletRequest, _preferredLocale, _user));
+							_httpServletRequest, _httpServletResponse,
+							_preferredLocale, _user));
 			}
 
 			@Override
@@ -93,6 +101,15 @@ public class PriceModifierProductGroupResourceFactoryImpl
 				HttpServletRequest httpServletRequest) {
 
 				_httpServletRequest = httpServletRequest;
+
+				return this;
+			}
+
+			@Override
+			public PriceModifierProductGroupResource.Builder
+				httpServletResponse(HttpServletResponse httpServletResponse) {
+
+				_httpServletResponse = httpServletResponse;
 
 				return this;
 			}
@@ -115,6 +132,7 @@ public class PriceModifierProductGroupResourceFactoryImpl
 
 			private boolean _checkPermissions = true;
 			private HttpServletRequest _httpServletRequest;
+			private HttpServletResponse _httpServletResponse;
 			private Locale _preferredLocale;
 			private User _user;
 
@@ -131,9 +149,39 @@ public class PriceModifierProductGroupResourceFactoryImpl
 		PriceModifierProductGroupResource.FactoryHolder.factory = null;
 	}
 
+	private static Function
+		<InvocationHandler, PriceModifierProductGroupResource>
+			_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			PriceModifierProductGroupResource.class.getClassLoader(),
+			PriceModifierProductGroupResource.class);
+
+		try {
+			Constructor<PriceModifierProductGroupResource> constructor =
+				(Constructor<PriceModifierProductGroupResource>)
+					proxyClass.getConstructor(InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException
+							reflectiveOperationException) {
+
+					throw new InternalError(reflectiveOperationException);
+				}
+			};
+		}
+		catch (NoSuchMethodException noSuchMethodException) {
+			throw new InternalError(noSuchMethodException);
+		}
+	}
+
 	private Object _invoke(
 			Method method, Object[] arguments, boolean checkPermissions,
-			HttpServletRequest httpServletRequest, Locale preferredLocale,
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, Locale preferredLocale,
 			User user)
 		throws Throwable {
 
@@ -165,7 +213,21 @@ public class PriceModifierProductGroupResourceFactoryImpl
 
 		priceModifierProductGroupResource.setContextHttpServletRequest(
 			httpServletRequest);
+		priceModifierProductGroupResource.setContextHttpServletResponse(
+			httpServletResponse);
 		priceModifierProductGroupResource.setContextUser(user);
+		priceModifierProductGroupResource.setExpressionConvert(
+			_expressionConvert);
+		priceModifierProductGroupResource.setFilterParserProvider(
+			_filterParserProvider);
+		priceModifierProductGroupResource.setGroupLocalService(
+			_groupLocalService);
+		priceModifierProductGroupResource.setResourceActionLocalService(
+			_resourceActionLocalService);
+		priceModifierProductGroupResource.setResourcePermissionLocalService(
+			_resourcePermissionLocalService);
+		priceModifierProductGroupResource.setRoleLocalService(
+			_roleLocalService);
 
 		try {
 			return method.invoke(priceModifierProductGroupResource, arguments);
@@ -183,6 +245,11 @@ public class PriceModifierProductGroupResourceFactoryImpl
 		}
 	}
 
+	private static final Function
+		<InvocationHandler, PriceModifierProductGroupResource>
+			_priceModifierProductGroupResourceProxyProviderFunction =
+				_getProxyProviderFunction();
+
 	@Reference
 	private CompanyLocalService _companyLocalService;
 
@@ -193,8 +260,28 @@ public class PriceModifierProductGroupResourceFactoryImpl
 	@Reference
 	private PermissionCheckerFactory _defaultPermissionCheckerFactory;
 
+	@Reference(
+		target = "(result.class.name=com.liferay.portal.kernel.search.filter.Filter)"
+	)
+	private ExpressionConvert<Filter> _expressionConvert;
+
+	@Reference
+	private FilterParserProvider _filterParserProvider;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
 	@Reference(target = "(permission.checker.type=liberal)")
 	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
+
+	@Reference
+	private ResourceActionLocalService _resourceActionLocalService;
+
+	@Reference
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@Reference
+	private RoleLocalService _roleLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

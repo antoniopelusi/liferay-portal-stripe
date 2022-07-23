@@ -45,7 +45,7 @@ public class SyncDeviceLocalServiceImpl extends SyncDeviceLocalServiceBaseImpl {
 		throws PortalException {
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		long syncDeviceId = counterLocalService.increment();
 
@@ -54,8 +54,8 @@ public class SyncDeviceLocalServiceImpl extends SyncDeviceLocalServiceBaseImpl {
 		syncDevice.setCompanyId(user.getCompanyId());
 		syncDevice.setUserId(user.getUserId());
 		syncDevice.setUserName(user.getFullName());
-		syncDevice.setCreateDate(now);
-		syncDevice.setModifiedDate(now);
+		syncDevice.setCreateDate(date);
+		syncDevice.setModifiedDate(date);
 		syncDevice.setType(type);
 		syncDevice.setBuildNumber(buildNumber);
 		syncDevice.setFeatureSet(featureSet);
@@ -80,7 +80,7 @@ public class SyncDeviceLocalServiceImpl extends SyncDeviceLocalServiceBaseImpl {
 		long companyId, String keywords, int start, int end,
 		OrderByComparator<SyncDevice> orderByComparator) {
 
-		return syncDevicePersistence.findByC_U(
+		return syncDevicePersistence.findByC_LikeU(
 			companyId, StringUtil.quote(keywords, StringPool.PERCENT), start,
 			end, orderByComparator);
 	}

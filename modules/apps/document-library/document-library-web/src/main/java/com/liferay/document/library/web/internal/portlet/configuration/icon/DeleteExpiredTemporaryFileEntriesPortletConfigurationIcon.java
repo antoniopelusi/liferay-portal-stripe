@@ -85,7 +85,7 @@ public class DeleteExpiredTemporaryFileEntriesPortletConfigurationIcon
 
 					return themeDisplay.getURLCurrent();
 				}
-			).build();
+			).buildPortletURL();
 
 			Folder folder = ActionUtil.getFolder(portletRequest);
 

@@ -22,7 +22,7 @@ public class UpgradeTableFactoryUtil {
 	public static UpgradeTable getUpgradeTable(
 		String tableName, Object[][] columns, UpgradeColumn... upgradeColumns) {
 
-		return getUpgradeTableFactory().getUpgradeTable(
+		return _upgradeTableFactory.getUpgradeTable(
 			tableName, columns, upgradeColumns);
 	}
 

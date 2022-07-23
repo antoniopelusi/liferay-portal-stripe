@@ -15,10 +15,13 @@
 package com.liferay.account.admin.web.internal.display.context;
 
 import com.liferay.account.admin.web.internal.display.AccountUserDisplay;
+import com.liferay.account.admin.web.internal.security.permission.resource.AccountRolePermission;
+import com.liferay.account.constants.AccountActionKeys;
 import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
@@ -29,7 +32,9 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.List;
 
@@ -56,36 +61,35 @@ public class ViewAccountRoleAssigneesManagementToolbarDisplayContext
 
 	@Override
 	public List<DropdownItem> getActionDropdownItems() {
+		if (!_hasAssignUsersPermission()) {
+			return null;
+		}
+
 		return DropdownItemList.of(
-			() -> {
-				DropdownItem dropdownItem = new DropdownItem();
-
-				dropdownItem.putData("action", "removeUsers");
-
-				dropdownItem.putData(
-					"removeUsersURL",
-					PortletURLBuilder.createActionURL(
-						liferayPortletResponse
-					).setActionName(
-						"/account_admin/remove_account_role_users"
-					).setRedirect(
-						currentURLObj.toString()
-					).setParameter(
-						"accountEntryId",
-						ParamUtil.getString(
-							httpServletRequest, "accountEntryId")
-					).setParameter(
-						"accountRoleId",
-						ParamUtil.getString(httpServletRequest, "accountRoleId")
-					).buildString());
-
-				dropdownItem.setIcon("times-circle");
-				dropdownItem.setLabel(
-					LanguageUtil.get(httpServletRequest, "remove"));
-				dropdownItem.setQuickAction(true);
-
-				return dropdownItem;
-			});
+			DropdownItemBuilder.putData(
+				"action", "removeUsers"
+			).putData(
+				"removeUsersURL",
+				PortletURLBuilder.createActionURL(
+					liferayPortletResponse
+				).setActionName(
+					"/account_admin/remove_account_role_users"
+				).setRedirect(
+					currentURLObj
+				).setParameter(
+					"accountEntryId",
+					ParamUtil.getString(httpServletRequest, "accountEntryId")
+				).setParameter(
+					"accountRoleId",
+					ParamUtil.getString(httpServletRequest, "accountRoleId")
+				).buildString()
+			).setIcon(
+				"times-circle"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "remove")
+			).setQuickAction(
+				true
+			).build());
 	}
 
 	@Override
@@ -117,7 +121,7 @@ public class ViewAccountRoleAssigneesManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return liferayPortletResponse.createRenderURL();
@@ -129,6 +133,11 @@ public class ViewAccountRoleAssigneesManagementToolbarDisplayContext
 		PortletURL searchActionURL = getPortletURL();
 
 		return searchActionURL.toString();
+	}
+
+	@Override
+	public Boolean isShowCreationMenu() {
+		return _hasAssignUsersPermission();
 	}
 
 	@Override
@@ -151,6 +160,17 @@ public class ViewAccountRoleAssigneesManagementToolbarDisplayContext
 	@Override
 	protected String[] getOrderByKeys() {
 		return new String[] {"first-name", "last-name", "email-address"};
+	}
+
+	private boolean _hasAssignUsersPermission() {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return AccountRolePermission.contains(
+			themeDisplay.getPermissionChecker(),
+			ParamUtil.getLong(httpServletRequest, "accountRoleId"),
+			AccountActionKeys.ASSIGN_USERS);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

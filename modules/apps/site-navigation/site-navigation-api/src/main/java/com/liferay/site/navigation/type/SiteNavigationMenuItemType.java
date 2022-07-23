@@ -17,10 +17,12 @@ package com.liferay.site.navigation.type;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.site.navigation.model.SiteNavigationMenuItem;
 
@@ -49,6 +51,10 @@ public interface SiteNavigationMenuItemType {
 		return true;
 	}
 
+	public default String getAddTitle(Locale locale) {
+		return LanguageUtil.format(locale, "add-x", getLabel(locale));
+	}
+
 	public default PortletURL getAddURL(
 		RenderRequest renderRequest, RenderResponse renderResponse) {
 
@@ -57,6 +63,12 @@ public interface SiteNavigationMenuItemType {
 
 	public default String getIcon() {
 		return "magic";
+	}
+
+	public default String getItemSelectorURL(
+		HttpServletRequest httpServletRequest) {
+
+		return null;
 	}
 
 	public String getLabel(Locale locale);
@@ -69,9 +81,9 @@ public interface SiteNavigationMenuItemType {
 
 	public default String getName(String typeSettings) {
 		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		typeSettingsUnicodeProperties.fastLoad(typeSettings);
+			UnicodePropertiesBuilder.fastLoad(
+				typeSettings
+			).build();
 
 		return typeSettingsUnicodeProperties.get("name");
 	}
@@ -96,6 +108,12 @@ public interface SiteNavigationMenuItemType {
 			HttpServletRequest httpServletRequest,
 			SiteNavigationMenuItem siteNavigationMenuItem)
 		throws Exception {
+
+		return StringPool.BLANK;
+	}
+
+	public default String getStatusIcon(
+		SiteNavigationMenuItem siteNavigationMenuItem) {
 
 		return StringPool.BLANK;
 	}
@@ -173,6 +191,14 @@ public interface SiteNavigationMenuItemType {
 			Layout curLayout)
 		throws PortalException {
 
+		return false;
+	}
+
+	public default boolean isItemSelector() {
+		return false;
+	}
+
+	public default boolean isMultiSelection() {
 		return false;
 	}
 

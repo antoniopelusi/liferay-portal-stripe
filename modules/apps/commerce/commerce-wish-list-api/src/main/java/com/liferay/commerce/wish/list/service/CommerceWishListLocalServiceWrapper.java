@@ -27,6 +27,10 @@ public class CommerceWishListLocalServiceWrapper
 	implements CommerceWishListLocalService,
 			   ServiceWrapper<CommerceWishListLocalService> {
 
+	public CommerceWishListLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceWishListLocalServiceWrapper(
 		CommerceWishListLocalService commerceWishListLocalService) {
 
@@ -160,6 +164,13 @@ public class CommerceWishListLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceWishListLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceWishListLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

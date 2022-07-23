@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -56,13 +56,13 @@ public abstract class BaseAddLayoutMVCActionCommand
 			layoutFullURL = portal.getLayoutFullURL(draftLayout, themeDisplay);
 		}
 
-		layoutFullURL = HttpUtil.setParameter(
+		layoutFullURL = HttpComponentsUtil.setParameter(
 			layoutFullURL, "p_l_mode", Constants.EDIT);
 
 		String backURL = ParamUtil.getString(actionRequest, "backURL");
 
 		if (Validator.isNotNull(backURL)) {
-			layoutFullURL = HttpUtil.setParameter(
+			layoutFullURL = HttpComponentsUtil.setParameter(
 				layoutFullURL, "p_l_back_url", backURL);
 		}
 
@@ -80,14 +80,14 @@ public abstract class BaseAddLayoutMVCActionCommand
 			liferayPortletResponse
 		).setMVCRenderCommandName(
 			"/layout_admin/edit_layout"
-		).build();
+		).buildPortletURL();
 
 		String backURL = ParamUtil.getString(actionRequest, "backURL");
 
 		if (Validator.isNull(backURL)) {
 			PortletURL redirectURL = liferayPortletResponse.createRenderURL();
 
-			backURL = HttpUtil.setParameter(
+			backURL = HttpComponentsUtil.setParameter(
 				redirectURL.toString(), "p_p_state",
 				WindowState.NORMAL.toString());
 		}

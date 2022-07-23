@@ -23,6 +23,8 @@ if ((layoutRevision == null) && (layout != null)) {
 	layoutRevision = LayoutStagingUtil.getLayoutRevision(layout);
 }
 
+layoutRevision = stagingBarDisplayContext.updateLayoutRevision(layoutRevision);
+
 LayoutSetBranch layoutSetBranch = (LayoutSetBranch)request.getAttribute(StagingProcessesWebKeys.LAYOUT_SET_BRANCH);
 
 if (layoutSetBranch == null) {
@@ -69,7 +71,7 @@ else {
 				</portlet:actionURL>
 
 				<c:choose>
-					<c:when test="<%= !workflowEnabled && !layoutRevision.isIncomplete() %>">
+					<c:when test="<%= !layout.isTypeContent() && !layoutRevision.isIncomplete() && !workflowEnabled %>">
 						<span class="staging-bar-control-toggle">
 							<aui:input id="readyToggle" label="<%= StringPool.BLANK %>" labelOff="ready-for-publish-process" labelOn="ready-for-publish-process" name="readyToggle" onChange='<%= liferayPortletResponse.getNamespace() + "submitLayoutRevision('" + publishURL + "')" %>' type="toggle-switch" value="<%= false %>" />
 						</span>
@@ -100,7 +102,7 @@ else {
 
 	<c:if test="<%= !layoutRevision.isIncomplete() %>">
 		<li class="control-menu-nav-item">
-			<c:if test="<%= layoutRevision.isHead() %>">
+			<c:if test="<%= !layout.isTypeContent() && layoutRevision.isHead() %>">
 				<span class="staging-bar-control-toggle">
 					<aui:input disabled="<%= true %>" id="readyToggle" label="<%= StringPool.BLANK %>" labelOn="ready-for-publish-process" name="readyToggle" type="toggle-switch" value="<%= true %>" />
 				</span>
@@ -113,8 +115,8 @@ else {
 
 				String layoutURL = PortalUtil.getLayoutFriendlyURL(layout, themeDisplay);
 
-				layoutURL = HttpUtil.addParameter(layoutURL, "layoutSetBranchId", layoutRevision.getLayoutSetBranchId());
-				layoutURL = HttpUtil.addParameter(layoutURL, "layoutRevisionId", layoutRevision.getLayoutRevisionId());
+				layoutURL = HttpComponentsUtil.addParameter(layoutURL, "layoutSetBranchId", layoutRevision.getLayoutSetBranchId());
+				layoutURL = HttpComponentsUtil.addParameter(layoutURL, "layoutRevisionId", layoutRevision.getLayoutRevisionId());
 				%>
 
 				<liferay-ui:icon
@@ -158,8 +160,8 @@ else {
 
 	<li class="control-menu-nav-item">
 		<div class="d-none d-sm-block dropdown">
-			<a class="dropdown-toggle taglib-icon" data-toggle="liferay-dropdown" href="javascript:;">
-				<aui:icon cssClass="icon-monospaced" image="ellipsis-v" markupView="lexicon" />
+			<a class="component-action dropdown-toggle taglib-icon" data-toggle="liferay-dropdown" href="javascript:;">
+				<aui:icon cssClass="<%= StringPool.BLANK %>" image="ellipsis-v" markupView="lexicon" />
 
 				<span class="sr-only">
 					<liferay-ui:message key="options" />

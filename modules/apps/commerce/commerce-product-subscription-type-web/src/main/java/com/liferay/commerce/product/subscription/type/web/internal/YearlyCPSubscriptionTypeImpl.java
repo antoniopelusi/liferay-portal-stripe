@@ -86,23 +86,23 @@ public class YearlyCPSubscriptionTypeImpl implements CPSubscriptionType {
 		TimeZone timeZone,
 		UnicodeProperties subscriptionTypeSettingsUnicodeProperties) {
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if ((subscriptionTypeSettingsUnicodeProperties == null) ||
 			subscriptionTypeSettingsUnicodeProperties.isEmpty()) {
 
-			return now;
+			return date;
 		}
 
 		int yearlyMode = GetterUtil.getInteger(
 			subscriptionTypeSettingsUnicodeProperties.get("yearlyMode"));
 
 		if (yearlyMode == CPSubscriptionTypeConstants.MODE_EXACT_DAY_OF_YEAR) {
-			return now;
+			return date;
 		}
 
 		Calendar calendar = CalendarFactoryUtil.getCalendar(
-			now.getTime(), timeZone);
+			date.getTime(), timeZone);
 
 		int today = calendar.get(Calendar.DAY_OF_YEAR);
 
@@ -114,7 +114,7 @@ public class YearlyCPSubscriptionTypeImpl implements CPSubscriptionType {
 		int dayOfYear = _getDayOfYear(calendar, month, monthDay);
 
 		if (dayOfYear < today) {
-			return now;
+			return date;
 		}
 
 		calendar.set(Calendar.DAY_OF_YEAR, dayOfYear);

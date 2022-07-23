@@ -30,14 +30,11 @@ import com.liferay.commerce.product.service.CommerceChannelLocalServiceUtil;
 import com.liferay.commerce.product.test.util.CPTestUtil;
 import com.liferay.commerce.product.type.simple.constants.SimpleCPTypeConstants;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -46,8 +43,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-
-import java.util.List;
 
 import org.frutilla.FrutillaRule;
 
@@ -61,7 +56,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Alessio Antonio Rendina
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CPDisplayLayoutLocalServiceTest {
 
@@ -74,18 +68,15 @@ public class CPDisplayLayoutLocalServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group1 = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group1 = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
-			_company.getCompanyId(), _group1.getGroupId(), _user.getUserId());
+			_group1.getCompanyId(), _group1.getGroupId(), _user.getUserId());
 
 		_group2 = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+			_group1.getCompanyId(), _user.getUserId(), 0);
 
 		_commerceChannel1 = CommerceChannelLocalServiceUtil.addCommerceChannel(
 			StringPool.BLANK, _group2.getGroupId(),
@@ -94,7 +85,7 @@ public class CPDisplayLayoutLocalServiceTest {
 			_serviceContext);
 
 		_group3 = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+			_group1.getCompanyId(), _user.getUserId(), 0);
 
 		_commerceChannel2 = CommerceChannelLocalServiceUtil.addCommerceChannel(
 			StringPool.BLANK, _group3.getGroupId(),
@@ -102,11 +93,8 @@ public class CPDisplayLayoutLocalServiceTest {
 			CommerceChannelConstants.CHANNEL_TYPE_SITE, null, StringPool.BLANK,
 			_serviceContext);
 
-		List<AssetVocabulary> companyAssetVocabularies =
-			AssetVocabularyLocalServiceUtil.getCompanyVocabularies(
-				_company.getCompanyId());
-
-		_assetVocabulary = companyAssetVocabularies.get(0);
+		_assetVocabulary = AssetVocabularyLocalServiceUtil.addDefaultVocabulary(
+			_group1.getGroupId());
 
 		_commerceCatalog = CommerceCatalogLocalServiceUtil.addCommerceCatalog(
 			null, RandomTestUtil.randomString(), RandomTestUtil.randomString(),
@@ -133,7 +121,7 @@ public class CPDisplayLayoutLocalServiceTest {
 		);
 
 		AssetCategory assetCategory = AssetCategoryLocalServiceUtil.addCategory(
-			_user.getUserId(), _company.getGroupId(),
+			_user.getUserId(), _group1.getGroupId(),
 			RandomTestUtil.randomString(), _assetVocabulary.getVocabularyId(),
 			_serviceContext);
 
@@ -177,6 +165,8 @@ public class CPDisplayLayoutLocalServiceTest {
 	@Rule
 	public FrutillaRule frutillaRule = new FrutillaRule();
 
+	private static User _user;
+
 	@DeleteAfterTestRun
 	private AssetVocabulary _assetVocabulary;
 
@@ -187,10 +177,6 @@ public class CPDisplayLayoutLocalServiceTest {
 	private CommerceChannel _commerceChannel1;
 
 	private CommerceChannel _commerceChannel2;
-
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private CPDefinition _cpDefinition;
 
 	@Inject
@@ -206,8 +192,5 @@ public class CPDisplayLayoutLocalServiceTest {
 	private Group _group3;
 
 	private ServiceContext _serviceContext;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

@@ -25,16 +25,14 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 	category = "pages", scope = ExtendedObjectClassDefinition.Scope.COMPANY
 )
 @Meta.OCD(
+	description = "layout-reports-google-pagespeed-configuration-description",
 	id = "com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedCompanyConfiguration",
 	localization = "content/Language",
-	name = "layout-reports-google-pagespeed-configuration-name"
+	name = "layout-reports-google-pagespeed-company-configuration-name"
 )
 public interface LayoutReportsGooglePageSpeedCompanyConfiguration {
 
-	@Meta.AD(deflt = "true", required = false)
+	@Meta.AD(deflt = "true", name = "enable-google-pagespeed", required = false)
 	public boolean enabled();
-
-	@Meta.AD(required = false)
-	public String apiKey();
 
 }

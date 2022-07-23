@@ -35,190 +35,1532 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-102887. A user can access content in a web content display widget through content panel"
+	@description = "This is a test for LPS-122204. The Page Creater can access to edit the collection items via Page Content panel."
 	@priority = "5"
-	test AccessToWebContentEditorViaContentsPanel {
+	test EditCollectionItems {
 		property portal.acceptance = "true";
 
-		JSONWebcontent.addWebContent(
-			content = "Web Content Content",
-			groupName = "Test Site Name",
-			title = "WC WebContent Title");
-
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Page Name",
-			siteName = "Test Site Name");
-
-		PageEditor.addWidget(portletName = "Web Content Display");
-
-		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
-
-		Refresh();
-
-		PageEditor.gotoTab(tabName = "Contents");
-
-		LexiconEntry.gotoFragmentPageContentEllipsisMenuItem(
-			menuItem = "Edit",
-			rowEntry = "WC WebContent Title");
-
-		AssertVisible(locator1 = "WCEditWebContent#SIDEBAR");
-	}
-
-	@description = "This is a test for LPS-96794. Mapped Web Contents' state will appear in the sidebar in a Page Editor's edit mode."
-	@priority = "4"
-	test ViewMappedWebContentStatus {
-		for (var count : list "1,2,3") {
+		task ("Add a web content, a blogs entry and a document") {
 			JSONWebcontent.addWebContent(
-				content = "WC WebContent Content ${count}",
+				content = "Web Content Content",
 				groupName = "Test Site Name",
-				title = "WebContent Title ${count}");
+				title = "Web Content Title");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
 		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Page Name",
-			siteName = "Test Site Name");
+		task ("Add a Collection Display fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.addFragment(
-			collectionName = "Featured Content",
-			fragmentName = "Banner");
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
 
-		PageEditorEditableLink.gotoEditableFieldLink(
-			fragmentName = "Banner",
-			id = "link");
+		task ("Select the Highest Rated Assets in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoListProviderName = "Highest Rated Assets");
+		}
 
-		PageEditorEditableLink.mapURLToAsset(
-			entryTitle = "WebContent Title 1",
-			field = "Title",
-			navItem = "Web Content");
+		task ("Navigate to view items modal via Page Content panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
 
-		PageEditorMapping.gotoEditableFieldMapping(
-			contributed = "true",
-			fragmentName = "Banner",
-			id = "01-title");
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "Highest Rated Assets",
+				menuItem = "View Items");
+		}
 
-		PageEditorMapping.mapEditableFieldToAsset(
-			entryTitle = "WebContent Title 2",
-			navItem = "Web Content");
+		task ("Access to the web content editor") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		Select(
-			locator1 = "PageEditorEditableLink#FIELD",
-			value1 = "Title");
+			Page.gotoCollectionEntryEllipsisItem(
+				item = "Edit Content",
+				tableEntry = "Web Content Title");
+		}
 
-		PageEditorMapping.gotoEditableFieldMapping(
-			contributed = "true",
-			fragmentName = "Banner",
-			id = "02-subtitle");
+		task ("Edit the web content title") {
+			WebContent.addCP(webContentTitle = "Web Content Title Edit");
 
-		PageEditorMapping.mapEditableFieldToAsset(
-			entryTitle = "WebContent Title 3",
-			navItem = "Web Content");
+			PortletEntry.publish();
+		}
 
-		Select(
-			locator1 = "PageEditorEditableLink#FIELD",
-			value1 = "Title");
+		task ("View the edited web content title shown in Collection Display") {
+			PageEditor.assertFragmentSidebarLoaded();
 
-		PageEditor.clickPublish();
+			AssertVisible(
+				key_colPosition = "1",
+				key_entryTitle = "Web Content Title Edit",
+				key_fragmentName = "Collection Display",
+				key_rowPosition = "3",
+				locator1 = "PageEditor#COLLECTION_ITEM_TITLE");
+		}
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		task ("Change to Most Viewed Assets in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoListProviderName = "Most Viewed Assets");
+		}
 
-		WebContentNavigator.gotoEditCP(webContentTitle = "WebContent Title 2");
+		task ("Navigate to view items modal via Page Content panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
 
-		WebContent.editCP(
-			saveAsDraft = "true",
-			webContentContentEdit = "WC WebContent Content 2 Edit",
-			webContentTitle = "WebContent Title 2",
-			webContentTitleEdit = "WebContent Title 2 Edit");
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "Most Viewed Assets",
+				menuItem = "View Items");
+		}
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		task ("Access to the blogs entry editor") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		WebContent.expireCP(webContentTitleList = "WebContent Title 3");
+			Page.gotoCollectionEntryEllipsisItem(
+				item = "Edit Content",
+				tableEntry = "Blogs Entry Title");
+		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Page Name",
-			siteName = "Test Site Name");
+		task ("Edit the blogs entry title") {
+			BlogsEntry.editTitle(
+				entryTitle = "Blogs Entry Title",
+				entryTitleEdit = "Blogs Entry Title Edit");
 
-		PageEditor.gotoTab(tabName = "Contents");
+			PortletEntry.publish();
+		}
 
-		AssertTextEquals(
-			key_listEntry = "WebContent Title 1",
-			locator1 = "LexiconList#LIST_ENTRY_INFO",
-			value1 = "Approved");
+		task ("View the edited blogs entry title shown in Collection Display") {
+			PageEditor.assertFragmentSidebarLoaded();
 
-		AssertTextEquals(
-			key_listEntry = "WebContent Title 2",
-			locator1 = "LexiconList#LIST_ENTRY_STATUS",
-			value1 = "draft");
+			AssertVisible(
+				key_colPosition = "1",
+				key_entryTitle = "Blogs Entry Title Edit",
+				key_fragmentName = "Collection Display",
+				key_rowPosition = "2",
+				locator1 = "PageEditor#COLLECTION_ITEM_TITLE");
+		}
 
-		AssertTextEquals(
-			key_listEntry = "WebContent Title 3",
-			locator1 = "LexiconList#LIST_ENTRY_INFO",
-			value1 = "expired");
+		task ("Change to Recent Content in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoListProviderName = "Recent Content");
+		}
+
+		task ("Navigate to view items modal via Page Content panel") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "Recent Content",
+				menuItem = "View Items");
+		}
+
+		task ("Access to the document editor") {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			Page.gotoCollectionEntryEllipsisItem(
+				item = "Edit Content",
+				tableEntry = "Document Title");
+		}
+
+		task ("Edit the document title") {
+			DMDocument.editCmd(dmDocumentTitleEdit = "Document Title Edit");
+
+			PortletEntry.publish();
+		}
+
+		task ("View the document title shown in Collection Display") {
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertVisible(
+				key_colPosition = "1",
+				key_entryTitle = "Document Title Edit",
+				key_fragmentName = "Collection Display",
+				key_rowPosition = "1",
+				locator1 = "PageEditor#COLLECTION_ITEM_TITLE");
+		}
 	}
 
-	@description = "This is a test for LPS-96794. In a Permission mode, the edit actions associated that will show a modal with the permission information. In an edit mode, the edit actions associated that will show a modal with the usages of the web content."
+	@description = "This is a test for LPS-122204. The Page Creater can access to edit the document via Page Content panel."
+	@priority = "5"
+	test EditDisplayedDocument {
+		property portal.acceptance = "true";
+
+		task ("Add an Image fragment to the content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Image");
+		}
+
+		task ("Directly select an image in editable field") {
+			PageEditor.editFragmentImage(
+				fileName = "Document_1.jpg",
+				fragmentName = "Image",
+				id = "image-square");
+		}
+
+		task ("View the selected image is shown in Image fragment") {
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "Document_1.jpg");
+		}
+
+		task ("Access to the document editor via Page Content panel") {
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "Document_1.jpg",
+				menuItem = "Edit");
+		}
+
+		task ("Edit the document title") {
+			DMDocument.editCmd(dmDocumentTitleEdit = "Document Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("View the edited title is shown in Page Content panel") {
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.gotoTab(tabName = "Browser");
+
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			AssertVisible(
+				key_itemName = "Document Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+		}
+	}
+
+	@description = "This is a test for LPS-97189. A user can edit displayed content in an Asset Publisher widget through Contents panel."
+	@priority = "4"
+	test EditDisplayedWebContentInAssetPublisher {
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Add an Asset Publisher") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addWidget(portletName = "Asset Publisher");
+		}
+
+		task ("Select the web content as manual selection in Asset Publisher") {
+			AssetPublisherPortlet.configureManualAssetSelectionPG(
+				assetTitle = "WC WebContent Title",
+				assetType = "Basic Web Content");
+		}
+
+		task ("Edit the displayed web content via Contents panel") {
+			Refresh();
+
+			WebContent.editViaContentPanel(
+				webContentContentEdit = "WC WebContent Content Edit",
+				webContentTitle = "WC WebContent Title",
+				webContentTitleEdit = "WC WebContent Title Edit");
+		}
+
+		task ("View the edited web content shown in Asset Publisher") {
+			AssertTextEquals(
+				key_assetTitle = "WC WebContent Title Edit",
+				locator1 = "AP#ASSET_ABSTRACT_TITLE",
+				value1 = "WC WebContent Title Edit");
+
+			AssertTextEquals.assertPartialText(
+				key_assetTitle = "WC WebContent Title Edit",
+				locator1 = "AP#ASSET_ABSTRACT_DESCRIPTION",
+				value1 = "WC WebContent Content Edit");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("View the edited web content in view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			WebContent.viewPGViaAP(
+				webContentContent = "WC WebContent Content Edit",
+				webContentTitle = "WC WebContent Title Edit");
+		}
+	}
+
+	@description = "This is a test for LPS-97189. A user can edit displayed content in a Web Content Display widget through Contents panel."
+	@priority = "5"
+	test EditDisplayedWebContentInWebContentDisplay {
+		property portal.acceptance = "true";
+
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Add a Web Content Display to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addWidget(portletName = "Web Content Display");
+		}
+
+		task ("Select the web content in Web Content Display") {
+			WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+		}
+
+		task ("Edit the displayed web content via Contents panel") {
+			Refresh();
+
+			WebContent.editViaContentPanel(
+				webContentContentEdit = "WC WebContent Content Edit",
+				webContentTitle = "WC WebContent Title",
+				webContentTitleEdit = "WC WebContent Title Edit");
+		}
+
+		task ("View the edited web content in Web Content Display") {
+			AssertTextEquals(
+				index = "1",
+				locator1 = "WCD#WEB_CONTENT_CONTENT",
+				value1 = "WC WebContent Content Edit");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("View the edited web content in view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content Edit");
+		}
+	}
+
+	@description = "This is a test for LPS-122204. The Page Creater can access to edit the inline text via Page Content panel."
+	@priority = "5"
+	test EditInlineText {
+		property portal.acceptance = "true";
+
+		task ("Add a Heading fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Access to the inline text editor of Heading via Page Content panel") {
+			PageEditor.gotoTab(tabName = "Browser");
+
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.editFragmentTextViaPageContentPanel(
+				itemName = "Heading Example",
+				text = "Edited Text");
+		}
+
+		task ("View the edited inline text shown in Heading") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Edited Text",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("View the edited inline text of Heading shown in Page Content panel") {
+			AssertVisible(
+				key_itemName = "Edited Text",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+		}
+
+		task ("Add a Paragraph fragment below the Heading fragment") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Access to the inline text editor of Paragraph via Page Content panel") {
+			PageEditor.gotoTab(tabName = "Browser");
+
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.editFragmentTextViaPageContentPanel(
+				itemName = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.",
+				text = "Edited Rich Text");
+		}
+
+		task ("View the edited inline text shown in Paragraph") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Edited Rich Text",
+				fragmentName = "Paragraph",
+				id = "element-text");
+		}
+
+		task ("View the edited inline text of Paragraph shown in Page Content panel") {
+			AssertVisible(
+				key_itemName = "Edited Rich Text",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+		}
+	}
+
+	@description = "This is a test for LPS-122148. Filter the displayed assets by category in Page Content panel."
+	@priority = "5"
+	test FilterDisplayedAssetsByCategory {
+		property portal.acceptance = "true";
+
+		task ("Add a web content, a blogs entry and a document") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a dynamic collection for All Types") {
+			JSONAssetlist.addDynamicAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemType = "All Types",
+				title = "Dynamic Collection");
+		}
+
+		task ("Add a manual collection for All Types") {
+			JSONAssetlist.addManualAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemType = "All Types",
+				title = "Manual Collection");
+		}
+
+		task ("Select all assets in manual collection") {
+			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
+
+			AssetListsAdmin.editAssetList(assetListTitle = "Manual Collection");
+
+			AssetListsAdmin.selectAsset(
+				assetName = "Web Content Title",
+				assetType = "Basic Web Content");
+
+			AssetListsAdmin.selectAsset(
+				assetName = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+
+			AssetListsAdmin.selectAsset(
+				assetName = "Document Title",
+				assetType = "Basic Document");
+		}
+
+		task ("Add a Heading fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Banner Center below the Heading") {
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Map the Title of web content to title editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text",
+				index = "2");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Web Content Title",
+				navItem = "Web Content");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Map the Content of blogs entry to link editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Button",
+				id = "link");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Blogs Entry Title",
+				navItem = "Blogs");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Content");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Map the Preview Image of document to background image editable field") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "Document Title",
+				fieldName = "Preview Image",
+				navItem = "Documents and Media",
+				panel = "Styles");
+		}
+
+		task ("Add the first Collection Display below the Banner Center") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display",
+				targetFragmentName = "Container");
+		}
+
+		task ("Select the dynamic collection in the first Collection Display") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Dynamic Collection",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Add the second collection below the first one") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display",
+				targetFragmentName = "Collection Display");
+		}
+
+		task ("Select the manual collection in the first Collection Display") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Manual Collection",
+				fragmentName = "Collection Display",
+				index = "2");
+		}
+
+		task ("Filter the displayed assets by category in Page Content panel") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.selectContentFilter(filter = "Inline Text");
+
+			AssertVisible(
+				key_itemName = "Heading Example",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertVisible(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Web Content Title,Blogs Entry Title,Document Title,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			PageEditor.selectContentFilter(filter = "Blogs Entry");
+
+			AssertVisible(
+				key_itemName = "Blogs Entry Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Heading Example,Web Content Title,Document Title,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.selectContentFilter(filter = "Document");
+
+			AssertVisible(
+				key_itemName = "Document Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Web Content Title,Blogs Entry Title,Heading Example,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.selectContentFilter(filter = "Collection");
+
+			for (var itemName : list "Dynamic Collection,Manual Collection") {
+				AssertVisible(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			for (var itemName : list "Heading Example,Web Content Title,Blogs Entry Title,Document Title") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.selectContentFilter(filter = "All Content");
+
+			for (var itemName : list "Heading Example,Web Content Title,Blogs Entry Title,Document Title,Dynamic Collection,Manual Collection") {
+				AssertVisible(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertVisible(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+		}
+	}
+
+	@description = "This is a test for LPS-133933. The user can resize the displayed image via image editor on Page Content panel."
+	@priority = "5"
+	test ResizeDisplayedImageViaImageEditor {
+		property portal.acceptance = "true";
+
+		task ("Add an Image fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Image");
+		}
+
+		task ("Directly select an image in editable field") {
+			PageEditor.editFragmentImage(
+				fileName = "analytics-cloud-hero-image.png",
+				fragmentName = "Image",
+				id = "image-square");
+		}
+
+		task ("View the selected image is shown in Image fragment") {
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "analytics-cloud-hero-image.png");
+		}
+
+		task ("Take down the naturalWidth and naturalHeight of image") {
+			var naturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
+			var naturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+		}
+
+		task ("Edit the image via the image editor on Page Content panel") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "analytics-cloud-hero-image.png",
+				menuItem = "Edit Image");
+
+			ImageEditor.resizeImage(dimension = "16:9");
+
+			ImageEditor.saveChanges();
+		}
+
+		task ("Take down the new naturalWidth and naturalHeight of image") {
+			Navigator.gotoNavTab(navTab = "Page Elements");
+
+			WaitForElementPresent(
+				key_resolutionLabel = "Width",
+				locator1 = "PageEditor#IMAGE_RESOLUTION_LABEL");
+
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+		}
+
+		task ("View the naturalWidth doesn't change") {
+			TestUtils.assertEquals(
+				actual = "${editedNaturalWidth}",
+				expected = "${naturalWidth}");
+		}
+
+		task ("View the naturalHeight becomes smaller") {
+			TestUtils.isGreaterThan(
+				actual = "${naturalHeight}",
+				expected = "${editedNaturalHeight}");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Take down the new naturalWidth and naturalHeight of image at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "analytics-cloud-hero-image.png");
+
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+		}
+
+		task ("View the naturalWidth doesn't change") {
+			TestUtils.assertEquals(
+				actual = "${editedNaturalWidth}",
+				expected = "${naturalWidth}");
+		}
+
+		task ("View the naturalHeight becomes smaller") {
+			TestUtils.isGreaterThan(
+				actual = "${naturalHeight}",
+				expected = "${editedNaturalHeight}");
+		}
+	}
+
+	@description = "This is a test for LPS-133933. The user can rotate the displayed image via image editor on Page Content panel."
+	@priority = "5"
+	test RotateDisplayedImageViaImageEditor {
+		property portal.acceptance = "true";
+
+		task ("Add a Banner Center fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map the Preview Image of an image to background image editable field") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "analytics-cloud-hero-image.png",
+				fieldName = "Preview Image",
+				navItem = "Documents and Media",
+				panel = "Styles",
+				uploadFileName = "analytics-cloud-hero-image.png");
+		}
+
+		task ("View the mapped image is shown in Banner Center fragment") {
+			PageEditor.viewContainerStyle(backgroundImage = "analytics-cloud-hero-image.png");
+		}
+
+		task ("View the version of mapped image") {
+			AssertVisible(
+				backgroundImageStyle = "version=1.0",
+				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
+				position = "1");
+		}
+
+		task ("Edit the image via the image editor on Page Content panel") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "analytics-cloud-hero-image.png",
+				menuItem = "Edit Image");
+
+			ImageEditor.rotateImage();
+
+			ImageEditor.saveChanges();
+		}
+
+		task ("View the version of mapped image") {
+			Navigator.gotoNavTab(navTab = "Page Elements");
+
+			WaitForElementPresent(
+				key_resolutionLabel = "Width",
+				locator1 = "PageEditor#IMAGE_RESOLUTION_LABEL");
+
+			AssertVisible(
+				backgroundImageStyle = "version=2.0",
+				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
+				position = "1");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("View the version of mapped image at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Banner Title Example");
+
+			AssertVisible(
+				backgroundImageStyle = "version=2.0",
+				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
+				position = "1");
+		}
+	}
+
+	@description = "This is a test for LPS-122148. Search displayed assets by keyword in Page Content panel."
+	@priority = "5"
+	test SearchDisplayedAssetsByKeyword {
+		property portal.acceptance = "true";
+
+		task ("Add a web content, a blogs entry and a document") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a dynamic collection for All Types") {
+			JSONAssetlist.addDynamicAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemType = "All Types",
+				title = "Dynamic Collection");
+		}
+
+		task ("Add a manual collection for All Types") {
+			JSONAssetlist.addManualAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemType = "All Types",
+				title = "Manual Collection");
+		}
+
+		task ("Select all assets in manual collection") {
+			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
+
+			AssetListsAdmin.editAssetList(assetListTitle = "Manual Collection");
+
+			AssetListsAdmin.selectAsset(
+				assetName = "Web Content Title",
+				assetType = "Basic Web Content");
+
+			AssetListsAdmin.selectAsset(
+				assetName = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+
+			AssetListsAdmin.selectAsset(
+				assetName = "Document Title",
+				assetType = "Basic Document");
+		}
+
+		task ("Add a Heading fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Banner Center below the Heading") {
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Map the Title of web content to title editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text",
+				index = "2");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Web Content Title",
+				navItem = "Web Content");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Map the Content of blogs entry to link editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Button",
+				id = "link");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Blogs Entry Title",
+				navItem = "Blogs");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Content");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Map the Preview Image of document to background image editable field") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "Document Title",
+				fieldName = "Preview Image",
+				navItem = "Documents and Media",
+				panel = "Styles");
+		}
+
+		task ("Add the first Collection Display below the Banner Center") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display",
+				targetFragmentName = "Container");
+		}
+
+		task ("Select the dynamic collection in the first Collection Display") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Dynamic Collection",
+				fragmentName = "Collection Display");
+		}
+
+		task ("Add the second collection below the first one") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display",
+				targetFragmentName = "Collection Display");
+		}
+
+		task ("Select the manual collection in the first Collection Display") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Manual Collection",
+				fragmentName = "Collection Display",
+				index = "2");
+		}
+
+		task ("Search the displayed assets by keyword when the content filter is All Content") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Heading");
+
+			AssertVisible(
+				key_itemName = "Heading Example",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Web Content Title,Blogs Entry Title,Document Title,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			PageEditor.searchInPageContentPanel(searchTerm = "This is a simple banner");
+
+			AssertVisible(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Heading Example,Web Content Title,Blogs Entry Title,Document Title,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Document Title");
+
+			AssertVisible(
+				key_itemName = "Document Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Web Content Title,Blogs Entry Title,Heading Example,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Blogs Entry Title");
+
+			AssertVisible(
+				key_itemName = "Blogs Entry Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Web Content Title,Document Title,Heading Example,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Web Content Title");
+
+			AssertVisible(
+				key_itemName = "Web Content Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Document Title,Blogs Entry Title,Heading Example,Dynamic Collection,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Dynamic Collection");
+
+			AssertVisible(
+				key_itemName = "Dynamic Collection",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Web Content Title,Blogs Entry Title,Document Title,Heading Example,Manual Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Manual Collection");
+
+			AssertVisible(
+				key_itemName = "Manual Collection",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			for (var itemName : list "Web Content Title,Blogs Entry Title,Document Title,Heading Example,Dynamic Collection") {
+				AssertElementNotPresent(
+					key_itemName = "${itemName}",
+					locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+			}
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+		}
+
+		task ("Search the displayed assets by keyword when the content filter is Collection") {
+			PageEditor.selectContentFilter(filter = "Collection");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Dynamic Collection");
+
+			AssertVisible(
+				key_itemName = "Dynamic Collection",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertElementNotPresent(
+				key_itemName = "Manual Collection",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Manual Collection");
+
+			AssertVisible(
+				key_itemName = "Manual Collection",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertElementNotPresent(
+				key_itemName = "Dynamic Collection",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+		}
+
+		task ("Search the displayed assets by keyword when the content filter is Inline Text") {
+			PageEditor.selectContentFilter(filter = "Inline Text");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "Heading");
+
+			AssertVisible(
+				key_itemName = "Heading Example",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertElementNotPresent(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			PageEditor.searchInPageContentPanel(searchTerm = "This is a simple banner");
+
+			AssertVisible(
+				key_itemName = "This is a simple banner component that you can use when you need extra attention to featured content or information.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertElementNotPresent(
+				key_itemName = "Heading Example",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+		}
+	}
+
+	@description = "This is a test for LPS-122396 and LPS-106776. The outline of editable field should be dashed when hover on inline text item in Page Content panel."
+	@priority = "5"
+	test ViewDashedOutlineOfEditableFieldWhenHoverOnInlineTextItems {
+		property portal.acceptance = "true";
+
+		task ("Add a Heading fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Paragraph fragment below the Heading fragment") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph",
+				targetFragmentName = "Heading");
+		}
+
+		task ("View the dashed outline of editable field when hover on inline text items") {
+			PageEditor.gotoTab(tabName = "Browser");
+
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			MouseOver(
+				key_itemName = "Heading Example",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "outline-style",
+				value1 = "dashed");
+
+			MouseOver(
+				key_sidebarButton = "Browser",
+				locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
+
+			MouseOver(
+				key_itemName = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertCssValue(
+				fragmentName = "paragraph",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "outline-style",
+				value1 = "dashed");
+		}
+
+		task ("Edit the inline text of Heading fragment") {
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Edit Text");
+		}
+
+		task ("Edit the inline text of Paragraph fragment") {
+			PageEditor.editFragmentText(
+				fragmentName = "Paragraph",
+				id = "element-text",
+				text = "Edited Rich Text");
+		}
+
+		task ("View the dashed outline of editable field when hover on inline text items") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			MouseOver(
+				key_itemName = "Edit Text",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "outline-style",
+				value1 = "dashed");
+
+			MouseOver(
+				key_sidebarButton = "Browser",
+				locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
+
+			MouseOver(
+				key_itemName = "Edited Rich Text",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertCssValue(
+				fragmentName = "paragraph",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "outline-style",
+				value1 = "dashed");
+		}
+	}
+
+	@description = "This is a test for LPS-122396. The outline of editable field should be dashed when hover on mapped assets in Page Content panel."
+	@priority = "5"
+	test ViewDashedOutlineOfMappedEditableFieldWhenHoverOnAssets {
+		property portal.acceptance = "true";
+
+		task ("Add a web content, a blogs entry and a document") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a Banner Center to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map the Title of web content to title editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Web Content Title",
+				navItem = "Web Content");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Map the Title of blogs entry to link editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				fragmentName = "Button",
+				id = "link");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Blogs Entry Title",
+				navItem = "Blogs");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Map the Preview Image of document to background image editable field") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "Document Title",
+				fieldName = "Preview Image",
+				navItem = "Documents and Media",
+				panel = "Styles");
+
+			PageEditor.clickManagementBar();
+		}
+
+		task ("View the dashed outline of mapped editable field when hover on assets") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			MouseOver(
+				key_itemName = "Web Content Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "outline-style",
+				value1 = "dashed");
+
+			MouseOver(
+				key_sidebarButton = "Browser",
+				locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
+
+			MouseOver(
+				key_itemName = "Blogs Entry Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			AssertCssValue(
+				fragmentName = "button",
+				id = "link",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "outline-style",
+				value1 = "dashed");
+
+			MouseOver(
+				key_sidebarButton = "Browser",
+				locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
+
+			MouseOver(
+				key_itemName = "Document Title",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM");
+
+			var backgroundImageOutlineStyle = Css.getPseudoElementCssValue(
+				attribute = "outline-style",
+				element = "//div[contains(@class,'page-editor__topper')][@draggable][.//div[contains(@style,'Document_1.jpg')]]",
+				pseudo = ":after");
+
+			TestUtils.assertEquals(
+				actual = "${backgroundImageOutlineStyle}",
+				expected = "dashed");
+		}
+	}
+
+	@description = "This is a test for LPS-122396. The details of displayed assets are shown in Page Content panel."
+	@priority = "5"
+	test ViewDetailsOfDisplayedAssets {
+		property portal.acceptance = "true";
+
+		task ("Add a web content, a blogs entry and a document") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Add a dynamic collection for Web Content Article and Basic Web Content") {
+			JSONAssetlist.addDynamicAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemSubtype = "Basic Web Content",
+				itemType = "Web Content Article",
+				title = "Dynamic Collection");
+		}
+
+		task ("Add a Heading fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Title of document to editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				contributed = "true",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "Document Title",
+				navItem = "Documents and Media");
+
+			Select(
+				key_fieldLabel = "Field",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Title");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Add an Asset Publisher below the Heading") {
+			PageEditor.addWidget(
+				portletName = "Asset Publisher",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Select Blogs Entry in Asset Publisher") {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			AssetPublisherPortlet.configureManualAssetSelectionPG(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Add a Collection Display below the Asset Publisher") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display",
+				targetFragmentName = "Asset Publisher");
+		}
+
+		task ("Select the dynamic collection in Collection Display") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Dynamic Collection",
+				fragmentName = "Collection Display");
+		}
+
+		task ("View the details of displayed assets in Page Content panel") {
+			PageEditor.gotoTab(tabName = "Browser");
+
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			AssertVisible(
+				key_category = "Document",
+				key_itemName = "Document Title",
+				key_itemType = "Basic Document",
+				key_style = "semi-bold",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM_DETAILS_WITH_TYPE");
+
+			AssertVisible(
+				key_category = "Blogs Entry",
+				key_itemName = "Blogs Entry Title",
+				key_style = "semi-bold",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM_DETAILS");
+
+			AssertVisible(
+				key_category = "Collection",
+				key_itemName = "Dynamic Collection",
+				key_itemType = "Web Content Article - Basic Web Content",
+				key_style = "semi-bold",
+				locator1 = "PageEditor#PAGE_CONTENTS_ITEM_DETAILS_WITH_TYPE");
+		}
+	}
+
+	@description = "This is a test for LPS-96794. View permissions and usage of mapped web content in Contents panel."
 	@priority = "4"
 	test ViewPermissionsAndUsageOfMappedWebContent {
-		JSONWebcontent.addWebContent(
-			content = "WC WebContent Content",
-			groupName = "Test Site Name",
-			title = "WebContent Title");
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WebContent Title");
+		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Page Name",
-			siteName = "Test Site Name");
+		task ("Add a Heading fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.addFragment(
-			collectionName = "Basic Components",
-			fragmentName = "Heading");
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
 
-		PageEditorMapping.gotoEditableFieldMapping(
-			contributed = "true",
-			fragmentName = "Heading",
-			id = "text");
+		task ("Map the Title of web content to editable field") {
+			PageEditorMapping.gotoEditableFieldMapping(
+				contributed = "true",
+				fragmentName = "Heading",
+				id = "element-text");
 
-		PageEditorMapping.mapEditableFieldToAsset(
-			entryTitle = "WebContent Title",
-			navItem = "Web Content");
+			PageEditorMapping.mapEditableFieldToAsset(
+				entryTitle = "WebContent Title",
+				navItem = "Web Content");
 
-		Select(
-			locator1 = "PageEditorEditableLink#FIELD",
-			value1 = "Title");
+			Select(
+				locator1 = "PageEditorEditableLink#FIELD",
+				value1 = "Title");
 
-		PageEditor.clickPublish();
+			PageEditor.clickPublish();
+		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Page Name",
-			siteName = "Test Site Name");
+		task ("View permissions of mapped web content in Contents panel") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.gotoTab(tabName = "Contents");
+			PageEditor.gotoTab(tabName = "Browser");
 
-		LexiconEntry.gotoFragmentPageContentEllipsisMenuItem(
-			menuItem = "Permissions",
-			rowEntry = "WebContent Title");
+			Navigator.gotoNavTab(navTab = "Page Content");
 
-		IFrame.selectPermissionsFrame();
+			LexiconEntry.gotoFragmentPageContentEllipsisMenuItem(
+				menuItem = "Permissions",
+				rowEntry = "WebContent Title");
 
-		Role.viewPermissionPG(
-			permissionDefinitionKey = "CONTENT_PERMISSIONS_VIEW_CHECKBOX",
-			permissionFlagged = "true",
-			roleTitle = "Owner");
+			IFrame.selectPermissionsFrame();
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Page Name",
-			siteName = "Test Site Name");
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "CONTENT_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "true",
+				roleTitle = "Owner");
+		}
 
-		PageEditor.gotoTab(tabName = "Contents");
+		task ("View usage of mapped web content in Contents panel") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
 
-		LexiconEntry.gotoFragmentPageContentEllipsisMenuItem(
-			menuItem = "View Usages",
-			rowEntry = "WebContent Title");
+			PageEditor.gotoTab(tabName = "Browser");
 
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+			Navigator.gotoNavTab(navTab = "Page Content");
 
-		AssertElementPresent(
-			locator1 = "AssetLists#ASSET_LIST_USAGES",
-			usageAmount = "2",
-			usageType = "Pages");
+			LexiconEntry.gotoFragmentPageContentEllipsisMenuItem(
+				menuItem = "View Usages",
+				rowEntry = "WebContent Title");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementPresent(
+				locator1 = "AssetLists#ASSET_LIST_USAGES",
+				usageAmount = "2",
+				usageType = "Pages");
+		}
 	}
 
 }

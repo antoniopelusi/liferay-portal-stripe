@@ -29,7 +29,7 @@ public interface CommerceCheckoutStepServicesTracker {
 
 	public List<CommerceCheckoutStep> getCommerceCheckoutSteps(
 			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
+			HttpServletResponse httpServletResponse, boolean onlyActive)
 		throws Exception;
 
 	public CommerceCheckoutStep getNextCommerceCheckoutStep(

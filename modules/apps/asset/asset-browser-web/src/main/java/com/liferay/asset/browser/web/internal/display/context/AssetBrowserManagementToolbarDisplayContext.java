@@ -37,8 +37,9 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -133,14 +134,11 @@ public class AssetBrowserManagementToolbarDisplayContext
 					).setParameter(
 						"scope", (String)null
 					).buildString());
-
 				labelItem.setCloseable(true);
-
-				String label = String.format(
-					"%s: %s", LanguageUtil.get(httpServletRequest, "scope"),
-					_getScopeLabel(scope));
-
-				labelItem.setLabel(label);
+				labelItem.setLabel(
+					String.format(
+						"%s: %s", LanguageUtil.get(httpServletRequest, "scope"),
+						_getScopeLabel(scope)));
 			}
 		).build();
 	}
@@ -248,7 +246,13 @@ public class AssetBrowserManagementToolbarDisplayContext
 
 	@Override
 	protected String[] getOrderByKeys() {
-		return new String[] {"title", "modified-date"};
+		String[] orderColumns = {"title", "modified-date"};
+
+		if (_assetBrowserDisplayContext.isSearch()) {
+			orderColumns = ArrayUtil.append(orderColumns, "relevance");
+		}
+
+		return orderColumns;
 	}
 
 	@Override
@@ -302,7 +306,7 @@ public class AssetBrowserManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;
@@ -314,7 +318,7 @@ public class AssetBrowserManagementToolbarDisplayContext
 
 		addPortletURL.setParameter("groupId", String.valueOf(groupId));
 
-		return HttpUtil.addParameter(
+		return HttpComponentsUtil.addParameter(
 			addPortletURL.toString(), "refererPlid", _themeDisplay.getPlid());
 	}
 

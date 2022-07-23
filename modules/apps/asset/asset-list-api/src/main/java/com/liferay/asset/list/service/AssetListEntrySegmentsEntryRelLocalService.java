@@ -161,6 +161,9 @@ public interface AssetListEntrySegmentsEntryRelLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -245,6 +248,11 @@ public interface AssetListEntrySegmentsEntryRelLocalService
 	public AssetListEntrySegmentsEntryRel
 		fetchAssetListEntrySegmentsEntryRelByUuidAndGroupId(
 			String uuid, long groupId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<AssetListEntrySegmentsEntryRel>
+		fetchAssetListEntrySegmentsEntryRels(
+			long assetListEntryId, long[] segmentsEntryId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();
@@ -379,6 +387,8 @@ public interface AssetListEntrySegmentsEntryRelLocalService
 	public AssetListEntrySegmentsEntryRel
 		updateAssetListEntrySegmentsEntryRelTypeSettings(
 			long assetListEntryId, long segmentsEntryId, String typeSettings);
+
+	public void updateVariationsPriority(long[] variationsPriority);
 
 	@Override
 	@Transactional(enabled = false)

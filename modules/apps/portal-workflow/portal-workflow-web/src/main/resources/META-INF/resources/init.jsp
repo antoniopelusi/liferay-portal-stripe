@@ -29,7 +29,7 @@ page import="com.liferay.portal.workflow.constants.WorkflowPortletKeys" %><%@
 page import="com.liferay.portal.workflow.constants.WorkflowWebKeys" %><%@
 page import="com.liferay.portal.workflow.portlet.tab.WorkflowPortletTab" %><%@
 page import="com.liferay.portal.workflow.web.internal.display.context.WorkflowNavigationDisplayContext" %><%@
-page import="com.liferay.taglib.servlet.PipingServletResponse" %>
+page import="com.liferay.taglib.servlet.PipingServletResponseFactory" %>
 
 <%@ page import="java.util.List" %>
 
@@ -38,6 +38,6 @@ page import="com.liferay.taglib.servlet.PipingServletResponse" %>
 <portlet:defineObjects />
 
 <%
-List<WorkflowPortletTab> workflowPortletTabs = (List<WorkflowPortletTab>)renderRequest.getAttribute(WorkflowWebKeys.WORKFLOW_PORTLET_TABS);
 WorkflowPortletTab selectedWorkflowPortletTab = (WorkflowPortletTab)renderRequest.getAttribute(WorkflowWebKeys.SELECTED_WORKFLOW_PORTLET_TAB);
+List<WorkflowPortletTab> workflowPortletTabs = (List<WorkflowPortletTab>)renderRequest.getAttribute(WorkflowWebKeys.WORKFLOW_PORTLET_TABS);
 %>

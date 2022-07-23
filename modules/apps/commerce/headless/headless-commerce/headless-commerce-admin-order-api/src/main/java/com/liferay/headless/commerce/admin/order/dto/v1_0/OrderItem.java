@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -58,6 +59,10 @@ public class OrderItem implements Serializable {
 
 	public static OrderItem toDTO(String json) {
 		return ObjectMapperUtil.readValue(OrderItem.class, json);
+	}
+
+	public static OrderItem unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(OrderItem.class, json);
 	}
 
 	@DecimalMin("0")
@@ -117,6 +122,36 @@ public class OrderItem implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Map<String, ?> customFields;
+
+	@DecimalMin("0")
+	@Schema
+	@Valid
+	public BigDecimal getDecimalQuantity() {
+		return decimalQuantity;
+	}
+
+	public void setDecimalQuantity(BigDecimal decimalQuantity) {
+		this.decimalQuantity = decimalQuantity;
+	}
+
+	@JsonIgnore
+	public void setDecimalQuantity(
+		UnsafeSupplier<BigDecimal, Exception> decimalQuantityUnsafeSupplier) {
+
+		try {
+			decimalQuantity = decimalQuantityUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected BigDecimal decimalQuantity;
 
 	@Schema
 	public String getDeliveryGroup() {
@@ -573,6 +608,34 @@ public class OrderItem implements Serializable {
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected BigDecimal finalPriceWithTaxAmount;
 
+	@Schema
+	public String getFormattedQuantity() {
+		return formattedQuantity;
+	}
+
+	public void setFormattedQuantity(String formattedQuantity) {
+		this.formattedQuantity = formattedQuantity;
+	}
+
+	@JsonIgnore
+	public void setFormattedQuantity(
+		UnsafeSupplier<String, Exception> formattedQuantityUnsafeSupplier) {
+
+		try {
+			formattedQuantity = formattedQuantityUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String formattedQuantity;
+
 	@DecimalMin("0")
 	@Schema
 	public Long getId() {
@@ -628,6 +691,34 @@ public class OrderItem implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Map<String, String> name;
+
+	@Schema
+	public String getOptions() {
+		return options;
+	}
+
+	public void setOptions(String options) {
+		this.options = options;
+	}
+
+	@JsonIgnore
+	public void setOptions(
+		UnsafeSupplier<String, Exception> optionsUnsafeSupplier) {
+
+		try {
+			options = optionsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String options;
 
 	@Schema
 	public String getOrderExternalReferenceCode() {
@@ -1036,6 +1127,34 @@ public class OrderItem implements Serializable {
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Boolean subscription;
 
+	@Schema
+	public String getUnitOfMeasure() {
+		return unitOfMeasure;
+	}
+
+	public void setUnitOfMeasure(String unitOfMeasure) {
+		this.unitOfMeasure = unitOfMeasure;
+	}
+
+	@JsonIgnore
+	public void setUnitOfMeasure(
+		UnsafeSupplier<String, Exception> unitOfMeasureUnsafeSupplier) {
+
+		try {
+			unitOfMeasure = unitOfMeasureUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String unitOfMeasure;
+
 	@DecimalMin("0")
 	@Schema
 	@Valid
@@ -1145,6 +1264,16 @@ public class OrderItem implements Serializable {
 			sb.append("\"customFields\": ");
 
 			sb.append(_toJSON(customFields));
+		}
+
+		if (decimalQuantity != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"decimalQuantity\": ");
+
+			sb.append(decimalQuantity);
 		}
 
 		if (deliveryGroup != null) {
@@ -1295,6 +1424,20 @@ public class OrderItem implements Serializable {
 			sb.append(finalPriceWithTaxAmount);
 		}
 
+		if (formattedQuantity != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"formattedQuantity\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(formattedQuantity));
+
+			sb.append("\"");
+		}
+
 		if (id != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1313,6 +1456,20 @@ public class OrderItem implements Serializable {
 			sb.append("\"name\": ");
 
 			sb.append(_toJSON(name));
+		}
+
+		if (options != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"options\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(options));
+
+			sb.append("\"");
 		}
 
 		if (orderExternalReferenceCode != null) {
@@ -1475,6 +1632,20 @@ public class OrderItem implements Serializable {
 			sb.append(subscription);
 		}
 
+		if (unitOfMeasure != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"unitOfMeasure\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(unitOfMeasure));
+
+			sb.append("\"");
+		}
+
 		if (unitPrice != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1508,9 +1679,9 @@ public class OrderItem implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -1536,7 +1707,7 @@ public class OrderItem implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -1568,7 +1739,7 @@ public class OrderItem implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -1584,5 +1755,10 @@ public class OrderItem implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

@@ -36,57 +36,62 @@ public class IndexRequestExecutorFixture {
 		_indexRequestExecutor = new ElasticsearchIndexRequestExecutor() {
 			{
 				setAnalyzeIndexRequestExecutor(
-					createAnalyzeIndexRequestExecutor(
+					_createAnalyzeIndexRequestExecutor(
 						_elasticsearchClientResolver));
 				setCloseIndexRequestExecutor(
-					createCloseIndexRequestExecutor(
+					_createCloseIndexRequestExecutor(
 						indicesOptionsTranslator,
 						_elasticsearchClientResolver));
 				setCreateIndexRequestExecutor(
-					createCreateIndexRequestExecutor(
+					_createCreateIndexRequestExecutor(
 						_elasticsearchClientResolver));
 				setDeleteIndexRequestExecutor(
-					createDeleteIndexRequestExecutor(
+					_createDeleteIndexRequestExecutor(
 						indicesOptionsTranslator,
 						_elasticsearchClientResolver));
 				setFlushIndexRequestExecutor(
-					createFlushIndexRequestExecutor(
+					_createFlushIndexRequestExecutor(
 						indexRequestShardFailureTranslator,
 						_elasticsearchClientResolver));
 				setGetFieldMappingIndexRequestExecutor(
-					createGetFieldMappingIndexRequestExecutor(
+					_createGetFieldMappingIndexRequestExecutor(
 						_elasticsearchClientResolver));
 				setGetIndexIndexRequestExecutor(
-					createGetIndexIndexRequestExecutor(
+					_createGetIndexIndexRequestExecutor(
 						_elasticsearchClientResolver));
 				setGetMappingIndexRequestExecutor(
-					createGetMappingIndexRequestExecutor(
+					_createGetMappingIndexRequestExecutor(
 						_elasticsearchClientResolver));
 				setIndicesExistsIndexRequestExecutor(
-					createIndexExistsIndexRequestExecutor(
+					_createIndexExistsIndexRequestExecutor(
 						_elasticsearchClientResolver));
 				setOpenIndexRequestExecutor(
-					createOpenIndexRequestExecutor(
+					_createOpenIndexRequestExecutor(
 						indicesOptionsTranslator,
 						_elasticsearchClientResolver));
 				setPutMappingIndexRequestExecutor(
-					createPutMappingIndexRequestExecutor(
+					_createPutMappingIndexRequestExecutor(
 						_elasticsearchClientResolver));
 				setRefreshIndexRequestExecutor(
-					createRefreshIndexRequestExecutor(
+					_createRefreshIndexRequestExecutor(
 						indexRequestShardFailureTranslator,
 						_elasticsearchClientResolver));
 				setUpdateIndexSettingsIndexRequestExecutor(
-					createUpdateIndexSettingsIndexRequestExecutor(
+					_createUpdateIndexSettingsIndexRequestExecutor(
 						indicesOptionsTranslator,
 						_elasticsearchClientResolver));
 			}
 		};
 	}
 
-	protected static AnalyzeIndexRequestExecutor
-		createAnalyzeIndexRequestExecutor(
-			ElasticsearchClientResolver elasticsearchClientResolver) {
+	protected void setElasticsearchClientResolver(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
+
+		_elasticsearchClientResolver = elasticsearchClientResolver;
+	}
+
+	private AnalyzeIndexRequestExecutor _createAnalyzeIndexRequestExecutor(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new AnalyzeIndexRequestExecutorImpl() {
 			{
@@ -95,7 +100,7 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static CloseIndexRequestExecutor createCloseIndexRequestExecutor(
+	private CloseIndexRequestExecutor _createCloseIndexRequestExecutor(
 		IndicesOptionsTranslator indicesOptionsTranslator,
 		ElasticsearchClientResolver elasticsearchClientResolver) {
 
@@ -107,9 +112,8 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static CreateIndexRequestExecutor
-		createCreateIndexRequestExecutor(
-			ElasticsearchClientResolver elasticsearchClientResolver) {
+	private CreateIndexRequestExecutor _createCreateIndexRequestExecutor(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new CreateIndexRequestExecutorImpl() {
 			{
@@ -118,10 +122,9 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static DeleteIndexRequestExecutor
-		createDeleteIndexRequestExecutor(
-			IndicesOptionsTranslator indicesOptionsTranslator,
-			ElasticsearchClientResolver elasticsearchClientResolver) {
+	private DeleteIndexRequestExecutor _createDeleteIndexRequestExecutor(
+		IndicesOptionsTranslator indicesOptionsTranslator,
+		ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new DeleteIndexRequestExecutorImpl() {
 			{
@@ -131,7 +134,7 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static FlushIndexRequestExecutor createFlushIndexRequestExecutor(
+	private FlushIndexRequestExecutor _createFlushIndexRequestExecutor(
 		IndexRequestShardFailureTranslator indexRequestShardFailureTranslator,
 		ElasticsearchClientResolver elasticsearchClientResolver) {
 
@@ -144,8 +147,8 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static GetFieldMappingIndexRequestExecutor
-		createGetFieldMappingIndexRequestExecutor(
+	private GetFieldMappingIndexRequestExecutor
+		_createGetFieldMappingIndexRequestExecutor(
 			ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new GetFieldMappingIndexRequestExecutorImpl() {
@@ -155,9 +158,8 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static GetIndexIndexRequestExecutor
-		createGetIndexIndexRequestExecutor(
-			ElasticsearchClientResolver elasticsearchClientResolver) {
+	private GetIndexIndexRequestExecutor _createGetIndexIndexRequestExecutor(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new GetIndexIndexRequestExecutorImpl() {
 			{
@@ -166,8 +168,8 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static GetMappingIndexRequestExecutor
-		createGetMappingIndexRequestExecutor(
+	private GetMappingIndexRequestExecutor
+		_createGetMappingIndexRequestExecutor(
 			ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new GetMappingIndexRequestExecutorImpl() {
@@ -177,8 +179,8 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static IndicesExistsIndexRequestExecutor
-		createIndexExistsIndexRequestExecutor(
+	private IndicesExistsIndexRequestExecutor
+		_createIndexExistsIndexRequestExecutor(
 			ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new IndicesExistsIndexRequestExecutorImpl() {
@@ -188,7 +190,7 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static OpenIndexRequestExecutor createOpenIndexRequestExecutor(
+	private OpenIndexRequestExecutor _createOpenIndexRequestExecutor(
 		IndicesOptionsTranslator indicesOptionsTranslator,
 		ElasticsearchClientResolver elasticsearchClientResolver) {
 
@@ -200,8 +202,8 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static PutMappingIndexRequestExecutor
-		createPutMappingIndexRequestExecutor(
+	private PutMappingIndexRequestExecutor
+		_createPutMappingIndexRequestExecutor(
 			ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new PutMappingIndexRequestExecutorImpl() {
@@ -211,11 +213,9 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static RefreshIndexRequestExecutor
-		createRefreshIndexRequestExecutor(
-			IndexRequestShardFailureTranslator
-				indexRequestShardFailureTranslator,
-			ElasticsearchClientResolver elasticsearchClientResolver) {
+	private RefreshIndexRequestExecutor _createRefreshIndexRequestExecutor(
+		IndexRequestShardFailureTranslator indexRequestShardFailureTranslator,
+		ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		return new RefreshIndexRequestExecutorImpl() {
 			{
@@ -226,8 +226,8 @@ public class IndexRequestExecutorFixture {
 		};
 	}
 
-	protected static UpdateIndexSettingsIndexRequestExecutor
-		createUpdateIndexSettingsIndexRequestExecutor(
+	private UpdateIndexSettingsIndexRequestExecutor
+		_createUpdateIndexSettingsIndexRequestExecutor(
 			IndicesOptionsTranslator indicesOptionsTranslator,
 			ElasticsearchClientResolver elasticsearchClientResolver) {
 
@@ -237,12 +237,6 @@ public class IndexRequestExecutorFixture {
 				setIndicesOptionsTranslator(indicesOptionsTranslator);
 			}
 		};
-	}
-
-	protected void setElasticsearchClientResolver(
-		ElasticsearchClientResolver elasticsearchClientResolver) {
-
-		_elasticsearchClientResolver = elasticsearchClientResolver;
 	}
 
 	private ElasticsearchClientResolver _elasticsearchClientResolver;

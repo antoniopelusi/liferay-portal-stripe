@@ -125,4 +125,7 @@ public interface UADPartialEntryModel extends BaseModel<UADPartialEntry> {
 	 */
 	public void setMessage(String message);
 
+	@Override
+	public UADPartialEntry cloneWithOriginalValues();
+
 }

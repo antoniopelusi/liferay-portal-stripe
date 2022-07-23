@@ -43,6 +43,7 @@ long previewClassNameId = ParamUtil.getLong(request, "previewClassNameId");
 long previewClassPK = ParamUtil.getLong(request, "previewClassPK");
 
 boolean print = GetterUtil.getBoolean(request.getAttribute("view.jsp-print"));
+boolean viewSingleAsset = ParamUtil.getBoolean(request, "viewSingleAsset", true);
 
 assetPublisherDisplayContext.setLayoutAssetEntry(assetEntry);
 
@@ -56,7 +57,7 @@ if (print) {
 	viewFullContentURL.setParameter("viewMode", Constants.PRINT);
 }
 
-String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, HttpUtil.setParameter(viewFullContentURL.toString(), "redirect", currentURL));
+String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, HttpComponentsUtil.setParameter(viewFullContentURL.toString(), "redirect", currentURL));
 
 Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 	"fragments-editor-item-id", PortalUtil.getClassNameId(assetRenderer.getClassName()) + "-" + assetRenderer.getClassPK()
@@ -70,7 +71,15 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 	<%
 	String fullContentRedirect = themeDisplay.getURLCurrent();
 
-	if (WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(assetEntry.getCompanyId(), assetEntry.getGroupId(), assetEntry.getClassName())) {
+	int assetDisplayPageType = AssetDisplayPageConstants.TYPE_NONE;
+
+	AssetDisplayPageEntry assetDisplayPageEntry = AssetDisplayPageEntryLocalServiceUtil.fetchAssetDisplayPageEntry(assetEntry.getGroupId(), assetEntry.getClassNameId(), assetEntry.getClassPK());
+
+	if (assetDisplayPageEntry != null) {
+		assetDisplayPageType = assetDisplayPageEntry.getType();
+	}
+
+	if (WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(assetEntry.getCompanyId(), assetEntry.getGroupId(), assetEntry.getClassName()) && (assetDisplayPageType != AssetDisplayPageConstants.TYPE_SPECIFIC)) {
 		fullContentRedirect = redirect;
 	}
 
@@ -91,6 +100,7 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 						cssClass="header-back-to"
 						icon="angle-left"
 						markupView="lexicon"
+						message="back"
 						url="<%= redirect %>"
 					/>
 				</c:if>
@@ -230,7 +240,7 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 			renderResponse
 		).setMVCPath(
 			"/view_content.jsp"
-		).build();
+		).buildPortletURL();
 
 		if (print) {
 			assetLingsURL.setParameter("viewMode", Constants.PRINT);
@@ -247,12 +257,20 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 	</c:if>
 
 	<%
-	boolean showContextLink = assetPublisherDisplayContext.isShowContextLink() && !print && assetEntry.isVisible();
+	boolean showContextLink = false;
+
+	if (viewSingleAsset) {
+		showContextLink = assetPublisherDisplayContext.isShowContextLink(assetRenderer.getGroupId(), assetRendererFactory.getPortletId()) && !print && assetEntry.isVisible();
+	}
+	else {
+		showContextLink = assetPublisherDisplayContext.isShowContextLink() && !print && assetEntry.isVisible();
+	}
+
 	boolean showRatings = assetPublisherDisplayContext.isEnableRatings() && assetRenderer.isRatable();
 	%>
 
 	<c:if test="<%= showContextLink || showRatings || assetPublisherDisplayContext.isEnableFlags() || assetPublisherDisplayContext.isEnablePrint() || Validator.isNotNull(assetPublisherDisplayContext.getSocialBookmarksTypes()) %>">
-		<div class="separator"><!-- --></div>
+		<hr class="separator" />
 
 		<clay:content-row
 			cssClass="asset-details"
@@ -333,28 +351,26 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 								url='<%= "javascript:" + liferayPortletResponse.getNamespace() + "printPage_" + id + "();" %>'
 							/>
 
-							<%
-							PortletURL printAssetURL = PortletURLBuilder.createRenderURL(
-								renderResponse
-							).setMVCPath(
-								"/view_content.jsp"
-							).setParameter(
-								"assetEntryId", assetEntry.getEntryId()
-							).setParameter(
-								"languageId", LanguageUtil.getLanguageId(request)
-							).setParameter(
-								"type", assetRendererFactory.getType()
-							).setParameter(
-								"viewMode", Constants.PRINT
-							).setWindowState(
-								LiferayWindowState.POP_UP
-							).build();
-							%>
-
 							<aui:script>
 								function <portlet:namespace />printPage_<%= id %>() {
 									window.open(
-										'<%= printAssetURL %>',
+										'<%=
+											PortletURLBuilder.createRenderURL(
+												renderResponse
+											).setMVCPath(
+												"/view_content.jsp"
+											).setParameter(
+												"assetEntryId", assetEntry.getEntryId()
+											).setParameter(
+												"languageId", LanguageUtil.getLanguageId(request)
+											).setParameter(
+												"type", assetRendererFactory.getType()
+											).setParameter(
+												"viewMode", Constants.PRINT
+											).setWindowState(
+												LiferayWindowState.POP_UP
+											).buildPortletURL()
+										%>',
 										'',
 										'directories=0,height=480,left=80,location=1,menubar=1,resizable=1,scrollbars=yes,status=0,toolbar=0,top=180,width=640'
 									);
@@ -374,7 +390,7 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 						target="_blank"
 						title="<%= title %>"
 						types="<%= assetPublisherDisplayContext.getSocialBookmarksTypes() %>"
-						urlImpl="<%= viewFullContentURL %>"
+						url="<%= assetPublisherHelper.getAssetSocialURL(liferayPortletRequest, liferayPortletResponse, assetEntry) %>"
 					/>
 				</clay:content-col>
 			</c:if>
@@ -387,7 +403,7 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 	%>
 
 	<c:if test="<%= showConversions || showLocalization %>">
-		<div class="separator"><!-- --></div>
+		<hr class="separator" />
 
 		<clay:content-row
 			cssClass="asset-details"
@@ -422,13 +438,13 @@ Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 				<%
 				PortletURL exportAssetURL = PortletURLBuilder.create(
 					assetRenderer.getURLExport(liferayPortletRequest, liferayPortletResponse)
+				).setPortletResource(
+					portletDisplay.getId()
 				).setParameter(
 					"plid", themeDisplay.getPlid()
-				).setParameter(
-					"portletResource", portletDisplay.getId()
 				).setWindowState(
 					LiferayWindowState.EXCLUSIVE
-				).build();
+				).buildPortletURL();
 
 				for (String extension : assetPublisherDisplayContext.getExtensions(assetRenderer)) {
 					exportAssetURL.setParameter("targetExtension", extension);

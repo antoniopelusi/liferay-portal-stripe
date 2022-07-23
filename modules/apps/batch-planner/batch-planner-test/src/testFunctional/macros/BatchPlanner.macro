@@ -1,0 +1,11 @@
+definition {
+
+	macro batchPlannerTearDown {
+		JSONBatchPlannerLogAPI._deleteBatchPlannerLogs();
+
+		JSONBatchPlannerPlansAPI._deleteBatchPlannerPlans();
+
+		Notifications.deleteAllNotifications();
+	}
+
+}

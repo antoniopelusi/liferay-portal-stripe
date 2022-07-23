@@ -146,14 +146,15 @@ public class JSONCurlUtil {
 
 			String response = ExecUtil.readInputStream(inputStream, true);
 
-			System.out.println("Response: " + response);
+			_log(response);
 
 			if (process.exitValue() != 0) {
 				inputStream = process.getErrorStream();
 
-				System.out.println(
-					"Error stream: " +
-						ExecUtil.readInputStream(inputStream, true));
+				String errorString = ExecUtil.readInputStream(
+					inputStream, true);
+
+				_log(errorString);
 
 				throw new RuntimeException(
 					"Command finished with exit value: " + process.exitValue());
@@ -184,32 +185,35 @@ public class JSONCurlUtil {
 		}
 
 		private String _getRequestURL(List<String> tokens) {
-			int requestURLIndex = -1;
+			String token = tokens.get(0);
 
-			for (int i = 0; i < tokens.size(); i++) {
-				String token = tokens.get(i);
-
-				if (token.startsWith("http")) {
-					if (requestURLIndex != -1) {
-						StringBuilder sb = new StringBuilder();
-
-						sb.append("Found 2 URLs when only 1 is allowed:\n");
-						sb.append(tokens.get(requestURLIndex));
-						sb.append("\n");
-						sb.append(token);
-
-						throw new IllegalArgumentException(sb.toString());
-					}
-
-					requestURLIndex = i;
-				}
+			if (token.startsWith("http")) {
+				return token;
 			}
 
-			if (requestURLIndex == -1) {
-				throw new IllegalArgumentException("No URL found in statement");
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("The curl URL must be the first argument of the ");
+			sb.append("request string.\n'");
+			sb.append(token);
+			sb.append("' is an invalid URL.");
+
+			throw new IllegalArgumentException(sb.toString());
+		}
+
+		private void _log(String message) {
+			if (message == null) {
+				message = "";
 			}
 
-			return tokens.get(requestURLIndex);
+			if (message.length() > _maxPrintLineLength) {
+				System.out.println(
+					message.substring(0, _maxPrintLineLength) + "...");
+
+				return;
+			}
+
+			System.out.println(message);
 		}
 
 		private void _setRequestOptions(List<String> tokens) {
@@ -284,6 +288,7 @@ public class JSONCurlUtil {
 				"(\\s+|\\Z)");
 
 		private Map<String, String> _curlDataMap = new HashMap<>();
+		private final int _maxPrintLineLength = 2500;
 		private final String _requestMethod;
 		private List<RequestOption> _requestOptions = new ArrayList<>();
 		private final String _requestURL;

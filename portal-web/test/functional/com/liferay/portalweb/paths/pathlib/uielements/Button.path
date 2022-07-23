@@ -2,15 +2,27 @@
 <head>
 <title>Button</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Button</td></tr>
 </thead>
+
 <tbody>
 <tr>
-	<td>ADD_ACTION</td>
-	<td>//span[contains(.,'Add Action')]</td>
+	<td>ADD</td>
+	<td>//button[contains(@id, 'addButton')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_DISABLED</td>
+	<td>//button[contains(@id, 'addButton') and @disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISABLED_BUTTON</td>
+	<td>//button[@disabled]</td>
 	<td></td>
 </tr>
 <tr>
@@ -54,6 +66,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADVANCED</td>
+	<td>//div[contains(@class,'nav-wrapper')]//button[contains(.,'Advanced')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADVANCED_REPLY</td>
 	<td>//button/span[contains(.,'Advanced Reply')]</td>
 	<td></td>
@@ -65,7 +82,32 @@
 </tr>
 <tr>
 	<td>ANY</td>
-	<td>//*[contains(@class,'btn')][normalize-space(text())='${key_text}']</td>
+	<td>//*[not(self::div)][contains(@class,'btn')][normalize-space()='${key_text}'][not(contains(@class,'navbar'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_N</td>
+	<td>xpath=(//*[contains(@class,'btn')][normalize-space(text())='${key_text}'])[${key_indexNumber}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_SECONDARY</td>
+	<td>//*[not(self::div)][contains(@class,'btn-secondary')][normalize-space()='${key_text}'][not(contains(@class,'navbar'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_TITLE</td>
+	<td>//button[@title='${key_title}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_TITLE_DISABLED</td>
+	<td>//button[@title='${key_title}' and @disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_WITH_ARIA_LABEL</td>
+	<td>//button[@aria-label='${ariaLabel}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -74,13 +116,33 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ANY_WITH_LABEL</td>
+	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//button[normalize-space()='${key_text}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_WITH_SPAN</td>
+	<td>//button/span[contains(.,'${key_text}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ANY_DISABLED</td>
-	<td>//*[contains(@class,'btn')][normalize-space(text())='${key_text}'][@disabled='']</td>
+	<td>//button[@disabled][contains(@class,'btn')][normalize-space()='${key_text}'] | //button[@disabled][contains(@class,'btn')][@*='${key_text}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRASH_DISABLED</td>
+	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]][@disabled='']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRASH_ENABLED</td>
+	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ANY_ENABLED</td>
-	<td>//*[contains(@class,'btn')][normalize-space(text())='${key_text}'][not(@disabled='')]</td>
+	<td>//button[not(@disabled)][contains(@class,'btn')][normalize-space()='${key_text}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -109,6 +171,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>BUTTON_ID</td>
+	<td>//*[contains(@class,'btn')][contains(@id,'${buttonId}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BUTTON_LABEL</td>
+	<td>//div[./label[normalize-space(text())='${fieldLabel}']]//button[normalize-space()='${text}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CANCEL</td>
 	<td>//a[contains(@class,'cancel') and contains(@class,'btn')] | //button[contains(.,'Cancel')] | //a[contains(@class,'btn') and contains(.,'Cancel')]</td>
 	<td></td>
@@ -119,13 +191,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CHANGE</td>
-	<td>//button[contains(.,'Change')]</td>
+	<td>CANCEL_SPECIAL</td>
+	<td>//div[contains(text(),'Cancel')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>CHANGE_LOGO</td>
-	<td>//button[contains(@class,'edit-logo') and contains(.,'Change')]</td>
+	<td>CHANGE</td>
+	<td>//button[contains(.,'Change')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -185,7 +257,7 @@
 </tr>
 <tr>
 	<td>COLOR_PICKER</td>
-	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')]</td>
+	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')] | //div[contains(@class,'color-picker')][./label[normalize-space(text())='${key_fieldLabel}']]//button[contains(@class,'clay-color-btn')] | //label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'color-picker__selector')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -230,7 +302,7 @@
 </tr>
 <tr>
 	<td>DELETE</td>
-	<td>//*[@data-qa-id='deleteButton'] | //div[contains(@class,'show')]//button[contains(.,'Delete')] | //button[contains(.,'delete')] | //button[contains(@class,'delete-logo')]</td>
+	<td>//*[@data-qa-id='deleteButton'] | //div[contains(@class,'show')]//button[contains(.,'Delete')] | //button[contains(.,'delete')] | //button[contains(.,'Delete')] | //button[contains(@class,'delete-logo')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -244,13 +316,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>DELETE_LAYOUT_LOGO</td>
-	<td>//button[contains(@class,'delete-logo')]</td>
+	<td>DELETE_ROW_N</td>
+	<td>xpath=(//button[contains(@class,'delete-row')])[${key_rowIndexNumber}]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>DELETE_ROW_N</td>
-	<td>xpath=(//button[contains(@class,'delete-row')])[${key_rowIndexNumber}]</td>
+	<td>DELETE_ROW_LAST</td>
+	<td>xpath=(//button[contains(@class,'delete-row')])[last()]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SECONDARY_BY_TITLE</td>
+	<td>//button[contains(@class,'btn-secondary') and contains (@title,'${key_value}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -270,7 +347,12 @@
 </tr>
 <tr>
 	<td>DOWNLOAD</td>
-	<td>//a[2][contains(@class,'btn') and contains(.,'Download')] | //button[contains(.,'Download')]</td>
+	<td>//a[contains(@class,'btn-secondary') and contains(.,'Download')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DOWNLOAD_SIDEBAR</td>
+	<td>//div[contains(@class,'sidebar-section')]//a[contains(@class,'btn') and contains(.,'Download')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -309,11 +391,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>EXECUTE_ACTION</td>
-	<td>//li[contains(.,'${key_actionsDescription}')]//button[contains(.,'Execute')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>EDITOR_SWITCH</td>
 	<td>//div[@class='alloy-editor-switch']/button[contains(@id,'EditorSwitch') and contains(@class,'editor-view')]</td>
 	<td></td>
@@ -334,11 +411,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>FIELD_FILTER_APPLY</td>
-	<td>//tr[contains(.,'${key_fieldName}')]//button[contains(.,'Apply')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>FILTER_EFFECT</td>
 	<td>//a[contains(@class,'btn') and (@data-control='effects')][*[name()='svg'][contains(@class,'lexicon-icon')]]</td>
 	<td></td>
@@ -346,6 +418,11 @@
 <tr>
 	<td>FINISH_CONFIGURATION</td>
 	<td>//button[contains(.,'Finish Configuration')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GENERAL_BUTTON_MODAL_FOOTER</td>
+	<td>//div[contains(@class, 'modal-footer')]//button[contains(@class,'btn-primary')][contains(text(),'${key_name}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -500,7 +577,7 @@
 </tr>
 <tr>
 	<td>PLUS</td>
-	<td>//*[@data-qa-id='addButton'] | //a[contains(@class,'btn') and @aria-label='add'] | //a[contains(@class,'nav-btn') and *[contains(@class,'icon-plus')]] | //button[*[contains(@class,'icon-plus')]]</td>
+	<td>//a[contains(@class,'btn')][contains(@href,'new') or contains(@href,'redirect') or contains(@href,'mvc') or contains(@href,'javascript')][.//*[name()='svg'][contains(@class,'icon-plus')]][not(contains(@class,'borderless'))] | //button[not(contains(@class,'borderless'))][*[contains(@class,'icon-plus')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -516,11 +593,6 @@
 <tr>
 	<td>PREVIOUS</td>
 	<td>//button[contains(.,'Previous')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PROPAGATE</td>
-	<td>//button[contains(@title,'Propagate')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -541,6 +613,11 @@
 <tr>
 	<td>REMOVE_IMAGE</td>
 	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REMOVE_IMAGE_LAST</td>
+	<td>xpath=(//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]])[last()]</td>
 	<td></td>
 </tr>
 <tr>
@@ -599,6 +676,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>RESTORE_DEFAULT</td>
+	<td>//button[@*='Restore Default']/*[contains(@class,'lexicon-icon-restore')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>RESTORE_VALUES</td>
 	<td>//button/span[contains(.,'Restore Values')]</td>
 	<td></td>
@@ -644,6 +726,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CREATE_NEW</td>
+	<td>//button[contains(@class,'btn-sm btn-primary') and text()='Create New']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SEARCH</td>
 	<td>//*[@data-qa-id='searchButton'] | //button[contains(.,'Search')]</td>
 	<td></td>
@@ -651,6 +738,11 @@
 <tr>
 	<td>SEARCH_DISABLED</td>
 	<td>//button[contains(.,'Search')][@disabled='']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_CLOSE</td>
+	<td>//button[contains(@class,'commerce-search__button ')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -694,13 +786,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SELECT_MOBILE_DEVICE_RULES</td>
-	<td>//div[@class='btn-toolbar']/button[contains(.,'Select')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SELECT_OPEN_GRAPH_IMAGE</td>
-	<td>//button[contains(@name,'openGraphImageButton')][contains(.,'Select')]</td>
+	<td>TRANSLATIONS_DONE</td>
+	<td>//a[contains(@class,'btn-sm btn-primary') and text()='Done']</td>
 	<td></td>
 </tr>
 <tr>
@@ -709,13 +796,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CLEAR_OPEN_GRAPH_IMAGE</td>
-	<td>//button[contains(@name,'openGraphClearImageButton')][contains(.,'Clear')]</td>
+	<td>SEND_INVITATIONS</td>
+	<td>//button[contains(@id,'InviteMembersPortlet')]//span[contains(.,'Send Invitations')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SEND_INVITATIONS</td>
-	<td>//button[contains(@id,'InviteMembersPortlet')]//span[contains(.,'Send Invitations')]</td>
+	<td>SEND_NEW_PASSWORD</td>
+	<td>//button[contains(.,'Send New Password')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -764,8 +851,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MODAL_IFRAME_FOOTER_SUBMIT</td>
+	<td>//div[@class='modal-iframe-footer']/button[@type='submit']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TAB_SUBMIT_BTN</td>
 	<td>//button[contains(@type,'submit') and contains(.,'${key_tab}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARROW_SUBMIT_BTN</td>
+	<td>//button[@type='submit'][contains(@class,'btn-primary')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -775,7 +872,7 @@
 </tr>
 <tr>
 	<td>TRY_REDIRECTION</td>
-	<td>//button[@type='button' and @title='Check URL']</td>
+	<td>//button[@type='button' and @*='Check URL']</td>
 	<td></td>
 </tr>
 <tr>
@@ -849,13 +946,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>WEB_CONTENT_CHOOSE</td>
-	<td>//tr[contains(.,'${key_webContentTitle}')]/td//button</td>
+	<td>YOUTUBE_PLAY</td>
+	<td>//button[contains(@class,'ytp-large-play-button')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>YOUTUBE_PLAY</td>
-	<td>//button[contains(@class,'ytp-large-play-button')]</td>
+	<td>BUTTON_PLUS_PRODUCT_VISIBILITY</td>
+	<td>//li[contains(@class,'nav-item')]//button[contains(@title,'${key_webContentTitle}')]</td>
 	<td></td>
 </tr>
 </tbody>

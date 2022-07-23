@@ -1,0 +1,16 @@
+{
+	"bcc": "",
+	"cc": "",
+	"description": "",
+	"enabled": true,
+	"from": "do-not-reply@raylife.com",
+	"fromName": {
+		"en-US": "Raylife"
+	},
+	"name": "Quote retrieve notification template",
+	"subject": {
+		"en-US": "Continue your Raylife [%PRODUCTNAME%] quote"
+	},
+	"to": "[%RETRIEVEEMAIL%]",
+	"type": "com.liferay.object.model.ObjectDefinition#[$OBJECT_DEFINITION_ID:QuoteRetrieve$]#create"
+}

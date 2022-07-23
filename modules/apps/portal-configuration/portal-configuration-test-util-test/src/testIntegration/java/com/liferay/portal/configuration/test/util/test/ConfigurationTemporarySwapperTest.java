@@ -16,6 +16,7 @@ package com.liferay.portal.configuration.test.util.test;
 
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Dictionary;
 
@@ -54,9 +55,10 @@ public class ConfigurationTemporarySwapperTest
 		Integer valueToPreserve = 250;
 		int temporaryValue = 300;
 
-		Dictionary<String, Object> temporaryValues = new HashMapDictionary<>();
-
-		temporaryValues.put(testKey, valueToPreserve);
+		Dictionary<String, Object> temporaryValues =
+			HashMapDictionaryBuilder.<String, Object>put(
+				testKey, valueToPreserve
+			).build();
 
 		Configuration testConfiguration = getConfiguration();
 
@@ -87,9 +89,10 @@ public class ConfigurationTemporarySwapperTest
 		String testKey = "permissionTermsLimit";
 		Integer testValue = 300;
 
-		Dictionary<String, Object> temporaryValues = new HashMapDictionary<>();
-
-		temporaryValues.put(testKey, testValue);
+		Dictionary<String, Object> temporaryValues =
+			HashMapDictionaryBuilder.<String, Object>put(
+				testKey, testValue
+			).build();
 
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(

@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.Phone;
 import com.liferay.portal.kernel.model.PhoneModel;
-import com.liferay.portal.kernel.model.PhoneSoap;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -34,21 +33,20 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -181,61 +179,6 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 64L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Phone toModel(PhoneSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Phone model = new PhoneImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setPhoneId(soapModel.getPhoneId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setNumber(soapModel.getNumber());
-		model.setExtension(soapModel.getExtension());
-		model.setTypeId(soapModel.getTypeId());
-		model.setPrimary(soapModel.isPrimary());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Phone> toModels(PhoneSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Phone> models = new ArrayList<Phone>(soapModels.length);
-
-		for (PhoneSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.Phone"));
@@ -318,33 +261,6 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Phone>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Phone.class.getClassLoader(), Phone.class, ModelWrapper.class);
-
-		try {
-			Constructor<Phone> constructor =
-				(Constructor<Phone>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Phone, Object>>
@@ -825,6 +741,33 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	}
 
 	@Override
+	public Phone cloneWithOriginalValues() {
+		PhoneImpl phoneImpl = new PhoneImpl();
+
+		phoneImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		phoneImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		phoneImpl.setPhoneId(this.<Long>getColumnOriginalValue("phoneId"));
+		phoneImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		phoneImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		phoneImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		phoneImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		phoneImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		phoneImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		phoneImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		phoneImpl.setNumber(this.<String>getColumnOriginalValue("number_"));
+		phoneImpl.setExtension(
+			this.<String>getColumnOriginalValue("extension"));
+		phoneImpl.setTypeId(this.<Long>getColumnOriginalValue("typeId"));
+		phoneImpl.setPrimary(this.<Boolean>getColumnOriginalValue("primary_"));
+
+		return phoneImpl;
+	}
+
+	@Override
 	public int compareTo(Phone phone) {
 		int value = 0;
 
@@ -970,7 +913,7 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -980,9 +923,26 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 			String attributeName = entry.getKey();
 			Function<Phone, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Phone)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Phone)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1028,7 +988,9 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Phone>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Phone.class, ModelWrapper.class);
 
 	}
 

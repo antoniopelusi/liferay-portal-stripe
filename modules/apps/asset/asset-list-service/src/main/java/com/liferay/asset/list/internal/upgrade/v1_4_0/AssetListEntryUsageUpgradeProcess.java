@@ -15,7 +15,6 @@
 package com.liferay.asset.list.internal.upgrade.v1_4_0;
 
 import com.liferay.asset.list.constants.AssetListEntryUsageConstants;
-import com.liferay.asset.list.internal.upgrade.v1_4_0.util.AssetListEntryUsageTable;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
@@ -33,20 +32,19 @@ public class AssetListEntryUsageUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeSchema();
+		_upgradeSchema();
 	}
 
-	protected void upgradeSchema() throws Exception {
-		alter(
-			AssetListEntryUsageTable.class,
-			new AlterTableAddColumn("containerKey", "VARCHAR(255) null"),
-			new AlterTableAddColumn("containerType", "LONG"),
-			new AlterTableAddColumn("key_", "VARCHAR(255) null"),
-			new AlterTableAddColumn("plid", "LONG"),
-			new AlterTableAddColumn("type_", "INTEGER"));
+	private void _upgradeSchema() throws Exception {
+		alterTableAddColumn(
+			"AssetListEntryUsage", "containerKey", "VARCHAR(255) null");
+		alterTableAddColumn("AssetListEntryUsage", "containerType", "LONG");
+		alterTableAddColumn("AssetListEntryUsage", "key_", "VARCHAR(255) null");
+		alterTableAddColumn("AssetListEntryUsage", "plid", "LONG");
+		alterTableAddColumn("AssetListEntryUsage", "type_", "INTEGER");
 
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				SQLTransformer.transform(
 					StringBundler.concat(
 						"update AssetListEntryUsage set classNameId = ?, ",
@@ -54,11 +52,14 @@ public class AssetListEntryUsageUpgradeProcess extends UpgradeProcess {
 						"CAST_TEXT(assetListEntryId), plid = classPK, type_ = ",
 						"?")))) {
 
-			ps1.setLong(1, PortalUtil.getClassNameId(AssetListEntry.class));
-			ps1.setLong(2, PortalUtil.getClassNameId(Portlet.class));
-			ps1.setInt(3, AssetListEntryUsageConstants.TYPE_LAYOUT);
+			preparedStatement1.setLong(
+				1, PortalUtil.getClassNameId(AssetListEntry.class));
+			preparedStatement1.setLong(
+				2, PortalUtil.getClassNameId(Portlet.class));
+			preparedStatement1.setInt(
+				3, AssetListEntryUsageConstants.TYPE_LAYOUT);
 
-			ps1.execute();
+			preparedStatement1.execute();
 		}
 	}
 

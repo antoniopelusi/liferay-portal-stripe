@@ -84,21 +84,13 @@ public class MySitesPersonalMenuEntry implements PersonalMenuEntry {
 			RequestBackedPortletURLFactoryUtil.create(httpServletRequest),
 			eventName, itemSelectorCriterion);
 
-		StringBundler sb = new StringBundler(11);
-
-		sb.append("javascript:Liferay.Util.openSelectionModal({id: '");
-		sb.append(namespace);
-		sb.append("selectSite', onSelect: function(selectedItem) ");
-		sb.append("{Liferay.Util.navigate(selectedItem.url);}");
-		sb.append(", selectEventName: '");
-		sb.append(eventName);
-		sb.append("', title: '");
-		sb.append(_language.get(httpServletRequest, "select-site"));
-		sb.append("', url:'");
-		sb.append(HtmlUtil.escapeJS(itemSelectorURL.toString()));
-		sb.append("'});");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"javascript:Liferay.Util.openSelectionModal({id: '", namespace,
+			"selectSite', onSelect: function(selectedItem) ",
+			"{Liferay.Util.navigate(selectedItem.url);}",
+			", selectEventName: '", eventName, "', title: '",
+			_language.get(httpServletRequest, "select-site"), "', url:'",
+			HtmlUtil.escapeJS(itemSelectorURL.toString()), "'});");
 	}
 
 	@Override

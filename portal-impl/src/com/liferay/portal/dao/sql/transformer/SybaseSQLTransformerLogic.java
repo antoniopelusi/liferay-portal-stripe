@@ -60,15 +60,10 @@ public class SybaseSQLTransformerLogic extends BaseSQLTransformerLogic {
 
 	@Override
 	protected String replaceDropTableIfExistsText(Matcher matcher) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("IF EXISTS(select 1 from sysobjects where name = '$1' and ");
-		sb.append("type = 'U')\n");
-		sb.append("BEGIN\n");
-		sb.append("DROP TABLE $1\n");
-		sb.append("END");
-
-		return matcher.replaceAll(sb.toString());
+		return matcher.replaceAll(
+			StringBundler.concat(
+				"IF EXISTS(select 1 from sysobjects where name = '$1' and ",
+				"type = 'U')\n", "BEGIN\n", "DROP TABLE $1\n", "END"));
 	}
 
 	private Function<String, String> _getCrossJoinFunction() {

@@ -68,23 +68,29 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 	public int doStartTag() throws JspException {
 		int result = super.doStartTag();
 
-		setNamespacedAttribute(request, "ddmFormHTML", getDDMFormHTML());
+		HttpServletRequest httpServletRequest = getRequest();
+
 		setNamespacedAttribute(
-			request, "ddmFormInstance", getDDMFormInstance());
+			httpServletRequest, "ddmFormHTML", getDDMFormHTML());
 		setNamespacedAttribute(
-			request, "hasAddFormInstanceRecordPermission",
+			httpServletRequest, "ddmFormInstance", getDDMFormInstance());
+		setNamespacedAttribute(
+			httpServletRequest, "hasAddFormInstanceRecordPermission",
 			hasAddFormInstanceRecordPermission());
 		setNamespacedAttribute(
-			request, "hasViewFormInstancePermission",
+			httpServletRequest, "hasViewFormInstancePermission",
 			hasViewFormInstancePermission());
-		setNamespacedAttribute(request, "isFormAvailable", isFormAvailable());
 		setNamespacedAttribute(
-			request, "languageId",
-			LocaleUtil.toLanguageId(getLocale(request, getDDMForm())));
-		setNamespacedAttribute(request, "redirectURL", getRedirectURL());
+			httpServletRequest, "isFormAvailable", isFormAvailable());
 		setNamespacedAttribute(
-			request, "resourceBundle",
-			getResourceBundle(getLocale(request, getDDMForm())));
+			httpServletRequest, "languageId",
+			LocaleUtil.toLanguageId(
+				getLocale(httpServletRequest, getDDMForm())));
+		setNamespacedAttribute(
+			httpServletRequest, "redirectURL", getRedirectURL());
+		setNamespacedAttribute(
+			httpServletRequest, "resourceBundle",
+			getResourceBundle(getLocale(httpServletRequest, getDDMForm())));
 
 		return result;
 	}
@@ -102,14 +108,17 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 
 		ddmFormRenderingContext.setGroupId(ddmFormInstance.getGroupId());
 
-		ddmFormRenderingContext.setHttpServletRequest(request);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		ddmFormRenderingContext.setHttpServletRequest(httpServletRequest);
 
 		RenderResponse renderResponse = getRenderResponse();
 
 		ddmFormRenderingContext.setHttpServletResponse(
 			PortalUtil.getHttpServletResponse(renderResponse));
 
-		ddmFormRenderingContext.setLocale(getLocale(request, ddmForm));
+		ddmFormRenderingContext.setLocale(
+			getLocale(httpServletRequest, ddmForm));
 		ddmFormRenderingContext.setViewMode(true);
 
 		setDDMFormValues(ddmFormRenderingContext, ddmForm);
@@ -142,7 +151,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -165,7 +174,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -226,7 +235,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -267,7 +276,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -275,7 +284,9 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 	}
 
 	protected RenderResponse getRenderResponse() {
-		return (RenderResponse)request.getAttribute(
+		HttpServletRequest httpServletRequest = getRequest();
+
+		return (RenderResponse)httpServletRequest.getAttribute(
 			JavaConstants.JAVAX_PORTLET_RESPONSE);
 	}
 
@@ -309,7 +320,10 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 	}
 
 	protected ThemeDisplay getThemeDisplay() {
-		return (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		return (ThemeDisplay)httpServletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 	}
 
 	protected boolean hasAddFormInstanceRecordPermission() {
@@ -328,7 +342,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 		}
@@ -352,7 +366,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 		}
@@ -376,11 +390,9 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 			Group group = DDMFormTaglibUtil.getGroup(
 				ddmFormInstance.getGroupId());
 
-			if ((group != null) && group.isStagingGroup()) {
-				return false;
-			}
+			if (((group != null) && group.isStagingGroup()) ||
+				!hasViewFormInstancePermission()) {
 
-			if (!hasViewFormInstancePermission()) {
 				return false;
 			}
 
@@ -394,7 +406,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 		DDMFormRenderingContext ddmFormRenderingContext, DDMForm ddmForm) {
 
 		DDMFormValues ddmFormValues = DDMFormTaglibUtil.createDDMFormValues(
-			request, ddmForm);
+			getRequest(), ddmForm);
 
 		try {
 			if (getDdmFormInstanceRecordVersionId() != null) {
@@ -422,7 +434,7 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

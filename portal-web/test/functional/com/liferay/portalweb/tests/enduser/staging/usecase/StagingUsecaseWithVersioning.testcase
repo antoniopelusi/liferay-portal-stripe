@@ -42,13 +42,13 @@ definition {
 			copySitePagesVariationName = "Main Variation",
 			sitePagesVariationName = "Summer");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		Staging.viewSitePagesVariationActiveCP(sitePagesVariationName = "Summer");
 
-		SitePages.addPublicPageUnderSitePagesVariation(pageName = "Test Page Name");
+		PagesAdmin.addPageUnderSitePagesVariation(pageName = "Test Page Name");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		Staging.changeSitePageVariationCP(sitePagesVariationName = "Main Variation");
 
@@ -56,17 +56,13 @@ definition {
 
 		AssertElementNotPresent(
 			key_itemName = "Test Page Name",
-			locator1 = "SitePages#LIST_GROUP_ITEM");
+			locator1 = "PagesAdmin#LIST_GROUP_ITEM");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		Staging.viewSitePagesVariationPG(sitePagesVariationName = "Summer");
-
-		Staging.changeSitePageVariationPG(
-			sitePagesVariationMenulistName = "Main Variation",
-			sitePagesVariationName = "Summer");
+		Staging.viewSitePagesVariationPG(sitePagesVariationName = "Main Variation");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Test Page Name",
@@ -83,9 +79,9 @@ definition {
 			copySitePagesVariationName = "Main Variation",
 			sitePagesVariationName = "Summer");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicChildPage(
+		PagesAdmin.addChildPage(
 			childPageName = "Page 1",
 			parentPageName = "Staging Test Page");
 
@@ -97,9 +93,7 @@ definition {
 			sitePagesVariationMenulistName = "Main Variation",
 			sitePagesVariationName = "Summer");
 
-		Page.viewNoPage(
-			pageName = "Page 1",
-			privacy = "Public Pages");
+		PagesAdmin.viewPageItemNotPresent(pageName = "Page 1");
 	}
 
 	@priority = "3"
@@ -122,28 +116,26 @@ definition {
 			pageTemplateName = "Page Template Name",
 			pageTemplateType = "Widget Page Template");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			collectionName = "Page Template Collection",
 			pageName = "Test Page Name",
 			pageTemplateName = "Page Template Name");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.gotoPageMenuItem(
+		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",
 			pageName = "Test Page Name");
 
-		Page.editName(pageNameEdit = "Test Page Edit");
+		PagesAdmin.editName(pageNameEdit = "Test Page Edit");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Test Page Edit",
 			siteName = "Site Name");
 
-		Page.view(
-			pageName = "Test Page Edit",
-			privacy = "Public Pages");
+		PagesAdmin.viewPageItemPresent(pageName = "Test Page Edit");
 	}
 
 	@priority = "4"
@@ -152,9 +144,9 @@ definition {
 			copySitePagesVariationName = "Main Variation",
 			sitePagesVariationName = "Test Site Pages Variation");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Test Page Name");
+		PagesAdmin.addPage(pageName = "Test Page Name");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Test Page Name",
@@ -168,28 +160,25 @@ definition {
 
 		Staging.enablePageInSitePagesVariation(
 			pageName = "Test Page Name",
-			privacy = "Public Pages",
 			sitePagesVariationName = "Main Variation");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.deletePage(pageName = "Test Page Name");
+		PagesAdmin.deletePage(pageName = "Test Page Name");
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
 			portlet = "Pages");
 
-		Page.viewNoPage(
-			pageName = "Test Page Name",
-			privacy = "Public Pages");
+		PagesAdmin.viewPageItemNotPresent(pageName = "Test Page Name");
 	}
 
 	@description = "This is a use case for LPS-78292."
 	@priority = "4"
 	test PublicationWithoutReadyForPublication {
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Staging Test Page 2");
+		PagesAdmin.addPage(pageName = "Staging Test Page 2");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page 2",
@@ -203,9 +192,7 @@ definition {
 
 		Navigator.openSiteURL(siteName = "Site Name");
 
-		Page.viewNoPage(
-			pageName = "Staging Test Page 2",
-			privacy = "Public Pages");
+		PagesAdmin.viewPageItemNotPresent(pageName = "Staging Test Page 2");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page 2",
@@ -223,9 +210,7 @@ definition {
 
 		IFrame.selectConfigurationFrame();
 
-		Portlet.configureCustomTitleViaLookandfeelPG(portletName = "IFrame");
-
-		PortletEntry.save();
+		Portlet.configureGeneralViaLookAndFeelPG(customTitle = "IFrame Custom");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page 2",
@@ -274,13 +259,9 @@ definition {
 
 		IFrame.selectConfigurationFrame();
 
-		Portlet.configureCustomTitleViaLookandfeelPG(portletName = "Sites Directory");
-
-		PortletEntry.save();
-
-		Portlet.configureApplicationDecoratorViaLookandfeelPG(applicationDecorator = "Decorate");
-
-		PortletEntry.save();
+		Portlet.configureGeneralViaLookAndFeelPG(
+			applicationDecorators = "Decorate",
+			customTitle = "Sites Directory Custom");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page",
@@ -332,9 +313,9 @@ definition {
 			workflowDefinition = "Single Approver",
 			workflowResourceValue = "Page Revision");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Page Revision Page");
+		PagesAdmin.addPage(pageName = "Page Revision Page");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Page Revision Page",
@@ -371,9 +352,7 @@ definition {
 
 		IFrame.selectConfigurationFrame();
 
-		Portlet.selectApplicationDecorator(decorator = "Barebone");
-
-		PortletEntry.save();
+		Portlet.configureGeneralViaLookAndFeelPG(applicationDecorators = "Barebone");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Page Revision Page",
@@ -439,7 +418,7 @@ definition {
 		Portlet.addPG(portletName = "Blogs");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Blogs");
 
 		BlogsNavigator.gotoAddEntry();
@@ -620,9 +599,9 @@ definition {
 			sitePagesVariationMenulistName = "Main Variation",
 			sitePagesVariationName = "Summer");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Page 2");
+		PagesAdmin.addPage(pageName = "Page 2");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Page 2",
@@ -677,9 +656,9 @@ definition {
 			sitePagesVariationMenulistName = "Main Variation",
 			sitePagesVariationName = "Summer");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Page 2");
+		PagesAdmin.addPage(pageName = "Page 2");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Page 2",
@@ -709,7 +688,6 @@ definition {
 
 		Staging.enablePageInSitePagesVariation(
 			pageName = "Page 2",
-			privacy = "Public Pages",
 			sitePagesVariationName = "Summer");
 
 		Navigator.gotoStagedSitePage(
@@ -753,7 +731,7 @@ definition {
 
 		Navigator.gotoStagedView();
 
-		Page.changeLayoutLogo(
+		PagesAdmin.changeLogo(
 			logoFile = "Document_2.png",
 			pageName = "Staging Test Page");
 
@@ -830,7 +808,8 @@ definition {
 	test StagingPublishLast {
 		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
-		property environment.acceptance = "quarantine";
+		property environment.acceptance = "true";
+		property portal.acceptance = "true";
 
 		Navigator.openSiteURL(siteName = "Site Name");
 
@@ -927,9 +906,9 @@ definition {
 
 		Staging.addSitePagesVariationPG(sitePagesVariationName = "Site Pages Variation Name");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Test Page Name");
+		PagesAdmin.addPage(pageName = "Test Page Name");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Test Page Name",
@@ -943,7 +922,6 @@ definition {
 
 		Staging.enablePageInSitePagesVariation(
 			pageName = "Test Page Name",
-			privacy = "Public Pages",
 			sitePagesVariationName = "Main Variation");
 	}
 
@@ -960,9 +938,9 @@ definition {
 
 		PageTemplatesAdmin.configureWidgetPageTemplateLayout(columnName = "1 Column");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			collectionName = "Page Template Collection",
 			inheritChanges = "false",
 			pageName = "Test Page Name",
@@ -972,13 +950,11 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.togglePrivacy(privacy = "Public Pages");
-
-		SitePages.gotoPageMenuItem(
+		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",
 			pageName = "Test Page Name");
 
-		Page.viewPageLayoutColumn(columnName = "1 Column");
+		PagesAdmin.viewSelectedLayoutColumn(columnName = "1 Column");
 	}
 
 	@priority = "4"
@@ -1051,26 +1027,25 @@ definition {
 	test ViewChildPageNameViaLocalizedPage {
 		property test.name.skip.portal.instance = "StagingUsecaseWithVersioning#ViewChildPageNameViaLocalizedPage";
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Page1");
+		PagesAdmin.addPage(pageName = "Page1");
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.gotoPageMenuItem(
+		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",
 			pageName = "Page1");
 
-		Page.addPageTranslations(
-			page = "Page1",
-			pageTranslation = "es_ES",
-			pageTranslationName = "Página1");
+		PagesAdmin.addLocalizedName(
+			localeList = "es-ES",
+			localizedNameList = "Página1");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicChildPage(
+		PagesAdmin.addChildPage(
 			childPageName = "Page2",
 			parentPageName = "Page1");
 
@@ -1078,15 +1053,14 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.gotoPageMenuItem(
+		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",
 			pageName = "Page2",
 			parentPagesHierarchy = "Page1");
 
-		Page.addPageTranslations(
-			page = "Page2",
-			pageTranslation = "es_ES",
-			pageTranslationName = "Página2");
+		PagesAdmin.addLocalizedName(
+			localeList = "es-ES",
+			localizedNameList = "Página2");
 
 		Navigator.openStagingSiteURL(siteName = "Site Name");
 
@@ -1151,6 +1125,7 @@ definition {
 		SearchPortlets.searchWidget(searchTerm = "test");
 
 		var currentURL = Navigator.getCurrentURL();
+
 		var keywordsParameterName = StringUtil.extractLast("${currentURL}", "?");
 		var keywordsParameter = StringUtil.extractFirst("${keywordsParameterName}", "=");
 
@@ -1164,9 +1139,9 @@ definition {
 	@description = "This is a use case for LPS-98894."
 	@priority = "4"
 	test ViewSummaryScreenWithDraftPage {
-		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
-		SitePages.addPublicPage(pageName = "Draft Page");
+		PagesAdmin.addPage(pageName = "Draft Page");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Draft Page",

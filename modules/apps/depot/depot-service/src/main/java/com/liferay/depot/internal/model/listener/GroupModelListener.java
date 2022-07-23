@@ -39,9 +39,7 @@ public class GroupModelListener extends BaseModelListener<Group> {
 
 	@Override
 	public void onAfterRemove(Group group) throws ModelListenerException {
-		super.onAfterRemove(group);
-
-		if ((group != null) || group.isDepot()) {
+		if ((group != null) && group.isDepot()) {
 			TransactionCommitCallbackUtil.registerCallback(
 				() -> {
 					DepotEntry depotEntry =
@@ -49,7 +47,8 @@ public class GroupModelListener extends BaseModelListener<Group> {
 							group.getGroupId());
 
 					if (depotEntry != null) {
-						_depotEntryLocalService.deleteDepotEntry(depotEntry);
+						_depotEntryLocalService.deleteDepotEntry(
+							depotEntry.getDepotEntryId());
 					}
 
 					return null;
@@ -60,8 +59,6 @@ public class GroupModelListener extends BaseModelListener<Group> {
 	@Override
 	public void onBeforeCreate(Group group) throws ModelListenerException {
 		try {
-			super.onBeforeCreate(group);
-
 			ServiceContext serviceContext =
 				ServiceContextThreadLocal.getServiceContext();
 
@@ -79,8 +76,6 @@ public class GroupModelListener extends BaseModelListener<Group> {
 
 	@Override
 	public void onBeforeRemove(Group group) throws ModelListenerException {
-		super.onBeforeRemove(group);
-
 		if (!group.isSite()) {
 			return;
 		}

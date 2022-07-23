@@ -52,13 +52,9 @@ definition {
 			videoShortcutTitle = "Test YouTube Video",
 			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Site Name");
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
 
 		Navigator.openSiteURL(siteName = "Site Name");
 
@@ -71,11 +67,10 @@ definition {
 			videoShortcutTitle = "Test YouTube Video",
 			viewVideoHelpMessage = "true");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		BlogsNavigator.gotoEntryPG(
-			entryContent = "video",
-			entryTitle = "Blogs Entry Title");
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry Title",
+			layoutName = "Page Name",
+			siteURLKey = "site-name");
 
 		BlogsEntry.viewEntryPG(
 			embedVideo = "true",
@@ -109,17 +104,9 @@ definition {
 
 		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Shortened URL Depot Name");
 
-		WebContentNavigator.gotoPreviewEntryCP(webContentTitle = "WC WebContent Title");
-
-		Pause(locator1 = "3000");
-
-		SelectFrame(
-			key_title = "WC WebContent Title",
-			locator1 = "IFrame#MODAL_ANY");
-
-		AssertVisible(
-			key_service = "https://www.youtube.com",
-			locator1 = "WCPreview#BODY_FIELD_VIDEO");
+		WebContent.viewVideoPreview(
+			service = "youtube",
+			webContentTitle = "WC WebContent Title");
 	}
 
 	@description = "This ensures that a depot video shortcut associated with a tag can be searched from the connected site."
@@ -145,15 +132,11 @@ definition {
 			videoShortcutTitle = "Test YouTube Video",
 			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
 
-		DepotNavigator.openDepotAdmin();
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
 
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Site Name");
-
-		Navigator.gotoSitePage(
+		Navigator.openSitePage(
 			pageName = "Page Name",
 			siteName = "Site Name");
 
@@ -187,13 +170,9 @@ definition {
 			videoShortcutTitle = "Test Vimeo Video",
 			videoURL = "https://vimeo.com/483035084");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Site Name");
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
 
 		DepotNavigator.openDepotAdmin();
 
@@ -203,7 +182,7 @@ definition {
 			siteList = "Site Name",
 			tableEntryText = "No");
 
-		Navigator.gotoSitePage(
+		Navigator.openSitePage(
 			pageName = "Page Name",
 			siteName = "Site Name");
 
@@ -222,25 +201,13 @@ definition {
 			videoShortcutTitle = "Test YouTube Video",
 			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
 
-		DepotNavigator.openDepotAdmin();
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
 
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+		JSONDepot.disconnectSite(groupName = "Site Name");
 
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Site Name");
-
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.disconnectSite(siteList = "Site Name");
-
-		BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name");
-
-		BlogsNavigator.gotoAddEntry();
+		BlogsNavigator.openToAddEntry(siteURLKey = "site-name");
 
 		BlogsEntry.addTitle(entryTitle = "Blogs Entry Title");
 
@@ -261,11 +228,10 @@ definition {
 	test ViewInRelatedAssets {
 		property test.name.skip.portal.instance = "DepotVideoShortcut#ViewInRelatedAssets";
 
-		Navigator.gotoSitePage(
-			pageName = "Page Name",
-			siteName = "Site Name");
-
-		Portlet.addPG(portletName = "Asset Publisher");
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page Name",
+			widgetName = "Asset Publisher");
 
 		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
 
@@ -273,13 +239,9 @@ definition {
 			videoShortcutTitle = "Test YouTube Video",
 			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Site Name");
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 

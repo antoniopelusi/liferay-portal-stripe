@@ -44,7 +44,7 @@ AUI.add(
 				if (isObject(key)) {
 					method = 'setAll';
 				}
-				else if (arguments.length == 1) {
+				else if (arguments.length === 1) {
 					method = null;
 				}
 			}
@@ -66,7 +66,7 @@ AUI.add(
 					},
 				};
 
-				if (cmd == 'getAll') {
+				if (cmd === 'getAll') {
 					config.dataType = 'json';
 				}
 
@@ -121,7 +121,7 @@ AUI.add(
 										data.substring(TOKEN_SERIALIZE.length)
 									);
 								}
-								catch (e) {}
+								catch (error) {}
 							}
 						}
 
@@ -154,21 +154,21 @@ AUI.add(
 			set(key, value) {
 				var instance = this;
 
-				var obj = {};
+				var object = {};
 
 				if (isObject(value)) {
 					value = TOKEN_SERIALIZE + JSON.stringify(value);
 				}
 
-				obj[key] = value;
+				object[key] = value;
 
-				instance._setValues(obj);
+				instance._setValues(object);
 			},
 
-			setAll(obj) {
+			setAll(object) {
 				var instance = this;
 
-				instance._setValues(obj);
+				instance._setValues(object);
 			},
 		});
 

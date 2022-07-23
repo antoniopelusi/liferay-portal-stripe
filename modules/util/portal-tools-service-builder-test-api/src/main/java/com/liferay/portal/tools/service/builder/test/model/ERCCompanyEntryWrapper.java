@@ -70,6 +70,11 @@ public class ERCCompanyEntryWrapper
 		}
 	}
 
+	@Override
+	public ERCCompanyEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this erc company entry.
 	 *

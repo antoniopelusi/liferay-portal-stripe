@@ -148,6 +148,11 @@ public class SharingEntryWrapper
 		}
 	}
 
+	@Override
+	public SharingEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the action IDs of this sharing entry.
 	 *

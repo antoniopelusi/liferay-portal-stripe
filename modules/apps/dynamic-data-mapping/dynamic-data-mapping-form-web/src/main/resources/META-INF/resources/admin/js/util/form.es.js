@@ -12,16 +12,6 @@
  * details.
  */
 
-export const createFormURL = (
-	path = '',
-	{
-		formInstanceId,
-		requireAuthentication = false,
-		restrictedFormURL,
-		sharedFormURL,
-	} = {}
-) => {
-	const formURL = requireAuthentication ? restrictedFormURL : sharedFormURL;
-
-	return formURL + formInstanceId + path;
-};
+export function createFormURL(path = '', {formInstanceId, sharedFormURL} = {}) {
+	return sharedFormURL + formInstanceId + path;
+}

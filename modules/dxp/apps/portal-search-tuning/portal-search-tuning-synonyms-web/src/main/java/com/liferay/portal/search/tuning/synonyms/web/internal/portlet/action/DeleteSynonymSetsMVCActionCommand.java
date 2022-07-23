@@ -14,6 +14,7 @@
 
 package com.liferay.portal.search.tuning.synonyms.web.internal.portlet.action;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -24,7 +25,7 @@ import com.liferay.portal.search.tuning.synonyms.index.name.SynonymSetIndexNameB
 import com.liferay.portal.search.tuning.synonyms.web.internal.constants.SynonymsPortletKeys;
 import com.liferay.portal.search.tuning.synonyms.web.internal.index.SynonymSet;
 import com.liferay.portal.search.tuning.synonyms.web.internal.index.SynonymSetIndexReader;
-import com.liferay.portal.search.tuning.synonyms.web.internal.index.SynonymSetIndexWriter;
+import com.liferay.portal.search.tuning.synonyms.web.internal.storage.SynonymSetStorageAdapter;
 import com.liferay.portal.search.tuning.synonyms.web.internal.synchronizer.IndexToFilterSynchronizer;
 
 import java.util.List;
@@ -66,7 +67,8 @@ public class DeleteSynonymSetsMVCActionCommand extends BaseMVCActionCommand {
 			getDeletedSynonymSets(actionRequest, synonymSetIndexName));
 
 		_indexToFilterSynchronizer.copyToFilter(
-			synonymSetIndexName, _indexNameBuilder.getIndexName(companyId));
+			synonymSetIndexName, _indexNameBuilder.getIndexName(companyId),
+			true);
 
 		sendRedirect(actionRequest, actionResponse);
 	}
@@ -88,11 +90,13 @@ public class DeleteSynonymSetsMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	protected void removeSynonymSets(
-		SynonymSetIndexName synonymSetIndexName, List<SynonymSet> synonymSets) {
+			SynonymSetIndexName synonymSetIndexName,
+			List<SynonymSet> synonymSets)
+		throws PortalException {
 
 		for (SynonymSet synonymSet : synonymSets) {
-			_synonymSetIndexWriter.remove(
-				synonymSetIndexName, synonymSet.getId());
+			_synonymSetStorageAdapter.delete(
+				synonymSetIndexName, synonymSet.getSynonymSetDocumentId());
 		}
 	}
 
@@ -112,6 +116,6 @@ public class DeleteSynonymSetsMVCActionCommand extends BaseMVCActionCommand {
 	private SynonymSetIndexReader _synonymSetIndexReader;
 
 	@Reference
-	private SynonymSetIndexWriter _synonymSetIndexWriter;
+	private SynonymSetStorageAdapter _synonymSetStorageAdapter;
 
 }

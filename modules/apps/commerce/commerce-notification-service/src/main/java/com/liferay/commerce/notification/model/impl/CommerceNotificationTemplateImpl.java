@@ -19,8 +19,4 @@ package com.liferay.commerce.notification.model.impl;
  */
 public class CommerceNotificationTemplateImpl
 	extends CommerceNotificationTemplateBaseImpl {
-
-	public CommerceNotificationTemplateImpl() {
-	}
-
 }

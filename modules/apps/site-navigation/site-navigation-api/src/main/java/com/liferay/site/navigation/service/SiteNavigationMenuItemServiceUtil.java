@@ -58,6 +58,14 @@ public class SiteNavigationMenuItemServiceUtil {
 			siteNavigationMenuItemId);
 	}
 
+	public static SiteNavigationMenuItem deleteSiteNavigationMenuItem(
+			long siteNavigationMenuItemId, boolean deleteChildren)
+		throws PortalException {
+
+		return getService().deleteSiteNavigationMenuItem(
+			siteNavigationMenuItemId, deleteChildren);
+	}
+
 	public static void deleteSiteNavigationMenuItems(long siteNavigationMenuId)
 		throws PortalException {
 
@@ -71,6 +79,13 @@ public class SiteNavigationMenuItemServiceUtil {
 	 */
 	public static String getOSGiServiceIdentifier() {
 		return getService().getOSGiServiceIdentifier();
+	}
+
+	public static List<Long> getParentSiteNavigationMenuItemIds(
+		long siteNavigationMenuId, String typeSettingsKeyword) {
+
+		return getService().getParentSiteNavigationMenuItemIds(
+			siteNavigationMenuId, typeSettingsKeyword);
 	}
 
 	public static List<SiteNavigationMenuItem> getSiteNavigationMenuItems(

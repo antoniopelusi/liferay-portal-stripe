@@ -1,0 +1,53 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+
+		ACSettings.takeTokenFromAnalyticsCloud();
+
+		TestCase.setUpPortalInstance();
+
+		ACUtils.launchDXP();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Assert a newly connected data source is listed as a source of individual attributes in Definitions > Individuals."
+	@priority = "5"
+	test AssertNewSourceInSourceListForIndividualAttribute {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+		var dataSource = StringUtil.replace("${propertyName}", " Combined Property", "");
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToSettings();
+
+		ACSettings.goToDefinitions();
+
+		ACDefinitions.goToDefinitionType(definitionType = "Individuals");
+
+		ACDefinitions.assertIndividualAttributesSource(
+			attributeList = "additionalName,address,birthDate,classPK,contactId,createDate,email,familyName,gender,givenName,jobTitle,modifiedDate,telephone,timeZoneId,userId,uuid",
+			dataSourceName = "${dataSource}");
+	}
+
+}

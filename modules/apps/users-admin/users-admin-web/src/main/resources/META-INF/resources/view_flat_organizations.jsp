@@ -36,7 +36,7 @@ PortletURL portletURL = PortletURLBuilder.create(
 	(PortletURL)request.getAttribute("view.jsp-portletURL")
 ).setParameter(
 	"displayStyle", displayStyle
-).build();
+).buildPortletURL();
 
 String keywords = ParamUtil.getString(request, "keywords");
 
@@ -55,6 +55,8 @@ if (filterManageableOrganizations) {
 	}
 }
 %>
+
+<liferay-ui:success key="userAdded" message="the-user-was-created-successfully" />
 
 <c:choose>
 	<c:when test="<%= showList %>">
@@ -82,7 +84,7 @@ if (filterManageableOrganizations) {
 			viewTypeItems="<%= viewOrganizationsManagementToolbarDisplayContext.getViewTypeItems() %>"
 		/>
 
-		<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "search();" %>'>
+		<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "search();" %>'>
 			<liferay-portlet:renderURLParams varImpl="portletURL" />
 			<aui:input name="<%= Constants.CMD %>" type="hidden" />
 			<aui:input name="toolbarItem" type="hidden" value="<%= toolbarItem %>" />

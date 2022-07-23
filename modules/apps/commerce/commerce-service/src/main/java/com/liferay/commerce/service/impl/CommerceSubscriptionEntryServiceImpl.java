@@ -148,7 +148,7 @@ public class CommerceSubscriptionEntryServiceImpl
 			CommerceActionKeys.MANAGE_COMMERCE_SUBSCRIPTIONS);
 
 		List<CommerceChannel> commerceChannels =
-			_commerceChannelLocalService.searchCommerceChannels(companyId);
+			_commerceChannelLocalService.search(companyId);
 
 		Stream<CommerceChannel> stream = commerceChannels.stream();
 
@@ -244,7 +244,7 @@ public class CommerceSubscriptionEntryServiceImpl
 			PortletResourcePermissionFactory.getInstance(
 				CommerceSubscriptionEntryServiceImpl.class,
 				"_portletResourcePermission",
-				CommerceConstants.RESOURCE_NAME_SUBSCRIPTION);
+				CommerceConstants.RESOURCE_NAME_COMMERCE_SUBSCRIPTION);
 
 	@ServiceReference(type = CommerceChannelLocalService.class)
 	private CommerceChannelLocalService _commerceChannelLocalService;

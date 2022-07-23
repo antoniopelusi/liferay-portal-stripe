@@ -48,7 +48,8 @@ import java.util.concurrent.FutureTask;
 
 import javax.portlet.PortletPreferences;
 
-import org.hibernate.util.JDBCExceptionReporter;
+import org.hibernate.engine.jdbc.batch.internal.BatchingBatch;
+import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -84,12 +85,11 @@ public class PortletPreferencesLocalServiceConcurrentTest {
 			ProxyUtil.fetchInvocationHandler(
 				_portletPreferencesLocalService, AopInvocationHandler.class);
 
-		final PortletPreferencesLocalServiceImpl
-			portletPreferencesLocalServiceImpl =
-				(PortletPreferencesLocalServiceImpl)
-					aopInvocationHandler.getTarget();
+		PortletPreferencesLocalServiceImpl portletPreferencesLocalServiceImpl =
+			(PortletPreferencesLocalServiceImpl)
+				aopInvocationHandler.getTarget();
 
-		final PortletPreferencesPersistence portletPreferencesPersistence =
+		PortletPreferencesPersistence portletPreferencesPersistence =
 			portletPreferencesLocalServiceImpl.
 				getPortletPreferencesPersistence();
 
@@ -173,7 +173,17 @@ public class PortletPreferencesLocalServiceConcurrentTest {
 						expectedType = ExpectedType.CONTAINS
 					)
 				},
-				level = "ERROR", loggerClass = JDBCExceptionReporter.class
+				level = "ERROR", loggerClass = SqlExceptionHelper.class
+			),
+			@ExpectedLogs(
+				expectedLogs = {
+					@ExpectedLog(
+						expectedDBType = ExpectedDBType.NONE,
+						expectedLog = "HHH000315: Exception executing batch [java.sql.BatchUpdateException",
+						expectedType = ExpectedType.PREFIX
+					)
+				},
+				level = "ERROR", loggerClass = BatchingBatch.class
 			)
 		}
 	)
@@ -182,10 +192,10 @@ public class PortletPreferencesLocalServiceConcurrentTest {
 		SynchronousInvocationHandler.enable();
 
 		try {
-			final long ownerId = RandomTestUtil.randomLong();
-			final int ownerType = RandomTestUtil.randomInt();
-			final long plid = RandomTestUtil.randomLong();
-			final String portletId = RandomTestUtil.randomString(
+			long ownerId = RandomTestUtil.randomLong();
+			int ownerType = RandomTestUtil.randomInt();
+			long plid = RandomTestUtil.randomLong();
+			String portletId = RandomTestUtil.randomString(
 				UniqueStringRandomizerBumper.INSTANCE);
 
 			Callable<PortletPreferences> callable =

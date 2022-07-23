@@ -12,107 +12,23 @@
  * details.
  */
 
-import {useEventListener} from '@liferay/frontend-js-react-web';
-import {debounce} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef} from 'react';
 
-import {Editor} from './Editor';
+import BaseEditor from './BaseEditor';
 
-const ClassicEditor = React.forwardRef(
+const ClassicEditor = forwardRef(
 	(
 		{
-			contents = '',
+			contents,
 			editorConfig,
 			initialToolbarSet = 'simple',
 			name,
-			onChange,
-			onChangeMethodName,
 			title,
 			...otherProps
 		},
 		ref
 	) => {
-		const editorRef = useRef();
-
-		const [toolbarSet, setToolbarSet] = useState(initialToolbarSet);
-
-		const getConfig = () => {
-			return {
-				toolbar: toolbarSet,
-				...editorConfig,
-			};
-		};
-
-		const getHTML = useCallback(() => {
-			let data = contents;
-
-			const editor = editorRef.current.editor;
-
-			if (editor && editor.instanceReady) {
-				data = editor.getData();
-
-				if (
-					CKEDITOR.env.gecko &&
-					CKEDITOR.tools.trim(data) === '<br />'
-				) {
-					data = '';
-				}
-
-				data = data.replace(/(\u200B){7}/, '');
-			}
-
-			return data;
-		}, [contents]);
-
-		const onChangeCallback = () => {
-			if (!onChangeMethodName && !onChange) {
-				return;
-			}
-
-			const editor = editorRef.current.editor;
-
-			if (editor.checkDirty()) {
-				if (onChangeMethodName) {
-					window[onChangeMethodName](getHTML());
-				}
-				else {
-					onChange(getHTML());
-				}
-
-				editor.resetDirty();
-			}
-		};
-
-		const editorRefsCallback = useCallback(
-			(element) => {
-				if (ref) {
-					ref.current = element;
-				}
-				editorRef.current = element;
-			},
-			[ref, editorRef]
-		);
-
-		useEffect(() => {
-			setToolbarSet(initialToolbarSet);
-		}, [initialToolbarSet]);
-
-		useEffect(() => {
-			window[name] = {
-				getHTML,
-				getText() {
-					return contents;
-				},
-			};
-		}, [contents, getHTML, name]);
-
-		const onResize = debounce(() => {
-			setToolbarSet(initialToolbarSet);
-		}, 200);
-
-		useEventListener('resize', onResize, true, window);
-
 		return (
 			<div id={`${name}Container`}>
 				{title && (
@@ -120,9 +36,14 @@ const ClassicEditor = React.forwardRef(
 						{title}
 					</label>
 				)}
-				<Editor
+
+				<BaseEditor
 					className="lfr-editable"
-					config={getConfig()}
+					config={{
+						toolbar: initialToolbarSet,
+						...editorConfig,
+					}}
+					contents={contents}
 					name={name}
 					onBeforeLoad={(CKEDITOR) => {
 						CKEDITOR.disableAutoInline = true;
@@ -135,7 +56,6 @@ const ClassicEditor = React.forwardRef(
 								: Liferay.zIndex.WINDOW + 10;
 						};
 					}}
-					onChange={onChangeCallback}
 					onDrop={(event) => {
 						const data = event.data.dataTransfer.getData(
 							'text/html'
@@ -155,9 +75,14 @@ const ClassicEditor = React.forwardRef(
 						}
 					}}
 					onInstanceReady={({editor}) => {
-						editor.setData(contents, {internal: true});
+						editor.setData(contents, {
+							callback: () => {
+								editor.resetUndo();
+							},
+							noSnapshot: true,
+						});
 					}}
-					ref={editorRefsCallback}
+					ref={ref}
 					{...otherProps}
 				/>
 			</div>
@@ -170,8 +95,6 @@ ClassicEditor.propTypes = {
 	editorConfig: PropTypes.object,
 	initialToolbarSet: PropTypes.string,
 	name: PropTypes.string,
-	onChange: PropTypes.func,
-	onChangeMethodName: PropTypes.string,
 	title: PropTypes.string,
 };
 

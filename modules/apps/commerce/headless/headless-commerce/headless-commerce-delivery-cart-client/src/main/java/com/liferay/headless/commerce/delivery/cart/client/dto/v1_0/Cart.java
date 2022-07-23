@@ -391,6 +391,52 @@ public class Cart implements Cloneable, Serializable {
 
 	protected Status orderStatusInfo;
 
+	public String getOrderTypeExternalReferenceCode() {
+		return orderTypeExternalReferenceCode;
+	}
+
+	public void setOrderTypeExternalReferenceCode(
+		String orderTypeExternalReferenceCode) {
+
+		this.orderTypeExternalReferenceCode = orderTypeExternalReferenceCode;
+	}
+
+	public void setOrderTypeExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			orderTypeExternalReferenceCodeUnsafeSupplier) {
+
+		try {
+			orderTypeExternalReferenceCode =
+				orderTypeExternalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String orderTypeExternalReferenceCode;
+
+	public Long getOrderTypeId() {
+		return orderTypeId;
+	}
+
+	public void setOrderTypeId(Long orderTypeId) {
+		this.orderTypeId = orderTypeId;
+	}
+
+	public void setOrderTypeId(
+		UnsafeSupplier<Long, Exception> orderTypeIdUnsafeSupplier) {
+
+		try {
+			orderTypeId = orderTypeIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long orderTypeId;
+
 	public String getOrderUUID() {
 		return orderUUID;
 	}

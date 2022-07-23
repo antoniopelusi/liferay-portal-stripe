@@ -166,6 +166,10 @@ public class TranslationEntryLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -375,6 +379,13 @@ public class TranslationEntryLocalServiceUtil {
 	 */
 	public static int getTranslationEntriesCount() {
 		return getService().getTranslationEntriesCount();
+	}
+
+	public static int getTranslationEntriesCount(
+		String className, long classPK, int[] statuses, boolean exclude) {
+
+		return getService().getTranslationEntriesCount(
+			className, classPK, statuses, exclude);
 	}
 
 	/**

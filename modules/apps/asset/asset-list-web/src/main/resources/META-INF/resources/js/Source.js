@@ -128,7 +128,7 @@ export default function ({classTypes, namespace}) {
 		);
 
 		subtypeFieldsWrappers.forEach((subtypeFieldsWrapper) => {
-			if (selectedSubtype != 'false' && selectedSubtype != 'true') {
+			if (selectedSubtype !== 'false' && selectedSubtype !== 'true') {
 				if (orderingPanel) {
 					removeOptionsOrderByFilter();
 
@@ -165,10 +165,10 @@ export default function ({classTypes, namespace}) {
 	const toggle = (assetSelectorValue, {className, classNameId}) => {
 		const assetOptions = assetMultipleSelector.options;
 		const showOptions =
-			assetSelector.value == `${classNameId}` ||
-			(assetSelector.value == 'false' &&
-				assetOptions.length == 1 &&
-				assetOptions[0].value == `${classNameId}`);
+			assetSelector.value === `${classNameId}` ||
+			(assetSelector.value === 'false' &&
+				assetOptions.length === 1 &&
+				assetOptions[0].value === `${classNameId}`);
 
 		if (showOptions) {
 			options[className].classList.remove('hide');
@@ -186,7 +186,6 @@ export default function ({classTypes, namespace}) {
 		if (classTypeSelected) {
 			selectedSubtype = subtypeSelector[classTypeSelected.className];
 		}
-
 		toggleSaveButton(
 			assetSelector.value === '' || selectedSubtype?.value === ''
 		);
@@ -355,6 +354,13 @@ export default function ({classTypes, namespace}) {
 
 		if (fromBox.attr('id') === id || toBox.attr('id') === id) {
 			toggleSubclasses();
+
+			if (document.getElementById(id).options.length === 0) {
+				toggleSaveButton(true);
+			}
+			else {
+				toggleSaveButton(false);
+			}
 		}
 	});
 
@@ -383,6 +389,7 @@ export default function ({classTypes, namespace}) {
 		Liferay.Util.openSelectionModal({
 			customSelectEvent: true,
 			id: `${namespace}selectDDMStructure${delegateTarget.id}`,
+			iframeBodyCssClass: '',
 			onSelect: (selectedItem) => {
 				setDDMFields({
 					className: selectedItem.className,

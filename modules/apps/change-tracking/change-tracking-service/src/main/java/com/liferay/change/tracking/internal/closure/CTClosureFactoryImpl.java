@@ -26,7 +26,6 @@ import com.liferay.change.tracking.spi.reference.TableReferenceDefinition;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.Table;
-import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.petra.sql.dsl.query.FromStep;
 import com.liferay.petra.sql.dsl.query.GroupByStep;
@@ -213,28 +212,28 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 			JoinStep joinStep = joinFunction.apply(fromStep);
 
 			GroupByStep groupByStep = joinStep.where(
-				() -> {
-					Predicate predicate = childPKColumn.in(
-						childPrimaryKeysArray);
+				() -> childPKColumn.in(
+					childPrimaryKeysArray
+				).and(
+					() -> {
+						Table<?> parentTable = parentPKColumn.getTable();
 
-					Table<?> parentTable = parentPKColumn.getTable();
+						Column<?, Long> ctCollectionIdColumn =
+							parentTable.getColumn("ctCollectionId", Long.class);
 
-					Column<?, Long> ctCollectionIdColumn =
-						parentTable.getColumn("ctCollectionId", Long.class);
+						if ((ctCollectionIdColumn != null) &&
+							ctCollectionIdColumn.isPrimaryKey()) {
 
-					if ((ctCollectionIdColumn != null) &&
-						ctCollectionIdColumn.isPrimaryKey()) {
-
-						predicate = predicate.and(
-							ctCollectionIdColumn.eq(
+							return ctCollectionIdColumn.eq(
 								CTConstants.CT_COLLECTION_ID_PRODUCTION
 							).or(
 								ctCollectionIdColumn.eq(ctCollectionId)
-							).withParentheses());
-					}
+							).withParentheses();
+						}
 
-					return predicate;
-				});
+						return null;
+					}
+				));
 
 			if (dslQuery == null) {
 				dslQuery = groupByStep;

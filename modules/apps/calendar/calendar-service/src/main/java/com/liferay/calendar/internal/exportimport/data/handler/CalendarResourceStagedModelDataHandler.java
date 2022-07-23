@@ -183,10 +183,11 @@ public class CalendarResourceStagedModelDataHandler
 		long userId = portletDataContext.getUserId(
 			calendarResource.getUserUuid());
 
-		long classPK = getClassPK(portletDataContext, calendarResource, userId);
+		long classPK = _getClassPK(
+			portletDataContext, calendarResource, userId);
 
 		Map<Locale, String> calendarResourceNameMap =
-			getCalendarResourceNameMap(portletDataContext, calendarResource);
+			_getCalendarResourceNameMap(portletDataContext, calendarResource);
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
 			calendarResource);
@@ -213,7 +214,7 @@ public class CalendarResourceStagedModelDataHandler
 						userId, portletDataContext.getScopeGroupId(),
 						calendarResource.getClassNameId(), classPK,
 						calendarResource.getClassUuid(),
-						getUniqueCalendarResourceCode(
+						_getUniqueCalendarResourceCode(
 							portletDataContext, calendarResource),
 						calendarResourceNameMap,
 						calendarResource.getDescriptionMap(),
@@ -235,7 +236,7 @@ public class CalendarResourceStagedModelDataHandler
 						userId, portletDataContext.getScopeGroupId(),
 						calendarResource.getClassNameId(), classPK,
 						calendarResource.getClassUuid(),
-						getUniqueCalendarResourceCode(
+						_getUniqueCalendarResourceCode(
 							portletDataContext, calendarResource),
 						calendarResourceNameMap,
 						calendarResource.getDescriptionMap(),
@@ -245,9 +246,7 @@ public class CalendarResourceStagedModelDataHandler
 						duplicateCalendarResourceException) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						duplicateCalendarResourceException,
-						duplicateCalendarResourceException);
+					_log.debug(duplicateCalendarResourceException);
 				}
 
 				// The calendar resource for the site's default calendar is
@@ -259,14 +258,14 @@ public class CalendarResourceStagedModelDataHandler
 			}
 		}
 
-		updateCalendars(
+		_updateCalendars(
 			portletDataContext, calendarResource, importedCalendarResource);
 
 		portletDataContext.importClassedModel(
 			calendarResource, importedCalendarResource);
 	}
 
-	protected Map<Locale, String> getCalendarResourceNameMap(
+	private Map<Locale, String> _getCalendarResourceNameMap(
 			PortletDataContext portletDataContext,
 			CalendarResource calendarResource)
 		throws Exception {
@@ -292,7 +291,7 @@ public class CalendarResourceStagedModelDataHandler
 			scopeGroup.getGroupId());
 	}
 
-	protected long getClassPK(
+	private long _getClassPK(
 		PortletDataContext portletDataContext,
 		CalendarResource calendarResource, long userId) {
 
@@ -312,7 +311,7 @@ public class CalendarResourceStagedModelDataHandler
 		return classPK;
 	}
 
-	protected String getUniqueCalendarResourceCode(
+	private String _getUniqueCalendarResourceCode(
 			PortletDataContext portletDataContext,
 			CalendarResource calendarResource)
 		throws Exception {
@@ -334,7 +333,7 @@ public class CalendarResourceStagedModelDataHandler
 		return code;
 	}
 
-	protected void updateCalendars(
+	private void _updateCalendars(
 		PortletDataContext portletDataContext,
 		CalendarResource calendarResource,
 		CalendarResource importedCalendarResource) {

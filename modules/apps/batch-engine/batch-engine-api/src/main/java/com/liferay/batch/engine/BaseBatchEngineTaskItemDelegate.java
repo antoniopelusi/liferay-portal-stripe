@@ -14,6 +14,7 @@
 
 package com.liferay.batch.engine;
 
+import com.liferay.batch.engine.strategy.BatchEngineImportStrategy;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.odata.entity.EntityModel;
@@ -35,9 +36,8 @@ public abstract class BaseBatchEngineTaskItemDelegate<T>
 			Collection<T> items, Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (T item : items) {
-			createItem(item, parameters);
-		}
+		batchEngineImportStrategy.apply(
+			items, item -> createItem(item, parameters));
 	}
 
 	public void createItem(T item, Map<String, Serializable> parameters)
@@ -63,6 +63,13 @@ public abstract class BaseBatchEngineTaskItemDelegate<T>
 		throws Exception {
 
 		return null;
+	}
+
+	@Override
+	public void setBatchEngineImportStrategy(
+		BatchEngineImportStrategy batchEngineImportStrategy) {
+
+		this.batchEngineImportStrategy = batchEngineImportStrategy;
 	}
 
 	@Override
@@ -94,6 +101,7 @@ public abstract class BaseBatchEngineTaskItemDelegate<T>
 		throws Exception {
 	}
 
+	protected BatchEngineImportStrategy batchEngineImportStrategy;
 	protected Company contextCompany;
 	protected User contextUser;
 	protected String languageId;

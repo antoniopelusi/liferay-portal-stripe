@@ -29,7 +29,7 @@ public class LayoutBranchPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		getLayoutBranchPermission().check(
+		_layoutBranchPermission.check(
 			permissionChecker, layoutBranch, actionId);
 	}
 
@@ -38,7 +38,7 @@ public class LayoutBranchPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		getLayoutBranchPermission().check(
+		_layoutBranchPermission.check(
 			permissionChecker, layoutBranchId, actionId);
 	}
 
@@ -46,7 +46,7 @@ public class LayoutBranchPermissionUtil {
 		PermissionChecker permissionChecker, LayoutBranch layoutBranch,
 		String actionId) {
 
-		return getLayoutBranchPermission().contains(
+		return _layoutBranchPermission.contains(
 			permissionChecker, layoutBranch, actionId);
 	}
 
@@ -55,7 +55,7 @@ public class LayoutBranchPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		return getLayoutBranchPermission().contains(
+		return _layoutBranchPermission.contains(
 			permissionChecker, layoutBranchId, actionId);
 	}
 

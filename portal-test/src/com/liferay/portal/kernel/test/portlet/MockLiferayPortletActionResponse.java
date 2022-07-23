@@ -54,10 +54,6 @@ import org.w3c.dom.Element;
 public class MockLiferayPortletActionResponse
 	implements ActionResponse, LiferayPortletResponse {
 
-	public MockLiferayPortletActionResponse() {
-		_mockHttpServletResponse = new MockHttpServletResponse();
-	}
-
 	@Override
 	public void addDateHeader(String name, long date) {
 	}
@@ -168,7 +164,7 @@ public class MockLiferayPortletActionResponse
 
 	@Override
 	public <T extends PortletURL & RenderURL> T createRenderURL() {
-		return null;
+		return (T)new MockLiferayPortletURL();
 	}
 
 	@Override
@@ -334,6 +330,7 @@ public class MockLiferayPortletActionResponse
 	public void transferMarkupHeadElements() {
 	}
 
-	private final MockHttpServletResponse _mockHttpServletResponse;
+	private final MockHttpServletResponse _mockHttpServletResponse =
+		new MockHttpServletResponse();
 
 }

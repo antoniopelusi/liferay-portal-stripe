@@ -27,12 +27,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -223,34 +224,6 @@ public class AssetAutoTaggerEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AssetAutoTaggerEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetAutoTaggerEntry.class.getClassLoader(),
-			AssetAutoTaggerEntry.class, ModelWrapper.class);
-
-		try {
-			Constructor<AssetAutoTaggerEntry> constructor =
-				(Constructor<AssetAutoTaggerEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AssetAutoTaggerEntry, Object>>
@@ -557,6 +530,33 @@ public class AssetAutoTaggerEntryModelImpl
 	}
 
 	@Override
+	public AssetAutoTaggerEntry cloneWithOriginalValues() {
+		AssetAutoTaggerEntryImpl assetAutoTaggerEntryImpl =
+			new AssetAutoTaggerEntryImpl();
+
+		assetAutoTaggerEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetAutoTaggerEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetAutoTaggerEntryImpl.setAssetAutoTaggerEntryId(
+			this.<Long>getColumnOriginalValue("assetAutoTaggerEntryId"));
+		assetAutoTaggerEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		assetAutoTaggerEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetAutoTaggerEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetAutoTaggerEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		assetAutoTaggerEntryImpl.setAssetEntryId(
+			this.<Long>getColumnOriginalValue("assetEntryId"));
+		assetAutoTaggerEntryImpl.setAssetTagId(
+			this.<Long>getColumnOriginalValue("assetTagId"));
+
+		return assetAutoTaggerEntryImpl;
+	}
+
+	@Override
 	public int compareTo(AssetAutoTaggerEntry assetAutoTaggerEntry) {
 		int value = 0;
 
@@ -675,7 +675,7 @@ public class AssetAutoTaggerEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -686,10 +686,27 @@ public class AssetAutoTaggerEntryModelImpl
 			Function<AssetAutoTaggerEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((AssetAutoTaggerEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AssetAutoTaggerEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -737,7 +754,9 @@ public class AssetAutoTaggerEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AssetAutoTaggerEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AssetAutoTaggerEntry.class, ModelWrapper.class);
 
 	}
 

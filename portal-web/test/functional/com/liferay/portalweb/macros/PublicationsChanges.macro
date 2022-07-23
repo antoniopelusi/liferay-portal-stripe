@@ -1,26 +1,186 @@
 definition {
 
-	macro changeDisplayStyle {
-		Click(locator1 = "PublicationsChanges#CURRENT_DISPLAY_STYLE");
+	macro addComment {
+		Type(
+			locator1 = "PublicationsChanges#COMMENT_BODY",
+			value1 = "${commentValue}");
 
-		MenuItem.click(menuItem = StringUtil.upperCaseFirstLetter("${displayStyle}"));
+		AssertClick(
+			locator1 = "Button#REPLY",
+			value1 = "Reply");
+
+		AssertElementPresent(
+			key_commentValue = "${commentValue}",
+			locator1 = "PublicationsChanges#COMMENT_ACTIONS");
 	}
 
-	macro viewChangesViaChangesStyle {
-		if ("${publishedPublication}" == "true") {
-			Click(
-				key_publicationName = "Publication Name",
-				locator1 = "Publications#PUBLISHED_PUBLICATION_NAME");
+	macro assertPublicationsCommentsCRUDPermissions {
+		PublicationsChanges.openCommentsSidebar();
+
+		PublicationsChanges.addComment(commentValue = "Good to Publish");
+
+		PublicationsChanges.editComment(
+			commentValue = "Good to Publish",
+			commentValueEdit = "It is not ready to Publish",
+			userName = "Test Test");
+
+		PublicationsChanges.deleteComment(commentValue = "It is not ready to Publish");
+	}
+
+	macro deleteComment {
+		Click.mouseOverClick(
+			key_commentValue = "${commentValue}",
+			locator1 = "PublicationsChanges#COMMENT_ACTIONS");
+
+		AssertClickNoError(
+			key_menuItem = "Delete",
+			locator1 = "MenuItem#ANY_MENU_ITEM",
+			value1 = "Delete");
+
+		AssertElementPresent(locator1 = "PublicationsChanges#COMMENT_DELETING_MESSAGE");
+
+		Click.javaScriptClick(locator1 = "Button#DELETE");
+
+		AssertTextNotPresent(value1 = "${commentValue}");
+	}
+
+	macro discardChanges {
+		if (isSet(changeOrder)) {
+			var changeOrder = "${changeOrder}";
 		}
 		else {
-			PublicationsChanges.changeDisplayStyle(displayStyle = "Changes");
+			var changeOrder = "1";
 		}
+
+		var key_changeCategory = "${changeCategory}";
+		var key_changeTitle = "${changeTitle}";
+
+		if ("${conflictingChanges}" == "true") {
+			if (IsElementPresent(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_DROPDOWN")) {
+				Click(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_DROPDOWN");
+
+				MenuItem.click(menuItem = "Discard Change");
+			}
+			else if (IsElementPresent(locator1 = "PublicationsChanges#DISCARD_CHANGE_BUTTON")) {
+				Click(locator1 = "PublicationsChanges#DISCARD_CHANGE_BUTTON");
+			}
+			else {
+				MenuItem.click(menuItem = "Discard Change");
+			}
+		}
+		else {
+			Click(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_TITLE");
+
+			Click(locator1 = "PublicationsChanges#CONFLICTING_CHANGES_DISCARD_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Discard");
+		}
+
+		AssertElementPresent(
+			key_changeTitle = "Discarded Changes",
+			locator1 = "PublicationsChanges#CHANGE_TITLE");
+
+		while (IsElementNotPresent(locator1 = "PublicationsChanges#CONTEXT_CHANGE_TITLE")) {
+			Click(locator1 = "Pagination#NEXT_LINK");
+		}
+
+		Click(
+			key_text = "Discard",
+			locator1 = "Button#ANY");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro editComment {
+		Click.mouseOverClick(
+			key_commentValue = "${commentValue}",
+			locator1 = "PublicationsChanges#COMMENT_ACTIONS");
+
+		MenuItem.click(menuItem = "Edit");
+
+		Type.clickAtType(
+			key_userName = "${userName}",
+			locator1 = "PublicationsChanges#COMMENT_BODY_SPECIFIC",
+			value1 = "${commentValueEdit}");
+
+		SelectFrame(value1 = "relative=top");
+
+		Click.javaScriptClick(locator1 = "Button#SAVE");
+
+		AssertElementPresent(
+			key_commentValue = "${commentValueEdit}",
+			locator1 = "PublicationsChanges#COMMENT_VALUE",
+			value1 = "${commentValueEdit}");
+	}
+
+	macro filterChangesByItem {
+		if (IsElementPresent(key_text = "Clear", locator1 = "Button#ANY")) {
+			Click(
+				key_text = "Clear",
+				locator1 = "Button#ANY");
+		}
+
+		Click(
+			key_name = "Filter By",
+			locator1 = "PublicationsChanges#SORT_BUTTON");
+
+		MenuItem.clickNoError(menuItem = "${menuItem}");
+
+		Check.checkNotVisible(
+			key_checkboxName = "${checkboxName}",
+			locator1 = "MenuItem#ANY_CHECKBOX");
+	}
+
+	macro gotoEditChanges {
+		if (isSet(changeOrder)) {
+			var changeOrder = "${changeOrder}";
+		}
+		else {
+			var changeOrder = "1";
+		}
+
+		Click(
+			key_changeCategory = "${changeCategory}",
+			key_changeTitle = "${changeTitle}",
+			locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_DROPDOWN");
+
+		MenuItem.click(menuItem = "Edit in ${editInLocation}");
+	}
+
+	macro openCommentsSidebar {
+		Click.javaScriptClick(locator1 = "PublicationsChanges#COMMENT_BUTTON");
+	}
+
+	macro sortChanges {
+		Click(
+			key_name = "${sortName}",
+			locator1 = "PublicationsChanges#SORT_BUTTON");
+
+		if ("${sort}" == "descending") {
+			if (IsElementPresent(locator1 = "PublicationsChanges#SORTED_ASCENDING_ICON")) {
+				Click(locator1 = "PublicationsChanges#SORTED_ASCENDING_ICON");
+			}
+		}
+
+		if ("${sort}" == "ascending") {
+			if (IsElementPresent(locator1 = "PublicationsChanges#SORTED_DESCENDING_ICON")) {
+				Click(locator1 = "PublicationsChanges#SORTED_DESCENDING_ICON");
+			}
+		}
+	}
+
+	macro viewChanges {
+		if ("${publishedPublication}" == "true") {
+			Click(
+				key_publicationName = "${publicationName}",
+				locator1 = "Publications#PUBLISHED_PUBLICATION_NAME");
+		}
+
+		WaitForElementPresent(locator1 = "PublicationsChanges#CHANGE_HEADER");
 
 		if ("${showAllItems}" == "true") {
-			Check.checkToggleSwitch(locator1 = "PublicationsSettings#SHOW_ALL_ITEMS_TOGGLE_SWITCH");
+			Check.checkToggleSwitch(locator1 = "PublicationsChanges#SHOW_ALL_ITEMS_TOGGLE_SWITCH");
 		}
-
-		Pause(locator1 = "3000");
 
 		var key_changeCategory = "${changeCategory}";
 		var key_changeUser = "${changeUser}";
@@ -52,28 +212,44 @@ definition {
 			value1 = "${changeType}");
 	}
 
-	macro viewChangesViaContextStyle {
-		PublicationsChanges.changeDisplayStyle(displayStyle = "Context");
+	macro viewChangesInRelationships {
+		PublicationsNavigator.gotoNavbar(navBarTitle = "Relationships");
 
-		Pause(locator1 = "3000");
+		AssertTextEquals.assertPartialText(
+			key_changeTitle = "${changeTitle}",
+			locator1 = "PublicationsChanges#RELATIONSHIPS_CHANGE_TITLE",
+			value1 = "${changeTitle}");
+	}
 
-		if ("${showAllItems}" == "true") {
-			Check.checkToggleSwitch(locator1 = "PublicationsSettings#SHOW_ALL_ITEMS_TOGGLE_SWITCH");
-		}
-
+	macro viewChangesResultNotPresent {
 		var key_changeCategory = "${changeCategory}";
-		var key_changeDescription = "${changeDescription}";
 		var key_changeTitle = "${changeTitle}";
 
-		Click.javaScriptClick(locator1 = "PublicationsChanges#CONTEXT_CHANGE_CATEGORY_RADIO");
+		if (isSet(changeOrder)) {
+			var changeOrder = "${changeOrder}";
+		}
+		else {
+			var changeOrder = "1";
+		}
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "PublicationsChanges#CONTEXT_CHANGE_TITLE",
+		AssertElementNotPresent(
+			locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_TITLE",
 			value1 = "${changeTitle}");
+	}
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "PublicationsChanges#CONTEXT_CHANGE_DESCRIPTION",
-			value1 = "${changeDescription}");
+	macro viewChangesResultsOrder {
+		var changeOrder = "0";
+
+		for (var changeTitle : list "${changesList}") {
+			var changeOrder = ${changeOrder} + 1;
+			var key_changeCategory = "${changeCategory}";
+			var key_changeTitle = "${changeTitle}";
+
+			AssertTextEquals(
+				changeOrder = "${changeOrder}",
+				locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_TITLE",
+				value1 = "${changeTitle}");
+		}
 	}
 
 }

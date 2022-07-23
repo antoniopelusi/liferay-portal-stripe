@@ -51,7 +51,7 @@ public class RootCauseAnalysisToolBuild extends DefaultTopLevelBuild {
 	public synchronized Element getJenkinsReportElement() {
 		if (_workspaceGitRepository == null) {
 			throw new IllegalStateException(
-				"Please set the workspace git repository");
+				"Please set the workspace Git repository");
 		}
 
 		if (_downstreamBuildDataList == null) {
@@ -145,11 +145,9 @@ public class RootCauseAnalysisToolBuild extends DefaultTopLevelBuild {
 		LocalGitCommit localGitCommit, GitCommitGroup currentGitCommitGroup,
 		GitCommitGroup nextGitCommitGroup) {
 
-		if (nextGitCommitGroup == null) {
-			return getEmptyCellElement();
-		}
+		if ((nextGitCommitGroup == null) ||
+			(currentGitCommitGroup.size() <= 1)) {
 
-		if (currentGitCommitGroup.size() <= 1) {
 			return getEmptyCellElement();
 		}
 
@@ -311,12 +309,6 @@ public class RootCauseAnalysisToolBuild extends DefaultTopLevelBuild {
 
 	@Override
 	protected Element getJenkinsReportBodyElement() {
-		String buildURL = getBuildURL();
-
-		Element headingElement = Dom4JUtil.getNewElement(
-			"h1", null, "Jenkins report for ",
-			Dom4JUtil.getNewAnchorElement(buildURL, buildURL));
-
 		Element subheadingElement = null;
 
 		JSONObject jobJSONObject = getBuildJSONObject();
@@ -335,6 +327,12 @@ public class RootCauseAnalysisToolBuild extends DefaultTopLevelBuild {
 					documentException);
 			}
 		}
+
+		String buildURL = getBuildURL();
+
+		Element headingElement = Dom4JUtil.getNewElement(
+			"h1", null, "Jenkins report for ",
+			Dom4JUtil.getNewAnchorElement(buildURL, buildURL));
 
 		return Dom4JUtil.getNewElement(
 			"body", null, headingElement, subheadingElement,

@@ -23,19 +23,26 @@ import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.product.util.CPInstanceHelper;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BaseIndexer;
+import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.ParseException;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
+import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
+import com.liferay.portal.kernel.search.generic.MultiMatchQuery;
+import com.liferay.portal.kernel.search.generic.TermQueryImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -158,7 +165,6 @@ public class CPInstanceIndexer extends BaseIndexer<CPInstance> {
 		addSearchLocalizedTerm(searchQuery, searchContext, Field.NAME, false);
 		addSearchTerm(searchQuery, searchContext, Field.ENTRY_CLASS_PK, false);
 		addSearchTerm(searchQuery, searchContext, Field.NAME, false);
-		addSearchTerm(searchQuery, searchContext, CPField.SKU, false);
 		addSearchTerm(searchQuery, searchContext, Field.USER_NAME, false);
 		addSearchTerm(
 			searchQuery, searchContext, CPField.EXTERNAL_REFERENCE_CODE, false);
@@ -171,6 +177,39 @@ public class CPInstanceIndexer extends BaseIndexer<CPInstance> {
 
 			if (Validator.isNotNull(expandoAttributes)) {
 				addSearchExpando(searchQuery, searchContext, expandoAttributes);
+			}
+		}
+
+		String keywords = searchContext.getKeywords();
+
+		if (Validator.isNotNull(keywords)) {
+			try {
+				keywords = StringUtil.toLowerCase(keywords);
+
+				BooleanQuery booleanQuery = new BooleanQueryImpl();
+
+				booleanQuery.add(
+					new TermQueryImpl("sku.1_10_ngram", keywords),
+					BooleanClauseOccur.SHOULD);
+
+				MultiMatchQuery multiMatchQuery = new MultiMatchQuery(
+					searchContext.getKeywords());
+
+				multiMatchQuery.addField(CPField.SKU);
+				multiMatchQuery.addField("sku.reverse");
+				multiMatchQuery.setType(MultiMatchQuery.Type.PHRASE_PREFIX);
+
+				booleanQuery.add(multiMatchQuery, BooleanClauseOccur.SHOULD);
+
+				if (searchContext.isAndSearch()) {
+					searchQuery.add(booleanQuery, BooleanClauseOccur.MUST);
+				}
+				else {
+					searchQuery.add(booleanQuery, BooleanClauseOccur.SHOULD);
+				}
+			}
+			catch (ParseException parseException) {
+				throw new SystemException(parseException);
 			}
 		}
 	}
@@ -275,11 +314,11 @@ public class CPInstanceIndexer extends BaseIndexer<CPInstance> {
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCPInstances(companyId);
+		_reindexCPInstances(companyId);
 	}
 
-	protected void reindexCPInstances(long companyId) throws PortalException {
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+	private void _reindexCPInstances(long companyId) throws Exception {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_cpInstanceLocalService.getIndexableActionableDynamicQuery();
 
 		indexableActionableDynamicQuery.setCompanyId(companyId);

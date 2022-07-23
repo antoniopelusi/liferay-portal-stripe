@@ -25,7 +25,7 @@ public class CustomJspRegistryUtil {
 	public static String getCustomJspFileName(
 		String servletContextName, String fileName) {
 
-		return getCustomJspRegistry().getCustomJspFileName(
+		return _customJspRegistry.getCustomJspFileName(
 			servletContextName, fileName);
 	}
 
@@ -34,22 +34,22 @@ public class CustomJspRegistryUtil {
 	}
 
 	public static String getDisplayName(String servletContextName) {
-		return getCustomJspRegistry().getDisplayName(servletContextName);
+		return _customJspRegistry.getDisplayName(servletContextName);
 	}
 
 	public static Set<String> getServletContextNames() {
-		return getCustomJspRegistry().getServletContextNames();
+		return _customJspRegistry.getServletContextNames();
 	}
 
 	public static void registerServletContextName(
 		String servletContextName, String displayName) {
 
-		getCustomJspRegistry().registerServletContextName(
+		_customJspRegistry.registerServletContextName(
 			servletContextName, displayName);
 	}
 
 	public static void unregisterServletContextName(String servletContextName) {
-		getCustomJspRegistry().unregisterServletContextName(servletContextName);
+		_customJspRegistry.unregisterServletContextName(servletContextName);
 	}
 
 	public void setCustomJspRegistry(CustomJspRegistry customJspRegistry) {

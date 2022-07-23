@@ -58,21 +58,11 @@ public class UpgradeWorkflow extends UpgradeProcess {
 			String orphanedTableName, String orphanedColumnName)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(11);
-
-		sb.append("delete from ");
-		sb.append(tableName);
-		sb.append(" where ");
-		sb.append(columnName);
-		sb.append(" = ");
-		sb.append(columnValue);
-		sb.append(" and classPK not in (select ");
-		sb.append(orphanedColumnName);
-		sb.append(" from ");
-		sb.append(orphanedTableName);
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-
-		runSQL(sb.toString());
+		runSQL(
+			StringBundler.concat(
+				"delete from ", tableName, " where ", columnName, " = ",
+				columnValue, " and classPK not in (select ", orphanedColumnName,
+				" from ", orphanedTableName, StringPool.CLOSE_PARENTHESIS));
 	}
 
 	@Override

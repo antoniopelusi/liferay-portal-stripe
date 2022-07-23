@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.segments.model.SegmentsExperience;
@@ -69,10 +70,12 @@ public class SegmentsExperienceModelListenerTest {
 
 		SegmentsExperience segmentsExperience =
 			_segmentsExperienceLocalService.addSegmentsExperience(
+				TestPropsValues.getUserId(), _group.getGroupId(),
 				RandomTestUtil.randomLong(),
 				_classNameLocalService.getClassNameId(Layout.class),
 				RandomTestUtil.randomLong(),
-				RandomTestUtil.randomLocaleStringMap(), true, serviceContext);
+				RandomTestUtil.randomLocaleStringMap(), true,
+				new UnicodeProperties(true), serviceContext);
 
 		int count = 5;
 

@@ -14,8 +14,38 @@
 
 package com.liferay.message.boards.model.impl;
 
+import com.liferay.message.boards.model.MBStatsUser;
+
+import java.util.Date;
+
 /**
- * @author Brian Wing Shun Chan
+ * @author Preston Crary
  */
-public class MBStatsUserImpl extends MBStatsUserBaseImpl {
+public class MBStatsUserImpl implements MBStatsUser {
+
+	public MBStatsUserImpl(long userId, int messageCount, Date lastPostDate) {
+		_userId = userId;
+		_messageCount = messageCount;
+		_lastPostDate = lastPostDate;
+	}
+
+	@Override
+	public Date getLastPostDate() {
+		return _lastPostDate;
+	}
+
+	@Override
+	public int getMessageCount() {
+		return _messageCount;
+	}
+
+	@Override
+	public long getUserId() {
+		return _userId;
+	}
+
+	private final Date _lastPostDate;
+	private final int _messageCount;
+	private final long _userId;
+
 }

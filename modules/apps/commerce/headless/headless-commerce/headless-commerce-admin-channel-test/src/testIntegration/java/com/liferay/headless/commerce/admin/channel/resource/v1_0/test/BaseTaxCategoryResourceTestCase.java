@@ -33,7 +33,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -42,6 +41,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
@@ -49,7 +49,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -189,9 +188,9 @@ public abstract class BaseTaxCategoryResourceTestCase {
 	@Test
 	public void testGetTaxCategoriesPage() throws Exception {
 		Page<TaxCategory> page = taxCategoryResource.getTaxCategoriesPage(
-			RandomTestUtil.randomString(), Pagination.of(1, 2));
+			null, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		TaxCategory taxCategory1 = testGetTaxCategoriesPage_addTaxCategory(
 			randomTaxCategory());
@@ -200,18 +199,22 @@ public abstract class BaseTaxCategoryResourceTestCase {
 			randomTaxCategory());
 
 		page = taxCategoryResource.getTaxCategoriesPage(
-			null, Pagination.of(1, 2));
+			null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(taxCategory1, taxCategory2),
-			(List<TaxCategory>)page.getItems());
+		assertContains(taxCategory1, (List<TaxCategory>)page.getItems());
+		assertContains(taxCategory2, (List<TaxCategory>)page.getItems());
 		assertValid(page);
 	}
 
 	@Test
 	public void testGetTaxCategoriesPageWithPagination() throws Exception {
+		Page<TaxCategory> totalPage = taxCategoryResource.getTaxCategoriesPage(
+			null, null);
+
+		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+
 		TaxCategory taxCategory1 = testGetTaxCategoriesPage_addTaxCategory(
 			randomTaxCategory());
 
@@ -222,17 +225,17 @@ public abstract class BaseTaxCategoryResourceTestCase {
 			randomTaxCategory());
 
 		Page<TaxCategory> page1 = taxCategoryResource.getTaxCategoriesPage(
-			null, Pagination.of(1, 2));
+			null, Pagination.of(1, totalCount + 2));
 
 		List<TaxCategory> taxCategories1 = (List<TaxCategory>)page1.getItems();
 
 		Assert.assertEquals(
-			taxCategories1.toString(), 2, taxCategories1.size());
+			taxCategories1.toString(), totalCount + 2, taxCategories1.size());
 
 		Page<TaxCategory> page2 = taxCategoryResource.getTaxCategoriesPage(
-			null, Pagination.of(2, 2));
+			null, Pagination.of(2, totalCount + 2));
 
-		Assert.assertEquals(3, page2.getTotalCount());
+		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
 
 		List<TaxCategory> taxCategories2 = (List<TaxCategory>)page2.getItems();
 
@@ -240,11 +243,11 @@ public abstract class BaseTaxCategoryResourceTestCase {
 			taxCategories2.toString(), 1, taxCategories2.size());
 
 		Page<TaxCategory> page3 = taxCategoryResource.getTaxCategoriesPage(
-			null, Pagination.of(1, 3));
+			null, Pagination.of(1, totalCount + 3));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(taxCategory1, taxCategory2, taxCategory3),
-			(List<TaxCategory>)page3.getItems());
+		assertContains(taxCategory1, (List<TaxCategory>)page3.getItems());
+		assertContains(taxCategory2, (List<TaxCategory>)page3.getItems());
+		assertContains(taxCategory3, (List<TaxCategory>)page3.getItems());
 	}
 
 	protected TaxCategory testGetTaxCategoriesPage_addTaxCategory(
@@ -262,7 +265,7 @@ public abstract class BaseTaxCategoryResourceTestCase {
 			new HashMap<String, Object>() {
 				{
 					put("page", 1);
-					put("pageSize", 2);
+					put("pageSize", 10);
 				}
 			},
 			new GraphQLField("items", getGraphQLFields()),
@@ -272,22 +275,36 @@ public abstract class BaseTaxCategoryResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/taxCategories");
 
-		Assert.assertEquals(0, taxCategoriesJSONObject.get("totalCount"));
+		long totalCount = taxCategoriesJSONObject.getLong("totalCount");
 
-		TaxCategory taxCategory1 = testGraphQLTaxCategory_addTaxCategory();
-		TaxCategory taxCategory2 = testGraphQLTaxCategory_addTaxCategory();
+		TaxCategory taxCategory1 =
+			testGraphQLGetTaxCategoriesPage_addTaxCategory();
+		TaxCategory taxCategory2 =
+			testGraphQLGetTaxCategoriesPage_addTaxCategory();
 
 		taxCategoriesJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/taxCategories");
 
-		Assert.assertEquals(2, taxCategoriesJSONObject.get("totalCount"));
+		Assert.assertEquals(
+			totalCount + 2, taxCategoriesJSONObject.getLong("totalCount"));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(taxCategory1, taxCategory2),
+		assertContains(
+			taxCategory1,
 			Arrays.asList(
 				TaxCategorySerDes.toDTOs(
 					taxCategoriesJSONObject.getString("items"))));
+		assertContains(
+			taxCategory2,
+			Arrays.asList(
+				TaxCategorySerDes.toDTOs(
+					taxCategoriesJSONObject.getString("items"))));
+	}
+
+	protected TaxCategory testGraphQLGetTaxCategoriesPage_addTaxCategory()
+		throws Exception {
+
+		return testGraphQLTaxCategory_addTaxCategory();
 	}
 
 	@Test
@@ -308,7 +325,7 @@ public abstract class BaseTaxCategoryResourceTestCase {
 
 	@Test
 	public void testGraphQLGetTaxCategory() throws Exception {
-		TaxCategory taxCategory = testGraphQLTaxCategory_addTaxCategory();
+		TaxCategory taxCategory = testGraphQLGetTaxCategory_addTaxCategory();
 
 		Assert.assertTrue(
 			equals(
@@ -347,11 +364,34 @@ public abstract class BaseTaxCategoryResourceTestCase {
 				"Object/code"));
 	}
 
+	protected TaxCategory testGraphQLGetTaxCategory_addTaxCategory()
+		throws Exception {
+
+		return testGraphQLTaxCategory_addTaxCategory();
+	}
+
 	protected TaxCategory testGraphQLTaxCategory_addTaxCategory()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		TaxCategory taxCategory, List<TaxCategory> taxCategories) {
+
+		boolean contains = false;
+
+		for (TaxCategory item : taxCategories) {
+			if (equals(taxCategory, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			taxCategories + " does not contain " + taxCategory, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -470,8 +510,8 @@ public abstract class BaseTaxCategoryResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.channel.dto.v1_0.
 						TaxCategory.class)) {
 
@@ -487,12 +527,13 @@ public abstract class BaseTaxCategoryResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -506,7 +547,7 @@ public abstract class BaseTaxCategoryResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -604,6 +645,19 @@ public abstract class BaseTaxCategoryResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -812,8 +866,8 @@ public abstract class BaseTaxCategoryResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseTaxCategoryResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseTaxCategoryResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

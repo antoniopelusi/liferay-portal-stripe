@@ -19,7 +19,7 @@ import {config} from '../../app/config/index';
 import itemSelectorValueToLayout from '../../app/utils/item-selector-value/itemSelectorValueToLayout';
 import ItemSelector from './ItemSelector';
 
-export const LayoutSelector = ({mappedLayout, onLayoutSelect}) => {
+export function LayoutSelector({mappedLayout, onLayoutSelect}) {
 	const itemSelectorURL = useMemo(() => {
 		if (mappedLayout?.layoutUuid) {
 			const url = new URL(config.layoutItemSelectorURL);
@@ -44,13 +44,13 @@ export const LayoutSelector = ({mappedLayout, onLayoutSelect}) => {
 				itemSelectorURL={itemSelectorURL}
 				label={Liferay.Language.get('page')}
 				onItemSelect={(layout) => onLayoutSelect(layout)}
-				selectedItemTitle={mappedLayout?.title || ''}
+				selectedItem={mappedLayout}
 				showMappedItems={false}
 				transformValueCallback={itemSelectorValueToLayout}
 			/>
 		</div>
 	);
-};
+}
 
 LayoutSelector.propTypes = {
 	mappedLayout: PropTypes.shape({

@@ -16,7 +16,7 @@ package com.liferay.message.boards.web.internal.display.context;
 
 import com.liferay.message.boards.display.context.MBHomeDisplayContext;
 import com.liferay.message.boards.model.MBCategory;
-import com.liferay.message.boards.web.internal.display.context.util.MBRequestHelper;
+import com.liferay.message.boards.web.internal.display.context.helper.MBRequestHelper;
 import com.liferay.portal.kernel.language.LanguageUtil;
 
 import java.util.UUID;

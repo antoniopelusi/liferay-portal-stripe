@@ -24,8 +24,10 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
+import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
@@ -36,6 +38,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,13 +68,55 @@ public class AssetCategoriesManagementToolbarDisplayContext
 
 	@Override
 	public List<DropdownItem> getActionDropdownItems() {
-		return DropdownItemListBuilder.add(
-			dropdownItem -> {
-				dropdownItem.putData("action", "deleteSelectedCategories");
-				dropdownItem.setIcon("times-circle");
-				dropdownItem.setLabel(
-					LanguageUtil.get(httpServletRequest, "delete"));
-				dropdownItem.setQuickAction(true);
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						this::_isSetDisplayPageTemplateEnabled,
+						dropdownItem -> {
+							dropdownItem.putData(
+								"action", "setCategoryDisplayPageTemplate");
+							dropdownItem.putData(
+								"setCategoryDisplayPageTemplateURL",
+								PortletURLBuilder.createRenderURL(
+									liferayPortletResponse
+								).setMVCPath(
+									"/set_category_display_page_template.jsp"
+								).setRedirect(
+									currentURLObj
+								).setParameter(
+									"parentCategoryId",
+									_assetCategoriesDisplayContext.
+										getCategoryId()
+								).setParameter(
+									"vocabularyId",
+									_assetCategoriesDisplayContext.
+										getVocabularyId()
+								).buildString());
+							dropdownItem.setIcon("page");
+							dropdownItem.setLabel(
+								LanguageUtil.get(
+									httpServletRequest,
+									"assign-display-page-template"));
+							dropdownItem.setQuickAction(true);
+						}
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						dropdownItem -> {
+							dropdownItem.putData(
+								"action", "deleteSelectedCategories");
+							dropdownItem.setIcon("trash");
+							dropdownItem.setLabel(
+								LanguageUtil.get(httpServletRequest, "delete"));
+							dropdownItem.setQuickAction(true);
+						}
+					).build());
+				dropdownGroupItem.setSeparator(true);
 			}
 		).build();
 	}
@@ -79,13 +124,21 @@ public class AssetCategoriesManagementToolbarDisplayContext
 	public String getAvailableActions(AssetCategory category)
 		throws PortalException {
 
+		List<String> availableActions = new ArrayList<>();
+
 		if (_assetCategoriesDisplayContext.hasPermission(
 				category, ActionKeys.UPDATE)) {
 
-			return "deleteSelectedCategories";
+			availableActions.add("setCategoryDisplayPageTemplate");
 		}
 
-		return StringPool.BLANK;
+		if (_assetCategoriesDisplayContext.hasPermission(
+				category, ActionKeys.DELETE)) {
+
+			availableActions.add("deleteSelectedCategories");
+		}
+
+		return StringUtil.merge(availableActions, StringPool.COMMA);
 	}
 
 	@Override
@@ -110,25 +163,27 @@ public class AssetCategoriesManagementToolbarDisplayContext
 	public CreationMenu getCreationMenu() {
 		return CreationMenuBuilder.addPrimaryDropdownItem(
 			dropdownItem -> {
-				PortletURL addCategoryURL = PortletURLBuilder.createRenderURL(
-					liferayPortletResponse
-				).setMVCPath(
-					"/edit_category.jsp"
-				).build();
-
-				if (_assetCategoriesDisplayContext.getCategoryId() > 0) {
-					addCategoryURL.setParameter(
+				dropdownItem.setHref(
+					PortletURLBuilder.createRenderURL(
+						liferayPortletResponse
+					).setMVCPath(
+						"/edit_category.jsp"
+					).setParameter(
 						"parentCategoryId",
-						String.valueOf(
-							_assetCategoriesDisplayContext.getCategoryId()));
-				}
+						() -> {
+							if (_assetCategoriesDisplayContext.getCategoryId() >
+									0) {
 
-				addCategoryURL.setParameter(
-					"vocabularyId",
-					String.valueOf(
-						_assetCategoriesDisplayContext.getVocabularyId()));
+								return _assetCategoriesDisplayContext.
+									getCategoryId();
+							}
 
-				dropdownItem.setHref(addCategoryURL);
+							return null;
+						}
+					).setParameter(
+						"vocabularyId",
+						_assetCategoriesDisplayContext.getVocabularyId()
+					).buildPortletURL());
 
 				String label = "add-category";
 
@@ -256,7 +311,7 @@ public class AssetCategoriesManagementToolbarDisplayContext
 			"eventName",
 			liferayPortletResponse.getNamespace() + "selectCategory"
 		).setParameter(
-			"singleSelect", Boolean.TRUE.toString()
+			"singleSelect", true
 		).setParameter(
 			"vocabularyIds", _assetCategoriesDisplayContext.getVocabularyId()
 		).setWindowState(
@@ -296,6 +351,29 @@ public class AssetCategoriesManagementToolbarDisplayContext
 		return false;
 	}
 
+	private boolean _isSetDisplayPageTemplateEnabled() {
+		if (_setDisplayPageTemplateEnabled != null) {
+			return _setDisplayPageTemplateEnabled;
+		}
+
+		boolean setDisplayPageTemplateEnabled = true;
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		Group group = themeDisplay.getScopeGroup();
+
+		if (group.isCompany() || group.isDepot()) {
+			setDisplayPageTemplateEnabled = false;
+		}
+
+		_setDisplayPageTemplateEnabled = setDisplayPageTemplateEnabled;
+
+		return _setDisplayPageTemplateEnabled;
+	}
+
 	private final AssetCategoriesDisplayContext _assetCategoriesDisplayContext;
+	private Boolean _setDisplayPageTemplateEnabled;
 
 }

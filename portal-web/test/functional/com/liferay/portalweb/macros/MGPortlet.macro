@@ -16,6 +16,98 @@ definition {
 		PortletEntry.save();
 	}
 
+	macro setRootFolder {
+		Portlet.gotoPortletOptions(
+			portletName = "Media Gallery",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "DocumentsAndMedia#CONFIGURATION_IFRAME");
+
+		if (isSet(invalidRootFolder)) {
+			AssertTextEquals(
+				locator1 = "DocumentsAndMediaConfiguration#DISPLAY_SETTINGS_ROOT_FOLDER_FIELD",
+				value1 = "${dmRootFolderName}");
+
+			AssertTextEquals.assertPartialText(
+				key_warningMessage = "The selected root folder cannot be found. Please select another one",
+				locator1 = "Message#WARNING_SPECIFIC",
+				value1 = "The selected root folder cannot be found. Please select another one");
+		}
+		else {
+			Panel.expandPanel(panel = "Folders Listing");
+
+			AssertClick(
+				locator1 = "Button#SELECT",
+				value1 = "Select");
+
+			SelectFrame.selectSecondFrame(
+				key_title = "Select Folder",
+				locator1 = "IFrame#MODAL_ANY");
+
+			if (isSet(depotName)) {
+				AssertClick(
+					key_breadcrumbName = "Sites and Libraries",
+					locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+					value1 = "Sites and Libraries");
+
+				AssertClick(
+					key_groupTab = "Asset Library",
+					locator1 = "ItemSelector#NAVIGATION_GROUP_TAB",
+					value1 = "Asset Library");
+
+				LexiconCard.clickCard(card = "${depotName}");
+			}
+
+			if ("${selectHomeFolder}" == "true") {
+				if (IsElementPresent(key_breadcrumbName = "Home", locator1 = "BreadcrumbPortlet#BREADCRUMB_FOLDER")) {
+					AssertVisible(
+						key_text = "Select This Folder",
+						locator1 = "Button#ANY_DISABLED");
+
+					AssertClick(
+						key_breadcrumbName = "Home",
+						locator1 = "BreadcrumbPortlet#BREADCRUMB_FOLDER",
+						value1 = "Home");
+				}
+			}
+
+			if ("${selectSubfolder}" == "true") {
+				AssertClick(
+					key_dmFolderName = "${dmFolderName}",
+					locator1 = "DocumentsAndMediaSelectFolder#FOLDER",
+					value1 = "${dmFolderName}");
+			}
+
+			if (isSet(selectRootFolder)) {
+				AssertClick(
+					key_text = "Select This Folder",
+					locator1 = "Button#ANY",
+					value1 = "Select This Folder");
+			}
+			else {
+				if (isSet(selectBreadcrumb)) {
+					AssertClick(
+						key_breadcrumbName = "${breadcrumbName}",
+						locator1 = "BreadcrumbPortlet#BREADCRUMB_FOLDER",
+						value1 = "${breadcrumbName}");
+				}
+
+				AssertClick(
+					key_dmFolderName = "${dmRootFolderName}",
+					locator1 = "DocumentsAndMedia#SELECT_FOLDER_BUTTON",
+					value1 = "Select");
+			}
+
+			SelectFrame(locator1 = "relative=top");
+
+			SelectFrame(locator1 = "DocumentsAndMedia#CONFIGURATION_IFRAME");
+
+			PortletEntry.save();
+		}
+
+		IFrame.closeFrame();
+	}
+
 	macro viewCustomADTCarouselPG {
 		AssertElementPresent(locator1 = "MediaGallery#ADT_CAROUSEL_ITEM");
 
@@ -26,6 +118,12 @@ definition {
 		AssertElementPresent(locator1 = "MediaGallery#ADT_CAROUSEL_NEXT_ARROW");
 
 		AssertElementPresent(locator1 = "MediaGallery#ADT_CAROUSEL_MENU_INDEX");
+	}
+
+	macro viewDefault {
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "There are no media files in this folder.");
 	}
 
 	macro viewShowAllPG {

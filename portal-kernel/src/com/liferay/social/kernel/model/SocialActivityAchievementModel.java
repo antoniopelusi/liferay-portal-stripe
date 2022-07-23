@@ -214,4 +214,7 @@ public interface SocialActivityAchievementModel
 	 */
 	public void setFirstInGroup(boolean firstInGroup);
 
+	@Override
+	public SocialActivityAchievement cloneWithOriginalValues();
+
 }

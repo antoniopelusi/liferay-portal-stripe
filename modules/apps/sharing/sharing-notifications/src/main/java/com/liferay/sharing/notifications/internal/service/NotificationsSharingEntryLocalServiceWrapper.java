@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -31,7 +30,6 @@ import com.liferay.sharing.model.SharingEntry;
 import com.liferay.sharing.notifications.internal.helper.SharingNotificationHelper;
 import com.liferay.sharing.notifications.internal.util.SharingNotificationSubcriptionSender;
 import com.liferay.sharing.security.permission.SharingEntryAction;
-import com.liferay.sharing.service.SharingEntryLocalService;
 import com.liferay.sharing.service.SharingEntryLocalServiceWrapper;
 
 import java.util.Collection;
@@ -46,16 +44,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = ServiceWrapper.class)
 public class NotificationsSharingEntryLocalServiceWrapper
 	extends SharingEntryLocalServiceWrapper {
-
-	public NotificationsSharingEntryLocalServiceWrapper() {
-		super(null);
-	}
-
-	public NotificationsSharingEntryLocalServiceWrapper(
-		SharingEntryLocalService sharingEntryLocalService) {
-
-		super(sharingEntryLocalService);
-	}
 
 	@Override
 	public SharingEntry addSharingEntry(
@@ -148,6 +136,7 @@ public class NotificationsSharingEntryLocalServiceWrapper
 			sharingNotificationSubcriptionSender.setCurrentUserId(
 				serviceContext.getUserId());
 			sharingNotificationSubcriptionSender.setEntryURL(entryURL);
+
 			String fromName = PrefsPropsUtil.getString(
 				user.getCompanyId(), PropsKeys.ADMIN_EMAIL_FROM_NAME);
 			String fromAddress = PrefsPropsUtil.getString(
@@ -182,11 +171,6 @@ public class NotificationsSharingEntryLocalServiceWrapper
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		NotificationsSharingEntryLocalServiceWrapper.class);
-
-	@Reference(
-		target = "(bundle.symbolic.name=com.liferay.sharing.notifications)"
-	)
-	private ResourceBundleLoader _resourceBundleLoader;
 
 	@Reference
 	private SharingNotificationHelper _sharingNotificationHelper;

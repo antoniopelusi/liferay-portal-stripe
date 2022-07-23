@@ -18,6 +18,7 @@ import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.petra.lang.CentralizedThreadLocal;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.NoSuchLayoutRevisionException;
 import com.liferay.portal.kernel.exception.NoSuchPortletPreferencesException;
@@ -31,10 +32,20 @@ import com.liferay.portal.kernel.model.LayoutRevisionConstants;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.model.PortletPreferences;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.PortletPreferenceValueLocalService;
+import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
+import com.liferay.portal.kernel.service.RecentLayoutRevisionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
+import com.liferay.portal.kernel.service.persistence.LayoutSetBranchPersistence;
+import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -48,6 +59,7 @@ import com.liferay.portal.util.LayoutTypeControllerTracker;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -70,14 +82,13 @@ public class LayoutRevisionLocalServiceImpl
 
 		// Layout revision
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = _userPersistence.findByPrimaryKey(userId);
 		LayoutSetBranch layoutSetBranch =
-			layoutSetBranchPersistence.findByPrimaryKey(layoutSetBranchId);
+			_layoutSetBranchPersistence.findByPrimaryKey(layoutSetBranchId);
 		parentLayoutRevisionId = getParentLayoutRevisionId(
 			layoutSetBranchId, parentLayoutRevisionId, plid);
-		Date now = new Date();
 
-		long layoutRevisionId = counterLocalService.increment();
+		long layoutRevisionId = getUniqueLayoutRevisionId();
 
 		LayoutRevision layoutRevision = layoutRevisionPersistence.create(
 			layoutRevisionId);
@@ -103,7 +114,8 @@ public class LayoutRevisionLocalServiceImpl
 		layoutRevision.setColorSchemeId(colorSchemeId);
 		layoutRevision.setCss(css);
 		layoutRevision.setStatus(WorkflowConstants.STATUS_DRAFT);
-		layoutRevision.setStatusDate(serviceContext.getModifiedDate(now));
+		layoutRevision.setStatusDate(
+			serviceContext.getModifiedDate(new Date()));
 
 		layoutRevision = layoutRevisionPersistence.update(layoutRevision);
 
@@ -153,6 +165,7 @@ public class LayoutRevisionLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public LayoutRevision deleteLayoutRevision(LayoutRevision layoutRevision)
 		throws PortalException {
 
@@ -168,12 +181,12 @@ public class LayoutRevisionLocalServiceImpl
 		}
 
 		List<PortletPreferences> portletPreferencesList =
-			portletPreferencesLocalService.getPortletPreferencesByPlid(
+			_portletPreferencesLocalService.getPortletPreferencesByPlid(
 				layoutRevision.getLayoutRevisionId());
 
 		for (PortletPreferences portletPreferences : portletPreferencesList) {
 			try {
-				portletPreferencesLocalService.deletePortletPreferences(
+				_portletPreferencesLocalService.deletePortletPreferences(
 					portletPreferences.getPortletPreferencesId());
 			}
 			catch (NoSuchPortletPreferencesException
@@ -182,17 +195,15 @@ public class LayoutRevisionLocalServiceImpl
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchPortletPreferencesException,
-						noSuchPortletPreferencesException);
+					_log.debug(noSuchPortletPreferencesException);
 				}
 			}
 		}
 
-		recentLayoutRevisionLocalService.deleteRecentLayoutRevisions(
+		_recentLayoutRevisionLocalService.deleteRecentLayoutRevisions(
 			layoutRevision.getLayoutRevisionId());
 
-		workflowInstanceLinkLocalService.deleteWorkflowInstanceLink(
+		_workflowInstanceLinkLocalService.deleteWorkflowInstanceLink(
 			layoutRevision.getCompanyId(), layoutRevision.getGroupId(),
 			LayoutRevision.class.getName(),
 			layoutRevision.getLayoutRevisionId());
@@ -259,9 +270,7 @@ public class LayoutRevisionLocalServiceImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					noSuchLayoutRevisionException,
-					noSuchLayoutRevisionException);
+				_log.debug(noSuchLayoutRevisionException);
 			}
 
 			return null;
@@ -274,6 +283,15 @@ public class LayoutRevisionLocalServiceImpl
 
 		return layoutRevisionPersistence.fetchByL_P_First(
 			layoutSetBranchId, plid,
+			new LayoutRevisionCreateDateComparator(false));
+	}
+
+	@Override
+	public LayoutRevision fetchLatestLayoutRevision(
+		long layoutSetBranchId, long layoutBranchId, long plid) {
+
+		return layoutRevisionPersistence.fetchByL_L_P_First(
+			layoutSetBranchId, layoutBranchId, plid,
 			new LayoutRevisionCreateDateComparator(false));
 	}
 
@@ -325,17 +343,10 @@ public class LayoutRevisionLocalServiceImpl
 			return layoutRevisions.get(0);
 		}
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{layoutSetBranchId=");
-		sb.append(layoutSetBranchId);
-		sb.append(", layoutBranchId=");
-		sb.append(layoutBranchId);
-		sb.append(", plid=");
-		sb.append(plid);
-		sb.append("}");
-
-		throw new NoSuchLayoutRevisionException(sb.toString());
+		throw new NoSuchLayoutRevisionException(
+			StringBundler.concat(
+				"{layoutSetBranchId=", layoutSetBranchId, ", layoutBranchId=",
+				layoutBranchId, ", plid=", plid, "}"));
 	}
 
 	@Override
@@ -413,6 +424,11 @@ public class LayoutRevisionLocalServiceImpl
 	}
 
 	@Override
+	public int getLayoutRevisionsCount(long plid) {
+		return layoutRevisionPersistence.countByPlid(plid);
+	}
+
+	@Override
 	public int getLayoutRevisionsCount(
 		long layoutSetBranchId, long layoutBranchId, long plid) {
 
@@ -462,12 +478,10 @@ public class LayoutRevisionLocalServiceImpl
 			(workflowAction != WorkflowConstants.ACTION_PUBLISH) &&
 			(layoutRevision == null) && !revisionInProgress) {
 
-			User user = userPersistence.findByPrimaryKey(userId);
-
-			long newLayoutRevisionId = counterLocalService.increment();
+			User user = _userPersistence.findByPrimaryKey(userId);
 
 			layoutRevision = layoutRevisionPersistence.create(
-				newLayoutRevisionId);
+				getUniqueLayoutRevisionId());
 
 			layoutRevision.setGroupId(oldLayoutRevision.getGroupId());
 			layoutRevision.setCompanyId(oldLayoutRevision.getCompanyId());
@@ -505,9 +519,7 @@ public class LayoutRevisionLocalServiceImpl
 			copyPortletPreferences(
 				layoutRevision, layoutRevision.getParentLayoutRevisionId());
 
-			String command = serviceContext.getCommand();
-
-			if (command.equals("delete")) {
+			if (Objects.equals(serviceContext.getCommand(), Constants.DELETE)) {
 				String[] removePortletIdsArray =
 					(String[])serviceContext.getAttribute("removePortletIds");
 
@@ -516,14 +528,14 @@ public class LayoutRevisionLocalServiceImpl
 						removePortletIdsArray);
 
 					for (PortletPreferences portletPreferences :
-							portletPreferencesLocalService.
+							_portletPreferencesLocalService.
 								getPortletPreferencesByPlid(
 									layoutRevision.getLayoutRevisionId())) {
 
 						if (removePortletIds.contains(
 								portletPreferences.getPortletId())) {
 
-							portletPreferencesLocalService.
+							_portletPreferencesLocalService.
 								deletePortletPreferences(
 									portletPreferences.
 										getPortletPreferencesId());
@@ -591,7 +603,7 @@ public class LayoutRevisionLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = _userPersistence.findByPrimaryKey(userId);
 
 		LayoutRevision layoutRevision =
 			layoutRevisionPersistence.findByPrimaryKey(layoutRevisionId);
@@ -657,15 +669,15 @@ public class LayoutRevisionLocalServiceImpl
 		LayoutRevision layoutRevision, long parentLayoutRevisionId) {
 
 		List<PortletPreferences> portletPreferencesList =
-			portletPreferencesLocalService.getPortletPreferencesByPlid(
+			_portletPreferencesLocalService.getPortletPreferencesByPlid(
 				parentLayoutRevisionId);
 
 		for (PortletPreferences portletPreferences : portletPreferencesList) {
 			javax.portlet.PortletPreferences jxPortletPreferences =
-				portletPreferenceValueLocalService.getPreferences(
+				_portletPreferenceValueLocalService.getPreferences(
 					portletPreferences);
 
-			portletPreferencesLocalService.addPortletPreferences(
+			_portletPreferencesLocalService.addPortletPreferences(
 				layoutRevision.getCompanyId(), portletPreferences.getOwnerId(),
 				portletPreferences.getOwnerType(),
 				layoutRevision.getLayoutRevisionId(),
@@ -701,8 +713,18 @@ public class LayoutRevisionLocalServiceImpl
 		return LayoutRevisionConstants.DEFAULT_PARENT_LAYOUT_REVISION_ID;
 	}
 
+	protected long getUniqueLayoutRevisionId() {
+		long layoutRevisionId = counterLocalService.increment();
+
+		while (_layoutLocalService.fetchLayout(layoutRevisionId) != null) {
+			layoutRevisionId = counterLocalService.increment();
+		}
+
+		return layoutRevisionId;
+	}
+
 	protected boolean isWorkflowEnabled(long plid) throws PortalException {
-		Layout layout = layoutLocalService.getLayout(plid);
+		Layout layout = _layoutLocalService.getLayout(plid);
 
 		LayoutTypeController layoutTypeController =
 			LayoutTypeControllerTracker.getLayoutTypeController(
@@ -767,5 +789,27 @@ public class LayoutRevisionLocalServiceImpl
 		new CentralizedThreadLocal<>(
 			LayoutRevisionLocalServiceImpl.class + "._layoutRevisionId",
 			() -> 0L);
+
+	@BeanReference(type = LayoutLocalService.class)
+	private LayoutLocalService _layoutLocalService;
+
+	@BeanReference(type = LayoutSetBranchPersistence.class)
+	private LayoutSetBranchPersistence _layoutSetBranchPersistence;
+
+	@BeanReference(type = PortletPreferencesLocalService.class)
+	private PortletPreferencesLocalService _portletPreferencesLocalService;
+
+	@BeanReference(type = PortletPreferenceValueLocalService.class)
+	private PortletPreferenceValueLocalService
+		_portletPreferenceValueLocalService;
+
+	@BeanReference(type = RecentLayoutRevisionLocalService.class)
+	private RecentLayoutRevisionLocalService _recentLayoutRevisionLocalService;
+
+	@BeanReference(type = UserPersistence.class)
+	private UserPersistence _userPersistence;
+
+	@BeanReference(type = WorkflowInstanceLinkLocalService.class)
+	private WorkflowInstanceLinkLocalService _workflowInstanceLinkLocalService;
 
 }

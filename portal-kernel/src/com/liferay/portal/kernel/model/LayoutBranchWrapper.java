@@ -124,6 +124,11 @@ public class LayoutBranchWrapper
 		}
 	}
 
+	@Override
+	public LayoutBranch cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this layout branch.
 	 *

@@ -14,7 +14,6 @@
 
 package com.liferay.message.boards.internal.upgrade.v3_0_0;
 
-import com.liferay.message.boards.internal.upgrade.v3_0_0.util.MBMessageTable;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -36,9 +35,7 @@ public class MBMessageTreePathUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		if (!hasColumn("MBMessage", "treePath")) {
-			alter(
-				MBMessageTable.class,
-				new AlterTableAddColumn("treePath", "STRING null"));
+			alterTableAddColumn("MBMessage", "treePath", "STRING null");
 		}
 
 		_populateTreePath();
@@ -74,35 +71,36 @@ public class MBMessageTreePathUpgradeProcess extends UpgradeProcess {
 
 		Map<Long, Long> relations = new HashMap<>();
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select messageId, parentMessageId from MBMessage where " +
 					"parentMessageId != 0 order by createDate desc");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				relations.put(rs.getLong(1), rs.getLong(2));
+			while (resultSet.next()) {
+				relations.put(resultSet.getLong(1), resultSet.getLong(2));
 			}
 		}
 
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select messageId from MBMessage where treePath is null or " +
 					"treePath = ''");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update MBMessage set treePath = ? where messageId = ?");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				long messageId = rs.getLong(1);
+			while (resultSet.next()) {
+				long messageId = resultSet.getLong(1);
 
-				ps2.setString(1, _calculatePath(relations, messageId));
-				ps2.setLong(2, messageId);
+				preparedStatement2.setString(
+					1, _calculatePath(relations, messageId));
+				preparedStatement2.setLong(2, messageId);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

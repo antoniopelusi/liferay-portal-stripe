@@ -1,0 +1,1 @@
+<div>${Foo.getData()}</div>

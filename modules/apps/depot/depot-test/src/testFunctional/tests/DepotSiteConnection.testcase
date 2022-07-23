@@ -1,0 +1,339 @@
+@component-name = "portal-document-management"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Depot";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page Name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONDepot.deleteDepot(depotName = "Test Depot Name");
+
+			Site.tearDownCP();
+
+			DMDocument.tearDownCP();
+
+			DMFolder.tearDownCP();
+
+			User.logoutPG();
+		}
+	}
+
+	@description = "This ensures that a depot can be connected to different types of sites."
+	@priority = "5"
+	@refactorneeded
+	@uitest
+	test AddMultipleSites {
+		Site.openSitesAdmin();
+
+		JSONGroup.addChildGroup(
+			groupName = "Child Site Name",
+			parentGroupName = "Site Name");
+
+		Site.addBlankCP(
+			membershipType = "Private",
+			siteName = "Private Site Name");
+
+		Site.openSitesAdmin();
+
+		Site.addBlankCP(
+			membershipType = "Restricted",
+			siteName = "Restricted Site Name");
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.viewConnectedSiteNumber(
+			connectedSiteNumber = "0",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.connectSite(siteList = "Site Name,Private Site Name,Restricted Site Name");
+
+		Depot.connectSite(
+			parentSiteName = "Site Name",
+			siteList = "Child Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.viewConnectedSiteNumber(
+			connectedSiteNumber = "4",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.viewConnectedSite(
+			depotName = "Test Depot Name",
+			siteList = "Site Name,Private Site Name,Restricted Site Name,Child Site Name");
+	}
+
+	@description = "This ensures that an asset library can not be connected to a staged site."
+	@priority = "4"
+	@refactorneeded
+	test ConnectStagedSite {
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		JSONStaging.enableLocalStaging(groupName = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Button.clickAdd();
+
+		SelectFrame(locator1 = "IFrame#SELECT_SITES");
+
+		Pause(locator1 = "3000");
+
+		Navigator.gotoNavItem(navItem = "All Sites");
+
+		SiteSelector.selectSite(site = "Site Name");
+
+		SelectFrame(value1 = "relative=top");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#ERROR",
+			value1 = "An unstaged asset library cannot be connected to a staged site.");
+	}
+
+	@description = "This asserts that a deactivated site is still shown in connected sites and a deleted site is removed from connected sites."
+	@priority = "4"
+	@refactorneeded
+	test DeactivateAndDeleteSite {
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.viewConnectedSite(
+			depotName = "Test Depot Name",
+			siteList = "Site Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.deactivateCP(
+			siteName = "Site Name",
+			successMessage = "true");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		// We need to add an assertion for the label that will later be developed and update the test description
+
+		Depot.viewConnectedSite(
+			depotName = "Test Depot Name",
+			siteList = "Site Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.deleteCP(siteName = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.viewNoConnectedSiteCP();
+	}
+
+	@description = "This ensures that the disconnected site can not access the the depot."
+	@priority = "5"
+	@refactorneeded
+	@uitest
+	test DisconnectFromSite {
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.viewConnectedSiteNumber(
+			connectedSiteNumber = "1",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.disconnectSite(siteList = "Site Name");
+
+		Depot.viewNoConnectedSiteCP();
+	}
+
+	@description = "This ensures that a depot can be connected to the site."
+	@priority = "5"
+	@refactorneeded
+	@uitest
+	test Smoke {
+		property portal.acceptance = "true";
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.connectSite(siteList = "Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.viewConnectedSite(
+			depotName = "Test Depot Name",
+			siteList = "Site Name");
+	}
+
+	@description = "This ensures that a connected site can access the depot document."
+	@priority = "5"
+	@refactorneeded
+	test ViewDocumentFromAnotherSite {
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		JSONDocument.addFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Test Depot Name");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		DepotNavigator.openToDMEntryInDepot(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "DM Document Title");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+	}
+
+	@description = "This ensures that a connected child site can access the depot image."
+	@priority = "5"
+	@refactorneeded
+	@uitest
+	test ViewImageFromChildSite {
+		JSONGroup.addChildGroup(
+			groupName = "Child Site Name",
+			parentGroupName = "Site Name");
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		JSONDocument.addFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Test Depot Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.connectSite(siteList = "Child Site Name");
+
+		DepotNavigator.openToDMEntryInDepot(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "Document_1.jpg");
+
+		DMDocument.viewCP(dmDocumentTitle = "Document_1.jpg");
+	}
+
+	@description = "This test covers LPS-104832. It ensures that the repositories can not connect to repositories."
+	@priority = "5"
+	@refactorneeded
+	test ViewRestrictionWhenConnectingSites {
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Button.clickAdd();
+
+		if (IsElementNotPresent(locator1 = "IFrame#SELECT_SITES")) {
+			Button.clickAdd();
+		}
+
+		SelectFrame(locator1 = "IFrame#SELECT_SITES");
+
+		AssertVisible(
+			key_navItem = "Recent",
+			locator1 = "NavBar#NAV_ITEM_LINK",
+			value1 = "Recent");
+
+		AssertVisible(
+			key_navItem = "All Sites",
+			locator1 = "NavBar#NAV_ITEM_LINK",
+			value1 = "My Sites");
+
+		AssertElementNotPresent(
+			key_navItem = "Asset Libraries",
+			locator1 = "NavBar#NAV_ITEM_LINK");
+	}
+
+}

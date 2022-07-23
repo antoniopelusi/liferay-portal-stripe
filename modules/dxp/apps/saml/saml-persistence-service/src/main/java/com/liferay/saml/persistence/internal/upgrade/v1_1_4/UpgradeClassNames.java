@@ -30,7 +30,7 @@ public class UpgradeClassNames extends UpgradeKernelPackage {
 
 	@Override
 	public void doUpgrade() throws UpgradeException {
-		updateCounterClassNames();
+		_updateCounterClassNames();
 
 		super.doUpgrade();
 	}
@@ -45,28 +45,31 @@ public class UpgradeClassNames extends UpgradeKernelPackage {
 		return _RESOURCE_NAMES;
 	}
 
-	protected void updateCounterClassNames() throws UpgradeException {
+	private void _updateCounterClassNames() throws UpgradeException {
 		for (String modelName : _MODEL_NAMES) {
-			try (PreparedStatement ps1 = connection.prepareStatement(
-					"select count(*) from Counter where name like '%." +
-						modelName + "'");
-				ResultSet rs1 = ps1.executeQuery()) {
+			try (PreparedStatement preparedStatement1 =
+					connection.prepareStatement(
+						"select count(*) from Counter where name like '%." +
+							modelName + "'");
+				ResultSet resultSet1 = preparedStatement1.executeQuery()) {
 
-				if (rs1.next()) {
-					int count = rs1.getInt(1);
+				if (resultSet1.next()) {
+					int count = resultSet1.getInt(1);
 
 					if (count <= 1) {
 						continue;
 					}
 
-					try (PreparedStatement ps2 = connection.prepareStatement(
-							StringBundler.concat(
-								"select max(currentId) from Counter where ",
-								"name like '%.", modelName, "'"));
-						ResultSet rs2 = ps2.executeQuery()) {
+					try (PreparedStatement preparedStatement2 =
+							connection.prepareStatement(
+								StringBundler.concat(
+									"select max(currentId) from Counter where ",
+									"name like '%.", modelName, "'"));
+						ResultSet resultSet2 =
+							preparedStatement2.executeQuery()) {
 
-						if (rs2.next()) {
-							long currentId = rs2.getLong(1);
+						if (resultSet2.next()) {
+							long currentId = resultSet2.getLong(1);
 
 							CounterLocalServiceUtil.reset(
 								"com.liferay.saml.model." + modelName,

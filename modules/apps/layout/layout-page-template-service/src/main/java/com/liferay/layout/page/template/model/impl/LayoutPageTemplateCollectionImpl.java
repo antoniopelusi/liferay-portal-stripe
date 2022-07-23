@@ -19,8 +19,4 @@ package com.liferay.layout.page.template.model.impl;
  */
 public class LayoutPageTemplateCollectionImpl
 	extends LayoutPageTemplateCollectionBaseImpl {
-
-	public LayoutPageTemplateCollectionImpl() {
-	}
-
 }

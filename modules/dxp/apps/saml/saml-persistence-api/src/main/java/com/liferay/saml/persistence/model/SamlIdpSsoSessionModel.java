@@ -184,4 +184,7 @@ public interface SamlIdpSsoSessionModel
 	 */
 	public void setSamlIdpSsoSessionKey(String samlIdpSsoSessionKey);
 
+	@Override
+	public SamlIdpSsoSession cloneWithOriginalValues();
+
 }

@@ -254,4 +254,7 @@ public interface MicroblogsEntryModel
 	 */
 	public void setSocialRelationType(int socialRelationType);
 
+	@Override
+	public MicroblogsEntry cloneWithOriginalValues();
+
 }

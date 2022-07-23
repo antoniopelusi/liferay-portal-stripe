@@ -18,6 +18,7 @@
 AUI.add(
 	'liferay-poller',
 	(A) => {
+		// eslint-disable-next-line @liferay/aui/no-object
 		var AObject = A.Object;
 
 		var _browserKey = Math.ceil(Math.random() * Number.MAX_SAFE_INTEGER);
@@ -92,7 +93,7 @@ AUI.add(
 					_requestDelay = _delays[_delayIndex];
 					_delayAccessCount++;
 
-					if (_delayAccessCount == 3) {
+					if (_delayAccessCount === 3) {
 						_delayIndex++;
 						_delayAccessCount = 0;
 					}
@@ -238,8 +239,8 @@ AUI.add(
 			return _sendChannel;
 		}
 
-		function _processResponse(id, obj) {
-			var response = JSON.parse(obj.responseText);
+		function _processResponse(id, object) {
+			var response = JSON.parse(object.responseText);
 			var send = false;
 
 			if (Array.isArray(response)) {

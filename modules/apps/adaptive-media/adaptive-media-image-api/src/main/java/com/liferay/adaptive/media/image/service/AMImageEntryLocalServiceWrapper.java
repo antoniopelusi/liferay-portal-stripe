@@ -27,6 +27,10 @@ public class AMImageEntryLocalServiceWrapper
 	implements AMImageEntryLocalService,
 			   ServiceWrapper<AMImageEntryLocalService> {
 
+	public AMImageEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AMImageEntryLocalServiceWrapper(
 		AMImageEntryLocalService amImageEntryLocalService) {
 
@@ -208,6 +212,13 @@ public class AMImageEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _amImageEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _amImageEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

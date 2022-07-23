@@ -54,7 +54,7 @@ public class PortletRequestDataSample extends BaseDataSample {
 
 		setCompanyId(portlet.getCompanyId());
 
-		setGroupId(portletRequest, portal);
+		_setGroupId(portletRequest, portal);
 		setName(portlet.getPortletName());
 		setNamespace(MonitorNames.PORTLET);
 		setUser(portletRequest.getRemoteUser());
@@ -77,22 +77,12 @@ public class PortletRequestDataSample extends BaseDataSample {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{displayName=");
-		sb.append(_displayName);
-		sb.append(", portletId=");
-		sb.append(_portletId);
-		sb.append(", requestType=");
-		sb.append(_requestType);
-		sb.append(", ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{displayName=", _displayName, ", portletId=", _portletId,
+			", requestType=", _requestType, ", ", super.toString(), "}");
 	}
 
-	protected void setGroupId(PortletRequest portletRequest, Portal portal) {
+	private void _setGroupId(PortletRequest portletRequest, Portal portal) {
 		long groupId = GroupThreadLocal.getGroupId();
 
 		if (groupId != 0) {
@@ -113,17 +103,13 @@ public class PortletRequestDataSample extends BaseDataSample {
 				WebKeys.THEME_DISPLAY);
 
 		if (themeDisplay != null) {
-			groupId = themeDisplay.getScopeGroupId();
-
-			setGroupId(groupId);
+			setGroupId(themeDisplay.getScopeGroupId());
 
 			return;
 		}
 
 		try {
-			groupId = portal.getScopeGroupId(portletRequest);
-
-			setGroupId(groupId);
+			setGroupId(portal.getScopeGroupId(portletRequest));
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {

@@ -386,4 +386,7 @@ public interface SegmentsExperimentModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public SegmentsExperiment cloneWithOriginalValues();
+
 }

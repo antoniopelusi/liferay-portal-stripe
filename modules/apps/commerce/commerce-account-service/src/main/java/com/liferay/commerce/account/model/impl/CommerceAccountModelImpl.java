@@ -16,7 +16,6 @@ package com.liferay.commerce.account.model.impl;
 
 import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.account.model.CommerceAccountModel;
-import com.liferay.commerce.account.model.CommerceAccountSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -31,21 +30,20 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -185,76 +183,6 @@ public class CommerceAccountModelImpl
 	@Deprecated
 	public static final long NAME_COLUMN_BITMASK = 16L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CommerceAccount toModel(CommerceAccountSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		CommerceAccount model = new CommerceAccountImpl();
-
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setCommerceAccountId(soapModel.getCommerceAccountId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentCommerceAccountId(
-			soapModel.getParentCommerceAccountId());
-		model.setName(soapModel.getName());
-		model.setLogoId(soapModel.getLogoId());
-		model.setEmail(soapModel.getEmail());
-		model.setTaxId(soapModel.getTaxId());
-		model.setType(soapModel.getType());
-		model.setActive(soapModel.isActive());
-		model.setDisplayDate(soapModel.getDisplayDate());
-		model.setDefaultBillingAddressId(
-			soapModel.getDefaultBillingAddressId());
-		model.setDefaultShippingAddressId(
-			soapModel.getDefaultShippingAddressId());
-		model.setExpirationDate(soapModel.getExpirationDate());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CommerceAccount> toModels(
-		CommerceAccountSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CommerceAccount> models = new ArrayList<CommerceAccount>(
-			soapModels.length);
-
-		for (CommerceAccountSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.account.service.util.ServiceProps.get(
 			"lock.expiration.time.com.liferay.commerce.account.model.CommerceAccount"));
@@ -342,34 +270,6 @@ public class CommerceAccountModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CommerceAccount>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommerceAccount.class.getClassLoader(), CommerceAccount.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CommerceAccount> constructor =
-				(Constructor<CommerceAccount>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CommerceAccount, Object>>
@@ -1137,6 +1037,60 @@ public class CommerceAccountModelImpl
 	}
 
 	@Override
+	public CommerceAccount cloneWithOriginalValues() {
+		CommerceAccountImpl commerceAccountImpl = new CommerceAccountImpl();
+
+		commerceAccountImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		commerceAccountImpl.setCommerceAccountId(
+			this.<Long>getColumnOriginalValue("commerceAccountId"));
+		commerceAccountImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commerceAccountImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commerceAccountImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commerceAccountImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commerceAccountImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commerceAccountImpl.setParentCommerceAccountId(
+			this.<Long>getColumnOriginalValue("parentCommerceAccountId"));
+		commerceAccountImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		commerceAccountImpl.setLogoId(
+			this.<Long>getColumnOriginalValue("logoId"));
+		commerceAccountImpl.setEmail(
+			this.<String>getColumnOriginalValue("email"));
+		commerceAccountImpl.setTaxId(
+			this.<String>getColumnOriginalValue("taxId"));
+		commerceAccountImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		commerceAccountImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+		commerceAccountImpl.setDisplayDate(
+			this.<Date>getColumnOriginalValue("displayDate"));
+		commerceAccountImpl.setDefaultBillingAddressId(
+			this.<Long>getColumnOriginalValue("defaultBillingAddressId"));
+		commerceAccountImpl.setDefaultShippingAddressId(
+			this.<Long>getColumnOriginalValue("defaultShippingAddressId"));
+		commerceAccountImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+		commerceAccountImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		commerceAccountImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		commerceAccountImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		commerceAccountImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		commerceAccountImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return commerceAccountImpl;
+	}
+
+	@Override
 	public int compareTo(CommerceAccount commerceAccount) {
 		int value = 0;
 
@@ -1349,7 +1303,7 @@ public class CommerceAccountModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1360,9 +1314,26 @@ public class CommerceAccountModelImpl
 			Function<CommerceAccount, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CommerceAccount)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CommerceAccount)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1409,7 +1380,9 @@ public class CommerceAccountModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CommerceAccount>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CommerceAccount.class, ModelWrapper.class);
 
 	}
 

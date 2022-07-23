@@ -28,7 +28,7 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 	<c:when test="<%= WorkflowEngineManagerUtil.isDeployed() %>">
 
 		<%
-		String mvcPath = ParamUtil.getString(request, "mvcPath", "/designer/edit_kaleo_definition_version.jsp");
+		String mvcPath = ParamUtil.getString(request, "mvcPath", "/designer/edit_workflow_definition.jsp");
 
 		String redirect = ParamUtil.getString(request, "redirect");
 		String closeRedirect = ParamUtil.getString(request, "closeRedirect");
@@ -120,7 +120,7 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 								<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="revision-from-x-by-x" translateArguments="<%= false %>" />
 							</c:when>
 							<c:otherwise>
-								<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="x-by-x" translateArguments="<%= false %>" />
+								<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="x,-by-x" translateArguments="<%= false %>" />
 							</c:otherwise>
 						</c:choose>
 					</span>
@@ -190,7 +190,7 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 																<%= dateFormatTime.format(kaleoDesignerDisplayContext.getCreatedDate(kaleoDefinitionVersion)) %>
 															</c:when>
 															<c:otherwise>
-																<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDesignerDisplayContext.getCreatedDate(kaleoDefinitionVersion)), HtmlUtil.escape(creatorUserName)} %>" key="x-by-x" translateArguments="<%= false %>" />
+																<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDesignerDisplayContext.getCreatedDate(kaleoDefinitionVersion)), HtmlUtil.escape(creatorUserName)} %>" key="x,-by-x" translateArguments="<%= false %>" />
 															</c:otherwise>
 														</c:choose>
 													</dd>
@@ -203,7 +203,7 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 																<%= dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()) %>
 															</c:when>
 															<c:otherwise>
-																<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="x-by-x" translateArguments="<%= false %>" />
+																<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="x,-by-x" translateArguments="<%= false %>" />
 															</c:otherwise>
 														</c:choose>
 													</dd>
@@ -236,7 +236,7 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 
 			<div class="sidenav-content">
 				<clay:container-fluid
-					size='<%= Objects.equals(renderRequest.getWindowState(), LiferayWindowState.POP_UP) ? "xl" : "lg" %>'
+					size='<%= (Objects.equals(renderRequest.getWindowState(), LiferayWindowState.POP_UP) || Objects.equals(renderRequest.getWindowState(), WindowState.MAXIMIZED)) ? "xl" : "lg" %>'
 				>
 					<aui:form cssClass="full-width-content" method="post" name="fm" onSubmit="event.preventDefault();">
 						<aui:model-context bean="<%= kaleoDefinitionVersion %>" model="<%= KaleoDefinitionVersion.class %>" />
@@ -409,6 +409,7 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 
 								<aui:script use="liferay-kaleo-designer-dialogs,liferay-kaleo-designer-utils,liferay-portlet-kaleo-designer">
 									var MAP_ROLE_TYPES = {
+										account: 6,
 										depot: 5,
 										organization: 3,
 										regular: 1,
@@ -442,12 +443,8 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 
 											boundingBox: '#<portlet:namespace />propertyBuilder',
 											data: {
-
-												<%
-												long kaleoProcessId = ParamUtil.getLong(request, "kaleoProcessId");
-												%>
-
-												kaleoProcessId: '<%= kaleoProcessId %>',
+												kaleoProcessId:
+													'<%= ParamUtil.getLong(request, "kaleoProcessId") %>',
 											},
 
 											<c:if test="<%= Validator.isNotNull(content) %>">
@@ -666,18 +663,18 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 
 									<c:choose>
 										<c:when test="<%= kaleoDefinitionVersion == null %>">
-											var titleComponent = Liferay.component('<portlet:namespace />title');
+											Liferay.componentReady('<portlet:namespace />title').then((titleComponent) => {
+												var titlePlaceholderInput = titleComponent.get('inputPlaceholder');
 
-											var titlePlaceholderInput = titleComponent.get('inputPlaceholder');
-
-											if (titlePlaceholderInput) {
-												titlePlaceholderInput.after('change', (event) => {
-													<portlet:namespace />kaleoDesigner.set(
-														'definitionName',
-														titleComponent.getValue()
-													);
-												});
-											}
+												if (titlePlaceholderInput) {
+													titlePlaceholderInput.after('change', (event) => {
+														<portlet:namespace />kaleoDesigner.set(
+															'definitionName',
+															titleComponent.getValue()
+														);
+													});
+												}
+											});
 										</c:when>
 									</c:choose>
 
@@ -742,7 +739,7 @@ String successMessageKey = KaleoDesignerPortletKeys.KALEO_DESIGNER + "requestPro
 							</c:when>
 							<c:when test='<%= Objects.equals(state, "view") && KaleoDefinitionVersionPermission.contains(permissionChecker, kaleoDefinitionVersion, ActionKeys.UPDATE) %>'>
 								<portlet:renderURL var="editURL">
-									<portlet:param name="mvcPath" value='<%= "/designer/edit_kaleo_definition_version.jsp" %>' />
+									<portlet:param name="mvcPath" value="/designer/edit_workflow_definition.jsp" />
 									<portlet:param name="redirect" value="<%= currentURL %>" />
 									<portlet:param name="name" value="<%= kaleoDefinitionVersion.getName() %>" />
 									<portlet:param name="draftVersion" value="<%= kaleoDefinitionVersion.getVersion() %>" />

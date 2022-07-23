@@ -140,6 +140,11 @@ public class DispatchLogWrapper
 		}
 	}
 
+	@Override
+	public DispatchLog cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this dispatch log.
 	 *

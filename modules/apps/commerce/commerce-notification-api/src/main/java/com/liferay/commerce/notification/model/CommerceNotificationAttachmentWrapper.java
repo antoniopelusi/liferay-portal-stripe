@@ -46,6 +46,7 @@ public class CommerceNotificationAttachmentWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put(
 			"commerceNotificationAttachmentId",
@@ -67,6 +68,12 @@ public class CommerceNotificationAttachmentWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -136,6 +143,11 @@ public class CommerceNotificationAttachmentWrapper
 		if (deleteOnSend != null) {
 			setDeleteOnSend(deleteOnSend);
 		}
+	}
+
+	@Override
+	public CommerceNotificationAttachment cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -223,6 +235,16 @@ public class CommerceNotificationAttachmentWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce notification attachment.
+	 *
+	 * @return the mvcc version of this commerce notification attachment
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -374,6 +396,16 @@ public class CommerceNotificationAttachmentWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce notification attachment.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce notification attachment
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentCollectionModel;
-import com.liferay.fragment.model.FragmentCollectionSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -166,64 +164,6 @@ public class FragmentCollectionModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static FragmentCollection toModel(FragmentCollectionSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		FragmentCollection model = new FragmentCollectionImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setFragmentCollectionId(soapModel.getFragmentCollectionId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setFragmentCollectionKey(soapModel.getFragmentCollectionKey());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<FragmentCollection> toModels(
-		FragmentCollectionSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<FragmentCollection> models = new ArrayList<FragmentCollection>(
-			soapModels.length);
-
-		for (FragmentCollectionSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public FragmentCollectionModelImpl() {
 	}
 
@@ -307,34 +247,6 @@ public class FragmentCollectionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, FragmentCollection>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			FragmentCollection.class.getClassLoader(), FragmentCollection.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<FragmentCollection> constructor =
-				(Constructor<FragmentCollection>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<FragmentCollection, Object>>
@@ -830,6 +742,43 @@ public class FragmentCollectionModelImpl
 	}
 
 	@Override
+	public FragmentCollection cloneWithOriginalValues() {
+		FragmentCollectionImpl fragmentCollectionImpl =
+			new FragmentCollectionImpl();
+
+		fragmentCollectionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		fragmentCollectionImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		fragmentCollectionImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		fragmentCollectionImpl.setFragmentCollectionId(
+			this.<Long>getColumnOriginalValue("fragmentCollectionId"));
+		fragmentCollectionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		fragmentCollectionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		fragmentCollectionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		fragmentCollectionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		fragmentCollectionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		fragmentCollectionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		fragmentCollectionImpl.setFragmentCollectionKey(
+			this.<String>getColumnOriginalValue("fragmentCollectionKey"));
+		fragmentCollectionImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		fragmentCollectionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		fragmentCollectionImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return fragmentCollectionImpl;
+	}
+
+	@Override
 	public int compareTo(FragmentCollection fragmentCollection) {
 		int value = 0;
 
@@ -995,7 +944,7 @@ public class FragmentCollectionModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1006,9 +955,27 @@ public class FragmentCollectionModelImpl
 			Function<FragmentCollection, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((FragmentCollection)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(FragmentCollection)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1055,7 +1022,9 @@ public class FragmentCollectionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, FragmentCollection>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					FragmentCollection.class, ModelWrapper.class);
 
 	}
 

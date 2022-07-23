@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * @author Michael C. Han
  */
-public class CircleShapeImpl extends ShapeImpl implements CircleShape {
+public class CircleShapeImpl extends BaseShapeImpl implements CircleShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

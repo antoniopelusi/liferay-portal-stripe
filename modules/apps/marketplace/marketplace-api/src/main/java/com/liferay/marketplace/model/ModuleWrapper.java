@@ -97,6 +97,11 @@ public class ModuleWrapper
 		}
 	}
 
+	@Override
+	public Module cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the app ID of this module.
 	 *

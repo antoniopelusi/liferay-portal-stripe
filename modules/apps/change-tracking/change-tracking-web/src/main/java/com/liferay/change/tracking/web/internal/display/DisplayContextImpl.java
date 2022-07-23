@@ -14,14 +14,19 @@
 
 package com.liferay.change.tracking.web.internal.display;
 
+import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.change.tracking.spi.display.context.DisplayContext;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,13 +38,18 @@ public class DisplayContextImpl<T> implements DisplayContext<T> {
 
 	public DisplayContextImpl(
 		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse, T model, long ctEntryId,
-		String type) {
+		HttpServletResponse httpServletResponse,
+		ClassNameLocalService classNameLocalService,
+		CTDisplayRendererRegistry ctDisplayRendererRegistry, long ctEntryId,
+		Locale locale, T model, String type) {
 
 		_httpServletRequest = httpServletRequest;
 		_httpServletResponse = httpServletResponse;
-		_model = model;
+		_classNameLocalService = classNameLocalService;
+		_ctDisplayRendererRegistry = ctDisplayRendererRegistry;
 		_ctEntryId = ctEntryId;
+		_locale = locale;
+		_model = model;
 		_type = type;
 	}
 
@@ -98,13 +108,62 @@ public class DisplayContextImpl<T> implements DisplayContext<T> {
 	}
 
 	@Override
+	public Locale getLocale() {
+		return _locale;
+	}
+
+	@Override
 	public T getModel() {
 		return _model;
 	}
 
+	@Override
+	public void render(BaseModel<?> baseModel, Locale locale) throws Exception {
+		_render(baseModel, locale, false);
+	}
+
+	@Override
+	public String renderPreview(BaseModel<?> baseModel, Locale locale)
+		throws Exception {
+
+		return _render(baseModel, locale, true);
+	}
+
+	private <M extends BaseModel<?>> String _render(
+			M baseModel, Locale locale, boolean preview)
+		throws Exception {
+
+		if (baseModel == _model) {
+			throw new IllegalArgumentException();
+		}
+
+		CTDisplayRenderer<M> ctDisplayRenderer =
+			_ctDisplayRendererRegistry.getCTDisplayRenderer(
+				_classNameLocalService.getClassNameId(
+					baseModel.getModelClassName()));
+
+		DisplayContext<M> displayContext = new DisplayContextImpl<>(
+			_httpServletRequest, _httpServletResponse, _classNameLocalService,
+			_ctDisplayRendererRegistry, _ctEntryId, locale, baseModel, _type);
+
+		String result = null;
+
+		if (preview) {
+			result = ctDisplayRenderer.renderPreview(displayContext);
+		}
+		else {
+			ctDisplayRenderer.render(displayContext);
+		}
+
+		return result;
+	}
+
+	private final ClassNameLocalService _classNameLocalService;
+	private final CTDisplayRendererRegistry _ctDisplayRendererRegistry;
 	private final long _ctEntryId;
 	private final HttpServletRequest _httpServletRequest;
 	private final HttpServletResponse _httpServletResponse;
+	private final Locale _locale;
 	private final T _model;
 	private final String _type;
 

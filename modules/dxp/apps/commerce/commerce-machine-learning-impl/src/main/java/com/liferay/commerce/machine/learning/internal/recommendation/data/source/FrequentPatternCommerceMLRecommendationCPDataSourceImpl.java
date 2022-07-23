@@ -21,6 +21,7 @@ import com.liferay.commerce.product.catalog.CPCatalogEntry;
 import com.liferay.commerce.product.constants.CPWebKeys;
 import com.liferay.commerce.product.data.source.CPDataSource;
 import com.liferay.commerce.product.data.source.CPDataSourceResult;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -108,14 +109,11 @@ public class FrequentPatternCommerceMLRecommendationCPDataSourceImpl
 					getRecommendedEntryClassPK();
 
 			if (_log.isTraceEnabled()) {
-				StringBuilder sb = new StringBuilder();
-
-				sb.append("Recommended entry ");
-				sb.append(recommendedEntryClassPK);
-				sb.append(" has score ");
-				sb.append(frequentPatternCommerceMLRecommendation.getScore());
-
-				_log.trace(sb.toString());
+				_log.trace(
+					StringBundler.concat(
+						"Recommended entry ", recommendedEntryClassPK,
+						" has score ",
+						frequentPatternCommerceMLRecommendation.getScore()));
 			}
 
 			try {
@@ -131,7 +129,7 @@ public class FrequentPatternCommerceMLRecommendationCPDataSourceImpl
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 		}

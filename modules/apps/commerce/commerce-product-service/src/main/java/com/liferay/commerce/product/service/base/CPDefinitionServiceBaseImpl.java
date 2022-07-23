@@ -14,8 +14,6 @@
 
 package com.liferay.commerce.product.service.base;
 
-import com.liferay.asset.kernel.service.persistence.AssetEntryPersistence;
-import com.liferay.asset.kernel.service.persistence.AssetLinkPersistence;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.service.CPDefinitionService;
 import com.liferay.commerce.product.service.CPDefinitionServiceUtil;
@@ -45,7 +43,6 @@ import com.liferay.commerce.product.service.persistence.CommerceCatalogPersisten
 import com.liferay.commerce.product.service.persistence.CommerceChannelPersistence;
 import com.liferay.commerce.product.service.persistence.CommerceChannelRelFinder;
 import com.liferay.commerce.product.service.persistence.CommerceChannelRelPersistence;
-import com.liferay.expando.kernel.service.persistence.ExpandoRowPersistence;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -55,9 +52,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.service.BaseServiceImpl;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
-import com.liferay.portal.kernel.service.persistence.GroupPersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
-import com.liferay.portal.kernel.service.persistence.WorkflowInstanceLinkPersistence;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
@@ -1585,66 +1580,6 @@ public abstract class CPDefinitionServiceBaseImpl
 	}
 
 	/**
-	 * Returns the group local service.
-	 *
-	 * @return the group local service
-	 */
-	public com.liferay.portal.kernel.service.GroupLocalService
-		getGroupLocalService() {
-
-		return groupLocalService;
-	}
-
-	/**
-	 * Sets the group local service.
-	 *
-	 * @param groupLocalService the group local service
-	 */
-	public void setGroupLocalService(
-		com.liferay.portal.kernel.service.GroupLocalService groupLocalService) {
-
-		this.groupLocalService = groupLocalService;
-	}
-
-	/**
-	 * Returns the group remote service.
-	 *
-	 * @return the group remote service
-	 */
-	public com.liferay.portal.kernel.service.GroupService getGroupService() {
-		return groupService;
-	}
-
-	/**
-	 * Sets the group remote service.
-	 *
-	 * @param groupService the group remote service
-	 */
-	public void setGroupService(
-		com.liferay.portal.kernel.service.GroupService groupService) {
-
-		this.groupService = groupService;
-	}
-
-	/**
-	 * Returns the group persistence.
-	 *
-	 * @return the group persistence
-	 */
-	public GroupPersistence getGroupPersistence() {
-		return groupPersistence;
-	}
-
-	/**
-	 * Sets the group persistence.
-	 *
-	 * @param groupPersistence the group persistence
-	 */
-	public void setGroupPersistence(GroupPersistence groupPersistence) {
-		this.groupPersistence = groupPersistence;
-	}
-
-	/**
 	 * Returns the resource local service.
 	 *
 	 * @return the resource local service
@@ -1725,203 +1660,6 @@ public abstract class CPDefinitionServiceBaseImpl
 	 */
 	public void setUserPersistence(UserPersistence userPersistence) {
 		this.userPersistence = userPersistence;
-	}
-
-	/**
-	 * Returns the workflow instance link local service.
-	 *
-	 * @return the workflow instance link local service
-	 */
-	public com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-		getWorkflowInstanceLinkLocalService() {
-
-		return workflowInstanceLinkLocalService;
-	}
-
-	/**
-	 * Sets the workflow instance link local service.
-	 *
-	 * @param workflowInstanceLinkLocalService the workflow instance link local service
-	 */
-	public void setWorkflowInstanceLinkLocalService(
-		com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-			workflowInstanceLinkLocalService) {
-
-		this.workflowInstanceLinkLocalService =
-			workflowInstanceLinkLocalService;
-	}
-
-	/**
-	 * Returns the workflow instance link persistence.
-	 *
-	 * @return the workflow instance link persistence
-	 */
-	public WorkflowInstanceLinkPersistence
-		getWorkflowInstanceLinkPersistence() {
-
-		return workflowInstanceLinkPersistence;
-	}
-
-	/**
-	 * Sets the workflow instance link persistence.
-	 *
-	 * @param workflowInstanceLinkPersistence the workflow instance link persistence
-	 */
-	public void setWorkflowInstanceLinkPersistence(
-		WorkflowInstanceLinkPersistence workflowInstanceLinkPersistence) {
-
-		this.workflowInstanceLinkPersistence = workflowInstanceLinkPersistence;
-	}
-
-	/**
-	 * Returns the asset entry local service.
-	 *
-	 * @return the asset entry local service
-	 */
-	public com.liferay.asset.kernel.service.AssetEntryLocalService
-		getAssetEntryLocalService() {
-
-		return assetEntryLocalService;
-	}
-
-	/**
-	 * Sets the asset entry local service.
-	 *
-	 * @param assetEntryLocalService the asset entry local service
-	 */
-	public void setAssetEntryLocalService(
-		com.liferay.asset.kernel.service.AssetEntryLocalService
-			assetEntryLocalService) {
-
-		this.assetEntryLocalService = assetEntryLocalService;
-	}
-
-	/**
-	 * Returns the asset entry remote service.
-	 *
-	 * @return the asset entry remote service
-	 */
-	public com.liferay.asset.kernel.service.AssetEntryService
-		getAssetEntryService() {
-
-		return assetEntryService;
-	}
-
-	/**
-	 * Sets the asset entry remote service.
-	 *
-	 * @param assetEntryService the asset entry remote service
-	 */
-	public void setAssetEntryService(
-		com.liferay.asset.kernel.service.AssetEntryService assetEntryService) {
-
-		this.assetEntryService = assetEntryService;
-	}
-
-	/**
-	 * Returns the asset entry persistence.
-	 *
-	 * @return the asset entry persistence
-	 */
-	public AssetEntryPersistence getAssetEntryPersistence() {
-		return assetEntryPersistence;
-	}
-
-	/**
-	 * Sets the asset entry persistence.
-	 *
-	 * @param assetEntryPersistence the asset entry persistence
-	 */
-	public void setAssetEntryPersistence(
-		AssetEntryPersistence assetEntryPersistence) {
-
-		this.assetEntryPersistence = assetEntryPersistence;
-	}
-
-	/**
-	 * Returns the asset link local service.
-	 *
-	 * @return the asset link local service
-	 */
-	public com.liferay.asset.kernel.service.AssetLinkLocalService
-		getAssetLinkLocalService() {
-
-		return assetLinkLocalService;
-	}
-
-	/**
-	 * Sets the asset link local service.
-	 *
-	 * @param assetLinkLocalService the asset link local service
-	 */
-	public void setAssetLinkLocalService(
-		com.liferay.asset.kernel.service.AssetLinkLocalService
-			assetLinkLocalService) {
-
-		this.assetLinkLocalService = assetLinkLocalService;
-	}
-
-	/**
-	 * Returns the asset link persistence.
-	 *
-	 * @return the asset link persistence
-	 */
-	public AssetLinkPersistence getAssetLinkPersistence() {
-		return assetLinkPersistence;
-	}
-
-	/**
-	 * Sets the asset link persistence.
-	 *
-	 * @param assetLinkPersistence the asset link persistence
-	 */
-	public void setAssetLinkPersistence(
-		AssetLinkPersistence assetLinkPersistence) {
-
-		this.assetLinkPersistence = assetLinkPersistence;
-	}
-
-	/**
-	 * Returns the expando row local service.
-	 *
-	 * @return the expando row local service
-	 */
-	public com.liferay.expando.kernel.service.ExpandoRowLocalService
-		getExpandoRowLocalService() {
-
-		return expandoRowLocalService;
-	}
-
-	/**
-	 * Sets the expando row local service.
-	 *
-	 * @param expandoRowLocalService the expando row local service
-	 */
-	public void setExpandoRowLocalService(
-		com.liferay.expando.kernel.service.ExpandoRowLocalService
-			expandoRowLocalService) {
-
-		this.expandoRowLocalService = expandoRowLocalService;
-	}
-
-	/**
-	 * Returns the expando row persistence.
-	 *
-	 * @return the expando row persistence
-	 */
-	public ExpandoRowPersistence getExpandoRowPersistence() {
-		return expandoRowPersistence;
-	}
-
-	/**
-	 * Sets the expando row persistence.
-	 *
-	 * @param expandoRowPersistence the expando row persistence
-	 */
-	public void setExpandoRowPersistence(
-		ExpandoRowPersistence expandoRowPersistence) {
-
-		this.expandoRowPersistence = expandoRowPersistence;
 	}
 
 	public void afterPropertiesSet() {
@@ -2325,20 +2063,6 @@ public abstract class CPDefinitionServiceBaseImpl
 	protected ClassNamePersistence classNamePersistence;
 
 	@ServiceReference(
-		type = com.liferay.portal.kernel.service.GroupLocalService.class
-	)
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@ServiceReference(
-		type = com.liferay.portal.kernel.service.GroupService.class
-	)
-	protected com.liferay.portal.kernel.service.GroupService groupService;
-
-	@ServiceReference(type = GroupPersistence.class)
-	protected GroupPersistence groupPersistence;
-
-	@ServiceReference(
 		type = com.liferay.portal.kernel.service.ResourceLocalService.class
 	)
 	protected com.liferay.portal.kernel.service.ResourceLocalService
@@ -2357,47 +2081,5 @@ public abstract class CPDefinitionServiceBaseImpl
 
 	@ServiceReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
-
-	@ServiceReference(
-		type = com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService.class
-	)
-	protected com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-		workflowInstanceLinkLocalService;
-
-	@ServiceReference(type = WorkflowInstanceLinkPersistence.class)
-	protected WorkflowInstanceLinkPersistence workflowInstanceLinkPersistence;
-
-	@ServiceReference(
-		type = com.liferay.asset.kernel.service.AssetEntryLocalService.class
-	)
-	protected com.liferay.asset.kernel.service.AssetEntryLocalService
-		assetEntryLocalService;
-
-	@ServiceReference(
-		type = com.liferay.asset.kernel.service.AssetEntryService.class
-	)
-	protected com.liferay.asset.kernel.service.AssetEntryService
-		assetEntryService;
-
-	@ServiceReference(type = AssetEntryPersistence.class)
-	protected AssetEntryPersistence assetEntryPersistence;
-
-	@ServiceReference(
-		type = com.liferay.asset.kernel.service.AssetLinkLocalService.class
-	)
-	protected com.liferay.asset.kernel.service.AssetLinkLocalService
-		assetLinkLocalService;
-
-	@ServiceReference(type = AssetLinkPersistence.class)
-	protected AssetLinkPersistence assetLinkPersistence;
-
-	@ServiceReference(
-		type = com.liferay.expando.kernel.service.ExpandoRowLocalService.class
-	)
-	protected com.liferay.expando.kernel.service.ExpandoRowLocalService
-		expandoRowLocalService;
-
-	@ServiceReference(type = ExpandoRowPersistence.class)
-	protected ExpandoRowPersistence expandoRowPersistence;
 
 }

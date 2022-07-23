@@ -41,15 +41,8 @@ public class LogEntry {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{level=");
-		sb.append(_priority);
-		sb.append(", message=");
-		sb.append(_message);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{level=", _priority, ", message=", _message, "}");
 	}
 
 	private final String _message;

@@ -129,7 +129,7 @@ public class UsersAdminImpl implements UsersAdmin {
 			"toolbarItem", "view-all-organizations"
 		).setParameter(
 			"usersListView", "tree"
-		).build();
+		).buildPortletURL();
 
 		List<Organization> ancestorOrganizations = organization.getAncestors();
 
@@ -639,7 +639,7 @@ public class UsersAdminImpl implements UsersAdmin {
 
 	@Override
 	public Long[] getOrganizationIds(List<Organization> organizations) {
-		if ((organizations == null) || organizations.isEmpty()) {
+		if (ListUtil.isEmpty(organizations)) {
 			return new Long[0];
 		}
 

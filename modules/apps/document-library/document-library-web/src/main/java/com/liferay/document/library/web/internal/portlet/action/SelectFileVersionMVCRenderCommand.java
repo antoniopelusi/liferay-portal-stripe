@@ -32,7 +32,7 @@ import org.osgi.service.component.annotations.Component;
 	service = MVCRenderCommand.class
 )
 public class SelectFileVersionMVCRenderCommand
-	extends GetFileEntryMVCRenderCommand {
+	extends BaseFileEntryMVCRenderCommand {
 
 	@Override
 	protected String getPath() {

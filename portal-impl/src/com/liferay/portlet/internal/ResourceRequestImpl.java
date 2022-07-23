@@ -117,11 +117,11 @@ public class ResourceRequestImpl
 		RenderParametersImpl liferayRenderParametersImpl =
 			(RenderParametersImpl)getRenderParameters();
 
-		Map<String, String[]> liferayRenderParametersMap =
+		Map<String, String[]> liferayRenderParameterMap =
 			liferayRenderParametersImpl.getParameterMap();
 
 		for (Map.Entry<String, String[]> entry :
-				liferayRenderParametersMap.entrySet()) {
+				liferayRenderParameterMap.entrySet()) {
 
 			String renderParameterName = entry.getKey();
 

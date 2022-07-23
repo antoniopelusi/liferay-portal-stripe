@@ -130,6 +130,11 @@ public class AssetCategoryPropertyWrapper
 		}
 	}
 
+	@Override
+	public AssetCategoryProperty cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the category ID of this asset category property.
 	 *

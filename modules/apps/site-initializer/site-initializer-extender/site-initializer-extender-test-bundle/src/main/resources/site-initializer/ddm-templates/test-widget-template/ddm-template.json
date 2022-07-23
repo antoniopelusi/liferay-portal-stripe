@@ -1,0 +1,6 @@
+{
+	"className": "com.liferay.blogs.model.BlogsEntry",
+	"ddmTemplateKey": "TEST WIDGET DDM TEMPLATE KEY",
+	"name": "Test Widget DDM Template Name",
+	"resourceClassName": "com.liferay.portlet.display.template.PortletDisplayTemplate"
+}

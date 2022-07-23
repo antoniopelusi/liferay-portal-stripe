@@ -124,6 +124,11 @@ public class ExpandoValueWrapper
 	}
 
 	@Override
+	public ExpandoValue cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public java.util.List<java.util.Locale> getAvailableLocales()
 		throws com.liferay.portal.kernel.exception.PortalException {
 

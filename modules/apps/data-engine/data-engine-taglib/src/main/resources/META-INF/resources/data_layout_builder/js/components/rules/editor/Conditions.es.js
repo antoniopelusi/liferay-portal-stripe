@@ -14,16 +14,29 @@
 
 import ClayButton from '@clayui/button';
 import {Context as ModalContext} from '@clayui/modal';
-import {FieldStateless} from 'dynamic-data-mapping-form-renderer';
+import {
+	FieldStateless,
+	FieldSupport,
+	generateName,
+} from 'data-engine-js-components-web';
 import React, {useContext, useMemo} from 'react';
 
 import Timeline from './Timeline.es';
 import {ACTIONS_TYPES} from './actionsTypes.es';
-import {
-	BINARY_OPERATOR,
-	OPERATOR_OPTIONS_TYPES,
-	RIGHT_OPERAND_TYPES,
-} from './config.es';
+import {OPERATOR_OPTIONS_TYPES, RIGHT_OPERAND_TYPES} from './config.es';
+
+function getCheckboxOptions() {
+	return [
+		{
+			label: Liferay.Language.get('true'),
+			value: 'true',
+		},
+		{
+			label: Liferay.Language.get('false'),
+			value: 'false',
+		},
+	];
+}
 
 function FieldOperator({
 	left,
@@ -48,16 +61,27 @@ function FieldOperator({
 		}));
 	}, [left, operatorsByType]);
 
+	const isBinaryOperator = (operator) => {
+		const option = options?.find(({value}) => value === operator);
+
+		return option?.parameterClassNames?.length === 2;
+	};
+
 	return (
 		<>
 			<Timeline.FormGroupItem>
 				<FieldStateless
-					onChange={(event) =>
+					onChange={(event) => {
+						const operator = event.value[0];
+
 						onChange({
-							payload: event.value[0],
+							payload: {
+								isBinaryOperator: isBinaryOperator(operator),
+								operator,
+							},
 							type: ACTIONS_TYPES.CHANGE_OPERATOR,
-						})
-					}
+						});
+					}}
 					options={options}
 					placeholder={Liferay.Language.get('choose-an-option')}
 					readOnly={readOnly}
@@ -66,7 +90,7 @@ function FieldOperator({
 					value={[operator]}
 				/>
 			</Timeline.FormGroupItem>
-			{BINARY_OPERATOR.includes(operator) && left.type !== 'user' && (
+			{isBinaryOperator(operator) && left.type !== 'user' && (
 				<Timeline.FormGroupItem>
 					<FieldStateless
 						onChange={(event) =>
@@ -115,7 +139,7 @@ function FieldLeft({fields, left, onChange}) {
 					},
 				]}
 				onChange={onChange}
-				options={fields.filter(({type}) => type !== 'paragraph')}
+				options={fields}
 				placeholder={Liferay.Language.get('choose-an-option')}
 				showEmptyOption={false}
 				type="select"
@@ -123,6 +147,48 @@ function FieldLeft({fields, left, onChange}) {
 			/>
 		</Timeline.FormGroupItem>
 	);
+}
+
+function evaluateFieldLeft(fieldLeft, value) {
+	const props = {value};
+
+	if (!fieldLeft) {
+		return props;
+	}
+
+	const {editorConfig, name, options = [], type} = fieldLeft;
+
+	switch (type) {
+		case 'checkbox': {
+			props.options = getCheckboxOptions();
+			props.placeholder = Liferay.Language.get('choose-an-option');
+			props.value = [value];
+			break;
+		}
+		case 'checkbox_multiple':
+		case 'radio':
+		case 'select': {
+			props.options = options;
+			props.placeholder = Liferay.Language.get('choose-an-option');
+			break;
+		}
+		case 'rich_text': {
+			if (editorConfig) {
+				const instanceId = FieldSupport.generateInstanceId();
+
+				props.editorConfig = FieldSupport.updateEditorConfigInstanceId(
+					editorConfig,
+					instanceId
+				);
+				props.name = generateName(name, {instanceId});
+			}
+			break;
+		}
+		default:
+			return props;
+	}
+
+	return props;
 }
 
 function FieldRight({fields, left, right, roles, ...otherProps}) {
@@ -147,13 +213,11 @@ function FieldRight({fields, left, right, roles, ...otherProps}) {
 				};
 			case 'field':
 				return {
-					options: fields.filter(({type}) => type !== 'paragraph'),
+					options: fields,
 					value: [right.value],
 				};
 			default:
-				return {
-					value: right.value,
-				};
+				return evaluateFieldLeft(left.field, right.value);
 		}
 	}, [left, right, roles, fields]);
 
@@ -162,6 +226,7 @@ function FieldRight({fields, left, right, roles, ...otherProps}) {
 			<FieldStateless
 				{...otherProps}
 				{...props}
+				dataType={left.field?.dataType}
 				showEmptyOption={false}
 				type={
 					left.type === 'user'
@@ -207,6 +272,7 @@ export function Conditions({
 				operator={logicalOperator}
 				title={name}
 			/>
+
 			{conditions.map(({operator, operands: [left, right]}, index) => (
 				<Timeline.Item key={index}>
 					<Timeline.Panel expression={expression}>
@@ -224,6 +290,7 @@ export function Conditions({
 								})
 							}
 						/>
+
 						<FieldOperator
 							fields={fields}
 							left={left}
@@ -238,6 +305,7 @@ export function Conditions({
 							readOnly={!left.value}
 							right={right}
 						/>
+
 						{right && right.type && (
 							<FieldRight
 								fields={fields}
@@ -257,9 +325,11 @@ export function Conditions({
 							/>
 						)}
 					</Timeline.Panel>
+
 					{conditions.length > 1 && conditions.length - 1 > index && (
 						<Timeline.Operator operator={logicalOperator} />
 					)}
+
 					{conditions.length > 1 && (
 						<Timeline.ActionTrash
 							onClick={() => {
@@ -284,6 +354,7 @@ export function Conditions({
 														'dismiss'
 													)}
 												</ClayButton>
+
 												<ClayButton
 													onClick={() => {
 														dispatch({
@@ -314,6 +385,7 @@ export function Conditions({
 					)}
 				</Timeline.Item>
 			))}
+
 			<Timeline.ItemAction>
 				<Timeline.IncrementButton
 					onClick={() =>

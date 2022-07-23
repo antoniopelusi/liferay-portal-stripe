@@ -25,7 +25,7 @@ import com.liferay.portal.kernel.security.auth.verifier.AuthVerifierResult;
 import com.liferay.portal.kernel.servlet.ProtectedServletRequest;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -141,11 +141,9 @@ public class AuthVerifierFilter extends BasePortalFilter {
 			HttpServletResponse httpServletResponse, FilterChain filterChain)
 		throws Exception {
 
-		if (!_isAccessAllowed(httpServletRequest, httpServletResponse)) {
-			return;
-		}
+		if (!_isAccessAllowed(httpServletRequest, httpServletResponse) ||
+			_isApplySSL(httpServletRequest, httpServletResponse)) {
 
-		if (_isApplySSL(httpServletRequest, httpServletResponse)) {
 			return;
 		}
 
@@ -229,7 +227,7 @@ public class AuthVerifierFilter extends BasePortalFilter {
 			new ArrayList<>();
 
 		for (Map.Entry<String, Object> entry : initParametersMap.entrySet()) {
-			final String propertyName = entry.getKey();
+			String propertyName = entry.getKey();
 
 			if (!propertyName.startsWith(PropsKeys.AUTH_VERIFIER)) {
 				continue;
@@ -316,7 +314,8 @@ public class AuthVerifierFilter extends BasePortalFilter {
 		}
 
 		if (_log.isDebugEnabled()) {
-			String completeURL = HttpUtil.getCompleteURL(httpServletRequest);
+			String completeURL = HttpComponentsUtil.getCompleteURL(
+				httpServletRequest);
 
 			_log.debug("Securing " + completeURL);
 		}

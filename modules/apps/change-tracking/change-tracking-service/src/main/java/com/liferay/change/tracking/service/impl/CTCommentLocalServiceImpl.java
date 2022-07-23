@@ -17,6 +17,7 @@ package com.liferay.change.tracking.service.impl;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTComment;
 import com.liferay.change.tracking.service.base.CTCommentLocalServiceBaseImpl;
+import com.liferay.change.tracking.service.persistence.CTCollectionPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Preston Crary
@@ -41,7 +43,7 @@ public class CTCommentLocalServiceImpl extends CTCommentLocalServiceBaseImpl {
 			long userId, long ctCollectionId, long ctEntryId, String value)
 		throws PortalException {
 
-		CTCollection ctCollection = ctCollectionPersistence.findByPrimaryKey(
+		CTCollection ctCollection = _ctCollectionPersistence.findByPrimaryKey(
 			ctCollectionId);
 
 		CTComment ctComment = ctCommentPersistence.create(
@@ -75,7 +77,7 @@ public class CTCommentLocalServiceImpl extends CTCommentLocalServiceBaseImpl {
 		Map<Long, List<CTComment>> collectionCommentsMap = new HashMap<>();
 
 		for (CTComment ctComment :
-				ctCommentPersistence.findByCTCollectionId(ctCollectionId)) {
+				ctCommentPersistence.findByCtCollectionId(ctCollectionId)) {
 
 			List<CTComment> ctComments = collectionCommentsMap.computeIfAbsent(
 				ctComment.getCtEntryId(), key -> new ArrayList<>());
@@ -88,7 +90,7 @@ public class CTCommentLocalServiceImpl extends CTCommentLocalServiceBaseImpl {
 
 	@Override
 	public List<CTComment> getCTEntryCTComments(long ctEntryId) {
-		return ctCommentPersistence.findByCTEntryId(ctEntryId);
+		return ctCommentPersistence.findByCtEntryId(ctEntryId);
 	}
 
 	@Override
@@ -102,5 +104,8 @@ public class CTCommentLocalServiceImpl extends CTCommentLocalServiceBaseImpl {
 
 		return ctCommentPersistence.update(ctComment);
 	}
+
+	@Reference
+	private CTCollectionPersistence _ctCollectionPersistence;
 
 }

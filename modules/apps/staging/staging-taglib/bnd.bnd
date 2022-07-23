@@ -1,12 +1,9 @@
 Bundle-Name: Liferay Staging Taglib
 Bundle-SymbolicName: com.liferay.staging.taglib
-Bundle-Version: 7.0.4
+Bundle-Version: 7.0.19
 Export-Package: com.liferay.staging.taglib.servlet.taglib
 Liferay-JS-Config: /META-INF/resources/js/config.js
 Provide-Capability:\
-	liferay.resource.bundle;\
-		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.staging.lang)";\
-		resource.bundle.base.name="content.Language",\
 	osgi.extender;\
 		osgi.extender="jsp.taglib";\
 		uri="http://liferay.com/tld/staging";\

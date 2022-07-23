@@ -1,0 +1,62 @@
+{
+	"description_i18n": {
+		"en_US": "Show only published contents on live sites. Show only published and staged contents on staging sites. This Element duplicates the functionality of a Liferay Search Framework query clause."
+	},
+	"elementDefinition": {
+		"category": "filter",
+		"configuration": {
+			"queryConfiguration": {
+				"queryEntries": [
+					{
+						"clauses": [
+							{
+								"context": "query",
+								"occur": "filter",
+								"query": {
+									"bool": {
+										"should": [
+											{
+												"bool": {
+													"must_not": [
+														{
+															"exists": {
+																"field": "stagingGroup"
+															}
+														}
+													]
+												}
+											},
+											{
+												"bool": {
+													"must": [
+														{
+															"term": {
+																"stagingGroup": false
+															}
+														}
+													]
+												}
+											}
+										]
+									}
+								}
+							}
+						],
+						"condition": {
+							"equals": {
+								"parameterName": "context.is_staging_group",
+								"value": false
+							}
+						}
+					}
+				]
+			}
+		},
+		"icon": "filter",
+		"uiConfiguration": {
+		}
+	},
+	"title_i18n": {
+		"en_US": "Staging Aware"
+	}
+}

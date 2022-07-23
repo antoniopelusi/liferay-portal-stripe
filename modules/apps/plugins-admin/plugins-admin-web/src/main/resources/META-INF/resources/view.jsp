@@ -25,7 +25,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	tabs2
 ).setParameter(
 	"struts_action", "/plugins_admin/view"
-).build();
+).buildPortletURL();
 
 PortletURL marketplaceURL = null;
 

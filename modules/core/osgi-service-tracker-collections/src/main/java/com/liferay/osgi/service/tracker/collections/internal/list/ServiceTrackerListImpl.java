@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -33,7 +34,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 /**
  * @author Adolfo Pérez
  */
-public class ServiceTrackerListImpl<S, T> implements ServiceTrackerList<S, T> {
+public class ServiceTrackerListImpl<S, T> implements ServiceTrackerList<T> {
 
 	public ServiceTrackerListImpl(
 		BundleContext bundleContext, Class<S> clazz, String filterString,
@@ -64,6 +65,13 @@ public class ServiceTrackerListImpl<S, T> implements ServiceTrackerList<S, T> {
 	}
 
 	@Override
+	public void forEach(Consumer<? super T> consumer) {
+		_services.forEach(
+			serviceReferenceServiceTuple -> consumer.accept(
+				serviceReferenceServiceTuple.getService()));
+	}
+
+	@Override
 	public Iterator<T> iterator() {
 		return new ServiceTrackerListIterator<>(_services.iterator());
 	}
@@ -83,12 +91,6 @@ public class ServiceTrackerListImpl<S, T> implements ServiceTrackerList<S, T> {
 	private static class ServiceTrackerListIterator<S, T>
 		implements Iterator<T> {
 
-		public ServiceTrackerListIterator(
-			Iterator<ServiceReferenceServiceTuple<S, T>> iterator) {
-
-			_iterator = iterator;
-		}
-
 		@Override
 		public boolean hasNext() {
 			return _iterator.hasNext();
@@ -107,6 +109,12 @@ public class ServiceTrackerListImpl<S, T> implements ServiceTrackerList<S, T> {
 			throw new UnsupportedOperationException();
 		}
 
+		private ServiceTrackerListIterator(
+			Iterator<ServiceReferenceServiceTuple<S, T>> iterator) {
+
+			_iterator = iterator;
+		}
+
 		private final Iterator<ServiceReferenceServiceTuple<S, T>> _iterator;
 
 	}
@@ -116,46 +124,43 @@ public class ServiceTrackerListImpl<S, T> implements ServiceTrackerList<S, T> {
 
 		@Override
 		public T addingService(ServiceReference<S> serviceReference) {
-			return _update(
-				serviceReference, getService(serviceReference), false);
+			T service = _serviceTrackerCustomizer.addingService(
+				serviceReference);
+
+			if (service == null) {
+				return null;
+			}
+
+			_update(serviceReference, service, false);
+
+			return service;
 		}
 
 		@Override
 		public void modifiedService(
 			ServiceReference<S> serviceReference, T service) {
 
-			if (_serviceTrackerCustomizer != null) {
-				_serviceTrackerCustomizer.modifiedService(
-					serviceReference, service);
-			}
+			_serviceTrackerCustomizer.modifiedService(
+				serviceReference, service);
 
-			_update(serviceReference, service, false);
+			synchronized (_services) {
+				_services.sort(_comparator);
+			}
 		}
 
 		@Override
 		public void removedService(
 			ServiceReference<S> serviceReference, T service) {
 
-			if (_serviceTrackerCustomizer != null) {
-				_serviceTrackerCustomizer.removedService(
-					serviceReference, service);
-			}
+			_serviceTrackerCustomizer.removedService(serviceReference, service);
 
 			_update(serviceReference, service, true);
 
 			_bundleContext.ungetService(serviceReference);
 		}
 
-		protected T getService(ServiceReference<S> serviceReference) {
-			return _serviceTrackerCustomizer.addingService(serviceReference);
-		}
-
-		private T _update(
+		private void _update(
 			ServiceReference<S> serviceReference, T service, boolean remove) {
-
-			if (service == null) {
-				return service;
-			}
 
 			ServiceReferenceServiceTuple<S, T> serviceReferenceServiceTuple =
 				new ServiceReferenceServiceTuple<>(serviceReference, service);
@@ -173,8 +178,6 @@ public class ServiceTrackerListImpl<S, T> implements ServiceTrackerList<S, T> {
 					_services.add(-index - 1, serviceReferenceServiceTuple);
 				}
 			}
-
-			return service;
 		}
 
 	}

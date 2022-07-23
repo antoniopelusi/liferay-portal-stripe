@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class SAPEntryLocalServiceWrapper
 	implements SAPEntryLocalService, ServiceWrapper<SAPEntryLocalService> {
 
+	public SAPEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SAPEntryLocalServiceWrapper(
 		SAPEntryLocalService sapEntryLocalService) {
 
@@ -150,6 +154,13 @@ public class SAPEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _sapEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _sapEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -29,15 +29,17 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -242,34 +244,6 @@ public class RecentLayoutSetBranchModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, RecentLayoutSetBranch>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			RecentLayoutSetBranch.class.getClassLoader(),
-			RecentLayoutSetBranch.class, ModelWrapper.class);
-
-		try {
-			Constructor<RecentLayoutSetBranch> constructor =
-				(Constructor<RecentLayoutSetBranch>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<RecentLayoutSetBranch, Object>>
@@ -562,6 +536,29 @@ public class RecentLayoutSetBranchModelImpl
 	}
 
 	@Override
+	public RecentLayoutSetBranch cloneWithOriginalValues() {
+		RecentLayoutSetBranchImpl recentLayoutSetBranchImpl =
+			new RecentLayoutSetBranchImpl();
+
+		recentLayoutSetBranchImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		recentLayoutSetBranchImpl.setRecentLayoutSetBranchId(
+			this.<Long>getColumnOriginalValue("recentLayoutSetBranchId"));
+		recentLayoutSetBranchImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		recentLayoutSetBranchImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		recentLayoutSetBranchImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		recentLayoutSetBranchImpl.setLayoutSetBranchId(
+			this.<Long>getColumnOriginalValue("layoutSetBranchId"));
+		recentLayoutSetBranchImpl.setLayoutSetId(
+			this.<Long>getColumnOriginalValue("layoutSetId"));
+
+		return recentLayoutSetBranchImpl;
+	}
+
+	@Override
 	public int compareTo(RecentLayoutSetBranch recentLayoutSetBranch) {
 		long primaryKey = recentLayoutSetBranch.getPrimaryKey();
 
@@ -659,7 +656,7 @@ public class RecentLayoutSetBranchModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -670,10 +667,27 @@ public class RecentLayoutSetBranchModelImpl
 			Function<RecentLayoutSetBranch, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((RecentLayoutSetBranch)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(RecentLayoutSetBranch)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -721,7 +735,9 @@ public class RecentLayoutSetBranchModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, RecentLayoutSetBranch>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					RecentLayoutSetBranch.class, ModelWrapper.class);
 
 	}
 

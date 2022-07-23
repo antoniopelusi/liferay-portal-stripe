@@ -26,9 +26,9 @@ import com.liferay.commerce.price.list.service.persistence.CommercePriceListComm
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListCommerceAccountGroupRelPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListDiscountRelPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListFinder;
+import com.liferay.commerce.price.list.service.persistence.CommercePriceListOrderTypeRelPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommerceTierPriceEntryPersistence;
-import com.liferay.expando.kernel.service.persistence.ExpandoRowPersistence;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
@@ -36,6 +36,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -62,9 +63,11 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -92,7 +95,8 @@ import javax.sql.DataSource;
  */
 public abstract class CommerceTierPriceEntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
-	implements CommerceTierPriceEntryLocalService, IdentifiableOSGiService {
+	implements CommerceTierPriceEntryLocalService,
+			   CTService<CommerceTierPriceEntry>, IdentifiableOSGiService {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -179,6 +183,13 @@ public abstract class CommerceTierPriceEntryLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return commerceTierPriceEntryPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -985,6 +996,56 @@ public abstract class CommerceTierPriceEntryLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the commerce price list order type rel local service.
+	 *
+	 * @return the commerce price list order type rel local service
+	 */
+	public com.liferay.commerce.price.list.service.
+		CommercePriceListOrderTypeRelLocalService
+			getCommercePriceListOrderTypeRelLocalService() {
+
+		return commercePriceListOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Sets the commerce price list order type rel local service.
+	 *
+	 * @param commercePriceListOrderTypeRelLocalService the commerce price list order type rel local service
+	 */
+	public void setCommercePriceListOrderTypeRelLocalService(
+		com.liferay.commerce.price.list.service.
+			CommercePriceListOrderTypeRelLocalService
+				commercePriceListOrderTypeRelLocalService) {
+
+		this.commercePriceListOrderTypeRelLocalService =
+			commercePriceListOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Returns the commerce price list order type rel persistence.
+	 *
+	 * @return the commerce price list order type rel persistence
+	 */
+	public CommercePriceListOrderTypeRelPersistence
+		getCommercePriceListOrderTypeRelPersistence() {
+
+		return commercePriceListOrderTypeRelPersistence;
+	}
+
+	/**
+	 * Sets the commerce price list order type rel persistence.
+	 *
+	 * @param commercePriceListOrderTypeRelPersistence the commerce price list order type rel persistence
+	 */
+	public void setCommercePriceListOrderTypeRelPersistence(
+		CommercePriceListOrderTypeRelPersistence
+			commercePriceListOrderTypeRelPersistence) {
+
+		this.commercePriceListOrderTypeRelPersistence =
+			commercePriceListOrderTypeRelPersistence;
+	}
+
+	/**
 	 * Returns the commerce tier price entry local service.
 	 *
 	 * @return the commerce tier price entry local service
@@ -1159,49 +1220,6 @@ public abstract class CommerceTierPriceEntryLocalServiceBaseImpl
 		this.userPersistence = userPersistence;
 	}
 
-	/**
-	 * Returns the expando row local service.
-	 *
-	 * @return the expando row local service
-	 */
-	public com.liferay.expando.kernel.service.ExpandoRowLocalService
-		getExpandoRowLocalService() {
-
-		return expandoRowLocalService;
-	}
-
-	/**
-	 * Sets the expando row local service.
-	 *
-	 * @param expandoRowLocalService the expando row local service
-	 */
-	public void setExpandoRowLocalService(
-		com.liferay.expando.kernel.service.ExpandoRowLocalService
-			expandoRowLocalService) {
-
-		this.expandoRowLocalService = expandoRowLocalService;
-	}
-
-	/**
-	 * Returns the expando row persistence.
-	 *
-	 * @return the expando row persistence
-	 */
-	public ExpandoRowPersistence getExpandoRowPersistence() {
-		return expandoRowPersistence;
-	}
-
-	/**
-	 * Sets the expando row persistence.
-	 *
-	 * @param expandoRowPersistence the expando row persistence
-	 */
-	public void setExpandoRowPersistence(
-		ExpandoRowPersistence expandoRowPersistence) {
-
-		this.expandoRowPersistence = expandoRowPersistence;
-	}
-
 	public void afterPropertiesSet() {
 		persistedModelLocalServiceRegistry.register(
 			"com.liferay.commerce.price.list.model.CommerceTierPriceEntry",
@@ -1227,8 +1245,23 @@ public abstract class CommerceTierPriceEntryLocalServiceBaseImpl
 		return CommerceTierPriceEntryLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<CommerceTierPriceEntry> getCTPersistence() {
+		return commerceTierPriceEntryPersistence;
+	}
+
+	@Override
+	public Class<CommerceTierPriceEntry> getModelClass() {
 		return CommerceTierPriceEntry.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CommerceTierPriceEntry>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(commerceTierPriceEntryPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -1358,6 +1391,17 @@ public abstract class CommerceTierPriceEntryLocalServiceBaseImpl
 	protected CommercePriceListDiscountRelPersistence
 		commercePriceListDiscountRelPersistence;
 
+	@BeanReference(
+		type = com.liferay.commerce.price.list.service.CommercePriceListOrderTypeRelLocalService.class
+	)
+	protected com.liferay.commerce.price.list.service.
+		CommercePriceListOrderTypeRelLocalService
+			commercePriceListOrderTypeRelLocalService;
+
+	@BeanReference(type = CommercePriceListOrderTypeRelPersistence.class)
+	protected CommercePriceListOrderTypeRelPersistence
+		commercePriceListOrderTypeRelPersistence;
+
 	@BeanReference(type = CommerceTierPriceEntryLocalService.class)
 	protected CommerceTierPriceEntryLocalService
 		commerceTierPriceEntryLocalService;
@@ -1395,15 +1439,6 @@ public abstract class CommerceTierPriceEntryLocalServiceBaseImpl
 
 	@ServiceReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
-
-	@ServiceReference(
-		type = com.liferay.expando.kernel.service.ExpandoRowLocalService.class
-	)
-	protected com.liferay.expando.kernel.service.ExpandoRowLocalService
-		expandoRowLocalService;
-
-	@ServiceReference(type = ExpandoRowPersistence.class)
-	protected ExpandoRowPersistence expandoRowPersistence;
 
 	@ServiceReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry

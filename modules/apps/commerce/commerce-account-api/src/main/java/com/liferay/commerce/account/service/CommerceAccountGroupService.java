@@ -87,6 +87,17 @@ public interface CommerceAccountGroupService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CommerceAccountGroup>
+			getCommerceAccountGroupsByCommerceAccountId(
+				long commerceAccountId, int start, int end)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getCommerceAccountGroupsByCommerceAccountIdCount(
+			long commerceAccountId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getCommerceAccountGroupsCount(long companyId)
 		throws PortalException;
 
@@ -98,7 +109,7 @@ public interface CommerceAccountGroupService extends BaseService {
 	public String getOSGiServiceIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CommerceAccountGroup> searchCommerceAccountGroups(
+	public List<CommerceAccountGroup> search(
 			long companyId, String keywords, int start, int end, Sort sort)
 		throws PortalException;
 

@@ -25,10 +25,13 @@ import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -37,6 +40,8 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -63,6 +68,12 @@ public interface ObjectRelationshipLocalService
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectRelationshipLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the object relationship local service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link ObjectRelationshipLocalServiceUtil} if injection and service tracking are not available.
 	 */
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectRelationship addObjectRelationship(
+			long userId, long objectDefinitionId1, long objectDefinitionId2,
+			String deletionType, Map<Locale, String> labelMap, String name,
+			String type)
+		throws PortalException;
 
 	/**
 	 * Adds the object relationship to the database. Also notifies the appropriate model listeners.
@@ -77,6 +88,11 @@ public interface ObjectRelationshipLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public ObjectRelationship addObjectRelationship(
 		ObjectRelationship objectRelationship);
+
+	public void addObjectRelationshipMappingTableValues(
+			long userId, long objectRelationshipId, long primaryKey1,
+			long primaryKey2, ServiceContext serviceContext)
+		throws PortalException;
 
 	/**
 	 * Creates a new object relationship with the primary key. Does not add the object relationship to the database.
@@ -119,10 +135,21 @@ public interface ObjectRelationshipLocalService
 	 *
 	 * @param objectRelationship the object relationship
 	 * @return the object relationship that was removed
+	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public ObjectRelationship deleteObjectRelationship(
-		ObjectRelationship objectRelationship);
+			ObjectRelationship objectRelationship)
+		throws PortalException;
+
+	public void deleteObjectRelationshipMappingTableValues(
+			long objectRelationshipId, long primaryKey1)
+		throws PortalException;
+
+	public void deleteObjectRelationshipMappingTableValues(
+			long objectRelationshipId, long primaryKey1, long primaryKey2)
+		throws PortalException;
 
 	/**
 	 * @throws PortalException
@@ -133,6 +160,9 @@ public interface ObjectRelationshipLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -204,6 +234,10 @@ public interface ObjectRelationshipLocalService
 	public ObjectRelationship fetchObjectRelationship(
 		long objectRelationshipId);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectRelationship fetchObjectRelationshipByObjectFieldId2(
+		long objectFieldId2);
+
 	/**
 	 * Returns the object relationship with the matching UUID and company.
 	 *
@@ -214,6 +248,10 @@ public interface ObjectRelationshipLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ObjectRelationship fetchObjectRelationshipByUuidAndCompanyId(
 		String uuid, long companyId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectRelationship fetchReverseObjectRelationship(
+		ObjectRelationship objectRelationship, boolean reverse);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();
@@ -263,6 +301,14 @@ public interface ObjectRelationshipLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<ObjectRelationship> getObjectRelationships(int start, int end);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectRelationship> getObjectRelationships(
+		long objectDefinitionId1);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectRelationship> getObjectRelationships(
+		long objectDefinitionId1, int start, int end);
+
 	/**
 	 * Returns the number of object relationships.
 	 *
@@ -284,6 +330,12 @@ public interface ObjectRelationshipLocalService
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
+		throws PortalException;
+
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectRelationship updateObjectRelationship(
+			long objectRelationshipId, String deletionType,
+			Map<Locale, String> labelMap)
 		throws PortalException;
 
 	/**

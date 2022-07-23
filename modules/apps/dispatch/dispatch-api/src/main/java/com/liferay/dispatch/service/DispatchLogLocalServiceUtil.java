@@ -139,6 +139,10 @@ public class DispatchLogLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -270,6 +274,14 @@ public class DispatchLogLocalServiceUtil {
 		long dispatchTriggerId, int start, int end) {
 
 		return getService().getDispatchLogs(dispatchTriggerId, start, end);
+	}
+
+	public static List<DispatchLog> getDispatchLogs(
+		long dispatchTriggerId, int start, int end,
+		OrderByComparator<DispatchLog> orderByComparator) {
+
+		return getService().getDispatchLogs(
+			dispatchTriggerId, start, end, orderByComparator);
 	}
 
 	/**

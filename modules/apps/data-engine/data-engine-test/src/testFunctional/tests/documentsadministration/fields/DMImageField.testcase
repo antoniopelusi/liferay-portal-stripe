@@ -147,8 +147,9 @@ definition {
 			value1 = "Imagen");
 
 		AssertTextEquals(
-			key_text = "Imagen",
-			locator1 = "Button#ANY",
+			index = "1",
+			key_fieldName = "Imagen",
+			locator1 = "DataEngineBuilder#FIELD_NAME_INDEXED",
 			value1 = "Imagen");
 
 		AssertTextEquals(
@@ -206,8 +207,6 @@ definition {
 		MenuItem.click(menuItem = "Edit");
 
 		DMDocumentType.gotoEditField(fieldName = "Image");
-
-		DMDocumentType.gotoTab(tabName = "Builder");
 
 		Navigator.gotoNavTab(navTab = "Advanced");
 
@@ -282,7 +281,7 @@ definition {
 	test SetImageFieldAsRepeatable {
 		DMDocument.addImageField();
 
-		DataEngine.editFieldRepeatable(fieldFieldLabel = "Image");
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Image");
 
 		DDLDataDefinition.save();
 
@@ -312,7 +311,7 @@ definition {
 
 		FormViewBuilder.editFieldLabel(
 			fieldLabel = "Image",
-			label = "New Image Label");
+			label = "New Image");
 
 		DDLDataDefinition.save();
 
@@ -321,7 +320,7 @@ definition {
 		MenuItem.click(menuItem = "Edit");
 
 		DataEngine.viewField(
-			fieldFieldLabel = "New Image Label",
+			fieldFieldLabel = "New Image",
 			fieldName = "Image");
 	}
 
@@ -330,9 +329,7 @@ definition {
 	test ShowAndHideImageFieldLabel {
 		DMDocument.addImageField();
 
-		DataEngine.editShowOrHideLabel(
-			fieldFieldLabel = "Image",
-			showLabel = "false");
+		DataEngine.toggleShowLabel(fieldLabel = "Image");
 
 		DDLDataDefinition.save();
 

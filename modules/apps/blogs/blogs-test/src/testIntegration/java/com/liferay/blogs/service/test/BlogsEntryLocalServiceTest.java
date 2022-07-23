@@ -17,6 +17,7 @@ package com.liferay.blogs.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.blogs.attachments.test.BlogsEntryAttachmentFileEntryHelperTest;
 import com.liferay.blogs.constants.BlogsConstants;
+import com.liferay.blogs.exception.DuplicateEntryExternalReferenceCodeException;
 import com.liferay.blogs.exception.EntryContentException;
 import com.liferay.blogs.exception.EntrySmallImageNameException;
 import com.liferay.blogs.exception.EntryTitleException;
@@ -36,6 +37,7 @@ import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
+import com.liferay.portal.kernel.comment.CommentManagerUtil;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -48,6 +50,7 @@ import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.IdentityServiceContextFunction;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.servlet.taglib.ui.ImageSelector;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
@@ -63,7 +66,7 @@ import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
@@ -78,6 +81,7 @@ import java.io.InputStream;
 
 import java.lang.reflect.Method;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Dictionary;
@@ -140,6 +144,59 @@ public class BlogsEntryLocalServiceTest {
 		UserTestUtil.setUser(TestPropsValues.getUser());
 	}
 
+	@Test(expected = DuplicateEntryExternalReferenceCodeException.class)
+	public void testAddBlogsEntryWithExistingExternalReferenceCode()
+		throws Exception {
+
+		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
+			TestPropsValues.getUserId(), StringUtil.randomString(),
+			StringUtil.randomString(), new Date(),
+			ServiceContextTestUtil.getServiceContext());
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			blogsEntry.getExternalReferenceCode(), blogsEntry.getUserId(),
+			blogsEntry.getTitle(), blogsEntry.getSubtitle(),
+			blogsEntry.getUrlTitle(), blogsEntry.getDescription(),
+			blogsEntry.getContent(), blogsEntry.getDisplayDate(),
+			blogsEntry.isAllowPingbacks(), blogsEntry.isAllowTrackbacks(),
+			new String[] {blogsEntry.getTrackbacks()},
+			blogsEntry.getCoverImageCaption(), null, null,
+			ServiceContextTestUtil.getServiceContext());
+	}
+
+	@Test
+	public void testAddBlogsEntryWithExternalReferenceCode() throws Exception {
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
+			externalReferenceCode, TestPropsValues.getUserId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), RandomTestUtil.nextDate(), false,
+			false, new String[0], RandomTestUtil.randomString(), null, null,
+			ServiceContextTestUtil.getServiceContext());
+
+		Assert.assertEquals(
+			externalReferenceCode, blogsEntry.getExternalReferenceCode());
+	}
+
+	@Test
+	public void testAddBlogsEntryWithoutExternalReferenceCode()
+		throws Exception {
+
+		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
+			null, TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			RandomTestUtil.nextDate(), false, false, new String[0],
+			RandomTestUtil.randomString(), null, null,
+			ServiceContextTestUtil.getServiceContext());
+
+		Assert.assertEquals(
+			blogsEntry.getExternalReferenceCode(),
+			String.valueOf(blogsEntry.getEntryId()));
+	}
+
 	@Test
 	public void testAddCoverImageWithCoverImageURL() throws Exception {
 		BlogsEntry entry = addEntry(false);
@@ -195,6 +252,32 @@ public class BlogsEntryLocalServiceTest {
 	}
 
 	@Test
+	public void testAddDiscussion() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
+			TestPropsValues.getUserId(), StringUtil.randomString(),
+			StringUtil.randomString(), new Date(), serviceContext);
+
+		_blogsEntries.add(blogsEntry);
+
+		long initialCommentsCount = CommentManagerUtil.getCommentsCount(
+			BlogsEntry.class.getName(), blogsEntry.getEntryId());
+
+		CommentManagerUtil.addComment(
+			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
+			BlogsEntry.class.getName(), blogsEntry.getEntryId(),
+			StringUtil.randomString(),
+			new IdentityServiceContextFunction(serviceContext));
+
+		Assert.assertEquals(
+			initialCommentsCount + 1,
+			CommentManagerUtil.getCommentsCount(
+				BlogsEntry.class.getName(), blogsEntry.getEntryId()));
+	}
+
+	@Test
 	public void testAddDraftEntryWithBlankTitle() throws Exception {
 		int initialCount = BlogsEntryLocalServiceUtil.getGroupEntriesCount(
 			_group.getGroupId(), _statusAnyQueryDefinition);
@@ -212,6 +295,32 @@ public class BlogsEntryLocalServiceTest {
 			_group.getGroupId(), _statusAnyQueryDefinition);
 
 		Assert.assertEquals(initialCount + 1, actualCount);
+	}
+
+	@Test
+	public void testAddDraftEntryWithDuplicateURLTitle() throws Exception {
+		String urlTitle = RandomTestUtil.randomString();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			RandomTestUtil.randomString(), _user.getUserId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			urlTitle, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), new Date(), false, false, null, null,
+			null, null, serviceContext);
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
+			RandomTestUtil.randomString(), _user.getUserId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			urlTitle, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), new Date(), false, false, null, null,
+			null, null, serviceContext);
+
+		Assert.assertNotEquals(urlTitle, entry.getUrlTitle());
 	}
 
 	@Test
@@ -340,20 +449,22 @@ public class BlogsEntryLocalServiceTest {
 	@Test(expected = EntryUrlTitleException.class)
 	public void testAddEntryWithInvalidURLTitle() throws Exception {
 		BlogsEntryLocalServiceUtil.addEntry(
-			TestPropsValues.getUserId(), StringUtil.randomString(),
-			StringUtil.randomString(), StringUtil.randomString(256),
-			StringUtil.randomString(), StringUtil.randomString(), new Date(),
-			true, true, new String[0], null, null, null, new ServiceContext());
+			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+			StringUtil.randomString(), StringUtil.randomString(),
+			StringUtil.randomString(256), StringUtil.randomString(),
+			StringUtil.randomString(), new Date(), true, true, new String[0],
+			null, null, null, new ServiceContext());
 	}
 
 	@Test
 	public void testAddEntryWithNoImages() throws Exception {
 		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
-			TestPropsValues.getUserId(), StringUtil.randomString(),
+			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			StringUtil.randomString(), StringUtil.randomString(),
-			StringUtil.randomString(), StringUtil.randomString(), new Date(),
-			true, true, new String[0], null, new ImageSelector(),
-			new ImageSelector(), ServiceContextTestUtil.getServiceContext());
+			StringUtil.randomString(), StringUtil.randomString(),
+			StringUtil.randomString(), new Date(), true, true, new String[0],
+			null, new ImageSelector(), new ImageSelector(),
+			ServiceContextTestUtil.getServiceContext());
 
 		Assert.assertEquals(0, entry.getCoverImageFileEntryId());
 		Assert.assertEquals(StringPool.BLANK, entry.getCoverImageURL());
@@ -367,10 +478,11 @@ public class BlogsEntryLocalServiceTest {
 		String urlTitle = StringUtil.toLowerCase(StringUtil.randomString());
 
 		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
-			TestPropsValues.getUserId(), StringUtil.randomString(),
-			StringUtil.randomString(), urlTitle, StringUtil.randomString(),
-			StringUtil.randomString(), new Date(), true, true, new String[0],
-			null, null, null, ServiceContextTestUtil.getServiceContext());
+			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+			StringUtil.randomString(), StringUtil.randomString(), urlTitle,
+			StringUtil.randomString(), StringUtil.randomString(), new Date(),
+			true, true, new String[0], null, null, null,
+			ServiceContextTestUtil.getServiceContext());
 
 		Assert.assertEquals(urlTitle, entry.getUrlTitle());
 	}
@@ -431,13 +543,11 @@ public class BlogsEntryLocalServiceTest {
 
 	@Test
 	public void testAddOriginalImageInVisibleImageFolder() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), _user.getUserId());
-
 		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), _user.getUserId()));
 
 		FileEntry tempFileEntry = getTempFileEntry(
 			_user.getUserId(), _group.getGroupId(), "image.jpg");
@@ -496,6 +606,35 @@ public class BlogsEntryLocalServiceTest {
 		Assert.assertEquals(0, updatedEntry.getSmallImageFileEntryId());
 		Assert.assertEquals(imageURL, updatedEntry.getSmallImageURL());
 		Assert.assertTrue(updatedEntry.isSmallImage());
+	}
+
+	@Test
+	public void testDeleteDiscussion() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
+			TestPropsValues.getUserId(), StringUtil.randomString(),
+			StringUtil.randomString(), new Date(), serviceContext);
+
+		_blogsEntries.add(blogsEntry);
+
+		CommentManagerUtil.addComment(
+			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
+			BlogsEntry.class.getName(), blogsEntry.getEntryId(),
+			StringUtil.randomString(),
+			new IdentityServiceContextFunction(serviceContext));
+
+		Assert.assertTrue(
+			CommentManagerUtil.hasDiscussion(
+				BlogsEntry.class.getName(), blogsEntry.getEntryId()));
+
+		CommentManagerUtil.deleteDiscussion(
+			BlogsEntry.class.getName(), blogsEntry.getEntryId());
+
+		Assert.assertFalse(
+			CommentManagerUtil.hasDiscussion(
+				BlogsEntry.class.getName(), blogsEntry.getEntryId()));
 	}
 
 	@Test(expected = NoSuchEntryException.class)
@@ -968,6 +1107,38 @@ public class BlogsEntryLocalServiceTest {
 	}
 
 	@Test
+	public void testUpdateDraftEntryWithDuplicateURLTitle() throws Exception {
+		String urlTitle = RandomTestUtil.randomString();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			RandomTestUtil.randomString(), _user.getUserId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			urlTitle, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), new Date(), false, false, null, null,
+			null, null, serviceContext);
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
+			RandomTestUtil.randomString(), _user.getUserId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			urlTitle, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), new Date(), false, false, null, null,
+			null, null, serviceContext);
+
+		entry = BlogsEntryLocalServiceUtil.updateEntry(
+			_user.getUserId(), entry.getEntryId(), entry.getTitle(),
+			entry.getSubtitle(), urlTitle, entry.getDescription(),
+			entry.getContent(), entry.getDisplayDate(), false, false, null,
+			null, null, null, serviceContext);
+
+		Assert.assertNotEquals(urlTitle, entry.getUrlTitle());
+	}
+
+	@Test
 	public void testUpdateEntryResources() throws Exception {
 		BlogsEntry entry = addEntry(false);
 
@@ -1415,7 +1586,7 @@ public class BlogsEntryLocalServiceTest {
 			serviceContext, Constants.ADD);
 
 		return MBMessageLocalServiceUtil.addDiscussionMessage(
-			userId, RandomTestUtil.randomString(), _group.getGroupId(),
+			null, userId, RandomTestUtil.randomString(), _group.getGroupId(),
 			BlogsEntry.class.getName(), entry.getEntryId(),
 			mbThread.getThreadId(),
 			MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID,
@@ -1437,9 +1608,10 @@ public class BlogsEntryLocalServiceTest {
 			UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("subscribeBlogsEntryCreatorToComments", true);
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"subscribeBlogsEntryCreatorToComments", true
+			).build();
 
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
@@ -1452,6 +1624,9 @@ public class BlogsEntryLocalServiceTest {
 	}
 
 	private static Method _getUrlTitleMethod;
+
+	@DeleteAfterTestRun
+	private final List<BlogsEntry> _blogsEntries = new ArrayList<>();
 
 	@DeleteAfterTestRun
 	private User _creatorUser;

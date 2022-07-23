@@ -27,18 +27,18 @@ public class RatingsStatsUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateRatingsStats();
+		_updateRatingsStats();
 	}
 
 	protected long getClassNameId(String className) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select classNameId from ClassName_ where value = ?")) {
 
-			ps.setString(1, className);
+			preparedStatement.setString(1, className);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getLong("classNameId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getLong("classNameId");
 				}
 
 				return 0;
@@ -46,28 +46,23 @@ public class RatingsStatsUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void updateRatingsStats() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private void _updateRatingsStats() throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select statsId, totalScore, averageScore from RatingsStats " +
 					"where classNameId = " +
 						getClassNameId(_CLASS_NAME_ARTICLE));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				long statsId = rs.getLong("statsId");
-				double totalScore = rs.getDouble("totalScore");
-				double averageScore = rs.getDouble("averageScore");
+			while (resultSet.next()) {
+				long statsId = resultSet.getLong("statsId");
+				double totalScore = resultSet.getDouble("totalScore");
+				double averageScore = resultSet.getDouble("averageScore");
 
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("update RatingsStats set totalScore = ");
-				sb.append(totalScore * 2);
-				sb.append(", averageScore = ");
-				sb.append(averageScore * 2);
-				sb.append(" where statsId = ");
-				sb.append(statsId);
-
-				runSQL(sb.toString());
+				runSQL(
+					StringBundler.concat(
+						"update RatingsStats set totalScore = ", totalScore * 2,
+						", averageScore = ", averageScore * 2,
+						" where statsId = ", statsId));
 			}
 		}
 	}

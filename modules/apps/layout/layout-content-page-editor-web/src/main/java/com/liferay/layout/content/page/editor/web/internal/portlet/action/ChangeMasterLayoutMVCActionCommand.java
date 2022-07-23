@@ -20,7 +20,6 @@ import com.liferay.fragment.renderer.FragmentRendererController;
 import com.liferay.fragment.renderer.FragmentRendererTracker;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.frontend.token.definition.FrontendTokenDefinition;
 import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
@@ -87,6 +86,8 @@ public class ChangeMasterLayoutMVCActionCommand
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			masterLayoutPlid);
 
+		actionRequest.setAttribute(WebKeys.LAYOUT, updatedLayout);
+
 		if (masterLayoutPlid == 0) {
 			return JSONUtil.put(
 				"styleBook",
@@ -96,7 +97,7 @@ public class ChangeMasterLayoutMVCActionCommand
 		LayoutStructure layoutStructure =
 			LayoutStructureUtil.getLayoutStructure(
 				themeDisplay.getScopeGroupId(), masterLayoutPlid,
-				SegmentsExperienceConstants.ID_DEFAULT);
+				SegmentsExperienceConstants.KEY_DEFAULT);
 
 		List<FragmentEntryLink> fragmentEntryLinks =
 			_fragmentEntryLinkLocalService.getFragmentEntryLinksByPlid(
@@ -163,17 +164,14 @@ public class ChangeMasterLayoutMVCActionCommand
 
 		LayoutSet layoutSet = layout.getLayoutSet();
 
-		FrontendTokenDefinition frontendTokenDefinition =
-			_frontendTokenDefinitionRegistry.getFrontendTokenDefinition(
-				layoutSet.getThemeId());
-
 		return jsonObject.put(
 			"styleBookEntryId", layout.getStyleBookEntryId()
 		).put(
 			"tokenValues",
 			StyleBookEntryUtil.getFrontendTokensValues(
-				frontendTokenDefinition, themeDisplay.getLocale(),
-				styleBookEntry)
+				_frontendTokenDefinitionRegistry.getFrontendTokenDefinition(
+					layoutSet.getThemeId()),
+				themeDisplay.getLocale(), styleBookEntry)
 		);
 	}
 

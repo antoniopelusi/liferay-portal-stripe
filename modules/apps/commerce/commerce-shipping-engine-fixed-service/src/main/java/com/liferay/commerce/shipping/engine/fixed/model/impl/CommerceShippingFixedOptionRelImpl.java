@@ -32,9 +32,6 @@ import com.liferay.portal.kernel.service.RegionLocalServiceUtil;
 public class CommerceShippingFixedOptionRelImpl
 	extends CommerceShippingFixedOptionRelBaseImpl {
 
-	public CommerceShippingFixedOptionRelImpl() {
-	}
-
 	@Override
 	public CommerceInventoryWarehouse getCommerceInventoryWarehouse()
 		throws PortalException {

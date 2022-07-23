@@ -27,19 +27,19 @@ import com.liferay.layout.content.page.editor.web.internal.segments.SegmentsExpe
 import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkUtil;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.service.SegmentsExperienceService;
@@ -82,26 +82,22 @@ public class DuplicateSegmentsExperienceMVCActionCommand
 			_segmentsExperienceService.getSegmentsExperience(
 				segmentsExperienceId);
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(segmentsExperience.getName(LocaleUtil.getSiteDefault()));
-		sb.append(StringPool.SPACE);
-		sb.append(StringPool.OPEN_PARENTHESIS);
-		sb.append(_language.get(themeDisplay.getLocale(), "copy"));
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
 
 		SegmentsExperience duplicatedSegmentsExperience =
 			_segmentsExperienceService.addSegmentsExperience(
+				serviceContext.getScopeGroupId(),
 				segmentsExperience.getSegmentsEntryId(),
 				segmentsExperience.getClassNameId(),
 				segmentsExperience.getClassPK(),
 				Collections.singletonMap(
-					LocaleUtil.getSiteDefault(), sb.toString()),
-				segmentsExperience.isActive(),
-				segmentsExperience.getTypeSettingsUnicodeProperties(),
+					LocaleUtil.getSiteDefault(),
+					LanguageUtil.format(
+						themeDisplay.getLocale(), "copy-of-x",
+						segmentsExperience.getName(
+							LocaleUtil.getSiteDefault()))),
+				segmentsExperience.isActive(), new UnicodeProperties(true),
 				serviceContext);
 
 		SegmentsExperienceUtil.copySegmentsExperienceData(
@@ -131,7 +127,7 @@ public class DuplicateSegmentsExperienceMVCActionCommand
 
 	private JSONObject _getFragmentEntryLinksJSONObject(
 			ActionRequest actionRequest, ActionResponse actionResponse,
-			long plid, long groupId, long segmentExperienceId)
+			long plid, long groupId, long segmentsExperienceId)
 		throws Exception {
 
 		JSONObject fragmentEntryLinksJSONObject =
@@ -140,9 +136,13 @@ public class DuplicateSegmentsExperienceMVCActionCommand
 		List<FragmentEntryLink> fragmentEntryLinks =
 			_fragmentEntryLinkLocalService.
 				getFragmentEntryLinksBySegmentsExperienceId(
-					groupId, segmentExperienceId, plid);
+					groupId, segmentsExperienceId, plid);
 
 		for (FragmentEntryLink fragmentEntryLink : fragmentEntryLinks) {
+			JSONObject editableValuesJSONObject =
+				JSONFactoryUtil.createJSONObject(
+					fragmentEntryLink.getEditableValues());
+
 			fragmentEntryLinksJSONObject.put(
 				String.valueOf(fragmentEntryLink.getFragmentEntryLinkId()),
 				FragmentEntryLinkUtil.getFragmentEntryLinkJSONObject(
@@ -150,7 +150,8 @@ public class DuplicateSegmentsExperienceMVCActionCommand
 					_fragmentEntryConfigurationParser, fragmentEntryLink,
 					_fragmentCollectionContributorTracker,
 					_fragmentRendererController, _fragmentRendererTracker,
-					_itemSelector, StringPool.BLANK));
+					_itemSelector,
+					editableValuesJSONObject.getString("portletId")));
 		}
 
 		return fragmentEntryLinksJSONObject;

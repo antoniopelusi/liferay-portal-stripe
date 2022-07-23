@@ -2,15 +2,32 @@
 <head>
 <title>Treeview</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Treeview</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>NODE_COLLAPSED</td>
-	<td>//div[contains(@class,'treeview-node-main') and @aria-expanded='false']/div[@class='treeview-node-toggler'] | //span[contains(@class,'glyphicon-plus')] | //div[contains(@class,'treeview-node-list')]/button[contains(@class,'treeview-node-list') and @aria-expanded='false']</td>
+	<td>//div[contains(@class,'treeview-node-list')]/button[contains(@class,'treeview-node-list') and @aria-expanded='false'] | //div[contains(@class,'tree-collapsed')]//span[not(contains(@class,'hidden'))]//*[name()='svg'][contains(@class,'icon-plus')] | //div[contains(@class,'navigation-menu-items-tree-node')]//button[@aria-expanded='false'] | //ul[contains(@class,'treeview')]//button[contains(@class,'component-expander')][@aria-expanded='false']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_DRAGGABLE_ELEMENT</td>
+	<td>xpath=(//div[contains(@class,'list-item__node')][contains(.,'${key_elementName}')])[${index}]//div[@role='button'][@draggable='true']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_DRAGGABLE_TARGET_ELEMENT</td>
+	<td>//div[contains(@class,'list-item__node')][contains(.,'${key_targetElementName}')]//div[@role='button'][@draggable='true']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_ITEM</td>
+	<td>//div[contains(@class,'card-horizontal')]//div[contains(@class,'card-body')][contains(.,'${key_nodeName}')] | //li[contains(@class,'treeview-item')]//div[contains(@class,'component-text')][normalize-space(text())='${key_nodeName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -25,12 +42,32 @@
 </tr>
 <tr>
 	<td>NODE_LIST</td>
-	<td>//div[contains(@class,'treeview-node-list') and contains(.,'${key_nodeListName}')]/div[contains(@class,'card')]</td>
+	<td>//*[@role='tree'] | //ul[contains(@class,'tree-pages')] | //div[contains(@class,'navigation-menu-items-tree')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_LIST_ITEM</td>
+	<td>//li[contains(@class,'tree-node')]//a[contains(text(),'${key_itemName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_STRUCTURE_TREE_NODE</td>
 	<td>//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]/div[@role='button']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_STRUCTURE_TREE_NODE_INDEX</td>
+	<td>xpath=(//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]/div[@role='button'])[${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_STRUCTURE_TREE_NODE_ACTIVE</td>
+	<td>//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')][contains(@class,'active')]/div[@role='button']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_STRUCTURE_TREE_NODE_ACTIVE_INDEX</td>
+	<td>xpath=(//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')][contains(@class,'active')]/div[@role='button'])[${key_index}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -40,12 +77,27 @@
 </tr>
 <tr>
 	<td>PAGE_STRUCTURE_TREE_NODE_DELETE</td>
-	<td>//div[contains(@class,'page-structure') and contains(.,'${key_nodeName}')]/button[contains(@class,'tree-node')][*[name()='svg'][contains(@class,'times-circle')]]</td>
+	<td>//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]//button[contains(@class,'tree-node')][*[name()='svg'][contains(@class,'trash')]]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>PAGE_STRUCTURE_TREE_NODE_ACTIVE</td>
-	<td>//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')][contains(@class,'active')]/div[@role='button']</td>
+	<td>PAGE_STRUCTURE_TREE_NODE_HIDE_INDEX</td>
+	<td>xpath=(//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]//button[contains(@class,'tree-node')][*[name()='svg'][contains(@class,'lexicon-icon-view') or contains(@class,'lexicon-icon-hidden')]])[${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_STRUCTURE_TREE_NODE_MASTER_INDEX</td>
+	<td>xpath=(//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}') and contains(@class,'page-editor__page-structure__tree-node--master-item')])[${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_STRUCTURE_TREE_NODE_NAME</td>
+	<td>//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]//div[contains(@class,'node__name')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_STRUCTURE_TREE_NODE_NAME_INFO</td>
+	<td>//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]//span[contains(@class,'node__name-info')][normalize-space(text())='${key_info}']</td>
 	<td></td>
 </tr>
 <tr>

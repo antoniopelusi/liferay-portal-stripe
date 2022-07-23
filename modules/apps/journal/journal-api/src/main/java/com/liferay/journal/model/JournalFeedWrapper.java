@@ -229,6 +229,11 @@ public class JournalFeedWrapper
 		}
 	}
 
+	@Override
+	public JournalFeed cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this journal feed.
 	 *

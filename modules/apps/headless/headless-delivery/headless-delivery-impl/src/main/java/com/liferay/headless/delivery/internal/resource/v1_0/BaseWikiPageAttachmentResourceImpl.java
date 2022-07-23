@@ -16,7 +16,10 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 
 import com.liferay.headless.delivery.dto.v1_0.WikiPageAttachment;
 import com.liferay.headless.delivery.resource.v1_0.WikiPageAttachmentResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -27,6 +30,9 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
@@ -36,13 +42,6 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.io.Serializable;
 
@@ -56,16 +55,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -76,7 +65,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v1.0")
+@javax.ws.rs.Path("/v1.0")
 public abstract class BaseWikiPageAttachmentResourceImpl
 	implements EntityModelResource,
 			   VulcanBatchEngineTaskItemDelegate<WikiPageAttachment>,
@@ -87,22 +76,30 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-page-attachments/{wikiPageAttachmentId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Deletes the wiki page attachment and returns a 204 if the operation succeeds."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "wikiPageAttachmentId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "wikiPageAttachmentId"
+			)
 		}
 	)
-	@Path("/wiki-page-attachments/{wikiPageAttachmentId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WikiPageAttachment")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "WikiPageAttachment")
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/wiki-page-attachments/{wikiPageAttachmentId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteWikiPageAttachment(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("wikiPageAttachmentId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("wikiPageAttachmentId")
 			Long wikiPageAttachmentId)
 		throws Exception {
 	}
@@ -112,18 +109,28 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-page-attachments/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/wiki-page-attachments/batch")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "WikiPageAttachment")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "WikiPageAttachment")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/wiki-page-attachments/batch")
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response deleteWikiPageAttachmentBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -148,20 +155,30 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-page-attachments/{wikiPageAttachmentId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the wiki page attachment.")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the wiki page attachment."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "wikiPageAttachmentId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "wikiPageAttachmentId"
+			)
 		}
 	)
-	@Path("/wiki-page-attachments/{wikiPageAttachmentId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WikiPageAttachment")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "WikiPageAttachment")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/wiki-page-attachments/{wikiPageAttachmentId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public WikiPageAttachment getWikiPageAttachment(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("wikiPageAttachmentId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("wikiPageAttachmentId")
 			Long wikiPageAttachmentId)
 		throws Exception {
 
@@ -173,18 +190,31 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-pages/{wikiPageId}/wiki-page-attachments'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the wiki page's attachments.")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "wikiPageId")}
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the wiki page's attachments."
 	)
-	@Path("/wiki-pages/{wikiPageId}/wiki-page-attachments")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WikiPageAttachment")})
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "wikiPageId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "WikiPageAttachment")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/wiki-pages/{wikiPageId}/wiki-page-attachments")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<WikiPageAttachment> getWikiPageWikiPageAttachmentsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("wikiPageId") Long
-				wikiPageId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("wikiPageId")
+			Long wikiPageId)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -195,21 +225,32 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-pages/{wikiPageId}/wiki-page-attachments'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("multipart/form-data")
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Creates an attachment for the wiki page. The request body must be `multipart/form-data` with two parts, the file's bytes (`file`), and an optional JSON string (`WikiPageAttachment`) with the metadata."
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "wikiPageId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "wikiPageId"
+			)
+		}
 	)
-	@Path("/wiki-pages/{wikiPageId}/wiki-page-attachments")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WikiPageAttachment")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "WikiPageAttachment")
+		}
+	)
+	@javax.ws.rs.Consumes("multipart/form-data")
+	@javax.ws.rs.Path("/wiki-pages/{wikiPageId}/wiki-page-attachments")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public WikiPageAttachment postWikiPageWikiPageAttachment(
-			@NotNull @Parameter(hidden = true) @PathParam("wikiPageId") Long
-				wikiPageId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("wikiPageId")
+			Long wikiPageId,
 			MultipartBody multipartBody)
 		throws Exception {
 
@@ -221,24 +262,37 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-pages/{wikiPageId}/wiki-page-attachments/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "wikiPageId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "wikiPageId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path("/wiki-pages/{wikiPageId}/wiki-page-attachments/batch")
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "WikiPageAttachment")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "WikiPageAttachment")
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/wiki-pages/{wikiPageId}/wiki-page-attachments/batch")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postWikiPageWikiPageAttachmentBatch(
-			@NotNull @Parameter(hidden = true) @PathParam("wikiPageId") Long
-				wikiPageId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("wikiPageId")
+			Long wikiPageId,
 			MultipartBody multipartBody,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -265,9 +319,20 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (WikiPageAttachment wikiPageAttachment : wikiPageAttachments) {
-			postWikiPageWikiPageAttachment(
-				(Long)parameters.get("wikiPageId"), null);
+		UnsafeConsumer<WikiPageAttachment, Exception>
+			wikiPageAttachmentUnsafeConsumer =
+				wikiPageAttachment -> postWikiPageWikiPageAttachment(
+					Long.parseLong((String)parameters.get("wikiPageId")),
+					(MultipartBody)parameters.get("multipartBody"));
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				wikiPageAttachments, wikiPageAttachmentUnsafeConsumer);
+		}
+		else {
+			for (WikiPageAttachment wikiPageAttachment : wikiPageAttachments) {
+				wikiPageAttachmentUnsafeConsumer.accept(wikiPageAttachment);
+			}
 		}
 	}
 
@@ -297,6 +362,10 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 		return null;
 	}
 
+	public String getVersion() {
+		return "v1.0";
+	}
+
 	@Override
 	public Page<WikiPageAttachment> read(
 			Filter filter, Pagination pagination, Sort[] sorts,
@@ -304,7 +373,7 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 		throws Exception {
 
 		return getWikiPageWikiPageAttachmentsPage(
-			(Long)parameters.get("wikiPageId"));
+			Long.parseLong((String)parameters.get("wikiPageId")));
 	}
 
 	@Override
@@ -340,6 +409,15 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<WikiPageAttachment>,
+			 UnsafeConsumer<WikiPageAttachment, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
+	}
+
 	public void setContextCompany(
 		com.liferay.portal.kernel.model.Company contextCompany) {
 
@@ -368,12 +446,69 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
+	}
+
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
+	}
+
+	@Override
+	public Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		try {
+			EntityModel entityModel = getEntityModel(multivaluedMap);
+
+			FilterParser filterParser = filterParserProvider.provide(
+				entityModel);
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(filterString));
+
+			return expressionConvert.convert(
+				oDataFilter.getExpression(),
+				contextAcceptLanguage.getPreferredLocale(), entityModel);
+		}
+		catch (Exception exception) {
+			_log.error("Invalid filter " + filterString, exception);
+		}
+
+		return null;
 	}
 
 	protected Map<String, String> addAction(
@@ -439,17 +574,26 @@ public abstract class BaseWikiPageAttachmentResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<WikiPageAttachment>,
+		 UnsafeConsumer<WikiPageAttachment, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
 	protected VulcanBatchEngineImportTaskResource
 		vulcanBatchEngineImportTaskResource;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseWikiPageAttachmentResourceImpl.class);
 
 }

@@ -41,21 +41,13 @@ import org.osgi.service.component.annotations.Reference;
 public class AssetCategoryFriendlyURLInfoItemFieldReader
 	implements InfoItemFieldReader<AssetCategory> {
 
-	/**
-	 *   @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *          #getInfoField()}
-	 */
-	@Deprecated
-	@Override
-	public InfoField getField() {
-		return null;
-	}
-
 	@Override
 	public InfoField getInfoField() {
 		return InfoField.builder(
 		).infoFieldType(
 			URLInfoFieldType.INSTANCE
+		).namespace(
+			AssetCategory.class.getSimpleName()
 		).name(
 			"friendlyURL"
 		).labelInfoLocalizedValue(
@@ -82,7 +74,7 @@ public class AssetCategoryFriendlyURLInfoItemFieldReader
 			}
 
 			String groupFriendlyURL = _portal.getGroupFriendlyURL(
-				themeDisplay.getLayoutSet(), themeDisplay);
+				themeDisplay.getLayoutSet(), themeDisplay, false, false);
 
 			return InfoLocalizedValue.function(
 				locale -> {
@@ -97,7 +89,7 @@ public class AssetCategoryFriendlyURLInfoItemFieldReader
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

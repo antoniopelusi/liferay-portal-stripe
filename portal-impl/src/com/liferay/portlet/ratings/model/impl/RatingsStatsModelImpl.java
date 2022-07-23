@@ -25,15 +25,16 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.ratings.kernel.model.RatingsStats;
 import com.liferay.ratings.kernel.model.RatingsStatsModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -233,34 +234,6 @@ public class RatingsStatsModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, RatingsStats>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			RatingsStats.class.getClassLoader(), RatingsStats.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<RatingsStats> constructor =
-				(Constructor<RatingsStats>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<RatingsStats, Object>>
@@ -604,6 +577,36 @@ public class RatingsStatsModelImpl
 	}
 
 	@Override
+	public RatingsStats cloneWithOriginalValues() {
+		RatingsStatsImpl ratingsStatsImpl = new RatingsStatsImpl();
+
+		ratingsStatsImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ratingsStatsImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ratingsStatsImpl.setStatsId(
+			this.<Long>getColumnOriginalValue("statsId"));
+		ratingsStatsImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ratingsStatsImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ratingsStatsImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		ratingsStatsImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		ratingsStatsImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		ratingsStatsImpl.setTotalEntries(
+			this.<Integer>getColumnOriginalValue("totalEntries"));
+		ratingsStatsImpl.setTotalScore(
+			this.<Double>getColumnOriginalValue("totalScore"));
+		ratingsStatsImpl.setAverageScore(
+			this.<Double>getColumnOriginalValue("averageScore"));
+
+		return ratingsStatsImpl;
+	}
+
+	@Override
 	public int compareTo(RatingsStats ratingsStats) {
 		long primaryKey = ratingsStats.getPrimaryKey();
 
@@ -722,7 +725,7 @@ public class RatingsStatsModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -733,9 +736,26 @@ public class RatingsStatsModelImpl
 			Function<RatingsStats, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((RatingsStats)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((RatingsStats)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -782,7 +802,9 @@ public class RatingsStatsModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, RatingsStats>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					RatingsStats.class, ModelWrapper.class);
 
 	}
 

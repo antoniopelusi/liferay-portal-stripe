@@ -489,4 +489,7 @@ public interface FragmentCompositionModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public FragmentComposition cloneWithOriginalValues();
+
 }

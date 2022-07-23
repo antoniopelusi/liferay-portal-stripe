@@ -1,13 +1,11 @@
-<definition default="selectFieldText" summary="Selecting all text at '${locator1}'">
-	<command name="selectFieldText">
-		<execute function="Click" />
+@default = "selectFieldText"
+@summary = "Selecting all text at '${locator1}'"
+definition {
 
-		<execute selenium="selectFieldText" />
-	</command>
+	function selectFieldText {
+		Click();
 
-	<command name="selectFieldTextNoError">
-		<execute function="Click" />
+		selenium.selectFieldText();
+	}
 
-		<execute selenium="selectFieldText" />
-	</command>
-</definition>
+}

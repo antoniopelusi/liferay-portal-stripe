@@ -136,6 +136,11 @@ public class MBThreadFlagWrapper
 		}
 	}
 
+	@Override
+	public MBThreadFlag cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this message boards thread flag.
 	 *

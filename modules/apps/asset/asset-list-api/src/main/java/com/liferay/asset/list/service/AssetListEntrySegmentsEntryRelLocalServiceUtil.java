@@ -173,6 +173,10 @@ public class AssetListEntrySegmentsEntryRelLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -279,6 +283,14 @@ public class AssetListEntrySegmentsEntryRelLocalServiceUtil {
 
 		return getService().fetchAssetListEntrySegmentsEntryRelByUuidAndGroupId(
 			uuid, groupId);
+	}
+
+	public static List<AssetListEntrySegmentsEntryRel>
+		fetchAssetListEntrySegmentsEntryRels(
+			long assetListEntryId, long[] segmentsEntryId) {
+
+		return getService().fetchAssetListEntrySegmentsEntryRels(
+			assetListEntryId, segmentsEntryId);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
@@ -464,6 +476,10 @@ public class AssetListEntrySegmentsEntryRelLocalServiceUtil {
 
 		return getService().updateAssetListEntrySegmentsEntryRelTypeSettings(
 			assetListEntryId, segmentsEntryId, typeSettings);
+	}
+
+	public static void updateVariationsPriority(long[] variationsPriority) {
+		getService().updateVariationsPriority(variationsPriority);
 	}
 
 	public static AssetListEntrySegmentsEntryRelLocalService getService() {

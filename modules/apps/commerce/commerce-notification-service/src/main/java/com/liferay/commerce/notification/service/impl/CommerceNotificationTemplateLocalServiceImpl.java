@@ -21,6 +21,7 @@ import com.liferay.commerce.notification.model.CommerceNotificationTemplate;
 import com.liferay.commerce.notification.service.base.CommerceNotificationTemplateLocalServiceBaseImpl;
 import com.liferay.commerce.notification.type.CommerceNotificationType;
 import com.liferay.commerce.notification.type.CommerceNotificationTypeRegistry;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
@@ -145,7 +146,7 @@ public class CommerceNotificationTemplateLocalServiceImpl
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			commerceNotificationTemplate.getCommerceNotificationTemplateId());
 
 		return commerceNotificationTemplate;
@@ -272,5 +273,8 @@ public class CommerceNotificationTemplateLocalServiceImpl
 
 	@ServiceReference(type = CommerceNotificationTypeRegistry.class)
 	private CommerceNotificationTypeRegistry _commerceNotificationTypeRegistry;
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 }

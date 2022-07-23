@@ -17,8 +17,6 @@ AUI.add(
 	(A) => {
 		var Util = Liferay.Util;
 
-		var BODY = A.getBody();
-
 		var CSS_DRAGGABLE = 'portlet-draggable';
 
 		var LAYOUT_CONFIG = Liferay.Data.layoutConfig;
@@ -156,7 +154,7 @@ AUI.add(
 					var firstPortletStatic = firstPortlet.isStatic;
 					var lastStatic = null;
 
-					if (!firstPortletStatic || firstPortletStatic == 'end') {
+					if (!firstPortletStatic || firstPortletStatic === 'end') {
 						referencePortlet = firstPortlet;
 					}
 					else {
@@ -167,7 +165,7 @@ AUI.add(
 								!isStatic ||
 								(lastStatic &&
 									isStatic &&
-									isStatic != lastStatic)
+									isStatic !== lastStatic)
 							) {
 								referencePortlet = item;
 							}
@@ -244,8 +242,8 @@ AUI.add(
 					var currentParent = dragNode.get('parentNode');
 
 					if (
-						curPortletInfo.originalParent != currentParent ||
-						curPortletInfo.originalIndex != currentIndex
+						curPortletInfo.originalParent !== currentParent ||
+						curPortletInfo.originalIndex !== currentIndex
 					) {
 						moved = true;
 					}
@@ -287,7 +285,12 @@ AUI.add(
 			},
 
 			saveIndex(portletNode, columnNode) {
-				var currentColumnId = Util.getColumnId(columnNode.get('id'));
+				var columnNodeId = columnNode.get('id');
+
+				var currentColumnId = columnNodeId.replace(
+					/layout-column_/,
+					''
+				);
 				var portletId = Util.getPortletId(portletNode.get('id'));
 				var position = Layout.findIndex(portletNode);
 
@@ -435,28 +438,6 @@ AUI.add(
 			};
 
 			var eventHandles = [];
-
-			if (A.UA.ie || A.UA.edge) {
-				eventHandles.push(
-					BODY.delegate(
-						'mouseenter',
-						(event) => {
-							event.currentTarget.addClass('focus');
-						},
-						'.portlet'
-					)
-				);
-
-				eventHandles.push(
-					BODY.delegate(
-						'mouseleave',
-						(event) => {
-							event.currentTarget.removeClass('focus');
-						},
-						'.portlet'
-					)
-				);
-			}
 
 			A.use('liferay-layout-column', () => {
 				Layout.ColumnLayout.register();

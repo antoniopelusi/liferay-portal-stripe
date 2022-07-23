@@ -22,13 +22,13 @@ import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ThemeLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.theme.ThemeUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.taglib.util.ThemeUtil;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -72,14 +72,13 @@ public class ServletContextIncludeFilter extends BasePortalFilter {
 
 			FilterConfig filterConfig = getFilterConfig();
 
-			ServletContext servletContext = filterConfig.getServletContext();
-
-			String portletId = ThemeUtil.getPortletId(httpServletRequest);
-
 			String uri = (String)httpServletRequest.getAttribute(
 				WebKeys.INVOKER_FILTER_URI);
 
-			if (theme.resourceExists(servletContext, portletId, uri)) {
+			if (theme.resourceExists(
+					filterConfig.getServletContext(),
+					ThemeUtil.getPortletId(httpServletRequest), uri)) {
+
 				httpServletRequest.setAttribute(
 					WebKeys.SERVLET_CONTEXT_INCLUDE_FILTER_PATH, uri);
 				httpServletRequest.setAttribute(
@@ -89,7 +88,7 @@ public class ServletContextIncludeFilter extends BasePortalFilter {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;

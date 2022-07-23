@@ -17,6 +17,7 @@ export default {
 		'AddToCart',
 		'AddToWishList',
 		'Autocomplete',
+		'AutocompletePureComponent',
 		'DropdownMenu',
 		'Gallery',
 		'ItemFinder',
@@ -27,7 +28,13 @@ export default {
 		'Summary',
 		'MiniCartContext',
 	],
-	CommerceFrontendUtils: ['AJAX', 'BaseUtils', 'Events', 'FormUtils'],
+	CommerceFrontendUtils: [
+		'AJAX',
+		'BaseUtils',
+		'CommerceCookie',
+		'Events',
+		'FormUtils',
+	],
 	CommerceServiceProvider: [
 		'AdminAccountAPI',
 		'AdminCatalogAPI',

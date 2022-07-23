@@ -25,6 +25,10 @@ public class PasswordPolicyLocalServiceWrapper
 	implements PasswordPolicyLocalService,
 			   ServiceWrapper<PasswordPolicyLocalService> {
 
+	public PasswordPolicyLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PasswordPolicyLocalServiceWrapper(
 		PasswordPolicyLocalService passwordPolicyLocalService) {
 
@@ -163,6 +167,13 @@ public class PasswordPolicyLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _passwordPolicyLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _passwordPolicyLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

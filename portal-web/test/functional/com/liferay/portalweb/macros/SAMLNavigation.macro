@@ -20,4 +20,10 @@ definition {
 		Navigator.gotoNavTab(navTab = "Service Provider Connections");
 	}
 
+	macro viewConsoleValue {
+		Pause(locator1 = "5000");
+
+		AssertConsoleTextPresent(value1 = "${consoleValue}");
+	}
+
 }

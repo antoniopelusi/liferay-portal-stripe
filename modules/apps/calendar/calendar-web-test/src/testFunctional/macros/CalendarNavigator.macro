@@ -54,6 +54,20 @@ definition {
 		Click(locator1 = "Calendar#SCHEDULER_VIEW_${viewTypeUppercase}_CURRENT_DAY");
 	}
 
+	macro gotoAddEventViaCurrentSite {
+		Click(
+			key_site = "${site}",
+			locator1 = "Calendar#CURRENT_SITE_CALENDARS_CALENDAR_PRIMARY_MENULIST_ARROW");
+
+		AssertClick(
+			locator1 = "Calendar#OTHER_CALENDARS_CALENDAR_MENULIST_ADD_EVENT",
+			value1 = "Add Event");
+
+		CalendarEvent.selectEventIframe();
+
+		CalendarEvent._viewNewEventIframe();
+	}
+
 	macro gotoAddEventViaMyCalendars {
 		Click(
 			key_user = "${user}",
@@ -143,7 +157,6 @@ definition {
 	}
 
 	macro gotoMonthViaSmallCalendar {
-
 		/*
 		To ensure the desired month will always be reached, click "Previous"
 		until it reaches our baseline of February 2016. Then click "Next" until

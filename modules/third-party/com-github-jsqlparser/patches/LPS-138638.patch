@@ -1,0 +1,60 @@
+diff --git a/net/sf/jsqlparser/expression/BinaryExpression.java b/net/sf/jsqlparser/expression/BinaryExpression.java
+index 1a7b932e7719..f391549207b0 100644
+--- a/net/sf/jsqlparser/expression/BinaryExpression.java
++++ b/net/sf/jsqlparser/expression/BinaryExpression.java
+@@ -9,6 +9,9 @@
+  */
+ package net.sf.jsqlparser.expression;
+ 
++import java.util.Deque;
++import java.util.LinkedList;
++
+ import net.sf.jsqlparser.parser.ASTNodeAccessImpl;
+ 
+ /**
+@@ -53,10 +56,42 @@ public abstract class BinaryExpression extends ASTNodeAccessImpl implements Expr
+ //    }
+     @Override
+     public String toString() {
+-        return //(not ? "NOT " : "") + 
+-                getLeftExpression() + " " + getStringExpression() + " " + getRightExpression();
++		StringBuilder sb = new StringBuilder();
++
++		Deque<BinaryExpression> deque = new LinkedList<>();
++
++		deque.push(this);
++
++		Expression expression = getLeftExpression();
++
++		while(!deque.isEmpty()) {
++			if (expression instanceof BinaryExpression) {
++				BinaryExpression binaryExpression =
++					(BinaryExpression)expression;
++
++				deque.push(binaryExpression);
++
++				expression = binaryExpression.getLeftExpression();
++			}
++			else {
++				sb.append(expression.toString());
++
++				BinaryExpression binaryExpression = deque.pop();
++
++				sb.append(' ');
++				sb.append(binaryExpression.getStringExpression());
++				sb.append(' ');
++
++				expression = binaryExpression.getRightExpression();
++			}
++		}
++
++		sb.append(expression.toString());
++
++		return sb.toString();
+     }
+ 
+     public abstract String getStringExpression();
+ 
+ }
++/* @generated */
+\ No newline at end of file

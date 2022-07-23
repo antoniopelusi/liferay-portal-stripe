@@ -117,6 +117,11 @@ public class SocialActivityAchievementWrapper
 		}
 	}
 
+	@Override
+	public SocialActivityAchievement cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the activity achievement ID of this social activity achievement.
 	 *

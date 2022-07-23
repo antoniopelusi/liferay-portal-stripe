@@ -16,8 +16,11 @@ package com.liferay.data.engine.rest.internal.resource.v2_0;
 
 import com.liferay.data.engine.rest.dto.v2_0.DataRecord;
 import com.liferay.data.engine.rest.resource.v2_0.DataRecordResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -28,6 +31,9 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
@@ -36,12 +42,6 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.io.Serializable;
 
@@ -55,19 +55,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -78,7 +65,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v2.0")
+@javax.ws.rs.Path("/v2.0")
 public abstract class BaseDataRecordResourceImpl
 	implements DataRecordResource, EntityModelResource,
 			   VulcanBatchEngineTaskItemDelegate<DataRecord> {
@@ -88,28 +75,54 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-records'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "dataListViewId"),
-			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "dataListViewId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "keywords"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-records")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/data-records")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DataRecord> getDataDefinitionDataRecordsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
-			@Parameter(hidden = true) @QueryParam("dataListViewId") Long
-				dataListViewId,
-			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
-			@Context Pagination pagination, @Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("dataListViewId")
+			Long dataListViewId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("keywords")
+			String keywords,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -120,18 +133,27 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-records' -d $'{"dataRecordCollectionId": ___, "dataRecordValues": ___, "id": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-records")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/data-records")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataRecord postDataDefinitionDataRecord(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
 			DataRecord dataRecord)
 		throws Exception {
 
@@ -143,23 +165,34 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-records/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-records/batch")
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/data-records/batch")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postDataDefinitionDataRecordBatch(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -184,29 +217,56 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/data-records'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "dataListViewId"),
-			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordCollectionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "dataListViewId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "keywords"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/data-record-collections/{dataRecordCollectionId}/data-records")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
+		"/data-record-collections/{dataRecordCollectionId}/data-records"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DataRecord> getDataRecordCollectionDataRecordsPage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("dataRecordCollectionId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordCollectionId")
 			Long dataRecordCollectionId,
-			@Parameter(hidden = true) @QueryParam("dataListViewId") Long
-				dataListViewId,
-			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
-			@Context Pagination pagination, @Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("dataListViewId")
+			Long dataListViewId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("keywords")
+			String keywords,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -217,20 +277,28 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/data-records' -d $'{"dataRecordCollectionId": ___, "dataRecordValues": ___, "id": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordCollectionId"
+			)
 		}
 	)
-	@Path("/data-record-collections/{dataRecordCollectionId}/data-records")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
+		"/data-record-collections/{dataRecordCollectionId}/data-records"
+	)
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataRecord postDataRecordCollectionDataRecord(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("dataRecordCollectionId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordCollectionId")
 			Long dataRecordCollectionId,
 			DataRecord dataRecord)
 		throws Exception {
@@ -243,26 +311,36 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/data-records/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordCollectionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path(
 		"/data-record-collections/{dataRecordCollectionId}/data-records/batch"
 	)
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postDataRecordCollectionDataRecordBatch(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("dataRecordCollectionId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordCollectionId")
 			Long dataRecordCollectionId,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -287,25 +365,37 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/data-records/export'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordCollectionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
 		"/data-record-collections/{dataRecordCollectionId}/data-records/export"
 	)
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public String getDataRecordCollectionDataRecordExport(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("dataRecordCollectionId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordCollectionId")
 			Long dataRecordCollectionId,
-			@Context Pagination pagination)
+			@javax.ws.rs.core.Context Pagination pagination)
 		throws Exception {
 
 		return StringPool.BLANK;
@@ -316,17 +406,26 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-records/{dataRecordId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataRecordId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordId"
+			)
+		}
 	)
-	@Path("/data-records/{dataRecordId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/data-records/{dataRecordId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteDataRecord(
-			@NotNull @Parameter(hidden = true) @PathParam("dataRecordId") Long
-				dataRecordId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordId")
+			Long dataRecordId)
 		throws Exception {
 	}
 
@@ -335,18 +434,26 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-records/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/data-records/batch")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/data-records/batch")
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response deleteDataRecordBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -371,17 +478,26 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-records/{dataRecordId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataRecordId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordId"
+			)
+		}
 	)
-	@Path("/data-records/{dataRecordId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-records/{dataRecordId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataRecord getDataRecord(
-			@NotNull @Parameter(hidden = true) @PathParam("dataRecordId") Long
-				dataRecordId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordId")
+			Long dataRecordId)
 		throws Exception {
 
 		return new DataRecord();
@@ -392,18 +508,27 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'PATCH' 'http://localhost:8080/o/data-engine/v2.0/data-records/{dataRecordId}' -d $'{"dataRecordCollectionId": ___, "dataRecordValues": ___, "id": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataRecordId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordId"
+			)
+		}
 	)
-	@PATCH
-	@Path("/data-records/{dataRecordId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.PATCH
+	@javax.ws.rs.Path("/data-records/{dataRecordId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataRecord patchDataRecord(
-			@NotNull @Parameter(hidden = true) @PathParam("dataRecordId") Long
-				dataRecordId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordId")
+			Long dataRecordId,
 			DataRecord dataRecord)
 		throws Exception {
 
@@ -433,18 +558,27 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-records/{dataRecordId}' -d $'{"dataRecordCollectionId": ___, "dataRecordValues": ___, "id": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataRecordId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataRecordId"
+			)
+		}
 	)
-	@Path("/data-records/{dataRecordId}")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/data-records/{dataRecordId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public DataRecord putDataRecord(
-			@NotNull @Parameter(hidden = true) @PathParam("dataRecordId") Long
-				dataRecordId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataRecordId")
+			Long dataRecordId,
 			DataRecord dataRecord)
 		throws Exception {
 
@@ -456,18 +590,26 @@ public abstract class BaseDataRecordResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-records/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/data-records/batch")
-	@Produces("application/json")
-	@PUT
-	@Tags(value = {@Tag(name = "DataRecord")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataRecord")}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/data-records/batch")
+	@javax.ws.rs.Produces("application/json")
+	@javax.ws.rs.PUT
+	@Override
 	public Response putDataRecordBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -494,9 +636,19 @@ public abstract class BaseDataRecordResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (DataRecord dataRecord : dataRecords) {
-			postDataDefinitionDataRecord(
-				(Long)parameters.get("dataDefinitionId"), dataRecord);
+		UnsafeConsumer<DataRecord, Exception> dataRecordUnsafeConsumer =
+			dataRecord -> postDataDefinitionDataRecord(
+				Long.parseLong((String)parameters.get("dataDefinitionId")),
+				dataRecord);
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				dataRecords, dataRecordUnsafeConsumer);
+		}
+		else {
+			for (DataRecord dataRecord : dataRecords) {
+				dataRecordUnsafeConsumer.accept(dataRecord);
+			}
 		}
 	}
 
@@ -526,6 +678,10 @@ public abstract class BaseDataRecordResourceImpl
 		return null;
 	}
 
+	public String getVersion() {
+		return "v2.0";
+	}
+
 	@Override
 	public Page<DataRecord> read(
 			Filter filter, Pagination pagination, Sort[] sorts,
@@ -533,8 +689,8 @@ public abstract class BaseDataRecordResourceImpl
 		throws Exception {
 
 		return getDataDefinitionDataRecordsPage(
-			(Long)parameters.get("dataDefinitionId"),
-			(Long)parameters.get("dataListViewId"),
+			Long.parseLong((String)parameters.get("dataDefinitionId")),
+			Long.parseLong((String)parameters.get("dataListViewId")),
 			(String)parameters.get("keywords"), pagination, sorts);
 	}
 
@@ -569,13 +725,22 @@ public abstract class BaseDataRecordResourceImpl
 		for (DataRecord dataRecord : dataRecords) {
 			putDataRecord(
 				dataRecord.getId() != null ? dataRecord.getId() :
-					(Long)parameters.get("dataRecordId"),
+					Long.parseLong((String)parameters.get("dataRecordId")),
 				dataRecord);
 		}
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
+	}
+
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<DataRecord>,
+			 UnsafeConsumer<DataRecord, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
 	}
 
 	public void setContextCompany(
@@ -606,12 +771,69 @@ public abstract class BaseDataRecordResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
+	}
+
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
+	}
+
+	@Override
+	public Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		try {
+			EntityModel entityModel = getEntityModel(multivaluedMap);
+
+			FilterParser filterParser = filterParserProvider.provide(
+				entityModel);
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(filterString));
+
+			return expressionConvert.convert(
+				oDataFilter.getExpression(),
+				contextAcceptLanguage.getPreferredLocale(), entityModel);
+		}
+		catch (Exception exception) {
+			_log.error("Invalid filter " + filterString, exception);
+		}
+
+		return null;
 	}
 
 	protected Map<String, String> addAction(
@@ -681,17 +903,26 @@ public abstract class BaseDataRecordResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<DataRecord>,
+		 UnsafeConsumer<DataRecord, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
 	protected VulcanBatchEngineImportTaskResource
 		vulcanBatchEngineImportTaskResource;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseDataRecordResourceImpl.class);
 
 }

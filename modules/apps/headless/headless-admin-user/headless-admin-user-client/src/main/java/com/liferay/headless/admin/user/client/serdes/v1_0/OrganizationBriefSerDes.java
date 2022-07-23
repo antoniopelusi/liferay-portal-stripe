@@ -15,6 +15,7 @@
 package com.liferay.headless.admin.user.client.serdes.v1_0;
 
 import com.liferay.headless.admin.user.client.dto.v1_0.OrganizationBrief;
+import com.liferay.headless.admin.user.client.dto.v1_0.RoleBrief;
 import com.liferay.headless.admin.user.client.json.BaseJSONParser;
 
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import javax.annotation.Generated;
 
@@ -79,6 +81,26 @@ public class OrganizationBriefSerDes {
 			sb.append("\"");
 		}
 
+		if (organizationBrief.getRoleBriefs() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"roleBriefs\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < organizationBrief.getRoleBriefs().length; i++) {
+				sb.append(String.valueOf(organizationBrief.getRoleBriefs()[i]));
+
+				if ((i + 1) < organizationBrief.getRoleBriefs().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -114,6 +136,15 @@ public class OrganizationBriefSerDes {
 			map.put("name", String.valueOf(organizationBrief.getName()));
 		}
 
+		if (organizationBrief.getRoleBriefs() == null) {
+			map.put("roleBriefs", null);
+		}
+		else {
+			map.put(
+				"roleBriefs",
+				String.valueOf(organizationBrief.getRoleBriefs()));
+		}
+
 		return map;
 	}
 
@@ -144,6 +175,18 @@ public class OrganizationBriefSerDes {
 			else if (Objects.equals(jsonParserFieldName, "name")) {
 				if (jsonParserFieldValue != null) {
 					organizationBrief.setName((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "roleBriefs")) {
+				if (jsonParserFieldValue != null) {
+					organizationBrief.setRoleBriefs(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> RoleBriefSerDes.toDTO((String)object)
+						).toArray(
+							size -> new RoleBrief[size]
+						));
 				}
 			}
 		}

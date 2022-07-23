@@ -46,6 +46,11 @@ public class TrashVersionWrapper implements TrashVersion,
 	}
 
 	@Override
+	public TrashVersion cloneWithOriginalValues() {
+		return new TrashVersionWrapper(_trashVersion.cloneWithOriginalValues());
+	}
+
+	@Override
 	public Class<?> getModelClass() {
 		return TrashVersion.class;
 	}

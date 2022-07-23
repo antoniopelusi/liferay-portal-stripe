@@ -248,6 +248,11 @@ public class MBMailingListWrapper
 		}
 	}
 
+	@Override
+	public MBMailingList cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this message boards mailing list.
 	 *

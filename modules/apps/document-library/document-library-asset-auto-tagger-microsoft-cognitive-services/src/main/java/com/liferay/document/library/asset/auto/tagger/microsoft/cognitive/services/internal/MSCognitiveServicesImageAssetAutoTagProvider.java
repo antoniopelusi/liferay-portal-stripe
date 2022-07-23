@@ -31,7 +31,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
@@ -76,7 +75,7 @@ public class MSCognitiveServicesImageAssetAutoTagProvider
 				return Collections.emptyList();
 			}
 
-			checkAPIEndpoint(
+			_checkAPIEndpoint(
 				msCognitiveServicesAssetAutoTagProviderCompanyConfiguration.
 					apiEndpoint());
 
@@ -93,14 +92,14 @@ public class MSCognitiveServicesImageAssetAutoTagProvider
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return Collections.emptyList();
 		}
 	}
 
-	protected void checkAPIEndpoint(String apiEndpoint)
+	private void _checkAPIEndpoint(String apiEndpoint)
 		throws MalformedURLException, UnknownHostException {
 
 		URL url = new URL(apiEndpoint);
@@ -181,8 +180,5 @@ public class MSCognitiveServicesImageAssetAutoTagProvider
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;
-
-	@Reference
-	private Http _http;
 
 }

@@ -155,6 +155,11 @@ public class OAuthApplicationWrapper
 		}
 	}
 
+	@Override
+	public OAuthApplication cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the access level of this o auth application.
 	 *

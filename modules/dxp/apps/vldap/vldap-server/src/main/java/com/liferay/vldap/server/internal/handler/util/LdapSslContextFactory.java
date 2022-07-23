@@ -28,6 +28,7 @@ import java.security.Security;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * @author Jonathan Potter
@@ -48,7 +49,7 @@ public class LdapSslContextFactory {
 			serverSSLContext = _createServerSSLContext();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		_clientSSLContext = clientSSLContext;
@@ -59,7 +60,11 @@ public class LdapSslContextFactory {
 		SSLContext sslContext = SSLContext.getInstance(
 			PortletPropsValues.SSL_PROTOCOL);
 
-		sslContext.init(null, LdapTrustManagerFactory.TRUST_MANAGERS, null);
+		TrustManagerFactory trustManagerFactory =
+			TrustManagerFactory.getInstance(
+				TrustManagerFactory.getDefaultAlgorithm());
+
+		sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
 
 		return sslContext;
 	}
@@ -88,7 +93,7 @@ public class LdapSslContextFactory {
 				}
 				catch (IOException ioException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(ioException, ioException);
+						_log.debug(ioException);
 					}
 				}
 			}
@@ -110,9 +115,13 @@ public class LdapSslContextFactory {
 		SSLContext sslContext = SSLContext.getInstance(
 			PortletPropsValues.SSL_PROTOCOL);
 
+		TrustManagerFactory trustManagerFactory =
+			TrustManagerFactory.getInstance(
+				TrustManagerFactory.getDefaultAlgorithm());
+
 		sslContext.init(
 			keyManagerFactory.getKeyManagers(),
-			LdapTrustManagerFactory.TRUST_MANAGERS, null);
+			trustManagerFactory.getTrustManagers(), null);
 
 		return sslContext;
 	}

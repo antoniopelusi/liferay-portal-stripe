@@ -68,7 +68,7 @@ if (portletTitleBasedNavigation) {
 		"nodeId", nodeId
 	).setParameter(
 		"title", title
-	).build();
+	).buildPortletURL();
 
 	PortletURL searchURL = PortletURLBuilder.createRenderURL(
 		renderResponse
@@ -80,7 +80,7 @@ if (portletTitleBasedNavigation) {
 		title
 	).setParameter(
 		"nodeId", nodeId
-	).build();
+	).buildPortletURL();
 	%>
 
 	<div <%= portletTitleBasedNavigation ? "class=\"container-fluid container-fluid-max-xl container-form-lg\"" : StringPool.BLANK %>>

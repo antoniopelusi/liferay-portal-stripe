@@ -32,7 +32,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.osgi.web.portlet.container.test.util.PortletContainerTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -40,7 +40,6 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.util.Dictionary;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.portlet.PortletRequest;
@@ -93,18 +92,18 @@ public class PublicRenderParameterTest extends BasePortletContainerTestCase {
 
 		};
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"com.liferay.portlet.application-type",
-			new String[] {
-				ApplicationType.FULL_PAGE_APPLICATION.toString(),
-				ApplicationType.WIDGET.toString()
-			});
-		properties.put(
-			"javax.portlet.supported-public-render-parameter", prpName);
-
-		setUpPortlet(testPortlet, properties, TEST_PORTLET_ID, false);
+		setUpPortlet(
+			testPortlet,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"com.liferay.portlet.application-type",
+				new String[] {
+					ApplicationType.FULL_PAGE_APPLICATION.toString(),
+					ApplicationType.WIDGET.toString()
+				}
+			).put(
+				"javax.portlet.supported-public-render-parameter", prpName
+			).build(),
+			TEST_PORTLET_ID, false);
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
 			TestPropsValues.getCompanyId(), TEST_PORTLET_ID);
@@ -181,12 +180,12 @@ public class PublicRenderParameterTest extends BasePortletContainerTestCase {
 
 		};
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"javax.portlet.supported-public-render-parameter", prpName);
-
-		setUpPortlet(testPortlet, properties, TEST_PORTLET_ID);
+		setUpPortlet(
+			testPortlet,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.supported-public-render-parameter", prpName
+			).build(),
+			TEST_PORTLET_ID);
 
 		String portletURLString = PortletURLBuilder.create(
 			PortletURLFactoryUtil.create(

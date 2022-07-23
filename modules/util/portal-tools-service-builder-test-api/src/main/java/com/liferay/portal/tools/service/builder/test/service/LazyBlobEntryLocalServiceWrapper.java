@@ -27,6 +27,10 @@ public class LazyBlobEntryLocalServiceWrapper
 	implements LazyBlobEntryLocalService,
 			   ServiceWrapper<LazyBlobEntryLocalService> {
 
+	public LazyBlobEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LazyBlobEntryLocalServiceWrapper(
 		LazyBlobEntryLocalService lazyBlobEntryLocalService) {
 
@@ -138,6 +142,13 @@ public class LazyBlobEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _lazyBlobEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _lazyBlobEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

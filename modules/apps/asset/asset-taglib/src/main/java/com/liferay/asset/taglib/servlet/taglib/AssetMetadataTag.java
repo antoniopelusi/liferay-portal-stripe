@@ -89,7 +89,7 @@ public class AssetMetadataTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	@Override
@@ -123,7 +123,7 @@ public class AssetMetadataTag extends IncludeTag {
 				assetRendererFactory.getAssetRenderer(_classPK));
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		httpServletRequest.setAttribute(

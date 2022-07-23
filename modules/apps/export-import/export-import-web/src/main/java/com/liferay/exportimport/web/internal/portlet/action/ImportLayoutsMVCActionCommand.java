@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
@@ -89,7 +90,7 @@ public class ImportLayoutsMVCActionCommand extends BaseMVCActionCommand {
 		UploadPortletRequest uploadPortletRequest =
 			_portal.getUploadPortletRequest(actionRequest);
 
-		checkExceededSizeLimit(uploadPortletRequest);
+		_checkExceededSizeLimit(uploadPortletRequest);
 
 		long groupId = ParamUtil.getLong(actionRequest, "groupId");
 
@@ -132,26 +133,6 @@ public class ImportLayoutsMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void checkExceededSizeLimit(HttpServletRequest httpServletRequest)
-		throws PortalException {
-
-		UploadException uploadException =
-			(UploadException)httpServletRequest.getAttribute(
-				WebKeys.UPLOAD_EXCEPTION);
-
-		if (uploadException != null) {
-			Throwable throwable = uploadException.getCause();
-
-			if (uploadException.isExceededFileSizeLimit() ||
-				uploadException.isExceededUploadRequestSizeLimit()) {
-
-				throw new LARFileSizeException(throwable);
-			}
-
-			throw new PortalException(throwable);
-		}
-	}
-
 	protected void deleteTempFileEntry(
 			ActionRequest actionRequest, ActionResponse actionResponse,
 			String folderName)
@@ -172,7 +153,7 @@ public class ImportLayoutsMVCActionCommand extends BaseMVCActionCommand {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			String errorMessage = themeDisplay.translate(
@@ -261,7 +242,7 @@ public class ImportLayoutsMVCActionCommand extends BaseMVCActionCommand {
 						actionRequest, exception.getClass(), exception);
 				}
 				else {
-					_log.error(exception, exception);
+					_log.error(exception);
 
 					SessionErrors.add(
 						actionRequest, LayoutImportException.class.getName());
@@ -398,19 +379,21 @@ public class ImportLayoutsMVCActionCommand extends BaseMVCActionCommand {
 				return;
 			}
 
-			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-
-			if ((weakMissingReferences != null) &&
-				!weakMissingReferences.isEmpty()) {
-
-				jsonObject.put(
-					"warningMessages",
-					_staging.getWarningMessagesJSONArray(
-						themeDisplay.getLocale(), weakMissingReferences));
-			}
-
 			JSONPortletResponseUtil.writeJSON(
-				actionRequest, actionResponse, jsonObject);
+				actionRequest, actionResponse,
+				JSONUtil.put(
+					"warningMessages",
+					() -> {
+						if ((weakMissingReferences != null) &&
+							!weakMissingReferences.isEmpty()) {
+
+							return _staging.getWarningMessagesJSONArray(
+								themeDisplay.getLocale(),
+								weakMissingReferences);
+						}
+
+						return null;
+					}));
 		}
 	}
 
@@ -441,6 +424,26 @@ public class ImportLayoutsMVCActionCommand extends BaseMVCActionCommand {
 
 		return _exportImportService.validateImportLayoutsFile(
 			exportImportConfiguration, inputStream);
+	}
+
+	private void _checkExceededSizeLimit(HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		UploadException uploadException =
+			(UploadException)httpServletRequest.getAttribute(
+				WebKeys.UPLOAD_EXCEPTION);
+
+		if (uploadException != null) {
+			Throwable throwable = uploadException.getCause();
+
+			if (uploadException.isExceededFileSizeLimit() ||
+				uploadException.isExceededUploadRequestSizeLimit()) {
+
+				throw new LARFileSizeException(throwable);
+			}
+
+			throw new PortalException(throwable);
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

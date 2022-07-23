@@ -49,9 +49,6 @@ import java.util.Locale;
  */
 public class KBArticleImpl extends KBArticleBaseImpl {
 
-	public KBArticleImpl() {
-	}
-
 	/**
 	 * @see com.liferay.portal.model.impl.OrganizationBaseImpl#buildTreePath()
 	 */

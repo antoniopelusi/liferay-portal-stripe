@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoTask;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -235,34 +236,6 @@ public class KaleoTaskModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoTask>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoTask.class.getClassLoader(), KaleoTask.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KaleoTask> constructor =
-				(Constructor<KaleoTask>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoTask, Object>>
@@ -660,6 +633,37 @@ public class KaleoTaskModelImpl
 	}
 
 	@Override
+	public KaleoTask cloneWithOriginalValues() {
+		KaleoTaskImpl kaleoTaskImpl = new KaleoTaskImpl();
+
+		kaleoTaskImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoTaskImpl.setKaleoTaskId(
+			this.<Long>getColumnOriginalValue("kaleoTaskId"));
+		kaleoTaskImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		kaleoTaskImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoTaskImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		kaleoTaskImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoTaskImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoTaskImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoTaskImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoTaskImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoTaskImpl.setKaleoNodeId(
+			this.<Long>getColumnOriginalValue("kaleoNodeId"));
+		kaleoTaskImpl.setName(this.<String>getColumnOriginalValue("name"));
+		kaleoTaskImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+
+		return kaleoTaskImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoTask kaleoTask) {
 		int value = 0;
 
@@ -806,7 +810,7 @@ public class KaleoTaskModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -817,9 +821,26 @@ public class KaleoTaskModelImpl
 			Function<KaleoTask, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KaleoTask)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KaleoTask)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -866,7 +887,9 @@ public class KaleoTaskModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoTask>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoTask.class, ModelWrapper.class);
 
 	}
 

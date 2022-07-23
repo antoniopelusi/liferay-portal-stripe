@@ -200,6 +200,11 @@ public class JournalFolderWrapper
 	}
 
 	@Override
+	public JournalFolder cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public java.util.List<Long> getAncestorFolderIds()
 		throws com.liferay.portal.kernel.exception.PortalException {
 

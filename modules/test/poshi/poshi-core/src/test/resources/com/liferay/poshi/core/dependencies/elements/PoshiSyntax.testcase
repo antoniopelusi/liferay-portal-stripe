@@ -3,12 +3,12 @@
 	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="Smoke" />
 
-	<!-- This is a comment -->
+	<!-- This is a comment-->
 
 	<!--This is a multiline
 		comment.-->
 
-	<var name="userPassword" static="true" value="password" />
+	<var static="true" name="userPassword" value="password"/>
 	<var name="userScreenName" value="joeblogs" />
 
 	<set-up>
@@ -19,19 +19,58 @@
 
 	<tear-down>
 		<execute macro="PortalInstances#tearDownCP">
-			<var method="PropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+			<var name="testPortalInstance" method="PropsUtil#get('test.portal.instance')"/>
 		</execute>
 	</tear-down>
 
-	<command name="AddUser" priority="5">
-		<!-- This is a comment -->
+	<command priority="4" annotations="simple-annotation" name="AddBlogsEntries">
+		<description message="Ensure that a user can add multiple Blogs Entries." />
+
+		<property name="testray.component.names" value="Blogs" />
+		<property name="testray.main.component.name" value="Blogs" />
+
+		<task summary="Add a blogs entry called 'Blogs Entry1 Title' with content 'Blogs Entry1 Content'">
+			<execute macro="Navigator#openURL" />
+
+			<execute macro="ProductMenu#gotoPortlet">
+				<var name="category" value="Content" />
+				<var name="panel" value="Site Administration" />
+				<var name="portlet" value="Blogs" />
+			</execute>
+
+			<execute macro="Blogs#addEntry">
+				<var name="entryContent" value="Blogs Entry1 Content" />
+				<var name="entryTitle" value="Blogs Entry1 Title" />
+			</execute>
+		</task>
+
+		<task summary="Add a blogs entry called 'Blogs Entry2 Title' with content 'Blogs Entry2 Content'">
+			<execute macro="Navigator#openURL" />
+
+			<execute macro="ProductMenu#gotoPortlet">
+				<var name="category" value="Content" />
+				<var name="panel" value="Site Administration" />
+				<var name="portlet" value="Blogs" />
+			</execute>
+
+			<execute macro="Blogs#addEntry">
+				<var name="entryContent" value="Blogs Entry2 Content" />
+				<var name="entryTitle" value="Blogs Entry2 Title" />
+			</execute>
+		</task>
+
+		<var name="portalInstanceIds" method="StringUtil#regexReplaceAll('${portalInstanceIds}', '[\[\]&quot;]', '')"/>
+	</command>
+
+	<command priority="5" name="AddUser">
+		<!-- This is a comment-->
 
 		<!--This is a multiline
 			comment.-->
 
-		<!-- End with a ; -->
+		<!-- End with a ;-->
 
-		<!-- End with a } -->
+		<!-- End with a }-->
 
 		<property name="portal.release" value="false" />
 
@@ -51,16 +90,16 @@
 
 		<echo message="This is a message." />
 
-		<for list="${breadcrumbListVisible}" param="breadcrumbName">
+		<for param="breadcrumbName" list="${breadcrumbListVisible}">
 			<var name="key_breadcrumbName" value="${breadcrumbName}" />
 
-			<var method="StringUtil#upperCase('${breadcrumbName}')" name="breadcrumbNameUppercase" />
+            <var name="breadcrumbNameUppercase" method="StringUtil#upperCase('${breadcrumbName}')"/>
 
-			<var method="selenium#getText('Staging#HISTORY_VERSION')" name="historyVersion" />
+			<var name="historyVersion" method="selenium#getText('Staging#HISTORY_VERSION')"/>
 
 			<execute function="AssertTextEquals" locator1="Breadcrumb#BREADCRUMB_ENTRY" value1="${breadcrumbNameUppercase}" />
 
-			<for list="${breadcrumbListVisible}" param="breadcrumbName">
+			<for param="breadcrumbName" list="${breadcrumbListVisible}">
 				<execute function="AssertTextEquals" locator1="Breadcrumb#BREADCRUMB_ENTRY" value1="${breadcrumbNameUppercase}" />
 			</for>
 
@@ -73,7 +112,7 @@
 
 					<echo message="Please enter a unique ID." />
 
-					<!-- This is a comment -->
+					<!-- This is a comment-->
 				</then>
 				<elseif>
 					<isset var="duplicate" />
@@ -84,14 +123,14 @@
 				<else>
 					<execute macro="Alert#viewSuccessMessage" />
 
-					<!-- This is a comment -->
+					<!-- This is a comment-->
 				</else>
 			</if>
 
-			<!-- This is a comment -->
+			<!-- This is a comment-->
 		</for>
 
-		<for list="Breadcrumb: 1, Breadcrumb: 2" param="breadcrumbName">
+		<for param="breadcrumbName" list="Breadcrumb: 1, Breadcrumb: 2">
 			<execute function="AssertTextEquals" locator1="Breadcrumb#BREADCRUMB_ENTRY" value1="${breadcrumbNameUppercase}" />
 		</for>
 
@@ -104,7 +143,23 @@
 		</execute>
 	</command>
 
-	<command name="Smoke" priority="5">
+	<command ignore="true" name="GotoLinkToPageChildPages">
+		<var name="key_pageName" value="${parentPage}" />
+
+		<if>
+			<not>
+				<or>
+					<equals arg1="true" arg2="true"/>
+					<equals arg1="true" arg2="false"/>
+				</or>
+			</not>
+			<then>
+				<fail message="Allowed values are 'true' or 'false'."/>
+			</then>
+		</if>
+	</command>
+
+	<command priority="5" name="Smoke">
 		<description message="Ensure that the super admin can add pages, add portlets, navigate to the product menu, use the WYSIWYG editor, and view alert messages." />
 
 		<property name="portal.smoke" value="true" />
@@ -249,6 +304,10 @@
 
 		<var name="testCDATA"><![CDATA['alert(0)'"alert(0)"><img src=x onerror=alert(0)><script>alert(0)</script>]]></var>
 
+		<var name="testNestedCDATA1"><![CDATA[<root available-locales="en_US" default-locale="en_US">%0A%09%09<dynamic-content language-id="en_US">%0A%09%09%09<![CDATA[${content}]]]]><![CDATA[>%0A%09%09</dynamic-content>%0A</root>]]></var>
+
+		<var name="testNestedCDATA2"><![CDATA[<![CDATA[Test Script]]]]><![CDATA[>]]></var>
+
 		<var name="wikiPageContent"><![CDATA[<p id='demo'>PASS</p>
 
 <script type='text/javascript'>
@@ -316,58 +375,5 @@
 			<arg value="one,two,three" />
 			<arg value="," />
 		</execute>
-	</command>
-
-	<command name="AddBlogsEntries" priority="4">
-		<description message="Ensure that a user can add multiple Blogs Entries." />
-
-		<property name="testray.component.names" value="Blogs" />
-		<property name="testray.main.component.name" value="Blogs" />
-
-		<task summary="Add a blogs entry called 'Blogs Entry1 Title' with content 'Blogs Entry1 Content'">
-			<execute macro="Navigator#openURL" />
-
-			<execute macro="ProductMenu#gotoPortlet">
-				<var name="category" value="Content" />
-				<var name="panel" value="Site Administration" />
-				<var name="portlet" value="Blogs" />
-			</execute>
-
-			<execute macro="Blogs#addEntry">
-				<var name="entryContent" value="Blogs Entry1 Content" />
-				<var name="entryTitle" value="Blogs Entry1 Title" />
-			</execute>
-		</task>
-
-		<task summary="Add a blogs entry called 'Blogs Entry2 Title' with content 'Blogs Entry2 Content'">
-			<execute macro="Navigator#openURL" />
-
-			<execute macro="ProductMenu#gotoPortlet">
-				<var name="category" value="Content" />
-				<var name="panel" value="Site Administration" />
-				<var name="portlet" value="Blogs" />
-			</execute>
-
-			<execute macro="Blogs#addEntry">
-				<var name="entryContent" value="Blogs Entry2 Content" />
-				<var name="entryTitle" value="Blogs Entry2 Title" />
-			</execute>
-		</task>
-	</command>
-
-	<command ignore="true" name="GotoLinkToPageChildPages">
-		<var name="key_pageName" value="${parentPage}" />
-
-		<if>
-			<not>
-				<or>
-					<equals arg1="true" arg2="true"/>
-					<equals arg1="true" arg2="false"/>
-				</or>
-			</not>
-			<then>
-				<fail message="Allowed values are 'true' or 'false'."/>
-			</then>
-		</if>
 	</command>
 </definition>

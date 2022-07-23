@@ -1,7 +1,22 @@
-$c: '.ddm-field-types-base';
-
-#{$c} {
+.ddm-field-types-base {
 	&__nested {
 		margin-top: 15px;
 	}
+}
+
+.ddm-field {
+	& &-text-small {
+		font-size: 0.875rem;
+	}
+
+	&[data-field-name='layout'] {
+		padding-bottom: 80px;
+	}
+}
+
+.lfr-ddm-legend {
+	color: #272833;
+	font-size: 0.875rem;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
 }

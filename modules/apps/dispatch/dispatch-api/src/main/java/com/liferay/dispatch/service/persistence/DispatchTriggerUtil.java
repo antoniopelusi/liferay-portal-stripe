@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the dispatch trigger service. This utility wraps <code>com.liferay.dispatch.service.persistence.impl.DispatchTriggerPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -1440,6 +1436,76 @@ public class DispatchTriggerUtil {
 	}
 
 	/**
+	 * Returns the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchTriggerException</code> if it could not be found.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching dispatch trigger
+	 * @throws NoSuchTriggerException if a matching dispatch trigger could not be found
+	 */
+	public static DispatchTrigger findByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.dispatch.exception.NoSuchTriggerException {
+
+		return getPersistence().findByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching dispatch trigger, or <code>null</code> if a matching dispatch trigger could not be found
+	 */
+	public static DispatchTrigger fetchByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().fetchByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching dispatch trigger, or <code>null</code> if a matching dispatch trigger could not be found
+	 */
+	public static DispatchTrigger fetchByC_ERC(
+		long companyId, String externalReferenceCode, boolean useFinderCache) {
+
+		return getPersistence().fetchByC_ERC(
+			companyId, externalReferenceCode, useFinderCache);
+	}
+
+	/**
+	 * Removes the dispatch trigger where companyId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the dispatch trigger that was removed
+	 */
+	public static DispatchTrigger removeByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.dispatch.exception.NoSuchTriggerException {
+
+		return getPersistence().removeByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the number of dispatch triggers where companyId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching dispatch triggers
+	 */
+	public static int countByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().countByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
 	 * Caches the dispatch trigger in the entity cache if it is enabled.
 	 *
 	 * @param dispatchTrigger the dispatch trigger
@@ -1589,27 +1655,9 @@ public class DispatchTriggerUtil {
 	}
 
 	public static DispatchTriggerPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<DispatchTriggerPersistence, DispatchTriggerPersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			DispatchTriggerPersistence.class);
-
-		ServiceTracker<DispatchTriggerPersistence, DispatchTriggerPersistence>
-			serviceTracker =
-				new ServiceTracker
-					<DispatchTriggerPersistence, DispatchTriggerPersistence>(
-						bundle.getBundleContext(),
-						DispatchTriggerPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile DispatchTriggerPersistence _persistence;
 
 }

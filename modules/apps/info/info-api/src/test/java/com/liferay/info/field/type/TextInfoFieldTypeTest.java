@@ -15,6 +15,7 @@
 package com.liferay.info.field.type;
 
 import com.liferay.info.field.InfoField;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Optional;
@@ -39,6 +40,8 @@ public class TextInfoFieldTypeTest {
 		InfoField<TextInfoFieldType> infoField = InfoField.builder(
 		).infoFieldType(
 			TextInfoFieldType.INSTANCE
+		).namespace(
+			StringPool.BLANK
 		).name(
 			"test-field"
 		).attribute(
@@ -56,6 +59,8 @@ public class TextInfoFieldTypeTest {
 		InfoField<TextInfoFieldType> infoField = InfoField.builder(
 		).infoFieldType(
 			TextInfoFieldType.INSTANCE
+		).namespace(
+			StringPool.BLANK
 		).name(
 			"test-field"
 		).attribute(
@@ -73,6 +78,8 @@ public class TextInfoFieldTypeTest {
 		InfoField<TextInfoFieldType> infoField = InfoField.builder(
 		).infoFieldType(
 			TextInfoFieldType.INSTANCE
+		).namespace(
+			StringPool.BLANK
 		).name(
 			"test-field"
 		).build();

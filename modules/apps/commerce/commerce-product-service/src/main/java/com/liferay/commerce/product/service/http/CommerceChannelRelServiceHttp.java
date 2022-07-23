@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Marco Leo
- * @see CommerceChannelRelServiceSoap
  * @generated
  */
 public class CommerceChannelRelServiceHttp {
@@ -304,12 +303,13 @@ public class CommerceChannelRelServiceHttp {
 
 	public static java.util.List
 		<com.liferay.commerce.product.model.CommerceChannelRel>
-			getCommerceChannelRels(
-				HttpPrincipal httpPrincipal, String className, long classPK,
-				int start, int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.commerce.product.model.CommerceChannelRel>
-						orderByComparator) {
+				getCommerceChannelRels(
+					HttpPrincipal httpPrincipal, String className, long classPK,
+					int start, int end,
+					com.liferay.portal.kernel.util.OrderByComparator
+						<com.liferay.commerce.product.model.CommerceChannelRel>
+							orderByComparator)
+			throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -325,6 +325,13 @@ public class CommerceChannelRelServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
 				throw new com.liferay.portal.kernel.exception.SystemException(
 					exception);
 			}
@@ -344,9 +351,10 @@ public class CommerceChannelRelServiceHttp {
 
 	public static java.util.List
 		<com.liferay.commerce.product.model.CommerceChannelRel>
-			getCommerceChannelRels(
-				HttpPrincipal httpPrincipal, String className, long classPK,
-				String name, int start, int end) {
+				getCommerceChannelRels(
+					HttpPrincipal httpPrincipal, String className, long classPK,
+					String name, int start, int end)
+			throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -362,6 +370,13 @@ public class CommerceChannelRelServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
 				throw new com.liferay.portal.kernel.exception.SystemException(
 					exception);
 			}
@@ -458,7 +473,8 @@ public class CommerceChannelRelServiceHttp {
 	}
 
 	public static int getCommerceChannelRelsCount(
-		HttpPrincipal httpPrincipal, String className, long classPK) {
+			HttpPrincipal httpPrincipal, String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -475,6 +491,13 @@ public class CommerceChannelRelServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
 				throw new com.liferay.portal.kernel.exception.SystemException(
 					exception);
 			}
@@ -491,8 +514,9 @@ public class CommerceChannelRelServiceHttp {
 	}
 
 	public static int getCommerceChannelRelsCount(
-		HttpPrincipal httpPrincipal, String className, long classPK,
-		String name) {
+			HttpPrincipal httpPrincipal, String className, long classPK,
+			String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -509,6 +533,13 @@ public class CommerceChannelRelServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
 				throw new com.liferay.portal.kernel.exception.SystemException(
 					exception);
 			}

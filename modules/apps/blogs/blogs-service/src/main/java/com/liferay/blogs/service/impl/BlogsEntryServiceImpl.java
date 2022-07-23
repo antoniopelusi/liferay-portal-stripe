@@ -31,10 +31,13 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.servlet.taglib.ui.ImageSelector;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -109,12 +112,12 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 
 	@Override
 	public BlogsEntry addEntry(
-			String title, String subtitle, String urlTitle, String description,
-			String content, int displayDateMonth, int displayDateDay,
-			int displayDateYear, int displayDateHour, int displayDateMinute,
-			boolean allowPingbacks, boolean allowTrackbacks,
-			String[] trackbacks, String coverImageCaption,
-			ImageSelector coverImageImageSelector,
+			String externalReferenceCode, String title, String subtitle,
+			String urlTitle, String description, String content,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, boolean allowPingbacks,
+			boolean allowTrackbacks, String[] trackbacks,
+			String coverImageCaption, ImageSelector coverImageImageSelector,
 			ImageSelector smallImageImageSelector,
 			ServiceContext serviceContext)
 		throws PortalException {
@@ -124,11 +127,11 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 			ActionKeys.ADD_ENTRY);
 
 		return blogsEntryLocalService.addEntry(
-			getUserId(), title, subtitle, urlTitle, description, content,
-			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
-			displayDateMinute, allowPingbacks, allowTrackbacks, trackbacks,
-			coverImageCaption, coverImageImageSelector, smallImageImageSelector,
-			serviceContext);
+			externalReferenceCode, getUserId(), title, subtitle, urlTitle,
+			description, content, displayDateMonth, displayDateDay,
+			displayDateYear, displayDateHour, displayDateMinute, allowPingbacks,
+			allowTrackbacks, trackbacks, coverImageCaption,
+			coverImageImageSelector, smallImageImageSelector, serviceContext);
 	}
 
 	@Override
@@ -137,6 +140,22 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 			getPermissionChecker(), entryId, ActionKeys.DELETE);
 
 		blogsEntryLocalService.deleteEntry(entryId);
+	}
+
+	@Override
+	public BlogsEntry fetchBlogsEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		BlogsEntry blogsEntry = blogsEntryPersistence.fetchByG_ERC(
+			groupId, externalReferenceCode);
+
+		if (blogsEntry != null) {
+			_blogsEntryModelResourcePermission.check(
+				getPermissionChecker(), blogsEntry, ActionKeys.VIEW);
+		}
+
+		return blogsEntry;
 	}
 
 	@Override
@@ -189,7 +208,7 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 			String entryURL, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		Company company = companyLocalService.getCompany(companyId);
+		Company company = _companyLocalService.getCompany(companyId);
 
 		String name = company.getName();
 
@@ -352,7 +371,7 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 			String entryURL, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		String name = group.getDescriptiveName();
 
@@ -499,7 +518,7 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 			String entryURL, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		Organization organization = organizationLocalService.getOrganization(
+		Organization organization = _organizationLocalService.getOrganization(
 			organizationId);
 
 		String name = organization.getName();
@@ -619,7 +638,7 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 				}
 
 				value = StringUtil.shorten(
-					HtmlUtil.extractText(summary),
+					_htmlParser.extractText(summary),
 					PropsValues.BLOGS_RSS_ABSTRACT_LENGTH, StringPool.BLANK);
 			}
 			else if (displayStyle.equals(RSSUtil.DISPLAY_STYLE_TITLE)) {
@@ -688,6 +707,18 @@ public class BlogsEntryServiceImpl extends BlogsEntryServiceBaseImpl {
 	)
 	private volatile ModelResourcePermission<BlogsEntry>
 		_blogsEntryModelResourcePermission;
+
+	@Reference
+	private CompanyLocalService _companyLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private HtmlParser _htmlParser;
+
+	@Reference
+	private OrganizationLocalService _organizationLocalService;
 
 	@Reference
 	private Portal _portal;

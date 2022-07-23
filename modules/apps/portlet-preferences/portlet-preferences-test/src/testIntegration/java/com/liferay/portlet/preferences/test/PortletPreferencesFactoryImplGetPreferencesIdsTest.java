@@ -27,7 +27,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -76,7 +76,7 @@ public class PortletPreferencesFactoryImplGetPreferencesIdsTest {
 
 		_group = GroupTestUtil.addGroup();
 
-		_layout = LayoutTestUtil.addLayout(_group, true);
+		_layout = LayoutTestUtil.addTypePortletLayout(_group, true);
 	}
 
 	@After
@@ -202,7 +202,7 @@ public class PortletPreferencesFactoryImplGetPreferencesIdsTest {
 
 		_registerCompanyWidePortlet();
 
-		_layout = LayoutTestUtil.addLayout(_group, false);
+		_layout = LayoutTestUtil.addTypePortletLayout(_group, false);
 
 		PortletPreferencesFactoryUtil.getPortletPreferencesIds(
 			_layout.getGroupId(), TestPropsValues.getUserId(), _layout,
@@ -212,12 +212,11 @@ public class PortletPreferencesFactoryImplGetPreferencesIdsTest {
 	private void _registerCompanyWidePortlet() {
 		_serviceRegistration = _bundleContext.registerService(
 			Portlet.class, new MVCPortlet(),
-			new HashMapDictionary<String, Object>() {
-				{
-					put("com.liferay.portlet.preferences-company-wide", "true");
-					put("javax.portlet.name", _TEST_COMPANY_PORTLET_NAME);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"com.liferay.portlet.preferences-company-wide", "true"
+			).put(
+				"javax.portlet.name", _TEST_COMPANY_PORTLET_NAME
+			).build());
 	}
 
 	private void _registerPortlet(
@@ -225,20 +224,17 @@ public class PortletPreferencesFactoryImplGetPreferencesIdsTest {
 
 		_serviceRegistration = _bundleContext.registerService(
 			Portlet.class, new MVCPortlet(),
-			new HashMapDictionary<String, Object>() {
-				{
-					put(
-						"com.liferay.portlet.preferences-company-wide",
-						"false");
-					put(
-						"com.liferay.portlet.preferences-owned-by-group",
-						Boolean.valueOf(owedByGroup));
-					put(
-						"com.liferay.portlet.preferences-unique-per-layout",
-						Boolean.valueOf(uniquePerLayout));
-					put("javax.portlet.name", portletName);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"com.liferay.portlet.preferences-company-wide", "false"
+			).put(
+				"com.liferay.portlet.preferences-owned-by-group",
+				Boolean.valueOf(owedByGroup)
+			).put(
+				"com.liferay.portlet.preferences-unique-per-layout",
+				Boolean.valueOf(uniquePerLayout)
+			).put(
+				"javax.portlet.name", portletName
+			).build());
 	}
 
 	private static final String _TEST_COMPANY_PORTLET_NAME =

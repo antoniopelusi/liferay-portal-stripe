@@ -30,6 +30,10 @@ public class FriendlyURLEntryLocalServiceWrapper
 	implements FriendlyURLEntryLocalService,
 			   ServiceWrapper<FriendlyURLEntryLocalService> {
 
+	public FriendlyURLEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public FriendlyURLEntryLocalServiceWrapper(
 		FriendlyURLEntryLocalService friendlyURLEntryLocalService) {
 
@@ -207,6 +211,13 @@ public class FriendlyURLEntryLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _friendlyURLEntryLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _friendlyURLEntryLocalService.dynamicQuery();
 	}
@@ -350,6 +361,14 @@ public class FriendlyURLEntryLocalServiceWrapper
 
 		return _friendlyURLEntryLocalService.fetchFriendlyURLEntryLocalization(
 			friendlyURLEntryId, languageId);
+	}
+
+	@Override
+	public FriendlyURLEntry fetchMainFriendlyURLEntry(
+		long classNameId, long classPK) {
+
+		return _friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
+			classNameId, classPK);
 	}
 
 	@Override

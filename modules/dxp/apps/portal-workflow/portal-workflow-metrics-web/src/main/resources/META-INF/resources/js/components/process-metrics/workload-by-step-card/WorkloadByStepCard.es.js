@@ -23,13 +23,18 @@ function WorkloadByStepCard({processId, routeParams}) {
 		url: `/processes/${processId}/nodes/metrics`,
 	});
 
-	const promises = useMemo(() => [fetchData()], [fetchData]);
+	const promises = useMemo(
+		() => [fetchData()],
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[routeParams]
+	);
 
 	return (
 		<PromisesResolver promises={promises}>
 			<ClayPanel className="mt-4">
 				<PanelHeaderWithOptions
-					className="dashboard-panel-header"
+					className="tabs-panel-header"
 					description={Liferay.Language.get(
 						'workload-by-step-description'
 					)}

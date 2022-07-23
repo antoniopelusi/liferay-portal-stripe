@@ -20,15 +20,16 @@ import ClayLoadingIndicator from '@clayui/loading-indicator';
 import classNames from 'classnames';
 import React from 'react';
 
+import ExperienceSelector from './ExperienceSelector';
 import TranslateLanguagesSelector from './TranslateLanguagesSelector';
 
 const TransLateActionBar = ({
-	autoTranslateButtonVisible,
+	autoTranslateEnabled,
+	confirmChangesBeforeReload,
+	experienceSelectorData,
 	fetchAutoTranslateFields,
 	fetchAutoTranslateStatus,
-	formHasChanges,
 	onSaveButtonClick,
-	portletNamespace,
 	publishButtonDisabled,
 	publishButtonLabel,
 	redirectURL,
@@ -43,18 +44,31 @@ const TransLateActionBar = ({
 		<nav className="component-tbar subnav-tbar-light tbar">
 			<ClayLayout.ContainerFluid view>
 				<ul className="tbar-nav">
+					{experienceSelectorData && (
+						<li className="tbar-item">
+							<ExperienceSelector
+								{...experienceSelectorData}
+								confirmChangesBeforeReload={
+									confirmChangesBeforeReload
+								}
+							/>
+						</li>
+					)}
+
 					<li
 						className={classNames('tbar-item', {
-							'tbar-item-expand': !autoTranslateButtonVisible,
+							'tbar-item-expand': !autoTranslateEnabled,
 						})}
 					>
 						<TranslateLanguagesSelector
 							{...translateLanguagesSelectorData}
-							formHasChanges={formHasChanges}
-							portletNamespace={portletNamespace}
+							confirmChangesBeforeReload={
+								confirmChangesBeforeReload
+							}
 						/>
 					</li>
-					{autoTranslateButtonVisible && (
+
+					{autoTranslateEnabled && (
 						<>
 							<li className="tbar-item">
 								<ClayButton
@@ -73,6 +87,7 @@ const TransLateActionBar = ({
 										<span className="inline-item inline-item-before">
 											<ClayLoadingIndicator small />
 										</span>
+
 										<span className="inline-item">
 											{Liferay.Language.get(
 												'requesting-translation'
@@ -80,18 +95,22 @@ const TransLateActionBar = ({
 										</span>
 									</div>
 								)}
+
 								{status === 'SUCCESS' && (
 									<div className="has-success">
 										<ClayForm.FeedbackItem className="mt-0">
 											<ClayForm.FeedbackIndicator symbol="check-circle-full" />
+
 											{message}
 										</ClayForm.FeedbackItem>
 									</div>
 								)}
+
 								{status === 'ERROR' && (
 									<div className="has-error">
 										<ClayForm.FeedbackItem className="mt-0">
 											<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+
 											{message}
 										</ClayForm.FeedbackItem>
 									</div>
@@ -99,8 +118,9 @@ const TransLateActionBar = ({
 							</li>
 						</>
 					)}
+
 					<li className="tbar-item">
-						<div className="metadata-type-button-row tbar-section text-right">
+						<div className="tbar-section text-right">
 							<ClayButton.Group spaced>
 								<ClayLink
 									button={{small: true}}
@@ -109,6 +129,7 @@ const TransLateActionBar = ({
 								>
 									{Liferay.Language.get('cancel')}
 								</ClayLink>
+
 								<ClayButton
 									disabled={saveButtonDisabled}
 									displayType="secondary"
@@ -118,6 +139,7 @@ const TransLateActionBar = ({
 								>
 									{saveButtonLabel}
 								</ClayButton>
+
 								<ClayButton
 									disabled={publishButtonDisabled}
 									displayType="primary"

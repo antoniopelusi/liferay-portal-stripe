@@ -78,10 +78,6 @@ public class MultipartBodyMessageBodyReader
 		MediaType mediaType, MultivaluedMap<String, String> multivaluedMap,
 		InputStream inputStream) {
 
-		ContextResolver<ObjectMapper> contextResolver =
-			_providers.getContextResolver(
-				ObjectMapper.class, MediaType.MULTIPART_FORM_DATA_TYPE);
-
 		Map<String, BinaryFile> binaryFiles = new HashMap<>();
 		Map<String, String> values = new HashMap<>();
 
@@ -109,7 +105,7 @@ public class MultipartBodyMessageBodyReader
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -153,6 +149,10 @@ public class MultipartBodyMessageBodyReader
 					"Request body is not a valid multipart form", exception);
 			}
 		}
+
+		ContextResolver<ObjectMapper> contextResolver =
+			_providers.getContextResolver(
+				ObjectMapper.class, MediaType.MULTIPART_FORM_DATA_TYPE);
 
 		return MultipartBody.of(
 			binaryFiles, contextResolver::getContext, values);

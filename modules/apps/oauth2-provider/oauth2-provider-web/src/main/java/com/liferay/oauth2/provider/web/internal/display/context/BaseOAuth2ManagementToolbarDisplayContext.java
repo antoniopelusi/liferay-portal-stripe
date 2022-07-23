@@ -64,7 +64,7 @@ public abstract class BaseOAuth2ManagementToolbarDisplayContext {
 		).setParameter(
 			"orderByType",
 			Objects.equals(getOrderByType(), "asc") ? "desc" : "asc"
-		).build();
+		).buildPortletURL();
 	}
 
 	protected PortletURL getCurrentSortingURL() throws PortletException {
@@ -72,7 +72,7 @@ public abstract class BaseOAuth2ManagementToolbarDisplayContext {
 			PortletURLUtil.clone(currentURLObj, liferayPortletResponse)
 		).setParameter(
 			SearchContainer.DEFAULT_CUR_PARAM, "0"
-		).build();
+		).buildPortletURL();
 	}
 
 	protected List<DropdownItem> getOrderByDropdownItems(

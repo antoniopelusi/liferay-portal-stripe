@@ -29,6 +29,10 @@ public class SystemEventLocalServiceWrapper
 	implements ServiceWrapper<SystemEventLocalService>,
 			   SystemEventLocalService {
 
+	public SystemEventLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SystemEventLocalServiceWrapper(
 		SystemEventLocalService systemEventLocalService) {
 
@@ -159,6 +163,13 @@ public class SystemEventLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _systemEventLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _systemEventLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

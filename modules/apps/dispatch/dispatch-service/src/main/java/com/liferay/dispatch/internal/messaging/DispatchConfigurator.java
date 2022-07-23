@@ -25,7 +25,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Dictionary;
 import java.util.List;
@@ -79,9 +79,10 @@ public class DispatchConfigurator {
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("destination.name", destination.getName());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		_serviceRegistration = bundleContext.registerService(
 			Destination.class, destination, properties);
@@ -116,9 +117,7 @@ public class DispatchConfigurator {
 			catch (DispatchTriggerSchedulerException
 						dispatchTriggerSchedulerException) {
 
-				_log.error(
-					dispatchTriggerSchedulerException.getMessage(),
-					dispatchTriggerSchedulerException);
+				_log.error(dispatchTriggerSchedulerException);
 			}
 		}
 	}
@@ -140,9 +139,7 @@ public class DispatchConfigurator {
 			catch (DispatchTriggerSchedulerException
 						dispatchTriggerSchedulerException) {
 
-				_log.error(
-					dispatchTriggerSchedulerException.getMessage(),
-					dispatchTriggerSchedulerException);
+				_log.error(dispatchTriggerSchedulerException);
 			}
 		}
 	}

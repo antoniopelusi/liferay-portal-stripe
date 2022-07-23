@@ -14,8 +14,8 @@
 
 package com.liferay.change.tracking.web.internal.portlet.action;
 
+import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.model.CTComment;
-import com.liferay.change.tracking.web.internal.constants.CTPortletKeys;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
@@ -47,9 +47,6 @@ public class UpdateCTCommentMVCResourceCommand
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		CTComment ctComment = null;
 
 		long ctCommentId = ParamUtil.getLong(resourceRequest, "ctCommentId");
@@ -61,6 +58,10 @@ public class UpdateCTCommentMVCResourceCommand
 				ctCommentId, value);
 		}
 		else {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)resourceRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 			long ctCollectionId = ParamUtil.getLong(
 				resourceRequest, "ctCollectionId");
 			long ctEntryId = ParamUtil.getLong(resourceRequest, "ctEntryId");

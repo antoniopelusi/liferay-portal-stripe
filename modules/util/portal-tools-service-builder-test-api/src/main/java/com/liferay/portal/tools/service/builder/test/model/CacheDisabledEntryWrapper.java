@@ -63,6 +63,11 @@ public class CacheDisabledEntryWrapper
 		}
 	}
 
+	@Override
+	public CacheDisabledEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the cache disabled entry ID of this cache disabled entry.
 	 *

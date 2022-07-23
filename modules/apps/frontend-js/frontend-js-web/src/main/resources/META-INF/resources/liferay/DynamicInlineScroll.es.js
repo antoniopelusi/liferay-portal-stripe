@@ -77,9 +77,9 @@ class DynamicInlineScroll extends PortletBase {
 	addListItem_(listElement, pageIndex) {
 		const listItem = document.createElement('li');
 
-		listItem.append(
-			`<a href="${this.getHREF_(pageIndex)}">${pageIndex}</a>`
-		);
+		listItem.innerHTML = `<a class="dropdown-item" href="${this.getHREF_(
+			pageIndex
+		)}">${pageIndex}</a>`;
 
 		pageIndex++;
 
@@ -102,7 +102,7 @@ class DynamicInlineScroll extends PortletBase {
 		let href = `javascript:document.${formName}.${namespace}${curParam}.value = "${pageIndex}; ${jsCall}`;
 
 		if (this.url !== null) {
-			href = `${url}${namespace}${curParam}=${pageIndex}${urlAnchor}`;
+			href = `${url}&${namespace}${curParam}=${pageIndex}${urlAnchor}`;
 		}
 
 		return href;
@@ -156,14 +156,12 @@ class DynamicInlineScroll extends PortletBase {
 		const {cur, initialPages, pages} = this;
 		const {target} = event;
 
-		let pageIndex = this.getNumber_(target.getAttribute('data-page-index'));
-		let pageIndexMax = this.getNumber_(
-			target.getAttribute('data-max-index')
-		);
+		let pageIndex = this.getNumber_(target.dataset.pageIndex);
+		let pageIndexMax = this.getNumber_(target.dataset.maxIndex);
 
 		if (pageIndex === 0) {
 			const pageIndexCurrent = this.getNumber_(
-				target.getAttribute('data-current-index')
+				target.dataset.currentIndex
 			);
 
 			if (pageIndexCurrent === 0) {

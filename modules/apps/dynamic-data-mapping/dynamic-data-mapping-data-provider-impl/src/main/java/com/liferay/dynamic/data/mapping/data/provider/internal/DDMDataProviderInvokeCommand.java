@@ -26,6 +26,8 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
+import com.netflix.hystrix.strategy.HystrixPlugins;
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesStrategy;
 
 /**
  * @author Marcellus Tavares
@@ -49,7 +51,7 @@ public class DDMDataProviderInvokeCommand
 			).andCommandPropertiesDefaults(
 				HystrixCommandProperties.Setter().
 					withExecutionTimeoutInMilliseconds(
-						getTimeout(ddmRESTDataProviderSettings))
+						_getTimeout(ddmRESTDataProviderSettings))
 			));
 
 		_ddmDataProvider = ddmDataProvider;
@@ -58,7 +60,14 @@ public class DDMDataProviderInvokeCommand
 		_permissionChecker = PermissionThreadLocal.getPermissionChecker();
 	}
 
-	protected static int getTimeout(
+	@Override
+	protected DDMDataProviderResponse run() throws Exception {
+		PermissionThreadLocal.setPermissionChecker(_permissionChecker);
+
+		return _ddmDataProvider.getData(_ddmDataProviderRequest);
+	}
+
+	private static int _getTimeout(
 		DDMRESTDataProviderSettings ddmRESTDataProviderSettings) {
 
 		int timeout = GetterUtil.getInteger(
@@ -71,13 +80,6 @@ public class DDMDataProviderInvokeCommand
 		return _TIMEOUT_MIN;
 	}
 
-	@Override
-	protected DDMDataProviderResponse run() throws Exception {
-		PermissionThreadLocal.setPermissionChecker(_permissionChecker);
-
-		return _ddmDataProvider.getData(_ddmDataProviderRequest);
-	}
-
 	private static final int _TIMEOUT_MAX = 30000;
 
 	private static final int _TIMEOUT_MIN = 1000;
@@ -85,6 +87,22 @@ public class DDMDataProviderInvokeCommand
 	private static final HystrixCommandGroupKey _hystrixCommandGroupKey =
 		HystrixCommandGroupKey.Factory.asKey(
 			"DDMDataProviderInvokeCommandGroup");
+
+	static {
+		HystrixPlugins histrixPlugins = HystrixPlugins.getInstance();
+
+		histrixPlugins.registerPropertiesStrategy(
+			new HystrixPropertiesStrategy() {
+
+				public String getCommandPropertiesCacheKey(
+					HystrixCommandKey hystrixCommandKey,
+					HystrixCommandProperties.Setter setter) {
+
+					return null;
+				}
+
+			});
+	}
 
 	private final DDMDataProvider _ddmDataProvider;
 	private final DDMDataProviderRequest _ddmDataProviderRequest;

@@ -154,6 +154,10 @@ public class CTCollectionLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -284,6 +288,12 @@ public class CTCollectionLocalServiceUtil {
 	 */
 	public static int getCTCollectionsCount() {
 		return getService().getCTCollectionsCount();
+	}
+
+	public static List<com.liferay.change.tracking.mapping.CTMappingTableInfo>
+		getCTMappingTableInfos(long ctCollectionId) {
+
+		return getService().getCTMappingTableInfos(ctCollectionId);
 	}
 
 	public static List<com.liferay.change.tracking.model.CTEntry>

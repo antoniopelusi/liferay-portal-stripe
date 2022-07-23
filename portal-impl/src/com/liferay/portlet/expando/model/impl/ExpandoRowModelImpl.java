@@ -23,12 +23,13 @@ import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -221,34 +222,6 @@ public class ExpandoRowModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, ExpandoRow>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ExpandoRow.class.getClassLoader(), ExpandoRow.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ExpandoRow> constructor =
-				(Constructor<ExpandoRow>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<ExpandoRow, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<ExpandoRow, Object>>
@@ -355,8 +328,14 @@ public class ExpandoRowModelImpl
 		return _modifiedDate;
 	}
 
+	public boolean hasSetModifiedDate() {
+		return _setModifiedDate;
+	}
+
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
+		_setModifiedDate = true;
+
 		if (_columnOriginalValues == Collections.EMPTY_MAP) {
 			_setColumnOriginalValues();
 		}
@@ -467,6 +446,25 @@ public class ExpandoRowModelImpl
 	}
 
 	@Override
+	public ExpandoRow cloneWithOriginalValues() {
+		ExpandoRowImpl expandoRowImpl = new ExpandoRowImpl();
+
+		expandoRowImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		expandoRowImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		expandoRowImpl.setRowId(this.<Long>getColumnOriginalValue("rowId_"));
+		expandoRowImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		expandoRowImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		expandoRowImpl.setTableId(this.<Long>getColumnOriginalValue("tableId"));
+		expandoRowImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+
+		return expandoRowImpl;
+	}
+
+	@Override
 	public int compareTo(ExpandoRow expandoRow) {
 		long primaryKey = expandoRow.getPrimaryKey();
 
@@ -530,6 +528,8 @@ public class ExpandoRowModelImpl
 	public void resetOriginalValues() {
 		_columnOriginalValues = Collections.emptyMap();
 
+		_setModifiedDate = false;
+
 		_columnBitmask = 0;
 	}
 
@@ -567,7 +567,7 @@ public class ExpandoRowModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -578,9 +578,26 @@ public class ExpandoRowModelImpl
 			Function<ExpandoRow, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ExpandoRow)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ExpandoRow)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -627,7 +644,9 @@ public class ExpandoRowModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ExpandoRow>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ExpandoRow.class, ModelWrapper.class);
 
 	}
 
@@ -636,6 +655,7 @@ public class ExpandoRowModelImpl
 	private long _rowId;
 	private long _companyId;
 	private Date _modifiedDate;
+	private boolean _setModifiedDate;
 	private long _tableId;
 	private long _classPK;
 

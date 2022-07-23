@@ -15,7 +15,6 @@
 package com.liferay.document.library.opener.onedrive.web.internal.oauth;
 
 import com.liferay.document.library.opener.onedrive.web.internal.constants.DLOpenerOneDriveWebKeys;
-import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -113,10 +112,6 @@ public class OAuth2ControllerTest {
 			_liferayPortletURL
 		);
 
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
-
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
-
 		_oAuth2ControllerFactory = new OAuth2ControllerFactory();
 
 		ReflectionTestUtil.setFieldValue(
@@ -193,7 +188,9 @@ public class OAuth2ControllerTest {
 		Assert.assertNull(
 			mockHttpServletRequest.getAttribute(WebKeys.REDIRECT));
 		Assert.assertEquals(
-			String.valueOf(JSONUtil.put("redirectURL", "authorizationURL")),
+			JSONUtil.put(
+				"redirectURL", "authorizationURL"
+			).toString(),
 			mockHttpServletResponse.getContentAsString());
 	}
 

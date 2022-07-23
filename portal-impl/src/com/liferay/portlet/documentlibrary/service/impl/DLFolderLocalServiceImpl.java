@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.documentlibrary.service.impl;
 
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.document.library.kernel.exception.DuplicateFileEntryException;
 import com.liferay.document.library.kernel.exception.DuplicateFolderNameException;
 import com.liferay.document.library.kernel.exception.FolderNameException;
@@ -25,13 +26,19 @@ import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
+import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
+import com.liferay.document.library.kernel.service.DLFileShortcutLocalService;
+import com.liferay.document.library.kernel.service.DLFileVersionLocalService;
 import com.liferay.document.library.kernel.service.persistence.DLFolderPersistence;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.document.library.kernel.util.DLValidatorUtil;
 import com.liferay.document.library.kernel.util.comparator.FolderIdComparator;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -57,8 +64,16 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.RepositoryLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.WebDAVPropsLocalService;
+import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
+import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.WebDAVPropsPersistence;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.tree.TreeModelTasksAdapter;
 import com.liferay.portal.kernel.tree.TreePathUtil;
@@ -73,6 +88,7 @@ import com.liferay.portal.util.RepositoryUtil;
 import com.liferay.portlet.documentlibrary.lar.FileEntryUtil;
 import com.liferay.portlet.documentlibrary.model.impl.DLFolderImpl;
 import com.liferay.portlet.documentlibrary.service.base.DLFolderLocalServiceBaseImpl;
+import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 
 import java.io.Serializable;
 
@@ -99,10 +115,10 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		// Folder
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = _userPersistence.findByPrimaryKey(userId);
 		parentFolderId = getParentFolderId(
 			groupId, repositoryId, parentFolderId);
-		Date now = new Date();
+		Date date = new Date();
 
 		validateFolder(groupId, parentFolderId, name);
 
@@ -121,7 +137,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		dlFolder.setTreePath(dlFolder.buildTreePath());
 		dlFolder.setName(name);
 		dlFolder.setDescription(description);
-		dlFolder.setLastPostDate(now);
+		dlFolder.setLastPostDate(date);
 		dlFolder.setHidden(hidden);
 		dlFolder.setRestrictionType(DLFolderConstants.RESTRICTION_TYPE_INHERIT);
 		dlFolder.setExpandoBridgeAttributes(serviceContext);
@@ -149,7 +165,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		// Parent folder
 
 		if (parentFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			dlFolderLocalService.updateLastPostDate(parentFolderId, now);
+			dlFolderLocalService.updateLastPostDate(parentFolderId, date);
 		}
 
 		return dlFolder;
@@ -157,7 +173,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 	@Override
 	public void deleteAllByGroup(long groupId) throws PortalException {
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		List<DLFolder> dlFolders = dlFolderPersistence.findByG_P(
 			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
@@ -166,12 +182,12 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			dlFolderLocalService.deleteFolder(dlFolder);
 		}
 
-		dlFileEntryLocalService.deleteFileEntries(
+		_dlFileEntryLocalService.deleteFileEntries(
 			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
-		dlFileEntryTypeLocalService.deleteFileEntryTypes(groupId);
+		_dlFileEntryTypeLocalService.deleteFileEntryTypes(groupId);
 
-		dlFileShortcutLocalService.deleteFileShortcuts(
+		_dlFileShortcutLocalService.deleteFileShortcuts(
 			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		DLStoreUtil.deleteDirectory(
@@ -182,7 +198,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	public void deleteAllByRepository(long repositoryId)
 		throws PortalException {
 
-		Repository repository = repositoryLocalService.fetchRepository(
+		Repository repository = _repositoryLocalService.fetchRepository(
 			repositoryId);
 
 		long groupId = repositoryId;
@@ -191,7 +207,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			groupId = repository.getGroupId();
 		}
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		RepositoryEventTrigger repositoryEventTrigger =
 			RepositoryUtil.getRepositoryEventTrigger(repositoryId);
@@ -213,13 +229,13 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		}
 
 		if (repository != null) {
-			dlFileEntryLocalService.deleteRepositoryFileEntries(
+			_dlFileEntryLocalService.deleteRepositoryFileEntries(
 				repository.getRepositoryId());
 		}
 		else {
-			dlFileEntryLocalService.deleteRepositoryFileEntries(groupId);
+			_dlFileEntryLocalService.deleteRepositoryFileEntries(groupId);
 
-			dlFileShortcutLocalService.deleteRepositoryFileShortcuts(groupId);
+			_dlFileShortcutLocalService.deleteRepositoryFileShortcuts(groupId);
 		}
 
 		DLStoreUtil.deleteDirectory(
@@ -399,23 +415,6 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		return dlFolderPersistence.findByG_M_P_H(
 			groupId, false, parentFolderId, false, start, end,
-			orderByComparator);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getFolders(long, long, boolean, int, int,
-	 *             OrderByComparator)}
-	 */
-	@Deprecated
-	@Override
-	public List<DLFolder> getFolders(
-		long groupId, long parentFolderId, int status,
-		boolean includeMountfolders, int start, int end,
-		OrderByComparator<DLFolder> orderByComparator) {
-
-		return getFolders(
-			groupId, parentFolderId, includeMountfolders, status, start, end,
 			orderByComparator);
 	}
 
@@ -717,7 +716,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	@Override
 	public void rebuildTree(
 			long companyId, long parentFolderId, String parentTreePath,
-			final boolean reindex)
+			boolean reindex)
 		throws PortalException {
 
 		TreePathUtil.rebuildTree(
@@ -729,10 +728,9 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 					long previousId, long companyId, long parentPrimaryKey,
 					int size) {
 
-					return dlFolderPersistence.findByF_C_P_NotS(
+					return dlFolderPersistence.findByGtF_C_P(
 						previousId, companyId, parentPrimaryKey,
-						WorkflowConstants.STATUS_IN_TRASH, QueryUtil.ALL_POS,
-						size, new FolderIdComparator(true));
+						QueryUtil.ALL_POS, size, new FolderIdComparator(true));
 				}
 
 				@Override
@@ -740,11 +738,11 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 						long parentPrimaryKey, String treePath)
 					throws PortalException {
 
-					dlFileEntryLocalService.setTreePaths(
+					_dlFileEntryLocalService.setTreePaths(
 						parentPrimaryKey, treePath, false);
-					dlFileShortcutLocalService.setTreePaths(
+					_dlFileShortcutLocalService.setTreePaths(
 						parentPrimaryKey, treePath);
-					dlFileVersionLocalService.setTreePaths(
+					_dlFileVersionLocalService.setTreePaths(
 						parentPrimaryKey, treePath);
 				}
 
@@ -816,7 +814,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 					restrictionType, serviceContext);
 
 				if (!ExportImportThreadLocal.isImportInProcess()) {
-					dlFileEntryTypeLocalService.cascadeFileEntryTypes(
+					_dlFileEntryTypeLocalService.cascadeFileEntryTypes(
 						serviceContext.getUserId(), dlFolder);
 				}
 			}
@@ -878,7 +876,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 				}
 			}
 
-			workflowDefinitionLinkLocalService.updateWorkflowDefinitionLinks(
+			_workflowDefinitionLinkLocalService.updateWorkflowDefinitionLinks(
 				serviceContext.getUserId(), serviceContext.getCompanyId(),
 				serviceContext.getScopeGroupId(), DLFolder.class.getName(),
 				folderId, workflowDefinitionOVPs);
@@ -979,7 +977,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			// File entry types
 
 			if (fileEntryTypeIds != null) {
-				dlFileEntryTypeLocalService.updateFolderFileEntryTypes(
+				_dlFileEntryTypeLocalService.updateFolderFileEntryTypes(
 					dlFolder, fileEntryTypeIds, defaultFileEntryTypeId,
 					serviceContext);
 			}
@@ -1040,7 +1038,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		// Folder
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = _userPersistence.findByPrimaryKey(userId);
 
 		DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
 
@@ -1056,11 +1054,11 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		// Asset
 
 		if (status == WorkflowConstants.STATUS_APPROVED) {
-			assetEntryLocalService.updateVisible(
+			_assetEntryLocalService.updateVisible(
 				DLFolder.class.getName(), dlFolder.getFolderId(), true);
 		}
 		else if (status == WorkflowConstants.STATUS_IN_TRASH) {
-			assetEntryLocalService.updateVisible(
+			_assetEntryLocalService.updateVisible(
 				DLFolder.class.getName(), dlFolder.getFolderId(), false);
 		}
 
@@ -1130,7 +1128,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			boolean addGuestPermissions)
 		throws PortalException {
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			dlFolder.getCompanyId(), dlFolder.getGroupId(),
 			dlFolder.getUserId(), DLFolder.class.getName(),
 			dlFolder.getFolderId(), false, addGroupPermissions,
@@ -1141,7 +1139,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			DLFolder dlFolder, ModelPermissions modelPermissions)
 		throws PortalException {
 
-		resourceLocalService.addModelResources(
+		_resourceLocalService.addModelResources(
 			dlFolder.getCompanyId(), dlFolder.getGroupId(),
 			dlFolder.getUserId(), DLFolder.class.getName(),
 			dlFolder.getFolderId(), modelPermissions);
@@ -1172,23 +1170,23 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		// Resources
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			dlFolder.getCompanyId(), DLFolder.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL, dlFolder.getFolderId());
 
 		// WebDAVProps
 
-		WebDAVProps webDAVProps = webDAVPropsPersistence.fetchByC_C(
-			classNameLocalService.getClassNameId(DLFolder.class),
+		WebDAVProps webDAVProps = _webDAVPropsPersistence.fetchByC_C(
+			_classNameLocalService.getClassNameId(DLFolder.class),
 			dlFolder.getFolderId());
 
 		if (webDAVProps != null) {
-			webDAVPropsLocalService.deleteWebDAVProps(webDAVProps);
+			_webDAVPropsLocalService.deleteWebDAVProps(webDAVProps);
 		}
 
 		// File entries
 
-		dlFileEntryLocalService.deleteFileEntries(
+		_dlFileEntryLocalService.deleteFileEntries(
 			dlFolder.getGroupId(), dlFolder.getFolderId(),
 			includeTrashedEntries);
 
@@ -1197,7 +1195,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		List<Long> fileEntryTypeIds = new ArrayList<>();
 
 		for (DLFileEntryType dlFileEntryType :
-				dlFileEntryTypeLocalService.getDLFolderDLFileEntryTypes(
+				_dlFileEntryTypeLocalService.getDLFolderDLFileEntryTypes(
 					dlFolder.getFolderId())) {
 
 			fileEntryTypeIds.add(dlFileEntryType.getFileEntryTypeId());
@@ -1208,22 +1206,22 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_ALL);
 		}
 
-		dlFileEntryTypeLocalService.unsetFolderFileEntryTypes(
+		_dlFileEntryTypeLocalService.unsetFolderFileEntryTypes(
 			dlFolder.getFolderId());
 
 		// File shortcuts
 
-		dlFileShortcutLocalService.deleteFileShortcuts(
+		_dlFileShortcutLocalService.deleteFileShortcuts(
 			dlFolder.getGroupId(), dlFolder.getFolderId(),
 			includeTrashedEntries);
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(dlFolder.getFolderId());
+		_expandoRowLocalService.deleteRows(dlFolder.getFolderId());
 
 		// Ratings
 
-		ratingsStatsLocalService.deleteStats(
+		_ratingsStatsLocalService.deleteStats(
 			DLFolder.class.getName(), dlFolder.getFolderId());
 
 		// Folder
@@ -1242,14 +1240,14 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		for (long fileEntryTypeId : fileEntryTypeIds) {
 			WorkflowDefinitionLink workflowDefinitionLink =
-				workflowDefinitionLinkLocalService.fetchWorkflowDefinitionLink(
+				_workflowDefinitionLinkLocalService.fetchWorkflowDefinitionLink(
 					dlFolder.getCompanyId(), dlFolder.getGroupId(),
 					DLFolder.class.getName(), dlFolder.getFolderId(),
 					fileEntryTypeId);
 
 			if (workflowDefinitionLink != null) {
-				workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
-					workflowDefinitionLink);
+				_workflowDefinitionLinkLocalService.
+					deleteWorkflowDefinitionLink(workflowDefinitionLink);
 			}
 		}
 	}
@@ -1339,7 +1337,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		if ((parentDLFolder.getRepositoryId() != repositoryId) &&
 			(parentDLFolder.getRepositoryId() != groupId)) {
 
-			Repository repository = repositoryLocalService.getRepository(
+			Repository repository = _repositoryLocalService.getRepository(
 				repositoryId);
 
 			if (repository.getGroupId() != parentDLFolder.getGroupId()) {
@@ -1362,7 +1360,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		DLValidatorUtil.validateDirectoryName(name);
 
-		DLFileEntry dlFileEntry = dlFileEntryLocalService.fetchFileEntry(
+		DLFileEntry dlFileEntry = _dlFileEntryLocalService.fetchFileEntry(
 			groupId, parentFolderId, name);
 
 		if (dlFileEntry != null) {
@@ -1398,5 +1396,51 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 					" is invalid because it contains a /"));
 		}
 	}
+
+	@BeanReference(type = AssetEntryLocalService.class)
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@BeanReference(type = ClassNameLocalService.class)
+	private ClassNameLocalService _classNameLocalService;
+
+	@BeanReference(type = DLFileEntryLocalService.class)
+	private DLFileEntryLocalService _dlFileEntryLocalService;
+
+	@BeanReference(type = DLFileEntryTypeLocalService.class)
+	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
+
+	@BeanReference(type = DLFileShortcutLocalService.class)
+	private DLFileShortcutLocalService _dlFileShortcutLocalService;
+
+	@BeanReference(type = DLFileVersionLocalService.class)
+	private DLFileVersionLocalService _dlFileVersionLocalService;
+
+	@BeanReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
+
+	@BeanReference(type = GroupLocalService.class)
+	private GroupLocalService _groupLocalService;
+
+	@BeanReference(type = RatingsStatsLocalService.class)
+	private RatingsStatsLocalService _ratingsStatsLocalService;
+
+	@BeanReference(type = RepositoryLocalService.class)
+	private RepositoryLocalService _repositoryLocalService;
+
+	@BeanReference(type = ResourceLocalService.class)
+	private ResourceLocalService _resourceLocalService;
+
+	@BeanReference(type = UserPersistence.class)
+	private UserPersistence _userPersistence;
+
+	@BeanReference(type = WebDAVPropsLocalService.class)
+	private WebDAVPropsLocalService _webDAVPropsLocalService;
+
+	@BeanReference(type = WebDAVPropsPersistence.class)
+	private WebDAVPropsPersistence _webDAVPropsPersistence;
+
+	@BeanReference(type = WorkflowDefinitionLinkLocalService.class)
+	private WorkflowDefinitionLinkLocalService
+		_workflowDefinitionLinkLocalService;
 
 }

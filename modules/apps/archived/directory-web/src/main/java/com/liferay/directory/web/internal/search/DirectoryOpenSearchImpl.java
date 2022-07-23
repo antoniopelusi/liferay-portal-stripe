@@ -14,21 +14,13 @@
 
 package com.liferay.directory.web.internal.search;
 
-import com.liferay.expando.kernel.model.ExpandoBridge;
-import com.liferay.expando.kernel.model.ExpandoColumnConstants;
-import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.HitsOpenSearchImpl;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.OpenSearch;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
-import com.liferay.portal.kernel.util.UnicodeProperties;
-
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
 
 import javax.portlet.PortletURL;
 
@@ -74,34 +66,6 @@ public class DirectoryOpenSearchImpl extends HitsOpenSearchImpl {
 
 		return super.getPortletURL(
 			httpServletRequest, PortletKeys.DIRECTORY, scopeGroupId);
-	}
-
-	protected LinkedHashMap<String, Object> getUserParams(
-		long companyId, String keywords) {
-
-		LinkedHashMap<String, Object> userParams = new LinkedHashMap<>();
-
-		ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(
-			companyId, User.class.getName());
-
-		Enumeration<String> enumeration = expandoBridge.getAttributeNames();
-
-		while (enumeration.hasMoreElements()) {
-			String attributeName = enumeration.nextElement();
-
-			UnicodeProperties unicodeProperties =
-				expandoBridge.getAttributeProperties(attributeName);
-
-			int indexType = GetterUtil.getInteger(
-				unicodeProperties.getProperty(
-					ExpandoColumnConstants.INDEX_TYPE));
-
-			if (indexType != ExpandoColumnConstants.INDEX_TYPE_NONE) {
-				userParams.put(attributeName, keywords);
-			}
-		}
-
-		return userParams;
 	}
 
 }

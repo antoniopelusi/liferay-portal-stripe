@@ -144,7 +144,9 @@ public class AccountRoleLocalServiceUtil {
 		return getService().deleteAccountRole(accountRoleId);
 	}
 
-	public static void deleteAccountRolesByCompanyId(long companyId) {
+	public static void deleteAccountRolesByCompanyId(long companyId)
+		throws PortalException {
+
 		getService().deleteAccountRolesByCompanyId(companyId);
 	}
 
@@ -160,6 +162,10 @@ public class AccountRoleLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -289,6 +295,13 @@ public class AccountRoleLocalServiceUtil {
 	}
 
 	public static List<AccountRole> getAccountRolesByAccountEntryIds(
+		long companyId, long[] accountEntryIds) {
+
+		return getService().getAccountRolesByAccountEntryIds(
+			companyId, accountEntryIds);
+	}
+
+	public static List<AccountRole> getAccountRolesByAccountEntryIds(
 		long[] accountEntryIds) {
 
 		return getService().getAccountRolesByAccountEntryIds(accountEntryIds);
@@ -344,47 +357,21 @@ public class AccountRoleLocalServiceUtil {
 
 	public static com.liferay.portal.kernel.search.BaseModelSearchResult
 		<AccountRole> searchAccountRoles(
-			long companyId, long accountEntryId, String keywords, int start,
-			int end, OrderByComparator<?> orderByComparator) {
+			long companyId, long[] accountEntryIds, String keywords,
+			java.util.LinkedHashMap<String, Object> params, int start, int end,
+			OrderByComparator<?> orderByComparator) {
 
 		return getService().searchAccountRoles(
-			companyId, accountEntryId, keywords, start, end, orderByComparator);
-	}
-
-	public static com.liferay.portal.kernel.search.BaseModelSearchResult
-		<AccountRole> searchAccountRoles(
-			long companyId, long[] accountEntryIds, String keywords, int start,
-			int end, OrderByComparator<?> orderByComparator) {
-
-		return getService().searchAccountRoles(
-			companyId, accountEntryIds, keywords, start, end,
+			companyId, accountEntryIds, keywords, params, start, end,
 			orderByComparator);
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x)
-	 */
-	@Deprecated
-	public static com.liferay.portal.kernel.search.BaseModelSearchResult
-		<AccountRole> searchAccountRoles(
-			long accountEntryId, String keywords, int start, int end,
-			OrderByComparator<?> orderByComparator) {
+	public static void setUserAccountRoles(
+			long accountEntryId, long[] accountRoleIds, long userId)
+		throws PortalException {
 
-		return getService().searchAccountRoles(
-			accountEntryId, keywords, start, end, orderByComparator);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x)
-	 */
-	@Deprecated
-	public static com.liferay.portal.kernel.search.BaseModelSearchResult
-		<AccountRole> searchAccountRoles(
-			long[] accountEntryIds, String keywords, int start, int end,
-			OrderByComparator<?> orderByComparator) {
-
-		return getService().searchAccountRoles(
-			accountEntryIds, keywords, start, end, orderByComparator);
+		getService().setUserAccountRoles(
+			accountEntryId, accountRoleIds, userId);
 	}
 
 	public static void unassociateUser(

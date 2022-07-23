@@ -30,8 +30,10 @@ public class ExportImportEntityManagementBarButtonTag extends IncludeTag {
 
 	@Override
 	public int doStartTag() throws JspException {
+		HttpServletRequest httpServletRequest = getRequest();
+
 		_searchContainerId = GetterUtil.getString(
-			request.getAttribute(
+			httpServletRequest.getAttribute(
 				"liferay-frontend:management-bar:searchContainerId"));
 
 		return super.doStartTag();
@@ -53,7 +55,7 @@ public class ExportImportEntityManagementBarButtonTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setSearchContainerMappingId(String searchContainerMappingId) {

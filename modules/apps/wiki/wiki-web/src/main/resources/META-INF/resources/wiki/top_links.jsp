@@ -46,8 +46,6 @@ PortletURL backToNodeURL = wikiURLHelper.getBackToNodeURL(node);
 if (portletTitleBasedNavigation) {
 	portletDisplay.setShowBackIcon(true);
 	portletDisplay.setURLBack(backToNodeURL.toString());
-
-	renderResponse.setTitle(node.getName());
 }
 %>
 
@@ -57,16 +55,10 @@ if (portletTitleBasedNavigation) {
 
 			<%
 			for (WikiNode curNode : nodes) {
-				String cssClass = StringPool.BLANK;
-
-				if (curNode.getNodeId() == node.getNodeId()) {
-					cssClass = "active";
-				}
-
 				PortletURL viewPageURL = wikiURLHelper.getViewFrontPagePageURL(curNode);
 			%>
 
-				<aui:nav-item cssClass="<%= cssClass %>" href="<%= viewPageURL.toString() %>" label="<%= HtmlUtil.escape(curNode.getName()) %>" />
+				<aui:nav-item href="<%= viewPageURL.toString() %>" label="<%= HtmlUtil.escape(curNode.getName()) %>" selected="<%= curNode.getNodeId() == node.getNodeId() %>" />
 
 			<%
 			}

@@ -1,0 +1,69 @@
+@component-name = "portal-upgrades"
+definition {
+
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property test.assert.warning.exceptions = "true";
+	property testray.component.names = "Online Editing";
+	property testray.main.component.name = "Upgrades Lima";
+
+	setUp {
+		SignIn.signIn();
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		AssertLocation.assertPartialLocation(value1 = "${portalURL}/web/guest");
+
+		SearchAdministration.executeReindex();
+	}
+
+	@priority = "5"
+	test ViewOneDriveDocumentsArchive72101 {
+		property data.archive.type = "data-archive-onedrive";
+		property portal.version = "7.2.10.1";
+
+		OneDrive.goToOneDrive();
+
+		for (var dmDocumentType : list "Excel,PowerPoint,Word") {
+			OneDrive.deleteDocument(dmDocumentTitle = "${dmDocumentType} Title After Upgrade");
+		}
+
+		Upgrade.viewAndDeleteOneDriveDocument(dmDocumentTypeName = "Excel");
+
+		Upgrade.viewAndDeleteOneDriveDocument(dmDocumentTypeName = "PowerPoint");
+
+		Upgrade.viewAndDeleteOneDriveDocument(dmDocumentTypeName = "Word");
+
+		Upgrade.addOneDriveDocument(dmDocumentTypeName = "Excel");
+
+		Upgrade.addOneDriveDocument(dmDocumentTypeName = "PowerPoint");
+
+		Upgrade.addOneDriveDocument(dmDocumentTypeName = "Word");
+	}
+
+	@priority = "5"
+	test ViewOneDriveDocumentsArchive73101 {
+		property data.archive.type = "data-archive-onedrive";
+		property portal.version = "7.3.10.1";
+
+		OneDrive.goToOneDrive();
+
+		for (var dmDocumentType : list "Excel,PowerPoint,Word") {
+			OneDrive.deleteDocument(dmDocumentTitle = "${dmDocumentType} Title After Upgrade");
+		}
+
+		Upgrade.viewAndDeleteOneDriveDocument(dmDocumentTypeName = "Excel");
+
+		Upgrade.viewAndDeleteOneDriveDocument(dmDocumentTypeName = "PowerPoint");
+
+		Upgrade.viewAndDeleteOneDriveDocument(dmDocumentTypeName = "Word");
+
+		Upgrade.addOneDriveDocument(dmDocumentTypeName = "Excel");
+
+		Upgrade.addOneDriveDocument(dmDocumentTypeName = "PowerPoint");
+
+		Upgrade.addOneDriveDocument(dmDocumentTypeName = "Word");
+	}
+
+}

@@ -475,4 +475,7 @@ public interface TranslationEntryModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public TranslationEntry cloneWithOriginalValues();
+
 }

@@ -81,12 +81,12 @@ public class ViewNodeDeletedAttachmentsPortletConfigurationIcon
 					return node.getNodeId();
 				}
 			).setParameter(
-				"viewTrashAttachments", Boolean.TRUE.toString()
+				"viewTrashAttachments", true
 			).buildString();
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -110,7 +110,7 @@ public class ViewNodeDeletedAttachmentsPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

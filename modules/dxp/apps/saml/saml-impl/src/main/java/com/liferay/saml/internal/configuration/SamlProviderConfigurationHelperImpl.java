@@ -28,8 +28,6 @@ import com.liferay.saml.constants.SamlProviderConfigurationKeys;
 import com.liferay.saml.runtime.configuration.SamlProviderConfiguration;
 import com.liferay.saml.runtime.configuration.SamlProviderConfigurationHelper;
 
-import java.io.IOException;
-
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -183,7 +181,7 @@ public class SamlProviderConfigurationHelperImpl
 
 			configurationProperties = new HashMapDictionary<>();
 
-			Dictionary<String, ?> systemProperties = getSystemProperties();
+			Dictionary<String, ?> systemProperties = _getSystemProperties();
 
 			if (systemProperties != null) {
 				Enumeration<String> enumeration = systemProperties.keys();
@@ -215,7 +213,10 @@ public class SamlProviderConfigurationHelperImpl
 		updated(configuration.getPid(), configuration.getProperties());
 	}
 
-	protected Dictionary<String, ?> getSystemProperties() throws IOException {
+	protected static final String FACTORY_PID =
+		"com.liferay.saml.runtime.configuration.SamlProviderConfiguration";
+
+	private Dictionary<String, ?> _getSystemProperties() throws Exception {
 		ConfigurationHolder configurationHolder =
 			_configurationHolderByCompanyId.get(CompanyConstants.SYSTEM);
 
@@ -228,9 +229,6 @@ public class SamlProviderConfigurationHelperImpl
 
 		return configuration.getProperties();
 	}
-
-	protected static final String FACTORY_PID =
-		"com.liferay.saml.runtime.configuration.SamlProviderConfiguration";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SamlProviderConfigurationHelperImpl.class);

@@ -154,6 +154,11 @@ public class AuditEventWrapper
 		}
 	}
 
+	@Override
+	public AuditEvent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the additional info of this audit event.
 	 *

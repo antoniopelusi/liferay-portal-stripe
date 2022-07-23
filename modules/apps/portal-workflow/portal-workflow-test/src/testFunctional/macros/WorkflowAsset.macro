@@ -6,6 +6,14 @@ definition {
 			locator1 = "AssetWorkflow#DUE_DATE");
 	}
 
+	macro createNewBasicWebContent {
+		Portlet.clickPortletPlusIconPG(portletName = "Asset Publisher");
+
+		MenuItem.click(menuItem = "Basic Web Content");
+
+		WebContent.addCP(webContentTitle = "${wcTitle}");
+	}
+
 	macro createNewUserAccount {
 		SignInNavigator.gotoCreateAccount();
 

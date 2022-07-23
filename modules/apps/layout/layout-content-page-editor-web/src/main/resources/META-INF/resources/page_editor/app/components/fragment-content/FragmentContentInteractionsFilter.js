@@ -15,19 +15,13 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 
+import {BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR} from '../../config/constants/backgroundImageFragmentEntryProcessor';
 import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../config/constants/editableFragmentEntryProcessor';
 import {ITEM_ACTIVATION_ORIGINS} from '../../config/constants/itemActivationOrigins';
 import {ITEM_TYPES} from '../../config/constants/itemTypes';
 import {VIEWPORT_SIZES} from '../../config/constants/viewportSizes';
 import {config} from '../../config/index';
-import selectCanUpdateEditables from '../../selectors/selectCanUpdateEditables';
-import selectCanUpdatePageStructure from '../../selectors/selectCanUpdatePageStructure';
-import selectLanguageId from '../../selectors/selectLanguageId';
-import {useSelector, useSelectorCallback} from '../../store/index';
-import canActivateEditable from '../../utils/canActivateEditable';
-import {deepEqual} from '../../utils/checkDeepEqual';
-import isMapped from '../../utils/editable-value/isMapped';
-import {useToControlsId} from '../CollectionItemContext';
+import {useToControlsId} from '../../contexts/CollectionItemContext';
 import {
 	useActivationOrigin,
 	useActiveItemType,
@@ -38,8 +32,15 @@ import {
 	useIsActive,
 	useIsHovered,
 	useSelectItem,
-} from '../Controls';
-import {useSetEditableProcessorUniqueId} from './EditableProcessorContext';
+} from '../../contexts/ControlsContext';
+import {useSetEditableProcessorUniqueId} from '../../contexts/EditableProcessorContext';
+import {useSelector, useSelectorCallback} from '../../contexts/StoreContext';
+import selectCanUpdateEditables from '../../selectors/selectCanUpdateEditables';
+import selectCanUpdatePageStructure from '../../selectors/selectCanUpdatePageStructure';
+import selectLanguageId from '../../selectors/selectLanguageId';
+import canActivateEditable from '../../utils/canActivateEditable';
+import {deepEqual} from '../../utils/checkDeepEqual';
+import isMapped from '../../utils/editable-value/isMapped';
 import {getEditableElement} from './getEditableElement';
 
 const EDITABLE_CLASS_NAMES = {
@@ -55,6 +56,7 @@ const isTranslated = (defaultLanguageId, languageId, editableValue) =>
 
 function FragmentContentInteractionsFilter({
 	children,
+	editables,
 	fragmentEntryLinkId,
 	itemId,
 }) {
@@ -76,18 +78,22 @@ function FragmentContentInteractionsFilter({
 	const setEditableProcessorUniqueId = useSetEditableProcessorUniqueId();
 	const toControlsId = useToControlsId();
 
-	const editables = useSelectorCallback(
-		(state) => Object.values(state.editables?.[toControlsId(itemId)] || {}),
-		[itemId, toControlsId]
-	);
-
 	const editableValues = useSelectorCallback(
-		(state) =>
-			state.fragmentEntryLinks[fragmentEntryLinkId]
-				? state.fragmentEntryLinks[fragmentEntryLinkId].editableValues[
-						EDITABLE_FRAGMENT_ENTRY_PROCESSOR
-				  ]
-				: {},
+		(state) => {
+			const fragmentEntryLink =
+				state.fragmentEntryLinks[fragmentEntryLinkId];
+
+			return fragmentEntryLink
+				? {
+						...fragmentEntryLink.editableValues[
+							EDITABLE_FRAGMENT_ENTRY_PROCESSOR
+						],
+						...fragmentEntryLink.editableValues[
+							BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR
+						],
+				  }
+				: {};
+		},
 		[fragmentEntryLinkId],
 		deepEqual
 	);
@@ -139,9 +145,13 @@ function FragmentContentInteractionsFilter({
 			if (editableValues) {
 				const editableValue = editableValues[editable.editableId] || {};
 
+				const localizedEditableValue = editableValue[languageId] || {};
+
 				const editableId =
 					hoveredItemType === ITEM_TYPES.mappedContent
-						? `${editableValue.classNameId}-${editableValue.classPK}`
+						? editableValue.classNameId
+							? `${editableValue.classNameId}-${editableValue.classPK}`
+							: `${localizedEditableValue.classNameId}-${localizedEditableValue.classPK}`
 						: editable.itemId;
 
 				const hovered =
@@ -179,6 +189,7 @@ function FragmentContentInteractionsFilter({
 		isActive,
 		isHovered,
 		itemId,
+		languageId,
 		siblingIds,
 		hoveringOrigin,
 	]);

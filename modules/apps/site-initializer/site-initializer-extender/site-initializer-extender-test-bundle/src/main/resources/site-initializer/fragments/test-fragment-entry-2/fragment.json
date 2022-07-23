@@ -1,0 +1,8 @@
+{
+	"configurationPath": "index.json",
+	"cssPath": "index.css",
+	"htmlPath": "index.html",
+	"jsPath": "index.js",
+	"name": "Test Fragment Entry 2",
+	"type": "component"
+}

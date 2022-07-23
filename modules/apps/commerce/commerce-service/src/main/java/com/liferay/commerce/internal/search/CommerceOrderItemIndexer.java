@@ -17,20 +17,28 @@ package com.liferay.commerce.internal.search;
 import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.commerce.product.constants.CPField;
 import com.liferay.commerce.service.CommerceOrderItemLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BaseIndexer;
+import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.ParseException;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.search.WildcardQuery;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
+import com.liferay.portal.kernel.search.generic.WildcardQueryImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Locale;
 
@@ -95,8 +103,23 @@ public class CommerceOrderItemIndexer extends BaseIndexer<CommerceOrderItem> {
 			SearchContext searchContext)
 		throws Exception {
 
-		addSearchTerm(searchQuery, searchContext, FIELD_SKU, true);
+		addSearchTerm(searchQuery, searchContext, FIELD_SKU, false);
 		addSearchLocalizedTerm(searchQuery, searchContext, Field.NAME, true);
+
+		String keywords = searchContext.getKeywords();
+
+		if (Validator.isNotNull(keywords)) {
+			try {
+				keywords = StringUtil.toLowerCase(keywords);
+
+				searchQuery.add(
+					_getTrailingWildcardQuery(FIELD_SKU, keywords),
+					BooleanClauseOccur.SHOULD);
+			}
+			catch (ParseException parseException) {
+				throw new SystemException(parseException);
+			}
+		}
 	}
 
 	@Override
@@ -168,11 +191,17 @@ public class CommerceOrderItemIndexer extends BaseIndexer<CommerceOrderItem> {
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCommerceOrderItems(companyId);
+		_reindexCommerceOrderItems(companyId);
 	}
 
-	protected void reindexCommerceOrderItems(long companyId) throws Exception {
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+	private WildcardQuery _getTrailingWildcardQuery(
+		String field, String value) {
+
+		return new WildcardQueryImpl(field, value + StringPool.STAR);
+	}
+
+	private void _reindexCommerceOrderItems(long companyId) throws Exception {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_commerceOrderItemLocalService.getIndexableActionableDynamicQuery();
 
 		indexableActionableDynamicQuery.setCompanyId(companyId);

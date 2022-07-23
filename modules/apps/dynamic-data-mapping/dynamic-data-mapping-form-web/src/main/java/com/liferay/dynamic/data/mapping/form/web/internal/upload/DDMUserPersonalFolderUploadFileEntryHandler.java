@@ -72,21 +72,26 @@ public class DDMUserPersonalFolderUploadFileEntryHandler
 		String fileName = uploadPortletRequest.getFileName(_PARAMETER_NAME);
 		long size = uploadPortletRequest.getSize(_PARAMETER_NAME);
 
-		_dlValidator.validateFileSize(fileName, size);
+		_dlValidator.validateFileSize(
+			themeDisplay.getScopeGroupId(), fileName,
+			uploadPortletRequest.getContentType(_PARAMETER_NAME), size);
 
 		try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
 				_PARAMETER_NAME)) {
 
+			long repositoryId = ParamUtil.getLong(
+				uploadPortletRequest, "repositoryId");
 			String uniqueFileName = _uniqueFileNameProvider.provide(
 				fileName,
 				curFileName -> _exists(
 					themeDisplay.getScopeGroupId(), folderId, curFileName));
 
 			return _dlAppService.addFileEntry(
-				themeDisplay.getScopeGroupId(), folderId, uniqueFileName,
+				null, repositoryId, folderId, uniqueFileName,
 				uploadPortletRequest.getContentType(_PARAMETER_NAME),
-				uniqueFileName, _getDescription(uploadPortletRequest),
-				StringPool.BLANK, inputStream, size,
+				uniqueFileName, uniqueFileName,
+				_getDescription(uploadPortletRequest), StringPool.BLANK,
+				inputStream, size, null, null,
 				_getServiceContext(uploadPortletRequest));
 		}
 	}
@@ -103,7 +108,7 @@ public class DDMUserPersonalFolderUploadFileEntryHandler
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;
@@ -125,7 +130,7 @@ public class DDMUserPersonalFolderUploadFileEntryHandler
 		}
 		catch (NoSuchFileEntryException noSuchFileEntryException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileEntryException, noSuchFileEntryException);
+				_log.debug(noSuchFileEntryException);
 			}
 
 			return null;

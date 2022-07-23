@@ -124,15 +124,18 @@ public class PortalConfigurationCORSClientTest extends BaseCORSClientTestCase {
 
 		_pAuth = _parsePAuthToken(response);
 
-		Map<String, NewCookie> cookies = response.getCookies();
+		Map<String, NewCookie> newCookies = response.getCookies();
 
-		NewCookie newCookie = cookies.get(CookieKeys.JSESSIONID);
+		NewCookie cookieSupportNewCookie = newCookies.get(
+			CookieKeys.COOKIE_SUPPORT);
+		NewCookie jSessionIdNewCookie = newCookies.get(CookieKeys.JSESSIONID);
 
 		invocationBuilder = _getWebTarget(
 			"c", "portal", "login"
 		).request();
 
-		invocationBuilder = invocationBuilder.cookie(newCookie);
+		invocationBuilder = invocationBuilder.cookie(cookieSupportNewCookie);
+		invocationBuilder = invocationBuilder.cookie(jSessionIdNewCookie);
 
 		MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
 
@@ -142,15 +145,15 @@ public class PortalConfigurationCORSClientTest extends BaseCORSClientTestCase {
 
 		response = invocationBuilder.post(Entity.form(formData));
 
-		cookies = response.getCookies();
+		newCookies = response.getCookies();
 
-		newCookie = cookies.get(CookieKeys.JSESSIONID);
+		jSessionIdNewCookie = newCookies.get(CookieKeys.JSESSIONID);
 
-		if (newCookie == null) {
+		if (jSessionIdNewCookie == null) {
 			return null;
 		}
 
-		return newCookie.toCookie();
+		return jSessionIdNewCookie.toCookie();
 	}
 
 	private WebTarget _getJsonWebTarget(String... paths) {

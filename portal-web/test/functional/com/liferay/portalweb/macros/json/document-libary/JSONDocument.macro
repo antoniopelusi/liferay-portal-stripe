@@ -1,5 +1,39 @@
 definition {
 
+	@summary = "This calls the JSON WS API to add a Document entry comment"
+	macro addComment {
+		var fileEntryId = JSONDocument.getFileEntryId(
+			dmDocumentTitle = "${dmDocumentTitle}",
+			folderId = "${folderId}",
+			groupName = "${groupName}",
+			portalURL = "${baseURL}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(parentCommentId))) {
+			var parentCommentId = "0";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/documents/${fileEntryId}/comments \
+			-H 'Content-Type: application/json' \
+			-u 'test@liferay.com:test'
+			-d '{
+				"creator": {},
+				"parentCommentId": "${parentCommentId}",
+				"text": "${commentBody}"
+			}'
+		''';
+
+		echo("## Adding a 'Comment' with the following info using JSONWS:");
+
+		echo("## * commentBody: ${commentBody}");
+
+		echo("## * fileEntryId: ${fileEntryId}");
+
+		var messageId = JSONCurlUtil.post("${curl}");
+	}
+
 	@summary = "This calls the JSON WS API to add a Document entry"
 	macro addFile {
 		var portalURL = JSONCompany.getPortalURL();
@@ -10,24 +44,46 @@ definition {
 			Variables.assertDefined(parameterList = "${folderName},${groupName}");
 
 			var folderId = JSONDocumentAPI._getFolderIdByFolderName(
-				name = "${folderName}",
-				groupName = "${groupName}");
+				groupName = "${groupName}",
+				name = "${folderName}");
 		}
 		else {
 			var folderId = "0";
 		}
+
+		if (!(isSet(dmDocumentDescription))) {
+			var dmDocumentDescription = "";
+		}
+
+		if (!(isSet(groupPermissions))) {
+			var groupPermissions = "true";
+		}
+
+		if (!(isSet(guestPermissions))) {
+			var guestPermissions = "true";
+		}
+
+		var serviceContext = JSONDocumentSetter.setServiceContext(
+			addGroupPermissions = "${groupPermissions}",
+			addGuestPermissions = "${guestPermissions}",
+			assetCategoryIds = "${assetCategoryIds}",
+			assetTagNames = "${assetTagNames}",
+			serviceContext = "${serviceContext}",
+			workflowAction = "${workflowAction}");
 
 		var curl = '''
 			${portalURL}/api/jsonws/dlapp/add-file-entry \
 			-u test@liferay.com:test \
 			-d repositoryId=${repositoryId} \
 			-d folderId=${folderId} \
-			-d sourceFileName='' \
-			-d mimeType='' \
+			-d sourceFileName= \
+			-d mimeType= \
 			-d title=${dmDocumentTitle} \
+			-d urlTitle= \
 		 	-d description=${dmDocumentDescription} \
-			-d changeLog='' \
-			-d file=@path_to_file
+			-d changeLog= \
+			-d file=@path_to_file \
+			-d serviceContext=${serviceContext}
 		''';
 
 		echo("## Adding a 'File' with the following info using JSONWS:");
@@ -52,25 +108,23 @@ definition {
 
 			if (isSet(parentFolderName)) {
 				var parentFolderId = JSONDocumentAPI._getFolderIdByFolderName(
-					name = "${parentFolderName}",
-					groupName = "${groupName}");
+					groupName = "${groupName}",
+					name = "${parentFolderName}");
 			}
 			else {
 				var parentFolderId = "0";
 			}
 
 			var folderId = JSONDocumentAPI._getFolderIdByFolderName(
-				name = "${folderName}",
 				groupName = "${groupName}",
+				name = "${folderName}",
 				parentFolderId = "${parentFolderId}");
 		}
 		else {
 			var folderId = "0";
 		}
 
-		var baseDir = PropsUtil.get("test.base.dir.name");
-		var dependenciesDir = PropsUtil.get("test.dependencies.dir.name");
-		var filePath = "${baseDir}${dependenciesDir}/${sourceFileName}";
+		var filePath = TestCase.getDependenciesDirPath(fileName = "${sourceFileName}");
 
 		if (isSet(dmDocumentDescription)) {
 			var description = "${dmDocumentDescription}";
@@ -79,25 +133,72 @@ definition {
 			var description = "";
 		}
 
+		if (isSet(fileName)) {
+			var sourceFileName = "${fileName}";
+		}
+
+		if (!(isSet(expirationDate))) {
+			var expirationDate = "2099-01-25 01:00";
+		}
+
+		if (!(isSet(groupPermissions))) {
+			var groupPermissions = "true";
+		}
+
+		if (!(isSet(guestPermissions))) {
+			var guestPermissions = "true";
+		}
+
+		if (isSet(reviewDate)) {
+			var reviewDate = DateUtil.getDateOffsetByMinutes("${increaseMinutes}", "yyyy-MM-dd HH:mm");
+
+			echo("## * reviewDate: ${reviewDate}");
+		}
+
 		var serviceContext = JSONDocumentSetter.setServiceContext(
+			addGroupPermissions = "${groupPermissions}",
+			addGuestPermissions = "${guestPermissions}",
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
 			serviceContext = "${serviceContext}",
 			workflowAction = "${workflowAction}");
 
-		var curl = '''
-			${portalURL}/api/jsonws/dlapp/add-file-entry \
-			-u test@liferay.com:test \
-			-F repositoryId=${repositoryId} \
-			-F folderId=${folderId} \
-			-F sourceFileName=${sourceFileName} \
-			-F mimeType=${mimeType} \
-			-F title=${dmDocumentTitle} \
-		 	-F description=${description} \
-			-F changeLog='' \
-			-F file=@${filePath} \
-			-F serviceContext=${serviceContext}
-		''';
+		if (isSet(reviewDate)) {
+			var curl = '''
+				${portalURL}/api/jsonws/dlapp/add-file-entry \
+				-u test@liferay.com:test \
+				-F externalReferenceCode= \
+				-F repositoryId=${repositoryId} \
+				-F folderId=${folderId} \
+				-F sourceFileName=${sourceFileName} \
+				-F mimeType=${mimeType} \
+				-F title=${dmDocumentTitle} \
+				-F urlTitle= \
+			 	-F description=${description} \
+				-F changeLog= \
+				-F <CURL_DATA[expirationDate=${expirationDate}]CURL_DATA> \
+				-F <CURL_DATA[reviewDate=${reviewDate}]CURL_DATA> \
+				-F file=@${filePath} \
+				-F serviceContext=${serviceContext}
+			''';
+		}
+		else {
+			var curl = '''
+				${portalURL}/api/jsonws/dlapp/add-file-entry \
+				-u test@liferay.com:test \
+				-F externalReferenceCode= \
+				-F repositoryId=${repositoryId} \
+				-F folderId=${folderId} \
+				-F sourceFileName=${sourceFileName} \
+				-F mimeType=${mimeType} \
+				-F title=${dmDocumentTitle} \
+				-F urlTitle= \
+			 	-F description=${description} \
+				-F changeLog= \
+				-F file=@${filePath} \
+				-F serviceContext=${serviceContext}
+			''';
+		}
 
 		echo("## Adding a 'File' with the following info using JSONWS:");
 
@@ -105,44 +206,9 @@ definition {
 
 		echo("## * Description: ${description}");
 
-		var messageId = JSONCurlUtil.post("${curl}");
-	}
+		var fileEntryId = JSONCurlUtil.post("${curl}", "$..fileEntryId");
 
-	@summary = "This calls the JSON WS API to add a DL Folder"
-	macro addFolder {
-		var portalURL = JSONCompany.getPortalURL();
-
-		if (!(isSet(site))) {
-			var site = "true";
-		}
-
-		var repositoryId = JSONGroupAPI._getGroupIdByName(groupName = "${groupName}", site = "${site}");
-
-		if (isSet(parentFolderName)) {
-			var parentFolderId = JSONDocumentAPI._getFolderIdByFolderName(
-				name = "${parentFolderName}",
-				groupName = "${groupName}");
-		}
-		else {
-			var parentFolderId = "0";
-		}
-
-		var curl = '''
-			${portalURL}/api/jsonws/dlapp/add-folder \
-			-u test@liferay.com:test \
-			-d repositoryId=${repositoryId} \
-			-d parentFolderId=${parentFolderId} \
-			-d name=${dmFolderName} \
-		 	-d description=${dmFolderDescription} \
-		''';
-
-		echo("## Adding a 'Folder' with the following info using JSONWS:");
-
-		echo("## * Name: ${dmFolderName}");
-
-		echo("## * Description: ${dmFolderDescription}");
-
-		var messageId = JSONCurlUtil.post("${curl}");
+		return "${fileEntryId}";
 	}
 
 	@summary = "This calls the JSON WS API to delete a Document entry"
@@ -153,10 +219,17 @@ definition {
 			var site = "true";
 		}
 
-		var groupId = JSONGroupAPI._getGroupIdByName(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		if (!(isSet(folderId))) {
 			var folderId = "0";
+		}
+		else {
+			var folderId = JSONDocumentAPI._getFolderIdByFolderName(
+				groupName = "${groupName}",
+				name = "${folderName}");
 		}
 
 		var curl = '''
@@ -168,6 +241,164 @@ definition {
 		''';
 
 		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	macro getFileEntryId {
+		if (!(isSet(portalURL))) {
+			var portalURL = JSONCompany.getPortalURL();
+		}
+
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			portalURL = "${portalURL}",
+			site = "${site}");
+
+		if (!(isSet(folderId))) {
+			var folderId = "0";
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/dlfileentry/get-file-entry \
+			  -u test@liferay.com:test \
+			  -d groupId=${groupId} \
+			  -d folderId=${folderId} \
+			  -d title=${dmDocumentTitle}
+		''';
+		var fileEntryId = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${dmDocumentTitle}')]['fileEntryId']");
+
+		return "${fileEntryId}";
+
+		echo("## * File Entry ID: ${fileEntryId}");
+	}
+
+	macro getFileEntryUUID {
+		if (!(isSet(portalURL))) {
+			var portalURL = JSONCompany.getPortalURL();
+		}
+
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			portalURL = "${portalURL}",
+			site = "${site}");
+
+		if (!(isSet(folderId))) {
+			var folderId = "0";
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/dlfileentry/get-file-entry \
+			  -u test@liferay.com:test \
+			  -d groupId=${groupId} \
+			  -d folderId=${folderId} \
+			  -d title=${dmDocumentTitle}
+		''';
+		var fileEntryUuid = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${dmDocumentTitle}')]['uuid']");
+
+		return "${fileEntryUuid}";
+	}
+
+	@summary = "This calls the JSON WS API to move a document to a folder"
+	macro moveFileEntryToFolder {
+		var fileEntryId = JSONDocument.getFileEntryId(
+			dmDocumentTitle = "${dmDocumentTitle}",
+			folderId = "${folderId}",
+			groupName = "${groupName}",
+			portalURL = "${baseURL}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var newFolderId = JSONDocumentAPI._getFolderIdByFolderName(
+			groupName = "${groupName}",
+			name = "${folderName}");
+
+		var curl = '''
+			${portalURL}/api/jsonws/dlapp/move-file-entry \
+			-u test@liferay.com:test \
+			-d fileEntryId=${fileEntryId} \
+			-d newFolderId=${newFolderId}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to move a document to a trash"
+	macro moveToRecycleBin {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (isSet(folderName)) {
+			if (isSet(stagingDepotName)) {
+				var folderId = JSONDocumentAPI._getFolderIdByFolderName(
+					groupName = "${stagingDepotName}-staging",
+					name = "${folderName}",
+					parentFolderId = "${parentFolderId}");
+			}
+			else {
+				var folderId = JSONDocumentAPI._getFolderIdByFolderName(
+					groupName = "${groupName}",
+					name = "${folderName}");
+			}
+		}
+		else {
+			var folderId = "0";
+		}
+
+		var fileEntryId = JSONDocument.getFileEntryId(
+			dmDocumentTitle = "${dmDocumentTitle}",
+			folderId = "${folderId}",
+			groupName = "${groupName}",
+			portalURL = "${baseURL}",
+			site = "${site}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/dltrash/move-file-entry-to-trash \
+			-u test@liferay.com:test \
+			-d fileEntryId=${fileEntryId}
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to subscribe to a folder"
+	macro subscribeToFolder {
+		var folderId = JSONDocumentAPI._getFolderIdByFolderName(
+			groupName = "${groupName}",
+			name = "${dmFolderName}");
+
+		if (!(isSet(portalURL))) {
+			var portalURL = JSONCompany.getPortalURL();
+		}
+
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			portalURL = "${portalURL}",
+			site = "${site}");
+
+		var curl = '''
+			${portalURL}/api/jsonws/dlapp/subscribe-folder \
+			-u test@liferay.com:test \
+			-d groupId=${groupId} \
+			-d folderId=${folderId} \
+		''';
+
+		echo("## * groupId: ${groupId}");
+
+		echo("## * folderId: ${folderId}");
+
+		var messageId = JSONCurlUtil.post("${curl}");
 	}
 
 }

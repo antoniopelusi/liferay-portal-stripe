@@ -23,7 +23,8 @@ import com.liferay.portal.search.query.function.score.ScoreFunctionTranslator;
  * @author André de Oliveira
  */
 public class ExponentialDecayScoreFunctionImpl
-	extends DecayScoreFunctionImpl implements ExponentialDecayScoreFunction {
+	extends BaseDecayScoreFunctionImpl
+	implements ExponentialDecayScoreFunction {
 
 	public ExponentialDecayScoreFunctionImpl(
 		String field, Object origin, Object scale, Object offset) {

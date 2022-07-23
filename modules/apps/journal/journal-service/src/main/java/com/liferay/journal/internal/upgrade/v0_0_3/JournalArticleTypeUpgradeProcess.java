@@ -69,7 +69,14 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 		_userLocalService = userLocalService;
 	}
 
-	protected AssetCategory addAssetCategory(
+	@Override
+	protected void doUpgrade() throws Exception {
+		_updateArticleType();
+
+		_alterTable();
+	}
+
+	private AssetCategory _addAssetCategory(
 			long groupId, long companyId, String title, long assetVocabularyId)
 		throws Exception {
 
@@ -84,7 +91,7 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 			userId, groupId, title, assetVocabularyId, serviceContext);
 	}
 
-	protected AssetVocabulary addAssetVocabulary(
+	private AssetVocabulary _addAssetVocabulary(
 			long groupId, long companyId, String title,
 			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap)
 		throws Exception {
@@ -111,41 +118,34 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 			assetVocabularySettingsHelper.toString(), serviceContext);
 	}
 
-	protected void alterTable() throws Exception {
+	private void _alterTable() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			runSQL("alter table JournalArticle drop column type_");
 		}
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		updateArticleType();
-
-		alterTable();
-	}
-
-	protected Set<String> getArticleTypes() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private Set<String> _getArticleTypes() throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select distinct type_ from JournalArticle");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
 			Set<String> types = new HashSet<>();
 
-			while (rs.next()) {
-				types.add(StringUtil.toLowerCase(rs.getString("type_")));
+			while (resultSet.next()) {
+				types.add(StringUtil.toLowerCase(resultSet.getString("type_")));
 			}
 
 			return types;
 		}
 	}
 
-	protected boolean hasSelectedArticleTypes() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private boolean _hasSelectedArticleTypes() throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select count(*) from JournalArticle where type_ != 'general'");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				int count = rs.getInt(1);
+			while (resultSet.next()) {
+				int count = resultSet.getInt(1);
 
 				if (count > 0) {
 					return true;
@@ -156,30 +156,28 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void updateArticles(
+	private void _updateArticles(
 			long companyId,
 			Map<String, Long> journalArticleTypesToAssetCategoryIds)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(8);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select JournalArticle.resourcePrimKey, ",
+					"JournalArticle.type_ from JournalArticle left join ",
+					"JournalArticle tempJournalArticle on ",
+					"(JournalArticle.groupId = tempJournalArticle.groupId) ",
+					"and (JournalArticle.articleId = ",
+					"tempJournalArticle.articleId) and ",
+					"(JournalArticle.version < tempJournalArticle.version) ",
+					"where JournalArticle.companyId = ? and ",
+					"tempJournalArticle.id_ is null"))) {
 
-		sb.append("select JournalArticle.resourcePrimKey, ");
-		sb.append("JournalArticle.type_ from JournalArticle left join ");
-		sb.append("JournalArticle tempJournalArticle on ");
-		sb.append("(JournalArticle.groupId = tempJournalArticle.groupId) and ");
-		sb.append("(JournalArticle.articleId = tempJournalArticle.articleId) ");
-		sb.append("and (JournalArticle.version < tempJournalArticle.version) ");
-		sb.append("where JournalArticle.companyId = ? and ");
-		sb.append("tempJournalArticle.id_ is null");
+			preparedStatement.setLong(1, companyId);
 
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			ps.setLong(1, companyId);
-
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					long resourcePrimKey = rs.getLong("resourcePrimKey");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					long resourcePrimKey = resultSet.getLong("resourcePrimKey");
 
 					AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
 						JournalArticle.class.getName(), resourcePrimKey);
@@ -188,7 +186,8 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					String type = StringUtil.toLowerCase(rs.getString("type_"));
+					String type = StringUtil.toLowerCase(
+						resultSet.getString("type_"));
 
 					long assetCategoryId =
 						journalArticleTypesToAssetCategoryIds.get(type);
@@ -201,13 +200,13 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void updateArticleType() throws Exception {
+	private void _updateArticleType() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			if (!hasSelectedArticleTypes()) {
+			if (!_hasSelectedArticleTypes()) {
 				return;
 			}
 
-			Set<String> types = getArticleTypes();
+			Set<String> types = _getArticleTypes();
 
 			if (types.size() <= 0) {
 				return;
@@ -232,7 +231,7 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 							LocalizationUtil.getLocalizationMap(
 								locales, defaultLocale, "type");
 
-						AssetVocabulary assetVocabulary = addAssetVocabulary(
+						AssetVocabulary assetVocabulary = _addAssetVocabulary(
 							company.getGroupId(), company.getCompanyId(),
 							"type", nameMap, new HashMap<Locale, String>());
 
@@ -241,7 +240,7 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 								new HashMap<>();
 
 						for (String type : types) {
-							AssetCategory assetCategory = addAssetCategory(
+							AssetCategory assetCategory = _addAssetCategory(
 								company.getGroupId(), company.getCompanyId(),
 								type, assetVocabulary.getVocabularyId());
 
@@ -249,7 +248,7 @@ public class JournalArticleTypeUpgradeProcess extends UpgradeProcess {
 								type, assetCategory.getCategoryId());
 						}
 
-						updateArticles(
+						_updateArticles(
 							company.getCompanyId(),
 							journalArticleTypesToAssetCategoryIds);
 					});

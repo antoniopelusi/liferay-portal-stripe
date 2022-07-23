@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.ContactModel;
-import com.liferay.portal.kernel.model.ContactSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -32,21 +31,20 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -79,17 +77,16 @@ public class ContactModelImpl
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
 		{"modifiedDate", Types.TIMESTAMP}, {"classNameId", Types.BIGINT},
-		{"classPK", Types.BIGINT}, {"accountId", Types.BIGINT},
-		{"parentContactId", Types.BIGINT}, {"emailAddress", Types.VARCHAR},
-		{"firstName", Types.VARCHAR}, {"middleName", Types.VARCHAR},
-		{"lastName", Types.VARCHAR}, {"prefixId", Types.BIGINT},
-		{"suffixId", Types.BIGINT}, {"male", Types.BOOLEAN},
-		{"birthday", Types.TIMESTAMP}, {"smsSn", Types.VARCHAR},
-		{"facebookSn", Types.VARCHAR}, {"jabberSn", Types.VARCHAR},
-		{"skypeSn", Types.VARCHAR}, {"twitterSn", Types.VARCHAR},
-		{"employeeStatusId", Types.VARCHAR}, {"employeeNumber", Types.VARCHAR},
-		{"jobTitle", Types.VARCHAR}, {"jobClass", Types.VARCHAR},
-		{"hoursOfOperation", Types.VARCHAR}
+		{"classPK", Types.BIGINT}, {"parentContactId", Types.BIGINT},
+		{"emailAddress", Types.VARCHAR}, {"firstName", Types.VARCHAR},
+		{"middleName", Types.VARCHAR}, {"lastName", Types.VARCHAR},
+		{"prefixId", Types.BIGINT}, {"suffixId", Types.BIGINT},
+		{"male", Types.BOOLEAN}, {"birthday", Types.TIMESTAMP},
+		{"smsSn", Types.VARCHAR}, {"facebookSn", Types.VARCHAR},
+		{"jabberSn", Types.VARCHAR}, {"skypeSn", Types.VARCHAR},
+		{"twitterSn", Types.VARCHAR}, {"employeeStatusId", Types.VARCHAR},
+		{"employeeNumber", Types.VARCHAR}, {"jobTitle", Types.VARCHAR},
+		{"jobClass", Types.VARCHAR}, {"hoursOfOperation", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -105,7 +102,6 @@ public class ContactModelImpl
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("accountId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("parentContactId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("emailAddress", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("firstName", Types.VARCHAR);
@@ -128,7 +124,7 @@ public class ContactModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table Contact_ (mvccVersion LONG default 0 not null,contactId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,accountId LONG,parentContactId LONG,emailAddress VARCHAR(254) null,firstName VARCHAR(75) null,middleName VARCHAR(75) null,lastName VARCHAR(75) null,prefixId LONG,suffixId LONG,male BOOLEAN,birthday DATE null,smsSn VARCHAR(75) null,facebookSn VARCHAR(75) null,jabberSn VARCHAR(75) null,skypeSn VARCHAR(75) null,twitterSn VARCHAR(75) null,employeeStatusId VARCHAR(75) null,employeeNumber VARCHAR(75) null,jobTitle VARCHAR(100) null,jobClass VARCHAR(75) null,hoursOfOperation VARCHAR(75) null)";
+		"create table Contact_ (mvccVersion LONG default 0 not null,contactId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,parentContactId LONG,emailAddress VARCHAR(254) null,firstName VARCHAR(75) null,middleName VARCHAR(75) null,lastName VARCHAR(75) null,prefixId LONG,suffixId LONG,male BOOLEAN,birthday DATE null,smsSn VARCHAR(75) null,facebookSn VARCHAR(75) null,jabberSn VARCHAR(75) null,skypeSn VARCHAR(75) null,twitterSn VARCHAR(75) null,employeeStatusId VARCHAR(75) null,employeeNumber VARCHAR(75) null,jobTitle VARCHAR(100) null,jobClass VARCHAR(75) null,hoursOfOperation VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP = "drop table Contact_";
 
@@ -166,102 +162,26 @@ public class ContactModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long ACCOUNTID_COLUMN_BITMASK = 1L;
+	public static final long CLASSNAMEID_COLUMN_BITMASK = 1L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CLASSNAMEID_COLUMN_BITMASK = 2L;
+	public static final long CLASSPK_COLUMN_BITMASK = 2L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CLASSPK_COLUMN_BITMASK = 4L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long COMPANYID_COLUMN_BITMASK = 8L;
+	public static final long COMPANYID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CONTACTID_COLUMN_BITMASK = 16L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Contact toModel(ContactSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Contact model = new ContactImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setContactId(soapModel.getContactId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setAccountId(soapModel.getAccountId());
-		model.setParentContactId(soapModel.getParentContactId());
-		model.setEmailAddress(soapModel.getEmailAddress());
-		model.setFirstName(soapModel.getFirstName());
-		model.setMiddleName(soapModel.getMiddleName());
-		model.setLastName(soapModel.getLastName());
-		model.setPrefixId(soapModel.getPrefixId());
-		model.setSuffixId(soapModel.getSuffixId());
-		model.setMale(soapModel.isMale());
-		model.setBirthday(soapModel.getBirthday());
-		model.setSmsSn(soapModel.getSmsSn());
-		model.setFacebookSn(soapModel.getFacebookSn());
-		model.setJabberSn(soapModel.getJabberSn());
-		model.setSkypeSn(soapModel.getSkypeSn());
-		model.setTwitterSn(soapModel.getTwitterSn());
-		model.setEmployeeStatusId(soapModel.getEmployeeStatusId());
-		model.setEmployeeNumber(soapModel.getEmployeeNumber());
-		model.setJobTitle(soapModel.getJobTitle());
-		model.setJobClass(soapModel.getJobClass());
-		model.setHoursOfOperation(soapModel.getHoursOfOperation());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Contact> toModels(ContactSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Contact> models = new ArrayList<Contact>(soapModels.length);
-
-		for (ContactSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
+	public static final long CONTACTID_COLUMN_BITMASK = 8L;
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
@@ -351,33 +271,6 @@ public class ContactModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, Contact>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Contact.class.getClassLoader(), Contact.class, ModelWrapper.class);
-
-		try {
-			Constructor<Contact> constructor =
-				(Constructor<Contact>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<Contact, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<Contact, Object>>
@@ -417,9 +310,6 @@ public class ContactModelImpl
 		attributeGetterFunctions.put("classPK", Contact::getClassPK);
 		attributeSetterBiConsumers.put(
 			"classPK", (BiConsumer<Contact, Long>)Contact::setClassPK);
-		attributeGetterFunctions.put("accountId", Contact::getAccountId);
-		attributeSetterBiConsumers.put(
-			"accountId", (BiConsumer<Contact, Long>)Contact::setAccountId);
 		attributeGetterFunctions.put(
 			"parentContactId", Contact::getParentContactId);
 		attributeSetterBiConsumers.put(
@@ -702,31 +592,6 @@ public class ContactModelImpl
 	@Deprecated
 	public long getOriginalClassPK() {
 		return GetterUtil.getLong(this.<Long>getColumnOriginalValue("classPK"));
-	}
-
-	@JSON
-	@Override
-	public long getAccountId() {
-		return _accountId;
-	}
-
-	@Override
-	public void setAccountId(long accountId) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_accountId = accountId;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public long getOriginalAccountId() {
-		return GetterUtil.getLong(
-			this.<Long>getColumnOriginalValue("accountId"));
 	}
 
 	@JSON
@@ -1155,7 +1020,6 @@ public class ContactModelImpl
 		contactImpl.setModifiedDate(getModifiedDate());
 		contactImpl.setClassNameId(getClassNameId());
 		contactImpl.setClassPK(getClassPK());
-		contactImpl.setAccountId(getAccountId());
 		contactImpl.setParentContactId(getParentContactId());
 		contactImpl.setEmailAddress(getEmailAddress());
 		contactImpl.setFirstName(getFirstName());
@@ -1177,6 +1041,62 @@ public class ContactModelImpl
 		contactImpl.setHoursOfOperation(getHoursOfOperation());
 
 		contactImpl.resetOriginalValues();
+
+		return contactImpl;
+	}
+
+	@Override
+	public Contact cloneWithOriginalValues() {
+		ContactImpl contactImpl = new ContactImpl();
+
+		contactImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		contactImpl.setContactId(
+			this.<Long>getColumnOriginalValue("contactId"));
+		contactImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		contactImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		contactImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		contactImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		contactImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		contactImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		contactImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		contactImpl.setParentContactId(
+			this.<Long>getColumnOriginalValue("parentContactId"));
+		contactImpl.setEmailAddress(
+			this.<String>getColumnOriginalValue("emailAddress"));
+		contactImpl.setFirstName(
+			this.<String>getColumnOriginalValue("firstName"));
+		contactImpl.setMiddleName(
+			this.<String>getColumnOriginalValue("middleName"));
+		contactImpl.setLastName(
+			this.<String>getColumnOriginalValue("lastName"));
+		contactImpl.setPrefixId(this.<Long>getColumnOriginalValue("prefixId"));
+		contactImpl.setSuffixId(this.<Long>getColumnOriginalValue("suffixId"));
+		contactImpl.setMale(this.<Boolean>getColumnOriginalValue("male"));
+		contactImpl.setBirthday(this.<Date>getColumnOriginalValue("birthday"));
+		contactImpl.setSmsSn(this.<String>getColumnOriginalValue("smsSn"));
+		contactImpl.setFacebookSn(
+			this.<String>getColumnOriginalValue("facebookSn"));
+		contactImpl.setJabberSn(
+			this.<String>getColumnOriginalValue("jabberSn"));
+		contactImpl.setSkypeSn(this.<String>getColumnOriginalValue("skypeSn"));
+		contactImpl.setTwitterSn(
+			this.<String>getColumnOriginalValue("twitterSn"));
+		contactImpl.setEmployeeStatusId(
+			this.<String>getColumnOriginalValue("employeeStatusId"));
+		contactImpl.setEmployeeNumber(
+			this.<String>getColumnOriginalValue("employeeNumber"));
+		contactImpl.setJobTitle(
+			this.<String>getColumnOriginalValue("jobTitle"));
+		contactImpl.setJobClass(
+			this.<String>getColumnOriginalValue("jobClass"));
+		contactImpl.setHoursOfOperation(
+			this.<String>getColumnOriginalValue("hoursOfOperation"));
 
 		return contactImpl;
 	}
@@ -1297,8 +1217,6 @@ public class ContactModelImpl
 		contactCacheModel.classNameId = getClassNameId();
 
 		contactCacheModel.classPK = getClassPK();
-
-		contactCacheModel.accountId = getAccountId();
 
 		contactCacheModel.parentContactId = getParentContactId();
 
@@ -1438,7 +1356,7 @@ public class ContactModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1449,9 +1367,26 @@ public class ContactModelImpl
 			Function<Contact, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Contact)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Contact)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1498,7 +1433,9 @@ public class ContactModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Contact>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Contact.class, ModelWrapper.class);
 
 	}
 
@@ -1512,7 +1449,6 @@ public class ContactModelImpl
 	private boolean _setModifiedDate;
 	private long _classNameId;
 	private long _classPK;
-	private long _accountId;
 	private long _parentContactId;
 	private String _emailAddress;
 	private String _firstName;
@@ -1569,7 +1505,6 @@ public class ContactModelImpl
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("classNameId", _classNameId);
 		_columnOriginalValues.put("classPK", _classPK);
-		_columnOriginalValues.put("accountId", _accountId);
 		_columnOriginalValues.put("parentContactId", _parentContactId);
 		_columnOriginalValues.put("emailAddress", _emailAddress);
 		_columnOriginalValues.put("firstName", _firstName);
@@ -1620,45 +1555,43 @@ public class ContactModelImpl
 
 		columnBitmasks.put("classPK", 256L);
 
-		columnBitmasks.put("accountId", 512L);
+		columnBitmasks.put("parentContactId", 512L);
 
-		columnBitmasks.put("parentContactId", 1024L);
+		columnBitmasks.put("emailAddress", 1024L);
 
-		columnBitmasks.put("emailAddress", 2048L);
+		columnBitmasks.put("firstName", 2048L);
 
-		columnBitmasks.put("firstName", 4096L);
+		columnBitmasks.put("middleName", 4096L);
 
-		columnBitmasks.put("middleName", 8192L);
+		columnBitmasks.put("lastName", 8192L);
 
-		columnBitmasks.put("lastName", 16384L);
+		columnBitmasks.put("prefixId", 16384L);
 
-		columnBitmasks.put("prefixId", 32768L);
+		columnBitmasks.put("suffixId", 32768L);
 
-		columnBitmasks.put("suffixId", 65536L);
+		columnBitmasks.put("male", 65536L);
 
-		columnBitmasks.put("male", 131072L);
+		columnBitmasks.put("birthday", 131072L);
 
-		columnBitmasks.put("birthday", 262144L);
+		columnBitmasks.put("smsSn", 262144L);
 
-		columnBitmasks.put("smsSn", 524288L);
+		columnBitmasks.put("facebookSn", 524288L);
 
-		columnBitmasks.put("facebookSn", 1048576L);
+		columnBitmasks.put("jabberSn", 1048576L);
 
-		columnBitmasks.put("jabberSn", 2097152L);
+		columnBitmasks.put("skypeSn", 2097152L);
 
-		columnBitmasks.put("skypeSn", 4194304L);
+		columnBitmasks.put("twitterSn", 4194304L);
 
-		columnBitmasks.put("twitterSn", 8388608L);
+		columnBitmasks.put("employeeStatusId", 8388608L);
 
-		columnBitmasks.put("employeeStatusId", 16777216L);
+		columnBitmasks.put("employeeNumber", 16777216L);
 
-		columnBitmasks.put("employeeNumber", 33554432L);
+		columnBitmasks.put("jobTitle", 33554432L);
 
-		columnBitmasks.put("jobTitle", 67108864L);
+		columnBitmasks.put("jobClass", 67108864L);
 
-		columnBitmasks.put("jobClass", 134217728L);
-
-		columnBitmasks.put("hoursOfOperation", 268435456L);
+		columnBitmasks.put("hoursOfOperation", 134217728L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

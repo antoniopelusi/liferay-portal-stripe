@@ -3,43 +3,41 @@ definition {
 	macro changeConfigColor {
 		var key_fragmentName = "${fragmentName}";
 
-		if (IsNotVisible(locator1 = "Fragment#FRAGMENT_HEADER")) {
-			Click.clickNoWaitForVisible(locator1 = "Fragment#FRAGMENT_HEADER");
+		PageEditor.clickConfigurableField(fragmentName = "${fragmentName}");
+
+		AssertVisible(
+			key_sidebarButton = "Browser",
+			locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
+
+		Navigator.gotoNavTab(navTab = "General");
+
+		if (isSet(colorPicker)) {
+			PageEditor.selectColorSwatchItem(
+				colorSwatchItem = "${colorPicker}",
+				fieldLabel = "${fieldLabel}");
 		}
-
-		PageEditor.gotoTab(tabName = "Selection");
-
-		AssertClick(
-			key_navItem = "General",
-			locator1 = "PageEditor#NAV_ITEM_BUTTON",
-			value1 = "General");
-
-		Click(
-			colorPalette = "${colorPalette}",
-			locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_PALETTE_SELECT");
+		else {
+			Click(
+				colorPalette = "${colorPalette}",
+				locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_PALETTE_SELECT");
+		}
 
 		PageEditor.waitForAutoSave();
 	}
 
 	macro changeConfigSelection {
-		var key_fragmentName = "${fragmentName}";
+		PageEditor.clickConfigurableField(fragmentName = "${fragmentName}");
 
-		if (IsNotVisible(locator1 = "Fragment#FRAGMENT_HEADER")) {
-			Click.clickNoWaitForVisible(locator1 = "Fragment#FRAGMENT_HEADER");
-		}
+		AssertVisible(
+			key_sidebarButton = "Browser",
+			locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
 
-		PageEditor.gotoTab(tabName = "Selection");
+		Navigator.gotoNavTab(navTab = "General");
 
-		AssertClick(
-			key_navItem = "General",
-			locator1 = "PageEditor#NAV_ITEM_BUTTON",
-			value1 = "General");
-
-		while (!IsTextEqual(locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_FIELD_SELECT", value1 = "${optionValue}")) {
-			Select(
-				locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_FIELD_SELECT",
-				value1 = "${optionValue}");
-		}
+		Select(
+			key_fieldLabel = "${fieldLabel}",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${optionValue}");
 
 		PageEditor.waitForAutoSave();
 	}
@@ -47,16 +45,13 @@ definition {
 	macro changeConfigText {
 		var key_fragmentName = "${fragmentName}";
 
-		if (IsNotVisible(locator1 = "Fragment#FRAGMENT_HEADER")) {
-			Click.clickNoWaitForVisible(locator1 = "Fragment#FRAGMENT_HEADER");
-		}
+		PageEditor.clickConfigurableField(fragmentName = "${fragmentName}");
 
-		PageEditor.gotoTab(tabName = "Selection");
+		AssertVisible(
+			key_sidebarButton = "Browser",
+			locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
 
-		AssertClick(
-			key_navItem = "General",
-			locator1 = "PageEditor#NAV_ITEM_BUTTON",
-			value1 = "General");
+		Navigator.gotoNavTab(navTab = "General");
 
 		FormFields.editText(
 			fieldName = "${textConfigName}",
@@ -65,7 +60,7 @@ definition {
 		Pause(locator1 = "3000");
 
 		Click(
-			key_sidebarButton = "Selection",
+			key_sidebarButton = "Browser",
 			locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
 
 		PageEditor.waitForAutoSave();
@@ -76,14 +71,13 @@ definition {
 
 		Click(locator1 = "PageEditor#CONTENT_PAGE_DISABLED_HEADER");
 
-		Click.clickNoWaitForVisible(locator1 = "Fragment#FRAGMENT_HEADER");
+		PageEditor.clickConfigurableField(fragmentName = "${fragmentName}");
 
-		PageEditor.gotoTab(tabName = "Selection");
+		AssertVisible(
+			key_sidebarButton = "Browser",
+			locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
 
-		AssertClick(
-			key_navItem = "General",
-			locator1 = "PageEditor#NAV_ITEM_BUTTON",
-			value1 = "General");
+		Navigator.gotoNavTab(navTab = "General");
 
 		while (IsNotChecked.isNotCheckedNotVisible(checkboxName = "${checkboxName}", locator1 = "Checkbox#ANY_CHECKBOX")) {
 			Click.clickAtNotVisible(

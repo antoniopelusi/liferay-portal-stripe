@@ -49,7 +49,7 @@ boolean readyForPropagation = GetterUtil.getBoolean(layoutSetPrototype.getSettin
 				PortalUtil.getControlPanelPortletURL(request, group, portletId, 0, 0, PortletRequest.RENDER_PHASE)
 			).setRedirect(
 				currentURL
-			).build();
+			).buildPortletURL();
 		}
 		%>
 

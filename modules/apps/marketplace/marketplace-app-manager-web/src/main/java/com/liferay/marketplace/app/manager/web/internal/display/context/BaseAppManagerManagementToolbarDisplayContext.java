@@ -19,7 +19,6 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.marketplace.app.manager.web.internal.constants.BundleStateConstants;
 import com.liferay.marketplace.app.manager.web.internal.util.BundleManagerUtil;
 import com.liferay.marketplace.app.manager.web.internal.util.MarketplaceAppManagerUtil;
-import com.liferay.marketplace.model.App;
 import com.liferay.marketplace.service.AppLocalServiceUtil;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.CharPool;
@@ -65,11 +64,9 @@ public abstract class BaseAppManagerManagementToolbarDisplayContext
 	}
 
 	public List<DropdownItem> getCategoryDropdownItems() {
-		List<App> apps = AppLocalServiceUtil.getApps(
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
 		String[] categories = MarketplaceAppManagerUtil.getCategories(
-			apps, BundleManagerUtil.getBundles());
+			AppLocalServiceUtil.getApps(QueryUtil.ALL_POS, QueryUtil.ALL_POS),
+			BundleManagerUtil.getBundles());
 
 		Map<String, String> categoriesMap = new LinkedHashMap<>();
 
@@ -84,14 +81,14 @@ public abstract class BaseAppManagerManagementToolbarDisplayContext
 			categoriesMap.put(translatedCategory, category);
 		}
 
-		PortletURL portletURL = PortletURLBuilder.create(
-			getPortletURL()
-		).setParameter(
-			"resetCur", Boolean.TRUE.toString()
-		).build();
-
 		return getDropdownItems(
-			categoriesMap, portletURL, "category", getCategory());
+			categoriesMap,
+			PortletURLBuilder.create(
+				getPortletURL()
+			).setParameter(
+				"resetCur", true
+			).buildPortletURL(),
+			"category", getCategory());
 	}
 
 	@Override
@@ -130,14 +127,14 @@ public abstract class BaseAppManagerManagementToolbarDisplayContext
 			BundleStateConstants.INSTALLED_LABEL
 		};
 
-		PortletURL portletURL = PortletURLBuilder.create(
-			getPortletURL()
-		).setParameter(
-			"resetCur", Boolean.TRUE.toString()
-		).build();
-
 		return getDropdownItems(
-			getDefaultEntriesMap(states), portletURL, "state", getState());
+			getDefaultEntriesMap(states),
+			PortletURLBuilder.create(
+				getPortletURL()
+			).setParameter(
+				"resetCur", true
+			).buildPortletURL(),
+			"state", getState());
 	}
 
 	@Override

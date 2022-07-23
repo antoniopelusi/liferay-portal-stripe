@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCacheManager;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Account;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.CompanyInfo;
@@ -34,7 +33,6 @@ import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.VirtualHost;
 import com.liferay.portal.kernel.model.cache.CacheField;
-import com.liferay.portal.kernel.service.AccountLocalServiceUtil;
 import com.liferay.portal.kernel.service.CompanyInfoLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
@@ -79,16 +77,6 @@ public class CompanyImpl extends CompanyBaseImpl {
 		}
 
 		return webId1.compareTo(webId2);
-	}
-
-	@Override
-	public Account getAccount() throws PortalException {
-		if (_account == null) {
-			_account = AccountLocalServiceUtil.getAccount(
-				getCompanyId(), getAccountId());
-		}
-
-		return _account;
 	}
 
 	@Override
@@ -207,8 +195,8 @@ public class CompanyImpl extends CompanyBaseImpl {
 
 	@AutoEscape
 	@Override
-	public String getName() throws PortalException {
-		return getAccount().getName();
+	public String getName() {
+		return super.getName();
 	}
 
 	@Override
@@ -303,7 +291,7 @@ public class CompanyImpl extends CompanyBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -352,15 +340,6 @@ public class CompanyImpl extends CompanyBaseImpl {
 		return companySecurityBag._autoLogin;
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public boolean isSendPassword() {
-		return false;
-	}
-
 	@Override
 	public boolean isSendPasswordResetLink() {
 		return PrefsPropsUtil.getBoolean(
@@ -394,6 +373,13 @@ public class CompanyImpl extends CompanyBaseImpl {
 		CompanySecurityBag companySecurityBag = getCompanySecurityBag();
 
 		return companySecurityBag._strangersWithMx;
+	}
+
+	@Override
+	public boolean isUpdatePasswordRequired() {
+		CompanySecurityBag companySecurityBag = getCompanySecurityBag();
+
+		return companySecurityBag._updatePasswordRequired;
 	}
 
 	public void setCompanySecurityBag(Object companySecurityBag) {
@@ -445,6 +431,10 @@ public class CompanyImpl extends CompanyBaseImpl {
 				preferences, company,
 				PropsKeys.COMPANY_SECURITY_STRANGERS_WITH_MX,
 				PropsValues.COMPANY_SECURITY_STRANGERS_WITH_MX);
+			_updatePasswordRequired = _getPrefsPropsBoolean(
+				preferences, company,
+				PropsKeys.COMPANY_SECURITY_UPDATE_PASSWORD_REQUIRED,
+				PropsValues.COMPANY_SECURITY_UPDATE_PASSWORD_REQUIRED);
 		}
 
 		private final String _authType;
@@ -453,6 +443,7 @@ public class CompanyImpl extends CompanyBaseImpl {
 		private final boolean _strangers;
 		private final boolean _strangersVerify;
 		private final boolean _strangersWithMx;
+		private final boolean _updatePasswordRequired;
 
 	}
 
@@ -486,7 +477,6 @@ public class CompanyImpl extends CompanyBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(CompanyImpl.class);
 
-	private Account _account;
 	private CompanyInfo _companyInfo;
 
 	@CacheField

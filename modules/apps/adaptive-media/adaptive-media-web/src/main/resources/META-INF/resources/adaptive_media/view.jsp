@@ -32,7 +32,7 @@ AMManagementToolbarDisplayContext amManagementToolbarDisplayContext = new AMMana
 	showSearch="<%= false %>"
 />
 
-<div class="closed sidenav-container sidenav-right" id="<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>">
+<div class="closed sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/adaptive_media/info_panel" var="sidebarPanelURL" />
 
 	<liferay-frontend:sidebar-panel
@@ -81,7 +81,7 @@ AMManagementToolbarDisplayContext amManagementToolbarDisplayContext = new AMMana
 			List<AMImageConfigurationEntry> selectedConfigurationEntries = amManagementToolbarDisplayContext.getSelectedConfigurationEntries();
 			%>
 
-			<aui:form action="<%= deleteImageConfigurationEntryURL.toString() %>" method="post" name="fm">
+			<aui:form action="<%= deleteImageConfigurationEntryURL %>" method="post" name="fm">
 				<liferay-ui:search-container
 					emptyResultsMessage="there-are-no-image-resolutions"
 					id="imageConfigurationEntries"
@@ -90,7 +90,8 @@ AMManagementToolbarDisplayContext amManagementToolbarDisplayContext = new AMMana
 					total="<%= selectedConfigurationEntries.size() %>"
 				>
 					<liferay-ui:search-container-results
-						results="<%= ListUtil.subList(selectedConfigurationEntries, searchContainer.getStart(), searchContainer.getEnd()) %>"
+						calculateStartAndEnd="<%= true %>"
+						results="<%= selectedConfigurationEntries %>"
 					/>
 
 					<liferay-ui:search-container-row

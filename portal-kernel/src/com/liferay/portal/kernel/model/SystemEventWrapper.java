@@ -162,6 +162,11 @@ public class SystemEventWrapper
 		}
 	}
 
+	@Override
+	public SystemEvent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this system event.
 	 *

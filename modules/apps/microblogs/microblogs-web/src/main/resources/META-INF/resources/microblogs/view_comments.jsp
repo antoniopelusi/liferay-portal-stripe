@@ -32,10 +32,10 @@ PortletURL microblogsEntriesURL = PortletURLBuilder.createRenderURL(
 ).setTabs1(
 	ParamUtil.getString(request, "tabs1", "timeline")
 ).setParameter(
-	"cur", String.valueOf(cur)
+	"cur", cur
 ).setWindowState(
 	WindowState.NORMAL
-).build();
+).buildPortletURL();
 
 request.setAttribute(WebKeys.MICROBLOGS_ENTRIES_URL, microblogsEntriesURL);
 %>

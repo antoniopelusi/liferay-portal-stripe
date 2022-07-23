@@ -16,8 +16,6 @@
 
 <%@ include file="/dynamic_include/init.jsp" %>
 
-<script async src="//code.tidio.co/<%= clickToChatChatProviderAccountId %>.js"></script>
-
 <script type="text/javascript">
 	var _tn = _tn || [];
 
@@ -30,16 +28,32 @@
 	</c:if>
 
 	(function () {
-		document.write(unescape("%3Cspan id='tolvnow'%3E%3C/span%3E"));
+		function loadTolnowScript() {
+			if (!document.getElementById('tolvnow-script-chat')) {
+				var spanElement = document.createElement('span');
 
-		var tss = document.createElement('script');
+				spanElement.setAttribute('id', 'tolvnow');
 
-		tss.async = true;
-		tss.src = '//tracker.tolvnow.com/js/tn.js';
-		tss.type = 'text/javascript';
+				var scriptElement = document.createElement('script');
 
-		var s = document.getElementsByTagName('script')[0];
+				scriptElement.setAttribute('async', true);
+				scriptElement.setAttribute('id', 'tolvnow-script-chat');
+				scriptElement.setAttribute('src', '//tracker.tolvnow.com/js/tn.js');
+				scriptElement.setAttribute('type', 'text/javascript');
 
-		s.parentNode.insertBefore(tss, s);
+				var bodyElement = document.getElementsByTagName('body').item(0);
+
+				bodyElement.appendChild(spanElement);
+				bodyElement.appendChild(scriptElement);
+			}
+		}
+
+		window.onload = function () {
+			loadTolnowScript();
+		};
+
+		if (document.readyState === 'complete') {
+			loadTolnowScript();
+		}
 	})();
 </script>

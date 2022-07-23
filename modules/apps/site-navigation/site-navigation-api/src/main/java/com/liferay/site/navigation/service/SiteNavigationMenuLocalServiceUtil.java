@@ -155,12 +155,18 @@ public class SiteNavigationMenuLocalServiceUtil {
 		return getService().deleteSiteNavigationMenu(siteNavigationMenu);
 	}
 
-	public static void deleteSiteNavigationMenus(long groupId) {
+	public static void deleteSiteNavigationMenus(long groupId)
+		throws PortalException {
+
 		getService().deleteSiteNavigationMenus(groupId);
 	}
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -256,6 +262,12 @@ public class SiteNavigationMenuLocalServiceUtil {
 		long groupId, int type) {
 
 		return getService().fetchSiteNavigationMenu(groupId, type);
+	}
+
+	public static SiteNavigationMenu fetchSiteNavigationMenuByName(
+		long groupId, String name) {
+
+		return getService().fetchSiteNavigationMenuByName(groupId, name);
 	}
 
 	/**

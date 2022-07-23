@@ -41,8 +41,10 @@ import com.liferay.portal.security.ldap.util.LDAPUtil;
 import java.io.Serializable;
 
 import java.util.Date;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import javax.naming.Binding;
@@ -55,6 +57,8 @@ import javax.naming.ldap.LdapContext;
 
 import org.apache.commons.lang.time.StopWatch;
 
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -93,7 +97,9 @@ public class LDAPUserExporterImpl implements UserExporter {
 			contact.getContactId());
 
 		if (user.isDefaultUser() ||
-			(user.getStatus() != WorkflowConstants.STATUS_APPROVED)) {
+			((user.getStatus() != WorkflowConstants.STATUS_APPROVED) &&
+			 (user.getStatus() != WorkflowConstants.STATUS_INACTIVE)) ||
+			_isAnonymousUser(user)) {
 
 			return;
 		}
@@ -202,7 +208,7 @@ public class LDAPUserExporterImpl implements UserExporter {
 
 		if (userGroupBinding == null) {
 			if (userOperation == UserOperation.ADD) {
-				addGroup(
+				_addGroup(
 					ldapServerId, safeLdapContext, userGroup, user,
 					groupMappings, userMappings);
 			}
@@ -270,7 +276,9 @@ public class LDAPUserExporterImpl implements UserExporter {
 		throws Exception {
 
 		if (user.isDefaultUser() ||
-			(user.getStatus() != WorkflowConstants.STATUS_APPROVED)) {
+			((user.getStatus() != WorkflowConstants.STATUS_APPROVED) &&
+			 (user.getStatus() != WorkflowConstants.STATUS_INACTIVE)) ||
+			_isAnonymousUser(user)) {
 
 			return;
 		}
@@ -378,32 +386,13 @@ public class LDAPUserExporterImpl implements UserExporter {
 				throw nameNotFoundException;
 			}
 
-			_log.error(nameNotFoundException, nameNotFoundException);
+			_log.error(nameNotFoundException);
 		}
 		finally {
 			if (safeLdapContext != null) {
 				safeLdapContext.close();
 			}
 		}
-	}
-
-	protected Binding addGroup(
-			long ldapServerId, LdapContext ldapContext, UserGroup userGroup,
-			User user, Properties groupMappings, Properties userMappings)
-		throws Exception {
-
-		SafeLdapName userGroupSafeLdapName =
-			_portalToLDAPConverter.getGroupSafeLdapName(
-				ldapServerId, userGroup, groupMappings);
-
-		Attributes attributes = _portalToLDAPConverter.getLDAPGroupAttributes(
-			ldapServerId, userGroup, user, groupMappings, userMappings);
-
-		ldapContext.bind(
-			userGroupSafeLdapName, new PortalLDAPContext(attributes));
-
-		return _safePortalLDAP.getGroup(
-			ldapServerId, userGroup.getCompanyId(), userGroup.getName());
 	}
 
 	protected Binding addUser(
@@ -453,8 +442,78 @@ public class LDAPUserExporterImpl implements UserExporter {
 		_userLocalService = userLocalService;
 	}
 
+	private Binding _addGroup(
+			long ldapServerId, LdapContext ldapContext, UserGroup userGroup,
+			User user, Properties groupMappings, Properties userMappings)
+		throws Exception {
+
+		SafeLdapName userGroupSafeLdapName =
+			_portalToLDAPConverter.getGroupSafeLdapName(
+				ldapServerId, userGroup, groupMappings);
+
+		Attributes attributes = _portalToLDAPConverter.getLDAPGroupAttributes(
+			ldapServerId, userGroup, user, groupMappings, userMappings);
+
+		ldapContext.bind(
+			userGroupSafeLdapName, new PortalLDAPContext(attributes));
+
+		return _safePortalLDAP.getGroup(
+			ldapServerId, userGroup.getCompanyId(), userGroup.getName());
+	}
+
+	private User _getAnonymousUser(long companyId) throws Exception {
+		Configuration[] configurations = _configurationAdmin.listConfigurations(
+			String.format(
+				"(&(companyId=%s)(service.factoryPid=%s))", companyId,
+				"com.liferay.user.associated.data.web.internal.configuration." +
+					"AnonymousUserConfiguration"));
+
+		if (configurations == null) {
+			return null;
+		}
+
+		Optional<Configuration> configurationOptional = Optional.of(
+			configurations[0]);
+
+		if (!configurationOptional.isPresent()) {
+			return null;
+		}
+
+		Configuration configuration = configurationOptional.get();
+
+		Dictionary<String, Object> properties = configuration.getProperties();
+
+		long anonymousUserId = (long)properties.get("userId");
+
+		return _userLocalService.fetchUser(anonymousUserId);
+	}
+
+	private boolean _isAnonymousUser(User user) {
+		try {
+			User anonymousUser = _getAnonymousUser(user.getCompanyId());
+
+			if ((anonymousUser != null) &&
+				(user.getUserId() == anonymousUser.getUserId())) {
+
+				return true;
+			}
+
+			return false;
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+
+			return false;
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		LDAPUserExporterImpl.class);
+
+	@Reference
+	private ConfigurationAdmin _configurationAdmin;
 
 	private ConfigurationProvider<LDAPAuthConfiguration>
 		_ldapAuthConfigurationProvider;

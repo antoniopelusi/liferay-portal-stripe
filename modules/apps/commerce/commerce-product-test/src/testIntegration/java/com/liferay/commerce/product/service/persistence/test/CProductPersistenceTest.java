@@ -124,6 +124,10 @@ public class CProductPersistenceTest {
 
 		CProduct newCProduct = _persistence.create(pk);
 
+		newCProduct.setMvccVersion(RandomTestUtil.nextLong());
+
+		newCProduct.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newCProduct.setUuid(RandomTestUtil.randomString());
 
 		newCProduct.setExternalReferenceCode(RandomTestUtil.randomString());
@@ -149,6 +153,11 @@ public class CProductPersistenceTest {
 		CProduct existingCProduct = _persistence.findByPrimaryKey(
 			newCProduct.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCProduct.getMvccVersion(), newCProduct.getMvccVersion());
+		Assert.assertEquals(
+			existingCProduct.getCtCollectionId(),
+			newCProduct.getCtCollectionId());
 		Assert.assertEquals(existingCProduct.getUuid(), newCProduct.getUuid());
 		Assert.assertEquals(
 			existingCProduct.getExternalReferenceCode(),
@@ -245,10 +254,11 @@ public class CProductPersistenceTest {
 
 	protected OrderByComparator<CProduct> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"CProduct", "uuid", true, "externalReferenceCode", true,
-			"CProductId", true, "groupId", true, "companyId", true, "userId",
-			true, "userName", true, "createDate", true, "modifiedDate", true,
-			"publishedCPDefinitionId", true, "latestVersion", true);
+			"CProduct", "mvccVersion", true, "ctCollectionId", true, "uuid",
+			true, "externalReferenceCode", true, "CProductId", true, "groupId",
+			true, "companyId", true, "userId", true, "userName", true,
+			"createDate", true, "modifiedDate", true, "publishedCPDefinitionId",
+			true, "latestVersion", true);
 	}
 
 	@Test
@@ -535,6 +545,10 @@ public class CProductPersistenceTest {
 		long pk = RandomTestUtil.nextLong();
 
 		CProduct cProduct = _persistence.create(pk);
+
+		cProduct.setMvccVersion(RandomTestUtil.nextLong());
+
+		cProduct.setCtCollectionId(RandomTestUtil.nextLong());
 
 		cProduct.setUuid(RandomTestUtil.randomString());
 

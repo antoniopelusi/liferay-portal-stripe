@@ -36,13 +36,11 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -89,7 +87,7 @@ public class DisplayPageVerticalCard
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -102,15 +100,15 @@ public class DisplayPageVerticalCard
 			String layoutFullURL = PortalUtil.getLayoutFullURL(
 				_draftLayout, _themeDisplay);
 
-			layoutFullURL = HttpUtil.setParameter(
+			layoutFullURL = HttpComponentsUtil.setParameter(
 				layoutFullURL, "p_l_mode", Constants.EDIT);
 
-			return HttpUtil.setParameter(
+			return HttpComponentsUtil.setParameter(
 				layoutFullURL, "p_l_back_url", _themeDisplay.getURLCurrent());
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -167,7 +165,7 @@ public class DisplayPageVerticalCard
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -180,33 +178,26 @@ public class DisplayPageVerticalCard
 
 	@Override
 	public String getTitle() {
-		return HtmlUtil.escape(_layoutPageTemplateEntry.getName());
+		return _layoutPageTemplateEntry.getName();
 	}
 
 	private String _getSubtypeLabel() {
-		InfoItemFormVariationsProvider infoItemFormVariationsProvider =
+		InfoItemFormVariationsProvider<?> infoItemFormVariationsProvider =
 			_infoItemServiceTracker.getFirstInfoItemService(
 				InfoItemFormVariationsProvider.class,
 				_layoutPageTemplateEntry.getClassName());
 
-		if (infoItemFormVariationsProvider != null) {
-			Collection<InfoItemFormVariation> infoItemFormVariations =
-				infoItemFormVariationsProvider.getInfoItemFormVariations(
-					_layoutPageTemplateEntry.getGroupId());
+		if (infoItemFormVariationsProvider == null) {
+			return StringPool.BLANK;
+		}
 
-			for (InfoItemFormVariation infoItemFormVariation :
-					infoItemFormVariations) {
+		InfoItemFormVariation infoItemFormVariation =
+			infoItemFormVariationsProvider.getInfoItemFormVariation(
+				_layoutPageTemplateEntry.getGroupId(),
+				String.valueOf(_layoutPageTemplateEntry.getClassTypeId()));
 
-				String key = infoItemFormVariation.getKey();
-
-				if (key.equals(
-						String.valueOf(
-							_layoutPageTemplateEntry.getClassTypeId()))) {
-
-					return infoItemFormVariation.getLabel(
-						_themeDisplay.getLocale());
-				}
-			}
+		if (infoItemFormVariation != null) {
+			return infoItemFormVariation.getLabel(_themeDisplay.getLocale());
 		}
 
 		return StringPool.BLANK;

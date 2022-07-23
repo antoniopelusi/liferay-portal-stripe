@@ -15,7 +15,7 @@
 import ClayButton from '@clayui/button';
 import {Context as ModalContext} from '@clayui/modal';
 import {useEventListener} from '@liferay/frontend-js-react-web';
-import {useConfig} from 'dynamic-data-mapping-form-renderer';
+import {useConfig} from 'data-engine-js-components-web';
 import React, {useCallback, useContext} from 'react';
 
 import {useAutoSave} from './useAutoSave.es';
@@ -25,7 +25,7 @@ import {useAutoSave} from './useAutoSave.es';
  * Menu to alert the user if there is any change in the form that has not
  * been saved.
  */
-export const useBack = () => {
+export function useBack() {
 	const {portletNamespace} = useConfig();
 	const [{onClose}, dispatch] = useContext(ModalContext);
 
@@ -58,6 +58,7 @@ export const useBack = () => {
 							>
 								{Liferay.Language.get('leave')}
 							</ClayButton>
+
 							<ClayButton displayType="primary" onClick={onClose}>
 								{Liferay.Language.get('stay')}
 							</ClayButton>
@@ -80,4 +81,4 @@ export const useBack = () => {
 			`#${portletNamespace}controlMenu .sites-control-group span .control-menu-icon`
 		)
 	);
-};
+}

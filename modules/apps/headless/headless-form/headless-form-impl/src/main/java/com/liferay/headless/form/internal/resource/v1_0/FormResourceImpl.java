@@ -123,10 +123,11 @@ public class FormResourceImpl extends BaseFormResourceImpl {
 		return FormDocumentUtil.toFormDocument(
 			_dlurlHelper,
 			_dlAppService.addFileEntry(
-				ddmFormInstance.getGroupId(), folderId,
+				null, ddmFormInstance.getGroupId(), folderId,
 				binaryFile.getFileName(), binaryFile.getContentType(),
-				formDocument.getTitle(), formDocument.getDescription(), null,
-				binaryFile.getInputStream(), binaryFile.getSize(),
+				formDocument.getTitle(), formDocument.getTitle(),
+				formDocument.getDescription(), null,
+				binaryFile.getInputStream(), binaryFile.getSize(), null, null,
 				new ServiceContext()));
 	}
 

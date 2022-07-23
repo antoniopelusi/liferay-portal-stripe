@@ -33,7 +33,7 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -157,24 +157,18 @@ public class PanelAppMyAccountPermissionsTest {
 		_serviceRegistrations.add(
 			_bundleContext.registerService(
 				PanelApp.class, new TestPanelApp(portletId),
-				new HashMapDictionary<String, String>() {
-					{
-						put(
-							"panel.category.key",
-							PanelCategoryKeys.USER_MY_ACCOUNT);
-					}
-				}));
+				HashMapDictionaryBuilder.put(
+					"panel.category.key", PanelCategoryKeys.USER_MY_ACCOUNT
+				).build()));
 	}
 
-	private void _registerTestPortlet(final String portletId) throws Exception {
+	private void _registerTestPortlet(String portletId) throws Exception {
 		_serviceRegistrations.add(
 			_bundleContext.registerService(
 				Portlet.class, new TestPortlet(),
-				new HashMapDictionary<String, String>() {
-					{
-						put("javax.portlet.name", portletId);
-					}
-				}));
+				HashMapDictionaryBuilder.put(
+					"javax.portlet.name", portletId
+				).build()));
 	}
 
 	private static final BundleContext _bundleContext;

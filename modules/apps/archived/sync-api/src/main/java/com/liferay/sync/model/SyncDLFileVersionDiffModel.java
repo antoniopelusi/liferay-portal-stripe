@@ -170,4 +170,7 @@ public interface SyncDLFileVersionDiffModel
 	 */
 	public void setExpirationDate(Date expirationDate);
 
+	@Override
+	public SyncDLFileVersionDiff cloneWithOriginalValues();
+
 }

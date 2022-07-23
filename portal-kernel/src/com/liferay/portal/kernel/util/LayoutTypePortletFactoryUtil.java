@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.model.LayoutTypePortlet;
 public class LayoutTypePortletFactoryUtil {
 
 	public static LayoutTypePortlet create(Layout layout) {
-		return getLayoutTypePortletFactory().create(layout);
+		return _layoutTypePortletFactory.create(layout);
 	}
 
 	public static LayoutTypePortletFactory getLayoutTypePortletFactory() {

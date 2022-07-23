@@ -20,11 +20,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
 public class ListUtil {
+
+	public static void add(List<String> list, String item) {
+		list.add(item);
+	}
 
 	public static <E> List<E> copy(List<? extends E> master) {
 		if (master == null) {
@@ -34,12 +41,73 @@ public class ListUtil {
 		return new ArrayList<>(master);
 	}
 
+	public static String get(List<String> list, Integer index) {
+		return list.get(index);
+	}
+
+	public static String get(List<String> list, String index) {
+		try {
+			return list.get(Integer.parseInt(index));
+		}
+		catch (IndexOutOfBoundsException | NumberFormatException exception) {
+			throw exception;
+		}
+	}
+
 	public static boolean isEmpty(List<?> list) {
 		if ((list == null) || list.isEmpty()) {
 			return true;
 		}
 
 		return false;
+	}
+
+	public static List<String> newList() {
+		return new ArrayList<>();
+	}
+
+	public static List<String> newListFromString(String s) {
+		return newListFromString(s, StringPool.COMMA);
+	}
+
+	public static List<String> newListFromString(String s, String delimiter) {
+		s = s.trim();
+
+		if (delimiter.equals(",") && s.endsWith("]") && s.startsWith("[")) {
+			try {
+				JSONArray jsonArray = new JSONArray(s);
+
+				List<String> list = new ArrayList<>();
+
+				if (jsonArray != null) {
+					for (int i = 0; i < jsonArray.length(); i++) {
+						list.add(jsonArray.getString(i));
+					}
+				}
+
+				return list;
+			}
+			catch (JSONException jsonException) {
+			}
+		}
+
+		List<String> list = new ArrayList<>();
+
+		for (String item : s.split(delimiter)) {
+			list.add(item.trim());
+		}
+
+		return list;
+	}
+
+	public static void remove(List<String> list, String item) {
+		list.remove(item);
+	}
+
+	public static String size(List<String> list) {
+		int size = list.size();
+
+		return String.valueOf(size);
 	}
 
 	public static <E> List<E> sort(List<E> list) {

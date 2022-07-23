@@ -18,9 +18,9 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState} from 'react';
 
 import {config} from '../config/index';
-import {useDispatch} from '../store/index';
+import {useDispatch} from '../contexts/StoreContext';
 import updateItemConfig from '../thunks/updateItemConfig';
-import AllowedFragmentSelector from './AllowedFragmentSelector';
+import AllowedFragmentSelectorTree from './AllowedFragmentSelectorTree';
 
 const ManageAllowedFragmentModal = ({item, observer, onClose}) => {
 	const dispatch = useDispatch();
@@ -60,6 +60,7 @@ const ManageAllowedFragmentModal = ({item, observer, onClose}) => {
 	return (
 		<ClayModal
 			className="page-editor__allowed-fragment__modal"
+			containerProps={{className: 'cadmin'}}
 			observer={observer}
 			size="md"
 		>
@@ -67,13 +68,14 @@ const ManageAllowedFragmentModal = ({item, observer, onClose}) => {
 				{Liferay.Language.get('allowed-fragments')}
 			</ClayModal.Header>
 
-			<ClayModal.Body>
+			<ClayModal.Body className="p-0">
 				<p className="m-4 small text-secondary">
 					{Liferay.Language.get(
 						'specify-which-fragments-a-page-author-is-allowed-to-use-within-the-drop-zone-when-creating-a-page-from-this-master'
 					)}
 				</p>
-				<AllowedFragmentSelector
+
+				<AllowedFragmentSelectorTree
 					dropZoneConfig={item.config}
 					onSelectedFragment={onSelectedFragment}
 				/>
@@ -98,6 +100,7 @@ const ManageAllowedFragmentModal = ({item, observer, onClose}) => {
 									></span>
 								</span>
 							)}
+
 							{Liferay.Language.get('save')}
 						</ClayButton>
 					</ClayButton.Group>

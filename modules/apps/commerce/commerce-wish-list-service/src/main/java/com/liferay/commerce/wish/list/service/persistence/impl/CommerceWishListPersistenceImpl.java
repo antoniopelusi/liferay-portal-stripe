@@ -20,8 +20,8 @@ import com.liferay.commerce.wish.list.model.CommerceWishListTable;
 import com.liferay.commerce.wish.list.model.impl.CommerceWishListImpl;
 import com.liferay.commerce.wish.list.model.impl.CommerceWishListModelImpl;
 import com.liferay.commerce.wish.list.service.persistence.CommerceWishListPersistence;
+import com.liferay.commerce.wish.list.service.persistence.CommerceWishListUtil;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -31,21 +31,23 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.sql.Timestamp;
@@ -56,12 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the commerce wish list service.
@@ -4180,6 +4176,8 @@ public class CommerceWishListPersistenceImpl
 			commerceWishList);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the commerce wish lists in the entity cache if it is enabled.
 	 *
@@ -4187,6 +4185,14 @@ public class CommerceWishListPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<CommerceWishList> commerceWishLists) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (commerceWishLists.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (CommerceWishList commerceWishList : commerceWishLists) {
 			if (entityCache.getResult(
 					CommerceWishListImpl.class,
@@ -4266,7 +4272,7 @@ public class CommerceWishListPersistenceImpl
 		commerceWishList.setNew(true);
 		commerceWishList.setPrimaryKey(commerceWishListId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		commerceWishList.setUuid(uuid);
 
@@ -4386,7 +4392,7 @@ public class CommerceWishListPersistenceImpl
 			(CommerceWishListModelImpl)commerceWishList;
 
 		if (Validator.isNull(commerceWishList.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			commerceWishList.setUuid(uuid);
 		}
@@ -4394,25 +4400,25 @@ public class CommerceWishListPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (commerceWishList.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				commerceWishList.setCreateDate(now);
+				commerceWishList.setCreateDate(date);
 			}
 			else {
 				commerceWishList.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!commerceWishListModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				commerceWishList.setModifiedDate(now);
+				commerceWishList.setModifiedDate(date);
 			}
 			else {
 				commerceWishList.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4710,15 +4716,8 @@ public class CommerceWishListPersistenceImpl
 	 * Initializes the commerce wish list persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommerceWishListPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new CommerceWishListModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4871,15 +4870,31 @@ public class CommerceWishListPersistenceImpl
 				Boolean.class.getName()
 			},
 			new String[] {"groupId", "userId", "defaultWishList"}, false);
+
+		_setCommerceWishListUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(CommerceWishListImpl.class.getName());
+		_setCommerceWishListUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(CommerceWishListImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setCommerceWishListUtilPersistence(
+		CommerceWishListPersistence commerceWishListPersistence) {
+
+		try {
+			Field field = CommerceWishListUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, commerceWishListPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -4926,114 +4941,7 @@ public class CommerceWishListPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class CommerceWishListModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			CommerceWishListModelImpl commerceWishListModelImpl =
-				(CommerceWishListModelImpl)baseModel;
-
-			long columnBitmask = commerceWishListModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					commerceWishListModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						commerceWishListModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					commerceWishListModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return CommerceWishListImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return CommerceWishListTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			CommerceWishListModelImpl commerceWishListModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						commerceWishListModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = commerceWishListModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= CommerceWishListModelImpl.getColumnBitmask(
-				"name");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

@@ -35,7 +35,7 @@ import org.osgi.service.component.annotations.ReferenceScope;
  * @author Zoltán Takács
  * @generated
  */
-@Component(immediate = true, service = ServletData.class)
+@Component(enabled = false, immediate = true, service = ServletData.class)
 @Generated("")
 public class ServletDataImpl implements ServletData {
 

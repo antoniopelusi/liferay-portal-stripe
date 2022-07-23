@@ -75,8 +75,6 @@ public class AddDDMTemplateMVCActionCommand extends BaseMVCActionCommand {
 		Map<Locale, String> descriptionMap =
 			LocalizationUtil.getLocalizationMap(
 				uploadPortletRequest, "description");
-		String language = ParamUtil.getString(
-			uploadPortletRequest, "language", TemplateConstants.LANG_TYPE_VM);
 		String script = ActionUtil.getScript(uploadPortletRequest);
 		boolean cacheable = ParamUtil.getBoolean(
 			uploadPortletRequest, "cacheable");
@@ -100,15 +98,13 @@ public class AddDDMTemplateMVCActionCommand extends BaseMVCActionCommand {
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			DDMTemplate.class.getName(), uploadPortletRequest);
 
-		serviceContext.setAddGroupPermissions(true);
-		serviceContext.setAddGuestPermissions(true);
-
 		DDMTemplate ddmTemplate = _ddmTemplateService.addTemplate(
 			groupId, _portal.getClassNameId(DDMStructure.class), classPK,
 			_portal.getClassNameId(JournalArticle.class), templateKey, nameMap,
 			descriptionMap, DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY,
-			StringPool.BLANK, language, script, cacheable, smallImage,
-			smallImageURL, smallImageFile, serviceContext);
+			StringPool.BLANK, TemplateConstants.LANG_TYPE_FTL, script,
+			cacheable, smallImage, smallImageURL, smallImageFile,
+			serviceContext);
 
 		boolean saveAndContinue = ParamUtil.getBoolean(
 			uploadPortletRequest, "saveAndContinue");

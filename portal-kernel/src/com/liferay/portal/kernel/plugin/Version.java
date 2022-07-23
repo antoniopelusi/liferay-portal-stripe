@@ -215,11 +215,7 @@ public class Version implements Comparable<Version>, Serializable {
 	}
 
 	public boolean includes(Version version) {
-		if (equals(version)) {
-			return true;
-		}
-
-		if (getMajor().equals(StringPool.STAR)) {
+		if (equals(version) || getMajor().equals(StringPool.STAR)) {
 			return true;
 		}
 
@@ -399,7 +395,7 @@ public class Version implements Comparable<Version>, Serializable {
 			}
 			catch (NumberFormatException numberFormatException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(numberFormatException, numberFormatException);
+					_log.debug(numberFormatException);
 				}
 
 				return false;

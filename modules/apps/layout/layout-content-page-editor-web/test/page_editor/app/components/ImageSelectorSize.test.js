@@ -13,16 +13,16 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {act, cleanup, render} from '@testing-library/react';
+import {act, render} from '@testing-library/react';
 import React from 'react';
 
-import {useGlobalContext} from '../../../../src/main/resources/META-INF/resources/page_editor/app/components/GlobalContext';
+import {useGlobalContext} from '../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/GlobalContext';
+import {StoreAPIContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
 import ImageService from '../../../../src/main/resources/META-INF/resources/page_editor/app/services/ImageService';
-import {StoreAPIContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/store';
 import {ImageSelectorSize} from '../../../../src/main/resources/META-INF/resources/page_editor/common/components/ImageSelectorSize';
 
 jest.mock(
-	'../../../../src/main/resources/META-INF/resources/page_editor/app/components/GlobalContext'
+	'../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/GlobalContext'
 );
 
 jest.mock(
@@ -91,7 +91,6 @@ describe('ImageSelectorSize', () => {
 	afterEach(() => {
 		useGlobalContext.mockClear();
 		ImageService.getAvailableImageConfigurations.mockClear();
-		cleanup();
 	});
 
 	it('renders viewport width if there are no image sizes', async () => {

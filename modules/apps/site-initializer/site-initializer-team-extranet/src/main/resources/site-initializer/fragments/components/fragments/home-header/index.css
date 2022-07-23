@@ -1,0 +1,64 @@
+.home-header {
+	background-color: var(--brand-color-1);
+	color: var(--white);
+}
+
+.home-header .arrow-down {
+	bottom: 0;
+	fill: var(--secondary);
+	margin-right: -12px;
+	position: absolute;
+	right: 0;
+}
+
+.home-header .arrow-down:hover {
+	transform: translatey(4px);
+	transition: 0.15s;
+}
+
+.home-header .header-intro {
+	color: var(--brand-color-3);
+	font-size: var(--font-size-lg);
+}
+
+.home-header .header-title {
+	font-size: var(--display4-size);
+	font-weight: var(--display4-weight);
+	line-height: var(--display-line-height);
+	max-width: 100%;
+	width: 680px;
+}
+
+.home-header .image-group {
+	background-attachment: fixed;
+	background-image: url([resources:team_meet.jpg]);
+	background-repeat: no-repeat;
+	background-size: cover;
+	height: 60vh;
+}
+
+@media (min-width: 1280px) {
+	.home-header .container-fluid,
+	.home-header .container-fluid-max-xl {
+		padding: 0;
+	}
+}
+
+@media (max-width: 768px) {
+	.home-header .image-group {
+		height: 40vh;
+	}
+}
+
+@media (max-width: 576px) {
+	.home-header .arrow-down {
+		display: none;
+	}
+	.home-header .header-title {
+		font-size: 40px;
+		width: 100%;
+	}
+	.home-header .image-group {
+		height: 30vh;
+	}
+}

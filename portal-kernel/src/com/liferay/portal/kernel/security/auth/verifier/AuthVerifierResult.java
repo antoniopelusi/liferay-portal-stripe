@@ -68,17 +68,9 @@ public class AuthVerifierResult {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{settings=");
-		sb.append(_settings);
-		sb.append(", state=");
-		sb.append(_state);
-		sb.append(", userId=");
-		sb.append(_userId);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{settings=", _settings, ", state=", _state, ", userId=", _userId,
+			"}");
 	}
 
 	public enum State {

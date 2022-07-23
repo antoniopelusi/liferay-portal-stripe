@@ -1,59 +1,66 @@
-<definition default="clickAt">
-	<command name="clickAt">
-		<execute selenium="waitForVisible" />
+@default = "clickAt"
+definition {
 
-		<execute selenium="mouseOver" />
+	function clickAt {
+		selenium.waitForVisible();
 
-		<if>
-			<condition selenium="isChecked" />
-			<then>
-				<execute selenium="clickAt" />
-			</then>
-		</if>
+		selenium.mouseOver();
 
-		<execute function="AssertNotChecked#assertNotChecked" />
-	</command>
+		if (selenium.isChecked()) {
+			selenium.clickAt();
+		}
 
-	<command name="uncheckNoError">
-		<execute selenium="waitForVisible" />
+		AssertNotChecked.assertNotChecked();
+	}
 
-		<execute selenium="mouseOver" />
+	function uncheckNotVisible {
+		selenium.waitForElementPresent();
 
-		<if>
-			<condition selenium="isChecked" />
-			<then>
-				<execute selenium="clickAt" />
-			</then>
-		</if>
+		selenium.mouseOver();
 
-		<execute function="AssertNotChecked#assertNotChecked" />
-	</command>
+		if (selenium.isChecked()) {
+			selenium.clickAt();
 
-	<command name="uncheckToggleSwitch">
-		<execute selenium="waitForElementPresent" />
+			selenium.pause("1000");
+		}
 
-		<execute selenium="mouseOver" />
+		selenium.assertNotChecked();
+	}
 
-		<if>
-			<condition selenium="isChecked" />
-			<then>
-				<execute selenium="clickAt" />
-			</then>
-		</if>
+	function uncheckToggleSwitch {
+		selenium.waitForElementPresent();
 
-		<execute function="AssertNotChecked#assertNotCheckedToggleSwitch" />
-	</command>
+		selenium.mouseOver();
 
-	<command name="uncheckToggleSwitchNoErrorNoAssert">
-		<execute selenium="waitForElementPresent" />
+		if (selenium.isChecked()) {
+			selenium.clickAt();
+		}
 
-		<execute selenium="mouseOver" />
+		AssertNotChecked.assertNotCheckedNotVisible();
+	}
 
-		<if>
-			<condition selenium="isChecked" />
-			<then>
-				<execute selenium="clickAt" />
-			</then>
-		</if>
-	</command>
-</definition>
+	function uncheckToggleSwitchAndPause {
+		selenium.waitForElementPresent();
+
+		selenium.mouseOver();
+
+		if (selenium.isChecked()) {
+			selenium.clickAt();
+		}
+
+		selenium.pause("1000");
+
+		AssertNotChecked.assertNotCheckedNotVisible();
+	}
+
+	function uncheckToggleSwitchNoErrorNoAssert {
+		selenium.waitForElementPresent();
+
+		selenium.mouseOver();
+
+		if (selenium.isChecked()) {
+			selenium.clickAt();
+		}
+	}
+
+}

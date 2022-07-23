@@ -30,6 +30,10 @@ public class DDMFormInstanceRecordLocalServiceWrapper
 	implements DDMFormInstanceRecordLocalService,
 			   ServiceWrapper<DDMFormInstanceRecordLocalService> {
 
+	public DDMFormInstanceRecordLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMFormInstanceRecordLocalServiceWrapper(
 		DDMFormInstanceRecordLocalService ddmFormInstanceRecordLocalService) {
 
@@ -171,6 +175,13 @@ public class DDMFormInstanceRecordLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmFormInstanceRecordLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmFormInstanceRecordLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

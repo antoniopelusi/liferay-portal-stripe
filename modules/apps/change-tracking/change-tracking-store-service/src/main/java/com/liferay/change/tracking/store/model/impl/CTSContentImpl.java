@@ -18,8 +18,4 @@ package com.liferay.change.tracking.store.model.impl;
  * @author Shuyang Zhou
  */
 public class CTSContentImpl extends CTSContentBaseImpl {
-
-	public CTSContentImpl() {
-	}
-
 }

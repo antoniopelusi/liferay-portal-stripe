@@ -48,11 +48,31 @@ public @interface ExtendedObjectClassDefinition {
 
 	public boolean generateUI() default true;
 
+	public String liferayLearnMessageKey() default "";
+
+	public String liferayLearnMessageResource() default "";
+
 	public String[] nameArguments() default {};
 
 	public Scope scope() default Scope.SYSTEM;
 
 	public String settingsId() default "";
+
+	/**
+	 * Whether or not the configuration's visibility will be limited to the
+	 * declared scope.
+	 *
+	 * If true, the configuration will only be visible at the declared scope.
+	 *
+	 * If false, the configuration will be visible at the declared scope and all
+	 * broader scopes, unless otherwise restricted by a
+	 * ConfigurationVisibilityController.
+	 *
+	 * The default value is false.
+	 *
+	 * @review
+	 */
+	public boolean strictScope() default false;
 
 	public enum Scope {
 

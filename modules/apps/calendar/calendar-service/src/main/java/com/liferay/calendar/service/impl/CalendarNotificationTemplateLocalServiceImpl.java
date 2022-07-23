@@ -52,7 +52,7 @@ public class CalendarNotificationTemplateLocalServiceImpl
 
 		User user = userLocalService.getUser(userId);
 		Calendar calendar = calendarPersistence.findByPrimaryKey(calendarId);
-		Date now = new Date();
+		Date date = new Date();
 
 		long calendarNotificationTemplateId = counterLocalService.increment();
 
@@ -66,9 +66,9 @@ public class CalendarNotificationTemplateLocalServiceImpl
 		calendarNotificationTemplate.setUserId(user.getUserId());
 		calendarNotificationTemplate.setUserName(user.getFullName());
 		calendarNotificationTemplate.setCreateDate(
-			serviceContext.getCreateDate(now));
+			serviceContext.getCreateDate(date));
 		calendarNotificationTemplate.setModifiedDate(
-			serviceContext.getModifiedDate(now));
+			serviceContext.getModifiedDate(date));
 		calendarNotificationTemplate.setCalendarId(calendarId);
 		calendarNotificationTemplate.setNotificationType(
 			notificationType.getValue());

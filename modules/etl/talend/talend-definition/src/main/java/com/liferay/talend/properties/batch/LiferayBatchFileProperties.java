@@ -245,12 +245,12 @@ public class LiferayBatchFileProperties
 		SortedMap<String, String> entityClassNames = new TreeMap<>();
 
 		for (String name : names) {
-			Optional<String> optionalEntityClassName =
+			Optional<String> entityClassNameOptional =
 				_oasExplorer.getEntityClassNameOptional(
 					name, _getOASJsonObject());
 
-			if (optionalEntityClassName.isPresent()) {
-				entityClassNames.put(name, optionalEntityClassName.get());
+			if (entityClassNameOptional.isPresent()) {
+				entityClassNames.put(name, entityClassNameOptional.get());
 
 				continue;
 			}

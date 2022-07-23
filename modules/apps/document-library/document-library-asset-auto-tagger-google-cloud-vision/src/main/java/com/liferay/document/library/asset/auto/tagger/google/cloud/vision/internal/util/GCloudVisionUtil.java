@@ -29,8 +29,6 @@ public class GCloudVisionUtil {
 	public static String getAnnotateImagePayload(FileEntry fileEntry)
 		throws Exception {
 
-		FileVersion fileVersion = fileEntry.getFileVersion();
-
 		JSONObject jsonObject = JSONUtil.put(
 			"requests",
 			JSONUtil.put(
@@ -41,9 +39,14 @@ public class GCloudVisionUtil {
 					"image",
 					JSONUtil.put(
 						"content",
-						Base64.encode(
-							FileUtil.getBytes(
-								fileVersion.getContentStream(false))))
+						() -> {
+							FileVersion fileVersion =
+								fileEntry.getFileVersion();
+
+							return Base64.encode(
+								FileUtil.getBytes(
+									fileVersion.getContentStream(false)));
+						})
 				)));
 
 		return jsonObject.toString();

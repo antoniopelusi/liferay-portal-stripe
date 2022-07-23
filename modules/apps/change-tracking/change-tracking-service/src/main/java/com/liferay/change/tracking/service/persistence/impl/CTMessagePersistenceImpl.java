@@ -20,10 +20,10 @@ import com.liferay.change.tracking.model.CTMessageTable;
 import com.liferay.change.tracking.model.impl.CTMessageImpl;
 import com.liferay.change.tracking.model.impl.CTMessageModelImpl;
 import com.liferay.change.tracking.service.persistence.CTMessagePersistence;
+import com.liferay.change.tracking.service.persistence.CTMessageUtil;
 import com.liferay.change.tracking.service.persistence.impl.constants.CTPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,27 +34,26 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -91,9 +90,9 @@ public class CTMessagePersistenceImpl
 	private FinderPath _finderPathWithPaginationFindAll;
 	private FinderPath _finderPathWithoutPaginationFindAll;
 	private FinderPath _finderPathCountAll;
-	private FinderPath _finderPathWithPaginationFindByCTCollectionId;
-	private FinderPath _finderPathWithoutPaginationFindByCTCollectionId;
-	private FinderPath _finderPathCountByCTCollectionId;
+	private FinderPath _finderPathWithPaginationFindByCtCollectionId;
+	private FinderPath _finderPathWithoutPaginationFindByCtCollectionId;
+	private FinderPath _finderPathCountByCtCollectionId;
 
 	/**
 	 * Returns all the ct messages where ctCollectionId = &#63;.
@@ -102,8 +101,8 @@ public class CTMessagePersistenceImpl
 	 * @return the matching ct messages
 	 */
 	@Override
-	public List<CTMessage> findByCTCollectionId(long ctCollectionId) {
-		return findByCTCollectionId(
+	public List<CTMessage> findByCtCollectionId(long ctCollectionId) {
+		return findByCtCollectionId(
 			ctCollectionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -120,10 +119,10 @@ public class CTMessagePersistenceImpl
 	 * @return the range of matching ct messages
 	 */
 	@Override
-	public List<CTMessage> findByCTCollectionId(
+	public List<CTMessage> findByCtCollectionId(
 		long ctCollectionId, int start, int end) {
 
-		return findByCTCollectionId(ctCollectionId, start, end, null);
+		return findByCtCollectionId(ctCollectionId, start, end, null);
 	}
 
 	/**
@@ -140,11 +139,11 @@ public class CTMessagePersistenceImpl
 	 * @return the ordered range of matching ct messages
 	 */
 	@Override
-	public List<CTMessage> findByCTCollectionId(
+	public List<CTMessage> findByCtCollectionId(
 		long ctCollectionId, int start, int end,
 		OrderByComparator<CTMessage> orderByComparator) {
 
-		return findByCTCollectionId(
+		return findByCtCollectionId(
 			ctCollectionId, start, end, orderByComparator, true);
 	}
 
@@ -163,7 +162,7 @@ public class CTMessagePersistenceImpl
 	 * @return the ordered range of matching ct messages
 	 */
 	@Override
-	public List<CTMessage> findByCTCollectionId(
+	public List<CTMessage> findByCtCollectionId(
 		long ctCollectionId, int start, int end,
 		OrderByComparator<CTMessage> orderByComparator,
 		boolean useFinderCache) {
@@ -175,12 +174,12 @@ public class CTMessagePersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache) {
-				finderPath = _finderPathWithoutPaginationFindByCTCollectionId;
+				finderPath = _finderPathWithoutPaginationFindByCtCollectionId;
 				finderArgs = new Object[] {ctCollectionId};
 			}
 		}
 		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByCTCollectionId;
+			finderPath = _finderPathWithPaginationFindByCtCollectionId;
 			finderArgs = new Object[] {
 				ctCollectionId, start, end, orderByComparator
 			};
@@ -268,11 +267,11 @@ public class CTMessagePersistenceImpl
 	 * @throws NoSuchMessageException if a matching ct message could not be found
 	 */
 	@Override
-	public CTMessage findByCTCollectionId_First(
+	public CTMessage findByCtCollectionId_First(
 			long ctCollectionId, OrderByComparator<CTMessage> orderByComparator)
 		throws NoSuchMessageException {
 
-		CTMessage ctMessage = fetchByCTCollectionId_First(
+		CTMessage ctMessage = fetchByCtCollectionId_First(
 			ctCollectionId, orderByComparator);
 
 		if (ctMessage != null) {
@@ -299,10 +298,10 @@ public class CTMessagePersistenceImpl
 	 * @return the first matching ct message, or <code>null</code> if a matching ct message could not be found
 	 */
 	@Override
-	public CTMessage fetchByCTCollectionId_First(
+	public CTMessage fetchByCtCollectionId_First(
 		long ctCollectionId, OrderByComparator<CTMessage> orderByComparator) {
 
-		List<CTMessage> list = findByCTCollectionId(
+		List<CTMessage> list = findByCtCollectionId(
 			ctCollectionId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -321,11 +320,11 @@ public class CTMessagePersistenceImpl
 	 * @throws NoSuchMessageException if a matching ct message could not be found
 	 */
 	@Override
-	public CTMessage findByCTCollectionId_Last(
+	public CTMessage findByCtCollectionId_Last(
 			long ctCollectionId, OrderByComparator<CTMessage> orderByComparator)
 		throws NoSuchMessageException {
 
-		CTMessage ctMessage = fetchByCTCollectionId_Last(
+		CTMessage ctMessage = fetchByCtCollectionId_Last(
 			ctCollectionId, orderByComparator);
 
 		if (ctMessage != null) {
@@ -352,16 +351,16 @@ public class CTMessagePersistenceImpl
 	 * @return the last matching ct message, or <code>null</code> if a matching ct message could not be found
 	 */
 	@Override
-	public CTMessage fetchByCTCollectionId_Last(
+	public CTMessage fetchByCtCollectionId_Last(
 		long ctCollectionId, OrderByComparator<CTMessage> orderByComparator) {
 
-		int count = countByCTCollectionId(ctCollectionId);
+		int count = countByCtCollectionId(ctCollectionId);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<CTMessage> list = findByCTCollectionId(
+		List<CTMessage> list = findByCtCollectionId(
 			ctCollectionId, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -381,7 +380,7 @@ public class CTMessagePersistenceImpl
 	 * @throws NoSuchMessageException if a ct message with the primary key could not be found
 	 */
 	@Override
-	public CTMessage[] findByCTCollectionId_PrevAndNext(
+	public CTMessage[] findByCtCollectionId_PrevAndNext(
 			long ctMessageId, long ctCollectionId,
 			OrderByComparator<CTMessage> orderByComparator)
 		throws NoSuchMessageException {
@@ -395,12 +394,12 @@ public class CTMessagePersistenceImpl
 
 			CTMessage[] array = new CTMessageImpl[3];
 
-			array[0] = getByCTCollectionId_PrevAndNext(
+			array[0] = getByCtCollectionId_PrevAndNext(
 				session, ctMessage, ctCollectionId, orderByComparator, true);
 
 			array[1] = ctMessage;
 
-			array[2] = getByCTCollectionId_PrevAndNext(
+			array[2] = getByCtCollectionId_PrevAndNext(
 				session, ctMessage, ctCollectionId, orderByComparator, false);
 
 			return array;
@@ -413,7 +412,7 @@ public class CTMessagePersistenceImpl
 		}
 	}
 
-	protected CTMessage getByCTCollectionId_PrevAndNext(
+	protected CTMessage getByCtCollectionId_PrevAndNext(
 		Session session, CTMessage ctMessage, long ctCollectionId,
 		OrderByComparator<CTMessage> orderByComparator, boolean previous) {
 
@@ -527,9 +526,9 @@ public class CTMessagePersistenceImpl
 	 * @param ctCollectionId the ct collection ID
 	 */
 	@Override
-	public void removeByCTCollectionId(long ctCollectionId) {
+	public void removeByCtCollectionId(long ctCollectionId) {
 		for (CTMessage ctMessage :
-				findByCTCollectionId(
+				findByCtCollectionId(
 					ctCollectionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null)) {
 
@@ -544,8 +543,8 @@ public class CTMessagePersistenceImpl
 	 * @return the number of matching ct messages
 	 */
 	@Override
-	public int countByCTCollectionId(long ctCollectionId) {
-		FinderPath finderPath = _finderPathCountByCTCollectionId;
+	public int countByCtCollectionId(long ctCollectionId) {
+		FinderPath finderPath = _finderPathCountByCtCollectionId;
 
 		Object[] finderArgs = new Object[] {ctCollectionId};
 
@@ -609,6 +608,8 @@ public class CTMessagePersistenceImpl
 			CTMessageImpl.class, ctMessage.getPrimaryKey(), ctMessage);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the ct messages in the entity cache if it is enabled.
 	 *
@@ -616,6 +617,13 @@ public class CTMessagePersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<CTMessage> ctMessages) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (ctMessages.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (CTMessage ctMessage : ctMessages) {
 			if (entityCache.getResult(
 					CTMessageImpl.class, ctMessage.getPrimaryKey()) == null) {
@@ -1074,12 +1082,9 @@ public class CTMessagePersistenceImpl
 	 * Initializes the ct message persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new CTMessageModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1093,30 +1098,47 @@ public class CTMessagePersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
 			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByCTCollectionId = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCTCollectionId",
+		_finderPathWithPaginationFindByCtCollectionId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCtCollectionId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
 			},
 			new String[] {"ctCollectionId"}, true);
 
-		_finderPathWithoutPaginationFindByCTCollectionId = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCTCollectionId",
+		_finderPathWithoutPaginationFindByCtCollectionId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCtCollectionId",
 			new String[] {Long.class.getName()},
 			new String[] {"ctCollectionId"}, true);
 
-		_finderPathCountByCTCollectionId = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCTCollectionId",
+		_finderPathCountByCtCollectionId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCtCollectionId",
 			new String[] {Long.class.getName()},
 			new String[] {"ctCollectionId"}, false);
+
+		_setCTMessageUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(CTMessageImpl.class.getName());
+		_setCTMessageUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(CTMessageImpl.class.getName());
+	}
+
+	private void _setCTMessageUtilPersistence(
+		CTMessagePersistence ctMessagePersistence) {
+
+		try {
+			Field field = CTMessageUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, ctMessagePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -1144,8 +1166,6 @@ public class CTMessagePersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -1181,93 +1201,7 @@ public class CTMessagePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class CTMessageModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			CTMessageModelImpl ctMessageModelImpl =
-				(CTMessageModelImpl)baseModel;
-
-			long columnBitmask = ctMessageModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(ctMessageModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						ctMessageModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(ctMessageModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return CTMessageImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return CTMessageTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			CTMessageModelImpl ctMessageModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = ctMessageModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = ctMessageModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private CTMessageModelArgumentsResolver _ctMessageModelArgumentsResolver;
 
 }

@@ -6,5 +6,6 @@ application:
     name: "Liferay.Bulk.REST"
 author: "Alejandro Tardín"
 clientDir: "../bulk-rest-client/src/main/java"
+forcePredictableOperationId: true
 generateBatch: false
 testDir: "../bulk-rest-test/src/testIntegration/java"

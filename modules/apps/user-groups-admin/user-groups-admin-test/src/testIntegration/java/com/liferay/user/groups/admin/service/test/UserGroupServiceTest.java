@@ -16,25 +16,24 @@ package com.liferay.user.groups.admin.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.role.RoleConstants;
-import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
-import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
-import com.liferay.portal.kernel.service.ResourceActionLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
-import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.UserGroupLocalService;
 import com.liferay.portal.kernel.service.UserGroupService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserGroupTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
+import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.service.persistence.constants.UserGroupFinderConstants;
 import com.liferay.portal.test.rule.Inject;
@@ -43,9 +42,11 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,37 +65,84 @@ public class UserGroupServiceTest {
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
 
+	@Before
+	public void setUp() throws Exception {
+		_role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+		_user = UserTestUtil.addUser();
+
+		_userLocalService.addRoleUser(_role.getRoleId(), _user.getUserId());
+
+		UserTestUtil.setUser(_user);
+	}
+
+	@Test
+	public void testAddOrUpdateUserGroupAddUserGroup() throws Exception {
+		_addResourcePermission(PortletKeys.PORTAL, ActionKeys.ADD_USER_GROUP);
+
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		_userGroupService.addOrUpdateUserGroup(
+			externalReferenceCode, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), null);
+	}
+
+	@Test(expected = PrincipalException.MustHavePermission.class)
+	public void testAddOrUpdateUserGroupAddUserGroupWithoutPermission()
+		throws Exception {
+
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		_userGroupService.addOrUpdateUserGroup(
+			externalReferenceCode, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), null);
+	}
+
+	@Test
+	public void testAddOrUpdateUserGroupUpdateUserGroup() throws Exception {
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		_userGroupLocalService.updateExternalReferenceCode(
+			UserGroupTestUtil.addUserGroup(), externalReferenceCode);
+
+		_addResourcePermission(UserGroup.class.getName(), ActionKeys.UPDATE);
+
+		_userGroupService.addOrUpdateUserGroup(
+			externalReferenceCode, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), null);
+	}
+
+	@Test(expected = PrincipalException.MustHavePermission.class)
+	public void testAddOrUpdateUserGroupUpdateUserGroupWithoutPermission()
+		throws Exception {
+
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		_userGroupService.updateExternalReferenceCode(
+			UserGroupTestUtil.addUserGroup(), externalReferenceCode);
+
+		_userGroupService.addOrUpdateUserGroup(
+			externalReferenceCode, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), null);
+	}
+
 	@Test
 	public void testDatabaseSearchPermissionCheck() throws Exception {
-		User user = UserTestUtil.addUser();
+		_userGroupLocalService.addUserUserGroup(
+			_user.getUserId(), UserGroupTestUtil.addUserGroup());
 
-		try {
-			PermissionThreadLocal.setPermissionChecker(
-				_permissionCheckerFactory.create(user));
+		_assertSearch(0);
 
-			UserGroup userGroup = _addUserGroup();
+		_addResourcePermission(UserGroup.class.getName(), ActionKeys.VIEW);
 
-			_userGroupLocalService.addUserUserGroup(
-				user.getUserId(), userGroup);
-
-			_assertSearch(user, 0);
-
-			Role adminRole = _roleLocalService.getRole(
-				user.getCompanyId(), RoleConstants.ADMINISTRATOR);
-
-			RoleLocalServiceUtil.addUserRole(user.getUserId(), adminRole);
-
-			_assertSearch(user, 1);
-		}
-		finally {
-			_userLocalService.deleteUser(user);
-		}
+		_assertSearch(1);
 	}
 
 	@Test
 	public void testGetGtUserGroups() throws Exception {
+		_addResourcePermission(UserGroup.class.getName(), ActionKeys.VIEW);
+
 		for (int i = 0; i < 10; i++) {
-			_userGroups.add(UserGroupTestUtil.addUserGroup());
+			UserGroupTestUtil.addUserGroup();
 		}
 
 		long parentUserGroupId = 0;
@@ -127,46 +175,44 @@ public class UserGroupServiceTest {
 
 	@Test
 	public void testGetUserGroupsLikeName() throws Exception {
-		List<UserGroup> allUserGroups = new ArrayList<>();
+		_addResourcePermission(UserGroup.class.getName(), ActionKeys.VIEW);
 
-		allUserGroups.addAll(
+		List<UserGroup> allUserGroups = new ArrayList<>(
 			_userGroupLocalService.getUserGroups(
 				TestPropsValues.getCompanyId()));
 
-		List<UserGroup> likeNameUserGroups = new ArrayList<>();
+		allUserGroups.add(UserGroupTestUtil.addUserGroup());
 
-		String name = RandomTestUtil.randomString(50);
+		UserGroup likeNameUserGroup = UserGroupTestUtil.addUserGroup();
 
-		for (int i = 0; i < 10; i++) {
-			UserGroup userGroup = _addUserGroup();
+		String name = RandomTestUtil.randomString();
 
-			userGroup.setName(name + i);
+		likeNameUserGroup.setName(name + RandomTestUtil.randomString());
 
-			userGroup = _userGroupLocalService.updateUserGroup(userGroup);
+		likeNameUserGroup = _userGroupLocalService.updateUserGroup(
+			likeNameUserGroup);
 
-			allUserGroups.add(userGroup);
-			likeNameUserGroups.add(userGroup);
-		}
+		allUserGroups.add(likeNameUserGroup);
 
-		allUserGroups.add(_addUserGroup());
-		allUserGroups.add(_addUserGroup());
-		allUserGroups.add(_addUserGroup());
-
-		_assertExpectedUserGroups(likeNameUserGroups, name + "%");
 		_assertExpectedUserGroups(
-			likeNameUserGroups, StringUtil.toLowerCase(name) + "%");
+			Collections.singletonList(likeNameUserGroup), name + "%");
 		_assertExpectedUserGroups(
-			likeNameUserGroups, StringUtil.toUpperCase(name) + "%");
+			Collections.singletonList(likeNameUserGroup),
+			StringUtil.toLowerCase(name) + "%");
+		_assertExpectedUserGroups(
+			Collections.singletonList(likeNameUserGroup),
+			StringUtil.toUpperCase(name) + "%");
+
 		_assertExpectedUserGroups(allUserGroups, null);
 		_assertExpectedUserGroups(allUserGroups, "");
 	}
 
-	private UserGroup _addUserGroup() throws Exception {
-		UserGroup userGroup = UserGroupTestUtil.addUserGroup();
+	private void _addResourcePermission(String resourceName, String actionKey)
+		throws Exception {
 
-		_userGroups.add(userGroup);
-
-		return userGroup;
+		RoleTestUtil.addResourcePermission(
+			_role, resourceName, ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(TestPropsValues.getCompanyId()), actionKey);
 	}
 
 	private void _assertExpectedUserGroups(
@@ -190,12 +236,12 @@ public class UserGroupServiceTest {
 				TestPropsValues.getCompanyId(), nameSearch));
 	}
 
-	private void _assertSearch(User user, int expected) throws Exception {
+	private void _assertSearch(int expected) {
 		List<UserGroup> userGroups = _userGroupService.search(
-			user.getCompanyId(), null,
+			_user.getCompanyId(), null,
 			LinkedHashMapBuilder.<String, Object>put(
 				UserGroupFinderConstants.PARAM_KEY_USER_GROUPS_USERS,
-				Long.valueOf(user.getUserId())
+				_user.getUserId()
 			).build(),
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			UsersAdminUtil.getUserGroupOrderByComparator("name", "asc"));
@@ -203,20 +249,11 @@ public class UserGroupServiceTest {
 		Assert.assertEquals(userGroups.toString(), expected, userGroups.size());
 	}
 
-	@Inject
-	private PermissionCheckerFactory _permissionCheckerFactory;
-
-	@Inject
-	private ResourceActionLocalService _resourceActionLocalService;
-
-	@Inject
-	private RoleLocalService _roleLocalService;
+	private Role _role;
+	private User _user;
 
 	@Inject
 	private UserGroupLocalService _userGroupLocalService;
-
-	@DeleteAfterTestRun
-	private final List<UserGroup> _userGroups = new ArrayList<>();
 
 	@Inject
 	private UserGroupService _userGroupService;

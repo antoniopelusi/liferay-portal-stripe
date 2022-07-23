@@ -21,7 +21,10 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 /**
  * @author Manuel de la Peña
  */
-@ExtendedObjectClassDefinition(category = "file-storage")
+@ExtendedObjectClassDefinition(
+	category = "file-storage", liferayLearnMessageKey = "general",
+	liferayLearnMessageResource = "portal-store-s3"
+)
 @Meta.OCD(
 	id = "com.liferay.portal.store.s3.configuration.S3StoreConfiguration",
 	localization = "content/Language", name = "s3-store-configuration-name"
@@ -38,7 +41,7 @@ public interface S3StoreConfiguration {
 	)
 	public String secretKey();
 
-	@Meta.AD(description = "bucket-name-help", name = "bucket-name")
+	@Meta.AD(description = "bucket-name-help[s3]", name = "bucket-name")
 	public String bucketName();
 
 	@Meta.AD(
@@ -133,13 +136,15 @@ public interface S3StoreConfiguration {
 	public int multipartUploadThreshold();
 
 	@Meta.AD(
-		description = "proxy-host-help", name = "proxy-host", required = false
+		description = "set-the-proxy-host-the-client-uses-to-connect",
+		name = "proxy-host", required = false
 	)
 	public String proxyHost();
 
 	@Meta.AD(
-		deflt = "12345", description = "proxy-port-help", name = "proxy-port",
-		required = false
+		deflt = "12345",
+		description = "set-the-proxy-port-the-client-uses-to-connect",
+		name = "proxy-port", required = false
 	)
 	public int proxyPort();
 
@@ -157,8 +162,8 @@ public interface S3StoreConfiguration {
 	public String proxyUsername();
 
 	@Meta.AD(
-		description = "proxy-password-help", name = "proxy-password",
-		required = false, type = Meta.Type.Password
+		description = "set-the-proxy-password-to-use-if-connecting-through-a-proxy",
+		name = "proxy-password", required = false, type = Meta.Type.Password
 	)
 	public String proxyPassword();
 

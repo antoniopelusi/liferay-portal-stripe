@@ -13,12 +13,11 @@
  */
 
 import ClayTable from '@clayui/table';
+import {DateTimeRenderer, StatusRenderer} from '@liferay/frontend-data-set-web';
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import {formatActionUrl} from '../../utilities/index';
-import DateRenderer from '../data_renderers/DateRenderer';
-import StatusRenderer from '../data_renderers/StatusRenderer';
 
 function OrdersTable({orders, selectOrderURL}) {
 	return (
@@ -28,14 +27,17 @@ function OrdersTable({orders, selectOrderURL}) {
 					<ClayTable.Cell headingCell>
 						{Liferay.Language.get('order-number')}
 					</ClayTable.Cell>
+
 					<ClayTable.Cell headingCell>
 						{Liferay.Language.get('status')}
 					</ClayTable.Cell>
+
 					<ClayTable.Cell headingCell>
 						{Liferay.Language.get('last-modified')}
 					</ClayTable.Cell>
 				</ClayTable.Row>
 			</ClayTable.Head>
+
 			<ClayTable.Body>
 				{orders.map((order) => (
 					<ClayTable.Row key={order.id}>
@@ -44,11 +46,13 @@ function OrdersTable({orders, selectOrderURL}) {
 								{order.id}
 							</a>
 						</ClayTable.Cell>
+
 						<ClayTable.Cell>
 							<StatusRenderer value={order.orderStatusInfo} />
 						</ClayTable.Cell>
+
 						<ClayTable.Cell>
-							<DateRenderer value={order.modifiedDate} />
+							<DateTimeRenderer value={order.modifiedDate} />
 						</ClayTable.Cell>
 					</ClayTable.Row>
 				))}

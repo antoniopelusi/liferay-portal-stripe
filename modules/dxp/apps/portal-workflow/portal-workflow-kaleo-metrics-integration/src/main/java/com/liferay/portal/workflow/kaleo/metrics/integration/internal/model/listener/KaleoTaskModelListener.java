@@ -15,9 +15,10 @@
 package com.liferay.portal.workflow.kaleo.metrics.integration.internal.model.listener;
 
 import com.liferay.portal.kernel.model.ModelListener;
-import com.liferay.portal.workflow.kaleo.definition.NodeType;
+import com.liferay.portal.workflow.kaleo.metrics.integration.internal.helper.IndexerHelper;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
 import com.liferay.portal.workflow.kaleo.model.KaleoTask;
+import com.liferay.portal.workflow.metrics.model.DeleteNodeRequest;
 import com.liferay.portal.workflow.metrics.search.index.NodeWorkflowMetricsIndexer;
 
 import java.util.Objects;
@@ -41,17 +42,24 @@ public class KaleoTaskModelListener extends BaseKaleoModelListener<KaleoTask> {
 		}
 
 		_nodeWorkflowMetricsIndexer.addNode(
-			kaleoTask.getCompanyId(), kaleoTask.getCreateDate(), false,
-			kaleoTask.getModifiedDate(), kaleoTask.getName(),
-			kaleoTask.getKaleoTaskId(), kaleoTask.getKaleoDefinitionId(),
-			kaleoDefinitionVersion.getVersion(), false, NodeType.TASK.name());
+			_indexerHelper.createAddNodeRequest(
+				kaleoDefinitionVersion, kaleoTask));
 	}
 
 	@Override
 	public void onAfterRemove(KaleoTask kaleoTask) {
+		DeleteNodeRequest.Builder builder = new DeleteNodeRequest.Builder();
+
 		_nodeWorkflowMetricsIndexer.deleteNode(
-			kaleoTask.getCompanyId(), kaleoTask.getKaleoTaskId());
+			builder.companyId(
+				kaleoTask.getCompanyId()
+			).nodeId(
+				kaleoTask.getKaleoTaskId()
+			).build());
 	}
+
+	@Reference
+	private IndexerHelper _indexerHelper;
 
 	@Reference
 	private NodeWorkflowMetricsIndexer _nodeWorkflowMetricsIndexer;

@@ -31,12 +31,13 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -70,12 +71,13 @@ public class RepositoryEntryModelImpl
 	public static final String TABLE_NAME = "RepositoryEntry";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
-		{"repositoryEntryId", Types.BIGINT}, {"groupId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
-		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
-		{"modifiedDate", Types.TIMESTAMP}, {"repositoryId", Types.BIGINT},
-		{"mappedId", Types.VARCHAR}, {"manualCheckInRequired", Types.BOOLEAN},
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
+		{"uuid_", Types.VARCHAR}, {"repositoryEntryId", Types.BIGINT},
+		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"repositoryId", Types.BIGINT}, {"mappedId", Types.VARCHAR},
+		{"manualCheckInRequired", Types.BOOLEAN},
 		{"lastPublishDate", Types.TIMESTAMP}
 	};
 
@@ -84,6 +86,7 @@ public class RepositoryEntryModelImpl
 
 	static {
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("repositoryEntryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -99,7 +102,7 @@ public class RepositoryEntryModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table RepositoryEntry (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,repositoryEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,mappedId VARCHAR(255) null,manualCheckInRequired BOOLEAN,lastPublishDate DATE null)";
+		"create table RepositoryEntry (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,repositoryEntryId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,mappedId VARCHAR(255) null,manualCheckInRequired BOOLEAN,lastPublishDate DATE null,primary key (repositoryEntryId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table RepositoryEntry";
 
@@ -259,34 +262,6 @@ public class RepositoryEntryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, RepositoryEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			RepositoryEntry.class.getClassLoader(), RepositoryEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<RepositoryEntry> constructor =
-				(Constructor<RepositoryEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<RepositoryEntry, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<RepositoryEntry, Object>>
@@ -304,6 +279,12 @@ public class RepositoryEntryModelImpl
 		attributeSetterBiConsumers.put(
 			"mvccVersion",
 			(BiConsumer<RepositoryEntry, Long>)RepositoryEntry::setMvccVersion);
+		attributeGetterFunctions.put(
+			"ctCollectionId", RepositoryEntry::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<RepositoryEntry, Long>)
+				RepositoryEntry::setCtCollectionId);
 		attributeGetterFunctions.put("uuid", RepositoryEntry::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -383,6 +364,20 @@ public class RepositoryEntryModelImpl
 		}
 
 		_mvccVersion = mvccVersion;
+	}
+
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@Override
@@ -705,6 +700,7 @@ public class RepositoryEntryModelImpl
 		RepositoryEntryImpl repositoryEntryImpl = new RepositoryEntryImpl();
 
 		repositoryEntryImpl.setMvccVersion(getMvccVersion());
+		repositoryEntryImpl.setCtCollectionId(getCtCollectionId());
 		repositoryEntryImpl.setUuid(getUuid());
 		repositoryEntryImpl.setRepositoryEntryId(getRepositoryEntryId());
 		repositoryEntryImpl.setGroupId(getGroupId());
@@ -719,6 +715,42 @@ public class RepositoryEntryModelImpl
 		repositoryEntryImpl.setLastPublishDate(getLastPublishDate());
 
 		repositoryEntryImpl.resetOriginalValues();
+
+		return repositoryEntryImpl;
+	}
+
+	@Override
+	public RepositoryEntry cloneWithOriginalValues() {
+		RepositoryEntryImpl repositoryEntryImpl = new RepositoryEntryImpl();
+
+		repositoryEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		repositoryEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		repositoryEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		repositoryEntryImpl.setRepositoryEntryId(
+			this.<Long>getColumnOriginalValue("repositoryEntryId"));
+		repositoryEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		repositoryEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		repositoryEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		repositoryEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		repositoryEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		repositoryEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		repositoryEntryImpl.setRepositoryId(
+			this.<Long>getColumnOriginalValue("repositoryId"));
+		repositoryEntryImpl.setMappedId(
+			this.<String>getColumnOriginalValue("mappedId"));
+		repositoryEntryImpl.setManualCheckInRequired(
+			this.<Boolean>getColumnOriginalValue("manualCheckInRequired"));
+		repositoryEntryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
 
 		return repositoryEntryImpl;
 	}
@@ -799,6 +831,8 @@ public class RepositoryEntryModelImpl
 
 		repositoryEntryCacheModel.mvccVersion = getMvccVersion();
 
+		repositoryEntryCacheModel.ctCollectionId = getCtCollectionId();
+
 		repositoryEntryCacheModel.uuid = getUuid();
 
 		String uuid = repositoryEntryCacheModel.uuid;
@@ -873,7 +907,7 @@ public class RepositoryEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -884,9 +918,26 @@ public class RepositoryEntryModelImpl
 			Function<RepositoryEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((RepositoryEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((RepositoryEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -933,11 +984,14 @@ public class RepositoryEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, RepositoryEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					RepositoryEntry.class, ModelWrapper.class);
 
 	}
 
 	private long _mvccVersion;
+	private long _ctCollectionId;
 	private String _uuid;
 	private long _repositoryEntryId;
 	private long _groupId;
@@ -982,6 +1036,7 @@ public class RepositoryEntryModelImpl
 		_columnOriginalValues = new HashMap<String, Object>();
 
 		_columnOriginalValues.put("mvccVersion", _mvccVersion);
+		_columnOriginalValues.put("ctCollectionId", _ctCollectionId);
 		_columnOriginalValues.put("uuid_", _uuid);
 		_columnOriginalValues.put("repositoryEntryId", _repositoryEntryId);
 		_columnOriginalValues.put("groupId", _groupId);
@@ -1020,29 +1075,31 @@ public class RepositoryEntryModelImpl
 
 		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("uuid_", 2L);
+		columnBitmasks.put("ctCollectionId", 2L);
 
-		columnBitmasks.put("repositoryEntryId", 4L);
+		columnBitmasks.put("uuid_", 4L);
 
-		columnBitmasks.put("groupId", 8L);
+		columnBitmasks.put("repositoryEntryId", 8L);
 
-		columnBitmasks.put("companyId", 16L);
+		columnBitmasks.put("groupId", 16L);
 
-		columnBitmasks.put("userId", 32L);
+		columnBitmasks.put("companyId", 32L);
 
-		columnBitmasks.put("userName", 64L);
+		columnBitmasks.put("userId", 64L);
 
-		columnBitmasks.put("createDate", 128L);
+		columnBitmasks.put("userName", 128L);
 
-		columnBitmasks.put("modifiedDate", 256L);
+		columnBitmasks.put("createDate", 256L);
 
-		columnBitmasks.put("repositoryId", 512L);
+		columnBitmasks.put("modifiedDate", 512L);
 
-		columnBitmasks.put("mappedId", 1024L);
+		columnBitmasks.put("repositoryId", 1024L);
 
-		columnBitmasks.put("manualCheckInRequired", 2048L);
+		columnBitmasks.put("mappedId", 2048L);
 
-		columnBitmasks.put("lastPublishDate", 4096L);
+		columnBitmasks.put("manualCheckInRequired", 4096L);
+
+		columnBitmasks.put("lastPublishDate", 8192L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

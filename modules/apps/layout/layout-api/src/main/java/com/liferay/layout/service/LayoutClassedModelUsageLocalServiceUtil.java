@@ -168,6 +168,10 @@ public class LayoutClassedModelUsageLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -365,6 +369,13 @@ public class LayoutClassedModelUsageLocalServiceUtil {
 
 		return getService().getLayoutClassedModelUsages(
 			classNameId, classPK, start, end, orderByComparator);
+	}
+
+	public static List<LayoutClassedModelUsage> getLayoutClassedModelUsages(
+		long companyId, long classNameId, long containerType) {
+
+		return getService().getLayoutClassedModelUsages(
+			companyId, classNameId, containerType);
 	}
 
 	public static List<LayoutClassedModelUsage>

@@ -2,16 +2,38 @@
 <head>
 <title>FormsAdmin</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">FormsAdmin</td></tr>
 </thead>
+
 <tbody>
 <!--FORMS_ENTRY_TABLE-->
 <tr>
+	<td>FORM_ENTRY_CHECKBOX</td>
+	<td>//td/a[text()='${key_formName}']//..//..//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FORM_ENTRY_LINK</td>
+	<td>//td/a[text()='${key_formName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FORM_ENTRY_STATUS</td>
+	<td>//table[contains(@class,'table')]//tbody//*[contains(text(),'${key_formEntryWorkflowStatus}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FORM_ENTRY_TABLE_ENTRY</td>
 	<td>//table[contains(.,'${key_fieldLabel}')]//tbody/tr/td[contains(.,'${key_fieldValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FORM_ENTRY_TABLE_HEADER</td>
+	<td>//table[contains(@class,'table')]//thead//*[contains(text(),'${key_fieldHeader}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -43,6 +65,11 @@
 <tr>
 	<td>FORMS_NAVIGATION_BAR_ITEM</td>
 	<td>//div[@class='forms-navigation-bar']//button[contains(@class,'nav-link') and .='${key_navigationBarItem}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FORMS_DROPDOWN_MENU_ITEM</td>
+	<td>//ul[@class ='dropdown-menu dropdown-menu-left-side']//li[contains(text(),'key_itemName')]</td>
 	<td></td>
 </tr>
 </tbody>

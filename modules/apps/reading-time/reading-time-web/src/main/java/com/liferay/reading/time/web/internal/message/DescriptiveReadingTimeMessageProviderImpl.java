@@ -15,14 +15,12 @@
 package com.liferay.reading.time.web.internal.message;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.reading.time.message.ReadingTimeMessageProvider;
 import com.liferay.reading.time.model.ReadingTimeEntry;
 
 import java.time.Duration;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -38,20 +36,17 @@ public class DescriptiveReadingTimeMessageProviderImpl
 
 	@Override
 	public String provide(Duration readingTimeDuration, Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, DescriptiveReadingTimeMessageProviderImpl.class);
-
 		long readingTimeInMinutes = readingTimeDuration.toMinutes();
 
 		if (readingTimeInMinutes == 0) {
-			return LanguageUtil.get(resourceBundle, "less-than-a-minute-read");
+			return LanguageUtil.get(locale, "less-than-a-minute-read");
 		}
 		else if (readingTimeInMinutes == 1) {
-			return LanguageUtil.get(resourceBundle, "a-minute-read");
+			return LanguageUtil.get(locale, "a-minute-read");
 		}
 
 		return LanguageUtil.format(
-			resourceBundle, "x-minutes-read", readingTimeInMinutes);
+			locale, "x-minute-read", readingTimeInMinutes);
 	}
 
 	@Override

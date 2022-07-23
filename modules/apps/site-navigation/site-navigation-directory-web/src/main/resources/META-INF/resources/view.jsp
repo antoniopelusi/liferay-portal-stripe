@@ -16,7 +16,11 @@
 
 <%@ include file="/init.jsp" %>
 
-<div class="nav-menu sites-directory-taglib">
+<liferay-util:html-top>
+	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/css/main.css") %>" rel="stylesheet" type="text/css" />
+</liferay-util:html-top>
+
+<div class="nav-menu overflow-hidden sites-directory-taglib">
 	<c:choose>
 		<c:when test="<%= sitesDirectoryDisplayContext.isHidden() %>">
 			<div class="alert alert-info">

@@ -28,7 +28,7 @@ import com.liferay.portal.kernel.service.ServiceComponentLocalService;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -204,32 +204,29 @@ public class ServiceComponentLocalServiceTest {
 		ServiceRegistration<UpgradeStep> upgradeStepServiceRegistration =
 			bundleContext.registerService(
 				UpgradeStep.class, new TestUpgradeStep(db),
-				new HashMapDictionary<String, Object>() {
-					{
-						put(
-							"upgrade.bundle.symbolic.name",
-							"ServiceComponentLocalServiceTest");
-						put("upgrade.from.schema.version", schemaVersion);
-						put(
-							"upgrade.initial.database.creation",
-							databaseCreation);
-					}
-				});
+				HashMapDictionaryBuilder.<String, Object>put(
+					"upgrade.bundle.symbolic.name",
+					"ServiceComponentLocalServiceTest"
+				).put(
+					"upgrade.from.schema.version", schemaVersion
+				).put(
+					"upgrade.initial.database.creation", databaseCreation
+				).build());
 
 		String tableName = _TEST_TABLE;
 
 		try {
 			_serviceComponentLocalService.verifyDB();
 
-			try (Connection conn = DataAccess.getConnection()) {
-				DatabaseMetaData metadata = conn.getMetaData();
+			try (Connection connection = DataAccess.getConnection()) {
+				DatabaseMetaData metadata = connection.getMetaData();
 
 				tableName = _normalizeTableName(metadata, _TEST_TABLE);
 
-				try (ResultSet rs = metadata.getTables(
+				try (ResultSet resultSet = metadata.getTables(
 						null, null, tableName, new String[] {"TABLE"})) {
 
-					Assert.assertEquals(expected, rs.next());
+					Assert.assertEquals(expected, resultSet.next());
 				}
 			}
 		}

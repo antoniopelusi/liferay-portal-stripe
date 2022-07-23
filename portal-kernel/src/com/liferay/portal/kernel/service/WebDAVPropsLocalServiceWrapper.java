@@ -25,6 +25,10 @@ public class WebDAVPropsLocalServiceWrapper
 	implements ServiceWrapper<WebDAVPropsLocalService>,
 			   WebDAVPropsLocalService {
 
+	public WebDAVPropsLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WebDAVPropsLocalServiceWrapper(
 		WebDAVPropsLocalService webDAVPropsLocalService) {
 
@@ -127,6 +131,13 @@ public class WebDAVPropsLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _webDAVPropsLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _webDAVPropsLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

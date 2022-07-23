@@ -92,8 +92,21 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 	@Override
 	public DDMStructureLayout fetchDDMStructureLayout() {
-		return DDMStructureLayoutLocalServiceUtil.fetchStructureLayout(
-			getGroupId(), getClassNameId(), getStructureKey());
+		try {
+			DDMStructureVersion ddmStructureVersion =
+				getLatestStructureVersion();
+
+			return DDMStructureLayoutLocalServiceUtil.
+				getStructureLayoutByStructureVersionId(
+					ddmStructureVersion.getStructureVersionId());
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		return null;
 	}
 
 	@Override
@@ -281,7 +294,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 			return createFullHierarchyDDMForm();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return new DDMForm();
@@ -341,7 +354,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 	@Override
 	public String getUnambiguousName(
-			List<DDMStructure> structures, long groupId, final Locale locale)
+			List<DDMStructure> structures, long groupId, Locale locale)
 		throws PortalException {
 
 		if (getGroupId() == groupId) {
@@ -384,7 +397,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 	 */
 	@Override
 	public String getWebDavURL(ThemeDisplay themeDisplay, String webDAVToken) {
-		StringBundler sb = new StringBundler(11);
+		StringBundler sb = new StringBundler(8);
 
 		boolean secure = false;
 
@@ -394,14 +407,12 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 			secure = true;
 		}
 
-		String portalURL = PortalUtil.getPortalURL(
-			themeDisplay.getServerName(), themeDisplay.getServerPort(), secure);
-
-		sb.append(portalURL);
-
+		sb.append(
+			PortalUtil.getPortalURL(
+				themeDisplay.getServerName(), themeDisplay.getServerPort(),
+				secure));
 		sb.append(themeDisplay.getPathContext());
-		sb.append(StringPool.SLASH);
-		sb.append("webdav");
+		sb.append("/webdav");
 
 		Group group = themeDisplay.getScopeGroup();
 
@@ -409,9 +420,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 		sb.append(StringPool.SLASH);
 		sb.append(webDAVToken);
-		sb.append(StringPool.SLASH);
-		sb.append("Structures");
-		sb.append(StringPool.SLASH);
+		sb.append("/Structures/");
 		sb.append(getStructureId());
 
 		return sb.toString();
@@ -602,7 +611,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		throw new StructureFieldException("Unable to find field " + identifier);
@@ -645,7 +654,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return false;
@@ -673,7 +682,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 		}

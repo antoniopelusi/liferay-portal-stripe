@@ -40,116 +40,16 @@
 					<%
 					Properties resourceLimitsProperties = ImageMagickUtil.getResourceLimitsProperties();
 
-					for (String label : _IMAGEMAGICK_RESOURCE_LIMIT_LABELS) {
+					for (String label : ImageMagickResourceLimitConstants.PROPERTY_NAMES) {
 					%>
 
-						<aui:input cssClass="lfr-input-text-container" label="<%= label %>" name='<%= "imageMagickLimit" + StringUtil.upperCaseFirstLetter(label) %>' type="text" value="<%= resourceLimitsProperties.getProperty(label) %>" />
+						<aui:input cssClass="lfr-input-text-container" label="<%= label %>" name="<%= PropsKeys.IMAGEMAGICK_RESOURCE_LIMIT + label %>" type="text" value="<%= resourceLimitsProperties.getProperty(label) %>" />
 
 					<%
 					}
 					%>
 
 				</aui:fieldset>
-			</liferay-ui:panel>
-
-			<liferay-ui:panel
-				collapsible="<%= true %>"
-				extended="<%= true %>"
-				id="adminXugglerPanel"
-				markupView="lexicon"
-				persistState="<%= true %>"
-				title="enabling-xuggler-provides-video-conversion-functionality"
-			>
-				<liferay-ui:error exception="<%= XugglerInstallException.class %>" targetNode="#controlMenuAlertsContainer">
-
-					<%
-					XugglerInstallException xie = (XugglerInstallException)errorException;
-					%>
-
-					<liferay-ui:message arguments="<%= HtmlUtil.escape(xie.getMessage()) %>" key="an-unexpected-error-occurred-while-installing-xuggler-x" translateArguments="<%= false %>" />
-				</liferay-ui:error>
-
-				<c:choose>
-					<c:when test="<%= XugglerUtil.isNativeLibraryInstalled() %>">
-						<div class="alert alert-info">
-							<liferay-ui:message key="xuggler-installed" />
-						</div>
-
-						<aui:input label="enabled" name="xugglerEnabled" type="checkbox" value="<%= XugglerUtil.isEnabled() %>" />
-					</c:when>
-					<c:when test="<%= XugglerUtil.isNativeLibraryCopied() %>">
-						<div class="alert alert-info">
-							<liferay-ui:message key="xuggler-has-been-installed-you-need-to-reboot-your-server-to-apply-changes" />
-						</div>
-					</c:when>
-					<c:otherwise>
-
-						<%
-						String xugglerHelp = LanguageUtil.format(request, "xuggler-help", "http://www.xuggle.com/xuggler/downloads", false);
-
-						String[] xugglerOptions = PropsUtil.getArray(PropsKeys.XUGGLER_JAR_OPTIONS);
-
-						String bitMode = OSDetector.getBitMode();
-
-						String guess = StringPool.BLANK;
-
-						if (Validator.isNotNull(bitMode) && (bitMode.equals("32") || bitMode.equals("64"))) {
-							if (OSDetector.isApple()) {
-								guess = bitMode + "-mac";
-							}
-							else if (OSDetector.isLinux()) {
-								guess = bitMode + "-linux";
-							}
-							else if (OSDetector.isWindows()) {
-								guess = bitMode + "-win";
-							}
-
-							if (Validator.isNotNull(guess)) {
-								boolean found = false;
-
-								for (String xugglerOption : xugglerOptions) {
-									if (xugglerOption.equals(guess)) {
-										found = true;
-
-										break;
-									}
-								}
-
-								if (!found) {
-									guess = StringPool.BLANK;
-								}
-							}
-						}
-						%>
-
-						<div class="alert alert-info">
-							<liferay-ui:message key="<%= xugglerHelp %>" />
-						</div>
-
-						<aui:select label="jar-file" name="jarName">
-							<c:if test="<%= Validator.isNull(guess) %>">
-								<aui:option label="unknown" value="" />
-							</c:if>
-
-							<%
-							for (String xugglerOption : xugglerOptions) {
-								String jarFile = PropsUtil.get(PropsKeys.XUGGLER_JAR_FILE, new Filter(xugglerOption));
-								String jarName = PropsUtil.get(PropsKeys.XUGGLER_JAR_NAME, new Filter(xugglerOption));
-							%>
-
-								<aui:option label='<%= jarName + " (" + jarFile + ")" %>' selected="<%= xugglerOption.equals(guess) %>" value="<%= jarFile %>" />
-
-							<%
-							}
-							%>
-
-						</aui:select>
-
-						<aui:button-row>
-							<aui:button cssClass="save-server-button" data-cmd="installXuggler" name="installXugglerButton" value="install" />
-						</aui:button-row>
-					</c:otherwise>
-				</c:choose>
 			</liferay-ui:panel>
 		</liferay-ui:panel-container>
 	</aui:fieldset>
@@ -158,7 +58,3 @@
 <aui:button-row>
 	<aui:button cssClass="save-server-button" data-cmd="updateExternalServices" value="save" />
 </aui:button-row>
-
-<%!
-private static final String[] _IMAGEMAGICK_RESOURCE_LIMIT_LABELS = {"area", "disk", "file", "map", "memory", "thread", "time"};
-%>

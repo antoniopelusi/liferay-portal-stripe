@@ -30,73 +30,71 @@ import java.sql.ResultSet;
  */
 public class JournalArticleImageUpgradeProcess extends UpgradeProcess {
 
-	protected void deleteOrphanJournalArticleImages() throws Exception {
-		StringBundler sb = new StringBundler(3);
+	@Override
+	protected void doUpgrade() throws Exception {
+		_deleteOrphanJournalArticleImages();
 
-		sb.append("delete from JournalArticleImage where not exists");
-		sb.append("(select 1 from Image where");
-		sb.append("(JournalArticleImage.articleImageId = Image.imageId))");
+		_updateJournalArticleImagesInstanceId();
 
+		_updateJournalArticleImagesName();
+	}
+
+	private void _deleteOrphanJournalArticleImages() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(sb.toString())) {
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"delete from JournalArticleImage where not exists",
+					"(select 1 from Image where",
+					"(JournalArticleImage.articleImageId = Image.imageId))"))) {
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		deleteOrphanJournalArticleImages();
-
-		updateJournalArticleImagesInstanceId();
-
-		updateJournalArticleImagesName();
-	}
-
-	protected void updateJournalArticleImagesInstanceId() throws Exception {
+	private void _updateJournalArticleImagesInstanceId() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select articleId, elName from JournalArticleImage where " +
 					"(elInstanceId = '' or elInstanceId is null) group by " +
 						"articleId, elName");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			try (PreparedStatement ps2 =
+			try (PreparedStatement preparedStatement2 =
 					AutoBatchPreparedStatementUtil.autoBatch(
 						connection.prepareStatement(
 							"update JournalArticleImage set elInstanceId = ? " +
 								"where articleId = ? and elName = ?"))) {
 
-				while (rs.next()) {
-					String articleId = rs.getString(1);
-					String elName = rs.getString(2);
+				while (resultSet.next()) {
+					String articleId = resultSet.getString(1);
+					String elName = resultSet.getString(2);
 
-					ps2.setString(1, StringUtil.randomString(4));
-					ps2.setString(2, articleId);
-					ps2.setString(3, elName);
+					preparedStatement2.setString(1, StringUtil.randomString(4));
+					preparedStatement2.setString(2, articleId);
+					preparedStatement2.setString(3, elName);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
 
-	protected void updateJournalArticleImagesName() throws Exception {
+	private void _updateJournalArticleImagesName() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select articleImageId, elName from JournalArticleImage");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			try (PreparedStatement ps2 =
+			try (PreparedStatement preparedStatement2 =
 					AutoBatchPreparedStatementUtil.autoBatch(
 						connection.prepareStatement(
 							"update JournalArticleImage set elName = ? where " +
 								"articleImageId = ?"))) {
 
-				while (rs.next()) {
-					String elName = rs.getString(2);
+				while (resultSet.next()) {
+					String elName = resultSet.getString(2);
 
 					int lastIndexOf = elName.lastIndexOf(StringPool.UNDERLINE);
 
@@ -110,13 +108,14 @@ public class JournalArticleImageUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					ps2.setString(1, elName.substring(0, lastIndexOf));
-					ps2.setLong(2, rs.getLong(1));
+					preparedStatement2.setString(
+						1, elName.substring(0, lastIndexOf));
+					preparedStatement2.setLong(2, resultSet.getLong(1));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

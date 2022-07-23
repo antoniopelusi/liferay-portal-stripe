@@ -71,7 +71,7 @@ public class DispatchIoHandler implements IoHandler {
 	public void messageReceived(IoSession ioSession, Object message) {
 		Request request = (Request)message;
 
-		LdapHandler ldapHandler = getLdapHandler(request);
+		LdapHandler ldapHandler = _getLdapHandler(request);
 
 		if (ldapHandler == null) {
 			if (_log.isWarnEnabled()) {
@@ -83,12 +83,12 @@ public class DispatchIoHandler implements IoHandler {
 
 		try {
 			List<Response> responses = ldapHandler.messageReceived(
-				request, ioSession, getLdapHandlerContext(ioSession));
+				request, ioSession, _getLdapHandlerContext(ioSession));
 
-			writeResponses(responses, ioSession);
+			_writeResponses(responses, ioSession);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 		finally {
 			ThreadLocalCacheManager.clearAll(Lifecycle.REQUEST);
@@ -133,19 +133,16 @@ public class DispatchIoHandler implements IoHandler {
 				return;
 			}
 
-			LiferayLdapMessageContainer liferayLdapMessageContainer =
-				new LiferayLdapMessageContainer();
-
 			ioSession.setAttribute(
 				LdapDecoder.MESSAGE_CONTAINER_ATTR,
-				liferayLdapMessageContainer);
+				new LiferayLdapMessageContainer());
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
-	protected LdapHandler getLdapHandler(Request request) {
+	private LdapHandler _getLdapHandler(Request request) {
 		MessageTypeEnum messageTypeEnum = request.getType();
 
 		if (messageTypeEnum == MessageTypeEnum.ABANDON_REQUEST) {
@@ -170,7 +167,7 @@ public class DispatchIoHandler implements IoHandler {
 		return null;
 	}
 
-	protected LdapHandlerContext getLdapHandlerContext(IoSession ioSession) {
+	private LdapHandlerContext _getLdapHandlerContext(IoSession ioSession) {
 		LdapHandlerContext ldapHandlerContext =
 			(LdapHandlerContext)ioSession.getAttribute(
 				LdapHandlerContext.class.getName());
@@ -189,9 +186,7 @@ public class DispatchIoHandler implements IoHandler {
 		return ldapHandlerContext;
 	}
 
-	protected void setSessionAttributes(
-		Response response, IoSession ioSession) {
-
+	private void _setSessionAttributes(Response response, IoSession ioSession) {
 		Map<Object, Object> sessionAttributes =
 			(Map<Object, Object>)response.get(
 				VLDAPConstants.SESSION_ATTRIBUTES);
@@ -205,7 +200,7 @@ public class DispatchIoHandler implements IoHandler {
 		}
 	}
 
-	protected void writeResponses(
+	private void _writeResponses(
 		List<Response> responses, IoSession ioSession) {
 
 		if (responses == null) {
@@ -213,7 +208,7 @@ public class DispatchIoHandler implements IoHandler {
 		}
 
 		for (Response response : responses) {
-			setSessionAttributes(response, ioSession);
+			_setSessionAttributes(response, ioSession);
 
 			ioSession.write(response);
 		}

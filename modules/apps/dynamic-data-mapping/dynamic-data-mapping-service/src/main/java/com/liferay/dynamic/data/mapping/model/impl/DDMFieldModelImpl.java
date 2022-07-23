@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -67,7 +69,7 @@ public class DDMFieldModelImpl
 		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"fieldId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"parentFieldId", Types.BIGINT}, {"storageId", Types.BIGINT},
-		{"structureVersionId", Types.BIGINT}, {"fieldName", Types.VARCHAR},
+		{"structureVersionId", Types.BIGINT}, {"fieldName", Types.CLOB},
 		{"fieldType", Types.VARCHAR}, {"instanceId", Types.VARCHAR},
 		{"localizable", Types.BOOLEAN}, {"priority", Types.INTEGER}
 	};
@@ -83,7 +85,7 @@ public class DDMFieldModelImpl
 		TABLE_COLUMNS_MAP.put("parentFieldId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("storageId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("structureVersionId", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("fieldName", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("fieldName", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("fieldType", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("instanceId", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("localizable", Types.BOOLEAN);
@@ -91,7 +93,7 @@ public class DDMFieldModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DDMField (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,fieldId LONG not null,companyId LONG,parentFieldId LONG,storageId LONG,structureVersionId LONG,fieldName VARCHAR(255) null,fieldType VARCHAR(255) null,instanceId VARCHAR(75) null,localizable BOOLEAN,priority INTEGER,primary key (fieldId, ctCollectionId))";
+		"create table DDMField (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,fieldId LONG not null,companyId LONG,parentFieldId LONG,storageId LONG,structureVersionId LONG,fieldName TEXT null,fieldType VARCHAR(255) null,instanceId VARCHAR(75) null,localizable BOOLEAN,priority INTEGER,primary key (fieldId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table DDMField";
 
@@ -239,34 +241,6 @@ public class DDMFieldModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DDMField>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DDMField.class.getClassLoader(), DDMField.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DDMField> constructor =
-				(Constructor<DDMField>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DDMField, Object>>
@@ -643,6 +617,37 @@ public class DDMFieldModelImpl
 	}
 
 	@Override
+	public DDMField cloneWithOriginalValues() {
+		DDMFieldImpl ddmFieldImpl = new DDMFieldImpl();
+
+		ddmFieldImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ddmFieldImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ddmFieldImpl.setFieldId(this.<Long>getColumnOriginalValue("fieldId"));
+		ddmFieldImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ddmFieldImpl.setParentFieldId(
+			this.<Long>getColumnOriginalValue("parentFieldId"));
+		ddmFieldImpl.setStorageId(
+			this.<Long>getColumnOriginalValue("storageId"));
+		ddmFieldImpl.setStructureVersionId(
+			this.<Long>getColumnOriginalValue("structureVersionId"));
+		ddmFieldImpl.setFieldName(
+			this.<String>getColumnOriginalValue("fieldName"));
+		ddmFieldImpl.setFieldType(
+			this.<String>getColumnOriginalValue("fieldType"));
+		ddmFieldImpl.setInstanceId(
+			this.<String>getColumnOriginalValue("instanceId"));
+		ddmFieldImpl.setLocalizable(
+			this.<Boolean>getColumnOriginalValue("localizable"));
+		ddmFieldImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
+
+		return ddmFieldImpl;
+	}
+
+	@Override
 	public int compareTo(DDMField ddmField) {
 		int value = 0;
 
@@ -770,7 +775,7 @@ public class DDMFieldModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -781,9 +786,26 @@ public class DDMFieldModelImpl
 			Function<DDMField, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DDMField)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DDMField)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -830,7 +852,9 @@ public class DDMFieldModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DDMField>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DDMField.class, ModelWrapper.class);
 
 	}
 

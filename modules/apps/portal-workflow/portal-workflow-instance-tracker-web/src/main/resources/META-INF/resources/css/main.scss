@@ -1,0 +1,58 @@
+@import 'current_nodes';
+@import 'error';
+@import 'hexagon_node';
+@import 'state_node';
+@import 'task_node';
+
+.node {
+	align-items: center;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+
+	.current-icon,
+	.done-icon {
+		color: #5aca75;
+		height: 16px;
+		margin-top: 0.8px;
+		width: 16px;
+	}
+}
+
+.truncate-container {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.workflow-instance-tracker {
+	background: #f1f2f5;
+	flex-grow: 1;
+	height: inherit;
+	padding: 15px;
+	position: relative;
+	width: 100%;
+
+	.react-flow__handle {
+		background: transparent;
+		border: none;
+		height: 1px;
+		width: 1px;
+
+		&.react-flow__handle-bottom {
+			bottom: 0;
+		}
+
+		&.react-flow__handle-left {
+			left: 0;
+		}
+
+		&.react-flow__handle-right {
+			right: 0;
+		}
+
+		&.react-flow__handle-top {
+			top: 0;
+		}
+	}
+}

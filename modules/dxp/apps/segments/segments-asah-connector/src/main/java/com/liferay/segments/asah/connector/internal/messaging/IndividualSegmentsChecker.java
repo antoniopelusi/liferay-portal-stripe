@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.segments.asah.connector.internal.cache.AsahSegmentsEntryCache;
@@ -43,11 +44,13 @@ import com.liferay.segments.service.SegmentsEntryLocalService;
 import com.liferay.segments.service.SegmentsEntryRelLocalService;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Activate;
@@ -69,11 +72,10 @@ public class IndividualSegmentsChecker {
 	public void checkIndividualSegments(long companyId, String individualPK)
 		throws PortalException {
 
-		if (_asahSegmentsEntryCache.getSegmentsEntryIds(individualPK) != null) {
-			return;
-		}
+		if ((_asahSegmentsEntryCache.getSegmentsEntryIds(individualPK) !=
+				null) ||
+			!AsahUtil.isAnalyticsEnabled(companyId)) {
 
-		if (!AsahUtil.isAnalyticsEnabled(companyId)) {
 			return;
 		}
 
@@ -160,32 +162,18 @@ public class IndividualSegmentsChecker {
 		}
 	}
 
-	private void _addSegmentsEntryRel(
-		SegmentsEntry segmentsEntry, Individual individual) {
-
-		Optional<Long> userIdOptional = _getUserIdOptional(
-			segmentsEntry.getCompanyId(), individual);
-
-		if (!userIdOptional.isPresent()) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to find a user corresponding to individual " +
-						individual.getId());
-			}
-
-			return;
-		}
+	private void _addSegmentsEntryRels(
+		SegmentsEntry segmentsEntry, Set<Long> userIds) {
 
 		try {
 			_segmentsEntryLocalService.addSegmentsEntryClassPKs(
 				segmentsEntry.getSegmentsEntryId(),
-				new long[] {userIdOptional.get()},
+				ArrayUtil.toArray(userIds.toArray(new Long[0])),
 				_getServiceContext(segmentsEntry.getCompanyId()));
 		}
 		catch (PortalException portalException) {
 			_log.error(
-				"Unable to process individual " + individual.getId(),
-				portalException);
+				"Unable to process individuals " + userIds, portalException);
 		}
 	}
 
@@ -216,6 +204,8 @@ public class IndividualSegmentsChecker {
 				return;
 			}
 
+			Set<Long> userIds = new HashSet<>();
+
 			int totalPages = (int)Math.ceil((double)totalElements / _DELTA);
 
 			int curPage = 1;
@@ -224,8 +214,12 @@ public class IndividualSegmentsChecker {
 				List<Individual> individuals = individualResults.getItems();
 
 				individuals.forEach(
-					individual -> _addSegmentsEntryRel(
-						segmentsEntry, individual));
+					individual -> {
+						Optional<Long> userIdOptional = _getUserIdOptional(
+							segmentsEntry.getCompanyId(), individual);
+
+						userIdOptional.ifPresent(userIds::add);
+					});
 
 				curPage++;
 
@@ -238,6 +232,10 @@ public class IndividualSegmentsChecker {
 					segmentsEntry.getSegmentsEntryKey(), curPage, _DELTA,
 					Collections.singletonList(
 						OrderByField.desc("dateModified")));
+			}
+
+			if (!userIds.isEmpty()) {
+				_addSegmentsEntryRels(segmentsEntry, userIds);
 			}
 		}
 		catch (RuntimeException runtimeException) {
@@ -322,13 +320,15 @@ public class IndividualSegmentsChecker {
 	private Optional<Long> _getUserIdOptional(
 		long companyId, Individual individual) {
 
+		Optional<Long> userIdOptional = Optional.empty();
+
 		List<Individual.DataSourceIndividualPK> dataSourceIndividualPKs =
 			individual.getDataSourceIndividualPKs();
 
-		Stream<Individual.DataSourceIndividualPK> dataSourceIndividualPKStream =
-			dataSourceIndividualPKs.stream();
+		Stream<Individual.DataSourceIndividualPK>
+			dataSourceIndividualPKsStream = dataSourceIndividualPKs.stream();
 
-		List<String> individualUuids = dataSourceIndividualPKStream.filter(
+		List<String> individualUuids = dataSourceIndividualPKsStream.filter(
 			dataSourceIndividualPK -> Objects.equals(
 				_asahFaroBackendClient.getDataSourceId(companyId),
 				dataSourceIndividualPK.getDataSourceId())
@@ -339,21 +339,29 @@ public class IndividualSegmentsChecker {
 			Collections.emptyList()
 		);
 
-		if (ListUtil.isEmpty(individualUuids)) {
-			return Optional.empty();
+		if (!ListUtil.isEmpty(individualUuids)) {
+			Stream<String> individualUuidsStream = individualUuids.stream();
+
+			userIdOptional = individualUuidsStream.map(
+				individualUuid -> _userLocalService.fetchUserByUuidAndCompanyId(
+					individualUuid, companyId)
+			).filter(
+				Objects::nonNull
+			).findFirst(
+			).map(
+				UserModel::getUserId
+			);
 		}
 
-		Stream<String> individualUuidStream = individualUuids.stream();
+		if (!userIdOptional.isPresent()) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to find a user corresponding to individual " +
+						individual.getId());
+			}
+		}
 
-		return individualUuidStream.map(
-			individualUuid -> _userLocalService.fetchUserByUuidAndCompanyId(
-				individualUuid, companyId)
-		).filter(
-			Objects::nonNull
-		).findFirst(
-		).map(
-			UserModel::getUserId
-		);
+		return userIdOptional;
 	}
 
 	private static final int _DELTA = 100;

@@ -182,20 +182,4 @@ public abstract class KBCommentServiceBaseImpl
 	@Reference
 	protected com.liferay.portal.kernel.service.UserService userService;
 
-	@Reference
-	protected com.liferay.ratings.kernel.service.RatingsEntryLocalService
-		ratingsEntryLocalService;
-
-	@Reference
-	protected com.liferay.ratings.kernel.service.RatingsEntryService
-		ratingsEntryService;
-
-	@Reference
-	protected com.liferay.social.kernel.service.SocialActivityLocalService
-		socialActivityLocalService;
-
-	@Reference
-	protected com.liferay.social.kernel.service.SocialActivityService
-		socialActivityService;
-
 }

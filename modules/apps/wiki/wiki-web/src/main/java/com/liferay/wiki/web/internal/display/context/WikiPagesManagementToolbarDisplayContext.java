@@ -43,7 +43,7 @@ import com.liferay.trash.TrashHelper;
 import com.liferay.wiki.constants.WikiWebKeys;
 import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.model.WikiPage;
-import com.liferay.wiki.web.internal.display.context.util.WikiURLHelper;
+import com.liferay.wiki.web.internal.display.context.helper.WikiURLHelper;
 import com.liferay.wiki.web.internal.portlet.toolbar.item.WikiPortletToolbarContributor;
 import com.liferay.wiki.web.internal.security.permission.resource.WikiPagePermission;
 
@@ -151,7 +151,7 @@ public class WikiPagesManagementToolbarDisplayContext {
 		).setMVCRenderCommandName(
 			"/wiki/view_pages"
 		).setRedirect(
-			_currentURLObj.toString()
+			_currentURLObj
 		).setParameter(
 			"nodeId",
 			() -> {
@@ -160,7 +160,7 @@ public class WikiPagesManagementToolbarDisplayContext {
 
 				return node.getNodeId();
 			}
-		).build();
+		).buildPortletURL();
 	}
 
 	public CreationMenu getCreationMenu() {
@@ -246,7 +246,7 @@ public class WikiPagesManagementToolbarDisplayContext {
 		return PortletURLBuilder.create(
 			_wikiURLHelper.getSearchURL()
 		).setRedirect(
-			_currentURLObj.toString()
+			_currentURLObj
 		).setParameter(
 			"nodeId",
 			() -> {
@@ -255,7 +255,7 @@ public class WikiPagesManagementToolbarDisplayContext {
 
 				return node.getNodeId();
 			}
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getSortingOrder() {
@@ -270,7 +270,7 @@ public class WikiPagesManagementToolbarDisplayContext {
 		).setParameter(
 			"orderByType",
 			Objects.equals(_getOrderByType(), "asc") ? "desc" : "asc"
-		).build();
+		).buildPortletURL();
 	}
 
 	public int getTotalItems() {
@@ -415,8 +415,8 @@ public class WikiPagesManagementToolbarDisplayContext {
 		).setMVCRenderCommandName(
 			"/wiki/view_pages"
 		).setRedirect(
-			_currentURLObj.toString()
-		).build();
+			_currentURLObj
+		).buildPortletURL();
 	}
 
 	private boolean _isTrashEnabled() {

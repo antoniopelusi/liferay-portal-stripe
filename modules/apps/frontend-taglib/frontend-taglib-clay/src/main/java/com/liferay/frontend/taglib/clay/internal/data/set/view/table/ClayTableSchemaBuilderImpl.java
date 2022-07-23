@@ -26,9 +26,36 @@ import java.util.Map;
  */
 public class ClayTableSchemaBuilderImpl implements ClayTableSchemaBuilder {
 
-	public ClayTableSchemaBuilderImpl() {
-		_clayTableSchema = new ClayTableSchema();
-		_clayTableSchemaFieldsMap = new LinkedHashMap<>();
+	@Override
+	public <T extends ClayTableSchemaField> T addClayTableSchemaField(
+		Class<T> clazz, String fieldName) {
+
+		ClayTableSchemaField clayTableSchemaField = null;
+
+		try {
+			clayTableSchemaField = clazz.newInstance();
+
+			clayTableSchemaField.setFieldName(fieldName);
+
+			_clayTableSchemaFieldsMap.put(fieldName, clayTableSchemaField);
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
+
+		return clazz.cast(clayTableSchemaField);
+	}
+
+	@Override
+	public <T extends ClayTableSchemaField> T addClayTableSchemaField(
+		Class<T> clazz, String fieldName, String label) {
+
+		ClayTableSchemaField clayTableSchemaField = addClayTableSchemaField(
+			clazz, fieldName);
+
+		clayTableSchemaField.setLabel(label);
+
+		return clazz.cast(clayTableSchemaField);
 	}
 
 	@Override
@@ -79,7 +106,8 @@ public class ClayTableSchemaBuilderImpl implements ClayTableSchemaBuilder {
 		_clayTableSchema = clayTableSchema;
 	}
 
-	private ClayTableSchema _clayTableSchema;
-	private final Map<String, ClayTableSchemaField> _clayTableSchemaFieldsMap;
+	private ClayTableSchema _clayTableSchema = new ClayTableSchema();
+	private final Map<String, ClayTableSchemaField> _clayTableSchemaFieldsMap =
+		new LinkedHashMap<>();
 
 }

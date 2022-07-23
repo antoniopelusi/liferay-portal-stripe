@@ -22,7 +22,13 @@ long previewClassPK = ParamUtil.getLong(request, "previewClassPK");
 int previewType = ParamUtil.getInteger(request, "previewType");
 
 AssetEntryResult assetEntryResult = (AssetEntryResult)request.getAttribute("view.jsp-assetEntryResult");
+%>
 
+<c:if test="<%= Validator.isNotNull(assetEntryResult.getTitle()) %>">
+	<p class="asset-entries-group-label h3"><%= HtmlUtil.escape(assetEntryResult.getTitle()) %></p>
+</c:if>
+
+<%
 for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 	AssetRendererFactory<?> assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassNameId(assetEntry.getClassNameId());
 
@@ -42,7 +48,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 	}
 	catch (Exception e) {
 		if (_log.isWarnEnabled()) {
-			_log.warn(e, e);
+			_log.warn(e);
 		}
 	}
 
@@ -55,9 +61,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 
 	try {
 		String title = assetRenderer.getTitle(LocaleUtil.fromLanguageId(LanguageUtil.getLanguageId(request)));
-
 		String viewURL = assetPublisherHelper.getAssetViewURL(liferayPortletRequest, liferayPortletResponse, assetRenderer, assetEntry, assetPublisherDisplayContext.isAssetLinkBehaviorViewInPortlet());
-
 		Map<String, Object> fragmentsEditorData = HashMapBuilder.<String, Object>put(
 			"fragments-editor-item-id", PortalUtil.getClassNameId(assetRenderer.getClassName()) + "-" + assetRenderer.getClassPK()
 		).put(
@@ -216,7 +220,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 								renderResponse
 							).setMVCPath(
 								"/view_content.jsp"
-							).build()
+							).buildPortletURL()
 						%>'
 						viewInContext="<%= assetPublisherDisplayContext.isAssetLinkBehaviorViewInPortlet() %>"
 					/>
@@ -224,7 +228,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 			</c:if>
 
 			<c:if test="<%= (assetPublisherDisplayContext.isEnableRatings() && assetRenderer.isRatable()) || assetPublisherDisplayContext.isEnableFlags() || assetPublisherDisplayContext.isEnablePrint() || Validator.isNotNull(assetPublisherDisplayContext.getSocialBookmarksTypes()) %>">
-				<div class="separator"><!-- --></div>
+				<hr class="separator" />
 
 				<clay:content-row
 					cssClass="asset-details"
@@ -285,7 +289,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 								"viewMode", Constants.PRINT
 							).setWindowState(
 								LiferayWindowState.POP_UP
-							).build();
+							).buildPortletURL();
 
 							String id = assetEntry.getEntryId() + StringUtil.randomId();
 							%>
@@ -318,14 +322,14 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 							target="_blank"
 							title="<%= title %>"
 							types="<%= assetPublisherDisplayContext.getSocialBookmarksTypes() %>"
-							urlImpl="<%= assetPublisherHelper.getBaseAssetViewURL(liferayPortletRequest, liferayPortletResponse, assetRenderer, assetEntry) %>"
+							url="<%= assetPublisherHelper.getAssetSocialURL(liferayPortletRequest, liferayPortletResponse, assetEntry) %>"
 						/>
 					</clay:content-col>
 				</clay:content-row>
 			</c:if>
 
 			<c:if test="<%= (assetPublisherDisplayContext.isShowAvailableLocales() && assetRenderer.isLocalizable()) || (assetPublisherDisplayContext.isEnableConversions() && assetRenderer.isConvertible()) %>">
-				<div class="separator"><!-- --></div>
+				<hr class="separator" />
 
 				<clay:content-row
 					cssClass="asset-details"
@@ -362,13 +366,13 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 						<%
 						PortletURL exportAssetURL = PortletURLBuilder.create(
 							assetRenderer.getURLExport(liferayPortletRequest, liferayPortletResponse)
+						).setPortletResource(
+							portletDisplay.getId()
 						).setParameter(
 							"plid", themeDisplay.getPlid()
-						).setParameter(
-							"portletResource", portletDisplay.getId()
 						).setWindowState(
 							LiferayWindowState.EXCLUSIVE
-						).build();
+						).buildPortletURL();
 
 						for (String extension : assetPublisherDisplayContext.getExtensions(assetRenderer)) {
 							exportAssetURL.setParameter("targetExtension", extension);

@@ -147,31 +147,4 @@ public abstract class JournalFeedServiceBaseImpl
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
 
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameLocalService
-		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameService
-		classNameService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected com.liferay.expando.kernel.service.ExpandoValueLocalService
-		expandoValueLocalService;
-
-	@Reference
-	protected com.liferay.expando.kernel.service.ExpandoValueService
-		expandoValueService;
-
 }

@@ -32,7 +32,7 @@ public class CommentManagerUtil {
 			Function<String, ServiceContext> serviceContextFunction)
 		throws PortalException {
 
-		return _getCommentManager().addComment(
+		return _commentManager.addComment(
 			userId, groupId, className, classPK, body, serviceContextFunction);
 	}
 
@@ -42,8 +42,8 @@ public class CommentManagerUtil {
 			Function<String, ServiceContext> serviceContextFunction)
 		throws PortalException {
 
-		return _getCommentManager().addComment(
-			userId, groupId, className, classPK, userName, subject, body,
+		return _commentManager.addComment(
+			null, userId, groupId, className, classPK, userName, subject, body,
 			serviceContextFunction);
 	}
 
@@ -53,9 +53,9 @@ public class CommentManagerUtil {
 			Function<String, ServiceContext> serviceContextFunction)
 		throws PortalException {
 
-		return _getCommentManager().addComment(
-			userId, className, classPK, userName, parentCommentId, subject,
-			body, serviceContextFunction);
+		return _commentManager.addComment(
+			null, userId, className, classPK, userName, parentCommentId,
+			subject, body, serviceContextFunction);
 	}
 
 	public static void addDiscussion(
@@ -63,32 +63,32 @@ public class CommentManagerUtil {
 			String userName)
 		throws PortalException {
 
-		_getCommentManager().addDiscussion(
+		_commentManager.addDiscussion(
 			userId, groupId, className, classPK, userName);
 	}
 
 	public static void deleteComment(long commentId) throws PortalException {
-		_getCommentManager().deleteComment(commentId);
+		_commentManager.deleteComment(commentId);
 	}
 
 	public static void deleteDiscussion(String className, long classPK)
 		throws PortalException {
 
-		_getCommentManager().deleteDiscussion(className, classPK);
+		_commentManager.deleteDiscussion(className, classPK);
 	}
 
 	public static void deleteGroupComments(long groupId)
 		throws PortalException {
 
-		_getCommentManager().deleteGroupComments(groupId);
+		_commentManager.deleteGroupComments(groupId);
 	}
 
 	public static Comment fetchComment(long commentId) {
-		return _getCommentManager().fetchComment(commentId);
+		return _commentManager.fetchComment(commentId);
 	}
 
 	public static int getCommentsCount(String className, long classPK) {
-		return _getCommentManager().getCommentsCount(className, classPK);
+		return _commentManager.getCommentsCount(className, classPK);
 	}
 
 	public static Discussion getDiscussion(
@@ -96,41 +96,41 @@ public class CommentManagerUtil {
 			Function<String, ServiceContext> serviceContextFunction)
 		throws PortalException {
 
-		return _getCommentManager().getDiscussion(
+		return _commentManager.getDiscussion(
 			userId, groupId, className, classPK, serviceContextFunction);
 	}
 
 	public static DiscussionPermission getDiscussionPermission(
 		PermissionChecker permissionChecker) {
 
-		return _getCommentManager().getDiscussionPermission(permissionChecker);
+		return _commentManager.getDiscussionPermission(permissionChecker);
 	}
 
 	public static DiscussionStagingHandler getDiscussionStagingHandler() {
-		return _getCommentManager().getDiscussionStagingHandler();
+		return _commentManager.getDiscussionStagingHandler();
 	}
 
 	public static boolean hasDiscussion(String className, long classPK)
 		throws PortalException {
 
-		return _getCommentManager().hasDiscussion(className, classPK);
+		return _commentManager.hasDiscussion(className, classPK);
 	}
 
 	public static void moveDiscussionToTrash(String className, long classPK) {
-		_getCommentManager().moveDiscussionToTrash(className, classPK);
+		_commentManager.moveDiscussionToTrash(className, classPK);
 	}
 
 	public static void restoreDiscussionFromTrash(
 		String className, long classPK) {
 
-		_getCommentManager().restoreDiscussionFromTrash(className, classPK);
+		_commentManager.restoreDiscussionFromTrash(className, classPK);
 	}
 
 	public static void subscribeDiscussion(
 			long userId, long groupId, String className, long classPK)
 		throws PortalException {
 
-		_getCommentManager().subscribeDiscussion(
+		_commentManager.subscribeDiscussion(
 			userId, groupId, className, classPK);
 	}
 
@@ -138,7 +138,7 @@ public class CommentManagerUtil {
 			long userId, String className, long classPK)
 		throws PortalException {
 
-		_getCommentManager().unsubscribeDiscussion(userId, className, classPK);
+		_commentManager.unsubscribeDiscussion(userId, className, classPK);
 	}
 
 	public static long updateComment(
@@ -147,13 +147,9 @@ public class CommentManagerUtil {
 			Function<String, ServiceContext> serviceContextFunction)
 		throws PortalException {
 
-		return _getCommentManager().updateComment(
+		return _commentManager.updateComment(
 			userId, className, classPK, commentId, subject, body,
 			serviceContextFunction);
-	}
-
-	private static CommentManager _getCommentManager() {
-		return _commentManager;
 	}
 
 	private static volatile CommentManager _commentManager =

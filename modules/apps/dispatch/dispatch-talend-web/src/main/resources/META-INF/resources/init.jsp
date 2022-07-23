@@ -27,12 +27,14 @@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 <%@ page import="com.liferay.dispatch.constants.DispatchPortletKeys" %><%@
 page import="com.liferay.dispatch.constants.DispatchWebKeys" %><%@
 page import="com.liferay.dispatch.model.DispatchTrigger" %><%@
-page import="com.liferay.petra.string.StringPool" %>
+page import="com.liferay.dispatch.talend.archive.exception.TalendArchiveException" %><%@
+page import="com.liferay.dispatch.talend.web.internal.display.context.TalendDispatchDisplayContext" %><%@
+page import="com.liferay.petra.string.StringPool" %><%@
+page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
+page import="com.liferay.portal.kernel.util.WebKeys" %>
 
 <%@ page import="java.util.Objects" %>
 
 <liferay-frontend:defineObjects />
 
 <liferay-theme:defineObjects />
-
-<portlet:defineObjects />

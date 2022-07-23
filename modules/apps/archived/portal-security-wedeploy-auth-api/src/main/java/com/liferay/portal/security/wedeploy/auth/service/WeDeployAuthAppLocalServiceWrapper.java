@@ -27,6 +27,10 @@ public class WeDeployAuthAppLocalServiceWrapper
 	implements ServiceWrapper<WeDeployAuthAppLocalService>,
 			   WeDeployAuthAppLocalService {
 
+	public WeDeployAuthAppLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WeDeployAuthAppLocalServiceWrapper(
 		WeDeployAuthAppLocalService weDeployAuthAppLocalService) {
 
@@ -143,6 +147,13 @@ public class WeDeployAuthAppLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _weDeployAuthAppLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _weDeployAuthAppLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

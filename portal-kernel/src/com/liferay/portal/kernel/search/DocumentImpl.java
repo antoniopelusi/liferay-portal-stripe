@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author Brian Wing Shun Chan
@@ -146,7 +147,7 @@ public class DocumentImpl implements Document {
 
 	@Override
 	public void addFile(String name, InputStream inputStream, String fileExt) {
-		addText(name, FileUtil.extractText(inputStream, fileExt));
+		addText(name, FileUtil.extractText(inputStream));
 	}
 
 	@Override
@@ -154,8 +155,7 @@ public class DocumentImpl implements Document {
 		String name, InputStream inputStream, String fileExt,
 		int maxStringLength) {
 
-		addText(
-			name, FileUtil.extractText(inputStream, fileExt, maxStringLength));
+		addText(name, FileUtil.extractText(inputStream, maxStringLength));
 	}
 
 	@Override
@@ -400,9 +400,21 @@ public class DocumentImpl implements Document {
 			return;
 		}
 
-		createField(name, values);
+		Stream<String> valuesStream = Arrays.stream(values);
 
-		_createSortableTextField(name, true, values);
+		String[] filteredValues = valuesStream.filter(
+			value -> Validator.isNotNull(value)
+		).toArray(
+			String[]::new
+		);
+
+		if (ArrayUtil.isEmpty(filteredValues)) {
+			return;
+		}
+
+		createField(name, filteredValues);
+
+		_createSortableTextField(name, true, filteredValues);
 	}
 
 	@Override
@@ -778,14 +790,10 @@ public class DocumentImpl implements Document {
 			return get(name, defaultName);
 		}
 
-		String localizedName = Field.getLocalizedName(locale, name);
-
-		Field field = getField(localizedName);
+		Field field = getField(Field.getLocalizedName(locale, name));
 
 		if (field == null) {
-			localizedName = Field.getLocalizedName(locale, defaultName);
-
-			field = getField(localizedName);
+			field = getField(Field.getLocalizedName(locale, defaultName));
 		}
 
 		if (field == null) {
@@ -1058,22 +1066,6 @@ public class DocumentImpl implements Document {
 
 	protected void setSortableTextFields(Set<String> sortableTextFields) {
 		_sortableTextFields = sortableTextFields;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #toString(StringBundler, Collection)}
-	 */
-	@Deprecated
-	protected void toString(
-		com.liferay.portal.kernel.util.StringBundler sb,
-		Collection<Field> fields) {
-
-		StringBundler petraSB = new StringBundler();
-
-		toString(petraSB, fields);
-
-		sb.append(petraSB.getStrings());
 	}
 
 	protected void toString(StringBundler sb, Collection<Field> fields) {

@@ -12,7 +12,6 @@
 import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
-import {ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import ClayTabs from '@clayui/tabs';
@@ -22,7 +21,6 @@ import React, {useContext, useState} from 'react';
 import SegmentsExperimentsContext from '../context.es';
 import {archiveExperiment} from '../state/actions.es';
 import {DispatchContext, StateContext} from '../state/context.es';
-import {SegmentsExperienceType} from '../types.es';
 import {NO_EXPERIMENT_ILLUSTRATION_FILE_NAME} from '../util/contants.es';
 import {navigateToExperience} from '../util/navigation.es';
 import {
@@ -48,9 +46,7 @@ function SegmentsExperiments({
 	onDeleteSegmentsExperiment,
 	onEditSegmentsExperiment,
 	onEditSegmentsExperimentStatus,
-	onSelectSegmentsExperienceChange,
 	onTargetChange,
-	segmentsExperiences = [],
 }) {
 	const [dropdown, setDropdown] = useState(false);
 	const [activeTab, setActiveTab] = useState(TABS_STATES.ACTIVE);
@@ -60,59 +56,38 @@ function SegmentsExperiments({
 		selectedExperienceId,
 		variants,
 	} = useContext(StateContext);
-	const {APIService, assetsPath} = useContext(SegmentsExperimentsContext);
+	const {APIService, imagesPath} = useContext(SegmentsExperimentsContext);
 	const dispatch = useContext(DispatchContext);
 
-	const _selectedExperienceId = experiment
-		? experiment.segmentsExperienceId
-		: selectedExperienceId;
-	const noExperimentIllustration = `${assetsPath}${NO_EXPERIMENT_ILLUSTRATION_FILE_NAME}`;
+	const noExperimentIllustration = `${imagesPath}${NO_EXPERIMENT_ILLUSTRATION_FILE_NAME}`;
 	const winnerVariant = variants.find((variant) => variant.winner === true);
-	const goalTarget = experiment?.goal?.target?.substring(1);
+	const goalTarget = experiment?.goal?.target?.replace('#', '');
+	const isGoalTargetInDOM = document.getElementById(goalTarget);
+
+	// If the target has been removed from the page we must reset it
+
+	if (goalTarget && !isGoalTargetInDOM) {
+		onTargetChange('');
+	}
 
 	return (
 		<>
-			{segmentsExperiences.length > 1 && (
-				<>
-					<div className="form-group">
-						<label>
-							{Liferay.Language.get('select-experience')}
-						</label>
-						<ClaySelect
-							defaultValue={_selectedExperienceId}
-							onChange={_handleExperienceSelection}
-						>
-							{segmentsExperiences.map((segmentsExperience) => {
-								return (
-									<ClaySelect.Option
-										key={
-											segmentsExperience.segmentsExperienceId
-										}
-										label={segmentsExperience.name}
-										value={
-											segmentsExperience.segmentsExperienceId
-										}
-									/>
-								);
-							})}
-						</ClaySelect>
-					</div>
-					<hr />
-				</>
-			)}
-
 			<ClayTabs justified={true}>
 				<ClayTabs.Item
-					active={activeTab == TABS_STATES.ACTIVE}
+					active={activeTab === TABS_STATES.ACTIVE}
+					className="c-pt-1"
 					onClick={() => setActiveTab(TABS_STATES.ACTIVE)}
 				>
 					{Liferay.Language.get('active-test')}
 				</ClayTabs.Item>
+
 				<ClayTabs.Item
-					active={activeTab == TABS_STATES.HISTORY}
+					active={activeTab === TABS_STATES.HISTORY}
+					className="c-pt-1"
 					onClick={() => setActiveTab(TABS_STATES.HISTORY)}
 				>
-					{Liferay.Language.get('history')}
+					{Liferay.Language.get('history[record]')}
+
 					{' (' + experimentHistory.length + ')'}
 				</ClayTabs.Item>
 			</ClayTabs>
@@ -152,13 +127,24 @@ function SegmentsExperiments({
 											<ClayDropDown.Item
 												onClick={_handleEditExperiment}
 											>
+												<ClayIcon
+													className="c-mr-3 text-4"
+													symbol="pencil"
+												/>
+
 												{Liferay.Language.get('edit')}
 											</ClayDropDown.Item>
+
 											<ClayDropDown.Item
 												onClick={
 													_handleDeleteActiveExperiment
 												}
 											>
+												<ClayIcon
+													className="c-mr-3 text-4"
+													symbol="trash"
+												/>
+
 												{Liferay.Language.get('delete')}
 											</ClayDropDown.Item>
 										</ClayDropDown.ItemList>
@@ -193,6 +179,7 @@ function SegmentsExperiments({
 											),
 										}}
 									/>
+
 									<ClayAlert.Footer>
 										<ClayButton.Group>
 											<ClayButton
@@ -251,16 +238,19 @@ function SegmentsExperiments({
 								src={noExperimentIllustration}
 								width="120px"
 							/>
+
 							<h4 className="text-dark">
 								{Liferay.Language.get(
 									'no-active-tests-were-found-for-the-selected-experience'
 								)}
 							</h4>
+
 							<p>
 								{Liferay.Language.get(
 									'create-test-help-message'
 								)}
 							</p>
+
 							<ClayButton
 								displayType="secondary"
 								onClick={() =>
@@ -274,6 +264,7 @@ function SegmentsExperiments({
 						</div>
 					)}
 				</ClayTabs.TabPane>
+
 				<ClayTabs.TabPane>
 					<ExperimentsHistory
 						experimentHistory={experimentHistory}
@@ -292,12 +283,6 @@ function SegmentsExperiments({
 		if (confirmed) {
 			return onDeleteSegmentsExperiment(experiment.segmentsExperimentId);
 		}
-	}
-
-	function _handleExperienceSelection(event) {
-		const segmentsExperienceId = event.target.value;
-
-		onSelectSegmentsExperienceChange(segmentsExperienceId);
 	}
 
 	function _handleEditExperiment() {
@@ -341,9 +326,7 @@ SegmentsExperiments.propTypes = {
 	onDeleteSegmentsExperiment: PropTypes.func.isRequired,
 	onEditSegmentsExperiment: PropTypes.func.isRequired,
 	onEditSegmentsExperimentStatus: PropTypes.func.isRequired,
-	onSelectSegmentsExperienceChange: PropTypes.func.isRequired,
 	onTargetChange: PropTypes.func.isRequired,
-	segmentsExperiences: PropTypes.arrayOf(SegmentsExperienceType),
 };
 
 export default SegmentsExperiments;

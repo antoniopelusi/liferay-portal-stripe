@@ -27,8 +27,8 @@ PortletURL backURL = PortletURLBuilder.create(
 ).setMVCPath(
 	"/admin/report/requested_report_detail.jsp"
 ).setParameter(
-	"entryId", String.valueOf(entryId)
-).build();
+	"entryId", entryId
+).buildPortletURL();
 
 portletDisplay.setURLBack(backURL.toString());
 

@@ -58,12 +58,12 @@ public class DLFileShortcutUADTestUtil {
 		InputStream inputStream = new ByteArrayInputStream(bytes);
 
 		DLFileEntry dlFileEntry = dlFileEntryLocalService.addFileEntry(
-			userId, dlFolder.getGroupId(), dlFolder.getRepositoryId(),
+			null, userId, dlFolder.getGroupId(), dlFolder.getRepositoryId(),
 			dlFolder.getFolderId(), RandomTestUtil.randomString(),
 			ContentTypes.TEXT_PLAIN, RandomTestUtil.randomString(),
-			StringPool.BLANK, StringPool.BLANK,
+			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
 			DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT, null,
-			null, inputStream, bytes.length, serviceContext);
+			null, inputStream, bytes.length, null, null, serviceContext);
 
 		return dlFileShortcutLocalService.addFileShortcut(
 			userId, groupId, groupId, dlFolder.getFolderId(),

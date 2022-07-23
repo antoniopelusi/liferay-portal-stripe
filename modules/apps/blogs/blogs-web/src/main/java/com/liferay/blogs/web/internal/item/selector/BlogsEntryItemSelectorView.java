@@ -14,6 +14,7 @@
 
 package com.liferay.blogs.web.internal.item.selector;
 
+import com.liferay.blogs.constants.BlogsPortletKeys;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryService;
 import com.liferay.blogs.web.internal.util.BlogsEntryUtil;
@@ -30,10 +31,11 @@ import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -169,6 +171,10 @@ public class BlogsEntryItemSelectorView
 
 		@Override
 		public String getPayload() {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)_httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 			return JSONUtil.put(
 				"className", BlogsEntry.class.getName()
 			).put(
@@ -179,6 +185,10 @@ public class BlogsEntryItemSelectorView
 			).put(
 				"title",
 				BlogsEntryUtil.getDisplayTitle(_resourceBundle, _blogsEntry)
+			).put(
+				"type",
+				ResourceActionsUtil.getModelResource(
+					themeDisplay.getLocale(), BlogsEntry.class.getName())
 			).toString();
 		}
 
@@ -242,9 +252,33 @@ public class BlogsEntryItemSelectorView
 			return new InfoItemItemSelectorReturnType();
 		}
 
+		public String getOrderByCol() {
+			if (Validator.isNotNull(_orderByCol)) {
+				return _orderByCol;
+			}
+
+			_orderByCol = SearchOrderByUtil.getOrderByCol(
+				_httpServletRequest, BlogsPortletKeys.BLOGS_ADMIN,
+				"selector-order-by-type", "title");
+
+			return _orderByCol;
+		}
+
 		@Override
 		public String[] getOrderByKeys() {
 			return new String[] {"title", "display-date"};
+		}
+
+		public String getOrderByType() {
+			if (Validator.isNotNull(_orderByType)) {
+				return _orderByType;
+			}
+
+			_orderByType = SearchOrderByUtil.getOrderByType(
+				_httpServletRequest, BlogsPortletKeys.BLOGS_ADMIN,
+				"selector-order-by-type", "asc");
+
+			return _orderByType;
 		}
 
 		@Override
@@ -259,40 +293,28 @@ public class BlogsEntryItemSelectorView
 						JavaConstants.JAVAX_PORTLET_REQUEST),
 					_portletURL, null, "no-entries-were-found");
 
-			String orderByCol = ParamUtil.getString(
-				_httpServletRequest, "orderByCol", "title");
-
-			entriesSearchContainer.setOrderByCol(orderByCol);
-
-			String orderByType = ParamUtil.getString(
-				_httpServletRequest, "orderByType", "asc");
-
-			entriesSearchContainer.setOrderByType(orderByType);
-
+			entriesSearchContainer.setOrderByCol(getOrderByCol());
 			entriesSearchContainer.setOrderByComparator(
 				BlogsUtil.getOrderByComparator(
-					entriesSearchContainer.getOrderByCol(),
-					entriesSearchContainer.getOrderByType()));
-
-			entriesSearchContainer.setTotal(
-				_blogsEntryService.getGroupEntriesCount(
-					themeDisplay.getScopeGroupId(),
-					WorkflowConstants.STATUS_APPROVED));
-
-			List<BlogsEntry> entriesResults =
-				_blogsEntryService.getGroupEntries(
+					getOrderByCol(), getOrderByType()));
+			entriesSearchContainer.setOrderByType(getOrderByType());
+			entriesSearchContainer.setResultsAndTotal(
+				() -> _blogsEntryService.getGroupEntries(
 					themeDisplay.getScopeGroupId(),
 					WorkflowConstants.STATUS_APPROVED,
 					entriesSearchContainer.getStart(),
 					entriesSearchContainer.getEnd(),
-					entriesSearchContainer.getOrderByComparator());
-
-			entriesSearchContainer.setResults(entriesResults);
+					entriesSearchContainer.getOrderByComparator()),
+				_blogsEntryService.getGroupEntriesCount(
+					themeDisplay.getScopeGroupId(),
+					WorkflowConstants.STATUS_APPROVED));
 
 			return entriesSearchContainer;
 		}
 
 		private HttpServletRequest _httpServletRequest;
+		private String _orderByCol;
+		private String _orderByType;
 		private final PortletURL _portletURL;
 
 	}

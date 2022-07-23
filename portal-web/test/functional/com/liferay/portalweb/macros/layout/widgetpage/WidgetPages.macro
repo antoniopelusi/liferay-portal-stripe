@@ -1,0 +1,81 @@
+definition {
+
+	macro addNewContent {
+		Click(locator1 = "ControlMenu#ADD");
+
+		AssertElementPresent(locator1 = "ControlMenuAddPanel#SIDEBAR_HEADER");
+
+		Navigator.gotoNavTab(navTab = "Content");
+
+		AssertClick.assertPartialTextClickAt(
+			locator1 = "ControlMenuAddPanel#ADD_NEW_DROPDOWN",
+			value1 = "Add New");
+
+		Click(
+			key_assetItem = "${assetType}",
+			locator1 = "ControlMenuAddPanel#ASSET_ITEM");
+	}
+
+	macro addRecentContent {
+		Click(locator1 = "ControlMenu#ADD");
+
+		AssertElementPresent(locator1 = "ControlMenuAddPanel#SIDEBAR_HEADER");
+
+		Navigator.gotoNavTab(navTab = "Content");
+
+		Type(
+			locator1 = "NavBar#APPLICATION_SEARCH_FIELD",
+			value1 = "${assetTitle}");
+
+		Click.clickNoWaitForVisible(
+			key_portletName = "${assetTitle}",
+			locator1 = "ControlMenuAddPanel#ADD_PORTLET_LINK");
+	}
+
+	macro switchToggleControls {
+		Click(
+			key_status = "${status}",
+			locator1 = "ControlMenu#TOGGLE_CONTROLS");
+	}
+
+	macro viewContentPanel {
+		Click(locator1 = "ControlMenu#ADD");
+
+		AssertElementPresent(locator1 = "ControlMenuAddPanel#SIDEBAR_HEADER");
+
+		Navigator.gotoNavTab(navTab = "Content");
+
+		for (var entryTitle : list "${entryTitleList}") {
+			AssertVisible(
+				key_entryTitle = "${entryTitle}",
+				locator1 = "ControlMenuAddPanel#ASSET_ENTRY");
+		}
+	}
+
+	macro viewPageLayout {
+		var list1 = ListUtil.newListFromString("${pageColumnNumberList}");
+		var list2 = ListUtil.newListFromString("${spanList}");
+		var size = ListUtil.size("${list1}");
+		var i = "0";
+
+		while ("${i}" != "${size}") {
+			var pageColumnNumber = ListUtil.get("${list1}", "${i}");
+			var span = ListUtil.get("${list2}", "${i}");
+
+			AssertVisible(
+				key_pageColumnId = "${pageColumnNumber}",
+				key_span = "${span}",
+				locator1 = "Home#PAGE_COLUMN_LAYOUT");
+
+			var i = ${i} + 1;
+			var i = StringUtil.valueOf("${i}");
+		}
+	}
+
+	macro viewToggleControls {
+		AssertVisible(
+			key_status = "${status}",
+			locator1 = "ControlMenu#TOGGLE_CONTROLS");
+	}
+
+}

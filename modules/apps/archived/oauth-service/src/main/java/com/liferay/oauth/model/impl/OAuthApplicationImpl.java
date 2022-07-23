@@ -21,9 +21,6 @@ import com.liferay.oauth.constants.OAuthApplicationConstants;
  */
 public class OAuthApplicationImpl extends OAuthApplicationBaseImpl {
 
-	public OAuthApplicationImpl() {
-	}
-
 	@Override
 	public String getAccessLevelLabel() {
 		if (getAccessLevel() == OAuthApplicationConstants.ACCESS_READ) {

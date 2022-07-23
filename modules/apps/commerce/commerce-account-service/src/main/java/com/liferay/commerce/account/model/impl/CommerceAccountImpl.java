@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -142,26 +143,26 @@ public class CommerceAccountImpl extends CommerceAccountBaseImpl {
 	}
 
 	public static Integer toCommerceAccountType(String accountEntryType) {
-		if (accountEntryType.equals(
+		if (Objects.equals(
+				accountEntryType,
 				AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS)) {
 
 			return CommerceAccountConstants.ACCOUNT_TYPE_BUSINESS;
 		}
-		else if (accountEntryType.equals(
+		else if (Objects.equals(
+					accountEntryType,
 					AccountConstants.ACCOUNT_ENTRY_TYPE_GUEST)) {
 
 			return CommerceAccountConstants.ACCOUNT_TYPE_GUEST;
 		}
-		else if (accountEntryType.equals(
+		else if (Objects.equals(
+					accountEntryType,
 					AccountConstants.ACCOUNT_ENTRY_TYPE_PERSON)) {
 
 			return CommerceAccountConstants.ACCOUNT_TYPE_PERSONAL;
 		}
 
 		return CommerceAccountConstants.ACCOUNT_TYPE_GUEST;
-	}
-
-	public CommerceAccountImpl() {
 	}
 
 	@Override

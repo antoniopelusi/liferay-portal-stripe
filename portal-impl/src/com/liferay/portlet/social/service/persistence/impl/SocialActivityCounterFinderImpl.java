@@ -114,25 +114,16 @@ public class SocialActivityCounterFinderImpl
 		long groupId, String name, int startPeriod, int endPeriod,
 		int periodLength) {
 
-		StringBundler sb = new StringBundler(9);
-
-		sb.append(groupId);
-		sb.append(StringPool.POUND);
-		sb.append(name);
-		sb.append(StringPool.POUND);
-		sb.append(startPeriod);
-		sb.append(StringPool.POUND);
-		sb.append(endPeriod);
-		sb.append(StringPool.POUND);
-		sb.append(periodLength);
-
-		String key = sb.toString();
+		String key = StringBundler.concat(
+			groupId, StringPool.POUND, name, StringPool.POUND, startPeriod,
+			StringPool.POUND, endPeriod, StringPool.POUND, periodLength);
 
 		List<SocialActivityCounter> activityCounters = null;
 
 		if (endPeriod < SocialCounterPeriodUtil.getActivityDay()) {
 			activityCounters =
-				(List<SocialActivityCounter>)_activityCounters.get(key);
+				(List<SocialActivityCounter>)_activityCountersPortalCache.get(
+					key);
 		}
 
 		if (activityCounters != null) {
@@ -181,11 +172,12 @@ public class SocialActivityCounterFinderImpl
 		}
 		finally {
 			if (activityCounters == null) {
-				_activityCounters.remove(key);
+				_activityCountersPortalCache.remove(key);
 			}
 			else {
 				if (endPeriod < SocialCounterPeriodUtil.getActivityDay()) {
-					_activityCounters.put(key, (Serializable)activityCounters);
+					_activityCountersPortalCache.put(
+						key, (Serializable)activityCounters);
 				}
 			}
 
@@ -355,8 +347,8 @@ public class SocialActivityCounterFinderImpl
 		}
 	}
 
-	private static final PortalCache<String, Serializable> _activityCounters =
-		PortalCacheHelperUtil.getPortalCache(
+	private static final PortalCache<String, Serializable>
+		_activityCountersPortalCache = PortalCacheHelperUtil.getPortalCache(
 			PortalCacheManagerNames.MULTI_VM,
 			SocialActivityCounterFinder.class.getName());
 

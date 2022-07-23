@@ -12,7 +12,6 @@
  * details.
  */
 
-import {HttpLink} from '@apollo/client';
 import {cleanup} from '@testing-library/react';
 import React from 'react';
 import {Route} from 'react-router-dom';
@@ -27,16 +26,34 @@ const mockTags = {
 		keywordsRanked: {
 			items: [
 				{
+					actions: {
+						subscribe: {
+							operation: 'updateKeywordSubscribe',
+							type: 'mutation',
+						},
+					},
 					id: 37018,
 					keywordUsageCount: 1,
 					name: 'new',
 				},
 				{
+					actions: {
+						subscribe: {
+							operation: 'updateKeywordSubscribe',
+							type: 'mutation',
+						},
+					},
 					id: 37019,
 					keywordUsageCount: 1,
 					name: 'osgi',
 				},
 				{
+					actions: {
+						subscribe: {
+							operation: 'updateKeywordSubscribe',
+							type: 'mutation',
+						},
+					},
 					id: 37020,
 					keywordUsageCount: 1,
 					name: 'tag',
@@ -59,22 +76,17 @@ describe('Tags', () => {
 	it('Shows list of tags', async () => {
 		const route = '/tags';
 
-		const link = new HttpLink({
-			credentials: 'include',
-			fetch: global.fetch,
-			uri: '/o/graphql',
-		});
-
 		global.fetch.mockImplementation(() =>
 			Promise.resolve({
 				json: () => Promise.resolve(mockTags),
+				ok: true,
 				text: () => Promise.resolve(JSON.stringify(mockTags)),
 			})
 		);
 
 		const {findByText} = renderComponent({
 			contextValue: {siteKey: '20020'},
-			link,
+			fetch,
 			route,
 			ui: <Route component={Tags} />,
 		});

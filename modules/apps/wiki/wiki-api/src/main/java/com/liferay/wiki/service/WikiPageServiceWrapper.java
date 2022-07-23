@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class WikiPageServiceWrapper
 	implements ServiceWrapper<WikiPageService>, WikiPageService {
 
+	public WikiPageServiceWrapper() {
+		this(null);
+	}
+
 	public WikiPageServiceWrapper(WikiPageService wikiPageService) {
 		_wikiPageService = wikiPageService;
 	}
@@ -41,6 +45,12 @@ public class WikiPageServiceWrapper
 			nodeId, title, content, summary, minorEdit, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #addPage(String, long, String, String, String, boolean, String, String,
+	 String, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.wiki.model.WikiPage addPage(
 			long nodeId, String title, String content, String summary,
@@ -52,6 +62,19 @@ public class WikiPageServiceWrapper
 		return _wikiPageService.addPage(
 			nodeId, title, content, summary, minorEdit, format, parentTitle,
 			redirectTitle, serviceContext);
+	}
+
+	@Override
+	public com.liferay.wiki.model.WikiPage addPage(
+			String externalReferenceCode, long nodeId, String title,
+			String content, String summary, boolean minorEdit, String format,
+			String parentTitle, String redirectTitle,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _wikiPageService.addPage(
+			externalReferenceCode, nodeId, title, content, summary, minorEdit,
+			format, parentTitle, redirectTitle, serviceContext);
 	}
 
 	@Override
@@ -163,6 +186,25 @@ public class WikiPageServiceWrapper
 		_wikiPageService.discardDraft(nodeId, title, version);
 	}
 
+	/**
+	 * Returns the latest wiki page matching the group and the external
+	 * reference code
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki page external reference code
+	 * @return the latest matching wiki page, or <code>null</code> if no
+	 matching wiki page could be found
+	 */
+	@Override
+	public com.liferay.wiki.model.WikiPage
+			fetchLatestPageByExternalReferenceCode(
+				long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _wikiPageService.fetchLatestPageByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
 	@Override
 	public com.liferay.wiki.model.WikiPage fetchPage(
 			long nodeId, String title, double version)
@@ -185,6 +227,24 @@ public class WikiPageServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _wikiPageService.getDraftPage(nodeId, title);
+	}
+
+	/**
+	 * Returns the latest wiki page matching the group and the external
+	 * reference code
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki page external reference code
+	 * @return the latest matching wiki page
+	 * @throws PortalException if a portal exception occurred
+	 */
+	@Override
+	public com.liferay.wiki.model.WikiPage getLatestPageByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _wikiPageService.getLatestPageByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	@Override

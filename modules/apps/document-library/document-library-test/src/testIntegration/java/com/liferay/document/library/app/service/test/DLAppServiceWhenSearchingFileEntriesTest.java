@@ -51,7 +51,8 @@ public class DLAppServiceWhenSearchingFileEntriesTest
 		String fileName = RandomTestUtil.randomString();
 
 		FileEntry fileEntry = DLAppServiceTestUtil.addFileEntry(
-			group.getGroupId(), parentFolder.getFolderId(), fileName, fileName,
+			RandomTestUtil.randomString(), group.getGroupId(),
+			parentFolder.getFolderId(), fileName, fileName, null, null,
 			new String[] {"hello", "world"});
 
 		DLAppServiceTestUtil.search(fileEntry, "hello", true);
@@ -71,7 +72,8 @@ public class DLAppServiceWhenSearchingFileEntriesTest
 		String[] assetTagNames = {"hello", "world"};
 
 		FileEntry fileEntry = DLAppServiceTestUtil.addFileEntry(
-			group.getGroupId(), parentFolder.getFolderId(), fileName, fileName,
+			RandomTestUtil.randomString(), group.getGroupId(),
+			parentFolder.getFolderId(), fileName, fileName, null, null,
 			assetTagNames);
 
 		assetTagNames = new String[] {"hello", "world", "liferay"};
@@ -83,8 +85,8 @@ public class DLAppServiceWhenSearchingFileEntriesTest
 
 		fileEntry = DLAppServiceUtil.updateFileEntry(
 			fileEntry.getFileEntryId(), fileName, ContentTypes.TEXT_PLAIN,
-			fileName, description, changeLog, DLVersionNumberIncrease.MINOR,
-			bytes, serviceContext);
+			fileName, StringPool.BLANK, description, changeLog,
+			DLVersionNumberIncrease.MINOR, bytes, null, null, serviceContext);
 
 		DLAppServiceTestUtil.search(fileEntry, "hello", true);
 		DLAppServiceTestUtil.search(fileEntry, "world", true);

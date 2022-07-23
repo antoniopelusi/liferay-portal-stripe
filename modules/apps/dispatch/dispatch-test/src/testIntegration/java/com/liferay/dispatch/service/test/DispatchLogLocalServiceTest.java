@@ -141,6 +141,44 @@ public class DispatchLogLocalServiceTest {
 	}
 
 	@Test
+	public void testDeleteDispatchLogWhileInProgress() throws Exception {
+		Company company = CompanyTestUtil.addCompany();
+
+		User user = UserTestUtil.addUser(company);
+
+		Class<?> exceptionClass = Exception.class;
+
+		for (DispatchTaskStatus dispatchTaskStatus :
+				DispatchTaskStatus.values()) {
+
+			DispatchLog dispatchLog = DispatchLogTestUtil.randomDispatchLog(
+				user, dispatchTaskStatus);
+
+			dispatchLog = _dispatchLogLocalService.addDispatchLog(dispatchLog);
+
+			try {
+				_dispatchLogLocalService.deleteDispatchLog(
+					dispatchLog.getDispatchLogId());
+
+				Assert.assertNotEquals(
+					DispatchTaskStatus.IN_PROGRESS, dispatchTaskStatus);
+
+				Assert.assertNull(
+					_dispatchLogLocalService.fetchDispatchLog(
+						dispatchLog.getDispatchLogId()));
+
+				continue;
+			}
+			catch (Exception exception) {
+				exceptionClass = exception.getClass();
+			}
+
+			Assert.assertEquals(
+				DispatchLogStatusException.class, exceptionClass);
+		}
+	}
+
+	@Test
 	public void testFetchLatestDispatchLog() throws Exception {
 		int dispatchLogsCount = RandomTestUtil.randomInt(10, 40);
 
@@ -342,7 +380,7 @@ public class DispatchLogLocalServiceTest {
 		throws Exception {
 
 		return _dispatchTriggerLocalService.addDispatchTrigger(
-			dispatchTrigger.getUserId(),
+			null, dispatchTrigger.getUserId(),
 			dispatchTrigger.getDispatchTaskExecutorType(),
 			dispatchTrigger.getDispatchTaskSettingsUnicodeProperties(),
 			dispatchTrigger.getName(), dispatchTrigger.isSystem());

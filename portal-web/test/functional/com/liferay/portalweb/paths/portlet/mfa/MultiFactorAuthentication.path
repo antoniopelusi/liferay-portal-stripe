@@ -2,11 +2,13 @@
 <head>
 <title>MultiFactorAuthentication</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">MultiFactorAuthentication</td></tr>
 </thead>
+
 <tbody>
 <!--CUSTOM_MFA_VERIFICATION-->
 <tr>
@@ -38,11 +40,6 @@
 <tr>
 	<td>EMAIL_OTP_CONFIG_TEXT</td>
 	<td>//div[contains(@data-field-name,'${key_fieldName}')]//span[contains(@class,'form-text')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>EMAIL_OTP_DISABLE</td>
-	<td>//span[@class='form-text']</td>
 	<td></td>
 </tr>
 <tr>
@@ -90,6 +87,11 @@
 <tr>
 	<td>EMAIL_OTP_VERIFY_FIELD</td>
 	<td>//div[label[contains(.,'Enter the one-time password from the email')]]/input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMAIL_OTP_VERIFY_SUBMIT_EMAIL_BUTTON_DISABLED</td>
+	<td>//button[@disabled][contains(@type,'submit')]</td>
 	<td></td>
 </tr>
 <tr>

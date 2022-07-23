@@ -15,18 +15,16 @@
 package com.liferay.portal.test.rule;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.aop.AopMethodInvocation;
 import com.liferay.portal.kernel.aop.ChainableMethodAdvice;
 import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.change.tracking.CTTransactionException;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.test.rule.ClassTestRule;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -36,6 +34,9 @@ import java.util.Deque;
 import java.util.Map;
 
 import org.junit.runner.Description;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Preston Crary
@@ -70,11 +71,12 @@ public class ChangeTrackingTestRule extends ClassTestRule<AutoCloseable> {
 		ThreadLocal<Deque<Object>> transactionExecutorsThreadLocal =
 			(ThreadLocal<Deque<Object>>)field.get(null);
 
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
-		ServiceRegistration<?> serviceRegistration = registry.registerService(
-			ChainableMethodAdvice.class,
-			new CTTestRuleAdvice(transactionExecutorsThreadLocal), null);
+		ServiceRegistration<?> serviceRegistration =
+			bundleContext.registerService(
+				ChainableMethodAdvice.class,
+				new CTTestRuleAdvice(transactionExecutorsThreadLocal), null);
 
 		return serviceRegistration::unregister;
 	}
@@ -135,7 +137,7 @@ public class ChangeTrackingTestRule extends ClassTestRule<AutoCloseable> {
 			if ((ctMode == CTMode.REQUIRES_NEW) ||
 				!_hasCurrentTransactionExecutor()) {
 
-				try (SafeClosable safeClosable = _ctSafe.setWithSafeClosable(
+				try (SafeCloseable safeCloseable = _ctSafe.setWithSafeCloseable(
 						Boolean.TRUE)) {
 
 					return aopMethodInvocation.proceed(arguments);

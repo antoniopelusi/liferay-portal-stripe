@@ -54,9 +54,9 @@ public class SingleIndexToMultipleIndexImporterImpl
 	@Override
 	public void importRankings() {
 		try {
-			createRankingIndices();
+			_createRankingIndices();
 
-			importDocuments();
+			_importDocuments();
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -83,16 +83,13 @@ public class SingleIndexToMultipleIndexImporterImpl
 		return _rankingIndexReader.isExists(SINGLE_INDEX_NAME);
 	}
 
-	protected static Map<String, List<Document>> groupDocumentByIndex(
-		List<Document> documents) {
+	protected static final String RANKINGS_INDEX_NAME_SUFFIX =
+		"search-tuning-rankings";
 
-		Stream<Document> stream = documents.stream();
+	protected static final RankingIndexName SINGLE_INDEX_NAME =
+		() -> "liferay-search-tuning-rankings";
 
-		return stream.collect(
-			Collectors.groupingBy(document -> document.getString("index")));
-	}
-
-	protected boolean addDocuments(String indexName, List<Document> documents) {
+	private boolean _addDocuments(String indexName, List<Document> documents) {
 		boolean successed = true;
 
 		BulkDocumentRequest bulkDocumentRequest = new BulkDocumentRequest();
@@ -101,7 +98,7 @@ public class SingleIndexToMultipleIndexImporterImpl
 			document -> {
 				IndexDocumentRequest indexDocumentRequest =
 					new IndexDocumentRequest(
-						getRankingIndexName(indexName), document);
+						_getRankingIndexName(indexName), document);
 
 				bulkDocumentRequest.addBulkableDocumentRequest(
 					indexDocumentRequest);
@@ -117,7 +114,7 @@ public class SingleIndexToMultipleIndexImporterImpl
 		return successed;
 	}
 
-	protected void createRankingIndices() {
+	private void _createRankingIndices() {
 		List<Company> companies = _companyService.getCompanies();
 
 		Stream<Company> stream = companies.stream();
@@ -133,7 +130,7 @@ public class SingleIndexToMultipleIndexImporterImpl
 		);
 	}
 
-	protected List<Document> getDocuments(RankingIndexName singleIndexName) {
+	private List<Document> _getDocuments(RankingIndexName singleIndexName) {
 		SearchSearchRequest searchSearchRequest = new SearchSearchRequest();
 
 		searchSearchRequest.setIndexNames(singleIndexName.getIndexName());
@@ -156,22 +153,31 @@ public class SingleIndexToMultipleIndexImporterImpl
 		);
 	}
 
-	protected String getRankingIndexName(String indexName) {
+	private String _getRankingIndexName(String indexName) {
 		return indexName + StringPool.DASH + RANKINGS_INDEX_NAME_SUFFIX;
 	}
 
-	protected void importDocuments() {
+	private Map<String, List<Document>> _groupDocumentByIndex(
+		List<Document> documents) {
+
+		Stream<Document> stream = documents.stream();
+
+		return stream.collect(
+			Collectors.groupingBy(document -> document.getString("index")));
+	}
+
+	private void _importDocuments() {
 		if (!_rankingIndexReader.isExists(SINGLE_INDEX_NAME)) {
 			return;
 		}
 
-		List<Document> documents = getDocuments(SINGLE_INDEX_NAME);
+		List<Document> documents = _getDocuments(SINGLE_INDEX_NAME);
 
 		if (documents.isEmpty()) {
 			return;
 		}
 
-		Map<String, List<Document>> documentsMap = groupDocumentByIndex(
+		Map<String, List<Document>> documentsMap = _groupDocumentByIndex(
 			documents);
 
 		Set<Map.Entry<String, List<Document>>> entrySet =
@@ -180,7 +186,7 @@ public class SingleIndexToMultipleIndexImporterImpl
 		Stream<Map.Entry<String, List<Document>>> stream = entrySet.stream();
 
 		if (stream.map(
-				entry -> addDocuments(entry.getKey(), entry.getValue())
+				entry -> _addDocuments(entry.getKey(), entry.getValue())
 			).reduce(
 				true, Boolean::logicalAnd
 			)) {
@@ -188,12 +194,6 @@ public class SingleIndexToMultipleIndexImporterImpl
 			_rankingIndexCreator.delete(SINGLE_INDEX_NAME);
 		}
 	}
-
-	protected static final String RANKINGS_INDEX_NAME_SUFFIX =
-		"search-tuning-rankings";
-
-	protected static final RankingIndexName SINGLE_INDEX_NAME =
-		() -> "liferay-search-tuning-rankings";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SingleIndexToMultipleIndexImporterImpl.class);

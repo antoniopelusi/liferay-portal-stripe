@@ -33,21 +33,12 @@ public final class CancelCheckOutFileOperation extends BaseOperation {
 				listsSoap12Stub.undoCheckOut(
 					_getUndoCheckOutDocument(filePath));
 
-			return _getResponse(undoCheckOutResponseDocument);
+			return _isUndoCheckOut(undoCheckOutResponseDocument);
 		}
 		catch (RemoteException remoteException) {
 			throw RemoteExceptionSharepointExceptionMapper.map(
 				remoteException, sharepointConnectionInfo);
 		}
-	}
-
-	private boolean _getResponse(
-		UndoCheckOutResponseDocument undoCheckOutResponseDocument) {
-
-		UndoCheckOutResponseDocument.UndoCheckOutResponse undoCheckOutResponse =
-			undoCheckOutResponseDocument.getUndoCheckOutResponse();
-
-		return undoCheckOutResponse.getUndoCheckOutResult();
 	}
 
 	private UndoCheckOutDocument _getUndoCheckOutDocument(String filePath) {
@@ -60,6 +51,15 @@ public final class CancelCheckOutFileOperation extends BaseOperation {
 		undoCheckOut.setPageUrl(String.valueOf(toURL(filePath)));
 
 		return undoCheckOutDocument;
+	}
+
+	private boolean _isUndoCheckOut(
+		UndoCheckOutResponseDocument undoCheckOutResponseDocument) {
+
+		UndoCheckOutResponseDocument.UndoCheckOutResponse undoCheckOutResponse =
+			undoCheckOutResponseDocument.getUndoCheckOutResponse();
+
+		return undoCheckOutResponse.getUndoCheckOutResult();
 	}
 
 }

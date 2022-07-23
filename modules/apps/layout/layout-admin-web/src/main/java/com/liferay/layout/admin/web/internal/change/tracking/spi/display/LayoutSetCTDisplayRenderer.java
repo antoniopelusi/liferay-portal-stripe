@@ -26,11 +26,9 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.permission.GroupPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -71,7 +69,7 @@ public class LayoutSetCTDisplayRenderer
 				0, 0, PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/layout_admin/edit_layout_set"
-		).build();
+		).buildPortletURL();
 
 		String currentURL = _portal.getCurrentURL(httpServletRequest);
 
@@ -95,28 +93,19 @@ public class LayoutSetCTDisplayRenderer
 	public String getTitle(Locale locale, LayoutSet layoutSet)
 		throws PortalException {
 
-		String title = "pages";
-
 		Group group = layoutSet.getGroup();
 
 		if (!group.isLayoutSetPrototype() && !group.isLayoutPrototype()) {
-			if (layoutSet.isPrivateLayout()) {
-				title = "private-pages";
-			}
-			else {
-				title = "public-pages";
-			}
+			return group.getLayoutRootNodeName(
+				layoutSet.isPrivateLayout(), locale);
 		}
 
-		return _language.get(locale, title);
+		return _language.get(locale, "pages");
 	}
 
 	@Override
 	public String getTypeName(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
-		return _language.get(resourceBundle, "pages");
+		return _language.get(locale, "pages");
 	}
 
 	@Reference

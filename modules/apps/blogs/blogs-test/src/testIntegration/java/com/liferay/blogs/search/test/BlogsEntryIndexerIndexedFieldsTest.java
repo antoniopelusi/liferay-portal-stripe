@@ -15,6 +15,8 @@
 package com.liferay.blogs.search.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.petra.string.StringPool;
@@ -27,7 +29,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.searcher.SearchRequestBuilderFactory;
@@ -150,6 +152,8 @@ public class BlogsEntryIndexerIndexedFieldsTest {
 		throws Exception {
 
 		Map<String, String> map = HashMapBuilder.put(
+			Field.ASSET_ENTRY_ID, String.valueOf(_getAssetEntryId(blogsEntry))
+		).put(
 			Field.COMPANY_ID, String.valueOf(blogsEntry.getCompanyId())
 		).put(
 			Field.CONTENT, blogsEntry.getContent()
@@ -176,6 +180,9 @@ public class BlogsEntryIndexerIndexedFieldsTest {
 		).put(
 			Field.USER_NAME, StringUtil.lowerCase(blogsEntry.getUserName())
 		).put(
+			"assetEntryId_sortable",
+			String.valueOf(_getAssetEntryId(blogsEntry))
+		).put(
 			"localized_title", StringUtil.lowerCase(blogsEntry.getTitle())
 		).put(
 			"title_sortable", StringUtil.lowerCase(blogsEntry.getTitle())
@@ -201,6 +208,17 @@ public class BlogsEntryIndexerIndexedFieldsTest {
 		return map;
 	}
 
+	private long _getAssetEntryId(BlogsEntry blogsEntry) {
+		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
+			BlogsEntry.class.getName(), blogsEntry.getEntryId());
+
+		if (assetEntry == null) {
+			return 0;
+		}
+
+		return assetEntry.getEntryId();
+	}
+
 	private void _populateContent(
 		BlogsEntry blogsEntry, Map<String, String> map) {
 
@@ -209,7 +227,7 @@ public class BlogsEntryIndexerIndexedFieldsTest {
 
 			map.put(
 				"content_" + LocaleUtil.toLanguageId(locale),
-				HtmlUtil.extractText(blogsEntry.getContent()));
+				_htmlParser.extractText(blogsEntry.getContent()));
 		}
 	}
 
@@ -253,6 +271,9 @@ public class BlogsEntryIndexerIndexedFieldsTest {
 		}
 	}
 
+	@Inject
+	private AssetEntryLocalService _assetEntryLocalService;
+
 	@DeleteAfterTestRun
 	private List<BlogsEntry> _blogsEntries;
 
@@ -261,6 +282,9 @@ public class BlogsEntryIndexerIndexedFieldsTest {
 
 	@DeleteAfterTestRun
 	private List<Group> _groups;
+
+	@Inject
+	private HtmlParser _htmlParser;
 
 	private IndexedFieldsFixture _indexedFieldsFixture;
 

@@ -66,12 +66,12 @@ public class PortletServlet extends HttpServlet {
 		if (httpServletRequest.getAttribute(WebKeys.EXTEND_SESSION) != null) {
 			httpServletRequest.removeAttribute(WebKeys.EXTEND_SESSION);
 
-			HttpSession session = httpServletRequest.getSession(false);
+			HttpSession httpSession = httpServletRequest.getSession(false);
 
-			if (session != null) {
-				session.setAttribute(WebKeys.EXTEND_SESSION, Boolean.TRUE);
+			if (httpSession != null) {
+				httpSession.setAttribute(WebKeys.EXTEND_SESSION, Boolean.TRUE);
 
-				session.removeAttribute(WebKeys.EXTEND_SESSION);
+				httpSession.removeAttribute(WebKeys.EXTEND_SESSION);
 			}
 
 			return;
@@ -106,23 +106,23 @@ public class PortletServlet extends HttpServlet {
 
 		// LPS-66826
 
-		HttpSession session = _getSharedSession(
+		HttpSession httpSession = _getSharedHttpSession(
 			httpServletRequest, portletRequest);
 
-		portletSession.setHttpSession(session);
+		portletSession.setHttpSession(httpSession);
 
 		try {
 			PortletFilterUtil.doFilter(
 				portletRequest, portletResponse, lifecycle, filterChain);
 		}
 		catch (PortletException portletException) {
-			_log.error(portletException, portletException);
+			_log.error(portletException);
 
 			throw new ServletException(portletException);
 		}
 	}
 
-	private HttpSession _getSharedSession(
+	private HttpSession _getSharedHttpSession(
 		HttpServletRequest httpServletRequest, PortletRequest portletRequest) {
 
 		LiferayPortletRequest liferayPortletRequest =
@@ -133,14 +133,14 @@ public class PortletServlet extends HttpServlet {
 		HttpServletRequest originalHttpServletRequest =
 			liferayPortletRequest.getOriginalHttpServletRequest();
 
-		HttpSession portalSession = originalHttpServletRequest.getSession();
+		HttpSession portalHttpSession = originalHttpServletRequest.getSession();
 
 		if (!portlet.isPrivateSessionAttributes()) {
-			return portalSession;
+			return portalHttpSession;
 		}
 
 		return SharedSessionUtil.getSharedSessionWrapper(
-			portalSession, httpServletRequest);
+			portalHttpSession, httpServletRequest);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(PortletServlet.class);

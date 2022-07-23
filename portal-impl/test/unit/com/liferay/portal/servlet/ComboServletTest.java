@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.service.PortalPreferencesLocalServiceWrapper;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletLocalServiceWrapper;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -31,7 +30,6 @@ import com.liferay.portal.language.LanguageImpl;
 import com.liferay.portal.model.impl.PortletAppImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.tools.ToolDependencies;
-import com.liferay.portal.util.HttpImpl;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portlet.PortalPreferencesWrapper;
@@ -54,8 +52,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import org.powermock.api.mockito.PowerMockito;
-
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockServletConfig;
@@ -65,7 +61,7 @@ import org.springframework.mock.web.MockServletContext;
  * @author Carlos Sierra Andrés
  * @author Raymond Augé
  */
-public class ComboServletTest extends PowerMockito {
+public class ComboServletTest {
 
 	@ClassRule
 	public static LiferayUnitTestRule liferayUnitTestRule =
@@ -75,17 +71,13 @@ public class ComboServletTest extends PowerMockito {
 	public static void setUpClass() throws Exception {
 		ToolDependencies.wireCaches();
 
-		HttpUtil httpUtil = new HttpUtil();
-
-		httpUtil.setHttp(new HttpImpl());
-
 		PortalUtil portalUtil = new PortalUtil();
 
 		portalUtil.setPortal(new PortalImpl());
 
 		ReflectionTestUtil.setFieldValue(
 			PrefsPropsUtil.class, "_portalPreferencesLocalService",
-			new PortalPreferencesLocalServiceWrapper(null) {
+			new PortalPreferencesLocalServiceWrapper() {
 
 				@Override
 				public PortletPreferences getPreferences(
@@ -116,7 +108,7 @@ public class ComboServletTest extends PowerMockito {
 
 		ReflectionTestUtil.setFieldValue(
 			PortletLocalServiceUtil.class, "_service",
-			new PortletLocalServiceWrapper(null) {
+			new PortletLocalServiceWrapper() {
 
 				@Override
 				public Portlet getPortletById(String portletId) {
@@ -167,12 +159,11 @@ public class ComboServletTest extends PowerMockito {
 
 	@Test
 	public void testEmptyParameters() throws Exception {
-		MockHttpServletRequest mockHttpServletRequest =
-			new MockHttpServletRequest();
 		MockHttpServletResponse mockHttpServletResponse =
 			new MockHttpServletResponse();
 
-		_comboServlet.service(mockHttpServletRequest, mockHttpServletResponse);
+		_comboServlet.service(
+			new MockHttpServletRequest(), mockHttpServletResponse);
 
 		Assert.assertEquals(
 			HttpServletResponse.SC_NOT_FOUND,
@@ -201,9 +192,11 @@ public class ComboServletTest extends PowerMockito {
 			_mockHttpServletRequest, _mockHttpServletResponse,
 			"/js/javascript.js");
 
-		Mockito.verify(_portalServletContext);
-
-		_portalServletContext.getRequestDispatcher(path);
+		Mockito.verify(
+			_portalServletContext
+		).getRequestDispatcher(
+			path
+		);
 	}
 
 	@Test
@@ -212,9 +205,11 @@ public class ComboServletTest extends PowerMockito {
 			_mockHttpServletRequest, _mockHttpServletResponse,
 			_TEST_PORTLET_ID + ":/js/javascript.js");
 
-		Mockito.verify(_pluginServletContext);
-
-		_pluginServletContext.getRequestDispatcher("/js/javascript.js");
+		Mockito.verify(
+			_pluginServletContext
+		).getRequestDispatcher(
+			"/js/javascript.js"
+		);
 	}
 
 	@Test
@@ -286,7 +281,7 @@ public class ComboServletTest extends PowerMockito {
 	}
 
 	protected void setUpPluginServletContext() {
-		_pluginServletContext = spy(new MockServletContext());
+		_pluginServletContext = Mockito.spy(new MockServletContext());
 	}
 
 	protected void setUpPortalPortlet() {
@@ -320,7 +315,7 @@ public class ComboServletTest extends PowerMockito {
 	}
 
 	protected void setUpPortalServletContext() {
-		_portalServletContext = spy(new MockServletContext());
+		_portalServletContext = Mockito.spy(new MockServletContext());
 
 		_portalServletContext.setContextPath("portal");
 	}

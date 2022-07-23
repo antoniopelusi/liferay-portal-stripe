@@ -193,7 +193,7 @@ public class LiferayThemeDefaultsPlugin implements Plugin<Project> {
 	@SuppressWarnings("serial")
 	private Copy _addTaskExpandFrontendCSSCommon(
 		final Project project,
-		final Configuration frontendCSSCommonConfguration) {
+		final Configuration frontendCSSCommonConfiguration) {
 
 		Copy copy = GradleUtil.addTask(
 			project, EXPAND_FRONTEND_CSS_COMMON_TASK_NAME, Copy.class);
@@ -218,7 +218,7 @@ public class LiferayThemeDefaultsPlugin implements Plugin<Project> {
 				@SuppressWarnings("unused")
 				public FileTree doCall() {
 					return project.zipTree(
-						frontendCSSCommonConfguration.getSingleFile());
+						frontendCSSCommonConfiguration.getSingleFile());
 				}
 
 			});

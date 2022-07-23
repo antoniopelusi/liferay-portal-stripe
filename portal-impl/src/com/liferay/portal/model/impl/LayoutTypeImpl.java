@@ -32,7 +32,7 @@ public class LayoutTypeImpl implements LayoutType {
 
 	public static String getURL(String url, Map<String, String> variables) {
 		if (Validator.isNull(url)) {
-			url = getDefaultURL();
+			url = _URL;
 		}
 
 		return replaceVariables(url, variables);

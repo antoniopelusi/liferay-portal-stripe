@@ -63,7 +63,7 @@ JournalArticleDisplay articleDisplay = (JournalArticleDisplay)request.getAttribu
 				"type", assetRendererFactory.getType()
 			).setParameter(
 				"urlTitle", articleDisplay.getUrlTitle()
-			).build()
+			).buildPortletURL()
 		%>'
 		total="<%= articleDisplay.getNumberOfPages() %>"
 		type="article"

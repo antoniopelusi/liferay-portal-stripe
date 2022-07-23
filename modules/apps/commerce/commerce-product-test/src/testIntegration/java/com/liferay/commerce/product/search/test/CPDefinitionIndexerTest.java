@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -54,7 +53,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CPDefinitionIndexerTest {
 
@@ -66,16 +64,16 @@ public class CPDefinitionIndexerTest {
 			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@BeforeClass
-	public static void setUpClass() {
+	public static void setUpClass() throws Exception {
+		_company = CompanyTestUtil.addCompany();
+
+		_user = UserTestUtil.addUser(_company);
+
 		_indexer = _indexerRegistry.getIndexer(CPDefinition.class);
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
-
-		_user = UserTestUtil.addUser(_company);
-
 		_group = GroupTestUtil.addGroup(
 			_company.getCompanyId(), _user.getUserId(), 0);
 	}
@@ -110,21 +108,18 @@ public class CPDefinitionIndexerTest {
 			document.get(Field.ENTRY_CLASS_PK));
 	}
 
+	private static Company _company;
 	private static Indexer<CPDefinition> _indexer;
 
 	@Inject
 	private static IndexerRegistry _indexerRegistry;
 
+	private static User _user;
+
 	@Inject
 	private CommerceCatalogLocalService _commerceCatalogLocalService;
 
 	@DeleteAfterTestRun
-	private Company _company;
-
-	@DeleteAfterTestRun
 	private Group _group;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

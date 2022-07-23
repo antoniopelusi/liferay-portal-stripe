@@ -40,17 +40,18 @@ public class CPDisplayLayoutUpgradeProcess extends UpgradeProcess {
 				connection.createStatement(
 					ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
-			ResultSet rs = s.executeQuery(_SELECT_CPDISPLAYLAYOUT_SQL)) {
+			ResultSet resultSet = s.executeQuery(_SELECT_CPDISPLAYLAYOUT_SQL)) {
 
-			while (rs.next()) {
-				long groupId = rs.getLong("groupId");
+			while (resultSet.next()) {
+				long groupId = resultSet.getLong("groupId");
 
-				String layoutUuid = rs.getString("layoutUuid");
+				String layoutUuid = resultSet.getString("layoutUuid");
 
 				Layout layout = _fetchLayout(groupId, layoutUuid);
 
 				if (layout == null) {
-					long cpDisplayLayoutId = rs.getLong("CPDisplayLayoutId");
+					long cpDisplayLayoutId = resultSet.getLong(
+						"CPDisplayLayoutId");
 
 					if (_log.isDebugEnabled()) {
 						_log.debug(

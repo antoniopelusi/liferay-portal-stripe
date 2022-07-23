@@ -29,7 +29,7 @@ import org.gradle.api.Project;
  */
 public class GoExtension {
 
-	public GoExtension(final Project project) {
+	public GoExtension(Project project) {
 		_goDir = new File(project.getBuildDir(), "go");
 
 		_goUrl = new Callable<String>() {

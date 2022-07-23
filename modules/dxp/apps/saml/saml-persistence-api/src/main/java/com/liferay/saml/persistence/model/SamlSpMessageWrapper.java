@@ -92,6 +92,11 @@ public class SamlSpMessageWrapper
 		}
 	}
 
+	@Override
+	public SamlSpMessage cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this saml sp message.
 	 *

@@ -18,8 +18,4 @@ package com.liferay.portal.tools.service.builder.test.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class ERCCompanyEntryImpl extends ERCCompanyEntryBaseImpl {
-
-	public ERCCompanyEntryImpl() {
-	}
-
 }

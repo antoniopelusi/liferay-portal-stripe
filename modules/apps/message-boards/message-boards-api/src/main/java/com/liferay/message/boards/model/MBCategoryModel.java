@@ -553,4 +553,7 @@ public interface MBCategoryModel
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId);
 
+	@Override
+	public MBCategory cloneWithOriginalValues();
+
 }

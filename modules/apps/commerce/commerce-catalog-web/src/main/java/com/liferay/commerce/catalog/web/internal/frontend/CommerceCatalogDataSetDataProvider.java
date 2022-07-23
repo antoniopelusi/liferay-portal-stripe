@@ -58,11 +58,10 @@ public class CommerceCatalogDataSetDataProvider
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		List<CommerceCatalog> commerceCatalogs =
-			_commerceCatalogService.searchCommerceCatalogs(
-				themeDisplay.getCompanyId(), filter.getKeywords(),
-				pagination.getStartPosition(), pagination.getEndPosition(),
-				new Sort(Field.NAME, false));
+		List<CommerceCatalog> commerceCatalogs = _commerceCatalogService.search(
+			themeDisplay.getCompanyId(), filter.getKeywords(),
+			pagination.getStartPosition(), pagination.getEndPosition(),
+			new Sort(Field.NAME, false));
 
 		for (CommerceCatalog catalog : commerceCatalogs) {
 			catalogs.add(

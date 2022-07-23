@@ -39,8 +39,6 @@ public class DLFileEntryModelListener extends BaseModelListener<DLFileEntry> {
 		throws ModelListenerException {
 
 		try {
-			super.onAfterRemove(dlFileEntry);
-
 			FileEntry fileEntry = new LiferayFileEntry(dlFileEntry);
 
 			DLOpenerFileEntryReference dlOpenerFileEntryReference =

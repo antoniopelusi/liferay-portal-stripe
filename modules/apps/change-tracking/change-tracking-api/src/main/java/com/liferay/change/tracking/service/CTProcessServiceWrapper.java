@@ -26,18 +26,23 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CTProcessServiceWrapper
 	implements CTProcessService, ServiceWrapper<CTProcessService> {
 
+	public CTProcessServiceWrapper() {
+		this(null);
+	}
+
 	public CTProcessServiceWrapper(CTProcessService ctProcessService) {
 		_ctProcessService = ctProcessService;
 	}
 
 	@Override
 	public java.util.List<com.liferay.change.tracking.model.CTProcess>
-		getCTProcesses(
-			long companyId, long userId, String keywords, int status, int start,
-			int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.change.tracking.model.CTProcess>
-					orderByComparator) {
+			getCTProcesses(
+				long companyId, long userId, String keywords, int status,
+				int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.change.tracking.model.CTProcess>
+						orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _ctProcessService.getCTProcesses(
 			companyId, userId, keywords, status, start, end, orderByComparator);

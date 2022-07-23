@@ -19,7 +19,6 @@ import com.liferay.commerce.service.CommerceAddressLocalService;
 import com.liferay.commerce.service.CommerceAddressLocalServiceUtil;
 import com.liferay.commerce.service.persistence.CPDAvailabilityEstimatePersistence;
 import com.liferay.commerce.service.persistence.CPDefinitionInventoryPersistence;
-import com.liferay.commerce.service.persistence.CommerceAddressPersistence;
 import com.liferay.commerce.service.persistence.CommerceAddressRestrictionPersistence;
 import com.liferay.commerce.service.persistence.CommerceAvailabilityEstimatePersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderFinder;
@@ -28,48 +27,24 @@ import com.liferay.commerce.service.persistence.CommerceOrderItemPersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderNotePersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderPaymentPersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderPersistence;
+import com.liferay.commerce.service.persistence.CommerceOrderTypePersistence;
+import com.liferay.commerce.service.persistence.CommerceOrderTypeRelPersistence;
 import com.liferay.commerce.service.persistence.CommerceShipmentFinder;
 import com.liferay.commerce.service.persistence.CommerceShipmentItemFinder;
 import com.liferay.commerce.service.persistence.CommerceShipmentItemPersistence;
 import com.liferay.commerce.service.persistence.CommerceShipmentPersistence;
 import com.liferay.commerce.service.persistence.CommerceShippingMethodPersistence;
+import com.liferay.commerce.service.persistence.CommerceShippingOptionAccountEntryRelPersistence;
 import com.liferay.commerce.service.persistence.CommerceSubscriptionEntryFinder;
 import com.liferay.commerce.service.persistence.CommerceSubscriptionEntryPersistence;
-import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
-import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
-import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Projection;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
-import com.liferay.portal.kernel.search.Indexable;
-import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
-import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
-import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
-import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
-import java.io.Serializable;
-
 import java.lang.reflect.Field;
-
-import java.util.List;
-
-import javax.sql.DataSource;
 
 /**
  * Provides the base implementation for the commerce address local service.
@@ -93,353 +68,6 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 	 */
 
 	/**
-	 * Adds the commerce address to the database. Also notifies the appropriate model listeners.
-	 *
-	 * <p>
-	 * <strong>Important:</strong> Inspect CommerceAddressLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
-	 * </p>
-	 *
-	 * @param commerceAddress the commerce address
-	 * @return the commerce address that was added
-	 */
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public CommerceAddress addCommerceAddress(CommerceAddress commerceAddress) {
-		commerceAddress.setNew(true);
-
-		return commerceAddressPersistence.update(commerceAddress);
-	}
-
-	/**
-	 * Creates a new commerce address with the primary key. Does not add the commerce address to the database.
-	 *
-	 * @param commerceAddressId the primary key for the new commerce address
-	 * @return the new commerce address
-	 */
-	@Override
-	@Transactional(enabled = false)
-	public CommerceAddress createCommerceAddress(long commerceAddressId) {
-		return commerceAddressPersistence.create(commerceAddressId);
-	}
-
-	/**
-	 * Deletes the commerce address with the primary key from the database. Also notifies the appropriate model listeners.
-	 *
-	 * <p>
-	 * <strong>Important:</strong> Inspect CommerceAddressLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
-	 * </p>
-	 *
-	 * @param commerceAddressId the primary key of the commerce address
-	 * @return the commerce address that was removed
-	 * @throws PortalException if a commerce address with the primary key could not be found
-	 */
-	@Indexable(type = IndexableType.DELETE)
-	@Override
-	public CommerceAddress deleteCommerceAddress(long commerceAddressId)
-		throws PortalException {
-
-		return commerceAddressPersistence.remove(commerceAddressId);
-	}
-
-	/**
-	 * Deletes the commerce address from the database. Also notifies the appropriate model listeners.
-	 *
-	 * <p>
-	 * <strong>Important:</strong> Inspect CommerceAddressLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
-	 * </p>
-	 *
-	 * @param commerceAddress the commerce address
-	 * @return the commerce address that was removed
-	 * @throws PortalException
-	 */
-	@Indexable(type = IndexableType.DELETE)
-	@Override
-	public CommerceAddress deleteCommerceAddress(
-			CommerceAddress commerceAddress)
-		throws PortalException {
-
-		return commerceAddressPersistence.remove(commerceAddress);
-	}
-
-	@Override
-	public <T> T dslQuery(DSLQuery dslQuery) {
-		return commerceAddressPersistence.dslQuery(dslQuery);
-	}
-
-	@Override
-	public DynamicQuery dynamicQuery() {
-		Class<?> clazz = getClass();
-
-		return DynamicQueryFactoryUtil.forClass(
-			CommerceAddress.class, clazz.getClassLoader());
-	}
-
-	/**
-	 * Performs a dynamic query on the database and returns the matching rows.
-	 *
-	 * @param dynamicQuery the dynamic query
-	 * @return the matching rows
-	 */
-	@Override
-	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
-		return commerceAddressPersistence.findWithDynamicQuery(dynamicQuery);
-	}
-
-	/**
-	 * Performs a dynamic query on the database and returns a range of the matching rows.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.commerce.model.impl.CommerceAddressModelImpl</code>.
-	 * </p>
-	 *
-	 * @param dynamicQuery the dynamic query
-	 * @param start the lower bound of the range of model instances
-	 * @param end the upper bound of the range of model instances (not inclusive)
-	 * @return the range of matching rows
-	 */
-	@Override
-	public <T> List<T> dynamicQuery(
-		DynamicQuery dynamicQuery, int start, int end) {
-
-		return commerceAddressPersistence.findWithDynamicQuery(
-			dynamicQuery, start, end);
-	}
-
-	/**
-	 * Performs a dynamic query on the database and returns an ordered range of the matching rows.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.commerce.model.impl.CommerceAddressModelImpl</code>.
-	 * </p>
-	 *
-	 * @param dynamicQuery the dynamic query
-	 * @param start the lower bound of the range of model instances
-	 * @param end the upper bound of the range of model instances (not inclusive)
-	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @return the ordered range of matching rows
-	 */
-	@Override
-	public <T> List<T> dynamicQuery(
-		DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator<T> orderByComparator) {
-
-		return commerceAddressPersistence.findWithDynamicQuery(
-			dynamicQuery, start, end, orderByComparator);
-	}
-
-	/**
-	 * Returns the number of rows matching the dynamic query.
-	 *
-	 * @param dynamicQuery the dynamic query
-	 * @return the number of rows matching the dynamic query
-	 */
-	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
-		return commerceAddressPersistence.countWithDynamicQuery(dynamicQuery);
-	}
-
-	/**
-	 * Returns the number of rows matching the dynamic query.
-	 *
-	 * @param dynamicQuery the dynamic query
-	 * @param projection the projection to apply to the query
-	 * @return the number of rows matching the dynamic query
-	 */
-	@Override
-	public long dynamicQueryCount(
-		DynamicQuery dynamicQuery, Projection projection) {
-
-		return commerceAddressPersistence.countWithDynamicQuery(
-			dynamicQuery, projection);
-	}
-
-	@Override
-	public CommerceAddress fetchCommerceAddress(long commerceAddressId) {
-		return commerceAddressPersistence.fetchByPrimaryKey(commerceAddressId);
-	}
-
-	/**
-	 * Returns the commerce address with the matching external reference code and company.
-	 *
-	 * @param companyId the primary key of the company
-	 * @param externalReferenceCode the commerce address's external reference code
-	 * @return the matching commerce address, or <code>null</code> if a matching commerce address could not be found
-	 */
-	@Override
-	public CommerceAddress fetchCommerceAddressByExternalReferenceCode(
-		long companyId, String externalReferenceCode) {
-
-		return commerceAddressPersistence.fetchByC_ERC(
-			companyId, externalReferenceCode);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchCommerceAddressByExternalReferenceCode(long, String)}
-	 */
-	@Deprecated
-	@Override
-	public CommerceAddress fetchCommerceAddressByReferenceCode(
-		long companyId, String externalReferenceCode) {
-
-		return fetchCommerceAddressByExternalReferenceCode(
-			companyId, externalReferenceCode);
-	}
-
-	/**
-	 * Returns the commerce address with the matching external reference code and company.
-	 *
-	 * @param companyId the primary key of the company
-	 * @param externalReferenceCode the commerce address's external reference code
-	 * @return the matching commerce address
-	 * @throws PortalException if a matching commerce address could not be found
-	 */
-	@Override
-	public CommerceAddress getCommerceAddressByExternalReferenceCode(
-			long companyId, String externalReferenceCode)
-		throws PortalException {
-
-		return commerceAddressPersistence.findByC_ERC(
-			companyId, externalReferenceCode);
-	}
-
-	/**
-	 * Returns the commerce address with the primary key.
-	 *
-	 * @param commerceAddressId the primary key of the commerce address
-	 * @return the commerce address
-	 * @throws PortalException if a commerce address with the primary key could not be found
-	 */
-	@Override
-	public CommerceAddress getCommerceAddress(long commerceAddressId)
-		throws PortalException {
-
-		return commerceAddressPersistence.findByPrimaryKey(commerceAddressId);
-	}
-
-	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery() {
-		ActionableDynamicQuery actionableDynamicQuery =
-			new DefaultActionableDynamicQuery();
-
-		actionableDynamicQuery.setBaseLocalService(commerceAddressLocalService);
-		actionableDynamicQuery.setClassLoader(getClassLoader());
-		actionableDynamicQuery.setModelClass(CommerceAddress.class);
-
-		actionableDynamicQuery.setPrimaryKeyPropertyName("commerceAddressId");
-
-		return actionableDynamicQuery;
-	}
-
-	@Override
-	public IndexableActionableDynamicQuery
-		getIndexableActionableDynamicQuery() {
-
-		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
-			new IndexableActionableDynamicQuery();
-
-		indexableActionableDynamicQuery.setBaseLocalService(
-			commerceAddressLocalService);
-		indexableActionableDynamicQuery.setClassLoader(getClassLoader());
-		indexableActionableDynamicQuery.setModelClass(CommerceAddress.class);
-
-		indexableActionableDynamicQuery.setPrimaryKeyPropertyName(
-			"commerceAddressId");
-
-		return indexableActionableDynamicQuery;
-	}
-
-	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery) {
-
-		actionableDynamicQuery.setBaseLocalService(commerceAddressLocalService);
-		actionableDynamicQuery.setClassLoader(getClassLoader());
-		actionableDynamicQuery.setModelClass(CommerceAddress.class);
-
-		actionableDynamicQuery.setPrimaryKeyPropertyName("commerceAddressId");
-	}
-
-	/**
-	 * @throws PortalException
-	 */
-	@Override
-	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
-		throws PortalException {
-
-		return commerceAddressPersistence.create(
-			((Long)primaryKeyObj).longValue());
-	}
-
-	/**
-	 * @throws PortalException
-	 */
-	@Override
-	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
-		throws PortalException {
-
-		return commerceAddressLocalService.deleteCommerceAddress(
-			(CommerceAddress)persistedModel);
-	}
-
-	@Override
-	public BasePersistence<CommerceAddress> getBasePersistence() {
-		return commerceAddressPersistence;
-	}
-
-	/**
-	 * @throws PortalException
-	 */
-	@Override
-	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException {
-
-		return commerceAddressPersistence.findByPrimaryKey(primaryKeyObj);
-	}
-
-	/**
-	 * Returns a range of all the commerce addresses.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.commerce.model.impl.CommerceAddressModelImpl</code>.
-	 * </p>
-	 *
-	 * @param start the lower bound of the range of commerce addresses
-	 * @param end the upper bound of the range of commerce addresses (not inclusive)
-	 * @return the range of commerce addresses
-	 */
-	@Override
-	public List<CommerceAddress> getCommerceAddresses(int start, int end) {
-		return commerceAddressPersistence.findAll(start, end);
-	}
-
-	/**
-	 * Returns the number of commerce addresses.
-	 *
-	 * @return the number of commerce addresses
-	 */
-	@Override
-	public int getCommerceAddressesCount() {
-		return commerceAddressPersistence.countAll();
-	}
-
-	/**
-	 * Updates the commerce address in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	 *
-	 * <p>
-	 * <strong>Important:</strong> Inspect CommerceAddressLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
-	 * </p>
-	 *
-	 * @param commerceAddress the commerce address
-	 * @return the commerce address that was updated
-	 */
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public CommerceAddress updateCommerceAddress(
-		CommerceAddress commerceAddress) {
-
-		return commerceAddressPersistence.update(commerceAddress);
-	}
-
-	/**
 	 * Returns the commerce address local service.
 	 *
 	 * @return the commerce address local service
@@ -457,26 +85,6 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 		CommerceAddressLocalService commerceAddressLocalService) {
 
 		this.commerceAddressLocalService = commerceAddressLocalService;
-	}
-
-	/**
-	 * Returns the commerce address persistence.
-	 *
-	 * @return the commerce address persistence
-	 */
-	public CommerceAddressPersistence getCommerceAddressPersistence() {
-		return commerceAddressPersistence;
-	}
-
-	/**
-	 * Sets the commerce address persistence.
-	 *
-	 * @param commerceAddressPersistence the commerce address persistence
-	 */
-	public void setCommerceAddressPersistence(
-		CommerceAddressPersistence commerceAddressPersistence) {
-
-		this.commerceAddressPersistence = commerceAddressPersistence;
 	}
 
 	/**
@@ -791,6 +399,95 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the commerce order type local service.
+	 *
+	 * @return the commerce order type local service
+	 */
+	public com.liferay.commerce.service.CommerceOrderTypeLocalService
+		getCommerceOrderTypeLocalService() {
+
+		return commerceOrderTypeLocalService;
+	}
+
+	/**
+	 * Sets the commerce order type local service.
+	 *
+	 * @param commerceOrderTypeLocalService the commerce order type local service
+	 */
+	public void setCommerceOrderTypeLocalService(
+		com.liferay.commerce.service.CommerceOrderTypeLocalService
+			commerceOrderTypeLocalService) {
+
+		this.commerceOrderTypeLocalService = commerceOrderTypeLocalService;
+	}
+
+	/**
+	 * Returns the commerce order type persistence.
+	 *
+	 * @return the commerce order type persistence
+	 */
+	public CommerceOrderTypePersistence getCommerceOrderTypePersistence() {
+		return commerceOrderTypePersistence;
+	}
+
+	/**
+	 * Sets the commerce order type persistence.
+	 *
+	 * @param commerceOrderTypePersistence the commerce order type persistence
+	 */
+	public void setCommerceOrderTypePersistence(
+		CommerceOrderTypePersistence commerceOrderTypePersistence) {
+
+		this.commerceOrderTypePersistence = commerceOrderTypePersistence;
+	}
+
+	/**
+	 * Returns the commerce order type rel local service.
+	 *
+	 * @return the commerce order type rel local service
+	 */
+	public com.liferay.commerce.service.CommerceOrderTypeRelLocalService
+		getCommerceOrderTypeRelLocalService() {
+
+		return commerceOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Sets the commerce order type rel local service.
+	 *
+	 * @param commerceOrderTypeRelLocalService the commerce order type rel local service
+	 */
+	public void setCommerceOrderTypeRelLocalService(
+		com.liferay.commerce.service.CommerceOrderTypeRelLocalService
+			commerceOrderTypeRelLocalService) {
+
+		this.commerceOrderTypeRelLocalService =
+			commerceOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Returns the commerce order type rel persistence.
+	 *
+	 * @return the commerce order type rel persistence
+	 */
+	public CommerceOrderTypeRelPersistence
+		getCommerceOrderTypeRelPersistence() {
+
+		return commerceOrderTypeRelPersistence;
+	}
+
+	/**
+	 * Sets the commerce order type rel persistence.
+	 *
+	 * @param commerceOrderTypeRelPersistence the commerce order type rel persistence
+	 */
+	public void setCommerceOrderTypeRelPersistence(
+		CommerceOrderTypeRelPersistence commerceOrderTypeRelPersistence) {
+
+		this.commerceOrderTypeRelPersistence = commerceOrderTypeRelPersistence;
+	}
+
+	/**
 	 * Returns the commerce shipment local service.
 	 *
 	 * @return the commerce shipment local service
@@ -964,6 +661,56 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 
 		this.commerceShippingMethodPersistence =
 			commerceShippingMethodPersistence;
+	}
+
+	/**
+	 * Returns the commerce shipping option account entry rel local service.
+	 *
+	 * @return the commerce shipping option account entry rel local service
+	 */
+	public com.liferay.commerce.service.
+		CommerceShippingOptionAccountEntryRelLocalService
+			getCommerceShippingOptionAccountEntryRelLocalService() {
+
+		return commerceShippingOptionAccountEntryRelLocalService;
+	}
+
+	/**
+	 * Sets the commerce shipping option account entry rel local service.
+	 *
+	 * @param commerceShippingOptionAccountEntryRelLocalService the commerce shipping option account entry rel local service
+	 */
+	public void setCommerceShippingOptionAccountEntryRelLocalService(
+		com.liferay.commerce.service.
+			CommerceShippingOptionAccountEntryRelLocalService
+				commerceShippingOptionAccountEntryRelLocalService) {
+
+		this.commerceShippingOptionAccountEntryRelLocalService =
+			commerceShippingOptionAccountEntryRelLocalService;
+	}
+
+	/**
+	 * Returns the commerce shipping option account entry rel persistence.
+	 *
+	 * @return the commerce shipping option account entry rel persistence
+	 */
+	public CommerceShippingOptionAccountEntryRelPersistence
+		getCommerceShippingOptionAccountEntryRelPersistence() {
+
+		return commerceShippingOptionAccountEntryRelPersistence;
+	}
+
+	/**
+	 * Sets the commerce shipping option account entry rel persistence.
+	 *
+	 * @param commerceShippingOptionAccountEntryRelPersistence the commerce shipping option account entry rel persistence
+	 */
+	public void setCommerceShippingOptionAccountEntryRelPersistence(
+		CommerceShippingOptionAccountEntryRelPersistence
+			commerceShippingOptionAccountEntryRelPersistence) {
+
+		this.commerceShippingOptionAccountEntryRelPersistence =
+			commerceShippingOptionAccountEntryRelPersistence;
 	}
 
 	/**
@@ -1260,17 +1007,10 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 	}
 
 	public void afterPropertiesSet() {
-		persistedModelLocalServiceRegistry.register(
-			"com.liferay.commerce.model.CommerceAddress",
-			commerceAddressLocalService);
-
 		_setLocalServiceUtilService(commerceAddressLocalService);
 	}
 
 	public void destroy() {
-		persistedModelLocalServiceRegistry.unregister(
-			"com.liferay.commerce.model.CommerceAddress");
-
 		_setLocalServiceUtilService(null);
 	}
 
@@ -1292,30 +1032,6 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 		return CommerceAddress.class.getName();
 	}
 
-	/**
-	 * Performs a SQL query.
-	 *
-	 * @param sql the sql query
-	 */
-	protected void runSQL(String sql) {
-		try {
-			DataSource dataSource = commerceAddressPersistence.getDataSource();
-
-			DB db = DBManagerUtil.getDB();
-
-			sql = db.buildSQL(sql);
-			sql = PortalUtil.transformSQL(sql);
-
-			SqlUpdate sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(
-				dataSource, sql);
-
-			sqlUpdate.update();
-		}
-		catch (Exception exception) {
-			throw new SystemException(exception);
-		}
-	}
-
 	private void _setLocalServiceUtilService(
 		CommerceAddressLocalService commerceAddressLocalService) {
 
@@ -1335,9 +1051,6 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 
 	@BeanReference(type = CommerceAddressLocalService.class)
 	protected CommerceAddressLocalService commerceAddressLocalService;
-
-	@BeanReference(type = CommerceAddressPersistence.class)
-	protected CommerceAddressPersistence commerceAddressPersistence;
 
 	@BeanReference(
 		type = com.liferay.commerce.service.CommerceAddressRestrictionLocalService.class
@@ -1404,6 +1117,24 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 	protected CommerceOrderPaymentPersistence commerceOrderPaymentPersistence;
 
 	@BeanReference(
+		type = com.liferay.commerce.service.CommerceOrderTypeLocalService.class
+	)
+	protected com.liferay.commerce.service.CommerceOrderTypeLocalService
+		commerceOrderTypeLocalService;
+
+	@BeanReference(type = CommerceOrderTypePersistence.class)
+	protected CommerceOrderTypePersistence commerceOrderTypePersistence;
+
+	@BeanReference(
+		type = com.liferay.commerce.service.CommerceOrderTypeRelLocalService.class
+	)
+	protected com.liferay.commerce.service.CommerceOrderTypeRelLocalService
+		commerceOrderTypeRelLocalService;
+
+	@BeanReference(type = CommerceOrderTypeRelPersistence.class)
+	protected CommerceOrderTypeRelPersistence commerceOrderTypeRelPersistence;
+
+	@BeanReference(
 		type = com.liferay.commerce.service.CommerceShipmentLocalService.class
 	)
 	protected com.liferay.commerce.service.CommerceShipmentLocalService
@@ -1436,6 +1167,19 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 	@BeanReference(type = CommerceShippingMethodPersistence.class)
 	protected CommerceShippingMethodPersistence
 		commerceShippingMethodPersistence;
+
+	@BeanReference(
+		type = com.liferay.commerce.service.CommerceShippingOptionAccountEntryRelLocalService.class
+	)
+	protected com.liferay.commerce.service.
+		CommerceShippingOptionAccountEntryRelLocalService
+			commerceShippingOptionAccountEntryRelLocalService;
+
+	@BeanReference(
+		type = CommerceShippingOptionAccountEntryRelPersistence.class
+	)
+	protected CommerceShippingOptionAccountEntryRelPersistence
+		commerceShippingOptionAccountEntryRelPersistence;
 
 	@BeanReference(
 		type = com.liferay.commerce.service.CommerceSubscriptionEntryLocalService.class
@@ -1498,9 +1242,5 @@ public abstract class CommerceAddressLocalServiceBaseImpl
 
 	@ServiceReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
-
-	@ServiceReference(type = PersistedModelLocalServiceRegistry.class)
-	protected PersistedModelLocalServiceRegistry
-		persistedModelLocalServiceRegistry;
 
 }

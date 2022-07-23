@@ -25,6 +25,10 @@ public class LayoutPrototypeLocalServiceWrapper
 	implements LayoutPrototypeLocalService,
 			   ServiceWrapper<LayoutPrototypeLocalService> {
 
+	public LayoutPrototypeLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutPrototypeLocalServiceWrapper(
 		LayoutPrototypeLocalService layoutPrototypeLocalService) {
 
@@ -149,6 +153,13 @@ public class LayoutPrototypeLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _layoutPrototypeLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutPrototypeLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

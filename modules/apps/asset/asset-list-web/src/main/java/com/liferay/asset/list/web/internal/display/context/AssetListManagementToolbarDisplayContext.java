@@ -75,7 +75,7 @@ public class AssetListManagementToolbarDisplayContext
 			dropdownItem -> {
 				dropdownItem.putData(
 					"action", "deleteSelectedAssetListEntries");
-				dropdownItem.setIcon("times-circle");
+				dropdownItem.setIcon("trash");
 				dropdownItem.setLabel(
 					LanguageUtil.get(httpServletRequest, "delete"));
 				dropdownItem.setQuickAction(true);
@@ -160,11 +160,6 @@ public class AssetListManagementToolbarDisplayContext
 					LanguageUtil.get(httpServletRequest, "dynamic-collection"));
 			}
 		).build();
-	}
-
-	@Override
-	public String getDefaultEventHandler() {
-		return "assetListEntriesManagementToolbarDefaultEventHandler";
 	}
 
 	@Override

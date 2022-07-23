@@ -1,0 +1,350 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-68573. This test verifies that is possible to delete the field."
+	@priority = "5"
+	test CanBeDeleted {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Grid");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Grid");
+	}
+
+	@description = "This is a test for LRQA-68573. This test verifies that is possible to duplicate the field."
+	@priority = "4"
+	test CanBeDuplicated {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DataEngine.duplicate(fieldFieldLabel = "Grid");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Copy of Grid",
+			fieldName = "Grid");
+	}
+
+	@description = "This is a test for LRQA-69039. This test verifies that editing chosen options persists."
+	@priority = "5"
+	test CanEditChosenOptions {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Rows",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Columns",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		for (var row : list "1,2,3") {
+			for (var column : list "2,2,2") {
+				DERenderer.inputDataInGridField(
+					column = "${column}",
+					fieldLabel = "Grid",
+					row = "${row}");
+			}
+		}
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		for (var index : list "1,2,3") {
+			DERenderer.inputDataInGridField(
+				column = "${index}",
+				fieldLabel = "Grid",
+				row = "${index}");
+		}
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		for (var index : list "1,2,3") {
+			DERenderer.assertDataInGridField(
+				column = "${index}",
+				fieldLabel = "Grid",
+				row = "${index}");
+		}
+	}
+
+	@description = "This is a test for LRQA-68573. This test verifies that Label and Help text can be edited."
+	@priority = "5"
+	test CanEditLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Grid",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Grid",
+			fieldFieldLabelEdit = "Grid Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Grid Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Grid Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Grid");
+	}
+
+	@description = "This is a test for LRQA-69039. This test verifies that is not possible to publish the Web Content with a blank required field."
+	@priority = "4"
+	test CanNotPublishBlankRequiredField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DataEngine.editFieldRequired(fieldFieldLabel = "Grid");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		Button.clickPublish();
+
+		FormViewBuilder.validateObjectLabelOptionTextIsShown(text = "This field is required.");
+	}
+
+	@description = "This is a test for LRQA-69039. This test verifies that chosen options persists."
+	@priority = "5"
+	test CanSelectOptions {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Rows",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Columns",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		for (var index : list "1,2,3") {
+			DERenderer.inputDataInGridField(
+				column = "${index}",
+				fieldLabel = "Grid",
+				row = "${index}");
+		}
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		for (var index : list "1,2,3") {
+			DERenderer.assertDataInGridField(
+				column = "${index}",
+				fieldLabel = "Grid",
+				row = "${index}");
+		}
+	}
+
+	@description = "This is a test for LRQA-68573. This test verifies that Label and Help text can be set."
+	@priority = "5"
+	test CanSetLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Grid",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Grid",
+			fieldHelp = "Help Text",
+			fieldName = "Grid");
+	}
+
+	@description = "This is a test for LRQA-68573. This test verifies that Label can be shown or hidden."
+	@priority = "3"
+	test CanSetLabelToShownOrHidden {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DataEngine.toggleShowLabel(fieldLabel = "Grid");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Grid");
+
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "Grid");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Grid",
+			fieldName = "Grid");
+	}
+
+	@description = "This is a test for LRQA-68573. This test verifies that multiple options on Column and Row can be set."
+	@priority = "5"
+	test CanSetMultipleOptions {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Rows",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Grid",
+			optionFieldLabel = "Columns",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Grid",
+			fieldName = "Grid");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Grid",
+			optionFieldLabel = "Rows",
+			optionLabelList = "Option 1,Option 2,Option 3");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Grid",
+			optionFieldLabel = "Columns",
+			optionLabelList = "Option 1,Option 2,Option 3");
+	}
+
+}

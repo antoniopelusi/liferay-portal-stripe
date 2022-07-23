@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -65,6 +66,10 @@ public class MessageBoardThread implements Serializable {
 
 	public static MessageBoardThread toDTO(String json) {
 		return ObjectMapperUtil.readValue(MessageBoardThread.class, json);
+	}
+
+	public static MessageBoardThread unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(MessageBoardThread.class, json);
 	}
 
 	@Schema(
@@ -742,6 +747,34 @@ public class MessageBoardThread implements Serializable {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
 
+	@Schema(description = "The thread's status.")
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	@JsonIgnore
+	public void setStatus(
+		UnsafeSupplier<String, Exception> statusUnsafeSupplier) {
+
+		try {
+			status = statusUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(description = "The thread's status.")
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String status;
+
 	@Schema(
 		description = "A flag that indicates whether the user making the requests is subscribed to this thread."
 	)
@@ -771,7 +804,7 @@ public class MessageBoardThread implements Serializable {
 	@GraphQLField(
 		description = "A flag that indicates whether the user making the requests is subscribed to this thread."
 	)
-	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Boolean subscribed;
 
 	@Schema(description = "The categories associated with this thread.")
@@ -1244,6 +1277,20 @@ public class MessageBoardThread implements Serializable {
 			sb.append(siteId);
 		}
 
+		if (status != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"status\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(status));
+
+			sb.append("\"");
+		}
+
 		if (subscribed != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1351,13 +1398,17 @@ public class MessageBoardThread implements Serializable {
 
 		@JsonCreator
 		public static ViewableBy create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (ViewableBy viewableBy : values()) {
 				if (Objects.equals(viewableBy.getValue(), value)) {
 					return viewableBy;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -1379,9 +1430,9 @@ public class MessageBoardThread implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -1407,7 +1458,7 @@ public class MessageBoardThread implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -1439,7 +1490,7 @@ public class MessageBoardThread implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -1455,5 +1506,10 @@ public class MessageBoardThread implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

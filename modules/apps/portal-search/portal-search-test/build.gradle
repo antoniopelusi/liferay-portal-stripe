@@ -4,22 +4,25 @@ dependencies {
 	testCompile project(":apps:calendar:calendar-api")
 	testCompile project(":apps:portal-search:portal-search")
 	testCompile project(":apps:portal-search:portal-search-test-util")
+	testCompile project(":core:osgi-service-tracker-collections")
 	testCompile project(":core:petra:petra-function")
 	testCompile project(":core:petra:petra-lang")
 	testCompile project(":core:petra:petra-string")
 
 	testIntegrationCompile group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
-	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.cm", version: "1.5.0"
-	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.3.0"
+	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
+	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	testIntegrationCompile group: "org.osgi", name: "osgi.core", version: "6.0.0"
 	testIntegrationCompile project(":apps:blogs:blogs-api")
 	testIntegrationCompile project(":apps:blogs:blogs-test-util")
+	testIntegrationCompile project(":apps:change-tracking:change-tracking-api")
 	testIntegrationCompile project(":apps:document-library:document-library-test-util")
 	testIntegrationCompile project(":apps:dynamic-data-mapping:dynamic-data-mapping-test-util")
 	testIntegrationCompile project(":apps:journal:journal-api")
 	testIntegrationCompile project(":apps:journal:journal-test-util")
 	testIntegrationCompile project(":apps:message-boards:message-boards-api")
 	testIntegrationCompile project(":apps:portal-instances:portal-instances-api")
+	testIntegrationCompile project(":apps:portal-search-elasticsearch7:portal-search-elasticsearch7-api")
 	testIntegrationCompile project(":apps:portal-search:portal-search-api")
 	testIntegrationCompile project(":apps:portal-search:portal-search-engine-adapter-api")
 	testIntegrationCompile project(":apps:static:osgi:osgi-util")

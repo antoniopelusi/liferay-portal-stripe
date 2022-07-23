@@ -98,10 +98,6 @@ public class CommerceInventoryReplenishmentClayDataSetActionProvider
 		long commerceInventoryReplenishmentItemId,
 		HttpServletRequest httpServletRequest) {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				_portal.getOriginalServletRequest(httpServletRequest),
@@ -111,7 +107,9 @@ public class CommerceInventoryReplenishmentClayDataSetActionProvider
 		).setCMD(
 			Constants.DELETE
 		).setRedirect(
-			redirect
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"commerceInventoryReplenishmentItemId",
 			commerceInventoryReplenishmentItemId
@@ -139,13 +137,13 @@ public class CommerceInventoryReplenishmentClayDataSetActionProvider
 		).setParameter(
 			"commerceInventoryReplenishmentItemId",
 			commerceInventoryReplenishmentItemId
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL.toString();

@@ -74,10 +74,7 @@ if (Validator.isNotNull(structureAvailableFields)) {
 }
 
 boolean showBackURL = ParamUtil.getBoolean(request, "showBackURL", true);
-boolean showCacheableInput = ParamUtil.getBoolean(request, "showCacheableInput");
 boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
-
-DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 %>
 
 <portlet:actionURL name="/dynamic_data_mapping/add_template" var="addTemplateURL">
@@ -89,7 +86,7 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 </portlet:actionURL>
 
 <clay:container-fluid>
-	<aui:form action="<%= (template == null) ? addTemplateURL : updateTemplateURL %>" cssClass="container-fluid container-fluid-max-xl" enctype="multipart/form-data" method="post" name="fm" onSubmit='<%= "event.preventDefault();" %>'>
+	<aui:form action="<%= (template == null) ? addTemplateURL : updateTemplateURL %>" cssClass="container-fluid container-fluid-max-xl" enctype="multipart/form-data" method="post" name="fm" onSubmit="event.preventDefault();">
 		<aui:input name="redirect" type="hidden" value="<%= ddmDisplay.getEditTemplateBackURL(liferayPortletRequest, liferayPortletResponse, classNameId, classPK, resourceClassNameId, portletResource) %>" />
 		<aui:input name="closeRedirect" type="hidden" value="<%= closeRedirect %>" />
 		<aui:input name="portletResource" type="hidden" value="<%= portletResource %>" />
@@ -223,39 +220,22 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 							persistState="<%= true %>"
 							title="details"
 						>
-							<c:if test="<%= ddmDisplay.isShowStructureSelector() %>">
-								<div class="form-group">
-									<aui:input helpMessage="structure-help" name="structure" type="resource" value="<%= (structure != null) ? structure.getName(locale) : StringPool.BLANK %>" />
-
-									<c:if test="<%= ddmNavigationHelper.isNavigationStartsOnViewTemplates(liferayPortletRequest) && ((template == null) || (template.getClassPK() == 0)) %>">
-										<liferay-ui:icon
-											icon="search"
-											label="<%= true %>"
-											linkCssClass="btn btn-secondary"
-											markupView="lexicon"
-											message="select"
-											url='<%= "javascript:" + liferayPortletResponse.getNamespace() + "openDDMStructureSelector();" %>'
-										/>
-									</c:if>
-								</div>
-							</c:if>
-
 							<c:if test="<%= type.equals(DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY) %>">
 								<aui:select changesContext="<%= true %>" helpMessage='<%= (template == null) ? StringPool.BLANK : "changing-the-language-does-not-automatically-translate-the-existing-template-script" %>' label="language" name="language">
 
 									<%
-									for (String curLangType : ddmDisplay.getTemplateLanguageTypes()) {
+									for (String languageType : ddmDisplay.getTemplateLanguageTypes()) {
 										StringBundler sb = new StringBundler(6);
 
-										sb.append(LanguageUtil.get(request, curLangType + "[stands-for]"));
+										sb.append(LanguageUtil.get(request, languageType + "[stands-for]"));
 										sb.append(StringPool.SPACE);
 										sb.append(StringPool.OPEN_PARENTHESIS);
 										sb.append(StringPool.PERIOD);
-										sb.append(curLangType);
+										sb.append(languageType);
 										sb.append(StringPool.CLOSE_PARENTHESIS);
 									%>
 
-										<aui:option label="<%= sb.toString() %>" selected="<%= language.equals(curLangType) %>" value="<%= curLangType %>" />
+										<aui:option label="<%= sb.toString() %>" selected="<%= language.equals(languageType) %>" value="<%= languageType %>" />
 
 									<%
 									}
@@ -292,7 +272,7 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 									</aui:select>
 								</c:when>
 								<c:otherwise>
-									<c:if test="<%= showCacheableInput %>">
+									<c:if test='<%= ParamUtil.getBoolean(request, "showCacheableInput") %>'>
 										<aui:input helpMessage="journal-template-cacheable-help" name="cacheable" value="<%= cacheable %>" />
 									</c:if>
 
@@ -406,38 +386,6 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 			selectSmallImageType(
 				'<%= ((template != null) && Validator.isNotNull(template.getSmallImageURL())) ? 0 : 1 %>'
 			);
-		</aui:script>
-	</c:if>
-
-	<c:if test="<%= ddmDisplay.isShowStructureSelector() && ((template == null) || (template.getClassPK() == 0)) %>">
-		<aui:script>
-			function <portlet:namespace />openDDMStructureSelector() {
-				Liferay.Util.openDDMPortlet(
-					{
-						basePortletURL:
-							'<%= PortletURLFactoryUtil.create(request, DDMPortletKeys.DYNAMIC_DATA_MAPPING, PortletRequest.RENDER_PHASE) %>',
-						classNameId: '<%= PortalUtil.getClassNameId(DDMStructure.class) %>',
-						classPK: 0,
-						eventName: '<portlet:namespace />selectStructure',
-						groupId: <%= groupId %>,
-						mvcPath: '/select_structure.jsp',
-						navigationStartsOn: '<%= DDMNavigationHelper.SELECT_STRUCTURE %>',
-						showAncestorScopes: true,
-						title: '<%= UnicodeLanguageUtil.get(request, "structures") %>',
-					},
-					(event) => {
-						if (
-							document.<portlet:namespace />fm.<portlet:namespace />classPK
-								.value != event.ddmstructureid
-						) {
-							document.<portlet:namespace />fm.<portlet:namespace />classPK.value =
-								event.ddmstructureid;
-
-							Liferay.fire('<portlet:namespace />refreshEditor');
-						}
-					}
-				);
-			}
 		</aui:script>
 	</c:if>
 

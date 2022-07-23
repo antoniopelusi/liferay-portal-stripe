@@ -28,23 +28,21 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.segments.model.SegmentsExperimentRel;
 import com.liferay.segments.model.SegmentsExperimentRelModel;
-import com.liferay.segments.model.SegmentsExperimentRelSoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -152,65 +150,6 @@ public class SegmentsExperimentRelModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SegmentsExperimentRel toModel(
-		SegmentsExperimentRelSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		SegmentsExperimentRel model = new SegmentsExperimentRelImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setSegmentsExperimentRelId(
-			soapModel.getSegmentsExperimentRelId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setSegmentsExperimentId(soapModel.getSegmentsExperimentId());
-		model.setSegmentsExperienceId(soapModel.getSegmentsExperienceId());
-		model.setSplit(soapModel.getSplit());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SegmentsExperimentRel> toModels(
-		SegmentsExperimentRelSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SegmentsExperimentRel> models =
-			new ArrayList<SegmentsExperimentRel>(soapModels.length);
-
-		for (SegmentsExperimentRelSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public SegmentsExperimentRelModelImpl() {
 	}
 
@@ -295,34 +234,6 @@ public class SegmentsExperimentRelModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SegmentsExperimentRel>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SegmentsExperimentRel.class.getClassLoader(),
-			SegmentsExperimentRel.class, ModelWrapper.class);
-
-		try {
-			Constructor<SegmentsExperimentRel> constructor =
-				(Constructor<SegmentsExperimentRel>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SegmentsExperimentRel, Object>>
@@ -728,6 +639,39 @@ public class SegmentsExperimentRelModelImpl
 	}
 
 	@Override
+	public SegmentsExperimentRel cloneWithOriginalValues() {
+		SegmentsExperimentRelImpl segmentsExperimentRelImpl =
+			new SegmentsExperimentRelImpl();
+
+		segmentsExperimentRelImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		segmentsExperimentRelImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		segmentsExperimentRelImpl.setSegmentsExperimentRelId(
+			this.<Long>getColumnOriginalValue("segmentsExperimentRelId"));
+		segmentsExperimentRelImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		segmentsExperimentRelImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		segmentsExperimentRelImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		segmentsExperimentRelImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		segmentsExperimentRelImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		segmentsExperimentRelImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		segmentsExperimentRelImpl.setSegmentsExperimentId(
+			this.<Long>getColumnOriginalValue("segmentsExperimentId"));
+		segmentsExperimentRelImpl.setSegmentsExperienceId(
+			this.<Long>getColumnOriginalValue("segmentsExperienceId"));
+		segmentsExperimentRelImpl.setSplit(
+			this.<Double>getColumnOriginalValue("split"));
+
+		return segmentsExperimentRelImpl;
+	}
+
+	@Override
 	public int compareTo(SegmentsExperimentRel segmentsExperimentRel) {
 		long primaryKey = segmentsExperimentRel.getPrimaryKey();
 
@@ -859,7 +803,7 @@ public class SegmentsExperimentRelModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -870,10 +814,27 @@ public class SegmentsExperimentRelModelImpl
 			Function<SegmentsExperimentRel, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((SegmentsExperimentRel)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(SegmentsExperimentRel)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -921,7 +882,9 @@ public class SegmentsExperimentRelModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SegmentsExperimentRel>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SegmentsExperimentRel.class, ModelWrapper.class);
 
 	}
 

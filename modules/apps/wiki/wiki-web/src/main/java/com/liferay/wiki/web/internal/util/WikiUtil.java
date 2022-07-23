@@ -14,25 +14,25 @@
 
 package com.liferay.wiki.web.internal.util;
 
+import com.liferay.diff.DiffVersion;
+import com.liferay.diff.DiffVersionsInfo;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.diff.DiffVersion;
-import com.liferay.portal.kernel.diff.DiffVersionsInfo;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.taglib.servlet.PipingServletResponse;
 import com.liferay.wiki.engine.WikiEngine;
 import com.liferay.wiki.engine.WikiEngineRenderer;
 import com.liferay.wiki.exception.WikiFormatException;
@@ -73,18 +73,9 @@ public class WikiUtil {
 	public static String getAttachmentURLPrefix(
 		String mainPath, long plid, long nodeId, String title) {
 
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(mainPath);
-		sb.append("/wiki/get_page_attachment?p_l_id=");
-		sb.append(plid);
-		sb.append("&nodeId=");
-		sb.append(nodeId);
-		sb.append("&title=");
-		sb.append(URLCodec.encodeURL(title));
-		sb.append("&fileName=");
-
-		return sb.toString();
+		return StringBundler.concat(
+			mainPath, "/wiki/get_page_attachment?p_l_id=", plid, "&nodeId=",
+			nodeId, "&title=", URLCodec.encodeURL(title), "&fileName=");
 	}
 
 	public static DiffVersionsInfo getDiffVersionsInfo(
@@ -160,18 +151,10 @@ public class WikiUtil {
 		PortletURL curEditPageURL = PortletURLUtil.clone(
 			editPageURL, renderResponse);
 
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(themeDisplay.getPathMain());
-		sb.append("/wiki/get_page_attachment?p_l_id=");
-		sb.append(themeDisplay.getPlid());
-		sb.append("&nodeId=");
-		sb.append(page.getNodeId());
-		sb.append("&title=");
-		sb.append(URLCodec.encodeURL(page.getTitle()));
-		sb.append("&fileName=");
-
-		String attachmentURLPrefix = sb.toString();
+		String attachmentURLPrefix = StringBundler.concat(
+			themeDisplay.getPathMain(), "/wiki/get_page_attachment?p_l_id=",
+			themeDisplay.getPlid(), "&nodeId=", page.getNodeId(), "&title=",
+			URLCodec.encodeURL(page.getTitle()), "&fileName=");
 
 		if (!preview && (version == 0)) {
 			WikiPageDisplay pageDisplay = _wikiPageLocalService.getDisplay(

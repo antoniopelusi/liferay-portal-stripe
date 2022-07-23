@@ -42,7 +42,7 @@ public interface AuthenticatedSessionManager {
 		throws Exception;
 
 	public HttpSession renewSession(
-			HttpServletRequest httpServletRequest, HttpSession session)
+			HttpServletRequest httpServletRequest, HttpSession httpSession)
 		throws Exception;
 
 	public void signOutSimultaneousLogins(long userId) throws Exception;

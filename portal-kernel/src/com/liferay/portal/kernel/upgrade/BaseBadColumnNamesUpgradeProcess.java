@@ -17,7 +17,10 @@ package com.liferay.portal.kernel.upgrade;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -52,8 +55,7 @@ public abstract class BaseBadColumnNamesUpgradeProcess extends UpgradeProcess {
 
 		Map<String, String> columnSQLs = _getTableColumnSQLs(tableClass);
 
-		List<AlterColumnName> alterColumnNames = new ArrayList<>(
-			columnNames.length);
+		List<String[]> alterColumnNames = new ArrayList<>(columnNames.length);
 
 		for (String columnName : columnNames) {
 			String newColumnName = columnName.concat(StringPool.UNDERLINE);
@@ -99,10 +101,26 @@ public abstract class BaseBadColumnNamesUpgradeProcess extends UpgradeProcess {
 				continue;
 			}
 
-			alterColumnNames.add(new AlterColumnName(columnName, columnSQL));
+			alterColumnNames.add(new String[] {columnName, columnSQL});
 		}
 
-		alter(tableClass, alterColumnNames.toArray(new AlterColumnName[0]));
+		DB db = DBManagerUtil.getDB();
+
+		for (String[] alterColumnName : alterColumnNames) {
+
+			// Special alter for reserved words like SYSTEM in MySQL
+
+			if (db.getDBType() == DBType.MYSQL) {
+				runSQL(
+					StringBundler.concat(
+						"alter table ", tableName, " change column `",
+						alterColumnName[0], "` ", alterColumnName[1]));
+
+				continue;
+			}
+
+			alterColumnName(tableName, alterColumnName[0], alterColumnName[1]);
+		}
 	}
 
 	private Map<String, String> _getTableColumnSQLs(Class<?> tableClass)

@@ -113,6 +113,11 @@ public class DLFileEntryMetadataWrapper
 		}
 	}
 
+	@Override
+	public DLFileEntryMetadata cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this document library file entry metadata.
 	 *

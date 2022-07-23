@@ -427,7 +427,7 @@ public abstract class BasePortletExportImportTestCase
 			larFile = ExportImportLocalServiceUtil.exportPortletInfoAsFile(
 				exportImportConfiguration);
 
-			importedLayout = LayoutTestUtil.addLayout(importedGroup);
+			importedLayout = LayoutTestUtil.addTypePortletLayout(importedGroup);
 
 			MapUtil.merge(getImportParameterMap(), importParameterMap);
 
@@ -510,7 +510,7 @@ public abstract class BasePortletExportImportTestCase
 				buildFullPublishParameterMap();
 
 		if (importedLayout == null) {
-			importedLayout = LayoutTestUtil.addLayout(importedGroup);
+			importedLayout = LayoutTestUtil.addTypePortletLayout(importedGroup);
 		}
 
 		Map<String, Serializable> settingsMap =
@@ -565,7 +565,7 @@ public abstract class BasePortletExportImportTestCase
 		}
 		catch (LocaleException localeException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(localeException, localeException);
+				_log.debug(localeException);
 			}
 
 			Assert.assertTrue(expectFailure);
@@ -611,22 +611,24 @@ public abstract class BasePortletExportImportTestCase
 			PortletDisplayTemplateManager.DISPLAY_STYLE_PREFIX +
 				ddmTemplate.getTemplateKey();
 
-		Map<String, String[]> preferenceMap = HashMapBuilder.put(
-			"displayStyle", new String[] {displayStyle}
-		).put(
-			"displayStyleGroupId",
-			new String[] {String.valueOf(ddmTemplate.getGroupId())}
-		).build();
-
-		if (scopeType.equals("layout")) {
-			preferenceMap.put(
-				"lfrScopeLayoutUuid", new String[] {layout.getUuid()});
-		}
-
-		preferenceMap.put("lfrScopeType", new String[] {scopeType});
-
 		PortletPreferences portletPreferences = getImportedPortletPreferences(
-			preferenceMap);
+			HashMapBuilder.put(
+				"displayStyle", new String[] {displayStyle}
+			).put(
+				"displayStyleGroupId",
+				new String[] {String.valueOf(ddmTemplate.getGroupId())}
+			).put(
+				"lfrScopeLayoutUuid",
+				() -> {
+					if (scopeType.equals("layout")) {
+						return new String[] {layout.getUuid()};
+					}
+
+					return null;
+				}
+			).put(
+				"lfrScopeType", new String[] {scopeType}
+			).build());
 
 		String importedDisplayStyle = portletPreferences.getValue(
 			"displayStyle", StringPool.BLANK);

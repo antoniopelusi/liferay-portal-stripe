@@ -152,6 +152,13 @@ public abstract class DispatchTriggerLocalServiceBaseImpl
 	}
 
 	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
+	@Override
 	public DynamicQuery dynamicQuery() {
 		Class<?> clazz = getClass();
 
@@ -241,6 +248,50 @@ public abstract class DispatchTriggerLocalServiceBaseImpl
 	@Override
 	public DispatchTrigger fetchDispatchTrigger(long dispatchTriggerId) {
 		return dispatchTriggerPersistence.fetchByPrimaryKey(dispatchTriggerId);
+	}
+
+	/**
+	 * Returns the dispatch trigger with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the dispatch trigger's external reference code
+	 * @return the matching dispatch trigger, or <code>null</code> if a matching dispatch trigger could not be found
+	 */
+	@Override
+	public DispatchTrigger fetchDispatchTriggerByExternalReferenceCode(
+		long companyId, String externalReferenceCode) {
+
+		return dispatchTriggerPersistence.fetchByC_ERC(
+			companyId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchDispatchTriggerByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Override
+	public DispatchTrigger fetchDispatchTriggerByReferenceCode(
+		long companyId, String externalReferenceCode) {
+
+		return fetchDispatchTriggerByExternalReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the dispatch trigger with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the dispatch trigger's external reference code
+	 * @return the matching dispatch trigger
+	 * @throws PortalException if a matching dispatch trigger could not be found
+	 */
+	@Override
+	public DispatchTrigger getDispatchTriggerByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		return dispatchTriggerPersistence.findByC_ERC(
+			companyId, externalReferenceCode);
 	}
 
 	/**

@@ -75,13 +75,11 @@ public class GetTotalReadsMVCResourceCommandTest {
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		_layout = LayoutTestUtil.addLayout(_group);
+		_layout = LayoutTestUtil.addTypePortletLayout(_group);
 	}
 
 	@Test
 	public void testServeResponse() throws Exception {
-		LocalDate localDate = LocalDate.now();
-
 		ReflectionTestUtil.setFieldValue(
 			_mvcResourceCommand, "_http",
 			MockHttpUtil.geHttp(
@@ -89,19 +87,23 @@ public class GetTotalReadsMVCResourceCommandTest {
 					"/api/1.0/pages/read-count", () -> "12345"
 				).put(
 					"/api/1.0/pages/read-counts",
-					() -> JSONUtil.put(
-						"histogram",
-						JSONUtil.put(
+					() -> {
+						LocalDate localDate = LocalDate.now();
+
+						return () -> JSONUtil.put(
+							"histogram",
 							JSONUtil.put(
-								"key",
-								localDate.format(
-									DateTimeFormatter.ISO_LOCAL_DATE)
-							).put(
-								"value", 5
-							))
-					).put(
-						"value", 5
-					).toJSONString()
+								JSONUtil.put(
+									"key",
+									localDate.format(
+										DateTimeFormatter.ISO_LOCAL_DATE)
+								).put(
+									"value", 5
+								))
+						).put(
+							"value", 5
+						).toJSONString();
+					}
 				).build()));
 
 		try {

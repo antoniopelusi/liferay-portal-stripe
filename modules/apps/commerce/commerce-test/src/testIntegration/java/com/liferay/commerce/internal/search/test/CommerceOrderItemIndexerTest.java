@@ -21,12 +21,13 @@ import com.liferay.commerce.internal.search.CommerceOrderItemIndexer;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.commerce.product.model.CPInstance;
+import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.product.test.util.CPTestUtil;
 import com.liferay.commerce.service.CommerceOrderItemLocalService;
+import com.liferay.commerce.service.CommerceOrderLocalService;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
@@ -37,12 +38,11 @@ import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.test.rule.Inject;
@@ -55,6 +55,7 @@ import java.util.List;
 
 import org.frutilla.FrutillaRule;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -64,8 +65,8 @@ import org.junit.runner.RunWith;
 
 /**
  * @author Andrea Di Giorgi
+ * @author Alessio Antonio Rendina
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 @Sync
 public class CommerceOrderItemIndexerTest {
@@ -80,17 +81,19 @@ public class CommerceOrderItemIndexerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
 			_group.getCompanyId());
 
 		_indexer = _indexerRegistry.getIndexer(CommerceOrderItem.class);
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		_commerceOrderLocalService.deleteCommerceOrders(_group.getGroupId());
 	}
 
 	@Test
@@ -103,6 +106,44 @@ public class CommerceOrderItemIndexerTest {
 		_assertSearch(StringPool.BLANK, commerceOrderItems);
 	}
 
+	@Test
+	public void testSkuPrefix() throws Exception {
+		CommerceChannel commerceChannel = CommerceTestUtil.addCommerceChannel(
+			_group.getGroupId(), _commerceCurrency.getCode());
+
+		CommerceOrder commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
+			_user.getUserId(), commerceChannel.getGroupId(),
+			_commerceCurrency.getCommerceCurrencyId());
+
+		CPInstance cpInstance = CPTestUtil.addCPInstance(
+			commerceOrder.getGroupId());
+
+		cpInstance.setPurchasable(true);
+
+		String sku = "Open4Life" + RandomTestUtil.randomString();
+
+		cpInstance.setSku(sku);
+
+		_cpInstanceLocalService.updateCPInstance(cpInstance);
+
+		CommerceTestUtil.updateBackOrderCPDefinitionInventory(
+			cpInstance.getCPDefinition());
+
+		CommerceOrderItem commerceOrderItem =
+			CommerceTestUtil.addCommerceOrderItem(
+				commerceOrder.getCommerceOrderId(),
+				cpInstance.getCPInstanceId(), 1);
+
+		_assertSearch(
+			"open", commerceOrder.getCommerceOrderId(), commerceOrderItem);
+		_assertSearch(
+			"open4life", commerceOrder.getCommerceOrderId(), commerceOrderItem);
+		_assertSearch(
+			"OPE", commerceOrder.getCommerceOrderId(), commerceOrderItem);
+
+		_assertSearch("4lif", commerceOrder.getCommerceOrderId());
+	}
+
 	@Rule
 	public FrutillaRule frutillaRule = new FrutillaRule();
 
@@ -113,11 +154,11 @@ public class CommerceOrderItemIndexerTest {
 
 		CommerceOrderItem[] commerceOrderItems = new CommerceOrderItem[count];
 
-		CommerceTestUtil.addCommerceChannel(
+		CommerceChannel commerceChannel = CommerceTestUtil.addCommerceChannel(
 			_group.getGroupId(), _commerceCurrency.getCode());
 
 		CommerceOrder commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
-			user.getUserId(), _group.getGroupId(),
+			user.getUserId(), commerceChannel.getGroupId(),
 			_commerceCurrency.getCommerceCurrencyId());
 
 		for (int i = 0; i < count; i++) {
@@ -168,6 +209,16 @@ public class CommerceOrderItemIndexerTest {
 		searchContext.setKeywords(keywords);
 
 		Hits hits = _indexer.search(searchContext);
+
+		_assertSearch(hits, expectedCommerceOrderItems);
+	}
+
+	private void _assertSearch(
+			String keywords, long commerceOrderId,
+			CommerceOrderItem... expectedCommerceOrderItems)
+		throws Exception {
+
+		Hits hits = _search(keywords, commerceOrderId);
 
 		_assertSearch(hits, expectedCommerceOrderItems);
 	}
@@ -225,25 +276,34 @@ public class CommerceOrderItemIndexerTest {
 		return searchContext;
 	}
 
+	private Hits _search(String keywords, long commerceOrderId)
+		throws Exception {
+
+		SearchContext searchContext = _getSearchContext(commerceOrderId);
+
+		searchContext.setKeywords(keywords);
+
+		return _indexer.search(searchContext);
+	}
+
 	@Inject
 	private static CommerceOrderItemLocalService _commerceOrderItemLocalService;
 
 	@Inject
 	private static IndexerRegistry _indexerRegistry;
 
+	private static User _user;
+
 	@DeleteAfterTestRun
 	private CommerceCurrency _commerceCurrency;
 
-	@DeleteAfterTestRun
-	private Company _company;
+	@Inject
+	private CommerceOrderLocalService _commerceOrderLocalService;
 
 	@Inject
 	private CPInstanceLocalService _cpInstanceLocalService;
 
 	private Group _group;
 	private Indexer<CommerceOrderItem> _indexer;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

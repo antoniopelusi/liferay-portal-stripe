@@ -152,29 +152,34 @@ request.removeAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 							String portletId = PortletProviderUtil.getPortletId(MembershipRequest.class.getName(), PortletProvider.Action.VIEW);
 
 							PortletURL assignMembersURL = PortletURLBuilder.create(
-								PortalUtil.getControlPanelPortletURL(request, portletId, PortletRequest.RENDER_PHASE)
+								PortalUtil.getControlPanelPortletURL(request, group, portletId, 0, 0, PortletRequest.RENDER_PHASE)
 							).setRedirect(
 								currentURL
 							).setParameter(
 								"groupId", group.getGroupId()
-							).build();
+							).buildPortletURL();
 							%>
 
 							<c:if test="<%= siteAdminDisplayContext.getUsersCount(group) > 0 %>">
 								<div>
-									<aui:a href='<%= HttpUtil.addParameter(assignMembersURL.toString(), "tabs1", "users") %>' label='<%= LanguageUtil.format(request, (siteAdminDisplayContext.getUsersCount(group) == 1) ? "x-user" : "x-users", siteAdminDisplayContext.getUsersCount(group), false) %>' />
+									<aui:a
+										href='<%=
+											HttpComponentsUtil.addParameter(assignMembersURL.toString(), "tabs1", "users")
+%>'
+										label='<%= LanguageUtil.format(request, (siteAdminDisplayContext.getUsersCount(group) == 1) ? "x-user" : "x-users", siteAdminDisplayContext.getUsersCount(group), false) %>'
+									/>
 								<div>
 							</c:if>
 
 							<c:if test="<%= siteAdminDisplayContext.getOrganizationsCount(group) > 0 %>">
 								<div>
-									<aui:a href='<%= HttpUtil.addParameter(assignMembersURL.toString(), "tabs1", "organizations") %>' label='<%= LanguageUtil.format(request, (siteAdminDisplayContext.getOrganizationsCount(group) == 1) ? "x-organization" : "x-organizations", siteAdminDisplayContext.getOrganizationsCount(group), false) %>' />
+									<aui:a href='<%= HttpComponentsUtil.addParameter(assignMembersURL.toString(), "tabs1", "organizations") %>' label='<%= LanguageUtil.format(request, (siteAdminDisplayContext.getOrganizationsCount(group) == 1) ? "x-organization" : "x-organizations", siteAdminDisplayContext.getOrganizationsCount(group), false) %>' />
 								</div>
 							</c:if>
 
 							<c:if test="<%= siteAdminDisplayContext.getUserGroupsCount(group) > 0 %>">
 								<div>
-									<aui:a href='<%= HttpUtil.addParameter(assignMembersURL.toString(), "tabs1", "user-groups") %>' label='<%= LanguageUtil.format(request, (siteAdminDisplayContext.getUserGroupsCount(group) == 1) ? "x-user-groups" : "x-user-groups", siteAdminDisplayContext.getUserGroupsCount(group), false) %>' />
+									<aui:a href='<%= HttpComponentsUtil.addParameter(assignMembersURL.toString(), "tabs1", "user-groups") %>' label='<%= LanguageUtil.format(request, (siteAdminDisplayContext.getUserGroupsCount(group) == 1) ? "x-user-groups" : "x-user-groups", siteAdminDisplayContext.getUserGroupsCount(group), false) %>' />
 								</div>
 							</c:if>
 						</li>

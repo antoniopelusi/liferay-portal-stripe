@@ -14,6 +14,7 @@
 
 package com.liferay.segments.service.impl;
 
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -31,10 +32,12 @@ import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsExperimentConstants;
@@ -51,6 +54,7 @@ import com.liferay.segments.exception.WinnerSegmentsExperienceException;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.model.SegmentsExperiment;
 import com.liferay.segments.model.SegmentsExperimentRel;
+import com.liferay.segments.model.SegmentsExperimentRelTable;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.segments.service.SegmentsExperimentRelLocalService;
 import com.liferay.segments.service.base.SegmentsExperimentLocalServiceBaseImpl;
@@ -118,14 +122,14 @@ public class SegmentsExperimentLocalServiceImpl
 		segmentsExperiment.setName(name);
 		segmentsExperiment.setDescription(description);
 
-		UnicodeProperties typeSettingsUnicodeProperties = new UnicodeProperties(
-			true);
-
-		typeSettingsUnicodeProperties.setProperty("goal", goal);
-		typeSettingsUnicodeProperties.setProperty("goalTarget", goalTarget);
-
 		segmentsExperiment.setTypeSettings(
-			typeSettingsUnicodeProperties.toString());
+			UnicodePropertiesBuilder.create(
+				true
+			).put(
+				"goal", goal
+			).put(
+				"goalTarget", goalTarget
+			).buildString());
 
 		segmentsExperiment.setStatus(status);
 
@@ -206,6 +210,35 @@ public class SegmentsExperimentLocalServiceImpl
 			segmentsExperimentLocalService.deleteSegmentsExperiment(
 				segmentsExperiment);
 		}
+	}
+
+	@Override
+	public SegmentsExperience fetchControlSegmentExperience(
+		SegmentsExperience segmentsExperience) {
+
+		List<SegmentsExperimentRel> segmentsExperimentRels =
+			_segmentsExperimentRelLocalService.dslQuery(
+				DSLQueryFactoryUtil.select(
+					SegmentsExperimentRelTable.INSTANCE
+				).from(
+					SegmentsExperimentRelTable.INSTANCE
+				).where(
+					SegmentsExperimentRelTable.INSTANCE.segmentsExperienceId.eq(
+						segmentsExperience.getSegmentsExperienceId())
+				));
+
+		if (segmentsExperimentRels.isEmpty()) {
+			return null;
+		}
+
+		SegmentsExperimentRel segmentsExperimentRel =
+			segmentsExperimentRels.get(0);
+
+		SegmentsExperiment segmentsExperiment = fetchSegmentsExperiment(
+			segmentsExperimentRel.getSegmentsExperimentId());
+
+		return _segmentsExperienceLocalService.fetchSegmentsExperience(
+			segmentsExperiment.getSegmentsExperienceId());
 	}
 
 	@Override
@@ -417,12 +450,8 @@ public class SegmentsExperimentLocalServiceImpl
 			ServiceContextThreadLocal.getServiceContext();
 
 		if ((serviceContext == null) ||
-			(serviceContext.getUserId() == segmentsExperiment.getUserId())) {
-
-			return;
-		}
-
-		if (!UserNotificationManagerUtil.isDeliver(
+			(serviceContext.getUserId() == segmentsExperiment.getUserId()) ||
+			!UserNotificationManagerUtil.isDeliver(
 				segmentsExperiment.getUserId(),
 				SegmentsPortletKeys.SEGMENTS_EXPERIMENT, 0,
 				SegmentsExperimentConstants.NOTIFICATION_TYPE_UPDATE_STATUS,
@@ -431,7 +460,7 @@ public class SegmentsExperimentLocalServiceImpl
 			return;
 		}
 
-		userNotificationEventLocalService.sendUserNotificationEvents(
+		_userNotificationEventLocalService.sendUserNotificationEvents(
 			segmentsExperiment.getUserId(),
 			SegmentsPortletKeys.SEGMENTS_EXPERIMENT,
 			UserNotificationDeliveryConstants.TYPE_WEBSITE,
@@ -571,7 +600,9 @@ public class SegmentsExperimentLocalServiceImpl
 			SegmentsExperimentConstants.Status.valueOf(status);
 
 		if ((segmentsExperiment.getSegmentsExperienceId() !=
-				SegmentsExperienceConstants.ID_DEFAULT) &&
+				_segmentsExperienceLocalService.
+					fetchDefaultSegmentsExperienceId(
+						segmentsExperiment.getClassPK())) &&
 			(statusObject == SegmentsExperimentConstants.Status.COMPLETED) &&
 			(winnerSegmentsExperienceId !=
 				segmentsExperiment.getSegmentsExperienceId())) {
@@ -734,5 +765,9 @@ public class SegmentsExperimentLocalServiceImpl
 	@Reference
 	private SegmentsExperimentRelLocalService
 		_segmentsExperimentRelLocalService;
+
+	@Reference
+	private UserNotificationEventLocalService
+		_userNotificationEventLocalService;
 
 }

@@ -14,6 +14,7 @@
 
 package com.liferay.headless.admin.user.client.serdes.v1_0;
 
+import com.liferay.headless.admin.user.client.dto.v1_0.AccountBrief;
 import com.liferay.headless.admin.user.client.dto.v1_0.CustomField;
 import com.liferay.headless.admin.user.client.dto.v1_0.OrganizationBrief;
 import com.liferay.headless.admin.user.client.dto.v1_0.RoleBrief;
@@ -64,7 +65,27 @@ public class UserAccountSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
+
+		if (userAccount.getAccountBriefs() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"accountBriefs\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < userAccount.getAccountBriefs().length; i++) {
+				sb.append(String.valueOf(userAccount.getAccountBriefs()[i]));
+
+				if ((i + 1) < userAccount.getAccountBriefs().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
 
 		if (userAccount.getActions() != null) {
 			if (sb.length() > 1) {
@@ -197,6 +218,20 @@ public class UserAccountSerDes {
 			sb.append("\"");
 		}
 
+		if (userAccount.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(userAccount.getExternalReferenceCode()));
+
+			sb.append("\"");
+		}
+
 		if (userAccount.getFamilyName() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -315,6 +350,21 @@ public class UserAccountSerDes {
 			sb.append("]");
 		}
 
+		if (userAccount.getLastLoginDate() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"lastLoginDate\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				liferayToJSONDateFormat.format(userAccount.getLastLoginDate()));
+
+			sb.append("\"");
+		}
+
 		if (userAccount.getName() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -350,6 +400,20 @@ public class UserAccountSerDes {
 			}
 
 			sb.append("]");
+		}
+
+		if (userAccount.getPassword() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"password\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(userAccount.getPassword()));
+
+			sb.append("\"");
 		}
 
 		if (userAccount.getProfileURL() != null) {
@@ -437,7 +501,16 @@ public class UserAccountSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
+
+		if (userAccount.getAccountBriefs() == null) {
+			map.put("accountBriefs", null);
+		}
+		else {
+			map.put(
+				"accountBriefs",
+				String.valueOf(userAccount.getAccountBriefs()));
+		}
 
 		if (userAccount.getActions() == null) {
 			map.put("actions", null);
@@ -515,6 +588,15 @@ public class UserAccountSerDes {
 				"emailAddress", String.valueOf(userAccount.getEmailAddress()));
 		}
 
+		if (userAccount.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(userAccount.getExternalReferenceCode()));
+		}
+
 		if (userAccount.getFamilyName() == null) {
 			map.put("familyName", null);
 		}
@@ -575,6 +657,15 @@ public class UserAccountSerDes {
 			map.put("keywords", String.valueOf(userAccount.getKeywords()));
 		}
 
+		if (userAccount.getLastLoginDate() == null) {
+			map.put("lastLoginDate", null);
+		}
+		else {
+			map.put(
+				"lastLoginDate",
+				liferayToJSONDateFormat.format(userAccount.getLastLoginDate()));
+		}
+
 		if (userAccount.getName() == null) {
 			map.put("name", null);
 		}
@@ -589,6 +680,13 @@ public class UserAccountSerDes {
 			map.put(
 				"organizationBriefs",
 				String.valueOf(userAccount.getOrganizationBriefs()));
+		}
+
+		if (userAccount.getPassword() == null) {
+			map.put("password", null);
+		}
+		else {
+			map.put("password", String.valueOf(userAccount.getPassword()));
 		}
 
 		if (userAccount.getProfileURL() == null) {
@@ -642,7 +740,19 @@ public class UserAccountSerDes {
 			UserAccount userAccount, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "actions")) {
+			if (Objects.equals(jsonParserFieldName, "accountBriefs")) {
+				if (jsonParserFieldValue != null) {
+					userAccount.setAccountBriefs(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> AccountBriefSerDes.toDTO((String)object)
+						).toArray(
+							size -> new AccountBrief[size]
+						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "actions")) {
 				if (jsonParserFieldValue != null) {
 					userAccount.setActions(
 						(Map)UserAccountSerDes.toMap(
@@ -699,6 +809,14 @@ public class UserAccountSerDes {
 					userAccount.setEmailAddress((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					userAccount.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "familyName")) {
 				if (jsonParserFieldValue != null) {
 					userAccount.setFamilyName((String)jsonParserFieldValue);
@@ -743,6 +861,12 @@ public class UserAccountSerDes {
 						toStrings((Object[])jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "lastLoginDate")) {
+				if (jsonParserFieldValue != null) {
+					userAccount.setLastLoginDate(
+						toDate((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "name")) {
 				if (jsonParserFieldValue != null) {
 					userAccount.setName((String)jsonParserFieldValue);
@@ -761,6 +885,11 @@ public class UserAccountSerDes {
 						).toArray(
 							size -> new OrganizationBrief[size]
 						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "password")) {
+				if (jsonParserFieldValue != null) {
+					userAccount.setPassword((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "profileURL")) {

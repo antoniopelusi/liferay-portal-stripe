@@ -17,7 +17,7 @@ package com.liferay.wiki.web.internal.display.context;
 import com.liferay.wiki.display.context.WikiNodeInfoPanelDisplayContext;
 import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.service.WikiNodeLocalServiceUtil;
-import com.liferay.wiki.web.internal.display.context.util.WikiNodeInfoPanelRequestHelper;
+import com.liferay.wiki.web.internal.display.context.helper.WikiNodeInfoPanelRequestHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -58,7 +58,7 @@ public class DefaultWikiNodeInfoPanelDisplayContext
 
 	@Override
 	public int getSelectedNodesCount() {
-		List<?> items = getSelectedNodes();
+		List<?> items = _getSelectedNodes();
 
 		return items.size();
 	}
@@ -70,7 +70,7 @@ public class DefaultWikiNodeInfoPanelDisplayContext
 
 	@Override
 	public boolean isMultipleNodeSelection() {
-		List<?> items = getSelectedNodes();
+		List<?> items = _getSelectedNodes();
 
 		if (items.size() > 1) {
 			return true;
@@ -90,7 +90,7 @@ public class DefaultWikiNodeInfoPanelDisplayContext
 		return false;
 	}
 
-	protected List<?> getSelectedNodes() {
+	private List<?> _getSelectedNodes() {
 		return _wikiNodeInfoPanelRequestHelper.getNodes();
 	}
 

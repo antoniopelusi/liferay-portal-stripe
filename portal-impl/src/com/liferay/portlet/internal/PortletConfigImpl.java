@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.language.LanguageResources;
 import com.liferay.portlet.StrutsResourceBundle;
 
 import java.util.ArrayList;
@@ -67,7 +68,11 @@ public class PortletConfigImpl implements LiferayPortletConfig {
 			getInitParameter("copy-request-parameters"));
 		_portletApp = portlet.getPortletApp();
 
-		String portletName = portlet.getRootPortletId();
+		String portletName = portlet.getPortletName();
+
+		if (portletName == null) {
+			portletName = portlet.getRootPortletId();
+		}
 
 		int pos = portletName.indexOf(PortletConstants.WAR_SEPARATOR);
 
@@ -250,7 +255,8 @@ public class PortletConfigImpl implements LiferayPortletConfig {
 				resourceBundleId);
 
 			if (resourceBundle == null) {
-				resourceBundle = new PortletResourceBundle(null, _portletInfos);
+				resourceBundle = new PortletResourceBundle(
+					LanguageResources.getResourceBundle(locale), _portletInfos);
 
 				_resourceBundles.put(resourceBundleId, resourceBundle);
 			}
@@ -264,14 +270,9 @@ public class PortletConfigImpl implements LiferayPortletConfig {
 			resourceBundleClassName.equals(
 				StrutsResourceBundle.class.getName())) {
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(_portlet.getPortletId());
-			sb.append(locale.getLanguage());
-			sb.append(locale.getCountry());
-			sb.append(locale.getVariant());
-
-			String resourceBundleId = sb.toString();
+			String resourceBundleId = StringBundler.concat(
+				_portlet.getPortletId(), locale.getLanguage(),
+				locale.getCountry(), locale.getVariant());
 
 			resourceBundle = _resourceBundles.get(resourceBundleId);
 

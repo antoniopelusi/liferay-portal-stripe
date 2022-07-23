@@ -18,8 +18,4 @@ package com.liferay.portal.tools.service.builder.test.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class LVEntryLocalizationImpl extends LVEntryLocalizationBaseImpl {
-
-	public LVEntryLocalizationImpl() {
-	}
-
 }

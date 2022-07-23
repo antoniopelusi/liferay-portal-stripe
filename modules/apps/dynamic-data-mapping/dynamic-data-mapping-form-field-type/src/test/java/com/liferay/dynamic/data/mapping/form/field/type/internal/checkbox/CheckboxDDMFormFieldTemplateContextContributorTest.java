@@ -58,7 +58,7 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		setUpRequestBackedPortletURLFactoryUtil();
+		_setUpRequestBackedPortletURLFactoryUtil();
 	}
 
 	@Test
@@ -67,11 +67,11 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 
 		Map<String, Object> parameters =
 			_checkboxDDMFormFieldTemplateContextContributor.getParameters(
-				ddmFormField, createDDMFormFieldRenderingContext());
+				ddmFormField, _createDDMFormFieldRenderingContext());
 
 		boolean predefinedValue = (boolean)parameters.get("predefinedValue");
 
-		Assert.assertEquals(false, predefinedValue);
+		Assert.assertFalse(predefinedValue);
 	}
 
 	@Test
@@ -79,7 +79,7 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 		Map<String, Object> parameters =
 			_checkboxDDMFormFieldTemplateContextContributor.getParameters(
 				new DDMFormField("field", "checkbox"),
-				createDDMFormFieldRenderingContext());
+				_createDDMFormFieldRenderingContext());
 
 		String systemSettingsURL = String.valueOf(
 			parameters.get("systemSettingsURL"));
@@ -95,7 +95,7 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 
 		Map<String, Object> parameters =
 			_checkboxDDMFormFieldTemplateContextContributor.getParameters(
-				ddmFormField, createDDMFormFieldRenderingContext());
+				ddmFormField, _createDDMFormFieldRenderingContext());
 
 		boolean showMaximumRepetitionsInfo = (boolean)parameters.get(
 			"showMaximumRepetitionsInfo");
@@ -111,7 +111,7 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 
 		Map<String, Object> parameters =
 			_checkboxDDMFormFieldTemplateContextContributor.getParameters(
-				ddmFormField, createDDMFormFieldRenderingContext());
+				ddmFormField, _createDDMFormFieldRenderingContext());
 
 		String systemSettingsURL = String.valueOf(
 			parameters.get("systemSettingsURL"));
@@ -140,12 +140,12 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 
 		Map<String, Object> parameters =
 			_checkboxDDMFormFieldTemplateContextContributor.getParameters(
-				ddmFormField, createDDMFormFieldRenderingContext());
+				ddmFormField, _createDDMFormFieldRenderingContext());
 
 		boolean actualPredefinedValue = (boolean)parameters.get(
 			"predefinedValue");
 
-		Assert.assertEquals(false, actualPredefinedValue);
+		Assert.assertFalse(actualPredefinedValue);
 	}
 
 	@Test
@@ -160,17 +160,15 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 
 		Map<String, Object> parameters =
 			_checkboxDDMFormFieldTemplateContextContributor.getParameters(
-				ddmFormField, createDDMFormFieldRenderingContext());
+				ddmFormField, _createDDMFormFieldRenderingContext());
 
 		boolean actualPredefinedValue = (boolean)parameters.get(
 			"predefinedValue");
 
-		Assert.assertEquals(true, actualPredefinedValue);
+		Assert.assertTrue(actualPredefinedValue);
 	}
 
-	protected DDMFormFieldRenderingContext
-		createDDMFormFieldRenderingContext() {
-
+	private DDMFormFieldRenderingContext _createDDMFormFieldRenderingContext() {
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext =
 			new DDMFormFieldRenderingContext();
 
@@ -181,8 +179,8 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 		return ddmFormFieldRenderingContext;
 	}
 
-	protected RequestBackedPortletURLFactory
-		mockRequestBackedPortletURLFactory() {
+	private RequestBackedPortletURLFactory
+		_mockRequestBackedPortletURLFactory() {
 
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory = mock(
 			RequestBackedPortletURLFactory.class);
@@ -197,11 +195,11 @@ public class CheckboxDDMFormFieldTemplateContextContributorTest
 		return requestBackedPortletURLFactory;
 	}
 
-	protected void setUpRequestBackedPortletURLFactoryUtil() {
+	private void _setUpRequestBackedPortletURLFactoryUtil() {
 		PowerMockito.mockStatic(RequestBackedPortletURLFactoryUtil.class);
 
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
-			mockRequestBackedPortletURLFactory();
+			_mockRequestBackedPortletURLFactory();
 
 		PowerMockito.when(
 			RequestBackedPortletURLFactoryUtil.create(

@@ -13,8 +13,12 @@ definition {
 			value1 = "${searchAssetTitle}");
 	}
 
-	macro openSearchAdmin {
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_portal_search_admin_web_portlet_SearchAdminPortlet");
+	macro openSearchPage {
+		if (!(isSet(siteURLKey))) {
+			var siteURLKey = "guest";
+		}
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/search");
 	}
 
 	macro searchCP {
@@ -30,7 +34,9 @@ definition {
 			locator1 = "TextInput#SEARCH",
 			value1 = "\RETURN");
 
-		WaitForLiferayEvent.initializeLiferayEventLog();
+		if (!(isSet(modal))) {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+		}
 	}
 
 	macro searchPG {
@@ -46,13 +52,24 @@ definition {
 			locator1 = "Portlet#SEARCH_FIELD",
 			value1 = "\RETURN");
 
-		WaitForLiferayEvent.initializeLiferayEventLog();
+		if (!(isSet(modal))) {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+		}
 	}
 
 	macro viewNoResultAssetTitle {
 		AssertElementNotPresent(
 			key_searchAssetTitle = "${searchAssetTitle}",
 			locator1 = "SearchResults#ASSET_ENTRY_TABLE_TITLE");
+	}
+
+	macro viewNotPresentInContentBody {
+		AssertClick(
+			key_rowEntry = "${siteName}",
+			locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME_LINK",
+			value1 = "${siteName}");
+
+		AssertElementNotPresent(locator1 = "//body[.='${elementValue}']");
 	}
 
 	macro viewResultAssetTitle {

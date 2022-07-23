@@ -33,7 +33,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -50,7 +49,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -198,16 +196,15 @@ public abstract class BaseProductSpecificationResourceTestCase {
 
 	@Test
 	public void testGetProductIdProductSpecificationsPage() throws Exception {
-		Page<ProductSpecification> page =
-			productSpecificationResource.getProductIdProductSpecificationsPage(
-				testGetProductIdProductSpecificationsPage_getId(),
-				Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetProductIdProductSpecificationsPage_getId();
 		Long irrelevantId =
 			testGetProductIdProductSpecificationsPage_getIrrelevantId();
+
+		Page<ProductSpecification> page =
+			productSpecificationResource.getProductIdProductSpecificationsPage(
+				id, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			ProductSpecification irrelevantProductSpecification =
@@ -237,7 +234,7 @@ public abstract class BaseProductSpecificationResourceTestCase {
 
 		page =
 			productSpecificationResource.getProductIdProductSpecificationsPage(
-				id, Pagination.of(1, 2));
+				id, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -352,6 +349,25 @@ public abstract class BaseProductSpecificationResourceTestCase {
 			"This method needs to be implemented");
 	}
 
+	protected void assertContains(
+		ProductSpecification productSpecification,
+		List<ProductSpecification> productSpecifications) {
+
+		boolean contains = false;
+
+		for (ProductSpecification item : productSpecifications) {
+			if (equals(productSpecification, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			productSpecifications + " does not contain " + productSpecification,
+			contains);
+	}
+
 	protected void assertHttpResponseStatusCode(
 		int expectedHttpResponseStatusCode,
 		HttpInvoker.HttpResponse actualHttpResponse) {
@@ -426,6 +442,14 @@ public abstract class BaseProductSpecificationResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("label", additionalAssertFieldName)) {
+				if (productSpecification.getLabel() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
 
 			if (Objects.equals("optionCategoryId", additionalAssertFieldName)) {
 				if (productSpecification.getOptionCategoryId() == null) {
@@ -508,8 +532,8 @@ public abstract class BaseProductSpecificationResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.catalog.dto.v1_0.
 						ProductSpecification.class)) {
 
@@ -525,12 +549,13 @@ public abstract class BaseProductSpecificationResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -544,7 +569,7 @@ public abstract class BaseProductSpecificationResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -573,6 +598,17 @@ public abstract class BaseProductSpecificationResourceTestCase {
 				if (!Objects.deepEquals(
 						productSpecification1.getId(),
 						productSpecification2.getId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("label", additionalAssertFieldName)) {
+				if (!equals(
+						(Map)productSpecification1.getLabel(),
+						(Map)productSpecification2.getLabel())) {
 
 					return false;
 				}
@@ -680,6 +716,19 @@ public abstract class BaseProductSpecificationResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -736,14 +785,20 @@ public abstract class BaseProductSpecificationResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("label")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("optionCategoryId")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
 
 		if (entityFieldName.equals("priority")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(productSpecification.getPriority()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("productId")) {
@@ -918,8 +973,8 @@ public abstract class BaseProductSpecificationResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProductSpecificationResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseProductSpecificationResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

@@ -14,13 +14,14 @@
 
 package com.liferay.portal.search.web.internal.type.facet.portlet.action;
 
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.asset.SearchableAssetClassNamesProvider;
-import com.liferay.portal.search.web.internal.facet.display.builder.AssetEntriesSearchFacetDisplayBuilder;
+import com.liferay.portal.search.web.internal.facet.display.context.builder.AssetEntriesSearchFacetDisplayContextBuilder;
 import com.liferay.portal.search.web.internal.type.facet.constants.TypeFacetPortletKeys;
 
 import javax.portlet.PortletConfig;
@@ -54,6 +55,9 @@ public class TypeFacetConfigurationAction extends DefaultConfigurationAction {
 		throws Exception {
 
 		httpServletRequest.setAttribute(
+			ObjectDefinitionLocalService.class.getName(),
+			objectDefinitionLocalService);
+		httpServletRequest.setAttribute(
 			SearchableAssetClassNamesProvider.class.getName(),
 			searchableAssetClassNamesProvider);
 
@@ -61,31 +65,36 @@ public class TypeFacetConfigurationAction extends DefaultConfigurationAction {
 			(RenderRequest)httpServletRequest.getAttribute(
 				JavaConstants.JAVAX_PORTLET_REQUEST);
 
-		AssetEntriesSearchFacetDisplayBuilder
-			assetEntriesSearchFacetDisplayBuilder =
-				createAssetEntriesSearchFacetDisplayBuilder(renderRequest);
+		AssetEntriesSearchFacetDisplayContextBuilder
+			assetEntriesSearchFacetDisplayContextBuilder =
+				_createAssetEntriesSearchFacetDisplayContextBuilder(
+					renderRequest);
 
 		httpServletRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT,
-			assetEntriesSearchFacetDisplayBuilder.build());
+			assetEntriesSearchFacetDisplayContextBuilder.build());
 
 		super.include(portletConfig, httpServletRequest, httpServletResponse);
 	}
 
-	protected AssetEntriesSearchFacetDisplayBuilder
-		createAssetEntriesSearchFacetDisplayBuilder(
+	@Reference
+	protected ObjectDefinitionLocalService objectDefinitionLocalService;
+
+	@Reference
+	protected SearchableAssetClassNamesProvider
+		searchableAssetClassNamesProvider;
+
+	private AssetEntriesSearchFacetDisplayContextBuilder
+		_createAssetEntriesSearchFacetDisplayContextBuilder(
 			RenderRequest renderRequest) {
 
 		try {
-			return new AssetEntriesSearchFacetDisplayBuilder(renderRequest);
+			return new AssetEntriesSearchFacetDisplayContextBuilder(
+				renderRequest);
 		}
 		catch (ConfigurationException configurationException) {
 			throw new RuntimeException(configurationException);
 		}
 	}
-
-	@Reference
-	protected SearchableAssetClassNamesProvider
-		searchableAssetClassNamesProvider;
 
 }

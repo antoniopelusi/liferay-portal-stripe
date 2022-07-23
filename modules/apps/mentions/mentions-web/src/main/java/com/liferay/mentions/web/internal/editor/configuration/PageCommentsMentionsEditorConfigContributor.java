@@ -53,7 +53,7 @@ public class PageCommentsMentionsEditorConfigContributor
 			).put(
 				"strategy", "pageEditorCommentStrategy"
 			).toJSONString()
-		).build();
+		).buildPortletURL();
 	}
 
 }

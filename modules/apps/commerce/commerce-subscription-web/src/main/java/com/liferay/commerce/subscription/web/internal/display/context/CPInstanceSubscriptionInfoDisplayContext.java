@@ -77,7 +77,7 @@ public class CPInstanceSubscriptionInfoDisplayContext
 			"screenNavigationEntryKey",
 			CPInstanceScreenNavigationConstants.
 				CATEGORY_KEY_SUBSCRIPTION_OVERRIDE
-		).build();
+		).buildPortletURL();
 	}
 
 }

@@ -24,7 +24,7 @@ import com.liferay.change.tracking.service.CTProcessLocalService;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalFolderLocalService;
 import com.liferay.journal.test.util.JournalFolderFixture;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.change.tracking.sql.CTSQLModeThreadLocal;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.model.Group;
@@ -75,8 +75,8 @@ public class CTEntryLocalServiceTest {
 
 		String folderName1 = "Test folder name 1";
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					ctCollection1.getCtCollectionId())) {
 
 			journalFolder = _journalFolderFixture.addFolder(
@@ -104,8 +104,8 @@ public class CTEntryLocalServiceTest {
 
 		String folderName2 = "Test folder name 2";
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					ctCollection2.getCtCollectionId())) {
 
 			journalFolder = _journalFolderLocalService.fetchFolder(
@@ -150,8 +150,8 @@ public class CTEntryLocalServiceTest {
 
 		CTCollection ctCollection3 = _createCTCollection();
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					ctCollection3.getCtCollectionId())) {
 
 			_assertCTRowCTCollectionId(
@@ -187,10 +187,12 @@ public class CTEntryLocalServiceTest {
 			ctCollectionId,
 			_ctEntryLocalService.getCTRowCTCollectionId(ctEntry));
 
-		try (SafeClosable safeClosable1 =
-				CTCollectionThreadLocal.setCTCollectionId(ctCollectionId);
-			SafeClosable safeClosable2 = CTSQLModeThreadLocal.setCTSQLMode(
-				CTSQLModeThreadLocal.CTSQLMode.CT_ONLY)) {
+		try (SafeCloseable safeCloseable1 =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollectionId);
+			SafeCloseable safeCloseable2 =
+				CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(
+					CTSQLModeThreadLocal.CTSQLMode.CT_ONLY)) {
 
 			JournalFolder journalFolder =
 				_journalFolderLocalService.getJournalFolder(folderId);

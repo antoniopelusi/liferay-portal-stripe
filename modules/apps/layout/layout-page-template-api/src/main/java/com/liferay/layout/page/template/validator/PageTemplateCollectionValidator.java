@@ -15,8 +15,8 @@
 package com.liferay.layout.page.template.validator;
 
 import com.liferay.layout.page.template.exception.PageTemplateCollectionValidatorException;
-import com.liferay.petra.json.validator.JSONValidator;
-import com.liferay.petra.json.validator.JSONValidatorException;
+import com.liferay.portal.json.validator.JSONValidator;
+import com.liferay.portal.json.validator.JSONValidatorException;
 import com.liferay.portal.kernel.util.Validator;
 
 /**
@@ -33,15 +33,16 @@ public class PageTemplateCollectionValidator {
 		}
 
 		try {
-			JSONValidator.validate(
-				pageTemplateCollectionJSON,
-				PageTemplateCollectionValidator.class.getResourceAsStream(
-					"dependencies/page_template_collection_json_schema.json"));
+			_jsonValidator.validate(pageTemplateCollectionJSON);
 		}
 		catch (JSONValidatorException jsonValidatorException) {
 			throw new PageTemplateCollectionValidatorException(
 				jsonValidatorException.getMessage(), jsonValidatorException);
 		}
 	}
+
+	private static final JSONValidator _jsonValidator = new JSONValidator(
+		PageTemplateCollectionValidator.class.getResourceAsStream(
+			"dependencies/page_template_collection_json_schema.json"));
 
 }

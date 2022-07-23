@@ -350,6 +350,10 @@ public class LiferaySeleniumUtil {
 		else if (locator.startsWith("css=")) {
 			locator = locator.substring(4);
 
+			if (locator.contains(">>>")) {
+				return LiferayByUtil.cssSelectorWithShadowRoot(locator);
+			}
+
 			return By.cssSelector(locator);
 		}
 		else if (locator.startsWith("link=")) {
@@ -575,24 +579,17 @@ public class LiferaySeleniumUtil {
 			return true;
 		}
 
-		if (Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.1") ||
-			Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.2") ||
-			Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.3") ||
-			Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.4") ||
-			Objects.equals(PropsValues.LIFERAY_PORTAL_BRANCH, "ee-6.2.10")) {
+		if ((Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.1") ||
+			 Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.2") ||
+			 Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.3") ||
+			 Objects.equals(PropsValues.LIFERAY_PORTAL_BUNDLE, "6.2.10.4") ||
+			 Objects.equals(PropsValues.LIFERAY_PORTAL_BRANCH, "ee-6.2.10")) &&
+			(line.contains(
+				"com.liferay.portal.kernel.search.SearchException: " +
+					"java.nio.channels.ClosedByInterruptException") ||
+			 line.contains("org.apache.lucene.store.AlreadyClosedException"))) {
 
-			if (line.contains(
-					"com.liferay.portal.kernel.search.SearchException: " +
-						"java.nio.channels.ClosedByInterruptException")) {
-
-				return true;
-			}
-
-			if (line.contains(
-					"org.apache.lucene.store.AlreadyClosedException")) {
-
-				return true;
-			}
+			return true;
 		}
 
 		if (Validator.isNotNull(PropsValues.IGNORE_ERRORS)) {

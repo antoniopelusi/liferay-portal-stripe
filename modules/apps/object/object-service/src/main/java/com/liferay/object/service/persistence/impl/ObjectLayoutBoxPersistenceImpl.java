@@ -14,16 +14,16 @@
 
 package com.liferay.object.service.persistence.impl;
 
-import com.liferay.object.exception.NoSuchLayoutBoxException;
+import com.liferay.object.exception.NoSuchObjectLayoutBoxException;
 import com.liferay.object.model.ObjectLayoutBox;
 import com.liferay.object.model.ObjectLayoutBoxTable;
 import com.liferay.object.model.impl.ObjectLayoutBoxImpl;
 import com.liferay.object.model.impl.ObjectLayoutBoxModelImpl;
 import com.liferay.object.service.persistence.ObjectLayoutBoxPersistence;
+import com.liferay.object.service.persistence.ObjectLayoutBoxUtil;
 import com.liferay.object.service.persistence.impl.constants.ObjectPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,21 +34,23 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -57,12 +59,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -281,12 +280,12 @@ public class ObjectLayoutBoxPersistenceImpl
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object layout box
-	 * @throws NoSuchLayoutBoxException if a matching object layout box could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a matching object layout box could not be found
 	 */
 	@Override
 	public ObjectLayoutBox findByUuid_First(
 			String uuid, OrderByComparator<ObjectLayoutBox> orderByComparator)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		ObjectLayoutBox objectLayoutBox = fetchByUuid_First(
 			uuid, orderByComparator);
@@ -304,7 +303,7 @@ public class ObjectLayoutBoxPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchLayoutBoxException(sb.toString());
+		throw new NoSuchObjectLayoutBoxException(sb.toString());
 	}
 
 	/**
@@ -333,12 +332,12 @@ public class ObjectLayoutBoxPersistenceImpl
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object layout box
-	 * @throws NoSuchLayoutBoxException if a matching object layout box could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a matching object layout box could not be found
 	 */
 	@Override
 	public ObjectLayoutBox findByUuid_Last(
 			String uuid, OrderByComparator<ObjectLayoutBox> orderByComparator)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		ObjectLayoutBox objectLayoutBox = fetchByUuid_Last(
 			uuid, orderByComparator);
@@ -356,7 +355,7 @@ public class ObjectLayoutBoxPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchLayoutBoxException(sb.toString());
+		throw new NoSuchObjectLayoutBoxException(sb.toString());
 	}
 
 	/**
@@ -393,13 +392,13 @@ public class ObjectLayoutBoxPersistenceImpl
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object layout box
-	 * @throws NoSuchLayoutBoxException if a object layout box with the primary key could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a object layout box with the primary key could not be found
 	 */
 	@Override
 	public ObjectLayoutBox[] findByUuid_PrevAndNext(
 			long objectLayoutBoxId, String uuid,
 			OrderByComparator<ObjectLayoutBox> orderByComparator)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		uuid = Objects.toString(uuid, "");
 
@@ -831,13 +830,13 @@ public class ObjectLayoutBoxPersistenceImpl
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object layout box
-	 * @throws NoSuchLayoutBoxException if a matching object layout box could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a matching object layout box could not be found
 	 */
 	@Override
 	public ObjectLayoutBox findByUuid_C_First(
 			String uuid, long companyId,
 			OrderByComparator<ObjectLayoutBox> orderByComparator)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		ObjectLayoutBox objectLayoutBox = fetchByUuid_C_First(
 			uuid, companyId, orderByComparator);
@@ -858,7 +857,7 @@ public class ObjectLayoutBoxPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchLayoutBoxException(sb.toString());
+		throw new NoSuchObjectLayoutBoxException(sb.toString());
 	}
 
 	/**
@@ -891,13 +890,13 @@ public class ObjectLayoutBoxPersistenceImpl
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object layout box
-	 * @throws NoSuchLayoutBoxException if a matching object layout box could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a matching object layout box could not be found
 	 */
 	@Override
 	public ObjectLayoutBox findByUuid_C_Last(
 			String uuid, long companyId,
 			OrderByComparator<ObjectLayoutBox> orderByComparator)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		ObjectLayoutBox objectLayoutBox = fetchByUuid_C_Last(
 			uuid, companyId, orderByComparator);
@@ -918,7 +917,7 @@ public class ObjectLayoutBoxPersistenceImpl
 
 		sb.append("}");
 
-		throw new NoSuchLayoutBoxException(sb.toString());
+		throw new NoSuchObjectLayoutBoxException(sb.toString());
 	}
 
 	/**
@@ -958,13 +957,13 @@ public class ObjectLayoutBoxPersistenceImpl
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object layout box
-	 * @throws NoSuchLayoutBoxException if a object layout box with the primary key could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a object layout box with the primary key could not be found
 	 */
 	@Override
 	public ObjectLayoutBox[] findByUuid_C_PrevAndNext(
 			long objectLayoutBoxId, String uuid, long companyId,
 			OrderByComparator<ObjectLayoutBox> orderByComparator)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		uuid = Objects.toString(uuid, "");
 
@@ -1215,6 +1214,519 @@ public class ObjectLayoutBoxPersistenceImpl
 	private static final String _FINDER_COLUMN_UUID_C_COMPANYID_2 =
 		"objectLayoutBox.companyId = ?";
 
+	private FinderPath _finderPathWithPaginationFindByObjectLayoutTabId;
+	private FinderPath _finderPathWithoutPaginationFindByObjectLayoutTabId;
+	private FinderPath _finderPathCountByObjectLayoutTabId;
+
+	/**
+	 * Returns all the object layout boxes where objectLayoutTabId = &#63;.
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @return the matching object layout boxes
+	 */
+	@Override
+	public List<ObjectLayoutBox> findByObjectLayoutTabId(
+		long objectLayoutTabId) {
+
+		return findByObjectLayoutTabId(
+			objectLayoutTabId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the object layout boxes where objectLayoutTabId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutBoxModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param start the lower bound of the range of object layout boxes
+	 * @param end the upper bound of the range of object layout boxes (not inclusive)
+	 * @return the range of matching object layout boxes
+	 */
+	@Override
+	public List<ObjectLayoutBox> findByObjectLayoutTabId(
+		long objectLayoutTabId, int start, int end) {
+
+		return findByObjectLayoutTabId(objectLayoutTabId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the object layout boxes where objectLayoutTabId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutBoxModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param start the lower bound of the range of object layout boxes
+	 * @param end the upper bound of the range of object layout boxes (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object layout boxes
+	 */
+	@Override
+	public List<ObjectLayoutBox> findByObjectLayoutTabId(
+		long objectLayoutTabId, int start, int end,
+		OrderByComparator<ObjectLayoutBox> orderByComparator) {
+
+		return findByObjectLayoutTabId(
+			objectLayoutTabId, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the object layout boxes where objectLayoutTabId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectLayoutBoxModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param start the lower bound of the range of object layout boxes
+	 * @param end the upper bound of the range of object layout boxes (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object layout boxes
+	 */
+	@Override
+	public List<ObjectLayoutBox> findByObjectLayoutTabId(
+		long objectLayoutTabId, int start, int end,
+		OrderByComparator<ObjectLayoutBox> orderByComparator,
+		boolean useFinderCache) {
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath =
+					_finderPathWithoutPaginationFindByObjectLayoutTabId;
+				finderArgs = new Object[] {objectLayoutTabId};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByObjectLayoutTabId;
+			finderArgs = new Object[] {
+				objectLayoutTabId, start, end, orderByComparator
+			};
+		}
+
+		List<ObjectLayoutBox> list = null;
+
+		if (useFinderCache) {
+			list = (List<ObjectLayoutBox>)finderCache.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (ObjectLayoutBox objectLayoutBox : list) {
+					if (objectLayoutTabId !=
+							objectLayoutBox.getObjectLayoutTabId()) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					3 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(3);
+			}
+
+			sb.append(_SQL_SELECT_OBJECTLAYOUTBOX_WHERE);
+
+			sb.append(_FINDER_COLUMN_OBJECTLAYOUTTABID_OBJECTLAYOUTTABID_2);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(ObjectLayoutBoxModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(objectLayoutTabId);
+
+				list = (List<ObjectLayoutBox>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first object layout box in the ordered set where objectLayoutTabId = &#63;.
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object layout box
+	 * @throws NoSuchObjectLayoutBoxException if a matching object layout box could not be found
+	 */
+	@Override
+	public ObjectLayoutBox findByObjectLayoutTabId_First(
+			long objectLayoutTabId,
+			OrderByComparator<ObjectLayoutBox> orderByComparator)
+		throws NoSuchObjectLayoutBoxException {
+
+		ObjectLayoutBox objectLayoutBox = fetchByObjectLayoutTabId_First(
+			objectLayoutTabId, orderByComparator);
+
+		if (objectLayoutBox != null) {
+			return objectLayoutBox;
+		}
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("objectLayoutTabId=");
+		sb.append(objectLayoutTabId);
+
+		sb.append("}");
+
+		throw new NoSuchObjectLayoutBoxException(sb.toString());
+	}
+
+	/**
+	 * Returns the first object layout box in the ordered set where objectLayoutTabId = &#63;.
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object layout box, or <code>null</code> if a matching object layout box could not be found
+	 */
+	@Override
+	public ObjectLayoutBox fetchByObjectLayoutTabId_First(
+		long objectLayoutTabId,
+		OrderByComparator<ObjectLayoutBox> orderByComparator) {
+
+		List<ObjectLayoutBox> list = findByObjectLayoutTabId(
+			objectLayoutTabId, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last object layout box in the ordered set where objectLayoutTabId = &#63;.
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object layout box
+	 * @throws NoSuchObjectLayoutBoxException if a matching object layout box could not be found
+	 */
+	@Override
+	public ObjectLayoutBox findByObjectLayoutTabId_Last(
+			long objectLayoutTabId,
+			OrderByComparator<ObjectLayoutBox> orderByComparator)
+		throws NoSuchObjectLayoutBoxException {
+
+		ObjectLayoutBox objectLayoutBox = fetchByObjectLayoutTabId_Last(
+			objectLayoutTabId, orderByComparator);
+
+		if (objectLayoutBox != null) {
+			return objectLayoutBox;
+		}
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("objectLayoutTabId=");
+		sb.append(objectLayoutTabId);
+
+		sb.append("}");
+
+		throw new NoSuchObjectLayoutBoxException(sb.toString());
+	}
+
+	/**
+	 * Returns the last object layout box in the ordered set where objectLayoutTabId = &#63;.
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object layout box, or <code>null</code> if a matching object layout box could not be found
+	 */
+	@Override
+	public ObjectLayoutBox fetchByObjectLayoutTabId_Last(
+		long objectLayoutTabId,
+		OrderByComparator<ObjectLayoutBox> orderByComparator) {
+
+		int count = countByObjectLayoutTabId(objectLayoutTabId);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<ObjectLayoutBox> list = findByObjectLayoutTabId(
+			objectLayoutTabId, count - 1, count, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the object layout boxes before and after the current object layout box in the ordered set where objectLayoutTabId = &#63;.
+	 *
+	 * @param objectLayoutBoxId the primary key of the current object layout box
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object layout box
+	 * @throws NoSuchObjectLayoutBoxException if a object layout box with the primary key could not be found
+	 */
+	@Override
+	public ObjectLayoutBox[] findByObjectLayoutTabId_PrevAndNext(
+			long objectLayoutBoxId, long objectLayoutTabId,
+			OrderByComparator<ObjectLayoutBox> orderByComparator)
+		throws NoSuchObjectLayoutBoxException {
+
+		ObjectLayoutBox objectLayoutBox = findByPrimaryKey(objectLayoutBoxId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			ObjectLayoutBox[] array = new ObjectLayoutBoxImpl[3];
+
+			array[0] = getByObjectLayoutTabId_PrevAndNext(
+				session, objectLayoutBox, objectLayoutTabId, orderByComparator,
+				true);
+
+			array[1] = objectLayoutBox;
+
+			array[2] = getByObjectLayoutTabId_PrevAndNext(
+				session, objectLayoutBox, objectLayoutTabId, orderByComparator,
+				false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected ObjectLayoutBox getByObjectLayoutTabId_PrevAndNext(
+		Session session, ObjectLayoutBox objectLayoutBox,
+		long objectLayoutTabId,
+		OrderByComparator<ObjectLayoutBox> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(3);
+		}
+
+		sb.append(_SQL_SELECT_OBJECTLAYOUTBOX_WHERE);
+
+		sb.append(_FINDER_COLUMN_OBJECTLAYOUTTABID_OBJECTLAYOUTTABID_2);
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(ObjectLayoutBoxModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(objectLayoutTabId);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(
+						objectLayoutBox)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<ObjectLayoutBox> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the object layout boxes where objectLayoutTabId = &#63; from the database.
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 */
+	@Override
+	public void removeByObjectLayoutTabId(long objectLayoutTabId) {
+		for (ObjectLayoutBox objectLayoutBox :
+				findByObjectLayoutTabId(
+					objectLayoutTabId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+					null)) {
+
+			remove(objectLayoutBox);
+		}
+	}
+
+	/**
+	 * Returns the number of object layout boxes where objectLayoutTabId = &#63;.
+	 *
+	 * @param objectLayoutTabId the object layout tab ID
+	 * @return the number of matching object layout boxes
+	 */
+	@Override
+	public int countByObjectLayoutTabId(long objectLayoutTabId) {
+		FinderPath finderPath = _finderPathCountByObjectLayoutTabId;
+
+		Object[] finderArgs = new Object[] {objectLayoutTabId};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(2);
+
+			sb.append(_SQL_COUNT_OBJECTLAYOUTBOX_WHERE);
+
+			sb.append(_FINDER_COLUMN_OBJECTLAYOUTTABID_OBJECTLAYOUTTABID_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(objectLayoutTabId);
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String
+		_FINDER_COLUMN_OBJECTLAYOUTTABID_OBJECTLAYOUTTABID_2 =
+			"objectLayoutBox.objectLayoutTabId = ?";
+
 	public ObjectLayoutBoxPersistenceImpl() {
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
@@ -1242,6 +1754,8 @@ public class ObjectLayoutBoxPersistenceImpl
 			objectLayoutBox);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the object layout boxes in the entity cache if it is enabled.
 	 *
@@ -1249,6 +1763,14 @@ public class ObjectLayoutBoxPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<ObjectLayoutBox> objectLayoutBoxes) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (objectLayoutBoxes.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (ObjectLayoutBox objectLayoutBox : objectLayoutBoxes) {
 			if (entityCache.getResult(
 					ObjectLayoutBoxImpl.class,
@@ -1315,7 +1837,7 @@ public class ObjectLayoutBoxPersistenceImpl
 		objectLayoutBox.setNew(true);
 		objectLayoutBox.setPrimaryKey(objectLayoutBoxId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		objectLayoutBox.setUuid(uuid);
 
@@ -1329,11 +1851,11 @@ public class ObjectLayoutBoxPersistenceImpl
 	 *
 	 * @param objectLayoutBoxId the primary key of the object layout box
 	 * @return the object layout box that was removed
-	 * @throws NoSuchLayoutBoxException if a object layout box with the primary key could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a object layout box with the primary key could not be found
 	 */
 	@Override
 	public ObjectLayoutBox remove(long objectLayoutBoxId)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		return remove((Serializable)objectLayoutBoxId);
 	}
@@ -1343,11 +1865,11 @@ public class ObjectLayoutBoxPersistenceImpl
 	 *
 	 * @param primaryKey the primary key of the object layout box
 	 * @return the object layout box that was removed
-	 * @throws NoSuchLayoutBoxException if a object layout box with the primary key could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a object layout box with the primary key could not be found
 	 */
 	@Override
 	public ObjectLayoutBox remove(Serializable primaryKey)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		Session session = null;
 
@@ -1362,13 +1884,13 @@ public class ObjectLayoutBoxPersistenceImpl
 					_log.debug(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 				}
 
-				throw new NoSuchLayoutBoxException(
+				throw new NoSuchObjectLayoutBoxException(
 					_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 			}
 
 			return remove(objectLayoutBox);
 		}
-		catch (NoSuchLayoutBoxException noSuchEntityException) {
+		catch (NoSuchObjectLayoutBoxException noSuchEntityException) {
 			throw noSuchEntityException;
 		}
 		catch (Exception exception) {
@@ -1435,7 +1957,7 @@ public class ObjectLayoutBoxPersistenceImpl
 			(ObjectLayoutBoxModelImpl)objectLayoutBox;
 
 		if (Validator.isNull(objectLayoutBox.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			objectLayoutBox.setUuid(uuid);
 		}
@@ -1443,25 +1965,25 @@ public class ObjectLayoutBoxPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (objectLayoutBox.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				objectLayoutBox.setCreateDate(now);
+				objectLayoutBox.setCreateDate(date);
 			}
 			else {
 				objectLayoutBox.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!objectLayoutBoxModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				objectLayoutBox.setModifiedDate(now);
+				objectLayoutBox.setModifiedDate(date);
 			}
 			else {
 				objectLayoutBox.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -1502,11 +2024,11 @@ public class ObjectLayoutBoxPersistenceImpl
 	 *
 	 * @param primaryKey the primary key of the object layout box
 	 * @return the object layout box
-	 * @throws NoSuchLayoutBoxException if a object layout box with the primary key could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a object layout box with the primary key could not be found
 	 */
 	@Override
 	public ObjectLayoutBox findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		ObjectLayoutBox objectLayoutBox = fetchByPrimaryKey(primaryKey);
 
@@ -1515,7 +2037,7 @@ public class ObjectLayoutBoxPersistenceImpl
 				_log.debug(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 			}
 
-			throw new NoSuchLayoutBoxException(
+			throw new NoSuchObjectLayoutBoxException(
 				_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
 		}
 
@@ -1523,15 +2045,15 @@ public class ObjectLayoutBoxPersistenceImpl
 	}
 
 	/**
-	 * Returns the object layout box with the primary key or throws a <code>NoSuchLayoutBoxException</code> if it could not be found.
+	 * Returns the object layout box with the primary key or throws a <code>NoSuchObjectLayoutBoxException</code> if it could not be found.
 	 *
 	 * @param objectLayoutBoxId the primary key of the object layout box
 	 * @return the object layout box
-	 * @throws NoSuchLayoutBoxException if a object layout box with the primary key could not be found
+	 * @throws NoSuchObjectLayoutBoxException if a object layout box with the primary key could not be found
 	 */
 	@Override
 	public ObjectLayoutBox findByPrimaryKey(long objectLayoutBoxId)
-		throws NoSuchLayoutBoxException {
+		throws NoSuchObjectLayoutBoxException {
 
 		return findByPrimaryKey((Serializable)objectLayoutBoxId);
 	}
@@ -1757,13 +2279,9 @@ public class ObjectLayoutBoxPersistenceImpl
 	 * Initializes the object layout box persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new ObjectLayoutBoxModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1813,13 +2331,49 @@ public class ObjectLayoutBoxPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
 			new String[] {"uuid_", "companyId"}, false);
+
+		_finderPathWithPaginationFindByObjectLayoutTabId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByObjectLayoutTabId",
+			new String[] {
+				Long.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"objectLayoutTabId"}, true);
+
+		_finderPathWithoutPaginationFindByObjectLayoutTabId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
+			"findByObjectLayoutTabId", new String[] {Long.class.getName()},
+			new String[] {"objectLayoutTabId"}, true);
+
+		_finderPathCountByObjectLayoutTabId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
+			"countByObjectLayoutTabId", new String[] {Long.class.getName()},
+			new String[] {"objectLayoutTabId"}, false);
+
+		_setObjectLayoutBoxUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(ObjectLayoutBoxImpl.class.getName());
+		_setObjectLayoutBoxUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(ObjectLayoutBoxImpl.class.getName());
+	}
+
+	private void _setObjectLayoutBoxUtilPersistence(
+		ObjectLayoutBoxPersistence objectLayoutBoxPersistence) {
+
+		try {
+			Field field = ObjectLayoutBoxUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, objectLayoutBoxPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -1847,8 +2401,6 @@ public class ObjectLayoutBoxPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -1887,96 +2439,11 @@ public class ObjectLayoutBoxPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class ObjectLayoutBoxModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			ObjectLayoutBoxModelImpl objectLayoutBoxModelImpl =
-				(ObjectLayoutBoxModelImpl)baseModel;
-
-			long columnBitmask = objectLayoutBoxModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					objectLayoutBoxModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						objectLayoutBoxModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					objectLayoutBoxModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return ObjectLayoutBoxImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return ObjectLayoutBoxTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			ObjectLayoutBoxModelImpl objectLayoutBoxModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						objectLayoutBoxModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = objectLayoutBoxModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private ObjectLayoutBoxModelArgumentsResolver
+		_objectLayoutBoxModelArgumentsResolver;
 
 }

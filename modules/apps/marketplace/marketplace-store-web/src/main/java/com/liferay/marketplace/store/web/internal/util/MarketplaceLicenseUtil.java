@@ -34,22 +34,22 @@ import java.util.Arrays;
 public class MarketplaceLicenseUtil {
 
 	public static String getOrder(String productEntryName) throws Exception {
-		JSONObject jsonObject = JSONUtil.put(
-			"cmd", "GET_ORDER"
-		).put(
-			"hostName", LicenseManagerUtil.getHostName()
-		).put(
-			"ipAddresses", StringUtil.merge(LicenseManagerUtil.getIpAddresses())
-		).put(
-			"macAddresses",
-			StringUtil.merge(LicenseManagerUtil.getMacAddresses())
-		).put(
-			"productEntryName", productEntryName
-		).put(
-			"serverId", Arrays.toString(getServerIdBytes())
-		);
-
-		String response = LicenseUtil.sendRequest(jsonObject.toString());
+		String response = LicenseUtil.sendRequest(
+			JSONUtil.put(
+				"cmd", "GET_ORDER"
+			).put(
+				"hostName", LicenseManagerUtil.getHostName()
+			).put(
+				"ipAddresses",
+				StringUtil.merge(LicenseManagerUtil.getIpAddresses())
+			).put(
+				"macAddresses",
+				StringUtil.merge(LicenseManagerUtil.getMacAddresses())
+			).put(
+				"productEntryName", productEntryName
+			).put(
+				"serverId", Arrays.toString(getServerIdBytes())
+			).toString());
 
 		JSONObject responseJSONObject = JSONFactoryUtil.createJSONObject(
 			response);

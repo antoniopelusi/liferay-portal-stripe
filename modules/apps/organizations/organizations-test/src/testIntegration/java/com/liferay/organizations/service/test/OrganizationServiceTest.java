@@ -94,7 +94,7 @@ public class OrganizationServiceTest {
 	@Test
 	public void testGetOrganizationsLikeName() throws Exception {
 		List<Organization> allChildOrganizations = new ArrayList<>();
-		Organization parentOrganziation =
+		Organization parentOrganization =
 			OrganizationTestUtil.addOrganization();
 
 		List<Organization> allOrganizations = new ArrayList<>(
@@ -105,7 +105,7 @@ public class OrganizationServiceTest {
 		try {
 			String name = RandomTestUtil.randomString(10);
 
-			long parentOrganizationId = parentOrganziation.getOrganizationId();
+			long parentOrganizationId = parentOrganization.getOrganizationId();
 
 			List<Organization> likeNameChildOrganizations = new ArrayList<>();
 
@@ -158,7 +158,7 @@ public class OrganizationServiceTest {
 				_organizationLocalService.deleteOrganization(childOrganization);
 			}
 
-			_organizationLocalService.deleteOrganization(parentOrganziation);
+			_organizationLocalService.deleteOrganization(parentOrganization);
 		}
 	}
 

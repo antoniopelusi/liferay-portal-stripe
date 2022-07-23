@@ -12,33 +12,33 @@
  * details.
  */
 
-import ClayForm, {ClaySelectWithOption} from '@clayui/form';
+import ClayButton from '@clayui/button';
+import ClayDropDown from '@clayui/drop-down';
+import ClayForm, {ClayCheckbox, ClaySelectWithOption} from '@clayui/form';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
+import useControlledState from '../../../core/hooks/useControlledState';
 import {useStyleBook} from '../../../plugins/page-design-options/hooks/useStyleBook';
 import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
 import {useId} from '../../utils/useId';
 
-export const SelectField = ({
+export function SelectField({
 	className,
 	disabled,
 	field,
 	onValueSelect,
 	value,
-}) => {
-	const inputId = useId();
+}) {
 	const {tokenValues} = useStyleBook();
 
 	const validValues = field.typeOptions
 		? field.typeOptions.validValues
 		: field.validValues;
 
-	const [firstOption = {}] = validValues;
+	const multiSelect = field.typeOptions?.multiSelect ?? false;
 
-	const [nextValue, setNextValue] = useState(
-		value || field.defaultValue || firstOption.value
-	);
+	const defaultValue = value || field.defaultValue;
 
 	const getFrontendTokenOption = (option) => {
 		const token = tokenValues[option.frontendTokenName];
@@ -53,16 +53,134 @@ export const SelectField = ({
 		};
 	};
 
-	useEffect(() => {
-		setNextValue((prevValue) => value || prevValue);
-	}, [value]);
+	const getOptions = (options) => {
+		return options.map((option) =>
+			option.frontendTokenName ? getFrontendTokenOption(option) : option
+		);
+	};
 
 	return (
 		<ClayForm.Group className={className} small>
-			<label htmlFor={inputId}>{field.label}</label>
+			{multiSelect ? (
+				<MultiSelect
+					disabled={disabled}
+					field={field}
+					onValueSelect={onValueSelect}
+					options={getOptions(validValues)}
+					value={
+						defaultValue
+							? Array.isArray(value)
+								? defaultValue
+								: [defaultValue]
+							: []
+					}
+				/>
+			) : (
+				<SingleSelect
+					disabled={disabled}
+					field={field}
+					onValueSelect={onValueSelect}
+					options={getOptions(validValues)}
+					value={value || field.defaultValue}
+				/>
+			)}
+		</ClayForm.Group>
+	);
+}
 
+const MultiSelect = ({
+	disabled,
+	field,
+	inputId,
+	onValueSelect,
+	options,
+	value,
+}) => {
+	const labelId = useId();
+
+	const [nextValue, setNextValue] = useControlledState(value);
+
+	let label = Liferay.Language.get('select');
+
+	if (nextValue.length === 1) {
+		const [selectedValue] = nextValue;
+
+		label =
+			options.find((option) => selectedValue === option.value)?.label ||
+			label;
+	}
+	else if (nextValue.length > 1) {
+		label = Liferay.Util.sub(
+			Liferay.Language.get('x-selected'),
+			nextValue.length
+		);
+	}
+
+	const items = options.map((option) => {
+		return {
+			...option,
+			checked:
+				Array.isArray(value) &&
+				value.some((item) => item === option.value),
+			onChange: (selected) => {
+				const changedValue = selected
+					? [...nextValue, option.value]
+					: nextValue.filter((item) => item !== option.value);
+
+				setNextValue(changedValue);
+				onValueSelect(
+					field.name,
+					changedValue.length > 0 ? changedValue : null
+				);
+			},
+			type: 'checkbox',
+		};
+	});
+
+	const [active, setActive] = useState(false);
+
+	return (
+		<>
+			<label id={labelId}>{field.label}</label>
+			<ClayDropDown
+				active={active}
+				disabled={!!disabled}
+				id={inputId}
+				onActiveChange={setActive}
+				trigger={
+					<ClayButton
+						aria-labelledby={labelId}
+						className="form-control-select form-control-sm text-left w-100"
+						displayType="secondary"
+						small
+					>
+						{label}
+					</ClayButton>
+				}
+			>
+				{items.map(({checked, label, onChange}) => (
+					<ClayDropDown.Section key={label}>
+						<ClayCheckbox
+							checked={checked}
+							label={label}
+							onChange={() => onChange(!checked)}
+						/>
+					</ClayDropDown.Section>
+				))}
+			</ClayDropDown>
+		</>
+	);
+};
+
+const SingleSelect = ({disabled, field, onValueSelect, options, value}) => {
+	const inputId = useId();
+
+	const [nextValue, setNextValue] = useControlledState(value);
+
+	return (
+		<>
+			<label htmlFor={inputId}>{field.label}</label>
 			<ClaySelectWithOption
-				aria-label={field.label}
 				disabled={!!disabled}
 				id={inputId}
 				onChange={(event) => {
@@ -72,14 +190,10 @@ export const SelectField = ({
 					setNextValue(nextValue);
 					onValueSelect(field.name, nextValue);
 				}}
-				options={validValues.map((validValue) =>
-					validValue.frontendTokenName
-						? getFrontendTokenOption(validValue)
-						: validValue
-				)}
+				options={options}
 				value={nextValue}
 			/>
-		</ClayForm.Group>
+		</>
 	);
 };
 
@@ -106,5 +220,9 @@ SelectField.propTypes = {
 	}),
 
 	onValueSelect: PropTypes.func.isRequired,
-	value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+	value: PropTypes.oneOfType([
+		PropTypes.number,
+		PropTypes.string,
+		PropTypes.arrayOf(PropTypes.string),
+	]),
 };

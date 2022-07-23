@@ -55,7 +55,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/low/level/search/options/view.jsp",
 		"javax.portlet.name=" + LowLevelSearchOptionsPortletKeys.LOW_LEVEL_SEARCH_OPTIONS,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator"
+		"javax.portlet.security-role-ref=administrator",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -67,7 +68,7 @@ public class LowLevelSearchOptionsPortlet extends MVCPortlet {
 		throws IOException, PortletException {
 
 		if (!SearchPortletPermissionUtil.containsConfiguration(
-				portletPermission, renderRequest, portal)) {
+				_portletPermission, renderRequest, _portal)) {
 
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
@@ -77,9 +78,9 @@ public class LowLevelSearchOptionsPortlet extends MVCPortlet {
 	}
 
 	@Reference
-	protected Portal portal;
+	private Portal _portal;
 
 	@Reference
-	protected PortletPermission portletPermission;
+	private PortletPermission _portletPermission;
 
 }

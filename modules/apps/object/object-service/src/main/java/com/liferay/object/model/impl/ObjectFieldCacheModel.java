@@ -77,7 +77,7 @@ public class ObjectFieldCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -95,12 +95,32 @@ public class ObjectFieldCacheModel
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
+		sb.append(", listTypeDefinitionId=");
+		sb.append(listTypeDefinitionId);
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
+		sb.append(", businessType=");
+		sb.append(businessType);
+		sb.append(", dbColumnName=");
+		sb.append(dbColumnName);
+		sb.append(", dbTableName=");
+		sb.append(dbTableName);
+		sb.append(", dbType=");
+		sb.append(dbType);
+		sb.append(", indexed=");
+		sb.append(indexed);
+		sb.append(", indexedAsKeyword=");
+		sb.append(indexedAsKeyword);
+		sb.append(", indexedLanguageId=");
+		sb.append(indexedLanguageId);
+		sb.append(", label=");
+		sb.append(label);
 		sb.append(", name=");
 		sb.append(name);
-		sb.append(", type=");
-		sb.append(type);
+		sb.append(", relationshipType=");
+		sb.append(relationshipType);
+		sb.append(", required=");
+		sb.append(required);
 		sb.append("}");
 
 		return sb.toString();
@@ -144,7 +164,53 @@ public class ObjectFieldCacheModel
 			objectFieldImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
+		objectFieldImpl.setListTypeDefinitionId(listTypeDefinitionId);
 		objectFieldImpl.setObjectDefinitionId(objectDefinitionId);
+
+		if (businessType == null) {
+			objectFieldImpl.setBusinessType("");
+		}
+		else {
+			objectFieldImpl.setBusinessType(businessType);
+		}
+
+		if (dbColumnName == null) {
+			objectFieldImpl.setDBColumnName("");
+		}
+		else {
+			objectFieldImpl.setDBColumnName(dbColumnName);
+		}
+
+		if (dbTableName == null) {
+			objectFieldImpl.setDBTableName("");
+		}
+		else {
+			objectFieldImpl.setDBTableName(dbTableName);
+		}
+
+		if (dbType == null) {
+			objectFieldImpl.setDBType("");
+		}
+		else {
+			objectFieldImpl.setDBType(dbType);
+		}
+
+		objectFieldImpl.setIndexed(indexed);
+		objectFieldImpl.setIndexedAsKeyword(indexedAsKeyword);
+
+		if (indexedLanguageId == null) {
+			objectFieldImpl.setIndexedLanguageId("");
+		}
+		else {
+			objectFieldImpl.setIndexedLanguageId(indexedLanguageId);
+		}
+
+		if (label == null) {
+			objectFieldImpl.setLabel("");
+		}
+		else {
+			objectFieldImpl.setLabel(label);
+		}
 
 		if (name == null) {
 			objectFieldImpl.setName("");
@@ -153,12 +219,14 @@ public class ObjectFieldCacheModel
 			objectFieldImpl.setName(name);
 		}
 
-		if (type == null) {
-			objectFieldImpl.setType("");
+		if (relationshipType == null) {
+			objectFieldImpl.setRelationshipType("");
 		}
 		else {
-			objectFieldImpl.setType(type);
+			objectFieldImpl.setRelationshipType(relationshipType);
 		}
+
+		objectFieldImpl.setRequired(required);
 
 		objectFieldImpl.resetOriginalValues();
 
@@ -179,9 +247,23 @@ public class ObjectFieldCacheModel
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
 
+		listTypeDefinitionId = objectInput.readLong();
+
 		objectDefinitionId = objectInput.readLong();
+		businessType = objectInput.readUTF();
+		dbColumnName = objectInput.readUTF();
+		dbTableName = objectInput.readUTF();
+		dbType = objectInput.readUTF();
+
+		indexed = objectInput.readBoolean();
+
+		indexedAsKeyword = objectInput.readBoolean();
+		indexedLanguageId = objectInput.readUTF();
+		label = objectInput.readUTF();
 		name = objectInput.readUTF();
-		type = objectInput.readUTF();
+		relationshipType = objectInput.readUTF();
+
+		required = objectInput.readBoolean();
 	}
 
 	@Override
@@ -211,7 +293,55 @@ public class ObjectFieldCacheModel
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
 
+		objectOutput.writeLong(listTypeDefinitionId);
+
 		objectOutput.writeLong(objectDefinitionId);
+
+		if (businessType == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(businessType);
+		}
+
+		if (dbColumnName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(dbColumnName);
+		}
+
+		if (dbTableName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(dbTableName);
+		}
+
+		if (dbType == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(dbType);
+		}
+
+		objectOutput.writeBoolean(indexed);
+
+		objectOutput.writeBoolean(indexedAsKeyword);
+
+		if (indexedLanguageId == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(indexedLanguageId);
+		}
+
+		if (label == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(label);
+		}
 
 		if (name == null) {
 			objectOutput.writeUTF("");
@@ -220,12 +350,14 @@ public class ObjectFieldCacheModel
 			objectOutput.writeUTF(name);
 		}
 
-		if (type == null) {
+		if (relationshipType == null) {
 			objectOutput.writeUTF("");
 		}
 		else {
-			objectOutput.writeUTF(type);
+			objectOutput.writeUTF(relationshipType);
 		}
+
+		objectOutput.writeBoolean(required);
 	}
 
 	public long mvccVersion;
@@ -236,8 +368,18 @@ public class ObjectFieldCacheModel
 	public String userName;
 	public long createDate;
 	public long modifiedDate;
+	public long listTypeDefinitionId;
 	public long objectDefinitionId;
+	public String businessType;
+	public String dbColumnName;
+	public String dbTableName;
+	public String dbType;
+	public boolean indexed;
+	public boolean indexedAsKeyword;
+	public String indexedLanguageId;
+	public String label;
 	public String name;
-	public String type;
+	public String relationshipType;
+	public boolean required;
 
 }

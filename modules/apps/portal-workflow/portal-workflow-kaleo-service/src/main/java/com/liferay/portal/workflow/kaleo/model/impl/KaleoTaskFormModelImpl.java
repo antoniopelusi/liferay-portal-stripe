@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskForm;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskFormModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -261,34 +262,6 @@ public class KaleoTaskFormModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoTaskForm>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoTaskForm.class.getClassLoader(), KaleoTaskForm.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KaleoTaskForm> constructor =
-				(Constructor<KaleoTaskForm>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoTaskForm, Object>>
@@ -913,6 +886,57 @@ public class KaleoTaskFormModelImpl
 	}
 
 	@Override
+	public KaleoTaskForm cloneWithOriginalValues() {
+		KaleoTaskFormImpl kaleoTaskFormImpl = new KaleoTaskFormImpl();
+
+		kaleoTaskFormImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoTaskFormImpl.setKaleoTaskFormId(
+			this.<Long>getColumnOriginalValue("kaleoTaskFormId"));
+		kaleoTaskFormImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		kaleoTaskFormImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoTaskFormImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		kaleoTaskFormImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoTaskFormImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoTaskFormImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoTaskFormImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoTaskFormImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoTaskFormImpl.setKaleoNodeId(
+			this.<Long>getColumnOriginalValue("kaleoNodeId"));
+		kaleoTaskFormImpl.setKaleoTaskId(
+			this.<Long>getColumnOriginalValue("kaleoTaskId"));
+		kaleoTaskFormImpl.setKaleoTaskName(
+			this.<String>getColumnOriginalValue("kaleoTaskName"));
+		kaleoTaskFormImpl.setName(this.<String>getColumnOriginalValue("name"));
+		kaleoTaskFormImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		kaleoTaskFormImpl.setFormCompanyId(
+			this.<Long>getColumnOriginalValue("formCompanyId"));
+		kaleoTaskFormImpl.setFormDefinition(
+			this.<String>getColumnOriginalValue("formDefinition"));
+		kaleoTaskFormImpl.setFormGroupId(
+			this.<Long>getColumnOriginalValue("formGroupId"));
+		kaleoTaskFormImpl.setFormId(
+			this.<Long>getColumnOriginalValue("formId"));
+		kaleoTaskFormImpl.setFormUuid(
+			this.<String>getColumnOriginalValue("formUuid"));
+		kaleoTaskFormImpl.setMetadata(
+			this.<String>getColumnOriginalValue("metadata"));
+		kaleoTaskFormImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
+
+		return kaleoTaskFormImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoTaskForm kaleoTaskForm) {
 		int value = 0;
 
@@ -1102,7 +1126,7 @@ public class KaleoTaskFormModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1113,9 +1137,26 @@ public class KaleoTaskFormModelImpl
 			Function<KaleoTaskForm, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KaleoTaskForm)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KaleoTaskForm)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1162,7 +1203,9 @@ public class KaleoTaskFormModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoTaskForm>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoTaskForm.class, ModelWrapper.class);
 
 	}
 

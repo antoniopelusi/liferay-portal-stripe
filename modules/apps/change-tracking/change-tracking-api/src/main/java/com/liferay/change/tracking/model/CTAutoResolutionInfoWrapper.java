@@ -116,6 +116,11 @@ public class CTAutoResolutionInfoWrapper
 		}
 	}
 
+	@Override
+	public CTAutoResolutionInfo cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ct auto resolution info.
 	 *

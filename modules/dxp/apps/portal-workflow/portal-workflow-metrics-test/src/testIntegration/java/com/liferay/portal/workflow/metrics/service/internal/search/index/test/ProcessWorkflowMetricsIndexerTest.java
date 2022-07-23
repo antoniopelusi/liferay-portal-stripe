@@ -16,6 +16,7 @@ package com.liferay.portal.workflow.metrics.service.internal.search.index.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.search.query.TermsQuery;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.workflow.metrics.search.index.name.WorkflowMetricsIndexNameBuilder;
@@ -40,19 +41,20 @@ public class ProcessWorkflowMetricsIndexerTest
 
 	@Test
 	public void testAddProcess() throws Exception {
-		retryAssertCount(
+		assertCount(
 			_processWorkflowMetricsIndexNameBuilder.getIndexName(
 				workflowDefinition.getCompanyId()),
 			"WorkflowMetricsProcessType", "companyId",
 			workflowDefinition.getCompanyId(), "deleted", false, "processId",
-			workflowDefinition.getWorkflowDefinitionId(), "version", "1.0");
-		retryAssertCount(
+			workflowDefinition.getWorkflowDefinitionId(), "version", "1.0",
+			"versions", "1.0");
+		assertCount(
 			_instanceWorkflowMetricsIndexNameBuilder.getIndexName(
 				workflowDefinition.getCompanyId()),
 			"WorkflowMetricsInstanceType", "companyId",
 			workflowDefinition.getCompanyId(), "deleted", false, "processId",
 			workflowDefinition.getWorkflowDefinitionId(), "instanceId", 0);
-		retryAssertCount(
+		assertCount(
 			_slaInstanceResultWorkflowMetricsIndexNameBuilder.getIndexName(
 				workflowDefinition.getCompanyId()),
 			"WorkflowMetricsSLAInstanceResultType", "companyId",
@@ -68,7 +70,7 @@ public class ProcessWorkflowMetricsIndexerTest
 
 		undeployWorkflowDefinition();
 
-		retryAssertCount(
+		assertCount(
 			_processWorkflowMetricsIndexNameBuilder.getIndexName(companyId),
 			"WorkflowMetricsProcessType", "companyId", companyId, "deleted",
 			true, "processId", workflowDefinitionId, "version", "1.0");
@@ -95,7 +97,7 @@ public class ProcessWorkflowMetricsIndexerTest
 
 	@Test
 	public void testUpdateProcess() throws Exception {
-		retryAssertCount(
+		assertCount(
 			_processWorkflowMetricsIndexNameBuilder.getIndexName(
 				workflowDefinition.getCompanyId()),
 			"WorkflowMetricsProcessType", "companyId",
@@ -104,7 +106,15 @@ public class ProcessWorkflowMetricsIndexerTest
 
 		updateWorkflowDefinition();
 
-		retryAssertCount(
+		assertCount(
+			booleanQuery -> {
+				TermsQuery termsQuery = queries.terms("versions");
+
+				termsQuery.addValues("1.0", "2.0");
+
+				booleanQuery.addMustQueryClauses(termsQuery);
+			},
+			1,
 			_processWorkflowMetricsIndexNameBuilder.getIndexName(
 				workflowDefinition.getCompanyId()),
 			"WorkflowMetricsProcessType", "companyId",

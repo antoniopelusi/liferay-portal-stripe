@@ -1,0 +1,390 @@
+@component-name = "portal-data-cleanup"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Cleanup";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		PortalInstances.tearDownCP();
+	}
+
+	@ignore = "true"
+	@priority = "3"
+	test CanCleanupOpensocialDataAfterUpgrade {
+		property data.archive.type = "data-archive-opensocial";
+		property database.types = "mysql";
+		property portal.version = "6.2.10.21";
+
+		var classNameQuery = "SELECT * FROM ClassName_ WHERE value LIKE '%com.liferay.opensocial.model.%';";
+		var releaseQuery = "SELECT * FROM Release_ WHERE servletContextName LIKE '%opensocial-portlet%';";
+		var resourceActionQuery = "SELECT * FROM ResourceAction WHERE name LIKE '%com.liferay.opensocial%';";
+		var expandoTableQuery = "SELECT * FROM ExpandoTable WHERE name LIKE '%OPEN_SOCIAL_DATA_%';";
+
+		AssertConsoleTextNotPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.OpenSocialUpgradeProcess");
+
+		var classNameTable = SQL.executeMySQLStatement(mysqlStatement = "${classNameQuery}");
+
+		var releaseTable = SQL.executeMySQLStatement(mysqlStatement = "${releaseQuery}");
+
+		var resourceActionTable = SQL.executeMySQLStatement(mysqlStatement = "${resourceActionQuery}");
+
+		var expandoTable = SQL.executeMySQLStatement(mysqlStatement = "${expandoTableQuery}");
+
+		if (!(contains("${classNameTable}", "com.liferay.opensocial.model."))) {
+			echo("${classNameTable}");
+
+			fail("Failed to find opensocial portlet in ClassName_ table.");
+		}
+		else if (!(contains("${releaseTable}", "opensocial-portlet"))) {
+			echo("${releaseTable}");
+
+			fail("Failed to find opensocial portlet in Release_ table.");
+		}
+		else if (!(contains("${resourceActionTable}", "com.liferay.opensocial"))) {
+			echo("${resourceActionTable}");
+
+			fail("Failed to find opensocial portlet in ResourceAction table.");
+		}
+		else if (!(contains("${expandoTable}", "OPEN_SOCIAL_DATA_"))) {
+			echo("${expandoTable}");
+
+			fail("Failed to find opensocial portlet in expandoTable table.");
+		}
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Upgrades",
+			configurationName = "Data Cleanup",
+			configurationScope = "System Scope");
+
+		var key_settingFieldName = "Clean up OpenSocial module data.";
+
+		Check.toggleSwitch(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		SystemSettings.saveConfiguration();
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.OpenSocialUpgradeProcess");
+
+		var classNameTable = SQL.executeMySQLStatement(mysqlStatement = "${classNameQuery}");
+
+		var releaseTable = SQL.executeMySQLStatement(mysqlStatement = "${releaseQuery}");
+
+		var resourceActionTable = SQL.executeMySQLStatement(mysqlStatement = "${resourceActionQuery}");
+
+		var expandoTable = SQL.executeMySQLStatement(mysqlStatement = "${expandoTableQuery}");
+
+		if (contains("${classNameTable}", "com.liferay.opensocial.model.")) {
+			echo("${classNameTable}");
+
+			fail("Failed: opensocial data still present in ClassName_ table.");
+		}
+		else if (contains("${releaseTable}", "opensocial-portlet")) {
+			echo("${releaseTable}");
+
+			fail("Failed: opensocial data still present in Release_ table.");
+		}
+		else if (contains("${resourceActionTable}", "com.liferay.opensocial")) {
+			echo("${resourceActionTable}");
+
+			fail("Failed: opensocial data still present in ResourceAction table.");
+		}
+		else if (contains("${expandoTable}", "OPEN_SOCIAL_DATA_")) {
+			echo("${expandoTable}");
+
+			fail("Failed: opensocial data still present in expandoTable table.");
+		}
+	}
+
+	@ignore = "true"
+	@priority = "3"
+	test CanCleanupShoppingDataAfterUpgrade {
+		property data.archive.type = "data-archive-portal";
+		property database.types = "mysql";
+		property portal.version = "6.2.10.21";
+
+		var classNameQuery = "SELECT * FROM ClassName_ WHERE value LIKE '%com.liferay.portlet.shopping%';";
+		var releaseQuery = "SELECT * FROM Release_ WHERE servletContextName LIKE '%com.liferay.shopping.service%';";
+		var resourceActionQuery = "SELECT * FROM ResourceAction WHERE name LIKE '%com.liferay.portlet.shopping%';";
+
+		AssertConsoleTextNotPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.ShoppingUpgradeProcess");
+
+		var classNameTable = SQL.executeMySQLStatement(mysqlStatement = "${classNameQuery}");
+
+		var releaseTable = SQL.executeMySQLStatement(mysqlStatement = "${releaseQuery}");
+
+		var resourceActionTable = SQL.executeMySQLStatement(mysqlStatement = "${resourceActionQuery}");
+
+		if (!(contains("${classNameTable}", "com.liferay.portlet.shopping"))) {
+			echo("${classNameTable}");
+
+			fail("Failed to find shopping in ClassName_ table.");
+		}
+		else if (!(contains("${releaseTable}", "com.liferay.shopping.service"))) {
+			echo("${releaseTable}");
+
+			fail("Failed to find shopping in Release_ table.");
+		}
+		else if (!(contains("${resourceActionTable}", "com.liferay.portlet.shopping"))) {
+			echo("${resourceActionTable}");
+
+			fail("Failed to find shopping in ResourceAction table.");
+		}
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Upgrades",
+			configurationName = "Data Cleanup",
+			configurationScope = "System Scope");
+
+		var key_settingFieldName = "Clean up shopping module data.";
+
+		Check.toggleSwitch(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		SystemSettings.saveConfiguration();
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.ShoppingUpgradeProcess");
+
+		var classNameTable = SQL.executeMySQLStatement(mysqlStatement = "${classNameQuery}");
+
+		var releaseTable = SQL.executeMySQLStatement(mysqlStatement = "${releaseQuery}");
+
+		var resourceActionTable = SQL.executeMySQLStatement(mysqlStatement = "${resourceActionQuery}");
+
+		if (contains("${classNameTable}", "com.liferay.portlet.shopping")) {
+			echo("${classNameTable}");
+
+			fail("Failed: Shopping data still present in ClassName_ table.");
+		}
+		else if (contains("${releaseTable}", "com.liferay.shopping.service")) {
+			echo("${releaseTable}");
+
+			fail("Failed: Shopping data still present in Release_ table.");
+		}
+		else if (contains("${resourceActionTable}", "com.liferay.portlet.shopping")) {
+			echo("${resourceActionTable}");
+
+			fail("Failed: Shopping data still present in ResourceAction table.");
+		}
+	}
+
+	@ignore = "true"
+	@priority = "3"
+	test CanCleanupSoftwareCatalogDataAfterUpgrade {
+		property data.archive.type = "data-archive-portal";
+		property database.types = "mysql";
+		property portal.version = "6.2.10.21";
+
+		var classNameQuery = "SELECT * FROM ClassName_ WHERE value LIKE '%com.liferay.portlet.softwarecatalog%';";
+		var releaseQuery = "SELECT * FROM Release_ WHERE servletContextName LIKE '%com.liferay.softwarecatalog.service%';";
+		var resourceActionQuery = "SELECT * FROM ResourceAction WHERE name LIKE '%com.liferay.portlet.softwarecatalog%';";
+
+		AssertConsoleTextNotPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.SoftwareCatalogUpgradeProcess");
+
+		var classNameTable = SQL.executeMySQLStatement(mysqlStatement = "${classNameQuery}");
+
+		var releaseTable = SQL.executeMySQLStatement(mysqlStatement = "${releaseQuery}");
+
+		var resourceActionTable = SQL.executeMySQLStatement(mysqlStatement = "${resourceActionQuery}");
+
+		if (!(contains("${classNameTable}", "com.liferay.portlet.softwarecatalog"))) {
+			echo("${classNameTable}");
+
+			fail("Failed to find software catalog in ClassName_ table.");
+		}
+		else if (!(contains("${releaseTable}", "com.liferay.softwarecatalog.service"))) {
+			echo("${releaseTable}");
+
+			fail("Failed to find software catalog in Release_ table.");
+		}
+		else if (!(contains("${resourceActionTable}", "com.liferay.portlet.softwarecatalog"))) {
+			echo("${resourceActionTable}");
+
+			fail("Failed to find software catalog in ResourceAction table.");
+		}
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Upgrades",
+			configurationName = "Data Cleanup",
+			configurationScope = "System Scope");
+
+		Check.toggleSwitch(
+			key_settingFieldName = "Clean up software catalog module data.",
+			locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		SystemSettings.saveConfiguration();
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.SoftwareCatalogUpgradeProcess");
+
+		var classNameTable = SQL.executeMySQLStatement(mysqlStatement = "${classNameQuery}");
+
+		var releaseTable = SQL.executeMySQLStatement(mysqlStatement = "${releaseQuery}");
+
+		var resourceActionTable = SQL.executeMySQLStatement(mysqlStatement = "${resourceActionQuery}");
+
+		if (contains("${classNameTable}", "com.liferay.portlet.softwarecatalog")) {
+			echo("${classNameTable}");
+
+			fail("Failed: Software catalog data still present in ClassName_ table.");
+		}
+		else if (contains("${releaseTable}", "com.liferay.softwarecatalog.service")) {
+			echo("${releaseTable}");
+
+			fail("Failed: Software catalog data still present in Release_ table.");
+		}
+		else if (contains("${resourceActionTable}", "com.liferay.portlet.softwarecatalog")) {
+			echo("${resourceActionTable}");
+
+			fail("Failed: Software catalog data still present in ResourceAction table.");
+		}
+	}
+
+	@priority = "4"
+	test CanRemoveExpiredJournalArticle {
+		property test.name.skip.portal.instance = "DataCleanup#CanRemoveExpiredJournalArticle";
+
+		var journalArticleQuery = "SELECT * FROM JournalArticle WHERE urlTitle LIKE '%wc-webcontent-title%';";
+
+		JSONWebcontent.addWebContent(
+			content = "WC WebContent Content",
+			groupName = "Guest",
+			title = "WC WebContent Title");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContent.expireCP(webContentTitleList = "WC WebContent Title");
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+
+		WebContent.viewStatus(
+			webContentContent = "WC WebContent Content",
+			webContentStatus = "Expired",
+			webContentTitle = "WC WebContent Title");
+
+		var journalArticleTable = SQL.executeMySQLStatement(mysqlStatement = "${journalArticleQuery}");
+
+		if (!(contains("${journalArticleTable}", "wc-webcontent-title"))) {
+			echo("${journalArticleTable}");
+
+			fail("Failed to find expired journal article in JournalArticle table.");
+		}
+
+		AssertConsoleTextNotPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.ExpiredJournalArticleUpgradeProcess");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Upgrades",
+			configurationName = "Data Removal",
+			configurationScope = "System Scope");
+
+		var key_settingFieldName = "Remove expired journal articles.";
+
+		Check.toggleSwitch(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		SystemSettings.saveConfiguration();
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.ExpiredJournalArticleUpgradeProcess");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContent.viewNotPresentCP(webContentTitle = "WC WebContent Title");
+
+		var journalArticleTable = SQL.executeMySQLStatement(mysqlStatement = "${journalArticleQuery}");
+
+		if (contains("${journalArticleTable}", "wc-webcontent-title")) {
+			echo("${journalArticleTable}");
+
+			fail("Failed: Expired journal article data still present in JournalArticle table.");
+		}
+	}
+
+	@priority = "4"
+	test FileConfigsWillTriggerDataCleanup {
+		property data.archive.type = "data-archive-portal";
+		property osgi.module.configuration.file.names = "com.liferay.data.cleanup.internal.configuration.DataCleanupConfiguration.config:com.liferay.data.cleanup.internal.configuration.DataRemovalConfiguration.config";
+		property osgi.module.configurations = "cleanUpSoftwareCatalogModuleData=B&quot;true&quot;:removeExpiredJournalArticles=B&quot;true&quot;";
+		property portal.version = "6.2.10.21";
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.ExpiredJournalArticleUpgradeProcess");
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.SoftwareCatalogUpgradeProcess");
+	}
+
+	@priority = "5"
+	test UIConfigsWillTriggerCleanupAndBeSetToFalseAfterExecution {
+		property data.archive.type = "data-archive-portal";
+		property portal.version = "6.2.10.21";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Upgrades",
+			configurationName = "Data Cleanup",
+			configurationScope = "System Scope");
+
+		var key_settingFieldName = "Clean up software catalog module data.";
+
+		Check.toggleSwitch(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		SystemSettings.saveConfiguration();
+
+		AssertNotChecked.assertNotCheckedNotVisible(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Upgrades",
+			configurationName = "Data Removal",
+			configurationScope = "System Scope");
+
+		var key_settingFieldName = "Remove expired journal articles.";
+
+		Check.toggleSwitch(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		SystemSettings.saveConfiguration();
+
+		AssertNotChecked.assertNotCheckedNotVisible(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.ExpiredJournalArticleUpgradeProcess");
+
+		AssertConsoleTextPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.SoftwareCatalogUpgradeProcess");
+
+		Portlet.shutdownServer();
+
+		Portlet.startServer(keepOsGiState = "true");
+
+		AssertConsoleTextNotPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.ExpiredJournalArticleUpgradeProcess");
+
+		AssertConsoleTextNotPresent(value1 = "Completed upgrade process com.liferay.data.cleanup.internal.upgrade.SoftwareCatalogUpgradeProcess");
+	}
+
+}

@@ -27,6 +27,10 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 	implements OAuth2ApplicationScopeAliasesLocalService,
 			   ServiceWrapper<OAuth2ApplicationScopeAliasesLocalService> {
 
+	public OAuth2ApplicationScopeAliasesLocalServiceWrapper() {
+		this(null);
+	}
+
 	public OAuth2ApplicationScopeAliasesLocalServiceWrapper(
 		OAuth2ApplicationScopeAliasesLocalService
 			oAuth2ApplicationScopeAliasesLocalService) {
@@ -170,6 +174,14 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _oAuth2ApplicationScopeAliasesLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _oAuth2ApplicationScopeAliasesLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override

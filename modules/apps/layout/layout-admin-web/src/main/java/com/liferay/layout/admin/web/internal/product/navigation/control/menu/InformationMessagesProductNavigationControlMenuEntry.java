@@ -90,13 +90,13 @@ public class InformationMessagesProductNavigationControlMenuEntry
 		try {
 			httpServletRequest.setAttribute(
 				INFORMATION_MESSAGES_LINKED_LAYOUT,
-				isLinkedLayout(themeDisplay));
+				_isLinkedLayout(themeDisplay));
 			httpServletRequest.setAttribute(
 				INFORMATION_MESSAGES_MODIFIED_LAYOUT,
-				isModifiedLayout(themeDisplay));
+				_isModifiedLayout(themeDisplay));
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return super.includeIcon(httpServletRequest, httpServletResponse);
@@ -112,11 +112,10 @@ public class InformationMessagesProductNavigationControlMenuEntry
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
+		if (layout.isTypeControlPanel() ||
+			(!_isLinkedLayout(themeDisplay) &&
+			 !_isModifiedLayout(themeDisplay))) {
 
-		if (!isLinkedLayout(themeDisplay) && !isModifiedLayout(themeDisplay)) {
 			return false;
 		}
 
@@ -132,7 +131,7 @@ public class InformationMessagesProductNavigationControlMenuEntry
 		super.setServletContext(servletContext);
 	}
 
-	protected boolean isLinkedLayout(ThemeDisplay themeDisplay)
+	private boolean _isLinkedLayout(ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		Layout layout = themeDisplay.getLayout();
@@ -156,7 +155,7 @@ public class InformationMessagesProductNavigationControlMenuEntry
 		return false;
 	}
 
-	protected boolean isModifiedLayout(ThemeDisplay themeDisplay)
+	private boolean _isModifiedLayout(ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		Layout layout = themeDisplay.getLayout();
@@ -164,12 +163,9 @@ public class InformationMessagesProductNavigationControlMenuEntry
 		LayoutSet layoutSet = layout.getLayoutSet();
 
 		if (!layoutSet.isLayoutSetPrototypeLinkActive() ||
-			!SitesUtil.isLayoutModifiedSinceLastMerge(layout)) {
+			!SitesUtil.isLayoutModifiedSinceLastMerge(layout) ||
+			!hasUpdateLayoutPermission(themeDisplay)) {
 
-			return false;
-		}
-
-		if (!hasUpdateLayoutPermission(themeDisplay)) {
 			return false;
 		}
 

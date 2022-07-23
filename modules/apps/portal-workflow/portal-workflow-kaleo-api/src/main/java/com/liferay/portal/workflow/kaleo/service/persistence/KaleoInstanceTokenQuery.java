@@ -81,6 +81,10 @@ public class KaleoInstanceTokenQuery implements Serializable {
 		return _completed;
 	}
 
+	public boolean isSearchByActiveWorkflowHandlers() {
+		return _searchByActiveWorkflowHandlers;
+	}
+
 	public void setAssetDescription(String assetDescription) {
 		_assetDescription = assetDescription;
 	}
@@ -125,6 +129,12 @@ public class KaleoInstanceTokenQuery implements Serializable {
 		_parentKaleoInstanceTokenId = parentKaleoInstanceTokenId;
 	}
 
+	public void setSearchByActiveWorkflowHandlers(
+		boolean searchByActiveWorkflowHandlers) {
+
+		_searchByActiveWorkflowHandlers = searchByActiveWorkflowHandlers;
+	}
+
 	public void setUserId(Long userId) {
 		_userId = userId;
 	}
@@ -141,6 +151,7 @@ public class KaleoInstanceTokenQuery implements Serializable {
 	private Long _kaleoInstanceId;
 	private Long _kaleoInstanceTokenId;
 	private Long _parentKaleoInstanceTokenId;
+	private boolean _searchByActiveWorkflowHandlers;
 	private Long _userId;
 
 }

@@ -27,7 +27,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.taglib.servlet.PipingServletResponse;
+import com.liferay.taglib.servlet.PipingServletResponseFactory;
 
 import java.io.IOException;
 
@@ -48,12 +48,15 @@ public class PanelAppTag extends BasePanelTag {
 	@Override
 	public int doEndTag() throws JspException {
 		if (_panelApp != null) {
-			request.setAttribute(ApplicationListWebKeys.PANEL_APP, _panelApp);
+			HttpServletRequest httpServletRequest = getRequest();
+
+			httpServletRequest.setAttribute(
+				ApplicationListWebKeys.PANEL_APP, _panelApp);
 
 			try {
 				boolean include = _panelApp.include(
-					request,
-					PipingServletResponse.createPipingServletResponse(
+					httpServletRequest,
+					PipingServletResponseFactory.createPipingServletResponse(
 						pageContext));
 
 				if (include) {
@@ -187,7 +190,8 @@ public class PanelAppTag extends BasePanelTag {
 
 				_label = HtmlUtil.escape(
 					PortalUtil.getPortletTitle(
-						portlet, servletContext, themeDisplay.getLocale()));
+						portlet, getServletContext(),
+						themeDisplay.getLocale()));
 			}
 
 			if (!_data.containsKey("qa-id")) {

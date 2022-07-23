@@ -51,7 +51,6 @@ import com.liferay.site.navigation.model.SiteNavigationMenuItem;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalServiceUtil;
 import com.liferay.site.navigation.service.persistence.SiteNavigationMenuItemPersistence;
-import com.liferay.site.navigation.service.persistence.SiteNavigationMenuPersistence;
 
 import java.io.Serializable;
 
@@ -163,6 +162,13 @@ public abstract class SiteNavigationMenuItemLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return siteNavigationMenuItemPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -653,12 +659,5 @@ public abstract class SiteNavigationMenuItemLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected SiteNavigationMenuPersistence siteNavigationMenuPersistence;
 
 }

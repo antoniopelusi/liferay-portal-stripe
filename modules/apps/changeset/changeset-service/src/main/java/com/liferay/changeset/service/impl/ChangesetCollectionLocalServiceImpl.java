@@ -23,6 +23,7 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.GroupLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -90,7 +91,7 @@ public class ChangesetCollectionLocalServiceImpl
 			return changesetCollection;
 		}
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		User user = userLocalService.getDefaultUser(group.getCompanyId());
 
@@ -107,5 +108,8 @@ public class ChangesetCollectionLocalServiceImpl
 
 	@Reference
 	private ChangesetEntryLocalService _changesetEntryLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 }

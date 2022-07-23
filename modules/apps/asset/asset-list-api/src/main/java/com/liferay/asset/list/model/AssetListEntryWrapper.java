@@ -164,6 +164,11 @@ public class AssetListEntryWrapper
 		}
 	}
 
+	@Override
+	public AssetListEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,

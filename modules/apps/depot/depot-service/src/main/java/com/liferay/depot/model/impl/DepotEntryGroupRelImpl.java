@@ -18,8 +18,4 @@ package com.liferay.depot.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class DepotEntryGroupRelImpl extends DepotEntryGroupRelBaseImpl {
-
-	public DepotEntryGroupRelImpl() {
-	}
-
 }

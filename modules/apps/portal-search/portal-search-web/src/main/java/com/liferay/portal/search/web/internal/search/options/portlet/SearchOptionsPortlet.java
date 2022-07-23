@@ -54,7 +54,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/search/options/view.jsp",
 		"javax.portlet.name=" + SearchOptionsPortletKeys.SEARCH_OPTIONS,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -66,7 +67,7 @@ public class SearchOptionsPortlet extends MVCPortlet {
 		throws IOException, PortletException {
 
 		if (!SearchPortletPermissionUtil.containsConfiguration(
-				portletPermission, renderRequest, portal)) {
+				_portletPermission, renderRequest, _portal)) {
 
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
@@ -76,9 +77,9 @@ public class SearchOptionsPortlet extends MVCPortlet {
 	}
 
 	@Reference
-	protected Portal portal;
+	private Portal _portal;
 
 	@Reference
-	protected PortletPermission portletPermission;
+	private PortletPermission _portletPermission;
 
 }

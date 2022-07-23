@@ -68,7 +68,7 @@ export default class Gallery extends React.Component {
 					this.state.images > 1
 						? this.state.images.findIndex(
 								({downloadUrl}) =>
-									downloadUrl === selectedImage[0].url
+									downloadUrl === selectedImage[0].URL
 						  )
 						: 0;
 
@@ -79,7 +79,7 @@ export default class Gallery extends React.Component {
 
 	fullscreenOpen() {
 		if (!this.state.loading) {
-			this.imageLoad(this.state.images[this.state.selected].url).then(
+			this.imageLoad(this.state.images[this.state.selected].URL).then(
 				() => {
 					this.setState({fullscreen: true});
 				}
@@ -97,13 +97,13 @@ export default class Gallery extends React.Component {
 		);
 	}
 
-	goToPrev(e) {
-		e.stopPropagation();
+	goToPrev(event) {
+		event.stopPropagation();
 		this.goTo(this.state.selected - 1);
 	}
 
-	goToNext(e) {
-		e.stopPropagation();
+	goToNext(event) {
+		event.stopPropagation();
 		this.goTo(this.state.selected + 1);
 	}
 
@@ -131,7 +131,7 @@ export default class Gallery extends React.Component {
 
 	imageSelect(toSelect) {
 		if (toSelect !== this.state.selected && !this.state.loading) {
-			this.imageLoad(this.state.images[toSelect].url).then(() => {
+			this.imageLoad(this.state.images[toSelect].URL).then(() => {
 				this.setState({selected: toSelect});
 			});
 		}
@@ -145,12 +145,15 @@ export default class Gallery extends React.Component {
 			<div className="product-gallery">
 				{images && images.length > 0 && (
 					<MainImage
+						adaptiveMediaImageHTMLTag={
+							images[selected].adaptiveMediaImageHTMLTag
+						}
 						background={background}
 						loading={loading}
 						onNext={images.length > 1 ? this.goToNext : null}
 						onPrev={images.length > 1 ? this.goToPrev : null}
 						onZoom={this.fullscreenOpen}
-						src={images[selected].url}
+						src={images[selected].URL}
 						title={images[selected].title}
 					/>
 				)}
@@ -166,11 +169,14 @@ export default class Gallery extends React.Component {
 
 				{fullscreen ? (
 					<Overlay
+						adaptiveMediaImageHTMLTag={
+							images[selected].adaptiveMediaImageHTMLTag
+						}
 						background={background}
 						onClose={this.fullscreenClose}
 						onNext={images.length > 1 ? this.goToNext : null}
 						onPrev={images.length > 1 ? this.goToPrev : null}
-						src={images[selected].url}
+						src={images[selected].URL}
 						title={images[selected].title}
 					/>
 				) : null}
@@ -183,9 +189,9 @@ Gallery.propTypes = {
 	background: PropTypes.string,
 	images: PropTypes.arrayOf(
 		PropTypes.shape({
-			thumbnailUrl: PropTypes.string.isRequired,
+			URL: PropTypes.string.isRequired,
+			thumbnailURL: PropTypes.string.isRequired,
 			title: PropTypes.string.isRequired,
-			url: PropTypes.string.isRequired,
 		})
 	),
 	namespace: PropTypes.string,

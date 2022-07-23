@@ -112,6 +112,11 @@ public class CTCommentWrapper
 		}
 	}
 
+	@Override
+	public CTComment cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ct comment.
 	 *

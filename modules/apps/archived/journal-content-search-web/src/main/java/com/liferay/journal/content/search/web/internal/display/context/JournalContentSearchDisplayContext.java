@@ -127,7 +127,7 @@ public class JournalContentSearchDisplayContext {
 			"/search.jsp"
 		).setKeywords(
 			getKeywords()
-		).build();
+		).buildPortletURL();
 
 		String originalKeywords = ParamUtil.getString(
 			_httpServletRequest, "keywords", getKeywords());
@@ -146,15 +146,14 @@ public class JournalContentSearchDisplayContext {
 
 		ContentHits contentHits = new ContentHits();
 
-		contentHits.setShowListed(
-			_journalContentSearchPortletInstanceConfiguration.showListed());
-
 		contentHits.recordHits(
 			hits, layout.getGroupId(), layout.isPrivateLayout(),
 			_searchContainer.getStart(), _searchContainer.getEnd());
+		contentHits.setShowListed(
+			_journalContentSearchPortletInstanceConfiguration.showListed());
 
-		_searchContainer.setTotal(hits.getLength());
-		_searchContainer.setResults(ListUtil.fromArray(hits.getDocs()));
+		_searchContainer.setResultsAndTotal(
+			() -> ListUtil.fromArray(hits.getDocs()), hits.getLength());
 
 		return _searchContainer;
 	}

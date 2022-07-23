@@ -105,6 +105,11 @@ public class DLFileRankWrapper
 		}
 	}
 
+	@Override
+	public DLFileRank cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this document library file rank.
 	 *

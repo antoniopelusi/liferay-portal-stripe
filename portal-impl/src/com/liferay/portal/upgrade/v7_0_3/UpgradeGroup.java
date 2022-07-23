@@ -16,7 +16,6 @@ package com.liferay.portal.upgrade.v7_0_3;
 
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.upgrade.v7_0_3.util.GroupTable;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -32,19 +31,17 @@ public class UpgradeGroup extends UpgradeProcess {
 		DatabaseMetaData databaseMetaData = connection.getMetaData();
 		DBInspector dbInspector = new DBInspector(connection);
 
-		try (ResultSet rs = databaseMetaData.getColumns(
+		try (ResultSet resultSet = databaseMetaData.getColumns(
 				dbInspector.getCatalog(), dbInspector.getSchema(),
 				dbInspector.normalizeName("Group_"),
 				dbInspector.normalizeName("groupKey"))) {
 
-			if (rs.next()) {
-				int columnSize = rs.getInt("COLUMN_SIZE");
-				int dataType = rs.getInt("DATA_TYPE");
+			if (resultSet.next()) {
+				int columnSize = resultSet.getInt("COLUMN_SIZE");
+				int dataType = resultSet.getInt("DATA_TYPE");
 
 				if ((dataType != Types.VARCHAR) || (columnSize != 150)) {
-					alter(
-						GroupTable.class,
-						new AlterColumnType("groupKey", "VARCHAR(150) null"));
+					alterColumnType("Group_", "groupKey", "VARCHAR(150) null");
 				}
 			}
 		}

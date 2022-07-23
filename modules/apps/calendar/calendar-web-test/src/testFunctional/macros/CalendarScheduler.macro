@@ -65,12 +65,6 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
-	macro addViaDayViewDragAndDrop {
-		SikuliDragAndDrop(
-			locator1 = "Calendar#SCHEDULER_DAY_VIEW_PNG",
-			value1 = "0,200");
-	}
-
 	macro changeCalendar {
 		CalendarNavigator.gotoView(viewType = "Week");
 
@@ -107,8 +101,20 @@ definition {
 			value1 = "${eventTitle}");
 	}
 
+	macro editTitleAndCalendar {
+		CalendarScheduler.selectSpecificEvent(eventTitle = "${currentEventTitle}");
+
+		CalendarScheduler.editTitle(eventTitle = "${eventTitle}");
+
+		Select(
+			locator1 = "Calendar#SCHEDULER_EVENT_DIALOG_BOX_CALENDAR",
+			value1 = "${calendarName}");
+
+		CalendarScheduler.saveEvent();
+	}
+
 	macro gotoAddViaDayView {
-		SikuliClick(locator1 = "Calendar#SCHEDULER_DAY_VIEW_PNG");
+		Click(locator1 = "CalendarDayView#SCHEDULER_VIEW_DAY");
 	}
 
 	macro gotoDetailsViaDialogBox {
@@ -300,9 +306,9 @@ definition {
 	}
 
 	macro viewEventColor {
-		var key_backgroundColor = "${eventBackgroundColorRGB}";
+		var key_backgroundColor = "${eventBackgroundColorRgb}";
 		var key_eventTitle = "${eventTitle}";
-		var key_fontColor = "${eventFontColorRGB}";
+		var key_fontColor = "${eventFontColorRgb}";
 
 		AssertElementPresent(locator1 = "Calendar#SCHEDULER_EVENT_SPECIFIC_BACKGROUND_COLOR");
 
@@ -561,12 +567,7 @@ definition {
 	macro viewSpecificEventNotPresent {
 		var key_eventTitle = "${eventTitle}";
 
-		if (IsElementPresent(locator1 = "Calendar#SCHEDULER_EVENT_SPECIFIC")) {
-			CalendarScheduler.viewSpecificEventNotVisible(eventTitle = "${eventTitle}");
-		}
-		else {
-			AssertElementNotPresent(locator1 = "Calendar#SCHEDULER_EVENT_SPECIFIC");
-		}
+		AssertElementNotPresent(locator1 = "Calendar#SCHEDULER_EVENT_SPECIFIC");
 
 		AssertTextNotPresent(value1 = "${eventTitle}");
 	}

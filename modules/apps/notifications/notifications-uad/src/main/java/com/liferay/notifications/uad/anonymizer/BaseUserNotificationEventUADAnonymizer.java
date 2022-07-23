@@ -14,6 +14,8 @@
 
 package com.liferay.notifications.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.notifications.uad.constants.NotificationsUADConstants;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -47,6 +49,8 @@ public abstract class BaseUserNotificationEventUADAnonymizer
 
 		if (userNotificationEvent.getUserId() == userId) {
 			delete(userNotificationEvent);
+
+			autoAnonymizeAssetEntry(userNotificationEvent, anonymousUser);
 		}
 	}
 
@@ -63,6 +67,19 @@ public abstract class BaseUserNotificationEventUADAnonymizer
 		return UserNotificationEvent.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		UserNotificationEvent userNotificationEvent, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(userNotificationEvent);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return userNotificationEventLocalService.getActionableDynamicQuery();
@@ -73,6 +90,17 @@ public abstract class BaseUserNotificationEventUADAnonymizer
 		return NotificationsUADConstants.
 			USER_ID_FIELD_NAMES_USER_NOTIFICATION_EVENT;
 	}
+
+	protected AssetEntry fetchAssetEntry(
+		UserNotificationEvent userNotificationEvent) {
+
+		return assetEntryLocalService.fetchEntry(
+			UserNotificationEvent.class.getName(),
+			userNotificationEvent.getUserNotificationEventId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected UserNotificationEventLocalService

@@ -173,6 +173,13 @@ public abstract class SegmentsExperienceLocalServiceBaseImpl
 	}
 
 	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
+	@Override
 	public DynamicQuery dynamicQuery() {
 		Class<?> clazz = getClass();
 
@@ -694,10 +701,6 @@ public abstract class SegmentsExperienceLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.portal.kernel.service.ClassNameLocalService
 		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutLocalService
-		layoutLocalService;
 
 	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService

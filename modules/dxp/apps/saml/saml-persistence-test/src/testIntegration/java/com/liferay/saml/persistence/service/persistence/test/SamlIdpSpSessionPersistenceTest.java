@@ -21,8 +21,6 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -136,11 +134,7 @@ public class SamlIdpSpSessionPersistenceTest {
 
 		newSamlIdpSpSession.setSamlIdpSsoSessionId(RandomTestUtil.nextLong());
 
-		newSamlIdpSpSession.setSamlSpEntityId(RandomTestUtil.randomString());
-
-		newSamlIdpSpSession.setNameIdFormat(RandomTestUtil.randomString());
-
-		newSamlIdpSpSession.setNameIdValue(RandomTestUtil.randomString());
+		newSamlIdpSpSession.setSamlPeerBindingId(RandomTestUtil.nextLong());
 
 		_samlIdpSpSessions.add(_persistence.update(newSamlIdpSpSession));
 
@@ -169,21 +163,15 @@ public class SamlIdpSpSessionPersistenceTest {
 			existingSamlIdpSpSession.getSamlIdpSsoSessionId(),
 			newSamlIdpSpSession.getSamlIdpSsoSessionId());
 		Assert.assertEquals(
-			existingSamlIdpSpSession.getSamlSpEntityId(),
-			newSamlIdpSpSession.getSamlSpEntityId());
-		Assert.assertEquals(
-			existingSamlIdpSpSession.getNameIdFormat(),
-			newSamlIdpSpSession.getNameIdFormat());
-		Assert.assertEquals(
-			existingSamlIdpSpSession.getNameIdValue(),
-			newSamlIdpSpSession.getNameIdValue());
+			existingSamlIdpSpSession.getSamlPeerBindingId(),
+			newSamlIdpSpSession.getSamlPeerBindingId());
 	}
 
 	@Test
-	public void testCountByCreateDate() throws Exception {
-		_persistence.countByCreateDate(RandomTestUtil.nextDate());
+	public void testCountByLtCreateDate() throws Exception {
+		_persistence.countByLtCreateDate(RandomTestUtil.nextDate());
 
-		_persistence.countByCreateDate(RandomTestUtil.nextDate());
+		_persistence.countByLtCreateDate(RandomTestUtil.nextDate());
 	}
 
 	@Test
@@ -191,15 +179,6 @@ public class SamlIdpSpSessionPersistenceTest {
 		_persistence.countBySamlIdpSsoSessionId(RandomTestUtil.nextLong());
 
 		_persistence.countBySamlIdpSsoSessionId(0L);
-	}
-
-	@Test
-	public void testCountBySISSI_SSEI() throws Exception {
-		_persistence.countBySISSI_SSEI(RandomTestUtil.nextLong(), "");
-
-		_persistence.countBySISSI_SSEI(0L, "null");
-
-		_persistence.countBySISSI_SSEI(0L, (String)null);
 	}
 
 	@Test
@@ -229,8 +208,8 @@ public class SamlIdpSpSessionPersistenceTest {
 		return OrderByComparatorFactoryUtil.create(
 			"SamlIdpSpSession", "samlIdpSpSessionId", true, "companyId", true,
 			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "samlIdpSsoSessionId", true, "samlSpEntityId",
-			true, "nameIdFormat", true, "nameIdValue", true);
+			"modifiedDate", true, "samlIdpSsoSessionId", true,
+			"samlPeerBindingId", true);
 	}
 
 	@Test
@@ -450,70 +429,6 @@ public class SamlIdpSpSessionPersistenceTest {
 		Assert.assertEquals(0, result.size());
 	}
 
-	@Test
-	public void testResetOriginalValues() throws Exception {
-		SamlIdpSpSession newSamlIdpSpSession = addSamlIdpSpSession();
-
-		_persistence.clearCache();
-
-		_assertOriginalValues(
-			_persistence.findByPrimaryKey(newSamlIdpSpSession.getPrimaryKey()));
-	}
-
-	@Test
-	public void testResetOriginalValuesWithDynamicQueryLoadFromDatabase()
-		throws Exception {
-
-		_testResetOriginalValuesWithDynamicQuery(true);
-	}
-
-	@Test
-	public void testResetOriginalValuesWithDynamicQueryLoadFromSession()
-		throws Exception {
-
-		_testResetOriginalValuesWithDynamicQuery(false);
-	}
-
-	private void _testResetOriginalValuesWithDynamicQuery(boolean clearSession)
-		throws Exception {
-
-		SamlIdpSpSession newSamlIdpSpSession = addSamlIdpSpSession();
-
-		if (clearSession) {
-			Session session = _persistence.openSession();
-
-			session.flush();
-
-			session.clear();
-		}
-
-		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			SamlIdpSpSession.class, _dynamicQueryClassLoader);
-
-		dynamicQuery.add(
-			RestrictionsFactoryUtil.eq(
-				"samlIdpSpSessionId",
-				newSamlIdpSpSession.getSamlIdpSpSessionId()));
-
-		List<SamlIdpSpSession> result = _persistence.findWithDynamicQuery(
-			dynamicQuery);
-
-		_assertOriginalValues(result.get(0));
-	}
-
-	private void _assertOriginalValues(SamlIdpSpSession samlIdpSpSession) {
-		Assert.assertEquals(
-			Long.valueOf(samlIdpSpSession.getSamlIdpSsoSessionId()),
-			ReflectionTestUtil.<Long>invoke(
-				samlIdpSpSession, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "samlIdpSsoSessionId"));
-		Assert.assertEquals(
-			samlIdpSpSession.getSamlSpEntityId(),
-			ReflectionTestUtil.invoke(
-				samlIdpSpSession, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "samlSpEntityId"));
-	}
-
 	protected SamlIdpSpSession addSamlIdpSpSession() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
@@ -531,11 +446,7 @@ public class SamlIdpSpSessionPersistenceTest {
 
 		samlIdpSpSession.setSamlIdpSsoSessionId(RandomTestUtil.nextLong());
 
-		samlIdpSpSession.setSamlSpEntityId(RandomTestUtil.randomString());
-
-		samlIdpSpSession.setNameIdFormat(RandomTestUtil.randomString());
-
-		samlIdpSpSession.setNameIdValue(RandomTestUtil.randomString());
+		samlIdpSpSession.setSamlPeerBindingId(RandomTestUtil.nextLong());
 
 		_samlIdpSpSessions.add(_persistence.update(samlIdpSpSession));
 

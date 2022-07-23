@@ -111,7 +111,7 @@ PortalUtil.addPortletBreadcrumbEntry(
 	).setMVCPath(
 		"/view_record_set.jsp"
 	).setParameter(
-		"recordSetId", String.valueOf(recordSetId)
+		"recordSetId", recordSetId
 	).buildString());
 
 PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.format(request, "view-x", ddmStructure.getName(locale), false), currentURL);

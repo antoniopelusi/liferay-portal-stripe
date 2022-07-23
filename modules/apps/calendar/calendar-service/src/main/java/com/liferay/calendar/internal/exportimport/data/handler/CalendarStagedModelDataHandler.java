@@ -124,7 +124,7 @@ public class CalendarStagedModelDataHandler
 
 		String displayName = referenceElement.attributeValue("display-name");
 
-		return validateMissingReference(companyId, uuid, groupId, displayName);
+		return _validateMissingReference(companyId, uuid, groupId, displayName);
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public class CalendarStagedModelDataHandler
 			calendarResourceIds, calendar.getCalendarResourceId(),
 			calendar.getCalendarResourceId());
 
-		Map<Locale, String> calendarNameMap = getCalendarNameMap(
+		Map<Locale, String> calendarNameMap = _getCalendarNameMap(
 			portletDataContext, calendar);
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
@@ -235,14 +235,14 @@ public class CalendarStagedModelDataHandler
 		portletDataContext.importClassedModel(calendar, importedCalendar);
 	}
 
-	protected Calendar fetchExistingCalendar(
+	private Calendar _fetchExistingCalendar(
 		long companyId, long groupId, String name) {
 
 		return _calendarLocalService.fetchGroupCalendar(
 			companyId, groupId, name);
 	}
 
-	protected Map<Locale, String> getCalendarNameMap(
+	private Map<Locale, String> _getCalendarNameMap(
 			PortletDataContext portletDataContext, Calendar calendar)
 		throws Exception {
 
@@ -267,13 +267,13 @@ public class CalendarStagedModelDataHandler
 			scopeGroup.getGroupId());
 	}
 
-	protected boolean validateMissingReference(
+	private boolean _validateMissingReference(
 		long companyId, String uuid, long groupId, String name) {
 
 		Calendar existingStagedModel = fetchMissingReference(uuid, groupId);
 
 		if (existingStagedModel == null) {
-			existingStagedModel = fetchExistingCalendar(
+			existingStagedModel = _fetchExistingCalendar(
 				companyId, groupId, name);
 		}
 

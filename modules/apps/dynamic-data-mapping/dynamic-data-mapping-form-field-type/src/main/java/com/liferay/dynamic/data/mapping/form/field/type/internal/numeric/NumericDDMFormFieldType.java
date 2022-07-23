@@ -28,12 +28,12 @@ import org.osgi.service.component.annotations.Component;
 	immediate = true,
 	property = {
 		"ddm.form.field.type.data.domain=number",
-		"ddm.form.field.type.description=numeric-field-type-description",
+		"ddm.form.field.type.description=it-accepts-only-numbers",
 		"ddm.form.field.type.display.order:Integer=7",
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=integer",
 		"ddm.form.field.type.label=numeric-field-type-label",
 		"ddm.form.field.type.name=" + DDMFormFieldTypeConstants.NUMERIC,
-		"ddm.form.field.type.scope=app-builder,forms"
+		"ddm.form.field.type.scope=document-library,forms,journal"
 	},
 	service = DDMFormFieldType.class
 )
@@ -48,7 +48,7 @@ public class NumericDDMFormFieldType extends BaseDDMFormFieldType {
 
 	@Override
 	public String getModuleName() {
-		return "dynamic-data-mapping-form-field-type/Numeric/Numeric.es";
+		return "dynamic-data-mapping-form-field-type/Numeric/Numeric";
 	}
 
 	@Override

@@ -23,9 +23,6 @@ import com.liferay.translation.service.TranslationEntryLocalServiceUtil;
  */
 public class TranslationEntryImpl extends TranslationEntryBaseImpl {
 
-	public TranslationEntryImpl() {
-	}
-
 	@Override
 	public InfoItemFieldValues getInfoItemFieldValues(
 			long groupId, String className, long classPK, String content)

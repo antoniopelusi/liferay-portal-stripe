@@ -65,6 +65,7 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.io.Serializable;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -117,9 +118,10 @@ public class DLFileVersionTest {
 		_serviceContext = getServiceContext();
 
 		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
-			_group.getGroupId(), _parentFolder.getFolderId(), _SOURCE_FILE_NAME,
-			ContentTypes.APPLICATION_OCTET_STREAM, _TITLE, StringPool.BLANK,
-			StringPool.BLANK, _DATA_VERSION_1, _serviceContext);
+			null, _group.getGroupId(), _parentFolder.getFolderId(),
+			_SOURCE_FILE_NAME, ContentTypes.APPLICATION_OCTET_STREAM, _TITLE,
+			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+			_DATA_VERSION_1, null, null, _serviceContext);
 
 		_fileVersion = DLFileVersionLocalServiceUtil.getFileVersion(
 			fileEntry.getFileEntryId(), DLFileEntryConstants.VERSION_DEFAULT);
@@ -141,20 +143,26 @@ public class DLFileVersionTest {
 		DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
 
 		DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
-			_fileVersion.getMimeType(), _UPDATE_VALUE,
+			_fileVersion.getMimeType(), _UPDATE_VALUE, StringPool.BLANK,
 			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1,
+			_fileVersion.getExpirationDate(), _fileVersion.getReviewDate(),
+			_serviceContext);
 
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
 
 		DLAppServiceUtil.revertFileEntry(
 			fileEntry.getFileEntryId(), DLFileEntryConstants.VERSION_DEFAULT,
@@ -170,8 +178,10 @@ public class DLFileVersionTest {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_2, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_2, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
 
 		Assert.assertNotEquals(
 			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
@@ -181,9 +191,11 @@ public class DLFileVersionTest {
 	public void testUpdateDescription() throws Exception {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
-			_fileVersion.getMimeType(), _fileVersion.getTitle(), _UPDATE_VALUE,
-			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
-			_DATA_VERSION_1, _serviceContext);
+			_fileVersion.getMimeType(), _fileVersion.getTitle(),
+			StringPool.BLANK, _UPDATE_VALUE, _fileVersion.getChangeLog(),
+			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1,
+			_fileVersion.getExpirationDate(), _fileVersion.getReviewDate(),
+			_serviceContext);
 
 		Assert.assertNotEquals(
 			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
@@ -198,8 +210,28 @@ public class DLFileVersionTest {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
+
+		Assert.assertNotEquals(
+			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
+	}
+
+	@Test
+	public void testUpdateExpirationDate() throws Exception {
+		updateServiceContext(
+			_UPDATE_VALUE, _dlFileEntryType.getFileEntryTypeId(),
+			StringPool.BLANK);
+
+		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
+			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
+			_fileVersion.getMimeType(), _fileVersion.getTitle(),
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, new Date(), _fileVersion.getReviewDate(),
+			_serviceContext);
 
 		Assert.assertNotEquals(
 			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
@@ -215,8 +247,10 @@ public class DLFileVersionTest {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
 
 		Assert.assertNotEquals(
 			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
@@ -231,8 +265,10 @@ public class DLFileVersionTest {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
 
 		Assert.assertNotEquals(
 			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
@@ -243,10 +279,30 @@ public class DLFileVersionTest {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
 
 		Assert.assertEquals("1.1", fileEntry.getVersion());
+	}
+
+	@Test
+	public void testUpdateReviewDate() throws Exception {
+		updateServiceContext(
+			_UPDATE_VALUE, _dlFileEntryType.getFileEntryTypeId(),
+			StringPool.BLANK);
+
+		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
+			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
+			_fileVersion.getMimeType(), _fileVersion.getTitle(),
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_1, _fileVersion.getExpirationDate(), new Date(),
+			_serviceContext);
+
+		Assert.assertNotEquals(
+			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
 	}
 
 	@Test
@@ -254,8 +310,10 @@ public class DLFileVersionTest {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
 			_fileVersion.getMimeType(), _fileVersion.getTitle(),
-			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_3, _serviceContext);
+			StringPool.BLANK, _fileVersion.getDescription(),
+			_fileVersion.getChangeLog(), DLVersionNumberIncrease.MINOR,
+			_DATA_VERSION_3, _fileVersion.getExpirationDate(),
+			_fileVersion.getReviewDate(), _serviceContext);
 
 		Assert.assertNotEquals(
 			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
@@ -265,9 +323,11 @@ public class DLFileVersionTest {
 	public void testUpdateTitle() throws Exception {
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			_fileVersion.getFileEntryId(), _SOURCE_FILE_NAME,
-			_fileVersion.getMimeType(), _UPDATE_VALUE,
+			_fileVersion.getMimeType(), _UPDATE_VALUE, StringPool.BLANK,
 			_fileVersion.getDescription(), _fileVersion.getChangeLog(),
-			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1, _serviceContext);
+			DLVersionNumberIncrease.MINOR, _DATA_VERSION_1,
+			_fileVersion.getExpirationDate(), _fileVersion.getReviewDate(),
+			_serviceContext);
 
 		Assert.assertNotEquals(
 			DLFileEntryConstants.VERSION_DEFAULT, fileEntry.getVersion());
@@ -344,17 +404,15 @@ public class DLFileVersionTest {
 		}
 		catch (NoSuchFolderException noSuchFolderException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFolderException, noSuchFolderException);
+				_log.debug(noSuchFolderException);
 			}
 		}
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
 		_parentFolder = DLAppServiceUtil.addFolder(
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			"Test Folder", RandomTestUtil.randomString(), serviceContext);
+			"Test Folder", RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	protected void setUpResourcePermission() throws Exception {

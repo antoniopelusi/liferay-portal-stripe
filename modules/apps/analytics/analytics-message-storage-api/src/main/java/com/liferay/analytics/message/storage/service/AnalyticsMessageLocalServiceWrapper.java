@@ -27,6 +27,10 @@ public class AnalyticsMessageLocalServiceWrapper
 	implements AnalyticsMessageLocalService,
 			   ServiceWrapper<AnalyticsMessageLocalService> {
 
+	public AnalyticsMessageLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AnalyticsMessageLocalServiceWrapper(
 		AnalyticsMessageLocalService analyticsMessageLocalService) {
 
@@ -158,6 +162,13 @@ public class AnalyticsMessageLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _analyticsMessageLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _analyticsMessageLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -67,13 +67,13 @@ public class MappingSqlQueryImpl<T> implements MappingSqlQuery<T> {
 
 			List<T> results = null;
 
-			try (ResultSet rs = preparedStatement.executeQuery()) {
-				while (rs.next()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
 					if (results == null) {
 						results = new ArrayList<>();
 					}
 
-					results.add(_rowMapper.mapRow(rs));
+					results.add(_rowMapper.mapRow(resultSet));
 				}
 			}
 

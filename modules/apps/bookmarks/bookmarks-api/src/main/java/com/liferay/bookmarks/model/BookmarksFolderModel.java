@@ -533,4 +533,7 @@ public interface BookmarksFolderModel
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId);
 
+	@Override
+	public BookmarksFolder cloneWithOriginalValues();
+
 }

@@ -97,6 +97,11 @@ public class OAuth2ApplicationScopeAliasesWrapper
 		}
 	}
 
+	@Override
+	public OAuth2ApplicationScopeAliases cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this o auth2 application scope aliases.
 	 *

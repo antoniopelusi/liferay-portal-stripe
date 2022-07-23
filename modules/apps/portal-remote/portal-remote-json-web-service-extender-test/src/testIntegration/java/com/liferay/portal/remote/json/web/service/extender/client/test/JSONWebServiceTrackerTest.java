@@ -19,7 +19,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -27,7 +27,6 @@ import java.io.IOException;
 
 import java.net.URL;
 
-import java.util.Dictionary;
 import java.util.Random;
 
 import org.junit.AfterClass;
@@ -61,13 +60,13 @@ public class JSONWebServiceTrackerTest {
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("json.web.service.context.name", "test");
-		properties.put("json.web.service.context.path", "webservice");
-
 		_serviceRegistration = bundleContext.registerService(
-			Object.class, new TestWebService(), properties);
+			Object.class, new TestWebService(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				"json.web.service.context.name", "test"
+			).put(
+				"json.web.service.context.path", "webservice"
+			).build());
 	}
 
 	@AfterClass

@@ -17,6 +17,7 @@ package com.liferay.commerce.model;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedAuditedModel;
 import com.liferay.portal.kernel.model.WorkflowedModel;
@@ -40,7 +41,7 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CommerceOrderModel
-	extends BaseModel<CommerceOrder>, GroupedModel, ShardedModel,
+	extends BaseModel<CommerceOrder>, GroupedModel, MVCCModel, ShardedModel,
 			StagedAuditedModel, WorkflowedModel {
 
 	/*
@@ -62,6 +63,22 @@ public interface CommerceOrderModel
 	 * @param primaryKey the primary key of this commerce order
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this commerce order.
+	 *
+	 * @return the mvcc version of this commerce order
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this commerce order.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce order
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this commerce order.
@@ -251,6 +268,20 @@ public interface CommerceOrderModel
 	public void setCommerceCurrencyId(long commerceCurrencyId);
 
 	/**
+	 * Returns the commerce order type ID of this commerce order.
+	 *
+	 * @return the commerce order type ID of this commerce order
+	 */
+	public long getCommerceOrderTypeId();
+
+	/**
+	 * Sets the commerce order type ID of this commerce order.
+	 *
+	 * @param commerceOrderTypeId the commerce order type ID of this commerce order
+	 */
+	public void setCommerceOrderTypeId(long commerceOrderTypeId);
+
+	/**
 	 * Returns the billing address ID of this commerce order.
 	 *
 	 * @return the billing address ID of this commerce order
@@ -380,6 +411,99 @@ public interface CommerceOrderModel
 	 * @param lastPriceUpdateDate the last price update date of this commerce order
 	 */
 	public void setLastPriceUpdateDate(Date lastPriceUpdateDate);
+
+	/**
+	 * Returns the delivery commerce term entry ID of this commerce order.
+	 *
+	 * @return the delivery commerce term entry ID of this commerce order
+	 */
+	public long getDeliveryCommerceTermEntryId();
+
+	/**
+	 * Sets the delivery commerce term entry ID of this commerce order.
+	 *
+	 * @param deliveryCommerceTermEntryId the delivery commerce term entry ID of this commerce order
+	 */
+	public void setDeliveryCommerceTermEntryId(
+		long deliveryCommerceTermEntryId);
+
+	/**
+	 * Returns the delivery commerce term entry description of this commerce order.
+	 *
+	 * @return the delivery commerce term entry description of this commerce order
+	 */
+	@AutoEscape
+	public String getDeliveryCommerceTermEntryDescription();
+
+	/**
+	 * Sets the delivery commerce term entry description of this commerce order.
+	 *
+	 * @param deliveryCommerceTermEntryDescription the delivery commerce term entry description of this commerce order
+	 */
+	public void setDeliveryCommerceTermEntryDescription(
+		String deliveryCommerceTermEntryDescription);
+
+	/**
+	 * Returns the delivery commerce term entry name of this commerce order.
+	 *
+	 * @return the delivery commerce term entry name of this commerce order
+	 */
+	@AutoEscape
+	public String getDeliveryCommerceTermEntryName();
+
+	/**
+	 * Sets the delivery commerce term entry name of this commerce order.
+	 *
+	 * @param deliveryCommerceTermEntryName the delivery commerce term entry name of this commerce order
+	 */
+	public void setDeliveryCommerceTermEntryName(
+		String deliveryCommerceTermEntryName);
+
+	/**
+	 * Returns the payment commerce term entry ID of this commerce order.
+	 *
+	 * @return the payment commerce term entry ID of this commerce order
+	 */
+	public long getPaymentCommerceTermEntryId();
+
+	/**
+	 * Sets the payment commerce term entry ID of this commerce order.
+	 *
+	 * @param paymentCommerceTermEntryId the payment commerce term entry ID of this commerce order
+	 */
+	public void setPaymentCommerceTermEntryId(long paymentCommerceTermEntryId);
+
+	/**
+	 * Returns the payment commerce term entry description of this commerce order.
+	 *
+	 * @return the payment commerce term entry description of this commerce order
+	 */
+	@AutoEscape
+	public String getPaymentCommerceTermEntryDescription();
+
+	/**
+	 * Sets the payment commerce term entry description of this commerce order.
+	 *
+	 * @param paymentCommerceTermEntryDescription the payment commerce term entry description of this commerce order
+	 */
+	public void setPaymentCommerceTermEntryDescription(
+		String paymentCommerceTermEntryDescription);
+
+	/**
+	 * Returns the payment commerce term entry name of this commerce order.
+	 *
+	 * @return the payment commerce term entry name of this commerce order
+	 */
+	@AutoEscape
+	public String getPaymentCommerceTermEntryName();
+
+	/**
+	 * Sets the payment commerce term entry name of this commerce order.
+	 *
+	 * @param paymentCommerceTermEntryName the payment commerce term entry name of this commerce order
+	 */
+	public void setPaymentCommerceTermEntryName(
+		String paymentCommerceTermEntryName);
 
 	/**
 	 * Returns the subtotal of this commerce order.
@@ -1177,5 +1301,8 @@ public interface CommerceOrderModel
 	 */
 	@Override
 	public boolean isScheduled();
+
+	@Override
+	public CommerceOrder cloneWithOriginalValues();
 
 }

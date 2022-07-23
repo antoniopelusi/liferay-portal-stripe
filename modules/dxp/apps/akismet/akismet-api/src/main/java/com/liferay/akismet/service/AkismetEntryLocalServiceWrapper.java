@@ -27,6 +27,10 @@ public class AkismetEntryLocalServiceWrapper
 	implements AkismetEntryLocalService,
 			   ServiceWrapper<AkismetEntryLocalService> {
 
+	public AkismetEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AkismetEntryLocalServiceWrapper(
 		AkismetEntryLocalService akismetEntryLocalService) {
 
@@ -136,6 +140,13 @@ public class AkismetEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _akismetEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _akismetEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

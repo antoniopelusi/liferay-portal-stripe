@@ -40,7 +40,7 @@ public class CPInstanceUpgradeProcess extends UpgradeProcess {
 		String updateCPInstanceSQL =
 			"update CPInstance set json = ? WHERE CPInstanceId = ?";
 
-		try (PreparedStatement ps =
+		try (PreparedStatement preparedStatement =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, updateCPInstanceSQL);
 			Statement s1 = connection.createStatement(
@@ -49,24 +49,24 @@ public class CPInstanceUpgradeProcess extends UpgradeProcess {
 				ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			Statement s3 = connection.createStatement(
 				ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs1 = s1.executeQuery(selectCPInstanceSQL)) {
+			ResultSet resultSet1 = s1.executeQuery(selectCPInstanceSQL)) {
 
-			while (rs1.next()) {
+			while (resultSet1.next()) {
 				JSONArray outputJSONArray = _jsonFactory.createJSONArray();
 
 				JSONArray inputJSONArray = _jsonFactory.createJSONArray(
-					rs1.getString("json"));
+					resultSet1.getString("json"));
 
 				for (int i = 0; i < inputJSONArray.length(); i++) {
 					JSONObject inputJSONObject = inputJSONArray.getJSONObject(
 						i);
 
-					ResultSet rs2 = s2.executeQuery(
+					ResultSet resultSet2 = s2.executeQuery(
 						"select key_ from CPDefinitionOptionRel where " +
 							"CPDefinitionOptionRelId = " +
 								inputJSONObject.getLong("key"));
 
-					if (!rs2.next()) {
+					if (!resultSet2.next()) {
 						continue;
 					}
 
@@ -77,23 +77,23 @@ public class CPInstanceUpgradeProcess extends UpgradeProcess {
 						inputJSONObject.getJSONArray("value");
 
 					for (int j = 0; j < valueInputJSONArray.length(); j++) {
-						ResultSet rs3 = s3.executeQuery(
+						ResultSet resultSet3 = s3.executeQuery(
 							"select key_ from CPDefinitionOptionValueRel " +
 								"where CPDefinitionOptionValueRelId = " +
 									valueInputJSONArray.getLong(j));
 
-						if (!rs3.next()) {
+						if (!resultSet3.next()) {
 							continue;
 						}
 
-						valueOutputJSONArray.put(rs3.getString("key_"));
+						valueOutputJSONArray.put(resultSet3.getString("key_"));
 					}
 
 					JSONObject outputJSONObject =
 						_jsonFactory.createJSONObject();
 
 					outputJSONObject.put(
-						"key", rs2.getString("key_")
+						"key", resultSet2.getString("key_")
 					).put(
 						"value", valueOutputJSONArray
 					);
@@ -101,13 +101,14 @@ public class CPInstanceUpgradeProcess extends UpgradeProcess {
 					outputJSONArray.put(outputJSONObject);
 				}
 
-				ps.setString(1, outputJSONArray.toString());
-				ps.setLong(2, rs1.getLong("CPInstanceId"));
+				preparedStatement.setString(1, outputJSONArray.toString());
+				preparedStatement.setLong(
+					2, resultSet1.getLong("CPInstanceId"));
 
-				ps.addBatch();
+				preparedStatement.addBatch();
 			}
 
-			ps.executeBatch();
+			preparedStatement.executeBatch();
 		}
 	}
 

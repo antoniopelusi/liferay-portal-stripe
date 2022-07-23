@@ -15,6 +15,7 @@
 package com.liferay.account.admin.web.internal.dao.search;
 
 import com.liferay.account.admin.web.internal.display.AddressDisplay;
+import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
@@ -23,6 +24,7 @@ import com.liferay.portal.kernel.model.Address;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
@@ -53,19 +55,14 @@ public class AccountEntryAddressDisplaySearchContainerFactory {
 			null, "no-addresses-were-found");
 
 		searchContainer.setId("accountEntryAddresses");
-
-		String orderByCol = ParamUtil.getString(
-			liferayPortletRequest, "orderByCol", "name");
-
-		searchContainer.setOrderByCol(orderByCol);
-
-		String orderByType = ParamUtil.getString(
-			liferayPortletRequest, "orderByType", "asc");
-
-		searchContainer.setOrderByType(orderByType);
-
-		searchContainer.setRowChecker(
-			new EmptyOnClickRowChecker(liferayPortletResponse));
+		searchContainer.setOrderByCol(
+			SearchOrderByUtil.getOrderByCol(
+				liferayPortletRequest, AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+				"address-order-by-col", "name"));
+		searchContainer.setOrderByType(
+			SearchOrderByUtil.getOrderByType(
+				liferayPortletRequest, AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+				"address-order-by-type", "asc"));
 
 		String keywords = ParamUtil.getString(
 			liferayPortletRequest, "keywords");
@@ -88,12 +85,18 @@ public class AccountEntryAddressDisplaySearchContainerFactory {
 				themeDisplay.getCompanyId(), AccountEntry.class.getName(),
 				ParamUtil.getLong(liferayPortletRequest, "accountEntryId"),
 				keywords, params, searchContainer.getStart(),
-				searchContainer.getEnd(), _getSort(orderByCol, orderByType));
+				searchContainer.getEnd(),
+				_getSort(
+					searchContainer.getOrderByCol(),
+					searchContainer.getOrderByType()));
 
-		searchContainer.setResults(
-			TransformUtil.transform(
-				baseModelSearchResult.getBaseModels(), AddressDisplay::of));
-		searchContainer.setTotal(baseModelSearchResult.getLength());
+		searchContainer.setResultsAndTotal(
+			() -> TransformUtil.transform(
+				baseModelSearchResult.getBaseModels(), AddressDisplay::of),
+			baseModelSearchResult.getLength());
+
+		searchContainer.setRowChecker(
+			new EmptyOnClickRowChecker(liferayPortletResponse));
 
 		return searchContainer;
 	}

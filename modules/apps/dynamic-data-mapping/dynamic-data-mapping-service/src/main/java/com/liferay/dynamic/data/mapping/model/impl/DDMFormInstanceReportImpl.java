@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class DDMFormInstanceReportImpl extends DDMFormInstanceReportBaseImpl {
 
-	public DDMFormInstanceReportImpl() {
-	}
-
 	@Override
 	public DDMFormInstance getFormInstance() throws PortalException {
 		return DDMFormInstanceLocalServiceUtil.getFormInstance(

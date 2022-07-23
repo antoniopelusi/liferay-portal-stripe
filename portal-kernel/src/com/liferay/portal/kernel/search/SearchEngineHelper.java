@@ -36,6 +36,8 @@ public interface SearchEngineHelper {
 
 	public String[] getEntryClassNames();
 
+	public Collection<Long> getIndexedCompanyIds();
+
 	public SearchEngine getSearchEngine(String searchEngineId);
 
 	public String getSearchEngineId(Collection<Document> documents);
@@ -55,6 +57,8 @@ public interface SearchEngineHelper {
 	public void initialize(long companyId);
 
 	public void removeCompany(long companyId);
+
+	public void removeCompany(long companyId, boolean checkInitialized);
 
 	public SearchEngine removeSearchEngine(String searchEngineId);
 

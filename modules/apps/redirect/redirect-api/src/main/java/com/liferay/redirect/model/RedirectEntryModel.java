@@ -300,4 +300,7 @@ public interface RedirectEntryModel
 	 */
 	public void setSourceURL(String sourceURL);
 
+	@Override
+	public RedirectEntry cloneWithOriginalValues();
+
 }

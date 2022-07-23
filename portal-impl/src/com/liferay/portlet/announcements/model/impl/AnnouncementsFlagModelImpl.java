@@ -16,7 +16,6 @@ package com.liferay.portlet.announcements.model.impl;
 
 import com.liferay.announcements.kernel.model.AnnouncementsFlag;
 import com.liferay.announcements.kernel.model.AnnouncementsFlagModel;
-import com.liferay.announcements.kernel.model.AnnouncementsFlagSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -32,20 +31,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -159,57 +157,6 @@ public class AnnouncementsFlagModelImpl
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 16L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AnnouncementsFlag toModel(AnnouncementsFlagSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		AnnouncementsFlag model = new AnnouncementsFlagImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setFlagId(soapModel.getFlagId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setEntryId(soapModel.getEntryId());
-		model.setValue(soapModel.getValue());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AnnouncementsFlag> toModels(
-		AnnouncementsFlagSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AnnouncementsFlag> models = new ArrayList<AnnouncementsFlag>(
-			soapModels.length);
-
-		for (AnnouncementsFlagSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.announcements.kernel.model.AnnouncementsFlag"));
@@ -297,34 +244,6 @@ public class AnnouncementsFlagModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AnnouncementsFlag>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AnnouncementsFlag.class.getClassLoader(), AnnouncementsFlag.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AnnouncementsFlag> constructor =
-				(Constructor<AnnouncementsFlag>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AnnouncementsFlag, Object>>
@@ -613,6 +532,29 @@ public class AnnouncementsFlagModelImpl
 	}
 
 	@Override
+	public AnnouncementsFlag cloneWithOriginalValues() {
+		AnnouncementsFlagImpl announcementsFlagImpl =
+			new AnnouncementsFlagImpl();
+
+		announcementsFlagImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		announcementsFlagImpl.setFlagId(
+			this.<Long>getColumnOriginalValue("flagId"));
+		announcementsFlagImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		announcementsFlagImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		announcementsFlagImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		announcementsFlagImpl.setEntryId(
+			this.<Long>getColumnOriginalValue("entryId"));
+		announcementsFlagImpl.setValue(
+			this.<Integer>getColumnOriginalValue("value"));
+
+		return announcementsFlagImpl;
+	}
+
+	@Override
 	public int compareTo(AnnouncementsFlag announcementsFlag) {
 		int value = 0;
 
@@ -727,7 +669,7 @@ public class AnnouncementsFlagModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -738,9 +680,27 @@ public class AnnouncementsFlagModelImpl
 			Function<AnnouncementsFlag, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AnnouncementsFlag)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AnnouncementsFlag)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -787,7 +747,9 @@ public class AnnouncementsFlagModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AnnouncementsFlag>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AnnouncementsFlag.class, ModelWrapper.class);
 
 	}
 

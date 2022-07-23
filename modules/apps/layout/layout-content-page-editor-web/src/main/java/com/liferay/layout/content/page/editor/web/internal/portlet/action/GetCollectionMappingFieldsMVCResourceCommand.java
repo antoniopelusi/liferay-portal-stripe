@@ -35,10 +35,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
@@ -69,7 +66,6 @@ public class GetCollectionMappingFieldsMVCResourceCommand
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String fieldType = ParamUtil.getString(resourceRequest, "fieldType");
 		String itemSubtype = ParamUtil.getString(
 			resourceRequest, "itemSubtype");
 
@@ -86,23 +82,11 @@ public class GetCollectionMappingFieldsMVCResourceCommand
 				InfoItemFormVariationsProvider.class, itemType);
 
 		if (infoItemFormVariationsProvider != null) {
-			Collection<InfoItemFormVariation> infoItemFormVariations =
-				infoItemFormVariationsProvider.getInfoItemFormVariations(
-					themeDisplay.getScopeGroupId());
+			InfoItemFormVariation infoItemFormVariation =
+				infoItemFormVariationsProvider.getInfoItemFormVariation(
+					themeDisplay.getScopeGroupId(), itemSubtype);
 
-			Stream<InfoItemFormVariation> stream =
-				infoItemFormVariations.stream();
-
-			Optional<InfoItemFormVariation> infoItemFormVariationOptional =
-				stream.filter(
-					infoItemFormVariation -> Objects.equals(
-						itemSubtype, infoItemFormVariation.getKey())
-				).findFirst();
-
-			if (infoItemFormVariationOptional.isPresent()) {
-				InfoItemFormVariation infoItemFormVariation =
-					infoItemFormVariationOptional.get();
-
+			if (infoItemFormVariation != null) {
 				itemSubtypeLabel = infoItemFormVariation.getLabel(
 					themeDisplay.getLocale());
 			}
@@ -126,8 +110,9 @@ public class GetCollectionMappingFieldsMVCResourceCommand
 				).put(
 					"mappingFields",
 					MappingContentUtil.getMappingFieldsJSONArray(
-						fieldType, itemSubtype, _infoItemServiceTracker,
-						itemType, resourceRequest)
+						itemSubtype, themeDisplay.getScopeGroupId(),
+						_infoItemServiceTracker, itemType,
+						themeDisplay.getLocale())
 				));
 		}
 		catch (Exception exception) {

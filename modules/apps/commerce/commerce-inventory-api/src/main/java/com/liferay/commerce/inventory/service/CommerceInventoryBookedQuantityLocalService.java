@@ -149,6 +149,9 @@ public interface CommerceInventoryBookedQuantityLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -289,6 +292,12 @@ public interface CommerceInventoryBookedQuantityLocalService
 	public CommerceInventoryBookedQuantity resetCommerceBookedQuantity(
 			long commerceBookedQuantityId, long userId, String sku,
 			int quantity, Date expirationDate, Map<String, String> context)
+		throws PortalException;
+
+	public CommerceInventoryBookedQuantity
+			restockCommerceInventoryBookedQuantity(
+				long userId, long commerceInventoryBookedQuantityId,
+				Map<String, String> context)
 		throws PortalException;
 
 	/**

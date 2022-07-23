@@ -26,15 +26,19 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLinkLocalService;
+import com.liferay.dynamic.data.mapping.storage.Field;
+import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
 import com.liferay.journal.constants.JournalFolderConstants;
+import com.liferay.journal.exception.DuplicateArticleExternalReferenceCodeException;
 import com.liferay.journal.exception.DuplicateArticleIdException;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.journal.util.JournalConverter;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
@@ -45,10 +49,21 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionService;
+import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -58,6 +73,7 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -101,7 +117,7 @@ public class JournalArticleLocalServiceTest {
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		Layout layout = LayoutTestUtil.addLayout(_group);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
 
 		_themeDisplay = new ThemeDisplay();
 
@@ -131,13 +147,21 @@ public class JournalArticleLocalServiceTest {
 	public void testCopyArticle() throws Exception {
 		JournalArticle oldArticle = JournalTestUtil.addArticle(
 			_group.getGroupId(),
-			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, "Test-1",
+			RandomTestUtil.randomString());
+
+		JournalArticle thirdArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, "Test-2",
+			oldArticle.getContent());
 
 		JournalArticle newArticle = _journalArticleLocalService.copyArticle(
 			oldArticle.getUserId(), oldArticle.getGroupId(),
 			oldArticle.getArticleId(), null, true, oldArticle.getVersion());
 
 		Assert.assertNotEquals(oldArticle, newArticle);
+		Assert.assertNotEquals(
+			thirdArticle.getUrlTitle(), newArticle.getUrlTitle());
 
 		List<ResourcePermission> oldResourcePermissions =
 			_resourcePermissionLocalService.getResourcePermissions(
@@ -244,11 +268,11 @@ public class JournalArticleLocalServiceTest {
 	@Test(expected = DuplicateArticleIdException.class)
 	public void testDuplicatedArticleId() throws Exception {
 		JournalArticle article = JournalTestUtil.addArticle(
-			_group.getGroupId(),
-			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+			RandomTestUtil.randomString(), _group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, null, true);
 
 		JournalTestUtil.addArticle(
-			_group.getGroupId(),
+			RandomTestUtil.randomString(), _group.getGroupId(),
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			article.getArticleId(), false);
 	}
@@ -261,6 +285,18 @@ public class JournalArticleLocalServiceTest {
 
 		JournalTestUtil.addArticle(
 			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			article.getArticleId(), true);
+	}
+
+	@Test(expected = DuplicateArticleExternalReferenceCodeException.class)
+	public void testDuplicatedExternalReferenceCode() throws Exception {
+		JournalArticle article = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		JournalTestUtil.addArticle(
+			article.getExternalReferenceCode(), _group.getGroupId(),
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			article.getArticleId(), true);
 	}
@@ -378,11 +414,16 @@ public class JournalArticleLocalServiceTest {
 
 			Assert.assertNull(assetEntry);
 
-			_ddmTemplateLinkLocalService.deleteTemplateLink(
-				PortalUtil.getClassNameId(JournalArticle.class),
+			_journalArticleLocalService.deleteJournalArticle(
 				curArticle.getPrimaryKey());
 
-			_journalArticleLocalService.deleteJournalArticle(
+			_resourceLocalService.deleteResource(
+				curArticle.getCompanyId(), JournalArticle.class.getName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				curArticle.getResourcePrimKey());
+
+			_ddmTemplateLinkLocalService.deleteTemplateLink(
+				PortalUtil.getClassNameId(JournalArticle.class),
 				curArticle.getPrimaryKey());
 		}
 	}
@@ -412,6 +453,102 @@ public class JournalArticleLocalServiceTest {
 	}
 
 	@Test
+	public void testUpdateArticleByNonownerUser() throws Exception {
+		User ownerUser = UserTestUtil.addGroupUser(
+			_group, RoleConstants.ADMINISTRATOR);
+
+		PermissionChecker ownerPermissionChecker =
+			PermissionCheckerFactoryUtil.create(ownerUser);
+
+		PermissionChecker originalPermissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		try {
+			PermissionThreadLocal.setPermissionChecker(ownerPermissionChecker);
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(
+					_group.getCompanyId(), _group.getGroupId(),
+					ownerUser.getUserId());
+
+			JournalArticle journalArticle =
+				JournalTestUtil.addArticleWithWorkflow(
+					_group.getGroupId(), 0, RandomTestUtil.randomString(),
+					RandomTestUtil.randomString(), true, serviceContext);
+
+			_assertArticleUser(journalArticle, ownerUser, ownerUser);
+
+			Role siteMemberRole = RoleLocalServiceUtil.getRole(
+				_group.getCompanyId(), RoleConstants.SITE_MEMBER);
+
+			_resourcePermissionLocalService.setResourcePermissions(
+				_group.getCompanyId(), JournalArticle.class.getName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				String.valueOf(journalArticle.getResourcePrimKey()),
+				siteMemberRole.getRoleId(),
+				new String[] {
+					ActionKeys.ADD_DISCUSSION, ActionKeys.VIEW,
+					ActionKeys.UPDATE
+				});
+
+			User nonownerUser = UserTestUtil.addGroupUser(
+				_group, RoleConstants.SITE_MEMBER);
+
+			PermissionChecker nonownerPermissionChecker =
+				PermissionCheckerFactoryUtil.create(nonownerUser);
+
+			Assert.assertFalse(
+				nonownerPermissionChecker.hasPermission(
+					_group.getGroupId(), JournalArticle.class.getName(),
+					String.valueOf(journalArticle.getResourcePrimKey()),
+					ActionKeys.PERMISSIONS));
+			Assert.assertTrue(
+				nonownerPermissionChecker.hasPermission(
+					_group.getGroupId(), JournalArticle.class.getName(),
+					String.valueOf(journalArticle.getResourcePrimKey()),
+					ActionKeys.UPDATE));
+
+			PermissionThreadLocal.setPermissionChecker(
+				nonownerPermissionChecker);
+
+			serviceContext = ServiceContextTestUtil.getServiceContext(
+				_group.getCompanyId(), _group.getGroupId(),
+				nonownerPermissionChecker.getUserId());
+
+			Double originalArticleVersion = journalArticle.getVersion();
+
+			journalArticle = _journalArticleLocalService.updateArticle(
+				nonownerUser.getUserId(), journalArticle.getGroupId(),
+				journalArticle.getFolderId(), journalArticle.getArticleId(),
+				journalArticle.getVersion(), journalArticle.getTitleMap(),
+				journalArticle.getDescriptionMap(), journalArticle.getContent(),
+				journalArticle.getLayoutUuid(), serviceContext);
+
+			int versionComparison = Double.compare(
+				originalArticleVersion, journalArticle.getVersion());
+
+			Assert.assertTrue(versionComparison < 0);
+
+			_assertArticleUser(journalArticle, ownerUser, nonownerUser);
+
+			Assert.assertFalse(
+				nonownerPermissionChecker.hasPermission(
+					_group.getGroupId(), JournalArticle.class.getName(),
+					String.valueOf(journalArticle.getResourcePrimKey()),
+					ActionKeys.PERMISSIONS));
+			Assert.assertTrue(
+				nonownerPermissionChecker.hasPermission(
+					_group.getGroupId(), JournalArticle.class.getName(),
+					String.valueOf(journalArticle.getResourcePrimKey()),
+					ActionKeys.UPDATE));
+		}
+		finally {
+			PermissionThreadLocal.setPermissionChecker(
+				originalPermissionChecker);
+		}
+	}
+
+	@Test
 	public void testUpdateDDMStructurePredefinedValues() throws Exception {
 		Tuple tuple = _createJournalArticleWithPredefinedValues("Test Article");
 
@@ -423,26 +560,37 @@ public class JournalArticleLocalServiceTest {
 		Assert.assertEquals(
 			actualDDMStructure.getStructureId(), ddmStructure.getStructureId());
 
-		DDMFormField actualDDMFormField = actualDDMStructure.getDDMFormField(
-			"name");
+		Fields fields = _journalConverter.getDDMFields(
+			ddmStructure, journalArticle.getContent());
 
-		Assert.assertNotNull(actualDDMFormField);
+		Field field = fields.get("name");
 
-		LocalizedValue actualDDMFormFieldPredefinedValue =
-			actualDDMFormField.getPredefinedValue();
+		Assert.assertNotNull(field);
 
 		Assert.assertEquals(
-			"Valor Predefinido",
-			actualDDMFormFieldPredefinedValue.getString(LocaleUtil.BRAZIL));
+			"Valor Predefinido", field.getValue(LocaleUtil.BRAZIL));
 		Assert.assertEquals(
-			"Valeur Prédéfinie",
-			actualDDMFormFieldPredefinedValue.getString(LocaleUtil.FRENCH));
+			"Valeur Prédéfinie", field.getValue(LocaleUtil.FRENCH));
 		Assert.assertEquals(
-			"Valore Predefinito",
-			actualDDMFormFieldPredefinedValue.getString(LocaleUtil.ITALY));
+			"Valore Predefinito", field.getValue(LocaleUtil.ITALY));
+		Assert.assertEquals("Predefined Value", field.getValue(LocaleUtil.US));
+	}
+
+	private void _assertArticleUser(
+		JournalArticle journalArticle, User expectedOwnerUser,
+		User expectedStatusByUser) {
+
 		Assert.assertEquals(
-			"Predefined Value",
-			actualDDMFormFieldPredefinedValue.getString(LocaleUtil.US));
+			expectedOwnerUser.getUserId(), journalArticle.getUserId());
+		Assert.assertEquals(
+			expectedOwnerUser.getFullName(), journalArticle.getUserName());
+
+		Assert.assertEquals(
+			expectedStatusByUser.getUserId(),
+			journalArticle.getStatusByUserId());
+		Assert.assertEquals(
+			expectedStatusByUser.getFullName(),
+			journalArticle.getStatusByUserName());
 	}
 
 	private Tuple _createJournalArticleWithPredefinedValues(String title)
@@ -475,8 +623,8 @@ public class JournalArticleLocalServiceTest {
 		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
 			_group.getGroupId(), ddmStructure.getStructureId(),
 			PortalUtil.getClassNameId(JournalArticle.class),
-			TemplateConstants.LANG_TYPE_VM,
-			JournalTestUtil.getSampleTemplateXSL(), LocaleUtil.US);
+			TemplateConstants.LANG_TYPE_FTL,
+			JournalTestUtil.getSampleTemplateFTL(), LocaleUtil.US);
 
 		String content = DDMStructureTestUtil.getSampleStructuredContent(
 			HashMapBuilder.put(
@@ -508,6 +656,12 @@ public class JournalArticleLocalServiceTest {
 		return new Tuple(article, ddmStructure);
 	}
 
+	@Inject(
+		filter = "model.class.name=com.liferay.journal.model.JournalArticle"
+	)
+	private static ModelResourcePermission<JournalArticle>
+		_journalArticleModelResourcePermission;
+
 	@Inject
 	private AssetDisplayPageEntryLocalService
 		_assetDisplayPageEntryLocalService;
@@ -534,6 +688,9 @@ public class JournalArticleLocalServiceTest {
 	private JournalArticleLocalService _journalArticleLocalService;
 
 	@Inject
+	private JournalConverter _journalConverter;
+
+	@Inject
 	private LayoutPageTemplateEntryLocalService
 		_layoutPageTemplateEntryLocalService;
 
@@ -541,7 +698,16 @@ public class JournalArticleLocalServiceTest {
 	private Portal _portal;
 
 	@Inject
+	private ResourceLocalService _resourceLocalService;
+
+	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@Inject
+	private ResourcePermissionService _resourcePermissionService;
+
+	@Inject
+	private RoleLocalService _roleLocalService;
 
 	private ThemeDisplay _themeDisplay;
 

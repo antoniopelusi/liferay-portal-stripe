@@ -30,6 +30,13 @@ List<Theme> themes = ThemeLocalServiceUtil.getThemes(company.getCompanyId());
 %>
 
 <div class="container-fluid container-max-xl container-view">
+	<div class="float-right">
+		<liferay-learn:message
+			key="general"
+			resource="plugins-admin-web"
+		/>
+	</div>
+
 	<liferay-ui:search-container
 		iteratorURL="<%= portletURL %>"
 		total="<%= themes.size() %>"
@@ -53,7 +60,7 @@ List<Theme> themes = ThemeLocalServiceUtil.getThemes(company.getCompanyId());
 				"/plugins_admin/edit_plugin"
 			).setRedirect(
 				currentURL
-			).build();
+			).buildPortletURL();
 
 			if (pluginPackage != null) {
 				rowURL.setParameter("moduleId", pluginPackage.getModuleId());

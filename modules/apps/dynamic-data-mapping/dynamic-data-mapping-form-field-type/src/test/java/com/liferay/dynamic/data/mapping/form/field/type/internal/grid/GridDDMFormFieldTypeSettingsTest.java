@@ -17,8 +17,11 @@ package com.liferay.dynamic.data.mapping.form.field.type.internal.grid;
 import com.liferay.dynamic.data.mapping.form.field.type.BaseDDMFormFieldTypeSettingsTestCase;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.test.util.DDMFormLayoutTestUtil;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
+import com.liferay.dynamic.data.mapping.util.DDMFormLayoutFactory;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -82,11 +85,6 @@ public class GridDDMFormFieldTypeSettingsTest
 		Assert.assertTrue(columnsDDMFormField.isRequired());
 		Assert.assertEquals("options", columnsDDMFormField.getType());
 
-		DDMFormField validationDDMFormField = ddmFormFieldsMap.get(
-			"validation");
-
-		Assert.assertNotNull(validationDDMFormField);
-
 		DDMFormField predefinedValueDDMFormField = ddmFormFieldsMap.get(
 			"predefinedValue");
 
@@ -97,15 +95,46 @@ public class GridDDMFormFieldTypeSettingsTest
 
 		Assert.assertNotNull(repeatableDDMFormField);
 
+		DDMFormField requiredErrorMessage = ddmFormFieldsMap.get(
+			"requiredErrorMessage");
+
+		Assert.assertNotNull(requiredErrorMessage);
+
 		List<DDMFormRule> ddmFormRules = ddmForm.getDDMFormRules();
+
+		Assert.assertEquals(ddmFormRules.toString(), 1, ddmFormRules.size());
 
 		DDMFormRule ddmFormRule = ddmFormRules.get(0);
 
 		List<String> actions = ddmFormRule.getActions();
 
-		Assert.assertTrue(
-			actions.toString(),
-			actions.contains("setVisible('indexType', false)"));
+		Assert.assertEquals("TRUE", ddmFormRule.getCondition());
+
+		Assert.assertEquals(actions.toString(), 4, actions.size());
+
+		Assert.assertEquals("setVisible('indexType', false)", actions.get(0));
+		Assert.assertEquals(
+			"setVisible('predefinedValue', false)", actions.get(1));
+		Assert.assertEquals("setVisible('repeatable', false)", actions.get(2));
+		Assert.assertEquals(
+			"setVisible('requiredErrorMessage', getValue('required'))",
+			actions.get(3));
+	}
+
+	@Test
+	public void testCreateGridDDMFormFieldTypeSettingsDDMFormLayout() {
+		assertDDMFormLayout(
+			DDMFormLayoutFactory.create(GridDDMFormFieldTypeSettings.class),
+			DDMFormLayoutTestUtil.createDDMFormLayout(
+				DDMFormLayout.TABBED_MODE,
+				DDMFormLayoutTestUtil.createDDMFormLayoutPage(
+					"label", "tip", "required", "requiredErrorMessage",
+					"predefinedValue", "rows", "columns"),
+				DDMFormLayoutTestUtil.createDDMFormLayoutPage(
+					"name", "fieldReference", "objectFieldName",
+					"visibilityExpression", "showLabel", "repeatable",
+					"fieldNamespace", "indexType", "localizable", "readOnly",
+					"dataType", "type")));
 	}
 
 	@Override
@@ -115,6 +144,7 @@ public class GridDDMFormFieldTypeSettingsTest
 		languageUtil.setLanguage(PowerMockito.mock(Language.class));
 	}
 
+	@Override
 	protected void setUpPortalUtil() {
 		PortalUtil portalUtil = new PortalUtil();
 

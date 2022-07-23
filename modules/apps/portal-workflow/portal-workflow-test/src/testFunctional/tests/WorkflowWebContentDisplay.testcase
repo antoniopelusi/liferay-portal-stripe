@@ -17,7 +17,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Web Content");
 
@@ -28,7 +28,7 @@ definition {
 			panel = "Site Administration",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Web Content Display Page");
+		PagesAdmin.addPage(pageName = "Web Content Display Page");
 
 		Navigator.gotoPage(pageName = "Web Content Display Page");
 
@@ -44,7 +44,7 @@ definition {
 		else {
 			WebContent.tearDownCP();
 
-			Page.tearDownPG();
+			PagesAdmin.tearDownCP();
 
 			Workflow.tearDownPortalWorkflow();
 
@@ -56,13 +56,13 @@ definition {
 	test ApproveWebContentViaWebContentDisplayPG {
 		Navigator.gotoPage(pageName = "Web Content Display Page");
 
-		WebContent.addWithWorkflowPGViaWCD(
+		WebContentDisplayPortlet.addWithWorkflow(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
 		Navigator.gotoPage(pageName = "Web Content Display Page");
 
-		WebContent.viewWithWorkflowPGViaWCD(
+		WebContentDisplayPortlet.viewWorkflow(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title",
 			workflowTask = "Review");
@@ -76,7 +76,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Web Content Display Page");
 
-		WebContent.viewWithWorkflowPGViaWCD(
+		WebContentDisplayPortlet.viewWorkflow(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title",
 			workflowTask = "Review");
@@ -90,7 +90,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Web Content Display Page");
 
-		WebContent.viewPGViaWCD(
+		WebContentDisplayPortlet.viewContent(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 	}
@@ -99,7 +99,7 @@ definition {
 	test RejectWebContentViaWebContentDisplayPG {
 		Navigator.gotoPage(pageName = "Web Content Display Page");
 
-		WebContent.addWithWorkflowPGViaWCD(
+		WebContentDisplayPortlet.addWithWorkflow(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
@@ -125,7 +125,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Web Content Display Page");
 
-		WebContent.viewWithWorkflowPGViaWCD(
+		WebContentDisplayPortlet.viewWorkflow(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title",
 			workflowTask = "Update");

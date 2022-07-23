@@ -139,7 +139,7 @@ public class DLFolderAssetRenderer
 			"/document_library/edit_folder"
 		).setParameter(
 			"folderId", _folder.getFolderId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

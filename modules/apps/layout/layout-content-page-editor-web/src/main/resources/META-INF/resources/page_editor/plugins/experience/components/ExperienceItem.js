@@ -52,19 +52,9 @@ const ExperienceItem = ({
 			experience.priority
 		);
 	const handleExperienceEdit = () => {
-		const {
-			languageIds,
-			name,
-			segmentsEntryId,
-			segmentsExperienceId,
-		} = experience;
+		const {name, segmentsEntryId, segmentsExperienceId} = experience;
 
-		onEditExperience({
-			languageIds,
-			name,
-			segmentsEntryId,
-			segmentsExperienceId,
-		});
+		onEditExperience({name, segmentsEntryId, segmentsExperienceId});
 	};
 	const handleExperienceDelete = () => {
 		const experienceHasRunningExperiment =
@@ -142,6 +132,7 @@ const ExperienceItem = ({
 										<span className="mr-1 text-secondary">
 											{Liferay.Language.get('audience')}
 										</span>
+
 										{experience.segmentsEntryName}
 									</span>
 
@@ -173,6 +164,7 @@ const ExperienceItem = ({
 					</div>
 				</ClayButton>
 			</ClayList.ItemField>
+
 			<ClayList.ItemField className="align-self-center">
 				<ExperienceActions
 					editable={editable}
@@ -275,7 +267,7 @@ const ExperienceActions = ({
 						monospaced
 						onClick={handleExperienceDelete}
 						outline
-						symbol="times-circle"
+						symbol="trash"
 						title={Liferay.Language.get('delete-experience')}
 						type="button"
 					/>

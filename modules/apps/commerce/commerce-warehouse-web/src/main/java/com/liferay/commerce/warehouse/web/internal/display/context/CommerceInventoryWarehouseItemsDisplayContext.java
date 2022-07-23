@@ -19,7 +19,7 @@ import com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem;
 import com.liferay.commerce.inventory.service.CommerceInventoryWarehouseItemService;
 import com.liferay.commerce.inventory.service.CommerceInventoryWarehouseService;
 import com.liferay.commerce.product.constants.CPPortletKeys;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.service.CPInstanceService;
 import com.liferay.commerce.product.servlet.taglib.ui.constants.CPDefinitionScreenNavigationConstants;
@@ -121,22 +121,13 @@ public class CommerceInventoryWarehouseItemsDisplayContext {
 
 		RenderResponse renderResponse = _cpRequestHelper.getRenderResponse();
 
-		StringBundler sb = new StringBundler(12);
-
-		sb.append(renderResponse.getNamespace());
-		sb.append("updateCommerceInventoryWarehouseItem");
-		sb.append(StringPool.OPEN_PARENTHESIS);
-		sb.append(commerceInventoryWarehouseId);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append(commerceInventoryWarehouseItemId);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append(mvccVersion);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append(index);
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-		sb.append(StringPool.SEMICOLON);
-
-		return sb.toString();
+		return StringBundler.concat(
+			renderResponse.getNamespace(),
+			"updateCommerceInventoryWarehouseItem(",
+			commerceInventoryWarehouseId, StringPool.COMMA_AND_SPACE,
+			commerceInventoryWarehouseItemId, StringPool.COMMA_AND_SPACE,
+			mvccVersion, StringPool.COMMA_AND_SPACE, index,
+			StringPool.CLOSE_PARENTHESIS, StringPool.SEMICOLON);
 	}
 
 	public boolean hasManageCommerceInventoryWarehousePermission() {

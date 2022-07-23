@@ -67,15 +67,9 @@ public class CacheUtil {
 	}
 
 	private static String _encodeKey(long companyId, String key) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(CACHE_NAME);
-		sb.append(StringPool.POUND);
-		sb.append(StringUtil.toHexString(companyId));
-		sb.append(StringPool.POUND);
-		sb.append(key);
-
-		return sb.toString();
+		return StringBundler.concat(
+			CACHE_NAME, StringPool.POUND, StringUtil.toHexString(companyId),
+			StringPool.POUND, key);
 	}
 
 	private static final PortalCache<String, CacheResponseData> _portalCache =

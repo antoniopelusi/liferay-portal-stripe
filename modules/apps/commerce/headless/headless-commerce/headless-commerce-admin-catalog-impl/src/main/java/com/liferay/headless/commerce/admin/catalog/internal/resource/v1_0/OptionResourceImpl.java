@@ -26,6 +26,7 @@ import com.liferay.headless.commerce.admin.catalog.resource.v1_0.OptionValueReso
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
 import com.liferay.petra.function.UnsafeConsumer;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
@@ -43,6 +44,7 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
+import java.util.Collections;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -60,6 +62,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	properties = "OSGI-INF/liferay/rest/v1_0/option.properties",
 	scope = ServiceScope.PROTOTYPE, service = OptionResource.class
 )
+@CTAware
 public class OptionResourceImpl
 	extends BaseOptionResourceImpl implements EntityModelResource {
 
@@ -84,7 +87,7 @@ public class OptionResourceImpl
 
 		if (cpOption == null) {
 			throw new NoSuchCPOptionException(
-				"Unable to find Option with externalReferenceCode: " +
+				"Unable to find option with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -123,8 +126,9 @@ public class OptionResourceImpl
 		throws Exception {
 
 		return SearchUtil.search(
+			Collections.emptyMap(),
 			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CPOption.class, search, pagination,
+			CPOption.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -136,9 +140,9 @@ public class OptionResourceImpl
 				}
 
 			},
+			sorts,
 			document -> _toOption(
-				GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK))),
-			sorts);
+				GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK))));
 	}
 
 	@Override
@@ -160,7 +164,7 @@ public class OptionResourceImpl
 
 		if (cpOption == null) {
 			throw new NoSuchCPOptionException(
-				"Unable to find Option with externalReferenceCode: " +
+				"Unable to find option with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -179,7 +183,7 @@ public class OptionResourceImpl
 	private Option _addOrUpdateOption(Option option) throws Exception {
 		Option.FieldType fieldType = option.getFieldType();
 
-		CPOption cpOption = _cpOptionService.upsertCPOption(
+		CPOption cpOption = _cpOptionService.addOrUpdateCPOption(
 			option.getExternalReferenceCode(),
 			LanguageUtils.getLocalizedMap(option.getName()),
 			LanguageUtils.getLocalizedMap(option.getDescription()),

@@ -58,7 +58,7 @@ public abstract class BaseWorkflowPortletTab
 			}
 		).setParameter(
 			"tab", getName()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

@@ -276,4 +276,7 @@ public interface AssetEntryUsageModel
 	 */
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public AssetEntryUsage cloneWithOriginalValues();
+
 }

@@ -18,20 +18,20 @@ import React from 'react';
 import CollectionSelector from '../../../common/components/CollectionSelector';
 import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
 
-export const CollectionSelectorField = ({field, onValueSelect, value}) => {
+export function CollectionSelectorField({field, onValueSelect, value}) {
 	const {typeOptions = {}} = field;
 
 	return (
 		<CollectionSelector
-			collectionTitle={value.title}
+			collectionItem={value}
 			itemSelectorURL={typeOptions.infoListSelectorURL}
 			label={field.label}
 			onCollectionSelect={(collection) => {
 				onValueSelect(field.name, collection);
 			}}
-		></CollectionSelector>
+		/>
 	);
-};
+}
 
 CollectionSelectorField.propTypes = {
 	field: PropTypes.shape(ConfigurationFieldPropTypes).isRequired,

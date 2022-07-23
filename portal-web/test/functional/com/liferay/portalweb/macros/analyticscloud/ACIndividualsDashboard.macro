@@ -1,27 +1,332 @@
 definition {
 
-	macro addBreakdown {
-		Click(locator1 = "ACIndividualsDashboard#ADD_BREAKDOWN_BUTTON");
+	macro assertCustomRangeNotApplied {
+		var key_timeRange = "${timeRange}";
+
+		AssertElementNotPresent(locator1 = "ACIndividualsDashboard#INDIVIDUALS_ACTIVITIES_TIME_RANGE");
+	}
+
+	macro assertIndividualAttribute {
+		var key_individualAttribute = "${individualAttribute}";
+
+		AssertElementPresent(locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_ATTRIBUTE");
+	}
+
+	macro assertIndividualAttributeNotPresent {
+		var key_individualAttribute = "${individualAttribute}";
+
+		AssertElementNotPresent(locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_ATTRIBUTE");
+	}
+
+	macro assertIndividualAttributeValue {
+		var key_individualAttribute = "${individualAttribute}";
+
+		AssertTextEquals(
+			locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_ATTRIBUTE_VALUE",
+			value1 = "${individualAttributeValue}");
+	}
+
+	macro assertIndividualsActivitiesTimeRange {
+		var key_timeRange = "${timeRange}";
+
+		AssertElementPresent(locator1 = "ACIndividualsDashboard#INDIVIDUALS_ACTIVITIES_TIME_RANGE");
+	}
+
+	macro assertNoIndividualAttribute {
+		var key_individualAttribute = "${individualAttribute}";
+
+		AssertElementNotPresent(locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_ATTRIBUTE");
+	}
+
+	macro assertSegmentInAssociatedSegmentsCard {
+		AssertElementPresent(
+			key_itemName = "${itemName}",
+			locator1 = "ACIndividualsDashboard#ASSOCIATED_SEGMENT_ITEM");
 	}
 
 	macro clickBreakdownTab {
-		var key_tabName = "${tabName}";
-
-		Click(locator1 = "ACIndividualsDashboard#BREAKDOWN_TAB");
+		Click(
+			breakdownName = "${breakdownName}",
+			locator1 = "ACIndividualsDashboard#BREAKDOWN_TAB");
 	}
 
 	macro deleteBreakdown {
-		Click(locator1 = "ACIndividualsDashboard#DELETE_BREAKDOWN_BUTTON");
+		Click(
+			breakdownName = "${breakdownName}",
+			locator1 = "ACIndividualsDashboard#DELETE_BREAKDOWN_BUTTON");
 	}
 
-	macro nameBreakdown {
-		Type(
-			locator1 = "ACIndividualsDashboard#BREAKDOWN_NAME_FIELD",
-			value1 = "${breakdownName}");
+	macro expandActivity {
+		Click(
+			key_pageTitle = "${eventName}",
+			locator1 = "ACUtils#PAGE_TITLE");
 	}
 
-	macro saveBreakdown {
-		Click(locator1 = "ACIndividualsDashboard#SAVE_BREAKDOWN_BUTTON");
+	macro filterKnownIndividualList {
+		Click(
+			key_rowName = "${rowName}",
+			locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_ATTRIBUTES_FILTER");
+
+		if (isSet(desc)) {
+			AssertElementPresent(locator1 = "ACSegments#KNOWN_SEGMENT_MEMBERS_FILTER_ARROW_DESC");
+		}
+		else {
+			AssertElementPresent(locator1 = "ACSegments#KNOWN_SEGMENT_MEMBERS_FILTER_ARROW_ASC");
+		}
+	}
+
+	macro getChartPopoverDate {
+		if (!(isSet(index))) {
+			var index = "1";
+		}
+
+		Click(
+			index = "${index}",
+			locator1 = "ACIndividualsDashboard#INDIVIDUALS_ACTIVITIES_CHART_RECHARTS_BAR");
+
+		SelectFrame.selectFrame(locator1 = "ACIndividualsDashboard#CHART_POPOVER");
+
+		var formattedDate = selenium.getText("ACIndividualsDashboard#CHART_POPOVER_ACTIVITIES_DATE");
+
+		return "${formattedDate}";
+	}
+
+	macro getChartPopoverDateWithoutBar {
+		Click(locator1 = "ACIndividualsDashboard#CHARTS_WRAPPER");
+
+		SelectFrame.selectFrame(locator1 = "ACIndividualsDashboard#CHARTS_WRAPPER");
+
+		var formattedDate = selenium.getText("ACIndividualsDashboard#CHART_POPOVER_ACTIVITIES_DATE");
+
+		return "${formattedDate}";
+	}
+
+	macro goToDistributionTab {
+		ACNavigation.switchTab(tabName = "Distribution");
+	}
+
+	macro goToInterestsTab {
+		ACNavigation.switchTab(tabName = "Interests");
+	}
+
+	macro goToKnownIndividualDetails {
+		var key_individualName = "${individualName}";
+
+		while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUALS_LIST_ITEMS") && (maxIterations = "50")) {
+			Refresh();
+		}
+
+		Click(locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUALS_LIST_ITEMS");
+	}
+
+	macro goToKnownIndividualsTab {
+		ACNavigation.switchTab(tabName = "Known Individuals");
+	}
+
+	macro goToOverviewTab {
+		ACNavigation.switchTab(tabName = "Overview");
+	}
+
+	macro goToTabName {
+		var key_tabName = "${tabName}";
+
+		Click(locator1 = "ACIndividualsDashboard#INDIVIDUALS_TAB");
+	}
+
+	macro selectDataOnIndividualsActivitiesChart {
+		if (!(isSet(index))) {
+			var index = "1";
+		}
+
+		Click(
+			index = "${index}",
+			locator1 = "ACIndividualsDashboard#INDIVIDUALS_ACTIVITIES_CHART_RECHARTS_BAR");
+	}
+
+	macro viewActivitiesNumberInPeriod {
+		AssertTextEquals(
+			locator1 = "ACIndividualsDashboard#ACTIVITIES_NUMBER",
+			value1 = "${activitiesNumber}");
+	}
+
+	macro viewActivitiesOnGraph {
+		while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART") && (maxIterations = "50")) {
+			TestUtils.hardRefresh();
+
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		Click(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART");
+
+		MouseOver(
+			key_cardTitle = "Individual Events",
+			locator1 = "ACCards#CARD_TITLE");
+
+		var list1 = ListUtil.newListFromString("${typeList}");
+		var list2 = ListUtil.newListFromString("${valueList}");
+		var size = ListUtil.size("${list1}");
+		var i = "0";
+
+		while ("${i}" != "${size}") {
+			var type = ListUtil.get("${list1}", "${i}");
+			var value = ListUtil.get("${list2}", "${i}");
+
+			while (IsElementNotPresent(key_value = "${value}", key_visitors = "${type}", locator1 = "ACSites#TOOLTIP_UNIQUE_VISITORS") && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+
+				ACTimeFilter.clickTimeFilterButton();
+
+				ACTimeFilter.setLast24Hours();
+
+				Click(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART");
+
+				MouseOver(
+					key_cardTitle = "Individual Events",
+					locator1 = "ACCards#CARD_TITLE");
+			}
+
+			AssertElementPresent(
+				key_value = "${value}",
+				key_visitors = "${type}",
+				locator1 = "ACSites#TOOLTIP_UNIQUE_VISITORS");
+
+			if (isSet(notEquals)) {
+				AssertTextNotEquals(
+					key_value = "${value}",
+					key_visitors = "${type}",
+					locator1 = "ACSites#TOOLTIP_UNIQUE_VISITORS",
+					value1 = "${notEquals}");
+			}
+
+			var i = ${i} + 1;
+			var i = StringUtil.valueOf("${i}");
+		}
+	}
+
+	macro viewBreakdownNotPresent {
+		AssertElementNotPresent(
+			breakdownName = "${breakdownName}",
+			locator1 = "ACIndividualsDashboard#BREAKDOWN_TAB");
+	}
+
+	macro viewBreakdownRecharts {
+		if (!(isSet(index))) {
+			var index = "1";
+		}
+
+		AssertTextEquals.assertPartialText(
+			index = "${index}",
+			locator1 = "ACIndividualsDashboard#BREAKDOWN_RECHARTS_CARTESIAN_Y_AXIS_TICK",
+			value1 = "${tick}");
+
+		AssertAttributeValue(
+			attribute1 = "fill",
+			index = "${index}",
+			locator1 = "ACIndividualsDashboard#BREAKDOWN_RECHARTS_BAR_FILL_COLOR",
+			value1 = "${fillColor}");
+	}
+
+	macro viewIndividualDetailsCard {
+		AssertVisible(locator1 = "ACIndividualsDashboard#INDIVIDUAL_DETAILS_CARD_AVATAR");
+
+		AssertVisible(
+			fullName = "${fullName}",
+			locator1 = "ACIndividualsDashboard#INDIVIDUAL_DETAILS_CARD_FULL_NAME");
+
+		AssertVisible(
+			locator1 = "ACIndividualsDashboard#INDIVIDUAL_DETAILS_CARD_EMAIL",
+			userEmailAddress = "${userEmailAddress}");
+	}
+
+	macro viewKnownIndividualDetailsSpecificOrder {
+		var resultOrder = "0";
+
+		for (var itemName : list "${itemName}") {
+			var resultOrder = ${resultOrder} + 1;
+
+			AssertVisible(
+				key_itemName = "${itemName}",
+				locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_DETAILS_VIEW_SPECIFIC_ORDER",
+				resultOrder = "${resultOrder}");
+		}
+	}
+
+	macro viewKnownIndividualSpecificOrder {
+		var resultOrder = "0";
+
+		for (var itemName : list "${itemName}") {
+			var resultOrder = ${resultOrder} + 1;
+
+			AssertVisible(
+				key_itemName = "${itemName}",
+				locator1 = "ACIndividualsDashboard#KNOWN_INDIVIDUAL_VIEW_SPECIFIC_ORDER",
+				resultOrder = "${resultOrder}");
+		}
+	}
+
+	@summary = "This macro asserts in the individual chart bar. The pause is necessary because the bar takes a while to load into the chart. For more information about pause see LRAC-9517"
+	macro viewRechartsBarOnIndividualsActivitiesChart {
+		if (!(isSet(index))) {
+			var index = "1";
+		}
+
+		while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#INDIVIDUALS_ACTIVITIES_CHART_RECHARTS_BAR")) {
+			Refresh();
+
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+
+			// The pause is necessary because the bar takes a while to load into the chart. For more information about pause see LRAC-9517
+
+			Pause(locator1 = "2000");
+		}
+
+		AssertVisible(
+			index = "${index}",
+			locator1 = "ACIndividualsDashboard#INDIVIDUALS_ACTIVITIES_CHART_RECHARTS_BAR");
+	}
+
+	macro viewTimelineItem {
+		var list1 = ListUtil.newListFromString("${activityNameList}");
+		var list2 = ListUtil.newListFromString("${positionList}");
+		var size = ListUtil.size("${list1}");
+		var i = "0";
+
+		while ("${i}" != "${size}") {
+			var activityName = ListUtil.get("${list1}", "${i}");
+			var position = ListUtil.get("${list2}", "${i}");
+
+			AssertElementPresent(
+				index = "${position}",
+				key_commonInformation = "${activityName}",
+				locator1 = "ACEventAnalysis#VIEW_ANALYSIS_INFORMATION_SPECIFIC_ORDER");
+
+			var i = ${i} + 1;
+			var i = StringUtil.valueOf("${i}");
+		}
+	}
+
+	macro viewTimelineItemNotPresent {
+		var list1 = ListUtil.newListFromString("${activityNameList}");
+		var list2 = ListUtil.newListFromString("${positionList}");
+		var size = ListUtil.size("${list1}");
+		var i = "0";
+
+		while ("${i}" != "${size}") {
+			var activityName = ListUtil.get("${list1}", "${i}");
+			var position = ListUtil.get("${list2}", "${i}");
+
+			AssertElementNotPresent(
+				index = "${position}",
+				key_commonInformation = "${activityName}",
+				locator1 = "ACEventAnalysis#VIEW_ANALYSIS_INFORMATION_SPECIFIC_ORDER");
+
+			var i = ${i} + 1;
+			var i = StringUtil.valueOf("${i}");
+		}
 	}
 
 }

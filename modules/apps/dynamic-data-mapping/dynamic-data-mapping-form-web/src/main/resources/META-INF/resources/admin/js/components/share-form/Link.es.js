@@ -17,8 +17,9 @@ import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
 import ClipboardJS from 'clipboard';
-import {selectText} from 'dynamic-data-mapping-form-builder/js/util/dom.es';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+
+import {selectText} from '../../util/dom';
 
 const useClipboardJS = (onSuccess) => {
 	useEffect(() => {
@@ -53,6 +54,7 @@ const Link = ({url}) => {
 			<ClayInput.Group>
 				<ClayInput.GroupItem prepend>
 					<ClayInput readOnly ref={inputRef} value={url} />
+
 					{success && (
 						<ClayForm.FeedbackGroup>
 							<ClayForm.FeedbackItem>
@@ -61,6 +63,7 @@ const Link = ({url}) => {
 						</ClayForm.FeedbackGroup>
 					)}
 				</ClayInput.GroupItem>
+
 				<ClayInput.GroupItem append shrink>
 					<ClayButton
 						aria-label={

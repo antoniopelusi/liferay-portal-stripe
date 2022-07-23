@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import com.liferay.headless.delivery.client.dto.v1_0.Comment;
+import com.liferay.headless.delivery.client.dto.v1_0.Field;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.pagination.Pagination;
@@ -35,7 +36,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -53,9 +53,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -201,16 +199,14 @@ public abstract class BaseCommentResourceTestCase {
 
 	@Test
 	public void testGetBlogPostingCommentsPage() throws Exception {
-		Page<Comment> page = commentResource.getBlogPostingCommentsPage(
-			testGetBlogPostingCommentsPage_getBlogPostingId(),
-			RandomTestUtil.randomString(), null, null, Pagination.of(1, 2),
-			null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long blogPostingId = testGetBlogPostingCommentsPage_getBlogPostingId();
 		Long irrelevantBlogPostingId =
 			testGetBlogPostingCommentsPage_getIrrelevantBlogPostingId();
+
+		Page<Comment> page = commentResource.getBlogPostingCommentsPage(
+			blogPostingId, null, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantBlogPostingId != null) {
 			Comment irrelevantComment =
@@ -236,7 +232,7 @@ public abstract class BaseCommentResourceTestCase {
 			blogPostingId, randomComment());
 
 		page = commentResource.getBlogPostingCommentsPage(
-			blogPostingId, null, null, null, Pagination.of(1, 2), null);
+			blogPostingId, null, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -271,6 +267,38 @@ public abstract class BaseCommentResourceTestCase {
 			Page<Comment> page = commentResource.getBlogPostingCommentsPage(
 				blogPostingId, null, null,
 				getFilterString(entityField, "between", comment1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(comment1),
+				(List<Comment>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetBlogPostingCommentsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long blogPostingId = testGetBlogPostingCommentsPage_getBlogPostingId();
+
+		Comment comment1 = testGetBlogPostingCommentsPage_addComment(
+			blogPostingId, randomComment());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Comment comment2 = testGetBlogPostingCommentsPage_addComment(
+			blogPostingId, randomComment());
+
+		for (EntityField entityField : entityFields) {
+			Page<Comment> page = commentResource.getBlogPostingCommentsPage(
+				blogPostingId, null, null,
+				getFilterString(entityField, "eq", comment1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -364,6 +392,18 @@ public abstract class BaseCommentResourceTestCase {
 	}
 
 	@Test
+	public void testGetBlogPostingCommentsPageWithSortDouble()
+		throws Exception {
+
+		testGetBlogPostingCommentsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, comment1, comment2) -> {
+				BeanUtils.setProperty(comment1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(comment2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetBlogPostingCommentsPageWithSortInteger()
 		throws Exception {
 
@@ -386,7 +426,7 @@ public abstract class BaseCommentResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -534,7 +574,7 @@ public abstract class BaseCommentResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteComment() throws Exception {
-		Comment comment = testGraphQLComment_addComment();
+		Comment comment = testGraphQLDeleteComment_addComment();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -547,7 +587,6 @@ public abstract class BaseCommentResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteComment"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -561,6 +600,10 @@ public abstract class BaseCommentResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Comment testGraphQLDeleteComment_addComment() throws Exception {
+		return testGraphQLComment_addComment();
 	}
 
 	@Test
@@ -580,7 +623,7 @@ public abstract class BaseCommentResourceTestCase {
 
 	@Test
 	public void testGraphQLGetComment() throws Exception {
-		Comment comment = testGraphQLComment_addComment();
+		Comment comment = testGraphQLGetComment_addComment();
 
 		Assert.assertTrue(
 			equals(
@@ -619,6 +662,10 @@ public abstract class BaseCommentResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Comment testGraphQLGetComment_addComment() throws Exception {
+		return testGraphQLComment_addComment();
+	}
+
 	@Test
 	public void testPutComment() throws Exception {
 		Comment postComment = testPutComment_addComment();
@@ -644,16 +691,14 @@ public abstract class BaseCommentResourceTestCase {
 
 	@Test
 	public void testGetCommentCommentsPage() throws Exception {
-		Page<Comment> page = commentResource.getCommentCommentsPage(
-			testGetCommentCommentsPage_getParentCommentId(),
-			RandomTestUtil.randomString(), null, null, Pagination.of(1, 2),
-			null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long parentCommentId = testGetCommentCommentsPage_getParentCommentId();
 		Long irrelevantParentCommentId =
 			testGetCommentCommentsPage_getIrrelevantParentCommentId();
+
+		Page<Comment> page = commentResource.getCommentCommentsPage(
+			parentCommentId, null, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantParentCommentId != null) {
 			Comment irrelevantComment = testGetCommentCommentsPage_addComment(
@@ -678,7 +723,7 @@ public abstract class BaseCommentResourceTestCase {
 			parentCommentId, randomComment());
 
 		page = commentResource.getCommentCommentsPage(
-			parentCommentId, null, null, null, Pagination.of(1, 2), null);
+			parentCommentId, null, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -713,6 +758,38 @@ public abstract class BaseCommentResourceTestCase {
 			Page<Comment> page = commentResource.getCommentCommentsPage(
 				parentCommentId, null, null,
 				getFilterString(entityField, "between", comment1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(comment1),
+				(List<Comment>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetCommentCommentsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long parentCommentId = testGetCommentCommentsPage_getParentCommentId();
+
+		Comment comment1 = testGetCommentCommentsPage_addComment(
+			parentCommentId, randomComment());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Comment comment2 = testGetCommentCommentsPage_addComment(
+			parentCommentId, randomComment());
+
+		for (EntityField entityField : entityFields) {
+			Page<Comment> page = commentResource.getCommentCommentsPage(
+				parentCommentId, null, null,
+				getFilterString(entityField, "eq", comment1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -802,6 +879,16 @@ public abstract class BaseCommentResourceTestCase {
 	}
 
 	@Test
+	public void testGetCommentCommentsPageWithSortDouble() throws Exception {
+		testGetCommentCommentsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, comment1, comment2) -> {
+				BeanUtils.setProperty(comment1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(comment2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetCommentCommentsPageWithSortInteger() throws Exception {
 		testGetCommentCommentsPageWithSort(
 			EntityField.Type.INTEGER,
@@ -820,7 +907,7 @@ public abstract class BaseCommentResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -947,16 +1034,14 @@ public abstract class BaseCommentResourceTestCase {
 
 	@Test
 	public void testGetDocumentCommentsPage() throws Exception {
-		Page<Comment> page = commentResource.getDocumentCommentsPage(
-			testGetDocumentCommentsPage_getDocumentId(),
-			RandomTestUtil.randomString(), null, null, Pagination.of(1, 2),
-			null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long documentId = testGetDocumentCommentsPage_getDocumentId();
 		Long irrelevantDocumentId =
 			testGetDocumentCommentsPage_getIrrelevantDocumentId();
+
+		Page<Comment> page = commentResource.getDocumentCommentsPage(
+			documentId, null, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantDocumentId != null) {
 			Comment irrelevantComment = testGetDocumentCommentsPage_addComment(
@@ -981,7 +1066,7 @@ public abstract class BaseCommentResourceTestCase {
 			documentId, randomComment());
 
 		page = commentResource.getDocumentCommentsPage(
-			documentId, null, null, null, Pagination.of(1, 2), null);
+			documentId, null, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -1015,6 +1100,38 @@ public abstract class BaseCommentResourceTestCase {
 			Page<Comment> page = commentResource.getDocumentCommentsPage(
 				documentId, null, null,
 				getFilterString(entityField, "between", comment1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(comment1),
+				(List<Comment>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetDocumentCommentsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long documentId = testGetDocumentCommentsPage_getDocumentId();
+
+		Comment comment1 = testGetDocumentCommentsPage_addComment(
+			documentId, randomComment());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Comment comment2 = testGetDocumentCommentsPage_addComment(
+			documentId, randomComment());
+
+		for (EntityField entityField : entityFields) {
+			Page<Comment> page = commentResource.getDocumentCommentsPage(
+				documentId, null, null,
+				getFilterString(entityField, "eq", comment1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -1104,6 +1221,16 @@ public abstract class BaseCommentResourceTestCase {
 	}
 
 	@Test
+	public void testGetDocumentCommentsPageWithSortDouble() throws Exception {
+		testGetDocumentCommentsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, comment1, comment2) -> {
+				BeanUtils.setProperty(comment1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(comment2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetDocumentCommentsPageWithSortInteger() throws Exception {
 		testGetDocumentCommentsPageWithSort(
 			EntityField.Type.INTEGER,
@@ -1122,7 +1249,7 @@ public abstract class BaseCommentResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -1247,17 +1374,15 @@ public abstract class BaseCommentResourceTestCase {
 
 	@Test
 	public void testGetStructuredContentCommentsPage() throws Exception {
-		Page<Comment> page = commentResource.getStructuredContentCommentsPage(
-			testGetStructuredContentCommentsPage_getStructuredContentId(),
-			RandomTestUtil.randomString(), null, null, Pagination.of(1, 2),
-			null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long structuredContentId =
 			testGetStructuredContentCommentsPage_getStructuredContentId();
 		Long irrelevantStructuredContentId =
 			testGetStructuredContentCommentsPage_getIrrelevantStructuredContentId();
+
+		Page<Comment> page = commentResource.getStructuredContentCommentsPage(
+			structuredContentId, null, null, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantStructuredContentId != null) {
 			Comment irrelevantComment =
@@ -1283,7 +1408,7 @@ public abstract class BaseCommentResourceTestCase {
 			structuredContentId, randomComment());
 
 		page = commentResource.getStructuredContentCommentsPage(
-			structuredContentId, null, null, null, Pagination.of(1, 2), null);
+			structuredContentId, null, null, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -1320,6 +1445,40 @@ public abstract class BaseCommentResourceTestCase {
 				commentResource.getStructuredContentCommentsPage(
 					structuredContentId, null, null,
 					getFilterString(entityField, "between", comment1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(comment1),
+				(List<Comment>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetStructuredContentCommentsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long structuredContentId =
+			testGetStructuredContentCommentsPage_getStructuredContentId();
+
+		Comment comment1 = testGetStructuredContentCommentsPage_addComment(
+			structuredContentId, randomComment());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Comment comment2 = testGetStructuredContentCommentsPage_addComment(
+			structuredContentId, randomComment());
+
+		for (EntityField entityField : entityFields) {
+			Page<Comment> page =
+				commentResource.getStructuredContentCommentsPage(
+					structuredContentId, null, null,
+					getFilterString(entityField, "eq", comment1),
 					Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -1416,6 +1575,18 @@ public abstract class BaseCommentResourceTestCase {
 	}
 
 	@Test
+	public void testGetStructuredContentCommentsPageWithSortDouble()
+		throws Exception {
+
+		testGetStructuredContentCommentsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, comment1, comment2) -> {
+				BeanUtils.setProperty(comment1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(comment2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetStructuredContentCommentsPageWithSortInteger()
 		throws Exception {
 
@@ -1438,7 +1609,7 @@ public abstract class BaseCommentResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -1579,6 +1750,20 @@ public abstract class BaseCommentResourceTestCase {
 			"This method needs to be implemented");
 	}
 
+	protected void assertContains(Comment comment, List<Comment> comments) {
+		boolean contains = false;
+
+		for (Comment item : comments) {
+			if (equals(comment, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(comments + " does not contain " + comment, contains);
+	}
+
 	protected void assertHttpResponseStatusCode(
 		int expectedHttpResponseStatusCode,
 		HttpInvoker.HttpResponse actualHttpResponse) {
@@ -1717,8 +1902,8 @@ public abstract class BaseCommentResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.delivery.dto.v1_0.Comment.class)) {
 
 			if (!ArrayUtil.contains(
@@ -1733,12 +1918,13 @@ public abstract class BaseCommentResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -1752,7 +1938,7 @@ public abstract class BaseCommentResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1890,6 +2076,19 @@ public abstract class BaseCommentResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -2018,8 +2217,9 @@ public abstract class BaseCommentResourceTestCase {
 		}
 
 		if (entityFieldName.equals("numberOfComments")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(comment.getNumberOfComments()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("parentCommentId")) {
@@ -2175,8 +2375,8 @@ public abstract class BaseCommentResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseCommentResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseCommentResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

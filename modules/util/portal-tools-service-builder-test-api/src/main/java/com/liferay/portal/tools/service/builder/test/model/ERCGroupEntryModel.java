@@ -114,4 +114,7 @@ public interface ERCGroupEntryModel
 	@Override
 	public void setCompanyId(long companyId);
 
+	@Override
+	public ERCGroupEntry cloneWithOriginalValues();
+
 }

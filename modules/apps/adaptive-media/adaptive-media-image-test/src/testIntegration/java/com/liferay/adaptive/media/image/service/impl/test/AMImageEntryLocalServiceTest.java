@@ -633,13 +633,14 @@ public class AMImageEntryLocalServiceTest {
 		throws PortalException {
 
 		DLFileEntry dlFileEntry = DLFileEntryLocalServiceUtil.addFileEntry(
-			userId, groupId, groupId,
+			null, userId, groupId, groupId,
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), ContentTypes.IMAGE_JPEG,
-			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			StringPool.BLANK, StringPool.BLANK,
 			DLFileEntryTypeConstants.COMPANY_ID_BASIC_DOCUMENT,
 			Collections.emptyMap(), null, new UnsyncByteArrayInputStream(bytes),
-			bytes.length, serviceContext);
+			bytes.length, null, null, serviceContext);
 
 		return new LiferayFileEntry(dlFileEntry);
 	}

@@ -26,9 +26,6 @@ import java.util.List;
  */
 public class BatchEngineExportTaskImpl extends BatchEngineExportTaskBaseImpl {
 
-	public BatchEngineExportTaskImpl() {
-	}
-
 	@Override
 	public List<String> getFieldNamesList() {
 		if (Validator.isNull(getFieldNames())) {

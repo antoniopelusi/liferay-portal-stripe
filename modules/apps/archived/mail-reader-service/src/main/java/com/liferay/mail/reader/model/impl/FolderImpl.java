@@ -18,8 +18,4 @@ package com.liferay.mail.reader.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class FolderImpl extends FolderBaseImpl {
-
-	public FolderImpl() {
-	}
-
 }

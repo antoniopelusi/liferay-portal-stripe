@@ -14,7 +14,10 @@
 
 package com.liferay.jenkins.results.parser.testray;
 
+import com.liferay.jenkins.results.parser.JenkinsMaster;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+import com.liferay.jenkins.results.parser.TestrayResultsParserUtil;
+import com.liferay.jenkins.results.parser.TopLevelBuild;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -59,6 +63,19 @@ public abstract class BaseTestrayServer implements TestrayServer {
 	@Override
 	public URL getURL() {
 		return _url;
+	}
+
+	@Override
+	public void importCaseResults(TopLevelBuild topLevelBuild) {
+		TestrayResultsParserUtil.processTestrayResultFiles(getResultsDir());
+
+		if (JenkinsResultsParserUtil.isCINode()) {
+			_importCaseResultsFromCI(topLevelBuild);
+		}
+
+		if (TestrayS3Bucket.googleCredentialsAvailable()) {
+			_importCaseResultsToGCP(topLevelBuild);
+		}
 	}
 
 	@Override
@@ -96,6 +113,71 @@ public abstract class BaseTestrayServer implements TestrayServer {
 		}
 
 		return new File(workspace, "testray/results");
+	}
+
+	private void _importCaseResultsFromCI(TopLevelBuild topLevelBuild) {
+		if (!JenkinsResultsParserUtil.isCINode()) {
+			return;
+		}
+
+		JenkinsMaster jenkinsMaster = topLevelBuild.getJenkinsMaster();
+
+		String command = JenkinsResultsParserUtil.combine(
+			"rsync -aqz --chmod=go=rx \"",
+			JenkinsResultsParserUtil.getCanonicalPath(getResultsDir()),
+			"\"/* \"", jenkinsMaster.getName(),
+			"::testray-results/production/\"");
+
+		try {
+			JenkinsResultsParserUtil.executeBashCommands(command);
+		}
+		catch (IOException | TimeoutException exception) {
+			throw new RuntimeException(exception);
+		}
+
+		for (File resultFile :
+				JenkinsResultsParserUtil.findFiles(getResultsDir(), ".*.xml")) {
+
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"Uploaded ",
+					JenkinsResultsParserUtil.getCanonicalPath(resultFile),
+					" by Rsync"));
+		}
+	}
+
+	private void _importCaseResultsToGCP(TopLevelBuild topLevelBuild) {
+		if (!TestrayS3Bucket.googleCredentialsAvailable()) {
+			return;
+		}
+
+		StringBuilder sb = new StringBuilder();
+
+		JenkinsMaster jenkinsMaster = topLevelBuild.getJenkinsMaster();
+
+		sb.append(jenkinsMaster.getName());
+
+		sb.append("-");
+
+		String jobName = topLevelBuild.getJobName();
+
+		sb.append(jobName.replaceAll("[\\(\\)]", "_"));
+
+		sb.append("-");
+		sb.append(topLevelBuild.getBuildNumber());
+		sb.append("-results.tar.gz");
+
+		File resultsDir = getResultsDir();
+
+		File resultsTarGzFile = new File(
+			resultsDir.getParentFile(), sb.toString());
+
+		JenkinsResultsParserUtil.tarGzip(resultsDir, resultsTarGzFile);
+
+		TestrayS3Bucket testrayS3Bucket = TestrayS3Bucket.getInstance();
+
+		testrayS3Bucket.createTestrayS3Object(
+			"inbox/" + resultsTarGzFile.getName(), resultsTarGzFile);
 	}
 
 	private synchronized void _initTestrayProjects() {

@@ -22,10 +22,7 @@ import com.liferay.portal.kernel.model.UserNotificationEvent;
 import com.liferay.portal.kernel.notifications.BaseModelUserNotificationHandler;
 import com.liferay.portal.kernel.notifications.UserNotificationHandler;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -59,24 +56,21 @@ public class MFASystemConfigurationUserNotificationHandler
 
 		String body = null;
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			serviceContext.getLocale(), getClass());
-
 		if (mfaDisableGlobally) {
 			body = _language.get(
-				resourceBundle,
+				serviceContext.getLocale(),
 				"multi-factor-authentication-has-been-disabled-by-the-system-" +
 					"administrator-and-is-unavailable-to-all-instances");
 		}
 		else {
 			body = _language.get(
-				resourceBundle,
+				serviceContext.getLocale(),
 				"multi-factor-authentication-has-been-enabled-by-the-system-" +
 					"administrator");
 		}
 
 		String title = _language.get(
-			resourceBundle, "multi-factor-authentication");
+			serviceContext.getLocale(), "multi-factor-authentication");
 
 		return StringUtil.replace(
 			getBodyTemplate(), new String[] {"[$BODY$]", "[$TITLE$]"},

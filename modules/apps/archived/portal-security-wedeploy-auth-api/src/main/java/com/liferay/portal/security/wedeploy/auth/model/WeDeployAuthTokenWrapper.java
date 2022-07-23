@@ -112,6 +112,11 @@ public class WeDeployAuthTokenWrapper
 		}
 	}
 
+	@Override
+	public WeDeployAuthToken cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the client ID of this we deploy auth token.
 	 *

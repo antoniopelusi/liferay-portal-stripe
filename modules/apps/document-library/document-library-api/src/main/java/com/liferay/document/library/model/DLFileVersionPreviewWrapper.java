@@ -109,6 +109,11 @@ public class DLFileVersionPreviewWrapper
 		}
 	}
 
+	@Override
+	public DLFileVersionPreview cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this dl file version preview.
 	 *

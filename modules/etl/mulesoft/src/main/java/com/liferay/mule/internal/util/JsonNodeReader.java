@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2021 Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,17 +34,19 @@ import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 public class JsonNodeReader {
 
 	public JsonNode fetchDescendantJsonNode(JsonNode jsonNode, String path) {
+		JsonNode descendantJsonNode = jsonNode;
+
 		String[] pathParts = path.split(">");
 
 		for (String pathPart : pathParts) {
-			jsonNode = jsonNode.get(pathPart);
+			descendantJsonNode = descendantJsonNode.get(pathPart);
 
-			if (jsonNode == null) {
+			if (descendantJsonNode == null) {
 				return NullNode.getInstance();
 			}
 		}
 
-		return jsonNode;
+		return descendantJsonNode;
 	}
 
 	public JsonNode fromHttpResponse(HttpResponse httpResponse)
@@ -62,24 +64,28 @@ public class JsonNodeReader {
 	}
 
 	public JsonNode getDescendantJsonNode(JsonNode jsonNode, String path) {
+		JsonNode descendantJsonNode = jsonNode;
+
 		String[] pathParts = path.split(">");
 
 		for (String pathPart : pathParts) {
-			jsonNode = jsonNode.get(pathPart);
+			descendantJsonNode = descendantJsonNode.get(pathPart);
 
-			Objects.requireNonNull(jsonNode);
+			Objects.requireNonNull(descendantJsonNode);
 		}
 
-		return jsonNode;
+		return descendantJsonNode;
 	}
 
 	public boolean hasPath(JsonNode jsonNode, String path) {
+		JsonNode descendantJsonNode = jsonNode;
+
 		String[] pathParts = path.split(">");
 
 		for (String pathPart : pathParts) {
-			jsonNode = jsonNode.get(pathPart);
+			descendantJsonNode = descendantJsonNode.get(pathPart);
 
-			if (jsonNode == null) {
+			if (descendantJsonNode == null) {
 				return false;
 			}
 		}

@@ -22,16 +22,24 @@ import com.liferay.asset.kernel.model.AssetLink;
 import com.liferay.asset.kernel.model.AssetLinkConstants;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.model.AssetTag;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetLinkLocalService;
+import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.asset.kernel.service.persistence.AssetEntryQuery;
 import com.liferay.asset.kernel.validator.AssetEntryValidator;
 import com.liferay.asset.kernel.validator.AssetEntryValidatorExclusionRule;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
@@ -42,7 +50,11 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -54,9 +66,8 @@ import com.liferay.portal.kernel.view.count.ViewCountManagerUtil;
 import com.liferay.portlet.asset.service.base.AssetEntryLocalServiceBaseImpl;
 import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
 import com.liferay.portlet.asset.util.AssetSearcher;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerMap;
 import com.liferay.social.kernel.model.SocialActivityConstants;
+import com.liferay.social.kernel.service.SocialActivityCounterLocalService;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -73,7 +84,12 @@ import java.util.List;
 public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public void deleteEntry(AssetEntry entry) throws PortalException {
+
+		// Links
+
+		_assetLinkLocalService.deleteLinks(entry.getEntryId());
 
 		// Entry
 
@@ -82,15 +98,11 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 		assetEntryPersistence.remove(entry);
 
-		// Links
-
-		assetLinkLocalService.deleteLinks(entry.getEntryId());
-
 		// Tags
 
 		for (AssetTag tag : tags) {
 			if (entry.isVisible()) {
-				assetTagLocalService.decrementAssetCount(
+				_assetTagLocalService.decrementAssetCount(
 					tag.getTagId(), entry.getClassNameId());
 			}
 		}
@@ -99,7 +111,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 		ViewCountManagerUtil.deleteViewCount(
 			entry.getCompanyId(),
-			classNameLocalService.getClassNameId(AssetEntry.class),
+			_classNameLocalService.getClassNameId(AssetEntry.class),
 			entry.getEntryId());
 
 		// Social
@@ -119,7 +131,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 
 		if (entry != null) {
 			deleteEntry(entry);
@@ -161,7 +173,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	@Override
 	public AssetEntry fetchEntry(String className, long classPK) {
 		return assetEntryLocalService.fetchEntry(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -187,7 +199,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 		List<AssetEntry> entries = new ArrayList<>();
 
-		List<AssetLink> links = assetLinkLocalService.getDirectLinks(
+		List<AssetLink> links = _assetLinkLocalService.getDirectLinks(
 			entryId, AssetLinkConstants.TYPE_CHILD);
 
 		for (AssetLink link : links) {
@@ -295,7 +307,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		return assetEntryPersistence.findByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -313,7 +325,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	@Override
 	public double getEntryPriority(String className, long classPK) {
 		return getEntryPriority(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -336,7 +348,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			return childEntries.get(0);
 		}
 
-		List<AssetLink> links = assetLinkLocalService.getDirectLinks(
+		List<AssetLink> links = _assetLinkLocalService.getDirectLinks(
 			entryId, AssetLinkConstants.TYPE_CHILD);
 
 		for (int i = 0; i < links.size(); i++) {
@@ -358,7 +370,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	@Override
 	public AssetEntry getParentEntry(long entryId) throws PortalException {
-		List<AssetLink> links = assetLinkLocalService.getReverseLinks(
+		List<AssetLink> links = _assetLinkLocalService.getReverseLinks(
 			entryId, AssetLinkConstants.TYPE_CHILD);
 
 		if (links.isEmpty()) {
@@ -374,7 +386,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public AssetEntry getPreviousEntry(long entryId) throws PortalException {
 		getParentEntry(entryId);
 
-		List<AssetLink> links = assetLinkLocalService.getDirectLinks(
+		List<AssetLink> links = _assetLinkLocalService.getDirectLinks(
 			entryId, AssetLinkConstants.TYPE_CHILD);
 
 		for (int i = 0; i < links.size(); i++) {
@@ -408,7 +420,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		long[] classNameIds = new long[className.length];
 
 		for (int i = 0; i < className.length; i++) {
-			classNameIds[i] = classNameLocalService.getClassNameId(
+			classNameIds[i] = _classNameLocalService.getClassNameId(
 				className[i]);
 		}
 
@@ -428,7 +440,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public void incrementViewCounter(long userId, AssetEntry assetEntry)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		assetEntryLocalService.incrementViewCounter(
 			assetEntry.getCompanyId(), user.getUserId(),
@@ -447,7 +459,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			long companyId, long userId, String className, long classPK)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		assetEntryLocalService.incrementViewCounter(
 			companyId, user.getUserId(), className, classPK, 1);
@@ -474,14 +486,14 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		}
 
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 
 		if (entry == null) {
 			return;
 		}
 
 		ViewCountManagerUtil.incrementViewCount(
-			companyId, classNameLocalService.getClassNameId(AssetEntry.class),
+			companyId, _classNameLocalService.getClassNameId(AssetEntry.class),
 			entry.getEntryId(), increment);
 	}
 
@@ -741,7 +753,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 		// Entry
 
-		long classNameId = classNameLocalService.getClassNameId(className);
+		long classNameId = _classNameLocalService.getClassNameId(className);
 
 		validate(
 			groupId, className, classPK, classTypeId, categoryIds, tagNames);
@@ -765,16 +777,16 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		// Tags
 
 		if ((tagNames != null) && ((entry != null) || (tagNames.length > 0))) {
-			Group siteGroup = groupLocalService.getGroup(
+			Group siteGroup = _groupLocalService.getGroup(
 				PortalUtil.getSiteGroupId(groupId));
 
-			List<AssetTag> tags = assetTagLocalService.checkTags(
+			List<AssetTag> tags = _assetTagLocalService.checkTags(
 				userId, siteGroup, tagNames);
 
 			if (visible) {
 				if (entry == null) {
 					for (AssetTag tag : tags) {
-						assetTagLocalService.incrementAssetCount(
+						_assetTagLocalService.incrementAssetCount(
 							tag.getTagId(), classNameId);
 					}
 				}
@@ -784,14 +796,14 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 					for (AssetTag oldTag : oldTags) {
 						if (!tags.contains(oldTag)) {
-							assetTagLocalService.decrementAssetCount(
+							_assetTagLocalService.decrementAssetCount(
 								oldTag.getTagId(), classNameId);
 						}
 					}
 
 					for (AssetTag tag : tags) {
 						if (!oldTags.contains(tag)) {
-							assetTagLocalService.incrementAssetCount(
+							_assetTagLocalService.incrementAssetCount(
 								tag.getTagId(), classNameId);
 						}
 					}
@@ -802,7 +814,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 					entryId);
 
 				for (AssetTag oldTag : oldTags) {
-					assetTagLocalService.decrementAssetCount(
+					_assetTagLocalService.decrementAssetCount(
 						oldTag.getTagId(), classNameId);
 				}
 			}
@@ -816,13 +828,13 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		if (entry == null) {
 			entry = assetEntryPersistence.create(entryId);
 
-			Group group = groupLocalService.getGroup(groupId);
+			Group group = _groupLocalService.getGroup(groupId);
 
 			entry.setCompanyId(group.getCompanyId());
 
 			entry.setUserId(userId);
 
-			User user = userLocalService.fetchUser(userId);
+			User user = _userLocalService.fetchUser(userId);
 
 			if (user != null) {
 				entry.setUserName(user.getFullName());
@@ -896,7 +908,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 
 		if (entry != null) {
 			return assetEntryLocalService.updateEntry(
@@ -924,7 +936,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		AssetEntry entry = assetEntryPersistence.findByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 
 		entry.setListable(listable);
 		entry.setPublishDate(publishDate);
@@ -950,20 +962,20 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 		if (visible) {
 			for (AssetTag tag : tags) {
-				assetTagLocalService.incrementAssetCount(
+				_assetTagLocalService.incrementAssetCount(
 					tag.getTagId(), entry.getClassNameId());
 			}
 
-			socialActivityCounterLocalService.enableActivityCounters(
+			_socialActivityCounterLocalService.enableActivityCounters(
 				entry.getClassNameId(), entry.getClassPK());
 		}
 		else {
 			for (AssetTag tag : tags) {
-				assetTagLocalService.decrementAssetCount(
+				_assetTagLocalService.decrementAssetCount(
 					tag.getTagId(), entry.getClassNameId());
 			}
 
-			socialActivityCounterLocalService.disableActivityCounters(
+			_socialActivityCounterLocalService.disableActivityCounters(
 				entry.getClassNameId(), entry.getClassPK());
 		}
 
@@ -976,7 +988,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		AssetEntry entry = assetEntryPersistence.findByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 
 		return updateVisible(entry, visible);
 	}
@@ -1132,7 +1144,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		}
 
 		List<AssetCategory> oldCategories =
-			assetCategoryLocalService.getCategories(className, classPK);
+			_assetCategoryLocalService.getCategories(className, classPK);
 
 		for (AssetCategory category : oldCategories) {
 			if (!ArrayUtil.contains(categoryIds, category.getCategoryId()) &&
@@ -1175,7 +1187,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		QueryConfig queryConfig = searchContext.getQueryConfig();
 
 		queryConfig.setHighlightEnabled(false);
-		queryConfig.setScoreEnabled(false);
+		queryConfig.setScoreEnabled(_hasScoreSort(searchContext));
 
 		assetSearcher.setAssetEntryQuery(assetEntryQuery);
 
@@ -1271,7 +1283,9 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	protected long[] getClassNameIds(long companyId, String className) {
 		if (Validator.isNotNull(className)) {
-			return new long[] {classNameLocalService.getClassNameId(className)};
+			return new long[] {
+				_classNameLocalService.getClassNameId(className)
+			};
 		}
 
 		List<AssetRendererFactory<?>> rendererFactories =
@@ -1281,10 +1295,11 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		long[] classNameIds = new long[rendererFactories.size()];
 
 		for (int i = 0; i < rendererFactories.size(); i++) {
-			AssetRendererFactory<?> rendererFactory = rendererFactories.get(i);
+			AssetRendererFactory<?> assetRendererFactory =
+				rendererFactories.get(i);
 
-			classNameIds[i] = classNameLocalService.getClassNameId(
-				rendererFactory.getClassName());
+			classNameIds[i] = _classNameLocalService.getClassNameId(
+				assetRendererFactory.getClassName());
 		}
 
 		return classNameIds;
@@ -1292,10 +1307,10 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	protected long[] getTagIds(long[] groupIds, String tagName) {
 		if (groupIds != null) {
-			return assetTagLocalService.getTagIds(groupIds, tagName);
+			return _assetTagLocalService.getTagIds(groupIds, tagName);
 		}
 
-		return assetTagLocalService.getTagIds(tagName);
+		return _assetTagLocalService.getTagIds(tagName);
 	}
 
 	protected void reindex(AssetEntry entry) throws PortalException {
@@ -1328,6 +1343,16 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		}
 
 		return assetEntryValidators;
+	}
+
+	private boolean _hasScoreSort(SearchContext searchContext) {
+		for (Sort sort : searchContext.getSorts()) {
+			if ((sort != null) && (sort.getType() == Sort.SCORE_TYPE)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void _setAssetCategoryIds(
@@ -1367,14 +1392,38 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		}
 	}
 
+	@BeanReference(type = AssetCategoryLocalService.class)
+	private AssetCategoryLocalService _assetCategoryLocalService;
+
 	private final ServiceTrackerMap
 		<String, List<AssetEntryValidatorExclusionRule>>
 			_assetEntryValidatorExclusionRuleServiceTrackerMap =
-				ServiceTrackerCollections.openMultiValueMap(
+				ServiceTrackerMapFactory.openMultiValueMap(
+					SystemBundleUtil.getBundleContext(),
 					AssetEntryValidatorExclusionRule.class, "model.class.name");
 	private final ServiceTrackerMap<String, List<AssetEntryValidator>>
 		_assetEntryValidatorServiceTrackerMap =
-			ServiceTrackerCollections.openMultiValueMap(
-				AssetEntryValidator.class, "model.class.name");
+			ServiceTrackerMapFactory.openMultiValueMap(
+				SystemBundleUtil.getBundleContext(), AssetEntryValidator.class,
+				"model.class.name");
+
+	@BeanReference(type = AssetLinkLocalService.class)
+	private AssetLinkLocalService _assetLinkLocalService;
+
+	@BeanReference(type = AssetTagLocalService.class)
+	private AssetTagLocalService _assetTagLocalService;
+
+	@BeanReference(type = ClassNameLocalService.class)
+	private ClassNameLocalService _classNameLocalService;
+
+	@BeanReference(type = GroupLocalService.class)
+	private GroupLocalService _groupLocalService;
+
+	@BeanReference(type = SocialActivityCounterLocalService.class)
+	private SocialActivityCounterLocalService
+		_socialActivityCounterLocalService;
+
+	@BeanReference(type = UserLocalService.class)
+	private UserLocalService _userLocalService;
 
 }

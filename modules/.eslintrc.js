@@ -36,13 +36,17 @@ config = {
 		MODULE_PATH: true,
 	},
 	rules: {
+		'@liferay/no-get-data-attribute': 'off',
 		'no-empty': ['error', {allowEmptyCatch: true}],
 		'notice/notice': [
 			'error',
 			{
+				nonMatchingTolerance: 0.7,
+				onNonMatchingHeader: 'replace',
 				templateFile: path.join(__dirname, 'copyright.js'),
 			},
 		],
+		'promise/catch-or-return': 'off',
 	},
 };
 

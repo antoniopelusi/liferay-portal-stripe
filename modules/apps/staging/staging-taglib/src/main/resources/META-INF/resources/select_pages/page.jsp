@@ -23,10 +23,10 @@
 		<h3 class="sheet-subtitle"><liferay-ui:message key="pages" /></h3>
 
 		<ul class="d-flex flex-wrap layout-selector" id="<portlet:namespace />pages">
-			<c:if test="<%= !disableInputs || LayoutStagingUtil.isBranchingLayoutSet(selectPagesGroup, selectPagesPrivateLayout) %>">
+			<c:if test="<%= (!disableInputs && selectPagesGroup.isPrivateLayoutsEnabled()) || LayoutStagingUtil.isBranchingLayoutSet(selectPagesGroup, selectPagesPrivateLayout) %>">
 				<li class="layout-selector-options">
 					<aui:fieldset label="pages-options">
-						<c:if test="<%= !disableInputs %>">
+						<c:if test="<%= !disableInputs && selectPagesGroup.isPrivateLayoutsEnabled() %>">
 							<c:choose>
 								<c:when test="<%= selectPagesPrivateLayout %>">
 									<aui:button id="changeToPublicLayoutsButton" value="change-to-public-pages" />

@@ -1,0 +1,561 @@
+<html>
+<head>
+<title>ObjectAdmin</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">ObjectAdmin</td></tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td>ANY_TAB_ON_ENTRY</td>
+		<td>//span[contains(text(),'${key_tabName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_BLOCK_BUTTON</td>
+		<td>//button[contains(@class,'btn btn-sm btn-secondary')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_CUSTOM_OBJECT</td>
+		<td>//li[@class='nav-item navbar-breakpoint-d-none']/../li[(@class='nav-item')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_ENTRY_CANCEL_BUTTON</td>
+		<td>//span[contains(text(),'Cancel')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_ENTRY_SAVE_BUTTON</td>
+		<td>//span[contains(text(),'Save')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_LAYOUT_NAME_FIELD</td>
+		<td>//input[contains(@id,'listObjectLayoutName')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LAYOUT_BASIC_INFO_NAME_FIELD</td>
+		<td>//input[@id='objectLayoutName']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_FIELD_ON_BLOCK</td>
+		<td>//button[contains(@class,'btn-secondary') and contains (text(),'Add Field')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>BASIC_INFO_NAME_FIELD</td>
+		<td>//input[contains(@id,'objectLayoutName')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SAVE_CUSTOM_OBJECT</td>
+		<td>//button[contains(text(),'Save')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DETAILS_NAME_CUSTOM_OBJECT</td>
+		<td>//input[@id='_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_shortName']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DETAILS_PAGE_TITLE</td>
+		<td>//h2[contains(text(),'Information')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DETAILS_LABEL_CUSTOM_OBJECT</td>
+		<td>//input[@id='_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_label']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DETAILS_PLURAL_LABEL_CUSTOM_OBJECT</td>
+		<td>//input[@id='_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_pluralLabel']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DROPDOWN_LANGUAGEM</td>
+		<td>//button[contains(@class,'input-localized-trigger') and contains(@id,'labelMenu')] | //button[contains(@class,'dropdown-toggle btn btn-monospaced btn-secondary')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DROPDOWN_LANGUAGEM_PLURAL_LABEL</td>
+		<td>//button[contains(@class,'input-localized-trigger') and contains(@id,'pluralLabelMenu')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRY_BOOLEAN_CHECKBOX</td>
+		<td>//input[contains(@class,'custom-control-input')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRY_DOUBLE_VALUE_FIELD</td>
+		<td>xpath=(//input[contains(@name,'_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_')])[7]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRY_CHOOSE_OPTION</td>
+		<td>//div[contains(text(),'Choose an Option') or contains(text(),'Escolha uma Opção')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRY_LONG_VALUE_FIELD</td>
+		<td>xpath=(//input[contains(@name,'_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_')])[7]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRY_PICKLIST_OPTION</td>
+		<td>//button[contains(text(),'${key_picklistOption}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRY_STRING_VALUE_FIELD</td>
+		<td>//input[contains(@class,'form-control ddm-field-text')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRY_RELATIONSHIP_TAB</td>
+		<td>//*[contains(@class,'nav-link')]//span[contains(text(),'${key_tabName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LABEL_FIELD_GROUP_TITLE</td>
+		<td>//div[@class='ddm-field-types-fieldset__nested']//label[@class = 'text-uppercase' and contains(text(),'${key_labelName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LABEL_FIELD_ENTRY</td>
+		<td>//div[@class='ddm-field-types-fieldset__nested']//label[text() = '${key_labelName}']</td>\
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELD_TAB_NAME</td>
+		<td>//div[contains(@class,"object-admin-panel__header object-admin-panel__header--expanded")]//h3[contains(text(),'${key_fieldTabName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELD_BLOCK_ADD_FIELD_BUTTON</td>
+		<td>//div[contains(@class,"object-admin-panel__header object-admin-panel__header--expanded")]//button[contains(text(),'Add Field')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELD_BLOCK_NAME</td>
+		<td>//div[contains(@class,"object-admin-panel__header object-admin-panel__header--expanded")]//h3[contains(text(),'${key_fieldBlockName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELD_COLUMN_POSITION_ON_ENTRY_PAGE</td>
+		<td>//div[@data-ddm-field-column='${key_fieldColumnNumber}']//label[contains(text(),'${key_fieldLabel}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>NAME_CUSTOM_OBJECT</td>
+		<td>//input[@id='objectDefinitionName']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LABEL_CUSTOM_OBJECT</td>
+		<td>//input[@id='objectDefinitionLabel']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LABEL_OBJECT_RELATIONSHIP</td>
+		<td>//input[@id ='objectRelationshipLabel']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_IMPORT_FIELDS</td>
+		<td>//label[contains(text(),'${fieldName}')]/following::input[@class='form-control' and @value='${valueName}']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LAYOUT_ENTRY_CHOOSE_OPTION</td>
+		<td>//span[contains(text(),'Choose an Option')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LAYOUT_ADD_FIELD_COLUMN_NUMBER</td>
+		<td>//button[contains(@class,'box-btn-columns__btn') and contains(@value,'${key_columnsNumber}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LAYOUT_ADD_FIELD_OPTION</td>
+		<td>//button[(@class='dropdown-item') and contains(.,'${key_optionName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LAYOUT_LAYOUT_TAB</td>
+		<td>//button[contains(text(), 'Layout')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LAYOUT_INFO_TAB</td>
+		<td>//button[contains(text(), 'Info')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>NAME_OBJECT_RELATIONSHIP</td>
+		<td>//input[@id ='objectRelationshipName']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>NAME_OBJECT_RELATIONSHIP_REQUIRED</td>
+		<td>//input[@id ='objectRelationshipName']/following-sibling::div[contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PLURAL_LABEL_CUSTOM_OBJECT</td>
+		<td>//input[@id='objectDefinitionPluralLabel']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_OBJECT</td>
+		<td>//div[(@class='table-list-title') and contains (.,'${key_name}')]/../../div[contains(text(),'${key_system}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_CUSTOM_OBJECT</td>
+		<td>//div[contains(text(),'No')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_SEARCHABLE_SECTION_DISABLED</td>
+		<td>//div//h2[text()='Searchable']/..//label[contains(@class,'toggle-switch simple-toggle-switch disabled')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_FIRST_CUSTOM_OBJECT</td>
+		<td>//div[contains(text(),'No')]/..//button[@class='dropdown-toggle component-action dropdown-toggle ml-1 btn btn-monospaced btn-unstyled']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SEARCHABLE_SECTION_TITLE</td>
+		<td>//h2[contains (text(), 'Searchable')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_DETAILS_TAB</td>
+		<td>//*[contains(@class,'nav-link')]//span[contains(text(), 'Details')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>REQUIRED_ERROR_MESSAGE</td>
+		<td>//div[contains(@class,'form-group has-error')]//div[@class='form-feedback-item' and contains (.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_FIELDS_TAB</td>
+		<td>//*[contains(@class,'nav-link')]//span[contains(text(),'Fields')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_LAYOUTS_FIELD_INPUT_HAS_REQUIRED_ERROR</td>
+		<td>//div[contains(@class,'form-group has-error')]//label[contains(text(),'Field')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_LAYOUTS_RELATIONSHIP_FIELD_HAD_REQUIRED_ERROR</td>
+		<td>//div[contains(@class,'form-group has-error')]//label[contains(text(),'Relationship')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_LAYOUTS_TAB</td>
+		<td>//*[contains(@class,'nav-link')]//span[contains(text(), 'Layouts')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_RELATIONSHIPS_TAB</td>
+		<td>//*[contains(@class,'nav-link')]//span[contains(text(),'Relationship')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>RELATIONSHIPS_TYPE_DESCRIPTION</td>
+		<td>//div[text() = '${key_type}']/..//span[@class = 'text-small']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>RELATIONSHIPS_TYPE_FORM</td>
+		<td>//label[contains(text(),'Type')]/..//input</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>RELATIONSHIPS_TYPE_FORM_REQUIRED</td>
+		<td>//input[contains(@class, 'object__custom-select-input')]/../../following-sibling::div[contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_RELATIONSHIPS_TYPE_OPTION</td>
+		<td>//button[@class = 'dropdown-item']//div[contains(text(),'${key_type}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_FIELDS_PICKLIST</td>
+		<td>//label[contains(text(),'Picklist')]/following-sibling::select</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_LABEL</td>
+		<td>//a[text() = '${key_label}']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_SCOPE</td>
+		<td>//a[text() = '${key_label}']/../../following-sibling::div[contains(text(),'${key_scope}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_STATUS</td>
+		<td>//a[text() = '${key_label}']/../../following-sibling::div//span[contains(@class,'workflow-status')]//strong[contains(text(),'${key_status}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_SYSTEM</td>
+		<td>//a[text() = '${key_label}']/../../following-sibling::div[contains(text(),'${key_system}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_LABEL_COLUMN</td>
+		<td>//div[contains(@class,'dnd-th') and contains(text(),'Label')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_SYSTEM_COLUMN</td>
+		<td>//div[contains(@class,'dnd-th') and contains(text(),'System')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_STATUS_COLUMN</td>
+		<td>//div[contains(@class,'dnd-th') and contains(text(),'Status')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DELETE_CUSTOM_OBJECT</td>
+		<td>//button[(@class='dropdown-item') and contains(text(),'Delete')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_OBJECT_FIELD</td>
+		<td>//a[contains(text(),'${key_label}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_OBJECT_SCOPE</td>
+		<td>//select[@id = '_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_scope']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_LANGUAGE</td>
+		<td>//span[contains(text(),'${key_newLanguage}')] | //button[contains(@class,'dropdown-item')]//div[text()='${key_newLanguage}']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_OBJECT_RELATIONSHIP</td>
+		<td>//select[@class = 'form-control']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_OBJECT_RELATIONSHIP_REQUIRED</td>
+		<td>//select[@class = 'form-control']/following-sibling::div[contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>TAB_LABEL_NAME</td>
+		<td>//input[@id = 'inputName']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>TAB_TYPE</td>
+		<td>//div[@class = 'form-group']//h4[@class = 'layout-tab__tab-types__title' and contains(text(),'${key_type}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>TABLE_LIST_TITLE</td>
+		<td>//div[(@class='table-list-title') and contains (.,'${key_name}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELDS_DETAILS_IFRAME</td>
+		<td>//div[contains(@class, 'side-panel-iframe')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELDS_DETAILS_TITLE</td>
+		<td>//div[contains(@class, 'side-panel-iframe')]//h3[contains(@class, 'mb-0')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELDS_LABEL_COLUMN</td>
+		<td>//div[contains(@class,'dnd-th') and contains(text(),'Label')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELDS_RADIO_OPTION</td>
+		<td>//label[contains(.,'${key_radioOption}')]/input[@type='radio']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELDS_TYPE_COLUMN</td>
+		<td>//div[contains(@class,'dnd-th') and contains(text(),'Type')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_OBJECT_FIELD_LABEL</td>
+		<td>//div[(@class = 'dnd-td') and contains (.,'${key_fieldLabel}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_OBJECT_FIELD_TYPE</td>
+		<td>//div[(@class = 'dnd-td') and contains (.,'${key_fieldType}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_OBJECT_LAYOUT_LABEL</td>
+		<td>//div[(@class = 'dnd-td') and contains (.,'${key_layoutLabel}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>RELATIONSHIP_LABEL</td>
+		<td>//div[(@class = 'table-list-title')]//a[contains(text(),'${key_label}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_KEBAB_MENU</td>
+		<td>//*[contains(text(),'${key_objectLabel}')]/ancestor::div[contains(@class,'dnd-tr')]//*[contains(@class,'lexicon-icon-ellipsis')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>KEBAB_MENU</td>
+		<td>//*[contains(@class,'lexicon-icon-ellipsis')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>KEBAB_MENU_OPTION</td>
+		<td>//*[@class = 'dropdown-item' and contains(text(), '${key_kebabOption}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_LABEL_FIELD_REQUIRED</td>
+		<td>//input[@id='objectDefinitionLabel']/following-sibling::div[contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_NAME_FIELD_REQUIRED</td>
+		<td>//input[@id='objectDefinitionName']/following-sibling::div[contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>BODY_VERTICAL_ELLIPSIS</td>
+		<td>//div[@class='table-list-title']/../../../*[contains(.,'${key_value}')]//*[name()='svg'][contains(@class,'icon-ellipsis')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_ENTRY_NAME_ON_PAGE</td>
+		<td>//span[(@class='text-truncate') and contains(text(),'${key_entryName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_ACTIONS_TAB</td>
+		<td>//*[contains(@class,'nav-link')]//span[contains(text(),'Actions')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_ACTION_NAME_FIELD</td>
+		<td>//input[@id='objectActionName']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ACTION_WHEN_TYPE</td>
+		<td>//label[contains(text(),'When')]/..//input</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ACTION_THEN_TYPE</td>
+		<td>//label[contains(text(),'Then')]/..//input</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_URL_ACTION_FIELD</td>
+		<td>//input[@id='objectActionExecutorUrl']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_SECRET_ACTION_FIELD</td>
+		<td>//input[@id='objectActionExecutorSecret']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_ACTIONS_TAB</td>
+		<td>//div[contains(@class,'dnd-tr') and contains (.,'${key_actionName}') and contains (.,'${key_actionActive}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_SIMPLE_TEXT_GENERIC</td>
+		<td>//div[contains(text(),'${key_labelName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_ACTION_NAME_ON_SIDE_PANEL</td>
+		<td>//input[@id='_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_name']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>CHOOSE_ANY_LANGUAGE</td>
+		<td>//*[contains(@class, 'autofit-section') and contains(., '${key_newLanguage}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_CLOB_TYPE_TEXT_ENTRY</td>
+		<td>//textarea[contains(@type,'text') and contains(text(),'${key_clobType}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_ACTION_ON_REGULAR_ROLES</td>
+		<td>//tr[contains(@class,'   ') and contains(.,'${key_actionName}')]/td[1]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>CHANGE_SCOPE_ACTION_ON_REGULAR_ROLES</td>
+		<td>//*[contains(@class,'   ') and contains(.,'${key_scopeActionName}')]//*[contains(@class,'btn btn-unstyle')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_SITE_CARD</td>
+		<td>//*[contains(@class, 'card')]//*[contains(@data-groupdescriptivename, '${key_siteCard}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_SHEET_ON_DEFINE_PERMISSIONS</td>
+		<td>//div[(@class='sheet sheet-lg')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_FIELD_VALUE_DISABLED</td>
+		<td>//input[@disabled][contains(@class,'form-control ddm-field-text') and contains(@value,'${key_fieldValue}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_OPTION_TITLE_FIELD</td>
+		<td>//*[contains(@id,'titleObjectFieldId')]//option[contains(text(),'${key_optionName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LABEL_OBJECT_RELATIONSHIP_REQUIRED</td>
+		<td>//input[@id ='objectRelationshipLabel']/following-sibling::div[contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_PICKLIST_OPTIONS</td>
+		<td>//*[contains(@class,'form-control')]//option[contains(text(),'${key_optionName}')]</td>
+		<td></td>
+	</tr>
+</tbody>
+</table>
+</body>
+</html>

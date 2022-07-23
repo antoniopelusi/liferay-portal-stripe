@@ -162,6 +162,9 @@ public interface AssetListEntryAssetEntryRelLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -299,6 +302,10 @@ public interface AssetListEntryAssetEntryRelLocalService
 	public List<AssetListEntryAssetEntryRel> getAssetListEntryAssetEntryRels(
 		long assetListEntryId, long[] segmentsEntryIds, int start, int end);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<AssetListEntryAssetEntryRel> getAssetListEntryAssetEntryRels(
 		long assetListEntryId, long[] segmentsEntryIds,
@@ -355,6 +362,10 @@ public interface AssetListEntryAssetEntryRelLocalService
 	public int getAssetListEntryAssetEntryRelsCount(
 		long assetListEntryId, long[] segmentsEntryIds);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getAssetListEntryAssetEntryRelsCount(
 		long assetListEntryId, long[] segmentsEntryIds,

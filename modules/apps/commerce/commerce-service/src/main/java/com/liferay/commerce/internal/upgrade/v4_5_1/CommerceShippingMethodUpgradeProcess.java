@@ -42,33 +42,33 @@ public class CommerceShippingMethodUpgradeProcess
 	@Override
 	protected void doUpgrade() throws Exception {
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select commerceShippingMethodId, groupId from " +
 					"CommerceShippingMethod")) {
 
-			PreparedStatement ps = null;
+			PreparedStatement preparedStatement = null;
 
-			while (rs.next()) {
-				long groupId = rs.getLong("groupId");
+			while (resultSet.next()) {
+				long groupId = resultSet.getLong("groupId");
 
-				long channelGroupId = _getCommerceChannelGroupIdBySiteGroupId(
-					groupId);
+				long commerceChannelGroupId =
+					_getCommerceChannelGroupIdBySiteGroupId(groupId);
 
-				if (channelGroupId == 0) {
+				if (commerceChannelGroupId == 0) {
 					continue;
 				}
 
-				long commerceShippingMethodId = rs.getLong(
+				long commerceShippingMethodId = resultSet.getLong(
 					"commerceShippingMethodId");
 
-				ps = connection.prepareStatement(
+				preparedStatement = connection.prepareStatement(
 					"update CommerceShippingMethod set groupId = ? where " +
 						"commerceShippingMethodId = ?");
 
-				ps.setLong(1, channelGroupId);
-				ps.setLong(2, commerceShippingMethodId);
+				preparedStatement.setLong(1, commerceChannelGroupId);
+				preparedStatement.setLong(2, commerceShippingMethodId);
 
-				ps.executeUpdate();
+				preparedStatement.executeUpdate();
 			}
 		}
 	}
@@ -85,19 +85,19 @@ public class CommerceShippingMethodUpgradeProcess
 		try (Statement s = connection.createStatement()) {
 			s.setMaxRows(1);
 
-			try (ResultSet rs = s.executeQuery(sql)) {
-				if (rs.next()) {
-					companyId = rs.getLong("companyId");
-					commerceChannelId = rs.getLong("commerceChannelId");
+			try (ResultSet resultSet = s.executeQuery(sql)) {
+				if (resultSet.next()) {
+					companyId = resultSet.getLong("companyId");
+					commerceChannelId = resultSet.getLong("commerceChannelId");
 				}
 			}
 		}
 
-		long classNameId = _classNameLocalService.getClassNameId(
-			CommerceChannel.class.getName());
-
 		Group group = _groupLocalService.fetchGroup(
-			companyId, classNameId, commerceChannelId);
+			companyId,
+			_classNameLocalService.getClassNameId(
+				CommerceChannel.class.getName()),
+			commerceChannelId);
 
 		if (group != null) {
 			return group.getGroupId();

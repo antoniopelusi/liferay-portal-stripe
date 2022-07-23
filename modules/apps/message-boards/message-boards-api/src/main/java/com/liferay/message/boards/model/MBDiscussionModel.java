@@ -312,4 +312,7 @@ public interface MBDiscussionModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public MBDiscussion cloneWithOriginalValues();
+
 }

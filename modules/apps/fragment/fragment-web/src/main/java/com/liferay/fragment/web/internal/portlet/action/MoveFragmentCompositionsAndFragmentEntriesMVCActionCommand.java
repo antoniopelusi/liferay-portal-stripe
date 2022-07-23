@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
-import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -50,37 +49,38 @@ public class MoveFragmentCompositionsAndFragmentEntriesMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		PortletURL redirectURL = PortletURLBuilder.createRenderURL(
-			_portal.getLiferayPortletResponse(actionResponse)
-		).setParameter(
-			"fragmentCollectionId",
-			() -> {
-				long[] fragmentEntryIds = StringUtil.split(
-					ParamUtil.getString(actionRequest, "fragmentEntryIds"), 0L);
+		sendRedirect(
+			actionRequest, actionResponse,
+			PortletURLBuilder.createRenderURL(
+				_portal.getLiferayPortletResponse(actionResponse)
+			).setParameter(
+				"fragmentCollectionId",
+				() -> {
+					long[] fragmentEntryIds = StringUtil.split(
+						ParamUtil.getString(actionRequest, "fragmentEntryIds"),
+						0L);
 
-				long[] fragmentCompositionIds = StringUtil.split(
-					ParamUtil.getString(
-						actionRequest, "fragmentCompositionIds"),
-					0L);
+					long[] fragmentCompositionIds = StringUtil.split(
+						ParamUtil.getString(
+							actionRequest, "fragmentCompositionIds"),
+						0L);
 
-				long fragmentCollectionId = ParamUtil.getLong(
-					actionRequest, "fragmentCollectionId");
+					long fragmentCollectionId = ParamUtil.getLong(
+						actionRequest, "fragmentCollectionId");
 
-				for (long fragmentCompositionId : fragmentCompositionIds) {
-					_fragmentCompositionService.moveFragmentComposition(
-						fragmentCompositionId, fragmentCollectionId);
+					for (long fragmentCompositionId : fragmentCompositionIds) {
+						_fragmentCompositionService.moveFragmentComposition(
+							fragmentCompositionId, fragmentCollectionId);
+					}
+
+					for (long fragmentEntryId : fragmentEntryIds) {
+						_fragmentEntryService.moveFragmentEntry(
+							fragmentEntryId, fragmentCollectionId);
+					}
+
+					return fragmentCollectionId;
 				}
-
-				for (long fragmentEntryId : fragmentEntryIds) {
-					_fragmentEntryService.moveFragmentEntry(
-						fragmentEntryId, fragmentCollectionId);
-				}
-
-				return fragmentCollectionId;
-			}
-		).build();
-
-		sendRedirect(actionRequest, actionResponse, redirectURL.toString());
+			).buildString());
 	}
 
 	@Reference

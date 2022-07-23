@@ -12,10 +12,10 @@
  * details.
  */
 
-import {parseName} from 'dynamic-data-mapping-form-renderer';
+import MapGoogleMaps from '@liferay/map-google-maps/js/MapGoogleMaps.es';
+import MapOpenStreetMap from '@liferay/map-openstreetmap/js/MapOpenStreetMap.es';
+import {parseName} from 'data-engine-js-components-web';
 import Leaflet from 'leaflet';
-import MapGoogleMaps from 'map-google-maps/js/MapGoogleMaps.es';
-import MapOpenStreetMap from 'map-openstreetmap/js/MapOpenStreetMap.es';
 import {useCallback, useEffect, useRef} from 'react';
 
 export const MAP_PROVIDER = {
@@ -55,7 +55,7 @@ const parseJSONValue = (value) => {
 
 const setupMapOpenStreetMaps = (callback) => {
 	Leaflet.Icon.Default.imagePath =
-		'https://npmcdn.com/leaflet@1.2.0/dist/images/';
+		'https://npmcdn.com/leaflet@1.7.1/dist/images/';
 
 	if (!window['L']) {
 		window['L'] = Leaflet;
@@ -97,7 +97,7 @@ const setupGoogleMaps = (googleMapsAPIKey, callback) => {
 	}
 };
 
-export const useGeolocation = ({
+export function useGeolocation({
 	disabled,
 	googleMapsAPIKey,
 	instanceId,
@@ -106,7 +106,7 @@ export const useGeolocation = ({
 	onChange,
 	value,
 	viewMode,
-}) => {
+}) {
 	const eventHandlerPositionChanged = useCallback(
 		(event) => {
 			const {
@@ -118,7 +118,7 @@ export const useGeolocation = ({
 		[onChange]
 	);
 
-	const map = useRef(null);
+	const mapRef = useRef(null);
 
 	useEffect(() => {
 		if (!disabled || viewMode) {
@@ -135,11 +135,11 @@ export const useGeolocation = ({
 			}
 
 			const registerMapBase = (MapProvider, mapConfig) => {
-				map.current = new MapProvider(mapConfig);
+				mapRef.current = new MapProvider(mapConfig);
 
 				Liferay.MapBase.register(
 					getMapName(name),
-					map.current,
+					mapRef.current,
 					`#map_${instanceId}`
 				);
 			};
@@ -163,23 +163,23 @@ export const useGeolocation = ({
 		}
 
 		return () => {
-			if (map.current) {
-				map.current.dispose();
+			if (mapRef.current) {
+				mapRef.current.dispose();
 			}
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	useEffect(() => {
-		if (map.current) {
-			map.current.removeAllListeners('positionChange');
+		if (mapRef.current) {
+			mapRef.current.removeAllListeners('positionChange');
 
-			map.current.on('positionChange', eventHandlerPositionChanged);
+			mapRef.current.on('positionChange', eventHandlerPositionChanged);
 		}
 	}, [eventHandlerPositionChanged]);
 
 	useEffect(() => {
-		if (value && map.current) {
+		if (value && mapRef.current) {
 			let _value = value;
 
 			if (typeof _value !== 'string') {
@@ -190,7 +190,7 @@ export const useGeolocation = ({
 				.getElementById(`input_value_${instanceId}`)
 				.setAttribute('value', _value);
 
-			map.current.setCenter(parseJSONValue(value));
+			mapRef.current.setCenter(parseJSONValue(value));
 		}
 	}, [instanceId, value]);
-};
+}

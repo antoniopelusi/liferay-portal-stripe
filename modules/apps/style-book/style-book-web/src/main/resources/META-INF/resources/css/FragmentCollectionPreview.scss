@@ -1,0 +1,51 @@
+@import 'cadmin-variables';
+
+body.page-maximized {
+	background-color: var(--body-bg);
+}
+
+.cadmin.control-menu-container {
+	display: none !important;
+}
+
+.fragment-preview {
+	+ & {
+		border-top: solid 2px #dadee3;
+	}
+
+	&__list {
+		--gap: 24px;
+		--variation-count: 1;
+
+		display: grid;
+		gap: var(--gap);
+		grid-auto-rows: 1fr;
+		grid-template-columns: repeat(
+			auto-fill,
+			minmax(
+				clamp(
+					40ch,
+					calc(100% - (var(--gap) * 2)) / var(--variation-count),
+					calc(100% - (var(--gap) * 2))
+				),
+				1fr
+			)
+		);
+		justify-content: center;
+	}
+}
+
+html#{$cadmin-selector} {
+	.cadmin h4 {
+		font-size: 0.875rem;
+		font-weight: 600;
+	}
+}
+
+.variation-preview__content {
+	background-color: #f7f8f9;
+
+	> * {
+		flex-grow: 1;
+	}
+}

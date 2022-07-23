@@ -118,6 +118,11 @@ public class WebDAVPropsWrapper
 		model.addProp(name, prefix, uri, text);
 	}
 
+	@Override
+	public WebDAVProps cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this web dav props.
 	 *

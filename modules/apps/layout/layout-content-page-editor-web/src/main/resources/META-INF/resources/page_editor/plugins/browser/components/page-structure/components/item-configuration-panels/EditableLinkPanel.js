@@ -17,18 +17,18 @@ import React, {useEffect, useState} from 'react';
 import LinkField from '../../../../../../app/components/fragment-configuration-fields/LinkField';
 import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../../app/config/constants/editableFragmentEntryProcessor';
 import {EDITABLE_TYPES} from '../../../../../../app/config/constants/editableTypes';
-import {config} from '../../../../../../app/config/index';
-import selectEditableValue from '../../../../../../app/selectors/selectEditableValue';
-import selectEditableValues from '../../../../../../app/selectors/selectEditableValues';
-import selectSegmentsExperienceId from '../../../../../../app/selectors/selectSegmentsExperienceId';
 import {
 	useDispatch,
 	useSelector,
 	useSelectorCallback,
-} from '../../../../../../app/store/index';
+} from '../../../../../../app/contexts/StoreContext';
+import selectEditableValue from '../../../../../../app/selectors/selectEditableValue';
+import selectEditableValues from '../../../../../../app/selectors/selectEditableValues';
+import selectSegmentsExperienceId from '../../../../../../app/selectors/selectSegmentsExperienceId';
 import updateEditableValues from '../../../../../../app/thunks/updateEditableValues';
 import {deepEqual} from '../../../../../../app/utils/checkDeepEqual';
 import isMapped from '../../../../../../app/utils/editable-value/isMapped';
+import {getEditableLinkValue} from '../../../../../../app/utils/getEditableLinkValue';
 import {getEditableItemPropTypes} from '../../../../../../prop-types/index';
 
 export default function EditableLinkPanel({item}) {
@@ -72,20 +72,7 @@ export default function EditableLinkPanel({item}) {
 			delete linkConfig.imageConfiguration;
 
 			setLinkConfig(linkConfig);
-
-			setLinkValue({
-				...linkConfig,
-				href:
-					linkConfig.href ||
-					linkConfig[languageId]?.href ||
-					linkConfig[config.defaultLanguageId]?.href ||
-					'',
-				target:
-					linkConfig.target ||
-					linkConfig[languageId]?.target ||
-					linkConfig[config.defaultLanguageId]?.target ||
-					'',
-			});
+			setLinkValue(getEditableLinkValue(linkConfig, languageId));
 		}
 		else {
 			setImageConfig({});
@@ -109,10 +96,11 @@ export default function EditableLinkPanel({item}) {
 			if (Object.keys(nextLinkConfig).length) {
 				nextConfig = {
 					...nextConfig,
-					[languageId]: {
-						href: nextLinkConfig.href,
-						target: nextLinkConfig.target || '',
+					href: {
+						...(linkConfig.href || {}),
+						[languageId]: nextLinkConfig.href,
 					},
+					target: nextLinkConfig.target || '',
 				};
 			}
 		}

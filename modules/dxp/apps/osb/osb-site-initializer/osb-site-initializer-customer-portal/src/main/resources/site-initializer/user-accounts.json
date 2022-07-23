@@ -1,0 +1,83 @@
+[
+	{
+		"accountBriefs": [
+			{
+				"externalReferenceCode": "ERC-001",
+				"roleBriefs": [
+					"Account Administrator"
+				]
+			},
+			{
+				"externalReferenceCode": "ERC-002"
+			},
+			{
+				"externalReferenceCode": "ERC-003"
+			},
+			{
+				"externalReferenceCode": "ERC-004"
+			},
+			{
+				"externalReferenceCode": "ERC-005"
+			}
+		],
+		"alternateName": "4be8cd36-73e3-11ec-90d6-0242ac120003",
+		"emailAddress": "test.user1@liferay.com",
+		"familyName": "User 1",
+		"givenName": "Test",
+		"name": "Test User 1"
+	},
+	{
+		"accountBriefs": [
+			{
+				"externalReferenceCode": "ERC-001"
+			},
+			{
+				"externalReferenceCode": "ERC-003"
+			},
+			{
+				"externalReferenceCode": "ERC-005"
+			}
+		],
+		"alternateName": "4be8cf66-73e3-11ec-90d6-0242ac120003",
+		"emailAddress": "test.user2@liferay.com",
+		"familyName": "User 2",
+		"givenName": "Test",
+		"name": "Test User 2"
+	},
+	{
+		"accountBriefs": [
+			{
+				"externalReferenceCode": "ERC-001"
+			},
+			{
+				"externalReferenceCode": "ERC-002"
+			},
+			{
+				"externalReferenceCode": "ERC-003"
+			},
+			{
+				"externalReferenceCode": "ERC-004"
+			},
+			{
+				"externalReferenceCode": "ERC-005"
+			},
+			{
+				"externalReferenceCode": "ERC-006"
+			},
+			{
+				"externalReferenceCode": "ERC-007"
+			},
+			{
+				"externalReferenceCode": "ERC-008"
+			},
+			{
+				"externalReferenceCode": "ERC-009"
+			}
+		],
+		"alternateName": "test",
+		"emailAddress": "test@liferay.com",
+		"familyName": "Test",
+		"givenName": "Test",
+		"name": "Test Test"
+	}
+]

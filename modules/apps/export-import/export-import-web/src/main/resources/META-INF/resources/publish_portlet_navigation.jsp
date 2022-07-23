@@ -23,9 +23,9 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCRenderCommandName(
 	"/export_import/publish_portlet"
-).setParameter(
-	"portletResource", portletResource
-).build();
+).setPortletResource(
+	portletResource
+).buildPortletURL();
 %>
 
 <c:if test="<%= (themeDisplay.getURLPublishToLive() != null) || layout.isTypeControlPanel() %>">

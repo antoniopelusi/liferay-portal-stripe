@@ -9,45 +9,27 @@
  * distribution rights of the Software.
  */
 
+/* eslint-disable @liferay/empty-line-between-elements */
+
 import {ClayCheckbox} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
+import ClayModal, {useModal} from '@clayui/modal';
 import ClayPopover from '@clayui/popover';
 import ClayTable from '@clayui/table';
+import WorkflowInstanceTracker from '@liferay/portal-workflow-instance-tracker-web/js/components/WorkflowInstanceTracker';
 import React, {useContext, useState} from 'react';
 
 import useDebounceCallback from '../../hooks/useDebounceCallback.es';
 import QuickActionKebab from '../../shared/components/quick-action-kebab/QuickActionKebab.es';
 import {remainingTimeFormat} from '../../shared/util/duration.es';
 import moment from '../../shared/util/moment.es';
-import {capitalize} from '../../shared/util/util.es';
+import {capitalize, getSLAStatusIconInfo} from '../../shared/util/util.es';
 import {AppContext} from '../AppContext.es';
 import {InstanceListContext} from './InstanceListPageProvider.es';
 import {ModalContext} from './modal/ModalProvider.es';
 
-const getSLAStatusIconInfo = (slaStatus) => {
-	const items = {
-		OnTime: {
-			bgColor: 'bg-success-light',
-			name: 'check-circle',
-			textColor: 'text-success',
-		},
-		Overdue: {
-			bgColor: 'bg-danger-light',
-			name: 'exclamation-circle',
-			textColor: 'text-danger',
-		},
-		Untracked: {
-			bgColor: 'bg-info-light',
-			name: 'hr',
-			textColor: 'text-info',
-		},
-	};
-
-	return items[slaStatus] || items.Untracked;
-};
-
-function Item({totalCount, ...instance}) {
+function Item({isAdmin, totalCount, ...instance}) {
 	const {userId} = useContext(AppContext);
 	const {
 		selectedItems = [],
@@ -70,13 +52,27 @@ function Item({totalCount, ...instance}) {
 		taskNames = [Liferay.Language.get('not-available')],
 	} = instance;
 
+	const [showInstanceTrackerModal, setShowInstanceTrackerModal] = useState(
+		false
+	);
+
+	const {observer} = useModal({
+		onClose: () => {
+			setShowInstanceTrackerModal(false);
+		},
+	});
+
 	const checked = !!selectedItems.find((item) => item.id === id);
 
 	const assignedToUser = !!assignees.find(({id}) => id === Number(userId));
 	const assigneeNames = assignees.map((user) => user.name).join(', ');
 	const {reviewer} = assignees.find(({id}) => id === -1) || {};
 
-	const disableCheckbox = (!assignedToUser && !reviewer) || completed;
+	let disableCheckbox = completed;
+
+	if (!isAdmin) {
+		disableCheckbox = !assignedToUser && !reviewer;
+	}
 
 	const formattedAssignees = !completed
 		? assigneeNames
@@ -108,12 +104,12 @@ function Item({totalCount, ...instance}) {
 					/>
 
 					<span
-						className={`ml-2 sticker sticker-sm ${slaStatusIconInfo.bgColor}`}
+						className={`ml-2 sticker sticker-sm ${slaStatusIconInfo?.bgColor}`}
 					>
 						<span className="inline-item">
 							<ClayIcon
-								className={slaStatusIconInfo.textColor}
-								symbol={slaStatusIconInfo.name}
+								className={slaStatusIconInfo?.textColor}
+								symbol={slaStatusIconInfo?.name}
 							/>
 						</span>
 					</span>
@@ -141,13 +137,35 @@ function Item({totalCount, ...instance}) {
 				/>
 			</ClayTable.Cell>
 
-			<ClayTable.Cell>{`${assetType}: ${assetTitle}`}</ClayTable.Cell>
+			<ClayTable.Cell
+				className="bounded-column"
+				data-tooltip-align="bottom"
+				title={`${assetType}: ${assetTitle}`}
+			>{`${assetType}: ${assetTitle}`}</ClayTable.Cell>
 
-			<ClayTable.Cell>{formattedTaskNames}</ClayTable.Cell>
+			<ClayTable.Cell
+				className="bounded-column"
+				data-tooltip-align="bottom"
+				title={formattedTaskNames}
+			>
+				{formattedTaskNames}
+			</ClayTable.Cell>
 
-			<ClayTable.Cell>{formattedAssignees}</ClayTable.Cell>
+			<ClayTable.Cell
+				className="bounded-column"
+				data-tooltip-align="bottom"
+				title={formattedAssignees}
+			>
+				{formattedAssignees}
+			</ClayTable.Cell>
 
-			<ClayTable.Cell>{creator ? creator.name : ''}</ClayTable.Cell>
+			<ClayTable.Cell
+				className="bounded-column"
+				data-tooltip-align="bottom"
+				title={creator ? creator.name : ''}
+			>
+				{creator ? creator.name : ''}
+			</ClayTable.Cell>
 
 			<ClayTable.Cell>
 				{moment
@@ -159,13 +177,28 @@ function Item({totalCount, ...instance}) {
 				<QuickActionMenu
 					disabled={disableCheckbox}
 					instance={instance}
+					setShowInstanceTrackerModal={() =>
+						setShowInstanceTrackerModal(true)
+					}
 				/>
 			</ClayTable.Cell>
+
+			{showInstanceTrackerModal && (
+				<ClayModal observer={observer} size="full-screen">
+					<ClayModal.Header>
+						{Liferay.Language.get('track-workflow')}
+					</ClayModal.Header>
+
+					<ClayModal.Body>
+						<WorkflowInstanceTracker workflowInstanceId={id} />
+					</ClayModal.Body>
+				</ClayModal>
+			)}
 		</ClayTable.Row>
 	);
 }
 
-function QuickActionMenu({disabled, instance}) {
+function QuickActionMenu({disabled, instance, setShowInstanceTrackerModal}) {
 	const {openModal, setSingleTransition} = useContext(ModalContext);
 	const {setSelectedItems} = useContext(InstanceListContext);
 	const {transitions = [], taskNames = []} = instance;
@@ -189,6 +222,10 @@ function QuickActionMenu({disabled, instance}) {
 			onClick: () => handleClick('bulkReassign', 'singleReassign'),
 		},
 		updateDueDateItem,
+		{
+			label: Liferay.Language.get('track-workflow'),
+			onClick: setShowInstanceTrackerModal,
+		},
 	];
 
 	if (transitions.length > 0) {
@@ -254,16 +291,17 @@ function DueDateSLAResults({slaResults, slaStatusIconInfo}) {
 
 		let format = '';
 
-		const sameYear = dateOverdue.split('-')[0] == new Date().getFullYear();
+		const sameYear =
+			dateOverdue.split('-')[0] === new Date().getFullYear().toString();
 
 		if (sameYear) {
 			format = fullDatetime
-				? Liferay.Language.get('mmm-dd-hh-mm-a')
+				? Liferay.Language.get('mmm-dd-lt')
 				: Liferay.Language.get('mmm-dd');
 		}
 		else {
 			format = fullDatetime
-				? Liferay.Language.get('mmm-dd-yyyy-hh-mm-a')
+				? Liferay.Language.get('mmm-dd-yyyy-lt')
 				: Liferay.Language.get('mmm-dd-yyyy');
 		}
 
@@ -301,7 +339,7 @@ function DueDateSLAResults({slaResults, slaStatusIconInfo}) {
 		<div
 			className={`due-date ${
 				instanceSlaResults?.length
-					? slaStatusIconInfo.textColor
+					? slaStatusIconInfo?.textColor
 					: 'text-info'
 			}`}
 		>
@@ -325,6 +363,7 @@ function DueDateSLAResults({slaResults, slaStatusIconInfo}) {
 							onMouseOver={() => showPopover()}
 						>
 							<span className="due-date-badge"></span>
+
 							{slaResultDateOverdue}
 						</div>
 					}
@@ -332,9 +371,9 @@ function DueDateSLAResults({slaResults, slaStatusIconInfo}) {
 					{instanceSlaResults.map((slaResult) => (
 						<div key={`critical-sla-${slaResult.id}`}>
 							<div>{slaResult.name}:</div>
+
 							<div className={slaResult.textClass}>
-								{slaResult.datetimeOverdueFormatted} (
-								{slaResult.durationText} {slaResult.onTimeText})
+								{`${slaResult.datetimeOverdueFormatted} (${slaResult.durationText} ${slaResult.onTimeText})`}
 							</div>
 						</div>
 					))}

@@ -14,10 +14,11 @@
 
 package com.liferay.headless.delivery.internal.resource.v1_0;
 
+import com.liferay.dynamic.data.mapping.constants.DDMConstants;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureService;
 import com.liferay.headless.delivery.dto.v1_0.ContentStructure;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.ContentStructureUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.ContentStructureUtil;
 import com.liferay.headless.delivery.internal.odata.entity.v1_0.ContentStructureEntityModel;
 import com.liferay.headless.delivery.resource.v1_0.ContentStructureResource;
 import com.liferay.journal.model.JournalArticle;
@@ -87,7 +88,7 @@ public class ContentStructureResourceImpl
 			Collections.emptyMap(),
 			booleanQuery -> {
 			},
-			filter, DDMStructure.class, search, pagination,
+			filter, DDMStructure.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
@@ -112,7 +113,7 @@ public class ContentStructureResourceImpl
 
 	@Override
 	protected String getPermissionCheckerPortletName(Object id) {
-		return "com.liferay.dynamic.data.mapping";
+		return DDMConstants.RESOURCE_NAME;
 	}
 
 	@Override

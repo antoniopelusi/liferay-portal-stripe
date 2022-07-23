@@ -35,6 +35,8 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import java.net.URL;
 
@@ -81,7 +83,10 @@ public class WorkspaceExtension {
 		_bundleCacheDir = _getProperty(
 			settings, "bundle.cache.dir", _BUNDLE_CACHE_DIR);
 		_bundleChecksumMD5 = _getProperty(
-			settings, "bundle.checksum.md5", _getDefaultBundleChecksumMD5());
+			settings, "bundle.checksum.md5", getDefaultBundleChecksumMD5());
+		_bundleDistIncludeMetadata = _getProperty(
+			settings, "bundle.dist.include.metadata",
+			_BUNDLE_DIST_INCLUDE_METADATA);
 		_bundleDistRootDirName = _getProperty(
 			settings, "bundle.dist.root.dir", _BUNDLE_DIST_ROOT_DIR_NAME);
 		_bundleTokenDownload = _getProperty(
@@ -97,7 +102,7 @@ public class WorkspaceExtension {
 			settings, "bundle.token.password.file",
 			_BUNDLE_TOKEN_PASSWORD_FILE);
 		_bundleUrl = _getProperty(
-			settings, "bundle.url", _getDefaultBundleUrl());
+			settings, "bundle.url", getDefaultBundleUrl());
 		_configsDir = _getProperty(
 			settings, "configs.dir",
 			BundleSupportConstants.DEFAULT_CONFIGS_DIR_NAME);
@@ -115,8 +120,6 @@ public class WorkspaceExtension {
 		_targetPlatformVersion = _getProperty(
 			settings, "target.platform.version",
 			_getDefaultTargetplatformVersion());
-
-		_rootProjectConfigurator = new RootProjectConfigurator(settings);
 
 		_gradle.afterProject(
 			new Closure<Void>(_gradle) {
@@ -158,7 +161,7 @@ public class WorkspaceExtension {
 
 					if (!Objects.equals(
 							getBundleChecksumMD5(),
-							_getDefaultBundleChecksumMD5())) {
+							getDefaultBundleChecksumMD5())) {
 
 						logger.lifecycle(
 							String.format(
@@ -167,7 +170,7 @@ public class WorkspaceExtension {
 					}
 
 					if (!Objects.equals(
-							getBundleUrl(), _getDefaultBundleUrl())) {
+							getBundleUrl(), getDefaultBundleUrl())) {
 
 						logger.lifecycle(
 							String.format(
@@ -197,6 +200,8 @@ public class WorkspaceExtension {
 				}
 
 			});
+
+		_rootProjectConfigurator = new RootProjectConfigurator(settings);
 	}
 
 	public String getAppServerTomcatVersion() {
@@ -236,6 +241,26 @@ public class WorkspaceExtension {
 		return GradleUtil.toFile(_gradle.getRootProject(), _configsDir);
 	}
 
+	public String getDefaultBundleChecksumMD5() {
+		return Optional.ofNullable(
+			_getProductInfo(getProduct())
+		).map(
+			ProductInfo::getBundleChecksumMD5
+		).orElse(
+			null
+		);
+	}
+
+	public String getDefaultBundleUrl() {
+		return Optional.ofNullable(
+			_getProductInfo(getProduct())
+		).map(
+			this::_decodeBundleUrl
+		).orElse(
+			null
+		);
+	}
+
 	public String getDockerContainerId() {
 		return GradleUtil.toString(_dockerContainerId);
 	}
@@ -268,6 +293,10 @@ public class WorkspaceExtension {
 		return GradleUtil.toString(_product);
 	}
 
+	public ProductInfo getProductInfo() {
+		return _getProductInfo(getProduct());
+	}
+
 	public Iterable<ProjectConfigurator> getProjectConfigurators() {
 		return Collections.unmodifiableSet(_projectConfigurators);
 	}
@@ -278,6 +307,10 @@ public class WorkspaceExtension {
 
 	public String getTargetPlatformVersion() {
 		return GradleUtil.toString(_targetPlatformVersion);
+	}
+
+	public boolean isBundleDistIncludeMetadata() {
+		return GradleUtil.toBoolean(_bundleDistIncludeMetadata);
 	}
 
 	public boolean isBundleTokenDownload() {
@@ -304,6 +337,10 @@ public class WorkspaceExtension {
 
 	public void setBundleChecksumMD5(Object bundleChecksumMD5) {
 		_bundleChecksumMD5 = bundleChecksumMD5;
+	}
+
+	public void setBundleDistIncludeMetadata(Object bundleDistIncludeMetadata) {
+		_bundleDistIncludeMetadata = bundleDistIncludeMetadata;
 	}
 
 	public void setBundleDistRootDirName(Object bundleDistRootDirName) {
@@ -374,203 +411,7 @@ public class WorkspaceExtension {
 		_targetPlatformVersion = targetPlatformVersion;
 	}
 
-	private String _decodeBundleUrl(ProductInfo productInfo) {
-		try {
-			return BundleURLCodec.decode(
-				productInfo.getBundleUrl(), productInfo.getReleaseDate());
-		}
-		catch (Exception exception) {
-			throw new GradleException(
-				"Unable to determine bundle URL", exception);
-		}
-	}
-
-	private String _getDefaultAppServerVersion() {
-		return Optional.ofNullable(
-			_getProductInfo(getProduct())
-		).map(
-			ProductInfo::getAppServerTomcatVersion
-		).orElse(
-			null
-		);
-	}
-
-	private String _getDefaultBundleChecksumMD5() {
-		return Optional.ofNullable(
-			_getProductInfo(getProduct())
-		).map(
-			ProductInfo::getBundleChecksumMD5
-		).orElse(
-			null
-		);
-	}
-
-	private String _getDefaultBundleUrl() {
-		return Optional.ofNullable(
-			_getProductInfo(getProduct())
-		).map(
-			this::_decodeBundleUrl
-		).orElse(
-			BundleSupportConstants.DEFAULT_BUNDLE_URL
-		);
-	}
-
-	private String _getDefaultDockerImage() {
-		return Optional.ofNullable(
-			_getProductInfo(getProduct())
-		).map(
-			ProductInfo::getLiferayDockerImage
-		).orElse(
-			_DOCKER_IMAGE_LIFERAY
-		);
-	}
-
-	private String _getDefaultTargetplatformVersion() {
-		return Optional.ofNullable(
-			_getProductInfo(getProduct())
-		).map(
-			ProductInfo::getTargetPlatformVersion
-		).orElse(
-			null
-		);
-	}
-
-	private ProductInfo _getProductInfo(String product) {
-		if (product == null) {
-			return null;
-		}
-
-		return _productInfos.computeIfAbsent(
-			product,
-			key -> {
-				try {
-					DownloadCommand downloadCommand = new DownloadCommand();
-
-					downloadCommand.setCacheDir(_workspaceCacheDir);
-					downloadCommand.setPassword(null);
-					downloadCommand.setToken(false);
-					downloadCommand.setUrl(new URL(_PRODUCT_INFO_URL));
-					downloadCommand.setUserName(null);
-					downloadCommand.setQuiet(true);
-
-					downloadCommand.execute();
-
-					Path downloadPath = downloadCommand.getDownloadPath();
-
-					try (JsonReader jsonReader = new JsonReader(
-							Files.newBufferedReader(downloadPath))) {
-
-						Gson gson = new Gson();
-
-						TypeToken<Map<String, ProductInfo>> typeToken =
-							new TypeToken<Map<String, ProductInfo>>() {
-							};
-
-						Map<String, ProductInfo> productInfos = gson.fromJson(
-							jsonReader, typeToken.getType());
-
-						return productInfos.get(product);
-					}
-				}
-				catch (Exception exception) {
-					throw new GradleException(
-						"Unable to get product info for :" + product,
-						exception);
-				}
-			});
-	}
-
-	private boolean _getProperty(
-		Object object, String keySuffix, boolean defaultValue) {
-
-		return GradleUtil.getProperty(
-			object, WorkspacePlugin.PROPERTY_PREFIX + keySuffix, defaultValue);
-	}
-
-	private Object _getProperty(
-		Object object, String keySuffix, File defaultValue) {
-
-		Object value = GradleUtil.getProperty(
-			object, WorkspacePlugin.PROPERTY_PREFIX + keySuffix);
-
-		if ((value instanceof String) && Validator.isNull((String)value)) {
-			value = null;
-		}
-
-		if (value == null) {
-			return defaultValue;
-		}
-
-		return value;
-	}
-
-	private String _getProperty(
-		Object object, String keySuffix, String defaultValue) {
-
-		return GradleUtil.getProperty(
-			object, WorkspacePlugin.PROPERTY_PREFIX + keySuffix, defaultValue);
-	}
-
-	private static final File _BUNDLE_CACHE_DIR = new File(
-		System.getProperty("user.home"),
-		BundleSupportConstants.DEFAULT_BUNDLE_CACHE_DIR_NAME);
-
-	private static final String _BUNDLE_DIST_ROOT_DIR_NAME = null;
-
-	private static final boolean _BUNDLE_TOKEN_DOWNLOAD = false;
-
-	private static final String _BUNDLE_TOKEN_EMAIL_ADDRESS = null;
-
-	private static final boolean _BUNDLE_TOKEN_FORCE = false;
-
-	private static final String _BUNDLE_TOKEN_PASSWORD = null;
-
-	private static final String _BUNDLE_TOKEN_PASSWORD_FILE = null;
-
-	private static final String _DEFAULT_WORKSPACE_CACHE_DIR_NAME =
-		".liferay/workspace";
-
-	private static final File _DOCKER_DIR = new File(
-		Project.DEFAULT_BUILD_DIR_NAME + File.separator + "docker");
-
-	private static final String _DOCKER_IMAGE_LIFERAY =
-		"liferay/portal:7.3.3-ga4";
-
-	private static final String _NODE_PACKAGE_MANAGER = "npm";
-
-	private static final String _PRODUCT_INFO_URL =
-		"https://releases.liferay.com/tools/workspace/.product_info.json";
-
-	private final Object _appServerTomcatVersion;
-	private Object _bundleCacheDir;
-	private Object _bundleChecksumMD5;
-	private Object _bundleDistRootDirName;
-	private Object _bundleTokenDownload;
-	private Object _bundleTokenEmailAddress;
-	private Object _bundleTokenForce;
-	private Object _bundleTokenPassword;
-	private Object _bundleTokenPasswordFile;
-	private Object _bundleUrl;
-	private Object _configsDir;
-	private Object _dockerContainerId;
-	private Object _dockerDir;
-	private Object _dockerImageId;
-	private Object _dockerImageLiferay;
-	private Object _environment;
-	private final Gradle _gradle;
-	private Object _homeDir;
-	private Object _nodePackageManager;
-	private Object _product;
-	private final Map<String, ProductInfo> _productInfos = new HashMap<>();
-	private final Set<ProjectConfigurator> _projectConfigurators =
-		new LinkedHashSet<>();
-	private final Plugin<Project> _rootProjectConfigurator;
-	private Object _targetPlatformVersion;
-	private final File _workspaceCacheDir = new File(
-		System.getProperty("user.home"), _DEFAULT_WORKSPACE_CACHE_DIR_NAME);
-
-	@SuppressWarnings("unused")
-	private class ProductInfo {
+	public class ProductInfo {
 
 		public String getAppServerTomcatVersion() {
 			return _appServerTomcatVersion;
@@ -622,5 +463,197 @@ public class WorkspaceExtension {
 		private String _targetPlatformVersion;
 
 	}
+
+	private String _decodeBundleUrl(ProductInfo productInfo) {
+		try {
+			return BundleURLCodec.decode(
+				productInfo.getBundleUrl(), productInfo.getReleaseDate());
+		}
+		catch (Exception exception) {
+			throw new GradleException(
+				"Unable to determine bundle URL", exception);
+		}
+	}
+
+	private String _getDefaultAppServerVersion() {
+		return Optional.ofNullable(
+			_getProductInfo(getProduct())
+		).map(
+			ProductInfo::getAppServerTomcatVersion
+		).orElse(
+			null
+		);
+	}
+
+	private String _getDefaultDockerImage() {
+		return Optional.ofNullable(
+			_getProductInfo(getProduct())
+		).map(
+			ProductInfo::getLiferayDockerImage
+		).orElse(
+			null
+		);
+	}
+
+	private String _getDefaultTargetplatformVersion() {
+		return Optional.ofNullable(
+			_getProductInfo(getProduct())
+		).map(
+			ProductInfo::getTargetPlatformVersion
+		).orElse(
+			null
+		);
+	}
+
+	private ProductInfo _getProductInfo(String product) {
+		if (product == null) {
+			return null;
+		}
+
+		return _productInfos.computeIfAbsent(
+			product,
+			key -> {
+				try {
+					DownloadCommand downloadCommand = new DownloadCommand();
+
+					downloadCommand.setCacheDir(_workspaceCacheDir);
+					downloadCommand.setPassword(null);
+					downloadCommand.setToken(false);
+					downloadCommand.setUrl(new URL(_PRODUCT_INFO_URL));
+					downloadCommand.setUserName(null);
+					downloadCommand.setQuiet(true);
+
+					downloadCommand.execute();
+
+					Path downloadPath = downloadCommand.getDownloadPath();
+
+					try (JsonReader jsonReader = new JsonReader(
+							Files.newBufferedReader(downloadPath))) {
+
+						Map<String, ProductInfo> productInfos =
+							_getProductInfos(jsonReader);
+
+						return productInfos.get(product);
+					}
+				}
+				catch (Exception exception1) {
+					try (InputStream inputStream =
+							WorkspaceExtension.class.getResourceAsStream(
+								"/.product_info.json");
+						JsonReader jsonReader = new JsonReader(
+							new InputStreamReader(inputStream))) {
+
+						Map<String, ProductInfo> productInfos =
+							_getProductInfos(jsonReader);
+
+						return productInfos.get(product);
+					}
+					catch (Exception exception2) {
+						throw new GradleException(
+							"Unable to get product info for :" + product,
+							exception2);
+					}
+				}
+			});
+	}
+
+	private Map<String, ProductInfo> _getProductInfos(JsonReader jsonReader) {
+		Gson gson = new Gson();
+
+		TypeToken<Map<String, ProductInfo>> typeToken =
+			new TypeToken<Map<String, ProductInfo>>() {
+			};
+
+		return gson.fromJson(jsonReader, typeToken.getType());
+	}
+
+	private boolean _getProperty(
+		Object object, String keySuffix, boolean defaultValue) {
+
+		return GradleUtil.getProperty(
+			object, WorkspacePlugin.PROPERTY_PREFIX + keySuffix, defaultValue);
+	}
+
+	private Object _getProperty(
+		Object object, String keySuffix, File defaultValue) {
+
+		Object value = GradleUtil.getProperty(
+			object, WorkspacePlugin.PROPERTY_PREFIX + keySuffix);
+
+		if ((value instanceof String) && Validator.isNull((String)value)) {
+			value = null;
+		}
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		return value;
+	}
+
+	private String _getProperty(
+		Object object, String keySuffix, String defaultValue) {
+
+		return GradleUtil.getProperty(
+			object, WorkspacePlugin.PROPERTY_PREFIX + keySuffix, defaultValue);
+	}
+
+	private static final File _BUNDLE_CACHE_DIR = new File(
+		System.getProperty("user.home"),
+		BundleSupportConstants.DEFAULT_BUNDLE_CACHE_DIR_NAME);
+
+	private static final boolean _BUNDLE_DIST_INCLUDE_METADATA = false;
+
+	private static final String _BUNDLE_DIST_ROOT_DIR_NAME = null;
+
+	private static final boolean _BUNDLE_TOKEN_DOWNLOAD = false;
+
+	private static final String _BUNDLE_TOKEN_EMAIL_ADDRESS = null;
+
+	private static final boolean _BUNDLE_TOKEN_FORCE = false;
+
+	private static final String _BUNDLE_TOKEN_PASSWORD = null;
+
+	private static final String _BUNDLE_TOKEN_PASSWORD_FILE = null;
+
+	private static final String _DEFAULT_WORKSPACE_CACHE_DIR_NAME =
+		".liferay/workspace";
+
+	private static final File _DOCKER_DIR = new File(
+		Project.DEFAULT_BUILD_DIR_NAME + File.separator + "docker");
+
+	private static final String _NODE_PACKAGE_MANAGER = "yarn";
+
+	private static final String _PRODUCT_INFO_URL =
+		"https://releases.liferay.com/tools/workspace/.product_info.json";
+
+	private final Object _appServerTomcatVersion;
+	private Object _bundleCacheDir;
+	private Object _bundleChecksumMD5;
+	private Object _bundleDistIncludeMetadata;
+	private Object _bundleDistRootDirName;
+	private Object _bundleTokenDownload;
+	private Object _bundleTokenEmailAddress;
+	private Object _bundleTokenForce;
+	private Object _bundleTokenPassword;
+	private Object _bundleTokenPasswordFile;
+	private Object _bundleUrl;
+	private Object _configsDir;
+	private Object _dockerContainerId;
+	private Object _dockerDir;
+	private Object _dockerImageId;
+	private Object _dockerImageLiferay;
+	private Object _environment;
+	private final Gradle _gradle;
+	private Object _homeDir;
+	private Object _nodePackageManager;
+	private Object _product;
+	private final Map<String, ProductInfo> _productInfos = new HashMap<>();
+	private final Set<ProjectConfigurator> _projectConfigurators =
+		new LinkedHashSet<>();
+	private final Plugin<Project> _rootProjectConfigurator;
+	private Object _targetPlatformVersion;
+	private final File _workspaceCacheDir = new File(
+		System.getProperty("user.home"), _DEFAULT_WORKSPACE_CACHE_DIR_NAME);
 
 }

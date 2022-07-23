@@ -16,6 +16,7 @@ package com.liferay.commerce.availability.estimate.web.internal.display.context;
 
 import com.liferay.commerce.availability.estimate.web.internal.util.CommerceAvailabilityEstimateUtil;
 import com.liferay.commerce.constants.CommerceActionKeys;
+import com.liferay.commerce.constants.CommercePortletKeys;
 import com.liferay.commerce.model.CommerceAvailabilityEstimate;
 import com.liferay.commerce.service.CommerceAvailabilityEstimateService;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
@@ -23,13 +24,12 @@ import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-
-import java.util.List;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -73,14 +73,27 @@ public class CommerceAvailabilityEstimateDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		return ParamUtil.getString(
-			_renderRequest, SearchContainer.DEFAULT_ORDER_BY_COL_PARAM,
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
+		}
+
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_renderRequest, CommercePortletKeys.COMMERCE_AVAILABILITY_ESTIMATE,
 			"priority");
+
+		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		return ParamUtil.getString(
-			_renderRequest, SearchContainer.DEFAULT_ORDER_BY_TYPE_PARAM, "asc");
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_renderRequest, CommercePortletKeys.COMMERCE_AVAILABILITY_ESTIMATE,
+			"asc");
+
+		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
@@ -90,7 +103,7 @@ public class CommerceAvailabilityEstimateDisplayContext {
 			"orderByCol", getOrderByCol()
 		).setParameter(
 			"orderByType", getOrderByType()
-		).build();
+		).buildPortletURL();
 	}
 
 	public SearchContainer<CommerceAvailabilityEstimate> getSearchContainer()
@@ -103,37 +116,27 @@ public class CommerceAvailabilityEstimateDisplayContext {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String emptyResultsMessage = "there-are-no-availability-estimates";
-
 		_searchContainer = new SearchContainer<>(
-			_renderRequest, getPortletURL(), null, emptyResultsMessage);
+			_renderRequest, getPortletURL(), null,
+			"there-are-no-availability-estimates");
 
-		String orderByCol = getOrderByCol();
-		String orderByType = getOrderByType();
-
-		OrderByComparator<CommerceAvailabilityEstimate> orderByComparator =
+		_searchContainer.setOrderByCol(getOrderByCol());
+		_searchContainer.setOrderByComparator(
 			CommerceAvailabilityEstimateUtil.
 				getCommerceAvailabilityEstimateOrderByComparator(
-					orderByCol, orderByType);
-
-		_searchContainer.setOrderByCol(orderByCol);
-		_searchContainer.setOrderByComparator(orderByComparator);
-		_searchContainer.setOrderByType(orderByType);
-		_searchContainer.setRowChecker(getRowChecker());
-
-		int total =
+					getOrderByCol(), getOrderByType()));
+		_searchContainer.setOrderByType(getOrderByType());
+		_searchContainer.setResultsAndTotal(
+			() ->
+				_commerceAvailabilityEstimateService.
+					getCommerceAvailabilityEstimates(
+						themeDisplay.getCompanyId(),
+						_searchContainer.getStart(), _searchContainer.getEnd(),
+						_searchContainer.getOrderByComparator()),
 			_commerceAvailabilityEstimateService.
 				getCommerceAvailabilityEstimatesCount(
-					themeDisplay.getCompanyId());
-
-		List<CommerceAvailabilityEstimate> results =
-			_commerceAvailabilityEstimateService.
-				getCommerceAvailabilityEstimates(
-					themeDisplay.getCompanyId(), _searchContainer.getStart(),
-					_searchContainer.getEnd(), orderByComparator);
-
-		_searchContainer.setTotal(total);
-		_searchContainer.setResults(results);
+					themeDisplay.getCompanyId()));
+		_searchContainer.setRowChecker(_getRowChecker());
 
 		return _searchContainer;
 	}
@@ -147,7 +150,7 @@ public class CommerceAvailabilityEstimateDisplayContext {
 			CommerceActionKeys.MANAGE_COMMERCE_AVAILABILITY_ESTIMATES);
 	}
 
-	protected RowChecker getRowChecker() {
+	private RowChecker _getRowChecker() {
 		if (_rowChecker == null) {
 			_rowChecker = new EmptyOnClickRowChecker(_renderResponse);
 		}
@@ -158,6 +161,8 @@ public class CommerceAvailabilityEstimateDisplayContext {
 	private CommerceAvailabilityEstimate _commerceAvailabilityEstimate;
 	private final CommerceAvailabilityEstimateService
 		_commerceAvailabilityEstimateService;
+	private String _orderByCol;
+	private String _orderByType;
 	private final PortletResourcePermission _portletResourcePermission;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;

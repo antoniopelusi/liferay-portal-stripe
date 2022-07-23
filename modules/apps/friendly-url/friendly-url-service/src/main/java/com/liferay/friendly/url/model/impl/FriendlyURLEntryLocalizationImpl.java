@@ -19,8 +19,4 @@ package com.liferay.friendly.url.model.impl;
  */
 public class FriendlyURLEntryLocalizationImpl
 	extends FriendlyURLEntryLocalizationBaseImpl {
-
-	public FriendlyURLEntryLocalizationImpl() {
-	}
-
 }

@@ -121,9 +121,8 @@ public class JobStateSerializeUtil {
 			_EXCEPTIONS_MAX_SIZE_FIELD, jobState.getExceptionsMaxSize());
 		jobStateMap.put(_TRIGGER_DATES_FIELD, jobState.getTriggerDates());
 
-		TriggerState triggerState = jobState.getTriggerState();
-
-		jobStateMap.put(_TRIGGER_STATE_FIELD, triggerState.toString());
+		jobStateMap.put(
+			_TRIGGER_STATE_FIELD, String.valueOf(jobState.getTriggerState()));
 
 		jobStateMap.put(_VERSION_FIELD, JobState.VERSION);
 

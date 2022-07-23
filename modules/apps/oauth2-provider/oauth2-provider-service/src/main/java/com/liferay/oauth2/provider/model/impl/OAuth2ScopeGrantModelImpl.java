@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -250,34 +252,6 @@ public class OAuth2ScopeGrantModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, OAuth2ScopeGrant>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			OAuth2ScopeGrant.class.getClassLoader(), OAuth2ScopeGrant.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<OAuth2ScopeGrant> constructor =
-				(Constructor<OAuth2ScopeGrant>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<OAuth2ScopeGrant, Object>>
@@ -578,6 +552,28 @@ public class OAuth2ScopeGrantModelImpl
 	}
 
 	@Override
+	public OAuth2ScopeGrant cloneWithOriginalValues() {
+		OAuth2ScopeGrantImpl oAuth2ScopeGrantImpl = new OAuth2ScopeGrantImpl();
+
+		oAuth2ScopeGrantImpl.setOAuth2ScopeGrantId(
+			this.<Long>getColumnOriginalValue("oAuth2ScopeGrantId"));
+		oAuth2ScopeGrantImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		oAuth2ScopeGrantImpl.setOAuth2ApplicationScopeAliasesId(
+			this.<Long>getColumnOriginalValue("oA2AScopeAliasesId"));
+		oAuth2ScopeGrantImpl.setApplicationName(
+			this.<String>getColumnOriginalValue("applicationName"));
+		oAuth2ScopeGrantImpl.setBundleSymbolicName(
+			this.<String>getColumnOriginalValue("bundleSymbolicName"));
+		oAuth2ScopeGrantImpl.setScope(
+			this.<String>getColumnOriginalValue("scope"));
+		oAuth2ScopeGrantImpl.setScopeAliases(
+			this.<String>getColumnOriginalValue("scopeAliases"));
+
+		return oAuth2ScopeGrantImpl;
+	}
+
+	@Override
 	public int compareTo(OAuth2ScopeGrant oAuth2ScopeGrant) {
 		long primaryKey = oAuth2ScopeGrant.getPrimaryKey();
 
@@ -700,7 +696,7 @@ public class OAuth2ScopeGrantModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -711,9 +707,27 @@ public class OAuth2ScopeGrantModelImpl
 			Function<OAuth2ScopeGrant, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((OAuth2ScopeGrant)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(OAuth2ScopeGrant)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -760,7 +774,9 @@ public class OAuth2ScopeGrantModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, OAuth2ScopeGrant>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					OAuth2ScopeGrant.class, ModelWrapper.class);
 
 	}
 

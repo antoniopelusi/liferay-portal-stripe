@@ -31,7 +31,7 @@
 				).setMVCRenderCommandName(
 					"/blogs_aggregator/view"
 				).setParameter(
-					"blogsPortletFound", Boolean.FALSE.toString()
+					"blogsPortletFound", false
 				).buildString()));
 		sb.append("&entryId=");
 		sb.append(entry.getEntryId());
@@ -52,7 +52,7 @@
 								<strong><%= HtmlUtil.escape(entry.getUserName()) %></strong>
 
 								<span> - </span>
-								<span class="hide-accessible"><liferay-ui:message key="published-date" /></span>
+								<span class="hide-accessible sr-only"><liferay-ui:message key="published-date" /></span>
 								<%= dateFormatDate.format(entry.getDisplayDate()) %>
 							</small>
 						</div>
@@ -63,7 +63,7 @@
 								<strong><%= HtmlUtil.escape(entry.getUserName()) %></strong>
 
 								<span> - </span>
-								<span class="hide-accessible"><liferay-ui:message key="published-date" /></span>
+								<span class="hide-accessible sr-only"><liferay-ui:message key="published-date" /></span>
 								<%= dateFormatDate.format(entry.getDisplayDate()) %>
 							</small>
 						</div>
@@ -169,5 +169,5 @@
 		</c:if>
 	</div>
 
-	<div class="separator"><!-- --></div>
+	<hr class="separator" />
 </c:if>

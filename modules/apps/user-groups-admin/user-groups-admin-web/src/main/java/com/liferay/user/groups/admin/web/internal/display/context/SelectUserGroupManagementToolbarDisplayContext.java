@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -67,33 +66,38 @@ public class SelectUserGroupManagementToolbarDisplayContext {
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/select_user_group.jsp"
-		).build();
+		).setKeywords(
+			() -> {
+				String[] keywords = ParamUtil.getStringValues(
+					_httpServletRequest, "keywords");
 
-		User selUser = _getSelectedUser();
+				if (ArrayUtil.isNotEmpty(keywords)) {
+					return keywords[keywords.length - 1];
+				}
 
-		if (selUser != null) {
-			portletURL.setParameter(
-				"p_u_i_d", String.valueOf(selUser.getUserId()));
-		}
+				return null;
+			}
+		).setParameter(
+			"eventName",
+			ParamUtil.getString(
+				_httpServletRequest, "eventName",
+				_renderResponse.getNamespace() + "selectUserGroup")
+		).setParameter(
+			"p_u_i_d",
+			() -> {
+				User selUser = _getSelectedUser();
 
-		String eventName = ParamUtil.getString(
-			_httpServletRequest, "eventName",
-			_renderResponse.getNamespace() + "selectUserGroup");
+				if (selUser != null) {
+					return selUser.getUserId();
+				}
 
-		portletURL.setParameter("eventName", eventName);
-
-		String[] keywords = ParamUtil.getStringValues(
-			_httpServletRequest, "keywords");
-
-		if (ArrayUtil.isNotEmpty(keywords)) {
-			portletURL.setParameter("keywords", keywords[keywords.length - 1]);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	public String getSearchActionURL() {
@@ -120,36 +124,25 @@ public class SelectUserGroupManagementToolbarDisplayContext {
 		UserGroupDisplayTerms searchTerms =
 			(UserGroupDisplayTerms)userGroupSearch.getSearchTerms();
 
-		List<UserGroup> results = null;
-		int total = 0;
-
 		if (filterManageableUserGroups) {
-			List<UserGroup> userGroups = UserGroupLocalServiceUtil.search(
-				themeDisplay.getCompanyId(), searchTerms.getKeywords(), null,
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-				userGroupSearch.getOrderByComparator());
-
-			userGroups = UsersAdminUtil.filterUserGroups(
-				themeDisplay.getPermissionChecker(), userGroups);
-
-			total = userGroups.size();
-
-			results = ListUtil.subList(
-				userGroups, userGroupSearch.getStart(),
-				userGroupSearch.getEnd());
+			userGroupSearch.setResultsAndTotal(
+				UsersAdminUtil.filterUserGroups(
+					themeDisplay.getPermissionChecker(),
+					UserGroupLocalServiceUtil.search(
+						themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+						null, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+						userGroupSearch.getOrderByComparator())));
 		}
 		else {
-			total = UserGroupLocalServiceUtil.searchCount(
-				themeDisplay.getCompanyId(), searchTerms.getKeywords(), null);
-
-			results = UserGroupLocalServiceUtil.search(
-				themeDisplay.getCompanyId(), searchTerms.getKeywords(), null,
-				userGroupSearch.getStart(), userGroupSearch.getEnd(),
-				userGroupSearch.getOrderByComparator());
+			userGroupSearch.setResultsAndTotal(
+				() -> UserGroupLocalServiceUtil.search(
+					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+					null, userGroupSearch.getStart(), userGroupSearch.getEnd(),
+					userGroupSearch.getOrderByComparator()),
+				UserGroupLocalServiceUtil.searchCount(
+					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+					null));
 		}
-
-		userGroupSearch.setResults(results);
-		userGroupSearch.setTotal(total);
 
 		_userGroupSearch = userGroupSearch;
 
@@ -169,7 +162,7 @@ public class SelectUserGroupManagementToolbarDisplayContext {
 			return PortalUtil.getSelectedUser(_httpServletRequest);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return null;
 		}

@@ -1,0 +1,8 @@
+{
+	"configuration": {
+		"generalConfiguration": {
+			"includeResponseString": true,
+			"queryString": "__NODOCUMENTSHOULDEVERMATCHTHISSEARCH__"
+		}
+	}
+}

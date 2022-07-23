@@ -27,7 +27,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.captcha.CaptchaException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Release;
@@ -153,7 +152,7 @@ public class WebFormPortlet extends MVCPortlet {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(captchaException, captchaException);
+					_log.debug(captchaException);
 				}
 
 				Class<?> clazz = captchaException.getClass();
@@ -190,10 +189,10 @@ public class WebFormPortlet extends MVCPortlet {
 			WebKeys.THEME_DISPLAY);
 
 		WebFormServiceConfiguration webFormServiceConfiguration =
-			getWebFormServiceConfiguration(themeDisplay.getCompanyId());
+			_getWebFormServiceConfiguration(themeDisplay.getCompanyId());
 
 		try {
-			validationErrors = validate(
+			validationErrors = _validate(
 				fieldsMap, webFormServiceConfiguration.validationScriptEnable(),
 				preferences);
 		}
@@ -217,7 +216,7 @@ public class WebFormPortlet extends MVCPortlet {
 				preferences.getValue("sendAsEmail", StringPool.BLANK));
 
 			if (sendAsEmail) {
-				emailSuccess = sendEmail(
+				emailSuccess = _sendEmail(
 					fieldsMap, preferences, webFormServiceConfiguration);
 			}
 
@@ -239,7 +238,7 @@ public class WebFormPortlet extends MVCPortlet {
 					preferences.store();
 				}
 
-				databaseSuccess = saveDatabase(
+				databaseSuccess = _saveDatabase(
 					themeDisplay.getCompanyId(), fieldsMap, preferences,
 					databaseTableName);
 			}
@@ -252,7 +251,7 @@ public class WebFormPortlet extends MVCPortlet {
 					themeDisplay, portletId,
 					webFormServiceConfiguration.dataRootDir());
 
-				fileSuccess = saveFile(
+				fileSuccess = _saveFile(
 					fieldsMap, webFormServiceConfiguration.csvSeparator(),
 					fileName);
 			}
@@ -294,254 +293,11 @@ public class WebFormPortlet extends MVCPortlet {
 
 		try {
 			if (cmd.equals("export")) {
-				exportData(resourceRequest, resourceResponse);
+				_exportData(resourceRequest, resourceResponse);
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
-		}
-	}
-
-	protected void appendFieldLabels(
-		Map<String, String> fieldsMap, String csvSeparator, StringBundler sb) {
-
-		for (String fieldLabel : fieldsMap.keySet()) {
-			sb.append(getCSVFormattedValue(fieldLabel));
-			sb.append(csvSeparator);
-		}
-
-		sb.setIndex(sb.index() - 1);
-
-		sb.append(CharPool.NEW_LINE);
-	}
-
-	protected void appendFieldValues(
-		Map<String, String> fieldsMap, String csvSeparator, StringBundler sb) {
-
-		for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
-			sb.append(getCSVFormattedValue(entry.getValue()));
-			sb.append(csvSeparator);
-		}
-
-		sb.setIndex(sb.index() - 1);
-
-		sb.append(CharPool.NEW_LINE);
-	}
-
-	protected void exportData(
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		PortletPermissionUtil.check(
-			themeDisplay.getPermissionChecker(), themeDisplay.getPlid(),
-			_portal.getPortletId(resourceRequest), ActionKeys.CONFIGURATION);
-
-		PortletPreferences preferences =
-			PortletPreferencesFactoryUtil.getPortletSetup(resourceRequest);
-
-		String databaseTableName = preferences.getValue(
-			"databaseTableName", StringPool.BLANK);
-		String title = preferences.getValue("title", "no-title");
-
-		StringBundler sb = new StringBundler();
-
-		List<String> fieldLabels = new ArrayList<>();
-
-		WebFormServiceConfiguration webFormServiceConfiguration =
-			getWebFormServiceConfiguration(themeDisplay.getCompanyId());
-
-		String csvSeparator = webFormServiceConfiguration.csvSeparator();
-
-		for (int i = 1; true; i++) {
-			String fieldLabel = preferences.getValue(
-				"fieldLabel" + i, StringPool.BLANK);
-
-			if (Validator.isNull(fieldLabel)) {
-				break;
-			}
-
-			fieldLabels.add(fieldLabel);
-
-			String localizedfieldLabel = LocalizationUtil.getPreferencesValue(
-				preferences, "fieldLabel" + i, themeDisplay.getLanguageId());
-
-			sb.append(getCSVFormattedValue(localizedfieldLabel));
-
-			sb.append(csvSeparator);
-		}
-
-		sb.setIndex(sb.index() - 1);
-
-		sb.append(CharPool.NEW_LINE);
-
-		if (Validator.isNotNull(databaseTableName)) {
-			List<ExpandoRow> rows = _expandoRowLocalService.getRows(
-				themeDisplay.getCompanyId(), WebFormUtil.class.getName(),
-				databaseTableName, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-			for (ExpandoRow row : rows) {
-				for (String fieldName : fieldLabels) {
-					String data = _expandoValueLocalService.getData(
-						themeDisplay.getCompanyId(),
-						WebFormUtil.class.getName(), databaseTableName,
-						fieldName, row.getClassPK(), StringPool.BLANK);
-
-					sb.append(getCSVFormattedValue(data));
-
-					sb.append(csvSeparator);
-				}
-
-				sb.setIndex(sb.index() - 1);
-
-				sb.append(CharPool.NEW_LINE);
-			}
-		}
-
-		String fileName = title + ".csv";
-
-		String s = sb.toString();
-
-		byte[] bytes = s.getBytes();
-
-		String contentType = ContentTypes.APPLICATION_TEXT;
-
-		PortletResponseUtil.sendFile(
-			resourceRequest, resourceResponse, fileName, bytes, contentType);
-	}
-
-	protected String getCSVFormattedValue(String value) {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(CharPool.QUOTE);
-		sb.append(
-			StringUtil.replace(value, CharPool.QUOTE, StringPool.DOUBLE_QUOTE));
-		sb.append(CharPool.QUOTE);
-
-		return sb.toString();
-	}
-
-	protected String getMailBody(Map<String, String> fieldsMap) {
-		StringBundler sb = new StringBundler();
-
-		for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
-			sb.append(entry.getKey());
-			sb.append(" : ");
-			sb.append(entry.getValue());
-			sb.append(CharPool.NEW_LINE);
-		}
-
-		return sb.toString();
-	}
-
-	protected WebFormServiceConfiguration getWebFormServiceConfiguration(
-			long companyId)
-		throws PortalException {
-
-		return _configurationProvider.getCompanyConfiguration(
-			WebFormServiceConfiguration.class, companyId);
-	}
-
-	protected boolean saveDatabase(
-			long companyId, Map<String, String> fieldsMap,
-			PortletPreferences preferences, String databaseTableName)
-		throws Exception {
-
-		WebFormUtil.checkTable(companyId, databaseTableName, preferences);
-
-		long classPK = _counterLocalService.increment(
-			WebFormUtil.class.getName());
-
-		try {
-			for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
-				_expandoValueLocalService.addValue(
-					companyId, WebFormUtil.class.getName(), databaseTableName,
-					entry.getKey(), classPK, entry.getValue());
-			}
-
-			return true;
-		}
-		catch (Exception exception) {
-			_log.error(
-				"The web form data could not be saved to the database",
-				exception);
-
-			return false;
-		}
-	}
-
-	protected boolean saveFile(
-			Map<String, String> fieldsMap, String csvSeparator, String fileName)
-		throws PortalException {
-
-		StringBundler sb = new StringBundler();
-
-		if (!FileUtil.exists(fileName)) {
-			appendFieldLabels(fieldsMap, csvSeparator, sb);
-		}
-
-		appendFieldValues(fieldsMap, csvSeparator, sb);
-
-		try {
-			FileUtil.write(fileName, sb.toString(), false, true);
-
-			return true;
-		}
-		catch (Exception exception) {
-			_log.error(
-				"The web form data could not be saved to a file", exception);
-
-			return false;
-		}
-	}
-
-	protected boolean sendEmail(
-		Map<String, String> fieldsMap, PortletPreferences preferences,
-		WebFormServiceConfiguration webFormServiceConfiguration) {
-
-		try {
-			String emailAddresses = preferences.getValue(
-				"emailAddress", StringPool.BLANK);
-
-			if (Validator.isNull(emailAddresses)) {
-				_log.error(
-					"The web form email cannot be sent because no email " +
-						"address is configured");
-
-				return false;
-			}
-
-			String emailFromAddress = preferences.getValue(
-				"emailFromAddress",
-				webFormServiceConfiguration.emailFromAddress());
-
-			String emailFromName = preferences.getValue(
-				"emailFromName", webFormServiceConfiguration.emailFromName());
-
-			InternetAddress fromAddress = new InternetAddress(
-				emailFromAddress, emailFromName);
-
-			String subject = preferences.getValue("subject", StringPool.BLANK);
-			String body = getMailBody(fieldsMap);
-
-			MailMessage mailMessage = new MailMessage(
-				fromAddress, subject, body, false);
-
-			InternetAddress[] toAddresses = InternetAddress.parse(
-				emailAddresses);
-
-			mailMessage.setTo(toAddresses);
-
-			_mailService.sendEmail(mailMessage);
-
-			return true;
-		}
-		catch (Exception exception) {
-			_log.error("The web form email could not be sent", exception);
-
-			return false;
+			_log.error(exception);
 		}
 	}
 
@@ -585,7 +341,246 @@ public class WebFormPortlet extends MVCPortlet {
 	protected void setRelease(Release release) {
 	}
 
-	protected Set<String> validate(
+	private void _appendFieldLabels(
+		Map<String, String> fieldsMap, String csvSeparator, StringBundler sb) {
+
+		for (String fieldLabel : fieldsMap.keySet()) {
+			sb.append(_getCSVFormattedValue(fieldLabel));
+			sb.append(csvSeparator);
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(CharPool.NEW_LINE);
+	}
+
+	private void _appendFieldValues(
+		Map<String, String> fieldsMap, String csvSeparator, StringBundler sb) {
+
+		for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
+			sb.append(_getCSVFormattedValue(entry.getValue()));
+			sb.append(csvSeparator);
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(CharPool.NEW_LINE);
+	}
+
+	private void _exportData(
+			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PortletPermissionUtil.check(
+			themeDisplay.getPermissionChecker(), themeDisplay.getPlid(),
+			_portal.getPortletId(resourceRequest), ActionKeys.CONFIGURATION);
+
+		PortletPreferences preferences =
+			PortletPreferencesFactoryUtil.getPortletSetup(resourceRequest);
+
+		String databaseTableName = preferences.getValue(
+			"databaseTableName", StringPool.BLANK);
+		String title = preferences.getValue("title", "no-title");
+
+		StringBundler sb = new StringBundler();
+
+		List<String> fieldLabels = new ArrayList<>();
+
+		WebFormServiceConfiguration webFormServiceConfiguration =
+			_getWebFormServiceConfiguration(themeDisplay.getCompanyId());
+
+		String csvSeparator = webFormServiceConfiguration.csvSeparator();
+
+		for (int i = 1; true; i++) {
+			String fieldLabel = preferences.getValue(
+				"fieldLabel" + i, StringPool.BLANK);
+
+			if (Validator.isNull(fieldLabel)) {
+				break;
+			}
+
+			fieldLabels.add(fieldLabel);
+
+			String localizedfieldLabel = LocalizationUtil.getPreferencesValue(
+				preferences, "fieldLabel" + i, themeDisplay.getLanguageId());
+
+			sb.append(_getCSVFormattedValue(localizedfieldLabel));
+
+			sb.append(csvSeparator);
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(CharPool.NEW_LINE);
+
+		if (Validator.isNotNull(databaseTableName)) {
+			List<ExpandoRow> rows = _expandoRowLocalService.getRows(
+				themeDisplay.getCompanyId(), WebFormUtil.class.getName(),
+				databaseTableName, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+			for (ExpandoRow row : rows) {
+				for (String fieldName : fieldLabels) {
+					sb.append(
+						_getCSVFormattedValue(
+							_expandoValueLocalService.getData(
+								themeDisplay.getCompanyId(),
+								WebFormUtil.class.getName(), databaseTableName,
+								fieldName, row.getClassPK(),
+								StringPool.BLANK)));
+					sb.append(csvSeparator);
+				}
+
+				sb.setIndex(sb.index() - 1);
+
+				sb.append(CharPool.NEW_LINE);
+			}
+		}
+
+		String fileName = title + ".csv";
+
+		String s = sb.toString();
+
+		byte[] bytes = s.getBytes();
+
+		String contentType = ContentTypes.APPLICATION_TEXT;
+
+		PortletResponseUtil.sendFile(
+			resourceRequest, resourceResponse, fileName, bytes, contentType);
+	}
+
+	private String _getCSVFormattedValue(String value) {
+		return StringBundler.concat(
+			CharPool.QUOTE,
+			StringUtil.replace(value, CharPool.QUOTE, StringPool.DOUBLE_QUOTE),
+			CharPool.QUOTE);
+	}
+
+	private String _getMailBody(Map<String, String> fieldsMap) {
+		StringBundler sb = new StringBundler();
+
+		for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
+			sb.append(entry.getKey());
+			sb.append(" : ");
+			sb.append(entry.getValue());
+			sb.append(CharPool.NEW_LINE);
+		}
+
+		return sb.toString();
+	}
+
+	private WebFormServiceConfiguration _getWebFormServiceConfiguration(
+			long companyId)
+		throws Exception {
+
+		return _configurationProvider.getCompanyConfiguration(
+			WebFormServiceConfiguration.class, companyId);
+	}
+
+	private boolean _saveDatabase(
+			long companyId, Map<String, String> fieldsMap,
+			PortletPreferences preferences, String databaseTableName)
+		throws Exception {
+
+		WebFormUtil.checkTable(companyId, databaseTableName, preferences);
+
+		long classPK = _counterLocalService.increment(
+			WebFormUtil.class.getName());
+
+		try {
+			for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
+				_expandoValueLocalService.addValue(
+					companyId, WebFormUtil.class.getName(), databaseTableName,
+					entry.getKey(), classPK, entry.getValue());
+			}
+
+			return true;
+		}
+		catch (Exception exception) {
+			_log.error(
+				"The web form data could not be saved to the database",
+				exception);
+
+			return false;
+		}
+	}
+
+	private boolean _saveFile(
+			Map<String, String> fieldsMap, String csvSeparator, String fileName)
+		throws Exception {
+
+		StringBundler sb = new StringBundler();
+
+		if (!FileUtil.exists(fileName)) {
+			_appendFieldLabels(fieldsMap, csvSeparator, sb);
+		}
+
+		_appendFieldValues(fieldsMap, csvSeparator, sb);
+
+		try {
+			FileUtil.write(fileName, sb.toString(), false, true);
+
+			return true;
+		}
+		catch (Exception exception) {
+			_log.error(
+				"The web form data could not be saved to a file", exception);
+
+			return false;
+		}
+	}
+
+	private boolean _sendEmail(
+		Map<String, String> fieldsMap, PortletPreferences preferences,
+		WebFormServiceConfiguration webFormServiceConfiguration) {
+
+		try {
+			String emailAddresses = preferences.getValue(
+				"emailAddress", StringPool.BLANK);
+
+			if (Validator.isNull(emailAddresses)) {
+				_log.error(
+					"The web form email cannot be sent because no email " +
+						"address is configured");
+
+				return false;
+			}
+
+			String emailFromAddress = preferences.getValue(
+				"emailFromAddress",
+				webFormServiceConfiguration.emailFromAddress());
+
+			String emailFromName = preferences.getValue(
+				"emailFromName", webFormServiceConfiguration.emailFromName());
+
+			InternetAddress fromAddress = new InternetAddress(
+				emailFromAddress, emailFromName);
+
+			String subject = preferences.getValue("subject", StringPool.BLANK);
+			String body = _getMailBody(fieldsMap);
+
+			MailMessage mailMessage = new MailMessage(
+				fromAddress, subject, body, false);
+
+			InternetAddress[] toAddresses = InternetAddress.parse(
+				emailAddresses);
+
+			mailMessage.setTo(toAddresses);
+
+			_mailService.sendEmail(mailMessage);
+
+			return true;
+		}
+		catch (Exception exception) {
+			_log.error("The web form email could not be sent", exception);
+
+			return false;
+		}
+	}
+
+	private Set<String> _validate(
 			Map<String, String> fieldsMap, boolean validationScriptEnable,
 			PortletPreferences preferences)
 		throws Exception {

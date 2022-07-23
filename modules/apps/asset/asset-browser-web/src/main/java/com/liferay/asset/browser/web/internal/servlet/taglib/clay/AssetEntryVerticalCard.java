@@ -73,12 +73,9 @@ public class AssetEntryVerticalCard implements VerticalCard {
 
 	@Override
 	public Map<String, String> getDynamicAttributes() {
-		if (_assetBrowserDisplayContext.isMultipleSelection()) {
-			return null;
-		}
-
-		if (_assetEntry.getEntryId() ==
-				_assetBrowserDisplayContext.getRefererAssetEntryId()) {
+		if (_assetBrowserDisplayContext.isMultipleSelection() ||
+			(_assetEntry.getEntryId() ==
+				_assetBrowserDisplayContext.getRefererAssetEntryId())) {
 
 			return null;
 		}
@@ -113,7 +110,7 @@ public class AssetEntryVerticalCard implements VerticalCard {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -133,11 +130,16 @@ public class AssetEntryVerticalCard implements VerticalCard {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getInputValue() {
+		return String.valueOf(_assetEntry.getEntryId());
 	}
 
 	@Override
@@ -170,7 +172,7 @@ public class AssetEntryVerticalCard implements VerticalCard {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}

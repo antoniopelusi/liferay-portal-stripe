@@ -60,6 +60,10 @@ public interface PortletService extends BaseService {
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public JSONArray getWARPortlets();
 
+	@JSONWebService
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public boolean hasPortlet(long companyId, String portletId);
+
 	public Portlet updatePortlet(
 			long companyId, String portletId, String roles, boolean active)
 		throws PortalException;

@@ -109,7 +109,7 @@ public class AutocompleteUserMVCResourceCommand extends BaseMVCResourceCommand {
 			return Collections.emptyList();
 		}
 
-		return _userLocalService.searchSocial(
+		return _userLocalService.searchBySocial(
 			themeDisplay.getCompanyId(), user.getGroupIds(), query, 0, 20,
 			new UserScreenNameComparator());
 	}

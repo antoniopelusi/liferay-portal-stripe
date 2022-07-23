@@ -125,6 +125,11 @@ public class PortletItemWrapper
 		}
 	}
 
+	@Override
+	public PortletItem cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this portlet item.
 	 *

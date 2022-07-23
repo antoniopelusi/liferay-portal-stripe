@@ -85,9 +85,5 @@
 			<finder-column name="taskExecutorClassName" />
 			<finder-column name="completed" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 </service-builder>

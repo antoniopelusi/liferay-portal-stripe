@@ -76,17 +76,13 @@ public class JournalFolderModelValidator
 						article.getDDMStructureKey(), true);
 
 				if (ddmStructure == null) {
-					StringBundler sb = new StringBundler(7);
-
-					sb.append("No DDM structure exists for group ");
-					sb.append(article.getGroupId());
-					sb.append(", class name ");
-					sb.append(classNameId);
-					sb.append(", and structure key ");
-					sb.append(article.getDDMStructureKey());
-					sb.append(" that includes ancestor structures");
-
-					throw new InvalidDDMStructureException(sb.toString());
+					throw new InvalidDDMStructureException(
+						StringBundler.concat(
+							"No DDM structure exists for group ",
+							article.getGroupId(), ", class name ", classNameId,
+							", and structure key ",
+							article.getDDMStructureKey(),
+							" that includes ancestor structures"));
 				}
 
 				if (!ArrayUtil.contains(

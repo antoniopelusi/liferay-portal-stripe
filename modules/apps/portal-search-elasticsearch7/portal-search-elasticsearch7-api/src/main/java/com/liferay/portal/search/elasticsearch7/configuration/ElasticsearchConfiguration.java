@@ -147,6 +147,12 @@ public interface ElasticsearchConfiguration {
 	public boolean logExceptionsOnly();
 
 	@Meta.AD(
+		deflt = "0.0.0", description = "minimum-required-node-version-help",
+		name = "minimum-required-node-version", required = false
+	)
+	public String minimumRequiredNodeVersion();
+
+	@Meta.AD(
 		deflt = "ERROR", description = "rest-client-logger-level-help",
 		name = "rest-client-logger-level", required = false
 	)
@@ -273,7 +279,7 @@ public interface ElasticsearchConfiguration {
 	public long sidecarHeartbeatInterval();
 
 	@Meta.AD(
-		deflt = "elasticsearch7", description = "sidecar-home-help",
+		deflt = "elasticsearch-sidecar", description = "sidecar-home-help",
 		name = "sidecar-home", required = false
 	)
 	public String sidecarHome();
@@ -292,13 +298,15 @@ public interface ElasticsearchConfiguration {
 	public long sidecarShutdownTimeout();
 
 	@Meta.AD(
-		description = "proxy-host-help", name = "proxy-host", required = false
+		description = "set-the-proxy-host-to-be-used-for-the-client-connection",
+		name = "proxy-host", required = false
 	)
 	public String proxyHost();
 
 	@Meta.AD(
-		deflt = "0", description = "proxy-port-help", name = "proxy-port",
-		required = false
+		deflt = "0",
+		description = "set-the-proxy-port-to-be-used-for-the-client-connection",
+		name = "proxy-port", required = false
 	)
 	public int proxyPort();
 
@@ -309,8 +317,8 @@ public interface ElasticsearchConfiguration {
 	public String proxyUserName();
 
 	@Meta.AD(
-		description = "proxy-password-help", name = "proxy-password",
-		required = false, type = Meta.Type.Password
+		description = "set-the-password-for-connecting-to-the-proxy",
+		name = "proxy-password", required = false, type = Meta.Type.Password
 	)
 	public String proxyPassword();
 

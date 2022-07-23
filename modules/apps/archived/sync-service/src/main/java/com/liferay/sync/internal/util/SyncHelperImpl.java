@@ -20,13 +20,9 @@ import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.service.DLFileVersionLocalService;
-import com.liferay.petra.io.delta.ByteChannelReader;
-import com.liferay.petra.io.delta.ByteChannelWriter;
-import com.liferay.petra.io.delta.DeltaUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.lock.Lock;
 import com.liferay.portal.kernel.log.Log;
@@ -54,7 +50,7 @@ import com.liferay.portal.kernel.util.PwdGenerator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.sync.SyncSiteUnavailableException;
 import com.liferay.sync.constants.SyncConstants;
 import com.liferay.sync.constants.SyncDLObjectConstants;
@@ -65,6 +61,9 @@ import com.liferay.sync.model.SyncDevice;
 import com.liferay.sync.model.impl.SyncDLObjectImpl;
 import com.liferay.sync.service.SyncDLObjectLocalService;
 import com.liferay.sync.service.configuration.SyncServiceConfigurationKeys;
+import com.liferay.sync.service.io.delta.ByteChannelReader;
+import com.liferay.sync.service.io.delta.ByteChannelWriter;
+import com.liferay.sync.service.io.delta.DeltaUtil;
 import com.liferay.sync.util.SyncHelper;
 
 import java.io.File;
@@ -162,7 +161,7 @@ public class SyncHelperImpl implements SyncHelper {
 
 		// SYNC-1253
 
-		StringBundler sb = new StringBundler(13);
+		StringBundler sb = new StringBundler(9);
 
 		if (throwable instanceof InvocationTargetException) {
 			throwable = throwable.getCause();
@@ -176,20 +175,14 @@ public class SyncHelperImpl implements SyncHelper {
 
 		sb.append(StringPool.QUOTE);
 		sb.append(throwableMessage);
-		sb.append(StringPool.QUOTE);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append("\"error\": ");
-
-		JSONObject errorJSONObject = JSONUtil.put(
-			"message", throwableMessage
-		).put(
-			"type", ClassUtil.getClassName(throwable)
-		);
-
-		sb.append(errorJSONObject.toString());
-
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append("\"throwable\": \"");
+		sb.append("\", \"error\": ");
+		sb.append(
+			JSONUtil.put(
+				"message", throwableMessage
+			).put(
+				"type", ClassUtil.getClassName(throwable)
+			).toString());
+		sb.append(", \"throwable\": \"");
 		sb.append(throwable.toString());
 		sb.append(StringPool.QUOTE);
 
@@ -197,8 +190,7 @@ public class SyncHelperImpl implements SyncHelper {
 			return StringUtil.unquote(sb.toString());
 		}
 
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append("\"rootCause\": ");
+		sb.append(", \"rootCause\": ");
 
 		Throwable rootCauseThrowable = throwable;
 
@@ -250,7 +242,7 @@ public class SyncHelperImpl implements SyncHelper {
 			return;
 		}
 
-		lanServerUuid = PortalUUIDUtil.generate();
+		lanServerUuid = _portalUUID.generate();
 
 		X500Name x500Name = new X500Name("CN=" + lanServerUuid);
 
@@ -313,7 +305,7 @@ public class SyncHelperImpl implements SyncHelper {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;
@@ -334,7 +326,7 @@ public class SyncHelperImpl implements SyncHelper {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;
@@ -478,9 +470,10 @@ public class SyncHelperImpl implements SyncHelper {
 				patchedFile);
 			WritableByteChannel patchedWritableByteChannel =
 				Channels.newChannel(patchedFileOutputStream);
-			FileInputStream deltaInputStream = new FileInputStream(deltaFile);
+			FileInputStream deltaFileInputStream = new FileInputStream(
+				deltaFile);
 			ReadableByteChannel deltaReadableByteChannel = Channels.newChannel(
-				deltaInputStream)) {
+				deltaFileInputStream)) {
 
 			ByteChannelReader deltaByteChannelReader = new ByteChannelReader(
 				deltaReadableByteChannel);
@@ -593,8 +586,7 @@ public class SyncHelperImpl implements SyncHelper {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchFileVersionException, noSuchFileVersionException);
+					_log.debug(noSuchFileVersionException);
 				}
 
 				// Publishing a checked out file entry on a staged site will
@@ -739,6 +731,10 @@ public class SyncHelperImpl implements SyncHelper {
 	private DLFileVersionLocalService _dlFileVersionLocalService;
 	private GroupLocalService _groupLocalService;
 	private final Map<String, String> _lanTokenKeys = new ConcurrentHashMap<>();
+
+	@Reference
+	private PortalUUID _portalUUID;
+
 	private final Provider _provider = new BouncyCastleProvider();
 
 }

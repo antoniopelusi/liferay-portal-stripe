@@ -83,11 +83,13 @@ public interface BatchEngineImportTaskLocalService
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public BatchEngineImportTask addBatchEngineImportTask(
-		long companyId, long userId, long batchSize, String callbackURL,
-		String className, byte[] content, String contentType,
-		String executeStatus, Map<String, String> fieldNameMappingMap,
-		String operation, Map<String, Serializable> parameters,
-		String taskItemDelegateName);
+			String externalReferenceCode, long companyId, long userId,
+			long batchSize, String callbackURL, String className,
+			byte[] content, String contentType, String executeStatus,
+			Map<String, String> fieldNameMappingMap, int importStrategy,
+			String operation, Map<String, Serializable> parameters,
+			String taskItemDelegateName)
+		throws PortalException;
 
 	/**
 	 * Creates a new batch engine import task with the primary key. Does not add the batch engine import task to the database.
@@ -144,6 +146,9 @@ public interface BatchEngineImportTaskLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -216,6 +221,26 @@ public interface BatchEngineImportTaskLocalService
 		long batchEngineImportTaskId);
 
 	/**
+	 * Returns the batch engine import task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine import task's external reference code
+	 * @return the matching batch engine import task, or <code>null</code> if a matching batch engine import task could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BatchEngineImportTask
+		fetchBatchEngineImportTaskByExternalReferenceCode(
+			long companyId, String externalReferenceCode);
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchBatchEngineImportTaskByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BatchEngineImportTask fetchBatchEngineImportTaskByReferenceCode(
+		long companyId, String externalReferenceCode);
+
+	/**
 	 * Returns the batch engine import task with the matching UUID and company.
 	 *
 	 * @param uuid the batch engine import task's UUID
@@ -239,6 +264,20 @@ public interface BatchEngineImportTaskLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public BatchEngineImportTask getBatchEngineImportTask(
 			long batchEngineImportTaskId)
+		throws PortalException;
+
+	/**
+	 * Returns the batch engine import task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine import task's external reference code
+	 * @return the matching batch engine import task
+	 * @throws PortalException if a matching batch engine import task could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BatchEngineImportTask
+			getBatchEngineImportTaskByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
 		throws PortalException;
 
 	/**
@@ -271,6 +310,15 @@ public interface BatchEngineImportTaskLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<BatchEngineImportTask> getBatchEngineImportTasks(
+		long companyId, int start, int end);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<BatchEngineImportTask> getBatchEngineImportTasks(
+		long companyId, int start, int end,
+		OrderByComparator<BatchEngineImportTask> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<BatchEngineImportTask> getBatchEngineImportTasks(
 		String executeStatus);
 
 	/**
@@ -280,6 +328,9 @@ public interface BatchEngineImportTaskLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getBatchEngineImportTasksCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getBatchEngineImportTasksCount(long companyId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public BatchEngineImportTaskContentBlobModel getContentBlobModel(

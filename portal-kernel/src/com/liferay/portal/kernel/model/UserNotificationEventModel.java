@@ -277,4 +277,7 @@ public interface UserNotificationEventModel
 	 */
 	public void setArchived(boolean archived);
 
+	@Override
+	public UserNotificationEvent cloneWithOriginalValues();
+
 }

@@ -67,7 +67,129 @@ public class DDMFormInstanceUpgradeProcess extends UpgradeProcess {
 		_resourcePermissionLocalService = resourcePermissionLocalService;
 	}
 
-	protected void collectNewActionIds(
+	@Override
+	protected void doUpgrade() throws Exception {
+		_readAndCheckResourceActions();
+
+		_duplicateResourcePermission(
+			_CLASS_NAME_RECORD_SET, _CLASS_NAME_FORM_INSTANCE);
+
+		_upgradeRootModelResourceResourcePermission(
+			"com.liferay.dynamic.data.lists",
+			"com.liferay.dynamic.data.mapping");
+
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDLRecordSet.*, TEMP_TABLE.structureVersionId ",
+					"from DDLRecordSet inner join (select structureId, ",
+					"max(structureVersionId) as structureVersionId from ",
+					"DDMStructureVersion group by ",
+					"DDMStructureVersion.structureId) TEMP_TABLE on ",
+					"DDLRecordSet.DDMStructureId = TEMP_TABLE.structureId ",
+					"where scope = 2"));
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					StringBundler.concat(
+						"insert into DDMFormInstance(uuid_, formInstanceId, ",
+						"groupId, companyId, userId, userName, versionUserId, ",
+						"versionUserName, createDate, modifiedDate, ",
+						"structureId, version, name, description, settings_, ",
+						"lastPublishDate) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+						"?, ?, ?, ?, ?, ?, ?)"))) {
+
+			while (resultSet.next()) {
+				long recordSetId = resultSet.getLong("recordSetId");
+				long structureId = resultSet.getLong("DDMStructureId");
+				long groupId = resultSet.getLong("groupId");
+				long companyId = resultSet.getLong("companyId");
+				long userId = resultSet.getLong("userId");
+				String userName = resultSet.getString("userName");
+				Timestamp createDate = resultSet.getTimestamp("createDate");
+				String name = resultSet.getString("name");
+				String description = resultSet.getString("description");
+				String settings = resultSet.getString("settings_");
+				Timestamp lastPublishDate = resultSet.getTimestamp(
+					"lastPublishDate");
+				long structureVersionId = resultSet.getLong(
+					"structureVersionId");
+
+				preparedStatement2.setString(1, PortalUUIDUtil.generate());
+				preparedStatement2.setLong(2, recordSetId);
+				preparedStatement2.setLong(3, groupId);
+				preparedStatement2.setLong(4, companyId);
+				preparedStatement2.setLong(5, userId);
+				preparedStatement2.setString(6, userName);
+				preparedStatement2.setLong(7, userId);
+				preparedStatement2.setString(8, userName);
+				preparedStatement2.setTimestamp(9, createDate);
+				preparedStatement2.setTimestamp(
+					10, resultSet.getTimestamp("modifiedDate"));
+				preparedStatement2.setLong(11, structureId);
+				preparedStatement2.setString(
+					12, DDMFormInstanceConstants.VERSION_DEFAULT);
+				preparedStatement2.setString(13, name);
+				preparedStatement2.setString(14, description);
+				preparedStatement2.setString(15, settings);
+				preparedStatement2.setTimestamp(16, lastPublishDate);
+
+				_updateDDMStructure(structureId);
+				_updateDDMStructureLink(structureId);
+
+				_upgradeDDMFormInstanceVersion(
+					groupId, companyId, userId, userName, createDate,
+					recordSetId, structureVersionId, name, description,
+					settings, lastPublishDate);
+
+				_upgradeResourcePermission(
+					recordSetId, _CLASS_NAME_RECORD_SET,
+					_CLASS_NAME_FORM_INSTANCE);
+
+				_deleteDDLRecordSet(structureId, recordSetId);
+
+				preparedStatement2.addBatch();
+			}
+
+			preparedStatement2.executeBatch();
+
+			_updateWorkflowDefinitionLink();
+		}
+	}
+
+	protected long getNewActionIds(
+		String oldName, String newName, long currentActionIds,
+		long oldActionIds) {
+
+		Set<String> actionsIdsList = new HashSet<>();
+
+		_collectNewActionIds(
+			actionsIdsList,
+			_resourceActionLocalService.getResourceActions(oldName),
+			oldActionIds);
+
+		List<ResourceAction> newResourceActions =
+			_resourceActionLocalService.getResourceActions(newName);
+
+		_collectNewActionIds(
+			actionsIdsList, newResourceActions, currentActionIds);
+
+		Stream<ResourceAction> resourceActionStream =
+			newResourceActions.stream();
+
+		Map<String, Long> map = resourceActionStream.collect(
+			Collectors.toMap(
+				resourceAction -> resourceAction.getActionId(),
+				resourceAction -> resourceAction.getBitwiseValue()));
+
+		Stream<String> actionsIdsStream = actionsIdsList.stream();
+
+		return actionsIdsStream.mapToLong(
+			actionId -> MapUtil.getLong(map, actionId)
+		).sum();
+	}
+
+	private void _collectNewActionIds(
 		Set<String> actionsIdsSet, List<ResourceAction> resourceActionList,
 		long oldActionIds) {
 
@@ -82,123 +204,33 @@ public class DDMFormInstanceUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void deleteDDLRecordSet(long ddmStructureId, long recordSetId)
+	private void _deleteDDLRecordSet(long ddmStructureId, long recordSetId)
 		throws SQLException {
 
-		deleteStructureStructureLinks(ddmStructureId);
+		_deleteStructureStructureLinks(ddmStructureId);
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"delete from DDLRecordSet where recordSetId = ?")) {
 
-			ps.setLong(1, recordSetId);
+			preparedStatement.setLong(1, recordSetId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void deleteStructureStructureLinks(long ddmStructureId)
+	private void _deleteStructureStructureLinks(long ddmStructureId)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"delete from DDMStructureLink where structureId = ?")) {
 
-			ps.setLong(1, ddmStructureId);
+			preparedStatement.setLong(1, ddmStructureId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		readAndCheckResourceActions();
-
-		duplicateResourcePermission(
-			_CLASS_NAME_RECORD_SET, _CLASS_NAME_FORM_INSTANCE);
-
-		upgradeRootModelResourceResourcePermission(
-			"com.liferay.dynamic.data.lists",
-			"com.liferay.dynamic.data.mapping");
-
-		StringBundler sb1 = new StringBundler(7);
-
-		sb1.append("select DDLRecordSet.*, TEMP_TABLE.structureVersionId ");
-		sb1.append("from DDLRecordSet inner join (select structureId, ");
-		sb1.append("max(structureVersionId) as structureVersionId from ");
-		sb1.append("DDMStructureVersion group by ");
-		sb1.append("DDMStructureVersion.structureId) TEMP_TABLE on ");
-		sb1.append("DDLRecordSet.DDMStructureId = TEMP_TABLE.structureId ");
-		sb1.append("where scope = 2");
-
-		StringBundler sb2 = new StringBundler(5);
-
-		sb2.append("insert into DDMFormInstance(uuid_, formInstanceId, ");
-		sb2.append("groupId, companyId, userId, userName, versionUserId, ");
-		sb2.append("versionUserName, createDate, modifiedDate, structureId, ");
-		sb2.append("version, name, description, settings_, lastPublishDate) ");
-		sb2.append("values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 =
-				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb2.toString())) {
-
-			while (rs.next()) {
-				long recordSetId = rs.getLong("recordSetId");
-				long structureId = rs.getLong("DDMStructureId");
-				long groupId = rs.getLong("groupId");
-				long companyId = rs.getLong("companyId");
-				long userId = rs.getLong("userId");
-				String userName = rs.getString("userName");
-				Timestamp createDate = rs.getTimestamp("createDate");
-				String name = rs.getString("name");
-				String description = rs.getString("description");
-				String settings = rs.getString("settings_");
-				Timestamp lastPublishDate = rs.getTimestamp("lastPublishDate");
-				long structureVersionId = rs.getLong("structureVersionId");
-
-				ps2.setString(1, PortalUUIDUtil.generate());
-				ps2.setLong(2, recordSetId);
-				ps2.setLong(3, groupId);
-				ps2.setLong(4, companyId);
-				ps2.setLong(5, userId);
-				ps2.setString(6, userName);
-				ps2.setLong(7, userId);
-				ps2.setString(8, userName);
-				ps2.setTimestamp(9, createDate);
-				ps2.setTimestamp(10, rs.getTimestamp("modifiedDate"));
-				ps2.setLong(11, structureId);
-				ps2.setString(12, DDMFormInstanceConstants.VERSION_DEFAULT);
-				ps2.setString(13, name);
-				ps2.setString(14, description);
-				ps2.setString(15, settings);
-				ps2.setTimestamp(16, lastPublishDate);
-
-				updateDDMStructure(structureId);
-				updateDDMStructureLink(structureId);
-
-				upgradeDDMFormInstanceVersion(
-					groupId, companyId, userId, userName, createDate,
-					recordSetId, structureVersionId, name, description,
-					settings, lastPublishDate);
-
-				upgradeResourcePermission(
-					recordSetId, _CLASS_NAME_RECORD_SET,
-					_CLASS_NAME_FORM_INSTANCE);
-
-				deleteDDLRecordSet(structureId, recordSetId);
-
-				ps2.addBatch();
-			}
-
-			ps2.executeBatch();
-
-			updateWorkflowDefinitionLink();
-		}
-	}
-
-	protected void duplicateResourcePermission(String oldName, String newName)
+	private void _duplicateResourcePermission(String oldName, String newName)
 		throws Exception {
 
 		ActionableDynamicQuery actionableDynamicQuery =
@@ -240,145 +272,103 @@ public class DDMFormInstanceUpgradeProcess extends UpgradeProcess {
 		actionableDynamicQuery.performActions();
 	}
 
-	protected long getNewActionIds(
-		String oldName, String newName, long currentActionIds,
-		long oldActionIds) {
-
-		Set<String> actionsIdsList = new HashSet<>();
-
-		collectNewActionIds(
-			actionsIdsList,
-			_resourceActionLocalService.getResourceActions(oldName),
-			oldActionIds);
-
-		List<ResourceAction> newResourceActions =
-			_resourceActionLocalService.getResourceActions(newName);
-
-		collectNewActionIds(
-			actionsIdsList, newResourceActions, currentActionIds);
-
-		Stream<ResourceAction> resourceActionStream =
-			newResourceActions.stream();
-
-		Map<String, Long> map = resourceActionStream.collect(
-			Collectors.toMap(
-				resourceAction -> resourceAction.getActionId(),
-				resourceAction -> resourceAction.getBitwiseValue()));
-
-		Stream<String> actionsIdsStream = actionsIdsList.stream();
-
-		return actionsIdsStream.mapToLong(
-			actionId -> MapUtil.getLong(map, actionId)
-		).sum();
-	}
-
-	protected void readAndCheckResourceActions() throws Exception {
+	private void _readAndCheckResourceActions() throws Exception {
 		Class<?> clazz = getClass();
 
 		_resourceActions.populateModelResources(
 			clazz.getClassLoader(), "/resource-actions/default.xml");
 	}
 
-	protected void updateDDMStructure(long ddmStructureId) throws Exception {
-		StringBundler sb = new StringBundler(2);
+	private void _updateDDMStructure(long ddmStructureId) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"update DDMStructure set classNameId = ? where structureId = " +
+					"?")) {
 
-		sb.append("update DDMStructure set classNameId = ? where structureId ");
-		sb.append("= ?");
-
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			ps.setLong(
+			preparedStatement.setLong(
 				1,
 				_classNameLocalService.getClassNameId(
 					DDMFormInstance.class.getName()));
-			ps.setLong(2, ddmStructureId);
+			preparedStatement.setLong(2, ddmStructureId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void updateDDMStructureLink(long ddmStructureId)
-		throws Exception {
+	private void _updateDDMStructureLink(long ddmStructureId) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"update DDMStructureLink set classNameId = ? where " +
+					"structureId = ?")) {
 
-		StringBundler sb = new StringBundler(2);
-
-		sb.append("update DDMStructureLink set classNameId = ? where ");
-		sb.append("structureId = ?");
-
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			ps.setLong(
+			preparedStatement.setLong(
 				1,
 				_classNameLocalService.getClassNameId(
 					DDMFormInstance.class.getName()));
-			ps.setLong(2, ddmStructureId);
+			preparedStatement.setLong(2, ddmStructureId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void updateWorkflowDefinitionLink() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private void _updateWorkflowDefinitionLink() throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update WorkflowDefinitionLink set classNameId = ? where " +
 					"classNameId = ?")) {
 
-			ps.setLong(
+			preparedStatement.setLong(
 				1,
 				_classNameLocalService.getClassNameId(
 					_CLASS_NAME_FORM_INSTANCE));
 
-			ps.setLong(
+			preparedStatement.setLong(
 				2,
 				_classNameLocalService.getClassNameId(_CLASS_NAME_RECORD_SET));
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
-	protected void upgradeDDMFormInstanceVersion(
+	private void _upgradeDDMFormInstanceVersion(
 			long groupId, long companyId, long userId, String userName,
 			Timestamp createDate, long formInstanceId, long structureVersionId,
 			String name, String description, String settings,
 			Timestamp statusDate)
 		throws SQLException {
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("insert into DDMFormInstanceVersion(formInstanceVersionId, ");
-		sb.append("groupId, companyId, userId, userName, createDate, ");
-		sb.append("formInstanceId, structureVersionId, name, description, ");
-		sb.append("settings_, version, status, statusByUserId, ");
-		sb.append("statusByUserName, statusDate) values(?, ?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		try (PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb.toString())) {
+					connection,
+					StringBundler.concat(
+						"insert into DDMFormInstanceVersion(",
+						"formInstanceVersionId, groupId, companyId, userId, ",
+						"userName, createDate, formInstanceId, ",
+						"structureVersionId, name, description, settings_, ",
+						"version, status, statusByUserId, statusByUserName, ",
+						"statusDate) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+						"?, ?, ?, ?, ?)"))) {
 
-			ps2.setLong(1, _counterLocalService.increment());
-			ps2.setLong(2, groupId);
-			ps2.setLong(3, companyId);
-			ps2.setLong(4, userId);
-			ps2.setString(5, userName);
-			ps2.setTimestamp(6, createDate);
-			ps2.setLong(7, formInstanceId);
-			ps2.setLong(8, structureVersionId);
-			ps2.setString(9, name);
-			ps2.setString(10, description);
-			ps2.setString(11, settings);
-			ps2.setString(12, DDMFormInstanceConstants.VERSION_DEFAULT);
-			ps2.setInt(13, WorkflowConstants.STATUS_APPROVED);
-			ps2.setLong(14, userId);
-			ps2.setString(15, userName);
-			ps2.setTimestamp(16, statusDate);
+			preparedStatement2.setLong(1, _counterLocalService.increment());
+			preparedStatement2.setLong(2, groupId);
+			preparedStatement2.setLong(3, companyId);
+			preparedStatement2.setLong(4, userId);
+			preparedStatement2.setString(5, userName);
+			preparedStatement2.setTimestamp(6, createDate);
+			preparedStatement2.setLong(7, formInstanceId);
+			preparedStatement2.setLong(8, structureVersionId);
+			preparedStatement2.setString(9, name);
+			preparedStatement2.setString(10, description);
+			preparedStatement2.setString(11, settings);
+			preparedStatement2.setString(
+				12, DDMFormInstanceConstants.VERSION_DEFAULT);
+			preparedStatement2.setInt(13, WorkflowConstants.STATUS_APPROVED);
+			preparedStatement2.setLong(14, userId);
+			preparedStatement2.setString(15, userName);
+			preparedStatement2.setTimestamp(16, statusDate);
 
-			ps2.execute();
+			preparedStatement2.execute();
 		}
 	}
 
-	protected void upgradeResourcePermission(
+	private void _upgradeResourcePermission(
 			long primKeyId, String oldName, String newName)
 		throws Exception {
 
@@ -412,7 +402,7 @@ public class DDMFormInstanceUpgradeProcess extends UpgradeProcess {
 		actionableDynamicQuery.performActions();
 	}
 
-	protected void upgradeRootModelResourceResourcePermission(
+	private void _upgradeRootModelResourceResourcePermission(
 			String oldRootModelResourceName, String newRootModelResourceName)
 		throws Exception {
 

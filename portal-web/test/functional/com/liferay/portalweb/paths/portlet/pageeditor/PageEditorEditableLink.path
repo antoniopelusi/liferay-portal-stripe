@@ -2,11 +2,13 @@
 <head>
 <title>PageEditorEditableLink</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">PageEditorEditableLink</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ASSET_SELECT_BUTTON</td>
@@ -21,16 +23,6 @@
 <tr>
 	<td>FIELD</td>
 	<td>//div[contains(@role,'tabpanel') and contains(@class,'active')]//label[contains(.,'Field')]/following-sibling::select</td>
-	<td></td>
-</tr>
-<tr>
-	<td>URL</td>
-	<td>//label[contains(.,'URL')]/following-sibling::input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>LINK_TYPE</td>
-	<td>//label[contains(.,'Link')]/following-sibling::select</td>
 	<td></td>
 </tr>
 <!--LAYOUT_BACKGROUND_IMAGE-->

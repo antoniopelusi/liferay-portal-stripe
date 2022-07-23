@@ -493,4 +493,7 @@ public interface AccountModel
 	 */
 	public void setDefaultSender(boolean defaultSender);
 
+	@Override
+	public Account cloneWithOriginalValues();
+
 }

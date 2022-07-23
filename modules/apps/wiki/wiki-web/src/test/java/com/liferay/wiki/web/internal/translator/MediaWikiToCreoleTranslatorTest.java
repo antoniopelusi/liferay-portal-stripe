@@ -170,15 +170,12 @@ public class MediaWikiToCreoleTranslatorTest {
 			"test1 [[Image:Sample1.png]] test2 [[Image:Sample2.png]] test3 " +
 				"[[Image:Sample3.png]] test4";
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(MediaWikiToCreoleTranslator.TABLE_OF_CONTENTS);
-		sb.append("test1 {{SharedImages/sample1.png}} test2 ");
-		sb.append("{{SharedImages/sample2.png}} test3 ");
-		sb.append("{{SharedImages/sample3.png}} test4");
-
 		Assert.assertEquals(
-			sb.toString(),
+			StringBundler.concat(
+				MediaWikiToCreoleTranslator.TABLE_OF_CONTENTS,
+				"test1 {{SharedImages/sample1.png}} test2 ",
+				"{{SharedImages/sample2.png}} test3 ",
+				"{{SharedImages/sample3.png}} test4"),
 			_mediaWikiToCreoleTranslator.postProcess(_translate(content)));
 	}
 

@@ -14,6 +14,8 @@
 
 package com.liferay.comment.web.internal.asset.model;
 
+import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
+import com.liferay.asset.kernel.model.AssetRenderer;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.model.BaseJSPAssetRenderer;
 import com.liferay.comment.web.internal.constants.CommentPortletKeys;
@@ -32,7 +34,7 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashRenderer;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -55,11 +57,12 @@ public class CommentAssetRenderer
 	extends BaseJSPAssetRenderer<WorkflowableComment> implements TrashRenderer {
 
 	public CommentAssetRenderer(
-		WorkflowableComment workflowableComment,
-		AssetRendererFactory<WorkflowableComment> assetRendererFactory) {
+		AssetRendererFactory<WorkflowableComment> assetRendererFactory,
+		HtmlParser htmlParser, WorkflowableComment workflowableComment) {
 
-		_workflowableComment = workflowableComment;
 		_assetRendererFactory = assetRendererFactory;
+		_htmlParser = htmlParser;
+		_workflowableComment = workflowableComment;
 	}
 
 	@Override
@@ -110,7 +113,7 @@ public class CommentAssetRenderer
 
 	@Override
 	public String getSearchSummary(Locale locale) {
-		return HtmlUtil.extractText(
+		return _htmlParser.extractText(
 			_workflowableComment.getTranslatedBody(StringPool.BLANK));
 	}
 
@@ -161,7 +164,7 @@ public class CommentAssetRenderer
 			"/comment/edit_discussion"
 		).setParameter(
 			"commentId", _workflowableComment.getCommentId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -186,11 +189,24 @@ public class CommentAssetRenderer
 
 	@Override
 	public String getURLViewInContext(
-		LiferayPortletRequest liferayPortletRequest,
-		LiferayPortletResponse liferayPortletResponse,
-		String noSuchEntryRedirect) {
+			LiferayPortletRequest liferayPortletRequest,
+			LiferayPortletResponse liferayPortletResponse,
+			String noSuchEntryRedirect)
+		throws Exception {
 
-		return null;
+		AssetRendererFactory<?> assetRendererFactory =
+			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
+				_workflowableComment.getClassName());
+
+		if (assetRendererFactory == null) {
+			return null;
+		}
+
+		AssetRenderer<?> assetRenderer = assetRendererFactory.getAssetRenderer(
+			_workflowableComment.getClassPK());
+
+		return assetRenderer.getURLViewInContext(
+			liferayPortletRequest, liferayPortletResponse, noSuchEntryRedirect);
 	}
 
 	@Override
@@ -251,6 +267,7 @@ public class CommentAssetRenderer
 
 	private final AssetRendererFactory<WorkflowableComment>
 		_assetRendererFactory;
+	private final HtmlParser _htmlParser;
 	private final WorkflowableComment _workflowableComment;
 
 }

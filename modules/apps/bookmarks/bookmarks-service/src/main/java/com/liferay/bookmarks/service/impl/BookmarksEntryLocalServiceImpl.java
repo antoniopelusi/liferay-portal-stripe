@@ -16,6 +16,8 @@ package com.liferay.bookmarks.service.impl;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetLinkConstants;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.kernel.service.AssetLinkLocalService;
 import com.liferay.bookmarks.configuration.BookmarksGroupServiceOverriddenConfiguration;
 import com.liferay.bookmarks.constants.BookmarksConstants;
 import com.liferay.bookmarks.constants.BookmarksPortletKeys;
@@ -25,6 +27,7 @@ import com.liferay.bookmarks.model.BookmarksFolder;
 import com.liferay.bookmarks.service.base.BookmarksEntryLocalServiceBaseImpl;
 import com.liferay.bookmarks.social.BookmarksActivityKeys;
 import com.liferay.bookmarks.util.comparator.EntryModifiedDateComparator;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -53,6 +56,7 @@ import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
@@ -68,7 +72,9 @@ import com.liferay.portal.kernel.util.SubscriptionSender;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.view.count.ViewCountManager;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 import com.liferay.social.kernel.model.SocialActivityConstants;
+import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.exception.RestoreEntryException;
 import com.liferay.trash.exception.TrashEntryException;
@@ -150,7 +156,7 @@ public class BookmarksEntryLocalServiceImpl
 
 		JSONObject extraDataJSONObject = JSONUtil.put("title", entry.getName());
 
-		socialActivityLocalService.addActivity(
+		_socialActivityLocalService.addActivity(
 			userId, groupId, BookmarksEntry.class.getName(), entryId,
 			BookmarksActivityKeys.ADD_ENTRY, extraDataJSONObject.toString(), 0);
 
@@ -200,12 +206,12 @@ public class BookmarksEntryLocalServiceImpl
 
 		// Asset
 
-		assetEntryLocalService.deleteEntry(
+		_assetEntryLocalService.deleteEntry(
 			BookmarksEntry.class.getName(), entry.getEntryId());
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			entry.getCompanyId(),
 			classNameLocalService.getClassNameId(
 				BookmarksEntry.class.getName()),
@@ -213,7 +219,7 @@ public class BookmarksEntryLocalServiceImpl
 
 		// Ratings
 
-		ratingsStatsLocalService.deleteStats(
+		_ratingsStatsLocalService.deleteStats(
 			BookmarksEntry.class.getName(), entry.getEntryId());
 
 		// Subscriptions
@@ -499,7 +505,7 @@ public class BookmarksEntryLocalServiceImpl
 
 		searchContext.setAttribute("paginationType", "none");
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		searchContext.setCompanyId(group.getCompanyId());
 
@@ -518,15 +524,14 @@ public class BookmarksEntryLocalServiceImpl
 	}
 
 	@Override
-	public void setTreePaths(
-			final long folderId, final String treePath, final boolean reindex)
+	public void setTreePaths(long folderId, String treePath, boolean reindex)
 		throws PortalException {
 
 		if (treePath == null) {
 			throw new IllegalArgumentException("Tree path is null");
 		}
 
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			getIndexableActionableDynamicQuery();
 
 		indexableActionableDynamicQuery.setAddCriteriaMethod(
@@ -545,7 +550,7 @@ public class BookmarksEntryLocalServiceImpl
 						treePathProperty.ne(treePath)));
 			});
 
-		final Indexer<BookmarksEntry> indexer = IndexerRegistryUtil.getIndexer(
+		Indexer<BookmarksEntry> indexer = IndexerRegistryUtil.getIndexer(
 			BookmarksEntry.class);
 
 		indexableActionableDynamicQuery.setPerformActionMethod(
@@ -591,7 +596,7 @@ public class BookmarksEntryLocalServiceImpl
 			String[] assetTagNames, long[] assetLinkEntryIds, Double priority)
 		throws PortalException {
 
-		AssetEntry assetEntry = assetEntryLocalService.updateEntry(
+		AssetEntry assetEntry = _assetEntryLocalService.updateEntry(
 			userId, entry.getGroupId(), entry.getCreateDate(),
 			entry.getModifiedDate(), BookmarksEntry.class.getName(),
 			entry.getEntryId(), entry.getUuid(), 0, assetCategoryIds,
@@ -599,7 +604,7 @@ public class BookmarksEntryLocalServiceImpl
 			ContentTypes.TEXT_PLAIN, entry.getName(), entry.getDescription(),
 			null, entry.getUrl(), null, 0, 0, priority);
 
-		assetLinkLocalService.updateLinks(
+		_assetLinkLocalService.updateLinks(
 			userId, assetEntry.getEntryId(), assetLinkEntryIds,
 			AssetLinkConstants.TYPE_RELATED);
 	}
@@ -643,7 +648,7 @@ public class BookmarksEntryLocalServiceImpl
 
 		JSONObject extraDataJSONObject = JSONUtil.put("title", entry.getName());
 
-		socialActivityLocalService.addActivity(
+		_socialActivityLocalService.addActivity(
 			userId, entry.getGroupId(), BookmarksEntry.class.getName(), entryId,
 			BookmarksActivityKeys.UPDATE_ENTRY, extraDataJSONObject.toString(),
 			0);
@@ -677,12 +682,12 @@ public class BookmarksEntryLocalServiceImpl
 
 			// Asset
 
-			assetEntryLocalService.updateVisible(
+			_assetEntryLocalService.updateVisible(
 				BookmarksEntry.class.getName(), entry.getEntryId(), true);
 
 			// Social
 
-			socialActivityLocalService.addActivity(
+			_socialActivityLocalService.addActivity(
 				userId, entry.getGroupId(), BookmarksEntry.class.getName(),
 				entry.getEntryId(),
 				SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
@@ -692,12 +697,12 @@ public class BookmarksEntryLocalServiceImpl
 
 			// Asset
 
-			assetEntryLocalService.updateVisible(
+			_assetEntryLocalService.updateVisible(
 				BookmarksEntry.class.getName(), entry.getEntryId(), false);
 
 			// Social
 
-			socialActivityLocalService.addActivity(
+			_socialActivityLocalService.addActivity(
 				userId, entry.getGroupId(), BookmarksEntry.class.getName(),
 				entry.getEntryId(), SocialActivityConstants.TYPE_MOVE_TO_TRASH,
 				extraDataJSONObject.toString(), 0);
@@ -728,12 +733,12 @@ public class BookmarksEntryLocalServiceImpl
 				entry.getFolderId());
 		}
 
-		Group group = groupLocalService.fetchGroup(entry.getGroupId());
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
-				httpServletRequest, group, BookmarksPortletKeys.BOOKMARKS_ADMIN,
-				0, 0, PortletRequest.RENDER_PHASE)
+				httpServletRequest,
+				_groupLocalService.fetchGroup(entry.getGroupId()),
+				BookmarksPortletKeys.BOOKMARKS_ADMIN, 0, 0,
+				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/bookmarks/view"
 		).setParameter(
@@ -777,7 +782,7 @@ public class BookmarksEntryLocalServiceImpl
 			statusByUserName = user.getFullName();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		String entryTitle = entry.getName();
@@ -885,10 +890,28 @@ public class BookmarksEntryLocalServiceImpl
 		BookmarksEntryLocalServiceImpl.class);
 
 	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Reference
+	private AssetLinkLocalService _assetLinkLocalService;
+
+	@Reference
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
+	private ExpandoRowLocalService _expandoRowLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
 	private Portal _portal;
+
+	@Reference
+	private RatingsStatsLocalService _ratingsStatsLocalService;
+
+	@Reference
+	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

@@ -43,10 +43,10 @@ class GoogleMapsGeocoder extends State {
 	_handleGeocoderResponse(callback, location, response, status) {
 		const result = {
 			data: {},
-			err: status === google.maps.GeocoderStatus.OK ? null : status,
+			error: status === google.maps.GeocoderStatus.OK ? null : status,
 		};
 
-		if (!result.err) {
+		if (!result.error) {
 			const geocoderResult = response[0];
 			const geolocation = geocoderResult.geometry.location;
 

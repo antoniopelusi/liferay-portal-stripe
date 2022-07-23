@@ -16,13 +16,23 @@ package com.liferay.headless.commerce.admin.order.internal.graphql.servlet.v1_0;
 
 import com.liferay.headless.commerce.admin.order.internal.graphql.mutation.v1_0.Mutation;
 import com.liferay.headless.commerce.admin.order.internal.graphql.query.v1_0.Query;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.AccountGroupResource;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.AccountResource;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.BillingAddressResource;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.ChannelResource;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderItemResource;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderNoteResource;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderRuleAccountGroupResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderRuleAccountResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderRuleChannelResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderRuleOrderTypeResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderRuleResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderTypeChannelResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderTypeResource;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.ShippingAddressResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.TermOrderTypeResource;
+import com.liferay.headless.commerce.admin.order.resource.v1_0.TermResource;
 import com.liferay.portal.vulcan.graphql.servlet.ServletData;
 
 import javax.annotation.Generated;
@@ -38,7 +48,7 @@ import org.osgi.service.component.annotations.ReferenceScope;
  * @author Alessio Antonio Rendina
  * @generated
  */
-@Component(immediate = true, service = ServletData.class)
+@Component(enabled = false, immediate = true, service = ServletData.class)
 @Generated("")
 public class ServletDataImpl implements ServletData {
 
@@ -52,11 +62,31 @@ public class ServletDataImpl implements ServletData {
 			_orderItemResourceComponentServiceObjects);
 		Mutation.setOrderNoteResourceComponentServiceObjects(
 			_orderNoteResourceComponentServiceObjects);
+		Mutation.setOrderRuleResourceComponentServiceObjects(
+			_orderRuleResourceComponentServiceObjects);
+		Mutation.setOrderRuleAccountResourceComponentServiceObjects(
+			_orderRuleAccountResourceComponentServiceObjects);
+		Mutation.setOrderRuleAccountGroupResourceComponentServiceObjects(
+			_orderRuleAccountGroupResourceComponentServiceObjects);
+		Mutation.setOrderRuleChannelResourceComponentServiceObjects(
+			_orderRuleChannelResourceComponentServiceObjects);
+		Mutation.setOrderRuleOrderTypeResourceComponentServiceObjects(
+			_orderRuleOrderTypeResourceComponentServiceObjects);
+		Mutation.setOrderTypeResourceComponentServiceObjects(
+			_orderTypeResourceComponentServiceObjects);
+		Mutation.setOrderTypeChannelResourceComponentServiceObjects(
+			_orderTypeChannelResourceComponentServiceObjects);
 		Mutation.setShippingAddressResourceComponentServiceObjects(
 			_shippingAddressResourceComponentServiceObjects);
+		Mutation.setTermResourceComponentServiceObjects(
+			_termResourceComponentServiceObjects);
+		Mutation.setTermOrderTypeResourceComponentServiceObjects(
+			_termOrderTypeResourceComponentServiceObjects);
 
 		Query.setAccountResourceComponentServiceObjects(
 			_accountResourceComponentServiceObjects);
+		Query.setAccountGroupResourceComponentServiceObjects(
+			_accountGroupResourceComponentServiceObjects);
 		Query.setBillingAddressResourceComponentServiceObjects(
 			_billingAddressResourceComponentServiceObjects);
 		Query.setChannelResourceComponentServiceObjects(
@@ -67,8 +97,26 @@ public class ServletDataImpl implements ServletData {
 			_orderItemResourceComponentServiceObjects);
 		Query.setOrderNoteResourceComponentServiceObjects(
 			_orderNoteResourceComponentServiceObjects);
+		Query.setOrderRuleResourceComponentServiceObjects(
+			_orderRuleResourceComponentServiceObjects);
+		Query.setOrderRuleAccountResourceComponentServiceObjects(
+			_orderRuleAccountResourceComponentServiceObjects);
+		Query.setOrderRuleAccountGroupResourceComponentServiceObjects(
+			_orderRuleAccountGroupResourceComponentServiceObjects);
+		Query.setOrderRuleChannelResourceComponentServiceObjects(
+			_orderRuleChannelResourceComponentServiceObjects);
+		Query.setOrderRuleOrderTypeResourceComponentServiceObjects(
+			_orderRuleOrderTypeResourceComponentServiceObjects);
+		Query.setOrderTypeResourceComponentServiceObjects(
+			_orderTypeResourceComponentServiceObjects);
+		Query.setOrderTypeChannelResourceComponentServiceObjects(
+			_orderTypeChannelResourceComponentServiceObjects);
 		Query.setShippingAddressResourceComponentServiceObjects(
 			_shippingAddressResourceComponentServiceObjects);
+		Query.setTermResourceComponentServiceObjects(
+			_termResourceComponentServiceObjects);
+		Query.setTermOrderTypeResourceComponentServiceObjects(
+			_termOrderTypeResourceComponentServiceObjects);
 	}
 
 	@Override
@@ -103,12 +151,52 @@ public class ServletDataImpl implements ServletData {
 		_orderNoteResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<OrderRuleResource>
+		_orderRuleResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<OrderRuleAccountResource>
+		_orderRuleAccountResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<OrderRuleAccountGroupResource>
+		_orderRuleAccountGroupResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<OrderRuleChannelResource>
+		_orderRuleChannelResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<OrderRuleOrderTypeResource>
+		_orderRuleOrderTypeResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<OrderTypeResource>
+		_orderTypeResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<OrderTypeChannelResource>
+		_orderTypeChannelResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<ShippingAddressResource>
 		_shippingAddressResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<TermResource>
+		_termResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<TermOrderTypeResource>
+		_termOrderTypeResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<AccountResource>
 		_accountResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<AccountGroupResource>
+		_accountGroupResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<ChannelResource>

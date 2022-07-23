@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.segments.asah.connector.internal.util.AsahUtil;
 import com.liferay.segments.constants.SegmentsEntryConstants;
 
@@ -91,14 +92,14 @@ public class AsahInterestTermFormNavigatorEntry
 				_assetListEntryService.fetchAssetListEntry(assetListEntryId);
 
 			if (assetListEntry != null) {
-				UnicodeProperties unicodeProperties = new UnicodeProperties();
-
 				long segmentsEntryId = ParamUtil.getLong(
 					httpServletRequest, "segmentsEntryId",
 					SegmentsEntryConstants.ID_DEFAULT);
 
-				unicodeProperties.load(
-					assetListEntry.getTypeSettings(segmentsEntryId));
+				UnicodeProperties unicodeProperties =
+					UnicodePropertiesBuilder.load(
+						assetListEntry.getTypeSettings(segmentsEntryId)
+					).build();
 
 				boolean enableContentRecommendation = GetterUtil.getBoolean(
 					unicodeProperties.getProperty(
@@ -119,13 +120,9 @@ public class AsahInterestTermFormNavigatorEntry
 	@Override
 	public boolean isVisible(User user, AssetListEntry assetListEntry) {
 		if (!AsahUtil.isAnalyticsEnabled(
-				user.getCompanyId(), assetListEntry.getGroupId())) {
-
-			return false;
-		}
-
-		if (assetListEntry.getType() !=
-				AssetListEntryTypeConstants.TYPE_DYNAMIC) {
+				user.getCompanyId(), assetListEntry.getGroupId()) ||
+			(assetListEntry.getType() !=
+				AssetListEntryTypeConstants.TYPE_DYNAMIC)) {
 
 			return false;
 		}

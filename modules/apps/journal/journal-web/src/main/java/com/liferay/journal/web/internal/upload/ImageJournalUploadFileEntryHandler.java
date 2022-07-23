@@ -14,6 +14,7 @@
 
 package com.liferay.journal.web.internal.upload;
 
+import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.util.DLValidator;
 import com.liferay.journal.configuration.JournalFileUploadsConfiguration;
 import com.liferay.journal.constants.JournalConstants;
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.upload.UniqueFileNameProvider;
 import com.liferay.upload.UploadFileEntryHandler;
@@ -89,23 +91,20 @@ public class ImageJournalUploadFileEntryHandler
 				themeDisplay.getScopeGroup(), ActionKeys.ADD_ARTICLE);
 		}
 
-		String fileName = uploadPortletRequest.getFileName(_PARAMETER_NAME);
+		String fileName = uploadPortletRequest.getFileName(
+			"imageSelectorFileName");
 
-		_validateFile(fileName, uploadPortletRequest.getSize(_PARAMETER_NAME));
+		if (Validator.isNotNull(fileName)) {
+			try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
+					"imageSelectorFileName")) {
 
-		String contentType = uploadPortletRequest.getContentType(
-			_PARAMETER_NAME);
-
-		try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
-				_PARAMETER_NAME)) {
-
-			String uniqueFileName = _uniqueFileNameProvider.provide(
-				fileName, curFileName -> _exists(themeDisplay, curFileName));
-
-			return TempFileEntryUtil.addTempFileEntry(
-				themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
-				_TEMP_FOLDER_NAME, uniqueFileName, inputStream, contentType);
+				return _addTempFileEntry(
+					fileName, inputStream, "imageSelectorFileName",
+					uploadPortletRequest, themeDisplay);
+			}
 		}
+
+		return _editImageFileEntry(uploadPortletRequest, themeDisplay);
 	}
 
 	@Activate
@@ -135,6 +134,46 @@ public class ImageJournalUploadFileEntryHandler
 		_journalFolderModelResourcePermission = modelResourcePermission;
 	}
 
+	private FileEntry _addTempFileEntry(
+			String fileName, InputStream inputStream, String parameterName,
+			UploadPortletRequest uploadPortletRequest,
+			ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		_validateFile(
+			themeDisplay.getScopeGroupId(), fileName,
+			uploadPortletRequest.getContentType(parameterName),
+			uploadPortletRequest.getSize(parameterName));
+
+		String contentType = uploadPortletRequest.getContentType(parameterName);
+
+		String uniqueFileName = _uniqueFileNameProvider.provide(
+			fileName, curFileName -> _exists(themeDisplay, curFileName));
+
+		return TempFileEntryUtil.addTempFileEntry(
+			themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
+			_TEMP_FOLDER_NAME, uniqueFileName, inputStream, contentType);
+	}
+
+	private FileEntry _editImageFileEntry(
+			UploadPortletRequest uploadPortletRequest,
+			ThemeDisplay themeDisplay)
+		throws IOException, PortalException {
+
+		try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
+				"imageBlob")) {
+
+			long fileEntryId = ParamUtil.getLong(
+				uploadPortletRequest, "fileEntryId");
+
+			FileEntry fileEntry = _dlAppService.getFileEntry(fileEntryId);
+
+			return _addTempFileEntry(
+				fileEntry.getFileName(), inputStream, "imageBlob",
+				uploadPortletRequest, themeDisplay);
+		}
+	}
+
 	private boolean _exists(ThemeDisplay themeDisplay, String curFileName) {
 		try {
 			FileEntry tempFileEntry = TempFileEntryUtil.getTempFileEntry(
@@ -149,17 +188,18 @@ public class ImageJournalUploadFileEntryHandler
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;
 		}
 	}
 
-	private void _validateFile(String fileName, long size)
+	private void _validateFile(
+			long groupId, String fileName, String mimeType, long size)
 		throws PortalException {
 
-		_dlValidator.validateFileSize(fileName, size);
+		_dlValidator.validateFileSize(groupId, fileName, mimeType, size);
 
 		String extension = FileUtil.getExtension(fileName);
 
@@ -177,13 +217,14 @@ public class ImageJournalUploadFileEntryHandler
 			"Invalid image type for file name " + fileName);
 	}
 
-	private static final String _PARAMETER_NAME = "imageSelectorFileName";
-
 	private static final String _TEMP_FOLDER_NAME =
 		ImageJournalUploadFileEntryHandler.class.getName();
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ImageJournalUploadFileEntryHandler.class);
+
+	@Reference
+	private DLAppService _dlAppService;
 
 	@Reference
 	private DLValidator _dlValidator;

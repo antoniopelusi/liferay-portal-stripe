@@ -141,6 +141,11 @@ public class UserNotificationEventWrapper
 		}
 	}
 
+	@Override
+	public UserNotificationEvent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the action required of this user notification event.
 	 *

@@ -18,7 +18,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -104,7 +104,7 @@ public class MetadataManagerImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -128,7 +128,7 @@ public class MetadataManagerImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -137,7 +137,7 @@ public class MetadataManagerImpl
 
 	@Override
 	public long getClockSkew() {
-		return getSamlProviderConfiguration().clockSkew();
+		return _getSamlProviderConfiguration().clockSkew();
 	}
 
 	@Override
@@ -181,19 +181,19 @@ public class MetadataManagerImpl
 		try {
 			String portalURL = _portal.getPortalURL(
 				httpServletRequest,
-				isSSLRequired() || _portal.isSecure(httpServletRequest));
+				_isSSLRequired() || _portal.isSecure(httpServletRequest));
 			String localEntityId = _localEntityManager.getLocalEntityId();
 
 			if (_samlProviderConfigurationHelper.isRoleIdp()) {
 				return MetadataGeneratorUtil.buildIdpEntityDescriptor(
-					portalURL, localEntityId, isWantAuthnRequestSigned(),
-					isSignMetadata(), getSigningCredential(),
+					portalURL, localEntityId, _isWantAuthnRequestSigned(),
+					_isSignMetadata(), getSigningCredential(),
 					encryptionCredential);
 			}
 			else if (_samlProviderConfigurationHelper.isRoleSp()) {
 				return MetadataGeneratorUtil.buildSpEntityDescriptor(
-					portalURL, localEntityId, isSignAuthnRequest(),
-					isSignMetadata(), isWantAssertionsSigned(),
+					portalURL, localEntityId, _isSignAuthnRequest(),
+					_isSignMetadata(), _isWantAssertionsSigned(),
 					getSigningCredential(), encryptionCredential);
 			}
 
@@ -243,7 +243,7 @@ public class MetadataManagerImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -268,7 +268,7 @@ public class MetadataManagerImpl
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -282,7 +282,7 @@ public class MetadataManagerImpl
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -302,7 +302,7 @@ public class MetadataManagerImpl
 			requestURI = requestURI.substring(contextPath.length());
 		}
 
-		return _http.removePathParameters(requestURI);
+		return HttpComponentsUtil.removePathParameters(requestURI);
 	}
 
 	@Override
@@ -374,7 +374,7 @@ public class MetadataManagerImpl
 			new HTTPRequestValidationHandler();
 
 		httpRequestValidationHandler.setHttpServletRequest(httpServletRequest);
-		httpRequestValidationHandler.setRequireSecured(isSSLRequired());
+		httpRequestValidationHandler.setRequireSecured(_isSSLRequired());
 
 		messageHandlers.add(httpRequestValidationHandler);
 
@@ -420,7 +420,7 @@ public class MetadataManagerImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -440,7 +440,7 @@ public class MetadataManagerImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -460,7 +460,7 @@ public class MetadataManagerImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -470,11 +470,6 @@ public class MetadataManagerImpl
 	@Reference(unbind = "-")
 	public void setCredentialResolver(CredentialResolver credentialResolver) {
 		_credentialResolver = credentialResolver;
-	}
-
-	@Reference(unbind = "-")
-	public void setHttp(Http http) {
-		_http = http;
 	}
 
 	@Reference(unbind = "-")
@@ -568,28 +563,28 @@ public class MetadataManagerImpl
 		_cachingChainingMetadataResolver.destroy();
 	}
 
-	protected SamlProviderConfiguration getSamlProviderConfiguration() {
+	private SamlProviderConfiguration _getSamlProviderConfiguration() {
 		return _samlProviderConfigurationHelper.getSamlProviderConfiguration();
 	}
 
-	protected boolean isSignAuthnRequest() {
-		return getSamlProviderConfiguration().signAuthnRequest();
+	private boolean _isSignAuthnRequest() {
+		return _getSamlProviderConfiguration().signAuthnRequest();
 	}
 
-	protected boolean isSignMetadata() {
-		return getSamlProviderConfiguration().signMetadata();
+	private boolean _isSignMetadata() {
+		return _getSamlProviderConfiguration().signMetadata();
 	}
 
-	protected boolean isSSLRequired() {
-		return getSamlProviderConfiguration().sslRequired();
+	private boolean _isSSLRequired() {
+		return _getSamlProviderConfiguration().sslRequired();
 	}
 
-	protected boolean isWantAssertionsSigned() {
-		return getSamlProviderConfiguration().assertionSignatureRequired();
+	private boolean _isWantAssertionsSigned() {
+		return _getSamlProviderConfiguration().assertionSignatureRequired();
 	}
 
-	protected boolean isWantAuthnRequestSigned() {
-		return getSamlProviderConfiguration().authnRequestSignatureRequired();
+	private boolean _isWantAuthnRequestSigned() {
+		return _getSamlProviderConfiguration().authnRequestSignatureRequired();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -600,7 +595,6 @@ public class MetadataManagerImpl
 			new CachingChainingMetadataResolver();
 	private ChainingSignatureTrustEngine _chainingSignatureTrustEngine;
 	private CredentialResolver _credentialResolver;
-	private Http _http;
 	private LocalEntityManager _localEntityManager;
 	private MetadataCredentialResolver _metadataCredentialResolver;
 	private ParserPool _parserPool;

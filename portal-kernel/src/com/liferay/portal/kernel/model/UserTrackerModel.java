@@ -203,4 +203,7 @@ public interface UserTrackerModel
 	 */
 	public void setUserAgent(String userAgent);
 
+	@Override
+	public UserTracker cloneWithOriginalValues();
+
 }

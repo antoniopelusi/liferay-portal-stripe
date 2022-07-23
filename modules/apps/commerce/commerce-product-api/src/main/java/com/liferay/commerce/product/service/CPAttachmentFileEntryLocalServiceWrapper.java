@@ -14,7 +14,10 @@
 
 package com.liferay.commerce.product.service;
 
+import com.liferay.commerce.product.model.CPAttachmentFileEntry;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link CPAttachmentFileEntryLocalService}.
@@ -26,6 +29,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CPAttachmentFileEntryLocalServiceWrapper
 	implements CPAttachmentFileEntryLocalService,
 			   ServiceWrapper<CPAttachmentFileEntryLocalService> {
+
+	public CPAttachmentFileEntryLocalServiceWrapper() {
+		this(null);
+	}
 
 	public CPAttachmentFileEntryLocalServiceWrapper(
 		CPAttachmentFileEntryLocalService cpAttachmentFileEntryLocalService) {
@@ -44,35 +51,31 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the cp attachment file entry that was added
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-		addCPAttachmentFileEntry(
-			com.liferay.commerce.product.model.CPAttachmentFileEntry
-				cpAttachmentFileEntry) {
+	public CPAttachmentFileEntry addCPAttachmentFileEntry(
+		CPAttachmentFileEntry cpAttachmentFileEntry) {
 
 		return _cpAttachmentFileEntryLocalService.addCPAttachmentFileEntry(
 			cpAttachmentFileEntry);
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), pass userId and groupId directly
-	 */
-	@Deprecated
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			addCPAttachmentFileEntry(
-				long classNameId, long classPK, long fileEntryId,
-				int displayDateMonth, int displayDateDay, int displayDateYear,
-				int displayDateHour, int displayDateMinute,
-				int expirationDateMonth, int expirationDateDay,
-				int expirationDateYear, int expirationDateHour,
-				int expirationDateMinute, boolean neverExpire,
-				java.util.Map<java.util.Locale, String> titleMap, String json,
-				double priority, int type,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CPAttachmentFileEntry addCPAttachmentFileEntry(
+			String externalReferenceCode, long userId, long groupId,
+			long classNameId, long classPK, long fileEntryId,
+			boolean cdnEnabled, String cdnURL, int displayDateMonth,
+			int displayDateDay, int displayDateYear, int displayDateHour,
+			int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire,
+			java.util.Map<java.util.Locale, String> titleMap, String json,
+			double priority, int type,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.addCPAttachmentFileEntry(
-			classNameId, classPK, fileEntryId, displayDateMonth, displayDateDay,
+			externalReferenceCode, userId, groupId, classNameId, classPK,
+			fileEntryId, cdnEnabled, cdnURL, displayDateMonth, displayDateDay,
 			displayDateYear, displayDateHour, displayDateMinute,
 			expirationDateMonth, expirationDateDay, expirationDateYear,
 			expirationDateHour, expirationDateMinute, neverExpire, titleMap,
@@ -80,27 +83,29 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			addCPAttachmentFileEntry(
-				String externalReferenceCode, long userId, long groupId,
-				long classNameId, long classPK, long fileEntryId,
-				int displayDateMonth, int displayDateDay, int displayDateYear,
-				int displayDateHour, int displayDateMinute,
-				int expirationDateMonth, int expirationDateDay,
-				int expirationDateYear, int expirationDateHour,
-				int expirationDateMinute, boolean neverExpire,
-				java.util.Map<java.util.Locale, String> titleMap, String json,
-				double priority, int type,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CPAttachmentFileEntry addOrUpdateCPAttachmentFileEntry(
+			String externalReferenceCode, long userId, long groupId,
+			long classNameId, long classPK, long cpAttachmentFileEntryId,
+			long fileEntryId, boolean cdnEnabled, String cdnURL,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire,
+			java.util.Map<java.util.Locale, String> titleMap, String json,
+			double priority, int type,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _cpAttachmentFileEntryLocalService.addCPAttachmentFileEntry(
-			externalReferenceCode, userId, groupId, classNameId, classPK,
-			fileEntryId, displayDateMonth, displayDateDay, displayDateYear,
-			displayDateHour, displayDateMinute, expirationDateMonth,
-			expirationDateDay, expirationDateYear, expirationDateHour,
-			expirationDateMinute, neverExpire, titleMap, json, priority, type,
-			serviceContext);
+		return _cpAttachmentFileEntryLocalService.
+			addOrUpdateCPAttachmentFileEntry(
+				externalReferenceCode, userId, groupId, classNameId, classPK,
+				cpAttachmentFileEntryId, fileEntryId, cdnEnabled, cdnURL,
+				displayDateMonth, displayDateDay, displayDateYear,
+				displayDateHour, displayDateMinute, expirationDateMonth,
+				expirationDateDay, expirationDateYear, expirationDateHour,
+				expirationDateMinute, neverExpire, titleMap, json, priority,
+				type, serviceContext);
 	}
 
 	@Override
@@ -126,8 +131,8 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the new cp attachment file entry
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-		createCPAttachmentFileEntry(long CPAttachmentFileEntryId) {
+	public CPAttachmentFileEntry createCPAttachmentFileEntry(
+		long CPAttachmentFileEntryId) {
 
 		return _cpAttachmentFileEntryLocalService.createCPAttachmentFileEntry(
 			CPAttachmentFileEntryId);
@@ -165,10 +170,8 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @throws PortalException
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			deleteCPAttachmentFileEntry(
-				com.liferay.commerce.product.model.CPAttachmentFileEntry
-					cpAttachmentFileEntry)
+	public CPAttachmentFileEntry deleteCPAttachmentFileEntry(
+			CPAttachmentFileEntry cpAttachmentFileEntry)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.deleteCPAttachmentFileEntry(
@@ -187,8 +190,8 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @throws PortalException if a cp attachment file entry with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			deleteCPAttachmentFileEntry(long CPAttachmentFileEntryId)
+	public CPAttachmentFileEntry deleteCPAttachmentFileEntry(
+			long CPAttachmentFileEntryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.deleteCPAttachmentFileEntry(
@@ -210,6 +213,13 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cpAttachmentFileEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cpAttachmentFileEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -305,17 +315,16 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-		fetchByExternalReferenceCode(
-			String externalReferenceCode, long companyId) {
+	public CPAttachmentFileEntry fetchByExternalReferenceCode(
+		String externalReferenceCode, long companyId) {
 
 		return _cpAttachmentFileEntryLocalService.fetchByExternalReferenceCode(
 			externalReferenceCode, companyId);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-		fetchCPAttachmentFileEntry(long CPAttachmentFileEntryId) {
+	public CPAttachmentFileEntry fetchCPAttachmentFileEntry(
+		long CPAttachmentFileEntryId) {
 
 		return _cpAttachmentFileEntryLocalService.fetchCPAttachmentFileEntry(
 			CPAttachmentFileEntryId);
@@ -329,7 +338,7 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the matching cp attachment file entry, or <code>null</code> if a matching cp attachment file entry could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
+	public CPAttachmentFileEntry
 		fetchCPAttachmentFileEntryByExternalReferenceCode(
 			long companyId, String externalReferenceCode) {
 
@@ -343,9 +352,8 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 */
 	@Deprecated
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-		fetchCPAttachmentFileEntryByReferenceCode(
-			long companyId, String externalReferenceCode) {
+	public CPAttachmentFileEntry fetchCPAttachmentFileEntryByReferenceCode(
+		long companyId, String externalReferenceCode) {
 
 		return _cpAttachmentFileEntryLocalService.
 			fetchCPAttachmentFileEntryByReferenceCode(
@@ -360,8 +368,8 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the matching cp attachment file entry, or <code>null</code> if a matching cp attachment file entry could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-		fetchCPAttachmentFileEntryByUuidAndGroupId(String uuid, long groupId) {
+	public CPAttachmentFileEntry fetchCPAttachmentFileEntryByUuidAndGroupId(
+		String uuid, long groupId) {
 
 		return _cpAttachmentFileEntryLocalService.
 			fetchCPAttachmentFileEntryByUuidAndGroupId(uuid, groupId);
@@ -396,48 +404,50 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the range of cp attachment file entries
 	 */
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPAttachmentFileEntry>
-			getCPAttachmentFileEntries(int start, int end) {
+	public java.util.List<CPAttachmentFileEntry> getCPAttachmentFileEntries(
+		int start, int end) {
 
 		return _cpAttachmentFileEntryLocalService.getCPAttachmentFileEntries(
 			start, end);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPAttachmentFileEntry>
-				getCPAttachmentFileEntries(
-					long classNameId, long classPK, int type, int status,
-					int start, int end)
-			throws com.liferay.portal.kernel.exception.PortalException {
+	public java.util.List<CPAttachmentFileEntry> getCPAttachmentFileEntries(
+			long classNameId, long classPK, int type, int status, int start,
+			int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.getCPAttachmentFileEntries(
 			classNameId, classPK, type, status, start, end);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPAttachmentFileEntry>
-				getCPAttachmentFileEntries(
-					long classNameId, long classPK, int type, int status,
-					int start, int end,
-					com.liferay.portal.kernel.util.OrderByComparator
-						<com.liferay.commerce.product.model.
-							CPAttachmentFileEntry> orderByComparator)
-			throws com.liferay.portal.kernel.exception.PortalException {
+	public java.util.List<CPAttachmentFileEntry> getCPAttachmentFileEntries(
+			long classNameId, long classPK, int type, int status, int start,
+			int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<CPAttachmentFileEntry> orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.getCPAttachmentFileEntries(
 			classNameId, classPK, type, status, start, end, orderByComparator);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPAttachmentFileEntry>
-				getCPAttachmentFileEntries(
-					long cpDefinitionId, String serializedDDMFormValues,
-					int type, int start, int end)
-			throws Exception {
+	public java.util.List<CPAttachmentFileEntry> getCPAttachmentFileEntries(
+			long classNameId, long classPK, String keywords, int type,
+			int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _cpAttachmentFileEntryLocalService.getCPAttachmentFileEntries(
+			classNameId, classPK, keywords, type, status, start, end);
+	}
+
+	@Override
+	public java.util.List<CPAttachmentFileEntry> getCPAttachmentFileEntries(
+			long cpDefinitionId, String serializedDDMFormValues, int type,
+			int start, int end)
+		throws Exception {
 
 		return _cpAttachmentFileEntryLocalService.getCPAttachmentFileEntries(
 			cpDefinitionId, serializedDDMFormValues, type, start, end);
@@ -451,10 +461,9 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the matching cp attachment file entries, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPAttachmentFileEntry>
-			getCPAttachmentFileEntriesByUuidAndCompanyId(
-				String uuid, long companyId) {
+	public java.util.List<CPAttachmentFileEntry>
+		getCPAttachmentFileEntriesByUuidAndCompanyId(
+			String uuid, long companyId) {
 
 		return _cpAttachmentFileEntryLocalService.
 			getCPAttachmentFileEntriesByUuidAndCompanyId(uuid, companyId);
@@ -471,13 +480,11 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the range of matching cp attachment file entries, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPAttachmentFileEntry>
-			getCPAttachmentFileEntriesByUuidAndCompanyId(
-				String uuid, long companyId, int start, int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.commerce.product.model.CPAttachmentFileEntry>
-						orderByComparator) {
+	public java.util.List<CPAttachmentFileEntry>
+		getCPAttachmentFileEntriesByUuidAndCompanyId(
+			String uuid, long companyId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<CPAttachmentFileEntry> orderByComparator) {
 
 		return _cpAttachmentFileEntryLocalService.
 			getCPAttachmentFileEntriesByUuidAndCompanyId(
@@ -503,6 +510,17 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 			getCPAttachmentFileEntriesCount(classNameId, classPK, type, status);
 	}
 
+	@Override
+	public int getCPAttachmentFileEntriesCount(
+			long classNameId, long classPK, String keywords, int type,
+			int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _cpAttachmentFileEntryLocalService.
+			getCPAttachmentFileEntriesCount(
+				classNameId, classPK, keywords, type, status);
+	}
+
 	/**
 	 * Returns the cp attachment file entry with the primary key.
 	 *
@@ -511,8 +529,8 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @throws PortalException if a cp attachment file entry with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			getCPAttachmentFileEntry(long CPAttachmentFileEntryId)
+	public CPAttachmentFileEntry getCPAttachmentFileEntry(
+			long CPAttachmentFileEntryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.getCPAttachmentFileEntry(
@@ -528,7 +546,7 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @throws PortalException if a matching cp attachment file entry could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
+	public CPAttachmentFileEntry
 			getCPAttachmentFileEntryByExternalReferenceCode(
 				long companyId, String externalReferenceCode)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -547,8 +565,8 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @throws PortalException if a matching cp attachment file entry could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			getCPAttachmentFileEntryByUuidAndGroupId(String uuid, long groupId)
+	public CPAttachmentFileEntry getCPAttachmentFileEntryByUuidAndGroupId(
+			String uuid, long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.
@@ -606,117 +624,29 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	 * @return the cp attachment file entry that was updated
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-		updateCPAttachmentFileEntry(
-			com.liferay.commerce.product.model.CPAttachmentFileEntry
-				cpAttachmentFileEntry) {
+	public CPAttachmentFileEntry updateCPAttachmentFileEntry(
+		CPAttachmentFileEntry cpAttachmentFileEntry) {
 
 		return _cpAttachmentFileEntryLocalService.updateCPAttachmentFileEntry(
 			cpAttachmentFileEntry);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			updateCPAttachmentFileEntry(
-				long cpAttachmentFileEntryId, long fileEntryId,
-				int displayDateMonth, int displayDateDay, int displayDateYear,
-				int displayDateHour, int displayDateMinute,
-				int expirationDateMonth, int expirationDateDay,
-				int expirationDateYear, int expirationDateHour,
-				int expirationDateMinute, boolean neverExpire,
-				java.util.Map<java.util.Locale, String> titleMap, String json,
-				double priority, int type,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CPAttachmentFileEntry updateCPAttachmentFileEntry(
+			long userId, long cpAttachmentFileEntryId, long fileEntryId,
+			boolean cdnEnabled, String cdnURL, int displayDateMonth,
+			int displayDateDay, int displayDateYear, int displayDateHour,
+			int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire,
+			java.util.Map<java.util.Locale, String> titleMap, String json,
+			double priority, int type,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpAttachmentFileEntryLocalService.updateCPAttachmentFileEntry(
-			cpAttachmentFileEntryId, fileEntryId, displayDateMonth,
-			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire, titleMap,
-			json, priority, type, serviceContext);
-	}
-
-	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			updateCPAttachmentFileEntry(
-				long userId, long cpAttachmentFileEntryId, long fileEntryId,
-				int displayDateMonth, int displayDateDay, int displayDateYear,
-				int displayDateHour, int displayDateMinute,
-				int expirationDateMonth, int expirationDateDay,
-				int expirationDateYear, int expirationDateHour,
-				int expirationDateMinute, boolean neverExpire,
-				java.util.Map<java.util.Locale, String> titleMap, String json,
-				double priority, int type,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _cpAttachmentFileEntryLocalService.updateCPAttachmentFileEntry(
-			userId, cpAttachmentFileEntryId, fileEntryId, displayDateMonth,
-			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire, titleMap,
-			json, priority, type, serviceContext);
-	}
-
-	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			updateStatus(
-				long userId, long cpAttachmentFileEntryId, int status,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext,
-				java.util.Map<String, java.io.Serializable> workflowContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _cpAttachmentFileEntryLocalService.updateStatus(
-			userId, cpAttachmentFileEntryId, status, serviceContext,
-			workflowContext);
-	}
-
-	/**
-	 * @param classNameId
-	 * @param classPK
-	 * @param fileEntryId
-	 * @param displayDateMonth
-	 * @param displayDateDay
-	 * @param displayDateYear
-	 * @param displayDateHour
-	 * @param displayDateMinute
-	 * @param expirationDateMonth
-	 * @param expirationDateDay
-	 * @param expirationDateYear
-	 * @param expirationDateHour
-	 * @param expirationDateMinute
-	 * @param neverExpire
-	 * @param titleMap
-	 * @param json
-	 * @param priority
-	 * @param type
-	 * @param externalReferenceCode
-	 * @param serviceContext
-	 * @throws PortalException
-	 * @deprecated As of Athanasius (7.3.x), use {@link
-	 #upsertCPAttachmentFileEntry(long, long, long, long, int,
-	 int, int, int, int, int, int, int, int, int, boolean, Map,
-	 String, double, int, String, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			upsertCPAttachmentFileEntry(
-				String externalReferenceCode, long groupId, long classNameId,
-				long classPK, long fileEntryId, int displayDateMonth,
-				int displayDateDay, int displayDateYear, int displayDateHour,
-				int displayDateMinute, int expirationDateMonth,
-				int expirationDateDay, int expirationDateYear,
-				int expirationDateHour, int expirationDateMinute,
-				boolean neverExpire,
-				java.util.Map<java.util.Locale, String> titleMap, String json,
-				double priority, int type,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _cpAttachmentFileEntryLocalService.upsertCPAttachmentFileEntry(
-			externalReferenceCode, groupId, classNameId, classPK, fileEntryId,
+			userId, cpAttachmentFileEntryId, fileEntryId, cdnEnabled, cdnURL,
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
 			displayDateMinute, expirationDateMonth, expirationDateDay,
 			expirationDateYear, expirationDateHour, expirationDateMinute,
@@ -724,27 +654,35 @@ public class CPAttachmentFileEntryLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPAttachmentFileEntry
-			upsertCPAttachmentFileEntry(
-				String externalReferenceCode, long groupId, long classNameId,
-				long classPK, long cpAttachmentFileEntryId, long fileEntryId,
-				int displayDateMonth, int displayDateDay, int displayDateYear,
-				int displayDateHour, int displayDateMinute,
-				int expirationDateMonth, int expirationDateDay,
-				int expirationDateYear, int expirationDateHour,
-				int expirationDateMinute, boolean neverExpire,
-				java.util.Map<java.util.Locale, String> titleMap, String json,
-				double priority, int type,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CPAttachmentFileEntry updateStatus(
+			long userId, long cpAttachmentFileEntryId, int status,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext,
+			java.util.Map<String, java.io.Serializable> workflowContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _cpAttachmentFileEntryLocalService.upsertCPAttachmentFileEntry(
-			externalReferenceCode, groupId, classNameId, classPK,
-			cpAttachmentFileEntryId, fileEntryId, displayDateMonth,
-			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire, titleMap,
-			json, priority, type, serviceContext);
+		return _cpAttachmentFileEntryLocalService.updateStatus(
+			userId, cpAttachmentFileEntryId, status, serviceContext,
+			workflowContext);
+	}
+
+	@Override
+	public CTPersistence<CPAttachmentFileEntry> getCTPersistence() {
+		return _cpAttachmentFileEntryLocalService.getCTPersistence();
+	}
+
+	@Override
+	public Class<CPAttachmentFileEntry> getModelClass() {
+		return _cpAttachmentFileEntryLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CPAttachmentFileEntry>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return _cpAttachmentFileEntryLocalService.updateWithUnsafeFunction(
+			updateUnsafeFunction);
 	}
 
 	@Override

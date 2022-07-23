@@ -26,13 +26,13 @@ public class PortalPermissionUtil {
 			PermissionChecker permissionChecker, String actionId)
 		throws PrincipalException {
 
-		getPortalPermission().check(permissionChecker, actionId);
+		_portalPermission.check(permissionChecker, actionId);
 	}
 
 	public static boolean contains(
 		PermissionChecker permissionChecker, String actionId) {
 
-		return getPortalPermission().contains(permissionChecker, actionId);
+		return _portalPermission.contains(permissionChecker, actionId);
 	}
 
 	public static PortalPermission getPortalPermission() {

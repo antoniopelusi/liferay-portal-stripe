@@ -15,7 +15,6 @@
 package com.liferay.frontend.taglib.form.navigator.internal.configuration;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Iterator;
@@ -43,16 +42,16 @@ public class RetrieverWhenAConfigurationEntryHasDuplicatesTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("add.general");
-		sb.append(StringPool.EQUAL);
-		sb.append("formNavigatorEntryKey4,formNavigatorEntryKey3,");
-		sb.append("formNavigatorEntryKey2,formNavigatorEntryKey1,");
-		sb.append("formNavigatorEntryKey1,formNavigatorEntryKey2,");
-		sb.append("formNavigatorEntryKey3,formNavigatorEntryKey4");
-
-		createConfiguration("form1", new String[] {sb.toString()});
+		createConfiguration(
+			"form1",
+			new String[] {
+				StringBundler.concat(
+					"add.general=formNavigatorEntryKey4,",
+					"formNavigatorEntryKey3,formNavigatorEntryKey2,",
+					"formNavigatorEntryKey1,formNavigatorEntryKey1,",
+					"formNavigatorEntryKey2,formNavigatorEntryKey3,",
+					"formNavigatorEntryKey4")
+			});
 	}
 
 	@Test

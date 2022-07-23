@@ -25,10 +25,6 @@ definition {
 				value1 = "${linkText}");
 
 			Click(locator1 = "GoogleDoc#INSERT_LINK_APPLY_BUTTON");
-
-			var key_googleDocContent = "${googleDocContent}";
-
-			AssertElementPresent(locator1 = "GoogleDoc#INSERT_LINK_DOCUMENT_CONTENT");
 		}
 
 		SelectFrameTop();
@@ -73,7 +69,7 @@ definition {
 
 		Pause(locator1 = "5000");
 
-		if (IsElementNotPresent(locator1 = "Button#ANY", key_text = "Save and Return to ${siteName}")) {
+		if (IsElementNotPresent(key_text = "Save and Return to ${siteName}", locator1 = "Button#ANY")) {
 			Refresh();
 
 			Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
@@ -93,13 +89,15 @@ definition {
 
 		AssertElementPresent(locator1 = "Button#ANY");
 
-		Pause(locator1 = "3000");
-
 		AssertClick(
 			locator1 = "Button#ANY",
 			value1 = "Save and Return to ${siteName}");
 
-		Pause(locator1 = "5000");
+		Alert.viewSuccessMessage();
+
+		WaitForElementNotPresent(
+			locator1 = "Button#ANY",
+			value1 = "Save and Return to ${siteName}");
 
 		Navigator.openURL();
 	}

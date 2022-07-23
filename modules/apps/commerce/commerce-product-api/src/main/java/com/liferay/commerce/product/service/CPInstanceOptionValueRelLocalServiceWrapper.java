@@ -14,7 +14,10 @@
 
 package com.liferay.commerce.product.service;
 
+import com.liferay.commerce.product.model.CPInstanceOptionValueRel;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link CPInstanceOptionValueRelLocalService}.
@@ -26,6 +29,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CPInstanceOptionValueRelLocalServiceWrapper
 	implements CPInstanceOptionValueRelLocalService,
 			   ServiceWrapper<CPInstanceOptionValueRelLocalService> {
+
+	public CPInstanceOptionValueRelLocalServiceWrapper() {
+		this(null);
+	}
 
 	public CPInstanceOptionValueRelLocalServiceWrapper(
 		CPInstanceOptionValueRelLocalService
@@ -46,21 +53,18 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the cp instance option value rel that was added
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-		addCPInstanceOptionValueRel(
-			com.liferay.commerce.product.model.CPInstanceOptionValueRel
-				cpInstanceOptionValueRel) {
+	public CPInstanceOptionValueRel addCPInstanceOptionValueRel(
+		CPInstanceOptionValueRel cpInstanceOptionValueRel) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			addCPInstanceOptionValueRel(cpInstanceOptionValueRel);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-			addCPInstanceOptionValueRel(
-				long groupId, long companyId, long userId,
-				long cpDefinitionOptionRelId, long cpDefinitionOptionValueRelId,
-				long cpInstanceId)
+	public CPInstanceOptionValueRel addCPInstanceOptionValueRel(
+			long groupId, long companyId, long userId,
+			long cpDefinitionOptionRelId, long cpDefinitionOptionValueRelId,
+			long cpInstanceId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpInstanceOptionValueRelLocalService.
@@ -76,8 +80,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the new cp instance option value rel
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-		createCPInstanceOptionValueRel(long CPInstanceOptionValueRelId) {
+	public CPInstanceOptionValueRel createCPInstanceOptionValueRel(
+		long CPInstanceOptionValueRelId) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			createCPInstanceOptionValueRel(CPInstanceOptionValueRelId);
@@ -106,10 +110,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the cp instance option value rel that was removed
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-		deleteCPInstanceOptionValueRel(
-			com.liferay.commerce.product.model.CPInstanceOptionValueRel
-				cpInstanceOptionValueRel) {
+	public CPInstanceOptionValueRel deleteCPInstanceOptionValueRel(
+		CPInstanceOptionValueRel cpInstanceOptionValueRel) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			deleteCPInstanceOptionValueRel(cpInstanceOptionValueRel);
@@ -127,8 +129,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @throws PortalException if a cp instance option value rel with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-			deleteCPInstanceOptionValueRel(long CPInstanceOptionValueRelId)
+	public CPInstanceOptionValueRel deleteCPInstanceOptionValueRel(
+			long CPInstanceOptionValueRelId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpInstanceOptionValueRelLocalService.
@@ -150,6 +152,13 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cpInstanceOptionValueRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cpInstanceOptionValueRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -245,8 +254,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-		fetchCPInstanceOptionValueRel(long CPInstanceOptionValueRelId) {
+	public CPInstanceOptionValueRel fetchCPInstanceOptionValueRel(
+		long CPInstanceOptionValueRelId) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			fetchCPInstanceOptionValueRel(CPInstanceOptionValueRelId);
@@ -260,7 +269,7 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the matching cp instance option value rel, or <code>null</code> if a matching cp instance option value rel could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
+	public CPInstanceOptionValueRel
 		fetchCPInstanceOptionValueRelByUuidAndGroupId(
 			String uuid, long groupId) {
 
@@ -277,19 +286,17 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-			getCPDefinitionCPInstanceOptionValueRels(long cpDefinitionId) {
+	public java.util.List<CPInstanceOptionValueRel>
+		getCPDefinitionCPInstanceOptionValueRels(long cpDefinitionId) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			getCPDefinitionCPInstanceOptionValueRels(cpDefinitionId);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-			getCPDefinitionOptionRelCPInstanceOptionValueRels(
-				long cpDefinitionOptionRelId) {
+	public java.util.List<CPInstanceOptionValueRel>
+		getCPDefinitionOptionRelCPInstanceOptionValueRels(
+			long cpDefinitionOptionRelId) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			getCPDefinitionOptionRelCPInstanceOptionValueRels(
@@ -297,19 +304,17 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-			getCPInstanceCPInstanceOptionValueRels(long cpInstanceId) {
+	public java.util.List<CPInstanceOptionValueRel>
+		getCPInstanceCPInstanceOptionValueRels(long cpInstanceId) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			getCPInstanceCPInstanceOptionValueRels(cpInstanceId);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-			getCPInstanceCPInstanceOptionValueRels(
-				long cpDefinitionOptionRelId, long cpInstanceId) {
+	public java.util.List<CPInstanceOptionValueRel>
+		getCPInstanceCPInstanceOptionValueRels(
+			long cpDefinitionOptionRelId, long cpInstanceId) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			getCPInstanceCPInstanceOptionValueRels(
@@ -324,8 +329,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @throws PortalException if a cp instance option value rel with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-			getCPInstanceOptionValueRel(long CPInstanceOptionValueRelId)
+	public CPInstanceOptionValueRel getCPInstanceOptionValueRel(
+			long CPInstanceOptionValueRelId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpInstanceOptionValueRelLocalService.
@@ -341,9 +346,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @throws PortalException if a matching cp instance option value rel could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-			getCPInstanceOptionValueRelByUuidAndGroupId(
-				String uuid, long groupId)
+	public CPInstanceOptionValueRel getCPInstanceOptionValueRelByUuidAndGroupId(
+			String uuid, long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpInstanceOptionValueRelLocalService.
@@ -362,9 +366,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the range of cp instance option value rels
 	 */
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-			getCPInstanceOptionValueRels(int start, int end) {
+	public java.util.List<CPInstanceOptionValueRel>
+		getCPInstanceOptionValueRels(int start, int end) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			getCPInstanceOptionValueRels(start, end);
@@ -378,10 +381,9 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the matching cp instance option value rels, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-			getCPInstanceOptionValueRelsByUuidAndCompanyId(
-				String uuid, long companyId) {
+	public java.util.List<CPInstanceOptionValueRel>
+		getCPInstanceOptionValueRelsByUuidAndCompanyId(
+			String uuid, long companyId) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			getCPInstanceOptionValueRelsByUuidAndCompanyId(uuid, companyId);
@@ -398,13 +400,11 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the range of matching cp instance option value rels, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List
-		<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-			getCPInstanceOptionValueRelsByUuidAndCompanyId(
-				String uuid, long companyId, int start, int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.commerce.product.model.
-						CPInstanceOptionValueRel> orderByComparator) {
+	public java.util.List<CPInstanceOptionValueRel>
+		getCPInstanceOptionValueRelsByUuidAndCompanyId(
+			String uuid, long companyId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<CPInstanceOptionValueRel> orderByComparator) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			getCPInstanceOptionValueRelsByUuidAndCompanyId(
@@ -497,9 +497,7 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	@Override
 	public boolean matchesCPInstanceOptionValueRels(
 		long cpInstanceId,
-		java.util.List
-			<com.liferay.commerce.product.model.CPInstanceOptionValueRel>
-				cpInstanceOptionValueRels) {
+		java.util.List<CPInstanceOptionValueRel> cpInstanceOptionValueRels) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			matchesCPInstanceOptionValueRels(
@@ -529,10 +527,8 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 	 * @return the cp instance option value rel that was updated
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPInstanceOptionValueRel
-		updateCPInstanceOptionValueRel(
-			com.liferay.commerce.product.model.CPInstanceOptionValueRel
-				cpInstanceOptionValueRel) {
+	public CPInstanceOptionValueRel updateCPInstanceOptionValueRel(
+		CPInstanceOptionValueRel cpInstanceOptionValueRel) {
 
 		return _cpInstanceOptionValueRelLocalService.
 			updateCPInstanceOptionValueRel(cpInstanceOptionValueRel);
@@ -548,6 +544,26 @@ public class CPInstanceOptionValueRelLocalServiceWrapper
 		_cpInstanceOptionValueRelLocalService.updateCPInstanceOptionValueRels(
 			groupId, companyId, userId, cpInstanceId,
 			cpDefinitionOptionRelIdCPDefinitionOptionValueRelIds);
+	}
+
+	@Override
+	public CTPersistence<CPInstanceOptionValueRel> getCTPersistence() {
+		return _cpInstanceOptionValueRelLocalService.getCTPersistence();
+	}
+
+	@Override
+	public Class<CPInstanceOptionValueRel> getModelClass() {
+		return _cpInstanceOptionValueRelLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CPInstanceOptionValueRel>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return _cpInstanceOptionValueRelLocalService.updateWithUnsafeFunction(
+			updateUnsafeFunction);
 	}
 
 	@Override

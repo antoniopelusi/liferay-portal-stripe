@@ -14,11 +14,15 @@
 
 package com.liferay.layout.set.prototype.web.internal.display.context;
 
+import com.liferay.layout.set.prototype.configuration.LayoutSetPrototypeConfiguration;
 import com.liferay.layout.set.prototype.constants.LayoutSetPrototypePortletKeys;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -87,8 +91,29 @@ public class PropagationMessageDisplayContext {
 				LayoutSetPrototypePortletKeys.LAYOUT_SET_PROTOTYPE)
 		).put(
 			"readyForPropagation", readyForPropagation
+		).put(
+			"triggerPropagation",
+			isTriggerPropagation(themeDisplay.getCompanyId())
 		).build();
 	}
+
+	protected boolean isTriggerPropagation(long companyId) {
+		try {
+			LayoutSetPrototypeConfiguration layoutSetPrototypeConfiguration =
+				ConfigurationProviderUtil.getCompanyConfiguration(
+					LayoutSetPrototypeConfiguration.class, companyId);
+
+			return layoutSetPrototypeConfiguration.triggerPropagation();
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+		}
+
+		return false;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		PropagationMessageDisplayContext.class);
 
 	private final HttpServletRequest _httpServletRequest;
 

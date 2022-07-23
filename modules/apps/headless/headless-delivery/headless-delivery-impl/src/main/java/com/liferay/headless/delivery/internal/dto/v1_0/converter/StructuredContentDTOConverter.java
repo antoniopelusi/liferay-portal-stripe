@@ -14,6 +14,7 @@
 
 package com.liferay.headless.delivery.internal.dto.v1_0.converter;
 
+import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
@@ -30,10 +31,10 @@ import com.liferay.headless.delivery.dto.v1_0.ContentField;
 import com.liferay.headless.delivery.dto.v1_0.RenderedContent;
 import com.liferay.headless.delivery.dto.v1_0.StructuredContent;
 import com.liferay.headless.delivery.dto.v1_0.TaxonomyCategoryBrief;
+import com.liferay.headless.delivery.dto.v1_0.util.ContentFieldUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.CreatorUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.AggregateRatingUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.ContentFieldUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CreatorUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.DisplayPageRendererUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.RelatedContentUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.RenderedContentValueUtil;
@@ -150,6 +151,8 @@ public class StructuredContentDTOConverter
 				description_i18n = LocalizedMapUtil.getI18nMap(
 					dtoConverterContext.isAcceptAllLanguages(),
 					_filterDescriptionMap(journalArticle.getDescriptionMap()));
+				externalReferenceCode =
+					journalArticle.getExternalReferenceCode();
 				friendlyUrlPath = journalArticle.getUrlTitle(
 					dtoConverterContext.getLocale());
 				friendlyUrlPath_i18n = LocalizedMapUtil.getI18nMap(
@@ -193,6 +196,20 @@ public class StructuredContentDTOConverter
 					dtoConverterContext.isAcceptAllLanguages(),
 					journalArticle.getTitleMap());
 				uuid = journalArticle.getUuid();
+
+				setPriority(
+					() -> {
+						AssetEntry assetEntry =
+							_assetEntryLocalService.fetchEntry(
+								journalArticle.getModelClassName(),
+								journalArticle.getResourcePrimKey());
+
+						if (assetEntry == null) {
+							return null;
+						}
+
+						return assetEntry.getPriority();
+					});
 			}
 		};
 	}
@@ -265,8 +282,8 @@ public class StructuredContentDTOConverter
 					renderedContentURL = JaxRsLinkUtil.getJaxRsLink(
 						"headless-delivery",
 						BaseStructuredContentResourceImpl.class,
-						"getStructuredContentRenderedContentTemplate", uriInfo,
-						journalArticle.getResourcePrimKey(),
+						"getStructuredContentRenderedContentContentTemplate",
+						uriInfo, journalArticle.getResourcePrimKey(),
 						ddmTemplate.getTemplateKey());
 
 					setMarkedAsDefault(

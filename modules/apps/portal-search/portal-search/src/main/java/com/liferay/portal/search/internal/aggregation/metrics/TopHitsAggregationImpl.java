@@ -159,12 +159,16 @@ public class TopHitsAggregationImpl
 
 	@Override
 	public void setScriptFields(List<ScriptField> scriptFields) {
-		_scriptFields = scriptFields;
+		if (scriptFields != null) {
+			_scriptFields = scriptFields;
+		}
 	}
 
 	@Override
 	public void setSelectedFields(List<String> selectedFields) {
-		_selectedFields = selectedFields;
+		if (selectedFields != null) {
+			_selectedFields = selectedFields;
+		}
 	}
 
 	@Override

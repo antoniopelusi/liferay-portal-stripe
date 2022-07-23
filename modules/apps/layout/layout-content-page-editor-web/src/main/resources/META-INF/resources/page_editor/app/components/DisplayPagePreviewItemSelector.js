@@ -30,7 +30,7 @@ import {useId} from '../utils/useId';
 
 const NO_ITEM_LABEL = `-- ${Liferay.Language.get('none')} --`;
 
-export const DisplayPagePreviewItemSelector = ({dark = false}) => {
+export function DisplayPagePreviewItemSelector({dark = false}) {
 	const [active, setActive] = useState(false);
 	const previewItem = useDisplayPagePreviewItem();
 	const recentPreviewItemList = useDisplayPageRecentPreviewItemList();
@@ -55,6 +55,11 @@ export const DisplayPagePreviewItemSelector = ({dark = false}) => {
 			active={active}
 			alignmentPosition={Align.BottomRight}
 			aria-labelledby={selectLabelId}
+			menuElementAttrs={{
+				containerProps: {
+					className: 'cadmin',
+				},
+			}}
 			onActiveChange={setActive}
 			role="listbox"
 			trigger={
@@ -76,6 +81,7 @@ export const DisplayPagePreviewItemSelector = ({dark = false}) => {
 					>
 						{Liferay.Language.get('preview-with')}:
 					</strong>
+
 					<button
 						className={classNames(
 							'align-items-center btn btn-sm d-flex page-editor__display-page-preview-item-selector-button',
@@ -86,6 +92,7 @@ export const DisplayPagePreviewItemSelector = ({dark = false}) => {
 						<span className="flex-grow-1 overflow-hidden text-left text-truncate">
 							{previewItem ? previewItem.label : NO_ITEM_LABEL}
 						</span>
+
 						<ClayIcon
 							className="flex-shrink-0 text-secondary"
 							symbol="caret-bottom"
@@ -130,7 +137,7 @@ export const DisplayPagePreviewItemSelector = ({dark = false}) => {
 			</ClayDropDown.ItemList>
 		</ClayDropDown>
 	);
-};
+}
 
 DisplayPagePreviewItemSelector.propTypes = {
 	dark: PropTypes.bool,

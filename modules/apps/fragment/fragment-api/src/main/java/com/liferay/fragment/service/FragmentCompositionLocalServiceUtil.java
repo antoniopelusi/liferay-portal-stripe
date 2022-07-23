@@ -145,6 +145,10 @@ public class FragmentCompositionLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -471,22 +475,6 @@ public class FragmentCompositionLocalServiceUtil {
 		return getService().updateFragmentComposition(
 			userId, fragmentCompositionId, fragmentCollectionId, name,
 			description, data, previewFileEntryId, status);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateFragmentComposition(long, long, long, String, String, String, long, int)}
-	 */
-	@Deprecated
-	public static FragmentComposition updateFragmentComposition(
-			long userId, long fragmentCompositionId, String name,
-			String description, String data, long previewFileEntryId,
-			int status)
-		throws PortalException {
-
-		return getService().updateFragmentComposition(
-			userId, fragmentCompositionId, name, description, data,
-			previewFileEntryId, status);
 	}
 
 	public static FragmentComposition updateFragmentComposition(

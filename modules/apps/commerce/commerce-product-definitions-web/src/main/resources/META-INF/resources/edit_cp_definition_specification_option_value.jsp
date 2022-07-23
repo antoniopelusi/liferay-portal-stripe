@@ -29,7 +29,7 @@ long cpOptionCategoryId = BeanParamUtil.getLong(cpDefinitionSpecificationOptionV
 
 <portlet:actionURL name="/cp_definitions/edit_cp_definition_specification_option_value" var="editProductDefinitionSpecificationOptionValueActionURL" />
 
-<commerce-ui:side-panel-content
+<liferay-frontend:side-panel-content
 	title="<%= cpSpecificationOption.getTitle(locale) %>"
 >
 	<commerce-ui:panel
@@ -40,7 +40,12 @@ long cpOptionCategoryId = BeanParamUtil.getLong(cpDefinitionSpecificationOptionV
 			<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 			<aui:input name="cpDefinitionSpecificationOptionValueId" type="hidden" value="<%= String.valueOf(cpDefinitionSpecificationOptionValue.getCPDefinitionSpecificationOptionValueId()) %>" />
 
-			<aui:input defaultLanguageId="<%= cpDefinitionSpecificationOptionValueDisplayContext.getCatalogDefaultLanguageId() %>" name="value" value="<%= cpDefinitionSpecificationOptionValue.getValue(cpDefinitionSpecificationOptionValueDisplayContext.getCatalogDefaultLanguageId()) %>" />
+			<aui:field-wrapper label='<%= LanguageUtil.get(resourceBundle, "value") %>' name="valueFieldWrapper">
+				<liferay-ui:input-localized
+					name="value"
+					xml="<%= (cpDefinitionSpecificationOptionValue == null) ? StringPool.BLANK : cpDefinitionSpecificationOptionValue.getValue() %>"
+				/>
+			</aui:field-wrapper>
 
 			<aui:select label="group" name="CPOptionCategoryId" showEmptyOption="<%= true %>">
 
@@ -83,4 +88,4 @@ long cpOptionCategoryId = BeanParamUtil.getLong(cpDefinitionSpecificationOptionV
 			</aui:button-row>
 		</aui:form>
 	</commerce-ui:panel>
-</commerce-ui:side-panel-content>
+</liferay-frontend:side-panel-content>

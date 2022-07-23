@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
@@ -19,7 +19,9 @@ import SummaryCard from '../../../../src/main/resources/META-INF/resources/js/co
 import {MockRouter} from '../../../mock/MockRouter.es';
 
 describe('The SummaryCard component should', () => {
-	let container, getByText, renderResult;
+	let container;
+	let getByText;
+	let renderResult;
 
 	const props = {
 		getTitle: () => 'Overdue',
@@ -32,7 +34,7 @@ describe('The SummaryCard component should', () => {
 		value: 156403,
 	};
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		cleanup();
 
 		renderResult = render(
@@ -43,9 +45,13 @@ describe('The SummaryCard component should', () => {
 
 		container = renderResult.container;
 		getByText = renderResult.getByText;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Render correct icon and title', () => {
+	it('Render correct icon and title', () => {
 		const instanceIcon = container.querySelector(
 			'.lexicon-icon-exclamation-circle'
 		);
@@ -55,21 +61,21 @@ describe('The SummaryCard component should', () => {
 		expect(instanceTitle).toBeTruthy();
 	});
 
-	test('Render formatted percentage', () => {
+	it('Render formatted percentage', () => {
 		const footer = container.querySelector('.footer');
 
 		expect(footer).toHaveTextContent('18.23%');
 	});
 
-	test('Render formatted value for values with more than 3 digits', () => {
+	it('Render formatted value for values with more than 3 digits', () => {
 		const formattedValue = container.querySelector('.body');
 
 		expect(formattedValue).toHaveTextContent('156.4K');
 	});
 
-	test('Show see items only when item is hovered', () => {
+	it('Show see items only when item is hovered', () => {
 		const childLink = container.querySelector(
-			'a.process-dashboard-summary-card'
+			'a.process-tabs-summary-card'
 		);
 		const footer = container.querySelector('.footer');
 
@@ -84,7 +90,8 @@ describe('The SummaryCard component should', () => {
 });
 
 describe('The SummaryCard component should', () => {
-	let container, renderResult;
+	let container;
+	let renderResult;
 
 	const props = {
 		completed: true,
@@ -126,7 +133,7 @@ describe('The SummaryCard component should', () => {
 
 	test('Render with correct link', () => {
 		const childLink = container.querySelector(
-			'a.process-dashboard-summary-card'
+			'a.process-tabs-summary-card'
 		);
 
 		const href = childLink.getAttribute('href');
@@ -139,7 +146,8 @@ describe('The SummaryCard component should', () => {
 });
 
 describe('The SummaryCard component should', () => {
-	let container, renderResult;
+	let container;
+	let renderResult;
 
 	const props = {
 		getTitle: () => 'On Time',
@@ -166,7 +174,7 @@ describe('The SummaryCard component should', () => {
 
 	test('Render component with disabled state', () => {
 		const childLink = container.querySelector(
-			'a.process-dashboard-summary-card'
+			'a.process-tabs-summary-card'
 		);
 
 		expect([childLink.classList][0]).toContain('disabled');

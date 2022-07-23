@@ -49,21 +49,21 @@ public class KBFolderUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	private String _findUniqueUrlTitle(Connection con, String urlTitle)
+	private String _findUniqueUrlTitle(Connection connection, String urlTitle)
 		throws Exception {
 
-		try (PreparedStatement ps = con.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select count(*) from KBFolder where KBFolder.urlTitle like " +
 					"?")) {
 
-			ps.setString(1, urlTitle + "%");
+			preparedStatement.setString(1, urlTitle + "%");
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (!rs.next()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (!resultSet.next()) {
 					return urlTitle;
 				}
 
-				int kbFolderCount = rs.getInt(1);
+				int kbFolderCount = resultSet.getInt(1);
 
 				if (kbFolderCount == 0) {
 					return urlTitle;
@@ -74,19 +74,19 @@ public class KBFolderUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	private Map<Long, String> _getInitialUrlTitles(Connection con)
+	private Map<Long, String> _getInitialUrlTitles(Connection connection)
 		throws Exception {
 
-		try (PreparedStatement ps = con.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select kbFolderId, name from KBFolder where " +
 					"(KBFolder.urlTitle is null) or (KBFolder.urlTitle = '')");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
 			Map<Long, String> urlTitles = new HashMap<>();
 
-			while (rs.next()) {
-				long kbFolderId = rs.getLong(1);
-				String name = rs.getString(2);
+			while (resultSet.next()) {
+				long kbFolderId = resultSet.getLong(1);
+				String name = resultSet.getString(2);
 
 				String urlTitle = _getUrlTitle(kbFolderId, name);
 
@@ -123,17 +123,17 @@ public class KBFolderUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _updateKBFolder(
-			Connection con, long kbFolderId, String urlTitle)
+			Connection connection, long kbFolderId, String urlTitle)
 		throws Exception {
 
-		try (PreparedStatement ps = con.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update KBFolder set KBFolder.urlTitle = ? where " +
 					"KBFolder.kbFolderId = ?")) {
 
-			ps.setString(1, urlTitle);
-			ps.setLong(2, kbFolderId);
+			preparedStatement.setString(1, urlTitle);
+			preparedStatement.setLong(2, kbFolderId);
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 

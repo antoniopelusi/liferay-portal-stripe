@@ -18,8 +18,4 @@ package com.liferay.reading.time.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class ReadingTimeEntryImpl extends ReadingTimeEntryBaseImpl {
-
-	public ReadingTimeEntryImpl() {
-	}
-
 }

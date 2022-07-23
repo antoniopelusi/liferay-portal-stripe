@@ -76,6 +76,10 @@ public class StringUtil {
 		return s;
 	}
 
+	public static String center(String s, String size) {
+		return StringUtils.center(s, GetterUtil.getInteger(size));
+	}
+
 	public static String combine(String... strings) {
 		if ((strings == null) || (strings.length == 0)) {
 			return "";
@@ -165,11 +169,7 @@ public class StringUtil {
 	}
 
 	public static boolean endsWith(String s, String end) {
-		if ((s == null) || (end == null)) {
-			return false;
-		}
-
-		if (end.length() > s.length()) {
+		if ((s == null) || (end == null) || (end.length() > s.length())) {
 			return false;
 		}
 
@@ -187,11 +187,7 @@ public class StringUtil {
 			return true;
 		}
 
-		if ((s1 == null) || (s2 == null)) {
-			return false;
-		}
-
-		if (s1.length() != s2.length()) {
+		if ((s1 == null) || (s2 == null) || (s1.length() != s2.length())) {
 			return false;
 		}
 
@@ -413,19 +409,7 @@ public class StringUtil {
 	}
 
 	public static boolean matches(String s, String pattern) {
-		String[] array = pattern.split("\\*");
-
-		for (String element : array) {
-			int pos = s.indexOf(element);
-
-			if (pos == -1) {
-				return false;
-			}
-
-			s = s.substring(pos + element.length());
-		}
-
-		return true;
+		return s.matches(pattern);
 	}
 
 	public static List<String> partition(String s, String[] delimiters) {
@@ -849,11 +833,7 @@ public class StringUtil {
 	}
 
 	public static boolean startsWith(String s, String start) {
-		if ((s == null) || (start == null)) {
-			return false;
-		}
-
-		if (start.length() > s.length()) {
+		if ((s == null) || (start == null) || (start.length() > s.length())) {
 			return false;
 		}
 
@@ -1067,6 +1047,10 @@ public class StringUtil {
 	}
 
 	public static String upperCaseFirstLetter(String s) {
+		if ((s == null) || s.isEmpty()) {
+			return s;
+		}
+
 		char[] chars = s.toCharArray();
 
 		if ((chars[0] >= 97) && (chars[0] <= 122)) {

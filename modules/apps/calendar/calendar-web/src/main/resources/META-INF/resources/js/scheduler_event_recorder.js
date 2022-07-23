@@ -16,7 +16,6 @@ AUI.add(
 	'liferay-scheduler-event-recorder',
 	(A) => {
 		var AArray = A.Array;
-		var AObject = A.Object;
 		var Lang = A.Lang;
 
 		var CalendarWorkflow = Liferay.CalendarWorkflow;
@@ -509,12 +508,12 @@ AUI.add(
 
 					var portletNamespace = instance.get('portletNamespace');
 
-					var eventRecorderCalendar = A.one(
-						'#' + portletNamespace + 'eventRecorderCalendar'
+					var eventRecorderCalendar = document.querySelector(
+						`#${portletNamespace}eventRecorderCalendar`
 					);
 
 					if (eventRecorderCalendar) {
-						eventRecorderCalendar.val(calendarId.toString());
+						eventRecorderCalendar.value = calendarId.toString();
 					}
 
 					instance._syncInvitees();
@@ -587,21 +586,21 @@ AUI.add(
 						return Liferay.Util.escapeHTML(item.name);
 					});
 
-					contentNode = A.one(contentNode);
+					contentNode = document.querySelector(contentNode);
 
-					var messageNode = contentNode.one(
+					var messageNode = contentNode.querySelector(
 						'.calendar-portlet-invitees'
 					);
 
 					var messageHTML = '&mdash;';
 
 					if (values.length > 0) {
-						contentNode.show();
+						contentNode.style.display = '';
 
 						messageHTML = values.join(STR_COMMA_SPACE);
 					}
 
-					messageNode.html(messageHTML);
+					messageNode.innerHTML = messageHTML;
 				},
 
 				getTemplateData() {
@@ -630,7 +629,8 @@ AUI.add(
 						arguments
 					);
 
-					return A.merge(templateData, {
+					return {
+						...templateData,
 						acceptLinkEnabled: instance._hasWorkflowStatusPermission(
 							schedulerEvent,
 							CalendarWorkflow.STATUS_APPROVED
@@ -640,7 +640,7 @@ AUI.add(
 							'availableCalendars'
 						),
 						calendar,
-						calendarIds: AObject.keys(
+						calendarIds: Object.keys(
 							calendarContainer.get('availableCalendars')
 						),
 						declineLinkEnabled: instance._hasWorkflowStatusPermission(
@@ -661,7 +661,7 @@ AUI.add(
 						startTime: templateData.startDate,
 						status: schedulerEvent.get('status'),
 						workflowStatus: CalendarWorkflow,
-					});
+					};
 				},
 
 				getUpdatedSchedulerEvent(optAttrMap) {
@@ -689,7 +689,7 @@ AUI.add(
 
 					return SchedulerEventRecorder.superclass.getUpdatedSchedulerEvent.call(
 						instance,
-						A.merge(attrMap, optAttrMap)
+						{...attrMap, ...optAttrMap}
 					);
 				},
 

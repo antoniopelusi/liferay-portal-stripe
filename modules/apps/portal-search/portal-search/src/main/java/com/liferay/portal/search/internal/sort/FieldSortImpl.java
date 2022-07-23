@@ -22,7 +22,7 @@ import com.liferay.portal.search.sort.SortVisitor;
 /**
  * @author Michael C. Han
  */
-public class FieldSortImpl extends SortImpl implements FieldSort {
+public class FieldSortImpl extends BaseSortImpl implements FieldSort {
 
 	public FieldSortImpl(String field) {
 		_field = field;

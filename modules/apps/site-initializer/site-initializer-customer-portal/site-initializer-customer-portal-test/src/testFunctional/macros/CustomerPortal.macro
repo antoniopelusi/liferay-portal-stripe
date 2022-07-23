@@ -1,0 +1,327 @@
+definition {
+
+	macro activeContactRole {
+		ApplicationsMenu.gotoPortlet(
+			category = "Object",
+			panel = "Control Panel",
+			portlet = "Koroneiki Accounts");
+
+		CustomerPortal.viewKoroneikiInfo();
+
+		Type(
+			locator1 = "CP2LiferayContact#CONTACT_ROLE",
+			value1 = "Quality Assurance Analyst");
+
+		Click(locator1 = "Button#SAVE");
+	}
+
+	macro addIdPCForCustomerPortal {
+		AssertClick(
+			locator1 = "CPSAMLAdminIdentityProviderConnection#ADD_IDENTITY_PROVIDER_BUTTON",
+			value1 = "Add Identity Provider");
+
+		Type(
+			locator1 = "TextInput#SAML_NAME_FIELD",
+			value1 = "${idpNameId}");
+
+		Type(
+			locator1 = "CPSAMLAdminIdentityProviderConnection#IDENTITY_PROVIDER_CONNECTION_ENTITY_ID_FIELD",
+			value1 = "${idpEntityId}");
+
+		Check(locator1 = "CPSAMLAdminIdentityProviderConnection#IDENTITY_PROVIDER_CONNECTION_ENABLED_CHECKBOX");
+
+		if (isSet(idpMetadataURL)) {
+			Type(
+				locator1 = "TextInput#SAML_METADATA_URL_FIELD",
+				value1 = "${idpMetadataURL}");
+		}
+
+		if (isSet(nameIdentifierFormat)) {
+			Select(
+				locator1 = "Select#SAML_NAME_IDENTIFIER_FORMAT_SELECT",
+				value1 = "${nameIdentifierFormat}");
+		}
+		else {
+			Select(
+				locator1 = "Select#SAML_NAME_IDENTIFIER_FORMAT_SELECT",
+				value1 = "Email Address");
+		}
+
+		if (isSet(idpAttributeMappingText)) {
+			SAMLPortlet.addIdentityProviderConnectionAttributeMappingWithCustomAttributes(
+				idpAttributeMapping = "${idpAttributeMapping}",
+				idpAttributeMappingText = "${idpAttributeMappingText}");
+		}
+		else if (isSet(idpAttributeMapping)) {
+			SAMLPortlet.addIdentityProviderConnectionAttributeMapping(idpAttributeMapping = "${idpAttributeMapping}");
+		}
+	}
+
+	macro checkToggleHideWidget {
+		Check.checkToggleSwitch(locator1 = "CP2LiferayContact#HIDE_WIDGET");
+	}
+
+	macro createCPSite {
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		LexiconEntry.gotoAdd();
+
+		LexiconCard.clickCard(card = "Customer Portal");
+
+		SelectFrame(
+			key_title = "Add Site",
+			locator1 = "IFrame#MODAL_ANY");
+
+		PortletEntry.inputName(name = "${siteName}");
+
+		Click(locator1 = "Button#ADD");
+
+		AssertElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION");
+
+		while (IsElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION")) {
+			Pause(locator1 = "1500");
+		}
+
+		WaitForElementPresent(
+			key_itemName = "Site Configuration",
+			locator1 = "ListGroupItem#ITEM_TEXT");
+
+		Click(
+			key_itemName = "Site Configuration",
+			locator1 = "ListGroupItem#ITEM_TEXT");
+
+		AssertTextEquals(
+			locator1 = "SitesEditSite#DETAILS_NAME",
+			value1 = "${siteName}");
+
+		CustomerPortal.showCPObject();
+	}
+
+	macro customerPortalApisTearDown {
+		CommerceJSONAccountsAPI._deleteAllCommerceAccounts();
+
+		CommerceJSONChannelsAPI._deleteAllCommerceChannels();
+
+		RemoteApps.goToRemoteAppsPortlet();
+
+		RemoteApps.deleteRemoteApp();
+	}
+
+	macro customerPortalTearDown {
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Refresh();
+
+		PortletEntry.selectAll();
+
+		ClickNoError(
+			locator1 = "Icon#DELETE",
+			value1 = "Delete");
+
+		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Alert.viewSuccessMessage();
+
+		CustomerPortal.customerPortalApisTearDown();
+	}
+
+	macro loginOktaToUpdateCP {
+		var userEmailAddress = "garrettz@mbopartners.com.broken";
+		var userPassword = "q4F63ZEH3njnnA34S761";
+
+		Open.openInTheNewTab(locator1 = "https://login-dev.liferay.com/");
+
+		SelectWindow(locator1 = "title=Liferay-sandbox - Sign In");
+
+		Type(
+			locator1 = "CustomerPortalSite#OKTA_USERNAME",
+			value1 = "${userEmailAddress}");
+
+		Type(
+			locator1 = "CustomerPortalSite#OKTA_PASSWORD",
+			value1 = "${userPassword}");
+
+		Click(locator1 = "CustomerPortalSite#OKTA_SUBMIT");
+	}
+
+	macro replaceCertificateAndPrivateKey {
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		AssertClick(
+			key_certificateUsage = "${certificateUsage}",
+			locator1 = "CPSAMLAdmin#REPLACE_CERTIFICATE",
+			value1 = "Replace Certificate");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			locator1 = "CPSAMLAdmin#CERTIFICATE_AND_PRIVATE_KEY_COMMON_NAME_FIELD",
+			value1 = "Liferay QA");
+
+		Type(
+			locator1 = "CPSAMLAdmin#CERTIFICATE_AND_PRIVATE_KEY_ORGANIZATION_FIELD",
+			value1 = "Liferay");
+
+		Type(
+			locator1 = "CPSAMLAdmin#CERTIFICATE_AND_PRIVATE_KEY_COUNTRY_FIELD",
+			value1 = "USA");
+
+		if ("${certificateUsage}" == "SIGNING") {
+			Select(
+				locator1 = "CPSAMLAdmin#CERTIFICATE_AND_PRIVATE_KEY_KEY_ALGORITHM_SELECT",
+				value1 = "RSA");
+		}
+
+		Select(
+			locator1 = "CPSAMLAdmin#CERTIFICATE_AND_PRIVATE_KEY_KEY_LENGTH_SELECT",
+			value1 = "2048");
+
+		Type(
+			locator1 = "CPSAMLAdmin#CERTIFICATE_AND_PRIVATE_KEY_KEY_PASSWORD_FIELD",
+			value1 = "${samlKeyPassword}");
+
+		AssertClick(
+			locator1 = "Button#SUBMIT",
+			value1 = "Save");
+
+		WaitForElementNotPresent(locator1 = "IFrame#MODAL_BODY");
+
+		AssertElementPresent(
+			key_certificateUsage = "${certificateUsage}",
+			locator1 = "CPSAMLAdmin#DOWNLOAD_CERTIFICATE");
+
+		AssertElementPresent(
+			key_certificateUsage = "${certificateUsage}",
+			locator1 = "CPSAMLAdmin#REPLACE_CERTIFICATE");
+	}
+
+	macro setUpForCP20 {
+		task ("Configure SAML Admin general info") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Security",
+				panel = "Control Panel",
+				portlet = "SAML Admin");
+
+			SAMLRole.configure(
+				samlEntityId = "customer2.liferay.com",
+				samlRoleType = "Service Provider");
+
+			if (IsElementPresent(locator1 = "CustomerPortalSite#CERTIFICATE", value = "SIGNING")) {
+				CustomerPortal.replaceCertificateAndPrivateKey(
+					certificateUsage = "SIGNING",
+					samlKeyPassword = "QATEST");
+
+				if (IsElementPresent(locator1 = "CPSAMLAdmin#DELETE_CERTIFICATE")) {
+					SAMLRole.deleteCertificate();
+				}
+
+				SAMLRole.configureCertificateAndPrivateKey(
+					certificateUsage = "ENCRYPTION",
+					samlKeyPassword = "QATEST");
+
+				Click(locator1 = "CPSAMLAdmin#SAML_ENABLED_CHECKBOX");
+
+				AssertClick(
+					locator1 = "Button#SAVE",
+					value1 = "Save");
+			}
+			else {
+				SAMLRole.configureCertificateAndPrivateKey(
+					certificateUsage = "SIGNING",
+					samlKeyPassword = "QATEST");
+
+				SAMLRole.configureCertificateAndPrivateKey(
+					certificateUsage = "ENCRYPTION",
+					samlKeyPassword = "QATEST");
+
+				Click(locator1 = "CPSAMLAdmin#SAML_ENABLED_CHECKBOX");
+
+				AssertClick(
+					locator1 = "Button#SAVE",
+					value1 = "Save");
+			}
+		}
+
+		task ("Configure IdP Connections") {
+
+			//var entityId = PropsUtil.get("okta.cp.entityId");
+			//var metadataURL = PropsUtil.get("okta.cp.metadataURL");
+
+			var entityId = "http://www.okta.com/exk158id544C4j3KK0h8";
+			var metadataURL = "https://provisioning.liferay.com/documents/20124/139691/customer-2.0-local-metadata.xml/eeac6c00-20b9-dafd-3059-4151d02d487b";
+
+			SAMLNavigation.gotoIdentityProviderConnections();
+
+			CustomerPortal.addIdPCForCustomerPortal(
+				idpAttributeMapping = "emailAddress,UUID,screenName,lastName,firstName",
+				idpEntityId = "${entityId}",
+				idpMetadataURL = "${metadataURL}",
+				idpNameId = "CP2",
+				nameIdentifierFormat = "Unspecified");
+
+			PortletEntry.save();
+		}
+	}
+
+	macro showCPObject {
+		ApplicationsMenu.gotoPortlet(
+			category = "Object",
+			panel = "Control Panel",
+			portlet = "Objects");
+
+		ObjectPortlet.selectCustomObject(label = "Koroneiki Account");
+
+		CreateObject.checkToggleActive();
+
+		CreateObject.selectPanelCategoryKey(panelCategoryKey = "Control Panel > Object");
+
+		CustomerPortal.checkToggleHideWidget();
+
+		CreateObject.saveObject();
+	}
+
+	macro tearDownForOktaAndSAML {
+		task ("Teardown") {
+			var entityId = "http://www.okta.com/exk158id544C4j3KK0h8";
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Security",
+				panel = "Control Panel",
+				portlet = "SAML Admin");
+
+			SAMLNavigation.gotoIdentityProviderConnections();
+
+			SAMLPortlet.deleteSAMLConnection(samlEntityId = "${entityId}");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Security",
+				panel = "Control Panel",
+				portlet = "SAML Admin");
+
+			Click(locator1 = "CPSAMLAdmin#SAML_ENABLED_CHECKBOX");
+
+			AssertClick(
+				locator1 = "Button#SAVE",
+				value1 = "Save");
+
+			SAMLRole.deleteCertificate();
+
+			CustomerPortal.customerPortalTearDown();
+		}
+	}
+
+	macro viewKoroneikiInfo {
+		Click(
+			key_text = "",
+			locator1 = "Icon#ANY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "View");
+	}
+
+}

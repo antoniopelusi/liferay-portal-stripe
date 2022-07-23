@@ -16,6 +16,7 @@ package com.liferay.dynamic.data.mapping.form.evaluator.internal.expression;
 
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionParameterAccessor;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorEvaluateRequest;
+import com.liferay.portal.kernel.json.JSONArray;
 
 import java.util.Locale;
 
@@ -37,6 +38,11 @@ public class DDMFormEvaluatorExpressionParameterAccessor
 	}
 
 	@Override
+	public String getGooglePlacesAPIKey() {
+		return _ddmFormEvaluatorEvaluateRequest.getGooglePlacesAPIKey();
+	}
+
+	@Override
 	public long getGroupId() {
 		return _ddmFormEvaluatorEvaluateRequest.getGroupId();
 	}
@@ -44,6 +50,16 @@ public class DDMFormEvaluatorExpressionParameterAccessor
 	@Override
 	public Locale getLocale() {
 		return _ddmFormEvaluatorEvaluateRequest.getLocale();
+	}
+
+	@Override
+	public JSONArray getObjectFieldsJSONArray() {
+		return _ddmFormEvaluatorEvaluateRequest.getObjectFieldsJSONArray();
+	}
+
+	@Override
+	public String getTimeZoneId() {
+		return _ddmFormEvaluatorEvaluateRequest.getTimeZoneId();
 	}
 
 	@Override

@@ -485,7 +485,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the matching kaleo task assignment instances
 	 */
 	public java.util.List<KaleoTaskAssignmentInstance>
-		findBykaleoTaskInstanceTokenId(long kaleoTaskInstanceTokenId);
+		findByKaleoTaskInstanceTokenId(long kaleoTaskInstanceTokenId);
 
 	/**
 	 * Returns a range of all the kaleo task assignment instances where kaleoTaskInstanceTokenId = &#63;.
@@ -500,7 +500,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the range of matching kaleo task assignment instances
 	 */
 	public java.util.List<KaleoTaskAssignmentInstance>
-		findBykaleoTaskInstanceTokenId(
+		findByKaleoTaskInstanceTokenId(
 			long kaleoTaskInstanceTokenId, int start, int end);
 
 	/**
@@ -517,7 +517,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the ordered range of matching kaleo task assignment instances
 	 */
 	public java.util.List<KaleoTaskAssignmentInstance>
-		findBykaleoTaskInstanceTokenId(
+		findByKaleoTaskInstanceTokenId(
 			long kaleoTaskInstanceTokenId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<KaleoTaskAssignmentInstance> orderByComparator);
@@ -537,7 +537,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the ordered range of matching kaleo task assignment instances
 	 */
 	public java.util.List<KaleoTaskAssignmentInstance>
-		findBykaleoTaskInstanceTokenId(
+		findByKaleoTaskInstanceTokenId(
 			long kaleoTaskInstanceTokenId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<KaleoTaskAssignmentInstance> orderByComparator,
@@ -551,7 +551,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the first matching kaleo task assignment instance
 	 * @throws NoSuchTaskAssignmentInstanceException if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance findBykaleoTaskInstanceTokenId_First(
+	public KaleoTaskAssignmentInstance findByKaleoTaskInstanceTokenId_First(
 			long kaleoTaskInstanceTokenId,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<KaleoTaskAssignmentInstance> orderByComparator)
@@ -564,7 +564,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching kaleo task assignment instance, or <code>null</code> if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance fetchBykaleoTaskInstanceTokenId_First(
+	public KaleoTaskAssignmentInstance fetchByKaleoTaskInstanceTokenId_First(
 		long kaleoTaskInstanceTokenId,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<KaleoTaskAssignmentInstance> orderByComparator);
@@ -577,7 +577,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the last matching kaleo task assignment instance
 	 * @throws NoSuchTaskAssignmentInstanceException if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance findBykaleoTaskInstanceTokenId_Last(
+	public KaleoTaskAssignmentInstance findByKaleoTaskInstanceTokenId_Last(
 			long kaleoTaskInstanceTokenId,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<KaleoTaskAssignmentInstance> orderByComparator)
@@ -590,7 +590,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching kaleo task assignment instance, or <code>null</code> if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance fetchBykaleoTaskInstanceTokenId_Last(
+	public KaleoTaskAssignmentInstance fetchByKaleoTaskInstanceTokenId_Last(
 		long kaleoTaskInstanceTokenId,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<KaleoTaskAssignmentInstance> orderByComparator);
@@ -605,7 +605,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @throws NoSuchTaskAssignmentInstanceException if a kaleo task assignment instance with the primary key could not be found
 	 */
 	public KaleoTaskAssignmentInstance[]
-			findBykaleoTaskInstanceTokenId_PrevAndNext(
+			findByKaleoTaskInstanceTokenId_PrevAndNext(
 				long kaleoTaskAssignmentInstanceId,
 				long kaleoTaskInstanceTokenId,
 				com.liferay.portal.kernel.util.OrderByComparator
@@ -617,7 +617,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 *
 	 * @param kaleoTaskInstanceTokenId the kaleo task instance token ID
 	 */
-	public void removeBykaleoTaskInstanceTokenId(long kaleoTaskInstanceTokenId);
+	public void removeByKaleoTaskInstanceTokenId(long kaleoTaskInstanceTokenId);
 
 	/**
 	 * Returns the number of kaleo task assignment instances where kaleoTaskInstanceTokenId = &#63;.
@@ -625,7 +625,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param kaleoTaskInstanceTokenId the kaleo task instance token ID
 	 * @return the number of matching kaleo task assignment instances
 	 */
-	public int countBykaleoTaskInstanceTokenId(long kaleoTaskInstanceTokenId);
+	public int countByKaleoTaskInstanceTokenId(long kaleoTaskInstanceTokenId);
 
 	/**
 	 * Returns all the kaleo task assignment instances where assigneeClassName = &#63;.
@@ -633,7 +633,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param assigneeClassName the assignee class name
 	 * @return the matching kaleo task assignment instances
 	 */
-	public java.util.List<KaleoTaskAssignmentInstance> findByassigneeClassName(
+	public java.util.List<KaleoTaskAssignmentInstance> findByAssigneeClassName(
 		String assigneeClassName);
 
 	/**
@@ -648,7 +648,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param end the upper bound of the range of kaleo task assignment instances (not inclusive)
 	 * @return the range of matching kaleo task assignment instances
 	 */
-	public java.util.List<KaleoTaskAssignmentInstance> findByassigneeClassName(
+	public java.util.List<KaleoTaskAssignmentInstance> findByAssigneeClassName(
 		String assigneeClassName, int start, int end);
 
 	/**
@@ -664,7 +664,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching kaleo task assignment instances
 	 */
-	public java.util.List<KaleoTaskAssignmentInstance> findByassigneeClassName(
+	public java.util.List<KaleoTaskAssignmentInstance> findByAssigneeClassName(
 		String assigneeClassName, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<KaleoTaskAssignmentInstance> orderByComparator);
@@ -683,7 +683,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kaleo task assignment instances
 	 */
-	public java.util.List<KaleoTaskAssignmentInstance> findByassigneeClassName(
+	public java.util.List<KaleoTaskAssignmentInstance> findByAssigneeClassName(
 		String assigneeClassName, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<KaleoTaskAssignmentInstance> orderByComparator,
@@ -697,7 +697,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the first matching kaleo task assignment instance
 	 * @throws NoSuchTaskAssignmentInstanceException if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance findByassigneeClassName_First(
+	public KaleoTaskAssignmentInstance findByAssigneeClassName_First(
 			String assigneeClassName,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<KaleoTaskAssignmentInstance> orderByComparator)
@@ -710,7 +710,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching kaleo task assignment instance, or <code>null</code> if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance fetchByassigneeClassName_First(
+	public KaleoTaskAssignmentInstance fetchByAssigneeClassName_First(
 		String assigneeClassName,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<KaleoTaskAssignmentInstance> orderByComparator);
@@ -723,7 +723,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the last matching kaleo task assignment instance
 	 * @throws NoSuchTaskAssignmentInstanceException if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance findByassigneeClassName_Last(
+	public KaleoTaskAssignmentInstance findByAssigneeClassName_Last(
 			String assigneeClassName,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<KaleoTaskAssignmentInstance> orderByComparator)
@@ -736,7 +736,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching kaleo task assignment instance, or <code>null</code> if a matching kaleo task assignment instance could not be found
 	 */
-	public KaleoTaskAssignmentInstance fetchByassigneeClassName_Last(
+	public KaleoTaskAssignmentInstance fetchByAssigneeClassName_Last(
 		String assigneeClassName,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<KaleoTaskAssignmentInstance> orderByComparator);
@@ -750,7 +750,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @return the previous, current, and next kaleo task assignment instance
 	 * @throws NoSuchTaskAssignmentInstanceException if a kaleo task assignment instance with the primary key could not be found
 	 */
-	public KaleoTaskAssignmentInstance[] findByassigneeClassName_PrevAndNext(
+	public KaleoTaskAssignmentInstance[] findByAssigneeClassName_PrevAndNext(
 			long kaleoTaskAssignmentInstanceId, String assigneeClassName,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<KaleoTaskAssignmentInstance> orderByComparator)
@@ -761,7 +761,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 *
 	 * @param assigneeClassName the assignee class name
 	 */
-	public void removeByassigneeClassName(String assigneeClassName);
+	public void removeByAssigneeClassName(String assigneeClassName);
 
 	/**
 	 * Returns the number of kaleo task assignment instances where assigneeClassName = &#63;.
@@ -769,7 +769,7 @@ public interface KaleoTaskAssignmentInstancePersistence
 	 * @param assigneeClassName the assignee class name
 	 * @return the number of matching kaleo task assignment instances
 	 */
-	public int countByassigneeClassName(String assigneeClassName);
+	public int countByAssigneeClassName(String assigneeClassName);
 
 	/**
 	 * Returns all the kaleo task assignment instances where groupId = &#63; and assigneeClassPK = &#63;.

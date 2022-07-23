@@ -32,10 +32,6 @@
 		<finder name="UserId" return-type="MFATimeBasedOTP" unique="true">
 			<finder-column name="userId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>DuplicateMFATimeBasedOTPEntry</exception>

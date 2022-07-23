@@ -19,9 +19,9 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.object.model.ObjectLayout;
 import com.liferay.object.model.ObjectLayoutModel;
-import com.liferay.object.model.ObjectLayoutSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
@@ -31,24 +31,29 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -78,7 +83,9 @@ public class ObjectLayoutModelImpl
 		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
 		{"objectLayoutId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP}
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"objectDefinitionId", Types.BIGINT},
+		{"defaultObjectLayout", Types.BOOLEAN}, {"name", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -93,10 +100,13 @@ public class ObjectLayoutModelImpl
 		TABLE_COLUMNS_MAP.put("userName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("objectDefinitionId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("defaultObjectLayout", Types.BOOLEAN);
+		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ObjectLayout (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectLayoutId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null)";
+		"create table ObjectLayout (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectLayoutId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectDefinitionId LONG,defaultObjectLayout BOOLEAN,name STRING null)";
 
 	public static final String TABLE_SQL_DROP = "drop table ObjectLayout";
 
@@ -122,14 +132,26 @@ public class ObjectLayoutModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 2L;
+	public static final long DEFAULTOBJECTLAYOUT_COLUMN_BITMASK = 2L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long OBJECTDEFINITIONID_COLUMN_BITMASK = 4L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 8L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long OBJECTLAYOUTID_COLUMN_BITMASK = 4L;
+	public static final long OBJECTLAYOUTID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -143,56 +165,6 @@ public class ObjectLayoutModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ObjectLayout toModel(ObjectLayoutSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ObjectLayout model = new ObjectLayoutImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setObjectLayoutId(soapModel.getObjectLayoutId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ObjectLayout> toModels(ObjectLayoutSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ObjectLayout> models = new ArrayList<ObjectLayout>(
-			soapModels.length);
-
-		for (ObjectLayoutSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public ObjectLayoutModelImpl() {
@@ -280,34 +252,6 @@ public class ObjectLayoutModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, ObjectLayout>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ObjectLayout.class.getClassLoader(), ObjectLayout.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ObjectLayout> constructor =
-				(Constructor<ObjectLayout>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<ObjectLayout, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<ObjectLayout, Object>>
@@ -352,6 +296,21 @@ public class ObjectLayoutModelImpl
 		attributeSetterBiConsumers.put(
 			"modifiedDate",
 			(BiConsumer<ObjectLayout, Date>)ObjectLayout::setModifiedDate);
+		attributeGetterFunctions.put(
+			"objectDefinitionId", ObjectLayout::getObjectDefinitionId);
+		attributeSetterBiConsumers.put(
+			"objectDefinitionId",
+			(BiConsumer<ObjectLayout, Long>)
+				ObjectLayout::setObjectDefinitionId);
+		attributeGetterFunctions.put(
+			"defaultObjectLayout", ObjectLayout::getDefaultObjectLayout);
+		attributeSetterBiConsumers.put(
+			"defaultObjectLayout",
+			(BiConsumer<ObjectLayout, Boolean>)
+				ObjectLayout::setDefaultObjectLayout);
+		attributeGetterFunctions.put("name", ObjectLayout::getName);
+		attributeSetterBiConsumers.put(
+			"name", (BiConsumer<ObjectLayout, String>)ObjectLayout::setName);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
@@ -530,6 +489,169 @@ public class ObjectLayoutModelImpl
 		_modifiedDate = modifiedDate;
 	}
 
+	@JSON
+	@Override
+	public long getObjectDefinitionId() {
+		return _objectDefinitionId;
+	}
+
+	@Override
+	public void setObjectDefinitionId(long objectDefinitionId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_objectDefinitionId = objectDefinitionId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalObjectDefinitionId() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("objectDefinitionId"));
+	}
+
+	@JSON
+	@Override
+	public boolean getDefaultObjectLayout() {
+		return _defaultObjectLayout;
+	}
+
+	@JSON
+	@Override
+	public boolean isDefaultObjectLayout() {
+		return _defaultObjectLayout;
+	}
+
+	@Override
+	public void setDefaultObjectLayout(boolean defaultObjectLayout) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_defaultObjectLayout = defaultObjectLayout;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public boolean getOriginalDefaultObjectLayout() {
+		return GetterUtil.getBoolean(
+			this.<Boolean>getColumnOriginalValue("defaultObjectLayout"));
+	}
+
+	@JSON
+	@Override
+	public String getName() {
+		if (_name == null) {
+			return "";
+		}
+		else {
+			return _name;
+		}
+	}
+
+	@Override
+	public String getName(Locale locale) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		return getName(languageId);
+	}
+
+	@Override
+	public String getName(Locale locale, boolean useDefault) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		return getName(languageId, useDefault);
+	}
+
+	@Override
+	public String getName(String languageId) {
+		return LocalizationUtil.getLocalization(getName(), languageId);
+	}
+
+	@Override
+	public String getName(String languageId, boolean useDefault) {
+		return LocalizationUtil.getLocalization(
+			getName(), languageId, useDefault);
+	}
+
+	@Override
+	public String getNameCurrentLanguageId() {
+		return _nameCurrentLanguageId;
+	}
+
+	@JSON
+	@Override
+	public String getNameCurrentValue() {
+		Locale locale = getLocale(_nameCurrentLanguageId);
+
+		return getName(locale);
+	}
+
+	@Override
+	public Map<Locale, String> getNameMap() {
+		return LocalizationUtil.getLocalizationMap(getName());
+	}
+
+	@Override
+	public void setName(String name) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_name = name;
+	}
+
+	@Override
+	public void setName(String name, Locale locale) {
+		setName(name, locale, LocaleUtil.getDefault());
+	}
+
+	@Override
+	public void setName(String name, Locale locale, Locale defaultLocale) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
+
+		if (Validator.isNotNull(name)) {
+			setName(
+				LocalizationUtil.updateLocalization(
+					getName(), "Name", name, languageId, defaultLanguageId));
+		}
+		else {
+			setName(
+				LocalizationUtil.removeLocalization(
+					getName(), "Name", languageId));
+		}
+	}
+
+	@Override
+	public void setNameCurrentLanguageId(String languageId) {
+		_nameCurrentLanguageId = languageId;
+	}
+
+	@Override
+	public void setNameMap(Map<Locale, String> nameMap) {
+		setNameMap(nameMap, LocaleUtil.getDefault());
+	}
+
+	@Override
+	public void setNameMap(Map<Locale, String> nameMap, Locale defaultLocale) {
+		if (nameMap == null) {
+			return;
+		}
+
+		setName(
+			LocalizationUtil.updateLocalization(
+				nameMap, getName(), "Name",
+				LocaleUtil.toLanguageId(defaultLocale)));
+	}
+
 	@Override
 	public StagedModelType getStagedModelType() {
 		return new StagedModelType(
@@ -574,6 +696,72 @@ public class ObjectLayoutModelImpl
 	}
 
 	@Override
+	public String[] getAvailableLanguageIds() {
+		Set<String> availableLanguageIds = new TreeSet<String>();
+
+		Map<Locale, String> nameMap = getNameMap();
+
+		for (Map.Entry<Locale, String> entry : nameMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		return availableLanguageIds.toArray(
+			new String[availableLanguageIds.size()]);
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		String xml = getName();
+
+		if (xml == null) {
+			return "";
+		}
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException {
+		Locale defaultLocale = LocaleUtil.fromLanguageId(
+			getDefaultLanguageId());
+
+		Locale[] availableLocales = LocaleUtil.fromLanguageIds(
+			getAvailableLanguageIds());
+
+		Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(
+			ObjectLayout.class.getName(), getPrimaryKey(), defaultLocale,
+			availableLocales);
+
+		prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		String modelDefaultLanguageId = getDefaultLanguageId();
+
+		String name = getName(defaultLocale);
+
+		if (Validator.isNull(name)) {
+			setName(getName(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setName(getName(defaultLocale), defaultLocale, defaultLocale);
+		}
+	}
+
+	@Override
 	public ObjectLayout toEscapedModel() {
 		if (_escapedModel == null) {
 			Function<InvocationHandler, ObjectLayout>
@@ -600,8 +788,38 @@ public class ObjectLayoutModelImpl
 		objectLayoutImpl.setUserName(getUserName());
 		objectLayoutImpl.setCreateDate(getCreateDate());
 		objectLayoutImpl.setModifiedDate(getModifiedDate());
+		objectLayoutImpl.setObjectDefinitionId(getObjectDefinitionId());
+		objectLayoutImpl.setDefaultObjectLayout(isDefaultObjectLayout());
+		objectLayoutImpl.setName(getName());
 
 		objectLayoutImpl.resetOriginalValues();
+
+		return objectLayoutImpl;
+	}
+
+	@Override
+	public ObjectLayout cloneWithOriginalValues() {
+		ObjectLayoutImpl objectLayoutImpl = new ObjectLayoutImpl();
+
+		objectLayoutImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		objectLayoutImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		objectLayoutImpl.setObjectLayoutId(
+			this.<Long>getColumnOriginalValue("objectLayoutId"));
+		objectLayoutImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		objectLayoutImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		objectLayoutImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		objectLayoutImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		objectLayoutImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		objectLayoutImpl.setObjectDefinitionId(
+			this.<Long>getColumnOriginalValue("objectDefinitionId"));
+		objectLayoutImpl.setDefaultObjectLayout(
+			this.<Boolean>getColumnOriginalValue("defaultObjectLayout"));
+		objectLayoutImpl.setName(this.<String>getColumnOriginalValue("name"));
 
 		return objectLayoutImpl;
 	}
@@ -722,6 +940,18 @@ public class ObjectLayoutModelImpl
 			objectLayoutCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
+		objectLayoutCacheModel.objectDefinitionId = getObjectDefinitionId();
+
+		objectLayoutCacheModel.defaultObjectLayout = isDefaultObjectLayout();
+
+		objectLayoutCacheModel.name = getName();
+
+		String name = objectLayoutCacheModel.name;
+
+		if ((name != null) && (name.length() == 0)) {
+			objectLayoutCacheModel.name = null;
+		}
+
 		return objectLayoutCacheModel;
 	}
 
@@ -731,7 +961,7 @@ public class ObjectLayoutModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -742,9 +972,26 @@ public class ObjectLayoutModelImpl
 			Function<ObjectLayout, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ObjectLayout)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ObjectLayout)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -791,7 +1038,9 @@ public class ObjectLayoutModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ObjectLayout>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ObjectLayout.class, ModelWrapper.class);
 
 	}
 
@@ -804,6 +1053,10 @@ public class ObjectLayoutModelImpl
 	private Date _createDate;
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
+	private long _objectDefinitionId;
+	private boolean _defaultObjectLayout;
+	private String _name;
+	private String _nameCurrentLanguageId;
 
 	public <T> T getColumnValue(String columnName) {
 		columnName = _attributeNames.getOrDefault(columnName, columnName);
@@ -842,6 +1095,9 @@ public class ObjectLayoutModelImpl
 		_columnOriginalValues.put("userName", _userName);
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
+		_columnOriginalValues.put("objectDefinitionId", _objectDefinitionId);
+		_columnOriginalValues.put("defaultObjectLayout", _defaultObjectLayout);
+		_columnOriginalValues.put("name", _name);
 	}
 
 	private static final Map<String, String> _attributeNames;
@@ -880,6 +1136,12 @@ public class ObjectLayoutModelImpl
 		columnBitmasks.put("createDate", 64L);
 
 		columnBitmasks.put("modifiedDate", 128L);
+
+		columnBitmasks.put("objectDefinitionId", 256L);
+
+		columnBitmasks.put("defaultObjectLayout", 512L);
+
+		columnBitmasks.put("name", 1024L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

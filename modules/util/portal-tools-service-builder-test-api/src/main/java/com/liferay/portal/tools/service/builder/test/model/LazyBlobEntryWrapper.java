@@ -85,6 +85,11 @@ public class LazyBlobEntryWrapper
 		}
 	}
 
+	@Override
+	public LazyBlobEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the blob1 of this lazy blob entry.
 	 *

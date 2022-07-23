@@ -509,4 +509,7 @@ public interface CommerceAccountModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public CommerceAccount cloneWithOriginalValues();
+
 }

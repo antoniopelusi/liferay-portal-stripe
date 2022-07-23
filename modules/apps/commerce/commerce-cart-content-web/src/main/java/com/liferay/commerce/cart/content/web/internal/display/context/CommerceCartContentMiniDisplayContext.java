@@ -21,7 +21,6 @@ import com.liferay.commerce.order.CommerceOrderHttpHelper;
 import com.liferay.commerce.order.CommerceOrderValidatorRegistry;
 import com.liferay.commerce.percentage.PercentageFormatter;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
-import com.liferay.commerce.price.CommerceProductPriceCalculation;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
 import com.liferay.commerce.product.util.CPInstanceHelper;
@@ -31,6 +30,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.theme.PortletDisplay;
+import com.liferay.portal.kernel.util.Portal;
 
 import java.math.BigDecimal;
 
@@ -42,33 +42,32 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Marco Leo
+ * @author Alessio Antonio Rendina
  */
 public class CommerceCartContentMiniDisplayContext
 	extends CommerceCartContentDisplayContext {
 
 	public CommerceCartContentMiniDisplayContext(
-			HttpServletRequest httpServletRequest,
 			CommerceChannelLocalService commerceChannelLocalService,
 			CommerceOrderHttpHelper commerceOrderHttpHelper,
 			CommerceOrderItemService commerceOrderItemService,
 			CommerceOrderPriceCalculation commerceOrderPriceCalculation,
 			CommerceOrderValidatorRegistry commerceOrderValidatorRegistry,
-			CommerceProductPriceCalculation commerceProductPriceCalculation,
 			CPDefinitionHelper cpDefinitionHelper,
 			CPInstanceHelper cpInstanceHelper,
 			ModelResourcePermission<CommerceOrder>
 				commerceOrderModelResourcePermission,
 			PortletResourcePermission commerceProductPortletResourcePermission,
-			PercentageFormatter percentageFormatter)
+			PercentageFormatter percentageFormatter,
+			HttpServletRequest httpServletRequest, Portal portal)
 		throws PortalException {
 
 		super(
-			httpServletRequest, commerceChannelLocalService,
-			commerceOrderItemService, commerceOrderPriceCalculation,
-			commerceOrderValidatorRegistry, commerceProductPriceCalculation,
-			cpDefinitionHelper, cpInstanceHelper,
-			commerceOrderModelResourcePermission,
-			commerceProductPortletResourcePermission);
+			commerceChannelLocalService, commerceOrderItemService,
+			commerceOrderModelResourcePermission, commerceOrderPriceCalculation,
+			commerceOrderValidatorRegistry,
+			commerceProductPortletResourcePermission, cpDefinitionHelper,
+			cpInstanceHelper, httpServletRequest, portal);
 
 		PortletDisplay portletDisplay =
 			commerceCartContentRequestHelper.getPortletDisplay();

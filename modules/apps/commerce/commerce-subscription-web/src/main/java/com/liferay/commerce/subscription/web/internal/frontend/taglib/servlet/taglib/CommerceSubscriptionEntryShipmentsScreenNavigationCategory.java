@@ -100,7 +100,7 @@ public class CommerceSubscriptionEntryShipmentsScreenNavigationCategory
 
 		_jspRenderer.renderJSP(
 			_servletContext, httpServletRequest, httpServletResponse,
-			"/subscription_entry/shipments.jsp");
+			"/commerce_subscription_entry/shipments.jsp");
 	}
 
 	@Reference
@@ -125,7 +125,7 @@ public class CommerceSubscriptionEntryShipmentsScreenNavigationCategory
 	private JSPRenderer _jspRenderer;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_SUBSCRIPTION + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_SUBSCRIPTION + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

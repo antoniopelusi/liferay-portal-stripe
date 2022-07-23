@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
 import com.microsoft.graph.core.DefaultClientConfig;
@@ -59,9 +60,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 
 import org.osgi.service.component.annotations.Component;
@@ -263,23 +262,25 @@ public class DLOpenerOneDriveManager {
 			long userId, FileEntry fileEntry, Locale locale)
 		throws PortalException {
 
-		Map<String, Serializable> taskContextMap = new HashMap<>(3);
-
-		taskContextMap.put(
-			BackgroundTaskContextMapConstants.DELETE_ON_SUCCESS, true);
-		taskContextMap.put(
-			OneDriveBackgroundTaskConstants.FILE_ENTRY_ID,
-			fileEntry.getFileEntryId());
-		taskContextMap.put(OneDriveBackgroundTaskConstants.LOCALE, locale);
-		taskContextMap.put(OneDriveBackgroundTaskConstants.USER_ID, userId);
-
 		return _backgroundTaskManager.addBackgroundTask(
 			userId, CompanyConstants.SYSTEM,
 			StringBundler.concat(
 				DLOpenerOneDriveManager.class.getSimpleName(), StringPool.POUND,
 				fileEntry.getFileEntryId()),
 			UploadOneDriveDocumentBackgroundTaskExecutor.class.getName(),
-			taskContextMap, new ServiceContext());
+			HashMapBuilder.<String, Serializable>create(
+				3
+			).put(
+				BackgroundTaskContextMapConstants.DELETE_ON_SUCCESS, true
+			).put(
+				OneDriveBackgroundTaskConstants.FILE_ENTRY_ID,
+				fileEntry.getFileEntryId()
+			).put(
+				OneDriveBackgroundTaskConstants.LOCALE, locale
+			).put(
+				OneDriveBackgroundTaskConstants.USER_ID, userId
+			).build(),
+			new ServiceContext());
 	}
 
 	private AccessToken _getAccessToken(long companyId, long userId)
@@ -315,8 +316,8 @@ public class DLOpenerOneDriveManager {
 				).content(
 				).buildRequest();
 
-			try (InputStream is = iDriveItemStreamRequest.get()) {
-				return FileUtil.createTempFile(is);
+			try (InputStream inputStream = iDriveItemStreamRequest.get()) {
+				return FileUtil.createTempFile(inputStream);
 			}
 		}
 		catch (GraphServiceException graphServiceException) {

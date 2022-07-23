@@ -1,0 +1,438 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		task ("Set up instance and sign into DXP") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+		}
+
+		task ("Add a new site with a public widget page") {
+			ACUtils.addSiteAndPage();
+		}
+
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		task ("Add a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Sync the Contact Data") {
+			ACDXPSettings.syncNewContactData();
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		JSONUser.tearDownNonAdminUsers();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8626 | Test Summary: Segment distribution chart can be filtered by date property"
+	@priority = "5"
+	test CanDistributionChartFilteredDateProperty {
+		property portal.upstream = "quarantine";
+
+		// AC Quarantine Reason: The membership list takes a long time to update
+		// AC Refactor ticket: LRAC-10769
+
+		task ("View AC Page as new user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMember(tableMember = "userfn userln");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute") {
+			ACNavigation.switchTab(tabName = "Distribution");
+
+			ACSegments.selectDistributionByAttribute(attribute = "createDate");
+		}
+
+		task ("Get current date") {
+			var dayNum = DateUtil.getCurrentDate();
+			var monthNum = DateUtil.getCurrentMonth();
+			var yearNum = DateUtil.getCurrentYear();
+
+			if (("${monthNum}" != "10") && ("${monthNum}" != "11") && ("${monthNum}" != "12")) {
+				var monthNum = "0${monthNum}";
+			}
+
+			var i = ${dayNum} / 10;
+
+			if ("${i}" == "0") {
+				var dayNum = "0${dayNum}";
+			}
+		}
+
+		task ("View Chart Entry") {
+			ACSegments.viewBreakdownChartsEntry(key_entry = "${yearNum}-${monthNum}-${dayNum}");
+
+			ACSegments.viewBreakdownChartsEntry(key_entry = "100.0%");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8627 | Test Summary: Segment distribution chart can be filtered by number property"
+	@ignore = "true"
+	@priority = "3"
+	test CanDistributionChartFilteredNumber {
+
+		// AC Refactor: Chart fails to appear when filtering with a number property.
+		// AC Refactor ticket: LRAC-9328
+		// AC Bug ticekt: LRAC-9329
+
+		task ("View AC Page as new user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Add CSV Data Source") {
+			ACSettings.addCSVDataSource(
+				dataSourceName = "CSV Age",
+				fieldName = "age",
+				fieldType = "Number",
+				newField = "true",
+				selectAnalyticsCloudField = "true",
+				sourceFileName = "contacts_age.csv");
+
+			ACNavigation.exitSettings();
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMember(tableMember = "userfn userln");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute") {
+			ACNavigation.switchTab(tabName = "Distribution");
+
+			ACSegments.selectDistributionByAttribute(attribute = "age");
+		}
+
+		task ("View Chart Entry") {
+
+			// Test will fail here because of no chart appearing.
+
+			ACSegments.viewBreakdownChartsEntry(key_entry = "userfn - 100.0%");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8628 | Test Summary: Segment distribution chart can be filtered by text property"
+	@priority = "3"
+	test CanDistributionChartFilteredText {
+		property portal.upstream = "quarantine";
+
+		// AC Quarantine Reason: The membership list takes a long time to update
+		// AC Refactor ticket: LRAC-10769
+
+		task ("View AC Page as new user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMember(tableMember = "userfn userln");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute") {
+			ACNavigation.switchTab(tabName = "Distribution");
+
+			ACSegments.selectDistributionByAttribute(attribute = "givenName");
+		}
+
+		task ("View Chart Entry") {
+			ACSegments.viewBreakdownChartsEntry(key_entry = "userfn - 100.0%");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8625 | Test Summary: Search the Segment Profile Distribution"
+	@priority = "3"
+	test CanSearchTheSegmentProfileDistribution {
+		var userList = "ac,dxp";
+		var emailList = "ac@liferay.com,dxp@liferay.com,userea@liferay.com";
+		var nameList = "ac ac,dxp dxp,userfn userln";
+
+		task ("Create new users") {
+			for (var userCreate : list "${userList}") {
+				JSONUser.addUser(
+					jobTitle = "QA",
+					userEmailAddress = "${userCreate}@liferay.com",
+					userFirstName = "${userCreate}",
+					userLastName = "${userCreate}",
+					userScreenName = "${userCreate}");
+			}
+		}
+
+		ACDXPSettings.syncNewContactData();
+
+		task ("View AC Page as new user") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "${emailList}",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMultiMember(tableMember = "${nameList}");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute") {
+			ACNavigation.switchTab(tabName = "Distribution");
+
+			ACSegments.selectDistributionByAttribute(attribute = "jobTitle");
+		}
+
+		task ("Click on the category in the dashboard") {
+			Click(locator1 = "ACSegments#BREAKDOWN_CHART");
+		}
+
+		task ("Assert that a right word will be found") {
+			for (var userSearch : list "${userList}") {
+				ACSegments.searchTheSegmentProfile(searchTerm = "${userSearch} ${userSearch}");
+
+				ACInterests.viewIndividualInterestSpecificOrder(interestTopic = "${userSearch} ${userSearch}");
+			}
+		}
+
+		task ("Assert that a wrong word will be not found") {
+			ACSegments.searchTheSegmentProfile(searchTerm = "userfn");
+
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8624 | Test Summary: Order the Segment Profile Distribution"
+	@priority = "3"
+	test OrderSegmentProfileDistribution {
+		var userList = "ac,liferay";
+		var emailList = "ac@liferay.com,liferay@liferay.com";
+		var nameList = "ac ac,liferay liferay";
+
+		task ("Create page") {
+			ACUtils.addPage(layoutName = "AC Page");
+		}
+
+		task ("Add two new users") {
+			for (var name : list "${userList}") {
+				JSONUser.addUser(
+					jobTitle = "QA",
+					userEmailAddress = "${name}@liferay.com",
+					userFirstName = "${name}",
+					userLastName = "${name}",
+					userScreenName = "${name}");
+			}
+
+			ACDXPSettings.syncNewContactData();
+		}
+
+		task ("Login with the users and open the site") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "${emailList}",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Launch AC and Switch to new property") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Add a new static segment") {
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+		}
+
+		task ("Type the segment name") {
+			ACUtils.setItemName(itemName = "Static Segment Test");
+		}
+
+		task ("Add new user as member") {
+			ACSegments.addStaticMultiMember(tableMember = "${nameList}");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to Segments") {
+			ACNavigation.goToSegments();
+
+			ACSegments.accessSegment(segmentName = "Static Segment Test");
+		}
+
+		task ("Filter Attribute") {
+			ACNavigation.switchTab(tabName = "Distribution");
+
+			ACSegments.selectDistributionByAttribute(attribute = "jobTitle");
+		}
+
+		task ("Click in Chart Entry") {
+			Click(locator1 = "ACSegments#BREAKDOWN_CHART");
+		}
+
+		task ("Sort the Names in ascending order") {
+			ACInterests.viewIndividualInterestSpecificOrder(interestTopic = "ac ac,liferay liferay");
+		}
+
+		task ("Sort the Names in ascending order") {
+			Click(
+				labelOption = "Name",
+				locator1 = "FormViewBuilder#FIELD_LABEL_OPTION");
+		}
+
+		task ("Sort the Names in ascending order") {
+			ACInterests.viewIndividualInterestSpecificOrder(interestTopic = "liferay liferay,ac ac");
+		}
+	}
+
+}

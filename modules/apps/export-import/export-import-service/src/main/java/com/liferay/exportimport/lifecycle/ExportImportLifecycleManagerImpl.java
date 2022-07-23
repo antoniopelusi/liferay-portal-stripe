@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBus;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.io.Serializable;
 
@@ -111,9 +111,10 @@ public class ExportImportLifecycleManagerImpl
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("destination.name", destination.getName());
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		ServiceRegistration<Destination> serviceRegistration =
 			bundleContext.registerService(

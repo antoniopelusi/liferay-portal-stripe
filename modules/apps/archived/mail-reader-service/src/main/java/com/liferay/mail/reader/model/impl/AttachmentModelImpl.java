@@ -29,15 +29,17 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -215,34 +217,6 @@ public class AttachmentModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Attachment>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Attachment.class.getClassLoader(), Attachment.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<Attachment> constructor =
-				(Constructor<Attachment>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Attachment, Object>>
@@ -531,6 +505,30 @@ public class AttachmentModelImpl
 	}
 
 	@Override
+	public Attachment cloneWithOriginalValues() {
+		AttachmentImpl attachmentImpl = new AttachmentImpl();
+
+		attachmentImpl.setAttachmentId(
+			this.<Long>getColumnOriginalValue("attachmentId"));
+		attachmentImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		attachmentImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		attachmentImpl.setAccountId(
+			this.<Long>getColumnOriginalValue("accountId"));
+		attachmentImpl.setFolderId(
+			this.<Long>getColumnOriginalValue("folderId"));
+		attachmentImpl.setMessageId(
+			this.<Long>getColumnOriginalValue("messageId"));
+		attachmentImpl.setContentPath(
+			this.<String>getColumnOriginalValue("contentPath"));
+		attachmentImpl.setFileName(
+			this.<String>getColumnOriginalValue("fileName"));
+		attachmentImpl.setSize(this.<Long>getColumnOriginalValue("size_"));
+
+		return attachmentImpl;
+	}
+
+	@Override
 	public int compareTo(Attachment attachment) {
 		long primaryKey = attachment.getPrimaryKey();
 
@@ -640,7 +638,7 @@ public class AttachmentModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -651,9 +649,26 @@ public class AttachmentModelImpl
 			Function<Attachment, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Attachment)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Attachment)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -700,7 +715,9 @@ public class AttachmentModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Attachment>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Attachment.class, ModelWrapper.class);
 
 	}
 

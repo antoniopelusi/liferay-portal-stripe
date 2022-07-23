@@ -18,25 +18,19 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.workflow.kaleo.metrics.integration.internal.helper.IndexerHelper;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstance;
-import com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentInstance;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService;
 import com.liferay.portal.workflow.kaleo.service.KaleoInstanceLocalService;
-import com.liferay.portal.workflow.kaleo.service.KaleoTaskAssignmentInstanceLocalService;
 import com.liferay.portal.workflow.kaleo.service.KaleoTaskInstanceTokenLocalService;
 import com.liferay.portal.workflow.metrics.search.background.task.WorkflowMetricsReindexStatusMessageSender;
 import com.liferay.portal.workflow.metrics.search.index.TaskWorkflowMetricsIndexer;
 import com.liferay.portal.workflow.metrics.search.index.reindexer.WorkflowMetricsReindexer;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -87,65 +81,10 @@ public class TaskWorkflowMetricsReindexer implements WorkflowMetricsReindexer {
 					return;
 				}
 
-				List<KaleoTaskAssignmentInstance> kaleoTaskAssignmentInstances =
-					_kaleoTaskAssignmentInstanceLocalService.
-						getKaleoTaskAssignmentInstances(
-							kaleoTaskInstanceToken.
-								getKaleoTaskInstanceTokenId());
-
-				Long[] assigneeIds = Optional.ofNullable(
-					kaleoTaskAssignmentInstances
-				).filter(
-					ListUtil::isNotEmpty
-				).map(
-					List::stream
-				).map(
-					stream -> stream.map(
-						KaleoTaskAssignmentInstance::getAssigneeClassPK
-					).toArray(
-						Long[]::new
-					)
-				).orElseGet(
-					() -> null
-				);
-
-				String assigneeType = Stream.of(
-					kaleoTaskAssignmentInstances
-				).flatMap(
-					List::stream
-				).map(
-					KaleoTaskAssignmentInstance::getAssigneeClassName
-				).findFirst(
-				).orElseGet(
-					() -> null
-				);
-
 				_taskWorkflowMetricsIndexer.addTask(
-					_indexerHelper.createAssetTitleLocalizationMap(
-						kaleoTaskInstanceToken.getClassName(),
-						kaleoTaskInstanceToken.getClassPK(),
-						kaleoTaskInstanceToken.getGroupId()),
-					_indexerHelper.createAssetTypeLocalizationMap(
-						kaleoTaskInstanceToken.getClassName(),
-						kaleoTaskInstanceToken.getGroupId()),
-					assigneeIds, assigneeType,
-					kaleoTaskInstanceToken.getClassName(),
-					kaleoTaskInstanceToken.getClassPK(),
-					kaleoTaskInstanceToken.getCompanyId(),
-					kaleoTaskInstanceToken.isCompleted(),
-					kaleoTaskInstanceToken.getCompletionDate(),
-					kaleoTaskInstanceToken.getCompletionUserId(),
-					kaleoTaskInstanceToken.getCreateDate(),
-					kaleoInstance.isCompleted(),
-					kaleoInstance.getCompletionDate(),
-					kaleoTaskInstanceToken.getKaleoInstanceId(),
-					kaleoTaskInstanceToken.getModifiedDate(),
-					kaleoTaskInstanceToken.getKaleoTaskName(),
-					kaleoTaskInstanceToken.getKaleoTaskId(),
-					kaleoInstance.getKaleoDefinitionId(),
-					kaleoDefinitionVersion.getVersion(),
-					kaleoTaskInstanceToken.getKaleoTaskInstanceTokenId(),
-					kaleoTaskInstanceToken.getUserId());
+					_indexerHelper.createAddTaskRequest(
+						kaleoInstance, kaleoTaskInstanceToken,
+						kaleoDefinitionVersion.getVersion()));
 
 				_workflowMetricsReindexStatusMessageSender.sendStatusMessage(
 					atomicCounter.incrementAndGet(), total, "task");
@@ -163,10 +102,6 @@ public class TaskWorkflowMetricsReindexer implements WorkflowMetricsReindexer {
 
 	@Reference
 	private KaleoInstanceLocalService _kaleoInstanceLocalService;
-
-	@Reference
-	private KaleoTaskAssignmentInstanceLocalService
-		_kaleoTaskAssignmentInstanceLocalService;
 
 	@Reference
 	private KaleoTaskInstanceTokenLocalService

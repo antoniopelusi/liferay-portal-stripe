@@ -121,12 +121,13 @@ public interface DataDefinitionResource {
 				Long dataDefinitionId, String roleNames)
 		throws Exception;
 
-	public void putDataDefinitionPermission(
+	public Page<Permission> putDataDefinitionPermissionsPage(
 			Long dataDefinitionId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putDataDefinitionPermissionHttpResponse(
-			Long dataDefinitionId, Permission[] permissions)
+	public HttpInvoker.HttpResponse
+			putDataDefinitionPermissionsPageHttpResponse(
+				Long dataDefinitionId, Permission[] permissions)
 		throws Exception;
 
 	public Page<DataDefinition>
@@ -617,6 +618,8 @@ public interface DataDefinitionResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -1065,12 +1068,12 @@ public interface DataDefinitionResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putDataDefinitionPermission(
+		public Page<Permission> putDataDefinitionPermissionsPage(
 				Long dataDefinitionId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putDataDefinitionPermissionHttpResponse(
+				putDataDefinitionPermissionsPageHttpResponse(
 					dataDefinitionId, permissions);
 
 			String content = httpResponse.getContent();
@@ -1099,7 +1102,7 @@ public interface DataDefinitionResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -1110,8 +1113,9 @@ public interface DataDefinitionResource {
 			}
 		}
 
-		public HttpInvoker.HttpResponse putDataDefinitionPermissionHttpResponse(
-				Long dataDefinitionId, Permission[] permissions)
+		public HttpInvoker.HttpResponse
+				putDataDefinitionPermissionsPageHttpResponse(
+					Long dataDefinitionId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();

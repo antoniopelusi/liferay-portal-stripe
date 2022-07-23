@@ -14,13 +14,13 @@
 
 package com.liferay.wiki.internal.engine;
 
+import com.liferay.diff.DiffHtml;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListener;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cache.MultiVMPool;
 import com.liferay.portal.kernel.cache.PortalCache;
-import com.liferay.portal.kernel.diff.DiffHtmlUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -59,14 +59,14 @@ public class WikiEngineRendererImpl implements WikiEngineRenderer {
 			String attachmentURLPrefix)
 		throws PageContentException, WikiFormatException {
 
-		LiferayPortletURL liferayViewPageURL = (LiferayPortletURL)viewPageURL;
-		LiferayPortletURL liferayEditPageURL = (LiferayPortletURL)editPageURL;
-
 		WikiEngine wikiEngine = fetchWikiEngine(page.getFormat());
 
 		if (wikiEngine == null) {
 			throw new WikiFormatException();
 		}
+
+		LiferayPortletURL liferayViewPageURL = (LiferayPortletURL)viewPageURL;
+		LiferayPortletURL liferayEditPageURL = (LiferayPortletURL)editPageURL;
 
 		String content = wikiEngine.convert(
 			page, viewPageURL, editPageURL, attachmentURLPrefix);
@@ -126,7 +126,7 @@ public class WikiEngineRendererImpl implements WikiEngineRenderer {
 				targetPage, viewPageURL, editPageURL, attachmentURLPrefix);
 		}
 
-		return DiffHtmlUtil.diff(
+		return _diffHtml.diff(
 			new UnsyncStringReader(sourceContent),
 			new UnsyncStringReader(targetContent));
 	}
@@ -238,6 +238,9 @@ public class WikiEngineRendererImpl implements WikiEngineRenderer {
 		"\\[\\$BEGIN_PAGE_TITLE\\$\\](.*?)\\[\\$END_PAGE_TITLE\\$\\]");
 
 	private BundleContext _bundleContext;
+
+	@Reference
+	private DiffHtml _diffHtml;
 
 	@Reference
 	private MultiVMPool _multiVMPool;

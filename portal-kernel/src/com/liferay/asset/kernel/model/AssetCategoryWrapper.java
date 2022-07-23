@@ -187,6 +187,11 @@ public class AssetCategoryWrapper
 	}
 
 	@Override
+	public AssetCategory cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public java.util.List<AssetCategory> getAncestors()
 		throws com.liferay.portal.kernel.exception.PortalException {
 

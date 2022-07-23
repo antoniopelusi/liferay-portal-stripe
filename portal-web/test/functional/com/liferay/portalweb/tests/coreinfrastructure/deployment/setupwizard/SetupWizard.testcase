@@ -6,6 +6,51 @@ definition {
 	property test.prepare.bundle.properties = "false";
 	property testray.main.component.name = "Setup Wizard";
 
+	@description = "This is a use case for LPS-107347. It asserts that an admin is still required to change password with Setup Wizard disabled."
+	@priority = "4"
+	test AdminIsRequiredToChangePasswordWithSetupWizardDisabled {
+		property custom.properties = "setup.wizard.enabled=false${line.separator}passwords.default.policy.change.required=true";
+		property database.types = "mysql";
+		property test.prepare.bundle.properties = "true";
+		property testray.main.component.name = "Users and Organizations";
+
+		task ("When an admin logs in with Setup Wizard disabled") {
+			Navigator.openURL();
+
+			User._clickSignInLink();
+
+			Type.typePause(
+				locator1 = "TextInput#EMAIL_ADDRESS",
+				value1 = "test@liferay.com");
+
+			Type.typePause(
+				locator1 = "TextInput#PASSWORD",
+				value1 = "test");
+
+			User._clickSignInButton();
+
+			SignIn.agreeToTermsOfUse();
+
+			User.answerPasswordReminder();
+		}
+
+		task ("Then the admin is still required to reset its password") {
+			Type(
+				locator1 = "TextInput#PASSWORD_1",
+				value1 = "test2");
+
+			Type(
+				locator1 = "TextInput#PASSWORD_2",
+				value1 = "test2");
+
+			Button.clickSubmitButton();
+
+			User.answerPasswordReminder();
+
+			AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
+		}
+	}
+
 	@priority = "4"
 	test BasicConfigurationVisualLook {
 		property database.types = "mysql";
@@ -81,12 +126,12 @@ definition {
 
 		Refresh();
 
-		SetupWizard.configurePortalNamePG(portalName = "1234567890!@#$%^&amp;*()~`");
+		SetupWizard.configurePortalNamePG(portalName = "1234567890!@#$%^&*()~`");
 
 		SetupWizard.configureAdministratorUserPG(
-			administratorEmail = "1234567890!@#$%^&amp;*()~`",
-			administratorFirstName = "1234567890!@#$%^&amp;*()~`",
-			administratorLastName = "1234567890!@#$%^&amp;*()~`");
+			administratorEmail = "1234567890!@#$%^&*()~`",
+			administratorFirstName = "1234567890!@#$%^&*()~`",
+			administratorLastName = "1234567890!@#$%^&*()~`");
 
 		Click(locator1 = "TextInput#PORTAL_NAME");
 
@@ -142,13 +187,20 @@ definition {
 
 		SetupWizard.viewConfiguredDatabaseInConsole(databaseType = "${databaseType}");
 
-		User.firstLoginPG(
+		User.firstLoginUI(
 			localization = "ES",
 			localizedAgree = "Acepto",
 			localizedAnswer = "Respuesta",
 			localizedSaveButton = "Guardar",
+			newPassword = "test1",
 			password = "test",
 			userEmailAddress = "user@liferay.com");
+
+		var testRunEnvironment = PropsUtil.get("test.run.environment");
+
+		if ("${testRunEnvironment}" == "EE") {
+			Button.click(button = "Finalizado");
+		}
 
 		AssertTextEquals(
 			locator1 = "Home#SITE_NAME",
@@ -157,7 +209,7 @@ definition {
 		var liferayHome = PropsUtil.get("liferay.home.dir.name");
 		var fileContent = FileUtil.read("${liferayHome}/portal-setup-wizard.properties");
 
-		if ((contains("${fileContent}", "admin.email.from.address=user@liferay.com")) && (contains("${fileContent}", "admin.email.from.name=User User")) && (contains("${fileContent}", "default.admin.email.address.prefix=user")) && (contains("${fileContent}", "default.admin.first.name=User")) && (contains("${fileContent}", "default.admin.last.name=User")) && (contains("${fileContent}", "company.default.locale=es_ES")) && (contains("${fileContent}", "company.default.name=Custom"))) {
+		if (contains("${fileContent}", "admin.email.from.address=user@liferay.com") && contains("${fileContent}", "admin.email.from.name=User User") && contains("${fileContent}", "default.admin.email.address.prefix=user") && contains("${fileContent}", "default.admin.first.name=User") && contains("${fileContent}", "default.admin.last.name=User") && contains("${fileContent}", "company.default.locale=es_ES") && contains("${fileContent}", "company.default.name=Custom")) {
 			echo("The configuration was saved successfully in portal-setup-wizard.properties!");
 		}
 		else {

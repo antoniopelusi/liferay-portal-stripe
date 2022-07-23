@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.NoSuchRepositoryEntryException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -21,6 +22,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.RepositoryEntry;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.service.base.RepositoryEntryLocalServiceBaseImpl;
 
 import java.util.List;
@@ -39,7 +41,7 @@ public class RepositoryEntryLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = _userPersistence.findByPrimaryKey(userId);
 
 		long repositoryEntryId = counterLocalService.increment();
 
@@ -72,9 +74,7 @@ public class RepositoryEntryLocalServiceImpl
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchRepositoryEntryException,
-						noSuchRepositoryEntryException);
+					_log.debug(noSuchRepositoryEntryException);
 				}
 			}
 		}
@@ -104,7 +104,7 @@ public class RepositoryEntryLocalServiceImpl
 			return repositoryEntry;
 		}
 
-		return addRepositoryEntry(
+		return repositoryEntryLocalService.addRepositoryEntry(
 			userId, groupId, repositoryId, objectId, new ServiceContext());
 	}
 
@@ -130,5 +130,8 @@ public class RepositoryEntryLocalServiceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		RepositoryEntryLocalServiceImpl.class);
+
+	@BeanReference(type = UserPersistence.class)
+	private UserPersistence _userPersistence;
 
 }

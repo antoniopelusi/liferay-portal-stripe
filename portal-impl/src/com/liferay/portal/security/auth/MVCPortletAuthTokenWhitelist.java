@@ -17,6 +17,7 @@ package com.liferay.portal.security.auth;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -28,12 +29,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.ServiceTrackerCustomizer;
-import com.liferay.registry.util.StringPlus;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +42,10 @@ import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
 
 import javax.servlet.http.HttpServletRequest;
+
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Tomas Polesovsky
@@ -204,10 +203,9 @@ public class MVCPortletAuthTokenWhitelist extends BaseAuthTokenWhitelist {
 	protected void trackWhitelistServices(
 		String whitelistName, Class<?> serviceClass, Set<String> whiteList) {
 
-		Registry registry = RegistryUtil.getRegistry();
-
-		ServiceTracker<Object, Object> serviceTracker = registry.trackServices(
-			registry.getFilter(
+		ServiceTracker<Object, Object> serviceTracker = new ServiceTracker<>(
+			SystemBundleUtil.getBundleContext(),
+			SystemBundleUtil.createFilter(
 				StringBundler.concat(
 					"(&(&(", whitelistName, "=*)(javax.portlet.name=*))",
 					"(objectClass=", serviceClass.getName(), "))")),
@@ -268,10 +266,10 @@ public class MVCPortletAuthTokenWhitelist extends BaseAuthTokenWhitelist {
 		public Object addingService(ServiceReference<Object> serviceReference) {
 			Collection<String> whitelistValues = new ArrayList<>();
 
-			List<String> whitelistActions = StringPlus.asList(
+			List<String> whitelistActions = StringUtil.asList(
 				serviceReference.getProperty("mvc.command.name"));
 
-			List<String> portletNames = StringPlus.asList(
+			List<String> portletNames = StringUtil.asList(
 				serviceReference.getProperty("javax.portlet.name"));
 
 			for (String portletName : portletNames) {

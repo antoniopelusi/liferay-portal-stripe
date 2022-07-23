@@ -131,7 +131,7 @@ public class TestrayRoutine {
 		}
 		catch (IOException ioException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(ioException.getMessage(), ioException);
+				_log.debug(ioException);
 			}
 		}
 
@@ -177,19 +177,28 @@ public class TestrayRoutine {
 		}
 	}
 
-	public TestrayBuild getTestrayBuildByName(String buildName) {
+	public TestrayBuild getTestrayBuildByName(
+		String buildName, String... names) {
+
 		if (_testrayBuildsByName.containsKey(buildName)) {
 			return _testrayBuildsByName.get(buildName);
 		}
 
 		int current = 1;
 
+		StringBuilder sb = new StringBuilder();
+
+		for (String name : names) {
+			sb.append("&name=");
+			sb.append(JenkinsResultsParserUtil.fixURL(name));
+		}
+
 		while (true) {
 			try {
 				String buildAPIURL = JenkinsResultsParserUtil.combine(
 					String.valueOf(_testrayServer.getURL()),
 					"/home/-/testray/builds.json?cur=", String.valueOf(current),
-					"&delta=", String.valueOf(_DELTA),
+					"&delta=", String.valueOf(_DELTA), sb.toString(),
 					"&orderByCol=testrayBuildId&testrayRoutineId=",
 					String.valueOf(getID()));
 
@@ -229,15 +238,38 @@ public class TestrayRoutine {
 		return getTestrayBuilds(_DELTA);
 	}
 
-	public List<TestrayBuild> getTestrayBuilds(int maxSize) {
+	public List<TestrayBuild> getTestrayBuilds(
+		int maxSize, String... nameFilters) {
+
 		int current = 1;
+
+		StringBuilder sb = new StringBuilder();
+
+		if ((nameFilters != null) && (nameFilters.length > 0)) {
+			for (String nameFilter : nameFilters) {
+				if (JenkinsResultsParserUtil.isNullOrEmpty(nameFilter)) {
+					continue;
+				}
+
+				sb.append("&name=");
+
+				if (nameFilter.contains("-")) {
+					sb.append("%22");
+					sb.append(nameFilter);
+					sb.append("%22");
+				}
+				else {
+					sb.append(nameFilter);
+				}
+			}
+		}
 
 		while ((current * _DELTA) <= maxSize) {
 			try {
 				String buildAPIURL = JenkinsResultsParserUtil.combine(
 					String.valueOf(_testrayServer.getURL()),
 					"/home/-/testray/builds.json?cur=", String.valueOf(current),
-					"&delta=", String.valueOf(_DELTA),
+					"&delta=", String.valueOf(_DELTA), sb.toString(),
 					"&orderByCol=testrayBuildId&testrayRoutineId=",
 					String.valueOf(getID()));
 
@@ -271,7 +303,35 @@ public class TestrayRoutine {
 			}
 		}
 
-		return new ArrayList<>(_testrayBuildsByName.values());
+		List<TestrayBuild> testrayBuilds = new ArrayList<>();
+
+		for (TestrayBuild testrayBuild : _testrayBuildsByID.values()) {
+			String testrayBuildName = testrayBuild.getName();
+
+			if ((nameFilters != null) && (nameFilters.length > 0)) {
+				boolean matches = true;
+
+				for (String nameFilter : nameFilters) {
+					if (JenkinsResultsParserUtil.isNullOrEmpty(nameFilter) ||
+						testrayBuildName.contains(nameFilter)) {
+
+						continue;
+					}
+
+					matches = false;
+
+					break;
+				}
+
+				if (!matches) {
+					continue;
+				}
+			}
+
+			testrayBuilds.add(testrayBuild);
+		}
+
+		return testrayBuilds;
 	}
 
 	public TestrayProject getTestrayProject() {
@@ -291,7 +351,7 @@ public class TestrayRoutine {
 		_testrayBuildsByName.put(testrayBuild.getName(), testrayBuild);
 	}
 
-	private static final int _DELTA = 25;
+	private static final int _DELTA = 200;
 
 	private static final Log _log = LogFactory.getLog(TestrayRoutine.class);
 

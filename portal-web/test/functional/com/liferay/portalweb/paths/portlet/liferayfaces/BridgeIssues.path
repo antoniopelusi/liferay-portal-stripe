@@ -2,11 +2,13 @@
 <head>
 <title>BridgeIssues</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">BridgeIssues</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ACTION_BUTTON</td>
@@ -50,17 +52,7 @@
 </tr>
 <tr>
 	<td>CHOOSE_FILE_BUTTON</td>
-	<td>//span[contains(text(),'Choose')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CHOOSE_FILE_BUTTON_2</td>
-	<td>//input[contains(@id,'simpleModeFileUpload')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CHOOSE_FILE_BUTTON_3</td>
-	<td>xpath=(//span[contains(text(),'Choose')])</td>
+	<td>//input[contains(@id,'${key_mode}FileUpload')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -85,17 +77,7 @@
 </tr>
 <tr>
 	<td>FILE_NAME</td>
-	<td>//span[contains(text(),'Document_2.jpeg')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FILE_NAME_2</td>
-	<td>xpth=(//span[contains(text(),'Document_2.jpeg')])[2]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FILE_NAME_3</td>
-	<td>xpath=(//span[contains(text(),'Document_2.jpeg')])[3]</td>
+	<td>//span[contains(@id,'FileName') and contains(text(),'${key_fileName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -140,7 +122,7 @@
 </tr>
 <tr>
 	<td>NAVIGATE_TO_VIEW</td>
-	<td>//a[contains(text(), '${key_PageLink}')] | //div[@class='liferay-faces-bridge-body']/a[contains(text(), '${key_PageLink}')] | //input[contains(@value, '${key_PageLink}')]</td>
+	<td>//a[contains(text(), '${key_pageLink}')] | //div[@class='liferay-faces-bridge-body']/a[contains(text(), '${key_pageLink}')] | //input[contains(@value, '${key_pageLink}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -150,7 +132,7 @@
 </tr>
 <tr>
 	<td>PAGE_LINK</td>
-	<td>//*[contains(text(),'${key_PageLink}')] | //*[contains(@class,'testAction')] | //input[@value='${key_PageLink}']</td>
+	<td>//*[contains(text(),'${key_pageLink}')] | //*[contains(@class,'testAction')] | //input[@value='${key_pageLink}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -255,7 +237,7 @@
 </tr>
 <tr>
 	<td>SUBMIT_FILE_BUTTON</td>
-	<td>//span[contains(text(),'${key_attribute}')]</td>
+	<td>//button[contains(@id,'${key_mode}SubmitButton')]</td>
 	<td></td>
 </tr>
 <tr>

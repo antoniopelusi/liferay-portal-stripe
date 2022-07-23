@@ -143,4 +143,7 @@ public interface AccountEntryUserRelModel
 	 */
 	public void setAccountUserUuid(String accountUserUuid);
 
+	@Override
+	public AccountEntryUserRel cloneWithOriginalValues();
+
 }

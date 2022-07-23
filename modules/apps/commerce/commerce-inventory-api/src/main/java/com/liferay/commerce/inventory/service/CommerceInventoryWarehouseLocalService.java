@@ -166,6 +166,9 @@ public interface CommerceInventoryWarehouseLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -377,7 +380,7 @@ public interface CommerceInventoryWarehouseLocalService
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CommerceInventoryWarehouse> searchCommerceInventoryWarehouses(
+	public List<CommerceInventoryWarehouse> search(
 			long companyId, Boolean active, String commerceCountryCode,
 			String keywords, int start, int end, Sort sort)
 		throws PortalException;

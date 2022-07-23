@@ -127,7 +127,7 @@ public class CommerceSubscriptionEntryHelperImpl
 			CommerceSubscriptionEntry commerceSubscriptionEntry)
 		throws Exception {
 
-		Date now = new Date();
+		Date date = new Date();
 
 		Date nextIterationDate =
 			commerceSubscriptionEntry.getDeliveryNextIterationDate();
@@ -135,7 +135,7 @@ public class CommerceSubscriptionEntryHelperImpl
 		CommerceOrderItem commerceOrderItem =
 			commerceSubscriptionEntry.fetchCommerceOrderItem();
 
-		if ((commerceOrderItem != null) && now.after(nextIterationDate)) {
+		if ((commerceOrderItem != null) && date.after(nextIterationDate)) {
 			if (Objects.equals(
 					CommerceSubscriptionEntryConstants.
 						SUBSCRIPTION_STATUS_ACTIVE,
@@ -185,7 +185,7 @@ public class CommerceSubscriptionEntryHelperImpl
 			CommerceSubscriptionEntry commerceSubscriptionEntry)
 		throws Exception {
 
-		Date now = new Date();
+		Date date = new Date();
 
 		Date nextIterationDate =
 			commerceSubscriptionEntry.getNextIterationDate();
@@ -193,7 +193,7 @@ public class CommerceSubscriptionEntryHelperImpl
 		CommerceOrderItem commerceOrderItem =
 			commerceSubscriptionEntry.fetchCommerceOrderItem();
 
-		if ((commerceOrderItem != null) && now.after(nextIterationDate)) {
+		if ((commerceOrderItem != null) && date.after(nextIterationDate)) {
 			CommerceOrder commerceOrder = commerceOrderItem.getCommerceOrder();
 
 			boolean subscriptionValid =

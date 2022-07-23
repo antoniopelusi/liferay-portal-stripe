@@ -15,12 +15,10 @@
 package com.liferay.object.service.persistence.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.object.exception.NoSuchLayoutBoxException;
+import com.liferay.object.exception.NoSuchObjectLayoutBoxException;
 import com.liferay.object.model.ObjectLayoutBox;
-import com.liferay.object.service.ObjectLayoutBoxLocalServiceUtil;
 import com.liferay.object.service.persistence.ObjectLayoutBoxPersistence;
 import com.liferay.object.service.persistence.ObjectLayoutBoxUtil;
-import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
@@ -29,7 +27,6 @@ import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
-import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
@@ -136,6 +133,14 @@ public class ObjectLayoutBoxPersistenceTest {
 
 		newObjectLayoutBox.setModifiedDate(RandomTestUtil.nextDate());
 
+		newObjectLayoutBox.setObjectLayoutTabId(RandomTestUtil.nextLong());
+
+		newObjectLayoutBox.setCollapsable(RandomTestUtil.randomBoolean());
+
+		newObjectLayoutBox.setName(RandomTestUtil.randomString());
+
+		newObjectLayoutBox.setPriority(RandomTestUtil.nextInt());
+
 		_objectLayoutBoxes.add(_persistence.update(newObjectLayoutBox));
 
 		ObjectLayoutBox existingObjectLayoutBox = _persistence.findByPrimaryKey(
@@ -164,6 +169,17 @@ public class ObjectLayoutBoxPersistenceTest {
 		Assert.assertEquals(
 			Time.getShortTimestamp(existingObjectLayoutBox.getModifiedDate()),
 			Time.getShortTimestamp(newObjectLayoutBox.getModifiedDate()));
+		Assert.assertEquals(
+			existingObjectLayoutBox.getObjectLayoutTabId(),
+			newObjectLayoutBox.getObjectLayoutTabId());
+		Assert.assertEquals(
+			existingObjectLayoutBox.isCollapsable(),
+			newObjectLayoutBox.isCollapsable());
+		Assert.assertEquals(
+			existingObjectLayoutBox.getName(), newObjectLayoutBox.getName());
+		Assert.assertEquals(
+			existingObjectLayoutBox.getPriority(),
+			newObjectLayoutBox.getPriority());
 	}
 
 	@Test
@@ -185,6 +201,13 @@ public class ObjectLayoutBoxPersistenceTest {
 	}
 
 	@Test
+	public void testCountByObjectLayoutTabId() throws Exception {
+		_persistence.countByObjectLayoutTabId(RandomTestUtil.nextLong());
+
+		_persistence.countByObjectLayoutTabId(0L);
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		ObjectLayoutBox newObjectLayoutBox = addObjectLayoutBox();
 
@@ -194,7 +217,7 @@ public class ObjectLayoutBoxPersistenceTest {
 		Assert.assertEquals(existingObjectLayoutBox, newObjectLayoutBox);
 	}
 
-	@Test(expected = NoSuchLayoutBoxException.class)
+	@Test(expected = NoSuchObjectLayoutBoxException.class)
 	public void testFindByPrimaryKeyMissing() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
@@ -211,7 +234,9 @@ public class ObjectLayoutBoxPersistenceTest {
 		return OrderByComparatorFactoryUtil.create(
 			"ObjectLayoutBox", "mvccVersion", true, "uuid", true,
 			"objectLayoutBoxId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "modifiedDate", true);
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"objectLayoutTabId", true, "collapsable", true, "name", true,
+			"priority", true);
 	}
 
 	@Test
@@ -327,30 +352,6 @@ public class ObjectLayoutBoxPersistenceTest {
 	}
 
 	@Test
-	public void testActionableDynamicQuery() throws Exception {
-		final IntegerWrapper count = new IntegerWrapper();
-
-		ActionableDynamicQuery actionableDynamicQuery =
-			ObjectLayoutBoxLocalServiceUtil.getActionableDynamicQuery();
-
-		actionableDynamicQuery.setPerformActionMethod(
-			new ActionableDynamicQuery.PerformActionMethod<ObjectLayoutBox>() {
-
-				@Override
-				public void performAction(ObjectLayoutBox objectLayoutBox) {
-					Assert.assertNotNull(objectLayoutBox);
-
-					count.increment();
-				}
-
-			});
-
-		actionableDynamicQuery.performActions();
-
-		Assert.assertEquals(count.getValue(), _persistence.countAll());
-	}
-
-	@Test
 	public void testDynamicQueryByPrimaryKeyExisting() throws Exception {
 		ObjectLayoutBox newObjectLayoutBox = addObjectLayoutBox();
 
@@ -447,6 +448,14 @@ public class ObjectLayoutBoxPersistenceTest {
 		objectLayoutBox.setCreateDate(RandomTestUtil.nextDate());
 
 		objectLayoutBox.setModifiedDate(RandomTestUtil.nextDate());
+
+		objectLayoutBox.setObjectLayoutTabId(RandomTestUtil.nextLong());
+
+		objectLayoutBox.setCollapsable(RandomTestUtil.randomBoolean());
+
+		objectLayoutBox.setName(RandomTestUtil.randomString());
+
+		objectLayoutBox.setPriority(RandomTestUtil.nextInt());
 
 		_objectLayoutBoxes.add(_persistence.update(objectLayoutBox));
 

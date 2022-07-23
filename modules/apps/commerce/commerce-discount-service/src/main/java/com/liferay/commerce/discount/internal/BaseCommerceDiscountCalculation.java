@@ -14,11 +14,12 @@
 
 package com.liferay.commerce.discount.internal;
 
-import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.account.util.CommerceAccountHelper;
+import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.discount.CommerceDiscountCalculation;
 import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.service.CommerceDiscountLocalService;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 
 import java.util.List;
@@ -32,34 +33,25 @@ public abstract class BaseCommerceDiscountCalculation
 	implements CommerceDiscountCalculation {
 
 	protected List<CommerceDiscount> getOrderCommerceDiscountByHierarchy(
-			long companyId, CommerceAccount commerceAccount,
-			long commerceChannelId, String commerceDiscountTargetType)
+			long companyId, CommerceContext commerceContext,
+			long commerceOrderTypeId, String target)
 		throws PortalException {
 
-		long commerceAccountId = 0;
-
-		if (commerceAccount != null) {
-			commerceAccountId = commerceAccount.getCommerceAccountId();
-		}
-
 		return _getOrderCommerceDiscountByHierarchy(
-			companyId, commerceAccountId, commerceChannelId,
-			commerceDiscountTargetType);
+			companyId, CommerceUtil.getCommerceAccountId(commerceContext),
+			commerceContext.getCommerceChannelId(), commerceOrderTypeId,
+			target);
 	}
 
 	protected List<CommerceDiscount> getProductCommerceDiscountByHierarchy(
-			long companyId, CommerceAccount commerceAccount,
-			long commerceChannelId, long cpDefinitionId)
+			long companyId, CommerceContext commerceContext,
+			long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId)
 		throws PortalException {
 
-		long commerceAccountId = 0;
-
-		if (commerceAccount != null) {
-			commerceAccountId = commerceAccount.getCommerceAccountId();
-		}
-
 		return _getProductCommerceDiscountByHierarchy(
-			companyId, commerceAccountId, commerceChannelId, cpDefinitionId);
+			companyId, CommerceUtil.getCommerceAccountId(commerceContext),
+			commerceContext.getCommerceChannelId(), commerceOrderTypeId,
+			cpDefinitionId, cpInstanceId);
 	}
 
 	@Reference
@@ -70,13 +62,31 @@ public abstract class BaseCommerceDiscountCalculation
 
 	private List<CommerceDiscount> _getOrderCommerceDiscountByHierarchy(
 			long companyId, long commerceAccountId, long commerceChannelId,
-			String commerceDiscountTargetType)
+			long commerceOrderTypeId, String target)
 		throws PortalException {
 
 		List<CommerceDiscount> commerceDiscounts =
+			commerceDiscountLocalService.
+				getAccountAndChannelAndOrderTypeCommerceDiscounts(
+					commerceAccountId, commerceChannelId, commerceOrderTypeId,
+					target);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.
+				getAccountAndOrderTypeCommerceDiscounts(
+					commerceAccountId, commerceOrderTypeId, target);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
 			commerceDiscountLocalService.getAccountAndChannelCommerceDiscounts(
-				commerceAccountId, commerceChannelId,
-				commerceDiscountTargetType);
+				commerceAccountId, commerceChannelId, target);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -84,7 +94,7 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.getAccountCommerceDiscounts(
-				commerceAccountId, commerceDiscountTargetType);
+				commerceAccountId, target);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -95,9 +105,27 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.
-				getAccountGroupAndChannelCommerceDiscount(
+				getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
 					commerceAccountGroupIds, commerceChannelId,
-					commerceDiscountTargetType);
+					commerceOrderTypeId, target);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.
+				getAccountGroupAndOrderTypeCommerceDiscount(
+					commerceAccountGroupIds, commerceOrderTypeId, target);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.
+				getAccountGroupAndChannelCommerceDiscount(
+					commerceAccountGroupIds, commerceChannelId, target);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -105,7 +133,24 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.getAccountGroupCommerceDiscount(
-				commerceAccountGroupIds, commerceDiscountTargetType);
+				commerceAccountGroupIds, target);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.
+				getChannelAndOrderTypeCommerceDiscounts(
+					commerceChannelId, commerceOrderTypeId, target);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.getOrderTypeCommerceDiscounts(
+				commerceOrderTypeId, target);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -113,24 +158,35 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.getChannelCommerceDiscounts(
-				commerceChannelId, commerceDiscountTargetType);
+				commerceChannelId, target);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
 		}
 
 		return commerceDiscountLocalService.getUnqualifiedCommerceDiscounts(
-			companyId, commerceDiscountTargetType);
+			companyId, target);
 	}
 
 	private List<CommerceDiscount> _getProductCommerceDiscountByHierarchy(
 			long companyId, long commerceAccountId, long commerceChannelId,
-			long cpDefinitionId)
+			long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId)
 		throws PortalException {
 
 		List<CommerceDiscount> commerceDiscounts =
+			commerceDiscountLocalService.
+				getAccountAndChannelAndOrderTypeCommerceDiscounts(
+					commerceAccountId, commerceChannelId, commerceOrderTypeId,
+					cpDefinitionId, cpInstanceId);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
 			commerceDiscountLocalService.getAccountAndChannelCommerceDiscounts(
-				commerceAccountId, commerceChannelId, cpDefinitionId);
+				commerceAccountId, commerceChannelId, cpDefinitionId,
+				cpInstanceId);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -138,7 +194,7 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.getAccountCommerceDiscounts(
-				commerceAccountId, cpDefinitionId);
+				commerceAccountId, cpDefinitionId, cpInstanceId);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -149,8 +205,19 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.
+				getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
+					commerceAccountGroupIds, commerceChannelId,
+					commerceOrderTypeId, cpDefinitionId, cpInstanceId);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.
 				getAccountGroupAndChannelCommerceDiscount(
-					commerceAccountGroupIds, commerceChannelId, cpDefinitionId);
+					commerceAccountGroupIds, commerceChannelId, cpDefinitionId,
+					cpInstanceId);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -158,7 +225,25 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.getAccountGroupCommerceDiscount(
-				commerceAccountGroupIds, cpDefinitionId);
+				commerceAccountGroupIds, cpDefinitionId, cpInstanceId);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.
+				getChannelAndOrderTypeCommerceDiscounts(
+					commerceChannelId, commerceOrderTypeId, cpDefinitionId,
+					cpInstanceId);
+
+		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
+			return commerceDiscounts;
+		}
+
+		commerceDiscounts =
+			commerceDiscountLocalService.getOrderTypeCommerceDiscounts(
+				commerceOrderTypeId, cpDefinitionId, cpInstanceId);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
@@ -166,14 +251,14 @@ public abstract class BaseCommerceDiscountCalculation
 
 		commerceDiscounts =
 			commerceDiscountLocalService.getChannelCommerceDiscounts(
-				commerceChannelId, cpDefinitionId);
+				commerceChannelId, cpDefinitionId, cpInstanceId);
 
 		if ((commerceDiscounts != null) && !commerceDiscounts.isEmpty()) {
 			return commerceDiscounts;
 		}
 
 		return commerceDiscountLocalService.getUnqualifiedCommerceDiscounts(
-			companyId, cpDefinitionId);
+			companyId, cpDefinitionId, cpInstanceId);
 	}
 
 }

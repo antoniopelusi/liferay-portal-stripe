@@ -14,7 +14,7 @@
 
 package com.liferay.object.service.persistence;
 
-import com.liferay.object.exception.NoSuchFieldException;
+import com.liferay.object.exception.NoSuchObjectFieldException;
 import com.liferay.object.model.ObjectField;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 
@@ -107,13 +107,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public ObjectField findByUuid_First(
 			String uuid,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the first object field in the ordered set where uuid = &#63;.
@@ -133,13 +133,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public ObjectField findByUuid_Last(
 			String uuid,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the last object field in the ordered set where uuid = &#63;.
@@ -160,13 +160,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public ObjectField[] findByUuid_PrevAndNext(
 			long objectFieldId, String uuid,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Removes all the object fields where uuid = &#63; from the database.
@@ -256,13 +256,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public ObjectField findByUuid_C_First(
 			String uuid, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the first object field in the ordered set where uuid = &#63; and companyId = &#63;.
@@ -284,13 +284,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public ObjectField findByUuid_C_Last(
 			String uuid, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the last object field in the ordered set where uuid = &#63; and companyId = &#63;.
@@ -313,13 +313,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public ObjectField[] findByUuid_C_PrevAndNext(
 			long objectFieldId, String uuid, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Removes all the object fields where uuid = &#63; and companyId = &#63; from the database.
@@ -337,6 +337,150 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @return the number of matching object fields
 	 */
 	public int countByUuid_C(String uuid, long companyId);
+
+	/**
+	 * Returns all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @return the matching object fields
+	 */
+	public java.util.List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId);
+
+	/**
+	 * Returns a range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @return the range of matching object fields
+	 */
+	public java.util.List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end);
+
+	/**
+	 * Returns an ordered range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object fields
+	 */
+	public java.util.List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator);
+
+	/**
+	 * Returns an ordered range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object fields
+	 */
+	public java.util.List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator,
+		boolean useFinderCache);
+
+	/**
+	 * Returns the first object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public ObjectField findByListTypeDefinitionId_First(
+			long listTypeDefinitionId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+				orderByComparator)
+		throws NoSuchObjectFieldException;
+
+	/**
+	 * Returns the first object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public ObjectField fetchByListTypeDefinitionId_First(
+		long listTypeDefinitionId,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator);
+
+	/**
+	 * Returns the last object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public ObjectField findByListTypeDefinitionId_Last(
+			long listTypeDefinitionId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+				orderByComparator)
+		throws NoSuchObjectFieldException;
+
+	/**
+	 * Returns the last object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public ObjectField fetchByListTypeDefinitionId_Last(
+		long listTypeDefinitionId,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator);
+
+	/**
+	 * Returns the object fields before and after the current object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param objectFieldId the primary key of the current object field
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object field
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
+	 */
+	public ObjectField[] findByListTypeDefinitionId_PrevAndNext(
+			long objectFieldId, long listTypeDefinitionId,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+				orderByComparator)
+		throws NoSuchObjectFieldException;
+
+	/**
+	 * Removes all the object fields where listTypeDefinitionId = &#63; from the database.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 */
+	public void removeByListTypeDefinitionId(long listTypeDefinitionId);
+
+	/**
+	 * Returns the number of object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @return the number of matching object fields
+	 */
+	public int countByListTypeDefinitionId(long listTypeDefinitionId);
 
 	/**
 	 * Returns all the object fields where objectDefinitionId = &#63;.
@@ -406,13 +550,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public ObjectField findByObjectDefinitionId_First(
 			long objectDefinitionId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the first object field in the ordered set where objectDefinitionId = &#63;.
@@ -432,13 +576,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public ObjectField findByObjectDefinitionId_Last(
 			long objectDefinitionId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the last object field in the ordered set where objectDefinitionId = &#63;.
@@ -459,13 +603,13 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public ObjectField[] findByObjectDefinitionId_PrevAndNext(
 			long objectFieldId, long objectDefinitionId,
 			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
 				orderByComparator)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Removes all the object fields where objectDefinitionId = &#63; from the database.
@@ -483,15 +627,170 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	public int countByObjectDefinitionId(long objectDefinitionId);
 
 	/**
-	 * Returns the object field where objectDefinitionId = &#63; and name = &#63; or throws a <code>NoSuchFieldException</code> if it could not be found.
+	 * Returns all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @return the matching object fields
+	 */
+	public java.util.List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName);
+
+	/**
+	 * Returns a range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @return the range of matching object fields
+	 */
+	public java.util.List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end);
+
+	/**
+	 * Returns an ordered range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object fields
+	 */
+	public java.util.List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator);
+
+	/**
+	 * Returns an ordered range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object fields
+	 */
+	public java.util.List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator,
+		boolean useFinderCache);
+
+	/**
+	 * Returns the first object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public ObjectField findByODI_DTN_First(
+			long objectDefinitionId, String dbTableName,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+				orderByComparator)
+		throws NoSuchObjectFieldException;
+
+	/**
+	 * Returns the first object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public ObjectField fetchByODI_DTN_First(
+		long objectDefinitionId, String dbTableName,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator);
+
+	/**
+	 * Returns the last object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public ObjectField findByODI_DTN_Last(
+			long objectDefinitionId, String dbTableName,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+				orderByComparator)
+		throws NoSuchObjectFieldException;
+
+	/**
+	 * Returns the last object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public ObjectField fetchByODI_DTN_Last(
+		long objectDefinitionId, String dbTableName,
+		com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+			orderByComparator);
+
+	/**
+	 * Returns the object fields before and after the current object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectFieldId the primary key of the current object field
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object field
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
+	 */
+	public ObjectField[] findByODI_DTN_PrevAndNext(
+			long objectFieldId, long objectDefinitionId, String dbTableName,
+			com.liferay.portal.kernel.util.OrderByComparator<ObjectField>
+				orderByComparator)
+		throws NoSuchObjectFieldException;
+
+	/**
+	 * Removes all the object fields where objectDefinitionId = &#63; and dbTableName = &#63; from the database.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 */
+	public void removeByODI_DTN(long objectDefinitionId, String dbTableName);
+
+	/**
+	 * Returns the number of object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @return the number of matching object fields
+	 */
+	public int countByODI_DTN(long objectDefinitionId, String dbTableName);
+
+	/**
+	 * Returns the object field where objectDefinitionId = &#63; and name = &#63; or throws a <code>NoSuchObjectFieldException</code> if it could not be found.
 	 *
 	 * @param objectDefinitionId the object definition ID
 	 * @param name the name
 	 * @return the matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public ObjectField findByODI_N(long objectDefinitionId, String name)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the object field where objectDefinitionId = &#63; and name = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
@@ -521,7 +820,7 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 * @return the object field that was removed
 	 */
 	public ObjectField removeByODI_N(long objectDefinitionId, String name)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the number of object fields where objectDefinitionId = &#63; and name = &#63;.
@@ -559,21 +858,22 @@ public interface ObjectFieldPersistence extends BasePersistence<ObjectField> {
 	 *
 	 * @param objectFieldId the primary key of the object field
 	 * @return the object field that was removed
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
-	public ObjectField remove(long objectFieldId) throws NoSuchFieldException;
+	public ObjectField remove(long objectFieldId)
+		throws NoSuchObjectFieldException;
 
 	public ObjectField updateImpl(ObjectField objectField);
 
 	/**
-	 * Returns the object field with the primary key or throws a <code>NoSuchFieldException</code> if it could not be found.
+	 * Returns the object field with the primary key or throws a <code>NoSuchObjectFieldException</code> if it could not be found.
 	 *
 	 * @param objectFieldId the primary key of the object field
 	 * @return the object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public ObjectField findByPrimaryKey(long objectFieldId)
-		throws NoSuchFieldException;
+		throws NoSuchObjectFieldException;
 
 	/**
 	 * Returns the object field with the primary key or returns <code>null</code> if it could not be found.

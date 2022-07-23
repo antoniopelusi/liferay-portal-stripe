@@ -27,6 +27,7 @@ import com.liferay.portal.security.sso.openid.connect.OpenIdConnectProvider;
 import com.liferay.portal.security.sso.openid.connect.OpenIdConnectProviderRegistry;
 import com.liferay.portal.security.sso.openid.connect.OpenIdConnectServiceException;
 import com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration;
+import com.liferay.portal.security.sso.openid.connect.persistence.service.OpenIdConnectSessionLocalService;
 
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
 import com.nimbusds.openid.connect.sdk.rp.OIDCClientMetadata;
@@ -34,9 +35,12 @@ import com.nimbusds.openid.connect.sdk.rp.OIDCClientMetadata;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,6 +70,8 @@ public class OpenIdConnectProviderRegistryImpl
 	public void deleted(String pid) {
 		Dictionary<String, ?> properties = _configurationPidsProperties.remove(
 			pid);
+
+		_openIdConnectSessionLocalService.deleteOpenIdConnectSessions(pid);
 
 		long companyId = GetterUtil.getLong(properties.get("companyId"));
 
@@ -172,19 +178,64 @@ public class OpenIdConnectProviderRegistryImpl
 			CompanyConstants.SYSTEM, Collections.emptyMap());
 	}
 
-	protected OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata>
-			createOpenIdConnectProvider(
+	private <U, V> void _addDefaults(Map<U, V> map, Map<U, V> defaultsMap) {
+		if (defaultsMap != null) {
+			defaultsMap.forEach(map::putIfAbsent);
+		}
+	}
+
+	private OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata>
+			_createOpenIdConnectProvider(
+				String configurationPid,
 				OpenIdConnectProviderConfiguration
 					openIdConnectProviderConfiguration)
 		throws ConfigurationException {
 
 		try {
+			Map<String, List<String>> customAuthorizationRequestParameters =
+				new HashMap<>();
+
+			for (String parameter :
+					openIdConnectProviderConfiguration.
+						customAuthorizationRequestParameters()) {
+
+				if (Validator.isNull(parameter)) {
+					continue;
+				}
+
+				String[] parameterParts = parameter.split("=");
+
+				customAuthorizationRequestParameters.put(
+					parameterParts[0],
+					Arrays.asList(parameterParts[1].split(" ")));
+			}
+
+			Map<String, List<String>> customTokenRequestParameters =
+				new HashMap<>();
+
+			for (String parameter :
+					openIdConnectProviderConfiguration.
+						customTokenRequestParameters()) {
+
+				if (Validator.isNull(parameter)) {
+					continue;
+				}
+
+				String[] parameterParts = parameter.split("=");
+
+				customTokenRequestParameters.put(
+					parameterParts[0],
+					Arrays.asList(parameterParts[1].split(" ")));
+			}
+
 			return new OpenIdConnectProviderImpl(
 				openIdConnectProviderConfiguration.providerName(),
 				openIdConnectProviderConfiguration.openIdConnectClientId(),
 				openIdConnectProviderConfiguration.openIdConnectClientSecret(),
-				openIdConnectProviderConfiguration.scopes(),
-				getOpenIdConnectMetadataFactory(
+				configurationPid, openIdConnectProviderConfiguration.scopes(),
+				customAuthorizationRequestParameters,
+				customTokenRequestParameters,
+				_getOpenIdConnectMetadataFactory(
 					openIdConnectProviderConfiguration),
 				openIdConnectProviderConfiguration.tokenConnectionTimeout());
 		}
@@ -199,7 +250,7 @@ public class OpenIdConnectProviderRegistryImpl
 		}
 	}
 
-	protected OpenIdConnectMetadataFactory getOpenIdConnectMetadataFactory(
+	private OpenIdConnectMetadataFactory _getOpenIdConnectMetadataFactory(
 			OpenIdConnectProviderConfiguration
 				openIdConnectProviderConfiguration)
 		throws MalformedURLException,
@@ -212,11 +263,14 @@ public class OpenIdConnectProviderRegistryImpl
 				openIdConnectProviderConfiguration.providerName(),
 				new URL(openIdConnectProviderConfiguration.discoveryEndPoint()),
 				openIdConnectProviderConfiguration.
-					discoveryEndPointCacheInMillis());
+					discoveryEndPointCacheInMillis(),
+				openIdConnectProviderConfiguration.
+					registeredIdTokenSigningAlg());
 		}
 
 		return new OpenIdConnectMetadataFactoryImpl(
 			openIdConnectProviderConfiguration.providerName(),
+			openIdConnectProviderConfiguration.registeredIdTokenSigningAlg(),
 			openIdConnectProviderConfiguration.idTokenSigningAlgValues(),
 			openIdConnectProviderConfiguration.issuerURL(),
 			openIdConnectProviderConfiguration.subjectTypes(),
@@ -224,12 +278,6 @@ public class OpenIdConnectProviderRegistryImpl
 			openIdConnectProviderConfiguration.authorizationEndPoint(),
 			openIdConnectProviderConfiguration.tokenEndPoint(),
 			openIdConnectProviderConfiguration.userInfoEndPoint());
-	}
-
-	private <U, V> void _addDefaults(Map<U, V> map, Map<U, V> defaultsMap) {
-		if (defaultsMap != null) {
-			defaultsMap.forEach(map::putIfAbsent);
-		}
 	}
 
 	private void _rebuild() {
@@ -251,37 +299,42 @@ public class OpenIdConnectProviderRegistryImpl
 			 OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata>>
 				openIdConnectProviderMap = new TreeMap<>();
 
-		for (Dictionary<String, ?> properties :
-				_configurationPidsProperties.values()) {
+		_configurationPidsProperties.forEach(
+			(configurationPid, properties) -> {
+				if (companyId != GetterUtil.getLong(
+						properties.get("companyId"))) {
 
-			if (companyId != GetterUtil.getLong(properties.get("companyId"))) {
-				continue;
-			}
-
-			try {
-				OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata>
-					openIdConnectProvider = createOpenIdConnectProvider(
-						ConfigurableUtil.createConfigurable(
-							OpenIdConnectProviderConfiguration.class,
-							properties));
-
-				if (openIdConnectProviderMap.containsKey(
-						openIdConnectProvider.getName())) {
-
-					_log.error(
-						"Duplicate OpenId Connect provider name \"" +
-							openIdConnectProvider.getName() + "\"");
-
-					continue;
+					return;
 				}
 
-				openIdConnectProviderMap.put(
-					openIdConnectProvider.getName(), openIdConnectProvider);
-			}
-			catch (ConfigurationException configurationException) {
-				_log.error(configurationException, configurationException);
-			}
-		}
+				try {
+					OpenIdConnectProvider
+						<OIDCClientMetadata, OIDCProviderMetadata>
+							openIdConnectProvider =
+								_createOpenIdConnectProvider(
+									configurationPid,
+									ConfigurableUtil.createConfigurable(
+										OpenIdConnectProviderConfiguration.
+											class,
+										properties));
+
+					if (openIdConnectProviderMap.containsKey(
+							openIdConnectProvider.getName())) {
+
+						_log.error(
+							"Duplicate OpenId Connect provider name \"" +
+								openIdConnectProvider.getName() + "\"");
+
+						return;
+					}
+
+					openIdConnectProviderMap.put(
+						openIdConnectProvider.getName(), openIdConnectProvider);
+				}
+				catch (ConfigurationException configurationException) {
+					_log.error(configurationException);
+				}
+			});
 
 		if (companyId != CompanyConstants.SYSTEM) {
 			_addDefaults(
@@ -310,5 +363,8 @@ public class OpenIdConnectProviderRegistryImpl
 
 	private final Map<String, Dictionary<String, ?>>
 		_configurationPidsProperties = new ConcurrentHashMap<>();
+
+	@Reference
+	private OpenIdConnectSessionLocalService _openIdConnectSessionLocalService;
 
 }

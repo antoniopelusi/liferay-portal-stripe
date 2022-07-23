@@ -12,19 +12,13 @@
  * details.
  */
 
-import {
-	cleanup,
-	render,
-	wait,
-	waitForElement,
-	within,
-} from '@testing-library/react';
+import {render, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import configModule from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/config';
+import {StoreAPIContextProvider} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
 import serviceFetch from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/services/serviceFetch';
-import {StoreAPIContextProvider} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/store/index';
 import {
 	CREATE_SEGMENTS_EXPERIENCE,
 	DELETE_SEGMENTS_EXPERIENCE,
@@ -75,7 +69,7 @@ function renderExperienceToolbarSection(
 
 const mockState = {
 	availableSegmentsExperiences: {
-		0: {
+		'0': {
 			hasLockedSegmentsExperiment: false,
 			name: 'Default Experience',
 			priority: -1,
@@ -86,7 +80,7 @@ const mockState = {
 		},
 		'test-experience-id-01': {
 			hasLockedSegmentsExperiment: false,
-			languageIds: ['es_ES', 'en_US'],
+			languageIds: ['en_US', 'es_ES'],
 			name: 'Experience #1',
 			priority: 3,
 			segmentsEntryId: 'test-segment-id-00',
@@ -96,7 +90,7 @@ const mockState = {
 		},
 		'test-experience-id-02': {
 			hasLockedSegmentsExperiment: false,
-			languageIds: ['es_ES', 'en_US', 'ar_SA'],
+			languageIds: ['en_US', 'es_ES', 'ar_SA'],
 			name: 'Experience #2',
 			priority: 1,
 			segmentsEntryId: 'test-segment-id-01',
@@ -162,22 +156,21 @@ describe('ExperienceToolbarSection', () => {
 	});
 
 	afterEach(() => {
-		cleanup();
 		serviceFetch.mockReset();
 	});
 
 	it('shows a list of Experiences ordered by priority', async () => {
 		const {
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 		} = renderExperienceToolbarSection(mockState, mockConfig);
 
 		const dropDownButton = getByLabelText('experience');
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		const listedExperiences = getAllByRole('listitem');
 
@@ -225,9 +218,9 @@ describe('ExperienceToolbarSection', () => {
 		});
 
 		const {
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 			getByText,
 		} = renderExperienceToolbarSection(
 			mockStateWithLockedExperience,
@@ -239,7 +232,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		expect(getByText('Experience #3')).toBeInTheDocument();
 
@@ -262,7 +255,7 @@ describe('ExperienceToolbarSection', () => {
 	});
 
 	it('calls the backend to increase priority', async () => {
-		serviceFetch.mockImplementation((_, {body}) =>
+		serviceFetch.mockImplementation((url, {body}) =>
 			Promise.resolve({
 				priority: body.newPriority,
 				segmentsExperienceId: 'test-experience-id-02',
@@ -276,16 +269,16 @@ describe('ExperienceToolbarSection', () => {
 		});
 
 		const {
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 		} = renderExperienceToolbarSection(mockState, mockConfig, mockDispatch);
 
 		const dropDownButton = getByLabelText('experience');
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		const experienceItems = getAllByRole('listitem');
 
@@ -317,7 +310,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(bottomExperiencePriorityButton);
 
-		await wait(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
 
 		expect(serviceFetch).toHaveBeenCalledWith(
 			expect.stringContaining(MOCK_UPDATE_PRIORITY_URL),
@@ -338,7 +331,7 @@ describe('ExperienceToolbarSection', () => {
 	});
 
 	it('calls the backend to decrease priority', async () => {
-		serviceFetch.mockImplementation((_, {body}) =>
+		serviceFetch.mockImplementation((url, {body}) =>
 			Promise.resolve({
 				priority: body.newPriority,
 				segmentsExperienceId: 'test-experience-id-01',
@@ -352,16 +345,16 @@ describe('ExperienceToolbarSection', () => {
 		});
 
 		const {
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 		} = renderExperienceToolbarSection(mockState, mockConfig, mockDispatch);
 
 		const dropDownButton = getByLabelText('experience');
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		const experienceItems = getAllByRole('listitem');
 
@@ -393,7 +386,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(topExperiencePriorityButton);
 
-		await wait(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
 
 		expect(serviceFetch).toHaveBeenCalledWith(
 			expect.stringContaining(MOCK_UPDATE_PRIORITY_URL),
@@ -415,10 +408,10 @@ describe('ExperienceToolbarSection', () => {
 
 	it('calls the backend to create a new experience', async () => {
 		serviceFetch
-			.mockImplementationOnce((_, {body}) =>
+			.mockImplementationOnce((url, {body}) =>
 				Promise.resolve({
 					segmentsExperience: {
-						languageIds: body.languageIds,
+						active: true,
 						name: body.name,
 						priority: '1000',
 						segmentsEntryId: body.segmentsEntryId,
@@ -437,9 +430,10 @@ describe('ExperienceToolbarSection', () => {
 		});
 
 		const {
+			findByLabelText,
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 			getByText,
 		} = renderExperienceToolbarSection(mockState, mockConfig, mockDispatch);
 
@@ -447,7 +441,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		const experienceItems = getAllByRole('listitem');
 
@@ -457,27 +451,26 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(newExperienceButton);
 
-		await wait(() => getByLabelText('name'));
+		await findByLabelText('name');
 
-		userEvent.type(getByLabelText('name'), 'New Experience #1');
+		const nameInput = getByLabelText('name');
+		const audienceInput = getByLabelText('audience');
 
-		userEvent.selectOptions(getByLabelText('audience'), 'A segment #1');
+		userEvent.type(nameInput, 'New Experience #1');
 
-		getByLabelText('languages');
+		userEvent.selectOptions(audienceInput, 'A segment #1');
 
 		// Grab parentElement here to work around jsdom v13 issue.
 		// "TypeError: Cannot read property '_defaultView' of undefined"
 
 		userEvent.click(getByText('save').parentElement);
 
-		await wait(() => expect(serviceFetch).toHaveBeenCalledTimes(2));
+		await waitFor(() => expect(serviceFetch).toHaveBeenCalledTimes(2));
 
 		expect(serviceFetch).toHaveBeenCalledWith(
 			expect.stringContaining(MOCK_CREATE_URL),
 			expect.objectContaining({
 				body: expect.objectContaining({
-					active: true,
-					languageIds: ['es_ES'],
 					name: 'New Experience #1',
 					segmentsEntryId: 'test-segment-id-00',
 				}),
@@ -493,12 +486,10 @@ describe('ExperienceToolbarSection', () => {
 	});
 
 	it('calls the backend to update the experience', async () => {
-		serviceFetch.mockImplementation((_, {body}) =>
+		serviceFetch.mockImplementation((url, {body}) =>
 			Promise.resolve({
-				languageIds: body.languageIds,
 				name: body.name,
 				segmentsEntryId: body.segmentsEntryId,
-				segmentsExperienceId: body.segmentsExperienceId,
 			})
 		);
 
@@ -509,9 +500,10 @@ describe('ExperienceToolbarSection', () => {
 		});
 
 		const {
+			findByLabelText,
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 			getByText,
 		} = renderExperienceToolbarSection(mockState, mockConfig, mockDispatch);
 
@@ -519,7 +511,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		const experienceItems = getAllByRole('listitem');
 
@@ -537,7 +529,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(editExperienceButton);
 
-		await waitForElement(() => getByLabelText('name'));
+		await findByLabelText('name');
 
 		const nameInput = getByLabelText('name');
 		const segmentSelect = getByLabelText('audience');
@@ -556,13 +548,12 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(getByText('save').parentElement);
 
-		await wait(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
 
 		expect(serviceFetch).toHaveBeenCalledWith(
 			expect.stringContaining(MOCK_UPDATE_URL),
 			expect.objectContaining({
 				body: expect.objectContaining({
-					languageIds: ['en_US', 'es_ES'],
 					name: 'New Experience #1',
 					segmentsEntryId: 'test-segment-id-00',
 					segmentsExperienceId: 'test-experience-id-01',
@@ -674,9 +665,9 @@ describe('ExperienceToolbarSection', () => {
 		};
 
 		const {
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 		} = renderExperienceToolbarSection(
 			mockStateForDelete,
 			mockConfig,
@@ -687,7 +678,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		const experienceItems = getAllByRole('listitem');
 
@@ -703,9 +694,9 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(deleteExperienceButton);
 
-		await wait(() => expect(window.confirm).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(window.confirm).toHaveBeenCalledTimes(1));
 
-		await wait(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(serviceFetch).toHaveBeenCalledTimes(1));
 
 		expect(serviceFetch).toHaveBeenCalledWith(
 			expect.stringContaining(MOCK_DELETE_URL),
@@ -726,11 +717,10 @@ describe('ExperienceToolbarSection', () => {
 
 	it('calls the backend to duplicate an experience', async () => {
 		serviceFetch
-			.mockImplementationOnce((_, {body}) =>
+			.mockImplementationOnce((url, {body}) =>
 				Promise.resolve({
 					segmentsExperience: {
 						active: true,
-						languageIds: body.languageIds,
 						name: body.name,
 						priority: '1000',
 						segmentsEntryId: body.segmentsEntryId,
@@ -749,16 +739,16 @@ describe('ExperienceToolbarSection', () => {
 		});
 
 		const {
+			findByRole,
 			getAllByRole,
 			getByLabelText,
-			getByRole,
 		} = renderExperienceToolbarSection(mockState, mockConfig, mockDispatch);
 
 		const dropDownButton = getByLabelText('experience');
 
 		userEvent.click(dropDownButton);
 
-		await waitForElement(() => getByRole('list'));
+		await findByRole('list');
 
 		const experienceItems = getAllByRole('listitem');
 
@@ -774,7 +764,7 @@ describe('ExperienceToolbarSection', () => {
 
 		userEvent.click(duplicateExperienceButton);
 
-		await wait(() => expect(serviceFetch).toHaveBeenCalledTimes(2));
+		await waitFor(() => expect(serviceFetch).toHaveBeenCalledTimes(2));
 
 		expect(serviceFetch).toHaveBeenCalledWith(
 			expect.stringContaining(MOCK_DUPLICATE_URL),

@@ -44,6 +44,7 @@ public class CommerceShippingMethodWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"commerceShippingMethodId", getCommerceShippingMethodId());
 		attributes.put("groupId", getGroupId());
@@ -64,6 +65,12 @@ public class CommerceShippingMethodWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long commerceShippingMethodId = (Long)attributes.get(
 			"commerceShippingMethodId");
 
@@ -142,6 +149,11 @@ public class CommerceShippingMethodWrapper
 		if (active != null) {
 			setActive(active);
 		}
+	}
+
+	@Override
+	public CommerceShippingMethod cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -315,6 +327,16 @@ public class CommerceShippingMethodWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce shipping method.
+	 *
+	 * @return the mvcc version of this commerce shipping method
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -618,6 +640,16 @@ public class CommerceShippingMethodWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce shipping method.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce shipping method
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

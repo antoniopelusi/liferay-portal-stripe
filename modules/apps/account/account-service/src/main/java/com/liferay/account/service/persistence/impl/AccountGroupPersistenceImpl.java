@@ -20,47 +20,51 @@ import com.liferay.account.model.AccountGroupTable;
 import com.liferay.account.model.impl.AccountGroupImpl;
 import com.liferay.account.model.impl.AccountGroupModelImpl;
 import com.liferay.account.service.persistence.AccountGroupPersistence;
+import com.liferay.account.service.persistence.AccountGroupUtil;
 import com.liferay.account.service.persistence.impl.constants.AccountPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -98,6 +102,999 @@ public class AccountGroupPersistenceImpl
 	private FinderPath _finderPathWithPaginationFindAll;
 	private FinderPath _finderPathWithoutPaginationFindAll;
 	private FinderPath _finderPathCountAll;
+	private FinderPath _finderPathWithPaginationFindByAccountGroupId;
+	private FinderPath _finderPathWithoutPaginationFindByAccountGroupId;
+	private FinderPath _finderPathCountByAccountGroupId;
+	private FinderPath _finderPathWithPaginationCountByAccountGroupId;
+
+	/**
+	 * Returns all the account groups where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @return the matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(long accountGroupId) {
+		return findByAccountGroupId(
+			accountGroupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups where accountGroupId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(
+		long accountGroupId, int start, int end) {
+
+		return findByAccountGroupId(accountGroupId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups where accountGroupId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(
+		long accountGroupId, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		return findByAccountGroupId(
+			accountGroupId, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups where accountGroupId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(
+		long accountGroupId, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator,
+		boolean useFinderCache) {
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByAccountGroupId;
+				finderArgs = new Object[] {accountGroupId};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByAccountGroupId;
+			finderArgs = new Object[] {
+				accountGroupId, start, end, orderByComparator
+			};
+		}
+
+		List<AccountGroup> list = null;
+
+		if (useFinderCache) {
+			list = (List<AccountGroup>)finderCache.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (AccountGroup accountGroup : list) {
+					if (accountGroupId != accountGroup.getAccountGroupId()) {
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					3 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(3);
+			}
+
+			sb.append(_SQL_SELECT_ACCOUNTGROUP_WHERE);
+
+			sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_2);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(accountGroupId);
+
+				list = (List<AccountGroup>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first account group in the ordered set where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching account group
+	 * @throws NoSuchGroupException if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup findByAccountGroupId_First(
+			long accountGroupId,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		AccountGroup accountGroup = fetchByAccountGroupId_First(
+			accountGroupId, orderByComparator);
+
+		if (accountGroup != null) {
+			return accountGroup;
+		}
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("accountGroupId=");
+		sb.append(accountGroupId);
+
+		sb.append("}");
+
+		throw new NoSuchGroupException(sb.toString());
+	}
+
+	/**
+	 * Returns the first account group in the ordered set where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching account group, or <code>null</code> if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup fetchByAccountGroupId_First(
+		long accountGroupId,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		List<AccountGroup> list = findByAccountGroupId(
+			accountGroupId, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last account group in the ordered set where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching account group
+	 * @throws NoSuchGroupException if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup findByAccountGroupId_Last(
+			long accountGroupId,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		AccountGroup accountGroup = fetchByAccountGroupId_Last(
+			accountGroupId, orderByComparator);
+
+		if (accountGroup != null) {
+			return accountGroup;
+		}
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("accountGroupId=");
+		sb.append(accountGroupId);
+
+		sb.append("}");
+
+		throw new NoSuchGroupException(sb.toString());
+	}
+
+	/**
+	 * Returns the last account group in the ordered set where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching account group, or <code>null</code> if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup fetchByAccountGroupId_Last(
+		long accountGroupId,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		int count = countByAccountGroupId(accountGroupId);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<AccountGroup> list = findByAccountGroupId(
+			accountGroupId, count - 1, count, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns all the account groups that the user has permission to view where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @return the matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByAccountGroupId(long accountGroupId) {
+		return filterFindByAccountGroupId(
+			accountGroupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups that the user has permission to view where accountGroupId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByAccountGroupId(
+		long accountGroupId, int start, int end) {
+
+		return filterFindByAccountGroupId(accountGroupId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups that the user has permissions to view where accountGroupId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByAccountGroupId(
+		long accountGroupId, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return findByAccountGroupId(
+				accountGroupId, start, end, orderByComparator);
+		}
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				3 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(accountGroupId);
+
+			return (List<AccountGroup>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns all the account groups that the user has permission to view where accountGroupId = any &#63;.
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @return the matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByAccountGroupId(
+		long[] accountGroupIds) {
+
+		return filterFindByAccountGroupId(
+			accountGroupIds, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups that the user has permission to view where accountGroupId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByAccountGroupId(
+		long[] accountGroupIds, int start, int end) {
+
+		return filterFindByAccountGroupId(accountGroupIds, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups that the user has permission to view where accountGroupId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByAccountGroupId(
+		long[] accountGroupIds, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return findByAccountGroupId(
+				accountGroupIds, start, end, orderByComparator);
+		}
+
+		if (accountGroupIds == null) {
+			accountGroupIds = new long[0];
+		}
+		else if (accountGroupIds.length > 1) {
+			accountGroupIds = ArrayUtil.sortedUnique(accountGroupIds);
+		}
+
+		StringBundler sb = new StringBundler();
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		if (accountGroupIds.length > 0) {
+			sb.append("(");
+
+			sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_7);
+
+			sb.append(StringUtil.merge(accountGroupIds));
+
+			sb.append(")");
+
+			sb.append(")");
+		}
+
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+			}
+
+			return (List<AccountGroup>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns all the account groups where accountGroupId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @return the matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(long[] accountGroupIds) {
+		return findByAccountGroupId(
+			accountGroupIds, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups where accountGroupId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(
+		long[] accountGroupIds, int start, int end) {
+
+		return findByAccountGroupId(accountGroupIds, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups where accountGroupId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(
+		long[] accountGroupIds, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		return findByAccountGroupId(
+			accountGroupIds, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups where accountGroupId = &#63;, optionally using the finder cache.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountGroupId the account group ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByAccountGroupId(
+		long[] accountGroupIds, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator,
+		boolean useFinderCache) {
+
+		if (accountGroupIds == null) {
+			accountGroupIds = new long[0];
+		}
+		else if (accountGroupIds.length > 1) {
+			accountGroupIds = ArrayUtil.sortedUnique(accountGroupIds);
+		}
+
+		if (accountGroupIds.length == 1) {
+			return findByAccountGroupId(
+				accountGroupIds[0], start, end, orderByComparator);
+		}
+
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderArgs = new Object[] {StringUtil.merge(accountGroupIds)};
+			}
+		}
+		else if (useFinderCache) {
+			finderArgs = new Object[] {
+				StringUtil.merge(accountGroupIds), start, end, orderByComparator
+			};
+		}
+
+		List<AccountGroup> list = null;
+
+		if (useFinderCache) {
+			list = (List<AccountGroup>)finderCache.getResult(
+				_finderPathWithPaginationFindByAccountGroupId, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (AccountGroup accountGroup : list) {
+					if (!ArrayUtil.contains(
+							accountGroupIds,
+							accountGroup.getAccountGroupId())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = new StringBundler();
+
+			sb.append(_SQL_SELECT_ACCOUNTGROUP_WHERE);
+
+			if (accountGroupIds.length > 0) {
+				sb.append("(");
+
+				sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_7);
+
+				sb.append(StringUtil.merge(accountGroupIds));
+
+				sb.append(")");
+
+				sb.append(")");
+			}
+
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				list = (List<AccountGroup>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(
+						_finderPathWithPaginationFindByAccountGroupId,
+						finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Removes all the account groups where accountGroupId = &#63; from the database.
+	 *
+	 * @param accountGroupId the account group ID
+	 */
+	@Override
+	public void removeByAccountGroupId(long accountGroupId) {
+		for (AccountGroup accountGroup :
+				findByAccountGroupId(
+					accountGroupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+					null)) {
+
+			remove(accountGroup);
+		}
+	}
+
+	/**
+	 * Returns the number of account groups where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @return the number of matching account groups
+	 */
+	@Override
+	public int countByAccountGroupId(long accountGroupId) {
+		FinderPath finderPath = _finderPathCountByAccountGroupId;
+
+		Object[] finderArgs = new Object[] {accountGroupId};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(2);
+
+			sb.append(_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+			sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(accountGroupId);
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	/**
+	 * Returns the number of account groups where accountGroupId = any &#63;.
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @return the number of matching account groups
+	 */
+	@Override
+	public int countByAccountGroupId(long[] accountGroupIds) {
+		if (accountGroupIds == null) {
+			accountGroupIds = new long[0];
+		}
+		else if (accountGroupIds.length > 1) {
+			accountGroupIds = ArrayUtil.sortedUnique(accountGroupIds);
+		}
+
+		Object[] finderArgs = new Object[] {StringUtil.merge(accountGroupIds)};
+
+		Long count = (Long)finderCache.getResult(
+			_finderPathWithPaginationCountByAccountGroupId, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler();
+
+			sb.append(_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+			if (accountGroupIds.length > 0) {
+				sb.append("(");
+
+				sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_7);
+
+				sb.append(StringUtil.merge(accountGroupIds));
+
+				sb.append(")");
+
+				sb.append(")");
+			}
+
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(
+					_finderPathWithPaginationCountByAccountGroupId, finderArgs,
+					count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	/**
+	 * Returns the number of account groups that the user has permission to view where accountGroupId = &#63;.
+	 *
+	 * @param accountGroupId the account group ID
+	 * @return the number of matching account groups that the user has permission to view
+	 */
+	@Override
+	public int filterCountByAccountGroupId(long accountGroupId) {
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return countByAccountGroupId(accountGroupId);
+		}
+
+		StringBundler sb = new StringBundler(2);
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+		sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_2);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(accountGroupId);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the number of account groups that the user has permission to view where accountGroupId = any &#63;.
+	 *
+	 * @param accountGroupIds the account group IDs
+	 * @return the number of matching account groups that the user has permission to view
+	 */
+	@Override
+	public int filterCountByAccountGroupId(long[] accountGroupIds) {
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return countByAccountGroupId(accountGroupIds);
+		}
+
+		if (accountGroupIds == null) {
+			accountGroupIds = new long[0];
+		}
+		else if (accountGroupIds.length > 1) {
+			accountGroupIds = ArrayUtil.sortedUnique(accountGroupIds);
+		}
+
+		StringBundler sb = new StringBundler();
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+		if (accountGroupIds.length > 0) {
+			sb.append("(");
+
+			sb.append(_FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_7);
+
+			sb.append(StringUtil.merge(accountGroupIds));
+
+			sb.append(")");
+
+			sb.append(")");
+		}
+
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	private static final String _FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_2 =
+		"accountGroup.accountGroupId = ?";
+
+	private static final String _FINDER_COLUMN_ACCOUNTGROUPID_ACCOUNTGROUPID_7 =
+		"accountGroup.accountGroupId IN (";
+
 	private FinderPath _finderPathWithPaginationFindByCompanyId;
 	private FinderPath _finderPathWithoutPaginationFindByCompanyId;
 	private FinderPath _finderPathCountByCompanyId;
@@ -528,6 +1525,336 @@ public class AccountGroupPersistenceImpl
 	}
 
 	/**
+	 * Returns all the account groups that the user has permission to view where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @return the matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByCompanyId(long companyId) {
+		return filterFindByCompanyId(
+			companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups that the user has permission to view where companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByCompanyId(
+		long companyId, int start, int end) {
+
+		return filterFindByCompanyId(companyId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups that the user has permissions to view where companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByCompanyId(
+		long companyId, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByCompanyId(companyId, start, end, orderByComparator);
+		}
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				3 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			return (List<AccountGroup>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the account groups before and after the current account group in the ordered set of account groups that the user has permission to view where companyId = &#63;.
+	 *
+	 * @param accountGroupId the primary key of the current account group
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account group
+	 * @throws NoSuchGroupException if a account group with the primary key could not be found
+	 */
+	@Override
+	public AccountGroup[] filterFindByCompanyId_PrevAndNext(
+			long accountGroupId, long companyId,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByCompanyId_PrevAndNext(
+				accountGroupId, companyId, orderByComparator);
+		}
+
+		AccountGroup accountGroup = findByPrimaryKey(accountGroupId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountGroup[] array = new AccountGroupImpl[3];
+
+			array[0] = filterGetByCompanyId_PrevAndNext(
+				session, accountGroup, companyId, orderByComparator, true);
+
+			array[1] = accountGroup;
+
+			array[2] = filterGetByCompanyId_PrevAndNext(
+				session, accountGroup, companyId, orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountGroup filterGetByCompanyId_PrevAndNext(
+		Session session, AccountGroup accountGroup, long companyId,
+		OrderByComparator<AccountGroup> orderByComparator, boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
+							true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
+							true));
+				}
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
+				}
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+		}
+		else {
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+		}
+
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+		queryPos.add(companyId);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountGroup)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountGroup> list = sqlQuery.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
 	 * Removes all the account groups where companyId = &#63; from the database.
 	 *
 	 * @param companyId the company ID
@@ -589,6 +1916,54 @@ public class AccountGroupPersistenceImpl
 		}
 
 		return count.intValue();
+	}
+
+	/**
+	 * Returns the number of account groups that the user has permission to view where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @return the number of matching account groups that the user has permission to view
+	 */
+	@Override
+	public int filterCountByCompanyId(long companyId) {
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return countByCompanyId(companyId);
+		}
+
+		StringBundler sb = new StringBundler(2);
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
 	}
 
 	private static final String _FINDER_COLUMN_COMPANYID_COMPANYID_2 =
@@ -1063,6 +2438,357 @@ public class AccountGroupPersistenceImpl
 	}
 
 	/**
+	 * Returns all the account groups that the user has permission to view where companyId = &#63; and defaultAccountGroup = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param defaultAccountGroup the default account group
+	 * @return the matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByC_D(
+		long companyId, boolean defaultAccountGroup) {
+
+		return filterFindByC_D(
+			companyId, defaultAccountGroup, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups that the user has permission to view where companyId = &#63; and defaultAccountGroup = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param defaultAccountGroup the default account group
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByC_D(
+		long companyId, boolean defaultAccountGroup, int start, int end) {
+
+		return filterFindByC_D(
+			companyId, defaultAccountGroup, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups that the user has permissions to view where companyId = &#63; and defaultAccountGroup = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param defaultAccountGroup the default account group
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByC_D(
+		long companyId, boolean defaultAccountGroup, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByC_D(
+				companyId, defaultAccountGroup, start, end, orderByComparator);
+		}
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				4 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_D_DEFAULTACCOUNTGROUP_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			queryPos.add(defaultAccountGroup);
+
+			return (List<AccountGroup>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the account groups before and after the current account group in the ordered set of account groups that the user has permission to view where companyId = &#63; and defaultAccountGroup = &#63;.
+	 *
+	 * @param accountGroupId the primary key of the current account group
+	 * @param companyId the company ID
+	 * @param defaultAccountGroup the default account group
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account group
+	 * @throws NoSuchGroupException if a account group with the primary key could not be found
+	 */
+	@Override
+	public AccountGroup[] filterFindByC_D_PrevAndNext(
+			long accountGroupId, long companyId, boolean defaultAccountGroup,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByC_D_PrevAndNext(
+				accountGroupId, companyId, defaultAccountGroup,
+				orderByComparator);
+		}
+
+		AccountGroup accountGroup = findByPrimaryKey(accountGroupId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountGroup[] array = new AccountGroupImpl[3];
+
+			array[0] = filterGetByC_D_PrevAndNext(
+				session, accountGroup, companyId, defaultAccountGroup,
+				orderByComparator, true);
+
+			array[1] = accountGroup;
+
+			array[2] = filterGetByC_D_PrevAndNext(
+				session, accountGroup, companyId, defaultAccountGroup,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountGroup filterGetByC_D_PrevAndNext(
+		Session session, AccountGroup accountGroup, long companyId,
+		boolean defaultAccountGroup,
+		OrderByComparator<AccountGroup> orderByComparator, boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_D_DEFAULTACCOUNTGROUP_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
+							true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
+							true));
+				}
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
+				}
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+		}
+		else {
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+		}
+
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+		queryPos.add(companyId);
+
+		queryPos.add(defaultAccountGroup);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountGroup)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountGroup> list = sqlQuery.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
 	 * Removes all the account groups where companyId = &#63; and defaultAccountGroup = &#63; from the database.
 	 *
 	 * @param companyId the company ID
@@ -1133,11 +2859,1085 @@ public class AccountGroupPersistenceImpl
 		return count.intValue();
 	}
 
+	/**
+	 * Returns the number of account groups that the user has permission to view where companyId = &#63; and defaultAccountGroup = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param defaultAccountGroup the default account group
+	 * @return the number of matching account groups that the user has permission to view
+	 */
+	@Override
+	public int filterCountByC_D(long companyId, boolean defaultAccountGroup) {
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return countByC_D(companyId, defaultAccountGroup);
+		}
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_D_DEFAULTACCOUNTGROUP_2);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			queryPos.add(defaultAccountGroup);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
 	private static final String _FINDER_COLUMN_C_D_COMPANYID_2 =
 		"accountGroup.companyId = ? AND ";
 
 	private static final String _FINDER_COLUMN_C_D_DEFAULTACCOUNTGROUP_2 =
 		"accountGroup.defaultAccountGroup = ?";
+
+	private FinderPath _finderPathWithPaginationFindByC_T;
+	private FinderPath _finderPathWithoutPaginationFindByC_T;
+	private FinderPath _finderPathCountByC_T;
+
+	/**
+	 * Returns all the account groups where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @return the matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByC_T(long companyId, String type) {
+		return findByC_T(
+			companyId, type, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups where companyId = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByC_T(
+		long companyId, String type, int start, int end) {
+
+		return findByC_T(companyId, type, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups where companyId = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByC_T(
+		long companyId, String type, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		return findByC_T(companyId, type, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups where companyId = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching account groups
+	 */
+	@Override
+	public List<AccountGroup> findByC_T(
+		long companyId, String type, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator,
+		boolean useFinderCache) {
+
+		type = Objects.toString(type, "");
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByC_T;
+				finderArgs = new Object[] {companyId, type};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByC_T;
+			finderArgs = new Object[] {
+				companyId, type, start, end, orderByComparator
+			};
+		}
+
+		List<AccountGroup> list = null;
+
+		if (useFinderCache) {
+			list = (List<AccountGroup>)finderCache.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (AccountGroup accountGroup : list) {
+					if ((companyId != accountGroup.getCompanyId()) ||
+						!type.equals(accountGroup.getType())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					4 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(4);
+			}
+
+			sb.append(_SQL_SELECT_ACCOUNTGROUP_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_T_COMPANYID_2);
+
+			boolean bindType = false;
+
+			if (type.isEmpty()) {
+				sb.append(_FINDER_COLUMN_C_T_TYPE_3);
+			}
+			else {
+				bindType = true;
+
+				sb.append(_FINDER_COLUMN_C_T_TYPE_2);
+			}
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				if (bindType) {
+					queryPos.add(type);
+				}
+
+				list = (List<AccountGroup>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first account group in the ordered set where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching account group
+	 * @throws NoSuchGroupException if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup findByC_T_First(
+			long companyId, String type,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		AccountGroup accountGroup = fetchByC_T_First(
+			companyId, type, orderByComparator);
+
+		if (accountGroup != null) {
+			return accountGroup;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", type=");
+		sb.append(type);
+
+		sb.append("}");
+
+		throw new NoSuchGroupException(sb.toString());
+	}
+
+	/**
+	 * Returns the first account group in the ordered set where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching account group, or <code>null</code> if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup fetchByC_T_First(
+		long companyId, String type,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		List<AccountGroup> list = findByC_T(
+			companyId, type, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last account group in the ordered set where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching account group
+	 * @throws NoSuchGroupException if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup findByC_T_Last(
+			long companyId, String type,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		AccountGroup accountGroup = fetchByC_T_Last(
+			companyId, type, orderByComparator);
+
+		if (accountGroup != null) {
+			return accountGroup;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", type=");
+		sb.append(type);
+
+		sb.append("}");
+
+		throw new NoSuchGroupException(sb.toString());
+	}
+
+	/**
+	 * Returns the last account group in the ordered set where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching account group, or <code>null</code> if a matching account group could not be found
+	 */
+	@Override
+	public AccountGroup fetchByC_T_Last(
+		long companyId, String type,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		int count = countByC_T(companyId, type);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<AccountGroup> list = findByC_T(
+			companyId, type, count - 1, count, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the account groups before and after the current account group in the ordered set where companyId = &#63; and type = &#63;.
+	 *
+	 * @param accountGroupId the primary key of the current account group
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account group
+	 * @throws NoSuchGroupException if a account group with the primary key could not be found
+	 */
+	@Override
+	public AccountGroup[] findByC_T_PrevAndNext(
+			long accountGroupId, long companyId, String type,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		type = Objects.toString(type, "");
+
+		AccountGroup accountGroup = findByPrimaryKey(accountGroupId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountGroup[] array = new AccountGroupImpl[3];
+
+			array[0] = getByC_T_PrevAndNext(
+				session, accountGroup, companyId, type, orderByComparator,
+				true);
+
+			array[1] = accountGroup;
+
+			array[2] = getByC_T_PrevAndNext(
+				session, accountGroup, companyId, type, orderByComparator,
+				false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountGroup getByC_T_PrevAndNext(
+		Session session, AccountGroup accountGroup, long companyId, String type,
+		OrderByComparator<AccountGroup> orderByComparator, boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		sb.append(_SQL_SELECT_ACCOUNTGROUP_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_T_COMPANYID_2);
+
+		boolean bindType = false;
+
+		if (type.isEmpty()) {
+			sb.append(_FINDER_COLUMN_C_T_TYPE_3);
+		}
+		else {
+			bindType = true;
+
+			sb.append(_FINDER_COLUMN_C_T_TYPE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(companyId);
+
+		if (bindType) {
+			queryPos.add(type);
+		}
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountGroup)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountGroup> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns all the account groups that the user has permission to view where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @return the matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByC_T(long companyId, String type) {
+		return filterFindByC_T(
+			companyId, type, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account groups that the user has permission to view where companyId = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @return the range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByC_T(
+		long companyId, String type, int start, int end) {
+
+		return filterFindByC_T(companyId, type, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account groups that the user has permissions to view where companyId = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountGroupModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param start the lower bound of the range of account groups
+	 * @param end the upper bound of the range of account groups (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account groups that the user has permission to view
+	 */
+	@Override
+	public List<AccountGroup> filterFindByC_T(
+		long companyId, String type, int start, int end,
+		OrderByComparator<AccountGroup> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByC_T(companyId, type, start, end, orderByComparator);
+		}
+
+		type = Objects.toString(type, "");
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				4 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_C_T_COMPANYID_2);
+
+		boolean bindType = false;
+
+		if (type.isEmpty()) {
+			sb.append(_FINDER_COLUMN_C_T_TYPE_3_SQL);
+		}
+		else {
+			bindType = true;
+
+			sb.append(_FINDER_COLUMN_C_T_TYPE_2_SQL);
+		}
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			if (bindType) {
+				queryPos.add(type);
+			}
+
+			return (List<AccountGroup>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the account groups before and after the current account group in the ordered set of account groups that the user has permission to view where companyId = &#63; and type = &#63;.
+	 *
+	 * @param accountGroupId the primary key of the current account group
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account group
+	 * @throws NoSuchGroupException if a account group with the primary key could not be found
+	 */
+	@Override
+	public AccountGroup[] filterFindByC_T_PrevAndNext(
+			long accountGroupId, long companyId, String type,
+			OrderByComparator<AccountGroup> orderByComparator)
+		throws NoSuchGroupException {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByC_T_PrevAndNext(
+				accountGroupId, companyId, type, orderByComparator);
+		}
+
+		type = Objects.toString(type, "");
+
+		AccountGroup accountGroup = findByPrimaryKey(accountGroupId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountGroup[] array = new AccountGroupImpl[3];
+
+			array[0] = filterGetByC_T_PrevAndNext(
+				session, accountGroup, companyId, type, orderByComparator,
+				true);
+
+			array[1] = accountGroup;
+
+			array[2] = filterGetByC_T_PrevAndNext(
+				session, accountGroup, companyId, type, orderByComparator,
+				false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountGroup filterGetByC_T_PrevAndNext(
+		Session session, AccountGroup accountGroup, long companyId, String type,
+		OrderByComparator<AccountGroup> orderByComparator, boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_C_T_COMPANYID_2);
+
+		boolean bindType = false;
+
+		if (type.isEmpty()) {
+			sb.append(_FINDER_COLUMN_C_T_TYPE_3_SQL);
+		}
+		else {
+			bindType = true;
+
+			sb.append(_FINDER_COLUMN_C_T_TYPE_2_SQL);
+		}
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
+							true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
+							true));
+				}
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
+				}
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountGroupModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountGroupModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountGroupImpl.class);
+		}
+		else {
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountGroupImpl.class);
+		}
+
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+		queryPos.add(companyId);
+
+		if (bindType) {
+			queryPos.add(type);
+		}
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountGroup)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountGroup> list = sqlQuery.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the account groups where companyId = &#63; and type = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 */
+	@Override
+	public void removeByC_T(long companyId, String type) {
+		for (AccountGroup accountGroup :
+				findByC_T(
+					companyId, type, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+					null)) {
+
+			remove(accountGroup);
+		}
+	}
+
+	/**
+	 * Returns the number of account groups where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @return the number of matching account groups
+	 */
+	@Override
+	public int countByC_T(long companyId, String type) {
+		type = Objects.toString(type, "");
+
+		FinderPath finderPath = _finderPathCountByC_T;
+
+		Object[] finderArgs = new Object[] {companyId, type};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append(_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_T_COMPANYID_2);
+
+			boolean bindType = false;
+
+			if (type.isEmpty()) {
+				sb.append(_FINDER_COLUMN_C_T_TYPE_3);
+			}
+			else {
+				bindType = true;
+
+				sb.append(_FINDER_COLUMN_C_T_TYPE_2);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				if (bindType) {
+					queryPos.add(type);
+				}
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	/**
+	 * Returns the number of account groups that the user has permission to view where companyId = &#63; and type = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param type the type
+	 * @return the number of matching account groups that the user has permission to view
+	 */
+	@Override
+	public int filterCountByC_T(long companyId, String type) {
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return countByC_T(companyId, type);
+		}
+
+		type = Objects.toString(type, "");
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTGROUP_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_T_COMPANYID_2);
+
+		boolean bindType = false;
+
+		if (type.isEmpty()) {
+			sb.append(_FINDER_COLUMN_C_T_TYPE_3_SQL);
+		}
+		else {
+			bindType = true;
+
+			sb.append(_FINDER_COLUMN_C_T_TYPE_2_SQL);
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountGroup.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			if (bindType) {
+				queryPos.add(type);
+			}
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	private static final String _FINDER_COLUMN_C_T_COMPANYID_2 =
+		"accountGroup.companyId = ? AND ";
+
+	private static final String _FINDER_COLUMN_C_T_TYPE_2 =
+		"accountGroup.type = ?";
+
+	private static final String _FINDER_COLUMN_C_T_TYPE_3 =
+		"(accountGroup.type IS NULL OR accountGroup.type = '')";
+
+	private static final String _FINDER_COLUMN_C_T_TYPE_2_SQL =
+		"accountGroup.type_ = ?";
+
+	private static final String _FINDER_COLUMN_C_T_TYPE_3_SQL =
+		"(accountGroup.type_ IS NULL OR accountGroup.type_ = '')";
 
 	private FinderPath _finderPathFetchByC_ERC;
 	private FinderPath _finderPathCountByC_ERC;
@@ -1412,6 +4212,12 @@ public class AccountGroupPersistenceImpl
 		"(accountGroup.externalReferenceCode IS NULL OR accountGroup.externalReferenceCode = '')";
 
 	public AccountGroupPersistenceImpl() {
+		Map<String, String> dbColumnNames = new HashMap<String, String>();
+
+		dbColumnNames.put("type", "type_");
+
+		setDBColumnNames(dbColumnNames);
+
 		setModelClass(AccountGroup.class);
 
 		setModelImplClass(AccountGroupImpl.class);
@@ -1439,6 +4245,8 @@ public class AccountGroupPersistenceImpl
 			accountGroup);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the account groups in the entity cache if it is enabled.
 	 *
@@ -1446,6 +4254,13 @@ public class AccountGroupPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<AccountGroup> accountGroups) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (accountGroups.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (AccountGroup accountGroup : accountGroups) {
 			if (entityCache.getResult(
 					AccountGroupImpl.class, accountGroup.getPrimaryKey()) ==
@@ -1641,24 +4456,24 @@ public class AccountGroupPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (accountGroup.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				accountGroup.setCreateDate(now);
+				accountGroup.setCreateDate(date);
 			}
 			else {
-				accountGroup.setCreateDate(serviceContext.getCreateDate(now));
+				accountGroup.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!accountGroupModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				accountGroup.setModifiedDate(now);
+				accountGroup.setModifiedDate(date);
 			}
 			else {
 				accountGroup.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -1925,6 +4740,11 @@ public class AccountGroupPersistenceImpl
 	}
 
 	@Override
+	public Set<String> getBadColumnNames() {
+		return _badColumnNames;
+	}
+
+	@Override
 	protected EntityCache getEntityCache() {
 		return entityCache;
 	}
@@ -1948,12 +4768,9 @@ public class AccountGroupPersistenceImpl
 	 * Initializes the account group persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new AccountGroupModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1966,6 +4783,29 @@ public class AccountGroupPersistenceImpl
 		_finderPathCountAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
 			new String[0], new String[0], false);
+
+		_finderPathWithPaginationFindByAccountGroupId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByAccountGroupId",
+			new String[] {
+				Long.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"accountGroupId"}, true);
+
+		_finderPathWithoutPaginationFindByAccountGroupId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByAccountGroupId",
+			new String[] {Long.class.getName()},
+			new String[] {"accountGroupId"}, true);
+
+		_finderPathCountByAccountGroupId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByAccountGroupId",
+			new String[] {Long.class.getName()},
+			new String[] {"accountGroupId"}, false);
+
+		_finderPathWithPaginationCountByAccountGroupId = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByAccountGroupId",
+			new String[] {Long.class.getName()},
+			new String[] {"accountGroupId"}, false);
 
 		_finderPathWithPaginationFindByCompanyId = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCompanyId",
@@ -2004,6 +4844,25 @@ public class AccountGroupPersistenceImpl
 			new String[] {Long.class.getName(), Boolean.class.getName()},
 			new String[] {"companyId", "defaultAccountGroup"}, false);
 
+		_finderPathWithPaginationFindByC_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_T",
+			new String[] {
+				Long.class.getName(), String.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
+			},
+			new String[] {"companyId", "type_"}, true);
+
+		_finderPathWithoutPaginationFindByC_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_T",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"companyId", "type_"}, true);
+
+		_finderPathCountByC_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_T",
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"companyId", "type_"}, false);
+
 		_finderPathFetchByC_ERC = new FinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByC_ERC",
 			new String[] {Long.class.getName(), String.class.getName()},
@@ -2013,13 +4872,31 @@ public class AccountGroupPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_ERC",
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"companyId", "externalReferenceCode"}, false);
+
+		_setAccountGroupUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(AccountGroupImpl.class.getName());
+		_setAccountGroupUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(AccountGroupImpl.class.getName());
+	}
+
+	private void _setAccountGroupUtilPersistence(
+		AccountGroupPersistence accountGroupPersistence) {
+
+		try {
+			Field field = AccountGroupUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, accountGroupPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -2048,8 +4925,6 @@ public class AccountGroupPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private BundleContext _bundleContext;
-
 	@Reference
 	protected EntityCache entityCache;
 
@@ -2068,7 +4943,30 @@ public class AccountGroupPersistenceImpl
 	private static final String _SQL_COUNT_ACCOUNTGROUP_WHERE =
 		"SELECT COUNT(accountGroup) FROM AccountGroup accountGroup WHERE ";
 
+	private static final String _FILTER_ENTITY_TABLE_FILTER_PK_COLUMN =
+		"accountGroup.accountGroupId";
+
+	private static final String _FILTER_SQL_SELECT_ACCOUNTGROUP_WHERE =
+		"SELECT DISTINCT {accountGroup.*} FROM AccountGroup accountGroup WHERE ";
+
+	private static final String
+		_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_1 =
+			"SELECT {AccountGroup.*} FROM (SELECT DISTINCT accountGroup.accountGroupId FROM AccountGroup accountGroup WHERE ";
+
+	private static final String
+		_FILTER_SQL_SELECT_ACCOUNTGROUP_NO_INLINE_DISTINCT_WHERE_2 =
+			") TEMP_TABLE INNER JOIN AccountGroup ON TEMP_TABLE.accountGroupId = AccountGroup.accountGroupId";
+
+	private static final String _FILTER_SQL_COUNT_ACCOUNTGROUP_WHERE =
+		"SELECT COUNT(DISTINCT accountGroup.accountGroupId) AS COUNT_VALUE FROM AccountGroup accountGroup WHERE ";
+
+	private static final String _FILTER_ENTITY_ALIAS = "accountGroup";
+
+	private static final String _FILTER_ENTITY_TABLE = "AccountGroup";
+
 	private static final String _ORDER_BY_ENTITY_ALIAS = "accountGroup.";
+
+	private static final String _ORDER_BY_ENTITY_TABLE = "AccountGroup.";
 
 	private static final String _NO_SUCH_ENTITY_WITH_PRIMARY_KEY =
 		"No AccountGroup exists with the primary key ";
@@ -2079,98 +4977,16 @@ public class AccountGroupPersistenceImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		AccountGroupPersistenceImpl.class);
 
+	private static final Set<String> _badColumnNames = SetUtil.fromArray(
+		new String[] {"type"});
+
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class AccountGroupModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AccountGroupModelImpl accountGroupModelImpl =
-				(AccountGroupModelImpl)baseModel;
-
-			long columnBitmask = accountGroupModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(accountGroupModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						accountGroupModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(accountGroupModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AccountGroupImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AccountGroupTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AccountGroupModelImpl accountGroupModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = accountGroupModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = accountGroupModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private AccountGroupModelArgumentsResolver
+		_accountGroupModelArgumentsResolver;
 
 }

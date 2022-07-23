@@ -14,6 +14,7 @@
 
 package com.liferay.portal.json;
 
+import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
@@ -55,6 +56,10 @@ public class JSONObjectImpl implements JSONObject {
 		}
 	}
 
+	public JSONObjectImpl(org.json.JSONObject jsonObject) {
+		_jsonObject = jsonObject;
+	}
+
 	public JSONObjectImpl(Map<?, ?> map) {
 		_jsonObject = new org.json.JSONObject(map);
 	}
@@ -65,10 +70,6 @@ public class JSONObjectImpl implements JSONObject {
 
 	public JSONObjectImpl(Object object, String[] names) {
 		_jsonObject = new org.json.JSONObject(object, names);
-	}
-
-	public JSONObjectImpl(org.json.JSONObject jsonObject) {
-		_jsonObject = jsonObject;
 	}
 
 	public JSONObjectImpl(String json) throws JSONException {
@@ -217,7 +218,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -231,7 +232,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -245,7 +246,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -259,7 +260,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -275,7 +276,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -291,7 +292,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -305,7 +306,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -327,7 +328,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -341,8 +342,26 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
+		}
+
+		return this;
+	}
+
+	@Override
+	public JSONObject put(
+		String key, UnsafeSupplier<Object, Exception> valueUnsafeSupplier) {
+
+		try {
+			Object value = valueUnsafeSupplier.get();
+
+			if (value != null) {
+				return put(key, value);
+			}
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 
 		return this;
@@ -358,7 +377,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 		catch (Exception exception2) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception2, exception2);
+				_log.warn(exception2);
 			}
 		}
 
@@ -384,6 +403,11 @@ public class JSONObjectImpl implements JSONObject {
 	@Override
 	public String toJSONString() {
 		return toString();
+	}
+
+	@Override
+	public Map<String, Object> toMap() {
+		return _jsonObject.toMap();
 	}
 
 	@Override

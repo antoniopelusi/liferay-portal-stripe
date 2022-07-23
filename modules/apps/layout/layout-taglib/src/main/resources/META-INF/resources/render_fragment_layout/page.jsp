@@ -17,41 +17,45 @@
 <%@ include file="/render_fragment_layout/init.jsp" %>
 
 <%
-Map<String, Object> fieldValues = (Map<String, Object>)request.getAttribute("liferay-layout:render-fragment-layout:fieldValues");
 LayoutStructure layoutStructure = (LayoutStructure)request.getAttribute("liferay-layout:render-fragment-layout:layoutStructure");
 String mainItemId = (String)request.getAttribute("liferay-layout:render-fragment-layout:mainItemId");
 String mode = (String)request.getAttribute("liferay-layout:render-fragment-layout:mode");
 boolean showPreview = GetterUtil.getBoolean(request.getAttribute("liferay-layout:render-fragment-layout:showPreview"));
-
-RenderFragmentLayoutDisplayContext renderFragmentLayoutDisplayContext = new RenderFragmentLayoutDisplayContext(request, response);
 %>
 
 <liferay-util:dynamic-include key="com.liferay.layout,taglib#/render_fragment_layout/page.jsp#pre" />
 
-<%
-try {
-	request.setAttribute(WebKeys.SHOW_PORTLET_TOPPER, Boolean.TRUE);
-%>
+<c:if test="<%= layoutStructure != null %>">
 
-	<liferay-util:buffer
-		var="content"
-	>
-		<liferay-layout:render-layout-structure
-			fieldValues="<%= fieldValues %>"
-			layoutStructure="<%= layoutStructure %>"
-			mainItemId="<%= mainItemId %>"
-			mode="<%= mode %>"
-			showPreview="<%= showPreview %>"
-		/>
-	</liferay-util:buffer>
+	<%
+	try {
+		request.setAttribute(WebKeys.SHOW_PORTLET_TOPPER, Boolean.TRUE);
+	%>
 
-	<%= renderFragmentLayoutDisplayContext.processAMImages(content) %>
+		<liferay-util:buffer
+			var="content"
+		>
+			<liferay-layout:render-layout-structure
+				layoutStructure="<%= layoutStructure %>"
+				mainItemId="<%= mainItemId %>"
+				mode="<%= mode %>"
+				showPreview="<%= showPreview %>"
+			/>
+		</liferay-util:buffer>
 
-<%
-}
-finally {
-	request.removeAttribute(WebKeys.SHOW_PORTLET_TOPPER);
-}
-%>
+		<%
+		LayoutAdaptiveMediaProcessor layoutAdaptiveMediaProcessor = ServletContextUtil.getLayoutAdaptiveMediaProcessor();
+		%>
+
+		<%= layoutAdaptiveMediaProcessor.processAdaptiveMediaContent(content) %>
+
+	<%
+	}
+	finally {
+		request.removeAttribute(WebKeys.SHOW_PORTLET_TOPPER);
+	}
+	%>
+
+</c:if>
 
 <liferay-util:dynamic-include key="com.liferay.layout,taglib#/render_fragment_layout/page.jsp#post" />

@@ -1,0 +1,502 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Blogs";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			BlogsEntry.tearDownCP();
+		}
+	}
+
+	@description = "This is a usecase for LPS-110117. This test checks that an inline image can be added to a blog."
+	@priority = "4"
+	@refactordone
+	@uitest
+	test CanAddInlineImage {
+		BlogsNavigator.openToAddEntry(siteURLKey = "guest");
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addContentWithInlineImage(
+			entryContent = "Blogs Entry Content",
+			entryInlineImageURL = "www.liferay.com",
+			navTab = "Upload Image",
+			uploadFileName = "Document_1.jpg");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.viewEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewInlineImage(uploadFileName = "Document_1");
+	}
+
+	@description = "This test covers LPS-102178. It checks that a blog entry can be saved as draft automatically when the custom URL is the same as the removed one."
+	@priority = "3"
+	test CanAutoSaveDuplicateCustomURL {
+		Blogs.addEntryWithCustomURL(
+			customURL = "my-custom-url",
+			entryContent = "Blog Entry Content",
+			entryTitle = "Blog Entry Title",
+			siteURLKey = "guest");
+
+		JSONBlog.moveEntryToTrash(
+			entryTitle = "Blog Entry Title",
+			friendlyURL = "my-custom-url",
+			groupName = "Guest");
+
+		BlogsNavigator.openToAddEntry(siteURLKey = "guest");
+
+		BlogsEntry.addEntryContent(
+			entryContent = "Blog Entry Content New",
+			entryTitle = "Blog Entry Title New");
+
+		Panel.expandPanel(panel = "Configuration");
+
+		BlogsEntry.addCustomURL(customURL = "my-custom-url");
+
+		BlogsEntry.autoSaveDraft();
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoEntryCP(
+			entryStatus = "Draft",
+			entryTitle = "Blog Entry Title New");
+
+		BlogsEntry.viewEntryCP(
+			entryContent = "Blog Entry Content New",
+			entryTitle = "Blog Entry Title New");
+	}
+
+	@description = "This checks that the cover image of a blog entry can be changed."
+	@priority = "4"
+	@refactordone
+	test CanChangeCoverImage {
+		var imageId = JSONBlog.uploadBlogImage(
+			groupName = "Guest",
+			sourceFileName = "Document_1.jpg");
+
+		JSONBlog.addEntryWithImage(
+			coverImageId = "${imageId}",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest");
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntryCP(
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			uploadFileName = "Document_1");
+
+		BlogsEntry.editCoverImage(
+			coverImageName = "Document_2.jpg",
+			navTab = "Documents and Media",
+			uploadFileName = "Document_2.jpg");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntryCP(
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			uploadFileName = "Document_2");
+	}
+
+	@description = "This ensures that the cover image can be removed from the blog entry."
+	@priority = "4"
+	@refactordone
+	test CanRemoveCoverImage {
+		var imageId = JSONBlog.uploadBlogImage(
+			groupName = "Guest",
+			sourceFileName = "Document_1.jpg");
+
+		JSONBlog.addEntryWithImage(
+			coverImageId = "${imageId}",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest");
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		BlogsEntry.removeCoverImage(coverImageName = "Document_1.jpg");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		AssertElementNotPresent(
+			key_coverImageName = "Document_1.jpg",
+			locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_UNPUBLISHED");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs");
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		AssertElementNotPresent(
+			key_uploadFileName = "Document_1.jpg",
+			locator1 = "BlogsEntry#ENTRY_COVER_IMAGE");
+	}
+
+	@description = "This is a usecase for LPS-83229. This is the only small image test for blogs."
+	@priority = "5"
+	@refactordone
+	test CanRemoveSmallImage {
+		property testray.component.names = "WYSIWYG";
+
+		BlogsNavigator.openToAddEntry(
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.addEntryContent(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry with Small Image");
+
+		BlogsEntry.addSmallImage(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_1.jpg");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry with Small Image",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		BlogsEntry.removeSmallImage(uploadFileName = "Document_1.jpg");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry with Small Image",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		AssertElementNotPresent(
+			key_smallImage = "Document_1.jpg",
+			locator1 = "BlogsEntry#SMALL_IMAGE");
+
+		AssertTextEquals(
+			locator1 = "Button#SELECT_FILE_SMALL_IMAGE",
+			value1 = "Select File");
+	}
+
+	@description = "This ensures that the small image can be replaced."
+	@priority = "4"
+	@refactordone
+	test CanReplaceSmallImage {
+		BlogsNavigator.openToAddEntry(
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.addEntryContent(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addSmallImage(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_1.jpg");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		BlogsEntry.addSmallImage(
+			browseImage = "true",
+			navTab = "Documents and Media",
+			uploadFileName = "Document_2.jpg");
+
+		PortletEntry.publish();
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		AssertVisible(
+			key_imageFileName = "Document_2.jpg",
+			locator1 = "BlogsEntry#CONTENT_SMALL_IMAGE",
+			value1 = "Document_2.jpg");
+	}
+
+	@description = "This checks that a cover image can be saved as a draft."
+	@priority = "3"
+	@refactordone
+	test CanSaveCoverImageAsDraft {
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		Blogs.addEntryWithUploadedCoverImage(
+			coverImageName = "Document_1",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			navTab = "Blog Images",
+			uploadFileName = "Document_1.jpg");
+
+		BlogsEntry.saveAsDraft();
+
+		Click(locator1 = "Icon#BACK");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		Blogs.viewEntryTitle(entryTitle = "Blogs Entry Title");
+
+		AssertTextEquals(
+			key_entryTitle = "Blogs Entry Title",
+			locator1 = "Blogs#DESCRIPTIVE_VIEW_ENTRY_STATUS",
+			value1 = "Draft");
+
+		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntryCP(
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			uploadFileName = "Document_1");
+	}
+
+	@description = "This checks that a cover image can be uploaded and published in a blog"
+	@priority = "3"
+	@refactordone
+	@uitest
+	test CanUploadAndPublishCoverImage {
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		Blogs.addEntryWithUploadedCoverImage(
+			coverImageName = "Document_1",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			navTab = "Blog Images",
+			uploadFileName = "Document_1.jpg");
+
+		Button.clickPublish();
+
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.viewEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title",
+			uploadFileName = "Document_1.jpg");
+	}
+
+	@description = "This test covers LPS-111741. It ensures that a blog entry can be added with the same blog image."
+	@priority = "4"
+	@refactordone
+	test CanUseBlogImageForDifferentEntries {
+		var imageId = JSONBlog.uploadBlogImage(
+			groupName = "Guest",
+			sourceFileName = "Document_1.jpg");
+
+		JSONBlog.addEntryWithImage(
+			coverImageId = "${imageId}",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest");
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		Blogs.addEntryWithUploadedCoverImage(
+			coverImageName = "Document_1",
+			entryContent = "Blogs Entry Content new",
+			entrySubtitle = "Blogs Entry Subtitle new",
+			entryTitle = "Blogs Entry Title new",
+			navTab = "Blog Images",
+			uploadedFileName = "Document_1.jpg");
+
+		Button.clickPublish();
+
+		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title new");
+
+		BlogsEntry.viewEntryCP(
+			entryContent = "Blogs Entry Content new",
+			entrySubtitle = "Blogs Entry Subtitle new",
+			entryTitle = "Blogs Entry Title new",
+			uploadFileName = "Document_1");
+	}
+
+	@description = "This test covers LPS-130735. It ensures that the caption of cover image can be viewed in blogs when the small image is removed."
+	@priority = "3"
+	@refactordone
+	test CanViewCaptionFieldAfterRemovingSmallImage {
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		Blogs.addEntryWithUploadedCoverImage(
+			captionField = "true",
+			coverImageName = "Document_1",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			navTab = "Blog Images",
+			uploadFileName = "Document_1.jpg");
+
+		BlogsEntry.addSmallImage(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_2.jpg");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		BlogsEntry.removeSmallImage(
+			images = "true",
+			uploadFileName = "Document_2.jpg");
+
+		AssertElementPresent(locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION");
+
+		PortletEntry.publish();
+	}
+
+	@description = "This checks that the cover image details appear properly"
+	@priority = "3"
+	@refactordone
+	test CanViewCoverImageDetails {
+		var imageId = JSONBlog.uploadBlogImage(
+			groupName = "Guest",
+			sourceFileName = "Document_1.jpg");
+
+		JSONBlog.addEntryWithImage(
+			coverImageId = "${imageId}",
+			entryContent = "Blogs Entry Content",
+			entrySubtitle = "Blogs Entry Subtitle",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest");
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title");
+
+		BlogsNavigator.gotoBrowseImage();
+
+		ItemSelector.viewBlogImageDetails(
+			imageFileName = "Document_1.jpg",
+			imageFormat = "jpg",
+			imageSize = "13 KB",
+			imageStatus = "approved",
+			lastModifiedBy = "Test Test",
+			uploadFileName = "Document_1.jpg",
+			versionNumber = "1.0");
+	}
+
+	@description = "This checks that the image in the DM folder can be added to a blog entry as a cover image."
+	@priority = "3"
+	@refactordone
+	test CanViewCoverImageUploadedFromDM {
+		for (var n : list "1,2") {
+			JSONFolder.addFolder(
+				dmFolderDescription = "DM Folder ${n} Description",
+				dmFolderName = "DM Folder ${n} Name",
+				groupName = "Guest");
+
+			JSONFolder.addFolder(
+				dmFolderDescription = "DM SubFolder ${n} Description",
+				dmFolderName = "DM SubFolder ${n} Name",
+				groupName = "Guest",
+				parentFolderName = "DM Folder ${n} Name");
+
+			var fileEntryId = JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document_${n}.jpg",
+				folderName = "DM SubFolder ${n} Name",
+				groupName = "Guest",
+				mimeType = "image/jpeg",
+				parentFolderName = "DM Folder ${n} Name",
+				sourceFileName = "Document_${n}.jpg");
+
+			JSONBlog.addEntryWithImage(
+				coverImageId = "${fileEntryId}",
+				entryContent = "Blogs Entry${n} Content",
+				entryTitle = "Blogs Entry${n} Title",
+				groupName = "Guest");
+		}
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry1 Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		AssertElementPresent(
+			key_uploadFileName = "Document_1",
+			locator1 = "BlogsEntry#ENTRY_COVER_IMAGE");
+
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry2 Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		AssertElementPresent(
+			key_uploadFileName = "Document_2",
+			locator1 = "BlogsEntry#ENTRY_COVER_IMAGE");
+	}
+
+	@description = "This is a test for LPS-67276. It ensures that the success message for the cover image does not display after publishing with the empty required fields."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test SuccessMessageForCoverImageDoesNotDisplayAfterPublishingWithEmptyRequiredFields {
+
+		// TODO LPS-148984 SuccessMessageForCoverImageDoesNotDisplayAfterPublishingWithEmptyRequiredFields pending implementation
+
+	}
+
+}

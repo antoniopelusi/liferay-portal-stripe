@@ -54,12 +54,11 @@ page import="com.liferay.redirect.model.RedirectNotFoundEntry" %><%@
 page import="com.liferay.redirect.service.RedirectEntryLocalServiceUtil" %><%@
 page import="com.liferay.redirect.web.internal.constants.RedirectWebKeys" %><%@
 page import="com.liferay.redirect.web.internal.display.context.RedirectDisplayContext" %><%@
-page import="com.liferay.redirect.web.internal.display.context.RedirectManagementToolbarDisplayContext" %><%@
+page import="com.liferay.redirect.web.internal.display.context.RedirectEntriesDisplayContext" %><%@
+page import="com.liferay.redirect.web.internal.display.context.RedirectEntriesManagementToolbarDisplayContext" %><%@
 page import="com.liferay.redirect.web.internal.display.context.RedirectNotFoundEntriesDisplayContext" %><%@
 page import="com.liferay.redirect.web.internal.display.context.RedirectNotFoundEntriesManagementToolbarDisplayContext" %><%@
-page import="com.liferay.redirect.web.internal.util.RedirectUtil" %><%@
-page import="com.liferay.staging.StagingGroupHelper" %><%@
-page import="com.liferay.staging.StagingGroupHelperUtil" %>
+page import="com.liferay.redirect.web.internal.util.RedirectUtil" %>
 
 <%@ page import="java.text.DateFormat" %>
 

@@ -261,6 +261,46 @@ definition {
 			startingValue = "Nickname");
 	}
 
+	@description = "This is a use case for LPS-146795. The user admin could add new user with space character in geolocation custom field name."
+	@priority = "4"
+	test AddNewUserWithGeolocationCustomFields {
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Custom Fields");
+
+		CustomFields.addCP(
+			customFieldName = "Test Field",
+			customFieldType = "Geolocation",
+			resourceName = "User");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			lat = "39.88446750779911",
+			lng = "116.37856166209812",
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		Alert.viewSuccessMessage();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.viewCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+	}
+
 	@priority = "5"
 	test EditCustomFieldUserTextField {
 		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
@@ -329,7 +369,7 @@ definition {
 			portlet = "Pages",
 			site = "${siteName}");
 
-		SitePages.addPublicPage(pageName = "Wiki Test Page");
+		PagesAdmin.addPage(pageName = "Wiki Test Page");
 
 		Navigator.gotoPage(pageName = "Wiki Test Page");
 
@@ -440,7 +480,7 @@ definition {
 		Navigator.openSiteURL(siteName = "Site Name");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMDocument.addCP(
@@ -462,6 +502,7 @@ definition {
 		DMDocument.editPG(dmDocumentTitle = "DM Document Title");
 
 		AssertConsoleTextNotPresent(value1 = "PrincipalException$MustHavePermission");
+
 		AssertConsoleTextNotPresent(value1 = "must have UPDATE permission for com.liferay.portlet.expando.model.ExpandoColumn");
 	}
 

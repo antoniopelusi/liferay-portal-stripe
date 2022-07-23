@@ -25,29 +25,18 @@ public class ExpandoBridgeFactoryUtil {
 	public static ExpandoBridge getExpandoBridge(
 		long companyId, String className) {
 
-		return getExpandoBridgeFactory().getExpandoBridge(companyId, className);
+		return _expandoBridgeFactory.getExpandoBridge(companyId, className);
 	}
 
 	public static ExpandoBridge getExpandoBridge(
 		long companyId, String className, long classPK) {
 
-		return getExpandoBridgeFactory().getExpandoBridge(
+		return _expandoBridgeFactory.getExpandoBridge(
 			companyId, className, classPK);
 	}
 
 	public static ExpandoBridgeFactory getExpandoBridgeFactory() {
 		return _expandoBridgeFactory;
-	}
-
-	/**
-	 * @param      expandoBridgeFactory
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public void setExpandoBridgeFactory(
-		ExpandoBridgeFactory expandoBridgeFactory) {
-
-		_expandoBridgeFactory = expandoBridgeFactory;
 	}
 
 	private static volatile ExpandoBridgeFactory _expandoBridgeFactory =

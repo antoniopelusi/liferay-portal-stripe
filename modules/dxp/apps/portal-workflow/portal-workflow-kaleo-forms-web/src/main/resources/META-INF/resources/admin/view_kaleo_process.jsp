@@ -74,7 +74,7 @@ KaleoProcess kaleoProcess = kaleoFormsViewRecordsDisplayContext.getKaleoProcess(
 			).setRedirect(
 				redirect
 			).setParameter(
-				"kaleoProcessId", String.valueOf(kaleoProcess.getKaleoProcessId())
+				"kaleoProcessId", kaleoProcess.getKaleoProcessId()
 			).buildString()
 		%>'
 		method="post"
@@ -113,7 +113,7 @@ KaleoProcess kaleoProcess = kaleoFormsViewRecordsDisplayContext.getKaleoProcess(
 					"kaleoProcessId", kaleoProcess.getKaleoProcessId()
 				).setParameter(
 					"version", recordVersion.getVersion()
-				).build();
+				).buildPortletURL();
 
 				// Columns
 
@@ -131,8 +131,14 @@ KaleoProcess kaleoProcess = kaleoFormsViewRecordsDisplayContext.getKaleoProcess(
 
 					<liferay-ui:search-container-column-text
 						name="<%= HtmlUtil.escape(kaleoFormsViewRecordsDisplayContext.getColumnName(ddmFormField)) %>"
-						value="<%= value %>"
-					/>
+						truncate="<%= true %>"
+					>
+						<span class="lfr-portal-tooltip text-truncate-inline" title="<%= value %>">
+							<span class="text-truncate">
+								<%= value %>
+							</span>
+						</span>
+					</liferay-ui:search-container-column-text>
 
 				<%
 				}
@@ -174,7 +180,9 @@ KaleoProcess kaleoProcess = kaleoFormsViewRecordsDisplayContext.getKaleoProcess(
 
 <clay:container-fluid>
 	<liferay-ui:search-paginator
+		markupView="lexicon"
 		searchContainer="<%= kaleoFormsViewRecordsDisplayContext.getSearch() %>"
+		type="article"
 	/>
 </clay:container-fluid>
 

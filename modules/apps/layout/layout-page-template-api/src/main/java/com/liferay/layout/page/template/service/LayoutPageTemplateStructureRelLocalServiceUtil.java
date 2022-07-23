@@ -176,6 +176,10 @@ public class LayoutPageTemplateStructureRelLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -461,6 +465,17 @@ public class LayoutPageTemplateStructureRelLocalServiceUtil {
 
 		return getService().updateLayoutPageTemplateStructureRel(
 			layoutPageTemplateStructureId, segmentsExperienceId, data);
+	}
+
+	public static LayoutPageTemplateStructureRel updateStatus(
+			long userId, long layoutPageTemplateStructureId,
+			long segmentsExperienceId, int status,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().updateStatus(
+			userId, layoutPageTemplateStructureId, segmentsExperienceId, status,
+			serviceContext);
 	}
 
 	public static LayoutPageTemplateStructureRelLocalService getService() {

@@ -1,4 +1,7 @@
 {
+	"dependencies": {
+		"frontend-js-web": "*"
+	},
 	"name": "frontend-js-collapse-support-web",
 	"private": true,
 	"scripts": {
@@ -6,5 +9,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "2.0.1"
+	"version": "2.0.10"
 }

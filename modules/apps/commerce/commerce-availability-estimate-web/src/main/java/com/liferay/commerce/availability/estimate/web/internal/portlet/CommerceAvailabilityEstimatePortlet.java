@@ -53,7 +53,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CommercePortletKeys.COMMERCE_AVAILABILITY_ESTIMATE,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CommerceAvailabilityEstimatePortlet.class, Portlet.class}
 )
@@ -82,7 +83,7 @@ public class CommerceAvailabilityEstimatePortlet extends MVCPortlet {
 		_commerceAvailabilityEstimateService;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_AVAILABILITY + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_AVAILABILITY + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

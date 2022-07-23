@@ -20,9 +20,11 @@
 portletDisplay.setShowStagingIcon(false);
 %>
 
-<liferay-ui:success key='<%= portletDisplay.getPortletName() + "layoutUpdated" %>' message='<%= LanguageUtil.get(resourceBundle, "the-page-was-updated-succesfully") %>' />
+<liferay-ui:success key='<%= portletDisplay.getId() + "requestProcessed" %>' message="your-request-completed-successfully" />
 
-<liferay-ui:success key="layoutPublished" message="the-page-was-published-succesfully" />
+<liferay-ui:success key='<%= portletDisplay.getPortletName() + "layoutUpdated" %>' message='<%= LanguageUtil.get(resourceBundle, "the-page-was-updated-successfully") %>' />
+
+<liferay-ui:success key="layoutPublished" message="the-page-was-published-successfully" />
 
 <liferay-ui:error embed="<%= false %>" exception="<%= GroupInheritContentException.class %>" message="this-page-cannot-be-deleted-and-cannot-have-child-pages-because-it-is-associated-with-a-site-template" />
 

@@ -30,24 +30,22 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.trash.model.TrashEntry;
 import com.liferay.trash.model.TrashEntryModel;
-import com.liferay.trash.model.TrashEntrySoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -165,60 +163,6 @@ public class TrashEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static TrashEntry toModel(TrashEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		TrashEntry model = new TrashEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setEntryId(soapModel.getEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setSystemEventSetKey(soapModel.getSystemEventSetKey());
-		model.setTypeSettings(soapModel.getTypeSettings());
-		model.setStatus(soapModel.getStatus());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<TrashEntry> toModels(TrashEntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<TrashEntry> models = new ArrayList<TrashEntry>(soapModels.length);
-
-		for (TrashEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public TrashEntryModelImpl() {
 	}
 
@@ -301,34 +245,6 @@ public class TrashEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, TrashEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			TrashEntry.class.getClassLoader(), TrashEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<TrashEntry> constructor =
-				(Constructor<TrashEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<TrashEntry, Object>>
@@ -763,6 +679,36 @@ public class TrashEntryModelImpl
 	}
 
 	@Override
+	public TrashEntry cloneWithOriginalValues() {
+		TrashEntryImpl trashEntryImpl = new TrashEntryImpl();
+
+		trashEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		trashEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		trashEntryImpl.setEntryId(this.<Long>getColumnOriginalValue("entryId"));
+		trashEntryImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		trashEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		trashEntryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		trashEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		trashEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		trashEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		trashEntryImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		trashEntryImpl.setSystemEventSetKey(
+			this.<Long>getColumnOriginalValue("systemEventSetKey"));
+		trashEntryImpl.setTypeSettings(
+			this.<String>getColumnOriginalValue("typeSettings"));
+		trashEntryImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+
+		return trashEntryImpl;
+	}
+
+	@Override
 	public int compareTo(TrashEntry trashEntry) {
 		int value = 0;
 
@@ -887,7 +833,7 @@ public class TrashEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -898,9 +844,26 @@ public class TrashEntryModelImpl
 			Function<TrashEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((TrashEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((TrashEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -947,7 +910,9 @@ public class TrashEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, TrashEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					TrashEntry.class, ModelWrapper.class);
 
 	}
 

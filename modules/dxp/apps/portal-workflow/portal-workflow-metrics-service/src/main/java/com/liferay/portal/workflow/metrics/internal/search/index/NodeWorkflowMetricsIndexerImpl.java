@@ -14,15 +14,18 @@
 
 package com.liferay.portal.workflow.metrics.internal.search.index;
 
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.PortalRunMode;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.document.Document;
 import com.liferay.portal.search.document.DocumentBuilder;
 import com.liferay.portal.search.engine.adapter.document.BulkDocumentRequest;
 import com.liferay.portal.search.engine.adapter.document.IndexDocumentRequest;
 import com.liferay.portal.workflow.metrics.internal.search.index.util.WorkflowMetricsIndexerUtil;
+import com.liferay.portal.workflow.metrics.model.AddNodeRequest;
+import com.liferay.portal.workflow.metrics.model.DeleteNodeRequest;
 import com.liferay.portal.workflow.metrics.search.index.NodeWorkflowMetricsIndexer;
 
-import java.util.Date;
 import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
@@ -36,44 +39,42 @@ public class NodeWorkflowMetricsIndexerImpl
 	extends BaseWorkflowMetricsIndexer implements NodeWorkflowMetricsIndexer {
 
 	@Override
-	public Document addNode(
-		long companyId, Date createDate, boolean initial, Date modifiedDate,
-		String name, long nodeId, long processId, String processVersion,
-		boolean terminal, String type) {
-
+	public Document addNode(AddNodeRequest addNodeRequest) {
 		if (searchEngineAdapter == null) {
 			return null;
 		}
 
 		DocumentBuilder documentBuilder = documentBuilderFactory.builder();
 
-		documentBuilder.setLong(
-			"companyId", companyId
+		Document document = documentBuilder.setLong(
+			"companyId", addNodeRequest.getCompanyId()
 		).setDate(
-			"createDate", getDate(createDate)
+			"createDate", getDate(addNodeRequest.getCreateDate())
 		).setValue(
 			"deleted", false
 		).setValue(
-			"initial", initial
+			"initial", addNodeRequest.getInitial()
 		).setDate(
-			"modifiedDate", getDate(modifiedDate)
+			"modifiedDate", getDate(addNodeRequest.getModifiedDate())
 		).setString(
-			"name", name
+			"name", addNodeRequest.getName()
+		).setString(
+			Field.getSortableFieldName("name"),
+			StringUtil.toLowerCase(addNodeRequest.getName())
 		).setLong(
-			"nodeId", nodeId
+			"nodeId", addNodeRequest.getNodeId()
 		).setLong(
-			"processId", processId
+			"processId", addNodeRequest.getProcessId()
 		).setValue(
-			"terminal", terminal
+			"terminal", addNodeRequest.getTerminal()
 		).setString(
-			"type", type
+			"type", addNodeRequest.getType()
 		).setString(
-			"uid", digest(companyId, nodeId)
+			"uid",
+			digest(addNodeRequest.getCompanyId(), addNodeRequest.getNodeId())
 		).setString(
-			"version", processVersion
-		);
-
-		Document document = documentBuilder.build();
+			"version", addNodeRequest.getProcessVersion()
+		).build();
 
 		workflowMetricsPortalExecutor.execute(() -> addDocument(document));
 
@@ -81,15 +82,17 @@ public class NodeWorkflowMetricsIndexerImpl
 	}
 
 	@Override
-	public void deleteNode(long companyId, long nodeId) {
+	public void deleteNode(DeleteNodeRequest deleteNodeRequest) {
 		DocumentBuilder documentBuilder = documentBuilderFactory.builder();
 
 		documentBuilder.setLong(
-			"companyId", companyId
+			"companyId", deleteNodeRequest.getCompanyId()
 		).setLong(
-			"nodeId", nodeId
+			"nodeId", deleteNodeRequest.getNodeId()
 		).setString(
-			"uid", digest(companyId, nodeId)
+			"uid",
+			digest(
+				deleteNodeRequest.getCompanyId(), deleteNodeRequest.getNodeId())
 		);
 
 		workflowMetricsPortalExecutor.execute(
@@ -182,6 +185,8 @@ public class NodeWorkflowMetricsIndexerImpl
 			"instanceId", 0L
 		).setString(
 			"name", name
+		).setString(
+			Field.getSortableFieldName("name"), StringUtil.toLowerCase(name)
 		).setLong(
 			"nodeId", nodeId
 		).setLong(

@@ -39,8 +39,9 @@ import com.liferay.portal.kernel.security.permission.resource.PortletResourcePer
 import com.liferay.portal.kernel.security.permission.resource.StagedModelPermissionLogic;
 import com.liferay.portal.kernel.security.permission.resource.WorkflowedModelPermissionLogic;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermission;
+import com.liferay.portal.util.PropsValues;
 
 import java.util.Dictionary;
 
@@ -59,9 +60,10 @@ public class JournalArticleModelResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", JournalArticle.class.getName());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", JournalArticle.class.getName()
+			).build();
 
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<JournalArticle>>)
@@ -107,10 +109,13 @@ public class JournalArticleModelResourcePermissionRegistrar {
 							_groupLocalService, JournalArticle::getId));
 					consumer.accept(
 						new JournalArticleConfigurationModelResourcePermissionLogic());
-					consumer.accept(
-						new DynamicInheritancePermissionLogic<>(
-							_journalFolderModelResourcePermission,
-							_getFetchParentFunction(), true));
+
+					if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
+						consumer.accept(
+							new DynamicInheritancePermissionLogic<>(
+								_journalFolderModelResourcePermission,
+								_getFetchParentFunction(), true));
+					}
 				}),
 			properties);
 	}

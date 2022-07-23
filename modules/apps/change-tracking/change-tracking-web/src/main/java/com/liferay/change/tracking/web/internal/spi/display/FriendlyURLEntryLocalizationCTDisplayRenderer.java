@@ -18,10 +18,8 @@ import com.liferay.change.tracking.spi.display.BaseCTDisplayRenderer;
 import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.friendly.url.model.FriendlyURLEntryLocalization;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -43,11 +41,8 @@ public class FriendlyURLEntryLocalizationCTDisplayRenderer
 		Locale locale,
 		FriendlyURLEntryLocalization friendlyURLEntryLocalization) {
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
 		return _language.format(
-			resourceBundle, "x-for-x",
+			locale, "x-for-x",
 			new String[] {
 				"model.resource." +
 					FriendlyURLEntryLocalization.class.getName(),

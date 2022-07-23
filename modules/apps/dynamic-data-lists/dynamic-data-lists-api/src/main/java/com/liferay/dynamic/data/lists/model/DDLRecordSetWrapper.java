@@ -200,6 +200,11 @@ public class DDLRecordSetWrapper
 	}
 
 	@Override
+	public DDLRecordSet cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

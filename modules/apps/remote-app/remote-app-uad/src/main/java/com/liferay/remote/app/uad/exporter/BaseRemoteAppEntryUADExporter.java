@@ -66,20 +66,20 @@ public abstract class BaseRemoteAppEntryUADExporter
 		sb.append(remoteAppEntry.getRemoteAppEntryId());
 		sb.append("]]></column-value></column>");
 		sb.append(
+			"<column><column-name>statusByUserId</column-name><column-value><![CDATA[");
+		sb.append(remoteAppEntry.getStatusByUserId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>statusByUserName</column-name><column-value><![CDATA[");
+		sb.append(remoteAppEntry.getStatusByUserName());
+		sb.append("]]></column-value></column>");
+		sb.append(
 			"<column><column-name>userId</column-name><column-value><![CDATA[");
 		sb.append(remoteAppEntry.getUserId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>userName</column-name><column-value><![CDATA[");
 		sb.append(remoteAppEntry.getUserName());
-		sb.append("]]></column-value></column>");
-		sb.append(
-			"<column><column-name>name</column-name><column-value><![CDATA[");
-		sb.append(remoteAppEntry.getName());
-		sb.append("]]></column-value></column>");
-		sb.append(
-			"<column><column-name>url</column-name><column-value><![CDATA[");
-		sb.append(remoteAppEntry.getUrl());
 		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");

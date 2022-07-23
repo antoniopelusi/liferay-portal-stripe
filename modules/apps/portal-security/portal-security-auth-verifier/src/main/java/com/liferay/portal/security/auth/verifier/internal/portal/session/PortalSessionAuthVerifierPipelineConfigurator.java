@@ -15,9 +15,9 @@
 package com.liferay.portal.security.auth.verifier.internal.portal.session;
 
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifier;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.security.auth.verifier.internal.BaseAuthVerifierPipelineConfigurator;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
@@ -41,9 +41,11 @@ public class PortalSessionAuthVerifierPipelineConfigurator
 		BundleContext bundleContext, Map<String, Object> properties) {
 
 		if (!properties.containsKey("check.csrf.token")) {
-			properties = new HashMap<>(properties);
-
-			properties.put("check.csrf.token", false);
+			properties = HashMapBuilder.create(
+				properties
+			).put(
+				"check.csrf.token", false
+			).build();
 		}
 
 		super.activate(bundleContext, properties);

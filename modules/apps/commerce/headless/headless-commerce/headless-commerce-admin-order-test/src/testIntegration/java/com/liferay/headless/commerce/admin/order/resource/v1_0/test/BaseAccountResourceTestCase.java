@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -197,6 +195,91 @@ public abstract class BaseAccountResourceTestCase {
 	}
 
 	@Test
+	public void testGetOrderRuleAccountAccount() throws Exception {
+		Account postAccount = testGetOrderRuleAccountAccount_addAccount();
+
+		Account getAccount = accountResource.getOrderRuleAccountAccount(
+			testGetOrderRuleAccountAccount_getOrderRuleAccountId());
+
+		assertEquals(postAccount, getAccount);
+		assertValid(getAccount);
+	}
+
+	protected Long testGetOrderRuleAccountAccount_getOrderRuleAccountId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected Account testGetOrderRuleAccountAccount_addAccount()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetOrderRuleAccountAccount() throws Exception {
+		Account account = testGraphQLGetOrderRuleAccountAccount_addAccount();
+
+		Assert.assertTrue(
+			equals(
+				account,
+				AccountSerDes.toDTO(
+					JSONUtil.getValueAsString(
+						invokeGraphQLQuery(
+							new GraphQLField(
+								"orderRuleAccountAccount",
+								new HashMap<String, Object>() {
+									{
+										put(
+											"orderRuleAccountId",
+											testGraphQLGetOrderRuleAccountAccount_getOrderRuleAccountId());
+									}
+								},
+								getGraphQLFields())),
+						"JSONObject/data", "Object/orderRuleAccountAccount"))));
+	}
+
+	protected Long testGraphQLGetOrderRuleAccountAccount_getOrderRuleAccountId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetOrderRuleAccountAccountNotFound()
+		throws Exception {
+
+		Long irrelevantOrderRuleAccountId = RandomTestUtil.randomLong();
+
+		Assert.assertEquals(
+			"Not Found",
+			JSONUtil.getValueAsString(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"orderRuleAccountAccount",
+						new HashMap<String, Object>() {
+							{
+								put(
+									"orderRuleAccountId",
+									irrelevantOrderRuleAccountId);
+							}
+						},
+						getGraphQLFields())),
+				"JSONArray/errors", "Object/0", "JSONObject/extensions",
+				"Object/code"));
+	}
+
+	protected Account testGraphQLGetOrderRuleAccountAccount_addAccount()
+		throws Exception {
+
+		return testGraphQLAccount_addAccount();
+	}
+
+	@Test
 	public void testGetOrderByExternalReferenceCodeAccount() throws Exception {
 		Account postAccount =
 			testGetOrderByExternalReferenceCodeAccount_addAccount();
@@ -220,7 +303,8 @@ public abstract class BaseAccountResourceTestCase {
 	public void testGraphQLGetOrderByExternalReferenceCodeAccount()
 		throws Exception {
 
-		Account account = testGraphQLAccount_addAccount();
+		Account account =
+			testGraphQLGetOrderByExternalReferenceCodeAccount_addAccount();
 
 		Assert.assertTrue(
 			equals(
@@ -270,6 +354,13 @@ public abstract class BaseAccountResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Account
+			testGraphQLGetOrderByExternalReferenceCodeAccount_addAccount()
+		throws Exception {
+
+		return testGraphQLAccount_addAccount();
+	}
+
 	@Test
 	public void testGetOrderIdAccount() throws Exception {
 		Account postAccount = testGetOrderIdAccount_addAccount();
@@ -288,7 +379,7 @@ public abstract class BaseAccountResourceTestCase {
 
 	@Test
 	public void testGraphQLGetOrderIdAccount() throws Exception {
-		Account account = testGraphQLAccount_addAccount();
+		Account account = testGraphQLGetOrderIdAccount_addAccount();
 
 		Assert.assertTrue(
 			equals(
@@ -327,9 +418,29 @@ public abstract class BaseAccountResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Account testGraphQLGetOrderIdAccount_addAccount()
+		throws Exception {
+
+		return testGraphQLAccount_addAccount();
+	}
+
 	protected Account testGraphQLAccount_addAccount() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Account account, List<Account> accounts) {
+		boolean contains = false;
+
+		for (Account item : accounts) {
+			if (equals(account, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(accounts + " does not contain " + account, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -488,8 +599,8 @@ public abstract class BaseAccountResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.order.dto.v1_0.Account.
 						class)) {
 
@@ -505,12 +616,13 @@ public abstract class BaseAccountResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -524,7 +636,7 @@ public abstract class BaseAccountResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -673,6 +785,19 @@ public abstract class BaseAccountResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -776,8 +901,9 @@ public abstract class BaseAccountResourceTestCase {
 		}
 
 		if (entityFieldName.equals("type")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(account.getType()));
+
+			return sb.toString();
 		}
 
 		throw new IllegalArgumentException(
@@ -925,8 +1051,8 @@ public abstract class BaseAccountResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseAccountResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseAccountResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

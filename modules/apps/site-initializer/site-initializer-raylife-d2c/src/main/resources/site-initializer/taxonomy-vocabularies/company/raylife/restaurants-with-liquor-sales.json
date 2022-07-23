@@ -1,0 +1,16 @@
+{
+	"description": "Own an establishment with a liquor license to cook and serve meals on the premises",
+	"externalReferenceCode": "RAYCAT0017",
+	"name": "Restaurants with Liquor Sales",
+	"taxonomyCategoryProperties": [
+		{
+			"key": "NAICS",
+			"value": "722511"
+		},
+		{
+			"key": "Segment",
+			"value": "Retail"
+		}
+	],
+	"viewableBy": "Anyone"
+}

@@ -460,4 +460,7 @@ public interface ExportImportConfigurationModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public ExportImportConfiguration cloneWithOriginalValues();
+
 }

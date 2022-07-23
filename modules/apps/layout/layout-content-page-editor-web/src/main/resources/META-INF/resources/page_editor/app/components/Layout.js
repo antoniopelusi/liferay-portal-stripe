@@ -14,7 +14,6 @@
 
 import ClayAlert from '@clayui/alert';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 
@@ -24,12 +23,15 @@ import {
 } from '../../prop-types/index';
 import {ITEM_ACTIVATION_ORIGINS} from '../config/constants/itemActivationOrigins';
 import {LAYOUT_DATA_ITEM_TYPES} from '../config/constants/layoutDataItemTypes';
-import {LAYOUT_TYPES} from '../config/constants/layoutTypes';
 import {config} from '../config/index';
-import {useSelector} from '../store/index';
+import {useSetCollectionActiveItemContext} from '../contexts/CollectionActiveItemContext';
+import {
+	useActivationOrigin,
+	useIsActive,
+	useSelectItem,
+} from '../contexts/ControlsContext';
+import {useSelector} from '../contexts/StoreContext';
 import {deepEqual} from '../utils/checkDeepEqual';
-import {useSetCollectionActiveItemContext} from './CollectionActiveItemContext';
-import {useActivationOrigin, useIsActive, useSelectItem} from './Controls';
 import FragmentWithControls from './layout-data-items/FragmentWithControls';
 import {
 	CollectionItemWithControls,
@@ -55,13 +57,10 @@ const LAYOUT_DATA_ITEMS = {
 
 export default function Layout({mainItemId}) {
 	const layoutData = useSelector((state) => state.layoutData);
-	const mainItem = layoutData.items[mainItemId];
 	const layoutRef = useRef(null);
-
 	const selectItem = useSelectItem();
-	const sidebarOpen = useSelector(
-		(state) => state.sidebar.panelId && state.sidebar.open
-	);
+
+	const mainItem = layoutData.items[mainItemId];
 
 	const onClick = (event) => {
 		if (event.target === event.currentTarget) {
@@ -94,20 +93,15 @@ export default function Layout({mainItemId}) {
 		};
 	}, [layoutRef]);
 
-	const isPageConversion = config.layoutType === LAYOUT_TYPES.conversion;
 	const hasWarningMessages =
-		isPageConversion &&
+		config.isConversionDraft &&
 		config.layoutConversionWarningMessages &&
 		config.layoutConversionWarningMessages.length > 0;
 
 	return (
 		<>
-			{isPageConversion && (
-				<div
-					className={classNames('page-editor__conversion-messages', {
-						'page-editor__conversion-messages--with-sidebar-open': sidebarOpen,
-					})}
-				>
+			{config.isConversionDraft && (
+				<div className="page-editor__conversion-messages">
 					<ClayAlert
 						displayType="info"
 						title={Liferay.Language.get(

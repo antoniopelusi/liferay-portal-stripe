@@ -30,6 +30,10 @@ public class DDMFormInstanceVersionLocalServiceWrapper
 	implements DDMFormInstanceVersionLocalService,
 			   ServiceWrapper<DDMFormInstanceVersionLocalService> {
 
+	public DDMFormInstanceVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMFormInstanceVersionLocalServiceWrapper(
 		DDMFormInstanceVersionLocalService ddmFormInstanceVersionLocalService) {
 
@@ -140,6 +144,13 @@ public class DDMFormInstanceVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmFormInstanceVersionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmFormInstanceVersionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

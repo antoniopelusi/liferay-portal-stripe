@@ -57,7 +57,7 @@ renderResponse.setTitle((ddmDataProviderInstance == null) ? LanguageUtil.get(req
 				<liferay-util:buffer
 					var="requiredMark"
 				>
-					<span class="hide-accessible"><liferay-ui:message key="required" />&nbsp;</span>
+					<span class="hide-accessible sr-only"><liferay-ui:message key="required" />&nbsp;</span>
 
 					<svg aria-hidden="true" class="lexicon-icon lexicon-icon-asterisk reference-mark">
 						<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg#asterisk" />
@@ -68,7 +68,7 @@ renderResponse.setTitle((ddmDataProviderInstance == null) ? LanguageUtil.get(req
 					<liferay-ui:message arguments="<%= requiredMark %>" key="all-fields-marked-with-x-are-required" translateArguments="<%= false %>" />
 				</label>
 
-				<aui:input name="name" placeholder="enter-the-data-provider-name" required="<%= true %>" type="text" value="<%= ddmDataProviderDisplayContext.getDataProviderInstanceName() %>" />
+				<aui:input name="name" placeholder="enter-the-data-providers-name" required="<%= true %>" type="text" value="<%= ddmDataProviderDisplayContext.getDataProviderInstanceName() %>" />
 
 				<aui:input name="description" placeholder="enter-a-short-description" type="textarea" value="<%= ddmDataProviderDisplayContext.getDataProviderInstanceDescription() %>" />
 			</aui:fieldset>

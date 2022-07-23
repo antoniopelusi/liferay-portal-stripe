@@ -24,6 +24,8 @@ import com.liferay.frontend.taglib.clay.data.set.filter.BaseRadioClayDataSetFilt
 import com.liferay.frontend.taglib.clay.data.set.filter.ClayDataSetFilter;
 import com.liferay.frontend.taglib.clay.data.set.filter.RadioClayDataSetFilterItem;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.settings.SystemSettingsLocator;
@@ -34,7 +36,6 @@ import com.liferay.portal.kernel.util.Validator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -55,12 +56,10 @@ public class CommerceOptionFieldTypeClayTableDataSetFilter
 	public String getDDMFormFieldTypeLabel(
 		DDMFormFieldType ddmFormFieldType, Locale locale) {
 
-		Map<String, Object> ddmFormFieldTypeProperties =
-			_ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
-				ddmFormFieldType.getName());
-
 		String label = MapUtil.getString(
-			ddmFormFieldTypeProperties, "ddm.form.field.type.label");
+			_ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
+				ddmFormFieldType.getName()),
+			"ddm.form.field.type.label");
 
 		try {
 			if (Validator.isNotNull(label)) {
@@ -88,7 +87,7 @@ public class CommerceOptionFieldTypeClayTableDataSetFilter
 				new SystemSettingsLocator(CPConstants.SERVICE_NAME_CP_OPTION));
 		}
 		catch (ConfigurationException configurationException) {
-			configurationException.printStackTrace();
+			_log.error(configurationException);
 		}
 
 		String[] ddmFormFieldTypesAllowed =
@@ -124,6 +123,9 @@ public class CommerceOptionFieldTypeClayTableDataSetFilter
 
 		return radioClayDataSetFilterItems;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		CommerceOptionFieldTypeClayTableDataSetFilter.class);
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;

@@ -494,4 +494,7 @@ public interface SegmentsExperienceModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public SegmentsExperience cloneWithOriginalValues();
+
 }

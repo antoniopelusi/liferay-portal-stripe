@@ -19,8 +19,6 @@ components:
                         The external domain.
                     type: string
 info:
-    description:
-        ""
     title: "Change Tracking REST"
     version: v1.0
 openapi: 3.0.1
@@ -49,8 +47,6 @@ paths:
                 204:
                     content:
                         application/json: {}
-                    description:
-                        ""
             tags: ["Project"]
         put:
             parameters:
@@ -75,8 +71,6 @@ paths:
                 204:
                     content:
                         application/json: {}
-                    description:
-                        ""
             tags: ["Project"]
     "/sites/{siteId}/structured-contents/by-key/{key}":
         get:
@@ -184,8 +178,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Entry"
                                 type: array
-                    description:
-                        ""
             tags: ["Entry"]
 
 ---
@@ -205,6 +197,5 @@ tasks:
       name: Deploy SSH key
     - copy:
           content: |-
-              {{ github_repos | sort | join('
-              ') }}
+              {{github_repos | sort | join(' ')}}
           dest: "/data/slaves/{{ item.hostname }}/git/liferay/.repositories"

@@ -15,7 +15,6 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
-import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.sql.dsl.query.JoinStep;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -103,38 +102,40 @@ public class PortletPreferencesFinderImpl
 
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
 				joinStep.where(
-					() -> {
-						Predicate predicate =
-							PortletPreferencesTable.INSTANCE.ownerType.eq(
-								ownerType);
+					() -> PortletPreferencesTable.INSTANCE.ownerType.eq(
+						ownerType
+					).and(
+						() -> {
+							if (ownerId != -1) {
+								return PortletPreferencesTable.INSTANCE.ownerId.
+									eq(ownerId);
+							}
 
-						if (ownerId != -1) {
-							predicate = predicate.and(
-								PortletPreferencesTable.INSTANCE.ownerId.eq(
-									ownerId));
+							return null;
 						}
+					).and(
+						() -> {
+							if (plid == -1) {
+								return PortletPreferencesTable.INSTANCE.
+									portletId.eq(
+										portletId
+									).or(
+										PortletPreferencesTable.INSTANCE.
+											portletId.like(
+												portletId.concat(
+													"%_INSTANCE_%"))
+									).withParentheses();
+							}
 
-						if (plid == -1) {
-							predicate = predicate.and(
-								PortletPreferencesTable.INSTANCE.portletId.eq(
-									portletId
-								).or(
-									PortletPreferencesTable.INSTANCE.portletId.
-										like(portletId.concat("%_INSTANCE_%"))
-								).withParentheses());
-						}
-						else {
-							predicate = predicate.and(
-								PortletPreferencesTable.INSTANCE.portletId.eq(
+							return PortletPreferencesTable.INSTANCE.portletId.
+								eq(
 									portletId
 								).and(
 									PortletPreferencesTable.INSTANCE.plid.eq(
 										plid)
-								));
+								);
 						}
-
-						return predicate;
-					}));
+					)));
 
 			sqlQuery.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 

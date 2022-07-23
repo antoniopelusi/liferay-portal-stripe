@@ -53,6 +53,10 @@ public class RatingsTag extends IncludeTag {
 		return _classPK;
 	}
 
+	public String getContentTitle() {
+		return _contentTitle;
+	}
+
 	public int getNumberOfStars() {
 		return _numberOfStars;
 	}
@@ -83,6 +87,10 @@ public class RatingsTag extends IncludeTag {
 
 	public void setClassPK(long classPK) {
 		_classPK = classPK;
+	}
+
+	public void setContentTitle(String contentTitle) {
+		_contentTitle = contentTitle;
 	}
 
 	public void setInTrash(boolean inTrash) {
@@ -126,6 +134,7 @@ public class RatingsTag extends IncludeTag {
 
 		_className = null;
 		_classPK = 0;
+		_contentTitle = null;
 		_inTrash = null;
 		_numberOfStars = _NUMBER_OF_STARS;
 		_ratingsEntry = null;
@@ -156,7 +165,7 @@ public class RatingsTag extends IncludeTag {
 			int positiveVotes = (int)Math.round(_getTotalScore(ratingsStats));
 
 			String randomNamespace = PortalUtil.generateRandomKey(
-				request, "taglib_ratings_ratings_");
+				getRequest(), "taglib_ratings_ratings_");
 
 			randomNamespace += StringPool.UNDERLINE;
 
@@ -181,6 +190,8 @@ public class RatingsTag extends IncludeTag {
 					"className", _className
 				).put(
 					"classPK", _classPK
+				).put(
+					"contentTitle", _contentTitle
 				).put(
 					"enabled", _isEnabled(themeDisplay, inTrash)
 				).put(
@@ -226,7 +237,7 @@ public class RatingsTag extends IncludeTag {
 			httpServletRequest.setAttribute("liferay-ratings:ratings:url", url);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -377,6 +388,7 @@ public class RatingsTag extends IncludeTag {
 
 	private String _className;
 	private long _classPK;
+	private String _contentTitle;
 	private Boolean _inTrash;
 	private int _numberOfStars = _NUMBER_OF_STARS;
 	private RatingsEntry _ratingsEntry;

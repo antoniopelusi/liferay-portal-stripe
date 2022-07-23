@@ -1,5 +1,11 @@
 @import '../../../css/variables';
 
+@mixin sidebar-offset($offset) {
+	.sidebar .sidebar-body {
+		height: calc(100vh - #{$offset});
+	}
+}
+
 .data-layout-builder-sidebar {
 	.sidebar {
 		box-shadow: none;
@@ -31,13 +37,13 @@
 		.sidebar-body {
 			height: calc(100vh - (224px - #{$displaySettingsHeight}));
 		}
+	}
+}
 
-		.sidebar-header {
-			padding-top: 0;
+.portlet-forms .data-layout-builder-sidebar {
+	@include sidebar-offset(272px);
 
-			.component-title {
-				display: none;
-			}
-		}
+	&.display-settings {
+		@include sidebar-offset(224px);
 	}
 }

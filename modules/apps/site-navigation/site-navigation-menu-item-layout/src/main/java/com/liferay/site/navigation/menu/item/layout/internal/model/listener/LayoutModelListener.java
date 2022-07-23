@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.site.navigation.menu.item.layout.constants.SiteNavigationMenuItemTypeConstants;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
@@ -51,11 +52,9 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 
 	@Override
 	public void onAfterCreate(Layout layout) throws ModelListenerException {
-		if (ExportImportThreadLocal.isStagingInProcess()) {
-			return;
-		}
+		if (ExportImportThreadLocal.isStagingInProcess() ||
+			!_isVisible(layout, false)) {
 
-		if (!_isVisible(layout, false)) {
 			return;
 		}
 
@@ -88,7 +87,9 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 	}
 
 	@Override
-	public void onAfterUpdate(Layout layout) throws ModelListenerException {
+	public void onAfterUpdate(Layout originalLayout, Layout layout)
+		throws ModelListenerException {
+
 		if (!_isVisible(layout, true)) {
 			return;
 		}
@@ -191,10 +192,10 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 		for (SiteNavigationMenuItem siteNavigationMenuItem :
 				siteNavigationMenuItems) {
 
-			UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-			unicodeProperties.fastLoad(
-				siteNavigationMenuItem.getTypeSettings());
+			UnicodeProperties unicodeProperties =
+				UnicodePropertiesBuilder.fastLoad(
+					siteNavigationMenuItem.getTypeSettings()
+				).build();
 
 			String layoutUuid = unicodeProperties.getProperty("layoutUuid");
 
@@ -222,10 +223,10 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 		for (SiteNavigationMenuItem siteNavigationMenuItem :
 				siteNavigationMenuItems) {
 
-			UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-			unicodeProperties.fastLoad(
-				siteNavigationMenuItem.getTypeSettings());
+			UnicodeProperties unicodeProperties =
+				UnicodePropertiesBuilder.fastLoad(
+					siteNavigationMenuItem.getTypeSettings()
+				).build();
 
 			String layoutUuid = unicodeProperties.getProperty("layoutUuid");
 
@@ -246,14 +247,7 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 			return false;
 		}
 
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		if (draftLayout == null) {
-			return false;
-		}
-
-		return GetterUtil.getBoolean(
-			draftLayout.getTypeSettingsProperty("published"));
+		return layout.isPublished();
 	}
 
 	private boolean _menuItemExists(long siteNavigationMenuId, Layout layout) {
@@ -264,10 +258,10 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 		for (SiteNavigationMenuItem siteNavigationMenuItem :
 				siteNavigationMenuItems) {
 
-			UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-			unicodeProperties.fastLoad(
-				siteNavigationMenuItem.getTypeSettings());
+			UnicodeProperties unicodeProperties =
+				UnicodePropertiesBuilder.fastLoad(
+					siteNavigationMenuItem.getTypeSettings()
+				).build();
 
 			String layoutUuid = unicodeProperties.getProperty("layoutUuid");
 

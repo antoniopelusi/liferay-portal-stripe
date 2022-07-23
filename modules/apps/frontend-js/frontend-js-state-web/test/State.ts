@@ -12,6 +12,8 @@
  * details.
  */
 
+/* eslint-disable @liferay/no-use-strict-in-module */
+
 import State from '../src/main/resources/META-INF/resources/State';
 import {withEnv} from './helpers';
 
@@ -172,15 +174,15 @@ describe('State', () => {
 			person = State.atom('person', 'Chema');
 			fruit = State.atom('fruit', 'apples');
 
-			letterCount = State.selector('letterCount', (get) => {
+			letterCount = State.selector('letterCount', (get: Function) => {
 				return get(person).length + get(fruit).length;
 			});
 
-			nameAndLength = State.selector('nameAndLength', (get) => {
+			nameAndLength = State.selector('nameAndLength', (get: Function) => {
 				return `${get(person)}: ${get(letterCount)}`;
 			});
 
-			everything = State.selector('everything', (get) => {
+			everything = State.selector('everything', (get: Function) => {
 				return [
 					get(person),
 					get(fruit),

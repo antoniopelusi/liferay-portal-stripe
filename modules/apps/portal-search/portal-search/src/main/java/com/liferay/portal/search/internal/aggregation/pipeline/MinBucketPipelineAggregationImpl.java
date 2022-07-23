@@ -21,7 +21,7 @@ import com.liferay.portal.search.aggregation.pipeline.PipelineAggregationVisitor
  * @author Michael C. Han
  */
 public class MinBucketPipelineAggregationImpl
-	extends BucketMetricsPipelineAggregationImpl
+	extends BaseBucketMetricsPipelineAggregationImpl
 	implements MinBucketPipelineAggregation {
 
 	public MinBucketPipelineAggregationImpl(String name, String bucketsPath) {

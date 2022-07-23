@@ -23,7 +23,7 @@ import com.liferay.portal.search.query.function.score.ScoreFunctionTranslator;
  * @author André de Oliveira
  */
 public class RandomScoreFunctionImpl
-	extends ScoreFunctionImpl implements RandomScoreFunction {
+	extends BaseScoreFunctionImpl implements RandomScoreFunction {
 
 	@Override
 	public <T> T accept(ScoreFunctionTranslator<T> scoreFunctionTranslator) {

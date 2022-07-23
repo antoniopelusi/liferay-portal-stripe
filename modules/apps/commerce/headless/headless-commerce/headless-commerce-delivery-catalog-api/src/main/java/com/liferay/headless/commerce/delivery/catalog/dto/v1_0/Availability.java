@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -51,6 +52,10 @@ public class Availability implements Serializable {
 		return ObjectMapperUtil.readValue(Availability.class, json);
 	}
 
+	public static Availability unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(Availability.class, json);
+	}
+
 	@Schema
 	public String getLabel() {
 		return label;
@@ -78,6 +83,34 @@ public class Availability implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String label;
+
+	@Schema
+	public String getLabel_i18n() {
+		return label_i18n;
+	}
+
+	public void setLabel_i18n(String label_i18n) {
+		this.label_i18n = label_i18n;
+	}
+
+	@JsonIgnore
+	public void setLabel_i18n(
+		UnsafeSupplier<String, Exception> label_i18nUnsafeSupplier) {
+
+		try {
+			label_i18n = label_i18nUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String label_i18n;
 
 	@Schema
 	public Integer getStockQuantity() {
@@ -148,6 +181,20 @@ public class Availability implements Serializable {
 			sb.append("\"");
 		}
 
+		if (label_i18n != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"label_i18n\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(label_i18n));
+
+			sb.append("\"");
+		}
+
 		if (stockQuantity != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -171,9 +218,9 @@ public class Availability implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -199,7 +246,7 @@ public class Availability implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -231,7 +278,7 @@ public class Availability implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -247,5 +294,10 @@ public class Availability implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

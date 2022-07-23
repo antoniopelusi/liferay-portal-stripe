@@ -101,6 +101,11 @@ public class JournalArticleResourceWrapper
 		}
 	}
 
+	@Override
+	public JournalArticleResource cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the article ID of this journal article resource.
 	 *

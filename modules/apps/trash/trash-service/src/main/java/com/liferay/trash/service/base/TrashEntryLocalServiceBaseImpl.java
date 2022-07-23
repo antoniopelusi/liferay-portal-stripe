@@ -45,7 +45,6 @@ import com.liferay.trash.model.TrashEntry;
 import com.liferay.trash.service.TrashEntryLocalService;
 import com.liferay.trash.service.TrashEntryLocalServiceUtil;
 import com.liferay.trash.service.persistence.TrashEntryPersistence;
-import com.liferay.trash.service.persistence.TrashVersionPersistence;
 
 import java.io.Serializable;
 
@@ -145,6 +144,13 @@ public abstract class TrashEntryLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return trashEntryPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -471,24 +477,5 @@ public abstract class TrashEntryLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameLocalService
-		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.SystemEventLocalService
-		systemEventLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected TrashVersionPersistence trashVersionPersistence;
 
 }

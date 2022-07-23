@@ -19,6 +19,7 @@ import com.liferay.bean.portlet.extension.BeanPortletMethodType;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.portlet.LiferayPortletMode;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -286,10 +286,12 @@ public class BeanPortletImpl implements BeanPortlet {
 
 		// javax.portlet.container-runtime-options
 
-		Map<String, List<String>> containerRuntimeOptions = new HashMap<>(
-			beanApp.getContainerRuntimeOptions());
-
-		containerRuntimeOptions.putAll(getContainerRuntimeOptions());
+		Map<String, List<String>> containerRuntimeOptions =
+			HashMapBuilder.create(
+				beanApp.getContainerRuntimeOptions()
+			).putAll(
+				getContainerRuntimeOptions()
+			).build();
 
 		for (Map.Entry<String, List<String>> entry :
 				containerRuntimeOptions.entrySet()) {
@@ -614,12 +616,6 @@ public class BeanPortletImpl implements BeanPortlet {
 			supportedPublishingEvents.add(
 				_toNameValuePair(
 					qName.getLocalPart(), qName.getNamespaceURI()));
-		}
-
-		if (!supportedPublishingEvents.isEmpty()) {
-			dictionary.put(
-				"javax.portlet.supported-publishing-event",
-				supportedPublishingEvents);
 		}
 
 		if (!supportedPublishingEvents.isEmpty()) {

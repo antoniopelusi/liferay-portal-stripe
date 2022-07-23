@@ -17,10 +17,8 @@ package com.liferay.product.navigation.personal.menu.web.internal.upgrade.v1_0_0
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.product.navigation.personal.menu.configuration.PersonalMenuConfiguration;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
@@ -53,11 +51,10 @@ public class PersonalMenuConfigurationUpgradeProcess extends UpgradeProcess {
 		Configuration configuration = _configurationAdmin.getConfiguration(
 			PersonalMenuConfiguration.class.getName(), StringPool.QUESTION);
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("personalApplicationsLookAndFeel", "my-dashboard");
-
-		configuration.update(properties);
+		configuration.update(
+			HashMapDictionaryBuilder.<String, Object>put(
+				"personalApplicationsLookAndFeel", "my-dashboard"
+			).build());
 	}
 
 	private final ConfigurationAdmin _configurationAdmin;

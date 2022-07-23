@@ -14,8 +14,9 @@
 
 package com.liferay.commerce.product.ddm.internal;
 
-import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.account.util.CommerceAccountHelper;
+import com.liferay.commerce.constants.CommerceWebKeys;
+import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.media.CommerceMediaResolver;
 import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.ddm.DDMHelper;
@@ -31,6 +32,7 @@ import com.liferay.commerce.product.service.CPInstanceOptionValueRelLocalService
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.DDMFormValuesHelper;
 import com.liferay.commerce.product.util.JsonHelper;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
@@ -49,7 +51,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.taglib.servlet.PipingServletResponse;
+import com.liferay.taglib.servlet.PipingServletResponseFactory;
 
 import java.util.List;
 import java.util.Locale;
@@ -120,6 +122,7 @@ public class DDMHelperImpl implements DDMHelper {
 		return ddmForm;
 	}
 
+	@Override
 	public String renderCPAttachmentFileEntryOptions(
 			long cpDefinitionId, String json, PageContext pageContext,
 			RenderRequest renderRequest, RenderResponse renderResponse,
@@ -177,24 +180,14 @@ public class DDMHelperImpl implements DDMHelper {
 
 		Locale locale = _portal.getLocale(renderRequest);
 
-		long commerceAccountId = 0;
-
-		CommerceAccount commerceAccount =
-			_commerceAccountHelper.getCurrentCommerceAccount(
-				_commerceChannelLocalService.
-					getCommerceChannelGroupIdBySiteGroupId(
-						_portal.getScopeGroupId(renderRequest)),
-				_portal.getHttpServletRequest(renderRequest));
-
-		if (commerceAccount != null) {
-			commerceAccountId = commerceAccount.getCommerceAccountId();
-		}
-
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		DDMForm ddmForm = getPublicStoreDDMForm(
-			_portal.getScopeGroupId(renderRequest), commerceAccountId,
+			_portal.getScopeGroupId(renderRequest),
+			CommerceUtil.getCommerceAccountId(
+				(CommerceContext)renderRequest.getAttribute(
+					CommerceWebKeys.COMMERCE_CONTEXT)),
 			cpDefinitionId, locale, ignoreSKUCombinations,
 			cpDefinitionOptionRelCPDefinitionOptionValueRels,
 			themeDisplay.getCompanyId(), themeDisplay.getUserId());
@@ -230,11 +223,8 @@ public class DDMHelperImpl implements DDMHelper {
 		DDMForm ddmForm, long groupId, long commerceAccountId,
 		long cpDefinitionId, long companyId, long userId, Locale locale) {
 
-		String callFunctionStatement =
-			"call('getCPInstanceOptionsValues', concat(%s), '%s')";
-
 		return String.format(
-			callFunctionStatement,
+			"call('getCPInstanceOptionsValues', concat(%s), '%s')",
 			_createDDMFormRuleInputMapping(
 				ddmForm, groupId, commerceAccountId, cpDefinitionId, companyId,
 				userId, locale),
@@ -249,41 +239,33 @@ public class DDMHelperImpl implements DDMHelper {
 		// DDMDataProviderRequest class and it'll be accessible in the data
 		// provider implementation.
 
-		String inputMappingStatement = "'%s=', getValue('%s')";
-		String delimiter = ", ';',";
-
 		List<DDMFormField> ddmFormFields = ddmForm.getDDMFormFields();
 
 		Stream<DDMFormField> stream = ddmFormFields.stream();
 
 		Stream<String> inputMappingStatementStream = stream.map(
 			field -> String.format(
-				inputMappingStatement, field.getName(), field.getName()));
+				"'%s=', getValue('%s')", field.getName(), field.getName()));
 
 		inputMappingStatementStream = Stream.concat(
-			Stream.of(
-				String.format("'companyId=%s'", String.valueOf(companyId))),
+			Stream.of(String.format("'companyId=%s'", companyId)),
+			inputMappingStatementStream);
+
+		inputMappingStatementStream = Stream.concat(
+			Stream.of(String.format("'cpDefinitionId=%s'", cpDefinitionId)),
+			inputMappingStatementStream);
+
+		inputMappingStatementStream = Stream.concat(
+			Stream.of(String.format("'groupId=%s'", groupId)),
 			inputMappingStatementStream);
 
 		inputMappingStatementStream = Stream.concat(
 			Stream.of(
-				String.format(
-					"'cpDefinitionId=%s'", String.valueOf(cpDefinitionId))),
+				String.format("'commerceAccountId=%s'", commerceAccountId)),
 			inputMappingStatementStream);
 
 		inputMappingStatementStream = Stream.concat(
-			Stream.of(String.format("'groupId=%s'", String.valueOf(groupId))),
-			inputMappingStatementStream);
-
-		inputMappingStatementStream = Stream.concat(
-			Stream.of(
-				String.format(
-					"'commerceAccountId=%s'",
-					String.valueOf(commerceAccountId))),
-			inputMappingStatementStream);
-
-		inputMappingStatementStream = Stream.concat(
-			Stream.of(String.format("'userId=%s'", String.valueOf(userId))),
+			Stream.of(String.format("'userId=%s'", userId)),
 			inputMappingStatementStream);
 
 		inputMappingStatementStream = Stream.concat(
@@ -292,19 +274,16 @@ public class DDMHelperImpl implements DDMHelper {
 			inputMappingStatementStream);
 
 		return inputMappingStatementStream.collect(
-			Collectors.joining(delimiter));
+			Collectors.joining(", ';',"));
 	}
 
 	private String _createDDMFormRuleOutputMapping(DDMForm ddmForm) {
-		String outputMappingStatement = "%s=%s";
-
 		List<DDMFormField> ddmFormFields = ddmForm.getDDMFormFields();
 
 		Stream<DDMFormField> stream = ddmFormFields.stream();
 
 		Stream<String> stringStream = stream.map(
-			field -> String.format(
-				outputMappingStatement, field.getName(), field.getName()));
+			field -> String.format("%s=%s", field.getName(), field.getName()));
 
 		return stringStream.collect(Collectors.joining(StringPool.SEMICOLON));
 	}
@@ -385,10 +364,8 @@ public class DDMHelperImpl implements DDMHelper {
 			return ddmFormField;
 		}
 
-		DDMFormFieldOptions ddmFormFieldOptions = _getDDMFormFieldOptions(
-			cpDefinitionOptionValueRels, locale);
-
-		ddmFormField.setDDMFormFieldOptions(ddmFormFieldOptions);
+		ddmFormField.setDDMFormFieldOptions(
+			_getDDMFormFieldOptions(cpDefinitionOptionValueRels, locale));
 
 		return ddmFormField;
 	}
@@ -435,11 +412,9 @@ public class DDMHelperImpl implements DDMHelper {
 					curLocalizedValue.getDefaultLocale(), entry.getKey());
 			}
 
-			if (Validator.isNull(optionValueKey)) {
-				return localizedValue;
-			}
+			if (Validator.isNull(optionValueKey) ||
+				Objects.equals(optionValueKey, entry.getKey())) {
 
-			if (Objects.equals(optionValueKey, entry.getKey())) {
 				return localizedValue;
 			}
 		}
@@ -517,7 +492,8 @@ public class DDMHelperImpl implements DDMHelper {
 
 		if (pageContext != null) {
 			httpServletResponse =
-				PipingServletResponse.createPipingServletResponse(pageContext);
+				PipingServletResponseFactory.createPipingServletResponse(
+					pageContext);
 		}
 
 		DDMFormRenderingContext ddmFormRenderingContext =

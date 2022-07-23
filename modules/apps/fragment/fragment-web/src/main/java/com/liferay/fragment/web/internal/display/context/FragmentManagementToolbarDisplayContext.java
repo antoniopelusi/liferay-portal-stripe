@@ -63,11 +63,6 @@ public abstract class FragmentManagementToolbarDisplayContext
 	}
 
 	@Override
-	public String getDefaultEventHandler() {
-		return "FRAGMENT_ENTRIES_MANAGEMENT_TOOLBAR_DEFAULT_EVENT_HANDLER";
-	}
-
-	@Override
 	public String getSearchActionURL() {
 		return PortletURLBuilder.create(
 			getPortletURL()
@@ -79,7 +74,7 @@ public abstract class FragmentManagementToolbarDisplayContext
 
 	@Override
 	protected String[] getOrderByKeys() {
-		return new String[] {"name", "create-date"};
+		return new String[] {"name", "modified-date"};
 	}
 
 	protected final FragmentDisplayContext fragmentDisplayContext;

@@ -25,20 +25,17 @@ import com.liferay.item.selector.web.internal.util.ItemSelectorKeyUtil;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.json.JSONFactoryImpl;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.impl.GroupImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.util.HttpImpl;
 import com.liferay.portal.util.PortalImpl;
 
 import java.util.List;
@@ -87,8 +84,6 @@ public class ItemSelectorImplTest extends PowerMockito {
 			_stubItemSelectorCriterionSerializerImpl);
 
 		ReflectionTestUtil.setFieldValue(
-			_itemSelectorImpl, "_http", new HttpImpl());
-		ReflectionTestUtil.setFieldValue(
 			_itemSelectorImpl, "_portal", new PortalImpl());
 		ReflectionTestUtil.setFieldValue(
 			_itemSelectorImpl, "_serviceTrackerMap",
@@ -103,14 +98,6 @@ public class ItemSelectorImplTest extends PowerMockito {
 			new TestFileEntryItemSelectorReturnType(),
 			_testURLItemSelectorReturnType);
 
-		HttpUtil httpUtil = new HttpUtil();
-
-		httpUtil.setHttp(new HttpImpl());
-
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
-
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
-
 		PortalUtil portalUtil = new PortalUtil();
 
 		portalUtil.setPortal(new PortalImpl());
@@ -122,7 +109,7 @@ public class ItemSelectorImplTest extends PowerMockito {
 			"testItemSelectedEventName", _mediaItemSelectorCriterion,
 			_flickrItemSelectorCriterion);
 
-		setUpItemSelectionCriterionHandlers();
+		_setUpItemSelectionCriterionHandlers();
 
 		Assert.assertEquals(
 			"testItemSelectedEventName",
@@ -135,7 +122,7 @@ public class ItemSelectorImplTest extends PowerMockito {
 			StringUtil.randomString(), _mediaItemSelectorCriterion,
 			_flickrItemSelectorCriterion);
 
-		setUpItemSelectionCriterionHandlers();
+		_setUpItemSelectionCriterionHandlers();
 
 		List<ItemSelectorCriterion> itemSelectorCriteria =
 			_itemSelectorImpl.getItemSelectorCriteria(itemSelectorURL);
@@ -199,7 +186,7 @@ public class ItemSelectorImplTest extends PowerMockito {
 
 	@Test
 	public void testGetItemSelectorRendering() {
-		setUpItemSelectionCriterionHandlers();
+		_setUpItemSelectionCriterionHandlers();
 
 		ItemSelectorRendering itemSelectorRendering =
 			getItemSelectorRendering();
@@ -311,7 +298,7 @@ public class ItemSelectorImplTest extends PowerMockito {
 		for (Map.Entry<String, String[]> entry :
 				itemSelectorParameters.entrySet()) {
 
-			itemSelectorURL = HttpUtil.addParameter(
+			itemSelectorURL = HttpComponentsUtil.addParameter(
 				itemSelectorURL, namespace + entry.getKey(),
 				entry.getValue()[0]);
 		}
@@ -319,7 +306,7 @@ public class ItemSelectorImplTest extends PowerMockito {
 		return itemSelectorURL;
 	}
 
-	protected void setUpItemSelectionCriterionHandlers() {
+	private void _setUpItemSelectionCriterionHandlers() {
 		_itemSelectorImpl.setItemSelectionCriterionHandler(
 			new FlickrItemSelectorCriterionHandler());
 		_itemSelectorImpl.setItemSelectionCriterionHandler(

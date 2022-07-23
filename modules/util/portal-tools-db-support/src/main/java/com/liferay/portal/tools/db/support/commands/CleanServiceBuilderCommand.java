@@ -160,18 +160,18 @@ public class CleanServiceBuilderCommand extends BaseCommand {
 		DatabaseMetaData databaseMetaData = connection.getMetaData();
 
 		try (Statement statement = connection.createStatement();
-			ResultSet rs1 = databaseMetaData.getTables(
+			ResultSet resultSet1 = databaseMetaData.getTables(
 				null, null, tableName, new String[] {"TABLE"})) {
 
-			if (rs1.next()) {
+			if (resultSet1.next()) {
 				statement.executeUpdate("DROP TABLE " + tableName);
 			}
 			else {
-				try (ResultSet rs2 = databaseMetaData.getTables(
+				try (ResultSet resultSet2 = databaseMetaData.getTables(
 						null, null, tableName.toUpperCase(),
 						new String[] {"TABLE"})) {
 
-					if (rs2.next()) {
+					if (resultSet2.next()) {
 						statement.executeUpdate("DROP TABLE " + tableName);
 					}
 				}

@@ -2,11 +2,13 @@
 <head>
 <title>Dropdown</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Dropdown</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ANY_DISABLED</td>
@@ -39,8 +41,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ENTRIES_NUMBER</td>
+	<td>//div[@class='dropdown pagination-items-per-page']//a[contains(text(),'${key_numberEntries}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FRIENDLY_URL_LOCALE</td>
 	<td>//button[contains(@id,'friendlyURLMenu')]//span[contains(@class,'btn-section')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO</td>
+	<td>//div[contains(@class,'dropdown-menu')][contains(@class,'show')]//div[contains(@class,'alert-info')][normalize-space(text())='${infoMessage}']</td>
 	<td></td>
 </tr>
 <tr>

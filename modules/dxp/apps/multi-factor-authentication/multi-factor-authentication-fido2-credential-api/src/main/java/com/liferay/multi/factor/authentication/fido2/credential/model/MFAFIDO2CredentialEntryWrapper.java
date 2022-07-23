@@ -144,6 +144,11 @@ public class MFAFIDO2CredentialEntryWrapper
 		}
 	}
 
+	@Override
+	public MFAFIDO2CredentialEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this mfafido2 credential entry.
 	 *

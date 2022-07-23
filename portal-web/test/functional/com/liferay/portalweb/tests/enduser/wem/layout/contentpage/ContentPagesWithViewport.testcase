@@ -25,12 +25,6 @@ definition {
 	}
 
 	tearDown {
-		task ("Go back to Desktop viewport") {
-			Click(
-				key_deviceType = "Desktop",
-				locator1 = "PageEditor#DEVICE_TYPE");
-		}
-
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
 		if ("${testPortalInstance}" == "true") {
@@ -41,8 +35,9 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-119979. Customize the Layout of Grid in each viewport."
+	@description = "This is a test for LPS-119979 and LPS-106776. Customize the Layout of Grid in each viewport."
 	@priority = "4"
+	@uitest
 	test CustomizeLayoutOfGridInEachViewport {
 		task ("Add a Grid to page") {
 			ContentPagesNavigator.openEditContentPage(
@@ -63,15 +58,11 @@ definition {
 		task ("Select the 2 Modules per Row as Layout in Desktop viewport") {
 			PageEditor.editLayoutGrid(
 				layout = "2 Modules per Row",
-				panel = "Styles");
+				panel = "General");
 		}
 
 		task ("Select the 3 Modules per Row as Layout in Tablet viewport") {
-			Click(
-				key_deviceType = "Tablet",
-				locator1 = "PageEditor#DEVICE_TYPE");
-
-			Pause(locator1 = "3000");
+			PageEditor.switchViewport(deviceType = "Tablet");
 
 			Select(
 				key_fieldLabel = "Layout",
@@ -82,11 +73,7 @@ definition {
 		}
 
 		task ("Select the 6 Modules per Row as Layout in Landscape Phone viewport") {
-			Click(
-				key_deviceType = "Landscape Phone",
-				locator1 = "PageEditor#DEVICE_TYPE");
-
-			Pause(locator1 = "3000");
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
 
 			Select(
 				key_fieldLabel = "Layout",
@@ -97,11 +84,7 @@ definition {
 		}
 
 		task ("Select the 1 Module per Row as Layout in Portrait Phone viewport") {
-			Click(
-				key_deviceType = "Portrait Phone",
-				locator1 = "PageEditor#DEVICE_TYPE");
-
-			Pause(locator1 = "3000");
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
 
 			Select(
 				key_fieldLabel = "Layout",
@@ -112,18 +95,14 @@ definition {
 		}
 
 		task ("Assert the Layout of Grid is 2 Modules per Row and the height of module is greater than 20px in Desktop viewport") {
-			Click(
-				key_deviceType = "Desktop",
-				locator1 = "PageEditor#DEVICE_TYPE");
-
-			Pause(locator1 = "3000");
+			PageEditor.switchViewport(deviceType = "Desktop");
 
 			PageEditor.viewGridStyle(
 				columnCount = "6",
 				layout = "6",
 				position = "1");
 
-			var moduleHeight = selenium.getElementHeight("//div[contains(@class,'page-editor__topper__bar') and contains(.,'Grid')]//following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-6')]");
+			var moduleHeight = selenium.getElementHeight("//div[@aria-label='Grid']//div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-6')]");
 			var moduleHeight = StringUtil.replace("${moduleHeight}", "px", "");
 
 			TestUtils.isGreaterThan(
@@ -132,11 +111,7 @@ definition {
 		}
 
 		task ("Assert the Layout of Grid is 3 Modules per Row and the height of module is greater than 20px in Tablet viewport") {
-			Click(
-				key_deviceType = "Tablet",
-				locator1 = "PageEditor#DEVICE_TYPE");
-
-			Pause(locator1 = "3000");
+			PageEditor.switchViewport(deviceType = "Tablet");
 
 			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
 
@@ -145,7 +120,7 @@ definition {
 				layout = "4",
 				position = "1");
 
-			var moduleHeight = selenium.getElementHeight("//div[contains(@class,'page-editor__topper__bar') and contains(.,'Grid')]//following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-4')]");
+			var moduleHeight = selenium.getElementHeight("//div[@aria-label='Grid']//div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-4')]");
 			var moduleHeight = StringUtil.replace("${moduleHeight}", "px", "");
 
 			TestUtils.isGreaterThan(
@@ -156,11 +131,7 @@ definition {
 		}
 
 		task ("Assert the Layout of Grid is 6 Modules per Row and the height of module is greater than 20px in Landscape Phone viewport") {
-			Click(
-				key_deviceType = "Landscape Phone",
-				locator1 = "PageEditor#DEVICE_TYPE");
-
-			Pause(locator1 = "3000");
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
 
 			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
 
@@ -169,7 +140,7 @@ definition {
 				layout = "2",
 				position = "1");
 
-			var moduleHeight = selenium.getElementHeight("//div[contains(@class,'page-editor__topper__bar') and contains(.,'Grid')]//following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-2')]");
+			var moduleHeight = selenium.getElementHeight("//div[@aria-label='Grid']//div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-2')]");
 			var moduleHeight = StringUtil.replace("${moduleHeight}", "px", "");
 
 			TestUtils.isGreaterThan(
@@ -180,11 +151,7 @@ definition {
 		}
 
 		task ("Assert the Layout of Grid is 1 Module per Row and the height of module is greater than 20px in Portrait Phone viewport") {
-			Click(
-				key_deviceType = "Portrait Phone",
-				locator1 = "PageEditor#DEVICE_TYPE");
-
-			Pause(locator1 = "3000");
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
 
 			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
 
@@ -193,19 +160,441 @@ definition {
 				layout = "12",
 				position = "1");
 
-			var moduleHeight = selenium.getElementHeight("//div[contains(@class,'page-editor__topper__bar') and contains(.,'Grid')]//following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-12')]");
+			var moduleHeight = selenium.getElementHeight("//div[@aria-label='Grid']//div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-12')]");
 			var moduleHeight = StringUtil.replace("${moduleHeight}", "px", "");
 
 			TestUtils.isGreaterThan(
 				actual = "${moduleHeight}",
 				expected = "20");
+		}
+	}
+
+	@description = "This is a test for LPS-141278. The page editor could define Text Align for fragment per viewport."
+	@priority = "5"
+	test CustomizeTextAlignInEachViewport {
+		property portal.acceptance = "true";
+
+		task ("Add a Heading fragment to a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("View the Text Align of Heading is left") {
+			PageEditor.viewFragmentStyle(
+				alignment = "left",
+				fragmentName = "Heading");
+		}
+
+		task ("Change the Text Align of Heading in other viewports") {
+			PageEditor.switchViewport(deviceType = "Tablet");
+
+			PageEditor.gotoStyle(
+				deviceType = "Tablet",
+				fragmentName = "Heading");
+
+			PageEditor.configureFragment(alignment = "Center");
+
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
+
+			PageEditor.gotoStyle(
+				deviceType = "Landscape Phone",
+				fragmentName = "Heading");
+
+			PageEditor.configureFragment(alignment = "Right");
+
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
+
+			PageEditor.gotoStyle(
+				deviceType = "Portrait Phone",
+				fragmentName = "Heading");
+
+			PageEditor.configureFragment(alignment = "Justify");
+		}
+
+		task ("View the Text Align of Heading in different viewports") {
+			PageEditor.switchViewport(deviceType = "Desktop");
+
+			PageEditor.viewFragmentStyle(
+				alignment = "left",
+				fragmentName = "Heading");
+
+			PageEditor.switchViewport(deviceType = "Tablet");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			PageEditor.viewFragmentStyle(
+				alignment = "center",
+				fragmentName = "Heading");
 
 			SelectFrame(value1 = "relative=top");
+
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			PageEditor.viewFragmentStyle(
+				alignment = "right",
+				fragmentName = "Heading");
+
+			SelectFrame(value1 = "relative=top");
+
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			PageEditor.viewFragmentStyle(
+				alignment = "justify",
+				fragmentName = "Heading");
+
+			SelectFrame(value1 = "relative=top");
+		}
+
+		task ("View the Text Align of Heading in different viewports at preview mode") {
+			PageEditor.openPreviewMode();
+
+			PageEditor.switchViewport(
+				deviceType = "Desktop",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				locator2 = "text-align",
+				value1 = "left");
+
+			SelectFrame(value1 = "relative=top");
+
+			PageEditor.switchViewport(
+				deviceType = "Tablet",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				locator2 = "text-align",
+				value1 = "center");
+
+			SelectFrame(value1 = "relative=top");
+
+			PageEditor.switchViewport(
+				deviceType = "Landscape Phone",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				locator2 = "text-align",
+				value1 = "right");
+
+			SelectFrame(value1 = "relative=top");
+
+			PageEditor.switchViewport(
+				deviceType = "Portrait Phone",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				index = "1",
+				locator1 = "Fragment#FRAGMENT_BODY",
+				locator2 = "text-align",
+				value1 = "justify");
+		}
+	}
+
+	@description = "This is a test for LPS-134844 and LPS-106776. Fragment view options can be reset to parent one."
+	@priority = "4"
+	@uitest
+	test FragmentViewOptionsCanBeResetToParentOne {
+		task ("Add thee headings to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Heading Example 1");
+
+			for (var n : list "3,2") {
+				PageEditor.addFragment(
+					collectionName = "Basic Components",
+					fragmentName = "Heading",
+					targetFragmentName = "Heading");
+
+				PageEditor.editFragmentText(
+					fragmentName = "Heading",
+					id = "element-text",
+					index = "2",
+					text = "Heading Example ${n}");
+			}
+		}
+
+		task ("Hide Heading Example 3 for desktop view") {
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "3");
+		}
+
+		task ("Change to landscape phone viewport, hide 1 and 2, unhide 3") {
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
+
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "1");
+
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "2");
+
+			PageEditor.unhideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "3");
+		}
+
+		task ("Change to Portrait phone viewport, hide 3, unhide 2") {
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
+
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "3");
+
+			PageEditor.unhideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "2");
+		}
+
+		task ("Click restore default for Heading Example 1 and assert is NOT shown") {
+			PageEditor.restoreDefaultHidePropertyForFragment(
+				fragmentName = "Heading",
+				index = "1");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			AssertNotVisible(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+
+			SelectFrame(value1 = "relative=top");
+		}
+
+		task ("Click restore default for Heading Example 2 and assert  is NOT shown") {
+			PageEditor.restoreDefaultHidePropertyForFragment(
+				fragmentName = "Heading",
+				index = "2");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+
+			SelectFrame(value1 = "relative=top");
+		}
+
+		task ("Click restore default for Heading Example 3 and assert  is shown") {
+			PageEditor.restoreDefaultHidePropertyForFragment(
+				fragmentName = "Heading",
+				index = "3");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				position = "3",
+				text = "Heading Example 3");
+		}
+	}
+
+	@description = "This is a test for LPS-134844. Hidden property is propagated to smaller viewpoints."
+	@priority = "5"
+	@uitest
+	test HiddenPropertyIsPropagatedToSmallerViewpoints {
+		property portal.acceptance = "true";
+
+		task ("Add five headings to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Heading Example 1");
+
+			for (var n : list "5,4,3,2") {
+				PageEditor.addFragment(
+					collectionName = "Basic Components",
+					fragmentName = "Heading",
+					targetFragmentName = "Heading");
+
+				PageEditor.editFragmentText(
+					fragmentName = "Heading",
+					id = "element-text",
+					index = "2",
+					text = "Heading Example ${n}");
+			}
+		}
+
+		task ("Hide Heading Example 5 for desktop view") {
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "5");
+		}
+
+		task ("Hide Heading Example 4 for tablet viewport") {
+			PageEditor.switchViewport(deviceType = "Tablet");
+
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "4");
+		}
+
+		task ("Hide Heading Example 3 for landscape phone viewport") {
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
+
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "3");
+		}
+
+		task ("Hide Heading Example 2 for portrait phone viewport") {
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
+
+			PageEditor.hideFragmentViaPageStructure(
+				fragmentName = "Heading",
+				index = "2");
+		}
+
+		task ("Open the Preview modal") {
+			PageEditor.openPreviewMode();
+		}
+
+		task ("Assert that Heading from 1 to 4 are shown for desktop view on preview") {
+			PageEditor.switchViewport(
+				deviceType = "Desktop",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			for (var n : list "1,2,3,4") {
+				ContentPages.viewFragmentText(
+					fragmentName = "heading",
+					id = "element-text",
+					position = "${n}",
+					text = "Heading Example ${n}");
+			}
+
+			AssertNotVisible(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "5",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+
+		task ("Assert that Heading from 1 to 3 are shown for tablet view on preview") {
+			SelectFrameTop();
+
+			PageEditor.switchViewport(
+				deviceType = "Tablet",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			for (var n : list "1,2,3") {
+				ContentPages.viewFragmentText(
+					fragmentName = "heading",
+					id = "element-text",
+					position = "${n}",
+					text = "Heading Example ${n}");
+			}
+
+			for (var n : list "4,5") {
+				AssertNotVisible(
+					fragmentName = "heading",
+					id = "element-text",
+					index = "${n}",
+					locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+			}
+		}
+
+		task ("Assert that Heading from 1 to 2 are shown for landscape phone view on preview") {
+			SelectFrameTop();
+
+			PageEditor.switchViewport(
+				deviceType = "Landscape Phone",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			for (var n : list "1,2") {
+				ContentPages.viewFragmentText(
+					fragmentName = "heading",
+					id = "element-text",
+					position = "${n}",
+					text = "Heading Example ${n}");
+			}
+
+			for (var n : list "3,4,5") {
+				AssertNotVisible(
+					fragmentName = "heading",
+					id = "element-text",
+					index = "${n}",
+					locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+			}
+		}
+
+		task ("Assert that only Heading 1 is shown for portail phone view on preview") {
+			SelectFrameTop();
+
+			PageEditor.switchViewport(
+				deviceType = "Portrait Phone",
+				modal = "true");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example 1");
+
+			for (var n : list "2,3,4,5") {
+				AssertNotVisible(
+					fragmentName = "heading",
+					id = "element-text",
+					index = "${n}",
+					locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+			}
 		}
 	}
 
 	@description = "This is a test for LPS-110723. When change to other viewports, there are only limited common fragment style categories available."
 	@priority = "4"
+	@uitest
 	test PropagateCommonFragmentStyleDefinedInDesktopToOtherViewports {
 		task ("Add a Paragraph to page") {
 			ContentPagesNavigator.openEditContentPage(
@@ -244,11 +633,7 @@ definition {
 
 		task ("Assert the common styles are propagated to other viewports") {
 			for (var deviceType : list "Tablet,Landscape Phone,Portrait Phone") {
-				Click(
-					key_deviceType = "${deviceType}",
-					locator1 = "PageEditor#DEVICE_TYPE");
-
-				Pause(locator1 = "3000");
+				PageEditor.switchViewport(deviceType = "${deviceType}");
 
 				SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
 
@@ -268,52 +653,56 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-110707. Can resize the width of device viewport when edit content page."
+	@description = "This is a test for LPS-110707. Can resize the width of non-desktop viewports when edit content page."
 	@priority = "5"
-	test ResizeDeviceViewport {
+	@uitest
+	test ResizeWidthOfNonDesktopViewport {
 		property portal.acceptance = "true";
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Content Page Name",
-			siteName = "Test Site Name");
+		task ("View the viewport resizer not shown in Desktop viewport") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
 
-		Click(
-			key_deviceType = "Desktop",
-			locator1 = "PageEditor#DEVICE_TYPE");
+			AssertElementNotPresent(locator1 = "PageEditor#VIEWPORT_HANDLE");
+		}
 
-		AssertElementNotPresent(locator1 = "PageEditor#VIEWPORT_HANDLE");
+		task ("Resize the width of Tablet viewport") {
+			PageEditor.switchViewport(deviceType = "Tablet");
 
-		Click(
-			key_deviceType = "Tablet",
-			locator1 = "PageEditor#DEVICE_TYPE");
+			AssertVisible(locator1 = "PageEditor#VIEWPORT_HANDLE");
 
-		AssertVisible(locator1 = "PageEditor#VIEWPORT_HANDLE");
+			DragAndDrop.dragAndDrop(
+				locator1 = "PageEditor#VIEWPORT_HANDLE",
+				value1 = "200,0");
+		}
 
-		DragAndDrop.dragAndDrop(
-			locator1 = "PageEditor#VIEWPORT_HANDLE",
-			value1 = "200,0");
+		task ("View the Tablet viewport is resized") {
+			AssertElementPresent(
+				key_style = "992px",
+				locator1 = "PageEditor#VIEWPORT_RESIZER");
+		}
 
-		AssertElementPresent(
-			key_style = "992px",
-			locator1 = "PageEditor#VIEWPORT_RESIZER");
+		task ("Resize the width of Portrait Phone viewport") {
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
 
-		Click(
-			key_deviceType = "Portrait Phone",
-			locator1 = "PageEditor#DEVICE_TYPE");
+			AssertVisible(locator1 = "PageEditor#VIEWPORT_HANDLE");
 
-		AssertVisible(locator1 = "PageEditor#VIEWPORT_HANDLE");
+			DragAndDrop.dragAndDrop(
+				locator1 = "PageEditor#VIEWPORT_HANDLE",
+				value1 = "200,0");
+		}
 
-		DragAndDrop.dragAndDrop(
-			locator1 = "PageEditor#VIEWPORT_HANDLE",
-			value1 = "200,0");
-
-		AssertElementPresent(
-			key_style = "576px",
-			locator1 = "PageEditor#VIEWPORT_RESIZER");
+		task ("View the Portrait Phone viewport is resized") {
+			AssertElementPresent(
+				key_style = "576px",
+				locator1 = "PageEditor#VIEWPORT_RESIZER");
+		}
 	}
 
 	@description = "This is a test for LPS-110723. When change to other viewports, there are only limited common fragment style categories available."
 	@priority = "5"
+	@uitest
 	test ViewCommonFragmentStyleFieldSets {
 		property portal.acceptance = "true";
 
@@ -328,16 +717,15 @@ definition {
 		}
 
 		task ("Assert all common fragment style fieldsets are available on Desktop viewport") {
-			PageEditor.clickConfigurableField(fragmentName = "Heading");
+			PageEditor.gotoConfiguration(fragmentName = "Heading");
 
-			Pause(locator1 = "3000");
+			AssertElementPresent(
+				key_fieldSetLabel = "Frame",
+				locator1 = "PageEditor#COMMON_STYLES_FIELDSET_LABEL");
 
-			AssertClick(
-				key_navItem = "Styles",
-				locator1 = "PageEditor#NAV_ITEM_BUTTON",
-				value1 = "Styles");
+			Navigator.gotoNavTab(navTab = "Styles");
 
-			for (var fieldSetLabel : list "Margin,Padding,Size,Text,Background,Borders,Effects") {
+			for (var fieldSetLabel : list "Spacing,Text,Background,Borders,Effects") {
 				AssertElementPresent(
 					key_fieldSetLabel = "${fieldSetLabel}",
 					locator1 = "PageEditor#COMMON_STYLES_FIELDSET_LABEL");
@@ -346,17 +734,11 @@ definition {
 
 		task ("Assert only Margin and Padding are available on other viewports") {
 			for (var deviceType : list "Tablet,Landscape Phone,Portrait Phone") {
-				Click(
-					key_deviceType = "${deviceType}",
-					locator1 = "PageEditor#DEVICE_TYPE");
+				PageEditor.switchViewport(deviceType = "${deviceType}");
 
-				Pause(locator1 = "3000");
-
-				for (var fieldSetLabel : list "Margin,Padding") {
-					AssertElementPresent(
-						key_fieldSetLabel = "${fieldSetLabel}",
-						locator1 = "PageEditor#COMMON_STYLES_FIELDSET_LABEL");
-				}
+				AssertElementPresent(
+					key_fieldSetLabel = "Spacing",
+					locator1 = "PageEditor#COMMON_STYLES_FIELDSET_LABEL");
 			}
 		}
 	}

@@ -53,7 +53,7 @@
 			"folderId", DLFolderConstants.DEFAULT_PARENT_FOLDER_ID
 		).setParameter(
 			"searchFolderId", folderId
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-util:whitespace-remover>

@@ -14,6 +14,8 @@
 
 package com.liferay.site.teams.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Team;
@@ -46,6 +48,8 @@ public abstract class BaseTeamUADAnonymizer
 		if (team.getUserId() == userId) {
 			team.setUserId(anonymousUser.getUserId());
 			team.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(team, anonymousUser);
 		}
 
 		teamLocalService.updateTeam(team);
@@ -61,6 +65,17 @@ public abstract class BaseTeamUADAnonymizer
 		return Team.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(Team team, User anonymousUser) {
+		AssetEntry assetEntry = fetchAssetEntry(team);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return teamLocalService.getActionableDynamicQuery();
@@ -70,6 +85,14 @@ public abstract class BaseTeamUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return SiteTeamsUADConstants.USER_ID_FIELD_NAMES_TEAM;
 	}
+
+	protected AssetEntry fetchAssetEntry(Team team) {
+		return assetEntryLocalService.fetchEntry(
+			Team.class.getName(), team.getTeamId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected TeamLocalService teamLocalService;

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce.discount">
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.discount">
 	<author>Marco Leo</author>
 	<namespace>Commerce</namespace>
 	<entity external-reference-code="true" local-service="true" name="CommerceDiscount" remote-service="true" uuid="true">
@@ -73,11 +73,6 @@
 			<finder-column name="couponCode" />
 			<finder-column name="active" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CommerceDiscountAccountRel" remote-service="true" uuid="true">
 
@@ -114,7 +109,7 @@
 		<finder name="CommerceDiscountId" return-type="Collection">
 			<finder-column name="commerceDiscountId" />
 		</finder>
-		<finder name="C_C" return-type="CommercePriceListAccountRel" unique="true">
+		<finder name="CAI_CDI" return-type="CommerceDiscountAccountRel" unique="true">
 			<finder-column name="commerceAccountId" />
 			<finder-column name="commerceDiscountId" />
 		</finder>
@@ -152,9 +147,49 @@
 		<finder name="CommerceAccountGroupId" return-type="Collection">
 			<finder-column name="commerceAccountGroupId" />
 		</finder>
-		<finder name="C_C" return-type="CommerceDiscountCommerceAccountGroupRel" unique="true">
+		<finder name="CDI_CAGI" return-type="CommerceDiscountCommerceAccountGroupRel" unique="true">
 			<finder-column name="commerceDiscountId" />
 			<finder-column name="commerceAccountGroupId" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="CommerceDiscountOrderTypeRel" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="commerceDiscountOrderTypeRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="commerceDiscountId" type="long" />
+		<column name="commerceOrderTypeId" type="long" />
+		<column name="priority" type="int" />
+		<column name="lastPublishDate" type="Date" />
+
+		<!-- Order -->
+
+		<order by="asc">
+			<order-column name="priority" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CommerceDiscountId" return-type="Collection">
+			<finder-column name="commerceDiscountId" />
+		</finder>
+		<finder name="CommerceOrderTypeId" return-type="Collection">
+			<finder-column name="commerceOrderTypeId" />
+		</finder>
+		<finder name="CDI_COTI" return-type="CommerceDiscountOrderTypeRel" unique="true">
+			<finder-column name="commerceDiscountId" />
+			<finder-column name="commerceOrderTypeId" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="CommerceDiscountRel" remote-service="true">
@@ -261,15 +296,15 @@
 		<finder name="CommerceDiscountId" return-type="Collection">
 			<finder-column name="commerceDiscountId" />
 		</finder>
-		<finder name="A_D" return-type="Collection">
+		<finder name="CAI_CDI" return-type="Collection">
 			<finder-column name="commerceAccountId" />
 			<finder-column name="commerceDiscountId" />
 		</finder>
-		<finder name="O_D" return-type="Collection">
+		<finder name="COI_CDI" return-type="Collection">
 			<finder-column name="commerceOrderId" />
 			<finder-column name="commerceDiscountId" />
 		</finder>
-		<finder name="A_O_D" return-type="Collection">
+		<finder name="CAI_COI_CDI" return-type="Collection">
 			<finder-column name="commerceAccountId" />
 			<finder-column name="commerceOrderId" />
 			<finder-column name="commerceDiscountId" />

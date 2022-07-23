@@ -217,4 +217,7 @@ public interface AkismetEntryModel
 	 */
 	public void setUserURL(String userURL);
 
+	@Override
+	public AkismetEntry cloneWithOriginalValues();
+
 }

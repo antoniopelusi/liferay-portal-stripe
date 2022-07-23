@@ -28,7 +28,7 @@ String uploadURL = itemSelectorUploadViewDisplayContext.getURL();
 String namespace = itemSelectorUploadViewDisplayContext.getNamespace();
 
 if (Validator.isNotNull(namespace)) {
-	uploadURL = HttpUtil.addParameter(uploadURL, namespace + "returnType", itemSelectorReturnTypeClass.getName());
+	uploadURL = HttpComponentsUtil.addParameter(uploadURL, namespace + "returnType", itemSelectorReturnTypeClass.getName());
 }
 %>
 
@@ -63,6 +63,8 @@ if (Validator.isNotNull(namespace)) {
 	context='<%=
 		HashMapBuilder.<String, Object>put(
 			"closeCaption", itemSelectorUploadViewDisplayContext.getTitle(locale)
+		).put(
+			"editImageURL", uploadURL
 		).put(
 			"eventName", itemSelectorUploadViewDisplayContext.getItemSelectedEventName()
 		).put(

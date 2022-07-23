@@ -53,8 +53,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -88,7 +86,7 @@ public class SearchUtil {
 	public static <T> Page<T> search(
 			Map<String, Map<String, String>> actions,
 			UnsafeConsumer<BooleanQuery, Exception> booleanQueryUnsafeConsumer,
-			Filter filter, Class<?> indexerClass, String keywords,
+			Filter filter, String indexerClassName, String keywords,
 			Pagination pagination,
 			UnsafeConsumer<QueryConfig, Exception> queryConfigUnsafeConsumer,
 			UnsafeConsumer<SearchContext, Exception>
@@ -117,7 +115,7 @@ public class SearchUtil {
 
 		Hits hits = null;
 
-		Indexer<?> indexer = IndexerRegistryUtil.getIndexer(indexerClass);
+		Indexer<?> indexer = IndexerRegistryUtil.getIndexer(indexerClassName);
 
 		if (searchContext.isVulcanCheckPermissions()) {
 			hits = indexer.search(searchContext);
@@ -140,68 +138,20 @@ public class SearchUtil {
 			indexer.searchCount(searchContext));
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #search(Map,
-	 *             UnsafeConsumer, Filter, Class, String, Pagination,
-	 *             UnsafeConsumer, UnsafeConsumer, Sort[], UnsafeFunction)}
-	 */
-	@Deprecated
-	public static <T> Page<T> search(
-			UnsafeConsumer<BooleanQuery, Exception> booleanQueryUnsafeConsumer,
-			Filter filter, Class<?> indexerClass, String keywords,
-			Pagination pagination,
-			UnsafeConsumer<QueryConfig, Exception> queryConfigUnsafeConsumer,
-			UnsafeConsumer
-				<com.liferay.portal.kernel.search.SearchContext, Exception>
-					searchContextUnsafeConsumer,
-			UnsafeFunction<Document, T, Exception> transformUnsafeFunction,
-			Sort[] sorts)
-		throws Exception {
-
-		return search(
-			Collections.emptyMap(), booleanQueryUnsafeConsumer, filter,
-			indexerClass, keywords, pagination, queryConfigUnsafeConsumer,
-			searchContextUnsafeConsumer::accept, sorts,
-			transformUnsafeFunction);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #search(Map,
-	 *             UnsafeConsumer, Filter, Class, String, Pagination,
-	 *             UnsafeConsumer, UnsafeConsumer, Sort[], UnsafeFunction)}
-	 */
-	@Deprecated
-	public static <T> Page<T> search(
-			UnsafeConsumer<BooleanQuery, Exception> booleanQueryUnsafeConsumer,
-			Filter filter, Class<?> indexerClass, String keywords,
-			Pagination pagination,
-			UnsafeConsumer<QueryConfig, Exception> queryConfigUnsafeConsumer,
-			UnsafeConsumer
-				<com.liferay.portal.kernel.search.SearchContext, Exception>
-					searchContextUnsafeConsumer,
-			UnsafeFunction<Document, T, Exception> transformUnsafeFunction,
-			Sort[] sorts, Map<String, Map<String, String>> actions)
-		throws Exception {
-
-		Set<Map.Entry<String, Map<String, String>>> entries =
-			actions.entrySet();
-
-		Stream<Map.Entry<String, Map<String, String>>> stream =
-			entries.stream();
-
-		return search(
-			stream.collect(
-				Collectors.toMap(
-					Map.Entry::getKey,
-					entry -> (Map<String, String>)entry.getValue())),
-			booleanQueryUnsafeConsumer, filter, indexerClass, keywords,
-			pagination, queryConfigUnsafeConsumer,
-			searchContextUnsafeConsumer::accept, sorts,
-			transformUnsafeFunction);
-	}
-
 	public static class SearchContext
 		extends com.liferay.portal.kernel.search.SearchContext {
+
+		@Override
+		public void addFacet(
+			com.liferay.portal.kernel.search.facet.Facet facet) {
+
+			Map<String, com.liferay.portal.kernel.search.facet.Facet> facets =
+				getFacets();
+
+			if (!facets.containsKey(facet.getFieldName())) {
+				super.addFacet(facet);
+			}
+		}
 
 		public void addVulcanAggregation(Aggregation aggregation) {
 			if ((aggregation == null) ||
@@ -313,6 +263,10 @@ public class SearchUtil {
 
 		SearchResponse searchResponse =
 			(SearchResponse)searchContext.getAttribute("search.response");
+
+		if (searchResponse == null) {
+			return new ArrayList<>();
+		}
 
 		Map<String, AggregationResult> aggregationResultsMap =
 			searchResponse.getAggregationResultsMap();

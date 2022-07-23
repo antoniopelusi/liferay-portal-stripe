@@ -3,7 +3,6 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="WARN" name="com.liferay.portal.security.ldap.internal.DefaultPortalLDAP" />
-
 		<Logger level="WARN" name="com.liferay.portal.security.ldap.internal.authenticator.LDAPAuth" />
 	</Loggers>
 </Configuration>

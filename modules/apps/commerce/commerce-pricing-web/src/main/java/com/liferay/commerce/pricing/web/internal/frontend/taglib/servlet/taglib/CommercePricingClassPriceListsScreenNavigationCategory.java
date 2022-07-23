@@ -16,8 +16,8 @@ package com.liferay.commerce.pricing.web.internal.frontend.taglib.servlet.taglib
 
 import com.liferay.commerce.pricing.model.CommercePricingClass;
 import com.liferay.commerce.pricing.service.CommercePricingClassService;
-import com.liferay.commerce.pricing.web.internal.constants.CommercePricingClassScreenNavigationConstants;
 import com.liferay.commerce.pricing.web.internal.display.context.CommercePricingClassPriceListDisplayContext;
+import com.liferay.commerce.pricing.web.internal.servlet.taglib.ui.constants.CommercePricingClassScreenNavigationConstants;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
@@ -105,7 +105,7 @@ public class CommercePricingClassPriceListsScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -131,7 +131,7 @@ public class CommercePricingClassPriceListsScreenNavigationCategory
 
 		_jspRenderer.renderJSP(
 			httpServletRequest, httpServletResponse,
-			"/pricing_class/price_lists.jsp");
+			"/commerce_pricing_class/price_lists.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

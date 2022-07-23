@@ -17,7 +17,13 @@ import {
 	MARK_NAVIGATION_START,
 	MARK_PAGE_LOAD_TIME,
 	MARK_VIEW_DURATION,
+	PARAM_CONFIGURATION_PORTLET_NAME,
+	PARAM_MODE_KEY,
+	PARAM_PAGE_EDITOR_PORTLET_NAME,
+	PARAM_PORTLET_ID_KEY,
+	PARAM_VIEW_MODE,
 } from '../utils/constants';
+import {getSearchParams} from '../utils/params';
 import {createMark, getDuration} from '../utils/performance';
 
 const pageApplicationId = 'Page';
@@ -54,25 +60,67 @@ function dxp(analytics) {
 		});
 	}
 
-	if (window.Liferay && window.Liferay.SPA) {
-		const loadingStartMarks = window.performance.getEntriesByName(
-			MARK_LOAD_EVENT_START
-		);
+	/**
+	 * Checks based on the URL param if it is a configuration portlet
+	 */
+	function isConfigurationPortlet(searchParams) {
+		const portletId = searchParams.get(PARAM_PORTLET_ID_KEY);
 
-		createMark(MARK_NAVIGATION_START);
+		return portletId === PARAM_CONFIGURATION_PORTLET_NAME;
+	}
 
-		if (!loadingStartMarks.length) {
-			const createLoadMark = createMark.bind(null, MARK_LOAD_EVENT_START);
+	/**
+	 * Checks based on the URL param if it is a configuration portlet
+	 */
+	function isPageEditorPortlet(searchParams) {
+		const portletId = searchParams.get(PARAM_PORTLET_ID_KEY);
 
-			createMark(MARK_LOAD_EVENT_START);
-			window.Liferay.on('beforeNavigate', createLoadMark);
+		return portletId === PARAM_PAGE_EDITOR_PORTLET_NAME;
+	}
+
+	/**
+	 * Checks based on the URL param if the page is in view mode
+	 */
+	function isViewMode(searchParams) {
+		const mode = searchParams.get(PARAM_MODE_KEY) || PARAM_VIEW_MODE;
+
+		return mode === PARAM_VIEW_MODE;
+	}
+
+	if (window.Liferay) {
+		const searchParams = getSearchParams();
+
+		if (
+			isConfigurationPortlet(searchParams) ||
+			isPageEditorPortlet(searchParams) ||
+			!isViewMode(searchParams)
+		) {
+			return analytics._disposeInternal();
 		}
 
-		if (document.readyState === 'complete') {
-			sendLoadEvent();
-		}
+		if (window.Liferay.SPA) {
+			const loadingStartMarks = window.performance.getEntriesByName(
+				MARK_LOAD_EVENT_START
+			);
 
-		window.Liferay.once('beforeNavigate', sendUnloadEvent);
+			createMark(MARK_NAVIGATION_START);
+
+			if (!loadingStartMarks.length) {
+				const createLoadMark = createMark.bind(
+					null,
+					MARK_LOAD_EVENT_START
+				);
+
+				createMark(MARK_LOAD_EVENT_START);
+				window.Liferay.on('beforeNavigate', createLoadMark);
+			}
+
+			if (document.readyState === 'complete') {
+				sendLoadEvent();
+			}
+
+			window.Liferay.once('beforeNavigate', sendUnloadEvent);
+		}
 	}
 }
 

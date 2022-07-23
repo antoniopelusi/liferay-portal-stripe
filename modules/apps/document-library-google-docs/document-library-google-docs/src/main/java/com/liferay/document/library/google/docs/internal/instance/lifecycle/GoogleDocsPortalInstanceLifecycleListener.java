@@ -14,7 +14,7 @@
 
 package com.liferay.document.library.google.docs.internal.instance.lifecycle;
 
-import com.liferay.document.library.google.docs.internal.util.GoogleDocsDLFileEntryTypeHelper;
+import com.liferay.document.library.google.docs.internal.helper.GoogleDocsDLFileEntryTypeHelper;
 import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
 import com.liferay.dynamic.data.mapping.kernel.DDMStructureManager;

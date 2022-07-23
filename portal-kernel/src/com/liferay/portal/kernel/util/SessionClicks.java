@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 
 import java.util.ConcurrentModificationException;
+import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -51,27 +52,27 @@ public class SessionClicks {
 			return portalPreferences.getValue(namespace, key, defaultValue);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return null;
 		}
 	}
 
 	public static String get(
-		HttpSession session, String key, String defaultValue) {
+		HttpSession httpSession, String key, String defaultValue) {
 
-		return get(session, _DEFAULT_NAMESPACE, key, defaultValue);
+		return get(httpSession, _DEFAULT_NAMESPACE, key, defaultValue);
 	}
 
 	public static String get(
-		HttpSession session, String namespace, String key,
+		HttpSession httpSession, String namespace, String key,
 		String defaultValue) {
 
 		String sessionKey = StringBundler.concat(
 			namespace, StringPool.COLON, key);
 
 		return GetterUtil.getString(
-			session.getAttribute(sessionKey), defaultValue);
+			httpSession.getAttribute(sessionKey), defaultValue);
 	}
 
 	public static void put(
@@ -84,17 +85,7 @@ public class SessionClicks {
 		HttpServletRequest httpServletRequest, String namespace, String key,
 		String value) {
 
-		if ((key.length() > _SESSION_CLICKS_MAX_SIZE_TERMS) ||
-			(value.length() > _SESSION_CLICKS_MAX_SIZE_TERMS)) {
-
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					StringBundler.concat(
-						"Session clicks has attempted to exceed the maximum ",
-						"size allowed for keys or values with {key=", key,
-						", value=", value, "}"));
-			}
-
+		if (!_isValidKeyValue(key, value)) {
 			return;
 		}
 
@@ -106,17 +97,8 @@ public class SessionClicks {
 
 				int size = portalPreferences.size();
 
-				if (size <= _SESSION_CLICKS_MAX_ALLOWED_VALUES) {
+				if (_isValidSize(size, key, value)) {
 					portalPreferences.setValue(namespace, key, value);
-				}
-				else {
-					if (_log.isWarnEnabled()) {
-						_log.warn(
-							StringBundler.concat(
-								"Session clicks has attempted to exceed the ",
-								"maximum number of allowed values with {key=",
-								key, ", value=", value, "}"));
-					}
 				}
 
 				break;
@@ -125,30 +107,78 @@ public class SessionClicks {
 						concurrentModificationException) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						concurrentModificationException,
-						concurrentModificationException);
+					_log.debug(concurrentModificationException);
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				break;
 			}
 		}
 	}
 
-	public static void put(HttpSession session, String key, String value) {
-		put(session, _DEFAULT_NAMESPACE, key, value);
+	public static void put(HttpSession httpSession, String key, String value) {
+		put(httpSession, _DEFAULT_NAMESPACE, key, value);
 	}
 
 	public static void put(
-		HttpSession session, String namespace, String key, String value) {
+		HttpSession httpSession, String namespace, String key, String value) {
 
-		String sessionKey = StringBundler.concat(
-			namespace, StringPool.COLON, key);
+		if (!_isValidKeyValue(key, value)) {
+			return;
+		}
 
-		session.setAttribute(sessionKey, value);
+		Enumeration<String> enumeration = httpSession.getAttributeNames();
+
+		int size = 0;
+
+		while (enumeration.hasMoreElements()) {
+			enumeration.nextElement();
+
+			size++;
+		}
+
+		if (_isValidSize(size, key, value)) {
+			String sessionKey = StringBundler.concat(
+				namespace, StringPool.COLON, key);
+
+			httpSession.setAttribute(sessionKey, value);
+		}
+	}
+
+	private static boolean _isValidKeyValue(String key, String value) {
+		if ((key.length() <= _SESSION_CLICKS_MAX_SIZE_TERMS) &&
+			(value.length() <= _SESSION_CLICKS_MAX_SIZE_TERMS)) {
+
+			return true;
+		}
+
+		if (_log.isWarnEnabled()) {
+			_log.warn(
+				StringBundler.concat(
+					"Session clicks has attempted to exceed the maximum size ",
+					"allowed for keys or values with key \"", key,
+					"\" and value \"", value, "\""));
+		}
+
+		return false;
+	}
+
+	private static boolean _isValidSize(int size, String key, String value) {
+		if (size < _SESSION_CLICKS_MAX_ALLOWED_VALUES) {
+			return true;
+		}
+
+		if (_log.isWarnEnabled()) {
+			_log.warn(
+				StringBundler.concat(
+					"Session clicks has attempted to exceed the maximum ",
+					"number of allowed values with key \"", key,
+					"\" and value \"", value, "\""));
+		}
+
+		return false;
 	}
 
 	private static final String _DEFAULT_NAMESPACE =

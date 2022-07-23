@@ -124,7 +124,7 @@ public class DefaultSynchronousMessageSenderTest {
 
 		serialDestination.open();
 
-		doTestSend(serialDestination);
+		_testSend(serialDestination);
 	}
 
 	@Test
@@ -138,12 +138,10 @@ public class DefaultSynchronousMessageSenderTest {
 
 		synchronousDestination.open();
 
-		doTestSend(synchronousDestination);
+		_testSend(synchronousDestination);
 	}
 
-	protected void doTestSend(Destination destination)
-		throws MessageBusException {
-
+	private void _testSend(Destination destination) throws MessageBusException {
 		Object response = new Object();
 
 		destination.register(new ReplayMessageListener(response));

@@ -54,7 +54,7 @@ public class AnonymousUserConfigurationRetriever {
 	}
 
 	private String _getFactoryPid() {
-		return AnonymousUserConfiguration.class.getName();
+		return AnonymousUserConfiguration.class.getName() + ".scoped";
 	}
 
 	private Optional<Configuration> _getOptional(String filterString)

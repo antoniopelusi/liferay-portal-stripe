@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoNotificationRecipient;
 import com.liferay.portal.workflow.kaleo.model.KaleoNotificationRecipientModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -252,34 +253,6 @@ public class KaleoNotificationRecipientModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoNotificationRecipient>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoNotificationRecipient.class.getClassLoader(),
-			KaleoNotificationRecipient.class, ModelWrapper.class);
-
-		try {
-			Constructor<KaleoNotificationRecipient> constructor =
-				(Constructor<KaleoNotificationRecipient>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -879,6 +852,53 @@ public class KaleoNotificationRecipientModelImpl
 	}
 
 	@Override
+	public KaleoNotificationRecipient cloneWithOriginalValues() {
+		KaleoNotificationRecipientImpl kaleoNotificationRecipientImpl =
+			new KaleoNotificationRecipientImpl();
+
+		kaleoNotificationRecipientImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoNotificationRecipientImpl.setKaleoNotificationRecipientId(
+			this.<Long>getColumnOriginalValue("kaleoNotificationRecipientId"));
+		kaleoNotificationRecipientImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		kaleoNotificationRecipientImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoNotificationRecipientImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		kaleoNotificationRecipientImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoNotificationRecipientImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoNotificationRecipientImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoNotificationRecipientImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoNotificationRecipientImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoNotificationRecipientImpl.setKaleoNotificationId(
+			this.<Long>getColumnOriginalValue("kaleoNotificationId"));
+		kaleoNotificationRecipientImpl.setRecipientClassName(
+			this.<String>getColumnOriginalValue("recipientClassName"));
+		kaleoNotificationRecipientImpl.setRecipientClassPK(
+			this.<Long>getColumnOriginalValue("recipientClassPK"));
+		kaleoNotificationRecipientImpl.setRecipientRoleType(
+			this.<Integer>getColumnOriginalValue("recipientRoleType"));
+		kaleoNotificationRecipientImpl.setRecipientScript(
+			this.<String>getColumnOriginalValue("recipientScript"));
+		kaleoNotificationRecipientImpl.setRecipientScriptLanguage(
+			this.<String>getColumnOriginalValue("recipientScriptLanguage"));
+		kaleoNotificationRecipientImpl.setRecipientScriptContexts(
+			this.<String>getColumnOriginalValue("recipientScriptContexts"));
+		kaleoNotificationRecipientImpl.setAddress(
+			this.<String>getColumnOriginalValue("address"));
+		kaleoNotificationRecipientImpl.setNotificationReceptionType(
+			this.<String>getColumnOriginalValue("notificationReceptionType"));
+
+		return kaleoNotificationRecipientImpl;
+	}
+
+	@Override
 	public int compareTo(
 		KaleoNotificationRecipient kaleoNotificationRecipient) {
 
@@ -1097,7 +1117,7 @@ public class KaleoNotificationRecipientModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1108,11 +1128,27 @@ public class KaleoNotificationRecipientModelImpl
 			Function<KaleoNotificationRecipient, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply(
-					(KaleoNotificationRecipient)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(KaleoNotificationRecipient)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1163,7 +1199,8 @@ public class KaleoNotificationRecipientModelImpl
 		private static final Function
 			<InvocationHandler, KaleoNotificationRecipient>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						KaleoNotificationRecipient.class, ModelWrapper.class);
 
 	}
 

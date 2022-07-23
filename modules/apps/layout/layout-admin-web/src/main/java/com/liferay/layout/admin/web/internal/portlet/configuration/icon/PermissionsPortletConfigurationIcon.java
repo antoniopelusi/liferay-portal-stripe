@@ -33,7 +33,6 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.taglib.security.PermissionsURLTag;
 
 import javax.portlet.PortletRequest;
@@ -86,7 +85,7 @@ public class PermissionsPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -97,15 +96,9 @@ public class PermissionsPortletConfigurationIcon
 	public boolean isShow(PortletRequest portletRequest) {
 		Layout layout = _getLayout(portletRequest);
 
-		if (layout == null) {
-			return false;
-		}
+		if ((layout == null) || layout.isDraft() ||
+			_staging.isIncomplete(layout)) {
 
-		if (layout.getStatus() == WorkflowConstants.STATUS_DRAFT) {
-			return false;
-		}
-
-		if (_staging.isIncomplete(layout)) {
 			return false;
 		}
 
@@ -125,7 +118,7 @@ public class PermissionsPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

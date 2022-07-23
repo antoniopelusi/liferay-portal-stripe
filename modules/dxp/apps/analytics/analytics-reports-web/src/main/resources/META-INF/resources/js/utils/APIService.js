@@ -54,8 +54,11 @@ export default {
 		});
 	},
 
-	getTrafficSources(analyticsReportsTrafficSourcesURL, {namespace, plid}) {
-		const body = {plid};
+	getTrafficSources(
+		analyticsReportsTrafficSourcesURL,
+		{namespace, plid, timeSpanKey, timeSpanOffset}
+	) {
+		const body = {plid, timeSpanKey, timeSpanOffset};
 
 		return _fetchWithError(analyticsReportsTrafficSourcesURL, {
 			body: _getFormDataRequest(body, namespace),

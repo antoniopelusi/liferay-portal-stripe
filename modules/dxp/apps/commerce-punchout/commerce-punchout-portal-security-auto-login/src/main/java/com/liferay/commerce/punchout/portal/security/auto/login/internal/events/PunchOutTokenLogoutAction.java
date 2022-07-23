@@ -48,9 +48,9 @@ public class PunchOutTokenLogoutAction extends Action {
 				return;
 			}
 
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
-			Object punchOutReturnUrlObject = session.getAttribute(
+			Object punchOutReturnUrlObject = httpSession.getAttribute(
 				PunchOutConstants.PUNCH_OUT_REDIRECT_URL_ATTRIBUTE_NAME);
 
 			if (punchOutReturnUrlObject == null) {
@@ -84,7 +84,7 @@ public class PunchOutTokenLogoutAction extends Action {
 			httpServletResponse.sendRedirect(redirectURL);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 

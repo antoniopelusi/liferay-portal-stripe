@@ -30,21 +30,21 @@ if (comment instanceof WorkflowableComment) {
 }
 %>
 
-<table class="lfr-grid lfr-table">
+<table class="lfr-table">
 	<tr>
 		<td colspan="2" id="<%= randomNamespace %>messageScroll<%= comment.getCommentId() %>">
 			<a name="<%= randomNamespace %>message_<%= comment.getCommentId() %>"></a>
 		</td>
 	</tr>
 	<tr>
-		<td class="lfr-center lfr-top">
+		<td class="align-top text-center">
 			<liferay-ui:user-display
 				displayStyle="2"
 				userId="<%= comment.getUserId() %>"
 				userName="<%= HtmlUtil.escape(comment.getUserName()) %>"
 			/>
 		</td>
-		<td class="lfr-top stretch">
+		<td class="align-top table-cell-expand">
 			<c:if test="<%= (workflowableComment != null) && (workflowableComment.getStatus() != WorkflowConstants.STATUS_APPROVED) %>">
 				<aui:model-context bean="<%= comment %>" model="<%= comment.getModelClass() %>" />
 

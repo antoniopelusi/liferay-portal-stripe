@@ -15,14 +15,13 @@
 package com.liferay.project.templates;
 
 import aQute.bnd.main.bnd;
-import aQute.bnd.version.Version;
-import aQute.bnd.version.VersionRange;
 
 import com.liferay.maven.executor.MavenExecutor;
 import com.liferay.project.templates.extensions.ProjectTemplatesArgs;
 import com.liferay.project.templates.extensions.util.FileUtil;
 import com.liferay.project.templates.extensions.util.ProjectTemplatesUtil;
 import com.liferay.project.templates.extensions.util.Validator;
+import com.liferay.project.templates.extensions.util.VersionUtil;
 import com.liferay.project.templates.extensions.util.WorkspaceUtil;
 import com.liferay.project.templates.util.FileTestUtil;
 import com.liferay.project.templates.util.StringTestUtil;
@@ -675,12 +674,12 @@ public interface BaseProjectTemplatesTestCase {
 			else if (liferayVersion.startsWith("7.3")) {
 				writeGradlePropertiesInWorkspace(
 					workspaceDir,
-					"liferay.workspace.target.platform.version=7.3.6");
+					"liferay.workspace.target.platform.version=7.3.7");
 			}
 			else if (liferayVersion.startsWith("7.4")) {
 				writeGradlePropertiesInWorkspace(
 					workspaceDir,
-					"liferay.workspace.target.platform.version=7.4.0");
+					"liferay.workspace.target.platform.version=7.4.3.4");
 			}
 		}
 		else {
@@ -740,10 +739,44 @@ public interface BaseProjectTemplatesTestCase {
 			StandardOpenOption.APPEND);
 	}
 
-	public default void configurePomNpmConfiguration(File projectDir)
+	public default void configurePomNpmConfiguration(
+			File projectDir, String nodePackageManager)
 		throws Exception {
 
 		File pomXmlFile = testExists(projectDir, "pom.xml");
+
+		if (Objects.equals(nodePackageManager, "npm")) {
+			editXml(
+				pomXmlFile,
+				document -> {
+					try {
+						modifyElementText(
+							document,
+							"//goal[contains(text(), 'install-node-and-yarn')]",
+							"install-node-and-npm");
+						modifyElementText(
+							document, "//goal[contains(text(), 'yarn')]",
+							"npm");
+						modifyElementText(
+							document,
+							"//id[contains(text(), 'install-node-and-yarn')]",
+							"install-node-and-npm");
+						modifyElementText(
+							document, "//id[contains(text(), 'yarn-install')]",
+							"npm-install");
+						modifyElementText(
+							document,
+							"//id[contains(text(), 'yarn-run-build')]",
+							"npm-run-build");
+
+						replaceElementByName(
+							document, "yarnVersion", "npmVersion", "8.1.0");
+					}
+					catch (XPathExpressionException xPathExpressionException) {
+						throw new RuntimeException(xPathExpressionException);
+					}
+				});
+		}
 
 		editXml(
 			pomXmlFile,
@@ -753,12 +786,13 @@ public interface BaseProjectTemplatesTestCase {
 
 					XPath xPath = xPathFactory.newXPath();
 
-					XPathExpression pomXmlNpmInstallXPathExpression =
+					XPathExpression pomXmlYarnInstallXPathExpression =
 						xPath.compile(
-							"//id[contains(text(),'npm-install')]/parent::*");
+							"//id[contains(text(),'" + nodePackageManager +
+								"-install')]/parent::*");
 
 					NodeList nodeList =
-						(NodeList)pomXmlNpmInstallXPathExpression.evaluate(
+						(NodeList)pomXmlYarnInstallXPathExpression.evaluate(
 							document, XPathConstants.NODESET);
 
 					Node executionNode = nodeList.item(0);
@@ -779,6 +813,7 @@ public interface BaseProjectTemplatesTestCase {
 					argumentsElement.appendChild(text);
 				}
 				catch (XPathExpressionException xPathExpressionException) {
+					throw new RuntimeException(xPathExpressionException);
 				}
 			});
 	}
@@ -978,6 +1013,7 @@ public interface BaseProjectTemplatesTestCase {
 
 		if (debug) {
 			stdOutput = stringWriter.toString();
+
 			stringWriter.close();
 		}
 
@@ -1095,6 +1131,88 @@ public interface BaseProjectTemplatesTestCase {
 		return false;
 	}
 
+	public default void modifyElementText(
+			Document document, String expression, String newText)
+		throws XPathExpressionException {
+
+		XPathFactory xPathFactory = XPathFactory.newInstance();
+
+		XPath xPath = xPathFactory.newXPath();
+
+		XPathExpression xPathExpression = xPath.compile(expression);
+
+		NodeList nodeList = (NodeList)xPathExpression.evaluate(
+			document, XPathConstants.NODESET);
+
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			Node node = nodeList.item(i);
+
+			node.setTextContent(newText);
+		}
+	}
+
+	public default File removeGradlePropertiesInWorkspace(
+			File workspaceDir, String gradleProperties)
+		throws IOException {
+
+		File gradlePropertiesFile = new File(workspaceDir, "gradle.properties");
+
+		List<String> originalPropertiesList = Files.readAllLines(
+			gradlePropertiesFile.toPath());
+
+		StringBuilder sb = new StringBuilder();
+
+		for (String property : originalPropertiesList) {
+			if (property.equals(gradleProperties)) {
+				continue;
+			}
+
+			sb.append(property);
+			sb.append(System.lineSeparator());
+		}
+
+		String propertiesContent = sb.toString();
+
+		Files.write(
+			gradlePropertiesFile.toPath(), propertiesContent.getBytes(),
+			StandardOpenOption.TRUNCATE_EXISTING);
+
+		return gradlePropertiesFile;
+	}
+
+	public default void replaceElementByName(
+			Document document, String oldElementName, String newElementName,
+			String textString)
+		throws XPathExpressionException {
+
+		XPathFactory xPathFactory = XPathFactory.newInstance();
+
+		XPath xPath = xPathFactory.newXPath();
+
+		XPathExpression expression = xPath.compile("//" + oldElementName);
+
+		NodeList nodeList = (NodeList)expression.evaluate(
+			document, XPathConstants.NODESET);
+
+		if (nodeList.getLength() > 0) {
+			Node node = nodeList.item(0);
+
+			Node parentNode = node.getParentNode();
+
+			parentNode.removeChild(node);
+
+			Element newElement = document.createElement(newElementName);
+
+			parentNode.appendChild(newElement);
+
+			if (textString != null) {
+				Text text = document.createTextNode(textString);
+
+				newElement.appendChild(text);
+			}
+		}
+	}
+
 	public default List<String> sanitizeLines(List<String> lines) {
 		List<String> sanitizedLines = new ArrayList<>();
 
@@ -1110,7 +1228,8 @@ public interface BaseProjectTemplatesTestCase {
 	public default void testBuildTemplateNpm(
 			TemporaryFolder temporaryFolder, MavenExecutor mavenExecutor,
 			String template, String name, String packageName, String className,
-			String liferayVersion, URI gradleDistribution)
+			String liferayVersion, String nodePackageManager,
+			URI gradleDistribution)
 		throws Exception {
 
 		File gradleWorkspaceDir = buildWorkspace(
@@ -1124,11 +1243,7 @@ public interface BaseProjectTemplatesTestCase {
 			gradleWorkspaceModulesDir, template, name, "--liferay-version",
 			liferayVersion);
 
-		Version version = Version.parseVersion(liferayVersion);
-
-		VersionRange versionRange = new VersionRange("[7.0,7.3)");
-
-		if (versionRange.includes(version)) {
+		if (VersionUtil.getMinorVersion(liferayVersion) < 3) {
 			testContains(
 				gradleProjectDir, "build.gradle", DEPENDENCY_JAVAX_PORTLET_API,
 				DEPENDENCY_JAVAX_SERVLET_API, DEPENDENCY_ORG_OSGI_ANNOTATIONS);
@@ -1165,7 +1280,7 @@ public interface BaseProjectTemplatesTestCase {
 			addNpmrc(gradleProjectDir);
 			addNpmrc(mavenProjectDir);
 			configureExecutePackageManagerTask(gradleProjectDir);
-			configurePomNpmConfiguration(mavenProjectDir);
+			configurePomNpmConfiguration(mavenProjectDir, nodePackageManager);
 		}
 
 		if (isBuildProjects()) {
@@ -1264,7 +1379,7 @@ public interface BaseProjectTemplatesTestCase {
 			mavenExecutor, "-DclassName=" + className,
 			"-Dpackage=" + packageName, "-DliferayVersion=" + liferayVersion);
 
-		if (!liferayVersion.equals("7.0.6") && !template.contains("war")) {
+		if (!liferayVersion.startsWith("7.0") && !template.contains("war")) {
 			testContains(
 				mavenProjectDir, "bnd.bnd",
 				"-contract: JavaPortlet,JavaServlet");
@@ -1310,12 +1425,12 @@ public interface BaseProjectTemplatesTestCase {
 		else if (liferayVersion.startsWith("7.3")) {
 			writeGradlePropertiesInWorkspace(
 				gradleWorkspaceDir,
-				"liferay.workspace.target.platform.version=7.3.6");
+				"liferay.workspace.target.platform.version=7.3.7");
 		}
 		else {
 			writeGradlePropertiesInWorkspace(
 				gradleWorkspaceDir,
-				"liferay.workspace.target.platform.version=7.4.0");
+				"liferay.workspace.target.platform.version=7.4.3.4");
 		}
 
 		File modulesDir = new File(gradleWorkspaceDir, "modules");
@@ -1467,30 +1582,41 @@ public interface BaseProjectTemplatesTestCase {
 
 		File workspaceDir = null;
 
-		if (argsList.contains("7.0.6")) {
-			workspaceDir = buildWorkspace(temporaryFolder, "7.0.6");
+		if (argsList.contains("7.0.6-2")) {
+			workspaceDir = buildWorkspace(temporaryFolder, "7.0.6-2");
 
 			writeGradlePropertiesInWorkspace(
-				workspaceDir, "liferay.workspace.product=portal-7.0-ga7");
+				workspaceDir,
+				"liferay.workspace.target.platform.version=7.0.6-2");
 		}
-		else if (argsList.contains("7.1.3")) {
-			workspaceDir = buildWorkspace(temporaryFolder, "7.1.3");
+		else if (argsList.contains("7.1.3-1")) {
+			workspaceDir = buildWorkspace(temporaryFolder, "7.1.3-1");
 
 			writeGradlePropertiesInWorkspace(
-				workspaceDir, "liferay.workspace.product=portal-7.1-ga4");
+				workspaceDir,
+				"liferay.workspace.target.platform.version=7.1.3-1");
 		}
-		else if (argsList.contains("7.2.1")) {
-			workspaceDir = buildWorkspace(temporaryFolder, "7.2.1");
+		else if (argsList.contains("7.2.1-1")) {
+			workspaceDir = buildWorkspace(temporaryFolder, "7.2.1-1");
 
 			writeGradlePropertiesInWorkspace(
-				workspaceDir, "liferay.workspace.product=portal-7.2-ga2");
+				workspaceDir,
+				"liferay.workspace.target.platform.version=7.2.1-1");
+		}
+		else if (argsList.contains("7.3.7")) {
+			workspaceDir = buildWorkspace(temporaryFolder, "7.3.7");
+
+			writeGradlePropertiesInWorkspace(
+				workspaceDir,
+				"liferay.workspace.target.platform.version=7.3.7");
 		}
 		else {
 			workspaceDir = buildWorkspace(
 				temporaryFolder, getDefaultLiferayVersion());
 
 			writeGradlePropertiesInWorkspace(
-				workspaceDir, "liferay.workspace.product=portal-7.3-ga6");
+				workspaceDir,
+				"liferay.workspace.target.platform.version=7.4.3.4");
 		}
 
 		File modulesDir = new File(workspaceDir, "modules");
@@ -1715,6 +1841,11 @@ public interface BaseProjectTemplatesTestCase {
 				gradleProjectDir, "src/main/webapp/WEB-INF/liferay-hook.xml",
 				"liferay-hook_7_3_0.dtd");
 		}
+		else if (liferayVersion.startsWith("7.4")) {
+			testContains(
+				gradleProjectDir, "src/main/webapp/WEB-INF/liferay-hook.xml",
+				"liferay-hook_7_4_0.dtd");
+		}
 	}
 
 	public default void testTemplateWarPortletDTD(
@@ -1756,6 +1887,15 @@ public interface BaseProjectTemplatesTestCase {
 			testContains(
 				gradleProjectDir, "src/main/webapp/WEB-INF/liferay-portlet.xml",
 				"liferay-portlet-app_7_3_0.dtd");
+		}
+		else if (liferayVersion.startsWith("7.4")) {
+			testContains(
+				gradleProjectDir, "src/main/webapp/WEB-INF/liferay-display.xml",
+				"liferay-display_7_4_0.dtd");
+
+			testContains(
+				gradleProjectDir, "src/main/webapp/WEB-INF/liferay-portlet.xml",
+				"liferay-portlet-app_7_4_0.dtd");
 		}
 	}
 

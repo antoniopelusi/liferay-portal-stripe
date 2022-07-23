@@ -102,7 +102,8 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 		total="<%= roles.size() %>"
 	>
 		<liferay-ui:search-container-results
-			results="<%= roles.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
+			calculateStartAndEnd="<%= true %>"
+			results="<%= roles %>"
 		/>
 
 		<liferay-ui:search-container-row
@@ -175,7 +176,7 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 							"p_u_i_d", (selUser == null) ? "0" : String.valueOf(selUser.getUserId())
 						).setWindowState(
 							LiferayWindowState.POP_UP
-						).build();
+						).buildPortletURL();
 						%>
 
 						url: '<%= selectRegularRoleURL.toString() %>',
@@ -197,7 +198,8 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 			total="<%= roleGroups.size() %>"
 		>
 			<liferay-ui:search-container-results
-				results="<%= roleGroups.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
+				calculateStartAndEnd="<%= true %>"
+				results="<%= roleGroups %>"
 			/>
 
 			<liferay-ui:search-container-row
@@ -212,6 +214,7 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 				%>
 
 				<liferay-ui:search-container-column-text
+					cssClass="table-cell-expand"
 					name="title"
 					value="<%= HtmlUtil.escape(ListUtil.toString(groupRoles, Role.NAME_ACCESSOR)) %>"
 				>
@@ -279,7 +282,8 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 			total="<%= organizationRoles.size() %>"
 		>
 			<liferay-ui:search-container-results
-				results="<%= organizationRoles.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
+				calculateStartAndEnd="<%= true %>"
+				results="<%= organizationRoles %>"
 			/>
 
 			<liferay-ui:search-container-row
@@ -408,11 +412,11 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 						},
 
 						<%
+						String groupEventName = liferayPortletResponse.getNamespace() + "selectOrganization";
 						String organizationRoleEventName = liferayPortletResponse.getNamespace() + "selectOrganizationRole";
 						%>
 
 						selectEventName: '<%= organizationRoleEventName %>',
-						selectedData: searchContainer.getData(true),
 						title:
 							'<liferay-ui:message arguments="organization-role" key="select-x" />',
 
@@ -422,19 +426,51 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 						).setParameter(
 							"eventName", organizationRoleEventName
 						).setParameter(
+							"groupEventName", groupEventName
+						).setParameter(
 							"organizationIds", StringUtil.merge(organizationIds)
 						).setParameter(
 							"p_u_i_d", (selUser == null) ? "0" : String.valueOf(selUser.getUserId())
 						).setParameter(
-							"roleType", String.valueOf(RoleConstants.TYPE_ORGANIZATION)
+							"roleType", RoleConstants.TYPE_ORGANIZATION
 						).setParameter(
 							"step", "1"
 						).setWindowState(
 							LiferayWindowState.POP_UP
-						).build();
+						).buildPortletURL();
 						%>
 
 						url: '<%= selectOrganizationRoleURL.toString() %>',
+					});
+
+					Liferay.on('<%= groupEventName %>', () => {
+						const iframe = document.querySelector('.liferay-modal iframe');
+
+						if (iframe) {
+							const iframeDocument = iframe.contentWindow.document;
+
+							const selectedDataSet = new Set(searchContainer.getData(true));
+
+							const selectButtons = iframeDocument.querySelectorAll(
+								'.selector-button'
+							);
+
+							selectButtons.forEach((selectButton) => {
+								const selectButtonId =
+									selectButton.dataset.groupid +
+									'-' +
+									selectButton.dataset.entityid;
+
+								if (selectedDataSet.has(selectButtonId)) {
+									selectButton.disabled = true;
+									selectButton.classList.add('disabled');
+								}
+								else {
+									selectButton.disabled = false;
+									selectButton.classList.remove('disabled');
+								}
+							});
+						}
 					});
 				});
 			}
@@ -486,7 +522,8 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 			total="<%= siteRoles.size() %>"
 		>
 			<liferay-ui:search-container-results
-				results="<%= siteRoles.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
+				calculateStartAndEnd="<%= true %>"
+				results="<%= siteRoles %>"
 			/>
 
 			<liferay-ui:search-container-row
@@ -607,12 +644,12 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 							},
 
 							<%
+							String groupEventName = liferayPortletResponse.getNamespace() + "selectSite";
 							String siteRoleEventName = liferayPortletResponse.getNamespace() + "selectSiteRole";
 							%>
 
 							selectEventName: '<%= siteRoleEventName %>',
 
-							selectedData: searchContainer.getData(true),
 							title:
 								'<liferay-ui:message arguments="site-role" key="select-x" />',
 							url:
@@ -622,16 +659,48 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 									).setParameter(
 										"eventName", siteRoleEventName
 									).setParameter(
+										"groupEventName", groupEventName
+									).setParameter(
 										"p_u_i_d", (selUser == null) ? "0" : String.valueOf(selUser.getUserId())
 									).setParameter(
-										"roleType", String.valueOf(RoleConstants.TYPE_SITE)
+										"roleType", RoleConstants.TYPE_SITE
 									).setParameter(
 										"step", "1"
 									).setWindowState(
 										LiferayWindowState.POP_UP
-									).build()
+									).buildPortletURL()
 								%>',
 						});
+					});
+
+					Liferay.on('<%= groupEventName %>', () => {
+						const iframe = document.querySelector('.liferay-modal iframe');
+
+						if (iframe) {
+							const iframeDocument = iframe.contentWindow.document;
+
+							const selectedDataSet = new Set(searchContainer.getData(true));
+
+							const selectButtons = iframeDocument.querySelectorAll(
+								'.selector-button'
+							);
+
+							selectButtons.forEach((selectButton) => {
+								const selectButtonId =
+									selectButton.dataset.groupid +
+									'-' +
+									selectButton.dataset.entityid;
+
+								if (selectedDataSet.has(selectButtonId)) {
+									selectButton.disabled = true;
+									selectButton.classList.add('disabled');
+								}
+								else {
+									selectButton.disabled = false;
+									selectButton.classList.remove('disabled');
+								}
+							});
+						}
 					});
 				}
 			</aui:script>
@@ -650,7 +719,8 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 			total="<%= inheritedSiteRoles.size() %>"
 		>
 			<liferay-ui:search-container-results
-				results="<%= inheritedSiteRoles.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
+				calculateStartAndEnd="<%= true %>"
+				results="<%= inheritedSiteRoles %>"
 			/>
 
 			<liferay-ui:search-container-row
@@ -781,7 +851,7 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 				);
 
 				if (groupName) {
-					rowColumns.push(groupName);
+					rowColumns.push(Liferay.Util.escapeHTML(groupName));
 				}
 
 				if (groupId) {

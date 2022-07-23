@@ -136,6 +136,11 @@ public class MicroblogsEntryWrapper
 	}
 
 	@Override
+	public MicroblogsEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public long fetchParentMicroblogsEntryUserId() {
 		return model.fetchParentMicroblogsEntryUserId();
 	}

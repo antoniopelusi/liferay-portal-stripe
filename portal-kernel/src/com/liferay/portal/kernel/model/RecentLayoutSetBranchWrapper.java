@@ -99,6 +99,11 @@ public class RecentLayoutSetBranchWrapper
 		}
 	}
 
+	@Override
+	public RecentLayoutSetBranch cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this recent layout set branch.
 	 *

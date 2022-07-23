@@ -34,17 +34,17 @@ SegmentsExperimentDisplayContext segmentsExperimentDisplayContext = (SegmentsExp
 		</div>
 	</c:when>
 	<c:otherwise>
-		<div class="p-3 pt-5 text-center">
+		<div class="p-3 pt-4 text-center">
 			<liferay-ui:icon
 				alt="connect-to-liferay-analytics-cloud"
-				src='<%= PortalUtil.getPathContext(request) + "/assets/ac-icon.svg" %>'
+				src='<%= PortalUtil.getPathContext(request) + "/images/ac_icon.svg" %>'
 			/>
 
 			<c:choose>
 				<c:when test="<%= SegmentsExperimentUtil.isAnalyticsConnected(themeDisplay.getCompanyId()) %>">
-					<h4 class="mt-3"><liferay-ui:message key="sync-to-analytics-cloud" /></h4>
+					<h4 class="font-weight-semi-bold h5 mt-3"><liferay-ui:message key="sync-to-analytics-cloud" /></h4>
 
-					<p class="text-secondary"><liferay-ui:message key="sync-to-analytics-cloud-help" /></p>
+					<p class="text-secondary"><liferay-ui:message key="in-order-to-perform-an-ab-test,-your-site-has-to-be-synced-to-liferay-analytics-cloud" /></p>
 
 					<liferay-ui:icon
 						label="<%= true %>"
@@ -56,9 +56,9 @@ SegmentsExperimentDisplayContext segmentsExperimentDisplayContext = (SegmentsExp
 					/>
 				</c:when>
 				<c:otherwise>
-					<h4 class="mt-3"><liferay-ui:message key="connect-to-liferay-analytics-cloud" /></h4>
+					<h4 class="font-weight-semi-bold h5 mt-3"><liferay-ui:message key="connect-to-liferay-analytics-cloud" /></h4>
 
-					<p class="text-secondary"><liferay-ui:message key="connect-to-liferay-analytics-cloud-help" /></p>
+					<p class="text-secondary"><liferay-ui:message key="in-order-to-perform-an-ab-test,-your-liferay-dxp-instance-has-to-be-connected" /></p>
 
 					<liferay-ui:icon
 						label="<%= true %>"
@@ -75,7 +75,7 @@ SegmentsExperimentDisplayContext segmentsExperimentDisplayContext = (SegmentsExp
 
 					<liferay-ui:icon
 						label="<%= true %>"
-						linkCssClass="d-block font-weight-bold mb-3 mt-5"
+						linkCssClass="d-block font-weight-bold mb-2 mt-5"
 						markupView="lexicon"
 						message="do-not-show-me-this-again"
 						url="<%= hideSegmentsExperimentPanelURL %>"

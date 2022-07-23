@@ -28,16 +28,16 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 ).setRedirect(
 	currentURL
 ).setParameter(
-	"nodeId", String.valueOf(wikiPage.getNodeId())
+	"nodeId", wikiPage.getNodeId()
 ).setParameter(
-	"sourceVersion", String.valueOf(sourceVersion)
+	"sourceVersion", sourceVersion
 ).setParameter(
 	"title", HtmlUtil.unescape(wikiPage.getTitle())
-).build();
+).buildPortletURL();
 %>
 
 <clay:container-fluid>
-	<aui:form action="<%= portletURL.toString() %>" method="post" name="selectVersionFm">
+	<aui:form action="<%= portletURL %>" method="post" name="selectVersionFm">
 		<liferay-ui:search-container
 			id="wikiPageVersionSearchContainer"
 			iteratorURL="<%= portletURL %>"

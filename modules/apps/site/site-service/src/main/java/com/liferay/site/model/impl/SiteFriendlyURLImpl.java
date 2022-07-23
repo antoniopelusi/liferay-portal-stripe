@@ -36,7 +36,5 @@ public class SiteFriendlyURLImpl extends SiteFriendlyURLBaseImpl {
 	 * friendly url model instance should use the {@link
 	 * com.liferay.site.model.SiteFriendlyURL} interface instead.
 	 */
-	public SiteFriendlyURLImpl() {
-	}
 
 }

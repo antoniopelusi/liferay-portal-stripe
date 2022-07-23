@@ -22,7 +22,6 @@ import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.application.type.ApplicationType;
-import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Plugin;
@@ -34,6 +33,7 @@ import com.liferay.portal.kernel.model.PortletFilter;
 import com.liferay.portal.kernel.model.PortletInfo;
 import com.liferay.portal.kernel.model.PublicRenderParameter;
 import com.liferay.portal.kernel.model.portlet.PortletDependency;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.notifications.UserNotificationHandler;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.poller.PollerProcessor;
@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapperTracker;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletBagPool;
+import com.liferay.portal.kernel.portlet.PortletConfigurationListener;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletLayoutListener;
 import com.liferay.portal.kernel.portlet.PortletQNameUtil;
@@ -64,7 +65,7 @@ import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -74,9 +75,6 @@ import com.liferay.portal.kernel.workflow.WorkflowHandler;
 import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.kernel.xmlrpc.Method;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistrar;
 import com.liferay.social.kernel.model.SocialActivityInterpreter;
 import com.liferay.social.kernel.model.SocialRequestInterpreter;
 
@@ -95,6 +93,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.portlet.PortletMode;
 import javax.portlet.WindowState;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Brian Wing Shun Chan
@@ -119,7 +120,6 @@ public class PortletImpl extends PortletBaseImpl {
 		setStrutsPath(portletId);
 
 		_assetRendererFactoryClasses = new ArrayList<>();
-		_atomCollectionAdapterClasses = new ArrayList<>();
 		_autopropagatedParameters = new LinkedHashSet<>();
 		_customAttributesDisplayClasses = new ArrayList<>();
 		_footerPortalCss = new ArrayList<>();
@@ -165,6 +165,7 @@ public class PortletImpl extends PortletBaseImpl {
 		String friendlyURLMapping, String friendlyURLRoutes,
 		String urlEncoderClass, String portletDataHandlerClass,
 		List<String> stagedModelDataHandlerClasses, String templateHandlerClass,
+		String portletConfigurationListenerClass,
 		String portletLayoutListenerClass, String pollerProcessorClass,
 		String popMessageListenerClass,
 		List<String> socialActivityInterpreterClasses,
@@ -174,7 +175,6 @@ public class PortletImpl extends PortletBaseImpl {
 		String webDAVStorageClass, String xmlRpcMethodClass,
 		String controlPanelEntryCategory, double controlPanelEntryWeight,
 		String controlPanelEntryClass, List<String> assetRendererFactoryClasses,
-		List<String> atomCollectionAdapterClasses,
 		List<String> customAttributesDisplayClasses,
 		String permissionPropagatorClass, List<String> trashHandlerClasses,
 		List<String> workflowHandlerClasses, String defaultPreferences,
@@ -242,6 +242,7 @@ public class PortletImpl extends PortletBaseImpl {
 		_portletDataHandlerClass = portletDataHandlerClass;
 		_stagedModelDataHandlerClasses = stagedModelDataHandlerClasses;
 		_templateHandlerClass = templateHandlerClass;
+		_portletConfigurationListenerClass = portletConfigurationListenerClass;
 		_portletLayoutListenerClass = portletLayoutListenerClass;
 		_pollerProcessorClass = pollerProcessorClass;
 		_popMessageListenerClass = popMessageListenerClass;
@@ -256,7 +257,6 @@ public class PortletImpl extends PortletBaseImpl {
 		_controlPanelEntryWeight = controlPanelEntryWeight;
 		_controlPanelEntryClass = controlPanelEntryClass;
 		_assetRendererFactoryClasses = assetRendererFactoryClasses;
-		_atomCollectionAdapterClasses = atomCollectionAdapterClasses;
 		_customAttributesDisplayClasses = customAttributesDisplayClasses;
 		_permissionPropagatorClass = permissionPropagatorClass;
 		_trashHandlerClasses = trashHandlerClasses;
@@ -412,16 +412,15 @@ public class PortletImpl extends PortletBaseImpl {
 			getFriendlyURLMapperClass(), getFriendlyURLMapping(),
 			getFriendlyURLRoutes(), getURLEncoderClass(),
 			getPortletDataHandlerClass(), getStagedModelDataHandlerClasses(),
-			getTemplateHandlerClass(), getPortletLayoutListenerClass(),
-			getPollerProcessorClass(), getPopMessageListenerClass(),
-			getSocialActivityInterpreterClasses(),
+			getTemplateHandlerClass(), getPortletConfigurationListenerClass(),
+			getPortletLayoutListenerClass(), getPollerProcessorClass(),
+			getPopMessageListenerClass(), getSocialActivityInterpreterClasses(),
 			getSocialRequestInterpreterClass(),
 			getUserNotificationDefinitions(),
 			getUserNotificationHandlerClasses(), getWebDAVStorageToken(),
 			getWebDAVStorageClass(), getXmlRpcMethodClass(),
 			getControlPanelEntryCategory(), getControlPanelEntryWeight(),
 			getControlPanelEntryClass(), getAssetRendererFactoryClasses(),
-			getAtomCollectionAdapterClasses(),
 			getCustomAttributesDisplayClasses(), getPermissionPropagatorClass(),
 			getTrashHandlerClasses(), getWorkflowHandlerClasses(),
 			getDefaultPreferences(), getPreferencesValidator(),
@@ -620,34 +619,6 @@ public class PortletImpl extends PortletBaseImpl {
 		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
 
 		return portletBag.getAssetRendererFactoryInstances();
-	}
-
-	/**
-	 * Returns the names of the classes that represent atom collection adapters
-	 * associated with the portlet.
-	 *
-	 * @return the names of the classes that represent atom collection adapters
-	 *         associated with the portlet
-	 */
-	@Override
-	public List<String> getAtomCollectionAdapterClasses() {
-		return _atomCollectionAdapterClasses;
-	}
-
-	/**
-	 * Returns the atom collection adapter instances of the portlet.
-	 *
-	 * @return the atom collection adapter instances of the portlet
-	 */
-	@Override
-	public List<AtomCollectionAdapter<?>> getAtomCollectionAdapterInstances() {
-		if (_atomCollectionAdapterClasses.isEmpty()) {
-			return null;
-		}
-
-		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
-
-		return portletBag.getAtomCollectionAdapterInstances();
 	}
 
 	/**
@@ -1399,6 +1370,32 @@ public class PortletImpl extends PortletBaseImpl {
 	@Override
 	public String getPortletClass() {
 		return _portletClass;
+	}
+
+	@Override
+	public String getPortletConfigurationListenerClass() {
+		return _portletConfigurationListenerClass;
+	}
+
+	@Override
+	public PortletConfigurationListener
+		getPortletConfigurationListenerInstance() {
+
+		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
+
+		if (portletBag == null) {
+			return null;
+		}
+
+		List<PortletConfigurationListener>
+			portletConfigurationListenerInstances =
+				portletBag.getPortletConfigurationListenerInstances();
+
+		if (portletConfigurationListenerInstances.isEmpty()) {
+			return null;
+		}
+
+		return portletConfigurationListenerInstances.get(0);
 	}
 
 	/**
@@ -2346,7 +2343,7 @@ public class PortletImpl extends PortletBaseImpl {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;
@@ -3021,20 +3018,6 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the names of the classes that represent atom collection adapters
-	 * associated with the portlet.
-	 *
-	 * @param atomCollectionAdapterClasses the names of the classes that
-	 *        represent atom collection adapters associated with the portlet
-	 */
-	@Override
-	public void setAtomCollectionAdapterClasses(
-		List<String> atomCollectionAdapterClasses) {
-
-		_atomCollectionAdapterClasses = atomCollectionAdapterClasses;
-	}
-
-	/**
 	 * Sets the names of the parameters that will be automatically propagated
 	 * through the portlet.
 	 *
@@ -3574,6 +3557,13 @@ public class PortletImpl extends PortletBaseImpl {
 		_portletClass = portletClass;
 	}
 
+	@Override
+	public void setPortletConfigurationListenerClass(
+		String portletConfigurationListenerClass) {
+
+		_portletConfigurationListenerClass = portletConfigurationListenerClass;
+	}
+
 	/**
 	 * Sets the name of the portlet data handler class of the portlet.
 	 *
@@ -3827,10 +3817,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	@Override
 	public void setReady(boolean ready) {
-		Registry registry = RegistryUtil.getRegistry();
-
-		Readiness readiness = new Readiness(
-			ready, registry.getServiceRegistrar(Portlet.class));
+		Readiness readiness = new Readiness(ready);
 
 		String rootPortletId = getRootPortletId();
 
@@ -3848,25 +3835,18 @@ public class PortletImpl extends PortletBaseImpl {
 
 			readiness._ready = ready;
 
-			ServiceRegistrar<Portlet> serviceRegistrar =
-				readiness._serviceRegistrar;
-
 			if (ready && !_undeployedPortlet) {
-				if (serviceRegistrar.isDestroyed()) {
-					serviceRegistrar = registry.getServiceRegistrar(
-						Portlet.class);
+				BundleContext bundleContext =
+					SystemBundleUtil.getBundleContext();
 
-					readiness._serviceRegistrar = serviceRegistrar;
-				}
-
-				serviceRegistrar.registerService(
-					Portlet.class, this,
-					HashMapBuilder.<String, Object>put(
-						"javax.portlet.name", getPortletName()
-					).build());
+				readiness.setServiceRegistration(
+					bundleContext.registerService(
+						Portlet.class, this,
+						MapUtil.singletonDictionary(
+							"javax.portlet.name", getPortletName())));
 			}
 			else {
-				serviceRegistrar.destroy();
+				readiness.setServiceRegistration(null);
 			}
 		}
 	}
@@ -4293,10 +4273,7 @@ public class PortletImpl extends PortletBaseImpl {
 
 		if (readiness != null) {
 			synchronized (readiness) {
-				ServiceRegistrar<Portlet> serviceRegistrar =
-					readiness._serviceRegistrar;
-
-				serviceRegistrar.destroy();
+				readiness.setServiceRegistration(null);
 			}
 		}
 	}
@@ -4357,12 +4334,6 @@ public class PortletImpl extends PortletBaseImpl {
 	 * resource requests.
 	 */
 	private boolean _asyncSupported;
-
-	/**
-	 * The names of the classes that represents atom collection adapters
-	 * associated with the portlet.
-	 */
-	private List<String> _atomCollectionAdapterClasses;
 
 	/**
 	 * The names of the parameters that will be automatically propagated through
@@ -4619,6 +4590,8 @@ public class PortletImpl extends PortletBaseImpl {
 	 * The name of the portlet class of the portlet.
 	 */
 	private String _portletClass;
+
+	private String _portletConfigurationListenerClass;
 
 	/**
 	 * The name of the portlet data handler class of the portlet.
@@ -4949,15 +4922,22 @@ public class PortletImpl extends PortletBaseImpl {
 
 	private static class Readiness {
 
-		private Readiness(
-			boolean ready, ServiceRegistrar<Portlet> serviceRegistrar) {
+		public void setServiceRegistration(
+			ServiceRegistration<Portlet> serviceRegistration) {
 
+			if (_serviceRegistration != null) {
+				_serviceRegistration.unregister();
+			}
+
+			_serviceRegistration = serviceRegistration;
+		}
+
+		private Readiness(boolean ready) {
 			_ready = ready;
-			_serviceRegistrar = serviceRegistrar;
 		}
 
 		private volatile boolean _ready;
-		private ServiceRegistrar<Portlet> _serviceRegistrar;
+		private ServiceRegistration<Portlet> _serviceRegistration;
 
 	}
 

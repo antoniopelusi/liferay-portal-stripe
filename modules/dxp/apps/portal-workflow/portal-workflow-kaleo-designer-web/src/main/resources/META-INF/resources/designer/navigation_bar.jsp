@@ -25,7 +25,7 @@
 		<aui:nav-item cssClass="nav-item-expand" label="workflow-definitions" selected="<%= true %>" />
 
 		<li class="nav-item">
-			<aui:form action="<%= searchURL.toString() %>" name="searchFm">
+			<aui:form action="<%= searchURL %>" name="searchFm">
 				<liferay-util:include page="/designer/kaleo_definition_search.jsp" servletContext="<%= application %>" />
 			</aui:form>
 		</li>

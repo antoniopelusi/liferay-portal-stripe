@@ -36,10 +36,6 @@
 			<finder-column name="className" />
 			<finder-column name="key" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>DuplicateLock</exception>

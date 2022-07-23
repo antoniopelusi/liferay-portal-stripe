@@ -79,7 +79,7 @@ public class DDMFormAdminTabItem implements DDMDisplayTabItem {
 			"groupId", themeDisplay.getScopeGroupId()
 		).setParameter(
 			"refererPortletName", DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN
-		).build();
+		).buildPortletURL();
 	}
 
 }

@@ -2,15 +2,22 @@
 <head>
 <title>WorkflowTransitionModal</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WorkflowTransitionModal</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>TASK_PANEL</td>
 	<td>//div[@class='panel']//h4[text()='${key_taskName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_ERROR_MESSAGE</td>
+	<td>//div[contains(@role,'alert') and contains(., '${key_errorMessage}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -21,6 +28,31 @@
 <tr>
 	<td>TRANSITION_TO_OPTION</td>
 	<td>//h4[text()='${key_taskName}']/parent::div/following-sibling::div[1]//select//option[@value='${key_transitionOption}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_MODAL_CHECKBOX_ITEM</td>
+	<td>//tbody/tr[@class][${key_task}]/td/div[contains(@class, 'custom-control custom-checkbox')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_MODAL_ASSERT_REVIEW</td>
+	<td>//div[contains(@class, 'autofit-col autofit-col-expand')]//p[text()='${key_tilte}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_MODAL_ASSERT_REVIEW_TASK_1</td>
+	<td>//div[@class='panel'][1]//p[contains(text(),'${key_taskName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_MODAL_ASSERT_REVIEW_TASK_2</td>
+	<td>//div[@class='panel'][2]//p[contains(text(),'${key_taskName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSITION_TASK_NAME</td>
+	<td>//p[contains(text(),'${key_taskName}')]</td>
 	<td></td>
 </tr>
 </tbody>

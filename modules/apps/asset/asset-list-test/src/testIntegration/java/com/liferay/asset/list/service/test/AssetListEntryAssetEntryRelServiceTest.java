@@ -166,25 +166,25 @@ public class AssetListEntryAssetEntryRelServiceTest {
 		AssetListEntry assetListEntry = AssetListTestUtil.addAssetListEntry(
 			_group.getGroupId());
 
-		int originalAssetListEntryAssetEntryRelCount =
+		int originalAssetListEntryAssetEntryRelsCount =
 			_assetListEntryAssetEntryRelLocalService.
 				getAssetListEntryAssetEntryRelsCount(
 					assetListEntry.getAssetListEntryId());
 
-		Assert.assertEquals(0, originalAssetListEntryAssetEntryRelCount);
+		Assert.assertEquals(0, originalAssetListEntryAssetEntryRelsCount);
 
 		AssetListTestUtil.addAssetListEntryAssetEntryRel(
 			_group.getGroupId(), assetEntry, assetListEntry,
 			RandomTestUtil.nextLong());
 
-		int actualAssetListEntryAssetEntryRelCount =
+		int actualAssetListEntryAssetEntryRelsCount =
 			_assetListEntryAssetEntryRelLocalService.
 				getAssetListEntryAssetEntryRelsCount(
 					assetListEntry.getAssetListEntryId());
 
 		Assert.assertEquals(
-			originalAssetListEntryAssetEntryRelCount + 1,
-			actualAssetListEntryAssetEntryRelCount);
+			originalAssetListEntryAssetEntryRelsCount + 1,
+			actualAssetListEntryAssetEntryRelsCount);
 	}
 
 	@Test

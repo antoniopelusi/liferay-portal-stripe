@@ -50,7 +50,7 @@ public class SessionClickAction implements Action {
 			AuthTokenUtil.checkCSRFToken(
 				httpServletRequest, SessionClickAction.class.getName());
 
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
 			Enumeration<String> enumeration =
 				httpServletRequest.getParameterNames();
@@ -69,7 +69,7 @@ public class SessionClickAction implements Action {
 						httpServletRequest, name);
 
 					if (useHttpSession) {
-						SessionClicks.put(session, name, value);
+						SessionClicks.put(httpSession, name, value);
 					}
 					else {
 						SessionClicks.put(httpServletRequest, name, value);
@@ -108,7 +108,7 @@ public class SessionClickAction implements Action {
 	}
 
 	protected String getValue(HttpServletRequest httpServletRequest) {
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
 		String cmd = ParamUtil.getString(httpServletRequest, Constants.CMD);
 
@@ -120,7 +120,7 @@ public class SessionClickAction implements Action {
 			String value = StringPool.BLANK;
 
 			if (useHttpSession) {
-				value = SessionClicks.get(session, key, cmd);
+				value = SessionClicks.get(httpSession, key, cmd);
 			}
 			else {
 				value = SessionClicks.get(httpServletRequest, key, cmd);
@@ -137,7 +137,7 @@ public class SessionClickAction implements Action {
 				String value = StringPool.BLANK;
 
 				if (useHttpSession) {
-					value = SessionClicks.get(session, key, cmd);
+					value = SessionClicks.get(httpSession, key, cmd);
 				}
 				else {
 					value = SessionClicks.get(httpServletRequest, key, cmd);

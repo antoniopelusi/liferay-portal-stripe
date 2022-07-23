@@ -21,7 +21,6 @@ import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.message.boards.social.MBActivityKeys;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -32,8 +31,6 @@ import com.liferay.social.kernel.model.SocialActivityInterpreter;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Brian Wing Shun Chan
@@ -53,11 +50,6 @@ public class MBMessageActivityInterpreter
 	}
 
 	@Override
-	protected ResourceBundleLoader acquireResourceBundleLoader() {
-		return _resourceBundleLoader;
-	}
-
-	@Override
 	protected String getBody(
 			SocialActivity activity, ServiceContext serviceContext)
 		throws Exception {
@@ -69,14 +61,10 @@ public class MBMessageActivityInterpreter
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(serviceContext.getPortalURL());
-		sb.append(serviceContext.getPathMain());
-		sb.append("/message_boards/find_category?mbCategoryId=");
-		sb.append(message.getCategoryId());
-
-		String categoryLink = sb.toString();
+		String categoryLink = StringBundler.concat(
+			serviceContext.getPortalURL(), serviceContext.getPathMain(),
+			"/message_boards/find_category?mbCategoryId=",
+			message.getCategoryId());
 
 		categoryLink = addNoSuchEntryRedirect(
 			categoryLink, MBCategory.class.getName(), message.getCategoryId(),
@@ -177,12 +165,5 @@ public class MBMessageActivityInterpreter
 		target = "(model.class.name=com.liferay.message.boards.model.MBMessage)"
 	)
 	private ModelResourcePermission<MBMessage> _messageModelResourcePermission;
-
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(bundle.symbolic.name=com.liferay.message.boards.web)"
-	)
-	private volatile ResourceBundleLoader _resourceBundleLoader;
 
 }

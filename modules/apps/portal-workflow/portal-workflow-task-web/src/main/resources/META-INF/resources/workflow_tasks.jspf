@@ -101,8 +101,14 @@
 					cssClass="asset-title"
 					href="<%= rowURL %>"
 					name="asset-title"
-					value="<%= HtmlUtil.escape(workflowTaskDisplayContext.getAssetTitle(workflowTask)) %>"
-				/>
+					truncate="<%= true %>"
+				>
+					<span class="lfr-portal-tooltip text-truncate-inline" title="<%= HtmlUtil.escape(workflowTaskDisplayContext.getAssetTitle(workflowTask)) %>">
+						<span class="text-truncate">
+							<%= HtmlUtil.escape(workflowTaskDisplayContext.getAssetTitle(workflowTask)) %>
+						</span>
+					</span>
+				</liferay-ui:search-container-column-text>
 
 				<liferay-ui:search-container-column-text
 					href="<%= rowURL %>"

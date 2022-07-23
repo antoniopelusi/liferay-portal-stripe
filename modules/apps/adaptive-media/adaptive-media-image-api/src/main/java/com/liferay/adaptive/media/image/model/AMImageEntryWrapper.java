@@ -126,6 +126,11 @@ public class AMImageEntryWrapper
 		}
 	}
 
+	@Override
+	public AMImageEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the am image entry ID of this am image entry.
 	 *

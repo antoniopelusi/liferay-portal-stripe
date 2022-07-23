@@ -18,7 +18,6 @@ import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.info.field.InfoField;
 import com.liferay.info.field.InfoFieldSet;
 import com.liferay.info.field.InfoFieldSetEntry;
-import com.liferay.info.field.type.ImageInfoFieldType;
 import com.liferay.info.field.type.InfoFieldType;
 import com.liferay.info.form.InfoForm;
 import com.liferay.info.item.InfoItemServiceTracker;
@@ -29,14 +28,9 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
-
-import javax.portlet.ResourceRequest;
 
 /**
  * @author Eudaldo Alonso
@@ -44,9 +38,9 @@ import javax.portlet.ResourceRequest;
 public class MappingContentUtil {
 
 	public static JSONArray getMappingFieldsJSONArray(
-			String fieldType, String formVariationKey,
+			String formVariationKey, long groupId,
 			InfoItemServiceTracker infoItemServiceTracker, String itemClassName,
-			ResourceRequest resourceRequest)
+			Locale locale)
 		throws Exception {
 
 		// LPS-111037
@@ -71,9 +65,6 @@ public class MappingContentUtil {
 			return JSONFactoryUtil.createJSONArray();
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		JSONArray defaultFieldSetFieldsJSONArray =
 			JSONFactoryUtil.createJSONArray();
 
@@ -81,7 +72,7 @@ public class MappingContentUtil {
 			JSONUtil.put("fields", defaultFieldSetFieldsJSONArray));
 
 		InfoForm infoForm = infoItemFormProvider.getInfoForm(
-			formVariationKey, themeDisplay.getScopeGroupId());
+			formVariationKey, groupId);
 
 		for (InfoFieldSetEntry infoFieldSetEntry :
 				infoForm.getInfoFieldSetEntries()) {
@@ -89,19 +80,22 @@ public class MappingContentUtil {
 			if (infoFieldSetEntry instanceof InfoField) {
 				InfoField infoField = (InfoField)infoFieldSetEntry;
 
-				InfoFieldType infoFieldType = infoField.getInfoFieldType();
+				defaultFieldSetFieldsJSONArray.put(
+					JSONUtil.put(
+						"key", infoField.getUniqueId()
+					).put(
+						"label", infoField.getLabel(locale)
+					).put(
+						"name", infoField.getName()
+					).put(
+						"type",
+						() -> {
+							InfoFieldType infoFieldType =
+								infoField.getInfoFieldType();
 
-				if (_isFieldMappable(infoField, fieldType)) {
-					defaultFieldSetFieldsJSONArray.put(
-						JSONUtil.put(
-							"key", infoField.getName()
-						).put(
-							"label",
-							infoField.getLabel(themeDisplay.getLocale())
-						).put(
-							"type", infoFieldType.getName()
-						));
-				}
+							return infoFieldType.getName();
+						}
+					));
 			}
 			else if (infoFieldSetEntry instanceof InfoFieldSet) {
 				JSONArray fieldSetFieldsJSONArray =
@@ -109,21 +103,22 @@ public class MappingContentUtil {
 
 				InfoFieldSet infoFieldSet = (InfoFieldSet)infoFieldSetEntry;
 
-				List<InfoField> infoFields = ListUtil.filter(
-					infoFieldSet.getAllInfoFields(),
-					infoField -> _isFieldMappable(infoField, fieldType));
-
-				for (InfoField infoField : infoFields) {
-					InfoFieldType infoFieldType = infoField.getInfoFieldType();
-
+				for (InfoField infoField : infoFieldSet.getAllInfoFields()) {
 					fieldSetFieldsJSONArray.put(
 						JSONUtil.put(
-							"key", infoField.getName()
+							"key", infoField.getUniqueId()
 						).put(
-							"label",
-							infoField.getLabel(themeDisplay.getLocale())
+							"label", infoField.getLabel(locale)
 						).put(
-							"type", infoFieldType.getName()
+							"name", infoField.getName()
+						).put(
+							"type",
+							() -> {
+								InfoFieldType infoFieldType =
+									infoField.getInfoFieldType();
+
+								return infoFieldType.getName();
+							}
 						));
 				}
 
@@ -132,29 +127,13 @@ public class MappingContentUtil {
 						JSONUtil.put(
 							"fields", fieldSetFieldsJSONArray
 						).put(
-							"label",
-							infoFieldSet.getLabel(themeDisplay.getLocale())
+							"label", infoFieldSet.getLabel(locale)
 						));
 				}
 			}
 		}
 
 		return fieldSetsJSONArray;
-	}
-
-	private static boolean _isFieldMappable(
-		InfoField infoField, String fieldType) {
-
-		boolean imageInfoFieldType =
-			infoField.getInfoFieldType() instanceof ImageInfoFieldType;
-
-		if (Objects.equals(fieldType, "background-image") ||
-			Objects.equals(fieldType, "image")) {
-
-			return imageInfoFieldType;
-		}
-
-		return !imageInfoFieldType;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

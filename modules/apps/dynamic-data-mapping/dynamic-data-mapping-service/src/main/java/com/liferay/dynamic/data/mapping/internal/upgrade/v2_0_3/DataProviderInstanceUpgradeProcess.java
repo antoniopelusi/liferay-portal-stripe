@@ -37,40 +37,38 @@ public class DataProviderInstanceUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("select DDMDataProviderInstance.definition, ");
-		sb.append("DDMDataProviderInstance.dataProviderInstanceId from ");
-		sb.append("DDMDataProviderInstance");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMDataProviderInstance.definition, ",
+					"DDMDataProviderInstance.dataProviderInstanceId from ",
+					"DDMDataProviderInstance"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMDataProviderInstance set definition = ? where " +
 						"dataProviderInstanceId = ?")) {
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String definition = rs.getString(1);
-					long dataProviderInstanceId = rs.getLong(2);
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String definition = resultSet.getString(1);
+					long dataProviderInstanceId = resultSet.getLong(2);
 
 					String newDefinition =
-						upgradeDataProviderInstanceDefinition(definition);
+						_upgradeDataProviderInstanceDefinition(definition);
 
-					ps2.setString(1, newDefinition);
+					preparedStatement2.setString(1, newDefinition);
 
-					ps2.setLong(2, dataProviderInstanceId);
+					preparedStatement2.setLong(2, dataProviderInstanceId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
 
-	protected String upgradeDataProviderInstanceDefinition(String definition)
+	private String _upgradeDataProviderInstanceDefinition(String definition)
 		throws JSONException {
 
 		JSONObject definitionJSONObject = _jsonFactory.createJSONObject(
@@ -79,12 +77,12 @@ public class DataProviderInstanceUpgradeProcess extends UpgradeProcess {
 		JSONArray fieldValuesJSONArray = definitionJSONObject.getJSONArray(
 			"fieldValues");
 
-		upgradeDataProviderInstanceFieldValues(fieldValuesJSONArray);
+		_upgradeDataProviderInstanceFieldValues(fieldValuesJSONArray);
 
 		return definitionJSONObject.toString();
 	}
 
-	protected void upgradeDataProviderInstanceFieldValues(
+	private void _upgradeDataProviderInstanceFieldValues(
 		JSONArray fieldValuesJSONArray) {
 
 		JSONObject fieldValueJSONObject = _jsonFactory.createJSONObject();

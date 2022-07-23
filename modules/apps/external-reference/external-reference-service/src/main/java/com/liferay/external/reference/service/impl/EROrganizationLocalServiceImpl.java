@@ -19,7 +19,9 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.users.admin.kernel.file.uploads.UserFileUploadsSettings;
 
@@ -44,14 +46,14 @@ public class EROrganizationLocalServiceImpl
 			boolean hasLogo, byte[] logoBytes, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		Organization organization =
-			organizationLocalService.fetchOrganizationByReferenceCode(
+			_organizationLocalService.fetchOrganizationByReferenceCode(
 				user.getCompanyId(), externalReferenceCode);
 
 		if (organization == null) {
-			organization = organizationLocalService.addOrganization(
+			organization = _organizationLocalService.addOrganization(
 				userId, parentOrganizationId, name, type, regionId, countryId,
 				statusId, comments, site, serviceContext);
 
@@ -63,11 +65,11 @@ public class EROrganizationLocalServiceImpl
 				_userFileUploadsSettings.getImageMaxHeight(),
 				_userFileUploadsSettings.getImageMaxWidth());
 
-			organization = organizationLocalService.updateOrganization(
+			organization = _organizationLocalService.updateOrganization(
 				organization);
 		}
 		else {
-			organizationLocalService.updateOrganization(
+			_organizationLocalService.updateOrganization(
 				user.getCompanyId(), organization.getOrganizationId(),
 				parentOrganizationId, name, type, regionId, countryId, statusId,
 				comments, hasLogo, logoBytes, site, serviceContext);
@@ -77,9 +79,15 @@ public class EROrganizationLocalServiceImpl
 	}
 
 	@Reference
+	private OrganizationLocalService _organizationLocalService;
+
+	@Reference
 	private Portal _portal;
 
 	@Reference
 	private UserFileUploadsSettings _userFileUploadsSettings;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

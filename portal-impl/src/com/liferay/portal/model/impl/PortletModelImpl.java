@@ -23,24 +23,23 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PortletModel;
-import com.liferay.portal.kernel.model.PortletSoap;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -138,53 +137,6 @@ public class PortletModelImpl
 	@Deprecated
 	public static final long ID_COLUMN_BITMASK = 4L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Portlet toModel(PortletSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Portlet model = new PortletImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setId(soapModel.getId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setPortletId(soapModel.getPortletId());
-		model.setRoles(soapModel.getRoles());
-		model.setActive(soapModel.isActive());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Portlet> toModels(PortletSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Portlet> models = new ArrayList<Portlet>(soapModels.length);
-
-		for (PortletSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.Portlet"));
@@ -271,33 +223,6 @@ public class PortletModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Portlet>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Portlet.class.getClassLoader(), Portlet.class, ModelWrapper.class);
-
-		try {
-			Constructor<Portlet> constructor =
-				(Constructor<Portlet>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Portlet, Object>>
@@ -530,6 +455,23 @@ public class PortletModelImpl
 	}
 
 	@Override
+	public Portlet cloneWithOriginalValues() {
+		PortletImpl portletImpl = new PortletImpl();
+
+		portletImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		portletImpl.setId(this.<Long>getColumnOriginalValue("id_"));
+		portletImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		portletImpl.setPortletId(
+			this.<String>getColumnOriginalValue("portletId"));
+		portletImpl.setRoles(this.<String>getColumnOriginalValue("roles"));
+		portletImpl.setActive(this.<Boolean>getColumnOriginalValue("active_"));
+
+		return portletImpl;
+	}
+
+	@Override
 	public int compareTo(Portlet portlet) {
 		long primaryKey = portlet.getPrimaryKey();
 
@@ -633,7 +575,7 @@ public class PortletModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -644,9 +586,26 @@ public class PortletModelImpl
 			Function<Portlet, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Portlet)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Portlet)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -693,7 +652,9 @@ public class PortletModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Portlet>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Portlet.class, ModelWrapper.class);
 
 	}
 

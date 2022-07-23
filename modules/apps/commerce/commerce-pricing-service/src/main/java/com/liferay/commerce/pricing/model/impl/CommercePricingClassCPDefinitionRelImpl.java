@@ -24,9 +24,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public class CommercePricingClassCPDefinitionRelImpl
 	extends CommercePricingClassCPDefinitionRelBaseImpl {
 
-	public CommercePricingClassCPDefinitionRelImpl() {
-	}
-
 	@Override
 	public CommercePricingClass getCommercePricingClass()
 		throws PortalException {

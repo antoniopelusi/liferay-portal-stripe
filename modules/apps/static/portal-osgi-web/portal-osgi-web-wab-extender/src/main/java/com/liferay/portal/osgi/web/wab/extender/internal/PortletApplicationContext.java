@@ -32,8 +32,6 @@ import java.net.URL;
 
 import java.util.List;
 
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
@@ -66,7 +64,37 @@ public class PortletApplicationContext extends XmlWebApplicationContext {
 		return new String[0];
 	}
 
-	protected String[] getPortletConfigLocations() {
+	@Override
+	protected void initBeanDefinitionReader(
+		XmlBeanDefinitionReader xmlBeanDefinitionReader) {
+
+		xmlBeanDefinitionReader.setBeanClassLoader(getClassLoader());
+	}
+
+	@Override
+	protected void loadBeanDefinitions(
+		XmlBeanDefinitionReader xmlBeanDefinitionReader) {
+
+		for (String configLocation : _getPortletConfigLocations()) {
+			try {
+				xmlBeanDefinitionReader.loadBeanDefinitions(configLocation);
+			}
+			catch (Exception exception) {
+				Throwable throwable = exception.getCause();
+
+				if (throwable instanceof FileNotFoundException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(throwable.getMessage());
+					}
+				}
+				else {
+					_log.error(throwable, throwable);
+				}
+			}
+		}
+	}
+
+	private String[] _getPortletConfigLocations() {
 		String[] configLocations = getConfigLocations();
 
 		ClassLoader classLoader = PortletClassLoaderUtil.getClassLoader();
@@ -99,43 +127,6 @@ public class PortletApplicationContext extends XmlWebApplicationContext {
 		return ArrayUtil.append(
 			configLocations,
 			serviceBuilderPropertiesConfigLocations.toArray(new String[0]));
-	}
-
-	@Override
-	protected void initBeanDefinitionReader(
-		XmlBeanDefinitionReader xmlBeanDefinitionReader) {
-
-		xmlBeanDefinitionReader.setBeanClassLoader(getClassLoader());
-	}
-
-	protected void injectExplicitBean(
-		Class<?> clazz, BeanDefinitionRegistry beanDefinitionRegistry) {
-
-		beanDefinitionRegistry.registerBeanDefinition(
-			clazz.getName(), new RootBeanDefinition(clazz));
-	}
-
-	@Override
-	protected void loadBeanDefinitions(
-		XmlBeanDefinitionReader xmlBeanDefinitionReader) {
-
-		for (String configLocation : getPortletConfigLocations()) {
-			try {
-				xmlBeanDefinitionReader.loadBeanDefinitions(configLocation);
-			}
-			catch (Exception exception) {
-				Throwable throwable = exception.getCause();
-
-				if (throwable instanceof FileNotFoundException) {
-					if (_log.isDebugEnabled()) {
-						_log.debug(throwable.getMessage());
-					}
-				}
-				else {
-					_log.error(throwable, throwable);
-				}
-			}
-		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

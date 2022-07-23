@@ -22,7 +22,7 @@ public class OrganizationMembershipPolicyFactoryUtil {
 	public static OrganizationMembershipPolicy
 		getOrganizationMembershipPolicy() {
 
-		return getOrganizationMembershipPolicyFactory().
+		return _organizationMembershipPolicyFactory.
 			getOrganizationMembershipPolicy();
 	}
 

@@ -46,14 +46,13 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Alessio Antonio Rendina
- * @see CommerceShippingFixedOptionRelServiceSoap
  * @generated
  */
 public class CommerceShippingFixedOptionRelServiceHttp {
 
 	public static com.liferay.commerce.shipping.engine.fixed.model.
 		CommerceShippingFixedOptionRel addCommerceShippingFixedOptionRel(
-				HttpPrincipal httpPrincipal, long userId, long groupId,
+				HttpPrincipal httpPrincipal, long groupId,
 				long commerceShippingMethodId,
 				long commerceShippingFixedOptionId,
 				long commerceInventoryWarehouseId, long countryId,
@@ -69,7 +68,7 @@ public class CommerceShippingFixedOptionRelServiceHttp {
 				_addCommerceShippingFixedOptionRelParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, userId, groupId, commerceShippingMethodId,
+				methodKey, groupId, commerceShippingMethodId,
 				commerceShippingFixedOptionId, commerceInventoryWarehouseId,
 				countryId, regionId, zip, weightFrom, weightTo, fixedPrice,
 				rateUnitWeightPrice, ratePercentage);
@@ -386,7 +385,7 @@ public class CommerceShippingFixedOptionRelServiceHttp {
 	private static final Class<?>[]
 		_addCommerceShippingFixedOptionRelParameterTypes0 = new Class[] {
 			long.class, long.class, long.class, long.class, long.class,
-			long.class, long.class, String.class, double.class, double.class,
+			long.class, String.class, double.class, double.class,
 			java.math.BigDecimal.class, java.math.BigDecimal.class, double.class
 		};
 	private static final Class<?>[]

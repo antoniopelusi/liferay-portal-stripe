@@ -17,6 +17,7 @@ package com.liferay.portal.jsonwebservice;
 import com.liferay.portal.jsonwebservice.action.JSONWebServiceInvokerAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.ArrayList;
@@ -197,16 +198,7 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 		expectedMap.put(
 			"data",
 			LinkedHashMapBuilder.<String, Object>put(
-				"array",
-				() -> {
-					List<Integer> list = new ArrayList<>();
-
-					list.add(9);
-					list.add(5);
-					list.add(7);
-
-					return list;
-				}
+				"array", ListUtil.fromArray(9, 5, 7)
 			).put(
 				"id", 2
 			).put(

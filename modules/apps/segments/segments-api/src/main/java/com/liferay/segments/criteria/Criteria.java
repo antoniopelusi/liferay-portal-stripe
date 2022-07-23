@@ -33,9 +33,6 @@ import java.util.stream.Stream;
  */
 public final class Criteria implements Serializable {
 
-	public Criteria() {
-	}
-
 	public void addCriterion(
 		String key, Type type, String filterString, Conjunction conjunction) {
 
@@ -214,19 +211,12 @@ public final class Criteria implements Serializable {
 	private String _combineFilters(
 		String filterString1, String filterString2, Conjunction conjunction) {
 
-		StringBundler sb = new StringBundler(9);
-
-		sb.append(StringPool.OPEN_PARENTHESIS);
-		sb.append(filterString1);
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-		sb.append(StringPool.SPACE);
-		sb.append(conjunction.getValue());
-		sb.append(StringPool.SPACE);
-		sb.append(StringPool.OPEN_PARENTHESIS);
-		sb.append(filterString2);
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-
-		return sb.toString();
+		return StringBundler.concat(
+			StringPool.OPEN_PARENTHESIS, filterString1,
+			StringPool.CLOSE_PARENTHESIS, StringPool.SPACE,
+			conjunction.getValue(), StringPool.SPACE,
+			StringPool.OPEN_PARENTHESIS, filterString2,
+			StringPool.CLOSE_PARENTHESIS);
 	}
 
 	private final Map<String, Criterion> _criteria = new HashMap<>();

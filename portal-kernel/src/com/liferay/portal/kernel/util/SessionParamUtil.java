@@ -38,22 +38,22 @@ public class SessionParamUtil {
 		HttpServletRequest httpServletRequest, String param,
 		boolean defaultValue) {
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
 		String requestValue = httpServletRequest.getParameter(param);
 
 		if (requestValue != null) {
 			boolean value = GetterUtil.getBoolean(requestValue);
 
-			if (session != null) {
-				session.setAttribute(param, value);
+			if (httpSession != null) {
+				httpSession.setAttribute(param, value);
 			}
 
 			return value;
 		}
 
-		if (session != null) {
-			Boolean sessionValue = (Boolean)session.getAttribute(param);
+		if (httpSession != null) {
+			Boolean sessionValue = (Boolean)httpSession.getAttribute(param);
 
 			if (sessionValue != null) {
 				return sessionValue;
@@ -106,22 +106,22 @@ public class SessionParamUtil {
 		HttpServletRequest httpServletRequest, String param,
 		double defaultValue) {
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
 		String requestValue = httpServletRequest.getParameter(param);
 
 		if (requestValue != null) {
 			double value = GetterUtil.getDouble(requestValue);
 
-			if (session != null) {
-				session.setAttribute(param, value);
+			if (httpSession != null) {
+				httpSession.setAttribute(param, value);
 			}
 
 			return value;
 		}
 
-		if (session != null) {
-			Double sessionValue = (Double)session.getAttribute(param);
+		if (httpSession != null) {
+			Double sessionValue = (Double)httpSession.getAttribute(param);
 
 			if (sessionValue != null) {
 				return sessionValue;
@@ -135,22 +135,22 @@ public class SessionParamUtil {
 		HttpServletRequest httpServletRequest, String param,
 		double defaultValue, Locale locale) {
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
 		String requestValue = httpServletRequest.getParameter(param);
 
 		if (requestValue != null) {
 			double value = GetterUtil.getDouble(requestValue, locale);
 
-			if (session != null) {
-				session.setAttribute(param, value);
+			if (httpSession != null) {
+				httpSession.setAttribute(param, value);
 			}
 
 			return value;
 		}
 
-		if (session != null) {
-			Double sessionValue = (Double)session.getAttribute(param);
+		if (httpSession != null) {
+			Double sessionValue = (Double)httpSession.getAttribute(param);
 
 			if (sessionValue != null) {
 				return sessionValue;
@@ -245,22 +245,22 @@ public class SessionParamUtil {
 	public static int getInteger(
 		HttpServletRequest httpServletRequest, String param, int defaultValue) {
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
 		String requestValue = httpServletRequest.getParameter(param);
 
 		if (requestValue != null) {
 			int value = GetterUtil.getInteger(requestValue);
 
-			if (session != null) {
-				session.setAttribute(param, value);
+			if (httpSession != null) {
+				httpSession.setAttribute(param, value);
 			}
 
 			return value;
 		}
 
-		if (session != null) {
-			Integer sessionValue = (Integer)session.getAttribute(param);
+		if (httpSession != null) {
+			Integer sessionValue = (Integer)httpSession.getAttribute(param);
 
 			if (sessionValue != null) {
 				return sessionValue;
@@ -311,22 +311,22 @@ public class SessionParamUtil {
 		HttpServletRequest httpServletRequest, String param,
 		long defaultValue) {
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
 		String requestValue = httpServletRequest.getParameter(param);
 
 		if (requestValue != null) {
 			long value = GetterUtil.getLong(requestValue);
 
-			if (session != null) {
-				session.setAttribute(param, value);
+			if (httpSession != null) {
+				httpSession.setAttribute(param, value);
 			}
 
 			return value;
 		}
 
-		if (session != null) {
-			Long sessionValue = (Long)session.getAttribute(param);
+		if (httpSession != null) {
+			Long sessionValue = (Long)httpSession.getAttribute(param);
 
 			if (sessionValue != null) {
 				return sessionValue;
@@ -376,22 +376,22 @@ public class SessionParamUtil {
 		HttpServletRequest httpServletRequest, String param,
 		short defaultValue) {
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
 		String requestValue = httpServletRequest.getParameter(param);
 
 		if (requestValue != null) {
 			short value = GetterUtil.getShort(requestValue);
 
-			if (session != null) {
-				session.setAttribute(param, value);
+			if (httpSession != null) {
+				httpSession.setAttribute(param, value);
 			}
 
 			return value;
 		}
 
-		if (session != null) {
-			Short sessionValue = (Short)session.getAttribute(param);
+		if (httpSession != null) {
+			Short sessionValue = (Short)httpSession.getAttribute(param);
 
 			if (sessionValue != null) {
 				return sessionValue;
@@ -442,22 +442,22 @@ public class SessionParamUtil {
 		HttpServletRequest httpServletRequest, String param,
 		String defaultValue) {
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
 		String requestValue = httpServletRequest.getParameter(param);
 
 		if (requestValue != null) {
 			String value = GetterUtil.getString(requestValue);
 
-			if (session != null) {
-				session.setAttribute(param, value);
+			if (httpSession != null) {
+				httpSession.setAttribute(param, value);
 			}
 
 			return value;
 		}
 
-		if (session != null) {
-			String sessionValue = (String)session.getAttribute(param);
+		if (httpSession != null) {
+			String sessionValue = (String)httpSession.getAttribute(param);
 
 			if (sessionValue != null) {
 				return sessionValue;

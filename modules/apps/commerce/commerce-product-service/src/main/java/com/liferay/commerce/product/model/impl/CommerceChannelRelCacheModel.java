@@ -18,6 +18,7 @@ import com.liferay.commerce.product.model.CommerceChannelRel;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class CommerceChannelRelCacheModel
-	implements CacheModel<CommerceChannelRel>, Externalizable {
+	implements CacheModel<CommerceChannelRel>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object object) {
@@ -48,8 +49,9 @@ public class CommerceChannelRelCacheModel
 		CommerceChannelRelCacheModel commerceChannelRelCacheModel =
 			(CommerceChannelRelCacheModel)object;
 
-		if (commerceChannelRelId ==
-				commerceChannelRelCacheModel.commerceChannelRelId) {
+		if ((commerceChannelRelId ==
+				commerceChannelRelCacheModel.commerceChannelRelId) &&
+			(mvccVersion == commerceChannelRelCacheModel.mvccVersion)) {
 
 			return true;
 		}
@@ -59,14 +61,30 @@ public class CommerceChannelRelCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, commerceChannelRelId);
+		int hashCode = HashUtil.hash(0, commerceChannelRelId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(23);
 
-		sb.append("{commerceChannelRelId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", ctCollectionId=");
+		sb.append(ctCollectionId);
+		sb.append(", commerceChannelRelId=");
 		sb.append(commerceChannelRelId);
 		sb.append(", companyId=");
 		sb.append(companyId);
@@ -94,6 +112,8 @@ public class CommerceChannelRelCacheModel
 		CommerceChannelRelImpl commerceChannelRelImpl =
 			new CommerceChannelRelImpl();
 
+		commerceChannelRelImpl.setMvccVersion(mvccVersion);
+		commerceChannelRelImpl.setCtCollectionId(ctCollectionId);
 		commerceChannelRelImpl.setCommerceChannelRelId(commerceChannelRelId);
 		commerceChannelRelImpl.setCompanyId(companyId);
 		commerceChannelRelImpl.setUserId(userId);
@@ -130,6 +150,10 @@ public class CommerceChannelRelCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
+		ctCollectionId = objectInput.readLong();
+
 		commerceChannelRelId = objectInput.readLong();
 
 		companyId = objectInput.readLong();
@@ -148,6 +172,10 @@ public class CommerceChannelRelCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		objectOutput.writeLong(ctCollectionId);
+
 		objectOutput.writeLong(commerceChannelRelId);
 
 		objectOutput.writeLong(companyId);
@@ -171,6 +199,8 @@ public class CommerceChannelRelCacheModel
 		objectOutput.writeLong(commerceChannelId);
 	}
 
+	public long mvccVersion;
+	public long ctCollectionId;
 	public long commerceChannelRelId;
 	public long companyId;
 	public long userId;

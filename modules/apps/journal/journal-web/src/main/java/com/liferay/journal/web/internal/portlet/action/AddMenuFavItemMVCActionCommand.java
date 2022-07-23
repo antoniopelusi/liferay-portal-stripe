@@ -61,9 +61,6 @@ public class AddMenuFavItemMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		String ddmStructureKey = ParamUtil.getString(
-			actionRequest, "ddmStructureKey");
-
 		PortalPreferences portalPreferences =
 			PortletPreferencesFactoryUtil.getPortalPreferences(actionRequest);
 
@@ -80,6 +77,9 @@ public class AddMenuFavItemMVCActionCommand extends BaseMVCActionCommand {
 
 			throw new MaxAddMenuFavItemsException();
 		}
+
+		String ddmStructureKey = ParamUtil.getString(
+			actionRequest, "ddmStructureKey");
 
 		portalPreferences.setValues(
 			JournalPortletKeys.JOURNAL, key,

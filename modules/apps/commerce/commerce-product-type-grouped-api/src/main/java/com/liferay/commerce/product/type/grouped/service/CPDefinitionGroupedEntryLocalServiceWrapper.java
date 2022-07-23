@@ -27,6 +27,10 @@ public class CPDefinitionGroupedEntryLocalServiceWrapper
 	implements CPDefinitionGroupedEntryLocalService,
 			   ServiceWrapper<CPDefinitionGroupedEntryLocalService> {
 
+	public CPDefinitionGroupedEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CPDefinitionGroupedEntryLocalServiceWrapper(
 		CPDefinitionGroupedEntryLocalService
 			cpDefinitionGroupedEntryLocalService) {
@@ -215,6 +219,13 @@ public class CPDefinitionGroupedEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cpDefinitionGroupedEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cpDefinitionGroupedEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

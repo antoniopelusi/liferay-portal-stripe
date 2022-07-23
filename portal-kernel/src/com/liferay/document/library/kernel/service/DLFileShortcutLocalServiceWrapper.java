@@ -30,6 +30,10 @@ public class DLFileShortcutLocalServiceWrapper
 	implements DLFileShortcutLocalService,
 			   ServiceWrapper<DLFileShortcutLocalService> {
 
+	public DLFileShortcutLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLFileShortcutLocalServiceWrapper(
 		DLFileShortcutLocalService dlFileShortcutLocalService) {
 
@@ -223,6 +227,13 @@ public class DLFileShortcutLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dlFileShortcutLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlFileShortcutLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

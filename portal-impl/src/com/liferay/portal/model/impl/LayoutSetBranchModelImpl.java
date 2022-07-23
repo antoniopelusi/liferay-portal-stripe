@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
 import com.liferay.portal.kernel.model.LayoutSetBranchModel;
-import com.liferay.portal.kernel.model.LayoutSetBranchSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -31,20 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -169,70 +167,6 @@ public class LayoutSetBranchModelImpl
 	@Deprecated
 	public static final long PRIVATELAYOUT_COLUMN_BITMASK = 8L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static LayoutSetBranch toModel(LayoutSetBranchSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		LayoutSetBranch model = new LayoutSetBranchImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setLayoutSetBranchId(soapModel.getLayoutSetBranchId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setPrivateLayout(soapModel.isPrivateLayout());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setMaster(soapModel.isMaster());
-		model.setLogoId(soapModel.getLogoId());
-		model.setThemeId(soapModel.getThemeId());
-		model.setColorSchemeId(soapModel.getColorSchemeId());
-		model.setCss(soapModel.getCss());
-		model.setSettings(soapModel.getSettings());
-		model.setLayoutSetPrototypeUuid(soapModel.getLayoutSetPrototypeUuid());
-		model.setLayoutSetPrototypeLinkEnabled(
-			soapModel.isLayoutSetPrototypeLinkEnabled());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<LayoutSetBranch> toModels(
-		LayoutSetBranchSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<LayoutSetBranch> models = new ArrayList<LayoutSetBranch>(
-			soapModels.length);
-
-		for (LayoutSetBranchSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.LayoutSetBranch"));
@@ -320,34 +254,6 @@ public class LayoutSetBranchModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutSetBranch>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutSetBranch.class.getClassLoader(), LayoutSetBranch.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<LayoutSetBranch> constructor =
-				(Constructor<LayoutSetBranch>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutSetBranch, Object>>
@@ -953,6 +859,52 @@ public class LayoutSetBranchModelImpl
 	}
 
 	@Override
+	public LayoutSetBranch cloneWithOriginalValues() {
+		LayoutSetBranchImpl layoutSetBranchImpl = new LayoutSetBranchImpl();
+
+		layoutSetBranchImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutSetBranchImpl.setLayoutSetBranchId(
+			this.<Long>getColumnOriginalValue("layoutSetBranchId"));
+		layoutSetBranchImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		layoutSetBranchImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutSetBranchImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		layoutSetBranchImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		layoutSetBranchImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutSetBranchImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutSetBranchImpl.setPrivateLayout(
+			this.<Boolean>getColumnOriginalValue("privateLayout"));
+		layoutSetBranchImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		layoutSetBranchImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		layoutSetBranchImpl.setMaster(
+			this.<Boolean>getColumnOriginalValue("master"));
+		layoutSetBranchImpl.setLogoId(
+			this.<Long>getColumnOriginalValue("logoId"));
+		layoutSetBranchImpl.setThemeId(
+			this.<String>getColumnOriginalValue("themeId"));
+		layoutSetBranchImpl.setColorSchemeId(
+			this.<String>getColumnOriginalValue("colorSchemeId"));
+		layoutSetBranchImpl.setCss(this.<String>getColumnOriginalValue("css"));
+		layoutSetBranchImpl.setSettings(
+			this.<String>getColumnOriginalValue("settings_"));
+		layoutSetBranchImpl.setLayoutSetPrototypeUuid(
+			this.<String>getColumnOriginalValue("layoutSetPrototypeUuid"));
+		layoutSetBranchImpl.setLayoutSetPrototypeLinkEnabled(
+			this.<Boolean>getColumnOriginalValue(
+				"layoutSetPrototypeLinkEnabled"));
+
+		return layoutSetBranchImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutSetBranch layoutSetBranch) {
 		int value = 0;
 
@@ -1138,7 +1090,7 @@ public class LayoutSetBranchModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1149,9 +1101,26 @@ public class LayoutSetBranchModelImpl
 			Function<LayoutSetBranch, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((LayoutSetBranch)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((LayoutSetBranch)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1198,7 +1167,9 @@ public class LayoutSetBranchModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, LayoutSetBranch>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					LayoutSetBranch.class, ModelWrapper.class);
 
 	}
 

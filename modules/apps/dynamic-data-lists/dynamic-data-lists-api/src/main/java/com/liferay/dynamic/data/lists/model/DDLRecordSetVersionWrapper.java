@@ -179,6 +179,11 @@ public class DDLRecordSetVersionWrapper
 	}
 
 	@Override
+	public DDLRecordSetVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

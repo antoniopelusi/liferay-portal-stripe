@@ -35,8 +35,11 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.impl.LayoutRevisionLocalServiceImpl;
@@ -44,6 +47,8 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -71,10 +76,67 @@ public class StagingLocalServiceTest {
 	}
 
 	@Test
+	public void testBranchingLayoutLayoutUpdate() throws Exception {
+		Group group = GroupTestUtil.addGroup();
+
+		LayoutTestUtil.addTypePortletLayout(group);
+
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+		).build();
+
+		try {
+			StagingLocalServiceUtil.enableLocalStaging(
+				_user.getUserId(), group, true, true, new ServiceContext());
+
+			Group stagingGroup = group.getStagingGroup();
+
+			List<Layout> stagingLayouts = _layoutLocalService.getLayouts(
+				stagingGroup.getGroupId(), false);
+
+			Layout stagingLayout = stagingLayouts.get(0);
+
+			stagingLayout = _layoutLocalService.updateLayout(
+				stagingLayout.getGroupId(), stagingLayout.isPrivateLayout(),
+				stagingLayout.getLayoutId(), stagingLayout.getParentLayoutId(),
+				nameMap, stagingLayout.getTitleMap(),
+				stagingLayout.getDescriptionMap(),
+				stagingLayout.getKeywordsMap(), stagingLayout.getRobotsMap(),
+				stagingLayout.getType(), stagingLayout.isHidden(),
+				stagingLayout.getFriendlyURLMap(), false, null,
+				stagingLayout.getMasterLayoutPlid(),
+				stagingLayout.getStyleBookEntryId(), new ServiceContext());
+
+			stagingLayout = _layoutLocalService.updateLayout(
+				stagingLayout.getGroupId(), stagingLayout.isPrivateLayout(),
+				stagingLayout.getLayoutId(), stagingLayout.getParentLayoutId(),
+				stagingLayout.getNameMap(),
+				HashMapBuilder.put(
+					LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+				).build(),
+				stagingLayout.getDescriptionMap(),
+				stagingLayout.getKeywordsMap(), stagingLayout.getRobotsMap(),
+				stagingLayout.getType(), stagingLayout.isHidden(),
+				stagingLayout.getFriendlyURLMap(), false, null,
+				stagingLayout.getMasterLayoutPlid(),
+				stagingLayout.getStyleBookEntryId(), new ServiceContext());
+
+			Map<Locale, String> layoutNameMap = stagingLayout.getNameMap();
+
+			Assert.assertEquals(
+				nameMap.get(LocaleUtil.getSiteDefault()),
+				layoutNameMap.get(LocaleUtil.getSiteDefault()));
+		}
+		finally {
+			GroupLocalServiceUtil.deleteGroup(group.getGroupId());
+		}
+	}
+
+	@Test
 	public void testBranchingLayoutPortletRemoval() throws Exception {
 		Group group = GroupTestUtil.addGroup();
 
-		Layout layout = LayoutTestUtil.addLayout(group);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(group);
 
 		UnicodeProperties unicodeProperties =
 			layout.getTypeSettingsProperties();
@@ -138,7 +200,7 @@ public class StagingLocalServiceTest {
 
 		Group group = GroupTestUtil.addGroup();
 
-		Layout layout = LayoutTestUtil.addLayout(group);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(group);
 
 		UnicodeProperties unicodeProperties =
 			layout.getTypeSettingsProperties();
@@ -168,9 +230,9 @@ public class StagingLocalServiceTest {
 			ServiceContext serviceContext =
 				ServiceContextThreadLocal.getServiceContext();
 
-			serviceContext.setCommand("delete");
 			serviceContext.setAttribute(
 				"removePortletIds", new String[] {portletId});
+			serviceContext.setCommand("delete");
 			serviceContext.setWorkflowAction(
 				WorkflowConstants.ACTION_SAVE_DRAFT);
 
@@ -212,7 +274,7 @@ public class StagingLocalServiceTest {
 
 		Group group = GroupTestUtil.addGroup();
 
-		Layout layout = LayoutTestUtil.addLayout(group);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(group);
 
 		UnicodeProperties unicodeProperties =
 			layout.getTypeSettingsProperties();

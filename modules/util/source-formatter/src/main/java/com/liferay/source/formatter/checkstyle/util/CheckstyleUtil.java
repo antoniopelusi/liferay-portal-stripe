@@ -52,6 +52,10 @@ public class CheckstyleUtil {
 
 	public static final int BATCH_SIZE = 1000;
 
+	public static final String FILTER_CHECK_NAMES_KEY = "filterCheckNames";
+
+	public static final String MAX_DIR_LEVEL_KEY = "maxDirLevel";
+
 	public static final String MAX_LINE_LENGTH_KEY = "maxLineLength";
 
 	public static final String SHOW_DEBUG_INFORMATION_KEY =
@@ -94,16 +98,19 @@ public class CheckstyleUtil {
 				continue;
 			}
 
+			String checkCategory = checkConfiguration.getAttribute("category");
+
 			String checkName = checkConfiguration.getName();
 
 			String checkSimpleName = SourceFormatterUtil.getSimpleName(
 				checkName);
 
-			if ((!filterCheckCategoryNames.isEmpty() ||
-				 !filterCheckNames.isEmpty()) &&
-				!filterCheckCategoryNames.contains(
-					checkConfiguration.getAttribute("category")) &&
-				!filterCheckNames.contains(checkSimpleName)) {
+			if ((checkCategory.startsWith("Upgrade") &&
+				 !filterCheckCategoryNames.contains(checkCategory)) ||
+				((!filterCheckCategoryNames.isEmpty() ||
+				  !filterCheckNames.isEmpty()) &&
+				 !filterCheckCategoryNames.contains(checkCategory) &&
+				 !filterCheckNames.contains(checkSimpleName))) {
 
 				treeWalkerConfiguration.removeChild(checkConfiguration);
 
@@ -208,6 +215,14 @@ public class CheckstyleUtil {
 			new String[][] {
 				{BASE_DIR_NAME_KEY, sourceFormatterArgs.getBaseDirName()},
 				{
+					FILTER_CHECK_NAMES_KEY,
+					StringUtil.merge(sourceFormatterArgs.getCheckNames())
+				},
+				{
+					MAX_DIR_LEVEL_KEY,
+					String.valueOf(sourceFormatterArgs.getMaxDirLevel())
+				},
+				{
 					MAX_LINE_LENGTH_KEY,
 					String.valueOf(sourceFormatterArgs.getMaxLineLength())
 				},
@@ -223,7 +238,9 @@ public class CheckstyleUtil {
 
 		attributesJSONObject = SourceFormatterCheckUtil.addPropertiesAttributes(
 			attributesJSONObject, propertiesMap,
-			SourceFormatterUtil.GIT_LIFERAY_PORTAL_BRANCH);
+			SourceFormatterUtil.GIT_LIFERAY_PORTAL_BRANCH,
+			SourceFormatterUtil.UPGRADE_FROM_VERSION,
+			SourceFormatterUtil.UPGRADE_TO_VERSION);
 
 		attributesJSONObject = SourceFormatterCheckUtil.addPropertiesAttributes(
 			attributesJSONObject, propertiesMap, CheckType.CHECKSTYLE,

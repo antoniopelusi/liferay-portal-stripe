@@ -37,22 +37,22 @@ public final class SharepointRepositoryRequestState implements Serializable {
 	public static SharepointRepositoryRequestState get(
 		HttpServletRequest httpServletRequest) {
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		return (SharepointRepositoryRequestState)session.getAttribute(
+		return (SharepointRepositoryRequestState)httpSession.getAttribute(
 			SharepointRepositoryRequestState.class.getName());
 	}
 
 	public static void save(
 		HttpServletRequest httpServletRequest, String state) {
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
 		PortletRequest portletRequest =
 			(PortletRequest)httpServletRequest.getAttribute(
 				JavaConstants.JAVAX_PORTLET_REQUEST);
 
-		session.setAttribute(
+		httpSession.setAttribute(
 			SharepointRepositoryRequestState.class.getName(),
 			new SharepointRepositoryRequestState(
 				ParamUtil.getLong(portletRequest, "folderId"),
@@ -68,9 +68,9 @@ public final class SharepointRepositoryRequestState implements Serializable {
 			HttpServletResponse httpServletResponse)
 		throws IOException {
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		session.removeAttribute(
+		httpSession.removeAttribute(
 			SharepointRepositoryRequestState.class.getName());
 
 		httpServletResponse.sendRedirect(_url);

@@ -24,7 +24,6 @@ import com.liferay.asset.kernel.model.ClassTypeReader;
 import com.liferay.asset.kernel.service.persistence.AssetEntryQuery;
 import com.liferay.asset.util.AssetHelper;
 import com.liferay.asset.util.AssetPublisherAddItemHolder;
-import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -56,7 +55,6 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -70,7 +68,6 @@ import com.liferay.portal.kernel.util.comparator.PortletCategoryComparator;
 import com.liferay.portal.kernel.util.comparator.PortletTitleComparator;
 import com.liferay.portal.util.PortletCategoryUtil;
 import com.liferay.portal.util.WebAppPool;
-import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuPortletKeys;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,7 +82,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.portlet.PortletConfig;
-import javax.portlet.PortletURL;
 import javax.portlet.ResourceURL;
 
 import javax.servlet.ServletContext;
@@ -167,6 +163,7 @@ public class AddContentPanelDisplayContext {
 
 		AssetEntryQuery assetEntryQuery = new AssetEntryQuery();
 
+		assetEntryQuery.setAttribute("showNonindexable", Boolean.TRUE);
 		assetEntryQuery.setClassNameIds(_getAvailableClassNameIds());
 		assetEntryQuery.setEnd(_getDelta());
 		assetEntryQuery.setGroupIds(
@@ -357,16 +354,9 @@ public class AddContentPanelDisplayContext {
 						curGroupId = group.getLiveGroupId();
 					}
 
-					PortletURL portletURL = PortletURLBuilder.create(
-						assetPublisherAddItemHolder.getPortletURL()
-					).setParameter(
-						"portletResource",
-						ProductNavigationControlMenuPortletKeys.
-							PRODUCT_NAVIGATION_CONTROL_MENU
-					).build();
-
 					return _assetHelper.getAddURLPopUp(
-						curGroupId, _themeDisplay.getPlid(), portletURL, false,
+						curGroupId, _themeDisplay.getPlid(),
+						assetPublisherAddItemHolder.getPortletURL(), false,
 						_themeDisplay.getLayout());
 				}
 			).build()
@@ -407,7 +397,7 @@ public class AddContentPanelDisplayContext {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -622,13 +612,8 @@ public class AddContentPanelDisplayContext {
 	}
 
 	private String _getRedirectURL() throws Exception {
-		String layoutFullURL = PortalUtil.getLayoutFullURL(
+		return PortalUtil.getLayoutFullURL(
 			_themeDisplay.getLayout(), _themeDisplay);
-
-		return HttpUtil.addParameter(
-			layoutFullURL, "portletResource",
-			ProductNavigationControlMenuPortletKeys.
-				PRODUCT_NAVIGATION_CONTROL_MENU);
 	}
 
 	private List<Map<String, Object>> _getWidgetCategories(
@@ -679,8 +664,12 @@ public class AddContentPanelDisplayContext {
 		}
 
 		Set<String> layoutDecodedPortletNames = _getLayoutDecodedPortletNames();
+		LayoutTypePortlet layoutTypePortlet =
+			_themeDisplay.getLayoutTypePortlet();
 
-		if (layoutDecodedPortletNames.contains(portlet.getPortletId())) {
+		if (layoutDecodedPortletNames.contains(portlet.getPortletId()) ||
+			layoutTypePortlet.hasPortletId(portlet.getPortletId())) {
+
 			return true;
 		}
 

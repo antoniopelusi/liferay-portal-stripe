@@ -40,15 +40,8 @@ public class Dimensions implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{height=");
-		sb.append(_height);
-		sb.append(", width=");
-		sb.append(_width);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{height=", _height, ", width=", _width, "}");
 	}
 
 	private final float _height;

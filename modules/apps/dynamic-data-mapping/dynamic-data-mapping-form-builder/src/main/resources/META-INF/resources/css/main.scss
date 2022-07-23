@@ -12,12 +12,28 @@
 	font-size: 10px;
 }
 
+.dropdown-menu.clay-color-dropdown-menu.show {
+	position: fixed;
+}
+
+.dropdown-menu.date-picker-dropdown-menu.show {
+	position: fixed;
+}
+
+.dropdown-menu.ddm-select-dropdown.show {
+	position: fixed;
+}
+
 .dropdown-menu.dropdown-opened {
 	display: block;
 	min-width: 100%;
 }
 
-.dropdown-menu.show {
+.ddm-field-dropdown.show {
+	z-index: 40;
+}
+
+.ddm-select-dropdown.show {
 	z-index: 1200;
 }
 

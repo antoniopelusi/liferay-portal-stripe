@@ -44,7 +44,6 @@ public class StaticLoggerBinder implements LoggerFactoryBinder {
 	}
 
 	private StaticLoggerBinder() {
-		_iLoggerFactory = new LiferayLoggerFactory();
 	}
 
 	private static final String _LOGGER_FACTORY_CLASS_NAME =
@@ -53,6 +52,6 @@ public class StaticLoggerBinder implements LoggerFactoryBinder {
 	private static final StaticLoggerBinder _SINGLETON =
 		new StaticLoggerBinder();
 
-	private final ILoggerFactory _iLoggerFactory;
+	private final ILoggerFactory _iLoggerFactory = new LiferayLoggerFactory();
 
 }

@@ -163,18 +163,12 @@ public class DefaultConfigurationPortletDataHandler
 
 				if (Validator.isNull(newPrimaryKey)) {
 					if (_log.isWarnEnabled()) {
-						StringBundler sb = new StringBundler(8);
-
-						sb.append("Unable to get primary key for ");
-						sb.append(clazz);
-						sb.append(" with UUID ");
-						sb.append(uuid);
-						sb.append(" in company group ");
-						sb.append(companyGroupId);
-						sb.append(" or in group ");
-						sb.append(portletDataContext.getScopeGroupId());
-
-						_log.warn(sb.toString());
+						_log.warn(
+							StringBundler.concat(
+								"Unable to get primary key for ", clazz,
+								" with UUID ", uuid, " in company group ",
+								companyGroupId, " or in group ",
+								portletDataContext.getScopeGroupId()));
 					}
 				}
 				else {

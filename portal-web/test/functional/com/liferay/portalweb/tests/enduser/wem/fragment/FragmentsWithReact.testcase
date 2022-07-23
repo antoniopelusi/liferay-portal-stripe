@@ -30,6 +30,7 @@ definition {
 
 	@description = "This is a test for LPS-122082 and LPS-122641. Can not edit and export react fragment. View react fragment has a visual marker in vertical card."
 	@priority = "5"
+	@uitest
 	test CannotEditAndExportReactFragment {
 		property portal.acceptance = "true";
 
@@ -145,9 +146,7 @@ definition {
 		}
 
 		task ("Assert the react fragment is rendered correctly in page editor") {
-			AssertElementPresent(
-				key_fragmentName = "React Fragment Example",
-				locator1 = "Fragment#FRAGMENT_HEADER");
+			PageEditor.viewFragment(fragmentName = "React Fragment Example");
 
 			AssertVisible(locator1 = "//h1[normalize-space(text())='Hello World']");
 

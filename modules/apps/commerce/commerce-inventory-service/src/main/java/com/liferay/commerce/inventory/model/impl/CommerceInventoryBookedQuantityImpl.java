@@ -19,8 +19,4 @@ package com.liferay.commerce.inventory.model.impl;
  */
 public class CommerceInventoryBookedQuantityImpl
 	extends CommerceInventoryBookedQuantityBaseImpl {
-
-	public CommerceInventoryBookedQuantityImpl() {
-	}
-
 }

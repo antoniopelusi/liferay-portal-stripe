@@ -19,6 +19,7 @@ import com.liferay.commerce.price.list.exception.CommercePriceEntryExpirationDat
 import com.liferay.commerce.price.list.exception.DuplicateCommercePriceEntryException;
 import com.liferay.commerce.price.list.exception.NoSuchPriceEntryException;
 import com.liferay.commerce.price.list.model.CommercePriceEntry;
+import com.liferay.commerce.price.list.model.CommercePriceEntryTable;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.service.base.CommercePriceEntryLocalServiceBaseImpl;
 import com.liferay.commerce.product.exception.NoSuchCPInstanceException;
@@ -26,9 +27,12 @@ import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.sql.dsl.query.FromStep;
+import com.liferay.petra.sql.dsl.query.GroupByStep;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -237,8 +241,6 @@ public class CommercePriceEntryLocalServiceImpl
 
 		User user = userLocalService.getUser(serviceContext.getUserId());
 
-		validate(commercePriceListId, cpInstanceUuid);
-
 		if (Validator.isBlank(externalReferenceCode)) {
 			externalReferenceCode = null;
 		}
@@ -247,7 +249,7 @@ public class CommercePriceEntryLocalServiceImpl
 			externalReferenceCode, serviceContext.getCompanyId());
 
 		Date expirationDate = null;
-		Date now = new Date();
+		Date date = new Date();
 
 		Date displayDate = PortalUtil.getDate(
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
@@ -283,7 +285,7 @@ public class CommercePriceEntryLocalServiceImpl
 		commercePriceEntry.setCProductId(cProductId);
 		commercePriceEntry.setDisplayDate(displayDate);
 
-		if ((expirationDate == null) || expirationDate.after(now)) {
+		if ((expirationDate == null) || expirationDate.after(date)) {
 			commercePriceEntry.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -292,7 +294,7 @@ public class CommercePriceEntryLocalServiceImpl
 
 		commercePriceEntry.setExpirationDate(expirationDate);
 		commercePriceEntry.setStatusByUserId(user.getUserId());
-		commercePriceEntry.setStatusDate(serviceContext.getModifiedDate(now));
+		commercePriceEntry.setStatusDate(serviceContext.getModifiedDate(date));
 
 		commercePriceEntry = commercePriceEntryPersistence.update(
 			commercePriceEntry);
@@ -343,6 +345,176 @@ public class CommercePriceEntryLocalServiceImpl
 			expirationDateMonth, expirationDateDay, expirationDateYear,
 			expirationDateHour, expirationDateMinute, neverExpire,
 			serviceContext);
+	}
+
+	@Override
+	public CommercePriceEntry addOrUpdateCommercePriceEntry(
+			String externalReferenceCode, long commercePriceEntryId,
+			long cProductId, String cpInstanceUuid, long commercePriceListId,
+			BigDecimal price, BigDecimal promoPrice, boolean discountDiscovery,
+			BigDecimal discountLevel1, BigDecimal discountLevel2,
+			BigDecimal discountLevel3, BigDecimal discountLevel4,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire, String skuExternalReferenceCode,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		// Update
+
+		if (commercePriceEntryId > 0) {
+			try {
+				return updateCommercePriceEntry(
+					commercePriceEntryId, price, promoPrice, discountDiscovery,
+					discountLevel1, discountLevel2, discountLevel3,
+					discountLevel4, displayDateMonth, displayDateDay,
+					displayDateYear, displayDateHour, displayDateMinute,
+					expirationDateMonth, expirationDateDay, expirationDateYear,
+					expirationDateHour, expirationDateMinute, neverExpire,
+					serviceContext);
+			}
+			catch (NoSuchPriceEntryException noSuchPriceEntryException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unable to find price entry with ID: " +
+							commercePriceEntryId,
+						noSuchPriceEntryException);
+				}
+			}
+		}
+
+		CommercePriceEntry commercePriceEntry = null;
+
+		if (Validator.isBlank(externalReferenceCode)) {
+			externalReferenceCode = null;
+		}
+
+		if (!Validator.isBlank(externalReferenceCode)) {
+			commercePriceEntry = commercePriceEntryPersistence.fetchByC_ERC(
+				serviceContext.getCompanyId(), externalReferenceCode);
+		}
+
+		if (commercePriceEntry != null) {
+			return updateCommercePriceEntry(
+				commercePriceEntry.getCommercePriceEntryId(), price, promoPrice,
+				discountDiscovery, discountLevel1, discountLevel2,
+				discountLevel3, discountLevel4, displayDateMonth,
+				displayDateDay, displayDateYear, displayDateHour,
+				displayDateMinute, expirationDateMonth, expirationDateDay,
+				expirationDateYear, expirationDateHour, expirationDateMinute,
+				neverExpire, serviceContext);
+		}
+
+		// Add
+
+		if ((cProductId > 0) && (cpInstanceUuid != null)) {
+			return addCommercePriceEntry(
+				externalReferenceCode, cProductId, cpInstanceUuid,
+				commercePriceListId, price, promoPrice, discountDiscovery,
+				discountLevel1, discountLevel2, discountLevel3, discountLevel4,
+				displayDateMonth, displayDateDay, displayDateYear,
+				displayDateHour, displayDateMinute, expirationDateMonth,
+				expirationDateDay, expirationDateYear, expirationDateHour,
+				expirationDateMinute, neverExpire, serviceContext);
+		}
+
+		if (Validator.isNotNull(skuExternalReferenceCode)) {
+			CPInstance cpInstance =
+				_cpInstanceLocalService.getCPInstanceByExternalReferenceCode(
+					skuExternalReferenceCode, serviceContext.getCompanyId());
+
+			CPDefinition cpDefinition =
+				_cpDefinitionLocalService.getCPDefinition(
+					cpInstance.getCPDefinitionId());
+
+			return addCommercePriceEntry(
+				externalReferenceCode, cpDefinition.getCProductId(),
+				cpInstance.getCPInstanceUuid(), commercePriceListId, price,
+				promoPrice, discountDiscovery, discountLevel1, discountLevel2,
+				discountLevel3, discountLevel4, displayDateMonth,
+				displayDateDay, displayDateYear, displayDateHour,
+				displayDateMinute, expirationDateMonth, expirationDateDay,
+				expirationDateYear, expirationDateHour, expirationDateMinute,
+				neverExpire, serviceContext);
+		}
+
+		throw new NoSuchCPInstanceException(
+			StringBundler.concat(
+				"{cProductId=", cProductId, ", cpInstanceUuid=", cpInstanceUuid,
+				", skuExternalReferenceCode=", skuExternalReferenceCode,
+				CharPool.CLOSE_CURLY_BRACE));
+	}
+
+	/**
+	 * This method is used to insert a new CommercePriceEntry or update an
+	 * existing one
+	 *
+	 * @param  externalReferenceCode - The external identifier code from a 3rd
+	 *         party system to be able to locate the same entity in the portal
+	 *         <b>Only</b> used when updating an entity; the first entity with a
+	 *         matching reference code one will be updated
+	 * @param  commercePriceEntryId - <b>Only</b> used when updating an entity
+	 *         the matching one will be updated
+	 * @param  cProductId - <b>Only</b> used when adding a new entity
+	 * @param  commercePriceListId - <b>Only</b> used when adding a new entity
+	 *         to a price list
+	 * @param  price
+	 * @param  promoPrice
+	 * @param  skuExternalReferenceCode - <b>Only</b> used when adding a new
+	 *         entity, similar as <code>cpInstanceId</code> but the external
+	 *         identifier code from a 3rd party system. If cpInstanceId is used,
+	 *         it doesn't have any effect, otherwise it tries to fetch the
+	 *         CPInstance against the external code reference
+	 * @param  serviceContext
+	 * @return CommercePriceEntry
+	 * @throws PortalException
+	 * @review
+	 */
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public CommercePriceEntry addOrUpdateCommercePriceEntry(
+			String externalReferenceCode, long commercePriceEntryId,
+			long cProductId, String cpInstanceUuid, long commercePriceListId,
+			BigDecimal price, BigDecimal promoPrice,
+			String skuExternalReferenceCode, ServiceContext serviceContext)
+		throws PortalException {
+
+		Calendar now = new GregorianCalendar();
+
+		return addOrUpdateCommercePriceEntry(
+			externalReferenceCode, commercePriceEntryId, cProductId,
+			cpInstanceUuid, commercePriceListId, price, promoPrice, true, null,
+			null, null, null, now.get(Calendar.MONTH),
+			now.get(Calendar.DAY_OF_MONTH), now.get(Calendar.YEAR),
+			now.get(Calendar.HOUR), now.get(Calendar.MINUTE), 0, 0, 0, 0, 0,
+			true, skuExternalReferenceCode, serviceContext);
+	}
+
+	@Override
+	public CommercePriceEntry addOrUpdateCommercePriceEntry(
+			String externalReferenceCode, long commercePriceEntryId,
+			long cProductId, String cpInstanceUuid, long commercePriceListId,
+			BigDecimal price, boolean discountDiscovery,
+			BigDecimal discountLevel1, BigDecimal discountLevel2,
+			BigDecimal discountLevel3, BigDecimal discountLevel4,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire, String skuExternalReferenceCode,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		return addOrUpdateCommercePriceEntry(
+			externalReferenceCode, commercePriceEntryId, cProductId,
+			cpInstanceUuid, commercePriceListId, price, null, discountDiscovery,
+			discountLevel1, discountLevel2, discountLevel3, discountLevel4,
+			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
+			displayDateMinute, expirationDateMonth, expirationDateDay,
+			expirationDateYear, expirationDateHour, expirationDateMinute,
+			neverExpire, skuExternalReferenceCode, serviceContext);
 	}
 
 	@Override
@@ -413,7 +585,7 @@ public class CommercePriceEntryLocalServiceImpl
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			commercePriceEntry.getCommercePriceEntryId());
 
 		return commercePriceEntry;
@@ -498,8 +670,24 @@ public class CommercePriceEntryLocalServiceImpl
 	public CommercePriceEntry fetchCommercePriceEntry(
 		long commercePriceListId, String cpInstanceUuid) {
 
-		return commercePriceEntryPersistence.fetchByC_C(
-			commercePriceListId, cpInstanceUuid);
+		List<CommercePriceEntry> commercePriceEntries = dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommercePriceEntryTable.INSTANCE),
+				commercePriceListId, cpInstanceUuid,
+				WorkflowConstants.STATUS_ANY
+			).orderBy(
+				CommercePriceEntryTable.INSTANCE.displayDate.descending(),
+				CommercePriceEntryTable.INSTANCE.createDate.descending()
+			).limit(
+				0, 1
+			));
+
+		if (commercePriceEntries.isEmpty()) {
+			return null;
+		}
+
+		return commercePriceEntries.get(0);
 	}
 
 	@Override
@@ -534,8 +722,23 @@ public class CommercePriceEntryLocalServiceImpl
 	public CommercePriceEntry fetchCommercePriceEntry(
 		long commercePriceListId, String cpInstanceUuid, int status) {
 
-		return commercePriceEntryPersistence.fetchByC_C_S(
-			commercePriceListId, cpInstanceUuid, status);
+		List<CommercePriceEntry> commercePriceEntries = dslQuery(
+			_getGroupByStep(
+				DSLQueryFactoryUtil.selectDistinct(
+					CommercePriceEntryTable.INSTANCE),
+				commercePriceListId, cpInstanceUuid, status
+			).orderBy(
+				CommercePriceEntryTable.INSTANCE.displayDate.descending(),
+				CommercePriceEntryTable.INSTANCE.createDate.descending()
+			).limit(
+				0, 1
+			));
+
+		if (commercePriceEntries.isEmpty()) {
+			return null;
+		}
+
+		return commercePriceEntries.get(0);
 	}
 
 	@Override
@@ -752,7 +955,7 @@ public class CommercePriceEntryLocalServiceImpl
 				commercePriceEntryId);
 
 		Date expirationDate = null;
-		Date now = new Date();
+		Date date = new Date();
 
 		Date displayDate = PortalUtil.getDate(
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
@@ -778,7 +981,7 @@ public class CommercePriceEntryLocalServiceImpl
 
 		commercePriceEntry.setDisplayDate(displayDate);
 
-		if ((expirationDate == null) || expirationDate.after(now)) {
+		if ((expirationDate == null) || expirationDate.after(date)) {
 			commercePriceEntry.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -787,7 +990,7 @@ public class CommercePriceEntryLocalServiceImpl
 
 		commercePriceEntry.setExpirationDate(expirationDate);
 		commercePriceEntry.setStatusByUserId(user.getUserId());
-		commercePriceEntry.setStatusDate(serviceContext.getModifiedDate(now));
+		commercePriceEntry.setStatusDate(serviceContext.getModifiedDate(date));
 
 		commercePriceEntry = commercePriceEntryPersistence.update(
 			commercePriceEntry);
@@ -897,7 +1100,7 @@ public class CommercePriceEntryLocalServiceImpl
 		throws PortalException {
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		CommercePriceEntry commercePriceEntry =
 			commercePriceEntryPersistence.findByPrimaryKey(
@@ -905,23 +1108,23 @@ public class CommercePriceEntryLocalServiceImpl
 
 		if ((status == WorkflowConstants.STATUS_APPROVED) &&
 			(commercePriceEntry.getDisplayDate() != null) &&
-			now.before(commercePriceEntry.getDisplayDate())) {
+			date.before(commercePriceEntry.getDisplayDate())) {
 
 			status = WorkflowConstants.STATUS_SCHEDULED;
 		}
 
-		Date modifiedDate = serviceContext.getModifiedDate(now);
+		Date modifiedDate = serviceContext.getModifiedDate(date);
 
 		if (status == WorkflowConstants.STATUS_APPROVED) {
 			Date expirationDate = commercePriceEntry.getExpirationDate();
 
-			if ((expirationDate != null) && expirationDate.before(now)) {
+			if ((expirationDate != null) && expirationDate.before(date)) {
 				commercePriceEntry.setExpirationDate(null);
 			}
 		}
 
 		if (status == WorkflowConstants.STATUS_EXPIRED) {
-			commercePriceEntry.setExpirationDate(now);
+			commercePriceEntry.setExpirationDate(date);
 		}
 
 		commercePriceEntry.setStatus(status);
@@ -963,7 +1166,7 @@ public class CommercePriceEntryLocalServiceImpl
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #upsertCommercePriceEntry(String, long, long, String, long,
+	 *             #addOrUpdateCommercePriceEntry(String, long, long, String, long,
 	 *             BigDecimal, BigDecimal, boolean, BigDecimal, BigDecimal,
 	 *             BigDecimal, BigDecimal, int, int, int, int, int, int, int,
 	 *             int, int, int, boolean, String, ServiceContext)}
@@ -984,7 +1187,7 @@ public class CommercePriceEntryLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		return upsertCommercePriceEntry(
+		return addOrUpdateCommercePriceEntry(
 			externalReferenceCode, commercePriceEntryId, cProductId,
 			cpInstanceUuid, commercePriceListId, price, promoPrice,
 			discountDiscovery, discountLevel1, discountLevel2, discountLevel3,
@@ -997,7 +1200,7 @@ public class CommercePriceEntryLocalServiceImpl
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #upsertCommercePriceEntry(String, long, long, String, long,
+	 *             #addOrUpdateCommercePriceEntry(String, long, long, String, long,
 	 *             BigDecimal, BigDecimal, String, ServiceContext)}
 	 */
 	@Deprecated
@@ -1010,7 +1213,7 @@ public class CommercePriceEntryLocalServiceImpl
 			String skuExternalReferenceCode, ServiceContext serviceContext)
 		throws PortalException {
 
-		return upsertCommercePriceEntry(
+		return addOrUpdateCommercePriceEntry(
 			externalReferenceCode, commercePriceEntryId, cProductId,
 			cpInstanceUuid, commercePriceListId, price, promoPrice,
 			skuExternalReferenceCode, serviceContext);
@@ -1018,7 +1221,7 @@ public class CommercePriceEntryLocalServiceImpl
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #upsertCommercePriceEntry(String, long, long, String, long,
+	 *             #addOrUpdateCommercePriceEntry(String, long, long, String, long,
 	 *             BigDecimal, BigDecimal, BigDecimal, BigDecimal, int, int,
 	 *             int, int, int, int, int, int, int, int, boolean, String,
 	 *             ServiceContext)}
@@ -1048,202 +1251,6 @@ public class CommercePriceEntryLocalServiceImpl
 			expirationDateDay, expirationDateYear, expirationDateHour,
 			expirationDateMinute, neverExpire, skuExternalReferenceCode,
 			serviceContext);
-	}
-
-	@Override
-	public CommercePriceEntry upsertCommercePriceEntry(
-			String externalReferenceCode, long commercePriceEntryId,
-			long cProductId, String cpInstanceUuid, long commercePriceListId,
-			BigDecimal price, BigDecimal promoPrice, boolean discountDiscovery,
-			BigDecimal discountLevel1, BigDecimal discountLevel2,
-			BigDecimal discountLevel3, BigDecimal discountLevel4,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, String skuExternalReferenceCode,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		// Update
-
-		if (commercePriceEntryId > 0) {
-			try {
-				return updateCommercePriceEntry(
-					commercePriceEntryId, price, promoPrice, discountDiscovery,
-					discountLevel1, discountLevel2, discountLevel3,
-					discountLevel4, displayDateMonth, displayDateDay,
-					displayDateYear, displayDateHour, displayDateMinute,
-					expirationDateMonth, expirationDateDay, expirationDateYear,
-					expirationDateHour, expirationDateMinute, neverExpire,
-					serviceContext);
-			}
-			catch (NoSuchPriceEntryException noSuchPriceEntryException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(
-						"Unable to find price entry with ID: " +
-							commercePriceEntryId,
-						noSuchPriceEntryException);
-				}
-			}
-		}
-
-		CommercePriceEntry commercePriceEntry = null;
-		CPInstance cpInstance = null;
-
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-
-		if (!Validator.isBlank(externalReferenceCode)) {
-			commercePriceEntry = commercePriceEntryPersistence.fetchByC_ERC(
-				serviceContext.getCompanyId(), externalReferenceCode);
-		}
-		else if (cpInstanceUuid != null) {
-			commercePriceEntry = commercePriceEntryPersistence.fetchByC_C(
-				commercePriceListId, cpInstanceUuid);
-		}
-		else if (Validator.isNotNull(skuExternalReferenceCode)) {
-			cpInstance = _cpInstanceLocalService.fetchCPInstanceByReferenceCode(
-				serviceContext.getCompanyId(), skuExternalReferenceCode);
-
-			if (cpInstance != null) {
-				commercePriceEntry = commercePriceEntryPersistence.fetchByC_C(
-					commercePriceListId, cpInstance.getCPInstanceUuid());
-			}
-		}
-
-		if (commercePriceEntry != null) {
-			return updateCommercePriceEntry(
-				commercePriceEntry.getCommercePriceEntryId(), price, promoPrice,
-				discountDiscovery, discountLevel1, discountLevel2,
-				discountLevel3, discountLevel4, displayDateMonth,
-				displayDateDay, displayDateYear, displayDateHour,
-				displayDateMinute, expirationDateMonth, expirationDateDay,
-				expirationDateYear, expirationDateHour, expirationDateMinute,
-				neverExpire, serviceContext);
-		}
-
-		// Add
-
-		if ((cProductId > 0) && (cpInstanceUuid != null)) {
-			validate(commercePriceListId, cpInstanceUuid);
-
-			return addCommercePriceEntry(
-				externalReferenceCode, cProductId, cpInstanceUuid,
-				commercePriceListId, price, promoPrice, discountDiscovery,
-				discountLevel1, discountLevel2, discountLevel3, discountLevel4,
-				displayDateMonth, displayDateDay, displayDateYear,
-				displayDateHour, displayDateMinute, expirationDateMonth,
-				expirationDateDay, expirationDateYear, expirationDateHour,
-				expirationDateMinute, neverExpire, serviceContext);
-		}
-
-		if (Validator.isNotNull(skuExternalReferenceCode)) {
-			cpInstance =
-				_cpInstanceLocalService.getCPInstanceByExternalReferenceCode(
-					skuExternalReferenceCode, serviceContext.getCompanyId());
-
-			validate(commercePriceListId, cpInstance.getCPInstanceUuid());
-
-			CPDefinition cpDefinition =
-				_cpDefinitionLocalService.getCPDefinition(
-					cpInstance.getCPDefinitionId());
-
-			return addCommercePriceEntry(
-				externalReferenceCode, cpDefinition.getCProductId(),
-				cpInstance.getCPInstanceUuid(), commercePriceListId, price,
-				promoPrice, discountDiscovery, discountLevel1, discountLevel2,
-				discountLevel3, discountLevel4, displayDateMonth,
-				displayDateDay, displayDateYear, displayDateHour,
-				displayDateMinute, expirationDateMonth, expirationDateDay,
-				expirationDateYear, expirationDateHour, expirationDateMinute,
-				neverExpire, serviceContext);
-		}
-
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{cProductId=");
-		sb.append(cProductId);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append("cpInstanceUuid=");
-		sb.append(cpInstanceUuid);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append("skuExternalReferenceCode=");
-		sb.append(skuExternalReferenceCode);
-		sb.append(CharPool.CLOSE_CURLY_BRACE);
-
-		throw new NoSuchCPInstanceException(sb.toString());
-	}
-
-	/**
-	 * This method is used to insert a new CommercePriceEntry or update an
-	 * existing one
-	 *
-	 * @param  externalReferenceCode - The external identifier code from a 3rd
-	 *         party system to be able to locate the same entity in the portal
-	 *         <b>Only</b> used when updating an entity; the first entity with a
-	 *         matching reference code one will be updated
-	 * @param  commercePriceEntryId - <b>Only</b> used when updating an entity
-	 *         the matching one will be updated
-	 * @param  cProductId - <b>Only</b> used when adding a new entity
-	 * @param  commercePriceListId - <b>Only</b> used when adding a new entity
-	 *         to a price list
-	 * @param  price
-	 * @param  promoPrice
-	 * @param  skuExternalReferenceCode - <b>Only</b> used when adding a new
-	 *         entity, similar as <code>cpInstanceId</code> but the external
-	 *         identifier code from a 3rd party system. If cpInstanceId is used,
-	 *         it doesn't have any effect, otherwise it tries to fetch the
-	 *         CPInstance against the external code reference
-	 * @param  serviceContext
-	 * @return CommercePriceEntry
-	 * @throws PortalException
-	 * @review
-	 */
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public CommercePriceEntry upsertCommercePriceEntry(
-			String externalReferenceCode, long commercePriceEntryId,
-			long cProductId, String cpInstanceUuid, long commercePriceListId,
-			BigDecimal price, BigDecimal promoPrice,
-			String skuExternalReferenceCode, ServiceContext serviceContext)
-		throws PortalException {
-
-		Calendar now = new GregorianCalendar();
-
-		return upsertCommercePriceEntry(
-			externalReferenceCode, commercePriceEntryId, cProductId,
-			cpInstanceUuid, commercePriceListId, price, promoPrice, true, null,
-			null, null, null, now.get(Calendar.MONTH),
-			now.get(Calendar.DAY_OF_MONTH), now.get(Calendar.YEAR),
-			now.get(Calendar.HOUR), now.get(Calendar.MINUTE), 0, 0, 0, 0, 0,
-			true, skuExternalReferenceCode, serviceContext);
-	}
-
-	@Override
-	public CommercePriceEntry upsertCommercePriceEntry(
-			String externalReferenceCode, long commercePriceEntryId,
-			long cProductId, String cpInstanceUuid, long commercePriceListId,
-			BigDecimal price, boolean discountDiscovery,
-			BigDecimal discountLevel1, BigDecimal discountLevel2,
-			BigDecimal discountLevel3, BigDecimal discountLevel4,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, String skuExternalReferenceCode,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		return upsertCommercePriceEntry(
-			externalReferenceCode, commercePriceEntryId, cProductId,
-			cpInstanceUuid, commercePriceListId, price, null, discountDiscovery,
-			discountLevel1, discountLevel2, discountLevel3, discountLevel4,
-			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
-			displayDateMinute, expirationDateMonth, expirationDateDay,
-			expirationDateYear, expirationDateHour, expirationDateMinute,
-			neverExpire, skuExternalReferenceCode, serviceContext);
 	}
 
 	protected SearchContext buildSearchContext(
@@ -1429,18 +1436,6 @@ public class CommercePriceEntryLocalServiceImpl
 			serviceContext, workflowContext);
 	}
 
-	protected void validate(long commercePriceListId, String cpInstanceUuid)
-		throws PortalException {
-
-		CommercePriceEntry commercePriceEntry =
-			commercePriceEntryPersistence.fetchByC_C(
-				commercePriceListId, cpInstanceUuid);
-
-		if (commercePriceEntry != null) {
-			throw new DuplicateCommercePriceEntryException();
-		}
-	}
-
 	protected void validateExternalReferenceCode(
 			String externalReferenceCode, long companyId)
 		throws PortalException {
@@ -1460,6 +1455,31 @@ public class CommercePriceEntryLocalServiceImpl
 		}
 	}
 
+	private GroupByStep _getGroupByStep(
+		FromStep fromStep, long commercePriceListId, String cpInstanceUuid,
+		int status) {
+
+		return fromStep.from(
+			CommercePriceEntryTable.INSTANCE
+		).where(
+			CommercePriceEntryTable.INSTANCE.commercePriceListId.eq(
+				commercePriceListId
+			).and(
+				CommercePriceEntryTable.INSTANCE.CPInstanceUuid.eq(
+					cpInstanceUuid)
+			).and(
+				() -> {
+					if (status == WorkflowConstants.STATUS_ANY) {
+						return CommercePriceEntryTable.INSTANCE.status.neq(
+							WorkflowConstants.STATUS_IN_TRASH);
+					}
+
+					return CommercePriceEntryTable.INSTANCE.status.eq(status);
+				}
+			)
+		);
+	}
+
 	private static final String[] _SELECTED_FIELD_NAMES = {
 		Field.ENTRY_CLASS_PK, Field.COMPANY_ID, Field.GROUP_ID, Field.UID
 	};
@@ -1472,5 +1492,8 @@ public class CommercePriceEntryLocalServiceImpl
 
 	@ServiceReference(type = CPInstanceLocalService.class)
 	private CPInstanceLocalService _cpInstanceLocalService;
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 }

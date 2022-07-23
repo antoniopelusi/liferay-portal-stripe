@@ -86,6 +86,8 @@ public class SiteFriendlyURLCacheModel
 		sb.append(uuid);
 		sb.append(", siteFriendlyURLId=");
 		sb.append(siteFriendlyURLId);
+		sb.append(", groupId=");
+		sb.append(groupId);
 		sb.append(", companyId=");
 		sb.append(companyId);
 		sb.append(", userId=");
@@ -96,8 +98,6 @@ public class SiteFriendlyURLCacheModel
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
-		sb.append(", groupId=");
-		sb.append(groupId);
 		sb.append(", friendlyURL=");
 		sb.append(friendlyURL);
 		sb.append(", languageId=");
@@ -123,6 +123,7 @@ public class SiteFriendlyURLCacheModel
 		}
 
 		siteFriendlyURLImpl.setSiteFriendlyURLId(siteFriendlyURLId);
+		siteFriendlyURLImpl.setGroupId(groupId);
 		siteFriendlyURLImpl.setCompanyId(companyId);
 		siteFriendlyURLImpl.setUserId(userId);
 
@@ -146,8 +147,6 @@ public class SiteFriendlyURLCacheModel
 		else {
 			siteFriendlyURLImpl.setModifiedDate(new Date(modifiedDate));
 		}
-
-		siteFriendlyURLImpl.setGroupId(groupId);
 
 		if (friendlyURL == null) {
 			siteFriendlyURLImpl.setFriendlyURL("");
@@ -182,14 +181,14 @@ public class SiteFriendlyURLCacheModel
 
 		siteFriendlyURLId = objectInput.readLong();
 
+		groupId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
 
 		userId = objectInput.readLong();
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
-
-		groupId = objectInput.readLong();
 		friendlyURL = objectInput.readUTF();
 		languageId = objectInput.readUTF();
 		lastPublishDate = objectInput.readLong();
@@ -208,6 +207,8 @@ public class SiteFriendlyURLCacheModel
 
 		objectOutput.writeLong(siteFriendlyURLId);
 
+		objectOutput.writeLong(groupId);
+
 		objectOutput.writeLong(companyId);
 
 		objectOutput.writeLong(userId);
@@ -221,8 +222,6 @@ public class SiteFriendlyURLCacheModel
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
-
-		objectOutput.writeLong(groupId);
 
 		if (friendlyURL == null) {
 			objectOutput.writeUTF("");
@@ -244,12 +243,12 @@ public class SiteFriendlyURLCacheModel
 	public long mvccVersion;
 	public String uuid;
 	public long siteFriendlyURLId;
+	public long groupId;
 	public long companyId;
 	public long userId;
 	public String userName;
 	public long createDate;
 	public long modifiedDate;
-	public long groupId;
 	public String friendlyURL;
 	public String languageId;
 	public long lastPublishDate;

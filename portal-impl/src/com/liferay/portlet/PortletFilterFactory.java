@@ -46,7 +46,6 @@ public class PortletFilterFactory {
 	}
 
 	private PortletFilterFactory() {
-		_portletFilters = new ConcurrentHashMap<>();
 	}
 
 	private PortletFilter _create(
@@ -158,6 +157,7 @@ public class PortletFilterFactory {
 	private static final PortletFilterFactory _portletFilterFactory =
 		new PortletFilterFactory();
 
-	private final Map<String, Map<String, PortletFilter>> _portletFilters;
+	private final Map<String, Map<String, PortletFilter>> _portletFilters =
+		new ConcurrentHashMap<>();
 
 }

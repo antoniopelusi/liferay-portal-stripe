@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce.product">
+<service-builder auto-namespace-tables="false" change-tracking-enabled="true" mvcc-enabled="true" package-path="com.liferay.commerce.product">
 	<author>Marco Leo</author>
 	<namespace>Commerce</namespace>
 	<entity external-reference-code="true" local-service="true" name="CommerceCatalog" remote-service="true">
@@ -40,11 +40,6 @@
 			<finder-column name="companyId" />
 			<finder-column name="system" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Company" package-path="com.liferay.portal" />
-		<reference entity="Group" package-path="com.liferay.portal" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CommerceChannel" remote-service="true">
 
@@ -84,10 +79,6 @@
 		<finder name="SiteGroupId" return-type="CommerceChannel">
 			<finder-column name="siteGroupId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="CommerceChannelRel" remote-service="true">
 
@@ -153,6 +144,8 @@
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
 		<column name="fileEntryId" type="long" />
+		<column method-name="CDNEnabled" name="cdnEnabled" type="boolean" />
+		<column method-name="CDNURL" name="cdnURL" type="String" />
 		<column name="displayDate" type="Date" />
 		<column name="expirationDate" type="Date" />
 		<column localized="true" name="title" type="String" />
@@ -181,10 +174,15 @@
 			<finder-column comparator="&lt;" name="displayDate" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="C_C_F" return-type="CPAttachmentFileEntry" unique="true">
+		<finder name="C_C_F" return-type="Collection">
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 			<finder-column name="fileEntryId" />
+		</finder>
+		<finder name="C_C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+			<finder-column name="cdnURL" />
 		</finder>
 		<finder name="C_C_LtD_S" return-type="Collection">
 			<finder-column name="classNameId" />
@@ -204,12 +202,6 @@
 			<finder-column name="type" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="DLApp" package-path="com.liferay.portlet.documentlibrary" />
-		<reference entity="DLFileEntry" package-path="com.liferay.portlet.documentlibrary" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPDefinition" remote-service="true" uuid="true">
 
@@ -318,14 +310,6 @@
 			<finder-column comparator="&lt;" name="displayDate" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetLink" package-path="com.liferay.portlet.asset" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPDefinitionLink" remote-service="true" uuid="true">
 
@@ -379,10 +363,6 @@
 			<finder-column name="CProductId" />
 			<finder-column name="type" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPDefinitionOptionRel" remote-service="true" uuid="true">
 
@@ -449,10 +429,6 @@
 			<finder-column name="CPDefinitionId" />
 			<finder-column name="key" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPDefinitionOptionValueRel" remote-service="true" uuid="true">
 
@@ -515,10 +491,6 @@
 			<finder-column name="CPDefinitionOptionRelId" />
 			<finder-column name="preselected" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPDefinitionSpecificationOptionValue" remote-service="true" table="CPDSpecificationOptionValue" uuid="true">
 
@@ -579,10 +551,6 @@
 			<finder-column name="CPDefinitionId" />
 			<finder-column name="CPOptionCategoryId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPDisplayLayout" remote-service="true" uuid="true">
 
@@ -630,10 +598,6 @@
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Layout" package-path="com.liferay.portal" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CPInstance" remote-service="true" uuid="true">
 
@@ -684,6 +648,10 @@
 		<column db-name="deliverySubTypeSettings" name="deliverySubscriptionTypeSettings" type="String" />
 		<column name="deliveryMaxSubscriptionCycles" type="long" />
 		<column name="unspsc" type="String" />
+		<column name="discontinued" type="boolean" />
+		<column name="discontinuedDate" type="Date" />
+		<column name="replacementCPInstanceUuid" type="String" />
+		<column name="replacementCProductId" type="long" />
 		<column name="status" type="int" />
 		<column name="statusByUserId" type="long" />
 		<column name="statusByUserName" type="String" />
@@ -714,11 +682,15 @@
 			<finder-column name="groupId" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="C_SKU" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="sku" />
+		</finder>
 		<finder name="C_C" return-type="CPInstance" unique="true">
 			<finder-column name="CPDefinitionId" />
 			<finder-column name="CPInstanceUuid" />
 		</finder>
-		<finder name="C_S" return-type="CPInstance" unique="true">
+		<finder name="CPDI_SKU" return-type="CPInstance" unique="true">
 			<finder-column name="CPDefinitionId" />
 			<finder-column name="sku" />
 		</finder>
@@ -735,11 +707,6 @@
 			<finder-column comparator="&lt;" name="displayDate" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPInstanceOptionValueRel" remote-service="true" uuid="true">
 
@@ -826,13 +793,12 @@
 		<finder name="CompanyId" return-type="Collection">
 			<finder-column name="companyId" />
 		</finder>
-		<finder name="C_T" return-type="Collection">
-			<finder-column name="companyId" />
-			<finder-column name="type" />
-		</finder>
-		<finder name="C_K_T" return-type="CPMeasurementUnit" unique="true">
+		<finder name="C_K" return-type="CPMeasurementUnit" unique="true">
 			<finder-column name="companyId" />
 			<finder-column case-sensitive="false" name="key" />
+		</finder>
+		<finder name="C_T" return-type="Collection">
+			<finder-column name="companyId" />
 			<finder-column name="type" />
 		</finder>
 		<finder name="C_P_T" return-type="Collection">
@@ -881,10 +847,6 @@
 			<finder-column name="companyId" />
 			<finder-column name="key" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CPOptionCategory" remote-service="true" uuid="true">
 
@@ -966,10 +928,6 @@
 			<finder-column name="CPOptionId" />
 			<finder-column name="key" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CProduct" remote-service="false" uuid="true">
 
@@ -1047,10 +1005,6 @@
 			<finder-column name="companyId" />
 			<finder-column name="key" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CPTaxCategory" remote-service="true">
 
@@ -1086,6 +1040,7 @@
 	<exceptions>
 		<exception>CommerceCatalogProducts</exception>
 		<exception>CommerceCatalogSystem</exception>
+		<exception>CPAttachmentFileEntryCDNURL</exception>
 		<exception>CPAttachmentFileEntryDisplayDate</exception>
 		<exception>CPAttachmentFileEntryExpirationDate</exception>
 		<exception>CPAttachmentFileEntryName</exception>
@@ -1107,9 +1062,11 @@
 		<exception>CPDefinitionProductTypeName</exception>
 		<exception>CPDisplayLayoutEntry</exception>
 		<exception>CPDisplayLayoutLayoutUuid</exception>
+		<exception>CPInstanceDiscontinuedDate</exception>
 		<exception>CPInstanceDisplayDate</exception>
 		<exception>CPInstanceExpirationDate</exception>
 		<exception>CPInstanceJson</exception>
+		<exception>CPInstanceReplacementCPInstanceUuid</exception>
 		<exception>CPInstanceSku</exception>
 		<exception>CPMeasurementUnitKey</exception>
 		<exception>CPOptionCategoryKey</exception>
@@ -1119,6 +1076,7 @@
 		<exception>CPSpecificationOptionKey</exception>
 		<exception>CPSpecificationOptionTitle</exception>
 		<exception>CPTaxCategoryName</exception>
+		<exception>DuplicateCommerceChannel</exception>
 		<exception>DuplicateCommerceChannelRel</exception>
 		<exception>DuplicateCPAttachmentFileEntry</exception>
 		<exception>DuplicateCPDefinitionOptionRelKey</exception>

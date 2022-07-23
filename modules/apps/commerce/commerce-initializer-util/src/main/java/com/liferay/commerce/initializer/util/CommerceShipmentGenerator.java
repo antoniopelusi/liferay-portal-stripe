@@ -168,9 +168,10 @@ public class CommerceShipmentGenerator {
 			}
 
 			_commerceShipmentItemLocalService.addCommerceShipmentItem(
-				commerceShipmentId, commerceOrderItem.getCommerceOrderItemId(),
+				null, commerceShipmentId,
+				commerceOrderItem.getCommerceOrderItemId(),
 				commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-				commerceInventoryWarehouseItemQuantity, serviceContext);
+				commerceInventoryWarehouseItemQuantity, true, serviceContext);
 		}
 	}
 

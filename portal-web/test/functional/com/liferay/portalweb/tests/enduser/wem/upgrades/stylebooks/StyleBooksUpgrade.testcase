@@ -1,0 +1,35 @@
+@component-name = "portal-upgrades"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Style Book,Upgrades WEM";
+	property testray.main.component.name = "Upgrades WEM";
+
+	setUp {
+		SignIn.signIn();
+
+		SearchAdministration.executeReindex();
+	}
+
+	@description = "This is a test for LPS-131851. Can create Style Book entry after upgrading"
+	@priority = "4"
+	test AddStyleBookAfterUpgrade735 {
+		property data.archive.type = "data-archive-style-books";
+		property database.types = "mariadb,mysql,postgresql";
+		property portal.version = "7.3.5";
+
+		Upgrade.addStyleBook();
+	}
+
+	@description = "This is a test for LPS-131851. Can create Style Book entry after upgrading"
+	@priority = "4"
+	test AddStyleBookAfterUpgrade73101 {
+		property data.archive.type = "data-archive-style-books";
+		property database.types = "db2,mysql,oracle,postgresql,sybase";
+		property portal.version = "7.3.10.1";
+
+		Upgrade.addStyleBook();
+	}
+
+}

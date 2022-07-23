@@ -106,6 +106,11 @@ public class RecentLayoutRevisionWrapper
 		}
 	}
 
+	@Override
+	public RecentLayoutRevision cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this recent layout revision.
 	 *

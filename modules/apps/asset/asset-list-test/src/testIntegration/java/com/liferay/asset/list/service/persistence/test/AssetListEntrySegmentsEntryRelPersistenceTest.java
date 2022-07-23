@@ -157,6 +157,8 @@ public class AssetListEntrySegmentsEntryRelPersistenceTest {
 		newAssetListEntrySegmentsEntryRel.setAssetListEntryId(
 			RandomTestUtil.nextLong());
 
+		newAssetListEntrySegmentsEntryRel.setPriority(RandomTestUtil.nextInt());
+
 		newAssetListEntrySegmentsEntryRel.setSegmentsEntryId(
 			RandomTestUtil.nextLong());
 
@@ -212,6 +214,9 @@ public class AssetListEntrySegmentsEntryRelPersistenceTest {
 		Assert.assertEquals(
 			existingAssetListEntrySegmentsEntryRel.getAssetListEntryId(),
 			newAssetListEntrySegmentsEntryRel.getAssetListEntryId());
+		Assert.assertEquals(
+			existingAssetListEntrySegmentsEntryRel.getPriority(),
+			newAssetListEntrySegmentsEntryRel.getPriority());
 		Assert.assertEquals(
 			existingAssetListEntrySegmentsEntryRel.getSegmentsEntryId(),
 			newAssetListEntrySegmentsEntryRel.getSegmentsEntryId());
@@ -275,6 +280,21 @@ public class AssetListEntrySegmentsEntryRelPersistenceTest {
 	}
 
 	@Test
+	public void testCountByA_S_C() throws Exception {
+		_persistence.countByA_S_C(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
+
+		_persistence.countByA_S_C(0L, 0L);
+	}
+
+	@Test
+	public void testCountByA_S_CArrayable() throws Exception {
+		_persistence.countByA_S_C(
+			RandomTestUtil.nextLong(),
+			new long[] {RandomTestUtil.nextLong(), 0L});
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		AssetListEntrySegmentsEntryRel newAssetListEntrySegmentsEntryRel =
 			addAssetListEntrySegmentsEntryRel();
@@ -309,8 +329,8 @@ public class AssetListEntrySegmentsEntryRelPersistenceTest {
 			"ctCollectionId", true, "uuid", true,
 			"assetListEntrySegmentsEntryRelId", true, "groupId", true,
 			"companyId", true, "userId", true, "userName", true, "createDate",
-			true, "modifiedDate", true, "assetListEntryId", true,
-			"segmentsEntryId", true, "lastPublishDate", true);
+			true, "modifiedDate", true, "assetListEntryId", true, "priority",
+			true, "segmentsEntryId", true, "lastPublishDate", true);
 	}
 
 	@Test
@@ -675,6 +695,8 @@ public class AssetListEntrySegmentsEntryRelPersistenceTest {
 
 		assetListEntrySegmentsEntryRel.setAssetListEntryId(
 			RandomTestUtil.nextLong());
+
+		assetListEntrySegmentsEntryRel.setPriority(RandomTestUtil.nextInt());
 
 		assetListEntrySegmentsEntryRel.setSegmentsEntryId(
 			RandomTestUtil.nextLong());

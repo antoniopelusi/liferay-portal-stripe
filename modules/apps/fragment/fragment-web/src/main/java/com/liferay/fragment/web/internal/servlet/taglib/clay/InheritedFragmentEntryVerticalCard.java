@@ -33,7 +33,7 @@ import javax.portlet.RenderResponse;
  * @author Jürgen Kappler
  */
 public class InheritedFragmentEntryVerticalCard
-	extends FragmentEntryVerticalCard {
+	extends BaseFragmentEntryVerticalCard {
 
 	public InheritedFragmentEntryVerticalCard(
 		FragmentEntry fragmentEntry, RenderRequest renderRequest,
@@ -58,7 +58,7 @@ public class InheritedFragmentEntryVerticalCard
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

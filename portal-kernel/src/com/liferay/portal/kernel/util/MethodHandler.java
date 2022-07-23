@@ -71,15 +71,9 @@ public class MethodHandler implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{arguments=");
-		sb.append(Arrays.toString(_arguments));
-		sb.append(", methodKey=");
-		sb.append(_methodKey);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{arguments=", Arrays.toString(_arguments), ", methodKey=",
+			_methodKey, "}");
 	}
 
 	private final Object[] _arguments;

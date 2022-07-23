@@ -15,7 +15,6 @@
 package com.liferay.object.model.impl;
 
 import com.liferay.object.model.ObjectLayoutBox;
-import com.liferay.object.service.ObjectLayoutBoxLocalServiceUtil;
 
 /**
  * The extended model base implementation for the ObjectLayoutBox service. Represents a row in the &quot;ObjectLayoutBox&quot; database table, with each column mapped to a property of this class.
@@ -37,14 +36,5 @@ public abstract class ObjectLayoutBoxBaseImpl
 	 *
 	 * Never modify or reference this class directly. All methods that expect a object layout box model instance should use the <code>ObjectLayoutBox</code> interface instead.
 	 */
-	@Override
-	public void persist() {
-		if (this.isNew()) {
-			ObjectLayoutBoxLocalServiceUtil.addObjectLayoutBox(this);
-		}
-		else {
-			ObjectLayoutBoxLocalServiceUtil.updateObjectLayoutBox(this);
-		}
-	}
 
 }

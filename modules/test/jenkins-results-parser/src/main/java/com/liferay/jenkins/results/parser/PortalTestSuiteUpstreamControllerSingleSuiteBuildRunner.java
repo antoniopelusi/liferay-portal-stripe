@@ -35,13 +35,7 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 	public void run() {
 		retirePreviousBuilds();
 
-		if (_allowConcurrentBuilds()) {
-			super.run();
-
-			return;
-		}
-
-		if (_expirePreviousBuild()) {
+		if (_allowConcurrentBuilds() || _expirePreviousBuild()) {
 			super.run();
 
 			return;
@@ -239,7 +233,9 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 			String description = previousBuildJSONObject.optString(
 				"description", "");
 
-			if (!description.contains("IN PROGRESS")) {
+			if (!description.contains("IN PROGRESS") &&
+				!description.contains("IN QUEUE")) {
+
 				continue;
 			}
 
@@ -270,9 +266,11 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 				return false;
 			}
 
+			description = description.replace("IN PROGRESS", "EXPIRE");
+			description = description.replace("IN QUEUE", "EXPIRE");
+
 			JenkinsResultsParserUtil.updateBuildDescription(
-				description.replace("IN PROGRESS", "EXPIRE"),
-				previousBuildJSONObject.getInt("number"),
+				description, previousBuildJSONObject.getInt("number"),
 				matcher.group("jobName"), matcher.group("masterHostname"));
 
 			return true;

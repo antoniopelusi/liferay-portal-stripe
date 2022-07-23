@@ -32,7 +32,7 @@ if (ListUtil.isEmpty(categories)) {
 
 AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(className, classPK);
 
-List<AssetVocabulary> vocabularies = AssetVocabularyServiceUtil.getGroupVocabularies(PortalUtil.getCurrentAndAncestorSiteGroupIds((assetEntry != null) ? assetEntry.getGroupId() : scopeGroupId));
+List<AssetVocabulary> vocabularies = AssetVocabularyServiceUtil.getGroupVocabularies(SiteConnectedGroupGroupProviderUtil.getCurrentAndAncestorSiteAndDepotGroupIds((assetEntry != null) ? assetEntry.getGroupId() : scopeGroupId));
 
 for (AssetVocabulary vocabulary : vocabularies) {
 	List<AssetCategory> curCategories = _filterCategories(categories, vocabulary, visibleTypes);
@@ -67,6 +67,7 @@ for (AssetVocabulary vocabulary : vocabularies) {
 									displayType="dark"
 									label="<%= HtmlUtil.escape(category.getTitle(themeDisplay.getLocale())) %>"
 									large="<%= true %>"
+									translated="<%= false %>"
 								/>
 
 							<%
@@ -89,7 +90,7 @@ for (AssetVocabulary vocabulary : vocabularies) {
 								portletURL.setParameter(paramName, String.valueOf(category.getCategoryId()));
 							%>
 
-								<a class="asset-category text-uppercase" href="<%= HtmlUtil.escape(portletURL.toString()) %>"><%= _buildCategoryPath(category, themeDisplay) %></a>
+								<a class="asset-category mb-1 mr-1 pr-2 text-uppercase" href="<%= HtmlUtil.escape(portletURL.toString()) %>"><%= _buildCategoryPath(category, themeDisplay) %></a>
 
 							<%
 							}
@@ -102,7 +103,7 @@ for (AssetVocabulary vocabulary : vocabularies) {
 							for (AssetCategory category : curCategories) {
 							%>
 
-								<span class="asset-category text-uppercase">
+								<span class="asset-category mb-1 mr-1 pr-2 text-uppercase">
 									<%= _buildCategoryPath(category, themeDisplay) %>
 								</span>
 

@@ -129,7 +129,7 @@ public class CommerceNotificationQueueEntryLocalServiceImpl
 
 	@Override
 	public void deleteCommerceNotificationQueueEntries(Date sentDate) {
-		commerceNotificationQueueEntryPersistence.removeByLtS(sentDate);
+		commerceNotificationQueueEntryPersistence.removeByLtSentDate(sentDate);
 	}
 
 	@Override
@@ -285,7 +285,7 @@ public class CommerceNotificationQueueEntryLocalServiceImpl
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}

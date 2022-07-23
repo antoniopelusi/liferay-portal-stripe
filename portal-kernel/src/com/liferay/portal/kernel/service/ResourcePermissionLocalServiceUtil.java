@@ -339,6 +339,10 @@ public class ResourcePermissionLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -565,6 +569,10 @@ public class ResourcePermissionLocalServiceUtil {
 
 		return getService().getResourcePermissions(
 			companyId, name, scope, primKey);
+	}
+
+	public static List<ResourcePermission> getResourcePermissions(String name) {
+		return getService().getResourcePermissions(name);
 	}
 
 	/**

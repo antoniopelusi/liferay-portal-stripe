@@ -120,17 +120,12 @@ public class CommercePriceListPermissionImpl
 
 		if (permissionChecker.isCompanyAdmin(
 				commercePriceList.getCompanyId()) ||
-			permissionChecker.isOmniadmin()) {
-
-			return true;
-		}
-
-		if (permissionChecker.hasOwnerPermission(
-				permissionChecker.getCompanyId(),
+			permissionChecker.isOmniadmin() ||
+			permissionChecker.hasOwnerPermission(
+				commercePriceList.getCompanyId(),
 				CommercePriceList.class.getName(),
 				commercePriceList.getCommercePriceListId(),
-				permissionChecker.getUserId(), actionId) &&
-			(commercePriceList.getUserId() == permissionChecker.getUserId())) {
+				commercePriceList.getUserId(), actionId)) {
 
 			return true;
 		}

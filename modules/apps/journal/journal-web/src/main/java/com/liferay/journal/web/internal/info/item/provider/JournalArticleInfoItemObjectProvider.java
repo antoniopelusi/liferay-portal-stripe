@@ -27,6 +27,13 @@ import com.liferay.journal.model.JournalArticleResource;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalArticleResourceLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -46,6 +53,7 @@ import org.osgi.service.component.annotations.Reference;
 		"info.item.identifier=com.liferay.info.item.ClassPKInfoItemIdentifier",
 		"info.item.identifier=com.liferay.info.item.GroupKeyInfoItemIdentifier",
 		"info.item.identifier=com.liferay.info.item.GroupUrlTitleInfoItemIdentifier",
+		"item.class.name=com.liferay.journal.model.JournalArticle",
 		"service.ranking:Integer=100"
 	},
 	service = InfoItemObjectProvider.class
@@ -102,6 +110,16 @@ public class JournalArticleInfoItemObjectProvider
 				article = _getArticleByUrlTitle(
 					groupURLTitleInfoItemIdentifier.getGroupId(),
 					groupURLTitleInfoItemIdentifier.getUrlTitle(), version);
+			}
+
+			if ((article != null) &&
+				!Objects.equals(
+					version, InfoItemIdentifier.VERSION_LATEST_APPROVED) &&
+				_isSignedIn() && !_hasPermission(article)) {
+
+				article = _getArticle(
+					article.getResourcePrimKey(),
+					InfoItemIdentifier.VERSION_LATEST_APPROVED);
 			}
 		}
 		catch (NoSuchArticleException | NoSuchArticleResourceException
@@ -212,8 +230,54 @@ public class JournalArticleInfoItemObjectProvider
 		}
 	}
 
+	private boolean _hasPermission(JournalArticle article) {
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if (permissionChecker == null) {
+			return false;
+		}
+
+		try {
+			_journalArticleModelResourcePermission.check(
+				permissionChecker, article, ActionKeys.VIEW);
+
+			return true;
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _isSignedIn() {
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if (permissionChecker == null) {
+			return false;
+		}
+
+		return permissionChecker.isSignedIn();
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		JournalArticleInfoItemObjectProvider.class);
+
+	@Reference
+	private GroupService _groupService;
+
 	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;
+
+	@Reference(
+		target = "(model.class.name=com.liferay.journal.model.JournalArticle)"
+	)
+	private ModelResourcePermission<JournalArticle>
+		_journalArticleModelResourcePermission;
 
 	@Reference
 	private JournalArticleResourceLocalService

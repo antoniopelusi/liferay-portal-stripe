@@ -63,6 +63,14 @@ public interface SamlIdpSpConnectionLocalService
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.saml.persistence.service.impl.SamlIdpSpConnectionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the saml idp sp connection local service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link SamlIdpSpConnectionLocalServiceUtil} if injection and service tracking are not available.
 	 */
+	public SamlIdpSpConnection addSamlIdpSpConnection(
+			int assertionLifetime, String attributeNames,
+			boolean attributesEnabled, boolean attributesNamespaceEnabled,
+			boolean enabled, boolean encryptionForced, String metadataUrl,
+			InputStream metadataXmlInputStream, String name,
+			String nameIdAttribute, String nameIdFormat, String samlSpEntityId,
+			ServiceContext serviceContext)
+		throws PortalException;
 
 	/**
 	 * Adds the saml idp sp connection to the database. Also notifies the appropriate model listeners.
@@ -77,15 +85,6 @@ public interface SamlIdpSpConnectionLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public SamlIdpSpConnection addSamlIdpSpConnection(
 		SamlIdpSpConnection samlIdpSpConnection);
-
-	public SamlIdpSpConnection addSamlIdpSpConnection(
-			String samlSpEntityId, int assertionLifetime, String attributeNames,
-			boolean attributesEnabled, boolean attributesNamespaceEnabled,
-			boolean enabled, boolean encryptionForced, String metadataUrl,
-			InputStream metadataXmlInputStream, String name,
-			String nameIdAttribute, String nameIdFormat,
-			ServiceContext serviceContext)
-		throws PortalException;
 
 	/**
 	 * @throws PortalException
@@ -142,6 +141,9 @@ public interface SamlIdpSpConnectionLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -293,12 +295,12 @@ public interface SamlIdpSpConnectionLocalService
 		throws PortalException;
 
 	public SamlIdpSpConnection updateSamlIdpSpConnection(
-			long samlIdpSpConnectionId, String samlSpEntityId,
-			int assertionLifetime, String attributeNames,
-			boolean attributesEnabled, boolean attributesNamespaceEnabled,
-			boolean enabled, boolean encryptionForced, String metadataUrl,
+			long samlIdpSpConnectionId, int assertionLifetime,
+			String attributeNames, boolean attributesEnabled,
+			boolean attributesNamespaceEnabled, boolean enabled,
+			boolean encryptionForced, String metadataUrl,
 			InputStream metadataXmlInputStream, String name,
-			String nameIdAttribute, String nameIdFormat,
+			String nameIdAttribute, String nameIdFormat, String samlSpEntityId,
 			ServiceContext serviceContext)
 		throws PortalException;
 

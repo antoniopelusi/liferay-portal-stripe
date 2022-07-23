@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class RSVEntryLocalServiceWrapper
 	implements RSVEntryLocalService, ServiceWrapper<RSVEntryLocalService> {
 
+	public RSVEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public RSVEntryLocalServiceWrapper(
 		RSVEntryLocalService rsvEntryLocalService) {
 
@@ -123,6 +127,13 @@ public class RSVEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _rsvEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _rsvEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

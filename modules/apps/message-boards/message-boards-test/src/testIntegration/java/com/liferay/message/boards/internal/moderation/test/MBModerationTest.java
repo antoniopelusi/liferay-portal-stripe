@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -63,11 +63,11 @@ public class MBModerationTest {
 			_group.getGroupId(), _user.getUserId(),
 			RandomTestUtil.randomString(50), RandomTestUtil.randomString(50));
 
-		int groupMessagesCount = _mbMessageLocalService.getGroupMessagesCount(
-			_group.getGroupId(), _user.getUserId(),
-			WorkflowConstants.STATUS_APPROVED);
-
-		Assert.assertEquals(1, groupMessagesCount);
+		Assert.assertEquals(
+			1,
+			_mbMessageLocalService.getGroupMessagesCount(
+				_group.getGroupId(), _user.getUserId(),
+				WorkflowConstants.STATUS_APPROVED));
 	}
 
 	@Test
@@ -85,12 +85,11 @@ public class MBModerationTest {
 					RandomTestUtil.randomString(50),
 					RandomTestUtil.randomString(50));
 
-				int groupMessagesCount =
+				Assert.assertEquals(
+					2,
 					_mbMessageLocalService.getGroupMessagesCount(
 						_group.getGroupId(), _user.getUserId(),
-						WorkflowConstants.STATUS_APPROVED);
-
-				Assert.assertEquals(2, groupMessagesCount);
+						WorkflowConstants.STATUS_APPROVED));
 			});
 	}
 
@@ -105,12 +104,11 @@ public class MBModerationTest {
 					RandomTestUtil.randomString(50),
 					RandomTestUtil.randomString(50));
 
-				int groupMessagesCount =
+				Assert.assertEquals(
+					0,
 					_mbMessageLocalService.getGroupMessagesCount(
 						_group.getGroupId(), _user.getUserId(),
-						WorkflowConstants.STATUS_APPROVED);
-
-				Assert.assertEquals(0, groupMessagesCount);
+						WorkflowConstants.STATUS_APPROVED));
 			});
 	}
 
@@ -118,16 +116,19 @@ public class MBModerationTest {
 			UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("companyId", _group.getCompanyId());
-		dictionary.put("enableMessageBoardsModeration", true);
-		dictionary.put("minimumContributedMessages", 1);
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"companyId", _group.getCompanyId()
+			).put(
+				"enableMessageBoardsModeration", true
+			).put(
+				"minimumContributedMessages", 1
+			).build();
 
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
-					"com.liferay.message.boards.moderation.internal." +
-						"configuration.MBModerationGroupConfiguration",
+					"com.liferay.message.boards.moderation.configuration." +
+						"MBModerationGroupConfiguration",
 					dictionary)) {
 
 			unsafeRunnable.run();

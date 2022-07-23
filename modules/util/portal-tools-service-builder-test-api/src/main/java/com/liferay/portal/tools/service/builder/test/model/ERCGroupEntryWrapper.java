@@ -77,6 +77,11 @@ public class ERCGroupEntryWrapper
 		}
 	}
 
+	@Override
+	public ERCGroupEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this erc group entry.
 	 *

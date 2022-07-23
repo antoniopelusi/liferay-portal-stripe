@@ -30,6 +30,10 @@ public class DDMTemplateVersionLocalServiceWrapper
 	implements DDMTemplateVersionLocalService,
 			   ServiceWrapper<DDMTemplateVersionLocalService> {
 
+	public DDMTemplateVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMTemplateVersionLocalServiceWrapper(
 		DDMTemplateVersionLocalService ddmTemplateVersionLocalService) {
 
@@ -135,6 +139,13 @@ public class DDMTemplateVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmTemplateVersionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmTemplateVersionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

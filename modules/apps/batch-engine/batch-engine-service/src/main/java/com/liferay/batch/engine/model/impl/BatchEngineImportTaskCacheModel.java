@@ -80,12 +80,14 @@ public class BatchEngineImportTaskCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(39);
+		StringBundler sb = new StringBundler(47);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
 		sb.append(", uuid=");
 		sb.append(uuid);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
 		sb.append(", batchEngineImportTaskId=");
 		sb.append(batchEngineImportTaskId);
 		sb.append(", companyId=");
@@ -112,14 +114,20 @@ public class BatchEngineImportTaskCacheModel
 		sb.append(executeStatus);
 		sb.append(", fieldNameMapping=");
 		sb.append(fieldNameMapping);
+		sb.append(", importStrategy=");
+		sb.append(importStrategy);
 		sb.append(", operation=");
 		sb.append(operation);
 		sb.append(", parameters=");
 		sb.append(parameters);
+		sb.append(", processedItemsCount=");
+		sb.append(processedItemsCount);
 		sb.append(", startTime=");
 		sb.append(startTime);
 		sb.append(", taskItemDelegateName=");
 		sb.append(taskItemDelegateName);
+		sb.append(", totalItemsCount=");
+		sb.append(totalItemsCount);
 		sb.append("}");
 
 		return sb.toString();
@@ -137,6 +145,14 @@ public class BatchEngineImportTaskCacheModel
 		}
 		else {
 			batchEngineImportTaskImpl.setUuid(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			batchEngineImportTaskImpl.setExternalReferenceCode("");
+		}
+		else {
+			batchEngineImportTaskImpl.setExternalReferenceCode(
+				externalReferenceCode);
 		}
 
 		batchEngineImportTaskImpl.setBatchEngineImportTaskId(
@@ -203,6 +219,7 @@ public class BatchEngineImportTaskCacheModel
 		}
 
 		batchEngineImportTaskImpl.setFieldNameMapping(fieldNameMapping);
+		batchEngineImportTaskImpl.setImportStrategy(importStrategy);
 
 		if (operation == null) {
 			batchEngineImportTaskImpl.setOperation("");
@@ -212,6 +229,7 @@ public class BatchEngineImportTaskCacheModel
 		}
 
 		batchEngineImportTaskImpl.setParameters(parameters);
+		batchEngineImportTaskImpl.setProcessedItemsCount(processedItemsCount);
 
 		if (startTime == Long.MIN_VALUE) {
 			batchEngineImportTaskImpl.setStartTime(null);
@@ -228,6 +246,8 @@ public class BatchEngineImportTaskCacheModel
 				taskItemDelegateName);
 		}
 
+		batchEngineImportTaskImpl.setTotalItemsCount(totalItemsCount);
+
 		batchEngineImportTaskImpl.resetOriginalValues();
 
 		return batchEngineImportTaskImpl;
@@ -239,6 +259,7 @@ public class BatchEngineImportTaskCacheModel
 
 		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
+		externalReferenceCode = objectInput.readUTF();
 
 		batchEngineImportTaskId = objectInput.readLong();
 
@@ -253,13 +274,19 @@ public class BatchEngineImportTaskCacheModel
 		className = objectInput.readUTF();
 		contentType = objectInput.readUTF();
 		endTime = objectInput.readLong();
-		errorMessage = objectInput.readUTF();
+		errorMessage = (String)objectInput.readObject();
 		executeStatus = objectInput.readUTF();
 		fieldNameMapping = (Map<String, Serializable>)objectInput.readObject();
+
+		importStrategy = objectInput.readInt();
 		operation = objectInput.readUTF();
 		parameters = (Map<String, Serializable>)objectInput.readObject();
+
+		processedItemsCount = objectInput.readInt();
 		startTime = objectInput.readLong();
 		taskItemDelegateName = objectInput.readUTF();
+
+		totalItemsCount = objectInput.readInt();
 	}
 
 	@Override
@@ -271,6 +298,13 @@ public class BatchEngineImportTaskCacheModel
 		}
 		else {
 			objectOutput.writeUTF(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
 		}
 
 		objectOutput.writeLong(batchEngineImportTaskId);
@@ -307,10 +341,10 @@ public class BatchEngineImportTaskCacheModel
 		objectOutput.writeLong(endTime);
 
 		if (errorMessage == null) {
-			objectOutput.writeUTF("");
+			objectOutput.writeObject("");
 		}
 		else {
-			objectOutput.writeUTF(errorMessage);
+			objectOutput.writeObject(errorMessage);
 		}
 
 		if (executeStatus == null) {
@@ -322,6 +356,8 @@ public class BatchEngineImportTaskCacheModel
 
 		objectOutput.writeObject(fieldNameMapping);
 
+		objectOutput.writeInt(importStrategy);
+
 		if (operation == null) {
 			objectOutput.writeUTF("");
 		}
@@ -330,6 +366,8 @@ public class BatchEngineImportTaskCacheModel
 		}
 
 		objectOutput.writeObject(parameters);
+
+		objectOutput.writeInt(processedItemsCount);
 		objectOutput.writeLong(startTime);
 
 		if (taskItemDelegateName == null) {
@@ -338,10 +376,13 @@ public class BatchEngineImportTaskCacheModel
 		else {
 			objectOutput.writeUTF(taskItemDelegateName);
 		}
+
+		objectOutput.writeInt(totalItemsCount);
 	}
 
 	public long mvccVersion;
 	public String uuid;
+	public String externalReferenceCode;
 	public long batchEngineImportTaskId;
 	public long companyId;
 	public long userId;
@@ -355,9 +396,12 @@ public class BatchEngineImportTaskCacheModel
 	public String errorMessage;
 	public String executeStatus;
 	public Map<String, Serializable> fieldNameMapping;
+	public int importStrategy;
 	public String operation;
 	public Map<String, Serializable> parameters;
+	public int processedItemsCount;
 	public long startTime;
 	public String taskItemDelegateName;
+	public int totalItemsCount;
 
 }

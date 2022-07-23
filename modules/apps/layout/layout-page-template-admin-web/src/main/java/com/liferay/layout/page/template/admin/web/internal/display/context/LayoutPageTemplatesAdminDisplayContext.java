@@ -107,7 +107,7 @@ public class LayoutPageTemplatesAdminDisplayContext {
 			_liferayPortletResponse
 		).setTabs1(
 			getTabs1()
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getTabs1() {

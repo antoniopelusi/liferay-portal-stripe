@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -51,7 +50,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -255,7 +253,8 @@ public abstract class BasePriceEntryResourceTestCase {
 	public void testGraphQLGetPriceEntryByExternalReferenceCode()
 		throws Exception {
 
-		PriceEntry priceEntry = testGraphQLPriceEntry_addPriceEntry();
+		PriceEntry priceEntry =
+			testGraphQLGetPriceEntryByExternalReferenceCode_addPriceEntry();
 
 		Assert.assertTrue(
 			equals(
@@ -305,6 +304,13 @@ public abstract class BasePriceEntryResourceTestCase {
 				"Object/code"));
 	}
 
+	protected PriceEntry
+			testGraphQLGetPriceEntryByExternalReferenceCode_addPriceEntry()
+		throws Exception {
+
+		return testGraphQLPriceEntry_addPriceEntry();
+	}
+
 	@Test
 	public void testPatchPriceEntryByExternalReferenceCode() throws Exception {
 		Assert.assertTrue(false);
@@ -336,7 +342,7 @@ public abstract class BasePriceEntryResourceTestCase {
 
 	@Test
 	public void testGraphQLDeletePriceEntry() throws Exception {
-		PriceEntry priceEntry = testGraphQLPriceEntry_addPriceEntry();
+		PriceEntry priceEntry = testGraphQLDeletePriceEntry_addPriceEntry();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -349,7 +355,6 @@ public abstract class BasePriceEntryResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deletePriceEntry"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -363,6 +368,12 @@ public abstract class BasePriceEntryResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected PriceEntry testGraphQLDeletePriceEntry_addPriceEntry()
+		throws Exception {
+
+		return testGraphQLPriceEntry_addPriceEntry();
 	}
 
 	@Test
@@ -383,7 +394,7 @@ public abstract class BasePriceEntryResourceTestCase {
 
 	@Test
 	public void testGraphQLGetPriceEntry() throws Exception {
-		PriceEntry priceEntry = testGraphQLPriceEntry_addPriceEntry();
+		PriceEntry priceEntry = testGraphQLGetPriceEntry_addPriceEntry();
 
 		Assert.assertTrue(
 			equals(
@@ -422,6 +433,12 @@ public abstract class BasePriceEntryResourceTestCase {
 				"Object/code"));
 	}
 
+	protected PriceEntry testGraphQLGetPriceEntry_addPriceEntry()
+		throws Exception {
+
+		return testGraphQLPriceEntry_addPriceEntry();
+	}
+
 	@Test
 	public void testPatchPriceEntry() throws Exception {
 		Assert.assertTrue(false);
@@ -431,18 +448,17 @@ public abstract class BasePriceEntryResourceTestCase {
 	public void testGetPriceListByExternalReferenceCodePriceEntriesPage()
 		throws Exception {
 
-		Page<PriceEntry> page =
-			priceEntryResource.
-				getPriceListByExternalReferenceCodePriceEntriesPage(
-					testGetPriceListByExternalReferenceCodePriceEntriesPage_getExternalReferenceCode(),
-					Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		String externalReferenceCode =
 			testGetPriceListByExternalReferenceCodePriceEntriesPage_getExternalReferenceCode();
 		String irrelevantExternalReferenceCode =
 			testGetPriceListByExternalReferenceCodePriceEntriesPage_getIrrelevantExternalReferenceCode();
+
+		Page<PriceEntry> page =
+			priceEntryResource.
+				getPriceListByExternalReferenceCodePriceEntriesPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantExternalReferenceCode != null) {
 			PriceEntry irrelevantPriceEntry =
@@ -474,7 +490,7 @@ public abstract class BasePriceEntryResourceTestCase {
 		page =
 			priceEntryResource.
 				getPriceListByExternalReferenceCodePriceEntriesPage(
-					externalReferenceCode, Pagination.of(1, 2));
+					externalReferenceCode, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -573,21 +589,6 @@ public abstract class BasePriceEntryResourceTestCase {
 
 		assertEquals(randomPriceEntry, postPriceEntry);
 		assertValid(postPriceEntry);
-
-		randomPriceEntry = randomPriceEntry();
-
-		assertHttpResponseStatusCode(
-			404,
-			priceEntryResource.getPriceEntryByExternalReferenceCodeHttpResponse(
-				randomPriceEntry.getExternalReferenceCode()));
-
-		testPostPriceListByExternalReferenceCodePriceEntry_addPriceEntry(
-			randomPriceEntry);
-
-		assertHttpResponseStatusCode(
-			200,
-			priceEntryResource.getPriceEntryByExternalReferenceCodeHttpResponse(
-				randomPriceEntry.getExternalReferenceCode()));
 	}
 
 	protected PriceEntry
@@ -601,16 +602,15 @@ public abstract class BasePriceEntryResourceTestCase {
 
 	@Test
 	public void testGetPriceListIdPriceEntriesPage() throws Exception {
-		Page<PriceEntry> page =
-			priceEntryResource.getPriceListIdPriceEntriesPage(
-				testGetPriceListIdPriceEntriesPage_getId(),
-				Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetPriceListIdPriceEntriesPage_getId();
 		Long irrelevantId =
 			testGetPriceListIdPriceEntriesPage_getIrrelevantId();
+
+		Page<PriceEntry> page =
+			priceEntryResource.getPriceListIdPriceEntriesPage(
+				id, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			PriceEntry irrelevantPriceEntry =
@@ -637,7 +637,7 @@ public abstract class BasePriceEntryResourceTestCase {
 				id, randomPriceEntry());
 
 		page = priceEntryResource.getPriceListIdPriceEntriesPage(
-			id, Pagination.of(1, 2));
+			id, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -724,20 +724,6 @@ public abstract class BasePriceEntryResourceTestCase {
 
 		assertEquals(randomPriceEntry, postPriceEntry);
 		assertValid(postPriceEntry);
-
-		randomPriceEntry = randomPriceEntry();
-
-		assertHttpResponseStatusCode(
-			404,
-			priceEntryResource.getPriceEntryByExternalReferenceCodeHttpResponse(
-				randomPriceEntry.getExternalReferenceCode()));
-
-		testPostPriceListIdPriceEntry_addPriceEntry(randomPriceEntry);
-
-		assertHttpResponseStatusCode(
-			200,
-			priceEntryResource.getPriceEntryByExternalReferenceCodeHttpResponse(
-				randomPriceEntry.getExternalReferenceCode()));
 	}
 
 	protected PriceEntry testPostPriceListIdPriceEntry_addPriceEntry(
@@ -753,6 +739,23 @@ public abstract class BasePriceEntryResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		PriceEntry priceEntry, List<PriceEntry> priceEntries) {
+
+		boolean contains = false;
+
+		for (PriceEntry item : priceEntries) {
+			if (equals(priceEntry, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			priceEntries + " does not contain " + priceEntry, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -942,8 +945,8 @@ public abstract class BasePriceEntryResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v1_0.
 						PriceEntry.class)) {
 
@@ -959,12 +962,13 @@ public abstract class BasePriceEntryResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -978,7 +982,7 @@ public abstract class BasePriceEntryResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1167,6 +1171,19 @@ public abstract class BasePriceEntryResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1437,8 +1454,8 @@ public abstract class BasePriceEntryResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BasePriceEntryResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BasePriceEntryResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

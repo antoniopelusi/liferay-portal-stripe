@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, render, waitForElement} from '@testing-library/react';
+import {act, cleanup, render} from '@testing-library/react';
 import React from 'react';
 
 import PromisesResolver, {
@@ -19,7 +19,7 @@ import PromisesResolver, {
 describe('The pending view should', () => {
 	afterEach(cleanup);
 
-	test('Not render children when pending is false', () => {
+	it('Not render children when pending is false', () => {
 		const {getByTestId} = render(
 			<PromisesResolverContext.Provider
 				value={{error: null, loading: false}}
@@ -33,7 +33,7 @@ describe('The pending view should', () => {
 		expect(() => getByTestId('loadingSpan')).toThrow();
 	});
 
-	test('Render children when loading is true', () => {
+	it('Render children when loading is true', () => {
 		const {getByTestId} = render(
 			<PromisesResolverContext.Provider
 				value={{error: null, loading: true}}
@@ -53,7 +53,7 @@ describe('The pending view should', () => {
 describe('The PromisesResolver should', () => {
 	afterEach(cleanup);
 
-	test('Render its children when the request succeeds', async () => {
+	it('Render its children when the request succeeds', async () => {
 		const firstFunction = () => Promise.resolve();
 		const secondFunction = () => Promise.resolve();
 
@@ -65,10 +65,7 @@ describe('The PromisesResolver should', () => {
 			</PromisesResolver>
 		);
 
-		const promisesResolverSpan = await waitForElement(() =>
-			findByTestId('promisesResolverSpan')
-		);
-
+		const promisesResolverSpan = await findByTestId('promisesResolverSpan');
 		expect(promisesResolverSpan.innerHTML).toEqual(
 			'PromisesResolver rendered children'
 		);
@@ -78,7 +75,7 @@ describe('The PromisesResolver should', () => {
 describe('The PromisesResolver should not', () => {
 	afterEach(cleanup);
 
-	test('Render its children when request fails', async () => {
+	it('Render its children when request fails', async () => {
 		const firstFunction = () => Promise.reject();
 		const secondFunction = () => Promise.reject();
 
@@ -90,9 +87,11 @@ describe('The PromisesResolver should not', () => {
 			</PromisesResolver>
 		);
 
-		const promisesResolverSpan = await waitForElement(() =>
-			findByTestId('promisesResolverSpan')
-		);
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
+		const promisesResolverSpan = await findByTestId('promisesResolverSpan');
 
 		expect(promisesResolverSpan.innerHTML).toEqual(
 			'PromisesResolver rendered children'
@@ -106,6 +105,10 @@ describe('The PromisesResolver should not', () => {
 			</PromisesResolver>
 		);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(promisesResolverSpan.innerHTML).toEqual(
 			'PromisesResolver rendered children'
 		);
@@ -115,7 +118,7 @@ describe('The PromisesResolver should not', () => {
 describe('The rejected view should', () => {
 	afterEach(cleanup);
 
-	test('Not render children when error is null', () => {
+	it('Not render children when error is null', () => {
 		const {getByTestId} = render(
 			<PromisesResolverContext.Provider
 				value={{error: null, loading: true}}
@@ -129,7 +132,7 @@ describe('The rejected view should', () => {
 		expect(() => getByTestId('rejectedSpan')).toThrow();
 	});
 
-	test('Render children when has been rejected', () => {
+	it('Render children when has been rejected', () => {
 		const {getByTestId} = render(
 			<PromisesResolverContext.Provider
 				value={{
@@ -152,7 +155,7 @@ describe('The rejected view should', () => {
 describe('The resolved view should', () => {
 	afterEach(cleanup);
 
-	test('Not render children when has been rejected', () => {
+	it('Not render children when has been rejected', () => {
 		const {getByTestId} = render(
 			<PromisesResolverContext.Provider
 				value={{
@@ -169,7 +172,7 @@ describe('The resolved view should', () => {
 		expect(() => getByTestId('resolvedSpan')).toThrow();
 	});
 
-	test('Not render children when loading is true', () => {
+	it('Not render children when loading is true', () => {
 		const {getByTestId} = render(
 			<PromisesResolverContext.Provider
 				value={{error: null, loading: true}}
@@ -183,7 +186,7 @@ describe('The resolved view should', () => {
 		expect(() => getByTestId('resolvedSpan')).toThrow();
 	});
 
-	test('Render children when loading is false and has no error', () => {
+	it('Render children when loading is false and has no error', () => {
 		const {getByTestId} = render(
 			<PromisesResolverContext.Provider
 				value={{error: null, loading: false}}

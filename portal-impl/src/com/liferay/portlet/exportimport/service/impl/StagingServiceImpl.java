@@ -21,6 +21,7 @@ import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleManagerUti
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -29,6 +30,8 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -113,7 +116,7 @@ public class StagingServiceImpl extends StagingServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		Group liveGroup = groupLocalService.getGroup(groupId);
+		Group liveGroup = _groupLocalService.getGroup(groupId);
 
 		GroupPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.MANAGE_STAGING);
@@ -131,7 +134,7 @@ public class StagingServiceImpl extends StagingServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		Group stagingGroup = groupLocalService.getGroup(groupId);
+		Group stagingGroup = _groupLocalService.getGroup(groupId);
 
 		GroupPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.MANAGE_STAGING);
@@ -152,7 +155,7 @@ public class StagingServiceImpl extends StagingServiceBaseImpl {
 				getPermissionChecker(), groupId,
 				ActionKeys.EXPORT_IMPORT_LAYOUTS);
 
-			return layoutLocalService.hasLayout(uuid, groupId, privateLayout);
+			return _layoutLocalService.hasLayout(uuid, groupId, privateLayout);
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
@@ -203,20 +206,15 @@ public class StagingServiceImpl extends StagingServiceBaseImpl {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				StringBundler sb = new StringBundler(9);
-
-				sb.append(
-					"StagingServiceImpl#propagateExportImportLifecycleEvent(");
-				sb.append(code);
-				sb.append(StringPool.COMMA_AND_SPACE);
-				sb.append(processFlag);
-				sb.append(StringPool.COMMA_AND_SPACE);
-				sb.append(processId);
-				sb.append(StringPool.COMMA_AND_SPACE);
-				sb.append(arguments);
-				sb.append(StringPool.CLOSE_PARENTHESIS);
-
-				_log.debug(sb.toString(), portalException);
+				_log.debug(
+					StringBundler.concat(
+						"StagingServiceImpl#",
+						"propagateExportImportLifecycleEvent(", code,
+						StringPool.COMMA_AND_SPACE, processFlag,
+						StringPool.COMMA_AND_SPACE, processId,
+						StringPool.COMMA_AND_SPACE, arguments,
+						StringPool.CLOSE_PARENTHESIS),
+					portalException);
 			}
 
 			throw portalException;
@@ -304,5 +302,11 @@ public class StagingServiceImpl extends StagingServiceBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		StagingServiceImpl.class);
+
+	@BeanReference(type = GroupLocalService.class)
+	private GroupLocalService _groupLocalService;
+
+	@BeanReference(type = LayoutLocalService.class)
+	private LayoutLocalService _layoutLocalService;
 
 }

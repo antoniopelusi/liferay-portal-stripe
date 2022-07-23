@@ -531,4 +531,7 @@ public interface AssetVocabularyModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public AssetVocabulary cloneWithOriginalValues();
+
 }

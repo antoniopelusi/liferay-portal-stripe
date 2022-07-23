@@ -142,6 +142,7 @@ AssetListManagementToolbarDisplayContext assetListManagementToolbarDisplayContex
 		<c:otherwise>
 			<liferay-frontend:empty-result-message
 				actionDropdownItems="<%= assetListDisplayContext.isShowAddAssetListEntryAction() ? assetListDisplayContext.getAddAssetListEntryDropdownItems() : null %>"
+				buttonCssClass="secondary"
 				description="<%= assetListDisplayContext.getEmptyResultMessageDescription() %>"
 				elementType='<%= LanguageUtil.get(request, "collections") %>'
 				propsTransformer="js/EmptyResultMessagePropsTransformer"
@@ -150,8 +151,3 @@ AssetListManagementToolbarDisplayContext assetListManagementToolbarDisplayContex
 		</c:otherwise>
 	</c:choose>
 </aui:form>
-
-<liferay-frontend:component
-	componentId="<%= assetListManagementToolbarDisplayContext.getDefaultEventHandler() %>"
-	module="js/ManagementToolbarDefaultEventHandler.es"
-/>

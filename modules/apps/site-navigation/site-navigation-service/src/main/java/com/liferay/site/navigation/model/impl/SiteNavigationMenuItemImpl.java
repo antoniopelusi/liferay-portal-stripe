@@ -18,8 +18,4 @@ package com.liferay.site.navigation.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class SiteNavigationMenuItemImpl extends SiteNavigationMenuItemBaseImpl {
-
-	public SiteNavigationMenuItemImpl() {
-	}
-
 }

@@ -43,12 +43,11 @@ public class FileEntryTextExtractor implements TextExtractor<FileEntry> {
 			try (InputStream inputStream = fileVersion.getContentStream(
 					false)) {
 
-				return FileUtil.extractText(
-					inputStream, fileVersion.getFileName());
+				return FileUtil.extractText(inputStream);
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return null;
 		}

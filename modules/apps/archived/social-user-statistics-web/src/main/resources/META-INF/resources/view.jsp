@@ -38,32 +38,30 @@ String[] rankingNames = rankingNamesList.toArray(new String[0]);
 		<%
 		SearchContainer<Tuple> searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, 5, portletURL, null, null);
 
-		int total = SocialActivityCounterLocalServiceUtil.getUserActivityCountersCount(scopeGroupId, rankingNames);
-
-		searchContainer.setTotal(total);
-
-		List<String> selectedNamesList = new ArrayList<String>();
-
-		selectedNamesList.add(SocialActivityCounterConstants.NAME_CONTRIBUTION);
-		selectedNamesList.add(SocialActivityCounterConstants.NAME_PARTICIPATION);
+		List<String> selectedNamesList =
+			new ArrayList<String>() {
+				{
+					add(SocialActivityCounterConstants.NAME_CONTRIBUTION);
+					add(SocialActivityCounterConstants.NAME_PARTICIPATION);
+				}
+			};
 
 		if (socialUserStatisticsPortletInstanceConfiguration.displayAdditionalActivityCounters()) {
 			String[] displayActivityCounterName = socialUserStatisticsPortletInstanceConfiguration.displayActivityCounterName();
 
-			int displayActivityCounterNameCount = displayActivityCounterName.length;
-
-			for (int displayActivityCounterNameIndex = 0; displayActivityCounterNameIndex < displayActivityCounterNameCount; displayActivityCounterNameIndex++) {
+			for (int displayActivityCounterNameIndex = 0; displayActivityCounterNameIndex < displayActivityCounterName.length; displayActivityCounterNameIndex++) {
 				selectedNamesList.add(displayActivityCounterName[displayActivityCounterNameIndex]);
 			}
 		}
 
 		String[] selectedNames = selectedNamesList.toArray(new String[0]);
+		long socialActivityScopeGroupId = scopeGroupId;
 
-		List<Tuple> results = SocialActivityCounterLocalServiceUtil.getUserActivityCounters(scopeGroupId, rankingNames, selectedNames, searchContainer.getStart(), searchContainer.getEnd());
-
-		searchContainer.setResults(results);
+		searchContainer.setResultsAndTotal(() -> SocialActivityCounterLocalServiceUtil.getUserActivityCounters(socialActivityScopeGroupId, rankingNames, selectedNames, searchContainer.getStart(), searchContainer.getEnd()), SocialActivityCounterLocalServiceUtil.getUserActivityCountersCount(socialActivityScopeGroupId, rankingNames));
 
 		List<com.liferay.portal.kernel.dao.search.ResultRow> resultRows = searchContainer.getResultRows();
+
+		List<Tuple> results = searchContainer.getResults();
 
 		for (int i = 0; i < results.size(); i++) {
 			Tuple tuple = results.get(i);
@@ -88,13 +86,13 @@ String[] rankingNames = rankingNamesList.toArray(new String[0]);
 
 		<c:if test="<%= socialUserStatisticsPortletInstanceConfiguration.showHeaderText() %>">
 			<div class="top-users">
-				<c:if test="<%= total > 0 %>">
-					<liferay-ui:message arguments="<%= total %>" key="top-users-out-of-x" translateArguments="<%= false %>" /> <liferay-ui:message arguments="<%= rankingNamesMessage %>" key="ranking-is-based-on-x" translateArguments="<%= false %>" /><br />
+				<c:if test="<%= searchContainer.getTotal() > 0 %>">
+					<liferay-ui:message arguments="<%= searchContainer.getTotal() %>" key="top-users-out-of-x" translateArguments="<%= false %>" /> <liferay-ui:message arguments="<%= rankingNamesMessage %>" key="ranking-is-based-on-x" translateArguments="<%= false %>" /><br />
 				</c:if>
 			</div>
 		</c:if>
 
-		<c:if test="<%= total == 0 %>">
+		<c:if test="<%= searchContainer.getTotal() == 0 %>">
 			<liferay-ui:message key="there-are-no-active-users-for-this-period" />
 		</c:if>
 

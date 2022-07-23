@@ -283,4 +283,7 @@ public interface MBBanModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public MBBan cloneWithOriginalValues();
+
 }

@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.security.ldap.LDAPSettings;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.security.ldap.SafeLdapFilterStringUtil;
 import com.liferay.portal.security.ldap.authenticator.configuration.LDAPAuthConfiguration;
 import com.liferay.portal.security.ldap.configuration.ConfigurationProvider;
 import com.liferay.portal.security.ldap.configuration.LDAPServerConfiguration;
@@ -46,47 +45,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = LDAPSettings.class)
 public class DefaultLDAPSettings implements LDAPSettings {
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String getAuthSearchFilter(
-			long ldapServerId, long companyId, String emailAddress,
-			String screenName, String userId)
-		throws Exception {
-
-		LDAPServerConfiguration ldapServerConfiguration =
-			_ldapServerConfigurationProvider.getConfiguration(
-				companyId, ldapServerId);
-
-		String filter = ldapServerConfiguration.authSearchFilter();
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Search filter before transformation " + filter);
-		}
-
-		filter = StringUtil.replace(
-			filter,
-			new String[] {
-				"@company_id@", "@email_address@", "@screen_name@", "@user_id@"
-			},
-			new String[] {
-				String.valueOf(companyId),
-				SafeLdapFilterStringUtil.rfc2254Escape(emailAddress),
-				SafeLdapFilterStringUtil.rfc2254Escape(screenName),
-				SafeLdapFilterStringUtil.rfc2254Escape(userId)
-			});
-
-		_ldapFilterValidator.validate(filter);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Search filter after transformation " + filter);
-		}
-
-		return filter;
-	}
-
 	@Override
 	public Properties getContactExpandoMappings(
 			long ldapServerId, long companyId)
@@ -96,7 +54,7 @@ public class DefaultLDAPSettings implements LDAPSettings {
 			_ldapServerConfigurationProvider.getConfiguration(
 				companyId, ldapServerId);
 
-		Properties contactExpandoMappings = getProperties(
+		Properties contactExpandoMappings = _getProperties(
 			ldapServerConfiguration.contactCustomMappings());
 
 		LogUtil.debug(_log, contactExpandoMappings);
@@ -112,7 +70,7 @@ public class DefaultLDAPSettings implements LDAPSettings {
 			_ldapServerConfigurationProvider.getConfiguration(
 				companyId, ldapServerId);
 
-		Properties contactMappings = getProperties(
+		Properties contactMappings = _getProperties(
 			ldapServerConfiguration.contactMappings());
 
 		LogUtil.debug(_log, contactMappings);
@@ -136,7 +94,7 @@ public class DefaultLDAPSettings implements LDAPSettings {
 			_ldapServerConfigurationProvider.getConfiguration(
 				companyId, ldapServerId);
 
-		Properties groupMappings = getProperties(
+		Properties groupMappings = _getProperties(
 			ldapServerConfiguration.groupMappings());
 
 		LogUtil.debug(_log, groupMappings);
@@ -169,7 +127,7 @@ public class DefaultLDAPSettings implements LDAPSettings {
 			_ldapServerConfigurationProvider.getConfiguration(
 				companyId, ldapServerId);
 
-		Properties contactExpandoMappings = getProperties(
+		Properties contactExpandoMappings = _getProperties(
 			ldapServerConfiguration.userCustomMappings());
 
 		LogUtil.debug(_log, contactExpandoMappings);
@@ -185,7 +143,7 @@ public class DefaultLDAPSettings implements LDAPSettings {
 			_ldapServerConfigurationProvider.getConfiguration(
 				companyId, ldapServerId);
 
-		Properties userMappings = getProperties(
+		Properties userMappings = _getProperties(
 			ldapServerConfiguration.userMappings());
 
 		LogUtil.debug(_log, userMappings);
@@ -243,28 +201,6 @@ public class DefaultLDAPSettings implements LDAPSettings {
 			_ldapAuthConfigurationProvider.getConfiguration(companyId);
 
 		return ldapAuthConfiguration.passwordPolicyEnabled();
-	}
-
-	protected Properties getProperties(String[] keyValuePairs) {
-		Properties properties = new Properties();
-
-		for (String keyValuePair : keyValuePairs) {
-			String[] keyValue = StringUtil.split(keyValuePair, CharPool.EQUAL);
-
-			if (ArrayUtil.isEmpty(keyValue)) {
-				continue;
-			}
-
-			String value = StringPool.BLANK;
-
-			if (keyValue.length == 2) {
-				value = keyValue[1];
-			}
-
-			properties.put(keyValue[0], value);
-		}
-
-		return properties;
 	}
 
 	@Reference(
@@ -325,6 +261,28 @@ public class DefaultLDAPSettings implements LDAPSettings {
 	@Reference(unbind = "-")
 	protected void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
+	}
+
+	private Properties _getProperties(String[] keyValuePairs) {
+		Properties properties = new Properties();
+
+		for (String keyValuePair : keyValuePairs) {
+			String[] keyValue = StringUtil.split(keyValuePair, CharPool.EQUAL);
+
+			if (ArrayUtil.isEmpty(keyValue)) {
+				continue;
+			}
+
+			String value = StringPool.BLANK;
+
+			if (keyValue.length == 2) {
+				value = keyValue[1];
+			}
+
+			properties.put(keyValue[0], value);
+		}
+
+		return properties;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

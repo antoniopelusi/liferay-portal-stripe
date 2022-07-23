@@ -17,40 +17,20 @@
 <%@ include file="/init.jsp" %>
 
 <%
-boolean editableMasterLayout = ParamUtil.getBoolean(request, "editableMasterLayout");
-String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectStyleBook");
-
-SelectLayoutPageTemplateEntryDisplayContext selectLayoutPageTemplateEntryDisplayContext = new SelectLayoutPageTemplateEntryDisplayContext(request);
-
-String defaultStyleBookLabel = LanguageUtil.get(resourceBundle, "default-style-book");
-
-if (editableMasterLayout) {
-	defaultStyleBookLabel = LanguageUtil.get(resourceBundle, "inherited-from-master");
-}
-
-StyleBookEntry layoutStyleBookEntry = DefaultStyleBookEntryUtil.getDefaultStyleBookEntry(layoutsAdminDisplayContext.getSelLayout());
-
-List<StyleBookEntry> styleBookEntries = selectLayoutPageTemplateEntryDisplayContext.getStyleBookEntries();
+SelectStyleBookEntryDisplayContext selectStyleBookEntryDisplayContext = new SelectStyleBookEntryDisplayContext(request, liferayPortletResponse);
 %>
 
 <aui:form cssClass="container-fluid container-fluid-max-xl container-view" name="fm">
 	<ul class="card-page card-page-equal-height">
-		<li class="card-page-item card-page-item-asset">
-			<div class="form-check form-check-card">
-				<clay:vertical-card
-					verticalCard="<%= new DefaultStylebookLayoutVerticalCard(defaultStyleBookLabel, layoutStyleBookEntry, renderRequest) %>"
-				/>
-			</div>
-		</li>
 
 		<%
-		for (StyleBookEntry styleBookEntry : styleBookEntries) {
+		for (StyleBookEntry styleBookEntry : selectStyleBookEntryDisplayContext.getStyleBookEntries()) {
 		%>
 
 			<li class="card-page-item card-page-item-asset">
 				<div class="form-check form-check-card">
 					<clay:vertical-card
-						verticalCard="<%= new SelectStylebookLayoutVerticalCard(styleBookEntry, renderRequest) %>"
+						verticalCard="<%= new SelectStylebookLayoutVerticalCard(renderRequest, layoutsAdminDisplayContext.getSelLayout(), styleBookEntry) %>"
 					/>
 				</div>
 			</li>
@@ -62,42 +42,7 @@ List<StyleBookEntry> styleBookEntries = selectLayoutPageTemplateEntryDisplayCont
 	</ul>
 </aui:form>
 
-<aui:script require="frontend-js-web/liferay/delegate/delegate.es as delegateModule">
-	var delegate = delegateModule.default;
-
-	var delegateHandler = delegate(
-		document.body,
-		'click',
-		'.select-master-layout-option',
-		(event) => {
-			var activeCards = document.querySelectorAll('.form-check-card.active');
-
-			if (activeCards.length) {
-				activeCards.forEach((card) => {
-					card.classList.remove('active');
-				});
-			}
-
-			var newSelectedCard = event.delegateTarget.closest('.form-check-card');
-
-			if (newSelectedCard) {
-				newSelectedCard.classList.add('active');
-			}
-
-			Liferay.Util.getOpener().Liferay.fire(
-				'<%= HtmlUtil.escape(eventName) %>',
-				{
-					data: event.delegateTarget.dataset,
-				}
-			);
-		}
-	);
-
-	var onDestroyPortlet = function () {
-		delegateHandler.dispose();
-
-		Liferay.detach('destroyPortlet', onDestroyPortlet);
-	};
-
-	Liferay.on('destroyPortlet', onDestroyPortlet);
-</aui:script>
+<liferay-frontend:component
+	context="<%= selectStyleBookEntryDisplayContext.getContext() %>"
+	module="js/SelectCardHandler"
+/>

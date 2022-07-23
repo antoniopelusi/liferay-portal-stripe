@@ -15,7 +15,6 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -28,23 +27,24 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchUserIdMapperException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.UserIdMapper;
 import com.liferay.portal.kernel.model.UserIdMapperTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.UserIdMapperPersistence;
+import com.liferay.portal.kernel.service.persistence.UserIdMapperUtil;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.model.impl.UserIdMapperImpl;
 import com.liferay.portal.model.impl.UserIdMapperModelImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the user ID mapper service.
@@ -1137,6 +1136,8 @@ public class UserIdMapperPersistenceImpl
 			userIdMapper);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the user ID mappers in the entity cache if it is enabled.
 	 *
@@ -1144,6 +1145,13 @@ public class UserIdMapperPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<UserIdMapper> userIdMappers) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (userIdMappers.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (UserIdMapper userIdMapper : userIdMappers) {
 			if (EntityCacheUtil.getResult(
 					UserIdMapperImpl.class, userIdMapper.getPrimaryKey()) ==
@@ -1635,10 +1643,8 @@ public class UserIdMapperPersistenceImpl
 	 * Initializes the user ID mapper persistence.
 	 */
 	public void afterPropertiesSet() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_argumentsResolverServiceRegistration = registry.registerService(
-			ArgumentsResolver.class, new UserIdMapperModelArgumentsResolver());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1688,12 +1694,30 @@ public class UserIdMapperPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByT_E",
 			new String[] {String.class.getName(), String.class.getName()},
 			new String[] {"type_", "externalUserId"}, false);
+
+		_setUserIdMapperUtilPersistence(this);
 	}
 
 	public void destroy() {
-		EntityCacheUtil.removeCache(UserIdMapperImpl.class.getName());
+		_setUserIdMapperUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		EntityCacheUtil.removeCache(UserIdMapperImpl.class.getName());
+	}
+
+	private void _setUserIdMapperUtilPersistence(
+		UserIdMapperPersistence userIdMapperPersistence) {
+
+		try {
+			Field field = UserIdMapperUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, userIdMapperPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	private static final String _SQL_SELECT_USERIDMAPPER =
@@ -1725,95 +1749,6 @@ public class UserIdMapperPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class UserIdMapperModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			UserIdMapperModelImpl userIdMapperModelImpl =
-				(UserIdMapperModelImpl)baseModel;
-
-			long columnBitmask = userIdMapperModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(userIdMapperModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						userIdMapperModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(userIdMapperModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return UserIdMapperImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return UserIdMapperTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			UserIdMapperModelImpl userIdMapperModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = userIdMapperModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = userIdMapperModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
 	}
 
 }

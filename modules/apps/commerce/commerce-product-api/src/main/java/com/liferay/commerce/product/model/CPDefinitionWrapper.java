@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -43,6 +45,8 @@ public class CPDefinitionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("defaultLanguageId", getDefaultLanguageId());
 		attributes.put("CPDefinitionId", getCPDefinitionId());
@@ -104,6 +108,18 @@ public class CPDefinitionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -403,6 +419,11 @@ public class CPDefinitionWrapper
 	}
 
 	@Override
+	public CPDefinition cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public boolean equals(Object object) {
 		return model.equals(object);
 	}
@@ -537,6 +558,16 @@ public class CPDefinitionWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this cp definition.
+	 *
+	 * @return the ct collection ID of this cp definition
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the ddm structure key of this cp definition.
 	 *
 	 * @return the ddm structure key of this cp definition
@@ -547,15 +578,10 @@ public class CPDefinitionWrapper
 	}
 
 	@Override
-	public String getDefaultImageFileURL()
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public String getDefaultImageThumbnailSrc(long commerceAccountId)
+		throws Exception {
 
-		return model.getDefaultImageFileURL();
-	}
-
-	@Override
-	public String getDefaultImageThumbnailSrc() throws Exception {
-		return model.getDefaultImageThumbnailSrc();
+		return model.getDefaultImageThumbnailSrc(commerceAccountId);
 	}
 
 	/**
@@ -853,6 +879,16 @@ public class CPDefinitionWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this cp definition.
+	 *
+	 * @return the mvcc version of this cp definition
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	@Override
@@ -1460,6 +1496,16 @@ public class CPDefinitionWrapper
 	}
 
 	/**
+	 * Sets the ct collection ID of this cp definition.
+	 *
+	 * @param ctCollectionId the ct collection ID of this cp definition
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
+	}
+
+	/**
 	 * Sets the ddm structure key of this cp definition.
 	 *
 	 * @param DDMStructureKey the ddm structure key of this cp definition
@@ -1650,6 +1696,16 @@ public class CPDefinitionWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this cp definition.
+	 *
+	 * @param mvccVersion the mvcc version of this cp definition
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	@Override
@@ -1916,6 +1972,20 @@ public class CPDefinitionWrapper
 	@Override
 	public void setWidth(double width) {
 		model.setWidth(width);
+	}
+
+	@Override
+	public Map<String, Function<CPDefinition, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<CPDefinition, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

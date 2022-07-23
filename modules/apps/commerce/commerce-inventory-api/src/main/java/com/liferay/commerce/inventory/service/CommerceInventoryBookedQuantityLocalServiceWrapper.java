@@ -27,6 +27,10 @@ public class CommerceInventoryBookedQuantityLocalServiceWrapper
 	implements CommerceInventoryBookedQuantityLocalService,
 			   ServiceWrapper<CommerceInventoryBookedQuantityLocalService> {
 
+	public CommerceInventoryBookedQuantityLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceInventoryBookedQuantityLocalServiceWrapper(
 		CommerceInventoryBookedQuantityLocalService
 			commerceInventoryBookedQuantityLocalService) {
@@ -171,6 +175,14 @@ public class CommerceInventoryBookedQuantityLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceInventoryBookedQuantityLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceInventoryBookedQuantityLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override
@@ -400,6 +412,18 @@ public class CommerceInventoryBookedQuantityLocalServiceWrapper
 			resetCommerceBookedQuantity(
 				commerceBookedQuantityId, userId, sku, quantity, expirationDate,
 				context);
+	}
+
+	@Override
+	public com.liferay.commerce.inventory.model.CommerceInventoryBookedQuantity
+			restockCommerceInventoryBookedQuantity(
+				long userId, long commerceInventoryBookedQuantityId,
+				java.util.Map<String, String> context)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceInventoryBookedQuantityLocalService.
+			restockCommerceInventoryBookedQuantity(
+				userId, commerceInventoryBookedQuantityId, context);
 	}
 
 	/**

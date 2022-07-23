@@ -14,8 +14,8 @@
 
 package com.liferay.frontend.taglib.clay.servlet.taglib;
 
+import com.liferay.frontend.taglib.clay.internal.servlet.taglib.util.DropdownItemListUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -28,10 +28,21 @@ import javax.servlet.jsp.JspException;
 public class DropdownMenuTag extends ButtonTag {
 
 	@Override
+	public int doEndTag() throws JspException {
+		if (_empty) {
+			return EVAL_PAGE;
+		}
+
+		return super.doEndTag();
+	}
+
+	@Override
 	public int doStartTag() throws JspException {
 		setAttributeNamespace(_ATTRIBUTE_NAMESPACE);
 
-		if (ListUtil.isEmpty(_dropdownItems)) {
+		_empty = DropdownItemListUtil.isEmpty(_dropdownItems);
+
+		if (_empty) {
 			return SKIP_BODY;
 		}
 
@@ -52,11 +63,12 @@ public class DropdownMenuTag extends ButtonTag {
 
 		_buttonType = null;
 		_dropdownItems = null;
+		_empty = null;
 	}
 
 	@Override
 	protected String getHydratedModuleName() {
-		if (ListUtil.isEmpty(_dropdownItems)) {
+		if (DropdownItemListUtil.isEmpty(_dropdownItems)) {
 			return null;
 		}
 
@@ -74,5 +86,6 @@ public class DropdownMenuTag extends ButtonTag {
 
 	private String _buttonType;
 	private List<DropdownItem> _dropdownItems;
+	private Boolean _empty;
 
 }

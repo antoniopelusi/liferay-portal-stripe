@@ -18,9 +18,13 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
-<%@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
+<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+taglib uri="http://liferay.com/tld/clay" prefix="clay" %><%@
+taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
+taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
-<%@ page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
+<%@ page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%@
+page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.search.web.internal.search.insights.display.context.SearchInsightsDisplayContext" %>
@@ -29,6 +33,9 @@ page import="com.liferay.portal.search.web.internal.search.insights.display.cont
 
 <%
 SearchInsightsDisplayContext searchInsightsDisplayContext = (SearchInsightsDisplayContext)java.util.Objects.requireNonNull(request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT));
+
+String insightsRequestId = liferayPortletResponse.getNamespace() + "insightsRequest";
+String insightsResponseId = liferayPortletResponse.getNamespace() + "insightsResponse";
 %>
 
 <style>
@@ -60,9 +67,26 @@ SearchInsightsDisplayContext searchInsightsDisplayContext = (SearchInsightsDispl
 					persistState="<%= true %>"
 					title="request-string"
 				>
-					<code>
-						<%= HtmlUtil.escape(searchInsightsDisplayContext.getRequestString()) %>
-					</code>
+					<clay:button
+						displayType="secondary"
+						icon="copy"
+						label="copy-to-clipboard"
+						onClick='<%= liferayPortletResponse.getNamespace() + "copyToClipboard('" + insightsRequestId + "');" %>'
+						small="<%= true %>"
+					/>
+
+					<div class="codemirror-editor-wrapper">
+						<textarea readonly id="<%= insightsRequestId %>"><%= HtmlUtil.escape(searchInsightsDisplayContext.getRequestString()) %></textarea>
+					</div>
+
+					<liferay-frontend:component
+						context='<%=
+							HashMapBuilder.<String, Object>put(
+								"id", insightsRequestId
+							).build()
+						%>'
+						module="js/components/CodeMirrorTextArea"
+					/>
 				</liferay-ui:panel>
 
 				<liferay-ui:panel
@@ -72,11 +96,50 @@ SearchInsightsDisplayContext searchInsightsDisplayContext = (SearchInsightsDispl
 					persistState="<%= true %>"
 					title="response-string"
 				>
-					<code>
-						<%= HtmlUtil.escape(searchInsightsDisplayContext.getResponseString()) %>
-					</code>
+					<clay:button
+						displayType="secondary"
+						icon="copy"
+						label="copy-to-clipboard"
+						onClick='<%= liferayPortletResponse.getNamespace() + "copyToClipboard('" + insightsResponseId + "');" %>'
+						small="<%= true %>"
+					/>
+
+					<div class="codemirror-editor-wrapper">
+						<textarea readonly id="<%= insightsResponseId %>"><%= HtmlUtil.escape(searchInsightsDisplayContext.getResponseString()) %></textarea>
+					</div>
+
+					<liferay-frontend:component
+						context='<%=
+							HashMapBuilder.<String, Object>put(
+								"id", insightsResponseId
+							).build()
+						%>'
+						module="js/components/CodeMirrorTextArea"
+					/>
 				</liferay-ui:panel>
 			</liferay-ui:panel-container>
 		</div>
 	</c:otherwise>
 </c:choose>
+
+<aui:script>
+	function <portlet:namespace />copyToClipboard(id) {
+		const text = document.getElementById(id).value;
+
+		navigator.clipboard.writeText(text).then(
+			() => {
+				Liferay.Util.openToast({
+					message: '<liferay-ui:message key="copied-to-clipboard" />',
+					type: 'success',
+				});
+			},
+			() => {
+				Liferay.Util.openToast({
+					message:
+						'<liferay-ui:message key="an-unexpected-error-occurred" />',
+					type: 'danger',
+				});
+			}
+		);
+	}
+</aui:script>

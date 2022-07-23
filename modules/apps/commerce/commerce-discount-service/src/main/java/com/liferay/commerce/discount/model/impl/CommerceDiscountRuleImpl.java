@@ -26,9 +26,6 @@ import java.io.IOException;
  */
 public class CommerceDiscountRuleImpl extends CommerceDiscountRuleBaseImpl {
 
-	public CommerceDiscountRuleImpl() {
-	}
-
 	@Override
 	public UnicodeProperties getSettingsProperties() {
 		if (_unicodeProperties == null) {
@@ -38,7 +35,7 @@ public class CommerceDiscountRuleImpl extends CommerceDiscountRuleBaseImpl {
 				_unicodeProperties.load(super.getTypeSettings());
 			}
 			catch (IOException ioException) {
-				_log.error(ioException, ioException);
+				_log.error(ioException);
 			}
 		}
 

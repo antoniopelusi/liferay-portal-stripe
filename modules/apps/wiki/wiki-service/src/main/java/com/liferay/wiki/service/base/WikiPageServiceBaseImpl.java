@@ -26,10 +26,8 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.wiki.model.WikiPage;
 import com.liferay.wiki.service.WikiPageService;
 import com.liferay.wiki.service.WikiPageServiceUtil;
-import com.liferay.wiki.service.persistence.WikiNodePersistence;
 import com.liferay.wiki.service.persistence.WikiPageFinder;
 import com.liferay.wiki.service.persistence.WikiPagePersistence;
-import com.liferay.wiki.service.persistence.WikiPageResourcePersistence;
 
 import java.lang.reflect.Field;
 
@@ -148,65 +146,5 @@ public abstract class WikiPageServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.SystemEventLocalService
-		systemEventLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-		workflowInstanceLinkLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetCategoryLocalService
-		assetCategoryLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetCategoryService
-		assetCategoryService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryLocalService
-		assetEntryLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryService
-		assetEntryService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetLinkLocalService
-		assetLinkLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetTagLocalService
-		assetTagLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetTagService assetTagService;
-
-	@Reference
-	protected com.liferay.expando.kernel.service.ExpandoRowLocalService
-		expandoRowLocalService;
-
-	@Reference
-	protected com.liferay.ratings.kernel.service.RatingsStatsLocalService
-		ratingsStatsLocalService;
-
-	@Reference
-	protected WikiNodePersistence wikiNodePersistence;
-
-	@Reference
-	protected WikiPageResourcePersistence wikiPageResourcePersistence;
 
 }

@@ -54,10 +54,8 @@ import org.osgi.service.component.annotations.Reference;
 public class DeleteAkismetMessageListener extends BaseMessageListener {
 
 	@Activate
-	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_akismetServiceConfiguration = ConfigurableUtil.createConfigurable(
-			AkismetServiceConfiguration.class, properties);
+		modified(properties);
 
 		String cronExpression = GetterUtil.getString(
 			properties.get("cron.expression"), _DEFAULT_CRON_EXPRESSION);
@@ -110,6 +108,12 @@ public class DeleteAkismetMessageListener extends BaseMessageListener {
 
 		_akismetEntryLocalService.deleteAkismetEntry(
 			new Date(System.currentTimeMillis() - (reportableTime * Time.DAY)));
+	}
+
+	@Modified
+	protected void modified(Map<String, Object> properties) {
+		_akismetServiceConfiguration = ConfigurableUtil.createConfigurable(
+			AkismetServiceConfiguration.class, properties);
 	}
 
 	private static final String _DEFAULT_CRON_EXPRESSION = "0 0 0 * * ?";

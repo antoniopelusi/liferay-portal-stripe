@@ -14,6 +14,8 @@
 
 package com.liferay.css.builder.internal.util;
 
+import com.liferay.petra.string.StringBundler;
+
 import java.io.File;
 
 import java.util.Date;
@@ -51,9 +53,10 @@ public class CSSBuilderUtil {
 			cacheFileName = cacheFileName.substring(0, y + 1) + "css";
 		}
 
-		return cacheFileName.substring(0, x + 1) + outputDirName +
-			cacheFileName.substring(x + 1, y) + suffix +
-				cacheFileName.substring(y);
+		return StringBundler.concat(
+			cacheFileName.substring(0, x + 1), outputDirName,
+			cacheFileName.substring(x + 1, y), suffix,
+			cacheFileName.substring(y));
 	}
 
 	public static String getRtlCustomFileName(String fileName) {

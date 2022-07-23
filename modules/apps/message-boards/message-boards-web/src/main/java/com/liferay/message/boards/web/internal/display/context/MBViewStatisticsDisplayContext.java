@@ -57,7 +57,7 @@ public class MBViewStatisticsDisplayContext {
 			"/message_boards/view_statistics"
 		).setParameter(
 			"mbCategoryId", _getCategoryId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public boolean isMBAdmin() {

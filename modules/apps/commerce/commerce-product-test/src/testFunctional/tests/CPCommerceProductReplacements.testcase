@@ -1,0 +1,336 @@
+@component-name = "portal-commerce"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Shopping Experience";
+
+	setUp {
+		CommerceConfiguration.commerceSetUp();
+	}
+
+	tearDown {
+		CommerceConfiguration.commerceTearDown();
+	}
+
+	@description = "COMMERCE-8160. Verify a product can be marked as 'discontinued' when adding a new SKU"
+	@priority = "3"
+	test CreateNewSKUWithReplacement {
+		task ("Given a simple replacement product with a SKU") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				productName = "Test Simple Product Replacement",
+				productType = "simple",
+				sku = "SKU1001");
+		}
+
+		task ("And given a simple product") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				productName = "Test Simple Product",
+				productType = "simple");
+		}
+
+		task ("When the product specialist is creating a new SKU") {
+			CommerceProducts.openProductsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Test Simple Product");
+
+			CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+			Click(locator1 = "Button#PLUS");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Type(
+				locator1 = "CommerceEntry#SKU_FIELD",
+				value1 = "SKU1002");
+		}
+
+		task ("And the SKU is set as Discontinued") {
+			Check.checkToggleSwitch(locator1 = "CommerceEntry#SKU_DISCONTINUED_TOGGLE");
+		}
+
+		task ("And a replacement product is set") {
+			Type(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "SKU1001");
+		}
+
+		task ("Then the new SKU is created") {
+			CommerceEntry.publishEntry();
+
+			Click(locator1 = "Icon#CLOSE");
+
+			IFrame.selectTopFrame();
+
+			AssertElementPresent(
+				key_entryName = "SKU1002",
+				locator1 = "CommerceNavigation#DATA_SET_ENTRY_NAME");
+		}
+
+		task ("And the SKU is marked as Discontinued") {
+			CommerceNavigator.gotoEntry(entryName = "SKU1002");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			AssertChecked.assertCheckedNotVisible(
+				key_toggleSwitchLabel = "Mark the SKU as Discontinued",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+		}
+
+		task ("And the replacement product fields are saved") {
+			AssertTextEquals(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "SKU1001");
+		}
+	}
+
+	@description = "[Please Update]"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test EditReplacementProduct {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-8165 EditReplacementProduct pending implementation
+
+	}
+
+	@description = "Verify a replacement product can be removed"
+	@priority = "3"
+	test RemoveReplacementProduct {
+		task ("Given a simple product with a SKU") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				discontinued = "True",
+				productName = "Test Simple Product Replacement",
+				productType = "simple",
+				sku = "SKU1001");
+		}
+
+		task ("And given a simple product with a SKU marked as discontinued with a replacement product set") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				discontinued = "True",
+				productName = "Test Simple Product",
+				productType = "simple",
+				replacementSKU = "SKU1001",
+				sku = "SKU1002");
+		}
+
+		task ("When the product specialist clicks on the trash icon on the right side of the Replacement field") {
+			CommerceProducts.openProductsAdmin();
+
+			CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+			CommerceNavigator.gotoEntry(entryName = "SKU1002");
+
+			SelectFrame(
+				key_title = "",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Button.clickTrash();
+
+			Button.clickPublish();
+		}
+
+		task ("Then the Replacement field should become empty") {
+			AssertTextEquals(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "");
+		}
+	}
+
+	@description = "Verify a replacement product can be set between different catalogs"
+	@priority = "3"
+	test ReplacementCanBeSetBetweenDifferentCatalogs {
+		task ("Given a Test Catalog") {
+			CommerceJSONCatalogsAPI._addCatalog(catalogName = "Test Catalog");
+		}
+
+		task ("And given a product on the catalog marked as discontinued") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Test Catalog",
+				discontinued = "True",
+				productName = "Test Simple Product",
+				productType = "simple",
+				sku = "SKU1001");
+		}
+
+		task ("When a product from a different catalog than the "Discontinued" product is set as the replacement product") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				discontinued = "True",
+				productName = "Test Simple Product Replacement",
+				productType = "simple",
+				sku = "SKU1002");
+
+			CommerceProducts.openProductsAdmin();
+
+			CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+			CommerceNavigator.gotoEntry(entryName = "SKU1001");
+
+			SelectFrame(
+				key_title = "",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Type(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "SKU1002");
+
+			Button.clickPublish();
+		}
+
+		task ("Then the product is successfully set as the replacement product") {
+			Alert.viewSuccessMessage();
+
+			AssertTextEquals(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "SKU1002");
+		}
+	}
+
+	@description = "[Please Update]"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ReplacementLoopIsPrevented {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-8164 ReplacementLoopIsPrevented pending implementation
+
+	}
+
+	@description = "Verify a product can be set as discontinued"
+	@priority = "3"
+	test SetProductAsDiscontinued {
+		task ("Given a simple product with a SKU") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				productName = "Test Simple Product",
+				productType = "simple",
+				sku = "MIN70291");
+		}
+
+		task ("When the SKU is not set as discontinued") {
+			CommerceProducts.openProductsAdmin();
+
+			CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+			CommerceNavigator.gotoEntry(entryName = "MIN70291");
+
+			SelectFrame(
+				key_title = "",
+				locator1 = "IFrame#MODAL_ANY");
+
+			AssertNotChecked.assertNotCheckedNotVisible(
+				key_definition = "Off",
+				locator1 = "CommerceEntry#SKU_DISCONTINUED_TOGGLE");
+		}
+
+		task ("Then the Replacement field is not visible and the End of Life Date field is disabled") {
+			AssertNotVisible(locator1 = "TextInput#REPLACEMENT");
+
+			AssertElementPresent(locator1 = "TextInput#DISCONTINUED_DATE_DISABLED");
+		}
+
+		task ("When the product specialist sets the sku as discontinued") {
+			Check.checkToggleSwitch(locator1 = "CommerceEntry#SKU_DISCONTINUED_TOGGLE");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Then the Replacement field is visible and the End of Life Date field is enabled") {
+			AssertVisible(locator1 = "TextInput#REPLACEMENT");
+
+			AssertElementPresent(locator1 = "TextInput#DISCONTINUED_DATE");
+		}
+	}
+
+	@description = "Verify a product can be set as a replacement for a discontinued product"
+	@priority = "3"
+	test SetReplacementProduct {
+		task ("Given a simple product with a SKU marked as discontinued") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				discontinued = "True",
+				productName = "Test Simple Product",
+				productType = "simple",
+				sku = "SKU1001");
+		}
+
+		task ("And given another simple product with a SKU") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				productName = "Test Simple Product Replacement",
+				productType = "simple",
+				sku = "SKU1002");
+		}
+
+		task ("When the product specialist defines a replacement product for the SKU marked as discontinued") {
+			CommerceProducts.openProductsAdmin();
+
+			CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+			CommerceNavigator.gotoEntry(entryName = "SKU1001");
+
+			SelectFrame(
+				key_title = "",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Type(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "SKU1002");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Then the Replacement SKU is visible on the Replacement field") {
+			AssertTextEquals(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "SKU1002");
+		}
+	}
+
+	@description = "Verify a product SKU cannot be set as its own replacement"
+	@priority = "3"
+	test SKUCannotBeItsOwnReplacement {
+		task ("Given a simple product with a SKU marked as discontinued") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				discontinued = "True",
+				productName = "Test Simple Product",
+				productType = "simple",
+				sku = "SKU1001");
+		}
+
+		task ("When the SKU is set as its own replacement") {
+			CommerceProducts.openProductsAdmin();
+
+			CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+			CommerceNavigator.gotoEntry(entryName = "SKU1001");
+
+			SelectFrame(
+				key_title = "",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Type(
+				locator1 = "TextInput#REPLACEMENT",
+				value1 = "SKU1001");
+
+			Button.clickPublish();
+		}
+
+		task ("Then the error 'Please enter a valid replacement' should be shown") {
+			Alert.viewErrorMessage(errorMessage = "Please enter a valid replacement.");
+		}
+	}
+
+}

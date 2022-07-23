@@ -30,6 +30,10 @@ public class FragmentCompositionLocalServiceWrapper
 	implements FragmentCompositionLocalService,
 			   ServiceWrapper<FragmentCompositionLocalService> {
 
+	public FragmentCompositionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public FragmentCompositionLocalServiceWrapper(
 		FragmentCompositionLocalService fragmentCompositionLocalService) {
 
@@ -148,6 +152,13 @@ public class FragmentCompositionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _fragmentCompositionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _fragmentCompositionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -530,23 +541,6 @@ public class FragmentCompositionLocalServiceWrapper
 		return _fragmentCompositionLocalService.updateFragmentComposition(
 			userId, fragmentCompositionId, fragmentCollectionId, name,
 			description, data, previewFileEntryId, status);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateFragmentComposition(long, long, long, String, String, String, long, int)}
-	 */
-	@Deprecated
-	@Override
-	public FragmentComposition updateFragmentComposition(
-			long userId, long fragmentCompositionId, String name,
-			String description, String data, long previewFileEntryId,
-			int status)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _fragmentCompositionLocalService.updateFragmentComposition(
-			userId, fragmentCompositionId, name, description, data,
-			previewFileEntryId, status);
 	}
 
 	@Override

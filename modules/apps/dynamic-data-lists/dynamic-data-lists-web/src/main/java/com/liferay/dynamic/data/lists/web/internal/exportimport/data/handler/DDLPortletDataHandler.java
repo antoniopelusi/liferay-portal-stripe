@@ -68,6 +68,11 @@ public class DDLPortletDataHandler extends BasePortletDataHandler {
 		return SCHEMA_VERSION;
 	}
 
+	@Override
+	public String getServiceName() {
+		return DDLConstants.SERVICE_NAME;
+	}
+
 	@Activate
 	protected void activate() {
 		setDataLocalized(true);
@@ -104,7 +109,7 @@ public class DDLPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected String doExportData(
-			final PortletDataContext portletDataContext, String portletId,
+			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
 		throws Exception {
 

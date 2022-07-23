@@ -26,35 +26,52 @@ function PerformanceByStepPage({query, routeParams}) {
 
 	const {processId, ...paginationParams} = routeParams;
 	const {search = null} = parse(query);
+	const filterKeys = ['processVersion'];
+	const hideFilters = ['processVersion'];
 
 	useProcessTitle(processId, Liferay.Language.get('performance-by-step'));
 
 	const {
-		filterValues: {dateEnd, dateStart},
+		filterValues: {dateEnd, dateStart, processVersion},
 		prefixedKeys,
-	} = useFilter({});
+		selectedFilters,
+	} = useFilter({filterKeys});
 
 	const {data, fetchData} = useFetch({
 		params: {
 			completed: true,
 			key: search,
+			processVersion:
+				processVersion?.indexOf('allVersions') === -1
+					? processVersion
+					: undefined,
 			...paginationParams,
 			...getTimeRangeParams(dateStart, dateEnd),
 		},
 		url: `/processes/${processId}/nodes/metrics`,
 	});
 
-	const promises = useMemo(() => [fetchData()], [fetchData]);
+	const promises = useMemo(
+		() => [fetchData()],
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[routeParams]
+	);
 
 	return (
 		<PromisesResolver promises={promises}>
 			<PerformanceByStepPage.Header
 				filterKeys={prefixedKeys}
+				hideFilters={hideFilters}
 				routeParams={{...routeParams, search}}
-				totalCount={data.totalCount}
+				selectedFilters={selectedFilters}
+				totalCount={data?.totalCount}
 			/>
 
-			<PerformanceByStepPage.Body {...data} filtered={search} />
+			<PerformanceByStepPage.Body
+				{...data}
+				filtered={search || selectedFilters.length > 0}
+			/>
 		</PromisesResolver>
 	);
 }

@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.spring.transaction.TransactionAttributeAdapter;
 import com.liferay.portal.spring.transaction.TransactionAttributeBuilder;
 import com.liferay.portal.spring.transaction.TransactionHandler;
@@ -48,6 +49,17 @@ public class TransactionContainerRequestFilter
 	@Override
 	public void filter(ContainerRequestContext containerRequestContext)
 		throws IOException {
+
+		if (GetterUtil.getBoolean(
+				containerRequestContext.getHeaderString(
+					"X-Liferay-Transaction-Disabled"))) {
+
+			if (_log.isDebugEnabled()) {
+				_log.debug("Transaction management is disabled");
+			}
+
+			return;
+		}
 
 		if (_transactionRequiredMethodNames.contains(
 				containerRequestContext.getMethod())) {

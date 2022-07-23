@@ -28,7 +28,7 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.GroupService;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.GroupPermission;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portlet.usersadmin.search.GroupSearch;
 
@@ -79,7 +79,7 @@ public class GroupItemSelectorProviderImpl
 					null));
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return Collections.emptyList();
 		}
@@ -90,6 +90,8 @@ public class GroupItemSelectorProviderImpl
 		return _groupService.searchCount(
 			companyId, _classNameIds, keywords,
 			LinkedHashMapBuilder.<String, Object>put(
+				"actionId", ActionKeys.VIEW
+			).put(
 				"site", Boolean.TRUE
 			).build());
 	}
@@ -128,7 +130,8 @@ public class GroupItemSelectorProviderImpl
 
 		for (Group group : groups) {
 			if (group.isCompany() ||
-				GroupPermissionUtil.contains(
+				permissionChecker.isGroupAdmin(group.getGroupId()) ||
+				_groupPermission.contains(
 					permissionChecker, group, ActionKeys.VIEW)) {
 
 				filteredGroups.add(group);
@@ -148,6 +151,9 @@ public class GroupItemSelectorProviderImpl
 
 	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private GroupPermission _groupPermission;
 
 	@Reference
 	private GroupService _groupService;

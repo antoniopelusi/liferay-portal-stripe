@@ -22,12 +22,121 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		DataEngine.tearDownInstance();
+
 		if ("${testPortalInstance}" == "true") {
 			PortalInstances.tearDownCP();
 		}
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
 		}
+	}
+
+	@description = "This is a test for LRQA-66432. This test validates it is possible to edit the Localizable property of a field to Off and On on the Fieldset and the propagation of changes."
+	@priority = "4"
+	test EditLocalizableOnPublishedWCWithFieldset {
+		DataEngine.createNewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		WebContent.addWithStructureCP(
+			webContentText = "This is a Text field",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		WebContent.addWithStructureCP(
+			webContentText = "This is a Text field - pt-BR",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title - pt-BR");
+
+		PortletEntry.publish();
+
+		NavItem.gotoStructures();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.gotoFieldsetItemEllipsis(fieldsetName = "New Fieldset");
+
+		MenuItem.click(menuItem = "Edit");
+
+		DataEngine.editFieldLocalizable(
+			fieldFieldLabel = "Text",
+			fieldsetModal = "true");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		FormViewBuilder.propagateChange();
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContent.viewWithStructureCP(
+			webContentText = "This is a Text field",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		DataEngine.assertNonLocalizableField(fieldFieldName = "Text");
+
+		Navigator.gotoBack();
+
+		NavItem.gotoStructures();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.gotoFieldsetItemEllipsis(fieldsetName = "New Fieldset");
+
+		MenuItem.click(menuItem = "Edit");
+
+		DataEngine.editFieldLocalizable(
+			fieldFieldLabel = "Text",
+			fieldsetModal = "true");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		FormViewBuilder.propagateChange();
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContent.viewWithStructureCP(
+			webContentText = "This is a Text field",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		WebContent.addWithStructureCP(
+			webContentText = "This is a Text field - pt-BR edited",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title - pt-BR edited");
+
+		PortletEntry.publish();
+
+		WebContent.viewWithStructureCP(
+			webContentText = "This is a Text field",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title");
+
+		WebContent.viewWithStructureCP(
+			skipGotoEditCp = "true",
+			webContentLocaleFieldLabel = "pt-BR",
+			webContentText = "This is a Text field - pt-BR edited",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title - pt-BR edited");
 	}
 
 	@description = "This test ensures that when editing the Localizable state of a field, its content persists"
@@ -215,6 +324,110 @@ definition {
 			webContentText = "This is a text field");
 	}
 
+	@description = "This is a test for LRQA-66428. This test checks if Localizable property is successfully set when the Portal Instance language is not English US and if it persists for Structures created before changing Portal Instance language"
+	@priority = "5"
+	test LocalizableWithDifferentInstanceLanguage {
+		DataEngine.addFields(fieldNameList = "Text,Numeric");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		for (var fieldFieldLabel : list "Text,Numeric,Date") {
+			DataEngine.editFieldLocalizable(fieldFieldLabel = "${fieldFieldLabel}");
+		}
+
+		WebContentStructures.saveCP();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Language",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureCurrentLanguagesCP(defaultPortalLanguage = "Portuguese (Brazil)");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		for (var fieldFieldLabel : list "Text,Numeric,Date") {
+			DataEngine.assertLocalizableFieldUnchecked(fieldFieldLabel = "${fieldFieldLabel}");
+		}
+
+		Navigator.gotoBack();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		WebContent.addCP(webContentTitle = "Web Content Title");
+
+		PortletEntry.changeLocale(locale = "ca-ES");
+
+		WebContent.addCP(webContentTitle = "Web Content Title - ca-ES");
+
+		for (var fieldFieldName : list "Text,Numeric,Date") {
+			DataEngine.assertNonLocalizableField(fieldFieldName = "${fieldFieldName}");
+		}
+
+		PortletEntry.publish();
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title 2");
+
+		DataEngine.addFields(fieldNameList = "Text,Numeric");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title 2");
+
+		WebContent.addWithStructureCP(
+			webContentDate = "04/01/2021",
+			webContentNumeric = "10",
+			webContentText = "This is a Text field - pt-BR",
+			webContentTitle = "Web Content Title - pt-BR");
+
+		PortletEntry.changeLocale(locale = "ca-ES");
+
+		WebContent.addWithStructureCP(
+			webContentDate = "03/05/2021",
+			webContentNumeric = "20",
+			webContentText = "This is a Text field - ca-ES",
+			webContentTitle = "Web Content Title - ca-ES");
+
+		PortletEntry.publish();
+
+		WebContent.viewWithStructureCP(
+			webContentDate = "04/01/2021",
+			webContentNumeric = "10",
+			webContentText = "This is a Text field - pt-BR",
+			webContentTitle = "Web Content Title - pt-BR");
+
+		WebContent.viewWithStructureCP(
+			skipGotoEditCp = "true",
+			webContentDate = "03/05/2021",
+			webContentLocaleFieldLabel = "ca-ES",
+			webContentNumeric = "20",
+			webContentText = "This is a Text field - ca-ES",
+			webContentTitle = "Web Content Title - ca-ES");
+	}
+
 	@description = "This test ensures that it's possible to translate the content of the fields in a fieldset"
 	@priority = "5"
 	test TranslateFieldSetLocalizableOn {
@@ -327,6 +540,123 @@ definition {
 			webContentDate = "30/03/2021",
 			webContentNumeric = "456",
 			webContentText = "Este é um campo de texto");
+	}
+
+	@description = "This is a test for LRQA-66429. This test check a field with Localizable property set as True in a simple field, a Field Group, a Fieldset and a Field Group into a Fieldset."
+	@priority = "5"
+	test ValidateDefaulLocalizableValue {
+		var checkboxName = "Localizable";
+
+		DataEngine.addField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.assertLocalizableField(fieldFieldLabel = "Text");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		DataEngine.assertLocalizableField(fieldFieldLabel = "Numeric");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset Test");
+
+		DataEngine.addFields(fieldNameList = "Text");
+
+		AssertClick.assertPartialTextClickAt(
+			key_fieldFieldLabel = "Text",
+			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL_IN_FIELDSET_MODAL",
+			value1 = "Text");
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		AssertElementPresent(locator1 = "Checkbox#ANY_CHECKBOX_CHECKED");
+
+		Click(locator1 = "Sidebar#BACK");
+
+		DragAndDrop.javaScriptDragAndDropToObject(
+			key_fieldFieldLabel = "Text",
+			key_fieldName = "Numeric",
+			locator1 = "Sidebar#ADD_FIELD_NAME",
+			locator2 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL_IN_FIELDSET_MODAL",
+			value1 = "Numeric");
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		AssertElementPresent(locator1 = "Checkbox#ANY_CHECKBOX_CHECKED");
+	}
+
+	@description = "This is a test for LRQA-66427. This test check it's not possible to translate a field with Localizable property set as Off in a simple field and a Field Group into a Fieldset"
+	@priority = "5"
+	test ValidateNotTranslatableOnFieldset {
+		property portal.upstream = "quarantine";
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DataEngine.addFields(fieldNameList = "Text,Numeric");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Date",
+			fieldName = "Date",
+			targetFieldLabel = "Numeric");
+
+		for (var fieldFieldLabel : list "Text,Numeric,Date") {
+			DataEngine.editFieldLocalizable(fieldFieldLabel = "${fieldFieldLabel}");
+		}
+
+		Modal.save();
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		WebContent.addWithStructureCP(
+			webContentDate = "01/04/2021",
+			webContentDateFieldLabel = "Date",
+			webContentNumeric = "10",
+			webContentNumericFieldLabel = "Numeric",
+			webContentText = "This is a Text field",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		WebContent.addCP(webContentTitle = "Web Content Title - pt-BR");
+
+		for (var fieldFieldLabel : list "Text,Numeric,Date") {
+			DataEngine.assertNonLocalizableField(fieldFieldName = "${fieldFieldLabel}");
+		}
+
+		PortletEntry.publish();
+
+		WebContent.viewWithStructureCP(
+			webContentDate = "01/04/2021",
+			webContentDateFieldLabel = "Date",
+			webContentNumeric = "10",
+			webContentNumericFieldLabel = "Numeric",
+			webContentText = "This is a Text field",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title");
+
+		WebContent.viewWithStructureCP(
+			skipGotoEditCp = "true",
+			webContentDate = "04/01/2021",
+			webContentDateFieldLabel = "Date",
+			webContentLocaleFieldLabel = "pt-BR",
+			webContentNumeric = "10",
+			webContentNumericFieldLabel = "Numeric",
+			webContentText = "This is a Text field",
+			webContentTextFieldLabel = "Text",
+			webContentTitle = "Web Content Title - pt-BR");
 	}
 
 }

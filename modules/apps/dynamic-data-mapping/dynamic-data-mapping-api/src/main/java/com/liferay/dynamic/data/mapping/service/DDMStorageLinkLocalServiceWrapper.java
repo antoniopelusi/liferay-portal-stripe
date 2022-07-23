@@ -30,6 +30,10 @@ public class DDMStorageLinkLocalServiceWrapper
 	implements DDMStorageLinkLocalService,
 			   ServiceWrapper<DDMStorageLinkLocalService> {
 
+	public DDMStorageLinkLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMStorageLinkLocalServiceWrapper(
 		DDMStorageLinkLocalService ddmStorageLinkLocalService) {
 
@@ -150,6 +154,13 @@ public class DDMStorageLinkLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmStorageLinkLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmStorageLinkLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

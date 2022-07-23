@@ -27,7 +27,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.wedeploy.auth.model.WeDeployAuthApp;
@@ -68,9 +68,9 @@ public class WeDeployAuthAuthorizeUserMVCActionCommand
 
 		try {
 			if (cmd.equals("allow")) {
-				redirectURI = _http.addParameter(
+				redirectURI = HttpComponentsUtil.addParameter(
 					redirectURI, "code",
-					getWeDeployAuthToken(actionRequest, themeDisplay));
+					_getWeDeployAuthToken(actionRequest, themeDisplay));
 			}
 			else if (cmd.equals("deny")) {
 				JSONObject jsonObject = JSONUtil.put("error", "access_denied");
@@ -80,7 +80,7 @@ public class WeDeployAuthAuthorizeUserMVCActionCommand
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			JSONObject jsonObject = JSONUtil.put(
 				"error_message",
@@ -96,7 +96,7 @@ public class WeDeployAuthAuthorizeUserMVCActionCommand
 		sendRedirect(actionRequest, actionResponse, redirectURI);
 	}
 
-	protected String getWeDeployAuthToken(
+	private String _getWeDeployAuthToken(
 			ActionRequest actionRequest, ThemeDisplay themeDisplay)
 		throws PortalException {
 
@@ -116,9 +116,6 @@ public class WeDeployAuthAuthorizeUserMVCActionCommand
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		WeDeployAuthAuthorizeUserMVCActionCommand.class);
-
-	@Reference
-	private Http _http;
 
 	@Reference
 	private WeDeployAuthTokenLocalService _weDeployAuthTokenLocalService;

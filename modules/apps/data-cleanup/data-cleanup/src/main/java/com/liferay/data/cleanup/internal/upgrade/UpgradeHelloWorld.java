@@ -17,20 +17,15 @@ package com.liferay.data.cleanup.internal.upgrade;
 /**
  * @author Pei-Jung Lan
  */
-public class UpgradeHelloWorld extends BaseUpgradeNoninstanceablePortlet {
+public class UpgradeHelloWorld extends BaseUpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		removePortlet(
-			"com.liferay.hello.world.web", null,
-			new String[] {_HELLO_WORLD_PORTLET_NAME});
-
-		runSQL(
-			"delete from ResourceAction where name = '" +
-				_HELLO_WORLD_PORTLET_NAME + "'");
+		removePortletData(
+			new String[] {"com.liferay.hello.world.web"}, null,
+			new String[] {
+				"com_liferay_hello_world_web_portlet_HelloWorldPortlet"
+			});
 	}
-
-	private static final String _HELLO_WORLD_PORTLET_NAME =
-		"com_liferay_hello_world_web_portlet_HelloWorldPortlet";
 
 }

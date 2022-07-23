@@ -15,12 +15,12 @@
 package com.liferay.portal.osgi.web.portlet.tracker.internal;
 
 import com.liferay.osgi.util.StringPlus;
+import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.asm.ASMWrapperUtil;
 import com.liferay.portal.kernel.application.type.ApplicationType;
-import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
+import com.liferay.portal.kernel.bean.BeanProperties;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.ResourceActionsException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.EventDefinition;
 import com.liferay.portal.kernel.model.PortletApp;
@@ -51,6 +52,7 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.DelegateProxyFactory;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
@@ -89,6 +91,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
 import javax.portlet.Portlet;
@@ -171,7 +176,7 @@ public class PortletTracker
 			_log.info("Adding " + serviceReference);
 		}
 
-		portletModel = addingPortlet(
+		portletModel = _addingPortlet(
 			serviceReference, portlet, portletName, portletId);
 
 		if (portletModel == null) {
@@ -195,7 +200,7 @@ public class PortletTracker
 			return;
 		}
 
-		BeanPropertiesUtil.copyProperties(newPortletModel, portletModel);
+		_beanProperties.copyProperties(newPortletModel, portletModel);
 	}
 
 	@Override
@@ -221,7 +226,7 @@ public class PortletTracker
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			// We still need to remove the service so we can ignore this and
@@ -231,20 +236,38 @@ public class PortletTracker
 
 		_portletInstanceFactory.destroy(portletModel);
 
-		_companyLocalService.forEachCompanyId(
-			companyId -> {
-				PortletCategory portletCategory =
-					(PortletCategory)WebAppPool.get(
-						companyId, WebKeys.PORTLET_CATEGORY);
+		Long companyId = (Long)serviceReference.getProperty(
+			"com.liferay.portlet.company");
 
-				if (portletCategory == null) {
-					_log.error(
-						"Unable to get portlet category for " + companyId);
-				}
-				else {
-					portletCategory.separate(portletModel.getRootPortletId());
-				}
-			});
+		if (companyId == null) {
+			_companyLocalService.forEachCompanyId(
+				curCompanyId -> {
+					PortletCategory portletCategory =
+						(PortletCategory)WebAppPool.get(
+							curCompanyId, WebKeys.PORTLET_CATEGORY);
+
+					if (portletCategory == null) {
+						_log.error(
+							"Unable to get portlet category for " +
+								curCompanyId);
+					}
+					else {
+						portletCategory.separate(
+							portletModel.getRootPortletId());
+					}
+				});
+		}
+		else {
+			PortletCategory portletCategory = (PortletCategory)WebAppPool.get(
+				companyId, WebKeys.PORTLET_CATEGORY);
+
+			if (portletCategory == null) {
+				_log.error("Unable to get portlet category for " + companyId);
+			}
+			else {
+				portletCategory.separate(portletModel.getRootPortletId());
+			}
+		}
 
 		serviceRegistrations.removeServiceReference(serviceReference);
 	}
@@ -252,6 +275,9 @@ public class PortletTracker
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_bundleContext = bundleContext;
+
+		_executorService = _portalExecutorManager.getPortalExecutor(
+			PortletTracker.class.getName());
 
 		_serviceTracker = new ServiceTracker<>(
 			_bundleContext, Portlet.class, this);
@@ -280,8 +306,6 @@ public class PortletTracker
 				return null;
 			});
 
-		DependencyManagerSyncUtil.registerSyncFuture(futureTask);
-
 		Thread serviceTrackerOpenerThread = new Thread(
 			futureTask,
 			PortletTracker.class.getName() + "-ServiceTrackerOpener");
@@ -290,12 +314,50 @@ public class PortletTracker
 
 		serviceTrackerOpenerThread.start();
 
+		DependencyManagerSyncUtil.registerSyncFuture(futureTask);
+
 		if (_log.isInfoEnabled()) {
 			_log.info("Activated");
 		}
 	}
 
-	protected com.liferay.portal.kernel.model.Portlet addingPortlet(
+	@Deactivate
+	protected void deactivate() {
+		_serviceTracker.close();
+
+		_executorService.shutdownNow();
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Deactivated");
+		}
+	}
+
+	protected Object get(
+		ServiceReference<Portlet> serviceReference, String property) {
+
+		return serviceReference.getProperty(_NAMESPACE + property);
+	}
+
+	@Reference(unbind = "-")
+	protected void setHttpServiceRuntime(
+		HttpServiceRuntime httpServiceRuntime, Map<String, Object> properties) {
+
+		List<String> httpServiceEndpoints = StringPlus.asList(
+			properties.get(HttpServiceRuntimeConstants.HTTP_SERVICE_ENDPOINT));
+
+		if (!httpServiceEndpoints.isEmpty()) {
+			_httpServiceEndpoint = httpServiceEndpoints.get(0);
+		}
+
+		if ((_httpServiceEndpoint.length() > 0) &&
+			_httpServiceEndpoint.endsWith("/")) {
+
+			_httpServiceEndpoint = _httpServiceEndpoint.substring(
+				0, _httpServiceEndpoint.length() - 1);
+		}
+	}
+
+	private com.liferay.portal.kernel.model.Portlet _addingPortlet(
 		ServiceReference<Portlet> serviceReference, Portlet portlet,
 		String portletName, String portletId) {
 
@@ -313,11 +375,11 @@ public class PortletTracker
 
 		thread.setContextClassLoader(bundleWiring.getClassLoader());
 
-		ServiceRegistrations serviceRegistrations = getServiceRegistrations(
+		ServiceRegistrations serviceRegistrations = _getServiceRegistrations(
 			bundle);
 
 		try {
-			PortletApp portletApp = createBundlePortletApp(
+			PortletApp portletApp = _createBundlePortletApp(
 				bundle, bundleClassLoader, serviceRegistrations);
 
 			portletApp.setDefaultNamespace(
@@ -347,7 +409,10 @@ public class PortletTracker
 			}
 
 			com.liferay.portal.kernel.model.Portlet portletModel =
-				buildPortletModel(portletApp, portletId, bundle);
+				_buildPortletModel(
+					portletApp, portletId, bundle,
+					(Long)serviceReference.getProperty(
+						"com.liferay.portlet.company"));
 
 			portletModel.setPortletName(portletName);
 
@@ -361,8 +426,8 @@ public class PortletTracker
 
 			portletModel.setPortletClass(portletClazz.getName());
 
-			collectJxPortletFeatures(serviceReference, portletModel);
-			collectLiferayFeatures(serviceReference, portletModel);
+			_collectJxPortletFeatures(serviceReference, portletModel);
+			_collectLiferayFeatures(serviceReference, portletModel);
 
 			PortletContextBag portletContextBag = new PortletContextBag(
 				portletApp.getServletContextName());
@@ -382,7 +447,7 @@ public class PortletTracker
 				portletModel, bundleClassLoader,
 				serviceRegistrations.getSources());
 
-			deployPortlet(serviceReference, portletModel);
+			_deployPortlet(serviceReference, portletModel);
 
 			portletModel.setReady(true);
 
@@ -408,15 +473,22 @@ public class PortletTracker
 		}
 	}
 
-	protected com.liferay.portal.kernel.model.Portlet buildPortletModel(
-		PortletApp portletApp, String portletId, Bundle bundle) {
+	private com.liferay.portal.kernel.model.Portlet _buildPortletModel(
+		PortletApp portletApp, String portletId, Bundle bundle,
+		Long companyId) {
 
 		com.liferay.portal.kernel.model.Portlet portletModel =
 			_portletLocalService.createPortlet(0);
 
 		portletModel.setPortletId(portletId);
 
-		portletModel.setCompanyId(CompanyConstants.SYSTEM);
+		if (companyId == null) {
+			portletModel.setCompanyId(CompanyConstants.SYSTEM);
+		}
+		else {
+			portletModel.setCompanyId(companyId);
+		}
+
 		portletModel.setPluginPackage(
 			new BundlePluginPackage(bundle, portletApp));
 		portletModel.setPortletApp(portletApp);
@@ -426,7 +498,7 @@ public class PortletTracker
 		return portletModel;
 	}
 
-	protected void collectApplicationTypes(
+	private void _collectApplicationTypes(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -456,7 +528,7 @@ public class PortletTracker
 		portletModel.setApplicationTypes(applicationTypes);
 	}
 
-	protected void collectAsyncSupported(
+	private void _collectAsyncSupported(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -466,12 +538,7 @@ public class PortletTracker
 		portletModel.setAsyncSupported(asyncSupported);
 	}
 
-	protected void collectCacheScope(
-		ServiceReference<Portlet> serviceReference,
-		com.liferay.portal.kernel.model.Portlet portletModel) {
-	}
-
-	protected void collectContainerRuntimeOptions(
+	private void _collectContainerRuntimeOptions(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -513,7 +580,7 @@ public class PortletTracker
 		}
 	}
 
-	protected void collectEventDefinitions(
+	private void _collectEventDefinitions(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -541,7 +608,7 @@ public class PortletTracker
 					uri = parts[1];
 				}
 
-				QName qName = getQName(
+				QName qName = _getQName(
 					name, uri, portletApp.getDefaultNamespace());
 
 				if (i == 0) {
@@ -565,7 +632,7 @@ public class PortletTracker
 		}
 	}
 
-	protected void collectExpirationCache(
+	private void _collectExpirationCache(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -575,7 +642,7 @@ public class PortletTracker
 		portletModel.setExpCache(expirationCache);
 	}
 
-	protected void collectInitParams(
+	private void _collectInitParams(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -598,33 +665,32 @@ public class PortletTracker
 		portletModel.setInitParams(initParams);
 	}
 
-	protected void collectJxPortletFeatures(
+	private void _collectJxPortletFeatures(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
-		collectApplicationTypes(serviceReference, portletModel);
-		collectAsyncSupported(serviceReference, portletModel);
-		collectCacheScope(serviceReference, portletModel);
-		collectContainerRuntimeOptions(serviceReference, portletModel);
-		collectEventDefinitions(serviceReference, portletModel);
-		collectExpirationCache(serviceReference, portletModel);
-		collectInitParams(serviceReference, portletModel);
-		collectListeners(serviceReference, portletModel);
-		collectMultipartConfig(serviceReference, portletModel);
-		collectPortletDependencies(serviceReference, portletModel);
-		collectPortletInfo(serviceReference, portletModel);
-		collectPortletModes(serviceReference, portletModel);
-		collectPortletPreferences(serviceReference, portletModel);
-		collectResourceBundle(serviceReference, portletModel);
-		collectSecurityRoleRefs(serviceReference, portletModel);
-		collectSupportedLocales(serviceReference, portletModel);
-		collectSupportedProcessingEvents(serviceReference, portletModel);
-		collectSupportedPublicRenderParameters(serviceReference, portletModel);
-		collectSupportedPublishingEvents(serviceReference, portletModel);
-		collectWindowStates(serviceReference, portletModel);
+		_collectApplicationTypes(serviceReference, portletModel);
+		_collectAsyncSupported(serviceReference, portletModel);
+		_collectContainerRuntimeOptions(serviceReference, portletModel);
+		_collectEventDefinitions(serviceReference, portletModel);
+		_collectExpirationCache(serviceReference, portletModel);
+		_collectInitParams(serviceReference, portletModel);
+		_collectListeners(serviceReference, portletModel);
+		_collectMultipartConfig(serviceReference, portletModel);
+		_collectPortletDependencies(serviceReference, portletModel);
+		_collectPortletInfo(serviceReference, portletModel);
+		_collectPortletModes(serviceReference, portletModel);
+		_collectPortletPreferences(serviceReference, portletModel);
+		_collectResourceBundle(serviceReference, portletModel);
+		_collectSecurityRoleRefs(serviceReference, portletModel);
+		_collectSupportedLocales(serviceReference, portletModel);
+		_collectSupportedProcessingEvents(serviceReference, portletModel);
+		_collectSupportedPublicRenderParameters(serviceReference, portletModel);
+		_collectSupportedPublishingEvents(serviceReference, portletModel);
+		_collectWindowStates(serviceReference, portletModel);
 	}
 
-	protected void collectLiferayFeatures(
+	private void _collectLiferayFeatures(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -823,7 +889,7 @@ public class PortletTracker
 				portletModel.getVirtualPath()));
 	}
 
-	protected void collectListeners(
+	private void _collectListeners(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -859,7 +925,7 @@ public class PortletTracker
 		}
 	}
 
-	protected void collectMultipartConfig(
+	private void _collectMultipartConfig(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -884,7 +950,7 @@ public class PortletTracker
 				-1L));
 	}
 
-	protected void collectPortletDependencies(
+	private void _collectPortletDependencies(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -900,7 +966,7 @@ public class PortletTracker
 		}
 	}
 
-	protected void collectPortletInfo(
+	private void _collectPortletInfo(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -925,7 +991,7 @@ public class PortletTracker
 		portletModel.setPortletInfo(portletInfo);
 	}
 
-	protected void collectPortletModes(
+	private void _collectPortletModes(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -946,9 +1012,9 @@ public class PortletTracker
 
 			Set<String> mimeTypePortletModes = new HashSet<>();
 
-			mimeTypePortletModes.add(toLowerCase(PortletMode.VIEW));
+			mimeTypePortletModes.add(_toLowerCase(PortletMode.VIEW));
 			mimeTypePortletModes.addAll(
-				toLowerCaseSet(portletModesStringParts[1]));
+				_toLowerCaseSet(portletModesStringParts[1]));
 
 			if (portletModes == null) {
 				portletModes = new HashMap<>(_defaultPortletModes);
@@ -964,7 +1030,7 @@ public class PortletTracker
 		portletModel.setPortletModes(portletModes);
 	}
 
-	protected void collectPortletPreferences(
+	private void _collectPortletPreferences(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -984,7 +1050,7 @@ public class PortletTracker
 					defaultPreferences = StringUtil.read(url.openStream());
 				}
 				catch (IOException ioException) {
-					_log.error(ioException, ioException);
+					_log.error(ioException);
 				}
 			}
 		}
@@ -1000,7 +1066,7 @@ public class PortletTracker
 		}
 	}
 
-	protected void collectResourceBundle(
+	private void _collectResourceBundle(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -1011,7 +1077,7 @@ public class PortletTracker
 		portletModel.setResourceBundle(resourceBundle);
 	}
 
-	protected void collectSecurityRoleRefs(
+	private void _collectSecurityRoleRefs(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -1038,7 +1104,7 @@ public class PortletTracker
 		portletModel.linkRoles();
 	}
 
-	protected void collectSupportedLocales(
+	private void _collectSupportedLocales(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -1052,7 +1118,7 @@ public class PortletTracker
 		portletModel.setSupportedLocales(supportedLocales);
 	}
 
-	protected void collectSupportedProcessingEvents(
+	private void _collectSupportedProcessingEvents(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -1076,7 +1142,8 @@ public class PortletTracker
 				uri = parts[1];
 			}
 
-			QName qName = getQName(name, uri, portletApp.getDefaultNamespace());
+			QName qName = _getQName(
+				name, uri, portletApp.getDefaultNamespace());
 
 			processingEvents.add(qName);
 
@@ -1095,7 +1162,7 @@ public class PortletTracker
 		portletModel.setProcessingEvents(processingEvents);
 	}
 
-	protected void collectSupportedPublicRenderParameters(
+	private void _collectSupportedPublicRenderParameters(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -1123,7 +1190,8 @@ public class PortletTracker
 
 			PublicRenderParameter publicRenderParameter =
 				new PublicRenderParameterImpl(
-					name, getQName(name, uri, portletApp.getDefaultNamespace()),
+					name,
+					_getQName(name, uri, portletApp.getDefaultNamespace()),
 					portletApp);
 
 			publicRenderParameters.add(publicRenderParameter);
@@ -1132,7 +1200,7 @@ public class PortletTracker
 		portletModel.setPublicRenderParameters(publicRenderParameters);
 	}
 
-	protected void collectSupportedPublishingEvents(
+	private void _collectSupportedPublishingEvents(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -1157,13 +1225,13 @@ public class PortletTracker
 			}
 
 			publishingEvents.add(
-				getQName(name, uri, portletApp.getDefaultNamespace()));
+				_getQName(name, uri, portletApp.getDefaultNamespace()));
 		}
 
 		portletModel.setPublishingEvents(publishingEvents);
 	}
 
-	protected void collectWindowStates(
+	private void _collectWindowStates(
 		ServiceReference<Portlet> serviceReference,
 		com.liferay.portal.kernel.model.Portlet portletModel) {
 
@@ -1184,18 +1252,18 @@ public class PortletTracker
 
 			Set<String> mimeTypeWindowStates = new HashSet<>();
 
-			mimeTypeWindowStates.add(toLowerCase(WindowState.NORMAL));
+			mimeTypeWindowStates.add(_toLowerCase(WindowState.NORMAL));
 
-			Set<String> windowStatesSet = toLowerCaseSet(
+			Set<String> windowStatesSet = _toLowerCaseSet(
 				windowStatesStringParts[1]);
 
 			if (windowStatesSet.isEmpty()) {
 				mimeTypeWindowStates.add(
-					toLowerCase(LiferayWindowState.EXCLUSIVE));
+					_toLowerCase(LiferayWindowState.EXCLUSIVE));
 				mimeTypeWindowStates.add(
-					toLowerCase(LiferayWindowState.POP_UP));
-				mimeTypeWindowStates.add(toLowerCase(WindowState.MAXIMIZED));
-				mimeTypeWindowStates.add(toLowerCase(WindowState.MINIMIZED));
+					_toLowerCase(LiferayWindowState.POP_UP));
+				mimeTypeWindowStates.add(_toLowerCase(WindowState.MAXIMIZED));
+				mimeTypeWindowStates.add(_toLowerCase(WindowState.MINIMIZED));
 			}
 			else {
 				mimeTypeWindowStates.addAll(windowStatesSet);
@@ -1215,7 +1283,7 @@ public class PortletTracker
 		portletModel.setWindowStates(windowStates);
 	}
 
-	protected PortletApp createBundlePortletApp(
+	private PortletApp _createBundlePortletApp(
 		Bundle bundle, ClassLoader classLoader,
 		ServiceRegistrations serviceRegistrations) {
 
@@ -1242,7 +1310,7 @@ public class PortletTracker
 
 		PortletApp portletAppDefault = _portalPortletModel.getPortletApp();
 
-		portletApp = ASMWrapperUtil.createASMWrapper(
+		portletApp = _delegateProxyFactory.newDelegateProxyInstance(
 			PortletTracker.class.getClassLoader(), PortletApp.class,
 			bundlePortletAppDelegate, portletAppDefault);
 
@@ -1253,19 +1321,13 @@ public class PortletTracker
 		return portletApp;
 	}
 
-	@Deactivate
-	protected void deactivate() {
-		_serviceTracker.close();
-
-		if (_log.isInfoEnabled()) {
-			_log.info("Deactivated");
-		}
-	}
-
-	protected void deployPortlet(
+	private void _deployPortlet(
 			ServiceReference<Portlet> serviceReference,
 			com.liferay.portal.kernel.model.Portlet portletModel)
 		throws PortalException {
+
+		Long companyId = (Long)serviceReference.getProperty(
+			"com.liferay.portlet.company");
 
 		List<String> categoryNames = StringPlus.asList(
 			get(serviceReference, "display-category"));
@@ -1274,17 +1336,50 @@ public class PortletTracker
 			categoryNames.add("category.undefined");
 		}
 
-		_portletLocalService.deployRemotePortlet(
-			portletModel, ArrayUtil.toStringArray(categoryNames), false);
+		if (companyId != null) {
+			_portletLocalService.deployRemotePortlet(
+				new long[] {companyId}, portletModel,
+				ArrayUtil.toStringArray(categoryNames), false, false);
+
+			_portletLocalService.clearCache();
+
+			return;
+		}
+
+		List<Future<Void>> futures = new ArrayList<>();
+
+		List<Company> companies = _companyLocalService.getCompanies(false);
+
+		for (Company company : companies) {
+			futures.add(
+				_executorService.submit(
+					() -> {
+						_portletLocalService.deployRemotePortlet(
+							new long[] {company.getCompanyId()}, portletModel,
+							ArrayUtil.toStringArray(categoryNames), false,
+							false);
+
+						return null;
+					}));
+		}
+
+		for (Future<Void> future : futures) {
+			try {
+				future.get();
+			}
+			catch (Exception exception) {
+				if (exception instanceof ExecutionException) {
+					throw new PortalException(exception.getCause());
+				}
+
+				throw new PortalException(exception);
+			}
+		}
+
+		_portletLocalService.clearCache();
 	}
 
-	protected Object get(
-		ServiceReference<Portlet> serviceReference, String property) {
-
-		return serviceReference.getProperty(_NAMESPACE + property);
-	}
-
-	protected QName getQName(String name, String uri, String defaultNamespace) {
+	private QName _getQName(String name, String uri, String defaultNamespace) {
 		if (Validator.isNull(name) && Validator.isNull(uri)) {
 			return null;
 		}
@@ -1297,7 +1392,7 @@ public class PortletTracker
 		return _saxReader.createQName(name, _saxReader.createNamespace(uri));
 	}
 
-	protected ServiceRegistrations getServiceRegistrations(Bundle bundle) {
+	private ServiceRegistrations _getServiceRegistrations(Bundle bundle) {
 		Long bundleId = bundle.getBundleId();
 
 		ServiceRegistrations serviceRegistrations = _serviceRegistrations.get(
@@ -1318,36 +1413,17 @@ public class PortletTracker
 		return serviceRegistrations;
 	}
 
-	@Reference(unbind = "-")
-	protected void setHttpServiceRuntime(
-		HttpServiceRuntime httpServiceRuntime, Map<String, Object> properties) {
-
-		List<String> httpServiceEndpoints = StringPlus.asList(
-			properties.get(HttpServiceRuntimeConstants.HTTP_SERVICE_ENDPOINT));
-
-		if (!httpServiceEndpoints.isEmpty()) {
-			_httpServiceEndpoint = httpServiceEndpoints.get(0);
-		}
-
-		if ((_httpServiceEndpoint.length() > 0) &&
-			_httpServiceEndpoint.endsWith("/")) {
-
-			_httpServiceEndpoint = _httpServiceEndpoint.substring(
-				0, _httpServiceEndpoint.length() - 1);
-		}
-	}
-
-	protected String toLowerCase(Object object) {
+	private String _toLowerCase(Object object) {
 		String string = String.valueOf(object);
 
 		return StringUtil.toLowerCase(string.trim());
 	}
 
-	protected Set<String> toLowerCaseSet(String string) {
+	private Set<String> _toLowerCaseSet(String string) {
 		String[] array = StringUtil.split(string);
 
 		for (int i = 0; i < array.length; i++) {
-			array[i] = toLowerCase(array[i]);
+			array[i] = _toLowerCase(array[i]);
 		}
 
 		return SetUtil.fromArray(array);
@@ -1383,19 +1459,24 @@ public class PortletTracker
 		Collections.singletonMap(
 			ContentTypes.TEXT_HTML,
 			SetUtil.fromArray(
-				new String[] {
-					String.valueOf(LiferayWindowState.EXCLUSIVE),
-					String.valueOf(LiferayWindowState.POP_UP),
-					String.valueOf(WindowState.MAXIMIZED),
-					String.valueOf(WindowState.MINIMIZED),
-					String.valueOf(WindowState.NORMAL)
-				}));
+				String.valueOf(LiferayWindowState.EXCLUSIVE),
+				String.valueOf(LiferayWindowState.POP_UP),
+				String.valueOf(WindowState.MAXIMIZED),
+				String.valueOf(WindowState.MINIMIZED),
+				String.valueOf(WindowState.NORMAL)));
+
+	@Reference
+	private BeanProperties _beanProperties;
 
 	private BundleContext _bundleContext;
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
 
+	@Reference
+	private DelegateProxyFactory _delegateProxyFactory;
+
+	private ExecutorService _executorService;
 	private String _httpServiceEndpoint = StringPool.BLANK;
 
 	@Reference(
@@ -1405,6 +1486,9 @@ public class PortletTracker
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private PortalExecutorManager _portalExecutorManager;
 
 	private com.liferay.portal.kernel.model.Portlet _portalPortletModel;
 
@@ -1511,8 +1595,12 @@ public class PortletTracker
 
 			BundleContext bundleContext = _bundle.getBundleContext();
 
-			bundleContext.ungetService(
-				_servletContextHelperRegistrationServiceReference);
+			try {
+				bundleContext.ungetService(
+					_servletContextHelperRegistrationServiceReference);
+			}
+			catch (IllegalStateException illegalStateException) {
+			}
 		}
 
 		public synchronized void setPortletApp(PortletApp portletApp) {

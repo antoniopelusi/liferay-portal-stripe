@@ -122,19 +122,11 @@ public class ClusterNode implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{bindInetAddress=");
-		sb.append(_bindInetAddress);
-		sb.append(", clusterNodeId=");
-		sb.append(_clusterNodeId);
-		sb.append(", portalInetSocketAddress=");
-		sb.append(_portalInetSocketAddress);
-		sb.append(", portalProtocol=");
-		sb.append(_portalProtocol);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{bindInetAddress=", _bindInetAddress, ", clusterNodeId=",
+			_clusterNodeId, ", portalInetSocketAddress=",
+			_portalInetSocketAddress, ", portalProtocol=", _portalProtocol,
+			"}");
 	}
 
 	private final InetAddress _bindInetAddress;

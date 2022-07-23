@@ -34,6 +34,8 @@ public interface WorkflowInstance extends WorkflowModel {
 
 	public List<WorkflowInstance> getChildrenWorkflowInstances();
 
+	public List<String> getCurrentNodeNames();
+
 	public Date getEndDate();
 
 	public WorkflowInstance getParentWorkflowInstance();
@@ -42,8 +44,6 @@ public interface WorkflowInstance extends WorkflowModel {
 
 	public Date getStartDate();
 
-	public String getState();
-
 	public Map<String, Serializable> getWorkflowContext();
 
 	public String getWorkflowDefinitionName();
@@ -51,6 +51,10 @@ public interface WorkflowInstance extends WorkflowModel {
 	public int getWorkflowDefinitionVersion();
 
 	public long getWorkflowInstanceId();
+
+	public default boolean isActive() {
+		return true;
+	}
 
 	public boolean isComplete();
 

@@ -216,6 +216,11 @@ public class CommerceAccountWrapper
 		}
 	}
 
+	@Override
+	public CommerceAccount cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this commerce account.
 	 *
@@ -617,11 +622,6 @@ public class CommerceAccountWrapper
 	@Override
 	public boolean isScheduled() {
 		return model.isScheduled();
-	}
-
-	@Override
-	public void persist() {
-		model.persist();
 	}
 
 	/**

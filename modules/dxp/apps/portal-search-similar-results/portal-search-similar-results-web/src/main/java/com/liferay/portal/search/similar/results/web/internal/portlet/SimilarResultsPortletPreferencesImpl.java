@@ -15,7 +15,7 @@
 package com.liferay.portal.search.similar.results.web.internal.portlet;
 
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.search.similar.results.web.internal.util.PortletPreferencesHelper;
+import com.liferay.portal.search.similar.results.web.internal.helper.PortletPreferencesHelper;
 
 import java.util.Optional;
 
@@ -36,12 +36,12 @@ public class SimilarResultsPortletPreferencesImpl
 
 	@Override
 	public String getAnalyzer() {
-		return getStringNullable(PREFERENCE_KEY_ANALYZER);
+		return _getStringNullable(PREFERENCE_KEY_ANALYZER);
 	}
 
 	@Override
 	public String getDocType() {
-		return getStringNullable(PREFERENCE_KEY_DOC_TYPE);
+		return _getStringNullable(PREFERENCE_KEY_DOC_TYPE);
 	}
 
 	@Override
@@ -52,17 +52,23 @@ public class SimilarResultsPortletPreferencesImpl
 
 	@Override
 	public String getFields() {
-		return getStringNullable(PREFERENCE_KEY_FIELDS);
+		return _getStringNullable(PREFERENCE_KEY_FIELDS);
 	}
 
 	@Override
 	public String getIndexName() {
-		return getStringNullable(PREFERENCE_KEY_INDEX_NAME);
+		return _getStringNullable(PREFERENCE_KEY_INDEX_NAME);
+	}
+
+	@Override
+	public String getLinkBehavior() {
+		return _portletPreferencesHelper.getString(
+			PREFERENCE_KEY_LINK_BEHAVIOR, "show-content");
 	}
 
 	@Override
 	public Integer getMaxDocFrequency() {
-		return getIntegerNullable(PREFERENCE_KEY_MAX_DOC_FREQUENCY);
+		return _getIntegerNullable(PREFERENCE_KEY_MAX_DOC_FREQUENCY);
 	}
 
 	@Override
@@ -73,37 +79,43 @@ public class SimilarResultsPortletPreferencesImpl
 
 	@Override
 	public Integer getMaxQueryTerms() {
-		return getIntegerNullable(PREFERENCE_KEY_MAX_QUERY_TERMS);
+		return _getIntegerNullable(PREFERENCE_KEY_MAX_QUERY_TERMS);
 	}
 
 	@Override
 	public Integer getMaxWordLength() {
-		return getIntegerNullable(PREFERENCE_KEY_MAX_WORD_LENGTH);
+		return _getIntegerNullable(PREFERENCE_KEY_MAX_WORD_LENGTH);
 	}
 
 	@Override
 	public Integer getMinDocFrequency() {
-		return getIntegerNullable(PREFERENCE_KEY_MIN_DOC_FREQUENCY);
+		return _getIntegerNullable(PREFERENCE_KEY_MIN_DOC_FREQUENCY);
 	}
 
 	@Override
 	public String getMinShouldMatch() {
-		return getStringNullable(PREFERENCE_KEY_MIN_SHOULD_MATCH);
+		return _getStringNullable(PREFERENCE_KEY_MIN_SHOULD_MATCH);
 	}
 
 	@Override
 	public Integer getMinTermFrequency() {
-		return getIntegerNullable(PREFERENCE_KEY_MIN_TERM_FREQUENCY);
+		return _getIntegerNullable(PREFERENCE_KEY_MIN_TERM_FREQUENCY);
 	}
 
 	@Override
 	public Integer getMinWordLength() {
-		return getIntegerNullable(PREFERENCE_KEY_MIN_WORD_LENGTH);
+		return _getIntegerNullable(PREFERENCE_KEY_MIN_WORD_LENGTH);
+	}
+
+	@Override
+	public String getSearchScope() {
+		return _portletPreferencesHelper.getString(
+			PREFERENCE_KEY_SEARCH_SCOPE, "this-site");
 	}
 
 	@Override
 	public String getStopWords() {
-		return getStringNullable(PREFERENCE_KEY_STOP_WORDS);
+		return _getStringNullable(PREFERENCE_KEY_STOP_WORDS);
 	}
 
 	@Override
@@ -118,13 +130,13 @@ public class SimilarResultsPortletPreferencesImpl
 		);
 	}
 
-	protected Integer getIntegerNullable(String key) {
+	private Integer _getIntegerNullable(String key) {
 		Optional<Integer> optional = _portletPreferencesHelper.getInteger(key);
 
 		return optional.orElse(null);
 	}
 
-	protected String getStringNullable(String key) {
+	private String _getStringNullable(String key) {
 		return _portletPreferencesHelper.getString(key, null);
 	}
 

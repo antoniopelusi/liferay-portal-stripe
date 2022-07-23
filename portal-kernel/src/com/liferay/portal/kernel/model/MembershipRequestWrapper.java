@@ -125,6 +125,11 @@ public class MembershipRequestWrapper
 		}
 	}
 
+	@Override
+	public MembershipRequest cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the comments of this membership request.
 	 *

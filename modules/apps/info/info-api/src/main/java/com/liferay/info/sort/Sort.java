@@ -46,15 +46,8 @@ public class Sort implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{fieldName=");
-		sb.append(_fieldName);
-		sb.append(", reverse=");
-		sb.append(_reverse);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{fieldName=", _fieldName, ", reverse=", _reverse, "}");
 	}
 
 	private String _fieldName;

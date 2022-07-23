@@ -27,6 +27,10 @@ public class CTPreferencesLocalServiceWrapper
 	implements CTPreferencesLocalService,
 			   ServiceWrapper<CTPreferencesLocalService> {
 
+	public CTPreferencesLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CTPreferencesLocalServiceWrapper(
 		CTPreferencesLocalService ctPreferencesLocalService) {
 
@@ -131,6 +135,13 @@ public class CTPreferencesLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ctPreferencesLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ctPreferencesLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

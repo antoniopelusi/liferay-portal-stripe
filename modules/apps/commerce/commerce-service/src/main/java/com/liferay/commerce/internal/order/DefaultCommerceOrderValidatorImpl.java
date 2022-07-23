@@ -110,7 +110,7 @@ public class DefaultCommerceOrderValidatorImpl
 			return new CommerceOrderValidatorResult(
 				false,
 				_getLocalizedMessage(
-					locale, "that-quantity-is-not-allowed", null));
+					locale, "the-specified-quantity-is-not-allowed", null));
 		}
 
 		return new CommerceOrderValidatorResult(true);
@@ -175,7 +175,7 @@ public class DefaultCommerceOrderValidatorImpl
 			return new CommerceOrderValidatorResult(
 				commerceOrderItem.getCommerceOrderItemId(), false,
 				_getLocalizedMessage(
-					locale, "that-quantity-is-not-allowed", null));
+					locale, "the-specified-quantity-is-not-allowed", null));
 		}
 
 		return new CommerceOrderValidatorResult(true);

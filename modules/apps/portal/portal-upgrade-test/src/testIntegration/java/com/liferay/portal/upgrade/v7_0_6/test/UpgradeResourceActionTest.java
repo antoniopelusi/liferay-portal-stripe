@@ -71,13 +71,13 @@ public class UpgradeResourceActionTest {
 
 	@After
 	public void tearDown() throws Exception {
-		try (PreparedStatement ps = _connection.prepareStatement(
+		try (PreparedStatement preparedStatement = _connection.prepareStatement(
 				"delete from ResourceAction where name in (?, ?)")) {
 
-			ps.setString(1, _NAME_1);
-			ps.setString(2, _NAME_2);
+			preparedStatement.setString(1, _NAME_1);
+			preparedStatement.setString(2, _NAME_2);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
@@ -105,41 +105,41 @@ public class UpgradeResourceActionTest {
 			String name, String actionId, boolean expectsNull)
 		throws Exception {
 
-		try (PreparedStatement ps = _connection.prepareStatement(
+		try (PreparedStatement preparedStatement = _connection.prepareStatement(
 				"select resourceActionId from ResourceAction where name = ? " +
 					"and actionid = ?")) {
 
-			ps.setString(1, name);
-			ps.setString(2, actionId);
+			preparedStatement.setString(1, name);
+			preparedStatement.setString(2, actionId);
 
-			ResultSet rs = ps.executeQuery();
+			ResultSet resultSet = preparedStatement.executeQuery();
 
 			if (expectsNull) {
-				Assert.assertFalse(rs.next());
+				Assert.assertFalse(resultSet.next());
 			}
 			else {
-				Assert.assertTrue(rs.next());
+				Assert.assertTrue(resultSet.next());
 			}
 		}
 	}
 
 	private void _createResourceAction(
-			final String name, final String actionId, final long bitwiseValue)
+			String name, String actionId, long bitwiseValue)
 		throws Exception {
 
-		try (PreparedStatement ps = _connection.prepareStatement(
+		try (PreparedStatement preparedStatement = _connection.prepareStatement(
 				"insert into ResourceAction (resourceActionId, name, " +
 					"actionId, bitwiseValue) values (?, ?, ?, ?)")) {
 
-			ps.setLong(
+			preparedStatement.setLong(
 				1,
 				_counterLocalService.increment(ResourceAction.class.getName()));
 
-			ps.setString(2, name);
-			ps.setString(3, actionId);
-			ps.setLong(4, bitwiseValue);
+			preparedStatement.setString(2, name);
+			preparedStatement.setString(3, actionId);
+			preparedStatement.setLong(4, bitwiseValue);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

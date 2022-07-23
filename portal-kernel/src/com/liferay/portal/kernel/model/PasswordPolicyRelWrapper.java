@@ -89,6 +89,11 @@ public class PasswordPolicyRelWrapper
 		}
 	}
 
+	@Override
+	public PasswordPolicyRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this password policy rel.
 	 *

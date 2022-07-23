@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.kernel.model.UserNotificationEvent;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalServiceUtil;
-import com.liferay.portal.kernel.util.OrderByComparator;
 
 /**
  * @author Alejandro Tardín
@@ -48,42 +47,42 @@ public class NotificationsUtil {
 			SearchContainer<UserNotificationEvent> searchContainer)
 		throws PortalException {
 
-		OrderByComparator<UserNotificationEvent> orderByComparator =
-			new UserNotificationEventTimestampComparator(
-				orderByType.equals("asc"));
-
 		if (navigation.equals("all")) {
-			searchContainer.setTotal(
+			searchContainer.setResultsAndTotal(
+				() ->
+					UserNotificationEventLocalServiceUtil.
+						getDeliveredUserNotificationEvents(
+							userId, _DELIVERY_TYPE, true, actionRequired,
+							searchContainer.getStart(),
+							searchContainer.getEnd(),
+							new UserNotificationEventTimestampComparator(
+								orderByType.equals("asc"))),
 				UserNotificationEventLocalServiceUtil.
 					getDeliveredUserNotificationEventsCount(
 						userId, _DELIVERY_TYPE, true, actionRequired));
-
-			searchContainer.setResults(
-				UserNotificationEventLocalServiceUtil.
-					getDeliveredUserNotificationEvents(
-						userId, _DELIVERY_TYPE, true, actionRequired,
-						searchContainer.getStart(), searchContainer.getEnd(),
-						orderByComparator));
 		}
 		else {
-			boolean archived = false;
+			boolean readNavigation = false;
 
 			if (navigation.equals("read")) {
-				archived = true;
+				readNavigation = true;
 			}
 
-			searchContainer.setTotal(
+			boolean archived = readNavigation;
+
+			searchContainer.setResultsAndTotal(
+				() ->
+					UserNotificationEventLocalServiceUtil.
+						getArchivedUserNotificationEvents(
+							userId, _DELIVERY_TYPE, true, actionRequired,
+							archived, searchContainer.getStart(),
+							searchContainer.getEnd(),
+							new UserNotificationEventTimestampComparator(
+								orderByType.equals("asc"))),
 				UserNotificationEventLocalServiceUtil.
 					getArchivedUserNotificationEventsCount(
 						userId, _DELIVERY_TYPE, true, actionRequired,
 						archived));
-
-			searchContainer.setResults(
-				UserNotificationEventLocalServiceUtil.
-					getArchivedUserNotificationEvents(
-						userId, _DELIVERY_TYPE, true, actionRequired, archived,
-						searchContainer.getStart(), searchContainer.getEnd(),
-						orderByComparator));
 		}
 	}
 

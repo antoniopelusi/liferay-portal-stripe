@@ -14,6 +14,7 @@
 
 package com.liferay.account.admin.web.internal.display;
 
+import com.liferay.account.admin.web.internal.util.CurrentAccountEntryManagerUtil;
 import com.liferay.account.configuration.AccountEntryEmailDomainsConfiguration;
 import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
@@ -26,6 +27,7 @@ import com.liferay.account.service.AccountEntryUserRelLocalServiceUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -36,7 +38,6 @@ import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -68,6 +69,10 @@ public class AccountEntryDisplay {
 	public static AccountEntryDisplay of(long accountEntryId) {
 		return of(
 			AccountEntryLocalServiceUtil.fetchAccountEntry(accountEntryId));
+	}
+
+	public AccountEntry getAccountEntry() {
+		return _accountEntry;
 	}
 
 	public long getAccountEntryId() {
@@ -111,20 +116,18 @@ public class AccountEntryDisplay {
 		return _domains;
 	}
 
+	public String getExternalReferenceCode() {
+		return _externalReferenceCode;
+	}
+
 	public long getLogoId() {
 		return _logoId;
 	}
 
-	public String getLogoURL(ThemeDisplay themeDisplay) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(themeDisplay.getPathImage());
-		sb.append("/account_entry_logo?img_id=");
-		sb.append(getLogoId());
-		sb.append("&t=");
-		sb.append(WebServerServletTokenUtil.getToken(_logoId));
-
-		return sb.toString();
+	public String getLogoURL(String imagePath) {
+		return StringBundler.concat(
+			imagePath, "/account_entry_logo?img_id=", _logoId, "&t=",
+			WebServerServletTokenUtil.getToken(_logoId));
 	}
 
 	public String getName() {
@@ -159,13 +162,12 @@ public class AccountEntryDisplay {
 		return _active;
 	}
 
-	public boolean isEmailDomainValidationEnabled(ThemeDisplay themeDisplay) {
+	public boolean isEmailDomainValidationEnabled(long companyId) {
 		try {
 			AccountEntryEmailDomainsConfiguration
 				accountEntryEmailDomainsConfiguration =
 					ConfigurationProviderUtil.getCompanyConfiguration(
-						AccountEntryEmailDomainsConfiguration.class,
-						themeDisplay.getCompanyId());
+						AccountEntryEmailDomainsConfiguration.class, companyId);
 
 			if (accountEntryEmailDomainsConfiguration.
 					enableEmailDomainValidation()) {
@@ -175,15 +177,29 @@ public class AccountEntryDisplay {
 		}
 		catch (ConfigurationException configurationException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(configurationException, configurationException);
+				_log.debug(configurationException);
 			}
 		}
 
 		return false;
 	}
 
-	public boolean isValidateUserEmailAddress(ThemeDisplay themeDisplay) {
-		if (isEmailDomainValidationEnabled(themeDisplay) &&
+	public boolean isSelectedAccountEntry(long groupId, long userId)
+		throws PortalException {
+
+		long currentAccountEntryId =
+			CurrentAccountEntryManagerUtil.getCurrentAccountEntryId(
+				groupId, userId);
+
+		if (currentAccountEntryId == getAccountEntryId()) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean isValidateUserEmailAddress(long companyId) {
+		if (isEmailDomainValidationEnabled(companyId) &&
 			ListUtil.isNotEmpty(getDomains())) {
 
 			return true;
@@ -193,12 +209,14 @@ public class AccountEntryDisplay {
 	}
 
 	private AccountEntryDisplay() {
+		_accountEntry = null;
 		_accountEntryId = 0;
 		_active = true;
 		_defaultBillingAddress = null;
 		_defaultShippingAddress = null;
 		_description = StringPool.BLANK;
 		_domains = Collections.emptyList();
+		_externalReferenceCode = StringPool.BLANK;
 		_logoId = 0;
 		_name = StringPool.BLANK;
 		_organizationNames = StringPool.BLANK;
@@ -210,12 +228,15 @@ public class AccountEntryDisplay {
 	}
 
 	private AccountEntryDisplay(AccountEntry accountEntry) {
+		_accountEntry = accountEntry;
+
 		_accountEntryId = accountEntry.getAccountEntryId();
 		_active = _isActive(accountEntry);
 		_defaultBillingAddress = accountEntry.getDefaultBillingAddress();
 		_defaultShippingAddress = accountEntry.getDefaultShippingAddress();
 		_description = accountEntry.getDescription();
 		_domains = _getDomains(accountEntry);
+		_externalReferenceCode = accountEntry.getExternalReferenceCode();
 		_logoId = accountEntry.getLogoId();
 		_name = accountEntry.getName();
 		_organizationNames = _getOrganizationNames(accountEntry);
@@ -355,12 +376,14 @@ public class AccountEntryDisplay {
 	private static final Log _log = LogFactoryUtil.getLog(
 		AccountEntryDisplay.class);
 
+	private final AccountEntry _accountEntry;
 	private final long _accountEntryId;
 	private final boolean _active;
 	private final Address _defaultBillingAddress;
 	private final Address _defaultShippingAddress;
 	private final String _description;
 	private final List<String> _domains;
+	private final String _externalReferenceCode;
 	private final long _logoId;
 	private final String _name;
 	private final String _organizationNames;

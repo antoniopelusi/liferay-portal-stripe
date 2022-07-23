@@ -18,9 +18,9 @@
 
 <%
 boolean inline = GetterUtil.getBoolean(request.getAttribute("liferay-frontend:add-menu:inline"));
-int menuItemsCount = GetterUtil.getInteger(request.getAttribute("liferay-frontend:add-menu:menuItemsCount"));
 int maxItems = GetterUtil.getInteger(request.getAttribute("liferay-frontend:add-menu:maxItems"));
 List<MenuItemGroup> menuItemGroups = (List<MenuItemGroup>)request.getAttribute("liferay-frontend:add-menu:menuItemGroups");
+int menuItemsCount = GetterUtil.getInteger(request.getAttribute("liferay-frontend:add-menu:menuItemsCount"));
 int numMenuItems = GetterUtil.getInteger(request.getAttribute("liferay-frontend:add-menu:numMenuItems"));
 int total = GetterUtil.getInteger(request.getAttribute("liferay-frontend:add-menu:total"));
 String viewMoreURL = (String)request.getAttribute("liferay-frontend:add-menu:viewMoreURL");

@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -134,13 +135,10 @@ public class AsahInterestTermAssetListAssetEntryQueryProcessorTest {
 	private UnicodeProperties _getUnicodeProperties(
 		boolean enableContentRecommendation) {
 
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.setProperty(
+		return UnicodePropertiesBuilder.put(
 			"enableContentRecommendation",
-			String.valueOf(enableContentRecommendation));
-
-		return unicodeProperties;
+			String.valueOf(enableContentRecommendation)
+		).build();
 	}
 
 	private static Company _company;

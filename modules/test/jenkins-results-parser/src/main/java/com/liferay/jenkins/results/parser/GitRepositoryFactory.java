@@ -14,6 +14,8 @@
 
 package com.liferay.jenkins.results.parser;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.json.JSONObject;
@@ -22,52 +24,6 @@ import org.json.JSONObject;
  * @author Peter Yoo
  */
 public class GitRepositoryFactory {
-
-	public static WorkspaceGitRepository getDependencyWorkspaceGitRepository(
-		String repositoryType, WorkspaceGitRepository workspaceGitRepository,
-		PullRequest pullRequest, String upstreamBranchName) {
-
-		if (repositoryType.equals(CompanionPortalWorkspaceGitRepository.TYPE)) {
-			return new CompanionPortalWorkspaceGitRepository(
-				pullRequest, upstreamBranchName, workspaceGitRepository);
-		}
-
-		if (repositoryType.equals(OtherPortalWorkspaceGitRepository.TYPE)) {
-			return new OtherPortalWorkspaceGitRepository(
-				pullRequest, upstreamBranchName);
-		}
-
-		if (repositoryType.equals(PortalPluginsWorkspaceGitRepository.TYPE)) {
-			return new PortalPluginsWorkspaceGitRepository(
-				pullRequest, upstreamBranchName);
-		}
-
-		throw new RuntimeException(
-			"Unsupported dependency workspace Git repository");
-	}
-
-	public static WorkspaceGitRepository getDependencyWorkspaceGitRepository(
-		String repositoryType, WorkspaceGitRepository workspaceGitRepository,
-		RemoteGitRef remoteGitRef, String upstreamBranchName) {
-
-		if (repositoryType.equals(CompanionPortalWorkspaceGitRepository.TYPE)) {
-			return new CompanionPortalWorkspaceGitRepository(
-				remoteGitRef, upstreamBranchName, workspaceGitRepository);
-		}
-
-		if (repositoryType.equals(OtherPortalWorkspaceGitRepository.TYPE)) {
-			return new OtherPortalWorkspaceGitRepository(
-				remoteGitRef, upstreamBranchName);
-		}
-
-		if (repositoryType.equals(PortalPluginsWorkspaceGitRepository.TYPE)) {
-			return new PortalPluginsWorkspaceGitRepository(
-				remoteGitRef, upstreamBranchName);
-		}
-
-		throw new RuntimeException(
-			"Unsupported dependency workspace Git repository");
-	}
 
 	public static LocalGitRepository getLocalGitRepository(
 		String repositoryName, String upstreamBranchName) {
@@ -120,102 +76,202 @@ public class GitRepositoryFactory {
 	}
 
 	public static WorkspaceGitRepository getWorkspaceGitRepository(
+		PullRequest pullRequest) {
+
+		String gitDirectoryName = JenkinsResultsParserUtil.getGitDirectoryName(
+			pullRequest.getGitRepositoryName(),
+			pullRequest.getUpstreamRemoteGitBranchName());
+
+		WorkspaceGitRepository workspaceGitRepository =
+			_workspaceGitRepositories.get(gitDirectoryName);
+
+		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase();
+
+		if (workspaceGitRepository != null) {
+			workspaceGitRepository.setGitHubURL(pullRequest.getHtmlURL());
+
+			buildDatabase.putWorkspaceGitRepository(
+				gitDirectoryName, workspaceGitRepository);
+
+			return workspaceGitRepository;
+		}
+
+		if (buildDatabase.hasWorkspaceGitRepository(gitDirectoryName)) {
+			workspaceGitRepository = buildDatabase.getWorkspaceGitRepository(
+				gitDirectoryName);
+
+			workspaceGitRepository.setGitHubURL(pullRequest.getHtmlURL());
+
+			_workspaceGitRepositories.put(
+				gitDirectoryName, workspaceGitRepository);
+
+			return workspaceGitRepository;
+		}
+
+		String gitRepositoryName =
+			JenkinsResultsParserUtil.getGitRepositoryName(gitDirectoryName);
+		String gitUpstreamBranchName =
+			JenkinsResultsParserUtil.getGitUpstreamBranchName(gitDirectoryName);
+
+		if ((gitRepositoryName == null) || (gitUpstreamBranchName == null)) {
+			throw new RuntimeException(
+				"Unable to find git directory name " + gitDirectoryName);
+		}
+
+		if (gitRepositoryName.matches("liferay-plugins(-ee)?")) {
+			workspaceGitRepository = new PluginsWorkspaceGitRepository(
+				pullRequest, gitUpstreamBranchName);
+		}
+		else if (gitRepositoryName.matches("liferay-portal(-ee)?")) {
+			workspaceGitRepository = new PortalWorkspaceGitRepository(
+				pullRequest, gitUpstreamBranchName);
+		}
+		else if (gitRepositoryName.equals("liferay-qa-websites-ee")) {
+			workspaceGitRepository = new QAWebsitesWorkspaceGitRepository(
+				pullRequest, gitUpstreamBranchName);
+		}
+		else if (gitRepositoryName.equals("liferay-release-tool-ee")) {
+			workspaceGitRepository = new ReleaseToolWorkspaceGitRepository(
+				pullRequest, gitUpstreamBranchName);
+		}
+		else {
+			workspaceGitRepository = new DefaultWorkspaceGitRepository(
+				pullRequest, gitUpstreamBranchName);
+		}
+
+		buildDatabase.putWorkspaceGitRepository(
+			gitDirectoryName, workspaceGitRepository);
+
+		_workspaceGitRepositories.put(gitDirectoryName, workspaceGitRepository);
+
+		return workspaceGitRepository;
+	}
+
+	public static WorkspaceGitRepository getWorkspaceGitRepository(
+		String gitDirectoryName) {
+
+		WorkspaceGitRepository workspaceGitRepository =
+			_workspaceGitRepositories.get(gitDirectoryName);
+
+		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase();
+
+		if (workspaceGitRepository != null) {
+			buildDatabase.putWorkspaceGitRepository(
+				gitDirectoryName, workspaceGitRepository);
+
+			return workspaceGitRepository;
+		}
+
+		if (buildDatabase.hasWorkspaceGitRepository(gitDirectoryName)) {
+			workspaceGitRepository = buildDatabase.getWorkspaceGitRepository(
+				gitDirectoryName);
+
+			_workspaceGitRepositories.put(
+				gitDirectoryName, workspaceGitRepository);
+
+			return workspaceGitRepository;
+		}
+
+		String gitRepositoryName =
+			JenkinsResultsParserUtil.getGitRepositoryName(gitDirectoryName);
+		String gitUpstreamBranchName =
+			JenkinsResultsParserUtil.getGitUpstreamBranchName(gitDirectoryName);
+
+		if ((gitRepositoryName == null) || (gitUpstreamBranchName == null)) {
+			throw new RuntimeException(
+				"Unable to find git directory name " + gitDirectoryName);
+		}
+
+		RemoteGitRef remoteGitRef = GitUtil.getRemoteGitRef(
+			JenkinsResultsParserUtil.combine(
+				"https://github.com/liferay/", gitRepositoryName, "/tree/",
+				gitUpstreamBranchName));
+
+		if (gitRepositoryName.matches("liferay-plugins(-ee)?")) {
+			workspaceGitRepository = new PluginsWorkspaceGitRepository(
+				remoteGitRef, gitUpstreamBranchName);
+		}
+		else if (gitRepositoryName.matches("liferay-portal(-ee)?")) {
+			workspaceGitRepository = new PortalWorkspaceGitRepository(
+				remoteGitRef, gitUpstreamBranchName);
+		}
+		else if (gitRepositoryName.equals("liferay-qa-websites-ee")) {
+			workspaceGitRepository = new QAWebsitesWorkspaceGitRepository(
+				remoteGitRef, gitUpstreamBranchName);
+		}
+		else if (gitRepositoryName.equals("liferay-release-tool-ee")) {
+			workspaceGitRepository = new ReleaseToolWorkspaceGitRepository(
+				remoteGitRef, gitUpstreamBranchName);
+		}
+		else {
+			workspaceGitRepository = new DefaultWorkspaceGitRepository(
+				remoteGitRef, gitUpstreamBranchName);
+		}
+
+		buildDatabase.putWorkspaceGitRepository(
+			gitDirectoryName, workspaceGitRepository);
+
+		_workspaceGitRepositories.put(gitDirectoryName, workspaceGitRepository);
+
+		return workspaceGitRepository;
+	}
+
+	public static WorkspaceGitRepository getWorkspaceGitRepository(
+		String repositoryName, String upstreamBranchName) {
+
+		return getWorkspaceGitRepository(
+			JenkinsResultsParserUtil.getGitDirectoryName(
+				repositoryName, upstreamBranchName));
+	}
+
+	protected static WorkspaceGitRepository getWorkspaceGitRepository(
 		JSONObject jsonObject) {
 
-		String jsonObjectType = _getType(jsonObject);
+		String gitDirectoryName = jsonObject.optString("directory_name", null);
 
-		if (jsonObjectType.equals(CompanionPortalWorkspaceGitRepository.TYPE)) {
-			return new CompanionPortalWorkspaceGitRepository(jsonObject);
+		if (gitDirectoryName == null) {
+			throw new RuntimeException("Invalid JSONObject " + jsonObject);
 		}
 
-		if (jsonObjectType.equals(PrimaryPortalWorkspaceGitRepository.TYPE)) {
-			return new PrimaryPortalWorkspaceGitRepository(jsonObject);
+		WorkspaceGitRepository workspaceGitRepository =
+			_workspaceGitRepositories.get(gitDirectoryName);
+
+		if (workspaceGitRepository != null) {
+			return workspaceGitRepository;
 		}
 
-		if (jsonObjectType.equals(JenkinsWorkspaceGitRepository.TYPE)) {
-			return new JenkinsWorkspaceGitRepository(jsonObject);
+		String repositoryName = jsonObject.optString("name", null);
+
+		if (repositoryName == null) {
+			throw new RuntimeException("Invalid JSONObject " + jsonObject);
+		}
+		else if (repositoryName.matches("liferay-plugins(-ee)?")) {
+			workspaceGitRepository = new PluginsWorkspaceGitRepository(
+				jsonObject);
+		}
+		else if (repositoryName.matches("liferay-portal(-ee)?")) {
+			workspaceGitRepository = new PortalWorkspaceGitRepository(
+				jsonObject);
+		}
+		else if (repositoryName.equals("liferay-qa-websites-ee")) {
+			workspaceGitRepository = new QAWebsitesWorkspaceGitRepository(
+				jsonObject);
+		}
+		else if (repositoryName.equals("liferay-release-tool-ee")) {
+			workspaceGitRepository = new ReleaseToolWorkspaceGitRepository(
+				jsonObject);
+		}
+		else {
+			workspaceGitRepository = new DefaultWorkspaceGitRepository(
+				jsonObject);
 		}
 
-		if (jsonObjectType.equals(LegacyWorkspaceGitRepository.TYPE)) {
-			return new LegacyWorkspaceGitRepository(jsonObject);
-		}
+		_workspaceGitRepositories.put(gitDirectoryName, workspaceGitRepository);
 
-		if (jsonObjectType.equals(OtherPortalWorkspaceGitRepository.TYPE)) {
-			return new OtherPortalWorkspaceGitRepository(jsonObject);
-		}
-
-		if (jsonObjectType.equals(PluginsWorkspaceGitRepository.TYPE)) {
-			return new PluginsWorkspaceGitRepository(jsonObject);
-		}
-
-		if (jsonObjectType.equals(PortalPluginsWorkspaceGitRepository.TYPE)) {
-			return new PortalPluginsWorkspaceGitRepository(jsonObject);
-		}
-
-		throw new RuntimeException("Invalid JSONObject " + jsonObject);
+		return workspaceGitRepository;
 	}
 
-	public static WorkspaceGitRepository getWorkspaceGitRepository(
-		String gitHubURL, PullRequest pullRequest, String upstreamBranchName) {
-
-		if (gitHubURL.contains("/liferay-jenkins-ee")) {
-			return new JenkinsWorkspaceGitRepository(
-				pullRequest, upstreamBranchName);
-		}
-
-		if (gitHubURL.contains("/liferay-plugins")) {
-			return new PluginsWorkspaceGitRepository(
-				pullRequest, upstreamBranchName);
-		}
-
-		if (gitHubURL.contains("/liferay-portal")) {
-			return new PrimaryPortalWorkspaceGitRepository(
-				pullRequest, upstreamBranchName);
-		}
-
-		if (gitHubURL.contains("/liferay-qa-portal-legacy-ee")) {
-			return new LegacyWorkspaceGitRepository(
-				pullRequest, upstreamBranchName);
-		}
-
-		throw new RuntimeException("Unsupported workspace Git repository");
-	}
-
-	public static WorkspaceGitRepository getWorkspaceGitRepository(
-		String gitHubURL, RemoteGitRef remoteGitRef,
-		String upstreamBranchName) {
-
-		if (gitHubURL.contains("/liferay-jenkins-ee")) {
-			return new JenkinsWorkspaceGitRepository(
-				remoteGitRef, upstreamBranchName);
-		}
-
-		if (gitHubURL.contains("/liferay-plugins")) {
-			return new PluginsWorkspaceGitRepository(
-				remoteGitRef, upstreamBranchName);
-		}
-
-		if (gitHubURL.contains("/liferay-portal")) {
-			return new PrimaryPortalWorkspaceGitRepository(
-				remoteGitRef, upstreamBranchName);
-		}
-
-		if (gitHubURL.contains("/liferay-qa-portal-legacy-ee")) {
-			return new LegacyWorkspaceGitRepository(
-				remoteGitRef, upstreamBranchName);
-		}
-
-		throw new RuntimeException("Unsupported workspace Git repository");
-	}
-
-	private static String _getType(JSONObject jsonObject) {
-		String type = jsonObject.optString("type");
-
-		if (type == null) {
-			return "";
-		}
-
-		return type;
-	}
+	private static final Map<String, WorkspaceGitRepository>
+		_workspaceGitRepositories = new HashMap<>();
 
 }

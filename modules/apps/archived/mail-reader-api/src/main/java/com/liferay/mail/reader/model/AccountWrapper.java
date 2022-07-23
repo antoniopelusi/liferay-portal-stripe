@@ -231,6 +231,11 @@ public class AccountWrapper
 		}
 	}
 
+	@Override
+	public Account cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the account ID of this account.
 	 *

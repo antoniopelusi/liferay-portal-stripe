@@ -15,15 +15,15 @@
 package com.liferay.poshi.runner.logger;
 
 import com.liferay.poshi.core.PoshiContext;
-import com.liferay.poshi.core.PoshiGetterUtil;
 import com.liferay.poshi.core.PoshiStackTraceUtil;
 import com.liferay.poshi.core.PoshiVariablesUtil;
+import com.liferay.poshi.core.selenium.LiferaySelenium;
 import com.liferay.poshi.core.util.FileUtil;
 import com.liferay.poshi.core.util.GetterUtil;
 import com.liferay.poshi.core.util.StringUtil;
 import com.liferay.poshi.core.util.Validator;
 import com.liferay.poshi.runner.exception.PoshiRunnerLoggerException;
-import com.liferay.poshi.runner.selenium.LiferaySeleniumUtil;
+import com.liferay.poshi.runner.selenium.SeleniumUtil;
 import com.liferay.poshi.runner.util.HtmlUtil;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public final class CommandLogger {
 	}
 
 	public int getDetailsLinkId() {
-		return _detailsLinkId - 1;
+		return _detailsLinkId;
 	}
 
 	public void logExternalMethodCommand(
@@ -373,21 +373,7 @@ public final class CommandLogger {
 
 		sb.append(_getLineItemText("command-name", namespacedClassCommandName));
 
-		String classCommandName =
-			PoshiGetterUtil.getClassCommandNameFromNamespacedClassCommandName(
-				namespacedClassCommandName);
-
-		String className =
-			PoshiGetterUtil.getClassNameFromNamespacedClassCommandName(
-				classCommandName);
-
-		String namespace = PoshiStackTraceUtil.getCurrentNamespace(
-			namespacedClassCommandName);
-
-		int functionLocatorCount = PoshiContext.getFunctionLocatorCount(
-			className, namespace);
-
-		for (int i = 0; i < functionLocatorCount; i++) {
+		for (int i = 0; i < PoshiContext.getFunctionMaxArgumentCount(); i++) {
 			String locatorKey = "locator" + (i + 1);
 
 			if (PoshiVariablesUtil.containsKeyInExecuteMap(locatorKey)) {
@@ -613,13 +599,10 @@ public final class CommandLogger {
 	}
 
 	private boolean _isCommand(Element element) {
-		if (!Objects.equals(element.getName(), "condition") &&
-			!Objects.equals(element.getName(), "execute")) {
+		if ((!Objects.equals(element.getName(), "condition") &&
+			 !Objects.equals(element.getName(), "execute")) ||
+			Validator.isNull(element.attributeValue("function"))) {
 
-			return false;
-		}
-
-		if (Validator.isNull(element.attributeValue("function"))) {
 			return false;
 		}
 
@@ -676,7 +659,9 @@ public final class CommandLogger {
 		testClassCommandName = StringUtil.replace(
 			testClassCommandName, "#", "_");
 
-		LiferaySeleniumUtil.captureScreen(
+		LiferaySelenium liferaySelenium = SeleniumUtil.getSelenium();
+
+		liferaySelenium.saveScreenshot(
 			FileUtil.getCanonicalPath(".") + "/test-results/" +
 				testClassCommandName + "/screenshots/" + screenshotName +
 					detailsLinkId + ".jpg");

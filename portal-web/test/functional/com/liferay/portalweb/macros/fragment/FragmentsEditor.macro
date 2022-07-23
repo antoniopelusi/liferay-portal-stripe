@@ -29,7 +29,7 @@ definition {
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "FragmentEditor#HTML_EDITOR_CONTENT",
-			value1 = "${fragmentHTML}");
+			value1 = "${fragmentHtml}");
 	}
 
 	macro gotoCodeTab {
@@ -57,7 +57,9 @@ definition {
 	}
 
 	macro typeFileContent {
-		var content = TestCase.getFileContent(fileName = "${fileName}");
+		var dependencyFilePath = TestCase.getDependenciesDirPath(fileName = "${fileName}");
+
+		var content = FileUtil.read("${dependencyFilePath}");
 
 		var fileExtension = File.getFileExtension(fileName = "${fileName}");
 

@@ -85,7 +85,8 @@ public interface AccountEntryUserRelLocalService
 	public AccountEntryUserRel addAccountEntryUserRel(
 			long accountEntryId, long creatorUserId, String screenName,
 			String emailAddress, Locale locale, String firstName,
-			String middleName, String lastName, long prefixId, long suffixId)
+			String middleName, String lastName, long prefixId, long suffixId,
+			String jobTitle, ServiceContext serviceContext)
 		throws PortalException;
 
 	public AccountEntryUserRel addAccountEntryUserRelByEmailAddress(
@@ -100,7 +101,8 @@ public interface AccountEntryUserRelLocalService
 	public AccountEntryUserRel addPersonTypeAccountEntryUserRel(
 			long accountEntryId, long creatorUserId, String screenName,
 			String emailAddress, Locale locale, String firstName,
-			String middleName, String lastName, long prefixId, long suffixId)
+			String middleName, String lastName, long prefixId, long suffixId,
+			String jobTitle, ServiceContext serviceContext)
 		throws PortalException;
 
 	/**
@@ -149,6 +151,10 @@ public interface AccountEntryUserRelLocalService
 			long accountEntryUserRelId)
 		throws PortalException;
 
+	public void deleteAccountEntryUserRelByEmailAddress(
+			long accountEntryId, String emailAddress)
+		throws PortalException;
+
 	public void deleteAccountEntryUserRels(
 			long accountEntryId, long[] accountUserIds)
 		throws PortalException;
@@ -166,6 +172,9 @@ public interface AccountEntryUserRelLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -320,6 +329,9 @@ public interface AccountEntryUserRelLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean hasAccountEntryUserRel(long accountEntryId, long userId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public boolean isAccountEntryUser(long userId);
 
 	public void setPersonTypeAccountEntryUser(long accountEntryId, long userId)
 		throws PortalException;

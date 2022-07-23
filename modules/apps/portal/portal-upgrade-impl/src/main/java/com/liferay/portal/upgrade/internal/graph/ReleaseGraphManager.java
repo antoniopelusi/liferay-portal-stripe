@@ -33,7 +33,7 @@ import org.jgrapht.graph.DefaultDirectedGraph;
  */
 public class ReleaseGraphManager {
 
-	public ReleaseGraphManager(final List<UpgradeInfo> upgradeInfos) {
+	public ReleaseGraphManager(List<UpgradeInfo> upgradeInfos) {
 		_directedGraph = new DefaultDirectedGraph<>(
 			new UpgradeProcessEdgeFactory(upgradeInfos));
 
@@ -51,11 +51,9 @@ public class ReleaseGraphManager {
 	public List<UpgradeInfo> getUpgradeInfos(
 		String fromVersionString, String toVersionString) {
 
-		if (!_directedGraph.containsVertex(fromVersionString)) {
-			return Collections.emptyList();
-		}
+		if (!_directedGraph.containsVertex(fromVersionString) ||
+			!_directedGraph.containsVertex(toVersionString)) {
 
-		if (!_directedGraph.containsVertex(toVersionString)) {
 			return Collections.emptyList();
 		}
 
@@ -108,7 +106,7 @@ public class ReleaseGraphManager {
 	}
 
 	protected List<String> getEndVertices() {
-		final List<String> endVertices = new ArrayList<>();
+		List<String> endVertices = new ArrayList<>();
 
 		Set<String> vertices = _directedGraph.vertexSet();
 

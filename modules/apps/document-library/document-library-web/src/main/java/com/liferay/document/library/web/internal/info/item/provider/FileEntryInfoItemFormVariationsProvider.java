@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 
@@ -48,30 +49,36 @@ public class FileEntryInfoItemFormVariationsProvider
 	implements InfoItemFormVariationsProvider<FileEntry> {
 
 	@Override
+	public InfoItemFormVariation getInfoItemFormVariation(
+		long groupId, String formVariationKey) {
+
+		DLFileEntryType dlFileEntryType =
+			_dlFileEntryTypeLocalService.fetchDLFileEntryType(
+				GetterUtil.getLong(formVariationKey));
+
+		if (dlFileEntryType == null) {
+			return null;
+		}
+
+		return new InfoItemFormVariation(
+			groupId, String.valueOf(dlFileEntryType.getFileEntryTypeId()),
+			InfoLocalizedValue.<String>builder(
+			).values(
+				dlFileEntryType.getNameMap()
+			).build());
+	}
+
+	@Override
 	public Collection<InfoItemFormVariation> getInfoItemFormVariations(
 		long groupId) {
 
 		List<InfoItemFormVariation> infoItemFormVariations = new ArrayList<>();
 
-		infoItemFormVariations.add(getBasicDocumentInfoItemFormVariation());
+		infoItemFormVariations.add(_getBasicDocumentInfoItemFormVariation());
 
 		try {
-			long[] groupIds = _getCurrentAndAncestorSiteGroupIds(groupId);
-
-			List<DLFileEntryType> dlFileEntryTypes =
-				_dlFileEntryTypeLocalService.getFileEntryTypes(groupIds);
-
-			for (DLFileEntryType dlFileEntryType : dlFileEntryTypes) {
-				infoItemFormVariations.add(
-					new InfoItemFormVariation(
-						String.valueOf(dlFileEntryType.getFileEntryTypeId()),
-						InfoLocalizedValue.<String>builder(
-						).values(
-							dlFileEntryType.getNameMap()
-						).build()));
-			}
-
-			return infoItemFormVariations;
+			return getInfoItemFormVariations(
+				_getCurrentAndAncestorSiteGroupIds(groupId));
 		}
 		catch (PortalException portalException) {
 			throw new RuntimeException(
@@ -79,12 +86,38 @@ public class FileEntryInfoItemFormVariationsProvider
 		}
 	}
 
-	protected InfoItemFormVariation getBasicDocumentInfoItemFormVariation() {
+	@Override
+	public Collection<InfoItemFormVariation> getInfoItemFormVariations(
+		long[] groupIds) {
+
+		List<InfoItemFormVariation> infoItemFormVariations = new ArrayList<>();
+
+		infoItemFormVariations.add(_getBasicDocumentInfoItemFormVariation());
+
+		List<DLFileEntryType> dlFileEntryTypes =
+			_dlFileEntryTypeLocalService.getFileEntryTypes(groupIds);
+
+		for (DLFileEntryType dlFileEntryType : dlFileEntryTypes) {
+			infoItemFormVariations.add(
+				new InfoItemFormVariation(
+					dlFileEntryType.getGroupId(),
+					String.valueOf(dlFileEntryType.getFileEntryTypeId()),
+					InfoLocalizedValue.<String>builder(
+					).values(
+						dlFileEntryType.getNameMap()
+					).build()));
+		}
+
+		return infoItemFormVariations;
+	}
+
+	private InfoItemFormVariation _getBasicDocumentInfoItemFormVariation() {
 		DLFileEntryType basicDocumentDLFileEntryType =
 			_dlFileEntryTypeLocalService.fetchDLFileEntryType(
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT);
 
 		return new InfoItemFormVariation(
+			basicDocumentDLFileEntryType.getGroupId(),
 			String.valueOf(basicDocumentDLFileEntryType.getFileEntryTypeId()),
 			InfoLocalizedValue.localize(
 				FileEntryInfoItemFormVariationsProvider.class,

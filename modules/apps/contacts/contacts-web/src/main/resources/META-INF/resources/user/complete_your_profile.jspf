@@ -68,7 +68,7 @@
 					"screenNavigationCategoryKey", "contact"
 				).setParameter(
 					"screenNavigationEntryKey", "contact-information"
-				).build();
+				).buildPortletURL();
 				%>
 
 				<a href="<%= editPhonesURL.toString() %>">
@@ -94,7 +94,7 @@
 					"screenNavigationCategoryKey", "contact"
 				).setParameter(
 					"screenNavigationEntryKey", "contact-information"
-				).build();
+				).buildPortletURL();
 				%>
 
 				<a href="<%= editAdditionalEmailAddressesURL.toString() %>">
@@ -118,7 +118,7 @@
 					PortletURLFactoryUtil.create(request, PortletKeys.MY_ACCOUNT, embeddedPersonalApplicationLayout, PortletRequest.RENDER_PHASE)
 				).setParameter(
 					"screenNavigationCategoryKey", "contact"
-				).build();
+				).buildPortletURL();
 				%>
 
 				<a href="<%= editAddressesURL.toString() %>">
@@ -144,7 +144,7 @@
 					"screenNavigationCategoryKey", "contact"
 				).setParameter(
 					"screenNavigationEntryKey", "contact-information"
-				).build();
+				).buildPortletURL();
 				%>
 
 				<a href="<%= editWebsitesURL.toString() %>">
@@ -170,7 +170,7 @@
 					"screenNavigationCategoryKey", "contact"
 				).setParameter(
 					"screenNavigationEntryKey", "contact-information"
-				).build();
+				).buildPortletURL();
 				%>
 
 				<a href="<%= editSocialNetworkURL.toString() %>">
@@ -196,7 +196,7 @@
 					"screenNavigationCategoryKey", "contact"
 				).setParameter(
 					"screenNavigationEntryKey", "contact-information"
-				).build();
+				).buildPortletURL();
 				%>
 
 				<a href="<%= editSmsURL.toString() %>">

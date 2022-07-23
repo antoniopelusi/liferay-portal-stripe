@@ -18,13 +18,10 @@
 
 <%
 StyleBookDisplayContext styleBookDisplayContext = new StyleBookDisplayContext(request, liferayPortletRequest, liferayPortletResponse);
-
-StyleBookManagementToolbarDisplayContext styleBookManagementToolbarDisplayContext = new StyleBookManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, styleBookDisplayContext.getStyleBookEntriesSearchContainer());
 %>
 
 <clay:management-toolbar
-	additionalProps="<%= styleBookManagementToolbarDisplayContext.getAdditionalProps() %>"
-	managementToolbarDisplayContext="<%= styleBookManagementToolbarDisplayContext %>"
+	managementToolbarDisplayContext="<%= new StyleBookManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, styleBookDisplayContext.getStyleBookEntriesSearchContainer()) %>"
 	propsTransformer="js/StyleBookManagementToolbarPropsTransformer"
 />
 
@@ -44,6 +41,7 @@ StyleBookManagementToolbarDisplayContext styleBookManagementToolbarDisplayContex
 			>
 				<liferay-ui:search-container-column-text>
 					<clay:vertical-card
+						propsTransformer="js/StylebookEntryActionDropdownPropsTransformer"
 						verticalCard="<%= new StyleBookVerticalCard(styleBookEntry, renderRequest, renderResponse, searchContainer.getRowChecker()) %>"
 					/>
 				</liferay-ui:search-container-column-text>
@@ -69,8 +67,3 @@ StyleBookManagementToolbarDisplayContext styleBookManagementToolbarDisplayContex
 	<aui:input name="styleBookEntryId" type="hidden" />
 	<aui:input name="fileEntryId" type="hidden" />
 </aui:form>
-
-<liferay-frontend:component
-	componentId="<%= StyleBookWebKeys.STYLE_BOOK_ENTRY_DROPDOWN_DEFAULT_EVENT_HANDLER %>"
-	module="js/StyleBookEntryDropdownDefaultEventHandler.es"
-/>

@@ -415,4 +415,7 @@ public interface DDMFormInstanceRecordVersionModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public DDMFormInstanceRecordVersion cloneWithOriginalValues();
+
 }

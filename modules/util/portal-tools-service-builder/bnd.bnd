@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Portal Tools Service Builder
 Bundle-SymbolicName: com.liferay.portal.tools.service.builder
-Bundle-Version: 1.0.384
+Bundle-Version: 1.0.421
 Import-Package:\
 	!javax.portlet.*,\
 	\
@@ -17,7 +17,6 @@ Main-Class: com.liferay.portal.tools.service.builder.ServiceBuilder
 	com/liferay/dynamic/data/lists/service.xml=../../../modules/apps/dynamic-data-lists/dynamic-data-lists-service/service.xml,\
 	com/liferay/dynamic/data/mapping/service.xml=../../../modules/apps/dynamic-data-mapping/dynamic-data-mapping-service/service.xml,\
 	com/liferay/journal/service.xml=../../../modules/apps/journal/journal-service/service.xml,\
-	com/liferay/mobile/device/rules/service.xml=../../../modules/apps/mobile-device-rules/mobile-device-rules-service/service.xml,\
 	com/liferay/portlet/messageboards/service.xml=../../../modules/apps/message-boards/message-boards-service/service.xml,\
 	@checkstyle-[0-9.]*.jar!/com/puppycrawl/tools/checkstyle/JavaParser.class,\
 	@checkstyle-[0-9.]*.jar!/com/puppycrawl/tools/checkstyle/api/CheckstyleException.class,\
@@ -63,6 +62,7 @@ Main-Class: com.liferay.portal.tools.service.builder.ServiceBuilder
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/ImportsFormatter.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/JavaImportsFormatter.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/ToolsUtil.class,\
+	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/ToolsUtil$1.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/util/EntityResolver.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/xml/DocumentFactory.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/xml/QNameCache.class,\

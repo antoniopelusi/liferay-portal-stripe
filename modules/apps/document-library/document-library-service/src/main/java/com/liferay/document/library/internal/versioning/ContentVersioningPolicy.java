@@ -75,8 +75,8 @@ public class ContentVersioningPolicy implements VersioningPolicy {
 			return dlFileVersion.getChecksum();
 		}
 
-		try (InputStream is = dlFileVersion.getContentStream(false)) {
-			dlFileVersion.setChecksum(DigesterUtil.digestBase64(is));
+		try (InputStream inputStream = dlFileVersion.getContentStream(false)) {
+			dlFileVersion.setChecksum(DigesterUtil.digestBase64(inputStream));
 
 			_dlFileVersionLocalService.updateDLFileVersion(dlFileVersion);
 
@@ -84,7 +84,7 @@ public class ContentVersioningPolicy implements VersioningPolicy {
 		}
 		catch (IOException | PortalException exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return null;

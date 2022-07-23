@@ -1,0 +1,50 @@
+@import 'atlas-variables';
+@import 'cadmin-variables';
+
+@import 'DropdownColorPicker';
+
+html#{$cadmin-selector} {
+	.cadmin {
+		.page-editor__color-picker {
+			> .input-group-item
+				.form-control.page-editor__color-picker__autocomplete__input {
+				border-radius: 0 4px 4px 0;
+				font-weight: 600;
+				transition: none;
+			}
+
+			.clay-color > .input-group-item > .input-group-text {
+				border-radius: 4px 0 0 4px;
+			}
+
+			&.has-error {
+				.clay-color > .input-group-item > .input-group-text {
+					border-color: $cadmin-danger-l1;
+				}
+			}
+
+			&.hovered .page-editor__color-picker__selector {
+				background-color: $cadmin-gray-100;
+			}
+
+			&:not(.hovered) > .input-group-item > .input-group {
+				&:not(:hover):not(:focus-within) {
+					.form-control.page-editor__color-picker__autocomplete__input {
+						background-color: transparent;
+						border-color: transparent;
+					}
+
+					.clay-color > .input-group-item > .input-group-text {
+						border-color: transparent;
+					}
+				}
+			}
+
+			&:not(:hover):not(:focus-within):not(.hovered) {
+				.page-editor__color-picker__action-button {
+					opacity: 0;
+				}
+			}
+		}
+	}
+}

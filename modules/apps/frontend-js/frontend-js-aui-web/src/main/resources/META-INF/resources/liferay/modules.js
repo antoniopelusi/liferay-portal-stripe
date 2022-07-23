@@ -46,7 +46,11 @@
 	};
 
 	window.YUI_config = {
-		base: Liferay.ThemeDisplay.getCDNBaseURL() + PATH_JAVASCRIPT + '/aui/',
+		base:
+			Liferay.ThemeDisplay.getCDNBaseURL() +
+			Liferay.ThemeDisplay.getPathContext() +
+			PATH_JAVASCRIPT +
+			'/aui/',
 		combine: COMBINE,
 		comboBase: LiferayAUI.getComboPath(),
 		filter: process.env.NODE_ENV === 'development' ? 'raw' : 'min',
@@ -65,6 +69,7 @@
 			liferay: {
 				base:
 					Liferay.ThemeDisplay.getCDNBaseURL() +
+					Liferay.ThemeDisplay.getPathContext() +
 					PATH_JAVASCRIPT +
 					'/liferay/',
 				combine: COMBINE,
@@ -617,7 +622,7 @@
 				root: PATH_JAVASCRIPT + '/liferay/',
 			},
 		},
-		insertBefore: 'liferayPortalCSS',
+		insertBefore: 'liferayAUICSS',
 		lang: themeDisplay.getBCP47LanguageId(),
 		root: PATH_JAVASCRIPT + '/aui/',
 		useBrowserConsole: false,

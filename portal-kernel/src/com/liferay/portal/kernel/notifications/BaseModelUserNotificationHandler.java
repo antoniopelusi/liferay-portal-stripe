@@ -27,7 +27,7 @@ import com.liferay.portal.kernel.model.UserNotificationEvent;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalServiceUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -67,7 +67,7 @@ public abstract class BaseModelUserNotificationHandler
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -133,9 +133,9 @@ public abstract class BaseModelUserNotificationHandler
 			return StringPool.BLANK;
 		}
 
-		String entryURLDomain = HttpUtil.getDomain(entryURL);
+		String entryURLDomain = HttpComponentsUtil.getDomain(entryURL);
 
-		String portalURLDomain = HttpUtil.getDomain(
+		String portalURLDomain = HttpComponentsUtil.getDomain(
 			serviceContext.getPortalURL());
 
 		if (!entryURLDomain.equals(portalURLDomain)) {

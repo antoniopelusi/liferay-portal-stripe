@@ -62,6 +62,11 @@ public class CounterWrapper
 		}
 	}
 
+	@Override
+	public Counter cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the current ID of this counter.
 	 *

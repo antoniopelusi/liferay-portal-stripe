@@ -65,9 +65,9 @@ public class DLAppServiceWhenMovingAFileEntryTest extends BaseDLAppTestCase {
 	@Test
 	public void testShouldHaveSameFileExtension() throws Exception {
 		FileEntry fileEntry = DLAppServiceTestUtil.addFileEntry(
-			group.getGroupId(), parentFolder.getFolderId(),
-			DLAppServiceTestUtil.FILE_NAME,
-			DLAppServiceTestUtil.STRIPPED_FILE_NAME, null);
+			RandomTestUtil.randomString(), group.getGroupId(),
+			parentFolder.getFolderId(), DLAppServiceTestUtil.FILE_NAME,
+			DLAppServiceTestUtil.STRIPPED_FILE_NAME, null, null, null);
 
 		FileEntry copiedFileEntry = DLAppServiceUtil.moveFileEntry(
 			fileEntry.getFileEntryId(),

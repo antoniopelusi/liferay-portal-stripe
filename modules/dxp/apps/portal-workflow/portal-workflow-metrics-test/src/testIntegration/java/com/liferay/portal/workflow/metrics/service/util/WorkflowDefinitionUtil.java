@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 public class WorkflowDefinitionUtil {
 
 	public static byte[] getBytes() throws Exception {
-		return getBytes("single-approver-definition.xml");
+		return getBytes("single-approver-workflow-definition.xml");
 	}
 
 	public static byte[] getBytes(String fileName) throws Exception {

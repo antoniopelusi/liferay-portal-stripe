@@ -23,7 +23,6 @@ import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.store.Store;
-import com.liferay.document.library.kernel.util.DLProcessorRegistry;
 import com.liferay.document.library.kernel.util.ImageProcessorUtil;
 import com.liferay.message.boards.constants.MBCategoryConstants;
 import com.liferay.message.boards.constants.MBMessageConstants;
@@ -40,6 +39,7 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -89,7 +89,7 @@ public class DocumentLibraryConvertProcessTest {
 			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@BeforeClass
-	public static void setUpClass() throws Exception {
+	public static void setUpClass() {
 		_storeFactory = StoreFactory.getInstance();
 	}
 
@@ -97,7 +97,7 @@ public class DocumentLibraryConvertProcessTest {
 	public void setUp() throws Exception {
 		_sourceStore = _storeFactory.getStore(_CLASS_NAME_FILE_SYSTEM_STORE);
 
-		_storeFactory.setStore(_CLASS_NAME_FILE_SYSTEM_STORE);
+		_setStore(_CLASS_NAME_FILE_SYSTEM_STORE);
 
 		_group = GroupTestUtil.addGroup();
 
@@ -110,7 +110,7 @@ public class DocumentLibraryConvertProcessTest {
 
 	@After
 	public void tearDown() throws Exception {
-		_storeFactory.setStore(_CLASS_NAME_DB_STORE);
+		_setStore(_CLASS_NAME_DB_STORE);
 
 		_convertProcess.setParameterValues(
 			new String[] {
@@ -123,7 +123,7 @@ public class DocumentLibraryConvertProcessTest {
 		finally {
 			PropsValues.DL_STORE_IMPL = PropsUtil.get(PropsKeys.DL_STORE_IMPL);
 
-			_storeFactory.setStore(PropsValues.DL_STORE_IMPL);
+			_setStore(PropsValues.DL_STORE_IMPL);
 		}
 	}
 
@@ -138,31 +138,80 @@ public class DocumentLibraryConvertProcessTest {
 	}
 
 	@Test
-	public void testMigrateDLWhenFileEntryInFolder() throws Exception {
-		ServiceContext serviceContext =
+	public void testMigrateDLWhenFileEntryEmpty() throws Exception {
+		FileEntry fileEntry = _dlAppService.addFileEntry(
+			null, _group.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(),
+			ContentTypes.APPLICATION_OCTET_STREAM,
+			RandomTestUtil.randomString(), null, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), (byte[])null, null, null,
 			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
+				_group.getGroupId(), TestPropsValues.getUserId()));
 
+		_convertProcess.convert();
+
+		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
+
+		_dlContentLocalService.getContent(
+			dlFileEntry.getCompanyId(),
+			DLFolderConstants.getDataRepositoryId(
+				dlFileEntry.getRepositoryId(), dlFileEntry.getFolderId()),
+			dlFileEntry.getName(), Store.VERSION_DEFAULT);
+	}
+
+	@Test
+	public void testMigrateDLWhenFileEntryInFolder() throws Exception {
 		Folder folder = _dlAppService.addFolder(
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), TestPropsValues.getUserId()));
 
-		testMigrateDL(folder.getFolderId());
+		FileEntry fileEntry = addFileEntry(
+			folder.getFolderId(), RandomTestUtil.randomString() + ".txt",
+			ContentTypes.TEXT_PLAIN, TestDataConstants.TEST_BYTE_ARRAY);
+
+		_convertProcess.convert();
+
+		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
+
+		_dlContentLocalService.getContent(
+			dlFileEntry.getCompanyId(),
+			DLFolderConstants.getDataRepositoryId(
+				dlFileEntry.getRepositoryId(), dlFileEntry.getFolderId()),
+			dlFileEntry.getName(), Store.VERSION_DEFAULT);
 	}
 
 	@Test
 	public void testMigrateDLWhenFileEntryInRootFolder() throws Exception {
-		testMigrateDL(DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+		FileEntry fileEntry = addFileEntry(
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
+			TestDataConstants.TEST_BYTE_ARRAY);
+
+		_convertProcess.convert();
+
+		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
+
+		_dlContentLocalService.getContent(
+			dlFileEntry.getCompanyId(),
+			DLFolderConstants.getDataRepositoryId(
+				dlFileEntry.getRepositoryId(), dlFileEntry.getFolderId()),
+			dlFileEntry.getName(), Store.VERSION_DEFAULT);
 	}
 
 	@Test
 	public void testMigrateImages() throws Exception {
-		_image = addImage();
+		_image = _imageLocalService.updateImage(
+			_group.getCompanyId(), _counterLocalService.increment(),
+			FileUtil.getBytes(getClass(), "dependencies/liferay.jpg"));
 
 		_convertProcess.convert();
 
-		_dlContentLocalService.getContent(0, 0, _image.getImageId() + ".jpg");
+		_dlContentLocalService.getContent(
+			_group.getCompanyId(), _REPOSITORY_ID, _image.getImageId() + ".jpg",
+			Store.VERSION_DEFAULT);
 	}
 
 	@Test
@@ -195,19 +244,11 @@ public class DocumentLibraryConvertProcessTest {
 			long folderId, String fileName, String mimeType, byte[] bytes)
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
 		return _dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(), folderId,
-			fileName, mimeType, bytes, serviceContext);
-	}
-
-	protected Image addImage() throws Exception {
-		return _imageLocalService.updateImage(
-			_counterLocalService.increment(),
-			FileUtil.getBytes(getClass(), "dependencies/liferay.jpg"));
+			null, TestPropsValues.getUserId(), _group.getGroupId(), folderId,
+			fileName, mimeType, bytes, null, null,
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	protected MBMessage addMBMessageAttachment() throws Exception {
@@ -255,14 +296,11 @@ public class DocumentLibraryConvertProcessTest {
 			RandomTestUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
 			TestDataConstants.TEST_BYTE_ARRAY);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
 		Folder folder = _dlAppService.addFolder(
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), TestPropsValues.getUserId()));
 
 		FileEntry folderFileEntry = addFileEntry(
 			folder.getFolderId(), "liferay.jpg", ContentTypes.IMAGE_JPEG,
@@ -296,30 +334,19 @@ public class DocumentLibraryConvertProcessTest {
 			DLFolderConstants.getDataRepositoryId(
 				folderDLFileEntry.getRepositoryId(),
 				folderDLFileEntry.getFolderId()),
-			folderDLFileEntry.getName());
+			folderDLFileEntry.getName(), Store.VERSION_DEFAULT);
 
 		_dlContentLocalService.getContent(
 			rootDLFileEntry.getCompanyId(),
 			DLFolderConstants.getDataRepositoryId(
 				rootDLFileEntry.getRepositoryId(),
 				rootDLFileEntry.getFolderId()),
-			rootDLFileEntry.getName());
+			rootDLFileEntry.getName(), Store.VERSION_DEFAULT);
 	}
 
-	protected void testMigrateDL(long folderId) throws Exception {
-		FileEntry fileEntry = addFileEntry(
-			folderId, RandomTestUtil.randomString() + ".txt",
-			ContentTypes.TEXT_PLAIN, TestDataConstants.TEST_BYTE_ARRAY);
-
-		_convertProcess.convert();
-
-		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
-
-		_dlContentLocalService.getContent(
-			dlFileEntry.getCompanyId(),
-			DLFolderConstants.getDataRepositoryId(
-				dlFileEntry.getRepositoryId(), dlFileEntry.getFolderId()),
-			dlFileEntry.getName());
+	private void _setStore(String key) {
+		ReflectionTestUtil.setFieldValue(
+			StoreFactory.class, "_defaultStore", _storeFactory.getStore(key));
 	}
 
 	private static final String _CLASS_NAME_DB_STORE =
@@ -327,6 +354,8 @@ public class DocumentLibraryConvertProcessTest {
 
 	private static final String _CLASS_NAME_FILE_SYSTEM_STORE =
 		"com.liferay.portal.store.file.system.FileSystemStore";
+
+	private static final long _REPOSITORY_ID = 0;
 
 	private static StoreFactory _storeFactory;
 
@@ -346,9 +375,6 @@ public class DocumentLibraryConvertProcessTest {
 
 	@Inject
 	private DLFileEntryLocalService _dlFileEntryLocalService;
-
-	@Inject
-	private DLProcessorRegistry _dlProcessorRegistry;
 
 	@DeleteAfterTestRun
 	private Group _group;

@@ -252,6 +252,11 @@ public class SyncDLObjectWrapper
 		return model.buildTreePath();
 	}
 
+	@Override
+	public SyncDLObject cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the change log of this sync dl object.
 	 *

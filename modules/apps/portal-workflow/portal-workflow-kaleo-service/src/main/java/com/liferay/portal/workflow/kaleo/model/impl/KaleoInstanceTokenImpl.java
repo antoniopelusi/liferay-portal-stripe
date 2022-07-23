@@ -30,9 +30,6 @@ import java.util.List;
  */
 public class KaleoInstanceTokenImpl extends KaleoInstanceTokenBaseImpl {
 
-	public KaleoInstanceTokenImpl() {
-	}
-
 	@Override
 	public List<KaleoInstanceToken> getChildrenKaleoInstanceTokens() {
 		ServiceContext serviceContext = new ServiceContext();

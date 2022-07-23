@@ -26,6 +26,9 @@ import com.liferay.commerce.shipping.engine.fixed.web.internal.FixedCommerceShip
 import com.liferay.commerce.shipping.engine.fixed.web.internal.frontend.taglib.servlet.taglib.CommerceShippingMethodFixedOptionsScreenNavigationCategory;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.SortItemBuilder;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.SortItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.SortItemListBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -34,6 +37,8 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
+
+import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.RenderRequest;
@@ -48,8 +53,8 @@ public class CommerceShippingFixedOptionsDisplayContext
 	public CommerceShippingFixedOptionsDisplayContext(
 		CommerceChannelLocalService commerceChannelLocalService,
 		CommerceCurrencyLocalService commerceCurrencyLocalService,
-		CommerceShippingMethodService commerceShippingMethodService,
 		CommerceShippingFixedOptionService commerceShippingFixedOptionService,
+		CommerceShippingMethodService commerceShippingMethodService,
 		Portal portal, RenderRequest renderRequest,
 		RenderResponse renderResponse) {
 
@@ -102,6 +107,20 @@ public class CommerceShippingFixedOptionsDisplayContext
 		return commerceShippingFixedOption;
 	}
 
+	public String getCommerceShippingFixedOptionName(
+			ResourceBundle resourceBundle)
+		throws PortalException {
+
+		CommerceShippingFixedOption commerceShippingFixedOption =
+			getCommerceShippingFixedOption();
+
+		if (commerceShippingFixedOption == null) {
+			return LanguageUtil.get(resourceBundle, "shipping-option");
+		}
+
+		return commerceShippingFixedOption.getName(resourceBundle.getLocale());
+	}
+
 	public CreationMenu getCreationMenu() throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -121,6 +140,16 @@ public class CommerceShippingFixedOptionsDisplayContext
 	public String getScreenNavigationCategoryKey() {
 		return CommerceShippingMethodFixedOptionsScreenNavigationCategory.
 			CATEGORY_KEY;
+	}
+
+	public SortItemList getSortItemList() {
+		return SortItemListBuilder.add(
+			SortItemBuilder.setDirection(
+				"desc"
+			).setKey(
+				"priority"
+			).build()
+		).build();
 	}
 
 	public boolean isFixed() throws PortalException {

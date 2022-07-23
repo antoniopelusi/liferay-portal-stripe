@@ -229,4 +229,7 @@ public interface WeDeployAuthAppModel
 	 */
 	public void setClientSecret(String clientSecret);
 
+	@Override
+	public WeDeployAuthApp cloneWithOriginalValues();
+
 }

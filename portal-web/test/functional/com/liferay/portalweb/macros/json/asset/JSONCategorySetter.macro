@@ -32,7 +32,9 @@ definition {
 			var site = "true";
 		}
 
-		var groupId = JSONGroupAPI._getGroupIdByName(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		return "${groupId}";
 	}
@@ -65,8 +67,8 @@ definition {
 
 	macro setTitleMap {
 		JSONUtil2._exclusiveOrCheck(
-			A = "${title}",
-			B = "${titleMap}",
+			a = "${title}",
+			b = "${titleMap}",
 			failMessage = "Please only set 'title' or only 'titleMap' but not both or none.");
 
 		if (isSet(titleMap)) {
@@ -77,6 +79,19 @@ definition {
 		}
 
 		return "${titleMap}";
+	}
+
+	macro setVisibilityType {
+		Variables.assertDefined(parameterList = "${visibility}");
+
+		if ("${visibility}" == "internal") {
+			var visibilityType = "1";
+		}
+		else {
+			var visibilityType = "0";
+		}
+
+		return "${visibilityType}";
 	}
 
 	macro setVocabularyId {

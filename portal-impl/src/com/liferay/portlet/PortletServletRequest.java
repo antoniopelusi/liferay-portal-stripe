@@ -337,15 +337,6 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 		return null;
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x)
-	 */
-	@Deprecated
-	@Override
-	public String getRealPath(String path) {
-		return null;
-	}
-
 	@Override
 	public String getRemoteAddr() {
 		return null;
@@ -421,13 +412,13 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 
 	@Override
 	public HttpSession getSession(boolean create) {
-		HttpSession session = _httpServletRequest.getSession(create);
+		HttpSession httpSession = _httpServletRequest.getSession(create);
 
-		if (session == null) {
+		if (httpSession == null) {
 			return null;
 		}
 
-		return new PortletServletSession(session, _liferayPortletRequest);
+		return new PortletServletSession(httpSession, _liferayPortletRequest);
 	}
 
 	@Override

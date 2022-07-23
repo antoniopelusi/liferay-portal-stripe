@@ -14,6 +14,8 @@
 
 package com.liferay.portal.tools.service.builder.test.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
@@ -47,6 +49,8 @@ public abstract class BaseUADPartialEntryUADAnonymizer
 		if (uadPartialEntry.getUserId() == userId) {
 			uadPartialEntry.setUserId(anonymousUser.getUserId());
 			uadPartialEntry.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(uadPartialEntry, anonymousUser);
 		}
 
 		uadPartialEntryLocalService.updateUADPartialEntry(uadPartialEntry);
@@ -62,6 +66,19 @@ public abstract class BaseUADPartialEntryUADAnonymizer
 		return UADPartialEntry.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		UADPartialEntry uadPartialEntry, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(uadPartialEntry);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return uadPartialEntryLocalService.getActionableDynamicQuery();
@@ -71,6 +88,15 @@ public abstract class BaseUADPartialEntryUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return SBTestUADConstants.USER_ID_FIELD_NAMES_UAD_PARTIAL_ENTRY;
 	}
+
+	protected AssetEntry fetchAssetEntry(UADPartialEntry uadPartialEntry) {
+		return assetEntryLocalService.fetchEntry(
+			UADPartialEntry.class.getName(),
+			uadPartialEntry.getUadPartialEntryId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected UADPartialEntryLocalService uadPartialEntryLocalService;

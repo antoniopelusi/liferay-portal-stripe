@@ -14,65 +14,28 @@
 
 package com.liferay.data.cleanup.internal.upgrade;
 
-import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-
 /**
  * @author Preston Crary
  */
-public class MailReaderUpgradeProcess extends UpgradeProcess {
+public class MailReaderUpgradeProcess extends BaseUpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.mail.reader.model.Account'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.mail.reader.model.Attachment'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.mail.reader.model.Folder'");
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.mail.reader.model.Message'");
+		removePortletData(
+			new String[] {"com.liferay.mail.reader.web"}, null,
+			new String[] {"com_liferay_mail_reader_web_portlet_MailPortlet"});
 
-		LayoutTypeSettingsUtil.removePortletId(
-			connection, "com_liferay_mail_reader_web_portlet_MailPortlet");
-
-		runSQL(
-			"delete from Portlet where portletId = " +
-				"'com_liferay_mail_reader_web_portlet_MailPortlet'");
-
-		runSQL(
-			"delete from PortletPreferences where portletId = " +
-				"'com_liferay_mail_reader_web_portlet_MailPortlet'");
-
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.mail.reader.service'");
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.mail.reader.web'");
-
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.mail.reader.model.Account'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.mail.reader.model.Attachment'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.mail.reader.model.Folder'");
-		runSQL(
-			"delete from ResourcePermission where name = " +
-				"'com.liferay.mail.reader.model.Message'");
-
-		runSQL("delete from ServiceComponent where buildNamespace = 'Mail'");
-
-		runSQL("drop table Mail_Account");
-		runSQL("drop table Mail_Attachment");
-		runSQL("drop table Mail_Folder");
-		runSQL("drop table Mail_Message");
+		removeServiceData(
+			"Mail", new String[] {"com.liferay.mail.reader.service"},
+			new String[] {
+				"com.liferay.mail.reader.model.Account",
+				"com.liferay.mail.reader.model.Attachment",
+				"com.liferay.mail.reader.model.Folder",
+				"com.liferay.mail.reader.model.Message"
+			},
+			new String[] {
+				"Mail_Account", "Mail_Attachment", "Mail_Folder", "Mail_Message"
+			});
 	}
 
 }

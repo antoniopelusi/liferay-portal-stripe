@@ -17,7 +17,6 @@ package com.liferay.segments.service.persistence.impl;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -29,7 +28,6 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -38,23 +36,27 @@ import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.segments.exception.NoSuchExperienceException;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.model.SegmentsExperienceTable;
 import com.liferay.segments.model.impl.SegmentsExperienceImpl;
 import com.liferay.segments.model.impl.SegmentsExperienceModelImpl;
 import com.liferay.segments.service.persistence.SegmentsExperiencePersistence;
+import com.liferay.segments.service.persistence.SegmentsExperienceUtil;
 import com.liferay.segments.service.persistence.impl.constants.SegmentsPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -68,12 +70,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2953,276 +2952,6 @@ public class SegmentsExperiencePersistenceImpl
 		_FINDER_COLUMN_SEGMENTSENTRYID_SEGMENTSENTRYID_2 =
 			"segmentsExperience.segmentsEntryId = ?";
 
-	private FinderPath _finderPathFetchByG_S;
-	private FinderPath _finderPathCountByG_S;
-
-	/**
-	 * Returns the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; or throws a <code>NoSuchExperienceException</code> if it could not be found.
-	 *
-	 * @param groupId the group ID
-	 * @param segmentsExperienceKey the segments experience key
-	 * @return the matching segments experience
-	 * @throws NoSuchExperienceException if a matching segments experience could not be found
-	 */
-	@Override
-	public SegmentsExperience findByG_S(
-			long groupId, String segmentsExperienceKey)
-		throws NoSuchExperienceException {
-
-		SegmentsExperience segmentsExperience = fetchByG_S(
-			groupId, segmentsExperienceKey);
-
-		if (segmentsExperience == null) {
-			StringBundler sb = new StringBundler(6);
-
-			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			sb.append("groupId=");
-			sb.append(groupId);
-
-			sb.append(", segmentsExperienceKey=");
-			sb.append(segmentsExperienceKey);
-
-			sb.append("}");
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(sb.toString());
-			}
-
-			throw new NoSuchExperienceException(sb.toString());
-		}
-
-		return segmentsExperience;
-	}
-
-	/**
-	 * Returns the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
-	 *
-	 * @param groupId the group ID
-	 * @param segmentsExperienceKey the segments experience key
-	 * @return the matching segments experience, or <code>null</code> if a matching segments experience could not be found
-	 */
-	@Override
-	public SegmentsExperience fetchByG_S(
-		long groupId, String segmentsExperienceKey) {
-
-		return fetchByG_S(groupId, segmentsExperienceKey, true);
-	}
-
-	/**
-	 * Returns the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
-	 *
-	 * @param groupId the group ID
-	 * @param segmentsExperienceKey the segments experience key
-	 * @param useFinderCache whether to use the finder cache
-	 * @return the matching segments experience, or <code>null</code> if a matching segments experience could not be found
-	 */
-	@Override
-	public SegmentsExperience fetchByG_S(
-		long groupId, String segmentsExperienceKey, boolean useFinderCache) {
-
-		segmentsExperienceKey = Objects.toString(segmentsExperienceKey, "");
-
-		boolean productionMode = ctPersistenceHelper.isProductionMode(
-			SegmentsExperience.class);
-
-		Object[] finderArgs = null;
-
-		if (useFinderCache && productionMode) {
-			finderArgs = new Object[] {groupId, segmentsExperienceKey};
-		}
-
-		Object result = null;
-
-		if (useFinderCache && productionMode) {
-			result = finderCache.getResult(_finderPathFetchByG_S, finderArgs);
-		}
-
-		if (result instanceof SegmentsExperience) {
-			SegmentsExperience segmentsExperience = (SegmentsExperience)result;
-
-			if ((groupId != segmentsExperience.getGroupId()) ||
-				!Objects.equals(
-					segmentsExperienceKey,
-					segmentsExperience.getSegmentsExperienceKey())) {
-
-				result = null;
-			}
-		}
-
-		if (result == null) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE);
-
-			sb.append(_FINDER_COLUMN_G_S_GROUPID_2);
-
-			boolean bindSegmentsExperienceKey = false;
-
-			if (segmentsExperienceKey.isEmpty()) {
-				sb.append(_FINDER_COLUMN_G_S_SEGMENTSEXPERIENCEKEY_3);
-			}
-			else {
-				bindSegmentsExperienceKey = true;
-
-				sb.append(_FINDER_COLUMN_G_S_SEGMENTSEXPERIENCEKEY_2);
-			}
-
-			String sql = sb.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query query = session.createQuery(sql);
-
-				QueryPos queryPos = QueryPos.getInstance(query);
-
-				queryPos.add(groupId);
-
-				if (bindSegmentsExperienceKey) {
-					queryPos.add(segmentsExperienceKey);
-				}
-
-				List<SegmentsExperience> list = query.list();
-
-				if (list.isEmpty()) {
-					if (useFinderCache && productionMode) {
-						finderCache.putResult(
-							_finderPathFetchByG_S, finderArgs, list);
-					}
-				}
-				else {
-					SegmentsExperience segmentsExperience = list.get(0);
-
-					result = segmentsExperience;
-
-					cacheResult(segmentsExperience);
-				}
-			}
-			catch (Exception exception) {
-				throw processException(exception);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		if (result instanceof List<?>) {
-			return null;
-		}
-		else {
-			return (SegmentsExperience)result;
-		}
-	}
-
-	/**
-	 * Removes the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; from the database.
-	 *
-	 * @param groupId the group ID
-	 * @param segmentsExperienceKey the segments experience key
-	 * @return the segments experience that was removed
-	 */
-	@Override
-	public SegmentsExperience removeByG_S(
-			long groupId, String segmentsExperienceKey)
-		throws NoSuchExperienceException {
-
-		SegmentsExperience segmentsExperience = findByG_S(
-			groupId, segmentsExperienceKey);
-
-		return remove(segmentsExperience);
-	}
-
-	/**
-	 * Returns the number of segments experiences where groupId = &#63; and segmentsExperienceKey = &#63;.
-	 *
-	 * @param groupId the group ID
-	 * @param segmentsExperienceKey the segments experience key
-	 * @return the number of matching segments experiences
-	 */
-	@Override
-	public int countByG_S(long groupId, String segmentsExperienceKey) {
-		segmentsExperienceKey = Objects.toString(segmentsExperienceKey, "");
-
-		boolean productionMode = ctPersistenceHelper.isProductionMode(
-			SegmentsExperience.class);
-
-		FinderPath finderPath = null;
-		Object[] finderArgs = null;
-
-		Long count = null;
-
-		if (productionMode) {
-			finderPath = _finderPathCountByG_S;
-
-			finderArgs = new Object[] {groupId, segmentsExperienceKey};
-
-			count = (Long)finderCache.getResult(finderPath, finderArgs);
-		}
-
-		if (count == null) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append(_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE);
-
-			sb.append(_FINDER_COLUMN_G_S_GROUPID_2);
-
-			boolean bindSegmentsExperienceKey = false;
-
-			if (segmentsExperienceKey.isEmpty()) {
-				sb.append(_FINDER_COLUMN_G_S_SEGMENTSEXPERIENCEKEY_3);
-			}
-			else {
-				bindSegmentsExperienceKey = true;
-
-				sb.append(_FINDER_COLUMN_G_S_SEGMENTSEXPERIENCEKEY_2);
-			}
-
-			String sql = sb.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query query = session.createQuery(sql);
-
-				QueryPos queryPos = QueryPos.getInstance(query);
-
-				queryPos.add(groupId);
-
-				if (bindSegmentsExperienceKey) {
-					queryPos.add(segmentsExperienceKey);
-				}
-
-				count = (Long)query.uniqueResult();
-
-				if (productionMode) {
-					finderCache.putResult(finderPath, finderArgs, count);
-				}
-			}
-			catch (Exception exception) {
-				throw processException(exception);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
-	}
-
-	private static final String _FINDER_COLUMN_G_S_GROUPID_2 =
-		"segmentsExperience.groupId = ? AND ";
-
-	private static final String _FINDER_COLUMN_G_S_SEGMENTSEXPERIENCEKEY_2 =
-		"segmentsExperience.segmentsExperienceKey = ?";
-
-	private static final String _FINDER_COLUMN_G_S_SEGMENTSEXPERIENCEKEY_3 =
-		"(segmentsExperience.segmentsExperienceKey IS NULL OR segmentsExperience.segmentsExperienceKey = '')";
-
 	private FinderPath _finderPathWithPaginationFindByG_C_C;
 	private FinderPath _finderPathWithoutPaginationFindByG_C_C;
 	private FinderPath _finderPathCountByG_C_C;
@@ -5339,6 +5068,331 @@ public class SegmentsExperiencePersistenceImpl
 		"segmentsExperience.classNameId = ? AND ";
 
 	private static final String _FINDER_COLUMN_G_S_C_C_CLASSPK_2 =
+		"segmentsExperience.classPK = ?";
+
+	private FinderPath _finderPathFetchByG_SEK_C_C;
+	private FinderPath _finderPathCountByG_SEK_C_C;
+
+	/**
+	 * Returns the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; and classNameId = &#63; and classPK = &#63; or throws a <code>NoSuchExperienceException</code> if it could not be found.
+	 *
+	 * @param groupId the group ID
+	 * @param segmentsExperienceKey the segments experience key
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @return the matching segments experience
+	 * @throws NoSuchExperienceException if a matching segments experience could not be found
+	 */
+	@Override
+	public SegmentsExperience findByG_SEK_C_C(
+			long groupId, String segmentsExperienceKey, long classNameId,
+			long classPK)
+		throws NoSuchExperienceException {
+
+		SegmentsExperience segmentsExperience = fetchByG_SEK_C_C(
+			groupId, segmentsExperienceKey, classNameId, classPK);
+
+		if (segmentsExperience == null) {
+			StringBundler sb = new StringBundler(10);
+
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+			sb.append("groupId=");
+			sb.append(groupId);
+
+			sb.append(", segmentsExperienceKey=");
+			sb.append(segmentsExperienceKey);
+
+			sb.append(", classNameId=");
+			sb.append(classNameId);
+
+			sb.append(", classPK=");
+			sb.append(classPK);
+
+			sb.append("}");
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(sb.toString());
+			}
+
+			throw new NoSuchExperienceException(sb.toString());
+		}
+
+		return segmentsExperience;
+	}
+
+	/**
+	 * Returns the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; and classNameId = &#63; and classPK = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param segmentsExperienceKey the segments experience key
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @return the matching segments experience, or <code>null</code> if a matching segments experience could not be found
+	 */
+	@Override
+	public SegmentsExperience fetchByG_SEK_C_C(
+		long groupId, String segmentsExperienceKey, long classNameId,
+		long classPK) {
+
+		return fetchByG_SEK_C_C(
+			groupId, segmentsExperienceKey, classNameId, classPK, true);
+	}
+
+	/**
+	 * Returns the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; and classNameId = &#63; and classPK = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param segmentsExperienceKey the segments experience key
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching segments experience, or <code>null</code> if a matching segments experience could not be found
+	 */
+	@Override
+	public SegmentsExperience fetchByG_SEK_C_C(
+		long groupId, String segmentsExperienceKey, long classNameId,
+		long classPK, boolean useFinderCache) {
+
+		segmentsExperienceKey = Objects.toString(segmentsExperienceKey, "");
+
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			SegmentsExperience.class);
+
+		Object[] finderArgs = null;
+
+		if (useFinderCache && productionMode) {
+			finderArgs = new Object[] {
+				groupId, segmentsExperienceKey, classNameId, classPK
+			};
+		}
+
+		Object result = null;
+
+		if (useFinderCache && productionMode) {
+			result = finderCache.getResult(
+				_finderPathFetchByG_SEK_C_C, finderArgs);
+		}
+
+		if (result instanceof SegmentsExperience) {
+			SegmentsExperience segmentsExperience = (SegmentsExperience)result;
+
+			if ((groupId != segmentsExperience.getGroupId()) ||
+				!Objects.equals(
+					segmentsExperienceKey,
+					segmentsExperience.getSegmentsExperienceKey()) ||
+				(classNameId != segmentsExperience.getClassNameId()) ||
+				(classPK != segmentsExperience.getClassPK())) {
+
+				result = null;
+			}
+		}
+
+		if (result == null) {
+			StringBundler sb = new StringBundler(6);
+
+			sb.append(_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE);
+
+			sb.append(_FINDER_COLUMN_G_SEK_C_C_GROUPID_2);
+
+			boolean bindSegmentsExperienceKey = false;
+
+			if (segmentsExperienceKey.isEmpty()) {
+				sb.append(_FINDER_COLUMN_G_SEK_C_C_SEGMENTSEXPERIENCEKEY_3);
+			}
+			else {
+				bindSegmentsExperienceKey = true;
+
+				sb.append(_FINDER_COLUMN_G_SEK_C_C_SEGMENTSEXPERIENCEKEY_2);
+			}
+
+			sb.append(_FINDER_COLUMN_G_SEK_C_C_CLASSNAMEID_2);
+
+			sb.append(_FINDER_COLUMN_G_SEK_C_C_CLASSPK_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(groupId);
+
+				if (bindSegmentsExperienceKey) {
+					queryPos.add(segmentsExperienceKey);
+				}
+
+				queryPos.add(classNameId);
+
+				queryPos.add(classPK);
+
+				List<SegmentsExperience> list = query.list();
+
+				if (list.isEmpty()) {
+					if (useFinderCache && productionMode) {
+						finderCache.putResult(
+							_finderPathFetchByG_SEK_C_C, finderArgs, list);
+					}
+				}
+				else {
+					SegmentsExperience segmentsExperience = list.get(0);
+
+					result = segmentsExperience;
+
+					cacheResult(segmentsExperience);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		if (result instanceof List<?>) {
+			return null;
+		}
+		else {
+			return (SegmentsExperience)result;
+		}
+	}
+
+	/**
+	 * Removes the segments experience where groupId = &#63; and segmentsExperienceKey = &#63; and classNameId = &#63; and classPK = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param segmentsExperienceKey the segments experience key
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @return the segments experience that was removed
+	 */
+	@Override
+	public SegmentsExperience removeByG_SEK_C_C(
+			long groupId, String segmentsExperienceKey, long classNameId,
+			long classPK)
+		throws NoSuchExperienceException {
+
+		SegmentsExperience segmentsExperience = findByG_SEK_C_C(
+			groupId, segmentsExperienceKey, classNameId, classPK);
+
+		return remove(segmentsExperience);
+	}
+
+	/**
+	 * Returns the number of segments experiences where groupId = &#63; and segmentsExperienceKey = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param segmentsExperienceKey the segments experience key
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @return the number of matching segments experiences
+	 */
+	@Override
+	public int countByG_SEK_C_C(
+		long groupId, String segmentsExperienceKey, long classNameId,
+		long classPK) {
+
+		segmentsExperienceKey = Objects.toString(segmentsExperienceKey, "");
+
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			SegmentsExperience.class);
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByG_SEK_C_C;
+
+			finderArgs = new Object[] {
+				groupId, segmentsExperienceKey, classNameId, classPK
+			};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(5);
+
+			sb.append(_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE);
+
+			sb.append(_FINDER_COLUMN_G_SEK_C_C_GROUPID_2);
+
+			boolean bindSegmentsExperienceKey = false;
+
+			if (segmentsExperienceKey.isEmpty()) {
+				sb.append(_FINDER_COLUMN_G_SEK_C_C_SEGMENTSEXPERIENCEKEY_3);
+			}
+			else {
+				bindSegmentsExperienceKey = true;
+
+				sb.append(_FINDER_COLUMN_G_SEK_C_C_SEGMENTSEXPERIENCEKEY_2);
+			}
+
+			sb.append(_FINDER_COLUMN_G_SEK_C_C_CLASSNAMEID_2);
+
+			sb.append(_FINDER_COLUMN_G_SEK_C_C_CLASSPK_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(groupId);
+
+				if (bindSegmentsExperienceKey) {
+					queryPos.add(segmentsExperienceKey);
+				}
+
+				queryPos.add(classNameId);
+
+				queryPos.add(classPK);
+
+				count = (Long)query.uniqueResult();
+
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_G_SEK_C_C_GROUPID_2 =
+		"segmentsExperience.groupId = ? AND ";
+
+	private static final String
+		_FINDER_COLUMN_G_SEK_C_C_SEGMENTSEXPERIENCEKEY_2 =
+			"segmentsExperience.segmentsExperienceKey = ? AND ";
+
+	private static final String
+		_FINDER_COLUMN_G_SEK_C_C_SEGMENTSEXPERIENCEKEY_3 =
+			"(segmentsExperience.segmentsExperienceKey IS NULL OR segmentsExperience.segmentsExperienceKey = '') AND ";
+
+	private static final String _FINDER_COLUMN_G_SEK_C_C_CLASSNAMEID_2 =
+		"segmentsExperience.classNameId = ? AND ";
+
+	private static final String _FINDER_COLUMN_G_SEK_C_C_CLASSPK_2 =
 		"segmentsExperience.classPK = ?";
 
 	private FinderPath _finderPathFetchByG_C_C_P;
@@ -10685,10 +10739,12 @@ public class SegmentsExperiencePersistenceImpl
 			segmentsExperience);
 
 		finderCache.putResult(
-			_finderPathFetchByG_S,
+			_finderPathFetchByG_SEK_C_C,
 			new Object[] {
 				segmentsExperience.getGroupId(),
-				segmentsExperience.getSegmentsExperienceKey()
+				segmentsExperience.getSegmentsExperienceKey(),
+				segmentsExperience.getClassNameId(),
+				segmentsExperience.getClassPK()
 			},
 			segmentsExperience);
 
@@ -10703,6 +10759,8 @@ public class SegmentsExperiencePersistenceImpl
 			segmentsExperience);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the segments experiences in the entity cache if it is enabled.
 	 *
@@ -10710,6 +10768,14 @@ public class SegmentsExperiencePersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<SegmentsExperience> segmentsExperiences) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (segmentsExperiences.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (SegmentsExperience segmentsExperience : segmentsExperiences) {
 			if (segmentsExperience.getCtCollectionId() != 0) {
 				continue;
@@ -10782,12 +10848,15 @@ public class SegmentsExperiencePersistenceImpl
 
 		args = new Object[] {
 			segmentsExperienceModelImpl.getGroupId(),
-			segmentsExperienceModelImpl.getSegmentsExperienceKey()
+			segmentsExperienceModelImpl.getSegmentsExperienceKey(),
+			segmentsExperienceModelImpl.getClassNameId(),
+			segmentsExperienceModelImpl.getClassPK()
 		};
 
-		finderCache.putResult(_finderPathCountByG_S, args, Long.valueOf(1));
 		finderCache.putResult(
-			_finderPathFetchByG_S, args, segmentsExperienceModelImpl);
+			_finderPathCountByG_SEK_C_C, args, Long.valueOf(1));
+		finderCache.putResult(
+			_finderPathFetchByG_SEK_C_C, args, segmentsExperienceModelImpl);
 
 		args = new Object[] {
 			segmentsExperienceModelImpl.getGroupId(),
@@ -10814,7 +10883,7 @@ public class SegmentsExperiencePersistenceImpl
 		segmentsExperience.setNew(true);
 		segmentsExperience.setPrimaryKey(segmentsExperienceId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		segmentsExperience.setUuid(uuid);
 
@@ -10941,7 +11010,7 @@ public class SegmentsExperiencePersistenceImpl
 			(SegmentsExperienceModelImpl)segmentsExperience;
 
 		if (Validator.isNull(segmentsExperience.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			segmentsExperience.setUuid(uuid);
 		}
@@ -10949,25 +11018,25 @@ public class SegmentsExperiencePersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (segmentsExperience.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				segmentsExperience.setCreateDate(now);
+				segmentsExperience.setCreateDate(date);
 			}
 			else {
 				segmentsExperience.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!segmentsExperienceModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				segmentsExperience.setModifiedDate(now);
+				segmentsExperience.setModifiedDate(date);
 			}
 			else {
 				segmentsExperience.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -11133,6 +11202,26 @@ public class SegmentsExperiencePersistenceImpl
 
 			if (segmentsExperience != null) {
 				map.put(primaryKey, segmentsExperience);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -11401,7 +11490,8 @@ public class SegmentsExperiencePersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -11435,7 +11525,6 @@ public class SegmentsExperiencePersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -11461,7 +11550,6 @@ public class SegmentsExperiencePersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK,
 			Collections.singleton("segmentsExperienceId"));
@@ -11471,7 +11559,9 @@ public class SegmentsExperiencePersistenceImpl
 		_uniqueIndexColumnNames.add(new String[] {"uuid_", "groupId"});
 
 		_uniqueIndexColumnNames.add(
-			new String[] {"groupId", "segmentsExperienceKey"});
+			new String[] {
+				"groupId", "segmentsExperienceKey", "classNameId", "classPK"
+			});
 
 		_uniqueIndexColumnNames.add(
 			new String[] {"groupId", "classNameId", "classPK", "priority"});
@@ -11481,13 +11571,9 @@ public class SegmentsExperiencePersistenceImpl
 	 * Initializes the segments experience persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new SegmentsExperienceModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -11584,16 +11670,6 @@ public class SegmentsExperiencePersistenceImpl
 			new String[] {Long.class.getName()},
 			new String[] {"segmentsEntryId"}, false);
 
-		_finderPathFetchByG_S = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByG_S",
-			new String[] {Long.class.getName(), String.class.getName()},
-			new String[] {"groupId", "segmentsExperienceKey"}, true);
-
-		_finderPathCountByG_S = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_S",
-			new String[] {Long.class.getName(), String.class.getName()},
-			new String[] {"groupId", "segmentsExperienceKey"}, false);
-
 		_finderPathWithPaginationFindByG_C_C = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_C",
 			new String[] {
@@ -11649,6 +11725,28 @@ public class SegmentsExperiencePersistenceImpl
 			},
 			new String[] {
 				"groupId", "segmentsEntryId", "classNameId", "classPK"
+			},
+			false);
+
+		_finderPathFetchByG_SEK_C_C = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByG_SEK_C_C",
+			new String[] {
+				Long.class.getName(), String.class.getName(),
+				Long.class.getName(), Long.class.getName()
+			},
+			new String[] {
+				"groupId", "segmentsExperienceKey", "classNameId", "classPK"
+			},
+			true);
+
+		_finderPathCountByG_SEK_C_C = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_SEK_C_C",
+			new String[] {
+				Long.class.getName(), String.class.getName(),
+				Long.class.getName(), Long.class.getName()
+			},
+			new String[] {
+				"groupId", "segmentsExperienceKey", "classNameId", "classPK"
 			},
 			false);
 
@@ -11791,13 +11889,31 @@ public class SegmentsExperiencePersistenceImpl
 				"active_"
 			},
 			false);
+
+		_setSegmentsExperienceUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(SegmentsExperienceImpl.class.getName());
+		_setSegmentsExperienceUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(SegmentsExperienceImpl.class.getName());
+	}
+
+	private void _setSegmentsExperienceUtilPersistence(
+		SegmentsExperiencePersistence segmentsExperiencePersistence) {
+
+		try {
+			Field field = SegmentsExperienceUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, segmentsExperiencePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -11825,8 +11941,6 @@ public class SegmentsExperiencePersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -11891,115 +12005,11 @@ public class SegmentsExperiencePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class SegmentsExperienceModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			SegmentsExperienceModelImpl segmentsExperienceModelImpl =
-				(SegmentsExperienceModelImpl)baseModel;
-
-			long columnBitmask = segmentsExperienceModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					segmentsExperienceModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						segmentsExperienceModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					segmentsExperienceModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return SegmentsExperienceImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return SegmentsExperienceTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			SegmentsExperienceModelImpl segmentsExperienceModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						segmentsExperienceModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = segmentsExperienceModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |=
-				SegmentsExperienceModelImpl.getColumnBitmask("priority");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private SegmentsExperienceModelArgumentsResolver
+		_segmentsExperienceModelArgumentsResolver;
 
 }

@@ -124,4 +124,7 @@ public interface NestedSetsTreeEntryModel
 	 */
 	public void setRightNestedSetsTreeEntryId(long rightNestedSetsTreeEntryId);
 
+	@Override
+	public NestedSetsTreeEntry cloneWithOriginalValues();
+
 }

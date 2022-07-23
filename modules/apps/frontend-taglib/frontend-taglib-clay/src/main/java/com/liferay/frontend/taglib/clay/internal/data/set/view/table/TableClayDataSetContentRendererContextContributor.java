@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Collections;
@@ -68,7 +67,7 @@ public class TableClayDataSetContentRendererContextContributor
 		JSONArray fieldsJSONArray = _jsonFactory.createJSONArray();
 
 		ClayTableSchema clayTableSchema =
-			baseTableClayDataSetDisplayView.getClayTableSchema();
+			baseTableClayDataSetDisplayView.getClayTableSchema(locale);
 
 		Map<String, ClayTableSchemaField> fieldsMap =
 			clayTableSchema.getClayTableSchemaFieldsMap();
@@ -84,42 +83,11 @@ public class TableClayDataSetContentRendererContextContributor
 				label = StringPool.BLANK;
 			}
 
-			JSONObject jsonObject = JSONUtil.put(
-				"actionId", clayTableSchemaField.getActionId()
-			).put(
-				"contentRenderer", clayTableSchemaField.getContentRenderer()
-			).put(
-				"contentRendererModuleURL",
-				clayTableSchemaField.getContentRendererModuleURL()
-			).put(
-				"expand", clayTableSchemaField.isExpand()
-			).put(
-				"label", label
-			).put(
-				"sortable", clayTableSchemaField.isSortable()
-			);
+			JSONObject clayTableSchemaFieldJSONObject =
+				clayTableSchemaField.toJSONObject();
 
-			String fieldName = clayTableSchemaField.getFieldName();
-
-			if (fieldName.contains(StringPool.PERIOD)) {
-				jsonObject.put(
-					"fieldName",
-					StringUtil.split(fieldName, StringPool.PERIOD));
-			}
-			else {
-				jsonObject.put("fieldName", fieldName);
-			}
-
-			ClayTableSchemaField.SortingOrder sortingOrder =
-				clayTableSchemaField.getSortingOrder();
-
-			if (sortingOrder != null) {
-				jsonObject.put(
-					"sortingOrder",
-					StringUtil.toLowerCase(sortingOrder.toString()));
-			}
-
-			fieldsJSONArray.put(jsonObject);
+			fieldsJSONArray.put(
+				clayTableSchemaFieldJSONObject.put("label", label));
 		}
 
 		return HashMapBuilder.<String, Object>put(

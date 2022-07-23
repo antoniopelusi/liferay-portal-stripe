@@ -79,16 +79,16 @@ public class CommerceVirtualOrderItemModelResourcePermissionLogic
 			return false;
 		}
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if ((commerceVirtualOrderItem.getStartDate() != null) &&
-			now.before(commerceVirtualOrderItem.getStartDate())) {
+			date.before(commerceVirtualOrderItem.getStartDate())) {
 
 			return false;
 		}
 
 		if ((commerceVirtualOrderItem.getEndDate() != null) &&
-			now.after(commerceVirtualOrderItem.getEndDate())) {
+			date.after(commerceVirtualOrderItem.getEndDate())) {
 
 			return false;
 		}

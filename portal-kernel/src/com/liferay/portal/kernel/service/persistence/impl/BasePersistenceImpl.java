@@ -31,7 +31,9 @@ import com.liferay.petra.sql.dsl.spi.expression.AggregateExpression;
 import com.liferay.petra.sql.dsl.spi.expression.DSLFunction;
 import com.liferay.petra.sql.dsl.spi.expression.DSLFunctionType;
 import com.liferay.petra.sql.dsl.spi.expression.TableStar;
+import com.liferay.petra.sql.dsl.spi.query.QueryTable;
 import com.liferay.petra.sql.dsl.spi.query.Select;
+import com.liferay.petra.sql.dsl.spi.query.SetOperation;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
@@ -178,8 +180,6 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 
 		dslQuery.toSQL(sb::append, defaultASTNodeListener);
 
-		String[] tableNames = defaultASTNodeListener.getTableNames();
-
 		Select select = null;
 
 		ASTNode astNode = dslQuery;
@@ -188,18 +188,31 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			if (astNode instanceof Select) {
 				select = (Select)astNode;
 
-				break;
+				astNode = _unwrapQueryTable(select);
+
+				if (astNode == null) {
+					break;
+				}
 			}
 
 			BaseASTNode baseASTNode = (BaseASTNode)astNode;
 
-			astNode = baseASTNode.getChild();
+			if (baseASTNode instanceof SetOperation) {
+				SetOperation setOperation = (SetOperation)astNode;
+
+				astNode = setOperation.getLeftDSLQuery();
+			}
+			else {
+				astNode = baseASTNode.getChild();
+			}
 		}
 
 		if (select == null) {
 			throw new IllegalArgumentException(
 				"No Select found for " + dslQuery);
 		}
+
+		String[] tableNames = defaultASTNodeListener.getTableNames();
 
 		ProjectionType projectionType = _getProjectionType(
 			tableNames, select.getExpressions());
@@ -402,6 +415,26 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			return map;
 		}
 
+		if ((databaseInMaxParameters > 0) &&
+			(uncachedPrimaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = uncachedPrimaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
+			}
+
+			return map;
+		}
+
 		StringBundler sb = new StringBundler(
 			(2 * uncachedPrimaryKeys.size()) + 4);
 
@@ -600,15 +633,15 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			_log.error("Caught unexpected exception", exception);
 		}
 		else if (_log.isDebugEnabled()) {
-			_log.debug(exception, exception);
+			_log.debug(exception);
 		}
 
 		return new SystemException(exception);
 	}
 
 	@Override
-	public void registerListener(ModelListener<T> listener) {
-		ModelListenerRegistrationUtil.register(listener);
+	public void registerListener(ModelListener<T> modelListener) {
+		ModelListenerRegistrationUtil.register(modelListener);
 	}
 
 	@Override
@@ -629,16 +662,20 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			model = modelWrapper.getWrappedModel();
 		}
 
-		ModelListener<T>[] listeners = getListeners();
+		ModelListener<T>[] modelListeners = getListeners();
 
-		for (ModelListener<T> listener : listeners) {
-			listener.onBeforeRemove(model);
+		for (ModelListener<T> modelListener : modelListeners) {
+			modelListener.onBeforeRemove(model);
 		}
 
-		model = removeImpl(model);
+		T removedModel = removeImpl(model);
 
-		for (ModelListener<T> listener : listeners) {
-			listener.onAfterRemove(model);
+		if (removedModel != null) {
+			model = removedModel;
+		}
+
+		for (ModelListener<T> modelListener : modelListeners) {
+			modelListener.onAfterRemove(model);
 		}
 
 		return model;
@@ -685,18 +722,18 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	}
 
 	@Override
-	public void unregisterListener(ModelListener<T> listener) {
-		ModelListenerRegistrationUtil.unregister(listener);
+	public void unregisterListener(ModelListener<T> modelListener) {
+		ModelListenerRegistrationUtil.unregister(modelListener);
 	}
 
 	@Override
 	public T update(T model) {
-		Class<?> clazz = model.getModelClass();
-
 		if (ReadOnlyTransactionThreadLocal.isReadOnly()) {
 			throw new IllegalStateException(
 				"Update called with read only transaction");
 		}
+
+		Class<?> clazz = model.getModelClass();
 
 		while (model instanceof ModelWrapper) {
 			ModelWrapper<T> modelWrapper = (ModelWrapper<T>)model;
@@ -720,7 +757,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 					auditedModel.getCompanyId()
 				));
 
-			Long modelCount = dslQuery(groupByStep);
+			int modelCount = dslQueryCount(groupByStep);
 
 			if (modelCount >= _dataLimitModelMaxCount) {
 				throw new DataLimitExceededException(
@@ -729,25 +766,31 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			}
 		}
 
-		ModelListener<T>[] listeners = getListeners();
+		T oldModel = null;
 
-		for (ModelListener<T> listener : listeners) {
+		if (!isNew) {
+			oldModel = model.cloneWithOriginalValues();
+		}
+
+		ModelListener<T>[] modelListeners = getListeners();
+
+		for (ModelListener<T> modelListener : modelListeners) {
 			if (isNew) {
-				listener.onBeforeCreate(model);
+				modelListener.onBeforeCreate(model);
 			}
 			else {
-				listener.onBeforeUpdate(model);
+				modelListener.onBeforeUpdate(oldModel, model);
 			}
 		}
 
 		model = updateImpl(model);
 
-		for (ModelListener<T> listener : listeners) {
+		for (ModelListener<T> modelListener : modelListeners) {
 			if (isNew) {
-				listener.onAfterCreate(model);
+				modelListener.onAfterCreate(model);
 			}
 			else {
-				listener.onAfterUpdate(model);
+				modelListener.onAfterUpdate(oldModel, model);
 			}
 		}
 
@@ -1114,6 +1157,35 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		throw new IllegalArgumentException(expression.toString());
 	}
 
+	private ASTNode _unwrapQueryTable(Select select) {
+		Collection<? extends Expression<?>> expressions =
+			select.getExpressions();
+
+		if (expressions.size() != 1) {
+			return null;
+		}
+
+		Iterator<? extends Expression<?>> iterator = expressions.iterator();
+
+		Expression<?> expression = iterator.next();
+
+		if (!(expression instanceof TableStar)) {
+			return null;
+		}
+
+		TableStar tableStar = (TableStar)expression;
+
+		Table table = tableStar.getTable();
+
+		if (!(table instanceof QueryTable)) {
+			return null;
+		}
+
+		QueryTable queryTable = (QueryTable)table;
+
+		return queryTable.getDslQuery();
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		BasePersistenceImpl.class);
 
@@ -1158,6 +1230,11 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		@Override
 		public Object clone() {
 			return this;
+		}
+
+		@Override
+		public NullModel cloneWithOriginalValues() {
+			throw new UnsupportedOperationException();
 		}
 
 		@Override

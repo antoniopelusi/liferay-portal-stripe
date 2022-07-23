@@ -191,12 +191,12 @@ public class ExpandoValueLocalServiceUtil {
 	public static ExpandoValue addValue(
 			long companyId, String className, String tableName,
 			String columnName, long classPK, Map<java.util.Locale, ?> dataMap,
-			java.util.Locale defautlLocale)
+			java.util.Locale defaultLocale)
 		throws PortalException {
 
 		return getService().addValue(
 			companyId, className, tableName, columnName, classPK, dataMap,
-			defautlLocale);
+			defaultLocale);
 	}
 
 	public static ExpandoValue addValue(
@@ -404,6 +404,10 @@ public class ExpandoValueLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {

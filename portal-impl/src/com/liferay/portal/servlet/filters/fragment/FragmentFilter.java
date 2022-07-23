@@ -18,7 +18,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
@@ -96,7 +96,8 @@ public class FragmentFilter extends BasePortalFilter {
 		httpServletRequest.setAttribute(SKIP_FILTER, Boolean.TRUE);
 
 		if (_log.isDebugEnabled()) {
-			String completeURL = HttpUtil.getCompleteURL(httpServletRequest);
+			String completeURL = HttpComponentsUtil.getCompleteURL(
+				httpServletRequest);
 
 			_log.debug("Fragmenting " + completeURL);
 		}
@@ -110,9 +111,8 @@ public class FragmentFilter extends BasePortalFilter {
 
 		String content = bufferCacheServletResponse.getString();
 
-		content = getContent(httpServletRequest, content);
-
-		ServletResponseUtil.write(httpServletResponse, content);
+		ServletResponseUtil.write(
+			httpServletResponse, getContent(httpServletRequest, content));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(FragmentFilter.class);

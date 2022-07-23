@@ -30,28 +30,28 @@ import javax.naming.directory.SearchResult;
 public class DummyDirContext extends DummyContext implements DirContext {
 
 	@Override
-	public void bind(Name name, Object object, Attributes attrs)
+	public void bind(Name name, Object object, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();
 	}
 
 	@Override
-	public void bind(String name, Object object, Attributes attrs)
+	public void bind(String name, Object object, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();
 	}
 
 	@Override
-	public DirContext createSubcontext(Name name, Attributes attrs)
+	public DirContext createSubcontext(Name name, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();
 	}
 
 	@Override
-	public DirContext createSubcontext(String name, Attributes attrs)
+	public DirContext createSubcontext(String name, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();
@@ -107,7 +107,7 @@ public class DummyDirContext extends DummyContext implements DirContext {
 
 	@Override
 	public void modifyAttributes(
-			Name name, int modificationOp, Attributes attrs)
+			Name name, int modificationOp, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();
@@ -122,7 +122,7 @@ public class DummyDirContext extends DummyContext implements DirContext {
 
 	@Override
 	public void modifyAttributes(
-			String name, int modificationOp, Attributes attrs)
+			String name, int modificationOp, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();
@@ -136,14 +136,14 @@ public class DummyDirContext extends DummyContext implements DirContext {
 	}
 
 	@Override
-	public void rebind(Name name, Object object, Attributes attrs)
+	public void rebind(Name name, Object object, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();
 	}
 
 	@Override
-	public void rebind(String name, Object object, Attributes attrs)
+	public void rebind(String name, Object object, Attributes attributes)
 		throws NamingException {
 
 		throw new OperationNotSupportedException();

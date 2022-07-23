@@ -35,16 +35,12 @@ public abstract class BaseUpgradeBackgroundTaskExecutorClassNames
 			try (LoggingTimer loggingTimer = new LoggingTimer(
 					renameTaskExecutorClassName[0])) {
 
-				StringBundler sb = new StringBundler(5);
-
-				sb.append(
-					"update BackgroundTask set taskExecutorClassName = '");
-				sb.append(renameTaskExecutorClassName[1]);
-				sb.append("' where taskExecutorClassName = '");
-				sb.append(renameTaskExecutorClassName[0]);
-				sb.append("'");
-
-				runSQL(sb.toString());
+				runSQL(
+					StringBundler.concat(
+						"update BackgroundTask set taskExecutorClassName = '",
+						renameTaskExecutorClassName[1],
+						"' where taskExecutorClassName = '",
+						renameTaskExecutorClassName[0], "'"));
 			}
 		}
 	}

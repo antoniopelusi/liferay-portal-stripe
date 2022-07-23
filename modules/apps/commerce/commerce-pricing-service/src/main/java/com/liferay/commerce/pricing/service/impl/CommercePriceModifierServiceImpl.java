@@ -32,21 +32,20 @@ import java.util.List;
 
 /**
  * @author Riccardo Alberti
- * @see CommercePriceModifierServiceBaseImpl
  */
 public class CommercePriceModifierServiceImpl
 	extends CommercePriceModifierServiceBaseImpl {
 
 	@Override
 	public CommercePriceModifier addCommercePriceModifier(
-			long userId, long groupId, String title, String target,
-			long commercePriceListId, String modifierType,
-			BigDecimal modifierAmount, double priority, boolean active,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, ServiceContext serviceContext)
+			long groupId, String title, String target, long commercePriceListId,
+			String modifierType, BigDecimal modifierAmount, double priority,
+			boolean active, int displayDateMonth, int displayDateDay,
+			int displayDateYear, int displayDateHour, int displayDateMinute,
+			int expirationDateMonth, int expirationDateDay,
+			int expirationDateYear, int expirationDateHour,
+			int expirationDateMinute, boolean neverExpire,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		_commercePriceListModelResourcePermission.check(
@@ -59,6 +58,33 @@ public class CommercePriceModifierServiceImpl
 			expirationDateMonth, expirationDateDay, expirationDateYear,
 			expirationDateHour, expirationDateMinute, neverExpire,
 			serviceContext);
+	}
+
+	@Override
+	public CommercePriceModifier addOrUpdateCommercePriceModifier(
+			String externalReferenceCode, long commercePriceModifierId,
+			long groupId, String title, String target, long commercePriceListId,
+			String modifierType, BigDecimal modifierAmount, double priority,
+			boolean active, int displayDateMonth, int displayDateDay,
+			int displayDateYear, int displayDateHour, int displayDateMinute,
+			int expirationDateMonth, int expirationDateDay,
+			int expirationDateYear, int expirationDateHour,
+			int expirationDateMinute, boolean neverExpire,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_commercePriceListModelResourcePermission.check(
+			getPermissionChecker(), commercePriceListId, ActionKeys.UPDATE);
+
+		return commercePriceModifierLocalService.
+			addOrUpdateCommercePriceModifier(
+				externalReferenceCode, getUserId(), commercePriceModifierId,
+				groupId, title, target, commercePriceListId, modifierType,
+				modifierAmount, priority, active, displayDateMonth,
+				displayDateDay, displayDateYear, displayDateHour,
+				displayDateMinute, expirationDateMonth, expirationDateDay,
+				expirationDateYear, expirationDateHour, expirationDateMinute,
+				neverExpire, serviceContext);
 	}
 
 	@Override
@@ -213,31 +239,6 @@ public class CommercePriceModifierServiceImpl
 			displayDateMinute, expirationDateMonth, expirationDateDay,
 			expirationDateYear, expirationDateHour, expirationDateMinute,
 			neverExpire, serviceContext);
-	}
-
-	@Override
-	public CommercePriceModifier upsertCommercePriceModifier(
-			String externalReferenceCode, long userId,
-			long commercePriceModifierId, long groupId, String title,
-			String target, long commercePriceListId, String modifierType,
-			BigDecimal modifierAmount, double priority, boolean active,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, ServiceContext serviceContext)
-		throws PortalException {
-
-		_commercePriceListModelResourcePermission.check(
-			getPermissionChecker(), commercePriceListId, ActionKeys.UPDATE);
-
-		return commercePriceModifierLocalService.upsertCommercePriceModifier(
-			externalReferenceCode, userId, commercePriceModifierId, groupId,
-			title, target, commercePriceListId, modifierType, modifierAmount,
-			priority, active, displayDateMonth, displayDateDay, displayDateYear,
-			displayDateHour, displayDateMinute, expirationDateMonth,
-			expirationDateDay, expirationDateYear, expirationDateHour,
-			expirationDateMinute, neverExpire, serviceContext);
 	}
 
 	private static volatile ModelResourcePermission<CommercePriceList>

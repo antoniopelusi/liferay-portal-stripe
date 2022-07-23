@@ -59,6 +59,36 @@ definition {
 			value1 = "${workflowActivityComment}");
 	}
 
+	macro addAssigneeToRegularRole {
+		Role._goToRoleAssigneeType(
+			assigneeType = "${assigneeType}",
+			roleTitle = "${roleTitle}");
+
+		LexiconEntry.gotoAdd();
+
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		SelectFrame(locator1 = "IFrame#SELECT_ASSIGNEES");
+
+		Search.searchCP(searchTerm = "${assigneeName}");
+
+		var key_userScreenName = "${assigneeName}";
+
+		AssertTextEquals(
+			locator1 = "RolesAssignMembers#USER_TABLE_SCREEN_NAME",
+			value1 = "${assigneeName}");
+
+		var key_assigneeName = "${assigneeName}";
+
+		Check(locator1 = "RolesAssignMembers#ADD_ASSIGNEE_TABLE_CHECKBOX");
+
+		SelectFrameTop(value1 = "relative=top");
+
+		Button.clickAdd();
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro addNewDefinition {
 		LexiconEntry.gotoAdd();
 
@@ -156,10 +186,55 @@ definition {
 			workflowTask = "${workflowTask}");
 	}
 
+	macro assertInfoItem {
+		var taskId = selenium.getText("WorkflowAllItems#WORKFLOW_INSTANCE_ID");
+		var creationDate = selenium.getText("//td[contains(text(),' AM')]|//td[contains(text(),' PM')]");
+		var key_dueDate = "${key_dueDate}";
+		var key_itemSubject = "${key_itemSubject}";
+		var key_processStep = "${key_processStep}";
+		var key_assignee = "${key_assignee}";
+		var key_createdBy = "${key_createdBy}";
+
+		AssertElementPresent(
+			key_columnName = "ID",
+			key_fieldName = "${taskId}",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSERT_TH");
+
+		AssertElementPresent(
+			key_columnName = "Due Date",
+			key_fieldName = "${key_dueDate}",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSERT_SPAN");
+
+		AssertElementPresent(
+			key_columnName = "Item Subject",
+			key_fieldName = "${key_processStep}",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSERT_SPAN");
+
+		AssertElementPresent(
+			key_columnName = "Process Step",
+			key_fieldName = "${key_processStep}",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSERT_TH");
+
+		AssertElementPresent(
+			key_columnName = "Assignee",
+			key_fieldName = "${key_assignee}",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSERT_SPAN");
+
+		AssertElementPresent(
+			key_columnName = "Created By",
+			key_fieldName = "${key_createdBy}",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSERT_SPAN");
+
+		AssertElementPresent(
+			key_columnName = "Creation Date",
+			key_fieldName = "${creationDate}",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSERT_SPAN");
+	}
+
 	macro assignBlogEntriesToUsers {
 		var iterator = "1";
-		var numberOfBlogInstances = MathUtil.sum("${numberOfBlogInstances}", "1");
-		var numberOfUsers = MathUtil.sum("${numberOfUsers}", "1");
+		var numberOfBlogInstances = ${numberOfBlogInstances} + 1;
+		var numberOfUsers = ${numberOfUsers} + 1;
 		var userCount = "1";
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
@@ -174,11 +249,11 @@ definition {
 			Workflow.assignTaskToUser(
 				assetTitle = "Blogs Entry Title",
 				assetType = "Blogs Entry",
-				assigneeName = "${userCount}user user${userCount}",
+				assigneeName = "${userCount}user (${userCount}user user${userCount})",
 				workflowTask = "Review");
 
-			var iterator = MathUtil.sum("${iterator}", "1");
-			var userCount = MathUtil.sum("${userCount}", "1");
+			var iterator = ${iterator} + 1;
+			var userCount = ${userCount} + 1;
 		}
 	}
 
@@ -191,15 +266,9 @@ definition {
 
 		IFrame.selectConfigurationFrame();
 
-		Click(locator1 = "MyWorkflowTasks#DIALOG_BOX_ASSIGN_TO_SELECT");
-
-		Pause(locator1 = "1000");
-
-		Click(
-			key_user = "${user}",
-			locator1 = "MyWorkflowTasks#DIALOG_BOX_ASSIGN_TO_VALUE");
-
-		Pause(locator1 = "1000");
+		Select(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_ASSIGN_TO_SELECT",
+			value1 = "${user}");
 
 		if (isSet(comment)) {
 			Type(
@@ -215,10 +284,10 @@ definition {
 	}
 
 	macro assignTaskToUser {
-		key_assetTitle = "${assetTitle}";
-		key_assetType = "${assetType}";
-		key_assigneeName = "${assigneeName}";
-		key_workflowTask = "${workflowTask}";
+		var key_assetTitle = "${assetTitle}";
+		var key_assetType = "${assetType}";
+		var key_assigneeName = "${assigneeName}";
+		var key_workflowTask = "${workflowTask}";
 
 		Workflow.viewPendingTasks(
 			workflowAssetTitle = "${assetTitle}",
@@ -347,6 +416,8 @@ definition {
 	macro configureWorkflow {
 		var key_workflowResourceValue = "${workflowResourceValue}";
 
+		Search.searchCP(searchTerm = "${workflowResourceValue}");
+
 		AssertClick.pauseAssertTextClickAt(
 			key_rowEntry = "${workflowResourceValue}",
 			locator1 = "Button#EDIT_ROW",
@@ -378,6 +449,38 @@ definition {
 			workflowResourceValue = "${workflowResourceValue}");
 	}
 
+	macro configureWorkflowCancel {
+		var key_workflowResourceValue = "${workflowResourceValue}";
+
+		AssertClick.pauseAssertTextClickAt(
+			key_rowEntry = "${workflowResourceValue}",
+			locator1 = "Button#EDIT_ROW",
+			value1 = "Edit");
+
+		if (IsNotVisible(locator1 = "WorkflowConfiguration#RESOURCE_TABLE_SELECT")) {
+			Refresh();
+
+			WaitForSPARefresh();
+
+			AssertClick.pauseAssertTextClickAt(
+				key_rowEntry = "${workflowResourceValue}",
+				locator1 = "Button#EDIT_ROW",
+				value1 = "Edit");
+		}
+
+		Select(
+			locator1 = "WorkflowConfiguration#RESOURCE_TABLE_SELECT",
+			value1 = "${workflowDefinition}");
+
+		AssertClick(
+			locator1 = "WorkflowConfiguration#RESOURCE_TABLE_CANCEL",
+			value1 = "Cancel");
+
+		Workflow.viewConfigurationSelected(
+			workflowDefinition = "${workflowDefinitionEnd}",
+			workflowResourceValue = "${workflowResourceValue}");
+	}
+
 	macro configureWorkflowViaPortlet {
 		LexiconEntry.gotoHeaderMenuItem(menuItem = "Edit");
 
@@ -394,8 +497,6 @@ definition {
 		AssertElementPresent(locator1 = "Button#DONE");
 
 		Click(locator1 = "Button#DONE");
-
-		WaitForLiferayEvent.initializeLiferayEventLog();
 	}
 
 	macro createWorkflowBlogInstance {
@@ -447,6 +548,23 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
+	macro duplicateNotPublishedWorkflow {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Click(
+			key_workflowDefinitionTitle = "${workflowName}",
+			locator1 = "WorkflowDefinition#DEFINITION_TABLE_SPECIFIC_DEFINITION_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Duplicate");
+
+		Button.click(button = "Duplicate");
+
+		PortletEntry.inputTitle(title = "${workflowCopyName}");
+	}
+
 	macro duplicateSingleApproverWorkflow {
 		ApplicationsMenu.gotoPortlet(
 			category = "Workflow",
@@ -461,9 +579,7 @@ definition {
 
 		Button.click(button = "Duplicate");
 
-		Type(
-			locator1 = "WorkflowDefinition#DEFINITION_TITLE",
-			value1 = "${workflowName}");
+		PortletEntry.inputTitle(title = "${workflowName}");
 
 		ScrollWebElementIntoView(
 			key_text = "Update",
@@ -561,8 +677,38 @@ definition {
 		Workflow.gotoPreviewView();
 	}
 
+	macro openNotifications {
+		Navigator.openSpecificURL(url = "/group/control_panel/manage?p_p_id=com_liferay_notifications_web_portlet_NotificationsPortlet&p_p_lifecycle=0&p_p_state=maximized&p_v_l_s_g_id=42619&p_p_auth=1njFlr6I");
+	}
+
 	macro openWorkflowAdmin {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_portal_workflow_web_internal_portlet_SiteAdministrationWorkflowPortlet");
+	}
+
+	macro openWorkflowListView {
+		Navigator.openSpecificURL(url = "/group/control_panel/manage?p_p_id=com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet_tab=workflows");
+	}
+
+	macro openWorkflowProcessBuilderConfiguration {
+		Navigator.openSpecificURL(url = "/group/control_panel/manage?p_p_id=com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet_tab=configuration");
+	}
+
+	macro permissionsWorkflowDefinition {
+		var key_workflowDefinitionTitle = "${workflowDefinitionTitle}";
+
+		Click(locator1 = "WorkflowDefinition#DEFINITION_TABLE_SPECIFIC_DEFINITION_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Permissions");
+
+		AssertElementPresent(locator1 = "WorkflowDefinition#DEFINITION_TABLE_TITLE_PERMISSIONS");
+	}
+
+	macro processBuilderFilterAndOrder {
+		var key_optionOrder = "${optionOrder}";
+
+		Click(locator1 = "AssetWorkflow#PROCESS_BUILDER_FILTER_AND_ORDER_BUTTON");
+
+		Click(locator1 = "AssetWorkflow#PROCESS_BUILDER_FILTER_AND_ORDER_OPTION");
 	}
 
 	macro publishExistingWorkflowDefinition {
@@ -572,11 +718,7 @@ definition {
 
 		MenuItem.click(menuItem = "Edit");
 
-		Workflow.viewDefinitionPublicationStatus(status = "Not Published");
-
 		PortletEntry.publish();
-
-		Workflow.viewDefinitionPublicationStatus(status = "Published");
 	}
 
 	macro publishInvalidWorkflowDefinition {
@@ -703,11 +845,37 @@ definition {
 	}
 
 	macro saveDefinition {
-		AssertClick(
-			locator1 = "KaleoDesigner#SAVE_BUTTON",
-			value1 = "Save");
+		if ("${newKaleoDesigner}" == "True") {
+			AssertClick(
+				locator1 = "KaleoDesigner#SAVE_BUTTON",
+				value1 = "Save");
+		}
+		else {
+			AssertClick(
+				locator1 = "KaleoDesigner#SAVE_BUTTON",
+				value1 = "Save");
 
-		Alert.viewSuccessMessage();
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	macro searchFieldPresent {
+		Type(
+			locator1 = "WorkflowMetricsProcessListView#METRICS_WORKFLOW_SEARCH_BAR",
+			value1 = "${fieldName}");
+
+		Click(locator1 = "WorkflowConfiguration#PROCESS_BUILDER_SEARCH_BAR_BUTTON");
+
+		Pause(locator1 = "1000");
+	}
+
+	macro setWorkflowToMiniumChannel {
+		Select(
+			key_title = "Buyer Order Approval Workflow",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "${workflowDefinition}");
+
+		Button.clickSave();
 	}
 
 	macro tearDownPortalWorkflow {
@@ -745,7 +913,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Web Content");
 
@@ -803,6 +971,12 @@ definition {
 		MenuItem.clickNoError(menuItem = "Unpublish");
 
 		Alert.viewSuccessMessage();
+	}
+
+	macro updateDefinition {
+		PortletEntry.inputTitle(title = "${workflowDefinitionTitle}");
+
+		Button.click(button = "Update");
 	}
 
 	macro updateDueDateAssignedToMeTaskByActions {
@@ -907,10 +1081,6 @@ definition {
 			workflowAssetTitle = "${workflowAssetTitle}",
 			workflowAssetType = "${workflowAssetType}",
 			workflowTask = "${workflowTask}");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_DUE_DATE",
-			value1 = "Within");
 	}
 
 	macro uploadDefinition {
@@ -920,21 +1090,26 @@ definition {
 			KaleoDesigner.viewSourceXMLTab();
 		}
 
-		UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
-			locator1 = "TextInput#FILE",
-			value1 = "${workflowDefinitionFile}");
+		UploadDependencyFile.uploadFile(fileName = "${workflowDefinitionFile}");
 
 		Alert.viewSuccessMessageText(successMessage = "Definition imported successfully.");
 
-		Alert.closeMessage(messageType = "SUCCESS");
+		if (isSet(errorMessage)) {
+			AssertClickNoError(
+				locator1 = "Button#PUBLISH",
+				value1 = "Publish");
 
-		PortletEntry.publish();
+			Alert.viewErrorMessage(errorMessage = "${errorMessage}");
+		}
+		else {
+			PortletEntry.publish();
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "Portlet#HEADER",
-			value1 = "${workflowDefinitionTitle}");
+			AssertTextEquals.assertPartialText(
+				locator1 = "Portlet#HEADER",
+				value1 = "${workflowDefinitionTitle}");
 
-		Navigator.gotoBack();
+			Navigator.gotoBack();
+		}
 	}
 
 	macro viewAssignedToMyRolesTasksCP {
@@ -1216,6 +1391,12 @@ definition {
 		AssertElementNotPresent(locator1 = "MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_ASSET_TITLE_DUPLICATE");
 	}
 
+	macro viewNotPresentWorkflowStatus {
+		AssertElementNotPresent(
+			key_status = "${statusNotPresent}",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS");
+	}
+
 	macro viewPendingTasks {
 		Workflow._gotoPendingFilter();
 
@@ -1375,7 +1556,9 @@ definition {
 
 		while (IsElementNotPresent(locator1 = "MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_LAST_ACTIVITY_DATE") && (maxIterations = "10")) {
 			Navigator.gotoNavTab(navTab = "Assigned to Me");
+
 			Navigator.gotoNavTab(navTab = "Assigned to My Roles");
+
 			Pause(locator1 = "1000");
 		}
 
@@ -1449,6 +1632,21 @@ definition {
 		AssertTextEquals(
 			locator1 = "TextInput#TITLE",
 			value1 = "${webContentTitle}");
+	}
+
+	macro viewWorkflowDefinition {
+		var key_workflowDefinitionTitle = "${workflowDefinitionTitle}";
+
+		Click(locator1 = "WorkflowDefinition#DEFINITION_TABLE_SPECIFIC_DEFINITION_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "View");
+	}
+
+	macro viewWorkflowStatus {
+		AssertTextEquals(
+			key_status = "${status}",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS",
+			value1 = "${status}");
 	}
 
 	macro webContentGoToAddCP {

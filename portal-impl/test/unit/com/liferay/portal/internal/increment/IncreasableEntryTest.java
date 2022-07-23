@@ -86,15 +86,11 @@ public class IncreasableEntryTest {
 		IncreasableEntry<String, Integer> increasableEntry =
 			new IntegerIncreasableEntry("test", 0);
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{key=");
-		sb.append(increasableEntry.getKey());
-		sb.append(", value=");
-		sb.append(increasableEntry.getValue());
-		sb.append("}");
-
-		Assert.assertEquals(sb.toString(), increasableEntry.toString());
+		Assert.assertEquals(
+			StringBundler.concat(
+				"{key=", increasableEntry.getKey(), ", value=",
+				increasableEntry.getValue(), "}"),
+			increasableEntry.toString());
 	}
 
 	private static class IntegerIncreasableEntry

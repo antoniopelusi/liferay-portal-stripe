@@ -229,12 +229,13 @@ renderResponse.setTitle(headerTitle);
 				<liferay-ui:message key="the-source-file-does-not-have-the-same-extension-as-the-original-file" />
 			</liferay-ui:error>
 
-			<%
-			long fileMaxSize = dlEditFileEntryDisplayContext.getMaximumUploadSize();
-			%>
-
 			<liferay-ui:error exception="<%= FileSizeException.class %>">
-				<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(fileMaxSize, locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
+
+				<%
+				FileSizeException fileSizeException = (FileSizeException)errorException;
+				%>
+
+				<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(fileSizeException.getMaxSize(), locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= UploadRequestSizeException.class %>">
@@ -249,6 +250,11 @@ renderResponse.setTitle(headerTitle);
 
 			<aui:fieldset-group markupView="lexicon">
 				<aui:fieldset>
+
+					<%
+					long fileMaxSize = dlEditFileEntryDisplayContext.getMaximumUploadSize();
+					%>
+
 					<c:if test="<%= fileMaxSize != 0 %>">
 						<div class="alert alert-info">
 							<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(fileMaxSize, locale) %>" key="upload-documents-no-larger-than-x" translateArguments="<%= false %>" />
@@ -291,8 +297,13 @@ renderResponse.setTitle(headerTitle);
 								if (selectFolderButton) {
 									selectFolderButton.addEventListener('click', (event) => {
 										Liferay.Util.openSelectionModal({
-											id: '<portlet:namespace />selectFolder',
+											eventName: '<portlet:namespace />folderSelected',
+											multiple: false,
 											onSelect: function (selectedItem) {
+												if (!selectedItem) {
+													return;
+												}
+
 												var folderData = {
 													idString: 'folderId',
 													idValue: selectedItem.folderid,
@@ -302,15 +313,20 @@ renderResponse.setTitle(headerTitle);
 
 												Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
 											},
-											selectEventName: '<portlet:namespace />selectFolder',
 											title: '<liferay-ui:message arguments="folder" key="select-x" />',
 
-											<liferay-portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-												<portlet:param name="mvcRenderCommandName" value="/document_library/select_folder" />
-												<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
-											</liferay-portlet:renderURL>
+											<%
+											ItemSelector itemSelector = (ItemSelector)request.getAttribute(ItemSelector.class.getName());
 
-											url: '<%= selectFolderURL.toString() %>',
+											FolderItemSelectorCriterion folderItemSelectorCriterion = new FolderItemSelectorCriterion();
+
+											folderItemSelectorCriterion.setDesiredItemSelectorReturnTypes(new FolderItemSelectorReturnType());
+											folderItemSelectorCriterion.setFolderId(folderId);
+
+											PortletURL selectFolderURL = itemSelector.getItemSelectorURL(RequestBackedPortletURLFactoryUtil.create(request), portletDisplay.getNamespace() + "folderSelected", folderItemSelectorCriterion);
+											%>
+
+											url: '<%= HtmlUtil.escapeJS(selectFolderURL.toString()) %>',
 										});
 									});
 								}
@@ -457,7 +473,7 @@ renderResponse.setTitle(headerTitle);
 									}
 								}
 								catch (Exception e) {
-									_log.error(e, e);
+									_log.error(e);
 								}
 								%>
 
@@ -496,7 +512,7 @@ renderResponse.setTitle(headerTitle);
 				%>
 
 				<c:if test="<%= !scopeGroup.isCompany() && !scopeGroup.isDepot() %>">
-					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="display-page-template">
+					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="display-page">
 						<liferay-asset:select-asset-display-page
 							classNameId="<%= PortalUtil.getClassNameId(FileEntry.class) %>"
 							classPK="<%= (fileEntry != null) ? fileEntry.getFileEntryId() : 0 %>"
@@ -535,8 +551,55 @@ renderResponse.setTitle(headerTitle);
 							className="<%= DLFileEntry.class.getName() %>"
 							classPK="<%= assetClassPK %>"
 						/>
-					</aui:fieldset>
 
+						<c:if test="<%= (fileEntry != null) && dlAdminDisplayContext.isAutoTaggingEnabled() %>">
+							<clay:checkbox
+								checked="<%= false %>"
+								id='<%= liferayPortletResponse.getNamespace() + "updateAutoTags" %>'
+								label='<%= LanguageUtil.get(request, "update-auto-tags") %>'
+								name='<%= liferayPortletResponse.getNamespace() + "updateAutoTags" %>'
+							/>
+
+							<div class="ml-4">
+								<small class="text-secondary">
+									<liferay-ui:message key="update-auto-tags-help" />
+								</small>
+							</div>
+						</c:if>
+					</aui:fieldset>
+				</c:if>
+
+				<c:if test="<%= !RepositoryUtil.isExternalRepository(repositoryId) %>">
+					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="expiration-date">
+						<liferay-ui:error exception="<%= FileEntryExpirationDateException.class %>" message="please-enter-a-valid-expiration-date" />
+						<liferay-ui:error exception="<%= FileEntryReviewDateException.class %>" message="please-enter-a-valid-review-date" />
+
+						<p class="text-secondary">
+							<liferay-ui:message key="including-an-expiration-date-will-allow-your-documents-or-media-to-expire-automatically-and-become-unpublished" />
+						</p>
+
+						<aui:input dateTogglerCheckboxLabel="never-expire" disabled="<%= dlEditFileEntryDisplayContext.isNeverExpire() %>" name="expirationDate" wrapperCssClass="expiration-date" />
+
+						<aui:input dateTogglerCheckboxLabel="never-review" disabled="<%= dlEditFileEntryDisplayContext.isNeverReview() %>" name="reviewDate" wrapperCssClass="review-date" />
+					</aui:fieldset>
+				</c:if>
+
+				<c:if test="<%= FFFriendlyURLEntryFileEntryConfigurationUtil.enabled() %>">
+					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="friendly-url">
+						<liferay-friendly-url:input
+							className="<%= FileEntry.class.getName() %>"
+							classPK="<%= fileEntryId %>"
+							inputAddon="<%= dlEditFileEntryDisplayContext.getFriendlyURLBase() %>"
+							localizable="<%= false %>"
+							name="urlTitle"
+							showHistory="<%= true %>"
+						/>
+
+						<p class="text-secondary"><liferay-ui:message key="the-friendly-url-may-be-modified-to-ensure-uniqueness" /></p>
+					</aui:fieldset>
+				</c:if>
+
+				<c:if test="<%= (folder == null) || folder.isSupportsSocial() %>">
 					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="related-assets">
 						<liferay-asset:input-asset-links
 							className="<%= DLFileEntry.class.getName() %>"
@@ -679,6 +742,11 @@ renderResponse.setTitle(headerTitle);
 
 	function <portlet:namespace />updateFileNameAndTitle() {
 		var titleElement = document.getElementById('<portlet:namespace />title');
+
+		var urlTitleElement = document.getElementById(
+			'<portlet:namespace />urlTitle'
+		);
+
 		var fileNameElement = document.getElementById(
 			'<portlet:namespace />fileName'
 		);
@@ -693,6 +761,10 @@ renderResponse.setTitle(headerTitle);
 
 			if (fileNameElement && !fileNameElement.value) {
 				fileNameElement.value = fileFileName;
+			}
+
+			if (urlTitleElement && !urlTitleElement.value) {
+				urlTitleElement.value = fileFileName.replace(/\.[^.]*$/, '');
 			}
 		}
 

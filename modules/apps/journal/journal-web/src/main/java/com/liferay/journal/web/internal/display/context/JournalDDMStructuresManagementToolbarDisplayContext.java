@@ -69,7 +69,7 @@ public class JournalDDMStructuresManagementToolbarDisplayContext
 		return DropdownItemListBuilder.add(
 			dropdownItem -> {
 				dropdownItem.putData("action", "deleteDDMStructures");
-				dropdownItem.setIcon("times-circle");
+				dropdownItem.setIcon("trash");
 				dropdownItem.setLabel(
 					LanguageUtil.get(httpServletRequest, "delete"));
 				dropdownItem.setQuickAction(true);
@@ -170,7 +170,7 @@ public class JournalDDMStructuresManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -184,7 +184,7 @@ public class JournalDDMStructuresManagementToolbarDisplayContext
 
 	@Override
 	protected String[] getOrderByKeys() {
-		return new String[] {"modified-date", "id"};
+		return new String[] {"name", "modified-date", "id"};
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

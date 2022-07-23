@@ -43,17 +43,17 @@ public class KBArticleServiceUtil {
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.knowledge.base.service.impl.KBArticleServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
 	public static KBArticle addKBArticle(
-			String portletId, long parentResourceClassNameId,
-			long parentResourcePrimKey, String title, String urlTitle,
-			String content, String description, String sourceURL,
-			String[] sections, String[] selectedFileNames,
+			String externalReferenceCode, String portletId,
+			long parentResourceClassNameId, long parentResourcePrimKey,
+			String title, String urlTitle, String content, String description,
+			String sourceURL, String[] sections, String[] selectedFileNames,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addKBArticle(
-			portletId, parentResourceClassNameId, parentResourcePrimKey, title,
-			urlTitle, content, description, sourceURL, sections,
-			selectedFileNames, serviceContext);
+			externalReferenceCode, portletId, parentResourceClassNameId,
+			parentResourcePrimKey, title, urlTitle, content, description,
+			sourceURL, sections, selectedFileNames, serviceContext);
 	}
 
 	public static int addKBArticlesMarkdown(
@@ -125,6 +125,14 @@ public class KBArticleServiceUtil {
 		throws PortalException {
 
 		return getService().fetchLatestKBArticle(resourcePrimKey, status);
+	}
+
+	public static KBArticle fetchLatestKBArticleByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().fetchLatestKBArticleByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	public static KBArticle fetchLatestKBArticleByUrlTitle(
@@ -262,6 +270,14 @@ public class KBArticleServiceUtil {
 		throws PortalException {
 
 		return getService().getLatestKBArticle(resourcePrimKey, status);
+	}
+
+	public static KBArticle getLatestKBArticleByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getLatestKBArticleByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	/**

@@ -12,17 +12,27 @@
  * details.
  */
 
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import {VIEWPORT_SIZES} from '../../../../../../app/config/constants/viewportSizes';
+import {COMMON_STYLES_ROLES} from '../../../../../../app/config/constants/commonStylesRoles';
+import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../../app/config/constants/layoutDataItemTypes';
 import {config} from '../../../../../../app/config/index';
+import {
+	useDispatch,
+	useSelector,
+} from '../../../../../../app/contexts/StoreContext';
 import selectSegmentsExperienceId from '../../../../../../app/selectors/selectSegmentsExperienceId';
-import {useDispatch, useSelector} from '../../../../../../app/store/index';
-import updateItemConfig from '../../../../../../app/thunks/updateItemConfig';
-import {FieldSet} from './FieldSet';
+import updateItemStyle from '../../../../../../app/utils/updateItemStyle';
+import {FieldSet, fieldIsDisabled} from './FieldSet';
 
-export const CommonStyles = ({commonStylesValues, item}) => {
+export function CommonStyles({
+	className,
+	commonStylesValues,
+	role = COMMON_STYLES_ROLES.styles,
+	item,
+}) {
 	const {commonStyles} = config;
 	const dispatch = useDispatch();
 	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
@@ -30,37 +40,80 @@ export const CommonStyles = ({commonStylesValues, item}) => {
 		(state) => state.selectedViewportSize
 	);
 
-	const onCommonStylesValueSelect = (name, value) => {
-		let itemConfig = {
-			styles: {
-				[name]: value,
-			},
-		};
+	let styles = commonStyles;
 
-		if (selectedViewportSize !== VIEWPORT_SIZES.desktop) {
-			itemConfig = {
-				[selectedViewportSize]: {
-					styles: {
-						[name]: value,
-					},
-				},
-			};
-		}
+	styles = styles.filter((fieldSet) =>
+		role === COMMON_STYLES_ROLES.general
+			? fieldSet.configurationRole === COMMON_STYLES_ROLES.general
+			: fieldSet.configurationRole !== COMMON_STYLES_ROLES.general
+	);
 
-		dispatch(
-			updateItemConfig({
-				itemConfig,
-				itemId: item.itemId,
-				segmentsExperienceId,
-			})
-		);
+	if (item.type === LAYOUT_DATA_ITEM_TYPES.collection) {
+		styles = styles
+			.filter((fieldSet) =>
+				fieldSet.styles.find((field) => field.name === 'display')
+			)
+			.map((fieldSet) => {
+				return {
+					...fieldSet,
+					styles: fieldSet.styles.filter(
+						(field) => field.name === 'display'
+					),
+				};
+			});
+	}
+
+	const handleValueSelect = (name, value) => {
+		updateItemStyle({
+			dispatch,
+			itemId: item.itemId,
+			segmentsExperienceId,
+			selectedViewportSize,
+			styleName: name,
+			styleValue: value,
+		});
 	};
+
+	const spacingFieldSets = styles
+		.filter((fieldSet) => isSpacingFieldSet(fieldSet))
+		.map((fieldSet) => ({
+			...fieldSet,
+			styles: fieldSet.styles.map((field) => ({
+				...field,
+				disabled: fieldIsDisabled(item, field),
+			})),
+		}));
+
+	if (spacingFieldSets.length) {
+		styles = styles.filter((fieldSet) => !isSpacingFieldSet(fieldSet));
+	}
 
 	return (
 		<>
-			<h1 className="sr-only">{Liferay.Language.get('common-styles')}</h1>
-			<div className="page-editor__row-styles-panel__common-styles">
-				{commonStyles.map((fieldSet, index) => {
+			<div
+				className={classNames('page-editor__common-styles', className)}
+			>
+				{spacingFieldSets.length ? (
+					<FieldSet
+						fields={[
+							{
+								displaySize: '',
+								label: '',
+								name: '',
+								responsive: true,
+								type: 'spacing',
+								typeOptions: {spacingFieldSets},
+							},
+						]}
+						item={item}
+						label={Liferay.Language.get('spacing')}
+						languageId={config.defaultLanguageId}
+						onValueSelect={handleValueSelect}
+						values={commonStylesValues}
+					/>
+				) : null}
+
+				{styles.map((fieldSet, index) => {
 					return (
 						<FieldSet
 							fields={fieldSet.styles}
@@ -68,7 +121,7 @@ export const CommonStyles = ({commonStylesValues, item}) => {
 							key={index}
 							label={fieldSet.label}
 							languageId={config.defaultLanguageId}
-							onValueSelect={onCommonStylesValueSelect}
+							onValueSelect={handleValueSelect}
 							values={commonStylesValues}
 						/>
 					);
@@ -76,7 +129,14 @@ export const CommonStyles = ({commonStylesValues, item}) => {
 			</div>
 		</>
 	);
-};
+}
+
+function isSpacingFieldSet(fieldSet) {
+	return (
+		fieldSet.styles.every((field) => field.name.startsWith('margin')) ||
+		fieldSet.styles.every((field) => field.name.startsWith('padding'))
+	);
+}
 
 CommonStyles.propTypes = {
 	commonStylesValues: PropTypes.object.isRequired,

@@ -56,10 +56,10 @@ definition {
 
 	macro loginPG {
 		if ("${samlEnabled}" != "true") {
-			User.loginLocalizationPG(localization = "${localization}");
+			User._clickSignInLink(localization = "${localization}");
 		}
 
-		if ((isSet(authenticationMethod)) && ("${authenticationMethod}" == "By Screen Name")) {
+		if (isSet(authenticationMethod) && ("${authenticationMethod}" == "By Screen Name")) {
 			Type(
 				locator1 = "TextInput#SCREEN_NAME",
 				value1 = "${userScreenName}");
@@ -74,23 +74,16 @@ definition {
 			locator1 = "TextInput#PASSWORD",
 			value1 = "${password}");
 
-		if ((isSet(rememberMeChecked)) && ("${rememberMeChecked}" == "true")) {
+		if (isSet(rememberMeChecked) && ("${rememberMeChecked}" == "true")) {
 			Check(locator1 = "Checkbox#REMEMBER_ME");
 		}
 
-		if (isSet(localization)) {
-			var localizedSignIn = User._signInLocalization(localization = "${localization}");
-
-			Button.click(button = "${localizedSignIn}");
-		}
-		else {
-			Button.click(button = "Sign In");
-		}
+		User._clickSignInButton(localization = "${localization}");
 
 		if (IsElementPresent(locator1 = "Message#ERROR_FORM_FIELD_REQUIRED")) {
 			echo("Sign in failed due to empty required field. Retrying...");
 
-			if ((isSet(authenticationMethod)) && ("${authenticationMethod}" == "By Screen Name")) {
+			if (isSet(authenticationMethod) && ("${authenticationMethod}" == "By Screen Name")) {
 				Type(
 					locator1 = "TextInput#SCREEN_NAME",
 					value1 = "${userScreenName}");
@@ -114,10 +107,7 @@ definition {
 
 		User.acceptEndUserLicenseAgreement();
 
-		User.resetPassword(
-			resetPassword = "${resetPassword}",
-			setupWizardEnabled = "${setupWizardEnabled}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
+		User.resetPassword(newPassword = "${newPassword}");
 
 		User.answerPasswordReminder();
 	}
@@ -125,7 +115,7 @@ definition {
 	macro miniumLogin {
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -151,7 +141,7 @@ definition {
 	macro speedwellLogin {
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 

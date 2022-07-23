@@ -2,11 +2,13 @@
 <head>
 <title>MessageBoardsThread</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">MessageBoardsThread</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>TITLE_HEADER</td>
@@ -27,6 +29,26 @@
 <tr>
 	<td>THREAD_BODY_2</td>
 	<td>xpath=(//div[contains(@class,'message-content') and contains(.,'${key_threadBody}')])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>THREAD_BODY_BOLD</td>
+	<td>//div[contains(@class,'message-content') and contains(.,'${key_threadBody}')]/strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>THREAD_BODY_IMAGE</td>
+	<td>//div[contains(@class,'message-content') and contains(.,'${key_threadBody}')]//img[contains(@src,'${key_imageFileName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>THREAD_FORMAT_SELECT</td>
+	<td>//select[contains(@id,'PortletConfigurationPortlet') and contains(@id,'messageFormat')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>THREAD_PRIORITY_SELECT</td>
+	<td>//select[contains(@id,'MBPortlet') and contains(@id,'priority')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -56,12 +78,12 @@
 </tr>
 <tr>
 	<td>THREAD_USERNAME</td>
-	<td>//div[@class='panel-heading' and contains(.,'${key_threadSubject}')]//h5[contains(.,'${key_userName}')]</td>
+	<td>//div[@class='panel-heading' and contains(.,'${key_threadSubject}')]//span[contains(.,'${key_userName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>THREAD_USERNAME_2</td>
-	<td>xpath=(//div[@class='panel-heading' and contains(.,'${key_threadSubject}')]//h5[contains(.,'${key_userName}')])[2]</td>
+	<td>xpath=(//div[@class='panel-heading' and contains(.,'${key_threadSubject}')]//span[contains(.,'${key_userName}')])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -143,6 +165,11 @@
 <tr>
 	<td>MESSAGE_BODY_ATTACHMENT_1</td>
 	<td>//li[@class='message-attachment']/span/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MESSAGE_BODY_ATTACHMENT_LIST</td>
+	<td>//li[@class='message-attachment'][${index}]/span/a</td>
 	<td></td>
 </tr>
 </tbody>

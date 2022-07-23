@@ -237,6 +237,11 @@ public class FragmentEntryLinkWrapper
 		}
 	}
 
+	@Override
+	public FragmentEntryLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this fragment entry link.
 	 *

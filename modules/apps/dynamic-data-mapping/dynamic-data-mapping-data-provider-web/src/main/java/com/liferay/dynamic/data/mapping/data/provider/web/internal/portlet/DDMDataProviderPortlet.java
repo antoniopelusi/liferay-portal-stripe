@@ -74,17 +74,13 @@ public class DDMDataProviderPortlet extends MVCPortlet {
 			new DDMDataProviderDisplayContext(
 				renderRequest, renderResponse, _ddmDataProviderDisplayTracker,
 				_ddmDataProviderInstanceService, _ddmDataProviderTracker,
-				_ddmFormRenderer, getDDMFormValuesDeserializer(),
+				_ddmFormRenderer, _jsonDDMFormValuesDeserializer,
 				_userLocalService);
 
 		renderRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT, ddmDataProviderDisplayContext);
 
 		super.render(renderRequest, renderResponse);
-	}
-
-	protected DDMFormValuesDeserializer getDDMFormValuesDeserializer() {
-		return _jsonDDMFormValuesDeserializer;
 	}
 
 	@Reference(unbind = "-")

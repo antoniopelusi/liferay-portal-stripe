@@ -42,7 +42,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.ResourceBundle;
 
-import javax.portlet.PortletURL;
 import javax.portlet.WindowState;
 
 import org.osgi.service.component.annotations.Component;
@@ -103,26 +102,12 @@ public class InviteMembersUserNotificationHandler
 
 		String title = ResourceBundleUtil.getString(
 			resourceBundle, "x-invited-you-to-join-x",
-			getUserNameLink(memberRequest.getUserId(), serviceContext),
-			getSiteDescriptiveName(memberRequest.getGroupId(), serviceContext));
+			_getUserNameLink(memberRequest.getUserId(), serviceContext),
+			_getSiteDescriptiveName(
+				memberRequest.getGroupId(), serviceContext));
 
 		LiferayPortletResponse liferayPortletResponse =
 			serviceContext.getLiferayPortletResponse();
-
-		PortletURL confirmURL = PortletURLBuilder.createActionURL(
-			liferayPortletResponse, InviteMembersPortletKeys.INVITE_MEMBERS
-		).setActionName(
-			"updateMemberRequest"
-		).setParameter(
-			"memberRequestId", memberRequestId
-		).setParameter(
-			"status", MembershipRequestConstants.STATUS_APPROVED
-		).setParameter(
-			"userNotificationEventId",
-			userNotificationEvent.getUserNotificationEventId()
-		).setWindowState(
-			WindowState.NORMAL
-		).build();
 
 		return StringUtil.replace(
 			getBodyTemplate(),
@@ -131,7 +116,22 @@ public class InviteMembersUserNotificationHandler
 				"[$IGNORE_URL$]", "[$TITLE$]"
 			},
 			new String[] {
-				serviceContext.translate("confirm"), confirmURL.toString(),
+				serviceContext.translate("confirm"),
+				PortletURLBuilder.createActionURL(
+					liferayPortletResponse,
+					InviteMembersPortletKeys.INVITE_MEMBERS
+				).setActionName(
+					"updateMemberRequest"
+				).setParameter(
+					"memberRequestId", memberRequestId
+				).setParameter(
+					"status", MembershipRequestConstants.STATUS_APPROVED
+				).setParameter(
+					"userNotificationEventId",
+					userNotificationEvent.getUserNotificationEventId()
+				).setWindowState(
+					WindowState.NORMAL
+				).buildString(),
 				serviceContext.translate("ignore"),
 				PortletURLBuilder.createActionURL(
 					liferayPortletResponse,
@@ -161,66 +161,6 @@ public class InviteMembersUserNotificationHandler
 		return StringPool.BLANK;
 	}
 
-	protected String getSiteDescriptiveName(
-			long groupId, ServiceContext serviceContext)
-		throws Exception {
-
-		Group group = _groupLocalService.getGroup(groupId);
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("<a");
-
-		if (group.hasPublicLayouts()) {
-			sb.append(" href=\"");
-
-			String groupFriendlyURL = _portal.getGroupFriendlyURL(
-				group.getPublicLayoutSet(), serviceContext.getThemeDisplay());
-
-			sb.append(groupFriendlyURL);
-
-			sb.append("\">");
-		}
-		else {
-			sb.append(">");
-		}
-
-		sb.append(
-			HtmlUtil.escape(
-				group.getDescriptiveName(serviceContext.getLocale())));
-		sb.append("</a>");
-
-		return sb.toString();
-	}
-
-	protected String getUserNameLink(
-		long userId, ServiceContext serviceContext) {
-
-		try {
-			if (userId <= 0) {
-				return StringPool.BLANK;
-			}
-
-			User user = _userLocalService.getUserById(userId);
-
-			String userName = user.getFullName();
-
-			String userDisplayURL = user.getDisplayURL(
-				serviceContext.getThemeDisplay());
-
-			return StringBundler.concat(
-				"<a href=\"", userDisplayURL, "\">", HtmlUtil.escape(userName),
-				"</a>");
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
-			}
-
-			return StringPool.BLANK;
-		}
-	}
-
 	@Reference(unbind = "-")
 	protected void setGroupLocalService(GroupLocalService groupLocalService) {
 		_groupLocalService = groupLocalService;
@@ -243,6 +183,64 @@ public class InviteMembersUserNotificationHandler
 		UserNotificationEventLocalService userNotificationEventLocalService) {
 
 		_userNotificationEventLocalService = userNotificationEventLocalService;
+	}
+
+	private String _getSiteDescriptiveName(
+			long groupId, ServiceContext serviceContext)
+		throws Exception {
+
+		Group group = _groupLocalService.getGroup(groupId);
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append("<a");
+
+		if (group.hasPublicLayouts()) {
+			sb.append(" href=\"");
+			sb.append(
+				_portal.getGroupFriendlyURL(
+					group.getPublicLayoutSet(),
+					serviceContext.getThemeDisplay(), false, false));
+			sb.append("\">");
+		}
+		else {
+			sb.append(">");
+		}
+
+		sb.append(
+			HtmlUtil.escape(
+				group.getDescriptiveName(serviceContext.getLocale())));
+		sb.append("</a>");
+
+		return sb.toString();
+	}
+
+	private String _getUserNameLink(
+		long userId, ServiceContext serviceContext) {
+
+		try {
+			if (userId <= 0) {
+				return StringPool.BLANK;
+			}
+
+			User user = _userLocalService.getUserById(userId);
+
+			String userName = user.getFullName();
+
+			String userDisplayURL = user.getDisplayURL(
+				serviceContext.getThemeDisplay());
+
+			return StringBundler.concat(
+				"<a href=\"", userDisplayURL, "\">", HtmlUtil.escape(userName),
+				"</a>");
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+
+			return StringPool.BLANK;
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

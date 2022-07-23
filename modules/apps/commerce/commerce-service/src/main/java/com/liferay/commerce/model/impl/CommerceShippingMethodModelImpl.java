@@ -16,7 +16,6 @@ package com.liferay.commerce.model.impl;
 
 import com.liferay.commerce.model.CommerceShippingMethod;
 import com.liferay.commerce.model.CommerceShippingMethodModel;
-import com.liferay.commerce.model.CommerceShippingMethodSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -34,21 +33,20 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -81,6 +79,7 @@ public class CommerceShippingMethodModelImpl
 	public static final String TABLE_NAME = "CommerceShippingMethod";
 
 	public static final Object[][] TABLE_COLUMNS = {
+		{"mvccVersion", Types.BIGINT},
 		{"commerceShippingMethodId", Types.BIGINT}, {"groupId", Types.BIGINT},
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
@@ -94,6 +93,7 @@ public class CommerceShippingMethodModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("commerceShippingMethodId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -110,7 +110,7 @@ public class CommerceShippingMethodModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CommerceShippingMethod (commerceShippingMethodId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name STRING null,description STRING null,imageId LONG,engineKey VARCHAR(75) null,priority DOUBLE,active_ BOOLEAN)";
+		"create table CommerceShippingMethod (mvccVersion LONG default 0 not null,commerceShippingMethodId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name STRING null,description STRING null,imageId LONG,engineKey VARCHAR(75) null,priority DOUBLE,active_ BOOLEAN)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CommerceShippingMethod";
@@ -169,66 +169,6 @@ public class CommerceShippingMethodModelImpl
 	 */
 	@Deprecated
 	public static final long PRIORITY_COLUMN_BITMASK = 8L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CommerceShippingMethod toModel(
-		CommerceShippingMethodSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		CommerceShippingMethod model = new CommerceShippingMethodImpl();
-
-		model.setCommerceShippingMethodId(
-			soapModel.getCommerceShippingMethodId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setImageId(soapModel.getImageId());
-		model.setEngineKey(soapModel.getEngineKey());
-		model.setPriority(soapModel.getPriority());
-		model.setActive(soapModel.isActive());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CommerceShippingMethod> toModels(
-		CommerceShippingMethodSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CommerceShippingMethod> models =
-			new ArrayList<CommerceShippingMethod>(soapModels.length);
-
-		for (CommerceShippingMethodSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.service.util.ServiceProps.get(
@@ -320,34 +260,6 @@ public class CommerceShippingMethodModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CommerceShippingMethod>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommerceShippingMethod.class.getClassLoader(),
-			CommerceShippingMethod.class, ModelWrapper.class);
-
-		try {
-			Constructor<CommerceShippingMethod> constructor =
-				(Constructor<CommerceShippingMethod>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CommerceShippingMethod, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CommerceShippingMethod, Object>>
@@ -363,6 +275,12 @@ public class CommerceShippingMethodModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<CommerceShippingMethod, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", CommerceShippingMethod::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CommerceShippingMethod, Long>)
+				CommerceShippingMethod::setMvccVersion);
 		attributeGetterFunctions.put(
 			"commerceShippingMethodId",
 			CommerceShippingMethod::getCommerceShippingMethodId);
@@ -446,6 +364,21 @@ public class CommerceShippingMethodModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -1044,6 +977,7 @@ public class CommerceShippingMethodModelImpl
 		CommerceShippingMethodImpl commerceShippingMethodImpl =
 			new CommerceShippingMethodImpl();
 
+		commerceShippingMethodImpl.setMvccVersion(getMvccVersion());
 		commerceShippingMethodImpl.setCommerceShippingMethodId(
 			getCommerceShippingMethodId());
 		commerceShippingMethodImpl.setGroupId(getGroupId());
@@ -1060,6 +994,43 @@ public class CommerceShippingMethodModelImpl
 		commerceShippingMethodImpl.setActive(isActive());
 
 		commerceShippingMethodImpl.resetOriginalValues();
+
+		return commerceShippingMethodImpl;
+	}
+
+	@Override
+	public CommerceShippingMethod cloneWithOriginalValues() {
+		CommerceShippingMethodImpl commerceShippingMethodImpl =
+			new CommerceShippingMethodImpl();
+
+		commerceShippingMethodImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		commerceShippingMethodImpl.setCommerceShippingMethodId(
+			this.<Long>getColumnOriginalValue("commerceShippingMethodId"));
+		commerceShippingMethodImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		commerceShippingMethodImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commerceShippingMethodImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commerceShippingMethodImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commerceShippingMethodImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commerceShippingMethodImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commerceShippingMethodImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		commerceShippingMethodImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		commerceShippingMethodImpl.setImageId(
+			this.<Long>getColumnOriginalValue("imageId"));
+		commerceShippingMethodImpl.setEngineKey(
+			this.<String>getColumnOriginalValue("engineKey"));
+		commerceShippingMethodImpl.setPriority(
+			this.<Double>getColumnOriginalValue("priority"));
+		commerceShippingMethodImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
 
 		return commerceShippingMethodImpl;
 	}
@@ -1145,6 +1116,8 @@ public class CommerceShippingMethodModelImpl
 		CommerceShippingMethodCacheModel commerceShippingMethodCacheModel =
 			new CommerceShippingMethodCacheModel();
 
+		commerceShippingMethodCacheModel.mvccVersion = getMvccVersion();
+
 		commerceShippingMethodCacheModel.commerceShippingMethodId =
 			getCommerceShippingMethodId();
 
@@ -1220,7 +1193,7 @@ public class CommerceShippingMethodModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1231,10 +1204,27 @@ public class CommerceShippingMethodModelImpl
 			Function<CommerceShippingMethod, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((CommerceShippingMethod)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CommerceShippingMethod)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1282,10 +1272,13 @@ public class CommerceShippingMethodModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CommerceShippingMethod>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CommerceShippingMethod.class, ModelWrapper.class);
 
 	}
 
+	private long _mvccVersion;
 	private long _commerceShippingMethodId;
 	private long _groupId;
 	private long _companyId;
@@ -1332,6 +1325,7 @@ public class CommerceShippingMethodModelImpl
 	private void _setColumnOriginalValues() {
 		_columnOriginalValues = new HashMap<String, Object>();
 
+		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put(
 			"commerceShippingMethodId", _commerceShippingMethodId);
 		_columnOriginalValues.put("groupId", _groupId);
@@ -1369,31 +1363,33 @@ public class CommerceShippingMethodModelImpl
 	static {
 		Map<String, Long> columnBitmasks = new HashMap<>();
 
-		columnBitmasks.put("commerceShippingMethodId", 1L);
+		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("groupId", 2L);
+		columnBitmasks.put("commerceShippingMethodId", 2L);
 
-		columnBitmasks.put("companyId", 4L);
+		columnBitmasks.put("groupId", 4L);
 
-		columnBitmasks.put("userId", 8L);
+		columnBitmasks.put("companyId", 8L);
 
-		columnBitmasks.put("userName", 16L);
+		columnBitmasks.put("userId", 16L);
 
-		columnBitmasks.put("createDate", 32L);
+		columnBitmasks.put("userName", 32L);
 
-		columnBitmasks.put("modifiedDate", 64L);
+		columnBitmasks.put("createDate", 64L);
 
-		columnBitmasks.put("name", 128L);
+		columnBitmasks.put("modifiedDate", 128L);
 
-		columnBitmasks.put("description", 256L);
+		columnBitmasks.put("name", 256L);
 
-		columnBitmasks.put("imageId", 512L);
+		columnBitmasks.put("description", 512L);
 
-		columnBitmasks.put("engineKey", 1024L);
+		columnBitmasks.put("imageId", 1024L);
 
-		columnBitmasks.put("priority", 2048L);
+		columnBitmasks.put("engineKey", 2048L);
 
-		columnBitmasks.put("active_", 4096L);
+		columnBitmasks.put("priority", 4096L);
+
+		columnBitmasks.put("active_", 8192L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

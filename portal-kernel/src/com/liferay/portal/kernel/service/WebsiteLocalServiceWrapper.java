@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class WebsiteLocalServiceWrapper
 	implements ServiceWrapper<WebsiteLocalService>, WebsiteLocalService {
 
+	public WebsiteLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WebsiteLocalServiceWrapper(WebsiteLocalService websiteLocalService) {
 		_websiteLocalService = websiteLocalService;
 	}
@@ -136,6 +140,13 @@ public class WebsiteLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _websiteLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _websiteLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

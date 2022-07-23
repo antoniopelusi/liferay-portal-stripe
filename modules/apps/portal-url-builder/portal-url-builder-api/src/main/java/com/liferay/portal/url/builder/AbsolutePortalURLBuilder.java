@@ -16,6 +16,7 @@ package com.liferay.portal.url.builder;
 
 import com.liferay.portal.kernel.model.portlet.PortletDependency;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 
 /**
@@ -32,6 +33,7 @@ import org.osgi.framework.Bundle;
  * @author Iván Zaera Avellón
  * @see    BuildableAbsolutePortalURLBuilder
  */
+@ProviderType
 public interface AbsolutePortalURLBuilder {
 
 	/**
@@ -68,6 +70,12 @@ public interface AbsolutePortalURLBuilder {
 	 * web context path.
 	 *
 	 * <p>
+	 * If the requested module resource is a JavaScript file or a stylesheet,
+	 * use {@link #forModuleScript(Bundle, String)} or {@link
+	 * #forModuleStylesheet(Bundle, String)} instead.
+	 * </p>
+	 *
+	 * <p>
 	 * Module resources are retrieved from a CDN host if present or from the
 	 * Portal otherwise.
 	 * </p>
@@ -75,8 +83,51 @@ public interface AbsolutePortalURLBuilder {
 	 * @param  bundle the bundle that contains the resource
 	 * @param  relativeURL the resource's relative URL
 	 * @return a URL builder for module resources
+	 * @review
 	 */
 	public ModuleAbsolutePortalURLBuilder forModule(
+		Bundle bundle, String relativeURL);
+
+	/**
+	 * Returns a URL builder for module JavaScript files. Module scripts live in
+	 * {@code com.liferay.portal.kernel.util.Portal#PATH_MODULE} + the bundle's
+	 * web context path.
+	 *
+	 * <p>
+	 * Module scripts are retrieved from a CDN host if present or from the
+	 * Portal otherwise.
+	 * </p>
+	 *
+	 * @param  bundle the bundle that contains the resource
+	 * @param  relativeURL the JavaScript file relative URL
+	 * @return a URL builder for module scripts
+	 * @review
+	 */
+	public ModuleAbsolutePortalURLBuilder forModuleScript(
+		Bundle bundle, String relativeURL);
+
+	/**
+	 * Returns a URL builder for module stylesheets. Module stylesheets live in
+	 * {@code com.liferay.portal.kernel.util.Portal#PATH_MODULE} + the bundle's
+	 * web context path.
+	 *
+	 * <p>
+	 * Module stylesheets are retrieved from a CDN host if present or from the
+	 * Portal otherwise.
+	 * </p>
+	 *
+	 * <p>
+	 * Module stylesheets are retrieved as standard module resources, but
+	 * additional parameters to account for RTL support, cache, etc. are added
+	 * to the request.
+	 * </p>
+	 *
+	 * @param  bundle the bundle that contains the resource
+	 * @param  relativeURL the stylesheets relative URL
+	 * @return a URL builder for module stylesheets
+	 * @review
+	 */
+	public ModuleAbsolutePortalURLBuilder forModuleStylesheet(
 		Bundle bundle, String relativeURL);
 
 	/**
@@ -132,11 +183,6 @@ public interface AbsolutePortalURLBuilder {
 	 * requires the servlet class to be annotated with the OSGi {@code
 	 * @Component}. OSGi whiteboard servlets live in {@code
 	 * com.liferay.portal.kernel.util.Portal#PATH_MODULE}.
-	 *
-	 * <p>
-	 * Whiteboard resources are always retrieved from Portal, even if a CDN host
-	 * is present.
-	 * </p>
 	 *
 	 * @param  servletPattern the value of the {@code
 	 *         osgi.http.whiteboard.servlet.pattern} property

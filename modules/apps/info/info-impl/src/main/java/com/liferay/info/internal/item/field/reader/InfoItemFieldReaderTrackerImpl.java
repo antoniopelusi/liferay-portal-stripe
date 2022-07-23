@@ -165,16 +165,6 @@ public class InfoItemFieldReaderTrackerImpl
 			_infoDisplayContributorField = infoDisplayContributorField;
 		}
 
-		/**
-		 *   @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-		 *          #getInfoField()}
-		 */
-		@Deprecated
-		@Override
-		public InfoField getField() {
-			return getInfoField();
-		}
-
 		public InfoDisplayContributorField<?> getInfoDisplayContributorField() {
 			return _infoDisplayContributorField;
 		}
@@ -200,6 +190,8 @@ public class InfoItemFieldReaderTrackerImpl
 			return InfoField.builder(
 			).infoFieldType(
 				infoFieldType
+			).namespace(
+				InfoDisplayContributorField.class.getSimpleName()
 			).name(
 				getKey()
 			).labelInfoLocalizedValue(

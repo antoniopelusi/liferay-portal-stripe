@@ -14,6 +14,8 @@
 
 package com.liferay.portal.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Repository;
@@ -47,6 +49,8 @@ public abstract class BaseRepositoryUADAnonymizer
 		if (repository.getUserId() == userId) {
 			repository.setUserId(anonymousUser.getUserId());
 			repository.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(repository, anonymousUser);
 		}
 
 		repositoryLocalService.updateRepository(repository);
@@ -62,6 +66,19 @@ public abstract class BaseRepositoryUADAnonymizer
 		return Repository.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		Repository repository, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(repository);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return repositoryLocalService.getActionableDynamicQuery();
@@ -71,6 +88,14 @@ public abstract class BaseRepositoryUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return PortalUADConstants.USER_ID_FIELD_NAMES_REPOSITORY;
 	}
+
+	protected AssetEntry fetchAssetEntry(Repository repository) {
+		return assetEntryLocalService.fetchEntry(
+			Repository.class.getName(), repository.getRepositoryId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected RepositoryLocalService repositoryLocalService;

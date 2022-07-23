@@ -379,7 +379,7 @@ public class KaleoFormsUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -506,13 +506,8 @@ public class KaleoFormsUtil {
 	private static String _getTaskSessionKey(
 		long ddmStructureId, String workflowDefinition, String taskName) {
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(ddmStructureId);
-		sb.append(workflowDefinition);
-		sb.append(taskName);
-
-		return sb.toString();
+		return StringBundler.concat(
+			ddmStructureId, workflowDefinition, taskName);
 	}
 
 	private static Document _getWorkflowDefinitionDocument(

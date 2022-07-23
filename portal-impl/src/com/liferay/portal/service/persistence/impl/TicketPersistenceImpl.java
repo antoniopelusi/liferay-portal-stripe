@@ -15,7 +15,6 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -28,33 +27,36 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchTicketException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.Ticket;
 import com.liferay.portal.kernel.model.TicketTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.TicketPersistence;
+import com.liferay.portal.kernel.service.persistence.TicketUtil;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.impl.TicketImpl;
 import com.liferay.portal.model.impl.TicketModelImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the ticket service.
@@ -320,6 +322,582 @@ public class TicketPersistenceImpl
 
 	private static final String _FINDER_COLUMN_KEY_KEY_3 =
 		"(ticket.key IS NULL OR ticket.key = '')";
+
+	private FinderPath _finderPathWithPaginationFindByC_C_C;
+	private FinderPath _finderPathWithoutPaginationFindByC_C_C;
+	private FinderPath _finderPathCountByC_C_C;
+
+	/**
+	 * Returns all the tickets where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @return the matching tickets
+	 */
+	@Override
+	public List<Ticket> findByC_C_C(
+		long companyId, long classNameId, long classPK) {
+
+		return findByC_C_C(
+			companyId, classNameId, classPK, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the tickets where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>TicketModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param start the lower bound of the range of tickets
+	 * @param end the upper bound of the range of tickets (not inclusive)
+	 * @return the range of matching tickets
+	 */
+	@Override
+	public List<Ticket> findByC_C_C(
+		long companyId, long classNameId, long classPK, int start, int end) {
+
+		return findByC_C_C(companyId, classNameId, classPK, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the tickets where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>TicketModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param start the lower bound of the range of tickets
+	 * @param end the upper bound of the range of tickets (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching tickets
+	 */
+	@Override
+	public List<Ticket> findByC_C_C(
+		long companyId, long classNameId, long classPK, int start, int end,
+		OrderByComparator<Ticket> orderByComparator) {
+
+		return findByC_C_C(
+			companyId, classNameId, classPK, start, end, orderByComparator,
+			true);
+	}
+
+	/**
+	 * Returns an ordered range of all the tickets where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>TicketModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param start the lower bound of the range of tickets
+	 * @param end the upper bound of the range of tickets (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching tickets
+	 */
+	@Override
+	public List<Ticket> findByC_C_C(
+		long companyId, long classNameId, long classPK, int start, int end,
+		OrderByComparator<Ticket> orderByComparator, boolean useFinderCache) {
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByC_C_C;
+				finderArgs = new Object[] {companyId, classNameId, classPK};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByC_C_C;
+			finderArgs = new Object[] {
+				companyId, classNameId, classPK, start, end, orderByComparator
+			};
+		}
+
+		List<Ticket> list = null;
+
+		if (useFinderCache) {
+			list = (List<Ticket>)FinderCacheUtil.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (Ticket ticket : list) {
+					if ((companyId != ticket.getCompanyId()) ||
+						(classNameId != ticket.getClassNameId()) ||
+						(classPK != ticket.getClassPK())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					5 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(5);
+			}
+
+			sb.append(_SQL_SELECT_TICKET_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_C_C_COMPANYID_2);
+
+			sb.append(_FINDER_COLUMN_C_C_C_CLASSNAMEID_2);
+
+			sb.append(_FINDER_COLUMN_C_C_C_CLASSPK_2);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(TicketModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				queryPos.add(classNameId);
+
+				queryPos.add(classPK);
+
+				list = (List<Ticket>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					FinderCacheUtil.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first ticket in the ordered set where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching ticket
+	 * @throws NoSuchTicketException if a matching ticket could not be found
+	 */
+	@Override
+	public Ticket findByC_C_C_First(
+			long companyId, long classNameId, long classPK,
+			OrderByComparator<Ticket> orderByComparator)
+		throws NoSuchTicketException {
+
+		Ticket ticket = fetchByC_C_C_First(
+			companyId, classNameId, classPK, orderByComparator);
+
+		if (ticket != null) {
+			return ticket;
+		}
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", classNameId=");
+		sb.append(classNameId);
+
+		sb.append(", classPK=");
+		sb.append(classPK);
+
+		sb.append("}");
+
+		throw new NoSuchTicketException(sb.toString());
+	}
+
+	/**
+	 * Returns the first ticket in the ordered set where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching ticket, or <code>null</code> if a matching ticket could not be found
+	 */
+	@Override
+	public Ticket fetchByC_C_C_First(
+		long companyId, long classNameId, long classPK,
+		OrderByComparator<Ticket> orderByComparator) {
+
+		List<Ticket> list = findByC_C_C(
+			companyId, classNameId, classPK, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last ticket in the ordered set where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching ticket
+	 * @throws NoSuchTicketException if a matching ticket could not be found
+	 */
+	@Override
+	public Ticket findByC_C_C_Last(
+			long companyId, long classNameId, long classPK,
+			OrderByComparator<Ticket> orderByComparator)
+		throws NoSuchTicketException {
+
+		Ticket ticket = fetchByC_C_C_Last(
+			companyId, classNameId, classPK, orderByComparator);
+
+		if (ticket != null) {
+			return ticket;
+		}
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", classNameId=");
+		sb.append(classNameId);
+
+		sb.append(", classPK=");
+		sb.append(classPK);
+
+		sb.append("}");
+
+		throw new NoSuchTicketException(sb.toString());
+	}
+
+	/**
+	 * Returns the last ticket in the ordered set where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching ticket, or <code>null</code> if a matching ticket could not be found
+	 */
+	@Override
+	public Ticket fetchByC_C_C_Last(
+		long companyId, long classNameId, long classPK,
+		OrderByComparator<Ticket> orderByComparator) {
+
+		int count = countByC_C_C(companyId, classNameId, classPK);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<Ticket> list = findByC_C_C(
+			companyId, classNameId, classPK, count - 1, count,
+			orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the tickets before and after the current ticket in the ordered set where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param ticketId the primary key of the current ticket
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next ticket
+	 * @throws NoSuchTicketException if a ticket with the primary key could not be found
+	 */
+	@Override
+	public Ticket[] findByC_C_C_PrevAndNext(
+			long ticketId, long companyId, long classNameId, long classPK,
+			OrderByComparator<Ticket> orderByComparator)
+		throws NoSuchTicketException {
+
+		Ticket ticket = findByPrimaryKey(ticketId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Ticket[] array = new TicketImpl[3];
+
+			array[0] = getByC_C_C_PrevAndNext(
+				session, ticket, companyId, classNameId, classPK,
+				orderByComparator, true);
+
+			array[1] = ticket;
+
+			array[2] = getByC_C_C_PrevAndNext(
+				session, ticket, companyId, classNameId, classPK,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected Ticket getByC_C_C_PrevAndNext(
+		Session session, Ticket ticket, long companyId, long classNameId,
+		long classPK, OrderByComparator<Ticket> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		sb.append(_SQL_SELECT_TICKET_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_C_C_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_C_C_CLASSNAMEID_2);
+
+		sb.append(_FINDER_COLUMN_C_C_C_CLASSPK_2);
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(TicketModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(companyId);
+
+		queryPos.add(classNameId);
+
+		queryPos.add(classPK);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(ticket)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<Ticket> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the tickets where companyId = &#63; and classNameId = &#63; and classPK = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 */
+	@Override
+	public void removeByC_C_C(long companyId, long classNameId, long classPK) {
+		for (Ticket ticket :
+				findByC_C_C(
+					companyId, classNameId, classPK, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, null)) {
+
+			remove(ticket);
+		}
+	}
+
+	/**
+	 * Returns the number of tickets where companyId = &#63; and classNameId = &#63; and classPK = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param classPK the class pk
+	 * @return the number of matching tickets
+	 */
+	@Override
+	public int countByC_C_C(long companyId, long classNameId, long classPK) {
+		FinderPath finderPath = _finderPathCountByC_C_C;
+
+		Object[] finderArgs = new Object[] {companyId, classNameId, classPK};
+
+		Long count = (Long)FinderCacheUtil.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(4);
+
+			sb.append(_SQL_COUNT_TICKET_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_C_C_COMPANYID_2);
+
+			sb.append(_FINDER_COLUMN_C_C_C_CLASSNAMEID_2);
+
+			sb.append(_FINDER_COLUMN_C_C_C_CLASSPK_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				queryPos.add(classNameId);
+
+				queryPos.add(classPK);
+
+				count = (Long)query.uniqueResult();
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_C_C_C_COMPANYID_2 =
+		"ticket.companyId = ? AND ";
+
+	private static final String _FINDER_COLUMN_C_C_C_CLASSNAMEID_2 =
+		"ticket.classNameId = ? AND ";
+
+	private static final String _FINDER_COLUMN_C_C_C_CLASSPK_2 =
+		"ticket.classPK = ?";
 
 	private FinderPath _finderPathWithPaginationFindByC_C_T;
 	private FinderPath _finderPathWithoutPaginationFindByC_C_T;
@@ -1543,6 +2121,8 @@ public class TicketPersistenceImpl
 			_finderPathFetchByKey, new Object[] {ticket.getKey()}, ticket);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the tickets in the entity cache if it is enabled.
 	 *
@@ -1550,6 +2130,13 @@ public class TicketPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<Ticket> tickets) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (tickets.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (Ticket ticket : tickets) {
 			if (EntityCacheUtil.getResult(
 					TicketImpl.class, ticket.getPrimaryKey()) == null) {
@@ -1727,6 +2314,20 @@ public class TicketPersistenceImpl
 		}
 
 		TicketModelImpl ticketModelImpl = (TicketModelImpl)ticket;
+
+		if (isNew && (ticket.getCreateDate() == null)) {
+			ServiceContext serviceContext =
+				ServiceContextThreadLocal.getServiceContext();
+
+			Date date = new Date();
+
+			if (serviceContext == null) {
+				ticket.setCreateDate(date);
+			}
+			else {
+				ticket.setCreateDate(serviceContext.getCreateDate(date));
+			}
+		}
 
 		Session session = null;
 
@@ -2017,10 +2618,8 @@ public class TicketPersistenceImpl
 	 * Initializes the ticket persistence.
 	 */
 	public void afterPropertiesSet() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_argumentsResolverServiceRegistration = registry.registerService(
-			ArgumentsResolver.class, new TicketModelArgumentsResolver());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -2042,6 +2641,29 @@ public class TicketPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByKey",
 			new String[] {String.class.getName()}, new String[] {"key_"},
 			false);
+
+		_finderPathWithPaginationFindByC_C_C = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_C_C",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Long.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"companyId", "classNameId", "classPK"}, true);
+
+		_finderPathWithoutPaginationFindByC_C_C = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_C_C",
+			new String[] {
+				Long.class.getName(), Long.class.getName(), Long.class.getName()
+			},
+			new String[] {"companyId", "classNameId", "classPK"}, true);
+
+		_finderPathCountByC_C_C = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_C_C",
+			new String[] {
+				Long.class.getName(), Long.class.getName(), Long.class.getName()
+			},
+			new String[] {"companyId", "classNameId", "classPK"}, false);
 
 		_finderPathWithPaginationFindByC_C_T = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_C_T",
@@ -2096,12 +2718,29 @@ public class TicketPersistenceImpl
 			},
 			new String[] {"companyId", "classNameId", "classPK", "type_"},
 			false);
+
+		_setTicketUtilPersistence(this);
 	}
 
 	public void destroy() {
-		EntityCacheUtil.removeCache(TicketImpl.class.getName());
+		_setTicketUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		EntityCacheUtil.removeCache(TicketImpl.class.getName());
+	}
+
+	private void _setTicketUtilPersistence(
+		TicketPersistence ticketPersistence) {
+
+		try {
+			Field field = TicketUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, ticketPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	private static final String _SQL_SELECT_TICKET =
@@ -2133,108 +2772,6 @@ public class TicketPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class TicketModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			TicketModelImpl ticketModelImpl = (TicketModelImpl)baseModel;
-
-			long columnBitmask = ticketModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(ticketModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |= ticketModelImpl.getColumnBitmask(
-						columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(ticketModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return TicketImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return TicketTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			TicketModelImpl ticketModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = ticketModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = ticketModelImpl.getColumnValue(columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
 	}
 
 }

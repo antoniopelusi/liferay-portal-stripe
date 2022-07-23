@@ -65,20 +65,21 @@ public class SamlBottomJSPDynamicInclude extends BaseJSPDynamicInclude {
 		HttpServletRequest originalHttpServletRequest =
 			_portal.getOriginalServletRequest(httpServletRequest);
 
-		HttpSession session = originalHttpServletRequest.getSession();
+		HttpSession httpSession = originalHttpServletRequest.getSession();
 
-		String error = (String)session.getAttribute(SamlWebKeys.SAML_SSO_ERROR);
-		String samlSsoErrorEntityId = (String)session.getAttribute(
+		String error = (String)httpSession.getAttribute(
+			SamlWebKeys.SAML_SSO_ERROR);
+		String samlSsoErrorEntityId = (String)httpSession.getAttribute(
 			com.liferay.saml.web.internal.constants.SamlWebKeys.
 				SAML_SSO_ERROR_ENTITY_ID);
-		String samlSubjectNameId = (String)session.getAttribute(
+		String samlSubjectNameId = (String)httpSession.getAttribute(
 			SamlWebKeys.SAML_SUBJECT_NAME_ID);
 
-		session.removeAttribute(SamlWebKeys.SAML_SSO_ERROR);
-		session.removeAttribute(
+		httpSession.removeAttribute(SamlWebKeys.SAML_SSO_ERROR);
+		httpSession.removeAttribute(
 			com.liferay.saml.web.internal.constants.SamlWebKeys.
 				SAML_SSO_ERROR_ENTITY_ID);
-		session.removeAttribute(SamlWebKeys.SAML_SUBJECT_NAME_ID);
+		httpSession.removeAttribute(SamlWebKeys.SAML_SUBJECT_NAME_ID);
 
 		if (Validator.isBlank(error) ||
 			Validator.isBlank(samlSsoErrorEntityId) ||

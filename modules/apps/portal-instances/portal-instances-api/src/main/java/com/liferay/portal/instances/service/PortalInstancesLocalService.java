@@ -76,7 +76,9 @@ public interface PortalInstancesLocalService extends BaseLocalService {
 	public String[] getWebIds();
 
 	public void initializePortalInstance(
-		ServletContext servletContext, String webId);
+			long companyId, String siteInitializerKey,
+			ServletContext servletContext)
+		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isAutoLoginIgnoreHost(String host);

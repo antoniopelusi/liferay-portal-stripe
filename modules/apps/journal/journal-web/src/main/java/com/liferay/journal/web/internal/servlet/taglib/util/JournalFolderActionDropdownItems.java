@@ -15,6 +15,7 @@
 package com.liferay.journal.web.internal.servlet.taglib.util;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.constants.JournalPortletKeys;
@@ -50,8 +51,6 @@ import com.liferay.trash.TrashHelper;
 
 import java.util.List;
 
-import javax.portlet.PortletURL;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -79,31 +78,65 @@ public class JournalFolderActionDropdownItems {
 		boolean hasUpdatePermission = JournalFolderPermission.contains(
 			_themeDisplay.getPermissionChecker(), _folder, ActionKeys.UPDATE);
 
-		return DropdownItemListBuilder.add(
-			() -> hasUpdatePermission, _getEditFolderActionUnsafeConsumer()
-		).add(
-			() -> hasUpdatePermission, _getMoveFolderActionUnsafeConsumer()
-		).add(
-			() -> JournalFolderPermission.contains(
-				_themeDisplay.getPermissionChecker(), _folder,
-				ActionKeys.PERMISSIONS),
-			_getPermissionsFolderActionUnsafeConsumer()
-		).add(
-			() -> JournalFolderPermission.contains(
-				_themeDisplay.getPermissionChecker(), _folder,
-				ActionKeys.DELETE),
-			_getDeleteFolderActionUnsafeConsumer()
-		).add(
-			() -> {
-				Group group = _themeDisplay.getScopeGroup();
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() -> hasUpdatePermission,
+						_getEditFolderActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() -> hasUpdatePermission,
+						_getMoveFolderActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() -> JournalFolderPermission.contains(
+							_themeDisplay.getPermissionChecker(), _folder,
+							ActionKeys.PERMISSIONS),
+						_getPermissionsFolderActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() -> JournalFolderPermission.contains(
+							_themeDisplay.getPermissionChecker(), _folder,
+							ActionKeys.DELETE),
+						_getDeleteFolderActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() -> {
+							Group group = _themeDisplay.getScopeGroup();
 
-				if (_isShowPublishFolderAction() && !group.isLayout()) {
-					return true;
-				}
+							if (_isShowPublishFolderAction() &&
+								!group.isLayout()) {
 
-				return false;
-			},
-			_getPublishToLiveFolderActionUnsafeConsumer()
+								return true;
+							}
+
+							return false;
+						},
+						_getPublishToLiveFolderActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
 		).build();
 	}
 
@@ -117,17 +150,16 @@ public class JournalFolderActionDropdownItems {
 					_themeDisplay.getPermissionChecker(), _folder,
 					ActionKeys.ADD_FOLDER)) {
 
-				DropdownItem dropdownItem = new DropdownItem();
-
-				dropdownItem.setHref(
-					_liferayPortletResponse.createRenderURL(), "mvcPath",
-					"/edit_folder.jsp", "redirect", _getRedirect(), "groupId",
-					_folder.getGroupId(), "parentFolderId",
-					_folder.getFolderId());
-				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, "add-subfolder"));
-
-				actionDropdownItems.add(0, dropdownItem);
+				actionDropdownItems.add(
+					0,
+					DropdownItemBuilder.setHref(
+						_liferayPortletResponse.createRenderURL(), "mvcPath",
+						"/edit_folder.jsp", "redirect", _getRedirect(),
+						"groupId", _folder.getGroupId(), "parentFolderId",
+						_folder.getFolderId()
+					).setLabel(
+						LanguageUtil.get(_httpServletRequest, "add-subfolder")
+					).build());
 			}
 
 			return actionDropdownItems;
@@ -242,6 +274,7 @@ public class JournalFolderActionDropdownItems {
 		return dropdownItem -> {
 			dropdownItem.putData("action", "delete");
 			dropdownItem.putData("deleteURL", deleteURL);
+			dropdownItem.setIcon("trash");
 			dropdownItem.setLabel(label);
 		};
 	}
@@ -254,6 +287,7 @@ public class JournalFolderActionDropdownItems {
 				_liferayPortletResponse.createRenderURL(), "mvcPath",
 				"/edit_folder.jsp", "redirect", _getRedirect(), "groupId",
 				_folder.getGroupId(), "folderId", _folder.getFolderId());
+			dropdownItem.setIcon("pencil");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "edit"));
 		};
@@ -269,6 +303,7 @@ public class JournalFolderActionDropdownItems {
 				_themeDisplay.getScopeGroupId(), "folderId",
 				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, "rootFolder",
 				true);
+			dropdownItem.setIcon("pencil");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "edit"));
 		};
@@ -282,6 +317,7 @@ public class JournalFolderActionDropdownItems {
 				_liferayPortletResponse.createRenderURL(), "mvcPath",
 				"/move_articles_and_folders.jsp", "redirect", _getRedirect(),
 				"rowIdsJournalFolder", _folder.getFolderId());
+			dropdownItem.setIcon("move-folder");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "move"));
 		};
@@ -299,6 +335,7 @@ public class JournalFolderActionDropdownItems {
 		return dropdownItem -> {
 			dropdownItem.putData("action", "permissions");
 			dropdownItem.putData("permissionsURL", permissionsURL);
+			dropdownItem.setIcon("password-policies");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "permissions"));
 		};
@@ -317,6 +354,7 @@ public class JournalFolderActionDropdownItems {
 		return dropdownItem -> {
 			dropdownItem.putData("action", "permissions");
 			dropdownItem.putData("permissionsURL", permissionsURL);
+			dropdownItem.setIcon("password-policies");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "permissions"));
 		};
@@ -325,23 +363,27 @@ public class JournalFolderActionDropdownItems {
 	private UnsafeConsumer<DropdownItem, Exception>
 		_getPublishToLiveFolderActionUnsafeConsumer() {
 
-		PortletURL publishFolderURL = PortletURLBuilder.createActionURL(
-			_liferayPortletResponse
-		).setActionName(
-			"/journal/publish_folder"
-		).setBackURL(
-			_getRedirect()
-		).build();
-
-		if (_folder != null) {
-			publishFolderURL.setParameter(
-				"folderId", String.valueOf(_folder.getFolderId()));
-		}
-
 		return dropdownItem -> {
 			dropdownItem.putData("action", "publishFolderToLive");
 			dropdownItem.putData(
-				"publishFolderURL", publishFolderURL.toString());
+				"publishFolderURL",
+				PortletURLBuilder.createActionURL(
+					_liferayPortletResponse
+				).setActionName(
+					"/journal/publish_folder"
+				).setBackURL(
+					_getRedirect()
+				).setParameter(
+					"folderId",
+					() -> {
+						if (_folder != null) {
+							return _folder.getFolderId();
+						}
+
+						return null;
+					}
+				).buildString());
+			dropdownItem.setIcon("live");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "publish-to-live"));
 		};

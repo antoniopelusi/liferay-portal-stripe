@@ -34,14 +34,12 @@ import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
@@ -76,8 +74,8 @@ public class SelectAssetCategoryTreeNodeDisplayContext {
 
 		List<AssetCategory> assetCategories = _getAssetCategories();
 
-		searchContainer.setResults(assetCategories);
-		searchContainer.setTotal(assetCategories.size());
+		searchContainer.setResultsAndTotal(
+			() -> assetCategories, assetCategories.size());
 
 		return searchContainer;
 	}
@@ -283,15 +281,13 @@ public class SelectAssetCategoryTreeNodeDisplayContext {
 	}
 
 	private BreadcrumbEntry _getAssetVocabulariesBreadcrumbEntry() {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			_themeDisplay.getLocale(), getClass());
-
 		String backURL = ParamUtil.getString(
 			_httpServletRequest, "backURL",
 			PortalUtil.getCurrentURL(_httpServletRequest));
 
 		return _createBreadcrumbEntry(
-			LanguageUtil.get(resourceBundle, "vocabularies"), backURL);
+			LanguageUtil.get(_themeDisplay.getLocale(), "vocabularies"),
+			backURL);
 	}
 
 	private BreadcrumbEntry _getAssetVocabularyBreadcrumbEntry()

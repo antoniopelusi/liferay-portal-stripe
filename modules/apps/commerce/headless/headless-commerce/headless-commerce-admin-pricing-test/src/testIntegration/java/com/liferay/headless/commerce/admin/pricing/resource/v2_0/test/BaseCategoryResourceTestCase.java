@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -199,10 +197,17 @@ public abstract class BaseCategoryResourceTestCase {
 		Category postCategory = testGetDiscountCategoryCategory_addCategory();
 
 		Category getCategory = categoryResource.getDiscountCategoryCategory(
-			null);
+			testGetDiscountCategoryCategory_getDiscountCategoryId());
 
 		assertEquals(postCategory, getCategory);
 		assertValid(getCategory);
+	}
+
+	protected Long testGetDiscountCategoryCategory_getDiscountCategoryId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Category testGetDiscountCategoryCategory_addCategory()
@@ -214,7 +219,8 @@ public abstract class BaseCategoryResourceTestCase {
 
 	@Test
 	public void testGraphQLGetDiscountCategoryCategory() throws Exception {
-		Category category = testGraphQLCategory_addCategory();
+		Category category =
+			testGraphQLGetDiscountCategoryCategory_addCategory();
 
 		Assert.assertTrue(
 			equals(
@@ -226,12 +232,22 @@ public abstract class BaseCategoryResourceTestCase {
 								"discountCategoryCategory",
 								new HashMap<String, Object>() {
 									{
-										put("discountCategoryId", null);
+										put(
+											"discountCategoryId",
+											testGraphQLGetDiscountCategoryCategory_getDiscountCategoryId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data",
 						"Object/discountCategoryCategory"))));
+	}
+
+	protected Long
+			testGraphQLGetDiscountCategoryCategory_getDiscountCategoryId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -258,16 +274,31 @@ public abstract class BaseCategoryResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Category testGraphQLGetDiscountCategoryCategory_addCategory()
+		throws Exception {
+
+		return testGraphQLCategory_addCategory();
+	}
+
 	@Test
 	public void testGetPriceModifierCategoryCategory() throws Exception {
 		Category postCategory =
 			testGetPriceModifierCategoryCategory_addCategory();
 
 		Category getCategory =
-			categoryResource.getPriceModifierCategoryCategory(null);
+			categoryResource.getPriceModifierCategoryCategory(
+				testGetPriceModifierCategoryCategory_getPriceModifierCategoryId());
 
 		assertEquals(postCategory, getCategory);
 		assertValid(getCategory);
+	}
+
+	protected Long
+			testGetPriceModifierCategoryCategory_getPriceModifierCategoryId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Category testGetPriceModifierCategoryCategory_addCategory()
@@ -279,7 +310,8 @@ public abstract class BaseCategoryResourceTestCase {
 
 	@Test
 	public void testGraphQLGetPriceModifierCategoryCategory() throws Exception {
-		Category category = testGraphQLCategory_addCategory();
+		Category category =
+			testGraphQLGetPriceModifierCategoryCategory_addCategory();
 
 		Assert.assertTrue(
 			equals(
@@ -291,12 +323,22 @@ public abstract class BaseCategoryResourceTestCase {
 								"priceModifierCategoryCategory",
 								new HashMap<String, Object>() {
 									{
-										put("priceModifierCategoryId", null);
+										put(
+											"priceModifierCategoryId",
+											testGraphQLGetPriceModifierCategoryCategory_getPriceModifierCategoryId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data",
 						"Object/priceModifierCategoryCategory"))));
+	}
+
+	protected Long
+			testGraphQLGetPriceModifierCategoryCategory_getPriceModifierCategoryId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -323,9 +365,32 @@ public abstract class BaseCategoryResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Category testGraphQLGetPriceModifierCategoryCategory_addCategory()
+		throws Exception {
+
+		return testGraphQLCategory_addCategory();
+	}
+
 	protected Category testGraphQLCategory_addCategory() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		Category category, List<Category> categories) {
+
+		boolean contains = false;
+
+		for (Category item : categories) {
+			if (equals(category, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			categories + " does not contain " + category, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -442,8 +507,8 @@ public abstract class BaseCategoryResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v2_0.
 						Category.class)) {
 
@@ -459,12 +524,13 @@ public abstract class BaseCategoryResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -478,7 +544,7 @@ public abstract class BaseCategoryResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -570,6 +636,19 @@ public abstract class BaseCategoryResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -790,8 +869,8 @@ public abstract class BaseCategoryResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseCategoryResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseCategoryResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

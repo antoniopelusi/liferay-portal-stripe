@@ -35,8 +35,10 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -90,6 +92,14 @@ public class JournalEditDDMStructuresDisplayContext {
 			).build());
 	}
 
+	public List<String> getAvailableLanguageIds() {
+		if (_ddmStructure == null) {
+			return StringUtil.asList(getDefaultLanguageId());
+		}
+
+		return Arrays.asList(_ddmStructure.getAvailableLanguageIds());
+	}
+
 	public Map<String, Object> getDataEngineLayoutBuilderHandlerContext() {
 		return HashMapBuilder.<String, Object>put(
 			"defaultLanguageId", getDefaultLanguageId()
@@ -102,7 +112,7 @@ public class JournalEditDDMStructuresDisplayContext {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -185,10 +195,14 @@ public class JournalEditDDMStructuresDisplayContext {
 				journalServiceConfiguration.journalArticleStorageType();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return storageType;
+	}
+
+	public boolean isStructureFieldIndexableEnable() {
+		return _journalWebConfiguration.structureFieldIndexableEnable();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

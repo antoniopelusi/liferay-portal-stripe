@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -56,6 +57,10 @@ public class Sku implements Serializable {
 
 	public static Sku toDTO(String json) {
 		return ObjectMapperUtil.readValue(Sku.class, json);
+	}
+
+	public static Sku unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(Sku.class, json);
 	}
 
 	@Schema
@@ -398,35 +403,6 @@ public class Sku implements Serializable {
 
 	@Schema
 	@Valid
-	public Map<String, String> getOptions() {
-		return options;
-	}
-
-	public void setOptions(Map<String, String> options) {
-		this.options = options;
-	}
-
-	@JsonIgnore
-	public void setOptions(
-		UnsafeSupplier<Map<String, String>, Exception> optionsUnsafeSupplier) {
-
-		try {
-			options = optionsUnsafeSupplier.get();
-		}
-		catch (RuntimeException re) {
-			throw re;
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@GraphQLField
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected Map<String, String> options;
-
-	@Schema
-	@Valid
 	public Price getPrice() {
 		return price;
 	}
@@ -533,6 +509,35 @@ public class Sku implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String sku;
+
+	@Schema
+	@Valid
+	public SkuOption[] getSkuOptions() {
+		return skuOptions;
+	}
+
+	public void setSkuOptions(SkuOption[] skuOptions) {
+		this.skuOptions = skuOptions;
+	}
+
+	@JsonIgnore
+	public void setSkuOptions(
+		UnsafeSupplier<SkuOption[], Exception> skuOptionsUnsafeSupplier) {
+
+		try {
+			skuOptions = skuOptionsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected SkuOption[] skuOptions;
 
 	@DecimalMin("0")
 	@Schema
@@ -772,16 +777,6 @@ public class Sku implements Serializable {
 			sb.append(neverExpire);
 		}
 
-		if (options != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"options\": ");
-
-			sb.append(_toJSON(options));
-		}
-
 		if (price != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -826,6 +821,26 @@ public class Sku implements Serializable {
 			sb.append("\"");
 		}
 
+		if (skuOptions != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"skuOptions\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < skuOptions.length; i++) {
+				sb.append(String.valueOf(skuOptions[i]));
+
+				if ((i + 1) < skuOptions.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (weight != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -859,9 +874,9 @@ public class Sku implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -887,7 +902,7 @@ public class Sku implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -919,7 +934,7 @@ public class Sku implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -935,5 +950,10 @@ public class Sku implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

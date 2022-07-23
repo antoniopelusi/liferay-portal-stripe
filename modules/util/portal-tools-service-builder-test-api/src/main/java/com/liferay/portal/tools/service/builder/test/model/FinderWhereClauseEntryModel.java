@@ -98,4 +98,7 @@ public interface FinderWhereClauseEntryModel
 	 */
 	public void setNickname(String nickname);
 
+	@Override
+	public FinderWhereClauseEntry cloneWithOriginalValues();
+
 }

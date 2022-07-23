@@ -67,7 +67,7 @@ public class ThreadSubscriptionPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -85,7 +85,7 @@ public class ThreadSubscriptionPortletConfigurationIcon
 				PortletRequest.ACTION_PHASE)
 		).setActionName(
 			"/message_boards/edit_message"
-		).build();
+		).buildPortletURL();
 
 		MBMessage message = null;
 
@@ -94,7 +94,7 @@ public class ThreadSubscriptionPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -142,7 +142,7 @@ public class ThreadSubscriptionPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

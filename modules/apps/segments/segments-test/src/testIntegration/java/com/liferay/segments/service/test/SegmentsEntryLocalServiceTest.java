@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.segments.constants.SegmentsEntryConstants;
@@ -55,6 +56,7 @@ import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.segments.test.util.SegmentsTestUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -284,9 +286,10 @@ public class SegmentsEntryLocalServiceTest {
 			_group.getGroupId());
 
 		_segmentsExperienceLocalService.addSegmentsExperience(
+			TestPropsValues.getUserId(), _group.getGroupId(),
 			segmentsEntry.getSegmentsEntryId(), 0, 0,
 			RandomTestUtil.randomLocaleStringMap(), RandomTestUtil.randomInt(),
-			false,
+			false, new UnicodeProperties(true),
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		_segmentsEntryLocalService.deleteSegmentsEntry(
@@ -382,7 +385,8 @@ public class SegmentsEntryLocalServiceTest {
 		BaseModelSearchResult<SegmentsEntry> baseModelSearchResult =
 			_segmentsEntryLocalService.searchSegmentsEntries(
 				segmentsEntry.getCompanyId(), segmentsEntry.getGroupId(),
-				segmentsEntry.getNameCurrentValue(), true, 0, 1, null);
+				segmentsEntry.getNameCurrentValue(), true,
+				new LinkedHashMap<>(), 0, 1, null);
 
 		List<SegmentsEntry> segmentsEntries =
 			baseModelSearchResult.getBaseModels();
@@ -425,6 +429,7 @@ public class SegmentsEntryLocalServiceTest {
 
 		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
 			_group.getGroupId());
+
 		SegmentsTestUtil.addSegmentsEntry(
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(),

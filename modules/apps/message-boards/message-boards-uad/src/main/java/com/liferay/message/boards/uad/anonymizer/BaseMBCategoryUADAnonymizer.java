@@ -14,6 +14,8 @@
 
 package com.liferay.message.boards.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.message.boards.model.MBCategory;
 import com.liferay.message.boards.service.MBCategoryLocalService;
 import com.liferay.message.boards.uad.constants.MBUADConstants;
@@ -47,6 +49,8 @@ public abstract class BaseMBCategoryUADAnonymizer
 		if (mbCategory.getUserId() == userId) {
 			mbCategory.setUserId(anonymousUser.getUserId());
 			mbCategory.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(mbCategory, anonymousUser);
 		}
 
 		if (mbCategory.getStatusByUserId() == userId) {
@@ -67,6 +71,19 @@ public abstract class BaseMBCategoryUADAnonymizer
 		return MBCategory.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		MBCategory mbCategory, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(mbCategory);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return mbCategoryLocalService.getActionableDynamicQuery();
@@ -76,6 +93,14 @@ public abstract class BaseMBCategoryUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return MBUADConstants.USER_ID_FIELD_NAMES_MB_CATEGORY;
 	}
+
+	protected AssetEntry fetchAssetEntry(MBCategory mbCategory) {
+		return assetEntryLocalService.fetchEntry(
+			MBCategory.class.getName(), mbCategory.getCategoryId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected MBCategoryLocalService mbCategoryLocalService;

@@ -17,7 +17,9 @@ import ClayEmptyState from '@clayui/empty-state';
 import {ClayInput, ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
+import {useManualQuery} from 'graphql-hooks';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
+import {Helmet} from 'react-helmet';
 import {withRouter} from 'react-router-dom';
 
 import {AppContext} from '../../AppContext.es';
@@ -26,20 +28,24 @@ import Breadcrumb from '../../components/Breadcrumb.es';
 import PaginatedList from '../../components/PaginatedList.es';
 import QuestionRow from '../../components/QuestionRow.es';
 import ResultsMessage from '../../components/ResultsMessage.es';
-import SectionSubscription from '../../components/SectionSubscription.es';
+import SubscriptionButton from '../../components/SubscriptionButton.es';
 import useQueryParams from '../../hooks/useQueryParams.es';
 import {
-	client,
-	getQuestionThreads,
-	getSectionByRootSection,
-	getSectionBySectionTitle,
-	getSectionsByRootSection,
+	getRankedThreadsQuery,
+	getSectionBySectionTitleQuery,
+	getSectionThreadsQuery,
+	getSectionsQuery,
+	getSubscriptionsQuery,
+	getThreadsQuery,
+	subscribeSectionQuery,
+	unsubscribeSectionQuery,
 } from '../../utils/client.es';
+import lang from '../../utils/lang.es';
 import {
-	deleteCacheVariables,
+	deleteCacheKey,
 	getBasePath,
+	getFullPath,
 	historyPushWithSlug,
-	isWebCrawler,
 	slugToText,
 	useDebounceCallback,
 } from '../../utils/utils.es';
@@ -101,11 +107,13 @@ export default withRouter(
 		const [error, setError] = useState({});
 		const [filter, setFilter] = useState();
 		const [loading, setLoading] = useState(true);
-		const [page, setPage] = useState(1);
-		const [pageSize, setPageSize] = useState(20);
+		const [page, setPage] = useState(null);
+		const [pageSize, setPageSize] = useState(null);
 		const [questions, setQuestions] = useState([]);
-		const [search, setSearch] = useState('');
+		const [search, setSearch] = useState(null);
 		const [section, setSection] = useState({});
+		const [sectionQuery, setSectionQuery] = useState('');
+		const [sectionQueryVariables, setSectionQueryVariables] = useState({});
 		const [totalCount, setTotalCount] = useState(0);
 
 		const queryParams = useQueryParams(location);
@@ -114,10 +122,24 @@ export default withRouter(
 
 		const siteKey = context.siteKey;
 
-		const historyPushParser = useCallback(
-			(url) => historyPushWithSlug(history.push)(url),
-			[history.push]
+		const [getSections] = useManualQuery(getSectionsQuery, {
+			variables: {siteKey: context.siteKey},
+		});
+		const [getSectionBySectionTitle] = useManualQuery(
+			getSectionBySectionTitleQuery,
+			{
+				variables: {
+					filter: `title eq '${slugToText(
+						sectionTitle
+					)}' or id eq '${slugToText(sectionTitle)}'`,
+					siteKey: context.siteKey,
+				},
+			}
 		);
+
+		const [getRankedThreads] = useManualQuery(getRankedThreadsQuery);
+		const [getSectionThreads] = useManualQuery(getSectionThreadsQuery);
+		const [getThreads] = useManualQuery(getThreadsQuery);
 
 		useEffect(() => {
 			setCurrentTag(tag ? slugToText(tag) : '');
@@ -137,11 +159,25 @@ export default withRouter(
 		}, [queryParams]);
 
 		useEffect(() => {
+			document.title = (section && section.title) || sectionTitle;
+		}, [sectionTitle, section]);
+
+		useEffect(() => {
 			if (
 				+context.rootTopicId === 0 &&
 				location.pathname.endsWith('/' + context.rootTopicId)
 			) {
-				getSectionsByRootSection(context.siteKey, context.rootTopicId)
+				const fn =
+					!context.rootTopicId || context.rootTopicId === '0'
+						? getSections()
+						: getSectionBySectionTitle().then(
+								({data}) => data.messageBoardSections.items[0]
+						  );
+
+				fn.then((result) => ({
+					...result,
+					data: result.data.messageBoardSections,
+				}))
 					.then(({data}) => {
 						setAllowCreateTopicInRootTopic(
 							data.actions && !!data.actions.create
@@ -155,7 +191,13 @@ export default withRouter(
 						setError({message: 'Loading Topics', title: 'Error'});
 					});
 			}
-		}, [context.rootTopicId, context.siteKey, location.pathname]);
+		}, [
+			context.rootTopicId,
+			context.siteKey,
+			location.pathname,
+			getSectionBySectionTitle,
+			getSections,
+		]);
 
 		useEffect(() => {
 			setTotalCount(
@@ -166,32 +208,165 @@ export default withRouter(
 			);
 		}, [filter, questions.totalCount, search]);
 
+		const getRankedThreadsCallback = useCallback(
+			(dateModified, page = 1, pageSize = 20, section, sort = '') =>
+				getRankedThreads({
+					variables: {
+						dateModified:
+							dateModified && dateModified.toISOString(),
+						messageBoardSectionId: section.id,
+						page,
+						pageSize,
+						sort,
+					},
+				}).then((result) => ({
+					...result,
+					data: result.data.messageBoardThreadsRanked,
+				})),
+			[getRankedThreads]
+		);
+
+		const getThreadsCallback = useCallback(
+			(
+				creatorId = '',
+				keywords = '',
+				page = 1,
+				pageSize = 30,
+				search = '',
+				section,
+				siteKey,
+				sort
+			) => {
+				if (
+					!search &&
+					!keywords &&
+					!creatorId &&
+					(!sort || sort === 'dateCreated:desc') &&
+					!section.messageBoardSections.items.length &&
+					section.id !== 0
+				) {
+					return getSectionThreads({
+						variables: {
+							messageBoardSectionId: section.id,
+							page,
+							pageSize,
+						},
+					}).then((result) => ({
+						...result,
+						data:
+							result.data.messageBoardSectionMessageBoardThreads,
+					}));
+				}
+
+				let filter = '';
+
+				if (section && section.id) {
+					filter = `(messageBoardSectionId eq ${section.id} `;
+
+					for (
+						let i = 0;
+						i < section.messageBoardSections.items.length;
+						i++
+					) {
+						filter += `or messageBoardSectionId eq ${section.messageBoardSections.items[i].id} `;
+					}
+
+					filter += ')';
+				}
+
+				if (keywords) {
+					filter += `${
+						(section && section.id && ' and ') || ''
+					}keywords/any(x:x eq '${keywords}')`;
+				}
+				else if (creatorId) {
+					filter += ` and creator/id eq ${creatorId}`;
+				}
+
+				sort = sort || 'dateCreated:desc';
+
+				return getThreads({
+					variables: {
+						filter,
+						page,
+						pageSize,
+						search,
+						siteKey,
+						sort,
+					},
+				}).then((result) => ({
+					...result,
+					data: result.data.messageBoardThreads,
+				}));
+			},
+			[getSectionThreads, getThreads]
+		);
+
 		useEffect(() => {
-			if (section.id == null && !currentTag) {
+			if (!page || !pageSize || search === null || search === undefined) {
 				return;
 			}
 
-			getQuestionThreads(
-				creatorId,
-				filter,
-				currentTag,
-				page,
-				pageSize,
-				search,
-				section,
-				siteKey
-			)
-				.then(({data, loading}) => {
-					setQuestions(data || []);
-					setLoading(loading);
-				})
+			if (
+				!section ||
+				((section.id === null || section.id === undefined) &&
+					!currentTag)
+			) {
+				return;
+			}
+
+			let fn;
+
+			if (filter === 'latest-edited') {
+				fn = getThreadsCallback(
+					creatorId,
+					currentTag,
+					page,
+					pageSize,
+					search,
+					section,
+					siteKey,
+					'dateModified:desc'
+				);
+			}
+			else if (filter === 'week') {
+				const date = new Date();
+				date.setDate(date.getDate() - 7);
+
+				fn = getRankedThreadsCallback(date, page, pageSize, section);
+			}
+			else if (filter === 'month') {
+				const date = new Date();
+				date.setDate(date.getDate() - 31);
+
+				fn = getRankedThreadsCallback(date, page, pageSize, section);
+			}
+			else if (filter === 'most-voted') {
+				fn = getRankedThreadsCallback(null, page, pageSize, section);
+			}
+			else {
+				fn = getThreadsCallback(
+					creatorId,
+					currentTag,
+					page,
+					pageSize,
+					search,
+					section,
+					siteKey,
+					'dateCreated:desc'
+				);
+			}
+
+			fn.then(({data}) => {
+				setQuestions(data || []);
+			})
 				.catch((error) => {
 					if (process.env.NODE_ENV === 'development') {
 						console.error(error);
 					}
-					setLoading(false);
 					setError({message: 'Loading Questions', title: 'Error'});
-				});
+				})
+				.finally(() => setLoading(false));
 		}, [
 			creatorId,
 			currentTag,
@@ -201,20 +376,14 @@ export default withRouter(
 			search,
 			section,
 			siteKey,
+			getRankedThreadsCallback,
+			getThreadsCallback,
 		]);
 
-		function buildURL(needHashtag, search, page, pageSize) {
-			let pathname = window.location.pathname;
+		const historyPushParser = historyPushWithSlug(history.push);
 
-			pathname = pathname.endsWith('/')
-				? pathname.slice(0, -1)
-				: pathname;
-
-			let url = isWebCrawler()
-				? pathname + '/-/questions'
-				: needHashtag
-				? pathname + '/#/questions'
-				: '/questions';
+		function buildURL(search, page, pageSize) {
+			let url = '/questions';
 
 			if (sectionTitle || sectionTitle === '0') {
 				url += `/${sectionTitle}`;
@@ -238,42 +407,83 @@ export default withRouter(
 			return url;
 		}
 
+		function changePage(search, page, pageSize) {
+			historyPushParser(buildURL(search, page, pageSize));
+		}
+
 		const [debounceCallback] = useDebounceCallback(
-			(needHashtag, search) => {
-				setLoading(true);
-				historyPushParser(buildURL(needHashtag, search, 1, 20));
-			},
+			(search) => changePage(search, 1, 20),
 			500
 		);
 
 		useEffect(() => {
 			if (sectionTitle && sectionTitle !== '0') {
-				getSectionBySectionTitle(
-					context.siteKey,
-					slugToText(sectionTitle)
-				)
-					.then(setSection)
-					.catch((_) => {
-						deleteCacheVariables(
-							client.cache,
-							'MessageBoardSection'
-						);
-						historyPushParser('/questions/');
-					});
+				const variables = {
+					filter: `title eq '${slugToText(
+						sectionTitle
+					)}' or id eq '${slugToText(sectionTitle)}'`,
+					siteKey: context.siteKey,
+				};
+				getSectionBySectionTitle({
+					variables,
+				}).then(({data}) => {
+					if (data.messageBoardSections.items[0]) {
+						setSection(data.messageBoardSections.items[0]);
+						setSectionQuery(getSectionBySectionTitleQuery);
+						setSectionQueryVariables(variables);
+					}
+					else {
+						setSection(null);
+						setError({message: 'Loading Topics', title: 'Error'});
+						setLoading(false);
+					}
+				});
 			}
 			else if (sectionTitle === '0') {
-				getSectionByRootSection(context.siteKey).then(setSection);
+				const variables = {siteKey: context.siteKey};
+				getSections({
+					variables,
+				})
+					.then(({data: {messageBoardSections}}) => ({
+						actions: messageBoardSections.actions,
+						id: 0,
+						messageBoardSections,
+						numberOfMessageBoardSections:
+							messageBoardSections &&
+							messageBoardSections.items &&
+							messageBoardSections.items.length,
+					}))
+					.then((section) => {
+						setSection(section);
+						setSectionQuery(getSectionsQuery);
+						setSectionQueryVariables(variables);
+					});
 			}
-		}, [historyPushParser, sectionTitle, context.siteKey]);
+		}, [
+			sectionTitle,
+			context.siteKey,
+			getSections,
+			getSectionBySectionTitle,
+		]);
 
 		const filterOptions = getFilterOptions();
+
+		function isVotedFilter(filter) {
+			return (
+				filter === 'month' ||
+				filter === 'most-voted' ||
+				filter === 'week'
+			);
+		}
 
 		const navigateToNewQuestion = () => {
 			if (context.redirectToLogin && !themeDisplay.isSignedIn()) {
 				const baseURL = getBasePath();
 
 				window.location.replace(
-					`/c/portal/login?redirect=${baseURL}#/questions/${sectionTitle}/new`
+					`/c/portal/login?redirect=${baseURL}${
+						context.historyRouterBasePath ? '' : '#'
+					}/questions/${sectionTitle}/new`
 				);
 			}
 			else {
@@ -283,15 +493,13 @@ export default withRouter(
 			return false;
 		};
 
-		const hrefConstructor = (page) =>
-			buildURL(true, search, page, pageSize);
-
 		return (
 			<section className="questions-section questions-section-list">
 				<Breadcrumb
 					allowCreateTopicInRootTopic={allowCreateTopicInRootTopic}
 					section={section}
 				/>
+
 				<div className="questions-container row">
 					<div className="c-mt-3 col col-xl-12">
 						<QuestionsNavigationBar />
@@ -305,65 +513,113 @@ export default withRouter(
 						/>
 					)}
 
-					<div className="c-mx-auto c-px-0 col-xl-10">
-						<PaginatedList
-							activeDelta={pageSize}
-							activePage={page}
-							changeDelta={setPageSize}
-							data={questions}
-							emptyState={
-								!search && !filter ? (
-									<ClayEmptyState
-										description={Liferay.Language.get(
-											'there-are-no-questions-inside-this-topic-be-the-first-to-ask-something'
-										)}
-										imgSrc={
-											context.includeContextPath +
-											'/assets/empty_questions_list.png'
-										}
-										title={Liferay.Language.get(
-											'this-topic-is-empty'
-										)}
-									>
-										{((context.redirectToLogin &&
-											!themeDisplay.isSignedIn()) ||
-											context.canCreateThread) && (
-											<ClayButton
-												displayType="primary"
-												onClick={navigateToNewQuestion}
-											>
-												{Liferay.Language.get(
-													'ask-question'
-												)}
-											</ClayButton>
-										)}
-									</ClayEmptyState>
-								) : (
-									<ClayEmptyState
-										title={Liferay.Language.get(
-											'there-are-no-results'
-										)}
-									/>
-								)
-							}
-							hrefConstructor={hrefConstructor}
-							loading={loading}
-							totalCount={totalCount}
-						>
-							{(question) => (
-								<QuestionRow
-									currentSection={sectionTitle}
-									key={question.id}
-									question={question}
-									showSectionLabel={
-										!!section.numberOfMessageBoardSections
-									}
-								/>
+					{!section && (
+						<ClayEmptyState
+							className="c-mx-auto c-px-0 col-xl-10"
+							description={lang.sub(
+								Liferay.Language.get(
+									'the-link-you-followed-may-be-broken-or-the-topic-no-longer-exists'
+								),
+								[sectionTitle]
 							)}
-						</PaginatedList>
+							imgSrc={
+								context.includeContextPath +
+								'/assets/empty_questions_list.png'
+							}
+							title={Liferay.Language.get(
+								'the-topic-is-not-found'
+							)}
+						>
+							<ClayButton
+								displayType="primary"
+								onClick={() => historyPushParser('/questions')}
+							>
+								{Liferay.Language.get('home')}
+							</ClayButton>
+						</ClayEmptyState>
+					)}
 
-						<Alert info={error} />
-					</div>
+					{section && (
+						<div className="c-mx-auto c-px-0 col-xl-10">
+							<PaginatedList
+								activeDelta={pageSize}
+								activePage={page}
+								changeDelta={(pageSize) =>
+									changePage(search, page, pageSize)
+								}
+								changePage={(page) =>
+									changePage(search, page, pageSize)
+								}
+								data={questions}
+								emptyState={
+									sectionTitle &&
+									!search &&
+									!isVotedFilter(filter) ? (
+										<ClayEmptyState
+											description={Liferay.Language.get(
+												'there-are-no-questions-inside-this-topic-be-the-first-to-ask-something'
+											)}
+											imgSrc={
+												context.includeContextPath +
+												'/assets/empty_questions_list.png'
+											}
+											title={Liferay.Language.get(
+												'this-topic-is-empty'
+											)}
+										>
+											{((context.redirectToLogin &&
+												!themeDisplay.isSignedIn()) ||
+												context.canCreateThread) && (
+												<ClayButton
+													displayType="primary"
+													onClick={
+														navigateToNewQuestion
+													}
+												>
+													{Liferay.Language.get(
+														'ask-question'
+													)}
+												</ClayButton>
+											)}
+										</ClayEmptyState>
+									) : (
+										<ClayEmptyState
+											title={Liferay.Language.get(
+												'there-are-no-results'
+											)}
+										/>
+									)
+								}
+								loading={loading}
+								totalCount={totalCount}
+							>
+								{(question) => (
+									<QuestionRow
+										currentSection={sectionTitle}
+										key={question.id}
+										question={question}
+										showSectionLabel={
+											!!section.numberOfMessageBoardSections
+										}
+									/>
+								)}
+							</PaginatedList>
+
+							<ClayButton
+								className="btn-monospaced d-block d-sm-none position-fixed questions-button shadow"
+								displayType="primary"
+								onClick={navigateToNewQuestion}
+							>
+								<ClayIcon symbol="pencil" />
+
+								<span className="sr-only">
+									{Liferay.Language.get('ask-question')}
+								</span>
+							</ClayButton>
+
+							<Alert info={error} />
+						</div>
+					)}
 				</div>
 			</section>
 		);
@@ -376,7 +632,31 @@ export default withRouter(
 							section.actions &&
 							section.actions.subscribe && (
 								<div className="c-ml-3">
-									<SectionSubscription section={section} />
+									<SubscriptionButton
+										isSubscribed={section.subscribed}
+										onSubscription={() => {
+											deleteCacheKey(
+												sectionQuery,
+												sectionQueryVariables
+											);
+											deleteCacheKey(
+												getSubscriptionsQuery,
+												{
+													contentType:
+														'MessageBoardSection',
+												}
+											);
+										}}
+										parentSection={section.parentSection}
+										queryVariables={{
+											messageBoardSectionId: section.id,
+										}}
+										showTitle={true}
+										subscribeQuery={subscribeSectionQuery}
+										unsubscribeQuery={
+											unsubscribeSectionQuery
+										}
+									/>
 								</div>
 							)}
 					</div>
@@ -433,10 +713,7 @@ export default withRouter(
 											!questions.items.length
 										}
 										onChange={(event) =>
-											debounceCallback(
-												false,
-												event.target.value
-											)
+											debounceCallback(event.target.value)
 										}
 										placeholder={Liferay.Language.get(
 											'search'
@@ -460,15 +737,13 @@ export default withRouter(
 												/>
 											</button>
 										)}
+
 										{!loading &&
 											((!!search && (
 												<ClayButtonWithIcon
 													displayType="unstyled"
 													onClick={() => {
-														debounceCallback(
-															false,
-															''
-														);
+														debounceCallback('');
 													}}
 													symbol="times-circle"
 													type="submit"
@@ -504,24 +779,23 @@ export default withRouter(
 													'ask-question'
 												)}
 											</ClayButton>
-
-											<ClayButton
-												className="btn-monospaced d-block d-sm-none position-fixed questions-button shadow"
-												displayType="primary"
-												onClick={navigateToNewQuestion}
-											>
-												<ClayIcon symbol="pencil" />
-
-												<span className="sr-only">
-													{Liferay.Language.get(
-														'ask-question'
-													)}
-												</span>
-											</ClayButton>
 										</ClayInput.GroupItem>
 									)}
 							</ClayInput.Group>
 						</div>
+					)}
+
+					{section && (
+						<Helmet>
+							<title>{section.title}</title>
+
+							<link
+								href={`${getFullPath('questions')}${
+									context.historyRouterBasePath ? '' : '#/'
+								}questions/${sectionTitle}`}
+								rel="canonical"
+							/>
+						</Helmet>
 					)}
 				</div>
 			);

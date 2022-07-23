@@ -30,6 +30,10 @@ public class LayoutPageTemplateCollectionLocalServiceWrapper
 	implements LayoutPageTemplateCollectionLocalService,
 			   ServiceWrapper<LayoutPageTemplateCollectionLocalService> {
 
+	public LayoutPageTemplateCollectionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutPageTemplateCollectionLocalServiceWrapper(
 		LayoutPageTemplateCollectionLocalService
 			layoutPageTemplateCollectionLocalService) {
@@ -148,6 +152,14 @@ public class LayoutPageTemplateCollectionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _layoutPageTemplateCollectionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutPageTemplateCollectionLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override
@@ -434,6 +446,20 @@ public class LayoutPageTemplateCollectionLocalServiceWrapper
 	public int getLayoutPageTemplateCollectionsCount() {
 		return _layoutPageTemplateCollectionLocalService.
 			getLayoutPageTemplateCollectionsCount();
+	}
+
+	@Override
+	public int getLayoutPageTemplateCollectionsCount(long groupId) {
+		return _layoutPageTemplateCollectionLocalService.
+			getLayoutPageTemplateCollectionsCount(groupId);
+	}
+
+	@Override
+	public int getLayoutPageTemplateCollectionsCount(
+		long groupId, String name) {
+
+		return _layoutPageTemplateCollectionLocalService.
+			getLayoutPageTemplateCollectionsCount(groupId, name);
 	}
 
 	/**

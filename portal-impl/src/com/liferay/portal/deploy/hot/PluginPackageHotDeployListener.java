@@ -34,8 +34,6 @@ import com.liferay.util.portlet.PortletProps;
 
 import java.lang.reflect.Method;
 
-import java.net.URL;
-
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -161,23 +159,6 @@ public class PluginPackageHotDeployListener extends BaseHotDeployListener {
 				"Plugin package " + pluginPackage.getModuleId() +
 					" unregistered successfully");
 		}
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	protected URL getPortalCacheConfigurationURL(
-		Configuration configuration, ClassLoader classLoader,
-		String configLocation) {
-
-		String cacheConfigurationLocation = configuration.get(configLocation);
-
-		if (Validator.isNull(cacheConfigurationLocation)) {
-			return null;
-		}
-
-		return classLoader.getResource(cacheConfigurationLocation);
 	}
 
 	protected void initLogger(ClassLoader classLoader) {

@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the commerce price list discount rel service. This utility wraps <code>com.liferay.commerce.price.list.service.persistence.impl.CommercePriceListDiscountRelPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -679,12 +675,12 @@ public class CommercePriceListDiscountRelUtil {
 	 * @return the matching commerce price list discount rel
 	 * @throws NoSuchPriceListDiscountRelException if a matching commerce price list discount rel could not be found
 	 */
-	public static CommercePriceListDiscountRel findByC_C(
+	public static CommercePriceListDiscountRel findByCDI_CPI(
 			long commerceDiscountId, long commercePriceListId)
 		throws com.liferay.commerce.price.list.exception.
 			NoSuchPriceListDiscountRelException {
 
-		return getPersistence().findByC_C(
+		return getPersistence().findByCDI_CPI(
 			commerceDiscountId, commercePriceListId);
 	}
 
@@ -695,10 +691,10 @@ public class CommercePriceListDiscountRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the matching commerce price list discount rel, or <code>null</code> if a matching commerce price list discount rel could not be found
 	 */
-	public static CommercePriceListDiscountRel fetchByC_C(
+	public static CommercePriceListDiscountRel fetchByCDI_CPI(
 		long commerceDiscountId, long commercePriceListId) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCDI_CPI(
 			commerceDiscountId, commercePriceListId);
 	}
 
@@ -710,11 +706,11 @@ public class CommercePriceListDiscountRelUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching commerce price list discount rel, or <code>null</code> if a matching commerce price list discount rel could not be found
 	 */
-	public static CommercePriceListDiscountRel fetchByC_C(
+	public static CommercePriceListDiscountRel fetchByCDI_CPI(
 		long commerceDiscountId, long commercePriceListId,
 		boolean useFinderCache) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCDI_CPI(
 			commerceDiscountId, commercePriceListId, useFinderCache);
 	}
 
@@ -725,12 +721,12 @@ public class CommercePriceListDiscountRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the commerce price list discount rel that was removed
 	 */
-	public static CommercePriceListDiscountRel removeByC_C(
+	public static CommercePriceListDiscountRel removeByCDI_CPI(
 			long commerceDiscountId, long commercePriceListId)
 		throws com.liferay.commerce.price.list.exception.
 			NoSuchPriceListDiscountRelException {
 
-		return getPersistence().removeByC_C(
+		return getPersistence().removeByCDI_CPI(
 			commerceDiscountId, commercePriceListId);
 	}
 
@@ -741,10 +737,10 @@ public class CommercePriceListDiscountRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the number of matching commerce price list discount rels
 	 */
-	public static int countByC_C(
+	public static int countByCDI_CPI(
 		long commerceDiscountId, long commercePriceListId) {
 
-		return getPersistence().countByC_C(
+		return getPersistence().countByCDI_CPI(
 			commerceDiscountId, commercePriceListId);
 	}
 
@@ -916,29 +912,10 @@ public class CommercePriceListDiscountRelUtil {
 	}
 
 	public static CommercePriceListDiscountRelPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CommercePriceListDiscountRelPersistence,
-		 CommercePriceListDiscountRelPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommercePriceListDiscountRelPersistence.class);
-
-		ServiceTracker
-			<CommercePriceListDiscountRelPersistence,
-			 CommercePriceListDiscountRelPersistence> serviceTracker =
-				new ServiceTracker
-					<CommercePriceListDiscountRelPersistence,
-					 CommercePriceListDiscountRelPersistence>(
-						 bundle.getBundleContext(),
-						 CommercePriceListDiscountRelPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CommercePriceListDiscountRelPersistence
+		_persistence;
 
 }

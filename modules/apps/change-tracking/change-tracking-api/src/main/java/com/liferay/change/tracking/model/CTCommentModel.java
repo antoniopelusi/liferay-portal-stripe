@@ -203,4 +203,7 @@ public interface CTCommentModel
 	 */
 	public void setValue(String value);
 
+	@Override
+	public CTComment cloneWithOriginalValues();
+
 }

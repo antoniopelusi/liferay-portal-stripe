@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.internal.security.permission.support;
 
 import com.liferay.dynamic.data.mapping.constants.DDMActionKeys;
+import com.liferay.dynamic.data.mapping.internal.security.permission.support.helper.DDMPermissionSupportHelper;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.security.permission.DDMPermissionSupport;
@@ -58,7 +59,7 @@ public class DDMPermissionSupportImpl implements DDMPermissionSupport {
 				permissionChecker,
 				getResourceName(structurePermissionSupportServiceWrapper),
 				groupId,
-				getAddStructureActionId(
+				_getAddStructureActionId(
 					structurePermissionSupportServiceWrapper));
 		}
 	}
@@ -110,7 +111,7 @@ public class DDMPermissionSupportImpl implements DDMPermissionSupport {
 		return _ddmPermissionSupportHelper.contains(
 			permissionChecker,
 			getResourceName(structurePermissionSupportServiceWrapper), groupId,
-			getAddStructureActionId(structurePermissionSupportServiceWrapper));
+			_getAddStructureActionId(structurePermissionSupportServiceWrapper));
 	}
 
 	@Override
@@ -203,24 +204,6 @@ public class DDMPermissionSupportImpl implements DDMPermissionSupport {
 			resourceClassName, templatePermissionSupportServiceWrapper);
 	}
 
-	protected String getAddStructureActionId(
-		ServiceWrapper<DDMStructurePermissionSupport>
-			structurePermissionSupportServiceWrapper) {
-
-		return MapUtil.getString(
-			structurePermissionSupportServiceWrapper.getProperties(),
-			"add.structure.action.id", DDMActionKeys.ADD_STRUCTURE);
-	}
-
-	protected String getAddTemplateActionId(
-		ServiceWrapper<DDMTemplatePermissionSupport>
-			templatePermissionSupportServiceWrapper) {
-
-		return MapUtil.getString(
-			templatePermissionSupportServiceWrapper.getProperties(),
-			"add.template.action.id", DDMActionKeys.ADD_TEMPLATE);
-	}
-
 	protected String getResourceName(
 		ServiceWrapper<DDMStructurePermissionSupport>
 			structurePermissionSupportServiceWrapper) {
@@ -257,7 +240,7 @@ public class DDMPermissionSupportImpl implements DDMPermissionSupport {
 				getResourceName(
 					templatePermissionSupportServiceWrapper, classNameId),
 				groupId,
-				getAddTemplateActionId(
+				_getAddTemplateActionId(
 					templatePermissionSupportServiceWrapper));
 		}
 	}
@@ -276,13 +259,31 @@ public class DDMPermissionSupportImpl implements DDMPermissionSupport {
 		if (portletNames.contains(resourceName)) {
 			return PortletPermissionUtil.contains(
 				permissionChecker, groupId, null, resourceName,
-				getAddTemplateActionId(
+				_getAddTemplateActionId(
 					templatePermissionSupportServiceWrapper));
 		}
 
 		return _ddmPermissionSupportHelper.contains(
 			permissionChecker, resourceName, groupId,
-			getAddTemplateActionId(templatePermissionSupportServiceWrapper));
+			_getAddTemplateActionId(templatePermissionSupportServiceWrapper));
+	}
+
+	private String _getAddStructureActionId(
+		ServiceWrapper<DDMStructurePermissionSupport>
+			structurePermissionSupportServiceWrapper) {
+
+		return MapUtil.getString(
+			structurePermissionSupportServiceWrapper.getProperties(),
+			"add.structure.action.id", DDMActionKeys.ADD_STRUCTURE);
+	}
+
+	private String _getAddTemplateActionId(
+		ServiceWrapper<DDMTemplatePermissionSupport>
+			templatePermissionSupportServiceWrapper) {
+
+		return MapUtil.getString(
+			templatePermissionSupportServiceWrapper.getProperties(),
+			"add.template.action.id", DDMActionKeys.ADD_TEMPLATE);
 	}
 
 	private String _getTemplateModelResourceName(

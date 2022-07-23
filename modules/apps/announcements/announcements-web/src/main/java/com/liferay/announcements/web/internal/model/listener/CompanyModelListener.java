@@ -31,8 +31,6 @@ public class CompanyModelListener extends BaseModelListener<Company> {
 
 	@Override
 	public void onBeforeRemove(Company company) throws ModelListenerException {
-		super.onBeforeRemove(company);
-
 		_announcementsEntryLocalService.deleteEntries(company.getCompanyId());
 	}
 

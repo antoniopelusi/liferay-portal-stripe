@@ -27,6 +27,7 @@ import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -34,62 +35,55 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.PropsImpl;
 
-import java.io.IOException;
 import java.io.InputStream;
 
-import java.util.Locale;
 import java.util.Objects;
 
 import javax.portlet.ResourceRequest;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.Mockito;
 
 /**
  * @author Rodrigo Paulino
  */
-@RunWith(MockitoJUnitRunner.class)
-public class AddFormInstanceRecordMVCResourceCommandTest extends PowerMockito {
+public class AddFormInstanceRecordMVCResourceCommandTest {
 
 	@ClassRule
 	public static LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
-	@Before
-	public void setUp() throws Exception {
-		setUpDDMFormContextToDDMFormValues();
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		_setUpDDMFormContextToDDMFormValues();
 
-		setUpAddFormInstanceRecordMVCResourceCommand();
-		setUpDDMFormInstance();
-		setUpPropsUtil();
+		_setUpAddFormInstanceRecordMVCResourceCommand();
+		_setUpDDMFormInstance();
+		_setUpPropsUtil();
 		setUpLanguageUtil();
 	}
 
 	@Test
 	public void testCreateDDMFormValues() throws Exception {
-		String serializedDDMFormValues = read("ddm-form-values.json");
+		String serializedDDMFormValues = _read("ddm-form-values.json");
 
-		when(
+		Mockito.when(
 			_resourceRequest.getParameter("serializedDDMFormValues")
 		).thenReturn(
 			serializedDDMFormValues
 		);
 
-		when(
+		Mockito.when(
 			_language.getLanguageId(_resourceRequest)
 		).thenReturn(
 			"pt_BR"
 		);
 
-		when(
+		Mockito.when(
 			_language.isAvailableLocale(LocaleUtil.BRAZIL)
 		).thenReturn(
 			true
@@ -104,7 +98,7 @@ public class AddFormInstanceRecordMVCResourceCommandTest extends PowerMockito {
 			DDMFormTestUtil.createTextDDMFormField(
 				"TextField2", true, false, false));
 
-		when(
+		Mockito.when(
 			_ddmStructure.getDDMForm()
 		).thenReturn(
 			ddmForm
@@ -128,7 +122,7 @@ public class AddFormInstanceRecordMVCResourceCommandTest extends PowerMockito {
 
 		DDMFormValues ddmFormValues1 =
 			DDMFormValuesTestUtil.createDDMFormValues(
-				ddmForm, SetUtil.fromArray(new Locale[] {LocaleUtil.BRAZIL}),
+				ddmForm, SetUtil.fromArray(LocaleUtil.BRAZIL),
 				LocaleUtil.BRAZIL);
 
 		ddmFormValues1.addDDMFormFieldValue(ddmFormFieldValue1);
@@ -142,7 +136,43 @@ public class AddFormInstanceRecordMVCResourceCommandTest extends PowerMockito {
 		Assert.assertTrue(Objects.equals(ddmFormValues1, ddmFormValues2));
 	}
 
-	protected String read(String fileName) throws IOException {
+	protected static void setUpLanguageUtil() {
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(_language);
+	}
+
+	private static void _setUpAddFormInstanceRecordMVCResourceCommand() {
+		_addFormInstanceRecordMVCResourceCommand =
+			new AddFormInstanceRecordMVCResourceCommand();
+
+		ReflectionTestUtil.setFieldValue(
+			_addFormInstanceRecordMVCResourceCommand,
+			"_ddmFormBuilderContextToDDMFormValues",
+			_ddmFormContextToDDMFormValues);
+	}
+
+	private static void _setUpDDMFormContextToDDMFormValues() {
+		_ddmFormContextToDDMFormValues = new DDMFormContextToDDMFormValues();
+
+		ReflectionTestUtil.setFieldValue(
+			_ddmFormContextToDDMFormValues, "jsonFactory",
+			new JSONFactoryImpl());
+	}
+
+	private static void _setUpDDMFormInstance() throws Exception {
+		Mockito.when(
+			_ddmFormInstance.getStructure()
+		).thenReturn(
+			_ddmStructure
+		);
+	}
+
+	private static void _setUpPropsUtil() {
+		PropsUtil.setProps(new PropsImpl());
+	}
+
+	private String _read(String fileName) throws Exception {
 		Class<?> clazz = getClass();
 
 		InputStream inputStream = clazz.getResourceAsStream(
@@ -151,64 +181,17 @@ public class AddFormInstanceRecordMVCResourceCommandTest extends PowerMockito {
 		return StringUtil.read(inputStream);
 	}
 
-	protected void setUpAddFormInstanceRecordMVCResourceCommand()
-		throws Exception {
-
-		_addFormInstanceRecordMVCResourceCommand =
-			new AddFormInstanceRecordMVCResourceCommand();
-
-		field(
-			AddFormInstanceRecordMVCResourceCommand.class,
-			"_ddmFormBuilderContextToDDMFormValues"
-		).set(
-			_addFormInstanceRecordMVCResourceCommand,
-			_ddmFormContextToDDMFormValues
-		);
-	}
-
-	protected void setUpDDMFormContextToDDMFormValues() throws Exception {
-		_ddmFormContextToDDMFormValues = new DDMFormContextToDDMFormValues();
-
-		field(
-			DDMFormContextToDDMFormValues.class, "jsonFactory"
-		).set(
-			_ddmFormContextToDDMFormValues, new JSONFactoryImpl()
-		);
-	}
-
-	protected void setUpDDMFormInstance() throws Exception {
-		when(
-			_ddmFormInstance.getStructure()
-		).thenReturn(
-			_ddmStructure
-		);
-	}
-
-	protected void setUpLanguageUtil() {
-		LanguageUtil languageUtil = new LanguageUtil();
-
-		languageUtil.setLanguage(_language);
-	}
-
-	protected void setUpPropsUtil() {
-		PropsUtil.setProps(new PropsImpl());
-	}
-
-	private AddFormInstanceRecordMVCResourceCommand
+	private static AddFormInstanceRecordMVCResourceCommand
 		_addFormInstanceRecordMVCResourceCommand;
-	private DDMFormContextDeserializer<DDMFormValues>
+	private static DDMFormContextDeserializer<DDMFormValues>
 		_ddmFormContextToDDMFormValues;
+	private static final DDMFormInstance _ddmFormInstance = Mockito.mock(
+		DDMFormInstance.class);
+	private static final DDMStructure _ddmStructure = Mockito.mock(
+		DDMStructure.class);
+	private static final Language _language = Mockito.mock(Language.class);
 
-	@Mock
-	private DDMFormInstance _ddmFormInstance;
-
-	@Mock
-	private DDMStructure _ddmStructure;
-
-	@Mock
-	private Language _language;
-
-	@Mock
-	private ResourceRequest _resourceRequest;
+	private final ResourceRequest _resourceRequest = Mockito.mock(
+		ResourceRequest.class);
 
 }

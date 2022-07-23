@@ -27,6 +27,10 @@ public class MemberRequestLocalServiceWrapper
 	implements MemberRequestLocalService,
 			   ServiceWrapper<MemberRequestLocalService> {
 
+	public MemberRequestLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MemberRequestLocalServiceWrapper(
 		MemberRequestLocalService memberRequestLocalService) {
 
@@ -166,6 +170,13 @@ public class MemberRequestLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _memberRequestLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _memberRequestLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

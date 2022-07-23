@@ -19,8 +19,4 @@ package com.liferay.commerce.model.impl;
  */
 public class CommerceAvailabilityEstimateImpl
 	extends CommerceAvailabilityEstimateBaseImpl {
-
-	public CommerceAvailabilityEstimateImpl() {
-	}
-
 }

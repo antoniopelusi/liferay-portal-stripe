@@ -1,3 +1,4 @@
+/* eslint-disable @liferay/aui/no-one */
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -32,20 +33,11 @@
 		},
 	};
 
-	var REGEX_SUB = /\{\s*([^|}]+?)\s*(?:\|([^}]*))?\s*\}/g;
-
 	var SRC_HIDE_LINK = {
 		src: 'hideLink',
 	};
 
 	var STR_RIGHT_SQUARE_BRACKET = ']';
-
-	var TPL_LEXICON_ICON =
-		'<svg class="lexicon-icon lexicon-icon-{0} {1}" focusable="false" role="image">' +
-		'<use href="' +
-		themeDisplay.getPathThemeImages() +
-		'/clay/icons.svg#{0}" />' +
-		'</svg>';
 
 	var Window = {
 		_map: {},
@@ -252,8 +244,11 @@
 			return totalOn;
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		checkTab(box) {
-			if (document.all && window.event.keyCode == 9) {
+			if (document.all && Number(window.event.keyCode) === 9) {
 				box.selection = document.selection.createRange();
 
 				setTimeout(() => {
@@ -262,8 +257,8 @@
 			}
 		},
 
-		disableElements(el) {
-			const currentElement = Util.getElement(el);
+		disableElements(element) {
+			const currentElement = Util.getElement(element);
 
 			if (currentElement) {
 				var children = currentElement.getElementsByTagName('*');
@@ -335,10 +330,10 @@
 			return str.replace(/<!\[CDATA\[|\]\]>/gi, (match) => {
 				var str = '';
 
-				if (match == ']]>') {
+				if (match === ']]>') {
 					str = ']]&gt;';
 				}
-				else if (match == '<![CDATA[') {
+				else if (match === '<![CDATA[') {
 					str = '&lt;![CDATA[';
 				}
 
@@ -359,7 +354,7 @@
 				}
 
 				const newWindow =
-					currentElement.getAttribute('target') == '_blank';
+					currentElement.getAttribute('target') === '_blank';
 
 				const hrefFm = document.hrefFm;
 
@@ -373,14 +368,17 @@
 			}
 		},
 
-		getAttributes(el, attributeGetter) {
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
+		getAttributes(element, attributeGetter) {
 			var result = null;
 
-			if (el) {
-				el = Util.getDOM(el);
+			if (element) {
+				element = Util.getDOM(element);
 
-				if (el.jquery) {
-					el = el[0];
+				if (element.jquery) {
+					element = element[0];
 				}
 
 				result = {};
@@ -388,7 +386,7 @@
 				var getterFn = typeof attributeGetter === 'function';
 				var getterString = typeof attributeGetter === 'string';
 
-				var attrs = el.attributes;
+				var attrs = element.attributes;
 				var length = attrs.length;
 
 				while (length--) {
@@ -419,150 +417,18 @@
 			return result;
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		getColumnId(str) {
 			var columnId = str.replace(/layout-column_/, '');
 
 			return columnId;
 		},
 
-		getGeolocation(success, fallback, options) {
-			if (success && navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(
-					(position) => {
-						success(
-							position.coords.latitude,
-							position.coords.longitude,
-							position
-						);
-					},
-					fallback,
-					options
-				);
-			}
-			else if (fallback) {
-				fallback();
-			}
-		},
-
-		getLexiconIcon(icon, cssClass) {
-			var instance = this;
-
-			const tempElement = document.createElement('div');
-
-			tempElement.innerHTML = instance.getLexiconIconTpl(icon, cssClass);
-
-			return tempElement.firstChild;
-		},
-
-		getLexiconIconTpl(icon, cssClass) {
-			return Liferay.Util.sub(TPL_LEXICON_ICON, icon, cssClass || '');
-		},
-
-		getOpener() {
-			var openingWindow = Window._opener;
-
-			if (!openingWindow) {
-				var topUtil = Liferay.Util.getTop().Liferay.Util;
-
-				var windowName = Liferay.Util.getWindowName();
-
-				var dialog = topUtil.Window.getById(windowName);
-
-				if (dialog) {
-					openingWindow = dialog._opener;
-
-					Window._opener = openingWindow;
-				}
-			}
-
-			return openingWindow || window.opener || window.parent;
-		},
-
-		getTop() {
-			var topWindow = Util._topWindow;
-
-			if (!topWindow) {
-				var parentWindow = window.parent;
-
-				var parentThemeDisplay;
-
-				while (parentWindow != window) {
-					try {
-						if (typeof parentWindow.location.href == 'undefined') {
-							break;
-						}
-
-						parentThemeDisplay = parentWindow.themeDisplay;
-					}
-					catch (e) {
-						break;
-					}
-
-					if (
-						!parentThemeDisplay ||
-						window.name === 'simulationDeviceIframe'
-					) {
-						break;
-					}
-					else if (
-						!parentThemeDisplay.isStatePopUp() ||
-						parentWindow == parentWindow.parent
-					) {
-						topWindow = parentWindow;
-
-						break;
-					}
-
-					parentWindow = parentWindow.parent;
-				}
-
-				if (!topWindow) {
-					topWindow = window;
-				}
-
-				Util._topWindow = topWindow;
-			}
-
-			return topWindow;
-		},
-
-		getURLWithSessionId(url) {
-			if (!themeDisplay.isAddSessionIdToURL()) {
-				return url;
-			}
-
-			// LEP-4787
-
-			var x = url.indexOf(';');
-
-			if (x > -1) {
-				return url;
-			}
-
-			var sessionId = ';jsessionid=' + themeDisplay.getSessionId();
-
-			x = url.indexOf('?');
-
-			if (x > -1) {
-				return url.substring(0, x) + sessionId + url.substring(x);
-			}
-
-			// In IE6, http://www.abc.com;jsessionid=XYZ does not work, but
-			// http://www.abc.com/;jsessionid=XYZ does work.
-
-			x = url.indexOf('//');
-
-			if (x > -1) {
-				var y = url.lastIndexOf('/');
-
-				if (x + 1 == y) {
-					return url + '/' + sessionId;
-				}
-			}
-
-			return url + sessionId;
-		},
-
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `openModal`
+		 */
 		getWindow(id) {
 			if (!id) {
 				id = Util.getWindowName();
@@ -571,6 +437,9 @@
 			return Util.getTop().Liferay.Util.Window.getById(id);
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `window.name`
+		 */
 		getWindowName() {
 			return window.name || Window._name || '';
 		},
@@ -651,7 +520,13 @@
 
 			var currentTarget = Util.getElement(event.currentTarget);
 
-			config = A.mix(A.merge({}, currentTarget.dataset), config);
+			// eslint-disable-next-line prefer-object-spread
+			config = Object.assign(
+				{},
+				// eslint-disable-next-line prefer-object-spread
+				Object.assign({}, currentTarget.dataset),
+				config
+			);
 
 			if (!config.uri) {
 				config.uri =
@@ -676,6 +551,9 @@
 			topUtil._openWindowProvider(config, callback);
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		processTab(id) {
 			document.all[id].selection.text = String.fromCharCode(9);
 			document.all[id].focus();
@@ -688,38 +566,11 @@
 			return Math.ceil(Math.random() * new Date().getTime());
 		},
 
-		removeEntitySelection(
-			entityIdString,
-			entityNameString,
-			removeEntityButton,
-			namespace
-		) {
-			const elementByEntityId = document.getElementById(
-				`${namespace}${entityIdString}`
-			);
-
-			if (elementByEntityId) {
-				elementByEntityId.value = 0;
-			}
-
-			const elementByEntityName = document.getElementById(
-				`${namespace}${entityNameString}`
-			);
-
-			if (elementByEntityName) {
-				elementByEntityName.value = '';
-			}
-
-			Liferay.Util.toggleDisabled(removeEntityButton, true);
-
-			Liferay.fire('entitySelectionRemoved');
-		},
-
 		reorder(box, down) {
 			box = Util.getElement(box);
 
 			if (box) {
-				if (box.getAttribute('selectedIndex') == -1) {
+				if (box.getAttribute('selectedIndex') === -1) {
 					box.setAttribute('selectedIndex', 0);
 				}
 				else {
@@ -804,52 +655,32 @@
 			});
 		},
 
-		selectFolder(folderData, namespace) {
-			const folderDataElement = document.getElementById(
-				namespace + folderData.idString
-			);
-
-			if (folderDataElement) {
-				folderDataElement.value = folderData.idValue;
-			}
-
-			const folderNameElement = document.getElementById(
-				namespace + folderData.nameString
-			);
-
-			if (folderNameElement) {
-				folderNameElement.value = this.unescape(folderData.nameValue);
-			}
-
-			const removeFolderButton = document.getElementById(
-				`${namespace}removeFolderButton`
-			);
-
-			if (removeFolderButton) {
-				this.toggleDisabled(removeFolderButton, false);
-			}
-		},
-
-		setCursorPosition(el, position) {
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange}
+		 */
+		setCursorPosition(element, position) {
 			var instance = this;
 
-			instance.setSelectionRange(el, position, position);
+			instance.setSelectionRange(element, position, position);
 		},
 
-		setSelectionRange(el, selectionStart, selectionEnd) {
-			el = Util.getDOM(el);
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange}
+		 */
+		setSelectionRange(element, selectionStart, selectionEnd) {
+			element = Util.getDOM(element);
 
-			if (el.jquery) {
-				el = el[0];
+			if (element.jquery) {
+				element = element[0];
 			}
 
-			if (el.setSelectionRange) {
-				el.focus();
+			if (element.setSelectionRange) {
+				element.focus();
 
-				el.setSelectionRange(selectionStart, selectionEnd);
+				element.setSelectionRange(selectionStart, selectionEnd);
 			}
-			else if (el.createTextRange) {
-				var textRange = el.createTextRange();
+			else if (element.createTextRange) {
+				var textRange = element.createTextRange();
 
 				textRange.collapse(true);
 
@@ -857,29 +688,6 @@
 				textRange.moveEnd('character', selectionStart);
 
 				textRange.select();
-			}
-		},
-
-		showCapsLock(event, spanId) {
-			const span = document.getElementById(spanId);
-
-			if (span) {
-				var keyCode = event.keyCode ? event.keyCode : event.which;
-
-				var shiftKeyCode = keyCode === 16;
-
-				var shiftKey = event.shiftKey ? event.shiftKey : shiftKeyCode;
-
-				var display = 'none';
-
-				if (
-					(keyCode >= 65 && keyCode <= 90 && !shiftKey) ||
-					(keyCode >= 97 && keyCode <= 122 && shiftKey)
-				) {
-					display = '';
-				}
-
-				span.style.display = display;
 			}
 		},
 
@@ -899,21 +707,6 @@
 			}
 
 			return 0;
-		},
-
-		sub(string, data) {
-			if (
-				arguments.length > 2 ||
-				(typeof data !== 'object' && typeof data !== 'function')
-			) {
-				data = Array.prototype.slice.call(arguments, 1);
-			}
-
-			return string.replace
-				? string.replace(REGEX_SUB, (match, key) => {
-						return data[key] === undefined ? match : data[key];
-				  })
-				: string;
 		},
 
 		submitCountdown: 0,
@@ -1046,7 +839,7 @@
 				var toggle = function () {
 					var currentValue = selectBox.value;
 
-					var visible = value == currentValue;
+					var visible = value === currentValue;
 
 					if (dynamicValue) {
 						visible = value(currentValue, value);
@@ -1071,6 +864,7 @@
 		Util,
 		'afterIframeLoaded',
 		(event) => {
+			// eslint-disable-next-line @liferay/aui/no-node
 			var nodeInstances = A.Node._instances;
 
 			var docEl = event.doc;
@@ -1156,6 +950,9 @@
 		['aui-base']
 	);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by `openSelectionModal`
+	 */
 	Liferay.provide(
 		Util,
 		'openDDMPortlet',
@@ -1163,7 +960,7 @@
 			var defaultValues = {
 				eventName: 'selectStructure',
 			};
-
+			// eslint-disable-next-line @liferay/aui/no-merge
 			config = A.merge(defaultValues, config);
 
 			var params = {
@@ -1287,9 +1084,9 @@
 						onSuccess();
 					}
 				}
-				catch (e) {
+				catch (error) {
 					if (Lang.isFunction(onError)) {
-						onError(e);
+						onError(error);
 					}
 				}
 			}
@@ -1297,6 +1094,9 @@
 		['aui-base']
 	);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
 	Liferay.provide(
 		Util,
 		'selectEntityHandler',
@@ -1372,12 +1172,12 @@
 		Util,
 		'portletTitleEdit',
 		(options) => {
-			var obj = options.obj;
+			var object = options.obj;
 
 			A.Event.defineOutside('mouseup');
 
-			if (obj) {
-				var title = obj.one('.portlet-title-text');
+			if (object) {
+				var title = object.one('.portlet-title-text');
 
 				if (title && !title.hasClass('not-editable')) {
 					title.addClass('portlet-title-editable');
@@ -1465,6 +1265,7 @@
 
 				var editURL = new Liferay.Util.PortletURL.createPortletURL(
 					config.uri,
+					// eslint-disable-next-line @liferay/aui/no-merge
 					A.merge(
 						{
 							eventName,
@@ -1475,6 +1276,7 @@
 
 				config.uri = editURL.toString();
 
+				// eslint-disable-next-line @liferay/aui/no-merge
 				config.dialogIframe = A.merge(
 					{
 						bodyCssClass: 'dialog-with-footer',
@@ -1497,6 +1299,9 @@
 		['aui-base', 'liferay-util-window']
 	);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by `openSelectionModal`
+	 */
 	Liferay.provide(
 		Util,
 		'selectEntity',
@@ -1529,6 +1334,7 @@
 				);
 
 				if (selectedData) {
+					// eslint-disable-next-line @liferay/aui/no-each
 					A.each(selectorButtons, (item) => {
 						var assetEntryId =
 							item.attr('data-entityid') ||
@@ -1596,80 +1402,67 @@
 		['aui-base', 'liferay-util-window']
 	);
 
-	Liferay.provide(
-		Util,
-		'toggleControls',
-		(node) => {
-			var docBody = A.getBody();
+	Liferay.provide(Util, 'toggleControls', (node) => {
+		const docBody = document.body;
 
-			node = node || docBody;
+		node = node._node || docBody;
 
-			var trigger = node.one('.toggle-controls');
+		const trigger = node.querySelector('.toggle-controls');
 
-			if (trigger) {
-				var controlsVisible = Liferay._editControlsState === 'visible';
+		if (!trigger) {
+			return;
+		}
 
-				var currentState = MAP_TOGGLE_STATE[controlsVisible];
+		let controlsVisible = Liferay._editControlsState === 'visible';
 
-				var icon = trigger.one('.lexicon-icon');
+		let currentState = MAP_TOGGLE_STATE[controlsVisible];
 
-				if (icon) {
-					currentState.icon = icon;
-				}
+		let icon = trigger.querySelector('.lexicon-icon');
 
-				docBody.addClass(currentState.cssClass);
+		if (icon) {
+			currentState.icon = icon;
+		}
 
-				Liferay.fire('toggleControls', {
-					enabled: controlsVisible,
-				});
+		docBody.classList.add(currentState.cssClass);
 
-				trigger.on('tap', () => {
-					controlsVisible = !controlsVisible;
+		Liferay.fire('toggleControls', {
+			enabled: controlsVisible,
+		});
 
-					var prevState = currentState;
+		trigger.addEventListener('click', () => {
+			controlsVisible = !controlsVisible;
 
-					currentState = MAP_TOGGLE_STATE[controlsVisible];
+			const previousState = currentState;
 
-					docBody.toggleClass(prevState.cssClass);
-					docBody.toggleClass(currentState.cssClass);
+			currentState = MAP_TOGGLE_STATE[controlsVisible];
 
-					var editControlsIconClass = currentState.iconCssClass;
-					var editControlsState = currentState.state;
+			docBody.classList.toggle(previousState.cssClass);
+			docBody.classList.toggle(currentState.cssClass);
 
-					if (icon) {
-						var newIcon = currentState.icon;
+			const editControlsIconClass = currentState.iconCssClass;
+			const editControlsState = currentState.state;
 
-						if (!newIcon) {
-							newIcon = Util.getLexiconIcon(
-								editControlsIconClass
-							);
+			const newIcon = Util.getLexiconIcon(editControlsIconClass);
 
-							newIcon = A.one(newIcon);
+			currentState.icon = newIcon;
 
-							currentState.icon = newIcon;
-						}
+			icon.replaceWith(newIcon);
 
-						icon.replace(newIcon);
+			icon = newIcon;
 
-						icon = newIcon;
-					}
+			Liferay._editControlsState = editControlsState;
 
-					Liferay._editControlsState = editControlsState;
+			Liferay.Util.Session.set(
+				'com.liferay.frontend.js.web_toggleControls',
+				editControlsState
+			);
 
-					Liferay.Util.Session.set(
-						'com.liferay.frontend.js.web_toggleControls',
-						editControlsState
-					);
-
-					Liferay.fire('toggleControls', {
-						enabled: controlsVisible,
-						src: 'ui',
-					});
-				});
-			}
-		},
-		['event-tap']
-	);
+			Liferay.fire('toggleControls', {
+				enabled: controlsVisible,
+				src: 'ui',
+			});
+		});
+	});
 
 	Liferay.provide(
 		Util,
@@ -1688,34 +1481,8 @@
 
 	Liferay.Util = Util;
 
-	Liferay.STATUS_CODE = {
-		BAD_REQUEST: 400,
-		INTERNAL_SERVER_ERROR: 500,
-		OK: 200,
-		SC_DUPLICATE_FILE_EXCEPTION: 490,
-		SC_FILE_ANTIVIRUS_EXCEPTION: 494,
-		SC_FILE_CUSTOM_EXCEPTION: 499,
-		SC_FILE_EXTENSION_EXCEPTION: 491,
-		SC_FILE_NAME_EXCEPTION: 492,
-		SC_FILE_SIZE_EXCEPTION: 493,
-		SC_UPLOAD_REQUEST_SIZE_EXCEPTION: 495,
-	};
-
 	// 0-200: Theme Developer
 	// 200-400: Portlet Developer
 	// 400+: Liferay
 
-	Liferay.zIndex = {
-		ALERT: 430,
-		DOCK: 10,
-		DOCK_PARENT: 20,
-		DRAG_ITEM: 460,
-		DROP_AREA: 440,
-		DROP_POSITION: 450,
-		MENU: 5000,
-		OVERLAY: 1000,
-		POPOVER: 1600,
-		TOOLTIP: 10000,
-		WINDOW: 1200,
-	};
 })(AUI());

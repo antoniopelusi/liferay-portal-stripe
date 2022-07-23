@@ -209,4 +209,7 @@ public interface DLContentModel
 	 */
 	public void setSize(long size);
 
+	@Override
+	public DLContent cloneWithOriginalValues();
+
 }

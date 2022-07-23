@@ -78,9 +78,6 @@ public class CommerceAccountUserRelImpl extends CommerceAccountUserRelBaseImpl {
 		return commerceAccountUserRelImpl;
 	}
 
-	public CommerceAccountUserRelImpl() {
-	}
-
 	@Override
 	public User getUser() throws PortalException {
 		return UserLocalServiceUtil.getUser(getCommerceAccountUserId());

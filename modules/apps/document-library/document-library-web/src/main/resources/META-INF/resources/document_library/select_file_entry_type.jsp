@@ -28,7 +28,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	"/document_library/select_file_entry_type.jsp"
 ).setParameter(
 	"eventName", eventName
-).build();
+).buildPortletURL();
 %>
 
 <clay:navigation-bar
@@ -45,7 +45,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	%>'
 />
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="selectFileEntryTypeFm">
+<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="selectFileEntryTypeFm">
 	<liferay-ui:search-container
 		iteratorURL="<%= portletURL %>"
 	>

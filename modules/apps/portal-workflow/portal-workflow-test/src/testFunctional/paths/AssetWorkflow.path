@@ -2,11 +2,13 @@
 <head>
 <title>AssetWorkflow</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">AssetWorkflow</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ALL_STRUCTURES_WORKFLOW_SELECT</td>
@@ -25,7 +27,7 @@
 </tr>
 <tr>
 	<td>WORKFLOW_STATUS</td>
-	<td>//span[contains(@class,'text-uppercase')] | //span[contains(@class,'workflow-value') and contains(@class,'status')]</td>
+	<td>//span[contains(@class,'text-uppercase')] | //span[contains(@class,'workflow-value') and contains(@class,'status')] | //span[contains(text(), '${kfStatus}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,8 +47,33 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DETAILS_WORKFLOW_CREATED_DATE</td>
+	<td>//dl[contains(@class,'sidebar')]/dd[contains(.,'')][1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_WORKFLOW_LAST_MODIFIED</td>
+	<td>//dl[contains(@class,'sidebar')]/dd[contains(.,'')][2]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DETAILS_WORKFLOW_STATUS</td>
 	<td>//span[contains(@class,'workflow-status')]//strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_WORKFLOW_TOTAL_MODIFICATIONS</td>
+	<td>//dl[contains(@class,'sidebar-dl')]/dd[contains(.,'Revisions')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_WORKFLOW_TITLE_ORDER</td>
+	<td>//tbody//tr[${key_order}]//td//a[contains(text(), "${key_title}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_WORKFLOW_TITLE</td>
+	<td>//a[contains(text(),'${key_workflowInstanceName}')]</td>
 	<td></td>
 </tr>
 <!--TRANSLATIONS_PREVIEW-->
@@ -63,6 +90,40 @@
 <tr>
 	<td>TRANSLATIONS_PREVIEW_TITLE</td>
 	<td>//div[contains(@class,'form-group')]//input[contains(@id,'MyWorkflowTaskPortlet_Title') and contains(@value,'${key_titleValue}') and @readonly='readonly'] </td>
+	<td></td>
+</tr>
+<!--PROCESS_BUILDER_FILTER_AND_ORDER-->
+<tr>
+	<td>PROCESS_BUILDER_FILTER_AND_ORDER_BUTTON</td>
+	<td>//button[contains(@class, "dropdown-toggle nav-link btn btn-unstyled")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_BUILDER_FILTER_AND_ORDER_OPTION</td>
+	<td>//a[contains(@class, 'dropdown-item active')][contains(text(), '${key_optionOrder}')]</td>
+	<td></td>
+</tr>
+<!--BLOGS-->
+<tr>
+	<td>BLOGS_ENTRY_TITLE</td>
+	<td>//p[@title="${key_title}"]</td>
+	<td></td>
+</tr>
+<!--BLOGS ENTRY-->
+<tr>
+	<td>BLOGS_ENTRY_STATUS_TABLE</td>
+	<td>//span[contains(@class, "label-item label-item-expand") and text()="${key_status}"]</td>
+	<td></td>
+</tr>
+<!--REVIEW ASSET-->
+<tr>
+	<td>ASSET_STATE</td>
+	<td>//div/span[contains(.,'State')]/..//div[(@class='panel-body') and contains(.,'${key_state}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_TITLE_HEADER</td>
+	<td>//span[@data-qa-id="headerTitle" and contains (text(), "Review: ${key_titleValue}")]</td>
 	<td></td>
 </tr>
 </tbody>

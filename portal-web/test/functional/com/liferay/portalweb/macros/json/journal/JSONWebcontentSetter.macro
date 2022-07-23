@@ -3,13 +3,16 @@ definition {
 	macro setArticleId {
 		Variables.assertDefined(parameterList = "${groupName},${title}");
 
-		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
+		var groupId = JSONWebcontentSetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var urlTitle = StringUtil.replace("${title}", " ", "-");
 		var urlTitle = StringUtil.lowerCase("${urlTitle}");
 
 		var articleId = JSONWebcontentAPI._getArticleIdByURLTitle(
 			groupName = "${groupName}",
+			site = "${site}",
 			urlTitle = "${urlTitle}");
 
 		return "${articleId}";
@@ -17,23 +20,25 @@ definition {
 
 	macro setContentXML {
 		JSONUtil2._exclusiveOrCheck(
-			A = "${content}",
-			B = "${contentMap}",
-			failMessage = "Please only set &apos;content&apos; or only &apos;contentMap&apos; but not both or none.");
+			a = "${content}",
+			b = "${contentMap}",
+			failMessage = "Please only set 'content' or only 'contentMap' but not both or none.");
 
 		if (isSet(contentMap)) {
-			var contentXML = JSONWebcontentUtil._localizedConvertToXML(contentMap = "${contentMap}");
+			var contentXml = JSONWebcontentUtil._localizedConvertToXML(contentMap = "${contentMap}");
 		}
 		else {
-			var contentXML = JSONWebcontentUtil._convertToXML(content = "${content}");
+			var contentXml = JSONWebcontentUtil._convertToXML(
+				content = "${content}",
+				source = "${source}");
 		}
 
-		return "${contentXML}";
+		return "${contentXml}";
 	}
 
 	macro setDescriptionMap {
 		if (isSet(description)) {
-			var descriptionMap = '''{"en_US":"${description}"}''';
+			var descriptionMap = '''{"en_US":"%3Cp%3E${description}%3C%2Fp%3E"}''';
 		}
 		else {
 			var descriptionMap = "{}";
@@ -64,7 +69,9 @@ definition {
 			var site = "true";
 		}
 
-		var groupId = JSONGroupAPI._getGroupIdByName(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		return "${groupId}";
 	}
@@ -82,10 +89,28 @@ definition {
 		return "${serviceContext}";
 	}
 
+	macro setStatus {
+		Variables.assertDefined(parameterList = "${statusKey}");
+
+		if ("${statusKey}" == "APPROVE") {
+			var status = "0";
+		}
+
+		if ("${statusKey}" == "DRAFT") {
+			var status = "2";
+		}
+
+		if ("${statusKey}" == "EXPIRE") {
+			var status = "3";
+		}
+
+		return "${status}";
+	}
+
 	macro setTitleMap {
 		JSONUtil2._exclusiveOrCheck(
-			A = "${title}",
-			B = "${titleMap}",
+			a = "${title}",
+			b = "${titleMap}",
 			failMessage = "Please only set 'title' or only 'titleMap' but not both or none.");
 
 		if (isSet(titleMap)) {

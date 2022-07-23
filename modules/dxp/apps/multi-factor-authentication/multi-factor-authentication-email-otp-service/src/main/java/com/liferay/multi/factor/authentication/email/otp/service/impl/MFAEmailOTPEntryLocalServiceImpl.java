@@ -21,10 +21,12 @@ import com.liferay.multi.factor.authentication.email.otp.service.base.MFAEmailOT
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserLocalService;
 
 import java.util.Date;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Arthur Chan
@@ -50,7 +52,7 @@ public class MFAEmailOTPEntryLocalServiceImpl
 		mfaEmailOTPEntry = mfaEmailOTPEntryPersistence.create(
 			counterLocalService.increment());
 
-		User user = userLocalService.getUserById(userId);
+		User user = _userLocalService.getUserById(userId);
 
 		mfaEmailOTPEntry.setCompanyId(user.getCompanyId());
 		mfaEmailOTPEntry.setUserId(user.getUserId());
@@ -113,5 +115,8 @@ public class MFAEmailOTPEntryLocalServiceImpl
 
 		return mfaEmailOTPEntryPersistence.update(mfaEmailOTPEntry);
 	}
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -51,15 +51,8 @@ public class ProxyResponse implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{exception=");
-		sb.append(_exception);
-		sb.append(", result=");
-		sb.append(_result);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{exception=", _exception, ", result=", _result, "}");
 	}
 
 	private Exception _exception;

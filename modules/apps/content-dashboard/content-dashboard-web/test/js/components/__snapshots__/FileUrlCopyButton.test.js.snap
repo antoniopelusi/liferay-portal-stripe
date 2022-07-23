@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FileUrlCopyButton matches the snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="file-url-copy-button"
+  >
+    <div
+      class="form-group"
+    >
+      <div
+        class="input-group"
+      >
+        <div
+          class="input-group-item input-group-prepend"
+        >
+          <input
+            class="form-control"
+            readonly=""
+            type="text"
+            value="http://localhost:8080/documents/my-demo-url.txt"
+          />
+        </div>
+        <div
+          class="input-group-item input-group-append input-group-item-shrink"
+        >
+          <button
+            class="btn btn-monospaced btn-secondary"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-copy"
+              role="presentation"
+            >
+              <use
+                xlink:href="#copy"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

@@ -37,7 +37,7 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = MVCActionCommand.class
 )
-public class DeleteStructureMVCActionCommand extends DDMBaseMVCActionCommand {
+public class DeleteStructureMVCActionCommand extends BaseDDMMVCActionCommand {
 
 	@Override
 	protected void doProcessAction(

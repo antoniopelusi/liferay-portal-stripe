@@ -275,4 +275,7 @@ public interface WorkflowInstanceLinkModel
 	 */
 	public void setWorkflowInstanceId(long workflowInstanceId);
 
+	@Override
+	public WorkflowInstanceLink cloneWithOriginalValues();
+
 }

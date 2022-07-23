@@ -32,7 +32,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -156,15 +155,14 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 				continue;
 			}
 
-			if (segmentsExperienceId ==
-					SegmentsExperienceConstants.ID_DEFAULT) {
-
-				_fragmentEntryLinkLocalService.updateFragmentEntryLink(
-					fragmentStyledLayoutStructureItem.getFragmentEntryLinkId(),
+			if (segmentsExperienceId == _SEGMENTS_EXPERIENCE_ID_DEFAULT) {
+				fragmentEntryLink.setEditableValues(
 					EditableValuesTransformerUtil.getEditableValues(
 						fragmentEntryLink.getEditableValues(),
-						segmentsExperienceId),
-					false);
+						segmentsExperienceId));
+
+				_fragmentEntryLinkLocalService.updateFragmentEntryLink(
+					fragmentEntryLink);
 
 				continue;
 			}
@@ -221,35 +219,40 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 
 	private void _upgradeLayoutPageTemplateStructureRel() throws Exception {
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select lPageTemplateStructureRelId, segmentsExperienceId, " +
 					"data_ from LayoutPageTemplateStructureRel order by " +
 						"segmentsExperienceId desc");
-			PreparedStatement ps = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update LayoutPageTemplateStructureRel set data_ = ? " +
-						"where lPageTemplateStructureRelId = ?"))) {
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update LayoutPageTemplateStructureRel set data_ = ? " +
+							"where lPageTemplateStructureRelId = ?"))) {
 
-			while (rs.next()) {
-				long layoutPageTemplateStructureRelId = rs.getLong(
+			while (resultSet.next()) {
+				long layoutPageTemplateStructureRelId = resultSet.getLong(
 					"lPageTemplateStructureRelId");
 
-				long segmentsExperienceId = rs.getLong("segmentsExperienceId");
+				long segmentsExperienceId = resultSet.getLong(
+					"segmentsExperienceId");
 
-				String data = rs.getString("data_");
+				String data = resultSet.getString("data_");
 
-				ps.setString(1, _upgradeLayoutData(data, segmentsExperienceId));
+				preparedStatement.setString(
+					1, _upgradeLayoutData(data, segmentsExperienceId));
 
-				ps.setLong(2, layoutPageTemplateStructureRelId);
+				preparedStatement.setLong(2, layoutPageTemplateStructureRelId);
 
-				ps.addBatch();
+				preparedStatement.addBatch();
 			}
 
-			ps.executeBatch();
+			preparedStatement.executeBatch();
 		}
 	}
 
 	private static final String _INSTANCE_SEPARATOR = "_INSTANCE_";
+
+	private static final long _SEGMENTS_EXPERIENCE_ID_DEFAULT = 0;
 
 	private static final String _SEGMENTS_EXPERIENCE_SEPARATOR_1 =
 		"_SEGMENTS_EXPERIENCE_";

@@ -25,10 +25,11 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Andrea Sbarra
+ * @author Alessio Antonio Rendina
  */
 @Component(
 	enabled = false,
-	property = "model.class.name=com.liferay.commerce.model.CommerceShipment",
+	property = "dto.class.name=com.liferay.commerce.model.CommerceShipment",
 	service = {DTOConverter.class, ShipmentDTOConverter.class}
 )
 public class ShipmentDTOConverter
@@ -54,6 +55,8 @@ public class ShipmentDTOConverter
 				carrier = commerceShipment.getCarrier();
 				createDate = commerceShipment.getCreateDate();
 				expectedDate = commerceShipment.getExpectedDate();
+				externalReferenceCode =
+					commerceShipment.getExternalReferenceCode();
 				id = commerceShipment.getCommerceShipmentId();
 				modifiedDate = commerceShipment.getModifiedDate();
 				shippingAddressId = commerceShipment.getCommerceAddressId();

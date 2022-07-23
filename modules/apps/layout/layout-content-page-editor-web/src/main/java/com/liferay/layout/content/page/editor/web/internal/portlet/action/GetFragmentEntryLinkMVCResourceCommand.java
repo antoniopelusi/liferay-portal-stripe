@@ -27,8 +27,10 @@ import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemIdentifier;
 import com.liferay.info.item.InfoItemServiceTracker;
+import com.liferay.info.item.provider.InfoItemDetailsProvider;
 import com.liferay.info.item.provider.InfoItemObjectProvider;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
+import com.liferay.layout.content.page.editor.web.internal.util.layout.structure.LayoutStructureUtil;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.layout.display.page.LayoutDisplayPageProviderTracker;
 import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
@@ -85,6 +87,12 @@ public class GetFragmentEntryLinkMVCResourceCommand
 			DefaultFragmentRendererContext defaultFragmentRendererContext =
 				new DefaultFragmentRendererContext(fragmentEntryLink);
 
+			int collectionItemIndex = ParamUtil.getInteger(
+				resourceRequest, "collectionItemIndex", -1);
+
+			defaultFragmentRendererContext.setCollectionElementIndex(
+				collectionItemIndex);
+
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)resourceRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
@@ -101,13 +109,19 @@ public class GetFragmentEntryLinkMVCResourceCommand
 			long segmentsExperienceId = ParamUtil.getLong(
 				resourceRequest, "segmentsExperienceId");
 
-			defaultFragmentRendererContext.setSegmentsExperienceIds(
-				new long[] {segmentsExperienceId});
+			defaultFragmentRendererContext.
+				setCollectionStyledLayoutStructureItemIds(
+					LayoutStructureUtil.
+						getCollectionStyledLayoutStructureItemIds(
+							fragmentEntryLink.getFragmentEntryLinkId(),
+							LayoutStructureUtil.getLayoutStructure(
+								themeDisplay.getScopeGroupId(),
+								themeDisplay.getPlid(), segmentsExperienceId)));
 
-			String collectionItemClassName = ParamUtil.getString(
-				resourceRequest, "collectionItemClassName");
-			long collectionItemClassPK = ParamUtil.getLong(
-				resourceRequest, "collectionItemClassPK");
+			String itemClassName = ParamUtil.getString(
+				resourceRequest, "itemClassName");
+			long itemClassPK = ParamUtil.getLong(
+				resourceRequest, "itemClassPK");
 
 			HttpServletRequest httpServletRequest =
 				_portal.getHttpServletRequest(resourceRequest);
@@ -116,15 +130,13 @@ public class GetFragmentEntryLinkMVCResourceCommand
 				(LayoutDisplayPageProvider<?>)httpServletRequest.getAttribute(
 					LayoutDisplayPageWebKeys.LAYOUT_DISPLAY_PAGE_PROVIDER);
 
-			if (Validator.isNotNull(collectionItemClassName) &&
-				(collectionItemClassPK > 0)) {
-
+			if (Validator.isNotNull(itemClassName) && (itemClassPK > 0)) {
 				InfoItemIdentifier infoItemIdentifier =
-					new ClassPKInfoItemIdentifier(collectionItemClassPK);
+					new ClassPKInfoItemIdentifier(itemClassPK);
 
 				InfoItemObjectProvider<Object> infoItemObjectProvider =
 					_infoItemServiceTracker.getFirstInfoItemService(
-						InfoItemObjectProvider.class, collectionItemClassName,
+						InfoItemObjectProvider.class, itemClassName,
 						infoItemIdentifier.getInfoItemServiceFilter());
 
 				if (infoItemObjectProvider != null) {
@@ -135,14 +147,27 @@ public class GetFragmentEntryLinkMVCResourceCommand
 						infoItemObject);
 
 					httpServletRequest.setAttribute(
+						InfoDisplayWebKeys.INFO_ITEM, infoItemObject);
+
+					InfoItemDetailsProvider infoItemDetailsProvider =
+						_infoItemServiceTracker.getFirstInfoItemService(
+							InfoItemDetailsProvider.class, itemClassName);
+
+					if (infoItemDetailsProvider != null) {
+						httpServletRequest.setAttribute(
+							InfoDisplayWebKeys.INFO_ITEM_DETAILS,
+							infoItemDetailsProvider.getInfoItemDetails(
+								infoItemObject));
+					}
+
+					httpServletRequest.setAttribute(
 						InfoDisplayWebKeys.INFO_LIST_DISPLAY_OBJECT,
 						infoItemObject);
 				}
 
 				LayoutDisplayPageProvider<?> layoutDisplayPageProvider =
 					_layoutDisplayPageProviderTracker.
-						getLayoutDisplayPageProviderByClassName(
-							collectionItemClassName);
+						getLayoutDisplayPageProviderByClassName(itemClassName);
 
 				if (layoutDisplayPageProvider != null) {
 					httpServletRequest.setAttribute(
@@ -150,6 +175,10 @@ public class GetFragmentEntryLinkMVCResourceCommand
 						layoutDisplayPageProvider);
 				}
 			}
+
+			boolean isolated = themeDisplay.isIsolated();
+
+			themeDisplay.setIsolated(true);
 
 			try {
 				String content = _fragmentRendererController.render(
@@ -188,6 +217,8 @@ public class GetFragmentEntryLinkMVCResourceCommand
 				httpServletRequest.setAttribute(
 					LayoutDisplayPageWebKeys.LAYOUT_DISPLAY_PAGE_PROVIDER,
 					currentLayoutDisplayPageProvider);
+
+				themeDisplay.setIsolated(isolated);
 			}
 
 			if (SessionErrors.contains(

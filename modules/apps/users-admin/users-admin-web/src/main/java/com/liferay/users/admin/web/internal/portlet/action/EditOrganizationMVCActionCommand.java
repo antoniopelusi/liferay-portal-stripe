@@ -17,6 +17,7 @@ package com.liferay.users.admin.web.internal.portlet.action;
 import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.portal.kernel.exception.DataLimitExceededException;
 import com.liferay.portal.kernel.exception.DuplicateOrganizationException;
 import com.liferay.portal.kernel.exception.NoSuchCountryException;
 import com.liferay.portal.kernel.exception.NoSuchListTypeException;
@@ -24,30 +25,20 @@ import com.liferay.portal.kernel.exception.NoSuchOrganizationException;
 import com.liferay.portal.kernel.exception.OrganizationNameException;
 import com.liferay.portal.kernel.exception.OrganizationParentException;
 import com.liferay.portal.kernel.exception.RequiredOrganizationException;
-import com.liferay.portal.kernel.model.Address;
-import com.liferay.portal.kernel.model.EmailAddress;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.OrgLabor;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationConstants;
-import com.liferay.portal.kernel.model.Phone;
-import com.liferay.portal.kernel.model.Website;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
-import com.liferay.portal.kernel.service.AddressService;
-import com.liferay.portal.kernel.service.EmailAddressService;
-import com.liferay.portal.kernel.service.OrgLaborService;
 import com.liferay.portal.kernel.service.OrganizationService;
-import com.liferay.portal.kernel.service.PhoneService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
-import com.liferay.portal.kernel.service.WebsiteService;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -56,7 +47,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.users.admin.constants.UsersAdminPortletKeys;
 
 import java.util.Collections;
-import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -111,7 +101,7 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 
 			if (organization != null) {
-				redirect = _http.setParameter(
+				redirect = HttpComponentsUtil.setParameter(
 					redirect, actionResponse.getNamespace() + "organizationId",
 					organization.getOrganizationId());
 			}
@@ -123,10 +113,12 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 		catch (Exception exception) {
 			String mvcPath = "/edit_organization.jsp";
 
-			if (exception instanceof NoSuchOrganizationException ||
+			if (exception instanceof DataLimitExceededException ||
+				exception instanceof NoSuchOrganizationException ||
 				exception instanceof PrincipalException) {
 
-				SessionErrors.add(actionRequest, exception.getClass());
+				SessionErrors.add(
+					actionRequest, exception.getClass(), exception);
 
 				mvcPath = "/error.jsp";
 			}
@@ -166,7 +158,7 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 						actionRequest, "organizationId");
 
 					if (organizationId > 0) {
-						redirect = _http.setParameter(
+						redirect = HttpComponentsUtil.setParameter(
 							redirect,
 							actionResponse.getNamespace() + "organizationId",
 							organizationId);
@@ -185,18 +177,6 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 
 			actionResponse.setRenderParameter("mvcPath", mvcPath);
 		}
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLAppLocalService(DLAppLocalService dlAppLocalService) {
-		_dlAppLocalService = dlAppLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setOrganizationService(
-		OrganizationService organizationService) {
-
-		_organizationService = organizationService;
 	}
 
 	protected Organization updateOrganization(ActionRequest actionRequest)
@@ -252,24 +232,10 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 
 			Group organizationGroup = organization.getGroup();
 
-			boolean site = organizationGroup.isSite();
-
-			List<Address> addresses = _addressService.getAddresses(
-				Organization.class.getName(), organizationId);
-			List<EmailAddress> emailAddresses =
-				_emailAddressService.getEmailAddresses(
-					Organization.class.getName(), organizationId);
-			List<OrgLabor> orgLabors = _orgLaborService.getOrgLabors(
-				organizationId);
-			List<Phone> phones = _phoneService.getPhones(
-				Organization.class.getName(), organizationId);
-			List<Website> websites = _websiteService.getWebsites(
-				Organization.class.getName(), organizationId);
-
 			organization = _organizationService.updateOrganization(
 				organizationId, parentOrganizationId, name, type, regionId,
-				countryId, statusId, comments, !deleteLogo, logoBytes, site,
-				addresses, emailAddresses, orgLabors, phones, websites,
+				countryId, statusId, comments, !deleteLogo, logoBytes,
+				organizationGroup.isSite(), null, null, null, null, null,
 				serviceContext);
 		}
 
@@ -277,28 +243,12 @@ public class EditOrganizationMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	@Reference
-	private AddressService _addressService;
-
 	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
-	private EmailAddressService _emailAddressService;
-
-	@Reference
-	private Http _http;
-
 	private OrganizationService _organizationService;
 
 	@Reference
-	private OrgLaborService _orgLaborService;
-
-	@Reference
-	private PhoneService _phoneService;
-
-	@Reference
 	private Portal _portal;
-
-	@Reference
-	private WebsiteService _websiteService;
 
 }

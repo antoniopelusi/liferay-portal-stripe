@@ -101,10 +101,10 @@ public class SamlSpSsoFilter extends BaseSamlPortalFilter {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception.getMessage(), exception);
+				_log.debug(exception);
 			}
 			else if (_log.isWarnEnabled()) {
-				_log.warn(exception.getMessage());
+				_log.warn(exception);
 			}
 		}
 
@@ -155,7 +155,7 @@ public class SamlSpSsoFilter extends BaseSamlPortalFilter {
 
 			if (samlSpIdpConnection != null) {
 				try {
-					login(httpServletRequest, httpServletResponse);
+					_login(httpServletRequest, httpServletResponse);
 				}
 				catch (PortalException portalException) {
 					if (_log.isInfoEnabled()) {
@@ -205,7 +205,7 @@ public class SamlSpSsoFilter extends BaseSamlPortalFilter {
 		return _log;
 	}
 
-	protected void login(
+	private void _login(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws PortalException {
@@ -216,22 +216,19 @@ public class SamlSpSsoFilter extends BaseSamlPortalFilter {
 			relayState = _portal.escapeRedirect(relayState);
 		}
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		LastPath lastPath = (LastPath)session.getAttribute(WebKeys.LAST_PATH);
+		LastPath lastPath = (LastPath)httpSession.getAttribute(
+			WebKeys.LAST_PATH);
 
 		if (GetterUtil.getBoolean(
 				_props.get(PropsKeys.AUTH_FORWARD_BY_LAST_PATH)) &&
 			(lastPath != null) && Validator.isNull(relayState)) {
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(_portal.getPortalURL(httpServletRequest));
-			sb.append(lastPath.getContextPath());
-			sb.append(lastPath.getPath());
-			sb.append(lastPath.getParameters());
-
-			relayState = sb.toString();
+			relayState = StringBundler.concat(
+				_portal.getPortalURL(httpServletRequest),
+				lastPath.getContextPath(), lastPath.getPath(),
+				lastPath.getParameters());
 		}
 		else if (Validator.isNull(relayState)) {
 			relayState = _portal.getHomeURL(httpServletRequest);

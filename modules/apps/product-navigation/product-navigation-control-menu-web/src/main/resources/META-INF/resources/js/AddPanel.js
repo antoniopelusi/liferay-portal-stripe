@@ -68,8 +68,8 @@ const updateUsedCategoryPortlet = ({category, item, used}) => {
 		: category;
 };
 
-export const updateUsedWidget = ({item, used = true, widgets}) =>
-	widgets.map((collection) => {
+export function updateUsedWidget({item, used = true, widgets}) {
+	return widgets.map((collection) => {
 		updateUsedCategoryPortlet({category: collection, item, used});
 
 		return {
@@ -81,6 +81,7 @@ export const updateUsedWidget = ({item, used = true, widgets}) =>
 			}),
 		};
 	});
+}
 
 const normalizeWidget = (widget) => {
 	return {
@@ -91,7 +92,7 @@ const normalizeWidget = (widget) => {
 			used: widget.used,
 		},
 		disabled: !widget.instanceable && widget.used,
-		icon: widget.instanceable ? 'cards2' : 'square-hole',
+		icon: widget.instanceable ? 'square-hole-multi' : 'square-hole',
 		itemId: widget.portletId,
 		label: widget.title,
 		portletItems: widget.portletItems?.length
@@ -117,7 +118,7 @@ const normalizeCollections = (collection) => {
 	return normalizedElement;
 };
 
-export const normalizeContent = (content) => {
+export function normalizeContent(content) {
 	return {
 		category: content.type,
 		data: {
@@ -133,7 +134,7 @@ export const normalizeContent = (content) => {
 		label: content.title,
 		type: LAYOUT_DATA_ITEM_TYPES.content,
 	};
-};
+}
 
 const AddPanel = ({
 	addContentsURLs,
@@ -219,7 +220,9 @@ const AddPanel = ({
 			>
 				<DndProvider backend={HTML5Backend}>
 					<DragPreview rtl={rtl} />
+
 					<DragAndDrop />
+
 					<TabsPanel tabs={tabs} />
 				</DndProvider>
 			</AddPanelContextProvider>

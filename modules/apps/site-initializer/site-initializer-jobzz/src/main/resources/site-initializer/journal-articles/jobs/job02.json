@@ -1,0 +1,14 @@
+{
+	"articleId": "job02",
+	"assetCategoryERCs": [
+		"CAT_MARKETING"
+	],
+	"assetTagNames": [
+		"highlight",
+		"homepage"
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "Online Marketeer"
+}

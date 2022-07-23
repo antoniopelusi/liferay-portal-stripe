@@ -15,7 +15,6 @@
 package com.liferay.commerce.internal.upgrade.v4_10_0;
 
 import com.liferay.commerce.internal.upgrade.base.BaseCommerceServiceUpgradeProcess;
-import com.liferay.commerce.internal.upgrade.v4_10_0.util.CommerceOrderItemTable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 
@@ -31,69 +30,40 @@ public class CommerceOrderItemUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"deliveryMaxSubscriptionCycles", "LONG");
+		addColumn("CommerceOrderItem", "deliveryMaxSubscriptionCycles", "LONG");
+
+		addColumn("CommerceOrderItem", "deliverySubscriptionLength", "INTEGER");
 
 		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"deliverySubscriptionLength", "INTEGER");
+			"CommerceOrderItem", "deliverySubscriptionType", "VARCHAR(75)");
 
 		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"deliverySubscriptionType", "VARCHAR(75)");
+			"CommerceOrderItem", "deliverySubTypeSettings", "VARCHAR(75)");
+
+		addColumn("CommerceOrderItem", "depth", "DOUBLE");
+
+		addColumn("CommerceOrderItem", "freeShipping", "BOOLEAN");
+
+		addColumn("CommerceOrderItem", "height", "DOUBLE");
+
+		addColumn("CommerceOrderItem", "maxSubscriptionCycles", "LONG");
+
+		addColumn("CommerceOrderItem", "shipSeparately", "BOOLEAN");
+
+		addColumn("CommerceOrderItem", "shippable", "BOOLEAN");
+
+		addColumn("CommerceOrderItem", "shippingExtraPrice", "DOUBLE");
+
+		addColumn("CommerceOrderItem", "subscriptionLength", "INTEGER");
+
+		addColumn("CommerceOrderItem", "subscriptionType", "VARCHAR(75)");
 
 		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"deliverySubTypeSettings", "VARCHAR(75)");
+			"CommerceOrderItem", "subscriptionTypeSettings", "VARCHAR(75)");
 
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"depth", "DOUBLE");
+		addColumn("CommerceOrderItem", "weight", "DOUBLE");
 
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"freeShipping", "BOOLEAN");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"height", "DOUBLE");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"maxSubscriptionCycles", "LONG");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"shipSeparately", "BOOLEAN");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"shippable", "BOOLEAN");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"shippingExtraPrice", "DOUBLE");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"subscriptionLength", "INTEGER");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"subscriptionType", "VARCHAR(75)");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"subscriptionTypeSettings", "VARCHAR(75)");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"weight", "DOUBLE");
-
-		addColumn(
-			CommerceOrderItemTable.class, CommerceOrderItemTable.TABLE_NAME,
-			"width", "DOUBLE");
+		addColumn("CommerceOrderItem", "width", "DOUBLE");
 
 		String updateCommerceOrderItemSQL = StringBundler.concat(
 			"update CommerceOrderItem SET shippable = ?, freeShipping = ?, ",
@@ -133,91 +103,93 @@ public class CommerceOrderItemUpgradeProcess
 			"CommerceOrderItem.commerceOrderId and CommerceOrder.orderStatus ",
 			"= 2");
 
-		try (PreparedStatement ps1 =
+		try (PreparedStatement preparedStatement1 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, updateCommerceOrderItemSQL);
 			Statement s = connection.createStatement(
 				ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs = s.executeQuery(getCPInstanceSQL)) {
+			ResultSet resultSet = s.executeQuery(getCPInstanceSQL)) {
 
-			while (rs.next()) {
-				long cpInstanceId = rs.getLong(1);
-				boolean shippable = rs.getBoolean(2);
-				boolean freeShipping = rs.getBoolean(3);
-				boolean shipSeparately = rs.getBoolean(4);
-				double shippingExtraPrice = rs.getDouble(5);
+			while (resultSet.next()) {
+				long cpInstanceId = resultSet.getLong(1);
+				boolean shippable = resultSet.getBoolean(2);
+				boolean freeShipping = resultSet.getBoolean(3);
+				boolean shipSeparately = resultSet.getBoolean(4);
+				double shippingExtraPrice = resultSet.getDouble(5);
 
-				double width = rs.getDouble(19);
+				double width = resultSet.getDouble(19);
 
 				if (width <= 0) {
-					width = rs.getDouble(6);
+					width = resultSet.getDouble(6);
 				}
 
-				double height = rs.getDouble(20);
+				double height = resultSet.getDouble(20);
 
 				if (height <= 0) {
-					height = rs.getDouble(7);
+					height = resultSet.getDouble(7);
 				}
 
-				double depth = rs.getDouble(21);
+				double depth = resultSet.getDouble(21);
 
 				if (depth <= 0) {
-					depth = rs.getDouble(8);
+					depth = resultSet.getDouble(8);
 				}
 
-				double weight = rs.getDouble(22);
+				double weight = resultSet.getDouble(22);
 
 				if (weight <= 0) {
-					weight = rs.getDouble(9);
+					weight = resultSet.getDouble(9);
 				}
 
-				int subscriptionLength = rs.getInt(10);
-				String subscriptionType = rs.getString(11);
-				String subscriptionTypeSettings = rs.getString(12);
-				long maxSubscriptionCycles = rs.getLong(13);
-				int deliverySubscriptionLength = rs.getInt(14);
-				String deliverySubscriptionType = rs.getString(15);
-				String deliverySubscriptionTypeSettings = rs.getString(16);
-				long deliveryMaxSubscriptionCycles = rs.getLong(17);
+				int subscriptionLength = resultSet.getInt(10);
+				String subscriptionType = resultSet.getString(11);
+				String subscriptionTypeSettings = resultSet.getString(12);
+				long maxSubscriptionCycles = resultSet.getLong(13);
+				int deliverySubscriptionLength = resultSet.getInt(14);
+				String deliverySubscriptionType = resultSet.getString(15);
+				String deliverySubscriptionTypeSettings = resultSet.getString(
+					16);
+				long deliveryMaxSubscriptionCycles = resultSet.getLong(17);
 
-				boolean overrideSubscription = rs.getBoolean(18);
+				boolean overrideSubscription = resultSet.getBoolean(18);
 
 				if (overrideSubscription) {
-					subscriptionLength = rs.getInt(23);
-					subscriptionType = rs.getString(24);
-					subscriptionTypeSettings = rs.getString(25);
-					maxSubscriptionCycles = rs.getLong(26);
-					deliverySubscriptionLength = rs.getInt(27);
-					deliverySubscriptionType = rs.getString(28);
-					deliverySubscriptionTypeSettings = rs.getString(29);
-					deliveryMaxSubscriptionCycles = rs.getLong(30);
+					subscriptionLength = resultSet.getInt(23);
+					subscriptionType = resultSet.getString(24);
+					subscriptionTypeSettings = resultSet.getString(25);
+					maxSubscriptionCycles = resultSet.getLong(26);
+					deliverySubscriptionLength = resultSet.getInt(27);
+					deliverySubscriptionType = resultSet.getString(28);
+					deliverySubscriptionTypeSettings = resultSet.getString(29);
+					deliveryMaxSubscriptionCycles = resultSet.getLong(30);
 				}
 
-				long commerceOrderItemId = rs.getLong(31);
+				long commerceOrderItemId = resultSet.getLong(31);
 
-				ps1.setBoolean(1, shippable);
-				ps1.setBoolean(2, freeShipping);
-				ps1.setBoolean(3, shipSeparately);
-				ps1.setDouble(4, shippingExtraPrice);
-				ps1.setDouble(5, width);
-				ps1.setDouble(6, height);
-				ps1.setDouble(7, depth);
-				ps1.setDouble(8, weight);
-				ps1.setInt(9, subscriptionLength);
-				ps1.setString(10, subscriptionType);
-				ps1.setString(11, subscriptionTypeSettings);
-				ps1.setLong(12, maxSubscriptionCycles);
-				ps1.setInt(13, deliverySubscriptionLength);
-				ps1.setString(14, deliverySubscriptionType);
-				ps1.setString(15, deliverySubscriptionTypeSettings);
-				ps1.setLong(16, deliveryMaxSubscriptionCycles);
-				ps1.setLong(17, cpInstanceId);
-				ps1.setLong(18, commerceOrderItemId);
+				preparedStatement1.setBoolean(1, shippable);
+				preparedStatement1.setBoolean(2, freeShipping);
+				preparedStatement1.setBoolean(3, shipSeparately);
+				preparedStatement1.setDouble(4, shippingExtraPrice);
+				preparedStatement1.setDouble(5, width);
+				preparedStatement1.setDouble(6, height);
+				preparedStatement1.setDouble(7, depth);
+				preparedStatement1.setDouble(8, weight);
+				preparedStatement1.setInt(9, subscriptionLength);
+				preparedStatement1.setString(10, subscriptionType);
+				preparedStatement1.setString(11, subscriptionTypeSettings);
+				preparedStatement1.setLong(12, maxSubscriptionCycles);
+				preparedStatement1.setInt(13, deliverySubscriptionLength);
+				preparedStatement1.setString(14, deliverySubscriptionType);
+				preparedStatement1.setString(
+					15, deliverySubscriptionTypeSettings);
+				preparedStatement1.setLong(16, deliveryMaxSubscriptionCycles);
+				preparedStatement1.setLong(17, cpInstanceId);
+				preparedStatement1.setLong(18, commerceOrderItemId);
 
-				ps1.addBatch();
+				preparedStatement1.addBatch();
 			}
 
-			ps1.executeBatch();
+			preparedStatement1.executeBatch();
 		}
 	}
 

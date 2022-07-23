@@ -12,47 +12,58 @@
  * details.
  */
 
-import {useMutation, useQuery} from '@apollo/client';
 import ClayButton from '@clayui/button';
-import ClayForm from '@clayui/form';
+import ClayEmptyState from '@clayui/empty-state';
 import ClayIcon from '@clayui/icon';
-import ClayNavigationBar from '@clayui/navigation-bar';
+import ClayLabel from '@clayui/label';
 import classNames from 'classnames';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import {useMutation} from 'graphql-hooks';
+import React, {
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
+import {Helmet} from 'react-helmet';
 import {withRouter} from 'react-router-dom';
 
 import {AppContext} from '../../AppContext.es';
+import Alert from '../../components/Alert.es';
 import Answer from '../../components/Answer.es';
 import ArticleBodyRenderer from '../../components/ArticleBodyRenderer.es';
 import Breadcrumb from '../../components/Breadcrumb.es';
 import CreatorRow from '../../components/CreatorRow.es';
+import DefaultQuestionsEditor from '../../components/DefaultQuestionsEditor.es';
 import DeleteQuestion from '../../components/DeleteQuestion.es';
 import Link from '../../components/Link.es';
 import PaginatedList from '../../components/PaginatedList.es';
-import QuestionsEditor from '../../components/QuestionsEditor';
 import Rating from '../../components/Rating.es';
-import RelatedQuestions from '../../components/RelatedQuestions.es';
 import SectionLabel from '../../components/SectionLabel.es';
-import Subscription from '../../components/Subscription.es';
+import SubscriptionButton from '../../components/SubscriptionButton.es';
 import TagList from '../../components/TagList.es';
-import TextLengthValidation from '../../components/TextLengthValidation.es';
-import useQueryParams from '../../hooks/useQueryParams.es';
 import {
 	createAnswerQuery,
-	getMessagesQuery,
-	getThreadQuery,
+	getMessages,
+	getSubscriptionsQuery,
+	getThread,
 	markAsAnswerMessageBoardMessageQuery,
+	subscribeQuery,
+	unsubscribeQuery,
 } from '../../utils/client.es';
 import lang from '../../utils/lang.es';
 import {
 	dateToBriefInternationalHuman,
+	deleteCacheKey,
 	getContextLink,
-	stripHTML,
+	getErrorObject,
+	getFullPath,
+	historyPushWithSlug,
 } from '../../utils/utils.es';
 
 export default withRouter(
 	({
-		location,
+		history,
 		match: {
 			params: {questionId, sectionTitle},
 			url,
@@ -60,28 +71,69 @@ export default withRouter(
 	}) => {
 		const context = useContext(AppContext);
 
-		const queryParams = useQueryParams(location);
+		const historyPushParser = historyPushWithSlug(history.push);
 
-		const sort = queryParams.get('sort') || 'active';
+		const [error, setError] = useState(null);
 
-		const [articleBody, setArticleBody] = useState();
+		const editorRef = useRef('');
+
+		const [isPostButtonDisable, setIsPostButtonDisable] = useState(true);
 		const [showDeleteModalPanel, setShowDeleteModalPanel] = useState(false);
 
 		const [page, setPage] = useState(1);
 		const [pageSize, setPageSize] = useState(20);
 
-		const {
-			loading,
-			data: {messageBoardThreadByFriendlyUrlPath: question = {}} = {},
-		} = useQuery(getThreadQuery, {
-			context: {
-				uri: '/o/graphql?nestedFields=lastPostDate',
-			},
-			variables: {
-				friendlyUrlPath: questionId,
-				siteKey: context.siteKey,
-			},
-		});
+		const [loading, setLoading] = useState(true);
+		const [question, setQuestion] = useState({});
+		const [answers, setAnswers] = useState({});
+
+		const fetchMessages = useCallback(() => {
+			if (question && question.id) {
+				getMessages(question.id, page, pageSize).then(
+					({data: {messageBoardThreadMessageBoardMessages}}) => {
+						setAnswers(messageBoardThreadMessageBoardMessages);
+					}
+				);
+			}
+		}, [question, page, pageSize]);
+
+		useEffect(() => {
+			getThread(questionId, context.siteKey)
+				.then(
+					({data: {messageBoardThreadByFriendlyUrlPath}, error}) => {
+						if (error) {
+							const errorObject = getErrorObject(
+								error.graphQLErrors[0].extensions.exception
+									.errno,
+								Liferay.Language.get(
+									'the-link-you-followed-may-be-broken-or-the-question-no-longer-exists'
+								),
+								Liferay.Language.get(
+									'the-question-is-not-found'
+								)
+							);
+							setError(errorObject);
+							setLoading(false);
+						}
+						else {
+							setQuestion(messageBoardThreadByFriendlyUrlPath);
+							setLoading(false);
+						}
+					}
+				)
+				.catch((error) => {
+					if (process.env.NODE_ENV === 'development') {
+						console.error(error);
+					}
+					const errorObject = getErrorObject(
+						error.graphQLErrors[0].extensions.exception.errno,
+						'the-link-you-followed-may-be-broken-or-the-question-no-longer-exists',
+						'the-question-is-not-found'
+					);
+					setError(errorObject);
+					setLoading(false);
+				});
+		}, [questionId, context.siteKey]);
 
 		sectionTitle =
 			sectionTitle || sectionTitle === '0'
@@ -89,72 +141,15 @@ export default withRouter(
 				: question.messageBoardSection &&
 				  question.messageBoardSection.title;
 
-		const {
-			data: {messageBoardThreadMessageBoardMessages = {}} = {},
-			refetch,
-		} = useQuery(getMessagesQuery, {
-			context: {
-				uri: '/o/graphql?nestedFields=lastPostDate',
-			},
-			skip: !question || !question.id,
-			variables: {
-				messageBoardThreadId: question.id,
-				page: sort === 'votes' ? 1 : page,
-				pageSize: sort === 'votes' ? 100 : pageSize,
-				sort:
-					sort === 'votes' || sort === 'active'
-						? 'dateModified:desc'
-						: 'dateCreated:desc',
-			},
-		});
-
-		const [answers, setAnswers] = useState({});
+		useEffect(() => {
+			document.title = (question && question.title) || questionId;
+		}, [question, questionId]);
 
 		useEffect(() => {
-			if (messageBoardThreadMessageBoardMessages.totalCount) {
-				if (sort !== 'votes') {
-					setAnswers({...messageBoardThreadMessageBoardMessages});
-				}
-				else {
-					const items = [
-						...[
-							...messageBoardThreadMessageBoardMessages.items,
-						].sort((answer1, answer2) => {
-							if (answer2.showAsAnswer) {
-								return 1;
-							}
-							if (answer1.showAsAnswer) {
-								return -1;
-							}
+			fetchMessages();
+		}, [fetchMessages]);
 
-							const ratingValue1 =
-								(answer1.aggregateRating &&
-									answer1.aggregateRating.ratingValue) ||
-								0;
-							const ratingValue2 =
-								(answer2.aggregateRating &&
-									answer2.aggregateRating.ratingValue) ||
-								0;
-
-							return ratingValue2 - ratingValue1;
-						}),
-					];
-
-					setAnswers({
-						...messageBoardThreadMessageBoardMessages,
-						items,
-					});
-				}
-			}
-		}, [messageBoardThreadMessageBoardMessages, pageSize, sort]);
-
-		const [createAnswer] = useMutation(createAnswerQuery, {
-			context: getContextLink(`${sectionTitle}/${questionId}`),
-			onCompleted() {
-				setArticleBody('');
-				refetch();
-			},
-		});
+		const [createAnswer] = useMutation(createAnswerQuery);
 
 		const deleteAnswer = useCallback(
 			(answer) => {
@@ -172,12 +167,7 @@ export default withRouter(
 		);
 
 		const [markAsAnswerMessageBoardMessage] = useMutation(
-			markAsAnswerMessageBoardMessageQuery,
-			{
-				onCompleted() {
-					refetch();
-				},
-			}
+			markAsAnswerMessageBoardMessageQuery
 		);
 
 		const answerChange = useCallback(
@@ -192,10 +182,12 @@ export default withRouter(
 							messageBoardMessageId: answer.id,
 							showAsAnswer: false,
 						},
+					}).then(() => {
+						fetchMessages();
 					});
 				}
 			},
-			[markAsAnswerMessageBoardMessage, answers.items]
+			[markAsAnswerMessageBoardMessage, answers.items, fetchMessages]
 		);
 
 		return (
@@ -206,8 +198,32 @@ export default withRouter(
 					}
 				/>
 
+				{error && (
+					<div className="questions-container row">
+						<div className="c-mx-auto c-px-0 col-xl-10">
+							<ClayEmptyState
+								description={error.message}
+								imgSrc={
+									context.includeContextPath +
+									'/assets/empty_questions_list.png'
+								}
+								title={error.title}
+							>
+								<ClayButton
+									displayType="primary"
+									onClick={() =>
+										historyPushParser('/questions')
+									}
+								>
+									{Liferay.Language.get('home')}
+								</ClayButton>
+							</ClayEmptyState>
+						</div>
+					</div>
+				)}
+
 				<div className="c-mt-5">
-					{!loading && (
+					{!loading && !error && (
 						<div className="questions-container row">
 							<div className="col-md-1 text-md-center">
 								<Rating
@@ -257,6 +273,16 @@ export default withRouter(
 										>
 											{question.headline}
 
+											{question.status &&
+												question.status !==
+													'approved' && (
+													<span className="c-ml-2">
+														<ClayLabel displayType="info">
+															{question.status}
+														</ClayLabel>
+													</span>
+												)}
+
 											{!!question.locked && (
 												<span className="c-ml-2">
 													<ClayIcon symbol="lock" />
@@ -265,24 +291,20 @@ export default withRouter(
 										</h1>
 
 										<p className="c-mb-0 small text-secondary">
-											{Liferay.Language.get('asked')}{' '}
-											{dateToBriefInternationalHuman(
+											{`${Liferay.Language.get(
+												'asked'
+											)} ${dateToBriefInternationalHuman(
 												question.dateCreated
-											)}
-											{' - '}
-											{Liferay.Language.get(
+											)} - ${Liferay.Language.get(
 												'active'
-											)}{' '}
-											{dateToBriefInternationalHuman(
+											)} ${dateToBriefInternationalHuman(
 												question.dateModified
-											)}
-											{' - '}
-											{lang.sub(
+											)} - ${lang.sub(
 												Liferay.Language.get(
 													'viewed-x-times'
 												),
 												[question.viewCount]
-											)}
+											)}`}
 										</p>
 									</div>
 
@@ -293,10 +315,28 @@ export default withRouter(
 												spaced={true}
 											>
 												{question.actions.subscribe && (
-													<Subscription
-														question={question}
-														siteKey={
-															context.siteKey
+													<SubscriptionButton
+														isSubscribed={
+															question.subscribed
+														}
+														onSubscription={() =>
+															deleteCacheKey(
+																getSubscriptionsQuery,
+																{
+																	contentType:
+																		'MessageBoardThread',
+																}
+															)
+														}
+														queryVariables={{
+															messageBoardThreadId:
+																question.id,
+														}}
+														subscribeQuery={
+															subscribeQuery
+														}
+														unsubscribeQuery={
+															unsubscribeQuery
 														}
 													/>
 												)}
@@ -360,54 +400,10 @@ export default withRouter(
 								</div>
 
 								<h3 className="c-mt-4 text-secondary">
-									{answers.totalCount}{' '}
+									{answers.totalCount + ' '}
+
 									{Liferay.Language.get('answers')}
 								</h3>
-
-								{!!answers.totalCount && (
-									<div className="border-bottom c-mt-3">
-										<ClayNavigationBar triggerLabel="Active">
-											<ClayNavigationBar.Item
-												active={sort === 'active'}
-											>
-												<Link
-													className="link-unstyled nav-link"
-													to={`${url}?sort=active`}
-												>
-													{Liferay.Language.get(
-														'active'
-													)}
-												</Link>
-											</ClayNavigationBar.Item>
-
-											<ClayNavigationBar.Item
-												active={sort === 'oldest'}
-											>
-												<Link
-													className="link-unstyled nav-link"
-													to={`${url}?sort=oldest`}
-												>
-													{Liferay.Language.get(
-														'oldest'
-													)}
-												</Link>
-											</ClayNavigationBar.Item>
-
-											<ClayNavigationBar.Item
-												active={sort === 'votes'}
-											>
-												<Link
-													className="link-unstyled nav-link"
-													to={`${url}?sort=votes`}
-												>
-													{Liferay.Language.get(
-														'votes'
-													)}
-												</Link>
-											</ClayNavigationBar.Item>
-										</ClayNavigationBar>
-									</div>
-								)}
 
 								<div className="c-mt-3">
 									<PaginatedList
@@ -434,88 +430,50 @@ export default withRouter(
 								</div>
 
 								{question &&
+									question.status !== 'pending' &&
 									question.actions &&
 									question.actions['reply-to-thread'] && (
 										<div className="c-mt-5">
-											<ClayForm>
-												<ClayForm.Group className="form-group-sm">
-													<label htmlFor="basicInput">
-														{Liferay.Language.get(
-															'your-answer'
-														)}
-
-														<span className="c-ml-2 reference-mark">
-															<ClayIcon symbol="asterisk" />
-														</span>
-													</label>
-
-													<div className="c-mt-2">
-														{question.locked && (
-															<div className="question-locked-text">
-																<span>
-																	<ClayIcon symbol="lock" />
-																</span>
-																{Liferay.Language.get(
-																	'this-question-is-closed-new-answers-and-comments-are-disabled'
-																)}
-															</div>
-														)}
-														<QuestionsEditor
-															contents={
-																articleBody
-															}
-															cssClass={
-																question.locked
-																	? 'question-locked'
-																	: ''
-															}
-															editorConfig={{
-																readOnly:
-																	question.locked,
-															}}
-															onChange={(
-																event
-															) => {
-																setArticleBody(
-																	event.editor.getData()
-																);
-															}}
-														/>
-													</div>
-
-													<ClayForm.FeedbackGroup>
-														<ClayForm.FeedbackItem>
-															<TextLengthValidation
-																text={
-																	articleBody
-																}
-															/>
-														</ClayForm.FeedbackItem>
-													</ClayForm.FeedbackGroup>
-												</ClayForm.Group>
-											</ClayForm>
+											<DefaultQuestionsEditor
+												label={Liferay.Language.get(
+													'your-answer'
+												)}
+												onContentLengthValid={
+													setIsPostButtonDisable
+												}
+												question={question}
+												ref={editorRef}
+											/>
 
 											{!question.locked && (
 												<ClayButton
 													disabled={
-														!articleBody ||
-														stripHTML(articleBody)
-															.length < 15
+														isPostButtonDisable
 													}
 													displayType="primary"
 													onClick={() => {
 														createAnswer({
+															fetchOptionsOverrides: getContextLink(
+																`${sectionTitle}/${questionId}`
+															),
 															variables: {
-																articleBody,
+																articleBody: editorRef.current.getContent(),
 																messageBoardThreadId:
 																	question.id,
 															},
+														}).then(() => {
+															editorRef.current.clearContent();
+															fetchMessages();
 														});
 													}}
 												>
-													{Liferay.Language.get(
-														'post-answer'
-													)}
+													{context.trustedUser
+														? Liferay.Language.get(
+																'post-answer'
+														  )
+														: Liferay.Language.get(
+																'submit-for-publication'
+														  )}
 												</ClayButton>
 											)}
 										</div>
@@ -523,10 +481,26 @@ export default withRouter(
 							</div>
 						</div>
 					)}
-					{question && question.id && (
-						<RelatedQuestions question={question} />
-					)}
+
+					<Alert info={error} />
 				</div>
+
+				{question && (
+					<Helmet>
+						<title>{question.headline}</title>
+
+						<link
+							href={`${getFullPath(
+								context.historyRouterBasePath || 'questions'
+							)}${
+								context.historyRouterBasePath
+									? context.historyRouterBasePath
+									: '#'
+							}/questions/${sectionTitle}/${questionId}`}
+							rel="canonical"
+						/>
+					</Helmet>
+				)}
 			</section>
 		);
 	}

@@ -1,0 +1,28 @@
+@import 'atlas-variables';
+
+.lfr-ddm__form-report {
+	&__header {
+		background-color: $white;
+		height: 124px;
+		padding-top: 24px;
+	}
+
+	&__subtitle {
+		color: $secondary;
+		font-size: 14px;
+		font-weight: 400;
+	}
+
+	&__tabs {
+		.nav-item {
+			.nav-link {
+				cursor: pointer;
+			}
+		}
+	}
+
+	&__title {
+		font-size: 32px;
+		font-weight: 600;
+	}
+}

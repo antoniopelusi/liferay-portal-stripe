@@ -1,17 +1,28 @@
-<definition default="doubleClick">
-	<command name="doubleClick">
-		<execute selenium="waitForVisible" />
+@default = "doubleClick"
+definition {
 
-		<execute selenium="mouseOver" />
+	function doubleClick {
+		selenium.waitForVisible();
 
-		<execute selenium="doubleClick" />
-	</command>
+		selenium.mouseOver();
 
-	<command name="doubleClickAt">
-		<execute selenium="waitForVisible" />
+		selenium.doubleClick();
+	}
 
-		<execute selenium="mouseOver" />
+	function doubleClickAt {
+		selenium.waitForVisible();
 
-		<execute selenium="doubleClickAt" />
-	</command>
-</definition>
+		selenium.mouseOver();
+
+		selenium.doubleClickAt();
+	}
+
+	function javaScriptDoubleClick {
+		selenium.waitForVisible();
+
+		selenium.mouseOver();
+
+		selenium.javaScriptDoubleClick();
+	}
+
+}

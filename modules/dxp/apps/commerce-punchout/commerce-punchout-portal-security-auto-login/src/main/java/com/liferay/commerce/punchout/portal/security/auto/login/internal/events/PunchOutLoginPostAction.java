@@ -97,7 +97,7 @@ public class PunchOutLoginPostAction extends Action {
 			httpServletRequest.removeAttribute("punchOutUserId");
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -142,13 +142,11 @@ public class PunchOutLoginPostAction extends Action {
 		else {
 			commerceOrder = _commerceOrderLocalService.addCommerceOrder(
 				punchOutUserId, commerceChannelGroupId, commerceAccountId,
-				commerceCurrencyId);
-
-			ServiceContext serviceContext = new ServiceContext();
+				commerceCurrencyId, 0);
 
 			commerceOrder = _commerceOrderLocalService.updateStatus(
 				punchOutUserId, commerceOrder.getCommerceOrderId(),
-				WorkflowConstants.STATUS_APPROVED, serviceContext,
+				WorkflowConstants.STATUS_APPROVED, new ServiceContext(),
 				Collections.emptyMap());
 		}
 
@@ -163,7 +161,7 @@ public class PunchOutLoginPostAction extends Action {
 			WebKeys.THEME_DISPLAY, _getThemeDisplay());
 
 		String cookieName = _commerceOrderHttpHelper.getCookieName(
-			commerceContext.getCommerceChannelId());
+			commerceOrder.getGroupId());
 
 		Cookie cookie = new Cookie(cookieName, commerceOrder.getUuid());
 
@@ -183,17 +181,10 @@ public class PunchOutLoginPostAction extends Action {
 			String key = mapElement.getKey();
 
 			if (_log.isDebugEnabled()) {
-				StringBundler sb = new StringBundler(7);
-
-				sb.append("Adding attribute to session (key=");
-				sb.append(key);
-				sb.append(StringPool.COMMA);
-				sb.append(StringPool.SPACE);
-				sb.append("value=");
-				sb.append(mapElement.getValue());
-				sb.append(StringPool.CLOSE_PARENTHESIS);
-
-				_log.debug(sb.toString());
+				_log.debug(
+					StringBundler.concat(
+						"Adding attribute to session (key=", key, ", value=",
+						mapElement.getValue(), StringPool.CLOSE_PARENTHESIS));
 			}
 
 			httpSession.setAttribute(key, mapElement.getValue());

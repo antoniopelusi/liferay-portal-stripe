@@ -213,4 +213,7 @@ public interface PortletPreferenceValueModel
 	 */
 	public void setSmallValue(String smallValue);
 
+	@Override
+	public PortletPreferenceValue cloneWithOriginalValues();
+
 }

@@ -16,7 +16,6 @@ package com.liferay.depot.model.impl;
 
 import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.model.DepotEntryGroupRelModel;
-import com.liferay.depot.model.DepotEntryGroupRelSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -186,64 +184,6 @@ public class DepotEntryGroupRelModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DepotEntryGroupRel toModel(DepotEntryGroupRelSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DepotEntryGroupRel model = new DepotEntryGroupRelImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setDepotEntryGroupRelId(soapModel.getDepotEntryGroupRelId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setDdmStructuresAvailable(soapModel.isDdmStructuresAvailable());
-		model.setDepotEntryId(soapModel.getDepotEntryId());
-		model.setSearchable(soapModel.isSearchable());
-		model.setToGroupId(soapModel.getToGroupId());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DepotEntryGroupRel> toModels(
-		DepotEntryGroupRelSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DepotEntryGroupRel> models = new ArrayList<DepotEntryGroupRel>(
-			soapModels.length);
-
-		for (DepotEntryGroupRelSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DepotEntryGroupRelModelImpl() {
 	}
 
@@ -327,34 +267,6 @@ public class DepotEntryGroupRelModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DepotEntryGroupRel>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DepotEntryGroupRel.class.getClassLoader(), DepotEntryGroupRel.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DepotEntryGroupRel> constructor =
-				(Constructor<DepotEntryGroupRel>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DepotEntryGroupRel, Object>>
@@ -870,6 +782,43 @@ public class DepotEntryGroupRelModelImpl
 	}
 
 	@Override
+	public DepotEntryGroupRel cloneWithOriginalValues() {
+		DepotEntryGroupRelImpl depotEntryGroupRelImpl =
+			new DepotEntryGroupRelImpl();
+
+		depotEntryGroupRelImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		depotEntryGroupRelImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		depotEntryGroupRelImpl.setDepotEntryGroupRelId(
+			this.<Long>getColumnOriginalValue("depotEntryGroupRelId"));
+		depotEntryGroupRelImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		depotEntryGroupRelImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		depotEntryGroupRelImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		depotEntryGroupRelImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		depotEntryGroupRelImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		depotEntryGroupRelImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		depotEntryGroupRelImpl.setDdmStructuresAvailable(
+			this.<Boolean>getColumnOriginalValue("ddmStructuresAvailable"));
+		depotEntryGroupRelImpl.setDepotEntryId(
+			this.<Long>getColumnOriginalValue("depotEntryId"));
+		depotEntryGroupRelImpl.setSearchable(
+			this.<Boolean>getColumnOriginalValue("searchable"));
+		depotEntryGroupRelImpl.setToGroupId(
+			this.<Long>getColumnOriginalValue("toGroupId"));
+		depotEntryGroupRelImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return depotEntryGroupRelImpl;
+	}
+
+	@Override
 	public int compareTo(DepotEntryGroupRel depotEntryGroupRel) {
 		long primaryKey = depotEntryGroupRel.getPrimaryKey();
 
@@ -1016,7 +965,7 @@ public class DepotEntryGroupRelModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1027,9 +976,27 @@ public class DepotEntryGroupRelModelImpl
 			Function<DepotEntryGroupRel, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DepotEntryGroupRel)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DepotEntryGroupRel)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1076,7 +1043,9 @@ public class DepotEntryGroupRelModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DepotEntryGroupRel>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DepotEntryGroupRel.class, ModelWrapper.class);
 
 	}
 

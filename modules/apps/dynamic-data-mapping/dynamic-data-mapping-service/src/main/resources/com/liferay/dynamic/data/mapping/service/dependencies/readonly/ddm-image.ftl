@@ -9,6 +9,14 @@
 		alt = fileJSONObject.getString("alt")
 		src = fileJSONObject.getString("data")
 	/>
+
+	<#if !validator.isNotNull(src)>
+		<#attempt>
+			<#assign fileEntry = getFileEntry(fileJSONObject) />
+			<#recover>
+				<#assign fileEntry = "" />
+		</#attempt>
+	</#if>
 </#if>
 
 <@liferay_aui["field-wrapper"] data=data>
@@ -22,15 +30,27 @@
 		[ <a href="javascript:;" id="${portletNamespace}${namespacedFieldName}ToggleImage" onClick="${portletNamespace}${namespacedFieldName}ToggleImage();">${languageUtil.get(locale, "show")}</a> ]
 
 		<div class="hide wcm-image-preview" id="${portletNamespace}${namespacedFieldName}Container">
-			<img alt="${escapeAttribute(alt)}" class="img-polaroid" id="${portletNamespace}${namespacedFieldName}Image" src="${escapeAttribute(src)}" />
+			<#if validator.isNotNull(src)>
+				<img alt="${escapeAttribute(alt)}" class="img-polaroid" id="${portletNamespace}${namespacedFieldName}Image" src="${escapeAttribute(src)}" />
+			<#else>
+				<img alt="${escapeAttribute(alt)}" class="img-polaroid" id="${portletNamespace}${namespacedFieldName}Image" src="${getFileEntryURL(fileEntry)}" />
+			</#if>
 		</div>
 
 		<#if !disabled>
-			<@liferay_aui.input
-				name="${namespacedFieldName}URL"
-				type="hidden"
-				value="${src}"
-			/>
+			<#if validator.isNotNull(src)>
+				<@liferay_aui.input
+					name="${namespacedFieldName}URL"
+					type="hidden"
+					value="${src}"
+				/>
+			<#else>
+				<@liferay_aui.input
+					name="${namespacedFieldName}URL"
+					type="hidden"
+					value="${getFileEntryURL(fileEntry)}"
+				/>
+			</#if>
 
 			<@liferay_aui.input
 				label="image-description"

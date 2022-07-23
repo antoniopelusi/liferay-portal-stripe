@@ -27,6 +27,10 @@ public class CommerceDiscountAccountRelServiceWrapper
 	implements CommerceDiscountAccountRelService,
 			   ServiceWrapper<CommerceDiscountAccountRelService> {
 
+	public CommerceDiscountAccountRelServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceDiscountAccountRelServiceWrapper(
 		CommerceDiscountAccountRelService commerceDiscountAccountRelService) {
 
@@ -66,12 +70,12 @@ public class CommerceDiscountAccountRelServiceWrapper
 	@Override
 	public com.liferay.commerce.discount.model.CommerceDiscountAccountRel
 			fetchCommerceDiscountAccountRel(
-				long commerceDiscountId, long commerceAccountId)
+				long commerceAccountId, long commerceDiscountId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceDiscountAccountRelService.
 			fetchCommerceDiscountAccountRel(
-				commerceDiscountId, commerceAccountId);
+				commerceAccountId, commerceDiscountId);
 	}
 
 	@Override

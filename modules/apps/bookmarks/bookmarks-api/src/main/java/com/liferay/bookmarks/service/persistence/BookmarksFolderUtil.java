@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the bookmarks folder service. This utility wraps <code>com.liferay.bookmarks.service.persistence.impl.BookmarksFolderPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -2012,10 +2008,10 @@ public class BookmarksFolderUtil {
 	 * @param status the status
 	 * @return the matching bookmarks folders
 	 */
-	public static List<BookmarksFolder> findByF_C_P_NotS(
+	public static List<BookmarksFolder> findByGtF_C_P_NotS(
 		long folderId, long companyId, long parentFolderId, int status) {
 
-		return getPersistence().findByF_C_P_NotS(
+		return getPersistence().findByGtF_C_P_NotS(
 			folderId, companyId, parentFolderId, status);
 	}
 
@@ -2034,11 +2030,11 @@ public class BookmarksFolderUtil {
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
 	 */
-	public static List<BookmarksFolder> findByF_C_P_NotS(
+	public static List<BookmarksFolder> findByGtF_C_P_NotS(
 		long folderId, long companyId, long parentFolderId, int status,
 		int start, int end) {
 
-		return getPersistence().findByF_C_P_NotS(
+		return getPersistence().findByGtF_C_P_NotS(
 			folderId, companyId, parentFolderId, status, start, end);
 	}
 
@@ -2058,12 +2054,12 @@ public class BookmarksFolderUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
 	 */
-	public static List<BookmarksFolder> findByF_C_P_NotS(
+	public static List<BookmarksFolder> findByGtF_C_P_NotS(
 		long folderId, long companyId, long parentFolderId, int status,
 		int start, int end,
 		OrderByComparator<BookmarksFolder> orderByComparator) {
 
-		return getPersistence().findByF_C_P_NotS(
+		return getPersistence().findByGtF_C_P_NotS(
 			folderId, companyId, parentFolderId, status, start, end,
 			orderByComparator);
 	}
@@ -2085,13 +2081,13 @@ public class BookmarksFolderUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching bookmarks folders
 	 */
-	public static List<BookmarksFolder> findByF_C_P_NotS(
+	public static List<BookmarksFolder> findByGtF_C_P_NotS(
 		long folderId, long companyId, long parentFolderId, int status,
 		int start, int end,
 		OrderByComparator<BookmarksFolder> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByF_C_P_NotS(
+		return getPersistence().findByGtF_C_P_NotS(
 			folderId, companyId, parentFolderId, status, start, end,
 			orderByComparator, useFinderCache);
 	}
@@ -2107,12 +2103,12 @@ public class BookmarksFolderUtil {
 	 * @return the first matching bookmarks folder
 	 * @throws NoSuchFolderException if a matching bookmarks folder could not be found
 	 */
-	public static BookmarksFolder findByF_C_P_NotS_First(
+	public static BookmarksFolder findByGtF_C_P_NotS_First(
 			long folderId, long companyId, long parentFolderId, int status,
 			OrderByComparator<BookmarksFolder> orderByComparator)
 		throws com.liferay.bookmarks.exception.NoSuchFolderException {
 
-		return getPersistence().findByF_C_P_NotS_First(
+		return getPersistence().findByGtF_C_P_NotS_First(
 			folderId, companyId, parentFolderId, status, orderByComparator);
 	}
 
@@ -2126,11 +2122,11 @@ public class BookmarksFolderUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
 	 */
-	public static BookmarksFolder fetchByF_C_P_NotS_First(
+	public static BookmarksFolder fetchByGtF_C_P_NotS_First(
 		long folderId, long companyId, long parentFolderId, int status,
 		OrderByComparator<BookmarksFolder> orderByComparator) {
 
-		return getPersistence().fetchByF_C_P_NotS_First(
+		return getPersistence().fetchByGtF_C_P_NotS_First(
 			folderId, companyId, parentFolderId, status, orderByComparator);
 	}
 
@@ -2145,12 +2141,12 @@ public class BookmarksFolderUtil {
 	 * @return the last matching bookmarks folder
 	 * @throws NoSuchFolderException if a matching bookmarks folder could not be found
 	 */
-	public static BookmarksFolder findByF_C_P_NotS_Last(
+	public static BookmarksFolder findByGtF_C_P_NotS_Last(
 			long folderId, long companyId, long parentFolderId, int status,
 			OrderByComparator<BookmarksFolder> orderByComparator)
 		throws com.liferay.bookmarks.exception.NoSuchFolderException {
 
-		return getPersistence().findByF_C_P_NotS_Last(
+		return getPersistence().findByGtF_C_P_NotS_Last(
 			folderId, companyId, parentFolderId, status, orderByComparator);
 	}
 
@@ -2164,11 +2160,11 @@ public class BookmarksFolderUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
 	 */
-	public static BookmarksFolder fetchByF_C_P_NotS_Last(
+	public static BookmarksFolder fetchByGtF_C_P_NotS_Last(
 		long folderId, long companyId, long parentFolderId, int status,
 		OrderByComparator<BookmarksFolder> orderByComparator) {
 
-		return getPersistence().fetchByF_C_P_NotS_Last(
+		return getPersistence().fetchByGtF_C_P_NotS_Last(
 			folderId, companyId, parentFolderId, status, orderByComparator);
 	}
 
@@ -2180,10 +2176,10 @@ public class BookmarksFolderUtil {
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 */
-	public static void removeByF_C_P_NotS(
+	public static void removeByGtF_C_P_NotS(
 		long folderId, long companyId, long parentFolderId, int status) {
 
-		getPersistence().removeByF_C_P_NotS(
+		getPersistence().removeByGtF_C_P_NotS(
 			folderId, companyId, parentFolderId, status);
 	}
 
@@ -2196,10 +2192,10 @@ public class BookmarksFolderUtil {
 	 * @param status the status
 	 * @return the number of matching bookmarks folders
 	 */
-	public static int countByF_C_P_NotS(
+	public static int countByGtF_C_P_NotS(
 		long folderId, long companyId, long parentFolderId, int status) {
 
-		return getPersistence().countByF_C_P_NotS(
+		return getPersistence().countByGtF_C_P_NotS(
 			folderId, companyId, parentFolderId, status);
 	}
 
@@ -2353,27 +2349,9 @@ public class BookmarksFolderUtil {
 	}
 
 	public static BookmarksFolderPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<BookmarksFolderPersistence, BookmarksFolderPersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			BookmarksFolderPersistence.class);
-
-		ServiceTracker<BookmarksFolderPersistence, BookmarksFolderPersistence>
-			serviceTracker =
-				new ServiceTracker
-					<BookmarksFolderPersistence, BookmarksFolderPersistence>(
-						bundle.getBundleContext(),
-						BookmarksFolderPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile BookmarksFolderPersistence _persistence;
 
 }

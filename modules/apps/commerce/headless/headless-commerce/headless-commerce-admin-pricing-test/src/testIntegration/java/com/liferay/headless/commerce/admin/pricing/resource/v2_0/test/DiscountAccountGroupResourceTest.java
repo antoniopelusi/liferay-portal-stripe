@@ -177,6 +177,12 @@ public class DiscountAccountGroupResourceTest
 
 	@Override
 	@Test
+	public void testGetDiscountIdDiscountAccountGroupsPageWithFilterDoubleEquals()
+		throws Exception {
+	}
+
+	@Override
+	@Test
 	public void testGetDiscountIdDiscountAccountGroupsPageWithFilterStringEquals()
 		throws Exception {
 	}
@@ -184,6 +190,12 @@ public class DiscountAccountGroupResourceTest
 	@Override
 	@Test
 	public void testGetDiscountIdDiscountAccountGroupsPageWithSortDateTime()
+		throws Exception {
+	}
+
+	@Override
+	@Test
+	public void testGetDiscountIdDiscountAccountGroupsPageWithSortDouble()
 		throws Exception {
 	}
 
@@ -202,9 +214,6 @@ public class DiscountAccountGroupResourceTest
 	@Override
 	@Test
 	public void testGraphQLDeleteDiscountAccountGroup() throws Exception {
-		DiscountAccountGroup discountAccountGroup = _addDiscountAccountGroup(
-			randomDiscountAccountGroup());
-
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
 				invokeGraphQLMutation(
@@ -212,7 +221,14 @@ public class DiscountAccountGroupResourceTest
 						"deleteDiscountAccountGroup",
 						HashMapBuilder.<String, Object>put(
 							"discountAccountGroupId",
-							discountAccountGroup.getDiscountAccountGroupId()
+							() -> {
+								DiscountAccountGroup discountAccountGroup =
+									_addDiscountAccountGroup(
+										randomDiscountAccountGroup());
+
+								return discountAccountGroup.
+									getDiscountAccountGroupId();
+							}
 						).build())),
 				"JSONObject/data", "Object/deleteDiscountAccountGroup"));
 	}
@@ -230,7 +246,7 @@ public class DiscountAccountGroupResourceTest
 			_user.getTimeZone());
 
 		CommerceDiscount commerceDiscount =
-			_commerceDiscountLocalService.upsertCommerceDiscount(
+			_commerceDiscountLocalService.addOrUpdateCommerceDiscount(
 				RandomTestUtil.randomString(), _user.getUserId(), 0,
 				RandomTestUtil.randomString(),
 				CommerceDiscountConstants.TARGET_PRODUCTS, false, null, false,
@@ -278,6 +294,7 @@ public class DiscountAccountGroupResourceTest
 			commerceDiscountCommerceAccountGroupRel =
 				CommerceDiscountCommerceAccountGroupRelLocalServiceUtil.
 					addCommerceDiscountCommerceAccountGroupRel(
+						_serviceContext.getUserId(),
 						commerceDiscount.getCommerceDiscountId(),
 						discountAccountGroup.getAccountGroupId(),
 						_serviceContext);
@@ -298,7 +315,7 @@ public class DiscountAccountGroupResourceTest
 				_user.getTimeZone());
 
 			_commerceDiscount =
-				_commerceDiscountLocalService.upsertCommerceDiscount(
+				_commerceDiscountLocalService.addOrUpdateCommerceDiscount(
 					"external-reference-code-test", _user.getUserId(), 0,
 					RandomTestUtil.randomString(),
 					CommerceDiscountConstants.TARGET_PRODUCTS, false, null,
@@ -347,7 +364,7 @@ public class DiscountAccountGroupResourceTest
 				_user.getTimeZone());
 
 			_commerceDiscount =
-				_commerceDiscountLocalService.upsertCommerceDiscount(
+				_commerceDiscountLocalService.addOrUpdateCommerceDiscount(
 					"external-reference-code-test", _user.getUserId(), 0,
 					RandomTestUtil.randomString(),
 					CommerceDiscountConstants.TARGET_PRODUCTS, false, null,
@@ -402,6 +419,7 @@ public class DiscountAccountGroupResourceTest
 			commerceDiscountCommerceAccountGroupRel =
 				CommerceDiscountCommerceAccountGroupRelLocalServiceUtil.
 					addCommerceDiscountCommerceAccountGroupRel(
+						_serviceContext.getUserId(),
 						discountAccountGroup.getDiscountId(),
 						discountAccountGroup.getAccountGroupId(),
 						_serviceContext);

@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.MessageListener;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StackTraceUtil;
 import com.liferay.portal.reports.engine.ByteArrayReportResultContainer;
 import com.liferay.portal.reports.engine.ReportEngine;
@@ -157,7 +157,7 @@ public class ReportEngineImpl implements ReportEngine {
 			reportRequestMessageListener);
 
 		for (String destinationName : _messageListeners.keySet()) {
-			registerDestination(destinationName);
+			_registerDestination(destinationName);
 		}
 	}
 
@@ -197,7 +197,7 @@ public class ReportEngineImpl implements ReportEngine {
 		activate(componentContext);
 	}
 
-	protected void registerDestination(String destinationName) {
+	private void _registerDestination(String destinationName) {
 		DestinationConfiguration destinationConfiguration =
 			new DestinationConfiguration(
 				DestinationConfiguration.DESTINATION_TYPE_PARALLEL,
@@ -231,9 +231,9 @@ public class ReportEngineImpl implements ReportEngine {
 			destinationConfiguration);
 
 		Dictionary<String, Object> destinationProperties =
-			new HashMapDictionary<>();
-
-		destinationProperties.put("destination.name", destination.getName());
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		ServiceRegistration<Destination> destinationServiceRegistration =
 			_bundleContext.registerService(

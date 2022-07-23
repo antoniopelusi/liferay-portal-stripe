@@ -71,13 +71,13 @@ public class BlogsAggregatorExportImportPortletPreferencesProcessor
 		throws PortletDataException {
 
 		try {
-			return updateExportPortletPreferences(
+			return _updateExportPortletPreferences(
 				portletDataContext, portletDataContext.getRootPortletId(),
 				portletPreferences);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return portletPreferences;
@@ -91,19 +91,19 @@ public class BlogsAggregatorExportImportPortletPreferencesProcessor
 		throws PortletDataException {
 
 		try {
-			return updateImportPortletPreferences(
+			return _updateImportPortletPreferences(
 				portletDataContext, portletPreferences);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return portletPreferences;
 		}
 	}
 
-	protected PortletPreferences updateExportPortletPreferences(
+	private PortletPreferences _updateExportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
 		throws Exception {
@@ -146,7 +146,7 @@ public class BlogsAggregatorExportImportPortletPreferencesProcessor
 		return portletPreferences;
 	}
 
-	protected PortletPreferences updateImportPortletPreferences(
+	private PortletPreferences _updateImportPortletPreferences(
 			PortletDataContext portletDataContext,
 			PortletPreferences portletPreferences)
 		throws Exception {

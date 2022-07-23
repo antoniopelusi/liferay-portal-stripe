@@ -32,6 +32,7 @@ import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -47,6 +48,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.portal.util.PropsValues;
 
 import java.util.Locale;
 
@@ -76,31 +78,161 @@ public class FileEntryInfoDisplayContributorTest {
 	}
 
 	@Test
-	public void testDisplayPageURL() throws Exception {
-		_withAndWithoutAssetEntry(
-			fileEntry -> {
-				_addAssetDisplayPageEntry(fileEntry);
+	public void testDisplayPageURLCustomLocaleAlgorithm1() throws Exception {
+		int originalLocalePrependFriendlyURLStyle =
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE;
 
-				Locale locale = LocaleUtil.getDefault();
+		try {
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE = 1;
 
-				String expectedURL = StringBundler.concat(
-					"/", locale.getLanguage(), "/web/",
-					StringUtil.lowerCase(_group.getGroupKey()), "/d/",
-					fileEntry.getFileEntryId());
+			_withAndWithoutAssetEntry(
+				fileEntry -> {
+					_addAssetDisplayPageEntry(fileEntry);
 
-				ThemeDisplay themeDisplay = new ThemeDisplay();
+					Locale locale = LocaleUtil.FRANCE;
 
-				themeDisplay.setLocale(locale);
-				themeDisplay.setScopeGroupId(_group.getGroupId());
-				themeDisplay.setServerName("localhost");
-				themeDisplay.setSiteGroupId(_group.getGroupId());
+					String expectedURL = StringBundler.concat(
+						"/", locale.getLanguage(), "/web/",
+						StringUtil.lowerCase(_group.getGroupKey()),
+						FriendlyURLResolverConstants.URL_SEPARATOR_FILE_ENTRY,
+						fileEntry.getFileEntryId());
 
-				Assert.assertEquals(
-					expectedURL,
-					_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
-						FileEntry.class.getName(), fileEntry.getFileEntryId(),
-						themeDisplay));
-			});
+					ThemeDisplay themeDisplay = new ThemeDisplay();
+
+					themeDisplay.setLocale(locale);
+					themeDisplay.setScopeGroupId(_group.getGroupId());
+					themeDisplay.setServerName("localhost");
+					themeDisplay.setSiteGroupId(_group.getGroupId());
+
+					Assert.assertEquals(
+						expectedURL,
+						_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
+							FileEntry.class.getName(),
+							fileEntry.getFileEntryId(), themeDisplay));
+				});
+		}
+		finally {
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE =
+				originalLocalePrependFriendlyURLStyle;
+		}
+	}
+
+	@Test
+	public void testDisplayPageURLCustomLocaleAlgorithm1DefaultLocale()
+		throws Exception {
+
+		int originalLocalePrependFriendlyURLStyle =
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE;
+
+		try {
+			_withAndWithoutAssetEntry(
+				fileEntry -> {
+					_addAssetDisplayPageEntry(fileEntry);
+
+					Locale locale = LocaleUtil.getDefault();
+
+					String expectedURL = StringBundler.concat(
+						"/web/", StringUtil.lowerCase(_group.getGroupKey()),
+						FriendlyURLResolverConstants.URL_SEPARATOR_FILE_ENTRY,
+						fileEntry.getFileEntryId());
+
+					ThemeDisplay themeDisplay = new ThemeDisplay();
+
+					themeDisplay.setLocale(locale);
+					themeDisplay.setScopeGroupId(_group.getGroupId());
+					themeDisplay.setServerName("localhost");
+					themeDisplay.setSiteGroupId(_group.getGroupId());
+
+					Assert.assertEquals(
+						expectedURL,
+						_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
+							FileEntry.class.getName(),
+							fileEntry.getFileEntryId(), themeDisplay));
+				});
+		}
+		finally {
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE =
+				originalLocalePrependFriendlyURLStyle;
+		}
+	}
+
+	@Test
+	public void testDisplayPageURLCustomLocaleAlgorithm2() throws Exception {
+		int originalLocalePrependFriendlyURLStyle =
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE;
+
+		try {
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE = 2;
+
+			_withAndWithoutAssetEntry(
+				fileEntry -> {
+					_addAssetDisplayPageEntry(fileEntry);
+
+					Locale locale = LocaleUtil.getDefault();
+
+					String expectedURL = StringBundler.concat(
+						"/", locale.getLanguage(), "/web/",
+						StringUtil.lowerCase(_group.getGroupKey()),
+						FriendlyURLResolverConstants.URL_SEPARATOR_FILE_ENTRY,
+						fileEntry.getFileEntryId());
+
+					ThemeDisplay themeDisplay = new ThemeDisplay();
+
+					themeDisplay.setLocale(locale);
+					themeDisplay.setScopeGroupId(_group.getGroupId());
+					themeDisplay.setServerName("localhost");
+					themeDisplay.setSiteGroupId(_group.getGroupId());
+
+					Assert.assertEquals(
+						expectedURL,
+						_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
+							FileEntry.class.getName(),
+							fileEntry.getFileEntryId(), themeDisplay));
+				});
+		}
+		finally {
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE =
+				originalLocalePrependFriendlyURLStyle;
+		}
+	}
+
+	@Test
+	public void testDisplayPageURLCustomLocaleAlgorithmDefault()
+		throws Exception {
+
+		int originalLocalePrependFriendlyURLStyle =
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE;
+
+		try {
+			_withAndWithoutAssetEntry(
+				fileEntry -> {
+					_addAssetDisplayPageEntry(fileEntry);
+
+					Locale locale = LocaleUtil.getDefault();
+
+					String expectedURL = StringBundler.concat(
+						"/web/", StringUtil.lowerCase(_group.getGroupKey()),
+						FriendlyURLResolverConstants.URL_SEPARATOR_FILE_ENTRY,
+						fileEntry.getFileEntryId());
+
+					ThemeDisplay themeDisplay = new ThemeDisplay();
+
+					themeDisplay.setLocale(locale);
+					themeDisplay.setScopeGroupId(_group.getGroupId());
+					themeDisplay.setServerName("localhost");
+					themeDisplay.setSiteGroupId(_group.getGroupId());
+
+					Assert.assertEquals(
+						expectedURL,
+						_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
+							FileEntry.class.getName(),
+							fileEntry.getFileEntryId(), themeDisplay));
+				});
+		}
+		finally {
+			PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE =
+				originalLocalePrependFriendlyURLStyle;
+		}
 	}
 
 	private void _addAssetDisplayPageEntry(FileEntry dlFileEntry)
@@ -121,7 +253,7 @@ public class FileEntryInfoDisplayContributorTest {
 				layoutPageTemplateCollection.
 					getLayoutPageTemplateCollectionId(),
 				RandomTestUtil.randomString(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE,
+				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE, 0,
 				WorkflowConstants.STATUS_DRAFT, serviceContext);
 
 		_assetDisplayPageEntryLocalService.addAssetDisplayPageEntry(

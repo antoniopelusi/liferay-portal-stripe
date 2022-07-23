@@ -34,7 +34,7 @@ import org.osgi.service.component.annotations.Component;
 		"ddm.form.field.type.icon=color-picker",
 		"ddm.form.field.type.label=color-field-type-label",
 		"ddm.form.field.type.name=" + DDMFormFieldTypeConstants.COLOR,
-		"ddm.form.field.type.scope=forms"
+		"ddm.form.field.type.scope=document-library,forms,journal"
 	},
 	service = DDMFormFieldType.class
 )

@@ -261,4 +261,7 @@ public interface CommerceInventoryWarehouseItemModel
 	 */
 	public void setReservedQuantity(int reservedQuantity);
 
+	@Override
+	public CommerceInventoryWarehouseItem cloneWithOriginalValues();
+
 }

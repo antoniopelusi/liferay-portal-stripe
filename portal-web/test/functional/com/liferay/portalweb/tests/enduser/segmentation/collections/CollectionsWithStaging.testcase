@@ -1,0 +1,67 @@
+@component-name = "portal-segmentation"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Segmentation";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Staging Test Page");
+
+		Staging.openStagingAdmin(siteURLKey = "test-site-name");
+
+		Staging.activateStagingCP(siteName = "Test Site Name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-112994. Assert the Collections administration is written accessible on the staging site while read-only accessible on live site."
+	@priority = "5"
+	test AssertCollectionsAdminInStagingAndLiveSite {
+		property portal.acceptance = "true";
+
+		task ("Navigate to Collections administration in the staging site") {
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				portlet = "Collections");
+		}
+
+		task ("Assert Collections admin is written accessible") {
+			AssertVisible(locator1 = "Dropdown#EMPTY_MESSAGE_DROPDOWN");
+
+			AssertVisible(locator1 = "Button#PLUS");
+		}
+
+		task ("Navigate to Collections administration in the live site") {
+			ProductMenu.gotoLiveSite(site = "Test Site Name");
+
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				portlet = "Collections");
+		}
+
+		task ("Assert Collections admin is read-only accessible") {
+			AssertElementNotPresent(locator1 = "Dropdown#EMPTY_MESSAGE_DROPDOWN");
+
+			AssertElementNotPresent(locator1 = "Button#PLUS");
+		}
+	}
+
+}

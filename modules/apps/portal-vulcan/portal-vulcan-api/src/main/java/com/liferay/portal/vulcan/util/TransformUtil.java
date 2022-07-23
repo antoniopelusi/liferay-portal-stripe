@@ -31,6 +31,10 @@ public class TransformUtil {
 		Collection<T> collection,
 		UnsafeFunction<T, R, Exception> unsafeFunction) {
 
+		if (collection == null) {
+			return new ArrayList<>();
+		}
+
 		List<R> list = new ArrayList<>(collection.size());
 
 		for (T item : collection) {
@@ -72,6 +76,10 @@ public class TransformUtil {
 
 	public static <T, R> List<R> transformToList(
 		T[] array, UnsafeFunction<T, R, Exception> unsafeFunction) {
+
+		if (array == null) {
+			return new ArrayList<>();
+		}
 
 		List<R> list = new ArrayList<>(array.length);
 

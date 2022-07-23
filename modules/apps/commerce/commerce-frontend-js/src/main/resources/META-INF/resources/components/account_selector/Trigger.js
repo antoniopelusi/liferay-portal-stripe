@@ -15,10 +15,10 @@
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import {Col, Row} from '@clayui/layout';
+import {StatusRenderer} from '@liferay/frontend-data-set-web';
 import classnames from 'classnames';
 import React from 'react';
 
-import StatusRenderer from '../data_renderers/StatusRenderer';
 import Sticker from './Sticker';
 
 const Trigger = React.forwardRef(
@@ -43,8 +43,9 @@ const Trigger = React.forwardRef(
 								</span>
 							</span>
 						</div>
+
 						<div className="d-flex">
-							{currentOrder.id ? (
+							{currentOrder?.id ? (
 								<>
 									<span className="order-id">
 										{currentOrder.id}

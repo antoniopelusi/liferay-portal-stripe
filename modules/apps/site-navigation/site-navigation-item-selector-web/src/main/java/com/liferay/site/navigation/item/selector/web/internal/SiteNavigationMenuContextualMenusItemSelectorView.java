@@ -17,7 +17,6 @@ package com.liferay.site.navigation.item.selector.web.internal;
 import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.ItemSelectorView;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.site.navigation.item.selector.SiteNavigationMenuItemSelectorReturnType;
 import com.liferay.site.navigation.item.selector.criterion.SiteNavigationMenuItemSelectorCriterion;
 import com.liferay.site.navigation.item.selector.web.internal.constants.SiteNavigationItemSelectorWebKeys;
@@ -28,7 +27,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletURL;
 
@@ -70,10 +68,7 @@ public class SiteNavigationMenuContextualMenusItemSelectorView
 
 	@Override
 	public String getTitle(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, SiteNavigationMenuContextualMenusItemSelectorView.class);
-
-		return LanguageUtil.get(resourceBundle, "contextual-menus");
+		return LanguageUtil.get(locale, "contextual-menus");
 	}
 
 	@Override

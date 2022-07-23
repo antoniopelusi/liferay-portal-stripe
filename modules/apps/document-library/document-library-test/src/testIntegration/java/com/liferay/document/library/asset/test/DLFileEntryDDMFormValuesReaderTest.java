@@ -112,11 +112,12 @@ public class DLFileEntryDDMFormValuesReaderTest {
 			TestDataConstants.TEST_BYTE_ARRAY);
 
 		return DLFileEntryLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), null, RandomTestUtil.randomString(),
-			null, null, dlFileEntryType.getFileEntryTypeId(), ddmFormValuesMap,
-			null, byteArrayInputStream, byteArrayInputStream.available(),
+			RandomTestUtil.randomString(), null, null,
+			dlFileEntryType.getFileEntryTypeId(), ddmFormValuesMap, null,
+			byteArrayInputStream, byteArrayInputStream.available(), null, null,
 			serviceContext);
 	}
 

@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
 import com.liferay.portal.kernel.model.TrashedModel;
 import com.liferay.portal.kernel.model.WorkflowedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 
@@ -40,8 +41,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface BlogsEntryModel
-	extends BaseModel<BlogsEntry>, MVCCModel, ShardedModel, StagedGroupedModel,
-			TrashedModel, WorkflowedModel {
+	extends BaseModel<BlogsEntry>, CTModel<BlogsEntry>, MVCCModel, ShardedModel,
+			StagedGroupedModel, TrashedModel, WorkflowedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -54,6 +55,7 @@ public interface BlogsEntryModel
 	 *
 	 * @return the primary key of this blogs entry
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -61,6 +63,7 @@ public interface BlogsEntryModel
 	 *
 	 * @param primaryKey the primary key of this blogs entry
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -80,6 +83,22 @@ public interface BlogsEntryModel
 	public void setMvccVersion(long mvccVersion);
 
 	/**
+	 * Returns the ct collection ID of this blogs entry.
+	 *
+	 * @return the ct collection ID of this blogs entry
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this blogs entry.
+	 *
+	 * @param ctCollectionId the ct collection ID of this blogs entry
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
+
+	/**
 	 * Returns the uuid of this blogs entry.
 	 *
 	 * @return the uuid of this blogs entry
@@ -95,6 +114,21 @@ public interface BlogsEntryModel
 	 */
 	@Override
 	public void setUuid(String uuid);
+
+	/**
+	 * Returns the external reference code of this blogs entry.
+	 *
+	 * @return the external reference code of this blogs entry
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this blogs entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this blogs entry
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
 
 	/**
 	 * Returns the entry ID of this blogs entry.
@@ -686,5 +720,8 @@ public interface BlogsEntryModel
 	 */
 	@Override
 	public boolean isScheduled();
+
+	@Override
+	public BlogsEntry cloneWithOriginalValues();
 
 }

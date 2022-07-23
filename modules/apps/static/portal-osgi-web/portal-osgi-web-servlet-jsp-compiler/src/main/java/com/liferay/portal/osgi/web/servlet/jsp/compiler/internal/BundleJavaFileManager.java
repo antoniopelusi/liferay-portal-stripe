@@ -90,19 +90,11 @@ public class BundleJavaFileManager
 		}
 
 		if ((location == StandardLocation.CLASS_PATH) && _log.isInfoEnabled()) {
-			StringBundler sb = new StringBundler(9);
-
-			sb.append("List for {kinds=");
-			sb.append(_kinds);
-			sb.append(", location=");
-			sb.append(location);
-			sb.append(", packageName=");
-			sb.append(packageName);
-			sb.append(", recurse=");
-			sb.append(recurse);
-			sb.append(StringPool.CLOSE_CURLY_BRACE);
-
-			_log.info(sb.toString());
+			_log.info(
+				StringBundler.concat(
+					"List for {kinds=", _kinds, ", location=", location,
+					", packageName=", packageName, ", recurse=", recurse,
+					StringPool.CLOSE_CURLY_BRACE));
 		}
 
 		String packagePath = StringUtil.replace(

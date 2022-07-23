@@ -19,9 +19,12 @@ import com.liferay.application.list.PanelCategoryRegistry;
 import com.liferay.application.list.constants.ApplicationListWebKeys;
 import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
 import com.liferay.application.list.display.context.logic.PersonalMenuEntryHelper;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.product.navigation.personal.menu.PersonalMenuEntry;
 import com.liferay.roles.admin.constants.RolesAdminWebKeys;
+import com.liferay.roles.admin.panel.category.role.type.mapper.PanelCategoryRoleTypeMapper;
 import com.liferay.roles.admin.role.type.contributor.RoleTypeContributor;
 
 import java.util.List;
@@ -47,30 +50,43 @@ public class AccountRoleRequestHelper {
 		httpServletRequest.setAttribute(
 			ApplicationListWebKeys.PANEL_APP_REGISTRY, _panelAppRegistry);
 		httpServletRequest.setAttribute(
-			RolesAdminWebKeys.CURRENT_ROLE_TYPE, _accountRoleTypeContributor);
-		httpServletRequest.setAttribute(
-			RolesAdminWebKeys.SHOW_NAV_TABS, Boolean.FALSE);
-
-		PanelCategoryHelper panelCategoryHelper = new PanelCategoryHelper(
-			_panelAppRegistry, _panelCategoryRegistry);
-
-		httpServletRequest.setAttribute(
-			ApplicationListWebKeys.PANEL_CATEGORY_HELPER, panelCategoryHelper);
-
+			ApplicationListWebKeys.PANEL_CATEGORY_HELPER,
+			new PanelCategoryHelper(_panelAppRegistry, _panelCategoryRegistry));
 		httpServletRequest.setAttribute(
 			ApplicationListWebKeys.PANEL_CATEGORY_REGISTRY,
 			_panelCategoryRegistry);
-
-		PersonalMenuEntryHelper personalMenuEntryHelper =
-			new PersonalMenuEntryHelper(_personalMenuEntries);
-
 		httpServletRequest.setAttribute(
 			ApplicationListWebKeys.PERSONAL_MENU_ENTRY_HELPER,
-			personalMenuEntryHelper);
+			new PersonalMenuEntryHelper(_personalMenuEntries));
+		httpServletRequest.setAttribute(
+			RolesAdminWebKeys.CURRENT_ROLE_TYPE, _accountRoleTypeContributor);
+		httpServletRequest.setAttribute(
+			RolesAdminWebKeys.PANEL_CATEGORY_KEYS,
+			ArrayUtil.toStringArray(_panelCategoryKeys));
+		httpServletRequest.setAttribute(
+			RolesAdminWebKeys.SHOW_NAV_TABS, Boolean.FALSE);
 	}
 
 	public void setRequestAttributes(PortletRequest portletRequest) {
 		setRequestAttributes(_portal.getHttpServletRequest(portletRequest));
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY,
+		unbind = "_removePanelCategoryRoleTypeMapper"
+	)
+	private void _addPanelCategoryRoleTypeMapper(
+		PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper) {
+
+		if (ArrayUtil.contains(
+				panelCategoryRoleTypeMapper.getRoleTypes(),
+				RoleConstants.TYPE_ACCOUNT)) {
+
+			_panelCategoryKeys.add(
+				panelCategoryRoleTypeMapper.getPanelCategoryKey());
+		}
 	}
 
 	@Reference(
@@ -83,6 +99,13 @@ public class AccountRoleRequestHelper {
 		_personalMenuEntries.add(personalMenuEntry);
 	}
 
+	private void _removePanelCategoryRoleTypeMapper(
+		PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper) {
+
+		_panelCategoryKeys.remove(
+			panelCategoryRoleTypeMapper.getPanelCategoryKey());
+	}
+
 	private void _removePersonalMenuEntry(PersonalMenuEntry personalMenuEntry) {
 		_personalMenuEntries.remove(personalMenuEntry);
 	}
@@ -92,6 +115,9 @@ public class AccountRoleRequestHelper {
 
 	@Reference
 	private PanelAppRegistry _panelAppRegistry;
+
+	private final List<String> _panelCategoryKeys =
+		new CopyOnWriteArrayList<>();
 
 	@Reference
 	private PanelCategoryRegistry _panelCategoryRegistry;

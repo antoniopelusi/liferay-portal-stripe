@@ -27,6 +27,7 @@ import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.criteria.AssetEntryItemSelectorReturnType;
 import com.liferay.item.selector.criteria.asset.criterion.AssetEntryItemSelectorCriterion;
+import com.liferay.item.selector.criteria.constants.ItemSelectorCriteriaConstants;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.constants.JournalWebKeys;
 import com.liferay.journal.content.asset.addon.entry.ContentMetadataAssetAddonEntry;
@@ -116,8 +117,7 @@ public class JournalContentDisplayContext {
 
 		JournalContentDisplayContext journalContentDisplayContext =
 			(JournalContentDisplayContext)portletRequest.getAttribute(
-				JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT +
-					StringPool.POUND + portletDisplay.getId());
+				getRequestAttributeName(portletDisplay.getId()));
 
 		if (journalContentDisplayContext == null) {
 			JournalContentPortletInstanceConfiguration
@@ -131,12 +131,16 @@ public class JournalContentDisplayContext {
 				ddmStructureClassNameId, ddmTemplateModelResourcePermission);
 
 			portletRequest.setAttribute(
-				JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT +
-					StringPool.POUND + portletDisplay.getId(),
+				getRequestAttributeName(portletDisplay.getId()),
 				journalContentDisplayContext);
 		}
 
 		return journalContentDisplayContext;
+	}
+
+	public static String getRequestAttributeName(String portletName) {
+		return JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT +
+			StringPool.POUND + portletName;
 	}
 
 	public JournalArticle getArticle() throws PortalException {
@@ -225,7 +229,7 @@ public class JournalContentDisplayContext {
 						_themeDisplay);
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 
@@ -522,6 +526,7 @@ public class JournalContentDisplayContext {
 			new AssetEntryItemSelectorReturnType());
 
 		assetEntryItemSelectorCriterion.setGroupId(getGroupId());
+		assetEntryItemSelectorCriterion.setScopeGroupType(getScopeGroupType());
 		assetEntryItemSelectorCriterion.setShowNonindexable(true);
 		assetEntryItemSelectorCriterion.setShowScheduled(true);
 		assetEntryItemSelectorCriterion.setSingleSelect(true);
@@ -561,6 +566,24 @@ public class JournalContentDisplayContext {
 			_portletRequest, "portletResource");
 
 		return _portletResource;
+	}
+
+	public String getScopeGroupType() {
+		Group scopeGroup = _themeDisplay.getScopeGroup();
+
+		if (scopeGroup.isDepot()) {
+			return ItemSelectorCriteriaConstants.SCOPE_GROUP_TYPE_ASSET_LIBRARY;
+		}
+
+		if (scopeGroup.getGroupId() == _themeDisplay.getCompanyGroupId()) {
+			return ItemSelectorCriteriaConstants.SCOPE_GROUP_TYPE_GLOBAL;
+		}
+
+		if (scopeGroup.isLayout()) {
+			return ItemSelectorCriteriaConstants.SCOPE_GROUP_TYPE_PAGE;
+		}
+
+		return ItemSelectorCriteriaConstants.SCOPE_GROUP_TYPE_SITE;
 	}
 
 	public JournalArticle getSelectedArticle() {
@@ -681,8 +704,7 @@ public class JournalContentDisplayContext {
 				latestArticleAssetRenderer.getURLEdit(
 					PortalUtil.getLiferayPortletRequest(_portletRequest), null,
 					LiferayWindowState.NORMAL, _themeDisplay.getURLCurrent())
-			).setParameter(
-				"portletResource",
+			).setPortletResource(
 				() -> {
 					PortletDisplay portletDisplay =
 						_themeDisplay.getPortletDisplay();
@@ -724,12 +746,11 @@ public class JournalContentDisplayContext {
 		try {
 			JournalArticle article = getArticle();
 
-			Group group = GroupLocalServiceUtil.fetchGroup(
-				article.getGroupId());
-
 			return PortletURLBuilder.create(
 				PortalUtil.getControlPanelPortletURL(
-					_portletRequest, group, JournalPortletKeys.JOURNAL, 0, 0,
+					_portletRequest,
+					GroupLocalServiceUtil.fetchGroup(article.getGroupId()),
+					JournalPortletKeys.JOURNAL, 0, 0,
 					PortletRequest.RENDER_PHASE)
 			).setMVCPath(
 				"/view_article_history.jsp"
@@ -872,19 +893,7 @@ public class JournalContentDisplayContext {
 
 		JournalArticleDisplay articleDisplay = getArticleDisplay();
 
-		if (articleDisplay == null) {
-			_showArticle = false;
-
-			return _showArticle;
-		}
-
-		if (!hasViewPermission()) {
-			_showArticle = false;
-
-			return _showArticle;
-		}
-
-		if (isExpired()) {
+		if ((articleDisplay == null) || !hasViewPermission() || isExpired()) {
 			_showArticle = false;
 
 			return _showArticle;
@@ -1055,7 +1064,7 @@ public class JournalContentDisplayContext {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

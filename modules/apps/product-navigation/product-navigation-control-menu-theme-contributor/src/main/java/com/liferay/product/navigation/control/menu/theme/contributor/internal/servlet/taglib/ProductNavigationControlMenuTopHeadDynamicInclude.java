@@ -66,10 +66,8 @@ public class ProductNavigationControlMenuTopHeadDynamicInclude
 				httpServletRequest);
 
 		sb.append(
-			absolutePortalURLBuilder.forModule(
-				_bundle,
-				"/product_navigation_control_menu.css?languageId=" +
-					themeDisplay.getLanguageId()
+			absolutePortalURLBuilder.forModuleStylesheet(
+				_bundle, "/product_navigation_control_menu.css"
 			).build());
 
 		sb.append("\" rel=\"stylesheet\" type = \"text/css\" />\n");
@@ -92,6 +90,6 @@ public class ProductNavigationControlMenuTopHeadDynamicInclude
 	@Reference
 	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
 
-	private Bundle _bundle;
+	private volatile Bundle _bundle;
 
 }

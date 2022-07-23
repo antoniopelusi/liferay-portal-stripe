@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class OAuthUserLocalServiceWrapper
 	implements OAuthUserLocalService, ServiceWrapper<OAuthUserLocalService> {
 
+	public OAuthUserLocalServiceWrapper() {
+		this(null);
+	}
+
 	public OAuthUserLocalServiceWrapper(
 		OAuthUserLocalService oAuthUserLocalService) {
 
@@ -143,6 +147,13 @@ public class OAuthUserLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _oAuthUserLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _oAuthUserLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

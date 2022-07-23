@@ -16,7 +16,6 @@ package com.liferay.portal.search.elasticsearch7.internal.search.engine.adapter;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -84,7 +83,7 @@ import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.cluster.metadata.IndexMetadata;
 import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.xcontent.XContentType;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -106,8 +105,6 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		setUpJSONFactoryUtil();
-
 		_elasticsearchFixture = new ElasticsearchFixture();
 
 		_elasticsearchFixture.setUp();
@@ -141,38 +138,30 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 
 		analyzeIndexRequest.setAnalyzer("stop");
 
-		assertExecuteAnalyzeIndexRequest(
+		_assertExecuteAnalyzeIndexRequest(
 			analyzeIndexRequest,
 			"quick,brown,foxes,jumped,over,lazy,dog,s,bone");
 	}
 
 	@Test
 	public void testExecuteAnalyzeIndexRequestWithCharFilters() {
-		StringBundler sb = new StringBundler(15);
-
-		sb.append("{\n");
-		sb.append("    \"settings\": {\n");
-		sb.append("        \"analysis\": {\n");
-		sb.append("            \"char_filter\": {\n");
-		sb.append("                \"custom_cf\": {\n");
-		sb.append("                    \"type\": \"mapping\",\n");
-		sb.append("                    \"mappings\": [\n");
-		sb.append("                        \"- => +\",\n");
-		sb.append("                        \"2 => 3\"\n");
-		sb.append("                    ]\n");
-		sb.append("                }\n");
-		sb.append("            }\n");
-		sb.append("        }\n");
-		sb.append("    }\n");
-		sb.append("}");
-
-		_putSettings(sb.toString());
+		_putSettings(
+			StringBundler.concat(
+				"{\n", "    \"settings\": {\n", "        \"analysis\": {\n",
+				"            \"char_filter\": {\n",
+				"                \"custom_cf\": {\n",
+				"                    \"type\": \"mapping\",\n",
+				"                    \"mappings\": [\n",
+				"                        \"- => +\",\n",
+				"                        \"2 => 3\"\n",
+				"                    ]\n", "                }\n",
+				"            }\n", "        }\n", "    }\n", "}"));
 
 		AnalyzeIndexRequest analyzeIndexRequest = new AnalyzeIndexRequest();
 
 		analyzeIndexRequest.setCharFilters(Collections.singleton("custom_cf"));
 
-		assertExecuteAnalyzeIndexRequest(
+		_assertExecuteAnalyzeIndexRequest(
 			analyzeIndexRequest,
 			"The 3 QUICK Brown+Foxes jumped over the lazy dog's bone.");
 	}
@@ -195,7 +184,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 
 		Assert.assertEquals("stop", detailsAnalyzer.getAnalyzerName());
 
-		assertAnalysisIndexResponseTokens(
+		_assertAnalysisIndexResponseTokens(
 			detailsAnalyzer.getAnalysisIndexResponseTokens(),
 			"quick,brown,foxes,jumped,over,lazy,dog,s,bone");
 	}
@@ -227,7 +216,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		Assert.assertEquals(
 			"uppercase", detailsTokenFilter.getTokenFilterName());
 
-		assertAnalysisIndexResponseTokens(
+		_assertAnalysisIndexResponseTokens(
 			detailsTokenFilter.getAnalysisIndexResponseTokens(),
 			"THE 2 QUICK BROWN-FOXES JUMPED OVER THE LAZY DOG'S BONE.");
 	}
@@ -244,7 +233,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 
 		analyzeIndexRequest.setFieldName("keywordTestField");
 
-		assertExecuteAnalyzeIndexRequest(
+		_assertExecuteAnalyzeIndexRequest(
 			analyzeIndexRequest,
 			"The 2 QUICK Brown-Foxes jumped over the lazy dog's bone.");
 	}
@@ -252,22 +241,15 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 	@Ignore
 	@Test
 	public void testExecuteAnalyzeIndexRequestWithNormalizer() {
-		StringBundler sb = new StringBundler(12);
-
-		sb.append("{\n");
-		sb.append("    \"settings\": {\n");
-		sb.append("        \"analysis\": {\n");
-		sb.append("            \"normalizer\": {\n");
-		sb.append("                \"custom_normalizer\": {\n");
-		sb.append("                    \"type\": \"custom\",\n");
-		sb.append("                    \"filter\": [\"uppercase\"]\n");
-		sb.append("                }\n");
-		sb.append("            }\n");
-		sb.append("        }\n");
-		sb.append("    }\n");
-		sb.append("}");
-
-		_putSettings(sb.toString());
+		_putSettings(
+			StringBundler.concat(
+				"{\n", "    \"settings\": {\n", "        \"analysis\": {\n",
+				"            \"normalizer\": {\n",
+				"                \"custom_normalizer\": {\n",
+				"                    \"type\": \"custom\",\n",
+				"                    \"filter\": [\"uppercase\"]\n",
+				"                }\n", "            }\n", "        }\n",
+				"    }\n", "}"));
 
 		AnalyzeIndexRequest analyzeIndexRequest = new AnalyzeIndexRequest();
 
@@ -277,7 +259,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		// Response contains tokens:
 		// "the,2,quick,brown,foxes,jumped,over,the,lazy,dog's,bone"
 
-		assertExecuteAnalyzeIndexRequest(
+		_assertExecuteAnalyzeIndexRequest(
 			analyzeIndexRequest,
 			"THE 2 QUICK BROWN-FOXES JUMPED OVER THE LAZY DOG'S BONE.");
 	}
@@ -288,7 +270,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 
 		analyzeIndexRequest.setTokenFilters(Collections.singleton("uppercase"));
 
-		assertExecuteAnalyzeIndexRequest(
+		_assertExecuteAnalyzeIndexRequest(
 			analyzeIndexRequest,
 			"THE 2 QUICK BROWN-FOXES JUMPED OVER THE LAZY DOG'S BONE.");
 	}
@@ -299,7 +281,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 
 		analyzeIndexRequest.setTokenizer("letter");
 
-		assertExecuteAnalyzeIndexRequest(
+		_assertExecuteAnalyzeIndexRequest(
 			analyzeIndexRequest,
 			"The,QUICK,Brown,Foxes,jumped,over,the,lazy,dog,s,bone");
 	}
@@ -322,7 +304,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 			"Close request not acknowledged",
 			closeIndexResponse.isAcknowledged());
 
-		assertIndexMetadataState(_INDEX_NAME, IndexMetadata.State.CLOSE);
+		_assertIndexMetadataState(_INDEX_NAME, IndexMetadata.State.CLOSE);
 	}
 
 	@Test
@@ -330,24 +312,16 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		CreateIndexRequest createIndexRequest = new CreateIndexRequest(
 			"test_index_2");
 
-		StringBundler sb = new StringBundler(14);
-
-		sb.append("{\n");
-		sb.append("    \"settings\": {\n");
-		sb.append("        \"number_of_shards\": 1\n");
-		sb.append("    },\n");
-		sb.append("    \"mappings\": {\n");
-		sb.append("        \"type1\": {\n");
-		sb.append("            \"properties\": {\n");
-		sb.append("                \"field1\": {\n");
-		sb.append("                    \"type\": \"text\"\n");
-		sb.append("                }\n");
-		sb.append("            }\n");
-		sb.append("        }\n");
-		sb.append("    }\n");
-		sb.append("}");
-
-		createIndexRequest.setSource(sb.toString());
+		createIndexRequest.setSource(
+			StringBundler.concat(
+				"{\n", "    \"settings\": {\n",
+				"        \"number_of_shards\": 1\n", "    },\n",
+				"    \"mappings\": {\n", "        \"type1\": {\n",
+				"            \"properties\": {\n",
+				"                \"field1\": {\n",
+				"                    \"type\": \"text\"\n",
+				"                }\n", "            }\n", "        }\n",
+				"    }\n", "}"));
 
 		CreateIndexResponse createIndexResponse = _searchEngineAdapter.execute(
 			createIndexRequest);
@@ -486,7 +460,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 	public void testExecuteOpenIndexRequest() {
 		_closeIndex(_INDEX_NAME);
 
-		assertIndexMetadataState(_INDEX_NAME, IndexMetadata.State.CLOSE);
+		_assertIndexMetadataState(_INDEX_NAME, IndexMetadata.State.CLOSE);
 
 		OpenIndexRequest openIndexRequest = new OpenIndexRequest(_INDEX_NAME);
 
@@ -503,7 +477,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 			"Open request not acknowledged",
 			openIndexResponse.isAcknowledged());
 
-		assertIndexMetadataState(_INDEX_NAME, IndexMetadata.State.OPEN);
+		_assertIndexMetadataState(_INDEX_NAME, IndexMetadata.State.OPEN);
 	}
 
 	@Test
@@ -555,15 +529,10 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		UpdateIndexSettingsIndexRequest updateIndexSettingsIndexRequest =
 			new UpdateIndexSettingsIndexRequest("test_index_2");
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{\n");
-		sb.append("    \"index\": {\n");
-		sb.append("        \"refresh_interval\": \"2s\"\n");
-		sb.append("    }\n");
-		sb.append("}");
-
-		updateIndexSettingsIndexRequest.setSettings(sb.toString());
+		updateIndexSettingsIndexRequest.setSettings(
+			StringBundler.concat(
+				"{\n", "    \"index\": {\n",
+				"        \"refresh_interval\": \"2s\"\n", "    }\n", "}"));
 
 		UpdateIndexSettingsIndexResponse indexSettingsIndexResponse =
 			_searchEngineAdapter.execute(updateIndexSettingsIndexRequest);
@@ -581,7 +550,18 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		_deleteIndex("test_index_2");
 	}
 
-	protected static IndexRequestExecutor createIndexRequestExecutor(
+	protected static SearchEngineAdapter createSearchEngineAdapter(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
+
+		return new ElasticsearchSearchEngineAdapterImpl() {
+			{
+				setIndexRequestExecutor(
+					_createIndexRequestExecutor(elasticsearchClientResolver));
+			}
+		};
+	}
+
+	private static IndexRequestExecutor _createIndexRequestExecutor(
 		ElasticsearchClientResolver elasticsearchClientResolver) {
 
 		IndexRequestExecutorFixture indexRequestExecutorFixture =
@@ -596,24 +576,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		return indexRequestExecutorFixture.getIndexRequestExecutor();
 	}
 
-	protected static SearchEngineAdapter createSearchEngineAdapter(
-		ElasticsearchClientResolver elasticsearchClientResolver) {
-
-		return new ElasticsearchSearchEngineAdapterImpl() {
-			{
-				setIndexRequestExecutor(
-					createIndexRequestExecutor(elasticsearchClientResolver));
-			}
-		};
-	}
-
-	protected static void setUpJSONFactoryUtil() {
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
-
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
-	}
-
-	protected void assertAnalysisIndexResponseTokens(
+	private void _assertAnalysisIndexResponseTokens(
 		List<AnalysisIndexResponseToken> analysisIndexResponseTokens,
 		String expectedTokens) {
 
@@ -631,7 +594,7 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		Assert.assertEquals(expectedTokens, expectedTokens, actualTokens);
 	}
 
-	protected void assertExecuteAnalyzeIndexRequest(
+	private void _assertExecuteAnalyzeIndexRequest(
 		AnalyzeIndexRequest analyzeIndexRequest, String expectedTokens) {
 
 		analyzeIndexRequest.setIndexName(_INDEX_NAME);
@@ -641,12 +604,12 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		AnalyzeIndexResponse analyzeIndexResponse =
 			_searchEngineAdapter.execute(analyzeIndexRequest);
 
-		assertAnalysisIndexResponseTokens(
+		_assertAnalysisIndexResponseTokens(
 			analyzeIndexResponse.getAnalysisIndexResponseTokens(),
 			expectedTokens);
 	}
 
-	protected void assertIndexMetadataState(
+	private void _assertIndexMetadataState(
 		String indexName, IndexMetadata.State indexMetadataState) {
 
 		RestHighLevelClient restHighLevelClient =
@@ -676,23 +639,11 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 
 			String state = GetterUtil.getString(indexJSONObject.get("state"));
 
-			Assert.assertEquals(translateState(indexMetadataState), state);
+			Assert.assertEquals(_translateState(indexMetadataState), state);
 		}
 		catch (Exception exception) {
 			throw new SystemException(exception);
 		}
-	}
-
-	protected String translateState(IndexMetadata.State state) {
-		if (state == IndexMetadata.State.OPEN) {
-			return "open";
-		}
-
-		if (state == IndexMetadata.State.CLOSE) {
-			return "close";
-		}
-
-		throw new IllegalArgumentException("Unknown state: " + state);
 	}
 
 	private void _closeIndex(String indexName) {
@@ -831,6 +782,18 @@ public class ElasticsearchSearchEngineAdapterIndexRequestTest {
 		}
 
 		_openIndex(_INDEX_NAME);
+	}
+
+	private String _translateState(IndexMetadata.State state) {
+		if (state == IndexMetadata.State.OPEN) {
+			return "open";
+		}
+
+		if (state == IndexMetadata.State.CLOSE) {
+			return "close";
+		}
+
+		throw new IllegalArgumentException("Unknown state: " + state);
 	}
 
 	private static final String _INDEX_NAME = "test_request_index";

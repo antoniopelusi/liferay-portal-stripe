@@ -37,7 +37,5 @@ public class StyleBookEntryVersionImpl extends StyleBookEntryVersionBaseImpl {
 	 * entry version model instance should use the {@link
 	 * com.liferay.style.book.model.StyleBookEntryVersion} interface instead.
 	 */
-	public StyleBookEntryVersionImpl() {
-	}
 
 }

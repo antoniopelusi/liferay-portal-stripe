@@ -33,7 +33,7 @@ definition {
 		JSONStaging.enableLocalStaging(groupName = "Site Name");
 
 		JSONLayout.addWidgetToPublicLayout(
-			groupName = "Site Name-staging",
+			groupName = "Site Name (Staging)",
 			layoutName = "Staging Test Page",
 			site = "false",
 			widgetName = "Documents and Media");
@@ -61,6 +61,7 @@ definition {
 		property app.server.bundles.size = "1";
 		property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
 		property databases.size = "1";
+		property minimum.slave.ram = "24";
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "StagingActivation#CheckPublicationSummaryRemote";
 

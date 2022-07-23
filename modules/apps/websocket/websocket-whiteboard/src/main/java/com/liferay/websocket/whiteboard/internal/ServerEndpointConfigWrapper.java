@@ -104,9 +104,9 @@ public class ServerEndpointConfigWrapper implements ServerEndpointConfig {
 	}
 
 	public ServiceObjectsConfigurator removeConfigurator(
-		ServiceReference<Endpoint> reference) {
+		ServiceReference<Endpoint> serviceReference) {
 
-		return _endpoints.remove(reference);
+		return _endpoints.remove(serviceReference);
 	}
 
 	public void setConfigurator(

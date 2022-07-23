@@ -66,10 +66,12 @@ public class AssetEntryUsagesTag extends IncludeTag {
 			}
 		}
 
-		request.setAttribute(
+		HttpServletRequest httpServletRequest = getRequest();
+
+		httpServletRequest.setAttribute(
 			ContentPageEditorWebKeys.FRAGMENT_COLLECTION_CONTRIBUTOR_TRACKER,
 			ServletContextUtil.getFragmentCollectionContributorTracker());
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			FragmentActionKeys.FRAGMENT_RENDERER_TRACKER,
 			ServletContextUtil.getFragmentRendererTracker());
 
@@ -96,7 +98,7 @@ public class AssetEntryUsagesTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	@Override

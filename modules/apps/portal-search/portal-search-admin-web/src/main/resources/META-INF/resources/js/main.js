@@ -84,6 +84,7 @@ AUI.add(
 
 					var form = instance.get(STR_FORM);
 
+					// eslint-disable-next-line @liferay/aui/no-object
 					var inputsArray = A.Object.map(data, (value, key) => {
 						key = MAP_DATA_PARAMS[key] || key;
 
@@ -152,7 +153,26 @@ AUI.add(
 
 					instance._addInputsFromData(data);
 
+					var companyIds = document.getElementsByName(
+						instance.ns('companyIds')
+					)[0].value;
+
+					if (!companyIds) {
+						this._showError(
+							Liferay.Language.get('missing-instance-error')
+						);
+
+						return;
+					}
+
 					submitForm(form, instance.get(STR_URL));
+				},
+
+				_showError(message) {
+					Liferay.Util.openToast({
+						message,
+						type: 'danger',
+					});
 				},
 
 				_updateIndexActions() {

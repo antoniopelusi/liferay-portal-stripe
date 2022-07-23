@@ -25,6 +25,10 @@ public class PortalPreferencesLocalServiceWrapper
 	implements PortalPreferencesLocalService,
 			   ServiceWrapper<PortalPreferencesLocalService> {
 
+	public PortalPreferencesLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PortalPreferencesLocalServiceWrapper(
 		PortalPreferencesLocalService portalPreferencesLocalService) {
 
@@ -141,6 +145,13 @@ public class PortalPreferencesLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _portalPreferencesLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _portalPreferencesLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

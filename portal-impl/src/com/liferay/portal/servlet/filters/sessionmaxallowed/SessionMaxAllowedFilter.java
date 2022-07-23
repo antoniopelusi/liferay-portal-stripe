@@ -35,13 +35,13 @@ public class SessionMaxAllowedFilter
 		HttpServletResponse httpServletResponse, Object object) {
 
 		if (PropsValues.SESSION_MAX_ALLOWED > 0) {
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
-			Boolean sessionMaxAllowed = (Boolean)session.getAttribute(
+			Boolean sessionMaxAllowed = (Boolean)httpSession.getAttribute(
 				WebKeys.SESSION_MAX_ALLOWED);
 
 			if ((sessionMaxAllowed != null) && sessionMaxAllowed) {
-				session.invalidate();
+				httpSession.invalidate();
 			}
 		}
 	}

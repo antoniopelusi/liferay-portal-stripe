@@ -340,6 +340,52 @@ public class TaxonomyCategory implements Cloneable, Serializable {
 
 	protected ParentTaxonomyVocabulary parentTaxonomyVocabulary;
 
+	public Long getSiteId() {
+		return siteId;
+	}
+
+	public void setSiteId(Long siteId) {
+		this.siteId = siteId;
+	}
+
+	public void setSiteId(
+		UnsafeSupplier<Long, Exception> siteIdUnsafeSupplier) {
+
+		try {
+			siteId = siteIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long siteId;
+
+	public TaxonomyCategoryProperty[] getTaxonomyCategoryProperties() {
+		return taxonomyCategoryProperties;
+	}
+
+	public void setTaxonomyCategoryProperties(
+		TaxonomyCategoryProperty[] taxonomyCategoryProperties) {
+
+		this.taxonomyCategoryProperties = taxonomyCategoryProperties;
+	}
+
+	public void setTaxonomyCategoryProperties(
+		UnsafeSupplier<TaxonomyCategoryProperty[], Exception>
+			taxonomyCategoryPropertiesUnsafeSupplier) {
+
+		try {
+			taxonomyCategoryProperties =
+				taxonomyCategoryPropertiesUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected TaxonomyCategoryProperty[] taxonomyCategoryProperties;
+
 	public Integer getTaxonomyCategoryUsageCount() {
 		return taxonomyCategoryUsageCount;
 	}
@@ -364,6 +410,27 @@ public class TaxonomyCategory implements Cloneable, Serializable {
 	}
 
 	protected Integer taxonomyCategoryUsageCount;
+
+	public Long getTaxonomyVocabularyId() {
+		return taxonomyVocabularyId;
+	}
+
+	public void setTaxonomyVocabularyId(Long taxonomyVocabularyId) {
+		this.taxonomyVocabularyId = taxonomyVocabularyId;
+	}
+
+	public void setTaxonomyVocabularyId(
+		UnsafeSupplier<Long, Exception> taxonomyVocabularyIdUnsafeSupplier) {
+
+		try {
+			taxonomyVocabularyId = taxonomyVocabularyIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long taxonomyVocabularyId;
 
 	public ViewableBy getViewableBy() {
 		return viewableBy;
@@ -431,7 +498,9 @@ public class TaxonomyCategory implements Cloneable, Serializable {
 
 		public static ViewableBy create(String value) {
 			for (ViewableBy viewableBy : values()) {
-				if (Objects.equals(viewableBy.getValue(), value)) {
+				if (Objects.equals(viewableBy.getValue(), value) ||
+					Objects.equals(viewableBy.name(), value)) {
+
 					return viewableBy;
 				}
 			}

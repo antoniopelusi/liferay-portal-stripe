@@ -81,7 +81,7 @@ AUI.add(
 						action = 'show';
 					}
 
-					if (instance.lastAction != action) {
+					if (instance.lastAction !== action) {
 						hudcrumbs[action]();
 					}
 
@@ -113,6 +113,7 @@ AUI.add(
 
 					hudcrumbs.resetId();
 
+					// eslint-disable-next-line @liferay/aui/no-get-body
 					var body = A.getBody();
 					var win = A.getWin();
 

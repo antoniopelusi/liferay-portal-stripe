@@ -22,6 +22,7 @@ import com.liferay.headless.discovery.internal.dto.Resource;
 import com.liferay.headless.discovery.internal.dto.Resources;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.ByteArrayInputStream;
@@ -110,10 +111,12 @@ public class HeadlessDiscoveryAPIApplication extends Application {
 				AuthTokenUtil.getToken(httpServletRequest));
 
 			html = StringUtil.replace(
-				html, "href=\"main.css\"", "href=\"/o/api/main.css\"");
+				html, "href=\"main.css\"",
+				"href=\"" + _portal.getPathContext() + "/o/api/main.css\"");
 			html = StringUtil.replace(
 				html, "src=\"headless-discovery-web-min.js\"",
-				"src=\"/o/api/headless-discovery-web-min.js\"");
+				"src=\"" + _portal.getPathContext() +
+					"/o/api/headless-discovery-web-min.js\"");
 
 			String finalHtml = html;
 
@@ -173,6 +176,12 @@ public class HeadlessDiscoveryAPIApplication extends Application {
 			@Context HttpServletResponse httpServletResponse,
 			@PathParam("parameter") String parameter)
 		throws Exception {
+
+		if (parameter.contains("..")) {
+			return Response.status(
+				Response.Status.FORBIDDEN
+			).build();
+		}
 
 		URL url = _getURL(parameter);
 
@@ -299,12 +308,15 @@ public class HeadlessDiscoveryAPIApplication extends Application {
 		return null;
 	}
 
-	private BundleContext _bundleContext;
+	private volatile BundleContext _bundleContext;
 	private volatile HeadlessDiscoveryConfiguration
 		_headlessDiscoveryConfiguration;
 
 	@Reference
 	private JaxrsServiceRuntime _jaxrsServiceRuntime;
+
+	@Reference
+	private Portal _portal;
 
 	@Context
 	private UriInfo _uriInfo;

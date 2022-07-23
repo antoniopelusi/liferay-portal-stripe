@@ -1,37 +1,37 @@
-<definition default="isTextEqual">
-	<command name="isPartialText">
-		<execute selenium="waitForElementPresent" />
+@default = "isTextEqual"
+definition {
 
-		<execute selenium="waitForVisible" />
+	function isPartialText {
+		selenium.waitForElementPresent();
 
-		<execute selenium="isPartialText" />
-	</command>
+		selenium.waitForVisible();
 
-	<command name="isText">
-		<execute selenium="waitForElementPresent" />
+		selenium.isPartialTextCaseInsensitive();
+	}
 
-		<execute selenium="waitForVisible" />
+	function isText {
+		selenium.waitForElementPresent();
 
-		<execute selenium="isText" />
-	</command>
+		selenium.waitForVisible();
 
-	<command name="isTextEqual">
-		<if>
-			<contains string="${locator1}" substring="/input" />
-			<then>
-				<execute function="IsTextEqual#isValue" />
-			</then>
-			<else>
-				<execute function="IsTextEqual#isText" />
-			</else>
-		</if>
-	</command>
+		selenium.isTextCaseInsensitive();
+	}
 
-	<command name="isValue">
-		<execute selenium="waitForElementPresent" />
+	function isTextEqual {
+		if (contains("${locator1}", "/input")) {
+			IsTextEqual.isValue();
+		}
+		else {
+			IsTextEqual.isText();
+		}
+	}
 
-		<execute selenium="waitForVisible" />
+	function isValue {
+		selenium.waitForElementPresent();
 
-		<execute selenium="isValue" />
-	</command>
-</definition>
+		selenium.waitForVisible();
+
+		selenium.isValue();
+	}
+
+}

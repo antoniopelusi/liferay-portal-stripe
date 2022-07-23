@@ -27,9 +27,6 @@ import java.util.Date;
  */
 public class SamlIdpSsoSessionImpl extends SamlIdpSsoSessionBaseImpl {
 
-	public SamlIdpSsoSessionImpl() {
-	}
-
 	@Override
 	public boolean isExpired() {
 		SamlProviderConfiguration samlProviderConfiguration =

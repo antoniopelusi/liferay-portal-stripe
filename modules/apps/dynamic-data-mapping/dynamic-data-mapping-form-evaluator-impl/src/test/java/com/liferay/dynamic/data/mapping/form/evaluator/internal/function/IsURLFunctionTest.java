@@ -14,6 +14,8 @@
 
 package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import org.junit.Assert;
@@ -35,27 +37,17 @@ public class IsURLFunctionTest {
 	public void testInvalidURL() {
 		IsURLFunction isURLFunction = new IsURLFunction();
 
-		Boolean result = isURLFunction.apply("invalid URL");
-
-		Assert.assertFalse(result);
-	}
-
-	@Test
-	public void testNullParameter() {
-		IsURLFunction isURLFunction = new IsURLFunction();
-
-		Boolean result = isURLFunction.apply(null);
-
-		Assert.assertFalse(result);
+		Assert.assertFalse(isURLFunction.apply(null));
+		Assert.assertFalse(isURLFunction.apply(Http.HTTP_WITH_SLASH));
+		Assert.assertFalse(isURLFunction.apply(Http.HTTPS_WITH_SLASH));
+		Assert.assertFalse(isURLFunction.apply(RandomTestUtil.randomString()));
 	}
 
 	@Test
 	public void testValidURL() {
 		IsURLFunction isURLFunction = new IsURLFunction();
 
-		Boolean result = isURLFunction.apply("http://www.liferay.com");
-
-		Assert.assertTrue(result);
+		Assert.assertTrue(isURLFunction.apply("http://www.liferay.com"));
 	}
 
 }

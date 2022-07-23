@@ -82,4 +82,7 @@ public interface DSLQueryEntryModel extends BaseModel<DSLQueryEntry> {
 	 */
 	public void setName(String name);
 
+	@Override
+	public DSLQueryEntry cloneWithOriginalValues();
+
 }

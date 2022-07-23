@@ -21,8 +21,8 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.web.internal.custom.filter.constants.CustomFilterPortletKeys;
-import com.liferay.portal.search.web.internal.custom.filter.display.context.CustomFilterDisplayBuilder;
 import com.liferay.portal.search.web.internal.custom.filter.display.context.CustomFilterDisplayContext;
+import com.liferay.portal.search.web.internal.custom.filter.display.context.builder.CustomFilterDisplayContextBuilder;
 
 import javax.portlet.PortletConfig;
 import javax.portlet.RenderRequest;
@@ -55,12 +55,9 @@ public class CustomFilterPortletConfigurationAction
 			HttpServletResponse httpServletResponse)
 		throws Exception {
 
-		ConfigurationDisplayContext configurationDisplayContext =
-			new ConfigurationDisplayContext();
-
 		httpServletRequest.setAttribute(
 			CustomFilterPortletKeys.CONFIGURATION_DISPLAY_CONTEXT,
-			configurationDisplayContext);
+			new ConfigurationDisplayContext());
 
 		RenderRequest renderRequest =
 			(RenderRequest)httpServletRequest.getAttribute(
@@ -68,26 +65,26 @@ public class CustomFilterPortletConfigurationAction
 
 		httpServletRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT,
-			createCustomFilterDisplayContext(renderRequest));
+			_createCustomFilterDisplayContext(renderRequest));
 
 		super.include(portletConfig, httpServletRequest, httpServletResponse);
 	}
 
-	protected CustomFilterDisplayContext buildDisplayContext(
+	private CustomFilterDisplayContext _buildDisplayContext(
 			RenderRequest renderRequest)
 		throws ConfigurationException {
 
-		return CustomFilterDisplayBuilder.builder(
+		return CustomFilterDisplayContextBuilder.builder(
 		).themeDisplay(
 			(ThemeDisplay)renderRequest.getAttribute(WebKeys.THEME_DISPLAY)
 		).build();
 	}
 
-	protected CustomFilterDisplayContext createCustomFilterDisplayContext(
+	private CustomFilterDisplayContext _createCustomFilterDisplayContext(
 		RenderRequest renderRequest) {
 
 		try {
-			return buildDisplayContext(renderRequest);
+			return _buildDisplayContext(renderRequest);
 		}
 		catch (ConfigurationException configurationException) {
 			throw new RuntimeException(configurationException);

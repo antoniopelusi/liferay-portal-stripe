@@ -24,7 +24,10 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
@@ -39,10 +42,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
+
+import javax.portlet.PortletPreferences;
 
 /**
  * @author Brian Wing Shun Chan
@@ -100,7 +106,17 @@ public class MailServiceImpl implements IdentifiableOSGiService, MailService {
 	@Clusterable
 	@Override
 	public void clearSession() {
-		_session = null;
+		clearSession(CompanyConstants.SYSTEM);
+	}
+
+	@Clusterable
+	@Override
+	public void clearSession(long companyId) {
+		if (companyId == CompanyConstants.SYSTEM) {
+			_sessions.clear();
+		}
+
+		_sessions.remove(companyId);
 	}
 
 	@Override
@@ -134,56 +150,97 @@ public class MailServiceImpl implements IdentifiableOSGiService, MailService {
 
 	@Override
 	public Session getSession() {
-		if (_session != null) {
-			return _session;
+		long companyId = CompanyThreadLocal.getCompanyId();
+
+		Session session = _sessions.get(companyId);
+
+		if (session != null) {
+			return session;
 		}
 
-		Session session = InfrastructureUtil.getMailSession();
+		session = InfrastructureUtil.getMailSession();
 
-		if (!PrefsPropsUtil.getBoolean(
-				PropsKeys.MAIL_SESSION_MAIL, PropsValues.MAIL_SESSION_MAIL)) {
+		PortletPreferences companyPortletPreferences =
+			PrefsPropsUtil.getPreferences(companyId);
+		PortletPreferences systemPortletPreferences =
+			PrefsPropsUtil.getPreferences();
 
-			_session = session;
+		if (!GetterUtil.getBoolean(
+				companyPortletPreferences.getValue(
+					PropsKeys.MAIL_SESSION_MAIL,
+					systemPortletPreferences.getValue(
+						PropsKeys.MAIL_SESSION_MAIL,
+						String.valueOf(PropsValues.MAIL_SESSION_MAIL))))) {
 
-			return _session;
+			_sessions.put(companyId, session);
+
+			return session;
 		}
 
-		String advancedPropertiesString = PrefsPropsUtil.getString(
+		String advancedPropertiesString = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_ADVANCED_PROPERTIES,
-			PropsValues.MAIL_SESSION_MAIL_ADVANCED_PROPERTIES);
-		String pop3Host = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_ADVANCED_PROPERTIES,
+				PropsValues.MAIL_SESSION_MAIL_ADVANCED_PROPERTIES));
+		String pop3Host = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_POP3_HOST,
-			PropsValues.MAIL_SESSION_MAIL_POP3_HOST);
-		String pop3Password = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_POP3_HOST,
+				PropsValues.MAIL_SESSION_MAIL_POP3_HOST));
+		String pop3Password = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_POP3_PASSWORD,
-			PropsValues.MAIL_SESSION_MAIL_POP3_PASSWORD);
-		int pop3Port = PrefsPropsUtil.getInteger(
-			PropsKeys.MAIL_SESSION_MAIL_POP3_PORT,
-			PropsValues.MAIL_SESSION_MAIL_POP3_PORT);
-		String pop3User = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_POP3_PASSWORD,
+				PropsValues.MAIL_SESSION_MAIL_POP3_PASSWORD));
+		int pop3Port = GetterUtil.getInteger(
+			companyPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_POP3_PORT,
+				systemPortletPreferences.getValue(
+					PropsKeys.MAIL_SESSION_MAIL_POP3_PORT,
+					String.valueOf(PropsValues.MAIL_SESSION_MAIL_POP3_PORT))));
+		String pop3User = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_POP3_USER,
-			PropsValues.MAIL_SESSION_MAIL_POP3_USER);
-		String smtpHost = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_POP3_USER,
+				PropsValues.MAIL_SESSION_MAIL_POP3_USER));
+		String smtpHost = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_SMTP_HOST,
-			PropsValues.MAIL_SESSION_MAIL_SMTP_HOST);
-		String smtpPassword = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_SMTP_HOST,
+				PropsValues.MAIL_SESSION_MAIL_SMTP_HOST));
+		String smtpPassword = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_SMTP_PASSWORD,
-			PropsValues.MAIL_SESSION_MAIL_SMTP_PASSWORD);
-		int smtpPort = PrefsPropsUtil.getInteger(
-			PropsKeys.MAIL_SESSION_MAIL_SMTP_PORT,
-			PropsValues.MAIL_SESSION_MAIL_SMTP_PORT);
-		boolean smtpStartTLSEnable = PrefsPropsUtil.getBoolean(
-			PropsKeys.MAIL_SESSION_MAIL_SMTP_STARTTLS_ENABLE,
-			PropsValues.MAIL_SESSION_MAIL_SMTP_STARTTLS_ENABLE);
-		String smtpUser = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_SMTP_PASSWORD,
+				PropsValues.MAIL_SESSION_MAIL_SMTP_PASSWORD));
+		int smtpPort = GetterUtil.getInteger(
+			companyPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_SMTP_PORT,
+				systemPortletPreferences.getValue(
+					PropsKeys.MAIL_SESSION_MAIL_SMTP_PORT,
+					String.valueOf(PropsValues.MAIL_SESSION_MAIL_SMTP_PORT))));
+		boolean smtpStartTLSEnable = GetterUtil.getBoolean(
+			companyPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_SMTP_STARTTLS_ENABLE,
+				systemPortletPreferences.getValue(
+					PropsKeys.MAIL_SESSION_MAIL_SMTP_STARTTLS_ENABLE,
+					String.valueOf(
+						PropsValues.MAIL_SESSION_MAIL_SMTP_STARTTLS_ENABLE))));
+		String smtpUser = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_SMTP_USER,
-			PropsValues.MAIL_SESSION_MAIL_SMTP_USER);
-		String storeProtocol = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_SMTP_USER,
+				PropsValues.MAIL_SESSION_MAIL_SMTP_USER));
+		String storeProtocol = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_STORE_PROTOCOL,
-			PropsValues.MAIL_SESSION_MAIL_STORE_PROTOCOL);
-		String transportProtocol = PrefsPropsUtil.getString(
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_STORE_PROTOCOL,
+				PropsValues.MAIL_SESSION_MAIL_STORE_PROTOCOL));
+		String transportProtocol = companyPortletPreferences.getValue(
 			PropsKeys.MAIL_SESSION_MAIL_TRANSPORT_PROTOCOL,
-			PropsValues.MAIL_SESSION_MAIL_TRANSPORT_PROTOCOL);
+			systemPortletPreferences.getValue(
+				PropsKeys.MAIL_SESSION_MAIL_TRANSPORT_PROTOCOL,
+				PropsValues.MAIL_SESSION_MAIL_TRANSPORT_PROTOCOL));
 
 		Properties properties = session.getProperties();
 
@@ -250,12 +307,12 @@ public class MailServiceImpl implements IdentifiableOSGiService, MailService {
 		}
 		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioException, ioException);
+				_log.warn(ioException);
 			}
 		}
 
 		if (smtpAuth) {
-			_session = Session.getInstance(
+			session = Session.getInstance(
 				properties,
 				new Authenticator() {
 
@@ -269,10 +326,12 @@ public class MailServiceImpl implements IdentifiableOSGiService, MailService {
 				});
 		}
 		else {
-			_session = Session.getInstance(properties);
+			session = Session.getInstance(properties);
 		}
 
-		return _session;
+		_sessions.put(companyId, session);
+
+		return session;
 	}
 
 	@Override
@@ -347,6 +406,6 @@ public class MailServiceImpl implements IdentifiableOSGiService, MailService {
 	private static final MethodKey _updatePasswordMethodKey = new MethodKey(
 		Hook.class, "updatePassword", long.class, long.class, String.class);
 
-	private Session _session;
+	private final Map<Long, Session> _sessions = new ConcurrentHashMap<>();
 
 }

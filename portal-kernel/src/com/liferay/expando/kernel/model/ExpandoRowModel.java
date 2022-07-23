@@ -165,4 +165,7 @@ public interface ExpandoRowModel
 	 */
 	public void setClassPK(long classPK);
 
+	@Override
+	public ExpandoRow cloneWithOriginalValues();
+
 }

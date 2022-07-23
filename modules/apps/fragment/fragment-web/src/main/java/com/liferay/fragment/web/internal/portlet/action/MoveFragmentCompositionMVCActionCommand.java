@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.util.Portal;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
-import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -48,25 +47,25 @@ public class MoveFragmentCompositionMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		PortletURL redirectURL = PortletURLBuilder.createRenderURL(
-			_portal.getLiferayPortletResponse(actionResponse)
-		).setParameter(
-			"fragmentCollectionId",
-			() -> {
-				long fragmentCompositionId = ParamUtil.getLong(
-					actionRequest, "fragmentCompositionId");
+		sendRedirect(
+			actionRequest, actionResponse,
+			PortletURLBuilder.createRenderURL(
+				_portal.getLiferayPortletResponse(actionResponse)
+			).setParameter(
+				"fragmentCollectionId",
+				() -> {
+					long fragmentCompositionId = ParamUtil.getLong(
+						actionRequest, "fragmentCompositionId");
 
-				long fragmentCollectionId = ParamUtil.getLong(
-					actionRequest, "fragmentCollectionId");
+					long fragmentCollectionId = ParamUtil.getLong(
+						actionRequest, "fragmentCollectionId");
 
-				_fragmentCompositionService.moveFragmentComposition(
-					fragmentCompositionId, fragmentCollectionId);
+					_fragmentCompositionService.moveFragmentComposition(
+						fragmentCompositionId, fragmentCollectionId);
 
-				return fragmentCollectionId;
-			}
-		).build();
-
-		sendRedirect(actionRequest, actionResponse, redirectURL.toString());
+					return fragmentCollectionId;
+				}
+			).buildString());
 	}
 
 	@Reference

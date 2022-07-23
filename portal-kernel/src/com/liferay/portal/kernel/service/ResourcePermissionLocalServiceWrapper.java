@@ -29,6 +29,10 @@ public class ResourcePermissionLocalServiceWrapper
 	implements ResourcePermissionLocalService,
 			   ServiceWrapper<ResourcePermissionLocalService> {
 
+	public ResourcePermissionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ResourcePermissionLocalServiceWrapper(
 		ResourcePermissionLocalService resourcePermissionLocalService) {
 
@@ -354,6 +358,13 @@ public class ResourcePermissionLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _resourcePermissionLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _resourcePermissionLocalService.dynamicQuery();
 	}
@@ -612,6 +623,13 @@ public class ResourcePermissionLocalServiceWrapper
 
 		return _resourcePermissionLocalService.getResourcePermissions(
 			companyId, name, scope, primKey);
+	}
+
+	@Override
+	public java.util.List<ResourcePermission> getResourcePermissions(
+		String name) {
+
+		return _resourcePermissionLocalService.getResourcePermissions(name);
 	}
 
 	/**

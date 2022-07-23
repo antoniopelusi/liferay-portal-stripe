@@ -50,7 +50,7 @@ public class RolesAdminBrowsePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/select_role.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

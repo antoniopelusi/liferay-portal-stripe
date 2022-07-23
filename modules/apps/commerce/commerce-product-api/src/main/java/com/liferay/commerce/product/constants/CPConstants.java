@@ -45,6 +45,9 @@ public class CPConstants {
 	public static final String RESOURCE_NAME_CHANNEL =
 		"com.liferay.commerce.channel";
 
+	public static final String RESOURCE_NAME_CP_DISPLAY_LAYOUT =
+		"com.liferay.commerce.product.display.layout";
+
 	public static final String RESOURCE_NAME_PRODUCT =
 		"com.liferay.commerce.product";
 

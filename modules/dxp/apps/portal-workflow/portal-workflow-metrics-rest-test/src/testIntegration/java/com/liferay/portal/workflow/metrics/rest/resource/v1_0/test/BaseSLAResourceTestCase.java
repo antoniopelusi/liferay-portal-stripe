@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -51,7 +50,6 @@ import com.liferay.portal.workflow.metrics.rest.client.pagination.Pagination;
 import com.liferay.portal.workflow.metrics.rest.client.resource.v1_0.SLAResource;
 import com.liferay.portal.workflow.metrics.rest.client.serdes.v1_0.SLASerDes;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -199,14 +197,14 @@ public abstract class BaseSLAResourceTestCase {
 
 	@Test
 	public void testGetProcessSLAsPage() throws Exception {
-		Page<SLA> page = slaResource.getProcessSLAsPage(
-			testGetProcessSLAsPage_getProcessId(), null, Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long processId = testGetProcessSLAsPage_getProcessId();
 		Long irrelevantProcessId =
 			testGetProcessSLAsPage_getIrrelevantProcessId();
+
+		Page<SLA> page = slaResource.getProcessSLAsPage(
+			processId, null, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantProcessId != null) {
 			SLA irrelevantSLA = testGetProcessSLAsPage_addSLA(
@@ -227,7 +225,7 @@ public abstract class BaseSLAResourceTestCase {
 		SLA sla2 = testGetProcessSLAsPage_addSLA(processId, randomSLA());
 
 		page = slaResource.getProcessSLAsPage(
-			processId, null, Pagination.of(1, 2));
+			processId, null, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -326,7 +324,7 @@ public abstract class BaseSLAResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteSLA() throws Exception {
-		SLA sla = testGraphQLSLA_addSLA();
+		SLA sla = testGraphQLDeleteSLA_addSLA();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -339,7 +337,6 @@ public abstract class BaseSLAResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteSLA"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -353,6 +350,10 @@ public abstract class BaseSLAResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected SLA testGraphQLDeleteSLA_addSLA() throws Exception {
+		return testGraphQLSLA_addSLA();
 	}
 
 	@Test
@@ -372,7 +373,7 @@ public abstract class BaseSLAResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSLA() throws Exception {
-		SLA sla = testGraphQLSLA_addSLA();
+		SLA sla = testGraphQLGetSLA_addSLA();
 
 		Assert.assertTrue(
 			equals(
@@ -411,6 +412,10 @@ public abstract class BaseSLAResourceTestCase {
 				"Object/code"));
 	}
 
+	protected SLA testGraphQLGetSLA_addSLA() throws Exception {
+		return testGraphQLSLA_addSLA();
+	}
+
 	@Test
 	public void testPutSLA() throws Exception {
 		SLA postSLA = testPutSLA_addSLA();
@@ -436,6 +441,20 @@ public abstract class BaseSLAResourceTestCase {
 	protected SLA testGraphQLSLA_addSLA() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(SLA sla, List<SLA> slas) {
+		boolean contains = false;
+
+		for (SLA item : slas) {
+			if (equals(sla, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(slas + " does not contain " + sla, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -597,8 +616,8 @@ public abstract class BaseSLAResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.portal.workflow.metrics.rest.dto.v1_0.SLA.
 						class)) {
 
@@ -614,12 +633,13 @@ public abstract class BaseSLAResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -633,7 +653,7 @@ public abstract class BaseSLAResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -793,6 +813,19 @@ public abstract class BaseSLAResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -924,8 +957,9 @@ public abstract class BaseSLAResourceTestCase {
 		}
 
 		if (entityFieldName.equals("status")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sla.getStatus()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("stopNodeKeys")) {
@@ -1077,8 +1111,8 @@ public abstract class BaseSLAResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseSLAResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseSLAResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

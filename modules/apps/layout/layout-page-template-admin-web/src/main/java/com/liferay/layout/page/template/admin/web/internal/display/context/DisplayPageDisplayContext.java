@@ -14,6 +14,7 @@
 
 package com.liferay.layout.page.template.admin.web.internal.display.context;
 
+import com.liferay.layout.page.template.admin.constants.LayoutPageTemplateAdminPortletKeys;
 import com.liferay.layout.page.template.admin.web.internal.util.LayoutPageTemplatePortletUtil;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -21,13 +22,11 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryServiceUt
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-
-import java.util.List;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -64,54 +63,50 @@ public class DisplayPageDisplayContext {
 				_renderRequest, getPortletURL(), null,
 				"there-are-no-display-page-templates");
 
-		displayPagesSearchContainer.setRowChecker(
-			new EmptyOnClickRowChecker(_renderResponse));
-
 		displayPagesSearchContainer.setOrderByCol(getOrderByCol());
-
-		OrderByComparator<LayoutPageTemplateEntry> orderByComparator =
+		displayPagesSearchContainer.setOrderByComparator(
 			LayoutPageTemplatePortletUtil.
 				getLayoutPageTemplateEntryOrderByComparator(
-					getOrderByCol(), getOrderByType());
-
-		displayPagesSearchContainer.setOrderByComparator(orderByComparator);
-
+					getOrderByCol(), getOrderByType()));
 		displayPagesSearchContainer.setOrderByType(getOrderByType());
 
-		List<LayoutPageTemplateEntry> layoutPageTemplateEntries = null;
-		int layoutPageTemplateEntriesCount = 0;
-
 		if (isSearch()) {
-			layoutPageTemplateEntries =
-				LayoutPageTemplateEntryServiceUtil.getLayoutPageTemplateEntries(
-					_themeDisplay.getScopeGroupId(), getKeywords(),
-					LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE,
-					displayPagesSearchContainer.getStart(),
-					displayPagesSearchContainer.getEnd(), orderByComparator);
-
-			layoutPageTemplateEntriesCount =
+			displayPagesSearchContainer.setResultsAndTotal(
+				() ->
+					LayoutPageTemplateEntryServiceUtil.
+						getLayoutPageTemplateEntries(
+							_themeDisplay.getScopeGroupId(), getKeywords(),
+							LayoutPageTemplateEntryTypeConstants.
+								TYPE_DISPLAY_PAGE,
+							displayPagesSearchContainer.getStart(),
+							displayPagesSearchContainer.getEnd(),
+							displayPagesSearchContainer.getOrderByComparator()),
 				LayoutPageTemplateEntryServiceUtil.
 					getLayoutPageTemplateEntriesCount(
 						_themeDisplay.getScopeGroupId(), getKeywords(),
-						LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE);
+						LayoutPageTemplateEntryTypeConstants.
+							TYPE_DISPLAY_PAGE));
 		}
 		else {
-			layoutPageTemplateEntries =
-				LayoutPageTemplateEntryServiceUtil.getLayoutPageTemplateEntries(
-					_themeDisplay.getScopeGroupId(),
-					LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE,
-					displayPagesSearchContainer.getStart(),
-					displayPagesSearchContainer.getEnd(), orderByComparator);
-
-			layoutPageTemplateEntriesCount =
+			displayPagesSearchContainer.setResultsAndTotal(
+				() ->
+					LayoutPageTemplateEntryServiceUtil.
+						getLayoutPageTemplateEntries(
+							_themeDisplay.getScopeGroupId(),
+							LayoutPageTemplateEntryTypeConstants.
+								TYPE_DISPLAY_PAGE,
+							displayPagesSearchContainer.getStart(),
+							displayPagesSearchContainer.getEnd(),
+							displayPagesSearchContainer.getOrderByComparator()),
 				LayoutPageTemplateEntryServiceUtil.
 					getLayoutPageTemplateEntriesCount(
 						_themeDisplay.getScopeGroupId(),
-						LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE);
+						LayoutPageTemplateEntryTypeConstants.
+							TYPE_DISPLAY_PAGE));
 		}
 
-		displayPagesSearchContainer.setResults(layoutPageTemplateEntries);
-		displayPagesSearchContainer.setTotal(layoutPageTemplateEntriesCount);
+		displayPagesSearchContainer.setRowChecker(
+			new EmptyOnClickRowChecker(_renderResponse));
 
 		_displayPagesSearchContainer = displayPagesSearchContainer;
 
@@ -144,8 +139,10 @@ public class DisplayPageDisplayContext {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_httpServletRequest, "orderByCol", "create-date");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest,
+			LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES,
+			"display-page-order-by-col", "create-date");
 
 		return _orderByCol;
 	}
@@ -155,42 +152,56 @@ public class DisplayPageDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest,
+			LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES,
+			"display-page-order-by-type", "asc");
 
 		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/view_display_pages.jsp"
 		).setRedirect(
 			_themeDisplay.getURLCurrent()
+		).setKeywords(
+			() -> {
+				String keywords = getKeywords();
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
 		).setTabs1(
 			"display-page-templates"
-		).build();
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
 
-		String keywords = getKeywords();
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
 
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
 
-		String orderByCol = getOrderByCol();
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
 
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	public boolean isSearch() {

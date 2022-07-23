@@ -14,6 +14,8 @@
 
 package com.liferay.portal.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.PortletItem;
@@ -47,6 +49,8 @@ public abstract class BasePortletItemUADAnonymizer
 		if (portletItem.getUserId() == userId) {
 			portletItem.setUserId(anonymousUser.getUserId());
 			portletItem.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(portletItem, anonymousUser);
 		}
 
 		portletItemLocalService.updatePortletItem(portletItem);
@@ -62,6 +66,19 @@ public abstract class BasePortletItemUADAnonymizer
 		return PortletItem.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		PortletItem portletItem, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(portletItem);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return portletItemLocalService.getActionableDynamicQuery();
@@ -71,6 +88,14 @@ public abstract class BasePortletItemUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return PortalUADConstants.USER_ID_FIELD_NAMES_PORTLET_ITEM;
 	}
+
+	protected AssetEntry fetchAssetEntry(PortletItem portletItem) {
+		return assetEntryLocalService.fetchEntry(
+			PortletItem.class.getName(), portletItem.getPortletItemId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected PortletItemLocalService portletItemLocalService;

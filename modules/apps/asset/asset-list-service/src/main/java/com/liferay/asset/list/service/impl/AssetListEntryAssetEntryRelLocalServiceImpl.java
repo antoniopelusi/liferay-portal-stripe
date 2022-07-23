@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -70,7 +71,7 @@ public class AssetListEntryAssetEntryRelLocalServiceImpl
 			throw new AssetListEntryAssetEntryRelPostionException();
 		}
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		long assetListEntryAssetEntryRelId = counterLocalService.increment();
 
@@ -187,6 +188,10 @@ public class AssetListEntryAssetEntryRelLocalServiceImpl
 		return _getAssetListEntryAssetEntryRels(assetListEntryAssetEntryRels);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public List<AssetListEntryAssetEntryRel> getAssetListEntryAssetEntryRels(
 		long assetListEntryId, long[] segmentsEntryIds,
@@ -243,6 +248,10 @@ public class AssetListEntryAssetEntryRelLocalServiceImpl
 			assetListEntryId, segmentsEntryIds);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public int getAssetListEntryAssetEntryRelsCount(
 		long assetListEntryId, long[] segmentsEntryIds,
@@ -260,9 +269,7 @@ public class AssetListEntryAssetEntryRelLocalServiceImpl
 			_getPredicate(assetListEntryId, segmentsEntryIds, assetCategoryIds)
 		);
 
-		Long count = assetListEntryAssetEntryRelPersistence.dslQuery(dslQuery);
-
-		return count.intValue();
+		return assetListEntryAssetEntryRelPersistence.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -392,11 +399,7 @@ public class AssetListEntryAssetEntryRelLocalServiceImpl
 				AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
 					assetListEntryAssetEntryRel.getAssetEntryId());
 
-				if (assetEntry == null) {
-					return false;
-				}
-
-				if (!assetEntry.isVisible()) {
+				if ((assetEntry == null) || !assetEntry.isVisible()) {
 					return false;
 				}
 
@@ -462,5 +465,8 @@ public class AssetListEntryAssetEntryRelLocalServiceImpl
 
 	@Reference
 	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

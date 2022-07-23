@@ -16,14 +16,24 @@ package com.liferay.project.templates.form.field.internal;
 
 import com.liferay.project.templates.extensions.ProjectTemplateCustomizer;
 import com.liferay.project.templates.extensions.ProjectTemplatesArgs;
+import com.liferay.project.templates.extensions.util.Validator;
+import com.liferay.project.templates.extensions.util.WorkspaceUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.archetype.ArchetypeGenerationRequest;
 import org.apache.maven.archetype.ArchetypeGenerationResult;
 
@@ -58,8 +68,8 @@ public class FormFieldProjectTemplateCustomizer
 				"src/main/resources/META-INF/resources/" + name + ".es.js");
 		}
 
-		if (liferayVersion.startsWith("7.2") ||
-			liferayVersion.startsWith("7.3")) {
+		if (!(liferayVersion.startsWith("7.0") ||
+			  liferayVersion.startsWith("7.1"))) {
 
 			fileNames.add("src/main/resources/META-INF/resources/config.js");
 			fileNames.add(
@@ -72,7 +82,7 @@ public class FormFieldProjectTemplateCustomizer
 				"src/main/java/" + packageName.replaceAll("[.]", "/") +
 					"/form/field/" + className + "DDMFormFieldRenderer.java");
 
-			if (liferayVersion.startsWith("7.3") &&
+			if (!liferayVersion.startsWith("7.2") &&
 				_isReactFramework(
 					(FormFieldProjectTemplatesArgs)
 						projectTemplatesArgs.getProjectTemplatesArgsExt())) {
@@ -82,6 +92,56 @@ public class FormFieldProjectTemplateCustomizer
 				fileNames.add(
 					"src/main/resources/META-INF/resources/" + name +
 						"Register.soy");
+			}
+
+			Path projectPath = Paths.get(destinationDir.getPath(), name);
+
+			if (Files.notExists(projectPath)) {
+				return;
+			}
+
+			File workspaceDir = WorkspaceUtil.getWorkspaceDir(destinationDir);
+
+			Path workspacePath = workspaceDir.toPath();
+
+			Path gradlePropertiesPath = workspacePath.resolve(
+				"gradle.properties");
+
+			if (Files.notExists(gradlePropertiesPath) ||
+				Files.isDirectory(gradlePropertiesPath)) {
+
+				return;
+			}
+
+			try (InputStream gradlePropertiesInputStream = Files.newInputStream(
+					gradlePropertiesPath, StandardOpenOption.READ)) {
+
+				Properties gradleProperties = new Properties();
+
+				gradleProperties.load(gradlePropertiesInputStream);
+
+				String nodeManager = gradleProperties.getProperty(
+					"liferay.workspace.node.package.manager");
+
+				if (Validator.isNull(nodeManager) ||
+					nodeManager.equals("yarn")) {
+
+					Path projectRelativizePath = workspacePath.relativize(
+						projectPath);
+
+					StringBuilder sb = new StringBuilder("../");
+
+					for (int i = 0;
+						 i < (projectRelativizePath.getNameCount() - 1); i++) {
+
+						sb.append("../");
+					}
+
+					_updateNodeModulesPath(projectPath, sb.toString());
+				}
+				else if (nodeManager.equals("npm")) {
+					_updateNodeModulesPath(projectPath, "./");
+				}
 			}
 		}
 		else {
@@ -124,6 +184,24 @@ public class FormFieldProjectTemplateCustomizer
 		}
 
 		return jsFramework.equals("react");
+	}
+
+	private void _updateNodeModulesPath(
+			Path projectPath, String nodeModulesPath)
+		throws IOException {
+
+		Path packageJSONPath = projectPath.resolve("package.json");
+
+		if (Files.exists(packageJSONPath)) {
+			String json = new String(
+				Files.readAllBytes(packageJSONPath), StandardCharsets.UTF_8);
+
+			json = json.replaceAll(
+				"../../node_modules/", nodeModulesPath + "node_modules/");
+
+			FileUtils.writeStringToFile(
+				packageJSONPath.toFile(), json, "UTF-8", false);
+		}
 	}
 
 }

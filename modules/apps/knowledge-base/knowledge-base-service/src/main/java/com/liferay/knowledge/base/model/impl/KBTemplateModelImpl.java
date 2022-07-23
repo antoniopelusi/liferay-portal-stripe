@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.knowledge.base.model.KBTemplate;
 import com.liferay.knowledge.base.model.KBTemplateModel;
-import com.liferay.knowledge.base.model.KBTemplateSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -34,20 +33,19 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -158,59 +156,6 @@ public class KBTemplateModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static KBTemplate toModel(KBTemplateSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		KBTemplate model = new KBTemplateImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setKbTemplateId(soapModel.getKbTemplateId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setTitle(soapModel.getTitle());
-		model.setContent(soapModel.getContent());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<KBTemplate> toModels(KBTemplateSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<KBTemplate> models = new ArrayList<KBTemplate>(soapModels.length);
-
-		for (KBTemplateSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public KBTemplateModelImpl() {
 	}
 
@@ -293,34 +238,6 @@ public class KBTemplateModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KBTemplate>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KBTemplate.class.getClassLoader(), KBTemplate.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KBTemplate> constructor =
-				(Constructor<KBTemplate>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KBTemplate, Object>>
@@ -718,6 +635,34 @@ public class KBTemplateModelImpl
 	}
 
 	@Override
+	public KBTemplate cloneWithOriginalValues() {
+		KBTemplateImpl kbTemplateImpl = new KBTemplateImpl();
+
+		kbTemplateImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kbTemplateImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		kbTemplateImpl.setKbTemplateId(
+			this.<Long>getColumnOriginalValue("kbTemplateId"));
+		kbTemplateImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		kbTemplateImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kbTemplateImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		kbTemplateImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kbTemplateImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kbTemplateImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kbTemplateImpl.setTitle(this.<String>getColumnOriginalValue("title"));
+		kbTemplateImpl.setContent(
+			this.<String>getColumnOriginalValue("content"));
+		kbTemplateImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return kbTemplateImpl;
+	}
+
+	@Override
 	public int compareTo(KBTemplate kbTemplate) {
 		int value = 0;
 
@@ -869,7 +814,7 @@ public class KBTemplateModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -880,9 +825,26 @@ public class KBTemplateModelImpl
 			Function<KBTemplate, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KBTemplate)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KBTemplate)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -929,7 +891,9 @@ public class KBTemplateModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KBTemplate>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KBTemplate.class, ModelWrapper.class);
 
 	}
 

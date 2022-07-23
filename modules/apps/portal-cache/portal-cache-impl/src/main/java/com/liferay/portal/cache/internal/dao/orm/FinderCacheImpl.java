@@ -29,17 +29,24 @@ import com.liferay.portal.kernel.cache.PortalCacheManager;
 import com.liferay.portal.kernel.cache.PortalCacheManagerListener;
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
+import com.liferay.portal.kernel.cluster.ClusterExecutor;
+import com.liferay.portal.kernel.cluster.ClusterInvokeThreadLocal;
+import com.liferay.portal.kernel.cluster.ClusterRequest;
 import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
+import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MethodHandler;
+import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.Props;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.servlet.filters.threadlocal.ThreadLocalFilterThreadLocal;
 
 import java.io.Serializable;
@@ -103,18 +110,32 @@ public class FinderCacheImpl
 		clearByEntityCache(clazz.getName());
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 * 			#clearCache(Class)}
-	 */
-	@Deprecated
 	@Override
-	public void clearCache(String className) {
-		clearLocalCache();
+	public void clearDSLQueryCache(String tableName) {
+		String modelImplClassName = _modelImplClassNames.get(tableName);
 
-		PortalCache<?, ?> portalCache = _getPortalCache(className);
+		if (modelImplClassName != null) {
+			_clearDSLQueryCache(modelImplClassName);
+		}
 
-		portalCache.removeAll();
+		if (_clusterExecutor.isEnabled() &&
+			ClusterInvokeThreadLocal.isEnabled()) {
+
+			try {
+				ClusterRequest clusterRequest =
+					ClusterRequest.createMulticastRequest(
+						new MethodHandler(
+							_clearDSLQueryCacheMethodKey, tableName),
+						true);
+
+				clusterRequest.setFireAndForget(true);
+
+				_clusterExecutor.execute(clusterRequest);
+			}
+			catch (Throwable throwable) {
+				_log.error(throwable, throwable);
+			}
+		}
 	}
 
 	@Override
@@ -325,24 +346,32 @@ public class FinderCacheImpl
 		}
 
 		if (!finderPaths.containsKey(cacheKeyPrefix)) {
-			FinderPath originalFinderPath = finderPaths.putIfAbsent(
-				cacheKeyPrefix, finderPath);
+			if (cacheKeyPrefix.startsWith("dslQuery")) {
+				String[] tableNames = FinderPath.decodeDSLQueryCacheName(
+					cacheName);
 
-			if ((originalFinderPath == null) &&
-				cacheKeyPrefix.startsWith("dslQuery")) {
+				String[] modelImplClassNames = new String[tableNames.length];
 
-				for (String tableName :
-						FinderPath.decodeDSLQueryCacheName(cacheName)) {
+				for (int i = 0; i < tableNames.length; i++) {
+					String tableName = tableNames[i];
 
 					String modelImplClassName = _modelImplClassNames.get(
 						tableName);
 
-					if (Validator.isNull(modelImplClassName)) {
-						throw new IllegalArgumentException(
-							"Unable to find corresponding model impl class " +
-								"for table " + tableName);
+					if (modelImplClassName == null) {
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"Unable to find corresponding model impl " +
+									"class for table " + tableName);
+						}
+
+						return;
 					}
 
+					modelImplClassNames[i] = modelImplClassName;
+				}
+
+				for (String modelImplClassName : modelImplClassNames) {
 					Set<String> dslQueryCacheNames =
 						_dslQueryCacheNamesMap.computeIfAbsent(
 							modelImplClassName,
@@ -352,6 +381,8 @@ public class FinderCacheImpl
 					dslQueryCacheNames.add(cacheName);
 				}
 			}
+
+			finderPaths.putIfAbsent(cacheKeyPrefix, finderPath);
 		}
 
 		Serializable cacheKey = _encodeCacheKey(finderPath, args);
@@ -371,28 +402,22 @@ public class FinderCacheImpl
 			portalCache, cacheKey, cacheValue);
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 * 			#putResult(FinderPath, Object[], Object)}
-	 */
-	@Deprecated
-	@Override
-	public void putResult(
-		FinderPath finderPath, Object[] args, Object result, boolean quiet) {
-
-		putResult(finderPath, args, result);
-	}
-
 	public void removeByEntityCache(String className, BaseModel<?> baseModel) {
+		ArgumentsResolver argumentsResolver = _argumentsResolvers.get(
+			className);
+
+		if (argumentsResolver == null) {
+			clearByEntityCache(className);
+
+			return;
+		}
+
 		clearLocalCache();
 
 		_clearCache(_getCacheNameWithPagination(className));
 		_clearCache(_getCacheNameWithoutPagination(className));
 
 		_clearDSLQueryCache(className);
-
-		ArgumentsResolver argumentsResolver = _argumentsResolvers.get(
-			className);
 
 		for (FinderPath finderPath : _getFinderPaths(className)) {
 			removeResult(
@@ -446,14 +471,20 @@ public class FinderCacheImpl
 			return;
 		}
 
+		ArgumentsResolver argumentsResolver = _argumentsResolvers.get(
+			className);
+
+		if (argumentsResolver == null) {
+			clearByEntityCache(className);
+
+			return;
+		}
+
 		clearLocalCache();
 
 		_clearCache(_getCacheNameWithPagination(className));
 
 		_clearDSLQueryCache(className);
-
-		ArgumentsResolver argumentsResolver = _argumentsResolvers.get(
-			className);
 
 		Set<FinderPath> finderPaths = new HashSet<>();
 
@@ -680,6 +711,12 @@ public class FinderCacheImpl
 	private static final String _GROUP_KEY_PREFIX =
 		FinderCache.class.getName() + StringPool.PERIOD;
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		FinderCacheImpl.class);
+
+	private static final MethodKey _clearDSLQueryCacheMethodKey = new MethodKey(
+		FinderCacheUtil.class, "clearDSLQueryCache", String.class);
+
 	private final Map<String, ArgumentsResolver> _argumentsResolvers =
 		new ConcurrentHashMap<>();
 	private ServiceTracker<ArgumentsResolver, ArgumentsResolver>
@@ -689,6 +726,10 @@ public class FinderCacheImpl
 		_basePersistenceServiceTrackerMap;
 	private BundleContext _bundleContext;
 	private volatile CacheKeyGenerator _cacheKeyGenerator;
+
+	@Reference
+	private ClusterExecutor _clusterExecutor;
+
 	private final Map<String, Set<String>> _dslQueryCacheNamesMap =
 		new ConcurrentHashMap<>();
 	private final Map<String, Map<String, FinderPath>> _finderPathsMap =

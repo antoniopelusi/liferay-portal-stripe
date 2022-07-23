@@ -41,6 +41,7 @@ function LanguageSelector({languageIds, onChange, selectedLanguageId}) {
 					<span className="inline-item">
 						<ClayIcon symbol={selectedLanguage.icon} />
 					</span>
+
 					<span className="btn-section">{selectedLanguage.text}</span>
 				</ClayButton>
 			}
@@ -61,6 +62,7 @@ function LanguageSelector({languageIds, onChange, selectedLanguageId}) {
 							<span className="inline-item inline-item-before">
 								<ClayIcon symbol={icon} />
 							</span>
+
 							{text}
 						</ClayDropDown.Item>
 					);
@@ -86,9 +88,12 @@ function DataEngineLanguageSelector({
 	const [selectedLanguageId, setSelectedLanguageId] = useState(
 		initialSelectedLanguageId
 	);
-	const [translatedLanguageIds, setTranslatedLanguageIds] = useState(
-		initialTranslatedLanguageIds
-	);
+	const [translatedLanguageIds, setTranslatedLanguageIds] = useState([
+		...new Set([
+			...initialTranslatedLanguageIds,
+			initialSelectedLanguageId,
+		]),
+	]);
 
 	const handleLocaleChange = (localeId) => {
 		setSelectedLanguageId(localeId);

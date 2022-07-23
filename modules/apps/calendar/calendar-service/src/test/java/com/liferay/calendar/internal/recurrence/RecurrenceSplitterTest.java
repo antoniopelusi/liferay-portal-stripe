@@ -18,16 +18,13 @@ import com.liferay.calendar.recurrence.Recurrence;
 import com.liferay.calendar.recurrence.RecurrenceSerializer;
 import com.liferay.calendar.util.JCalendarUtil;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.util.CalendarFactoryImpl;
 
 import java.util.Calendar;
 import java.util.TimeZone;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,13 +39,6 @@ public class RecurrenceSplitterTest {
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
-	@BeforeClass
-	public static void setUpClass() {
-		CalendarFactoryUtil calendarFactoryUtil = new CalendarFactoryUtil();
-
-		calendarFactoryUtil.setCalendarFactory(new CalendarFactoryImpl());
-	}
-
 	@Before
 	public void setUp() {
 		_recurrenceSplitter = new RecurrenceSplitterImpl();
@@ -56,95 +46,95 @@ public class RecurrenceSplitterTest {
 
 	@Test
 	public void testSplitRecurrence() {
-		Recurrence recurrence = getRecurrence("RRULE:FREQ=DAILY;INTERVAL=1");
+		Recurrence recurrence = _getRecurrence("RRULE:FREQ=DAILY;INTERVAL=1");
 
-		Calendar startTimeJCalendar = getJCalendar(1);
+		Calendar startTimeJCalendar = _getJCalendar(1);
 
-		Calendar splitTimeJCalendar = getJCalendar(10);
+		Calendar splitTimeJCalendar = _getJCalendar(10);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertSplit(recurrenceSplit);
+		_assertSplit(recurrenceSplit);
 
-		assertFirstRecurrenceEquals(
+		_assertFirstRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;UNTIL=20170109;INTERVAL=1");
 
-		assertSecondRecurrenceEquals(
+		_assertSecondRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;INTERVAL=1");
 	}
 
 	@Test
 	public void testSplitRecurrenceWithCount() {
-		Recurrence recurrence = getRecurrence(
+		Recurrence recurrence = _getRecurrence(
 			"RRULE:FREQ=DAILY;INTERVAL=1;COUNT=20");
 
-		Calendar startTimeJCalendar = getJCalendar(1);
+		Calendar startTimeJCalendar = _getJCalendar(1);
 
-		Calendar splitTimeJCalendar = getJCalendar(10);
+		Calendar splitTimeJCalendar = _getJCalendar(10);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertSplit(recurrenceSplit);
+		_assertSplit(recurrenceSplit);
 
-		assertFirstRecurrenceEquals(
+		_assertFirstRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;COUNT=9;INTERVAL=1");
 
-		assertSecondRecurrenceEquals(
+		_assertSecondRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;COUNT=11;INTERVAL=1");
 	}
 
 	@Test
 	public void testSplitRecurrenceWithCountAndSplitDateBeforeStartDate() {
-		Recurrence recurrence = getRecurrence(
+		Recurrence recurrence = _getRecurrence(
 			"RRULE:FREQ=DAILY;COUNT=5;INTERVAL=1");
 
-		Calendar startTimeJCalendar = getJCalendar(1);
+		Calendar startTimeJCalendar = _getJCalendar(1);
 
-		Calendar splitTimeJCalendar = getJCalendar(10);
+		Calendar splitTimeJCalendar = _getJCalendar(10);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertNotSplit(recurrenceSplit);
+		_assertNotSplit(recurrenceSplit);
 
-		assertFirstRecurrenceEquals(
+		_assertFirstRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;COUNT=5;INTERVAL=1");
 	}
 
 	@Test
 	public void testSplitRecurrenceWithCountBeforeSplitDate() {
-		Recurrence recurrence = getRecurrence(
+		Recurrence recurrence = _getRecurrence(
 			"RRULE:FREQ=DAILY;INTERVAL=1;COUNT=5");
 
-		Calendar startTimeJCalendar = getJCalendar(1);
+		Calendar startTimeJCalendar = _getJCalendar(1);
 
-		Calendar splitTimeJCalendar = getJCalendar(10);
+		Calendar splitTimeJCalendar = _getJCalendar(10);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertNotSplit(recurrenceSplit);
+		_assertNotSplit(recurrenceSplit);
 
-		assertFirstRecurrenceEquals(
+		_assertFirstRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;COUNT=5;INTERVAL=1");
 	}
 
 	@Test
 	public void testSplitRecurrenceWithExDate() {
-		Recurrence recurrence = getRecurrence(
+		Recurrence recurrence = _getRecurrence(
 			"RRULE:FREQ=DAILY;INTERVAL=1\n" +
 				"EXDATE;TZID=\"UTC\";VALUE=DATE:20170108,20170112");
 
-		Calendar startTimeJCalendar = getJCalendar(1);
+		Calendar startTimeJCalendar = _getJCalendar(1);
 
-		Calendar splitTimeJCalendar = getJCalendar(10);
+		Calendar splitTimeJCalendar = _getJCalendar(10);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertSplit(recurrenceSplit);
+		_assertSplit(recurrenceSplit);
 
 		Assert.assertEquals(
 			"RRULE:FREQ=DAILY;UNTIL=20170109;INTERVAL=1\n" +
@@ -161,95 +151,95 @@ public class RecurrenceSplitterTest {
 
 	@Test
 	public void testSplitRecurrenceWithSplitDateAfterUntilDate() {
-		Recurrence recurrence = getRecurrence(
+		Recurrence recurrence = _getRecurrence(
 			"RRULE:FREQ=DAILY;INTERVAL=1;UNTIL=20170108");
 
-		Calendar startTimeJCalendar = getJCalendar(1);
+		Calendar startTimeJCalendar = _getJCalendar(1);
 
-		Calendar splitTimeJCalendar = getJCalendar(10);
+		Calendar splitTimeJCalendar = _getJCalendar(10);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertNotSplit(recurrenceSplit);
+		_assertNotSplit(recurrenceSplit);
 
-		assertFirstRecurrenceEquals(
+		_assertFirstRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;UNTIL=20170108;INTERVAL=1");
 	}
 
 	@Test
 	public void testSplitRecurrenceWithSplitDateBeforeStartDate() {
-		Recurrence recurrence = getRecurrence("RRULE:FREQ=DAILY;INTERVAL=1");
+		Recurrence recurrence = _getRecurrence("RRULE:FREQ=DAILY;INTERVAL=1");
 
-		Calendar startTimeJCalendar = getJCalendar(4);
+		Calendar startTimeJCalendar = _getJCalendar(4);
 
-		Calendar splitTimeJCalendar = getJCalendar(1);
+		Calendar splitTimeJCalendar = _getJCalendar(1);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertNotSplit(recurrenceSplit);
+		_assertNotSplit(recurrenceSplit);
 
-		assertFirstRecurrenceEquals(
+		_assertFirstRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;INTERVAL=1");
 	}
 
 	@Test
 	public void testSplitRecurrenceWithUntilDate() {
-		Recurrence recurrence = getRecurrence(
+		Recurrence recurrence = _getRecurrence(
 			"RRULE:FREQ=DAILY;INTERVAL=1;UNTIL=20170131");
 
-		Calendar startTimeJCalendar = getJCalendar(1);
+		Calendar startTimeJCalendar = _getJCalendar(1);
 
-		Calendar splitTimeJCalendar = getJCalendar(10);
+		Calendar splitTimeJCalendar = _getJCalendar(10);
 
 		RecurrenceSplit recurrenceSplit = _recurrenceSplitter.split(
 			recurrence, startTimeJCalendar, splitTimeJCalendar);
 
-		assertSplit(recurrenceSplit);
+		_assertSplit(recurrenceSplit);
 
-		assertFirstRecurrenceEquals(
+		_assertFirstRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;UNTIL=20170109;INTERVAL=1");
 
-		assertSecondRecurrenceEquals(
+		_assertSecondRecurrenceEquals(
 			recurrenceSplit, "RRULE:FREQ=DAILY;UNTIL=20170131;INTERVAL=1");
 	}
 
-	protected void assertFirstRecurrenceEquals(
+	private void _assertFirstRecurrenceEquals(
 		RecurrenceSplit recurrenceSplit, String expectedRecurrence) {
 
-		assertRecurrenceEquals(
+		_assertRecurrenceEquals(
 			recurrenceSplit.getFirstRecurrence(), expectedRecurrence);
 	}
 
-	protected void assertNotSplit(RecurrenceSplit recurrenceSplit) {
+	private void _assertNotSplit(RecurrenceSplit recurrenceSplit) {
 		Assert.assertFalse(recurrenceSplit.isSplit());
 	}
 
-	protected void assertRecurrenceEquals(
+	private void _assertRecurrenceEquals(
 		Recurrence recurrenceObj, String expectedRecurrence) {
 
 		Assert.assertEquals(
 			expectedRecurrence, RecurrenceSerializer.serialize(recurrenceObj));
 	}
 
-	protected void assertSecondRecurrenceEquals(
+	private void _assertSecondRecurrenceEquals(
 		RecurrenceSplit recurrenceSplit, String expectedRecurrence) {
 
-		assertRecurrenceEquals(
+		_assertRecurrenceEquals(
 			recurrenceSplit.getSecondRecurrence(), expectedRecurrence);
 	}
 
-	protected void assertSplit(RecurrenceSplit recurrenceSplit) {
+	private void _assertSplit(RecurrenceSplit recurrenceSplit) {
 		Assert.assertTrue(recurrenceSplit.isSplit());
 	}
 
-	protected Calendar getJCalendar(int dayOfMonth) {
+	private Calendar _getJCalendar(int dayOfMonth) {
 		return JCalendarUtil.getJCalendar(
 			2017, Calendar.JANUARY, dayOfMonth, 1, 0, 0, 0, _utcTimeZone);
 	}
 
-	protected Recurrence getRecurrence(String recurrence) {
+	private Recurrence _getRecurrence(String recurrence) {
 		return RecurrenceSerializer.deserialize(recurrence, _utcTimeZone);
 	}
 

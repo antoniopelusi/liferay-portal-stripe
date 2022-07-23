@@ -90,7 +90,7 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			name = BookmarksFolder.class.getSimpleName();
 		}
 
-		String checkBoxRowIds = getEntryRowIds();
+		String checkBoxRowIds = _getEntryRowIds();
 		String checkBoxAllRowIds = "'#" + getAllRowIds() + "'";
 
 		return getRowCheckBox(
@@ -99,24 +99,14 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			primaryKey, checkBoxRowIds, checkBoxAllRowIds, StringPool.BLANK);
 	}
 
-	protected String getEntryRowIds() {
-		StringBundler sb = new StringBundler(13);
-
-		sb.append("['");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(Folder.class.getSimpleName());
-		sb.append("', '");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(DLFileShortcut.class.getSimpleName());
-		sb.append("', '");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(FileEntry.class.getSimpleName());
-		sb.append("']");
-
-		return sb.toString();
+	private String _getEntryRowIds() {
+		return StringBundler.concat(
+			"['", _liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			Folder.class.getSimpleName(), "', '",
+			_liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			DLFileShortcut.class.getSimpleName(), "', '",
+			_liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			FileEntry.class.getSimpleName(), "']");
 	}
 
 	private final LiferayPortletResponse _liferayPortletResponse;

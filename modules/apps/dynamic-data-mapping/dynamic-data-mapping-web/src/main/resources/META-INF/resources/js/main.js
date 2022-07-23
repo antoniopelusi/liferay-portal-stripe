@@ -18,7 +18,7 @@ AUI.add(
 		var AArray = A.Array;
 		var Lang = A.Lang;
 
-		var BODY = A.getBody();
+		var BODY = document.body;
 
 		var instanceOf = A.instanceOf;
 		var isArray = Array.isArray;
@@ -193,6 +193,7 @@ AUI.add(
 					value: {
 						strings: {
 							asc: Liferay.Language.get('ascending'),
+							// eslint-disable-next-line @liferay/no-abbreviations
 							desc: Liferay.Language.get('descending'),
 							propertyName: Liferay.Language.get('property-name'),
 							reverseSortBy: Lang.sub(
@@ -232,6 +233,9 @@ AUI.add(
 						),
 						propertyName: Liferay.Language.get('property-name'),
 						required: Liferay.Language.get('required'),
+						requiredDescription: Liferay.Language.get(
+							'required-description'
+						),
 						reset: Liferay.Language.get('reset'),
 						save: Liferay.Language.get('save'),
 						settings: Liferay.Language.get('settings'),
@@ -253,24 +257,22 @@ AUI.add(
 
 				validator: {
 					setter(val) {
-						var config = A.merge(
-							{
-								fieldStrings: {
-									name: {
-										required: Liferay.Language.get(
-											'this-field-is-required'
-										),
-									},
-								},
-								rules: {
-									name: {
-										required: true,
-										structureFieldName: true,
-									},
+						var config = {
+							fieldStrings: {
+								name: {
+									required: Liferay.Language.get(
+										'this-field-is-required'
+									),
 								},
 							},
-							val
-						);
+							rules: {
+								name: {
+									required: true,
+									structureFieldName: true,
+								},
+							},
+							...val,
+						};
 
 						return config;
 					},
@@ -304,6 +306,7 @@ AUI.add(
 				'readOnly',
 				'repeatable',
 				'required',
+				'requiredDescription',
 				'showLabel',
 				'type',
 			],
@@ -642,14 +645,28 @@ AUI.add(
 								}
 							}
 						}
-						else if (attributeName === 'required') {
-							var state = changed.value.newVal === 'true';
-							var requiredNode = editingField
-								._getFieldNode()
-								.one('.lexicon-icon-asterisk');
+						else if (editingField.get('type') === 'ddm-image') {
+							if (attributeName === 'required') {
+								if (editingField.get('requiredDescription')) {
+									instance._toggleImageDescriptionAsterisk(
+										editingField,
+										changed.value.newVal === 'true'
+									);
+								}
 
-							if (requiredNode) {
-								requiredNode.toggle(state);
+								instance._toggleRequiredDescriptionPropertyModel(
+									editingField,
+									changed.value.newVal === 'true'
+								);
+							}
+							else if (
+								attributeName === 'requiredDescription' &&
+								editingField.get('required')
+							) {
+								instance._toggleImageDescriptionAsterisk(
+									editingField,
+									changed.value.newVal === 'true'
+								);
 							}
 						}
 					}
@@ -765,11 +782,21 @@ AUI.add(
 					});
 				},
 
+				_toggleImageDescriptionAsterisk(field, state) {
+					var requiredNode = field
+						._getFieldNode()
+						.one('.lexicon-icon-asterisk');
+
+					if (requiredNode) {
+						requiredNode.toggle(state);
+					}
+				},
+
 				_toggleInputDirection(locale) {
 					var rtl = Liferay.Language.direction[locale] === 'rtl';
 
-					BODY.toggleClass('form-builder-ltr-inputs', !rtl);
-					BODY.toggleClass('form-builder-rtl-inputs', rtl);
+					BODY.classList.toggle('form-builder-ltr-inputs', !rtl);
+					BODY.classList.toggle('form-builder-rtl-inputs', rtl);
 				},
 
 				_toggleOptionsEditorInputs(editor) {
@@ -792,6 +819,32 @@ AUI.add(
 						Liferay.Util.toggleDisabled(
 							inputs,
 							defaultLocale !== editingLocale
+						);
+					}
+				},
+
+				_toggleRequiredDescriptionPropertyModel(field, state) {
+					var instance = this;
+
+					var modelList = instance.propertyList.get('data');
+
+					if (state) {
+						modelList.add(
+							{
+								...field.getRequiredDescriptionPropertyModel(),
+								value: field.get('requiredDescription'),
+							},
+							{
+								index:
+									modelList.indexOf(
+										modelList.getById('required')
+									) + 1,
+							}
+						);
+					}
+					else {
+						modelList.remove(
+							modelList.getById('requiredDescription')
 						);
 					}
 				},
@@ -862,13 +915,22 @@ AUI.add(
 						arguments
 					);
 
-					if (field.name === 'ddm-image' && !field.get('required')) {
-						var requiredNode = field
-							._getFieldNode()
-							.one('.lexicon-icon-asterisk');
+					if (field.name === 'ddm-image') {
+						if (!field.get('required')) {
+							instance._toggleImageDescriptionAsterisk(
+								field,
+								false
+							);
 
-						if (requiredNode) {
-							requiredNode.toggle(false);
+							instance.MAP_HIDDEN_FIELD_ATTRS.DEFAULT.push(
+								'requiredDescription'
+							);
+						}
+						else if (field.get('requiredDescription') === false) {
+							instance._toggleImageDescriptionAsterisk(
+								field,
+								false
+							);
 						}
 					}
 
@@ -908,10 +970,10 @@ AUI.add(
 					field.set('strings', instance.get('strings'));
 
 					var fieldHiddenAttributeMap = {
-						checkbox: instance.MAP_HIDDEN_FIELD_ATTRS.checkbox,
+						'checkbox': instance.MAP_HIDDEN_FIELD_ATTRS.checkbox,
 						'ddm-separator':
 							instance.MAP_HIDDEN_FIELD_ATTRS.separator,
-						default: instance.MAP_HIDDEN_FIELD_ATTRS.DEFAULT,
+						'default': instance.MAP_HIDDEN_FIELD_ATTRS.DEFAULT,
 					};
 
 					var hiddenAtributes =
@@ -1063,7 +1125,7 @@ AUI.add(
 						!A.Text.Unicode.test(item, 'L') &&
 						!A.Text.Unicode.test(item, 'N') &&
 						!A.Text.Unicode.test(item, 'Pd') &&
-						item != STR_UNDERSCORE
+						item !== STR_UNDERSCORE
 					) {
 						key = key.replace(item, STR_SPACE);
 					}
@@ -1088,7 +1150,7 @@ AUI.add(
 				try {
 					data = JSON.parse(value);
 				}
-				catch (e) {}
+				catch (error) {}
 
 				return data;
 			},
@@ -1109,7 +1171,7 @@ AUI.add(
 						!A.Text.Unicode.test(item, 'L') &&
 						!A.Text.Unicode.test(item, 'N') &&
 						!A.Text.Unicode.test(item, 'Pd') &&
-						item != STR_UNDERSCORE
+						item !== STR_UNDERSCORE
 					) {
 						valid = false;
 
@@ -1264,9 +1326,9 @@ AUI.add(
 					type: 'text',
 				},
 				{
-					fieldLabel: Liferay.Language.get('text-area'),
+					fieldLabel: Liferay.Language.get('text-area-html'),
 					iconClass: 'textbox',
-					label: Liferay.Language.get('text-area'),
+					label: Liferay.Language.get('text-area-html'),
 					type: 'textarea',
 				},
 				{

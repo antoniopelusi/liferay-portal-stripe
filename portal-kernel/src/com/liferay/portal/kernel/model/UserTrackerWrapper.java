@@ -117,6 +117,11 @@ public class UserTrackerWrapper
 	}
 
 	@Override
+	public UserTracker cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public int compareTo(UserTracker userTracker) {
 		return model.compareTo(userTracker);
 	}

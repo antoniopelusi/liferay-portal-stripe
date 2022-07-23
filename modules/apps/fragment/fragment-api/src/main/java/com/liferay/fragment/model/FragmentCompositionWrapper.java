@@ -202,6 +202,11 @@ public class FragmentCompositionWrapper
 		}
 	}
 
+	@Override
+	public FragmentComposition cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this fragment composition.
 	 *

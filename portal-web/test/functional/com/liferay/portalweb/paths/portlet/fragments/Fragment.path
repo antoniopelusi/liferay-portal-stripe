@@ -2,124 +2,115 @@
 <head>
 <title>Fragment</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Fragment</td></tr>
 </thead>
+
 <tbody>
+<!--COLLECTION_DISPLAY_CELL-->
 <tr>
-	<td>COLLECTION_CATEGORY_FILTER_DROPDOWN_TOGGLE</td>
-	<td>//p[normalize-space(text())='${key_title}']//following-sibling::div//button[contains(@class,'dropdown-toggle')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CONTENT_DISPLAY_FRAGMENT_BODY</td>
-	<td>//div[@class='row'][${key_rowPosition}]/div[contains(@class,'col')][${key_colPosition}]//div[contains(@class,'fragment-content') and contains(.,'${key_entryContent}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CONTENT_DISPLAY_FRAGMENT_CONTENT</td>
-	<td>//div[@class='row'][${key_rowPosition}]/div[contains(@class,'col')][${key_colPosition}][contains(.,'${key_entryContent}')]</td>
+	<td>FRAGMENT_TEXT_IN_COLLECTION_DISPLAY</td>
+	<td>//section[contains(@id,'content')]//div[contains(@class,'row')][${row}]/div[contains(@class,'col')][${column}]//*[not(self::script)][not(contains(@class,'tbar'))][normalize-space(text())]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CONTENT_DISPLAY_FRAGMENT_IMAGE</td>
-	<td>//div[contains(@class,'content')]//div[@class='row'][${key_rowPosition}]/div[contains(@class,'col')][${key_colPosition}]//*[contains(@src,'${key_image}')]</td>
+	<td>//div[contains(@class,'content')]//div[contains(@class,'row')][${key_rowPosition}]/div[contains(@class,'col')][${key_colPosition}]//*[contains(@src,'${key_image}')] | //div[contains(@class,'content')]//div[contains(@class,'row')][${key_rowPosition}]/div[contains(@class,'col')][${key_colPosition}]//*[contains(@style,'${key_image}')]</td>
+	<td></td>
+</tr>
+<!--CONTENT_DISPLAY_FRAGMENT-->
+<tr>
+	<td>CONTENT_DISPLAY_TEXT</td>
+	<td>xpath=(//div[contains(@class,'${assetType}')])[${index}]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>CONTENT_FRAGMENT_BODY</td>
-	<td>//div[contains(@class,'content')]//div[@class='row'][${key_rowPosition}]/div[contains(@class,'col')]//*[contains(@class,'content')]</td>
+	<td>CONTENT_DISPLAY_ASSET_SUMMARY</td>
+	<td>xpath=(//div[contains(@class,'asset-summary')])[${index}]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>DOCUMENT_4_PNG</td>
-	<td>portal/screenshots/fragments/Document_4.png</td>
+	<td>CONTENT_DISPLAY_ASSET_SUMMARY_TEXT</td>
+	<td>//div[contains(@class, 'text-lg-left')]/ul/li</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FRAGMENT</td>
-	<td>//div[contains(@class,'layout-content')]//*[contains(@class,'fragment-${key_fragmentClass}') and contains(.,'${key_content}')]</td>
+	<td>CONTENT_DISPLAY_IMAGE</td>
+	<td>xpath=(//div[contains(@class,'${assetType}')])[${index}]//img[contains(@src,'${image}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FRAGMENT_BASIC_COMPONENT</td>
-	<td>//div[contains(@class,'layout-content')]//*[contains(@class,'component-${key_fragmentName}')]</td>
+	<td>CONTENT_DISPLAY_PREVIEW_IMAGE</td>
+	<td>xpath=(//div[contains(@class,'preview-file-container')])[${index}]//img[contains(@src,'${image}')]</td>
 	<td></td>
 </tr>
+<!--CONTENT_RATINGS_FRAGMENT-->
+<tr>
+	<td>CONTENT_RATINGS_AVERAGE_STAR</td>
+	<td>xpath=(//div[contains(@class,'ratings-stars')]//span[contains(@class,'ratings-stars-average')][.//*[name()='svg'][contains(@class,'ratings-stars-average-icon')]])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_RATINGS_AVERAGE_STAR_RESULT</td>
+	<td>xpath=(//div[contains(@class,'ratings-stars')]//span[contains(@class,'ratings-stars-average-text')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_RATINGS_YOUR_RATING_STAR</td>
+	<td>xpath=(//div[contains(@class,'ratings-stars')]//button[.//*[name()='svg'][contains(@class,'lexicon-icon-star')]])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_RATINGS_YOUR_RATING_STAR_RESULT</td>
+	<td>xpath=(//div[contains(@class,'ratings-stars')]//span[contains(@class,'ratings-stars-button-text')])[${index}]</td>
+	<td></td>
+</tr>
+<!--FRAGMENT-->
 <tr>
 	<td>FRAGMENT_BODY</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]//following-sibling::div[contains(@class,'page-editor__topper__content')]</td>
+	<td>xpath=(//div[contains(@id,'fragment-')]//*[contains(@class,'${fragmentName}')])[${index}]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_BODY_IN_FRAGMENT</td>
-	<td>//div[contains(@class,'page-editor__topper') and contains(.,'${key_fragmentName}')]/div[contains(@class,'page-editor__topper__content')]//preceding-sibling::div[contains(.,'${key_inFragmentName}')]</td>
+	<td>//div[@aria-label='${key_inFragmentName}']/div[contains(@class,'page-editor__topper__content')]//div[@aria-label='${key_fragmentName}']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FRAGMENT_CONTENT_BACKGROUND_IMAGE</td>
-	<td>//div[contains(@class,'page-editor__topper') and contains(.,'${key_fragmentName}')]//div[contains(@style,'${key_imageName}')]</td>
+	<td>FRAGMENT_CONTENT</td>
+	<td>xpath=(//div[@aria-label='${key_fragmentName}']//div[contains(@class,'page-editor__topper__content')])[${index}]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FRAGMENT_IMAGE</td>
-	<td>//div[contains(@class,'layout-content')]//section[${key_position}]//*[contains(@class,'fragment-${key_fragmentClass}')]//img[contains(@src,'${key_image}')]</td>
+	<td>FRAGMENT_LABEL</td>
+	<td>xpath=(//div[@aria-label='${key_fragmentName}'])[${index}]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_LINK</td>
-	<td>//a[contains(@href,'${key_URL}')]${key_append}</td>
+	<td>//a[contains(@href,'${key_url}')]${key_append}</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FRAGMENT_SECTION_BACKGROUND_IMAGE</td>
-	<td>//section[contains(@id,'content')]//div[contains(@style,'${key_imageName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_SECTION_CONTENT</td>
-	<td>//section[contains(@id,'content')]//p[contains(.,'${key_content}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_SITE_USAGE_CHECKBOX</td>
-	<td>//tr[contains(.,'${key_siteName}')]/td//input[@type='checkbox']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_SITE_USAGE_NAV_ITEM</td>
-	<td>//li[contains(@class,'navbar-breakpoint')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>MARKETPLACE_ICON_PNG</td>
-	<td>portal/screenshots/fragments/marketplace_icon.png</td>
+	<td>FRAGMENT_POSITION</td>
+	<td>xpath=(//div[contains(@class,'page-editor__topper')][@draggable='true'])[${key_position}][@aria-label='${key_fragmentName}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>MESSAGE_INFO</td>
-	<td>//div[contains(@class,'page-editor__topper') and contains(.,'${key_fragmentName}')]//div[@class='portlet-msg-info' and contains(.,'${key_messageIfo}')]</td>
+	<td>//div[@aria-label='${key_fragmentName}']//div[@class='portlet-msg-info' and contains(.,'${key_messageInfo}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>NOT_COLLECTION_SELECTED_MESSAGE</td>
-	<td>//div[contains(@class,'page-editor__topper') and contains(.,'${key_fragmentName}')]//div[@class='page-editor__collection' and contains(.,'${key_message}')]</td>
+	<td>NO_COLLECTION_SELECTED_MESSAGE</td>
+	<td>//div[@aria-label='${key_fragmentName}']//div[@class='page-editor__collection' and contains(.,'${key_messageInfo}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>PAGE_EDITOR_FRAGMENT</td>
-	<td>//div[@class='page-editor__root page-editor__topper']/div[contains(@class,'page-editor__topper')][${key_position}]//*[contains(@class,'fragment-${key_fragmentClass}') and contains(.,'${key_content}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_EDITOR_FRAGMENT_IMAGE</td>
-	<td>//*[contains(@class,'fragment-${key_fragmentClass}')]//img[contains(@src,'${key_image}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_EDITOR_NO_FRAGMENTS_MESSAGE</td>
+	<td>NO_FRAGMENTS_MESSAGE</td>
 	<td>xpath=(//*[contains(@class,'fragment-${key_fragmentClass}')]//lfr-drop-zone//div[contains(@class,'no-fragments-message__title') and contains(.,'${key_content}')])[${key_position}]</td>
 	<td></td>
 </tr>
@@ -129,7 +120,7 @@
 	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]//button[*[name()='svg'][contains(@class,'icon-comments')]]</td>
 	<td></td>
 </tr>
-<!--CUSTOM_FRAGMENT_STYLE-->
+<!--FRAGMENT_CUSTOM_STYLE-->
 <tr>
 	<td>ALIGN</td>
 	<td>//div[contains(@class,'video')]/parent::div[contains(@style,'justify-content: ${key_alignment}')]</td>
@@ -186,85 +177,80 @@
 	<td>//button[contains(@class,'dropdown-fragment-toggle')]</td>
 	<td></td>
 </tr>
-<!--FRAGMENT_CONFIGURAION-->
-<tr>
-	<td>FRAGMENT_CHECKBOX</td>
-	<td>//div[contains(@class,'floating-toolbar')]//label[contains(.,'${checkboxName}')]//input[@type='checkbox']</td>
-	<td></td>
-</tr>
+<!--FRAGMENT_COMMON_STYLE-->
 <tr>
 	<td>FRAGMENT_CONFIGURATION_ALIGNMENT</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'text-${key_alignment}')]</td>
+	<td>//div[contains(@class,'text-${key_alignment}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_BACKGROUND_COLOR</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@style,'background-color: var(--${key_paletteItem})')]</td>
+	<td>//div[contains(@style,'background-color: var(--${key_paletteItem})')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_BORDER_COLOR</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@style,'border-color: var(--${key_paletteItem})')]</td>
+	<td>//div[contains(@style,'border-color: var(--${key_paletteItem})')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_BORDER_RADIUS</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@style,'border-radius: var(--${key_borderRadius})')]</td>
+	<td>//div[contains(@style,'border-radius: var(--${key_borderRadius})')][.//*[contains(@class,'${key_fragmentName}')]] | //div[contains(@style,'border-radius: ${key_borderRadius}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_BOX_SHADOW</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/parent::div[contains(@style,'box-shadow: var(--${key_boxShadow})')]</td>
+	<td>//div[contains(@style,'box-shadow: var(--${key_boxShadow})')][.//*[contains(@class,'${key_fragmentName}')]] | //div[contains(@style,'box-shadow: ${key_boxShadow}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_MARGIN_BOTTOM</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/parent::div[contains(@class,'mb-${key_marginBottom}')]</td>
+	<td>//div[contains(@class,'mb-${key_marginBottom}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_MARGIN_LEFT</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/parent::div[contains(@class,'ml-${key_marginLeft}')]</td>
+	<td>//div[contains(@class,'ml-${key_marginLeft}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_MARGIN_RIGHT</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/parent::div[contains(@class,'ml-${key_marginRight}')]</td>
+	<td>//div[contains(@class,'mr-${key_marginRight}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_MARGIN_TOP</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/parent::div[contains(@class,'mt-${key_marginTop}')]</td>
+	<td>//div[contains(@class,'mt-${key_marginTop}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_PADDING_BOTTOM</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'pb-${key_paddingBottom}')]</td>
+	<td>//div[contains(@class,'pb-${key_paddingBottom}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_PADDING_LEFT</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'pl-${key_paddingLeft}')]</td>
+	<td>//div[contains(@class,'pl-${key_paddingLeft}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_PADDING_RIGHT</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'pr-${key_paddingRight}')]</td>
+	<td>//div[contains(@class,'pr-${key_paddingRight}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_PADDING_TOP</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'pt-${key_paddingTop}')]</td>
+	<td>//div[contains(@class,'pt-${key_paddingTop}')][.//*[contains(@class,'${key_fragmentName}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_HEADER</td>
-	<td>//${key_headingLevel}[contains(@class,'component-${key_fragmentName}')]</td>
+	<td>xpath=(//${key_headingLevel}[contains(@class,'component-${key_fragmentName}')])[${key_position}]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_CONFIGURATION_TEXT_COLOR</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@style,'color: var(--${key_textColor})')]</td>
+	<td>xpath=(//div[contains(@style,'color: var(--${key_textColor})')][.//*[contains(@class,'${key_fragmentName}')]])[${key_position}] | (//div[contains(@style,'color: ${key_textColor}')][.//*[contains(@class,'${key_fragmentName}')]])[${key_position}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -272,42 +258,16 @@
 	<td>//div[contains(@class,'component-${key_fragmentName}')]//a[contains(@class,'-${key_type}')]</td>
 	<td></td>
 </tr>
-<!--FRAGMENT_CONFIGURATION_IN_VIEW_MODE-->
-<tr>
-	<td>FRAGMENT_CONFIGURATION_ALIGNMENT_IN_VIEW_MODE</td>
-	<td>//*[contains(@class,'${key_fragmentName}')]/parent::div/parent::div[contains(@class,'text-${key_alignment}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_CONFIGURATION_BORDER_RADIUS_IN_VIEW_MODE</td>
-	<td>//*[contains(@class,'${key_fragmentName}')]/parent::div/parent::div[contains(@style,'border-radius: ${key_borderRadius}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_CONFIGURATION_BOX_SHADOW_IN_VIEW_MODE</td>
-	<td>//*[contains(@class,'${key_fragmentName}')]/parent::div/parent::div[contains(@style,'box-shadow: ${key_boxShadow}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_CONFIGURATION_MARGIN_BOTTOM_IN_VIEW_MODE</td>
-	<td>//*[contains(@class,'${key_fragmentName}')]/parent::div/parent::div[contains(@class,'mb-${key_marginBottom}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_CONFIGURATION_TEXT_COLOR_IN_VIEW_MODE</td>
-	<td>//*[contains(@class,'${key_fragmentName}')]/parent::div/parent::div[contains(@style,'color: ${key_textColor}')]</td>
-	<td></td>
-</tr>
 <!--FRAGMENT_EDITABLE_FIELD-->
 <tr>
 	<td>AVAILABLE_ADAPTIVE_MEDIA</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]//following-sibling::div[contains(@class,'page-editor__topper__content')]//*[contains(@data-lfr-editable-id,'${id}')]/preceding-sibling::source[contains(@srcset,'${key_adaptiveMediaName}')]
+	<td>//div[@aria-label='${key_fragmentName}']//div[contains(@class,'page-editor__topper__content')]//*[contains(@data-lfr-editable-id,'${id}')]/preceding-sibling::source[contains(@srcset,'${key_adaptiveMediaName}')]
 	</td>
 	<td></td>
 </tr>
 <tr>
-	<td>BACKGROUND_IMAGE_EDITABLE_FIELD</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]//following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@data-lfr-background-image-id,'${id}')]</td>
+	<td>BACKGROUND_IMAGE_STYLE</td>
+	<td>xpath=(//div[contains(@style,'${backgroundImageStyle}')])[${position}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -316,28 +276,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CONTRIBUTED_FRAGMENT_EDITABLE_FIELD</td>
-	<td>//div[contains(@class,'page-editor__topper__bar') and contains(.,'${key_fragmentName}')]//following-sibling::div[contains(@class,'page-editor__topper__content')]//*[contains(@data-lfr-editable-id,'${id}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_CK_EDITOR</td>
-	<td>//div[contains(@class,'page-editor__topper') and contains(.,'${key_fragmentName}')]//*[contains(@data-lfr-editable-id,'${id}')]//div[contains(@class,'cke_editable_inline')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_IMAGE_PROPERTIES</td>
 	<td>//img[contains(@alt,'${key_imageDescription}') and contains(@data-lfr-editable-id,'${id}') and contains(@src,'${key_image}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_WITHOUT_TOPPER</td>
-	<td>//*[contains(@class,'component-${key_fragmentName}') and contains(@data-lfr-editable-id,'${id}')]</td>
+	<td>CONTRIBUTED_FRAGMENT_INLINE_CONTENT_IN_COLLECTION_DISPLAY</td>
+	<td>//div[contains(@class,'content')]//div[contains(@class,'row')][${key_rowPosition}]/div[contains(@class,'col')][${key_colPosition}]//*[contains(@class,'component-${key_fragmentName}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>CONTRIBUTED_FRAGMENT_INLINE_CONTENT_IN_COLLECTION_DISPLAY</td>
-	<td>//div[contains(@class,'content')]//div[@class='row'][${key_rowPosition}]/div[contains(@class,'col')][${key_colPosition}]//*[contains(@class,'component-${key_fragmentName}')]</td>
+	<td>CONTRIBUTED_FRAGMENT_INLINE_RICH_TEXT_STYLE</td>
+	<td>xpath=(//*[contains(@data-lfr-editable-id,'${id}')])[${key_position}]${key_style}[normalize-space()='${key_text}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -346,8 +296,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>EDITABLE_FIELD_CK_EDITOR</td>
-	<td>//div[contains(@class,'page-editor__topper')]//div[contains(.,'${key_fragmentName}')]//lfr-editable[contains(@id,'${id}')]//div[contains(@class,'cke_editable_inline')]</td>
+	<td>EDITABLE_FIELD_ANY</td>
+	<td>xpath=(//div[contains(@id,'fragment-')][not(descendant::lfr-editable)][.//*[contains(@class,'${fragmentName}')]]//*[normalize-space(text())] | //div[contains(@id,'fragment-')][.//*[contains(@class,'${fragmentName}')]]//lfr-editable)[${index}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -356,8 +306,34 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDITABLE_FIELD_IMAGE_PROPERTIES</td>
+	<td>//*[contains(@class,'fragment-${key_fragmentClass}')]//img[contains(@src,'${key_image}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EDITABLE_HTML_FRAGMENT_FIELD</td>
 	<td>//div[contains(@class,'source-panel')]//div[contains(@class,'lfr-source-editor-code')]//textarea</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INLINE_RICH_TEXT_STYLE</td>
+	<td>xpath=(//lfr-editable[contains(@id,'${id}')])[${key_position}]${key_style}[normalize-space()='${key_text}']</td>
+	<td></td>
+</tr>
+<!--FRAGMENT_CONTENT_AT_VIEW_MODE-->
+<tr>
+	<td>CONTRIBUTED_FRAGMENT_TEXT</td>
+	<td>xpath=(//div[contains(@id,'fragment-')][.//*[contains(@class,'${fragmentName}')]])[${index}]//*[contains(@data-lfr-editable-id,'${id}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTRIBUTED_FRAGMENT_IMAGE</td>
+	<td>xpath=(//div[contains(@id,'fragment-')][.//*[contains(@class,'${fragmentName}')]])[${index}]//*[contains(@data-lfr-editable-id,'${id}')][contains(@src,'${image}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_BACKGROUND_IMAGE</td>
+	<td>xpath=(//div[contains(@style,'background-image')])[${index}][contains(@style,'${image}')]</td>
 	<td></td>
 </tr>
 <!--FRAGMENT_HEADER-->
@@ -367,31 +343,21 @@
 	<td></td>
 </tr>
 <tr>
-	<td>FRAGMENT_HEADER_2</td>
-	<td>xpath=(//li[contains(@class,'topper__title') and contains(.,'${key_fragmentName}')])[2]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>FRAGMENT_HEADER_DRAG_HANDLER</td>
 	<td>//li[contains(@class,'topper__title') and contains(.,'${key_dragFragmentName}')]/preceding-sibling::li[contains(@class,'drag-handler')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_HEADER_ELLIPSIS</td>
-	<td>//div[contains(@class,'page-editor__topper') and contains(@class,'active')]//li[contains(@class,'topper__title') and contains(.,'${key_fragmentName}')]/following-sibling::li//button[contains(@class,'dropdown-toggle')]</td>
+	<td>//li[contains(@class,'topper__title') and contains(.,'${key_fragmentName}')]/following-sibling::li//button[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_HEADER_INSET_STYLE</td>
-	<td>//div[contains(@class,'page-editor')]//div[contains(@class,'topper__bar--inset') and contains(.,'${key_fragmentName}')]</td>
+	<td>//div[contains(@class,'topper__bar--inset')]//li[contains(@class,'topper__title') and contains(.,'${key_fragmentName}')]</td>
 	<td></td>
 </tr>
-<tr>
-	<td>FRAGMENT_HEADER_POSITION</td>
-	<td>xpath=(//div[contains(@class,'page-editor__topper__bar tbar')])[${key_position}]//li[contains(.,'${key_fragmentName}')]</td>
-	<td></td>
-</tr>
-<!--FRAGMENT_TABS-->
+<!--TABS_FRAGMENT-->
 <tr>
 	<td>ACTIVE_NAV_ITEM_TAB</td>
 	<td>//div[contains(@class,'navbar')]//button[contains(@aria-selected,'true') and normalize-space()='${key_navItem}']</td>

@@ -54,15 +54,9 @@ public abstract class BaseBuiltInJSModule implements JSModule {
 
 		_id = ModuleNameUtil.getModuleId(_jsPackage, _name);
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(_jsPackage.getName());
-		sb.append(StringPool.AT);
-		sb.append(_jsPackage.getVersion());
-		sb.append(StringPool.SLASH);
-		sb.append(_name);
-
-		_resolvedId = sb.toString();
+		_resolvedId = StringBundler.concat(
+			_jsPackage.getName(), StringPool.AT, _jsPackage.getVersion(),
+			StringPool.SLASH, _name);
 	}
 
 	@Override
@@ -112,22 +106,12 @@ public abstract class BaseBuiltInJSModule implements JSModule {
 
 	@Override
 	public String getResolvedURL() {
-		StringBundler sb = new StringBundler(2);
-
-		sb.append("/o/js/resolved-module/");
-		sb.append(getResolvedId());
-
-		return sb.toString();
+		return "/o/js/resolved-module/" + getResolvedId();
 	}
 
 	@Override
 	public String getURL() {
-		StringBundler sb = new StringBundler(2);
-
-		sb.append("/o/js/module/");
-		sb.append(ModuleNameUtil.getModuleId(_jsPackage, _name));
-
-		return sb.toString();
+		return "/o/js/module/" + ModuleNameUtil.getModuleId(_jsPackage, _name);
 	}
 
 	@Override

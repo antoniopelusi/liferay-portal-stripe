@@ -20,9 +20,6 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.segments.service.SegmentsExperienceService;
 
 import java.util.Collections;
@@ -52,27 +49,15 @@ public class UpdateSegmentsExperienceMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId");
-
-		long segmentsEntryId = ParamUtil.getLong(
-			actionRequest, "segmentsEntryId");
-		String name = ParamUtil.getString(actionRequest, "name");
-		String[] languageIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "languageIds"));
-
-		UnicodeProperties typeSettingsUnicodeProperties = new UnicodeProperties(
-			true);
-
-		typeSettingsUnicodeProperties.setProperty(
-			PropsKeys.LOCALES, StringUtil.merge(languageIds));
-
 		return JSONUtil.put(
 			"segmentsExperience",
 			_segmentsExperienceService.updateSegmentsExperience(
-				segmentsExperienceId, segmentsEntryId,
-				Collections.singletonMap(LocaleUtil.getSiteDefault(), name),
-				true, typeSettingsUnicodeProperties));
+				ParamUtil.getLong(actionRequest, "segmentsExperienceId"),
+				ParamUtil.getLong(actionRequest, "segmentsEntryId"),
+				Collections.singletonMap(
+					LocaleUtil.getSiteDefault(),
+					ParamUtil.getString(actionRequest, "name")),
+				true));
 	}
 
 	@Reference

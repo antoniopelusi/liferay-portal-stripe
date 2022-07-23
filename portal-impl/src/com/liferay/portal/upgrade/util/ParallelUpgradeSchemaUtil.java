@@ -15,14 +15,13 @@
 package com.liferay.portal.upgrade.util;
 
 import com.liferay.petra.executor.PortalExecutorManager;
-import com.liferay.portal.kernel.dao.db.BaseDBProcess;
 import com.liferay.portal.kernel.dao.db.DBProcess;
+import com.liferay.portal.kernel.upgrade.BaseUpgradeCallable;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.ServiceProxyFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -44,7 +43,8 @@ public class ParallelUpgradeSchemaUtil {
 			for (String sqlFileName : sqlFileNames) {
 				futures.add(
 					executorService.submit(
-						new CallableSQLExecutor(dbProcess, sqlFileName)));
+						new SQLExecutorUpgradeCallable(
+							dbProcess, sqlFileName)));
 			}
 
 			for (Future<Void> future : futures) {
@@ -56,27 +56,16 @@ public class ParallelUpgradeSchemaUtil {
 		}
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #execute(DBProcess, String...)}
-	 */
-	@Deprecated
-	public static void execute(String... sqlFileNames) throws Exception {
-		execute(
-			new BaseDBProcess() {
-			},
-			sqlFileNames);
-	}
-
 	private static volatile PortalExecutorManager _portalExecutorManager =
 		ServiceProxyFactory.newServiceTrackedInstance(
 			PortalExecutorManager.class, ParallelUpgradeSchemaUtil.class,
 			"_portalExecutorManager", true);
 
-	private static class CallableSQLExecutor implements Callable<Void> {
+	private static class SQLExecutorUpgradeCallable
+		extends BaseUpgradeCallable<Void> {
 
 		@Override
-		public Void call() throws Exception {
+		protected Void doCall() throws Exception {
 			try (LoggingTimer loggingTimer = new LoggingTimer(_sqlFileName)) {
 				_dbProcess.runSQLTemplate(_sqlFileName, false);
 			}
@@ -84,7 +73,9 @@ public class ParallelUpgradeSchemaUtil {
 			return null;
 		}
 
-		private CallableSQLExecutor(DBProcess dbProcess, String sqlFileName) {
+		private SQLExecutorUpgradeCallable(
+			DBProcess dbProcess, String sqlFileName) {
+
 			_dbProcess = dbProcess;
 			_sqlFileName = sqlFileName;
 		}

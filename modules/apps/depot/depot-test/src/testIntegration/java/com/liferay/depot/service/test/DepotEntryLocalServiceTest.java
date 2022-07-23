@@ -24,21 +24,28 @@ import com.liferay.portal.kernel.exception.DuplicateGroupException;
 import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -111,11 +118,35 @@ public class DepotEntryLocalServiceTest {
 		_addDepotEntry(null, null);
 	}
 
+	@Test
+	public void testDeleteCompany() throws Exception {
+		Company company = CompanyTestUtil.addCompany();
+
+		User user = UserTestUtil.addUser(company);
+
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), "name"
+			).build(),
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), "description"
+			).build(),
+			_getServiceContext(user));
+
+		Assert.assertEquals(company.getCompanyId(), depotEntry.getCompanyId());
+
+		_companyLocalService.deleteCompany(company);
+
+		Assert.assertNull(
+			_depotEntryLocalService.fetchDepotEntry(
+				depotEntry.getDepotEntryId()));
+	}
+
 	@Test(expected = NoSuchGroupException.class)
 	public void testDeleteDepotEntry() throws Exception {
 		DepotEntry depotEntry = _addDepotEntry("name", "description");
 
-		_depotEntryLocalService.deleteDepotEntry(depotEntry);
+		_depotEntryLocalService.deleteDepotEntry(depotEntry.getDepotEntryId());
 
 		_depotEntries.remove(depotEntry);
 
@@ -126,13 +157,6 @@ public class DepotEntryLocalServiceTest {
 	public void testUpdateDepotEntry() throws Exception {
 		DepotEntry depotEntry = _addDepotEntry("name", "description");
 
-		UnicodeProperties formTypeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		formTypeSettingsUnicodeProperties.put(
-			PropsKeys.LOCALES,
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
-
 		_depotEntryLocalService.updateDepotEntry(
 			depotEntry.getDepotEntryId(),
 			HashMapBuilder.put(
@@ -141,7 +165,11 @@ public class DepotEntryLocalServiceTest {
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), "newDescription"
 			).build(),
-			Collections.emptyMap(), formTypeSettingsUnicodeProperties,
+			Collections.emptyMap(),
+			UnicodePropertiesBuilder.put(
+				PropsKeys.LOCALES,
+				LocaleUtil.toLanguageId(LocaleUtil.getDefault())
+			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
 		Group group = _groupLocalService.getGroup(depotEntry.getGroupId());
@@ -155,18 +183,10 @@ public class DepotEntryLocalServiceTest {
 	public void testUpdateDepotEntryDeleteDefaultLocale() throws Exception {
 		DepotEntry depotEntry = _addDepotEntry("name", "description");
 
-		UnicodeProperties formTypeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
 		Set<Locale> availableLocales = new HashSet<>();
 
 		availableLocales.add(LocaleUtil.getDefault());
 		availableLocales.add(LocaleUtil.fromLanguageId("es_ES"));
-
-		String[] locales = LocaleUtil.toLanguageIds(availableLocales);
-
-		formTypeSettingsUnicodeProperties.setProperty(
-			PropsKeys.LOCALES, StringUtil.merge(locales));
 
 		_depotEntryLocalService.updateDepotEntry(
 			depotEntry.getDepotEntryId(),
@@ -180,7 +200,11 @@ public class DepotEntryLocalServiceTest {
 			).put(
 				LocaleUtil.fromLanguageId("es_ES"), "nuevaDescripcion"
 			).build(),
-			Collections.emptyMap(), formTypeSettingsUnicodeProperties,
+			Collections.emptyMap(),
+			UnicodePropertiesBuilder.put(
+				PropsKeys.LOCALES,
+				StringUtil.merge(LocaleUtil.toLanguageIds(availableLocales))
+			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
 		Group group = _groupLocalService.getGroup(depotEntry.getGroupId());
@@ -196,11 +220,6 @@ public class DepotEntryLocalServiceTest {
 	public void testUpdateDepotEntryInheritLocale() throws Exception {
 		DepotEntry depotEntry = _addDepotEntry("name", "description");
 
-		UnicodeProperties formTypeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		formTypeSettingsUnicodeProperties.setProperty("inheritLocales", "true");
-
 		_depotEntryLocalService.updateDepotEntry(
 			depotEntry.getDepotEntryId(),
 			HashMapBuilder.put(
@@ -209,7 +228,10 @@ public class DepotEntryLocalServiceTest {
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), "newDescription"
 			).build(),
-			Collections.emptyMap(), formTypeSettingsUnicodeProperties,
+			Collections.emptyMap(),
+			UnicodePropertiesBuilder.put(
+				"inheritLocales", "true"
+			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
 		Group group = _groupLocalService.getGroup(depotEntry.getGroupId());
@@ -222,7 +244,7 @@ public class DepotEntryLocalServiceTest {
 				typeSettingsUnicodeProperties.getProperty("inheritLocales")));
 		Assert.assertEquals(
 			StringUtil.merge(
-				LocaleUtil.toLanguageIds(_languaje.getAvailableLocales())),
+				LocaleUtil.toLanguageIds(_language.getAvailableLocales())),
 			typeSettingsUnicodeProperties.getProperty("locales"));
 	}
 
@@ -230,20 +252,16 @@ public class DepotEntryLocalServiceTest {
 	public void testUpdateDepotEntryNoDescription() throws Exception {
 		DepotEntry depotEntry = _addDepotEntry("name", "description");
 
-		UnicodeProperties formTypeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		formTypeSettingsUnicodeProperties.put(
-			PropsKeys.LOCALES,
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
-
 		_depotEntryLocalService.updateDepotEntry(
 			depotEntry.getDepotEntryId(),
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), "newName"
 			).build(),
 			Collections.emptyMap(), Collections.emptyMap(),
-			formTypeSettingsUnicodeProperties,
+			UnicodePropertiesBuilder.put(
+				PropsKeys.LOCALES,
+				LocaleUtil.toLanguageId(LocaleUtil.getDefault())
+			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
 		Group group = _groupLocalService.getGroup(depotEntry.getGroupId());
@@ -277,13 +295,6 @@ public class DepotEntryLocalServiceTest {
 
 		String oldGroupKey = group.getGroupKey();
 
-		UnicodeProperties formTypeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		formTypeSettingsUnicodeProperties.put(
-			PropsKeys.LOCALES,
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
-
 		_depotEntryLocalService.updateDepotEntry(
 			depotEntry.getDepotEntryId(),
 			HashMapBuilder.put(
@@ -292,7 +303,11 @@ public class DepotEntryLocalServiceTest {
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), "description"
 			).build(),
-			Collections.emptyMap(), formTypeSettingsUnicodeProperties,
+			Collections.emptyMap(),
+			UnicodePropertiesBuilder.put(
+				PropsKeys.LOCALES,
+				LocaleUtil.toLanguageId(LocaleUtil.getDefault())
+			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
 		group = _groupLocalService.getGroup(depotEntry.getGroupId());
@@ -306,13 +321,6 @@ public class DepotEntryLocalServiceTest {
 
 		DepotEntry depotEntry = _addDepotEntry("name", "description");
 
-		UnicodeProperties formTypeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		formTypeSettingsUnicodeProperties.setProperty(
-			"inheritLocales", "false");
-		formTypeSettingsUnicodeProperties.setProperty(PropsKeys.LOCALES, null);
-
 		_depotEntryLocalService.updateDepotEntry(
 			depotEntry.getDepotEntryId(),
 			HashMapBuilder.put(
@@ -325,7 +333,10 @@ public class DepotEntryLocalServiceTest {
 			).put(
 				LocaleUtil.fromLanguageId("es_ES"), "descripcion"
 			).build(),
-			Collections.emptyMap(), formTypeSettingsUnicodeProperties,
+			Collections.emptyMap(),
+			UnicodePropertiesBuilder.put(
+				"inheritLocales", "false"
+			).build(),
 			ServiceContextTestUtil.getServiceContext());
 	}
 
@@ -346,6 +357,19 @@ public class DepotEntryLocalServiceTest {
 		return depotEntry;
 	}
 
+	private ServiceContext _getServiceContext(User user) throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		serviceContext.setCompanyId(user.getCompanyId());
+		serviceContext.setUserId(user.getUserId());
+
+		return serviceContext;
+	}
+
+	@Inject
+	private CompanyLocalService _companyLocalService;
+
 	@DeleteAfterTestRun
 	private final List<DepotEntry> _depotEntries = new ArrayList<>();
 
@@ -356,7 +380,7 @@ public class DepotEntryLocalServiceTest {
 	private GroupLocalService _groupLocalService;
 
 	@Inject
-	private Language _languaje;
+	private Language _language;
 
 	@Inject
 	private UserGroupRoleLocalService _userGroupRoleLocalService;

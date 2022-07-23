@@ -17,9 +17,9 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String title = LocalizationUtil.getPreferencesValue(portletPreferences, "title", themeDisplay.getLanguageId());
 String description = LocalizationUtil.getPreferencesValue(portletPreferences, "description", themeDisplay.getLanguageId());
 String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
+String title = LocalizationUtil.getPreferencesValue(portletPreferences, "title", themeDisplay.getLanguageId());
 %>
 
 <portlet:actionURL var="saveDataURL">
@@ -259,7 +259,6 @@ String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
 	String fieldLabel = portletPreferences.getValue("fieldLabel" + i, StringPool.BLANK);
 
 	while ((i == 1) || Validator.isNotNull(fieldLabel)) {
-		boolean fieldOptional = PrefsParamUtil.getBoolean(portletPreferences, request, "fieldOptional" + i, false);
 		String fieldValidationScript = portletPreferences.getValue("fieldValidationScript" + i, StringPool.BLANK);
 		String fieldValidationErrorMessage = portletPreferences.getValue("fieldValidationErrorMessage" + i, StringPool.BLANK);
 	%>
@@ -283,7 +282,9 @@ String successURL = portletPreferences.getValue("successURL", StringPool.BLANK);
 			</c:choose>
 		}
 
-		fieldOptional[fieldKey] = <%= fieldOptional %>;
+		fieldOptional[
+			fieldKey
+		] = <%= PrefsParamUtil.getBoolean(portletPreferences, request, "fieldOptional" + i, false) %>;
 		fieldValidationFunctions[fieldKey] = fieldValidationFunction<%= i %>;
 
 	<%

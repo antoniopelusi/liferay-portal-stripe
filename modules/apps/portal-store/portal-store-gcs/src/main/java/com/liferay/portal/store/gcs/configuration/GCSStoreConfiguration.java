@@ -38,7 +38,7 @@ public interface GCSStoreConfiguration {
 	)
 	public String serviceAccountKey();
 
-	@Meta.AD(description = "bucket-name-help", name = "bucket-name")
+	@Meta.AD(description = "bucket-name-help[gcs]", name = "bucket-name")
 	public String bucketName();
 
 	@Meta.AD(

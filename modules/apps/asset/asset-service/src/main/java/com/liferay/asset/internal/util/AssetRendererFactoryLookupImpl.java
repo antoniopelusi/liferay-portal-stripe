@@ -181,13 +181,13 @@ public class AssetRendererFactoryLookupImpl
 		@Override
 		public void modifiedService(
 			ServiceReference<AssetRendererFactory<?>> serviceReference,
-			AssetRendererFactory<?> service) {
+			AssetRendererFactory<?> assetRendererFactory) {
 		}
 
 		@Override
 		public void removedService(
 			ServiceReference<AssetRendererFactory<?>> serviceReference,
-			AssetRendererFactory<?> service) {
+			AssetRendererFactory<?> assetRendererFactory) {
 
 			_bundleContext.ungetService(serviceReference);
 		}

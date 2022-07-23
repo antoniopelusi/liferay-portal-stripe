@@ -27,7 +27,7 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -67,7 +67,7 @@ public class SharepointDocumentWorkspaceServlet extends HttpServlet {
 			getDwsMetaDataResponse(httpServletRequest, httpServletResponse);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -122,7 +122,7 @@ public class SharepointDocumentWorkspaceServlet extends HttpServlet {
 		if (beginPos != -1) {
 			documentName = xml.substring(beginPos + 10, endPos);
 
-			documentName = HttpUtil.decodeURL(documentName);
+			documentName = HttpComponentsUtil.decodeURL(documentName);
 		}
 
 		String path = documentName;
@@ -143,9 +143,10 @@ public class SharepointDocumentWorkspaceServlet extends HttpServlet {
 		boolean minimal = false;
 
 		beginPos = xml.lastIndexOf("<minimal>");
-		endPos = xml.lastIndexOf("</minimal>");
 
 		if (beginPos != -1) {
+			endPos = xml.lastIndexOf("</minimal>");
+
 			minimal = GetterUtil.getBoolean(
 				xml.substring(beginPos + 9, endPos));
 		}
@@ -289,9 +290,9 @@ public class SharepointDocumentWorkspaceServlet extends HttpServlet {
 
 		resultsEl.addElement("LastUpdate");
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		User user = (User)session.getAttribute(WebKeys.USER);
+		User user = (User)httpSession.getAttribute(WebKeys.USER);
 
 		ResponseElement responseElement = new MemberResponseElement(
 			user, false);

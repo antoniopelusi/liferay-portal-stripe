@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.model.User;
 public class UserServiceWrapper
 	implements ServiceWrapper<UserService>, UserService {
 
+	public UserServiceWrapper() {
+		this(null);
+	}
+
 	public UserServiceWrapper(UserService userService) {
 		_userService = userService;
 	}
@@ -57,6 +61,31 @@ public class UserServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_userService.addOrganizationUsers(organizationId, userIds);
+	}
+
+	@Override
+	public User addOrUpdateUser(
+			String externalReferenceCode, long creatorUserId, long companyId,
+			boolean autoPassword, String password1, String password2,
+			boolean autoScreenName, String screenName, String emailAddress,
+			java.util.Locale locale, String firstName, String middleName,
+			String lastName, long prefixId, long suffixId, boolean male,
+			int birthdayMonth, int birthdayDay, int birthdayYear,
+			String jobTitle,
+			java.util.List<com.liferay.portal.kernel.model.Address> addresses,
+			java.util.List<com.liferay.portal.kernel.model.EmailAddress>
+				emailAddresses,
+			java.util.List<com.liferay.portal.kernel.model.Phone> phones,
+			java.util.List<com.liferay.portal.kernel.model.Website> websites,
+			boolean sendEmail, ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userService.addOrUpdateUser(
+			externalReferenceCode, creatorUserId, companyId, autoPassword,
+			password1, password2, autoScreenName, screenName, emailAddress,
+			locale, firstName, middleName, lastName, prefixId, suffixId, male,
+			birthdayMonth, birthdayDay, birthdayYear, jobTitle, addresses,
+			emailAddresses, phones, websites, sendEmail, serviceContext);
 	}
 
 	/**
@@ -1001,6 +1030,22 @@ public class UserServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _userService.getUserByEmailAddress(companyId, emailAddress);
+	}
+
+	/**
+	 * Returns the user with the external reference code.
+	 *
+	 * @param companyId the primary key of the user's company
+	 * @param externalReferenceCode the user's external reference code
+	 * @return the user with the external reference code
+	 */
+	@Override
+	public User getUserByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userService.getUserByExternalReferenceCode(
+			companyId, externalReferenceCode);
 	}
 
 	/**

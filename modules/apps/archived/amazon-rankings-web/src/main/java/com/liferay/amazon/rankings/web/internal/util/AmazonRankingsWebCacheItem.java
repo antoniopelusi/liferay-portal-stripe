@@ -56,10 +56,10 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		AmazonRankings amazonRankings = null;
 
 		try {
-			amazonRankings = doConvert(key);
+			amazonRankings = _convert();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return amazonRankings;
@@ -70,7 +70,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		return _REFRESH_TIME;
 	}
 
-	protected AmazonRankings doConvert(String key) throws Exception {
+	private AmazonRankings _convert() throws Exception {
 		String urlWithSignature =
 			AmazonSignedRequestsUtil.generateUrlWithSignature(
 				_amazonRankingsConfiguration,
@@ -102,11 +102,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 
 		Element rootElement = document.getRootElement();
 
-		if (rootElement == null) {
-			return null;
-		}
-
-		if (hasErrorMessage(rootElement)) {
+		if ((rootElement == null) || _hasErrorMessage(rootElement)) {
 			return null;
 		}
 
@@ -121,7 +117,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		if (requestElement != null) {
 			Element errorsElement = requestElement.element("Errors");
 
-			if (hasErrorMessage(errorsElement)) {
+			if (_hasErrorMessage(errorsElement)) {
 				return null;
 			}
 		}
@@ -140,25 +136,26 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 
 		String productName = itemAttributesElement.elementText("Title");
 		String catalog = StringPool.BLANK;
-		String[] authors = getAuthors(itemAttributesElement);
+		String[] authors = _getAuthors(itemAttributesElement);
 
 		String releaseDateAsString = itemAttributesElement.elementText(
 			"PublicationDate");
 
-		Date releaseDate = getReleaseDate(releaseDateAsString);
+		Date releaseDate = _getReleaseDate(releaseDateAsString);
 
 		String manufacturer = itemAttributesElement.elementText("Manufacturer");
-		String smallImageURL = getImageURL(itemElement, "SmallImage");
-		String mediumImageURL = getImageURL(itemElement, "MediumImage");
-		String largeImageURL = getImageURL(itemElement, "LargeImage");
-		double listPrice = getPrice(itemAttributesElement.element("ListPrice"));
+		String smallImageURL = _getImageURL(itemElement, "SmallImage");
+		String mediumImageURL = _getImageURL(itemElement, "MediumImage");
+		String largeImageURL = _getImageURL(itemElement, "LargeImage");
+		double listPrice = _getPrice(
+			itemAttributesElement.element("ListPrice"));
 
 		double ourPrice = 0;
 
-		Element offerListingElement = getOfferListing(itemElement);
+		Element offerListingElement = _getOfferListing(itemElement);
 
 		if (offerListingElement != null) {
-			ourPrice = getPrice(offerListingElement.element("Price"));
+			ourPrice = _getPrice(offerListingElement.element("Price"));
 		}
 
 		double usedPrice = 0;
@@ -168,13 +165,13 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		Element offerSummaryElement = itemElement.element("OfferSummary");
 
 		if (offerSummaryElement != null) {
-			usedPrice = getPrice(
+			usedPrice = _getPrice(
 				offerSummaryElement.element("LowestUsedPrice"));
 
-			collectiblePrice = getPrice(
+			collectiblePrice = _getPrice(
 				offerSummaryElement.element("LowestCollectiblePrice"));
 
-			thirdPartyNewPrice = getPrice(
+			thirdPartyNewPrice = _getPrice(
 				offerSummaryElement.element("LowestNewPrice"));
 		}
 
@@ -187,10 +184,10 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 			releaseDateAsString, manufacturer, smallImageURL, mediumImageURL,
 			largeImageURL, listPrice, ourPrice, usedPrice, collectiblePrice,
 			thirdPartyNewPrice, salesRank, media,
-			getAvailability(offerListingElement));
+			_getAvailability(offerListingElement));
 	}
 
-	protected String[] getAuthors(Element itemAttributesElement) {
+	private String[] _getAuthors(Element itemAttributesElement) {
 		List<String> authors = new ArrayList<>();
 
 		for (Element authorElement : itemAttributesElement.elements("Author")) {
@@ -200,7 +197,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		return authors.toArray(new String[0]);
 	}
 
-	protected String getAvailability(Element offerListingElement) {
+	private String _getAvailability(Element offerListingElement) {
 		if (offerListingElement == null) {
 			return null;
 		}
@@ -211,7 +208,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		return availabilityElement.elementText("Availability");
 	}
 
-	protected String getImageURL(Element itemElement, String name) {
+	private String _getImageURL(Element itemElement, String name) {
 		String imageURL = null;
 
 		Element imageElement = itemElement.element(name);
@@ -223,7 +220,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		return imageURL;
 	}
 
-	protected Element getOfferListing(Element itemElement) {
+	private Element _getOfferListing(Element itemElement) {
 		Element offersElement = itemElement.element("Offers");
 
 		if (offersElement == null) {
@@ -239,7 +236,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		return offerElement.element("OfferListing");
 	}
 
-	protected double getPrice(Element priceElement) {
+	private double _getPrice(Element priceElement) {
 		if (priceElement == null) {
 			return 0;
 		}
@@ -247,7 +244,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		return GetterUtil.getInteger(priceElement.elementText("Amount")) * 0.01;
 	}
 
-	protected Date getReleaseDate(String releaseDateAsString) {
+	private Date _getReleaseDate(String releaseDateAsString) {
 		if (Validator.isNull(releaseDateAsString)) {
 			return null;
 		}
@@ -266,7 +263,7 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		return GetterUtil.getDate(releaseDateAsString, dateFormat);
 	}
 
-	protected boolean hasErrorMessage(Element element) {
+	private boolean _hasErrorMessage(Element element) {
 		if (element == null) {
 			return false;
 		}

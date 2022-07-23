@@ -81,7 +81,7 @@ public class MapDisplayTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setPoints(String points) {
@@ -145,8 +145,11 @@ public class MapDisplayTag extends IncludeTag {
 		String mapProviderKey = _mapProviderKey;
 
 		if (Validator.isNull(mapProviderKey)) {
-			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-				WebKeys.THEME_DISPLAY);
+			HttpServletRequest httpServletRequest = getRequest();
+
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
 
 			mapProviderKey = MapProviderHelperUtil.getMapProviderKey(
 				ServletContextUtil.getGroupLocalService(),

@@ -430,4 +430,7 @@ public interface KaleoTimerInstanceTokenModel
 	 */
 	public void setWorkflowContext(String workflowContext);
 
+	@Override
+	public KaleoTimerInstanceToken cloneWithOriginalValues();
+
 }

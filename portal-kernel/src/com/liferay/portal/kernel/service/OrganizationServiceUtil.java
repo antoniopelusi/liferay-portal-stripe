@@ -131,6 +131,35 @@ public class OrganizationServiceUtil {
 			comments, site, serviceContext);
 	}
 
+	public static com.liferay.portal.kernel.model.User
+			addOrganizationUserByEmailAddress(
+				String emailAddress, long organizationId,
+				ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrganizationUserByEmailAddress(
+			emailAddress, organizationId, serviceContext);
+	}
+
+	public static Organization addOrUpdateOrganization(
+			String externalReferenceCode, long parentOrganizationId,
+			String name, String type, long regionId, long countryId,
+			long statusId, String comments, boolean hasLogo, byte[] logoBytes,
+			boolean site,
+			List<com.liferay.portal.kernel.model.Address> addresses,
+			List<com.liferay.portal.kernel.model.EmailAddress> emailAddresses,
+			List<com.liferay.portal.kernel.model.OrgLabor> orgLabors,
+			List<com.liferay.portal.kernel.model.Phone> phones,
+			List<com.liferay.portal.kernel.model.Website> websites,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateOrganization(
+			externalReferenceCode, parentOrganizationId, name, type, regionId,
+			countryId, statusId, comments, hasLogo, logoBytes, site, addresses,
+			emailAddresses, orgLabors, phones, websites, serviceContext);
+	}
+
 	/**
 	 * Assigns the password policy to the organizations, removing any other
 	 * currently assigned password policies.
@@ -144,6 +173,14 @@ public class OrganizationServiceUtil {
 
 		getService().addPasswordPolicyOrganizations(
 			passwordPolicyId, organizationIds);
+	}
+
+	public static void addUserOrganizationByEmailAddress(
+			String emailAddress, long organizationId)
+		throws PortalException {
+
+		getService().addUserOrganizationByEmailAddress(
+			emailAddress, organizationId);
 	}
 
 	/**
@@ -165,6 +202,14 @@ public class OrganizationServiceUtil {
 		throws PortalException {
 
 		getService().deleteOrganization(organizationId);
+	}
+
+	public static void deleteUserOrganizationByEmailAddress(
+			String emailAddress, long organizationId)
+		throws PortalException {
+
+		getService().deleteUserOrganizationByEmailAddress(
+			emailAddress, organizationId);
 	}
 
 	/**
@@ -199,6 +244,14 @@ public class OrganizationServiceUtil {
 		throws PortalException {
 
 		return getService().getOrganization(organizationId);
+	}
+
+	public static Organization getOrganizationByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getOrganizationByExternalReferenceCode(
+			companyId, externalReferenceCode);
 	}
 
 	/**

@@ -14,11 +14,7 @@
 
 import './FieldSet.scss';
 
-import {
-	Layout,
-	getRepeatedIndex,
-	usePage,
-} from 'dynamic-data-mapping-form-renderer';
+import {Layout, getRepeatedIndex, usePage} from 'data-engine-js-components-web';
 import React, {useMemo} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
@@ -29,7 +25,7 @@ const getRowsArray = (rows) => {
 		try {
 			return JSON.parse(rows);
 		}
-		catch (e) {
+		catch (error) {
 			return [];
 		}
 	}
@@ -111,7 +107,7 @@ const FieldSet = ({
 					<>
 						<label className="text-uppercase">{label}</label>
 						<div className="ddm-field-types-fieldset__nested-separator">
-							<div className="mt-1 separator" />
+							<hr className="mt-1 separator" />
 						</div>
 					</>
 				)}

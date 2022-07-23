@@ -14,37 +14,30 @@
 
 package com.liferay.jenkins.results.parser.testray;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.CanonicalGrantee;
-import com.amazonaws.services.s3.model.GroupGrantee;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.Owner;
-import com.amazonaws.services.s3.model.Permission;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.util.IOUtils;
+import com.google.api.gax.paging.Page;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author Michael Hashimoto
@@ -55,43 +48,72 @@ public class TestrayS3Bucket {
 		return _testrayS3Bucket;
 	}
 
+	public static boolean googleCredentialsAvailable() {
+		String googleApplicationCredentials = System.getenv(
+			"GOOGLE_APPLICATION_CREDENTIALS");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(
+				googleApplicationCredentials)) {
+
+			try {
+				_testrayS3Bucket._getBucket();
+			}
+			catch (Exception exception) {
+				return false;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
 	public TestrayS3Object createTestrayS3Object(String key, File file) {
 		long start = JenkinsResultsParserUtil.getCurrentTimeMillis();
 
+		BlobId blobId = BlobId.of(getName(), key);
+
+		String fileName = file.getName();
+
+		Matcher matcher = _fileNamePattern.matcher(fileName);
+
+		BlobInfo.Builder blobInfoBuilder = BlobInfo.newBuilder(blobId);
+
+		if (matcher.find()) {
+			String fileExtension = matcher.group("fileExtension");
+
+			if (fileExtension.equals("html")) {
+				blobInfoBuilder.setContentType("text/html");
+			}
+			else if (fileExtension.equals("jpg")) {
+				blobInfoBuilder.setContentType("image/jpeg");
+			}
+			else if (fileExtension.equals("json") ||
+					 fileExtension.equals("txt")) {
+
+				blobInfoBuilder.setContentType("text/plain");
+			}
+			else if (fileExtension.equals("xml")) {
+				blobInfoBuilder.setContentType("text/xml");
+			}
+
+			String gzipFileExtension = matcher.group("gzipFileExtension");
+
+			if (!JenkinsResultsParserUtil.isNullOrEmpty(gzipFileExtension)) {
+				blobInfoBuilder.setContentEncoding("gzip");
+			}
+		}
+
+		BlobInfo blobInfo = blobInfoBuilder.build();
+
 		try {
-			ObjectMetadata objectMetadata = new ObjectMetadata();
+			Storage storage = _getStorage();
 
-			objectMetadata.setContentLength(file.length());
-
-			String fileName = file.getName();
-
-			if (fileName.endsWith(".gz")) {
-				objectMetadata.setContentEncoding("gzip");
-			}
-
-			if (fileName.endsWith("html") || fileName.endsWith("html.gz")) {
-				objectMetadata.setContentType("text/html");
-			}
-			else if (fileName.endsWith("jpg") || fileName.endsWith("jpg.gz")) {
-				objectMetadata.setContentType("image/jpeg");
-			}
-			else if (fileName.endsWith("txt") || fileName.endsWith("txt.gz")) {
-				objectMetadata.setContentType("text/plain");
-			}
-			else if (fileName.endsWith("xml") || fileName.endsWith("xml.gz")) {
-				objectMetadata.setContentType("text/xml");
-			}
-
-			PutObjectRequest putObjectRequest = new PutObjectRequest(
-				_bucket.getName(), key, new FileInputStream(file),
-				objectMetadata);
-
-			putObjectRequest.setAccessControlList(_getAccessControlList());
-
-			_amazonS3.putObject(putObjectRequest);
+			Blob blob = storage.create(
+				blobInfo, FileUtils.readFileToByteArray(file));
 
 			TestrayS3Object testrayS3Object =
-				TestrayS3ObjectFactory.newTestrayS3Object(this, key);
+				TestrayS3ObjectFactory.newTestrayS3Object(this, blob);
 
 			System.out.println(
 				JenkinsResultsParserUtil.combine(
@@ -111,51 +133,30 @@ public class TestrayS3Bucket {
 	public TestrayS3Object createTestrayS3Object(String key, String value) {
 		long start = JenkinsResultsParserUtil.getCurrentTimeMillis();
 
-		InputStream inputStream = new ByteArrayInputStream(value.getBytes());
+		BlobId blobId = BlobId.of(getName(), key);
 
-		try {
-			byte[] bytes = IOUtils.toByteArray(inputStream);
+		BlobInfo.Builder blobInfoBuilder = BlobInfo.newBuilder(blobId);
 
-			ObjectMetadata objectMetadata = new ObjectMetadata();
+		BlobInfo blobInfo = blobInfoBuilder.build();
 
-			objectMetadata.setContentLength(bytes.length);
-			objectMetadata.setContentType("text/plain");
+		Storage storage = _getStorage();
 
-			ByteArrayInputStream byteArrayInputStream =
-				new ByteArrayInputStream(bytes);
+		Blob blob = storage.create(
+			blobInfo, value.getBytes(StandardCharsets.UTF_8));
 
-			PutObjectRequest putObjectRequest = new PutObjectRequest(
-				_bucket.getName(), key, byteArrayInputStream, objectMetadata);
+		TestrayS3Object testrayS3Object =
+			TestrayS3ObjectFactory.newTestrayS3Object(this, blob);
 
-			putObjectRequest.setAccessControlList(_getAccessControlList());
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Created S3 Object ", testrayS3Object.getURLString(), " in ",
+				JenkinsResultsParserUtil.toDurationString(
+					JenkinsResultsParserUtil.getCurrentTimeMillis() - start)));
 
-			_amazonS3.putObject(putObjectRequest);
-
-			TestrayS3Object testrayS3Object =
-				TestrayS3ObjectFactory.newTestrayS3Object(this, key);
-
-			System.out.println(
-				JenkinsResultsParserUtil.combine(
-					"Created S3 Object ", testrayS3Object.getURLString(),
-					" in ",
-					JenkinsResultsParserUtil.toDurationString(
-						JenkinsResultsParserUtil.getCurrentTimeMillis() -
-							start)));
-
-			return testrayS3Object;
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
+		return testrayS3Object;
 	}
 
 	public List<TestrayS3Object> createTestrayS3Objects(File dir) {
-		return createTestrayS3Objects(null, dir);
-	}
-
-	public List<TestrayS3Object> createTestrayS3Objects(
-		String baseKey, File dir) {
-
 		List<TestrayS3Object> testrayS3Objects = new ArrayList<>();
 
 		if ((dir == null) || !dir.isDirectory()) {
@@ -163,26 +164,8 @@ public class TestrayS3Bucket {
 		}
 
 		for (File file : JenkinsResultsParserUtil.findFiles(dir, ".*")) {
-			StringBuilder sb = new StringBuilder();
-
-			if (!JenkinsResultsParserUtil.isNullOrEmpty(baseKey) &&
-				!baseKey.equals("/")) {
-
-				if (baseKey.startsWith("/")) {
-					baseKey = baseKey.substring(1);
-				}
-
-				sb.append(baseKey);
-
-				if (!baseKey.endsWith("/")) {
-					sb.append("/");
-				}
-			}
-
-			sb.append(JenkinsResultsParserUtil.getPathRelativeTo(file, dir));
-
 			TestrayS3Object testrayS3Object = createTestrayS3Object(
-				sb.toString(), file);
+				JenkinsResultsParserUtil.getPathRelativeTo(file, dir), file);
 
 			testrayS3Objects.add(testrayS3Object);
 		}
@@ -191,20 +174,11 @@ public class TestrayS3Bucket {
 	}
 
 	public void deleteTestrayS3Object(String key) {
-		deleteTestrayS3Object(
-			TestrayS3ObjectFactory.newTestrayS3Object(this, key));
+		deleteTestrayS3Object(getTestrayS3Object(key));
 	}
 
 	public void deleteTestrayS3Object(TestrayS3Object testrayS3Object) {
-		long start = JenkinsResultsParserUtil.getCurrentTimeMillis();
-
-		_amazonS3.deleteObject(_bucket.getName(), testrayS3Object.getKey());
-
-		System.out.println(
-			JenkinsResultsParserUtil.combine(
-				"Deleted S3 Object ", testrayS3Object.getURLString(), " in ",
-				JenkinsResultsParserUtil.toDurationString(
-					JenkinsResultsParserUtil.getCurrentTimeMillis() - start)));
+		testrayS3Object.delete();
 	}
 
 	public void deleteTestrayS3Objects(List<TestrayS3Object> testrayS3Objects) {
@@ -213,95 +187,7 @@ public class TestrayS3Bucket {
 		}
 	}
 
-	public String getTestrayS3BaseURL() {
-		try {
-			return JenkinsResultsParserUtil.getBuildProperty(
-				"testray.s3.base.url");
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-	}
-
-	public List<TestrayS3Object> getTestrayS3Objects() {
-		List<TestrayS3Object> testrayS3Objects = new ArrayList<>();
-
-		ObjectListing objectListing = _amazonS3.listObjects(_getBucketName());
-
-		do {
-			for (S3ObjectSummary objectSummary :
-					objectListing.getObjectSummaries()) {
-
-				testrayS3Objects.add(
-					TestrayS3ObjectFactory.newTestrayS3Object(
-						this, objectSummary.getKey()));
-			}
-
-			if (testrayS3Objects.size() > _MAX_S3_OBJECT_COUNT) {
-				break;
-			}
-
-			objectListing = _amazonS3.listNextBatchOfObjects(objectListing);
-		}
-		while (objectListing.isTruncated());
-
-		return testrayS3Objects;
-	}
-
-	private TestrayS3Bucket() {
-		ClientConfiguration clientConfig = new ClientConfiguration();
-
-		clientConfig.setProtocol(Protocol.HTTPS);
-
-		AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3Client.builder();
-
-		AWSCredentials awsCredentials = new BasicAWSCredentials(
-			_getTestrayS3Key(), _getTestrayS3Secret());
-
-		amazonS3ClientBuilder.setCredentials(
-			new AWSStaticCredentialsProvider(awsCredentials));
-
-		amazonS3ClientBuilder.setClientConfiguration(clientConfig);
-
-		amazonS3ClientBuilder.setEndpointConfiguration(
-			new AwsClientBuilder.EndpointConfiguration(
-				_getTestrayS3Host(), _getTestrayS3Region()));
-
-		_amazonS3 = amazonS3ClientBuilder.build();
-
-		String bucketName = _getBucketName();
-
-		for (Bucket bucket : _amazonS3.listBuckets()) {
-			if (!bucketName.equals(bucket.getName())) {
-				continue;
-			}
-
-			_bucket = bucket;
-
-			return;
-		}
-
-		throw new RuntimeException("Invalid bucket name " + bucketName);
-	}
-
-	private AccessControlList _getAccessControlList() {
-		AccessControlList accessControlList = new AccessControlList();
-
-		Owner owner = _amazonS3.getS3AccountOwner();
-
-		accessControlList.setOwner(owner);
-
-		accessControlList.grantPermission(
-			new CanonicalGrantee(owner.getDisplayName()),
-			Permission.FullControl);
-
-		accessControlList.grantPermission(
-			GroupGrantee.AllUsers, Permission.Read);
-
-		return accessControlList;
-	}
-
-	private String _getBucketName() {
+	public String getName() {
 		try {
 			return JenkinsResultsParserUtil.getBuildProperty(
 				"testray.s3.bucket");
@@ -311,50 +197,65 @@ public class TestrayS3Bucket {
 		}
 	}
 
-	private String _getTestrayS3Host() {
-		try {
-			return JenkinsResultsParserUtil.getBuildProperty("testray.s3.host");
+	public String getTestrayS3BaseURL() {
+		return JenkinsResultsParserUtil.combine(
+			"https://storage.cloud.google.com/", getName());
+	}
+
+	public TestrayS3Object getTestrayS3Object(String key) {
+		Bucket bucket = _getBucket();
+
+		Blob blob = bucket.get(key);
+
+		if (blob == null) {
+			return null;
 		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
+
+		return TestrayS3ObjectFactory.newTestrayS3Object(this, blob);
+	}
+
+	public List<TestrayS3Object> getTestrayS3Objects() {
+		List<TestrayS3Object> testrayS3Objects = new ArrayList<>();
+
+		Storage storage = _getStorage();
+
+		Page<Blob> blobPage = storage.list(getName());
+
+		for (Blob blob : blobPage.iterateAll()) {
+			testrayS3Objects.add(
+				TestrayS3ObjectFactory.newTestrayS3Object(this, blob));
+		}
+
+		return testrayS3Objects;
+	}
+
+	public URL getURL() {
+		try {
+			return new URL(
+				JenkinsResultsParserUtil.combine(
+					"https://console.cloud.google.com/storage/browser/",
+					getName(), "?authuser=0"));
+		}
+		catch (MalformedURLException malformedURLException) {
+			throw new RuntimeException(malformedURLException);
 		}
 	}
 
-	private String _getTestrayS3Key() {
-		try {
-			return JenkinsResultsParserUtil.getBuildProperty("testray.s3.key");
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
+	private Bucket _getBucket() {
+		Storage storage = _getStorage();
+
+		return storage.get(getName());
 	}
 
-	private String _getTestrayS3Region() {
-		try {
-			return JenkinsResultsParserUtil.getBuildProperty(
-				"testray.s3.region");
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
+	private Storage _getStorage() {
+		StorageOptions storageOptions = StorageOptions.getDefaultInstance();
+
+		return storageOptions.getService();
 	}
 
-	private String _getTestrayS3Secret() {
-		try {
-			return JenkinsResultsParserUtil.getBuildProperty(
-				"testray.s3.secret");
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-	}
-
-	private static final int _MAX_S3_OBJECT_COUNT = 1000;
-
+	private static final Pattern _fileNamePattern = Pattern.compile(
+		".*\\.(?!gz)(?<fileExtension>([^\\.]+))(?<gzipFileExtension>\\.gz)?");
 	private static final TestrayS3Bucket _testrayS3Bucket =
 		new TestrayS3Bucket();
-
-	private final AmazonS3 _amazonS3;
-	private final Bucket _bucket;
 
 }

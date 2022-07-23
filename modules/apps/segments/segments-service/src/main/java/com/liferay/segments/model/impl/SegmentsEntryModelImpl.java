@@ -34,24 +34,22 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.model.SegmentsEntryModel;
-import com.liferay.segments.model.SegmentsEntrySoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -198,66 +196,6 @@ public class SegmentsEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SegmentsEntry toModel(SegmentsEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		SegmentsEntry model = new SegmentsEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setSegmentsEntryId(soapModel.getSegmentsEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setSegmentsEntryKey(soapModel.getSegmentsEntryKey());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setActive(soapModel.isActive());
-		model.setCriteria(soapModel.getCriteria());
-		model.setSource(soapModel.getSource());
-		model.setType(soapModel.getType());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SegmentsEntry> toModels(SegmentsEntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SegmentsEntry> models = new ArrayList<SegmentsEntry>(
-			soapModels.length);
-
-		for (SegmentsEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public SegmentsEntryModelImpl() {
 	}
 
@@ -341,34 +279,6 @@ public class SegmentsEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SegmentsEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SegmentsEntry.class.getClassLoader(), SegmentsEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SegmentsEntry> constructor =
-				(Constructor<SegmentsEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SegmentsEntry, Object>>
@@ -1224,6 +1134,47 @@ public class SegmentsEntryModelImpl
 	}
 
 	@Override
+	public SegmentsEntry cloneWithOriginalValues() {
+		SegmentsEntryImpl segmentsEntryImpl = new SegmentsEntryImpl();
+
+		segmentsEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		segmentsEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		segmentsEntryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		segmentsEntryImpl.setSegmentsEntryId(
+			this.<Long>getColumnOriginalValue("segmentsEntryId"));
+		segmentsEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		segmentsEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		segmentsEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		segmentsEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		segmentsEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		segmentsEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		segmentsEntryImpl.setSegmentsEntryKey(
+			this.<String>getColumnOriginalValue("segmentsEntryKey"));
+		segmentsEntryImpl.setName(this.<String>getColumnOriginalValue("name"));
+		segmentsEntryImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		segmentsEntryImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+		segmentsEntryImpl.setCriteria(
+			this.<String>getColumnOriginalValue("criteria"));
+		segmentsEntryImpl.setSource(
+			this.<String>getColumnOriginalValue("source"));
+		segmentsEntryImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		segmentsEntryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return segmentsEntryImpl;
+	}
+
+	@Override
 	public int compareTo(SegmentsEntry segmentsEntry) {
 		int value = 0;
 
@@ -1412,7 +1363,7 @@ public class SegmentsEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1423,9 +1374,26 @@ public class SegmentsEntryModelImpl
 			Function<SegmentsEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SegmentsEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SegmentsEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1472,7 +1440,9 @@ public class SegmentsEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SegmentsEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SegmentsEntry.class, ModelWrapper.class);
 
 	}
 

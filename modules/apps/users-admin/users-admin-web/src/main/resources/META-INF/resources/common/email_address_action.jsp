@@ -68,7 +68,7 @@ long emailAddressId = emailAddress.getEmailAddressId();
 		"listType", ListTypeConstants.EMAIL_ADDRESS
 	).setParameter(
 		"primaryKey", emailAddressId
-	).build();
+	).buildPortletURL();
 	%>
 
 	<liferay-ui:icon

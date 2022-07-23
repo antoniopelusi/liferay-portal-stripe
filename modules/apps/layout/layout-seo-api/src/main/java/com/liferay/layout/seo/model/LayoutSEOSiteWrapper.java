@@ -146,6 +146,11 @@ public class LayoutSEOSiteWrapper
 	}
 
 	@Override
+	public LayoutSEOSite cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

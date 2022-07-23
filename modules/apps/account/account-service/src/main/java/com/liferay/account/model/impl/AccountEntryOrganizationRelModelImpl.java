@@ -16,7 +16,6 @@ package com.liferay.account.model.impl;
 
 import com.liferay.account.model.AccountEntryOrganizationRel;
 import com.liferay.account.model.AccountEntryOrganizationRelModel;
-import com.liferay.account.model.AccountEntryOrganizationRelSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -28,19 +27,19 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -138,59 +137,6 @@ public class AccountEntryOrganizationRelModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AccountEntryOrganizationRel toModel(
-		AccountEntryOrganizationRelSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		AccountEntryOrganizationRel model =
-			new AccountEntryOrganizationRelImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setAccountEntryOrganizationRelId(
-			soapModel.getAccountEntryOrganizationRelId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setAccountEntryId(soapModel.getAccountEntryId());
-		model.setOrganizationId(soapModel.getOrganizationId());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AccountEntryOrganizationRel> toModels(
-		AccountEntryOrganizationRelSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AccountEntryOrganizationRel> models =
-			new ArrayList<AccountEntryOrganizationRel>(soapModels.length);
-
-		for (AccountEntryOrganizationRelSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public AccountEntryOrganizationRelModelImpl() {
 	}
 
@@ -276,34 +222,6 @@ public class AccountEntryOrganizationRelModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AccountEntryOrganizationRel>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AccountEntryOrganizationRel.class.getClassLoader(),
-			AccountEntryOrganizationRel.class, ModelWrapper.class);
-
-		try {
-			Constructor<AccountEntryOrganizationRel> constructor =
-				(Constructor<AccountEntryOrganizationRel>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -529,6 +447,25 @@ public class AccountEntryOrganizationRelModelImpl
 	}
 
 	@Override
+	public AccountEntryOrganizationRel cloneWithOriginalValues() {
+		AccountEntryOrganizationRelImpl accountEntryOrganizationRelImpl =
+			new AccountEntryOrganizationRelImpl();
+
+		accountEntryOrganizationRelImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		accountEntryOrganizationRelImpl.setAccountEntryOrganizationRelId(
+			this.<Long>getColumnOriginalValue("accountEntryOrganizationRelId"));
+		accountEntryOrganizationRelImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		accountEntryOrganizationRelImpl.setAccountEntryId(
+			this.<Long>getColumnOriginalValue("accountEntryId"));
+		accountEntryOrganizationRelImpl.setOrganizationId(
+			this.<Long>getColumnOriginalValue("organizationId"));
+
+		return accountEntryOrganizationRelImpl;
+	}
+
+	@Override
 	public int compareTo(
 		AccountEntryOrganizationRel accountEntryOrganizationRel) {
 
@@ -626,7 +563,7 @@ public class AccountEntryOrganizationRelModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -637,11 +574,27 @@ public class AccountEntryOrganizationRelModelImpl
 			Function<AccountEntryOrganizationRel, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply(
-					(AccountEntryOrganizationRel)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AccountEntryOrganizationRel)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -692,7 +645,8 @@ public class AccountEntryOrganizationRelModelImpl
 		private static final Function
 			<InvocationHandler, AccountEntryOrganizationRel>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						AccountEntryOrganizationRel.class, ModelWrapper.class);
 
 	}
 

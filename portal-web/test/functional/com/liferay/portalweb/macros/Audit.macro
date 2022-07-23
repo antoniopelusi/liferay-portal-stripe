@@ -1,5 +1,13 @@
 definition {
 
+	macro openAuditAdmin {
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_portal_security_audit_web_portlet_AuditPortlet");
+	}
+
 	macro searchCP {
 		if ("${searchTerm}" == "${resourceAction}") {
 			var reportFieldKey = "RESOURCE_ACTION";
@@ -21,7 +29,7 @@ definition {
 
 		Select(
 			locator1 = "AuditReports#ADVANCED_SEARCH_MATCH_SELECT",
-			value1 = "Any");
+			value1 = "${match}");
 
 		Type(
 			locator1 = "AuditReports#ADVANCED_SEARCH_${reportFieldKey}_FIELD",
@@ -32,6 +40,27 @@ definition {
 			value1 = "Search");
 
 		Click(locator1 = "Icon#ADVANCED_SEARCH");
+
+		// Workaround for LPS-148998
+
+		while (IsElementPresent(locator1 = "Message#INFO")) {
+			Navigator.openURL();
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Security",
+				panel = "Control Panel",
+				portlet = "Audit");
+
+			Click(locator1 = "Icon#ADVANCED_SEARCH");
+
+			Type(
+				locator1 = "AuditReports#ADVANCED_SEARCH_${reportFieldKey}_FIELD",
+				value1 = "${searchTerm}");
+
+			AssertClick(
+				locator1 = "Button#SEARCH",
+				value1 = "Search");
+		}
 
 		AssertTextEquals(
 			locator1 = "AuditReports#REPORTS_TABLE_${reportFieldKey}_1",
@@ -77,10 +106,10 @@ definition {
 			locator1 = "AuditReports#REPORTS_DETAIL_ADDITIONAL_INFORMATION",
 			value1 = "${additionalInformation}");
 
-		if (isSet(clientIP)) {
+		if (isSet(clientIp)) {
 			AssertTextEquals.assertPartialText(
 				locator1 = "AuditReports#REPORTS_DETAIL_CLIENT_IP",
-				value1 = "${clientIP}");
+				value1 = "${clientIp}");
 		}
 	}
 

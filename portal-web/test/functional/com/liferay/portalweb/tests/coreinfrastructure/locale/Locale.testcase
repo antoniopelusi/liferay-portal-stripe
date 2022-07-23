@@ -30,7 +30,7 @@ definition {
 		property custom.properties = "company.default.locale=es_ES${line.separator}locales.enabled=es_ES${line.separator}locales=es_ES";
 		property test.name.skip.portal.instance = "Locale#AddFormWithSpanishAsOnlyLocale";
 
-		User.firstLoginPG(
+		User.firstLoginUI(
 			localization = "ES",
 			localizedAgree = "Acepto",
 			localizedAnswer = "Respuesta",
@@ -50,7 +50,8 @@ definition {
 			fieldType = "Campo de texto",
 			local = "true",
 			localeBasic = "Básico",
-			localeElements = "Elementos");
+			localeElements = "Elementos",
+			localeFields = "Campos");
 
 		Form.editFieldLabelMetal(
 			fieldValue = "label",
@@ -60,6 +61,69 @@ definition {
 		Form.closeSidebar();
 
 		Form.save(localeSaveForm = "Guardar");
+	}
+
+	@priority = "4"
+	test CanChangeDefaultCompanyLocale {
+		property test.name.skip.portal.instance = "Locale#CanChangeDefaultCompanyLocale";
+
+		User.firstLoginPG();
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Welcome to Liferay");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Language",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureCurrentLanguagesCP(defaultPortalLanguage = "Spanish (Spain)");
+
+		User.logoutPG();
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Bienvenido a Liferay");
+	}
+
+	@priority = "3"
+	test CannotAccessDisabledLocale {
+		property custom.properties = "locales.enabled=en_US,zh_CN,es_ES,fr_FR";
+		property custom.system.properties = "user.country=US${line.separator}user.language=en";
+		property test.name.skip.portal.instance = "Locale#CannotAccessDisabledLocale";
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Navigation Menu Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Navigation Menu Page",
+			widgetName = "Menu Display");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "fr/web/guest/navigation-menu-page");
+
+		task ("Assert preferred locale persists by asserting Widget name.") {
+			AssertElementPresent(
+				key_portletName = "Menu Affichage",
+				locator1 = "Portlet#TITLE");
+		}
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "de/web/guest/navigation-menu-page");
+
+		AssertTextEquals(
+			locator1 = "Home#ERROR_MESSAGE_ALERT_ERROR",
+			value1 = "Non trouvé");
 	}
 
 	@priority = "4"
@@ -118,6 +182,55 @@ definition {
 		}
 	}
 
+	@priority = "3"
+	test ConfigureURLToAlwaysShowLocale {
+		property custom.properties = "locales.enabled=fr_FR,en_US,zh_CN,es_ES${line.separator}locale.prepend.friendly.url.style=2";
+		property custom.system.properties = "user.country=FR${line.separator}user.language=fr";
+		property test.name.skip.portal.instance = "Locale#ConfigureURLToAlwaysShowLocale";
+
+		User.firstLoginPG();
+
+		AssertLocation(value1 = "http://localhost:8080/fr/web/guest?SM_USER=test@liferay.com");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest");
+
+		AssertLocation(value1 = "http://localhost:8080/en/web/guest");
+	}
+
+	@priority = "4"
+	test EnableRedirectToDefaultLocale {
+		property custom.properties = "locales.enabled=en_US,zh_CN,fr_FR${line.separator}locale.use.default.if.not.available=true";
+		property custom.system.properties = "user.country=US${line.separator}user.language=en";
+		property test.name.skip.portal.instance = "Locale#EnableRedirectToDefaultLocale";
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Navigation Menu Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Navigation Menu Page",
+			widgetName = "Menu Display");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "fr/web/guest/navigation-menu-page");
+
+		task ("Assert preferred locale persists by asserting Widget name.") {
+			AssertElementPresent(
+				key_portletName = "Menu Affichage",
+				locator1 = "Portlet#TITLE");
+		}
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "es/web/guest/navigation-menu-page");
+
+		task ("Assert default locale returned by asserting Widget name.") {
+			AssertElementPresent(
+				key_portletName = "Menu Display",
+				locator1 = "Portlet#TITLE");
+		}
+	}
+
 	@description = "This is a use case for LPS-103369."
 	@ignore = "true"
 	@priority = "5"
@@ -135,7 +248,7 @@ definition {
 			layoutName = "Test Page",
 			widgetName = "IFrame");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "test-site-name");
+		Site.openSiteSettingsAdmin(siteURLKey = "test-site-name");
 
 		Site.configureCurrentLanguagesCP(
 			currentSiteLanguages = "English (United States),Spanish (Spain)",
@@ -157,6 +270,52 @@ definition {
 	}
 
 	@priority = "3"
+	test InstanceCreatedOnRestartPickUpNewCompanyLocale {
+		property test.name.skip.portal.instance = "Locale#InstanceCreatedOnRestartPickUpNewCompanyLocale";
+
+		User.firstLoginPG();
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Welcome to Liferay");
+
+		Portlet.shutdownServer();
+
+		AntCommand(
+			locator1 = "build-test.xml",
+			value1 = "portal-ext-properties-update -Dadd.new.properties=true -Dupdate.properties=company.default.locale=es_ES");
+
+		Portlet.startServer(deleteLiferayHome = "false");
+
+		HeadlessPortalInstanceAPI.addPortalInstance(
+			domain = "www.able.com",
+			portalInstanceId = "www.able.com",
+			virtualHost = "www.able.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.viewCP(virtualHost = "www.able.com");
+
+		User.firstLoginUI(
+			localization = "ES",
+			localizedAgree = "Acepto",
+			localizedAnswer = "Respuesta",
+			localizedSaveButton = "Guardar",
+			password = "test",
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Bienvenido a Liferay");
+	}
+
+	@priority = "3"
 	test LocaleNotAppendedToAlternateDefaultLocaleURL {
 		User.firstLoginPG();
 
@@ -173,11 +332,13 @@ definition {
 		Navigator.openSpecificURL(url = "http://www.able.com:8080/site-page");
 
 		AssertElementPresent(locator1 = "//link[@hreflang='x-default'][@href='http://www.able.com:8080']");
+
 		AssertElementPresent(locator1 = "//link[@hreflang='en-US'][@href='http://www.able.com:8080']");
 
 		Navigator.openSpecificURL(url = "http://www.able.com:8080");
 
 		AssertElementPresent(locator1 = "//link[@hreflang='x-default'][@href='http://www.able.com:8080']");
+
 		AssertElementPresent(locator1 = "//link[@hreflang='en-US'][@href='http://www.able.com:8080']");
 	}
 
@@ -229,7 +390,7 @@ definition {
 
 		AntCommand(
 			locator1 = "build-test.xml",
-			value1 = "portal-ext-properties-update -Dupdate.properties.original=locale.prepend.friendly.url.style=0-Dupdate.properties=locale.prepend.friendly.url.style=1");
+			value1 = "portal-ext-properties-update -Dupdate.properties.original=locale.prepend.friendly.url.style=0 -Dupdate.properties=locale.prepend.friendly.url.style=1");
 
 		Portlet.startServer(deleteLiferayHome = "false");
 
@@ -299,37 +460,58 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-134072. View the Home page when start up with Spanish as the default instance language."
 	@priority = "5"
 	test RestrictDefaultLocale {
 		property custom.properties = "company.default.locale=es_ES";
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "Locale#RestrictDefaultLocale";
 
-		User.firstLoginPG(
-			localization = "ES",
-			localizedAgree = "Acepto",
-			localizedAnswer = "Respuesta",
-			localizedSaveButton = "Guardar");
+		task ("Sign in via UI") {
+			User.firstLoginUI(
+				localization = "ES",
+				localizedAgree = "Acepto",
+				localizedAnswer = "Respuesta",
+				localizedSaveButton = "Guardar");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuración",
-			panel = "Panel de control",
-			portlet = "Configuración de instancia");
+		task ("View the inline text is localized on Home page") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Bienvenido a Liferay");
+		}
 
-		PortalSettings.viewCurrentDefaultPortalLanguageCP(
-			defaultPortalLanguage = "español (España)",
-			localizationTranslation = "Localización");
+		task ("View the tree page is shown on Home page") {
+			ContentPages.viewFragmentImage(
+				fragmentName = "image",
+				id = "image-square",
+				image = "tree.png");
+		}
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		task ("View the default instance language is Spanish") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuración",
+				panel = "Panel de control",
+				portlet = "Configuración de instancia");
 
-		LexiconEntry.gotoAddMenuItem(menuItem = "Contenido web básico");
+			PortalSettings.viewCurrentDefaultPortalLanguageCP(
+				defaultPortalLanguage = "español (España)",
+				localizationTranslation = "Localización");
+		}
 
-		PortletEntry.viewLocale(locale = "es-ES");
+		task ("View the default locale is es-ES in web content editor") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoAddMenuItem(menuItem = "Contenido web básico");
+
+			PortletEntry.viewLocale(locale = "es-ES");
+		}
 	}
 
 	@priority = "4"
 	test RestrictEnabledLocales {
-		property custom.properties = "locales.enabled=zh_CN,en_US,fr_FR,de_DE,es_ES${line.separator}locales=zh_CN-en_US,fr_FR,de_DE,es_ES,pt_BR,hu_HU";
+		property custom.properties = "locales.enabled=zh_CN,en_US,fr_FR,de_DE,es_ES${line.separator}locales=zh_CN,en_US,fr_FR,de_DE,es_ES,pt_BR,hu_HU";
 		property test.name.skip.portal.instance = "Locale#RestrictEnabledLocales";
 
 		User.firstLoginPG();
@@ -356,12 +538,80 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LRQA-67974 for user available time zones restricted by instance available time zones."
+	@priority = "3"
+	test RestrictInstanceAvailableTimeZones {
+		property custom.properties = "time.zones=America/Phoenix,UTC,Asia/Tokyo";
+		property test.name.skip.portal.instance = "Locale#RestrictInstanceAvailableTimeZones";
+
+		User.firstLoginPG();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Time Zone",
+			configurationScope = "Virtual Instance Scope");
+
+		task ("Assert some default available time zones for instances and users") {
+			Click(locator1 = "Select#TIME_ZONE");
+
+			for (var timeZone : list "(UTC -11:00) Samoa Standard Time,(UTC -10:00) Hawaii Standard Time") {
+				AssertTextNotPresent(
+					locator1 = "Select#TIME_ZONE",
+					value1 = "${timeZone}");
+			}
+
+			for (var timeZone : list "(UTC -07:00) Mountain Standard Time (America/Phoenix),(UTC) Coordinated Universal Time,(UTC +09:00) Japan Standard Time") {
+				AssertTextPresent(
+					locator1 = "Select#TIME_ZONE",
+					value1 = "${timeZone}");
+			}
+		}
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.gotoEditCP(userScreenName = "test");
+
+		UserNavigator.gotoDisplaySettings();
+
+		task ("Assert some default available time zones for instances and users") {
+			Click(locator1 = "Select#TIME_ZONE");
+
+			for (var timeZone : list "(UTC -11:00) Samoa Standard Time,(UTC -10:00) Hawaii Standard Time") {
+				AssertTextNotPresent(
+					locator1 = "Select#TIME_ZONE",
+					value1 = "${timeZone}");
+			}
+
+			for (var timeZone : list "(UTC -07:00) Mountain Standard Time (America/Phoenix),(UTC) Coordinated Universal Time,(UTC +09:00) Japan Standard Time") {
+				AssertTextPresent(
+					locator1 = "Select#TIME_ZONE",
+					value1 = "${timeZone}");
+			}
+		}
+	}
+
 	@priority = "3"
 	test UserLockoutShowsTimezoneInformation {
 		property test.name.skip.portal.instance = "Locale#UserLockoutShowsTimezoneInformation";
+		property testray.component.names = "Password Policies";
 		property user.time.zone = "UTC";
 
 		User.firstLoginPG();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Time Zone",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureTimeZone(timeZone = "(UTC +05:00) Pakistan Time");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -369,78 +619,29 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Localization",
-			configurationName = "Time Zone",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.configureTimeZone(timeZone = "(UTC +02:00) Central European Summer Time");
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Security",
 			panel = "Control Panel",
 			portlet = "Password Policies");
 
-		PasswordPoliciesNavigator.gotoPolicy(passwordPolicyName = "Default Password Policy");
-
-		PasswordPolicies.enableDefaultPasswordPolicyLockout();
-
-		PasswordPolicies.setLockoutDuration(duration = "5 Minutes");
+		PasswordPolicies.enableLockout(
+			lockoutDuration = "5 Minutes",
+			passwordPolicyName = "Default Password Policy",
+			passwordPolicyPanel = "Lockout");
 
 		User.logoutPG();
 
-		var count = "0";
-
-		while ("${count}" != "3") {
-			User._login(
-				password = "INCORRECT",
-				userEmailAddress = "userea@liferay.com");
-
-			var count = ${count} + 1;
-		}
+		User.loginUserInvalidPG(
+			errorMessage = "This account is locked until",
+			loginAttempts = "3",
+			maximumFailure = "3",
+			password = "INVALID",
+			userEmailAddress = "userea@liferay.com");
 
 		task ("Assert Timezone is included with account lockout message.") {
 			AssertTextEquals.assertPartialText(
-				locator1 = "Message#ERROR_1",
-				value1 = "This account is locked until");
-
-			AssertTextEquals.assertPartialText(
-				locator1 = "Message#ERROR_1",
-				value1 = "CEST.");
-		}
-	}
-
-	@priority = "4"
-	test VerifyFriendlyURLRedirectToEnableDefualtLocale {
-		property custom.properties = "locales.enabled=en_US,zh_CN,fr_FR${line.separator}locale.use.default.if.not.available=true";
-		property custom.system.properties = "user.country=US${line.separator}user.language=en";
-		property test.name.skip.portal.instance = "Locale#VerifyFriendlyURLRedirectToEnableDefualtLocale";
-
-		User.firstLoginPG();
-
-		JSONLayout.addPublicLayout(
-			groupName = "Guest",
-			layoutName = "Navigation Menu Page");
-
-		JSONLayout.addWidgetToPublicLayout(
-			groupName = "Guest",
-			layoutName = "Navigation Menu Page",
-			widgetName = "Navigation Menu");
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "fr/web/guest/navigation-menu-page");
-
-		task ("Assert preferred locale persists by asserting Widget name.") {
-			AssertElementPresent(
-				key_portletName = "Menu de Navigation",
-				locator1 = "Portlet#TITLE");
-		}
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "es/web/guest/navigation-menu-page");
-
-		task ("Assert default locale returned by asserting Widget name.") {
-			AssertElementPresent(
-				key_portletName = "Navigation Menu",
-				locator1 = "Portlet#TITLE");
+				locator1 = "Message#ERROR_DISMISSIBLE",
+				value1 = "PKT.");
 		}
 	}
 
@@ -485,9 +686,11 @@ definition {
 	test ViewDefaultEnabledLocales {
 		User.firstLoginPG();
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "guest");
+		Site.openSiteSettingsAdmin(siteURLKey = "guest");
 
-		Navigator.gotoNavTab(navTab = "Languages");
+		Click(
+			key_itemName = "Localization",
+			locator1 = "ListGroupItem#ITEM_TEXT");
 
 		task ("Assert the default language options radio box is checked") {
 			AssertChecked.assertCheckedNotVisible(
@@ -502,7 +705,7 @@ definition {
 		task ("Assert the default enabled locales in Web Content match what is normally available") {
 			Click(locator1 = "Button#LOCALIZATION_GENERIC");
 
-			for (var language : list "ar_SA,ca_ES,zh_CN,nl_NL,fi_FI,fr_FR,de_DE,hu_HU,ja_JP,pt_BR,es_ES,sv_SE") {
+			for (var language : list "ar-SA,ca-ES,zh-CN,nl-NL,fi-FI,fr-FR,de-DE,hu-HU,ja-JP,pt-BR,es-ES,sv-SE") {
 				AssertElementPresent(
 					key_locale = "${language}",
 					locator1 = "Translation#LOCALIZATION_NAME");
@@ -510,8 +713,12 @@ definition {
 		}
 	}
 
-	@priority = "4"
+	@priority = "5"
 	test ViewLocaleInNewVirtualInstance {
+		property portal.acceptance = "true";
+		property test.assert.warning.exceptions = "true";
+		property test.name.skip.portal.instance = "Locale#ViewLocaleInNewVirtualInstance";
+
 		User.firstLoginPG();
 
 		PortalSettings.gotoConfiguration(
@@ -519,29 +726,30 @@ definition {
 			configurationName = "Language",
 			configurationScope = "Virtual Instance Scope");
 
-		PortalSettings.configureCurrentLanguagesCP(
-			currentPortalLanguages = "English (United States),Italian (Italy)",
-			defaultPortalLanguage = "English (United States)",
-			displaySettings = "Display Settings");
+		PortalSettings.configureCurrentLanguagesCP(currentPortalLanguages = "English (United States),Italian (Italy)");
 
-		PortalSettings.configureCurrentLanguagesCP(
-			currentPortalLanguages = "English (United States),Italian (Italy)",
-			defaultPortalLanguage = "Italian (Italy)",
-			displaySettings = "Display Settings");
+		PortalSettings.configureCurrentLanguagesCP(defaultPortalLanguage = "Italian (Italy)");
 
 		HeadlessPortalInstanceAPI.addPortalInstance(
 			domain = "www.able.com",
 			portalInstanceId = "www.able.com",
 			virtualHost = "www.able.com");
 
-		User.firstLoginPG(
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.viewCP(virtualHost = "www.able.com");
+
+		User.firstLoginUI(
 			localization = "IT",
 			localizedAgree = "Sono d'accordo",
 			localizedAnswer = "Risposta",
 			localizedSaveButton = "Salva",
 			password = "test",
-			userEmailAddress = "test@www.able.com",
-			virtualHostsURL = "http://www.able.com:8080");
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
 	}
 
 	@priority = "5"
@@ -554,7 +762,7 @@ definition {
 			groupName = "Test Site Name",
 			layoutName = "Test Page");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "test-site-name");
+		Site.openSiteSettingsAdmin(siteURLKey = "test-site-name");
 
 		Site.configureCurrentLanguagesCP(
 			currentSiteLanguages = "Spanish (Spain)",
@@ -571,6 +779,50 @@ definition {
 		}
 	}
 
+	@priority = "4"
+	test ViewTimeZoneIDInNonEnglishLocale {
+		property test.name.skip.portal.instance = "Locale#ViewTimeZoneIDInNonDefaultLocale";
+
+		User.firstLoginPG();
+
+		var baseURL = PropsUtil.get("portal.url");
+
+		task ("Assert time zone id America/Phoenix always displays in English") {
+			Navigator.openSpecificURL(url = "${baseURL}/ja/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "ローカライズ",
+				configurationName = "標準時",
+				configurationScope = "仮想インスタンススコープ");
+
+			AssertElementPresent(
+				locator1 = "Select#TIME_ZONE",
+				value1 = "(UTC -07:00) 山地標準時 (America/Phoenix)");
+
+			Navigator.openSpecificURL(url = "${baseURL}/es/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Localización",
+				configurationName = "Zona horaria",
+				configurationScope = "Ámbito de instancia virtual");
+
+			AssertElementPresent(
+				locator1 = "Select#TIME_ZONE",
+				value1 = "(UTC -07:00) Hora estándar de las Rocosas (America/Phoenix)");
+
+			Navigator.openSpecificURL(url = "${baseURL}/zh/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "本地化",
+				configurationName = "时区",
+				configurationScope = "虚拟实例范围");
+
+			AssertElementPresent(
+				locator1 = "Select#TIME_ZONE",
+				value1 = "(UTC -07:00) Mountain 标准时间 (America/Phoenix)");
+		}
+	}
+
 	@priority = "5"
 	test ViewUserPreferredLocale {
 		property portal.acceptance = "true";
@@ -583,7 +835,7 @@ definition {
 			groupName = "Site Name",
 			layoutName = "Test Page");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "site-name");
+		Site.openSiteSettingsAdmin(siteURLKey = "site-name");
 
 		Site.configureCurrentLanguagesCP(defaultSiteLanguage = "Spanish (Spain)");
 
@@ -591,7 +843,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Test Page");
+		PagesAdmin.addPage(pageName = "Test Page");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -620,6 +872,8 @@ definition {
 		User.editDisplaySettingsCP(
 			languageName = "中文 (中国)",
 			userScreenName = "usersn");
+
+		User.logoutPG();
 
 		User.firstLoginPG(
 			password = "test",
@@ -656,7 +910,7 @@ definition {
 			layoutName = "Test Page",
 			widgetName = "Asset Publisher");
 
-		Site.openSiteConfigurationAdmin(siteURLKey = "test-site-name");
+		Site.openSiteSettingsAdmin(siteURLKey = "test-site-name");
 
 		Site.configureCurrentLanguagesCP(
 			currentSiteLanguages = "Chinese (China),English (United States),Spanish (Spain)",

@@ -20,6 +20,7 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.model.DLStorageQuota;
 import com.liferay.document.library.service.DLStorageQuotaLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -28,12 +29,11 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-
-import org.apache.tika.mime.MimeTypes;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,21 +67,23 @@ public class DLAppDLStorageQuotaLocalServiceTest {
 		int size1 = RandomTestUtil.randomInt(1, 100);
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			StringUtil.randomString(), MimeTypes.OCTET_STREAM,
+			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
+			StringUtil.randomString(), StringPool.BLANK,
 			StringUtil.randomString(), StringUtil.randomString(),
-			StringUtil.randomString(), new byte[size1],
+			new byte[size1], null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		int size2 = size1 + RandomTestUtil.randomInt(1, 100);
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			StringUtil.randomString(), MimeTypes.OCTET_STREAM,
+			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
+			StringUtil.randomString(), StringPool.BLANK,
 			StringUtil.randomString(), StringUtil.randomString(),
-			StringUtil.randomString(), new byte[size2],
+			new byte[size2], null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -95,20 +97,21 @@ public class DLAppDLStorageQuotaLocalServiceTest {
 		int size = RandomTestUtil.randomInt(1, 100);
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			StringUtil.randomString(), MimeTypes.OCTET_STREAM,
+			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
 			StringUtil.randomString(), StringUtil.randomString(),
-			StringUtil.randomString(), new byte[size],
+			StringUtil.randomString(), StringUtil.randomString(),
+			new byte[size], null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			StringUtil.randomString(), MimeTypes.OCTET_STREAM,
+			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
+			StringUtil.randomString(), StringPool.BLANK,
 			StringUtil.randomString(), StringUtil.randomString(),
-			StringUtil.randomString(),
-			new byte[size + RandomTestUtil.randomInt(1, 100)],
+			new byte[size + RandomTestUtil.randomInt(1, 100)], null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		_dlAppLocalService.deleteFileEntry(fileEntry.getFileEntryId());

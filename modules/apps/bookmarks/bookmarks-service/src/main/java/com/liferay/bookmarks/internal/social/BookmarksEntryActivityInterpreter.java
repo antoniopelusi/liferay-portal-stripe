@@ -17,7 +17,6 @@ package com.liferay.bookmarks.internal.social;
 import com.liferay.bookmarks.constants.BookmarksPortletKeys;
 import com.liferay.bookmarks.model.BookmarksEntry;
 import com.liferay.bookmarks.social.BookmarksActivityKeys;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -29,8 +28,6 @@ import com.liferay.social.kernel.model.SocialActivityInterpreter;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Juan Fernández
@@ -49,11 +46,6 @@ public class BookmarksEntryActivityInterpreter
 	@Override
 	public String[] getClassNames() {
 		return _CLASS_NAMES;
-	}
-
-	@Override
-	protected ResourceBundleLoader acquireResourceBundleLoader() {
-		return _resourceBundleLoader;
 	}
 
 	@Override
@@ -122,12 +114,5 @@ public class BookmarksEntryActivityInterpreter
 	)
 	private ModelResourcePermission<BookmarksEntry>
 		_bookmarksEntryModelResourcePermission;
-
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(bundle.symbolic.name=com.liferay.bookmarks.web)"
-	)
-	private volatile ResourceBundleLoader _resourceBundleLoader;
 
 }

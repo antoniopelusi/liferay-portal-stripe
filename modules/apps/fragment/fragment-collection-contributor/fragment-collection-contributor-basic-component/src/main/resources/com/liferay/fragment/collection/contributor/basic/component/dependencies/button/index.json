@@ -27,12 +27,7 @@
 							}
 						]
 					}
-				}
-			]
-		},
-		{
-			"configurationRole": "style",
-			"fields": [
+				},
 				{
 					"dataType": "string",
 					"defaultValue": "nm",
@@ -56,7 +51,8 @@
 						]
 					}
 				}
-			]
+			],
+			"label": "button-options"
 		}
 	]
 }

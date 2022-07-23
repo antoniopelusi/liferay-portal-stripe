@@ -40,7 +40,7 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Dictionary;
@@ -104,9 +104,10 @@ public class ResourcesImporterHotDeployMessageListener
 		_destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("destination.name", _destination.getName());
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", _destination.getName()
+			).build();
 
 		_serviceRegistration = _bundleContext.registerService(
 			Destination.class, _destination, dictionary);
@@ -123,46 +124,9 @@ public class ResourcesImporterHotDeployMessageListener
 		_bundleContext = null;
 	}
 
-	protected void initialize(Message message) throws Exception {
-		String servletContextName = message.getString("servletContextName");
-
-		ServletContext servletContext = _serviceTrackerMap.getService(
-			servletContextName);
-
-		if (servletContext == null) {
-			return;
-		}
-
-		PluginPackageProperties pluginPackageProperties =
-			new PluginPackageProperties(servletContext);
-
-		if ((servletContext.getResource(ImporterFactory.RESOURCES_DIR) ==
-				null) &&
-			(servletContext.getResource(ImporterFactory.TEMPLATES_DIR) ==
-				null) &&
-			Validator.isNull(pluginPackageProperties.getResourcesDir())) {
-
-			return;
-		}
-
-		try {
-			ExportImportThreadLocal.setLayoutImportInProcess(true);
-			ExportImportThreadLocal.setPortletImportInProcess(true);
-
-			_companyLocalService.forEachCompany(
-				company -> _importResources(
-					company, servletContext, pluginPackageProperties,
-					message.getResponseId()));
-		}
-		finally {
-			ExportImportThreadLocal.setLayoutImportInProcess(false);
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-		}
-	}
-
 	@Override
 	protected void onDeploy(Message message) throws Exception {
-		initialize(message);
+		_initialize(message);
 	}
 
 	@Reference(
@@ -272,6 +236,43 @@ public class ResourcesImporterHotDeployMessageListener
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(companyId);
+		}
+	}
+
+	private void _initialize(Message message) throws Exception {
+		String servletContextName = message.getString("servletContextName");
+
+		ServletContext servletContext = _serviceTrackerMap.getService(
+			servletContextName);
+
+		if (servletContext == null) {
+			return;
+		}
+
+		PluginPackageProperties pluginPackageProperties =
+			new PluginPackageProperties(servletContext);
+
+		if ((servletContext.getResource(ImporterFactory.RESOURCES_DIR) ==
+				null) &&
+			(servletContext.getResource(ImporterFactory.TEMPLATES_DIR) ==
+				null) &&
+			Validator.isNull(pluginPackageProperties.getResourcesDir())) {
+
+			return;
+		}
+
+		try {
+			ExportImportThreadLocal.setLayoutImportInProcess(true);
+			ExportImportThreadLocal.setPortletImportInProcess(true);
+
+			_companyLocalService.forEachCompany(
+				company -> _importResources(
+					company, servletContext, pluginPackageProperties,
+					message.getResponseId()));
+		}
+		finally {
+			ExportImportThreadLocal.setLayoutImportInProcess(false);
+			ExportImportThreadLocal.setPortletImportInProcess(false);
 		}
 	}
 

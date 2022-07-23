@@ -42,6 +42,7 @@ const Flags = ({
 	reasons,
 	signedIn = false,
 	uri,
+	viewMode,
 }) => {
 	const [isSending, setIsSending] = useState(false);
 	const [reportDialogOpen, setReportDialogOpen] = useState(false);
@@ -142,7 +143,7 @@ const Flags = ({
 					onlyIcon ? 'lfr-portal-tooltip' : ''
 				}`}
 				data-title={onlyIcon ? message : undefined}
-				disabled={disabled}
+				disabled={!viewMode || disabled}
 				displayType="secondary"
 				monospaced={onlyIcon}
 				onClick={handleClickShow}
@@ -155,6 +156,7 @@ const Flags = ({
 				>
 					<ClayIcon symbol="flag-empty" />
 				</span>
+
 				<span className={onlyIcon ? 'sr-only' : undefined}>
 					{message}
 				</span>

@@ -33,7 +33,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -50,7 +49,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -218,7 +216,7 @@ public abstract class BaseDiscountProductResourceTestCase {
 	@Test
 	public void testGraphQLDeleteDiscountProduct() throws Exception {
 		DiscountProduct discountProduct =
-			testGraphQLDiscountProduct_addDiscountProduct();
+			testGraphQLDeleteDiscountProduct_addDiscountProduct();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -233,22 +231,28 @@ public abstract class BaseDiscountProductResourceTestCase {
 				"JSONObject/data", "Object/deleteDiscountProduct"));
 	}
 
+	protected DiscountProduct
+			testGraphQLDeleteDiscountProduct_addDiscountProduct()
+		throws Exception {
+
+		return testGraphQLDiscountProduct_addDiscountProduct();
+	}
+
 	@Test
 	public void testGetDiscountByExternalReferenceCodeDiscountProductsPage()
 		throws Exception {
-
-		Page<DiscountProduct> page =
-			discountProductResource.
-				getDiscountByExternalReferenceCodeDiscountProductsPage(
-					testGetDiscountByExternalReferenceCodeDiscountProductsPage_getExternalReferenceCode(),
-					Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
 
 		String externalReferenceCode =
 			testGetDiscountByExternalReferenceCodeDiscountProductsPage_getExternalReferenceCode();
 		String irrelevantExternalReferenceCode =
 			testGetDiscountByExternalReferenceCodeDiscountProductsPage_getIrrelevantExternalReferenceCode();
+
+		Page<DiscountProduct> page =
+			discountProductResource.
+				getDiscountByExternalReferenceCodeDiscountProductsPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantExternalReferenceCode != null) {
 			DiscountProduct irrelevantDiscountProduct =
@@ -280,7 +284,7 @@ public abstract class BaseDiscountProductResourceTestCase {
 		page =
 			discountProductResource.
 				getDiscountByExternalReferenceCodeDiscountProductsPage(
-					externalReferenceCode, Pagination.of(1, 2));
+					externalReferenceCode, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -396,16 +400,15 @@ public abstract class BaseDiscountProductResourceTestCase {
 
 	@Test
 	public void testGetDiscountIdDiscountProductsPage() throws Exception {
-		Page<DiscountProduct> page =
-			discountProductResource.getDiscountIdDiscountProductsPage(
-				testGetDiscountIdDiscountProductsPage_getId(),
-				Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetDiscountIdDiscountProductsPage_getId();
 		Long irrelevantId =
 			testGetDiscountIdDiscountProductsPage_getIrrelevantId();
+
+		Page<DiscountProduct> page =
+			discountProductResource.getDiscountIdDiscountProductsPage(
+				id, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			DiscountProduct irrelevantDiscountProduct =
@@ -432,7 +435,7 @@ public abstract class BaseDiscountProductResourceTestCase {
 				id, randomDiscountProduct());
 
 		page = discountProductResource.getDiscountIdDiscountProductsPage(
-			id, Pagination.of(1, 2));
+			id, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -543,6 +546,25 @@ public abstract class BaseDiscountProductResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		DiscountProduct discountProduct,
+		List<DiscountProduct> discountProducts) {
+
+		boolean contains = false;
+
+		for (DiscountProduct item : discountProducts) {
+			if (equals(discountProduct, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			discountProducts + " does not contain " + discountProduct,
+			contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -683,8 +705,8 @@ public abstract class BaseDiscountProductResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v1_0.
 						DiscountProduct.class)) {
 
@@ -700,12 +722,13 @@ public abstract class BaseDiscountProductResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -719,7 +742,7 @@ public abstract class BaseDiscountProductResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -835,6 +858,19 @@ public abstract class BaseDiscountProductResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1067,8 +1103,8 @@ public abstract class BaseDiscountProductResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseDiscountProductResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseDiscountProductResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

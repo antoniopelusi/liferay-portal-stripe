@@ -31,18 +31,18 @@ public class QuartzConnectionProvider implements ConnectionProvider {
 
 	@Override
 	public Connection getConnection() {
-		Connection con = null;
+		Connection connection = null;
 
 		try {
 			DataSource dataSource = InfrastructureUtil.getDataSource();
 
-			con = dataSource.getConnection();
+			connection = dataSource.getConnection();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
-		return con;
+		return connection;
 	}
 
 	@Override

@@ -28,11 +28,9 @@ import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.List;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
@@ -77,8 +75,8 @@ public class SelectAssetVocabularyDisplayContext {
 
 		List<AssetVocabulary> assetVocabularies = _getAssetVocabularies();
 
-		searchContainer.setResults(assetVocabularies);
-		searchContainer.setTotal(assetVocabularies.size());
+		searchContainer.setResultsAndTotal(
+			() -> assetVocabularies, assetVocabularies.size());
 
 		return searchContainer;
 	}
@@ -121,15 +119,13 @@ public class SelectAssetVocabularyDisplayContext {
 	}
 
 	private BreadcrumbEntry _getAssetVocabulariesBreadcrumbEntry() {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			_themeDisplay.getLocale(), getClass());
-
 		String backURL = ParamUtil.getString(
 			_httpServletRequest, "backURL",
 			PortalUtil.getCurrentURL(_httpServletRequest));
 
 		return _createBreadcrumbEntry(
-			LanguageUtil.get(resourceBundle, "vocabularies"), backURL);
+			LanguageUtil.get(_themeDisplay.getLocale(), "vocabularies"),
+			backURL);
 	}
 
 	private String _getAssetVocabularyURL(long assetVocabularyId)

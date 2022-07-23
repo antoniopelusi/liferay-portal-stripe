@@ -38,10 +38,12 @@ public class NestedFacetImpl extends FacetImpl implements NestedFacet {
 		super(fieldName, searchContext);
 	}
 
+	@Override
 	public String getFilterField() {
 		return _filterField;
 	}
 
+	@Override
 	public String getFilterValue() {
 		return _filterValue;
 	}

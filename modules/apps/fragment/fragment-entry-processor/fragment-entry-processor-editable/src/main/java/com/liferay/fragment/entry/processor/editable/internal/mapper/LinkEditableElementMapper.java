@@ -15,9 +15,11 @@
 package com.liferay.fragment.entry.processor.editable.internal.mapper;
 
 import com.liferay.fragment.entry.processor.editable.mapper.EditableElementMapper;
-import com.liferay.fragment.entry.processor.editable.parser.util.EditableElementParserUtil;
 import com.liferay.fragment.entry.processor.helper.FragmentEntryProcessorHelper;
 import com.liferay.fragment.processor.FragmentEntryProcessorContext;
+import com.liferay.info.constants.InfoDisplayWebKeys;
+import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -26,6 +28,8 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.HashMap;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -48,16 +52,7 @@ public class LinkEditableElementMapper implements EditableElementMapper {
 			FragmentEntryProcessorContext fragmentEntryProcessorContext)
 		throws PortalException {
 
-		JSONObject localizedJSONObject = configJSONObject.getJSONObject(
-			LocaleUtil.toLanguageId(fragmentEntryProcessorContext.getLocale()));
-
-		if ((localizedJSONObject != null) &&
-			(localizedJSONObject.length() > 0)) {
-
-			configJSONObject = localizedJSONObject;
-		}
-
-		String href = configJSONObject.getString("href");
+		JSONObject hrefJSONObject = configJSONObject.getJSONObject("href");
 
 		boolean assetDisplayPage =
 			_fragmentEntryProcessorHelper.isAssetDisplayPage(
@@ -69,11 +64,13 @@ public class LinkEditableElementMapper implements EditableElementMapper {
 		boolean mapped = _fragmentEntryProcessorHelper.isMapped(
 			configJSONObject);
 
-		if (Validator.isNull(href) && !assetDisplayPage && !collectionMapped &&
-			!layoutMapped && !mapped) {
+		if ((hrefJSONObject == null) && !assetDisplayPage &&
+			!collectionMapped && !layoutMapped && !mapped) {
 
 			return;
 		}
+
+		String href = StringPool.BLANK;
 
 		if (collectionMapped) {
 			href = GetterUtil.getString(
@@ -90,6 +87,34 @@ public class LinkEditableElementMapper implements EditableElementMapper {
 				_fragmentEntryProcessorHelper.getMappedInfoItemFieldValue(
 					configJSONObject, new HashMap<>(),
 					fragmentEntryProcessorContext));
+		}
+		else if (assetDisplayPage && configJSONObject.has("mappedField")) {
+			HttpServletRequest httpServletRequest =
+				fragmentEntryProcessorContext.getHttpServletRequest();
+
+			if (httpServletRequest != null) {
+				String mappedField = configJSONObject.getString("mappedField");
+
+				Object infoItem = httpServletRequest.getAttribute(
+					InfoDisplayWebKeys.INFO_ITEM);
+
+				InfoItemFieldValuesProvider<Object>
+					infoItemFieldValuesProvider =
+						(InfoItemFieldValuesProvider)
+							httpServletRequest.getAttribute(
+								InfoDisplayWebKeys.
+									INFO_ITEM_FIELD_VALUES_PROVIDER);
+
+				href = GetterUtil.getString(
+					_fragmentEntryProcessorHelper.getMappedInfoItemFieldValue(
+						mappedField, infoItemFieldValuesProvider,
+						fragmentEntryProcessorContext.getLocale(), infoItem));
+			}
+		}
+		else if (hrefJSONObject != null) {
+			href = hrefJSONObject.getString(
+				LocaleUtil.toLanguageId(
+					fragmentEntryProcessorContext.getLocale()));
 		}
 
 		Element linkElement = new Element("a");
@@ -130,44 +155,22 @@ public class LinkEditableElementMapper implements EditableElementMapper {
 			linkElement.attr("target", target);
 		}
 
-		String mappedField = configJSONObject.getString("mappedField");
-
-		if (Validator.isNotNull(href)) {
-			linkElement.attr("href", href);
-
-			_replaceLinkContent(
-				element, firstChildElement, linkElement, replaceLink);
-
-			if (((linkElement != element) || processEditableTag) &&
-				Validator.isNotNull(element.html())) {
-
-				element.html(linkElement.outerHtml());
-			}
-			else if ((linkElement != element) &&
-					 Validator.isNull(element.html())) {
-
-				element.replaceWith(linkElement);
-			}
+		if (Validator.isNull(href)) {
+			return;
 		}
-		else if (assetDisplayPage && Validator.isNotNull(mappedField)) {
-			linkElement.attr("href", "${" + mappedField + "}");
 
-			_replaceLinkContent(
-				element, firstChildElement, linkElement, replaceLink);
+		linkElement.attr("href", href);
 
-			if (processEditableTag) {
-				element.html(
-					_fragmentEntryProcessorHelper.processTemplate(
-						linkElement.outerHtml(),
-						fragmentEntryProcessorContext));
-			}
-			else {
-				element.replaceWith(
-					EditableElementParserUtil.getDocumentBody(
-						_fragmentEntryProcessorHelper.processTemplate(
-							linkElement.outerHtml(),
-							fragmentEntryProcessorContext)));
-			}
+		_replaceLinkContent(
+			element, firstChildElement, linkElement, replaceLink);
+
+		if (((linkElement != element) || processEditableTag) &&
+			Validator.isNotNull(element.html())) {
+
+			element.html(linkElement.outerHtml());
+		}
+		else if ((linkElement != element) && Validator.isNull(element.html())) {
+			element.replaceWith(linkElement);
 		}
 	}
 

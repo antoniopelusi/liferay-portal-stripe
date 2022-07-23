@@ -19,13 +19,11 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.StagedModelPermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.wiki.constants.WikiConstants;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.service.WikiNodeLocalService;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -42,10 +40,6 @@ public class WikiNodeModelResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", WikiNode.class.getName());
-
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<WikiNode>>)
 				(Class<?>)ModelResourcePermission.class,
@@ -56,7 +50,9 @@ public class WikiNodeModelResourcePermissionRegistrar {
 					new StagedModelPermissionLogic<>(
 						_stagingPermission, WikiPortletKeys.WIKI,
 						WikiNode::getNodeId))),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", WikiNode.class.getName()
+			).build());
 	}
 
 	@Deactivate

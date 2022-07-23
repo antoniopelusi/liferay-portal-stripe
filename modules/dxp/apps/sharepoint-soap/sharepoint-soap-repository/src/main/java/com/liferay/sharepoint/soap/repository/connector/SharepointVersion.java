@@ -68,25 +68,11 @@ public class SharepointVersion {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(15);
-
-		sb.append("{comments=");
-		sb.append(_comments);
-		sb.append(", createdBy=");
-		sb.append(_createdBy);
-		sb.append(", createdDate=");
-		sb.append(_createdDate);
-		sb.append(", sharepointVersionId=");
-		sb.append(_sharepointVersionId);
-		sb.append(", size=");
-		sb.append(_size);
-		sb.append(", url=");
-		sb.append(_url);
-		sb.append(", version=");
-		sb.append(_version);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{comments=", _comments, ", createdBy=", _createdBy,
+			", createdDate=", _createdDate, ", sharepointVersionId=",
+			_sharepointVersionId, ", size=", _size, ", url=", _url,
+			", version=", _version, "}");
 	}
 
 	private final String _comments;

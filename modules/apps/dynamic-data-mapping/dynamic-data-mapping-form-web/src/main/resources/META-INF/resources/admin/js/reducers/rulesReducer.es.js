@@ -18,7 +18,7 @@ import {EVENT_TYPES} from '../eventTypes.es';
  * NOTE: This is a literal copy of the old LayoutProvider logic. Small changes
  * were made only to adapt to the reducer.
  */
-export default (state, action) => {
+export default function rulesReducer(state, action) {
 	switch (action.type) {
 		case EVENT_TYPES.RULE.ADD: {
 			const {rules} = state;
@@ -31,7 +31,7 @@ export default (state, action) => {
 		case EVENT_TYPES.RULE.CHANGE: {
 			const {
 				loc,
-				rule: {actions, conditions, logicalOperator},
+				rule: {actions, conditions, logicalOperator, ...otherRule},
 			} = action.payload;
 			const {rules} = state;
 
@@ -41,7 +41,9 @@ export default (state, action) => {
 
 				// Compatibility with the Forms backend
 
-				'logical-operator': logicalOperator,
+				'logical-operator': otherRule['logical-operator']
+					? otherRule['logical-operator']
+					: logicalOperator,
 			});
 
 			return {
@@ -66,4 +68,4 @@ export default (state, action) => {
 		default:
 			return state;
 	}
-};
+}

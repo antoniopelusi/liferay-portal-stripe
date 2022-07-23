@@ -1,0 +1,34 @@
+@component-name = "portal-upgrades"
+definition {
+
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.assert.warning.exceptions = "true";
+	property testray.component.names = "Translations Management";
+	property testray.main.component.name = "Upgrades Lima";
+
+	setUp {
+		SignIn.signIn();
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		AssertLocation.assertPartialLocation(value1 = "${portalURL}/web/guest");
+
+		SearchAdministration.executeReindex();
+	}
+
+	@priority = "4"
+	@refactordone
+	test CanViewTranslationsArchive73101 {
+		property data.archive.type = "data-archive-translations";
+		property portal.version = "7.3.10.1";
+
+		Upgrade.viewTranslations();
+
+		Upgrade.addAndEditTranslations();
+
+		Upgrade.exportAndImportTranslations();
+	}
+
+}

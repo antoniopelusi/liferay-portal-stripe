@@ -214,4 +214,7 @@ public interface CommerceAccountGroupCommerceAccountRelModel
 	 */
 	public void setCommerceAccountId(long commerceAccountId);
 
+	@Override
+	public CommerceAccountGroupCommerceAccountRel cloneWithOriginalValues();
+
 }

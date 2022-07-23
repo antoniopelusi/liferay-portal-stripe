@@ -37,14 +37,9 @@ public class S3KeyTransformerImpl implements S3KeyTransformer {
 	public String getFileKey(
 		long companyId, long repositoryId, String fileName) {
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(companyId);
-		sb.append(StringPool.SLASH);
-		sb.append(repositoryId);
-		sb.append(getNormalizedFileName(fileName));
-
-		return sb.toString();
+		return StringBundler.concat(
+			companyId, StringPool.SLASH, repositoryId,
+			getNormalizedFileName(fileName));
 	}
 
 	@Override
@@ -67,16 +62,9 @@ public class S3KeyTransformerImpl implements S3KeyTransformer {
 		long companyId, long repositoryId, String fileName,
 		String versionLabel) {
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(companyId);
-		sb.append(StringPool.SLASH);
-		sb.append(repositoryId);
-		sb.append(getNormalizedFileName(fileName));
-		sb.append(StringPool.SLASH);
-		sb.append(versionLabel);
-
-		return sb.toString();
+		return StringBundler.concat(
+			companyId, StringPool.SLASH, repositoryId,
+			getNormalizedFileName(fileName), StringPool.SLASH, versionLabel);
 	}
 
 	@Override

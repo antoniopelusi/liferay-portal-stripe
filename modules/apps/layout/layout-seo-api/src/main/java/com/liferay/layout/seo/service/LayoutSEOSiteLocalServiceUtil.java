@@ -113,6 +113,12 @@ public class LayoutSEOSiteLocalServiceUtil {
 		return getService().deleteLayoutSEOSite(layoutSEOSiteId);
 	}
 
+	public static void deleteLayoutSEOSite(String uuid, long groupId)
+		throws com.liferay.layout.seo.exception.NoSuchSiteException {
+
+		getService().deleteLayoutSEOSite(uuid, groupId);
+	}
+
 	/**
 	 * @throws PortalException
 	 */
@@ -125,6 +131,10 @@ public class LayoutSEOSiteLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {

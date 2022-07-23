@@ -30,6 +30,10 @@ public class JournalFolderLocalServiceWrapper
 	implements JournalFolderLocalService,
 			   ServiceWrapper<JournalFolderLocalService> {
 
+	public JournalFolderLocalServiceWrapper() {
+		this(null);
+	}
+
 	public JournalFolderLocalServiceWrapper(
 		JournalFolderLocalService journalFolderLocalService) {
 
@@ -170,6 +174,13 @@ public class JournalFolderLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _journalFolderLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _journalFolderLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

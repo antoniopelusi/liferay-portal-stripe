@@ -14,12 +14,12 @@
 
 package com.liferay.commerce.product.internal.upgrade.v2_5_0;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 
 import java.sql.Date;
@@ -62,25 +62,26 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 		String selectCPFriendlyURLEntrySQL =
 			"select * from CPFriendlyURLEntry order by main desc";
 
-		try (PreparedStatement ps1 =
+		try (PreparedStatement preparedStatement1 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, insertFriendlyUREntrySQL);
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, insertFriendlyUREntryMappingSQL);
-			PreparedStatement ps3 = connection.prepareStatement(
+			PreparedStatement preparedStatement3 = connection.prepareStatement(
 				insertFriendlyUREntryLocalizationSQL);
 			Statement s1 = connection.createStatement();
-			ResultSet rs = s1.executeQuery(selectCPFriendlyURLEntrySQL)) {
+			ResultSet resultSet = s1.executeQuery(
+				selectCPFriendlyURLEntrySQL)) {
 
-			while (rs.next()) {
-				long classNameId = rs.getLong("classNameId");
-				long classPK = rs.getLong("classPK");
-				long companyId = rs.getLong("companyId");
+			while (resultSet.next()) {
+				long classNameId = resultSet.getLong("classNameId");
+				long classPK = resultSet.getLong("classPK");
+				long companyId = resultSet.getLong("companyId");
 				Date date = new Date(System.currentTimeMillis());
 				Group group = _groupLocalService.getCompanyGroup(companyId);
-				String languageId = rs.getString("languageId");
-				boolean main = rs.getBoolean("main");
+				String languageId = resultSet.getString("languageId");
+				boolean main = resultSet.getBoolean("main");
 
 				long friendlyURLEntryId = _getFriendlyURLEntryId(
 					classNameId, classPK);
@@ -88,22 +89,22 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 				if (friendlyURLEntryId <= 0) {
 					friendlyURLEntryId = increment();
 
-					ps1.setLong(1, 0);
+					preparedStatement1.setLong(1, 0);
 
-					String uuid = rs.getString("uuid_");
+					String uuid = resultSet.getString("uuid_");
 
-					ps1.setString(2, uuid);
+					preparedStatement1.setString(2, uuid);
 
-					ps1.setString(3, languageId);
-					ps1.setLong(4, friendlyURLEntryId);
-					ps1.setLong(5, group.getGroupId());
-					ps1.setLong(6, companyId);
-					ps1.setDate(7, date);
-					ps1.setDate(8, date);
-					ps1.setLong(9, classNameId);
-					ps1.setLong(10, classPK);
+					preparedStatement1.setString(3, languageId);
+					preparedStatement1.setLong(4, friendlyURLEntryId);
+					preparedStatement1.setLong(5, group.getGroupId());
+					preparedStatement1.setLong(6, companyId);
+					preparedStatement1.setDate(7, date);
+					preparedStatement1.setDate(8, date);
+					preparedStatement1.setLong(9, classNameId);
+					preparedStatement1.setLong(10, classPK);
 
-					ps1.execute();
+					preparedStatement1.execute();
 				}
 
 				long friendlyURLEntryMappingId = _getFriendlyURLEntryMappingId(
@@ -112,13 +113,13 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 				if (main && (friendlyURLEntryMappingId <= 0)) {
 					friendlyURLEntryMappingId = increment();
 
-					ps2.setLong(1, 0);
-					ps2.setLong(2, friendlyURLEntryMappingId);
-					ps2.setLong(3, classNameId);
-					ps2.setLong(4, classPK);
-					ps2.setLong(5, friendlyURLEntryId);
+					preparedStatement2.setLong(1, 0);
+					preparedStatement2.setLong(2, friendlyURLEntryMappingId);
+					preparedStatement2.setLong(3, classNameId);
+					preparedStatement2.setLong(4, classPK);
+					preparedStatement2.setLong(5, friendlyURLEntryId);
 
-					ps2.execute();
+					preparedStatement2.execute();
 				}
 
 				long friendlyURLEntryLocalizationId =
@@ -128,24 +129,25 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 				if (friendlyURLEntryLocalizationId <= 0) {
 					friendlyURLEntryLocalizationId = increment();
 
-					ps3.setLong(1, 0);
-					ps3.setLong(2, friendlyURLEntryLocalizationId);
-					ps3.setLong(3, companyId);
-					ps3.setLong(4, friendlyURLEntryId);
-					ps3.setString(5, languageId);
+					preparedStatement3.setLong(1, 0);
+					preparedStatement3.setLong(
+						2, friendlyURLEntryLocalizationId);
+					preparedStatement3.setLong(3, companyId);
+					preparedStatement3.setLong(4, friendlyURLEntryId);
+					preparedStatement3.setString(5, languageId);
 
-					String urlTitle = rs.getString("urlTitle");
+					String urlTitle = resultSet.getString("urlTitle");
 
 					urlTitle = _getUniqueURLTitle(
 						group.getGroupId(), classNameId, urlTitle);
 
-					ps3.setString(6, urlTitle);
+					preparedStatement3.setString(6, urlTitle);
 
-					ps3.setLong(7, group.getGroupId());
-					ps3.setLong(8, classNameId);
-					ps3.setLong(9, classPK);
+					preparedStatement3.setLong(7, group.getGroupId());
+					preparedStatement3.setLong(8, classNameId);
+					preparedStatement3.setLong(9, classPK);
 
-					ps3.execute();
+					preparedStatement3.execute();
 				}
 			}
 		}
@@ -154,16 +156,16 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 	private long _getFriendlyURLEntryId(long classNameId, long classPK)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from FriendlyURLEntry where classNameId = ? and " +
 					"classPK = ?")) {
 
-			ps.setLong(1, classNameId);
-			ps.setLong(2, classPK);
+			preparedStatement.setLong(1, classNameId);
+			preparedStatement.setLong(2, classPK);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					return rs.getLong("friendlyURLEntryId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					return resultSet.getLong("friendlyURLEntryId");
 				}
 
 				return 0;
@@ -175,17 +177,17 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 			String languageId, long classNameId, long classPK)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from FriendlyURLEntryLocalization where languageId " +
 					"= ? and classNameId = ? and classPK = ?")) {
 
-			ps.setString(1, languageId);
-			ps.setLong(2, classNameId);
-			ps.setLong(3, classPK);
+			preparedStatement.setString(1, languageId);
+			preparedStatement.setLong(2, classNameId);
+			preparedStatement.setLong(3, classPK);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					return rs.getLong("friendlyURLEntryLocalizationId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					return resultSet.getLong("friendlyURLEntryLocalizationId");
 				}
 
 				return 0;
@@ -196,16 +198,16 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 	private long _getFriendlyURLEntryMappingId(long classNameId, long classPK)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from FriendlyURLEntryMapping where classNameId = ? " +
 					"and classPK = ?")) {
 
-			ps.setLong(1, classNameId);
-			ps.setLong(2, classPK);
+			preparedStatement.setLong(1, classNameId);
+			preparedStatement.setLong(2, classPK);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					return rs.getLong("friendlyURLEntryMappingId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					return resultSet.getLong("friendlyURLEntryMappingId");
 				}
 
 				return 0;
@@ -217,16 +219,16 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 			long groupId, long classNameId, String urlTitle)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from FriendlyURLEntryLocalization where groupId = " +
 					"? and classNameId = ? and urlTitle = ?")) {
 
-			ps.setLong(1, groupId);
-			ps.setLong(2, classNameId);
-			ps.setString(3, urlTitle);
+			preparedStatement.setLong(1, groupId);
+			preparedStatement.setLong(2, classNameId);
+			preparedStatement.setString(3, urlTitle);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
 					return urlTitle + StringPool.DASH +
 						PortalUUIDUtil.generate();
 				}

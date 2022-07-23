@@ -21,7 +21,10 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
+import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalServiceUtil;
+import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -56,7 +59,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
@@ -151,25 +154,42 @@ public class GetPagePreviewMVCResourceCommandTest {
 				TestPropsValues.getUserId(), _group.getGroupId(), 0,
 				StringUtil.randomString(), StringUtil.randomString(),
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-				RandomTestUtil.randomString(), "{fieldSets: []}", 0,
-				FragmentConstants.TYPE_COMPONENT,
+				RandomTestUtil.randomString(), false, "{fieldSets: []}", null,
+				0, FragmentConstants.TYPE_COMPONENT,
 				WorkflowConstants.STATUS_APPROVED, _serviceContext);
+
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				layout.getPlid());
 
 		_fragmentEntryLink = _fragmentEntryLinkService.addFragmentEntryLink(
 			_group.getGroupId(), 0, fragmentEntry.getFragmentEntryId(),
-			SegmentsExperienceConstants.ID_DEFAULT, layout.getPlid(),
+			defaultSegmentsExperienceId, layout.getPlid(),
 			fragmentEntry.getCss(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), fragmentEntry.getConfiguration(), null,
 			StringPool.BLANK, 0, null, _serviceContext);
 
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			LayoutPageTemplateStructureLocalServiceUtil.
+				fetchLayoutPageTemplateStructure(
+					_group.getGroupId(), layout.getPlid());
+
+		LayoutStructure layoutStructure = LayoutStructure.of(
+			layoutPageTemplateStructure.getData(defaultSegmentsExperienceId));
+
+		layoutStructure.addFragmentStyledLayoutStructureItem(
+			_fragmentEntryLink.getFragmentEntryLinkId(),
+			layoutStructure.getMainItemId(), 0);
+
 		_layoutPageTemplateStructureLocalService.
-			rebuildLayoutPageTemplateStructure(
-				_group.getGroupId(), layout.getPlid());
+			updateLayoutPageTemplateStructureData(
+				_group.getGroupId(), layout.getPlid(),
+				defaultSegmentsExperienceId, layoutStructure.toString());
 
 		_themeDisplay.setLayout(layout);
+		_themeDisplay.setLayoutSet(layout.getLayoutSet());
 		_themeDisplay.setLayoutTypePortlet(
 			(LayoutTypePortlet)layout.getLayoutType());
-		_themeDisplay.setLayoutSet(layout.getLayoutSet());
 		_themeDisplay.setLookAndFeel(
 			layout.getTheme(), layout.getColorScheme());
 		_themeDisplay.setPlid(layout.getPlid());
@@ -188,6 +208,13 @@ public class GetPagePreviewMVCResourceCommandTest {
 
 		mockLiferayResourceRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, _themeDisplay);
+
+		mockLiferayResourceRequest.addParameter(
+			"segmentsExperienceId",
+			String.valueOf(
+				_segmentsExperienceLocalService.
+					fetchDefaultSegmentsExperienceId(
+						_fragmentEntryLink.getPlid())));
 
 		MockHttpServletRequest httpServletRequest =
 			(MockHttpServletRequest)
@@ -248,6 +275,9 @@ public class GetPagePreviewMVCResourceCommandTest {
 
 	@Inject
 	private PortletLocalService _portletLocalService;
+
+	@Inject
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	private ServiceContext _serviceContext;
 	private ThemeDisplay _themeDisplay;

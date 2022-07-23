@@ -14,21 +14,34 @@
 
 package com.liferay.jenkins.results.parser;
 
+import java.util.List;
+
+import org.json.JSONObject;
+
 /**
  * @author Michael Hashimoto
  */
 public interface Workspace {
 
-	public void addJenkinsWorkspaceGitRepository(String jenkinsGitHubURL);
+	public JSONObject getJSONObject();
 
-	public WorkspaceGitRepository getJenkinsWorkspaceGitRepository();
+	public WorkspaceGitRepository getPrimaryWorkspaceGitRepository();
 
-	public void setBuildData(BuildData buildData);
+	public List<WorkspaceGitRepository> getWorkspaceGitRepositories();
 
-	public void setJob(Job job);
+	public WorkspaceGitRepository getWorkspaceGitRepository(
+		String gitDirectoryName);
 
 	public void setUp();
 
+	public void startSynchronizeToGitHubDev();
+
+	public void synchronizeToGitHubDev();
+
 	public void tearDown();
+
+	public void waitForSynchronizeToGitHubDev();
+
+	public void writePropertiesFiles();
 
 }

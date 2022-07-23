@@ -537,4 +537,7 @@ public interface WorkflowMetricsSLADefinitionModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public WorkflowMetricsSLADefinition cloneWithOriginalValues();
+
 }

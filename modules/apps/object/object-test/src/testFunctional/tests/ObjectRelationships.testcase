@@ -1,0 +1,413 @@
+@component-name = "portal-object"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Object";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			ObjectAdmin.deleteAllCustomObjectsViaAPI();
+		}
+	}
+
+	@description = "LPS-145393 - Verify it is possible to relate 2 entries from a Custom Object entry with the same Native Object entry in a One-to-Many relation"
+	@priority = "4"
+	test CanAddMultipleOneToManyRelationsWithNativeObject {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 288",
+			objectName = "CustomObject288",
+			pluralLabelName = "Custom Objects 288");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject288");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "User");
+
+		CreateObject.selectTitleField(fieldLabel = "First Name");
+
+		CreateObject.saveObject();
+
+		Navigator.openURL();
+
+		ObjectAdmin.addObjectRelationshipViaAPI(
+			objectName_1 = "User",
+			objectName_2 = "CustomObject288",
+			relationshipLabel = "Relationship",
+			relationshipName = "relationship",
+			relationshipType = "oneToMany");
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject288");
+
+		for (var fieldEntry : list "A,B") {
+			ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+				fieldName = "customObjectField",
+				objectName = "CustomObject288",
+				value = "Entry ${fieldEntry}");
+		}
+
+		for (var fieldEntry : list "A,B") {
+			ObjectAdmin.goToCustomObject(objectName = "CustomObject288");
+
+			ObjectPortlet.viewEntryDetails(entry = "Entry ${fieldEntry}");
+
+			CreateObject.chooseEntryOnRelationshipField(entryOption = "userfn");
+
+			Button.clickSave();
+
+			CreateObject.assertEntrySelectedOnRelationshipField(entry = "userfn");
+		}
+	}
+
+	@description = "LPS-145393 - Verify it is possible to add a One-to-Many relation from a Custom Object entry with a Native Object entry"
+	@priority = "5"
+	test CanAddOneToManyRelationWithNativeObject {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 289",
+			objectName = "CustomObject289",
+			pluralLabelName = "Custom Objects 289");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject289");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "User");
+
+		CreateObject.selectTitleField(fieldLabel = "First Name");
+
+		CreateObject.saveObject();
+
+		Navigator.openURL();
+
+		ObjectAdmin.addObjectRelationshipViaAPI(
+			objectName_1 = "User",
+			objectName_2 = "CustomObject289",
+			relationshipLabel = "Relationship",
+			relationshipName = "relationship",
+			relationshipType = "oneToMany");
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject289");
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject289");
+
+		LexiconEntry.gotoAdd();
+
+		ObjectPortlet.searchEntryRelationshipField(entryValue = "userfn");
+
+		Button.clickSave();
+
+		CreateObject.assertEntrySelectedOnRelationshipField(entry = "userfn");
+	}
+
+	@description = "LPS-145393 - Verify it is possible to create a Relationship One-to-Many from a Native Object to a Custom Object"
+	@priority = "5"
+	test CanCreateOneToManyForNativeObject {
+		property portal.acceptance = "true";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 290",
+			objectName = "CustomObject290",
+			pluralLabelName = "Custom Objects 290");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "User");
+
+		ObjectAdmin.gotoRelationshipsTab();
+
+		ObjectAdmin.addObjectRelationshipViaUI(
+			label = "Relationship",
+			object = "CustomObject290",
+			type = "One to Many");
+
+		AssertElementPresent(
+			key_label = "Relationship",
+			locator1 = "ObjectAdmin#RELATIONSHIP_LABEL");
+	}
+
+	@description = "LPS-147906 - Verify it is possible to do a nested relation in a One-to-Many relationship"
+	@priority = "4"
+	test CanDoNestedRelation {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 149249",
+			objectName = "CustomObject149249",
+			pluralLabelName = "Custom Objects 149249");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject149249");
+
+		ObjectAdmin.addObjectRelationshipViaAPI(
+			objectName_1 = "CustomObject149249",
+			objectName_2 = "CustomObject149249",
+			relationshipLabel = "Relationship",
+			relationshipName = "relationship",
+			relationshipType = "oneToMany");
+
+		ObjectAdmin.addObjectLayoutViaAPI(
+			layoutName = "Layout Name",
+			objectName = "CustomObject149249");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 149249");
+
+		CreateObject.selectTitleField(fieldLabel = "Custom Field");
+
+		CreateObject.saveObject();
+
+		ObjectAdmin.goToLayoutsTab();
+
+		ObjectAdmin.selectKebabMenuOption(kebabOption = "View");
+
+		ObjectAdmin.markLayoutAsDefault();
+
+		ObjectAdmin.goToLayoutTabOnLayouts();
+
+		ObjectAdmin.addTabFieldsOnLayout(
+			blockName = "Block 1",
+			columnsNumber = "1",
+			fieldList = "Custom Field,Relationship",
+			tabName = "Field Tab");
+
+		ObjectAdmin.addTabRelationshipsOnLayout(
+			relationshipsLabelName = "Relationship",
+			tabName = "Relationship Tab");
+
+		Button.clickSave();
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject149249");
+
+		for (var fieldEntry : list "A,B") {
+			ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+				fieldName = "customObjectField",
+				objectName = "CustomObject149249",
+				value = "Entry ${fieldEntry}");
+		}
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject149249");
+
+		ObjectPortlet.viewEntryDetails(entry = "Entry A");
+
+		ObjectPortlet.gotoRelationshipTab();
+
+		CreateObject.addRelationshipAndSelectEntry(titleFieldName = "Entry B");
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject149249");
+
+		ObjectPortlet.viewEntryDetails(entry = "Entry B");
+
+		ObjectPortlet.gotoRelationshipTab();
+
+		CreateObject.addRelationshipAndSelectEntry(titleFieldName = "Entry A");
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject149249");
+
+		ObjectPortlet.viewEntry(entry = "Entry A");
+
+		ObjectPortlet.viewEntry(entry = "Entry B");
+	}
+
+	@description = "LPS-135400 - Verify it is not possible to leave the Relationship Label blank"
+	@priority = "4"
+	test CannotLeaveRelationshipLabelBlank {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147736",
+			objectName = "CustomObject147736",
+			pluralLabelName = "Custom Objects 147736");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147736");
+
+		ObjectAdmin.gotoRelationshipsTab();
+
+		ObjectAdmin.addObjectRelationshipViaUI(
+			label = "",
+			name = "relationship",
+			object = "CustomObject147736",
+			type = "One to Many");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#LABEL_OBJECT_RELATIONSHIP_REQUIRED");
+	}
+
+	@description = "LPS-135397 - Verify that it is not possible to leave a layout with a Relationship tab on first place by removing the fields tab"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CannotLeaveRelationshipTabOnFirstPlaceByRemovingFieldsTab {
+
+		// TODO LPS-147734 CannotLeaveRelationshipTabOnFirstPlaceByRemovingFieldsTab pending implementation
+
+	}
+
+	@description = "LPS-139803 - It is not possible to select a Relationship field for the Object Entry Title"
+	@priority = "4"
+	test CannotSelectRelationshipFieldForObjectEntryTitle {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147735",
+			objectName = "CustomObject147735",
+			pluralLabelName = "Custom Objects 147735");
+
+		ObjectAdmin.addObjectRelationshipViaAPI(
+			objectName_1 = "CustomObject147735",
+			objectName_2 = "CustomObject147735",
+			relationshipLabel = "Relationship",
+			relationshipName = "relationship",
+			relationshipType = "oneToMany");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147735");
+
+		ObjectAdmin.viewOptionTitleField(optionNameNotPresent = "Relationship");
+	}
+
+	@description = "LPS-145393 - Verify it is possible to add a One-to-Many relation from a Custom Object scoped by Site entry with a Native Object entry"
+	@priority = "4"
+	test CanRelateOneToManyNativeObjectWithCustomSiteScoped {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 291",
+			objectName = "CustomObject291",
+			panelCategoryKey = "site_administration.content",
+			pluralLabelName = "Custom Objects 291",
+			scope = "site");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "User");
+
+		CreateObject.selectTitleField(fieldLabel = "First Name");
+
+		CreateObject.saveObject();
+
+		Navigator.openURL();
+
+		ObjectAdmin.addObjectRelationshipViaAPI(
+			objectName_1 = "User",
+			objectName_2 = "CustomObject291",
+			relationshipLabel = "Relationship",
+			relationshipName = "relationship",
+			relationshipType = "oneToMany");
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject291");
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject291");
+
+		LexiconEntry.gotoAdd();
+
+		ObjectPortlet.searchEntryRelationshipField(entryValue = "userfn");
+
+		Button.clickSave();
+
+		CreateObject.assertEntrySelectedOnRelationshipField(entry = "userfn");
+	}
+
+	@description = "LPS-145393 - Verify it is possible to set a Title Field for a Native Object"
+	@priority = "4"
+	test CanSetTitleFieldForNativeObject {
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "User");
+
+		CreateObject.selectTitleField(fieldLabel = "First Name");
+
+		CreateObject.saveObject();
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "User");
+
+		CreateObject.assertTitleFieldIsSelected(fieldLabel = "First Name");
+	}
+
+	@description = "LPS-143021 - Verify it is possible to view and add entries on an Object after creating a Relationship One to Many for it"
+	@priority = "4"
+	test CanViewAndAddObjectEntriesAfterCreateRelationship {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 292",
+			objectName = "CustomObject292",
+			pluralLabelName = "Custom Objects 292");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject292");
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject292");
+
+		ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+			fieldName = "customObjectField",
+			objectName = "CustomObject292",
+			value = "Entry Test");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 292");
+
+		ObjectAdmin.gotoRelationshipsTab();
+
+		ObjectAdmin.addObjectRelationshipViaUI(
+			label = "Relationship",
+			object = "CustomObject292",
+			type = "One to Many");
+
+		Navigator.openURL();
+
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject292");
+
+		ObjectPortlet.viewEntry(entry = "Entry Test");
+	}
+
+}

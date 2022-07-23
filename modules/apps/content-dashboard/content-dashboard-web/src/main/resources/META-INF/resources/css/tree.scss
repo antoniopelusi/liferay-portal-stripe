@@ -1,0 +1,30 @@
+@import 'cadmin-variables';
+
+.tree-filter {
+	&-clear {
+		cursor: pointer;
+	}
+
+	&-count-feedback {
+		align-items: center;
+		background: $cadmin-primary-l2;
+		display: flex;
+		min-height: 40px;
+		padding: 0 24px;
+	}
+
+	&-search {
+		.container-fluid {
+			height: 40px;
+		}
+	}
+
+	&-loader {
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+	&-type-tree {
+		margin-top: 16px;
+	}
+}

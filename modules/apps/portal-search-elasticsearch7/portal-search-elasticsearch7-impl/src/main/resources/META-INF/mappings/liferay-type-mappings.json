@@ -203,6 +203,19 @@
 				}
 			},
 			{
+				"template_et": {
+					"mapping": {
+						"analyzer": "estonian",
+						"store": true,
+						"term_vector": "with_positions_offsets",
+						"type": "text"
+					},
+					"match": "\\w+_et\\b|\\w+_et_[A-Z]{2}\\b",
+					"match_mapping_type": "string",
+					"match_pattern": "regex"
+				}
+			},
+			{
 				"template_eu": {
 					"mapping": {
 						"analyzer": "basque",
@@ -211,6 +224,19 @@
 						"type": "text"
 					},
 					"match": "\\w+_eu\\b|\\w+_eu_[A-Z]{2}\\b",
+					"match_mapping_type": "string",
+					"match_pattern": "regex"
+				}
+			},
+			{
+				"template_fa": {
+					"mapping": {
+						"analyzer": "persian",
+						"store": true,
+						"term_vector": "with_positions_offsets",
+						"type": "text"
+					},
+					"match": "\\w+_fa\\b|\\w+_fa_[A-Z]{2}\\b",
 					"match_mapping_type": "string",
 					"match_pattern": "regex"
 				}
@@ -237,6 +263,19 @@
 						"type": "text"
 					},
 					"match": "\\w+_fr\\b|\\w+_fr_[A-Z]{2}\\b",
+					"match_mapping_type": "string",
+					"match_pattern": "regex"
+				}
+			},
+			{
+				"template_gl": {
+					"mapping": {
+						"analyzer": "galician",
+						"store": true,
+						"term_vector": "with_positions_offsets",
+						"type": "text"
+					},
+					"match": "\\w+_gl\\b|\\w+_gl_[A-Z]{2}\\b",
 					"match_mapping_type": "string",
 					"match_pattern": "regex"
 				}
@@ -281,14 +320,14 @@
 				}
 			},
 			{
-				"template_id": {
+				"template_in": {
 					"mapping": {
 						"analyzer": "indonesian",
 						"store": true,
 						"term_vector": "with_positions_offsets",
 						"type": "text"
 					},
-					"match": "\\w+_id\\b|\\w+_id_[A-Z]{2}\\b",
+					"match": "\\w+_in\\b|\\w+_in_[A-Z]{2}\\b",
 					"match_mapping_type": "string",
 					"match_pattern": "regex"
 				}
@@ -328,6 +367,19 @@
 						"type": "text"
 					},
 					"match": "\\w+_ko\\b|\\w+_ko_[A-Z]{2}\\b",
+					"match_mapping_type": "string",
+					"match_pattern": "regex"
+				}
+			},
+			{
+				"template_lt": {
+					"mapping": {
+						"analyzer": "lithuanian",
+						"store": true,
+						"term_vector": "with_positions_offsets",
+						"type": "text"
+					},
+					"match": "\\w+_lt\\b|\\w+_lt_[A-Z]{2}\\b",
 					"match_mapping_type": "string",
 					"match_pattern": "regex"
 				}
@@ -503,6 +555,81 @@
 					"match": "expando__*",
 					"match_mapping_type": "string"
 				}
+			},
+			{
+				"template_double": {
+					"mapping": {
+						"fields": {
+							"keyword": {
+								"store": true,
+								"type": "keyword"
+							}
+						},
+						"store": true,
+						"type": "double"
+					},
+					"match": "*_double"
+				}
+			},
+			{
+				"template_float": {
+					"mapping": {
+						"fields": {
+							"keyword": {
+								"store": true,
+								"type": "keyword"
+							}
+						},
+						"store": true,
+						"type": "float"
+					},
+					"match": "*_float"
+				}
+			},
+			{
+				"template_integer": {
+					"mapping": {
+						"fields": {
+							"keyword": {
+								"store": true,
+								"type": "keyword"
+							}
+						},
+						"store": true,
+						"type": "integer"
+					},
+					"match": "*_integer"
+				}
+			},
+			{
+				"template_long": {
+					"mapping": {
+						"fields": {
+							"keyword": {
+								"store": true,
+								"type": "keyword"
+							}
+						},
+						"store": true,
+						"type": "long"
+					},
+					"match": "*_long"
+				}
+			},
+			{
+				"template_short": {
+					"mapping": {
+						"fields": {
+							"keyword": {
+								"store": true,
+								"type": "keyword"
+							}
+						},
+						"store": true,
+						"type": "short"
+					},
+					"match": "*_short"
+				}
 			}
 		],
 		"properties": {
@@ -542,6 +669,7 @@
 			"assetTagNames": {
 				"fields": {
 					"raw": {
+						"store": true,
 						"type": "keyword"
 					}
 				},
@@ -666,6 +794,10 @@
 				"store": true,
 				"type": "keyword"
 			},
+			"fileExtension": {
+				"store": true,
+				"type": "text"
+			},
 			"folderId": {
 				"store": true,
 				"type": "keyword"
@@ -708,6 +840,11 @@
 				"store": true,
 				"type": "keyword"
 			},
+			"lastLoginDate": {
+				"format": "yyyyMMddHHmmss",
+				"store": true,
+				"type": "date"
+			},
 			"layoutUuid": {
 				"store": true,
 				"type": "keyword"
@@ -724,6 +861,46 @@
 				"format": "yyyyMMddHHmmss",
 				"store": true,
 				"type": "date"
+			},
+			"nestedFieldArray": {
+				"properties": {
+					"fieldName": {
+						"type": "keyword"
+					},
+					"valueFieldName": {
+						"type": "keyword"
+					},
+					"value_binary": {
+						"type": "binary"
+					},
+					"value_boolean": {
+						"type": "boolean"
+					},
+					"value_date": {
+						"format": "yyyyMMddHHmmss",
+						"type": "date"
+					},
+					"value_double": {
+						"type": "double"
+					},
+					"value_integer": {
+						"type": "integer"
+					},
+					"value_keyword": {
+						"type": "keyword"
+					},
+					"value_keyword_lowercase": {
+						"normalizer": "lowercase",
+						"type": "keyword"
+					},
+					"value_long": {
+						"type": "long"
+					},
+					"value_text": {
+						"type": "text"
+					}
+				},
+				"type": "nested"
 			},
 			"nodeId": {
 				"store": true,
@@ -794,6 +971,11 @@
 				"store": true,
 				"type": "keyword"
 			},
+			"roleNames": {
+				"normalizer": "lowercase",
+				"store": true,
+				"type": "keyword"
+			},
 			"rootEntryClassName": {
 				"store": true,
 				"type": "keyword"
@@ -855,11 +1037,21 @@
 				"store": true,
 				"type": "keyword"
 			},
+			"userGroupRoleNames": {
+				"normalizer": "lowercase",
+				"store": true,
+				"type": "keyword"
+			},
 			"userId": {
 				"store": true,
 				"type": "keyword"
 			},
 			"userName": {
+				"fields": {
+					"text": {
+						"type": "text"
+					}
+				},
 				"store": true,
 				"type": "keyword"
 			},

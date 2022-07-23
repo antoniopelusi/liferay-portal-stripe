@@ -56,30 +56,8 @@ public class BeanPropertiesImpl implements BeanProperties {
 			beanCopy.copy();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void copyProperties(
-		Object source, Object target, Class<?> editable) {
-
-		copyProperties(source, target);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void copyProperties(
-		Object source, Object target, String[] ignoreProperties) {
-
-		copyProperties(source, target);
 	}
 
 	@Override
@@ -120,7 +98,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toBooleanValue(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -146,7 +124,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -170,7 +148,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toByteValue(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -194,7 +172,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -218,7 +196,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toDoubleValue(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -244,7 +222,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -268,7 +246,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toFloatValue(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -292,7 +270,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -316,7 +294,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toIntValue(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -340,7 +318,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -364,7 +342,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toLongValue(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -388,7 +366,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -410,7 +388,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = BeanUtil.pojo.getProperty(bean, param);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -438,7 +416,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -466,7 +444,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanType = BeanUtil.pojo.getPropertyType(bean, param);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -494,7 +472,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -522,7 +500,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toShortValue(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -546,7 +524,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -570,7 +548,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 				beanValue = _converter.toString(value, defaultValue);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -596,7 +574,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -667,7 +645,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			BeanUtil.pojo.setProperty(bean, param, value);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -711,7 +689,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return null;

@@ -40,7 +40,5 @@ public class CPInstanceOptionValueRelImpl
 	 * com.liferay.commerce.product.model.CPInstanceOptionValueRel} interface
 	 * instead.
 	 */
-	public CPInstanceOptionValueRelImpl() {
-	}
 
 }

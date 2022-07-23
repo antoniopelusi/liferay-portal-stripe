@@ -18,7 +18,6 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.model.OAuth2ApplicationModel;
-import com.liferay.oauth2.provider.model.OAuth2ApplicationSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -31,20 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -78,14 +76,16 @@ public class OAuth2ApplicationModelImpl
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
 		{"oA2AScopeAliasesId", Types.BIGINT},
 		{"allowedGrantTypes", Types.VARCHAR},
+		{"clientAuthenticationMethod", Types.VARCHAR},
 		{"clientCredentialUserId", Types.BIGINT},
 		{"clientCredentialUserName", Types.VARCHAR},
 		{"clientId", Types.VARCHAR}, {"clientProfile", Types.INTEGER},
 		{"clientSecret", Types.VARCHAR}, {"description", Types.VARCHAR},
 		{"features", Types.VARCHAR}, {"homePageURL", Types.VARCHAR},
-		{"iconFileEntryId", Types.BIGINT}, {"name", Types.VARCHAR},
-		{"privacyPolicyURL", Types.VARCHAR}, {"redirectURIs", Types.VARCHAR},
-		{"rememberDevice", Types.BOOLEAN}, {"trustedApplication", Types.BOOLEAN}
+		{"iconFileEntryId", Types.BIGINT}, {"jwks", Types.VARCHAR},
+		{"name", Types.VARCHAR}, {"privacyPolicyURL", Types.VARCHAR},
+		{"redirectURIs", Types.VARCHAR}, {"rememberDevice", Types.BOOLEAN},
+		{"trustedApplication", Types.BOOLEAN}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -100,6 +100,7 @@ public class OAuth2ApplicationModelImpl
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("oA2AScopeAliasesId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("allowedGrantTypes", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("clientAuthenticationMethod", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("clientCredentialUserId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("clientCredentialUserName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("clientId", Types.VARCHAR);
@@ -109,6 +110,7 @@ public class OAuth2ApplicationModelImpl
 		TABLE_COLUMNS_MAP.put("features", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("homePageURL", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("iconFileEntryId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("jwks", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("privacyPolicyURL", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("redirectURIs", Types.VARCHAR);
@@ -117,7 +119,7 @@ public class OAuth2ApplicationModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table OAuth2Application (oAuth2ApplicationId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,oA2AScopeAliasesId LONG,allowedGrantTypes VARCHAR(75) null,clientCredentialUserId LONG,clientCredentialUserName VARCHAR(75) null,clientId VARCHAR(75) null,clientProfile INTEGER,clientSecret VARCHAR(75) null,description STRING null,features STRING null,homePageURL STRING null,iconFileEntryId LONG,name VARCHAR(75) null,privacyPolicyURL STRING null,redirectURIs STRING null,rememberDevice BOOLEAN,trustedApplication BOOLEAN)";
+		"create table OAuth2Application (oAuth2ApplicationId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,oA2AScopeAliasesId LONG,allowedGrantTypes VARCHAR(128) null,clientAuthenticationMethod VARCHAR(75) null,clientCredentialUserId LONG,clientCredentialUserName VARCHAR(75) null,clientId VARCHAR(75) null,clientProfile INTEGER,clientSecret VARCHAR(75) null,description STRING null,features STRING null,homePageURL STRING null,iconFileEntryId LONG,jwks VARCHAR(3999) null,name VARCHAR(75) null,privacyPolicyURL STRING null,redirectURIs STRING null,rememberDevice BOOLEAN,trustedApplication BOOLEAN)";
 
 	public static final String TABLE_SQL_DROP = "drop table OAuth2Application";
 
@@ -164,74 +166,6 @@ public class OAuth2ApplicationModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static OAuth2Application toModel(OAuth2ApplicationSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		OAuth2Application model = new OAuth2ApplicationImpl();
-
-		model.setOAuth2ApplicationId(soapModel.getOAuth2ApplicationId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setOAuth2ApplicationScopeAliasesId(
-			soapModel.getOAuth2ApplicationScopeAliasesId());
-		model.setAllowedGrantTypes(soapModel.getAllowedGrantTypes());
-		model.setClientCredentialUserId(soapModel.getClientCredentialUserId());
-		model.setClientCredentialUserName(
-			soapModel.getClientCredentialUserName());
-		model.setClientId(soapModel.getClientId());
-		model.setClientProfile(soapModel.getClientProfile());
-		model.setClientSecret(soapModel.getClientSecret());
-		model.setDescription(soapModel.getDescription());
-		model.setFeatures(soapModel.getFeatures());
-		model.setHomePageURL(soapModel.getHomePageURL());
-		model.setIconFileEntryId(soapModel.getIconFileEntryId());
-		model.setName(soapModel.getName());
-		model.setPrivacyPolicyURL(soapModel.getPrivacyPolicyURL());
-		model.setRedirectURIs(soapModel.getRedirectURIs());
-		model.setRememberDevice(soapModel.isRememberDevice());
-		model.setTrustedApplication(soapModel.isTrustedApplication());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<OAuth2Application> toModels(
-		OAuth2ApplicationSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<OAuth2Application> models = new ArrayList<OAuth2Application>(
-			soapModels.length);
-
-		for (OAuth2ApplicationSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public OAuth2ApplicationModelImpl() {
@@ -319,34 +253,6 @@ public class OAuth2ApplicationModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, OAuth2Application>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			OAuth2Application.class.getClassLoader(), OAuth2Application.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<OAuth2Application> constructor =
-				(Constructor<OAuth2Application>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<OAuth2Application, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<OAuth2Application, Object>>
@@ -409,6 +315,13 @@ public class OAuth2ApplicationModelImpl
 			(BiConsumer<OAuth2Application, String>)
 				OAuth2Application::setAllowedGrantTypes);
 		attributeGetterFunctions.put(
+			"clientAuthenticationMethod",
+			OAuth2Application::getClientAuthenticationMethod);
+		attributeSetterBiConsumers.put(
+			"clientAuthenticationMethod",
+			(BiConsumer<OAuth2Application, String>)
+				OAuth2Application::setClientAuthenticationMethod);
+		attributeGetterFunctions.put(
 			"clientCredentialUserId",
 			OAuth2Application::getClientCredentialUserId);
 		attributeSetterBiConsumers.put(
@@ -464,6 +377,10 @@ public class OAuth2ApplicationModelImpl
 			"iconFileEntryId",
 			(BiConsumer<OAuth2Application, Long>)
 				OAuth2Application::setIconFileEntryId);
+		attributeGetterFunctions.put("jwks", OAuth2Application::getJwks);
+		attributeSetterBiConsumers.put(
+			"jwks",
+			(BiConsumer<OAuth2Application, String>)OAuth2Application::setJwks);
 		attributeGetterFunctions.put("name", OAuth2Application::getName);
 		attributeSetterBiConsumers.put(
 			"name",
@@ -665,6 +582,28 @@ public class OAuth2ApplicationModelImpl
 
 	@JSON
 	@Override
+	public String getClientAuthenticationMethod() {
+		if (_clientAuthenticationMethod == null) {
+			return "";
+		}
+		else {
+			return _clientAuthenticationMethod;
+		}
+	}
+
+	@Override
+	public void setClientAuthenticationMethod(
+		String clientAuthenticationMethod) {
+
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_clientAuthenticationMethod = clientAuthenticationMethod;
+	}
+
+	@JSON
+	@Override
 	public long getClientCredentialUserId() {
 		return _clientCredentialUserId;
 	}
@@ -856,6 +795,26 @@ public class OAuth2ApplicationModelImpl
 
 	@JSON
 	@Override
+	public String getJwks() {
+		if (_jwks == null) {
+			return "";
+		}
+		else {
+			return _jwks;
+		}
+	}
+
+	@Override
+	public void setJwks(String jwks) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_jwks = jwks;
+	}
+
+	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return "";
@@ -1022,6 +981,8 @@ public class OAuth2ApplicationModelImpl
 		oAuth2ApplicationImpl.setOAuth2ApplicationScopeAliasesId(
 			getOAuth2ApplicationScopeAliasesId());
 		oAuth2ApplicationImpl.setAllowedGrantTypes(getAllowedGrantTypes());
+		oAuth2ApplicationImpl.setClientAuthenticationMethod(
+			getClientAuthenticationMethod());
 		oAuth2ApplicationImpl.setClientCredentialUserId(
 			getClientCredentialUserId());
 		oAuth2ApplicationImpl.setClientCredentialUserName(
@@ -1033,6 +994,7 @@ public class OAuth2ApplicationModelImpl
 		oAuth2ApplicationImpl.setFeatures(getFeatures());
 		oAuth2ApplicationImpl.setHomePageURL(getHomePageURL());
 		oAuth2ApplicationImpl.setIconFileEntryId(getIconFileEntryId());
+		oAuth2ApplicationImpl.setJwks(getJwks());
 		oAuth2ApplicationImpl.setName(getName());
 		oAuth2ApplicationImpl.setPrivacyPolicyURL(getPrivacyPolicyURL());
 		oAuth2ApplicationImpl.setRedirectURIs(getRedirectURIs());
@@ -1040,6 +1002,63 @@ public class OAuth2ApplicationModelImpl
 		oAuth2ApplicationImpl.setTrustedApplication(isTrustedApplication());
 
 		oAuth2ApplicationImpl.resetOriginalValues();
+
+		return oAuth2ApplicationImpl;
+	}
+
+	@Override
+	public OAuth2Application cloneWithOriginalValues() {
+		OAuth2ApplicationImpl oAuth2ApplicationImpl =
+			new OAuth2ApplicationImpl();
+
+		oAuth2ApplicationImpl.setOAuth2ApplicationId(
+			this.<Long>getColumnOriginalValue("oAuth2ApplicationId"));
+		oAuth2ApplicationImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		oAuth2ApplicationImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		oAuth2ApplicationImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		oAuth2ApplicationImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		oAuth2ApplicationImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		oAuth2ApplicationImpl.setOAuth2ApplicationScopeAliasesId(
+			this.<Long>getColumnOriginalValue("oA2AScopeAliasesId"));
+		oAuth2ApplicationImpl.setAllowedGrantTypes(
+			this.<String>getColumnOriginalValue("allowedGrantTypes"));
+		oAuth2ApplicationImpl.setClientAuthenticationMethod(
+			this.<String>getColumnOriginalValue("clientAuthenticationMethod"));
+		oAuth2ApplicationImpl.setClientCredentialUserId(
+			this.<Long>getColumnOriginalValue("clientCredentialUserId"));
+		oAuth2ApplicationImpl.setClientCredentialUserName(
+			this.<String>getColumnOriginalValue("clientCredentialUserName"));
+		oAuth2ApplicationImpl.setClientId(
+			this.<String>getColumnOriginalValue("clientId"));
+		oAuth2ApplicationImpl.setClientProfile(
+			this.<Integer>getColumnOriginalValue("clientProfile"));
+		oAuth2ApplicationImpl.setClientSecret(
+			this.<String>getColumnOriginalValue("clientSecret"));
+		oAuth2ApplicationImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		oAuth2ApplicationImpl.setFeatures(
+			this.<String>getColumnOriginalValue("features"));
+		oAuth2ApplicationImpl.setHomePageURL(
+			this.<String>getColumnOriginalValue("homePageURL"));
+		oAuth2ApplicationImpl.setIconFileEntryId(
+			this.<Long>getColumnOriginalValue("iconFileEntryId"));
+		oAuth2ApplicationImpl.setJwks(
+			this.<String>getColumnOriginalValue("jwks"));
+		oAuth2ApplicationImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		oAuth2ApplicationImpl.setPrivacyPolicyURL(
+			this.<String>getColumnOriginalValue("privacyPolicyURL"));
+		oAuth2ApplicationImpl.setRedirectURIs(
+			this.<String>getColumnOriginalValue("redirectURIs"));
+		oAuth2ApplicationImpl.setRememberDevice(
+			this.<Boolean>getColumnOriginalValue("rememberDevice"));
+		oAuth2ApplicationImpl.setTrustedApplication(
+			this.<Boolean>getColumnOriginalValue("trustedApplication"));
 
 		return oAuth2ApplicationImpl;
 	}
@@ -1163,6 +1182,18 @@ public class OAuth2ApplicationModelImpl
 			oAuth2ApplicationCacheModel.allowedGrantTypes = null;
 		}
 
+		oAuth2ApplicationCacheModel.clientAuthenticationMethod =
+			getClientAuthenticationMethod();
+
+		String clientAuthenticationMethod =
+			oAuth2ApplicationCacheModel.clientAuthenticationMethod;
+
+		if ((clientAuthenticationMethod != null) &&
+			(clientAuthenticationMethod.length() == 0)) {
+
+			oAuth2ApplicationCacheModel.clientAuthenticationMethod = null;
+		}
+
 		oAuth2ApplicationCacheModel.clientCredentialUserId =
 			getClientCredentialUserId();
 
@@ -1222,6 +1253,14 @@ public class OAuth2ApplicationModelImpl
 
 		oAuth2ApplicationCacheModel.iconFileEntryId = getIconFileEntryId();
 
+		oAuth2ApplicationCacheModel.jwks = getJwks();
+
+		String jwks = oAuth2ApplicationCacheModel.jwks;
+
+		if ((jwks != null) && (jwks.length() == 0)) {
+			oAuth2ApplicationCacheModel.jwks = null;
+		}
+
 		oAuth2ApplicationCacheModel.name = getName();
 
 		String name = oAuth2ApplicationCacheModel.name;
@@ -1259,7 +1298,7 @@ public class OAuth2ApplicationModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1270,9 +1309,27 @@ public class OAuth2ApplicationModelImpl
 			Function<OAuth2Application, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((OAuth2Application)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(OAuth2Application)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1319,7 +1376,9 @@ public class OAuth2ApplicationModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, OAuth2Application>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					OAuth2Application.class, ModelWrapper.class);
 
 	}
 
@@ -1332,6 +1391,7 @@ public class OAuth2ApplicationModelImpl
 	private boolean _setModifiedDate;
 	private long _oAuth2ApplicationScopeAliasesId;
 	private String _allowedGrantTypes;
+	private String _clientAuthenticationMethod;
 	private long _clientCredentialUserId;
 	private String _clientCredentialUserName;
 	private String _clientId;
@@ -1341,6 +1401,7 @@ public class OAuth2ApplicationModelImpl
 	private String _features;
 	private String _homePageURL;
 	private long _iconFileEntryId;
+	private String _jwks;
 	private String _name;
 	private String _privacyPolicyURL;
 	private String _redirectURIs;
@@ -1386,6 +1447,8 @@ public class OAuth2ApplicationModelImpl
 			"oA2AScopeAliasesId", _oAuth2ApplicationScopeAliasesId);
 		_columnOriginalValues.put("allowedGrantTypes", _allowedGrantTypes);
 		_columnOriginalValues.put(
+			"clientAuthenticationMethod", _clientAuthenticationMethod);
+		_columnOriginalValues.put(
 			"clientCredentialUserId", _clientCredentialUserId);
 		_columnOriginalValues.put(
 			"clientCredentialUserName", _clientCredentialUserName);
@@ -1396,6 +1459,7 @@ public class OAuth2ApplicationModelImpl
 		_columnOriginalValues.put("features", _features);
 		_columnOriginalValues.put("homePageURL", _homePageURL);
 		_columnOriginalValues.put("iconFileEntryId", _iconFileEntryId);
+		_columnOriginalValues.put("jwks", _jwks);
 		_columnOriginalValues.put("name", _name);
 		_columnOriginalValues.put("privacyPolicyURL", _privacyPolicyURL);
 		_columnOriginalValues.put("redirectURIs", _redirectURIs);
@@ -1441,33 +1505,37 @@ public class OAuth2ApplicationModelImpl
 
 		columnBitmasks.put("allowedGrantTypes", 128L);
 
-		columnBitmasks.put("clientCredentialUserId", 256L);
+		columnBitmasks.put("clientAuthenticationMethod", 256L);
 
-		columnBitmasks.put("clientCredentialUserName", 512L);
+		columnBitmasks.put("clientCredentialUserId", 512L);
 
-		columnBitmasks.put("clientId", 1024L);
+		columnBitmasks.put("clientCredentialUserName", 1024L);
 
-		columnBitmasks.put("clientProfile", 2048L);
+		columnBitmasks.put("clientId", 2048L);
 
-		columnBitmasks.put("clientSecret", 4096L);
+		columnBitmasks.put("clientProfile", 4096L);
 
-		columnBitmasks.put("description", 8192L);
+		columnBitmasks.put("clientSecret", 8192L);
 
-		columnBitmasks.put("features", 16384L);
+		columnBitmasks.put("description", 16384L);
 
-		columnBitmasks.put("homePageURL", 32768L);
+		columnBitmasks.put("features", 32768L);
 
-		columnBitmasks.put("iconFileEntryId", 65536L);
+		columnBitmasks.put("homePageURL", 65536L);
 
-		columnBitmasks.put("name", 131072L);
+		columnBitmasks.put("iconFileEntryId", 131072L);
 
-		columnBitmasks.put("privacyPolicyURL", 262144L);
+		columnBitmasks.put("jwks", 262144L);
 
-		columnBitmasks.put("redirectURIs", 524288L);
+		columnBitmasks.put("name", 524288L);
 
-		columnBitmasks.put("rememberDevice", 1048576L);
+		columnBitmasks.put("privacyPolicyURL", 1048576L);
 
-		columnBitmasks.put("trustedApplication", 2097152L);
+		columnBitmasks.put("redirectURIs", 2097152L);
+
+		columnBitmasks.put("rememberDevice", 4194304L);
+
+		columnBitmasks.put("trustedApplication", 8388608L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

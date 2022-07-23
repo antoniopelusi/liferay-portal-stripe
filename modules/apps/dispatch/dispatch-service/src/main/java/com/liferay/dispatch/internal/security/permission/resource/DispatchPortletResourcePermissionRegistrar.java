@@ -17,9 +17,7 @@ package com.liferay.dispatch.internal.security.permission.resource;
 import com.liferay.dispatch.constants.DispatchConstants;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -35,15 +33,13 @@ public class DispatchPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.name", DispatchConstants.RESOURCE_NAME);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
 				DispatchConstants.RESOURCE_NAME),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", DispatchConstants.RESOURCE_NAME
+			).build());
 	}
 
 	@Deactivate

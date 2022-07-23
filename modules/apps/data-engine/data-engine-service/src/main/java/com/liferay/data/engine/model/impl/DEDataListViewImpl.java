@@ -36,7 +36,5 @@ public class DEDataListViewImpl extends DEDataListViewBaseImpl {
 	 * list view model instance should use the {@link
 	 * com.liferay.data.engine.model.DEDataListView} interface instead.
 	 */
-	public DEDataListViewImpl() {
-	}
 
 }

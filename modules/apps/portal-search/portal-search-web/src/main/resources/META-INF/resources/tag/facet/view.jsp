@@ -47,7 +47,7 @@ TagFacetPortletInstanceConfiguration tagFacetPortletInstanceConfiguration = asse
 		<aui:input autocomplete="off" name="<%= HtmlUtil.escapeAttribute(assetTagsSearchFacetDisplayContext.getParameterName()) %>" type="hidden" value="<%= assetTagsSearchFacetDisplayContext.getParameterValue() %>" />
 	</c:when>
 	<c:otherwise>
-		<aui:form method="post" name="fm">
+		<aui:form action="#" method="post" name="fm">
 			<aui:input autocomplete="off" name="<%= HtmlUtil.escapeAttribute(assetTagsSearchFacetDisplayContext.getParameterName()) %>" type="hidden" value="<%= assetTagsSearchFacetDisplayContext.getParameterValue() %>" />
 			<aui:input cssClass="facet-parameter-name" name="facet-parameter-name" type="hidden" value="<%= assetTagsSearchFacetDisplayContext.getParameterName() %>" />
 			<aui:input cssClass="start-parameter-name" name="start-parameter-name" type="hidden" value="<%= assetTagsSearchFacetDisplayContext.getPaginationStartParameterName() %>" />
@@ -95,7 +95,7 @@ TagFacetPortletInstanceConfiguration tagFacetPortletInstanceConfiguration = asse
 												<input
 													<%= assetTagsSearchFacetTermDisplayContext.isSelected() ? "checked" : StringPool.BLANK %>
 													class="custom-control-input facet-term"
-													data-term-id="<%= assetTagsSearchFacetTermDisplayContext.getValue() %>"
+													data-term-id="<%= HtmlUtil.escapeAttribute(assetTagsSearchFacetTermDisplayContext.getValue()) %>"
 													disabled
 													id="<portlet:namespace />term_<%= i %>"
 													name="<portlet:namespace />term_<%= i %>"

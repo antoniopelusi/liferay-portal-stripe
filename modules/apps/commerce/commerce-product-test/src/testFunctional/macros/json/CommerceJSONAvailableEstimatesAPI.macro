@@ -1,0 +1,73 @@
+definition {
+
+	macro _deleteCommerceAvailableEstimates {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var commerceAvailabilityEstimateIds = CommerceJSONAvailableEstimatesAPI._getCommerceAvailableEstimates();
+
+		if ("${commerceAvailabilityEstimateIds}" != "") {
+			for (var commerceAvailabilityEstimateId : list "${commerceAvailabilityEstimateIds}") {
+				echo("Deleting Commerce commerceAvailabilityEstimate with id: ${commerceAvailabilityEstimateId}");
+
+				var curl = '''
+					${baseURL}/api/jsonws/commerce.commerceavailabilityestimate/delete-commerce-availability-estimate \
+						-u test@liferay.com:test \
+						-d commerceAvailabilityEstimateId=${commerceAvailabilityEstimateId}
+				''';
+
+				JSONCurlUtil.post("${curl}");
+			}
+		}
+		else {
+			echo("No Commerce Availability Estimate to be deleted");
+		}
+	}
+
+	macro _getAvailableEstimatesCount {
+		var availableEstimatesCount = "0";
+
+		var commerceAvailabilityEstimateIds = CommerceJSONAvailableEstimatesAPI._getCommerceAvailableEstimates();
+
+		for (var commerceAvailabilityEstimateId : list "${commerceAvailabilityEstimateIds}") {
+			if ("${commerceAvailabilityEstimateId}" != "") {
+				var availableEstimatesCount = ${availableEstimatesCount} + 1;
+			}
+		}
+
+		echo("The Commerce available estimates count is: ${availableEstimatesCount}");
+
+		return "${availableEstimatesCount}";
+	}
+
+	macro _getCommerceAvailableEstimates {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var companyId = JSONCompany.getCompanyId();
+
+		var curl = '''
+			  ${baseURL}/api/jsonws/commerce.commerceavailabilityestimate/get-commerce-availability-estimates/ \
+				  -u test@liferay.com:test \
+				  -d companyId=${companyId} \
+				  -d "start=-1" \
+				  -d "end=-1" \
+				  -d -orderByComparator=''
+		''';
+
+		echo("curl: ${curl}");
+
+		var availableEstimates = JSONCurlUtil.post("${curl}", "$..['commerceAvailabilityEstimateId']");
+
+		echo("availableEstimates: ${availableEstimates}");
+
+		return "${availableEstimates}";
+	}
+
+}

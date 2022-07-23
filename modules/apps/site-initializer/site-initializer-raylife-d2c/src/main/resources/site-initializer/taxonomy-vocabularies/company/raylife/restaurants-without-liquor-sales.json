@@ -1,0 +1,16 @@
+{
+	"description": "Own an establishment without a liquor license to cook and serve meals on the premises",
+	"externalReferenceCode": "RAYCAT0018",
+	"name": "Restaurants without Liquor Sales",
+	"taxonomyCategoryProperties": [
+		{
+			"key": "NAICS",
+			"value": "722513"
+		},
+		{
+			"key": "Segment",
+			"value": "Retail"
+		}
+	],
+	"viewableBy": "Anyone"
+}

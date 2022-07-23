@@ -1,5 +1,40 @@
 definition {
 
+	macro configureDisplayStyleInSystemSettings {
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Blogs",
+			configurationName = "Blogs",
+			configurationScope = "Widget Scope");
+
+		if ("${displayStyle}" == "Abstract") {
+			var displayStyleKey = "abstract";
+		}
+		else if ("${displayStyle}" == "Full Content") {
+			var displayStyleKey = "full-content";
+		}
+		else if ("${displayStyle}" == "Title") {
+			var displayStyleKey = "title";
+		}
+		else if ("${displayStyle}" == "Basic") {
+			var displayStyleKey = "ddmTemplate_BLOGS-BASIC-FTL";
+		}
+		else if ("${displayStyle}" == "Card") {
+			var displayStyleKey = "ddmTemplate_BLOGS-CARD-FTL";
+		}
+
+		Type(
+			key_label = "Display Style",
+			locator1 = "TextArea#ANY_LABELED",
+			value1 = "${displayStyleKey}");
+
+		SystemSettings.saveConfiguration();
+	}
+
 	macro enableReadingTime {
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -11,7 +46,7 @@ definition {
 			configurationName = "Blogs",
 			configurationScope = "Widget Scope");
 
-		if (IsNotChecked.isNotCheckedNotVisible(locator1 = "FormFields#CHECKBOX", key_fieldName = "enableReadingTime")) {
+		if (IsNotChecked.isNotCheckedNotVisible(key_fieldName = "enableReadingTime", locator1 = "FormFields#CHECKBOX")) {
 			Check.checkNotVisible(
 				key_fieldName = "enableReadingTime",
 				locator1 = "FormFields#CHECKBOX");
@@ -62,6 +97,10 @@ definition {
 
 	macro uncheckComments {
 		Uncheck(locator1 = "Checkbox#ENABLE_COMMENTS");
+	}
+
+	macro uncheckRatings {
+		Uncheck(locator1 = "Checkbox#ENABLE_RATINGS");
 	}
 
 	macro uncheckRelatedAssets {
@@ -180,7 +219,7 @@ definition {
 
 			MenuItem.viewNotPresent(menuItem = "Permissions");
 
-			if (IsElementPresent(locator1 = "MenuItem#ANY_MENU_ITEM", key_menuItem = "Configuration")) {
+			if (IsElementPresent(key_menuItem = "Configuration", locator1 = "MenuItem#ANY_MENU_ITEM")) {
 				MenuItem.click(menuItem = "Configuration");
 
 				SelectFrame(locator1 = "IFrame#CONFIGURATION");
@@ -210,7 +249,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Blogs");
 
 		AssertElementPresent(locator1 = "ProductMenu#PRODUCT_MENU_PANEL_SCOPE");

@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.report;
 
+import com.liferay.dynamic.data.mapping.constants.DDMFormInstanceReportConstants;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.json.JSONObject;
 
@@ -43,6 +44,22 @@ public interface DDMFormFieldTypeReportProcessor {
 		throws Exception {
 
 		return process(ddmFormFieldValue, null, 0, ddmFormInstanceReportEvent);
+	}
+
+	public default void updateData(
+		String ddmFormInstanceReportEvent, JSONObject jsonObject, String key) {
+
+		if (ddmFormInstanceReportEvent.equals(
+				DDMFormInstanceReportConstants.EVENT_ADD_RECORD_VERSION)) {
+
+			jsonObject.put(key, jsonObject.getInt(key, 0) + 1);
+		}
+		else if (ddmFormInstanceReportEvent.equals(
+					DDMFormInstanceReportConstants.
+						EVENT_DELETE_RECORD_VERSION)) {
+
+			jsonObject.put(key, jsonObject.getInt(key, 0) - 1);
+		}
 	}
 
 }

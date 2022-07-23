@@ -64,7 +64,7 @@ public class SamlSpIdpConnectionCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(41);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("{samlSpIdpConnectionId=");
 		sb.append(samlSpIdpConnectionId);
@@ -78,8 +78,6 @@ public class SamlSpIdpConnectionCacheModel
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
-		sb.append(", samlIdpEntityId=");
-		sb.append(samlIdpEntityId);
 		sb.append(", assertionSignatureRequired=");
 		sb.append(assertionSignatureRequired);
 		sb.append(", clockSkew=");
@@ -100,12 +98,16 @@ public class SamlSpIdpConnectionCacheModel
 		sb.append(name);
 		sb.append(", nameIdFormat=");
 		sb.append(nameIdFormat);
+		sb.append(", samlIdpEntityId=");
+		sb.append(samlIdpEntityId);
 		sb.append(", signAuthnRequest=");
 		sb.append(signAuthnRequest);
 		sb.append(", unknownUsersAreStrangers=");
 		sb.append(unknownUsersAreStrangers);
 		sb.append(", userAttributeMappings=");
 		sb.append(userAttributeMappings);
+		sb.append(", userIdentifierExpression=");
+		sb.append(userIdentifierExpression);
 		sb.append("}");
 
 		return sb.toString();
@@ -139,13 +141,6 @@ public class SamlSpIdpConnectionCacheModel
 		}
 		else {
 			samlSpIdpConnectionImpl.setModifiedDate(new Date(modifiedDate));
-		}
-
-		if (samlIdpEntityId == null) {
-			samlSpIdpConnectionImpl.setSamlIdpEntityId("");
-		}
-		else {
-			samlSpIdpConnectionImpl.setSamlIdpEntityId(samlIdpEntityId);
 		}
 
 		samlSpIdpConnectionImpl.setAssertionSignatureRequired(
@@ -191,6 +186,13 @@ public class SamlSpIdpConnectionCacheModel
 			samlSpIdpConnectionImpl.setNameIdFormat(nameIdFormat);
 		}
 
+		if (samlIdpEntityId == null) {
+			samlSpIdpConnectionImpl.setSamlIdpEntityId("");
+		}
+		else {
+			samlSpIdpConnectionImpl.setSamlIdpEntityId(samlIdpEntityId);
+		}
+
 		samlSpIdpConnectionImpl.setSignAuthnRequest(signAuthnRequest);
 		samlSpIdpConnectionImpl.setUnknownUsersAreStrangers(
 			unknownUsersAreStrangers);
@@ -201,6 +203,14 @@ public class SamlSpIdpConnectionCacheModel
 		else {
 			samlSpIdpConnectionImpl.setUserAttributeMappings(
 				userAttributeMappings);
+		}
+
+		if (userIdentifierExpression == null) {
+			samlSpIdpConnectionImpl.setUserIdentifierExpression("");
+		}
+		else {
+			samlSpIdpConnectionImpl.setUserIdentifierExpression(
+				userIdentifierExpression);
 		}
 
 		samlSpIdpConnectionImpl.resetOriginalValues();
@@ -220,7 +230,6 @@ public class SamlSpIdpConnectionCacheModel
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
-		samlIdpEntityId = objectInput.readUTF();
 
 		assertionSignatureRequired = objectInput.readBoolean();
 
@@ -236,11 +245,13 @@ public class SamlSpIdpConnectionCacheModel
 		metadataXml = (String)objectInput.readObject();
 		name = objectInput.readUTF();
 		nameIdFormat = objectInput.readUTF();
+		samlIdpEntityId = objectInput.readUTF();
 
 		signAuthnRequest = objectInput.readBoolean();
 
 		unknownUsersAreStrangers = objectInput.readBoolean();
 		userAttributeMappings = objectInput.readUTF();
+		userIdentifierExpression = objectInput.readUTF();
 	}
 
 	@Override
@@ -260,13 +271,6 @@ public class SamlSpIdpConnectionCacheModel
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
-
-		if (samlIdpEntityId == null) {
-			objectOutput.writeUTF("");
-		}
-		else {
-			objectOutput.writeUTF(samlIdpEntityId);
-		}
 
 		objectOutput.writeBoolean(assertionSignatureRequired);
 
@@ -307,6 +311,13 @@ public class SamlSpIdpConnectionCacheModel
 			objectOutput.writeUTF(nameIdFormat);
 		}
 
+		if (samlIdpEntityId == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(samlIdpEntityId);
+		}
+
 		objectOutput.writeBoolean(signAuthnRequest);
 
 		objectOutput.writeBoolean(unknownUsersAreStrangers);
@@ -317,6 +328,13 @@ public class SamlSpIdpConnectionCacheModel
 		else {
 			objectOutput.writeUTF(userAttributeMappings);
 		}
+
+		if (userIdentifierExpression == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(userIdentifierExpression);
+		}
 	}
 
 	public long samlSpIdpConnectionId;
@@ -325,7 +343,6 @@ public class SamlSpIdpConnectionCacheModel
 	public String userName;
 	public long createDate;
 	public long modifiedDate;
-	public String samlIdpEntityId;
 	public boolean assertionSignatureRequired;
 	public long clockSkew;
 	public boolean enabled;
@@ -336,8 +353,10 @@ public class SamlSpIdpConnectionCacheModel
 	public String metadataXml;
 	public String name;
 	public String nameIdFormat;
+	public String samlIdpEntityId;
 	public boolean signAuthnRequest;
 	public boolean unknownUsersAreStrangers;
 	public String userAttributeMappings;
+	public String userIdentifierExpression;
 
 }

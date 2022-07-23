@@ -21,9 +21,6 @@ import com.liferay.petra.string.StringPool;
  */
 public class RowMoverDropTarget {
 
-	public RowMoverDropTarget() {
-	}
-
 	public String getAction() {
 		return _action;
 	}

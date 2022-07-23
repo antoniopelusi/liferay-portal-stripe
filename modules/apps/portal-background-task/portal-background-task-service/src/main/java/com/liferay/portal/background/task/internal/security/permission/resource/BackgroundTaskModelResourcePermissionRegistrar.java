@@ -23,9 +23,7 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -49,10 +47,6 @@ public class BackgroundTaskModelResourcePermissionRegistrar {
 					(Class<?>)ModelResourcePermissionLogic.class,
 				"background.task.executor.class.name");
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", BackgroundTask.class.getName());
-
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<BackgroundTask>>)
 				(Class<?>)ModelResourcePermission.class,
@@ -61,7 +55,9 @@ public class BackgroundTaskModelResourcePermissionRegistrar {
 				_backgroundTaskLocalService::getBackgroundTask, null,
 				(modelResourcePermission, consumer) -> consumer.accept(
 					new BackgroundTaskModelResourcePermissionLogic())),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", BackgroundTask.class.getName()
+			).build());
 	}
 
 	@Deactivate

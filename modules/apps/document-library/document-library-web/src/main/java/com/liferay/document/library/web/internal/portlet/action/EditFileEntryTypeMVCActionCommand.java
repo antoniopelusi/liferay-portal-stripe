@@ -51,7 +51,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
@@ -165,16 +164,8 @@ public class EditFileEntryTypeMVCActionCommand
 	private void _addFileEntryType(ActionRequest actionRequest)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		DataDefinitionResource.Builder dataDefinitionResourceBuilder =
 			_dataDefinitionResourceFactory.create();
-
-		DataDefinitionResource dataDefinitionResource =
-			dataDefinitionResourceBuilder.user(
-				themeDisplay.getUser()
-			).build();
 
 		DataDefinition dataDefinition = DataDefinition.toDTO(
 			ParamUtil.getString(actionRequest, "dataDefinition"));
@@ -187,8 +178,16 @@ public class EditFileEntryTypeMVCActionCommand
 			throw new DataDefinitionValidationException.MustSetFields();
 		}
 
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
 		dataDefinition.setDefaultDataLayout(
 			DataLayout.toDTO(ParamUtil.getString(actionRequest, "dataLayout")));
+
+		DataDefinitionResource dataDefinitionResource =
+			dataDefinitionResourceBuilder.user(
+				themeDisplay.getUser()
+			).build();
 
 		dataDefinition =
 			dataDefinitionResource.postSiteDataDefinitionByContentType(
@@ -239,9 +238,6 @@ public class EditFileEntryTypeMVCActionCommand
 				fileEntryType.getDataDefinitionId());
 
 			_dlFileEntryTypeService.deleteFileEntryType(fileEntryTypeId);
-
-			_dlFileEntryTypeLocalService.updateDDMStructureLinks(
-				fileEntryTypeId, Collections.emptySet());
 		}
 		catch (RequiredStructureException requiredStructureException) {
 			throw new RequiredFileEntryTypeException(
@@ -288,19 +284,8 @@ public class EditFileEntryTypeMVCActionCommand
 	private void _updateFileEntryType(ActionRequest actionRequest)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long fileEntryTypeId = ParamUtil.getLong(
-			actionRequest, "fileEntryTypeId");
-
 		DataDefinitionResource.Builder dataDefinitionResourceBuilder =
 			_dataDefinitionResourceFactory.create();
-
-		DataDefinitionResource dataDefinitionResource =
-			dataDefinitionResourceBuilder.user(
-				themeDisplay.getUser()
-			).build();
 
 		DataDefinition dataDefinition = DataDefinition.toDTO(
 			ParamUtil.getString(actionRequest, "dataDefinition"));
@@ -314,8 +299,19 @@ public class EditFileEntryTypeMVCActionCommand
 			throw new DataDefinitionValidationException.MustSetFields();
 		}
 
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long fileEntryTypeId = ParamUtil.getLong(
+			actionRequest, "fileEntryTypeId");
+
 		dataDefinition.setDefaultDataLayout(
 			DataLayout.toDTO(ParamUtil.getString(actionRequest, "dataLayout")));
+
+		DataDefinitionResource dataDefinitionResource =
+			dataDefinitionResourceBuilder.user(
+				themeDisplay.getUser()
+			).build();
 
 		dataDefinitionResource.putDataDefinition(
 			ParamUtil.getLong(actionRequest, "dataDefinitionId"),

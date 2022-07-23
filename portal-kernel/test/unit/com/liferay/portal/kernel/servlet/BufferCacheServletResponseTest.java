@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.servlet;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.io.DummyOutputStream;
 import com.liferay.portal.kernel.io.DummyWriter;
@@ -23,7 +24,6 @@ import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.util.PropsTestUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -240,9 +240,9 @@ public class BufferCacheServletResponseTest {
 
 		bufferCacheServletResponse.setCharBuffer(charBuffer);
 
-		byteBuffer = bufferCacheServletResponse.getByteBuffer();
-
-		Assert.assertEquals(ByteBuffer.wrap(_TEST_BYTES), byteBuffer);
+		Assert.assertEquals(
+			ByteBuffer.wrap(_TEST_BYTES),
+			bufferCacheServletResponse.getByteBuffer());
 
 		Assert.assertEquals(0, charBuffer.position());
 		Assert.assertEquals(_TEST_STRING.length(), charBuffer.limit());
@@ -281,9 +281,9 @@ public class BufferCacheServletResponseTest {
 
 		servletOutputStream.write(_TEST_BYTES);
 
-		byteBuffer = bufferCacheServletResponse.getByteBuffer();
-
-		Assert.assertEquals(ByteBuffer.wrap(_TEST_BYTES), byteBuffer);
+		Assert.assertEquals(
+			ByteBuffer.wrap(_TEST_BYTES),
+			bufferCacheServletResponse.getByteBuffer());
 
 		// Print writer
 
@@ -296,9 +296,9 @@ public class BufferCacheServletResponseTest {
 
 		printWriter.write(_TEST_STRING);
 
-		byteBuffer = bufferCacheServletResponse.getByteBuffer();
-
-		Assert.assertEquals(ByteBuffer.wrap(_TEST_BYTES), byteBuffer);
+		Assert.assertEquals(
+			ByteBuffer.wrap(_TEST_BYTES),
+			bufferCacheServletResponse.getByteBuffer());
 	}
 
 	@Test
@@ -333,9 +333,9 @@ public class BufferCacheServletResponseTest {
 
 		bufferCacheServletResponse.setCharBuffer(CharBuffer.wrap(_TEST_STRING));
 
-		charBuffer = bufferCacheServletResponse.getCharBuffer();
-
-		Assert.assertEquals(_TEST_STRING, charBuffer.toString());
+		Assert.assertEquals(
+			_TEST_STRING,
+			String.valueOf(bufferCacheServletResponse.getCharBuffer()));
 
 		// Byte buffer
 
@@ -348,9 +348,9 @@ public class BufferCacheServletResponseTest {
 
 		bufferCacheServletResponse.setByteBuffer(byteBuffer);
 
-		charBuffer = bufferCacheServletResponse.getCharBuffer();
-
-		Assert.assertEquals(_TEST_STRING, charBuffer.toString());
+		Assert.assertEquals(
+			_TEST_STRING,
+			String.valueOf(bufferCacheServletResponse.getCharBuffer()));
 
 		Assert.assertEquals(0, byteBuffer.position());
 		Assert.assertEquals(_TEST_BYTES.length, byteBuffer.limit());
@@ -365,9 +365,9 @@ public class BufferCacheServletResponseTest {
 
 		printWriter.print(_TEST_STRING);
 
-		charBuffer = bufferCacheServletResponse.getCharBuffer();
-
-		Assert.assertEquals(_TEST_STRING, charBuffer.toString());
+		Assert.assertEquals(
+			_TEST_STRING,
+			String.valueOf(bufferCacheServletResponse.getCharBuffer()));
 
 		// Servlet output stream
 
@@ -381,9 +381,9 @@ public class BufferCacheServletResponseTest {
 
 		servletOutputStream.write(_TEST_BYTES);
 
-		charBuffer = bufferCacheServletResponse.getCharBuffer();
-
-		Assert.assertEquals(_TEST_STRING, charBuffer.toString());
+		Assert.assertEquals(
+			_TEST_STRING,
+			String.valueOf(bufferCacheServletResponse.getCharBuffer()));
 	}
 
 	@Test

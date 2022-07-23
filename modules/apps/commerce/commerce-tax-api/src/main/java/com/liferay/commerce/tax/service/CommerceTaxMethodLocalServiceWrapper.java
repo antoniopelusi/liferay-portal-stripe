@@ -27,6 +27,10 @@ public class CommerceTaxMethodLocalServiceWrapper
 	implements CommerceTaxMethodLocalService,
 			   ServiceWrapper<CommerceTaxMethodLocalService> {
 
+	public CommerceTaxMethodLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceTaxMethodLocalServiceWrapper(
 		CommerceTaxMethodLocalService commerceTaxMethodLocalService) {
 
@@ -173,6 +177,13 @@ public class CommerceTaxMethodLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceTaxMethodLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceTaxMethodLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

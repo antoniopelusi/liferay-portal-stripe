@@ -20,7 +20,7 @@ import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.osgi.util.service.OSGiServiceUtil;
 import com.liferay.petra.function.UnsafeRunnable;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.lock.LockListener;
@@ -73,14 +73,14 @@ public class DLFileEntryLockListenerTest {
 
 	@Test
 	public void testOnAfterExpireWithCancelCheckOutPolicy() throws Exception {
-		testWithOneDriveConfigurationDisabled(
-			() -> testWithCancelCheckOutAsPolicy(
+		_testWithOneDriveConfigurationDisabled(
+			() -> _testWithCancelCheckOutAsPolicy(
 				() -> {
 					FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-						TestPropsValues.getUserId(), _group.getGroupId(),
+						null, TestPropsValues.getUserId(), _group.getGroupId(),
 						DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 						RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
-						TestDataConstants.TEST_BYTE_ARRAY,
+						TestDataConstants.TEST_BYTE_ARRAY, null, null,
 						ServiceContextTestUtil.getServiceContext(
 							_group, TestPropsValues.getUserId()));
 
@@ -106,14 +106,14 @@ public class DLFileEntryLockListenerTest {
 
 	@Test
 	public void testOnAfterExpireWithCheckInPolicy() throws Exception {
-		testWithOneDriveConfigurationDisabled(
-			() -> testWithCheckInAsPolicy(
+		_testWithOneDriveConfigurationDisabled(
+			() -> _testWithCheckInAsPolicy(
 				() -> {
 					FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-						TestPropsValues.getUserId(), _group.getGroupId(),
+						null, TestPropsValues.getUserId(), _group.getGroupId(),
 						DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 						RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
-						TestDataConstants.TEST_BYTE_ARRAY,
+						TestDataConstants.TEST_BYTE_ARRAY, null, null,
 						ServiceContextTestUtil.getServiceContext(
 							_group, TestPropsValues.getUserId()));
 
@@ -139,29 +139,31 @@ public class DLFileEntryLockListenerTest {
 				}));
 	}
 
-	protected void testWithCancelCheckOutAsPolicy(
+	private void _testWithCancelCheckOutAsPolicy(
 			UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 
-		try (SafeClosable safeClosable = PropsValuesTestUtil.swap(
-				"DL_FILE_ENTRY_LOCK_POLICY", 0)) {
+		try (SafeCloseable safeCloseable =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"DL_FILE_ENTRY_LOCK_POLICY", 0)) {
 
 			unsafeRunnable.run();
 		}
 	}
 
-	protected void testWithCheckInAsPolicy(
+	private void _testWithCheckInAsPolicy(
 			UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 
-		try (SafeClosable safeClosable = PropsValuesTestUtil.swap(
-				"DL_FILE_ENTRY_LOCK_POLICY", 1)) {
+		try (SafeCloseable safeCloseable =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"DL_FILE_ENTRY_LOCK_POLICY", 1)) {
 
 			unsafeRunnable.run();
 		}
 	}
 
-	protected void testWithOneDriveConfigurationDisabled(
+	private void _testWithOneDriveConfigurationDisabled(
 			UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 

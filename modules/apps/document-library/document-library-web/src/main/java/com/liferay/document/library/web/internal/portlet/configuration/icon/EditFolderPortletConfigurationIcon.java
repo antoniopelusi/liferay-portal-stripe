@@ -80,7 +80,7 @@ public class EditFolderPortletConfigurationIcon
 					PortletRequest.RENDER_PHASE)
 			).setRedirect(
 				themeDisplay.getURLCurrent()
-			).build();
+			).buildPortletURL();
 
 			Folder folder = ActionUtil.getFolder(portletRequest);
 

@@ -15,22 +15,7 @@
 package com.liferay.commerce.pricing.model.impl;
 
 /**
- * The extended model implementation for the CommercePriceModifier service. Represents a row in the &quot;CommercePriceModifier&quot; database table, with each column mapped to a property of this class.
- *
- * <p>
- * Helper methods and all application logic should be put in this class. Whenever methods are added, rerun ServiceBuilder to copy their definitions into the <code>com.liferay.commerce.pricing.model.CommercePriceModifier</code> interface.
- * </p>
- *
  * @author Riccardo Alberti
  */
 public class CommercePriceModifierImpl extends CommercePriceModifierBaseImpl {
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never reference this class directly. All methods that expect a commerce price modifier model instance should use the {@link com.liferay.commerce.pricing.model.CommercePriceModifier} interface instead.
-	 */
-	public CommercePriceModifierImpl() {
-	}
-
 }

@@ -333,6 +333,8 @@ public class LogAssertionTestRule
 
 		private LogAppender() {
 			super(StringUtil.randomString(), null, null, true, null);
+
+			start();
 		}
 
 	}
@@ -352,17 +354,13 @@ public class LogAssertionTestRule
 			java.util.logging.Level level = logRecord.getLevel();
 
 			if (level.equals(java.util.logging.Level.SEVERE)) {
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("{level=");
-				sb.append(logRecord.getLevel());
-				sb.append(", loggerName=");
-				sb.append(logRecord.getLoggerName());
-				sb.append(", message=");
-				sb.append(logRecord.getMessage());
-
 				LogAssertionTestRule.caughtFailure(
-					new AssertionError(sb.toString(), logRecord.getThrown()));
+					new AssertionError(
+						StringBundler.concat(
+							"{level=", logRecord.getLevel(), ", loggerName=",
+							logRecord.getLoggerName(), ", message=",
+							logRecord.getMessage()),
+						logRecord.getThrown()));
 			}
 		}
 

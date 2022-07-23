@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoLog;
 import com.liferay.portal.workflow.kaleo.model.KaleoLogModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -298,34 +299,6 @@ public class KaleoLogModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoLog>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoLog.class.getClassLoader(), KaleoLog.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KaleoLog> constructor =
-				(Constructor<KaleoLog>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoLog, Object>>
@@ -1188,6 +1161,73 @@ public class KaleoLogModelImpl
 	}
 
 	@Override
+	public KaleoLog cloneWithOriginalValues() {
+		KaleoLogImpl kaleoLogImpl = new KaleoLogImpl();
+
+		kaleoLogImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoLogImpl.setKaleoLogId(
+			this.<Long>getColumnOriginalValue("kaleoLogId"));
+		kaleoLogImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		kaleoLogImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoLogImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		kaleoLogImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoLogImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoLogImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoLogImpl.setKaleoClassName(
+			this.<String>getColumnOriginalValue("kaleoClassName"));
+		kaleoLogImpl.setKaleoClassPK(
+			this.<Long>getColumnOriginalValue("kaleoClassPK"));
+		kaleoLogImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoLogImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoLogImpl.setKaleoInstanceId(
+			this.<Long>getColumnOriginalValue("kaleoInstanceId"));
+		kaleoLogImpl.setKaleoInstanceTokenId(
+			this.<Long>getColumnOriginalValue("kaleoInstanceTokenId"));
+		kaleoLogImpl.setKaleoTaskInstanceTokenId(
+			this.<Long>getColumnOriginalValue("kaleoTaskInstanceTokenId"));
+		kaleoLogImpl.setKaleoNodeName(
+			this.<String>getColumnOriginalValue("kaleoNodeName"));
+		kaleoLogImpl.setTerminalKaleoNode(
+			this.<Boolean>getColumnOriginalValue("terminalKaleoNode"));
+		kaleoLogImpl.setKaleoActionId(
+			this.<Long>getColumnOriginalValue("kaleoActionId"));
+		kaleoLogImpl.setKaleoActionName(
+			this.<String>getColumnOriginalValue("kaleoActionName"));
+		kaleoLogImpl.setKaleoActionDescription(
+			this.<String>getColumnOriginalValue("kaleoActionDescription"));
+		kaleoLogImpl.setPreviousKaleoNodeId(
+			this.<Long>getColumnOriginalValue("previousKaleoNodeId"));
+		kaleoLogImpl.setPreviousKaleoNodeName(
+			this.<String>getColumnOriginalValue("previousKaleoNodeName"));
+		kaleoLogImpl.setPreviousAssigneeClassName(
+			this.<String>getColumnOriginalValue("previousAssigneeClassName"));
+		kaleoLogImpl.setPreviousAssigneeClassPK(
+			this.<Long>getColumnOriginalValue("previousAssigneeClassPK"));
+		kaleoLogImpl.setCurrentAssigneeClassName(
+			this.<String>getColumnOriginalValue("currentAssigneeClassName"));
+		kaleoLogImpl.setCurrentAssigneeClassPK(
+			this.<Long>getColumnOriginalValue("currentAssigneeClassPK"));
+		kaleoLogImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		kaleoLogImpl.setComment(
+			this.<String>getColumnOriginalValue("comment_"));
+		kaleoLogImpl.setStartDate(
+			this.<Date>getColumnOriginalValue("startDate"));
+		kaleoLogImpl.setEndDate(this.<Date>getColumnOriginalValue("endDate"));
+		kaleoLogImpl.setDuration(this.<Long>getColumnOriginalValue("duration"));
+		kaleoLogImpl.setWorkflowContext(
+			this.<String>getColumnOriginalValue("workflowContext"));
+
+		return kaleoLogImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoLog kaleoLog) {
 		int value = 0;
 
@@ -1449,7 +1489,7 @@ public class KaleoLogModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1460,9 +1500,26 @@ public class KaleoLogModelImpl
 			Function<KaleoLog, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KaleoLog)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KaleoLog)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1509,7 +1566,9 @@ public class KaleoLogModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoLog>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoLog.class, ModelWrapper.class);
 
 	}
 

@@ -320,4 +320,7 @@ public interface RegionModel
 
 	public Map<String, String> getLanguageIdToTitleMap();
 
+	@Override
+	public Region cloneWithOriginalValues();
+
 }

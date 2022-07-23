@@ -1,14 +1,6 @@
 <html>
 	<body>
 		<p>
-			<liferay-ui:icon-menu
-
-				direction="left-side"
-				icon="<%= StringPool.BLANK %>"
-				markupView="lexicon"
-				message="actions"
-				showWhenSingleIcon="<%= true %>"
-			>
 			<div class="fjord-devices fjord-section">
 				<section class="bg-transparent jumbotron jumbotron-fluid mb-0 position-relative text-secondary">
 					<div class="container py-5">

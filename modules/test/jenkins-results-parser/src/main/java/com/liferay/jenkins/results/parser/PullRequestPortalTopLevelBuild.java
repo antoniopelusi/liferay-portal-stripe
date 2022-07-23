@@ -16,6 +16,8 @@ package com.liferay.jenkins.results.parser;
 
 import java.io.IOException;
 
+import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,7 +30,8 @@ import org.dom4j.Element;
  * @author Peter Yoo
  */
 public class PullRequestPortalTopLevelBuild
-	extends PortalTopLevelBuild implements PullRequestBuild {
+	extends PortalTopLevelBuild
+	implements PortalWorkspaceBuild, PullRequestBuild {
 
 	public PullRequestPortalTopLevelBuild(
 		String url, TopLevelBuild topLevelBuild) {
@@ -36,18 +39,45 @@ public class PullRequestPortalTopLevelBuild
 		super(url, topLevelBuild);
 
 		setCompareToUpstream(true);
+	}
 
-		try {
-			String testSuiteName = getTestSuiteName();
+	public boolean bypassCITestRelevant() {
+		String testSuiteName = getTestSuiteName();
 
-			if (testSuiteName.equals("relevant")) {
-				_stableJob = JobFactory.newJob(jobName, "stable", branchName);
-			}
+		if ((testSuiteName == null) || !testSuiteName.equals("relevant")) {
+			return false;
 		}
-		catch (Exception exception) {
-			System.out.println("Unable to create stable job for " + jobName);
 
-			exception.printStackTrace();
+		Workspace workspace = getWorkspace();
+
+		WorkspaceGitRepository workspaceGitRepository =
+			workspace.getPrimaryWorkspaceGitRepository();
+
+		if (!(workspaceGitRepository instanceof PortalWorkspaceGitRepository)) {
+			return false;
+		}
+
+		PortalWorkspaceGitRepository portalWorkspaceGitRepository =
+			(PortalWorkspaceGitRepository)workspaceGitRepository;
+
+		return portalWorkspaceGitRepository.bypassCITestRelevant();
+	}
+
+	@Override
+	public PortalWorkspace getPortalWorkspace() {
+		Workspace workspace = getWorkspace();
+
+		if (!(workspace instanceof PortalWorkspace)) {
+			return null;
+		}
+
+		return (PortalWorkspace)workspace;
+	}
+
+	@Override
+	public PullRequest getPullRequest() {
+		if (_pullRequest != null) {
+			return _pullRequest;
 		}
 
 		StringBuilder sb = new StringBuilder();
@@ -65,22 +95,17 @@ public class PullRequestPortalTopLevelBuild
 		sb.append("/pull/");
 		sb.append(getParameterValue("GITHUB_PULL_REQUEST_NUMBER"));
 
-		_pullRequest = new PullRequest(sb.toString());
-	}
+		_pullRequest = PullRequestFactory.newPullRequest(sb.toString(), this);
 
-	@Override
-	public PullRequest getPullRequest() {
 		return _pullRequest;
 	}
 
 	@Override
 	public String getResult() {
-		String result = super.getResult();
-
 		List<Build> downstreamBuildFailures = getFailedDownstreamBuilds();
 
-		if ((result == null) || downstreamBuildFailures.isEmpty()) {
-			return result;
+		if (downstreamBuildFailures.isEmpty()) {
+			return super.getResult();
 		}
 
 		Properties buildProperties;
@@ -98,6 +123,8 @@ public class PullRequestPortalTopLevelBuild
 				buildProperties.getProperty(
 					"pull.request.forward.upstream.failure.comparison." +
 						"enabled"));
+
+		String result = "FAILURE";
 
 		if (!pullRequestForwardUpstreamFailureComparisonEnabled ||
 			!isCompareToUpstream()) {
@@ -145,7 +172,9 @@ public class PullRequestPortalTopLevelBuild
 	}
 
 	public String getStableJobResult() {
-		if (_stableJob == null) {
+		Job stableJob = _getStableJob();
+
+		if (stableJob == null) {
 			return null;
 		}
 
@@ -162,7 +191,7 @@ public class PullRequestPortalTopLevelBuild
 		}
 
 		List<String> stableJobBatchNames = new ArrayList<>(
-			_stableJob.getBatchNames());
+			stableJob.getBatchNames());
 
 		int stableJobDownstreamBuildsCompletedCount =
 			getJobVariantsDownstreamBuildCount(
@@ -193,6 +222,42 @@ public class PullRequestPortalTopLevelBuild
 	}
 
 	@Override
+	public Workspace getWorkspace() {
+		PullRequest pullRequest = getPullRequest();
+
+		Workspace workspace = WorkspaceFactory.newWorkspace(
+			pullRequest.getGitRepositoryName(),
+			pullRequest.getUpstreamRemoteGitBranchName(), getJobName());
+
+		if (workspace instanceof PortalWorkspace) {
+			PortalWorkspace portalWorkspace = (PortalWorkspace)workspace;
+
+			portalWorkspace.setBuildProfile(getBuildProfile());
+			portalWorkspace.setOSBAsahGitHubURL(_getOSBAsahGitHubURL());
+			portalWorkspace.setOSBFaroGitHubURL(_getOSBFaroGitHubURL());
+		}
+
+		WorkspaceGitRepository workspaceGitRepository =
+			workspace.getPrimaryWorkspaceGitRepository();
+
+		workspaceGitRepository.setGitHubURL(pullRequest.getHtmlURL());
+
+		String senderBranchSHA = _getSenderBranchSHA();
+
+		if (JenkinsResultsParserUtil.isSHA(senderBranchSHA)) {
+			workspaceGitRepository.setSenderBranchSHA(senderBranchSHA);
+		}
+
+		String upstreamBranchSHA = _getUpstreamBranchSHA();
+
+		if (JenkinsResultsParserUtil.isSHA(upstreamBranchSHA)) {
+			workspaceGitRepository.setBaseBranchSHA(upstreamBranchSHA);
+		}
+
+		return workspace;
+	}
+
+	@Override
 	public boolean isUniqueFailure() {
 		List<Build> failedDownstreamBuilds = getFailedDownstreamBuilds();
 
@@ -210,8 +275,14 @@ public class PullRequestPortalTopLevelBuild
 	}
 
 	protected Element getFailedStableJobSummaryElement() {
+		Job stableJob = _getStableJob();
+
+		if (stableJob == null) {
+			return Dom4JUtil.getNewElement("span");
+		}
+
 		List<String> stableJobBatchNames = new ArrayList<>(
-			_stableJob.getBatchNames());
+			stableJob.getBatchNames());
 
 		Element jobSummaryListElement = getJobSummaryListElement(
 			false, stableJobBatchNames);
@@ -237,16 +308,20 @@ public class PullRequestPortalTopLevelBuild
 	}
 
 	protected List<Build> getStableJobDownstreamBuilds() {
-		if (_stableJob != null) {
+		Job stableJob = _getStableJob();
+
+		if (stableJob != null) {
 			return getJobVariantsDownstreamBuilds(
-				_stableJob.getBatchNames(), null, null);
+				stableJob.getBatchNames(), null, null);
 		}
 
 		return Collections.emptyList();
 	}
 
 	protected Element getStableJobResultElement() {
-		if (_stableJob == null) {
+		Job stableJob = _getStableJob();
+
+		if (stableJob == null) {
 			return null;
 		}
 
@@ -265,7 +340,7 @@ public class PullRequestPortalTopLevelBuild
 
 		sb.append(
 			getJobVariantsDownstreamBuildCount(
-				new ArrayList<>(_stableJob.getBatchNames()), "SUCCESS", null));
+				new ArrayList<>(stableJob.getBatchNames()), "SUCCESS", null));
 
 		sb.append(" out of ");
 
@@ -279,8 +354,14 @@ public class PullRequestPortalTopLevelBuild
 	}
 
 	protected Element getStableJobSuccessSummaryElement() {
+		Job stableJob = _getStableJob();
+
+		if (stableJob == null) {
+			return Dom4JUtil.getNewElement("span");
+		}
+
 		List<String> stableJobBatchNames = new ArrayList<>(
-			_stableJob.getBatchNames());
+			stableJob.getBatchNames());
 
 		Element stableJobSummaryListElement = getJobSummaryListElement(
 			true, stableJobBatchNames);
@@ -301,8 +382,14 @@ public class PullRequestPortalTopLevelBuild
 	}
 
 	protected Element getStableJobSummaryElement() {
+		Job stableJob = _getStableJob();
+
+		if (stableJob == null) {
+			return Dom4JUtil.getNewElement("span");
+		}
+
 		List<String> stableJobBatchNames = new ArrayList<>(
-			_stableJob.getBatchNames());
+			stableJob.getBatchNames());
 
 		int stableJobDownstreamBuildSuccessCount =
 			getJobVariantsDownstreamBuildCount(
@@ -345,7 +432,9 @@ public class PullRequestPortalTopLevelBuild
 
 		List<Build> stableJobDownstreamBuilds = new ArrayList<>();
 
-		if (_stableJob != null) {
+		Job stableJob = _getStableJob();
+
+		if (stableJob != null) {
 			stableJobDownstreamBuilds.addAll(getStableJobDownstreamBuilds());
 		}
 
@@ -367,7 +456,114 @@ public class PullRequestPortalTopLevelBuild
 		return rootElement;
 	}
 
-	private final PullRequest _pullRequest;
+	private String _getOSBAsahGitHubURL() {
+		String osbAsahGitHubURL = getParameterValue("OSB_ASAH_GITHUB_URL");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(osbAsahGitHubURL)) {
+			return osbAsahGitHubURL;
+		}
+
+		Build controllerBuild = getControllerBuild();
+
+		if (controllerBuild != null) {
+			return controllerBuild.getParameterValue("OSB_ASAH_GITHUB_URL");
+		}
+
+		return null;
+	}
+
+	private String _getOSBFaroGitHubURL() {
+		String osbFaroGitHubURL = getParameterValue("OSB_FARO_GITHUB_URL");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(osbFaroGitHubURL)) {
+			return osbFaroGitHubURL;
+		}
+
+		Build controllerBuild = getControllerBuild();
+
+		if (controllerBuild != null) {
+			return controllerBuild.getParameterValue("OSB_FARO_GITHUB_URL");
+		}
+
+		return null;
+	}
+
+	private String _getSenderBranchSHA() {
+		String senderBranchSHA = getParameterValue("GITHUB_SENDER_BRANCH_SHA");
+
+		if (JenkinsResultsParserUtil.isSHA(senderBranchSHA)) {
+			return senderBranchSHA;
+		}
+
+		return null;
+	}
+
+	private synchronized Job _getStableJob() {
+		if (_stableJob != null) {
+			return _stableJob;
+		}
+
+		String testSuiteName = getTestSuiteName();
+
+		if (!testSuiteName.equals("relevant")) {
+			return null;
+		}
+
+		try {
+			_stableJob = JobFactory.newJob(
+				getBuildProfile(), getJobName(), null, null, getBranchName(),
+				null, getBaseGitRepositoryName(), "stable", getBranchName());
+		}
+		catch (Exception exception) {
+			System.out.println("Unable to create stable job for " + jobName);
+
+			exception.printStackTrace();
+		}
+
+		return _stableJob;
+	}
+
+	private String _getUpstreamBranchSHA() {
+		String upstreamBranchSHA = getParameterValue(
+			"GITHUB_UPSTREAM_BRANCH_SHA");
+
+		if (JenkinsResultsParserUtil.isSHA(upstreamBranchSHA)) {
+			return upstreamBranchSHA;
+		}
+
+		String portalBundlesDistURL = getParameterValue(
+			"PORTAL_BUNDLES_DIST_URL");
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(portalBundlesDistURL)) {
+			return null;
+		}
+
+		try {
+			URL portalBundlesGitHashURL = new URL(
+				JenkinsResultsParserUtil.getLocalURL(portalBundlesDistURL) +
+					"/git-hash");
+
+			if (!JenkinsResultsParserUtil.exists(portalBundlesGitHashURL)) {
+				return null;
+			}
+
+			String portalBundlesGitHash = JenkinsResultsParserUtil.toString(
+				portalBundlesGitHashURL.toString());
+
+			portalBundlesGitHash = portalBundlesGitHash.trim();
+
+			if (JenkinsResultsParserUtil.isSHA(portalBundlesGitHash)) {
+				return portalBundlesGitHash;
+			}
+
+			return null;
+		}
+		catch (IOException ioException) {
+			return null;
+		}
+	}
+
+	private PullRequest _pullRequest;
 	private Job _stableJob;
 	private String _stableJobResult;
 

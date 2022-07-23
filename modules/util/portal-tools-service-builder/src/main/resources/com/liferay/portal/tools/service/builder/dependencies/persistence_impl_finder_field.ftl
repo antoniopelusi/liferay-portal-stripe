@@ -14,7 +14,7 @@
 	<#assign finderFieldName = entity.alias + "." + entityColumnName />
 </#if>
 
-<#if serviceBuilder.getSqlType(entity.getName(), entityColumn.getName(), entityColumn.getType()) == "CLOB">
+<#if serviceBuilder.getSqlType(entity.getName(), entityColumn) == "CLOB">
 	<#assign textFinderFieldName = "CAST_CLOB_TEXT(" + finderFieldName + ")" />
 <#else>
 	<#assign textFinderFieldName = finderFieldName />

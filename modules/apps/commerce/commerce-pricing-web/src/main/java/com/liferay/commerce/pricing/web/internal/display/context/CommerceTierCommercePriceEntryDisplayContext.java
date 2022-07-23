@@ -25,12 +25,12 @@ import com.liferay.commerce.price.list.service.CommerceTierPriceEntryService;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.service.CommerceCatalogService;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.CustomAttributesUtil;
 
@@ -135,8 +135,9 @@ public class CommerceTierCommercePriceEntryDisplayContext
 
 		CommercePriceList commercePriceList = getCommercePriceList();
 
-		CommerceMoney priceCommerceMoney = commerceTierPriceEntry.getPriceMoney(
-			commercePriceList.getCommerceCurrencyId());
+		CommerceMoney priceCommerceMoney =
+			commerceTierPriceEntry.getPriceCommerceMoney(
+				commercePriceList.getCommerceCurrencyId());
 
 		return priceCommerceMoney.format(
 			commercePricingRequestHelper.getLocale());

@@ -23,7 +23,7 @@ OAuth2Application oAuth2Application = oAuth2AdminPortletDisplayContext.getOAuth2
 <aui:model-context bean="<%= oAuth2Application %>" model="<%= OAuth2Application.class %>" />
 
 <aui:fieldset>
-	<aui:input helpMessage="application-name-help" label="application-name" name="name" required="<%= true %>" />
+	<aui:input helpMessage="application-name-help" label="name" name="name" required="<%= true %>" />
 
 	<aui:input helpMessage="home-page-url-help" name="homePageURL" />
 
@@ -36,6 +36,15 @@ OAuth2Application oAuth2Application = oAuth2AdminPortletDisplayContext.getOAuth2
 	<c:if test="<%= oAuth2Application != null %>">
 		<aui:input helpMessage="privacy-policy-url-help" name="privacyPolicyURL" />
 	</c:if>
+
+	<aui:select helpMessage="client-authentication-method-help" label="Client Authentication Method" name="clientAuthenticationMethod" required="<%= true %>">
+		<aui:option label="Client Secret Post" value="client_secret_post" />
+		<aui:option label="None" value="none" />
+		<aui:option label="Client Secret JWT" value="client_secret_jwt" />
+		<aui:option label="Private Key JWT" value="private_key_jwt" />
+	</aui:select>
+
+	<aui:input helpMessage="json-web-key-set-help" label="JSON Web Key Set" name="jwks" style="min-height: 100px;" type="textarea" />
 
 	<aui:select helpMessage="client-profile-help" name="clientProfile">
 
@@ -277,7 +286,7 @@ OAuth2Application oAuth2Application = oAuth2AdminPortletDisplayContext.getOAuth2
 			%>
 
 				<div class="supportedFeature">
-					<aui:input checked="<%= checked %>" label="<%= HtmlUtil.escape(oAuth2Feature) %>" name="<%= name %>" type="checkbox" />
+					<aui:input checked="<%= checked %>" label='<%= oAuth2Feature.equals("token.introspection") ? "token-introspection" : HtmlUtil.escape(oAuth2Feature) %>' name="<%= name %>" type="checkbox" />
 				</div>
 
 			<%

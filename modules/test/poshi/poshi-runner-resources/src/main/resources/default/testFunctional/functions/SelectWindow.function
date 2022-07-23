@@ -1,13 +1,34 @@
-<definition default="selectWindow">
-	<command name="selectPopUp">
-		<execute selenium="selectPopUp" />
-	</command>
+@default = "selectWindow"
+definition {
 
-	<command name="selectWindow">
-		<execute selenium="selectWindow" />
-	</command>
+	function selectPopUp {
+		selenium.pause("5000");
 
-	<command name="selectWindowTop">
-		<execute argument1="null" selenium="selectWindow" />
-	</command>
-</definition>
+		selenium.selectPopUp();
+	}
+
+	function selectWindow {
+		selenium.pause("5000");
+
+		selenium.selectWindow();
+	}
+
+	function selectWindowNoSPARefresh {
+		selenium.pause("5000");
+
+		selenium.selectWindow();
+	}
+
+	function selectWindowTopNoSPARefresh {
+		selenium.pause("5000");
+
+		selenium.selectWindow("null");
+	}
+
+	function waitForSelectPopUp {
+		selenium.waitForPopUp("${locator1}", "${value1}");
+
+		selenium.selectPopUp();
+	}
+
+}

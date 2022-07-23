@@ -1,0 +1,77 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+
+		ACNavigation.goToSettings();
+
+		ACSettings.goToDefinitions();
+
+		ACDefinitions.goToDefinitionType(definitionType = "Search");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACDefinitions.deleteAllSearchQuery();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8779 | Test Summary: Add search query parameters"
+	@priority = "5"
+	test CanAddSearchQueryParameters {
+		ACDefinitions.addSearchQuerySuccessfully(query = "Test Query");
+
+		ACDefinitions.goToDefinitionType(definitionType = "Search");
+
+		ACDefinitions.viewSearchQuery(query = "Test Query");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8780 | Test Summary: Delete search query parameters"
+	@priority = "5"
+	test CanDeleteSearchQueryParameters {
+		ACDefinitions.addSearchQuerySuccessfully(query = "Test Query");
+
+		ACDefinitions.goToDefinitionType(definitionType = "Search");
+
+		ACDefinitions.deleteSearchQuerySuccessfully(query = "Test Query");
+
+		ACDefinitions.goToDefinitionType(definitionType = "Search");
+
+		ACDefinitions.noViewSearchQuery(query = "Test Query");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8781 | Test Summary: Edit search query parameters"
+	@priority = "4"
+	test CanEditSearchQueryParameters {
+		ACDefinitions.addSearchQuerySuccessfully(query = "Test Query");
+
+		ACDefinitions.goToDefinitionType(definitionType = "Search");
+
+		ACDefinitions.editSearchQuerySuccessfully(query = "Test Edit");
+
+		ACDefinitions.goToDefinitionType(definitionType = "Search");
+
+		ACDefinitions.viewSearchQuery(query = "Test Edit");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8782 | Test Summary: Maximum 5 search query strings"
+	@priority = "4"
+	test CantSearchMoreThanFiveSearchQueryStrings {
+		var varList = "Test Query 1,Test Query 2,Test Query 3,Test Query 4,Test Query 5";
+
+		ACDefinitions.addMultipleSearchQuerySuccessfully(query_list = "${varList}");
+
+		ACDefinitions.goToDefinitionType(definitionType = "Search");
+
+		ACDefinitions.noViewAddSearchQueryButton(query = "Test Query 5");
+	}
+
+}

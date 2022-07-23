@@ -1,15 +1,21 @@
 {
 	"dependencies": {
-		"qs": "^6.9.6",
-		"react": "16.12.0",
-		"react-dom": "16.12.0"
+		"dom-align": "1.10.4",
+		"moment": "^2.22.2"
 	},
 	"jest": {
 		"collectCoverageFrom": [
 			"src/main/resources/META-INF/resources/js/**/*.es.js"
 		],
+		"modulePathIgnorePatterns": [
+			"/__mock__/",
+			"/__utils__/"
+		],
 		"setupFiles": [
 			"<rootDir>/jest-setup.config.js"
+		],
+		"snapshotSerializers": [
+			"metal-jest-serializer"
 		],
 		"testPathIgnorePatterns": [
 			"<rootDir>/test/js/[^/]+\\.js"
@@ -22,7 +28,7 @@
 		"build": "liferay-npm-scripts build",
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix",
-		"test": "liferay-npm-scripts test"
+		"test": "metalsoy -s \"test/**/*.soy\" -d \"test\" && liferay-npm-scripts test"
 	},
-	"version": "1.0.2"
+	"version": "1.0.56"
 }

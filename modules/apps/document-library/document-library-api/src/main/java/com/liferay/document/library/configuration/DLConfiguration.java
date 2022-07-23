@@ -34,8 +34,11 @@ public interface DLConfiguration {
 	@Meta.AD(deflt = "true", name = "add-default-structures", required = false)
 	public boolean addDefaultStructures();
 
+	@Meta.AD(deflt = "15", name = "check-interval", required = false)
+	public int checkInterval();
+
 	@Meta.AD(
-		deflt = "text/asp|text/css|text/ecmascript|text/html|text/javascript|text/x-c|text/x-fortran|text/x-java-source|text/x-pascal|text/x-script.perl|text/x-script.perl-module|text/xml",
+		deflt = "application/javascript|text/asp|text/css|text/ecmascript|text/html|text/javascript|text/x-c|text/x-fortran|text/x-java-source|text/x-jsp|text/x-pascal|text/x-script.perl|text/x-script.perl-module|text/xml",
 		name = "code-file-mime-types", required = false
 	)
 	public String[] codeFileMimeTypes();
@@ -51,7 +54,7 @@ public interface DLConfiguration {
 	 * default display templates for the Document Library portlet.
 	 */
 	@Meta.AD(
-		deflt = "com/liferay/document/library/web/template/dependencies/portlet-display-templates.xml",
+		deflt = "com/liferay/document/library/web/portlet/display/template/dependencies/portlet-display-templates.xml",
 		name = "display-templates-config", required = false
 	)
 	public String displayTemplatesConfig();
@@ -61,12 +64,6 @@ public interface DLConfiguration {
 		name = "file-extensions", required = false
 	)
 	public String[] fileExtensions();
-
-	@Meta.AD(
-		deflt = "0", description = "file-max-size-help", name = "file-max-size",
-		required = false
-	)
-	public long fileMaxSize();
 
 	@Meta.AD(
 		deflt = "audio|image|video", name = "multimedia-file-mime-types",

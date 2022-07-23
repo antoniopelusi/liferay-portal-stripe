@@ -71,11 +71,14 @@ if (folder != null) {
 %>
 
 <liferay-item-selector:repository-entry-browser
+	allowedCreationMenuUIItemKeys="<%= blogsItemSelectorViewDisplayContext.getAllowedCreationMenuUIItemKeys() %>"
+	editImageURL="<%= blogsItemSelectorViewDisplayContext.getEditImageURL(liferayPortletResponse) %>"
 	emptyResultsMessage='<%= LanguageUtil.get(resourceBundle, "there-are-no-blog-attachments") %>'
 	extensions="<%= ListUtil.fromArray(blogsItemSelectorViewDisplayContext.getImageExtensions()) %>"
 	itemSelectedEventName="<%= blogsItemSelectorViewDisplayContext.getItemSelectedEventName() %>"
 	itemSelectorReturnTypeResolver="<%= blogsItemSelectorViewDisplayContext.getItemSelectorReturnTypeResolver() %>"
 	maxFileSize="<%= blogsItemSelectorViewDisplayContext.getImageMaxSize() %>"
+	mimeTypeRestriction="<%= blogsItemSelectorViewDisplayContext.getMimeTypeRestriction() %>"
 	portletURL="<%= blogsItemSelectorViewDisplayContext.getPortletURL(request, liferayPortletResponse) %>"
 	repositoryEntries="<%= portletFileEntries %>"
 	repositoryEntriesCount="<%= portletFileEntriesCount %>"

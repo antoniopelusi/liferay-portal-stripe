@@ -12,6 +12,7 @@ Liferay-Portal-Code-Name: ${release.info.code.name}
 Liferay-Portal-Parent-Build-Number: ${release.info.parent.build.number}
 Liferay-Portal-Release-Info: ${release.info.release.info}
 Liferay-Portal-Server-Info: ${release.info.server.info}
+Liferay-Portal-Version-Display-Name: ${release.info.version.display.name}
 Liferay-Portal-Version: ${release.info.version}
 -donotcopy: (\.touch)
 -fixupmessages.deprecated=annotations are deprecated

@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class AppLocalServiceWrapper
 	implements AppLocalService, ServiceWrapper<AppLocalService> {
 
+	public AppLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AppLocalServiceWrapper(AppLocalService appLocalService) {
 		_appLocalService = appLocalService;
 	}
@@ -123,6 +127,13 @@ public class AppLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _appLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _appLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

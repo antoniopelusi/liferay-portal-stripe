@@ -133,6 +133,11 @@ public class LayoutPrototypeWrapper
 		}
 	}
 
+	@Override
+	public LayoutPrototype cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this layout prototype.
 	 *

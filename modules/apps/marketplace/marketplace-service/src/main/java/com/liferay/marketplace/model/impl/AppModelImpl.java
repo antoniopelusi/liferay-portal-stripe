@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.marketplace.model.App;
 import com.liferay.marketplace.model.AppModel;
-import com.liferay.marketplace.model.AppSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -104,7 +102,7 @@ public class AppModelImpl extends BaseModelImpl<App> implements AppModel {
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table Marketplace_App (uuid_ VARCHAR(75) null,appId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,remoteAppId LONG,title VARCHAR(75) null,description STRING null,category VARCHAR(75) null,iconURL STRING null,version VARCHAR(75) null,required BOOLEAN)";
+		"create table Marketplace_App (uuid_ VARCHAR(75) null,appId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,remoteAppId LONG,title VARCHAR(255) null,description STRING null,category VARCHAR(255) null,iconURL STRING null,version VARCHAR(75) null,required BOOLEAN)";
 
 	public static final String TABLE_SQL_DROP = "drop table Marketplace_App";
 
@@ -162,61 +160,6 @@ public class AppModelImpl extends BaseModelImpl<App> implements AppModel {
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static App toModel(AppSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		App model = new AppImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setAppId(soapModel.getAppId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setRemoteAppId(soapModel.getRemoteAppId());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setCategory(soapModel.getCategory());
-		model.setIconURL(soapModel.getIconURL());
-		model.setVersion(soapModel.getVersion());
-		model.setRequired(soapModel.isRequired());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<App> toModels(AppSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<App> models = new ArrayList<App>(soapModels.length);
-
-		for (AppSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public AppModelImpl() {
@@ -297,33 +240,6 @@ public class AppModelImpl extends BaseModelImpl<App> implements AppModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, App>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			App.class.getClassLoader(), App.class, ModelWrapper.class);
-
-		try {
-			Constructor<App> constructor =
-				(Constructor<App>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<App, Object>>
@@ -779,6 +695,31 @@ public class AppModelImpl extends BaseModelImpl<App> implements AppModel {
 	}
 
 	@Override
+	public App cloneWithOriginalValues() {
+		AppImpl appImpl = new AppImpl();
+
+		appImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		appImpl.setAppId(this.<Long>getColumnOriginalValue("appId"));
+		appImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		appImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		appImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		appImpl.setCreateDate(this.<Date>getColumnOriginalValue("createDate"));
+		appImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		appImpl.setRemoteAppId(
+			this.<Long>getColumnOriginalValue("remoteAppId"));
+		appImpl.setTitle(this.<String>getColumnOriginalValue("title"));
+		appImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		appImpl.setCategory(this.<String>getColumnOriginalValue("category"));
+		appImpl.setIconURL(this.<String>getColumnOriginalValue("iconURL"));
+		appImpl.setVersion(this.<String>getColumnOriginalValue("version"));
+		appImpl.setRequired(this.<Boolean>getColumnOriginalValue("required"));
+
+		return appImpl;
+	}
+
+	@Override
 	public int compareTo(App app) {
 		long primaryKey = app.getPrimaryKey();
 
@@ -944,7 +885,7 @@ public class AppModelImpl extends BaseModelImpl<App> implements AppModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -954,9 +895,26 @@ public class AppModelImpl extends BaseModelImpl<App> implements AppModel {
 			String attributeName = entry.getKey();
 			Function<App, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((App)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((App)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1002,7 +960,9 @@ public class AppModelImpl extends BaseModelImpl<App> implements AppModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, App>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					App.class, ModelWrapper.class);
 
 	}
 

@@ -59,10 +59,10 @@ else {
 					"/bookmarks/edit_entry"
 				).setRedirect(
 					currentURL
+				).setPortletResource(
+					portletDisplay.getId()
 				).setParameter(
 					"entryId", entry.getEntryId()
-				).setParameter(
-					"portletResource", portletDisplay.getId()
 				).buildString()
 			%>'
 		/>

@@ -14,13 +14,14 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.security.access.control.AccessControlled;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.service.CountryService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -48,26 +49,6 @@ public class RegionServiceImpl extends RegionServiceBaseImpl {
 
 		return regionLocalService.addRegion(
 			countryId, active, name, position, regionCode, serviceContext);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x)
-	 */
-	@Deprecated
-	@Override
-	public Region addRegion(
-			long countryId, String regionCode, String name, boolean active)
-		throws PortalException {
-
-		ServiceContext serviceContext = new ServiceContext();
-
-		PermissionChecker permissionChecker = getPermissionChecker();
-
-		serviceContext.setCompanyId(permissionChecker.getCompanyId());
-		serviceContext.setUserId(permissionChecker.getUserId());
-
-		return addRegion(
-			countryId, active, name, 0, regionCode, serviceContext);
 	}
 
 	@Override
@@ -184,7 +165,7 @@ public class RegionServiceImpl extends RegionServiceBaseImpl {
 	}
 
 	private OrderByComparator<Region> _getOrderByComparator(long countryId) {
-		Country country = countryService.fetchCountry(countryId);
+		Country country = _countryService.fetchCountry(countryId);
 
 		if (country == null) {
 			return null;
@@ -200,5 +181,8 @@ public class RegionServiceImpl extends RegionServiceBaseImpl {
 				OrderByComparatorFactoryUtil.create(
 					RegionModelImpl.TABLE_NAME, "regionCode", true)
 			).build();
+
+	@BeanReference(type = CountryService.class)
+	private CountryService _countryService;
 
 }

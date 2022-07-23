@@ -15,15 +15,17 @@
 package com.liferay.portal.kernel.theme;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutType;
+import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -71,6 +73,7 @@ public class NavItem implements Serializable {
 				Layout childLayout = iterator.next();
 
 				if (_isContentLayoutDraft(childLayout) ||
+					!_isLayoutRevisionDisplayable(childLayout) ||
 					childLayout.isHidden() ||
 					!LayoutPermissionUtil.contains(
 						themeDisplay.getPermissionChecker(), childLayout,
@@ -87,7 +90,9 @@ public class NavItem implements Serializable {
 			List<Layout> childLayouts = layoutChildLayouts.get(
 				parentLayout.getPlid());
 
-			if (_isContentLayoutDraft(parentLayout)) {
+			if (_isContentLayoutDraft(parentLayout) ||
+				!_isLayoutRevisionDisplayable(parentLayout)) {
+
 				continue;
 			}
 
@@ -354,15 +359,10 @@ public class NavItem implements Serializable {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(_themeDisplay.getPathImage());
-		sb.append("/layout_icon?img_id=");
-		sb.append(_layout.getIconImageId());
-		sb.append("&t=");
-		sb.append(WebServerServletTokenUtil.getToken(_layout.getIconImageId()));
-
-		return sb.toString();
+		return StringBundler.concat(
+			_themeDisplay.getPathImage(), "/layout_icon?img_id=",
+			_layout.getIconImageId(), "&t=",
+			WebServerServletTokenUtil.getToken(_layout.getIconImageId()));
 	}
 
 	public boolean isBrowsable() {
@@ -397,13 +397,8 @@ public class NavItem implements Serializable {
 			return false;
 		}
 
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		if (draftLayout != null) {
-			boolean published = GetterUtil.getBoolean(
-				draftLayout.getTypeSettingsProperty("published"));
-
-			return !published;
+		if (layout.fetchDraftLayout() != null) {
+			return !layout.isPublished();
 		}
 
 		if (layout.isApproved() && !layout.isHidden() && !layout.isSystem()) {
@@ -411,6 +406,32 @@ public class NavItem implements Serializable {
 		}
 
 		return true;
+	}
+
+	private static boolean _isLayoutRevisionDisplayable(Layout layout) {
+		if (layout.isTypeContent() ||
+			!LayoutStagingUtil.isBranchingLayout(layout)) {
+
+			return true;
+		}
+
+		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
+			layout);
+
+		if (!layoutRevision.isIncomplete()) {
+			return true;
+		}
+
+		LayoutType layoutType = layout.getLayoutType();
+
+		LayoutTypeController layoutTypeController =
+			layoutType.getLayoutTypeController();
+
+		if (layoutTypeController.isWorkflowEnabled()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private NavItem(
@@ -431,7 +452,7 @@ public class NavItem implements Serializable {
 		HttpServletRequest httpServletRequest, ThemeDisplay themeDisplay,
 		List<Layout> layouts, Map<String, Object> contextObjects) {
 
-		if ((layouts == null) || layouts.isEmpty()) {
+		if (ListUtil.isEmpty(layouts)) {
 			return Collections.emptyList();
 		}
 

@@ -139,7 +139,7 @@ public class MBNavigationDisplayContext {
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/message_boards_admin/view_banned_users"
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getViewCategoriesPortletURL() {
@@ -149,7 +149,7 @@ public class MBNavigationDisplayContext {
 			"/message_boards/view"
 		).setParameter(
 			"tag", StringPool.BLANK
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getViewMyPostsPortletURL() {
@@ -157,7 +157,7 @@ public class MBNavigationDisplayContext {
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/message_boards/view_my_posts"
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getViewMySubscriptionsPortletURL() {
@@ -165,7 +165,7 @@ public class MBNavigationDisplayContext {
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/message_boards/view_my_subscriptions"
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getViewRecentPostsPortletURL() {
@@ -173,7 +173,7 @@ public class MBNavigationDisplayContext {
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/message_boards/view_recent_posts"
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getViewStatisticsPortletURL() {
@@ -181,7 +181,7 @@ public class MBNavigationDisplayContext {
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/message_boards/view_statistics"
-		).build();
+		).buildPortletURL();
 	}
 
 	private boolean _isMBPortlet() {

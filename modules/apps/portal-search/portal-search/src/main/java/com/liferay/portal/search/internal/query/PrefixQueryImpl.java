@@ -55,19 +55,9 @@ public class PrefixQueryImpl extends BaseQueryImpl implements PrefixQuery {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{(");
-		sb.append(_field);
-		sb.append("=");
-		sb.append(_prefix);
-		sb.append(", _rewrite=");
-		sb.append(_rewrite);
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(", _field, "=", _prefix, ", _rewrite=", _rewrite, "), ",
+			super.toString(), "}");
 	}
 
 	private static final long serialVersionUID = 1L;

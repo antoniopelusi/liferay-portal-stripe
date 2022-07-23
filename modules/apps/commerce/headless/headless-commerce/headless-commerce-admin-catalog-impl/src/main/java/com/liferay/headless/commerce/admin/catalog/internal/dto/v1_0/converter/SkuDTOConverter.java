@@ -20,13 +20,13 @@ import com.liferay.commerce.product.model.CPInstanceOptionValueRel;
 import com.liferay.commerce.product.service.CPInstanceService;
 import com.liferay.commerce.product.util.CPInstanceHelper;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Sku;
+import com.liferay.headless.commerce.admin.catalog.dto.v1_0.SkuOption;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -36,7 +36,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	enabled = false,
-	property = "model.class.name=com.liferay.commerce.product.model.CPInstance",
+	property = "dto.class.name=com.liferay.commerce.product.model.CPInstance",
 	service = {DTOConverter.class, SkuDTOConverter.class}
 )
 public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
@@ -52,11 +52,16 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 			(Long)dtoConverterContext.getId());
 
 		CPDefinition cpDefinition = cpInstance.getCPDefinition();
+		CPInstance replacementCPInstance =
+			_cpInstanceService.fetchCProductInstance(
+				cpInstance.getReplacementCProductId(),
+				cpInstance.getReplacementCPInstanceUuid());
 
 		return new Sku() {
 			{
 				cost = cpInstance.getCost();
 				depth = cpInstance.getDepth();
+				discontinued = cpInstance.isDiscontinued();
 				displayDate = cpInstance.getDisplayDate();
 				expirationDate = cpInstance.getExpirationDate();
 				externalReferenceCode = cpInstance.getExternalReferenceCode();
@@ -64,7 +69,6 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 				height = cpInstance.getHeight();
 				id = cpInstance.getCPInstanceId();
 				manufacturerPartNumber = cpInstance.getManufacturerPartNumber();
-				options = _getOptions(cpInstance);
 				price = cpInstance.getPrice();
 				productId = cpDefinition.getCProductId();
 				productName = LanguageUtils.getLanguageIdMap(
@@ -76,29 +80,57 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 				unspsc = cpInstance.getUnspsc();
 				weight = cpInstance.getWeight();
 				width = cpInstance.getWidth();
+
+				setSkuOptions(
+					() -> {
+						List<SkuOption> skuOptions = new ArrayList<>();
+
+						List<CPInstanceOptionValueRel>
+							cpInstanceOptionValueRels =
+								_cpInstanceHelper.
+									getCPInstanceCPInstanceOptionValueRels(
+										cpInstance.getCPInstanceId());
+
+						for (CPInstanceOptionValueRel cpInstanceOptionValueRel :
+								cpInstanceOptionValueRels) {
+
+							SkuOption skuOption = new SkuOption() {
+								{
+									key =
+										cpInstanceOptionValueRel.
+											getCPDefinitionOptionRelId();
+									value =
+										cpInstanceOptionValueRel.
+											getCPDefinitionOptionValueRelId();
+								}
+							};
+
+							skuOptions.add(skuOption);
+						}
+
+						return skuOptions.toArray(new SkuOption[0]);
+					});
+
+				setReplacementSkuId(
+					() -> {
+						if (replacementCPInstance != null) {
+							return replacementCPInstance.getCPInstanceId();
+						}
+
+						return null;
+					});
+
+				setReplacementSkuExternalReferenceCode(
+					() -> {
+						if (replacementCPInstance != null) {
+							return replacementCPInstance.
+								getExternalReferenceCode();
+						}
+
+						return null;
+					});
 			}
 		};
-	}
-
-	private Map<String, String> _getOptions(CPInstance cpInstance) {
-		Map<String, String> options = new HashMap<>();
-
-		List<CPInstanceOptionValueRel> cpInstanceOptionValueRels =
-			_cpInstanceHelper.getCPInstanceCPInstanceOptionValueRels(
-				cpInstance.getCPDefinitionId());
-
-		for (CPInstanceOptionValueRel cpInstanceOptionValueRel :
-				cpInstanceOptionValueRels) {
-
-			options.put(
-				String.valueOf(
-					cpInstanceOptionValueRel.getCPDefinitionOptionRelId()),
-				String.valueOf(
-					cpInstanceOptionValueRel.
-						getCPDefinitionOptionValueRelId()));
-		}
-
-		return options;
 	}
 
 	@Reference

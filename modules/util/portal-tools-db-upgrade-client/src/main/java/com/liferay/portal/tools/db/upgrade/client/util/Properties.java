@@ -33,10 +33,6 @@ import java.util.Set;
  */
 public class Properties {
 
-	public Properties() {
-		_properties = new LinkedHashMap<>();
-	}
-
 	public String getProperty(String key) {
 		return _properties.get(key);
 	}
@@ -102,6 +98,6 @@ public class Properties {
 		}
 	}
 
-	private final Map<String, String> _properties;
+	private final Map<String, String> _properties = new LinkedHashMap<>();
 
 }

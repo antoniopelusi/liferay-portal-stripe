@@ -91,13 +91,10 @@ public abstract class BaseCTDisplayRenderer<T extends BaseModel<T>>
 
 	@Override
 	public String getTypeName(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
 		Class<T> modelClass = getModelClass();
 
 		return LanguageUtil.get(
-			resourceBundle, "model.resource." + modelClass.getName(),
+			locale, "model.resource." + modelClass.getName(),
 			modelClass.getName());
 	}
 
@@ -134,7 +131,7 @@ public abstract class BaseCTDisplayRenderer<T extends BaseModel<T>>
 				WebKeys.THEME_DISPLAY);
 
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			themeDisplay.getLocale(), getClass());
+			displayContext.getLocale(), getClass());
 
 		buildDisplay(
 			new DisplayBuilderImpl<>(
@@ -280,7 +277,7 @@ public abstract class BaseCTDisplayRenderer<T extends BaseModel<T>>
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 

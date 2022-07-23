@@ -30,9 +30,6 @@ import com.liferay.portal.reports.engine.constants.ReportsEngineDestinationNames
  */
 public class EntryImpl extends EntryBaseImpl {
 
-	public EntryImpl() {
-	}
-
 	@Override
 	public String getAttachmentsDir() {
 		return "reports/".concat(String.valueOf(getEntryId()));

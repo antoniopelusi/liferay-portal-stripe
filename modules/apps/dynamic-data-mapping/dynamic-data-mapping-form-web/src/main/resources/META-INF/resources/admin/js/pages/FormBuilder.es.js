@@ -16,43 +16,47 @@ import ClayButton from '@clayui/button';
 import ClayLink from '@clayui/link';
 import {Context as ModalContext} from '@clayui/modal';
 import classNames from 'classnames';
-import {DragLayer, MultiPanelSidebar} from 'data-engine-taglib';
 import {
+	EVENT_TYPES as CORE_EVENT_TYPES,
 	Pages,
+	PagesVisitor,
+	addObjectFields,
+	updateObjectFields,
 	useConfig,
 	useForm,
 	useFormState,
-} from 'dynamic-data-mapping-form-renderer';
-import {EVENT_TYPES as CORE_EVENT_TYPES} from 'dynamic-data-mapping-form-renderer/js/core/actions/eventTypes.es';
+} from 'data-engine-js-components-web';
+import {DragLayer, MultiPanelSidebar} from 'data-engine-taglib';
 import React, {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react';
 
 import {FormInfo} from '../components/FormInfo.es';
 import {ManagementToolbar} from '../components/ManagementToolbar.es';
-import {MetalSidebarAdapter} from '../components/MetalSidebarAdapter.es';
+import ModalObjectRestrictionsBody from '../components/ModalObjectRestrictionsBody';
 import {TranslationManager} from '../components/TranslationManager.es';
+import FormSettings from '../components/form-settings/FormSettings';
 import {ShareFormModalBody} from '../components/share-form/ShareFormModalBody.es';
 import {useAutoSave} from '../hooks/useAutoSave.es';
 import {useToast} from '../hooks/useToast.es';
+import {useValidateFormWithObjects} from '../hooks/useValidateFormWithObjects';
 import fieldDelete from '../thunks/fieldDelete.es';
 import {createFormURL} from '../util/form.es';
 import {submitEmailContent} from '../util/submitEmailContent.es';
+import ErrorList from './ErrorList';
 
-export const FormBuilder = () => {
+export function FormBuilder() {
 	const {
 		autocompleteUserURL,
-		dataEngineSidebar,
-		formInstanceId,
 		portletNamespace,
 		publishFormInstanceURL,
 		published,
 		redirectURL,
-		restrictedFormURL,
 		shareFormInstanceURL,
 		sharedFormURL,
 		showPublishAlert,
@@ -62,29 +66,53 @@ export const FormBuilder = () => {
 
 	const {
 		activePage,
-		defaultLanguageId,
-		editingLanguageId,
-		fieldSets,
 		focusedField,
+		formSettingsContext,
 		localizedName,
+		objectFields,
 		pages,
 		rules,
 	} = useFormState();
+
+	const {dataDefinition} = useFormState({schema: ['dataDefinition']});
+
+	const [errorList, setErrorList] = useState([]);
+
+	const formSettingsPages = useMemo(() => {
+		if (!formSettingsContext) {
+			return [];
+		}
+
+		const pagesVisitor = new PagesVisitor(formSettingsContext.pages);
+
+		return pagesVisitor.mapFields((field) => {
+			if (field.valid) {
+				return field;
+			}
+
+			return {
+				...field,
+				displayErrors: true,
+			};
+		});
+	}, [formSettingsContext]);
+
 	const [{onClose}, modalDispatch] = useContext(ModalContext);
 
-	const [{currentPanelId, sidebarOpen}, setSidebarStatus] = useState({
-		currentPanelId: 'fields',
+	const [{sidebarOpen, sidebarPanelId}, setSidebarState] = useState({
 		sidebarOpen: true,
+		sidebarPanelId: 'fields',
 	});
+
+	const [visibleFormSettings, setVisibleFormSettings] = useState(false);
+
+	const [session, setSession] = useState();
 
 	const dispatch = useForm();
 
-	const emailContent = useRef({
+	const emailContentRef = useRef({
 		addresses: [],
-		message: Liferay.Util.sub(
-			Liferay.Language.get('please-fill-out-this-form-x'),
-			sharedFormURL
-		),
+		message: '',
 		subject: localizedName[themeDisplay.getLanguageId()],
 	});
 
@@ -92,62 +120,101 @@ export const FormBuilder = () => {
 
 	const addToast = useToast();
 
-	const sidebarRef = useRef(null);
+	// This hook is used to validate the Forms when the storage type object
+	// is selected in the Forms settings
 
+	const validateFormWithObjects = useValidateFormWithObjects();
+
+	const removeErrorMessage = useCallback(
+		(index) => {
+			const errorMessages = [...errorList].splice(index, 1);
+
+			setErrorList(errorMessages);
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[setErrorList]
+	);
+
+	useEffect(() => {
+		const getSession = (attemps) => {
+			if (Liferay.Session) {
+				setSession(Liferay.Session);
+			}
+			else if (attemps > 0) {
+				setTimeout(() => {
+					getSession(--attemps);
+				}, 500);
+			}
+		};
+
+		getSession(10);
+	}, []);
+
+	useEffect(() => {
+		if (session && !session.get('autoExtend')) {
+			Liferay.Session.set('autoExtend', true);
+
+			return () => Liferay.Session.set('autoExtend', false);
+		}
+	}, [session]);
+
+	/**
+	 * Opens the sidebar whenever a field is focused
+	 */
 	useEffect(() => {
 		const hasFocusedField = Object.keys(focusedField).length > 0;
 
-		if (!hasFocusedField) {
-			return;
-		}
-
-		if (sidebarRef.current) {
-			sidebarRef.current.current.open();
-		}
-		else {
-
-			// In case of use Data Engine's MultiPanelSidebar
-
-			setSidebarStatus(({currentPanelId}) => ({
-				currentPanelId,
+		if (hasFocusedField) {
+			setSidebarState(({sidebarPanelId}) => ({
 				sidebarOpen: true,
+				sidebarPanelId,
 			}));
 		}
 	}, [focusedField]);
+
+	/**
+	 * Adjusts alert messages size according to sidebarOpen state
+	 */
+	useEffect(() => {
+		const alerts = document.querySelector(
+			'.ddm-form-web__exception-container'
+		);
+
+		if (alerts) {
+			alerts.className = classNames('ddm-form-web__exception-container', {
+				'ddm-form-web__exception-container--sidebar-open': sidebarOpen,
+			});
+		}
+	}, [sidebarOpen]);
 
 	useEffect(() => {
 		const currentPage = pages[activePage];
 		const isEmpty = currentPage.rows[0]?.columns[0].fields.length === 0;
 
-		if (isEmpty && sidebarRef.current) {
-			sidebarRef.current.current.open();
+		if (isEmpty) {
+			setSidebarState(({sidebarPanelId}) => ({
+				sidebarOpen: true,
+				sidebarPanelId,
+			}));
 		}
 
 		// We only want to cause this useEffect to be called again if the
 		// number of pages changes and not the page data.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [pages.length, activePage]);
+	}, [activePage, pages.length, setSidebarState]);
 
 	const getFormUrl = useCallback(
 		async (path) => {
-			const settingsDDMForm = await Liferay.componentReady(
-				'settingsDDMForm'
-			);
-
-			const fields = settingsDDMForm.reactComponentRef.current.getFields();
-
-			const {value: requireAuthentication} = fields.find(
-				({fieldName}) => fieldName === 'requireAuthentication'
-			);
+			const formInstanceId = document.querySelector(
+				`#${portletNamespace}formInstanceId`
+			).value;
 
 			return createFormURL(path, {
 				formInstanceId,
-				requireAuthentication,
-				restrictedFormURL,
 				sharedFormURL,
 			});
 		},
-		[formInstanceId, restrictedFormURL, sharedFormURL]
+		[portletNamespace, sharedFormURL]
 	);
 
 	useEffect(() => {
@@ -174,20 +241,26 @@ export const FormBuilder = () => {
 		}
 	}, [addToast, showPublishAlert, published, getFormUrl]);
 
-	const onOpenSidebar = useCallback(() => {
-		if (sidebarRef.current) {
-			sidebarRef.current.current.open();
-		}
-	}, []);
-
 	const onPreviewClick = useCallback(
 		async (event) => {
 			event.preventDefault();
 
-			try {
-				const url = await getFormUrl('/preview');
+			if (!dataDefinition.dataDefinitionFields.length) {
+				setErrorList([
+					Liferay.Language.get('please-add-at-least-one-field'),
+				]);
 
+				return;
+			}
+
+			if (errorList.length) {
+				setErrorList([]);
+			}
+
+			try {
 				await doSave(true);
+
+				const url = await getFormUrl('/preview');
 
 				window.open(url, '_blank');
 			}
@@ -201,16 +274,50 @@ export const FormBuilder = () => {
 				});
 			}
 		},
-		[addToast, doSave, getFormUrl]
+		[addToast, dataDefinition, doSave, errorList, getFormUrl]
 	);
 
 	const subtmitForm = useCallback(
-		(form) => {
+		async (form) => {
+			const openModalObjectRestrictions = (props) => {
+				modalDispatch({
+					payload: {
+						body: <ModalObjectRestrictionsBody {...props} />,
+						footer: [
+							null,
+							null,
+							<ClayButton
+								displayType="secondary"
+								key={1}
+								onClick={() => onClose()}
+							>
+								{Liferay.Language.get('close')}
+							</ClayButton>,
+						],
+						header: Liferay.Language.get(
+							'unmapped-object-required-fields'
+						),
+						status: 'danger',
+					},
+					type: 1,
+				});
+			};
+
 			doSyncInput();
 
-			window.submitForm(form);
+			const isValidToSubmitForm = await validateFormWithObjects(
+
+				// This callback will be rendered when the Forms
+				// validation result is false
+
+				openModalObjectRestrictions
+			);
+
+			if (isValidToSubmitForm) {
+				window.submitForm(form);
+			}
 		},
-		[doSyncInput]
+		[doSyncInput, modalDispatch, onClose, validateFormWithObjects]
 	);
 
 	const onPublishClick = useCallback(
@@ -232,6 +339,12 @@ export const FormBuilder = () => {
 		(event) => {
 			event.preventDefault();
 
+			const publishButton = document.querySelector(
+				'.lfr-ddm-publish-button'
+			);
+
+			publishButton.disabled = true;
+
 			subtmitForm(document.getElementById(`${portletNamespace}editForm`));
 		},
 		[portletNamespace, subtmitForm]
@@ -240,13 +353,18 @@ export const FormBuilder = () => {
 	const onShareClick = useCallback(async () => {
 		const url = await getFormUrl();
 
+		emailContentRef.current.message = Liferay.Util.sub(
+			Liferay.Language.get('please-fill-out-this-form-x'),
+			url
+		);
+
 		if (published) {
 			modalDispatch({
 				payload: {
 					body: (
 						<ShareFormModalBody
 							autocompleteUserURL={autocompleteUserURL}
-							emailContent={emailContent}
+							emailContent={emailContentRef}
 							localizedName={localizedName}
 							url={url}
 						/>
@@ -261,11 +379,12 @@ export const FormBuilder = () => {
 							>
 								{Liferay.Language.get('cancel')}
 							</ClayButton>
+
 							<ClayButton
 								displayType="primary"
 								onClick={() => {
 									submitEmailContent({
-										...emailContent.current,
+										...emailContentRef.current,
 										portletNamespace,
 										shareFormInstanceURL,
 									});
@@ -294,17 +413,30 @@ export const FormBuilder = () => {
 		shareFormInstanceURL,
 	]);
 
+	useEffect(() => {
+		if (!objectFields.length) {
+			addObjectFields(dispatch);
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	return (
 		<>
 			<ManagementToolbar
-				onPlusClick={dataEngineSidebar ? null : onOpenSidebar}
 				onPreviewClick={onPreviewClick}
 				onPublishClick={onPublishClick}
 				onSaveClick={onSaveClick}
+				onSettingsClick={() => setVisibleFormSettings(true)}
 				onShareClick={onShareClick}
 				portletNamespace={portletNamespace}
 			/>
 			<TranslationManager />
+			<ErrorList
+				errorMessages={errorList}
+				onRemove={removeErrorMessage}
+				sidebarOpen={sidebarOpen}
+			/>
 			<FormInfo />
 			<div className="ddm-form-builder">
 				<div className="container ddm-paginated-builder top">
@@ -313,12 +445,12 @@ export const FormBuilder = () => {
 							className={classNames(
 								'container ddm-form-builder',
 								{
-									'ddm-form-builder--sidebar-open':
-										dataEngineSidebar && sidebarOpen,
+									'ddm-form-builder--sidebar-open': sidebarOpen,
 								}
 							)}
 						>
 							<DragLayer />
+
 							<Pages
 								editable={true}
 								fieldActions={[
@@ -357,39 +489,19 @@ export const FormBuilder = () => {
 					</div>
 				</div>
 
-				{dataEngineSidebar ? (
-					<MultiPanelSidebar
-						createPlugin={({
-							panel,
-							sidebarOpen,
-							sidebarPanelId,
-						}) => ({
-							panel,
-							sidebarOpen,
-							sidebarPanelId,
-						})}
-						currentPanelId={currentPanelId}
-						onChange={({sidebarOpen, sidebarPanelId}) =>
-							setSidebarStatus({
-								currentPanelId: sidebarPanelId,
-								sidebarOpen,
-							})
-						}
-						open={sidebarOpen}
-						panels={[['fields']]}
-						sidebarPanels={sidebarPanels}
-						variant="light"
-					/>
-				) : (
-					<MetalSidebarAdapter
-						defaultLanguageId={defaultLanguageId}
-						editingLanguageId={editingLanguageId}
-						fieldSets={fieldSets}
-						focusedField={focusedField}
-						ref={sidebarRef}
-						rules={rules}
-					/>
-				)}
+				<MultiPanelSidebar
+					createPlugin={({panel, sidebarOpen, sidebarPanelId}) => ({
+						panel,
+						sidebarOpen,
+						sidebarPanelId,
+					})}
+					currentPanelId={sidebarPanelId}
+					onChange={setSidebarState}
+					open={sidebarOpen}
+					panels={[['fields']]}
+					sidebarPanels={sidebarPanels}
+					variant="light"
+				/>
 			</div>
 
 			{view === 'fieldSets' && (
@@ -406,12 +518,23 @@ export const FormBuilder = () => {
 						>
 							{Liferay.Language.get('Save')}
 						</ClayButton>
+
 						<ClayLink button displayType="link" href={redirectURL}>
 							{Liferay.Language.get('cancel')}
 						</ClayLink>
 					</div>
 				</div>
 			)}
+
+			<FormSettings
+				{...formSettingsContext}
+				onCloseFormSettings={() => {
+					setVisibleFormSettings(false);
+					updateObjectFields(dispatch);
+				}}
+				pages={formSettingsPages}
+				visibleFormSettings={visibleFormSettings}
+			/>
 		</>
 	);
-};
+}

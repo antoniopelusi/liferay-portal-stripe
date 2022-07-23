@@ -65,6 +65,16 @@ public class ProductSpecificationSerDes {
 			sb.append(productSpecification.getId());
 		}
 
+		if (productSpecification.getLabel() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"label\": ");
+
+			sb.append(_toJSON(productSpecification.getLabel()));
+		}
+
 		if (productSpecification.getOptionCategoryId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -157,6 +167,13 @@ public class ProductSpecificationSerDes {
 			map.put("id", String.valueOf(productSpecification.getId()));
 		}
 
+		if (productSpecification.getLabel() == null) {
+			map.put("label", null);
+		}
+		else {
+			map.put("label", String.valueOf(productSpecification.getLabel()));
+		}
+
 		if (productSpecification.getOptionCategoryId() == null) {
 			map.put("optionCategoryId", null);
 		}
@@ -233,6 +250,13 @@ public class ProductSpecificationSerDes {
 				if (jsonParserFieldValue != null) {
 					productSpecification.setId(
 						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "label")) {
+				if (jsonParserFieldValue != null) {
+					productSpecification.setLabel(
+						(Map)ProductSpecificationSerDes.toMap(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "optionCategoryId")) {

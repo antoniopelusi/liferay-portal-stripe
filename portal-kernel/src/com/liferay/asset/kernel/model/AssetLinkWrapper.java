@@ -128,6 +128,11 @@ public class AssetLinkWrapper
 		}
 	}
 
+	@Override
+	public AssetLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this asset link.
 	 *

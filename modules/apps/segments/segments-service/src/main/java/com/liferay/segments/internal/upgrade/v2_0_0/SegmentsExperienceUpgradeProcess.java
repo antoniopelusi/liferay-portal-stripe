@@ -15,7 +15,6 @@
 package com.liferay.segments.internal.upgrade.v2_0_0;
 
 import com.liferay.counter.kernel.service.CounterLocalService;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -42,37 +41,29 @@ public class SegmentsExperienceUpgradeProcess extends UpgradeProcess {
 	private void _updateSegmentsExperience(
 		long segmentsExperienceId, String segmentsExperienceKey) {
 
-		StringBundler sb = new StringBundler(2);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"update SegmentsExperience set segmentsExperienceKey = ? " +
+					"where segmentsExperienceId = ?")) {
 
-		sb.append("update SegmentsExperience set segmentsExperienceKey = ? ");
-		sb.append("where segmentsExperienceId = ?");
+			preparedStatement.setString(1, segmentsExperienceKey);
+			preparedStatement.setLong(2, segmentsExperienceId);
 
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setString(1, segmentsExperienceKey);
-			ps.setLong(2, segmentsExperienceId);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 	}
 
 	private void _updateSegmentsExperiences() throws Exception {
-		StringBundler sb = new StringBundler(1);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"select segmentsExperienceId from SegmentsExperience")) {
 
-		sb.append("select segmentsExperienceId from SegmentsExperience");
-
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					long segmentsExperienceId = rs.getLong(
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					long segmentsExperienceId = resultSet.getLong(
 						"segmentsExperienceId");
 
 					_updateSegmentsExperience(

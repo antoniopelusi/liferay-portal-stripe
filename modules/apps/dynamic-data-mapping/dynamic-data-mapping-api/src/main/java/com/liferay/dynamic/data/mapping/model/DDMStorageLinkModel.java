@@ -208,4 +208,7 @@ public interface DDMStorageLinkModel
 	 */
 	public void setStructureVersionId(long structureVersionId);
 
+	@Override
+	public DDMStorageLink cloneWithOriginalValues();
+
 }

@@ -14,42 +14,35 @@
  */
 --%>
 
-<c:if test="<%= !PropsValues.SESSION_DISABLED %>">
+<%
+String rememberMe = CookieKeys.getCookie(request, CookieKeys.REMEMBER_ME);
+%>
 
-	<%
-	String rememberMe = CookieKeys.getCookie(request, CookieKeys.REMEMBER_ME);
-	%>
+<c:if test="<%= !themeDisplay.isSignedIn() || Validator.isNull(rememberMe) %>">
+	<aui:script require="frontend-js-web/liferay/toast/commands/OpenToast.es as toastCommands">
+		AUI().use(
+			'liferay-session',
+			function() {
+				Liferay.Session = new Liferay.SessionBase(
+					{
+						autoExtend: <%= !themeDisplay.isSignedIn() || PropsValues.SESSION_TIMEOUT_AUTO_EXTEND %>,
+						redirectOnExpire: <%= SSOUtil.isSessionRedirectOnExpire(themeDisplay.getCompanyId()) %>,
+						redirectUrl: '<%= HtmlUtil.escapeJS(SSOUtil.getSessionExpirationRedirectURL(themeDisplay.getCompanyId(), themeDisplay.getURLHome())) %>',
+						sessionLength: <%= PropsValues.SESSION_TIMEOUT * 60 %>,
+						sessionTimeoutOffset: <%= PropsValues.SESSION_TIMEOUT_AUTO_EXTEND_OFFSET %>,
+						warningLength: <%= PropsValues.SESSION_TIMEOUT_WARNING * 60 %>
+					}
+				);
 
-	<c:if test="<%= !themeDisplay.isSignedIn() || Validator.isNull(rememberMe) %>">
-
-		<%
-		boolean autoExtend = !themeDisplay.isSignedIn() || PropsValues.SESSION_TIMEOUT_AUTO_EXTEND;
-		%>
-
-		<aui:script require="frontend-js-web/liferay/toast/commands/OpenToast.es as toastCommands">
-			AUI().use(
-				'liferay-session',
-				function() {
-					Liferay.Session = new Liferay.SessionBase(
+				<c:if test="<%= themeDisplay.isSignedIn() && (PropsValues.SESSION_TIMEOUT_WARNING > 0) %>">
+					Liferay.Session.plug(
+						Liferay.SessionDisplay,
 						{
-							autoExtend: <%= autoExtend %>,
-							redirectOnExpire: <%= SSOUtil.isSessionRedirectOnExpire(themeDisplay.getCompanyId()) %>,
-							redirectUrl: '<%= HtmlUtil.escapeJS(SSOUtil.getSessionExpirationRedirectURL(themeDisplay.getCompanyId(), themeDisplay.getURLHome())) %>',
-							sessionLength: <%= autoExtend ? PropsValues.SESSION_TIMEOUT * 60 - PropsValues.SESSION_TIMEOUT_AUTO_EXTEND_OFFSET : PropsValues.SESSION_TIMEOUT * 60 %>,
-							warningLength: <%= autoExtend ? 0 : PropsValues.SESSION_TIMEOUT_WARNING * 60 %>
+							openToast: toastCommands.openToast,
 						}
 					);
-
-					<c:if test="<%= themeDisplay.isSignedIn() && (PropsValues.SESSION_TIMEOUT_WARNING > 0) %>">
-						Liferay.Session.plug(
-							Liferay.SessionDisplay,
-							{
-								openToast: toastCommands.openToast,
-							}
-						);
-					</c:if>
-				}
-			);
-		</aui:script>
-	</c:if>
+				</c:if>
+			}
+		);
+	</aui:script>
 </c:if>

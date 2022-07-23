@@ -1,0 +1,19 @@
+{
+	"fieldSets": [
+		{
+			"fields": [
+				{
+					"dataType": "string",
+					"defaultValue": "Dashboard",
+					"description": "container-text",
+					"label": "Layout name",
+					"name": "layoutName",
+					"type": "text",
+					"typeOptions": {
+						"placeholder": "Insert the name of Layout"
+					}
+				}
+			]
+		}
+	]
+}

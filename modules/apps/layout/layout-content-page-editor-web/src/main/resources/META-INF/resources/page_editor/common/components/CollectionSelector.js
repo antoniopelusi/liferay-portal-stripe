@@ -12,37 +12,74 @@
  * details.
  */
 
+import ClayIcon from '@clayui/icon';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import {config} from '../../app/config/index';
+import {useCustomCollectionSelectorURL} from '../../app/contexts/CollectionItemContext';
 import itemSelectorValueToCollection from '../../app/utils/item-selector-value/itemSelectorValueToCollection';
 import ItemSelector from './ItemSelector';
 
+const DEFAULT_OPTION_MENU_ITEMS = [];
+
 export default function CollectionSelector({
-	collectionTitle,
+	collectionItem,
 	itemSelectorURL,
 	label,
 	onCollectionSelect,
+	optionsMenuItems = DEFAULT_OPTION_MENU_ITEMS,
+	shouldPreventCollectionSelect,
 }) {
 	const eventName = `${config.portletNamespace}selectInfoList`;
 
+	const customCollectionSelectorURL = useCustomCollectionSelectorURL();
+
+	const filterConfig = collectionItem?.config ?? {};
+
+	const isPrefiltered = Object.keys(filterConfig).length > 0;
+
 	return (
-		<ItemSelector
-			eventName={eventName}
-			itemSelectorURL={itemSelectorURL || config.infoListSelectorURL}
-			label={label}
-			onItemSelect={onCollectionSelect}
-			quickMappedInfoItems={config.selectedMappingTypes?.linkedCollection}
-			selectedItemTitle={collectionTitle}
-			showMappedItems={!!config.selectedMappingTypes?.linkedCollection}
-			transformValueCallback={itemSelectorValueToCollection}
-		/>
+		<>
+			<ItemSelector
+				className={classNames({'mb-0': isPrefiltered})}
+				eventName={eventName}
+				itemSelectorURL={
+					customCollectionSelectorURL ||
+					itemSelectorURL ||
+					config.infoListSelectorURL
+				}
+				label={label}
+				onItemSelect={onCollectionSelect}
+				optionsMenuItems={optionsMenuItems}
+				quickMappedInfoItems={
+					config.selectedMappingTypes?.linkedCollection
+				}
+				selectedItem={collectionItem}
+				shouldPreventItemSelect={shouldPreventCollectionSelect}
+				showMappedItems={
+					!!config.selectedMappingTypes?.linkedCollection
+				}
+				transformValueCallback={itemSelectorValueToCollection}
+			/>
+
+			{isPrefiltered && (
+				<p className="text-info">
+					<ClayIcon className="mr-2 mt-0" symbol="info-panel-open" />
+
+					<span className="text-2">
+						{Liferay.Language.get('collection-prefiltered')}
+					</span>
+				</p>
+			)}
+		</>
 	);
 }
 
 CollectionSelector.propTypes = {
-	collectionTitle: PropTypes.string,
+	collectionItem: PropTypes.shape({title: PropTypes.string}),
 	label: PropTypes.string,
 	onCollectionSelect: PropTypes.func.isRequired,
+	shouldPreventCollectionSelect: PropTypes.func,
 };

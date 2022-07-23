@@ -2,11 +2,13 @@
 <head>
 <title>APConfiguration</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">APConfiguration</td></tr>
 </thead>
+
 <tbody>
 <!--ASSET_SELECTION-->
 <tr>
@@ -17,11 +19,6 @@
 <tr>
 	<td>ASSET_SELECTION_DYNAMIC</td>
 	<td>//input[contains(@id,'selectionStyleDynamic')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ASSET_SELECTION_INFO_LIST_PROVIDER</td>
-	<td>//input[contains(@id,'selectionStyleInfoListProvider')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -37,7 +34,7 @@
 <!--SELECT COLLECTION-->
 <tr>
 	<td>ASSET_SELECTION_ASSET_LIST_TITLE</td>
-	<td>//div[contains(@id,'assetListTitle')]</td>
+	<td>//div[contains(@id,'selectCollection')]//div[contains(@id,'title')]</td>
 	<td></td>
 </tr>
 <!--SUBSCRIPTIONS-->
@@ -137,6 +134,11 @@
 <tr>
 	<td>SOURCE_SCOPE_FILTER_BY_FIELD_SELECT_BUTTON</td>
 	<td>//div[@class='asset-subtype']//span[contains(@id,'AssetRendererFactoryOptions') and @class='asset-subtypefields']/span/button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SOURCE_SCOPE_FILTER_BY_FIELD_SELECT_BUTTON_ENABLED</td>
+	<td>//div[@class='asset-subtype']//span[contains(@id,'AssetRendererFactoryOptions') and @class='asset-subtypefields']/span/button[not(@disabled)]</td>
 	<td></td>
 </tr>
 <tr>
@@ -246,7 +248,7 @@
 </tr>
 <tr>
 	<td>ORDERING_AND_GROUPING_ORDER_DIRECTIONAL_ICON</td>
-	<td>//div[contains(@class,'order-by-type')]//a[contains(.,'${key_sortOrder}')][span//*[name()='svg'][contains(@class,'icon-order-arrow')]]</td>
+	<td>//div[contains(@class,'order-by-type')]//a[contains(.,'${key_sortOrder}')][span//*[name()='svg'][contains(@class,'icon-order')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -257,28 +259,17 @@
 <!--ASSET_SELECTION_MANUAL_ASSET_ENTRIES-->
 <tr>
 	<td>ASSET_SELECTION_MANUAL_ASSET_ENTRIES_SELECT_BUTTON</td>
-	<td>//div[contains(.,'Asset Entries')]/following-sibling::div//a[@title='Select']</td>
+	<td>//fieldset[./*[normalize-space()='Asset Entries']]//a[normalize-space()='Select']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ASSET_SELECTION_MANUAL_ASSET_ENTRIES_SELECT_IN_DEPOT</td>
-	<td>//div[contains(.,'Asset Entries')]/following-sibling::div//a[@title='Select in ${key_depotName}']</td>
+	<td>//fieldset[./*[normalize-space()='Asset Entries']]//a[normalize-space()='Select in ${key_depotName}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ASSET_SELECTION_MANUAL_ASSET_ENTRIES_ASSET</td>
 	<td>//a[@data-title='Select ${key_assetType}']</td>
-	<td></td>
-</tr>
-<!--COLLECTION_PROVIDER-->
-<tr>
-	<td>SELECT_COLLECTION_PROVIDER_FIELD</td>
-	<td>//select[contains(@id,'infoListProviderKey')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SELECT_COLLECTION_PROVIDER_FIELD_VALUE</td>
-	<td>//select[contains(@id,'infoListProviderKey')]/option[normalize-space(text())='${key_value}']</td>
 	<td></td>
 </tr>
 </tbody>

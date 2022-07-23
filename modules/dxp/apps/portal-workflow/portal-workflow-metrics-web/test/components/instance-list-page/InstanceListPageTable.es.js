@@ -16,6 +16,7 @@ import {InstanceListContext} from '../../../src/main/resources/META-INF/resource
 import {Table} from '../../../src/main/resources/META-INF/resources/js/components/instance-list-page/InstanceListPageTable.es';
 import {ModalContext} from '../../../src/main/resources/META-INF/resources/js/components/instance-list-page/modal/ModalProvider.es';
 import {MockRouter} from '../../mock/MockRouter.es';
+import FetchMock, {fetchMockResponse} from '../../mock/fetch.es';
 
 const instances = [
 	{
@@ -37,11 +38,26 @@ const instances = [
 	},
 ];
 
-describe('The instance list table should', () => {
-	afterEach(cleanup);
+const fetchMock = new FetchMock({
+	GET: {
+		default: fetchMockResponse({}),
+	},
+});
 
-	test('Be rendered with two items', () => {
-		const {getAllByRole} = render(
+describe('The instance list table should', () => {
+	let container;
+	let getAllByRole;
+
+	afterEach(() => {
+		fetchMock.reset();
+
+		cleanup();
+	});
+
+	beforeEach(() => {
+		fetchMock.mock();
+
+		const renderResult = render(
 			<MockRouter>
 				<InstanceListContext.Provider
 					value={{setInstanceId: jest.fn()}}
@@ -55,8 +71,37 @@ describe('The instance list table should', () => {
 			</MockRouter>
 		);
 
+		container = renderResult.container;
+		getAllByRole = renderResult.getAllByRole;
+	});
+
+	test('Be rendered with two items', () => {
 		const instanceRows = getAllByRole('row');
 
 		expect(instanceRows.length).toBe(3);
+	});
+
+	test('Should order by Assignee', () => {
+		const orderLinks = container.querySelectorAll('.inline-item');
+
+		expect(orderLinks[2].href).toContain(
+			'/1/20/assigneeName%3Adesc?backPath=%2F'
+		);
+	});
+
+	test('Should order by Item Subject', () => {
+		const orderLinks = container.querySelectorAll('.inline-item');
+
+		expect(orderLinks[1].href).toContain(
+			'/1/20/assetType%3Adesc?backPath=%2F'
+		);
+	});
+
+	test('Should order by User Creator', () => {
+		const orderLinks = container.querySelectorAll('.inline-item');
+
+		expect(orderLinks[3].href).toContain(
+			'/1/20/userName%3Adesc?backPath=%2F'
+		);
 	});
 });

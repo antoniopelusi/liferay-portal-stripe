@@ -39,7 +39,7 @@ definition {
 
 			Tag.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -67,7 +67,9 @@ definition {
 
 		IFrame.closeFrame();
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		Navigator.gotoPage(pageName = "Web Content Search Page");
 
@@ -158,7 +160,9 @@ definition {
 
 		IFrame.closeFrame();
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		Navigator.gotoPage(pageName = "Web Content Search Page");
 
@@ -250,6 +254,29 @@ definition {
 		WebContentSearchPortlet.viewNoResults(webContentSearchTerm = "&quot;Name1&quot;");
 	}
 
+	@description = "This is a test for LPS-132425. The user could search web content folder on page."
+	@priority = "4"
+	test SearchWebContentFolder {
+		task ("Add a web content folder") {
+			JSONWebcontent.addFolder(
+				folderName = "WC Folder Name",
+				groupName = "Guest");
+		}
+
+		task ("Search the web content folder on page") {
+			Navigator.openURL();
+
+			SearchPortlets.searchEmbedded(searchTerm = "WC Folder Name");
+		}
+
+		task ("View the web content folder shown in search results") {
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "WC Folder Name",
+				searchAssetType = "Web Content Folder",
+				searchTerm = "WC Folder Name");
+		}
+	}
+
 	@priority = "3"
 	test SearchWebContentQuotes {
 		property testray.component.names = "Web Content Search";
@@ -274,7 +301,9 @@ definition {
 
 		IFrame.closeFrame();
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		Navigator.gotoPage(pageName = "Web Content Search Page");
 
@@ -375,7 +404,9 @@ definition {
 
 		IFrame.closeFrame();
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		Navigator.gotoPage(pageName = "Web Content Search Page");
 
@@ -433,7 +464,9 @@ definition {
 
 		IFrame.closeFrame();
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		Navigator.gotoPage(pageName = "Web Content Search Page");
 

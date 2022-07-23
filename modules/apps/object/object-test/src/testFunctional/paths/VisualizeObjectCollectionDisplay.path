@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>VisualizeObjectCollectionDisplay</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">VisualizeObjectCollectionDisplay</td></tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td>VIEW_OBJECT_COLLECTION_DISPLAY</td>
+		<td>//div[contains(@class,'list-group-title') and contains(text(),'${key_labelName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_BLANK_PAGE</td>
+		<td>//span[@class='text-truncate']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>NAME_DISPLAY_PAGE</td>
+		<td>//input[@id='_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_name']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_CONTENT_TYPE</td>
+		<td>//select[@name='_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_classNameId']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_SUBTYPE</td>
+		<td>//select[@name='_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_classTypeId']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SAVE_BUTTON</td>
+		<td>//button[@class='btn btn-primary']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FIELD_NAME_OPTION</td>
+		<td>//select[@aria-label='Field']//option[contains(text(),'${key_option}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FRAGMENT_COLLECTION</td>
+		<td>//div[(@class='page-editor__collection__message')] | //div[@class='page-editor__collection-item empty page-editor__topper']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FRAGMENT_SIDEBAR</td>
+		<td>//div[(@class='text-truncate title') and contains(.,'${key_fragment}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>HEADING_COLLECTION_DISPLAY</td>
+		<td>//h1[@class='component-heading mb-0 text-break page-editor__editable']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>MAP_FRAGMENT</td>
+		<td>//select[@aria-label='Field']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRIES_FRAGMENT</td>
+		<td>//h1[contains(.,'${key_entries}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ENTRIES_TABLE</td>
+		<td>//span//span[@class = 'text-truncate' and contains(text(),'${key_entries}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>EXPAND_BUTTON</td>
+		<td>//button[@aria-label='Expand Collection Display']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_HEADING</td>
+		<td>//div[@aria-label='Select Heading']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_COLLECTION_ITEM</td>
+		<td>//div[@aria-label='Select Collection Item']</td>
+		<td></td>
+	</tr>
+</tbody>
+</table>
+</body>
+</html>

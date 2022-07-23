@@ -1,17 +1,15 @@
 @component-name = "portal-categories"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Categories";
 	property testray.main.component.name = "Categories";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 	}
@@ -31,6 +29,8 @@ definition {
 	@priority = "5"
 	@uitest
 	test AddCategories {
+		property portal.acceptance = "true";
+
 		task ("Add a vocabulary") {
 			JSONCategory.addVocabulary(
 				groupName = "Test Site Name",
@@ -60,6 +60,8 @@ definition {
 	@priority = "5"
 	@uitest
 	test AddSubcategories {
+		property portal.acceptance = "true";
+
 		task ("Add a vocabulary") {
 			JSONCategory.addVocabulary(
 				groupName = "Test Site Name",
@@ -96,7 +98,7 @@ definition {
 		}
 	}
 
-	@description = "Add three vocabularies in Categories admin."
+	@description = "This is a test for LPS-131984. Add three vocabularies in Categories admin."
 	@priority = "5"
 	@uitest
 	test AddVocabularies {
@@ -118,8 +120,146 @@ definition {
 
 		task ("View the new vocabularies") {
 			for (var n : list "1,2,3") {
-				Vocabulary.viewCP(vocabularyName = "Vocabulary Name ${n}");
+				Navigator.gotoNavNested(navNested = "Vocabulary Name ${n}");
+
+				AssertVisible(
+					assetTitle = "Vocabulary Name ${n}",
+					info = "Asset Types: All Asset Types",
+					locator1 = "Message#ASSET_INFO");
+
+				AssertElementNotPresent(
+					assetTitle = "Vocabulary Name ${n}",
+					info = "Description:",
+					locator1 = "Message#ASSET_INFO");
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-118305. The user cannot add a category to a vocabulary if the limit was exceeded."
+	@priority = "5"
+	test CannotAddCategoriesWhenReachTheLimit {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "CategoriesUI#CannotAddCategoriesWhenReachTheLimit";
+
+		task ("Change the Maximum Number of Categories per Vocabulary to 3") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Assets",
+				configurationName = "Categorization",
+				configurationScope = "Virtual Instance Scope");
+
+			SystemSettings.editTextSetting(
+				settingName = "Maximum Number of Categories per Vocabulary",
+				settingValue = "3");
+
+			SystemSettings.saveConfiguration();
+		}
+
+		task ("Add a new vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add two categories in new vocabulary") {
+			for (var n : list "1,2") {
+				JSONCategory.addCategory(
+					groupName = "Test Site Name",
+					title = "Category Name ${n}",
+					vocabularyName = "Vocabulary Name");
+			}
+		}
+
+		task ("Add the third category") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Vocabulary Name");
+
+			LexiconEntry.gotoAdd();
+
+			PortletEntry.inputTitle(title = "Category Name 3");
+		}
+
+		task ("View the Save and Add a New one button is disabled") {
+			AssertVisible(
+				key_text = "Save and Add a New One",
+				locator1 = "Button#ANY_DISABLED");
+
+			PortletEntry.save();
+		}
+
+		task ("View three categories shown in vocabulary") {
+			for (var n : list "1,2,3") {
+				Category.viewCP(
+					categoryName = "Category Name ${n}",
+					vocabularyName = "Vocabulary Name");
+			}
+		}
+
+		task ("View the special warning message") {
+			Alert.viewWarningSpecific(warningMessage = "You have reached the limit of 3 categories for this vocabulary.");
+		}
+
+		task ("View the plus icon button disappear") {
+			AssertElementNotPresent(locator1 = "Button#PLUS");
+		}
+
+		task ("View the Add Subcategory action disappear") {
+			LexiconEntry.openEntryMenu(rowEntry = "Category Name 1");
+
+			MenuItem.viewNotPresent(menuItem = "Add Subcategory");
+
+			MenuItem.viewPresent(menuItem = "Edit");
+		}
+	}
+
+	@description = "This is a test for LPS-118305. The user could change the maximum number of categories per vocabuary."
+	@priority = "5"
+	@uitest
+	test ConfigureMaximumNumberOfCategoriesPerVocabulary {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "CategoriesUI#ConfigureMaximumNumberOfCategoriesPerVocabulary";
+
+		task ("Change the Maximum Number of Categories per Vocabulary in System Settings") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Assets",
+				configurationName = "Categorization",
+				configurationScope = "Virtual Instance Scope");
+
+			SystemSettings.editTextSetting(
+				settingName = "Maximum Number of Categories per Vocabulary",
+				settingValue = "300");
+
+			SystemSettings.saveConfiguration();
+		}
+
+		task ("Navigate to the Categories admin") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+		}
+
+		task ("View the Maximum Number of categories of existing vocabularies is 300") {
+			for (var vocabularyName : list "Topic,Audience,Stage") {
+				Navigator.gotoNavNested(navNested = "${vocabularyName}");
+
+				AssertVisible(
+					assetTitle = "${vocabularyName}",
+					info = "The maximum number of categories per vocabulary is 300.",
+					locator1 = "Message#ASSET_INFO");
+			}
+		}
+
+		task ("Add a new vocabulary") {
+			Vocabulary.addCP(vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View the Maximum Number of categories of new vocabulary is 300") {
+			AssertVisible(
+				assetTitle = "Vocabulary Name",
+				info = "The maximum number of categories per vocabulary is 300.",
+				locator1 = "Message#ASSET_INFO");
 		}
 	}
 
@@ -387,6 +527,108 @@ definition {
 
 		task ("View the edited vocabulary") {
 			Vocabulary.viewCP(vocabularyName = "Vocabulary Name Edit");
+		}
+	}
+
+	@description = "When the user accesses to Categorization > Categories, he can navigate from one to another"
+	@priority = "3"
+	test MoveBetweenVocabularies {
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+		}
+
+		task ("Edit the new vocabulary") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.goToVocabulary(vocabularyName = "Audience");
+
+			Vocabulary.goToVocabulary(vocabularyName = "Vocabulary Name");
+		}
+	}
+
+	@description = "This is a test for LPS-118305. The maximum number of categories per vocabulary is 150 shown below vocabulary name in Categories admin by default."
+	@priority = "5"
+	@uitest
+	test ViewDefaultMaximumNumberOfCategoriesPerVocabulary {
+		property portal.acceptance = "true";
+
+		task ("Navigate to the Categories admin") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+		}
+
+		task ("View the default Maximum Number of categories of existing vocabularies") {
+			for (var vocabularyName : list "Topic,Audience,Stage") {
+				Navigator.gotoNavNested(navNested = "${vocabularyName}");
+
+				AssertVisible(
+					assetTitle = "${vocabularyName}",
+					info = "The maximum number of categories per vocabulary is 150.",
+					locator1 = "Message#ASSET_INFO");
+			}
+		}
+
+		task ("Add a new vocabulary") {
+			Vocabulary.addCP(vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View the default Maximum Number of categories of new vocabulary") {
+			AssertVisible(
+				assetTitle = "Vocabulary Name",
+				info = "The maximum number of categories per vocabulary is 150.",
+				locator1 = "Message#ASSET_INFO");
+		}
+	}
+
+	@description = "This is a test for LPS-131984. The user could view the description of vocabulary in Categories admin."
+	@priority = "5"
+	@uitest
+	test ViewDescriptionOfVocabulary {
+		property portal.acceptance = "true";
+
+		task ("Navigate to the Categories admin") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+		}
+
+		task ("Add the first vocabulary with a short description") {
+			Vocabulary.addCP(
+				vocabularyDescription = "2021 Camry",
+				vocabularyName = "Vocabulary Name 1");
+		}
+
+		task ("View the short description of the first vocabulary in Categories admin") {
+			AssertVisible(
+				assetTitle = "Vocabulary Name 1",
+				info = "Description: 2021 Camry",
+				locator1 = "Message#ASSET_INFO");
+		}
+
+		task ("View the associated asset type of the first vocabulary in Categories admin") {
+			AssertVisible(
+				assetTitle = "Vocabulary Name 1",
+				info = "Asset Types: All Asset Types",
+				locator1 = "Message#ASSET_INFO");
+		}
+
+		task ("Add the second vocabulary with a long description more than 150 charactors") {
+			Vocabulary.addCP(
+				vocabularyDescription = "The powerful, stylish 2021 Camry Hybrid gives up nothing with its optimized fuel economy, advanced tech and stirring drive. We have expanded our hybrid battery warranty to reflect our confidence in the quality, dependability and reliability of our products. From the 2020 model year forward, every Toyota hybrid battery warranty will cover 10 years from date of first use or 150,000 miles, whichever comes first (previously 8 years or 100,000 miles).",
+				vocabularyName = "Vocabulary Name 2");
+		}
+
+		task ("View the full description of the second vocabulary in Categories admin") {
+			AssertVisible(
+				assetTitle = "Vocabulary Name 2",
+				info = "Description: The powerful, stylish 2021 Camry Hybrid gives up nothing with its optimized fuel economy, advanced tech and stirring drive. We have expanded our hybrid battery warranty to reflect our confidence in the quality, dependability and reliability of our products. From the 2020 model year forward, every Toyota hybrid battery warranty will cover 10 years from date of first use or 150,000 miles, whichever comes first (previously 8 years or 100,000 miles).",
+				locator1 = "Message#ASSET_INFO");
+		}
+
+		task ("View the associated asset type of the second vocabulary in Categories admin") {
+			AssertVisible(
+				assetTitle = "Vocabulary Name 2",
+				info = "Asset Types: All Asset Types",
+				locator1 = "Message#ASSET_INFO");
 		}
 	}
 

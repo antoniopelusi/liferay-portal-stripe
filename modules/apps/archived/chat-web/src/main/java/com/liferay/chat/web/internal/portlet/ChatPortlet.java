@@ -23,14 +23,11 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
-import java.util.Map;
-
 import javax.portlet.Portlet;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -60,14 +57,20 @@ import org.osgi.service.component.annotations.Reference;
 public class ChatPortlet extends MVCPortlet {
 
 	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		if (!hasPortletId()) {
-			addPortletIdLayoutStaticPortletsAll();
+	protected void activate() {
+		if (!_hasPortletId()) {
+			_addPortletIdLayoutStaticPortletsAll();
 		}
 	}
 
-	protected void addPortletIdLayoutStaticPortletsAll() {
+	@Deactivate
+	protected void deactivate() {
+		if (_hasPortletId()) {
+			_removePortletIdLayoutStaticPortletsAll();
+		}
+	}
+
+	private void _addPortletIdLayoutStaticPortletsAll() {
 		String[] layoutStaticPortletsAll =
 			PropsValues.LAYOUT_STATIC_PORTLETS_ALL;
 
@@ -81,21 +84,13 @@ public class ChatPortlet extends MVCPortlet {
 		PropsValues.LAYOUT_STATIC_PORTLETS_ALL = layoutStaticPortletsAll;
 	}
 
-	@Deactivate
-	@Modified
-	protected void deactivate(Map<String, Object> properties) {
-		if (hasPortletId()) {
-			removePortletIdLayoutStaticPortletsAll();
-		}
-	}
-
-	protected boolean hasPortletId() {
+	private boolean _hasPortletId() {
 		return ArrayUtil.contains(
 			PropsValues.LAYOUT_STATIC_PORTLETS_ALL, ChatPortletKeys.CHAT,
 			false);
 	}
 
-	protected void removePortletIdLayoutStaticPortletsAll() {
+	private void _removePortletIdLayoutStaticPortletsAll() {
 		String[] layoutStaticPortletsAll =
 			PropsValues.LAYOUT_STATIC_PORTLETS_ALL;
 

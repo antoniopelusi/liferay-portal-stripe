@@ -120,16 +120,14 @@ public class AMImageHTMLTagFactoryImplTest {
 		String originalImgTag =
 			"<img src=\"originalURL\" data-fileentryid=\"1234\"/>";
 
-		StringBundler expectedSB = new StringBundler(3);
-
-		expectedSB.append("<picture data-fileentryid=\"1234\">");
-		expectedSB.append(originalImgTag);
-		expectedSB.append("</picture>");
-
 		String pictureTag = _amImageHTMLTagFactoryImpl.create(
 			originalImgTag, _fileEntry);
 
-		Assert.assertEquals(expectedSB.toString(), pictureTag);
+		Assert.assertEquals(
+			StringBundler.concat(
+				"<picture data-fileentryid=\"1234\">", originalImgTag,
+				"</picture>"),
+			pictureTag);
 	}
 
 	@Test
@@ -200,7 +198,7 @@ public class AMImageHTMLTagFactoryImplTest {
 		);
 	}
 
-	private MediaQuery _createMediaQuery(final int width, String url)
+	private MediaQuery _createMediaQuery(int width, String url)
 		throws Exception {
 
 		return new MediaQuery(

@@ -64,7 +64,7 @@ import org.osgi.service.component.annotations.Reference;
 	property = "model.class.name=com.liferay.document.library.kernel.model.DLFolder",
 	service = TrashHandler.class
 )
-public class DLFolderTrashHandler extends DLBaseTrashHandler {
+public class DLFolderTrashHandler extends BaseDLTrashHandler {
 
 	@Override
 	public void checkRestorableEntry(
@@ -178,7 +178,7 @@ public class DLFolderTrashHandler extends DLBaseTrashHandler {
 		}
 		catch (PortalException | UnsupportedCapabilityException exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;

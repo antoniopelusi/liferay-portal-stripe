@@ -14,7 +14,6 @@
 
 package com.liferay.commerce.frontend.taglib.servlet.taglib;
 
-import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.constants.CommerceWebKeys;
 import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.currency.model.CommerceCurrency;
@@ -24,17 +23,16 @@ import com.liferay.commerce.frontend.util.ProductHelper;
 import com.liferay.commerce.inventory.engine.CommerceInventoryEngine;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderItem;
+import com.liferay.commerce.order.CommerceOrderHttpHelper;
 import com.liferay.commerce.product.catalog.CPCatalogEntry;
 import com.liferay.commerce.product.catalog.CPSku;
 import com.liferay.commerce.product.content.util.CPContentHelper;
 import com.liferay.commerce.service.CommerceOrderItemLocalService;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
 
 import java.util.List;
@@ -44,6 +42,7 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 /**
+ * @author Fabio Diego Mastrorilli
  * @author Gianmarco Brunialti Masera
  * @author Ivica Cardic
  */
@@ -52,17 +51,17 @@ public class AddToCartTag extends IncludeTag {
 	@Override
 	public int doStartTag() throws JspException {
 		try {
+			HttpServletRequest httpServletRequest = getRequest();
+
 			CommerceContext commerceContext =
-				(CommerceContext)request.getAttribute(
+				(CommerceContext)httpServletRequest.getAttribute(
 					CommerceWebKeys.COMMERCE_CONTEXT);
 
-			CommerceAccount commerceAccount =
-				commerceContext.getCommerceAccount();
+			_commerceAccountId = CommerceUtil.getCommerceAccountId(
+				commerceContext);
 
-			if (commerceAccount != null) {
-				_commerceAccountId = commerceAccount.getCommerceAccountId();
-			}
-
+			_commerceChannelGroupId =
+				commerceContext.getCommerceChannelGroupId();
 			_commerceChannelId = commerceContext.getCommerceChannelId();
 
 			CommerceCurrency commerceCurrency =
@@ -89,7 +88,11 @@ public class AddToCartTag extends IncludeTag {
 
 			if ((cpSku != null) && !hasChildCPDefinitions) {
 				_cpInstanceId = cpSku.getCPInstanceId();
-				_disabled = !cpSku.isPurchasable();
+				_disabled =
+					!cpSku.isPurchasable() ||
+					((_commerceAccountId <= 0) &&
+					 !_commerceOrderHttpHelper.isGuestCheckoutEnabled(
+						 httpServletRequest));
 				sku = cpSku.getSku();
 
 				if (commerceOrder != null) {
@@ -104,20 +107,9 @@ public class AddToCartTag extends IncludeTag {
 				}
 			}
 
-			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-			String pathThemeImages = themeDisplay.getPathThemeImages();
-
-			_spritemap = pathThemeImages + "/icons.svg";
-
-			if (pathThemeImages.contains("classic")) {
-				_spritemap = pathThemeImages + "/lexicon/icons.svg";
-			}
-
 			if (sku != null) {
 				_stockQuantity = _commerceInventoryEngine.getStockQuantity(
-					PortalUtil.getCompanyId(request),
+					PortalUtil.getCompanyId(httpServletRequest),
 					commerceContext.getCommerceChannelGroupId(), sku);
 
 				_productSettingsModel = _productHelper.getProductSettingsModel(
@@ -125,13 +117,14 @@ public class AddToCartTag extends IncludeTag {
 
 				if (!_disabled) {
 					_disabled =
-						!_productSettingsModel.isBackOrders() &&
-						(_stockQuantity <= 0);
+						(!_productSettingsModel.isBackOrders() &&
+						 (_stockQuantity <= 0)) ||
+						!cpSku.isPublished() || !cpSku.isPurchasable();
 				}
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return SKIP_BODY;
 		}
@@ -139,8 +132,8 @@ public class AddToCartTag extends IncludeTag {
 		return super.doStartTag();
 	}
 
-	public boolean getBlock() {
-		return _block;
+	public String getAlignment() {
+		return _alignment;
 	}
 
 	public CPCatalogEntry getCPCatalogEntry() {
@@ -151,25 +144,40 @@ public class AddToCartTag extends IncludeTag {
 		return _cpInstanceId;
 	}
 
+	public boolean getIconOnly() {
+		return _iconOnly;
+	}
+
+	public boolean getInline() {
+		return _inline;
+	}
+
 	public String getNamespace() {
 		return _namespace;
 	}
 
-	public String getOptions() {
-		return _options;
+	public String getSize() {
+		return _size;
 	}
 
-	public String getSpritemap() {
-		return _spritemap;
+	public String getSkuOptions() {
+		return _skuOptions;
+	}
+
+	public void setAlignment(String alignment) {
+		_alignment = alignment;
 	}
 
 	@Override
 	public void setAttributes(HttpServletRequest httpServletRequest) {
 		setAttributeNamespace(_ATTRIBUTE_NAMESPACE);
 
-		setNamespacedAttribute(httpServletRequest, "block", _block);
+		setNamespacedAttribute(httpServletRequest, "alignment", _alignment);
 		setNamespacedAttribute(
 			httpServletRequest, "commerceAccountId", _commerceAccountId);
+		setNamespacedAttribute(
+			httpServletRequest, "commerceChannelGroupId",
+			_commerceChannelGroupId);
 		setNamespacedAttribute(
 			httpServletRequest, "commerceChannelId", _commerceChannelId);
 		setNamespacedAttribute(
@@ -179,28 +187,16 @@ public class AddToCartTag extends IncludeTag {
 		setNamespacedAttribute(
 			httpServletRequest, "cpInstanceId", _cpInstanceId);
 		setNamespacedAttribute(httpServletRequest, "disabled", _disabled);
+		setNamespacedAttribute(httpServletRequest, "iconOnly", _iconOnly);
 		setNamespacedAttribute(httpServletRequest, "inCart", _inCart);
+		setNamespacedAttribute(httpServletRequest, "inline", _inline);
 		setNamespacedAttribute(httpServletRequest, "namespace", _namespace);
-		setNamespacedAttribute(httpServletRequest, "options", _options);
 		setNamespacedAttribute(
 			httpServletRequest, "productSettingsModel", _productSettingsModel);
-
-		if (Validator.isNull(_spritemap)) {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)httpServletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
-			_spritemap = themeDisplay.getPathThemeImages() + "/clay/icons.svg";
-		}
-
-		setNamespacedAttribute(httpServletRequest, "spritemap", _spritemap);
-
+		setNamespacedAttribute(httpServletRequest, "size", _size);
+		setNamespacedAttribute(httpServletRequest, "skuOptions", _skuOptions);
 		setNamespacedAttribute(
 			httpServletRequest, "stockQuantity", _stockQuantity);
-	}
-
-	public void setBlock(boolean block) {
-		_block = block;
 	}
 
 	public void setCPCatalogEntry(CPCatalogEntry cpCatalogEntry) {
@@ -211,52 +207,67 @@ public class AddToCartTag extends IncludeTag {
 		_cpInstanceId = cpInstanceId;
 	}
 
-	public void setNamespace(String namespace) {
-		_namespace = namespace;
+	public void setIconOnly(boolean iconOnly) {
+		_iconOnly = iconOnly;
 	}
 
-	public void setOptions(String options) {
-		_options = options;
+	public void setInline(boolean inline) {
+		_inline = inline;
+	}
+
+	public void setNamespace(String namespace) {
+		_namespace = namespace;
 	}
 
 	@Override
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
+		setServletContext(ServletContextUtil.getServletContext());
+
+		_commerceOrderHttpHelper =
+			ServletContextUtil.getCommerceOrderHttpHelper();
 		_commerceInventoryEngine =
 			ServletContextUtil.getCommerceInventoryEngine();
 		_commerceOrderItemLocalService =
 			ServletContextUtil.getCommerceOrderItemLocalService();
 		_cpContentHelper = ServletContextUtil.getCPContentHelper();
 		_productHelper = ServletContextUtil.getProductHelper();
-		servletContext = ServletContextUtil.getServletContext();
 	}
 
-	public void setSpritemap(String spritemap) {
-		_spritemap = spritemap;
+	public void setSize(String size) {
+		_size = size;
+	}
+
+	public void setSkuOptions(String skuOptions) {
+		_skuOptions = skuOptions;
 	}
 
 	@Override
 	protected void cleanUp() {
 		super.cleanUp();
 
-		_block = false;
+		_alignment = "center";
 		_commerceAccountId = 0;
+		_commerceChannelGroupId = 0;
 		_commerceChannelId = 0;
 		_commerceCurrencyCode = null;
 		_commerceInventoryEngine = null;
+		_commerceOrderHttpHelper = null;
 		_commerceOrderId = 0;
 		_commerceOrderItemLocalService = null;
 		_cpCatalogEntry = null;
 		_cpContentHelper = null;
 		_cpInstanceId = 0;
 		_disabled = false;
+		_iconOnly = false;
 		_inCart = false;
+		_inline = false;
 		_namespace = StringPool.BLANK;
-		_options = null;
 		_productHelper = null;
 		_productSettingsModel = null;
-		_spritemap = null;
+		_size = "md";
+		_skuOptions = null;
 		_stockQuantity = 0;
 	}
 
@@ -272,23 +283,27 @@ public class AddToCartTag extends IncludeTag {
 
 	private static final Log _log = LogFactoryUtil.getLog(AddToCartTag.class);
 
-	private boolean _block;
+	private String _alignment = "center";
 	private long _commerceAccountId;
+	private long _commerceChannelGroupId;
 	private long _commerceChannelId;
 	private String _commerceCurrencyCode;
 	private CommerceInventoryEngine _commerceInventoryEngine;
+	private CommerceOrderHttpHelper _commerceOrderHttpHelper;
 	private long _commerceOrderId;
 	private CommerceOrderItemLocalService _commerceOrderItemLocalService;
 	private CPCatalogEntry _cpCatalogEntry;
 	private CPContentHelper _cpContentHelper;
 	private long _cpInstanceId;
 	private boolean _disabled;
+	private boolean _iconOnly;
 	private boolean _inCart;
+	private boolean _inline;
 	private String _namespace = StringPool.BLANK;
-	private String _options;
 	private ProductHelper _productHelper;
 	private ProductSettingsModel _productSettingsModel;
-	private String _spritemap;
+	private String _size = "md";
+	private String _skuOptions;
 	private int _stockQuantity;
 
 }

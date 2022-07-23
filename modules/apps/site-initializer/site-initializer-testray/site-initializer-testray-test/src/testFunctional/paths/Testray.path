@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>Testray</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Testray</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>ITEMS_PER_PAGE_BUTTON</td>
+	<td>//div[contains(@class, testray-page)]//div[contains(@class, 'pagination')]//button[contains(@class, 'dropdown')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ITEMS_PER_PAGE_BUTTON_DROPDOWN</td>
+	<td>//div[contains(@class, 'dropdown-menu')]//button[(text()='${key_itemValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ITEMS_PER_PAGE_DESCRIPTION</td>
+	<td>//div[contains(@class, 'pagination')]//div[contains(@class, 'pagination-results') and contains(text(), "${key_text}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ITEMS_PER_PAGE_VALUE_BUTTON</td>
+	<td>//div[contains(@class, testray-page)]//div[contains(@class, 'pagination')]//button[contains(text(), "${key_value} Items")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEXT_AND_PREVIOUS_PAGE_BUTTON</td>
+	<td>//button[contains(@class, 'page-link') and contains(@aria-label, '${key_pageDirection}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NUMBER_PAGE_BUTTON</td>
+	<td>//button[contains(@class, 'page-link') and contains(text(), "${key_pageNumber}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROJECT_NAME_BUTTON</td>
+	<td>//td[contains(@class, 'text-dark cursor-pointer') and contains(text(), "${key_projectName}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROJECT_NAVIGATOR_TAB_BUTTON</td>
+	<td>//button[contains(@class, 'nav-link') and contains(text(), "${key_navTabName}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEW_DESCRIPTION_PROJECT</td>
+	<td>//div[contains(@class, 'modal-content')]//input[contains(@id, 'description')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NAME_TITLE</td>
+	<td>//h5[contains(text(),'${key_title}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PROJECT</td>
+	<td>//div[contains(@class, 'testray-page')]//li[contains(@class, 'nav-item')]//button[contains(@class, 'nav-btn')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RESULTS_SIDEBAR</td>
+	<td>//span[contains(text(),'Results')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROJECT_NAME_HEADER</td>
+	<td>//p[contains(@class, 'header-title') and contains(@title, '${key_projectName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TESTFLOW_SIDEBAR</td>
+	<td>//a[contains(@href, '#/testflow')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MODAL_BODY</td>
+	<td>//div[contains(@class,'modal-body')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -14,9 +14,9 @@
 
 package com.liferay.journal.web.internal.portlet.action;
 
+import com.liferay.diff.exception.CompareVersionsException;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.util.JournalHelper;
-import com.liferay.portal.kernel.diff.CompareVersionsException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
@@ -94,7 +94,7 @@ public class CompareVersionsMVCResourceCommand extends BaseMVCResourceCommand {
 			}
 			catch (ServletException servletException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(servletException, servletException);
+					_log.debug(servletException);
 				}
 			}
 		}

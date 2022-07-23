@@ -20,381 +20,391 @@ definition {
 		else {
 			PortalSettings.tearDownAuthenticationCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
-	@description = "This is a use case for LPS-107017."
+	@description = "This is a use case for LPS-107017. Create user via JSONWSAPUI."
 	@priority = "4"
 	test CreateUserViaJSONWSAPIUI {
 		var portalURL = PropsUtil.get("portal.url");
-
-		Navigator.openSpecificURL(url = "${portalURL}/api/jsonws?contextName=&signature=/user/add-user-31-long-boolean-java.lang.String-java.lang.String-boolean-java.lang.String-java.lang.String-long-java.lang.String-java.util.Locale-java.lang.String-java.lang.String-java.lang.String-long-long-boolean-int-int-int-java.lang.String-%5BJ-%5BJ-%5BJ-%5BJ-java.util.List-java.util.List-java.util.List-java.util.List-java.util.List-boolean-com.liferay.portal.kernel.service.ServiceContext");
-
-		JSONUser.addUserByJSONWSUI(
-			userFirstName = "testfUI",
-			userLastName = "testlUI");
-
-		Pause(locator1 = "3000");
-
-		AssertHTMLSourceTextPresent(
-			locator1 = "JSONWS#SECURITY_RESULT",
-			value1 = "Welcome testfUI testlUI!");
-
-		Navigator.openURL();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
+		var userfn = "testfUI";
+		var userln = "testlUI";
 		var key_userScreenName = "testui";
 
-		AssertTextEquals(
-			locator1 = "UsersAndOrganizations#USER_TABLE_NAME",
-			value1 = "testfUI testlUI");
+		task ("Add user via JSONWSUI") {
+			Navigator.openSpecificURL(url = "${portalURL}/api/jsonws?contextName=&signature=/user/add-user-31-long-boolean-java.lang.String-java.lang.String-boolean-java.lang.String-java.lang.String-long-java.lang.String-java.util.Locale-java.lang.String-java.lang.String-java.lang.String-long-long-boolean-int-int-int-java.lang.String-%5BJ-%5BJ-%5BJ-%5BJ-java.util.List-java.util.List-java.util.List-java.util.List-java.util.List-boolean-com.liferay.portal.kernel.service.ServiceContext");
+
+			JSONUser.addUserByJSONWSUI(
+				userFirstName = "${userfn}",
+				userLastName = "${userln}");
+		}
+
+		task ("Assert message present in HTML source") {
+			Pause(locator1 = "3000");
+
+			User.viewWelcomeMEssageHTML(
+				userfn = "${userfn}",
+				userln = "${userln}");
+		}
+
+		task ("Assert user created in users page") {
+			Navigator.openURL();
+
+			User.openUsersAdmin();
+
+			User.viewUserTableName(
+				key_userScreenName = "${key_userScreenName}",
+				userfn = "${userfn}",
+				userln = "${userln}");
+		}
 	}
 
-	@description = "This is a use case for LPS-83566."
+	@description = "This is a use case for LPS-83566. Escape url redirect with groovy script."
 	@priority = "5"
 	test EscapeUrlRedirectWithGroovyScript {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "SecurityUsecase#EscapeUrlRedirectWithGroovyScript";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Server Administration");
+		task ("Escape url redirect with groovy script") {
+			ServerAdministration.openServerAdmin();
 
-		ServerAdministration.executeScript(
-			language = "Groovy",
-			script = '''
+			ServerAdministration.executeScript(
+				language = "Groovy",
+				script = '''
 import com.liferay.portal.kernel.util.PortalUtil;
 
 out.println(PortalUtil.escapeRedirect("/"));
 ''');
+		}
 
-		AssertTextEquals(
-			locator1 = "ServerAdministrationScript#OUTPUT_FIELD",
-			value1 = "/");
+		task ("Assert / as output") {
+			ServerAdministration.viewOutputField(valueName = "/");
+		}
 	}
 
-	@description = "This is a use case for LPS-87768."
+	@description = "This is a use case for LPS-87768. No permission from unauthorized url as power user."
 	@priority = "5"
 	test NoPermissionFromUnauthorizedURLAsPowerUser {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "SecurityUsecase#NoPermissionFromUnauthorizedURLAsPowerUser";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Add new user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
 
-		User.addCP(
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		task ("Assign power user to new user") {
+			JSONRole.assignRoleToUser(
+				roleTitle = "Power User",
+				userEmailAddress = "userea@liferay.com");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Edit user password") {
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
 
-		User.assignRegularRoleCP(
-			roleTitle = "Power User",
-			userScreenName = "usersn");
+		task ("Logout and login with new user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Go to my profile") {
+			UserBar.gotoDropdownItem(dropdownItem = "My Profile");
+		}
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+		task ("Assert no permission for unauthorized url") {
+			WaitForSPARefresh();
 
-		User.logoutAndLoginPG(
-			userLoginEmailAddress = "userea@liferay.com",
-			userLoginFullName = "userfn userln");
+			var authToken = Page.getAuthTokenFromHtmlSource();
 
-		UserBar.gotoDropdownItem(dropdownItem = "My Profile");
+			var plid = Page.getPlidFromHtmlSource();
 
-		WaitForSPARefresh();
+			var portalURL = PropsUtil.get("portal.url");
 
-		var authToken = Page.getAuthTokenFromHtmlSource();
-		var plid = Page.getPlidFromHtmlSource();
-		var portalURL = PropsUtil.get("portal.url");
+			Navigator.openSpecificURL(url = '''${portalURL}/c/portal/update_layout?cmd=add&p_p_col_id=column-1&p_p_col_pos=0&p_p_id=com_liferay_marketplace_store_web_portlet_MarketplacePurchasedPortlet&p_auth=${authToken}&p_l_id=${plid}''');
 
-		Navigator.openSpecificURL(url = '''${portalURL}/c/portal/update_layout?cmd=add&p_p_col_id=column-1&p_p_col_pos=0&p_p_id=com_liferay_marketplace_store_web_portlet_MarketplacePurchasedPortlet&p_auth=${authToken}&p_l_id=${plid}''');
+			UserBar.gotoDropdownItem(dropdownItem = "My Profile");
 
-		UserBar.gotoDropdownItem(dropdownItem = "My Profile");
-
-		AssertElementNotPresent(
-			key_portletName = "Purchased",
-			locator1 = "Portlet#BODY");
+			Portlet.viewPortletBodyNotPresent(portletName = "Purchased");
+		}
 	}
 
-	@description = "This is a use case for LPS-80905."
+	@description = "This is a use case for LPS-80905. User can access permissions window with permission from admin."
 	@priority = "5"
 	test UserCanAccessPermissionsWindowWithPermissionFromAdmin {
 		property test.name.skip.portal.instance = "SecurityUsecase#UserCanAccessPermissionsWindowWithPermissionFromAdmin";
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Roles");
+		task ("Define user permissions view control panel menu") {
+			Role.openRolesAdmin();
 
-		Role.definePermissionsCP(
-			permissionDefinitionKeys = "CONTROL_PANEL_GENERAL_PERMISSIONS_GO_TO_CONTROL_PANEL_CHECKBOX",
-			permissionDefinitionValue = "View Control Panel Menu",
-			roleTitle = "User");
+			Role.definePermissionsCP(
+				permissionDefinitionKeys = "CONTROL_PANEL_GENERAL_PERMISSIONS_GO_TO_CONTROL_PANEL_CHECKBOX",
+				permissionDefinitionValue = "View Control Panel Menu",
+				roleTitle = "User");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Roles");
+		task ("Define user permissions") {
+			Role.openRolesAdmin();
 
-		Role.definePermissionsCP(
-			permissionDefinitionKeys = "CONTROL_PANEL_SITES_SITES_GENERAL_PERMISSIONS_ACCESS_IN_CONTROL_PANEL_CHECKBOX,CONTROL_PANEL_SITES_SITES_GENERAL_PERMISSIONS_VIEW_CHECKBOX",
-			roleTitle = "User");
+			Role.definePermissionsCP(
+				permissionDefinitionKeys = "CONTROL_PANEL_SITES_SITES_GENERAL_PERMISSIONS_ACCESS_IN_CONTROL_PANEL_CHECKBOX,CONTROL_PANEL_SITES_SITES_GENERAL_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitle = "User");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Add user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
 
-		User.addCP(
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		task ("Edit user password") {
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Add calendar") {
+			UserBar.gotoDropdownItem(dropdownItem = "My Profile");
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+			Portlet.addPG(portletName = "Calendar");
+		}
 
-		UserBar.gotoDropdownItem(dropdownItem = "My Profile");
+		task ("Configure calendar permissions") {
+			PermissionsInline.gotoConfigurationPG(portletName = "Calendar");
 
-		Portlet.addPG(portletName = "Calendar");
+			Role.definePermissionPG(
+				permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_PERMISSIONS_CHECKBOX",
+				roleTitle = "User");
 
-		PermissionsInline.gotoConfigurationPG(portletName = "Calendar");
+			AssertClick(
+				locator1 = "Button#SAVE",
+				value1 = "Save");
+		}
 
-		Role.definePermissionPG(
-			permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_PERMISSIONS_CHECKBOX",
-			roleTitle = "User");
+		task ("Logout, login and go to calendar") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
 
-		AssertClick(
-			locator1 = "Button#SAVE",
-			value1 = "Save");
+			Navigator.openSpecificURL(url = "${portalURL}/web/test");
 
-		User.logoutAndLoginPG(
-			userLoginEmailAddress = "userea@liferay.com",
-			userLoginFullName = "userfn userln");
-
-		Navigator.openSpecificURL(url = "${portalURL}/web/test");
-
-		PermissionsInline.gotoConfigurationPG(portletName = "Calendar");
+			PermissionsInline.gotoConfigurationPG(portletName = "Calendar");
+		}
 	}
 
+	@description = "This is a use case for LPS-68070. Validate cannot overwrite OSGi service identifier."
 	@priority = "5"
 	test ValidateCannotOverwriteOSGiServiceIdentifier {
 		property portal.acceptance = "true";
 
 		var portalURL = PropsUtil.get("portal.url");
-		var url = "${portalURL}/c/portal/json_service?serviceClassName=com.liferay.portal.kernel.service.AccountServiceUtil&amp;serviceMethodName=getOSGiServiceIdentifier&amp;p_auth=";
+		var url = "${portalURL}/c/portal/json_service?serviceClassName=com.liferay.portal.kernel.service.AccountServiceUtil&serviceMethodName=getOSGiServiceIdentifier&p_auth=";
 
-		Api.gotoPAuthURL(url = "${url}");
+		task ("Assert JSONWS empty page") {
+			Api.gotoPAuthURL(url = "${url}");
 
-		AssertElementPresent(locator1 = "JSONWS#SECURITY_EMPTY_PAGE");
+			ServerAdministration.viewJSONWSSecurityEmptyPage();
+		}
 	}
 
+	@description = "This is a use case for LPS-49848."
 	@priority = "4"
 	test ValidateCannotStealAdminAccount {
 		property test.name.skip.portal.instance = "SecurityUsecase#ValidateCannotStealAdminAccount";
 
 		var pAuth = Api.getPAuth();
+
 		var portalURL = PropsUtil.get("portal.url");
 
-		Navigator.openURL();
+		task ("Add new user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Edit user password") {
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
 
-		User.addCP(
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		task ("Logout, login and assert forbiden error message when trying to access admin account") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+			Navigator.openSpecificURL(url = "${portalURL}/api/jsonws/group/get-group/group-id/20126?p_auth=${pAuth}");
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		User.logoutAndLoginPG(
-			userLoginEmailAddress = "userea@liferay.com",
-			userLoginFullName = "userfn userln");
-
-		Navigator.openSpecificURL(url = "${portalURL}/api/jsonws/group/get-group/group-id/20126?p_auth=${pAuth}");
-
-		AssertTextEquals(
-			locator1 = "Home#ERROR_MESSAGE_ALERT_ERROR",
-			value1 = "Forbidden");
+			ServerAdministration.viewForbiddenErrorMessageAlert();
+		}
 	}
 
+	@description = "This is a use case for LRQA-14382. Validate forward url PG."
 	@priority = "5"
 	test ValidateForwardURLPG {
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,${ip.address}";
 		property portal.acceptance = "true";
 
-		var portalURL = PropsUtil.get("portal.url");
+		task ("Go to home page") {
+			var portalURL = PropsUtil.get("portal.url");
 
-		Navigator.openSpecificURL(url = "${portalURL}/html/common/forward_jsp.jsp?FORWARD_URL=http://www.msn.com");
+			Navigator.openSpecificURL(url = "${portalURL}/html/common/forward_jsp.jsp?FORWARD_URL=http://www.msn.com");
 
-		Pause(locator1 = "3000");
+			Portlet.waitForHomePage(pageName = "Home");
+		}
 
-		AssertElementPresent(
-			key_pageName = "Home",
-			locator1 = "Home#PAGE");
+		task ("View welcome content page") {
+			Smoke.viewWelcomeContentPage();
+		}
 
-		Smoke.viewWelcomeContentPage();
+		task ("Add public page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test");
+		}
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
+		task ("Assert test present in home page") {
+			Navigator.openSpecificURL(url = '''${portalURL}/html/common/forward_jsp.jsp?FORWARD_URL=${portalURL}/web/guest/test''');
 
-		SitePages.addPublicPage(pageName = "Test");
-
-		Navigator.openSpecificURL(url = '''${portalURL}/html/common/forward_jsp.jsp?FORWARD_URL=${portalURL}/web/guest/test''');
-
-		AssertElementPresent(
-			key_pageName = "Test",
-			locator1 = "Home#PAGE");
+			Portlet.waitForHomePage(pageName = "Test");
+		}
 	}
 
-	@description = "This is a use case for LPS-57776."
+	@description = "This is a use case for LPS-57776. Validate no LAR remote code execution."
 	@priority = "5"
 	test ValidateNoLARRemoteCodeExecution {
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Blogs");
+		task ("Assert remote-code-execution.lar dependency is forbidden") {
+			BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
 
-		LAR.importPortlet(
-			failureExpected = "true",
-			larFileName = "blogs-remote-code-execution.lar",
-			portletName = "Blogs",
-			uploadFrom = "dependencies");
+			LAR.importPortlet(
+				failureExpected = "true",
+				larFileName = "blogs-remote-code-execution.lar",
+				portletName = "Blogs",
+				uploadFrom = "dependencies");
 
-		AssertConsoleTextPresent(value1 = "com.thoughtworks.xstream.security.ForbiddenClassException");
+			AssertConsoleTextPresent(value1 = "com.thoughtworks.xstream.security.ForbiddenClassException");
 
-		AssertConsoleTextNotPresent(value1 = "Remote_Code_Execution_vulnerability_is_present");
+			AssertConsoleTextNotPresent(value1 = "Remote_Code_Execution_vulnerability_is_present");
+		}
 	}
 
-	@description = "This is a use case for LPS-85112."
+	@description = "This is a use case for LPS-85112. Validate view permission cannot update other users password."
 	@priority = "5"
 	test ValidateViewPermissionCanNotUpdateOtherUsersPassword {
 		property test.name.skip.portal.instance = "SecurityUsecase#ValidateViewPermissionCanNotUpdateOtherUsersPassword";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Roles");
+		task ("Define user permission") {
+			Role.openRolesAdmin();
 
-		Role.definePermissionCmdCP(
-			permissionDefinitionKeys = "CONTROL_PANEL_USERS_USERS_AND_ORGANIZATIONS_RESOURCE_PERMISSIONS_USER_VIEW_CHECKBOX",
-			permissionDefinitionValue = "View",
-			roleTitle = "User");
+			Role.definePermissionCmdCP(
+				permissionDefinitionKeys = "CONTROL_PANEL_USERS_USERS_AND_ORGANIZATIONS_RESOURCE_PERMISSIONS_USER_VIEW_CHECKBOX",
+				permissionDefinitionValue = "View",
+				roleTitle = "User");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Add new user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
 
-		User.addCP(
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		task ("Edit user password") {
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		task ("Logout and login") {
+			User.logoutPG();
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+		}
 
-		User.logoutPG();
+		task ("Assert cannot view other organizations info message") {
+			UserBar.openUserOrganizations();
 
-		User.loginUserPG(
-			password = "test",
-			userEmailAddress = "userea@liferay.com");
-
-		UserBar.openUserOrganizations();
-
-		Alert.viewInfoMessageSpecific(infoMessage = "You do not belong to an organization and are not allowed to view other organizations.");
+			Alert.viewInfoMessageSpecific(infoMessage = "You do not belong to an organization and are not allowed to view other organizations.");
+		}
 	}
 
-	@description = "This is a use case for LPS-73595."
+	@description = "This is a use case for LPS-73595. View JS loader modules URL no wiki."
 	@priority = "5"
 	test ViewJSLoaderModulesURLNoWiki {
-		var portalURL = PropsUtil.get("portal.url");
+		task ("View JS loader modules") {
+			var portalURL = PropsUtil.get("portal.url");
 
-		Open.openNoError(locator1 = "${portalURL}/o/js_loader_modules");
+			Open.openNoError(locator1 = "${portalURL}/o/js_loader_modules");
 
-		AssertConsoleTextPresent(value1 = "com.liferay.wiki.engine.html");
+			AssertConsoleTextPresent(value1 = "com.liferay.wiki.engine.html");
 
-		AssertConsoleTextPresent(value1 = "com.liferay.wiki.engine.text");
+			AssertConsoleTextPresent(value1 = "com.liferay.wiki.engine.text");
 
-		AssertTextNotPresent(value1 = "com.liferay.wiki.engine.html");
+			AssertTextNotPresent(value1 = "com.liferay.wiki.engine.html");
 
-		AssertTextNotPresent(value1 = "com.liferay.wiki.engine.text");
+			AssertTextNotPresent(value1 = "com.liferay.wiki.engine.text");
+		}
 	}
 
-	@description = "This is a use case for LPS-55622."
+	@description = "This is a use case for LPS-55622. View no invoked portlet via URL."
 	@priority = "5"
 	test ViewNoInvokedPortletViaURL {
 		property portal.acceptance = "true";
 
-		JSONLayout.addPublicLayout(
-			friendlyURL = "/test-widget-page",
-			groupName = "Guest",
-			layoutName = "Test Widget Page");
+		task ("Add public layout") {
+			JSONLayout.addPublicLayout(
+				friendlyURL = "/test-widget-page",
+				groupName = "Guest",
+				layoutName = "Test Widget Page");
+		}
 
-		SitePages.configurePage(
-			columnName = "1 Column",
-			pageName = "Test Widget Page",
-			privacy = "Public Pages",
-			sitePageType = "Widget Page");
+		task ("Configure page") {
+			PagesAdmin.configurePage(
+				columnName = "1 Column",
+				pageName = "Test Widget Page",
+				sitePageType = "Widget Page");
+		}
 
-		Navigator.gotoPage(pageName = "Test Widget Page");
+		task ("Add Iframe") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Widget Page",
+				widgetName = "IFrame");
+		}
 
-		Portlet.addPG(portletName = "IFrame");
+		task ("Assert test widget page not present") {
+			var portalURL = PropsUtil.get("portal.url");
 
-		var portalURL = PropsUtil.get("portal.url");
+			Navigator.openSpecificURL(url = "${portalURL}/web/guest/test-widget-page/?p_p_id=asdf&p_p_lifecycle=0&p_p_state=maximized&_asdf_mvcPath=/html/portlet/portal_settings/edit_company.jsp");
 
-		Navigator.openSpecificURL(url = "${portalURL}/web/guest/test-widget-page/?p_p_id=asdf&amp;p_p_lifecycle=0&amp;p_p_state=maximized&amp;_asdf_mvcPath=/html/portlet/portal_settings/edit_company.jsp");
+			Portlet.viewPortletCouldNotBeFoundInfo();
+		}
 
-		AssertTextEquals(
-			locator1 = "Message#INFO_MAIN_CONTENT",
-			value1 = "This portlet could not be found. Please redeploy it or remove it from the page.");
-
-		JSONLayout.deletePublicLayout(
-			groupName = "Guest",
-			layoutName = "Test Widget Page");
+		task ("Delete test widget page") {
+			JSONLayout.deletePublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Widget Page");
+		}
 	}
 
 }

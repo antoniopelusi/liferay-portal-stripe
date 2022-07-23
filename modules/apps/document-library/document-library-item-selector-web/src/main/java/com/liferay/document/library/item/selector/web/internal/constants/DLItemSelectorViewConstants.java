@@ -23,6 +23,8 @@ public class DLItemSelectorViewConstants {
 
 	public static final String DL_FILE_ITEM_SELECTOR_VIEW_KEY = "dl-file";
 
+	public static final String DL_FOLDER_ITEM_SELECTOR_VIEW_KEY = "dl-folder";
+
 	public static final String DL_IMAGE_ITEM_SELECTOR_VIEW_KEY = "dl-image";
 
 	public static final String DL_VIDEO_ITEM_SELECTOR_VIEW_KEY = "dl-video";

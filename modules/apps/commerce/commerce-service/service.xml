@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce">
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce">
 	<author>Alessio Antonio Rendina</author>
 	<namespace>Commerce</namespace>
-	<entity external-reference-code="true" local-service="true" name="CommerceAddress" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceAddress" persistence="false" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -82,7 +82,7 @@
 			<finder-column name="classPK" />
 			<finder-column name="defaultShipping" />
 		</finder>
-		<finder name="C_C_C_C" return-type="Collection">
+		<finder name="C_C_C_T" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
@@ -188,6 +188,7 @@
 
 		<column name="commerceAccountId" type="long" />
 		<column name="commerceCurrencyId" type="long" />
+		<column name="commerceOrderTypeId" type="long" />
 		<column name="billingAddressId" type="long" />
 		<column name="shippingAddressId" type="long" />
 		<column name="commercePaymentMethodKey" type="String" />
@@ -197,6 +198,12 @@
 		<column name="purchaseOrderNumber" type="String" />
 		<column name="couponCode" type="String" />
 		<column name="lastPriceUpdateDate" type="Date" />
+		<column name="deliveryCommerceTermEntryId" type="long" />
+		<column db-name="deliveryCTermEntryDescription" name="deliveryCommerceTermEntryDescription" type="String" />
+		<column name="deliveryCommerceTermEntryName" type="String" />
+		<column name="paymentCommerceTermEntryId" type="long" />
+		<column db-name="paymentCTermEntryDescription" name="paymentCommerceTermEntryDescription" type="String" />
+		<column name="paymentCommerceTermEntryName" type="String" />
 		<column name="subtotal" type="BigDecimal" />
 		<column name="subtotalDiscountAmount" type="BigDecimal" />
 		<column db-name="subtotalDiscountPercentLevel1" name="subtotalDiscountPercentageLevel1" type="BigDecimal" />
@@ -297,13 +304,6 @@
 			<finder-column name="commerceAccountId" />
 			<finder-column name="orderStatus" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="WorkflowDefinitionLink" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CommerceOrderItem" remote-service="true">
 
@@ -329,9 +329,10 @@
 		<column name="commerceOrderId" type="long" />
 		<column name="commercePriceListId" type="long" />
 		<column name="CPInstanceId" type="long" />
+		<column name="CPMeasurementUnitId" type="long" />
 		<column name="CProductId" type="long" />
 		<column name="parentCommerceOrderItemId" type="long" />
-		<column name="shippingAddressId" type="long" />
+		<column name="decimalQuantity" type="BigDecimal" />
 		<column name="deliveryGroup" type="String" />
 		<column name="deliveryMaxSubscriptionCycles" type="long" />
 		<column name="deliverySubscriptionLength" type="int" />
@@ -361,6 +362,7 @@
 		<column name="promoPriceWithTaxAmount" type="BigDecimal" />
 		<column name="quantity" type="int" />
 		<column name="requestedDeliveryDate" type="Date" />
+		<column name="shippingAddressId" type="long" />
 		<column name="shipSeparately" type="boolean" />
 		<column name="shippable" type="boolean" />
 		<column name="shippedQuantity" type="int" />
@@ -398,7 +400,7 @@
 		<finder name="ParentCommerceOrderItemId" return-type="Collection">
 			<finder-column name="parentCommerceOrderItemId" />
 		</finder>
-		<finder name="C_I" return-type="Collection">
+		<finder name="C_CPI" return-type="Collection">
 			<finder-column name="commerceOrderId" />
 			<finder-column name="CPInstanceId" />
 		</finder>
@@ -406,11 +408,6 @@
 			<finder-column name="commerceOrderId" />
 			<finder-column name="subscription" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="WorkflowDefinitionLink" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CommerceOrderNote" remote-service="true">
 
@@ -489,7 +486,100 @@
 			<finder-column name="commerceOrderId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CommerceShipment" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceOrderType" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="commerceOrderTypeId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column localized="true" name="name" type="String" />
+		<column localized="true" name="description" type="String" />
+		<column name="active" type="boolean" />
+		<column name="displayDate" type="Date" />
+		<column name="displayOrder" type="int" />
+		<column name="expirationDate" type="Date" />
+		<column name="lastPublishDate" type="Date" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="createDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="C_A" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+		</finder>
+		<finder name="LtD_S" return-type="Collection">
+			<finder-column comparator="&lt;" name="displayDate" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="LtE_S" return-type="Collection">
+			<finder-column comparator="&lt;" name="expirationDate" />
+			<finder-column name="status" />
+		</finder>
+	</entity>
+	<entity external-reference-code="true" local-service="true" name="CommerceOrderTypeRel" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="commerceOrderTypeRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="classNameId" type="long" />
+		<column name="classPK" type="long" />
+		<column name="commerceOrderTypeId" type="long" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="createDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CommerceOrderTypeId" return-type="Collection">
+			<finder-column name="commerceOrderTypeId" />
+		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="commerceOrderTypeId" />
+		</finder>
+		<finder name="C_C_C" return-type="CommerceChannelRel" unique="true">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+			<finder-column name="commerceOrderTypeId" />
+		</finder>
+	</entity>
+	<entity external-reference-code="true" local-service="true" name="CommerceShipment" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -527,7 +617,7 @@
 
 		<!-- Finder methods -->
 
-		<finder name="GroupIds" return-type="Collection">
+		<finder name="GroupId" return-type="Collection">
 			<finder-column arrayable-operator="OR" name="groupId" />
 		</finder>
 		<finder name="G_C" return-type="Collection">
@@ -539,7 +629,7 @@
 			<finder-column name="status" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CommerceShipmentItem" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceShipmentItem" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -575,7 +665,7 @@
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
 		</finder>
-		<finder name="CommerceShipment" return-type="Collection">
+		<finder name="CommerceShipmentId" return-type="Collection">
 			<finder-column name="commerceShipmentId" />
 		</finder>
 		<finder name="CommerceOrderItemId" return-type="Collection">
@@ -637,10 +727,43 @@
 			<finder-column name="groupId" />
 			<finder-column name="active" />
 		</finder>
+	</entity>
+	<entity local-service="true" name="CommerceShippingOptionAccountEntryRel" remote-service="true" table="CSOptionAccountEntryRel">
 
-		<!-- References -->
+		<!-- PK fields -->
 
-		<reference entity="Image" package-path="com.liferay.portal" />
+		<column db-name="CSOptionAccountEntryRelId" name="CommerceShippingOptionAccountEntryRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="accountEntryId" type="long" />
+		<column name="commerceChannelId" type="long" />
+		<column name="commerceShippingMethodKey" type="String" />
+		<column name="commerceShippingOptionKey" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="AccountEntryId" return-type="Collection">
+			<finder-column name="accountEntryId" />
+		</finder>
+		<finder name="CommerceChannelId" return-type="Collection">
+			<finder-column name="commerceChannelId" />
+		</finder>
+		<finder name="CommerceShippingOptionKey" return-type="Collection">
+			<finder-column name="commerceShippingOptionKey" />
+		</finder>
+		<finder name="A_C" return-type="CommerceShippingOptionAccountEntryRel" unique="true">
+			<finder-column name="accountEntryId" />
+			<finder-column name="commerceChannelId" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="CommerceSubscriptionEntry" remote-service="true" uuid="true">
 
@@ -748,7 +871,7 @@
 			<finder-column name="CProductId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CPDefinitionInventory" remote-service="true" uuid="true">
+	<entity change-tracking-enabled="true" local-service="true" name="CPDefinitionInventory" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -797,6 +920,7 @@
 		<exception>CommerceOrderAccountLimit</exception>
 		<exception>CommerceOrderBillingAddress</exception>
 		<exception>CommerceOrderDate</exception>
+		<exception>CommerceOrderDefaultBillingAddress</exception>
 		<exception>CommerceOrderGuestCheckout</exception>
 		<exception>CommerceOrderItemRequestedDeliveryDate</exception>
 		<exception>CommerceOrderNoteContent</exception>
@@ -807,6 +931,9 @@
 		<exception>CommerceOrderShippingAddress</exception>
 		<exception>CommerceOrderShippingMethod</exception>
 		<exception>CommerceOrderStatus</exception>
+		<exception>CommerceOrderTypeDisplayDate</exception>
+		<exception>CommerceOrderTypeExpirationDate</exception>
+		<exception>CommerceOrderTypeName</exception>
 		<exception>CommerceOrderValidator</exception>
 		<exception>CommercePaymentEngine</exception>
 		<exception>CommerceShipmentExpectedDate</exception>
@@ -822,6 +949,8 @@
 		<exception>CommerceSubscriptionEntrySubscriptionStatus</exception>
 		<exception>CommerceSubscriptionType</exception>
 		<exception>DuplicateCommerceOrderNote</exception>
+		<exception>DuplicateCommerceOrderTypeRel</exception>
+		<exception>DuplicateCommerceShippingOptionAccountEntryRel</exception>
 		<exception>GuestCartItemMaxAllowed</exception>
 		<exception>GuestCartMaxAllowed</exception>
 		<exception>ProductBundle</exception>

@@ -26,9 +26,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 public class CommerceVirtualOrderItemImpl
 	extends CommerceVirtualOrderItemBaseImpl {
 
-	public CommerceVirtualOrderItemImpl() {
-	}
-
 	@Override
 	public CommerceOrderItem getCommerceOrderItem() throws PortalException {
 		return CommerceOrderItemLocalServiceUtil.getCommerceOrderItem(

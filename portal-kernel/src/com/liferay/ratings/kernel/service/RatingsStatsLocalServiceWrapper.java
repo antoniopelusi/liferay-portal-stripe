@@ -30,6 +30,10 @@ public class RatingsStatsLocalServiceWrapper
 	implements RatingsStatsLocalService,
 			   ServiceWrapper<RatingsStatsLocalService> {
 
+	public RatingsStatsLocalServiceWrapper() {
+		this(null);
+	}
+
 	public RatingsStatsLocalServiceWrapper(
 		RatingsStatsLocalService ratingsStatsLocalService) {
 
@@ -130,6 +134,13 @@ public class RatingsStatsLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ratingsStatsLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ratingsStatsLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -33,7 +33,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
 
 import javax.portlet.PortletException;
-import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
@@ -101,18 +100,17 @@ public class ViewEntryMVCRenderCommand implements MVCRenderCommand {
 			if (redirectToLastFriendlyURL && Validator.isNotNull(urlTitle) &&
 				!urlTitle.equals(mainFriendlyURLEntry.getUrlTitle())) {
 
-				PortletURL portletURL = PortletURLBuilder.createRenderURL(
-					renderResponse
-				).setMVCRenderCommandName(
-					"/blogs/view_entry"
-				).setParameter(
-					"urlTitle", mainFriendlyURLEntry.getUrlTitle()
-				).build();
-
 				HttpServletResponse httpServletResponse =
 					_portal.getHttpServletResponse(renderResponse);
 
-				httpServletResponse.sendRedirect(portletURL.toString());
+				httpServletResponse.sendRedirect(
+					PortletURLBuilder.createRenderURL(
+						renderResponse
+					).setMVCRenderCommandName(
+						"/blogs/view_entry"
+					).setParameter(
+						"urlTitle", mainFriendlyURLEntry.getUrlTitle()
+					).buildString());
 
 				return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;
 			}

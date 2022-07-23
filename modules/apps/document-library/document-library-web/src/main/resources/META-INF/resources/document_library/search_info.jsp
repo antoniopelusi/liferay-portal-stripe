@@ -48,7 +48,7 @@ List<Folder> mountFolders = DLAppServiceUtil.getMountFolders(scopeGroupId, DLFol
 				"/document_library/search"
 			).setParameter(
 				"repositoryId", repositoryId
-			).build();
+			).buildPortletURL();
 
 			long searchRepositoryId = ParamUtil.getLong(request, "searchRepositoryId");
 
@@ -60,7 +60,7 @@ List<Folder> mountFolders = DLAppServiceUtil.getMountFolders(scopeGroupId, DLFol
 
 			searchEverywhereURL.setParameter("folderId", String.valueOf(folderId));
 
-			searchEverywhereURL.setParameter("searchFolderId", String.valueOf(DLFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+			searchEverywhereURL.setParameter("searchFolderId", String.valueOf(dlAdminDisplayContext.getRootFolderId()));
 
 			String keywords = ParamUtil.getString(request, "keywords");
 
@@ -76,7 +76,7 @@ List<Folder> mountFolders = DLAppServiceUtil.getMountFolders(scopeGroupId, DLFol
 				"searchFolderId", folderId
 			).setParameter(
 				"searchRepositoryId", scopeGroupId
-			).build();
+			).buildPortletURL();
 
 			long searchFolderId = ParamUtil.getLong(request, "searchFolderId");
 			%>
@@ -115,7 +115,7 @@ List<Folder> mountFolders = DLAppServiceUtil.getMountFolders(scopeGroupId, DLFol
 					"repositoryId", scopeGroupId
 				).setParameter(
 					"searchRepositoryId", scopeGroupId
-				).build();
+				).buildPortletURL();
 				%>
 
 				<clay:link

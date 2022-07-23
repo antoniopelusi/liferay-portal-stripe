@@ -25,21 +25,21 @@ kind: Service5
 
 apiVersion: v6
 kind: Service6
-{{- if $.Values.slave.ports.vnc.enabled }}
-{{- if $.Values.master.ports.vnc.enabled }}
+{{- if $.Values.slave.ports.vnc.enabled}}
+{{- if $.Values.master.ports.vnc.enabled}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-    name: {{ $masterPodName }}-ingress-resource
-    namespace: {{ $namespace }}
+    name: {{$masterPodName}}-ingress-resource
+    namespace: {{$namespace}}
 spec:
     rules:
-        - host: {{ $.Values.ingressHostname }}
+        - host: {{$.Values.ingressHostname}}
           http:
               paths:
                   - backend:
-                        serviceName: {{ $masterSubdomain }}
+                        serviceName: {{$masterSubdomain}}
                         servicePort: 8080
-                    path: /{{ $masterPodName }}
-{{- end }}
-{{- end }}
+                    path: /{{$masterPodName}}
+{{- end}}
+{{- end}}

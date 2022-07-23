@@ -1,0 +1,490 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is possible to add a Fieldset in the builder."
+	@priority = "5"
+	test CanAddFieldsetInBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.createNewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is possible to add multiple options for a field with options on the Fieldset modal."
+	@priority = "5"
+	test CanAddMultipleOptions {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP();
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Single Selection",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.gotoEditFieldset(fieldsetName = "New Fieldset");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Single Selection",
+			optionLabelList = "Option 1,Option 2,Option 3");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is possible to create Fields Group on the Fieldset modal."
+	@priority = "5"
+	test CanCreateFieldsGroup {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP();
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.gotoEditFieldset(fieldsetName = "New Fieldset");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Text,Numeric");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is possible to delete a Fieldset that is not being used on any Structures."
+	@priority = "5"
+	test CanDeleteUnusedFieldset {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP();
+
+		DataEngine.createNewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+
+		DEBuilder.deleteFieldsetFromSideBar(fieldsetName = "New Fieldset");
+
+		Alert.viewSuccessMessage();
+
+		DEBuilder.assertFieldsetNotPresentInSidebar(fieldsetName = "New Fieldset");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that Fieldset Label can be edited."
+	@priority = "5"
+	test CanEditFieldsetLabel {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		DataEngine.editFieldsetsLabel(
+			fieldsetLabel = "New Fieldset",
+			fieldsetLabelEdit = "New Fieldset Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset Edited");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is possible to edit Label, Placeholder and Help text of fields on the Fieldset modal."
+	@priority = "5"
+	test CanEditLabelPlaceholderAndHelpTextOfFields {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP();
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Text",
+			fieldHelp = "Text Help",
+			fieldPlaceholder = "Placeholder");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.gotoEditFieldset(fieldsetName = "New Fieldset");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Text",
+			fieldFieldLabelEdit = "Text Edited",
+			fieldsetModal = "true");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Text Edited",
+			fieldHelp = "Text Help Edited",
+			fieldPlaceholder = "Placeholder Edited",
+			fieldsetModal = "true");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.gotoEditFieldset(fieldsetName = "New Fieldset");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Text Edited",
+			fieldHelp = "Text Help Edited",
+			fieldName = "Text",
+			fieldPlaceholder = "Placeholder Edited");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is not possible to drag and drop fields from the sidebar into a Fieldset on the builder."
+	@priority = "4"
+	test CanNotAddFieldsIntoFieldsetFromBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		Navigator.gotoSidebarTab(tabName = "Builder");
+
+		Navigator.gotoNavTab(navTab = "Fields");
+
+		DragAndDrop.javaScriptDragAndDropToObject(
+			key_fieldFieldGroupLabel = "New Fieldset",
+			key_fieldName = "Numeric",
+			locator1 = "Sidebar#ADD_FIELD_NAME",
+			locator2 = "DDMEditStructure#FORM_FIELD_GROUP_TARGET",
+			value1 = "Numeric");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Numeric");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is not possible to delete a Fieldset that is being used on a Structure."
+	@priority = "4"
+	test CanNotDeleteUsedFieldset {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.gotoFieldsetItemEllipsis(fieldsetName = "New Fieldset");
+
+		MenuItem.click(menuItem = "Delete");
+
+		DEBuilder.assertDeleteIsDisabled();
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is not possible to edit fields inside a Fieldset from the builder."
+	@priority = "4"
+	test CanNotEditFieldsetFieldsFromBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.openField(fieldLabel = "Text");
+
+		DEBuilder.assertFieldType(fieldType = "Fields Group");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is not possible remove fields from the Fieldset from the builder."
+	@priority = "4"
+	test CanNotRemoveFieldsetFieldsFromBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.openField(fieldLabel = "Text");
+
+		DEBuilder.assertFieldActionsIsNotPresent(fieldLabel = "Text");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is not possible to remove fields from the Fieldset if the Fieldset is inside a Fields Group on the builder."
+	@priority = "3"
+	test CanNotRemoveFieldsInsideFieldsetInFieldsGroupFromBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DEBuilder.addFieldsetNestedToBuilder(
+			fieldsetName = "New Fieldset",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.openField(fieldLabel = "Numeric");
+
+		DEBuilder.assertFieldActionsIsNotPresent(fieldLabel = "Numeric");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is not possible to remove fields that are inside a Fields Group on the Fieldset from the builder."
+	@priority = "3"
+	test CanNotRemoveFieldsInsideFieldsGroupFromBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.gotoCreateNewFieldset();
+
+		FormViewBuilder.editFieldSetName(fieldSetName = "New Fieldset");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		DEBuilder.addFieldNested(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.openField(fieldLabel = "Text");
+
+		DEBuilder.assertFieldActionsIsNotPresent(fieldLabel = "Text");
+
+		DEBuilder.openField(fieldLabel = "Numeric");
+
+		DEBuilder.assertFieldActionsIsNotPresent(fieldLabel = "Numeric");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that is possible to remove a Fieldset from the builder."
+	@priority = "5"
+	test CanRemoveFieldsetFromBuilder {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		DataEngine.createNewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldsetLabel = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldsetLabel = "New Fieldset");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that Fieldset Label can be shown or hidden."
+	@priority = "5"
+	test CanSetLabelToShownOrHidden {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.createNewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		DataEngine.toggleShowLabel(fieldLabel = "New Fieldset");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Title");
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldsetLabel = "New Fieldset");
+
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "New Fieldset");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Title");
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+	}
+
+	@description = "This is a test for LRQA-68940. This test verifies that upon editing a Fieldset that is already on the builder a dialog to confirm propagation is displayed."
+	@priority = "4"
+	test CanShowPropagateChangesDialog {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.createNewFieldset(
+			fieldNameList = "Text",
+			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.gotoEditFieldset(fieldsetName = "New Fieldset");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Text",
+			fieldFieldLabelEdit = "Text Edited",
+			fieldsetModal = "true");
+
+		FormViewBuilder.saveButtonFieldset();
+
+		DEBuilder.assertPropagateChangesModalIsOpened();
+	}
+
+}

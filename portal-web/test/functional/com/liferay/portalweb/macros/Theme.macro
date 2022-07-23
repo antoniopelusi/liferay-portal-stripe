@@ -1,5 +1,21 @@
 definition {
 
+	macro changeCurrentTheme {
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		Click(
+			key_text = "Change Current Theme",
+			locator1 = "Button#ANY");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		LexiconCard.viewCardTitle(card = "${themeName}");
+
+		LexiconCard.clickCardTitle(card = "${themeName}");
+
+		SelectFrameTop(value1 = "relative=top");
+	}
+
 	macro configureLookAndFeelCustomCSS {
 		Type(
 			key_text = "regularCss",
@@ -76,29 +92,6 @@ definition {
 		}
 	}
 
-	macro deployThemeWar {
-		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "deploy-dependency-war -Dliferay.dependency.war=${themeName}.war");
-
-		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "copy-log-file");
-
-		var projectDir = PropsUtil.get("project.dir");
-		var logContent = FileUtil.read("${projectDir}/log");
-
-		while (!(contains("${logContent}", "STARTED ${themeName}"))) {
-			Pause(locator1 = "3000");
-
-			AntCommand(
-				locator1 = "build-test.xml",
-				value1 = "copy-log-file");
-
-			var logContent = FileUtil.read("${projectDir}/log");
-		}
-	}
-
 	macro viewClassicThemeBackgroundColor {
 		AssertCssValue(
 			locator1 = "//body",
@@ -130,11 +123,7 @@ definition {
 
 		AssertTextPresent(
 			locator1 = "Portlet#PORTLET_CONTENT",
-			value1 = "Please configure this portlet to make it visible to all users.");
-
-		// Refresh step is a workaround for LPS-91762
-
-		Refresh();
+			value1 = "Embedded alerts are thought to be used inside context as forms");
 	}
 
 	macro viewTestThemeBackgroundColor {

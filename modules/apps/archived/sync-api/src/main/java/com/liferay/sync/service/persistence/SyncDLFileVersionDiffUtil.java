@@ -26,10 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the sync dl file version diff service. This utility wraps <code>com.liferay.sync.service.persistence.impl.SyncDLFileVersionDiffPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -308,10 +304,10 @@ public class SyncDLFileVersionDiffUtil {
 	 * @param expirationDate the expiration date
 	 * @return the matching sync dl file version diffs
 	 */
-	public static List<SyncDLFileVersionDiff> findByExpirationDate(
+	public static List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate) {
 
-		return getPersistence().findByExpirationDate(expirationDate);
+		return getPersistence().findByLtExpirationDate(expirationDate);
 	}
 
 	/**
@@ -326,10 +322,10 @@ public class SyncDLFileVersionDiffUtil {
 	 * @param end the upper bound of the range of sync dl file version diffs (not inclusive)
 	 * @return the range of matching sync dl file version diffs
 	 */
-	public static List<SyncDLFileVersionDiff> findByExpirationDate(
+	public static List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate, int start, int end) {
 
-		return getPersistence().findByExpirationDate(
+		return getPersistence().findByLtExpirationDate(
 			expirationDate, start, end);
 	}
 
@@ -346,11 +342,11 @@ public class SyncDLFileVersionDiffUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching sync dl file version diffs
 	 */
-	public static List<SyncDLFileVersionDiff> findByExpirationDate(
+	public static List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator) {
 
-		return getPersistence().findByExpirationDate(
+		return getPersistence().findByLtExpirationDate(
 			expirationDate, start, end, orderByComparator);
 	}
 
@@ -368,12 +364,12 @@ public class SyncDLFileVersionDiffUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching sync dl file version diffs
 	 */
-	public static List<SyncDLFileVersionDiff> findByExpirationDate(
+	public static List<SyncDLFileVersionDiff> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByExpirationDate(
+		return getPersistence().findByLtExpirationDate(
 			expirationDate, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -385,12 +381,12 @@ public class SyncDLFileVersionDiffUtil {
 	 * @return the first matching sync dl file version diff
 	 * @throws NoSuchDLFileVersionDiffException if a matching sync dl file version diff could not be found
 	 */
-	public static SyncDLFileVersionDiff findByExpirationDate_First(
+	public static SyncDLFileVersionDiff findByLtExpirationDate_First(
 			Date expirationDate,
 			OrderByComparator<SyncDLFileVersionDiff> orderByComparator)
 		throws com.liferay.sync.exception.NoSuchDLFileVersionDiffException {
 
-		return getPersistence().findByExpirationDate_First(
+		return getPersistence().findByLtExpirationDate_First(
 			expirationDate, orderByComparator);
 	}
 
@@ -401,11 +397,11 @@ public class SyncDLFileVersionDiffUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching sync dl file version diff, or <code>null</code> if a matching sync dl file version diff could not be found
 	 */
-	public static SyncDLFileVersionDiff fetchByExpirationDate_First(
+	public static SyncDLFileVersionDiff fetchByLtExpirationDate_First(
 		Date expirationDate,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator) {
 
-		return getPersistence().fetchByExpirationDate_First(
+		return getPersistence().fetchByLtExpirationDate_First(
 			expirationDate, orderByComparator);
 	}
 
@@ -417,12 +413,12 @@ public class SyncDLFileVersionDiffUtil {
 	 * @return the last matching sync dl file version diff
 	 * @throws NoSuchDLFileVersionDiffException if a matching sync dl file version diff could not be found
 	 */
-	public static SyncDLFileVersionDiff findByExpirationDate_Last(
+	public static SyncDLFileVersionDiff findByLtExpirationDate_Last(
 			Date expirationDate,
 			OrderByComparator<SyncDLFileVersionDiff> orderByComparator)
 		throws com.liferay.sync.exception.NoSuchDLFileVersionDiffException {
 
-		return getPersistence().findByExpirationDate_Last(
+		return getPersistence().findByLtExpirationDate_Last(
 			expirationDate, orderByComparator);
 	}
 
@@ -433,11 +429,11 @@ public class SyncDLFileVersionDiffUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching sync dl file version diff, or <code>null</code> if a matching sync dl file version diff could not be found
 	 */
-	public static SyncDLFileVersionDiff fetchByExpirationDate_Last(
+	public static SyncDLFileVersionDiff fetchByLtExpirationDate_Last(
 		Date expirationDate,
 		OrderByComparator<SyncDLFileVersionDiff> orderByComparator) {
 
-		return getPersistence().fetchByExpirationDate_Last(
+		return getPersistence().fetchByLtExpirationDate_Last(
 			expirationDate, orderByComparator);
 	}
 
@@ -450,12 +446,12 @@ public class SyncDLFileVersionDiffUtil {
 	 * @return the previous, current, and next sync dl file version diff
 	 * @throws NoSuchDLFileVersionDiffException if a sync dl file version diff with the primary key could not be found
 	 */
-	public static SyncDLFileVersionDiff[] findByExpirationDate_PrevAndNext(
+	public static SyncDLFileVersionDiff[] findByLtExpirationDate_PrevAndNext(
 			long syncDLFileVersionDiffId, Date expirationDate,
 			OrderByComparator<SyncDLFileVersionDiff> orderByComparator)
 		throws com.liferay.sync.exception.NoSuchDLFileVersionDiffException {
 
-		return getPersistence().findByExpirationDate_PrevAndNext(
+		return getPersistence().findByLtExpirationDate_PrevAndNext(
 			syncDLFileVersionDiffId, expirationDate, orderByComparator);
 	}
 
@@ -464,8 +460,8 @@ public class SyncDLFileVersionDiffUtil {
 	 *
 	 * @param expirationDate the expiration date
 	 */
-	public static void removeByExpirationDate(Date expirationDate) {
-		getPersistence().removeByExpirationDate(expirationDate);
+	public static void removeByLtExpirationDate(Date expirationDate) {
+		getPersistence().removeByLtExpirationDate(expirationDate);
 	}
 
 	/**
@@ -474,8 +470,8 @@ public class SyncDLFileVersionDiffUtil {
 	 * @param expirationDate the expiration date
 	 * @return the number of matching sync dl file version diffs
 	 */
-	public static int countByExpirationDate(Date expirationDate) {
-		return getPersistence().countByExpirationDate(expirationDate);
+	public static int countByLtExpirationDate(Date expirationDate) {
+		return getPersistence().countByLtExpirationDate(expirationDate);
 	}
 
 	/**
@@ -720,29 +716,9 @@ public class SyncDLFileVersionDiffUtil {
 	}
 
 	public static SyncDLFileVersionDiffPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<SyncDLFileVersionDiffPersistence, SyncDLFileVersionDiffPersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			SyncDLFileVersionDiffPersistence.class);
-
-		ServiceTracker
-			<SyncDLFileVersionDiffPersistence, SyncDLFileVersionDiffPersistence>
-				serviceTracker =
-					new ServiceTracker
-						<SyncDLFileVersionDiffPersistence,
-						 SyncDLFileVersionDiffPersistence>(
-							 bundle.getBundleContext(),
-							 SyncDLFileVersionDiffPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile SyncDLFileVersionDiffPersistence _persistence;
 
 }

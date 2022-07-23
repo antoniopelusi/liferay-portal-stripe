@@ -1,0 +1,1344 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			Navigator.gotoNavItem(navItem = "Element Sets");
+
+			FormsAdmin.teardownElementSets();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that the backspace function can delete all entries in the Calculator"
+	@priority = "5"
+	test BackspaceCanDeleteAllEntriesInCalculator {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Numeric",
+			label = "Numeric 1");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Numeric",
+			label = "Numeric 2");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Numeric 1",
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Calculate",
+			actionRowNumber = "1",
+			actionTarget = "Numeric 2");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "(");
+
+		FormRules.selectCalculateField(calculateFieldOption = "Numeric 1");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "*");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "2");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "+");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "7");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "-");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "5");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = ")");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "/");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "2");
+
+		for (var i : list "1,2,3,4") {
+			FormRules.clickOnCalculatorBackspace();
+		}
+
+		FormRules.viewCalculatorExpression(calculatorExpression = "(Numeric 1*2+7-");
+
+		for (var i : list "1,2,3,4") {
+			FormRules.clickOnCalculatorBackspace();
+		}
+
+		FormRules.viewCalculatorExpression(calculatorExpression = "(Numeric 1*");
+
+		for (var i : list "1,2,3") {
+			FormRules.clickOnCalculatorBackspace();
+		}
+
+		FormRules.viewCalculatorExpression(calculatorExpression = "");
+	}
+
+	@description = "Verify that a Rule Action can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Numeric",
+			conditionField = "Text",
+			conditionOperator = "Is Not Empty",
+			ruleNumber = "1");
+
+		FormRules.gotoEdit(ruleNumber = "1");
+
+		Click(locator1 = "FormRules#RULE_BUILDER_ADD_ACTION");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "2",
+			actionTarget = "Text");
+
+		FormRules.deleteActions(rowNumber = "1");
+
+		FormRules.viewActionNotPresent(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.viewAction(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Text");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Text",
+			conditionField = "Text",
+			conditionOperator = "Is Not Empty",
+			ruleNumber = "1");
+	}
+
+	@description = "Verify that a Rule Action can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Numeric",
+			conditionField = "Text",
+			conditionOperator = "Is Not Empty",
+			ruleNumber = "1");
+
+		FormRules.gotoEdit(ruleNumber = "1");
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		Form.validateNoFieldLabel(fieldLabel = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		FormFields.viewRequiredAsteriskDataFieldNotPresent(fieldFieldLabel = "Numeric");
+	}
+
+	@description = "LPS-71592 - Verify that a Rule with 'Calculate' action can be created"
+	@priority = "5"
+	test CanCreateACalculateRule {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsRulesActions#CanCreateACalculateRule";
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		var fieldNameQuantity = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Quantity");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "QuantityReference");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		var fieldNameValue = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Value");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "ValueReference");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Numeric");
+
+		var fieldNameTotal = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Total");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "TotalReference");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.selectConditionField(
+			conditionField = "Quantity",
+			conditionRowNumber = "1");
+
+		FormRules.selectConditionOperator(
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.selectAction(
+			action = "Calculate",
+			actionRowNumber = "1");
+
+		FormRules.selectActionTarget(
+			actionRowNumber = "1",
+			actionTarget = "Total");
+
+		FormRules.selectCalculateFieldByFieldReference(calculateFieldOption = "ValueReference");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "*");
+
+		FormRules.selectCalculateFieldByFieldReference(calculateFieldOption = "QuantityReference");
+
+		FormRules.viewCalculatorExpression(calculatorExpression = "Value*Quantity");
+
+		FormRules.save();
+	}
+
+	@description = "Verify that a Rule with 'Jump to page' action can be created"
+	@priority = "4"
+	test CanCreateAJumpToPageRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.editPageTitle(
+			formPageName = "Page A",
+			formTitleNumber = "1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addPage(formAddNewPageNumber = "1");
+
+		Form.editPageTitle(
+			formPageName = "Page B",
+			formTitleNumber = "2");
+
+		Form.addPage(formAddNewPageNumber = "2");
+
+		Form.editPageTitle(
+			formPageName = "Page C",
+			formTitleNumber = "3");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Jump to Page",
+			actionRowNumber = "1",
+			actionTarget = "3 Page C");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		Form.viewPageName(
+			formPageName = "Page A",
+			formTitleNumber = "1");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormPortlet.clickNextPage();
+
+		Form.viewPageName(
+			formPageName = "Page C",
+			formTitleNumber = "1");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Rule with 'Enable' action can be created"
+	@priority = "4"
+	test CanCreateAnEnableRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Enable",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldDisabled(fieldName = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "123");
+
+		FormPortlet.clickSubmit();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that a Rule with 'Require' action can be created"
+	@priority = "4"
+	test CanCreateARequireRule {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsRulesActions#CanCreateARequireRule";
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldNameTextField = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Date");
+
+		Form.editFieldLabelMetal(fieldValue = "Date Field");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text Field",
+			conditionFieldValue = "test",
+			conditionOperator = "Is Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Date Field");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewRequiredAsteriskNotPresent();
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField}",
+			fieldValue = "test");
+
+		FormFields.viewRequiredAsterisk();
+
+		FormPortlet.submitWithValidationError();
+	}
+
+	@description = "Verify that a Rule with more than one Action can be created"
+	@priority = "5"
+	test CanCreateARuleWithMoreThanOneAction {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Paragraph");
+
+		FormFields.editParagraphBody(content = "Test");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.addAction();
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "2",
+			actionTarget = "Paragraph");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewField(fieldName = "Numeric");
+
+		FormFields.viewFieldNotRequired(fieldLabel = "Numeric");
+
+		FormFields.viewFieldNotVisible(fieldName = "Paragraph");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewFieldVisible(fieldName = "Paragraph");
+
+		FormFields.viewFieldRequired(fieldLabel = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "123");
+
+		FormPortlet.submit();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that a Rule with 'Show' action can be created"
+	@priority = "5"
+	test CanCreateAShowRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldNotVisible(fieldName = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewFieldVisible(fieldName = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "123");
+
+		FormPortlet.submit();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that a Calculate Rule can be created using the decimal point"
+	@priority = "5"
+	test CanIncludeDecimalPointInCalculations {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		for (var fieldAndPosition : list "Text-0,Numeric-1") {
+			var field = StringUtil.extractFirst("${fieldAndPosition}", "-");
+			var position = StringUtil.extractLast("${fieldAndPosition}", "-");
+
+			Form.gotoAddField(
+				fieldPositionNumber = "${position}",
+				fieldType = "${field}",
+				formPageNumber = "0");
+
+			Form.closeSidebar();
+		}
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Calculate",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		for (var value : list "1,.,5,+,2,.,5") {
+			if ("${value}" == "+") {
+				FormRules.chooseCalculateOperator(calculateOperator = "${value}");
+			}
+			else {
+				FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "${value}");
+			}
+		}
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewTextValue(
+			fieldName = "Numeric",
+			fieldValue = "");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewTextValue(
+			fieldName = "Numeric",
+			fieldValue = "4");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Calculate Rule can be created using Numeric Fields in the calculation"
+	@priority = "5"
+	test CanIncludeNumericFieldsInCalculations {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		Form.editFieldLabelMetal(fieldValue = "Numeric 1");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "ValueReference1");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.editFieldLabelMetal(fieldValue = "Numeric 2");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Numeric 1",
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Calculate",
+			actionRowNumber = "1",
+			actionTarget = "Numeric 2");
+
+		FormRules.selectCalculateFieldByFieldReference(calculateFieldOption = "ValueReference1");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "*");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "2");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewNumericFieldValue(
+			fieldName = "Numeric",
+			rowNumber = "2",
+			value = "");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "15");
+
+		FormFields.viewNumericFieldValue(
+			fieldName = "Numeric",
+			rowNumber = "2",
+			value = "30");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Calculate Rule can be created using all operators (+, -, *, /)"
+	@priority = "5"
+	test CanIncludeOperatorsInCalculations {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Calculate",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "(");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "1");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "0");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "+");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "1");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "0");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "-");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "5");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = ")");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "/");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "3");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "*");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "2");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewTextValue(
+			fieldName = "Numeric",
+			fieldValue = "");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewTextValue(
+			fieldName = "Numeric",
+			fieldValue = "10");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Calculate Rule can be created using the parenthesis"
+	@priority = "5"
+	test CanIncludeParenthesisInCalculations {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Calculate",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "(");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "1");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "0");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "+");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "1");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "0");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = ")");
+
+		FormRules.chooseCalculateOperator(calculateOperator = "/");
+
+		FormRules.clickOnCalculatorNumbersKeyboard(buttonName = "2");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewTextValue(
+			fieldName = "Numeric",
+			fieldValue = "");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewTextValue(
+			fieldName = "Numeric",
+			fieldValue = "10");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "LPS-102616 Configure data providers in both input and output fields in autofill rule"
+	@priority = "5"
+	test CanUtilizeDataProvidersInAutofillRule {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsRulesActions#CanUtilizeDataProvidersInAutofillRule";
+
+		task ("Go to Content > Forms and add a Data Provider") {
+			FormsAdmin.openFormsAdmin(siteURLKey = "guest");
+
+			Navigator.gotoNavItem(navItem = "Data Providers");
+
+			FormsAdminNavigator.gotoAddDataProvider();
+
+			FormsAdmin.editDataProvider(
+				inputParameterLabel = "zipcode",
+				inputParameterName = "zipcode",
+				inputParameterType = "Text",
+				name = "zipcloud",
+				outputParameterLabel = "prefecture",
+				outputParameterPath = "$.results[0].address1",
+				outputParameterType = "Text",
+				timeout = "3000",
+				url = "http://zipcloud.ibsnet.co.jp/api/search?zipcode={zipcode}");
+
+			FormsAdmin.saveDataProvider();
+		}
+
+		task ("Add a form with two text fields: Address and Postal Code") {
+			FormsAdmin.addForm();
+
+			Form.editName(formName = "Address");
+
+			Form.addTextField(fieldPositionNumber = "0");
+
+			var fieldNameTextField = FormFields.getFieldName();
+
+			FormFields.enableSwitch(fieldName = "Required");
+
+			Form.editFieldLabelMetal(fieldValue = "Postal code");
+
+			Form.closeSidebar();
+
+			Form.addTextField(fieldPositionNumber = "1");
+
+			var fieldNameTextField2 = FormFields.getFieldName();
+
+			FormFields.enableSwitch(fieldName = "Required");
+
+			Form.editFieldLabelMetal(fieldValue = "Prefectures");
+
+			Form.closeSidebar();
+		}
+
+		task ("Add a Rule to the form (If Field Postal Code is not empty, Autofill Prefectures from Data Provider zipcloud") {
+			FormsAdminNavigator.gotoRules();
+
+			FormRules.addRule();
+
+			FormRules.configureConditionOptions(
+				conditionField = "Postal code",
+				conditionOperator = "Is Not Empty",
+				conditionRowNumber = "1");
+
+			FormRules.configureActionOptions(
+				action = "Autofill",
+				actionRowNumber = "1",
+				actionTarget = "zipcloud");
+
+			FormRules.selectAutofillFromDataProvider(
+				dataProviderOption = "Postal code",
+				dataProviderParameterName = "zipcode");
+
+			ScrollBy(value1 = "0, 200");
+
+			FormRules.selectAutofillFromDataProvider(
+				dataProviderOption = "Prefectures",
+				dataProviderParameterName = "prefecture");
+
+			FormRules.save();
+		}
+
+		task ("Publish the form") {
+			FormsAdminNavigator.gotoFormBuilder();
+
+			Form.publishForm();
+		}
+
+		task ("Go to the published, fill the Postal code with 1500000") {
+			FormsAdminNavigator.gotoPublishedForm();
+
+			FormFields.editText(
+				fieldName = "${fieldNameTextField}",
+				fieldValue = "1500000");
+		}
+
+		task ("Assert that the Prefectures field was filled by the Data Provider and the form can be submited") {
+			FormFields.viewTextValue(
+				fieldName = "${fieldNameTextField2}",
+				fieldValue = "東京都");
+
+			FormPortlet.submitSuccessfullyAndViewSuccessPage();
+		}
+	}
+
+	@description = "LPS-70446 - Verify that a Rule with 'Autofill' action can be created with Data Providers"
+	@priority = "5"
+	test CanUtilizeDataProvidersToCreateAnAutofillRule {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsRulesActions#CanUtilizeDataProvidersToCreateAnAutofillRule";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		FormsAdminNavigator.enableLocalNetworkDataProvider();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Data Providers");
+
+		FormsAdminNavigator.gotoAddDataProvider();
+
+		FormsAdmin.editDataProvider(
+			name = "Liferay Countries",
+			outputParameterLabel = "Countries Full Name",
+			outputParameterName = "Country Name",
+			outputParameterPath = "nameCurrentValue",
+			outputParameterType = "List",
+			password = "test",
+			url = "${portalURL}/api/jsonws/country/get-countries",
+			username = "test@liferay.com");
+
+		FormsAdmin.saveDataProvider();
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.editDescription();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldNameTextField = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Select from List");
+
+		var fieldNameCountries = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Countries");
+
+		FormFields.editOptionsRow(
+			optionName = "Select1",
+			optionValue = "Select 1");
+
+		FormFields.editOptionsRow(
+			optionName = "Select2",
+			optionValue = "Select 2",
+			rowNumber = "2");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text Field",
+			conditionFieldValue = "country",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Autofill",
+			actionRowNumber = "1",
+			actionTarget = "Liferay Countries");
+
+		FormRules.selectAutofillFromDataProvider(
+			dataProviderOption = "Countries",
+			dataProviderParameterName = "Countries Full Name");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Text Field",
+			fieldName = "${fieldNameTextField}");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField}",
+			fieldValue = "test");
+
+		FormFields.viewSelectOptionsList(
+			fieldName = "${fieldNameCountries}",
+			selectOption = "Select 1");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField}",
+			fieldValue = "country");
+
+		DataEngine.waitForAutoSave();
+
+		FormFields.selectSelectOption(
+			fieldName = "${fieldNameCountries}",
+			selectOption = "Afghanistan");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Text Field",
+			fieldValue = "country");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Countries",
+			fieldValue = "Afghanistan");
+	}
+
+	@description = "LPS-75495 - Verify that the 'Show' action is not triggered when typing into an unrelated field"
+	@priority = "3"
+	test ShowDoesNotTriggerWhenTypingIntoUnrelatedField {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsRulesActions#ShowDoesNotTriggerWhenTypingIntoUnrelatedField";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Test Form");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldNameTextField1 = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field 1");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		var fieldNameTextField2 = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field 2");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Date");
+
+		var fieldNameDateField = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Date Field");
+
+		FormFields.enableSwitch(fieldName = "required");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text Field 1",
+			conditionFieldValue = "test",
+			conditionOperator = "Is Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Date Field");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Test Form");
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField2}",
+			fieldValue = "testing");
+
+		FormFields.viewDateFieldNotPresent(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField1}",
+			fieldValue = "test");
+
+		FormFields.viewDateField(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+	}
+
+}

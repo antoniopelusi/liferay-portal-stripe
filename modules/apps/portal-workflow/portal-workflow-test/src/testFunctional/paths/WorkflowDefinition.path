@@ -2,11 +2,13 @@
 <head>
 <title>WorkflowDefinition</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WorkflowDefinition</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>PUBLICATION_STATUS</td>
@@ -21,7 +23,7 @@
 <!--DEFINITION-->
 <tr>
 	<td>DEFINITION_TITLE</td>
-	<td>//input[(contains(@name,'KaleoDesignerPortlet_title')) and (contains(@type,'text'))]</td>
+	<td>//input[(contains(@name,'KaleoDesignerPortlet_title')) or (contains(@name,'ControlPanelWorkflowPortlet_title')) and (contains(@type,'text'))]</td>
 	<td></td>
 </tr>
 <!--DEFINITION_TABLE-->
@@ -57,7 +59,17 @@
 </tr>
 <tr>
 	<td>DEFINITION_TABLE_TITLE_UNPUBLISHED</td>
-	<td>//tr[count(preceding-sibling::tr[contains(@class,'table-divider')])=2 and contains(.,'${key_workflowDefinitionTitle}')]/td[1]</td>
+	<td>//tr[count(preceding-sibling::tr[contains(@class,'table-divider') and contains (.,'Not Published')]) and contains(.,'${key_workflowDefinitionTitle}')]/td[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFINITION_VIEW_EDIT_BUTTON</td>
+	<td>//span[contains(text(), "Edit")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFINITION_TABLE_TITLE_PERMISSIONS</td>
+	<td>//div[contains(@class, "modal-content modal-full-screen-content yui3-widget-stdmod yui3-widget-content-expanded")]</td>
 	<td></td>
 </tr>
 <tr>

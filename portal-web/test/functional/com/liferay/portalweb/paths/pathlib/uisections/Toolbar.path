@@ -2,15 +2,22 @@
 <head>
 <title>Toolbar</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Toolbar</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD</td>
 	<td>//ul[contains(@id,'toolbarContainer')]/li/a[@title='Add']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FEEDBACK</td>
+	<td>//div[contains(@class,'feedback')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -18,10 +18,9 @@ import com.liferay.portal.configuration.persistence.ReloadablePersistenceManager
 import com.liferay.portal.configuration.persistence.internal.ConfigurationPersistenceManager;
 import com.liferay.portal.configuration.persistence.internal.upgrade.ConfigurationUpgradeStepFactoryImpl;
 import com.liferay.portal.configuration.persistence.upgrade.ConfigurationUpgradeStepFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.Iterator;
 
 import javax.sql.DataSource;
@@ -41,7 +40,7 @@ public class ConfigurationPersistenceImplBundleActivator
 	implements BundleActivator {
 
 	@Override
-	public void start(final BundleContext bundleContext) throws Exception {
+	public void start(BundleContext bundleContext) throws Exception {
 		Collection<ServiceReference<DataSource>> serviceReferences =
 			bundleContext.getServiceReferences(
 				DataSource.class, "(bean.id=liferayDataSource)");
@@ -61,20 +60,19 @@ public class ConfigurationPersistenceImplBundleActivator
 
 		_configurationPersistenceManager.start();
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			PersistenceManager.PROPERTY_NAME,
-			ConfigurationPersistenceManager.class.getName());
-		properties.put(Constants.SERVICE_RANKING, Integer.MAX_VALUE - 1000);
-
 		_configurationPersistenceManagerServiceRegistration =
 			bundleContext.registerService(
 				new String[] {
 					PersistenceManager.class.getName(),
 					ReloadablePersistenceManager.class.getName()
 				},
-				_configurationPersistenceManager, properties);
+				_configurationPersistenceManager,
+				HashMapDictionaryBuilder.<String, Object>put(
+					Constants.SERVICE_RANKING, Integer.MAX_VALUE - 1000
+				).put(
+					PersistenceManager.PROPERTY_NAME,
+					ConfigurationPersistenceManager.class.getName()
+				).build());
 
 		_configurationUpgradeStepFactoryRegistration =
 			bundleContext.registerService(

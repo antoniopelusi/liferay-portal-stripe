@@ -320,4 +320,7 @@ public interface SystemEventModel
 	 */
 	public void setExtraData(String extraData);
 
+	@Override
+	public SystemEvent cloneWithOriginalValues();
+
 }

@@ -16,12 +16,12 @@ package com.liferay.commerce.product.internal.upgrade.v3_2_0;
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.commerce.product.model.CProduct;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.StringBundler;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -52,26 +52,25 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 		long cProductClassNameId = _classNameLocalService.getClassNameId(
 			CProduct.class);
 
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				StringBundler.concat(
 					"select * from FriendlyURLEntry where classNameId in (",
-					String.valueOf(assetCategoryClassNameId), ",",
-					String.valueOf(cProductClassNameId), ")"));
-			PreparedStatement ps2 =
+					assetCategoryClassNameId, ",", cProductClassNameId, ")"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update FriendlyURLEntry set groupId = ? where " +
 						"friendlyURLEntryId = ?");
-			PreparedStatement ps3 =
+			PreparedStatement preparedStatement3 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update FriendlyURLEntryLocalization set groupId = ? " +
 						"where friendlyURLEntryId = ?");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				long companyId = rs.getLong("companyId");
-				long groupId = rs.getLong("groupId");
+			while (resultSet.next()) {
+				long companyId = resultSet.getLong("companyId");
+				long groupId = resultSet.getLong("groupId");
 
 				List<Long> groupIds = _groupLocalService.getGroupIds(
 					companyId, true);
@@ -92,17 +91,18 @@ public class FriendlyURLEntryUpgradeProcess extends UpgradeProcess {
 					continue;
 				}
 
-				long friendlyURLEntryId = rs.getLong("friendlyURLEntryId");
+				long friendlyURLEntryId = resultSet.getLong(
+					"friendlyURLEntryId");
 
-				ps2.setLong(1, group.getGroupId());
-				ps2.setLong(2, friendlyURLEntryId);
+				preparedStatement2.setLong(1, group.getGroupId());
+				preparedStatement2.setLong(2, friendlyURLEntryId);
 
-				ps2.execute();
+				preparedStatement2.execute();
 
-				ps3.setLong(1, group.getGroupId());
-				ps3.setLong(2, friendlyURLEntryId);
+				preparedStatement3.setLong(1, group.getGroupId());
+				preparedStatement3.setLong(2, friendlyURLEntryId);
 
-				ps3.execute();
+				preparedStatement3.execute();
 			}
 		}
 	}

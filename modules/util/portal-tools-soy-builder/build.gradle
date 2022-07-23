@@ -20,15 +20,17 @@ dependencies {
 	compile group: "org.sonatype.plexus", name: "plexus-build-api", transitive: false, version: "0.0.7"
 
 	compileInclude group: "com.beust", name: "jcommander", version: "1.48"
+	compileInclude group: "com.liferay", name: "com.liferay.petra.lang", version: "5.0.0"
+	compileInclude group: "com.liferay", name: "com.liferay.petra.string", version: "5.0.0"
 
-	compileOnly group: "org.apache.ant", name: "ant", transitive: false, version: "1.10.9"
+	compileOnly group: "org.apache.ant", name: "ant", transitive: false, version: "1.10.11"
 	compileOnly group: "org.apache.maven", name: "maven-artifact", version: "3.2.5"
 	compileOnly group: "org.apache.maven", name: "maven-core", version: "3.2.5"
 	compileOnly group: "org.apache.maven", name: "maven-plugin-api", transitive: false, version: "3.0.4"
 
 	mavenDistribution classifier: "bin", ext: "zip", group: "org.apache.maven", name: "apache-maven", version: "3.3.9"
 
-	testCompile group: "com.liferay", name: "com.liferay.maven.executor", version: "1.0.1"
+	testCompile group: "com.liferay", name: "com.liferay.maven.executor", version: "1.0.2"
 	testCompile group: "org.apache.ant", name: "ant-testutil", version: "1.9.7"
 }
 

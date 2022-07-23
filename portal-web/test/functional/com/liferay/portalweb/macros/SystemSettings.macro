@@ -1,5 +1,31 @@
 definition {
 
+	macro assertPortalBuildNumber {
+		var portalURL = PropsUtil.get("portal.url");
+
+		var buildNumberCurl = '''
+				${portalURL}/api/jsonws/portal/get-build-number -H 'Authorization: Bearer ${accessToken}'
+			''';
+		var buildNumberOutput = JSONCurlUtil.post("${buildNumberCurl}");
+
+		if (!(contains("${buildNumberOutput}", "${portalBuild}"))) {
+			fail("JSON-WS call failed to return build number");
+		}
+	}
+
+	macro assertPortalVersion {
+		var portalURL = PropsUtil.get("portal.url");
+
+		var portalVersionCurl = '''
+			${portalURL}/api/jsonws/portal/get-version -H 'Authorization: Bearer ${accessToken}'
+		''';
+		var portalVersionOutput = JSONCurlUtil.post("${portalVersionCurl}");
+
+		if (!(contains("${portalVersionOutput}", "${portalVersion}"))) {
+			fail("JSON-WS call failed to return Portal version");
+		}
+	}
+
 	macro configureDisplayStyle {
 		Click(locator1 = "Dropdown#TRIGGER");
 
@@ -25,6 +51,12 @@ definition {
 
 		if ("${enableSetting}" == "true") {
 			Check.toggleSwitch(locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+			if (isSet(settingValue)) {
+				SystemSettings.editTextAreaSetting(
+					settingName = "${settingName}",
+					settingValue = "${settingValue}");
+			}
 
 			SystemSettings.saveConfiguration();
 
@@ -64,6 +96,16 @@ definition {
 
 	macro deleteConfiguration {
 		Click.waitForMenuToggleJSClick(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Delete");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro deleteConfigurationEntry {
+		Click(
+			key_entryName = "${configurationEntry}",
+			locator1 = "CommerceEntry#ENTRY_ROW_VERTICAL_ELLIPSIS");
 
 		MenuItem.click(menuItem = "Delete");
 
@@ -126,6 +168,58 @@ definition {
 		DownloadTempFile();
 	}
 
+	macro getConfigFileContent {
+		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+		var fileContent = FileUtil.read("${liferayHome}/osgi/configs/${configFileName}");
+
+		return "${fileContent}";
+	}
+
+	macro getCurrentUserEmailResquestDenied {
+		var output = JSONCurlUtil.post("${curl}");
+
+		if (contains("${output}", "Access denied to com.liferay.portal.kernel.service.UserService#getCurrentUser")) {
+			echo("Access denied to com.liferay.portal.kernel.service.UserService#getCurrentUser");
+		}
+		else {
+			fail("FAIL! Cannot find the warning message.");
+		}
+	}
+
+	macro getUserEmailAddressRequestDenied {
+		var output = JSONCurlUtil.post("${curl}");
+
+		if (contains("${output}", "Access denied to com.liferay.portal.kernel.service.UserService#getUserByEmailAddress")) {
+			echo("Access denied to com.liferay.portal.kernel.service.UserService#getUserByEmailAddress");
+		}
+		else {
+			fail("FAIL! Cannot find the warning message.");
+		}
+	}
+
+	macro getUserEmailSuccessfully {
+		Variables.assertDefined(parameterList = "${curl},${companyId}");
+
+		var output = JSONCurlUtil.post("${curl}");
+
+		if (contains("${output}", ""agreedToTermsOfUse":true") && contains("${output}", ""companyId":"${companyId}"")) {
+			echo("Get current user successful.");
+		}
+		else {
+			fail("FAIL! Cannot find the current user.");
+		}
+	}
+
+	macro getViewUserEmailPermissionDenied {
+		Variables.assertDefined(parameterList = "${curl},${userId}");
+
+		var output = JSONCurlUtil.post("${curl}");
+
+		if (!(contains("${output}", "must have VIEW permission for com.liferay.portal.kernel.model.User ${userId}"))) {
+			fail("FAIL! Cannot find the current user.");
+		}
+	}
+
 	macro gotoConfiguration {
 		Click(
 			key_itemName = "${configurationCategory}",
@@ -154,7 +248,23 @@ definition {
 	}
 
 	macro openSystemSettingsAdmin {
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet");
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet");
+	}
+
+	macro openToConfigInSystemSettings {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if ("${portlet}" == "Applications Menu") {
+			var portletId = "com.liferay.product.navigation.applications.menu.configuration.ApplicationsMenuInstanceConfiguration";
+		}
+
+		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=${portletId}&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fedit_configuration");
 	}
 
 	macro resetConfiguration {
@@ -186,6 +296,20 @@ definition {
 			locator1 = "SystemSettings#DROPDOWN_MENU_OPTION");
 	}
 
+	macro viewConfigurationNotAvailable {
+		AssertElementNotPresent(
+			key_configurationName = "${configurationName}",
+			key_configurationScope = "${configurationScope}",
+			locator1 = "SystemSettings#SCOPED_CONFIGURATION_NAME");
+	}
+
+	macro viewSettingsText {
+		AssertTextEquals.assertPartialText(
+			key_settingsText = "${settingsText}",
+			locator1 = "SystemSettings#SETTINGS_TEXT",
+			value1 = "${settingsText}");
+	}
+
 	macro viewTextareaPartialText {
 		AssertTextEquals.assertPartialText(
 			key_label = "${settingName}",
@@ -207,6 +331,17 @@ definition {
 				locator1 = "FormFields#TEXT_MULTILINE_FIELD",
 				value1 = "${fieldValue}");
 		}
+	}
+
+	macro viewTextLabel {
+		AssertTextEquals.assertText(
+			key_fieldLabel = "${fieldLabel}",
+			locator1 = "SystemSettings#LABEL",
+			value1 = "${fieldLabel}");
+	}
+
+	macro viewUserAvatarImage {
+		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
 	}
 
 }

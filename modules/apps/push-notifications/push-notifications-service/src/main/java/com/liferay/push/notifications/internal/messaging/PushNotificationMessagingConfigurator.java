@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.MessageListener;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.push.notifications.constants.PushNotificationsDestinationNames;
 import com.liferay.push.notifications.service.PushNotificationsDeviceLocalService;
 
@@ -51,7 +51,7 @@ public class PushNotificationMessagingConfigurator {
 				DestinationConfiguration.DESTINATION_TYPE_SERIAL,
 				PushNotificationsDestinationNames.PUSH_NOTIFICATION);
 
-		Destination pushNotificationDestination = registerDestination(
+		Destination pushNotificationDestination = _registerDestination(
 			pushNotificationDestinationConfiguration);
 
 		MessageListener pushNotificationsMessageListener =
@@ -67,7 +67,7 @@ public class PushNotificationMessagingConfigurator {
 					PushNotificationsDestinationNames.
 						PUSH_NOTIFICATION_RESPONSE);
 
-		Destination pushNotificationResponseDestination = registerDestination(
+		Destination pushNotificationResponseDestination = _registerDestination(
 			pushNotificationResponseDestinationConfiguration);
 
 		MessageListener pushNotificationsResponseMessageListener =
@@ -97,15 +97,16 @@ public class PushNotificationMessagingConfigurator {
 		_bundleContext = null;
 	}
 
-	protected Destination registerDestination(
+	private Destination _registerDestination(
 		DestinationConfiguration destinationConfiguration) {
 
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("destination.name", destination.getName());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		ServiceRegistration<Destination> serviceRegistration =
 			_bundleContext.registerService(

@@ -18,7 +18,6 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.oauth.model.OAuthApplication;
 import com.liferay.oauth.model.OAuthApplicationModel;
-import com.liferay.oauth.model.OAuthApplicationSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -31,20 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -167,65 +165,6 @@ public class OAuthApplicationModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static OAuthApplication toModel(OAuthApplicationSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		OAuthApplication model = new OAuthApplicationImpl();
-
-		model.setOAuthApplicationId(soapModel.getOAuthApplicationId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setConsumerKey(soapModel.getConsumerKey());
-		model.setConsumerSecret(soapModel.getConsumerSecret());
-		model.setAccessLevel(soapModel.getAccessLevel());
-		model.setLogoId(soapModel.getLogoId());
-		model.setShareableAccessToken(soapModel.isShareableAccessToken());
-		model.setCallbackURI(soapModel.getCallbackURI());
-		model.setWebsiteURL(soapModel.getWebsiteURL());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<OAuthApplication> toModels(
-		OAuthApplicationSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<OAuthApplication> models = new ArrayList<OAuthApplication>(
-			soapModels.length);
-
-		for (OAuthApplicationSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public OAuthApplicationModelImpl() {
 	}
 
@@ -309,34 +248,6 @@ public class OAuthApplicationModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, OAuthApplication>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			OAuthApplication.class.getClassLoader(), OAuthApplication.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<OAuthApplication> constructor =
-				(Constructor<OAuthApplication>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<OAuthApplication, Object>>
@@ -844,6 +755,44 @@ public class OAuthApplicationModelImpl
 	}
 
 	@Override
+	public OAuthApplication cloneWithOriginalValues() {
+		OAuthApplicationImpl oAuthApplicationImpl = new OAuthApplicationImpl();
+
+		oAuthApplicationImpl.setOAuthApplicationId(
+			this.<Long>getColumnOriginalValue("oAuthApplicationId"));
+		oAuthApplicationImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		oAuthApplicationImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		oAuthApplicationImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		oAuthApplicationImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		oAuthApplicationImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		oAuthApplicationImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		oAuthApplicationImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		oAuthApplicationImpl.setConsumerKey(
+			this.<String>getColumnOriginalValue("consumerKey"));
+		oAuthApplicationImpl.setConsumerSecret(
+			this.<String>getColumnOriginalValue("consumerSecret"));
+		oAuthApplicationImpl.setAccessLevel(
+			this.<Integer>getColumnOriginalValue("accessLevel"));
+		oAuthApplicationImpl.setLogoId(
+			this.<Long>getColumnOriginalValue("logoId"));
+		oAuthApplicationImpl.setShareableAccessToken(
+			this.<Boolean>getColumnOriginalValue("shareableAccessToken"));
+		oAuthApplicationImpl.setCallbackURI(
+			this.<String>getColumnOriginalValue("callbackURI"));
+		oAuthApplicationImpl.setWebsiteURL(
+			this.<String>getColumnOriginalValue("websiteURL"));
+
+		return oAuthApplicationImpl;
+	}
+
+	@Override
 	public int compareTo(OAuthApplication oAuthApplication) {
 		long primaryKey = oAuthApplication.getPrimaryKey();
 
@@ -1013,7 +962,7 @@ public class OAuthApplicationModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1024,9 +973,27 @@ public class OAuthApplicationModelImpl
 			Function<OAuthApplication, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((OAuthApplication)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(OAuthApplication)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1073,7 +1040,9 @@ public class OAuthApplicationModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, OAuthApplication>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					OAuthApplication.class, ModelWrapper.class);
 
 	}
 

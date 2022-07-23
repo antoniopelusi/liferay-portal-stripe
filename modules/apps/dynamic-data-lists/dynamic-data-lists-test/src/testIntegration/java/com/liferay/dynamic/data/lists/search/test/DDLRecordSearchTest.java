@@ -87,8 +87,9 @@ public class DDLRecordSearchTest {
 
 		DDLRecordSet recordSet = addRecordSet();
 
-		_recordTestHelper = new DDLRecordTestHelper(_group, recordSet);
-		_searchContext = getSearchContext(_group, _user, recordSet);
+		_recordTestHelper = new DDLRecordTestHelper(
+			_group, recordSet, _user.getUserId());
+		_searchContext = getSearchContext(_group, recordSet, _user);
 	}
 
 	@Test
@@ -113,28 +114,28 @@ public class DDLRecordSearchTest {
 
 		DDLRecordSet recordSet = recordSetTestHelper.addRecordSet(ddmStructure);
 
-		SearchContext searchContext = getSearchContext(group, user, recordSet);
+		SearchContext searchContext = getSearchContext(group, recordSet, user);
 
 		DDLRecordTestHelper recordTestHelper = new DDLRecordTestHelper(
 			group, recordSet);
 
 		DDMFormValues ddmFormValues = createDDMFormValues(LocaleUtil.US);
 
-		Map<Locale, String> values = HashMapBuilder.put(
-			LocaleUtil.US, "Joe Bloggs"
-		).build();
-
 		DDMFormFieldValue nameDDMFormFieldValue =
-			createLocalizedDDMFormFieldValue("name", values);
+			createLocalizedDDMFormFieldValue(
+				"name",
+				HashMapBuilder.put(
+					LocaleUtil.US, "Joe Bloggs"
+				).build());
 
 		ddmFormValues.addDDMFormFieldValue(nameDDMFormFieldValue);
 
-		values = HashMapBuilder.put(
-			LocaleUtil.US, "Simple description"
-		).build();
-
 		DDMFormFieldValue descriptionDDMFormFieldValue =
-			createLocalizedDDMFormFieldValue("description", values);
+			createLocalizedDDMFormFieldValue(
+				"description",
+				HashMapBuilder.put(
+					LocaleUtil.US, "Simple description"
+				).build());
 
 		ddmFormValues.addDDMFormFieldValue(descriptionDDMFormFieldValue);
 
@@ -145,7 +146,7 @@ public class DDLRecordSearchTest {
 
 		Hits hits = DDLRecordLocalServiceUtil.search(searchContext);
 
-		Assert.assertEquals(hits.toString(), 1, hits.getLength());
+		Assert.assertEquals(hits.toString(), 0, hits.getLength());
 	}
 
 	@Test
@@ -198,11 +199,12 @@ public class DDLRecordSearchTest {
 			GroupConstants.DEFAULT_PARENT_GROUP_ID);
 
 		DDLRecordSetTestHelper recordSetTestHelper = new DDLRecordSetTestHelper(
-			group);
+			group, user.getUserId());
 
 		DDMStructureTestHelper ddmStructureTestHelper =
 			new DDMStructureTestHelper(
-				PortalUtil.getClassNameId(DDLRecordSet.class), group);
+				PortalUtil.getClassNameId(DDLRecordSet.class), group,
+				user.getUserId());
 
 		Set<Locale> locales = DDMFormTestUtil.createAvailableLocales(
 			new Locale[] {LocaleUtil.US, LocaleUtil.JAPAN});
@@ -225,7 +227,7 @@ public class DDLRecordSearchTest {
 
 		DDLRecordSet recordSet = recordSetTestHelper.addRecordSet(ddmStructure);
 
-		SearchContext searchContext = getSearchContext(group, user, recordSet);
+		SearchContext searchContext = getSearchContext(group, recordSet, user);
 
 		searchContext.setLocale(LocaleUtil.JAPAN);
 
@@ -247,7 +249,7 @@ public class DDLRecordSearchTest {
 			ddmFormValues, WorkflowConstants.ACTION_PUBLISH);
 
 		DDLRecordTestHelper recordTestHelper = new DDLRecordTestHelper(
-			group, recordSet);
+			group, recordSet, user.getUserId());
 
 		recordTestHelper.addRecord(
 			ddmFormValues, WorkflowConstants.ACTION_PUBLISH);
@@ -346,7 +348,7 @@ public class DDLRecordSearchTest {
 	public SearchTestRule searchTestRule = new SearchTestRule();
 
 	protected static SearchContext getSearchContext(
-			Group group, User user, DDLRecordSet recordSet)
+			Group group, DDLRecordSet recordSet, User user)
 		throws Exception {
 
 		SearchContext searchContext = SearchContextTestUtil.getSearchContext(
@@ -414,11 +416,12 @@ public class DDLRecordSearchTest {
 
 	protected DDLRecordSet addRecordSet() throws Exception {
 		DDLRecordSetTestHelper recordSetTestHelper = new DDLRecordSetTestHelper(
-			_group);
+			_group, _user.getUserId());
 
 		DDMStructureTestHelper ddmStructureTestHelper =
 			new DDMStructureTestHelper(
-				PortalUtil.getClassNameId(DDLRecordSet.class), _group);
+				PortalUtil.getClassNameId(DDLRecordSet.class), _group,
+				_user.getUserId());
 
 		DDMStructure ddmStructure = ddmStructureTestHelper.addStructure(
 			createDDMForm(LocaleUtil.US), StorageType.DEFAULT.toString());

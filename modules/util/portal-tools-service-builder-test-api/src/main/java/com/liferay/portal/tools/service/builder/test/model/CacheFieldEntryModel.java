@@ -96,4 +96,7 @@ public interface CacheFieldEntryModel extends BaseModel<CacheFieldEntry> {
 	 */
 	public void setName(String name);
 
+	@Override
+	public CacheFieldEntry cloneWithOriginalValues();
+
 }

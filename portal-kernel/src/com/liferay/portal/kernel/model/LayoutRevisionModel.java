@@ -1053,4 +1053,7 @@ public interface LayoutRevisionModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public LayoutRevision cloneWithOriginalValues();
+
 }

@@ -81,7 +81,7 @@ public class HtmlImplTest {
 
 	@Test
 	public void testEscapeExtendedASCIICharacters() {
-		StringBuilder sb = new StringBuilder(256);
+		StringBundler sb = new StringBundler(256);
 
 		for (int i = 0; i < 256; i++) {
 			if (Character.isLetterOrDigit(i)) {
@@ -191,6 +191,10 @@ public class HtmlImplTest {
 		Assert.assertEquals(
 			"http://localhost:8080",
 			_htmlImpl.escapeJSLink("http://localhost:8080"));
+		Assert.assertEquals(
+			"javascript%3a//localhost:800/123%0aalert(document.domain)",
+			_htmlImpl.escapeJSLink(
+				"\tjavascript://localhost:800/123%0aalert(document.domain)"));
 	}
 
 	@Test
@@ -230,25 +234,6 @@ public class HtmlImplTest {
 	}
 
 	@Test
-	public void testExtraction() {
-		Assert.assertEquals(
-			"whitespace removal",
-			_htmlImpl.extractText("   whitespace \n   <br/> removal   "));
-		Assert.assertEquals(
-			"script removal",
-			_htmlImpl.extractText(
-				"script <script>   test   </script> removal"));
-		Assert.assertEquals(
-			"HTML attribute removal",
-			_htmlImpl.extractText(
-				"<h1>HTML</h1> <i>attribute</i> <strong>removal</strong>"));
-		Assert.assertEquals(
-			"onclick removal",
-			_htmlImpl.extractText(
-				"<div onclick=\"honk()\">onclick removal</div>"));
-	}
-
-	@Test
 	public void testGetAUICompatibleId() {
 		Assert.assertNull(_htmlImpl.getAUICompatibleId(null));
 		Assert.assertEquals(
@@ -270,17 +255,14 @@ public class HtmlImplTest {
 		actualSB.append(CharPool.FIGURE_SPACE);
 		actualSB.append(CharPool.NARROW_NO_BREAK_SPACE);
 
-		StringBundler expectedSB = new StringBundler(6);
-
-		expectedSB.append("_0__1__2__3__4__5__6__7__8__9__a__b__c__d__e__f_");
-		expectedSB.append("_10__11__12__13__14__15__16__17__18__19__1a__1b_");
-		expectedSB.append("_1c__1d__1e__1f__20__21__22__23__24__25__26__27_");
-		expectedSB.append("_28__29__2a__2b__2c__2d__2e__2f__3a__3b__3c__3d_");
-		expectedSB.append("_3e__3f__40__5b__5c__5d__5e____60__7b__7c__7d__7e_");
-		expectedSB.append("_7f__a0__2007__202f_");
-
 		Assert.assertEquals(
-			expectedSB.toString(),
+			StringBundler.concat(
+				"_0__1__2__3__4__5__6__7__8__9__a__b__c__d__e__f_",
+				"_10__11__12__13__14__15__16__17__18__19__1a__1b_",
+				"_1c__1d__1e__1f__20__21__22__23__24__25__26__27_",
+				"_28__29__2a__2b__2c__2d__2e__2f__3a__3b__3c__3d_",
+				"_3e__3f__40__5b__5c__5d__5e____60__7b__7c__7d__7e_",
+				"_7f__a0__2007__202f_"),
 			_htmlImpl.getAUICompatibleId(actualSB.toString()));
 	}
 
@@ -388,7 +370,15 @@ public class HtmlImplTest {
 	}
 
 	@Test
-	public void testStripHtmlWithScripTag() {
+	public void testStripHtmlWithNoscriptTag() {
+		Assert.assertEquals(
+			"Hello World!",
+			_htmlImpl.stripHtml(
+				"<body>Hello<noscript>No JavaScript</noscript> World!</body>"));
+	}
+
+	@Test
+	public void testStripHtmlWithScriptTag() {
 		Assert.assertEquals(
 			"Hello World!",
 			_htmlImpl.stripHtml(

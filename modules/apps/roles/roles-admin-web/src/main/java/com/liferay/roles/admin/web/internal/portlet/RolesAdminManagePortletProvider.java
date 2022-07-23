@@ -50,7 +50,7 @@ public class RolesAdminManagePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/edit_role_permissions.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

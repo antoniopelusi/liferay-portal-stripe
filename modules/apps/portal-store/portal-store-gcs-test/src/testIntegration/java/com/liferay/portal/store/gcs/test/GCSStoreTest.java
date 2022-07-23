@@ -74,15 +74,15 @@ public class GCSStoreTest extends BaseStoreTestCase {
 			).put(
 				"bucketName", "test"
 			).put(
-				"initialRPCTimeout", "120000"
-			).put(
 				"initialRetryDelay", "400"
 			).put(
-				"maxRPCTimeout", "600000"
+				"initialRPCTimeout", "120000"
 			).put(
 				"maxRetryAttempts", "5"
 			).put(
 				"maxRetryDelay", "10000"
+			).put(
+				"maxRPCTimeout", "600000"
 			).put(
 				"retryDelayMultiplier", "1.5"
 			).put(

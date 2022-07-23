@@ -17,9 +17,20 @@
 <%@ include file="/init.jsp" %>
 
 <%
-SearchContainer<AccountEntryDisplay> accountEntryDisplaySearchContainer = AccountEntryDisplaySearchContainerFactory.create(liferayPortletRequest, liferayPortletResponse);
-
 long accountGroupId = ParamUtil.getLong(request, "accountGroupId");
+
+boolean filterManageableAccountEntries = true;
+
+if ((accountGroupId > 0) && AccountGroupPermission.contains(permissionChecker, accountGroupId, AccountActionKeys.ASSIGN_ACCOUNTS)) {
+	filterManageableAccountEntries = false;
+}
+
+SearchContainer<AccountEntryDisplay> accountEntryDisplaySearchContainer = AccountEntryDisplaySearchContainerFactory.createWithParams(
+	liferayPortletRequest, liferayPortletResponse,
+	LinkedHashMapBuilder.<String, Object>put(
+		"allowNewUserMembership", Boolean.TRUE
+	).build(),
+	filterManageableAccountEntries);
 
 if (accountGroupId > 0) {
 	accountEntryDisplaySearchContainer.setRowChecker(new AccountGroupAccountEntryRowChecker(liferayPortletResponse, accountGroupId));
@@ -49,15 +60,17 @@ if (selectAccountEntryManagementToolbarDisplayContext.isSingleSelect()) {
 		>
 
 			<%
+			Map<String, Object> data = HashMapBuilder.<String, Object>put(
+				"accountentryid", accountEntryDisplay.getAccountEntryId()
+			).put(
+				"entityid", accountEntryDisplay.getAccountEntryId()
+			).put(
+				"entityname", accountEntryDisplay.getName()
+			).build();
+
+			row.setData(data);
+
 			String cssClass = "table-cell-expand";
-
-			Optional<User> userOptional = accountEntryDisplay.getPersonAccountEntryUserOptional();
-
-			boolean disabled = userOptional.isPresent();
-
-			if (disabled) {
-				cssClass += " text-muted";
-			}
 			%>
 
 			<liferay-ui:search-container-column-text
@@ -75,20 +88,7 @@ if (selectAccountEntryManagementToolbarDisplayContext.isSingleSelect()) {
 
 			<c:if test="<%= selectAccountEntryManagementToolbarDisplayContext.isSingleSelect() %>">
 				<liferay-ui:search-container-column-text>
-					<aui:button
-						cssClass="choose-account selector-button"
-						data='<%=
-							HashMapBuilder.<String, Object>put(
-								"accountentryid", accountEntryDisplay.getAccountEntryId()
-							).put(
-								"entityid", accountEntryDisplay.getAccountEntryId()
-							).put(
-								"entityname", accountEntryDisplay.getName()
-							).build()
-						%>'
-						disabled="<%= disabled %>"
-						value="choose"
-					/>
+					<aui:button cssClass="choose-account selector-button" data="<%= data %>" value="choose" />
 				</liferay-ui:search-container-column-text>
 			</c:if>
 		</liferay-ui:search-container-row>

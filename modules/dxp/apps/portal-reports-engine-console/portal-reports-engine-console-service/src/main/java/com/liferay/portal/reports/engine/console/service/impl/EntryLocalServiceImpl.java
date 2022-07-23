@@ -14,6 +14,7 @@
 
 package com.liferay.portal.reports.engine.console.service.impl;
 
+import com.liferay.document.library.kernel.store.DLStoreRequest;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.petra.memory.DeleteFileFinalizeAction;
 import com.liferay.petra.memory.FinalizeManager;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
@@ -39,6 +41,7 @@ import com.liferay.portal.kernel.scheduler.TriggerFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -103,7 +106,7 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 		// Entry
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		validate(emailNotifications, emailDelivery, reportName);
 
@@ -115,8 +118,8 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 		entry.setCompanyId(user.getCompanyId());
 		entry.setUserId(user.getUserId());
 		entry.setUserName(user.getFullName());
-		entry.setCreateDate(serviceContext.getCreateDate(now));
-		entry.setModifiedDate(serviceContext.getModifiedDate(now));
+		entry.setCreateDate(serviceContext.getCreateDate(date));
+		entry.setModifiedDate(serviceContext.getModifiedDate(date));
 		entry.setDefinitionId(definitionId);
 		entry.setFormat(format);
 		entry.setScheduleRequest(schedulerRequest);
@@ -129,15 +132,10 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 		entry.setPortletId(portletId);
 		entry.setReportParameters(reportParameters);
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(pageURL);
-		sb.append("&");
-		sb.append(_portal.getPortletNamespace(portletId));
-		sb.append("entryId=");
-		sb.append(entryId);
-
-		entry.setPageURL(sb.toString());
+		entry.setPageURL(
+			StringBundler.concat(
+				pageURL, "&", _portal.getPortletNamespace(portletId),
+				"entryId=", entryId));
 
 		entry.setStatus(ReportStatus.PENDING.getValue());
 
@@ -194,6 +192,7 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public Entry deleteEntry(Entry entry) throws PortalException {
 
 		// Entry
@@ -374,7 +373,7 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		Entry entry = entryPersistence.findByPrimaryKey(entryId);
-		Date now = new Date();
+		Date date = new Date();
 
 		if (entry.isScheduleRequest()) {
 			StringBundler sb = new StringBundler(4);
@@ -384,7 +383,7 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 			DateFormat dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
 				"MM_dd_yyyy_HH_mm");
 
-			sb.append(dateFormat.format(now));
+			sb.append(dateFormat.format(date));
 
 			sb.append(StringPool.PERIOD);
 			sb.append(StringUtil.extractLast(reportName, StringPool.PERIOD));
@@ -396,7 +395,13 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 			entry.getAttachmentsDir() + StringPool.SLASH + reportName;
 
 		DLStoreUtil.addFile(
-			entry.getCompanyId(), CompanyConstants.SYSTEM, fileName, false,
+			DLStoreRequest.builder(
+				entry.getCompanyId(), CompanyConstants.SYSTEM, fileName
+			).className(
+				this
+			).size(
+				reportResults.length
+			).build(),
 			reportResults);
 
 		String[] emailAddresses = StringUtil.split(entry.getEmailDelivery());
@@ -407,7 +412,7 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 
 		sendEmails(entryId, fileName, emailAddresses, true);
 
-		entry.setModifiedDate(now);
+		entry.setModifiedDate(date);
 		entry.setStatus(ReportStatus.COMPLETE.getValue());
 
 		entryPersistence.update(entry);

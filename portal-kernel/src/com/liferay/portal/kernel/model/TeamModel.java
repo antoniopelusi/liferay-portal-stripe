@@ -281,4 +281,7 @@ public interface TeamModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public Team cloneWithOriginalValues();
+
 }

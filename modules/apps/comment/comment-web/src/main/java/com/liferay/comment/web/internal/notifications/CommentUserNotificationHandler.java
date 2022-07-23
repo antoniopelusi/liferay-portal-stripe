@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.notifications.BaseModelUserNotificationHandler;
 import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
 import com.liferay.portal.kernel.notifications.UserNotificationHandler;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 
@@ -52,27 +53,9 @@ public class CommentUserNotificationHandler
 		setPortletId(CommentPortletKeys.COMMENT);
 	}
 
-	protected MBDiscussion fetchDiscussion(JSONObject jsonObject) {
-		long classPK = jsonObject.getLong("classPK");
-
-		try {
-			return _mbDiscussionLocalService.fetchDiscussion(classPK);
-		}
-		catch (SystemException systemException) {
-
-			// LPS-52675
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(systemException, systemException);
-			}
-
-			return null;
-		}
-	}
-
 	@Override
 	protected AssetRenderer<?> getAssetRenderer(JSONObject jsonObject) {
-		MBDiscussion mbDiscussion = fetchDiscussion(jsonObject);
+		MBDiscussion mbDiscussion = _fetchDiscussion(jsonObject);
 
 		if (mbDiscussion == null) {
 			return null;
@@ -94,7 +77,7 @@ public class CommentUserNotificationHandler
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -104,7 +87,7 @@ public class CommentUserNotificationHandler
 
 	@Override
 	protected String getBodyContent(JSONObject jsonObject) {
-		return HtmlUtil.extractText(super.getBodyContent(jsonObject));
+		return _htmlParser.extractText(super.getBodyContent(jsonObject));
 	}
 
 	@Override
@@ -112,7 +95,7 @@ public class CommentUserNotificationHandler
 		JSONObject jsonObject, AssetRenderer<?> assetRenderer,
 		ServiceContext serviceContext) {
 
-		MBDiscussion mbDiscussion = fetchDiscussion(jsonObject);
+		MBDiscussion mbDiscussion = _fetchDiscussion(jsonObject);
 
 		if (mbDiscussion == null) {
 			return null;
@@ -169,8 +152,29 @@ public class CommentUserNotificationHandler
 		return message;
 	}
 
+	private MBDiscussion _fetchDiscussion(JSONObject jsonObject) {
+		long classPK = jsonObject.getLong("classPK");
+
+		try {
+			return _mbDiscussionLocalService.fetchDiscussion(classPK);
+		}
+		catch (SystemException systemException) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(systemException);
+			}
+
+			return null;
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		CommentUserNotificationHandler.class);
+
+	@Reference
+	private HtmlParser _htmlParser;
 
 	@Reference
 	private MBDiscussionLocalService _mbDiscussionLocalService;

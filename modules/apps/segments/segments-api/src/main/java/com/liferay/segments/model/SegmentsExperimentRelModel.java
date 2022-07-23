@@ -264,4 +264,7 @@ public interface SegmentsExperimentRelModel
 	 */
 	public void setSplit(double split);
 
+	@Override
+	public SegmentsExperimentRel cloneWithOriginalValues();
+
 }

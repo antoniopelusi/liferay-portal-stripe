@@ -179,20 +179,6 @@ public abstract class CalendarBookingServiceBaseImpl
 		classNameService;
 
 	@Reference
-	protected com.liferay.portal.kernel.service.CompanyLocalService
-		companyLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.CompanyService companyService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupService groupService;
-
-	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService
 		resourceLocalService;
 
@@ -202,38 +188,5 @@ public abstract class CalendarBookingServiceBaseImpl
 
 	@Reference
 	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService
-		workflowInstanceLinkLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryLocalService
-		assetEntryLocalService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetEntryService
-		assetEntryService;
-
-	@Reference
-	protected com.liferay.asset.kernel.service.AssetLinkLocalService
-		assetLinkLocalService;
-
-	@Reference
-	protected com.liferay.ratings.kernel.service.RatingsStatsLocalService
-		ratingsStatsLocalService;
-
-	@Reference
-	protected com.liferay.social.kernel.service.SocialActivityLocalService
-		socialActivityLocalService;
-
-	@Reference
-	protected com.liferay.social.kernel.service.SocialActivityService
-		socialActivityService;
-
-	@Reference
-	protected
-		com.liferay.social.kernel.service.SocialActivityCounterLocalService
-			socialActivityCounterLocalService;
 
 }

@@ -23,9 +23,6 @@ import java.io.Serializable;
  */
 public class PermissionImpl implements Permission, Serializable {
 
-	public PermissionImpl() {
-	}
-
 	@Override
 	public String getActionId() {
 		return _actionId;

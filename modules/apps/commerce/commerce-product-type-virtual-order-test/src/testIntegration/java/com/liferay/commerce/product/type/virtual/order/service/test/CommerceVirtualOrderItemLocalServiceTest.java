@@ -39,12 +39,10 @@ import com.liferay.commerce.service.CommerceOrderLocalService;
 import com.liferay.commerce.subscription.CommerceSubscriptionEntryHelper;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -83,20 +81,17 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
-			_company.getCompanyId());
+			_group.getCompanyId());
 
 		_commerceChannel = CommerceTestUtil.addCommerceChannel(
 			_group.getGroupId(), _commerceCurrency.getCode());
 		_commerceCatalog = CommerceTestUtil.addCommerceCatalog(
-			_company.getCompanyId(), _company.getGroupId(), _user.getUserId(),
+			_group.getCompanyId(), _group.getGroupId(), _user.getUserId(),
 			_commerceCurrency.getCode());
 	}
 
@@ -153,7 +148,9 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 		}
 
 		commerceOrder = _setCommerceOrderStatuses(
-			commerceOrder, CommerceOrderConstants.PAYMENT_STATUS_PAID,
+			_commerceOrderLocalService.getCommerceOrder(
+				commerceOrder.getCommerceOrderId()),
+			CommerceOrderConstants.PAYMENT_STATUS_PAID,
 			CommerceOrderConstants.ORDER_STATUS_PENDING);
 
 		_commerceVirtualOrderItemChecker.checkCommerceVirtualOrderItems(
@@ -175,7 +172,7 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 		for (CommerceVirtualOrderItem commerceVirtualOrderItem :
 				userCommerceVirtualOrderItems) {
 
-			Assert.assertEquals(true, commerceVirtualOrderItem.isActive());
+			Assert.assertTrue(commerceVirtualOrderItem.isActive());
 			Assert.assertEquals(
 				CommerceOrderConstants.ORDER_STATUS_PENDING,
 				commerceVirtualOrderItem.getActivationStatus());
@@ -244,7 +241,9 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 		}
 
 		commerceOrder = _setCommerceOrderStatuses(
-			commerceOrder, CommerceOrderConstants.PAYMENT_STATUS_PAID,
+			_commerceOrderLocalService.getCommerceOrder(
+				commerceOrder.getCommerceOrderId()),
+			CommerceOrderConstants.PAYMENT_STATUS_PAID,
 			CommerceOrderConstants.ORDER_STATUS_PENDING);
 
 		_commerceSubscriptionEntryHelper.checkCommerceSubscriptions(
@@ -269,7 +268,7 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 		for (CommerceVirtualOrderItem commerceVirtualOrderItem :
 				userCommerceVirtualOrderItems) {
 
-			Assert.assertEquals(true, commerceVirtualOrderItem.isActive());
+			Assert.assertTrue(commerceVirtualOrderItem.isActive());
 			Assert.assertEquals(
 				CommerceOrderConstants.ORDER_STATUS_PENDING,
 				commerceVirtualOrderItem.getActivationStatus());
@@ -278,7 +277,7 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 			CommerceOrderItem commerceOrderItem =
 				commerceVirtualOrderItem.getCommerceOrderItem();
 
-			Assert.assertEquals(true, commerceOrderItem.isSubscription());
+			Assert.assertTrue(commerceOrderItem.isSubscription());
 		}
 	}
 
@@ -307,6 +306,8 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 		return _cpInstanceLocalService.updateCPInstance(cpInstance);
 	}
 
+	private static User _user;
+
 	private CommerceCatalog _commerceCatalog;
 	private CommerceChannel _commerceChannel;
 
@@ -334,9 +335,6 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 	private CommerceVirtualOrderItemLocalService
 		_commerceVirtualOrderItemLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	@Inject
 	private CPDefinitionLocalService _cpDefinitionLocalService;
 
@@ -344,6 +342,5 @@ public class CommerceVirtualOrderItemLocalServiceTest {
 	private CPInstanceLocalService _cpInstanceLocalService;
 
 	private Group _group;
-	private User _user;
 
 }

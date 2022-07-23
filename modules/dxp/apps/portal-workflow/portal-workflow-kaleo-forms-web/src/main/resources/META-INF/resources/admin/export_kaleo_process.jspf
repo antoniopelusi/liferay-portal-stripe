@@ -46,6 +46,7 @@
 					cssClass: 'kaleo-process-export-dialog',
 					height: 286,
 					render: '#p_p_id<portlet:namespace />',
+					resizable: false,
 					toolbars: {
 						footer: [
 							{

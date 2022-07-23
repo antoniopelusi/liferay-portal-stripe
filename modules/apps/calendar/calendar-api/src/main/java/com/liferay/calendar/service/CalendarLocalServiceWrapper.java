@@ -14,7 +14,10 @@
 
 package com.liferay.calendar.service;
 
+import com.liferay.calendar.model.Calendar;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link CalendarLocalService}.
@@ -25,6 +28,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
  */
 public class CalendarLocalServiceWrapper
 	implements CalendarLocalService, ServiceWrapper<CalendarLocalService> {
+
+	public CalendarLocalServiceWrapper() {
+		this(null);
+	}
 
 	public CalendarLocalServiceWrapper(
 		CalendarLocalService calendarLocalService) {
@@ -43,14 +50,12 @@ public class CalendarLocalServiceWrapper
 	 * @return the calendar that was added
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar addCalendar(
-		com.liferay.calendar.model.Calendar calendar) {
-
+	public Calendar addCalendar(Calendar calendar) {
 		return _calendarLocalService.addCalendar(calendar);
 	}
 
 	@Override
-	public com.liferay.calendar.model.Calendar addCalendar(
+	public Calendar addCalendar(
 			long userId, long groupId, long calendarResourceId,
 			java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
@@ -72,7 +77,7 @@ public class CalendarLocalServiceWrapper
 	 * @return the new calendar
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar createCalendar(long calendarId) {
+	public Calendar createCalendar(long calendarId) {
 		return _calendarLocalService.createCalendar(calendarId);
 	}
 
@@ -99,8 +104,7 @@ public class CalendarLocalServiceWrapper
 	 * @throws PortalException
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar deleteCalendar(
-			com.liferay.calendar.model.Calendar calendar)
+	public Calendar deleteCalendar(Calendar calendar)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarLocalService.deleteCalendar(calendar);
@@ -118,7 +122,7 @@ public class CalendarLocalServiceWrapper
 	 * @throws PortalException if a calendar with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar deleteCalendar(long calendarId)
+	public Calendar deleteCalendar(long calendarId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarLocalService.deleteCalendar(calendarId);
@@ -138,6 +142,13 @@ public class CalendarLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _calendarLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _calendarLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -238,7 +249,7 @@ public class CalendarLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.calendar.model.Calendar fetchCalendar(long calendarId) {
+	public Calendar fetchCalendar(long calendarId) {
 		return _calendarLocalService.fetchCalendar(calendarId);
 	}
 
@@ -250,15 +261,13 @@ public class CalendarLocalServiceWrapper
 	 * @return the matching calendar, or <code>null</code> if a matching calendar could not be found
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar fetchCalendarByUuidAndGroupId(
-		String uuid, long groupId) {
-
+	public Calendar fetchCalendarByUuidAndGroupId(String uuid, long groupId) {
 		return _calendarLocalService.fetchCalendarByUuidAndGroupId(
 			uuid, groupId);
 	}
 
 	@Override
-	public com.liferay.calendar.model.Calendar fetchGroupCalendar(
+	public Calendar fetchGroupCalendar(
 		long companyId, long groupId, String name) {
 
 		return _calendarLocalService.fetchGroupCalendar(
@@ -280,7 +289,7 @@ public class CalendarLocalServiceWrapper
 	 * @throws PortalException if a calendar with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar getCalendar(long calendarId)
+	public Calendar getCalendar(long calendarId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarLocalService.getCalendar(calendarId);
@@ -295,25 +304,23 @@ public class CalendarLocalServiceWrapper
 	 * @throws PortalException if a matching calendar could not be found
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar getCalendarByUuidAndGroupId(
-			String uuid, long groupId)
+	public Calendar getCalendarByUuidAndGroupId(String uuid, long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarLocalService.getCalendarByUuidAndGroupId(uuid, groupId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.calendar.model.Calendar>
-		getCalendarResourceCalendars(long groupId, long calendarResourceId) {
+	public java.util.List<Calendar> getCalendarResourceCalendars(
+		long groupId, long calendarResourceId) {
 
 		return _calendarLocalService.getCalendarResourceCalendars(
 			groupId, calendarResourceId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.calendar.model.Calendar>
-		getCalendarResourceCalendars(
-			long groupId, long calendarResourceId, boolean defaultCalendar) {
+	public java.util.List<Calendar> getCalendarResourceCalendars(
+		long groupId, long calendarResourceId, boolean defaultCalendar) {
 
 		return _calendarLocalService.getCalendarResourceCalendars(
 			groupId, calendarResourceId, defaultCalendar);
@@ -331,9 +338,7 @@ public class CalendarLocalServiceWrapper
 	 * @return the range of calendars
 	 */
 	@Override
-	public java.util.List<com.liferay.calendar.model.Calendar> getCalendars(
-		int start, int end) {
-
+	public java.util.List<Calendar> getCalendars(int start, int end) {
 		return _calendarLocalService.getCalendars(start, end);
 	}
 
@@ -345,8 +350,8 @@ public class CalendarLocalServiceWrapper
 	 * @return the matching calendars, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List<com.liferay.calendar.model.Calendar>
-		getCalendarsByUuidAndCompanyId(String uuid, long companyId) {
+	public java.util.List<Calendar> getCalendarsByUuidAndCompanyId(
+		String uuid, long companyId) {
 
 		return _calendarLocalService.getCalendarsByUuidAndCompanyId(
 			uuid, companyId);
@@ -363,11 +368,10 @@ public class CalendarLocalServiceWrapper
 	 * @return the range of matching calendars, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List<com.liferay.calendar.model.Calendar>
-		getCalendarsByUuidAndCompanyId(
-			String uuid, long companyId, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.calendar.model.Calendar> orderByComparator) {
+	public java.util.List<Calendar> getCalendarsByUuidAndCompanyId(
+		String uuid, long companyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<Calendar>
+			orderByComparator) {
 
 		return _calendarLocalService.getCalendarsByUuidAndCompanyId(
 			uuid, companyId, start, end, orderByComparator);
@@ -422,8 +426,7 @@ public class CalendarLocalServiceWrapper
 	}
 
 	@Override
-	public boolean hasStagingCalendar(
-			com.liferay.calendar.model.Calendar calendar)
+	public boolean hasStagingCalendar(Calendar calendar)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarLocalService.hasStagingCalendar(calendar);
@@ -437,18 +440,16 @@ public class CalendarLocalServiceWrapper
 	}
 
 	@Override
-	public boolean isStagingCalendar(
-		com.liferay.calendar.model.Calendar calendar) {
-
+	public boolean isStagingCalendar(Calendar calendar) {
 		return _calendarLocalService.isStagingCalendar(calendar);
 	}
 
 	@Override
-	public java.util.List<com.liferay.calendar.model.Calendar> search(
+	public java.util.List<Calendar> search(
 		long companyId, long[] groupIds, long[] calendarResourceIds,
 		String keywords, boolean andOperator, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.calendar.model.Calendar> orderByComparator) {
+		com.liferay.portal.kernel.util.OrderByComparator<Calendar>
+			orderByComparator) {
 
 		return _calendarLocalService.search(
 			companyId, groupIds, calendarResourceIds, keywords, andOperator,
@@ -456,12 +457,12 @@ public class CalendarLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.calendar.model.Calendar> search(
+	public java.util.List<Calendar> search(
 		long companyId, long[] groupIds, long[] calendarResourceIds,
 		String name, String description, boolean andOperator, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.calendar.model.Calendar> orderByComparator) {
+		com.liferay.portal.kernel.util.OrderByComparator<Calendar>
+			orderByComparator) {
 
 		return _calendarLocalService.search(
 			companyId, groupIds, calendarResourceIds, name, description,
@@ -498,9 +499,7 @@ public class CalendarLocalServiceWrapper
 	 * @return the calendar that was updated
 	 */
 	@Override
-	public com.liferay.calendar.model.Calendar updateCalendar(
-		com.liferay.calendar.model.Calendar calendar) {
-
+	public Calendar updateCalendar(Calendar calendar) {
 		return _calendarLocalService.updateCalendar(calendar);
 	}
 
@@ -512,7 +511,7 @@ public class CalendarLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.calendar.model.Calendar updateCalendar(
+	public Calendar updateCalendar(
 			long calendarId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, int color,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -523,7 +522,7 @@ public class CalendarLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.calendar.model.Calendar updateCalendar(
+	public Calendar updateCalendar(
 			long calendarId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
 			String timeZoneId, int color, boolean defaultCalendar,
@@ -537,13 +536,32 @@ public class CalendarLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.calendar.model.Calendar updateColor(
+	public Calendar updateColor(
 			long calendarId, int color,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarLocalService.updateColor(
 			calendarId, color, serviceContext);
+	}
+
+	@Override
+	public CTPersistence<Calendar> getCTPersistence() {
+		return _calendarLocalService.getCTPersistence();
+	}
+
+	@Override
+	public Class<Calendar> getModelClass() {
+		return _calendarLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<Calendar>, R, E> updateUnsafeFunction)
+		throws E {
+
+		return _calendarLocalService.updateWithUnsafeFunction(
+			updateUnsafeFunction);
 	}
 
 	@Override

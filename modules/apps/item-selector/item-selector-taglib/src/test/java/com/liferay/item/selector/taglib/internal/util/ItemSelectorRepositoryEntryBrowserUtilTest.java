@@ -76,35 +76,33 @@ public class ItemSelectorRepositoryEntryBrowserUtilTest extends PowerMockito {
 
 	@Test
 	public void testGetValueWithoutResolver() throws Exception {
-		initMocks();
+		_initMocks();
 
 		FileEntry fileEntry = mock(FileEntry.class);
 		ThemeDisplay themeDisplay = mock(ThemeDisplay.class);
 
-		String value = ItemSelectorRepositoryEntryBrowserUtil.getValue(
-			null, new FileEntryItemSelectorReturnType(), fileEntry,
-			themeDisplay);
-
 		Assert.assertEquals(
-			"ItemSelectorRepositoryEntryBrowserReturnTypeUtilValue", value);
+			"ItemSelectorRepositoryEntryBrowserReturnTypeUtilValue",
+			ItemSelectorRepositoryEntryBrowserUtil.getValue(
+				null, new FileEntryItemSelectorReturnType(), fileEntry,
+				themeDisplay));
 	}
 
 	@Test
 	public void testGetValueWithResolver() throws Exception {
-		initMocks();
+		_initMocks();
 
 		FileEntry fileEntry = mock(FileEntry.class);
 		ThemeDisplay themeDisplay = mock(ThemeDisplay.class);
 
-		String value = ItemSelectorRepositoryEntryBrowserUtil.getValue(
-			new TestFileEntryItemSelectorReturnTypeResolver(),
-			new TestItemSelectorReturnType(), fileEntry, themeDisplay);
-
 		Assert.assertEquals(
-			"TestFileEntryItemSelectorReturnTypeResolverValue", value);
+			"TestFileEntryItemSelectorReturnTypeResolverValue",
+			ItemSelectorRepositoryEntryBrowserUtil.getValue(
+				new TestFileEntryItemSelectorReturnTypeResolver(),
+				new TestItemSelectorReturnType(), fileEntry, themeDisplay));
 	}
 
-	protected void initMocks() throws Exception {
+	private void _initMocks() throws Exception {
 		mockStatic(ItemSelectorRepositoryEntryBrowserReturnTypeUtil.class);
 
 		when(

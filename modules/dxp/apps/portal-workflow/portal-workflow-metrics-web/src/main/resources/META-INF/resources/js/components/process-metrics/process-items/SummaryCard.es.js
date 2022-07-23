@@ -60,11 +60,11 @@ const SummaryCard = ({
 		<ChildLink
 			className={`${
 				disabled ? 'disabled' : ''
-			} process-dashboard-summary-card`}
+			} process-tabs-summary-card`}
 			onMouseOut={() => setHovered(false)}
 			onMouseOver={() => setHovered(true)}
 			query={{filters: filterParams}}
-			to={`/instance/${processId}/${defaultDelta}/1`}
+			to={`/instance/${processId}/${defaultDelta}/1/dateOverdue:asc`}
 		>
 			<div>
 				<div className="header">

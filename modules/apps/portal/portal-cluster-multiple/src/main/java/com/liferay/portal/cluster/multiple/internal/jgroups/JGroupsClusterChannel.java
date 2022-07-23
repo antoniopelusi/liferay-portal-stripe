@@ -97,19 +97,15 @@ public class JGroupsClusterChannel extends BaseClusterChannel {
 			_localAddress = new AddressImpl(_jChannel.getAddress());
 
 			if (_log.isInfoEnabled()) {
-				StringBundler sb = new StringBundler(7);
-
-				sb.append("Create a new JGroups channel {channelName: ");
-				sb.append(_clusterName);
-				sb.append(", localAddress: ");
-				sb.append(_localAddress.getDescription());
-				sb.append(", properties: ");
-				sb.append(
-					_getJChannelProperties(
-						clusterExecutorConfiguration.excludedPropertyKeys()));
-				sb.append("}");
-
-				_log.info(sb.toString());
+				_log.info(
+					StringBundler.concat(
+						"Create a new JGroups channel {channelName: ",
+						_clusterName, ", localAddress: ",
+						_localAddress.getDescription(), ", properties: ",
+						_getJChannelProperties(
+							clusterExecutorConfiguration.
+								excludedPropertyKeys()),
+						"}"));
 			}
 		}
 		catch (Exception exception) {

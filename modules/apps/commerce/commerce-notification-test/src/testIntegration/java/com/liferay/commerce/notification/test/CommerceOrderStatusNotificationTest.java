@@ -42,14 +42,12 @@ import com.liferay.commerce.service.CommerceShipmentLocalService;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
+import com.liferay.portal.kernel.test.rule.Sync;
+import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -76,8 +74,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
+@Sync
 public class CommerceOrderStatusNotificationTest {
 
 	@ClassRule
@@ -85,22 +83,20 @@ public class CommerceOrderStatusNotificationTest {
 	public static final AggregateTestRule aggregateTestRule =
 		new AggregateTestRule(
 			new LiferayIntegrationTestRule(),
-			PermissionCheckerMethodTestRule.INSTANCE);
+			PermissionCheckerMethodTestRule.INSTANCE,
+			SynchronousDestinationTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
 			_group.getCompanyId());
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
-			_company.getCompanyId(), _group.getGroupId(), _user.getUserId());
+			_group.getCompanyId(), _group.getGroupId(), _user.getUserId());
 
 		_commerceChannel = CommerceTestUtil.addCommerceChannel(
 			_group.getGroupId(), _commerceCurrency.getCode());
@@ -156,12 +152,11 @@ public class CommerceOrderStatusNotificationTest {
 			CommerceOrderConstants.ORDER_STATUS_PENDING,
 			_commerceOrder.getOrderStatus());
 
-		int commerceNotificationQueueEntriesCount =
+		Assert.assertEquals(
+			1,
 			_commerceNotificationQueueEntryLocalService.
 				getCommerceNotificationQueueEntriesCount(
-					_commerceChannel.getGroupId());
-
-		Assert.assertEquals(1, commerceNotificationQueueEntriesCount);
+					_commerceChannel.getGroupId()));
 
 		_checkCommerceNotificationTemplate(
 			CommerceOrderConstants.ORDER_NOTIFICATION_PLACED);
@@ -173,7 +168,7 @@ public class CommerceOrderStatusNotificationTest {
 			_user.getUserId(), _commerceChannel.getGroupId(),
 			_commerceCurrency.getCommerceCurrencyId());
 
-		CommerceTestUtil.addCheckoutDetailsToUserOrder(
+		_commerceOrder = CommerceTestUtil.addCheckoutDetailsToCommerceOrder(
 			_commerceOrder, _user.getUserId(), false);
 
 		_commerceOrder = _commerceOrderEngine.checkoutCommerceOrder(
@@ -189,7 +184,7 @@ public class CommerceOrderStatusNotificationTest {
 		_checkCommerceNotificationTemplate(
 			CommerceOrderConstants.ORDER_NOTIFICATION_PLACED);
 
-		_commerceOrderEngine.transitionCommerceOrder(
+		_commerceOrder = _commerceOrderEngine.transitionCommerceOrder(
 			_commerceOrder, CommerceOrderConstants.ORDER_STATUS_PROCESSING,
 			_user.getUserId());
 
@@ -220,40 +215,38 @@ public class CommerceOrderStatusNotificationTest {
 				commerceInventoryWarehouses.get(0);
 
 			_commerceShipmentItemLocalService.addCommerceShipmentItem(
-				commerceShipment.getCommerceShipmentId(),
+				null, commerceShipment.getCommerceShipmentId(),
 				commerceOrderItem.getCommerceOrderItemId(),
 				commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-				commerceOrderItem.getQuantity(), _serviceContext);
+				commerceOrderItem.getQuantity(), true, _serviceContext);
 		}
 
 		_commerceShipmentLocalService.updateStatus(
 			commerceShipment.getCommerceShipmentId(),
 			CommerceShipmentConstants.SHIPMENT_STATUS_SHIPPED);
 
-		_commerceOrderEngine.transitionCommerceOrder(
-			_commerceOrder, CommerceOrderConstants.ORDER_STATUS_SHIPPED,
-			_user.getUserId());
-
 		commerceNotificationQueueEntriesCount =
 			_commerceNotificationQueueEntryLocalService.
 				getCommerceNotificationQueueEntriesCount(
 					_commerceChannel.getGroupId());
 
-		Assert.assertEquals(4, commerceNotificationQueueEntriesCount);
+		Assert.assertEquals(3, commerceNotificationQueueEntriesCount);
 
 		_checkCommerceNotificationTemplate(
 			CommerceOrderConstants.ORDER_NOTIFICATION_SHIPPED);
 
-		_commerceOrderEngine.transitionCommerceOrder(
+		_commerceOrder = _commerceOrderLocalService.getCommerceOrder(
+			_commerceOrder.getCommerceOrderId());
+
+		_commerceOrder = _commerceOrderEngine.transitionCommerceOrder(
 			_commerceOrder, CommerceOrderConstants.ORDER_STATUS_COMPLETED,
 			_user.getUserId());
 
-		commerceNotificationQueueEntriesCount =
+		Assert.assertEquals(
+			4,
 			_commerceNotificationQueueEntryLocalService.
 				getCommerceNotificationQueueEntriesCount(
-					_commerceChannel.getGroupId());
-
-		Assert.assertEquals(5, commerceNotificationQueueEntriesCount);
+					_commerceChannel.getGroupId()));
 
 		_checkCommerceNotificationTemplate(
 			CommerceOrderConstants.ORDER_NOTIFICATION_COMPLETED);
@@ -313,13 +306,10 @@ public class CommerceOrderStatusNotificationTest {
 		CommerceOrderConstants.ORDER_NOTIFICATION_COMPLETED
 	};
 
-	@DeleteAfterTestRun
+	private static User _user;
+
 	private CommerceAccount _commerceAccount;
-
-	@DeleteAfterTestRun
 	private CommerceChannel _commerceChannel;
-
-	@DeleteAfterTestRun
 	private CommerceCurrency _commerceCurrency;
 
 	@Inject
@@ -337,7 +327,6 @@ public class CommerceOrderStatusNotificationTest {
 	private CommerceNotificationTemplateLocalService
 		_commerceNotificationTemplateLocalService;
 
-	@DeleteAfterTestRun
 	private CommerceOrder _commerceOrder;
 
 	@Inject
@@ -355,13 +344,7 @@ public class CommerceOrderStatusNotificationTest {
 	@Inject
 	private CommerceShipmentLocalService _commerceShipmentLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private Group _group;
 	private ServiceContext _serviceContext;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

@@ -52,6 +52,15 @@ public class UserGroupServiceUtil {
 		getService().addGroupUserGroups(groupId, userGroupIds);
 	}
 
+	public static UserGroup addOrUpdateUserGroup(
+			String externalReferenceCode, String name, String description,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateUserGroup(
+			externalReferenceCode, name, description, serviceContext);
+	}
+
 	/**
 	 * Adds the user groups to the team
 	 *
@@ -107,6 +116,14 @@ public class UserGroupServiceUtil {
 		throws PortalException {
 
 		return getService().fetchUserGroup(userGroupId);
+	}
+
+	public static UserGroup fetchUserGroupByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().fetchUserGroupByExternalReferenceCode(
+			companyId, externalReferenceCode);
 	}
 
 	public static List<UserGroup> getGtUserGroups(
@@ -316,6 +333,14 @@ public class UserGroupServiceUtil {
 		throws PortalException {
 
 		getService().unsetTeamUserGroups(teamId, userGroupIds);
+	}
+
+	public static UserGroup updateExternalReferenceCode(
+			UserGroup userGroup, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().updateExternalReferenceCode(
+			userGroup, externalReferenceCode);
 	}
 
 	/**

@@ -96,7 +96,7 @@ public class CommercePriceListEntriesScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -121,12 +121,12 @@ public class CommercePriceListEntriesScreenNavigationCategory
 				commercePriceEntryDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		_jspRenderer.renderJSP(
 			_setServletContext, httpServletRequest, httpServletResponse,
-			"/price_lists/price_entries.jsp");
+			"/commerce_price_lists/price_entries.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

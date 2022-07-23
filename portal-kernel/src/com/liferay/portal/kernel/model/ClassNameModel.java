@@ -110,4 +110,7 @@ public interface ClassNameModel
 	 */
 	public void setValue(String value);
 
+	@Override
+	public ClassName cloneWithOriginalValues();
+
 }

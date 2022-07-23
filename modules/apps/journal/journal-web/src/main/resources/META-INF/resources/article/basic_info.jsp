@@ -36,6 +36,40 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 	</div>
 </c:if>
 
+<c:if test="<%= journalEditArticleDisplayContext.isShowSelectFolder() %>">
+	<p class="article-folder"><b><liferay-ui:message key="folder" /></b></p>
+
+	<div class="form-group input-group mb-2">
+		<div class="input-group-item">
+			<input class="field form-control lfr-input-text" id="<portlet:namespace />folderName" readonly="readonly" title="<%= LanguageUtil.get(request, "folder-name") %>" type="text" value="<%= journalEditArticleDisplayContext.getFolderName() %>" />
+		</div>
+	</div>
+
+	<div class="form-group">
+		<aui:button name="selectFolderButton" value="select" />
+	</div>
+
+	<liferay-frontend:component
+		context='<%=
+			HashMapBuilder.<String, Object>put(
+				"inputName", "folderId"
+			).put(
+				"selectFolderURL",
+				PortletURLBuilder.createRenderURL(
+					liferayPortletResponse
+				).setMVCPath(
+					"/select_folder.jsp"
+				).setParameter(
+					"folderId", journalEditArticleDisplayContext.getFolderId()
+				).setWindowState(
+					LiferayWindowState.POP_UP
+				).buildString()
+			).build()
+		%>'
+		module="js/SelectFolderButton.es"
+	/>
+</c:if>
+
 <p class="article-structure">
 	<b><liferay-ui:message key="structure" /></b>: <%= HtmlUtil.escape(ddmStructure.getName(locale)) %>
 </p>
@@ -87,7 +121,7 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 </c:choose>
 
 <div>
-	<label for="<portlet:namespace />descriptionMapAsXML"><liferay-ui:message key="summary" /></label>
+	<label for="<portlet:namespace />descriptionMapAsXML"><liferay-ui:message key="description" /></label>
 
 	<liferay-ui:input-localized
 		availableLocales="<%= journalEditArticleDisplayContext.getAvailableLocales() %>"

@@ -15,7 +15,6 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -29,7 +28,6 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchPasswordPolicyException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.PasswordPolicy;
 import com.liferay.portal.kernel.model.PasswordPolicyTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -37,8 +35,12 @@ import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.PasswordPolicyPersistence;
+import com.liferay.portal.kernel.service.persistence.PasswordPolicyUtil;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -46,12 +48,10 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.model.impl.PasswordPolicyImpl;
 import com.liferay.portal.model.impl.PasswordPolicyModelImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the password policy service.
@@ -3479,6 +3478,8 @@ public class PasswordPolicyPersistenceImpl
 			passwordPolicy);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the password policies in the entity cache if it is enabled.
 	 *
@@ -3486,6 +3487,14 @@ public class PasswordPolicyPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<PasswordPolicy> passwordPolicies) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (passwordPolicies.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (PasswordPolicy passwordPolicy : passwordPolicies) {
 			if (EntityCacheUtil.getResult(
 					PasswordPolicyImpl.class, passwordPolicy.getPrimaryKey()) ==
@@ -3703,24 +3712,25 @@ public class PasswordPolicyPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (passwordPolicy.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				passwordPolicy.setCreateDate(now);
+				passwordPolicy.setCreateDate(date);
 			}
 			else {
-				passwordPolicy.setCreateDate(serviceContext.getCreateDate(now));
+				passwordPolicy.setCreateDate(
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!passwordPolicyModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				passwordPolicy.setModifiedDate(now);
+				passwordPolicy.setModifiedDate(date);
 			}
 			else {
 				passwordPolicy.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4016,11 +4026,8 @@ public class PasswordPolicyPersistenceImpl
 	 * Initializes the password policy persistence.
 	 */
 	public void afterPropertiesSet() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_argumentsResolverServiceRegistration = registry.registerService(
-			ArgumentsResolver.class,
-			new PasswordPolicyModelArgumentsResolver());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4108,12 +4115,30 @@ public class PasswordPolicyPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_N",
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"companyId", "name"}, false);
+
+		_setPasswordPolicyUtilPersistence(this);
 	}
 
 	public void destroy() {
-		EntityCacheUtil.removeCache(PasswordPolicyImpl.class.getName());
+		_setPasswordPolicyUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		EntityCacheUtil.removeCache(PasswordPolicyImpl.class.getName());
+	}
+
+	private void _setPasswordPolicyUtilPersistence(
+		PasswordPolicyPersistence passwordPolicyPersistence) {
+
+		try {
+			Field field = PasswordPolicyUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, passwordPolicyPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	private static final String _SQL_SELECT_PASSWORDPOLICY =
@@ -4168,98 +4193,6 @@ public class PasswordPolicyPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class PasswordPolicyModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			PasswordPolicyModelImpl passwordPolicyModelImpl =
-				(PasswordPolicyModelImpl)baseModel;
-
-			long columnBitmask = passwordPolicyModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					passwordPolicyModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						passwordPolicyModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					passwordPolicyModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return PasswordPolicyImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return PasswordPolicyTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			PasswordPolicyModelImpl passwordPolicyModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						passwordPolicyModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = passwordPolicyModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
 	}
 
 }

@@ -18,12 +18,20 @@ import com.liferay.headless.admin.user.dto.v1_0.UserAccount;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Generated;
 
@@ -51,6 +59,72 @@ public interface UserAccountResource {
 		return FactoryHolder.factory.create();
 	}
 
+	public void
+			deleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCode(
+				String accountExternalReferenceCode,
+				String userAccountExternalReferenceCode)
+		throws Exception;
+
+	public void
+			postAccountByExternalReferenceCodeUserAccountByExternalReferenceCode(
+				String accountExternalReferenceCode,
+				String userAccountExternalReferenceCode)
+		throws Exception;
+
+	public Page<UserAccount> getAccountUserAccountsByExternalReferenceCodePage(
+			String externalReferenceCode, String search, Filter filter,
+			Pagination pagination, Sort[] sorts)
+		throws Exception;
+
+	public UserAccount postAccountUserAccountByExternalReferenceCode(
+			String externalReferenceCode, UserAccount userAccount)
+		throws Exception;
+
+	public void deleteAccountUserAccountsByExternalReferenceCodeByEmailAddress(
+			String externalReferenceCode, String[] strings)
+		throws Exception;
+
+	public void postAccountUserAccountsByExternalReferenceCodeByEmailAddress(
+			String externalReferenceCode, String[] strings)
+		throws Exception;
+
+	public void deleteAccountUserAccountByExternalReferenceCodeByEmailAddress(
+			String externalReferenceCode, String emailAddress)
+		throws Exception;
+
+	public void postAccountUserAccountByExternalReferenceCodeByEmailAddress(
+			String externalReferenceCode, String emailAddress)
+		throws Exception;
+
+	public Page<UserAccount> getAccountUserAccountsPage(
+			Long accountId, String search, Filter filter, Pagination pagination,
+			Sort[] sorts)
+		throws Exception;
+
+	public UserAccount postAccountUserAccount(
+			Long accountId, UserAccount userAccount)
+		throws Exception;
+
+	public Response postAccountUserAccountBatch(
+			Long accountId, String callbackURL, Object object)
+		throws Exception;
+
+	public void deleteAccountUserAccountsByEmailAddress(
+			Long accountId, String[] strings)
+		throws Exception;
+
+	public Page<UserAccount> postAccountUserAccountsByEmailAddress(
+			Long accountId, String accountRoleIds, String[] strings)
+		throws Exception;
+
+	public void deleteAccountUserAccountByEmailAddress(
+			Long accountId, String emailAddress)
+		throws Exception;
+
+	public UserAccount postAccountUserAccountByEmailAddress(
+			Long accountId, String emailAddress)
+		throws Exception;
+
 	public UserAccount getMyUserAccount() throws Exception;
 
 	public Page<UserAccount> getOrganizationUserAccountsPage(
@@ -71,6 +145,18 @@ public interface UserAccountResource {
 		throws Exception;
 
 	public Response postUserAccountBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public void deleteUserAccountByExternalReferenceCode(
+			String externalReferenceCode)
+		throws Exception;
+
+	public UserAccount getUserAccountByExternalReferenceCode(
+			String externalReferenceCode)
+		throws Exception;
+
+	public UserAccount putUserAccountByExternalReferenceCode(
+			String externalReferenceCode, UserAccount userAccount)
 		throws Exception;
 
 	public void deleteUserAccount(Long userAccountId) throws Exception;
@@ -112,9 +198,36 @@ public interface UserAccountResource {
 	public void setContextUser(
 		com.liferay.portal.kernel.model.User contextUser);
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert);
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider);
+
 	public void setGroupLocalService(GroupLocalService groupLocalService);
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService);
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService);
+
 	public void setRoleLocalService(RoleLocalService roleLocalService);
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource);
+
+	public default Filter toFilter(String filterString) {
+		return toFilter(
+			filterString, Collections.<String, List<String>>emptyMap());
+	}
+
+	public default Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		return null;
+	}
 
 	public static class FactoryHolder {
 
@@ -131,6 +244,9 @@ public interface UserAccountResource {
 
 		public Builder httpServletRequest(
 			HttpServletRequest httpServletRequest);
+
+		public Builder httpServletResponse(
+			HttpServletResponse httpServletResponse);
 
 		public Builder preferredLocale(Locale preferredLocale);
 

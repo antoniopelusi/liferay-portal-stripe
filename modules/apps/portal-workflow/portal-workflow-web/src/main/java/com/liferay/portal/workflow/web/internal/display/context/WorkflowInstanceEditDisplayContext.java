@@ -94,14 +94,14 @@ public class WorkflowInstanceEditDisplayContext
 	}
 
 	public AssetRenderer<?> getAssetRenderer() throws PortalException {
-		WorkflowHandler<?> workflowHandler = _getWorkflowHandler();
+		WorkflowHandler<?> workflowHandler = getWorkflowHandler();
 
 		return workflowHandler.getAssetRenderer(
 			_getWorkflowContextEntryClassPK());
 	}
 
 	public AssetRendererFactory<?> getAssetRendererFactory() {
-		WorkflowHandler<?> workflowHandler = _getWorkflowHandler();
+		WorkflowHandler<?> workflowHandler = getWorkflowHandler();
 
 		return workflowHandler.getAssetRendererFactory();
 	}
@@ -136,7 +136,7 @@ public class WorkflowInstanceEditDisplayContext
 	}
 
 	public String getIconCssClass() {
-		WorkflowHandler<?> workflowHandler = _getWorkflowHandler();
+		WorkflowHandler<?> workflowHandler = getWorkflowHandler();
 
 		return workflowHandler.getIconCssClass();
 	}
@@ -163,6 +163,10 @@ public class WorkflowInstanceEditDisplayContext
 				String.valueOf(workflowLog.getPreviousUserId())));
 	}
 
+	public String getStatus() {
+		return getStatus(_getWorkflowInstance());
+	}
+
 	public String getTaskCompleted(WorkflowTask workflowTask) {
 		if (workflowTask.isCompleted()) {
 			return LanguageUtil.get(
@@ -187,7 +191,7 @@ public class WorkflowInstanceEditDisplayContext
 	}
 
 	public String getTaskContentTitleMessage() {
-		WorkflowHandler<?> workflowHandler = _getWorkflowHandler();
+		WorkflowHandler<?> workflowHandler = getWorkflowHandler();
 
 		long classPK = _getWorkflowContextEntryClassPK();
 
@@ -249,6 +253,12 @@ public class WorkflowInstanceEditDisplayContext
 		return HtmlUtil.escape(user.getFullName());
 	}
 
+	public WorkflowHandler<?> getWorkflowHandler() {
+		String className = _getWorkflowContextEntryClassName();
+
+		return WorkflowHandlerRegistryUtil.getWorkflowHandler(className);
+	}
+
 	public String getWorkflowInstanceEndDate() {
 		WorkflowInstance workflowInstance = _getWorkflowInstance();
 
@@ -258,14 +268,6 @@ public class WorkflowInstanceEditDisplayContext
 		}
 
 		return dateFormatDateTime.format(workflowInstance.getEndDate());
-	}
-
-	public String getWorkflowInstanceState() {
-		WorkflowInstance workflowInstance = _getWorkflowInstance();
-
-		return LanguageUtil.get(
-			workflowInstanceRequestHelper.getRequest(),
-			workflowInstance.getState());
 	}
 
 	public String getWorkflowLogComment(WorkflowLog workflowLog) {
@@ -413,12 +415,6 @@ public class WorkflowInstanceEditDisplayContext
 			workflowDefinition.getTitle(
 				LanguageUtil.getLanguageId(
 					workflowInstanceRequestHelper.getRequest())));
-	}
-
-	private WorkflowHandler<?> _getWorkflowHandler() {
-		String className = _getWorkflowContextEntryClassName();
-
-		return WorkflowHandlerRegistryUtil.getWorkflowHandler(className);
 	}
 
 	private WorkflowInstance _getWorkflowInstance() {

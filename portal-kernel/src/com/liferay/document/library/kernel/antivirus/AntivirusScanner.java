@@ -15,10 +15,15 @@
 package com.liferay.document.library.kernel.antivirus;
 
 import java.io.File;
+import java.io.InputStream;
+
+import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * @author Michael C. Han
+ * @author Raymond Augé
  */
+@ProviderType
 public interface AntivirusScanner {
 
 	public boolean isActive();
@@ -26,5 +31,7 @@ public interface AntivirusScanner {
 	public void scan(byte[] bytes) throws AntivirusScannerException;
 
 	public void scan(File file) throws AntivirusScannerException;
+
+	public void scan(InputStream inputStream) throws AntivirusScannerException;
 
 }

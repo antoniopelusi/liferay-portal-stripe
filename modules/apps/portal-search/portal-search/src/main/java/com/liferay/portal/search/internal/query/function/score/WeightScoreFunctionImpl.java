@@ -23,7 +23,7 @@ import com.liferay.portal.search.query.function.score.WeightScoreFunction;
  * @author André de Oliveira
  */
 public class WeightScoreFunctionImpl
-	extends ScoreFunctionImpl implements WeightScoreFunction {
+	extends BaseScoreFunctionImpl implements WeightScoreFunction {
 
 	@Override
 	public <T> T accept(ScoreFunctionTranslator<T> scoreFunctionTranslator) {

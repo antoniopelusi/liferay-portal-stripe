@@ -35,7 +35,6 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.search.Sort;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -93,10 +92,6 @@ public class CommerceChannelHealthCheckClayTable
 
 		return DropdownItemListBuilder.add(
 			dropdownItem -> {
-				String redirect = ParamUtil.getString(
-					httpServletRequest, "currentUrl",
-					_portal.getCurrentURL(httpServletRequest));
-
 				PortletURL portletURL = PortletURLBuilder.create(
 					_portal.getControlPanelPortletURL(
 						httpServletRequest, CPPortletKeys.COMMERCE_CHANNELS,
@@ -104,7 +99,9 @@ public class CommerceChannelHealthCheckClayTable
 				).setActionName(
 					"/commerce_channels/edit_commerce_channel_health_status"
 				).setRedirect(
-					redirect
+					ParamUtil.getString(
+						httpServletRequest, "currentUrl",
+						_portal.getCurrentURL(httpServletRequest))
 				).setParameter(
 					"commerceChannelHealthStatusKey",
 					() -> {
@@ -112,7 +109,7 @@ public class CommerceChannelHealthCheckClayTable
 
 						return healthCheck.getKey();
 					}
-				).build();
+				).buildPortletURL();
 
 				long commerceChannelId = ParamUtil.getLong(
 					httpServletRequest, "commerceChannelId");
@@ -163,12 +160,10 @@ public class CommerceChannelHealthCheckClayTable
 			healthChecks.add(
 				new HealthCheck(
 					commerceChannelHealthStatus.getKey(),
-					HtmlUtil.escape(
-						commerceChannelHealthStatus.getName(
-							_portal.getLocale(httpServletRequest))),
-					HtmlUtil.escape(
-						commerceChannelHealthStatus.getDescription(
-							_portal.getLocale(httpServletRequest)))));
+					commerceChannelHealthStatus.getName(
+						_portal.getLocale(httpServletRequest)),
+					commerceChannelHealthStatus.getDescription(
+						_portal.getLocale(httpServletRequest))));
 		}
 
 		return healthChecks;

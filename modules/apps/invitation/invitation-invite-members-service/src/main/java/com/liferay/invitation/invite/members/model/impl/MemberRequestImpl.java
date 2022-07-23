@@ -18,8 +18,4 @@ package com.liferay.invitation.invite.members.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class MemberRequestImpl extends MemberRequestBaseImpl {
-
-	public MemberRequestImpl() {
-	}
-
 }

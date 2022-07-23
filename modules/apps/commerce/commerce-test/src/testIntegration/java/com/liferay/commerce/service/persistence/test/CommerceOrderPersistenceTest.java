@@ -126,6 +126,8 @@ public class CommerceOrderPersistenceTest {
 
 		CommerceOrder newCommerceOrder = _persistence.create(pk);
 
+		newCommerceOrder.setMvccVersion(RandomTestUtil.nextLong());
+
 		newCommerceOrder.setUuid(RandomTestUtil.randomString());
 
 		newCommerceOrder.setExternalReferenceCode(
@@ -147,6 +149,8 @@ public class CommerceOrderPersistenceTest {
 
 		newCommerceOrder.setCommerceCurrencyId(RandomTestUtil.nextLong());
 
+		newCommerceOrder.setCommerceOrderTypeId(RandomTestUtil.nextLong());
+
 		newCommerceOrder.setBillingAddressId(RandomTestUtil.nextLong());
 
 		newCommerceOrder.setShippingAddressId(RandomTestUtil.nextLong());
@@ -165,6 +169,24 @@ public class CommerceOrderPersistenceTest {
 		newCommerceOrder.setCouponCode(RandomTestUtil.randomString());
 
 		newCommerceOrder.setLastPriceUpdateDate(RandomTestUtil.nextDate());
+
+		newCommerceOrder.setDeliveryCommerceTermEntryId(
+			RandomTestUtil.nextLong());
+
+		newCommerceOrder.setDeliveryCommerceTermEntryDescription(
+			RandomTestUtil.randomString());
+
+		newCommerceOrder.setDeliveryCommerceTermEntryName(
+			RandomTestUtil.randomString());
+
+		newCommerceOrder.setPaymentCommerceTermEntryId(
+			RandomTestUtil.nextLong());
+
+		newCommerceOrder.setPaymentCommerceTermEntryDescription(
+			RandomTestUtil.randomString());
+
+		newCommerceOrder.setPaymentCommerceTermEntryName(
+			RandomTestUtil.randomString());
 
 		newCommerceOrder.setSubtotal(
 			new BigDecimal(RandomTestUtil.nextDouble()));
@@ -304,6 +326,9 @@ public class CommerceOrderPersistenceTest {
 			newCommerceOrder.getPrimaryKey());
 
 		Assert.assertEquals(
+			existingCommerceOrder.getMvccVersion(),
+			newCommerceOrder.getMvccVersion());
+		Assert.assertEquals(
 			existingCommerceOrder.getUuid(), newCommerceOrder.getUuid());
 		Assert.assertEquals(
 			existingCommerceOrder.getExternalReferenceCode(),
@@ -334,6 +359,9 @@ public class CommerceOrderPersistenceTest {
 			existingCommerceOrder.getCommerceCurrencyId(),
 			newCommerceOrder.getCommerceCurrencyId());
 		Assert.assertEquals(
+			existingCommerceOrder.getCommerceOrderTypeId(),
+			newCommerceOrder.getCommerceOrderTypeId());
+		Assert.assertEquals(
 			existingCommerceOrder.getBillingAddressId(),
 			newCommerceOrder.getBillingAddressId());
 		Assert.assertEquals(
@@ -361,6 +389,24 @@ public class CommerceOrderPersistenceTest {
 			Time.getShortTimestamp(
 				existingCommerceOrder.getLastPriceUpdateDate()),
 			Time.getShortTimestamp(newCommerceOrder.getLastPriceUpdateDate()));
+		Assert.assertEquals(
+			existingCommerceOrder.getDeliveryCommerceTermEntryId(),
+			newCommerceOrder.getDeliveryCommerceTermEntryId());
+		Assert.assertEquals(
+			existingCommerceOrder.getDeliveryCommerceTermEntryDescription(),
+			newCommerceOrder.getDeliveryCommerceTermEntryDescription());
+		Assert.assertEquals(
+			existingCommerceOrder.getDeliveryCommerceTermEntryName(),
+			newCommerceOrder.getDeliveryCommerceTermEntryName());
+		Assert.assertEquals(
+			existingCommerceOrder.getPaymentCommerceTermEntryId(),
+			newCommerceOrder.getPaymentCommerceTermEntryId());
+		Assert.assertEquals(
+			existingCommerceOrder.getPaymentCommerceTermEntryDescription(),
+			newCommerceOrder.getPaymentCommerceTermEntryDescription());
+		Assert.assertEquals(
+			existingCommerceOrder.getPaymentCommerceTermEntryName(),
+			newCommerceOrder.getPaymentCommerceTermEntryName());
 		Assert.assertEquals(
 			existingCommerceOrder.getSubtotal(),
 			newCommerceOrder.getSubtotal());
@@ -676,15 +722,18 @@ public class CommerceOrderPersistenceTest {
 
 	protected OrderByComparator<CommerceOrder> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"CommerceOrder", "uuid", true, "externalReferenceCode", true,
-			"commerceOrderId", true, "groupId", true, "companyId", true,
-			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "commerceAccountId", true,
-			"commerceCurrencyId", true, "billingAddressId", true,
-			"shippingAddressId", true, "commercePaymentMethodKey", true,
-			"commerceShippingMethodId", true, "shippingOptionName", true,
-			"purchaseOrderNumber", true, "couponCode", true,
-			"lastPriceUpdateDate", true, "subtotal", true,
+			"CommerceOrder", "mvccVersion", true, "uuid", true,
+			"externalReferenceCode", true, "commerceOrderId", true, "groupId",
+			true, "companyId", true, "userId", true, "userName", true,
+			"createDate", true, "modifiedDate", true, "commerceAccountId", true,
+			"commerceCurrencyId", true, "commerceOrderTypeId", true,
+			"billingAddressId", true, "shippingAddressId", true,
+			"commercePaymentMethodKey", true, "commerceShippingMethodId", true,
+			"shippingOptionName", true, "purchaseOrderNumber", true,
+			"couponCode", true, "lastPriceUpdateDate", true,
+			"deliveryCommerceTermEntryId", true,
+			"deliveryCommerceTermEntryName", true, "paymentCommerceTermEntryId",
+			true, "paymentCommerceTermEntryName", true, "subtotal", true,
 			"subtotalDiscountAmount", true, "subtotalDiscountPercentageLevel1",
 			true, "subtotalDiscountPercentageLevel2", true,
 			"subtotalDiscountPercentageLevel3", true,
@@ -1011,6 +1060,8 @@ public class CommerceOrderPersistenceTest {
 
 		CommerceOrder commerceOrder = _persistence.create(pk);
 
+		commerceOrder.setMvccVersion(RandomTestUtil.nextLong());
+
 		commerceOrder.setUuid(RandomTestUtil.randomString());
 
 		commerceOrder.setExternalReferenceCode(RandomTestUtil.randomString());
@@ -1031,6 +1082,8 @@ public class CommerceOrderPersistenceTest {
 
 		commerceOrder.setCommerceCurrencyId(RandomTestUtil.nextLong());
 
+		commerceOrder.setCommerceOrderTypeId(RandomTestUtil.nextLong());
+
 		commerceOrder.setBillingAddressId(RandomTestUtil.nextLong());
 
 		commerceOrder.setShippingAddressId(RandomTestUtil.nextLong());
@@ -1049,6 +1102,22 @@ public class CommerceOrderPersistenceTest {
 		commerceOrder.setCouponCode(RandomTestUtil.randomString());
 
 		commerceOrder.setLastPriceUpdateDate(RandomTestUtil.nextDate());
+
+		commerceOrder.setDeliveryCommerceTermEntryId(RandomTestUtil.nextLong());
+
+		commerceOrder.setDeliveryCommerceTermEntryDescription(
+			RandomTestUtil.randomString());
+
+		commerceOrder.setDeliveryCommerceTermEntryName(
+			RandomTestUtil.randomString());
+
+		commerceOrder.setPaymentCommerceTermEntryId(RandomTestUtil.nextLong());
+
+		commerceOrder.setPaymentCommerceTermEntryDescription(
+			RandomTestUtil.randomString());
+
+		commerceOrder.setPaymentCommerceTermEntryName(
+			RandomTestUtil.randomString());
 
 		commerceOrder.setSubtotal(new BigDecimal(RandomTestUtil.nextDouble()));
 

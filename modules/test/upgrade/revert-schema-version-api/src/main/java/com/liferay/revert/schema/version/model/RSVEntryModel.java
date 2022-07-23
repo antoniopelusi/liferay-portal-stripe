@@ -101,4 +101,7 @@ public interface RSVEntryModel
 	@Override
 	public void setCompanyId(long companyId);
 
+	@Override
+	public RSVEntry cloneWithOriginalValues();
+
 }

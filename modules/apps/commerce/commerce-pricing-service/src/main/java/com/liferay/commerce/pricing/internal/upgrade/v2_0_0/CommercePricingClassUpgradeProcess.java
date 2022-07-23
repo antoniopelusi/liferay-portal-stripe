@@ -14,14 +14,13 @@
 
 package com.liferay.commerce.pricing.internal.upgrade.v2_0_0;
 
-import com.liferay.commerce.pricing.internal.upgrade.base.BaseCommercePricingUpgradeProcess;
 import com.liferay.commerce.pricing.model.CommercePricingClass;
-import com.liferay.commerce.pricing.model.impl.CommercePricingClassImpl;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.service.permission.ModelPermissionsFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -31,8 +30,7 @@ import java.util.Arrays;
 /**
  * @author Riccardo Alberti
  */
-public class CommercePricingClassUpgradeProcess
-	extends BaseCommercePricingUpgradeProcess {
+public class CommercePricingClassUpgradeProcess extends UpgradeProcess {
 
 	public CommercePricingClassUpgradeProcess(
 		ResourceActionLocalService resourceActionLocalService,
@@ -59,16 +57,17 @@ public class CommercePricingClassUpgradeProcess
 				"CommercePricingClass";
 
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(selectCommercePricingClassSQL)) {
+			ResultSet resultSet = s.executeQuery(
+				selectCommercePricingClassSQL)) {
 
-			while (rs.next()) {
-				long companyId = rs.getLong("companyId");
+			while (resultSet.next()) {
+				long companyId = resultSet.getLong("companyId");
 
-				long groupId = rs.getLong("groupId");
+				long groupId = resultSet.getLong("groupId");
 
-				long userId = rs.getLong("userId");
+				long userId = resultSet.getLong("userId");
 
-				long commercePricingClassId = rs.getLong(
+				long commercePricingClassId = resultSet.getLong(
 					"commercePricingClassId");
 
 				_resourceLocalService.addModelResources(
@@ -78,7 +77,9 @@ public class CommercePricingClassUpgradeProcess
 			}
 		}
 
-		dropColumn(CommercePricingClassImpl.TABLE_NAME, "groupId");
+		if (hasColumn("CommercePricingClass", "groupId")) {
+			alterTableDropColumn("CommercePricingClass", "groupId");
+		}
 	}
 
 	private static final String[] _OWNER_PERMISSIONS = {

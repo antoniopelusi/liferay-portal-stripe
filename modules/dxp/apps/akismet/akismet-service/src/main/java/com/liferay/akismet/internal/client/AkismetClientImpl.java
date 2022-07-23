@@ -20,6 +20,7 @@ import com.liferay.akismet.internal.configuration.AkismetServiceConfiguration;
 import com.liferay.akismet.model.AkismetEntry;
 import com.liferay.akismet.service.AkismetEntryLocalService;
 import com.liferay.message.boards.model.MBMessage;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,7 +34,6 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -66,11 +66,7 @@ public class AkismetClientImpl implements AkismetClient {
 		String userAgent = headers.get(
 			StringUtil.toLowerCase(HttpHeaders.USER_AGENT));
 
-		if (Validator.isNull(userAgent)) {
-			return false;
-		}
-
-		if (Validator.isNull(userIP)) {
+		if (Validator.isNull(userAgent) || Validator.isNull(userIP)) {
 			return false;
 		}
 
@@ -82,15 +78,10 @@ public class AkismetClientImpl implements AkismetClient {
 			long userId, String content, AkismetEntry akismetEntry)
 		throws PortalException {
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(Http.HTTP_WITH_SLASH);
-		sb.append(_akismetServiceConfiguration.akismetApiKey());
-		sb.append(StringPool.PERIOD);
-		sb.append(AkismetConstants.URL_REST);
-		sb.append(AkismetConstants.PATH_CHECK_SPAM);
-
-		String location = sb.toString();
+		String location = StringBundler.concat(
+			Http.HTTP_WITH_SLASH, _akismetServiceConfiguration.akismetApiKey(),
+			StringPool.PERIOD, AkismetConstants.URL_REST,
+			AkismetConstants.PATH_CHECK_SPAM);
 
 		User user = _userLocalService.getUser(userId);
 
@@ -131,15 +122,10 @@ public class AkismetClientImpl implements AkismetClient {
 			_log.debug("Submitting message as ham: " + permalink);
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(Http.HTTP_WITH_SLASH);
-		sb.append(_akismetServiceConfiguration.akismetApiKey());
-		sb.append(StringPool.PERIOD);
-		sb.append(AkismetConstants.URL_REST);
-		sb.append(AkismetConstants.PATH_SUBMIT_HAM);
-
-		String location = sb.toString();
+		String location = StringBundler.concat(
+			Http.HTTP_WITH_SLASH, _akismetServiceConfiguration.akismetApiKey(),
+			StringPool.PERIOD, AkismetConstants.URL_REST,
+			AkismetConstants.PATH_SUBMIT_HAM);
 
 		String response = _sendRequest(
 			location, companyId, ipAddress, userAgent, referrer, permalink,
@@ -185,15 +171,10 @@ public class AkismetClientImpl implements AkismetClient {
 			_log.debug("Submitting message as spam: " + permalink);
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(Http.HTTP_WITH_SLASH);
-		sb.append(_akismetServiceConfiguration.akismetApiKey());
-		sb.append(StringPool.PERIOD);
-		sb.append(AkismetConstants.URL_REST);
-		sb.append(AkismetConstants.PATH_SUBMIT_SPAM);
-
-		String location = sb.toString();
+		String location = StringBundler.concat(
+			Http.HTTP_WITH_SLASH, _akismetServiceConfiguration.akismetApiKey(),
+			StringPool.PERIOD, AkismetConstants.URL_REST,
+			AkismetConstants.PATH_SUBMIT_SPAM);
 
 		String response = _sendRequest(
 			location, companyId, ipAddress, userAgent, referrer, permalink,
@@ -306,7 +287,7 @@ public class AkismetClientImpl implements AkismetClient {
 			return _http.URLtoString(options);
 		}
 		catch (IOException ioException) {
-			_log.error(ioException, ioException);
+			_log.error(ioException);
 		}
 
 		return StringPool.BLANK;

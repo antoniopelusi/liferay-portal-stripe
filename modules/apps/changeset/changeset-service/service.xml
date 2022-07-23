@@ -46,10 +46,6 @@
 			<finder-column name="companyId" />
 			<finder-column name="name" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="ChangesetEntry" remote-service="false" trash-enabled="false" uuid="false">
 

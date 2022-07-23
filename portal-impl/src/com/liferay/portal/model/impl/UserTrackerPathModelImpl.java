@@ -26,12 +26,13 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -217,34 +218,6 @@ public class UserTrackerPathModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, UserTrackerPath>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			UserTrackerPath.class.getClassLoader(), UserTrackerPath.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<UserTrackerPath> constructor =
-				(Constructor<UserTrackerPath>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<UserTrackerPath, Object>>
@@ -464,6 +437,26 @@ public class UserTrackerPathModelImpl
 	}
 
 	@Override
+	public UserTrackerPath cloneWithOriginalValues() {
+		UserTrackerPathImpl userTrackerPathImpl = new UserTrackerPathImpl();
+
+		userTrackerPathImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		userTrackerPathImpl.setUserTrackerPathId(
+			this.<Long>getColumnOriginalValue("userTrackerPathId"));
+		userTrackerPathImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		userTrackerPathImpl.setUserTrackerId(
+			this.<Long>getColumnOriginalValue("userTrackerId"));
+		userTrackerPathImpl.setPath(
+			this.<String>getColumnOriginalValue("path_"));
+		userTrackerPathImpl.setPathDate(
+			this.<Date>getColumnOriginalValue("pathDate"));
+
+		return userTrackerPathImpl;
+	}
+
+	@Override
 	public int compareTo(UserTrackerPath userTrackerPath) {
 		long primaryKey = userTrackerPath.getPrimaryKey();
 
@@ -569,7 +562,7 @@ public class UserTrackerPathModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -580,9 +573,26 @@ public class UserTrackerPathModelImpl
 			Function<UserTrackerPath, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((UserTrackerPath)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((UserTrackerPath)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -629,7 +639,9 @@ public class UserTrackerPathModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, UserTrackerPath>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					UserTrackerPath.class, ModelWrapper.class);
 
 	}
 

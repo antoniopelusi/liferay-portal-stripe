@@ -31,13 +31,14 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -144,68 +145,56 @@ public class AssetListEntryUsageModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CLASSPK_COLUMN_BITMASK = 4L;
+	public static final long COMPANYID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long COMPANYID_COLUMN_BITMASK = 8L;
+	public static final long CONTAINERKEY_COLUMN_BITMASK = 8L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CONTAINERKEY_COLUMN_BITMASK = 16L;
+	public static final long CONTAINERTYPE_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long CONTAINERTYPE_COLUMN_BITMASK = 32L;
+	public static final long GROUPID_COLUMN_BITMASK = 32L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long GROUPID_COLUMN_BITMASK = 64L;
+	public static final long KEY_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long KEY_COLUMN_BITMASK = 128L;
+	public static final long PLID_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long PLID_COLUMN_BITMASK = 256L;
+	public static final long TYPE_COLUMN_BITMASK = 256L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long PORTLETID_COLUMN_BITMASK = 512L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long TYPE_COLUMN_BITMASK = 1024L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 2048L;
+	public static final long UUID_COLUMN_BITMASK = 512L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long ASSETLISTENTRYUSAGEID_COLUMN_BITMASK = 4096L;
+	public static final long ASSETLISTENTRYUSAGEID_COLUMN_BITMASK = 1024L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -304,34 +293,6 @@ public class AssetListEntryUsageModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AssetListEntryUsage>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetListEntryUsage.class.getClassLoader(),
-			AssetListEntryUsage.class, ModelWrapper.class);
-
-		try {
-			Constructor<AssetListEntryUsage> constructor =
-				(Constructor<AssetListEntryUsage>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AssetListEntryUsage, Object>>
@@ -753,15 +714,6 @@ public class AssetListEntryUsageModelImpl
 		_classPK = classPK;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public long getOriginalClassPK() {
-		return GetterUtil.getLong(this.<Long>getColumnOriginalValue("classPK"));
-	}
-
 	@Override
 	public String getContainerKey() {
 		if (_containerKey == null) {
@@ -882,15 +834,6 @@ public class AssetListEntryUsageModelImpl
 		}
 
 		_portletId = portletId;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public String getOriginalPortletId() {
-		return getColumnOriginalValue("portletId");
 	}
 
 	@Override
@@ -1019,6 +962,55 @@ public class AssetListEntryUsageModelImpl
 		assetListEntryUsageImpl.setLastPublishDate(getLastPublishDate());
 
 		assetListEntryUsageImpl.resetOriginalValues();
+
+		return assetListEntryUsageImpl;
+	}
+
+	@Override
+	public AssetListEntryUsage cloneWithOriginalValues() {
+		AssetListEntryUsageImpl assetListEntryUsageImpl =
+			new AssetListEntryUsageImpl();
+
+		assetListEntryUsageImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetListEntryUsageImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetListEntryUsageImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		assetListEntryUsageImpl.setAssetListEntryUsageId(
+			this.<Long>getColumnOriginalValue("assetListEntryUsageId"));
+		assetListEntryUsageImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		assetListEntryUsageImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetListEntryUsageImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		assetListEntryUsageImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		assetListEntryUsageImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetListEntryUsageImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		assetListEntryUsageImpl.setAssetListEntryId(
+			this.<Long>getColumnOriginalValue("assetListEntryId"));
+		assetListEntryUsageImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		assetListEntryUsageImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		assetListEntryUsageImpl.setContainerKey(
+			this.<String>getColumnOriginalValue("containerKey"));
+		assetListEntryUsageImpl.setContainerType(
+			this.<Long>getColumnOriginalValue("containerType"));
+		assetListEntryUsageImpl.setKey(
+			this.<String>getColumnOriginalValue("key_"));
+		assetListEntryUsageImpl.setPlid(
+			this.<Long>getColumnOriginalValue("plid"));
+		assetListEntryUsageImpl.setPortletId(
+			this.<String>getColumnOriginalValue("portletId"));
+		assetListEntryUsageImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		assetListEntryUsageImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
 
 		return assetListEntryUsageImpl;
 	}
@@ -1199,7 +1191,7 @@ public class AssetListEntryUsageModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1210,9 +1202,27 @@ public class AssetListEntryUsageModelImpl
 			Function<AssetListEntryUsage, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AssetListEntryUsage)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(AssetListEntryUsage)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1259,7 +1269,9 @@ public class AssetListEntryUsageModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AssetListEntryUsage>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AssetListEntryUsage.class, ModelWrapper.class);
 
 	}
 

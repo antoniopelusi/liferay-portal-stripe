@@ -137,6 +137,11 @@ public class KaleoProcessWrapper
 		}
 	}
 
+	@Override
+	public KaleoProcess cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this kaleo process.
 	 *

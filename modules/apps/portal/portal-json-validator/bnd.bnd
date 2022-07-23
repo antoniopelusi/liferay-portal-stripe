@@ -1,0 +1,4 @@
+Bundle-Name: Liferay Portal JSON Validator
+Bundle-SymbolicName: com.liferay.portal.json.validator
+Bundle-Version: 1.0.0
+Export-Package: com.liferay.portal.json.validator

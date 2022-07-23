@@ -29,14 +29,12 @@ import com.liferay.portal.kernel.service.PortletPreferenceValueLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -68,7 +66,7 @@ public class PortletPreferencesCTDisplayRenderer
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			arguments.add(portlet.getPortletName());
@@ -84,20 +82,13 @@ public class PortletPreferencesCTDisplayRenderer
 			arguments.add(layout.getName(locale));
 		}
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
 		return _language.format(
-			resourceBundle, "x-on-x-page", arguments.toArray(new String[0]),
-			false);
+			locale, "x-on-x-page", arguments.toArray(new String[0]), false);
 	}
 
 	@Override
 	public String getTypeName(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
-		return _language.get(resourceBundle, "widget");
+		return _language.get(locale, "widget");
 	}
 
 	@Override
@@ -143,7 +134,7 @@ public class PortletPreferencesCTDisplayRenderer
 				}
 				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(exception, exception);
+						_log.warn(exception);
 					}
 
 					return portlet.getPortletName();
@@ -152,9 +143,6 @@ public class PortletPreferencesCTDisplayRenderer
 		).display(
 			"preferences",
 			() -> {
-				ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-					displayBuilder.getLocale(), getClass());
-
 				javax.portlet.PortletPreferences jxPortletPreferences =
 					_portletPreferenceValueLocalService.getPreferences(
 						portletPreferences);
@@ -163,7 +151,7 @@ public class PortletPreferencesCTDisplayRenderer
 
 				if (map.isEmpty()) {
 					return _language.get(
-						resourceBundle,
+						displayBuilder.getLocale(),
 						"this-widget-has-not-configured-any-preferences");
 				}
 
@@ -172,7 +160,7 @@ public class PortletPreferencesCTDisplayRenderer
 				for (Map.Entry<String, String[]> entry : map.entrySet()) {
 					sb.append(
 						_language.get(
-							resourceBundle,
+							displayBuilder.getLocale(),
 							CamelCaseUtil.fromCamelCase(entry.getKey())));
 					sb.append(": ");
 					sb.append(StringUtil.merge(entry.getValue()));

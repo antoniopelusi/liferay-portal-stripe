@@ -29,7 +29,6 @@ import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
@@ -47,7 +46,16 @@ public class KaleoDefinitionUpgradeProcess extends UpgradeProcess {
 		_userLocalService = userLocalService;
 	}
 
-	protected void addKaleoDefinition(
+	@Override
+	protected void doUpgrade() throws Exception {
+		if (hasTable("KaleoDefinitionVersion") &&
+			hasTable("KaleoDraftDefinition")) {
+
+			_addKaleoDefinitionsFromKaleoDefinitionVersion();
+		}
+	}
+
+	private void _addKaleoDefinition(
 			long groupId, long userId, Timestamp createDate,
 			Timestamp modifiedDate, String name, String title, String content,
 			int version)
@@ -78,53 +86,42 @@ public class KaleoDefinitionUpgradeProcess extends UpgradeProcess {
 		_kaleoDefinitionLocalService.addKaleoDefinition(kaleoDefinition);
 	}
 
-	protected void addKaleoDefinitionsFromKaleoDefinitionVersion()
-		throws PortalException, SQLException {
-
-		StringBundler sb1 = new StringBundler(10);
-
-		sb1.append("select KaleoDefinitionVersion.* from ");
-		sb1.append("KaleoDefinitionVersion join (select name,  ");
-		sb1.append("max(kaleoDefinitionVersionId) as ");
-		sb1.append("kaleoDefinitionVersionId from KaleoDefinitionVersion ");
-		sb1.append("group by name) sub on sub.name = KaleoDefinitionVersion.");
-		sb1.append("name and sub.kaleoDefinitionVersionId = ");
-		sb1.append("KaleoDefinitionVersion.kaleoDefinitionVersionId left ");
-		sb1.append("join KaleoDefinition on KaleoDefinitionVersion.name = ");
-		sb1.append("KaleoDefinition.name where KaleoDefinition.");
-		sb1.append("kaleoDefinitionId is null");
+	private void _addKaleoDefinitionsFromKaleoDefinitionVersion()
+		throws Exception {
 
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(sb1.toString());
-			ResultSet rs = ps1.executeQuery()) {
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select KaleoDefinitionVersion.* from ",
+					"KaleoDefinitionVersion join (select name,  ",
+					"max(kaleoDefinitionVersionId) as ",
+					"kaleoDefinitionVersionId from KaleoDefinitionVersion ",
+					"group by name) sub on sub.name = KaleoDefinitionVersion.",
+					"name and sub.kaleoDefinitionVersionId = ",
+					"KaleoDefinitionVersion.kaleoDefinitionVersionId left ",
+					"join KaleoDefinition on KaleoDefinitionVersion.name = ",
+					"KaleoDefinition.name where KaleoDefinition.",
+					"kaleoDefinitionId is null"));
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				long groupId = rs.getLong("groupId");
-				long userId = rs.getLong("userId");
-				Timestamp createDate = rs.getTimestamp("createDate");
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				String name = rs.getString("name");
-				String title = rs.getString("title");
-				String content = rs.getString("content");
-				String version = rs.getString("version");
+			while (resultSet.next()) {
+				long groupId = resultSet.getLong("groupId");
+				long userId = resultSet.getLong("userId");
+				Timestamp createDate = resultSet.getTimestamp("createDate");
+				Timestamp modifiedDate = resultSet.getTimestamp("modifiedDate");
+				String name = resultSet.getString("name");
+				String title = resultSet.getString("title");
+				String content = resultSet.getString("content");
+				String version = resultSet.getString("version");
 
-				addKaleoDefinition(
+				_addKaleoDefinition(
 					groupId, userId, createDate, modifiedDate, name, title,
-					content, getVersion(version));
+					content, _getVersion(version));
 			}
 		}
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		if (hasTable("KaleoDefinitionVersion") &&
-			hasTable("KaleoDraftDefinition")) {
-
-			addKaleoDefinitionsFromKaleoDefinitionVersion();
-		}
-	}
-
-	protected int getVersion(String version) {
+	private int _getVersion(String version) {
 		int[] versionParts = StringUtil.split(version, StringPool.PERIOD, 0);
 
 		return versionParts[0];

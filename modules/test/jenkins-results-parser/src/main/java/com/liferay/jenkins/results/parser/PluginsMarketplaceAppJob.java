@@ -19,6 +19,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
+import org.json.JSONObject;
+
 /**
  * @author Michael Hashimoto
  */
@@ -28,6 +30,21 @@ public class PluginsMarketplaceAppJob
 	@Override
 	public Set<String> getDistTypes() {
 		return Collections.emptySet();
+	}
+
+	@Override
+	public JSONObject getJSONObject() {
+		if (jsonObject != null) {
+			return jsonObject;
+		}
+
+		jsonObject = super.getJSONObject();
+
+		jsonObject.put("app_type", _appType);
+		jsonObject.put(
+			"portal_upstream_branch_name", _portalUpstreamBranchName);
+
+		return jsonObject;
 	}
 
 	@Override
@@ -41,42 +58,47 @@ public class PluginsMarketplaceAppJob
 	}
 
 	protected PluginsMarketplaceAppJob(
-		String jobName, String appType, BuildProfile buildProfile,
-		String portalBranchName) {
+		BuildProfile buildProfile, String jobName,
+		String portalUpstreamBranchName) {
 
-		super(jobName, buildProfile);
+		super(buildProfile, jobName);
 
-		if (JenkinsResultsParserUtil.isNullOrEmpty(appType)) {
-			appType = System.getenv("TEST_APP_TYPE");
-		}
+		String appType = System.getenv("TEST_APP_TYPE");
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(appType)) {
 			appType = "community";
 		}
 
+		_portalUpstreamBranchName = portalUpstreamBranchName;
+
 		_appType = appType;
 
+		_initialize();
+	}
+
+	protected PluginsMarketplaceAppJob(JSONObject jsonObject) {
+		super(jsonObject);
+
+		_appType = jsonObject.getString("app_type");
+		_portalUpstreamBranchName = jsonObject.getString(
+			"portal_upstream_branch_name");
+
+		_initialize();
+	}
+
+	private void _initialize() {
 		_portalGitWorkingDirectory =
 			GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
-				portalBranchName);
+				_portalUpstreamBranchName);
 
 		jobPropertiesFiles.add(
 			new File(
 				_portalGitWorkingDirectory.getWorkingDirectory(),
 				"test.properties"));
-
-		readJobProperties();
-	}
-
-	@Override
-	protected Set<String> getRawBatchNames() {
-		return getSetFromString(
-			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names", getJobName(),
-				getTestSuiteName()));
 	}
 
 	private final String _appType;
-	private final PortalGitWorkingDirectory _portalGitWorkingDirectory;
+	private PortalGitWorkingDirectory _portalGitWorkingDirectory;
+	private final String _portalUpstreamBranchName;
 
 }

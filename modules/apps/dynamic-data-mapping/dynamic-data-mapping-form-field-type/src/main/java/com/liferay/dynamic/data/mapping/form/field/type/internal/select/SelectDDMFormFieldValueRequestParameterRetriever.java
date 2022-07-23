@@ -19,10 +19,12 @@ import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTy
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Objects;
 
@@ -47,15 +49,17 @@ public class SelectDDMFormFieldValueRequestParameterRetriever
 		HttpServletRequest httpServletRequest, String ddmFormFieldParameterName,
 		String defaultDDMFormFieldParameterValue) {
 
-		String[] parameterValues = ParamUtil.getParameterValues(
-			httpServletRequest, ddmFormFieldParameterName,
-			getDefaultDDMFormFieldParameterValues(
-				defaultDDMFormFieldParameterValue));
-
-		return jsonFactory.serialize(parameterValues);
+		return jsonFactory.serialize(
+			_getParameterValues(
+				httpServletRequest, ddmFormFieldParameterName,
+				_getDefaultDDMFormFieldParameterValues(
+					defaultDDMFormFieldParameterValue)));
 	}
 
-	protected String[] getDefaultDDMFormFieldParameterValues(
+	@Reference
+	protected JSONFactory jsonFactory;
+
+	private String[] _getDefaultDDMFormFieldParameterValues(
 		String defaultDDMFormFieldParameterValue) {
 
 		if (Validator.isNull(defaultDDMFormFieldParameterValue) ||
@@ -70,15 +74,30 @@ public class SelectDDMFormFieldValueRequestParameterRetriever
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringUtil.split(defaultDDMFormFieldParameterValue);
 		}
 	}
 
-	@Reference
-	protected JSONFactory jsonFactory;
+	private String[] _getParameterValues(
+		HttpServletRequest httpServletRequest, String ddmFormFieldParameterName,
+		String[] defaultDDMFormFieldParameterValues) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		if (themeDisplay.isLifecycleAction()) {
+			return ParamUtil.getParameterValues(
+				httpServletRequest, ddmFormFieldParameterName);
+		}
+
+		return ParamUtil.getParameterValues(
+			httpServletRequest, ddmFormFieldParameterName,
+			defaultDDMFormFieldParameterValues);
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SelectDDMFormFieldValueRequestParameterRetriever.class);

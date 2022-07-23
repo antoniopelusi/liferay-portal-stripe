@@ -81,10 +81,10 @@ public class CommerceChannelClayTable
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField nameField =
+		ClayTableSchemaField nameClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("name", "name");
 
-		nameField.setContentRenderer("actionLink");
+		nameClayTableSchemaField.setContentRenderer("actionLink");
 
 		clayTableSchemaBuilder.addClayTableSchemaField("type", "type");
 
@@ -146,7 +146,7 @@ public class CommerceChannelClayTable
 					"/commerce_channels/edit_commerce_channel"
 				).setCMD(
 					Constants.DELETE
-				).build();
+				).buildPortletURL();
 
 				String redirect = ParamUtil.getString(
 					httpServletRequest, "currentUrl",
@@ -173,11 +173,9 @@ public class CommerceChannelClayTable
 
 		List<Channel> channels = new ArrayList<>();
 
-		List<CommerceChannel> commerceChannels =
-			_commerceChannelService.searchCommerceChannels(
-				_portal.getCompanyId(httpServletRequest), filter.getKeywords(),
-				pagination.getStartPosition(), pagination.getEndPosition(),
-				sort);
+		List<CommerceChannel> commerceChannels = _commerceChannelService.search(
+			_portal.getCompanyId(httpServletRequest), filter.getKeywords(),
+			pagination.getStartPosition(), pagination.getEndPosition(), sort);
 
 		for (CommerceChannel commerceChannel : commerceChannels) {
 			channels.add(
@@ -204,10 +202,6 @@ public class CommerceChannelClayTable
 			Channel channel, HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		PortletURL portletURL = PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				httpServletRequest,
@@ -217,14 +211,17 @@ public class CommerceChannelClayTable
 		).setMVCPath(
 			"/edit_permissions.jsp"
 		).setParameter(
-			PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE + "backURL", redirect
+			PortletQName.PUBLIC_RENDER_PARAMETER_NAMESPACE + "backURL",
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"modelResource", CommerceChannel.class.getName()
 		).setParameter(
 			"modelResourceDescription", channel.getName()
 		).setParameter(
 			"resourcePrimKey", channel.getChannelId()
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);

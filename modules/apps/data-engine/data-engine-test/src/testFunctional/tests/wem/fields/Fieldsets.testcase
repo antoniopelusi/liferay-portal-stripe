@@ -39,9 +39,7 @@ definition {
 
 		WebContentStructures.addCP(structureName = "WC Structure Name Duplicate");
 
-		DataEngine.addFieldsets(
-			fieldsetLabel = "WC Structure Name",
-			fieldsetName = "WC Structure Name");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "WC Structure Name");
 
 		DataEngine.duplicate(fieldsetLabel = "WC Structure Name");
 
@@ -61,11 +59,11 @@ definition {
 	@description = "This is a test for LPS-107630. Make sure the Fieldset does not crash when editing its properties directly from Object sidebar during reuse in a new form view"
 	@priority = "4"
 	test EditFieldsetPropertiesFromSideBar {
-		DataEngine.addFieldsets(
-			createNewFieldset = "true",
+		DataEngine.createNewFieldset(
 			fieldNameList = "Text",
-			fieldsetLabel = "New Fieldset",
 			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
@@ -168,11 +166,11 @@ definition {
 	@description = "This is a test for LPS-107630. Make sure Fieldsets can be set as collapsible"
 	@priority = "4"
 	test FieldsetSetAsCollapsible {
-		DataEngine.addFieldsets(
-			createNewFieldset = "true",
+		DataEngine.createNewFieldset(
 			fieldNameList = "Numeric",
-			fieldsetLabel = "New Fieldset",
 			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
 
 		DataEngine.editCollapsible(
 			collapsible = "true",
@@ -198,13 +196,13 @@ definition {
 	@description = "This is a test for LPS-107630. Make sure Fieldsets can be set as repeatable"
 	@priority = "4"
 	test FieldsetSetAsRepeatable {
-		DataEngine.addFieldsets(
-			createNewFieldset = "true",
+		DataEngine.createNewFieldset(
 			fieldNameList = "Rich Text",
-			fieldsetLabel = "New Fieldset",
 			fieldsetName = "New Fieldset");
 
-		DataEngine.editFieldsetsRepeatable(fieldsetLabel = "New Fieldset");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		DataEngine.toggleFieldRepeatable(fieldsetLabel = "New Fieldset");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
@@ -214,7 +212,7 @@ definition {
 
 		WebContent.addWithStructureCP(webContentTitle = "Web Content Title");
 
-		DataEngine.addRepeatableFieldset(fieldsetLabel = "New Fieldset");
+		DataEngine.addRepeatableField(fieldLabel = "New Fieldset");
 
 		for (var n : list "1,2") {
 			DataEngine.assertFieldRepeated(
@@ -256,11 +254,9 @@ definition {
 	@description = "This is a test for LPS-107630. Make sure the content is not duplicated when activating repeatable option on a Web Content"
 	@priority = "4"
 	test RepeatFieldsetWithoutDuplicatingContent {
-		DataEngine.addFieldsets(
-			fieldsetLabel = "Basic Web Content",
-			fieldsetName = "Basic Web Content");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "Basic Web Content");
 
-		DataEngine.editFieldsetsRepeatable(fieldsetLabel = "Basic Web Content");
+		DataEngine.toggleFieldRepeatable(fieldsetLabel = "Basic Web Content");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
@@ -272,7 +268,7 @@ definition {
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
-		DataEngine.addRepeatableFieldset(fieldsetLabel = "Basic Web Content");
+		DataEngine.addRepeatableField(fieldLabel = "Basic Web Content");
 
 		SelectFrame.selectFrameNoLoading(
 			key_fieldLabel = "content",
@@ -297,45 +293,39 @@ definition {
 	@description = "This is a test for LPS-107630. Make sure Fieldset Label can be shown or hidden"
 	@priority = "4"
 	test ShowAndHideFieldsetLabel {
-		DataEngine.addFieldsets(
-			createNewFieldset = "true",
+		DataEngine.createNewFieldset(
 			fieldNameList = "Date",
-			fieldsetLabel = "New Fieldset",
 			fieldsetName = "New Fieldset");
 
-		DataEngine.editShowOrHideLabel(
-			fieldsetLabel = "New Fieldset",
-			showLabel = "true");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
+
+		DataEngine.toggleShowLabel(fieldLabel = "New Fieldset");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
 
-		AssertVisible(
-			key_fieldsetLabel = "New Fieldset",
-			locator1 = "DDMEditStructure#FORM_FIELD_SETS_CONTAINER_LABEL");
+		DataEngine.assertFieldNotPresent(fieldsetLabel = "New Fieldset");
 
-		DataEngine.editShowOrHideLabel(
-			fieldsetLabel = "New Fieldset",
-			showLabel = "false");
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "New Fieldset");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
 
-		AssertElementNotPresent(
-			key_fieldsetLabel = "New Fieldset",
-			locator1 = "DDMEditStructure#FORM_FIELD_SETS_CONTAINER_LABEL");
+		DataEngine.viewFieldset(
+			fieldNameList = "Date",
+			fieldsetName = "New Fieldset");
 	}
 
 	@description = "This is a test for LPS-123538. As Content Creator, I cannot edit fieldset on the Advanced panel"
 	@priority = "4"
 	test VerifyFieldsetCannotBeEditedOnStructureBuilder {
-		DataEngine.addFieldsets(
-			createNewFieldset = "true",
-			fieldNameList = "Upload",
-			fieldsetLabel = "New Fieldset",
+		DataEngine.createNewFieldset(
+			fieldNameList = "Date",
 			fieldsetName = "New Fieldset");
+
+		DataEngine.addFieldsetToBuilder(fieldsetName = "New Fieldset");
 
 		Click(
 			key_fieldsetLabel = "New Fieldset",

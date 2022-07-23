@@ -22,17 +22,17 @@ import com.liferay.portal.kernel.model.ColorScheme;
 public class ColorSchemeFactoryUtil {
 
 	public static ColorScheme getColorScheme() {
-		return getColorSchemeFactory().getColorScheme();
+		return _colorSchemeFactory.getColorScheme();
 	}
 
 	public static ColorScheme getColorScheme(String colorSchemeId) {
-		return getColorSchemeFactory().getColorScheme(colorSchemeId);
+		return _colorSchemeFactory.getColorScheme(colorSchemeId);
 	}
 
 	public static ColorScheme getColorScheme(
 		String colorSchemeId, String name, String cssClass) {
 
-		return getColorSchemeFactory().getColorScheme(
+		return _colorSchemeFactory.getColorScheme(
 			colorSchemeId, name, cssClass);
 	}
 
@@ -41,11 +41,11 @@ public class ColorSchemeFactoryUtil {
 	}
 
 	public static ColorScheme getDefaultRegularColorScheme() {
-		return getColorSchemeFactory().getDefaultRegularColorScheme();
+		return _colorSchemeFactory.getDefaultRegularColorScheme();
 	}
 
 	public static String getDefaultRegularColorSchemeId() {
-		return getColorSchemeFactory().getDefaultRegularColorSchemeId();
+		return _colorSchemeFactory.getDefaultRegularColorSchemeId();
 	}
 
 	public void setColorSchemeFactory(ColorSchemeFactory colorSchemeFactory) {

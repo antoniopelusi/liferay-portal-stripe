@@ -25,24 +25,23 @@ import java.util.TimeZone;
 public class CalendarFactoryUtil {
 
 	public static Calendar getCalendar() {
-		return getCalendarFactory().getCalendar();
+		return _calendarFactory.getCalendar();
 	}
 
 	public static Calendar getCalendar(int year, int month, int date) {
-		return getCalendarFactory().getCalendar(year, month, date);
+		return _calendarFactory.getCalendar(year, month, date);
 	}
 
 	public static Calendar getCalendar(
 		int year, int month, int date, int hour, int minute) {
 
-		return getCalendarFactory().getCalendar(
-			year, month, date, hour, minute);
+		return _calendarFactory.getCalendar(year, month, date, hour, minute);
 	}
 
 	public static Calendar getCalendar(
 		int year, int month, int date, int hour, int minute, int second) {
 
-		return getCalendarFactory().getCalendar(
+		return _calendarFactory.getCalendar(
 			year, month, date, hour, minute, second);
 	}
 
@@ -50,7 +49,7 @@ public class CalendarFactoryUtil {
 		int year, int month, int date, int hour, int minute, int second,
 		int millisecond) {
 
-		return getCalendarFactory().getCalendar(
+		return _calendarFactory.getCalendar(
 			year, month, date, hour, minute, second, millisecond);
 	}
 
@@ -58,28 +57,28 @@ public class CalendarFactoryUtil {
 		int year, int month, int date, int hour, int minute, int second,
 		int millisecond, TimeZone timeZone) {
 
-		return getCalendarFactory().getCalendar(
+		return _calendarFactory.getCalendar(
 			year, month, date, hour, minute, second, millisecond, timeZone);
 	}
 
 	public static Calendar getCalendar(Locale locale) {
-		return getCalendarFactory().getCalendar(locale);
+		return _calendarFactory.getCalendar(locale);
 	}
 
 	public static Calendar getCalendar(long time) {
-		return getCalendarFactory().getCalendar(time);
+		return _calendarFactory.getCalendar(time);
 	}
 
 	public static Calendar getCalendar(long time, TimeZone timeZone) {
-		return getCalendarFactory().getCalendar(time, timeZone);
+		return _calendarFactory.getCalendar(time, timeZone);
 	}
 
 	public static Calendar getCalendar(TimeZone timeZone) {
-		return getCalendarFactory().getCalendar(timeZone);
+		return _calendarFactory.getCalendar(timeZone);
 	}
 
 	public static Calendar getCalendar(TimeZone timeZone, Locale locale) {
-		return getCalendarFactory().getCalendar(timeZone, locale);
+		return _calendarFactory.getCalendar(timeZone, locale);
 	}
 
 	public static CalendarFactory getCalendarFactory() {

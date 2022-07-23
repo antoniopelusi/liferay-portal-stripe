@@ -33,7 +33,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	"toolbarItem", toolbarItem
 ).setParameter(
 	"usersListView", usersListView
-).build();
+).buildPortletURL();
 
 if (Validator.isNotNull(viewUsersRedirect)) {
 	portletURL.setParameter("viewUsersRedirect", viewUsersRedirect);
@@ -284,7 +284,7 @@ else {
 			"toolbarItem", toolbarItem
 		).setParameter(
 			"usersListView", usersListView
-		).build();
+		).buildPortletURL();
 
 		organizationId = ParamUtil.getLong(request, "organizationId", OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID);
 
@@ -304,7 +304,7 @@ else {
 	}
 </aui:script>
 
-<aui:script require="users-admin-web/js/actions.es as actions">
+<aui:script require='<%= npmResolvedPackageName + "/js/actions.es as actions" %>'>
 	window['<portlet:namespace />openSelectUsersDialog'] = function (
 		organizationId
 	) {

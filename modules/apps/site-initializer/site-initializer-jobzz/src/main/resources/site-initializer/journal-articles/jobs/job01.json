@@ -1,0 +1,14 @@
+{
+	"articleId": "job01",
+	"assetCategoryERCs": [
+		"CAT_SALES"
+	],
+	"assetTagNames": [
+		"highlight",
+		"homepage"
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "Sales Engineer"
+}

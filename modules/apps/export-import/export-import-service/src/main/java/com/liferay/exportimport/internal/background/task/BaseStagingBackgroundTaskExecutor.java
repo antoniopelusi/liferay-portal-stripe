@@ -79,7 +79,7 @@ public abstract class BaseStagingBackgroundTaskExecutor
 	}
 
 	protected void deleteTempLarOnFailure(File file) {
-		StagingConfiguration stagingConfiguration = getStagingConfiguration();
+		StagingConfiguration stagingConfiguration = _getStagingConfiguration();
 
 		if ((stagingConfiguration == null) ||
 			stagingConfiguration.stagingDeleteTempLAROnFailure()) {
@@ -92,7 +92,7 @@ public abstract class BaseStagingBackgroundTaskExecutor
 	}
 
 	protected void deleteTempLarOnSuccess(File file) {
-		StagingConfiguration stagingConfiguration = getStagingConfiguration();
+		StagingConfiguration stagingConfiguration = _getStagingConfiguration();
 
 		if ((stagingConfiguration == null) ||
 			stagingConfiguration.stagingDeleteTempLAROnSuccess()) {
@@ -102,19 +102,6 @@ public abstract class BaseStagingBackgroundTaskExecutor
 		else if ((file != null) && _log.isDebugEnabled()) {
 			_log.debug("Kept temporary LAR file " + file.getAbsolutePath());
 		}
-	}
-
-	protected StagingConfiguration getStagingConfiguration() {
-		try {
-			return ConfigurationProviderUtil.getCompanyConfiguration(
-				StagingConfiguration.class, CompanyThreadLocal.getCompanyId());
-		}
-		catch (ConfigurationException configurationException) {
-			_log.error(
-				"Unable to load staging configuration", configurationException);
-		}
-
-		return null;
 	}
 
 	protected void initThreadLocals(long groupId, boolean privateLayout)
@@ -133,11 +120,8 @@ public abstract class BaseStagingBackgroundTaskExecutor
 		serviceContext.setCompanyId(layoutSet.getCompanyId());
 
 		serviceContext.setSignedIn(false);
-
-		long defaultUserId = UserLocalServiceUtil.getDefaultUserId(
-			layoutSet.getCompanyId());
-
-		serviceContext.setUserId(defaultUserId);
+		serviceContext.setUserId(
+			UserLocalServiceUtil.getDefaultUserId(layoutSet.getCompanyId()));
 
 		ServiceContextThreadLocal.pushServiceContext(serviceContext);
 	}
@@ -182,16 +166,29 @@ public abstract class BaseStagingBackgroundTaskExecutor
 			missingReferences.getWeakMissingReferences();
 
 		if (MapUtil.isNotEmpty(weakMissingReferences)) {
-			BackgroundTask backgroundTask =
-				BackgroundTaskManagerUtil.fetchBackgroundTask(backgroundTaskId);
-
 			JSONArray jsonArray = StagingUtil.getWarningMessagesJSONArray(
-				getLocale(backgroundTask), weakMissingReferences);
+				getLocale(
+					BackgroundTaskManagerUtil.fetchBackgroundTask(
+						backgroundTaskId)),
+				weakMissingReferences);
 
 			backgroundTaskResult.setStatusMessage(jsonArray.toString());
 		}
 
 		return backgroundTaskResult;
+	}
+
+	private StagingConfiguration _getStagingConfiguration() {
+		try {
+			return ConfigurationProviderUtil.getCompanyConfiguration(
+				StagingConfiguration.class, CompanyThreadLocal.getCompanyId());
+		}
+		catch (ConfigurationException configurationException) {
+			_log.error(
+				"Unable to load staging configuration", configurationException);
+		}
+
+		return null;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -60,8 +60,6 @@ public class DigestUtil {
 	}
 
 	public static String getDigest(Iterable<File> files) {
-		StringBuilder sb = new StringBuilder();
-
 		SortedSet<File> sortedFiles = null;
 
 		try {
@@ -70,6 +68,8 @@ public class DigestUtil {
 		catch (IOException ioException) {
 			throw new GradleException("Unable to flatten files", ioException);
 		}
+
+		StringBuilder sb = new StringBuilder();
 
 		for (File file : sortedFiles) {
 			if (!file.exists()) {

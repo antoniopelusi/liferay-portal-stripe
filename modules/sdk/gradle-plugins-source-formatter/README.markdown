@@ -13,7 +13,7 @@ To use the plugin, include it in your build script:
 ```gradle
 buildscript {
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.source.formatter", version: "5.1.7"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.source.formatter", version: "5.1.115"
 	}
 
 	repositories {
@@ -109,8 +109,6 @@ Property Name | Type | Default Value | Description
 `printErrors` | `boolean` | `true` | Whether to print formatting errors on the Standard Output stream. It sets the `source.print.errors` argument.
 `processorThreadCount` | `int` | `5` | The number of threads used by Source Formatter. It sets the `processor.thread.count` argument.
 `showDebugInformation` | `boolean` | `false` | Whether to show debug information, if present. It sets the `show.debug.information` argument.
-`showDocumentation` | `boolean` | `false` | Whether to show the documentation for the source formatting issues, if present. It sets the `show.documentation` argument.
-`showStatusUpdates` | `boolean` | `false` | Whether to show status updates during source formatting, if present. It sets the `show.status.updates` argument.
 
 ## Additional Configuration
 
@@ -125,7 +123,7 @@ manually adding a dependency to the `sourceFormatter` configuration:
 
 ```gradle
 dependencies {
-	sourceFormatter group: "com.liferay", name: "com.liferay.source.formatter", version: "1.0.1109"
+	sourceFormatter group: "com.liferay", name: "com.liferay.source.formatter", version: "1.0.1217"
 }
 ```
 

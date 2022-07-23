@@ -39,12 +39,9 @@ public class QuerySuggestionHitsProcessor implements HitsProcessor {
 
 		QueryConfig queryConfig = searchContext.getQueryConfig();
 
-		if (!queryConfig.isQuerySuggestionEnabled()) {
-			return true;
-		}
-
-		if (hits.getLength() >=
-				queryConfig.getQuerySuggestionScoresThreshold()) {
+		if (!queryConfig.isQuerySuggestionEnabled() ||
+			(hits.getLength() >=
+				queryConfig.getQuerySuggestionScoresThreshold())) {
 
 			return true;
 		}
@@ -53,10 +50,8 @@ public class QuerySuggestionHitsProcessor implements HitsProcessor {
 			IndexSearcherHelperUtil.suggestKeywordQueries(
 				searchContext, queryConfig.getQuerySuggestionMax());
 
-		querySuggestions = ArrayUtil.remove(
-			querySuggestions, searchContext.getKeywords());
-
-		hits.setQuerySuggestions(querySuggestions);
+		hits.setQuerySuggestions(
+			ArrayUtil.remove(querySuggestions, searchContext.getKeywords()));
 
 		return true;
 	}

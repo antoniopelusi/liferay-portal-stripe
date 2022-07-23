@@ -35,6 +35,7 @@ public class UpgradeProcess_1_0_0 extends UpgradeProcess {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(UpgradeProcess_1_0_0.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		UpgradeProcess_1_0_0.class);
 
 }

@@ -114,7 +114,7 @@ export default function Editor({
 			id={`${config.portletNamespace}${id}`}
 		>
 			<div
-				className="alloy-editor alloy-editor-placeholder form-control form-control-sm page-editor__editor"
+				className="alloy-editor form-control form-control-sm page-editor__editor"
 				contentEditable={false}
 				data-placeholder={placeholder}
 				data-required={false}
@@ -122,6 +122,10 @@ export default function Editor({
 				name={id}
 				ref={wrapperRef}
 			/>
+
+			<div className="alloy-editor-placeholder page-editor__editor-placeholder">
+				{placeholder}
+			</div>
 		</div>
 	);
 }

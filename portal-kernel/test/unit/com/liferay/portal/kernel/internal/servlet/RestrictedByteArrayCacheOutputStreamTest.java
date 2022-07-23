@@ -225,7 +225,7 @@ public class RestrictedByteArrayCacheOutputStreamTest {
 				new RestrictedByteArrayCacheOutputStream(
 					unsyncByteArrayOutputStream, 10, 27, flushPreAction);
 
-		StringBuilder sb = new StringBuilder(26);
+		StringBundler sb = new StringBundler(26);
 
 		for (int i = 'a'; i <= 'z'; i++) {
 			restrictedByteArrayCacheOutputStream.write(i);

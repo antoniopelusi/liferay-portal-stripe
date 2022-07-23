@@ -14,6 +14,8 @@
 
 package com.liferay.portal.tools.soy.builder.util;
 
+import com.liferay.petra.string.StringBundler;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,7 +32,7 @@ public class FileTestUtil {
 	public static String read(ClassLoader classLoader, String name)
 		throws IOException {
 
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		try (BufferedReader bufferedReader = new BufferedReader(
 				new InputStreamReader(classLoader.getResourceAsStream(name)))) {

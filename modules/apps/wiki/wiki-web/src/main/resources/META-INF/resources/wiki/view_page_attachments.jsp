@@ -25,10 +25,10 @@ PortletURL portletURL = PortletURLBuilder.createActionURL(
 ).setActionName(
 	"/wiki/view"
 ).setParameter(
-	"nodeId", String.valueOf(node.getNodeId())
+	"nodeId", node.getNodeId()
 ).setParameter(
 	"title", wikiPage.getTitle()
-).build();
+).buildPortletURL();
 
 PortalUtil.addPortletBreadcrumbEntry(request, wikiPage.getTitle(), portletURL.toString());
 
@@ -55,10 +55,10 @@ PortletURL iteratorURL = PortletURLBuilder.createRenderURL(
 ).setRedirect(
 	currentURL
 ).setParameter(
-	"nodeId", String.valueOf(node.getNodeId())
+	"nodeId", node.getNodeId()
 ).setParameter(
 	"title", wikiPage.getTitle()
-).build();
+).buildPortletURL();
 
 boolean paginate = false;
 boolean showPageAttachmentAction = false;

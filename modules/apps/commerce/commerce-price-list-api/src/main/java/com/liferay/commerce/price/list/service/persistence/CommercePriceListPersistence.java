@@ -17,6 +17,7 @@ package com.liferay.commerce.price.list.service.persistence;
 import com.liferay.commerce.price.list.exception.NoSuchPriceListException;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import java.util.Date;
 
@@ -35,7 +36,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CommercePriceListPersistence
-	extends BasePersistence<CommercePriceList> {
+	extends BasePersistence<CommercePriceList>,
+			CTPersistence<CommercePriceList> {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -1092,7 +1094,7 @@ public interface CommercePriceListPersistence
 	 * @return the matching commerce price list
 	 * @throws NoSuchPriceListException if a matching commerce price list could not be found
 	 */
-	public CommercePriceList findByCatalogBasePriceList(
+	public CommercePriceList findByG_CatalogBasePriceList(
 			long groupId, boolean catalogBasePriceList)
 		throws NoSuchPriceListException;
 
@@ -1103,7 +1105,7 @@ public interface CommercePriceListPersistence
 	 * @param catalogBasePriceList the catalog base price list
 	 * @return the matching commerce price list, or <code>null</code> if a matching commerce price list could not be found
 	 */
-	public CommercePriceList fetchByCatalogBasePriceList(
+	public CommercePriceList fetchByG_CatalogBasePriceList(
 		long groupId, boolean catalogBasePriceList);
 
 	/**
@@ -1114,7 +1116,7 @@ public interface CommercePriceListPersistence
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching commerce price list, or <code>null</code> if a matching commerce price list could not be found
 	 */
-	public CommercePriceList fetchByCatalogBasePriceList(
+	public CommercePriceList fetchByG_CatalogBasePriceList(
 		long groupId, boolean catalogBasePriceList, boolean useFinderCache);
 
 	/**
@@ -1124,7 +1126,7 @@ public interface CommercePriceListPersistence
 	 * @param catalogBasePriceList the catalog base price list
 	 * @return the commerce price list that was removed
 	 */
-	public CommercePriceList removeByCatalogBasePriceList(
+	public CommercePriceList removeByG_CatalogBasePriceList(
 			long groupId, boolean catalogBasePriceList)
 		throws NoSuchPriceListException;
 
@@ -1135,7 +1137,7 @@ public interface CommercePriceListPersistence
 	 * @param catalogBasePriceList the catalog base price list
 	 * @return the number of matching commerce price lists
 	 */
-	public int countByCatalogBasePriceList(
+	public int countByG_CatalogBasePriceList(
 		long groupId, boolean catalogBasePriceList);
 
 	/**

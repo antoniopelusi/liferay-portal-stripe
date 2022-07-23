@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.LocalizedModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedAuditedModel;
+import com.liferay.portal.kernel.model.WorkflowedModel;
 
 import java.util.Date;
 import java.util.Locale;
@@ -43,7 +44,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface RemoteAppEntryModel
 	extends BaseModel<RemoteAppEntry>, ContainerModel, LocalizedModel,
-			MVCCModel, ShardedModel, StagedAuditedModel {
+			MVCCModel, ShardedModel, StagedAuditedModel, WorkflowedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -97,6 +98,21 @@ public interface RemoteAppEntryModel
 	 */
 	@Override
 	public void setUuid(String uuid);
+
+	/**
+	 * Returns the external reference code of this remote app entry.
+	 *
+	 * @return the external reference code of this remote app entry
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this remote app entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this remote app entry
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
 
 	/**
 	 * Returns the remote app entry ID of this remote app entry.
@@ -210,6 +226,139 @@ public interface RemoteAppEntryModel
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
+	 * Returns the custom element cssur ls of this remote app entry.
+	 *
+	 * @return the custom element cssur ls of this remote app entry
+	 */
+	@AutoEscape
+	public String getCustomElementCSSURLs();
+
+	/**
+	 * Sets the custom element cssur ls of this remote app entry.
+	 *
+	 * @param customElementCSSURLs the custom element cssur ls of this remote app entry
+	 */
+	public void setCustomElementCSSURLs(String customElementCSSURLs);
+
+	/**
+	 * Returns the custom element html element name of this remote app entry.
+	 *
+	 * @return the custom element html element name of this remote app entry
+	 */
+	@AutoEscape
+	public String getCustomElementHTMLElementName();
+
+	/**
+	 * Sets the custom element html element name of this remote app entry.
+	 *
+	 * @param customElementHTMLElementName the custom element html element name of this remote app entry
+	 */
+	public void setCustomElementHTMLElementName(
+		String customElementHTMLElementName);
+
+	/**
+	 * Returns the custom element ur ls of this remote app entry.
+	 *
+	 * @return the custom element ur ls of this remote app entry
+	 */
+	@AutoEscape
+	public String getCustomElementURLs();
+
+	/**
+	 * Sets the custom element ur ls of this remote app entry.
+	 *
+	 * @param customElementURLs the custom element ur ls of this remote app entry
+	 */
+	public void setCustomElementURLs(String customElementURLs);
+
+	/**
+	 * Returns the custom element use esm of this remote app entry.
+	 *
+	 * @return the custom element use esm of this remote app entry
+	 */
+	public boolean getCustomElementUseESM();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is custom element use esm.
+	 *
+	 * @return <code>true</code> if this remote app entry is custom element use esm; <code>false</code> otherwise
+	 */
+	public boolean isCustomElementUseESM();
+
+	/**
+	 * Sets whether this remote app entry is custom element use esm.
+	 *
+	 * @param customElementUseESM the custom element use esm of this remote app entry
+	 */
+	public void setCustomElementUseESM(boolean customElementUseESM);
+
+	/**
+	 * Returns the description of this remote app entry.
+	 *
+	 * @return the description of this remote app entry
+	 */
+	@AutoEscape
+	public String getDescription();
+
+	/**
+	 * Sets the description of this remote app entry.
+	 *
+	 * @param description the description of this remote app entry
+	 */
+	public void setDescription(String description);
+
+	/**
+	 * Returns the friendly url mapping of this remote app entry.
+	 *
+	 * @return the friendly url mapping of this remote app entry
+	 */
+	@AutoEscape
+	public String getFriendlyURLMapping();
+
+	/**
+	 * Sets the friendly url mapping of this remote app entry.
+	 *
+	 * @param friendlyURLMapping the friendly url mapping of this remote app entry
+	 */
+	public void setFriendlyURLMapping(String friendlyURLMapping);
+
+	/**
+	 * Returns the i frame url of this remote app entry.
+	 *
+	 * @return the i frame url of this remote app entry
+	 */
+	@AutoEscape
+	public String getIFrameURL();
+
+	/**
+	 * Sets the i frame url of this remote app entry.
+	 *
+	 * @param iFrameURL the i frame url of this remote app entry
+	 */
+	public void setIFrameURL(String iFrameURL);
+
+	/**
+	 * Returns the instanceable of this remote app entry.
+	 *
+	 * @return the instanceable of this remote app entry
+	 */
+	public boolean getInstanceable();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is instanceable.
+	 *
+	 * @return <code>true</code> if this remote app entry is instanceable; <code>false</code> otherwise
+	 */
+	public boolean isInstanceable();
+
+	/**
+	 * Sets whether this remote app entry is instanceable.
+	 *
+	 * @param instanceable the instanceable of this remote app entry
+	 */
+	public void setInstanceable(boolean instanceable);
+
+	/**
 	 * Returns the name of this remote app entry.
 	 *
 	 * @return the name of this remote app entry
@@ -309,19 +458,209 @@ public interface RemoteAppEntryModel
 	public void setNameMap(Map<Locale, String> nameMap, Locale defaultLocale);
 
 	/**
-	 * Returns the url of this remote app entry.
+	 * Returns the portlet category name of this remote app entry.
 	 *
-	 * @return the url of this remote app entry
+	 * @return the portlet category name of this remote app entry
 	 */
 	@AutoEscape
-	public String getUrl();
+	public String getPortletCategoryName();
 
 	/**
-	 * Sets the url of this remote app entry.
+	 * Sets the portlet category name of this remote app entry.
 	 *
-	 * @param url the url of this remote app entry
+	 * @param portletCategoryName the portlet category name of this remote app entry
 	 */
-	public void setUrl(String url);
+	public void setPortletCategoryName(String portletCategoryName);
+
+	/**
+	 * Returns the properties of this remote app entry.
+	 *
+	 * @return the properties of this remote app entry
+	 */
+	@AutoEscape
+	public String getProperties();
+
+	/**
+	 * Sets the properties of this remote app entry.
+	 *
+	 * @param properties the properties of this remote app entry
+	 */
+	public void setProperties(String properties);
+
+	/**
+	 * Returns the source code url of this remote app entry.
+	 *
+	 * @return the source code url of this remote app entry
+	 */
+	@AutoEscape
+	public String getSourceCodeURL();
+
+	/**
+	 * Sets the source code url of this remote app entry.
+	 *
+	 * @param sourceCodeURL the source code url of this remote app entry
+	 */
+	public void setSourceCodeURL(String sourceCodeURL);
+
+	/**
+	 * Returns the type of this remote app entry.
+	 *
+	 * @return the type of this remote app entry
+	 */
+	@AutoEscape
+	public String getType();
+
+	/**
+	 * Sets the type of this remote app entry.
+	 *
+	 * @param type the type of this remote app entry
+	 */
+	public void setType(String type);
+
+	/**
+	 * Returns the status of this remote app entry.
+	 *
+	 * @return the status of this remote app entry
+	 */
+	@Override
+	public int getStatus();
+
+	/**
+	 * Sets the status of this remote app entry.
+	 *
+	 * @param status the status of this remote app entry
+	 */
+	@Override
+	public void setStatus(int status);
+
+	/**
+	 * Returns the status by user ID of this remote app entry.
+	 *
+	 * @return the status by user ID of this remote app entry
+	 */
+	@Override
+	public long getStatusByUserId();
+
+	/**
+	 * Sets the status by user ID of this remote app entry.
+	 *
+	 * @param statusByUserId the status by user ID of this remote app entry
+	 */
+	@Override
+	public void setStatusByUserId(long statusByUserId);
+
+	/**
+	 * Returns the status by user uuid of this remote app entry.
+	 *
+	 * @return the status by user uuid of this remote app entry
+	 */
+	@Override
+	public String getStatusByUserUuid();
+
+	/**
+	 * Sets the status by user uuid of this remote app entry.
+	 *
+	 * @param statusByUserUuid the status by user uuid of this remote app entry
+	 */
+	@Override
+	public void setStatusByUserUuid(String statusByUserUuid);
+
+	/**
+	 * Returns the status by user name of this remote app entry.
+	 *
+	 * @return the status by user name of this remote app entry
+	 */
+	@AutoEscape
+	@Override
+	public String getStatusByUserName();
+
+	/**
+	 * Sets the status by user name of this remote app entry.
+	 *
+	 * @param statusByUserName the status by user name of this remote app entry
+	 */
+	@Override
+	public void setStatusByUserName(String statusByUserName);
+
+	/**
+	 * Returns the status date of this remote app entry.
+	 *
+	 * @return the status date of this remote app entry
+	 */
+	@Override
+	public Date getStatusDate();
+
+	/**
+	 * Sets the status date of this remote app entry.
+	 *
+	 * @param statusDate the status date of this remote app entry
+	 */
+	@Override
+	public void setStatusDate(Date statusDate);
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is approved.
+	 *
+	 * @return <code>true</code> if this remote app entry is approved; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isApproved();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is denied.
+	 *
+	 * @return <code>true</code> if this remote app entry is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is a draft.
+	 *
+	 * @return <code>true</code> if this remote app entry is a draft; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDraft();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is expired.
+	 *
+	 * @return <code>true</code> if this remote app entry is expired; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isExpired();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is inactive.
+	 *
+	 * @return <code>true</code> if this remote app entry is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is incomplete.
+	 *
+	 * @return <code>true</code> if this remote app entry is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is pending.
+	 *
+	 * @return <code>true</code> if this remote app entry is pending; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isPending();
+
+	/**
+	 * Returns <code>true</code> if this remote app entry is scheduled.
+	 *
+	 * @return <code>true</code> if this remote app entry is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled();
 
 	/**
 	 * Returns the container model ID of this remote app entry.
@@ -375,5 +714,8 @@ public interface RemoteAppEntryModel
 	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
+
+	@Override
+	public RemoteAppEntry cloneWithOriginalValues();
 
 }

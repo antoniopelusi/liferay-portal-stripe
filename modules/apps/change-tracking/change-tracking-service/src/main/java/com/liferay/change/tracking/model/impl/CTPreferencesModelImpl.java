@@ -16,7 +16,6 @@ package com.liferay.change.tracking.model.impl;
 
 import com.liferay.change.tracking.model.CTPreferences;
 import com.liferay.change.tracking.model.CTPreferencesModel;
-import com.liferay.change.tracking.model.CTPreferencesSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -31,19 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -154,55 +153,6 @@ public class CTPreferencesModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CTPreferences toModel(CTPreferencesSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		CTPreferences model = new CTPreferencesImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtPreferencesId(soapModel.getCtPreferencesId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setPreviousCtCollectionId(soapModel.getPreviousCtCollectionId());
-		model.setConfirmationEnabled(soapModel.isConfirmationEnabled());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CTPreferences> toModels(CTPreferencesSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CTPreferences> models = new ArrayList<CTPreferences>(
-			soapModels.length);
-
-		for (CTPreferencesSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public CTPreferencesModelImpl() {
 	}
 
@@ -286,34 +236,6 @@ public class CTPreferencesModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CTPreferences>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CTPreferences.class.getClassLoader(), CTPreferences.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CTPreferences> constructor =
-				(Constructor<CTPreferences>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CTPreferences, Object>>
@@ -606,6 +528,28 @@ public class CTPreferencesModelImpl
 	}
 
 	@Override
+	public CTPreferences cloneWithOriginalValues() {
+		CTPreferencesImpl ctPreferencesImpl = new CTPreferencesImpl();
+
+		ctPreferencesImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ctPreferencesImpl.setCtPreferencesId(
+			this.<Long>getColumnOriginalValue("ctPreferencesId"));
+		ctPreferencesImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ctPreferencesImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		ctPreferencesImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ctPreferencesImpl.setPreviousCtCollectionId(
+			this.<Long>getColumnOriginalValue("previousCtCollectionId"));
+		ctPreferencesImpl.setConfirmationEnabled(
+			this.<Boolean>getColumnOriginalValue("confirmationEnabled"));
+
+		return ctPreferencesImpl;
+	}
+
+	@Override
 	public int compareTo(CTPreferences ctPreferences) {
 		long primaryKey = ctPreferences.getPrimaryKey();
 
@@ -701,7 +645,7 @@ public class CTPreferencesModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -712,9 +656,26 @@ public class CTPreferencesModelImpl
 			Function<CTPreferences, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CTPreferences)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CTPreferences)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -761,7 +722,9 @@ public class CTPreferencesModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CTPreferences>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CTPreferences.class, ModelWrapper.class);
 
 	}
 

@@ -21,6 +21,7 @@ definition {
 		}
 	}
 
+	@priority = "4"
 	test AssertSimilarResultsDisplayTemplate {
 		for (var count : list "1,2,3") {
 			JSONWebcontent.addWebContent(
@@ -68,6 +69,53 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_CARD_TITLE");
 	}
 
+	@priority = "4"
+	test AssertSimilarResultsDisplayWithBlogsWidget {
+		for (var count : list "1,2,3") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title ${count}");
+		}
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Similar Results Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Similar Results");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Blogs");
+
+		Navigator.gotoPage(pageName = "Similar Results Page");
+
+		SearchPortlets.configureSimilarResults(
+			displayTemplate = "Compact Layout",
+			fields = "localized_title_en_US",
+			minimumDocumentFrequency = "1",
+			minimumTermFrequency = "1");
+
+		AssertClick(
+			key_entryTitle = "Blogs Entry Title 1",
+			locator1 = "BlogsEntry#TITLE_LINK",
+			value1 = "Blogs Entry Title 1");
+
+		AssertElementPresent(
+			key_linkResultTitle = "Blogs Entry Title 2",
+			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+
+		AssertElementPresent(
+			key_linkResultTitle = "Blogs Entry Title 3",
+			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+	}
+
+	@priority = "4"
 	test AssertSimilarResultsMatchesAssetType {
 		for (var count : list "1,2,3") {
 			JSONBlog.addEntry(
@@ -247,6 +295,102 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	@priority = "4"
+	test CanViewSimilarResultsFromOtherSitesWithDocumentsWidget {
+		for (var siteName : list "Site Name 1,Site Name 2,Site Name 3") {
+			JSONGroup.addGroup(groupName = "${siteName}");
+		}
+
+		var count = "0";
+
+		for (var siteName : list "Guest,Site Name 1,Site Name 2,Site Name 3") {
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Document Description ${count}",
+				dmDocumentTitle = "DM Document Title ${count}",
+				groupName = "${siteName}");
+
+			var count = ${count} + 1;
+		}
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Similar Results Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Similar Results");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Documents and Media");
+
+		Navigator.gotoPage(pageName = "Similar Results Page");
+
+		SearchPortlets.configureSimilarResults(
+			displayTemplate = "Compact Layout",
+			fields = "localized_title_en_US",
+			minimumDocumentFrequency = "1",
+			minimumTermFrequency = "1",
+			searchScope = "Everything");
+
+		DMDocument.viewPG(dmDocumentTitle = "DM Document Title 0");
+
+		for (var count : list "1,2,3") {
+			AssertElementPresent(
+				key_linkResultTitle = "DM Document Title ${count}",
+				locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+		}
+	}
+
+	@priority = "4"
+	test CanViewSimilarResultsFromSearchResults {
+		for (var count : list "1,2,3") {
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Content",
+				dmDocumentTitle = "DM Document Title ${count}",
+				groupName = "Guest");
+		}
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Similar Results Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Similar Results");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Documents and Media");
+
+		Navigator.gotoPage(pageName = "Similar Results Page");
+
+		SearchPortlets.configureSimilarResults(
+			displayTemplate = "Compact Layout",
+			fields = "localized_title_en_US",
+			minimumDocumentFrequency = "1",
+			minimumTermFrequency = "1");
+
+		SearchPortlets.searchEmbedded(searchTerm = "DM Document Title");
+
+		Search.gotoResultAssetViaTitle(searchAssetTitle = "DM Document Title 1");
+
+		for (var count : list "2,3") {
+			AssertElementPresent(
+				key_linkResultTitle = "DM Document Title ${count}",
+				locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+		}
+	}
+
+	@priority = "4"
 	test ConfigureSimilarResultsDocumentFrequency {
 		property test.name.skip.portal.instance = "SimilarResults#ConfigureSimilarResultsDocumentFrequency";
 
@@ -270,12 +414,7 @@ definition {
 			groupName = "Guest",
 			title = "Charlie");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 
 		Navigator.openURL();
 
@@ -318,13 +457,14 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	@priority = "4"
 	test ConfigureSimilarResultsFields {
 		JSONBlog.addEntry(
 			entryContent = "Content",
 			entryTitle = "No Match Content");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Blogs");
 
 		Blogs.addEntryWithTag(
@@ -366,6 +506,7 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	@priority = "4"
 	test ConfigureSimilarResultsMaximumItemDisplay {
 		for (var titleName : list "Alpha,Bravo,Charlie,Delta,Echo,Foxtrot") {
 			JSONWebcontent.addWebContent(
@@ -406,6 +547,7 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_SPECIFIC_POSITION");
 	}
 
+	@priority = "4"
 	test ConfigureSimilarResultsMaximumQueryTerms {
 		for (var count : list "One, Two, Three") {
 			JSONWebcontent.addWebContent(
@@ -439,6 +581,7 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_SPECIFIC_POSITION");
 	}
 
+	@priority = "4"
 	test ConfigureSimilarResultsMinimumShouldMatch {
 		JSONWebcontent.addWebContent(
 			content = "WC Content",
@@ -498,6 +641,7 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	@priority = "4"
 	test ConfigureSimilarResultsStopWords {
 		JSONWebcontent.addWebContent(
 			content = "No Match",
@@ -557,6 +701,7 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	@priority = "4"
 	test ConfigureSimilarResultsTermFrequency {
 		for (var count : list "One, Two, Three") {
 			JSONWebcontent.addWebContent(
@@ -615,6 +760,7 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	@priority = "4"
 	test ConfigureSimilarResultsWordLength {
 		JSONWebcontent.addWebContent(
 			content = "WC Content",
@@ -673,6 +819,69 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	test ConfigureViewInContextLinkBehavior {
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Blogs Entry",
+			displayPageTemplateEntryName = "Blogs Display Page",
+			groupName = "Guest");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "guest");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Blogs Display Page");
+
+		Button.clickPublish();
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Similar Results Blog 1",
+			groupName = "Guest");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Similar Results Blog 2",
+			groupName = "Guest");
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoEditCP(entryTitle = "Similar Results Blog 2");
+
+		WebContent.editDisplayPage(pageName = "Blogs Display Page");
+
+		PortletEntry.publish();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			type = "content");
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Similar Results Page",
+			siteName = "Guest");
+
+		PageEditor.addWidget(portletName = "Blogs");
+
+		PageEditor.addWidget(
+			portletName = "Similar Results",
+			targetFragmentName = "Blogs");
+
+		SearchPortlets.configureSimilarResults(linkBehavior = "View in Context");
+
+		PageEditor.clickPublish();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest/similar-results-page");
+
+		Click(
+			key_entryTitle = "Similar Results Blog 1",
+			locator1 = "BlogsEntry#TITLE_LINK");
+
+		Click(
+			key_linkResultTitle = "Similar Results Blog 2",
+			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+
+		ControlMenu.viewHeaderTitle(headerTitle = "Blogs Display Page");
+	}
+
+	@priority = "4"
 	test ViewSimilarResultsOnContentPages {
 		JSONWebcontent.addWebContent(
 			content = "WC Content",
@@ -684,7 +893,7 @@ definition {
 			groupName = "Guest",
 			title = "Similar Results WC Title 2");
 
-		SitePages.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
 		ContentPages.addPage(pageName = "Similar Results Page");
 
@@ -694,7 +903,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest/similar-results-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addWidget(
 			portletName = "Similar Results",
@@ -726,6 +935,63 @@ definition {
 			key_assetTitle = "Similar Results WC Title 2",
 			locator1 = "AP#ASSET_ABSTRACT_TITLE",
 			value1 = "Similar Results WC Title 2");
+	}
+
+	@priority = "4"
+	test ViewSimilarResultsWithDifferentScope {
+		for (var siteName : list "Site Name 1,Site Name 2,Site Name 3") {
+			JSONGroup.addGroup(groupName = "${siteName}");
+		}
+
+		var count = "0";
+
+		for (var siteName : list "Guest,Site Name 1,Site Name 2,Site Name 3") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title ${count}",
+				groupName = "${siteName}");
+
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Document Description ${count}",
+				dmDocumentTitle = "DM Document Title ${count}",
+				groupName = "${siteName}");
+
+			JSONWebcontent.addWebContent(
+				content = "WC Content",
+				groupName = "${siteName}",
+				title = "WC Title ${count}");
+
+			JSONWiki.addWikiPage(
+				groupName = "${siteName}",
+				wikiNodeName = "Main",
+				wikiPageContent = "Wiki Page Content",
+				wikiPageName = "Wiki Page Title ${count}");
+
+			var count = ${count} + 1;
+		}
+
+		SearchPortlets.setupSimilarResultsPage();
+
+		SearchPortlets.configureSimilarResults(
+			displayTemplate = "Compact Layout",
+			fields = "localized_title_en_US",
+			minimumDocumentFrequency = "1",
+			minimumTermFrequency = "1",
+			searchScope = "Everything");
+
+		AssetPublisherPortlet.configureAssetLinkBehaviorPG(assetLinkBehavior = "Show Full Content");
+
+		for (var assetTitle : list "WC Title,DM Document Title,Blogs Entry Title,Wiki Page Title") {
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "${assetTitle} 0");
+
+			for (var count : list "1,2,3") {
+				AssertElementPresent(
+					key_linkResultTitle = "${assetTitle} ${count}",
+					locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+			}
+
+			Click(locator1 = "Icon#ANGLE_LEFT_BACK");
+		}
 	}
 
 }

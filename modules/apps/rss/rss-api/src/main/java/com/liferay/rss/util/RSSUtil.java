@@ -17,7 +17,7 @@ package com.liferay.rss.util;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -177,26 +177,27 @@ public class RSSUtil {
 		String name) {
 
 		if ((delta > 0) && (delta != SearchContainer.DEFAULT_DELTA)) {
-			url = HttpUtil.addParameter(url, "max", delta);
+			url = HttpComponentsUtil.addParameter(url, "max", delta);
 		}
 
 		if (Validator.isNotNull(displayStyle) &&
 			!displayStyle.equals(RSSUtil.DISPLAY_STYLE_DEFAULT)) {
 
-			url = HttpUtil.addParameter(url, "displayStyle", displayStyle);
+			url = HttpComponentsUtil.addParameter(
+				url, "displayStyle", displayStyle);
 		}
 
 		if (Validator.isNotNull(feedType) &&
 			!feedType.equals(RSSUtil.FEED_TYPE_DEFAULT)) {
 
-			url = HttpUtil.addParameter(
+			url = HttpComponentsUtil.addParameter(
 				url, "type", getFeedTypeFormat(feedType));
-			url = HttpUtil.addParameter(
+			url = HttpComponentsUtil.addParameter(
 				url, "version", String.valueOf(getFeedTypeVersion(feedType)));
 		}
 
 		if (Validator.isNotNull(name)) {
-			url = HttpUtil.addParameter(url, "feedTitle", name);
+			url = HttpComponentsUtil.addParameter(url, "feedTitle", name);
 		}
 
 		return url;

@@ -98,7 +98,7 @@ public class MBDiscussionStagedModelDataHandler
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return discussion.getUuid();
@@ -152,13 +152,10 @@ public class MBDiscussionStagedModelDataHandler
 				discussion.getClassName(), newClassPK);
 
 		if (existingDiscussion == null) {
-			long userId = portletDataContext.getUserId(
-				discussion.getUserUuid());
-
 			MBMessage rootMessage = _mbMessageLocalService.addDiscussionMessage(
-				userId, discussion.getUserName(),
-				portletDataContext.getScopeGroupId(), className, newClassPK,
-				WorkflowConstants.ACTION_PUBLISH);
+				portletDataContext.getUserId(discussion.getUserUuid()),
+				discussion.getUserName(), portletDataContext.getScopeGroupId(),
+				className, newClassPK, WorkflowConstants.ACTION_PUBLISH);
 
 			rootMessage.setCreateDate(discussion.getCreateDate());
 

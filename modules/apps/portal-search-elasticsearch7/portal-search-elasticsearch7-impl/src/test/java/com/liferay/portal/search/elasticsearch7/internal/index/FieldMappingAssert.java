@@ -45,15 +45,14 @@ public class FieldMappingAssert {
 	}
 
 	public static void assertFieldMappingMetadata(
-			final String expectedValue, final String key, final String field,
-			final String type, final String index,
-			final IndicesClient indicesClient)
+			String expectedValue, String key, String field, String type,
+			String index, IndicesClient indicesClient)
 		throws Exception {
 
 		IdempotentRetryAssert.retryAssert(
 			10, TimeUnit.SECONDS,
-			() -> doAssertFieldMappingMetadata(
-				expectedValue, key, field, type, index, indicesClient));
+			() -> _assertFieldMappingMetadata(
+				expectedValue, key, field, index, indicesClient));
 	}
 
 	public static void assertType(
@@ -65,21 +64,21 @@ public class FieldMappingAssert {
 			expectedValue, "type", field, type, index, indicesClient);
 	}
 
-	protected static void doAssertFieldMappingMetadata(
-		String expectedValue, String key, String field, String type,
-		String index, IndicesClient indicesClient) {
+	private static void _assertFieldMappingMetadata(
+		String expectedValue, String key, String field, String index,
+		IndicesClient indicesClient) {
 
-		FieldMappingMetadata fieldMappingMetadata = getFieldMapping(
-			field, type, index, indicesClient);
+		FieldMappingMetadata fieldMappingMetadata = _getFieldMapping(
+			field, index, indicesClient);
 
-		String value = getFieldMappingMetadataValue(
+		String value = _getFieldMappingMetadataValue(
 			fieldMappingMetadata, field, key);
 
 		Assert.assertEquals(expectedValue, value);
 	}
 
-	protected static FieldMappingMetadata getFieldMapping(
-		String field, String type, String index, IndicesClient indicesClient) {
+	private static FieldMappingMetadata _getFieldMapping(
+		String field, String index, IndicesClient indicesClient) {
 
 		GetFieldMappingsRequest getFieldMappingsRequest =
 			new GetFieldMappingsRequest();
@@ -99,7 +98,7 @@ public class FieldMappingAssert {
 		}
 	}
 
-	protected static String getFieldMappingMetadataValue(
+	private static String _getFieldMappingMetadataValue(
 		FieldMappingMetadata fieldMappingMetadata, String field, String key) {
 
 		Map<String, Object> mappings = fieldMappingMetadata.sourceAsMap();

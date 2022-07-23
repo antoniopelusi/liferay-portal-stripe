@@ -3,7 +3,6 @@ definition {
 
 	property cmis.repository.type = "sharepoint2010";
 	property custom.properties = "session.store.password=true${line.separator}company.security.auth.type=screenName";
-	property dummy.socket.proxy.disabled = "true";
 	property osgi.app.includes = "sharepoint-soap";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -11,15 +10,15 @@ definition {
 	property testray.main.component.name = "Sharepoint";
 
 	setUp {
-		TestCase.setUpPortalInstance();
+		TestCase.setUpPortalInstance(authenticationMethod = "By Screen Name");
 
-		var sharepointVMHostName = PropsUtil.get("cmis.repository.vm.host.name");
+		var sharepointVmHostName = PropsUtil.get("cmis.repository.vm.host.name");
 
 		AntCommand(
 			locator1 = "build-test-sharepoint.xml",
-			value1 = "clean-sharepoint-repository -Dssh.host=${sharepointVMHostName}");
+			value1 = "clean-sharepoint-repository -Dssh.host=${sharepointVmHostName}");
 
-		User.loginPG(
+		User.firstLoginByScreenNamePG(
 			authenticationMethod = "By Screen Name",
 			userScreenName = "test");
 
@@ -33,13 +32,13 @@ definition {
 
 		Navigator.gotoAccountSettings();
 
-		User.editPasswordViaMyAccount(
+		User.editPassword(
 			currentPassword = "test",
 			newPassword = "password");
 
 		User.logoutPG();
 
-		User.loginPG(
+		User.firstLoginUI(
 			authenticationMethod = "By Screen Name",
 			password = "password",
 			userScreenName = "administrator");
@@ -47,7 +46,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMNavigator.gotoAddRepositoryCP();
@@ -57,7 +56,7 @@ definition {
 		DMRepository.addSharepoint(
 			dmRepositoryLibraryName = "Documents",
 			dmRepositoryName = "Sharepoint",
-			dmRepositorySiteURL = "http://${sharepointVMHostName}");
+			dmRepositorySiteURL = "http://${sharepointVmHostName}");
 
 		PortletEntry.save();
 	}
@@ -66,7 +65,7 @@ definition {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
 		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
+			PortalInstances.tearDownCP(authenticationMethod = "By Screen Name");
 		}
 		else {
 			DMRepository.tearDownCP();
@@ -83,13 +82,13 @@ definition {
 
 			UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
 
-			User.editPasswordViaMyAccount(
+			User.editPassword(
 				currentPassword = "password",
 				newPassword = "test");
 
 			User.logoutPG();
 
-			User.loginPG(
+			User.loginByScreenNamePG(
 				authenticationMethod = "By Screen Name",
 				password = "test",
 				userScreenName = "test");
@@ -116,7 +115,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -134,7 +133,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -168,7 +167,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -182,7 +181,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -196,7 +195,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -205,7 +204,7 @@ definition {
 
 		DMDocument.cannotViewCP(dmDocumentTitle = "Document_2.doc");
 
-		DMDocument.viewDefaultCP();
+		DMDocument.viewDefault();
 	}
 
 	@priority = "4"
@@ -224,7 +223,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -254,10 +253,16 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_3.doc");
+
+		AssertElementPresent(locator1 = "Icon#EDIT_TAGS_DISABLED");
 
 		DMDocument.editCP(
 			dmDocumentFileEdit = "Document_2.jpg",
@@ -266,7 +271,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -294,7 +299,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -308,15 +313,19 @@ definition {
 		AssertElementNotPresent(
 			key_menuItem = "Download",
 			locator1 = "DocumentsAndMedia#SIDEBAR_MENU_ITEM");
+
 		AssertElementNotPresent(
 			key_menuItem = "Move",
 			locator1 = "DocumentsAndMedia#SIDEBAR_MENU_ITEM");
+
 		AssertElementPresent(
 			key_menuItem = "Add Folder",
 			locator1 = "DocumentsAndMedia#SIDEBAR_MENU_ITEM");
+
 		AssertElementPresent(
 			key_menuItem = "Delete",
 			locator1 = "DocumentsAndMedia#SIDEBAR_MENU_ITEM");
+
 		AssertElementPresent(
 			key_menuItem = "Edit",
 			locator1 = "DocumentsAndMedia#SIDEBAR_MENU_ITEM");
@@ -328,8 +337,11 @@ definition {
 		Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
 
 		MenuItem.viewNotPresent(menuItem = "Download");
+
 		MenuItem.viewNotPresent(menuItem = "Move");
+
 		MenuItem.viewPresent(menuItem = "Delete");
+
 		MenuItem.viewPresent(menuItem = "Edit");
 
 		MenuItem.click(menuItem = "Edit");
@@ -339,7 +351,7 @@ definition {
 		PortletEntry.save();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		AssertTextEquals(
@@ -356,7 +368,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -368,7 +380,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -384,7 +396,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -398,7 +410,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -437,7 +449,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_1.odt");
@@ -447,7 +459,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -469,7 +481,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		Search.searchCP(searchTerm = "Document_3.odt");
@@ -497,7 +509,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -517,7 +529,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -557,7 +569,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -575,7 +587,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
@@ -601,7 +613,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");

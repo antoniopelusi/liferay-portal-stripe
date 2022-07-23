@@ -1,0 +1,77 @@
+{
+	"configuration": {
+		"parameterConfiguration": {
+			"parameters": {
+				"product.code": {
+					"type": "String"
+				},
+				"version.number": {
+					"type": "String"
+				}
+			}
+		},
+		"queryConfiguration": {
+			"queryEntries": [
+				{
+					"clauses": [
+						{
+							"occur": "should",
+							"query": {
+								"term": {
+									"version": {
+										"value": "${version.number}"
+									}
+								}
+							}
+						}
+					]
+				},
+				{
+					"clauses": [
+						{
+							"occur": "must",
+							"query": {
+								"term": {
+									"ranking": {
+										"value": 5
+									}
+								}
+							}
+						}
+					],
+					"condition": {
+						"in": {
+							"parameterName": "product.code",
+							"value": [
+								"dxp",
+								"les"
+							]
+						}
+					}
+				},
+				{
+					"clauses": [
+						{
+							"occur": "must_not",
+							"query": {
+								"term": {
+									"ranking": {
+										"value": "1"
+									}
+								}
+							}
+						}
+					],
+					"condition": {
+						"not": {
+							"equals": {
+								"parameterName": "version.number",
+								"value": "${product.code}"
+							}
+						}
+					}
+				}
+			]
+		}
+	}
+}

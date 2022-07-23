@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.servlet.BrowserSniffer;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -30,12 +29,9 @@ import com.liferay.portal.kernel.util.TextFormatter;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Ambrín Chaudhary
@@ -59,12 +55,12 @@ public class TinyMCEEditorConfigContributor
 		jsonObject.put(
 			"mode", "exact"
 		).put(
-			"plugins", getPluginsJSONArray(inputEditorTaglibAttributes)
+			"plugins", _getPluginsJSONArray(inputEditorTaglibAttributes)
 		).put(
-			"style_formats", getStyleFormatsJSONArray(themeDisplay.getLocale())
+			"style_formats", _getStyleFormatsJSONArray(themeDisplay.getLocale())
 		).put(
 			"toolbar",
-			getToolbarJSONArray(inputEditorTaglibAttributes, themeDisplay)
+			_getToolbarJSONArray(inputEditorTaglibAttributes, themeDisplay)
 		);
 	}
 
@@ -73,26 +69,28 @@ public class TinyMCEEditorConfigContributor
 		return _itemSelector;
 	}
 
-	protected JSONArray getPluginsJSONArray(
+	private JSONArray _getPluginsJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
-		JSONArray jsonArray = JSONUtil.putAll(
+		return JSONUtil.putAll(
 			"advlist autolink autosave link image lists charmap print " +
 				"preview hr anchor",
-			"searchreplace wordcount fullscreen media");
+			"searchreplace wordcount fullscreen media"
+		).put(
+			() -> {
+				if (isShowSource(inputEditorTaglibAttributes)) {
+					return "code";
+				}
 
-		if (isShowSource(inputEditorTaglibAttributes)) {
-			jsonArray.put("code");
-		}
-
-		jsonArray.put(
+				return null;
+			}
+		).put(
 			"table contextmenu emoticons textcolor paste fullpage textcolor " +
-				"colorpicker textpattern");
-
-		return jsonArray;
+				"colorpicker textpattern"
+		);
 	}
 
-	protected JSONObject getStyleFormatJSONObject(
+	private JSONObject _getStyleFormatJSONObject(
 		String styleFormatName, String type, String element,
 		String cssClasses) {
 
@@ -105,51 +103,46 @@ public class TinyMCEEditorConfigContributor
 		);
 	}
 
-	protected JSONArray getStyleFormatsJSONArray(Locale locale) {
-		ResourceBundle resourceBundle =
-			_resourceBundleLoader.loadResourceBundle(locale);
-
+	private JSONArray _getStyleFormatsJSONArray(Locale locale) {
 		return JSONUtil.putAll(
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "normal"), "inline", "p",
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "normal"), "inline", "p", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "1"), "block", "h1",
 				null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "1"), "block",
-				"h1", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "2"), "block",
-				"h2", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "3"), "block",
-				"h3", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "4"), "block",
-				"h4", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "preformatted-text"), "block",
-				"pre", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "cited-work"), "inline",
-				"cite", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "computer-code"), "inline",
-				"code", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "info-message"), "block",
-				"div", "portlet-msg-info"),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "alert-message"), "block",
-				"div", "portlet-msg-alert"),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "error-message"), "block",
-				"div", "portlet-msg-error"));
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "2"), "block", "h2",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "3"), "block", "h3",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "4"), "block", "h4",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "preformatted-text"), "block", "pre",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "cited-work"), "inline", "cite", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "computer-code"), "inline", "code",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "info-message"), "block", "div",
+				"portlet-msg-info"),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "alert-message"), "block", "div",
+				"portlet-msg-alert"),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "error-message"), "block", "div",
+				"portlet-msg-error"));
 	}
 
-	protected JSONArray getToolbarJSONArray(
+	private JSONArray _getToolbarJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes,
 		ThemeDisplay themeDisplay) {
 
-		JSONObject toolbarsJSONObject = getToolbarsJSONObject(
+		JSONObject toolbarsJSONObject = _getToolbarsJSONObject(
 			inputEditorTaglibAttributes);
 
 		String toolbarSet = (String)inputEditorTaglibAttributes.get(
@@ -172,13 +165,8 @@ public class TinyMCEEditorConfigContributor
 		return toolbarJSONArray;
 	}
 
-	protected JSONArray getToolbarsEmailJSONArray(
+	private JSONArray _getToolbarsEmailJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
-
-		JSONArray jsonArray = JSONUtil.put(
-			"fontselect fontsizeselect | forecolor backcolor | bold italic " +
-				"underline strikethrough | alignleft aligncenter alignright " +
-					"alignjustify");
 
 		String buttons =
 			"cut copy paste bullist numlist | blockquote | undo redo | link " +
@@ -190,28 +178,30 @@ public class TinyMCEEditorConfigContributor
 
 		buttons += "| hr removeformat | preview print fullscreen";
 
-		jsonArray.put(buttons);
-
-		return jsonArray;
+		return JSONUtil.putAll(
+			"fontselect fontsizeselect | forecolor backcolor | bold italic " +
+				"underline strikethrough | alignleft aligncenter alignright " +
+					"alignjustify",
+			buttons);
 	}
 
-	protected JSONObject getToolbarsJSONObject(
+	private JSONObject _getToolbarsJSONObject(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
 		return JSONUtil.put(
-			"email", getToolbarsEmailJSONArray(inputEditorTaglibAttributes)
+			"email", _getToolbarsEmailJSONArray(inputEditorTaglibAttributes)
 		).put(
-			"liferay", getToolbarsLiferayJSONArray(inputEditorTaglibAttributes)
+			"liferay", _getToolbarsLiferayJSONArray(inputEditorTaglibAttributes)
 		).put(
-			"phone", getToolbarsPhoneJSONArray()
+			"phone", _getToolbarsPhoneJSONArray()
 		).put(
-			"simple", getToolbarsSimpleJSONArray(inputEditorTaglibAttributes)
+			"simple", _getToolbarsSimpleJSONArray(inputEditorTaglibAttributes)
 		).put(
-			"tablet", getToolbarsTabletJSONArray(inputEditorTaglibAttributes)
+			"tablet", _getToolbarsTabletJSONArray(inputEditorTaglibAttributes)
 		);
 	}
 
-	protected JSONArray getToolbarsLiferayJSONArray(
+	private JSONArray _getToolbarsLiferayJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
 		String buttons =
@@ -231,12 +221,12 @@ public class TinyMCEEditorConfigContributor
 				"emoticons | preview print fullscreen");
 	}
 
-	protected JSONArray getToolbarsPhoneJSONArray() {
+	private JSONArray _getToolbarsPhoneJSONArray() {
 		return JSONUtil.putAll(
 			"bold italic underline | bullist numlist", "link unlink image");
 	}
 
-	protected JSONArray getToolbarsSimpleJSONArray(
+	private JSONArray _getToolbarsSimpleJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
 		String buttons =
@@ -250,13 +240,8 @@ public class TinyMCEEditorConfigContributor
 		return JSONUtil.put(buttons);
 	}
 
-	protected JSONArray getToolbarsTabletJSONArray(
+	private JSONArray _getToolbarsTabletJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
-
-		JSONArray jsonArray = JSONUtil.put(
-			"styleselect fontselect fontsizeselect | bold italic underline " +
-				"strikethrough | alignleft aligncenter alignright " +
-					"alignjustify");
 
 		String buttons = "bullist numlist | link unlink image";
 
@@ -264,9 +249,10 @@ public class TinyMCEEditorConfigContributor
 			buttons += " code";
 		}
 
-		jsonArray.put(buttons);
-
-		return jsonArray;
+		return JSONUtil.putAll(
+			"styleselect fontselect fontsizeselect | bold italic underline " +
+				"strikethrough | alignleft aligncenter alignright alignjustify",
+			buttons);
 	}
 
 	@Reference
@@ -274,12 +260,5 @@ public class TinyMCEEditorConfigContributor
 
 	@Reference
 	private ItemSelector _itemSelector;
-
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(bundle.symbolic.name=com.liferay.frontend.editor.lang)"
-	)
-	private volatile ResourceBundleLoader _resourceBundleLoader;
 
 }

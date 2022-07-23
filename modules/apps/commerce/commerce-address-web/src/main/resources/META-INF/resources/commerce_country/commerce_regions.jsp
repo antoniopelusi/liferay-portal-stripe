@@ -89,7 +89,7 @@ CommerceRegionsDisplayContext commerceRegionsDisplayContext = (CommerceRegionsDi
 					modelVar="region"
 				>
 					<liferay-ui:search-container-column-text
-						cssClass="important table-cell-expand"
+						cssClass="font-weight-bold important table-cell-expand"
 						href='<%=
 							PortletURLBuilder.createRenderURL(
 								renderResponse
@@ -101,7 +101,7 @@ CommerceRegionsDisplayContext commerceRegionsDisplayContext = (CommerceRegionsDi
 								"countryId", region.getCountryId()
 							).setParameter(
 								"regionId", region.getRegionId()
-							).build()
+							).buildPortletURL()
 						%>'
 						property="name"
 					/>

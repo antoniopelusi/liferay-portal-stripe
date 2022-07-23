@@ -15,7 +15,7 @@
 package com.liferay.portal.webdav.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ProxyFactory;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
@@ -57,12 +57,11 @@ public class WebDAVUtilTest {
 
 		_serviceRegistration = bundleContext.registerService(
 			WebDAVStorage.class, _webDAVStorage,
-			new HashMapDictionary<String, Object>() {
-				{
-					put("service.ranking", Integer.MAX_VALUE);
-					put("webdav.storage.token", _TOKEN);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"service.ranking", Integer.MAX_VALUE
+			).put(
+				"webdav.storage.token", _TOKEN
+			).build());
 	}
 
 	@AfterClass

@@ -124,17 +124,21 @@ public class AssetEntriesSearchFacet extends BaseJSPSearchFacet {
 
 		facetConfiguration.setClassName(getFacetClassName());
 
-		JSONObject jsonObject = JSONUtil.put("frequencyThreshold", 1);
+		facetConfiguration.setDataJSONObject(
+			JSONUtil.put(
+				"frequencyThreshold", 1
+			).put(
+				"values",
+				() -> {
+					JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+					for (String assetType : getAssetTypes(companyId)) {
+						jsonArray.put(assetType);
+					}
 
-		for (String assetType : getAssetTypes(companyId)) {
-			jsonArray.put(assetType);
-		}
-
-		jsonObject.put("values", jsonArray);
-
-		facetConfiguration.setDataJSONObject(jsonObject);
+					return jsonArray;
+				}
+			));
 
 		facetConfiguration.setFieldName(getFieldName());
 		facetConfiguration.setLabel(getLabel());
@@ -164,31 +168,34 @@ public class AssetEntriesSearchFacet extends BaseJSPSearchFacet {
 
 	@Override
 	public JSONObject getJSONData(ActionRequest actionRequest) {
-		int frequencyThreshold = ParamUtil.getInteger(
-			actionRequest, getClassName() + "frequencyThreshold", 1);
+		return JSONUtil.put(
+			"frequencyThreshold",
+			ParamUtil.getInteger(
+				actionRequest, getClassName() + "frequencyThreshold", 1)
+		).put(
+			"values",
+			() -> {
+				String[] assetTypes = StringUtil.split(
+					ParamUtil.getString(
+						actionRequest, getClassName() + "assetTypes"));
 
-		JSONObject jsonObject = JSONUtil.put(
-			"frequencyThreshold", frequencyThreshold);
+				JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-		String[] assetTypes = StringUtil.split(
-			ParamUtil.getString(actionRequest, getClassName() + "assetTypes"));
+				if (ArrayUtil.isEmpty(assetTypes)) {
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)actionRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
 
-		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+					assetTypes = getAssetTypes(themeDisplay.getCompanyId());
+				}
 
-		if (ArrayUtil.isEmpty(assetTypes)) {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
+				for (String assetType : assetTypes) {
+					jsonArray.put(assetType);
+				}
 
-			assetTypes = getAssetTypes(themeDisplay.getCompanyId());
-		}
-
-		for (String assetType : assetTypes) {
-			jsonArray.put(assetType);
-		}
-
-		jsonObject.put("values", jsonArray);
-
-		return jsonObject;
+				return jsonArray;
+			}
+		);
 	}
 
 	@Override

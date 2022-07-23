@@ -99,7 +99,7 @@ public class DDLPortlet extends MVCPortlet {
 
 		super.processAction(actionRequest, actionResponse);
 
-		setCloseRedirect(actionRequest);
+		_setCloseRedirect(actionRequest);
 	}
 
 	@Override
@@ -127,7 +127,7 @@ public class DDLPortlet extends MVCPortlet {
 			// key for a new record set that does not yet exist
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 		catch (PortalException portalException) {
@@ -207,21 +207,6 @@ public class DDLPortlet extends MVCPortlet {
 		}
 	}
 
-	protected void setCloseRedirect(ActionRequest actionRequest) {
-		String closeRedirect = ParamUtil.getString(
-			actionRequest, "closeRedirect");
-
-		if (Validator.isNull(closeRedirect)) {
-			return;
-		}
-
-		SessionMessages.add(
-			actionRequest,
-			_portal.getPortletId(actionRequest) +
-				SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
-			closeRedirect);
-	}
-
 	protected void setDDLRecordRequestAttribute(RenderRequest renderRequest)
 		throws PortalException {
 
@@ -263,6 +248,21 @@ public class DDLPortlet extends MVCPortlet {
 		DDLWebConfigurationActivator ddlWebConfigurationActivator) {
 
 		_ddlWebConfigurationActivator = null;
+	}
+
+	private void _setCloseRedirect(ActionRequest actionRequest) {
+		String closeRedirect = ParamUtil.getString(
+			actionRequest, "closeRedirect");
+
+		if (Validator.isNull(closeRedirect)) {
+			return;
+		}
+
+		SessionMessages.add(
+			actionRequest,
+			_portal.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
+			closeRedirect);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(DDLPortlet.class);

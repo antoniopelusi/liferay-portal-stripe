@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.servlet.TransferHeadersHelperUtil;
 import com.liferay.portal.kernel.servlet.URLEncoder;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -592,7 +593,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		List<Element> elements = _markupHeadElements.get(
 			MimeResponse.MARKUP_HEAD_ELEMENT);
 
-		if ((elements == null) || elements.isEmpty()) {
+		if (ListUtil.isEmpty(elements)) {
 			return;
 		}
 
@@ -628,10 +629,15 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		}
+	}
+
+	protected void clearHeaders() {
+		_headers.clear();
+		_markupHeadElements.clear();
 	}
 
 	protected Layout getLayout(

@@ -285,7 +285,7 @@ public class TextFormatter {
 	}
 
 	private static String _formatH(String s) {
-		StringBuilder sb = new StringBuilder(s.length() * 2);
+		StringBundler sb = new StringBundler(s.length() * 2);
 
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
@@ -384,7 +384,7 @@ public class TextFormatter {
 	}
 
 	private static String _formatM(String s) {
-		StringBuilder sb = new StringBuilder(s.length());
+		StringBundler sb = new StringBundler(s.length());
 
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);

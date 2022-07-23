@@ -52,4 +52,12 @@ public class WikiNodeResourceTest extends BaseWikiNodeResourceTestCase {
 		return new String[] {"creatorId"};
 	}
 
+	@Override
+	protected com.liferay.headless.delivery.client.dto.v1_0.WikiNode
+			testGraphQLWikiNode_addWikiNode()
+		throws Exception {
+
+		return testGetWikiNode_addWikiNode();
+	}
+
 }

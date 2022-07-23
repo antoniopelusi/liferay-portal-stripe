@@ -27,9 +27,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public class CPDefinitionOptionValueRelImpl
 	extends CPDefinitionOptionValueRelBaseImpl {
 
-	public CPDefinitionOptionValueRelImpl() {
-	}
-
 	@Override
 	public CPInstance fetchCPInstance() {
 		return CPInstanceLocalServiceUtil.fetchCProductInstance(

@@ -289,6 +289,10 @@ public class RoleLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -528,8 +532,6 @@ public class RoleLocalServiceUtil {
 	 * @param scope the permission scope
 	 * @param primKey the primary key of the resource's class
 	 * @return the role names and action IDs
-	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder#findByC_N_S_P(
-	 long, String, int, String)
 	 */
 	public static Map<String, List<String>> getResourceRoles(
 		long companyId, String name, int scope, String primKey) {
@@ -547,8 +549,6 @@ public class RoleLocalServiceUtil {
 	 * @param primKey the primary key of the resource's class
 	 * @param actionId the name of the resource action
 	 * @return the roles
-	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder#findByC_N_S_P_A(
-	 long, String, int, String, String)
 	 */
 	public static List<Role> getResourceRoles(
 		long companyId, String name, int scope, String primKey,
@@ -795,8 +795,6 @@ public class RoleLocalServiceUtil {
 	 * @param userId the primary key of the user
 	 * @param groupId the primary key of the group
 	 * @return the user's roles within the user group
-	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder#findByUserGroupGroupRole(
-	 long, long)
 	 */
 	public static List<Role> getUserGroupGroupRoles(long userId, long groupId) {
 		return getService().getUserGroupGroupRoles(userId, groupId);
@@ -818,8 +816,6 @@ public class RoleLocalServiceUtil {
 	 * @param userId the primary key of the user
 	 * @param groupId the primary key of the group
 	 * @return the user's roles within the user group
-	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder#findByUserGroupRole(
-	 long, long)
 	 */
 	public static List<Role> getUserGroupRoles(long userId, long groupId) {
 		return getService().getUserGroupRoles(userId, groupId);
@@ -841,8 +837,6 @@ public class RoleLocalServiceUtil {
 	 * @param userId the primary key of the user
 	 * @param groups the groups (optionally <code>null</code>)
 	 * @return the union of all the user's roles within the groups
-	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder#findByU_G(
-	 long, List)
 	 */
 	public static List<Role> getUserRelatedRoles(
 		long userId, List<com.liferay.portal.kernel.model.Group> groups) {
@@ -856,8 +850,6 @@ public class RoleLocalServiceUtil {
 	 * @param userId the primary key of the user
 	 * @param groupId the primary key of the group
 	 * @return the user's roles within the group
-	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder#findByU_G(
-	 long, long)
 	 */
 	public static List<Role> getUserRelatedRoles(long userId, long groupId) {
 		return getService().getUserRelatedRoles(userId, groupId);
@@ -869,8 +861,6 @@ public class RoleLocalServiceUtil {
 	 * @param userId the primary key of the user
 	 * @param groupIds the primary keys of the groups
 	 * @return the union of all the user's roles within the groups
-	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder#findByU_G(
-	 long, long[])
 	 */
 	public static List<Role> getUserRelatedRoles(long userId, long[] groupIds) {
 		return getService().getUserRelatedRoles(userId, groupIds);
@@ -954,37 +944,6 @@ public class RoleLocalServiceUtil {
 	}
 
 	/**
-	 * Returns a role with the name in the company.
-	 *
-	 * @param companyId the primary key of the company
-	 * @param name the role's name (optionally <code>null</code>)
-	 * @return the role with the name, or <code>null</code> if a role with the
-	 name could not be found in the company
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #fetchRole(long, String)}
-	 */
-	@Deprecated
-	public static Role loadFetchRole(long companyId, String name) {
-		return getService().loadFetchRole(companyId, name);
-	}
-
-	/**
-	 * Returns a role with the name in the company.
-	 *
-	 * @param companyId the primary key of the company
-	 * @param name the role's name
-	 * @return the role with the name in the company
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getRole(long, String)}
-	 */
-	@Deprecated
-	public static Role loadGetRole(long companyId, String name)
-		throws PortalException {
-
-		return getService().loadGetRole(companyId, name);
-	}
-
-	/**
 	 * Returns an ordered range of all the roles that match the keywords and
 	 * types.
 	 *
@@ -994,7 +953,7 @@ public class RoleLocalServiceUtil {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *
@@ -1029,7 +988,7 @@ public class RoleLocalServiceUtil {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *
@@ -1068,7 +1027,7 @@ public class RoleLocalServiceUtil {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *
@@ -1103,7 +1062,7 @@ public class RoleLocalServiceUtil {
 	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
 	 * refers to the first result in the set. Setting both <code>start</code>
 	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	 * QueryUtil#ALL_POS} will return the full
 	 * result set.
 	 * </p>
 	 *

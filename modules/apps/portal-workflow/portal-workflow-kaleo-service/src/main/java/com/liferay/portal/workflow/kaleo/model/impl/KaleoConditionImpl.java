@@ -18,8 +18,4 @@ package com.liferay.portal.workflow.kaleo.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class KaleoConditionImpl extends KaleoConditionBaseImpl {
-
-	public KaleoConditionImpl() {
-	}
-
 }

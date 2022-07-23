@@ -29,9 +29,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public class CPDefinitionSpecificationOptionValueImpl
 	extends CPDefinitionSpecificationOptionValueBaseImpl {
 
-	public CPDefinitionSpecificationOptionValueImpl() {
-	}
-
 	@Override
 	public CPDefinition getCPDefinition() throws PortalException {
 		return CPDefinitionLocalServiceUtil.getCPDefinition(

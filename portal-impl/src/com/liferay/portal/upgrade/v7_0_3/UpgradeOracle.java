@@ -34,40 +34,36 @@ public class UpgradeOracle extends UpgradeProcess {
 
 	protected void alterVarchar2Columns() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select table_name, column_name, data_length from " +
 					"user_tab_columns where data_type = 'VARCHAR2' and " +
 						"char_used = 'B'");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				String tableName = rs.getString(1);
+			while (resultSet.next()) {
+				String tableName = resultSet.getString(1);
 
 				if (!isPortal62TableName(tableName)) {
 					continue;
 				}
 
-				String columnName = rs.getString(2);
+				String columnName = resultSet.getString(2);
 
 				try {
 					runSQL(
 						StringBundler.concat(
 							"alter table ", tableName, " modify ", columnName,
-							" varchar2(", rs.getInt(3), " char)"));
+							" varchar2(", resultSet.getInt(3), " char)"));
 				}
 				catch (SQLException sqlException) {
 					if (sqlException.getErrorCode() == 1441) {
 						if (_log.isWarnEnabled()) {
-							StringBundler sb = new StringBundler(6);
-
-							sb.append("Unable to alter length of column ");
-							sb.append(columnName);
-							sb.append(" for table ");
-							sb.append(tableName);
-							sb.append(" because it contains values that are ");
-							sb.append("larger than the new column length");
-
-							_log.warn(sb.toString());
+							_log.warn(
+								StringBundler.concat(
+									"Unable to alter length of column ",
+									columnName, " for table ", tableName,
+									" because it contains values that are ",
+									"larger than the new column length"));
 						}
 					}
 					else {

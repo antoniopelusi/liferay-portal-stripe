@@ -43,11 +43,12 @@ public abstract class BaseUpgradeClassNames extends UpgradeProcess {
 		updateClassName("KaleoTaskAssignmentInstance", "assigneeClassName");
 		updateClassName("KaleoTaskInstanceToken", "className");
 
-		updateWorkflowContextEntryClassName("KaleoInstance", "kaleoInstanceId");
-		updateWorkflowContextEntryClassName("KaleoLog", "kaleoLogId");
-		updateWorkflowContextEntryClassName(
+		_updateWorkflowContextEntryClassName(
+			"KaleoInstance", "kaleoInstanceId");
+		_updateWorkflowContextEntryClassName("KaleoLog", "kaleoLogId");
+		_updateWorkflowContextEntryClassName(
 			"KaleoTaskInstanceToken", "kaleoTaskInstanceTokenId");
-		updateWorkflowContextEntryClassName(
+		_updateWorkflowContextEntryClassName(
 			"KaleoTimerInstanceToken", "kaleoTimerInstanceTokenId");
 	}
 
@@ -62,31 +63,32 @@ public abstract class BaseUpgradeClassNames extends UpgradeProcess {
 			String workflowContext)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"update ", tableName, " set workflowContext = ? where ",
 					primaryKeyName, " = ?"))) {
 
-			ps.setString(1, workflowContext);
-			ps.setLong(2, primaryKeyValue);
+			preparedStatement.setString(1, workflowContext);
+			preparedStatement.setLong(2, primaryKeyValue);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void updateWorkflowContextEntryClassName(
+	private void _updateWorkflowContextEntryClassName(
 			String tableName, String primaryKeyName)
 		throws Exception {
 
 		try (LoggingTimer loggingTimer = new LoggingTimer(tableName);
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select ", primaryKeyName, ", workflowContext from ",
 					tableName, " where workflowContext is not null"));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				String workflowContextJSON = rs.getString("workflowContext");
+			while (resultSet.next()) {
+				String workflowContextJSON = resultSet.getString(
+					"workflowContext");
 
 				if (Validator.isNull(workflowContextJSON)) {
 					continue;
@@ -96,7 +98,7 @@ public abstract class BaseUpgradeClassNames extends UpgradeProcess {
 					updateWorkflowContext(workflowContextJSON);
 
 				if (workflowContext != null) {
-					long primaryKeyValue = rs.getLong(primaryKeyName);
+					long primaryKeyValue = resultSet.getLong(primaryKeyName);
 
 					updateWorkflowContext(
 						tableName, primaryKeyName, primaryKeyValue,

@@ -23,10 +23,12 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.AuditedModel;
 import com.liferay.portal.kernel.model.ClassedModel;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.TypedModel;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.SystemEventLocalServiceUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntry;
@@ -87,17 +89,17 @@ public class SystemEventAdvice extends ChainableMethodAdvice {
 
 		SystemEvent systemEvent = aopMethodInvocation.getAdviceMethodContext();
 
-		if (!systemEvent.send()) {
-			return;
-		}
+		if (!systemEvent.send() ||
+			!isValid(aopMethodInvocation, arguments, _PHASE_AFTER_RETURNING)) {
 
-		if (!isValid(aopMethodInvocation, arguments, _PHASE_AFTER_RETURNING)) {
 			return;
 		}
 
 		ClassedModel classedModel = (ClassedModel)arguments[0];
 
 		long groupId = getGroupId(classedModel);
+
+		Group group = GroupLocalServiceUtil.fetchGroup(groupId);
 
 		String className = getClassName(classedModel);
 
@@ -117,7 +119,7 @@ public class SystemEventAdvice extends ChainableMethodAdvice {
 		if ((systemEventHierarchyEntry != null) &&
 			systemEventHierarchyEntry.hasTypedModel(className, classPK)) {
 
-			if (groupId > 0) {
+			if (group != null) {
 				SystemEventLocalServiceUtil.addSystemEvent(
 					0, groupId, systemEventHierarchyEntry.getClassName(),
 					classPK, systemEventHierarchyEntry.getUuid(),
@@ -133,7 +135,7 @@ public class SystemEventAdvice extends ChainableMethodAdvice {
 					systemEventHierarchyEntry.getExtraData());
 			}
 		}
-		else if (groupId > 0) {
+		else if (group != null) {
 			SystemEventLocalServiceUtil.addSystemEvent(
 				0, groupId, className, classPK, getUuid(classedModel),
 				referrerClassName, systemEvent.type(), StringPool.BLANK);
@@ -152,11 +154,9 @@ public class SystemEventAdvice extends ChainableMethodAdvice {
 
 		SystemEvent systemEvent = aopMethodInvocation.getAdviceMethodContext();
 
-		if (!isValid(aopMethodInvocation, arguments, _PHASE_DURING_FINALLY)) {
-			return;
-		}
+		if (!isValid(aopMethodInvocation, arguments, _PHASE_DURING_FINALLY) ||
+			(systemEvent.action() == SystemEventConstants.ACTION_NONE)) {
 
-		if (systemEvent.action() == SystemEventConstants.ACTION_NONE) {
 			return;
 		}
 
@@ -244,7 +244,7 @@ public class SystemEventAdvice extends ChainableMethodAdvice {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;
@@ -306,14 +306,12 @@ public class SystemEventAdvice extends ChainableMethodAdvice {
 			!StagedModel.class.isAssignableFrom(parameterType)) {
 
 			if (_log.isDebugEnabled()) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("If send is true, the first parameter of ");
-				sb.append(aopMethodInvocation);
-				sb.append(" must implement AuditedModel, GroupedModel, or ");
-				sb.append("StagedModel");
-
-				_log.debug(sb.toString());
+				_log.debug(
+					StringBundler.concat(
+						"If send is true, the first parameter of ",
+						aopMethodInvocation,
+						" must implement AuditedModel, GroupedModel, or ",
+						"StagedModel"));
 			}
 
 			return false;

@@ -835,8 +835,6 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 
 			setProps(PropsTestUtil.setProps(Collections.emptyMap()));
 
-			_clusterNodes = new ConcurrentHashMap<>();
-
 			if (enabled) {
 				initialize(
 					"test-channel-logic-name-mock",
@@ -849,7 +847,8 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 			}
 		}
 
-		private final Map<Address, ClusterNode> _clusterNodes;
+		private final Map<Address, ClusterNode> _clusterNodes =
+			new ConcurrentHashMap<>();
 		private final boolean _enabled;
 
 	}

@@ -49,27 +49,21 @@ public class CommerceSubscriptionEntryUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		addColumn(
-			CommerceSubscriptionEntryModelImpl.class,
-			CommerceSubscriptionEntryModelImpl.TABLE_NAME, "CPInstanceUUID",
-			"VARCHAR(75)");
-		addColumn(
-			CommerceSubscriptionEntryModelImpl.class,
-			CommerceSubscriptionEntryModelImpl.TABLE_NAME, "CProductId",
-			"LONG");
+		addColumn("CommerceSubscriptionEntry", "CPInstanceUUID", "VARCHAR(75)");
+		addColumn("CommerceSubscriptionEntry", "CProductId", "LONG");
 
 		_addIndexes(CommerceSubscriptionEntryModelImpl.TABLE_NAME);
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update CommerceSubscriptionEntry set CProductId = ?," +
 					"CPInstanceUUID = ? where CPInstanceId = ?");
 			Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select distinct CPInstanceId from " +
 					"CommerceSubscriptionEntry")) {
 
-			while (rs.next()) {
-				long cpInstanceId = rs.getLong("CPInstanceId");
+			while (resultSet.next()) {
+				long cpInstanceId = resultSet.getLong("CPInstanceId");
 
 				CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(
 					cpInstanceId);
@@ -78,13 +72,13 @@ public class CommerceSubscriptionEntryUpgradeProcess
 					_cpDefinitionLocalService.getCPDefinition(
 						cpInstance.getCPDefinitionId());
 
-				ps.setLong(1, cpDefinition.getCProductId());
+				preparedStatement.setLong(1, cpDefinition.getCProductId());
 
-				ps.setString(2, cpInstance.getCPInstanceUuid());
+				preparedStatement.setString(2, cpInstance.getCPInstanceUuid());
 
-				ps.setLong(3, cpInstanceId);
+				preparedStatement.setLong(3, cpInstanceId);
 
-				ps.execute();
+				preparedStatement.execute();
 			}
 		}
 
@@ -125,11 +119,11 @@ public class CommerceSubscriptionEntryUpgradeProcess
 
 		DatabaseMetaData metadata = connection.getMetaData();
 
-		try (ResultSet rs = metadata.getIndexInfo(
+		try (ResultSet resultSet = metadata.getIndexInfo(
 				null, null, tableName, false, false)) {
 
-			while (rs.next()) {
-				String curIndexName = rs.getString("index_name");
+			while (resultSet.next()) {
+				String curIndexName = resultSet.getString("index_name");
 
 				if (Objects.equals(indexName, curIndexName)) {
 					return true;

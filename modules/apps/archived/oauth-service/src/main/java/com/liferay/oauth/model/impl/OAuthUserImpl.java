@@ -18,8 +18,4 @@ package com.liferay.oauth.model.impl;
  * @author Ivica Cardic
  */
 public class OAuthUserImpl extends OAuthUserBaseImpl {
-
-	public OAuthUserImpl() {
-	}
-
 }

@@ -154,6 +154,11 @@ public class KaleoDefinitionWrapper
 		}
 	}
 
+	@Override
+	public KaleoDefinition cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this kaleo definition.
 	 *

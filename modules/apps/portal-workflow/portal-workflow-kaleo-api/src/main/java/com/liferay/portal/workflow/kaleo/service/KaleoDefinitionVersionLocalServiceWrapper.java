@@ -27,6 +27,10 @@ public class KaleoDefinitionVersionLocalServiceWrapper
 	implements KaleoDefinitionVersionLocalService,
 			   ServiceWrapper<KaleoDefinitionVersionLocalService> {
 
+	public KaleoDefinitionVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoDefinitionVersionLocalServiceWrapper(
 		KaleoDefinitionVersionLocalService kaleoDefinitionVersionLocalService) {
 
@@ -188,6 +192,13 @@ public class KaleoDefinitionVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoDefinitionVersionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoDefinitionVersionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

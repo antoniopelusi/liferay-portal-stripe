@@ -45,8 +45,6 @@ public class CompanyModelListener extends BaseModelListener<Company> {
 		catch (Exception exception) {
 			throw new ModelListenerException(exception);
 		}
-
-		super.onAfterRemove(company);
 	}
 
 	private void _clean(Company company) throws Exception {
@@ -69,7 +67,7 @@ public class CompanyModelListener extends BaseModelListener<Company> {
 			}
 			catch (IOException ioException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(ioException, ioException);
+					_log.warn(ioException);
 				}
 			}
 		}

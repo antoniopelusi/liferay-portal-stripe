@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.CountryLocalization;
 import com.liferay.portal.kernel.model.CountryModel;
-import com.liferay.portal.kernel.model.CountrySoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -36,15 +35,15 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -207,69 +206,6 @@ public class CountryModelImpl
 	@Deprecated
 	public static final long UUID_COLUMN_BITMASK = 256L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Country toModel(CountrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Country model = new CountryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setDefaultLanguageId(soapModel.getDefaultLanguageId());
-		model.setCountryId(soapModel.getCountryId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setA2(soapModel.getA2());
-		model.setA3(soapModel.getA3());
-		model.setActive(soapModel.isActive());
-		model.setBillingAllowed(soapModel.isBillingAllowed());
-		model.setGroupFilterEnabled(soapModel.isGroupFilterEnabled());
-		model.setIdd(soapModel.getIdd());
-		model.setName(soapModel.getName());
-		model.setNumber(soapModel.getNumber());
-		model.setPosition(soapModel.getPosition());
-		model.setShippingAllowed(soapModel.isShippingAllowed());
-		model.setSubjectToVAT(soapModel.isSubjectToVAT());
-		model.setZipRequired(soapModel.isZipRequired());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Country> toModels(CountrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Country> models = new ArrayList<Country>(soapModels.length);
-
-		for (CountrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.Country"));
@@ -356,33 +292,6 @@ public class CountryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Country>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Country.class.getClassLoader(), Country.class, ModelWrapper.class);
-
-		try {
-			Constructor<Country> constructor =
-				(Constructor<Country>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Country, Object>>
@@ -1166,6 +1075,50 @@ public class CountryModelImpl
 	}
 
 	@Override
+	public Country cloneWithOriginalValues() {
+		CountryImpl countryImpl = new CountryImpl();
+
+		countryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		countryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		countryImpl.setDefaultLanguageId(
+			this.<String>getColumnOriginalValue("defaultLanguageId"));
+		countryImpl.setCountryId(
+			this.<Long>getColumnOriginalValue("countryId"));
+		countryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		countryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		countryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		countryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		countryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		countryImpl.setA2(this.<String>getColumnOriginalValue("a2"));
+		countryImpl.setA3(this.<String>getColumnOriginalValue("a3"));
+		countryImpl.setActive(this.<Boolean>getColumnOriginalValue("active_"));
+		countryImpl.setBillingAllowed(
+			this.<Boolean>getColumnOriginalValue("billingAllowed"));
+		countryImpl.setGroupFilterEnabled(
+			this.<Boolean>getColumnOriginalValue("groupFilterEnabled"));
+		countryImpl.setIdd(this.<String>getColumnOriginalValue("idd_"));
+		countryImpl.setName(this.<String>getColumnOriginalValue("name"));
+		countryImpl.setNumber(this.<String>getColumnOriginalValue("number_"));
+		countryImpl.setPosition(
+			this.<Double>getColumnOriginalValue("position"));
+		countryImpl.setShippingAllowed(
+			this.<Boolean>getColumnOriginalValue("shippingAllowed"));
+		countryImpl.setSubjectToVAT(
+			this.<Boolean>getColumnOriginalValue("subjectToVAT"));
+		countryImpl.setZipRequired(
+			this.<Boolean>getColumnOriginalValue("zipRequired"));
+		countryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return countryImpl;
+	}
+
+	@Override
 	public int compareTo(Country country) {
 		int value = 0;
 
@@ -1358,7 +1311,7 @@ public class CountryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1369,9 +1322,26 @@ public class CountryModelImpl
 			Function<Country, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Country)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Country)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1418,7 +1388,9 @@ public class CountryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Country>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Country.class, ModelWrapper.class);
 
 	}
 

@@ -70,6 +70,16 @@ public class Page<T> {
 		return new Page<>(actions, facets, items, pagination, totalCount);
 	}
 
+	public T fetchFirstItem() {
+		Iterator<T> iterator = _items.iterator();
+
+		if (iterator.hasNext()) {
+			return iterator.next();
+		}
+
+		return null;
+	}
+
 	@JsonProperty("actions")
 	public Map<String, Map<String, String>> getActions() {
 		return _actions;

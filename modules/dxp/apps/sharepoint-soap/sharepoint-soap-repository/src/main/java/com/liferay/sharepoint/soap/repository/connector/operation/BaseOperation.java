@@ -69,11 +69,10 @@ public abstract class BaseOperation implements Operation {
 	public URL toURL(String path) {
 		PathUtil.validatePath(path);
 
-		URL serviceURL = sharepointConnectionInfo.getServiceURL();
-
 		return URLUtil.toURL(
-			serviceURL.toString() + sharepointConnectionInfo.getLibraryPath() +
-				path);
+			StringBundler.concat(
+				sharepointConnectionInfo.getServiceURL(),
+				sharepointConnectionInfo.getLibraryPath(), path));
 	}
 
 	protected <O extends Operation> O getOperation(Class<O> clazz) {

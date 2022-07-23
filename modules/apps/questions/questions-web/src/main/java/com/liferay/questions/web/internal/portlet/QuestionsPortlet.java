@@ -20,16 +20,22 @@ import com.liferay.item.selector.ItemSelectorCriterion;
 import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
 import com.liferay.item.selector.criteria.URLItemSelectorReturnType;
 import com.liferay.item.selector.criteria.image.criterion.ImageItemSelectorCriterion;
+import com.liferay.message.boards.moderation.configuration.MBModerationGroupConfiguration;
+import com.liferay.message.boards.service.MBStatsUserLocalService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletURLWrapper;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.questions.web.internal.configuration.QuestionsConfiguration;
 import com.liferay.questions.web.internal.constants.QuestionsPortletKeys;
 import com.liferay.questions.web.internal.constants.QuestionsWebKeys;
@@ -69,8 +75,10 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.private-request-attributes=false",
 		"com.liferay.portlet.private-session-attributes=false",
 		"com.liferay.portlet.scopeable=true",
+		"com.liferay.portlet.single-page-application=false",
 		"javax.portlet.display-name=Questions",
 		"javax.portlet.expiration-cache=0",
+		"javax.portlet.init-param.template-path=/",
 		"javax.portlet.init-param.template-path=/META-INF/resources/",
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + QuestionsPortletKeys.QUESTIONS,
@@ -127,6 +135,8 @@ public class QuestionsPortlet extends MVCPortlet {
 		renderRequest.setAttribute(
 			QuestionsWebKeys.TAG_SELECTOR_URL,
 			_getTagSelectorURL(renderRequest, renderResponse));
+		renderRequest.setAttribute(
+			QuestionsWebKeys.TRUSTED_USER, _isTrustedUser(renderRequest));
 
 		super.doView(renderRequest, renderResponse);
 	}
@@ -168,17 +178,59 @@ public class QuestionsPortlet extends MVCPortlet {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
 		}
 	}
 
+	private boolean _isTrustedUser(RenderRequest renderRequest) {
+		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		try {
+			MBModerationGroupConfiguration mbModerationGroupConfiguration =
+				_configurationProvider.getGroupConfiguration(
+					MBModerationGroupConfiguration.class,
+					themeDisplay.getScopeGroupId());
+
+			if (!mbModerationGroupConfiguration.
+					enableMessageBoardsModeration()) {
+
+				return true;
+			}
+
+			long messageCountByUserId =
+				_mbStatsUserLocalService.getMessageCountByUserId(
+					themeDisplay.getUserId());
+
+			if (messageCountByUserId <
+					mbModerationGroupConfiguration.
+						minimumContributedMessages()) {
+
+				return false;
+			}
+		}
+		catch (ConfigurationException configurationException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(configurationException);
+			}
+		}
+
+		return true;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		QuestionsPortlet.class);
 
+	@Reference
+	private ConfigurationProvider _configurationProvider;
+
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private MBStatsUserLocalService _mbStatsUserLocalService;
 
 	@Reference
 	private Portal _portal;

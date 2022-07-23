@@ -26,10 +26,41 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class AccountGroupRelServiceWrapper
 	implements AccountGroupRelService, ServiceWrapper<AccountGroupRelService> {
 
+	public AccountGroupRelServiceWrapper() {
+		this(null);
+	}
+
 	public AccountGroupRelServiceWrapper(
 		AccountGroupRelService accountGroupRelService) {
 
 		_accountGroupRelService = accountGroupRelService;
+	}
+
+	@Override
+	public com.liferay.account.model.AccountGroupRel addAccountGroupRel(
+			long accountGroupId, String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountGroupRelService.addAccountGroupRel(
+			accountGroupId, className, classPK);
+	}
+
+	@Override
+	public void addAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountGroupRelService.addAccountGroupRels(
+			accountGroupId, className, classPKs);
+	}
+
+	@Override
+	public void deleteAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountGroupRelService.deleteAccountGroupRels(
+			accountGroupId, className, classPKs);
 	}
 
 	/**

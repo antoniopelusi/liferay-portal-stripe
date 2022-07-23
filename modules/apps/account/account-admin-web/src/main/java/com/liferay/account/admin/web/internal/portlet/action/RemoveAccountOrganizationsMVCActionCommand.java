@@ -16,9 +16,7 @@ package com.liferay.account.admin.web.internal.portlet.action;
 
 import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.exception.NoSuchEntryOrganizationRelException;
-import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
-import com.liferay.petra.lang.SafeClosable;
-import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
+import com.liferay.account.service.AccountEntryOrganizationRelService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -38,6 +36,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_MANAGEMENT,
 		"mvc.command.name=/account_admin/remove_account_organizations"
 	},
 	service = MVCActionCommand.class
@@ -50,15 +49,13 @@ public class RemoveAccountOrganizationsMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		try (SafeClosable safeClosable =
-				ProxyModeThreadLocal.setWithSafeClosable(true)) {
-
+		try {
 			long accountEntryId = ParamUtil.getLong(
 				actionRequest, "accountEntryId");
 			long[] accountOrganizationIds = ParamUtil.getLongValues(
 				actionRequest, "accountOrganizationIds");
 
-			_accountEntryOrganizationRelLocalService.
+			_accountEntryOrganizationRelService.
 				deleteAccountEntryOrganizationRels(
 					accountEntryId, accountOrganizationIds);
 
@@ -82,7 +79,7 @@ public class RemoveAccountOrganizationsMVCActionCommand
 	}
 
 	@Reference
-	private AccountEntryOrganizationRelLocalService
-		_accountEntryOrganizationRelLocalService;
+	private AccountEntryOrganizationRelService
+		_accountEntryOrganizationRelService;
 
 }

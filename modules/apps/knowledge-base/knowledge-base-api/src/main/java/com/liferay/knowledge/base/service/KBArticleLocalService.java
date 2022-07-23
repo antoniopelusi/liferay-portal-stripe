@@ -92,10 +92,10 @@ public interface KBArticleLocalService
 	public KBArticle addKBArticle(KBArticle kbArticle);
 
 	public KBArticle addKBArticle(
-			long userId, long parentResourceClassNameId,
-			long parentResourcePrimKey, String title, String urlTitle,
-			String content, String description, String sourceURL,
-			String[] sections, String[] selectedFileNames,
+			String externalReferenceCode, long userId,
+			long parentResourceClassNameId, long parentResourcePrimKey,
+			String title, String urlTitle, String content, String description,
+			String sourceURL, String[] sections, String[] selectedFileNames,
 			ServiceContext serviceContext)
 		throws PortalException;
 
@@ -193,6 +193,9 @@ public interface KBArticleLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -294,6 +297,10 @@ public interface KBArticleLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBArticle fetchLatestKBArticle(long resourcePrimKey, long groupId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBArticle fetchLatestKBArticleByExternalReferenceCode(
+		long groupId, String externalReferenceCode);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBArticle fetchLatestKBArticleByUrlTitle(
@@ -450,6 +457,11 @@ public interface KBArticleLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBArticle getLatestKBArticle(long resourcePrimKey, int status)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBArticle getLatestKBArticleByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)

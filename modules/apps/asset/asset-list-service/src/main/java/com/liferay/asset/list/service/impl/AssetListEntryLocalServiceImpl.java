@@ -27,6 +27,8 @@ import com.liferay.asset.list.model.AssetListEntrySegmentsEntryRel;
 import com.liferay.asset.list.service.AssetListEntryAssetEntryRelLocalService;
 import com.liferay.asset.list.service.AssetListEntrySegmentsEntryRelLocalService;
 import com.liferay.asset.list.service.base.AssetListEntryLocalServiceBaseImpl;
+import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelPersistence;
+import com.liferay.asset.list.service.persistence.AssetListEntrySegmentsEntryRelPersistence;
 import com.liferay.asset.util.AssetRendererFactoryWrapper;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.petra.string.CharPool;
@@ -34,23 +36,22 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.constants.SegmentsEntryConstants;
-
-import java.io.IOException;
 
 import java.util.Date;
 import java.util.List;
@@ -155,7 +156,7 @@ public class AssetListEntryLocalServiceImpl
 
 		_validateTitle(groupId, title);
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long assetListEntryId = counterLocalService.increment();
 
@@ -187,7 +188,7 @@ public class AssetListEntryLocalServiceImpl
 
 		// Resources
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			assetListEntry.getCompanyId(), assetListEntry.getGroupId(),
 			assetListEntry.getUserId(), AssetListEntry.class.getName(),
 			assetListEntry.getPrimaryKey(), false, true, true);
@@ -197,8 +198,7 @@ public class AssetListEntryLocalServiceImpl
 		if (!ExportImportThreadLocal.isImportInProcess()) {
 			_assetListEntrySegmentsEntryRelLocalService.
 				addAssetListEntrySegmentsEntryRel(
-					serviceContext.getUserId(),
-					serviceContext.getScopeGroupId(), assetListEntryId,
+					userId, groupId, assetListEntryId,
 					SegmentsEntryConstants.ID_DEFAULT, typeSettings,
 					serviceContext);
 		}
@@ -261,11 +261,13 @@ public class AssetListEntryLocalServiceImpl
 
 		assetListEntry.setModifiedDate(new Date());
 
-		String assetEntryType = _getManualAssetEntryType(assetListEntryId);
+		if (Validator.isNull(assetListEntry.getAssetEntryType())) {
+			String assetEntryType = _getManualAssetEntryType(assetListEntryId);
 
-		assetListEntry.setAssetEntrySubtype(
-			_getManualAssetEntrySubtype(assetEntryType, assetListEntryId));
-		assetListEntry.setAssetEntryType(assetEntryType);
+			assetListEntry.setAssetEntrySubtype(
+				_getManualAssetEntrySubtype(assetEntryType, assetListEntryId));
+			assetListEntry.setAssetEntryType(assetEntryType);
+		}
 
 		assetListEntryPersistence.update(assetListEntry);
 	}
@@ -281,17 +283,17 @@ public class AssetListEntryLocalServiceImpl
 
 		// Resources
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			assetListEntry, ResourceConstants.SCOPE_INDIVIDUAL);
 
 		// Asset list entry rels
 
-		assetListEntryAssetEntryRelPersistence.removeByAssetListEntryId(
+		_assetListEntryAssetEntryRelPersistence.removeByAssetListEntryId(
 			assetListEntry.getAssetListEntryId());
 
 		// Asset list segments entry rels
 
-		assetListEntrySegmentsEntryRelPersistence.removeByAssetListEntryId(
+		_assetListEntrySegmentsEntryRelPersistence.removeByAssetListEntryId(
 			assetListEntry.getAssetListEntryId());
 
 		return assetListEntry;
@@ -504,37 +506,28 @@ public class AssetListEntryLocalServiceImpl
 			return StringPool.BLANK;
 		}
 
-		try {
-			UnicodeProperties unicodeProperties = new UnicodeProperties();
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.load(
+			typeSettings
+		).build();
 
-			unicodeProperties.load(typeSettings);
+		String anyAssetClassTypeString = unicodeProperties.getProperty(
+			"anyClassType" + _getAssetRendererFactoryName(assetEntryType));
 
-			String anyAssetClassTypeString = unicodeProperties.getProperty(
-				"anyClassType" + _getAssetRendererFactoryName(assetEntryType));
+		boolean anyAssetClassType = GetterUtil.getBoolean(
+			anyAssetClassTypeString);
 
-			boolean anyAssetClassType = GetterUtil.getBoolean(
-				anyAssetClassTypeString);
-
-			if (anyAssetClassType) {
-				return StringPool.BLANK;
-			}
-
-			long defaultAssetClassTypeId = GetterUtil.getLong(
-				anyAssetClassTypeString, -1);
-
-			if (defaultAssetClassTypeId < 0) {
-				return StringPool.BLANK;
-			}
-
-			return String.valueOf(defaultAssetClassTypeId);
-		}
-		catch (IOException ioException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(ioException, ioException);
-			}
+		if (anyAssetClassType) {
+			return StringPool.BLANK;
 		}
 
-		return StringPool.BLANK;
+		long defaultAssetClassTypeId = GetterUtil.getLong(
+			anyAssetClassTypeString, -1);
+
+		if (defaultAssetClassTypeId < 0) {
+			return StringPool.BLANK;
+		}
+
+		return String.valueOf(defaultAssetClassTypeId);
 	}
 
 	private String _getAssetEntryType(String typeSettings) {
@@ -542,35 +535,26 @@ public class AssetListEntryLocalServiceImpl
 			return AssetEntry.class.getName();
 		}
 
-		try {
-			UnicodeProperties unicodeProperties = new UnicodeProperties();
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.load(
+			typeSettings
+		).build();
 
-			unicodeProperties.load(typeSettings);
+		String anyAssetTypeString = unicodeProperties.getProperty(
+			"anyAssetType");
 
-			String anyAssetTypeString = unicodeProperties.getProperty(
-				"anyAssetType");
+		boolean anyAssetType = GetterUtil.getBoolean(anyAssetTypeString);
 
-			boolean anyAssetType = GetterUtil.getBoolean(anyAssetTypeString);
-
-			if (anyAssetType) {
-				return AssetEntry.class.getName();
-			}
-
-			long defaultAssetType = GetterUtil.getLong(anyAssetTypeString);
-
-			if (defaultAssetType <= 0) {
-				return AssetEntry.class.getName();
-			}
-
-			return _portal.getClassName(defaultAssetType);
-		}
-		catch (IOException ioException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(ioException, ioException);
-			}
+		if (anyAssetType) {
+			return AssetEntry.class.getName();
 		}
 
-		return AssetEntry.class.getName();
+		long defaultAssetType = GetterUtil.getLong(anyAssetTypeString);
+
+		if (defaultAssetType <= 0) {
+			return AssetEntry.class.getName();
+		}
+
+		return _portal.getClassName(defaultAssetType);
 	}
 
 	private String _getAssetRendererFactoryName(String assetEntryType) {
@@ -763,9 +747,6 @@ public class AssetListEntryLocalServiceImpl
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		AssetListEntryLocalServiceImpl.class);
-
 	@Reference
 	private AssetEntryLocalService _assetEntryLocalService;
 
@@ -774,10 +755,24 @@ public class AssetListEntryLocalServiceImpl
 		_assetListEntryAssetEntryRelLocalService;
 
 	@Reference
+	private AssetListEntryAssetEntryRelPersistence
+		_assetListEntryAssetEntryRelPersistence;
+
+	@Reference
 	private AssetListEntrySegmentsEntryRelLocalService
 		_assetListEntrySegmentsEntryRelLocalService;
 
 	@Reference
+	private AssetListEntrySegmentsEntryRelPersistence
+		_assetListEntrySegmentsEntryRelPersistence;
+
+	@Reference
 	private Portal _portal;
+
+	@Reference
+	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

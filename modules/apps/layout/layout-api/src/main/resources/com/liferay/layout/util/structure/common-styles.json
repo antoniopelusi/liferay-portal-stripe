@@ -3,10 +3,9 @@
 		"label": "margin",
 		"styles": [
 			{
+				"cssTemplate": "margin-top: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "margin-top",
 				"name": "marginTop",
@@ -61,10 +60,9 @@
 				]
 			},
 			{
+				"cssTemplate": "margin-bottom: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "margin-bottom",
 				"name": "marginBottom",
@@ -119,10 +117,9 @@
 				]
 			},
 			{
+				"cssTemplate": "margin-left: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "margin-left",
 				"name": "marginLeft",
@@ -177,10 +174,9 @@
 				]
 			},
 			{
+				"cssTemplate": "margin-right: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "margin-right",
 				"name": "marginRight",
@@ -240,10 +236,9 @@
 		"label": "padding",
 		"styles": [
 			{
+				"cssTemplate": "padding-top: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "padding-top",
 				"name": "paddingTop",
@@ -298,10 +293,9 @@
 				]
 			},
 			{
+				"cssTemplate": "padding-bottom: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "padding-bottom",
 				"name": "paddingBottom",
@@ -356,10 +350,9 @@
 				]
 			},
 			{
+				"cssTemplate": "padding-left: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "padding-left",
 				"name": "paddingLeft",
@@ -414,10 +407,9 @@
 				]
 			},
 			{
+				"cssTemplate": "padding-right: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "0",
 				"displaySize": "small",
 				"label": "padding-right",
 				"name": "paddingRight",
@@ -474,13 +466,13 @@
 		]
 	},
 	{
-		"label": "size",
+		"configurationRole": "general",
+		"label": "frame",
 		"styles": [
 			{
+				"cssTemplate": "width: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"displaySize": "small",
 				"label": "width",
 				"name": "width",
@@ -488,10 +480,9 @@
 				"type": "text"
 			},
 			{
+				"cssTemplate": "height: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"displaySize": "small",
 				"label": "height",
 				"name": "height",
@@ -499,10 +490,9 @@
 				"type": "text"
 			},
 			{
+				"cssTemplate": "min-width: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"displaySize": "small",
 				"label": "min-width",
 				"name": "minWidth",
@@ -510,10 +500,9 @@
 				"type": "text"
 			},
 			{
+				"cssTemplate": "max-width: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"displaySize": "small",
 				"label": "max-width",
 				"name": "maxWidth",
@@ -521,10 +510,9 @@
 				"type": "text"
 			},
 			{
+				"cssTemplate": "min-height: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"displaySize": "small",
 				"label": "min-height",
 				"name": "minHeight",
@@ -532,10 +520,9 @@
 				"type": "text"
 			},
 			{
+				"cssTemplate": "max-height: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"displaySize": "small",
 				"label": "max-height",
 				"name": "maxHeight",
@@ -543,10 +530,9 @@
 				"type": "text"
 			},
 			{
+				"cssTemplate": "overflow: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"label": "overflow",
 				"name": "overflow",
 				"responsive": false,
@@ -573,6 +559,22 @@
 						"value": "auto"
 					}
 				]
+			},
+			{
+				"cssTemplate": "display: {value} !important;",
+				"dataType": "string",
+				"defaultValue": "block",
+				"label": "hide-fragment",
+				"name": "display",
+				"responsive": true,
+				"responsiveTemplate": "d{viewport}{value}",
+				"type": "hideFragment",
+				"typeOptions": {
+					"customValues": {
+						"checked": "none",
+						"unchecked": "block"
+					}
+				}
 			}
 		]
 	},
@@ -580,10 +582,9 @@
 		"label": "text",
 		"styles": [
 			{
+				"cssTemplate": "font-family: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"label": "font-family",
 				"name": "fontFamily",
 				"responsive": false,
@@ -611,10 +612,9 @@
 				]
 			},
 			{
+				"cssTemplate": "font-weight: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"label": "font-weight",
 				"name": "fontWeight",
 				"responsive": false,
@@ -652,10 +652,9 @@
 				]
 			},
 			{
+				"cssTemplate": "font-size: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"label": "font-size",
 				"name": "fontSize",
 				"responsive": false,
@@ -683,28 +682,23 @@
 				]
 			},
 			{
+				"cssTemplate": "color: {value} !important;",
 				"dataType": "string",
-				"dependencies": [
-				],
 				"label": "text-color",
 				"name": "textColor",
 				"responsive": false,
 				"type": "colorPicker"
 			},
 			{
+				"cssTemplate": "text-align: {value} !important;",
 				"dataType": "string",
-				"defaultValue": "",
-				"dependencies": [
-				],
+				"defaultValue": "left",
 				"label": "text-align",
 				"name": "textAlign",
-				"responsive": false,
+				"responsive": true,
+				"responsiveTemplate": "text{viewport}{value}",
 				"type": "select",
 				"validValues": [
-					{
-						"label": "default",
-						"value": ""
-					},
 					{
 						"label": "left",
 						"value": "left"
@@ -729,20 +723,18 @@
 		"label": "background",
 		"styles": [
 			{
+				"cssTemplate": "background-color: {value} !important;",
 				"dataType": "string",
-				"dependencies": [
-				],
 				"label": "background-color",
 				"name": "backgroundColor",
 				"responsive": false,
 				"type": "colorPicker"
 			},
 			{
+				"cssTemplate": "background-position: 50% 50%; background-repeat:no-repeat; background-size: cover; background-image: {value} !important;",
 				"dataType": "object",
 				"defaultValue": {
 				},
-				"dependencies": [
-				],
 				"label": "background-image",
 				"name": "backgroundImage",
 				"responsive": false,
@@ -754,10 +746,9 @@
 		"label": "borders",
 		"styles": [
 			{
+				"cssTemplate": "border-style: solid; border-width: {value}px !important;",
 				"dataType": "number",
 				"defaultValue": 0,
-				"dependencies": [
-				],
 				"label": "border-width",
 				"name": "borderWidth",
 				"responsive": false,
@@ -769,10 +760,9 @@
 				}
 			},
 			{
+				"cssTemplate": "border-radius: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"label": "border-radius",
 				"name": "borderRadius",
 				"responsive": false,
@@ -805,9 +795,8 @@
 				]
 			},
 			{
+				"cssTemplate": "border-color: {value} !important;",
 				"dataType": "string",
-				"dependencies": [
-				],
 				"label": "border-color",
 				"name": "borderColor",
 				"responsive": false,
@@ -819,10 +808,9 @@
 		"label": "effects",
 		"styles": [
 			{
+				"cssTemplate": "opacity: {value} !important;",
 				"dataType": "number",
-				"defaultValue": 100,
-				"dependencies": [
-				],
+				"defaultValue": "",
 				"label": "opacity",
 				"name": "opacity",
 				"responsive": false,
@@ -834,10 +822,9 @@
 				}
 			},
 			{
+				"cssTemplate": "box-shadow: {value} !important;",
 				"dataType": "object",
 				"defaultValue": "",
-				"dependencies": [
-				],
 				"label": "shadow",
 				"name": "shadow",
 				"responsive": false,

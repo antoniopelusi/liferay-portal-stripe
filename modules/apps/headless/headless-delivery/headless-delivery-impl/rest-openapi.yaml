@@ -103,6 +103,10 @@ components:
                         The blog post's media format (e.g., HTML, BBCode, etc.).
                     readOnly: true
                     type: string
+                externalReferenceCode:
+                    description:
+                        The blog post's external reference code.
+                    type: string
                 friendlyUrlPath:
                     description:
                         The blog post's relative URL.
@@ -264,6 +268,29 @@ components:
                 - fieldName
                 - fieldValue
             type: object
+        ClassFieldsReference:
+            properties:
+                className:
+                    type: string
+                fields:
+                    description:
+                        The list of fields for the reference.
+                    items:
+                        properties:
+                            fieldName:
+                                description:
+                                    The name of the field.
+                                type: string
+                            fieldValue:
+                                description:
+                                    The internal value of the field.
+                                type: string
+                        type: object
+                    type: array
+            required:
+                - className
+                - fields
+            type: object
         ClassNameReference:
             properties:
                 className:
@@ -281,11 +308,34 @@ components:
                 - className
                 - classPK
             type: object
+        CollectionViewport:
+            # @review
+            description:
+                Represents a collection viewport.
+            properties:
+                collectionViewportDefinition:
+                    # @review
+                    description:
+                        The definition of the collection viewport.
+                    properties:
+                        numberOfColumns:
+                            # @review
+                            description:
+                                The number of columns of the collection viewport.
+                            type: integer
+                    type: object
+                id:
+                    # @review
+                    description:
+                        The collection viewport's ID.
+                    type: string
+            required:
+                - id
+                - collectionViewportDefinition
+            type: object
         ColumnViewport:
-            additionalProperties: false
             properties:
                 columnViewportDefinition:
-                    additionalProperties: false
                     properties:
                         size:
                             maximum: 12
@@ -1054,6 +1104,11 @@ components:
                                 The content subtype's ID.
                             format: int64
                             type: integer
+                        subtypeKey:
+                            # @review
+                            description:
+                                The content subtype's Key.
+                            type: string
                     type: object
                 contentType:
                     # @review
@@ -1066,6 +1121,11 @@ components:
                                 The content type's class name.
                             type: string
                     type: object
+                defaultTemplate:
+                    # @review
+                    description:
+                        Specifies if the page template should be the default for the given content type/subtype.
+                    type: boolean
                 key:
                     # @review
                     description:
@@ -1236,6 +1296,11 @@ components:
                     description:
                         The document's content type (e.g., `application/pdf`, etc.).
                     readOnly: true
+                    type: string
+                externalReferenceCode:
+                    # @review
+                    description:
+                        The document's external reference code.
                     type: string
                 fileExtension:
                     description:
@@ -1733,6 +1798,7 @@ components:
                                 The mapping's item reference.
                             oneOf:
                                 - $ref: "#/components/schemas/ClassFieldReference"
+                                - $ref: "#/components/schemas/ClassFieldsReference"
                                 - $ref: "#/components/schemas/ClassPKReference"
                                 - $ref: "#/components/schemas/ContextReference"
                     type: object
@@ -1811,6 +1877,11 @@ components:
                     description:
                         The fragment's height.
                     type: string
+                hidden:
+                    # @review
+                    description:
+                        Specifies if the fragment is hidden to the user.
+                    type: boolean
                 marginBottom:
                     # @review
                     description:
@@ -1903,17 +1974,20 @@ components:
                     type: string
             type: object
         FragmentViewport:
-            additionalProperties: false
             # @review
             description:
                 Represents a fragment viewport.
             properties:
                 fragmentViewportStyle:
-                    additionalProperties: false
                     # @review
                     description:
                         The fragment's viewport style.
                     properties:
+                        hidden:
+                            # @review
+                            description:
+                                Specifies if the fragment's viewport is hidden to the user.
+                            type: boolean
                         marginBottom:
                             # @review
                             description:
@@ -1953,6 +2027,10 @@ components:
                             # @review
                             description:
                                 The fragment viewport's padding top.
+                            type: string
+                        textAlign:
+                            description:
+                                The fragment viewport's text align.
                             type: string
                     type: object
                 id:
@@ -2037,6 +2115,10 @@ components:
                         The article's media type (e.g., HTML, BBCode, etc.).
                     readOnly: true
                     type: string
+                externalReferenceCode:
+                    description:
+                        The article's external reference code.
+                    type: string
                 friendlyUrlPath:
                     description:
                         The article's relative URL.
@@ -2062,6 +2144,12 @@ components:
                     description:
                         The number of this article's child articles.
                     readOnly: true
+                    type: integer
+                parentKnowledgeBaseArticleId:
+                    # @review
+                    description:
+                        The ID of the article's parent, if it exists.
+                    format: int64
                     type: integer
                 parentKnowledgeBaseFolder:
                     description:
@@ -2221,6 +2309,10 @@ components:
                 description:
                     description:
                         The folder's description.
+                    type: string
+                externalReferenceCode:
+                    description:
+                        The folder's external reference code.
                     type: string
                 id:
                     description:
@@ -2509,6 +2601,12 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                status:
+                    # @review
+                    description:
+                        The message's status.
+                    readOnly: true
+                    type: string
                 subscribed:
                     # @review
                     description:
@@ -2741,11 +2839,16 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                status:
+                    # @review
+                    description:
+                        The thread's status.
+                    readOnly: true
+                    type: string
                 subscribed:
                     # @review
                     description:
                         A flag that indicates whether the user making the requests is subscribed to this thread.
-                    readOnly: true
                     type: boolean
                 taxonomyCategoryBriefs:
                     # @review
@@ -3010,6 +3113,23 @@ components:
                         - collectionReference
                         - collectionType
                     type: object
+                collectionViewports:
+                    # @review
+                    description:
+                        A list of viewports of the page collection.
+                    items:
+                        $ref: "#/components/schemas/CollectionViewport"
+                    type: array
+                displayAllItems:
+                    # @review
+                    description:
+                        Whether to show all items when pagination is disabled.
+                    type: boolean
+                displayAllPages:
+                    # @review
+                    description:
+                        Whether to show all pages when pagination is enabled.
+                    type: boolean
                 fragmentStyle:
                     allOf:
                         - $ref: "#/components/schemas/FragmentStyle"
@@ -3041,8 +3161,36 @@ components:
                 numberOfItems:
                     # @review
                     description:
-                        The number of items in the page collection.
+                        The maximum number of items to display in the page collection when pagination is disabled.
                     type: integer
+                numberOfItemsPerPage:
+                    # @review
+                    description:
+                        The number of items per page in the page collection.
+                    type: integer
+                numberOfPages:
+                    # @review
+                    description:
+                        The maximum number of pages to show when pagination is enabled.
+                    type: integer
+                paginationType:
+                    # @review
+                    description:
+                        The type of pagination.
+                    enum: [
+                        None,
+                        Numeric,
+                        # "Deprecated as of Cavanaugh (7.4.x), replaced by Numeric"
+                        Regular,
+                        Simple]
+                    type: string
+                showAllItems:
+                    deprecated: true
+                    # @review
+                    description:
+                        Whether to show all items when pagination is enabled. Deprecated as of Cavanaugh (7.4.x),
+                        replaced by displayAllPages
+                    type: boolean
                 templateKey:
                     # @review
                     description:
@@ -3124,6 +3272,12 @@ components:
                     # @review
                     description:
                         The page's settings.
+                version:
+                    # @review
+                    description:
+                        The version of the JSON generated by page definition.
+                    format: double
+                    type: number
             type: object
         PageDropZoneDefinition:
             # @review
@@ -3210,6 +3364,11 @@ components:
                     items:
                         $ref: "#/components/schemas/FragmentViewport"
                     type: array
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page fragment instance is indexed or not.
+                    type: boolean
                 widgetInstances:
                     # @review
                     description:
@@ -3245,6 +3404,11 @@ components:
                     # @review
                     description:
                         A flag that indicates whether the page row has gutters.
+                    type: boolean
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page row is indexed or not.
                     type: boolean
                 modulesPerRow:
                     # @review
@@ -3356,6 +3520,20 @@ components:
                     items:
                         $ref: "#/components/schemas/FragmentViewport"
                     type: array
+                htmlProperties:
+                    # @review
+                    description:
+                        The page section's html properties
+                    properties:
+                        htmlTag:
+                            enum: [Article, Aside, Div, Footer, Header, Main, Nav, Section]
+                            type: string
+                    type: object
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page section is indexed or not.
+                    type: boolean
                 layout:
                     # @review
                     description:
@@ -3363,7 +3541,7 @@ components:
                     properties:
                         align:
                             deprecated: true
-                            enum: [Center, End, None, Start, Stretch]
+                            enum: [Baseline, Center, End, None, Start, Stretch]
                             type: string
                         borderColor:
                             deprecated: true
@@ -3383,7 +3561,10 @@ components:
                             type: string
                         contentDisplay:
                             deprecated: true
-                            enum: [Block, Flex]
+                            enum: [Block, FlexColumn, FlexRow]
+                            type: string
+                        flexWrap:
+                            enum: [NoWrap, Wrap, WrapReverse]
                             type: string
                         justify:
                             deprecated: true
@@ -3769,7 +3950,6 @@ components:
                     type: string
             type: object
         RowViewport:
-            additionalProperties: false
             # @review
             description:
                 Represents a row viewport.
@@ -3777,13 +3957,12 @@ components:
                 id:
                     # @review
                     description:
-                        The row vieport's ID.
+                        The row viewport's ID.
                     type: string
                 rowViewportDefinition:
-                    additionalProperties: false
                     # @review
                     description:
-                        The definition of the row vieport.
+                        The definition of the row viewport.
                     properties:
                         modulesPerRow:
                             # @review
@@ -4176,6 +4355,11 @@ components:
                     description:
                         The localized structured content's descriptions.
                     type: object
+                externalReferenceCode:
+                    # @review
+                    description:
+                        The structured content's external reference code.
+                    type: string
                 friendlyUrlPath:
                     description:
                         A relative URL to the structured content's rendered content.
@@ -4210,6 +4394,12 @@ components:
                         The number of comments the structured content has received.
                     readOnly: true
                     type: integer
+                priority:
+                    # @review
+                    description:
+                        The structured content's priority.
+                    format: double
+                    type: number
                 relatedContents:
                     # @review
                     description:
@@ -4482,6 +4672,10 @@ components:
                     description:
                         The wiki node's description.
                     type: string
+                externalReferenceCode:
+                    description:
+                        The wiki node's external reference code.
+                    type: string
                 id:
                     description:
                         The wiki node's ID.
@@ -4574,6 +4768,10 @@ components:
                     description:
                         The wiki page's media format (e.g., HTML, BBCode, etc.).
                     type: string
+                externalReferenceCode:
+                    description:
+                        The wiki page's external reference code.
+                    type: string
                 headline:
                     description:
                         The wiki page's main title.
@@ -4649,6 +4847,12 @@ components:
                     enum: [Anyone, Members, Owner]
                     type: string
                     writeOnly: true
+                wikiNodeId:
+                    # @review
+                    description:
+                        The ID of the wiki node to which the wiki page belongs.
+                    format: int64
+                    type: integer
             required:
                 - encodingFormat
                 - headline
@@ -4699,7 +4903,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.delivery.client', and version '4.0.3'."
+        'com.liferay.headless.delivery.client', and version '4.0.25'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -4756,8 +4960,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentElement"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentElement"]
     "/asset-libraries/{assetLibraryId}/content-sets/by-key/{key}/content-set-elements":
         get:
@@ -4795,8 +4997,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentSetElement"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentSetElement"]
     "/asset-libraries/{assetLibraryId}/content-sets/by-uuid/{uuid}/content-set-elements":
         get:
@@ -4834,8 +5034,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentSetElement"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentSetElement"]
     "/asset-libraries/{assetLibraryId}/content-structures":
         get:
@@ -4886,8 +5084,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentStructure"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentStructure"]
     "/asset-libraries/{assetLibraryId}/content-structures/permissions":
         get:
@@ -4908,11 +5104,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["ContentStructure"]
         put:
-            operationId: putAssetLibraryContentStructurePermission
+            operationId: putAssetLibraryContentStructurePermissionsPage
             parameters:
                 - in: path
                   name: assetLibraryId
@@ -4925,8 +5119,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["ContentStructure"]
     "/asset-libraries/{assetLibraryId}/content-templates":
         get:
@@ -4977,8 +5169,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentTemplate"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentTemplate"]
     "/asset-libraries/{assetLibraryId}/document-folders":
         get:
@@ -5033,8 +5223,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/DocumentFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         post:
             operationId: postAssetLibraryDocumentFolder
@@ -5062,8 +5250,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentFolder"
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/asset-libraries/{assetLibraryId}/document-folders/permissions":
         get:
@@ -5084,11 +5270,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         put:
-            operationId: putAssetLibraryDocumentFolderPermission
+            operationId: putAssetLibraryDocumentFolderPermissionsPage
             parameters:
                 - in: path
                   name: assetLibraryId
@@ -5101,8 +5285,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/asset-libraries/{assetLibraryId}/documents":
         get:
@@ -5157,8 +5339,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Document"
                                 type: array
-                    description:
-                        ""
             tags: ["Document"]
         post:
             operationId: postAssetLibraryDocument
@@ -5189,8 +5369,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Document"
-                    description:
-                        ""
             tags: ["Document"]
     "/asset-libraries/{assetLibraryId}/documents/permissions":
         get:
@@ -5211,11 +5389,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
         put:
-            operationId: putAssetLibraryDocumentPermission
+            operationId: putAssetLibraryDocumentPermissionsPage
             parameters:
                 - in: path
                   name: assetLibraryId
@@ -5228,8 +5404,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
     "/asset-libraries/{assetLibraryId}/languages":
         get:
@@ -5257,8 +5431,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Language"
                                 type: array
-                    description:
-                        ""
             tags: ["Language"]
     "/asset-libraries/{assetLibraryId}/structured-content-folders":
         get:
@@ -5313,8 +5485,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/StructuredContentFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         post:
             operationId: postAssetLibraryStructuredContentFolder
@@ -5342,8 +5512,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContentFolder"
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/asset-libraries/{assetLibraryId}/structured-content-folders/permissions":
         get:
@@ -5364,11 +5532,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         put:
-            operationId: putAssetLibraryStructuredContentFolderPermission
+            operationId: putAssetLibraryStructuredContentFolderPermissionsPage
             parameters:
                 - in: path
                   name: assetLibraryId
@@ -5381,8 +5547,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/asset-libraries/{assetLibraryId}/structured-contents":
         get:
@@ -5441,8 +5605,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/StructuredContent"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContent"]
         post:
             operationId: postAssetLibraryStructuredContent
@@ -5474,8 +5636,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/asset-libraries/{assetLibraryId}/structured-contents/permissions":
         get:
@@ -5496,11 +5656,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
         put:
-            operationId: putAssetLibraryStructuredContentPermission
+            operationId: putAssetLibraryStructuredContentPermissionsPage
             parameters:
                 - in: path
                   name: assetLibraryId
@@ -5513,8 +5671,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/blog-posting-images/{blogPostingImageId}":
         delete:
@@ -5533,8 +5689,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPostingImage"]
         get:
             description:
@@ -5556,8 +5710,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/BlogPostingImage"
-                    description:
-                        ""
             tags: ["BlogPostingImage"]
     "/blog-postings/{blogPostingId}":
         delete:
@@ -5576,8 +5728,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
         get:
             description:
@@ -5599,8 +5749,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/BlogPosting"
-                    description:
-                        ""
             tags: ["BlogPosting"]
         patch:
             description:
@@ -5631,8 +5779,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/BlogPosting"
-                    description:
-                        ""
             tags: ["BlogPosting"]
         put:
             description:
@@ -5663,8 +5809,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/BlogPosting"
-                    description:
-                        ""
             tags: ["BlogPosting"]
     "/blog-postings/{blogPostingId}/comments":
         get:
@@ -5717,8 +5861,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Comment"
                                 type: array
-                    description:
-                        ""
             tags: ["Comment"]
         post:
             description:
@@ -5748,8 +5890,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Comment"
-                    description:
-                        ""
             tags: ["Comment"]
     "/blog-postings/{blogPostingId}/my-rating":
         delete:
@@ -5768,8 +5908,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
         get:
             description:
@@ -5791,8 +5929,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["BlogPosting"]
         post:
             description:
@@ -5822,8 +5958,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["BlogPosting"]
         put:
             description:
@@ -5853,8 +5987,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["BlogPosting"]
     "/blog-postings/{blogPostingId}/permissions":
         get:
@@ -5875,11 +6007,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
         put:
-            operationId: putBlogPostingPermission
+            operationId: putBlogPostingPermissionsPage
             parameters:
                 - in: path
                   name: blogPostingId
@@ -5892,8 +6022,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
     "/blog-postings/{blogPostingId}/rendered-content-by-display-page/{displayPageKey}":
         get:
@@ -5918,8 +6046,6 @@ paths:
                         text/html:
                             schema:
                                 type: string
-                    description:
-                        ""
             tags: ["BlogPosting"]
     "/comments/{commentId}":
         delete:
@@ -5938,8 +6064,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Comment"]
         get:
             description:
@@ -5961,8 +6085,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Comment"
-                    description:
-                        ""
             tags: ["Comment"]
         put:
             description:
@@ -5993,8 +6115,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Comment"
-                    description:
-                        ""
             tags: ["Comment"]
     "/comments/{parentCommentId}/comments":
         get:
@@ -6047,8 +6167,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Comment"
                                 type: array
-                    description:
-                        ""
             tags: ["Comment"]
         post:
             description:
@@ -6078,8 +6196,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Comment"
-                    description:
-                        ""
             tags: ["Comment"]
     "/content-sets/{contentSetId}/content-set-elements":
         get:
@@ -6120,8 +6236,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentSetElement"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentSetElement"]
     "/content-structures/{contentStructureId}":
         get:
@@ -6144,8 +6258,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/ContentStructure"
-                    description:
-                        ""
             tags: ["ContentStructure"]
     "/content-structures/{contentStructureId}/permissions":
         get:
@@ -6166,11 +6278,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["ContentStructure"]
         put:
-            operationId: putContentStructurePermission
+            operationId: putContentStructurePermissionsPage
             parameters:
                 - in: path
                   name: contentStructureId
@@ -6183,8 +6293,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["ContentStructure"]
     "/content-structures/{contentStructureId}/structured-contents":
         get:
@@ -6242,8 +6350,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/StructuredContent"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/document-folders/{documentFolderId}":
         delete:
@@ -6262,8 +6368,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         get:
             description:
@@ -6285,8 +6389,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentFolder"
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         patch:
             description:
@@ -6316,8 +6418,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentFolder"
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         put:
             description:
@@ -6348,8 +6448,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentFolder"
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/document-folders/{documentFolderId}/documents":
         get:
@@ -6406,8 +6504,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Document"
                                 type: array
-                    description:
-                        ""
             tags: ["Document"]
         post:
             description:
@@ -6442,8 +6538,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Document"
-                    description:
-                        ""
             tags: ["Document"]
     "/document-folders/{documentFolderId}/permissions":
         get:
@@ -6464,11 +6558,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         put:
-            operationId: putDocumentFolderPermission
+            operationId: putDocumentFolderPermissionsPage
             parameters:
                 - in: path
                   name: documentFolderId
@@ -6481,8 +6573,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/document-folders/{documentFolderId}/subscribe":
         put:
@@ -6499,8 +6589,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/document-folders/{documentFolderId}/unsubscribe":
         put:
@@ -6517,8 +6605,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/document-folders/{parentDocumentFolderId}/document-folders":
         get:
@@ -6575,8 +6661,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/DocumentFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         post:
             description:
@@ -6606,8 +6690,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentFolder"
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/documents/{documentId}":
         delete:
@@ -6626,8 +6708,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
         get:
             description:
@@ -6649,8 +6729,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Document"
-                    description:
-                        ""
             tags: ["Document"]
         patch:
             description:
@@ -6685,8 +6763,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Document"
-                    description:
-                        ""
             tags: ["Document"]
         put:
             description:
@@ -6721,8 +6797,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Document"
-                    description:
-                        ""
             tags: ["Document"]
     "/documents/{documentId}/comments":
         get:
@@ -6775,8 +6849,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Comment"
                                 type: array
-                    description:
-                        ""
             tags: ["Comment"]
         post:
             description:
@@ -6806,8 +6878,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Comment"
-                    description:
-                        ""
             tags: ["Comment"]
     "/documents/{documentId}/my-rating":
         delete:
@@ -6826,8 +6896,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
         get:
             description:
@@ -6849,8 +6917,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["Document"]
         post:
             description:
@@ -6880,8 +6946,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["Document"]
         put:
             description:
@@ -6912,8 +6976,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["Document"]
     "/documents/{documentId}/permissions":
         get:
@@ -6934,11 +6996,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
         put:
-            operationId: putDocumentPermission
+            operationId: putDocumentPermissionsPage
             parameters:
                 - in: path
                   name: documentId
@@ -6951,8 +7011,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
     "/documents/{documentId}/rendered-content-by-display-page/{displayPageKey}":
         get:
@@ -6977,8 +7035,6 @@ paths:
                         text/html:
                             schema:
                                 type: string
-                    description:
-                        ""
             tags: ["Document"]
     "/knowledge-base-articles/{knowledgeBaseArticleId}":
         delete:
@@ -6997,8 +7053,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         get:
             description:
@@ -7020,8 +7074,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseArticle"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         patch:
             description:
@@ -7051,8 +7103,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseArticle"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         put:
             description:
@@ -7083,8 +7133,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseArticle"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments":
         get:
@@ -7111,8 +7159,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/KnowledgeBaseAttachment"
                                 type: array
-                    description:
-                        ""
             tags: ["KnowledgeBaseAttachment"]
         post:
             description:
@@ -7147,8 +7193,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseAttachment"
-                    description:
-                        ""
             tags: ["KnowledgeBaseAttachment"]
     "/knowledge-base-articles/{knowledgeBaseArticleId}/my-rating":
         delete:
@@ -7167,8 +7211,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         get:
             description:
@@ -7190,8 +7232,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         post:
             description:
@@ -7221,8 +7261,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         put:
             description:
@@ -7253,8 +7291,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/knowledge-base-articles/{knowledgeBaseArticleId}/permissions":
         get:
@@ -7275,11 +7311,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         put:
-            operationId: putKnowledgeBaseArticlePermission
+            operationId: putKnowledgeBaseArticlePermissionsPage
             parameters:
                 - in: path
                   name: knowledgeBaseArticleId
@@ -7292,8 +7326,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/knowledge-base-articles/{knowledgeBaseArticleId}/subscribe":
         put:
@@ -7310,8 +7342,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/knowledge-base-articles/{knowledgeBaseArticleId}/unsubscribe":
         put:
@@ -7328,8 +7358,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/knowledge-base-articles/{parentKnowledgeBaseArticleId}/knowledge-base-articles":
         get:
@@ -7387,8 +7415,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/KnowledgeBaseArticle"
                                 type: array
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         post:
             description:
@@ -7419,8 +7445,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseArticle"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/knowledge-base-attachments/{knowledgeBaseAttachmentId}":
         delete:
@@ -7439,8 +7463,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseAttachment"]
         get:
             description:
@@ -7462,8 +7484,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseAttachment"
-                    description:
-                        ""
             tags: ["KnowledgeBaseAttachment"]
     "/knowledge-base-folders/{knowledgeBaseFolderId}":
         delete:
@@ -7482,8 +7502,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
         get:
             description:
@@ -7505,8 +7523,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseFolder"
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
         patch:
             description:
@@ -7536,8 +7552,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseFolder"
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
         put:
             description:
@@ -7568,8 +7582,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseFolder"
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
     "/knowledge-base-folders/{knowledgeBaseFolderId}/knowledge-base-articles":
         get:
@@ -7627,8 +7639,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/KnowledgeBaseArticle"
                                 type: array
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         post:
             description:
@@ -7658,8 +7668,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseArticle"
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/knowledge-base-folders/{knowledgeBaseFolderId}/permissions":
         get:
@@ -7680,11 +7688,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
         put:
-            operationId: putKnowledgeBaseFolderPermission
+            operationId: putKnowledgeBaseFolderPermissionsPage
             parameters:
                 - in: path
                   name: knowledgeBaseFolderId
@@ -7697,8 +7703,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
     "/knowledge-base-folders/{parentKnowledgeBaseFolderId}/knowledge-base-folders":
         get:
@@ -7733,8 +7737,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/KnowledgeBaseFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
         post:
             description:
@@ -7764,8 +7766,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseFolder"
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
     "/message-board-attachments/{messageBoardAttachmentId}":
         delete:
@@ -7784,8 +7784,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardAttachment"]
         get:
             description:
@@ -7807,8 +7805,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardAttachment"
-                    description:
-                        ""
             tags: ["MessageBoardAttachment"]
     "/message-board-messages/{messageBoardMessageId}":
         delete:
@@ -7827,8 +7823,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         get:
             description:
@@ -7850,8 +7844,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         patch:
             description:
@@ -7881,8 +7873,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         put:
             description:
@@ -7913,8 +7903,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/message-board-messages/{messageBoardMessageId}/message-board-attachments":
         get:
@@ -7941,8 +7929,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardAttachment"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardAttachment"]
         post:
             description:
@@ -7977,8 +7963,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardAttachment"
-                    description:
-                        ""
             tags: ["MessageBoardAttachment"]
     "/message-board-messages/{messageBoardMessageId}/my-rating":
         delete:
@@ -7997,8 +7981,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         get:
             description:
@@ -8020,8 +8002,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         post:
             description:
@@ -8051,8 +8031,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         put:
             description:
@@ -8083,8 +8061,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/message-board-messages/{messageBoardMessageId}/permissions":
         get:
@@ -8105,11 +8081,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         put:
-            operationId: putMessageBoardMessagePermission
+            operationId: putMessageBoardMessagePermissionsPage
             parameters:
                 - in: path
                   name: messageBoardMessageId
@@ -8122,8 +8096,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/message-board-messages/{messageBoardMessageId}/subscribe":
         put:
@@ -8140,8 +8112,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/message-board-messages/{messageBoardMessageId}/unsubscribe":
         put:
@@ -8158,8 +8128,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/message-board-messages/{parentMessageBoardMessageId}/message-board-messages":
         get:
@@ -8217,8 +8185,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardMessage"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         post:
             description:
@@ -8248,8 +8214,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/message-board-sections/{messageBoardSectionId}":
         delete:
@@ -8268,8 +8232,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
         get:
             description:
@@ -8291,8 +8253,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardSection"
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
         patch:
             description:
@@ -8322,8 +8282,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardSection"
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
         put:
             description:
@@ -8354,8 +8312,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardSection"
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
     "/message-board-sections/{messageBoardSectionId}/message-board-threads":
         get:
@@ -8408,8 +8364,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardThread"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         post:
             description:
@@ -8439,8 +8393,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardThread"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/message-board-sections/{messageBoardSectionId}/permissions":
         get:
@@ -8461,11 +8413,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
         put:
-            operationId: putMessageBoardSectionPermission
+            operationId: putMessageBoardSectionPermissionsPage
             parameters:
                 - in: path
                   name: messageBoardSectionId
@@ -8478,8 +8428,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
     "/message-board-sections/{messageBoardSectionId}/subscribe":
         put:
@@ -8496,8 +8444,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
     "/message-board-sections/{messageBoardSectionId}/unsubscribe":
         put:
@@ -8514,8 +8460,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
     "/message-board-sections/{parentMessageBoardSectionId}/message-board-sections":
         get:
@@ -8569,8 +8513,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardSection"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
         post:
             description:
@@ -8600,8 +8542,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardSection"
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
     "/message-board-threads/ranked":
         get:
@@ -8647,8 +8587,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardThread"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/message-board-threads/{messageBoardThreadId}":
         delete:
@@ -8667,8 +8605,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         get:
             description:
@@ -8690,8 +8626,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardThread"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         patch:
             description:
@@ -8721,8 +8655,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardThread"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         put:
             description:
@@ -8753,8 +8685,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardThread"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/message-board-threads/{messageBoardThreadId}/message-board-attachments":
         get:
@@ -8781,8 +8711,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardAttachment"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardAttachment"]
         post:
             description:
@@ -8817,8 +8745,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardAttachment"
-                    description:
-                        ""
             tags: ["MessageBoardAttachment"]
     "/message-board-threads/{messageBoardThreadId}/message-board-messages":
         get:
@@ -8871,8 +8797,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardMessage"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         post:
             description:
@@ -8902,8 +8826,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/message-board-threads/{messageBoardThreadId}/my-rating":
         delete:
@@ -8922,8 +8844,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         get:
             description:
@@ -8945,8 +8865,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         post:
             description:
@@ -8976,8 +8894,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         put:
             description:
@@ -9008,8 +8924,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/message-board-threads/{messageBoardThreadId}/permissions":
         get:
@@ -9030,11 +8944,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         put:
-            operationId: putMessageBoardThreadPermission
+            operationId: putMessageBoardThreadPermissionsPage
             parameters:
                 - in: path
                   name: messageBoardThreadId
@@ -9047,8 +8959,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/message-board-threads/{messageBoardThreadId}/subscribe":
         put:
@@ -9065,8 +8975,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/message-board-threads/{messageBoardThreadId}/unsubscribe":
         put:
@@ -9083,8 +8991,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/navigation-menus/{navigationMenuId}":
         delete:
@@ -9104,12 +9010,8 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["NavigationMenu"]
         get:
-            description:
-                ""
             operationId: getNavigationMenu
             parameters:
                 - in: path
@@ -9127,8 +9029,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/NavigationMenu"
-                    description:
-                        ""
             tags: ["NavigationMenu"]
         put:
             # @review
@@ -9160,8 +9060,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/NavigationMenu"
-                    description:
-                        ""
             tags: ["NavigationMenu"]
     "/navigation-menus/{navigationMenuId}/permissions":
         get:
@@ -9182,11 +9080,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["NavigationMenu"]
         put:
-            operationId: putNavigationMenuPermission
+            operationId: putNavigationMenuPermissionsPage
             parameters:
                 - in: path
                   name: navigationMenuId
@@ -9199,8 +9095,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["NavigationMenu"]
     "/sites/{siteId}/blog-posting-images":
         get:
@@ -9253,8 +9147,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/BlogPostingImage"
                                 type: array
-                    description:
-                        ""
             tags: ["BlogPostingImage"]
         post:
             description:
@@ -9288,8 +9180,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/BlogPostingImage"
-                    description:
-                        ""
             tags: ["BlogPostingImage"]
     "/sites/{siteId}/blog-postings":
         get:
@@ -9342,8 +9232,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/BlogPosting"
                                 type: array
-                    description:
-                        ""
             tags: ["BlogPosting"]
         post:
             description:
@@ -9373,8 +9261,92 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/BlogPosting"
-                    description:
-                        ""
+            tags: ["BlogPosting"]
+    "/sites/{siteId}/blog-postings/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the blog post by external reference code.
+            operationId: deleteSiteBlogPostingByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["BlogPosting"]
+        get:
+            # @review
+            description:
+                Retrieves the site's blog post by external reference code.
+            operationId: getSiteBlogPostingByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BlogPosting"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/BlogPosting"
+            tags: ["BlogPosting"]
+        put:
+            # @review
+            description:
+                Updates the site's blog post with the given external reference code, or creates it if it not exists.
+            operationId: putSiteBlogPostingByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/BlogPosting"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/BlogPosting"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BlogPosting"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/BlogPosting"
             tags: ["BlogPosting"]
     "/sites/{siteId}/blog-postings/permissions":
         get:
@@ -9395,11 +9367,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
         put:
-            operationId: putSiteBlogPostingPermission
+            operationId: putSiteBlogPostingPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -9412,8 +9382,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
     "/sites/{siteId}/blog-postings/subscribe":
         put:
@@ -9430,8 +9398,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
     "/sites/{siteId}/blog-postings/unsubscribe":
         put:
@@ -9448,8 +9414,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["BlogPosting"]
     "/sites/{siteId}/content-elements":
         get:
@@ -9500,8 +9464,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentElement"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentElement"]
     "/sites/{siteId}/content-sets/by-key/{key}/content-set-elements":
         get:
@@ -9541,8 +9503,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentSetElement"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentSetElement"]
     "/sites/{siteId}/content-sets/by-uuid/{uuid}/content-set-elements":
         get:
@@ -9582,8 +9542,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentSetElement"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentSetElement"]
     "/sites/{siteId}/content-structures":
         get:
@@ -9636,8 +9594,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentStructure"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentStructure"]
     "/sites/{siteId}/content-structures/permissions":
         get:
@@ -9658,11 +9614,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["ContentStructure"]
         put:
-            operationId: putSiteContentStructurePermission
+            operationId: putSiteContentStructurePermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -9675,8 +9629,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["ContentStructure"]
     "/sites/{siteId}/content-templates":
         get:
@@ -9727,12 +9679,10 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/ContentTemplate"
                                 type: array
-                    description:
-                        ""
             tags: ["ContentTemplate"]
     "/sites/{siteId}/content-templates/{contentTemplateId}":
         get:
-            operationId: getContentTemplate
+            operationId: getSiteContentTemplate
             parameters:
                 - in: path
                   name: siteId
@@ -9754,8 +9704,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/ContentTemplate"
-                    description:
-                        ""
             tags: ["ContentTemplate"]
     "/sites/{siteId}/document-folders":
         get:
@@ -9813,8 +9761,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/DocumentFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         post:
             description:
@@ -9844,8 +9790,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentFolder"
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/sites/{siteId}/document-folders/permissions":
         get:
@@ -9866,11 +9810,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
         put:
-            operationId: putSiteDocumentFolderPermission
+            operationId: putSiteDocumentFolderPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -9883,8 +9825,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["DocumentFolder"]
     "/sites/{siteId}/documents":
         get:
@@ -9942,8 +9882,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Document"
                                 type: array
-                    description:
-                        ""
             tags: ["Document"]
         post:
             description:
@@ -9977,8 +9915,98 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Document"
-                    description:
-                        ""
+            tags: ["Document"]
+    "/sites/{siteId}/documents/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the site's document by external reference code returns a 204 if the operation succeeds.
+            operationId: deleteSiteDocumentByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["Document"]
+        get:
+            # @review
+            description:
+                Retrieves the site's document by external reference code.
+            operationId: getSiteDocumentByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Document"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Document"
+            tags: ["Document"]
+        put:
+            # @review
+            description:
+                Replaces the document by external reference code with the information sent in the request body, or
+                replaces it if it not exists. Any missing fields are deleted, unless they are required. The request body
+                must be `multipart/form-data` with two parts, the file'sbytes (`file`), and an optional JSON string
+                (`document`) with the metadata.
+            operationId: putSiteDocumentByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    multipart/form-data:
+                        schema:
+                            properties:
+                                document:
+                                    $ref: "#/components/schemas/Document"
+                                file:
+                                    format: binary
+                                    type: string
+                            type: object
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Document"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Document"
             tags: ["Document"]
     "/sites/{siteId}/documents/permissions":
         get:
@@ -9999,11 +10027,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
         put:
-            operationId: putSiteDocumentPermission
+            operationId: putSiteDocumentPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -10016,8 +10042,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["Document"]
     "/sites/{siteId}/knowledge-base-articles":
         get:
@@ -10075,8 +10099,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/KnowledgeBaseArticle"
                                 type: array
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         post:
             description:
@@ -10106,8 +10128,93 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseArticle"
-                    description:
-                        ""
+            tags: ["KnowledgeBaseArticle"]
+    "/sites/{siteId}/knowledge-base-articles/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the knowledge base article by external reference code.
+            operationId: deleteSiteKnowledgeBaseArticleByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["KnowledgeBaseArticle"]
+        get:
+            # @review
+            description:
+                Retrieves the site's knowledge base article by external reference code.
+            operationId: getSiteKnowledgeBaseArticleByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseArticle"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseArticle"
+            tags: ["KnowledgeBaseArticle"]
+        put:
+            # @review
+            description:
+                Updates the site's knowledge base article with the given external reference code, or creates it if it
+                not exists.
+            operationId: putSiteKnowledgeBaseArticleByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/KnowledgeBaseArticle"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/KnowledgeBaseArticle"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseArticle"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseArticle"
             tags: ["KnowledgeBaseArticle"]
     "/sites/{siteId}/knowledge-base-articles/permissions":
         get:
@@ -10128,11 +10235,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
         put:
-            operationId: putSiteKnowledgeBaseArticlePermission
+            operationId: putSiteKnowledgeBaseArticlePermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -10145,8 +10250,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/sites/{siteId}/knowledge-base-articles/subscribe":
         put:
@@ -10163,8 +10266,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/sites/{siteId}/knowledge-base-articles/unsubscribe":
         put:
@@ -10181,8 +10282,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseArticle"]
     "/sites/{siteId}/knowledge-base-folders":
         get:
@@ -10217,8 +10316,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/KnowledgeBaseFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
         post:
             description:
@@ -10248,8 +10345,93 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/KnowledgeBaseFolder"
-                    description:
-                        ""
+            tags: ["KnowledgeBaseFolder"]
+    "/sites/{siteId}/knowledge-base-folders/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the knowledge base folder by external reference code.
+            operationId: deleteSiteKnowledgeBaseFolderByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["KnowledgeBaseFolder"]
+        get:
+            # @review
+            description:
+                Retrieves the site's knowledge base folder by external reference code.
+            operationId: getSiteKnowledgeBaseFolderByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseFolder"
+            tags: ["KnowledgeBaseFolder"]
+        put:
+            # @review
+            description:
+                Updates the site's knowledge base folder with the given external reference code, or creates it if it not
+                exists.
+            operationId: putSiteKnowledgeBaseFolderByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/KnowledgeBaseFolder"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/KnowledgeBaseFolder"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/KnowledgeBaseFolder"
             tags: ["KnowledgeBaseFolder"]
     "/sites/{siteId}/knowledge-base-folders/permissions":
         get:
@@ -10270,11 +10452,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
         put:
-            operationId: putSiteKnowledgeBaseFolderPermission
+            operationId: putSiteKnowledgeBaseFolderPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -10287,8 +10467,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["KnowledgeBaseFolder"]
     "/sites/{siteId}/languages":
         get:
@@ -10316,8 +10494,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Language"
                                 type: array
-                    description:
-                        ""
             tags: ["Language"]
     "/sites/{siteId}/message-board-messages":
         # @review
@@ -10375,8 +10551,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardMessage"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/sites/{siteId}/message-board-messages/by-external-reference-code/{externalReferenceCode}":
         delete:
@@ -10401,8 +10575,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         get:
             # @review
@@ -10430,8 +10602,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         put:
             # @review
@@ -10459,8 +10629,6 @@ paths:
                     application/xml:
                         schema:
                             $ref: "#/components/schemas/MessageBoardMessage"
-                description:
-                    ""
             responses:
                 200:
                     content:
@@ -10470,8 +10638,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/sites/{siteId}/message-board-messages/by-friendly-url-path/{friendlyUrlPath}":
         get:
@@ -10501,8 +10667,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardMessage"
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/sites/{siteId}/message-board-messages/permissions":
         get:
@@ -10523,11 +10687,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
         put:
-            operationId: putSiteMessageBoardMessagePermission
+            operationId: putSiteMessageBoardMessagePermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -10540,8 +10702,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardMessage"]
     "/sites/{siteId}/message-board-sections":
         get:
@@ -10599,8 +10759,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardSection"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
         post:
             description:
@@ -10630,8 +10788,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardSection"
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
     "/sites/{siteId}/message-board-sections/permissions":
         get:
@@ -10652,11 +10808,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
         put:
-            operationId: putSiteMessageBoardSectionPermission
+            operationId: putSiteMessageBoardSectionPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -10669,8 +10823,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardSection"]
     "/sites/{siteId}/message-board-threads":
         get:
@@ -10728,8 +10880,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/MessageBoardThread"
                                 type: array
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         post:
             description:
@@ -10759,8 +10909,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardThread"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/sites/{siteId}/message-board-threads/by-friendly-url-path/{friendlyUrlPath}":
         get:
@@ -10790,8 +10938,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/MessageBoardThread"
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/sites/{siteId}/message-board-threads/permissions":
         get:
@@ -10812,11 +10958,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
         put:
-            operationId: putSiteMessageBoardThreadPermission
+            operationId: putSiteMessageBoardThreadPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -10829,13 +10973,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["MessageBoardThread"]
     "/sites/{siteId}/navigation-menus":
         get:
-            description:
-                ""
             operationId: getSiteNavigationMenusPage
             parameters:
                 - in: path
@@ -10865,8 +11005,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/NavigationMenu"
                                 type: array
-                    description:
-                        ""
             tags: ["NavigationMenu"]
         post:
             # @review
@@ -10897,8 +11035,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/NavigationMenu"
-                    description:
-                        ""
             tags: ["NavigationMenu"]
     "/sites/{siteId}/navigation-menus/permissions":
         get:
@@ -10919,11 +11055,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["NavigationMenu"]
         put:
-            operationId: putSiteNavigationMenuPermission
+            operationId: putSiteNavigationMenuPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -10936,8 +11070,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["NavigationMenu"]
     "/sites/{siteId}/site-pages":
         get:
@@ -10991,8 +11123,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/SitePage"
                                 type: array
-                    description:
-                        ""
             tags: ["SitePage"]
     "/sites/{siteId}/site-pages/{friendlyUrlPath}":
         get:
@@ -11025,15 +11155,13 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/SitePage"
-                    description:
-                        ""
             tags: ["SitePage"]
     "/sites/{siteId}/site-pages/{friendlyUrlPath}/experiences":
         get:
             # @review
             description:
                 Retrieves the experiences of a given Page
-            operationId: getSiteSitePageFriendlyUrlPathExperiencesPage
+            operationId: getSiteSitePagesExperiencesPage
             parameters:
                 - in: path
                   name: siteId
@@ -11063,8 +11191,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/SitePage"
                                 type: array
-                    description:
-                        ""
             tags: ["SitePage"]
     "/sites/{siteId}/site-pages/{friendlyUrlPath}/experiences/{experienceKey}":
         get:
@@ -11102,8 +11228,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/SitePage"
-                    description:
-                        ""
             tags: ["SitePage"]
     "/sites/{siteId}/site-pages/{friendlyUrlPath}/experiences/{experienceKey}/rendered-page":
         get:
@@ -11133,8 +11257,6 @@ paths:
                         text/html:
                             schema:
                                 type: string
-                    description:
-                        ""
             tags: ["SitePage"]
     "/sites/{siteId}/site-pages/{friendlyUrlPath}/rendered-page":
         get:
@@ -11159,8 +11281,6 @@ paths:
                         text/html:
                             schema:
                                 type: string
-                    description:
-                        ""
             tags: ["SitePage"]
     "/sites/{siteId}/structured-content-folders":
         get:
@@ -11218,8 +11338,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/StructuredContentFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         post:
             description:
@@ -11249,8 +11367,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContentFolder"
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/sites/{siteId}/structured-content-folders/permissions":
         get:
@@ -11271,11 +11387,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         put:
-            operationId: putSiteStructuredContentFolderPermission
+            operationId: putSiteStructuredContentFolderPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -11288,8 +11402,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/sites/{siteId}/structured-contents":
         get:
@@ -11351,8 +11463,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/StructuredContent"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContent"]
         post:
             description:
@@ -11386,8 +11496,93 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
+            tags: ["StructuredContent"]
+    "/sites/{siteId}/structured-contents/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the site's structured content by external reference code.
+            operationId: deleteSiteStructuredContentByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["StructuredContent"]
+        get:
+            # @review
+            description:
+                Retrieves the site's structured content by external reference code.
+            operationId: getSiteStructuredContentByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/StructuredContent"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/StructuredContent"
+            tags: ["StructuredContent"]
+        put:
+            # @review
+            description:
+                Updates the site's structured content with the given external reference code, or creates it if it not
+                exists.
+            operationId: putSiteStructuredContentByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/StructuredContent"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/StructuredContent"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/StructuredContent"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/StructuredContent"
             tags: ["StructuredContent"]
     "/sites/{siteId}/structured-contents/by-key/{key}":
         get:
@@ -11419,8 +11614,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/sites/{siteId}/structured-contents/by-uuid/{uuid}":
         get:
@@ -11452,8 +11645,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/sites/{siteId}/structured-contents/permissions":
         get:
@@ -11474,11 +11665,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
         put:
-            operationId: putSiteStructuredContentPermission
+            operationId: putSiteStructuredContentPermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -11491,8 +11680,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/sites/{siteId}/wiki-nodes":
         get:
@@ -11544,8 +11731,6 @@ paths:
                             schema:
                                 items:
                                     $ref: "#/components/schemas/WikiNode"
-                    description:
-                        ""
             tags: ["WikiNode"]
         post:
             description:
@@ -11575,8 +11760,92 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiNode"
-                    description:
-                        ""
+            tags: ["WikiNode"]
+    "/sites/{siteId}/wiki-nodes/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the site's wiki node by external reference code.
+            operationId: deleteSiteWikiNodeByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["WikiNode"]
+        get:
+            # @review
+            description:
+                Retrieves the site's wiki node by external reference code.
+            operationId: getSiteWikiNodeByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+            tags: ["WikiNode"]
+        put:
+            # @review
+            description:
+                Updates the site's wiki node with the given external reference code, or creates it if it not exists.
+            operationId: putSiteWikiNodeByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WikiNode"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WikiNode"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
             tags: ["WikiNode"]
     "/sites/{siteId}/wiki-nodes/permissions":
         get:
@@ -11597,11 +11866,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiNode"]
         put:
-            operationId: putSiteWikiNodePermission
+            operationId: putSiteWikiNodePermissionsPage
             parameters:
                 - in: path
                   name: siteId
@@ -11614,9 +11881,93 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiNode"]
+    "/sites/{siteId}/wiki-pages/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the wiki page by external reference code.
+            operationId: deleteSiteWikiPageByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["WikiPage"]
+        get:
+            # @review
+            description:
+                Retrieves the wiki page by external reference code
+            operationId: getSiteWikiPageByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+            tags: ["WikiPage"]
+        put:
+            # @review
+            description:
+                Updates the wiki page with the given external reference code, or creates it if it not exists.
+            operationId: putSiteWikiPageByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+            tags: ["WikiPage"]
     "/structured-content-folder/{structuredContentFolderId}/permissions":
         get:
             operationId: getStructuredContentFolderPermissionsPage
@@ -11636,11 +11987,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         put:
-            operationId: putStructuredContentFolderPermission
+            operationId: putStructuredContentFolderPermissionsPage
             parameters:
                 - in: path
                   name: structuredContentFolderId
@@ -11653,8 +12002,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/structured-content-folders/{parentStructuredContentFolderId}/structured-content-folders":
         get:
@@ -11708,8 +12055,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/StructuredContentFolder"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         post:
             description:
@@ -11739,8 +12084,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContentFolder"
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/structured-content-folders/{structuredContentFolderId}":
         delete:
@@ -11759,8 +12102,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         get:
             description:
@@ -11782,8 +12123,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContentFolder"
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         patch:
             description:
@@ -11813,8 +12152,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContentFolder"
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
         put:
             description:
@@ -11845,8 +12182,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContentFolder"
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/structured-content-folders/{structuredContentFolderId}/structured-contents":
         get:
@@ -11907,8 +12242,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/StructuredContent"
                                 type: array
-                    description:
-                        ""
             tags: ["StructuredContent"]
         post:
             description:
@@ -11942,8 +12275,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/structured-content-folders/{structuredContentFolderId}/subscribe":
         put:
@@ -11960,8 +12291,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/structured-content-folders/{structuredContentFolderId}/unsubscribe":
         put:
@@ -11978,8 +12307,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContentFolder"]
     "/structured-contents/{structuredContentId}":
         delete:
@@ -11998,8 +12325,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
         get:
             description:
@@ -12025,8 +12350,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
             tags: ["StructuredContent"]
         patch:
             description:
@@ -12060,8 +12383,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
             tags: ["StructuredContent"]
         put:
             description:
@@ -12096,8 +12417,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/StructuredContent"
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/structured-contents/{structuredContentId}/comments":
         get:
@@ -12150,8 +12469,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Comment"
                                 type: array
-                    description:
-                        ""
             tags: ["Comment"]
         post:
             description:
@@ -12181,8 +12498,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Comment"
-                    description:
-                        ""
             tags: ["Comment"]
     "/structured-contents/{structuredContentId}/my-rating":
         delete:
@@ -12201,8 +12516,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
         get:
             description:
@@ -12224,8 +12537,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["StructuredContent"]
         post:
             description:
@@ -12255,8 +12566,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["StructuredContent"]
         put:
             description:
@@ -12287,8 +12596,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Rating"
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/structured-contents/{structuredContentId}/permissions":
         get:
@@ -12309,11 +12616,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
         put:
-            operationId: putStructuredContentPermission
+            operationId: putStructuredContentPermissionsPage
             parameters:
                 - in: path
                   name: structuredContentId
@@ -12326,8 +12631,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/structured-contents/{structuredContentId}/rendered-content-by-display-page/{displayPageKey}":
         get:
@@ -12352,15 +12655,13 @@ paths:
                         text/html:
                             schema:
                                 type: string
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/structured-contents/{structuredContentId}/rendered-content/{contentTemplateId}":
         get:
             description:
                 Retrieves the structured content's rendered template (the result of applying the structure's values to a
                 template).
-            operationId: getStructuredContentRenderedContentTemplate
+            operationId: getStructuredContentRenderedContentContentTemplate
             parameters:
                 - in: path
                   name: structuredContentId
@@ -12379,8 +12680,6 @@ paths:
                         text/html:
                             schema:
                                 type: string
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/structured-contents/{structuredContentId}/subscribe":
         put:
@@ -12397,8 +12696,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/structured-contents/{structuredContentId}/unsubscribe":
         put:
@@ -12415,8 +12712,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["StructuredContent"]
     "/wiki-nodes/{wikiNodeId}":
         # @review
@@ -12436,8 +12731,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiNode"]
         get:
             description:
@@ -12459,8 +12752,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiNode"
-                    description:
-                        ""
             tags: ["WikiNode"]
         put:
             description:
@@ -12491,8 +12782,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiNode"
-                    description:
-                        ""
             tags: ["WikiNode"]
     "/wiki-nodes/{wikiNodeId}/permissions":
         get:
@@ -12513,11 +12802,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiNode"]
         put:
-            operationId: putWikiNodePermission
+            operationId: putWikiNodePermissionsPage
             parameters:
                 - in: path
                   name: wikiNodeId
@@ -12530,8 +12817,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiNode"]
     "/wiki-nodes/{wikiNodeId}/subscribe":
         put:
@@ -12548,8 +12833,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiNode"]
     "/wiki-nodes/{wikiNodeId}/unsubscribe":
         put:
@@ -12566,8 +12849,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiNode"]
     "/wiki-nodes/{wikiNodeId}/wiki-pages":
         get:
@@ -12619,8 +12900,6 @@ paths:
                             schema:
                                 items:
                                     $ref: "#/components/schemas/WikiPage"
-                    description:
-                        ""
             tags: ["WikiPage"]
         post:
             description:
@@ -12650,8 +12929,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiPage"
-                    description:
-                        ""
             tags: ["WikiPage"]
     "/wiki-page-attachments/{wikiPageAttachmentId}":
         delete:
@@ -12671,8 +12948,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiPageAttachment"]
         get:
             description:
@@ -12694,8 +12969,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiPageAttachment"
-                    description:
-                        ""
             tags: ["WikiPageAttachment"]
     "/wiki-pages/{parentWikiPageId}/wiki-pages":
         get:
@@ -12721,8 +12994,6 @@ paths:
                             schema:
                                 items:
                                     $ref: "#/components/schemas/WikiPage"
-                    description:
-                        ""
             tags: ["WikiPage"]
         post:
             description:
@@ -12752,8 +13023,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiPage"
-                    description:
-                        ""
             tags: ["WikiPage"]
     "/wiki-pages/{wikiPageId}":
         # @review
@@ -12773,8 +13042,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiPage"]
         get:
             description:
@@ -12796,8 +13063,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiPage"
-                    description:
-                        ""
             tags: ["WikiPage"]
         put:
             description:
@@ -12828,8 +13093,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiPage"
-                    description:
-                        ""
             tags: ["WikiPage"]
     "/wiki-pages/{wikiPageId}/permissions":
         get:
@@ -12850,11 +13113,9 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiPage"]
         put:
-            operationId: putWikiPagePermission
+            operationId: putWikiPagePermissionsPage
             parameters:
                 - in: path
                   name: wikiPageId
@@ -12867,8 +13128,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiPage"]
     "/wiki-pages/{wikiPageId}/subscribe":
         put:
@@ -12885,8 +13144,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiPage"]
     "/wiki-pages/{wikiPageId}/unsubscribe":
         put:
@@ -12903,8 +13160,6 @@ paths:
                     content:
                         application/json: {}
                         application/xml: {}
-                    description:
-                        ""
             tags: ["WikiPage"]
     "/wiki-pages/{wikiPageId}/wiki-page-attachments":
         get:
@@ -12932,8 +13187,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/WikiPageAttachment"
                                 type: array
-                    description:
-                        ""
             tags: ["WikiPageAttachment"]
         post:
             description:
@@ -12967,6 +13220,4 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/WikiPageAttachment"
-                    description:
-                        ""
             tags: ["WikiPageAttachment"]

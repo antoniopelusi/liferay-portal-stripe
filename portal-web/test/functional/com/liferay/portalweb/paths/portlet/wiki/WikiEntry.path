@@ -2,11 +2,13 @@
 <head>
 <title>WikiEntry</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WikiEntry</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ATTACHMENTS_LABEL</td>
@@ -36,6 +38,11 @@
 <tr>
 	<td>BODY_LINK</td>
 	<td>//div[@class='wiki-body']//a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BODY_TABLE</td>
+	<td>//div[@class='wiki-body']/table</td>
 	<td></td>
 </tr>
 </tbody>

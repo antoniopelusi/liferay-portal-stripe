@@ -28,7 +28,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -37,6 +36,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -51,9 +51,7 @@ import com.liferay.portal.workflow.metrics.rest.client.pagination.Pagination;
 import com.liferay.portal.workflow.metrics.rest.client.resource.v1_0.ProcessMetricResource;
 import com.liferay.portal.workflow.metrics.rest.client.serdes.v1_0.ProcessMetricSerDes;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -196,9 +194,9 @@ public abstract class BaseProcessMetricResourceTestCase {
 	@Test
 	public void testGetProcessMetricsPage() throws Exception {
 		Page<ProcessMetric> page = processMetricResource.getProcessMetricsPage(
-			RandomTestUtil.randomString(), Pagination.of(1, 2), null);
+			RandomTestUtil.randomString(), Pagination.of(1, 10), null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		ProcessMetric processMetric1 =
 			testGetProcessMetricsPage_addProcessMetric(randomProcessMetric());
@@ -207,18 +205,22 @@ public abstract class BaseProcessMetricResourceTestCase {
 			testGetProcessMetricsPage_addProcessMetric(randomProcessMetric());
 
 		page = processMetricResource.getProcessMetricsPage(
-			null, Pagination.of(1, 2), null);
+			null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(processMetric1, processMetric2),
-			(List<ProcessMetric>)page.getItems());
+		assertContains(processMetric1, (List<ProcessMetric>)page.getItems());
+		assertContains(processMetric2, (List<ProcessMetric>)page.getItems());
 		assertValid(page);
 	}
 
 	@Test
 	public void testGetProcessMetricsPageWithPagination() throws Exception {
+		Page<ProcessMetric> totalPage =
+			processMetricResource.getProcessMetricsPage(null, null, null);
+
+		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+
 		ProcessMetric processMetric1 =
 			testGetProcessMetricsPage_addProcessMetric(randomProcessMetric());
 
@@ -229,18 +231,18 @@ public abstract class BaseProcessMetricResourceTestCase {
 			testGetProcessMetricsPage_addProcessMetric(randomProcessMetric());
 
 		Page<ProcessMetric> page1 = processMetricResource.getProcessMetricsPage(
-			null, Pagination.of(1, 2), null);
+			null, Pagination.of(1, totalCount + 2), null);
 
 		List<ProcessMetric> processMetrics1 =
 			(List<ProcessMetric>)page1.getItems();
 
 		Assert.assertEquals(
-			processMetrics1.toString(), 2, processMetrics1.size());
+			processMetrics1.toString(), totalCount + 2, processMetrics1.size());
 
 		Page<ProcessMetric> page2 = processMetricResource.getProcessMetricsPage(
-			null, Pagination.of(2, 2), null);
+			null, Pagination.of(2, totalCount + 2), null);
 
-		Assert.assertEquals(3, page2.getTotalCount());
+		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
 
 		List<ProcessMetric> processMetrics2 =
 			(List<ProcessMetric>)page2.getItems();
@@ -249,11 +251,11 @@ public abstract class BaseProcessMetricResourceTestCase {
 			processMetrics2.toString(), 1, processMetrics2.size());
 
 		Page<ProcessMetric> page3 = processMetricResource.getProcessMetricsPage(
-			null, Pagination.of(1, 3), null);
+			null, Pagination.of(1, totalCount + 3), null);
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(processMetric1, processMetric2, processMetric3),
-			(List<ProcessMetric>)page3.getItems());
+		assertContains(processMetric1, (List<ProcessMetric>)page3.getItems());
+		assertContains(processMetric2, (List<ProcessMetric>)page3.getItems());
+		assertContains(processMetric3, (List<ProcessMetric>)page3.getItems());
 	}
 
 	@Test
@@ -264,6 +266,18 @@ public abstract class BaseProcessMetricResourceTestCase {
 				BeanUtils.setProperty(
 					processMetric1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetProcessMetricsPageWithSortDouble() throws Exception {
+		testGetProcessMetricsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, processMetric1, processMetric2) -> {
+				BeanUtils.setProperty(
+					processMetric1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					processMetric2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -286,7 +300,7 @@ public abstract class BaseProcessMetricResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -400,6 +414,23 @@ public abstract class BaseProcessMetricResourceTestCase {
 	@Test
 	public void testGraphQLGetProcessMetricNotFound() throws Exception {
 		Assert.assertTrue(true);
+	}
+
+	protected void assertContains(
+		ProcessMetric processMetric, List<ProcessMetric> processMetrics) {
+
+		boolean contains = false;
+
+		for (ProcessMetric item : processMetrics) {
+			if (equals(processMetric, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			processMetrics + " does not contain " + processMetric, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -539,8 +570,8 @@ public abstract class BaseProcessMetricResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.portal.workflow.metrics.rest.dto.v1_0.
 						ProcessMetric.class)) {
 
@@ -556,12 +587,13 @@ public abstract class BaseProcessMetricResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -575,7 +607,7 @@ public abstract class BaseProcessMetricResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -692,6 +724,19 @@ public abstract class BaseProcessMetricResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -907,8 +952,8 @@ public abstract class BaseProcessMetricResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProcessMetricResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseProcessMetricResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

@@ -34,6 +34,12 @@ public class CommercePriceListDiscountRelTable
 	public static final CommercePriceListDiscountRelTable INSTANCE =
 		new CommercePriceListDiscountRelTable();
 
+	public final Column<CommercePriceListDiscountRelTable, Long> mvccVersion =
+		createColumn(
+			"mvccVersion", Long.class, Types.BIGINT, Column.FLAG_NULLITY);
+	public final Column<CommercePriceListDiscountRelTable, Long>
+		ctCollectionId = createColumn(
+			"ctCollectionId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
 	public final Column<CommercePriceListDiscountRelTable, String> uuid =
 		createColumn("uuid_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<CommercePriceListDiscountRelTable, Long>

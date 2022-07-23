@@ -68,6 +68,20 @@ entities to prevent lost updates. The default value is false.
 >
 
 <!--
+The short-no-such-exception-enabled value specifies whether to try to shorten
+the no such exception class names when possible.
+
+For example, if set to to true, generate the class NoSuchEntryException when the
+entity name is BlogsEntry and the namespace is Blogs. If set to false, generate
+the class NoSuchBlogsEntryException.
+
+The default value is true.
+-->
+<!ATTLIST service-builder
+	short-no-such-exception-enabled CDATA #IMPLIED
+>
+
+<!--
 The author element is the name of the user associated with the generated code.
 -->
 <!ELEMENT author (#PCDATA)>
@@ -381,11 +395,26 @@ from the column name.
 >
 
 <!--
+The method-name value is used to override the default getter/setter method
+names.
+
+For example:
+
+<column method-name="FOOBar" name="fooBar" type="String" />
+
+The above column specifies that there will be a getter called pojo.getFOOBar()
+instead of the default pojo.getFooBar().
+-->
+<!ATTLIST column
+	method-name CDATA #IMPLIED
+>
+
+<!--
 The type value specifies whether the column is a String, Boolean, or int, etc.
 
 For example:
 
-<column name="companyId" db-name="companyId" type="String" />
+<column db-name="companyId" name="companyId" type="String" />
 
 The above column specifies that there will be a getter called
 pojo.getCompanyId() that will return a String.

@@ -367,4 +367,7 @@ public interface KaleoTaskAssignmentInstanceModel
 	 */
 	public void setCompletionDate(Date completionDate);
 
+	@Override
+	public KaleoTaskAssignmentInstance cloneWithOriginalValues();
+
 }

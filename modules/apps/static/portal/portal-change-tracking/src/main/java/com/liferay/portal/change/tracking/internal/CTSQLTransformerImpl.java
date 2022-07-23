@@ -15,24 +15,28 @@
 package com.liferay.portal.change.tracking.internal;
 
 import com.liferay.petra.io.unsync.UnsyncStringReader;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.change.tracking.registry.CTModelRegistration;
 import com.liferay.portal.change.tracking.registry.CTModelRegistry;
 import com.liferay.portal.change.tracking.sql.CTSQLModeThreadLocal;
 import com.liferay.portal.change.tracking.sql.CTSQLTransformer;
 import com.liferay.portal.kernel.cache.PortalCache;
-import com.liferay.portal.kernel.cache.SingleVMPool;
+import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
+import com.liferay.portal.kernel.cache.PortalCacheManagerNames;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Release;
-import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -169,21 +173,46 @@ import net.sf.jsqlparser.statement.values.ValuesStatement;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Preston Crary
  */
-@Component(immediate = true, service = CTSQLTransformer.class)
 public class CTSQLTransformerImpl implements CTSQLTransformer {
+
+	@SuppressWarnings("unchecked")
+	public void activate(BundleContext bundleContext) throws Exception {
+		_portalCache = PortalCacheHelperUtil.getPortalCache(
+			PortalCacheManagerNames.SINGLE_VM,
+			CTSQLTransformerImpl.class.getName());
+
+		_ctServiceServiceTracker = new ServiceTracker<>(
+			bundleContext, (Class<CTService<?>>)(Class<?>)CTService.class,
+			new CTServiceTrackerCustomizer(bundleContext));
+
+		_ctServiceServiceTracker.open();
+
+		_releaseServiceTracker = new ServiceTracker<>(
+			bundleContext,
+			bundleContext.createFilter(
+				StringBundler.concat(
+					"(&(objectClass=", Release.class.getName(),
+					")(release.bundle.symbolic.name=",
+					"com.liferay.change.tracking.service)",
+					"(release.schema.version>=2.1.0))")),
+			null);
+
+		_releaseServiceTracker.open();
+	}
+
+	public void deactivate() {
+		_portalCache.removeAll();
+
+		_ctServiceServiceTracker.close();
+
+		_releaseServiceTracker.close();
+	}
 
 	@Override
 	public String transform(String sql) {
@@ -247,27 +276,6 @@ public class CTSQLTransformerImpl implements CTSQLTransformer {
 		}
 	}
 
-	@Activate
-	@SuppressWarnings("unchecked")
-	protected void activate(BundleContext bundleContext) {
-		_portalCache =
-			(PortalCache<String, String>)_singleVMPool.getPortalCache(
-				CTSQLTransformerImpl.class.getName());
-
-		_serviceTracker = new ServiceTracker<>(
-			bundleContext, (Class<CTService<?>>)(Class<?>)CTService.class,
-			new CTServiceTrackerCustomizer(bundleContext));
-
-		_serviceTracker.open();
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		_portalCache.removeAll();
-
-		_serviceTracker.close();
-	}
-
 	/**
 	 * See https://github.com/JSQLParser/JSqlParser/issues/832
 	 */
@@ -289,29 +297,11 @@ public class CTSQLTransformerImpl implements CTSQLTransformer {
 
 	private static final JSqlParser _jSqlParser = new CCJSqlParserManager();
 
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY
-	)
-	private volatile ClassNameLocalService _classNameLocalService;
-
 	private final Map<Class<?>, CTService<?>> _ctServiceMap =
 		new ConcurrentHashMap<>();
+	private ServiceTracker<?, ?> _ctServiceServiceTracker;
 	private PortalCache<String, String> _portalCache;
-
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(&(release.bundle.symbolic.name=com.liferay.change.tracking.service)(release.schema.version>=2.1.0))"
-	)
-	private volatile Release _release;
-
-	private ServiceTracker<?, ?> _serviceTracker;
-
-	@Reference
-	private SingleVMPool _singleVMPool;
+	private ServiceTracker<?, ?> _releaseServiceTracker;
 
 	private abstract static class BaseStatementVisitor
 		implements ExpressionVisitor, FromItemVisitor, ItemsListVisitor,
@@ -1042,13 +1032,25 @@ public class CTSQLTransformerImpl implements CTSQLTransformer {
 		protected final long ctCollectionId;
 
 		private void _visit(BinaryExpression binaryExpression) {
-			Expression leftExpression = binaryExpression.getLeftExpression();
+			Deque<Expression> deque = new LinkedList<>();
 
-			leftExpression.accept(this);
+			deque.add(binaryExpression);
 
-			Expression rightExpression = binaryExpression.getRightExpression();
+			Expression expression = null;
 
-			rightExpression.accept(this);
+			while ((expression = deque.poll()) != null) {
+				if (expression instanceof BinaryExpression) {
+					BinaryExpression nextBinaryExpression =
+						(BinaryExpression)expression;
+
+					deque.push(nextBinaryExpression.getRightExpression());
+
+					deque.push(nextBinaryExpression.getLeftExpression());
+				}
+				else {
+					expression.accept(this);
+				}
+			}
 		}
 
 		private Expression _visit(Expression whereExpression) {
@@ -1241,15 +1243,9 @@ public class CTSQLTransformerImpl implements CTSQLTransformer {
 					new LongValue(ctCollectionId));
 			}
 
-			if (ctCollectionId == 0) {
-				return equalsTo(
-					new Column(table, "ctCollectionId"), new LongValue("0"));
-			}
+			if ((ctCollectionId == 0) ||
+				(_releaseServiceTracker.getService() == null)) {
 
-			ClassNameLocalService classNameLocalService =
-				_classNameLocalService;
-
-			if ((classNameLocalService == null) || (_release == null)) {
 				return equalsTo(
 					new Column(table, "ctCollectionId"), new LongValue("0"));
 			}
@@ -1273,7 +1269,7 @@ public class CTSQLTransformerImpl implements CTSQLTransformer {
 					equalsTo(
 						new Column(ctEntryTable, "modelClassNameId"),
 						new LongValue(
-							classNameLocalService.getClassNameId(
+							ClassNameLocalServiceUtil.getClassNameId(
 								ctModelRegistration.getModelClass())))));
 
 			SelectBody selectBody = ctEntryPlainSelect;

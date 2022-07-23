@@ -81,7 +81,7 @@ if (layoutSetBranch != null) {
 		<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_SAVE_DRAFT %>" />
 
 		<aui:fieldset>
-			<aui:input name="name" />
+			<aui:input ignoreRequestValue="<%= true %>" name="name" type="text" value="<%= (layoutSetBranch != null) ? HtmlUtil.escape(layoutSetBranchDisplayContext.getLayoutSetBranchDisplayName(layoutSetBranch)) : StringPool.BLANK %>" />
 
 			<aui:input name="description" />
 

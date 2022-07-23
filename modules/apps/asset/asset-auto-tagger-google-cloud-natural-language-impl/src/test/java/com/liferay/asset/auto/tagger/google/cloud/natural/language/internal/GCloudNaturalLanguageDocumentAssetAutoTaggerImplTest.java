@@ -15,7 +15,6 @@
 package com.liferay.asset.auto.tagger.google.cloud.natural.language.internal;
 
 import com.liferay.asset.auto.tagger.google.cloud.natural.language.internal.configuration.GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration;
-import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -24,7 +23,6 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.util.HttpImpl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,22 +47,12 @@ public class GCloudNaturalLanguageDocumentAssetAutoTaggerImplTest {
 
 	@BeforeClass
 	public static void setUpClass() {
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
-
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
-
 		_gCloudNaturalLanguageDocumentAssetAutoTaggerImpl =
 			new GCloudNaturalLanguageDocumentAssetAutoTaggerImpl();
-
-		ReflectionTestUtil.setFieldValue(
-			_gCloudNaturalLanguageDocumentAssetAutoTaggerImpl, "_http",
-			new HttpImpl());
 	}
 
 	@Test
-	public void testGetClassificationTagNamesWithDisabledClassifcationEndpoint()
-		throws Exception {
-
+	public void testGetClassificationTagNamesWithDisabledClassifcationEndpoint() {
 		GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration
 			gCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration =
 				new GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration() {
@@ -116,9 +104,7 @@ public class GCloudNaturalLanguageDocumentAssetAutoTaggerImplTest {
 	}
 
 	@Test
-	public void testGetClassificationTagNamesWithInvalidLanguage()
-		throws Exception {
-
+	public void testGetClassificationTagNamesWithInvalidLanguage() {
 		GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration
 			gCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration =
 				new GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration() {
@@ -170,9 +156,7 @@ public class GCloudNaturalLanguageDocumentAssetAutoTaggerImplTest {
 	}
 
 	@Test
-	public void testGetEntitiesTagNamesWithDisabledEntitiesEndpoint()
-		throws Exception {
-
+	public void testGetEntitiesTagNamesWithDisabledEntitiesEndpoint() {
 		GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration
 			gCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration =
 				new GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration() {
@@ -224,7 +208,7 @@ public class GCloudNaturalLanguageDocumentAssetAutoTaggerImplTest {
 	}
 
 	@Test
-	public void testGetEntitiesTagNamesWithInvalidLanguage() throws Exception {
+	public void testGetEntitiesTagNamesWithInvalidLanguage() {
 		GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration
 			gCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration =
 				new GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration() {

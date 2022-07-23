@@ -287,10 +287,11 @@ public class AMImageRequestHandlerTest {
 			adaptiveMedia.getValueOptional(
 				AMAttribute.getContentTypeAMAttribute()));
 
-		Optional<Long> contentLength = adaptiveMedia.getValueOptional(
+		Optional<Long> contentLengthOptional = adaptiveMedia.getValueOptional(
 			AMAttribute.getContentLengthAMAttribute());
 
-		Assert.assertEquals(_fileVersion.getSize(), (long)contentLength.get());
+		Assert.assertEquals(
+			_fileVersion.getSize(), (long)contentLengthOptional.get());
 
 		Mockito.verify(
 			_amAsyncProcessor

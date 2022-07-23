@@ -16,62 +16,31 @@ package com.liferay.adaptive.media.image.internal.configuration;
 
 import com.liferay.adaptive.media.image.configuration.AMImageConfigurationEntry;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.Http;
-import com.liferay.portal.kernel.util.URLCodec;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.mockito.Mockito;
-
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Adolfo Pérez
  */
-@PrepareForTest(URLCodec.class)
-@RunWith(PowerMockRunner.class)
-public class AMImageConfigurationEntryParserTest extends PowerMockito {
+public class AMImageConfigurationEntryParserTest {
+
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Before
 	public void setUp() {
-		_http = mock(Http.class);
-
-		_amImageConfigurationEntryParser = new AMImageConfigurationEntryParser(
-			_http);
-
-		PowerMockito.mockStatic(URLCodec.class);
-
-		when(
-			URLCodec.encodeURL(Mockito.eq("desc"))
-		).thenReturn(
-			"desc"
-		);
-
-		when(
-			_http.decodeURL(Mockito.eq("desc"))
-		).thenReturn(
-			"desc"
-		);
-
-		when(
-			URLCodec.encodeURL(Mockito.eq("test"))
-		).thenReturn(
-			"test"
-		);
-
-		when(
-			_http.decodeURL(Mockito.eq("test"))
-		).thenReturn(
-			"test"
-		);
+		_amImageConfigurationEntryParser =
+			new AMImageConfigurationEntryParser();
 	}
 
 	@Test
@@ -123,18 +92,6 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 
 	@Test
 	public void testEncodedDescription() {
-		when(
-			URLCodec.encodeURL(Mockito.eq("desc:;"))
-		).thenReturn(
-			"desc%3A%3B"
-		);
-
-		when(
-			_http.decodeURL(Mockito.eq("desc%3A%3B"))
-		).thenReturn(
-			"desc:;"
-		);
-
 		AMImageConfigurationEntry amImageConfigurationEntry =
 			_amImageConfigurationEntryParser.parse(
 				"test:desc%3A%3B:12345:max-height=100;max-width=200");
@@ -154,18 +111,6 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 
 	@Test
 	public void testEncodedName() {
-		when(
-			URLCodec.encodeURL(Mockito.eq("test:;"))
-		).thenReturn(
-			"test%3A%3B"
-		);
-
-		when(
-			_http.decodeURL(Mockito.eq("test%3A%3B"))
-		).thenReturn(
-			"test:;"
-		);
-
 		AMImageConfigurationEntry amImageConfigurationEntry =
 			_amImageConfigurationEntryParser.parse(
 				"test%3A%3B:desc:12345:max-height=100;max-width=200");
@@ -212,13 +157,10 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 				).build(),
 				true);
 
-		String configurationString =
-			_amImageConfigurationEntryParser.getConfigurationString(
-				amImageConfigurationEntry);
-
 		Assert.assertEquals(
 			"test:desc:12345:max-height=100;max-width=200:enabled=true",
-			configurationString);
+			_amImageConfigurationEntryParser.getConfigurationString(
+				amImageConfigurationEntry));
 	}
 
 	@Test
@@ -231,12 +173,10 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 				).build(),
 				true);
 
-		String configurationString =
-			_amImageConfigurationEntryParser.getConfigurationString(
-				amImageConfigurationEntry);
-
 		Assert.assertEquals(
-			"test:desc:12345:max-width=200:enabled=true", configurationString);
+			"test:desc:12345:max-width=200:enabled=true",
+			_amImageConfigurationEntryParser.getConfigurationString(
+				amImageConfigurationEntry));
 	}
 
 	@Test
@@ -245,12 +185,10 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 			new AMImageConfigurationEntryImpl(
 				"test", "desc", "12345", Collections.emptyMap(), true);
 
-		String configurationString =
-			_amImageConfigurationEntryParser.getConfigurationString(
-				amImageConfigurationEntry);
-
 		Assert.assertEquals(
-			"test:desc:12345::enabled=true", configurationString);
+			"test:desc:12345::enabled=true",
+			_amImageConfigurationEntryParser.getConfigurationString(
+				amImageConfigurationEntry));
 	}
 
 	@Test
@@ -263,13 +201,10 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 				).build(),
 				false);
 
-		String configurationString =
-			_amImageConfigurationEntryParser.getConfigurationString(
-				amImageConfigurationEntry);
-
 		Assert.assertEquals(
 			"test:desc:12345:max-height=100:enabled=false",
-			configurationString);
+			_amImageConfigurationEntryParser.getConfigurationString(
+				amImageConfigurationEntry));
 	}
 
 	@Test
@@ -284,13 +219,10 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 				).build(),
 				false);
 
-		String configurationString =
-			_amImageConfigurationEntryParser.getConfigurationString(
-				amImageConfigurationEntry);
-
 		Assert.assertEquals(
 			"test:desc:12345:max-height=100;max-width=200:enabled=false",
-			configurationString);
+			_amImageConfigurationEntryParser.getConfigurationString(
+				amImageConfigurationEntry));
 	}
 
 	@Test
@@ -303,12 +235,10 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 				).build(),
 				false);
 
-		String configurationString =
-			_amImageConfigurationEntryParser.getConfigurationString(
-				amImageConfigurationEntry);
-
 		Assert.assertEquals(
-			"test:desc:12345:max-width=200:enabled=false", configurationString);
+			"test:desc:12345:max-width=200:enabled=false",
+			_amImageConfigurationEntryParser.getConfigurationString(
+				amImageConfigurationEntry));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -384,6 +314,5 @@ public class AMImageConfigurationEntryParserTest extends PowerMockito {
 	}
 
 	private AMImageConfigurationEntryParser _amImageConfigurationEntryParser;
-	private Http _http;
 
 }

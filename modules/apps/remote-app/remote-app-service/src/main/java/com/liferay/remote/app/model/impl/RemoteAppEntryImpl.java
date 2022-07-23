@@ -18,8 +18,4 @@ package com.liferay.remote.app.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class RemoteAppEntryImpl extends RemoteAppEntryBaseImpl {
-
-	public RemoteAppEntryImpl() {
-	}
-
 }

@@ -368,4 +368,7 @@ public interface KaleoTimerModel
 	 */
 	public void setRecurrenceScale(String recurrenceScale);
 
+	@Override
+	public KaleoTimer cloneWithOriginalValues();
+
 }

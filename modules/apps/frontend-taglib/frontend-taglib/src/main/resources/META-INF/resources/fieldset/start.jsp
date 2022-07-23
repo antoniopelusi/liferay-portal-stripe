@@ -28,39 +28,48 @@ else if (collapsible) {
 }
 %>
 
-<fieldset aria-labelledby="<%= id %>Title" class="<%= collapsible ? "panel" : StringPool.BLANK %> <%= cssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> <%= Validator.isNotNull(id) ? "id=\"" + id + "\"" : StringPool.BLANK %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %> role="group">
-	<c:if test="<%= Validator.isNotNull(label) %>">
-		<liferay-util:buffer
-			var="header"
-		>
-			<liferay-ui:message key="<%= label %>" localizeKey="<%= localizeLabel %>" />
+<fieldset class="<%= collapsible ? "panel" : StringPool.BLANK %> <%= cssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> <%= Validator.isNotNull(id) ? "id=\"" + id + "\"" : StringPool.BLANK %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>>
+	<c:choose>
+		<c:when test="<%= Validator.isNotNull(label) %>">
+			<liferay-util:buffer
+				var="header"
+			>
+				<liferay-ui:message key="<%= label %>" localizeKey="<%= localizeLabel %>" />
 
-			<c:if test="<%= Validator.isNotNull(helpMessage) %>">
-				<liferay-ui:icon-help message="<%= helpMessage %>" />
-			</c:if>
+				<c:if test="<%= Validator.isNotNull(helpMessage) %>">
+					<liferay-ui:icon-help message="<%= helpMessage %>" />
+				</c:if>
+			</liferay-util:buffer>
 
-			<c:if test="<%= collapsible %>">
-				<aui:icon cssClass="collapse-icon-closed" image="angle-right" markupView="lexicon" />
+			<c:choose>
+				<c:when test="<%= collapsible %>">
+					<legend class="sr-only">
+						<%= header %>
+					</legend>
 
-				<aui:icon cssClass="collapse-icon-open" image="angle-down" markupView="lexicon" />
-			</c:if>
-		</liferay-util:buffer>
-
-		<div class="panel-heading" id="<%= id %>Header" role="presentation">
-			<div id="<%= id %>Title">
-				<c:choose>
-					<c:when test="<%= collapsible %>">
-						<a aria-controls="<%= id %>Content" aria-expanded="<%= !collapsed %>" class="collapse-icon <%= collapsed ? "collapsed" : StringPool.BLANK %> sheet-subtitle" data-toggle="liferay-collapse" href="#<%= id %>Content" role="button">
+					<a aria-controls="<%= id %>Content" aria-expanded="<%= !collapsed %>" class="collapse-icon <%= collapsed ? "collapsed" : StringPool.BLANK %> sheet-subtitle" data-toggle="liferay-collapse" href="#<%= id %>Content" role="button">
+						<span aria-hidden="true">
 							<%= header %>
-						</a>
-					</c:when>
-					<c:otherwise>
-						<h3 class="sheet-subtitle"><%= header %></h3>
-					</c:otherwise>
-				</c:choose>
-			</div>
-		</div>
-	</c:if>
+						</span>
 
-	<div aria-labelledby="<%= id %>Header" class="<%= !collapsed ? "show" : StringPool.BLANK %> <%= collapsible ? "panel-collapse collapse" : StringPool.BLANK %> <%= column ? "row" : StringPool.BLANK %>" id="<%= id %>Content" role="presentation">
+						<aui:icon cssClass="collapse-icon-closed" image="angle-right" markupView="lexicon" />
+
+						<aui:icon cssClass="collapse-icon-open" image="angle-down" markupView="lexicon" />
+					</a>
+				</c:when>
+				<c:otherwise>
+					<legend class="fieldset-legend">
+						<h3 class="legend sheet-subtitle"><%= header %></h3>
+					</legend>
+				</c:otherwise>
+			</c:choose>
+		</c:when>
+		<c:otherwise>
+			<legend class="sr-only">
+				<%= HtmlUtil.escape(portletDisplay.getTitle()) %>
+			</legend>
+		</c:otherwise>
+	</c:choose>
+
+	<div class="<%= !collapsed ? "show" : StringPool.BLANK %> <%= collapsible ? "panel-collapse collapse" : StringPool.BLANK %> <%= column ? "row" : StringPool.BLANK %>" id="<%= id %>Content" role="presentation">
 		<div class="<%= collapsible ? "panel-body" : StringPool.BLANK %>">

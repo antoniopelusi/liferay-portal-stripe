@@ -27,6 +27,10 @@ public class CommerceNotificationTemplateLocalServiceWrapper
 	implements CommerceNotificationTemplateLocalService,
 			   ServiceWrapper<CommerceNotificationTemplateLocalService> {
 
+	public CommerceNotificationTemplateLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceNotificationTemplateLocalServiceWrapper(
 		CommerceNotificationTemplateLocalService
 			commerceNotificationTemplateLocalService) {
@@ -187,6 +191,14 @@ public class CommerceNotificationTemplateLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceNotificationTemplateLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceNotificationTemplateLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override

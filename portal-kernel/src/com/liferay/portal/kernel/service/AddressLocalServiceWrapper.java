@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class AddressLocalServiceWrapper
 	implements AddressLocalService, ServiceWrapper<AddressLocalService> {
 
+	public AddressLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AddressLocalServiceWrapper(AddressLocalService addressLocalService) {
 		_addressLocalService = addressLocalService;
 	}
@@ -183,6 +187,13 @@ public class AddressLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _addressLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _addressLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -477,6 +488,29 @@ public class AddressLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _addressLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.kernel.model.Address>
+		getTypeAddresses(
+			long companyId, java.lang.String className, long classPK,
+			long[] typeIds) {
+
+		return _addressLocalService.getTypeAddresses(
+			companyId, className, classPK, typeIds);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.kernel.model.Address>
+		getTypeAddresses(
+			long companyId, java.lang.String className, long classPK,
+			long[] typeIds, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.portal.kernel.model.Address> orderByComparator) {
+
+		return _addressLocalService.getTypeAddresses(
+			companyId, className, classPK, typeIds, start, end,
+			orderByComparator);
 	}
 
 	@Override

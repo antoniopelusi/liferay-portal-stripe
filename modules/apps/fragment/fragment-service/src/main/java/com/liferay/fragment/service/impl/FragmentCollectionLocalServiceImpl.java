@@ -22,6 +22,8 @@ import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentCompositionLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.fragment.service.base.FragmentCollectionLocalServiceBaseImpl;
+import com.liferay.fragment.service.persistence.FragmentCompositionPersistence;
+import com.liferay.fragment.service.persistence.FragmentEntryPersistence;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -30,7 +32,9 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -72,7 +76,7 @@ public class FragmentCollectionLocalServiceImpl
 
 		// Fragment collection
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long companyId = user.getCompanyId();
 
@@ -122,13 +126,13 @@ public class FragmentCollectionLocalServiceImpl
 			FragmentCollection fragmentCollection)
 		throws PortalException {
 
-		/// Fragment collection
+		// Fragment collection
 
 		fragmentCollectionPersistence.remove(fragmentCollection);
 
 		// Resources
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			fragmentCollection.getCompanyId(),
 			FragmentCollection.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL,
@@ -142,7 +146,7 @@ public class FragmentCollectionLocalServiceImpl
 		// Fragment compositions
 
 		List<FragmentComposition> fragmentCompositions =
-			fragmentCompositionPersistence.findByFragmentCollectionId(
+			_fragmentCompositionPersistence.findByFragmentCollectionId(
 				fragmentCollection.getFragmentCollectionId());
 
 		for (FragmentComposition fragmentComposition : fragmentCompositions) {
@@ -153,7 +157,7 @@ public class FragmentCollectionLocalServiceImpl
 		// Fragment entries
 
 		List<FragmentEntry> fragmentEntries =
-			fragmentEntryPersistence.findByFragmentCollectionId(
+			_fragmentEntryPersistence.findByFragmentCollectionId(
 				fragmentCollection.getFragmentCollectionId());
 
 		for (FragmentEntry fragmentEntry : fragmentEntries) {
@@ -312,6 +316,18 @@ public class FragmentCollectionLocalServiceImpl
 	private FragmentCompositionLocalService _fragmentCompositionLocalService;
 
 	@Reference
+	private FragmentCompositionPersistence _fragmentCompositionPersistence;
+
+	@Reference
 	private FragmentEntryLocalService _fragmentEntryLocalService;
+
+	@Reference
+	private FragmentEntryPersistence _fragmentEntryPersistence;
+
+	@Reference
+	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -14,10 +14,15 @@
 
 module.exports = {
 	build: {
-		bundler: {
-			exclude: {
-				lodash: false,
-			},
-		},
+		exports: [
+			{name: 'classnames', symbols: 'auto'},
+			'formik',
+			{name: 'prop-types', symbols: 'auto'},
+			{name: 'react', symbols: 'auto'},
+			{name: 'react-dnd', symbols: 'auto' },
+			'react-dnd-html5-backend',
+			{name: 'react-dom', symbols: 'auto'},
+		],
+		main: 'src/main/resources/META-INF/resources/js/index.ts',
 	},
 };

@@ -12,31 +12,29 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
 import ClayButton from '@clayui/button';
 import ClayForm, {ClayInput, ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
-import React, {useContext, useEffect, useState} from 'react';
+import {useManualQuery, useMutation} from 'graphql-hooks';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {withRouter} from 'react-router-dom';
 
 import {AppContext} from '../../AppContext.es';
 import Alert from '../../components/Alert.es';
+import DefaultQuestionsEditor from '../../components/DefaultQuestionsEditor.es';
 import Link from '../../components/Link.es';
-import QuestionsEditor from '../../components/QuestionsEditor';
 import TagSelector from '../../components/TagSelector.es';
-import TextLengthValidation from '../../components/TextLengthValidation.es';
 import {
-	client,
 	createQuestionInASectionQuery,
 	createQuestionInRootQuery,
-	getSectionBySectionTitle,
+	getSectionBySectionTitleQuery,
 } from '../../utils/client.es';
 import lang from '../../utils/lang.es';
 import {
+	deleteCache,
 	getContextLink,
 	historyPushWithSlug,
 	slugToText,
-	stripHTML,
 	useDebounceCallback,
 } from '../../utils/utils.es';
 
@@ -47,9 +45,11 @@ export default withRouter(
 			params: {sectionTitle},
 		},
 	}) => {
-		const [articleBody, setArticleBody] = useState('');
+		const editorRef = useRef('');
+		const [hasEnoughContent, setHasEnoughContent] = useState(false);
 		const [headline, setHeadline] = useState('');
 		const [error, setError] = useState({});
+		const [isPostButtonDisable, setIsPostButtonDisable] = useState(true);
 		const [sectionId, setSectionId] = useState();
 		const [sections, setSections] = useState([]);
 		const [tags, setTags] = useState([]);
@@ -64,29 +64,31 @@ export default withRouter(
 		);
 
 		const [createQuestionInASection] = useMutation(
-			createQuestionInASectionQuery,
+			createQuestionInASectionQuery
+		);
+
+		const [createQuestionInRoot] = useMutation(createQuestionInRootQuery);
+		const [getSectionBySectionTitle] = useManualQuery(
+			getSectionBySectionTitleQuery,
 			{
-				context: getContextLink(sectionTitle),
-				onCompleted() {
-					client.resetStore();
-					debounceCallback();
+				variables: {
+					filter: `title eq '${slugToText(
+						sectionTitle
+					)}' or id eq '${slugToText(sectionTitle)}'`,
+					siteKey: context.siteKey,
 				},
 			}
 		);
 
-		const [createQuestionInRoot] = useMutation(createQuestionInRootQuery, {
-			context: getContextLink(sectionTitle),
-			onCompleted() {
-				client.resetStore();
-				debounceCallback();
-			},
-		});
+		useEffect(() => {
+			setIsPostButtonDisable(
+				hasEnoughContent || !headline || !tagsLoaded
+			);
+		}, [hasEnoughContent, headline, tagsLoaded]);
 
 		useEffect(() => {
-			getSectionBySectionTitle(
-				context.siteKey,
-				slugToText(sectionTitle)
-			).then((section) => {
+			getSectionBySectionTitle().then(({data}) => {
+				const section = data.messageBoardSections.items[0];
 				setSectionId((section && section.id) || +context.rootTopicId);
 				if (section.parentMessageBoardSection) {
 					setSections([
@@ -109,7 +111,12 @@ export default withRouter(
 					]);
 				}
 			});
-		}, [context.rootTopicId, context.siteKey, sectionTitle]);
+		}, [
+			context.rootTopicId,
+			context.siteKey,
+			sectionTitle,
+			getSectionBySectionTitle,
+		]);
 
 		const processError = (error) => {
 			if (error.message && error.message.includes('AssetTagException')) {
@@ -127,29 +134,40 @@ export default withRouter(
 			setError(error);
 		};
 
+		const processResponse = (error) =>
+			error ? processError(error.graphQLErrors[0]) : debounceCallback();
+
 		const createQuestion = () => {
+			setIsPostButtonDisable(true);
+			deleteCache();
 			if (
 				sectionTitle === context.rootTopicId &&
 				+context.rootTopicId === 0
 			) {
 				createQuestionInRoot({
+					fetchOptionsOverrides: getContextLink(sectionTitle),
 					variables: {
-						articleBody,
+						articleBody: editorRef.current.getContent(),
 						headline,
 						keywords: tags.map((tag) => tag.label),
 						siteKey: context.siteKey,
 					},
-				}).catch(processError);
+				})
+					.then(({error}) => processResponse(error))
+					.catch(processError);
 			}
 			else {
 				createQuestionInASection({
+					fetchOptionsOverrides: getContextLink(sectionTitle),
 					variables: {
-						articleBody,
+						articleBody: editorRef.current.getContent(),
 						headline,
 						keywords: tags.map((tag) => tag.label),
 						messageBoardSectionId: sectionId,
 					},
-				}).catch(processError);
+				})
+					.then(({error}) => processResponse(error))
+					.catch(processError);
 			}
 		};
 
@@ -158,6 +176,7 @@ export default withRouter(
 				<div className="questions-container row">
 					<div className="c-mx-auto col-xl-10">
 						<h1>{Liferay.Language.get('new-question')}</h1>
+
 						<ClayForm className="c-mt-5">
 							<ClayForm.Group>
 								<label htmlFor="basicInput">
@@ -192,41 +211,21 @@ export default withRouter(
 								</ClayForm.FeedbackGroup>
 							</ClayForm.Group>
 
-							<ClayForm.Group className="c-mt-4">
-								<label htmlFor="basicInput">
-									{Liferay.Language.get('body')}
-
-									<span className="c-ml-2 reference-mark">
-										<ClayIcon symbol="asterisk" />
-									</span>
-								</label>
-
-								<QuestionsEditor
-									onChange={(event) => {
-										setArticleBody(event.editor.getData());
-									}}
-								/>
-
-								<ClayForm.FeedbackGroup>
-									<ClayForm.FeedbackItem>
-										<span className="small text-secondary">
-											{Liferay.Language.get(
-												'include-all-the-information-someone-would-need-to-answer-your-question'
-											)}
-										</span>
-
-										<TextLengthValidation
-											text={articleBody}
-										/>
-									</ClayForm.FeedbackItem>
-								</ClayForm.FeedbackGroup>
-							</ClayForm.Group>
+							<DefaultQuestionsEditor
+								additionalInformation={Liferay.Language.get(
+									'include-all-the-information-someone-would-need-to-answer-your-question'
+								)}
+								label={Liferay.Language.get('body')}
+								onContentLengthValid={setHasEnoughContent}
+								ref={editorRef}
+							/>
 
 							{sections.length > 1 && (
 								<ClayForm.Group className="c-mt-4">
 									<label htmlFor="basicInput">
 										{Liferay.Language.get('topic')}
 									</label>
+
 									<ClaySelect
 										onChange={(event) =>
 											setSectionId(event.target.value)
@@ -255,18 +254,17 @@ export default withRouter(
 						<div className="c-mt-4 d-flex flex-column-reverse flex-sm-row">
 							<ClayButton
 								className="c-mt-4 c-mt-sm-0"
-								disabled={
-									!articleBody ||
-									!headline ||
-									!tagsLoaded ||
-									stripHTML(articleBody).length < 15
-								}
+								disabled={isPostButtonDisable}
 								displayType="primary"
 								onClick={() => {
 									createQuestion();
 								}}
 							>
-								{Liferay.Language.get('post-your-question')}
+								{context.trustedUser
+									? Liferay.Language.get('post-your-question')
+									: Liferay.Language.get(
+											'submit-for-publication'
+									  )}
 							</ClayButton>
 
 							<Link
@@ -278,6 +276,7 @@ export default withRouter(
 						</div>
 					</div>
 				</div>
+
 				<Alert info={error} />
 			</section>
 		);

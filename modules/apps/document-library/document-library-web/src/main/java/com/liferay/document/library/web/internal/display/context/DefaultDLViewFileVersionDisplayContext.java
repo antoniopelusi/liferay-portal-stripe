@@ -27,29 +27,41 @@ import com.liferay.document.library.preview.exception.DLFileEntryPreviewGenerati
 import com.liferay.document.library.preview.exception.DLPreviewGenerationInProcessException;
 import com.liferay.document.library.preview.exception.DLPreviewSizeException;
 import com.liferay.document.library.util.DLURLHelper;
+import com.liferay.document.library.util.DLURLHelperUtil;
+import com.liferay.document.library.web.internal.configuration.FFFriendlyURLEntryFileEntryConfigurationUtil;
 import com.liferay.document.library.web.internal.constants.DLWebKeys;
-import com.liferay.document.library.web.internal.display.context.logic.DLPortletInstanceSettingsHelper;
-import com.liferay.document.library.web.internal.display.context.logic.FileEntryDisplayContextHelper;
-import com.liferay.document.library.web.internal.display.context.logic.FileVersionDisplayContextHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLPortletInstanceSettingsHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
+import com.liferay.document.library.web.internal.display.context.helper.FileEntryDisplayContextHelper;
+import com.liferay.document.library.web.internal.display.context.helper.FileVersionDisplayContextHelper;
 import com.liferay.document.library.web.internal.display.context.logic.UIItemsBuilder;
-import com.liferay.document.library.web.internal.display.context.util.DLRequestHelper;
 import com.liferay.document.library.web.internal.display.context.util.JSPRenderer;
 import com.liferay.document.library.web.internal.helper.DLTrashHelper;
 import com.liferay.dynamic.data.mapping.exception.StorageException;
 import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.StorageEngine;
+import com.liferay.friendly.url.model.FriendlyURLEntry;
+import com.liferay.friendly.url.service.FriendlyURLEntryLocalServiceUtil;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.ToolbarItem;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
@@ -174,6 +186,30 @@ public class DefaultDLViewFileVersionDisplayContext
 	}
 
 	@Override
+	public String getDownloadURL(
+			FileEntry fileEntry, FileVersion fileVersion, boolean useVersion)
+		throws PortalException {
+
+		String friendlyURL = _getFriendlyURL(fileEntry.getFileEntryId());
+
+		if (!useVersion &&
+			FFFriendlyURLEntryFileEntryConfigurationUtil.enabled() &&
+			!Validator.isBlank(friendlyURL)) {
+
+			return HttpComponentsUtil.addParameter(
+				friendlyURL, "download", true);
+		}
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return DLURLHelperUtil.getDownloadURL(
+			fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false,
+			true);
+	}
+
+	@Override
 	public String getIconFileMimeType() {
 		if (_dlMimeTypeDisplayContext == null) {
 			return "document-default";
@@ -200,6 +236,8 @@ public class DefaultDLViewFileVersionDisplayContext
 	@Override
 	public List<ToolbarItem> getToolbarItems() throws PortalException {
 		List<ToolbarItem> toolbarItems = new ArrayList<>();
+
+		_uiItemsBuilder.addCollectDigitalSignatureToolbarItem(toolbarItems);
 
 		_uiItemsBuilder.addDownloadToolbarItem(toolbarItems);
 
@@ -327,6 +365,7 @@ public class DefaultDLViewFileVersionDisplayContext
 		VersioningStrategy versioningStrategy, DLURLHelper dlURLHelper) {
 
 		try {
+			_httpServletRequest = httpServletRequest;
 			_fileVersion = fileVersion;
 			_dlMimeTypeDisplayContext = dlMimeTypeDisplayContext;
 			_resourceBundle = resourceBundle;
@@ -376,6 +415,41 @@ public class DefaultDLViewFileVersionDisplayContext
 		return null;
 	}
 
+	private String _getFriendlyURL(long fileEntryId) throws PortalException {
+		if (!FFFriendlyURLEntryFileEntryConfigurationUtil.enabled() ||
+			(fileEntryId == 0)) {
+
+			return null;
+		}
+
+		FriendlyURLEntry friendlyURLEntry =
+			FriendlyURLEntryLocalServiceUtil.fetchMainFriendlyURLEntry(
+				PortalUtil.getClassNameId(FileEntry.class), fileEntryId);
+
+		if (friendlyURLEntry == null) {
+			return null;
+		}
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(themeDisplay.getPortalURL());
+		sb.append("/documents");
+		sb.append(FriendlyURLResolverConstants.URL_SEPARATOR_X_FILE_ENTRY);
+
+		Group group = themeDisplay.getScopeGroup();
+
+		sb.append(group.getFriendlyURL());
+
+		sb.append(StringPool.SLASH);
+		sb.append(friendlyURLEntry.getUrlTitle());
+
+		return sb.toString();
+	}
+
 	private List<MenuItem> _getMenuItems() throws PortalException {
 		List<MenuItem> menuItems = new ArrayList<>();
 
@@ -393,6 +467,8 @@ public class DefaultDLViewFileVersionDisplayContext
 			_uiItemsBuilder.addCancelCheckoutMenuItem(menuItems);
 
 			_uiItemsBuilder.addCheckinMenuItem(menuItems);
+
+			_uiItemsBuilder.addCollectDigitalSignatureMenuItem(menuItems);
 
 			_uiItemsBuilder.addMoveMenuItem(menuItems);
 
@@ -458,7 +534,7 @@ public class DefaultDLViewFileVersionDisplayContext
 				exception instanceof DLPreviewSizeException) {
 
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 			else {
@@ -487,6 +563,7 @@ public class DefaultDLViewFileVersionDisplayContext
 	private final FileVersion _fileVersion;
 	private final FileVersionDisplayContextHelper
 		_fileVersionDisplayContextHelper;
+	private HttpServletRequest _httpServletRequest;
 	private final ResourceBundle _resourceBundle;
 	private final StorageEngine _storageEngine;
 	private final UIItemsBuilder _uiItemsBuilder;

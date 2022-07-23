@@ -14,7 +14,6 @@
 
 import ClayDropDown from '@clayui/drop-down';
 import {ClayInput} from '@clayui/form';
-import {ClayIconSpriteContext} from '@clayui/icon';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClaySticker from '@clayui/sticker';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
@@ -26,7 +25,7 @@ import {debouncePromise} from '../../utilities/debounce';
 import {formatActionUrl, getRandomId} from '../../utilities/index';
 import {showErrorNotification} from '../../utilities/notifications';
 
-const OrderResource = ServiceProvider.AdminOrderAPI('v1');
+const CartResource = ServiceProvider.DeliveryCartAPI('v1');
 const AccountsResource = ServiceProvider.AdminAccountAPI('v1');
 const CatalogResource = ServiceProvider.DeliveryCatalogAPI('v1');
 
@@ -36,132 +35,143 @@ function SearchItem({className, href, label, stickerShape, thumbnailUrl}) {
 			<ClaySticker className="mr-2" shape={stickerShape}>
 				<ClaySticker.Image alt={label} src={thumbnailUrl} />
 			</ClaySticker>
+
 			{label}
 		</ClayDropDown.Item>
 	);
 }
 
 const composeDataUpdate = (
-	promise,
+	fetchData,
 	isMounted,
 	updateData,
 	updateCounter,
 	updateLoader
 ) => {
-	return promise
+	return fetchData
 		.then((response) => {
 			if (isMounted()) {
 				updateData(response.items);
 				updateCounter(response.totalCount);
+				updateLoader(false);
 			}
 		})
 		.catch((error) => {
-			showErrorNotification(error.message);
-			updateData(null);
-			updateCounter(null);
-		})
-		.finally(() => {
 			if (isMounted()) {
+				showErrorNotification(error.message);
+				updateData(null);
+				updateCounter(null);
 				updateLoader(false);
 			}
 		});
 };
 
-function GlobalSearch(props) {
+function GlobalSearch({
+	accountId,
+	accountURLTemplate,
+	accountsSearchURLTemplate,
+	cartURLTemplate,
+	cartsSearchURLTemplate,
+	channelId,
+	fetchDataDebounce,
+	globalSearchURLTemplate,
+	productURLTemplate,
+	productsSearchURLTemplate,
+	resultsPageSize,
+}) {
 	const isMounted = useIsMounted();
-
 	const inputRef = useRef(null);
 	const dropdownRef = useRef(null);
-
-	const [accountsLoading, updateAccountsLoading] = useState(false);
-	const [accounts, updateAccounts] = useState(null);
-	const [accountsCount, updateAccountsCount] = useState(null);
+	const [accountsLoading, setAccountsLoading] = useState(false);
+	const [accounts, setAccounts] = useState(null);
+	const [accountsCount, setAccountsCount] = useState(null);
 	const [active, setActive] = useState(false);
-	const [debouncedGetAccounts, updateDebouncedGetAccounts] = useState(null);
-	const [debouncedGetOrders, updateDebouncedGetOrders] = useState(null);
-	const [debouncedGetProducts, updateDebouncedGetProducts] = useState(null);
+	const [carts, setCarts] = useState(null);
+	const [cartsCount, setCartsCount] = useState(null);
+	const [cartsLoading, setCartsLoading] = useState(false);
+	const [debouncedGetAccounts, setDebouncedGetAccounts] = useState(null);
+	const [debouncedGetCarts, setDebouncedGetCarts] = useState(null);
+	const [debouncedGetProducts, setDebouncedGetProducts] = useState(null);
 	const [ids] = useState({
 		input: 'global-search-input' + getRandomId(),
 		menu: 'global-search-menu' + getRandomId(),
 	});
-	const [orders, updateOrders] = useState(null);
-	const [ordersCount, updateOrdersCount] = useState(null);
-	const [ordersLoading, updateOrdersLoading] = useState(false);
-	const [products, updateProducts] = useState(null);
-	const [productsCount, updateProductsCount] = useState(null);
-	const [productsLoading, updateProductsLoading] = useState(false);
-	const [query, updateQuery] = useState('');
+	const [products, setProducts] = useState(null);
+	const [productsCount, setProductsCount] = useState(null);
+	const [productsLoading, setProductsLoading] = useState(false);
+	const [query, setQuery] = useState('');
 
 	useEffect(() => {
-		updateDebouncedGetAccounts(() =>
+		setDebouncedGetAccounts(() =>
+			debouncePromise(AccountsResource.getAccounts, fetchDataDebounce)
+		);
+		setDebouncedGetCarts(() =>
 			debouncePromise(
-				AccountsResource.getAccounts,
-				props.fetchDataDebounce
+				CartResource.getCartsByAccountIdAndChannelId,
+				fetchDataDebounce
 			)
 		);
-		updateDebouncedGetOrders(() =>
-			debouncePromise(OrderResource.getOrders, props.fetchDataDebounce)
-		);
-		updateDebouncedGetProducts(() =>
+		setDebouncedGetProducts(() =>
 			debouncePromise(
 				CatalogResource.getProductsByChannelId,
-				props.fetchDataDebounce
+				fetchDataDebounce
 			)
 		);
-	}, [props.fetchDataDebounce]);
+	}, [fetchDataDebounce]);
 
 	const getProducts = useCallback(() => {
 		composeDataUpdate(
-			debouncedGetProducts(props.channelId, null, {
-				pageSize: props.resultsPageSize,
+			debouncedGetProducts(channelId, null, {
+				pageSize: resultsPageSize,
 				search: query,
 			}),
 			isMounted,
-			updateProducts,
-			updateProductsCount,
-			updateProductsLoading
+			setProducts,
+			setProductsCount,
+			setProductsLoading
 		);
-	}, [
-		debouncedGetProducts,
-		props.channelId,
-		props.resultsPageSize,
-		query,
-		isMounted,
-	]);
+	}, [debouncedGetProducts, channelId, resultsPageSize, query, isMounted]);
 
 	const getAccounts = useCallback(() => {
 		composeDataUpdate(
 			debouncedGetAccounts(null, {
-				pageSize: props.resultsPageSize,
+				pageSize: resultsPageSize,
 				search: query,
 			}),
 			isMounted,
-			updateAccounts,
-			updateAccountsCount,
-			updateAccountsLoading
+			setAccounts,
+			setAccountsCount,
+			setAccountsLoading
 		);
-	}, [debouncedGetAccounts, props.resultsPageSize, query, isMounted]);
+	}, [debouncedGetAccounts, resultsPageSize, query, isMounted]);
 
-	const getOrders = useCallback(() => {
+	const getCarts = useCallback(() => {
 		composeDataUpdate(
-			debouncedGetOrders(null, {
-				pageSize: props.resultsPageSize,
+			debouncedGetCarts(accountId, channelId, {
+				pageSize: resultsPageSize,
 				search: query,
 			}),
 			isMounted,
-			updateOrders,
-			updateOrdersCount,
-			updateOrdersLoading
+			setCarts,
+			setCartsCount,
+			setCartsLoading
 		);
-	}, [debouncedGetOrders, props.resultsPageSize, query, isMounted]);
+	}, [
+		debouncedGetCarts,
+		accountId,
+		channelId,
+		query,
+		resultsPageSize,
+		isMounted,
+	]);
 
 	function resetContent() {
-		updateAccounts(null);
-		updateOrders(null);
-		updateProducts(null);
-		updateAccountsCount(null);
-		updateOrdersCount(null);
-		updateProductsCount(null);
+		setAccounts(null);
+		setCarts(null);
+		setProducts(null);
+		setAccountsCount(null);
+		setCartsCount(null);
+		setProductsCount(null);
 	}
 
 	useEffect(() => {
@@ -173,14 +183,14 @@ function GlobalSearch(props) {
 			return;
 		}
 
-		updateProductsLoading(true);
-		updateAccountsLoading(true);
-		updateOrdersLoading(true);
+		setProductsLoading(true);
+		setAccountsLoading(true);
+		setCartsLoading(true);
 
 		getProducts();
 		getAccounts();
-		getOrders();
-	}, [query, getProducts, getAccounts, getOrders]);
+		getCarts();
+	}, [query, getProducts, getAccounts, getCarts]);
 
 	useEffect(() => {
 		function handleClick(event) {
@@ -207,10 +217,10 @@ function GlobalSearch(props) {
 	}, [active, ids]);
 
 	return (
-		<ClayIconSpriteContext.Provider value={props.spritemap}>
+		<>
 			<ClayInput
 				id={ids.input}
-				onChange={(event) => updateQuery(event.target.value)}
+				onChange={(event) => setQuery(event.target.value)}
 				onClick={() => {
 					if (query) {
 						setActive(true);
@@ -220,6 +230,7 @@ function GlobalSearch(props) {
 				ref={inputRef}
 				value={query}
 			/>
+
 			<ClayDropDown.Menu
 				active={active}
 				alignElementRef={inputRef}
@@ -239,7 +250,7 @@ function GlobalSearch(props) {
 										<SearchItem
 											className="product-item"
 											href={formatActionUrl(
-												props.productURLTemplate,
+												productURLTemplate,
 												product
 											)}
 											key={product.id}
@@ -250,7 +261,7 @@ function GlobalSearch(props) {
 									{productsCount > products.length && (
 										<ClayDropDown.Item
 											href={formatActionUrl(
-												props.productsSearchURLTemplate,
+												productsSearchURLTemplate,
 												{
 													query,
 												}
@@ -278,53 +289,59 @@ function GlobalSearch(props) {
 							</ClayDropDown.Item>
 						)}
 					</ClayDropDown.Group>
-					<ClayDropDown.Group header={Liferay.Language.get('orders')}>
-						{!ordersLoading ? (
-							orders?.length ? (
-								<>
-									{orders.map((order) => (
-										<ClayDropDown.Item
-											className="order-item"
-											href={formatActionUrl(
-												props.orderURLTemplate,
-												order
-											)}
-											key={order.id}
-										>
-											{order.id}
-										</ClayDropDown.Item>
-									))}
-									{ordersCount > orders.length && (
-										<ClayDropDown.Item
-											href={formatActionUrl(
-												props.ordersSearchURLTemplate,
-												{
-													query,
-												}
-											)}
-										>
-											{Liferay.Util.sub(
-												Liferay.Language.get(
-													'search-x-in-orders'
-												),
-												query
-											)}
-										</ClayDropDown.Item>
-									)}
-								</>
+
+					{accountId && (
+						<ClayDropDown.Group
+							header={Liferay.Language.get('orders')}
+						>
+							{!cartsLoading ? (
+								carts?.length ? (
+									<>
+										{carts.map((cart) => (
+											<ClayDropDown.Item
+												className="order-item"
+												href={formatActionUrl(
+													cartURLTemplate,
+													cart
+												)}
+												key={cart.id}
+											>
+												{cart.id}
+											</ClayDropDown.Item>
+										))}
+										{cartsCount > carts.length && (
+											<ClayDropDown.Item
+												href={formatActionUrl(
+													cartsSearchURLTemplate,
+													{
+														query,
+													}
+												)}
+											>
+												{Liferay.Util.sub(
+													Liferay.Language.get(
+														'search-x-in-orders'
+													),
+													query
+												)}
+											</ClayDropDown.Item>
+										)}
+									</>
+								) : (
+									<ClayDropDown.Item>
+										{Liferay.Language.get(
+											'no-orders-were-found'
+										)}
+									</ClayDropDown.Item>
+								)
 							) : (
 								<ClayDropDown.Item>
-									{Liferay.Language.get(
-										'no-orders-were-found'
-									)}
+									<ClayLoadingIndicator small />
 								</ClayDropDown.Item>
-							)
-						) : (
-							<ClayDropDown.Item>
-								<ClayLoadingIndicator small />
-							</ClayDropDown.Item>
-						)}
-					</ClayDropDown.Group>
+							)}
+						</ClayDropDown.Group>
+					)}
+
 					<ClayDropDown.Group
 						header={Liferay.Language.get('accounts')}
 					>
@@ -335,7 +352,7 @@ function GlobalSearch(props) {
 										<SearchItem
 											className="account-item"
 											href={formatActionUrl(
-												props.accountURLTemplate,
+												accountURLTemplate,
 												account
 											)}
 											key={account.id}
@@ -347,7 +364,7 @@ function GlobalSearch(props) {
 									{accountsCount > accounts.length && (
 										<ClayDropDown.Item
 											href={formatActionUrl(
-												props.accountsSearchURLTemplate,
+												accountsSearchURLTemplate,
 												{
 													query,
 												}
@@ -375,9 +392,11 @@ function GlobalSearch(props) {
 							</ClayDropDown.Item>
 						)}
 					</ClayDropDown.Group>
+
 					<ClayDropDown.Divider />
+
 					<ClayDropDown.Item
-						href={formatActionUrl(props.globalSearchURLTemplate, {
+						href={formatActionUrl(globalSearchURLTemplate, {
 							query,
 						})}
 					>
@@ -385,22 +404,22 @@ function GlobalSearch(props) {
 					</ClayDropDown.Item>
 				</ClayDropDown.ItemList>
 			</ClayDropDown.Menu>
-		</ClayIconSpriteContext.Provider>
+		</>
 	);
 }
 
 GlobalSearch.propTypes = {
+	accountId: PropTypes.number,
 	accountURLTemplate: PropTypes.string.isRequired,
 	accountsSearchURLTemplate: PropTypes.string.isRequired,
+	cartURLTemplate: PropTypes.string.isRequired,
+	cartsSearchURLTemplate: PropTypes.string.isRequired,
 	channelId: PropTypes.number.isRequired,
 	fetchDataDebounce: PropTypes.number.isRequired,
 	globalSearchURLTemplate: PropTypes.string.isRequired,
-	orderURLTemplate: PropTypes.string.isRequired,
-	ordersSearchURLTemplate: PropTypes.string.isRequired,
 	productURLTemplate: PropTypes.string.isRequired,
 	productsSearchURLTemplate: PropTypes.string.isRequired,
 	resultsPageSize: PropTypes.number.isRequired,
-	spritemap: PropTypes.string.isRequired,
 };
 
 GlobalSearch.defaultProps = {

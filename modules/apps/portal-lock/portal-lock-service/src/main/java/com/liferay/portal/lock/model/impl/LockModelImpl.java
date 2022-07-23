@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.lock.model.Lock;
 import com.liferay.portal.lock.model.LockModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -237,33 +238,6 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Lock>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Lock.class.getClassLoader(), Lock.class, ModelWrapper.class);
-
-		try {
-			Constructor<Lock> constructor =
-				(Constructor<Lock>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Lock, Object>>
@@ -655,6 +629,29 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	}
 
 	@Override
+	public Lock cloneWithOriginalValues() {
+		LockImpl lockImpl = new LockImpl();
+
+		lockImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		lockImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		lockImpl.setLockId(this.<Long>getColumnOriginalValue("lockId"));
+		lockImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		lockImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		lockImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		lockImpl.setCreateDate(this.<Date>getColumnOriginalValue("createDate"));
+		lockImpl.setClassName(this.<String>getColumnOriginalValue("className"));
+		lockImpl.setKey(this.<String>getColumnOriginalValue("key_"));
+		lockImpl.setOwner(this.<String>getColumnOriginalValue("owner"));
+		lockImpl.setInheritable(
+			this.<Boolean>getColumnOriginalValue("inheritable"));
+		lockImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+
+		return lockImpl;
+	}
+
+	@Override
 	public int compareTo(Lock lock) {
 		long primaryKey = lock.getPrimaryKey();
 
@@ -802,7 +799,7 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -812,9 +809,26 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 			String attributeName = entry.getKey();
 			Function<Lock, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Lock)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Lock)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -860,7 +874,9 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Lock>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Lock.class, ModelWrapper.class);
 
 	}
 

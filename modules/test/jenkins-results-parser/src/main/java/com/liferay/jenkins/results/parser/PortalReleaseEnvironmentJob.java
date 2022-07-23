@@ -14,9 +14,11 @@
 
 package com.liferay.jenkins.results.parser;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
+
 import java.util.Set;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
@@ -24,18 +26,24 @@ import java.util.Set;
 public class PortalReleaseEnvironmentJob extends PortalEnvironmentJob {
 
 	protected PortalReleaseEnvironmentJob(
-		String jobName, BuildProfile buildProfile, String portalBranchName) {
+		BuildProfile buildProfile, String jobName,
+		String portalUpstreamBranchName) {
 
-		super(jobName, buildProfile, portalBranchName);
+		super(buildProfile, jobName, portalUpstreamBranchName);
+	}
+
+	protected PortalReleaseEnvironmentJob(JSONObject jsonObject) {
+		super(jsonObject);
 	}
 
 	@Override
 	protected Set<String> getRawBatchNames() {
-		String environmentJobNames = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "environment.release.job.names",
-			getPortalBranchName());
+		JobProperty jobProperty = getJobProperty(
+			"environment.release.job.names");
 
-		return new HashSet<>(Arrays.asList(environmentJobNames.split(",")));
+		recordJobProperty(jobProperty);
+
+		return getSetFromString(jobProperty.getValue());
 	}
 
 }

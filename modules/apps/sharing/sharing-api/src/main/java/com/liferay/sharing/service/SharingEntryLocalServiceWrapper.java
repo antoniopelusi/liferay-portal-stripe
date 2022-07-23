@@ -27,6 +27,10 @@ public class SharingEntryLocalServiceWrapper
 	implements ServiceWrapper<SharingEntryLocalService>,
 			   SharingEntryLocalService {
 
+	public SharingEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SharingEntryLocalServiceWrapper(
 		SharingEntryLocalService sharingEntryLocalService) {
 
@@ -257,6 +261,13 @@ public class SharingEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _sharingEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _sharingEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -46,11 +46,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Assert;
@@ -79,14 +75,12 @@ public class MBDiscussionPermissionImplTest {
 		_siteUser2 = UserTestUtil.addUser(_group.getGroupId());
 
 		_fileEntry = DLAppLocalServiceUtil.addFileEntry(
-			_user.getUserId(), _group.getGroupId(),
+			null, _user.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
-			null,
+			null, null, null,
 			ServiceContextTestUtil.getServiceContext(
 				_group, _user.getUserId()));
-
-		_initializeCommentManager();
 	}
 
 	@Test
@@ -241,25 +235,11 @@ public class MBDiscussionPermissionImplTest {
 			StringUtil.randomString(), serviceContextFunction);
 	}
 
-	private void _initializeCommentManager() throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
-
-		Collection<CommentManager> services = registry.getServices(
-			CommentManager.class,
-			"(component.name=com.liferay.message.boards.comment.internal." +
-				"MBCommentManagerImpl)");
-
-		if (services.isEmpty()) {
-			throw new IllegalStateException(
-				"MBMessage Comment API implementation was not found");
-		}
-
-		Iterator<CommentManager> iterator = services.iterator();
-
-		_commentManager = iterator.next();
-	}
-
+	@Inject(
+		filter = "component.name=com.liferay.message.boards.comment.internal.MBCommentManagerImpl"
+	)
 	private CommentManager _commentManager;
+
 	private FileEntry _fileEntry;
 
 	@DeleteAfterTestRun

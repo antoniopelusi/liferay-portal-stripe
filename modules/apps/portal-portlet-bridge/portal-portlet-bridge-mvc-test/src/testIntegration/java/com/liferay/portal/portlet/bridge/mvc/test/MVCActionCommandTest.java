@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.test.portlet.MockLiferayPortletActionRequest;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portletmvc4spring.test.mock.web.portlet.MockActionResponse;
 
@@ -60,14 +60,11 @@ public class MVCActionCommandTest {
 
 		_portletServiceRegistration = bundleContext.registerService(
 			javax.portlet.Portlet.class, _portlet,
-			new HashMapDictionary<String, Object>() {
-				{
-					put(
-						"javax.portlet.init-param.copy-request-parameters",
-						"false");
-					put("javax.portlet.name", _PORTLET_NAME);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.init-param.copy-request-parameters", "false"
+			).put(
+				"javax.portlet.name", _PORTLET_NAME
+			).build());
 
 		_mvcActionCommandServiceRegistration1 = bundleContext.registerService(
 			MVCActionCommand.class,
@@ -78,12 +75,11 @@ public class MVCActionCommandTest {
 
 				return true;
 			},
-			new HashMapDictionary<String, Object>() {
-				{
-					put("javax.portlet.name", _PORTLET_NAME);
-					put("mvc.command.name", _TEST_MVC_ACTION_COMMAND_NAME_1);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.name", _PORTLET_NAME
+			).put(
+				"mvc.command.name", _TEST_MVC_ACTION_COMMAND_NAME_1
+			).build());
 
 		_mvcActionCommandServiceRegistration2 = bundleContext.registerService(
 			MVCActionCommand.class,
@@ -94,12 +90,11 @@ public class MVCActionCommandTest {
 
 				return true;
 			},
-			new HashMapDictionary<String, Object>() {
-				{
-					put("javax.portlet.name", _PORTLET_NAME);
-					put("mvc.command.name", _TEST_MVC_ACTION_COMMAND_NAME_2);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.name", _PORTLET_NAME
+			).put(
+				"mvc.command.name", _TEST_MVC_ACTION_COMMAND_NAME_2
+			).build());
 	}
 
 	@AfterClass
@@ -193,7 +188,7 @@ public class MVCActionCommandTest {
 
 	private static final String _PORTLET_NAME =
 		"com_liferay_portal_kernel_portlet_bridges_mvc_test_" +
-			"MVCActionCommandTest_TestPortlet";
+			"MVCActionCommandTest_Test-Portlet";
 
 	private static final String _TEST_MVC_ACTION_COMMAND_ATTRIBUTE_1 =
 		"TEST_MVC_ACTION_COMMAND_ATTRIBUTE_1";

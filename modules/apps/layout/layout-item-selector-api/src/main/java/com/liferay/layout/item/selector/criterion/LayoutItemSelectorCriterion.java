@@ -22,6 +22,7 @@ import com.liferay.item.selector.BaseItemSelectorCriterion;
 public class LayoutItemSelectorCriterion extends BaseItemSelectorCriterion {
 
 	public LayoutItemSelectorCriterion() {
+		_showBreadcrumb = true;
 		_showPrivatePages = true;
 		_showPublicPages = true;
 	}
@@ -44,6 +45,14 @@ public class LayoutItemSelectorCriterion extends BaseItemSelectorCriterion {
 
 	public boolean isShowActionsMenu() {
 		return _showActionsMenu;
+	}
+
+	public boolean isShowBreadcrumb() {
+		return _showBreadcrumb;
+	}
+
+	public boolean isShowDraftPages() {
+		return _showDraftPages;
 	}
 
 	public boolean isShowHiddenPages() {
@@ -78,6 +87,14 @@ public class LayoutItemSelectorCriterion extends BaseItemSelectorCriterion {
 		_showActionsMenu = showActionsMenu;
 	}
 
+	public void setShowBreadcrumb(boolean showBreadcrumb) {
+		_showBreadcrumb = showBreadcrumb;
+	}
+
+	public void setShowDraftPages(boolean showDraftPages) {
+		_showDraftPages = showDraftPages;
+	}
+
 	public void setShowHiddenPages(boolean showHiddenPages) {
 		_showHiddenPages = showHiddenPages;
 	}
@@ -95,6 +112,8 @@ public class LayoutItemSelectorCriterion extends BaseItemSelectorCriterion {
 	private boolean _followURLOnTitleClick;
 	private boolean _multiSelection;
 	private boolean _showActionsMenu;
+	private boolean _showBreadcrumb;
+	private boolean _showDraftPages;
 	private boolean _showHiddenPages;
 	private boolean _showPrivatePages;
 	private boolean _showPublicPages;

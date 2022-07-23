@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Html;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -60,10 +59,6 @@ public class MBUtilTest {
 			MBUtilTest::_getFirstArgument
 		);
 
-		HtmlUtil htmlUtil = new HtmlUtil();
-
-		htmlUtil.setHtml(html);
-
 		Language language = Mockito.mock(Language.class);
 
 		Mockito.stub(
@@ -82,7 +77,7 @@ public class MBUtilTest {
 		Mockito.stub(
 			portal.getUserName(Mockito.any(MBMessage.class))
 		).toReturn(
-			"USER[]()"
+			"USER[]"
 		);
 
 		PortalUtil portalUtil = new PortalUtil();
@@ -101,7 +96,7 @@ public class MBUtilTest {
 		);
 
 		Assert.assertEquals(
-			"[quote=USER&#91;&#93;&#40;&#41;]\nCONTENT[/quote]\n\n\n",
+			"[quote=USER&#91;&#93;]\nCONTENT[/quote]\n\n\n",
 			MBUtil.getBBCodeQuoteBody(
 				Mockito.mock(HttpServletRequest.class), mbMessage));
 	}

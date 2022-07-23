@@ -84,7 +84,8 @@ public class AuthorizeNetCommercePaymentMethod
 		throws Exception {
 
 		return new CommercePaymentResult(
-			null, commercePaymentRequest.getCommerceOrderId(),
+			commercePaymentRequest.getTransactionId(),
+			commercePaymentRequest.getCommerceOrderId(),
 			CommerceOrderPaymentConstants.STATUS_CANCELLED, false, null, null,
 			Collections.emptyList(), true);
 	}
@@ -98,14 +99,16 @@ public class AuthorizeNetCommercePaymentMethod
 			(AuthorizeNetCommercePaymentRequest)commercePaymentRequest;
 
 		return new CommercePaymentResult(
-			null, authorizeNetCommercePaymentRequest.getCommerceOrderId(),
+			commercePaymentRequest.getTransactionId(),
+			authorizeNetCommercePaymentRequest.getCommerceOrderId(),
 			CommerceOrderConstants.PAYMENT_STATUS_PAID, false, null, null,
 			Collections.emptyList(), true);
 	}
 
 	@Override
 	public String getDescription(Locale locale) {
-		return null;
+		return LanguageUtil.get(
+			_getResourceBundle(locale), "authorize-net-description");
 	}
 
 	@Override
@@ -176,47 +179,49 @@ public class AuthorizeNetCommercePaymentMethod
 		GetHostedPaymentPageRequest getHostedPaymentPageRequest =
 			new GetHostedPaymentPageRequest();
 
+		getHostedPaymentPageRequest.setHostedPaymentSettings(
+			_getArrayOfSetting(
+				commerceOrder.getGroupId(),
+				authorizeNetCommercePaymentRequest.getCancelUrl(),
+				authorizeNetCommercePaymentRequest.getReturnUrl()));
 		getHostedPaymentPageRequest.setTransactionRequest(
 			_getTransactionRequestType(commerceOrder));
 
-		ArrayOfSetting arrayOfSetting = _getArrayOfSetting(
-			commerceOrder.getGroupId(),
-			authorizeNetCommercePaymentRequest.getCancelUrl(),
-			authorizeNetCommercePaymentRequest.getReturnUrl());
-
-		getHostedPaymentPageRequest.setHostedPaymentSettings(arrayOfSetting);
-
-		GetHostedPaymentPageController controller =
+		GetHostedPaymentPageController getHostedPaymentPageController =
 			new GetHostedPaymentPageController(getHostedPaymentPageRequest);
 
-		controller.execute();
+		getHostedPaymentPageController.execute();
 
-		GetHostedPaymentPageResponse response = controller.getApiResponse();
+		GetHostedPaymentPageResponse getHostedPaymentPageResponse =
+			getHostedPaymentPageController.getApiResponse();
 
-		if ((response != null) && (response.getToken() != null)) {
-			String token = response.getToken();
+		if ((getHostedPaymentPageResponse != null) &&
+			(getHostedPaymentPageResponse.getToken() != null)) {
 
-			String redirectUrl =
+			String token = getHostedPaymentPageResponse.getToken();
+
+			String redirectURL =
 				AuthorizeNetCommercePaymentMethodConstants.SANDBOX_REDIRECT_URL;
 
 			String environmentName = environment.name();
 
 			if (environmentName.equals(Environment.PRODUCTION.name())) {
-				redirectUrl =
+				redirectURL =
 					AuthorizeNetCommercePaymentMethodConstants.
 						PRODUCTION_REDIRECT_URL;
 			}
 
 			String url = StringBundler.concat(
 				_getServletUrl(authorizeNetCommercePaymentRequest),
-				"?redirectUrl=", URLCodec.encodeURL(redirectUrl), "&token=",
-				URLEncoder.encode(token, "UTF-8"));
+				"?redirectURL=", URLCodec.encodeURL(redirectURL), "&token=",
+				URLEncoder.encode(token, StringPool.UTF8));
 
 			List<String> resultMessages = new ArrayList<>();
 
-			MessagesType responseMessages = response.getMessages();
+			MessagesType messagesType =
+				getHostedPaymentPageResponse.getMessages();
 
-			List<MessagesType.Message> messages = responseMessages.getMessage();
+			List<MessagesType.Message> messages = messagesType.getMessage();
 
 			for (MessagesType.Message message : messages) {
 				resultMessages.add(message.getText());
@@ -228,8 +233,10 @@ public class AuthorizeNetCommercePaymentMethod
 				resultMessages, true);
 		}
 
-		return _emptyResult(
-			authorizeNetCommercePaymentRequest.getCommerceOrderId());
+		return new CommercePaymentResult(
+			commercePaymentRequest.getTransactionId(),
+			commerceOrder.getCommerceOrderId(), -1, false, null, null,
+			Collections.emptyList(), false);
 	}
 
 	private void _addSetting(
@@ -241,12 +248,6 @@ public class AuthorizeNetCommercePaymentMethod
 		billingAddress.setSettingValue(value);
 
 		settings.add(billingAddress);
-	}
-
-	private CommercePaymentResult _emptyResult(long commerceOrderId) {
-		return new CommercePaymentResult(
-			null, commerceOrderId, -1, false, null, null,
-			Collections.emptyList(), false);
 	}
 
 	private String _fixURL(String url) {

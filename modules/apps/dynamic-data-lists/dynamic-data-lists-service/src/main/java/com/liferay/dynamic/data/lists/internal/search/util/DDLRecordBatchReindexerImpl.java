@@ -32,16 +32,16 @@ import org.osgi.service.component.annotations.Reference;
 public class DDLRecordBatchReindexerImpl implements DDLRecordBatchReindexer {
 
 	@Override
-	public void reindex(long ddlRecordId, long companyId) {
+	public void reindex(long ddlRecordSetId, long companyId) {
 		BatchIndexingActionable batchIndexingActionable =
 			indexerWriter.getBatchIndexingActionable();
 
 		batchIndexingActionable.setAddCriteriaMethod(
 			dynamicQuery -> {
-				Property recordIdPropery = PropertyFactoryUtil.forName(
-					"recordId");
+				Property recordIdProperty = PropertyFactoryUtil.forName(
+					"recordSetId");
 
-				dynamicQuery.add(recordIdPropery.eq(ddlRecordId));
+				dynamicQuery.add(recordIdProperty.eq(ddlRecordSetId));
 			});
 		batchIndexingActionable.setCompanyId(companyId);
 		batchIndexingActionable.setPerformActionMethod(

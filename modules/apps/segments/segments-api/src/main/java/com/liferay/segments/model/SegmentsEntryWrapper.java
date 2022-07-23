@@ -178,6 +178,11 @@ public class SegmentsEntryWrapper
 		}
 	}
 
+	@Override
+	public SegmentsEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this segments entry.
 	 *

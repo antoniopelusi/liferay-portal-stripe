@@ -30,6 +30,10 @@ public class MBMailingListLocalServiceWrapper
 	implements MBMailingListLocalService,
 			   ServiceWrapper<MBMailingListLocalService> {
 
+	public MBMailingListLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MBMailingListLocalServiceWrapper(
 		MBMailingListLocalService mbMailingListLocalService) {
 
@@ -161,6 +165,13 @@ public class MBMailingListLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mbMailingListLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mbMailingListLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

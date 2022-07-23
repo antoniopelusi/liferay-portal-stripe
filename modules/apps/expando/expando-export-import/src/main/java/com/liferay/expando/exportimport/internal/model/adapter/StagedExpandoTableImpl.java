@@ -50,6 +50,12 @@ public class StagedExpandoTableImpl implements StagedExpandoTable {
 	}
 
 	@Override
+	public ExpandoTable cloneWithOriginalValues() {
+		return new StagedExpandoTableImpl(
+			_expandoTable.cloneWithOriginalValues());
+	}
+
+	@Override
 	public int compareTo(ExpandoTable expandoTable) {
 		return _expandoTable.compareTo(expandoTable);
 	}

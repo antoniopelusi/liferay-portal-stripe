@@ -152,38 +152,4 @@ public abstract class LayoutPageTemplateEntryServiceBaseImpl
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
 
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameLocalService
-		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameService
-		classNameService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutLocalService
-		layoutLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutService layoutService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutSetLocalService
-		layoutSetLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutSetService
-		layoutSetService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
 }

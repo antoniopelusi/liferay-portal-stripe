@@ -65,7 +65,6 @@ import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.Transport;
 import javax.mail.UIDFolder;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -199,7 +198,7 @@ public class IMAPAccessor {
 					MailException.MESSAGE_NOT_FOUND_ON_SERVER);
 			}
 
-			Part part = getPart(jxMessage, contentPath);
+			Part part = _getPart(jxMessage, contentPath);
 
 			return new IMAPAttachmentHandler(part.getInputStream(), jxFolder);
 		}
@@ -240,7 +239,7 @@ public class IMAPAccessor {
 			for (int i = 0; i < jxMessages.length; i++) {
 				Message jxMessage = jxMessages[i];
 
-				remoteMessageIds[i] = getUID(jxFolder, jxMessage);
+				remoteMessageIds[i] = _getUID(jxFolder, jxMessage);
 			}
 
 			return remoteMessageIds;
@@ -259,7 +258,7 @@ public class IMAPAccessor {
 		try {
 			jxFolder = openFolder(folderId);
 
-			int[] messageIndexes = getMessageIndexes(
+			int[] messageIndexes = _getMessageIndexes(
 				jxFolder.getMessageCount(), pageNumber, messagesPerPage);
 
 			if (messageIndexes[0] == 0) {
@@ -413,7 +412,7 @@ public class IMAPAccessor {
 		try {
 			jxFolder = openFolder(_account.getSentFolderId());
 
-			Message jxMessage = createMessage(
+			Message jxMessage = _createMessage(
 				personalName, sender, to, cc, bcc, subject, body, mailFiles);
 
 			Transport transport = _imapConnection.getTransport();
@@ -449,7 +448,8 @@ public class IMAPAccessor {
 		try {
 			jxFolder = openFolder(folderId);
 
-			Message[] jxMessages = getMessagesByUID(jxFolder, remoteMessageIds);
+			Message[] jxMessages = _getMessagesByUID(
+				jxFolder, remoteMessageIds);
 
 			FetchProfile fetchProfile = new FetchProfile();
 
@@ -460,9 +460,9 @@ public class IMAPAccessor {
 			jxFolder.fetch(jxMessages, fetchProfile);
 
 			for (Message jxMessage : jxMessages) {
-				String flags = getFlags(jxMessage);
+				String flags = _getFlags(jxMessage);
 
-				long remoteMessageId = getUID(jxFolder, jxMessage);
+				long remoteMessageId = _getUID(jxFolder, jxMessage);
 
 				com.liferay.mail.reader.model.Message message =
 					MessageLocalServiceUtil.getMessage(
@@ -472,7 +472,7 @@ public class IMAPAccessor {
 				StringBundler bodyHtmlSB = new StringBundler();
 				List<MailFile> mailFiles = new ArrayList<>();
 
-				getParts(
+				_getParts(
 					_user.getUserId(), bodyPlainSB, bodyHtmlSB,
 					StringPool.BLANK, jxMessage, mailFiles);
 
@@ -558,7 +558,7 @@ public class IMAPAccessor {
 				}
 
 				int startingMessageNumber =
-					messageCount - getMessageSyncContact();
+					messageCount - _getMessageSyncContact();
 
 				if (startingMessageNumber < 1) {
 					startingMessageNumber = 1;
@@ -589,7 +589,7 @@ public class IMAPAccessor {
 					}
 
 					int startingMessageNumber =
-						oldestMessageNumber - getMessageSyncContact();
+						oldestMessageNumber - _getMessageSyncContact();
 
 					if (startingMessageNumber < 1) {
 						startingMessageNumber = 1;
@@ -638,8 +638,8 @@ public class IMAPAccessor {
 					jxMessage.getRecipients(Message.RecipientType.BCC));
 				Date sentDate = jxMessage.getSentDate();
 				String subject = jxMessage.getSubject();
-				String flags = getFlags(jxMessage);
-				long remoteMessageId = getUID(jxFolder, jxMessage);
+				String flags = _getFlags(jxMessage);
+				long remoteMessageId = _getUID(jxFolder, jxMessage);
 				String contentType = jxMessage.getContentType();
 
 				try {
@@ -648,8 +648,7 @@ public class IMAPAccessor {
 				}
 				catch (NoSuchMessageException noSuchMessageException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							noSuchMessageException, noSuchMessageException);
+						_log.debug(noSuchMessageException);
 					}
 
 					MessageLocalServiceUtil.addMessage(
@@ -689,7 +688,8 @@ public class IMAPAccessor {
 		try {
 			jxFolder = openFolder(folderId);
 
-			Message[] jxMessages = getMessagesByUID(jxFolder, remoteMessageIds);
+			Message[] jxMessages = _getMessagesByUID(
+				jxFolder, remoteMessageIds);
 
 			storeEnvelopes(folderId, jxFolder, jxMessages);
 		}
@@ -732,69 +732,6 @@ public class IMAPAccessor {
 		finally {
 			closeFolder(jxFolder, true);
 		}
-	}
-
-	protected Message createMessage(
-			String personalName, String sender, Address[] to, Address[] cc,
-			Address[] bcc, String subject, String body,
-			List<MailFile> mailFiles)
-		throws MessagingException, UnsupportedEncodingException {
-
-		Message jxMessage = new MimeMessage(_imapConnection.getSession());
-
-		jxMessage.setFrom(new InternetAddress(sender, personalName));
-		jxMessage.addRecipients(Message.RecipientType.TO, to);
-		jxMessage.addRecipients(Message.RecipientType.CC, cc);
-		jxMessage.addRecipients(Message.RecipientType.BCC, bcc);
-		jxMessage.setSentDate(new Date());
-		jxMessage.setSubject(subject);
-
-		MimeMultipart multipart = new MimeMultipart();
-
-		BodyPart messageBodyPart = new MimeBodyPart();
-
-		messageBodyPart.setContent(body, ContentTypes.TEXT_HTML_UTF8);
-
-		multipart.addBodyPart(messageBodyPart);
-
-		if (mailFiles != null) {
-			for (MailFile mailFile : mailFiles) {
-				File file = mailFile.getFile();
-
-				if (!file.exists()) {
-					continue;
-				}
-
-				DataSource dataSource = new FileDataSource(file);
-
-				BodyPart attachmentBodyPart = new MimeBodyPart();
-
-				attachmentBodyPart.setDataHandler(new DataHandler(dataSource));
-				attachmentBodyPart.setFileName(mailFile.getFileName());
-
-				multipart.addBodyPart(attachmentBodyPart);
-			}
-		}
-
-		jxMessage.setContent(multipart);
-
-		return jxMessage;
-	}
-
-	protected String getFlags(Message jxMessage) throws MessagingException {
-		StringBundler sb = new StringBundler(4);
-
-		if (jxMessage.isSet(Flags.Flag.FLAGGED)) {
-			sb.append(MailConstants.FLAG_FLAGGED);
-			sb.append(StringPool.COMMA);
-		}
-
-		if (jxMessage.isSet(Flags.Flag.SEEN)) {
-			sb.append(MailConstants.FLAG_SEEN);
-			sb.append(StringPool.COMMA);
-		}
-
-		return sb.toString();
 	}
 
 	protected Folder getFolder(long folderId)
@@ -856,7 +793,7 @@ public class IMAPAccessor {
 		}
 		catch (NoSuchMessageException noSuchMessageException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchMessageException, noSuchMessageException);
+				_log.debug(noSuchMessageException);
 			}
 
 			return null;
@@ -873,7 +810,108 @@ public class IMAPAccessor {
 		return jxMessage;
 	}
 
-	protected int[] getMessageIndexes(
+	protected List<Message> getMessages(
+			Folder jxFolder, long[] messageIds, boolean deleteMissingMessages)
+		throws MessagingException, PortalException {
+
+		long[] remoteMessageIds = new long[messageIds.length];
+
+		for (int i = 0; i < messageIds.length; i++) {
+			com.liferay.mail.reader.model.Message message =
+				MessageLocalServiceUtil.getMessage(messageIds[i]);
+
+			remoteMessageIds[i] = message.getRemoteMessageId();
+		}
+
+		List<Message> jxMessages = new ArrayList<>();
+
+		Message[] jxMessagesArray = _getMessagesByUID(
+			jxFolder, remoteMessageIds);
+
+		for (int i = 0; i < jxMessagesArray.length; i++) {
+			Message jxMessage = jxMessagesArray[i];
+
+			if (jxMessage != null) {
+				jxMessages.add(jxMessage);
+			}
+			else if (deleteMissingMessages && (remoteMessageIds[i] != 0)) {
+				MessageLocalServiceUtil.deleteMessage(messageIds[i]);
+			}
+		}
+
+		return jxMessages;
+	}
+
+	protected Folder openFolder(long folderId)
+		throws MessagingException, PortalException {
+
+		return openFolder(getFolder(folderId));
+	}
+
+	private Message _createMessage(
+			String personalName, String sender, Address[] to, Address[] cc,
+			Address[] bcc, String subject, String body,
+			List<MailFile> mailFiles)
+		throws MessagingException, UnsupportedEncodingException {
+
+		Message jxMessage = new MimeMessage(_imapConnection.getSession());
+
+		jxMessage.setFrom(new InternetAddress(sender, personalName));
+		jxMessage.addRecipients(Message.RecipientType.TO, to);
+		jxMessage.addRecipients(Message.RecipientType.CC, cc);
+		jxMessage.addRecipients(Message.RecipientType.BCC, bcc);
+		jxMessage.setSentDate(new Date());
+		jxMessage.setSubject(subject);
+
+		MimeMultipart multipart = new MimeMultipart();
+
+		BodyPart messageBodyPart = new MimeBodyPart();
+
+		messageBodyPart.setContent(body, ContentTypes.TEXT_HTML_UTF8);
+
+		multipart.addBodyPart(messageBodyPart);
+
+		if (mailFiles != null) {
+			for (MailFile mailFile : mailFiles) {
+				File file = mailFile.getFile();
+
+				if (!file.exists()) {
+					continue;
+				}
+
+				DataSource dataSource = new FileDataSource(file);
+
+				BodyPart attachmentBodyPart = new MimeBodyPart();
+
+				attachmentBodyPart.setDataHandler(new DataHandler(dataSource));
+				attachmentBodyPart.setFileName(mailFile.getFileName());
+
+				multipart.addBodyPart(attachmentBodyPart);
+			}
+		}
+
+		jxMessage.setContent(multipart);
+
+		return jxMessage;
+	}
+
+	private String _getFlags(Message jxMessage) throws MessagingException {
+		StringBundler sb = new StringBundler(4);
+
+		if (jxMessage.isSet(Flags.Flag.FLAGGED)) {
+			sb.append(MailConstants.FLAG_FLAGGED);
+			sb.append(StringPool.COMMA);
+		}
+
+		if (jxMessage.isSet(Flags.Flag.SEEN)) {
+			sb.append(MailConstants.FLAG_SEEN);
+			sb.append(StringPool.COMMA);
+		}
+
+		return sb.toString();
+	}
+
+	private int[] _getMessageIndexes(
 			int messageCount, int page, int messagesPerPage)
 		throws MailException {
 
@@ -900,39 +938,7 @@ public class IMAPAccessor {
 		return new int[] {startIndex, endIndex};
 	}
 
-	protected List<Message> getMessages(
-			Folder jxFolder, long[] messageIds, boolean deleteMissingMessages)
-		throws MessagingException, PortalException {
-
-		long[] remoteMessageIds = new long[messageIds.length];
-
-		for (int i = 0; i < messageIds.length; i++) {
-			com.liferay.mail.reader.model.Message message =
-				MessageLocalServiceUtil.getMessage(messageIds[i]);
-
-			remoteMessageIds[i] = message.getRemoteMessageId();
-		}
-
-		List<Message> jxMessages = new ArrayList<>();
-
-		Message[] jxMessagesArray = getMessagesByUID(
-			jxFolder, remoteMessageIds);
-
-		for (int i = 0; i < jxMessagesArray.length; i++) {
-			Message jxMessage = jxMessagesArray[i];
-
-			if (jxMessage != null) {
-				jxMessages.add(jxMessage);
-			}
-			else if (deleteMissingMessages && (remoteMessageIds[i] != 0)) {
-				MessageLocalServiceUtil.deleteMessage(messageIds[i]);
-			}
-		}
-
-		return jxMessages;
-	}
-
-	protected Message[] getMessagesByUID(
+	private Message[] _getMessagesByUID(
 			Folder jxFolder, long[] remoteMessageIds)
 		throws MessagingException {
 
@@ -941,7 +947,7 @@ public class IMAPAccessor {
 		return uidFolder.getMessagesByUID(remoteMessageIds);
 	}
 
-	protected int getMessageSyncContact() {
+	private int _getMessageSyncContact() {
 		if (_mailGroupServiceConfiguration == null) {
 			long companyId = PortalUtil.getDefaultCompanyId();
 
@@ -959,7 +965,7 @@ public class IMAPAccessor {
 		return _mailGroupServiceConfiguration.messagesSyncCount();
 	}
 
-	protected Part getPart(Part part, String contentPath)
+	private Part _getPart(Part part, String contentPath)
 		throws IOException, MessagingException {
 
 		if (!(part.getContent() instanceof Multipart)) {
@@ -980,7 +986,7 @@ public class IMAPAccessor {
 
 			String prefix = indexValue.concat(StringPool.PERIOD);
 
-			return getPart(
+			return _getPart(
 				multipart.getBodyPart(i),
 				contentPath.substring(prefix.length()));
 		}
@@ -988,7 +994,7 @@ public class IMAPAccessor {
 		return part;
 	}
 
-	protected void getParts(
+	private void _getParts(
 			long userId, StringBundler bodyPlainSB, StringBundler bodyHtmlSB,
 			String contentPath, Part part, List<MailFile> mailFiles)
 		throws IOException, MessagingException {
@@ -1002,7 +1008,7 @@ public class IMAPAccessor {
 			for (int i = 0; i < multipart.getCount(); i++) {
 				Part curPart = multipart.getBodyPart(i);
 
-				getParts(
+				_getParts(
 					userId, bodyPlainSB, bodyHtmlSB,
 					StringBundler.concat(contentPath, StringPool.PERIOD, i),
 					curPart, mailFiles);
@@ -1029,70 +1035,12 @@ public class IMAPAccessor {
 		}
 	}
 
-	protected InternetAddress[] getRecipients(long messageId)
-		throws PortalException {
-
-		try {
-			com.liferay.mail.reader.model.Message message =
-				MessageLocalServiceUtil.getMessage(messageId);
-
-			StringBundler sb = new StringBundler(6);
-
-			sb.append(message.getTo());
-			sb.append(StringPool.COMMA);
-			sb.append(message.getCc());
-			sb.append(StringPool.COMMA);
-			sb.append(message.getBcc());
-			sb.append(StringPool.COMMA);
-
-			return InternetAddress.parse(sb.toString(), true);
-		}
-		catch (AddressException addressException) {
-			throw new MailException(
-				MailException.MESSAGE_INVALID_ADDRESS, addressException);
-		}
-	}
-
-	protected InternetAddress[] getRecipients(
-			long messageId, Message.RecipientType recipientType)
-		throws PortalException {
-
-		try {
-			com.liferay.mail.reader.model.Message message =
-				MessageLocalServiceUtil.getMessage(messageId);
-
-			if (recipientType.equals(Message.RecipientType.TO)) {
-				return InternetAddress.parse(message.getTo());
-			}
-			else if (recipientType.equals(Message.RecipientType.CC)) {
-				return InternetAddress.parse(message.getCc());
-			}
-			else if (recipientType.equals(Message.RecipientType.BCC)) {
-				return InternetAddress.parse(message.getBcc());
-			}
-			else {
-				throw new IllegalArgumentException(
-					"Invalid recipient type " + recipientType);
-			}
-		}
-		catch (AddressException addressException) {
-			throw new MailException(
-				MailException.MESSAGE_INVALID_ADDRESS, addressException);
-		}
-	}
-
-	protected long getUID(Folder jxFolder, Message jxMessage)
+	private long _getUID(Folder jxFolder, Message jxMessage)
 		throws MessagingException {
 
 		UIDFolder uidFolder = (UIDFolder)jxFolder;
 
 		return uidFolder.getUID(jxMessage);
-	}
-
-	protected Folder openFolder(long folderId)
-		throws MessagingException, PortalException {
-
-		return openFolder(getFolder(folderId));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(IMAPAccessor.class);

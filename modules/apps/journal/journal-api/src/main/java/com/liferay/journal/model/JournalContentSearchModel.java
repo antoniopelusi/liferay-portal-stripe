@@ -201,4 +201,7 @@ public interface JournalContentSearchModel
 	 */
 	public void setArticleId(String articleId);
 
+	@Override
+	public JournalContentSearch cloneWithOriginalValues();
+
 }

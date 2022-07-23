@@ -19,6 +19,7 @@ import com.liferay.change.tracking.service.base.CTSchemaVersionLocalServiceBaseI
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Release;
+import com.liferay.portal.kernel.service.ReleaseLocalService;
 import com.liferay.portal.kernel.version.Version;
 
 import java.io.Serializable;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Preston Crary
@@ -50,7 +52,7 @@ public class CTSchemaVersionLocalServiceImpl
 		Map<String, Serializable> schemaContext = new HashMap<>();
 
 		for (Release release :
-				releaseLocalService.getReleases(
+				_releaseLocalService.getReleases(
 					QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
 
 			schemaContext.put(
@@ -84,7 +86,7 @@ public class CTSchemaVersionLocalServiceImpl
 		Map<String, Serializable> schemaContext =
 			ctSchemaVersion.getSchemaContext();
 
-		List<Release> releases = releaseLocalService.getReleases(
+		List<Release> releases = _releaseLocalService.getReleases(
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		if (releases.size() != schemaContext.size()) {
@@ -129,5 +131,8 @@ public class CTSchemaVersionLocalServiceImpl
 
 		return isLatestCTSchemaVersion(ctSchemaVersion, false);
 	}
+
+	@Reference
+	private ReleaseLocalService _releaseLocalService;
 
 }

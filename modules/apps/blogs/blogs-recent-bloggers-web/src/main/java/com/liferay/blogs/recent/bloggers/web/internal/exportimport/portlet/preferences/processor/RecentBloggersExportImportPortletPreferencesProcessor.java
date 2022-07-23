@@ -68,7 +68,7 @@ public class RecentBloggersExportImportPortletPreferencesProcessor
 		throws PortletDataException {
 
 		try {
-			return updateExportPortletPreferences(
+			return _updateExportPortletPreferences(
 				portletDataContext, portletDataContext.getPortletId(),
 				portletPreferences);
 		}
@@ -86,7 +86,7 @@ public class RecentBloggersExportImportPortletPreferencesProcessor
 		throws PortletDataException {
 
 		try {
-			return updateImportPortletPreferences(
+			return _updateImportPortletPreferences(
 				portletDataContext, portletPreferences);
 		}
 		catch (Exception exception) {
@@ -96,7 +96,7 @@ public class RecentBloggersExportImportPortletPreferencesProcessor
 		}
 	}
 
-	protected PortletPreferences updateExportPortletPreferences(
+	private PortletPreferences _updateExportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
 		throws Exception {
@@ -139,7 +139,7 @@ public class RecentBloggersExportImportPortletPreferencesProcessor
 		return portletPreferences;
 	}
 
-	protected PortletPreferences updateImportPortletPreferences(
+	private PortletPreferences _updateImportPortletPreferences(
 			PortletDataContext portletDataContext,
 			PortletPreferences portletPreferences)
 		throws Exception {

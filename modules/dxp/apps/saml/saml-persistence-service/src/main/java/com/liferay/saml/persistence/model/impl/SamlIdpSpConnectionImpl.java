@@ -18,8 +18,4 @@ package com.liferay.saml.persistence.model.impl;
  * @author Mika Koivisto
  */
 public class SamlIdpSpConnectionImpl extends SamlIdpSpConnectionBaseImpl {
-
-	public SamlIdpSpConnectionImpl() {
-	}
-
 }

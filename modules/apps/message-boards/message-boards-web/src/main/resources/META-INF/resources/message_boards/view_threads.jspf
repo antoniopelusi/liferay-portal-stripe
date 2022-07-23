@@ -14,55 +14,13 @@
  */
 --%>
 
+<%
+MBThreadsDisplayContext mbThreadsDisplayContext = new MBThreadsDisplayContext(request, portletURL, renderRequest);
+%>
+
 <liferay-ui:search-container
-	headerNames="thread,started-by,posts,views,last-post"
-	iteratorURL="<%= portletURL %>"
+	searchContainer="<%= mbThreadsDisplayContext.getSearchContainer() %>"
 >
-
-	<%
-	String emptyResultsMessage = null;
-
-	if (mvcRenderCommandName.equals("/message_boards/view_my_subscriptions")) {
-		emptyResultsMessage = "you-are-not-subscribed-to-any-threads";
-	}
-	else {
-		emptyResultsMessage = "there-are-no-threads-in-this-category";
-	}
-
-	searchContainer.setEmptyResultsMessage(emptyResultsMessage);
-	%>
-
-	<liferay-ui:search-container-results>
-
-		<%
-		if (mvcRenderCommandName.equals("/message_boards/view_my_subscriptions")) {
-			total = MBThreadServiceUtil.getGroupThreadsCount(scopeGroupId, groupThreadsUserId, WorkflowConstants.STATUS_APPROVED, true);
-
-			searchContainer.setTotal(total);
-
-			results = MBThreadServiceUtil.getGroupThreads(scopeGroupId, groupThreadsUserId, WorkflowConstants.STATUS_APPROVED, true, searchContainer.getStart(), searchContainer.getEnd());
-		}
-		else if (useAssetEntryQuery) {
-			AssetEntryQuery assetEntryQuery = new AssetEntryQuery(MBMessage.class.getName(), searchContainer);
-
-			assetEntryQuery.setEnablePermissions(true);
-			assetEntryQuery.setExcludeZeroViewCount(false);
-
-			total = AssetEntryServiceUtil.getEntriesCount(assetEntryQuery);
-
-			searchContainer.setTotal(total);
-
-			assetEntryQuery.setEnd(searchContainer.getEnd());
-			assetEntryQuery.setStart(searchContainer.getStart());
-
-			results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
-		}
-
-		searchContainer.setResults(results);
-		%>
-
-	</liferay-ui:search-container-results>
-
 	<liferay-ui:search-container-row
 		className="com.liferay.portal.kernel.model.BaseModel"
 		keyProperty="primaryKeyObj"

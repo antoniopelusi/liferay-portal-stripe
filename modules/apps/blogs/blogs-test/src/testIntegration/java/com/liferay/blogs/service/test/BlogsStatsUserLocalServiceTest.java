@@ -62,16 +62,14 @@ public class BlogsStatsUserLocalServiceTest {
 	public void testAddFirstUserBlogsEntryAddsNewBlogsStatsUser()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group, _user1.getUserId());
-
 		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
 			_user1.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user1.getUserId()));
 
 		BlogsStatsUser blogsStatsUser =
-			BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+			BlogsStatsUserLocalServiceUtil.getStatsUser(
 				blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(1, blogsStatsUser.getEntryCount());
@@ -97,7 +95,7 @@ public class BlogsStatsUserLocalServiceTest {
 			RandomTestUtil.randomString(), serviceContext);
 
 		BlogsStatsUser blogsStatsUser =
-			BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+			BlogsStatsUserLocalServiceUtil.getStatsUser(
 				blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(2, blogsStatsUser.getEntryCount());
@@ -110,20 +108,18 @@ public class BlogsStatsUserLocalServiceTest {
 	public void testAddNewRatingsEntryIncrementsBlogsStatsUserRatings()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group, _user1.getUserId());
-
 		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
 			_user1.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user1.getUserId()));
 
 		RatingsEntryLocalServiceUtil.updateEntry(
 			_user2.getUserId(), BlogsEntry.class.getName(),
 			blogsEntry.getEntryId(), 1, null);
 
 		BlogsStatsUser blogsStatsUser =
-			BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+			BlogsStatsUserLocalServiceUtil.getStatsUser(
 				blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(1, blogsStatsUser.getRatingsTotalEntries());
@@ -134,7 +130,7 @@ public class BlogsStatsUserLocalServiceTest {
 			_user3.getUserId(), BlogsEntry.class.getName(),
 			blogsEntry.getEntryId(), 1, null);
 
-		blogsStatsUser = BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+		blogsStatsUser = BlogsStatsUserLocalServiceUtil.getStatsUser(
 			blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(2, blogsStatsUser.getRatingsTotalEntries());
@@ -146,13 +142,11 @@ public class BlogsStatsUserLocalServiceTest {
 	public void testDeleteRatingsEntryDecreasesBlogsStatsUserEntryEntryCount()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group, _user1.getUserId());
-
 		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
 			_user1.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user1.getUserId()));
 
 		RatingsEntryLocalServiceUtil.updateEntry(
 			_user2.getUserId(), BlogsEntry.class.getName(),
@@ -167,7 +161,7 @@ public class BlogsStatsUserLocalServiceTest {
 			blogsEntry.getEntryId());
 
 		BlogsStatsUser blogsStatsUser =
-			BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+			BlogsStatsUserLocalServiceUtil.getStatsUser(
 				blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(1, blogsStatsUser.getRatingsTotalEntries());
@@ -176,7 +170,7 @@ public class BlogsStatsUserLocalServiceTest {
 			_user3.getUserId(), BlogsEntry.class.getName(),
 			blogsEntry.getEntryId());
 
-		blogsStatsUser = BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+		blogsStatsUser = BlogsStatsUserLocalServiceUtil.getStatsUser(
 			blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(0, blogsStatsUser.getRatingsTotalEntries());
@@ -186,13 +180,11 @@ public class BlogsStatsUserLocalServiceTest {
 	public void testDeleteRatingsEntryUpdatesBlogsStatsUserRatings()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group, _user1.getUserId());
-
 		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
 			_user1.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user1.getUserId()));
 
 		RatingsEntryLocalServiceUtil.updateEntry(
 			_user2.getUserId(), BlogsEntry.class.getName(),
@@ -207,7 +199,7 @@ public class BlogsStatsUserLocalServiceTest {
 			blogsEntry.getEntryId());
 
 		BlogsStatsUser blogsStatsUser =
-			BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+			BlogsStatsUserLocalServiceUtil.getStatsUser(
 				blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(0.2, blogsStatsUser.getRatingsAverageScore(), 0.01);
@@ -217,7 +209,7 @@ public class BlogsStatsUserLocalServiceTest {
 			_user3.getUserId(), BlogsEntry.class.getName(),
 			blogsEntry.getEntryId());
 
-		blogsStatsUser = BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+		blogsStatsUser = BlogsStatsUserLocalServiceUtil.getStatsUser(
 			blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(0, blogsStatsUser.getRatingsAverageScore(), 0);
@@ -228,13 +220,11 @@ public class BlogsStatsUserLocalServiceTest {
 	public void testUpdateRatingsEntryDoesNotIncreaseBlogsStatsUserEntryEntryCount()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group, _user1.getUserId());
-
 		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
 			_user1.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user1.getUserId()));
 
 		RatingsEntryLocalServiceUtil.updateEntry(
 			_user2.getUserId(), BlogsEntry.class.getName(),
@@ -249,7 +239,7 @@ public class BlogsStatsUserLocalServiceTest {
 			blogsEntry.getEntryId(), 0.2, null);
 
 		BlogsStatsUser blogsStatsUser =
-			BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+			BlogsStatsUserLocalServiceUtil.getStatsUser(
 				blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(2, blogsStatsUser.getRatingsTotalEntries());
@@ -259,13 +249,11 @@ public class BlogsStatsUserLocalServiceTest {
 	public void testUpdateRatingsEntryUpdatesBlogsStatsUserRatings()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group, _user1.getUserId());
-
 		BlogsEntry blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
 			_user1.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user1.getUserId()));
 
 		RatingsEntryLocalServiceUtil.updateEntry(
 			_user2.getUserId(), BlogsEntry.class.getName(),
@@ -280,7 +268,7 @@ public class BlogsStatsUserLocalServiceTest {
 			blogsEntry.getEntryId(), 0.2, null);
 
 		BlogsStatsUser blogsStatsUser =
-			BlogsStatsUserLocalServiceUtil.fetchStatsUser(
+			BlogsStatsUserLocalServiceUtil.getStatsUser(
 				blogsEntry.getGroupId(), blogsEntry.getUserId());
 
 		Assert.assertEquals(0.6, blogsStatsUser.getRatingsAverageScore(), 0);

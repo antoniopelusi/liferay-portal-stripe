@@ -8,7 +8,7 @@ definition {
 		LexiconEntry.gotoAdd();
 
 		Type.clickAtType(
-			locator1 = "TextInput#NAME",
+			locator1 = "DDL#NAME_INPUT",
 			value1 = "${ddlListName}");
 
 		if (isSet(ddlListDescription)) {
@@ -104,6 +104,22 @@ definition {
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Permissions");
 	}
 
+	macro editUserViewPermissionCP {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.editPermissions(ddlListName = "${ddlListName}");
+
+		if (IsElementPresent.isElementPresentAfterWait(locator1 = "IFrame#MODAL_BODY")) {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+		}
+
+		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+			addOrRemoveViewPermission = "${addOrRemoveViewPermission}",
+			roleList = "${roleList}");
+	}
+
 	macro editViaDDLDisplayPG {
 		Click(
 			locator1 = "DDL#PORTLET_ACTIONS_EDIT_LIST",
@@ -162,7 +178,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Dynamic Data Lists");
 
 		while (IsElementPresent(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS")) {

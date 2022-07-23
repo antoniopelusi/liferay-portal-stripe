@@ -2,16 +2,17 @@
 <head>
 <title>DDL</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">DDL</td></tr>
 </thead>
+
 <tbody>
 
 <!--TOOLBAR-->
 <tr>
-
 	<td>TOOLBAR_ADD</td>
 	<td>//a[@*='Add ${key_ddlDataDefinitionName}']</td>
 	<td></td>
@@ -92,6 +93,11 @@
 <tr>
 	<td>RECORD_TABLE_DISPLAY_FIELD</td>
 	<td>//div[@class='ddl-record' and contains(.,'${key_ddlRecordFieldData}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NAME_INPUT</td>
+	<td>//input[@id='_com_liferay_dynamic_data_lists_web_portlet_DDLPortlet_name']</td>
 	<td></td>
 </tr>
 <tr>

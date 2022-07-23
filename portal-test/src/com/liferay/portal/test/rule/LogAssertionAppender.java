@@ -45,21 +45,16 @@ public class LogAssertionAppender extends AppenderSkeleton {
 		Level level = loggingEvent.getLevel();
 
 		if (level.equals(Level.ERROR) || level.equals(Level.FATAL)) {
-			StringBundler sb = new StringBundler(6);
-
-			sb.append("{level=");
-			sb.append(loggingEvent.getLevel());
-			sb.append(", loggerName=");
-			sb.append(loggingEvent.getLoggerName());
-			sb.append(", message=");
-			sb.append(loggingEvent.getMessage());
-
 			ThrowableInformation throwableInformation =
 				loggingEvent.getThrowableInformation();
 
 			LogAssertionTestRule.caughtFailure(
 				new AssertionError(
-					sb.toString(), throwableInformation.getThrowable()));
+					StringBundler.concat(
+						"{level=", loggingEvent.getLevel(), ", loggerName=",
+						loggingEvent.getLoggerName(), ", message=",
+						loggingEvent.getMessage()),
+					throwableInformation.getThrowable()));
 		}
 	}
 

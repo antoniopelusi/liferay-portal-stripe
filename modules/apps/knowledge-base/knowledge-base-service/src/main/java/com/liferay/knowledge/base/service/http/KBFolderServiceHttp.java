@@ -46,15 +46,14 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Brian Wing Shun Chan
- * @see KBFolderServiceSoap
  * @generated
  */
 public class KBFolderServiceHttp {
 
 	public static com.liferay.knowledge.base.model.KBFolder addKBFolder(
-			HttpPrincipal httpPrincipal, long groupId,
-			long parentResourceClassNameId, long parentResourcePrimKey,
-			String name, String description,
+			HttpPrincipal httpPrincipal, String externalReferenceCode,
+			long groupId, long parentResourceClassNameId,
+			long parentResourcePrimKey, String name, String description,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -64,8 +63,9 @@ public class KBFolderServiceHttp {
 				_addKBFolderParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, parentResourceClassNameId,
-				parentResourcePrimKey, name, description, serviceContext);
+				methodKey, externalReferenceCode, groupId,
+				parentResourceClassNameId, parentResourcePrimKey, name,
+				description, serviceContext);
 
 			Object returnObj = null;
 
@@ -618,8 +618,8 @@ public class KBFolderServiceHttp {
 	private static Log _log = LogFactoryUtil.getLog(KBFolderServiceHttp.class);
 
 	private static final Class<?>[] _addKBFolderParameterTypes0 = new Class[] {
-		long.class, long.class, long.class, String.class, String.class,
-		com.liferay.portal.kernel.service.ServiceContext.class
+		String.class, long.class, long.class, long.class, String.class,
+		String.class, com.liferay.portal.kernel.service.ServiceContext.class
 	};
 	private static final Class<?>[] _deleteKBFolderParameterTypes1 =
 		new Class[] {long.class};

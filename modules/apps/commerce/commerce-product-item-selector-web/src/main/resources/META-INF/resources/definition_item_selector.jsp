@@ -84,7 +84,7 @@ PortletURL portletURL = cpDefinitionItemSelectorViewDisplayContext.getPortletURL
 
 			CPType cpType = cpDefinitionItemSelectorViewDisplayContext.getCPType(cpDefinition.getProductTypeName());
 
-			String thumbnailSrc = cpDefinition.getDefaultImageThumbnailSrc();
+			String thumbnailSrc = cpDefinition.getDefaultImageThumbnailSrc(CommerceAccountConstants.ACCOUNT_ID_GUEST);
 			%>
 
 			<c:choose>
@@ -115,13 +115,13 @@ PortletURL portletURL = cpDefinitionItemSelectorViewDisplayContext.getPortletURL
 				cssClass="table-cell-expand"
 				name="type"
 			>
-				<%= cpType.getLabel(locale) %>
+				<%= HtmlUtil.escapeAttribute(cpType.getLabel(locale)) %>
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text
 				cssClass="table-cell-expand"
 				name="sku"
-				value="<%= cpDefinitionItemSelectorViewDisplayContext.getSku(cpDefinition, locale) %>"
+				value="<%= HtmlUtil.escape(cpDefinitionItemSelectorViewDisplayContext.getSku(cpDefinition, locale)) %>"
 			/>
 
 			<liferay-ui:search-container-column-date
@@ -180,27 +180,4 @@ PortletURL portletURL = cpDefinitionItemSelectorViewDisplayContext.getPortletURL
 			);
 		</aui:script>
 	</c:when>
-	<c:otherwise>
-		<aui:script use="liferay-search-container">
-			var cpDefinitionSelectorWrapper = A.one(
-				'#<portlet:namespace />cpDefinitionSelectorWrapper'
-			);
-
-			var searchContainer = Liferay.SearchContainer.get(
-				'<portlet:namespace />cpDefinitions'
-			);
-
-			searchContainer.on('rowToggled', (event) => {
-				Liferay.Util.getOpener().Liferay.fire(
-					'<%= HtmlUtil.escapeJS(itemSelectedEventName) %>',
-					{
-						data: Liferay.Util.listCheckedExcept(
-							cpDefinitionSelectorWrapper,
-							'<portlet:namespace />allRowIds'
-						),
-					}
-				);
-			});
-		</aui:script>
-	</c:otherwise>
 </c:choose>

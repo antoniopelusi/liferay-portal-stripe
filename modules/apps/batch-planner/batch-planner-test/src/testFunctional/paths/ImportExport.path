@@ -1,0 +1,86 @@
+<html>
+<head>
+<title>ImportExport</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">ImportExport</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>ENTITY_TYPE</td>
+	<td>//div[not(contains(@class,'hide'))]/div[label[contains(.,'Entity Type')]]/select[not(@disabled)] | //div[not(contains(@class,'hide'))]/div[label[contains(.,'Entity Name')]]/select[not(@disabled)]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXECUTION_ENTRY</td>
+	<td>//table[contains(@class,'table-list')]//td[contains(@class,'lfr-name-column')]/a[contains(text(),'${key_executionName}')]/following::td[contains(@class,'action-column') and contains(text(),'${key_executionAction}')]/following-sibling::td[contains(@class,'type-column') and contains(text(),'${key_entityType}')]/following-sibling::td[contains(@class,'status-column')]//h6[contains(text(),'${key_executionStatus}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXECUTION_NOTIFICATION</td>
+	<td>//h4/a/h2[@class = 'title' and contains(text(),'${key_title}')]/parent::a/div[@class = 'body' and contains(text(),'${key_body}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXECUTION_SUCCESS</td>
+	<td>//div[contains(@class,'progress-group-feedback')]//*[name()='svg' and contains(@class,'check-circle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMPORT_CHOOSE_FILE</td>
+	<td>//div[contains(@class,'form-group')]/input[contains(@id,'importFile')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMPORT_MAPPING_SELECT</td>
+	<td>//div[contains(@class,'import-mapping-table')]//select[contains(@id,'input-field-${key_destinationField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMPORT_PREVIEW</td>
+	<td>//div[contains(@class,'import-mapping-table')]//tr[@class]/td[@class]/label[contains(text(),'${key_destinationField}')]/parent::td//following-sibling::td[2][contains(text(),'${key_previewField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONAL_IMPORT_FIELD</td>
+	<td>//select[contains(@aria-required,'false')][contains(@id,'${key_destinationField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_ENTRY</td>
+	<td>//div[@class="modal-content"]//tr/td[normalize-space(text())='${key_entryName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_ENTRY_FIELD</td>
+	<td>//div[@class="modal-content"]//tr/td[normalize-space(text())='${key_entryName}']//following-sibling::td[normalize-space(text())='${key_previewField}'] | //div[@class="modal-content"]//tr/td[normalize-space(text())='${key_entryName}']//preceding-sibling::td[normalize-space(text())='${key_previewField}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_LABEL</td>
+	<td>//div[@class="modal-content"]//tr/th[contains(text(),'${key_previewLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REQUIRED_IMPORT_FIELD</td>
+	<td>//select[contains(@aria-required,'true')][contains(@id,'${key_destinationField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REQUIRED_IMPORT_FIELD_ERROR</td>
+	<td>//div[contains(@class,'has-error')]/select[contains(@aria-required,'true')][contains(@id,'${key_destinationField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT</td>
+	<td>//div[not(contains(@class,'hide'))]/div[label[contains(.,'${key_selectFieldLabel}')]]/select[not(@disabled)]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,277 @@
+@component-name = "portal-object"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Object";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			ObjectAdmin.deleteAllCustomObjectsViaAPI();
+		}
+	}
+
+	@description = "LPS-146889 - Verify that when turn on the 'Set the Maximum Number of Characters' on a Text the Maximum Number of Characters field has the 280 value as default"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test 280IsDefaultMaximumCharacterText {
+
+		// TODO LPS-151571 280IsDefaultMaximumCharacterText pending implementation
+
+	}
+
+	@description = "LPS-146889 - Verify that when turn on the 'Set the Maximum Number of Characters' on a Long Text the Maximum Number of Characters field has the 65,000 value as default"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test 65000IsDefaultMaximumCharacterLongText {
+
+		// TODO LPS-151572 65000IsDefaultMaximumCharacterLongText pending implementation
+
+	}
+
+	@description = "LPS-146523 - Verify if the scope of the object is Virtual Instance (Company) I will be able to add from any folders I have access to"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanAddFromAnyFolderWhenScopedByCompany {
+
+		// TODO LPS-151564 CanAddFromAnyFolderWhenScopedByCompany pending implementation
+
+	}
+
+	@description = "LPS-146523 - Verify if the scope of the object is Site, I will be able to add from the site I'm in or Asset Libraries connected to that site I have access to"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanAddFromSiteAssetLibrariesWhenScopedBySite {
+
+		// TODO LPS-151566 CanAddFromSiteAssetLibrariesWhenScopedBySite pending implementation
+
+	}
+
+	@description = "LPS-142659 - Verify it is possible to create a Clob field"
+	@priority = "4"
+	test CanCreateClobField {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 206",
+			objectName = "CustomObject206",
+			pluralLabelName = "Custom Objects 206");
+
+		Navigator.openURL();
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 206");
+
+		ObjectAdmin.goToFieldsTab();
+
+		ObjectAdmin.addObjectFieldViaUI(
+			fieldLabel = "Custom Field",
+			fieldType = "Long Text");
+
+		Refresh();
+
+		ObjectAdmin.assertObjectField(
+			fieldLabel = "Custom Field",
+			fieldType = "LongText");
+	}
+
+	@description = "LPS-146889 - Verify that when turn on the 'Set the Maximum Number of Characters' the user is not allowed to type any value outside the informed range on the help text"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CannotTypeValueOutsideRange {
+
+		// TODO LPS-151573 CannotTypeValueOutsideRange pending implementation
+
+	}
+
+	@description = "LPS-143065 - Verify if the 'Attachment' option is shown on the 'Type' dropdown"
+	@priority = "5"
+	test CanViewAttachmentOption {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 151557",
+			objectName = "CustomObject151557",
+			pluralLabelName = "Custom Objects 151557");
+
+		Navigator.openURL();
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 151557");
+
+		ObjectAdmin.goToFieldsTab();
+
+		LexiconEntry.gotoAdd();
+
+		ObjectField.assertOptionAndDescription(
+			description = "Upload files or select from Documents and Media.",
+			option = "Attachment");
+	}
+
+	@description = "LPS-143065 - Verify if there is an option on Request Files: Directly from User's Computer"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanViewDirectlyFromUsersComputerOption {
+
+		// TODO LPS-151559 CanViewDirectlyFromUsersComputerOption pending implementation
+
+	}
+
+	@description = "LPS-146523 - Verify if there's an option on Request Files: Upload and Select from Documents and Media Item Selector"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanViewDocumentsAndMediaOption {
+
+		// TODO LPS-151562 CanViewDocumentsAndMediaOption pending implementation
+
+	}
+
+	@description = "LPS-146889 - Verify that when turn on the 'Set the Maximum Number of Characters' a Maximum Number of Characters field is shown"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanViewMaximumCharactersField {
+
+		// TODO LPS-151570 CanViewMaximumCharactersField pending implementation
+
+	}
+
+	@description = "LPS-147944 - Verify it is possible to view more than 20 picklists for the picklist drop-down"
+	@priority = "4"
+	test CanViewMoreThan20Picklists {
+		for (var numberPicklist : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21") {
+			Picklist.addPicklistViaAPI(picklistName = "Custom Picklist ${numberPicklist}");
+		}
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 149248",
+			objectName = "CustomObject149248",
+			pluralLabelName = "Custom Objects 149248");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 149248");
+
+		ObjectAdmin.goToFieldsTab();
+
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectField#LABEL_INPUT",
+			value1 = "Custom Picklist");
+
+		ObjectField.selectType(fieldType = "Picklist");
+
+		Click(locator1 = "ObjectAdmin#OBJECT_FIELDS_PICKLIST");
+
+		for (var numberPicklist : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21") {
+			ObjectAdmin.viewPicklistOptionsOnFields(optionName = "Custom Picklist ${numberPicklist}");
+		}
+	}
+
+	@description = "LPS-146889 - Verify that 'Set the Maximum Number of Characters' toggle is available for Text and Long Text fields"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanViewSetMaximumCharactersOption {
+
+		// TODO LPS-151569 CanViewSetMaximumCharactersOption pending implementation
+
+	}
+
+	@description = "LPS-143065 - Verify if a side panel containing the Field name, Typem Request Files, Accepted File Extensions, and Maximum File Size fields"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanViewSidePanelOptions {
+
+		// TODO LPS-151560 CanViewSidePanelOptions pending implementation
+
+	}
+
+	@description = "LPS-144902 - Verify there is a description of each Field Type"
+	@priority = "4"
+	test DescriptionForEachFieldType {
+		property osgi.module.configuration.file.names = "com.liferay.object.web.internal.configuration.FFObjectFieldBusinessTypeConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;";
+
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147723",
+			objectName = "CustomObject147723",
+			pluralLabelName = "Custom Objects 147723");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147723");
+
+		ObjectAdmin.goToFieldsTab();
+
+		LexiconEntry.gotoAdd();
+
+		Click(locator1 = "ObjectField#TYPE_FIELD");
+
+		ObjectAdmin.viewDescriptionForEachFieldType();
+	}
+
+	@description = "LPS-146523 - Verify if the default folder will be the Documents and Media Home Folder of that specific site"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test DocumentsAndMediaHomeFolderIsDefaultWhenScopedBySite {
+
+		// TODO LPS-151568 DocumentsAndMediaHomeFolderIsDefaultWhenScopedBySite pending implementation
+
+	}
+
+	@description = "LPS-146523 - Verify if the default folder will be the Global Documents and Media Home Folder"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test GlobalDocumentsAndMediaHomeFolderIsDefaultWhenScopedByCompany {
+
+		// TODO LPS-151565 GlobalDocumentsAndMediaHomeFolderIsDefaultWhenScopedByCompany pending implementation
+
+	}
+
+	@description = "LPS-143065 - Change the Maximum File Size to 0 (zero) and verify if the Maximum File Size is now set by the System configurations"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test MaximumFileSizeIsSetBySystemConfigurationsWhenZero {
+
+		// TODO LPS-151561 MaximumFileSizeIsSetBySystemConfigurationsWhenZero pending implementation
+
+	}
+
+	@description = "LPS-143065 - Verify that the Request Files option is a required field"
+	@priority = "4"
+	test RequestFilesIsRequired {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 151558",
+			objectName = "CustomObject151558",
+			pluralLabelName = "Custom Objects 151558");
+
+		Navigator.openURL();
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 151558");
+
+		ObjectAdmin.goToFieldsTab();
+
+		LexiconEntry.gotoAdd();
+
+		ObjectField.selectType(fieldType = "Attachment");
+
+		Button.clickSave();
+
+		AssertElementPresent(
+			key_fieldName = "Request Files",
+			locator1 = "ObjectField#ERROR_REQUIRED_FIELD_SPECIFIC");
+	}
+
+}

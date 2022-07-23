@@ -40,7 +40,7 @@ public class KaleoDefinitionVersionModelListener
 
 		try {
 			_resourceLocalService.addModelResources(
-				kaleoDefinitionVersion, getServiceContext());
+				kaleoDefinitionVersion, _getServiceContext());
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);
@@ -53,22 +53,22 @@ public class KaleoDefinitionVersionModelListener
 
 		try {
 			_resourceLocalService.deleteResource(
-				kaleoDefinitionVersion, ResourceConstants.SCOPE_COMPANY);
+				kaleoDefinitionVersion, ResourceConstants.SCOPE_INDIVIDUAL);
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);
 		}
 	}
 
-	protected ServiceContext getServiceContext() {
+	private ServiceContext _getServiceContext() {
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
 		if (serviceContext == null) {
 			serviceContext = new ServiceContext();
 
-			serviceContext.setAddGuestPermissions(true);
 			serviceContext.setAddGroupPermissions(true);
+			serviceContext.setAddGuestPermissions(true);
 		}
 
 		return serviceContext;

@@ -21,7 +21,6 @@ import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Marco Leo
- * @author Brian Wing Shun Chan
  */
 @Component(
 	property = {

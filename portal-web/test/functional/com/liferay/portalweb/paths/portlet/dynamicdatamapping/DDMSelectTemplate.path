@@ -2,11 +2,13 @@
 <head>
 <title>DDMSelectTemplate</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">DDMSelectTemplate</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>COPY_FORM_TEMPLATES_CHECKBOX</td>
@@ -25,13 +27,13 @@
 </tr>
 <!--TEMPLATE_CARDS-->
 <tr>
-	<td>TEMPLATE_CARDS_NAME</td>
-	<td>//div[contains(@class,'autofit-col')]/a[contains(., '${key_ddlTemplateName}')] | //div[contains(@class,'autofit-col')]/div[contains(., '${key_ddlTemplateName}')]</td>
+	<td>TEMPLATE_CARDS_SMALL_IMAGE</td>
+	<td>//div[contains(@class,'aspect-ratio')]/div/label//img</td>
 	<td></td>
 </tr>
 <tr>
-	<td>TEMPLATE_CARDS_SMALL_IMAGE</td>
-	<td>//div[contains(@class,'aspect-ratio')]/div/label//img</td>
+	<td>TEMPLATE_CARDS_SMALL_IMAGE_2</td>
+	<td>//div[contains(@class,'aspect-ratio')]/img</td>
 	<td></td>
 </tr>
 <tr>
@@ -46,11 +48,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>TEMPLATE_TABLE_NAME</td>
-	<td>//div[contains(@id,'ddmTemplatesSearchContainer')]//td[3]/a[contains(.,'${key_ddlTemplateName}')] | //div[contains(@id,'ddmTemplatesSearchContainer')]//tr/td[contains(.,'${key_ddlTemplateName}')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>TEMPLATE_TABLE_NAME_LINK</td>
 	<td>xpath=(//div[contains(@id,'ddmTemplatesSearchContainer')]//tr[contains(.,'${key_ddlTemplateName}')]/td[3]//a)[1]</td>
 	<td></td>
@@ -58,11 +55,6 @@
 <tr>
 	<td>TEMPLATE_TABLE_DUPLICATE_TEMPLATE_NAME</td>
 	<td>xpath=(//div[contains(@id,'ddmTemplatesSearchContainer')]//tr[contains(.,'${key_ddlTemplateName}')]/td[3]//a)[2]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>TEMPLATE_TABLE_DESCRIPTION</td>
-	<td>xpath=(//div[contains(@id,'ddmTemplatesSearchContainer')]//td[4])[contains(.,'${key_ddlTemplateDescription}')]</td>
 	<td></td>
 </tr>
 <tr>

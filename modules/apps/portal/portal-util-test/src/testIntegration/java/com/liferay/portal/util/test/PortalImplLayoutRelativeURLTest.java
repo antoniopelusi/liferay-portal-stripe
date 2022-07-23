@@ -98,7 +98,7 @@ public class PortalImplLayoutRelativeURLTest extends BasePortalImplURLTestCase {
 			layoutRelativeURL,
 			portal.getLayoutRelativeURL(layout, themeDisplay));
 
-		Layout childLayout = LayoutTestUtil.addLayout(group);
+		Layout childLayout = LayoutTestUtil.addTypePortletLayout(group);
 
 		themeDisplay.setRefererPlid(childLayout.getPlid());
 
@@ -115,7 +115,7 @@ public class PortalImplLayoutRelativeURLTest extends BasePortalImplURLTestCase {
 		}
 		catch (NoSuchLayoutException noSuchLayoutException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchLayoutException, noSuchLayoutException);
+				_log.debug(noSuchLayoutException);
 			}
 		}
 	}

@@ -52,11 +52,6 @@
 			<finder-column name="groupId" />
 			<finder-column name="auto" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="SiteNavigationMenuItem" remote-service="true" uuid="true">
 
@@ -105,11 +100,6 @@
 			<finder-column name="siteNavigationMenuId" />
 			<finder-column comparator="LIKE" name="name" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="SiteNavigationMenu" package-path="com.liferay.site.navigation" />
 	</entity>
 	<exceptions>
 		<exception>DuplicateSiteNavigationMenu</exception>

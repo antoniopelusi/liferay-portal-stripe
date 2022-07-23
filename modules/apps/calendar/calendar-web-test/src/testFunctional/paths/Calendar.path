@@ -2,11 +2,13 @@
 <head>
 <title>Calendar</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Calendar</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_EVENT_BUTTON</td>
@@ -90,6 +92,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>VIEW_SELECTED_NAME_LANGUAGE</td>
+	<td>//span[contains(@class,'btn-section') and contains(.,'${key_locale}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -112,7 +119,7 @@
 </tr>
 <tr>
 	<td>SMALL_CALENDAR_DATE</td>
-	<td>//div[contains(@class,'yui3-calendar-header-label')]</td>
+	<td>//h1[contains(@class,'yui3-calendar-header-label')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -418,7 +425,7 @@
 </tr>
 <tr>
 	<td>SCHEDULER_VIEW_MONTH_DATE</td>
-	<td>//div[contains(@class,'calendar-header-label')]</td>
+	<td>//div[contains(@class,'calendar-header')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -496,6 +503,11 @@
 <tr>
 	<td>SCHEDULER_EVENT_SPECIFIC_ALL_DAY</td>
 	<td>//div[contains(@class,'calendar-portlet-event')]/div[contains(@class,'scheduler-event-content') and contains(.,'${key_eventTitle}')]/../../div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SCHEDULER_EVENT_SPECIFIC_ALL_DAY_2</td>
+	<td>//div[contains(@class,'calendar-portlet-event')]/div[contains(@class,'scheduler-event-content') and contains(.,'${key_eventTitle}')]/../../div[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -678,6 +690,11 @@
 <tr>
 	<td>SCHEDULER_VIEW_EVENT_NOT_TODAY</td>
 	<td>//td[not(contains(@class,'scheduler-today')) and contains(.,'${key_eventTitle}')]//div[@class='scheduler-event-content']/../../div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PORTLET_TITLE</td>
+	<td>//div[contains(@class, 'portlet-column-only')]//h2[contains(@class,'portlet-title') and contains(.,'${key_portletTitle}')]</td>
 	<td></td>
 </tr>
 </tbody>

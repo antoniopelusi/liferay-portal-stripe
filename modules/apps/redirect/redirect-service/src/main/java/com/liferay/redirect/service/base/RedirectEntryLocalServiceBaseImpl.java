@@ -139,16 +139,26 @@ public abstract class RedirectEntryLocalServiceBaseImpl
 	 *
 	 * @param redirectEntry the redirect entry
 	 * @return the redirect entry that was removed
+	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public RedirectEntry deleteRedirectEntry(RedirectEntry redirectEntry) {
+	public RedirectEntry deleteRedirectEntry(RedirectEntry redirectEntry)
+		throws PortalException {
+
 		return redirectEntryPersistence.remove(redirectEntry);
 	}
 
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return redirectEntryPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -593,9 +603,5 @@ public abstract class RedirectEntryLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
 
 }

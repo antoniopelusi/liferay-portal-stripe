@@ -100,6 +100,11 @@ public class ExpandoRowWrapper
 		}
 	}
 
+	@Override
+	public ExpandoRow cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the class pk of this expando row.
 	 *

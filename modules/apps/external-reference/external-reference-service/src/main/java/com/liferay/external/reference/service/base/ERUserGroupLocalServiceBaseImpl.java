@@ -129,8 +129,4 @@ public abstract class ERUserGroupLocalServiceBaseImpl
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
 
-	@Reference
-	protected com.liferay.portal.kernel.service.UserGroupLocalService
-		userGroupLocalService;
-
 }

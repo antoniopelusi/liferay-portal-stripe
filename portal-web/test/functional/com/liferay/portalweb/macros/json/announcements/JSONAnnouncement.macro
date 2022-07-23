@@ -33,7 +33,6 @@ definition {
 			var displayDateDay = DateUtil.getCurrentDate();
 			var displayDateMonth = DateUtil.getCurrentMonth();
 			var displayDateYear = DateUtil.getCurrentYear();
-
 			var displayDate = "${displayDateYear}%2D${displayDateMonth}%2D${displayDateDay}";
 		}
 
@@ -44,7 +43,6 @@ definition {
 
 			if ("${expirationMonth}" == "13") {
 				var expirationMonth = ${expirationMonth} - 12;
-
 				var displayDateYear = ${displayDateYear} + 1;
 			}
 
@@ -61,6 +59,23 @@ definition {
 			priority = "${priority}",
 			userEmailAddress = "${userEmailAddress}",
 			userPassword = "${userPassword}");
+	}
+
+	@summary = "Delete a basic announcement"
+	macro deleteAnnouncement {
+		var entryId = JSONAnnouncementAPI._getEntryId(
+			groupName = "${groupName}",
+			siteURLKey = "${siteURLKey}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/announcementsentry/delete-entry \
+				-u test@liferay.com:test \
+				-d entryId=${entryId} \
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
 	}
 
 }

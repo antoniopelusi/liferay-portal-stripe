@@ -120,7 +120,8 @@ public class CommerceChannelIndexer extends BaseIndexer<CommerceChannel> {
 		Group group = _commerceChannelLocalService.getCommerceChannelGroup(
 			commerceChannel.getCommerceChannelId());
 
-		document.addKeyword(CPField.CHANNEL_GROUP_ID, group.getGroupId());
+		document.addKeyword(
+			CPField.COMMERCE_CHANNEL_GROUP_ID, group.getGroupId());
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Document " + commerceChannel + " indexed successfully");
@@ -158,13 +159,11 @@ public class CommerceChannelIndexer extends BaseIndexer<CommerceChannel> {
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCommerceChannels(companyId);
+		_reindexCommerceChannels(companyId);
 	}
 
-	protected void reindexCommerceChannels(long companyId)
-		throws PortalException {
-
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+	private void _reindexCommerceChannels(long companyId) throws Exception {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_commerceChannelLocalService.getIndexableActionableDynamicQuery();
 
 		indexableActionableDynamicQuery.setCompanyId(companyId);

@@ -24,9 +24,6 @@ import com.liferay.portal.kernel.service.CountryLocalServiceUtil;
 public class CommerceAddressRestrictionImpl
 	extends CommerceAddressRestrictionBaseImpl {
 
-	public CommerceAddressRestrictionImpl() {
-	}
-
 	@Override
 	public Country getCountry() throws PortalException {
 		return CountryLocalServiceUtil.getCountry(getCountryId());

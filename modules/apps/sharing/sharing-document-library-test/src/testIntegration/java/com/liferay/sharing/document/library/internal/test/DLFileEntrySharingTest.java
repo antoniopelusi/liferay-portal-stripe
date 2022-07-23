@@ -68,15 +68,15 @@ public class DLFileEntrySharingTest extends BaseSharingTestCase<DLFileEntry> {
 			ServiceContextTestUtil.getServiceContext(
 				group.getGroupId(), user.getUserId());
 
-		serviceContext.setAddGuestPermissions(false);
 		serviceContext.setAddGroupPermissions(false);
+		serviceContext.setAddGuestPermissions(false);
 
 		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-			user.getUserId(), group.getGroupId(),
+			null, user.getUserId(), group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			StringUtil.randomString(), "text/plain", StringUtil.randomString(),
-			StringUtil.randomString(), StringPool.BLANK, "test".getBytes(),
-			serviceContext);
+			StringUtil.randomString(), StringUtil.randomString(),
+			StringPool.BLANK, "test".getBytes(), null, null, serviceContext);
 
 		return (DLFileEntry)fileEntry.getModel();
 	}
@@ -102,8 +102,8 @@ public class DLFileEntrySharingTest extends BaseSharingTestCase<DLFileEntry> {
 			ServiceContextTestUtil.getServiceContext(
 				group.getGroupId(), user.getUserId());
 
-		serviceContext.setAddGuestPermissions(false);
 		serviceContext.setAddGroupPermissions(false);
+		serviceContext.setAddGuestPermissions(false);
 
 		Folder folder = _dlAppLocalService.addFolder(
 			user.getUserId(), group.getGroupId(),
@@ -125,10 +125,11 @@ public class DLFileEntrySharingTest extends BaseSharingTestCase<DLFileEntry> {
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
 
 		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-			user.getUserId(), group.getGroupId(), folder.getFolderId(),
+			null, user.getUserId(), group.getGroupId(), folder.getFolderId(),
 			RandomTestUtil.randomString(), "text",
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			StringPool.BLANK, StringPool.SPACE.getBytes(), serviceContext);
+			RandomTestUtil.randomString(), StringPool.BLANK,
+			StringPool.SPACE.getBytes(), null, null, serviceContext);
 
 		FileVersion fileVersion = fileEntry.getFileVersion();
 

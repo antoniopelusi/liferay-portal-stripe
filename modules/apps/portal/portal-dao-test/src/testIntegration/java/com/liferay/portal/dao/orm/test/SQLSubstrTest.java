@@ -90,13 +90,14 @@ public class SQLSubstrTest {
 		sql = SQLTransformer.transform(sql);
 
 		try (Connection connection = DataAccess.getConnection();
-			PreparedStatement ps = connection.prepareStatement(sql)) {
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				sql)) {
 
-			ResultSet rs = ps.executeQuery();
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-			Assert.assertNotNull(rs.next());
+			Assert.assertNotNull(resultSet.next());
 
-			String substring = rs.getString(1);
+			String substring = resultSet.getString(1);
 
 			Assert.assertEquals("EXA", substring);
 		}

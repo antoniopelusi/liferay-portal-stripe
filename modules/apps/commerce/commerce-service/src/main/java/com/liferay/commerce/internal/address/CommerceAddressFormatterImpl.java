@@ -48,7 +48,7 @@ public class CommerceAddressFormatterImpl implements CommerceAddressFormatter {
 		}
 
 		if (Validator.isNotNull(commerceAddress.getStreet3())) {
-			sb.append(commerceAddress.getStreet2());
+			sb.append(commerceAddress.getStreet3());
 			sb.append(StringPool.NEW_LINE);
 		}
 

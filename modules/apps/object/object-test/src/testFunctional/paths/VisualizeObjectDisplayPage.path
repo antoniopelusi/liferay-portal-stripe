@@ -1,0 +1,76 @@
+<html>
+<head>
+<title>VisualizeObjectDisplayPage</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">VisualizeObjectDisplayPage</td></tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td>SELECT_ITEM</td>
+		<td>//button[@title='Select Item']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_OBJECT</td>
+		<td>//span[contains(text(),'${key_pluralLabelName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_ENTRY</td>
+		<td>//*[@data-qa-id='row']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DISPLAY_ENTRY</td>
+		<td>//h1[(@data-lfr-editable-id='element-text') and contains(.,'${key_entry}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_PLUS_BUTTON</td>
+		<td>//*[@title='Add']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_BLANK_OBJECT_DISPLAY_PAGE_TEMPLATE</td>
+		<td>//div[@class='card-item-first aspect-ratio']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>NAME_OBJECT_DISPLAY_PAGE_TEMPLATE</td>
+		<td>//label[@for='_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_name']/../input</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_CONTENT_TYPE</td>
+		<td>//select[@name='_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_classNameId']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>CONTENT_TYPE_OPTION</td>
+		<td>//select[@class = 'form-control']//option[contains(text(),'${key_type}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DISPLAY_PAGE</td>
+		<td>//a[@class = 'text-truncate' and contains(text(),'${key_pageName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_CHOOSE_AN_OPTION_FIELD</td>
+		<td>//label[contains(.,'${key_fieldLabel}')]/../select[contains(@class,'form-control')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_ITEM_IN_FILTER_COLLECTION</td>
+		<td>//label[contains(.,'${key_fieldLabel}')]/../select[contains(.,'${itemName}')]</td>
+		<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

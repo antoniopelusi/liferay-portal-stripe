@@ -2,11 +2,13 @@
 <head>
 <title>TextInput</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">TextInput</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADDRESS</td>
@@ -16,6 +18,11 @@
 <tr>
 	<td>ALERT</td>
 	<td>//div[contains(@class,'has-error')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ALERT_MESSAGE</td>
+	<td>//div[label[contains(.,'${key_fieldLabel}')]]//div[contains(@class,'text-danger')][normalize-space()='${key_alertMessage}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -30,7 +37,17 @@
 </tr>
 <tr>
 	<td>ANY</td>
-	<td>//div[label[contains(.,'${key_text}')]]//input</td>
+	<td>//div[label[contains(.,'${key_text}')]]//input[not(contains(@type,'checkbox'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_SPECIFIC</td>
+	<td>//div/label[text()='${key_text}']/..//input[not(contains(@type,'checkbox'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_DISABLED</td>
+	<td>//div[contains(@class,'input-text-wrapper')]/label[contains(.,'${key_selectFieldLabel}')]//following-sibling::input[contains(@class,'disabled')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,7 +62,7 @@
 </tr>
 <tr>
 	<td>BORDER_BOTTOM_INPUT_FIELD</td>
-	<td>//div[contains(@class,'label')][normalize-space()='${key_borderBottom}']/following-sibling::div[1]//div[label[normalize-space(text())='${key_fieldLabel}']]/input</td>
+	<td>//button[contains(@class,'collapse-icon')][normalize-space()='${key_borderBottom}']/following-sibling::div[1]//div[label[normalize-space(text())='${key_fieldLabel}']]/input</td>
 	<td></td>
 </tr>
 <tr>
@@ -109,13 +126,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CUSTOM_TITLE</td>
-	<td>//input[contains(@id,'customTitle')]</td>
+	<td>DATA_DEFINITION</td>
+	<td>//div[label[contains(.,'Data Definition')]]/input[@type='text']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>DATA_DEFINITION</td>
-	<td>//div[label[contains(.,'Data Definition')]]/input[@type='text']</td>
+	<td>DATE_TIME_PRICE_LISTS</td>
+	<td>//input[contains(@id,'displayDateTime')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -131,6 +148,21 @@
 <tr>
 	<td>DESCRIPTION</td>
 	<td>//input[contains(@id,'description')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INPUT_CONTAINS_TITLE</td>
+	<td>//input[contains(@title,'${key_titleName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISCONTINUED_DATE</td>
+	<td>//input[not(contains(@type,'disabled')) and contains(@id,'discontinuedDate')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISCONTINUED_DATE_DISABLED</td>
+	<td>//input[contains(@class,'disabled') and contains(@id,'discontinuedDate')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -166,6 +198,11 @@
 <tr>
 	<td>DISPLAY_DATE_TIME</td>
 	<td>//input[contains(@id,'displayDateTime')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_DATE_TIME_TIMEPICKER</td>
+	<td>//div[contains(@class,'timepicker')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -224,6 +261,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EXPIRATION_DATE_DISABLED</td>
+	<td>//input[contains(@class,'disabled') and contains(@id,'expirationDate')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXPIRATION_DATE_TIME</td>
+	<td>//input[contains(@id,'expirationDateTime')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXPIRATION_DATE_TIME_DISABLED</td>
+	<td>//input[contains(@class,'disabled') and contains(@id,'expirationDateTime')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EXTENSION</td>
 	<td>//div[label[contains(.,'Extension')]]/input</td>
 	<td></td>
@@ -245,17 +297,17 @@
 </tr>
 <tr>
 	<td>FILE_PRESENT</td>
-	<td>//input[contains(@class,'success-field')][@type='file']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRIENDLY_URL</td>
-	<td>//input[contains(@id,'friendlyURL')]</td>
+	<td>//small[contains(@class, 'inline-item-after')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRIENDLY_URL_SITE_SETTINGS</td>
 	<td>//input[contains(@id,'FriendlyURL')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISCOUNT</td>
+	<td>//input[contains(@title,'Coupon Code')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -274,13 +326,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>GRACE_LIMIT</td>
-	<td>//div[label[contains(.,'Grace Limit')]]//input[@type='text']</td>
+	<td>GROUPED_TEXT_INPUT</td>
+	<td>//div[contains(@class,'panel-group')][contains(.,'${key_groupLabel}')]//div[contains(@class,'form-group')][label[normalize-space(text())='${key_fieldLabel}']]//input</td>
 	<td></td>
 </tr>
 <tr>
-	<td>GROUPED_TEXT_INPUT</td>
-	<td>//div[contains(@class,'panel-group')][contains(.,'${key_groupLabel}')]//div[contains(@class,'form-group')][label[normalize-space(text())='${key_fieldLabel}']]//input</td>
+	<td>HIDDEN</td>
+	<td>//input[@type='hidden']</td>
 	<td></td>
 </tr>
 <tr>
@@ -299,8 +351,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>INPUT_ID</td>
+	<td>//input[contains(@id,'${inputFieldId}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>KEY</td>
-	<td>//div[label[contains(.,'Key')]]//input[@type='text']</td>
+	<td>//div[label[normalize-space(text())='Key']]//input[@type='text']</td>
 	<td></td>
 </tr>
 <tr>
@@ -339,43 +396,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>MAXIMUM_FAILURE</td>
-	<td>//div[label[contains(.,'Maximum Failure')]]//input[@type='text']</td>
-	<td></td>
-</tr>
-<tr>
 	<td>MIDDLE_NAME</td>
 	<td>//div[label[contains(.,'Middle Name')]]/input[@type='text']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>MINIMUM_ALPHA_NUMERIC</td>
-	<td>//div[label[contains(.,'Minimum Alpha Numeric')]]//input[@type='text']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>MINIMUM_LENGTH</td>
-	<td>//div[label[contains(.,'Minimum Length')]]//input[@type='text']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>MINIMUM_LOWER_CASE</td>
-	<td>//div[label[contains(.,'Minimum Lower Case')]]//input[@type='text']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>MINIMUM_NUMBERS</td>
-	<td>//div[label[contains(.,'Minimum Numbers')]]//input[@type='text']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>MINIMUM_SYMBOLS</td>
-	<td>//div[label[contains(.,'Minimum Symbols')]]//input[@type='text']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>MINIMUM_UPPER_CASE</td>
-	<td>//div[label[contains(.,'Minimum Upper Case')]]//input[@type='text']</td>
 	<td></td>
 </tr>
 <tr>
@@ -399,13 +421,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>NO_PROPERTIES_AVAILABLE_TEXT</td>
+	<td>//span[contains(@class,'text-truncate') and text()='No Properties Available']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>NUMBER</td>
 	<td>//div[label[contains(.,'Number')]]/input</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NUMERIC</td>
-	<td>//label[contains(.,'Numeric')]/following-sibling::input[1]</td>
+	<td>//label[contains(.,'${key_fieldLabel}')]/following-sibling::input[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -420,7 +447,7 @@
 </tr>
 <tr>
 	<td>OPEN_GRAPH_CUSTOM_IMAGE_INPUT</td>
-	<td>//div[label[contains(.,'Image')]]//input[contains(@value,'${key_dmDocumentURL}') and @readonly='readonly']</td>
+	<td>//div[label[contains(.,'Image')]]//input[contains(@value,'${key_dmDocumentURL}') and @readonly]</td>
 	<td></td>
 </tr>
 <tr>
@@ -440,7 +467,7 @@
 </tr>
 <tr>
 	<td>PASSWORD</td>
-	<td>//div[label[contains(.,'Password')]]/input | //div[label[contains(.,"parola d'ordine")]]/input | //div[label[contains(.,'Contraseña')]]/input | //div[label[contains(.,'パスワード')]]/input | //div[label[contains(.,'密码')]]/input | //div[contains(.,'Kennwort')]//input[@type='password']</td>
+	<td>//div[label[contains(.,'Password') and not(contains(.,'One-Time Password'))]]/input | //div[label[contains(.,"parola d'ordine")]]/input | //div[label[contains(.,'Contraseña')]]/input | //div[label[contains(.,'パスワード')]]/input | //div[label[contains(.,'密码')]]/input | //div[contains(.,'Kennwort')]//input[@type='password']</td>
 	<td></td>
 </tr>
 <tr>
@@ -494,11 +521,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PRIVATE_VIRTUAL_HOST_URL</td>
-	<td>//input[contains(@id,'privateVirtualHost')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>REDIRECT_DESTINATION_URL</td>
 	<td>//input[contains(@id,'destinationURL')]</td>
 	<td></td>
@@ -519,6 +541,31 @@
 	<td></td>
 </tr>
 <tr>
+	<td>REPLACEMENT</td>
+	<td>//input[contains(@id,'replacement')]/following-sibling::input[contains(@type,'text')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REVIEW_DATE</td>
+	<td>//span[contains(@id,'displayDate')]//input[contains(@id,'reviewDate')][1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REVIEW_DATE_DISABLED</td>
+	<td>//span[contains(@id,'displayDate')]//input[contains(@class,'disabled') and contains(@id,'reviewDate')][1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REVIEW_DATE_TIME</td>
+	<td>//input[contains(@id,'reviewDateTime')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REVIEW_DATE_TIME_DISABLED</td>
+	<td>//input[contains(@class,'disabled') and contains(@id,'reviewDateTime')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SAML_METADATA_URL_FIELD</td>
 	<td>//input[contains(@id,'SamlAdminPortlet_metadataUrl')]</td>
 	<td></td>
@@ -530,12 +577,7 @@
 </tr>
 <tr>
 	<td>SELECTOR_INPUT</td>
-	<td>//label[normalize-space(text())='${key_fieldFieldLabel}']/following-sibling::div//div[contains(@class,'input-group')]//input[contains(@type,'text')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SEO_META_TAGS_DESCRIPTION</td>
-	<td>//div[label[contains(.,'Description')]]//input</td>
+	<td>//label[not(contains(@class,'sr-only'))][normalize-space(text())='${key_fieldFieldLabel}']/following-sibling::div//div[contains(@class,'input-group')]//input[not(contains(@type,'hidden'))]</td>
 	<td></td>
 </tr>
 <tr>
@@ -544,18 +586,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PUBLIC_VIRTUAL_HOST_URL</td>
-	<td>//input[contains(@id,'publicVirtualHost')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>REGULAR_EXPRESSION</td>
-	<td>//div[label[contains(.,'Regular Expression')]]//textarea</td>
-	<td></td>
-</tr>
-<tr>
 	<td>REQUIRED_ALERT</td>
 	<td>//div[contains(@class,'has-error')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SPECIFIC_LABEL_TEXT_INPUT</td>
+	<td>//label[contains(text(),'${key_labelName}')]//following::input[contains(@type,'text')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -574,13 +611,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SEO_HTML_TITLE</td>
-	<td>//div[label[contains(.,'HTML')]]//input</td>
-	<td></td>
-</tr>
-<tr>
 	<td>SEO_MAPPED_FIELD</td>
-	<td>//div[contains(@class,'form-group') and contains(.,'${key_mappedField}')]//input[contains(@id,'mapped')]</td>
+	<td>//div[contains(@class,'form-group')]//*[contains(@id,'${key_mappedField}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -655,12 +687,17 @@
 </tr>
 <tr>
 	<td>TRANSLATIONS_TARGET_FIELD</td>
-	<td>//div[contains(@class,'form-group') and contains(.,'${key_fieldName}')]//input[not(@readonly)]</td>
+	<td>//div[contains(@class,'form-group')]//label[text()='${key_fieldName}']/following::input[not(@readonly)]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TWITTER</td>
 	<td>//div[label[contains(.,'Twitter')]]//input[@type='text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TYPE</td>
+	<td>//div[label[contains(.,'Type')]]//input[@value='${key_typeName}']</td>
 	<td></td>
 </tr>
 <tr>

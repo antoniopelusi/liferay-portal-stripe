@@ -70,7 +70,7 @@ if (layout != null) {
 	</c:choose>
 </c:if>
 
-<aui:form action="<%= viewTemplateURL.toString() %>" method="post" name="fm">
+<aui:form action="<%= viewTemplateURL %>" method="post" name="fm">
 	<aui:input name="redirect" type="hidden" value="<%= ddmDisplayContext.getTemplateSearchActionURL() %>" />
 	<aui:input name="deleteTemplateIds" type="hidden" />
 

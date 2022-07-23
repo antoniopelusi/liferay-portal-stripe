@@ -191,4 +191,7 @@ public interface ImageModel
 	 */
 	public void setSize(int size);
 
+	@Override
+	public Image cloneWithOriginalValues();
+
 }

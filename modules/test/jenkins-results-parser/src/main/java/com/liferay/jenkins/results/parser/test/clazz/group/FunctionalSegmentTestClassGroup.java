@@ -15,12 +15,15 @@
 package com.liferay.jenkins.results.parser.test.clazz.group;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
@@ -81,6 +84,19 @@ public class FunctionalSegmentTestClassGroup extends SegmentTestClassGroup {
 	}
 
 	@Override
+	public String getSlaveLabel() {
+		Properties poshiProperties = getPoshiProperties();
+
+		String slaveLabel = poshiProperties.getProperty("slave.label");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
+			return slaveLabel;
+		}
+
+		return super.getSlaveLabel();
+	}
+
+	@Override
 	public String getTestCasePropertiesContent() {
 		StringBuilder sb = new StringBuilder();
 
@@ -120,11 +136,19 @@ public class FunctionalSegmentTestClassGroup extends SegmentTestClassGroup {
 	}
 
 	protected FunctionalSegmentTestClassGroup(
-		BatchTestClassGroup parentBatchTestClassGroup) {
+		BatchTestClassGroup batchTestClassGroup) {
 
-		super(parentBatchTestClassGroup);
+		super(batchTestClassGroup);
 
-		_parentBatchTestClassGroup = parentBatchTestClassGroup;
+		_batchTestClassGroup = batchTestClassGroup;
+	}
+
+	protected FunctionalSegmentTestClassGroup(
+		BatchTestClassGroup batchTestClassGroup, JSONObject jsonObject) {
+
+		super(batchTestClassGroup, jsonObject);
+
+		_batchTestClassGroup = batchTestClassGroup;
 	}
 
 	protected Map.Entry<String, String> getEnvironmentVariableEntry(
@@ -136,9 +160,9 @@ public class FunctionalSegmentTestClassGroup extends SegmentTestClassGroup {
 			return null;
 		}
 
-		String value = JenkinsResultsParserUtil.getProperty(
-			_parentBatchTestClassGroup.getJobProperties(), name,
-			_parentBatchTestClassGroup.getBatchName());
+		JobProperty jobProperty = _batchTestClassGroup.getJobProperty(name);
+
+		String value = jobProperty.getValue();
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(value)) {
 			return null;
@@ -147,6 +171,6 @@ public class FunctionalSegmentTestClassGroup extends SegmentTestClassGroup {
 		return new AbstractMap.SimpleEntry<>(key, value);
 	}
 
-	private final BatchTestClassGroup _parentBatchTestClassGroup;
+	private final BatchTestClassGroup _batchTestClassGroup;
 
 }

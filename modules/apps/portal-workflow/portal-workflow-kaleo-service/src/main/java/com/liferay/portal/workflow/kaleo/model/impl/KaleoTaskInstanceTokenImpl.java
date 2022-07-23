@@ -29,9 +29,6 @@ import java.util.List;
  */
 public class KaleoTaskInstanceTokenImpl extends KaleoTaskInstanceTokenBaseImpl {
 
-	public KaleoTaskInstanceTokenImpl() {
-	}
-
 	@Override
 	public KaleoTaskAssignmentInstance getFirstKaleoTaskAssignmentInstance() {
 		return KaleoTaskAssignmentInstanceLocalServiceUtil.

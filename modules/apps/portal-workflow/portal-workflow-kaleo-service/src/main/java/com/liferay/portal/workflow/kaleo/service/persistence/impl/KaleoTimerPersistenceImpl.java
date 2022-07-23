@@ -16,7 +16,6 @@ package com.liferay.portal.workflow.kaleo.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,14 +26,15 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.workflow.kaleo.exception.NoSuchTimerException;
 import com.liferay.portal.workflow.kaleo.model.KaleoTimer;
@@ -42,10 +42,12 @@ import com.liferay.portal.workflow.kaleo.model.KaleoTimerTable;
 import com.liferay.portal.workflow.kaleo.model.impl.KaleoTimerImpl;
 import com.liferay.portal.workflow.kaleo.model.impl.KaleoTimerModelImpl;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoTimerPersistence;
+import com.liferay.portal.workflow.kaleo.service.persistence.KaleoTimerUtil;
 import com.liferay.portal.workflow.kaleo.service.persistence.impl.constants.KaleoPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -53,12 +55,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -1336,6 +1335,8 @@ public class KaleoTimerPersistenceImpl
 			KaleoTimerImpl.class, kaleoTimer.getPrimaryKey(), kaleoTimer);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the kaleo timers in the entity cache if it is enabled.
 	 *
@@ -1343,6 +1344,13 @@ public class KaleoTimerPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<KaleoTimer> kaleoTimers) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (kaleoTimers.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (KaleoTimer kaleoTimer : kaleoTimers) {
 			if (entityCache.getResult(
 					KaleoTimerImpl.class, kaleoTimer.getPrimaryKey()) == null) {
@@ -1521,23 +1529,24 @@ public class KaleoTimerPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (kaleoTimer.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				kaleoTimer.setCreateDate(now);
+				kaleoTimer.setCreateDate(date);
 			}
 			else {
-				kaleoTimer.setCreateDate(serviceContext.getCreateDate(now));
+				kaleoTimer.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!kaleoTimerModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				kaleoTimer.setModifiedDate(now);
+				kaleoTimer.setModifiedDate(date);
 			}
 			else {
-				kaleoTimer.setModifiedDate(serviceContext.getModifiedDate(now));
+				kaleoTimer.setModifiedDate(
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -1825,12 +1834,9 @@ public class KaleoTimerPersistenceImpl
 	 * Initializes the kaleo timer persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new KaleoTimerModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1889,13 +1895,30 @@ public class KaleoTimerPersistenceImpl
 				Boolean.class.getName()
 			},
 			new String[] {"kaleoClassName", "kaleoClassPK", "blocking"}, false);
+
+		_setKaleoTimerUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(KaleoTimerImpl.class.getName());
+		_setKaleoTimerUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(KaleoTimerImpl.class.getName());
+	}
+
+	private void _setKaleoTimerUtilPersistence(
+		KaleoTimerPersistence kaleoTimerPersistence) {
+
+		try {
+			Field field = KaleoTimerUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, kaleoTimerPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -1923,8 +1946,6 @@ public class KaleoTimerPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -1960,108 +1981,7 @@ public class KaleoTimerPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class KaleoTimerModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			KaleoTimerModelImpl kaleoTimerModelImpl =
-				(KaleoTimerModelImpl)baseModel;
-
-			long columnBitmask = kaleoTimerModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(kaleoTimerModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						kaleoTimerModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(kaleoTimerModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return KaleoTimerImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return KaleoTimerTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			KaleoTimerModelImpl kaleoTimerModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = kaleoTimerModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = kaleoTimerModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private KaleoTimerModelArgumentsResolver _kaleoTimerModelArgumentsResolver;
 
 }

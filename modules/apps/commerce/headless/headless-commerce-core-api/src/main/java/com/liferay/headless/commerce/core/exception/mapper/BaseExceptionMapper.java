@@ -14,6 +14,7 @@
 
 package com.liferay.headless.commerce.core.exception.mapper;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -35,7 +36,9 @@ public abstract class BaseExceptionMapper<E extends Throwable>
 
 	@Override
 	public Response toResponse(E e) {
-		_log.error("General REST exception", e);
+		if (_log.isDebugEnabled()) {
+			_log.debug("General REST exception", e);
+		}
 
 		Response.ResponseBuilder responseBuilder = Response.status(getStatus());
 
@@ -53,7 +56,7 @@ public abstract class BaseExceptionMapper<E extends Throwable>
 	}
 
 	protected String toJSON(String message, int status, Object... args) {
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		sb.append("{\"errorDescription\": \"");
 		sb.append(getErrorDescription());
@@ -73,9 +76,7 @@ public abstract class BaseExceptionMapper<E extends Throwable>
 		for (int i = 0; i < (args.length - 1); i = i + 2) {
 			sb.append("\"");
 			sb.append(args[i]);
-			sb.append("\"");
-			sb.append(":");
-			sb.append("\"");
+			sb.append("\":\"");
 			sb.append(args[i + 1]);
 			sb.append("\"");
 

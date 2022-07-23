@@ -1,7 +1,5 @@
 @import 'atlas-variables';
 
-@import 'variables';
-
 .page-editor__drag-preview {
 	cursor: grabbing;
 	height: 100%;
@@ -10,32 +8,25 @@
 	position: fixed;
 	top: 0;
 	width: 100%;
-	z-index: $dragPreviewLayer;
+	z-index: $dragPreviewZIndex;
 
 	&__content {
-		background-color: $white;
+		align-items: center;
+		background-color: transparentize($white, 0.3);
+		border: 1px solid $gray-500;
 		border-radius: 4px;
 		box-shadow: 0 8px 16px rgba(39, 40, 51, 0.16);
 		color: $secondary-d2;
 		cursor: grabbing;
-		display: block;
+		display: flex;
 		font-family: $font-family-base;
-		font-size: 12px;
+		font-size: 0.75rem;
 		font-weight: 600;
 		height: 32px;
 		overflow: hidden;
 		padding: 8px;
 		position: absolute;
-		text-align: left;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 		width: 120px;
-		word-wrap: break-word;
-
-		.lexicon-icon {
-			font-size: 14px;
-			margin-right: 16px;
-		}
 
 		&__treeview {
 			align-items: center;

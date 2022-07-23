@@ -46,6 +46,7 @@ public class KnowledgeBaseArticleResourceTest
 		serviceContext.setScopeGroupId(testGroup.getGroupId());
 
 		_kbFolder = KBFolderLocalServiceUtil.addKBFolder(
+			null,
 			UserLocalServiceUtil.getDefaultUserId(testGroup.getCompanyId()),
 			testGroup.getGroupId(),
 			PortalUtil.getClassNameId(KBFolder.class.getName()), 0,
@@ -85,6 +86,19 @@ public class KnowledgeBaseArticleResourceTest
 	}
 
 	@Override
+	protected KnowledgeBaseArticle randomKnowledgeBaseArticle()
+		throws Exception {
+
+		KnowledgeBaseArticle knowledgeBaseArticle =
+			super.randomKnowledgeBaseArticle();
+
+		knowledgeBaseArticle.setParentKnowledgeBaseArticleId(0L);
+		knowledgeBaseArticle.setParentKnowledgeBaseFolderId(0L);
+
+		return knowledgeBaseArticle;
+	}
+
+	@Override
 	protected Long
 			testGetKnowledgeBaseArticleKnowledgeBaseArticlesPage_getParentKnowledgeBaseArticleId()
 		throws Exception {
@@ -94,6 +108,7 @@ public class KnowledgeBaseArticleResourceTest
 		serviceContext.setScopeGroupId(testGroup.getGroupId());
 
 		KBArticle kbArticle = KBArticleLocalServiceUtil.addKBArticle(
+			null,
 			UserLocalServiceUtil.getDefaultUserId(testGroup.getCompanyId()),
 			PortalUtil.getClassNameId(KBFolder.class.getName()), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),

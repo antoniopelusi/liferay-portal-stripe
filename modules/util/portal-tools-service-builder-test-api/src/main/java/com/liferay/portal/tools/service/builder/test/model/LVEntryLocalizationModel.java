@@ -181,4 +181,7 @@ public interface LVEntryLocalizationModel
 	 */
 	public void setContent(String content);
 
+	@Override
+	public LVEntryLocalization cloneWithOriginalValues();
+
 }

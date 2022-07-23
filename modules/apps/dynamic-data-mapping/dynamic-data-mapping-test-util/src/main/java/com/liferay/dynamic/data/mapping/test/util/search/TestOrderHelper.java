@@ -122,8 +122,8 @@ public abstract class TestOrderHelper {
 
 	public void testOrderByDDMNumberFieldRepeatable() throws Exception {
 		testOrderByDDMFieldRepeatable(
-			new String[] {"20|12.34", "16.0", "3.14"},
-			new String[] {"3.14", "20|12.34", "16.0"}, FieldConstants.DOUBLE,
+			new String[] {"20.0|12.34", "16.0", "3.14"},
+			new String[] {"3.14", "20.0|12.34", "16.0"}, FieldConstants.DOUBLE,
 			DDMFormFieldTypeConstants.NUMERIC);
 	}
 
@@ -247,11 +247,8 @@ public abstract class TestOrderHelper {
 				_group.getGroupId(),
 				new String[] {getSearchableAssetEntryClassName()});
 
-		String orderByCol1 = _ddmIndexer.encodeName(
-			ddmStructure.getStructureId(), "name");
-
-		assetEntryQuery.setOrderByCol1(orderByCol1);
-
+		assetEntryQuery.setOrderByCol1(
+			_ddmIndexer.encodeName(ddmStructure.getStructureId(), "name"));
 		assetEntryQuery.setOrderByType1("asc");
 
 		return assetEntryQuery;
@@ -355,8 +352,7 @@ public abstract class TestOrderHelper {
 
 		addSearchableAssetEntries(ddmStructure, ddmTemplate);
 
-		final AssetEntryQuery assetEntryQuery = createAssetEntryQuery(
-			ddmStructure);
+		AssetEntryQuery assetEntryQuery = createAssetEntryQuery(ddmStructure);
 
 		assertSearch(assetEntryQuery);
 	}

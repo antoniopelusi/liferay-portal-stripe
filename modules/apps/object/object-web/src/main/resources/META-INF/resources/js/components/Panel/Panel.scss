@@ -1,0 +1,54 @@
+$borderColor: #cdced9;
+$bgColor: #fff;
+
+.object-admin-panel {
+	background-color: $bgColor;
+	border: 1px solid $borderColor;
+	border-radius: 4px;
+	margin-bottom: 1.5rem;
+
+	&:last-child {
+		margin-bottom: 0;
+	}
+
+	& &__body {
+		padding: 1.5rem;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	& &__simple-body {
+		align-items: center;
+		display: flex;
+		justify-content: space-between;
+		padding: 0.5rem;
+
+		&__content-left {
+			align-items: center;
+			display: flex;
+		}
+	}
+
+	& &__header {
+		border-bottom: 1px solid $borderColor;
+		display: flex;
+		justify-content: space-between;
+		padding: 0.5em;
+
+		&:not(&--expanded) {
+			border: 0 none;
+		}
+
+		&__content-left,
+		&__content-right {
+			align-items: center;
+			display: flex;
+		}
+	}
+
+	& &__title {
+		margin: 0;
+	}
+}

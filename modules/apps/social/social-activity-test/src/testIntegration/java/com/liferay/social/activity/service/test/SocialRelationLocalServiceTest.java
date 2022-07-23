@@ -214,7 +214,7 @@ public class SocialRelationLocalServiceTest {
 		Set<Long> groupIds = SetUtil.intersect(
 			dlc3User.getGroupIds(), dlc4User.getGroupIds());
 
-		List<User> users = UserLocalServiceUtil.searchSocial(
+		List<User> users = UserLocalServiceUtil.searchBySocial(
 			TestPropsValues.getCompanyId(),
 			ArrayUtil.toArray(groupIds.toArray(new Long[0])), "dlc",
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
@@ -253,7 +253,7 @@ public class SocialRelationLocalServiceTest {
 
 		// Does dlc2 should have 1 coworker and 4 friends?
 
-		List<User> users = UserLocalServiceUtil.searchSocial(
+		List<User> users = UserLocalServiceUtil.searchBySocial(
 			dlc2User.getUserId(), socialRelationTypes, "dlc", QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS);
 

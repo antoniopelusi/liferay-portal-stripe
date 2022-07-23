@@ -24,10 +24,10 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalService;
 import com.liferay.layout.page.template.service.base.LayoutPageTemplateStructureLocalServiceBaseImpl;
-import com.liferay.layout.page.template.util.LayoutPageTemplateStructureHelperUtil;
+import com.liferay.layout.util.structure.LayoutStructure;
+import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -35,10 +35,12 @@ import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
+import com.liferay.segments.model.SegmentsExperience;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.util.Date;
 import java.util.List;
@@ -56,31 +58,15 @@ import org.osgi.service.component.annotations.Reference;
 public class LayoutPageTemplateStructureLocalServiceImpl
 	extends LayoutPageTemplateStructureLocalServiceBaseImpl {
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #addLayoutPageTemplateStructure(long, long, long, long,
-	 *             String, ServiceContext)}
-	 */
-	@Deprecated
 	@Override
 	public LayoutPageTemplateStructure addLayoutPageTemplateStructure(
-			long userId, long groupId, long classNameId, long classPK,
+			long userId, long groupId, long plid, long segmentsExperienceId,
 			String data, ServiceContext serviceContext)
-		throws PortalException {
-
-		return addLayoutPageTemplateStructure(
-			userId, groupId, classPK, data, serviceContext);
-	}
-
-	@Override
-	public LayoutPageTemplateStructure addLayoutPageTemplateStructure(
-			long userId, long groupId, long plid, String data,
-			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Layout page template structure
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long layoutPageTemplateStructureId = counterLocalService.increment();
 
@@ -110,7 +96,7 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 				groupId, plid);
 
 		if (count > 0) {
-			_fragmentEntryLinkLocalService.updateClassedModel(plid);
+			_updateLayoutStatus(userId, plid);
 		}
 
 		// Layout page template structure rel
@@ -119,8 +105,7 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 			_layoutPageTemplateStructureRelLocalService.
 				addLayoutPageTemplateStructureRel(
 					userId, groupId, layoutPageTemplateStructureId,
-					SegmentsExperienceConstants.ID_DEFAULT, data,
-					serviceContext);
+					segmentsExperienceId, data, serviceContext);
 		}
 
 		return layoutPageTemplateStructure;
@@ -170,19 +155,6 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		return layoutPageTemplateStructure;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #deleteLayoutPageTemplateStructure(long, long)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateStructure deleteLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK)
-		throws PortalException {
-
-		return deleteLayoutPageTemplateStructure(groupId, classPK);
-	}
-
 	@Override
 	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
 		long groupId, long plid) {
@@ -207,103 +179,39 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 			rebuildLayoutPageTemplateStructure(groupId, plid);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fetchLayoutPageTemplateStructure(long, long)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
-		long groupId, long classNameId, long classPK) {
-
-		return fetchLayoutPageTemplateStructure(groupId, classPK);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #fetchLayoutPageTemplateStructure(long, long, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK,
-			boolean rebuildStructure)
-		throws PortalException {
-
-		return fetchLayoutPageTemplateStructure(
-			groupId, classPK, rebuildStructure);
-	}
-
 	@Override
 	public LayoutPageTemplateStructure rebuildLayoutPageTemplateStructure(
 			long groupId, long plid)
 		throws PortalException {
-
-		List<FragmentEntryLink> fragmentEntryLinks =
-			_fragmentEntryLinkLocalService.getFragmentEntryLinksByPlid(
-				groupId, plid);
-
-		JSONObject jsonObject =
-			LayoutPageTemplateStructureHelperUtil.
-				generateContentLayoutStructure(
-					fragmentEntryLinks,
-					_getLayoutPageTemplateEntryType(
-						_layoutLocalService.getLayout(plid)));
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			fetchLayoutPageTemplateStructure(groupId, plid);
 
 		if (layoutPageTemplateStructure != null) {
 			return updateLayoutPageTemplateStructureData(
-				groupId, plid, jsonObject.toString());
+				groupId, plid,
+				_generateContentLayoutStructureData(groupId, plid));
+		}
+
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				plid);
+
+		if (defaultSegmentsExperienceId <= 0) {
+			SegmentsExperience defaultSegmentsExperience =
+				_segmentsExperienceLocalService.addDefaultSegmentsExperience(
+					PrincipalThreadLocal.getUserId(), plid,
+					ServiceContextThreadLocal.getServiceContext());
+
+			defaultSegmentsExperienceId =
+				defaultSegmentsExperience.getSegmentsExperienceId();
 		}
 
 		return addLayoutPageTemplateStructure(
 			PrincipalThreadLocal.getUserId(), groupId, plid,
-			jsonObject.toString(),
+			defaultSegmentsExperienceId,
+			_generateContentLayoutStructureData(groupId, plid),
 			ServiceContextThreadLocal.getServiceContext());
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #rebuildLayoutPageTemplateStructure(long, long)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateStructure rebuildLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK)
-		throws PortalException {
-
-		return rebuildLayoutPageTemplateStructure(groupId, classPK);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #updateLayoutPageTemplateStructureData(long, long, long,
-	 *             String)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK,
-			long segmentsExperienceId, String data)
-		throws PortalException {
-
-		return updateLayoutPageTemplateStructureData(
-			groupId, classPK, segmentsExperienceId, data);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #updateLayoutPageTemplateStructureData(long, long, String)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK, String data)
-		throws PortalException {
-
-		return updateLayoutPageTemplateStructureData(groupId, classPK, data);
 	}
 
 	@Override
@@ -349,7 +257,7 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 					segmentsExperienceId, data);
 		}
 
-		_updateLayoutStatus(plid);
+		_updateLayoutStatus(PrincipalThreadLocal.getUserId(), plid);
 
 		return layoutPageTemplateStructure;
 	}
@@ -359,9 +267,65 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 			long groupId, long plid, String data)
 		throws PortalException {
 
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				plid);
+
 		return layoutPageTemplateStructureLocalService.
 			updateLayoutPageTemplateStructureData(
-				groupId, plid, SegmentsExperienceConstants.ID_DEFAULT, data);
+				groupId, plid, defaultSegmentsExperienceId, data);
+	}
+
+	private String _generateContentLayoutStructureData(long groupId, long plid)
+		throws PortalException {
+
+		List<FragmentEntryLink> fragmentEntryLinks =
+			_fragmentEntryLinkLocalService.getFragmentEntryLinksByPlid(
+				groupId, plid);
+
+		int type = _getLayoutPageTemplateEntryType(
+			_layoutLocalService.getLayout(plid));
+
+		if (fragmentEntryLinks.isEmpty() &&
+			(type == LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT)) {
+
+			LayoutStructure layoutStructure = new LayoutStructure();
+
+			LayoutStructureItem rootLayoutStructureItem =
+				layoutStructure.addRootLayoutStructureItem();
+
+			layoutStructure.addDropZoneLayoutStructureItem(
+				rootLayoutStructureItem.getItemId(), 0);
+
+			return layoutStructure.toString();
+		}
+
+		if (fragmentEntryLinks.isEmpty()) {
+			LayoutStructure layoutStructure = new LayoutStructure();
+
+			layoutStructure.addRootLayoutStructureItem();
+
+			return layoutStructure.toString();
+		}
+
+		LayoutStructure layoutStructure = new LayoutStructure();
+
+		LayoutStructureItem rootLayoutStructureItem =
+			layoutStructure.addRootLayoutStructureItem();
+
+		LayoutStructureItem containerStyledLayoutStructureItem =
+			layoutStructure.addContainerStyledLayoutStructureItem(
+				rootLayoutStructureItem.getItemId(), 0);
+
+		for (int i = 0; i < fragmentEntryLinks.size(); i++) {
+			FragmentEntryLink fragmentEntryLink = fragmentEntryLinks.get(i);
+
+			layoutStructure.addFragmentStyledLayoutStructureItem(
+				fragmentEntryLink.getFragmentEntryLinkId(),
+				containerStyledLayoutStructureItem.getItemId(), i);
+		}
+
+		return layoutStructure.toString();
 	}
 
 	private int _getLayoutPageTemplateEntryType(Layout layout) {
@@ -389,12 +353,12 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		return LayoutPageTemplateEntryTypeConstants.TYPE_BASIC;
 	}
 
-	private void _updateLayoutStatus(long plid) throws PortalException {
-		Layout layout = _layoutLocalService.getLayout(plid);
+	private void _updateLayoutStatus(long userId, long plid)
+		throws PortalException {
 
-		layout.setStatus(WorkflowConstants.STATUS_DRAFT);
-
-		_layoutLocalService.updateLayout(layout);
+		_layoutLocalService.updateStatus(
+			userId, plid, WorkflowConstants.STATUS_DRAFT,
+			ServiceContextThreadLocal.getServiceContext());
 	}
 
 	@Reference
@@ -413,5 +377,11 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -20,6 +20,7 @@ import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.PluginsGitRepositoryJob;
 import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
 import com.liferay.jenkins.results.parser.PortalTestClassJob;
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
 import com.liferay.poshi.core.PoshiContext;
 import com.liferay.poshi.core.util.PropsUtil;
 
@@ -30,8 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
@@ -52,6 +53,12 @@ public class PluginsFunctionalBatchTestClassGroup
 	}
 
 	protected PluginsFunctionalBatchTestClassGroup(
+		JSONObject jsonObject, PortalTestClassJob portalTestClassJob) {
+
+		super(jsonObject, portalTestClassJob);
+	}
+
+	protected PluginsFunctionalBatchTestClassGroup(
 		String batchName, PortalTestClassJob portalTestClassJob) {
 
 		super(batchName, portalTestClassJob);
@@ -61,29 +68,26 @@ public class PluginsFunctionalBatchTestClassGroup
 	protected String getDefaultTestBatchRunPropertyQuery(
 		File testBaseDir, String testSuiteName) {
 
-		String propertyQuery = System.getenv("TEST_BATCH_RUN_PROPERTY_QUERY");
+		String query = System.getenv("TEST_BATCH_RUN_PROPERTY_QUERY");
 
-		if ((propertyQuery != null) && !propertyQuery.isEmpty()) {
-			return propertyQuery;
+		if (JenkinsResultsParserUtil.isNullOrEmpty(query)) {
+			query = getBuildStartProperty("TEST_BATCH_RUN_PROPERTY_QUERY");
 		}
 
-		Properties testProperties = new Properties(jobProperties);
-
-		if ((testBaseDir != null) && testBaseDir.exists()) {
-			File testPropertiesFile = new File(testBaseDir, "test.properties");
-
-			if (testPropertiesFile.exists()) {
-				testProperties.putAll(
-					JenkinsResultsParserUtil.getProperties(testPropertiesFile));
-			}
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(query)) {
+			return query;
 		}
 
-		return JenkinsResultsParserUtil.getProperty(
-			testProperties, "test.batch.run.property.query",
-			_getPortletName(testBaseDir), testSuiteName, batchName,
-			getJobName());
+		JobProperty jobProperty = getJobProperty(
+			"test.batch.run.property.query", testBaseDir,
+			JobProperty.Type.PLUGIN_TEST_DIR);
+
+		recordJobProperty(jobProperty);
+
+		return jobProperty.getValue();
 	}
 
+	@Override
 	protected List<List<String>> getPoshiTestClassGroups(File testBaseDir) {
 		String query = getTestBatchRunPropertyQuery(testBaseDir);
 
@@ -119,15 +123,10 @@ public class PluginsFunctionalBatchTestClassGroup
 			}
 
 			Properties properties = JenkinsResultsParserUtil.getProperties(
+				new File(portalWorkingDirectory, "portal-web/poshi.properties"),
 				new File(
-					portalWorkingDirectory,
-					"portal-web/test/test-portal-web.properties"),
-				new File(
-					portalWorkingDirectory,
-					"portal-web/test/test-portal-web-ext.properties"),
+					portalWorkingDirectory, "portal-web/poshi-ext.properties"),
 				new File(testBaseDir, "test.properties"));
-
-			properties.setProperty("ignore.errors.util.classes", "true");
 
 			if (!JenkinsResultsParserUtil.isNullOrEmpty(testBaseDirPath)) {
 				properties.setProperty("test.base.dir.name", testBaseDirPath);
@@ -149,25 +148,5 @@ public class PluginsFunctionalBatchTestClassGroup
 			}
 		}
 	}
-
-	private String _getPortletName(File testBaseDir) {
-		String testBaseDirPath = JenkinsResultsParserUtil.getCanonicalPath(
-			testBaseDir);
-
-		if (JenkinsResultsParserUtil.isNullOrEmpty(testBaseDirPath)) {
-			return null;
-		}
-
-		Matcher matcher = _pattern.matcher(testBaseDirPath);
-
-		if (!matcher.find()) {
-			return null;
-		}
-
-		return matcher.group("portletName");
-	}
-
-	private static final Pattern _pattern = Pattern.compile(
-		".*/portlets/(?<portletName>[^/]+-portlet)/.*");
 
 }

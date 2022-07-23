@@ -16,33 +16,35 @@ package com.liferay.account.model.impl;
 
 import com.liferay.account.model.AccountGroupRel;
 import com.liferay.account.model.AccountGroupRelModel;
-import com.liferay.account.model.AccountGroupRelSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -72,7 +74,9 @@ public class AccountGroupRelModelImpl
 
 	public static final Object[][] TABLE_COLUMNS = {
 		{"mvccVersion", Types.BIGINT}, {"accountGroupRelId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"accountGroupId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"modifiedDate", Types.TIMESTAMP}, {"accountGroupId", Types.BIGINT},
 		{"classNameId", Types.BIGINT}, {"classPK", Types.BIGINT}
 	};
 
@@ -83,13 +87,17 @@ public class AccountGroupRelModelImpl
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("accountGroupRelId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("userId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("userName", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("accountGroupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AccountGroupRel (mvccVersion LONG default 0 not null,accountGroupRelId LONG not null primary key,companyId LONG,accountGroupId LONG,classNameId LONG,classPK LONG)";
+		"create table AccountGroupRel (mvccVersion LONG default 0 not null,accountGroupRelId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,accountGroupId LONG,classNameId LONG,classPK LONG)";
 
 	public static final String TABLE_SQL_DROP = "drop table AccountGroupRel";
 
@@ -142,56 +150,6 @@ public class AccountGroupRelModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AccountGroupRel toModel(AccountGroupRelSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		AccountGroupRel model = new AccountGroupRelImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setAccountGroupRelId(soapModel.getAccountGroupRelId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setAccountGroupId(soapModel.getAccountGroupId());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AccountGroupRel> toModels(
-		AccountGroupRelSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AccountGroupRel> models = new ArrayList<AccountGroupRel>(
-			soapModels.length);
-
-		for (AccountGroupRelSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public AccountGroupRelModelImpl() {
@@ -279,34 +237,6 @@ public class AccountGroupRelModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, AccountGroupRel>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AccountGroupRel.class.getClassLoader(), AccountGroupRel.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AccountGroupRel> constructor =
-				(Constructor<AccountGroupRel>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<AccountGroupRel, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<AccountGroupRel, Object>>
@@ -335,6 +265,25 @@ public class AccountGroupRelModelImpl
 		attributeSetterBiConsumers.put(
 			"companyId",
 			(BiConsumer<AccountGroupRel, Long>)AccountGroupRel::setCompanyId);
+		attributeGetterFunctions.put("userId", AccountGroupRel::getUserId);
+		attributeSetterBiConsumers.put(
+			"userId",
+			(BiConsumer<AccountGroupRel, Long>)AccountGroupRel::setUserId);
+		attributeGetterFunctions.put("userName", AccountGroupRel::getUserName);
+		attributeSetterBiConsumers.put(
+			"userName",
+			(BiConsumer<AccountGroupRel, String>)AccountGroupRel::setUserName);
+		attributeGetterFunctions.put(
+			"createDate", AccountGroupRel::getCreateDate);
+		attributeSetterBiConsumers.put(
+			"createDate",
+			(BiConsumer<AccountGroupRel, Date>)AccountGroupRel::setCreateDate);
+		attributeGetterFunctions.put(
+			"modifiedDate", AccountGroupRel::getModifiedDate);
+		attributeSetterBiConsumers.put(
+			"modifiedDate",
+			(BiConsumer<AccountGroupRel, Date>)
+				AccountGroupRel::setModifiedDate);
 		attributeGetterFunctions.put(
 			"accountGroupId", AccountGroupRel::getAccountGroupId);
 		attributeSetterBiConsumers.put(
@@ -400,6 +349,93 @@ public class AccountGroupRelModelImpl
 		}
 
 		_companyId = companyId;
+	}
+
+	@JSON
+	@Override
+	public long getUserId() {
+		return _userId;
+	}
+
+	@Override
+	public void setUserId(long userId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_userId = userId;
+	}
+
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException portalException) {
+			return "";
+		}
+	}
+
+	@Override
+	public void setUserUuid(String userUuid) {
+	}
+
+	@JSON
+	@Override
+	public String getUserName() {
+		if (_userName == null) {
+			return "";
+		}
+		else {
+			return _userName;
+		}
+	}
+
+	@Override
+	public void setUserName(String userName) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_userName = userName;
+	}
+
+	@JSON
+	@Override
+	public Date getCreateDate() {
+		return _createDate;
+	}
+
+	@Override
+	public void setCreateDate(Date createDate) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_createDate = createDate;
+	}
+
+	@JSON
+	@Override
+	public Date getModifiedDate() {
+		return _modifiedDate;
+	}
+
+	public boolean hasSetModifiedDate() {
+		return _setModifiedDate;
+	}
+
+	@Override
+	public void setModifiedDate(Date modifiedDate) {
+		_setModifiedDate = true;
+
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_modifiedDate = modifiedDate;
 	}
 
 	@JSON
@@ -555,11 +591,43 @@ public class AccountGroupRelModelImpl
 		accountGroupRelImpl.setMvccVersion(getMvccVersion());
 		accountGroupRelImpl.setAccountGroupRelId(getAccountGroupRelId());
 		accountGroupRelImpl.setCompanyId(getCompanyId());
+		accountGroupRelImpl.setUserId(getUserId());
+		accountGroupRelImpl.setUserName(getUserName());
+		accountGroupRelImpl.setCreateDate(getCreateDate());
+		accountGroupRelImpl.setModifiedDate(getModifiedDate());
 		accountGroupRelImpl.setAccountGroupId(getAccountGroupId());
 		accountGroupRelImpl.setClassNameId(getClassNameId());
 		accountGroupRelImpl.setClassPK(getClassPK());
 
 		accountGroupRelImpl.resetOriginalValues();
+
+		return accountGroupRelImpl;
+	}
+
+	@Override
+	public AccountGroupRel cloneWithOriginalValues() {
+		AccountGroupRelImpl accountGroupRelImpl = new AccountGroupRelImpl();
+
+		accountGroupRelImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		accountGroupRelImpl.setAccountGroupRelId(
+			this.<Long>getColumnOriginalValue("accountGroupRelId"));
+		accountGroupRelImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		accountGroupRelImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		accountGroupRelImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		accountGroupRelImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		accountGroupRelImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		accountGroupRelImpl.setAccountGroupId(
+			this.<Long>getColumnOriginalValue("accountGroupId"));
+		accountGroupRelImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		accountGroupRelImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
 
 		return accountGroupRelImpl;
 	}
@@ -628,6 +696,8 @@ public class AccountGroupRelModelImpl
 	public void resetOriginalValues() {
 		_columnOriginalValues = Collections.emptyMap();
 
+		_setModifiedDate = false;
+
 		_columnBitmask = 0;
 	}
 
@@ -641,6 +711,34 @@ public class AccountGroupRelModelImpl
 		accountGroupRelCacheModel.accountGroupRelId = getAccountGroupRelId();
 
 		accountGroupRelCacheModel.companyId = getCompanyId();
+
+		accountGroupRelCacheModel.userId = getUserId();
+
+		accountGroupRelCacheModel.userName = getUserName();
+
+		String userName = accountGroupRelCacheModel.userName;
+
+		if ((userName != null) && (userName.length() == 0)) {
+			accountGroupRelCacheModel.userName = null;
+		}
+
+		Date createDate = getCreateDate();
+
+		if (createDate != null) {
+			accountGroupRelCacheModel.createDate = createDate.getTime();
+		}
+		else {
+			accountGroupRelCacheModel.createDate = Long.MIN_VALUE;
+		}
+
+		Date modifiedDate = getModifiedDate();
+
+		if (modifiedDate != null) {
+			accountGroupRelCacheModel.modifiedDate = modifiedDate.getTime();
+		}
+		else {
+			accountGroupRelCacheModel.modifiedDate = Long.MIN_VALUE;
+		}
 
 		accountGroupRelCacheModel.accountGroupId = getAccountGroupId();
 
@@ -657,7 +755,7 @@ public class AccountGroupRelModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -668,9 +766,26 @@ public class AccountGroupRelModelImpl
 			Function<AccountGroupRel, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AccountGroupRel)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((AccountGroupRel)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -717,13 +832,20 @@ public class AccountGroupRelModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AccountGroupRel>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AccountGroupRel.class, ModelWrapper.class);
 
 	}
 
 	private long _mvccVersion;
 	private long _accountGroupRelId;
 	private long _companyId;
+	private long _userId;
+	private String _userName;
+	private Date _createDate;
+	private Date _modifiedDate;
+	private boolean _setModifiedDate;
 	private long _accountGroupId;
 	private long _classNameId;
 	private long _classPK;
@@ -758,6 +880,10 @@ public class AccountGroupRelModelImpl
 		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put("accountGroupRelId", _accountGroupRelId);
 		_columnOriginalValues.put("companyId", _companyId);
+		_columnOriginalValues.put("userId", _userId);
+		_columnOriginalValues.put("userName", _userName);
+		_columnOriginalValues.put("createDate", _createDate);
+		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("accountGroupId", _accountGroupId);
 		_columnOriginalValues.put("classNameId", _classNameId);
 		_columnOriginalValues.put("classPK", _classPK);
@@ -780,11 +906,19 @@ public class AccountGroupRelModelImpl
 
 		columnBitmasks.put("companyId", 4L);
 
-		columnBitmasks.put("accountGroupId", 8L);
+		columnBitmasks.put("userId", 8L);
 
-		columnBitmasks.put("classNameId", 16L);
+		columnBitmasks.put("userName", 16L);
 
-		columnBitmasks.put("classPK", 32L);
+		columnBitmasks.put("createDate", 32L);
+
+		columnBitmasks.put("modifiedDate", 64L);
+
+		columnBitmasks.put("accountGroupId", 128L);
+
+		columnBitmasks.put("classNameId", 256L);
+
+		columnBitmasks.put("classPK", 512L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

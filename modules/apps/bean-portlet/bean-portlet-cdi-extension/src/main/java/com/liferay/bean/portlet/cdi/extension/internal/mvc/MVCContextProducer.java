@@ -71,7 +71,7 @@ public class MVCContextProducer {
 	private List<LocaleResolver> _localeResolvers;
 
 	private static class LocaleResolverPriorityComparator
-		extends DescendingPriorityComparator<LocaleResolver> {
+		extends BaseDescendingPriorityComparator<LocaleResolver> {
 
 		private LocaleResolverPriorityComparator() {
 

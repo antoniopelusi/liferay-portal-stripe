@@ -88,9 +88,6 @@ public class ImportFragmentEntriesStrutsAction implements StrutsAction {
 			for (FragmentsImporterResultEntry fragmentsImporterResultEntry :
 					fragmentsImporterResultEntries) {
 
-				FragmentsImporterResultEntry.Status status =
-					fragmentsImporterResultEntry.getStatus();
-
 				fragmentEntriesImportResultJSONArray.put(
 					JSONUtil.put(
 						"errorMessage",
@@ -98,7 +95,13 @@ public class ImportFragmentEntriesStrutsAction implements StrutsAction {
 					).put(
 						"name", fragmentsImporterResultEntry.getName()
 					).put(
-						"status", status.getLabel()
+						"status",
+						() -> {
+							FragmentsImporterResultEntry.Status status =
+								fragmentsImporterResultEntry.getStatus();
+
+							return status.getLabel();
+						}
 					));
 			}
 
@@ -118,9 +121,6 @@ public class ImportFragmentEntriesStrutsAction implements StrutsAction {
 					layoutPageTemplatesImporterResultEntry :
 						layoutPageTemplatesImporterResultEntries) {
 
-				LayoutPageTemplatesImporterResultEntry.Status status =
-					layoutPageTemplatesImporterResultEntry.getStatus();
-
 				pageTemplatesImportResultJSONArray.put(
 					JSONUtil.put(
 						"errorMessage",
@@ -128,7 +128,15 @@ public class ImportFragmentEntriesStrutsAction implements StrutsAction {
 					).put(
 						"name", layoutPageTemplatesImporterResultEntry.getName()
 					).put(
-						"status", status.getLabel()
+						"status",
+						() -> {
+							LayoutPageTemplatesImporterResultEntry.Status
+								status =
+									layoutPageTemplatesImporterResultEntry.
+										getStatus();
+
+							return status.getLabel();
+						}
 					));
 			}
 

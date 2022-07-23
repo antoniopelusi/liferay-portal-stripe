@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.MembershipRequest;
 import com.liferay.portal.kernel.model.MembershipRequestModel;
-import com.liferay.portal.kernel.model.MembershipRequestSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -32,20 +31,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -159,61 +157,6 @@ public class MembershipRequestModelImpl
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 8L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static MembershipRequest toModel(MembershipRequestSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		MembershipRequest model = new MembershipRequestImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setMembershipRequestId(soapModel.getMembershipRequestId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setComments(soapModel.getComments());
-		model.setReplyComments(soapModel.getReplyComments());
-		model.setReplyDate(soapModel.getReplyDate());
-		model.setReplierUserId(soapModel.getReplierUserId());
-		model.setStatusId(soapModel.getStatusId());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<MembershipRequest> toModels(
-		MembershipRequestSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<MembershipRequest> models = new ArrayList<MembershipRequest>(
-			soapModels.length);
-
-		for (MembershipRequestSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.MembershipRequest"));
@@ -301,34 +244,6 @@ public class MembershipRequestModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, MembershipRequest>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			MembershipRequest.class.getClassLoader(), MembershipRequest.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<MembershipRequest> constructor =
-				(Constructor<MembershipRequest>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<MembershipRequest, Object>>
@@ -724,6 +639,37 @@ public class MembershipRequestModelImpl
 	}
 
 	@Override
+	public MembershipRequest cloneWithOriginalValues() {
+		MembershipRequestImpl membershipRequestImpl =
+			new MembershipRequestImpl();
+
+		membershipRequestImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		membershipRequestImpl.setMembershipRequestId(
+			this.<Long>getColumnOriginalValue("membershipRequestId"));
+		membershipRequestImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		membershipRequestImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		membershipRequestImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		membershipRequestImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		membershipRequestImpl.setComments(
+			this.<String>getColumnOriginalValue("comments"));
+		membershipRequestImpl.setReplyComments(
+			this.<String>getColumnOriginalValue("replyComments"));
+		membershipRequestImpl.setReplyDate(
+			this.<Date>getColumnOriginalValue("replyDate"));
+		membershipRequestImpl.setReplierUserId(
+			this.<Long>getColumnOriginalValue("replierUserId"));
+		membershipRequestImpl.setStatusId(
+			this.<Long>getColumnOriginalValue("statusId"));
+
+		return membershipRequestImpl;
+	}
+
+	@Override
 	public int compareTo(MembershipRequest membershipRequest) {
 		int value = 0;
 
@@ -854,7 +800,7 @@ public class MembershipRequestModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -865,9 +811,27 @@ public class MembershipRequestModelImpl
 			Function<MembershipRequest, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((MembershipRequest)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(MembershipRequest)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -914,7 +878,9 @@ public class MembershipRequestModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, MembershipRequest>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					MembershipRequest.class, ModelWrapper.class);
 
 	}
 

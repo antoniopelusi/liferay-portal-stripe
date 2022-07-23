@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.trash.kernel.service.persistence.TrashEntryPersistence;
 
 import java.io.Serializable;
 
@@ -156,6 +155,13 @@ public abstract class ExportImportConfigurationLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return exportImportConfigurationPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -667,51 +673,6 @@ public abstract class ExportImportConfigurationLocalServiceBaseImpl
 		this.userFinder = userFinder;
 	}
 
-	/**
-	 * Returns the trash entry local service.
-	 *
-	 * @return the trash entry local service
-	 */
-	@SuppressWarnings("deprecation")
-	public com.liferay.trash.kernel.service.TrashEntryLocalService
-		getTrashEntryLocalService() {
-
-		return trashEntryLocalService;
-	}
-
-	/**
-	 * Sets the trash entry local service.
-	 *
-	 * @param trashEntryLocalService the trash entry local service
-	 */
-	@SuppressWarnings("deprecation")
-	public void setTrashEntryLocalService(
-		com.liferay.trash.kernel.service.TrashEntryLocalService
-			trashEntryLocalService) {
-
-		this.trashEntryLocalService = trashEntryLocalService;
-	}
-
-	/**
-	 * Returns the trash entry persistence.
-	 *
-	 * @return the trash entry persistence
-	 */
-	public TrashEntryPersistence getTrashEntryPersistence() {
-		return trashEntryPersistence;
-	}
-
-	/**
-	 * Sets the trash entry persistence.
-	 *
-	 * @param trashEntryPersistence the trash entry persistence
-	 */
-	public void setTrashEntryPersistence(
-		TrashEntryPersistence trashEntryPersistence) {
-
-		this.trashEntryPersistence = trashEntryPersistence;
-	}
-
 	public void afterPropertiesSet() {
 		persistedModelLocalServiceRegistry.register(
 			"com.liferay.exportimport.kernel.model.ExportImportConfiguration",
@@ -843,16 +804,6 @@ public abstract class ExportImportConfigurationLocalServiceBaseImpl
 
 	@BeanReference(type = UserFinder.class)
 	protected UserFinder userFinder;
-
-	@BeanReference(
-		type = com.liferay.trash.kernel.service.TrashEntryLocalService.class
-	)
-	@SuppressWarnings("deprecation")
-	protected com.liferay.trash.kernel.service.TrashEntryLocalService
-		trashEntryLocalService;
-
-	@BeanReference(type = TrashEntryPersistence.class)
-	protected TrashEntryPersistence trashEntryPersistence;
 
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry

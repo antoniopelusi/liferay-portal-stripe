@@ -25,7 +25,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	"/configuration_admin/view_configuration_screen"
 ).setParameter(
 	"configurationScreenKey", "2-synced-contact-data"
-).build();
+).buildPortletURL();
 
 String redirect = ParamUtil.getString(request, "redirect", portletURL.toString());
 

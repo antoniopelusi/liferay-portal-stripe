@@ -113,9 +113,7 @@ public class ServletContextUtil {
 	public static String getRootPath(ServletContext servletContext)
 		throws MalformedURLException {
 
-		URI rootURI = getRootURI(servletContext);
-
-		return rootURI.toString();
+		return String.valueOf(getRootURI(servletContext));
 	}
 
 	public static URI getRootURI(ServletContext servletContext)
@@ -191,11 +189,11 @@ public class ServletContextUtil {
 				classNames.add(_getClassName(rootPath, path));
 			}
 			else if (path.endsWith(_EXT_JAR)) {
-				try (JarInputStream jarFile = new JarInputStream(
+				try (JarInputStream jarInputStream = new JarInputStream(
 						servletContext.getResourceAsStream(path))) {
 
 					while (true) {
-						JarEntry jarEntry = jarFile.getNextJarEntry();
+						JarEntry jarEntry = jarInputStream.getNextJarEntry();
 
 						if (jarEntry == null) {
 							break;
@@ -265,7 +263,7 @@ public class ServletContextUtil {
 					}
 					catch (IOException ioException) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(ioException, ioException);
+							_log.debug(ioException);
 						}
 					}
 				}

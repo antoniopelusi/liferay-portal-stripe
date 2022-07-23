@@ -16,7 +16,6 @@ package com.liferay.portal.upgrade.v7_3_x;
 
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.upgrade.v7_3_x.util.CompanyTable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,27 +31,28 @@ public class UpgradeSchema extends UpgradeProcess {
 
 		_copyCompanyKey();
 
-		alter(CompanyTable.class, new AlterTableDropColumn("key_"));
+		alterTableDropColumn("Company", "key_");
 	}
 
 	private void _copyCompanyKey() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select companyId, key_ from Company");
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"insert into CompanyInfo (companyInfoId, companyId, " +
-						"key_) values (?, ?, ?)"))) {
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"insert into CompanyInfo (companyInfoId, companyId, " +
+							"key_) values (?, ?, ?)"))) {
 
-			while (rs.next()) {
-				ps2.setLong(1, increment());
-				ps2.setLong(2, rs.getLong(1));
-				ps2.setString(3, rs.getString(2));
+			while (resultSet.next()) {
+				preparedStatement2.setLong(1, increment());
+				preparedStatement2.setLong(2, resultSet.getLong(1));
+				preparedStatement2.setString(3, resultSet.getString(2));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

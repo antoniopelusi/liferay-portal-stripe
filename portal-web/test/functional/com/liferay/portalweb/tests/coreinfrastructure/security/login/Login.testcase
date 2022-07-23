@@ -6,524 +6,200 @@ definition {
 	property testray.main.component.name = "Login";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-	}
-
-	@priority = "5"
-	test CASSSOSmoke {
-		property cas.enabled = "true";
-		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "Login#CASSSOSmoke";
-
-		User.firstLoginPG();
-
-		var liferayHome = PropsUtil.get("liferay.home.dir.name");
-		var fileContent = FileUtil.read("${liferayHome}/tomcat-9.0.43/bin/cas.log");
-
-		if (contains("${fileContent}", "org.jasig.cas")) {
-			echo("CAS server started.");
+		task ("Setup: Setup portal instance") {
+			TestCase.setUpPortalInstance();
 		}
-		else {
-			fail("FAIL! CAS server didn't start.");
-		}
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "CAS Server",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.editConfigurationAuthenticationCAS();
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "User Authentication",
-			configurationName = "General",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.editConfigurationAuthenticationGeneral(authenticationMethod = "By Screen Name");
-
-		User.logoutPG();
-
-		User.loginUserWithCASEnabledPG(
-			userPassword = "test",
-			userScreenName = "test");
 	}
 
-	@priority = "5"
-	test DefaultPortalLandingPage {
-		property test.name.skip.portal.instance = "Login#DefaultPortalLandingPage";
-
-		User.firstLoginPG();
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Instance Configuration",
-			configurationName = "General",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.editDefaultLandingPageCP(defaultLandingPage = "/web/guest/landing");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Sites",
-			panel = "Control Panel",
-			portlet = "Sites");
-
-		var siteName = TestCase.getSiteName(siteName = "${siteName}");
-
-		Navigator.openSiteURL(siteName = "${siteName}");
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
-
-		SitePages.addPublicPage(pageName = "landing");
-
-		User.logoutPG();
-
-		User.loginPG(
-			password = "test",
-			userEmailAddress = "test@liferay.com");
-
-		var portalURL = PropsUtil.get("portal.url");
-
-		AssertLocation(value1 = "${portalURL}/web/guest/landing");
-	}
-
-	@description = "This is a use case for LPS-39744."
+	@description = "This is a use case for LPS-39744 and LPS-78508. Default landing page could be set by property and user is redirected to the changed landing page."
 	@priority = "5"
 	test DefaultPortalLandingPageSetByProperty {
-		property custom.properties = "default.landing.page.path=/web/guest/landing";
+		property custom.properties = "default.landing.page.path=/web/guest/landing${line.separator}company.default.home.url=";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "Login#DefaultPortalLandingPageSetByProperty";
 
-		User.firstLoginPG();
+		task ("Login and add a public page ") {
+			User.firstLoginPG();
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "landing");
+		}
 
-		SitePages.addPublicPage(pageName = "landing");
+		task ("Logout and login") {
+			User.logoutPG();
 
-		User.logoutPG();
+			User.firstLoginUI(
+				password = "test",
+				userEmailAddress = "test@liferay.com");
+		}
 
-		User.loginPG(
-			password = "test",
-			userEmailAddress = "test@liferay.com");
+		task ("Assert url value") {
+			AssertLocation(value1 = "http://localhost:8080/web/guest/landing");
+		}
 
-		var portalURL = PropsUtil.get("portal.url");
-
-		AssertLocation(value1 = "${portalURL}/web/guest/landing");
+		task ("Assert no errors occurred in the console") {
+			AssertConsoleTextNotPresent(value1 = "java.lang.StackOverflowError");
+		}
 	}
 
-	@description = "This is a use case for LPS-105151."
-	@priority = "4"
-	test EnabledOpenIDConnectOnSystemLevel {
-		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "Login#EnabledOpenIDConnectOnSystemLevel";
-
-		var openIDConnectClientID = PropsUtil.get("google.client.id.2");
-		var openIDConnectClientSecret = PropsUtil.get("google.client.secret.2");
-		var userEmailAddress = PropsUtil.get("email.address.2");
-		var userPassword = PropsUtil.get("email.password.2");
-
-		User.firstLoginPG();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
-
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
-
-		PortalInstances.viewCP(virtualHost = "www.able.com");
-
-		Navigator.openSpecificURL(url = "http://www.able.com:8080/");
-
-		AssertClick(
-			locator1 = "UserBar#USER_SIGN_IN",
-			value1 = "Sign In");
-
-		AssertElementNotPresent(locator1 = "Icon#OPENID_CONNECT");
-
-		Navigator.openURL();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect",
-			configurationScope = "System Scope");
-
-		PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect Provider",
-			configurationScope = "Virtual Instance Scope");
-
-		OpenIDConnect.addProvider(
-			openIDConnectClientID = "${openIDConnectClientID}",
-			openIDConnectClientSecret = "${openIDConnectClientSecret}",
-			providerName = "Google");
-
-		Navigator.openSpecificURL(url = "http://www.able.com:8080/");
-
-		AssertClick(
-			locator1 = "UserBar#USER_SIGN_IN",
-			value1 = "Sign In");
-
-		AssertElementPresent(locator1 = "Icon#OPENID_CONNECT");
-	}
-
+	@description = "This is a use case for LRQA-27624. Users could login and logout using their Facebook profile."
 	@priority = "4"
 	test FacebookSSOSmoke {
+		property portal.ssl.enabled = "true";
 		property test.name.skip.portal.instance = "Login#FacebookSSOSmoke";
 
-		var facebookApplicationID = PropsUtil.get("facebook.application.id");
+		var facebookApplicationId = PropsUtil.get("facebook.application.id");
 		var facebookApplicationSecret = PropsUtil.get("facebook.application.secret");
 		var facebookEmail = PropsUtil.get("facebook.email");
 		var facebookPassword = PropsUtil.get("facebook.password");
 
-		User.firstLoginPG();
+		task ("Login and edit facebook authentication") {
+			User.firstLoginPG();
 
-		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+			var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "Facebook Connect",
-			configurationScope = "Virtual Instance Scope");
+			PortalSettings.gotoConfiguration(
+				baseURL = "http://localhost:8080",
+				configurationCategory = "SSO",
+				configurationName = "Facebook Connect",
+				configurationScope = "Virtual Instance Scope");
 
-		PortalSettings.editConfigurationAuthenticationFacebook(
-			facebookApplicationID = "${facebookApplicationID}",
-			facebookApplicationSecret = "${facebookApplicationSecret}");
+			PortalSettings.editConfigurationAuthenticationFacebook(
+				facebookApplicationId = "${facebookApplicationId}",
+				facebookApplicationSecret = "${facebookApplicationSecret}");
+		}
 
-		User.logoutPG();
+		task ("Logout and login with facebook SSO") {
+			User.logoutPG();
 
-		User.loginUserWithFacebookSSOEnabledPG(
-			facebookEmail = "${facebookEmail}",
-			facebookPassword = "${facebookPassword}",
-			siteName = "${siteName}");
+			User.loginUserWithFacebookSSOEnabledPG(
+				facebookEmail = "${facebookEmail}",
+				facebookPassword = "${facebookPassword}",
+				siteName = "${siteName}");
+		}
 
-		User.logoutPG();
+		task ("Logout and login") {
+			User.logoutPG();
 
-		User.loginPG(
-			password = "test",
-			userEmailAddress = "test@liferay.com",
-			userScreenName = "usersn");
+			User.firstLoginUI();
+		}
 	}
 
-	@priority = "4"
-	test GoogleSSOSmoke {
-		property dummy.socket.proxy.disabled = "true";
-		property osgi.app.includes = "portal-security-sso-google";
-		property test.name.skip.portal.instance = "Login#GoogleSSOSmoke";
-
-		var googleClientID = PropsUtil.get("google.client.id.2");
-		var googleClientSecret = PropsUtil.get("google.client.secret.2");
-		var userEmailAddress = PropsUtil.get("email.address.2");
-		var userPassword = PropsUtil.get("email.password.2");
-
-		User.firstLoginPG();
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "Google Authorization",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.enableGoogleSSOCP(
-			googleClientID = "${googleClientID}",
-			googleClientSecret = "${googleClientSecret}");
-
-		User.logoutPG();
-
-		User.loginUserWithGoogleSSOEnabledPG(
-			userEmailAddress = "${userEmailAddress}",
-			userPassword = "${userPassword}");
-
-		User.logoutPG();
-
-		User.loginUserPG(
-			password = "test",
-			userEmailAddress = "test@liferay.com");
-	}
-
-	@description = "This is a use case for LPS-72398."
+	@description = "This is a use case for LPS-72398. Users could login to Portal when the default language is not English."
 	@priority = "5"
 	test LoginWithSpanishOnlyEnabledLocale {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "Login#LoginWithSpanishOnlyEnabledLocale";
 
-		User.firstLoginPG();
+		task ("Login and configure spanish as default and current portal language") {
+			User.firstLoginPG();
 
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Localization",
-			configurationName = "Language",
-			configurationScope = "Virtual Instance Scope");
+			var portalURL = PropsUtil.get("portal.url");
 
-		PortalSettings.configureCurrentLanguagesCP(
-			currentPortalLanguages = "Spanish (Spain)",
-			defaultPortalLanguage = "Spanish (Spain)");
+			PortalSettings.gotoConfiguration(
+				configurationCategory = "Localization",
+				configurationName = "Language",
+				configurationScope = "Virtual Instance Scope");
 
-		User.logoutPG();
+			PortalSettings.configureCurrentLanguagesCP(
+				currentPortalLanguages = "Spanish (Spain)",
+				defaultPortalLanguage = "Spanish (Spain)");
+		}
 
-		Portlet.shutdownServer();
+		task ("Logout, restart server and login") {
+			User.logoutPG();
 
-		Portlet.startServer(deleteLiferayHome = "false");
+			Portlet.shutdownServer();
 
-		Portlet.assertServerStartup();
+			Portlet.startServer(deleteLiferayHome = "false");
 
-		User.loginPG(
-			localization = "ES",
-			password = "test",
-			userEmailAddress = "test@liferay.com");
+			Portlet.assertServerStartup();
+
+			User.firstLoginUI(
+				localization = "ES",
+				password = "test",
+				specificURL = "${portalURL}/es",
+				userEmailAddress = "test@liferay.com");
+		}
 	}
 
-	@description = "This is a use case for LPS-105151."
-	@priority = "4"
-	test MultipleOpenIDConnectProvider {
-		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "Login#MultipleOpenIDConnectProvider";
+	@description = "Users could login through the UI."
+	@priority = "5"
+	test LoginWithUI {
+		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
+		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property environment.acceptance = "true";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "Login#DefaultPortalLandingPageSetByProperty";
 
-		var openIDConnectClientID = PropsUtil.get("google.client.id.2");
-		var openIDConnectClientSecret = PropsUtil.get("google.client.secret.2");
-		var openIDConnectClientID1 = PropsUtil.get("google.client.id.3");
-		var openIDConnectClientSecret1 = PropsUtil.get("google.client.secret.3");
-		var userEmailAddress = PropsUtil.get("email.address.2");
-		var userPassword = PropsUtil.get("email.password.2");
+		task ("Login and go to control panel - roles") {
+			User.firstLoginUI();
 
-		User.firstLoginPG();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
-
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
-
-		PortalInstances.viewCP(virtualHost = "www.able.com");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
-
-		PortalInstances.addCP(
-			mailDomain = "www.baker.com",
-			virtualHost = "www.baker.com",
-			webId = "www.baker.com");
-
-		PortalInstances.viewCP(virtualHost = "www.baker.com");
-
-		Navigator.openURL();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect",
-			configurationScope = "System Scope");
-
-		PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect Provider",
-			configurationScope = "Virtual Instance Scope");
-
-		OpenIDConnect.addProvider(
-			openIDConnectClientID = "${openIDConnectClientID}",
-			openIDConnectClientSecret = "${openIDConnectClientSecret}",
-			providerName = "Google");
-
-		User.firstLoginPG(
-			password = "test",
-			userEmailAddress = "test@www.able.com",
-			virtualHostsURL = "http://www.able.com:8080");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Instance Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect Provider",
-			configurationScope = "Virtual Instance Scope");
-
-		OpenIDConnect.addProvider(
-			openIDConnectClientID = "${openIDConnectClientID1}",
-			openIDConnectClientSecret = "${openIDConnectClientSecret1}",
-			providerName = "Test Google");
-
-		UserBar.signOut();
-
-		Navigator.openSpecificURL(url = "http://www.able.com:8080/");
-
-		OpenIDConnect.viewProvider();
-
-		AssertElementPresent(
-			key_providerNname = "Test Google",
-			locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_OPTION");
-
-		User.firstLoginPG(
-			password = "test",
-			userEmailAddress = "test@www.baker.com",
-			virtualHostsURL = "http://www.baker.com:8080");
-
-		UserBar.signOut();
-
-		Navigator.openSpecificURL(url = "http://www.baker.com:8080/");
-
-		OpenIDConnect.viewProvider();
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Roles");
+		}
 	}
 
-	@description = "This is a use case for LPS-105151."
-	@priority = "4"
-	test OpenIDConnectOnInstanceLevelSmoke {
-		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "Login#OpenIDConnectOnInstanceLevelSmoke";
+	@description = "This is a use case for LPS-150234. Login page not breaks visually when user enters his credentials incorrectly."
+	@priority = "5"
+	test LoginWithUIUsingWrongCredentials {
+		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
+		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property test.name.skip.portal.instance = "Login#LoginWithUIUsingWrongCredentials";
 
-		var openIDConnectClientID = PropsUtil.get("google.client.id.1");
-		var openIDConnectClientSecret = PropsUtil.get("google.client.secret.1");
-		var userEmailAddress = PropsUtil.get("email.address.2");
-		var userPassword = PropsUtil.get("email.password.2");
+		task ("When: User tries to login with wrong credential") {
+			User.firstLoginUI(userEmailAddress = "wrong@liferay.com");
+		}
 
-		User.firstLoginPG();
+		task ("Then: Regular UI is present with site logo") {
+			WaitForElementPresent(locator1 = "Home#SITE_NAME_LOGO");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
-
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
-
-		PortalInstances.viewCP(virtualHost = "www.able.com");
-
-		User.firstLoginPG(
-			password = "test",
-			userEmailAddress = "test@www.able.com",
-			virtualHostsURL = "http://www.able.com:8080");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Instance Settings");
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.enableOpenIDConnectCP();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Instance Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect Provider",
-			configurationScope = "Virtual Instance Scope");
-
-		OpenIDConnect.addProvider(
-			openIDConnectClientID = "${openIDConnectClientID}",
-			openIDConnectClientSecret = "${openIDConnectClientSecret}",
-			providerName = "Google");
-
-		UserBar.signOut();
-
-		OpenIDConnect.accountSignIn(
-			specificURL = "http://www.able.com:8080",
-			userEmailAddress = "${userEmailAddress}",
-			userPassword = "${userPassword}");
-
-		OpenIDConnect.acceptConditions();
-
-		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
-
-		UserBar.signOut();
-
-		User.loginPG(
-			password = "test",
-			specificURL = "http://www.able.com:8080",
-			userEmailAddress = "test@www.able.com");
+		task ("And: Error message is present") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#ERROR_DISMISSIBLE",
+				value1 = "Authentication failed. Please try again.");
+		}
 	}
 
-	@priority = "4"
-	test OpenIDConnectSmoke {
-		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "Login#OpenIDConnectSmoke";
+	@description = "This is a use case for LPS-150234. Login page not breaks visually when user enters his credentials incorrectly and one MFA verifier is enabled. Blocked by LPS-150234."
+	@priority = "5"
+	test LoginWithUIUsingWrongCredentialsAndMFAIsEnabled {
+		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
+		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property portal.release = "false";
+		property portal.upstream = "quarantine";
+		property test.name.skip.portal.instance = "Login#LoginWithUIUsingWrongCredentialsAndMFAIsEnabled";
 
-		// LRQA-43729
+		task ("Given: Login and enable OTP and Sign Out as Instance Admin") {
+			User.firstLoginUI();
 
-		var openIDConnectClientID = PropsUtil.get("google.client.id.3");
-		var openIDConnectClientSecret = PropsUtil.get("google.client.secret.3");
-		var userEmailAddress = PropsUtil.get("email.address.2");
-		var userPassword = PropsUtil.get("email.password.2");
+			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-		User.firstLoginPG();
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 
-		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+			SignOut.signOut();
+		}
 
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect",
-			configurationScope = "Virtual Instance Scope");
+		task ("When: User tries to login with wrong credential") {
+			User.firstLoginUI(userEmailAddress = "wrong@liferay.com");
+		}
 
-		PortalSettings.enableOpenIDConnectCP();
+		task ("Then: Regular UI is present with site logo") {
+			WaitForElementPresent(locator1 = "Home#SITE_NAME_LOGO");
+		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenID Connect Provider",
-			configurationScope = "Virtual Instance Scope");
-
-		OpenIDConnect.addProvider(
-			openIDConnectClientID = "${openIDConnectClientID}",
-			openIDConnectClientSecret = "${openIDConnectClientSecret}",
-			providerName = "Google");
-
-		User.logoutPG();
-
-		User.loginUserWithOpenIDConnectEnabledPG(
-			siteName = "${siteName}",
-			userEmailAddress = "${userEmailAddress}",
-			userPassword = "${userPassword}");
-
-		User.logoutPG();
-
-		User.loginUserPG(
-			password = "test",
-			userEmailAddress = "test@liferay.com");
+		task ("And: Error message is present") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#ERROR_DISMISSIBLE",
+				value1 = "Authentication failed. Please try again.");
+		}
 	}
 
-	@description = "Ignore test due to OpenAM 12 doesn't support Tomcat 9"
+	@description = "This is a use case for LRQA-43015. Ignore test due to OpenAM 12 doesn't support Tomcat 9."
 	@ignore = "true"
 	@priority = "5"
 	test OpenSSOSmoke {
@@ -531,136 +207,192 @@ definition {
 		property openam.enabled = "true";
 		property test.name.skip.portal.instance = "Login#OpenSSOSmoke";
 
-		// LRQA-40534
+		task ("Go to http://test.able.com:8080/openam and run ant command") {
+			Navigator.openSpecificURL(url = "http://test.able.com:8080/openam");
 
-		Navigator.openSpecificURL(url = "http://test.able.com:8080/openam");
+			AntCommand(
+				locator1 = "build-test-authentication.xml",
+				value1 = "run-openam-tools");
+		}
 
-		AntCommand(
-			locator1 = "build-test-authentication.xml",
-			value1 = "run-openam-tools");
+		task ("Wait for OpenAM setup") {
+			var pauseCount = "0";
 
-		var pauseCount = "0";
+			while ((IsElementNotPresent(locator1 = "TextInput#TEXT")) && ("${pauseCount}" != "20")) {
+				Refresh();
 
-		while ((IsElementNotPresent(locator1 = "TextInput#TEXT")) && ("${pauseCount}" != "20")) {
-			Refresh();
+				Pause(locator1 = "30000");
+
+				var pauseCount = ${pauseCount} + 1;
+
+				echo("Pause count: ${pauseCount}");
+			}
+
+			if ("${pauseCount}" == "20") {
+				fail("OpenAM setup timed out after 10 minutes.");
+			}
+		}
+
+		task ("Login and configure open SSO") {
+			User.firstLoginPG();
 
 			Pause(locator1 = "30000");
 
-			var pauseCount = ${pauseCount} + 1;
+			PortalSettings.gotoConfiguration(
+				baseURL = "http://localhost:8080",
+				configurationCategory = "SSO",
+				configurationName = "OpenSSO",
+				configurationScope = "Virtual Instance Scope");
 
-			echo("Pause count: ${pauseCount}");
+			PortalSettings.configureOpenSSO(
+				openSsoLoginURL = "http://test.able.com:8080/openam/UI/Login?goto=http://www.able.com:8080/c/portal/login",
+				openSsoLogoutURL = "http://test.able.com:8080/openam/UI/Logout?goto=http://www.able.com:8080/web/guest/home",
+				openSsoServiceURL = "http://test.able.com:8080/openam");
 		}
 
-		if ("${pauseCount}" == "20") {
-			fail("OpenAM setup timed out after 10 minutes.");
+		task ("Test SSO connection") {
+			PortalSettings.gotoConfiguration(
+				baseURL = "http://localhost:8080",
+				configurationCategory = "SSO",
+				configurationName = "OpenSSO",
+				configurationScope = "Virtual Instance Scope");
+
+			PortalSettings.testOpenSSOConnection();
 		}
 
-		User.firstLoginPG();
+		task ("Logout and login with open SSO") {
+			User.logoutPG();
 
-		Pause(locator1 = "30000");
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenSSO",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.configureOpenSSO(
-			OpenSSOLoginURL = "http://test.able.com:8080/openam/UI/Login?goto=http://www.able.com:8080/c/portal/login",
-			OpenSSOLogoutURL = "http://test.able.com:8080/openam/UI/Logout?goto=http://www.able.com:8080/web/guest/home",
-			OpenSSOServiceURL = "http://test.able.com:8080/openam");
-
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "OpenSSO",
-			configurationScope = "Virtual Instance Scope");
-
-		PortalSettings.testOpenSSOConnection();
-
-		User.logoutPG();
-
-		User.loginUserWithOpenSSOEnabledPG(
-			hostsURL = "http://www.able.com:8080",
-			password = "password",
-			userScreenName = "test");
+			User.loginUserWithOpenSSOEnabledPG(
+				hostsURL = "http://www.able.com:8080",
+				password = "password",
+				userScreenName = "test");
+		}
 	}
 
+	@description = "This is a use case for LRQA-48218. User should be redirected to the changed landing page upon login."
+	@priority = "5"
+	test RedirectToDefaultPortalLandingPageOnLogin {
+		property test.name.skip.portal.instance = "Login#DefaultPortalLandingPage";
+
+		task ("Login and configure landing page CP") {
+			User.firstLoginPG();
+
+			PortalSettings.gotoConfiguration(
+				baseURL = "http://localhost:8080",
+				configurationCategory = "Instance Configuration",
+				configurationName = "General",
+				configurationScope = "Virtual Instance Scope");
+
+			PortalSettings.editDefaultLandingPageCP(defaultLandingPage = "/web/guest/landing");
+		}
+
+		task ("Add public page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "landing");
+		}
+
+		task ("Logout and login") {
+			User.logoutPG();
+
+			User.firstLoginUI(
+				password = "test",
+				userEmailAddress = "test@liferay.com");
+		}
+
+		task ("Assert url value") {
+			AssertLocation(value1 = "http://localhost:8080/web/guest/landing");
+		}
+	}
+
+	@description = "This is a use case for LRQA-27622. Users could login using Token Based SSO."
 	@priority = "5"
 	test TokenBasedSSOSmoke {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "Login#TokenBasedSSOSmoke";
 
-		User.firstLoginPG();
+		task ("Login and reset token based SSO configuration") {
+			User.firstLoginPG();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
+			SystemSettings.openSystemSettingsAdmin();
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "Token Based SSO",
-			configurationScope = "System Scope");
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "Token Based SSO",
+				configurationScope = "System Scope");
 
-		FormFields.enableCheckbox(fieldName = "Enabled");
+			SystemSettings.resetConfiguration();
+		}
 
-		PortletEntry.save();
+		task ("Enable and save configuration") {
+			FormFields.enableCheckbox(fieldName = "Enabled");
 
-		AntCommand(
-			locator1 = "build-test-authentication.xml",
-			value1 = "verify-token-based-login -Dportal.url=localhost:8080/web/guest -Duser.token=test@liferay.com");
+			SystemSettings.saveConfiguration();
+		}
 
-		FormFields.disableCheckbox(fieldName = "Enabled");
+		task ("Run and command") {
+			AntCommand(
+				locator1 = "build-test-authentication.xml",
+				value1 = "verify-token-based-login -Dportal.url=http://localhost:8080/web/guest -Duser.token=test@liferay.com");
+		}
 
-		PortletEntry.update();
+		task ("Disable configuration") {
+			FormFields.disableCheckbox(fieldName = "Enabled");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "Virtual Instances");
+			SystemSettings.saveConfiguration();
+		}
 
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
+		task ("Add CP able.com") {
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
+		}
 
-		User.firstLoginPG(
-			password = "test",
-			userEmailAddress = "test@www.able.com",
-			virtualHostsURL = "http://www.able.com:8080");
+		task ("Login at able.com and enable token based SSO") {
+			User.firstLoginUI(
+				password = "test",
+				specificURL = "http://www.able.com:8080",
+				userEmailAddress = "test@www.able.com");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Instance Settings");
+			PortalSettings.openInstanceSettingsAdmin(baseURL = "http://www.able.com:8080");
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "SSO",
-			configurationName = "Token Based SSO",
-			configurationScope = "Virtual Instance Scope");
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "Token Based SSO",
+				configurationScope = "Virtual Instance Scope");
 
-		FormFields.enableCheckbox(fieldName = "enabled");
+			FormFields.enableCheckbox(fieldName = "enabled");
 
-		PortletEntry.save();
+			SystemSettings.saveConfiguration();
+		}
 
-		AntCommand(
-			locator1 = "build-test-authentication.xml",
-			value1 = "verify-token-based-login -Dportal.url=www.able.com:8080/web/guest -Duser.token=test@www.able.com");
+		task ("Run ant command") {
+			AntCommand(
+				locator1 = "build-test-authentication.xml",
+				value1 = "verify-token-based-login -Dportal.url=http://www.able.com:8080/web/guest -Duser.token=test@www.able.com");
+		}
 	}
 
+	@description = "This is a use case for LRQA-27619. Verify that LDAP and OpenSSO portlets are present at Instance Settings."
 	@priority = "3"
 	test ViewInstanceSettingsAuthentication {
-		property osgi.app.includes = "portal-security-sso-google,portal-security-sso-ntlm,portal-security-sso-openid";
+		property osgi.app.includes = "portal-security-sso-openid";
 
-		User.firstLoginPG();
+		task ("Login and view General CP authentication settings") {
+			User.firstLoginPG();
 
-		PortalSettings.viewAuthenticationGeneralCP();
+			PortalSettings.viewAuthenticationGeneralCP();
+		}
 
-		PortalSettings.viewAuthenticationLDAPCP();
+		task ("View LDAP CP authentication settings") {
+			PortalSettings.viewAuthenticationLDAPCP();
+		}
 
-		PortalSettings.viewAuthenticationOpenSSOCP();
-
-		PortalSettings.viewAuthenticationCASCP();
-
-		PortalSettings.viewAuthenticationNTLMCP();
+		task ("View openSSO CP authentication settings") {
+			PortalSettings.viewAuthenticationOpenSSOCP();
+		}
 	}
 
 }

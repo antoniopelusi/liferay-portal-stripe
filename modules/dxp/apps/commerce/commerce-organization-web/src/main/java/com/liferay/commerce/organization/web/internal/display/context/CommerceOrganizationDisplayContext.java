@@ -14,8 +14,8 @@
 
 package com.liferay.commerce.organization.web.internal.display.context;
 
-import com.liferay.commerce.organization.web.internal.constants.CommerceOrganizationConstants;
-import com.liferay.commerce.organization.web.internal.display.context.util.CommerceOrganizationRequestHelper;
+import com.liferay.commerce.organization.web.internal.configuration.CommerceOrganizationPortletInstanceConfiguration;
+import com.liferay.commerce.organization.web.internal.display.context.helper.CommerceOrganizationRequestHelper;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Organization;
@@ -28,10 +28,13 @@ import com.liferay.portal.kernel.service.OrganizationService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.permission.OrganizationPermissionUtil;
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
+import com.liferay.portal.kernel.theme.PortletDisplay;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.users.admin.configuration.UserFileUploadsConfiguration;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.PortletURL;
 
@@ -43,17 +46,25 @@ import javax.servlet.http.HttpServletRequest;
 public class CommerceOrganizationDisplayContext {
 
 	public CommerceOrganizationDisplayContext(
-		HttpServletRequest httpServletRequest,
-		OrganizationService organizationService,
-		UserFileUploadsConfiguration userFileUploadsConfiguration,
-		UserLocalService userLocalService) {
+			HttpServletRequest httpServletRequest,
+			OrganizationService organizationService,
+			UserLocalService userLocalService)
+		throws PortalException {
 
 		_organizationService = organizationService;
-		_userFileUploadsConfiguration = userFileUploadsConfiguration;
 		_userLocalService = userLocalService;
 
 		_commerceOrganizationRequestHelper =
 			new CommerceOrganizationRequestHelper(httpServletRequest);
+
+		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PortletDisplay portletDisplay = _themeDisplay.getPortletDisplay();
+
+		_commerceOrganizationPortletInstanceConfiguration =
+			portletDisplay.getPortletInstanceConfiguration(
+				CommerceOrganizationPortletInstanceConfiguration.class);
 	}
 
 	public String getKeywords() {
@@ -157,6 +168,22 @@ public class CommerceOrganizationDisplayContext {
 		return portletURL;
 	}
 
+	public Organization getRootOrganization() throws PortalException {
+		String rootOrganizationIdString = getRootOrganizationId();
+
+		if (rootOrganizationIdString.isEmpty()) {
+			return null;
+		}
+
+		return _organizationService.fetchOrganization(
+			GetterUtil.getLong(rootOrganizationIdString));
+	}
+
+	public String getRootOrganizationId() {
+		return _commerceOrganizationPortletInstanceConfiguration.
+			rootOrganizationId();
+	}
+
 	public User getSelectedUser() throws PortalException {
 		return _userLocalService.getUser(getSelectedUserId());
 	}
@@ -170,16 +197,6 @@ public class CommerceOrganizationDisplayContext {
 		}
 
 		return _commerceOrganizationRequestHelper.getUserId();
-	}
-
-	public UserFileUploadsConfiguration getUserFileUploadsConfiguration() {
-		return _userFileUploadsConfiguration;
-	}
-
-	public String getViewMode() {
-		return ParamUtil.getString(
-			_commerceOrganizationRequestHelper.getRequest(), "viewMode",
-			CommerceOrganizationConstants.LIST_VIEW_MODE);
 	}
 
 	public boolean hasAddOrganizationPermissions() throws PortalException {
@@ -196,11 +213,13 @@ public class CommerceOrganizationDisplayContext {
 			getOrganizationId(), ActionKeys.ADD_ORGANIZATION);
 	}
 
+	private final CommerceOrganizationPortletInstanceConfiguration
+		_commerceOrganizationPortletInstanceConfiguration;
 	private final CommerceOrganizationRequestHelper
 		_commerceOrganizationRequestHelper;
 	private String _keywords;
 	private final OrganizationService _organizationService;
-	private final UserFileUploadsConfiguration _userFileUploadsConfiguration;
+	private final ThemeDisplay _themeDisplay;
 	private final UserLocalService _userLocalService;
 
 }

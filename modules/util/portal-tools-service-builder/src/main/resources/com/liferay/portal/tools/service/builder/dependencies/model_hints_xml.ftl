@@ -23,13 +23,13 @@
 						localized="true"
 					</#if>
 
-					name="${entityColumn.name}" type="${entityColumn.type}"
+					name="${entityColumn.modelHintsName}" type="${entityColumn.type}"
 
 					<#assign closeField = false />
 
-					<#if modelHintsUtil.getFieldsElement(modelName, entityColumn.name)??>
+					<#if modelHintsUtil.getFieldsElement(modelName, entityColumn.modelHintsName)??>
 						<#assign
-							fieldsElement = modelHintsUtil.getFieldsElement(modelName, entityColumn.name)
+							fieldsElement = modelHintsUtil.getFieldsElement(modelName, entityColumn.modelHintsName)
 
 							hintElements = fieldsElement.elements()
 						/>
@@ -39,20 +39,20 @@
 						</#if>
 					</#if>
 
-					<#if modelHintsUtil.getSanitizeTuple(modelName, entityColumn.name)??>
+					<#if modelHintsUtil.getSanitizeTuple(modelName, entityColumn.modelHintsName)??>
 						<#assign closeField = true />
 					</#if>
 
-					<#if modelHintsUtil.getValidators(modelName, entityColumn.name)??>
+					<#if modelHintsUtil.getValidators(modelName, entityColumn.modelHintsName)??>
 						<#assign closeField = true />
 					</#if>
 
 					<#if closeField>
 						>
 
-						<#if modelHintsUtil.getFieldsElement(modelName, entityColumn.name)??>
+						<#if modelHintsUtil.getFieldsElement(modelName, entityColumn.modelHintsName)??>
 							<#assign
-								fieldsElement = modelHintsUtil.getFieldsElement(modelName, entityColumn.name)
+								fieldsElement = modelHintsUtil.getFieldsElement(modelName, entityColumn.modelHintsName)
 
 								hintElements = fieldsElement.elements()
 							/>
@@ -66,9 +66,9 @@
 							</#list>
 						</#if>
 
-						<#if modelHintsUtil.getSanitizeTuple(modelName, entityColumn.name)??>
+						<#if modelHintsUtil.getSanitizeTuple(modelName, entityColumn.modelHintsName)??>
 							<#assign
-								sanitizeTuple = modelHintsUtil.getSanitizeTuple(modelName, entityColumn.name)
+								sanitizeTuple = modelHintsUtil.getSanitizeTuple(modelName, entityColumn.modelHintsName)
 
 								contentType = sanitizeTuple.getObject(1)
 								modes = sanitizeTuple.getObject(2)
@@ -77,8 +77,8 @@
 							<sanitize content-type="${contentType}" modes="${modes}" />
 						</#if>
 
-						<#if modelHintsUtil.getValidators(modelName, entityColumn.name)??>
-							<#assign validators = modelHintsUtil.getValidators(modelName, entityColumn.name) />
+						<#if modelHintsUtil.getValidators(modelName, entityColumn.modelHintsName)??>
+							<#assign validators = modelHintsUtil.getValidators(modelName, entityColumn.modelHintsName) />
 
 							<#list validators as curValidator>
 								<#assign

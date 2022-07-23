@@ -164,4 +164,7 @@ public interface ExpandoTableModel
 	 */
 	public void setName(String name);
 
+	@Override
+	public ExpandoTable cloneWithOriginalValues();
+
 }

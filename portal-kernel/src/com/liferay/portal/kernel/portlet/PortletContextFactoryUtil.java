@@ -28,18 +28,18 @@ public class PortletContextFactoryUtil {
 	public static PortletContext create(
 		Portlet portlet, ServletContext servletContext) {
 
-		return getPortletContextFactory().create(portlet, servletContext);
+		return _portletContextFactory.create(portlet, servletContext);
 	}
 
 	public static PortletContext createUntrackedInstance(
 		Portlet portlet, ServletContext servletContext) {
 
-		return getPortletContextFactory().createUntrackedInstance(
+		return _portletContextFactory.createUntrackedInstance(
 			portlet, servletContext);
 	}
 
 	public static void destroy(Portlet portlet) {
-		getPortletContextFactory().destroy(portlet);
+		_portletContextFactory.destroy(portlet);
 	}
 
 	public static PortletContextFactory getPortletContextFactory() {

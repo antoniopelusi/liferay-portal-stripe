@@ -167,4 +167,7 @@ public interface RecentLayoutSetBranchModel
 	 */
 	public void setLayoutSetId(long layoutSetId);
 
+	@Override
+	public RecentLayoutSetBranch cloneWithOriginalValues();
+
 }

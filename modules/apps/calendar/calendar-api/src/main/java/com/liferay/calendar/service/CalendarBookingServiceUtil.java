@@ -276,15 +276,17 @@ public class CalendarBookingServiceUtil {
 	public static List<CalendarBooking> search(
 			long companyId, long[] groupIds, long[] calendarIds,
 			long[] calendarResourceIds, long parentCalendarBookingId,
-			String keywords, long startTime, long endTime, boolean recurring,
+			String keywords, long startTime, long endTime,
+			java.util.TimeZone displayTimeZone, boolean recurring,
 			int[] statuses, int start, int end,
 			OrderByComparator<CalendarBooking> orderByComparator)
 		throws PortalException {
 
 		return getService().search(
 			companyId, groupIds, calendarIds, calendarResourceIds,
-			parentCalendarBookingId, keywords, startTime, endTime, recurring,
-			statuses, start, end, orderByComparator);
+			parentCalendarBookingId, keywords, startTime, endTime,
+			displayTimeZone, recurring, statuses, start, end,
+			orderByComparator);
 	}
 
 	public static List<CalendarBooking> search(

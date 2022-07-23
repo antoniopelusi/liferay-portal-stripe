@@ -17,7 +17,7 @@ package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 /**
  * @author Leonardo Barros
  */
-public class SetVisibleFunction extends SetPropertyFunction<Boolean> {
+public class SetVisibleFunction extends BaseSetPropertyFunction<Boolean> {
 
 	public static final String NAME = "setVisible";
 

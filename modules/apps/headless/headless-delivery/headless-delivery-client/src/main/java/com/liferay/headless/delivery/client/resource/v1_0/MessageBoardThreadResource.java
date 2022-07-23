@@ -179,12 +179,13 @@ public interface MessageBoardThreadResource {
 				Long messageBoardThreadId, String roleNames)
 		throws Exception;
 
-	public void putMessageBoardThreadPermission(
+	public Page<Permission> putMessageBoardThreadPermissionsPage(
 			Long messageBoardThreadId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putMessageBoardThreadPermissionHttpResponse(
-			Long messageBoardThreadId, Permission[] permissions)
+	public HttpInvoker.HttpResponse
+			putMessageBoardThreadPermissionsPageHttpResponse(
+				Long messageBoardThreadId, Permission[] permissions)
 		throws Exception;
 
 	public void putMessageBoardThreadSubscribe(Long messageBoardThreadId)
@@ -248,12 +249,12 @@ public interface MessageBoardThreadResource {
 				Long siteId, String roleNames)
 		throws Exception;
 
-	public void putSiteMessageBoardThreadPermission(
+	public Page<Permission> putSiteMessageBoardThreadPermissionsPage(
 			Long siteId, Permission[] permissions)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			putSiteMessageBoardThreadPermissionHttpResponse(
+			putSiteMessageBoardThreadPermissionsPageHttpResponse(
 				Long siteId, Permission[] permissions)
 		throws Exception;
 
@@ -684,7 +685,7 @@ public interface MessageBoardThreadResource {
 			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
 
 			DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-				"yyyy-MM-dd'T'HH:mm:ss'Z'");
+				"yyyy-MM-dd'T'HH:mm:ssXX");
 
 			if (dateCreated != null) {
 				httpInvoker.parameter(
@@ -845,6 +846,8 @@ public interface MessageBoardThreadResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -1638,12 +1641,12 @@ public interface MessageBoardThreadResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putMessageBoardThreadPermission(
+		public Page<Permission> putMessageBoardThreadPermissionsPage(
 				Long messageBoardThreadId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putMessageBoardThreadPermissionHttpResponse(
+				putMessageBoardThreadPermissionsPageHttpResponse(
 					messageBoardThreadId, permissions);
 
 			String content = httpResponse.getContent();
@@ -1672,7 +1675,7 @@ public interface MessageBoardThreadResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -1684,7 +1687,7 @@ public interface MessageBoardThreadResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putMessageBoardThreadPermissionHttpResponse(
+				putMessageBoardThreadPermissionsPageHttpResponse(
 					Long messageBoardThreadId, Permission[] permissions)
 			throws Exception {
 
@@ -1783,9 +1786,6 @@ public interface MessageBoardThreadResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
-			httpInvoker.body(
-				messageBoardThreadId.toString(), "application/json");
-
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -1868,9 +1868,6 @@ public interface MessageBoardThreadResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(
-				messageBoardThreadId.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -2354,12 +2351,12 @@ public interface MessageBoardThreadResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putSiteMessageBoardThreadPermission(
+		public Page<Permission> putSiteMessageBoardThreadPermissionsPage(
 				Long siteId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putSiteMessageBoardThreadPermissionHttpResponse(
+				putSiteMessageBoardThreadPermissionsPageHttpResponse(
 					siteId, permissions);
 
 			String content = httpResponse.getContent();
@@ -2388,7 +2385,7 @@ public interface MessageBoardThreadResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -2400,7 +2397,7 @@ public interface MessageBoardThreadResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putSiteMessageBoardThreadPermissionHttpResponse(
+				putSiteMessageBoardThreadPermissionsPageHttpResponse(
 					Long siteId, Permission[] permissions)
 			throws Exception {
 

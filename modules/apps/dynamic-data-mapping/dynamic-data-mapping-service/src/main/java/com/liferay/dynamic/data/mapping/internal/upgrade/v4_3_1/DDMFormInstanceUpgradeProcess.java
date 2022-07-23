@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_1;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -38,33 +39,36 @@ public class DDMFormInstanceUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBuilder sb = new StringBuilder(4);
+		StringBundler sb = new StringBundler(4);
 
 		sb.append("where settings_ not like '%workflowDefinition\\\",\\\"");
 		sb.append("value\\\":\\\"[\\\\\\\\\"no-workflow\\\\\\\\\"]\\\"%' and ");
 		sb.append("settings_ like '%workflowDefinition\\\",\\\"value\\\":\\\"");
 		sb.append("[\\\\\\\\\"%@%\\\\\\\\\"]\\\"%'");
 
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select formInstanceId, settings_ from DDMFormInstance " +
 					sb.toString());
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMFormInstance set settings_ = ? where " +
 						"formInstanceId = ?");
-			PreparedStatement ps3 = connection.prepareStatement(
+			PreparedStatement preparedStatement3 = connection.prepareStatement(
 				"select formInstanceVersionId, settings_ from " +
 					"DDMFormInstanceVersion " + sb.toString());
-			PreparedStatement ps4 =
+			PreparedStatement preparedStatement4 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMFormInstanceVersion set settings_ = ? where " +
 						"formInstanceVersionId = ?")) {
 
-			_executePreparedStatements("formInstanceId", ps1, ps2);
+			_executePreparedStatements(
+				"formInstanceId", preparedStatement1, preparedStatement2);
 
-			_executePreparedStatements("formInstanceVersionId", ps3, ps4);
+			_executePreparedStatements(
+				"formInstanceVersionId", preparedStatement3,
+				preparedStatement4);
 		}
 	}
 
@@ -73,16 +77,16 @@ public class DDMFormInstanceUpgradeProcess extends UpgradeProcess {
 			PreparedStatement updatePreparedStatement)
 		throws JSONException, SQLException {
 
-		try (ResultSet rs = selectPreparedStatement.executeQuery()) {
-			while (rs.next()) {
+		try (ResultSet resultSet = selectPreparedStatement.executeQuery()) {
+			while (resultSet.next()) {
 				JSONObject settingsJSONObject = _jsonFactory.createJSONObject(
-					rs.getString("settings_"));
+					resultSet.getString("settings_"));
 
 				if (_upgradeSettings(settingsJSONObject)) {
 					updatePreparedStatement.setString(
 						1, settingsJSONObject.toJSONString());
 					updatePreparedStatement.setLong(
-						2, rs.getLong(idColumnName));
+						2, resultSet.getLong(idColumnName));
 
 					updatePreparedStatement.addBatch();
 				}

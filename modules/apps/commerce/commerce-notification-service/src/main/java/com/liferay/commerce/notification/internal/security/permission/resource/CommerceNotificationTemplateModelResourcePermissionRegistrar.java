@@ -14,19 +14,17 @@
 
 package com.liferay.commerce.notification.internal.security.permission.resource;
 
-import com.liferay.commerce.notification.constants.CommerceNotificationConstants;
 import com.liferay.commerce.notification.model.CommerceNotificationTemplate;
 import com.liferay.commerce.notification.service.CommerceNotificationTemplateLocalService;
+import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.exportimport.kernel.staging.permission.StagingPermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.StagedModelPermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermission;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -46,11 +44,6 @@ public class CommerceNotificationTemplateModelResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"model.class.name", CommerceNotificationTemplate.class.getName());
-
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<CommerceNotificationTemplate>>)
 				(Class<?>)ModelResourcePermission.class,
@@ -65,7 +58,9 @@ public class CommerceNotificationTemplateModelResourcePermissionRegistrar {
 						_stagingPermission, CPPortletKeys.COMMERCE_CHANNELS,
 						CommerceNotificationTemplate::
 							getCommerceNotificationTemplateId))),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", CommerceNotificationTemplate.class.getName()
+			).build());
 	}
 
 	@Deactivate
@@ -78,7 +73,7 @@ public class CommerceNotificationTemplateModelResourcePermissionRegistrar {
 		_commerceNotificationTemplateLocalService;
 
 	@Reference(
-		target = "(resource.name=" + CommerceNotificationConstants.RESOURCE_NAME + ")"
+		target = "(resource.name=" + CPConstants.RESOURCE_NAME_CHANNEL + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

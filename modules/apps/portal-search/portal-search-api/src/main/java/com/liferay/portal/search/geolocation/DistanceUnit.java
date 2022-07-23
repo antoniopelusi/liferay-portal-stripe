@@ -14,6 +14,8 @@
 
 package com.liferay.portal.search.geolocation;
 
+import java.util.Objects;
+
 /**
  * @author Michael C. Han
  */
@@ -21,6 +23,18 @@ public enum DistanceUnit {
 
 	CENTIMETERS("cm"), FEET("ft"), INCHES("in"), KILOMETERS("km"), METERS("m"),
 	MILES("mi"), MILLIMETERS("mm"), YARDS("yd");
+
+	public static DistanceUnit create(String value) {
+		for (DistanceUnit distanceUnit : values()) {
+			if (Objects.equals(distanceUnit.getUnit(), value) ||
+				Objects.equals(distanceUnit.name(), value)) {
+
+				return distanceUnit;
+			}
+		}
+
+		return null;
+	}
 
 	public String getUnit() {
 		return _unit;

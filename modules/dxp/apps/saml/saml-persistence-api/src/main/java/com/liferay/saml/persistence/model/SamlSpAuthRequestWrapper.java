@@ -86,6 +86,11 @@ public class SamlSpAuthRequestWrapper
 		}
 	}
 
+	@Override
+	public SamlSpAuthRequest cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this saml sp auth request.
 	 *

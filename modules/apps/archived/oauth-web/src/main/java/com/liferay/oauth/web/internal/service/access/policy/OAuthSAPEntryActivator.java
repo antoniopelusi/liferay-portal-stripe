@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -57,7 +56,14 @@ public class OAuthSAPEntryActivator {
 			new PolicyPortalInstanceLifecycleListener(), null);
 	}
 
-	protected void addSAPEntry(long companyId) throws PortalException {
+	@Deactivate
+	protected void deactivate() {
+		if (_serviceRegistration != null) {
+			_serviceRegistration.unregister();
+		}
+	}
+
+	private void _addSAPEntry(long companyId) throws PortalException {
 		for (Object[] sapEntryObjectArray : SAP_ENTRY_OBJECT_ARRAYS) {
 			String name = String.valueOf(sapEntryObjectArray[0]);
 
@@ -73,27 +79,15 @@ public class OAuthSAPEntryActivator {
 			boolean defaultSAPEntry = GetterUtil.getBoolean(
 				sapEntryObjectArray[2]);
 
-			ResourceBundleLoader resourceBundleLoader =
-				ResourceBundleLoaderUtil.
-					getResourceBundleLoaderByBundleSymbolicName(
-						"com.liferay.oauth.web");
-
 			Map<Locale, String> titleMap =
 				ResourceBundleUtil.getLocalizationMap(
-					resourceBundleLoader,
+					ResourceBundleLoaderUtil.getPortalResourceBundleLoader(),
 					"service-access-policy-entry-default-title-" + name);
 
 			_sapEntryLocalService.addSAPEntry(
 				_userLocalService.getDefaultUserId(companyId),
 				allowedServiceSignatures, defaultSAPEntry, true, name, titleMap,
 				new ServiceContext());
-		}
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		if (_serviceRegistration != null) {
-			_serviceRegistration.unregister();
 		}
 	}
 
@@ -114,7 +108,7 @@ public class OAuthSAPEntryActivator {
 
 		public void portalInstanceRegistered(Company company) throws Exception {
 			try {
-				addSAPEntry(company.getCompanyId());
+				_addSAPEntry(company.getCompanyId());
 			}
 			catch (PortalException portalException) {
 				_log.error(

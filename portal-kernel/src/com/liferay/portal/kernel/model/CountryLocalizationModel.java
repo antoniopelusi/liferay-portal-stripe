@@ -143,4 +143,7 @@ public interface CountryLocalizationModel
 	 */
 	public void setTitle(String title);
 
+	@Override
+	public CountryLocalization cloneWithOriginalValues();
+
 }

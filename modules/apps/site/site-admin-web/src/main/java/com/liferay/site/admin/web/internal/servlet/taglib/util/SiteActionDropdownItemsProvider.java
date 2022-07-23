@@ -236,7 +236,10 @@ public class SiteActionDropdownItemsProvider {
 		return dropdownItem -> {
 			dropdownItem.setHref(_group.getDisplayURL(_themeDisplay, true));
 			dropdownItem.setLabel(
-				LanguageUtil.get(_httpServletRequest, "go-to-private-pages"));
+				LanguageUtil.format(
+					_httpServletRequest, "go-to-x",
+					_group.getLayoutRootNodeName(
+						true, _themeDisplay.getLocale())));
 			dropdownItem.setTarget("_blank");
 		};
 	}
@@ -245,10 +248,14 @@ public class SiteActionDropdownItemsProvider {
 		_getViewSitePublicPagesActionUnsafeConsumer() {
 
 		return dropdownItem -> {
-			dropdownItem.setHref(_group.getDisplayURL(_themeDisplay, false));
+			dropdownItem.setHref(
+				_group.getDisplayURL(_themeDisplay, false, true));
 			dropdownItem.setIcon("shortcut");
 			dropdownItem.setLabel(
-				LanguageUtil.get(_httpServletRequest, "go-to-public-pages"));
+				LanguageUtil.format(
+					_httpServletRequest, "go-to-x",
+					_group.getLayoutRootNodeName(
+						false, _themeDisplay.getLocale())));
 			dropdownItem.setTarget("_blank");
 		};
 	}
@@ -272,18 +279,12 @@ public class SiteActionDropdownItemsProvider {
 	}
 
 	private boolean _hasDeleteGroupPermission() throws PortalException {
-		if (_group.isCompany()) {
-			return false;
-		}
-
-		if (!GroupPermissionUtil.contains(
+		if (_group.isCompany() ||
+			!GroupPermissionUtil.contains(
 				_themeDisplay.getPermissionChecker(), _group,
-				ActionKeys.DELETE)) {
+				ActionKeys.DELETE) ||
+			PortalUtil.isSystemGroup(_group.getGroupKey())) {
 
-			return false;
-		}
-
-		if (PortalUtil.isSystemGroup(_group.getGroupKey())) {
 			return false;
 		}
 
@@ -305,23 +306,16 @@ public class SiteActionDropdownItemsProvider {
 		List<String> userGroupNames = SitesUtil.getUserGroupNames(
 			_group, _themeDisplay.getUser());
 
-		if (!userGroupNames.isEmpty()) {
-			return false;
-		}
-
-		if ((_group.getType() != GroupConstants.TYPE_SITE_OPEN) &&
-			(_group.getType() != GroupConstants.TYPE_SITE_RESTRICTED)) {
+		if (!userGroupNames.isEmpty() ||
+			((_group.getType() != GroupConstants.TYPE_SITE_OPEN) &&
+			 (_group.getType() != GroupConstants.TYPE_SITE_RESTRICTED))) {
 
 			return false;
 		}
 
 		if (!GroupLocalServiceUtil.hasUserGroup(
-				_themeDisplay.getUserId(), _group.getGroupId())) {
-
-			return false;
-		}
-
-		if (SiteMembershipPolicyUtil.isMembershipRequired(
+				_themeDisplay.getUserId(), _group.getGroupId()) ||
+			SiteMembershipPolicyUtil.isMembershipRequired(
 				_themeDisplay.getUserId(), _group.getGroupId())) {
 
 			return false;

@@ -57,6 +57,7 @@ import java.io.InputStream;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -122,12 +123,13 @@ public class EditFileEntryMVCActionCommandTest {
 			_editFileEntryMVCActionCommand, "_addMultipleFileEntries",
 			new Class<?>[] {
 				PortletConfig.class, ActionRequest.class, String.class,
-				List.class, List.class, ServiceContext.class
+				List.class, List.class, Date.class, Date.class,
+				ServiceContext.class
 			},
 			_getLiferayPortletConfig(),
 			_getMockLiferayPortletActionRequest(parameters),
 			tempFileEntry.getFileName(), new ArrayList<>(), new ArrayList<>(),
-			ServiceContextTestUtil.getServiceContext());
+			null, null, ServiceContextTestUtil.getServiceContext());
 
 		FileEntry fileName = _dlAppLocalService.getFileEntryByFileName(
 			_group.getGroupId(), folderId, "image.jpg");
@@ -179,12 +181,13 @@ public class EditFileEntryMVCActionCommandTest {
 				_editFileEntryMVCActionCommand, "_addMultipleFileEntries",
 				new Class<?>[] {
 					PortletConfig.class, ActionRequest.class, String.class,
-					List.class, List.class, ServiceContext.class
+					List.class, List.class, Date.class, Date.class,
+					ServiceContext.class
 				},
 				_getLiferayPortletConfig(),
 				_getMockLiferayPortletActionRequest(parameters),
-				selectedFileName, new ArrayList<>(), new ArrayList<>(),
-				ServiceContextTestUtil.getServiceContext());
+				selectedFileName, new ArrayList<>(), new ArrayList<>(), null,
+				null, ServiceContextTestUtil.getServiceContext());
 		}
 
 		FileEntry fileEntry = _dlAppLocalService.getFileEntryByFileName(
@@ -201,7 +204,72 @@ public class EditFileEntryMVCActionCommandTest {
 	}
 
 	@Test
-	public void testAddMultipleFileEntriesSeveralFilesWithSameTitle()
+	public void testAddMultipleFileEntriesSeveralFilesSameTitleDifferentExtension()
+		throws PortalException {
+
+		String tempFolderName =
+			"com.liferay.document.library.web.internal.portlet.action." +
+				"EditFileEntryMVCActionCommand";
+
+		List<String> selectedFileNames = new ArrayList<>();
+
+		FileEntry tempFileEntry = TempFileEntryUtil.addTempFileEntry(
+			_group.getGroupId(), TestPropsValues.getUserId(), tempFolderName,
+			TempFileEntryUtil.getTempFileName("test.jpg"), _getInputStream(),
+			ContentTypes.IMAGE_JPEG);
+
+		selectedFileNames.add(tempFileEntry.getFileName());
+
+		tempFileEntry = TempFileEntryUtil.addTempFileEntry(
+			_group.getGroupId(), TestPropsValues.getUserId(), tempFolderName,
+			TempFileEntryUtil.getTempFileName("test.gif"), _getInputStream(),
+			ContentTypes.IMAGE_GIF);
+
+		selectedFileNames.add(tempFileEntry.getFileName());
+
+		long folderId = tempFileEntry.getFolderId();
+
+		Map<String, String[]> parameters = Stream.of(
+			new AbstractMap.SimpleEntry<>(
+				Constants.CMD, new String[] {Constants.ADD_MULTIPLE}),
+			new AbstractMap.SimpleEntry<>(
+				"folderId", new String[] {String.valueOf(folderId)}),
+			new AbstractMap.SimpleEntry<>(
+				"repositoryId",
+				new String[] {String.valueOf(tempFileEntry.getRepositoryId())})
+		).collect(
+			Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
+		);
+
+		for (String selectedFileName : selectedFileNames) {
+			ReflectionTestUtil.invoke(
+				_editFileEntryMVCActionCommand, "_addMultipleFileEntries",
+				new Class<?>[] {
+					PortletConfig.class, ActionRequest.class, String.class,
+					List.class, List.class, Date.class, Date.class,
+					ServiceContext.class
+				},
+				_getLiferayPortletConfig(),
+				_getMockLiferayPortletActionRequest(parameters),
+				selectedFileName, new ArrayList<>(), new ArrayList<>(), null,
+				null, ServiceContextTestUtil.getServiceContext());
+		}
+
+		FileEntry fileEntry = _dlAppLocalService.getFileEntryByFileName(
+			_group.getGroupId(), folderId, "test.jpg");
+
+		Assert.assertEquals("test.jpg", fileEntry.getFileName());
+		Assert.assertEquals("test", fileEntry.getTitle());
+
+		FileEntry actualFileEntry = _dlAppLocalService.getFileEntryByFileName(
+			_group.getGroupId(), folderId, "test.gif");
+
+		Assert.assertEquals("test.gif", actualFileEntry.getFileName());
+		Assert.assertEquals("test (1)", actualFileEntry.getTitle());
+	}
+
+	@Test
+	public void testAddMultipleFileEntriesSeveralFilesWithSameTitleAndExtension()
 		throws PortalException {
 
 		String tempFolderName =
@@ -243,12 +311,13 @@ public class EditFileEntryMVCActionCommandTest {
 				_editFileEntryMVCActionCommand, "_addMultipleFileEntries",
 				new Class<?>[] {
 					PortletConfig.class, ActionRequest.class, String.class,
-					List.class, List.class, ServiceContext.class
+					List.class, List.class, Date.class, Date.class,
+					ServiceContext.class
 				},
 				_getLiferayPortletConfig(),
 				_getMockLiferayPortletActionRequest(parameters),
-				selectedFileName, new ArrayList<>(), new ArrayList<>(),
-				ServiceContextTestUtil.getServiceContext());
+				selectedFileName, new ArrayList<>(), new ArrayList<>(), null,
+				null, ServiceContextTestUtil.getServiceContext());
 		}
 
 		FileEntry fileEntry = _dlAppLocalService.getFileEntryByFileName(
@@ -267,10 +336,10 @@ public class EditFileEntryMVCActionCommandTest {
 	@Test
 	public void testCheckIn() throws PortalException, PortletException {
 		FileEntry initialFileEntry = _dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN, null,
-			ServiceContextTestUtil.getServiceContext());
+			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN, null, null,
+			null, ServiceContextTestUtil.getServiceContext());
 
 		_dlAppService.checkOutFileEntry(
 			initialFileEntry.getFileEntryId(),
@@ -316,10 +385,10 @@ public class EditFileEntryMVCActionCommandTest {
 	@Test
 	public void testCheckOut() throws PortalException, PortletException {
 		FileEntry initialFileEntry = _dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN, null,
-			ServiceContextTestUtil.getServiceContext());
+			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN, null, null,
+			null, ServiceContextTestUtil.getServiceContext());
 
 		Map<String, String[]> parameters = Stream.of(
 			new AbstractMap.SimpleEntry<>(

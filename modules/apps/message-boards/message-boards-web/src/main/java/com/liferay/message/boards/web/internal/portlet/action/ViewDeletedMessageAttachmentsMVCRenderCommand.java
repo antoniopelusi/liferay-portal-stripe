@@ -31,7 +31,7 @@ import org.osgi.service.component.annotations.Component;
 	service = MVCRenderCommand.class
 )
 public class ViewDeletedMessageAttachmentsMVCRenderCommand
-	extends GetMessageMVCRenderCommand {
+	extends BaseMessageMVCRenderCommand {
 
 	@Override
 	protected String getPath() {

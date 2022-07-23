@@ -78,6 +78,10 @@ function AssetCategories({
 
 	return (
 		<ClayForm.Group>
+			<label htmlFor={`${namespace}queryCategoryIds${index}`}>
+				{Liferay.Language.get('categories')}
+			</label>
+
 			<AssetVocabularyCategoriesSelector
 				categoryIds={rule.queryValues ? rule.queryValues : ''}
 				eventName={`${namespace}selectCategory`}
@@ -313,6 +317,7 @@ function AutoField({
 							<div className="h4 panel-title">
 								{Liferay.Language.get('rules')}
 							</div>
+
 							<div className="timeline-increment">
 								<span className="timeline-icon"></span>
 							</div>

@@ -36,7 +36,5 @@ public class LayoutSEOSiteImpl extends LayoutSEOSiteBaseImpl {
 	 * site model instance should use the {@link
 	 * com.liferay.layout.seo.model.LayoutSEOSite} interface instead.
 	 */
-	public LayoutSEOSiteImpl() {
-	}
 
 }

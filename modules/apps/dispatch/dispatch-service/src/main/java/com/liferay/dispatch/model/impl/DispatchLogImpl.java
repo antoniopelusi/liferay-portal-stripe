@@ -18,8 +18,4 @@ package com.liferay.dispatch.model.impl;
  * @author Alessio Antonio Rendina
  */
 public class DispatchLogImpl extends DispatchLogBaseImpl {
-
-	public DispatchLogImpl() {
-	}
-
 }

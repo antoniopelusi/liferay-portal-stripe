@@ -15,8 +15,6 @@
 package com.liferay.portal.settings.authentication.facebook.connect.web.internal.portal.settings.configuration.admin.display;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.security.sso.facebook.connect.configuration.FacebookConnectConfiguration;
 import com.liferay.portal.settings.configuration.admin.display.PortalSettingsConfigurationScreenContributor;
 
 import java.util.Locale;
@@ -55,10 +53,7 @@ public class FacebookConnectPortalSettingsConfigurationScreenContributor
 
 	@Override
 	public String getName(Locale locale) {
-		return LanguageUtil.get(
-			ResourceBundleUtil.getBundle(
-				locale, FacebookConnectConfiguration.class),
-			"facebook-connect-configuration-name");
+		return LanguageUtil.get(locale, "facebook-connect-configuration-name");
 	}
 
 	@Override

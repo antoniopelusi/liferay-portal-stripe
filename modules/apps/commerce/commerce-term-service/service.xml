@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.term">
+	<author>Luca Pellizzon</author>
+	<namespace>Commerce</namespace>
+	<entity external-reference-code="true" local-service="true" name="CommerceTermEntry" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="commerceTermEntryId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="active" type="boolean" />
+		<column name="displayDate" type="Date" />
+		<column name="expirationDate" type="Date" />
+		<column name="name" type="String" />
+		<column name="priority" type="double" />
+		<column name="type" type="String" />
+		<column name="typeSettings" type="String" />
+		<column name="lastPublishDate" type="Date" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
+
+		<!-- Localized entity -->
+
+		<localized-entity name="CTermEntryLocalization">
+			<localized-column name="description" />
+			<localized-column name="label" />
+		</localized-entity>
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="priority" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="C_A" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+		</finder>
+		<finder name="C_N" return-type="CommerceTermEntry" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="name" />
+		</finder>
+		<finder name="C_LikeType" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column comparator="LIKE" name="type" />
+		</finder>
+		<finder name="LtD_S" return-type="Collection">
+			<finder-column comparator="&lt;" name="displayDate" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="LtE_S" return-type="Collection">
+			<finder-column comparator="&lt;" name="expirationDate" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="C_A_LikeType" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+			<finder-column comparator="LIKE" name="type" />
+		</finder>
+		<finder name="C_P_T" return-type="CommerceTermEntry" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="priority" />
+			<finder-column name="type" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="CommerceTermEntryRel" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="commerceTermEntryRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="classNameId" type="long" />
+		<column name="classPK" type="long" />
+		<column name="commerceTermEntryId" type="long" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="createDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CommerceTermEntryId" return-type="Collection">
+			<finder-column name="commerceTermEntryId" />
+		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="commerceTermEntryId" />
+		</finder>
+		<finder name="C_C_C" return-type="CommerceTermEntryRel" unique="true">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+			<finder-column name="commerceTermEntryId" />
+		</finder>
+	</entity>
+	<exceptions>
+		<exception>CommerceTermEntryDisplayDate</exception>
+		<exception>CommerceTermEntryExpirationDate</exception>
+		<exception>CommerceTermEntryName</exception>
+		<exception>CommerceTermEntryPriority</exception>
+		<exception>CommerceTermEntryType</exception>
+		<exception>DuplicateCommerceTermEntryRel</exception>
+	</exceptions>
+</service-builder>

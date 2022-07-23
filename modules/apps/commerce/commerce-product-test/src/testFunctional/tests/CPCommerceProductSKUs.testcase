@@ -1,40 +1,18 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
-
-		CommerceConfiguration.commerceStoreFrontSetUp();
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		CommerceConfiguration.commerceSetUp(storeFront = "true");
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-
-			User.logoutPG();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "This is a test for COMMERCE-6021. AddASKU"
@@ -75,13 +53,68 @@ definition {
 	}
 
 	@description = "This is a test for COMMERCE-6024. AddASKUWithSubscriptions"
-	@ignore = "true"
 	@priority = "3"
 	test AddASKUWithSubscriptions {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6024. AddASKUWithSubscriptions
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
 
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Master",
+			productName = "Simple T-Shirt",
+			productType = "Simple");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceSKUs.addSKU(
+			noOption = "true",
+			optionValuesList = "BLACK:10.0");
+
+		Click(
+			key_value = "BLACKSKU",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Edit");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Click(
+			key_entry = "Subscriptions",
+			locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Override Subscription Settings",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		AssertElementPresent.assertVisible(
+			key_entryName = "Payment Subscription",
+			locator1 = "CommerceEntry#ENTRY_SUBSCRIPTIONS");
+
+		AssertElementPresent.assertVisible(
+			key_entryName = "Delivery Subscription",
+			locator1 = "CommerceEntry#ENTRY_SUBSCRIPTIONS");
+
+		Button.clickSave();
+
+		AssertVisible(locator1 = "Message#SUCCESS");
+
+		Uncheck.uncheckToggleSwitch(
+			key_toggleSwitchLabel = "Override Subscription Settings",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickSave();
+
+		AssertVisible(locator1 = "Message#SUCCESS");
+
+		AssertNotVisible(
+			key_entryName = "Payment Subscription",
+			locator1 = "CommerceEntry#ENTRY_SUBSCRIPTIONS");
+
+		AssertNotVisible(
+			key_entryName = "Delivery Subscription",
+			locator1 = "CommerceEntry#ENTRY_SUBSCRIPTIONS");
 	}
 
 	@description = "This is a test for COMMERCE-6022. EditASKU"
@@ -162,12 +195,44 @@ definition {
 	}
 
 	@description = "This is a test for COMMERCE-6023. RemoveASKU"
-	@ignore = "true"
 	@priority = "3"
 	test RemoveASKU {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6023. RemoveASKU
+		// TODO Review
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Master",
+			productName = "Simple T-Shirt",
+			productType = "Simple");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceSKUs.addSKU(
+			noOption = "true",
+			optionValuesList = "BLACK:10.0");
+
+		Alert.viewSuccessMessage();
+
+		if (IsElementPresent(locator1 = "//a[contains(text(),'BLACKSKU')]")) {
+			CommerceEntry.deleteCommerceEntry();
+		}
+
+		Alert.viewSuccessMessage();
+	}
+
+	@description = "[Please Update]"
+	@ignore = "true"
+	@priority = "4"
+	test VerifyIfSaveAndSaveAsDraftButtonsAreNotPresent {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-7074 VerifyIfSaveAndSaveAsDraftButtonsAreNotPresent
+
 	}
 
 }

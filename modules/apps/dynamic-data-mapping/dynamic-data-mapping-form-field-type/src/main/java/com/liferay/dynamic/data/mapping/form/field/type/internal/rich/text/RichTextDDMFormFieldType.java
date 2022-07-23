@@ -34,7 +34,7 @@ import org.osgi.service.component.annotations.Component;
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=textbox",
 		"ddm.form.field.type.label=rich-text-field-type-label",
 		"ddm.form.field.type.name=" + DDMFormFieldTypeConstants.RICH_TEXT,
-		"ddm.form.field.type.scope=forms"
+		"ddm.form.field.type.scope=document-library,forms,journal"
 	},
 	service = DDMFormFieldType.class
 )

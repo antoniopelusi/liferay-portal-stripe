@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class PortletLocalServiceWrapper
 	implements PortletLocalService, ServiceWrapper<PortletLocalService> {
 
+	public PortletLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PortletLocalServiceWrapper(PortletLocalService portletLocalService) {
 		_portletLocalService = portletLocalService;
 	}
@@ -176,6 +180,17 @@ public class PortletLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.kernel.model.Portlet deployRemotePortlet(
+			long[] companyIds, com.liferay.portal.kernel.model.Portlet portlet,
+			java.lang.String[] categoryNames, boolean eagerDestroy,
+			boolean clearCache)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _portletLocalService.deployRemotePortlet(
+			companyIds, portlet, categoryNames, eagerDestroy, clearCache);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.model.Portlet deployRemotePortlet(
 			com.liferay.portal.kernel.model.Portlet portlet,
 			java.lang.String categoryName)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -219,6 +234,13 @@ public class PortletLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _portletLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _portletLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

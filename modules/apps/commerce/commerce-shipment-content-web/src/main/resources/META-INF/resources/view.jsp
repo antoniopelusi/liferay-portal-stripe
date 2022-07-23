@@ -40,11 +40,11 @@ CommerceShipmentContentDisplayContext commerceShipmentContentDisplayContext = (C
 			currentURL
 		).setParameter(
 			"commerceShipmentId", commerceShipment.getCommerceShipmentId()
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:search-container-column-text
-			cssClass="important table-list-title"
+			cssClass="font-weight-bold important table-list-title"
 			href="<%= rowURL %>"
 			name="shipment-number"
 			property="commerceShipmentId"
@@ -52,7 +52,7 @@ CommerceShipmentContentDisplayContext commerceShipmentContentDisplayContext = (C
 
 		<liferay-ui:search-container-column-text
 			name="customer-name"
-			value="<%= commerceShipmentContentDisplayContext.getCommerceShipmentAccountName(commerceShipment) %>"
+			value="<%= HtmlUtil.escape(commerceShipmentContentDisplayContext.getCommerceShipmentAccountName(commerceShipment)) %>"
 		/>
 
 		<liferay-ui:search-container-column-text

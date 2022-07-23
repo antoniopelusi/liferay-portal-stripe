@@ -15,11 +15,10 @@
 package com.liferay.layout.content.page.editor.web.internal.portlet.action.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.petra.string.StringPool;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
@@ -32,11 +31,11 @@ import com.liferay.portal.kernel.test.portlet.MockLiferayPortletActionResponse;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
-import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -76,7 +75,7 @@ public class DuplicateSegmentsExperienceMVCActionCommandTest {
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		_layout = _addLayout();
+		_layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		ServiceContextThreadLocal.pushServiceContext(new ServiceContext());
 	}
@@ -93,12 +92,12 @@ public class DuplicateSegmentsExperienceMVCActionCommandTest {
 
 		SegmentsExperience segmentsExperience =
 			_segmentsExperienceService.addSegmentsExperience(
-				segmentsEntry.getSegmentsEntryId(),
+				_group.getGroupId(), segmentsEntry.getSegmentsEntryId(),
 				_classNameLocalService.getClassNameId(Layout.class.getName()),
 				_layout.getPlid(),
 				Collections.singletonMap(
 					LocaleUtil.getSiteDefault(), "Experience"),
-				true,
+				true, new UnicodeProperties(true),
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
@@ -121,7 +120,7 @@ public class DuplicateSegmentsExperienceMVCActionCommandTest {
 			segmentsExperience.isActive(),
 			segmentsExperienceJSONObject.getBoolean("active"));
 		Assert.assertEquals(
-			"Experience (Copy)",
+			"Copy of Experience",
 			segmentsExperienceJSONObject.getString("name"));
 		Assert.assertEquals(
 			segmentsExperience.getPriority() - 1,
@@ -131,19 +130,6 @@ public class DuplicateSegmentsExperienceMVCActionCommandTest {
 			segmentsExperienceJSONObject.getLong("segmentsEntryId"));
 		Assert.assertTrue(
 			segmentsExperienceJSONObject.getLong("segmentsExperienceId") > 0);
-	}
-
-	private Layout _addLayout() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				TestPropsValues.getGroupId(), TestPropsValues.getUserId());
-
-		return _layoutLocalService.addLayout(
-			TestPropsValues.getUserId(), _group.getGroupId(), false,
-			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			StringPool.BLANK, LayoutConstants.TYPE_CONTENT, false,
-			StringPool.BLANK, serviceContext);
 	}
 
 	private MockLiferayPortletActionRequest

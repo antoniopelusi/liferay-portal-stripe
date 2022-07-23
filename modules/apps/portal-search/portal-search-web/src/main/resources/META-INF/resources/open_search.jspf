@@ -126,11 +126,11 @@ for (int i = 0; i < openSearchInstances.size(); i++) {
 				<liferay-ui:search-container-column-text>
 
 					<%
-					String entryTitle = element.elementText("title");
-					String summary = element.elementText("summary");
 					String entryClassName = element.elementText("entryClassName");
 					long entryClassPK = GetterUtil.getLong(element.elementText("entryClassPK"));
+					String entryTitle = element.elementText("title");
 					String[] queryTerms = StringUtil.split(element.elementText("queryTerms"), StringPool.COMMA_AND_SPACE);
+					String summary = element.elementText("summary");
 					%>
 
 					<a class="entry-title" href="<%= com.liferay.portal.search.web.internal.util.SearchUtil.getSearchResultViewURL(renderRequest, renderResponse, entryClassName, entryClassPK, searchDisplayContext.isViewInContext(), currentURL) %>">

@@ -536,6 +536,8 @@ public class ServiceBuilder {
 		_tplJsonJs = _getTplProperty("json_js", _tplJsonJs);
 		_tplJsonJsMethod = _getTplProperty("json_js_method", _tplJsonJsMethod);
 		_tplModel = _getTplProperty("model", _tplModel);
+		_tplModelArgumentsResolver = _getTplProperty(
+			"model_arguments_resolver", _tplModelArgumentsResolver);
 		_tplModelCache = _getTplProperty("model_cache", _tplModelCache);
 		_tplModelHintsXml = _getTplProperty(
 			"model_hints_xml", _tplModelHintsXml);
@@ -714,6 +716,9 @@ public class ServiceBuilder {
 
 			_mvccEnabled = GetterUtil.getBoolean(
 				rootElement.attributeValue("mvcc-enabled"));
+			_shortNoSuchExceptionEnabled = GetterUtil.getBoolean(
+				rootElement.attributeValue("short-no-such-exception-enabled"),
+				true);
 
 			Element authorElement = rootElement.element("author");
 
@@ -746,10 +751,27 @@ public class ServiceBuilder {
 
 			_portletShortName = _portletShortName.trim();
 
-			for (char c : _portletShortName.toCharArray()) {
-				if (!Validator.isChar(c) && (c != CharPool.UNDERLINE)) {
-					throw new RuntimeException(
-						"The namespace element must be a valid keyword");
+			char[] portletShortNameChars = _portletShortName.toCharArray();
+
+			for (int i = 0; i < portletShortNameChars.length; i++) {
+				char portletShortNameChar = portletShortNameChars[i];
+
+				if (i == 0) {
+					if (!Validator.isChar(portletShortNameChar) &&
+						(portletShortNameChar != CharPool.UNDERLINE)) {
+
+						throw new RuntimeException(
+							"The namespace element must be a valid keyword");
+					}
+				}
+				else {
+					if (!Validator.isChar(portletShortNameChar) &&
+						!Validator.isDigit(portletShortNameChar) &&
+						(portletShortNameChar != CharPool.UNDERLINE)) {
+
+						throw new RuntimeException(
+							"The namespace element must be a valid keyword");
+					}
 				}
 			}
 
@@ -797,6 +819,8 @@ public class ServiceBuilder {
 							_createPersistence(entity);
 							_createPersistenceUtil(entity);
 
+							_createModelArgumentsResolver(entity);
+
 							if (Validator.isNotNull(_testDirName)) {
 								_createPersistenceTest(entity);
 							}
@@ -815,7 +839,12 @@ public class ServiceBuilder {
 							_createModelCache(entity);
 							_createModelWrapper(entity);
 
-							_createModelSoap(entity);
+							if (isVersionGTE_7_4_0()) {
+								_removeModelSoap(entity, _serviceOutputPath);
+							}
+							else {
+								_createModelSoap(entity);
+							}
 
 							_createModelTable(entity);
 
@@ -869,7 +898,12 @@ public class ServiceBuilder {
 								_removeServiceJsonSerializer(entity);
 							}
 
-							_createServiceSoap(entity);
+							if (isVersionGTE_7_4_0()) {
+								_removeServiceSoap(entity);
+							}
+							else {
+								_createServiceSoap(entity);
+							}
 						}
 						else {
 							_removeServiceImpl(entity, _SESSION_TYPE_REMOTE);
@@ -1346,9 +1380,10 @@ public class ServiceBuilder {
 		return mappingEntities;
 	}
 
-	public int getMaxLength(String model, String field) {
+	public int getMaxLength(String model, EntityColumn entityColumn) {
 		Map<String, String> hints = ModelHintsUtil.getHints(
-			_apiPackagePath + ".model." + model, field);
+			_apiPackagePath + ".model." + model,
+			entityColumn.getModelHintsName());
 
 		if (hints == null) {
 			return _DEFAULT_COLUMN_MAX_LENGTH;
@@ -1365,14 +1400,16 @@ public class ServiceBuilder {
 	public String getNoSuchEntityException(Entity entity) {
 		String noSuchEntityException = entity.getName();
 
-		String portletShortName = entity.getPortletShortName();
+		if (_shortNoSuchExceptionEnabled) {
+			String portletShortName = entity.getPortletShortName();
 
-		if (Validator.isNull(portletShortName) ||
-			(noSuchEntityException.startsWith(portletShortName) &&
-			 !noSuchEntityException.equals(portletShortName))) {
+			if (Validator.isNull(portletShortName) ||
+				(noSuchEntityException.startsWith(portletShortName) &&
+				 !noSuchEntityException.equals(portletShortName))) {
 
-			noSuchEntityException = noSuchEntityException.substring(
-				portletShortName.length());
+				noSuchEntityException = noSuchEntityException.substring(
+					portletShortName.length());
+			}
 		}
 
 		return "NoSuch" + noSuchEntityException;
@@ -1552,7 +1589,9 @@ public class ServiceBuilder {
 		return null;
 	}
 
-	public String getSqlType(String model, String field, String type) {
+	public String getSqlType(String model, EntityColumn entityColumn) {
+		String type = entityColumn.getType();
+
 		if (type.equals("boolean") || type.equals("Boolean")) {
 			return "BOOLEAN";
 		}
@@ -1584,7 +1623,7 @@ public class ServiceBuilder {
 			return "CLOB";
 		}
 		else if (type.equals("String")) {
-			int maxLength = getMaxLength(model, field);
+			int maxLength = getMaxLength(model, entityColumn);
 
 			if (maxLength == 2000000) {
 				return "CLOB";
@@ -1682,15 +1721,10 @@ public class ServiceBuilder {
 	}
 
 	public boolean hasEntityByGenericsName(String genericsName) {
-		if (Validator.isNull(genericsName)) {
-			return false;
-		}
+		if (Validator.isNull(genericsName) ||
+			!genericsName.contains(".model.") ||
+			(getEntityByGenericsName(genericsName) == null)) {
 
-		if (!genericsName.contains(".model.")) {
-			return false;
-		}
-
-		if (getEntityByGenericsName(genericsName) == null) {
 			return false;
 		}
 
@@ -1698,15 +1732,10 @@ public class ServiceBuilder {
 	}
 
 	public boolean hasEntityByParameterTypeValue(String parameterTypeValue) {
-		if (Validator.isNull(parameterTypeValue)) {
-			return false;
-		}
+		if (Validator.isNull(parameterTypeValue) ||
+			!parameterTypeValue.contains(".model.") ||
+			(getEntityByParameterTypeValue(parameterTypeValue) == null)) {
 
-		if (!parameterTypeValue.contains(".model.")) {
-			return false;
-		}
-
-		if (getEntityByParameterTypeValue(parameterTypeValue) == null) {
 			return false;
 		}
 
@@ -1858,11 +1887,9 @@ public class ServiceBuilder {
 	}
 
 	public boolean isDSLEnabled() {
-		if (isVersionGTE_7_4_0()) {
-			return true;
-		}
+		if (isVersionGTE_7_4_0() ||
+			ArrayUtil.contains(_incubationFeatures, "DSL")) {
 
-		if (ArrayUtil.contains(_incubationFeatures, "DSL")) {
 			return true;
 		}
 
@@ -2006,6 +2033,16 @@ public class ServiceBuilder {
 		}
 
 		if (txRequiredMethodNames.contains(javaMethod.getName())) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean isVersionGTE_7_0_0() {
+		if (_dtdVersion.isLaterVersionThan("7.0.0") ||
+			_dtdVersion.isSameVersionAs("7.0.0")) {
+
 			return true;
 		}
 
@@ -2291,16 +2328,6 @@ public class ServiceBuilder {
 
 		context.put("entity", entity);
 
-		boolean hasAssetEntry = false;
-
-		for (Entity referenceEntity : _mergeReferenceEntities(entity)) {
-			if (Objects.equals(referenceEntity.getName(), "AssetEntry")) {
-				hasAssetEntry = true;
-			}
-		}
-
-		context.put("hasAssetEntry", hasAssetEntry);
-
 		String content = _processTemplate(_TPL_BASE_UAD_ANONYMIZER, context);
 
 		File file = new File(
@@ -2429,9 +2456,7 @@ public class ServiceBuilder {
 						entityColumns.size());
 
 					for (EntityColumn entityColumn : entityColumns) {
-						String sqlType = getSqlType(
-							name, entityColumn.getName(),
-							entityColumn.getType());
+						String sqlType = getSqlType(name, entityColumn);
 
 						columns.add(
 							HashMapBuilder.put(
@@ -2439,14 +2464,11 @@ public class ServiceBuilder {
 							).put(
 								"flag",
 								() -> {
-									if (entityColumn.isPrimary()) {
-										return "FLAG_PRIMARY";
-									}
-
-									if (changeTrackingEnabled &&
-										Objects.equals(
-											entityColumn.getName(),
-											"ctCollectionId")) {
+									if (entityColumn.isPrimary() ||
+										(changeTrackingEnabled &&
+										 Objects.equals(
+											 entityColumn.getName(),
+											 "ctCollectionId"))) {
 
 										return "FLAG_PRIMARY";
 									}
@@ -2559,14 +2581,14 @@ public class ServiceBuilder {
 		if (changeTrackingEnabled) {
 			entityColumns.add(
 				new EntityColumn(
-					this, "ctCollectionId", null, "ctCollectionId", "long",
-					true, false, false, null, null, true, true, false, null,
-					null, false, null, null, true, true, false, false,
+					this, "ctCollectionId", null, "ctCollectionId", null,
+					"long", true, false, false, null, null, true, true, false,
+					null, null, false, null, null, true, true, false, false,
 					CTColumnResolutionType.STRICT, false, false, null, false));
 
 			entityColumns.add(
 				new EntityColumn(
-					this, "ctChangeType", null, "ctChangeType", "boolean",
+					this, "ctChangeType", null, "ctChangeType", null, "boolean",
 					false, false, false, null, null, true, true, false, null,
 					null, false, null, null, true, true, false, false,
 					CTColumnResolutionType.STRICT, false, false, null, false));
@@ -2965,11 +2987,16 @@ public class ServiceBuilder {
 		content = content.substring(lastImportEnd + 1);
 
 		if (!xmlFile.exists()) {
+			String hbmNamespace = _HIBERNATE_3_HBM_NAMESPACE;
+
+			if (isVersionGTE_7_4_0()) {
+				hbmNamespace = _HIBERNATE_5_HBM_NAMESPACE;
+			}
+
 			String xml = StringBundler.concat(
 				"<?xml version=\"1.0\"?>\n",
 				"<!DOCTYPE hibernate-mapping PUBLIC \"-//Hibernate/Hibernate ",
-				"Mapping DTD 3.0//EN\" \"http://hibernate.sourceforge.net",
-				"/hibernate-mapping-3.0.dtd\">\n\n",
+				"Mapping DTD 3.0//EN\" ", hbmNamespace, ">\n\n",
 				"<hibernate-mapping auto-import=\"false\" default-lazy=",
 				"\"false\">\n", "</hibernate-mapping>");
 
@@ -3061,6 +3088,37 @@ public class ServiceBuilder {
 				_serviceOutputPath, "/model/", entity.getName(), "Model.java"));
 
 		_write(modelFile, content, _modifiedFileNames);
+	}
+
+	private void _createModelArgumentsResolver(Entity entity) throws Exception {
+		File file = new File(
+			StringBundler.concat(
+				_outputPath, "/service/persistence/impl/", entity.getName(),
+				"ModelArgumentsResolver.java"));
+
+		if (!entity.hasPersistence() || isVersionLTE_7_3_0()) {
+			if (file.exists()) {
+				System.out.println("Removing " + file);
+
+				file.delete();
+			}
+
+			return;
+		}
+
+		Map<String, Object> context = _getContext();
+
+		context.put("entity", entity);
+
+		JavaClass modelImplJavaClass = _getJavaClass(
+			StringBundler.concat(
+				_outputPath, "/model/impl/", entity.getName(), "Impl.java"));
+
+		context = _putDeprecatedKeys(context, modelImplJavaClass);
+
+		String content = _processTemplate(_tplModelArgumentsResolver, context);
+
+		_write(file, content, _modifiedFileNames);
 	}
 
 	private void _createModelCache(Entity entity) throws Exception {
@@ -4008,15 +4066,9 @@ public class ServiceBuilder {
 		// indexes.sql appending
 
 		for (Entity entity : _entities) {
-			if (!_isTargetEntity(entity)) {
-				continue;
-			}
+			if (!_isTargetEntity(entity) || !entity.isDefaultDataSource() ||
+				entity.isDeprecated()) {
 
-			if (!entity.isDefaultDataSource()) {
-				continue;
-			}
-
-			if (entity.isDeprecated()) {
 				continue;
 			}
 
@@ -4225,11 +4277,7 @@ public class ServiceBuilder {
 		}
 
 		for (Entity entity : _entities) {
-			if (!_isTargetEntity(entity)) {
-				continue;
-			}
-
-			if (!entity.isDefaultDataSource()) {
+			if (!_isTargetEntity(entity) || !entity.isDefaultDataSource()) {
 				continue;
 			}
 
@@ -4290,15 +4338,9 @@ public class ServiceBuilder {
 		}
 
 		for (Entity entity : _entities) {
-			if (!_isTargetEntity(entity)) {
-				continue;
-			}
+			if (!_isTargetEntity(entity) || !entity.isDefaultDataSource() ||
+				entity.isDeprecated()) {
 
-			if (!entity.isDefaultDataSource()) {
-				continue;
-			}
-
-			if (entity.isDeprecated()) {
 				continue;
 			}
 
@@ -4586,7 +4628,15 @@ public class ServiceBuilder {
 			String line = null;
 
 			while ((line = unsyncBufferedReader.readLine()) != null) {
-				if (line.startsWith("\t<class name=\"")) {
+				if (isVersionGTE_7_4_0() &&
+					line.startsWith("<!DOCTYPE hibernate-mapping") &&
+					line.contains(_HIBERNATE_3_HBM_NAMESPACE)) {
+
+					line = StringUtil.replace(
+						line, _HIBERNATE_3_HBM_NAMESPACE,
+						_HIBERNATE_5_HBM_NAMESPACE);
+				}
+				else if (line.startsWith("\t<class name=\"")) {
 					line = StringUtil.replace(
 						line,
 						new String[] {
@@ -4760,8 +4810,7 @@ public class ServiceBuilder {
 			String colType = entityColumn.getType();
 
 			if (colType.equals("String")) {
-				columnLengths[i] = getMaxLength(
-					entity.getName(), entityColumn.getName());
+				columnLengths[i] = getMaxLength(entity.getName(), entityColumn);
 			}
 		}
 
@@ -4771,10 +4820,10 @@ public class ServiceBuilder {
 	private Properties _getCompatProperties(String version) throws IOException {
 		Properties properties = new Properties();
 
-		try (InputStream is = ServiceBuilder.class.getResourceAsStream(
+		try (InputStream inputStream = ServiceBuilder.class.getResourceAsStream(
 				"dependencies/" + version + "/compatibility.properties")) {
 
-			properties.load(is);
+			properties.load(inputStream);
 		}
 
 		return properties;
@@ -4990,7 +5039,7 @@ public class ServiceBuilder {
 				}
 				else if (type.equals("String")) {
 					int maxLength = getMaxLength(
-						entity.getName(), entityColumn.getName());
+						entity.getName(), entityColumn);
 
 					if (entityColumn.isLocalized()) {
 						maxLength = 4000;
@@ -5152,7 +5201,7 @@ public class ServiceBuilder {
 			else if (type.equals("BigDecimal")) {
 				Map<String, String> hints = ModelHintsUtil.getHints(
 					_apiPackagePath + ".model." + entity.getName(),
-					entityColumn.getName());
+					entityColumn.getModelHintsName());
 
 				String precision = "30";
 				String scale = "16";
@@ -5178,8 +5227,7 @@ public class ServiceBuilder {
 				sb.append("TEXT");
 			}
 			else if (type.equals("String")) {
-				int maxLength = getMaxLength(
-					entity.getName(), entityColumn.getName());
+				int maxLength = getMaxLength(entity.getName(), entityColumn);
 
 				if (entityColumn.isLocalized() && (maxLength < 4000)) {
 					maxLength = 4000;
@@ -5658,7 +5706,7 @@ public class ServiceBuilder {
 
 	private List<Path> _getUpdateSQLFilePaths() throws Exception {
 		if (!_osgiModule) {
-			final List<Path> updateSQLFilePaths = new ArrayList<>();
+			List<Path> updateSQLFilePaths = new ArrayList<>();
 
 			try (DirectoryStream<Path> paths = Files.newDirectoryStream(
 					Paths.get(_sqlDirName), "update-7.0.0-7.0.1*.sql")) {
@@ -5834,11 +5882,8 @@ public class ServiceBuilder {
 		List<JavaType> actualTypeArguments =
 			defaultJavaParameterizedType.getActualTypeArguments();
 
-		if (actualTypeArguments.size() != 2) {
-			return false;
-		}
-
-		if (!_isTypeValue(actualTypeArguments.get(0), Locale.class.getName()) ||
+		if ((actualTypeArguments.size() != 2) ||
+			!_isTypeValue(actualTypeArguments.get(0), Locale.class.getName()) ||
 			!_isTypeValue(actualTypeArguments.get(1), String.class.getName())) {
 
 			return false;
@@ -6060,27 +6105,13 @@ public class ServiceBuilder {
 
 			String content = _read(newFinderImplFile);
 
-			StringBundler sb = new StringBundler(13);
-
-			sb.append("package ");
-			sb.append(_packagePath);
-			sb.append(".service.persistence.impl;\n\n");
-
-			sb.append("import ");
-			sb.append(_apiPackagePath);
-			sb.append(".service.persistence.");
-			sb.append(entityName);
-			sb.append("Finder;\n");
-
-			sb.append("import ");
-			sb.append(_apiPackagePath);
-			sb.append(".service.persistence.");
-			sb.append(entityName);
-			sb.append("Util;");
-
 			content = StringUtil.replace(
 				content, "package " + _packagePath + ".service.persistence;",
-				sb.toString());
+				StringBundler.concat(
+					"package ", _packagePath, ".service.persistence.impl;\n\n",
+					"import ", _apiPackagePath, ".service.persistence.",
+					entityName, "Finder;\n", "import ", _apiPackagePath,
+					".service.persistence.", entityName, "Util;"));
 
 			ToolsUtil.writeFileRaw(
 				newFinderImplFile, content, _modifiedFileNames);
@@ -6128,9 +6159,6 @@ public class ServiceBuilder {
 		String uadPackagePath = GetterUtil.getString(
 			entityElement.attributeValue("uad-package-path"), _packagePath);
 
-		String uadOutputPath =
-			uadDirPath + "/" + StringUtil.replace(uadPackagePath, '.', '/');
-
 		boolean versioned = GetterUtil.getBoolean(
 			entityElement.attributeValue("versioned"));
 
@@ -6153,15 +6181,6 @@ public class ServiceBuilder {
 
 		boolean deprecated = GetterUtil.getBoolean(
 			entityElement.attributeValue("deprecated"));
-
-		List<EntityColumn> pkEntityColumns = new ArrayList<>();
-		List<EntityColumn> regularEntityColumns = new ArrayList<>();
-		List<EntityColumn> blobEntityColumns = new ArrayList<>();
-		List<EntityColumn> collectionEntityColumns = new ArrayList<>();
-		List<EntityColumn> entityColumns = new ArrayList<>();
-
-		boolean permissionedModel = false;
-		boolean resourcedModel = false;
 
 		List<Element> columnElements = entityElement.elements("column");
 
@@ -6240,6 +6259,15 @@ public class ServiceBuilder {
 			}
 		}
 
+		List<EntityColumn> pkEntityColumns = new ArrayList<>();
+		List<EntityColumn> regularEntityColumns = new ArrayList<>();
+		List<EntityColumn> blobEntityColumns = new ArrayList<>();
+		List<EntityColumn> collectionEntityColumns = new ArrayList<>();
+		List<EntityColumn> entityColumns = new ArrayList<>();
+
+		boolean permissionedModel = false;
+		boolean resourcedModel = false;
+
 		columnElements.addAll(0, derivedColumnElements);
 
 		for (Element columnElement : columnElements) {
@@ -6258,6 +6286,8 @@ public class ServiceBuilder {
 				}
 			}
 
+			String columnMethodName = columnElement.attributeValue(
+				"method-name");
 			String columnType = columnElement.attributeValue("type");
 			boolean primary = GetterUtil.getBoolean(
 				columnElement.attributeValue("primary"));
@@ -6339,12 +6369,12 @@ public class ServiceBuilder {
 			}
 
 			EntityColumn entityColumn = new EntityColumn(
-				this, columnName, columnPluralName, columnDBName, columnType,
-				primary, accessor, filterPrimary, columnEntityName,
-				mappingTableName, idType, idParam, convertNull, lazy, localized,
-				colJsonEnabled, ctColumnResolutionType, containerModel,
-				parentContainerModel, uadAnonymizeFieldName,
-				uadNonanonymizable);
+				this, columnName, columnPluralName, columnDBName,
+				columnMethodName, columnType, primary, accessor, filterPrimary,
+				columnEntityName, mappingTableName, idType, idParam,
+				convertNull, lazy, localized, colJsonEnabled,
+				ctColumnResolutionType, containerModel, parentContainerModel,
+				uadAnonymizeFieldName, uadNonanonymizable);
 
 			if (primary) {
 				if (!columnType.equals("int") && !columnType.equals("long") &&
@@ -6679,6 +6709,9 @@ public class ServiceBuilder {
 					finderEntityColumns));
 		}
 
+		String uadOutputPath =
+			uadDirPath + "/" + StringUtil.replace(uadPackagePath, '.', '/');
+
 		List<Entity> referenceEntities = new ArrayList<>();
 		List<String> unresolvedReferenceEntityNames = new ArrayList<>();
 
@@ -6807,21 +6840,6 @@ public class ServiceBuilder {
 						" for entity ", entityName, " on column ",
 						pkEntityColumn.getName()));
 			}
-
-			for (EntityFinder entityFinder : entityFinders) {
-				for (EntityColumn entityColumn :
-						entityFinder.getEntityColumns()) {
-
-					if (entityColumn.isChangeTrackingMerge()) {
-						throw new ServiceBuilderException(
-							StringBundler.concat(
-								"Illegal change-tracking-resolution-type ",
-								entityColumn.getCTColumnResolutionType(),
-								" for entity ", entityName, " on column ",
-								pkEntityColumn.getName()));
-					}
-				}
-			}
 		}
 
 		_entities.add(entity);
@@ -6855,8 +6873,8 @@ public class ServiceBuilder {
 
 		if (versioned) {
 			EntityColumn headEntityColumn = new EntityColumn(
-				this, "head", null, "head", "boolean", false, false, false,
-				null, null, null, null, true, false, false, false,
+				this, "head", null, "head", null, "boolean", false, false,
+				false, null, null, null, null, true, false, false, false,
 				CTColumnResolutionType.STRICT, false, false, null, false);
 
 			headEntityColumn.setComparator("=");
@@ -7873,6 +7891,12 @@ public class ServiceBuilder {
 
 	private static final int _DEFAULT_COLUMN_MAX_LENGTH = 75;
 
+	private static final String _HIBERNATE_3_HBM_NAMESPACE =
+		"\"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\"";
+
+	private static final String _HIBERNATE_5_HBM_NAMESPACE =
+		"\"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd\"";
+
 	private static final int _MAX_LINE_LENGTH = 80;
 
 	private static final int _SESSION_TYPE_LOCAL = 1;
@@ -7981,6 +8005,7 @@ public class ServiceBuilder {
 	private Set<String> _resourceActionModels = new HashSet<>();
 	private String _resourcesDirName;
 	private String _serviceOutputPath;
+	private boolean _shortNoSuchExceptionEnabled;
 	private String _springFileName;
 	private String[] _springNamespaces;
 	private String _sqlDirName;
@@ -8008,6 +8033,8 @@ public class ServiceBuilder {
 	private String _tplJsonJs = _TPL_ROOT + "json_js.ftl";
 	private String _tplJsonJsMethod = _TPL_ROOT + "json_js_method.ftl";
 	private String _tplModel = _TPL_ROOT + "model.ftl";
+	private String _tplModelArgumentsResolver =
+		_TPL_ROOT + "model_arguments_resolver.ftl";
 	private String _tplModelCache = _TPL_ROOT + "model_cache.ftl";
 	private String _tplModelHintsXml = _TPL_ROOT + "model_hints_xml.ftl";
 	private String _tplModelImpl = _TPL_ROOT + "model_impl.ftl";

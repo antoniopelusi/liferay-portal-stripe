@@ -113,6 +113,11 @@ public class TrashVersionWrapper
 		}
 	}
 
+	@Override
+	public TrashVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this trash version.
 	 *

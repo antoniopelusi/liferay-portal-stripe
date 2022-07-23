@@ -85,6 +85,10 @@ public class BNDImportsFormatter extends BaseImportsFormatter {
 			newImports, new String[] {"\n", "\n,\\"},
 			new String[] {",\\\n", "\n\t\\"});
 
+		if (newImports.contains(",\\\n")) {
+			newImports = newImports.replaceAll("(?m)^\t*", "\t");
+		}
+
 		if (!imports.equals(newImports)) {
 			content = StringUtil.replaceFirst(content, imports, newImports);
 		}

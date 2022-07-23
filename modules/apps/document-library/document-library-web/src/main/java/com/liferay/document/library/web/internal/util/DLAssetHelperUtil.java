@@ -30,7 +30,7 @@ public class DLAssetHelperUtil {
 	public static long getAssetClassPK(
 		FileEntry fileEntry, FileVersion fileVersion) {
 
-		DLAssetHelper dlAssetHelper = getDLAssetHelper();
+		DLAssetHelper dlAssetHelper = _dlAssetHelper;
 
 		return dlAssetHelper.getAssetClassPK(fileEntry, fileVersion);
 	}

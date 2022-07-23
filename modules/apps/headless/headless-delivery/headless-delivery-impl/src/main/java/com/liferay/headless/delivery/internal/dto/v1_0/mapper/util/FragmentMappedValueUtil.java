@@ -14,14 +14,17 @@
 
 package com.liferay.headless.delivery.internal.dto.v1_0.mapper.util;
 
-import com.liferay.headless.delivery.dto.v1_0.ClassFieldReference;
+import com.liferay.headless.delivery.dto.v1_0.ClassFieldsReference;
 import com.liferay.headless.delivery.dto.v1_0.ClassPKReference;
 import com.liferay.headless.delivery.dto.v1_0.ContextReference;
+import com.liferay.headless.delivery.dto.v1_0.Field;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -66,15 +69,9 @@ public class FragmentMappedValueUtil {
 			return true;
 		}
 
-		if (jsonObject.has("collectionFieldId")) {
-			return true;
-		}
+		if (jsonObject.has("collectionFieldId") || jsonObject.has("layout") ||
+			jsonObject.has("mappedField")) {
 
-		if (jsonObject.has("layout")) {
-			return true;
-		}
-
-		if (jsonObject.has("mappedField")) {
 			return true;
 		}
 
@@ -121,11 +118,36 @@ public class FragmentMappedValueUtil {
 				return null;
 			}
 
-			return new ClassFieldReference() {
+			return new ClassFieldsReference() {
 				{
 					className = Layout.class.getName();
-					fieldName = "plid";
-					fieldValue = String.valueOf(layout.getPlid());
+
+					setFields(
+						() -> {
+							Field friendlyURLField = new Field();
+
+							friendlyURLField.setFieldName("friendlyURL");
+							friendlyURLField.setFieldValue(
+								layout.getFriendlyURL());
+
+							Field privatePageField = new Field();
+
+							privatePageField.setFieldName("privatePage");
+							privatePageField.setFieldValue(
+								String.valueOf(layout.isPrivateLayout()));
+
+							Field siteKeyField = new Field();
+
+							Group group = GroupLocalServiceUtil.getGroup(
+								layout.getGroupId());
+
+							siteKeyField.setFieldName("siteKey");
+							siteKeyField.setFieldValue(group.getGroupKey());
+
+							return new Field[] {
+								friendlyURLField, privatePageField, siteKeyField
+							};
+						});
 				}
 			};
 		}

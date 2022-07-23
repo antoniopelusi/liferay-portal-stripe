@@ -93,17 +93,15 @@ public class MailPortlet extends MVCPortlet {
 				attachmentHandler = mailManager.getAttachment(attachmentId);
 
 				if (attachmentHandler != null) {
-					String contentType = MimeTypesUtil.getContentType(
-						attachment.getFileName());
-
 					PortletResponseUtil.sendFile(
 						resourceRequest, resourceResponse,
 						attachment.getFileName(),
-						attachmentHandler.getInputStream(), contentType);
+						attachmentHandler.getInputStream(),
+						MimeTypesUtil.getContentType(attachment.getFileName()));
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 			finally {
 				attachmentHandler.cleanUp();

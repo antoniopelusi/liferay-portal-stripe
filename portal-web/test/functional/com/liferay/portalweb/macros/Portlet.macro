@@ -119,7 +119,7 @@ definition {
 	macro assertServerStartup {
 		var startupPauseCount = "0";
 
-		while ((!(IsElementPresent(locator1 = "UserBar#USER_SIGN_IN"))) && ("${startupPauseCount}" != "12")) {
+		while (!(IsElementPresent(locator1 = "UserBar#USER_SIGN_IN")) && ("${startupPauseCount}" != "12")) {
 			Refresh();
 
 			Pause(locator1 = "10000");
@@ -131,7 +131,7 @@ definition {
 	}
 
 	macro changeDisplayStyle {
-		if (IsElementNotPresent(locator1 = "Icon#DISPLAY_STYLE_ACTIVE", key_displayStyle = StringUtil.toLowerCase("${displayStyle}"))) {
+		if (IsElementNotPresent(key_displayStyle = StringUtil.toLowerCase("${displayStyle}"), locator1 = "Icon#DISPLAY_STYLE_ACTIVE")) {
 			Click(
 				key_displayStyle = StringUtil.toLowerCase("${displayStyle}"),
 				locator1 = "Icon#DISPLAY_STYLE");
@@ -145,12 +145,12 @@ definition {
 	macro clickPortletPlusIconPG {
 		var browserType = PropsUtil.get("browser.type");
 		var key_portletName = "${portletName}";
+
 		if ("${browserType}" == "safari") {
 			Click.javaScriptClick(locator1 = "Portlet#ICON_PLUS_SIGN");
 
 			AssertVisible(locator1 = "Portlet#ICON_PLUS_SIGN");
 		}
-
 		else {
 			MouseOver.mouseOverNotVisible(
 				key_portletName = "${portletName}",
@@ -162,30 +162,76 @@ definition {
 		}
 	}
 
-	macro configureApplicationDecoratorViaLookandfeelPG {
-		Navigator.gotoNavTab(navTab = "General");
+	macro configureBackgroundStylesViaLookAndFeelPG {
+		Navigator.gotoNavTab(navTab = "Background Styles");
 
-		Select(
-			locator1 = "Portlet#APPLICATION_DECORATOR_SELECT",
-			value1 = "${applicationDecorator}");
+		PageEditor.selectColorSwatchItem(
+			colorSwatchItem = "${backgroundColor}",
+			fieldLabel = "Background Color");
+
+		PortletEntry.save();
 	}
 
-	macro configureCustomStylesViaLookandfeelPG {
-		Navigator.gotoNavTab(navTab = "Text Styles");
-
-		Select(
-			locator1 = "Portlet#TEXT_FONT_SELECT",
-			value1 = "Verdana");
-
-		Select(
-			locator1 = "Portlet#TEXT_FONT_SIZE_SELECT",
-			value1 = "2em");
-
+	macro configureBorderStylesViaLookAndFeelPG {
 		Navigator.gotoNavTab(navTab = "Border Styles");
 
-		Type(
-			locator1 = "Portlet#BORDER_WIDTH_TOP_INPUT",
-			value1 = "20");
+		if (isSet(sameForAllFieldsetLabelList)) {
+			for (var sameForAllFieldsetLabel : list "${sameForAllFieldsetLabelList}") {
+				Check.checkToggleSwitch(
+					key_fieldLabel = "Same for All",
+					key_fieldsetLabel = "${sameForAllFieldsetLabel}",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH_IN_FIELDSET");
+			}
+		}
+
+		if (isSet(borderWidthAttributeList)) {
+			for (var borderWidthAttribute : list "${borderWidthAttributeList}") {
+				var fieldLabel = StringUtil.extractFirst("${borderWidthAttribute}", "-");
+				var value = StringUtil.extractLast("${borderWidthAttribute}", "-");
+
+				Type(
+					inputFieldId = "${fieldLabel}",
+					locator1 = "TextInput#INPUT_ID",
+					value1 = "${value}");
+			}
+		}
+
+		if (isSet(borderWidthUnitList)) {
+			for (var borderWidthUnit : list "${borderWidthUnitList}") {
+				var fieldLabel = StringUtil.extractFirst("${borderWidthUnit}", "-");
+				var value = StringUtil.extractLast("${borderWidthUnit}", "-");
+
+				Select(
+					locator1 = "Select#SELECT_ID",
+					selectFieldId = "${fieldLabel}",
+					value1 = "${value}");
+			}
+		}
+
+		if (isSet(borderStyleAttributeList)) {
+			for (var borderStyleAttribute : list "${borderStyleAttributeList}") {
+				var fieldLabel = StringUtil.extractFirst("${borderStyleAttribute}", "-");
+				var value = StringUtil.extractLast("${borderStyleAttribute}", "-");
+
+				Select(
+					locator1 = "Select#SELECT_ID",
+					selectFieldId = "${fieldLabel}",
+					value1 = "${value}");
+			}
+		}
+
+		if (isSet(borderColorAttributeList)) {
+			for (var borderColorAttribute : list "${borderColorAttributeList}") {
+				var fieldLabel = StringUtil.extractFirst("${borderColorAttribute}", "-");
+				var value = StringUtil.extractLast("${borderColorAttribute}", "-");
+
+				PageEditor.selectColorSwatchItem(
+					colorSwatchItem = "${value}",
+					fieldLabel = "${fieldLabel}");
+			}
+		}
+
+		PortletEntry.save();
 	}
 
 	macro configureCustomTitlePG {
@@ -202,16 +248,207 @@ definition {
 		Click.mouseDownMouseUp(locator1 = "Icon#OK");
 	}
 
-	macro configureCustomTitleViaLookandfeelPG {
-		IFrame.selectConfigurationFrame();
-
+	macro configureGeneralViaLookAndFeelPG {
 		Navigator.gotoNavTab(navTab = "General");
 
-		Check.checkToggleSwitch(locator1 = "ToggleSwitch#USE_CUSTOM_TITLE");
+		if (isSet(customTitle)) {
+			Check.checkToggleSwitch(
+				key_toggleSwitchLabel = "Use Custom Title",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
-		Type(
-			locator1 = "TextInput#CUSTOM_TITLE",
-			value1 = "${portletName} Custom");
+			Type(
+				inputFieldId = "customTitle",
+				locator1 = "TextInput#INPUT_ID",
+				value1 = "${customTitle}");
+		}
+
+		if (isSet(applicationDecorators)) {
+			Select(
+				key_selectFieldLabel = "Application Decorators",
+				locator1 = "Select#ANY",
+				value1 = "${applicationDecorators}");
+		}
+
+		if (!(isSet(configureWithoutSave))) {
+			PortletEntry.save();
+		}
+	}
+
+	macro configureMarginAndPaddingViaLookAndFeelPG {
+		Navigator.gotoNavTab(navTab = "Margin and Padding");
+
+		if (isSet(marginAttributeList)) {
+			for (var marginAttribute : list "${marginAttributeList}") {
+				var fieldLabel = StringUtil.extractFirst("${marginAttribute}", "-");
+				var value = StringUtil.extractLast("${marginAttribute}", "-");
+
+				Type(
+					inputFieldId = "margin${fieldLabel}",
+					locator1 = "TextInput#INPUT_ID",
+					value1 = "${value}");
+			}
+		}
+
+		if (isSet(marginUnitList)) {
+			for (var marginUnit : list "${marginUnitList}") {
+				var fieldLabel = StringUtil.extractFirst("${marginUnit}", "-");
+				var value = StringUtil.extractLast("${marginUnit}", "-");
+
+				Select(
+					locator1 = "Select#SELECT_ID",
+					selectFieldId = "margin${fieldLabel}",
+					value1 = "${value}");
+			}
+		}
+
+		if (isSet(paddingAttributeList)) {
+			for (var paddingAttribute : list "${paddingAttributeList}") {
+				var fieldLabel = StringUtil.extractFirst("${paddingAttribute}", "-");
+				var value = StringUtil.extractLast("${paddingAttribute}", "-");
+
+				Type(
+					inputFieldId = "padding${fieldLabel}",
+					locator1 = "TextInput#INPUT_ID",
+					value1 = "${value}");
+			}
+		}
+
+		if (isSet(paddingUnitList)) {
+			for (var paddingUnit : list "${paddingUnitList}") {
+				var fieldLabel = StringUtil.extractFirst("${paddingUnit}", "-");
+				var value = StringUtil.extractLast("${paddingUnit}", "-");
+
+				Select(
+					locator1 = "Select#SELECT_ID",
+					selectFieldId = "padding${fieldLabel}",
+					value1 = "${value}");
+			}
+		}
+
+		if (isSet(sameForAllFieldsetLabelList)) {
+			for (var sameForAllFieldsetLabel : list "${sameForAllFieldsetLabelList}") {
+				Check.checkToggleSwitch(
+					key_fieldLabel = "Same for All",
+					key_fieldsetLabel = "${sameForAllFieldsetLabel}",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH_IN_FIELDSET");
+			}
+		}
+
+		PortletEntry.save();
+	}
+
+	macro configureSharingPG {
+		Portlet.gotoPortletOptions(
+			portletName = "${portletName}",
+			portletOption = "Configuration");
+
+		IFrame.selectConfigurationFrame();
+
+		Navigator.gotoNavItem(navItem = "Sharing");
+
+		if (isSet(checkAnyWebSiteToggle)) {
+			Panel.expandPanel(panel = "Any Website");
+
+			if ("${checkAnyWebSiteToggle}" == "true") {
+				Check.checkToggleSwitch(
+					key_toggleSwitchLabel = "widgetShowAddAppLink",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+			else {
+				Uncheck.uncheckToggleSwitch(
+					key_toggleSwitchLabel = "widgetShowAddAppLink",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+		}
+
+		PortletEntry.save();
+	}
+
+	macro configureTextStylesViaLookAndFeelPG {
+		Navigator.gotoNavTab(navTab = "Text Styles");
+
+		if (isSet(alignment)) {
+			Select(
+				key_selectFieldLabel = "Alignment",
+				locator1 = "Select#ANY",
+				value1 = "${alignment}");
+		}
+
+		if (isSet(color)) {
+			PageEditor.selectColorSwatchItem(
+				colorSwatchItem = "${color}",
+				fieldLabel = "Color");
+		}
+
+		if (isSet(textDecoration)) {
+			Select(
+				key_selectFieldLabel = "Text Decoration",
+				locator1 = "Select#ANY",
+				value1 = "${textDecoration}");
+		}
+
+		if (isSet(font)) {
+			Select(
+				key_selectFieldLabel = "Font",
+				locator1 = "Select#ANY",
+				value1 = "${font}");
+		}
+
+		if (isSet(letterSpacing)) {
+			Select(
+				key_selectFieldLabel = "Letter Spacing",
+				locator1 = "Select#ANY",
+				value1 = "${letterSpacing}");
+		}
+
+		if (isSet(lineHeight)) {
+			Select(
+				key_selectFieldLabel = "Line Height",
+				locator1 = "Select#ANY",
+				value1 = "${lineHeight}");
+		}
+
+		if (isSet(size)) {
+			Select(
+				key_selectFieldLabel = "Size",
+				locator1 = "Select#ANY",
+				value1 = "${size}");
+		}
+
+		if ("${bold}" == "true") {
+			Check.checkToggleSwitch(
+				key_fieldLabel = "Bold",
+				key_fieldsetLabel = "Widget CSS",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH_IN_FIELDSET");
+		}
+		else {
+			Uncheck.uncheckToggleSwitch(
+				key_fieldLabel = "Bold",
+				key_fieldsetLabel = "Widget CSS",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH_IN_FIELDSET");
+		}
+
+		if ("${italic}" == "true") {
+			Check.checkToggleSwitch(
+				key_fieldLabel = "Italic",
+				key_fieldsetLabel = "Widget CSS",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH_IN_FIELDSET");
+		}
+		else {
+			Uncheck.uncheckToggleSwitch(
+				key_fieldLabel = "Italic",
+				key_fieldsetLabel = "Widget CSS",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH_IN_FIELDSET");
+		}
+
+		if (isSet(wordSpacing)) {
+			Select(
+				key_selectFieldLabel = "Word Spacing",
+				locator1 = "Select#ANY",
+				value1 = "${wordSpacing}");
+		}
+
+		PortletEntry.save();
 	}
 
 	macro deletePG {
@@ -228,25 +465,30 @@ definition {
 
 	@summary = "Drag and drop the '${portletName}' portlet from column ${columnNumberFrom} to column ${columnNumberTo}"
 	macro dragAndDropPortletToColumnPG {
-		var key_portletTitleName = "${portletName}";
+		var key_portletName = "${portletName}";
 
 		AssertTextEquals(
-			locator1 = "Home#PAGE_COLUMN_PORTLET_COLUMN_${columnNumberFrom}_PORTLET_TITLE",
+			key_pageColumnNumber = "${columnNumberFrom}",
+			locator1 = "Portlet#PORTLET_TITLE_INSIDE_PAGE_COLUMN",
 			value1 = "${portletName}");
 
 		DragAndDrop.dragAndDropPortletToObject(
-			locator1 = "Home#PAGE_COLUMN_PORTLET_COLUMN_${columnNumberFrom}_PORTLET_HEADER",
-			locator2 = "Home#PAGE_COLUMN_${columnNumberTo}",
+			key_pageColumnId = "${columnNumberTo}",
+			key_pageColumnNumber = "${columnNumberFrom}",
+			locator1 = "Portlet#HEADER_INSIDE_PAGE_COLUMN",
+			locator2 = "Home#PAGE_COLUMN",
 			value1 = "${portletName}");
 
 		AssertTextEquals(
-			locator1 = "Home#PAGE_COLUMN_PORTLET_COLUMN_${columnNumberTo}_PORTLET_TITLE",
+			key_pageColumnNumber = "${columnNumberTo}",
+			locator1 = "Portlet#PORTLET_TITLE_INSIDE_PAGE_COLUMN",
 			value1 = "${portletName}");
 	}
 
 	macro expandTree {
+		WaitForVisible(locator1 = "Treeview#NODE_LIST");
+
 		while (IsElementPresent(locator1 = "Treeview#NODE_COLLAPSED")) {
-			Pause(locator1 = "3000");
 			Click(locator1 = "Treeview#NODE_COLLAPSED");
 		}
 
@@ -263,22 +505,29 @@ definition {
 
 				AssertVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 			}
-
 			else if ("${siteTemplate}" == "true") {
 				MouseOver.mouseOverNotVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 
 				Click(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 			}
+			else if (isSet(portletIndex)) {
+				MouseOver.mouseOverNotVisible(
+					locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON_INDEX",
+					portletIndex = "${portletIndex}");
+
+				Click.waitForMenuToggleJSClick(
+					locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON_INDEX",
+					portletIndex = "${portletIndex}");
+			}
 			else {
 				MouseOver.mouseOverInvisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 
-				while (IsNotVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON")) {
-					Pause(locator1 = "3000");
-
-					MouseOver.mouseOverInvisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+				if (IsNotVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON")) {
+					Click.javaScriptClick(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 				}
-
-				Click.waitForMenuToggleJSClick(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+				else {
+					Click.waitForMenuToggleJSClick(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+				}
 			}
 		}
 		else {
@@ -305,15 +554,9 @@ definition {
 
 		SelectFrameTop();
 
-		Click(locator1 = "Modal#CLOSE_BUTTON");
+		Click.mouseDownMouseUp(locator1 = "Modal#CLOSE_BUTTON");
 
 		WaitForElementNotPresent(locator1 = "IFrame#MODAL_BODY");
-	}
-
-	macro selectApplicationDecorator {
-		Select(
-			locator1 = "Select#APPLICATION_DECORATORS",
-			value1 = "${decorator}");
 	}
 
 	macro selectScope {
@@ -339,7 +582,7 @@ definition {
 	}
 
 	macro selectTreeNode {
-		if (IsElementPresent(locator1 = "Treeview#NODE_UNSELECTED", key_nodeName = "${nodeName}")) {
+		if (IsElementPresent(key_nodeName = "${nodeName}", locator1 = "Treeview#NODE_UNSELECTED")) {
 			AssertClick.assertPartialTextClickAt(
 				key_nodeName = "${nodeName}",
 				locator1 = "Treeview#NODE_UNSELECTED",
@@ -362,12 +605,7 @@ definition {
 	macro startServer {
 		var appServerType = PropsUtil.get("app.server.type");
 
-		if ("${commerceEnabled}" == "false") {
-			AntCommand(
-				locator1 = "build-test.xml",
-				value1 = "start-app-server -Dcommerce.enabled=false -Ddelete.liferay.home=false");
-		}
-		else if ("${deleteLiferayHome}" == "false") {
+		if ("${deleteLiferayHome}" == "false") {
 			AntCommand(
 				locator1 = "build-test.xml",
 				value1 = "start-app-server -Ddelete.liferay.home=false");
@@ -377,10 +615,15 @@ definition {
 				locator1 = "build-test.xml",
 				value1 = "start-app-server -Dkeep.cached.app.server.data=true");
 		}
-		else if ("${keepOSGiState}" == "true") {
+		else if ("${keepOsGiState}" == "true") {
 			AntCommand(
 				locator1 = "build-test.xml",
 				value1 = "start-app-server -Dkeep.osgi.state=true");
+		}
+		else if ("${noLicense}" == "true") {
+			AntCommand(
+				locator1 = "build-test.xml",
+				value1 = "start-app-server -Dlicense.not.present=true -Ddelete.liferay.home=false");
 		}
 		else {
 			AntCommand(
@@ -405,7 +648,7 @@ definition {
 
 	macro viewApplicationDecorator {
 		if (isSet(portletName)) {
-			key_decorator = StringUtil.lowerCase("${decorator}");
+			var key_decorator = StringUtil.lowerCase("${decorator}");
 			var key_portletTitleName = "${portletName}";
 
 			AssertElementPresent(locator1 = "Portlet#SPECIFIC_PORTLET_BORDER_DECORATOR");
@@ -458,8 +701,35 @@ definition {
 		AssertElementNotPresent(locator1 = "Button#SAVE_AS_DRAFT");
 	}
 
-	macro viewCustomStylesViaLookandfeelPG {
-		SikuliClick(locator1 = "Portlet#SIGN_IN_CUSTOM_LOOK_AND_FEEL");
+	macro viewConfigureSharingPG {
+		Portlet.gotoPortletOptions(
+			portletName = "${portletName}",
+			portletOption = "Configuration");
+
+		IFrame.selectConfigurationFrame();
+
+		Navigator.gotoNavItem(navItem = "Sharing");
+
+		if (isSet(checkedAnyWebSiteToggle)) {
+			Panel.expandPanel(panel = "Any Website");
+
+			if ("${checkedAnyWebSiteToggle}" == "true") {
+				AssertChecked.assertCheckedNotVisible(
+					key_toggleSwitchLabel = "widgetShowAddAppLink",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+			else {
+				AssertNotChecked.assertNotCheckedNotVisible(
+					key_toggleSwitchLabel = "widgetShowAddAppLink",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+		}
+	}
+
+	macro viewDefaultTitle {
+		AssertElementPresent(
+			key_portletName = "${portletName}",
+			locator1 = "Portlet#SPECIFIC_DEFAULT_TITLE");
 	}
 
 	macro viewDuplicatePG {
@@ -516,15 +786,27 @@ definition {
 		}
 	}
 
+	macro viewPortletBodyNotPresent {
+		AssertElementNotPresent(
+			key_portletName = "${portletName}",
+			locator1 = "Portlet#BODY");
+	}
+
+	macro viewPortletCouldNotBeFoundInfo {
+		AssertTextEquals(
+			locator1 = "Message#INFO_MAIN_CONTENT",
+			value1 = "This portlet could not be found. Please redeploy it or remove it from the page.");
+	}
+
 	macro viewPortletOptions {
 		MouseOver.mouseOverNotVisible(locator1 = "Portlet#OPTIONS_ICON");
 
 		Click(locator1 = "Portlet#OPTIONS_ICON");
 
 		AssertTextEquals(
-			key_menuItem = "${OptionsName}",
+			key_menuItem = "${optionsName}",
 			locator1 = "MenuItem#ANY_MENU_ITEM",
-			value1 = "${OptionsName}");
+			value1 = "${optionsName}");
 	}
 
 	macro viewPortletOptionsMenulist {
@@ -570,11 +852,19 @@ definition {
 	}
 
 	macro viewSpecificPG {
-		var key_portletTitleName = "${portletName}";
-
-		AssertTextEquals(
-			locator1 = "Portlet#SPECIFIC_TITLE",
-			value1 = "${portletName}");
+		if (isSet(pageColumnNumber)) {
+			AssertTextEquals(
+				key_pageColumnNumber = "${pageColumnNumber}",
+				key_portletName = "${portletName}",
+				locator1 = "Portlet#PORTLET_TITLE_INSIDE_PAGE_COLUMN",
+				value1 = "${portletName}");
+		}
+		else {
+			AssertTextEquals(
+				key_portletTitleName = "${portletName}",
+				locator1 = "Portlet#SPECIFIC_TITLE",
+				value1 = "${portletName}");
+		}
 	}
 
 	@summary = "Assert that the ${portletName} portlet title has the text '${portletName}'"
@@ -594,6 +884,12 @@ definition {
 
 	macro waitForForm {
 		AssertElementNotPresent(locator1 = "//fieldset[@disabled]");
+	}
+
+	macro waitForHomePage {
+		WaitForElementPresent(
+			key_pageName = "${pageName}",
+			locator1 = "Home#PAGE");
 	}
 
 }

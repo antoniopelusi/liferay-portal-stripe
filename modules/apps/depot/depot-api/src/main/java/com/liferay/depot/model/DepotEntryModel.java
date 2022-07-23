@@ -221,4 +221,7 @@ public interface DepotEntryModel
 	@Override
 	public void setModifiedDate(Date modifiedDate);
 
+	@Override
+	public DepotEntry cloneWithOriginalValues();
+
 }

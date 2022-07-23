@@ -14,7 +14,6 @@
 
 package com.liferay.layout.page.template.internal.upgrade.v3_2_0;
 
-import com.liferay.layout.page.template.internal.upgrade.v3_2_0.util.LayoutPageTemplateEntryTable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -22,7 +21,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -33,42 +31,13 @@ public class LayoutPageTemplateEntryUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		upgradeSchema();
-		upgradeLayoutPageTemplateEntryKey();
-	}
-
-	protected void upgradeLayoutPageTemplateEntryKey() throws SQLException {
-		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
-				"select layoutPageTemplateEntryId, name from " +
-					"LayoutPageTemplateEntry");
-			PreparedStatement ps = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update LayoutPageTemplateEntry set " +
-						"layoutPageTemplateEntryKey = ? where " +
-							"layoutPageTemplateEntryId = ?"))) {
-
-			while (rs.next()) {
-				long layoutPageTemplateEntryId = rs.getLong(
-					"layoutPageTemplateEntryId");
-
-				String name = rs.getString("name");
-
-				ps.setString(1, _generateLayoutPageTemplateEntryKey(name));
-
-				ps.setLong(2, layoutPageTemplateEntryId);
-
-				ps.addBatch();
-			}
-
-			ps.executeBatch();
-		}
+		_upgradeLayoutPageTemplateEntryKey();
 	}
 
 	protected void upgradeSchema() throws Exception {
-		alter(
-			LayoutPageTemplateEntryTable.class,
-			new AlterTableAddColumn(
-				"layoutPageTemplateEntryKey", "VARCHAR(75)"));
+		alterTableAddColumn(
+			"LayoutPageTemplateEntry", "layoutPageTemplateEntryKey",
+			"VARCHAR(75)");
 	}
 
 	private String _generateLayoutPageTemplateEntryKey(String name) {
@@ -76,6 +45,36 @@ public class LayoutPageTemplateEntryUpgradeProcess extends UpgradeProcess {
 
 		return StringUtil.replace(
 			layoutPageTemplateEntryKey, CharPool.SPACE, CharPool.DASH);
+	}
+
+	private void _upgradeLayoutPageTemplateEntryKey() throws Exception {
+		try (Statement s = connection.createStatement();
+			ResultSet resultSet = s.executeQuery(
+				"select layoutPageTemplateEntryId, name from " +
+					"LayoutPageTemplateEntry");
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update LayoutPageTemplateEntry set " +
+							"layoutPageTemplateEntryKey = ? where " +
+								"layoutPageTemplateEntryId = ?"))) {
+
+			while (resultSet.next()) {
+				long layoutPageTemplateEntryId = resultSet.getLong(
+					"layoutPageTemplateEntryId");
+
+				String name = resultSet.getString("name");
+
+				preparedStatement.setString(
+					1, _generateLayoutPageTemplateEntryKey(name));
+
+				preparedStatement.setLong(2, layoutPageTemplateEntryId);
+
+				preparedStatement.addBatch();
+			}
+
+			preparedStatement.executeBatch();
+		}
 	}
 
 }

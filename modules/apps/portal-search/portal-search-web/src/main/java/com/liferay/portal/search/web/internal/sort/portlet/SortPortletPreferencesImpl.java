@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.search.web.internal.util.PortletPreferencesHelper;
+import com.liferay.portal.search.web.internal.helper.PortletPreferencesHelper;
 
 import java.util.Optional;
 
@@ -34,10 +34,10 @@ import javax.portlet.PortletPreferences;
 public class SortPortletPreferencesImpl implements SortPortletPreferences {
 
 	public SortPortletPreferencesImpl(
-		Optional<PortletPreferences> portletPreferences) {
+		Optional<PortletPreferences> portletPreferencesOptional) {
 
 		_portletPreferencesHelper = new PortletPreferencesHelper(
-			portletPreferences);
+			portletPreferencesOptional);
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class SortPortletPreferencesImpl implements SortPortletPreferences {
 		String fieldsString = getFieldsString();
 
 		if (Validator.isBlank(fieldsString)) {
-			return getDefaultFieldsJSONArray();
+			return _getDefaultFieldsJSONArray();
 		}
 
 		try {
@@ -56,7 +56,7 @@ public class SortPortletPreferencesImpl implements SortPortletPreferences {
 				"Unable to create a JSON array from: " + fieldsString,
 				jsonException);
 
-			return getDefaultFieldsJSONArray();
+			return _getDefaultFieldsJSONArray();
 		}
 	}
 
@@ -71,7 +71,7 @@ public class SortPortletPreferencesImpl implements SortPortletPreferences {
 		return "sort";
 	}
 
-	protected JSONArray getDefaultFieldsJSONArray() {
+	private JSONArray _getDefaultFieldsJSONArray() {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
 		for (Preset preset : _presets) {

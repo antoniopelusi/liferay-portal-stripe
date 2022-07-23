@@ -24,7 +24,7 @@ import com.liferay.portal.search.script.Script;
  * @author André de Oliveira
  */
 public class ScriptScoreFunctionImpl
-	extends ScoreFunctionImpl implements ScriptScoreFunction {
+	extends BaseScoreFunctionImpl implements ScriptScoreFunction {
 
 	public ScriptScoreFunctionImpl(Script script) {
 		_script = script;

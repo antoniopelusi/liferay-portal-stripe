@@ -21,7 +21,7 @@ import com.liferay.portal.search.aggregation.pipeline.PipelineAggregationVisitor
  * @author Michael C. Han
  */
 public class MaxBucketPipelineAggregationImpl
-	extends BucketMetricsPipelineAggregationImpl
+	extends BaseBucketMetricsPipelineAggregationImpl
 	implements MaxBucketPipelineAggregation {
 
 	public MaxBucketPipelineAggregationImpl(String name, String bucketsPath) {

@@ -25,24 +25,24 @@ import com.liferay.portal.kernel.messaging.DestinationFactoryUtil;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.MessageBusEventListener;
 import com.liferay.portal.kernel.messaging.MessageListener;
+import com.liferay.portal.kernel.module.util.ServiceLatch;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.servlet.ServletContextClassLoaderPool;
-import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.registry.Filter;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceRegistrar;
-import com.liferay.registry.dependency.ServiceDependencyListener;
-import com.liferay.registry.dependency.ServiceDependencyManager;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.MapUtil;
 
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Michael C. Han
@@ -51,48 +51,16 @@ public abstract class BaseMessagingConfigurator
 	implements MessagingConfigurator {
 
 	public void afterPropertiesSet() {
-		final ServiceDependencyManager serviceDependencyManager =
-			new ServiceDependencyManager();
+		ServiceLatch serviceLatch = SystemBundleUtil.newServiceLatch();
 
-		serviceDependencyManager.addServiceDependencyListener(
-			new ServiceDependencyListener() {
-
-				@Override
-				public void dependenciesFulfilled() {
-					Registry registry = RegistryUtil.getRegistry();
-
-					_serviceReference = registry.getServiceReference(
-						MessageBus.class);
-
-					_messageBus = registry.getService(_serviceReference);
-
-					initialize();
-				}
-
-				@Override
-				public void destroy() {
-					if (_serviceReference != null) {
-						Registry registry = RegistryUtil.getRegistry();
-
-						registry.ungetService(_serviceReference);
-					}
-				}
-
-				private ServiceReference<MessageBus> _serviceReference;
-
-			});
-
-		serviceDependencyManager.registerDependencies(
-			DestinationFactory.class, MessageBus.class);
+		serviceLatch.waitFor(DestinationFactory.class);
+		serviceLatch.waitFor(
+			MessageBus.class, messageBus -> _messageBus = messageBus);
+		serviceLatch.openOn(this::initialize);
 	}
 
 	@Override
 	public void connect() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_messageListenerServiceRegistrar = registry.getServiceRegistrar(
-			MessageListener.class);
-
 		Thread currentThread = Thread.currentThread();
 
 		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
@@ -105,19 +73,32 @@ public abstract class BaseMessagingConfigurator
 
 				String destinationName = messageListeners.getKey();
 
-				ServiceDependencyManager serviceDependencyManager =
-					new ServiceDependencyManager();
+				ServiceLatch serviceLatch = SystemBundleUtil.newServiceLatch();
 
-				serviceDependencyManager.addServiceDependencyListener(
-					new DestinationServiceDependencyListener(
-						destinationName, messageListeners.getValue()));
-
-				Filter filter = registry.getFilter(
+				serviceLatch.waitFor(
 					StringBundler.concat(
 						"(&(destination.name=", destinationName,
 						")(objectClass=", Destination.class.getName(), "))"));
 
-				serviceDependencyManager.registerDependencies(filter);
+				serviceLatch.openOn(
+					bundleContext -> {
+						Dictionary<String, Object> properties =
+							HashMapDictionaryBuilder.<String, Object>put(
+								"destination.name", destinationName
+							).put(
+								"message.listener.operating.class.loader",
+								getOperatingClassLoader()
+							).build();
+
+						for (MessageListener messageListener :
+								messageListeners.getValue()) {
+
+							_serviceRegistrations.add(
+								bundleContext.registerService(
+									MessageListener.class, messageListener,
+									properties));
+						}
+					});
 			}
 		}
 		finally {
@@ -127,21 +108,13 @@ public abstract class BaseMessagingConfigurator
 
 	@Override
 	public void destroy() {
-		if (_messageListenerServiceRegistrar != null) {
-			_messageListenerServiceRegistrar.destroy();
+		for (ServiceRegistration<?> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
 		}
 
-		if (_destinationEventListenerServiceRegistrar != null) {
-			_destinationEventListenerServiceRegistrar.destroy();
-		}
-
-		if (_destinationServiceRegistrar != null) {
-			_destinationServiceRegistrar.destroy();
-		}
-
-		if (_messageBusEventListenerServiceRegistrar != null) {
-			_messageBusEventListenerServiceRegistrar.destroy();
-		}
+		_serviceRegistrations.clear();
 
 		_destinationConfigurations.clear();
 		_destinationEventListeners.clear();
@@ -228,7 +201,7 @@ public abstract class BaseMessagingConfigurator
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 
@@ -243,22 +216,13 @@ public abstract class BaseMessagingConfigurator
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}
 		}
 
 		_messageListeners.putAll(messageListeners);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getOperatingClassLoader()}
-	 */
-	@Deprecated
-	protected ClassLoader getOperatingClassloader() {
-		return getOperatingClassLoader();
 	}
 
 	protected abstract ClassLoader getOperatingClassLoader();
@@ -297,51 +261,33 @@ public abstract class BaseMessagingConfigurator
 			return;
 		}
 
-		Registry registry = RegistryUtil.getRegistry();
-
-		_destinationEventListenerServiceRegistrar =
-			registry.getServiceRegistrar(DestinationEventListener.class);
-
 		for (final Map.Entry<String, List<DestinationEventListener>> entry :
 				_destinationEventListeners.entrySet()) {
 
-			final String destinationName = entry.getKey();
+			String destinationName = entry.getKey();
 
-			ServiceDependencyManager serviceDependencyManager =
-				new ServiceDependencyManager();
+			ServiceLatch serviceLatch = SystemBundleUtil.newServiceLatch();
 
-			serviceDependencyManager.addServiceDependencyListener(
-				new ServiceDependencyListener() {
-
-					@Override
-					public void dependenciesFulfilled() {
-						Map<String, Object> properties =
-							HashMapBuilder.<String, Object>put(
-								"destination.name", destinationName
-							).build();
-
-						for (DestinationEventListener destinationEventListener :
-								entry.getValue()) {
-
-							_destinationEventListenerServiceRegistrar.
-								registerService(
-									DestinationEventListener.class,
-									destinationEventListener, properties);
-						}
-					}
-
-					@Override
-					public void destroy() {
-					}
-
-				});
-
-			Filter filter = registry.getFilter(
+			serviceLatch.waitFor(
 				StringBundler.concat(
 					"(&(destination.name=", destinationName, ")(objectClass=",
 					Destination.class.getName(), "))"));
 
-			serviceDependencyManager.registerDependencies(filter);
+			serviceLatch.openOn(
+				bundleContext -> {
+					Dictionary<String, Object> properties =
+						MapUtil.singletonDictionary(
+							"destination.name", destinationName);
+
+					for (DestinationEventListener destinationEventListener :
+							entry.getValue()) {
+
+						_serviceRegistrations.add(
+							bundleContext.registerService(
+								DestinationEventListener.class,
+								destinationEventListener, properties));
+					}
+				});
 		}
 	}
 
@@ -358,17 +304,14 @@ public abstract class BaseMessagingConfigurator
 			return;
 		}
 
-		Registry registry = RegistryUtil.getRegistry();
-
-		_destinationServiceRegistrar = registry.getServiceRegistrar(
-			Destination.class);
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		for (Destination destination : _destinations) {
-			_destinationServiceRegistrar.registerService(
-				Destination.class, destination,
-				HashMapBuilder.<String, Object>put(
-					"destination.name", destination.getName()
-				).build());
+			_serviceRegistrations.add(
+				bundleContext.registerService(
+					Destination.class, destination,
+					MapUtil.singletonDictionary(
+						"destination.name", destination.getName())));
 		}
 	}
 
@@ -377,16 +320,15 @@ public abstract class BaseMessagingConfigurator
 			return;
 		}
 
-		Registry registry = RegistryUtil.getRegistry();
-
-		_messageBusEventListenerServiceRegistrar = registry.getServiceRegistrar(
-			MessageBusEventListener.class);
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		for (MessageBusEventListener messageBusEventListener :
 				_messageBusEventListeners) {
 
-			_messageBusEventListenerServiceRegistrar.registerService(
-				MessageBusEventListener.class, messageBusEventListener);
+			_serviceRegistrations.add(
+				bundleContext.registerService(
+					MessageBusEventListener.class, messageBusEventListener,
+					null));
 		}
 	}
 
@@ -397,52 +339,14 @@ public abstract class BaseMessagingConfigurator
 		new HashSet<>();
 	private final Map<String, List<DestinationEventListener>>
 		_destinationEventListeners = new HashMap<>();
-	private ServiceRegistrar<DestinationEventListener>
-		_destinationEventListenerServiceRegistrar;
 	private final List<Destination> _destinations = new ArrayList<>();
-	private ServiceRegistrar<Destination> _destinationServiceRegistrar;
 	private volatile MessageBus _messageBus;
 	private final List<MessageBusEventListener> _messageBusEventListeners =
 		new ArrayList<>();
-	private ServiceRegistrar<MessageBusEventListener>
-		_messageBusEventListenerServiceRegistrar;
 	private final Map<String, List<MessageListener>> _messageListeners =
 		new HashMap<>();
-	private ServiceRegistrar<MessageListener> _messageListenerServiceRegistrar;
 	private boolean _portalMessagingConfigurator;
-
-	private class DestinationServiceDependencyListener
-		implements ServiceDependencyListener {
-
-		public DestinationServiceDependencyListener(
-			String destinationName, List<MessageListener> messageListeners) {
-
-			_destinationName = destinationName;
-			_messageListeners = messageListeners;
-		}
-
-		@Override
-		public void dependenciesFulfilled() {
-			Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-				"destination.name", _destinationName
-			).put(
-				"message.listener.operating.class.loader",
-				getOperatingClassLoader()
-			).build();
-
-			for (MessageListener messageListener : _messageListeners) {
-				_messageListenerServiceRegistrar.registerService(
-					MessageListener.class, messageListener, properties);
-			}
-		}
-
-		@Override
-		public void destroy() {
-		}
-
-		private final String _destinationName;
-		private final List<MessageListener> _messageListeners;
-
-	}
+	private final List<ServiceRegistration<?>> _serviceRegistrations =
+		new ArrayList<>();
 
 }

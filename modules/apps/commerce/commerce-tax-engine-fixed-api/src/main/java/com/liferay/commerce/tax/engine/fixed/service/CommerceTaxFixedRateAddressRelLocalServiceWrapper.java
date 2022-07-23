@@ -27,6 +27,10 @@ public class CommerceTaxFixedRateAddressRelLocalServiceWrapper
 	implements CommerceTaxFixedRateAddressRelLocalService,
 			   ServiceWrapper<CommerceTaxFixedRateAddressRelLocalService> {
 
+	public CommerceTaxFixedRateAddressRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceTaxFixedRateAddressRelLocalServiceWrapper(
 		CommerceTaxFixedRateAddressRelLocalService
 			commerceTaxFixedRateAddressRelLocalService) {
@@ -208,6 +212,14 @@ public class CommerceTaxFixedRateAddressRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceTaxFixedRateAddressRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceTaxFixedRateAddressRelLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override

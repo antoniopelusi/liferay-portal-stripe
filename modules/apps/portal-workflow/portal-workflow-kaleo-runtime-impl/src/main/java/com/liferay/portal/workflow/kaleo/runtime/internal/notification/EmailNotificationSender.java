@@ -17,12 +17,9 @@ package com.liferay.portal.workflow.kaleo.runtime.internal.notification;
 import com.liferay.mail.kernel.model.MailMessage;
 import com.liferay.mail.kernel.service.MailService;
 import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
-import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.workflow.constants.MyWorkflowTasksConstants;
 import com.liferay.portal.workflow.kaleo.definition.NotificationReceptionType;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
 import com.liferay.portal.workflow.kaleo.runtime.internal.settings.WorkflowGroupServiceSettings;
@@ -31,16 +28,12 @@ import com.liferay.portal.workflow.kaleo.runtime.notification.NotificationRecipi
 import com.liferay.portal.workflow.kaleo.runtime.notification.NotificationSender;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import org.osgi.service.component.annotations.Component;
@@ -117,43 +110,28 @@ public class EmailNotificationSender
 		MailMessage mailMessage = new MailMessage(
 			from, subject, notificationMessage, true);
 
+		mailMessage.setTo(
+			_getInternetAddresses(
+				getDeliverableNotificationRecipients(
+					notificationRecipients.get(NotificationReceptionType.TO),
+					UserNotificationDeliveryConstants.TYPE_EMAIL)));
 		mailMessage.setCC(
-			getInternetAddresses(
-				notificationRecipients.get(NotificationReceptionType.CC)));
+			_getInternetAddresses(
+				getDeliverableNotificationRecipients(
+					notificationRecipients.get(NotificationReceptionType.CC),
+					UserNotificationDeliveryConstants.TYPE_EMAIL)));
 		mailMessage.setBCC(
-			getInternetAddresses(
-				notificationRecipients.get(NotificationReceptionType.BCC)));
-
-		List<InternetAddress> internetAddresses = new ArrayList<>();
-
-		Collection<Set<NotificationRecipient>>
-			notificationRecipientsCollection = notificationRecipients.values();
-
-		Iterator<Set<NotificationRecipient>> iterator =
-			notificationRecipientsCollection.iterator();
-
-		for (NotificationRecipient notificationRecipient : iterator.next()) {
-			if (UserNotificationManagerUtil.isDeliver(
-					notificationRecipient.getUserId(),
-					PortletKeys.MY_WORKFLOW_TASK, 0,
-					MyWorkflowTasksConstants.
-						NOTIFICATION_TYPE_MY_WORKFLOW_TASKS,
-					UserNotificationDeliveryConstants.TYPE_EMAIL)) {
-
-				internetAddresses.add(
-					notificationRecipient.getInternetAddress());
-			}
-		}
-
-		mailMessage.setBulkAddresses(
-			internetAddresses.toArray(new InternetAddress[0]));
+			_getInternetAddresses(
+				getDeliverableNotificationRecipients(
+					notificationRecipients.get(NotificationReceptionType.BCC),
+					UserNotificationDeliveryConstants.TYPE_EMAIL)));
 
 		_mailService.sendEmail(mailMessage);
 	}
 
-	protected InternetAddress[] getInternetAddresses(
+	private InternetAddress[] _getInternetAddresses(
 			Set<NotificationRecipient> notificationRecipients)
-		throws AddressException, UnsupportedEncodingException {
+		throws Exception {
 
 		if (notificationRecipients == null) {
 			return new InternetAddress[0];

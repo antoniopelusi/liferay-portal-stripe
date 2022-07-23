@@ -119,6 +119,11 @@ public class WeDeployAuthAppWrapper
 		}
 	}
 
+	@Override
+	public WeDeployAuthApp cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the client ID of this we deploy auth app.
 	 *

@@ -30,7 +30,7 @@
 
 		<!-- Finder methods -->
 
-		<finder name="CTCollectionId" return-type="Collection">
+		<finder name="CtCollectionId" return-type="Collection">
 			<finder-column name="ctCollectionId" />
 		</finder>
 		<finder name="C_MCNI_SMCPK" return-type="Collection">
@@ -79,14 +79,6 @@
 			<finder-column name="companyId" />
 			<finder-column arrayable-operator="OR" name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="CTComment" package-path="com.liferay.change.tracking" />
-		<reference entity="CTEntry" package-path="com.liferay.change.tracking" />
-		<reference entity="CTMessage" package-path="com.liferay.change.tracking" />
-		<reference entity="CTPreferences" package-path="com.liferay.change.tracking" />
-		<reference entity="CTProcess" package-path="com.liferay.change.tracking" />
 	</entity>
 	<entity local-service="true" name="CTComment" remote-service="false" trash-enabled="false" uuid="false">
 
@@ -115,16 +107,12 @@
 
 		<!-- Finder methods -->
 
-		<finder name="CTCollectionId" return-type="Collection">
+		<finder name="CtCollectionId" return-type="Collection">
 			<finder-column name="ctCollectionId" />
 		</finder>
-		<finder name="CTEntryId" return-type="Collection">
+		<finder name="CtEntryId" return-type="Collection">
 			<finder-column name="ctEntryId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="CTCollection" package-path="com.liferay.change.tracking" />
 	</entity>
 	<entity local-service="true" name="CTEntry" remote-service="false" trash-enabled="false" uuid="false">
 
@@ -149,7 +137,7 @@
 
 		<!-- Finder methods -->
 
-		<finder name="CTCollectionId" return-type="Collection">
+		<finder name="CtCollectionId" return-type="Collection">
 			<finder-column name="ctCollectionId" />
 		</finder>
 		<finder name="C_MCNI" return-type="Collection">
@@ -166,10 +154,6 @@
 			<finder-column name="modelClassNameId" />
 			<finder-column arrayable-operator="OR" name="modelClassPK" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="CTCollection" package-path="com.liferay.change.tracking" />
 	</entity>
 	<entity local-service="true" name="CTMessage" remote-service="false" trash-enabled="false" uuid="false">
 
@@ -188,7 +172,7 @@
 
 		<!-- Finder methods -->
 
-		<finder name="CTCollectionId" return-type="Collection">
+		<finder name="CtCollectionId" return-type="Collection">
 			<finder-column name="ctCollectionId" />
 		</finder>
 	</entity>
@@ -211,10 +195,10 @@
 
 		<!-- Finder methods -->
 
-		<finder name="CollectionId" return-type="Collection">
+		<finder name="CtCollectionId" return-type="Collection">
 			<finder-column name="ctCollectionId" />
 		</finder>
-		<finder name="PreviousCollectionId" return-type="Collection">
+		<finder name="PreviousCtCollectionId" return-type="Collection">
 			<finder-column name="previousCtCollectionId" />
 		</finder>
 		<finder name="C_U" return-type="CTPreferences" unique="true">
@@ -250,14 +234,9 @@
 		<finder name="CompanyId" return-type="Collection">
 			<finder-column name="companyId" />
 		</finder>
-		<finder name="CollectionId" return-type="Collection">
+		<finder name="CtCollectionId" return-type="Collection">
 			<finder-column name="ctCollectionId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="CTCollection" package-path="com.liferay.change.tracking" />
-		<reference entity="Company" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="CTSchemaVersion" remote-service="false" trash-enabled="false" uuid="false">
 
@@ -284,15 +263,12 @@
 		<finder name="CompanyId" return-type="Collection">
 			<finder-column name="companyId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Release" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>CTCollectionDescription</exception>
 		<exception>CTCollectionName</exception>
 		<exception>CTEnclosure</exception>
 		<exception>CTLocalized</exception>
+		<exception>CTStagingEnabled</exception>
 	</exceptions>
 </service-builder>

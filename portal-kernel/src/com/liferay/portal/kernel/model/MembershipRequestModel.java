@@ -243,4 +243,7 @@ public interface MembershipRequestModel
 	 */
 	public void setStatusId(long statusId);
 
+	@Override
+	public MembershipRequest cloneWithOriginalValues();
+
 }

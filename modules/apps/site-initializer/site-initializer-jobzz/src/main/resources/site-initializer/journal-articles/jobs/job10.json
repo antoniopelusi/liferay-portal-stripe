@@ -1,0 +1,13 @@
+{
+	"articleId": "job10",
+	"assetCategoryERCs": [
+		"CAT_SUPPORT"
+	],
+	"assetTagNames": [
+		"highlight"
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "Support Engineer"
+}

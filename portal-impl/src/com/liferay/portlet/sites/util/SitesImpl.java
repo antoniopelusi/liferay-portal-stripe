@@ -52,6 +52,7 @@ import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.LayoutType;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
@@ -291,6 +292,7 @@ public class SitesImpl implements Sites {
 				"layoutPrototypeLinkEnabled", linkEnabled);
 			serviceContext.setAttribute(
 				"layoutPrototypeUuid", layoutPrototype.getUuid());
+
 			Locale targetSiteDefaultLocale = PortalUtil.getSiteDefaultLocale(
 				targetLayout.getGroupId());
 
@@ -493,7 +495,9 @@ public class SitesImpl implements Sites {
 		LayoutTypePortlet sourceLayoutTypePortlet =
 			(LayoutTypePortlet)sourceLayout.getLayoutType();
 
-		List<String> sourcePortletIds = sourceLayoutTypePortlet.getPortletIds();
+		List<String> sourcePortletIds = ListUtil.toList(
+			sourceLayoutTypePortlet.getAllPortlets(),
+			Portlet.PORTLET_ID_ACCESSOR);
 
 		for (String sourcePortletId : sourcePortletIds) {
 			PortletPreferences sourcePreferences =
@@ -592,7 +596,6 @@ public class SitesImpl implements Sites {
 		}
 
 		Group group = layout.getGroup();
-		String oldFriendlyURL = themeDisplay.getLayoutFriendlyURL(layout);
 
 		if (group.isStagingGroup() &&
 			!GroupPermissionUtil.contains(
@@ -604,6 +607,8 @@ public class SitesImpl implements Sites {
 				permissionChecker, Group.class.getName(), group.getGroupId(),
 				ActionKeys.MANAGE_STAGING, ActionKeys.PUBLISH_STAGING);
 		}
+
+		String oldFriendlyURL = themeDisplay.getLayoutFriendlyURL(layout);
 
 		if (LayoutPermissionUtil.contains(
 				permissionChecker, layout, ActionKeys.DELETE)) {
@@ -1055,7 +1060,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1163,16 +1168,14 @@ public class SitesImpl implements Sites {
 				PropsValues.LAYOUT_SET_PROTOTYPE_MERGE_FAIL_THRESHOLD) {
 
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("Merge not performed because the fail threshold ");
-				sb.append("was reached for layoutSetPrototypeId ");
-				sb.append(layoutSetPrototype.getLayoutSetPrototypeId());
-				sb.append(" and layoutId ");
-				sb.append(layoutSetPrototypeLayoutSet.getLayoutSetId());
-				sb.append(". Update the count in the database to try again.");
-
-				_log.warn(sb.toString());
+				_log.warn(
+					StringBundler.concat(
+						"Merge not performed because the fail threshold was ",
+						"reached for layoutSetPrototypeId ",
+						layoutSetPrototype.getLayoutSetPrototypeId(),
+						" and layoutId ",
+						layoutSetPrototypeLayoutSet.getLayoutSetId(),
+						". Update the count in the database to try again."));
 			}
 
 			return false;
@@ -1203,7 +1206,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1258,7 +1261,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1435,16 +1438,13 @@ public class SitesImpl implements Sites {
 
 			mergeFailCount++;
 
-			StringBundler sb = new StringBundler(6);
-
-			sb.append("Merge fail count increased to ");
-			sb.append(mergeFailCount);
-			sb.append(" for layout set prototype ");
-			sb.append(layoutSetPrototype.getLayoutSetPrototypeId());
-			sb.append(" and layout set ");
-			sb.append(layoutSet.getLayoutSetId());
-
-			_log.error(sb.toString(), exception);
+			_log.error(
+				StringBundler.concat(
+					"Merge fail count increased to ", mergeFailCount,
+					" for layout set prototype ",
+					layoutSetPrototype.getLayoutSetPrototypeId(),
+					" and layout set ", layoutSet.getLayoutSetId()),
+				exception);
 
 			layoutSetPrototypeSettingsUnicodeProperties.setProperty(
 				MERGE_FAIL_COUNT, String.valueOf(mergeFailCount));
@@ -1764,16 +1764,13 @@ public class SitesImpl implements Sites {
 				PropsValues.LAYOUT_PROTOTYPE_MERGE_FAIL_THRESHOLD) {
 
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("Merge not performed because the fail threshold ");
-				sb.append("was reached for layoutPrototypeId ");
-				sb.append(layoutPrototype.getLayoutPrototypeId());
-				sb.append(" and layoutId ");
-				sb.append(layoutPrototypeLayout.getLayoutId());
-				sb.append(". Update the count in the database to try again.");
-
-				_log.warn(sb.toString());
+				_log.warn(
+					StringBundler.concat(
+						"Merge not performed because the fail threshold was ",
+						"reached for layoutPrototypeId ",
+						layoutPrototype.getLayoutPrototypeId(),
+						" and layoutId ", layoutPrototypeLayout.getLayoutId(),
+						". Update the count in the database to try again."));
 			}
 
 			return;
@@ -1809,7 +1806,7 @@ public class SitesImpl implements Sites {
 			throw ctTransactionException;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			prototypeTypeSettingsUnicodeProperties.setProperty(
 				MERGE_FAIL_COUNT, String.valueOf(++mergeFailCount));
@@ -2375,7 +2372,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;

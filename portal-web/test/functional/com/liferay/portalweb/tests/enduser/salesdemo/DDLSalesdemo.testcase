@@ -24,35 +24,17 @@ definition {
 
 			DDLDataDefinition.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
 	@priority = "3"
 	test Demo1 {
-		property portal.upstream = "quarantine";
-
 		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
+			category = "Content & Data",
+			portlet = "Dynamic Data Lists");
 
-		SitePages.addPublicPage(pageName = "Company Picnic");
-
-		SitePages.configurePage(
-			columnName = "1 Column",
-			pageName = "Company Picnic",
-			privacy = "Public Pages",
-			sitePageType = "Widget Page");
-
-		Navigator.gotoPage(pageName = "Company Picnic");
-
-		Portlet.addPG(portletName = "Dynamic Data Lists Display");
-
-		DDLList.addViaDDLDisplayPG(
-			ddlListDescription = "Sign up list for our company picnic.",
-			ddlListName = "Potluck Sign Up List");
-
-		DDLDataDefinition.addViaDDLDisplayPG(
+		DDLDataDefinition.addCP(
 			ddlDataDefinitionDescription = "List for Potlucks",
 			ddlDataDefinitionName = "Potluck Items");
 
@@ -78,15 +60,44 @@ definition {
 			fieldOptionsNames = "Carrots,Beef Jerky,Chips",
 			fieldOptionsValues = "Carrots,Beef Jerky,Chips");
 
-		DDLDataDefinition.saveViaDDLDisplayPG();
+		DDLDataDefinition.save();
 
-		DDLDataDefinition.selectViaDDLDisplayPG(ddlDataDefinitionName = "Potluck Items");
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Dynamic Data Lists");
 
-		DDLList.saveViaDDLDisplayPG();
+		DDLList.addCP(
+			ddlListDescription = "Sign up list for our company picnic.",
+			ddlListName = "Potluck Sign Up List");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Potluck Items");
+
+		DDLDataDefinition.save();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(pageName = "Company Picnic");
+
+		PagesAdmin.configurePage(
+			columnName = "1 Column",
+			pageName = "Company Picnic",
+			sitePageType = "Widget Page");
+
+		Navigator.openURL();
 
 		Navigator.gotoPage(pageName = "Company Picnic");
 
-		DDLRecord.addViaDDLDisplayPG(ddlDataDefinitionName = "Potluck Items");
+		Portlet.addPG(portletName = "Dynamic Data Lists Display");
+
+		DDLList.selectViaDDLDisplayPG(ddlListName = "Potluck Sign Up List");
+
+		IFrame.closeFrame();
+
+		Click(locator1 = "Button#PLUS");
 
 		DDLRecord.populateFieldText(
 			ddlRecordFieldData = "John",

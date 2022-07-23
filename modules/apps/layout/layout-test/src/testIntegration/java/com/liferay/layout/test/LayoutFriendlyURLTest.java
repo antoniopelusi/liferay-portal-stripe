@@ -347,25 +347,6 @@ public class LayoutFriendlyURLTest {
 	}
 
 	@Test
-	public void testSameFriendlyURLDifferentLocaleDifferentGroup()
-		throws Exception {
-
-		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
-			LocaleUtil.SPAIN, "/home"
-		).put(
-			LocaleUtil.US, "/home"
-		).build();
-
-		addLayout(_group.getGroupId(), false, friendlyURLMap);
-
-		Group group = GroupTestUtil.addGroup();
-
-		_groups.add(group);
-
-		addLayout(group.getGroupId(), false, friendlyURLMap);
-	}
-
-	@Test
 	public void testSameFriendlyURLDifferentLocaleDifferentLayout()
 		throws Exception {
 
@@ -390,28 +371,26 @@ public class LayoutFriendlyURLTest {
 		}
 		catch (LayoutFriendlyURLsException layoutFriendlyURLsException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					layoutFriendlyURLsException, layoutFriendlyURLsException);
+				_log.debug(layoutFriendlyURLsException);
 			}
 		}
 	}
 
-	@Test
-	public void testSameFriendlyURLDifferentLocaleDifferentLayoutSet()
+	@Test(expected = LayoutFriendlyURLsException.class)
+	public void testSameFriendlyURLDifferentLocalePrivateLayout()
 		throws Exception {
 
-		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
-			LocaleUtil.SPAIN, "/home"
-		).put(
-			LocaleUtil.US, "/home"
-		).build();
-
-		addLayout(_group.getGroupId(), false, friendlyURLMap);
-		addLayout(_group.getGroupId(), true, friendlyURLMap);
+		addLayout(
+			_group.getGroupId(), true,
+			HashMapBuilder.put(
+				LocaleUtil.SPAIN, "/home"
+			).put(
+				LocaleUtil.US, "/home"
+			).build());
 	}
 
-	@Test
-	public void testSameFriendlyURLDifferentLocaleSameLayout()
+	@Test(expected = LayoutFriendlyURLsException.class)
+	public void testSameFriendlyURLDifferentLocalePublicLayout()
 		throws Exception {
 
 		addLayout(
@@ -448,8 +427,7 @@ public class LayoutFriendlyURLTest {
 		}
 		catch (LayoutFriendlyURLsException layoutFriendlyURLsException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					layoutFriendlyURLsException, layoutFriendlyURLsException);
+				_log.debug(layoutFriendlyURLsException);
 			}
 		}
 	}
@@ -489,23 +467,23 @@ public class LayoutFriendlyURLTest {
 	public void testValidFriendlyURLMapperURLInDefaultLocale()
 		throws Exception {
 
-		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
-			LocaleUtil.US, "/blogs"
-		).build();
+		addLayout(
+			_group.getGroupId(), false,
+			HashMapBuilder.put(
+				LocaleUtil.US, "/blogs"
+			).build());
 
-		addLayout(_group.getGroupId(), false, friendlyURLMap);
+		addLayout(
+			_group.getGroupId(), false,
+			HashMapBuilder.put(
+				LocaleUtil.US, "/home/blogs"
+			).build());
 
-		friendlyURLMap = HashMapBuilder.put(
-			LocaleUtil.US, "/home/blogs"
-		).build();
-
-		addLayout(_group.getGroupId(), false, friendlyURLMap);
-
-		friendlyURLMap = HashMapBuilder.put(
-			LocaleUtil.US, "/blogs/home"
-		).build();
-
-		addLayout(_group.getGroupId(), false, friendlyURLMap);
+		addLayout(
+			_group.getGroupId(), false,
+			HashMapBuilder.put(
+				LocaleUtil.US, "/blogs/home"
+			).build());
 	}
 
 	@Test

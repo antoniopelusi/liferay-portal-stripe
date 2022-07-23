@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.search.experiences" short-no-such-exception-enabled="false">
+	<namespace>SXP</namespace>
+	<entity local-service="true" name="SXPBlueprint" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column method-name="SXPBlueprintId" name="sxpBlueprintId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="configurationJSON" type="String" />
+		<column localized="true" name="description" type="String" />
+		<column name="elementInstancesJSON" type="String" />
+		<column name="schemaVersion" type="String" />
+		<column localized="true" name="title" type="String" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="SXPElement" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column method-name="SXPElementId" name="sxpElementId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column localized="true" name="description" type="String" />
+		<column name="elementDefinitionJSON" type="String" />
+		<column name="hidden" type="boolean" />
+		<column name="readOnly" type="boolean" />
+		<column name="schemaVersion" type="String" />
+		<column localized="true" name="title" type="String" />
+		<column name="type" type="int" />
+		<column name="status" type="int" />
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="C_R" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="readOnly" />
+		</finder>
+		<finder name="C_T" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="type" />
+		</finder>
+		<finder name="C_T_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="type" />
+			<finder-column name="status" />
+		</finder>
+	</entity>
+	<exceptions>
+		<exception>SXPBlueprintConfigurationJSON</exception>
+		<exception>SXPBlueprintTitle</exception>
+		<exception>SXPElementElementDefinitionJSON</exception>
+		<exception>SXPElementReadOnly</exception>
+		<exception>SXPElementTitle</exception>
+	</exceptions>
+</service-builder>

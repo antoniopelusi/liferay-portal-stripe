@@ -20,27 +20,28 @@ import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
-import org.mockito.Mock;
-
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 /**
  * @author Renato Rego
  */
-@PrepareForTest(LanguageUtil.class)
-@RunWith(PowerMockRunner.class)
-public class CheckboxDDMFormFieldValueRendererTest extends PowerMockito {
+public class CheckboxDDMFormFieldValueRendererTest {
+
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Before
 	public void setUp() {
@@ -48,16 +49,16 @@ public class CheckboxDDMFormFieldValueRendererTest extends PowerMockito {
 	}
 
 	@Test
-	public void testRender() throws Exception {
+	public void testRender() {
 		DDMFormFieldValue ddmFormFieldValue =
 			DDMFormValuesTestUtil.createDDMFormFieldValue(
 				"Checkbox", new UnlocalizedValue("true"));
 
 		CheckboxDDMFormFieldValueRenderer checkboxDDMFormFieldValueRenderer =
-			createCheckboxDDMFormFieldValueRenderer();
+			_createCheckboxDDMFormFieldValueRenderer();
 
 		String expectedCheckboxRenderedValue = LanguageUtil.get(
-			LocaleUtil.US, "yes");
+			LocaleUtil.US, "true");
 
 		Assert.assertEquals(
 			expectedCheckboxRenderedValue,
@@ -66,7 +67,8 @@ public class CheckboxDDMFormFieldValueRendererTest extends PowerMockito {
 
 		ddmFormFieldValue.setValue(new UnlocalizedValue("false"));
 
-		expectedCheckboxRenderedValue = LanguageUtil.get(LocaleUtil.US, "no");
+		expectedCheckboxRenderedValue = LanguageUtil.get(
+			LocaleUtil.US, "false");
 
 		Assert.assertEquals(
 			expectedCheckboxRenderedValue,
@@ -74,9 +76,19 @@ public class CheckboxDDMFormFieldValueRendererTest extends PowerMockito {
 				ddmFormFieldValue, LocaleUtil.US));
 	}
 
-	protected CheckboxDDMFormFieldValueRenderer
-			createCheckboxDDMFormFieldValueRenderer()
-		throws Exception {
+	protected void setUpLanguageUtil() {
+		_whenLanguageGet(LocaleUtil.US, "false", "False");
+		_whenLanguageGet(LocaleUtil.US, "true", "True");
+
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(language);
+	}
+
+	protected Language language = Mockito.mock(Language.class);
+
+	private CheckboxDDMFormFieldValueRenderer
+		_createCheckboxDDMFormFieldValueRenderer() {
 
 		CheckboxDDMFormFieldValueRenderer checkboxDDMFormFieldValueRenderer =
 			new CheckboxDDMFormFieldValueRenderer();
@@ -87,26 +99,14 @@ public class CheckboxDDMFormFieldValueRendererTest extends PowerMockito {
 		return checkboxDDMFormFieldValueRenderer;
 	}
 
-	protected void setUpLanguageUtil() {
-		whenLanguageGet(LocaleUtil.US, "no", "No");
-		whenLanguageGet(LocaleUtil.US, "yes", "Yes");
-
-		LanguageUtil languageUtil = new LanguageUtil();
-
-		languageUtil.setLanguage(language);
-	}
-
-	protected void whenLanguageGet(
+	private void _whenLanguageGet(
 		Locale locale, String key, String returnValue) {
 
-		when(
+		Mockito.when(
 			language.get(Matchers.eq(locale), Matchers.eq(key))
 		).thenReturn(
 			returnValue
 		);
 	}
-
-	@Mock
-	protected Language language;
 
 }

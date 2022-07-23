@@ -26,7 +26,7 @@ RenderContentLayoutDisplayContext renderContentLayoutDisplayContext = new Render
 	<%= renderContentLayoutDisplayContext.getPortletHeaderPaths() %>
 </liferay-util:html-top>
 
-<liferay-ui:success key="layoutPublished" message="the-page-was-published-succesfully" />
+<liferay-ui:success key="layoutPublished" message="the-page-was-published-successfully" />
 
 <c:choose>
 	<c:when test="<%= (themeDisplay.isStatePopUp() || themeDisplay.isWidget() || layoutTypePortlet.hasStateMax()) && Validator.isNotNull(ppid) %>">

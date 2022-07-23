@@ -30,7 +30,7 @@ buildIBMS3StoreTest {
 	filter {
 		String line ->
 
-		line.replace "import org.junit.AfterClass;", "import javax.annotation.Generated;\n\nimport org.junit.AfterClass;"
+		line.replace "import org.junit.Assume;", "import javax.annotation.Generated;\n\nimport org.junit.Assume;"
 	}
 
 	from new File("src/testIntegration/java/com/liferay/portal/store/s3/test/S3StoreTest.java")
@@ -54,9 +54,8 @@ dependencies {
 	testCompile group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
 	testCompile project(":apps:portal-store:portal-store-s3")
 
-	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.cm", version: "1.5.0"
+	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
 	testIntegrationCompile project(":apps:portal-configuration:portal-configuration-test-util")
 	testIntegrationCompile project(":apps:portal-store:portal-store-test-util")
-	testIntegrationCompile project(":core:petra:petra-string")
 	testIntegrationCompile project(":test:arquillian-extension-junit-bridge")
 }

@@ -2,16 +2,33 @@
 <head>
 <title>CalendarManageCalendars</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">CalendarManageCalendars</td></tr>
 </thead>
+
 <tbody>
 <!--CALENDAR_TABLE-->
 <tr>
 	<td>CALENDAR_TABLE_NAME</td>
 	<td>//tr[contains(.,'${key_calendarName}')]/td[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CALENDAR_TABLE_NAME_AND_VIEW_DEFAULT</td>
+	<td>//tr[contains(.,'${key_calendarName}') and contains(.,'${key_calendarDefault}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CALENDAR</td>
+	<td>//span[contains(text(),'Add Calendar')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_CALENDAR_TABLE_NAME_BY_POSITION</td>
+	<td>//tr[${key_rowNumber}]//td[contains(.,'${key_calendarName}')]</td>
 	<td></td>
 </tr>
 </tbody>

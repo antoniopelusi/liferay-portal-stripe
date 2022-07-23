@@ -149,4 +149,7 @@ public interface DDMDataProviderInstanceLinkModel
 	 */
 	public void setStructureId(long structureId);
 
+	@Override
+	public DDMDataProviderInstanceLink cloneWithOriginalValues();
+
 }

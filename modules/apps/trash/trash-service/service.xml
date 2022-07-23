@@ -54,14 +54,6 @@
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ClassName" package-path="com.liferay.portal" />
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="SystemEvent" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="TrashVersion" package-path="com.liferay.trash" />
 	</entity>
 	<entity local-service="true" name="TrashVersion" remote-service="false">
 
@@ -94,10 +86,6 @@
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ClassName" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>RestoreEntry</exception>

@@ -33,9 +33,6 @@ import java.util.Locale;
  */
 public class KBFolderImpl extends KBFolderBaseImpl {
 
-	public KBFolderImpl() {
-	}
-
 	@Override
 	public List<Long> getAncestorKBFolderIds() throws PortalException {
 		List<Long> ancestorFolderIds = new ArrayList<>();

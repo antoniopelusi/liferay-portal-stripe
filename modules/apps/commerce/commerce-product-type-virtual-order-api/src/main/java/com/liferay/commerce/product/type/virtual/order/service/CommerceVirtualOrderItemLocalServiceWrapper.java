@@ -27,6 +27,10 @@ public class CommerceVirtualOrderItemLocalServiceWrapper
 	implements CommerceVirtualOrderItemLocalService,
 			   ServiceWrapper<CommerceVirtualOrderItemLocalService> {
 
+	public CommerceVirtualOrderItemLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceVirtualOrderItemLocalServiceWrapper(
 		CommerceVirtualOrderItemLocalService
 			commerceVirtualOrderItemLocalService) {
@@ -179,6 +183,13 @@ public class CommerceVirtualOrderItemLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceVirtualOrderItemLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceVirtualOrderItemLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

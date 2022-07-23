@@ -23,7 +23,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	"/directory/view"
 ).setTabs1(
 	tabs1
-).build();
+).buildPortletURL();
 
 pageContext.setAttribute("portletURL", portletURL);
 

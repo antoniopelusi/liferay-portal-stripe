@@ -30,6 +30,7 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 <div class="translation">
 	<aui:form action="<%= translateDisplayContext.getUpdateTranslationPortletURL() %>" cssClass="translation-edit" name="translate_fm">
 		<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+		<aui:input name="portletResource" type="hidden" value='<%= ParamUtil.getString(request, "portletResource") %>' />
 		<aui:input name="sourceLanguageId" type="hidden" value="<%= translateDisplayContext.getSourceLanguageId() %>" />
 		<aui:input name="targetLanguageId" type="hidden" value="<%= translateDisplayContext.getTargetLanguageId() %>" />
 		<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_PUBLISH) %>" />
@@ -39,7 +40,7 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 				<ul class="tbar-nav">
 					<li class="tbar-item tbar-item-expand"></li>
 					<li class="tbar-item">
-						<div class="metadata-type-button-row tbar-section text-right">
+						<div class="tbar-section text-right">
 							<aui:button cssClass="btn-sm mr-3" href="<%= redirect %>" type="cancel" />
 
 							<aui:button cssClass="btn-sm mr-3" disabled="<%= translateDisplayContext.isSaveButtonDisabled() %>" id="saveDraftBtn" primary="<%= false %>" type="submit" value="<%= translateDisplayContext.getSaveButtonLabel() %>" />
@@ -62,7 +63,9 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 						/>
 					</c:when>
 					<c:otherwise>
-						<clay:row>
+						<clay:row
+							cssClass='<%= translateDisplayContext.isAutoTranslateEnabled() ? "row-autotranslate-title" : StringPool.BLANK %>'
+						>
 							<clay:col
 								md="6"
 							>
@@ -77,7 +80,7 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 
 								<span class="ml-1"> <%= sourceLanguageIdTitle %> </span>
 
-								<div class="separator"><!-- --></div>
+								<hr class="separator" />
 							</clay:col>
 
 							<clay:col
@@ -94,7 +97,7 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 
 								<span class="ml-1"> <%= targetLanguageIdTitle %> </span>
 
-								<div class="separator"><!-- --></div>
+								<hr class="separator" />
 							</clay:col>
 						</clay:row>
 
@@ -110,7 +113,9 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 						%>
 
 							<c:if test="<%= Validator.isNotNull(infoFieldSetLabel) %>">
-								<clay:row>
+								<clay:row
+									cssClass='<%= translateDisplayContext.isAutoTranslateEnabled() ? "row-autotranslate-title" : StringPool.BLANK %>'
+								>
 									<clay:col
 										md="6"
 									>
@@ -134,58 +139,73 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 								boolean html = translateDisplayContext.getBooleanValue(infoField, TextInfoFieldType.HTML);
 								String label = translateDisplayContext.getInfoFieldLabel(infoField);
 								boolean multiline = translateDisplayContext.getBooleanValue(infoField, TextInfoFieldType.MULTILINE);
+
+								String sourceContentDir = LanguageUtil.get(translateDisplayContext.getSourceLocale(), "lang.dir");
+
+								List<String> sourceStringValues = translateDisplayContext.getSourceStringValues(infoField, translateDisplayContext.getSourceLocale());
+
+								Iterator<String> sourceStringValuesIterator = sourceStringValues.iterator();
+
+								List<String> targetStringValues = translateDisplayContext.getTargetStringValues(infoField, translateDisplayContext.getTargetLocale());
+
+								Iterator<String> targetStringValuesIterator = targetStringValues.iterator();
 							%>
 
-								<clay:row>
-									<clay:col
-										md="6"
-									>
+								<c:choose>
+									<c:when test="<%= translateDisplayContext.isAutoTranslateEnabled() %>">
 
 										<%
-										String sourceContent = translateDisplayContext.getSourceStringValue(infoField, translateDisplayContext.getSourceLocale());
-										String sourceContentDir = LanguageUtil.get(translateDisplayContext.getSourceLocale(), "lang.dir");
+										while (sourceStringValuesIterator.hasNext() && targetStringValuesIterator.hasNext()) {
+											String sourceContent = sourceStringValuesIterator.next();
+											String targetContent = targetStringValuesIterator.next();
 										%>
 
-										<c:choose>
-											<c:when test="<%= html %>">
-												<label class="control-label">
-													<%= label %>
-												</label>
+											<clay:row>
+												<clay:content-col
+													cssClass="col-autotranslate-content"
+													expand="<%= true %>"
+												>
+													<%@ include file="/translate_field.jspf" %>
+												</clay:content-col>
 
-												<div class="translation-editor-preview" dir="<%= sourceContentDir %>">
-													<%= sourceContent %>
-												</div>
-											</c:when>
-											<c:otherwise>
-												<aui:input dir="<%= sourceContentDir %>" label="<%= label %>" name="<%= label %>" readonly="true" tabIndex="-1" type='<%= multiline ? "textarea" : "text" %>' value="<%= sourceContent %>" />
-											</c:otherwise>
-										</c:choose>
-									</clay:col>
+												<clay:content-col
+													cssClass="col-autotranslate-button"
+												>
+													<clay:button
+														disabled="<%= true %>"
+														displayType="secondary"
+														monospaced="<%= true %>"
+													>
+														<clay:icon
+															symbol="automatic-translate"
+														/>
 
-									<clay:col
-										md="6"
-									>
+														<span class="sr-only"><liferay-ui:message key="location" /></span>
+													</clay:button>
+												</clay:content-col>
+											</clay:row>
 
 										<%
-										String targetContent = translateDisplayContext.getTargetStringValue(infoField, translateDisplayContext.getTargetLocale());
+										}
 										%>
 
-										<c:choose>
-											<c:when test="<%= html %>">
-												<label class="control-label">
-													<%= label %>
-												</label>
+									</c:when>
+									<c:otherwise>
 
-												<div class="translation-editor-preview" dir="<%= LanguageUtil.get(translateDisplayContext.getTargetLocale(), "lang.dir") %>">
-													<%= targetContent %>
-												</div>
-											</c:when>
-											<c:otherwise>
-												<aui:input dir='<%= LanguageUtil.get(translateDisplayContext.getTargetLocale(), "lang.dir") %>' disabled="<%= true %>" label="<%= label %>" name='<%= "infoField--" + infoField.getName() + "--" %>' type='<%= multiline ? "textarea" : "text" %>' value="<%= targetContent %>" />
-											</c:otherwise>
-										</c:choose>
-									</clay:col>
-								</clay:row>
+										<%
+										while (sourceStringValuesIterator.hasNext() && targetStringValuesIterator.hasNext()) {
+											String sourceContent = sourceStringValuesIterator.next();
+											String targetContent = targetStringValuesIterator.next();
+										%>
+
+											<%@ include file="/translate_field.jspf" %>
+
+										<%
+										}
+										%>
+
+									</c:otherwise>
+								</c:choose>
 
 						<%
 							}
@@ -198,8 +218,10 @@ renderResponse.setTitle(translateDisplayContext.getTitle());
 		</clay:container-fluid>
 	</aui:form>
 
-	<react:component
-		module="js/translate/Translate"
-		props="<%= translateDisplayContext.getInfoFieldSetEntriesData() %>"
-	/>
+	<c:if test="<%= translateDisplayContext.hasTranslationPermission() %>">
+		<react:component
+			module="js/translate/Translate"
+			props="<%= translateDisplayContext.getInfoFieldSetEntriesData() %>"
+		/>
+	</c:if>
 </div>

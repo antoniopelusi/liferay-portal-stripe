@@ -14,8 +14,8 @@
 
 import AJAX from '../../../utilities/AJAX/index';
 
-const CARTS_PATH = '/carts',
-	CHANNELS_PATH = '/channels';
+const CARTS_PATH = '/carts';
+const CHANNELS_PATH = '/channels';
 
 const VERSION = 'v1.0';
 
@@ -24,31 +24,83 @@ function resolveCartsPath(basePath = '', cartId) {
 }
 
 function resolveChannelsPath(basePath = '', channelId) {
-	return `${basePath}${VERSION}${CHANNELS_PATH}/${channelId}${CARTS_PATH}`;
+	return `${basePath}${VERSION}${CHANNELS_PATH}/${channelId}`;
 }
 
-export default (basePath) => ({
-	createCartByChannelId: (channelId, json) =>
-		AJAX.POST(resolveChannelsPath(basePath, channelId), json),
+function resolveCartsByAccountIdAndChannelIdPath(
+	basePath = '',
+	accountId,
+	channelId,
+	searchParams
+) {
+	const url = new URL(
+		`${resolveChannelsPath(
+			basePath,
+			channelId
+		)}/account/${accountId}${CARTS_PATH}`,
+		Liferay.ThemeDisplay.getPortalURL()
+	);
 
-	createCouponCodeByCartId: (cartId, json) =>
-		AJAX.POST(`${resolveCartsPath(basePath, cartId)}/coupon-code`, json),
+	if (searchParams) {
+		Object.keys(searchParams).forEach((searchParamKey) => {
+			url.searchParams.set(searchParamKey, searchParams[searchParamKey]);
+		});
+	}
 
-	deleteCartById: (cartId) => AJAX.DELETE(resolveCartsPath(basePath, cartId)),
+	return url;
+}
 
-	getCartById: (cartId) => AJAX.GET(resolveCartsPath(basePath, cartId)),
+export default function Cart(basePath) {
+	return {
+		cartsByAccountIdAndChannelIdURL: (accountId, channelId) =>
+			resolveCartsByAccountIdAndChannelIdPath(
+				basePath,
+				accountId,
+				channelId
+			),
 
-	getCartByIdWithItems: (cartId) =>
-		AJAX.GET(
-			resolveCartsPath(basePath, cartId) + '?nestedFields=cartItems'
-		),
+		createCartByChannelId: (channelId, json) =>
+			AJAX.POST(
+				`${resolveChannelsPath(
+					basePath,
+					channelId
+				)}${CARTS_PATH}?nestedFields=cartItems`,
+				json
+			),
 
-	getCartsByChannelId: (channelId) =>
-		AJAX.GET(resolveChannelsPath(basePath, channelId)),
+		createCouponCodeByCartId: (cartId, json) =>
+			AJAX.POST(
+				`${resolveCartsPath(basePath, cartId)}/coupon-code`,
+				json
+			),
 
-	replaceCartById: (cartId, json) =>
-		AJAX.PUT(resolveCartsPath(basePath, cartId), json),
+		deleteCartById: (cartId) =>
+			AJAX.DELETE(resolveCartsPath(basePath, cartId)),
 
-	updateCartById: (cartId, jsonProps) =>
-		AJAX.PATCH(resolveCartsPath(basePath, cartId), jsonProps),
-});
+		getCartById: (cartId) => AJAX.GET(resolveCartsPath(basePath, cartId)),
+
+		getCartByIdWithItems: (cartId) =>
+			AJAX.GET(
+				resolveCartsPath(basePath, cartId) + '?nestedFields=cartItems'
+			),
+
+		getCartsByAccountIdAndChannelId: (accountId, channelId, searchParams) =>
+			AJAX.GET(
+				resolveCartsByAccountIdAndChannelIdPath(
+					basePath,
+					accountId,
+					channelId,
+					searchParams
+				)
+			),
+
+		replaceCartById: (cartId, json) =>
+			AJAX.PUT(resolveCartsPath(basePath, cartId), json),
+
+		updateCartById: (cartId, jsonProps) =>
+			AJAX.PATCH(
+				resolveCartsPath(basePath, cartId) + '?nestedFields=cartItems',
+				jsonProps
+			),
+	};
+}

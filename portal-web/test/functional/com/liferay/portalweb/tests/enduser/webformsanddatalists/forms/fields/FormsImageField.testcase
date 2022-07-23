@@ -1,0 +1,601 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "This is a use case for LPS-98073."
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsImageField#CanBeCreated";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Image");
+	}
+
+	@description = "LPS-84335 - Verify that an Image Field can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsImageField#CanBeDeleted";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Image");
+
+		Form.editFieldLabelMetal(fieldValue = "Image Field 2");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Image Field 2");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Image Field 2");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Image Field 2");
+	}
+
+	@description = "Verify that an Image Field can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		FormFields.editHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "tip");
+
+		FormFields.duplicateField();
+
+		FormFields.viewLabel(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		FormFields.viewLabel(
+			fieldLabel = "Copy of Image",
+			fieldName = "Copy of Image");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Image");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Copy of Image");
+	}
+
+	@description = "LPS-98073 - Verify that an Image Field can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsImageField#CanBeEdited";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Image");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Image Field");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form");
+
+		FormFields.viewLabel(
+			fieldLabel = "Test Image Field",
+			fieldName = "Test Image Field");
+	}
+
+	@description = "LPS-98073 - Verify that an Image Field can be required"
+	@priority = "5"
+	test CanBeRequired {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsImageField#CanBeRequired";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form");
+
+		Form.editPageTitle(
+			formPageName = "Created Form Page Name",
+			formTitleNumber = "1");
+
+		Form.editDescription();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		FormFields.enableSwitch(fieldName = "required");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.submitWithValidationError(validationErrorMessage = "This field is required.");
+
+		FormFields.selectImageUpload(
+			fileName = "Document_1.jpg",
+			navTab = "Documents and Media",
+			rowNumber = "1");
+
+		Form.editImageDescription(
+			descriptionContent = "Test Image Description",
+			descriptionPosition = "1");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries(formName = "Form");
+
+		FormsAdmin.viewImageTableEntry();
+	}
+
+	@description = "Verify that an Image Field can be set to repeatable"
+	@priority = "5"
+	test CanBeSetToRepeatable {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image",
+			formPageNumber = "0");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.enableSwitch(fieldName = "Repeatable");
+
+		FormFields.viewFieldRepeatableButton(
+			fieldName = "Image",
+			key_repeatableFieldsNumber = "1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.addRepeatableField(
+			key_fieldName = "Image",
+			key_repeatableFieldNumber = "1");
+
+		FormFields.viewFieldRepeatableButton(
+			fieldName = "Image",
+			key_repeatableFieldsNumber = "1,2");
+
+		FormFields.editRepeatableImage(
+			fieldLabel = "Image",
+			uploadFileName = "Document_1.jpg",
+			uploadRepeatedFileName = "Document_1.jpg");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that an image can be uploaded"
+	@priority = "5"
+	test CanUploadAnImage {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.selectImageUpload(
+			fileName = "Document_1.jpg",
+			navTab = "Documents and Media",
+			rowNumber = "1");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that an image can be uploaded from Liferay Documents and Media"
+	@priority = "5"
+	test CanUploadFromDocumentsAndMedia {
+		property portal.acceptance = "true";
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Documents and Media");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "Document_1.jpg");
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.selectImageFromSite(
+			imageFileName = "Document_1.jpg",
+			siteName = "${siteName}");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that changes to the Field can be canceled"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test ChangesCanBeCanceled {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133038 ChangesCanBeCanceled pending implementation
+
+	}
+
+	@description = "Verify that an Image Description can be added to an uploaded Image"
+	@priority = "4"
+	test DescriptionCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image",
+			formPageNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		Click(locator1 = "FormFields#UPLOAD_ON_WIDGET");
+
+		ItemSelector.uploadFile(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_1.jpg");
+
+		Form.editImageDescription(
+			descriptionContent = "Test Image Description",
+			descriptionPosition = "1");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdminNavigator.gotoView();
+
+		FormsAdmin.viewImageEntry(
+			fieldDescription = "Test Image Description",
+			fieldLabel = "Image",
+			fieldName = "Image");
+	}
+
+	@description = "Verify that a help text can be added to an Image Field"
+	@priority = "5"
+	test HelpTextCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image",
+			formPageNumber = "0");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Image Help Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Image Help Text",
+			fieldName = "Help Text");
+
+		Click(locator1 = "FormFields#UPLOAD_ON_WIDGET");
+
+		ItemSelector.uploadFile(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_1.jpg");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that the Field Label can be edited"
+	@priority = "5"
+	test LabelCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image",
+			formPageNumber = "0");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Image");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Image");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Test Image",
+			fieldName = "Test Image");
+	}
+
+	@description = "Veriy that the Field Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		FormFields.viewFieldLabel(
+			fieldName = "label",
+			fieldValue = "Image");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.disableSwitch(fieldName = "Show Label");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Image");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Image");
+	}
+
+	@description = "Verify that a Predefined Value can be set"
+	@priority = "4"
+	test PredefinedValueCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image",
+			formPageNumber = "0");
+
+		FormFields.setImagePredefinedValue(uploadFileName = "Document_1.jpg");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Image");
+
+		AssertElementPresent(
+			key_imageName = "Document_1.jpg",
+			locator1 = "Form#SIDEBAR_ADVANCED_PREDEFINED_VALUE");
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.validateImagePredefinedValue(fileName = "Document_1.jpg");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that the Field Reference can be edited"
+	@priority = "5"
+	test ReferenceCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "Image1234");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldReference(
+			fieldName = "Image",
+			key_fieldReferenceValue = "Image1234");
+	}
+
+	@description = "Verify that an image added to the Image Field can be removed by clicking the Clear button"
+	@priority = "5"
+	test SelectedImagesCanBeCleared {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image",
+			formPageNumber = "0");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		Click(locator1 = "FormFields#UPLOAD_ON_WIDGET");
+
+		ItemSelector.uploadFile(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_1.jpg");
+
+		AssertElementPresent(
+			key_fieldValue = "Document_1.jpg",
+			locator1 = "FormFields#TEXT_FIELD_3");
+
+		WaitForElementPresent(locator1 = "FormFields#UPLOAD_FIELD_CLEAR_BUTTON");
+
+		Click(locator1 = "FormFields#UPLOAD_FIELD_CLEAR_BUTTON");
+
+		AssertElementNotPresent(
+			key_fieldValue = "Document_1.jpg",
+			locator1 = "FormFields#TEXT_FIELD_3");
+	}
+
+	@description = " Verify that the Field Type can be changed"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test TypeCanBeChanged {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133037 TypeCanBeChanged pending implementation
+
+	}
+
+}

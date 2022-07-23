@@ -69,6 +69,21 @@ public class JournalItemSelectorViewDisplayContext {
 		return null;
 	}
 
+	public PortletURL getEditImageURL(
+		LiferayPortletResponse liferayPortletResponse) {
+
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse, JournalPortletKeys.JOURNAL
+		).setActionName(
+			"/journal/image_editor"
+		).setParameter(
+			"folderId", _journalItemSelectorCriterion.getFolderId()
+		).setParameter(
+			"resourcePrimKey",
+			_journalItemSelectorCriterion.getResourcePrimKey()
+		).buildPortletURL();
+	}
+
 	public String getItemSelectedEventName() {
 		return _itemSelectedEventName;
 	}
@@ -111,7 +126,7 @@ public class JournalItemSelectorViewDisplayContext {
 			_journalItemSelectorCriterion.getResourcePrimKey()
 		).setParameter(
 			"selectedTab", getTitle(httpServletRequest.getLocale())
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getTitle(Locale locale) {
@@ -130,7 +145,7 @@ public class JournalItemSelectorViewDisplayContext {
 		).setParameter(
 			"resourcePrimKey",
 			_journalItemSelectorCriterion.getResourcePrimKey()
-		).build();
+		).buildPortletURL();
 	}
 
 	public boolean isSearch() {

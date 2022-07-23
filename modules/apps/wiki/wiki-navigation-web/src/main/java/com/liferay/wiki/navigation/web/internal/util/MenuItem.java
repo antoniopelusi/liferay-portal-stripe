@@ -50,7 +50,7 @@ public class MenuItem implements Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return new LinkedList<>();
@@ -63,10 +63,6 @@ public class MenuItem implements Serializable {
 		WikiPage wikiPage, PortletURL portletURL) {
 
 		return _fromWikiPage(wikiPage, portletURL);
-	}
-
-	public MenuItem() {
-		_children = new LinkedList<>();
 	}
 
 	public void addChild(MenuItem child) {
@@ -231,7 +227,7 @@ public class MenuItem implements Serializable {
 	private static final Pattern _pattern = Pattern.compile(
 		"(?:(?:==\\s(.*?)\\s==)*(?:\\Q[[\\E(.*?)\\Q]]\\E)*)*");
 
-	private List<MenuItem> _children;
+	private List<MenuItem> _children = new LinkedList<>();
 	private boolean _externalURL;
 	private String _icon;
 	private String _id;

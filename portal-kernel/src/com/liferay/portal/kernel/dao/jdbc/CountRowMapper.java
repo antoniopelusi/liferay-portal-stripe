@@ -22,7 +22,7 @@ import java.sql.ResultSet;
 public class CountRowMapper implements RowMapper<Integer> {
 
 	@Override
-	public Integer mapRow(ResultSet rs) {
+	public Integer mapRow(ResultSet resultSet) {
 		return 1;
 	}
 

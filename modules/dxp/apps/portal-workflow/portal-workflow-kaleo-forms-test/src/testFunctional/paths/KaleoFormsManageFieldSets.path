@@ -1,0 +1,62 @@
+<html>
+<head>
+<title>KaleoFormsManageFieldSets</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">KaleoFormsManageFieldSets</td></tr>
+</thead>
+
+<tbody>
+<!--PROCESS_TABLE-->
+<tr>
+	<td>NAME_ROW_FROM_MANAGE_FIELD</td>
+	<td>//tr[${key_rowNumber}]//td[contains(@class, 'table-title')]//a[contains(.,'${key_nameFieldset}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SORTED_UP_ICON</td>
+	<td>//*[name()='svg'][contains(@class,'lexicon-icon-order-list-up')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_NUMBER</td>
+	<td>//*[contains(@class, 'page-link') and contains(text(), '${key_pageNumber}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_PANEL_HEADER</td>
+	<td>//span[@id='structureDetailsSectionPanelHeader']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_PANEL_HEADER_COLLAPSED</td>
+	<td>//div[@id='structureDetailsSectionPanel']//a[@aria-expanded='false']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DESCRIPTION_FIELD</td>
+	<td>//input[@id='_com_liferay_dynamic_data_mapping_web_portlet_DDMPortlet_description']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>COLUMN_NAME_VALUE</td>
+	<td>//tbody//tr[${key_rowNumber}]//td[@class='table-cell-expand table-cell-minw-200 table-title lfr-name-column']//a[contains(., '${nameField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>COLUMN_DESCRIPTION_VALUE</td>
+	<td>//tbody//tr[${key_rowNumber}]//td[@class='table-cell-expand table-cell-minw-200 lfr-description-column']//a[contains(., '${descriptionField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>COLUMN_MODIFIED_DATE_VALUE</td>
+	<td>//tbody//tr[${key_rowNumber}]//td[@class='table-cell-expand-smallest table-cell-ws-nowrap lfr-modified-date-column']//a[contains(., '${modifiedDateField}')] </td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

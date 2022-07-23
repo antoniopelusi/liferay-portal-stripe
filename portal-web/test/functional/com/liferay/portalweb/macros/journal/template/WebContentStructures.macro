@@ -10,16 +10,18 @@ definition {
 		}
 
 		if (isSet(structureKey)) {
-			if (IsElementNotPresent(locator1 = "Sidebar#ACTIVE_TAB", key_tabName = "Properties")) {
+			if (IsElementNotPresent(key_tabName = "Properties", locator1 = "Sidebar#ACTIVE_TAB")) {
 				Navigator.gotoSidebarTab(tabName = "Properties");
 			}
+
 			PortletEntry.inputStructureKeyTextInput(structureKey = "${structureKey}");
 		}
 
 		if (isSet(structureDescription)) {
-			if (IsElementNotPresent(locator1 = "Sidebar#ACTIVE_TAB", key_tabName = "Properties")) {
+			if (IsElementNotPresent(key_tabName = "Properties", locator1 = "Sidebar#ACTIVE_TAB")) {
 				Navigator.gotoSidebarTab(tabName = "Properties");
 			}
+
 			PortletEntry.inputDescriptionTextInput(description = "${structureDescription}");
 		}
 	}
@@ -37,11 +39,35 @@ definition {
 	}
 
 	macro addLocalization {
+		Click(locator1 = "Button#LOCALIZATION_GENERIC");
+
+		if (IsElementNotPresent(key_locale = "${locale}", locator1 = "Translation#LOCALIZATION_NAME")) {
+			WebContentStructures.addTranslations(
+				localeList = "${locale}",
+				localizedDone = "${localizedDone}",
+				localizedManageTranslations = "${localizedManageTranslations}");
+		}
+		else {
+			Click(locator1 = "Button#LOCALIZATION_GENERIC");
+		}
+
 		PortletEntry.changeLocale(locale = "${locale}");
 
 		WebContentStructures.addName(structureName = "${localization1Name}");
 
 		if (isSet(locale2)) {
+			Click(locator1 = "Button#LOCALIZATION_GENERIC");
+
+			if (IsElementNotPresent(key_locale = "${locale2}", locator1 = "Translation#LOCALIZATION_NAME")) {
+				WebContentStructures.addTranslations(
+					localeList = "${locale2}",
+					localizedDone = "${localizedDone}",
+					localizedManageTranslations = "${localizedManageTranslations}");
+			}
+			else {
+				Click(locator1 = "Button#LOCALIZATION_GENERIC");
+			}
+
 			PortletEntry.changeLocale(locale = "${locale2}");
 
 			WebContentStructures.addName(structureName = "${localization2Name}");
@@ -64,6 +90,46 @@ definition {
 		AssertElementPresent(locator1 = "TextInput#REQUIRED_ALERT");
 
 		SelectFrame(value1 = "relative=top");
+	}
+
+	macro addTranslations {
+		if (isSet(localizedManageTranslations)) {
+			var manageTranslations = "${localizedManageTranslations}";
+		}
+		else {
+			var manageTranslations = "Manage Translations";
+		}
+
+		if (IsElementNotPresent(key_menuItem = "${manageTranslations}", locator1 = "MenuItem#ANY_MENU_ITEM")) {
+			Click(locator1 = "Button#LOCALIZATION_GENERIC");
+		}
+
+		MenuItem.click(menuItem = "${manageTranslations}");
+
+		WaitForElementPresent(locator1 = "Modal#BODY");
+
+		for (var locale : list "${localeList}") {
+			Click(locator1 = "Modal#PLUS");
+
+			MenuItem.click(menuItem = "${locale}");
+
+			AssertElementPresent(
+				key_tableEntry = "${locale}",
+				locator1 = "LexiconTable#TABLE_ENTRY");
+		}
+
+		Click(locator1 = "Modal#PLUS");
+
+		if (isSet(localizedDone)) {
+			Click(
+				key_text = "${localizedDone}",
+				locator1 = "Modal#MODAL_FOOTER_BUTTON");
+		}
+		else {
+			Click(
+				key_text = "Done",
+				locator1 = "Modal#MODAL_FOOTER_BUTTON");
+		}
 	}
 
 	macro copyCP {
@@ -139,7 +205,8 @@ definition {
 				Panel.expandPanel(panel = "Default Template");
 
 				AssertTextEquals(
-					locator1 = "WCEditWebContent#SELECTED_TEMPLATE",
+					inputFieldId = "ddmTemplateName",
+					locator1 = "TextInput#INPUT_ID",
 					value1 = "${templateName}");
 			}
 
@@ -160,7 +227,8 @@ definition {
 				Panel.expandPanel(panel = "Default Template");
 
 				AssertTextEquals(
-					locator1 = "WCEditWebContent#SELECTED_TEMPLATE",
+					inputFieldId = "ddmTemplateName",
+					locator1 = "TextInput#INPUT_ID",
 					value1 = "${templateName}");
 			}
 
@@ -168,8 +236,11 @@ definition {
 				var key_assetTitle = "${assetTitle}";
 
 				AssertElementNotPresent(locator1 = "AssetRelatedAssets#RELATED_ASSETS_TABLE_TYPE");
+
 				AssertElementNotPresent(locator1 = "AssetRelatedAssets#RELATED_ASSETS_TABLE_TITLE");
+
 				AssertElementNotPresent(locator1 = "AssetRelatedAssets#RELATED_ASSETS_TABLE_SCOPE");
+
 				AssertElementNotPresent(locator1 = "AssetRelatedAssets#RELATED_ASSETS_TABLE_REMOVE_LINK");
 			}
 		}
@@ -197,7 +268,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		Navigator.gotoNavItem(navItem = "Structures");

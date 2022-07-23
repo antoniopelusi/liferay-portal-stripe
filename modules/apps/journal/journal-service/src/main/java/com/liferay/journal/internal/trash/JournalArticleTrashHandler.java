@@ -66,7 +66,7 @@ import org.osgi.service.component.annotations.Reference;
 	property = "model.class.name=com.liferay.journal.model.JournalArticle",
 	service = TrashHandler.class
 )
-public class JournalArticleTrashHandler extends JournalBaseTrashHandler {
+public class JournalArticleTrashHandler extends BaseJournalTrashHandler {
 
 	@Override
 	public void checkRestorableEntry(
@@ -226,14 +226,10 @@ public class JournalArticleTrashHandler extends JournalBaseTrashHandler {
 		JournalArticle article = _journalArticleLocalService.getLatestArticle(
 			classPK);
 
-		if ((article.getFolderId() > 0) &&
-			(_journalFolderLocalService.fetchFolder(article.getFolderId()) ==
-				null)) {
-
-			return false;
-		}
-
-		if (!hasTrashPermission(
+		if (((article.getFolderId() > 0) &&
+			 (_journalFolderLocalService.fetchFolder(article.getFolderId()) ==
+				 null)) ||
+			!hasTrashPermission(
 				PermissionThreadLocal.getPermissionChecker(),
 				article.getGroupId(), classPK, TrashActionKeys.RESTORE)) {
 

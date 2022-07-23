@@ -76,9 +76,11 @@ public class UserLocalServiceUtil {
 	 * <code>admin.default.group.names</code>.
 	 *
 	 * @param userId the primary key of the user
+	 * @return <code>true</code> if user was added to default groups;
+	 <code>false</code> if user was already a member
 	 */
-	public static void addDefaultGroups(long userId) throws PortalException {
-		getService().addDefaultGroups(userId);
+	public static boolean addDefaultGroups(long userId) throws PortalException {
+		return getService().addDefaultGroups(userId);
 	}
 
 	/**
@@ -88,9 +90,11 @@ public class UserLocalServiceUtil {
 	 * <code>admin.default.role.names</code>.
 	 *
 	 * @param userId the primary key of the user
+	 * @return <code>true</code> if user was given default roles;
+	 <code>false</code> if user already has default roles
 	 */
-	public static void addDefaultRoles(long userId) throws PortalException {
-		getService().addDefaultRoles(userId);
+	public static boolean addDefaultRoles(long userId) throws PortalException {
+		return getService().addDefaultRoles(userId);
 	}
 
 	/**
@@ -100,11 +104,13 @@ public class UserLocalServiceUtil {
 	 * <code>admin.default.user.group.names</code>.
 	 *
 	 * @param userId the primary key of the user
+	 * @return <code>true</code> if user was added to default user groups;
+	 <code>false</code> if user is already a user group member
 	 */
-	public static void addDefaultUserGroups(long userId)
+	public static boolean addDefaultUserGroups(long userId)
 		throws PortalException {
 
-		getService().addDefaultUserGroups(userId);
+		return getService().addDefaultUserGroups(userId);
 	}
 
 	public static void addGroupUser(long groupId, long userId) {
@@ -158,6 +164,24 @@ public class UserLocalServiceUtil {
 		throws PortalException {
 
 		getService().addOrganizationUsers(organizationId, userIds);
+	}
+
+	public static User addOrUpdateUser(
+			String externalReferenceCode, long creatorUserId, long companyId,
+			boolean autoPassword, String password1, String password2,
+			boolean autoScreenName, String screenName, String emailAddress,
+			java.util.Locale locale, String firstName, String middleName,
+			String lastName, long prefixId, long suffixId, boolean male,
+			int birthdayMonth, int birthdayDay, int birthdayYear,
+			String jobTitle, boolean sendEmail, ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateUser(
+			externalReferenceCode, creatorUserId, companyId, autoPassword,
+			password1, password2, autoScreenName, screenName, emailAddress,
+			locale, firstName, middleName, lastName, prefixId, suffixId, male,
+			birthdayMonth, birthdayDay, birthdayYear, jobTitle, sendEmail,
+			serviceContext);
 	}
 
 	/**
@@ -670,6 +694,7 @@ public class UserLocalServiceUtil {
 	 * authentication, without using the AuthPipeline. Primarily used for
 	 * authenticating users of <code>tunnel-web</code>.
 	 *
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 	 * @param companyId the primary key of the user's company
 	 * @param realm unused
 	 * @param nonce the number used once
@@ -679,6 +704,7 @@ public class UserLocalServiceUtil {
 	 * @return the user's primary key if authentication is successful;
 	 <code>0</code> otherwise
 	 */
+	@Deprecated
 	public static long authenticateForDigest(
 			long companyId, String userName, String realm, String nonce,
 			String method, String uri, String response)
@@ -686,19 +712,6 @@ public class UserLocalServiceUtil {
 
 		return getService().authenticateForDigest(
 			companyId, userName, realm, nonce, method, uri, response);
-	}
-
-	/**
-	 * Attempts to authenticate the user using JAAS credentials, without using
-	 * the AuthPipeline.
-	 *
-	 * @param userId the primary key of the user
-	 * @param encPassword the encrypted password
-	 * @return <code>true</code> if authentication is successful;
-	 <code>false</code> otherwise
-	 */
-	public static boolean authenticateForJAAS(long userId, String encPassword) {
-		return getService().authenticateForJAAS(userId, encPassword);
 	}
 
 	/**
@@ -1008,6 +1021,10 @@ public class UserLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -2340,6 +2357,39 @@ public class UserLocalServiceUtil {
 			emailAddress, status, params, andSearch, start, end, sorts);
 	}
 
+	public static List<User> searchBySocial(
+			long userId, int[] socialRelationTypes, String keywords, int start,
+			int end)
+		throws PortalException {
+
+		return getService().searchBySocial(
+			userId, socialRelationTypes, keywords, start, end);
+	}
+
+	public static List<User> searchBySocial(
+		long companyId, long[] groupIds, String keywords, int start, int end) {
+
+		return getService().searchBySocial(
+			companyId, groupIds, keywords, start, end);
+	}
+
+	public static List<User> searchBySocial(
+		long companyId, long[] groupIds, String keywords, int start, int end,
+		OrderByComparator<User> orderByComparator) {
+
+		return getService().searchBySocial(
+			companyId, groupIds, keywords, start, end, orderByComparator);
+	}
+
+	public static List<User> searchBySocial(
+			long[] groupIds, long userId, int[] socialRelationTypes,
+			String keywords, int start, int end)
+		throws PortalException {
+
+		return getService().searchBySocial(
+			groupIds, userId, socialRelationTypes, keywords, start, end);
+	}
+
 	/**
 	 * Returns the number of users who match the keywords and status.
 	 *
@@ -2397,6 +2447,11 @@ public class UserLocalServiceUtil {
 		return getService().searchCounts(companyId, status, groupIds);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #searchBySocial(long, int[], String, int, int)}
+	 */
+	@Deprecated
 	public static List<User> searchSocial(
 			long userId, int[] socialRelationTypes, String keywords, int start,
 			int end)
@@ -2406,6 +2461,11 @@ public class UserLocalServiceUtil {
 			userId, socialRelationTypes, keywords, start, end);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #searchBySocial(long, long[], String, int, int)}
+	 */
+	@Deprecated
 	public static List<User> searchSocial(
 		long companyId, long[] groupIds, String keywords, int start, int end) {
 
@@ -2413,6 +2473,12 @@ public class UserLocalServiceUtil {
 			companyId, groupIds, keywords, start, end);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #searchBySocial(long, long[], String, int, int,
+	 OrderByComparator)}
+	 */
+	@Deprecated
 	public static List<User> searchSocial(
 		long companyId, long[] groupIds, String keywords, int start, int end,
 		OrderByComparator<User> orderByComparator) {
@@ -2421,6 +2487,11 @@ public class UserLocalServiceUtil {
 			companyId, groupIds, keywords, start, end, orderByComparator);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #searchBySocial(long[], long, int[], String, int, int)}
+	 */
+	@Deprecated
 	public static List<User> searchSocial(
 			long[] groupIds, long userId, int[] socialRelationTypes,
 			String keywords, int start, int end)

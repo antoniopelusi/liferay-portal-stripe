@@ -95,6 +95,11 @@ public class LocalizedEntryLocalizationWrapper
 		}
 	}
 
+	@Override
+	public LocalizedEntryLocalization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the content of this localized entry localization.
 	 *

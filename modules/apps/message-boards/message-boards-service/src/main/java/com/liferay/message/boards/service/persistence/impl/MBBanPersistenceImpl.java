@@ -20,11 +20,11 @@ import com.liferay.message.boards.model.MBBanTable;
 import com.liferay.message.boards.model.impl.MBBanImpl;
 import com.liferay.message.boards.model.impl.MBBanModelImpl;
 import com.liferay.message.boards.service.persistence.MBBanPersistence;
+import com.liferay.message.boards.service.persistence.MBBanUtil;
 import com.liferay.message.boards.service.persistence.impl.constants.MBPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,22 +35,24 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -64,12 +66,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -3274,6 +3273,8 @@ public class MBBanPersistenceImpl
 			new Object[] {mbBan.getGroupId(), mbBan.getBanUserId()}, mbBan);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the message boards bans in the entity cache if it is enabled.
 	 *
@@ -3281,6 +3282,13 @@ public class MBBanPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<MBBan> mbBans) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (mbBans.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (MBBan mbBan : mbBans) {
 			if (mbBan.getCtCollectionId() != 0) {
 				continue;
@@ -3365,7 +3373,7 @@ public class MBBanPersistenceImpl
 		mbBan.setNew(true);
 		mbBan.setPrimaryKey(banId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		mbBan.setUuid(uuid);
 
@@ -3477,7 +3485,7 @@ public class MBBanPersistenceImpl
 		MBBanModelImpl mbBanModelImpl = (MBBanModelImpl)mbBan;
 
 		if (Validator.isNull(mbBan.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			mbBan.setUuid(uuid);
 		}
@@ -3485,23 +3493,23 @@ public class MBBanPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (mbBan.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				mbBan.setCreateDate(now);
+				mbBan.setCreateDate(date);
 			}
 			else {
-				mbBan.setCreateDate(serviceContext.getCreateDate(now));
+				mbBan.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!mbBanModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				mbBan.setModifiedDate(now);
+				mbBan.setModifiedDate(date);
 			}
 			else {
-				mbBan.setModifiedDate(serviceContext.getModifiedDate(now));
+				mbBan.setModifiedDate(serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -3657,6 +3665,26 @@ public class MBBanPersistenceImpl
 
 			if (mbBan != null) {
 				map.put(primaryKey, mbBan);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -3918,7 +3946,8 @@ public class MBBanPersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -3952,7 +3981,6 @@ public class MBBanPersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -3971,7 +3999,6 @@ public class MBBanPersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK, Collections.singleton("banId"));
 		_ctColumnNamesMap.put(
@@ -3986,12 +4013,9 @@ public class MBBanPersistenceImpl
 	 * Initializes the message boards ban persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new MBBanModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4114,13 +4138,28 @@ public class MBBanPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_B",
 			new String[] {Long.class.getName(), Long.class.getName()},
 			new String[] {"groupId", "banUserId"}, false);
+
+		_setMBBanUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(MBBanImpl.class.getName());
+		_setMBBanUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(MBBanImpl.class.getName());
+	}
+
+	private void _setMBBanUtilPersistence(MBBanPersistence mbBanPersistence) {
+		try {
+			Field field = MBBanUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, mbBanPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -4148,8 +4187,6 @@ public class MBBanPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -4191,91 +4228,10 @@ public class MBBanPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class MBBanModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			MBBanModelImpl mbBanModelImpl = (MBBanModelImpl)baseModel;
-
-			long columnBitmask = mbBanModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(mbBanModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |= mbBanModelImpl.getColumnBitmask(
-						columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(mbBanModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return MBBanImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return MBBanTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			MBBanModelImpl mbBanModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = mbBanModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = mbBanModelImpl.getColumnValue(columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private MBBanModelArgumentsResolver _mbBanModelArgumentsResolver;
 
 }

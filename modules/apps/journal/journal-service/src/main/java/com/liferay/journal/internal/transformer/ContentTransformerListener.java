@@ -68,7 +68,7 @@ public class ContentTransformerListener extends BaseTransformerListener {
 			_log.debug("onScript");
 		}
 
-		return injectEditInPlace(script, document);
+		return _injectEditInPlace(script, document);
 	}
 
 	@Override
@@ -91,65 +91,6 @@ public class ContentTransformerListener extends BaseTransformerListener {
 			JournalServiceConfiguration.class, properties);
 	}
 
-	protected String getDynamicContent(Document document, String elementName) {
-		String content = null;
-
-		try {
-			Element rootElement = document.getRootElement();
-
-			for (Element element : rootElement.elements()) {
-				String curElementName = element.attributeValue(
-					"name", StringPool.BLANK);
-
-				if (curElementName.equals(elementName)) {
-					content = element.elementText("dynamic-content");
-
-					break;
-				}
-			}
-		}
-		catch (Exception exception) {
-			_log.error(exception, exception);
-		}
-
-		return GetterUtil.getString(content);
-	}
-
-	protected String injectEditInPlace(String script, Document document) {
-		if (!script.contains("$editInPlace(")) {
-			return script;
-		}
-
-		try {
-			List<Node> nodes = document.selectNodes("//dynamic-element");
-
-			for (Node node : nodes) {
-				Element element = (Element)node;
-
-				String name = GetterUtil.getString(
-					element.attributeValue("name"));
-				String type = GetterUtil.getString(
-					element.attributeValue("type"));
-
-				if (!name.startsWith("reserved-") &&
-					(type.equals("text") || type.equals("text_area") ||
-					 type.equals("text_box"))) {
-
-					script = wrapEditInPlaceField(script, name, type, "data");
-					script = wrapEditInPlaceField(
-						script, name, type, "getData()");
-				}
-			}
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(exception.getMessage());
-			}
-		}
-
-		return script;
-	}
-
 	protected void replace(Document document, Map<String, String> tokens) {
 		try {
 			Element rootElement = document.getRootElement();
@@ -161,7 +102,7 @@ public class ContentTransformerListener extends BaseTransformerListener {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception.getMessage());
+				_log.warn(exception);
 			}
 		}
 	}
@@ -197,7 +138,7 @@ public class ContentTransformerListener extends BaseTransformerListener {
 
 						dynamicContentElement.clearContent();
 						dynamicContentElement.addCDATA(
-							getDynamicContent(
+							_getDynamicContent(
 								article.getDocument(), elementName));
 					}
 				}
@@ -231,14 +172,73 @@ public class ContentTransformerListener extends BaseTransformerListener {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception.getMessage());
+				_log.warn(exception);
 			}
 		}
 
 		return xml;
 	}
 
-	protected String wrapEditInPlaceField(
+	private String _getDynamicContent(Document document, String elementName) {
+		String content = null;
+
+		try {
+			Element rootElement = document.getRootElement();
+
+			for (Element element : rootElement.elements()) {
+				String curElementName = element.attributeValue(
+					"name", StringPool.BLANK);
+
+				if (curElementName.equals(elementName)) {
+					content = element.elementText("dynamic-content");
+
+					break;
+				}
+			}
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+		}
+
+		return GetterUtil.getString(content);
+	}
+
+	private String _injectEditInPlace(String script, Document document) {
+		if (!script.contains("$editInPlace(")) {
+			return script;
+		}
+
+		try {
+			List<Node> nodes = document.selectNodes("//dynamic-element");
+
+			for (Node node : nodes) {
+				Element element = (Element)node;
+
+				String name = GetterUtil.getString(
+					element.attributeValue("name"));
+				String type = GetterUtil.getString(
+					element.attributeValue("type"));
+
+				if (!name.startsWith("reserved-") &&
+					(type.equals("text") || type.equals("text_area") ||
+					 type.equals("text_box"))) {
+
+					script = _wrapEditInPlaceField(script, name, type, "data");
+					script = _wrapEditInPlaceField(
+						script, name, type, "getData()");
+				}
+			}
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(exception);
+			}
+		}
+
+		return script;
+	}
+
+	private String _wrapEditInPlaceField(
 		String script, String name, String type, String call) {
 
 		String field = StringBundler.concat("$", name, ".", call);

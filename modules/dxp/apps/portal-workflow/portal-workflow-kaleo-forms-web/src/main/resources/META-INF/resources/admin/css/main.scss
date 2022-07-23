@@ -20,6 +20,15 @@ $multi-step-progress-bar-divider-height: 1px !default;
 
 $multi-step-progress-bar-fixed-width: 100px !default;
 
+.lfr-editor-textarea {
+	font-family: monospace;
+	height: 100%;
+	min-height: 8em;
+	min-width: 10em;
+	padding: 0.4375rem 1rem;
+	width: 100%;
+}
+
 // Multi Step Progress Bar compat layer
 
 .multi-step-progress-bar {
@@ -159,6 +168,8 @@ $multi-step-progress-bar-fixed-width: 100px !default;
 	.kaleo-process-preview-fields-dialog {
 		.modal-content {
 			.modal-body {
+				overflow-y: hidden;
+
 				.checkbox {
 					margin-bottom: 0;
 				}
@@ -194,7 +205,7 @@ $multi-step-progress-bar-fixed-width: 100px !default;
 		margin-bottom: 20px;
 	}
 
-	.separator {
+	hr {
 		border-width: 0;
 		margin-top: 1.5em;
 	}
@@ -274,6 +285,67 @@ $multi-step-progress-bar-fixed-width: 100px !default;
 
 		.tab.section-success .tab-label .number {
 			box-shadow: 0 0 5px 0 #80ccf2;
+		}
+	}
+}
+
+.modal-full-screen {
+	display: flex !important;
+	justify-content: center !important;
+
+	.modal-body {
+		overflow: hidden !important;
+		padding: 0 !important;
+	}
+}
+
+@media screen and (min-width: 1700px) {
+	.modal-full-screen {
+		.modal-content,
+		.modal-body {
+			width: 1500px !important;
+		}
+
+		.modal-body {
+			height: 676px !important;
+		}
+
+		.modal-content {
+			height: 740px !important;
+		}
+	}
+}
+
+@media screen and (min-width: 1280px) and (max-width: 1699px) {
+	.modal-full-screen {
+		.modal-content,
+		.modal-body {
+			width: 1050px !important;
+		}
+
+		.modal-body {
+			height: 590px !important;
+		}
+
+		.modal-content {
+			height: 654px !important;
+		}
+	}
+}
+
+@media screen and (max-width: 1279px) {
+	.modal-full-screen {
+		.modal-content,
+		.modal-body {
+			width: 700px !important;
+		}
+
+		.modal-body {
+			height: 573px !important;
+		}
+
+		.modal-content {
+			height: 637px !important;
 		}
 	}
 }

@@ -13,7 +13,6 @@
  */
 
 import ClayDropDown from '@clayui/drop-down';
-import {ClayIconSpriteContext} from '@clayui/icon';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 
@@ -29,14 +28,16 @@ import AccountsListView from './views/AccountsListView';
 import OrdersListView from './views/OrdersListView';
 
 function AccountSelector({
+	accountEntryAllowedTypes,
 	alignmentPosition,
+	commerceChannelId,
 	createNewOrderURL,
-	currentAccount: account,
-	currentOrder: order,
+	currentCommerceAccount: account,
+	currentCommerceOrder: order,
 	refreshPageOnAccountSelected: forceRefresh,
 	selectOrderURL,
 	setCurrentAccountURL,
-	spritemap,
+	showOrderTypeModal,
 }) {
 	const [active, setActive] = useState(false);
 	const [currentAccount, setCurrentAccount] = useState(account);
@@ -66,7 +67,7 @@ function AccountSelector({
 	};
 
 	const updateOrderModel = useCallback(
-		(order) => {
+		({order}) => {
 			if (!currentOrder || currentOrder.id !== order.id) {
 				setCurrentOrder((current) => ({...current, ...order}));
 			}
@@ -83,54 +84,64 @@ function AccountSelector({
 	}, [updateOrderModel]);
 
 	return (
-		<ClayIconSpriteContext.Provider value={spritemap}>
-			<ClayDropDown
-				active={active}
-				alignmentPosition={alignmentPosition}
-				className="account-selector account-selector-dropdown"
-				menuElementAttrs={{className: 'account-selector-dropdown-menu'}}
-				onActiveChange={setActive}
-				trigger={
-					<Trigger
-						active={active}
-						currentAccount={currentAccount}
-						currentOrder={currentOrder}
-					/>
-				}
-			>
-				{currentView === VIEWS.ACCOUNTS_LIST && (
-					<AccountsListView
-						changeAccount={changeAccount}
-						currentAccount={currentAccount}
-						disabled={!active}
-						setCurrentView={setCurrentView}
-					/>
-				)}
+		<ClayDropDown
+			active={active}
+			alignmentPosition={alignmentPosition}
+			className="account-selector account-selector-dropdown"
+			menuElementAttrs={{className: 'account-selector-dropdown-menu'}}
+			onActiveChange={setActive}
+			trigger={
+				<Trigger
+					active={active}
+					currentAccount={currentAccount}
+					currentOrder={currentOrder}
+				/>
+			}
+		>
+			{currentView === VIEWS.ACCOUNTS_LIST && (
+				<AccountsListView
+					accountEntryAllowedTypes={
+						accountEntryAllowedTypes
+							? JSON.parse(accountEntryAllowedTypes)
+							: ''
+					}
+					changeAccount={changeAccount}
+					currentAccount={currentAccount}
+					disabled={!active}
+					setCurrentView={setCurrentView}
+				/>
+			)}
 
-				{currentView === VIEWS.ORDERS_LIST && (
-					<OrdersListView
-						createOrderURL={createNewOrderURL}
-						currentAccount={currentAccount}
-						disabled={!active}
-						selectOrderURL={selectOrderURL}
-						setCurrentView={setCurrentView}
-					/>
-				)}
-			</ClayDropDown>
-		</ClayIconSpriteContext.Provider>
+			{currentView === VIEWS.ORDERS_LIST && (
+				<OrdersListView
+					commerceChannelId={commerceChannelId}
+					createOrderURL={createNewOrderURL}
+					currentAccount={currentAccount}
+					disabled={!active}
+					selectOrderURL={selectOrderURL}
+					setCurrentView={setCurrentView}
+					showOrderTypeModal={showOrderTypeModal}
+				/>
+			)}
+		</ClayDropDown>
 	);
 }
 
 AccountSelector.propTypes = {
+	accountEntryAllowedTypes: PropTypes.string.isRequired,
 	alignmentPosition: PropTypes.number,
+	commerceChannelId: PropTypes.oneOfType([
+		PropTypes.number,
+		PropTypes.string,
+	]),
 	createNewOrderURL: PropTypes.string.isRequired,
-	currentAccount: PropTypes.shape({
-		id: PropTypes.number,
+	currentCommerceAccount: PropTypes.shape({
+		id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 		logoURL: PropTypes.string,
 		name: PropTypes.string,
 	}),
-	currentOrder: PropTypes.shape({
-		orderId: PropTypes.number,
+	currentCommerceOrder: PropTypes.shape({
+		orderId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 		workflowStatusInfo: PropTypes.shape({
 			label_i18n: PropTypes.string,
 		}),
@@ -138,11 +149,14 @@ AccountSelector.propTypes = {
 	refreshPageOnAccountSelected: PropTypes.bool,
 	selectOrderURL: PropTypes.string.isRequired,
 	setCurrentAccountURL: PropTypes.string.isRequired,
-	spritemap: PropTypes.string.isRequired,
+	showOrderTypeModal: PropTypes.bool,
 };
 
 AccountSelector.defaultProps = {
 	alignmentPosition: 3,
+	currentCommerceOrder: {
+		orderId: 0,
+	},
 	refreshPageOnAccountSelected: false,
 };
 

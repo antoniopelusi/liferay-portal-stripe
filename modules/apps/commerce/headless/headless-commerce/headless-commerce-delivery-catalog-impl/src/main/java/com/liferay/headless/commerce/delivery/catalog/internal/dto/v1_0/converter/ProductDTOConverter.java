@@ -16,13 +16,20 @@ package com.liferay.headless.commerce.delivery.catalog.internal.dto.v1_0.convert
 
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
+import com.liferay.commerce.model.CPDefinitionInventory;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.service.CPDefinitionLocalService;
+import com.liferay.commerce.product.util.CPDefinitionHelper;
+import com.liferay.commerce.service.CPDefinitionInventoryLocalService;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.headless.commerce.delivery.catalog.dto.v1_0.Product;
+import com.liferay.headless.commerce.delivery.catalog.dto.v1_0.ProductConfiguration;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 
@@ -36,7 +43,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Andrea Sbarra
  */
 @Component(
-	enabled = false, property = "model.class.name=CPDefinition",
+	enabled = false, property = "dto.class.name=CPDefinition",
 	service = {DTOConverter.class, ProductDTOConverter.class}
 )
 public class ProductDTOConverter
@@ -51,23 +58,18 @@ public class ProductDTOConverter
 	public Product toDTO(DTOConverterContext dtoConverterContext)
 		throws Exception {
 
-		ProductDTOConverterContext cpCatalogEntryDTOConverterConvertContext =
+		ProductDTOConverterContext productDTOConverterContext =
 			(ProductDTOConverterContext)dtoConverterContext;
 
 		CPDefinition cpDefinition = _cpDefinitionLocalService.getCPDefinition(
-			(Long)cpCatalogEntryDTOConverterConvertContext.getId());
+			(Long)productDTOConverterContext.getId());
 
 		String languageId = LanguageUtil.getLanguageId(
-			cpCatalogEntryDTOConverterConvertContext.getLocale());
+			productDTOConverterContext.getLocale());
 
 		ExpandoBridge expandoBridge = cpDefinition.getExpandoBridge();
 
-		Company company = _companyLocalService.getCompany(
-			cpDefinition.getCompanyId());
-
-		String portalURL = company.getPortalURL(0);
-
-		return new Product() {
+		Product product = new Product() {
 			{
 				createDate = cpDefinition.getCreateDate();
 				description = cpDefinition.getDescription();
@@ -83,9 +85,56 @@ public class ProductDTOConverter
 				shortDescription = cpDefinition.getShortDescription();
 				slug = cpDefinition.getURL(languageId);
 				tags = _getTags(cpDefinition);
-				urlImage = portalURL + cpDefinition.getDefaultImageFileURL();
+				urls = LanguageUtils.getLanguageIdMap(
+					_cpDefinitionLocalService.getUrlTitleMap(
+						cpDefinition.getCPDefinitionId()));
+
+				setUrlImage(
+					() -> {
+						Company company = _companyLocalService.getCompany(
+							cpDefinition.getCompanyId());
+
+						String defaultImageFileURL =
+							_cpDefinitionHelper.getDefaultImageFileURL(
+								CommerceUtil.getCommerceAccountId(
+									productDTOConverterContext.
+										getCommerceContext()),
+								cpDefinition.getCPDefinitionId());
+
+						return company.getPortalURL(0) + defaultImageFileURL;
+					});
 			}
 		};
+
+		CPDefinitionInventory cpDefinitionInventory =
+			_cpDefinitionInventoryLocalService.
+				fetchCPDefinitionInventoryByCPDefinitionId(
+					(Long)productDTOConverterContext.getId());
+
+		if (cpDefinitionInventory != null) {
+			ProductConfiguration productConfiguration =
+				new ProductConfiguration() {
+					{
+						allowBackOrder = cpDefinitionInventory.isBackOrders();
+						allowedOrderQuantities = ArrayUtil.toArray(
+							cpDefinitionInventory.
+								getAllowedOrderQuantitiesArray());
+						inventoryEngine =
+							cpDefinitionInventory.
+								getCPDefinitionInventoryEngine();
+						maxOrderQuantity =
+							cpDefinitionInventory.getMaxOrderQuantity();
+						minOrderQuantity =
+							cpDefinitionInventory.getMinOrderQuantity();
+						multipleOrderQuantity =
+							cpDefinitionInventory.getMultipleOrderQuantity();
+					}
+				};
+
+			product.setProductConfiguration(productConfiguration);
+		}
+
+		return product;
 	}
 
 	private String[] _getTags(CPDefinition cpDefinition) {
@@ -106,6 +155,13 @@ public class ProductDTOConverter
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
+
+	@Reference
+	private CPDefinitionHelper _cpDefinitionHelper;
+
+	@Reference
+	private CPDefinitionInventoryLocalService
+		_cpDefinitionInventoryLocalService;
 
 	@Reference
 	private CPDefinitionLocalService _cpDefinitionLocalService;

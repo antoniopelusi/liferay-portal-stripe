@@ -13,15 +13,15 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {act, cleanup, getByText, render} from '@testing-library/react';
+import {act, render, screen} from '@testing-library/react';
 import React from 'react';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 
 import {CollectionItemWithControls} from '../../../../src/main/resources/META-INF/resources/page_editor/app/components/layout-data-items';
 import Collection from '../../../../src/main/resources/META-INF/resources/page_editor/app/components/layout-data-items/Collection';
+import {StoreAPIContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
 import CollectionService from '../../../../src/main/resources/META-INF/resources/page_editor/app/services/CollectionService';
-import {StoreAPIContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/store';
 import {DragAndDropContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/utils/drag-and-drop/useDragAndDrop';
 
 jest.mock(
@@ -37,7 +37,23 @@ jest.mock(
 	})
 );
 
+jest.mock(
+	'../../../../src/main/resources/META-INF/resources/page_editor/app/config',
+	() => ({
+		config: {
+			maxNumberOfItemsInEditMode: 2,
+			searchContainerPageMaxDelta: 10,
+		},
+	})
+);
+
 function renderCollection(itemConfig = {}) {
+	Liferay.Util.sub.mockImplementation((langKey, args) => {
+		const nextArgs = Array.isArray(args) ? args : [args];
+
+		return [langKey, ...nextArgs].join('-');
+	});
+
 	const state = {
 		permissions: {
 			UPDATE: true,
@@ -90,10 +106,6 @@ function renderCollection(itemConfig = {}) {
 }
 
 describe('Collection', () => {
-	afterEach(() => {
-		cleanup();
-	});
-
 	it('renders not collection message when no collection is selected', async () => {
 		CollectionService.getCollectionField.mockImplementation(() =>
 			Promise.resolve()
@@ -104,7 +116,7 @@ describe('Collection', () => {
 		});
 
 		expect(
-			getByText(document.body, 'no-collection-selected-yet')
+			screen.getByText('no-collection-selected-yet')
 		).toBeInTheDocument();
 	});
 
@@ -113,6 +125,7 @@ describe('Collection', () => {
 			Promise.resolve({
 				items: [],
 				length: 0,
+				totalNumberOfItems: 1,
 			})
 		);
 
@@ -122,10 +135,13 @@ describe('Collection', () => {
 					itemSubtype: 'CollectionItemSubtype',
 					itemType: 'CollectionItemType',
 				},
+				listStyle: '',
 			});
 		});
 
-		expect(getByText(document.body, 'title')).toBeInTheDocument();
+		expect(
+			document.body.querySelector('.page-editor__collection-item')
+		).toBeInTheDocument();
 	});
 
 	it('renders empty collection items', async () => {
@@ -138,6 +154,7 @@ describe('Collection', () => {
 			Promise.resolve({
 				items,
 				length: 2,
+				totalNumberOfItems: 2,
 			})
 		);
 
@@ -147,11 +164,86 @@ describe('Collection', () => {
 					itemSubtype: 'CollectionItemSubtype',
 					itemType: 'CollectionItemType',
 				},
+				numberOfItems: 2,
+				numberOfPages: 1,
+				paginationType: 'none',
 			});
 		});
 
 		items.forEach((item) =>
-			expect(getByText(document.body, item.title)).toBeInTheDocument()
+			expect(screen.getByText(item.title)).toBeInTheDocument()
 		);
+	});
+
+	it('renders numeric pagination', async () => {
+		await act(async () => {
+			renderCollection({
+				collection: {
+					classNameId: '1',
+					classPK: '1',
+					title: 'collection1',
+				},
+				numberOfItemsPerPage: 5,
+				numberOfPages: 1,
+				paginationType: 'numeric',
+			});
+		});
+
+		expect(
+			screen.getByText('showing-x-to-x-of-x-entries-1-2-2')
+		).toBeInTheDocument();
+	});
+
+	it('renders simple pagination', async () => {
+		await act(async () => {
+			renderCollection({
+				collection: {
+					classNameId: '1',
+					classPK: '1',
+					title: 'collection1',
+				},
+				numberOfItemsPerPage: 5,
+				numberOfPages: 1,
+				paginationType: 'simple',
+			});
+		});
+
+		expect(screen.getByText('previous')).toBeInTheDocument();
+		expect(screen.getByText('next')).toBeInTheDocument();
+	});
+
+	it('shows alert when edit mode max number of items is being exceeded', async () => {
+		const items = [
+			{content: 'Item 1 Content', title: 'Item 1 Title'},
+			{content: 'Item 2 Content', title: 'Item 2 Title'},
+			{content: 'Item 3 Content', title: 'Item 3 Title'},
+		];
+
+		CollectionService.getCollectionField.mockImplementation(() =>
+			Promise.resolve({
+				items,
+				length: 3,
+				totalNumberOfItems: 3,
+			})
+		);
+
+		await act(async () => {
+			renderCollection({
+				collection: {
+					classNameId: '1',
+					classPK: '1',
+					title: 'collection1',
+				},
+				numberOfItems: 3,
+				numberOfPages: 1,
+				paginationType: 'none',
+			});
+		});
+
+		expect(
+			screen.getByText(
+				'in-edit-mode,-the-number-of-elements-displayed-is-limited-to-x-due-to-performance-2'
+			)
+		).toBeInTheDocument();
 	});
 });

@@ -90,6 +90,11 @@ public class DLSyncEventWrapper
 		}
 	}
 
+	@Override
+	public DLSyncEvent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this dl sync event.
 	 *

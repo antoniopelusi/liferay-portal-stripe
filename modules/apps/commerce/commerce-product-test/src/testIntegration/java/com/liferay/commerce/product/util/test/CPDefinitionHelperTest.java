@@ -32,8 +32,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -53,6 +51,7 @@ import org.frutilla.FrutillaRule;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,7 +60,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.NONE)
 @RunWith(Arquillian.class)
 public class CPDefinitionHelperTest {
 
@@ -72,10 +70,13 @@ public class CPDefinitionHelperTest {
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
 
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		_company = CompanyTestUtil.addCompany();
+	}
+
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
-
 		_commerceCatalog = _commerceCatalogLocalService.addCommerceCatalog(
 			null, RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			LocaleUtil.toLanguageId(LocaleUtil.US),
@@ -98,7 +99,49 @@ public class CPDefinitionHelperTest {
 	}
 
 	@Test
-	public void testSearchCategory() throws PortalException {
+	public void testSearchAllCPDefinitions() throws PortalException {
+		frutillaRule.scenario(
+			"Search for CPDefinitions without filters"
+		).given(
+			"A collection of CPDefinitions"
+		).when(
+			"I search for CPDefinitions without filters"
+		).then(
+			"The results will contain all the products available"
+		);
+
+		CPInstance[] cpInstances = _addCPInstances(
+			_commerceCatalog.getGroupId(), _CP_INSTANCES_COUNT);
+
+		CPDataSourceResult cpDataSourceResult = _cpDefinitionHelper.search(
+			_commerceCatalog.getGroupId(),
+			CPTestUtil.getSearchContext(
+				null, WorkflowConstants.STATUS_APPROVED,
+				_commerceCatalog.getGroup()),
+			new CPQuery(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		List<CPCatalogEntry> cpCatalogEntries =
+			cpDataSourceResult.getCPCatalogEntries();
+
+		List<Long> cpDefinitionIds = new ArrayList<>();
+
+		for (CPInstance cpInstance : cpInstances) {
+			CPDefinition cpDefinition = cpInstance.getCPDefinition();
+
+			cpDefinitionIds.add(cpDefinition.getCPDefinitionId());
+		}
+
+		List<Long> actualCPDefinitionIds = new ArrayList<>();
+
+		for (CPCatalogEntry cpCatalogEntry : cpCatalogEntries) {
+			actualCPDefinitionIds.add(cpCatalogEntry.getCPDefinitionId());
+		}
+
+		Assert.assertTrue(actualCPDefinitionIds.containsAll(cpDefinitionIds));
+	}
+
+	@Test
+	public void testSearchCPDefinitionsByCategory() throws PortalException {
 		frutillaRule.scenario(
 			"Search for CPDefinition by Category"
 		).given(
@@ -174,7 +217,7 @@ public class CPDefinitionHelperTest {
 	}
 
 	@Test
-	public void testSearchName() throws PortalException {
+	public void testSearchCPDefinitionsByName() throws PortalException {
 		frutillaRule.scenario(
 			"Search for CPDefinitions by name"
 		).given(
@@ -195,15 +238,12 @@ public class CPDefinitionHelperTest {
 
 		CPDefinition cpDefinition = randomCPInstance.getCPDefinition();
 
-		SearchContext searchContext = CPTestUtil.getSearchContext(
-			cpDefinition.getName(), WorkflowConstants.STATUS_APPROVED,
-			_commerceCatalog.getGroup());
-
-		CPQuery cpQuery = new CPQuery();
-
 		CPDataSourceResult cpDataSourceResult = _cpDefinitionHelper.search(
-			_commerceCatalog.getGroupId(), searchContext, cpQuery,
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+			_commerceCatalog.getGroupId(),
+			CPTestUtil.getSearchContext(
+				cpDefinition.getName(), WorkflowConstants.STATUS_APPROVED,
+				_commerceCatalog.getGroup()),
+			new CPQuery(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		List<CPCatalogEntry> cpCatalogEntries =
 			cpDataSourceResult.getCPCatalogEntries();
@@ -216,51 +256,6 @@ public class CPDefinitionHelperTest {
 		Assert.assertEquals(
 			cpDefinition.getCPDefinitionId(),
 			cpCatalogEntry.getCPDefinitionId());
-	}
-
-	@Test
-	public void testSearchStar() throws PortalException {
-		frutillaRule.scenario(
-			"Search for CPDefinitions without filters"
-		).given(
-			"A collection of CPDefinitions"
-		).when(
-			"I search for CPDefinitions without filters"
-		).then(
-			"The results will contain all the products available"
-		);
-
-		CPInstance[] cpInstances = _addCPInstances(
-			_commerceCatalog.getGroupId(), _CP_INSTANCES_COUNT);
-
-		SearchContext searchContext = CPTestUtil.getSearchContext(
-			null, WorkflowConstants.STATUS_APPROVED,
-			_commerceCatalog.getGroup());
-
-		CPQuery cpQuery = new CPQuery();
-
-		CPDataSourceResult cpDataSourceResult = _cpDefinitionHelper.search(
-			_commerceCatalog.getGroupId(), searchContext, cpQuery,
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-		List<CPCatalogEntry> cpCatalogEntries =
-			cpDataSourceResult.getCPCatalogEntries();
-
-		List<Long> cpDefinitionIds = new ArrayList<>();
-
-		for (CPInstance cpInstance : cpInstances) {
-			CPDefinition cpDefinition = cpInstance.getCPDefinition();
-
-			cpDefinitionIds.add(cpDefinition.getCPDefinitionId());
-		}
-
-		List<Long> actualCPDefinitionIds = new ArrayList<>();
-
-		for (CPCatalogEntry cpCatalogEntry : cpCatalogEntries) {
-			actualCPDefinitionIds.add(cpCatalogEntry.getCPDefinitionId());
-		}
-
-		Assert.assertTrue(actualCPDefinitionIds.containsAll(cpDefinitionIds));
 	}
 
 	@Rule
@@ -280,13 +275,12 @@ public class CPDefinitionHelperTest {
 
 	private static final int _CP_INSTANCES_COUNT = 10;
 
+	private static Company _company;
+
 	private CommerceCatalog _commerceCatalog;
 
 	@Inject
 	private CommerceCatalogLocalService _commerceCatalogLocalService;
-
-	@DeleteAfterTestRun
-	private Company _company;
 
 	@Inject
 	private CPDefinitionHelper _cpDefinitionHelper;

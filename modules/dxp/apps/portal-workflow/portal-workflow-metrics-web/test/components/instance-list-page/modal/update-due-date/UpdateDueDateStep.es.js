@@ -9,36 +9,37 @@
  * distribution rights of the Software.
  */
 
+import '@testing-library/jest-dom/extend-expect';
 import {cleanup, fireEvent, render} from '@testing-library/react';
-import React, {cloneElement, useState} from 'react';
+import React, {useState} from 'react';
 
+import {AppContext} from '../../../../../src/main/resources/META-INF/resources/js/components/AppContext.es';
+import {ModalContext} from '../../../../../src/main/resources/META-INF/resources/js/components/instance-list-page/modal/ModalProvider.es';
 import UpdateDueDateStep from '../../../../../src/main/resources/META-INF/resources/js/components/instance-list-page/modal/update-due-date/UpdateDueDateStep.es';
 
-import '@testing-library/jest-dom/extend-expect';
+const MockModalContext = ({children}) => {
+	const [updateDueDate, setUpdateDueDate] = useState('');
 
-const ContainerMock = ({children}) => {
-	const [value, setValue] = useState('');
-
-	return cloneElement(children, {setValue, value});
+	return (
+		<ModalContext.Provider value={{setUpdateDueDate, updateDueDate}}>
+			{children}
+		</ModalContext.Provider>
+	);
 };
 
-const wrapperMock = {
-	wrapper: ContainerMock,
-};
-
-describe('The TimePickerInput component should be render with AM/PM format', () => {
+describe('The UpdateDueDateStep component should be rendered with TimePickerInput with AM/PM format', () => {
 	afterEach(cleanup);
 
 	test('Render with error state and select any option', () => {
 		const {getAllByRole, getByPlaceholderText} = render(
-			<UpdateDueDateStep.TimePickerInput format="H:mm a" isAmPm />,
-			wrapperMock
+			<AppContext.Provider value={{isAmPm: true, timeFormat: 'H:mm a'}}>
+				<MockModalContext>
+					<UpdateDueDateStep />
+				</MockModalContext>
+			</AppContext.Provider>
 		);
 
 		const timeInput = getByPlaceholderText('HH:mm am/pm');
-
-		expect(timeInput.parentNode).toHaveClass('has-error');
-		expect(timeInput.value).toBe('');
 
 		fireEvent.focus(timeInput);
 
@@ -68,17 +69,19 @@ describe('The TimePickerInput component should be render with AM/PM format', () 
 	});
 });
 
-describe('The TimePickerInput component should be render without AM/PM format', () => {
+describe('The UpdateDueDateStep component should be rendered with TimePickerInput with another time format', () => {
+	afterEach(cleanup);
+
 	test('Render with error state and select any option', () => {
 		const {getAllByRole, getByPlaceholderText} = render(
-			<UpdateDueDateStep.TimePickerInput format="H:mm" />,
-			wrapperMock
+			<AppContext.Provider value={{isAmPm: false, timeFormat: 'HH:mm'}}>
+				<MockModalContext>
+					<UpdateDueDateStep />
+				</MockModalContext>
+			</AppContext.Provider>
 		);
 
 		const timeInput = getByPlaceholderText('HH:mm');
-
-		expect(timeInput.parentNode).toHaveClass('has-error');
-		expect(timeInput.value).toBe('');
 
 		fireEvent.focus(timeInput);
 

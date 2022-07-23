@@ -15,32 +15,22 @@
 package com.liferay.analytics.reports.web.internal.data.provider;
 
 import com.liferay.analytics.reports.web.internal.model.AcquisitionChannel;
-import com.liferay.analytics.reports.web.internal.model.CountrySearchKeywords;
 import com.liferay.analytics.reports.web.internal.model.HistogramMetric;
 import com.liferay.analytics.reports.web.internal.model.HistoricalMetric;
-import com.liferay.analytics.reports.web.internal.model.OrganicTrafficChannelImpl;
-import com.liferay.analytics.reports.web.internal.model.PaidTrafficChannelImpl;
 import com.liferay.analytics.reports.web.internal.model.ReferringSocialMedia;
 import com.liferay.analytics.reports.web.internal.model.ReferringURL;
-import com.liferay.analytics.reports.web.internal.model.SearchKeyword;
-import com.liferay.analytics.reports.web.internal.model.SocialTrafficChannelImpl;
 import com.liferay.analytics.reports.web.internal.model.TimeRange;
 import com.liferay.analytics.reports.web.internal.model.TimeSpan;
 import com.liferay.analytics.reports.web.internal.model.TrafficChannel;
-import com.liferay.analytics.reports.web.internal.model.TrafficSource;
-import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.PrefsProps;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.util.HtmlImpl;
 
 import java.io.IOException;
 
@@ -50,7 +40,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -76,14 +65,6 @@ public class AnalyticsReportsDataProviderTest {
 
 	@BeforeClass
 	public static void setUpClass() {
-		HtmlUtil htmlUtil = new HtmlUtil();
-
-		htmlUtil.setHtml(new HtmlImpl());
-
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
-
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
-
 		ReflectionTestUtil.setFieldValue(
 			PrefsPropsUtil.class, "_prefsProps",
 			Mockito.mock(PrefsProps.class));
@@ -108,9 +89,14 @@ public class AnalyticsReportsDataProviderTest {
 							"social", 735L
 						).toString())));
 
+		TimeSpan timeSpan = TimeSpan.of("last-7-days");
+
+		TimeRange timeRange = timeSpan.toTimeRange(0);
+
 		Map<String, AcquisitionChannel> acquisitionChannels =
 			analyticsReportsDataProvider.getAcquisitionChannels(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
+				RandomTestUtil.randomLong(), timeRange,
+				RandomTestUtil.randomString());
 
 		Assert.assertEquals(
 			acquisitionChannels.toString(), 5, acquisitionChannels.size());
@@ -146,9 +132,14 @@ public class AnalyticsReportsDataProviderTest {
 							"liferay.com", 1.0
 						).toString())));
 
+		TimeSpan timeSpan = TimeSpan.of("last-7-days");
+
+		TimeRange timeRange = timeSpan.toTimeRange(0);
+
 		List<ReferringURL> referringURLS =
 			analyticsReportsDataProvider.getDomainReferringURLs(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
+				RandomTestUtil.randomLong(), timeRange,
+				RandomTestUtil.randomString());
 
 		Assert.assertEquals(referringURLS.toString(), 3, referringURLS.size());
 		Assert.assertEquals(
@@ -229,9 +220,14 @@ public class AnalyticsReportsDataProviderTest {
 							3.0
 						).toString())));
 
+		TimeSpan timeSpan = TimeSpan.of("last-7-days");
+
+		TimeRange timeRange = timeSpan.toTimeRange(0);
+
 		List<ReferringURL> referringURLS =
 			analyticsReportsDataProvider.getPageReferringURLs(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
+				RandomTestUtil.randomLong(), timeRange,
+				RandomTestUtil.randomString());
 
 		Assert.assertEquals(referringURLS.toString(), 3, referringURLS.size());
 		Assert.assertEquals(
@@ -267,9 +263,14 @@ public class AnalyticsReportsDataProviderTest {
 							"linkedin", 1.0
 						).toString())));
 
+		TimeSpan timeSpan = TimeSpan.of("last-7-days");
+
+		TimeRange timeRange = timeSpan.toTimeRange(0);
+
 		List<ReferringSocialMedia> referringSocialMediaList =
 			analyticsReportsDataProvider.getReferringSocialMediaList(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
+				RandomTestUtil.randomLong(), timeRange,
+				RandomTestUtil.randomString());
 
 		Assert.assertEquals(
 			referringSocialMediaList.toString(), 3,
@@ -287,8 +288,6 @@ public class AnalyticsReportsDataProviderTest {
 
 	@Test
 	public void testGetTotalReads() throws Exception {
-		LocalDate localDate = LocalDate.now();
-
 		AnalyticsReportsDataProvider analyticsReportsDataProvider =
 			new AnalyticsReportsDataProvider(
 				_getHttp(
@@ -301,8 +300,12 @@ public class AnalyticsReportsDataProviderTest {
 							JSONUtil.put(
 								JSONUtil.put(
 									"key",
-									localDate.format(
-										DateTimeFormatter.ISO_LOCAL_DATE)
+									() -> {
+										LocalDate localDate = LocalDate.now();
+
+										return localDate.format(
+											DateTimeFormatter.ISO_LOCAL_DATE);
+									}
 								).put(
 									"value", 5
 								))
@@ -328,8 +331,6 @@ public class AnalyticsReportsDataProviderTest {
 
 	@Test
 	public void testGetTotalViews() throws Exception {
-		LocalDate localDate = LocalDate.now();
-
 		AnalyticsReportsDataProvider analyticsReportsDataProvider =
 			new AnalyticsReportsDataProvider(
 				_getHttp(
@@ -342,8 +343,12 @@ public class AnalyticsReportsDataProviderTest {
 							JSONUtil.put(
 								JSONUtil.put(
 									"key",
-									localDate.format(
-										DateTimeFormatter.ISO_LOCAL_DATE)
+									() -> {
+										LocalDate localDate = LocalDate.now();
+
+										return localDate.format(
+											DateTimeFormatter.ISO_LOCAL_DATE);
+									}
 								).put(
 									"value", 5
 								))
@@ -381,47 +386,34 @@ public class AnalyticsReportsDataProviderTest {
 						).put(
 							"social", 389L
 						).toString()
-					).put(
-						"/page-referrer-hosts", "{}"
-					).put(
-						"/page-referrers", "{}"
-					).put(
-						"/social-page-referrers", "{}"
-					).put(
-						"/traffic-sources",
-						JSONUtil.putAll(
-							JSONUtil.put(
-								"name", "organic"
-							).put(
-								"trafficAmount", 7849L
-							).put(
-								"trafficShare", 97.25D
-							),
-							JSONUtil.put(
-								"name", "paid"
-							).put(
-								"trafficAmount", 135L
-							).put(
-								"trafficShare", 56.75D
-							)
-						).toString()
 					).build()));
 
-		Map<String, TrafficChannel> trafficChannels =
+		TimeSpan timeSpan = TimeSpan.of("last-7-days");
+
+		TimeRange timeRange = timeSpan.toTimeRange(0);
+
+		Map<TrafficChannel.Type, TrafficChannel> trafficChannels =
 			analyticsReportsDataProvider.getTrafficChannels(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
+				RandomTestUtil.randomLong(), timeRange,
+				RandomTestUtil.randomString());
 
 		Assert.assertEquals(
 			trafficChannels.toString(), 3, trafficChannels.size());
 		Assert.assertEquals(
-			String.valueOf(new OrganicTrafficChannelImpl(null, 3849L, 86.0D)),
-			String.valueOf(trafficChannels.get("organic")));
+			String.valueOf(
+				TrafficChannel.newInstance(
+					3849L, 86.0D, TrafficChannel.Type.ORGANIC)),
+			String.valueOf(trafficChannels.get(TrafficChannel.Type.ORGANIC)));
 		Assert.assertEquals(
-			String.valueOf(new PaidTrafficChannelImpl(null, 235L, 5.3D)),
-			String.valueOf(trafficChannels.get("paid")));
+			String.valueOf(
+				TrafficChannel.newInstance(
+					235L, 5.3D, TrafficChannel.Type.PAID)),
+			String.valueOf(trafficChannels.get(TrafficChannel.Type.PAID)));
 		Assert.assertEquals(
-			String.valueOf(new SocialTrafficChannelImpl(null, 389L, 8.7D)),
-			String.valueOf(trafficChannels.get("social")));
+			String.valueOf(
+				TrafficChannel.newInstance(
+					389L, 8.7D, TrafficChannel.Type.SOCIAL)),
+			String.valueOf(trafficChannels.get(TrafficChannel.Type.SOCIAL)));
 	}
 
 	@Test(expected = PortalException.class)
@@ -431,348 +423,13 @@ public class AnalyticsReportsDataProviderTest {
 		AnalyticsReportsDataProvider analyticsReportsDataProvider =
 			new AnalyticsReportsDataProvider(_getHttp(new IOException()));
 
+		TimeSpan timeSpan = TimeSpan.of("last-7-days");
+
+		TimeRange timeRange = timeSpan.toTimeRange(0);
+
 		analyticsReportsDataProvider.getTrafficChannels(
-			RandomTestUtil.randomLong(), RandomTestUtil.randomString());
-	}
-
-	@Test
-	public void testGetTrafficChannelsWithCountrySearchKeywords()
-		throws Exception {
-
-		AnalyticsReportsDataProvider analyticsReportsDataProvider =
-			new AnalyticsReportsDataProvider(
-				_getHttp(
-					HashMapBuilder.put(
-						"/acquisition-channels",
-						JSONUtil.put(
-							"organic", 3192L
-						).put(
-							"paid", 206L
-						).toString()
-					).put(
-						"/page-referrer-hosts", "{}"
-					).put(
-						"/page-referrers", "{}"
-					).put(
-						"/social-page-referrers", "{}"
-					).put(
-						"/traffic-sources",
-						JSONUtil.putAll(
-							JSONUtil.put(
-								"countryKeywords",
-								JSONUtil.putAll(
-									JSONUtil.put(
-										"countryCode", "us"
-									).put(
-										"countryName", "United States"
-									).put(
-										"keywords",
-										JSONUtil.putAll(
-											JSONUtil.put(
-												"keyword", "liferay"
-											).put(
-												"position", 1
-											).put(
-												"searchVolume", 3600
-											).put(
-												"traffic", 2880L
-											),
-											JSONUtil.put(
-												"keyword", "liferay portal"
-											).put(
-												"position", 1
-											).put(
-												"searchVolume", 390
-											).put(
-												"traffic", 312L
-											))
-									))
-							).put(
-								"name", "organic"
-							).put(
-								"trafficAmount", 1192L
-							).put(
-								"trafficShare", 83.9D
-							),
-							JSONUtil.put(
-								"countryKeywords",
-								JSONUtil.putAll(
-									JSONUtil.put(
-										"countryCode", "us"
-									).put(
-										"countryName", "United States"
-									).put(
-										"keywords",
-										JSONUtil.putAll(
-											JSONUtil.put(
-												"keyword", "dxp enterprises"
-											).put(
-												"position", 1
-											).put(
-												"searchVolume", 4400
-											).put(
-												"traffic", 206L
-											))
-									))
-							).put(
-								"name", "paid"
-							).put(
-								"trafficAmount", 2010L
-							).put(
-								"trafficShare", 44.1D
-							)
-						).toString()
-					).build()));
-
-		Map<String, TrafficChannel> trafficChannels =
-			analyticsReportsDataProvider.getTrafficChannels(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
-
-		Assert.assertEquals(
-			trafficChannels.toString(), 2, trafficChannels.size());
-		Assert.assertEquals(
-			String.valueOf(
-				new OrganicTrafficChannelImpl(
-					Collections.singletonList(
-						new CountrySearchKeywords(
-							"us",
-							Arrays.asList(
-								new SearchKeyword("liferay", 1, 3600, 2880L),
-								new SearchKeyword(
-									"liferay portal", 1, 390, 312L)))),
-					3192L, 93.9D)),
-			String.valueOf(trafficChannels.get("organic")));
-		Assert.assertEquals(
-			String.valueOf(
-				new PaidTrafficChannelImpl(
-					Collections.singletonList(
-						new CountrySearchKeywords(
-							"us",
-							Collections.singletonList(
-								new SearchKeyword(
-									"dxp enterprises", 1, 4400, 206L)))),
-					206L, 6.06D)),
-			String.valueOf(trafficChannels.get("paid")));
-	}
-
-	@Test
-	public void testGetTrafficChannelsWithReferringSocialMedia()
-		throws Exception {
-
-		AnalyticsReportsDataProvider analyticsReportsDataProvider =
-			new AnalyticsReportsDataProvider(
-				_getHttp(
-					HashMapBuilder.put(
-						"/acquisition-channels",
-						JSONUtil.put(
-							"organic", 3849L
-						).put(
-							"paid", 235L
-						).put(
-							"social", 389L
-						).toString()
-					).put(
-						"/page-referrer-hosts", "{}"
-					).put(
-						"/page-referrers", "{}"
-					).put(
-						"/social-page-referrers",
-						JSONUtil.put(
-							"facebook", 389.0
-						).toString()
-					).put(
-						"/traffic-sources",
-						JSONUtil.putAll(
-							JSONUtil.put(
-								"name", "organic"
-							).put(
-								"trafficAmount", 7849L
-							).put(
-								"trafficShare", 97.25D
-							),
-							JSONUtil.put(
-								"name", "paid"
-							).put(
-								"trafficAmount", 135L
-							).put(
-								"trafficShare", 56.75D
-							)
-						).toString()
-					).build()));
-
-		Map<String, TrafficChannel> trafficChannels =
-			analyticsReportsDataProvider.getTrafficChannels(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
-
-		Assert.assertEquals(
-			String.valueOf(
-				new SocialTrafficChannelImpl(
-					Collections.singletonList(
-						new ReferringSocialMedia("facebook", 389)),
-					389L, 8.7D)),
-			String.valueOf(trafficChannels.get("social")));
-	}
-
-	@Test
-	public void testGetTrafficSources() throws Exception {
-		AnalyticsReportsDataProvider analyticsReportsDataProvider =
-			new AnalyticsReportsDataProvider(
-				_getHttp(
-					Collections.singletonMap(
-						"/traffic-sources",
-						JSONUtil.putAll(
-							JSONUtil.put(
-								"name", "organic"
-							).put(
-								"trafficAmount", 1192L
-							).put(
-								"trafficShare", 83.9D
-							),
-							JSONUtil.put(
-								"name", "paid"
-							).put(
-								"trafficAmount", 2010L
-							).put(
-								"trafficShare", 44.1D
-							)
-						).toString())));
-
-		Map<String, TrafficSource> trafficSources =
-			analyticsReportsDataProvider.getTrafficSources(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
-
-		Assert.assertEquals(
-			trafficSources.toString(), 2, trafficSources.size());
-		Assert.assertEquals(
-			String.valueOf(
-				new TrafficSource(
-					Collections.emptyList(), "organic", 1192L, 83.9D)),
-			String.valueOf(trafficSources.get("organic")));
-		Assert.assertEquals(
-			String.valueOf(
-				new TrafficSource(
-					Collections.emptyList(), "paid", 2010L, 44.1D)),
-			String.valueOf(trafficSources.get("paid")));
-	}
-
-	@Test
-	public void testGetTrafficSourcesWithAsahFaroBackendError()
-		throws Exception {
-
-		AnalyticsReportsDataProvider analyticsReportsDataProvider =
-			new AnalyticsReportsDataProvider(_getHttp(new IOException()));
-
-		Map<String, TrafficSource> trafficSources =
-			analyticsReportsDataProvider.getTrafficSources(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
-
-		Assert.assertTrue(trafficSources.isEmpty());
-	}
-
-	@Test
-	public void testGetTrafficSourcesWithCountrySearchKeywords()
-		throws Exception {
-
-		AnalyticsReportsDataProvider analyticsReportsDataProvider =
-			new AnalyticsReportsDataProvider(
-				_getHttp(
-					Collections.singletonMap(
-						"/traffic-sources",
-						JSONUtil.putAll(
-							JSONUtil.put(
-								"countryKeywords",
-								JSONUtil.putAll(
-									JSONUtil.put(
-										"countryCode", "us"
-									).put(
-										"countryName", "United States"
-									).put(
-										"keywords",
-										JSONUtil.putAll(
-											JSONUtil.put(
-												"keyword", "liferay"
-											).put(
-												"position", 1
-											).put(
-												"searchVolume", 3600
-											).put(
-												"traffic", 2880L
-											),
-											JSONUtil.put(
-												"keyword", "liferay portal"
-											).put(
-												"position", 1
-											).put(
-												"searchVolume", 390
-											).put(
-												"traffic", 312L
-											))
-									))
-							).put(
-								"name", "organic"
-							).put(
-								"trafficAmount", 1192L
-							).put(
-								"trafficShare", 83.9D
-							),
-							JSONUtil.put(
-								"countryKeywords",
-								JSONUtil.putAll(
-									JSONUtil.put(
-										"countryCode", "us"
-									).put(
-										"countryName", "United States"
-									).put(
-										"keywords",
-										JSONUtil.putAll(
-											JSONUtil.put(
-												"keyword", "dxp enterprises"
-											).put(
-												"position", 1
-											).put(
-												"searchVolume", 4400
-											).put(
-												"traffic", 206L
-											))
-									))
-							).put(
-								"name", "paid"
-							).put(
-								"trafficAmount", 2010L
-							).put(
-								"trafficShare", 44.1D
-							)
-						).toString())));
-
-		Map<String, TrafficSource> trafficSources =
-			analyticsReportsDataProvider.getTrafficSources(
-				RandomTestUtil.randomLong(), RandomTestUtil.randomString());
-
-		Assert.assertEquals(
-			trafficSources.toString(), 2, trafficSources.size());
-		Assert.assertEquals(
-			String.valueOf(
-				new TrafficSource(
-					Collections.singletonList(
-						new CountrySearchKeywords(
-							"us",
-							Arrays.asList(
-								new SearchKeyword("liferay", 1, 3600, 2880L),
-								new SearchKeyword(
-									"liferay portal", 1, 390, 312L)))),
-					"organic", 1192L, 83.9D)),
-			String.valueOf(trafficSources.get("organic")));
-		Assert.assertEquals(
-			String.valueOf(
-				new TrafficSource(
-					Collections.singletonList(
-						new CountrySearchKeywords(
-							"us",
-							Collections.singletonList(
-								new SearchKeyword(
-									"dxp enterprises", 1, 4400, 206L)))),
-					"paid", 2010L, 44.1D)),
-			String.valueOf(trafficSources.get("paid")));
+			RandomTestUtil.randomLong(), timeRange,
+			RandomTestUtil.randomString());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

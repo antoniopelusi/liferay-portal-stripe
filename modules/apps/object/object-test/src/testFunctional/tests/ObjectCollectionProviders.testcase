@@ -1,0 +1,35 @@
+@component-name = "portal-object"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Object";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			ObjectAdmin.deleteAllCustomObjectsViaAPI();
+		}
+	}
+
+	@description = "LPS-135388 - Verify it is possible to search for an object's entry with the search experience in collection providers"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanSearchForObjectEntryOnSearchExperience {
+
+		// TODO LPS-145750 CanSearchForObjectEntryOnSearchExperience pending implementation
+
+	}
+
+}

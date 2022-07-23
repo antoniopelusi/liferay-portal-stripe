@@ -32,7 +32,6 @@ import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.PropsTestUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -51,6 +50,10 @@ import com.liferay.saml.opensaml.integration.internal.metadata.MetadataGenerator
 import com.liferay.saml.opensaml.integration.internal.metadata.MetadataManagerImpl;
 import com.liferay.saml.opensaml.integration.internal.servlet.profile.IdentifierGenerationStrategyFactory;
 import com.liferay.saml.opensaml.integration.internal.velocity.VelocityEngineFactory;
+import com.liferay.saml.persistence.model.SamlPeerBinding;
+import com.liferay.saml.persistence.model.impl.SamlPeerBindingImpl;
+import com.liferay.saml.persistence.service.SamlPeerBindingLocalService;
+import com.liferay.saml.persistence.service.SamlPeerBindingLocalServiceUtil;
 import com.liferay.saml.runtime.configuration.SamlProviderConfiguration;
 import com.liferay.saml.runtime.configuration.SamlProviderConfigurationHelper;
 import com.liferay.saml.runtime.metadata.LocalEntityManager;
@@ -62,6 +65,7 @@ import java.net.URLDecoder;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -108,19 +112,21 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 
 	@Before
 	public void setUp() throws Exception {
-		setupProps();
+		_setupProps();
 
 		OpenSamlBootstrap.bootstrap();
 
-		setupConfiguration();
-		setupIdentifiers();
-		setupParserPool();
+		_setupConfiguration();
+		_setupIdentifiers();
+		_setupParserPool();
 
-		setupPortal();
+		_setupPortal();
 
-		setupMetadata();
+		_setupMetadata();
 
-		setupSamlBindings();
+		_setupSamlBindings();
+
+		_setupSamlPeerBindingsLocalService();
 	}
 
 	@After
@@ -147,51 +153,9 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		}
 
 		KeyStoreCredentialResolver keyStoreCredentialResolver =
-			getKeyStoreCredentialResolver(entityId);
+			_getKeyStoreCredentialResolver(entityId);
 
 		return keyStoreCredentialResolver.resolveSingle(criteriaSet);
-	}
-
-	protected KeyStoreCredentialResolver getKeyStoreCredentialResolver(
-		String entityId) {
-
-		KeyStoreCredentialResolver keyStoreCredentialResolver =
-			new KeyStoreCredentialResolver();
-
-		keyStoreCredentialResolver.setKeyStoreManager(
-			fileSystemKeyStoreManagerImpl);
-
-		SamlProviderConfigurationHelper peerSamlProviderConfigurationHelper =
-			Mockito.mock(SamlProviderConfigurationHelper.class);
-
-		SamlProviderConfiguration peerSamlProviderConfiguration = Mockito.mock(
-			SamlProviderConfiguration.class);
-
-		when(
-			peerSamlProviderConfiguration.entityId()
-		).thenReturn(
-			entityId
-		);
-
-		String keyStoreCredentialPassword =
-			samlProviderConfiguration.keyStoreCredentialPassword();
-
-		when(
-			peerSamlProviderConfiguration.keyStoreCredentialPassword()
-		).thenReturn(
-			keyStoreCredentialPassword
-		);
-
-		when(
-			peerSamlProviderConfigurationHelper.getSamlProviderConfiguration()
-		).thenReturn(
-			peerSamlProviderConfiguration
-		);
-
-		keyStoreCredentialResolver.setSamlProviderConfigurationHelper(
-			peerSamlProviderConfigurationHelper);
-
-		return keyStoreCredentialResolver;
 	}
 
 	protected MockHttpServletRequest getMockHttpServletRequest(String url) {
@@ -261,26 +225,13 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 	protected <T> T getMockPortalService(
 		Class<?> serviceUtilClass, Class<T> serviceClass) {
 
-		return getMockService(serviceUtilClass, serviceClass);
+		return _getMockService(serviceUtilClass, serviceClass);
 	}
 
 	protected <T> T getMockPortletService(
 		Class<?> serviceUtilClass, Class<T> serviceClass) {
 
-		return getMockService(serviceUtilClass, serviceClass);
-	}
-
-	protected <T> T getMockService(
-		Class<?> serviceUtilClass, Class<T> serviceClass) {
-
-		serviceUtilClasses.add(serviceUtilClass);
-
-		T serviceMock = mock(serviceClass);
-
-		ReflectionTestUtil.setFieldValue(
-			serviceUtilClass, "_service", serviceMock);
-
-		return serviceMock;
+		return _getMockService(serviceUtilClass, serviceClass);
 	}
 
 	protected void prepareIdentityProvider(String entityId) {
@@ -303,6 +254,26 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		);
 	}
 
+	protected long prepareSamlPeerBinding(
+		String peerEntityId, String samlNameIdFormat,
+		String samlNameIdNameQualifier, String samlNameIdValue) {
+
+		SamlPeerBinding samlPeerBinding = new SamlPeerBindingImpl();
+
+		samlPeerBinding.setSamlPeerBindingId(_samlPeerBindings.size() + 1);
+		samlPeerBinding.setCompanyId(COMPANY_ID);
+		samlPeerBinding.setDeleted(false);
+		samlPeerBinding.setSamlNameIdFormat(samlNameIdFormat);
+		samlPeerBinding.setSamlNameIdNameQualifier(samlNameIdNameQualifier);
+		samlPeerBinding.setSamlNameIdValue(samlNameIdValue);
+		samlPeerBinding.setSamlPeerEntityId(peerEntityId);
+
+		_samlPeerBindings.put(
+			samlPeerBinding.getSamlPeerBindingId(), samlPeerBinding);
+
+		return samlPeerBinding.getSamlPeerBindingId();
+	}
+
 	protected void prepareServiceProvider(String entityId) {
 		when(
 			samlProviderConfiguration.entityId()
@@ -323,7 +294,207 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		);
 	}
 
-	protected void setupConfiguration() {
+	protected static final String ACS_URL =
+		"http://localhost:8080/c/portal/saml/acs";
+
+	protected static final long COMPANY_ID = 1;
+
+	protected static final String IDP_ENTITY_ID = "testidp";
+
+	protected static final String LOGIN_URL =
+		"http://localhost:8080/c/portal/login";
+
+	protected static final String LOGOUT_URL =
+		"http://localhost:8080/c/portal/logout";
+
+	protected static final String METADATA_URL =
+		"http://localhost:8080/c/portal/saml/metadata";
+
+	protected static final String PORTAL_URL = "http://localhost:8080";
+
+	protected static final String RELAY_STATE =
+		"http://localhost:8080/relaystate";
+
+	protected static final long SESSION_ID = 2;
+
+	protected static final String SLO_LOGOUT_URL =
+		"http://localhost:8080/c/portal/saml/slo_logout";
+
+	protected static final String SP_ENTITY_ID = "testsp";
+
+	protected static final String SSO_URL =
+		"http://localhost:8080/c/portal/saml/sso";
+
+	protected static final String UNKNOWN_ENTITY_ID = "testunknown";
+
+	protected KeyStoreCredentialResolver credentialResolver;
+	protected FileSystemKeyStoreManagerImpl fileSystemKeyStoreManagerImpl;
+	protected GroupLocalService groupLocalService;
+	protected HttpClient httpClient;
+	protected IdentifierGenerationStrategyFactory
+		identifierGenerationStrategyFactory;
+	protected List<String> identifiers = new ArrayList<>();
+	protected LocalEntityManager localEntityManager;
+	protected MetadataManagerImpl metadataManagerImpl;
+	protected ParserPool parserPool;
+	protected Portal portal;
+	protected List<SamlBinding> samlBindings;
+	protected IdentifierGenerationStrategy samlIdentifierGenerator;
+	protected SamlPeerBindingLocalService samlPeerBindingLocalService;
+	protected SamlProviderConfiguration samlProviderConfiguration;
+	protected SamlProviderConfigurationHelper samlProviderConfigurationHelper;
+	protected List<Class<?>> serviceUtilClasses = new ArrayList<>();
+	protected UserLocalService userLocalService;
+
+	protected class MockMetadataResolver extends AbstractMetadataResolver {
+
+		public MockMetadataResolver() {
+		}
+
+		public MockMetadataResolver(boolean idpNeedsSignature) {
+			_idpNeedsSignature = idpNeedsSignature;
+		}
+
+		@Override
+		public Iterable<EntityDescriptor> resolve(CriteriaSet criteriaSet)
+			throws ResolverException {
+
+			try {
+				return Collections.singleton(doResolve(criteriaSet));
+			}
+			catch (Exception exception) {
+				throw new ResolverException(exception);
+			}
+		}
+
+		protected EntityDescriptor doResolve(CriteriaSet criteriaSet)
+			throws Exception {
+
+			EntityIdCriterion entityIdCriterion = criteriaSet.get(
+				EntityIdCriterion.class);
+
+			if (entityIdCriterion == null) {
+				throw new ResolverException("Entity ID criterion is null");
+			}
+
+			String entityId = entityIdCriterion.getEntityId();
+
+			KeyStoreCredentialResolver keyStoreCredentialResolver =
+				_getKeyStoreCredentialResolver(entityId);
+
+			Credential credential = keyStoreCredentialResolver.resolveSingle(
+				criteriaSet);
+
+			if (entityId.equals(IDP_ENTITY_ID)) {
+				EntityDescriptor entityDescriptor =
+					MetadataGeneratorUtil.buildIdpEntityDescriptor(
+						PORTAL_URL, entityId, _idpNeedsSignature, true,
+						credential, null);
+
+				IDPSSODescriptor idpSSODescriptor =
+					entityDescriptor.getIDPSSODescriptor(
+						SAMLConstants.SAML20P_NS);
+
+				List<SingleLogoutService> singleLogoutServices =
+					idpSSODescriptor.getSingleLogoutServices();
+
+				for (SingleLogoutService singleLogoutService :
+						singleLogoutServices) {
+
+					String binding = singleLogoutService.getBinding();
+
+					if (binding.equals(SAMLConstants.SAML2_POST_BINDING_URI)) {
+						singleLogoutServices.remove(singleLogoutService);
+
+						break;
+					}
+				}
+
+				List<SingleSignOnService> singleSignOnServices =
+					idpSSODescriptor.getSingleSignOnServices();
+
+				for (SingleSignOnService singleSignOnService :
+						singleSignOnServices) {
+
+					String binding = singleSignOnService.getBinding();
+
+					if (binding.equals(SAMLConstants.SAML2_POST_BINDING_URI)) {
+						singleSignOnServices.remove(singleSignOnService);
+
+						break;
+					}
+				}
+
+				return entityDescriptor;
+			}
+			else if (entityId.equals(SP_ENTITY_ID)) {
+				return MetadataGeneratorUtil.buildSpEntityDescriptor(
+					PORTAL_URL, entityId, true, true, false, credential, null);
+			}
+
+			return null;
+		}
+
+		private boolean _idpNeedsSignature = true;
+
+	}
+
+	private KeyStoreCredentialResolver _getKeyStoreCredentialResolver(
+		String entityId) {
+
+		KeyStoreCredentialResolver keyStoreCredentialResolver =
+			new KeyStoreCredentialResolver();
+
+		keyStoreCredentialResolver.setKeyStoreManager(
+			fileSystemKeyStoreManagerImpl);
+
+		SamlProviderConfigurationHelper peerSamlProviderConfigurationHelper =
+			Mockito.mock(SamlProviderConfigurationHelper.class);
+
+		SamlProviderConfiguration peerSamlProviderConfiguration = Mockito.mock(
+			SamlProviderConfiguration.class);
+
+		when(
+			peerSamlProviderConfiguration.entityId()
+		).thenReturn(
+			entityId
+		);
+
+		String keyStoreCredentialPassword =
+			samlProviderConfiguration.keyStoreCredentialPassword();
+
+		when(
+			peerSamlProviderConfiguration.keyStoreCredentialPassword()
+		).thenReturn(
+			keyStoreCredentialPassword
+		);
+
+		when(
+			peerSamlProviderConfigurationHelper.getSamlProviderConfiguration()
+		).thenReturn(
+			peerSamlProviderConfiguration
+		);
+
+		keyStoreCredentialResolver.setSamlProviderConfigurationHelper(
+			peerSamlProviderConfigurationHelper);
+
+		return keyStoreCredentialResolver;
+	}
+
+	private <T> T _getMockService(
+		Class<?> serviceUtilClass, Class<T> serviceClass) {
+
+		serviceUtilClasses.add(serviceUtilClass);
+
+		T serviceMock = mock(serviceClass);
+
+		ReflectionTestUtil.setFieldValue(
+			serviceUtilClass, "_service", serviceMock);
+
+		return serviceMock;
+	}
+
+	private void _setupConfiguration() {
 		Thread currentThread = Thread.currentThread();
 
 		ClassLoaderPool.register(
@@ -394,7 +565,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		);
 	}
 
-	protected void setupIdentifiers() {
+	private void _setupIdentifiers() {
 		SamlIdentifierGeneratorStrategyFactory
 			samlIdentifierGeneratorStrategyFactory =
 				new SamlIdentifierGeneratorStrategyFactory();
@@ -459,7 +630,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		);
 	}
 
-	protected void setupMetadata() throws Exception {
+	private void _setupMetadata() throws Exception {
 		metadataManagerImpl = new MetadataManagerImpl();
 
 		fileSystemKeyStoreManagerImpl = new FileSystemKeyStoreManagerImpl();
@@ -489,8 +660,6 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		metadataManagerImpl.setSamlProviderConfigurationHelper(
 			samlProviderConfigurationHelper);
 
-		metadataManagerImpl.setHttp(HttpUtil.getHttp());
-
 		metadataManagerImpl.setPortal(portal);
 
 		metadataManagerImpl.setLocalEntityManager(credentialResolver);
@@ -499,14 +668,14 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 			metadataManagerImpl, "activate", new Class<?>[0]);
 	}
 
-	protected void setupParserPool() {
+	private void _setupParserPool() {
 		XMLObjectProviderRegistry xmlObjectProviderRegistry =
 			ConfigurationService.get(XMLObjectProviderRegistry.class);
 
 		parserPool = xmlObjectProviderRegistry.getParserPool();
 	}
 
-	protected void setupPortal() throws Exception {
+	private void _setupPortal() throws Exception {
 		httpClient = mock(HttpClient.class);
 
 		PortalUtil portalUtil = new PortalUtil();
@@ -581,7 +750,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 			UserLocalServiceUtil.class, UserLocalService.class);
 	}
 
-	protected void setupProps() {
+	private void _setupProps() {
 		PropsTestUtil.setProps(
 			HashMapBuilder.<String, Object>put(
 				PropsKeys.LIFERAY_HOME, System.getProperty("java.io.tmpdir")
@@ -590,7 +759,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 			).build());
 	}
 
-	protected void setupSamlBindings() {
+	private void _setupSamlBindings() {
 		VelocityEngineFactory velocityEngineFactory =
 			new VelocityEngineFactory();
 
@@ -606,148 +775,19 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		samlBindings.add(new HttpSoap11Binding(parserPool, httpClient));
 	}
 
-	protected static final String ACS_URL =
-		"http://localhost:8080/c/portal/saml/acs";
+	private void _setupSamlPeerBindingsLocalService() throws Exception {
+		samlPeerBindingLocalService = getMockPortletService(
+			SamlPeerBindingLocalServiceUtil.class,
+			SamlPeerBindingLocalService.class);
 
-	protected static final long COMPANY_ID = 1;
-
-	protected static final String IDP_ENTITY_ID = "testidp";
-
-	protected static final String LOGIN_URL =
-		"http://localhost:8080/c/portal/login";
-
-	protected static final String LOGOUT_URL =
-		"http://localhost:8080/c/portal/logout";
-
-	protected static final String METADATA_URL =
-		"http://localhost:8080/c/portal/saml/metadata";
-
-	protected static final String PORTAL_URL = "http://localhost:8080";
-
-	protected static final String RELAY_STATE =
-		"http://localhost:8080/relaystate";
-
-	protected static final long SESSION_ID = 2;
-
-	protected static final String SLO_LOGOUT_URL =
-		"http://localhost:8080/c/portal/saml/slo_logout";
-
-	protected static final String SP_ENTITY_ID = "testsp";
-
-	protected static final String SSO_URL =
-		"http://localhost:8080/c/portal/saml/sso";
-
-	protected static final String UNKNOWN_ENTITY_ID = "testunknown";
-
-	protected KeyStoreCredentialResolver credentialResolver;
-	protected FileSystemKeyStoreManagerImpl fileSystemKeyStoreManagerImpl;
-	protected GroupLocalService groupLocalService;
-	protected HttpClient httpClient;
-	protected IdentifierGenerationStrategyFactory
-		identifierGenerationStrategyFactory;
-	protected List<String> identifiers = new ArrayList<>();
-	protected LocalEntityManager localEntityManager;
-	protected MetadataManagerImpl metadataManagerImpl;
-	protected ParserPool parserPool;
-	protected Portal portal;
-	protected List<SamlBinding> samlBindings;
-	protected IdentifierGenerationStrategy samlIdentifierGenerator;
-	protected SamlProviderConfiguration samlProviderConfiguration;
-	protected SamlProviderConfigurationHelper samlProviderConfigurationHelper;
-	protected List<Class<?>> serviceUtilClasses = new ArrayList<>();
-	protected UserLocalService userLocalService;
-
-	protected class MockMetadataResolver extends AbstractMetadataResolver {
-
-		public MockMetadataResolver() {
-		}
-
-		public MockMetadataResolver(boolean idpNeedsSignature) {
-			_idpNeedsSignature = idpNeedsSignature;
-		}
-
-		@Override
-		public Iterable<EntityDescriptor> resolve(CriteriaSet criteriaSet)
-			throws ResolverException {
-
-			try {
-				return Collections.singleton(doResolve(criteriaSet));
-			}
-			catch (Exception exception) {
-				throw new ResolverException(exception);
-			}
-		}
-
-		protected EntityDescriptor doResolve(CriteriaSet criteriaSet)
-			throws Exception {
-
-			EntityIdCriterion entityIdCriterion = criteriaSet.get(
-				EntityIdCriterion.class);
-
-			if (entityIdCriterion == null) {
-				throw new ResolverException("Entity ID criterion is null");
-			}
-
-			String entityId = entityIdCriterion.getEntityId();
-
-			KeyStoreCredentialResolver keyStoreCredentialResolver =
-				getKeyStoreCredentialResolver(entityId);
-
-			Credential credential = keyStoreCredentialResolver.resolveSingle(
-				criteriaSet);
-
-			if (entityId.equals(IDP_ENTITY_ID)) {
-				EntityDescriptor entityDescriptor =
-					MetadataGeneratorUtil.buildIdpEntityDescriptor(
-						PORTAL_URL, entityId, _idpNeedsSignature, true,
-						credential, null);
-
-				IDPSSODescriptor idpSSODescriptor =
-					entityDescriptor.getIDPSSODescriptor(
-						SAMLConstants.SAML20P_NS);
-
-				List<SingleLogoutService> singleLogoutServices =
-					idpSSODescriptor.getSingleLogoutServices();
-
-				for (SingleLogoutService singleLogoutService :
-						singleLogoutServices) {
-
-					String binding = singleLogoutService.getBinding();
-
-					if (binding.equals(SAMLConstants.SAML2_POST_BINDING_URI)) {
-						singleLogoutServices.remove(singleLogoutService);
-
-						break;
-					}
-				}
-
-				List<SingleSignOnService> singleSignOnServices =
-					idpSSODescriptor.getSingleSignOnServices();
-
-				for (SingleSignOnService singleSignOnService :
-						singleSignOnServices) {
-
-					String binding = singleSignOnService.getBinding();
-
-					if (binding.equals(SAMLConstants.SAML2_POST_BINDING_URI)) {
-						singleSignOnServices.remove(singleSignOnService);
-
-						break;
-					}
-				}
-
-				return entityDescriptor;
-			}
-			else if (entityId.equals(SP_ENTITY_ID)) {
-				return MetadataGeneratorUtil.buildSpEntityDescriptor(
-					PORTAL_URL, entityId, true, true, false, credential, null);
-			}
-
-			return null;
-		}
-
-		private boolean _idpNeedsSignature = true;
-
+		when(
+			samlPeerBindingLocalService.getSamlPeerBinding(Mockito.anyLong())
+		).thenAnswer(
+			answer -> _samlPeerBindings.get((long)answer.getArguments()[0])
+		);
 	}
+
+	private final Map<Long, SamlPeerBinding> _samlPeerBindings =
+		new HashMap<>();
 
 }

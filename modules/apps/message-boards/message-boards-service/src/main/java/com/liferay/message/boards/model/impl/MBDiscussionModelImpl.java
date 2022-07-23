@@ -31,13 +31,14 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -257,34 +258,6 @@ public class MBDiscussionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, MBDiscussion>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			MBDiscussion.class.getClassLoader(), MBDiscussion.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<MBDiscussion> constructor =
-				(Constructor<MBDiscussion>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<MBDiscussion, Object>>
@@ -754,6 +727,40 @@ public class MBDiscussionModelImpl
 	}
 
 	@Override
+	public MBDiscussion cloneWithOriginalValues() {
+		MBDiscussionImpl mbDiscussionImpl = new MBDiscussionImpl();
+
+		mbDiscussionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		mbDiscussionImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		mbDiscussionImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		mbDiscussionImpl.setDiscussionId(
+			this.<Long>getColumnOriginalValue("discussionId"));
+		mbDiscussionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		mbDiscussionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		mbDiscussionImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		mbDiscussionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		mbDiscussionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		mbDiscussionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		mbDiscussionImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		mbDiscussionImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		mbDiscussionImpl.setThreadId(
+			this.<Long>getColumnOriginalValue("threadId"));
+		mbDiscussionImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return mbDiscussionImpl;
+	}
+
+	@Override
 	public int compareTo(MBDiscussion mbDiscussion) {
 		long primaryKey = mbDiscussion.getPrimaryKey();
 
@@ -897,7 +904,7 @@ public class MBDiscussionModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -908,9 +915,26 @@ public class MBDiscussionModelImpl
 			Function<MBDiscussion, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((MBDiscussion)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((MBDiscussion)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -957,7 +981,9 @@ public class MBDiscussionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, MBDiscussion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					MBDiscussion.class, ModelWrapper.class);
 
 	}
 

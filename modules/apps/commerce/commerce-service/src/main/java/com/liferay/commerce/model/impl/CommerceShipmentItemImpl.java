@@ -25,9 +25,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CommerceShipmentItemImpl extends CommerceShipmentItemBaseImpl {
 
-	public CommerceShipmentItemImpl() {
-	}
-
 	@Override
 	public CommerceOrderItem fetchCommerceOrderItem() {
 		return CommerceOrderItemLocalServiceUtil.fetchCommerceOrderItem(

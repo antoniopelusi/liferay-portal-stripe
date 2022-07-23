@@ -1,0 +1,130 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		task ("Copy the token from AC") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Set up instance and sign in DXP") {
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+		}
+
+		task ("Add a new site with a public widget page") {
+			ACUtils.addSiteAndPage();
+		}
+
+		task ("Add a Web Content Display to page and display a web content") {
+			ACUtils.createWCAndAddToPage();
+		}
+
+		task ("Connect the DXP to AC") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		JSONUser.tearDownNonAdminUsers();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8327 | Test Summary: Assert Sites Cohort Analysis sort Anonymous Visitors"
+	@priority = "3"
+	test AssertSitesCohortAnalysisSortAnonymousVisitors {
+		task ("Logout from DXP") {
+			User.logoutPG();
+		}
+
+		task ("View the site page as anonymous visitor") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch the property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Assert that the cohort analysis card shows anonymous visitors after their first views") {
+			Select(
+				locator1 = "ACSites#COHORT_ANALYSIS_SELECT_VISITOR_TYPE",
+				value1 = "Anonymous Visitors");
+
+			AssertTextEquals(
+				locator1 = "ACSites#COHORT_ANALYSIS_DAY_ZERO_PERCENTAGE",
+				value1 = "100.00%");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8326 | Test Summary: Site overview cohort analysis card shows which individuals are returning after their first views"
+	@priority = "5"
+	test ShowsIndividualsReturningAfterFirstViews {
+		task ("Add a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
+
+		task ("Sync the Contact Data") {
+			ACDXPSettings.syncNewContactData();
+		}
+
+		task ("Sign in as the created user") {
+			User.logoutAndLoginPG(userLoginEmailAddress = "userea@liferay.com");
+		}
+
+		task ("View the site page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch the property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Assert that the cohort analysis card shows which individuals are returning after their first views") {
+			while (IsElementNotPresent(locator1 = "ACSites#COHORT_ANALYSIS_DAY_ZERO_PERCENTAGE") && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+			}
+
+			AssertElementPresent(locator1 = "ACSites#COHORT_ANALYSIS_DAY_ZERO_PERCENTAGE");
+		}
+	}
+
+}

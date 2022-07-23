@@ -24,20 +24,8 @@
 
 			<replaceregexp
 				file="${analytics.cloud.docker.test.yaml}"
-				match="image: liferay\/com-liferay-osb-faro\:latest"
-				replace="image: ${analytics.cloud.faro.image.name}"
-			/>
-
-			<replaceregexp
-				file="${analytics.cloud.docker.test.yaml}"
 				match="\&quot;8080:8080\&quot;"
 				replace="&quot;${analytics.cloud.faro.dxp.port}:8080&quot;"
-			/>
-
-			<replaceregexp
-				file="${analytics.cloud.docker.test.yaml}"
-				match="http://\{service\}:8080"
-				replace="http://{service}:${analytics.cloud.faro.dxp.port}"
 			/>
 
 			<replaceregexp
@@ -70,7 +58,7 @@
 				input="${env.HOSTNAME}"
 				override="true"
 				property="short.hostname"
-				regexp="(cloud-[^\.]+)(\.lax\.liferay\.com)?"
+				regexp="(cloud-[^\.]+|test-\d+-\d+-\d+)(\.lax\.liferay\.com)?"
 				replace="\1"
 			/>
 
@@ -87,6 +75,133 @@ networks:
 		</sequential>
 	</macrodef>
 
+	<macrodef name="print-analytics-cloud-logs">
+		<sequential>
+			<property location="${analytics.cloud.asah.dir}/docker-compose.test.yml" name="analytics.cloud.docker.test.yaml" />
+
+			<local name="container.names" />
+
+			<beanshell>
+				<![CDATA[
+					import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+
+					import java.util.regex.Matcher;
+					import java.util.regex.Pattern;
+
+					public static List getContainerNames() {
+						File dockerComposeFile = new File(project.getProperty("analytics.cloud.docker.test.yaml"));
+
+						if (!dockerComposeFile.exists()) {
+							return new ArrayList();
+						}
+
+						List containerNames = new ArrayList();
+
+						String content = JenkinsResultsParserUtil.read(dockerComposeFile);
+
+						Pattern pattern = Pattern.compile("container_name: (.*)");
+
+						Matcher matcher = pattern.matcher(content);
+
+						while (matcher.find()) {
+							containerNames.add(matcher.group(1));
+						}
+
+						return containerNames;
+					}
+
+					project.setProperty("container.names", JenkinsResultsParserUtil.join(",", getContainerNames()))
+				]]>
+			</beanshell>
+
+			<local name="docker.logs.dir" />
+
+			<condition else="/tmp/docker-logs" property="docker.logs.dir" value="${env.BUILD_DIR}/docker-logs">
+				<and>
+					<isset property="env.BUILD_DIR" />
+					<isset property="env.BUILD_USER_CONTENT_URL" />
+				</and>
+			</condition>
+
+			<mkdir dir="${docker.logs.dir}" />
+
+			<for list="${container.names}" param="container.name">
+				<sequential>
+					<local name="container.file.name" />
+
+					<beanshell>
+						<![CDATA[
+							public int getRetryCount() {
+								String retryCount = project.getProperty("analytics.cloud.retry.count");
+
+								if (retryCount.matches("\\d+")) {
+									return Integer.valueOf(retryCount);
+								}
+
+								return 3;
+							}
+
+							for (int i = 0; i < getRetryCount(); i++) {
+								String containerFileName = "@{container.name}.log";
+
+								if (i > 0) {
+									containerFileName = "@{container.name}." + i + ".log";
+								}
+
+								File containerFile = new File(project.getProperty("docker.logs.dir"), containerFileName);
+
+								if (containerFile.exists()) {
+									continue;
+								}
+
+								project.setProperty("container.file.name", containerFileName);
+
+								break;
+							}
+						]]>
+					</beanshell>
+
+					<execute failonerror="false">
+						<![CDATA[
+							docker logs @{container.name} > ${docker.logs.dir}/${container.file.name}
+						]]>
+					</execute>
+
+					<if>
+						<isset property="env.BUILD_USER_CONTENT_URL" />
+						<then>
+							<echo>${env.BUILD_USER_CONTENT_URL}/docker-logs/${container.file.name}</echo>
+						</then>
+						<else>
+							<print-file file.name="${docker.logs.dir}/${container.file.name}" />
+						</else>
+					</if>
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="pull-docker-image-dependencies">
+		<attribute default="" name="analytics.cloud.image.names.excludes" />
+		<attribute name="analytics.cloud.repository.dir" />
+
+		<sequential>
+			<local name="analytics.cloud.image.names.excludes" />
+
+			<property name="analytics.cloud.image.names.excludes" value="@{analytics.cloud.image.names.excludes}" />
+
+			<beanshell>
+				<![CDATA[
+					import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+
+					String excludedImageNames = project.getProperty("analytics.cloud.image.names.excludes");
+
+					JenkinsResultsParserUtil.pullDockerImageDependencies(new File("@{analytics.cloud.repository.dir}"), excludedImageNames.split(","));
+				]]>
+			</beanshell>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="start-analytics-cloud">
 		<sequential>
 			<fail message="Please set the property ${env.DOCKER_ENABLED}." unless="env.DOCKER_ENABLED" />
@@ -99,12 +214,6 @@ networks:
 				file="${analytics.cloud.faro.dir}/build-ext.gradle"
 				match="def dockerContainerId = \&quot;([^\&quot;]+)\&quot;"
 				replace="def dockerContainerId = \&quot;${analytics.cloud.faro.container.name}\&quot;"
-			/>
-
-			<replaceregexp
-				file="${analytics.cloud.faro.dir}/build-ext.gradle"
-				match="def dockerImageId = \&quot;([^\&quot;]+)\&quot;"
-				replace="def dockerImageId = \&quot;${analytics.cloud.faro.image.name}\&quot;"
 			/>
 
 			<replaceregexp
@@ -126,6 +235,11 @@ OSB_FARO_FRONTEND_URL=${analytics.cloud.faro.frontend.url}</echo>
 			<if>
 				<equals arg1="${analytics.cloud.asah.build}" arg2="true" />
 				<then>
+					<pull-docker-image-dependencies
+						analytics.cloud.image.names.excludes="${analytics.cloud.asah.image.names.excludes}"
+						analytics.cloud.repository.dir="${analytics.cloud.asah.dir}"
+					/>
+
 					<execute dir="${analytics.cloud.asah.dir}">
 						./gradlew jar -Dliferay.ci=true
 
@@ -139,8 +253,32 @@ OSB_FARO_FRONTEND_URL=${analytics.cloud.faro.frontend.url}</echo>
 			<if>
 				<equals arg1="${analytics.cloud.faro.build}" arg2="true" />
 				<then>
+					<pull-docker-image-dependencies
+						analytics.cloud.image.names.excludes="${analytics.cloud.faro.image.names.excludes}"
+						analytics.cloud.repository.dir="${analytics.cloud.faro.dir}"
+					/>
+
+					<local name="portal.gradlew" />
+
+					<property location="${project.dir}/gradlew" name="portal.gradlew" />
+
+					<loadfile
+						property="analytics.cloud.docker.test.yaml.content"
+						srcfile="${analytics.cloud.docker.test.yaml}"
+					/>
+
+					<propertyregex
+						input="${analytics.cloud.docker.test.yaml.content}"
+						override="true"
+						property="analytics.cloud.faro.tag.name"
+						regexp="[\S\s]*image: (liferay\/com-liferay-osb-faro\:[^\s]+)[\S\s]*"
+						replace="\1"
+					/>
+
 					<execute dir="${analytics.cloud.faro.dir}">
-						./gradlew createDocker -Pcom.liferay.osb.faro.environment.name=local -Dliferay.ci=true
+						${portal.gradlew} createDocker -Pcom.liferay.osb.faro.environment.name=local -Dliferay.ci=true
+
+						docker tag ${analytics.cloud.faro.image.name} ${analytics.cloud.faro.tag.name}
 
 						docker rm ${analytics.cloud.faro.container.name}
 					</execute>
@@ -177,9 +315,35 @@ OSB_FARO_FRONTEND_URL=${analytics.cloud.faro.frontend.url}</echo>
 				docker volume prune -f
 			</echo>
 
-			<exec dir="${analytics.cloud.asah.dir}" executable="/bin/bash">
-				<arg value="${analytics.cloud.start.sh}" />
-			</exec>
+			<retry retrycount="${analytics.cloud.retry.count}" retrydelay="30000">
+				<sequential>
+					<trycatch property="analytics.cloud.error">
+						<try>
+							<local name="analytics.cloud.start.result" />
+
+							<exec dir="${analytics.cloud.asah.dir}" executable="/bin/bash" resultproperty="analytics.cloud.start.result" timeout="${analytics.cloud.start.timeout}">
+								<arg value="${analytics.cloud.start.sh}" />
+							</exec>
+
+							<if>
+								<not>
+									<equals arg1="${analytics.cloud.start.result}" arg2="0" />
+								</not>
+								<then>
+									<fail message="Failed to start analytics cloud with error code ${analytics.cloud.start.result}" />
+								</then>
+							</if>
+						</try>
+						<catch>
+							<print-analytics-cloud-logs />
+
+							<stop-analytics-cloud />
+
+							<fail message="${analytics.cloud.error}" />
+						</catch>
+					</trycatch>
+				</sequential>
+			</retry>
 
 			<delete file="${analytics.cloud.start.sh}" />
 		</sequential>
@@ -194,6 +358,8 @@ OSB_FARO_FRONTEND_URL=${analytics.cloud.faro.frontend.url}</echo>
 			<property location="${analytics.cloud.asah.dir}/docker-compose.test.yml" name="analytics.cloud.docker.test.yaml" />
 
 			<execute dir="${analytics.cloud.asah.dir}">
+				docker ps -a
+
 				touch local.env
 
 				docker-compose --file=${analytics.cloud.docker.test.yaml} --project-name=${analytics.cloud.project.name} down --volumes
@@ -212,6 +378,8 @@ OSB_FARO_FRONTEND_URL=${analytics.cloud.faro.frontend.url}</echo>
 	</target>
 
 	<target name="stop-analytics-cloud">
+		<print-analytics-cloud-logs />
+
 		<stop-analytics-cloud />
 	</target>
 </project>

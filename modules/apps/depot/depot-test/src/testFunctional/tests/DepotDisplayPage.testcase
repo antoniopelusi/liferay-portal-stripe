@@ -32,196 +32,206 @@ definition {
 		}
 	}
 
-	@description = "This test ensures that a user can map the display page with Open Graph when using the DM type from AL on a connect site."
+	@description = "This test ensures that an asset library custom document entry can be displayed with the default display page template on a connected site."
 	@priority = "5"
-	@refactorneeded
-	test MapDMWithOpenGraph {
-		var portalURL = PropsUtil.get("portal.url");
+	test CanViewDepotDMUsingDepotType {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
 
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			widgetName = "Asset Publisher");
 
-		DMNavigator.gotoDocumentType();
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		JSONDepot.updateStructureState(
+			groupName = "Test Site Name",
+			structureState = "Available");
+
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
 
 		DMDocumentType.add(
 			dmDocumentTypeDescription = "DM Document Type Description",
 			dmDocumentTypeFieldNames = "Text",
 			dmDocumentTypeName = "DM Document Type Name");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Test Site Name");
-
-		DepotNavigator.openDepotAdmin();
-
-		Depot.configureDDMStructures(
-			depotName = "Test Depot Name",
-			siteName = "Test Site Name",
-			tableEntryText = "Yes");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.addDisplayPage(
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 			contentType = "Document",
-			displayPageName = "Display Page Template Name",
+			depotDocumentType = "true",
+			depotName = "Test Depot Name",
+			displayPageTemplateEntryName = "Display Page Name",
+			groupName = "Test Site Name",
 			subType = "DM Document Type Name");
 
 		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
-		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
-			item = "Configure",
-			pageTemplateName = "Display Page Template Name");
-
-		Navigator.gotoNavNested(navNested = "Open Graph");
-
-		OpenGraph.mapEditableTextToField(
-			field = "File Name",
-			mappedField = "Title");
-
-		OpenGraph.mapEditableTextToField(
-			field = "MIME Type",
-			mappedField = "Description");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Preview Image",
-			mappedField = "Image");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Author Name",
-			mappedField = "Image Alt Description");
-
-		Button.clickSave();
-
-		OpenGraph.viewMappedField(
-			mappedField = "Title",
-			mappedFieldValue = "Document: File Name");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Description",
-			mappedFieldValue = "Document: MIME Type");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Image",
-			mappedFieldValue = "Document: Preview Image");
-
-		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "Document: Author Name");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
 
 		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
+			collectionName = "Featured Content",
+			composition = "true",
+			fragmentName = "Banner Center");
 
-		Button.clickPublish();
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Heading",
+			id = "element-text");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Title");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Paragraph",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Text");
+
+		PageEditor.clickPublish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
 
 		DMDocument.addCP(
 			dmDocumentDescription = "DM Document Description",
 			dmDocumentFile = "Document_1.jpg",
-			dmDocumentTitle = "Document_1.jpg",
+			dmDocumentTitle = "DM Document Title",
 			dmDocumentTypeName = "DM Document Type Name",
-			textField = "DM Document Text");
+			textField = "Text");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
 
-		var dmFileEntryID = DMDocument.getFileEntryID(dmDocumentTitle = "Document_1.jpg");
+		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Document_1.jpg");
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
 
-		WebContent.editDisplayPage(pageName = "Display Page Template Name");
-
-		PortletEntry.publish();
-
-		var siteID = Site.getSiteId();
-
-		User.logoutPG();
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryID}");
-
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Document_1.jpg","og:description" content="image/jpeg"''');
-
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Test Test","og:image" content="${portalURL}/documents/${siteID}/0/Document_1.jpg''');
+		DMDocument.viewPGViaAP(
+			contentList = "DM Document Title,Text",
+			displayPageTemplate = "true",
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title");
 	}
 
-	@description = "This test ensures that a user can map the display page with SEO when using the DM type from AL on a connect site."
+	@description = "This test ensures that an asset library document entry created with a type stored in the global site can be displayed with the default display page template on the generic site."
 	@priority = "5"
-	@refactorneeded
-	test MapDMWithSEO {
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+	test CanViewDepotDMUsingGlobalType {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
 
-		DMNavigator.gotoDocumentType();
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			widgetName = "Asset Publisher");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		DMNavigator.openDocumentTypesAdmin(siteURLKey = "global");
 
 		DMDocumentType.add(
 			dmDocumentTypeDescription = "DM Document Type Description",
 			dmDocumentTypeFieldNames = "Text",
 			dmDocumentTypeName = "DM Document Type Name");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Test Site Name");
-
-		DepotNavigator.openDepotAdmin();
-
-		Depot.configureDDMStructures(
-			depotName = "Test Depot Name",
-			siteName = "Test Site Name",
-			tableEntryText = "Yes");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.addDisplayPage(
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 			contentType = "Document",
-			displayPageName = "Display Page Template Name",
+			displayPageTemplateEntryName = "Display Page Name",
+			globalDocumentType = "true",
+			groupName = "Test Site Name",
 			subType = "DM Document Type Name");
 
 		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
-		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
-			item = "Configure",
-			pageTemplateName = "Display Page Template Name");
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
 
-		OpenGraph.mapEditableTextToField(
-			field = "File Name",
-			mappedField = "HTML Title");
+		PageEditor.addFragment(
+			collectionName = "Featured Content",
+			composition = "true",
+			fragmentName = "Banner Center");
 
-		OpenGraph.mapEditableTextToField(
-			field = "MIME Type",
-			mappedField = "Description");
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Heading",
+			id = "element-text");
 
-		Button.clickSave();
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Title");
 
-		OpenGraph.viewMappedField(
-			mappedField = "Title",
-			mappedFieldValue = "Document: File Name");
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Paragraph",
+			id = "element-text");
 
-		OpenGraph.viewMappedField(
-			mappedField = "Description",
-			mappedFieldValue = "Document: MIME Type");
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Text");
+
+		PageEditor.clickPublish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "DM Document Title",
+			dmDocumentTypeName = "DM Document Type Name",
+			textField = "Text");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		DMDocument.viewPGViaAP(
+			contentList = "DM Document Title,Text",
+			displayPageTemplate = "true",
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title");
 	}
 
-	@description = "This test ensures that a user can map the display page with Open Graph when using the WC structure from AL on a connect site."
+	@description = "This test ensures that an asset library custom article can be displayed with the default display page template on a connected site."
 	@priority = "5"
-	@refactorneeded
-	test MapWCWithOpenGraph {
-		var portalURL = PropsUtil.get("portal.url");
+	test CanViewDepotWCUsingDepotStructure {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
 
-		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			widgetName = "Asset Publisher");
 
-		NavItem.gotoStructures();
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		JSONDepot.updateStructureState(
+			groupName = "Test Site Name",
+			structureState = "Available");
+
+		DepotNavigator.openDepotWebContentStructuresAdmin(depotName = "Test Depot Name");
 
 		WebContentStructures.addCP(
 			structureDescription = "WC Structure Description",
@@ -233,9 +243,549 @@ definition {
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Web Content Article",
+			depotName = "Test Depot Name",
+			depotStructure = "true",
+			displayPageTemplateEntryName = "Display Page Name",
+			groupName = "Test Site Name",
+			subType = "WC Structure Name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Featured Content",
+			composition = "true",
+			fragmentName = "Banner Center");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Heading",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Title");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Paragraph",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Text");
+
+		PageEditor.clickPublish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
 		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
 
-		NavItem.gotoTemplates();
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+
+		WebContent.addWithStructureCP(
+			webContentText = "WC WebContent Content",
+			webContentTitle = "WC Webcontent Title");
+
+		PortletEntry.publish();
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		DisplayPageTemplatesAdmin.viewPGViaAP(
+			contentList = "WC Webcontent Title,WC WebContent Content",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC Webcontent Title");
+	}
+
+	@description = "This test ensures that an asset library article created with a structure stored in the global site can be displayed with the default display page template on the generic site."
+	@priority = "5"
+	test CanViewDepotWCUsingGlobalStructure {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			widgetName = "Asset Publisher");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentStructuresAdmin(siteURLKey = "global");
+
+		WebContentStructures.addCP(
+			structureDescription = "WC Structure Description",
+			structureName = "WC Structure Name");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Name");
+
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Web Content Article",
+			displayPageTemplateEntryName = "Display Page Name",
+			globalStructure = "true",
+			groupName = "Test Site Name",
+			subType = "WC Structure Name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Featured Content",
+			composition = "true",
+			fragmentName = "Banner Center");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Heading",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Title");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Paragraph",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Text");
+
+		PageEditor.clickPublish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+
+		WebContent.addWithStructureCP(
+			webContentText = "WC WebContent Content",
+			webContentTitle = "WC Webcontent Title");
+
+		PortletEntry.publish();
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		DisplayPageTemplatesAdmin.viewPGViaAP(
+			contentList = "WC Webcontent Title,WC WebContent Content",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC Webcontent Title");
+	}
+
+	@description = "This test ensures that a site document entry created with a type stored in an asset library can be displayed with the default display page template on a connected site."
+	@priority = "5"
+	test CanViewSiteDMUsingDepotType {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			widgetName = "Asset Publisher");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		JSONDepot.updateStructureState(
+			groupName = "Test Site Name",
+			structureState = "Available");
+
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
+
+		DMDocumentType.add(
+			dmDocumentTypeDescription = "DM Document Type Description",
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Document",
+			depotDocumentType = "true",
+			depotName = "Test Depot Name",
+			displayPageTemplateEntryName = "Display Page Name",
+			groupName = "Test Site Name",
+			subType = "DM Document Type Name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Featured Content",
+			composition = "true",
+			fragmentName = "Banner Center");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Heading",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Title");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Paragraph",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Text");
+
+		PageEditor.clickPublish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "DM Document Title",
+			dmDocumentTypeName = "DM Document Type Name",
+			textField = "Text");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		DMDocument.viewPGViaAP(
+			contentList = "DM Document Title,Text",
+			displayPageTemplate = "true",
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title");
+	}
+
+	@description = "This test ensures that a site article created with a structure stored in an asset library can be displayed with the default display page template on a connected site."
+	@priority = "5"
+	test CanViewSiteWCUsingDepotStructure {
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page Name",
+			widgetName = "Asset Publisher");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		JSONDepot.updateStructureState(
+			groupName = "Test Site Name",
+			structureState = "Available");
+
+		DepotNavigator.openDepotWebContentStructuresAdmin(depotName = "Test Depot Name");
+
+		WebContentStructures.addCP(
+			structureDescription = "WC Structure Description",
+			structureName = "WC Structure Name");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Name");
+
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Web Content Article",
+			depotName = "Test Depot Name",
+			depotStructure = "true",
+			displayPageTemplateEntryName = "Display Page Name",
+			groupName = "Test Site Name",
+			subType = "WC Structure Name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Featured Content",
+			composition = "true",
+			fragmentName = "Banner Center");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Heading",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Title");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Paragraph",
+			id = "element-text");
+
+		Select(
+			key_fieldLabel = "Field",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Text");
+
+		PageEditor.clickPublish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+
+		WebContent.addWithStructureCP(
+			webContentText = "WC WebContent Content",
+			webContentTitle = "WC Webcontent Title");
+
+		PortletEntry.publish();
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		DisplayPageTemplatesAdmin.viewPGViaAP(
+			contentList = "WC Webcontent Title,WC WebContent Content",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC Webcontent Title");
+	}
+
+	@description = "This test ensures that a user can map the display page with Open Graph when using the DM type from AL on a connect site."
+	@priority = "5"
+	@refactorneeded
+	test MapDMWithOpenGraph {
+		var portalURL = PropsUtil.get("portal.url");
+
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
+
+		DMDocumentType.add(
+			dmDocumentTypeDescription = "DM Document Type Description",
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.configureDDMStructures(
+			depotName = "Test Depot Name",
+			siteName = "Test Site Name",
+			tableEntryText = "Yes");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.addDisplayPage(
+			contentType = "Document",
+			displayPageName = "Display Page Template Name",
+			subType = "DM Document Type Name");
+
+		DisplayPageTemplate.addFragment(
+			collectionName = "Content Display",
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
+			item = "Configure",
+			pageTemplateName = "Display Page Template Name");
+
+		Navigator.gotoNavNested(navNested = "Open Graph");
+
+		OpenGraph.mapEditableTextToField(
+			field = "File Name",
+			mappedField = "Title",
+			mappedFieldName = "Title",
+			mappedFieldText = "Title is ",
+			textType = "TextInput");
+
+		OpenGraph.mapEditableTextToField(
+			field = "MIME Type",
+			mappedField = "Description",
+			mappedFieldName = "Description",
+			mappedFieldText = "Description is ",
+			textType = "TextArea");
+
+		OpenGraph.mapEditableTextToField(
+			field = "Author Name",
+			mappedField = "ImageAlt",
+			mappedFieldName = "Image Alt Description",
+			mappedFieldText = "Image Alt is ",
+			textType = "TextArea");
+
+		OpenGraph.mapEditableTextToField(
+			field = "Preview Image",
+			mappedFieldName = "Image");
+
+		Button.clickSave();
+
+		OpenGraph.viewMappedField(
+			mappedField = "Title",
+			mappedFieldValue = "Title is File Name: ${fileName:File Name}");
+
+		OpenGraph.viewMappedField(
+			mappedField = "Description",
+			mappedFieldValue = "Description is MIME Type: ${mimeType:MIME Type}");
+
+		OpenGraph.viewMappedField(
+			mappedField = "Image",
+			mappedFieldValue = "Document: Preview Image");
+
+		OpenGraph.viewMappedField(
+			mappedField = "ImageAlt",
+			mappedFieldValue = "Image Alt is Author Name: ${authorName:Author Name}",
+			textType = "TextArea");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "Document_1.jpg",
+			dmDocumentTypeName = "DM Document Type Name",
+			textField = "DM Document Text");
+
+		DisplayPageTemplate.selectDisplayPageTemplateForAsset(
+			assetType = "Document",
+			entryTitle = "Document_1.jpg",
+			groupName = "Test Site Name",
+			pageName = "Display Page Template Name",
+			siteURLKey = "test-site-name");
+
+		var dmFileEntryId = JSONDocument.getFileEntryId(
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Test Site Name");
+
+		var siteId = JSONGroupAPI._getGroupIdByName(
+			groupName = "Test Site Name",
+			site = "true");
+
+		User.logoutPG();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryId}");
+
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Title is File Name: Document_1.jpg","og:description" content="Description is MIME Type: image/jpeg"''');
+
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Image Alt is Author Name: Test Test","og:image" content="${portalURL}/documents/${siteId}/0/Document_1.jpg''');
+	}
+
+	@description = "This test ensures that a user can map the display page with SEO when using the DM type from AL on a connect site."
+	@priority = "5"
+	@refactorneeded
+	test MapDMWithSEO {
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
+
+		DMDocumentType.add(
+			dmDocumentTypeDescription = "DM Document Type Description",
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
+
+		DepotNavigator.openDepotAdmin();
+
+		Depot.configureDDMStructures(
+			depotName = "Test Depot Name",
+			siteName = "Test Site Name",
+			tableEntryText = "Yes");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.addDisplayPage(
+			contentType = "Document",
+			displayPageName = "Display Page Template Name",
+			subType = "DM Document Type Name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
+			item = "Configure",
+			pageTemplateName = "Display Page Template Name");
+
+		OpenGraph.mapEditableTextToField(
+			field = "File Name",
+			mappedField = "HTML Title",
+			mappedFieldName = "HTML Title",
+			mappedFieldText = "HTML Title is ",
+			textType = "TextInput");
+
+		OpenGraph.mapEditableTextToField(
+			field = "MIME Type",
+			mappedField = "description",
+			mappedFieldName = "Description",
+			mappedFieldText = "Description is ",
+			textType = "TextArea");
+
+		Button.clickSave();
+
+		OpenGraph.viewMappedField(
+			mappedField = "title",
+			mappedFieldValue = "HTML Title is File Name: ${fileName:File Name}");
+
+		OpenGraph.viewMappedField(
+			mappedField = "description",
+			mappedFieldValue = "Description is MIME Type: ${mimeType:MiME Type}",
+			textType = "TextArea");
+	}
+
+	@description = "This test ensures that a user can map the display page with Open Graph when using the WC structure from AL on a connect site."
+	@priority = "5"
+	@refactorneeded
+	test MapWCWithOpenGraph {
+		var portalURL = PropsUtil.get("portal.url");
+
+		DepotNavigator.openDepotWebContentStructuresAdmin(depotName = "Test Depot Name");
+
+		WebContentStructures.addCP(
+			structureDescription = "WC Structure Description",
+			structureName = "WC Structure Name");
+
+		var textNumber = DataEngine.addField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text",
+			textNumber = "true");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Name");
+
+		DepotNavigator.openDepotWebContentTemplatesAdmin(depotName = "Test Depot Name");
 
 		WebContentTemplates.addCP(
 			structureName = "WC Structure Name",
@@ -243,13 +793,9 @@ definition {
 			templateFieldNames = "Text",
 			templateName = "WC Template Name");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Test Site Name");
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
 
 		DepotNavigator.openDepotAdmin();
 
@@ -265,6 +811,12 @@ definition {
 			displayPageName = "Display Page Template Name",
 			subType = "WC Structure Name");
 
+		DisplayPageTemplate.addFragment(
+			collectionName = "Content Display",
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
+
 		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
 
 		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
@@ -275,47 +827,56 @@ definition {
 
 		OpenGraph.mapEditableTextToField(
 			field = "Text",
-			mappedField = "Title");
+			mappedField = "Title",
+			mappedFieldName = "Title",
+			mappedFieldText = "Title is ",
+			textType = "TextInput");
 
 		OpenGraph.mapEditableTextToField(
 			field = "Text",
-			mappedField = "Description");
+			mappedField = "Description",
+			mappedFieldName = "Description",
+			mappedFieldText = "Description is ",
+			textType = "TextArea");
+
+		OpenGraph.mapEditableTextToField(
+			field = "Text",
+			mappedField = "ImageAlt",
+			mappedFieldName = "Image Alt Description",
+			mappedFieldText = "Image Alt is ",
+			textType = "TextArea");
 
 		OpenGraph.mapEditableTextToField(
 			field = "Small Image",
-			mappedField = "Image");
-
-		OpenGraph.mapEditableTextToField(
-			field = "Text",
-			mappedField = "Image Alt Description");
+			mappedFieldName = "Image");
 
 		Button.clickSave();
 
+		var mappedFieldValue = StringUtil.add("Title is Text: ${", "${textNumber}:Text", "");
+		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
+
 		OpenGraph.viewMappedField(
 			mappedField = "Title",
-			mappedFieldValue = "WC Structure Name: Text");
+			mappedFieldValue = "${mappedFieldValue}");
+
+		var mappedFieldValue = StringUtil.add("Description is Text: ${", "${textNumber}:Text", "");
+		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
 
 		OpenGraph.viewMappedField(
 			mappedField = "Description",
-			mappedFieldValue = "WC Structure Name: Text");
+			mappedFieldValue = "${mappedFieldValue}");
 
 		OpenGraph.viewMappedField(
 			mappedField = "Image",
 			mappedFieldValue = "WC Structure Name: Small Image");
 
+		var mappedFieldValue = StringUtil.add("Image Alt is Text: ${", "${textNumber}:Text", "");
+		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
+
 		OpenGraph.viewMappedField(
-			mappedField = "Alt",
-			mappedFieldValue = "WC Structure Name: Text");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
-
-		PageEditor.addFragment(
-			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
-
-		Button.clickPublish();
+			mappedField = "ImageAlt",
+			mappedFieldValue = "${mappedFieldValue}",
+			textType = "TextArea");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
@@ -329,9 +890,10 @@ definition {
 
 		PortletEntry.publish();
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Test Site Name",
+			siteURLKey = "test-site-name",
+			webContentTitle = "Web Content Title");
 
 		WebContent.editDisplayPage(pageName = "Display Page Template Name");
 
@@ -339,36 +901,33 @@ definition {
 
 		PortletEntry.publish();
 
-		User.logoutPG();
+		Navigator.openSpecificURL(url = "${portalURL}/c/portal/logout");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/web-content-title");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Asset Library Text","og:description" content="Asset Library Text"''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Title is Text: Asset Library Text","og:description" content="Description is Text: Asset Library Text"''');
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Asset Library Text","og:image" content="https://dummyimage.com/600x400/000/fff.jpg"''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Image Alt is Text: Asset Library Text","og:image" content="https://dummyimage.com/600x400/000/fff.jpg"''');
 	}
 
 	@description = "This test ensures that a user can map the display page with SEO when using the WC structure from AL on a connect site."
 	@priority = "5"
 	@refactorneeded
 	test MapWCWithSEO {
-		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
-
-		NavItem.gotoStructures();
+		DepotNavigator.openDepotWebContentStructuresAdmin(depotName = "Test Depot Name");
 
 		WebContentStructures.addCP(
 			structureDescription = "WC Structure Description",
 			structureName = "WC Structure Name");
 
-		DataEngine.addField(
+		var textNumber = DataEngine.addField(
 			fieldFieldLabel = "Text",
-			fieldName = "Text");
+			fieldName = "Text",
+			textNumber = "true");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
-		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
-
-		NavItem.gotoTemplates();
+		DepotNavigator.openDepotWebContentTemplatesAdmin(depotName = "Test Depot Name");
 
 		WebContentTemplates.addCP(
 			structureName = "WC Structure Name",
@@ -376,13 +935,9 @@ definition {
 			templateFieldNames = "Text",
 			templateName = "WC Template Name");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Test Site Name");
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
 
 		DepotNavigator.openDepotAdmin();
 
@@ -406,21 +961,34 @@ definition {
 
 		OpenGraph.mapEditableTextToField(
 			field = "Text",
-			mappedField = "HTML Title");
+			mappedField = "HTML Title",
+			mappedFieldName = "HTML Title",
+			mappedFieldText = "HTML Title is ",
+			textType = "TextInput");
 
 		OpenGraph.mapEditableTextToField(
 			field = "Text",
-			mappedField = "Description");
+			mappedField = "description",
+			mappedFieldName = "Description",
+			mappedFieldText = "Description is ",
+			textType = "TextArea");
 
 		Button.clickSave();
 
-		OpenGraph.viewMappedField(
-			mappedField = "Title",
-			mappedFieldValue = "WC Structure Name: Text");
+		var mappedFieldValue = StringUtil.add("HTML Title is Text: ${", "${textNumber}:Text", "");
+		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
 
 		OpenGraph.viewMappedField(
-			mappedField = "Description",
-			mappedFieldValue = "WC Structure Name: Text");
+			mappedField = "title",
+			mappedFieldValue = "${mappedFieldValue}");
+
+		var mappedFieldValue = StringUtil.add("Description is Text: ${", "${textNumber}:Text", "");
+		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
+
+		OpenGraph.viewMappedField(
+			mappedField = "description",
+			mappedFieldValue = "${mappedFieldValue}",
+			textType = "TextArea");
 	}
 
 	@description = "This test ensures that a user can view the image using display page template with DM type from AL on a connect site."
@@ -431,22 +999,16 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
-
-		DMNavigator.gotoDocumentType();
+		DepotNavigator.openDepotDocumentTypeAdmin(depotName = "Test Depot Name");
 
 		DMDocumentType.add(
 			dmDocumentTypeDescription = "DM Document Type Description",
 			dmDocumentTypeFieldNames = "Text",
 			dmDocumentTypeName = "DM Document Type Name");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Test Site Name");
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
 
 		DepotNavigator.openDepotAdmin();
 
@@ -462,15 +1024,11 @@ definition {
 			displayPageName = "Display Page Template Name",
 			subType = "DM Document Type Name");
 
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
-
-		PageEditor.addFragment(
+		DisplayPageTemplate.addFragment(
 			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
-
-		Button.clickPublish();
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
 
@@ -481,19 +1039,18 @@ definition {
 			dmDocumentTypeName = "DM Document Type Name",
 			textField = "DM Document Text");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+		DisplayPageTemplate.selectDisplayPageTemplateForAsset(
+			assetType = "Document",
+			entryTitle = "Document_1.jpg",
+			groupName = "Test Site Name",
+			pageName = "Display Page Template Name",
+			siteURLKey = "test-site-name");
 
-		var dmFileEntryID = DMDocument.getFileEntryID(dmDocumentTitle = "Document_1.jpg");
+		var dmFileEntryId = JSONDocument.getFileEntryId(
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Test Site Name");
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "Document_1.jpg");
-
-		WebContent.editDisplayPage(pageName = "Display Page Template Name");
-
-		PortletEntry.publish();
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryID}");
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryId}");
 
 		AssertVisible(
 			key_imageFileName = "Document_1.jpg",
@@ -508,9 +1065,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
-
-		NavItem.gotoStructures();
+		DepotNavigator.openDepotWebContentStructuresAdmin(depotName = "Test Depot Name");
 
 		WebContentStructures.addCP(
 			structureDescription = "WC Structure Description",
@@ -522,9 +1077,7 @@ definition {
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
-		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
-
-		NavItem.gotoTemplates();
+		DepotNavigator.openDepotWebContentTemplatesAdmin(depotName = "Test Depot Name");
 
 		WebContentTemplates.addCP(
 			structureName = "WC Structure Name",
@@ -532,13 +1085,9 @@ definition {
 			templateFieldNames = "Text",
 			templateName = "WC Template Name");
 
-		DepotNavigator.openDepotAdmin();
-
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoSites(depotName = "Test Depot Name");
-
-		Depot.connectSite(siteList = "Test Site Name");
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Test Site Name");
 
 		DepotNavigator.openDepotAdmin();
 
@@ -554,15 +1103,11 @@ definition {
 			displayPageName = "Display Page Template Name",
 			subType = "WC Structure Name");
 
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
-
-		PageEditor.addFragment(
+		DisplayPageTemplate.addFragment(
 			collectionName = "Content Display",
-			fragmentName = "Display Page Content");
-
-		Button.clickPublish();
+			displayPageName = "Display Page Template Name",
+			fragmentName = "Display Page Content",
+			siteURLKey = "test-site-name");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
@@ -576,13 +1121,12 @@ definition {
 
 		PortletEntry.publish();
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
-
-		WebContent.editDisplayPage(pageName = "Display Page Template Name");
-
-		PortletEntry.publish();
+		DisplayPageTemplate.selectDisplayPageTemplateForAsset(
+			assetType = "Web Content",
+			entryTitle = "Web Content Title",
+			groupName = "Test Site Name",
+			pageName = "Display Page Template Name",
+			siteURLKey = "test-site-name");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/web-content-title");
 

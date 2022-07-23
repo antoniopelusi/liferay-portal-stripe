@@ -135,37 +135,14 @@ public class IndividualSegment {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(27);
-
-		sb.append("{author=");
-		sb.append(_author);
-		sb.append(", dateCreated=");
-		sb.append(_dateCreated);
-		sb.append(", dateModified=");
-		sb.append(_dateModified);
-		sb.append(", embeddedResources=");
-		sb.append(_embeddedResources);
-		sb.append(", filter=");
-		sb.append(_filter);
-		sb.append(", filterMetadata=");
-		sb.append(_filterMetadata);
-		sb.append(", id=");
-		sb.append(_id);
-		sb.append(", individualCount=");
-		sb.append(_individualCount);
-		sb.append(", name=");
-		sb.append(_name);
-		sb.append(", scope=");
-		sb.append(_scope);
-		sb.append(", segmentType=");
-		sb.append(_segmentType);
-		sb.append(", state=");
-		sb.append(_state);
-		sb.append(", status=");
-		sb.append(_status);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{author=", _author, ", dateCreated=", _dateCreated,
+			", dateModified=", _dateModified, ", embeddedResources=",
+			_embeddedResources, ", filter=", _filter, ", filterMetadata=",
+			_filterMetadata, ", id=", _id, ", individualCount=",
+			_individualCount, ", name=", _name, ", scope=", _scope,
+			", segmentType=", _segmentType, ", state=", _state, ", status=",
+			_status, "}");
 	}
 
 	public enum Scope {

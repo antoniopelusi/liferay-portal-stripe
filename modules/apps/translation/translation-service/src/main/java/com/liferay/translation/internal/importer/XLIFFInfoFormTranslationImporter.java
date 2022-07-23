@@ -24,6 +24,8 @@ import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -31,6 +33,8 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.SAXReader;
+import com.liferay.segments.model.SegmentsExperience;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.translation.exception.XLIFFFileException;
 import com.liferay.translation.importer.TranslationInfoItemFieldValuesImporter;
 import com.liferay.translation.internal.util.XLIFFLocaleIdUtil;
@@ -45,7 +49,10 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,6 +67,7 @@ import net.sf.okapi.common.resource.StartDocument;
 import net.sf.okapi.common.resource.StartSubDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextFragment;
+import net.sf.okapi.common.resource.TextPart;
 import net.sf.okapi.filters.autoxliff.AutoXLIFFFilter;
 import net.sf.okapi.lib.xliff2.InvalidParameterException;
 import net.sf.okapi.lib.xliff2.XLIFFException;
@@ -67,7 +75,6 @@ import net.sf.okapi.lib.xliff2.core.Fragment;
 import net.sf.okapi.lib.xliff2.core.Part;
 import net.sf.okapi.lib.xliff2.core.StartXliffData;
 import net.sf.okapi.lib.xliff2.core.Unit;
-import net.sf.okapi.lib.xliff2.document.FileNode;
 import net.sf.okapi.lib.xliff2.document.XLIFFDocument;
 
 import org.osgi.service.component.annotations.Component;
@@ -110,11 +117,15 @@ public class XLIFFInfoFormTranslationImporter
 	}
 
 	private InfoField _createInfoField(Locale locale, String value) {
+		String[] namespaceAndNameArray = _getNamespaceAndNameArray(value);
+
 		return InfoField.builder(
 		).infoFieldType(
 			TextInfoFieldType.INSTANCE
+		).namespace(
+			namespaceAndNameArray[0]
 		).name(
-			value
+			namespaceAndNameArray[1]
 		).labelInfoLocalizedValue(
 			InfoLocalizedValue.<String>builder(
 			).value(
@@ -141,10 +152,11 @@ public class XLIFFInfoFormTranslationImporter
 
 		return InfoItemFieldValues.builder(
 		).<XLIFFFileException>infoFieldValue(
-			consumer -> _produceInfoFieldValuesXLIFFv12(
-				consumer, events, sourceLocale, targetLocale, includeSource)
+			unsafeConsumer -> _produceInfoFieldValuesXLIFFv12(
+				unsafeConsumer, events, sourceLocale, targetLocale,
+				includeSource)
 		).infoItemReference(
-			infoItemReference
+			_getInfoItemReference(events)
 		).build();
 	}
 
@@ -168,12 +180,87 @@ public class XLIFFInfoFormTranslationImporter
 
 		return InfoItemFieldValues.builder(
 		).<XLIFFFileException>infoFieldValue(
-			consumer -> _produceInfoFieldValuesXLIFFv20(
-				consumer, xliffDocument, sourceLocale, targetLocale,
+			unsafeConsumer -> _produceInfoFieldValuesXLIFFv20(
+				unsafeConsumer, xliffDocument, sourceLocale, targetLocale,
 				includeSource)
 		).infoItemReference(
-			infoItemReference
+			_getInfoItemReference(xliffDocument)
 		).build();
+	}
+
+	private InfoItemReference _getInfoItemReference(List<Event> events)
+		throws XLIFFFileException {
+
+		Stream<Event> stream = events.stream();
+
+		Optional<Event> optional = stream.filter(
+			Event::isStartSubDocument
+		).findFirst();
+
+		return optional.flatMap(
+			event -> {
+				StartSubDocument startSubDocument = event.getStartSubDocument();
+
+				Matcher matcher = _pattern.matcher(startSubDocument.getName());
+
+				if (!matcher.matches()) {
+					return Optional.empty();
+				}
+
+				return Optional.of(
+					new InfoItemReference(
+						matcher.group(1),
+						GetterUtil.getLong(matcher.group(2))));
+			}
+		).orElseThrow(
+			() -> new XLIFFFileException.MustBeWellFormed(
+				"The XLIFF file is not well formed")
+		);
+	}
+
+	private InfoItemReference _getInfoItemReference(XLIFFDocument xliffDocument)
+		throws XLIFFFileException {
+
+		List<String> fileNodeIds = xliffDocument.getFileNodeIds();
+
+		Matcher matcher = _pattern.matcher(fileNodeIds.get(0));
+
+		if (!matcher.matches()) {
+			throw new XLIFFFileException.MustBeWellFormed(
+				"The XLIFF file is not well formed");
+		}
+
+		return new InfoItemReference(
+			matcher.group(1), GetterUtil.getLong(matcher.group(2)));
+	}
+
+	private String[] _getNamespaceAndNameArray(String value) {
+		String[] parts = value.split(StringPool.UNDERLINE, 2);
+
+		if (parts.length != 2) {
+			return new String[] {StringPool.BLANK, value};
+		}
+
+		return parts;
+	}
+
+	private long _getSegmentsExperienceClassPK(
+		InfoItemReference infoItemReference) {
+
+		if (!Objects.equals(
+				infoItemReference.getClassName(), Layout.class.getName())) {
+
+			return infoItemReference.getClassPK();
+		}
+
+		Layout layout = _layoutLocalService.fetchLayout(
+			infoItemReference.getClassPK());
+
+		if ((layout == null) || !layout.isDraftLayout()) {
+			return infoItemReference.getClassPK();
+		}
+
+		return layout.getClassPK();
 	}
 
 	private Locale _getSourceLocale(StartSubDocument startSubDocument) {
@@ -301,7 +388,8 @@ public class XLIFFInfoFormTranslationImporter
 	}
 
 	private void _produceInfoFieldValuesXLIFFv12(
-			UnsafeConsumer<InfoFieldValue<Object>, XLIFFFileException> consumer,
+			UnsafeConsumer<InfoFieldValue<Object>, XLIFFFileException>
+				unsafeConsumer,
 			List<Event> events, Locale sourceLocale, Locale targetLocale,
 			boolean includeSource)
 		throws XLIFFFileException {
@@ -321,69 +409,74 @@ public class XLIFFInfoFormTranslationImporter
 				TextContainer targetTextContainer = iTextUnit.getTarget(
 					targetLocaleId);
 
-				TextFragment targetTextFragment =
-					targetTextContainer.getFirstContent();
+				for (TextPart targetTextPart : targetTextContainer.getParts()) {
+					TextFragment targetTextFragment =
+						targetTextPart.getContent();
 
-				consumer.accept(
-					new InfoFieldValue<>(
-						_createInfoField(targetLocale, iTextUnit.getId()),
-						InfoLocalizedValue.builder(
-						).value(
-							targetLocale, targetTextFragment.getText()
-						).value(
-							biConsumer -> {
-								if (includeSource) {
-									TextFragment sourceTextFragment =
-										sourceTextContainer.getFirstContent();
+					if (Validator.isNull(targetTextFragment.getText())) {
+						continue;
+					}
 
-									biConsumer.accept(
-										sourceLocale,
-										sourceTextFragment.getText());
+					unsafeConsumer.accept(
+						new InfoFieldValue<>(
+							_createInfoField(targetLocale, iTextUnit.getId()),
+							InfoLocalizedValue.builder(
+							).value(
+								targetLocale, targetTextFragment.getText()
+							).value(
+								biConsumer -> {
+									if (includeSource) {
+										TextFragment sourceTextFragment =
+											sourceTextContainer.
+												getFirstContent();
+
+										biConsumer.accept(
+											sourceLocale,
+											sourceTextFragment.getText());
+									}
 								}
-							}
-						).build()));
+							).build()));
+				}
 			}
 		}
 	}
 
 	private void _produceInfoFieldValuesXLIFFv20(
-			UnsafeConsumer<InfoFieldValue<Object>, XLIFFFileException> consumer,
+			UnsafeConsumer<InfoFieldValue<Object>, XLIFFFileException>
+				unsafeConsumer,
 			XLIFFDocument xliffDocument, Locale sourceLocale,
 			Locale targetLocale, boolean includeSource)
 		throws XLIFFFileException {
 
 		for (Unit unit : xliffDocument.getUnits()) {
-			if (unit.getPartCount() != 1) {
-				throw new XLIFFFileException.MustNotHaveMoreThanOne(
-					"The file only can have one unit");
-			}
+			for (int i = 0; i < unit.getPartCount(); i++) {
+				Part part = unit.getPart(i);
 
-			Part part = unit.getPart(0);
+				Fragment targetFragment = part.getTarget();
 
-			Fragment targetFragment = part.getTarget();
+				if (targetFragment == null) {
+					throw new XLIFFFileException.MustBeWellFormed(
+						"There is no translation target");
+				}
 
-			if (targetFragment == null) {
-				throw new XLIFFFileException.MustBeWellFormed(
-					"There is no translation target");
-			}
+				unsafeConsumer.accept(
+					new InfoFieldValue<>(
+						_createInfoField(targetLocale, unit.getId()),
+						InfoLocalizedValue.builder(
+						).value(
+							targetLocale, targetFragment.getPlainText()
+						).value(
+							biConsumer -> {
+								if (includeSource) {
+									Fragment sourceFragment = part.getSource();
 
-			consumer.accept(
-				new InfoFieldValue<>(
-					_createInfoField(targetLocale, unit.getId()),
-					InfoLocalizedValue.builder(
-					).value(
-						targetLocale, targetFragment.getPlainText()
-					).value(
-						biConsumer -> {
-							if (includeSource) {
-								Fragment sourceFragment = part.getSource();
-
-								biConsumer.accept(
-									sourceLocale,
-									sourceFragment.getPlainText());
+									biConsumer.accept(
+										sourceLocale,
+										sourceFragment.getPlainText());
+								}
 							}
-						}
-					).build()));
+						).build()));
+			}
 		}
 	}
 
@@ -481,14 +574,53 @@ public class XLIFFInfoFormTranslationImporter
 		Locale targetLocale = LocaleUtil.fromLanguageId(
 			targetLanguage, true, false);
 
-		if (targetLocale == null) {
+		if ((targetLocale == null) ||
+			!availableLocales.contains(targetLocale)) {
+
 			throw new XLIFFFileException.MustBeSupportedLanguage(
 				targetLanguage);
 		}
+	}
 
-		if (!availableLocales.contains(targetLocale)) {
-			throw new XLIFFFileException.MustBeSupportedLanguage(
-				targetLanguage);
+	private void _validateXLIFFDocumentName(
+			InfoItemReference infoItemReference, String xliffDocumentName)
+		throws XLIFFFileException {
+
+		if (infoItemReference == null) {
+			return;
+		}
+
+		Matcher matcher = _pattern.matcher(xliffDocumentName);
+
+		if (!matcher.matches()) {
+			throw new XLIFFFileException.MustHaveValidId("File ID is invalid");
+		}
+
+		String className = matcher.group(1);
+		long classPK = GetterUtil.getLong(matcher.group(2));
+
+		if (Objects.equals(className, infoItemReference.getClassName()) &&
+			Objects.equals(classPK, infoItemReference.getClassPK())) {
+
+			return;
+		}
+
+		if (!Objects.equals(className, SegmentsExperience.class.getName())) {
+			throw new XLIFFFileException.MustHaveValidId("File ID is invalid");
+		}
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.fetchSegmentsExperience(classPK);
+
+		if ((segmentsExperience == null) ||
+			!Objects.equals(
+				segmentsExperience.getClassName(),
+				infoItemReference.getClassName()) ||
+			!Objects.equals(
+				segmentsExperience.getClassPK(),
+				_getSegmentsExperienceClassPK(infoItemReference))) {
+
+			throw new XLIFFFileException.MustHaveValidId("File ID is invalid");
 		}
 	}
 
@@ -513,13 +645,7 @@ public class XLIFFInfoFormTranslationImporter
 				"Only one node is allowed");
 		}
 
-		FileNode fileNode = xliffDocument.getFileNode(
-			infoItemReference.getClassName() + StringPool.COLON +
-				infoItemReference.getClassPK());
-
-		if (fileNode == null) {
-			throw new XLIFFFileException.MustHaveValidId("File ID is invalid");
-		}
+		_validateXLIFFDocumentName(infoItemReference, fileNodeIds.get(0));
 	}
 
 	private void _validateXLIFFStartSubdocument(
@@ -532,13 +658,8 @@ public class XLIFFInfoFormTranslationImporter
 				"The XLIFF file is not well Formed");
 		}
 
-		String original =
-			infoItemReference.getClassName() + StringPool.COLON +
-				infoItemReference.getClassPK();
-
-		if (!Objects.equals(startSubDocument.getName(), original)) {
-			throw new XLIFFFileException.MustHaveValidId("File ID is invalid");
-		}
+		_validateXLIFFDocumentName(
+			infoItemReference, startSubDocument.getName());
 
 		Property targetLanguageProperty = startSubDocument.getProperty(
 			"targetLanguage");
@@ -551,10 +672,18 @@ public class XLIFFInfoFormTranslationImporter
 		}
 	}
 
+	private static final Pattern _pattern = Pattern.compile("([^:]+):(.+)");
+
 	@Reference
 	private Language _language;
 
 	@Reference
+	private LayoutLocalService _layoutLocalService;
+
+	@Reference
 	private SAXReader _saxReader;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 }

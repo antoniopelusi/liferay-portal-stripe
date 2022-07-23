@@ -67,7 +67,7 @@ if (!ddlDisplayContext.isAdminPortlet()) {
 	cssClass="view-records-container"
 	id='<%= liferayPortletResponse.getNamespace() + "formContainer" %>'
 >
-	<aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
+	<aui:form action="<%= portletURL %>" method="post" name="fm">
 		<aui:input name="recordIds" type="hidden" />
 
 		<liferay-ui:search-container
@@ -110,7 +110,7 @@ if (!ddlDisplayContext.isAdminPortlet()) {
 						"recordId", record.getRecordId()
 					).setParameter(
 						"version", recordVersion.getVersion()
-					).build();
+					).buildPortletURL();
 
 					href = rowURL.toString();
 				}

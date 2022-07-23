@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.notification.internal.upgrade;
 
-import com.liferay.commerce.notification.internal.upgrade.v2_0_0.CommerceNotificationTemplateAccountGroupRelUpgradeProcess;
+import com.liferay.commerce.notification.internal.upgrade.v2_0_0.util.CommerceNotificationTemplateCommerceAccountGroupRelTable;
 import com.liferay.commerce.notification.internal.upgrade.v2_1_0.CommerceNotificationQueueEntryUpgradeProcess;
 import com.liferay.commerce.notification.internal.upgrade.v2_2_0.CommerceNotificationTemplateUpgradeProcess;
 import com.liferay.commerce.notification.internal.upgrade.v2_2_1.CommerceNotificationTemplateGroupIdUpgradeProcess;
@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.MVCCVersionUpgradeProcess;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.osgi.service.component.annotations.Component;
@@ -48,7 +49,7 @@ public class CommerceNotificationUpgradeStepRegistrator
 
 		registry.register(
 			"1.1.0", "2.0.0",
-			new CommerceNotificationTemplateAccountGroupRelUpgradeProcess());
+			CommerceNotificationTemplateCommerceAccountGroupRelTable.create());
 
 		registry.register(
 			"2.0.0", "2.1.0",
@@ -61,6 +62,21 @@ public class CommerceNotificationUpgradeStepRegistrator
 			"2.2.0", "2.2.1",
 			new CommerceNotificationTemplateGroupIdUpgradeProcess(
 				_classNameLocalService, _groupLocalService));
+
+		registry.register(
+			"2.2.1", "2.3.0",
+			new MVCCVersionUpgradeProcess() {
+
+				@Override
+				protected String[] getModuleTableNames() {
+					return new String[] {
+						"CNTemplateCAccountGroupRel", "CNotificationAttachment",
+						"CommerceNotificationQueueEntry",
+						"CommerceNotificationTemplate"
+					};
+				}
+
+			});
 
 		if (_log.isInfoEnabled()) {
 			_log.info(

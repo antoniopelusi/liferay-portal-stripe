@@ -15,6 +15,7 @@
 package com.liferay.commerce.product.service;
 
 import com.liferay.commerce.product.model.CPDisplayLayout;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -39,6 +40,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -60,8 +62,7 @@ public interface CPDisplayLayoutService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.commerce.product.service.impl.CPDisplayLayoutServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the cp display layout remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CPDisplayLayoutServiceUtil} if injection and service tracking are not available.
 	 */
 	public CPDisplayLayout addCPDisplayLayout(
-			long userId, long groupId, Class<?> clazz, long classPK,
-			String layoutUuid)
+			long groupId, Class<?> clazz, long classPK, String layoutUuid)
 		throws PortalException;
 
 	public void deleteCPDisplayLayout(long cpDisplayLayoutId)
@@ -85,7 +86,7 @@ public interface CPDisplayLayoutService extends BaseService {
 		throws PortalException;
 
 	public CPDisplayLayout updateCPDisplayLayout(
-			long cpDisplayLayoutId, String layoutUuid)
+			long cpDisplayLayoutId, long classPK, String layoutUuid)
 		throws PortalException;
 
 }

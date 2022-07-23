@@ -23,7 +23,6 @@ function TotalCount({
 	dataProvider,
 	label,
 	percentage = false,
-	popoverAlign,
 	popoverHeader,
 	popoverMessage,
 	popoverPosition,
@@ -65,15 +64,18 @@ function TotalCount({
 	return (
 		<div className={className}>
 			<span className="text-secondary">{label}</span>
+
 			<span className="text-secondary">
 				<Hint
-					align={popoverAlign}
 					message={popoverMessage}
 					position={popoverPosition}
 					title={popoverHeader}
 				/>
 			</span>
-			<span className="font-weight-bold">{displayValue}</span>
+
+			<span className="font-weight-bold inline-item-after">
+				{displayValue}
+			</span>
 		</div>
 	);
 }

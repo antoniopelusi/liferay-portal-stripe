@@ -45,7 +45,7 @@ scopeGroup = themeDisplay.getScopeGroup();
 		themeDisplay.getURLCurrent()
 	).setParameter(
 		"portletId", portletDisplay.getId()
-	).build();
+	).buildPortletURL();
 	%>
 
 	<aui:script use="liferay-export-import-management-bar-button">

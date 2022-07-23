@@ -66,8 +66,8 @@ public class UnsplashFileEntryDemoDataCreatorImpl
 		Folder folder = _dlAppLocalService.getFolder(folderId);
 
 		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-			userId, folder.getGroupId(), folderId, name, "image/jpeg",
-			_getBytes(), new ServiceContext());
+			null, userId, folder.getGroupId(), folderId, name, "image/jpeg",
+			_getBytes(), null, null, new ServiceContext());
 
 		_fileEntryIds.add(fileEntry.getFileEntryId());
 
@@ -82,8 +82,7 @@ public class UnsplashFileEntryDemoDataCreatorImpl
 			}
 			catch (NoSuchFileEntryException noSuchFileEntryException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(
-						noSuchFileEntryException, noSuchFileEntryException);
+					_log.warn(noSuchFileEntryException);
 				}
 			}
 
@@ -99,7 +98,7 @@ public class UnsplashFileEntryDemoDataCreatorImpl
 		}
 		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioException, ioException);
+				_log.warn(ioException);
 			}
 
 			String fileName = String.format(

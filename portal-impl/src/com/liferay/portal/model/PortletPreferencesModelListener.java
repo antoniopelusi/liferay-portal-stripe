@@ -46,7 +46,10 @@ public class PortletPreferencesModelListener
 	}
 
 	@Override
-	public void onAfterUpdate(PortletPreferences portletPreferences) {
+	public void onAfterUpdate(
+		PortletPreferences originalPortletPreferences,
+		PortletPreferences portletPreferences) {
+
 		clearCache(portletPreferences);
 
 		updateLayout(portletPreferences);
@@ -84,7 +87,7 @@ public class PortletPreferencesModelListener
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			CacheUtil.clearCache();

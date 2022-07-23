@@ -139,4 +139,7 @@ public interface BrowserTrackerModel
 	 */
 	public void setBrowserKey(long browserKey);
 
+	@Override
+	public BrowserTracker cloneWithOriginalValues();
+
 }

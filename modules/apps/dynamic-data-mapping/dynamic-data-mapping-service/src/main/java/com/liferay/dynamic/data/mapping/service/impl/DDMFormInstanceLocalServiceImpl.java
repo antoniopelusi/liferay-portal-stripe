@@ -34,6 +34,7 @@ import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordLocalServic
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.base.DDMFormInstanceLocalServiceBaseImpl;
+import com.liferay.dynamic.data.mapping.service.persistence.DDMFormInstanceVersionPersistence;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
@@ -47,7 +48,11 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -63,6 +68,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.mail.internet.InternetAddress;
 
@@ -88,9 +94,11 @@ public class DDMFormInstanceLocalServiceImpl
 
 		Locale defaultLocale = getDDMFormDefaultLocale(ddmStructureId);
 
-		validate(ddmStructureId, nameMap, settingsDDMFormValues, defaultLocale);
+		User user = _userLocalService.getUser(userId);
 
-		User user = userLocalService.getUser(userId);
+		validate(
+			ddmStructureId, defaultLocale, nameMap, settingsDDMFormValues,
+			user.getTimeZone());
 
 		long ddmFormInstanceId = counterLocalService.increment();
 
@@ -163,7 +171,7 @@ public class DDMFormInstanceLocalServiceImpl
 
 		DDMStructure ddmStructure = _ddmStructureLocalService.addStructure(
 			userId, groupId, DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
-			classNameLocalService.getClassNameId(DDMFormInstance.class),
+			_classNameLocalService.getClassNameId(DDMFormInstance.class),
 			StringPool.BLANK, nameMap, descriptionMap, ddmForm, ddmFormLayout,
 			getStorageType(settingsDDMFormValues),
 			DDMStructureConstants.TYPE_AUTO, serviceContext);
@@ -179,7 +187,7 @@ public class DDMFormInstanceLocalServiceImpl
 			boolean addGuestPermissions)
 		throws PortalException {
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			ddmFormInstance.getCompanyId(), ddmFormInstance.getGroupId(),
 			ddmFormInstance.getUserId(), DDMFormInstance.class.getName(),
 			ddmFormInstance.getFormInstanceId(), false, addGroupPermissions,
@@ -191,7 +199,7 @@ public class DDMFormInstanceLocalServiceImpl
 			DDMFormInstance ddmFormInstance, ModelPermissions modelPermissions)
 		throws PortalException {
 
-		resourceLocalService.addModelResources(
+		_resourceLocalService.addModelResources(
 			ddmFormInstance.getCompanyId(), ddmFormInstance.getGroupId(),
 			ddmFormInstance.getUserId(), DDMFormInstance.class.getName(),
 			ddmFormInstance.getFormInstanceId(), modelPermissions);
@@ -213,7 +221,7 @@ public class DDMFormInstanceLocalServiceImpl
 			ddmStructure.getDDMForm(), ddmStructure.getDDMFormLayout(),
 			settingsDDMFormValues, serviceContext);
 
-		resourceLocalService.copyModelResources(
+		_resourceLocalService.copyModelResources(
 			ddmFormInstance.getCompanyId(), DDMFormInstance.class.getName(),
 			ddmFormInstance.getFormInstanceId(),
 			newDDMFormInstance.getFormInstanceId());
@@ -229,7 +237,7 @@ public class DDMFormInstanceLocalServiceImpl
 	public void deleteFormInstance(DDMFormInstance ddmFormInstance)
 		throws PortalException {
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			ddmFormInstance.getCompanyId(), DDMFormInstance.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL,
 			ddmFormInstance.getFormInstanceId());
@@ -246,7 +254,7 @@ public class DDMFormInstanceLocalServiceImpl
 			_ddmStructureLocalService.deleteStructure(structureId);
 		}
 
-		workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
+		_workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
 			ddmFormInstance.getCompanyId(), ddmFormInstance.getGroupId(),
 			DDMFormInstance.class.getName(),
 			ddmFormInstance.getFormInstanceId(), 0);
@@ -372,7 +380,7 @@ public class DDMFormInstanceLocalServiceImpl
 			String[] toEmailAddresses)
 		throws Exception {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		MailMessage mailMessage = new MailMessage(
 			new InternetAddress(user.getEmailAddress(), user.getFullName()),
@@ -394,14 +402,14 @@ public class DDMFormInstanceLocalServiceImpl
 			long formInstanceId, DDMFormValues settingsDDMFormValues)
 		throws PortalException {
 
-		Date now = new Date();
+		Date date = new Date();
 
-		validateFormInstanceSettings(settingsDDMFormValues);
+		validateFormInstanceSettings(settingsDDMFormValues, null);
 
 		DDMFormInstance formInstance =
 			ddmFormInstancePersistence.findByPrimaryKey(formInstanceId);
 
-		formInstance.setModifiedDate(now);
+		formInstance.setModifiedDate(date);
 		formInstance.setSettings(serialize(settingsDDMFormValues));
 
 		return ddmFormInstancePersistence.update(formInstance);
@@ -452,7 +460,7 @@ public class DDMFormInstanceLocalServiceImpl
 		long ddmFormInstanceVersionId = counterLocalService.increment();
 
 		DDMFormInstanceVersion ddmFormInstanceVersion =
-			ddmFormInstanceVersionPersistence.create(ddmFormInstanceVersionId);
+			_ddmFormInstanceVersionPersistence.create(ddmFormInstanceVersionId);
 
 		ddmFormInstanceVersion.setGroupId(ddmFormInstance.getGroupId());
 		ddmFormInstanceVersion.setCompanyId(ddmFormInstance.getCompanyId());
@@ -464,19 +472,18 @@ public class DDMFormInstanceLocalServiceImpl
 		ddmFormInstanceVersion.setStructureVersionId(ddmStructureVersionId);
 		ddmFormInstanceVersion.setName(ddmFormInstance.getName());
 		ddmFormInstanceVersion.setDescription(ddmFormInstance.getDescription());
+		ddmFormInstanceVersion.setSettings(ddmFormInstance.getSettings());
 		ddmFormInstanceVersion.setVersion(version);
-
-		int status = GetterUtil.getInteger(
-			serviceContext.getAttribute("status"),
-			WorkflowConstants.STATUS_APPROVED);
-
-		ddmFormInstanceVersion.setStatus(status);
-
+		ddmFormInstanceVersion.setStatus(
+			GetterUtil.getInteger(
+				serviceContext.getAttribute("status"),
+				WorkflowConstants.STATUS_APPROVED));
 		ddmFormInstanceVersion.setStatusByUserId(user.getUserId());
 		ddmFormInstanceVersion.setStatusByUserName(user.getFullName());
 		ddmFormInstanceVersion.setStatusDate(ddmFormInstance.getModifiedDate());
 
-		return ddmFormInstanceVersionPersistence.update(ddmFormInstanceVersion);
+		return _ddmFormInstanceVersionPersistence.update(
+			ddmFormInstanceVersion);
 	}
 
 	protected DDMFormInstance doUpdateFormInstance(
@@ -488,9 +495,11 @@ public class DDMFormInstanceLocalServiceImpl
 
 		Locale defaultLocale = getDDMFormDefaultLocale(ddmStructureId);
 
-		validate(ddmStructureId, nameMap, settingsDDMFormValues, defaultLocale);
+		User user = _userLocalService.getUser(userId);
 
-		User user = userLocalService.getUser(userId);
+		validate(
+			ddmStructureId, defaultLocale, nameMap, settingsDDMFormValues,
+			user.getTimeZone());
 
 		DDMFormInstanceVersion latestDDMFormInstanceVersion =
 			_ddmFormInstanceVersionLocalService.getLatestFormInstanceVersion(
@@ -529,8 +538,10 @@ public class DDMFormInstanceLocalServiceImpl
 		DDMFormInstance updatedDDMFormInstance =
 			ddmFormInstancePersistence.update(ddmFormInstance);
 
-		updateWorkflowDefinitionLink(
-			ddmFormInstance, settingsDDMFormValues, serviceContext);
+		if (status != WorkflowConstants.STATUS_DRAFT) {
+			updateWorkflowDefinitionLink(
+				ddmFormInstance, settingsDDMFormValues, serviceContext);
+		}
 
 		long ddmStructureVersionId = getStructureVersionId(ddmStructureId);
 
@@ -661,11 +672,12 @@ public class DDMFormInstanceLocalServiceImpl
 		ddmFormInstanceVersion.setStructureVersionId(ddmStructureVersionId);
 		ddmFormInstanceVersion.setName(ddmFormInstance.getName());
 		ddmFormInstanceVersion.setDescription(ddmFormInstance.getDescription());
+		ddmFormInstanceVersion.setSettings(ddmFormInstance.getSettings());
 		ddmFormInstanceVersion.setStatusByUserId(user.getUserId());
 		ddmFormInstanceVersion.setStatusByUserName(user.getFullName());
 		ddmFormInstanceVersion.setStatusDate(ddmFormInstance.getModifiedDate());
 
-		ddmFormInstanceVersionPersistence.update(ddmFormInstanceVersion);
+		_ddmFormInstanceVersionPersistence.update(ddmFormInstanceVersion);
 	}
 
 	protected void updateWorkflowDefinitionLink(
@@ -690,29 +702,30 @@ public class DDMFormInstanceLocalServiceImpl
 					kaleoDefinition.getVersion();
 		}
 
-		workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
+		_workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
 			serviceContext.getUserId(), serviceContext.getCompanyId(),
 			formInstance.getGroupId(), DDMFormInstance.class.getName(),
 			formInstance.getFormInstanceId(), 0, latestWorkflowDefinition);
 	}
 
 	protected void validate(
-			long ddmStructureId, Map<Locale, String> nameMap,
-			DDMFormValues settingsDDMFormValues, Locale defaultLocale)
+			long ddmStructureId, Locale defaultLocale,
+			Map<Locale, String> nameMap, DDMFormValues settingsDDMFormValues,
+			TimeZone timeZone)
 		throws PortalException {
 
 		validateStructureId(ddmStructureId);
 
 		validateName(nameMap, defaultLocale);
 
-		validateFormInstanceSettings(settingsDDMFormValues);
+		validateFormInstanceSettings(settingsDDMFormValues, timeZone.getID());
 	}
 
 	protected void validateFormInstanceSettings(
-			DDMFormValues settingsDDMFormValues)
+			DDMFormValues settingsDDMFormValues, String timeZoneId)
 		throws PortalException {
 
-		_ddmFormValuesValidator.validate(settingsDDMFormValues);
+		_ddmFormValuesValidator.validate(settingsDDMFormValues, timeZoneId);
 	}
 
 	protected void validateName(
@@ -743,12 +756,19 @@ public class DDMFormInstanceLocalServiceImpl
 	private static final String _VERSION_DEFAULT = "1.0";
 
 	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
 	private DDMFormInstanceRecordLocalService
 		_ddmFormInstanceRecordLocalService;
 
 	@Reference
 	private DDMFormInstanceVersionLocalService
 		_ddmFormInstanceVersionLocalService;
+
+	@Reference
+	private DDMFormInstanceVersionPersistence
+		_ddmFormInstanceVersionPersistence;
 
 	@Reference
 	private DDMFormValuesValidator _ddmFormValuesValidator;
@@ -767,5 +787,15 @@ public class DDMFormInstanceLocalServiceImpl
 
 	@Reference
 	private MailService _mailService;
+
+	@Reference
+	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
+	private WorkflowDefinitionLinkLocalService
+		_workflowDefinitionLinkLocalService;
 
 }

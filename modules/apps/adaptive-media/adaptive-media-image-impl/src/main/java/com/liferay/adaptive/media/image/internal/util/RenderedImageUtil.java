@@ -43,12 +43,13 @@ public class RenderedImageUtil {
 	public static byte[] getRenderedImageContentStream(
 		RenderedImage renderedImage, String mimeType) {
 
-		try (UnsyncByteArrayOutputStream baos =
+		try (UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 				new UnsyncByteArrayOutputStream()) {
 
-			ImageToolUtil.write(renderedImage, mimeType, baos);
+			ImageToolUtil.write(
+				renderedImage, mimeType, unsyncByteArrayOutputStream);
 
-			return baos.toByteArray();
+			return unsyncByteArrayOutputStream.toByteArray();
 		}
 		catch (IOException ioException) {
 			throw new AMRuntimeException.IOException(ioException);
@@ -97,7 +98,7 @@ public class RenderedImageUtil {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 			finally {

@@ -65,13 +65,7 @@ public class MissingDiamondOperator {
 			}
 		};
 
-		Map<String, String> hashMap1 = new HashMap();
-
-		Map<String, String> hashMap2 = new HashMap() {
-			{
-				put("a", "b");
-			}
-		};
+		Map<String, String> hashMap = new HashMap();
 
 		Set<String> hashSet = new HashSet();
 
@@ -94,32 +88,6 @@ public class MissingDiamondOperator {
 
 		Vector<String> vector = new Vector();
 
-		List<Map<String, String>> ddmFormFieldValues = new ArrayList() {
-			{
-				Map<String, String> map1 = new HashMap() {
-					{
-						put("field1", "2");
-						put("field2", "esta é uma 'string'");
-						put("field3", "false");
-						put("field4", "11.7");
-					}
-				};
-
-				add(map1);
-
-				Map<String, String> map2 = new HashMap() {
-					{
-						put("field1", "1");
-						put("field2", "esta é uma 'string'");
-						put("field3", "");
-						put("field4", "10");
-					}
-				};
-
-				add(map2);
-			}
-		};
-
 		System.out.println(arrayList1.size());
 		System.out.println(arrayList2.size());
 		System.out.println(concurrentHashMap.size());
@@ -127,8 +95,7 @@ public class MissingDiamondOperator {
 		System.out.println(concurrentSkipListSet.size());
 		System.out.println(copyOnWriteArraySet.size());
 		System.out.println(enumMap.size());
-		System.out.println(hashMap1.size());
-		System.out.println(hashMap2.size());
+		System.out.println(hashMap.size());
 		System.out.println(hashSet.size());
 		System.out.println(hashtable.size());
 		System.out.println(identityHashMap.size());
@@ -139,7 +106,6 @@ public class MissingDiamondOperator {
 		System.out.println(treeMap.size());
 		System.out.println(treeSet.size());
 		System.out.println(vector.size());
-		System.out.println(ddmFormFieldValues.size());
 	}
 
 	public enum Position {

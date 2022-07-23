@@ -27,7 +27,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 /**
  * @author Kyle Miho
@@ -95,11 +95,24 @@ public class AssetListTestUtil {
 				long segmentsEntryId)
 		throws PortalException {
 
-		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(groupId);
 
-		typeSettingsUnicodeProperties.put(
-			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+		return AssetListEntrySegmentsEntryRelLocalServiceUtil.
+			addAssetListEntrySegmentsEntryRel(
+				TestPropsValues.getUserId(), groupId,
+				assetListEntry.getAssetListEntryId(), segmentsEntryId,
+				UnicodePropertiesBuilder.put(
+					RandomTestUtil.randomString(), RandomTestUtil.randomString()
+				).buildString(),
+				serviceContext);
+	}
+
+	public static AssetListEntrySegmentsEntryRel
+			addAssetListEntrySegmentsEntryRel(
+				long groupId, AssetListEntry assetListEntry,
+				long segmentsEntryId, String typeSettings)
+		throws PortalException {
 
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(groupId);
@@ -108,7 +121,7 @@ public class AssetListTestUtil {
 			addAssetListEntrySegmentsEntryRel(
 				TestPropsValues.getUserId(), groupId,
 				assetListEntry.getAssetListEntryId(), segmentsEntryId,
-				typeSettingsUnicodeProperties.toString(), serviceContext);
+				typeSettings, serviceContext);
 	}
 
 }

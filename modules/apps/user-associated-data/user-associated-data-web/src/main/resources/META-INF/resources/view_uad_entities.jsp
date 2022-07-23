@@ -70,7 +70,7 @@ long[] groupIds = viewUADEntitiesDisplay.getGroupIds();
 		</c:otherwise>
 	</c:choose>
 
-	<div class="closed sidenav-container sidenav-right" id="<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>">
+	<div class="closed sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
 		<div id="breadcrumb">
 			<liferay-ui:breadcrumb
 				showCurrentGroup="<%= false %>"

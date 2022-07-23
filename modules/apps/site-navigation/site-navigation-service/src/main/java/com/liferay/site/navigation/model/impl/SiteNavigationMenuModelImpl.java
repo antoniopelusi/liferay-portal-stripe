@@ -30,23 +30,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.model.SiteNavigationMenuModel;
-import com.liferay.site.navigation.model.SiteNavigationMenuSoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -179,64 +177,6 @@ public class SiteNavigationMenuModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SiteNavigationMenu toModel(SiteNavigationMenuSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		SiteNavigationMenu model = new SiteNavigationMenuImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setSiteNavigationMenuId(soapModel.getSiteNavigationMenuId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setType(soapModel.getType());
-		model.setAuto(soapModel.isAuto());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SiteNavigationMenu> toModels(
-		SiteNavigationMenuSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SiteNavigationMenu> models = new ArrayList<SiteNavigationMenu>(
-			soapModels.length);
-
-		for (SiteNavigationMenuSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public SiteNavigationMenuModelImpl() {
 	}
 
@@ -320,34 +260,6 @@ public class SiteNavigationMenuModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SiteNavigationMenu>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SiteNavigationMenu.class.getClassLoader(), SiteNavigationMenu.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SiteNavigationMenu> constructor =
-				(Constructor<SiteNavigationMenu>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SiteNavigationMenu, Object>>
@@ -846,6 +758,43 @@ public class SiteNavigationMenuModelImpl
 	}
 
 	@Override
+	public SiteNavigationMenu cloneWithOriginalValues() {
+		SiteNavigationMenuImpl siteNavigationMenuImpl =
+			new SiteNavigationMenuImpl();
+
+		siteNavigationMenuImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		siteNavigationMenuImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		siteNavigationMenuImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		siteNavigationMenuImpl.setSiteNavigationMenuId(
+			this.<Long>getColumnOriginalValue("siteNavigationMenuId"));
+		siteNavigationMenuImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		siteNavigationMenuImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		siteNavigationMenuImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		siteNavigationMenuImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		siteNavigationMenuImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		siteNavigationMenuImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		siteNavigationMenuImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		siteNavigationMenuImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		siteNavigationMenuImpl.setAuto(
+			this.<Boolean>getColumnOriginalValue("auto_"));
+		siteNavigationMenuImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return siteNavigationMenuImpl;
+	}
+
+	@Override
 	public int compareTo(SiteNavigationMenu siteNavigationMenu) {
 		long primaryKey = siteNavigationMenu.getPrimaryKey();
 
@@ -997,7 +946,7 @@ public class SiteNavigationMenuModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1008,9 +957,27 @@ public class SiteNavigationMenuModelImpl
 			Function<SiteNavigationMenu, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SiteNavigationMenu)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(SiteNavigationMenu)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1057,7 +1024,9 @@ public class SiteNavigationMenuModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SiteNavigationMenu>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SiteNavigationMenu.class, ModelWrapper.class);
 
 	}
 

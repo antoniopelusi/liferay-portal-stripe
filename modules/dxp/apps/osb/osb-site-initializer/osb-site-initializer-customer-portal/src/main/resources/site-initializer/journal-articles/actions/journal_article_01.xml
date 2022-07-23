@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<root available-locales="en_US" default-locale="en_US">
+	<dynamic-element index-type="keyword" instance-id="xieebayf" name="ActionTitle" type="text">
+		<dynamic-content language-id="en_US"><![CDATA[Submit a Ticket]]></dynamic-content>
+	</dynamic-element>
+	<dynamic-element index-type="keyword" instance-id="kchgqfdb" name="ActionText" type="text">
+		<dynamic-content language-id="en_US"><![CDATA[Let us know if you can't find a solution to your issue. Ticket support is available to project members with Administrator or Requester roles.]]></dynamic-content>
+	</dynamic-element>
+	<dynamic-element index-type="keyword" instance-id="iatlbelj" name="ActionUrl" type="text">
+		<dynamic-content language-id="en_US"><![CDATA[https://help.liferay.com/hc/en-us/requests/new]]></dynamic-content>
+	</dynamic-element>
+</root>

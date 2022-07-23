@@ -25,6 +25,10 @@ public class RecentLayoutBranchLocalServiceWrapper
 	implements RecentLayoutBranchLocalService,
 			   ServiceWrapper<RecentLayoutBranchLocalService> {
 
+	public RecentLayoutBranchLocalServiceWrapper() {
+		this(null);
+	}
+
 	public RecentLayoutBranchLocalServiceWrapper(
 		RecentLayoutBranchLocalService recentLayoutBranchLocalService) {
 
@@ -154,6 +158,13 @@ public class RecentLayoutBranchLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _recentLayoutBranchLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _recentLayoutBranchLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

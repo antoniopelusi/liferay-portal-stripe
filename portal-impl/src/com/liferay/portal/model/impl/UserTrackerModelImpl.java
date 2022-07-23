@@ -29,12 +29,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -239,34 +240,6 @@ public class UserTrackerModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, UserTracker>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			UserTracker.class.getClassLoader(), UserTracker.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<UserTracker> constructor =
-				(Constructor<UserTracker>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<UserTracker, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<UserTracker, Object>>
@@ -419,8 +392,14 @@ public class UserTrackerModelImpl
 		return _modifiedDate;
 	}
 
+	public boolean hasSetModifiedDate() {
+		return _setModifiedDate;
+	}
+
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
+		_setModifiedDate = true;
+
 		if (_columnOriginalValues == Collections.EMPTY_MAP) {
 			_setColumnOriginalValues();
 		}
@@ -585,6 +564,31 @@ public class UserTrackerModelImpl
 	}
 
 	@Override
+	public UserTracker cloneWithOriginalValues() {
+		UserTrackerImpl userTrackerImpl = new UserTrackerImpl();
+
+		userTrackerImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		userTrackerImpl.setUserTrackerId(
+			this.<Long>getColumnOriginalValue("userTrackerId"));
+		userTrackerImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		userTrackerImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		userTrackerImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		userTrackerImpl.setSessionId(
+			this.<String>getColumnOriginalValue("sessionId"));
+		userTrackerImpl.setRemoteAddr(
+			this.<String>getColumnOriginalValue("remoteAddr"));
+		userTrackerImpl.setRemoteHost(
+			this.<String>getColumnOriginalValue("remoteHost"));
+		userTrackerImpl.setUserAgent(
+			this.<String>getColumnOriginalValue("userAgent"));
+
+		return userTrackerImpl;
+	}
+
+	@Override
 	public int compareTo(UserTracker userTracker) {
 		long primaryKey = userTracker.getPrimaryKey();
 
@@ -647,6 +651,8 @@ public class UserTrackerModelImpl
 	@Override
 	public void resetOriginalValues() {
 		_columnOriginalValues = Collections.emptyMap();
+
+		_setModifiedDate = false;
 
 		_columnBitmask = 0;
 	}
@@ -714,7 +720,7 @@ public class UserTrackerModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -725,9 +731,26 @@ public class UserTrackerModelImpl
 			Function<UserTracker, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((UserTracker)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((UserTracker)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -774,7 +797,9 @@ public class UserTrackerModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, UserTracker>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					UserTracker.class, ModelWrapper.class);
 
 	}
 
@@ -783,6 +808,7 @@ public class UserTrackerModelImpl
 	private long _companyId;
 	private long _userId;
 	private Date _modifiedDate;
+	private boolean _setModifiedDate;
 	private String _sessionId;
 	private String _remoteAddr;
 	private String _remoteHost;

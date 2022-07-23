@@ -27,6 +27,10 @@ public class KaleoActionLocalServiceWrapper
 	implements KaleoActionLocalService,
 			   ServiceWrapper<KaleoActionLocalService> {
 
+	public KaleoActionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoActionLocalServiceWrapper(
 		KaleoActionLocalService kaleoActionLocalService) {
 
@@ -151,6 +155,13 @@ public class KaleoActionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoActionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoActionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -314,33 +325,6 @@ public class KaleoActionLocalServiceWrapper
 
 		return _kaleoActionLocalService.getKaleoActions(
 			companyId, kaleoClassName, kaleoClassPK, executionType);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoActions(long, String, long)}
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<com.liferay.portal.workflow.kaleo.model.KaleoAction>
-		getKaleoActions(String kaleoClassName, long kaleoClassPK) {
-
-		return _kaleoActionLocalService.getKaleoActions(
-			kaleoClassName, kaleoClassPK);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoActions(long, String, long, String)}
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<com.liferay.portal.workflow.kaleo.model.KaleoAction>
-		getKaleoActions(
-			String kaleoClassName, long kaleoClassPK, String executionType) {
-
-		return _kaleoActionLocalService.getKaleoActions(
-			kaleoClassName, kaleoClassPK, executionType);
 	}
 
 	/**

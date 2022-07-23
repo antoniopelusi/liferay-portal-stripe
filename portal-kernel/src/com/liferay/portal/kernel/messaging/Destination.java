@@ -16,9 +16,13 @@ package com.liferay.portal.kernel.messaging;
 
 import java.util.Set;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Michael C. Han
+ * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface Destination {
 
 	public boolean addDestinationEventListener(

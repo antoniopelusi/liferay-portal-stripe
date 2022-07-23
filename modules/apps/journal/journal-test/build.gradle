@@ -12,17 +12,18 @@ dependencies {
 	testCompile project(":core:petra:petra-lang")
 	testCompile project(":core:petra:petra-sql-dsl-api")
 	testCompile project(":core:petra:petra-string")
-	testCompile project(":core:registry-api")
 
 	testIntegrationCompile group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
-	testIntegrationCompile group: "log4j", name: "log4j", version: "1.2.17"
-	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.cm", version: "1.5.0"
+	testIntegrationCompile group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
 	testIntegrationCompile group: "org.osgi", name: "osgi.core", version: "6.0.0"
+	testIntegrationCompile group: "org.skyscreamer", name: "jsonassert", version: "1.2.3"
 	testIntegrationCompile project(":apps:asset:asset-api")
 	testIntegrationCompile project(":apps:asset:asset-display-page-api")
 	testIntegrationCompile project(":apps:asset:asset-test-util")
 	testIntegrationCompile project(":apps:change-tracking:change-tracking-api")
 	testIntegrationCompile project(":apps:change-tracking:change-tracking-test-util")
+	testIntegrationCompile project(":apps:data-engine:data-engine-rest-api")
+	testIntegrationCompile project(":apps:data-engine:data-engine-rest-test-util")
 	testIntegrationCompile project(":apps:document-library:document-library-test-util")
 	testIntegrationCompile project(":apps:dynamic-data-mapping:dynamic-data-mapping-form-field-type-api")
 	testIntegrationCompile project(":apps:dynamic-data-mapping:dynamic-data-mapping-test-util")
@@ -36,15 +37,16 @@ dependencies {
 	testIntegrationCompile project(":apps:portal-configuration:portal-configuration-test-util")
 	testIntegrationCompile project(":apps:portal-search:portal-search-api")
 	testIntegrationCompile project(":apps:portal-security:portal-security-permission-test-util")
+	testIntegrationCompile project(":apps:portal-vulcan:portal-vulcan-api")
 	testIntegrationCompile project(":apps:portal:portal-local-service-tree-test-util")
 	testIntegrationCompile project(":apps:portal:portal-notifications-test-util")
 	testIntegrationCompile project(":apps:ratings:ratings-test-util")
+	testIntegrationCompile project(":apps:segments:segments-api")
 	testIntegrationCompile project(":apps:social:social-activity-test-util")
 	testIntegrationCompile project(":apps:static:portal:portal-upgrade-api")
 	testIntegrationCompile project(":apps:subscription:subscription-test-util")
 	testIntegrationCompile project(":apps:trash:trash-api")
 	testIntegrationCompile project(":apps:trash:trash-test-util")
 	testIntegrationCompile project(":apps:users-admin:users-admin-test-util")
-	testIntegrationCompile project(":core:petra:petra-reflect")
 	testIntegrationCompile project(":test:arquillian-extension-junit-bridge")
 }

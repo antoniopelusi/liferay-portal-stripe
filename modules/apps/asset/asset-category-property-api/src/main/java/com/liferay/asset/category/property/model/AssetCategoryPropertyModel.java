@@ -250,4 +250,7 @@ public interface AssetCategoryPropertyModel
 	 */
 	public void setValue(String value);
 
+	@Override
+	public AssetCategoryProperty cloneWithOriginalValues();
+
 }

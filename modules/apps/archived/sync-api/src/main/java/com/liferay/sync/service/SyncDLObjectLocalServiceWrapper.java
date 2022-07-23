@@ -27,6 +27,10 @@ public class SyncDLObjectLocalServiceWrapper
 	implements ServiceWrapper<SyncDLObjectLocalService>,
 			   SyncDLObjectLocalService {
 
+	public SyncDLObjectLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SyncDLObjectLocalServiceWrapper(
 		SyncDLObjectLocalService syncDLObjectLocalService) {
 
@@ -149,6 +153,13 @@ public class SyncDLObjectLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _syncDLObjectLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _syncDLObjectLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

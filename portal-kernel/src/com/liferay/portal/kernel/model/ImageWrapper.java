@@ -112,6 +112,11 @@ public class ImageWrapper
 		}
 	}
 
+	@Override
+	public Image cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this image.
 	 *

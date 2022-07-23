@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -266,13 +266,13 @@ public class ExportImportConfigurationSettingsMapFactoryImpl
 				portletRequest);
 
 		if (liveGroup != null) {
-			long[] layoutIds = _exportImportHelper.getLayoutIds(
-				layoutIdMap, liveGroup.getGroupId());
-
 			return buildPublishLayoutLocalSettingsMap(
 				themeDisplay.getUserId(), stagingGroup.getGroupId(),
-				liveGroup.getGroupId(), privateLayout, layoutIds, parameterMap,
-				themeDisplay.getLocale(), themeDisplay.getTimeZone());
+				liveGroup.getGroupId(), privateLayout,
+				_exportImportHelper.getLayoutIds(
+					layoutIdMap, liveGroup.getGroupId()),
+				parameterMap, themeDisplay.getLocale(),
+				themeDisplay.getTimeZone());
 		}
 
 		UnicodeProperties groupTypeSettingsUnicodeProperties =
@@ -282,7 +282,7 @@ public class ExportImportConfigurationSettingsMapFactoryImpl
 			portletRequest, "remoteAddress",
 			groupTypeSettingsUnicodeProperties.getProperty("remoteAddress"));
 
-		remoteAddress = _http.removeProtocol(remoteAddress);
+		remoteAddress = HttpComponentsUtil.removeProtocol(remoteAddress);
 
 		int remotePort = ParamUtil.getInteger(
 			portletRequest, "remotePort",
@@ -415,8 +415,5 @@ public class ExportImportConfigurationSettingsMapFactoryImpl
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference
-	private Http _http;
 
 }

@@ -39,33 +39,33 @@ public class DDMFormFieldValidationUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select structureId, definition from DDMStructure where " +
 					"classNameId = ? ");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
 						"structureId = ?");
-			PreparedStatement ps3 = connection.prepareStatement(
+			PreparedStatement preparedStatement3 = connection.prepareStatement(
 				"select structureVersionId, definition from " +
 					"DDMStructureVersion where structureId = ?");
-			PreparedStatement ps4 =
+			PreparedStatement preparedStatement4 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureVersion set definition = ? where " +
 						"structureVersionId = ?")) {
 
-			ps1.setLong(
+			preparedStatement1.setLong(
 				1,
 				PortalUtil.getClassNameId(
 					"com.liferay.dynamic.data.mapping.model.DDMFormInstance"));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					long structureId = rs.getLong("structureId");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					long structureId = resultSet.getLong("structureId");
 
-					String definition = rs.getString("definition");
+					String definition = resultSet.getString("definition");
 
 					JSONObject jsonObject1 = _jsonFactory.createJSONObject(
 						definition);
@@ -73,18 +73,21 @@ public class DDMFormFieldValidationUpgradeProcess extends UpgradeProcess {
 					if (_upgradeValidation(
 							jsonObject1.getJSONArray("fields"))) {
 
-						ps2.setString(1, jsonObject1.toJSONString());
+						preparedStatement2.setString(
+							1, jsonObject1.toJSONString());
 
-						ps2.setLong(2, structureId);
+						preparedStatement2.setLong(2, structureId);
 
-						ps2.addBatch();
+						preparedStatement2.addBatch();
 					}
 
-					ps3.setLong(1, structureId);
+					preparedStatement3.setLong(1, structureId);
 
-					try (ResultSet rs2 = ps3.executeQuery()) {
-						while (rs2.next()) {
-							definition = rs2.getString("definition");
+					try (ResultSet resultSet2 =
+							preparedStatement3.executeQuery()) {
+
+						while (resultSet2.next()) {
+							definition = resultSet2.getString("definition");
 
 							JSONObject jsonObject2 =
 								_jsonFactory.createJSONObject(definition);
@@ -92,23 +95,25 @@ public class DDMFormFieldValidationUpgradeProcess extends UpgradeProcess {
 							if (_upgradeValidation(
 									jsonObject2.getJSONArray("fields"))) {
 
-								ps4.setString(1, jsonObject2.toJSONString());
+								preparedStatement4.setString(
+									1, jsonObject2.toJSONString());
 
-								long structureVersionId = rs2.getLong(
+								long structureVersionId = resultSet2.getLong(
 									"structureVersionId");
 
-								ps4.setLong(2, structureVersionId);
+								preparedStatement4.setLong(
+									2, structureVersionId);
 
-								ps4.addBatch();
+								preparedStatement4.addBatch();
 							}
 						}
 					}
 				}
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 
-			ps4.executeBatch();
+			preparedStatement4.executeBatch();
 		}
 	}
 

@@ -14,7 +14,10 @@
 
 package com.liferay.commerce.product.service;
 
+import com.liferay.commerce.product.model.CPOptionValue;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link CPOptionValueLocalService}.
@@ -26,6 +29,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CPOptionValueLocalServiceWrapper
 	implements CPOptionValueLocalService,
 			   ServiceWrapper<CPOptionValueLocalService> {
+
+	public CPOptionValueLocalServiceWrapper() {
+		this(null);
+	}
 
 	public CPOptionValueLocalServiceWrapper(
 		CPOptionValueLocalService cpOptionValueLocalService) {
@@ -44,14 +51,12 @@ public class CPOptionValueLocalServiceWrapper
 	 * @return the cp option value that was added
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue addCPOptionValue(
-		com.liferay.commerce.product.model.CPOptionValue cpOptionValue) {
-
+	public CPOptionValue addCPOptionValue(CPOptionValue cpOptionValue) {
 		return _cpOptionValueLocalService.addCPOptionValue(cpOptionValue);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue addCPOptionValue(
+	public CPOptionValue addCPOptionValue(
 			long cpOptionId, java.util.Map<java.util.Locale, String> nameMap,
 			double priority, String key,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -62,7 +67,7 @@ public class CPOptionValueLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue addCPOptionValue(
+	public CPOptionValue addCPOptionValue(
 			String externalReferenceCode, long cpOptionId,
 			java.util.Map<java.util.Locale, String> nameMap, double priority,
 			String key,
@@ -74,6 +79,19 @@ public class CPOptionValueLocalServiceWrapper
 			serviceContext);
 	}
 
+	@Override
+	public CPOptionValue addOrUpdateCPOptionValue(
+			String externalReferenceCode, long cpOptionId,
+			java.util.Map<java.util.Locale, String> nameMap, double priority,
+			String key,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _cpOptionValueLocalService.addOrUpdateCPOptionValue(
+			externalReferenceCode, cpOptionId, nameMap, priority, key,
+			serviceContext);
+	}
+
 	/**
 	 * Creates a new cp option value with the primary key. Does not add the cp option value to the database.
 	 *
@@ -81,9 +99,7 @@ public class CPOptionValueLocalServiceWrapper
 	 * @return the new cp option value
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue createCPOptionValue(
-		long CPOptionValueId) {
-
+	public CPOptionValue createCPOptionValue(long CPOptionValueId) {
 		return _cpOptionValueLocalService.createCPOptionValue(CPOptionValueId);
 	}
 
@@ -110,8 +126,7 @@ public class CPOptionValueLocalServiceWrapper
 	 * @throws PortalException
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue deleteCPOptionValue(
-			com.liferay.commerce.product.model.CPOptionValue cpOptionValue)
+	public CPOptionValue deleteCPOptionValue(CPOptionValue cpOptionValue)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.deleteCPOptionValue(cpOptionValue);
@@ -129,8 +144,7 @@ public class CPOptionValueLocalServiceWrapper
 	 * @throws PortalException if a cp option value with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue deleteCPOptionValue(
-			long CPOptionValueId)
+	public CPOptionValue deleteCPOptionValue(long CPOptionValueId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.deleteCPOptionValue(CPOptionValueId);
@@ -157,6 +171,13 @@ public class CPOptionValueLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cpOptionValueLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cpOptionValueLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -251,18 +272,15 @@ public class CPOptionValueLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue
-		fetchByExternalReferenceCode(
-			String externalReferenceCode, long companyId) {
+	public CPOptionValue fetchByExternalReferenceCode(
+		String externalReferenceCode, long companyId) {
 
 		return _cpOptionValueLocalService.fetchByExternalReferenceCode(
 			externalReferenceCode, companyId);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue fetchCPOptionValue(
-		long CPOptionValueId) {
-
+	public CPOptionValue fetchCPOptionValue(long CPOptionValueId) {
 		return _cpOptionValueLocalService.fetchCPOptionValue(CPOptionValueId);
 	}
 
@@ -274,9 +292,8 @@ public class CPOptionValueLocalServiceWrapper
 	 * @return the matching cp option value, or <code>null</code> if a matching cp option value could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue
-		fetchCPOptionValueByExternalReferenceCode(
-			long companyId, String externalReferenceCode) {
+	public CPOptionValue fetchCPOptionValueByExternalReferenceCode(
+		long companyId, String externalReferenceCode) {
 
 		return _cpOptionValueLocalService.
 			fetchCPOptionValueByExternalReferenceCode(
@@ -288,9 +305,8 @@ public class CPOptionValueLocalServiceWrapper
 	 */
 	@Deprecated
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue
-		fetchCPOptionValueByReferenceCode(
-			long companyId, String externalReferenceCode) {
+	public CPOptionValue fetchCPOptionValueByReferenceCode(
+		long companyId, String externalReferenceCode) {
 
 		return _cpOptionValueLocalService.fetchCPOptionValueByReferenceCode(
 			companyId, externalReferenceCode);
@@ -304,8 +320,8 @@ public class CPOptionValueLocalServiceWrapper
 	 * @return the matching cp option value, or <code>null</code> if a matching cp option value could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue
-		fetchCPOptionValueByUuidAndCompanyId(String uuid, long companyId) {
+	public CPOptionValue fetchCPOptionValueByUuidAndCompanyId(
+		String uuid, long companyId) {
 
 		return _cpOptionValueLocalService.fetchCPOptionValueByUuidAndCompanyId(
 			uuid, companyId);
@@ -326,16 +342,14 @@ public class CPOptionValueLocalServiceWrapper
 	 * @throws PortalException if a cp option value with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue getCPOptionValue(
-			long CPOptionValueId)
+	public CPOptionValue getCPOptionValue(long CPOptionValueId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.getCPOptionValue(CPOptionValueId);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue getCPOptionValue(
-			long cpOptionId, String key)
+	public CPOptionValue getCPOptionValue(long cpOptionId, String key)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.getCPOptionValue(cpOptionId, key);
@@ -350,9 +364,8 @@ public class CPOptionValueLocalServiceWrapper
 	 * @throws PortalException if a matching cp option value could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue
-			getCPOptionValueByExternalReferenceCode(
-				long companyId, String externalReferenceCode)
+	public CPOptionValue getCPOptionValueByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.
@@ -369,8 +382,8 @@ public class CPOptionValueLocalServiceWrapper
 	 * @throws PortalException if a matching cp option value could not be found
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue
-			getCPOptionValueByUuidAndCompanyId(String uuid, long companyId)
+	public CPOptionValue getCPOptionValueByUuidAndCompanyId(
+			String uuid, long companyId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.getCPOptionValueByUuidAndCompanyId(
@@ -389,27 +402,23 @@ public class CPOptionValueLocalServiceWrapper
 	 * @return the range of cp option values
 	 */
 	@Override
-	public java.util.List<com.liferay.commerce.product.model.CPOptionValue>
-		getCPOptionValues(int start, int end) {
-
+	public java.util.List<CPOptionValue> getCPOptionValues(int start, int end) {
 		return _cpOptionValueLocalService.getCPOptionValues(start, end);
 	}
 
 	@Override
-	public java.util.List<com.liferay.commerce.product.model.CPOptionValue>
-		getCPOptionValues(long cpOptionId, int start, int end) {
+	public java.util.List<CPOptionValue> getCPOptionValues(
+		long cpOptionId, int start, int end) {
 
 		return _cpOptionValueLocalService.getCPOptionValues(
 			cpOptionId, start, end);
 	}
 
 	@Override
-	public java.util.List<com.liferay.commerce.product.model.CPOptionValue>
-		getCPOptionValues(
-			long cpOptionId, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.commerce.product.model.CPOptionValue>
-					orderByComparator) {
+	public java.util.List<CPOptionValue> getCPOptionValues(
+		long cpOptionId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<CPOptionValue>
+			orderByComparator) {
 
 		return _cpOptionValueLocalService.getCPOptionValues(
 			cpOptionId, start, end, orderByComparator);
@@ -490,22 +499,22 @@ public class CPOptionValueLocalServiceWrapper
 	 */
 	@Deprecated
 	@Override
-	public com.liferay.portal.kernel.search.BaseModelSearchResult
-		<com.liferay.commerce.product.model.CPOptionValue> searchCPOptionValues(
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<CPOptionValue>
+			searchCPOptionValues(
 				long companyId, long groupId, long cpOptionId, String keywords,
 				int start, int end, com.liferay.portal.kernel.search.Sort sort)
-			throws com.liferay.portal.kernel.exception.PortalException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.searchCPOptionValues(
 			companyId, groupId, cpOptionId, keywords, start, end, sort);
 	}
 
 	@Override
-	public com.liferay.portal.kernel.search.BaseModelSearchResult
-		<com.liferay.commerce.product.model.CPOptionValue> searchCPOptionValues(
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<CPOptionValue>
+			searchCPOptionValues(
 				long companyId, long cpOptionId, String keywords, int start,
 				int end, com.liferay.portal.kernel.search.Sort[] sorts)
-			throws com.liferay.portal.kernel.exception.PortalException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpOptionValueLocalService.searchCPOptionValues(
 			companyId, cpOptionId, keywords, start, end, sorts);
@@ -531,14 +540,12 @@ public class CPOptionValueLocalServiceWrapper
 	 * @return the cp option value that was updated
 	 */
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue updateCPOptionValue(
-		com.liferay.commerce.product.model.CPOptionValue cpOptionValue) {
-
+	public CPOptionValue updateCPOptionValue(CPOptionValue cpOptionValue) {
 		return _cpOptionValueLocalService.updateCPOptionValue(cpOptionValue);
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue updateCPOptionValue(
+	public CPOptionValue updateCPOptionValue(
 			long cpOptionValueId,
 			java.util.Map<java.util.Locale, String> nameMap, double priority,
 			String key,
@@ -550,16 +557,23 @@ public class CPOptionValueLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.product.model.CPOptionValue upsertCPOptionValue(
-			String externalReferenceCode, long cpOptionId,
-			java.util.Map<java.util.Locale, String> nameMap, double priority,
-			String key,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public CTPersistence<CPOptionValue> getCTPersistence() {
+		return _cpOptionValueLocalService.getCTPersistence();
+	}
 
-		return _cpOptionValueLocalService.upsertCPOptionValue(
-			externalReferenceCode, cpOptionId, nameMap, priority, key,
-			serviceContext);
+	@Override
+	public Class<CPOptionValue> getModelClass() {
+		return _cpOptionValueLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CPOptionValue>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return _cpOptionValueLocalService.updateWithUnsafeFunction(
+			updateUnsafeFunction);
 	}
 
 	@Override

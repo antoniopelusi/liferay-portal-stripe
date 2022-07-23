@@ -12,7 +12,7 @@
  * details.
  */
 
-import {normalizeFieldName} from 'dynamic-data-mapping-form-renderer';
+import {normalizeFieldName} from 'data-engine-js-components-web';
 import React, {useRef} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
@@ -105,6 +105,7 @@ const Main = ({
 				value={value}
 				visible={visible}
 			/>
+
 			{showKeyword && (
 				<KeyValue
 					className="key-value-input"
@@ -120,6 +121,7 @@ const Main = ({
 					value={keyword}
 				/>
 			)}
+
 			<KeyValue
 				className="key-value-reference-input"
 				onBlur={onReferenceBlur}

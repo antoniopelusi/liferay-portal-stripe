@@ -19,11 +19,10 @@ import com.beust.jcommander.ParameterException;
 
 import com.liferay.css.builder.internal.util.CSSBuilderUtil;
 import com.liferay.css.builder.internal.util.FileUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.rtl.css.RTLCSSConverter;
 import com.liferay.sass.compiler.SassCompiler;
-import com.liferay.sass.compiler.jni.internal.JniSassCompiler;
-import com.liferay.sass.compiler.jsass.internal.JSassCompiler;
-import com.liferay.sass.compiler.ruby.internal.RubySassCompiler;
+import com.liferay.sass.compiler.dart.internal.DartSassCompiler;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,7 +100,7 @@ public class CSSBuilder implements AutoCloseable {
 		_importPath = Files.createTempDirectory("portalCssImportPath");
 
 		if ((importPaths != null) && !importPaths.isEmpty()) {
-			StringBuilder sb = new StringBuilder();
+			StringBundler sb = new StringBundler();
 
 			for (File importPath : importPaths) {
 				if (importPath.isFile()) {
@@ -139,13 +138,13 @@ public class CSSBuilder implements AutoCloseable {
 	}
 
 	public void execute() throws Exception {
-		List<String> fileNames = new ArrayList<>();
-
 		File baseDir = _cssBuilderArgs.getBaseDir();
 
 		if (!baseDir.exists()) {
 			throw new IOException("Directory " + baseDir + " does not exist");
 		}
+
+		List<String> fileNames = new ArrayList<>();
 
 		for (String dirName : _cssBuilderArgs.getDirNames()) {
 			List<String> sassFileNames = _collectSassFiles(dirName, baseDir);
@@ -165,9 +164,9 @@ public class CSSBuilder implements AutoCloseable {
 			_parseSassFile(fileName);
 
 			System.out.println(
-				"Parsed " + fileName + " in " +
-					String.valueOf(System.currentTimeMillis() - startTime) +
-						"ms");
+				StringBundler.concat(
+					"Parsed ", fileName, " in ",
+					System.currentTimeMillis() - startTime, "ms"));
 		}
 	}
 
@@ -261,8 +260,9 @@ public class CSSBuilder implements AutoCloseable {
 		}
 		catch (Exception exception) {
 			System.out.println(
-				"Unable to generate RTL version for " + fileName + ", " +
-					exception.getMessage());
+				StringBundler.concat(
+					"Unable to generate RTL version for ", fileName, ", ",
+					exception.getMessage()));
 		}
 
 		return rtlCss;
@@ -290,47 +290,26 @@ public class CSSBuilder implements AutoCloseable {
 
 		if ((sassCompilerClassName == null) ||
 			sassCompilerClassName.isEmpty() ||
-			sassCompilerClassName.equals("jni")) {
+			sassCompilerClassName.equals("dart")) {
 
-			try {
-				_sassCompiler = new JSassCompiler(precision);
-
-				System.out.println("Using native Sass compiler");
-			}
-			catch (Throwable throwable) {
-				System.out.println(
-					"Unable to load native compiler, falling back to Ruby");
-
-				_sassCompiler = new RubySassCompiler(precision);
-			}
+			System.out.println("Using Dart Sass compiler");
 		}
-		else if (sassCompilerClassName.equals("jni32")) {
-			try {
-				System.setProperty("jna.nosys", Boolean.TRUE.toString());
+		else if (sassCompilerClassName.equals("jni") ||
+				 sassCompilerClassName.equals("jni32") ||
+				 sassCompilerClassName.equals("ruby")) {
 
-				_sassCompiler = new JniSassCompiler(precision);
-
-				System.out.println("Using native 32-bit Sass compiler");
-			}
-			catch (Throwable throwable) {
-				System.out.println(
-					"Unable to load native compiler, falling back to Ruby");
-
-				_sassCompiler = new RubySassCompiler(precision);
-			}
+			System.out.println(
+				"Using Dart Sass compiler because other sass compilers are " +
+					"no longer supported");
 		}
-		else if (sassCompilerClassName.equals("ruby")) {
-			try {
-				_sassCompiler = new RubySassCompiler(precision);
 
-				System.out.println("Using Ruby Sass compiler");
-			}
-			catch (Exception exception) {
-				System.out.println(
-					"Unable to load Ruby compiler, falling back to native");
+		try {
+			_sassCompiler = new DartSassCompiler(precision);
+		}
+		catch (Throwable throwable) {
+			System.out.println("Unable to load sass compiler");
 
-				_sassCompiler = new JSassCompiler(precision);
-			}
+			throw throwable;
 		}
 	}
 

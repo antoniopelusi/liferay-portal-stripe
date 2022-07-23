@@ -43,18 +43,17 @@ page import="com.liferay.item.selector.ItemSelector" %><%@
 page import="com.liferay.item.selector.criteria.URLItemSelectorReturnType" %><%@
 page import="com.liferay.item.selector.criteria.group.criterion.GroupItemSelectorCriterion" %><%@
 page import="com.liferay.petra.portlet.url.builder.PortletURLBuilder" %><%@
-page import="com.liferay.petra.string.StringBundler" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
 page import="com.liferay.portal.kernel.dao.orm.QueryUtil" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
+page import="com.liferay.portal.kernel.exception.DataLimitExceededException" %><%@
 page import="com.liferay.portal.kernel.exception.DuplicateRoleException" %><%@
 page import="com.liferay.portal.kernel.exception.NoSuchRoleException" %><%@
 page import="com.liferay.portal.kernel.exception.RequiredRoleException" %><%@
 page import="com.liferay.portal.kernel.exception.RoleAssignmentException" %><%@
 page import="com.liferay.portal.kernel.exception.RoleNameException" %><%@
 page import="com.liferay.portal.kernel.exception.RolePermissionsException" %><%@
-page import="com.liferay.portal.kernel.exception.SystemException" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
 page import="com.liferay.portal.kernel.model.Group" %><%@
 page import="com.liferay.portal.kernel.model.GroupConstants" %><%@
@@ -64,7 +63,6 @@ page import="com.liferay.portal.kernel.model.PermissionDisplay" %><%@
 page import="com.liferay.portal.kernel.model.Portlet" %><%@
 page import="com.liferay.portal.kernel.model.PortletCategory" %><%@
 page import="com.liferay.portal.kernel.model.PortletCategoryConstants" %><%@
-page import="com.liferay.portal.kernel.model.Resource" %><%@
 page import="com.liferay.portal.kernel.model.ResourceConstants" %><%@
 page import="com.liferay.portal.kernel.model.Role" %><%@
 page import="com.liferay.portal.kernel.model.User" %><%@
@@ -83,10 +81,7 @@ page import="com.liferay.portal.kernel.security.membershippolicy.OrganizationMem
 page import="com.liferay.portal.kernel.security.membershippolicy.RoleMembershipPolicyUtil" %><%@
 page import="com.liferay.portal.kernel.security.membershippolicy.SiteMembershipPolicyUtil" %><%@
 page import="com.liferay.portal.kernel.security.permission.ActionKeys" %><%@
-page import="com.liferay.portal.kernel.security.permission.PermissionConverterUtil" %><%@
 page import="com.liferay.portal.kernel.security.permission.ResourceActionsUtil" %><%@
-page import="com.liferay.portal.kernel.security.permission.RolePermissions" %><%@
-page import="com.liferay.portal.kernel.security.permission.comparator.ActionComparator" %><%@
 page import="com.liferay.portal.kernel.security.permission.comparator.ModelResourceWeightComparator" %><%@
 page import="com.liferay.portal.kernel.service.GroupLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.GroupServiceUtil" %><%@
@@ -94,13 +89,9 @@ page import="com.liferay.portal.kernel.service.OrganizationLocalServiceUtil" %><
 page import="com.liferay.portal.kernel.service.OrganizationServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.PortletLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil" %><%@
-page import="com.liferay.portal.kernel.service.RoleLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.RoleServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.permission.RolePermissionUtil" %><%@
-page import="com.liferay.portal.kernel.template.TemplateHandler" %><%@
-page import="com.liferay.portal.kernel.template.comparator.TemplateHandlerComparator" %><%@
-page import="com.liferay.portal.kernel.theme.ThemeDisplay" %><%@
 page import="com.liferay.portal.kernel.util.ArrayUtil" %><%@
 page import="com.liferay.portal.kernel.util.Constants" %><%@
 page import="com.liferay.portal.kernel.util.GetterUtil" %><%@
@@ -116,10 +107,8 @@ page import="com.liferay.portal.kernel.util.UnicodeProperties" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.kernel.util.comparator.PortletTitleComparator" %><%@
-page import="com.liferay.portal.model.impl.ResourceImpl" %><%@
 page import="com.liferay.portal.util.PropsValues" %><%@
 page import="com.liferay.portal.util.WebAppPool" %><%@
-page import="com.liferay.portlet.rolesadmin.search.ResourceActionRowChecker" %><%@
 page import="com.liferay.portlet.usersadmin.search.GroupSearch" %><%@
 page import="com.liferay.portlet.usersadmin.search.OrganizationSearch" %><%@
 page import="com.liferay.product.navigation.personal.menu.BasePersonalMenuEntry" %><%@
@@ -128,15 +117,16 @@ page import="com.liferay.roles.admin.constants.RolesAdminWebKeys" %><%@
 page import="com.liferay.roles.admin.kernel.util.RolesAdminUtil" %><%@
 page import="com.liferay.roles.admin.role.type.contributor.RoleTypeContributor" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.EditRoleAssignmentsManagementToolbarDisplayContext" %><%@
+page import="com.liferay.roles.admin.web.internal.display.context.EditRolePermissionsFormDisplayContext" %><%@
+page import="com.liferay.roles.admin.web.internal.display.context.EditRolePermissionsResourceDisplayContext" %><%@
+page import="com.liferay.roles.admin.web.internal.display.context.EditRolePermissionsSummaryDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.RoleDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.SegmentsEntryDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.SelectRoleManagementToolbarDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.ViewRolesManagementToolbarDisplayContext" %><%@
-page import="com.liferay.roles.admin.web.internal.group.type.contributor.util.GroupTypeContributorUtil" %><%@
 page import="com.liferay.roles.admin.web.internal.role.type.contributor.util.RoleTypeContributorRetrieverUtil" %><%@
-page import="com.liferay.roles.admin.web.internal.util.PortletDisplayTemplateUtil" %><%@
-page import="com.liferay.segments.service.SegmentsEntryRoleLocalServiceUtil" %><%@
 page import="com.liferay.taglib.search.ResultRow" %><%@
+page import="com.liferay.template.constants.TemplatePortletKeys" %><%@
 page import="com.liferay.users.admin.kernel.util.UsersAdmin" %><%@
 page import="com.liferay.users.admin.kernel.util.UsersAdminUtil" %>
 
@@ -144,14 +134,12 @@ page import="com.liferay.users.admin.kernel.util.UsersAdminUtil" %>
 
 <%@ page import="java.util.ArrayList" %><%@
 page import="java.util.Collections" %><%@
-page import="java.util.HashSet" %><%@
 page import="java.util.List" %><%@
 page import="java.util.Map" %><%@
 page import="java.util.Objects" %><%@
 page import="java.util.Set" %>
 
 <%@ page import="javax.portlet.PortletURL" %><%@
-page import="javax.portlet.ResourceURL" %><%@
 page import="javax.portlet.WindowState" %>
 
 <liferay-frontend:defineObjects />
@@ -176,87 +164,3 @@ RoleDisplayContext roleDisplayContext = new RoleDisplayContext(request, renderRe
 %>
 
 <%@ include file="/init-ext.jsp" %>
-
-<%!
-private String _getActionLabel(HttpServletRequest request, ThemeDisplay themeDisplay, String resourceName, String actionId) throws SystemException {
-	String actionLabel = null;
-
-	if (actionId.equals(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
-		PanelCategoryHelper panelCategoryHelper = (PanelCategoryHelper)request.getAttribute(ApplicationListWebKeys.PANEL_CATEGORY_HELPER);
-		PersonalMenuEntryHelper personalMenuEntryHelper = (PersonalMenuEntryHelper)request.getAttribute(ApplicationListWebKeys.PERSONAL_MENU_ENTRY_HELPER);
-
-		Portlet portlet = PortletLocalServiceUtil.getPortletById(themeDisplay.getCompanyId(), resourceName);
-
-		if (panelCategoryHelper.containsPortlet(portlet.getPortletId(), PanelCategoryKeys.SITE_ADMINISTRATION)) {
-			actionLabel = LanguageUtil.get(request, "access-in-site-administration");
-		}
-		else if (panelCategoryHelper.containsPortlet(portlet.getPortletId(), PanelCategoryKeys.USER)) {
-			actionLabel = LanguageUtil.get(request, "access-in-my-account");
-		}
-		else if (personalMenuEntryHelper.hasPersonalMenuEntry(portlet.getPortletId())) {
-			actionLabel = LanguageUtil.get(request, "access-in-personal-menu");
-		}
-	}
-
-	if (actionLabel == null) {
-		actionLabel = ResourceActionsUtil.getAction(request, actionId);
-	}
-
-	return actionLabel;
-}
-
-private String _getAssigneesMessage(HttpServletRequest request, Role role, RoleDisplayContext roleDisplayContext) throws Exception {
-	if (roleDisplayContext.isAutomaticallyAssigned(role)) {
-		return LanguageUtil.get(request, "this-role-is-automatically-assigned");
-	}
-
-	int count = _getAssigneesTotal(role.getRoleId());
-
-	if (count == 1) {
-		return LanguageUtil.get(request, "one-assignee");
-	}
-
-	return LanguageUtil.format(request, "x-assignees", count);
-}
-
-private int _getAssigneesTotal(long roleId) throws Exception {
-	return RoleLocalServiceUtil.getAssigneesTotal(roleId) + SegmentsEntryRoleLocalServiceUtil.getSegmentsEntryRolesCountByRoleId(roleId);
-}
-
-private StringBundler _getResourceHtmlId(String resource) {
-	StringBundler sb = new StringBundler(2);
-
-	sb.append("resource_");
-	sb.append(StringUtil.replace(resource, '.', '_'));
-
-	return sb;
-}
-
-private boolean _isShowScope(HttpServletRequest request, Role role, String curModelResource, String curPortletResource) throws SystemException {
-	boolean showScope = true;
-
-	if (curPortletResource.equals(PortletKeys.PORTAL)) {
-		showScope = false;
-	}
-	else if (role.getType() != RoleConstants.TYPE_REGULAR) {
-		showScope = false;
-	}
-	else if (Validator.isNotNull(curPortletResource)) {
-		Portlet curPortlet = PortletLocalServiceUtil.getPortletById(role.getCompanyId(), curPortletResource);
-
-		if (curPortlet != null) {
-			PanelCategoryHelper panelCategoryHelper = (PanelCategoryHelper)request.getAttribute(ApplicationListWebKeys.PANEL_CATEGORY_HELPER);
-
-			if (panelCategoryHelper.hasPanelApp(curPortlet.getPortletId()) && !panelCategoryHelper.containsPortlet(curPortlet.getPortletId(), PanelCategoryKeys.SITE_ADMINISTRATION)) {
-				showScope = false;
-			}
-		}
-	}
-
-	if (Validator.isNotNull(curModelResource) && curModelResource.equals(Group.class.getName())) {
-		showScope = true;
-	}
-
-	return showScope;
-}
-%>

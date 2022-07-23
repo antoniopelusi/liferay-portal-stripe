@@ -12,7 +12,7 @@
  * details.
  */
 
-import {convertToFormData, makeFetch} from 'dynamic-data-mapping-form-renderer';
+import {convertToFormData, makeFetch} from 'data-engine-js-components-web';
 import {openToast} from 'frontend-js-web';
 
 const openNotification = ({error, message}) => {
@@ -29,13 +29,13 @@ const openNotification = ({error, message}) => {
 	openToast(openToastParams);
 };
 
-export const submitEmailContent = ({
+export function submitEmailContent({
 	addresses,
 	message,
 	portletNamespace,
 	shareFormInstanceURL,
 	subject,
-}) => {
+}) {
 	if (!addresses || !addresses.length) {
 		return;
 	}
@@ -64,4 +64,4 @@ export const submitEmailContent = ({
 		.catch((error) => {
 			throw new Error(error);
 		});
-};
+}

@@ -34,7 +34,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -51,9 +50,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -206,16 +203,15 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 
 	@Test
 	public void testGetSiteDisplayPageTemplatesPage() throws Exception {
-		Page<DisplayPageTemplate> page =
-			displayPageTemplateResource.getSiteDisplayPageTemplatesPage(
-				testGetSiteDisplayPageTemplatesPage_getSiteId(),
-				Pagination.of(1, 2), null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long siteId = testGetSiteDisplayPageTemplatesPage_getSiteId();
 		Long irrelevantSiteId =
 			testGetSiteDisplayPageTemplatesPage_getIrrelevantSiteId();
+
+		Page<DisplayPageTemplate> page =
+			displayPageTemplateResource.getSiteDisplayPageTemplatesPage(
+				siteId, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantSiteId != null) {
 			DisplayPageTemplate irrelevantDisplayPageTemplate =
@@ -242,7 +238,7 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 				siteId, randomDisplayPageTemplate());
 
 		page = displayPageTemplateResource.getSiteDisplayPageTemplatesPage(
-			siteId, Pagination.of(1, 2), null);
+			siteId, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -317,6 +313,20 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 	}
 
 	@Test
+	public void testGetSiteDisplayPageTemplatesPageWithSortDouble()
+		throws Exception {
+
+		testGetSiteDisplayPageTemplatesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, displayPageTemplate1, displayPageTemplate2) -> {
+				BeanUtils.setProperty(
+					displayPageTemplate1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					displayPageTemplate2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetSiteDisplayPageTemplatesPageWithSortInteger()
 		throws Exception {
 
@@ -341,7 +351,7 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -476,6 +486,25 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 		throws Exception {
 
 		Assert.assertTrue(true);
+	}
+
+	protected void assertContains(
+		DisplayPageTemplate displayPageTemplate,
+		List<DisplayPageTemplate> displayPageTemplates) {
+
+		boolean contains = false;
+
+		for (DisplayPageTemplate item : displayPageTemplates) {
+			if (equals(displayPageTemplate, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			displayPageTemplates + " does not contain " + displayPageTemplate,
+			contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -684,8 +713,8 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 
 		graphQLFields.add(new GraphQLField("siteId"));
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.admin.content.dto.v1_0.
 						DisplayPageTemplate.class)) {
 
@@ -701,12 +730,13 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -720,7 +750,7 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -923,6 +953,19 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1260,8 +1303,8 @@ public abstract class BaseDisplayPageTemplateResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseDisplayPageTemplateResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseDisplayPageTemplateResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

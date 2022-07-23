@@ -222,4 +222,7 @@ public interface ExpandoValueModel
 	 */
 	public void setData(String data);
 
+	@Override
+	public ExpandoValue cloneWithOriginalValues();
+
 }

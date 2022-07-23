@@ -100,12 +100,12 @@ public class MetadataUtilImpl implements MetadataUtil {
 	}
 
 	@Override
-	public String parseMetadataXml(InputStream inputStream, String entityId)
+	public String parseMetadataXml(InputStream inputStream1, String entityId)
 		throws Exception {
 
-		try (InputStream is = inputStream) {
+		try (InputStream inputStream2 = inputStream1) {
 			XMLObject xmlObject = XMLObjectSupport.unmarshallFromInputStream(
-				parserPool, inputStream);
+				parserPool, inputStream1);
 
 			EntityDescriptor entityDescriptor =
 				SamlUtil.getEntityDescriptorById(entityId, xmlObject);

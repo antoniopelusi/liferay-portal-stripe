@@ -1,0 +1,46 @@
+<html>
+<head>
+<title>ManageCalendar</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">ManageCalendar</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>COLOR_BY_COLUMN</td>
+	<td>//tr[${key_rowNumber}]//td[contains(@class, 'lfr-color-column')]//*[contains(@style,'${key_color}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CALENDAR</td>
+	<td>//a[contains(@class, 'btn')][contains(.,'Add Calendar')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NAME_BY_COLUMN</td>
+	<td>//tr[${key_rowNumber}]//td[contains(@class,'lfr-name-column') and contains(.,'${key_name}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VERTICAL_ELLIPSIS_BY_NAME</td>
+	<td>//tr[contains(.,'${key_calendarName}')]//*[contains(@class,'lexicon-icon-ellipsis-v')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DEFAULT_OPTION_BY_NAME</td>
+	<td>//tr[contains(.,'${key_calendarName}')]//td[contains(@class, 'lfr-default-column')][contains(text(),'${key_optionDefault}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CALENDAR_MENULIST_COLOR_PICKER</td>
+	<td>//div[contains(@class,'simple-color-picker-content')]//div[contains(@style,'${key_calendarColor}')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

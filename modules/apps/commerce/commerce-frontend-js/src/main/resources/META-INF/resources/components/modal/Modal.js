@@ -122,10 +122,10 @@ function Modal(props) {
 					className="commerce-modal"
 					observer={observer}
 					size={size}
-					spritemap={props.spritemap}
 					status={props.status}
 				>
 					{title && <ClayModal.Header>{title}</ClayModal.Header>}
+
 					<div
 						className="modal-body modal-body-iframe"
 						style={{
@@ -134,6 +134,7 @@ function Modal(props) {
 						}}
 					>
 						<iframe src={url} title={title} />
+
 						{loading && (
 							<div className="loader-container">
 								<ClayLoadingIndicator />
@@ -152,7 +153,6 @@ Modal.propTypes = {
 	onClose: PropTypes.func,
 	portletId: PropTypes.string,
 	size: PropTypes.string,
-	spritemap: PropTypes.string,
 	status: PropTypes.string,
 	title: PropTypes.string,
 	url: PropTypes.string,

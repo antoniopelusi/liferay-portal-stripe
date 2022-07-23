@@ -70,7 +70,7 @@ public class DDMFormJSONDeserializerTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		setUpDDMFormJSONDeserializer();
+		_setUpDDMFormJSONDeserializer();
 		setUpPortalUtil();
 	}
 
@@ -82,6 +82,33 @@ public class DDMFormJSONDeserializerTest
 					"version.json"));
 
 		Assert.assertEquals("2.0", ddmForm.getDefinitionSchemaVersion());
+	}
+
+	@Test
+	public void testDDMFormSuccessPageSettingsDifferentDefaultLocale()
+		throws Exception {
+
+		DDMForm ddmForm = deserialize(
+			read(
+				"ddm-form-success-page-settings-different-default-" +
+					"locale.json"));
+
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+			ddmForm.getDDMFormSuccessPageSettings();
+
+		Assert.assertNotNull(ddmFormSuccessPageSettings);
+
+		LocalizedValue body = ddmFormSuccessPageSettings.getBody();
+
+		Assert.assertEquals("Texto", body.getString(LocaleUtil.BRAZIL));
+		Assert.assertEquals("Texto", body.getString(LocaleUtil.NETHERLANDS));
+
+		LocalizedValue title = ddmFormSuccessPageSettings.getTitle();
+
+		Assert.assertEquals("Título", title.getString(LocaleUtil.BRAZIL));
+		Assert.assertEquals("Título", title.getString(LocaleUtil.NETHERLANDS));
+
+		Assert.assertTrue(ddmFormSuccessPageSettings.isEnabled());
 	}
 
 	@Override
@@ -146,25 +173,6 @@ public class DDMFormJSONDeserializerTest
 	@Override
 	protected String getTestFileExtension() {
 		return ".json";
-	}
-
-	protected void setUpDDMFormJSONDeserializer() throws Exception {
-
-		// DDM form field type services tracker
-
-		Field field = ReflectionUtil.getDeclaredField(
-			DDMFormJSONDeserializer.class, "_ddmFormFieldTypeServicesTracker");
-
-		field.set(
-			_ddmFormJSONDeserializer,
-			getMockedDDMFormFieldTypeServicesTracker());
-
-		// JSON factory
-
-		field = ReflectionUtil.getDeclaredField(
-			DDMFormJSONDeserializer.class, "_jsonFactory");
-
-		field.set(_ddmFormJSONDeserializer, new JSONFactoryImpl());
 	}
 
 	protected void setUpDefaultDDMFormFieldType() {
@@ -269,6 +277,25 @@ public class DDMFormJSONDeserializerTest
 		super.testDecimalDDMFormField(ddmFormField);
 
 		Assert.assertEquals("false", ddmFormField.getVisibilityExpression());
+	}
+
+	private void _setUpDDMFormJSONDeserializer() throws Exception {
+
+		// DDM form field type services tracker
+
+		Field field = ReflectionUtil.getDeclaredField(
+			DDMFormJSONDeserializer.class, "_ddmFormFieldTypeServicesTracker");
+
+		field.set(
+			_ddmFormJSONDeserializer,
+			getMockedDDMFormFieldTypeServicesTracker());
+
+		// JSON factory
+
+		field = ReflectionUtil.getDeclaredField(
+			DDMFormJSONDeserializer.class, "_jsonFactory");
+
+		field.set(_ddmFormJSONDeserializer, new JSONFactoryImpl());
 	}
 
 	private final DDMFormJSONDeserializer _ddmFormJSONDeserializer =

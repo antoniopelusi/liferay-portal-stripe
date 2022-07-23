@@ -6,7 +6,7 @@
 	<import file="../build-common-java.xml" />
 
 	<property name="copy.jar" value="false" />
-	<property name="deploy.dir" value="${app.server.lib.portal.dir}" />
+	<property name="deploy.dir" value="${app.server.shielded-container-lib.portal.dir}" />
 	<property name="jar.file" value="${ant.project.name}" />
 	<property name="manifest.bundle.name" value="Liferay Portal Impl" />
 	<property name="manifest.bundle.symbolic.name" value="com.liferay.portal.impl;singleton:=true" />
@@ -353,128 +353,6 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 		</if>
 	</target>
 
-	<target depends="compile" name="build-wsdd">
-		<path id="wsdd.builder.classpath">
-			<fileset
-				dir="${sdk.dir}/dependencies/com.liferay.portal.tools.wsdd.builder/lib"
-				includes="*.jar"
-			/>
-			<path refid="project.classpath" />
-		</path>
-
-		<java
-			classname="com.liferay.portal.tools.wsdd.builder.WSDDBuilder"
-			classpathref="wsdd.builder.classpath"
-			fork="true"
-			maxmemory="512m"
-			newenvironment="true"
-			outputproperty="build-wsdd.output"
-		>
-			<jvmarg value="-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger" />
-			<arg value="wsdd.output.path=src/" />
-			<arg value="wsdd.server.config.file=${basedir}/../portal-web/docroot/WEB-INF/server-config.wsdd" />
-			<arg value="wsdd.service.namespace=Portlet" />
-			<arg value="wsdd.input.file=${service.file}" />
-		</java>
-
-		<echo>${build-wsdd.output}</echo>
-
-		<if>
-			<contains string="${build-wsdd.output}" substring="IOException" />
-			<then>
-				<fail>WSDD Builder generated exceptions.</fail>
-			</then>
-		</if>
-	</target>
-
-	<target name="build-wsdd-portal">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portal/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-announcements">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/announcements/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-asset">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/asset/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-calendar">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/calendar/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-documentlibrary">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/documentlibrary/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-expando">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/expando/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-exportimport">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/exportimport/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-ratings">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/ratings/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlet-social">
-		<antcall target="build-wsdd">
-			<param name="service.file" value="${basedir}/src/com/liferay/portlet/social/service.xml" />
-		</antcall>
-	</target>
-
-	<target name="build-wsdd-portlets">
-		<antcall target="build-wsdd-portlet-announcements" />
-		<antcall target="build-wsdd-portlet-asset" />
-		<antcall target="build-wsdd-portlet-documentlibrary" />
-		<antcall target="build-wsdd-portlet-expando" />
-		<antcall target="build-wsdd-portlet-exportimport" />
-		<antcall target="build-wsdd-portlet-ratings" />
-		<antcall target="build-wsdd-portlet-social" />
-	</target>
-
-	<target name="build-wsdds">
-		<antcall target="build-wsdd-portal" />
-		<antcall target="build-wsdd-portlets" />
-
-		<gradle-execute dir="../modules" task="buildWSDD" />
-	</target>
-
-	<target name="build-yui-compressor-jar">
-		<setup-libs />
-
-		<taskdef
-			classname="com.tonicsystems.jarjar.JarJarTask"
-			classpath="${project.dir}/lib/development/jarjar.jar"
-			name="jarjar"
-		/>
-
-		<jarjar jarfile="${project.dir}/lib/portal/liferay-yui-compressor.jar.new">
-			<rule pattern="org.mozilla.**" result="com.yahoo.platform.yui.mozilla.@1" />
-			<zipfileset
-				src="${project.dir}/tools/yuicompressor-2.4.7.jar"
-			/>
-		</jarjar>
-	</target>
-
 	<target depends="build-common-java.clean" name="clean">
 		<if>
 			<and>
@@ -586,6 +464,12 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 		</antcall>
 	</target>
 
+	<target name="format-source-deprecated-api">
+		<antcall target="format-source-files">
+			<param name="source.check.names" value="DeprecatedAPICheck" />
+		</antcall>
+	</target>
+
 	<target name="format-source-files">
 		<exec executable="git" failonerror="true" outputproperty="current.branch.name">
 			<arg value="rev-parse" />
@@ -644,9 +528,12 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 						</if>
 
 						<if>
-							<not>
-								<matches pattern="\.(js|json|jsp|jspf|scss|ts|tsx)(${line.separator}|$)" string="${baseline.current.branch.file.names}" />
-							</not>
+							<or>
+								<matches pattern="modules/test/poshi" string="${baseline.current.branch.file.names}" />
+								<not>
+									<matches pattern="\.(js|json|jsp|jspf|scss|ts|tsx)(${line.separator}|$)" string="${baseline.current.branch.file.names}" />
+								</not>
+							</or>
 							<then>
 								<property name="skip.node.task" value="true" />
 							</then>
@@ -705,10 +592,12 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 					newenvironment="true"
 				>
 					<jvmarg if:true="${jvm.debug}" value="${jpda.settings}" />
-					<jvmarg value="-Xmx512m" />
+					<jvmarg value="-Xmx2048m" />
 					<jvmarg value="-Xss2048k" />
+					<jvmarg value="-Dfile.encoding=UTF-8" />
 					<jvmarg value="-Dsource.formatter.check.registry.in.test.classes=${source.formatter.check.registry.in.test.classes}" />
 					<jvmarg value="-Dsource.formatter.excludes=${source.formatter.excludes}" />
+					<arg value="commit.count=${source.formatter.commit.count}" />
 					<arg value="format.current.branch=${format.current.branch}" />
 					<arg value="format.latest.author=${format.latest.author}" />
 					<arg value="format.local.changes=${format.local.changes}" />
@@ -717,8 +606,6 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 					<arg value="max.line.length=${source.formatter.max.line.length}" />
 					<arg value="processor.thread.count=${source.formatter.processor.thread.count}" />
 					<arg value="show.debug.information=${source.formatter.show.debug.information}" />
-					<arg value="show.documentation=${source.formatter.show.documentation}" />
-					<arg value="show.status.updates=${source.formatter.show.status.updates}" />
 					<arg value="source.auto.fix=${source.auto.fix}" />
 					<arg value="source.base.dir=${source.base.dir}" />
 					<arg value="source.check.category.names=${source.check.category.names}" />
@@ -727,6 +614,7 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 					<arg value="source.fail.on.has.warning=${source.fail.on.has.warning}" />
 					<arg value="source.file.extensions=${source.file.extensions}" />
 					<arg value="source.files=${source.files}" />
+					<arg value="source.formatter.properties=${source.formatter.properties}" />
 					<arg value="source.print.errors=${source.print.errors}" />
 					<arg value="validate.commit.messages=${validate.commit.messages}" />
 				</java>
@@ -794,6 +682,12 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 	<target name="format-source-local-changes-debug">
 		<antcall target="format-source-local-changes">
 			<param name="source.formatter.show.debug.information" value="true" />
+		</antcall>
+	</target>
+
+	<target name="format-source-missing-override">
+		<antcall target="format-source-files">
+			<param name="source.check.names" value="JavaMissingOverrideCheck" />
 		</antcall>
 	</target>
 
@@ -878,6 +772,7 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 	<target depends="build-common-java.init-jar" name="init-jar">
 		<ant dir="../util-bridges" inheritAll="false" target="jar" />
 		<ant dir="../util-java" inheritAll="false" target="jar" />
+		<ant dir="../util-slf4j" inheritAll="false" target="jar" />
 		<ant dir="../util-taglib" inheritAll="false" target="jar" />
 
 		<property name="portal.deploy.dependencies.dir" value="${portal-impl.classes.dir}/com/liferay/portal/deploy/dependencies" />
@@ -1005,17 +900,6 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 			<jvmarg value="-Dgit.plugins.dir=L:/projects/github/liferay-plugins" />
 			<jvmarg value="-Dsvn.plugins.dir=L:/projects/liferay.public/plugins/trunk" />
 			<jvmarg value="-Dsync.to=git" />
-		</java>
-	</target>
-
-	<target name="tcpmon">
-		<java
-			classname="org.apache.axis.utils.tcpmon"
-			classpathref="project.classpath"
-			fork="true"
-			newenvironment="true"
-		>
-			<jvmarg value="-Xmx128m" />
 		</java>
 	</target>
 

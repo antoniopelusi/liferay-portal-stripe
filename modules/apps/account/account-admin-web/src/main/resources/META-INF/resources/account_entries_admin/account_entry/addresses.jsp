@@ -46,12 +46,26 @@ renderResponse.setTitle(accountEntryDisplay.getName());
 				keyProperty="addressId"
 				modelVar="addressDisplay"
 			>
+
+				<%
+				row.setData(
+					HashMapBuilder.<String, Object>put(
+						"actions", StringUtil.merge(viewAccountEntryAddressesManagementToolbarDisplayContext.getAvailableActions(accountEntryDisplay))
+					).build());
+				%>
+
 				<portlet:renderURL var="rowURL">
 					<portlet:param name="mvcRenderCommandName" value="/account_admin/edit_account_entry_address" />
 					<portlet:param name="backURL" value="<%= currentURL %>" />
 					<portlet:param name="accountEntryAddressId" value="<%= String.valueOf(addressDisplay.getAddressId()) %>" />
 					<portlet:param name="accountEntryId" value="<%= String.valueOf(accountEntryDisplay.getAccountEntryId()) %>" />
 				</portlet:renderURL>
+
+				<%
+				if (!AccountEntryPermission.contains(permissionChecker, accountEntryDisplay.getAccountEntryId(), ActionKeys.UPDATE)) {
+					rowURL = null;
+				}
+				%>
 
 				<liferay-ui:search-container-column-text
 					cssClass="table-cell-expand-small table-cell-minw-150"

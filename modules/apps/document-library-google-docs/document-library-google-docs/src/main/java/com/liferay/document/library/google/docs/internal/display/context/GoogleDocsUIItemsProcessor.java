@@ -15,7 +15,7 @@
 package com.liferay.document.library.google.docs.internal.display.context;
 
 import com.liferay.document.library.display.context.DLUIItemKeys;
-import com.liferay.document.library.google.docs.internal.util.GoogleDocsMetadataHelper;
+import com.liferay.document.library.google.docs.internal.helper.GoogleDocsMetadataHelper;
 import com.liferay.document.library.google.docs.internal.util.constants.GoogleDocsConstants;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;

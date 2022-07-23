@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Michael C. Han
  * @author Shuyang Zhou
+ * @author Brian Wing Shun Chan
  */
 public abstract class BaseDestination implements Destination {
 

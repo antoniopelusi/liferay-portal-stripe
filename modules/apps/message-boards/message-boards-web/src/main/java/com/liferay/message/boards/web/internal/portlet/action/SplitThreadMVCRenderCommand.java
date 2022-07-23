@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.Component;
 	},
 	service = MVCRenderCommand.class
 )
-public class SplitThreadMVCRenderCommand extends GetMessageMVCRenderCommand {
+public class SplitThreadMVCRenderCommand extends BaseMessageMVCRenderCommand {
 
 	@Override
 	protected String getPath() {

@@ -9,6 +9,7 @@
  * distribution rights of the Software.
  */
 
+import ClayList from '@clayui/list';
 import ClayPanel from '@clayui/panel';
 import React, {useMemo, useState} from 'react';
 
@@ -24,7 +25,7 @@ function Header({processId}) {
 	return (
 		<>
 			<PanelHeaderWithOptions
-				className="dashboard-panel-header"
+				className="tabs-panel-header"
 				description={Liferay.Language.get(
 					'workload-by-assignee-description'
 				)}
@@ -33,7 +34,7 @@ function Header({processId}) {
 			/>
 
 			<div className="management-bar management-bar-light ml-3 navbar navbar-expand-md pl-1">
-				<ul className="navbar-nav">
+				<ClayList className="navbar-nav">
 					<ProcessStepFilter
 						options={{
 							hideControl: true,
@@ -43,7 +44,7 @@ function Header({processId}) {
 						}}
 						processId={processId}
 					/>
-				</ul>
+				</ClayList>
 			</div>
 		</>
 	);
@@ -78,7 +79,12 @@ function WorkloadByAssigneeCard({routeParams}) {
 		url: `/processes/${processId}/assignees/metrics`,
 	});
 
-	const promises = useMemo(() => [postData()], [postData]);
+	const promises = useMemo(
+		() => [postData()],
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[routeParams]
+	);
 
 	const tabs = [
 		{name: Liferay.Language.get('overdue'), tabKey: 'overdue'},

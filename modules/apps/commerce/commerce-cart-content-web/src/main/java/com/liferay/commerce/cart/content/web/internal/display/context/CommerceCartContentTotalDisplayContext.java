@@ -19,7 +19,6 @@ import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.order.CommerceOrderHttpHelper;
 import com.liferay.commerce.order.CommerceOrderValidatorRegistry;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
-import com.liferay.commerce.price.CommerceProductPriceCalculation;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
 import com.liferay.commerce.product.util.CPInstanceHelper;
@@ -43,28 +42,25 @@ public class CommerceCartContentTotalDisplayContext
 	extends CommerceCartContentDisplayContext {
 
 	public CommerceCartContentTotalDisplayContext(
-			HttpServletRequest httpServletRequest,
 			CommerceChannelLocalService commerceChannelLocalService,
 			CommerceOrderHttpHelper commerceOrderHttpHelper,
 			CommerceOrderItemService commerceOrderItemService,
 			CommerceOrderPriceCalculation commerceOrderPriceCalculation,
 			CommerceOrderValidatorRegistry commerceOrderValidatorRegistry,
-			CommerceProductPriceCalculation commerceProductPriceCalculation,
 			CPDefinitionHelper cpDefinitionHelper,
 			CPInstanceHelper cpInstanceHelper,
 			ModelResourcePermission<CommerceOrder>
 				commerceOrderModelResourcePermission,
 			PortletResourcePermission commerceProductPortletResourcePermission,
-			Portal portal)
+			HttpServletRequest httpServletRequest, Portal portal)
 		throws PortalException {
 
 		super(
-			httpServletRequest, commerceChannelLocalService,
-			commerceOrderItemService, commerceOrderPriceCalculation,
-			commerceOrderValidatorRegistry, commerceProductPriceCalculation,
-			cpDefinitionHelper, cpInstanceHelper,
-			commerceOrderModelResourcePermission,
-			commerceProductPortletResourcePermission);
+			commerceChannelLocalService, commerceOrderItemService,
+			commerceOrderModelResourcePermission, commerceOrderPriceCalculation,
+			commerceOrderValidatorRegistry,
+			commerceProductPortletResourcePermission, cpDefinitionHelper,
+			cpInstanceHelper, httpServletRequest, portal);
 
 		_commerceOrderHttpHelper = commerceOrderHttpHelper;
 		_portal = portal;

@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class DepotEntryLocalServiceWrapper
 	implements DepotEntryLocalService, ServiceWrapper<DepotEntryLocalService> {
 
+	public DepotEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DepotEntryLocalServiceWrapper(
 		DepotEntryLocalService depotEntryLocalService) {
 
@@ -143,6 +147,13 @@ public class DepotEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _depotEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _depotEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

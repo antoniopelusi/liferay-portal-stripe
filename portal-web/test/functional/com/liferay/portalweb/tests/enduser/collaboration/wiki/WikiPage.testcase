@@ -1,0 +1,999 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Wiki";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Wiki Test Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Wiki Test Page",
+			widgetName = "Wiki");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			WikiPage.tearDownCP();
+
+			WikiNode.tearDownCP();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "This ensures that a wiki page can be added attachments."
+	@priority = "4"
+	@refactordone
+	test CanAddAttachmentsToWikiPage {
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageName = "FrontPage");
+
+		for (var attachmentFileName : list "Document_1.jpg,Document_2.mp3,Document_3.doc") {
+			WikiPage.addAttachmentViaPageEdit(
+				attachmentFileName = "${attachmentFileName}",
+				groupName = "Guest",
+				layoutURLKey = "wiki-test-page",
+				siteURLKey = "guest",
+				wikiNodeName = "Main",
+				wikiPageTitle = "FrontPage");
+		}
+
+		WikiPage.viewAttachmentPGViaEdit(
+			attachmentFileName = "Document_1.jpg",
+			attachmentFileSize = "13 KB",
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			numberOfAttachments = "3",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewAttachmentPGViaEdit(
+			attachmentFileName = "Document_2.mp3",
+			attachmentFileSize = "864 B",
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			numberOfAttachments = "3",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewAttachmentPGViaEdit(
+			attachmentFileName = "Document_3.doc",
+			attachmentFileSize = "24 KB",
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			numberOfAttachments = "3",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This ensures that a child page can be added to a new wiki page."
+	@priority = "5"
+	@refactordone
+	test CanAddChildPage {
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiPage.addPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.addChildPagePG(
+			wikiChildPageContent = "Wiki Child Page Content",
+			wikiChildPageTitle = "Wiki Child Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiNavigator.gotoChildPagePG(wikiChildPageTitle = "Wiki Child Page Title");
+
+		WikiPage.viewChildPagePG(
+			wikiChildPageContent = "Wiki Child Page Content",
+			wikiChildPageTitle = "Wiki Child Page Title");
+	}
+
+	@description = "This ensures that multiple child pages can be added to the front page."
+	@priority = "5"
+	@refactordone
+	test CanAddChildPagesToFrontPage {
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageName = "FrontPage");
+
+		for (var childPageCount : list "1,2") {
+			WikiNavigator.openToWikiPage(
+				layoutURLKey = "wiki-test-page",
+				siteURLKey = "guest",
+				wikiNodeName = "Main",
+				wikiPageTitle = "FrontPage");
+
+			WikiPage.addChildPagePG(
+				wikiChildPageContent = "Wiki FrontPage Child Page${childPageCount} Content",
+				wikiChildPageTitle = "Wiki FrontPage Child Page${childPageCount} Title");
+		}
+
+		for (var childPageCount : list "1,2") {
+			WikiNavigator.openToWikiPage(
+				layoutURLKey = "wiki-test-page",
+				siteURLKey = "guest",
+				wikiNodeName = "Main",
+				wikiPageTitle = "FrontPage");
+
+			WikiNavigator.gotoChildPagePG(wikiChildPageTitle = "Wiki FrontPage Child Page${childPageCount} Title");
+
+			WikiPage.viewChildPagePG(
+				wikiChildPageContent = "Wiki FrontPage Child Page${childPageCount} Content",
+				wikiChildPageTitle = "Wiki FrontPage Child Page${childPageCount} Title");
+		}
+	}
+
+	@description = "This ensures that the front page can be added with creole format."
+	@priority = "4"
+	@refactordone
+	test CanAddFrontPageWithCreoleFormat {
+		WikiPage.addFrontPagePG(
+			creoleSource = "true",
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "**Wiki FrontPage Content**",
+			wikiPageText = "Wiki FrontPage Content",
+			wikiPageTitle = "FrontPage");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This ensures that a front page can be added with HTML format."
+	@priority = "5"
+	@refactordone
+	@uitest
+	test CanAddFrontPageWithHTMLFormat {
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiPage.addFrontPagePG(
+			htmlSource = "true",
+			wikiPageContent = '''<p><a href="/">Home</a></p>''');
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiNavigator.gotoPG(
+			isOrphanPage = "true",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewPG(
+			isOrphanPage = "true",
+			wikiPageContent = "Home",
+			wikiPageContentLink = "true",
+			wikiPageRevision = "1.1",
+			wikiPageTitle = "FrontPage",
+			wikiPageUsername = "Test Test");
+	}
+
+	@description = "This ensures that a user can add wiki page with HTML format via wiki widget."
+	@priority = "5"
+	@refactordone
+	test CanAddPageWithHTMLFormat {
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		var welcomeToLiferay = '''
+				<p><a href="http://www.liferay.com">Welcome to LIFERAY</a></p>
+			''';
+
+		WikiPage.addPG(
+			htmlSource = "true",
+			wikiPageContent = "${welcomeToLiferay}",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Welcome to LIFERAY",
+			wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This test covers LPS-95711. It ensures that an image can be added to the front page via URL."
+	@priority = "4"
+	@refactordone
+	test CanAddPageWithImageViaURL {
+		property test.name.skip.portal.instance = "WikiPage#CanAddPageWithImageViaURL";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_2.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		WikiNavigator.openToEditPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.addInlineImage(
+			contentImageName = "Document_2.jpg",
+			imageSourceURL = "http://localhost:8080/webdav/guest/document_library/Document_2.jpg",
+			navTab = "URL");
+
+		PortletEntry.publish();
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiPage.viewFrontPagePG(
+			contentImageName = "Document_2.jpg",
+			wikiPageContent = "",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This ensures that a wiki page can be added inline image via upload."
+	@priority = "4"
+	@refactordone
+	test CanAddPageWithInlineImage {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openToEditPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.addInlineImageViaEdit(
+			navTab = "Upload Image",
+			uploadFileName = "Document_1.jpg");
+
+		PortletEntry.publish();
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewPageWithAttachment(
+			attachmentFileName = "Document_1.jpg",
+			inlineImage = "true",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This ensures that users can add wiki pages via wiki widget."
+	@priority = "5"
+	@refactordone
+	@uitest
+	test CanAddWikiPages {
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiNavigator.gotoAllPagesPG();
+
+		for (var entryCount : list "1,2,3") {
+			WikiPage.addPG(
+				wikiPageContent = "Wiki Page${entryCount} Content",
+				wikiPageTitle = "Wiki Page${entryCount} Title");
+		}
+
+		for (var entryCount : list "1,2,3") {
+			Navigator.gotoPage(pageName = "Wiki Test Page");
+
+			WikiNavigator.gotoPG(
+				wikiPageContent = "Wiki Page${entryCount} Content",
+				wikiPageRevision = "1.0",
+				wikiPageTitle = "Wiki Page${entryCount} Title",
+				wikiPageUsername = "Test Test");
+
+			WikiPage.viewPG(
+				wikiPageContent = "Wiki Page${entryCount} Content",
+				wikiPageTitle = "Wiki Page${entryCount} Title");
+		}
+	}
+
+	@description = "This ensures that a wiki page can be canceled when adding a wiki page."
+	@priority = "5"
+	@refactordone
+	test CanCancelAddingAPage {
+		WikiNavigator.openToAddPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main");
+
+		WikiEntry.addPageTitle(wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addPageContent(wikiPageContent = "Wiki Page Content");
+
+		SelectFrame(value1 = "relative=top");
+
+		WikiEntry.cancel();
+
+		WikiTable.viewNoEntry(wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This ensures that a wiki page can be canceled when editing a wiki page."
+	@priority = "5"
+	@refactordone
+	test CanCancelEditingAPage {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openToEditPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addPageContent(wikiPageContent = "Wiki Page Content Edit");
+
+		SelectFrame(value1 = "relative=top");
+
+		WikiEntry.cancel();
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This ensures that the wiki page versions can be compared via wiki widget."
+	@priority = "4"
+	@refactordone
+	test CanCompareVersionAfterEditingFrontPage {
+		for (var wikiPageContent : list "Wiki FrontPage Content,Wiki FrontPage Content Edit") {
+			JSONWiki.updateWikiPage(
+				groupName = "Guest",
+				wikiNodeName = "Main",
+				wikiPageContent = "${wikiPageContent}",
+				wikiPageName = "FrontPage");
+		}
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki FrontPage Content Edit",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.compareVersionsPG(
+			wikiPageContentEdit = "Wiki FrontPage Content Edit",
+			wikiPageTitle = "FrontPage",
+			wikiPageVersionDiff = "Wiki FrontPage Content Edit",
+			wikiPageVersionNew = "1.2",
+			wikiPageVersionOld = "1.0");
+	}
+
+	@description = "This ensures that a wiki page can be added through copy."
+	@priority = "4"
+	@refactordone
+	test CanCopyPage {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiNavigator.gotoEntryCopyViaPGTable(wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addPageTitle(wikiPageTitle = "Copied Wiki Page Title");
+
+		WikiEntry.addPageContent(wikiPageContent = "Copied Wiki Page Content");
+
+		SelectFrame(value1 = "relative=top");
+
+		PortletEntry.publish();
+
+		for (var wikiPageTitle : list "Wiki Page Title,Copied Wiki Page Title") {
+			WikiTable.viewEntry(
+				entryStatus = "APPROVED",
+				wikiPageTitle = "${wikiPageTitle}");
+		}
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Copied Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Copied Wiki Page Content",
+			wikiPageTitle = "Copied Wiki Page Title");
+	}
+
+	@description = "This ensures that the front page can be deleted."
+	@priority = "5"
+	@refactordone
+	test CanDeleteFrontPage {
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageName = "FrontPage");
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiPage.deletePG(wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This ensures that a wiki page can be deleted."
+	@priority = "5"
+	@refactordone
+	test CanDeletePage {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiPage.deletePG(wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewNoPagePG(wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This ensures that a draft page can be edited."
+	@priority = "5"
+	@refactordone
+	test CanEditDraftPage {
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiPage.addPG(
+			saveAsDraft = "true",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiNavigator.gotoDraftPagesPG();
+
+		WikiNavigator.gotoEntryEditViaPGTable(wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addPageContent(wikiPageContent = "Edited Wiki Page Content");
+
+		SelectFrame(value1 = "relative=top");
+
+		PortletEntry.publish();
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiTable.viewEntry(
+			entryStatus = "APPROVED",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Edited Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+	}
+
+	@description = "This ensures that the front page can be edited."
+	@priority = "5"
+	@refactordone
+	test CanEditFrontPage {
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageName = "FrontPage");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.editFrontPagePG(wikiPageContentEdit = "Wiki FrontPage Content Edit");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiNavigator.gotoPG(
+			wikiPageContent = "Wiki FrontPage Content Edit",
+			wikiPageRevision = "1.2",
+			wikiPageTitle = "FrontPage",
+			wikiPageUsername = "Test Test");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki FrontPage Content Edit",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This is a test for LPS-71134. It ensures that an exported wiki page can be imported using default mirror strategy between different sites."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanImportPageBetweenDifferentSites {
+
+		// TODO LPS-149057 CanImportPageBetweenDifferentSites pending implementation
+
+	}
+
+	@description = "This ensures that a wiki page can link to other wiki page, also covers LPS-81914."
+	@priority = "4"
+	@refactordone
+	test CanLinkWikiPageToOtherWikiPage {
+		WikiNavigator.openToWikiNode(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			wikiNodeName = "Main");
+
+		for (var num : list "1,2") {
+			WikiPage.addCP(
+				wikiPageContent = "Wiki Page Content${num}",
+				wikiPageTitle = "Wiki Page Title${num}");
+		}
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title1");
+
+		WikiPage.linkPG(
+			wikiPage1Content = "Wiki Page Content1",
+			wikiPage1Title = "Wiki Page Title1",
+			wikiPage2Content = "Wiki Page Content2",
+			wikiPage2Link = "[[Wiki Page Title2]]",
+			wikiPage2Title = "Wiki Page Title2");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title1");
+
+		WikiNavigator.gotoBodyLinkPG(wikiPageContent = "Wiki Page Title2");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content2",
+			wikiPageTitle = "Wiki Page Title2");
+	}
+
+	@description = "This ensures that a wiki page can not be published with invalid character in title."
+	@priority = "4"
+	@refactordone
+	test CannotPublishWikiPageWithInvalidTitle {
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageName = "FrontPage");
+
+		for (var invalidCharacter : list "\,],[,;,:,|,&lt;,&gt;") {
+			WikiPage.addFrontPageChildPageInvalidTitle(
+				groupName = "Guest",
+				layoutURLKey = "wiki-test-page",
+				siteURLKey = "guest",
+				wikiChildPageContent = "Wiki FrontPage Child Page Content",
+				wikiChildPageInvalidTitle = "true",
+				wikiChildPageTitle = "Wiki${invalidCharacter} Front${invalidCharacter} Page${invalidCharacter} Child${invalidCharacter} Page${invalidCharacter} Title${invalidCharacter}",
+				wikiNodeName = "Main",
+				wikiParentPageTitle = "FrontPage");
+		}
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageTitle = "FrontPage");
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiPage.viewNoChildPagePGViaAllPages(
+			wikiChildPageTitle = "Wiki FrontPage Child Page Title",
+			wikiPageRevision = "1.1",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This test covers LPS-67282. It ensures that a user cannot rename the draft wiki page."
+	@ignore = "Test Stub"
+	@priority = "3"
+	test CannotRenameDraftPage {
+
+		// TODO LPS-150264 CannotRenameDraftPage pending implementation
+
+	}
+
+	@description = "This ensures that javascript can not be viewed in wiki page content."
+	@priority = "4"
+	@refactordone
+	test CannotViewJavascriptInWikiContent {
+		var wikiPageContent = '''<p id='demo'>PASS</p> <script type='text/javascript'>document.getElementById('demo').innerHTML = 'this code should not be read by the client';</script>''';
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.addFrontPagePG(
+			htmlSource = "true",
+			wikiPageContent = "${wikiPageContent}");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewFrontPagePG(
+			wikiPageContent = "PASS",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This ensures that the redirect link can be removed from the wiki page content."
+	@priority = "3"
+	@refactordone
+	test CanRemoveRedirectLinkFromPage {
+		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "WikiPage#CanRemoveRedirectLinkFromPage";
+
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.renameWikiPagePG(
+			wikiPageTitle = "Wiki Page Title",
+			wikiPageTitleRename = "Wiki Page Rename");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.removeRedirectWikiPagePG(
+			wikiPage2Content = "Wiki2 Page2 Content2",
+			wikiPageTitle = "Wiki Page Title",
+			wikiPageTitleRename = "Wiki Page Rename");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.cannotViewRedirectLinkPG();
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki2 Page2 Content2",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Rename");
+
+		WikiPage.cannotViewRedirectLinkPG();
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Rename");
+	}
+
+	@description = "This ensures that the a wiki page can be renamed."
+	@priority = "4"
+	@refactordone
+	test CanRenamePageTitle {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.renameWikiPagePG(
+			wikiPageTitle = "Wiki Page Title",
+			wikiPageTitleRename = "Wiki Page Rename");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewRedirectLinkPG(wikiPageRedirectLink = "(Redirected from Wiki Page Title)");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Rename");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Rename");
+
+		WikiPage.cannotViewRedirectLinkPG();
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Rename");
+	}
+
+	@description = "This ensures that the changes can revert after moving a wiki page."
+	@priority = "4"
+	@refactordone
+	test CanRevertChangesMadeToParentPages {
+		for (var num : list "1,2") {
+			JSONWiki.addWikiPage(
+				groupName = "Guest",
+				wikiNodeName = "Main",
+				wikiPageContent = "Wiki Page Content${num}",
+				wikiPageName = "Wiki Page Title${num}");
+		}
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title2");
+
+		WikiPage.changeParentWikipagetoWikipagePG(
+			wikiPage1Title = "Wiki Page Title1",
+			wikiPage2Content = "Wiki Page Content2",
+			wikiPage2Title = "Wiki Page Title2",
+			wikiPageContent = "Wiki Page Content2");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title2");
+
+		WikiPage.revertChangeParentWikipagetoWikipagePG(
+			wikiPage1Title = "Wiki Page Title1",
+			wikiPage2Content = "Wiki Page Content2",
+			wikiPage2Title = "Wiki Page Title2",
+			wikiVersion1Summary = "Changed parent from",
+			wikiVersion2Summary = "Reverted to 1.0");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title1");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content1",
+			wikiPageTitle = "Wiki Page Title1");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title2");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content2",
+			wikiPageTitle = "Wiki Page Title2");
+	}
+
+	@description = "This ensures that the edited front page can revert to previous version."
+	@priority = "4"
+	@refactordone
+	test CanRevertEditInFrontPage {
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "FrontPage");
+
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			version = "1.1",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content Edit",
+			wikiPageName = "FrontPage");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content Edit",
+			wikiPageTitle = "FrontPage");
+
+		WikiPage.revertEditPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageRevisionNew = "1.3",
+			wikiPageRevisionOld = "1.1",
+			wikiPageTitle = "FrontPage",
+			wikiVersionSummary = "Reverted to 1.1");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiNavigator.gotoPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageRevision = "1.3",
+			wikiPageTitle = "FrontPage",
+			wikiPageUsername = "Test Test");
+
+		WikiPage.viewPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This ensures that the edited wiki page can be saved as draft."
+	@priority = "4"
+	@refactordone
+	test CanSaveEditedPageAsDraft {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki Page Content",
+			wikiPageName = "Wiki Page Title");
+
+		WikiNavigator.openToEditPage(
+			groupName = "Guest",
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.addPageContent(wikiPageContent = "Edited Wiki Page Content");
+
+		SelectFrame(value1 = "relative=top");
+
+		WikiEntry.saveAsDraft();
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "draft_pages",
+			wikiNodeName = "Main");
+
+		WikiTable.viewEntry(
+			entryStatus = "DRAFT",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiEntry.viewPageContentBody(wikiPageContent = "Wiki Page Content");
+	}
+
+	@description = "This test checks that the javascript in the user name will not be executed when viewing a new wiki page on page."
+	@priority = "3"
+	test XSSIsNotExecutedWhenViewingUsernameInEntry {
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
+
+		User.editUserInformation(userLastNameEdit = '''Test<script>alert('hello!')</script>''');
+
+		WikiNavigator.gotoWidgetSpecificTabByURL(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			tabURLKey = "all_pages",
+			wikiNodeName = "Main");
+
+		WikiPage.addPG(
+			wikiPageContent = "Wiki Page Content",
+			wikiPageTitle = "Wiki Page Title");
+
+		AssertAlertNotPresent();
+	}
+
+}

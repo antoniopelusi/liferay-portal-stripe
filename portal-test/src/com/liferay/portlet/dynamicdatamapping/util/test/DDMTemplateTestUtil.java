@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author Eudaldo Alonso
@@ -39,7 +38,7 @@ public class DDMTemplateTestUtil {
 
 		return addTemplate(
 			groupId, classNameId, classPK, resourceClassNameId,
-			TemplateConstants.LANG_TYPE_VM, getSampleTemplateXSL(),
+			TemplateConstants.LANG_TYPE_VM, "$name.getData()",
 			LocaleUtil.getSiteDefault());
 	}
 
@@ -49,10 +48,6 @@ public class DDMTemplateTestUtil {
 			Locale defaultLocale)
 		throws Exception {
 
-		Map<Locale, String> nameMap = HashMapBuilder.put(
-			defaultLocale, "Test Template"
-		).build();
-
 		ServiceContext serviceContext = new ServiceContext();
 
 		serviceContext.setAddGroupPermissions(true);
@@ -60,13 +55,12 @@ public class DDMTemplateTestUtil {
 
 		return DDMTemplateManagerUtil.addTemplate(
 			TestPropsValues.getUserId(), groupId, classNameId, classPK,
-			resourceClassNameId, null, nameMap, null,
-			DDMTemplateManager.TEMPLATE_TYPE_DISPLAY, null, language, script,
-			false, false, null, null, serviceContext);
-	}
-
-	public static String getSampleTemplateXSL() {
-		return "$name.getData()";
+			resourceClassNameId, null,
+			HashMapBuilder.put(
+				defaultLocale, "Test Template"
+			).build(),
+			null, DDMTemplateManager.TEMPLATE_TYPE_DISPLAY, null, language,
+			script, false, false, null, null, serviceContext);
 	}
 
 }

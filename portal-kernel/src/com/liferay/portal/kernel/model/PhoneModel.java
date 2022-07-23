@@ -307,4 +307,7 @@ public interface PhoneModel
 	 */
 	public void setPrimary(boolean primary);
 
+	@Override
+	public Phone cloneWithOriginalValues();
+
 }

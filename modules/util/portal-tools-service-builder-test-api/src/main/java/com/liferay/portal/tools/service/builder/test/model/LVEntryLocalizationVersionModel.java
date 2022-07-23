@@ -179,4 +179,7 @@ public interface LVEntryLocalizationVersionModel
 	 */
 	public void setContent(String content);
 
+	@Override
+	public LVEntryLocalizationVersion cloneWithOriginalValues();
+
 }

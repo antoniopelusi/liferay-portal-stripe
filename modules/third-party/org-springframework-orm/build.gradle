@@ -6,12 +6,9 @@ task deployJar(type: Copy)
 task jarPatched(type: Zip)
 task patch(type: PatchTask)
 
-sourceCompatibility = "1.6"
-targetCompatibility = "1.6"
-
 dependencies {
-	compile group: "org.hibernate", name: "hibernate-core", version: "3.6.10.Final"
-	compile group: "org.springframework", name: "spring-orm", version: "4.3.22.RELEASE"
+	compile group: "org.hibernate", name: "hibernate-core", version: "5.6.7.Final"
+	compile group: "org.springframework", name: "spring-orm", version: "5.2.20.RELEASE"
 }
 
 deploy {
@@ -53,6 +50,8 @@ patch {
 	ext {
 		autoClean = false
 	}
+
+	fileNames "org/springframework/orm/hibernate5/SpringSessionSynchronization.java"
 
 	originalLibModuleName = "spring-orm"
 }

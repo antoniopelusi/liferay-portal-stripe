@@ -16,7 +16,7 @@ package com.liferay.commerce.internal.upgrade.v6_0_0;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.Country;
-import com.liferay.portal.kernel.service.CountryLocalServiceUtil;
+import com.liferay.portal.kernel.service.CountryLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -31,15 +31,21 @@ import java.util.Date;
  */
 public class CommerceCountryUpgradeProcess extends UpgradeProcess {
 
+	public CommerceCountryUpgradeProcess(
+		CountryLocalService countryLocalService) {
+
+		_countryLocalService = countryLocalService;
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
 		try (Statement selectStatement = connection.createStatement()) {
-			ResultSet rs = selectStatement.executeQuery(
+			ResultSet resultSet = selectStatement.executeQuery(
 				"select * from CommerceCountry where twoLettersISOCode is " +
 					"null or threeLettersISOCode is null or numericISOCode = " +
 						"0");
 
-			if (rs.next()) {
+			if (resultSet.next()) {
 				throw new UpgradeException(
 					"Unable to migrate data in CommerceCountry to Country " +
 						"because it contains countries with missing ISO codes");
@@ -47,26 +53,28 @@ public class CommerceCountryUpgradeProcess extends UpgradeProcess {
 		}
 
 		try (Statement selectStatement = connection.createStatement()) {
-			ResultSet rs = selectStatement.executeQuery(
+			ResultSet resultSet = selectStatement.executeQuery(
 				"select * from CommerceCountry order by commerceCountryId asc");
 
-			while (rs.next()) {
-				String a2 = rs.getString("twoLettersISOCode");
-				String a3 = rs.getString("threeLettersISOCode");
-				boolean active = rs.getBoolean("active_");
-				boolean billingAllowed = rs.getBoolean("billingAllowed");
-				boolean channelFilterEnabled = rs.getBoolean(
+			while (resultSet.next()) {
+				String a2 = resultSet.getString("twoLettersISOCode");
+				String a3 = resultSet.getString("threeLettersISOCode");
+				boolean active = resultSet.getBoolean("active_");
+				boolean billingAllowed = resultSet.getBoolean("billingAllowed");
+				boolean channelFilterEnabled = resultSet.getBoolean(
 					"channelFilterEnabled");
-				long commerceCountryId = rs.getLong("commerceCountryId");
-				long companyId = rs.getLong("companyId");
-				Date lastPublishDate = rs.getTimestamp("lastPublishDate");
-				String name = rs.getString("name");
-				String numericISOCode = rs.getString("numericISOCode");
-				Double priority = rs.getDouble("priority");
-				boolean shippingAllowed = rs.getBoolean("shippingAllowed");
-				boolean subjectToVAT = rs.getBoolean("subjectToVAT");
+				long commerceCountryId = resultSet.getLong("commerceCountryId");
+				long companyId = resultSet.getLong("companyId");
+				Date lastPublishDate = resultSet.getTimestamp(
+					"lastPublishDate");
+				String name = resultSet.getString("name");
+				String numericISOCode = resultSet.getString("numericISOCode");
+				Double priority = resultSet.getDouble("priority");
+				boolean shippingAllowed = resultSet.getBoolean(
+					"shippingAllowed");
+				boolean subjectToVAT = resultSet.getBoolean("subjectToVAT");
 
-				Country country = CountryLocalServiceUtil.fetchCountryByA2(
+				Country country = _countryLocalService.fetchCountryByA2(
 					companyId, a2);
 
 				if (country != null) {
@@ -77,9 +85,11 @@ public class CommerceCountryUpgradeProcess extends UpgradeProcess {
 				}
 				else {
 					country = _addCountry(
-						commerceCountryId, companyId, rs.getLong("userId"),
-						rs.getString("userName"), rs.getTimestamp("createDate"),
-						rs.getTimestamp("modifiedDate"), a2, a3, active,
+						commerceCountryId, companyId,
+						resultSet.getLong("userId"),
+						resultSet.getString("userName"),
+						resultSet.getTimestamp("createDate"),
+						resultSet.getTimestamp("modifiedDate"), a2, a3, active,
 						billingAllowed, channelFilterEnabled, name,
 						numericISOCode, priority, shippingAllowed, subjectToVAT,
 						lastPublishDate);
@@ -106,11 +116,11 @@ public class CommerceCountryUpgradeProcess extends UpgradeProcess {
 			boolean shippingAllowed, boolean subjectToVAT, Date lastPublishDate)
 		throws Exception {
 
-		if (CountryLocalServiceUtil.fetchCountry(countryId) != null) {
+		if (_countryLocalService.fetchCountry(countryId) != null) {
 			countryId = increment();
 		}
 
-		Country country = CountryLocalServiceUtil.createCountry(countryId);
+		Country country = _countryLocalService.createCountry(countryId);
 
 		country.setCompanyId(companyId);
 		country.setUserId(userId);
@@ -133,12 +143,12 @@ public class CommerceCountryUpgradeProcess extends UpgradeProcess {
 		country.setSubjectToVAT(subjectToVAT);
 		country.setLastPublishDate(lastPublishDate);
 
-		CountryLocalServiceUtil.addCountry(country);
+		_countryLocalService.addCountry(country);
 
 		for (String languageId :
 				LocalizationUtil.getAvailableLanguageIds(name)) {
 
-			CountryLocalServiceUtil.updateCountryLocalization(
+			_countryLocalService.updateCountryLocalization(
 				country, languageId,
 				LocalizationUtil.getLocalization(name, languageId));
 		}
@@ -172,12 +182,12 @@ public class CommerceCountryUpgradeProcess extends UpgradeProcess {
 		for (String languageId :
 				LocalizationUtil.getAvailableLanguageIds(name)) {
 
-			CountryLocalServiceUtil.updateCountryLocalization(
+			_countryLocalService.updateCountryLocalization(
 				country, languageId,
 				LocalizationUtil.getLocalization(name, languageId));
 		}
 
-		return CountryLocalServiceUtil.updateCountry(country);
+		return _countryLocalService.updateCountry(country);
 	}
 
 	private void _updateCountryId(
@@ -190,25 +200,17 @@ public class CommerceCountryUpgradeProcess extends UpgradeProcess {
 			columnName = "commerceCountryId";
 		}
 
-		StringBundler sb = new StringBundler(10);
-
-		sb.append("update ");
-		sb.append(tableName);
-		sb.append(" set ");
-		sb.append(columnName);
-		sb.append(" = ");
-		sb.append(newCountryId);
-		sb.append(" where ");
-		sb.append(columnName);
-		sb.append(" = ");
-		sb.append(oldCountryId);
-
-		runSQL(sb.toString());
+		runSQL(
+			StringBundler.concat(
+				"update ", tableName, " set ", columnName, " = ", newCountryId,
+				" where ", columnName, " = ", oldCountryId));
 	}
 
 	private static final String[] _TABLE_NAMES = {
 		"CommerceAddress", "CommerceAddressRestriction", "CommerceRegion",
 		"CommerceTaxFixedRateAddressRel", "CShippingFixedOptionRel"
 	};
+
+	private final CountryLocalService _countryLocalService;
 
 }

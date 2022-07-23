@@ -147,6 +147,10 @@ public class KaleoActionLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -282,29 +286,6 @@ public class KaleoActionLocalServiceUtil {
 
 		return getService().getKaleoActions(
 			companyId, kaleoClassName, kaleoClassPK, executionType);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoActions(long, String, long)}
-	 */
-	@Deprecated
-	public static List<KaleoAction> getKaleoActions(
-		String kaleoClassName, long kaleoClassPK) {
-
-		return getService().getKaleoActions(kaleoClassName, kaleoClassPK);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoActions(long, String, long, String)}
-	 */
-	@Deprecated
-	public static List<KaleoAction> getKaleoActions(
-		String kaleoClassName, long kaleoClassPK, String executionType) {
-
-		return getService().getKaleoActions(
-			kaleoClassName, kaleoClassPK, executionType);
 	}
 
 	/**

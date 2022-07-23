@@ -15,20 +15,24 @@
 import PropTypes from 'prop-types';
 import {useEffect} from 'react';
 
-import selectLanguageId from '../../selectors/selectLanguageId';
-import selectSegmentsExperienceId from '../../selectors/selectSegmentsExperienceId';
-import {useDispatch, useSelector, useSelectorCallback} from '../../store/index';
-import updateEditableValues from '../../thunks/updateEditableValues';
-import {useToControlsId} from '../CollectionItemContext';
+import {useToControlsId} from '../../contexts/CollectionItemContext';
 import {
 	useEditableProcessorClickPosition,
 	useEditableProcessorUniqueId,
 	useSetEditableProcessorUniqueId,
-} from './EditableProcessorContext';
+} from '../../contexts/EditableProcessorContext';
+import {
+	useDispatch,
+	useSelector,
+	useSelectorCallback,
+} from '../../contexts/StoreContext';
+import selectLanguageId from '../../selectors/selectLanguageId';
+import selectSegmentsExperienceId from '../../selectors/selectSegmentsExperienceId';
+import updateEditableValues from '../../thunks/updateEditableValues';
 
 export default function FragmentContentProcessor({
+	editables,
 	fragmentEntryLinkId,
-	itemId,
 }) {
 	const dispatch = useDispatch();
 	const editableProcessorClickPosition = useEditableProcessorClickPosition();
@@ -38,13 +42,9 @@ export default function FragmentContentProcessor({
 	const setEditableProcessorUniqueId = useSetEditableProcessorUniqueId();
 	const toControlsId = useToControlsId();
 
-	const editable = useSelectorCallback(
-		(state) =>
-			Object.values(state.editables?.[toControlsId(itemId)] || {}).find(
-				(editable) =>
-					editableProcessorUniqueId === toControlsId(editable.itemId)
-			),
-		[editableProcessorUniqueId, itemId, toControlsId]
+	const editable = editables.find(
+		(editable) =>
+			editableProcessorUniqueId === toControlsId(editable.itemId)
 	);
 
 	const editableCollectionItemId = toControlsId(
@@ -75,7 +75,9 @@ export default function FragmentContentProcessor({
 		editable.processor.createEditor(
 			editable.element,
 			(value, config = {}) => {
-				const defaultValue = editableValue.defaultValue?.trim() ?? '';
+				const defaultValue =
+					editableValue.defaultValue?.replace(/\s+/g, ' ').trim() ??
+					'';
 				const previousValue = editableValue[languageId];
 
 				if (

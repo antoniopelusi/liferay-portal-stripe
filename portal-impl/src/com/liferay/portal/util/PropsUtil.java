@@ -14,7 +14,6 @@
 
 package com.liferay.portal.util;
 
-import com.liferay.petra.lang.CentralizedThreadLocal;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.ConfigurationFactoryImpl;
@@ -28,7 +27,6 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
-import com.liferay.portal.kernel.servlet.WebDirDetector;
 import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -254,7 +252,7 @@ public class PropsUtil {
 					webId = company.getWebId();
 				}
 				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+					_log.error(portalException);
 				}
 
 				configuration = new ConfigurationImpl(
@@ -367,42 +365,40 @@ public class PropsUtil {
 		SystemProperties.set(
 			PropsKeys.LIFERAY_LIB_GLOBAL_SHARED_DIR, globalSharedLibDir);
 
-		// Global lib directory
+		// Portal shielded container lib directory
 
-		String globalLibDir = _getLibDir(CentralizedThreadLocal.class);
+		String portalShieldedContainerLibDir = _getLibDir(PropsUtil.class);
 
-		if (_log.isInfoEnabled()) {
-			_log.info("Global lib directory " + globalLibDir);
-		}
+		String portalShieldedContainerLibDirProperty = System.getProperty(
+			PropsKeys.LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR);
 
-		SystemProperties.set(PropsKeys.LIFERAY_LIB_GLOBAL_DIR, globalLibDir);
+		if (portalShieldedContainerLibDirProperty != null) {
+			StringUtil.replace(
+				portalShieldedContainerLibDirProperty, CharPool.BACK_SLASH,
+				CharPool.SLASH);
 
-		// Portal lib directory
+			if (!portalShieldedContainerLibDirProperty.endsWith(
+					StringPool.SLASH)) {
 
-		ClassLoader classLoader = PropsUtil.class.getClassLoader();
-
-		String portalLibDir = WebDirDetector.getLibDir(classLoader);
-
-		String portalLibDirProperty = System.getProperty(
-			PropsKeys.LIFERAY_LIB_PORTAL_DIR);
-
-		if (portalLibDirProperty != null) {
-			if (!portalLibDirProperty.endsWith(StringPool.SLASH)) {
-				portalLibDirProperty += StringPool.SLASH;
+				portalShieldedContainerLibDirProperty += StringPool.SLASH;
 			}
 
-			portalLibDir = portalLibDirProperty;
+			portalShieldedContainerLibDir =
+				portalShieldedContainerLibDirProperty;
 		}
 
-		if (_log.isInfoEnabled()) {
-			_log.info("Portal lib directory " + portalLibDir);
-		}
-
-		SystemProperties.set(PropsKeys.LIFERAY_LIB_PORTAL_DIR, portalLibDir);
+		SystemProperties.set(
+			PropsKeys.LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR,
+			portalShieldedContainerLibDir);
 
 		// Portal web directory
 
-		String portalWebDir = WebDirDetector.getRootDir(portalLibDir);
+		String portalWebDir = portalShieldedContainerLibDir;
+
+		if (portalWebDir.endsWith("/WEB-INF/shielded-container-lib/")) {
+			portalWebDir = portalWebDir.substring(
+				0, portalWebDir.length() - 31);
+		}
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Portal web directory " + portalWebDir);

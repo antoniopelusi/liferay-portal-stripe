@@ -14,35 +14,22 @@
 
 package com.liferay.frontend.editor.ckeditor.web.internal.editor.configuration;
 
+import com.liferay.document.library.kernel.util.AudioProcessorUtil;
 import com.liferay.frontend.editor.ckeditor.web.internal.constants.CKEditorConstants;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigContributor;
 import com.liferay.portal.kernel.json.JSONArray;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.ColorScheme;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.xuggler.XugglerUtil;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Ambrín Chaudhary
@@ -63,18 +50,8 @@ public class CKEditorConfigContributor extends BaseCKEditorConfigContributor {
 			jsonObject, inputEditorTaglibAttributes, themeDisplay,
 			requestBackedPortletURLFactory);
 
-		jsonObject.put("autoSaveTimeout", 3000);
-
-		ColorScheme colorScheme = themeDisplay.getColorScheme();
-
-		String cssClasses = (String)inputEditorTaglibAttributes.get(
-			CKEditorConstants.ATTRIBUTE_NAMESPACE + ":cssClasses");
-
 		jsonObject.put(
-			"bodyClass",
-			StringBundler.concat(
-				"html-editor ", HtmlUtil.escape(colorScheme.getCssClass()), " ",
-				HtmlUtil.escape(cssClasses))
+			"autoSaveTimeout", 3000
 		).put(
 			"closeNoticeTimeout", 8000
 		).put(
@@ -82,8 +59,8 @@ public class CKEditorConfigContributor extends BaseCKEditorConfigContributor {
 		);
 
 		String extraPlugins =
-			"addimages,autogrow,autolink,filebrowser,itemselector,lfrpopup," +
-				"media,stylescombo,videoembed";
+			"addimages,autogrow,autolink,colordialog,filebrowser," +
+				"itemselector,lfrpopup,media,stylescombo,videoembed";
 
 		boolean inlineEdit = GetterUtil.getBoolean(
 			(String)inputEditorTaglibAttributes.get(
@@ -105,12 +82,12 @@ public class CKEditorConfigContributor extends BaseCKEditorConfigContributor {
 		).put(
 			"removePlugins", "elementspath"
 		).put(
-			"stylesSet", getStyleFormatsJSONArray(themeDisplay.getLocale())
+			"stylesSet", _getStyleFormatsJSONArray(themeDisplay.getLocale())
 		).put(
 			"title", false
 		);
 
-		JSONArray toolbarSimpleJSONArray = getToolbarSimpleJSONArray(
+		JSONArray toolbarSimpleJSONArray = _getToolbarSimpleJSONArray(
 			inputEditorTaglibAttributes);
 
 		jsonObject.put(
@@ -129,106 +106,93 @@ public class CKEditorConfigContributor extends BaseCKEditorConfigContributor {
 			"toolbar_tablet", toolbarSimpleJSONArray
 		).put(
 			"toolbar_text_advanced",
-			getToolbarTextAdvancedJSONArray(inputEditorTaglibAttributes)
+			_getToolbarTextAdvancedJSONArray(inputEditorTaglibAttributes)
 		).put(
 			"toolbar_text_simple",
-			getToolbarTextSimpleJSONArray(inputEditorTaglibAttributes)
+			_getToolbarTextSimpleJSONArray(inputEditorTaglibAttributes)
 		);
 	}
 
-	protected JSONObject getStyleFormatJSONObject(
+	private JSONObject _getStyleFormatJSONObject(
 		String styleFormatName, String element, String cssClass) {
 
-		JSONObject styleJSONObject = JSONFactoryUtil.createJSONObject();
+		return JSONUtil.put(
+			"attributes",
+			() -> {
+				if (Validator.isNotNull(cssClass)) {
+					return JSONUtil.put("class", cssClass);
+				}
 
-		if (Validator.isNotNull(cssClass)) {
-			JSONObject attributesJSONObject = JSONUtil.put("class", cssClass);
-
-			styleJSONObject.put("attributes", attributesJSONObject);
-		}
-
-		styleJSONObject.put(
+				return null;
+			}
+		).put(
 			"element", element
 		).put(
 			"name", styleFormatName
 		);
-
-		return styleJSONObject;
 	}
 
-	protected JSONArray getStyleFormatsJSONArray(Locale locale) {
-		ResourceBundle resourceBundle = null;
-
-		try {
-			resourceBundle = _resourceBundleLoader.loadResourceBundle(locale);
-		}
-		catch (MissingResourceException missingResourceException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(missingResourceException, missingResourceException);
-			}
-
-			resourceBundle = ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE;
-		}
-
+	private JSONArray _getStyleFormatsJSONArray(Locale locale) {
 		return JSONUtil.putAll(
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "normal"), "p", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "1"), "h1",
-				null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "2"), "h2",
-				null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "3"), "h3",
-				null),
-			getStyleFormatJSONObject(
-				LanguageUtil.format(resourceBundle, "heading-x", "4"), "h4",
-				null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "preformatted-text"), "pre",
-				null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "cited-work"), "cite", null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "computer-code"), "code",
-				null),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "info-message"), "div",
-				"portlet-msg-info"),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "alert-message"), "div",
-				"portlet-msg-alert"),
-			getStyleFormatJSONObject(
-				LanguageUtil.get(resourceBundle, "error-message"), "div",
-				"portlet-msg-error"));
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "normal"), "p", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "1"), "h1", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "2"), "h2", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "3"), "h3", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(locale, "heading-x", "4"), "h4", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "preformatted-text"), "pre", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "cited-work"), "cite", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "computer-code"), "code", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "info-message"), "div",
+				"overflow-auto portlet-msg-info"),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "alert-message"), "div",
+				"overflow-auto portlet-msg-alert"),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(locale, "error-message"), "div",
+				"overflow-auto portlet-msg-error"));
 	}
 
-	protected JSONArray getToolbarSimpleJSONArray(
+	private JSONArray _getToolbarSimpleJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
-		JSONArray jsonArray = JSONUtil.putAll(
+		return JSONUtil.putAll(
 			toJSONArray("['Undo', 'Redo']"),
 			toJSONArray("['Styles', 'Bold', 'Italic', 'Underline']"),
 			toJSONArray("['NumberedList', 'BulletedList']"),
 			toJSONArray("['Link', Unlink]"),
-			toJSONArray("['Table', 'ImageSelector', 'VideoSelector']"));
+			toJSONArray("['Table', 'ImageSelector', 'VideoSelector']")
+		).put(
+			() -> {
+				if (AudioProcessorUtil.isEnabled()) {
+					return toJSONArray("['AudioSelector']");
+				}
 
-		if (XugglerUtil.isEnabled()) {
-			jsonArray.put(toJSONArray("['AudioSelector']"));
-		}
+				return null;
+			}
+		).put(
+			() -> {
+				if (isShowSource(inputEditorTaglibAttributes)) {
+					return toJSONArray("['Source', 'Expand']");
+				}
 
-		if (isShowSource(inputEditorTaglibAttributes)) {
-			jsonArray.put(toJSONArray("['Source', 'Expand']"));
-		}
-
-		return jsonArray;
+				return null;
+			}
+		);
 	}
 
-	protected JSONArray getToolbarTextAdvancedJSONArray(
+	private JSONArray _getToolbarTextAdvancedJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
-		JSONArray jsonArray = JSONUtil.putAll(
+		return JSONUtil.putAll(
 			toJSONArray("['Undo', 'Redo']"), toJSONArray("['Styles']"),
 			toJSONArray("['FontColor', 'BGColor']"),
 			toJSONArray("['Bold', 'Italic', 'Underline', 'Strikethrough']"),
@@ -236,39 +200,35 @@ public class CKEditorConfigContributor extends BaseCKEditorConfigContributor {
 			toJSONArray("['NumberedList', 'BulletedList']"),
 			toJSONArray("['IncreaseIndent', 'DecreaseIndent']"),
 			toJSONArray("['IncreaseIndent', 'DecreaseIndent']"),
-			toJSONArray("['Link', Unlink]"));
+			toJSONArray("['Link', Unlink]")
+		).put(
+			() -> {
+				if (isShowSource(inputEditorTaglibAttributes)) {
+					return toJSONArray("['Source', 'Expand']");
+				}
 
-		if (isShowSource(inputEditorTaglibAttributes)) {
-			jsonArray.put(toJSONArray("['Source', 'Expand']"));
-		}
-
-		return jsonArray;
+				return null;
+			}
+		);
 	}
 
-	protected JSONArray getToolbarTextSimpleJSONArray(
+	private JSONArray _getToolbarTextSimpleJSONArray(
 		Map<String, Object> inputEditorTaglibAttributes) {
 
-		JSONArray jsonArray = JSONUtil.putAll(
+		return JSONUtil.putAll(
 			toJSONArray("['Undo', 'Redo']"),
 			toJSONArray("['Styles', 'Bold', 'Italic', 'Underline']"),
 			toJSONArray("['NumberedList', 'BulletedList']"),
-			toJSONArray("['Link', Unlink]"));
+			toJSONArray("['Link', Unlink]")
+		).put(
+			() -> {
+				if (isShowSource(inputEditorTaglibAttributes)) {
+					return toJSONArray("['Source', 'Expand']");
+				}
 
-		if (isShowSource(inputEditorTaglibAttributes)) {
-			jsonArray.put(toJSONArray("['Source', 'Expand']"));
-		}
-
-		return jsonArray;
+				return null;
+			}
+		);
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CKEditorConfigContributor.class);
-
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(bundle.symbolic.name=com.liferay.frontend.editor.lang)"
-	)
-	private volatile ResourceBundleLoader _resourceBundleLoader;
 
 }

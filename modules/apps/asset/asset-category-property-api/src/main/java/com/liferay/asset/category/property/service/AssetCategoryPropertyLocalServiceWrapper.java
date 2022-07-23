@@ -30,6 +30,10 @@ public class AssetCategoryPropertyLocalServiceWrapper
 	implements AssetCategoryPropertyLocalService,
 			   ServiceWrapper<AssetCategoryPropertyLocalService> {
 
+	public AssetCategoryPropertyLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetCategoryPropertyLocalServiceWrapper(
 		AssetCategoryPropertyLocalService assetCategoryPropertyLocalService) {
 
@@ -161,6 +165,13 @@ public class AssetCategoryPropertyLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _assetCategoryPropertyLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetCategoryPropertyLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

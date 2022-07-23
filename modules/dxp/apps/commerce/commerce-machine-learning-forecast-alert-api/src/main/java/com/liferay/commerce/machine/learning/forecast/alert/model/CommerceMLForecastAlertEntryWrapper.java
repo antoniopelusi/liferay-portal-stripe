@@ -147,6 +147,11 @@ public class CommerceMLForecastAlertEntryWrapper
 		}
 	}
 
+	@Override
+	public CommerceMLForecastAlertEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the actual of this commerce ml forecast alert entry.
 	 *

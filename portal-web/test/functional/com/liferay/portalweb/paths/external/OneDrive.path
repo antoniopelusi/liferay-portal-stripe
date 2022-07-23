@@ -2,11 +2,13 @@
 <head>
 <title>OneDrive</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">OneDrive</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>DELETE</td>
@@ -14,8 +16,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DELETE_ANYWAY</td>
+	<td>//div[contains(@class,'header')]//button[@name='Delete']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DELETE_CONFIRMATION</td>
 	<td>//button[@data-automationid='confirmbutton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DELETE_MESSAGE</td>
+	<td>//div[contains(@class,'ProgressIndicator-itemDescription')]//div[contains(.,'Done')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DELETE_CONFIRM_MESSAGE</td>
+	<td>//div[contains(@class,'ProgressIndicator-itemDescription')]//div[contains(.,'Delete anyway')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -36,7 +53,7 @@
 <!--DOCUMENTS-->
 <tr>
 	<td>DOCUMENTS_SAVE_STATUS</td>
-	<td>//span[@id='BreadcrumbSaveStatus']</td>
+	<td>//span[@data-unique-id='DocumentTitleSaveStatus' and contains(.,'Saved')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -46,12 +63,12 @@
 </tr>
 <tr>
 	<td>DOCUMENTS_TITLE_RENAME</td>
-	<td>//input[@id='CommitNewDocumentTitle']</td>
+	<td>//input[@id='CommitNewDocumentTitle' and not(@readonly)]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DOCUMENTS_CONTENT</td>
-	<td>//div[@id='WACViewPanel_EditingElement']</td>
+	<td>//div[@id='WACViewPanel_EditingElement']//p//span[contains(@class,'NormalTextRun')]</td>
 	<td></td>
 </tr>
 </tbody>

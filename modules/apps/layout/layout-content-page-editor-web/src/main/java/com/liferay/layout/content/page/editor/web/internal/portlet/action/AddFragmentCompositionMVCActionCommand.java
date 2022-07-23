@@ -50,7 +50,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.net.URL;
 
@@ -83,8 +82,7 @@ public class AddFragmentCompositionMVCActionCommand
 			WebKeys.THEME_DISPLAY);
 
 		long fragmentCollectionId = ParamUtil.getLong(
-			actionRequest, "fragmentCollectionId",
-			SegmentsExperienceConstants.ID_DEFAULT);
+			actionRequest, "fragmentCollectionId");
 
 		FragmentCollection fragmentCollection =
 			_fragmentCollectionService.fetchFragmentCollection(
@@ -112,8 +110,7 @@ public class AddFragmentCompositionMVCActionCommand
 		boolean saveMappingConfiguration = ParamUtil.getBoolean(
 			actionRequest, "saveMappingConfiguration");
 		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId",
-			SegmentsExperienceConstants.ID_DEFAULT);
+			actionRequest, "segmentsExperienceId");
 
 		String layoutStructureItemJSON =
 			_layoutStructureItemJSONSerializer.toJSONString(
@@ -215,7 +212,7 @@ public class AddFragmentCompositionMVCActionCommand
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			throw new StorageFieldValueException(

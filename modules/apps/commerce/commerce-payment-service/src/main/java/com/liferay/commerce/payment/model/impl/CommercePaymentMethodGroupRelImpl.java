@@ -14,8 +14,8 @@
 
 package com.liferay.commerce.payment.model.impl;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.webserver.WebServerServletTokenUtil;
 
 /**
@@ -32,7 +32,7 @@ public class CommercePaymentMethodGroupRelImpl
 
 		return StringBundler.concat(
 			themeDisplay.getPathImage(), "/payment/method?img_id=",
-			String.valueOf(getImageId()), "&t=",
+			getImageId(), "&t=",
 			WebServerServletTokenUtil.getToken(getImageId()));
 	}
 

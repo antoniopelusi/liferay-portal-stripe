@@ -15,15 +15,12 @@
 package com.liferay.portal.repository.registry;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.repository.RepositoryConfigurationBuilder;
 import com.liferay.portal.kernel.repository.registry.RepositoryDefiner;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.language.LanguageImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.registry.BasicRegistryImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -37,6 +34,9 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+
 /**
  * @author Leon Chi
  */
@@ -49,8 +49,6 @@ public class RepositoryClassDefinitionCatalogImplTest {
 
 	@BeforeClass
 	public static void setUpClass() {
-		RegistryUtil.setRegistry(new BasicRegistryImpl());
-
 		LanguageUtil languageUtil = new LanguageUtil();
 
 		languageUtil.setLanguage(new LanguageImpl());
@@ -68,12 +66,13 @@ public class RepositoryClassDefinitionCatalogImplTest {
 
 	@Before
 	public void setUp() {
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
-		_serviceRegistration = registry.registerService(
+		_serviceRegistration = bundleContext.registerService(
 			RepositoryDefiner.class,
 			_getRepositoryDefiner(
-				_EXTERNAL_REPOSITORY_DEFINER_CLASS_NAME, true));
+				_EXTERNAL_REPOSITORY_DEFINER_CLASS_NAME, true),
+			null);
 	}
 
 	@After
@@ -112,12 +111,13 @@ public class RepositoryClassDefinitionCatalogImplTest {
 
 	@Test
 	public void testGetRepositoryClassDefinition() {
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
-		ServiceRegistration<RepositoryDefiner> serviceRegistration =
-			registry.registerService(
+		ServiceRegistration<?> serviceRegistration =
+			bundleContext.registerService(
 				RepositoryDefiner.class,
-				_getRepositoryDefiner(_REPOSITORY_DEFINER_CLASS_NAME, false));
+				_getRepositoryDefiner(_REPOSITORY_DEFINER_CLASS_NAME, false),
+				null);
 
 		try {
 			RepositoryClassDefinition repositoryClassDefinition =

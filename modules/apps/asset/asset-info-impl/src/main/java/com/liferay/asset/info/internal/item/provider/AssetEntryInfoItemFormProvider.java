@@ -17,15 +17,14 @@ package com.liferay.asset.info.internal.item.provider;
 import com.liferay.asset.info.internal.item.AssetEntryInfoItemFields;
 import com.liferay.asset.info.item.provider.AssetEntryInfoItemFieldSetProvider;
 import com.liferay.asset.kernel.model.AssetEntry;
-import com.liferay.info.field.InfoFieldSetEntry;
+import com.liferay.info.field.InfoFieldSet;
 import com.liferay.info.form.InfoForm;
 import com.liferay.info.item.provider.InfoItemFormProvider;
 import com.liferay.info.localized.InfoLocalizedValue;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.template.info.item.provider.TemplateInfoItemFieldSetProvider;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -54,8 +53,38 @@ public class AssetEntryInfoItemFormProvider
 		}
 
 		return InfoForm.builder(
-		).infoFieldSetEntries(
-			_getAssetEntryFieldSetEntries()
+		).infoFieldSetEntry(
+			InfoFieldSet.builder(
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.titleInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.descriptionInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.summaryInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.userNameInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.createDateInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.modifiedDateInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.expirationDateInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.viewCountInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.displayPageURLInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.urlInfoField
+			).infoFieldSetEntry(
+				AssetEntryInfoItemFields.userProfileImageInfoField
+			).labelInfoLocalizedValue(
+				InfoLocalizedValue.localize(getClass(), "basic-information")
+			).name(
+				"basic-information"
+			).build()
+		).infoFieldSetEntry(
+			_templateInfoItemFieldSetProvider.getInfoFieldSet(
+				AssetEntry.class.getName())
 		).infoFieldSetEntry(
 			_assetEntryInfoItemFieldSetProvider.getInfoFieldSet(
 				AssetEntry.class.getName())
@@ -66,22 +95,11 @@ public class AssetEntryInfoItemFormProvider
 		).build();
 	}
 
-	private List<InfoFieldSetEntry> _getAssetEntryFieldSetEntries() {
-		return Arrays.asList(
-			AssetEntryInfoItemFields.titleInfoField,
-			AssetEntryInfoItemFields.descriptionInfoField,
-			AssetEntryInfoItemFields.summaryInfoField,
-			AssetEntryInfoItemFields.userNameInfoField,
-			AssetEntryInfoItemFields.createDateInfoField,
-			AssetEntryInfoItemFields.modifiedDateInfoField,
-			AssetEntryInfoItemFields.expirationDateInfoField,
-			AssetEntryInfoItemFields.viewCountInfoField,
-			AssetEntryInfoItemFields.urlInfoField,
-			AssetEntryInfoItemFields.userProfileImage);
-	}
-
 	@Reference
 	private AssetEntryInfoItemFieldSetProvider
 		_assetEntryInfoItemFieldSetProvider;
+
+	@Reference
+	private TemplateInfoItemFieldSetProvider _templateInfoItemFieldSetProvider;
 
 }

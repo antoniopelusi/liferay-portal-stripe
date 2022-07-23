@@ -40,7 +40,5 @@ public class AssetListEntrySegmentsEntryRelImpl
 	 * com.liferay.asset.list.model.AssetListEntrySegmentsEntryRel} interface
 	 * instead.
 	 */
-	public AssetListEntrySegmentsEntryRelImpl() {
-	}
 
 }

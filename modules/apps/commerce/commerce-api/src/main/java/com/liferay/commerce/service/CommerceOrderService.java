@@ -66,18 +66,38 @@ public interface CommerceOrderService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.commerce.service.impl.CommerceOrderServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the commerce order remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CommerceOrderServiceUtil} if injection and service tracking are not available.
 	 */
 	public CommerceOrder addCommerceOrder(
-			long userId, long groupId, long commerceAccountId,
-			long commerceCurrencyId)
-		throws PortalException;
-
-	public CommerceOrder addCommerceOrder(
 			long groupId, long commerceAccountId, long commerceCurrencyId,
-			long shippingAddressId, String purchaseOrderNumber)
+			long commerceOrderTypeId)
 		throws PortalException;
 
-	public CommerceOrder addCommerceOrder(
-			long groupId, long commerceAccountId, long shippingAddressId,
-			String purchaseOrderNumber)
+	public CommerceOrder addOrUpdateCommerceOrder(
+			String externalReferenceCode, long groupId, long commerceAccountId,
+			long commerceCurrencyId, long commerceOrderTypeId,
+			long billingAddressId, long shippingAddressId,
+			String commercePaymentMethodKey, long commerceShippingMethodId,
+			String shippingOptionName, String purchaseOrderNumber,
+			BigDecimal subtotal, BigDecimal shippingAmount,
+			BigDecimal taxAmount, BigDecimal total,
+			BigDecimal subtotalWithTaxAmount, BigDecimal shippingWithTaxAmount,
+			BigDecimal totalWithTaxAmount, int paymentStatus,
+			int orderDateMonth, int orderDateDay, int orderDateYear,
+			int orderDateHour, int orderDateMinute, int orderStatus,
+			String advanceStatus, CommerceContext commerceContext,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommerceOrder addOrUpdateCommerceOrder(
+			String externalReferenceCode, long groupId, long commerceAccountId,
+			long commerceCurrencyId, long commerceOrderTypeId,
+			long billingAddressId, long shippingAddressId,
+			String commercePaymentMethodKey, long commerceShippingMethodId,
+			String shippingOptionName, String purchaseOrderNumber,
+			BigDecimal subtotal, BigDecimal shippingAmount,
+			BigDecimal taxAmount, BigDecimal total,
+			BigDecimal subtotalWithTaxAmount, BigDecimal shippingWithTaxAmount,
+			BigDecimal totalWithTaxAmount, int paymentStatus, int orderStatus,
+			String advanceStatus, CommerceContext commerceContext,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	public CommerceOrder applyCouponCode(
@@ -201,6 +221,16 @@ public interface CommerceOrderService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CommerceOrder> getUserCommerceOrders(
+			long companyId, long groupId, String keywords, int start, int end)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public long getUserCommerceOrdersCount(
+			long companyId, long groupId, String keywords)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CommerceOrder> getUserPendingCommerceOrders(
 			long companyId, long groupId, String keywords, int start, int end)
 		throws PortalException;
@@ -233,6 +263,11 @@ public interface CommerceOrderService extends BaseService {
 			long commerceOrderId, CommerceContext commerceContext)
 		throws PortalException;
 
+	public CommerceOrder resetTermsAndConditions(
+			long commerceOrderId, boolean deliveryCommerceTermEntry,
+			boolean paymentCommerceTermEntry)
+		throws PortalException;
+
 	public CommerceOrder updateBillingAddress(
 			long commerceOrderId, long billingAddressId)
 		throws PortalException;
@@ -248,22 +283,15 @@ public interface CommerceOrderService extends BaseService {
 		throws PortalException;
 
 	public CommerceOrder updateCommerceOrder(
-			long commerceOrderId, long billingAddressId, long shippingAddressId,
-			String commercePaymentMethodKey, long commerceShippingMethodId,
-			String shippingOptionName, String purchaseOrderNumber,
-			BigDecimal subtotal, BigDecimal shippingAmount, BigDecimal total,
-			String advanceStatus, CommerceContext commerceContext)
-		throws PortalException;
-
-	public CommerceOrder updateCommerceOrder(
 			String externalReferenceCode, long commerceOrderId,
 			long billingAddressId, long shippingAddressId,
 			String commercePaymentMethodKey, long commerceShippingMethodId,
 			String shippingOptionName, String purchaseOrderNumber,
-			BigDecimal subtotal, BigDecimal shippingAmount, BigDecimal total,
+			BigDecimal subtotal, BigDecimal shippingAmount,
+			BigDecimal taxAmount, BigDecimal total,
 			BigDecimal subtotalWithTaxAmount, BigDecimal shippingWithTaxAmount,
-			BigDecimal totalWithTaxAmount, String advanceStatus,
-			CommerceContext commerceContext)
+			BigDecimal totalWithTaxAmount, BigDecimal totalDiscountAmount,
+			String advanceStatus, CommerceContext commerceContext)
 		throws PortalException;
 
 	public CommerceOrder updateCommerceOrder(
@@ -345,10 +373,6 @@ public interface CommerceOrderService extends BaseService {
 			Locale locale)
 		throws PortalException;
 
-	public CommerceOrder updateCustomFields(
-			long commerceOrderId, ServiceContext serviceContext)
-		throws PortalException;
-
 	public CommerceOrder updateInfo(
 			long commerceOrderId, String printedNote,
 			int requestedDeliveryDateMonth, int requestedDeliveryDateDay,
@@ -399,39 +423,9 @@ public interface CommerceOrderService extends BaseService {
 			ServiceContext serviceContext)
 		throws PortalException;
 
-	public CommerceOrder updateTransactionId(
-			long commerceOrderId, String transactionId)
-		throws PortalException;
-
-	public CommerceOrder updateUser(long commerceOrderId, long userId)
-		throws PortalException;
-
-	public CommerceOrder upsertCommerceOrder(
-			String externalReferenceCode, long userId, long groupId,
-			long commerceAccountId, long commerceCurrencyId,
-			long billingAddressId, long shippingAddressId,
-			String commercePaymentMethodKey, long commerceShippingMethodId,
-			String shippingOptionName, String purchaseOrderNumber,
-			BigDecimal subtotal, BigDecimal shippingAmount, BigDecimal total,
-			BigDecimal subtotalWithTaxAmount, BigDecimal shippingWithTaxAmount,
-			BigDecimal totalWithTaxAmount, int paymentStatus,
-			int orderDateMonth, int orderDateDay, int orderDateYear,
-			int orderDateHour, int orderDateMinute, int orderStatus,
-			String advanceStatus, CommerceContext commerceContext,
-			ServiceContext serviceContext)
-		throws PortalException;
-
-	public CommerceOrder upsertCommerceOrder(
-			String externalReferenceCode, long userId, long groupId,
-			long commerceAccountId, long commerceCurrencyId,
-			long billingAddressId, long shippingAddressId,
-			String commercePaymentMethodKey, long commerceShippingMethodId,
-			String shippingOptionName, String purchaseOrderNumber,
-			BigDecimal subtotal, BigDecimal shippingAmount, BigDecimal total,
-			BigDecimal subtotalWithTaxAmount, BigDecimal shippingWithTaxAmount,
-			BigDecimal totalWithTaxAmount, int paymentStatus, int orderStatus,
-			String advanceStatus, CommerceContext commerceContext,
-			ServiceContext serviceContext)
+	public CommerceOrder updateTermsAndConditions(
+			long commerceOrderId, long deliveryCommerceTermEntryId,
+			long paymentCommerceTermEntryId, String languageId)
 		throws PortalException;
 
 }

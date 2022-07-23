@@ -17,38 +17,33 @@
 <%@ include file="/init.jsp" %>
 
 <%
-StagingGroupHelper stagingGroupHelper = StagingGroupHelperUtil.getStagingGroupHelper();
+RedirectEntriesDisplayContext redirectEntriesDisplayContext = (RedirectEntriesDisplayContext)request.getAttribute(RedirectEntriesDisplayContext.class.getName());
 
-boolean stagingGroup = stagingGroupHelper.isLocalStagingGroup(themeDisplay.getScopeGroup()) || stagingGroupHelper.isRemoteStagingGroup(themeDisplay.getScopeGroup());
+SearchContainer<RedirectEntry> redirectSearchContainer = redirectEntriesDisplayContext.searchContainer();
 
-RedirectDisplayContext redirectDisplayContext = new RedirectDisplayContext(request, liferayPortletRequest, liferayPortletResponse);
-
-SearchContainer<RedirectEntry> redirectSearchContainer = redirectDisplayContext.searchContainer();
-
-RedirectManagementToolbarDisplayContext redirectManagementToolbarDisplayContext = new RedirectManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, redirectSearchContainer);
+RedirectEntriesManagementToolbarDisplayContext redirectEntriesManagementToolbarDisplayContext = redirectEntriesDisplayContext.getRedirectManagementToolbarDisplayContext();
 %>
 
-<c:if test="<%= !stagingGroup %>">
+<c:if test="<%= !redirectEntriesDisplayContext.isStagingGroup() %>">
 	<clay:management-toolbar
-		additionalProps="<%= redirectManagementToolbarDisplayContext.getAdditionalProps() %>"
-		managementToolbarDisplayContext="<%= redirectManagementToolbarDisplayContext %>"
+		managementToolbarDisplayContext="<%= redirectEntriesManagementToolbarDisplayContext %>"
 		propsTransformer="js/RedirectManagementToolbarPropsTransformer"
 	/>
 </c:if>
 
-<div class="closed redirect-entries sidenav-container sidenav-right" id="<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>">
+<div class="closed redirect-entries sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/redirect/info_panel" var="sidebarPanelURL" />
 
 	<liferay-frontend:sidebar-panel
 		resourceURL="<%= sidebarPanelURL %>"
-		searchContainerId="<%= redirectDisplayContext.getSearchContainerId() %>"
+		searchContainerId="<%= redirectEntriesDisplayContext.getSearchContainerId() %>"
 	>
 		<liferay-util:include page="/info_panel.jsp" servletContext="<%= application %>" />
 	</liferay-frontend:sidebar-panel>
 
 	<div class="sidenav-content">
 		<clay:container-fluid>
-			<c:if test="<%= stagingGroup %>">
+			<c:if test="<%= redirectEntriesDisplayContext.isStagingGroup() %>">
 				<div class="lfr-search-container">
 					<clay:alert
 						displayType="info"
@@ -61,7 +56,7 @@ RedirectManagementToolbarDisplayContext redirectManagementToolbarDisplayContext 
 				<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 
 				<liferay-ui:search-container
-					id="<%= redirectDisplayContext.getSearchContainerId() %>"
+					id="<%= redirectEntriesDisplayContext.getSearchContainerId() %>"
 					searchContainer="<%= redirectSearchContainer %>"
 				>
 					<liferay-ui:search-container-row
@@ -73,7 +68,7 @@ RedirectManagementToolbarDisplayContext redirectManagementToolbarDisplayContext 
 						<%
 						row.setData(
 							HashMapBuilder.<String, Object>put(
-								"actions", redirectManagementToolbarDisplayContext.getAvailableActions(redirectEntry)
+								"actions", redirectEntriesManagementToolbarDisplayContext.getAvailableActions(redirectEntry)
 							).build());
 						%>
 
@@ -124,13 +119,13 @@ RedirectManagementToolbarDisplayContext redirectManagementToolbarDisplayContext 
 									<strong><liferay-ui:message key="expired" /></strong>
 								</c:when>
 								<c:otherwise>
-									<%= redirectDisplayContext.formatExpirationDate(redirectEntry.getExpirationDate()) %>
+									<%= redirectEntriesDisplayContext.formatExpirationDate(redirectEntry.getExpirationDate()) %>
 								</c:otherwise>
 							</c:choose>
 						</liferay-ui:search-container-column-text>
 
 						<%
-						List<DropdownItem> dropdownItems = redirectDisplayContext.getActionDropdownItems(redirectEntry);
+						List<DropdownItem> dropdownItems = redirectEntriesDisplayContext.getActionDropdownItems(redirectEntry);
 						%>
 
 						<c:if test="<%= ListUtil.isNotEmpty(dropdownItems) %>">

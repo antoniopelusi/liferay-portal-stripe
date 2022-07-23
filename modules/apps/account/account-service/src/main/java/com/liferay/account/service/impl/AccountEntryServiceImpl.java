@@ -15,39 +15,26 @@
 package com.liferay.account.service.impl;
 
 import com.liferay.account.constants.AccountActionKeys;
-import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.base.AccountEntryServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Organization;
-import com.liferay.portal.kernel.model.OrganizationConstants;
-import com.liferay.portal.kernel.model.OrganizationModel;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
-import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
-import com.liferay.portal.kernel.service.OrganizationLocalService;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.permission.OrganizationPermission;
-import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
-import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.service.permission.PortalPermission;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Brian Wing Shun Chan
@@ -61,41 +48,23 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 )
 public class AccountEntryServiceImpl extends AccountEntryServiceBaseImpl {
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #addAccountEntry(long, long, String, String, String[],
-	 *             byte[], String, int, ServiceContext)}
-	 */
-	@Deprecated
 	@Override
-	public AccountEntry addAccountEntry(
-			long userId, long parentAccountEntryId, String name,
-			String description, String[] domains, byte[] logoBytes, int status)
+	public void activateAccountEntries(long[] accountEntryIds)
 		throws PortalException {
 
-		return addAccountEntry(
-			userId, parentAccountEntryId, name, description, domains, null,
-			logoBytes, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
-			status, null);
+		for (long accountEntryId : accountEntryIds) {
+			activateAccountEntry(accountEntryId);
+		}
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #addAccountEntry(long, long, String, String, String[],
-	 *             byte[], String, int, ServiceContext)}
-	 */
-	@Deprecated
 	@Override
-	public AccountEntry addAccountEntry(
-			long userId, long parentAccountEntryId, String name,
-			String description, String[] domains, byte[] logoBytes, int status,
-			ServiceContext serviceContext)
+	public AccountEntry activateAccountEntry(long accountEntryId)
 		throws PortalException {
 
-		return addAccountEntry(
-			userId, parentAccountEntryId, name, description, domains, null,
-			logoBytes, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
-			status, serviceContext);
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntryId, ActionKeys.UPDATE);
+
+		return accountEntryLocalService.activateAccountEntry(accountEntryId);
 	}
 
 	@Override
@@ -106,12 +75,89 @@ public class AccountEntryServiceImpl extends AccountEntryServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), null, AccountActionKeys.ADD_ACCOUNT_ENTRY);
+		_portalPermission.check(
+			getPermissionChecker(), AccountActionKeys.ADD_ACCOUNT_ENTRY);
 
 		return accountEntryLocalService.addAccountEntry(
 			userId, parentAccountEntryId, name, description, domains, email,
 			logoBytes, taxIdNumber, type, status, serviceContext);
+	}
+
+	@Override
+	public AccountEntry addOrUpdateAccountEntry(
+			String externalReferenceCode, long userId,
+			long parentAccountEntryId, String name, String description,
+			String[] domains, String emailAddress, byte[] logoBytes,
+			String taxIdNumber, String type, int status,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		AccountEntry accountEntry =
+			accountEntryLocalService.fetchAccountEntryByExternalReferenceCode(
+				permissionChecker.getCompanyId(), externalReferenceCode);
+
+		if (accountEntry == null) {
+			_portalPermission.check(
+				permissionChecker, AccountActionKeys.ADD_ACCOUNT_ENTRY);
+		}
+		else {
+			_accountEntryModelResourcePermission.check(
+				permissionChecker, permissionChecker.getCompanyId(),
+				ActionKeys.UPDATE);
+		}
+
+		return accountEntryLocalService.addOrUpdateAccountEntry(
+			externalReferenceCode, userId, parentAccountEntryId, name,
+			description, domains, emailAddress, logoBytes, taxIdNumber, type,
+			status, serviceContext);
+	}
+
+	@Override
+	public void deactivateAccountEntries(long[] accountEntryIds)
+		throws PortalException {
+
+		for (long accountEntryId : accountEntryIds) {
+			deactivateAccountEntry(accountEntryId);
+		}
+	}
+
+	@Override
+	public AccountEntry deactivateAccountEntry(long accountEntryId)
+		throws PortalException {
+
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntryId, ActionKeys.DELETE);
+
+		return accountEntryLocalService.deactivateAccountEntry(accountEntryId);
+	}
+
+	@Override
+	public void deleteAccountEntries(long[] accountEntryIds)
+		throws PortalException {
+
+		for (long accountEntryId : accountEntryIds) {
+			deleteAccountEntry(accountEntryId);
+		}
+	}
+
+	@Override
+	public void deleteAccountEntry(long accountEntryId) throws PortalException {
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntryId, ActionKeys.DELETE);
+
+		accountEntryLocalService.deleteAccountEntry(accountEntryId);
+	}
+
+	@Override
+	public AccountEntry fetchAccountEntry(long accountEntryId)
+		throws PortalException {
+
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntryId, ActionKeys.VIEW);
+
+		return accountEntryLocalService.fetchAccountEntry(accountEntryId);
 	}
 
 	@Override
@@ -136,106 +182,89 @@ public class AccountEntryServiceImpl extends AccountEntryServiceBaseImpl {
 	}
 
 	@Override
+	public AccountEntry getAccountEntry(long accountEntryId)
+		throws PortalException {
+
+		AccountEntry accountEntry = accountEntryLocalService.getAccountEntry(
+			accountEntryId);
+
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntryId, ActionKeys.VIEW);
+
+		return accountEntry;
+	}
+
+	@Override
 	public BaseModelSearchResult<AccountEntry> searchAccountEntries(
-		String keywords, LinkedHashMap<String, Object> params, int cur,
-		int delta, String orderByField, boolean reverse) {
+			String keywords, LinkedHashMap<String, Object> params, int cur,
+			int delta, String orderByField, boolean reverse)
+		throws PortalException {
 
-		PermissionChecker permissionChecker = _getPermissionChecker();
+		PermissionChecker permissionChecker = getPermissionChecker();
 
-		if (!permissionChecker.isCompanyAdmin()) {
-			try {
-				User user = userLocalService.getUser(
-					permissionChecker.getUserId());
-
-				BaseModelSearchResult<Organization> baseModelSearchResult =
-					_organizationLocalService.searchOrganizations(
-						user.getCompanyId(),
-						OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, null,
-						LinkedHashMapBuilder.<String, Object>put(
-							"accountsOrgsTree",
-							ListUtil.filter(
-								user.getOrganizations(true),
-								organization -> _hasManageAccountsPermission(
-									permissionChecker, organization))
-						).build(),
-						QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
-
-				if (baseModelSearchResult.getLength() == 0) {
-					return new BaseModelSearchResult<>(
-						Collections.<AccountEntry>emptyList(), 0);
-				}
-
-				if (params == null) {
-					params = new LinkedHashMap<>();
-				}
-
-				params.put(
-					"organizationIds",
-					ListUtil.toLongArray(
-						baseModelSearchResult.getBaseModels(),
-						OrganizationModel::getOrganizationId));
-			}
-			catch (PortalException portalException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
-				}
-
-				return new BaseModelSearchResult<>(
-					Collections.<AccountEntry>emptyList(), 0);
-			}
+		if (params == null) {
+			params = new LinkedHashMap<>();
 		}
+
+		params.put("permissionUserId", permissionChecker.getUserId());
 
 		return accountEntryLocalService.searchAccountEntries(
 			permissionChecker.getCompanyId(), keywords, params, cur, delta,
 			orderByField, reverse);
 	}
 
-	private PermissionChecker _getPermissionChecker() {
-		try {
-			return getPermissionChecker();
-		}
-		catch (PrincipalException principalException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(principalException, principalException);
-			}
+	@Override
+	public AccountEntry updateAccountEntry(AccountEntry accountEntry)
+		throws PortalException {
 
-			return PermissionThreadLocal.getPermissionChecker();
-		}
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntry, ActionKeys.UPDATE);
+
+		return accountEntryLocalService.updateAccountEntry(accountEntry);
 	}
 
-	private boolean _hasManageAccountsPermission(
-		PermissionChecker permissionChecker, Organization organization) {
+	@Override
+	public AccountEntry updateAccountEntry(
+			long accountEntryId, long parentAccountEntryId, String name,
+			String description, boolean deleteLogo, String[] domains,
+			String emailAddress, byte[] logoBytes, String taxIdNumber,
+			int status, ServiceContext serviceContext)
+		throws PortalException {
 
-		try {
-			_organizationPermission.check(
-				permissionChecker, organization,
-				AccountActionKeys.MANAGE_ACCOUNTS);
-		}
-		catch (PortalException portalException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
-			}
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntryId, ActionKeys.UPDATE);
 
-			return false;
-		}
-
-		return true;
+		return accountEntryLocalService.updateAccountEntry(
+			accountEntryId, parentAccountEntryId, name, description, deleteLogo,
+			domains, emailAddress, logoBytes, taxIdNumber, status,
+			serviceContext);
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		AccountEntryServiceImpl.class);
+	@Override
+	public AccountEntry updateExternalReferenceCode(
+			long accountEntryId, String externalReferenceCode)
+		throws PortalException {
 
-	@Reference
-	private OrganizationLocalService _organizationLocalService;
+		_accountEntryModelResourcePermission.check(
+			getPermissionChecker(), accountEntryId, ActionKeys.UPDATE);
+
+		return accountEntryLocalService.updateExternalReferenceCode(
+			accountEntryId, externalReferenceCode);
+	}
+
+	@Reference(
+		target = "(model.class.name=com.liferay.account.model.AccountEntry)"
+	)
+	private ModelResourcePermission<AccountEntry>
+		_accountEntryModelResourcePermission;
 
 	@Reference
 	private OrganizationPermission _organizationPermission;
 
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(resource.name=" + AccountConstants.RESOURCE_NAME + ")"
-	)
-	private volatile PortletResourcePermission _portletResourcePermission;
+	@Reference
+	private PortalPermission _portalPermission;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

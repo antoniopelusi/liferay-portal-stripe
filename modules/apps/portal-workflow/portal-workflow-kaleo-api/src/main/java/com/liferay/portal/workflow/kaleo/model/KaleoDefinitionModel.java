@@ -414,4 +414,7 @@ public interface KaleoDefinitionModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public KaleoDefinition cloneWithOriginalValues();
+
 }

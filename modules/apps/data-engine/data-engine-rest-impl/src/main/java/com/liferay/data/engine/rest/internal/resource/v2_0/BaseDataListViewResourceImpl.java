@@ -16,7 +16,10 @@ package com.liferay.data.engine.rest.internal.resource.v2_0;
 
 import com.liferay.data.engine.rest.dto.v2_0.DataListView;
 import com.liferay.data.engine.rest.resource.v2_0.DataListViewResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -27,6 +30,9 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
@@ -35,12 +41,6 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.io.Serializable;
 
@@ -54,18 +54,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -76,7 +64,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v2.0")
+@javax.ws.rs.Path("/v2.0")
 public abstract class BaseDataListViewResourceImpl
 	implements DataListViewResource, EntityModelResource,
 			   VulcanBatchEngineTaskItemDelegate<DataListView> {
@@ -86,17 +74,26 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-list-views'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-list-views")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataListView")})
-	public void deleteDataListViewsDataDefinition(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/data-list-views")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
+	public void deleteDataDefinitionDataListView(
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId)
 		throws Exception {
 	}
 
@@ -105,25 +102,47 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-list-views'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "keywords"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-list-views")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/data-list-views")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<DataListView> getDataDefinitionDataListViewsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
-			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
-			@Context Pagination pagination, @Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("keywords")
+			String keywords,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -134,18 +153,27 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-list-views' -d $'{"appliedFilters": ___, "dataDefinitionId": ___, "dateCreated": ___, "dateModified": ___, "fieldNames": ___, "id": ___, "name": ___, "siteId": ___, "sortField": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			)
+		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-list-views")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/data-definitions/{dataDefinitionId}/data-list-views")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataListView postDataDefinitionDataListView(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
 			DataListView dataListView)
 		throws Exception {
 
@@ -157,23 +185,36 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-list-views/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataDefinitionId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-list-views/batch")
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path(
+		"/data-definitions/{dataDefinitionId}/data-list-views/batch"
+	)
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postDataDefinitionDataListViewBatch(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataDefinitionId")
+			Long dataDefinitionId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -198,17 +239,26 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-list-views/{dataListViewId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataListViewId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataListViewId"
+			)
+		}
 	)
-	@Path("/data-list-views/{dataListViewId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/data-list-views/{dataListViewId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteDataListView(
-			@NotNull @Parameter(hidden = true) @PathParam("dataListViewId") Long
-				dataListViewId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataListViewId")
+			Long dataListViewId)
 		throws Exception {
 	}
 
@@ -217,18 +267,26 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-list-views/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/data-list-views/batch")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/data-list-views/batch")
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response deleteDataListViewBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -253,17 +311,26 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-list-views/{dataListViewId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataListViewId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataListViewId"
+			)
+		}
 	)
-	@Path("/data-list-views/{dataListViewId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/data-list-views/{dataListViewId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public DataListView getDataListView(
-			@NotNull @Parameter(hidden = true) @PathParam("dataListViewId") Long
-				dataListViewId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataListViewId")
+			Long dataListViewId)
 		throws Exception {
 
 		return new DataListView();
@@ -274,18 +341,27 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-list-views/{dataListViewId}' -d $'{"appliedFilters": ___, "dataDefinitionId": ___, "dateCreated": ___, "dateModified": ___, "fieldNames": ___, "id": ___, "name": ___, "siteId": ___, "sortField": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "dataListViewId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "dataListViewId"
+			)
+		}
 	)
-	@Path("/data-list-views/{dataListViewId}")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/data-list-views/{dataListViewId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public DataListView putDataListView(
-			@NotNull @Parameter(hidden = true) @PathParam("dataListViewId") Long
-				dataListViewId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("dataListViewId")
+			Long dataListViewId,
 			DataListView dataListView)
 		throws Exception {
 
@@ -297,18 +373,26 @@ public abstract class BaseDataListViewResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-list-views/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/data-list-views/batch")
-	@Produces("application/json")
-	@PUT
-	@Tags(value = {@Tag(name = "DataListView")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "DataListView")}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/data-list-views/batch")
+	@javax.ws.rs.Produces("application/json")
+	@javax.ws.rs.PUT
+	@Override
 	public Response putDataListViewBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -335,9 +419,19 @@ public abstract class BaseDataListViewResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (DataListView dataListView : dataListViews) {
-			postDataDefinitionDataListView(
-				(Long)parameters.get("dataDefinitionId"), dataListView);
+		UnsafeConsumer<DataListView, Exception> dataListViewUnsafeConsumer =
+			dataListView -> postDataDefinitionDataListView(
+				Long.parseLong((String)parameters.get("dataDefinitionId")),
+				dataListView);
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				dataListViews, dataListViewUnsafeConsumer);
+		}
+		else {
+			for (DataListView dataListView : dataListViews) {
+				dataListViewUnsafeConsumer.accept(dataListView);
+			}
 		}
 	}
 
@@ -367,6 +461,10 @@ public abstract class BaseDataListViewResourceImpl
 		return null;
 	}
 
+	public String getVersion() {
+		return "v2.0";
+	}
+
 	@Override
 	public Page<DataListView> read(
 			Filter filter, Pagination pagination, Sort[] sorts,
@@ -374,7 +472,7 @@ public abstract class BaseDataListViewResourceImpl
 		throws Exception {
 
 		return getDataDefinitionDataListViewsPage(
-			(Long)parameters.get("dataDefinitionId"),
+			Long.parseLong((String)parameters.get("dataDefinitionId")),
 			(String)parameters.get("keywords"), pagination, sorts);
 	}
 
@@ -409,13 +507,22 @@ public abstract class BaseDataListViewResourceImpl
 		for (DataListView dataListView : dataListViews) {
 			putDataListView(
 				dataListView.getId() != null ? dataListView.getId() :
-					(Long)parameters.get("dataListViewId"),
+					Long.parseLong((String)parameters.get("dataListViewId")),
 				dataListView);
 		}
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
+	}
+
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<DataListView>,
+			 UnsafeConsumer<DataListView, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
 	}
 
 	public void setContextCompany(
@@ -446,12 +553,69 @@ public abstract class BaseDataListViewResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
+	}
+
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
+	}
+
+	@Override
+	public Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		try {
+			EntityModel entityModel = getEntityModel(multivaluedMap);
+
+			FilterParser filterParser = filterParserProvider.provide(
+				entityModel);
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(filterString));
+
+			return expressionConvert.convert(
+				oDataFilter.getExpression(),
+				contextAcceptLanguage.getPreferredLocale(), entityModel);
+		}
+		catch (Exception exception) {
+			_log.error("Invalid filter " + filterString, exception);
+		}
+
+		return null;
 	}
 
 	protected Map<String, String> addAction(
@@ -517,17 +681,26 @@ public abstract class BaseDataListViewResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<DataListView>,
+		 UnsafeConsumer<DataListView, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
 	protected VulcanBatchEngineImportTaskResource
 		vulcanBatchEngineImportTaskResource;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseDataListViewResourceImpl.class);
 
 }

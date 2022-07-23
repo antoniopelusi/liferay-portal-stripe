@@ -30,6 +30,7 @@ import com.liferay.dynamic.data.mapping.report.DDMFormFieldTypeReportProcessor;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.util.DDMFormDeserializeUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
@@ -42,7 +43,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -71,64 +71,60 @@ public class DDMFormInstanceReportUpgradeProcess extends UpgradeProcess {
 	protected void doUpgrade() throws Exception {
 		runSQL("delete from DDMFormInstanceReport;");
 
-		StringBundler sb1 = new StringBundler(21);
-
-		sb1.append("select DDMContent.data_, ");
-		sb1.append("DDMFormInstanceRecord.formInstanceRecordId, ");
-		sb1.append("DDMStructureVersion.definition from DDMContent inner ");
-		sb1.append("join DDMFormInstanceRecordVersion on ");
-		sb1.append("DDMContent.contentId = ");
-		sb1.append("DDMFormInstanceRecordVersion.storageId inner join ");
-		sb1.append("DDMFormInstanceRecord on ");
-		sb1.append("DDMFormInstanceRecord.formInstanceRecordId = ");
-		sb1.append("DDMFormInstanceRecordVersion.formInstanceRecordId inner ");
-		sb1.append("join DDMFormInstanceVersion on ");
-		sb1.append("DDMFormInstanceVersion.formInstanceId = ");
-		sb1.append("DDMFormInstanceRecordVersion.formInstanceId and ");
-		sb1.append("DDMFormInstanceVersion.version = ");
-		sb1.append("DDMFormInstanceRecordVersion.formInstanceVersion inner ");
-		sb1.append("join DDMStructureVersion on ");
-		sb1.append("DDMStructureVersion.structureVersionId = ");
-		sb1.append("DDMFormInstanceVersion.structureVersionId where ");
-		sb1.append("DDMFormInstanceRecord.version = ");
-		sb1.append("DDMFormInstanceRecordVersion.version and ");
-		sb1.append("DDMFormInstanceRecord.formInstanceId = ? and ");
-		sb1.append("DDMFormInstanceRecordVersion.status = ?");
-
-		StringBundler sb2 = new StringBundler(3);
-
-		sb2.append("insert into DDMFormInstanceReport (formInstanceReportId, ");
-		sb2.append("groupId, companyId, createDate, modifiedDate, ");
-		sb2.append("formInstanceId, data_) values (?, ?, ?, ?, ?, ?, ?)");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select formInstanceId, groupId, companyId, createDate from " +
 					"DDMFormInstance")) {
 
-			ResultSet rs1 = ps1.executeQuery();
+			ResultSet resultSet1 = preparedStatement1.executeQuery();
 
-			while (rs1.next()) {
-				long formInstanceId = rs1.getLong("formInstanceId");
+			while (resultSet1.next()) {
+				long formInstanceId = resultSet1.getLong("formInstanceId");
 
 				JSONObject dataJSONObject = _jsonFactory.createJSONObject();
 
-				try (PreparedStatement ps2 = connection.prepareStatement(
-						sb1.toString())) {
+				try (PreparedStatement preparedStatement2 =
+						connection.prepareStatement(
+							StringBundler.concat(
+								"select DDMContent.data_, ",
+								"DDMFormInstanceRecord.formInstanceRecordId, ",
+								"DDMStructureVersion.definition from ",
+								"DDMContent inner join ",
+								"DDMFormInstanceRecordVersion on ",
+								"DDMContent.contentId = ",
+								"DDMFormInstanceRecordVersion.storageId inner ",
+								"join DDMFormInstanceRecord on ",
+								"DDMFormInstanceRecord.formInstanceRecordId = ",
+								"DDMFormInstanceRecordVersion.",
+								"formInstanceRecordId inner join ",
+								"DDMFormInstanceVersion on ",
+								"DDMFormInstanceVersion.formInstanceId = ",
+								"DDMFormInstanceRecordVersion.formInstanceId ",
+								"and DDMFormInstanceVersion.version = ",
+								"DDMFormInstanceRecordVersion.",
+								"formInstanceVersion inner join ",
+								"DDMStructureVersion on ",
+								"DDMStructureVersion.structureVersionId = ",
+								"DDMFormInstanceVersion.structureVersionId ",
+								"where DDMFormInstanceRecord.version = ",
+								"DDMFormInstanceRecordVersion.version and ",
+								"DDMFormInstanceRecord.formInstanceId = ? and ",
+								"DDMFormInstanceRecordVersion.status = ?"))) {
 
-					ps2.setLong(1, formInstanceId);
-					ps2.setInt(2, WorkflowConstants.STATUS_APPROVED);
+					preparedStatement2.setLong(1, formInstanceId);
+					preparedStatement2.setInt(
+						2, WorkflowConstants.STATUS_APPROVED);
 
-					ResultSet rs2 = ps2.executeQuery();
+					ResultSet resultSet2 = preparedStatement2.executeQuery();
 
-					while (rs2.next()) {
+					while (resultSet2.next()) {
 						dataJSONObject = _processDDMFormValues(
 							dataJSONObject,
 							_getDDMFormValues(
-								rs2.getString("data_"),
+								resultSet2.getString("data_"),
 								DDMFormDeserializeUtil.deserialize(
 									_ddmFormDeserializer,
-									rs2.getString("definition"))),
-							rs2.getLong("formInstanceRecordId"));
+									resultSet2.getString("definition"))),
+							resultSet2.getLong("formInstanceRecordId"));
 
 						dataJSONObject.put(
 							"totalItems",
@@ -136,25 +132,30 @@ public class DDMFormInstanceReportUpgradeProcess extends UpgradeProcess {
 					}
 				}
 
-				long groupId = rs1.getLong("groupId");
+				long groupId = resultSet1.getLong("groupId");
 
-				long companyId = rs1.getLong("companyId");
+				long companyId = resultSet1.getLong("companyId");
 
-				Timestamp createDate = rs1.getTimestamp("createDate");
+				Timestamp createDate = resultSet1.getTimestamp("createDate");
 
-				try (PreparedStatement ps3 =
+				try (PreparedStatement preparedStatement3 =
 						AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-							connection, sb2.toString())) {
+							connection,
+							StringBundler.concat(
+								"insert into DDMFormInstanceReport ",
+								"(formInstanceReportId, groupId, companyId, ",
+								"createDate, modifiedDate, formInstanceId, ",
+								"data_) values (?, ?, ?, ?, ?, ?, ?)"))) {
 
-					ps3.setLong(1, increment());
-					ps3.setLong(2, groupId);
-					ps3.setLong(3, companyId);
-					ps3.setTimestamp(4, createDate);
-					ps3.setTimestamp(5, createDate);
-					ps3.setLong(6, formInstanceId);
-					ps3.setString(7, dataJSONObject.toString());
+					preparedStatement3.setLong(1, increment());
+					preparedStatement3.setLong(2, groupId);
+					preparedStatement3.setLong(3, companyId);
+					preparedStatement3.setTimestamp(4, createDate);
+					preparedStatement3.setTimestamp(5, createDate);
+					preparedStatement3.setLong(6, formInstanceId);
+					preparedStatement3.setString(7, dataJSONObject.toString());
 
-					ps3.execute();
+					preparedStatement3.execute();
 				}
 			}
 		}
@@ -265,7 +266,7 @@ public class DDMFormInstanceReportUpgradeProcess extends UpgradeProcess {
 				}
 				catch (JSONException jsonException) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(jsonException, jsonException);
+						_log.warn(jsonException);
 					}
 				}
 			}

@@ -9,25 +9,4 @@
 		userClassNames="com.liferay.portal.kernel.security.jaas.PortalPrincipal"
 		roleClassNames="com.liferay.portal.kernel.security.jaas.PortalRole"
 	/>-->
-
-	<!--
-	Uncomment the following to disable persistent sessions across reboots.
-	-->
-
-	<!--<Manager pathname="" />-->
-
-	<!--
-	Uncomment the following to not use sessions. See the property
-	"session.disabled" in portal.properties.
-	-->
-
-	<!--<Manager className="com.liferay.support.tomcat.session.SessionLessManagerBase" />-->
-
-	<Resources>
-		<PreResources
-			base="${catalina.base}/lib/ext/portal"
-			className="com.liferay.support.tomcat.webresources.ExtResourceSet"
-			webAppMount="/WEB-INF/lib"
-		/>
-	</Resources>
 </Context>

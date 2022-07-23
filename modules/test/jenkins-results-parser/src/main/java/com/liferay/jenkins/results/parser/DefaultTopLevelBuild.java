@@ -48,16 +48,14 @@ public class DefaultTopLevelBuild extends TopLevelBuild {
 				}
 			}
 
-			if (result == null) {
-				if (hasFailure) {
-					return "FAILURE";
-				}
-
-				return "SUCCESS";
+			if (hasFailure) {
+				return "FAILURE";
 			}
+
+			return "SUCCESS";
 		}
 
-		return super.getResult();
+		return result;
 	}
 
 }

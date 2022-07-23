@@ -374,6 +374,11 @@ public class UserWrapper
 	}
 
 	@Override
+	public User cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public Contact fetchContact() {
 		return model.fetchContact();
 	}
@@ -515,9 +520,11 @@ public class UserWrapper
 	/**
 	 * Returns a digest for the user, incorporating the password.
 	 *
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 	 * @param password a password to incorporate with the digest
 	 * @return a digest for the user, incorporating the password
 	 */
+	@Deprecated
 	@Override
 	public String getDigest(String password) {
 		return model.getDigest(password);
@@ -1453,6 +1460,11 @@ public class UserWrapper
 	@Override
 	public void setCompanyId(long companyId) {
 		model.setCompanyId(companyId);
+	}
+
+	@Override
+	public void setContact(Contact contact) {
+		model.setContact(contact);
 	}
 
 	/**

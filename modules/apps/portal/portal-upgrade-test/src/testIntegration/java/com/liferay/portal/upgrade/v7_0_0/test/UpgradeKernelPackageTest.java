@@ -254,15 +254,11 @@ public class UpgradeKernelPackageTest extends UpgradeKernelPackage {
 	private void _assertData(long id, String columnName, String expectedValue)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("select ");
-		sb.append(columnName);
-		sb.append(" from UpgradeKernelPackageTest where id =");
-		sb.append(id);
-
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
-				SQLTransformer.transform(sb.toString()));
+				SQLTransformer.transform(
+					StringBundler.concat(
+						"select ", columnName,
+						" from UpgradeKernelPackageTest where id =", id)));
 			ResultSet resultSet = preparedStatement.executeQuery()) {
 
 			if (expectedValue == null) {
@@ -300,17 +296,10 @@ public class UpgradeKernelPackageTest extends UpgradeKernelPackage {
 	private void _insertData(long id, String data, String textData)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("insert into UpgradeKernelPackageTest values(");
-		sb.append(id);
-		sb.append(", '");
-		sb.append(data);
-		sb.append("', '");
-		sb.append(textData);
-		sb.append("')");
-
-		runSQL(sb.toString());
+		runSQL(
+			StringBundler.concat(
+				"insert into UpgradeKernelPackageTest values(", id, ", '", data,
+				"', '", textData, "')"));
 	}
 
 	private static final String _CLASS_NAME_NEW = "UPDATED_CLASS_NAME";

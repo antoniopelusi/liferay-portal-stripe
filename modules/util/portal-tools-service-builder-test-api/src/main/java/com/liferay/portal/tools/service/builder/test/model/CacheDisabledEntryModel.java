@@ -82,4 +82,7 @@ public interface CacheDisabledEntryModel extends BaseModel<CacheDisabledEntry> {
 	 */
 	public void setName(String name);
 
+	@Override
+	public CacheDisabledEntry cloneWithOriginalValues();
+
 }

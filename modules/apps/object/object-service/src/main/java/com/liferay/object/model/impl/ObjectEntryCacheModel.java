@@ -78,7 +78,7 @@ public class ObjectEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(33);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -98,6 +98,8 @@ public class ObjectEntryCacheModel
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
 		sb.append(", objectDefinitionId=");
 		sb.append(objectDefinitionId);
 		sb.append(", lastPublishDate=");
@@ -154,6 +156,13 @@ public class ObjectEntryCacheModel
 			objectEntryImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
+		if (externalReferenceCode == null) {
+			objectEntryImpl.setExternalReferenceCode("");
+		}
+		else {
+			objectEntryImpl.setExternalReferenceCode(externalReferenceCode);
+		}
+
 		objectEntryImpl.setObjectDefinitionId(objectDefinitionId);
 
 		if (lastPublishDate == Long.MIN_VALUE) {
@@ -204,6 +213,7 @@ public class ObjectEntryCacheModel
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+		externalReferenceCode = objectInput.readUTF();
 
 		objectDefinitionId = objectInput.readLong();
 		lastPublishDate = objectInput.readLong();
@@ -246,6 +256,13 @@ public class ObjectEntryCacheModel
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
 
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
+		}
+
 		objectOutput.writeLong(objectDefinitionId);
 		objectOutput.writeLong(lastPublishDate);
 
@@ -274,6 +291,7 @@ public class ObjectEntryCacheModel
 	public String userName;
 	public long createDate;
 	public long modifiedDate;
+	public String externalReferenceCode;
 	public long objectDefinitionId;
 	public long lastPublishDate;
 	public int status;

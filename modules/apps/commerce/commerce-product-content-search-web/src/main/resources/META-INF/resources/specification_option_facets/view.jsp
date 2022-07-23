@@ -16,12 +16,6 @@
 
 <%@ include file="/init.jsp" %>
 
-<style>
-	.facet-checkbox-label {
-		display: block;
-	}
-</style>
-
 <%
 CPSpecificationOptionFacetsDisplayContext cpSpecificationOptionFacetsDisplayContext = (CPSpecificationOptionFacetsDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 %>
@@ -35,92 +29,112 @@ CPSpecificationOptionFacetsDisplayContext cpSpecificationOptionFacetsDisplayCont
 	<c:otherwise>
 
 		<%
-		List<Facet> facets = cpSpecificationOptionFacetsDisplayContext.getFacets();
+		int j = 0;
+
+		for (CPSpecificationOptionsSearchFacetDisplayContext cpSpecificationOptionsSearchFacetDisplayContext : cpSpecificationOptionFacetsDisplayContext.getCPSpecificationOptionsSearchFacetDisplayContexts()) {
+			j++;
+
+			Facet facet = cpSpecificationOptionsSearchFacetDisplayContext.getFacet();
+
+			String parameterName = cpSpecificationOptionsSearchFacetDisplayContext.getParameterName();
+
+			String panelTitle = HtmlUtil.escape(cpSpecificationOptionsSearchFacetDisplayContext.getCPSpecificationOptionTitle(facet.getFieldName()));
+
+			String panelContainerId = liferayPortletResponse.getNamespace() + "facetCPSpecificationOptionsPanelContainer" + j;
+
+			String panelId = liferayPortletResponse.getNamespace() + "facetCPSpecificationOptionsPanel" + j;
 		%>
 
-		<c:choose>
-			<c:when test="<%= !facets.isEmpty() %>">
+			<aui:form method="post" name='<%= "assetEntriesFacetForm_" + parameterName %>'>
+				<aui:input autocomplete="off" name="<%= HtmlUtil.escapeAttribute(cpSpecificationOptionsSearchFacetDisplayContext.getParameterName()) %>" type="hidden" value="<%= cpSpecificationOptionsSearchFacetDisplayContext.getParameterValue() %>" />
+				<aui:input cssClass="facet-parameter-name" name="facet-parameter-name" type="hidden" value="<%= parameterName %>" />
+				<aui:input cssClass="start-parameter-name" name="start-parameter-name" type="hidden" value="<%= cpSpecificationOptionsSearchFacetDisplayContext.getPaginationStartParameterName() %>" />
 
-				<%
-				for (Facet facet : cpSpecificationOptionFacetsDisplayContext.getFacets()) {
-					FacetCollector facetCollector = facet.getFacetCollector();
-
-					List<TermCollector> termCollectors = facetCollector.getTermCollectors();
-				%>
-
-					<c:if test="<%= !termCollectors.isEmpty() %>">
-
+				<liferay-ddm:template-renderer
+					className="<%= CPSpecificationOptionsSearchFacetTermDisplayContext.class.getName() %>"
+					contextObjects='<%=
+						HashMapBuilder.<String, Object>put(
+							"cpSpecificationOptionsSearchFacetDisplayContext", cpSpecificationOptionsSearchFacetDisplayContext
+						).put(
+							"namespace", liferayPortletResponse.getNamespace()
+						).put(
+							"panelContainerId", panelContainerId
+						).put(
+							"panelId", panelId
+						).put(
+							"panelTitle", panelTitle
+						).build()
+					%>'
+					displayStyle='<%= portletPreferences.getValue("displayStyle", "") %>'
+					displayStyleGroupId="<%= cpSpecificationOptionFacetsDisplayContext.getDisplayStyleGroupId() %>"
+					entries="<%= cpSpecificationOptionsSearchFacetDisplayContext.getTermDisplayContexts() %>"
+				>
 					<liferay-ui:panel-container
 						extended="<%= true %>"
+						id="<%= panelContainerId %>"
 						markupView="lexicon"
 						persistState="<%= true %>"
 					>
 						<liferay-ui:panel
 							collapsible="<%= true %>"
 							cssClass="search-facet"
+							id="<%= panelId %>"
 							markupView="lexicon"
 							persistState="<%= true %>"
-							title="<%= HtmlUtil.escape(cpSpecificationOptionFacetsDisplayContext.getCPSpecificationOptionTitle(facet.getFieldName())) %>"
+							title="<%= panelTitle %>"
 						>
-							<aui:form method="post" name='<%= "assetEntriesFacetForm_" + facet.getFieldName() %>'>
-								<aui:input cssClass="facet-parameter-name" name="facet-parameter-name" type="hidden" value="<%= cpSpecificationOptionFacetsDisplayContext.getCPSpecificationOptionKey(facet.getFieldName()) %>" />
-								<aui:input cssClass="start-parameter-name" name="start-parameter-name" type="hidden" value="<%= cpSpecificationOptionFacetsDisplayContext.getPaginationStartParameterName() %>" />
-
-								<aui:fieldset>
-								<ul class="asset-type list-unstyled">
+							<aui:fieldset>
+								<ul class="list-unstyled" data-qa-id="<%= panelTitle %>">
 
 									<%
 									int i = 0;
 
-									for (TermCollector termCollector : termCollectors) {
+									for (CPSpecificationOptionsSearchFacetTermDisplayContext cpSpecificationOptionsSearchFacetTermDisplayContext : cpSpecificationOptionsSearchFacetDisplayContext.getTermDisplayContexts()) {
 										i++;
 									%>
 
 										<li class="facet-value">
-											<label class="facet-checkbox-label" for="<portlet:namespace />term_<%= facet.getFieldName() + i %>">
-												<input
-													class="facet-term"
-													data-term-id="<%= HtmlUtil.escape(termCollector.getTerm()) %>"
-													id="<portlet:namespace />term_<%= facet.getFieldName() + i %>"
-													name="<portlet:namespace />term_<%= facet.getFieldName() + i %>"
-													onChange="Liferay.Search.FacetUtil.changeSelection(event);"
-													type="checkbox"
-													<%= cpSpecificationOptionFacetsDisplayContext.isCPDefinitionSpecificationOptionValueSelected(facet.getFieldName(), termCollector.getTerm()) ? "checked" : "" %>
-												/>
+											<div class="custom-checkbox custom-control">
+												<label class="facet-checkbox-label" for="<portlet:namespace />term_<%= i %>">
+													<input
+														<%= cpSpecificationOptionsSearchFacetTermDisplayContext.isSelected() ? "checked" : StringPool.BLANK %>
+														class="custom-control-input facet-term"
+														data-term-id="<%= cpSpecificationOptionsSearchFacetTermDisplayContext.getDisplayName() %>"
+														id="<portlet:namespace />term_<%= parameterName + i %>"
+														name="<portlet:namespace />term_<%= parameterName + i %>"
+														onChange="Liferay.Search.FacetUtil.changeSelection(event);"
+														type="checkbox"
+													/>
 
-												<span class="term-name">
-													<%= HtmlUtil.escape(termCollector.getTerm()) %>
-												</span>
+													<span class="custom-control-label term-name <%= cpSpecificationOptionsSearchFacetTermDisplayContext.isSelected() ? "facet-term-selected" : "facet-term-unselected" %>">
+														<span class="custom-control-label-text"><%= HtmlUtil.escape(cpSpecificationOptionsSearchFacetTermDisplayContext.getDisplayName()) %></span>
+													</span>
 
-												<small class="term-count">
-													(<%= termCollector.getFrequency() %>)
-												</small>
-											</label>
+													<c:if test="<%= cpSpecificationOptionsSearchFacetTermDisplayContext.isFrequencyVisible() %>">
+														<small class="term-count">
+															(<%= cpSpecificationOptionsSearchFacetTermDisplayContext.getFrequency() %>)
+														</small>
+													</c:if>
+												</label>
+											</div>
 										</li>
 
 									<%
 									}
 									%>
 
-								</aui:fieldset>
-							</aui:form>
+								</ul>
+							</aui:fieldset>
 						</liferay-ui:panel>
 					</liferay-ui:panel-container>
+				</liferay-ddm:template-renderer>
+			</aui:form>
 
-					</c:if>
+		<%
+		}
+		%>
 
-				<%
-				}
-				%>
-
-			</c:when>
-			<c:otherwise>
-				<div class="alert alert-info">
-					<liferay-ui:message key="no-facets-were-found" />
-				</div>
-			</c:otherwise>
-		</c:choose>
-
-		<aui:script use="liferay-search-facet-util"></aui:script>
 	</c:otherwise>
 </c:choose>
+
+<aui:script use="liferay-search-facet-util"></aui:script>

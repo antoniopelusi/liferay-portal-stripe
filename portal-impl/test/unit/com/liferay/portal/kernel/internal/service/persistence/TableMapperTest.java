@@ -1212,10 +1212,9 @@ public class TableMapperTest {
 		_mappingStore.put(leftPrimaryKey1, new long[] {rightPrimaryKey});
 		_mappingStore.put(leftPrimaryKey2, new long[] {rightPrimaryKey});
 
-		leftPrimaryKeys = _tableMapperImpl.getLeftPrimaryKeys(rightPrimaryKey);
-
 		Assert.assertArrayEquals(
-			new long[] {leftPrimaryKey2, leftPrimaryKey1}, leftPrimaryKeys);
+			new long[] {leftPrimaryKey2, leftPrimaryKey1},
+			_tableMapperImpl.getLeftPrimaryKeys(rightPrimaryKey));
 
 		// Database error
 
@@ -1400,10 +1399,9 @@ public class TableMapperTest {
 		_mappingStore.put(
 			leftPrimaryKey, new long[] {rightPrimaryKey1, rightPrimaryKey2});
 
-		rightPrimaryKeys = _tableMapperImpl.getRightPrimaryKeys(leftPrimaryKey);
-
 		Assert.assertArrayEquals(
-			new long[] {rightPrimaryKey2, rightPrimaryKey1}, rightPrimaryKeys);
+			new long[] {rightPrimaryKey2, rightPrimaryKey1},
+			_tableMapperImpl.getRightPrimaryKeys(leftPrimaryKey));
 
 		// Database error
 
@@ -1447,14 +1445,12 @@ public class TableMapperTest {
 	public void testReverseTableMapper() {
 		Class<?> clazz = TableMapper.class;
 
-		ClassLoader classLoader = clazz.getClassLoader();
-
 		RecordInvocationHandler recordInvocationHandler =
 			new RecordInvocationHandler();
 
 		TableMapper<Left, Right> tableMapper =
 			(TableMapper<Left, Right>)ProxyUtil.newProxyInstance(
-				classLoader, new Class<?>[] {TableMapper.class},
+				clazz.getClassLoader(), new Class<?>[] {TableMapper.class},
 				recordInvocationHandler);
 
 		ReverseTableMapper<Right, Left> reverseTableMapper =
@@ -2467,12 +2463,9 @@ public class TableMapperTest {
 					StringBundler.concat(
 						"DELETE FROM ", _TABLE_NAME, " WHERE ",
 						_RIGHT_COLUMN_NAME, " = ? AND ", _LEFT_COLUMN_NAME,
-						" = ?"))) {
+						" = ?")) ||
+				sql.contains("ctCollectionId")) {
 
-				return null;
-			}
-
-			if (sql.contains("ctCollectionId")) {
 				return null;
 			}
 

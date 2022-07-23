@@ -273,19 +273,19 @@ public class KaleoTaskAssignmentInstancePersistenceTest {
 	}
 
 	@Test
-	public void testCountBykaleoTaskInstanceTokenId() throws Exception {
-		_persistence.countBykaleoTaskInstanceTokenId(RandomTestUtil.nextLong());
+	public void testCountByKaleoTaskInstanceTokenId() throws Exception {
+		_persistence.countByKaleoTaskInstanceTokenId(RandomTestUtil.nextLong());
 
-		_persistence.countBykaleoTaskInstanceTokenId(0L);
+		_persistence.countByKaleoTaskInstanceTokenId(0L);
 	}
 
 	@Test
-	public void testCountByassigneeClassName() throws Exception {
-		_persistence.countByassigneeClassName("");
+	public void testCountByAssigneeClassName() throws Exception {
+		_persistence.countByAssigneeClassName("");
 
-		_persistence.countByassigneeClassName("null");
+		_persistence.countByAssigneeClassName("null");
 
-		_persistence.countByassigneeClassName((String)null);
+		_persistence.countByAssigneeClassName((String)null);
 	}
 
 	@Test

@@ -52,18 +52,6 @@ public class MessageDigestCacheKeyGenerator extends BaseCacheKeyGenerator {
 		return new MessageDigestCacheKeyGenerator(_algorithm, _charsetName);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getCacheKey(StringBundler)}
-	 */
-	@Deprecated
-	@Override
-	public Serializable getCacheKey(
-		com.liferay.portal.kernel.util.StringBundler sb) {
-
-		return getCacheKey(sb.getStrings(), sb.index());
-	}
-
 	@Override
 	public Serializable getCacheKey(String key) {
 		return getCacheKey(new String[] {key}, 1);

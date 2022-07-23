@@ -59,8 +59,7 @@ public class PortalSettingsConfigurationScreen implements ConfigurationScreen {
 	@Override
 	public String getName(Locale locale) {
 		return LanguageUtil.get(
-			ResourceBundleUtil.getBundle(
-				locale, PortalSettingsConfigurationScreen.class),
+			locale,
 			_portalSettingsConfigurationScreenContributor.getName(locale));
 	}
 

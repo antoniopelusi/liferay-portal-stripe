@@ -95,7 +95,6 @@ public class SourceFormatterPlugin implements Plugin<Project> {
 		formatSourceTask.setFailOnHasWarning(true);
 		formatSourceTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
 		formatSourceTask.setPrintErrors(true);
-		formatSourceTask.setShowStatusUpdates(false);
 
 		return formatSourceTask;
 	}
@@ -108,7 +107,6 @@ public class SourceFormatterPlugin implements Plugin<Project> {
 		formatSourceTask.setDescription(
 			"Runs Liferay Source Formatter to format the project files.");
 		formatSourceTask.setGroup("formatting");
-		formatSourceTask.setShowStatusUpdates(true);
 
 		return formatSourceTask;
 	}

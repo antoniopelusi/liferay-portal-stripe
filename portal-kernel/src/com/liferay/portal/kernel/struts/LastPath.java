@@ -48,15 +48,8 @@ public class LastPath implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{contextPath=");
-		sb.append(_contextPath);
-		sb.append(", path=");
-		sb.append(_path);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{contextPath=", _contextPath, ", path=", _path, "}");
 	}
 
 	private final String _contextPath;

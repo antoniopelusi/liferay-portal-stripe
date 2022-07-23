@@ -36,7 +36,5 @@ public class ChangesetEntryImpl extends ChangesetEntryBaseImpl {
 	 * entry model instance should use the {@link
 	 * com.liferay.changeset.model.ChangesetEntry} interface instead.
 	 */
-	public ChangesetEntryImpl() {
-	}
 
 }

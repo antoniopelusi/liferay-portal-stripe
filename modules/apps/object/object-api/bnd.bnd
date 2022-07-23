@@ -1,8 +1,21 @@
 Bundle-Name: Liferay Object API
 Bundle-SymbolicName: com.liferay.object.api
-Bundle-Version: 1.0.0
+Bundle-Version: 18.0.1
 Export-Package:\
+	com.liferay.object.action.engine,\
+	com.liferay.object.action.executor,\
+	com.liferay.object.action.trigger,\
+	com.liferay.object.constants,\
+	com.liferay.object.deployer,\
 	com.liferay.object.exception,\
+	com.liferay.object.field.business.type,\
+	com.liferay.object.field.render,\
 	com.liferay.object.model,\
+	com.liferay.object.related.models,\
+	com.liferay.object.rest.context.path,\
+	com.liferay.object.scope,\
 	com.liferay.object.service,\
-	com.liferay.object.service.persistence
+	com.liferay.object.service.persistence,\
+	com.liferay.object.system,\
+	com.liferay.object.util,\
+	com.liferay.object.validation.rule

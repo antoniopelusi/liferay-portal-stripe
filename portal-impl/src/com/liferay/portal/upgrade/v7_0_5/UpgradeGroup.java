@@ -42,39 +42,40 @@ public class UpgradeGroup extends UpgradeProcess {
 
 	protected void updateParentGroup() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("select stagingGroup_.groupId, ");
-			sb.append("liveGroup_.parentGroupId from Group_ stagingGroup_ ");
-			sb.append("inner join Group_ liveGroup_ on (liveGroup_.groupId = ");
-			sb.append("stagingGroup_.liveGroupId) where ");
-			sb.append("(stagingGroup_.remoteStagingGroupCount = 0) and ");
-			sb.append("(liveGroup_.parentGroupId != ");
-			sb.append("stagingGroup_.parentGroupId)");
-
-			try (PreparedStatement ps1 = connection.prepareStatement(
-					sb.toString());
-				PreparedStatement ps2 = connection.prepareStatement(
-					"select treePath from Group_ where groupId = ?");
-				PreparedStatement ps3 =
+			try (PreparedStatement preparedStatement1 =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select stagingGroup_.groupId, ",
+							"liveGroup_.parentGroupId from Group_ ",
+							"stagingGroup_ inner join Group_ liveGroup_ on ",
+							"(liveGroup_.groupId = stagingGroup_.liveGroupId) ",
+							"where (stagingGroup_.remoteStagingGroupCount = ",
+							"0) and (liveGroup_.parentGroupId != ",
+							"stagingGroup_.parentGroupId)"));
+				PreparedStatement preparedStatement2 =
+					connection.prepareStatement(
+						"select treePath from Group_ where groupId = ?");
+				PreparedStatement preparedStatement3 =
 					AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 						connection,
 						"update Group_ set parentGroupId = ?, treePath = ? " +
 							"where groupId = ?");
-				ResultSet rs1 = ps1.executeQuery()) {
+				ResultSet resultSet1 = preparedStatement1.executeQuery()) {
 
-				while (rs1.next()) {
-					long groupId = rs1.getLong(1);
+				while (resultSet1.next()) {
+					long groupId = resultSet1.getLong(1);
 
-					long parentGroupId = rs1.getLong(2);
+					long parentGroupId = resultSet1.getLong(2);
 
-					ps2.setLong(1, parentGroupId);
+					preparedStatement2.setLong(1, parentGroupId);
 
-					try (ResultSet rs2 = ps2.executeQuery()) {
+					try (ResultSet resultSet2 =
+							preparedStatement2.executeQuery()) {
+
 						String treePath = null;
 
-						if (rs2.next()) {
-							treePath = rs2.getString("treePath");
+						if (resultSet2.next()) {
+							treePath = resultSet2.getString("treePath");
 
 							treePath = treePath.concat(String.valueOf(groupId));
 
@@ -86,27 +87,21 @@ public class UpgradeGroup extends UpgradeProcess {
 									"Unable to find group " + parentGroupId);
 							}
 
-							StringBundler treePathSB = new StringBundler(5);
-
-							treePathSB.append(StringPool.SLASH);
-							treePathSB.append(parentGroupId);
-							treePathSB.append(StringPool.SLASH);
-							treePathSB.append(groupId);
-							treePathSB.append(StringPool.SLASH);
-
-							treePath = treePathSB.toString();
+							treePath = StringBundler.concat(
+								StringPool.SLASH, parentGroupId,
+								StringPool.SLASH, groupId, StringPool.SLASH);
 						}
 
-						ps3.setLong(1, parentGroupId);
-						ps3.setString(2, treePath);
+						preparedStatement3.setLong(1, parentGroupId);
+						preparedStatement3.setString(2, treePath);
 
-						ps3.setLong(3, groupId);
+						preparedStatement3.setLong(3, groupId);
 
-						ps3.addBatch();
+						preparedStatement3.addBatch();
 					}
 				}
 
-				ps3.executeBatch();
+				preparedStatement3.executeBatch();
 			}
 		}
 	}
@@ -115,8 +110,8 @@ public class UpgradeGroup extends UpgradeProcess {
 
 	private class GroupTreeModel implements TreeModel {
 
-		public GroupTreeModel(PreparedStatement ps) {
-			_ps = ps;
+		public GroupTreeModel(PreparedStatement preparedStatement) {
+			_preparedStatement = preparedStatement;
 		}
 
 		@Override
@@ -141,10 +136,10 @@ public class UpgradeGroup extends UpgradeProcess {
 		@Override
 		public void updateTreePath(String treePath) {
 			try {
-				_ps.setString(1, treePath);
-				_ps.setLong(2, _groupId);
+				_preparedStatement.setString(1, treePath);
+				_preparedStatement.setLong(2, _groupId);
 
-				_ps.addBatch();
+				_preparedStatement.addBatch();
 			}
 			catch (SQLException sqlException) {
 				_log.error(
@@ -153,7 +148,7 @@ public class UpgradeGroup extends UpgradeProcess {
 		}
 
 		private long _groupId;
-		private final PreparedStatement _ps;
+		private final PreparedStatement _preparedStatement;
 
 	}
 

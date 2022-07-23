@@ -1,0 +1,55 @@
+[
+	{
+		"menuItems": [
+			{
+				"menuItems": [
+					{
+						"key": "/site-initializer/journal-articles/courses/course_design.json",
+						"type": "display-page"
+					},
+					{
+						"key": "/site-initializer/journal-articles/courses/course_management.json",
+						"type": "display-page"
+					},
+					{
+						"key": "/site-initializer/journal-articles/courses/course_marketing.json",
+						"type": "display-page"
+					}
+				],
+				"name": "Courses",
+				"type": "node"
+			},
+			{
+				"friendlyURL": "/blog",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/apply",
+				"privateLayout": false,
+				"type": "layout"
+			}
+		],
+		"name": "Main Navigation"
+	},
+	{
+		"menuItems": [
+			{
+				"friendlyURL": "/my-learning",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/notifications",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/account-settings",
+				"privateLayout": false,
+				"type": "layout"
+			}
+		],
+		"name": "Private Area Navigation"
+	}
+]

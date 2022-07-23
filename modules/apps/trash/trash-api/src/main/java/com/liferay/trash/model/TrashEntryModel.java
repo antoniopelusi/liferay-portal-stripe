@@ -281,4 +281,7 @@ public interface TrashEntryModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public TrashEntry cloneWithOriginalValues();
+
 }

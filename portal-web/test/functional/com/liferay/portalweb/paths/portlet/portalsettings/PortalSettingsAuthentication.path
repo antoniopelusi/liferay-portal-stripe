@@ -2,11 +2,13 @@
 <head>
 <title>PortalSettingsAuthentication</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">PortalSettingsAuthentication</td></tr>
 </thead>
+
 <tbody>
 <!--AUTHENTICATION_GENERAL-->
 <tr>
@@ -211,7 +213,7 @@
 <!--LDAP_SERVERS_TABLE-->
 <tr>
 	<td>LDAP_SERVERS_TABLE_EDIT</td>
-	<td>//tr[contains(.,'${key_LDAPServerName}')]/td[3]//span[.='Edit']/preceding-sibling::span</td>
+	<td>//tr[contains(.,'${key_ldapServerName}')]/td[3]//span[.='Edit']/preceding-sibling::span</td>
 	<td></td>
 </tr>
 <tr>
@@ -288,67 +290,6 @@
 <tr>
 	<td>LDAP_SERVER_TEST_LDAP_GROUPS_BUTTON</td>
 	<td>//button[contains(.,'Test LDAP Groups')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<!--AUTHENTICATION_NTLM-->
-<tr>
-	<td>AUTHENTICATION_NTLM_ENABLED_CHECKBOX</td>
-	<td>//input[contains(@name,'ntlm_enabled')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_HEADER</td>
-	<td>//label[contains(@for,'ntlm_domainController')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_FIELD</td>
-	<td>//input[contains(@name,'ntlm_domainController')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_NAME_HEADER</td>
-	<td>//label[contains(@for,'ntlm_domainControllerName')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_DOMAIN_CONTROLLER_NAME_FIELD</td>
-	<td>//input[contains(@name,'ntlm_domainControllerName')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_DOMAIN_HEADER</td>
-	<td>//label[contains(@for,'ntlm_domain') and .=' Domain ']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_DOMAIN_FIELD</td>
-	<td>xpath=(//input[contains(@name,'ntlm_domain')])[3]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_SERVICE_ACCOUNT_HEADER</td>
-	<td>//label[contains(@for,'ntlm_serviceAccount')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_SERVICE_ACCOUNT_FIELD</td>
-	<td>//input[contains(@name,'ntlm_serviceAccount')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_SERVICE_PASSWORD_HEADER</td>
-	<td>//label[contains(@for,'ntlm_servicePassword')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>AUTHENTICATION_NTLM_SERVICE_PASSWORD_FIELD</td>
-	<td>//input[contains(@name,'ntlm_servicePassword')]</td>
 	<td></td>
 </tr>
 <tr>

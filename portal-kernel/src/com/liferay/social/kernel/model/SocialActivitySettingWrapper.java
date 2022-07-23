@@ -115,6 +115,11 @@ public class SocialActivitySettingWrapper
 		}
 	}
 
+	@Override
+	public SocialActivitySetting cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the activity setting ID of this social activity setting.
 	 *

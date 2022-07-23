@@ -76,11 +76,10 @@ public class FriendlyURLEntryStagedModelDataHandler
 		friendlyURLEntryElement.addAttribute(
 			"resource-class-name", friendlyURLEntry.getClassName());
 
-		String modelPath = ExportImportPathUtil.getModelPath(
-			friendlyURLEntry, friendlyURLEntry.getUuid());
-
 		portletDataContext.addZipEntry(
-			modelPath, friendlyURLEntry.getUrlTitleMapAsXML());
+			ExportImportPathUtil.getModelPath(
+				friendlyURLEntry, friendlyURLEntry.getUuid()),
+			friendlyURLEntry.getUrlTitleMapAsXML());
 
 		if (friendlyURLEntry.isMain()) {
 			friendlyURLEntryElement.addAttribute(
@@ -129,18 +128,23 @@ public class FriendlyURLEntryStagedModelDataHandler
 			importedFriendlyURLEntry.setCompanyId(
 				portletDataContext.getCompanyId());
 			importedFriendlyURLEntry.setClassNameId(classNameId);
-
-			long classPK = MapUtil.getLong(
-				newPrimaryKeysMap, friendlyURLEntry.getClassPK(),
-				friendlyURLEntry.getClassPK());
-
-			importedFriendlyURLEntry.setClassPK(classPK);
-
+			importedFriendlyURLEntry.setClassPK(
+				MapUtil.getLong(
+					newPrimaryKeysMap, friendlyURLEntry.getClassPK(),
+					friendlyURLEntry.getClassPK()));
 			importedFriendlyURLEntry.setDefaultLanguageId(
 				friendlyURLEntry.getDefaultLanguageId());
 
 			importedFriendlyURLEntry = _stagedModelRepository.addStagedModel(
 				portletDataContext, importedFriendlyURLEntry);
+
+			boolean mainEntry = GetterUtil.getBoolean(
+				friendlyURLEntryElement.attributeValue("mainEntry"));
+
+			if (mainEntry) {
+				_friendlyURLEntryLocalService.setMainFriendlyURLEntry(
+					importedFriendlyURLEntry);
+			}
 		}
 		else {
 			importedFriendlyURLEntry = _stagedModelRepository.updateStagedModel(

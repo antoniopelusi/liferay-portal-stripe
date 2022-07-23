@@ -27,6 +27,10 @@ public class FinderWhereClauseEntryLocalServiceWrapper
 	implements FinderWhereClauseEntryLocalService,
 			   ServiceWrapper<FinderWhereClauseEntryLocalService> {
 
+	public FinderWhereClauseEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public FinderWhereClauseEntryLocalServiceWrapper(
 		FinderWhereClauseEntryLocalService finderWhereClauseEntryLocalService) {
 
@@ -141,6 +145,13 @@ public class FinderWhereClauseEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _finderWhereClauseEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _finderWhereClauseEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

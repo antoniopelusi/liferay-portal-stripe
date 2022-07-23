@@ -47,6 +47,16 @@ components:
             schema:
                 type: integer
             style: form
+        skusQueryParam:
+            in: query
+            explode: true
+            name: skus
+            required: false
+            schema:
+                items:
+                    type: string
+                type: array
+            style: form
     responses:
         NotFound:
             content:
@@ -120,6 +130,30 @@ components:
                 unit:
                     type: string
             type: object
+        Category:
+            properties:
+                externalReferenceCode:
+                    example: AB-34098-789-N
+                    type: string
+                id:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                name:
+                    description:
+                        Category Name
+                    type: string
+                siteId:
+                    format: int64
+                    type: integer
+                vocabulary:
+                    example: Default Vocabulary
+                    readOnly: true
+                    type: string
+            required:
+                - id
+            type: object
         Error:
             properties:
                 errorCode:
@@ -174,6 +208,302 @@ components:
                         The recommendation score.
                     format: float
                     type: number
+        Order:
+            properties:
+                accountId:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                channelId:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                createDate:
+                    example: 2017-07-21
+                    format: date
+                    type: string
+                currencyCode:
+                    example: USD
+                    type: string
+                customFields:
+                    additionalProperties: true
+                    type: object
+                externalReferenceCode:
+                    example: AB-34098-789-N
+                    type: string
+                id:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                modifiedDate:
+                    example: 2017-08-21
+                    format: date
+                    type: string
+                orderDate:
+                    example: 2017-07-21
+                    format: date
+                    type: string
+                orderItems:
+                    items:
+                        $ref: "#/components/schemas/OrderItem"
+                    type: array
+                orderStatus:
+                    example: 0
+                    format: int32
+                    minimum: 0
+                    type: integer
+                orderTypeExternalReferenceCode:
+                    example: AB-34098-789-N
+                    type: string
+                orderTypeId:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                paymentMethod:
+                    example: paypal
+                    type: string
+                paymentStatus:
+                    example: 0
+                    format: int32
+                    minimum: 0
+                    type: integer
+                status:
+                    type: integer
+                total:
+                    example: 113
+                    format: bigdecimal
+                    minimum: 0
+                    type: number
+                userId:
+                    format: int64
+                    type: integer
+            required:
+                - channelId
+                - currencyCode
+            type: object
+        OrderItem:
+            properties:
+                cpDefinitionId:
+                    format: int64
+                    type: integer
+                createDate:
+                    example: 2017-07-21
+                    format: date
+                    type: string
+                customFields:
+                    additionalProperties: true
+                    type: object
+                externalReferenceCode:
+                    example: AB-34098-789-N
+                    type: string
+                finalPrice:
+                    example: 200
+                    format: bigdecimal
+                    minimum: 0
+                    type: number
+                id:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                modifiedDate:
+                    example: 2017-07-21
+                    format: date
+                    type: string
+                name:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Hand Saw
+                        hr_HR: Product Name HR
+                        hu_HU: Product Name HU
+                    type: object
+                options:
+                    type: string
+                orderId:
+                    example: 30128
+                    format: int64
+                    minimum: 0
+                    type: integer
+                parentOrderItemId:
+                    example: 30128
+                    format: int64
+                    minimum: 0
+                    type: integer
+                quantity:
+                    example: 2
+                    format: int32
+                    minimum: 0
+                    type: integer
+                sku:
+                    example: "12341234"
+                    type: string
+                subscription:
+                    example: true
+                    type: boolean
+                unitOfMeasure:
+                    example: pc
+                    type: string
+                unitPrice:
+                    example: 101
+                    format: bigdecimal
+                    minimum: 0
+                    type: number
+                userId:
+                    format: int64
+                    type: integer
+            type: object
+        Product:
+            properties:
+                catalogId:
+                    example: 30054
+                    format: int64
+                    minimum: 0
+                    type: integer
+                categoryIds:
+                    items:
+                        format: int64
+                        type: integer
+                    type: array
+                createDate:
+                    example: 2017-07-21
+                    format: date
+                    type: string
+                customFields:
+                    additionalProperties: true
+                    type: object
+                description:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    example:
+                        hu_HU: Product Description HU
+                        hr_HR: Product Description HR
+                        en_US: Professional hand stainless steel saw for wood. Made to last and
+                            saw forever. Made of best steel
+                displayDate:
+                    example: 2017-07-21
+                    format: date
+                    type: string
+                expirationDate:
+                    example: 2017-08-21
+                    format: date
+                    type: string
+                externalReferenceCode:
+                    example: AB-34098-789-N
+                    type: string
+                id:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+                metaDescription:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Meta description HU
+                        hr_HR: Meta description HU
+                        hu_HU: Meta description HU
+                    type: object
+                metaKeyword:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Meta keyword HU
+                        hr_HR: Meta keyword HU
+                        hu_HU: Meta keyword HU
+                    type: object
+                metaTitle:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Meta title HU
+                        hr_HR: Meta title HU
+                        hu_HU: Meta title HU
+                    type: object
+                modifiedDate:
+                    example: 2017-08-21
+                    format: date
+                    type: string
+                name:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Hand Saw
+                        hr_HR: Product Name HR
+                        hu_HU: Product Name HU
+                    type: object
+                productChannelIds:
+                    items:
+                        format: int64
+                        type: integer
+                    type: array
+                productId:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                productOptions:
+                    items:
+                        $ref: "#/components/schemas/ProductOption"
+                    type: array
+                productSpecifications:
+                    items:
+                        $ref: "#/components/schemas/ProductSpecification"
+                    type: array
+                productType:
+                    example: simple
+                    type: string
+                skus:
+                    items:
+                        $ref: "#/components/schemas/Sku"
+                    type: array
+                status:
+                    type: integer
+                subscriptionEnabled:
+                    type: boolean
+                tags:
+                    example:
+                        - tag1
+                        - tag2
+                        - tag3
+                    items:
+                        type: string
+                    type: array
+                urls:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: product-url-us
+                        hr_HR: product-url-hr
+                        hu_HU: product-url-hu
+                    type: object
+            required:
+                - catalogId
+                - name
+                - productType
+            type: object
+        ProductChannel:
+            properties:
+                currencyCode:
+                    type: string
+                externalReferenceCode:
+                    type: string
+                id:
+                    format: int64
+                    minimum: 0
+                    type: integer
+                name:
+                    type: string
+                type:
+                    type: string
+            required:
+                - id
+            type: object
         ProductContentRecommendation:
             properties:
                 createDate:
@@ -231,6 +561,87 @@ components:
                         The recommendation score.
                     format: float
                     type: number
+            type: object
+        ProductOption:
+            properties:
+                key:
+                    type: string
+                optionKey:
+                    example: option-key
+                    type: string
+                values:
+                    items:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    type: array
+            type: object
+        ProductSpecification:
+            properties:
+                id:
+                    example: 31130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                optionCategoryId:
+                    example: 30129
+                    format: int64
+                    minimum: 0
+                    type: integer
+                specificationKey:
+                    example: specification-key
+                    type: string
+                value:
+                    additionalProperties:
+                        type: string
+                    type: object
+            required:
+                - specificationKey
+                - value
+            type: object
+        Sku:
+            properties:
+                cost:
+                    example: 101
+                    format: bigdecimal
+                    minimum: 0
+                    type: number
+                discontinued:
+                    type: boolean
+                displayDate:
+                    example: 2017-07-21
+                    format: date
+                    type: string
+                expirationDate:
+                    example: 2017-08-21
+                    format: date
+                    type: string
+                externalReferenceCode:
+                    example: AB-34098-789-N
+                    type: string
+                gtin:
+                    example: "12341234"
+                    type: string
+                id:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+                manufacturerPartNumber:
+                    example: "12341234"
+                    type: string
+                published:
+                    example: true
+                    type: boolean
+                purchasable:
+                    example: true
+                    type: boolean
+                sku:
+                    example: "12341234"
+                    type: string
+            required:
+                - sku
             type: object
         SkuForecast:
             properties:
@@ -308,11 +719,12 @@ info:
         email: team-commerce@liferay.com
         name: Commerce Team
     description:
-        Liferay Commerce Forecast API
+        "Liferay Commerce ML API. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
+        'com.liferay.headless.commerce.machine.learning.client', and version '1.0.6'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-    title: Liferay Commerce Forecast API
+    title: Liferay Commerce ML API
     version: v1.0
 openapi: 3.0.0
 paths:
@@ -808,6 +1220,282 @@ paths:
                       - CommerceOpenApiForecast.read
             tags:
                 - AccountForecast
+    /skuForecasts/by-monthlyDemand:
+        get:
+            description:
+                Get the forecast points
+            operationId: getSkuForecastsByMonthlyRevenuePage
+            parameters:
+                - in: query
+                  explode: true
+                  name: forecastLength
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  explode: true
+                  name: forecastStartDate
+                  required: false
+                  schema:
+                      format: date
+                      type: string
+                  style: form
+                - in: query
+                  explode: true
+                  name: historyLength
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  explode: true
+                  name: skus
+                  required: false
+                  schema:
+                      items:
+                          type: string
+                      type: array
+                  style: form
+                - in: query
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            example:
+                                items:
+                                    - actual: 1.4E-45
+                                      forecast: 410459.44
+                                      forecastLowerBound: -21236.652
+                                      forecastUpperBound: 842155.5
+                                      sku: tt0042475
+                                      timestamp: 2018-04-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 1.4E-45
+                                      forecast: 454099.03
+                                      forecastLowerBound: -373120.1
+                                      forecastUpperBound: 1281318.1
+                                      sku: tt0058415
+                                      timestamp: 2018-04-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 1.4E-45
+                                      forecast: 458636.75
+                                      forecastLowerBound: -359997.84
+                                      forecastUpperBound: 1277271.4
+                                      sku: tt0058415
+                                      timestamp: 2018-03-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 1.4E-45
+                                      forecast: 409315.44
+                                      forecastLowerBound: -22285.682
+                                      forecastUpperBound: 840916.56
+                                      sku: tt0042475
+                                      timestamp: 2018-03-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 230225
+                                      forecast: 425982.1
+                                      forecastLowerBound: -63249.176
+                                      forecastUpperBound: 915213.4
+                                      sku: tt0042475
+                                      timestamp: 2018-02-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 278663.6
+                                      forecast: 417194.34
+                                      forecastLowerBound: -467485.44
+                                      forecastUpperBound: 1301874.1
+                                      sku: tt0058415
+                                      timestamp: 2018-02-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 607180.8
+                                      forecast: 556741.1
+                                      forecastLowerBound: -534401.2
+                                      forecastUpperBound: 1647883.4
+                                      sku: tt0058415
+                                      timestamp: 2018-01-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 400120.6
+                                      forecast: 442232.75
+                                      forecastLowerBound: 9856.678
+                                      forecastUpperBound: 874608.9
+                                      sku: tt0042475
+                                      timestamp: 2018-01-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 420215.2
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-12-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 475485.4
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-12-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 574000.8
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-11-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 543114
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-11-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 357431.6
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-10-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 542683.8
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-10-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 384831
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-09-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 272531.2
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-09-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 322792.4
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-08-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 730314
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-08-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 307055
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-07-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 298547.6
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-07-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 418839.2
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-06-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 599931
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-06-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 286286.6
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0042475
+                                      timestamp: 2017-05-01T00:00:00Z
+                                      unit: quantity
+                                    - actual: 352542.6
+                                      forecast: 1.4E-45
+                                      forecastLowerBound: 0
+                                      forecastUpperBound: 0
+                                      sku: tt0058415
+                                      timestamp: 2017-05-01T00:00:00Z
+                                      unit: quantity
+                                lastPage: 1
+                                page: 1
+                                pageSize: 24
+                                totalCount: 24
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/SkuForecast"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/SkuForecast"
+                                type: array
+                    description:
+                        Successful operation
+                "400":
+                    description:
+                        Invalid input
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - CommerceOpenApiForecast.read
+            tags:
+                - SkuForecast
 servers:
     - description:
           Liferay Commerce API server

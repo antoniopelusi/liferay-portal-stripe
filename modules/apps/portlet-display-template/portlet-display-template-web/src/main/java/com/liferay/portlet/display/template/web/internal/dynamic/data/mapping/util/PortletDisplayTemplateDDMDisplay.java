@@ -183,8 +183,6 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 				PortletRequest.RENDER_PHASE);
 		}
 		else {
-			long groupId = _portal.getScopeGroupId(liferayPortletRequest);
-
 			portletURL = PortletURLBuilder.createRenderURL(
 				liferayPortletResponse
 			).setMVCPath(
@@ -194,10 +192,10 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 			).setParameter(
 				"classPK", classPK
 			).setParameter(
-				"groupId", groupId
+				"groupId", _portal.getScopeGroupId(liferayPortletRequest)
 			).setWindowState(
 				LiferayWindowState.POP_UP
-			).build();
+			).buildPortletURL();
 		}
 
 		return portletURL.toString();
@@ -213,7 +211,7 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 	protected PortletDisplayTemplate portletDisplayTemplate;
 
 	private static final Set<String> _viewTemplateExcludedColumnNames =
-		SetUtil.fromArray(new String[] {"language", "mode", "structure"});
+		SetUtil.fromArray("language", "mode", "structure");
 
 	@Reference
 	private Portal _portal;

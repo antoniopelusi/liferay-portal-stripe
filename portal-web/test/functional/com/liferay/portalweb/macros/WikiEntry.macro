@@ -1,18 +1,51 @@
 definition {
 
+	macro addLinkToContent {
+		Click(locator1 = "CKEditor#TOOLBAR_LINK_BUTTON_BALLOON");
+
+		if (isSet(externalLink)) {
+			Type(
+				key_text = "URL",
+				locator1 = "TextInput#ANY",
+				value1 = "${externalLink}");
+		}
+
+		Click(locator1 = "CKEditor#OK_BUTTON");
+	}
+
 	macro addPageContent {
 		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
 		Type(
 			locator1 = "CKEditor#BODY",
 			value1 = "${wikiPageContent}");
+
+		SelectFrame(value1 = "relative=top");
+	}
+
+	macro addPageContentTable {
+		Click(locator1 = "CKEditor#TABLE_ICON");
+
+		Click(locator1 = "CKEditor#OK_BUTTON");
+	}
+
+	macro addPageSummary {
+		Panel.expandPanel(panel = "Configuration");
+
+		Type(
+			key_text = "Summary",
+			locator1 = "TextInput#ANY",
+			value1 = "${wikiPageSummary}");
+
+		Button.clickPublish();
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro addPageTitle {
 		if (isSet(wikiPageTitle)) {
 			var title = "${wikiPageTitle}";
 		}
-
 		else if (isSet(wikiChildPageTitle)) {
 			var title = "${wikiChildPageTitle}";
 		}

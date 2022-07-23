@@ -24,12 +24,11 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.SecureRandomUtil;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.MapUtil;
 
 import java.net.URI;
 
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -349,19 +348,16 @@ public class AuthorizationCodeGrantServiceRegistrator {
 			_liferayOAuthDataProvider);
 		authorizationCodeGrantService.setSubjectCreator(_subjectCreator);
 
-		Dictionary<String, Object> authorizationCodeGrantProperties =
-			new HashMapDictionary<>();
-
-		authorizationCodeGrantProperties.put(
-			"osgi.jaxrs.application.select",
-			"(osgi.jaxrs.name=Liferay.OAuth2.Application)");
-		authorizationCodeGrantProperties.put(
-			"osgi.jaxrs.name", "Liferay.Authorization.Code.Grant.Service");
-		authorizationCodeGrantProperties.put("osgi.jaxrs.resource", true);
-
 		_serviceRegistration = bundleContext.registerService(
 			Object.class, authorizationCodeGrantService,
-			authorizationCodeGrantProperties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"osgi.jaxrs.application.select",
+				"(osgi.jaxrs.name=Liferay.OAuth2.Application)"
+			).put(
+				"osgi.jaxrs.name", "Liferay.Authorization.Code.Grant.Service"
+			).put(
+				"osgi.jaxrs.resource", true
+			).build());
 	}
 
 	@Deactivate

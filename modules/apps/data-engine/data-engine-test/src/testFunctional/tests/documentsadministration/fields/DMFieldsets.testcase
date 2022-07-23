@@ -50,9 +50,7 @@ definition {
 
 		PortletEntry.inputName(name = "CollapsibleTest1");
 
-		DataEngine.addFieldsets(
-			fieldsetLabel = "CollapsibleTest",
-			fieldsetName = "CollapsibleTest");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "CollapsibleTest");
 
 		DataEngine.editFieldsetsCollapsible(fieldsetLabel = "CollapsibleTest");
 
@@ -93,11 +91,9 @@ definition {
 
 		PortletEntry.inputName(name = "RepeatableTest1");
 
-		DataEngine.addFieldsets(
-			fieldsetLabel = "RepeatableTest",
-			fieldsetName = "RepeatableTest");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "RepeatableTest");
 
-		DataEngine.editFieldsetsRepeatable(fieldsetLabel = "RepeatableTest");
+		DataEngine.toggleFieldRepeatable(fieldsetLabel = "RepeatableTest");
 
 		DDLDataDefinition.save();
 
@@ -139,11 +135,11 @@ definition {
 			dmDocumentTypeFieldNames = "${fieldName}",
 			dmDocumentTypeName = "${documentType}");
 
-		DataEngine.editFieldRepeatable(fieldFieldLabel = "${fieldName}");
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "${fieldName}");
 
 		Button.clickSave();
 
-		Navigator.gotoNavItem(navItem = "Documents and Media");
+		Navigator.gotoNavItem(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "${documentType}");
 
@@ -155,7 +151,7 @@ definition {
 			imageFileName = "${documentName}",
 			navTab = "Documents and Media");
 
-		DataEngine.addRepeatableField(fieldName = "${fieldName}");
+		DataEngine.addRepeatableField(fieldLabel = "${fieldName}");
 
 		AssertTextNotPresent(
 			locator1 = "FormFields#TEXT_FIELD_NULL",
@@ -190,13 +186,9 @@ definition {
 
 		PortletEntry.inputName(name = "ShowAndHideTest1");
 
-		DataEngine.addFieldsets(
-			fieldsetLabel = "ShowAndHideTest",
-			fieldsetName = "ShowAndHideTest");
+		DataEngine.addFieldsetToBuilder(fieldsetName = "ShowAndHideTest");
 
-		DataEngine.configureFieldsetsShowOrHideLabel(
-			fieldFieldLabel = "Text",
-			status = "Hide");
+		DataEngine.toggleShowLabel(fieldLabel = "Text");
 
 		DDLDataDefinition.save();
 
@@ -208,9 +200,7 @@ definition {
 			key_fieldsetLabel = "ShowAndHideTest",
 			locator1 = "DDMEditStructure#FORM_FIELD_SETS_CONTAINER_LABEL");
 
-		DataEngine.configureFieldsetsShowOrHideLabel(
-			fieldFieldLabel = "Text",
-			status = "Show");
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "Text");
 
 		AssertElementPresent(
 			key_fieldsetLabel = "ShowAndHideTest",

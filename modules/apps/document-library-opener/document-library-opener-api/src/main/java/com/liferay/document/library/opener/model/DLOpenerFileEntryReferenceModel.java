@@ -244,4 +244,7 @@ public interface DLOpenerFileEntryReferenceModel
 	 */
 	public void setType(int type);
 
+	@Override
+	public DLOpenerFileEntryReference cloneWithOriginalValues();
+
 }

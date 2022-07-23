@@ -18,14 +18,17 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.dispatch.constants.DispatchConstants;
 import com.liferay.dispatch.executor.DispatchTaskClusterMode;
 import com.liferay.dispatch.executor.DispatchTaskStatus;
+import com.liferay.dispatch.internal.messaging.TestDispatchTaskExecutor;
 import com.liferay.dispatch.model.DispatchLog;
 import com.liferay.dispatch.model.DispatchTrigger;
 import com.liferay.dispatch.service.DispatchLogLocalService;
 import com.liferay.dispatch.service.DispatchTriggerLocalService;
+import com.liferay.petra.concurrent.NoticeableExecutorService;
+import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.Message;
+import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.DataGuard;
@@ -41,6 +44,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -116,12 +120,11 @@ public class DispatchMessageListenerTest {
 			executeCount, 750, false,
 			TestDispatchTaskExecutor.DISPATCH_TASK_EXECUTOR_TYPE_TEST);
 
-		List<DispatchLog> dispatchLogs =
+		_assertExecutionSequence(
 			_dispatchLogLocalService.getDispatchLogs(
 				dispatchTrigger.getDispatchTriggerId(), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
-
-		_assertExecutionSequence(dispatchLogs, executeCount, false);
+				QueryUtil.ALL_POS),
+			executeCount, false);
 	}
 
 	private void _assertExecutionSequence(
@@ -191,13 +194,27 @@ public class DispatchMessageListenerTest {
 
 		Message message = _getMessage(dispatchTriggerId);
 
-		while (executeCount-- > 0) {
-			_destination.send(message);
+		NoticeableExecutorService noticeableExecutorService =
+			_portalExecutorManager.getPortalExecutor(
+				DispatchMessageListenerTest.class.getName());
 
-			if (executeCount > 0) {
-				Thread.sleep(scheduledExecutionIntervalMillis);
-			}
+		while (executeCount-- > 0) {
+			noticeableExecutorService.submit(
+				() -> {
+					_messageListener.receive(message);
+
+					return null;
+				});
+
+			Thread.sleep(scheduledExecutionIntervalMillis);
 		}
+
+		noticeableExecutorService.shutdown();
+
+		Assert.assertTrue(
+			noticeableExecutorService.awaitTermination(
+				TestDispatchTaskExecutor.SLEEP_MILLIS * 10,
+				TimeUnit.MILLISECONDS));
 	}
 
 	private DispatchTrigger _executeDispatchTrigger(
@@ -211,12 +228,12 @@ public class DispatchMessageListenerTest {
 
 		DispatchTrigger dispatchTrigger =
 			_dispatchTriggerLocalService.addDispatchTrigger(
-				user.getUserId(), type, null, RandomTestUtil.randomString(),
-				RandomTestUtil.randomBoolean());
+				null, user.getUserId(), type, null,
+				RandomTestUtil.randomString(), RandomTestUtil.randomBoolean());
 
-		Date now = new Date();
+		Date date = new Date();
 
-		Calendar calendar = CalendarFactoryUtil.getCalendar(now.getTime());
+		Calendar calendar = CalendarFactoryUtil.getCalendar(date.getTime());
 
 		dispatchTrigger = _dispatchTriggerLocalService.updateDispatchTrigger(
 			dispatchTrigger.getDispatchTriggerId(), false, _CRON_EXPRESSION,
@@ -236,23 +253,27 @@ public class DispatchMessageListenerTest {
 		Message message = new Message();
 
 		message.setPayload(
-			String.valueOf(
-				JSONUtil.put("dispatchTriggerId", dispatchTriggerId)));
+			JSONUtil.put(
+				"dispatchTriggerId", dispatchTriggerId
+			).toString());
 
 		return message;
 	}
 
 	private static final String _CRON_EXPRESSION = "0/1 * * * * ?";
 
-	@Inject(
-		filter = "destination.name=" + DispatchConstants.EXECUTOR_DESTINATION_NAME
-	)
-	private Destination _destination;
-
 	@Inject
 	private DispatchLogLocalService _dispatchLogLocalService;
 
 	@Inject
 	private DispatchTriggerLocalService _dispatchTriggerLocalService;
+
+	@Inject(
+		filter = "destination.name=" + DispatchConstants.EXECUTOR_DESTINATION_NAME
+	)
+	private MessageListener _messageListener;
+
+	@Inject
+	private PortalExecutorManager _portalExecutorManager;
 
 }

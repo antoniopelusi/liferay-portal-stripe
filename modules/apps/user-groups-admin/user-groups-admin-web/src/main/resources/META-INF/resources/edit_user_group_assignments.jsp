@@ -23,7 +23,7 @@ PortletURL homeURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCPath(
 	"/view.jsp"
-).build();
+).buildPortletURL();
 
 if (Validator.isNull(backURL)) {
 	backURL = homeURL.toString();
@@ -63,8 +63,6 @@ if (filterManageableOrganizations) {
 userParams.put("usersUserGroups", Long.valueOf(userGroup.getUserGroupId()));
 
 SearchContainer<User> searchContainer = editUserGroupAssignmentsManagementToolbarDisplayContext.getSearchContainer(userParams);
-
-PortletURL portletURL = editUserGroupAssignmentsManagementToolbarDisplayContext.getPortletURL();
 %>
 
 <clay:management-toolbar
@@ -86,7 +84,7 @@ PortletURL portletURL = editUserGroupAssignmentsManagementToolbarDisplayContext.
 	viewTypeItems="<%= editUserGroupAssignmentsManagementToolbarDisplayContext.getViewTypeItems() %>"
 />
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+<aui:form action="<%= editUserGroupAssignmentsManagementToolbarDisplayContext.getPortletURL() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="userGroupId" type="hidden" value="<%= userGroup.getUserGroupId() %>" />
 	<aui:input name="deleteUserGroupIds" type="hidden" />

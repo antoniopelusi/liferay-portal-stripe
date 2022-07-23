@@ -26,11 +26,14 @@ import com.liferay.expando.kernel.model.adapter.StagedExpandoColumn;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.adapter.ModelAdapterUtil;
+import com.liferay.portal.kernel.service.SystemEventLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.expando.model.impl.ExpandoValueImpl;
@@ -90,14 +93,14 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public void deleteColumn(ExpandoColumn column) {
+	public void deleteColumn(ExpandoColumn column) throws PortalException {
 		addDeletionSystemEvent(column);
-
-		// Column
 
 		expandoColumnPersistence.remove(column);
 
-		// Values
+		resourceLocalService.deleteResource(
+			column.getCompanyId(), ExpandoColumn.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL, column.getColumnId());
 
 		expandoValueLocalService.deleteColumnValues(column.getColumnId());
 	}
@@ -122,7 +125,7 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public void deleteColumn(long tableId, String name) {
+	public void deleteColumn(long tableId, String name) throws PortalException {
 		ExpandoColumn column = expandoColumnPersistence.fetchByT_N(
 			tableId, name);
 
@@ -142,7 +145,7 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public void deleteColumns(long tableId) {
+	public void deleteColumns(long tableId) throws PortalException {
 		List<ExpandoColumn> columns = expandoColumnPersistence.findByTableId(
 			tableId);
 
@@ -407,7 +410,7 @@ public class ExpandoColumnLocalServiceImpl
 		);
 
 		try {
-			systemEventLocalService.addSystemEvent(
+			_systemEventLocalService.addSystemEvent(
 				stagedExpandoColumn.getCompanyId(),
 				stagedModelType.getClassName(),
 				stagedExpandoColumn.getPrimaryKey(), StringPool.BLANK, null,
@@ -432,17 +435,10 @@ public class ExpandoColumnLocalServiceImpl
 			tableId, name);
 
 		if ((column != null) && (column.getColumnId() != columnId)) {
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("{tableId=");
-			sb.append(tableId);
-			sb.append(", columnId=");
-			sb.append(columnId);
-			sb.append(", name=");
-			sb.append(name);
-			sb.append("}");
-
-			throw new DuplicateColumnNameException(sb.toString());
+			throw new DuplicateColumnNameException(
+				StringBundler.concat(
+					"{tableId=", tableId, ", columnId=", columnId, ", name=",
+					name, "}"));
 		}
 
 		if ((type != ExpandoColumnConstants.BOOLEAN) &&
@@ -546,5 +542,8 @@ public class ExpandoColumnLocalServiceImpl
 
 		return value;
 	}
+
+	@BeanReference(type = SystemEventLocalService.class)
+	private SystemEventLocalService _systemEventLocalService;
 
 }

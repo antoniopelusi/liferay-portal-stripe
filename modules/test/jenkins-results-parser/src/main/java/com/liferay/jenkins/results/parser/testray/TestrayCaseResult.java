@@ -23,9 +23,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -46,6 +48,12 @@ public class TestrayCaseResult {
 		_testrayBuild = testrayBuild;
 		_topLevelBuild = topLevelBuild;
 		jsonObject = new JSONObject();
+	}
+
+	public TestrayAttachment getBuildResultTestrayAttachment() {
+		_initTestrayAttachments();
+
+		return _testrayAttachments.get("Build Result (Top Level)");
 	}
 
 	public String getCaseID() {
@@ -93,22 +101,9 @@ public class TestrayCaseResult {
 	}
 
 	public List<TestrayAttachment> getTestrayAttachments() {
-		List<TestrayAttachment> testrayAttachments = new ArrayList<>();
+		_initTestrayAttachments();
 
-		if (jsonObject.optJSONObject("attachments") == null) {
-			return testrayAttachments;
-		}
-
-		JSONObject attachmentsJSONObject = jsonObject.optJSONObject(
-			"attachments");
-
-		for (String name : attachmentsJSONObject.keySet()) {
-			testrayAttachments.add(
-				TestrayFactory.newTestrayAttachment(
-					this, name, attachmentsJSONObject.getString(name)));
-		}
-
-		return testrayAttachments;
+		return new ArrayList<>(_testrayAttachments.values());
 	}
 
 	public TestrayBuild getTestrayBuild() {
@@ -196,6 +191,11 @@ public class TestrayCaseResult {
 			return _statuses.get(id);
 		}
 
+		public static List<Status> getFailedStatuses() {
+			return Arrays.asList(
+				BLOCKED, DID_NOT_RUN, FAILED, IN_PROGRESS, TEST_FIX, UNTESTED);
+		}
+
 		public Integer getID() {
 			return _id;
 		}
@@ -224,6 +224,27 @@ public class TestrayCaseResult {
 
 	protected final JSONObject jsonObject;
 
+	private synchronized void _initTestrayAttachments() {
+		if (_testrayAttachments != null) {
+			return;
+		}
+
+		_testrayAttachments = new TreeMap<>();
+
+		JSONObject attachmentsJSONObject = jsonObject.optJSONObject(
+			"attachments");
+
+		for (String name : attachmentsJSONObject.keySet()) {
+			TestrayAttachment testrayAttachment =
+				TestrayFactory.newTestrayAttachment(
+					this, name, attachmentsJSONObject.getString(name));
+
+			_testrayAttachments.put(
+				testrayAttachment.getName(), testrayAttachment);
+		}
+	}
+
+	private Map<String, TestrayAttachment> _testrayAttachments;
 	private final TestrayBuild _testrayBuild;
 	private TestrayCase _testrayCase;
 	private TopLevelBuild _topLevelBuild;

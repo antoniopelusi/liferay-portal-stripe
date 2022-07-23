@@ -127,6 +127,10 @@ public class CPInstancePersistenceTest {
 
 		CPInstance newCPInstance = _persistence.create(pk);
 
+		newCPInstance.setMvccVersion(RandomTestUtil.nextLong());
+
+		newCPInstance.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newCPInstance.setUuid(RandomTestUtil.randomString());
 
 		newCPInstance.setExternalReferenceCode(RandomTestUtil.randomString());
@@ -208,6 +212,15 @@ public class CPInstancePersistenceTest {
 
 		newCPInstance.setUnspsc(RandomTestUtil.randomString());
 
+		newCPInstance.setDiscontinued(RandomTestUtil.randomBoolean());
+
+		newCPInstance.setDiscontinuedDate(RandomTestUtil.nextDate());
+
+		newCPInstance.setReplacementCPInstanceUuid(
+			RandomTestUtil.randomString());
+
+		newCPInstance.setReplacementCProductId(RandomTestUtil.nextLong());
+
 		newCPInstance.setStatus(RandomTestUtil.nextInt());
 
 		newCPInstance.setStatusByUserId(RandomTestUtil.nextLong());
@@ -221,6 +234,12 @@ public class CPInstancePersistenceTest {
 		CPInstance existingCPInstance = _persistence.findByPrimaryKey(
 			newCPInstance.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCPInstance.getMvccVersion(),
+			newCPInstance.getMvccVersion());
+		Assert.assertEquals(
+			existingCPInstance.getCtCollectionId(),
+			newCPInstance.getCtCollectionId());
 		Assert.assertEquals(
 			existingCPInstance.getUuid(), newCPInstance.getUuid());
 		Assert.assertEquals(
@@ -319,6 +338,18 @@ public class CPInstancePersistenceTest {
 		Assert.assertEquals(
 			existingCPInstance.getUnspsc(), newCPInstance.getUnspsc());
 		Assert.assertEquals(
+			existingCPInstance.isDiscontinued(),
+			newCPInstance.isDiscontinued());
+		Assert.assertEquals(
+			Time.getShortTimestamp(existingCPInstance.getDiscontinuedDate()),
+			Time.getShortTimestamp(newCPInstance.getDiscontinuedDate()));
+		Assert.assertEquals(
+			existingCPInstance.getReplacementCPInstanceUuid(),
+			newCPInstance.getReplacementCPInstanceUuid());
+		Assert.assertEquals(
+			existingCPInstance.getReplacementCProductId(),
+			newCPInstance.getReplacementCProductId());
+		Assert.assertEquals(
 			existingCPInstance.getStatus(), newCPInstance.getStatus());
 		Assert.assertEquals(
 			existingCPInstance.getStatusByUserId(),
@@ -397,6 +428,15 @@ public class CPInstancePersistenceTest {
 	}
 
 	@Test
+	public void testCountByC_SKU() throws Exception {
+		_persistence.countByC_SKU(RandomTestUtil.nextLong(), "");
+
+		_persistence.countByC_SKU(0L, "null");
+
+		_persistence.countByC_SKU(0L, (String)null);
+	}
+
+	@Test
 	public void testCountByC_C() throws Exception {
 		_persistence.countByC_C(RandomTestUtil.nextLong(), "");
 
@@ -406,12 +446,12 @@ public class CPInstancePersistenceTest {
 	}
 
 	@Test
-	public void testCountByC_S() throws Exception {
-		_persistence.countByC_S(RandomTestUtil.nextLong(), "");
+	public void testCountByCPDI_SKU() throws Exception {
+		_persistence.countByCPDI_SKU(RandomTestUtil.nextLong(), "");
 
-		_persistence.countByC_S(0L, "null");
+		_persistence.countByCPDI_SKU(0L, "null");
 
-		_persistence.countByC_S(0L, (String)null);
+		_persistence.countByCPDI_SKU(0L, (String)null);
 	}
 
 	@Test
@@ -473,12 +513,13 @@ public class CPInstancePersistenceTest {
 
 	protected OrderByComparator<CPInstance> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"CPInstance", "uuid", true, "externalReferenceCode", true,
-			"CPInstanceId", true, "groupId", true, "companyId", true, "userId",
-			true, "userName", true, "createDate", true, "modifiedDate", true,
-			"CPDefinitionId", true, "CPInstanceUuid", true, "sku", true, "gtin",
-			true, "manufacturerPartNumber", true, "purchasable", true, "width",
-			true, "height", true, "depth", true, "weight", true, "price", true,
+			"CPInstance", "mvccVersion", true, "ctCollectionId", true, "uuid",
+			true, "externalReferenceCode", true, "CPInstanceId", true,
+			"groupId", true, "companyId", true, "userId", true, "userName",
+			true, "createDate", true, "modifiedDate", true, "CPDefinitionId",
+			true, "CPInstanceUuid", true, "sku", true, "gtin", true,
+			"manufacturerPartNumber", true, "purchasable", true, "width", true,
+			"height", true, "depth", true, "weight", true, "price", true,
 			"promoPrice", true, "cost", true, "published", true, "displayDate",
 			true, "expirationDate", true, "lastPublishDate", true,
 			"overrideSubscriptionInfo", true, "subscriptionEnabled", true,
@@ -486,8 +527,10 @@ public class CPInstancePersistenceTest {
 			"maxSubscriptionCycles", true, "deliverySubscriptionEnabled", true,
 			"deliverySubscriptionLength", true, "deliverySubscriptionType",
 			true, "deliverySubscriptionTypeSettings", true,
-			"deliveryMaxSubscriptionCycles", true, "unspsc", true, "status",
-			true, "statusByUserId", true, "statusByUserName", true,
+			"deliveryMaxSubscriptionCycles", true, "unspsc", true,
+			"discontinued", true, "discontinuedDate", true,
+			"replacementCPInstanceUuid", true, "replacementCProductId", true,
+			"status", true, "statusByUserId", true, "statusByUserName", true,
 			"statusDate", true);
 	}
 
@@ -801,6 +844,10 @@ public class CPInstancePersistenceTest {
 
 		CPInstance cpInstance = _persistence.create(pk);
 
+		cpInstance.setMvccVersion(RandomTestUtil.nextLong());
+
+		cpInstance.setCtCollectionId(RandomTestUtil.nextLong());
+
 		cpInstance.setUuid(RandomTestUtil.randomString());
 
 		cpInstance.setExternalReferenceCode(RandomTestUtil.randomString());
@@ -876,6 +923,14 @@ public class CPInstancePersistenceTest {
 		cpInstance.setDeliveryMaxSubscriptionCycles(RandomTestUtil.nextLong());
 
 		cpInstance.setUnspsc(RandomTestUtil.randomString());
+
+		cpInstance.setDiscontinued(RandomTestUtil.randomBoolean());
+
+		cpInstance.setDiscontinuedDate(RandomTestUtil.nextDate());
+
+		cpInstance.setReplacementCPInstanceUuid(RandomTestUtil.randomString());
+
+		cpInstance.setReplacementCProductId(RandomTestUtil.nextLong());
 
 		cpInstance.setStatus(RandomTestUtil.nextInt());
 

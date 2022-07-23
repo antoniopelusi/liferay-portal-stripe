@@ -16,22 +16,35 @@ package com.liferay.asset.entry.rel.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.model.AssetCategoryConstants;
 import com.liferay.asset.kernel.model.AssetVocabulary;
-import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
-import com.liferay.asset.test.util.AssetTestUtil;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -59,10 +72,22 @@ public class AssetEntryAssetCategoryRelAssetEntryLocalServiceTest {
 		_group = GroupTestUtil.addGroup();
 		_user = UserTestUtil.addUser();
 
-		_assetVocabulary = AssetTestUtil.addVocabulary(_group.getGroupId());
+		_creatorUser = UserTestUtil.addGroupUser(
+			_group, RoleConstants.SITE_MEMBER);
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), _creatorUser.getUserId());
+
+		_assetVocabulary = _assetVocabularyLocalService.addVocabulary(
+			_creatorUser.getUserId(), _group.getGroupId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			Collections.emptyMap(), StringPool.BLANK, serviceContext);
 
 		for (int i = 0; i < _assetCategoryIds.length; i++) {
-			_assetCategoryIds[i] = _addAssetCategory(_group, _assetVocabulary);
+			_assetCategoryIds[i] = _addAssetCategory(serviceContext);
 		}
 	}
 
@@ -77,14 +102,68 @@ public class AssetEntryAssetCategoryRelAssetEntryLocalServiceTest {
 		_assertSize(0, new long[0]);
 	}
 
+	@Test
+	public void testUserCategoryIdsWithoutViewPermissionsOverCategory()
+		throws Exception {
+
+		_assertSize(2, _assetCategoryIds);
+
+		AssetCategory assetCategory1 = _assetCategories.get(0);
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, AssetCategory.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(assetCategory1.getCategoryId()), ActionKeys.VIEW);
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.SITE_MEMBER, AssetCategory.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(assetCategory1.getCategoryId()), ActionKeys.VIEW);
+
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(_user));
+
+		AssetCategory assetCategory2 = _assetCategories.get(1);
+
+		_assertSize(2, new long[] {assetCategory2.getCategoryId()});
+	}
+
+	@Test
+	public void testUserCategoryIdsWithoutViewPermissionsOverVocabulary()
+		throws Exception {
+
+		_assertSize(2, _assetCategoryIds);
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, AssetVocabulary.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(_assetVocabulary.getVocabularyId()),
+			ActionKeys.VIEW);
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.SITE_MEMBER, AssetVocabulary.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(_assetVocabulary.getVocabularyId()),
+			ActionKeys.VIEW);
+
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(_user));
+
+		_assertSize(2, new long[0]);
+	}
+
 	@Inject
 	protected static AssetEntryLocalService assetEntryLocalService;
 
-	private long _addAssetCategory(Group group, AssetVocabulary assetVocabulary)
+	private long _addAssetCategory(ServiceContext serviceContext)
 		throws Exception {
 
-		AssetCategory assetCategory = AssetTestUtil.addCategory(
-			group.getGroupId(), assetVocabulary.getVocabularyId());
+		AssetCategory assetCategory = _assetCategoryLocalService.addCategory(
+			null, _creatorUser.getUserId(), _group.getGroupId(),
+			AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			_assetVocabulary.getVocabularyId(), null, serviceContext);
 
 		_assetCategories.add(assetCategory);
 
@@ -102,7 +181,7 @@ public class AssetEntryAssetCategoryRelAssetEntryLocalServiceTest {
 			null);
 
 		List<AssetCategory> assetCategories =
-			AssetCategoryServiceUtil.getCategories(
+			_assetCategoryLocalService.getCategories(
 				User.class.getName(), _user.getUserId());
 
 		Assert.assertEquals(
@@ -114,8 +193,17 @@ public class AssetEntryAssetCategoryRelAssetEntryLocalServiceTest {
 
 	private final long[] _assetCategoryIds = new long[2];
 
+	@Inject
+	private AssetCategoryLocalService _assetCategoryLocalService;
+
 	@DeleteAfterTestRun
 	private AssetVocabulary _assetVocabulary;
+
+	@Inject
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
+
+	@DeleteAfterTestRun
+	private User _creatorUser;
 
 	@DeleteAfterTestRun
 	private Group _group;

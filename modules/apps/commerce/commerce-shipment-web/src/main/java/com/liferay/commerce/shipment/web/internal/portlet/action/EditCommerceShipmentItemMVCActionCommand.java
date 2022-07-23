@@ -65,7 +65,31 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCommerceShipmentItemMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void deleteCommerceShipmentItems(ActionRequest actionRequest)
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
+		try {
+			if (cmd.equals(Constants.DELETE)) {
+				_deleteCommerceShipmentItems(actionRequest);
+			}
+			else if (cmd.equals(Constants.UPDATE)) {
+				_updateCommerceShipmentItem(actionRequest);
+			}
+		}
+		catch (Exception exception) {
+			SessionErrors.add(actionRequest, exception.getClass());
+
+			String redirect = _getSaveAndContinueRedirect(actionRequest);
+
+			sendRedirect(actionRequest, actionResponse, redirect);
+		}
+	}
+
+	private void _deleteCommerceShipmentItems(ActionRequest actionRequest)
 		throws PortalException {
 
 		long[] deleteCommerceShipmentItemIds = null;
@@ -94,31 +118,7 @@ public class EditCommerceShipmentItemMVCActionCommand
 		}
 	}
 
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
-		try {
-			if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceShipmentItems(actionRequest);
-			}
-			else if (cmd.equals(Constants.UPDATE)) {
-				updateCommerceShipmentItem(actionRequest);
-			}
-		}
-		catch (Exception exception) {
-			SessionErrors.add(actionRequest, exception.getClass());
-
-			String redirect = getSaveAndContinueRedirect(actionRequest);
-
-			sendRedirect(actionRequest, actionResponse, redirect);
-		}
-	}
-
-	protected String getSaveAndContinueRedirect(ActionRequest actionRequest)
+	private String _getSaveAndContinueRedirect(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -130,44 +130,55 @@ public class EditCommerceShipmentItemMVCActionCommand
 				CommerceShipment.class.getName(), PortletProvider.Action.EDIT)
 		).setMVCRenderCommandName(
 			"/commerce_shipment/edit_commerce_shipment_item"
-		).build();
+		).setParameter(
+			"commerceOrderItemId",
+			() -> {
+				long commerceOrderItemId = ParamUtil.getLong(
+					actionRequest, "commerceOrderItemId");
 
-		long commerceShipmentId = ParamUtil.getLong(
-			actionRequest, "commerceShipmentId");
+				if (commerceOrderItemId > 0) {
+					return commerceOrderItemId;
+				}
 
-		if (commerceShipmentId > 0) {
-			portletURL.setParameter(
-				"commerceShipmentId", String.valueOf(commerceShipmentId));
-		}
+				return null;
+			}
+		).setParameter(
+			"commerceShipmentId",
+			() -> {
+				long commerceShipmentId = ParamUtil.getLong(
+					actionRequest, "commerceShipmentId");
 
-		long commerceShipmentItemId = ParamUtil.getLong(
-			actionRequest, "commerceShipmentItemId");
+				if (commerceShipmentId > 0) {
+					return commerceShipmentId;
+				}
 
-		if (commerceShipmentItemId > 0) {
-			portletURL.setParameter(
-				"commerceShipmentItemId",
-				String.valueOf(commerceShipmentItemId));
-		}
+				return null;
+			}
+		).setParameter(
+			"commerceShipmentItemId",
+			() -> {
+				long commerceShipmentItemId = ParamUtil.getLong(
+					actionRequest, "commerceShipmentItemId");
 
-		long commerceOrderItemId = ParamUtil.getLong(
-			actionRequest, "commerceOrderItemId");
+				if (commerceShipmentItemId > 0) {
+					return commerceShipmentItemId;
+				}
 
-		if (commerceOrderItemId > 0) {
-			portletURL.setParameter(
-				"commerceOrderItemId", String.valueOf(commerceOrderItemId));
-		}
+				return null;
+			}
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL.toString();
 	}
 
-	protected CommerceShipmentItem updateCommerceShipmentItem(
+	private CommerceShipmentItem _updateCommerceShipmentItem(
 			ActionRequest actionRequest)
 		throws PortalException {
 
@@ -212,15 +223,16 @@ public class EditCommerceShipmentItemMVCActionCommand
 				commerceShipmentItem =
 					_commerceShipmentItemService.updateCommerceShipmentItem(
 						initialCommerceShipmentItem.getCommerceShipmentItemId(),
-						commerceInventoryWarehouseId, quantity);
+						commerceInventoryWarehouseId, quantity, true);
 
 				initialCommerceShipmentItem = null;
 			}
 			else if ((commerceShipmentItem == null) && (quantity > 0)) {
 				commerceShipmentItem =
 					_commerceShipmentItemService.addCommerceShipmentItem(
-						commerceShipmentId, commerceOrderItemId,
-						commerceInventoryWarehouseId, quantity, serviceContext);
+						null, commerceShipmentId, commerceOrderItemId,
+						commerceInventoryWarehouseId, quantity, true,
+						serviceContext);
 			}
 			else if ((commerceShipmentItem != null) &&
 					 (quantity != commerceShipmentItem.getQuantity())) {
@@ -228,7 +240,14 @@ public class EditCommerceShipmentItemMVCActionCommand
 				commerceShipmentItem =
 					_commerceShipmentItemService.updateCommerceShipmentItem(
 						commerceShipmentItem.getCommerceShipmentItemId(),
-						commerceInventoryWarehouseId, quantity);
+						commerceInventoryWarehouseId, quantity, true);
+
+				if (quantity == 0) {
+					commerceShipmentItem =
+						_commerceShipmentItemService.updateCommerceShipmentItem(
+							commerceShipmentItem.getCommerceShipmentItemId(), 0,
+							quantity, true);
+				}
 			}
 		}
 

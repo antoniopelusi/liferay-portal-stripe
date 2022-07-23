@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.account.internal.upgrade.v4_0_0;
 
-import com.liferay.account.service.AccountEntryOrganizationRelLocalServiceUtil;
+import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
@@ -27,6 +27,14 @@ import java.sql.Statement;
 public class CommerceAccountOrganizationRelUpgradeProcess
 	extends UpgradeProcess {
 
+	public CommerceAccountOrganizationRelUpgradeProcess(
+		AccountEntryOrganizationRelLocalService
+			accountEntryOrganizationRelLocalService) {
+
+		_accountEntryOrganizationRelLocalService =
+			accountEntryOrganizationRelLocalService;
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
 		long oldCompanyId = CompanyThreadLocal.getCompanyId();
@@ -36,25 +44,26 @@ public class CommerceAccountOrganizationRelUpgradeProcess
 				"commerceAccountId asc, organizationId asc";
 
 		try (Statement selectStatement = connection.createStatement()) {
-			ResultSet rs = selectStatement.executeQuery(
+			ResultSet resultSet = selectStatement.executeQuery(
 				selectCommerceAccountOrganizationRel);
 
-			while (rs.next()) {
-				long accountEntryId = rs.getLong("commerceAccountId");
-				long organizationId = rs.getLong("organizationId");
+			while (resultSet.next()) {
+				long accountEntryId = resultSet.getLong("commerceAccountId");
+				long organizationId = resultSet.getLong("organizationId");
 
-				CompanyThreadLocal.setCompanyId(rs.getLong("companyId"));
+				CompanyThreadLocal.setCompanyId(resultSet.getLong("companyId"));
 
-				AccountEntryOrganizationRelLocalServiceUtil.
+				_accountEntryOrganizationRelLocalService.
 					addAccountEntryOrganizationRel(
 						accountEntryId, organizationId);
 			}
-
-			runSQL("truncate table CommerceAccountOrganizationRel");
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(oldCompanyId);
 		}
 	}
+
+	private final AccountEntryOrganizationRelLocalService
+		_accountEntryOrganizationRelLocalService;
 
 }

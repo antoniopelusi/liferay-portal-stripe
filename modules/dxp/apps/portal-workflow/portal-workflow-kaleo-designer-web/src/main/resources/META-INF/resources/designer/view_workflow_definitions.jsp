@@ -24,7 +24,9 @@ KaleoDefinitionVersionSearch kaleoDefinitionVersionSearch = kaleoDesignerDisplay
 
 <liferay-util:include page="/designer/management_bar.jsp" servletContext="<%= application %>" />
 
-<clay:container-fluid>
+<clay:container-fluid
+	cssClass="workflow-definition-container"
+>
 	<liferay-ui:error exception="<%= RequiredWorkflowDefinitionException.class %>">
 		<liferay-ui:message arguments="<%= kaleoDesignerDisplayContext.getMessageArguments((RequiredWorkflowDefinitionException)errorException) %>" key="<%= kaleoDesignerDisplayContext.getMessageKey((RequiredWorkflowDefinitionException)errorException) %>" translateArguments="<%= false %>" />
 	</liferay-ui:error>
@@ -50,7 +52,7 @@ KaleoDefinitionVersionSearch kaleoDefinitionVersionSearch = kaleoDesignerDisplay
 			modelVar="kaleoDefinitionVersion"
 		>
 			<liferay-portlet:renderURL portletName="<%= KaleoDesignerPortletKeys.KALEO_DESIGNER %>" var="rowURL">
-				<portlet:param name="mvcPath" value='<%= "/designer/edit_kaleo_definition_version.jsp" %>' />
+				<portlet:param name="mvcPath" value="/designer/edit_workflow_definition.jsp" />
 				<portlet:param name="redirect" value="<%= currentURL %>" />
 				<portlet:param name="name" value="<%= kaleoDefinitionVersion.getName() %>" />
 				<portlet:param name="draftVersion" value="<%= kaleoDefinitionVersion.getVersion() %>" />

@@ -38,7 +38,14 @@ import com.liferay.portal.kernel.util.PortalUtil;
 public class DDLRecordSetTestHelper {
 
 	public DDLRecordSetTestHelper(Group group) throws Exception {
+		_userId = TestPropsValues.getUserId();
+
 		_group = group;
+	}
+
+	public DDLRecordSetTestHelper(Group group, long userId) throws Exception {
+		_group = group;
+		_userId = userId;
 	}
 
 	public DDLRecordSet addRecordSet(DDMForm ddmForm) throws Exception {
@@ -63,8 +70,7 @@ public class DDLRecordSetTestHelper {
 		throws Exception {
 
 		return DDLRecordSetLocalServiceUtil.addRecordSet(
-			TestPropsValues.getUserId(), _group.getGroupId(),
-			ddmStructure.getStructureId(), null,
+			_userId, _group.getGroupId(), ddmStructure.getStructureId(), null,
 			HashMapBuilder.put(
 				LocaleUtil.US, RandomTestUtil.randomString()
 			).build(),
@@ -94,5 +100,6 @@ public class DDLRecordSetTestHelper {
 	}
 
 	private final Group _group;
+	private final long _userId;
 
 }

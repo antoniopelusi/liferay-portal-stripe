@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -58,6 +59,10 @@ public class ImportTask implements Serializable {
 
 	public static ImportTask toDTO(String json) {
 		return ObjectMapperUtil.readValue(ImportTask.class, json);
+	}
+
+	public static ImportTask unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(ImportTask.class, json);
 	}
 
 	@Schema(
@@ -218,6 +223,63 @@ public class ImportTask implements Serializable {
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected ExecuteStatus executeStatus;
 
+	@Schema(description = "The optional external key of this account.")
+	public String getExternalReferenceCode() {
+		return externalReferenceCode;
+	}
+
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		this.externalReferenceCode = externalReferenceCode;
+	}
+
+	@JsonIgnore
+	public void setExternalReferenceCode(
+		UnsafeSupplier<String, Exception> externalReferenceCodeUnsafeSupplier) {
+
+		try {
+			externalReferenceCode = externalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(description = "The optional external key of this account.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String externalReferenceCode;
+
+	@Schema
+	@Valid
+	public FailedItem[] getFailedItems() {
+		return failedItems;
+	}
+
+	public void setFailedItems(FailedItem[] failedItems) {
+		this.failedItems = failedItems;
+	}
+
+	@JsonIgnore
+	public void setFailedItems(
+		UnsafeSupplier<FailedItem[], Exception> failedItemsUnsafeSupplier) {
+
+		try {
+			failedItems = failedItemsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected FailedItem[] failedItems;
+
 	@DecimalMin("0")
 	@Schema(description = "The task's ID.")
 	public Long getId() {
@@ -244,6 +306,49 @@ public class ImportTask implements Serializable {
 	@GraphQLField(description = "The task's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Long id;
+
+	@Schema(
+		description = "Defines if import task will fail when error occurs or continue importing rest of the items."
+	)
+	@Valid
+	public ImportStrategy getImportStrategy() {
+		return importStrategy;
+	}
+
+	@JsonIgnore
+	public String getImportStrategyAsString() {
+		if (importStrategy == null) {
+			return null;
+		}
+
+		return importStrategy.toString();
+	}
+
+	public void setImportStrategy(ImportStrategy importStrategy) {
+		this.importStrategy = importStrategy;
+	}
+
+	@JsonIgnore
+	public void setImportStrategy(
+		UnsafeSupplier<ImportStrategy, Exception>
+			importStrategyUnsafeSupplier) {
+
+		try {
+			importStrategy = importStrategyUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(
+		description = "Defines if import task will fail when error occurs or continue importing rest of the items."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected ImportStrategy importStrategy;
 
 	@Schema(description = "The operation of import task.")
 	@Valid
@@ -283,6 +388,37 @@ public class ImportTask implements Serializable {
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Operation operation;
 
+	@DecimalMin("0")
+	@Schema(description = "Number of items processed by import task opeartion.")
+	public Integer getProcessedItemsCount() {
+		return processedItemsCount;
+	}
+
+	public void setProcessedItemsCount(Integer processedItemsCount) {
+		this.processedItemsCount = processedItemsCount;
+	}
+
+	@JsonIgnore
+	public void setProcessedItemsCount(
+		UnsafeSupplier<Integer, Exception> processedItemsCountUnsafeSupplier) {
+
+		try {
+			processedItemsCount = processedItemsCountUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(
+		description = "Number of items processed by import task opeartion."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Integer processedItemsCount;
+
 	@Schema(description = "The start time of import task operation.")
 	public Date getStartTime() {
 		return startTime;
@@ -310,6 +446,39 @@ public class ImportTask implements Serializable {
 	@GraphQLField(description = "The start time of import task operation.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Date startTime;
+
+	@DecimalMin("0")
+	@Schema(
+		description = "Total number of items that will be processed by import task operation."
+	)
+	public Integer getTotalItemsCount() {
+		return totalItemsCount;
+	}
+
+	public void setTotalItemsCount(Integer totalItemsCount) {
+		this.totalItemsCount = totalItemsCount;
+	}
+
+	@JsonIgnore
+	public void setTotalItemsCount(
+		UnsafeSupplier<Integer, Exception> totalItemsCountUnsafeSupplier) {
+
+		try {
+			totalItemsCount = totalItemsCountUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(
+		description = "Total number of items that will be processed by import task operation."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Integer totalItemsCount;
 
 	@Override
 	public boolean equals(Object object) {
@@ -411,6 +580,40 @@ public class ImportTask implements Serializable {
 			sb.append("\"");
 		}
 
+		if (externalReferenceCode != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(externalReferenceCode));
+
+			sb.append("\"");
+		}
+
+		if (failedItems != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"failedItems\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < failedItems.length; i++) {
+				sb.append(String.valueOf(failedItems[i]));
+
+				if ((i + 1) < failedItems.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (id != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -419,6 +622,20 @@ public class ImportTask implements Serializable {
 			sb.append("\"id\": ");
 
 			sb.append(id);
+		}
+
+		if (importStrategy != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"importStrategy\": ");
+
+			sb.append("\"");
+
+			sb.append(importStrategy);
+
+			sb.append("\"");
 		}
 
 		if (operation != null) {
@@ -435,6 +652,16 @@ public class ImportTask implements Serializable {
 			sb.append("\"");
 		}
 
+		if (processedItemsCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"processedItemsCount\": ");
+
+			sb.append(processedItemsCount);
+		}
+
 		if (startTime != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -447,6 +674,16 @@ public class ImportTask implements Serializable {
 			sb.append(liferayToJSONDateFormat.format(startTime));
 
 			sb.append("\"");
+		}
+
+		if (totalItemsCount != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"totalItemsCount\": ");
+
+			sb.append(totalItemsCount);
 		}
 
 		sb.append("}");
@@ -469,13 +706,17 @@ public class ImportTask implements Serializable {
 
 		@JsonCreator
 		public static ExecuteStatus create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (ExecuteStatus executeStatus : values()) {
 				if (Objects.equals(executeStatus.getValue(), value)) {
 					return executeStatus;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -496,6 +737,44 @@ public class ImportTask implements Serializable {
 
 	}
 
+	@GraphQLName("ImportStrategy")
+	public static enum ImportStrategy {
+
+		ON_ERROR_CONTINUE("ON_ERROR_CONTINUE"), ON_ERROR_FAIL("ON_ERROR_FAIL");
+
+		@JsonCreator
+		public static ImportStrategy create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
+			for (ImportStrategy importStrategy : values()) {
+				if (Objects.equals(importStrategy.getValue(), value)) {
+					return importStrategy;
+				}
+			}
+
+			throw new IllegalArgumentException("Invalid enum value: " + value);
+		}
+
+		@JsonValue
+		public String getValue() {
+			return _value;
+		}
+
+		@Override
+		public String toString() {
+			return _value;
+		}
+
+		private ImportStrategy(String value) {
+			_value = value;
+		}
+
+		private final String _value;
+
+	}
+
 	@GraphQLName("Operation")
 	public static enum Operation {
 
@@ -503,13 +782,17 @@ public class ImportTask implements Serializable {
 
 		@JsonCreator
 		public static Operation create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (Operation operation : values()) {
 				if (Objects.equals(operation.getValue(), value)) {
 					return operation;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -531,9 +814,9 @@ public class ImportTask implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -559,7 +842,7 @@ public class ImportTask implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -591,7 +874,7 @@ public class ImportTask implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -607,5 +890,10 @@ public class ImportTask implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

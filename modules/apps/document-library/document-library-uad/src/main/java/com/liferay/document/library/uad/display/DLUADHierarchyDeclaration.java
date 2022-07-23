@@ -15,7 +15,6 @@
 package com.liferay.document.library.uad.display;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.user.associated.data.display.UADDisplay;
 import com.liferay.user.associated.data.display.UADHierarchyDeclaration;
 
@@ -37,10 +36,7 @@ public class DLUADHierarchyDeclaration implements UADHierarchyDeclaration {
 
 	@Override
 	public String getEntitiesTypeLabel(Locale locale) {
-		return LanguageUtil.get(
-			ResourceBundleUtil.getBundle(
-				locale, DLUADHierarchyDeclaration.class),
-			"folders-and-files");
+		return LanguageUtil.get(locale, "folders-and-files");
 	}
 
 	@Override

@@ -1,0 +1,56 @@
+<html>
+<head>
+<title>CustomerPortalSite</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">CustomerPortalSite</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>ACCOUNTS_TABLE</td>
+	<td>//tr[(@data-qa-id='row') and contains(., '${value}') and contains(., 'Active')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OBJECTS_TABLE</td>
+	<td>//div[(@class='dnd-tbody') and contains(., '${value}') and contains(., 'Approved')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CERTIFICATE</td>
+	<td>//button[contains(@onclick, 'replace') and contains(@onclick, '${value}') and contains(., 'Replace')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OKTA_USERNAME</td>
+	<td>//input[contains(@id, 'okta-signin-username')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OKTA_PASSWORD</td>
+	<td>//input[contains(@id, 'okta-signin-password')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SKIP_TO_CONTENT</td>
+	<td>//*[contains(text(),'Skip to Content')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OKTA_COOKIES</td>
+	<td>//div[@class='banner-content']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OKTA_SUBMIT</td>
+	<td>//input[contains(@id, 'okta-signin-submit')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

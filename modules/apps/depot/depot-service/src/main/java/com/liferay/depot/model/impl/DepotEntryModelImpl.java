@@ -16,7 +16,6 @@ package com.liferay.depot.model.impl;
 
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryModel;
-import com.liferay.depot.model.DepotEntrySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -153,56 +151,6 @@ public class DepotEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DepotEntry toModel(DepotEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DepotEntry model = new DepotEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setDepotEntryId(soapModel.getDepotEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DepotEntry> toModels(DepotEntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DepotEntry> models = new ArrayList<DepotEntry>(soapModels.length);
-
-		for (DepotEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DepotEntryModelImpl() {
 	}
 
@@ -285,34 +233,6 @@ public class DepotEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DepotEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DepotEntry.class.getClassLoader(), DepotEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DepotEntry> constructor =
-				(Constructor<DepotEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DepotEntry, Object>>
@@ -641,6 +561,29 @@ public class DepotEntryModelImpl
 	}
 
 	@Override
+	public DepotEntry cloneWithOriginalValues() {
+		DepotEntryImpl depotEntryImpl = new DepotEntryImpl();
+
+		depotEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		depotEntryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		depotEntryImpl.setDepotEntryId(
+			this.<Long>getColumnOriginalValue("depotEntryId"));
+		depotEntryImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		depotEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		depotEntryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		depotEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		depotEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		depotEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+
+		return depotEntryImpl;
+	}
+
+	@Override
 	public int compareTo(DepotEntry depotEntry) {
 		long primaryKey = depotEntry.getPrimaryKey();
 
@@ -766,7 +709,7 @@ public class DepotEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -777,9 +720,26 @@ public class DepotEntryModelImpl
 			Function<DepotEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DepotEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DepotEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -826,7 +786,9 @@ public class DepotEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DepotEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DepotEntry.class, ModelWrapper.class);
 
 	}
 

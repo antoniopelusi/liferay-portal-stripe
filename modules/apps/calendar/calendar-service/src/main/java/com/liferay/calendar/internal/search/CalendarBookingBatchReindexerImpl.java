@@ -41,10 +41,10 @@ public class CalendarBookingBatchReindexerImpl
 
 		batchIndexingActionable.setAddCriteriaMethod(
 			dynamicQuery -> {
-				Property calendarIdPropery = PropertyFactoryUtil.forName(
+				Property calendarIdProperty = PropertyFactoryUtil.forName(
 					"calendarId");
 
-				dynamicQuery.add(calendarIdPropery.eq(calendarId));
+				dynamicQuery.add(calendarIdProperty.eq(calendarId));
 
 				Property statusProperty = PropertyFactoryUtil.forName("status");
 

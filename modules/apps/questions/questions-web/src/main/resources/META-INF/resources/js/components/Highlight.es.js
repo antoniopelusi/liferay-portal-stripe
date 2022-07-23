@@ -12,25 +12,28 @@
  * details.
  */
 
-import hljs from 'highlight.js';
+import hljs from 'highlight.js/lib/core';
+import java from 'highlight.js/lib/languages/java';
+import javascript from 'highlight.js/lib/languages/javascript';
+import plaintext from 'highlight.js/lib/languages/plaintext';
+
+import 'highlight.js/styles/monokai-sublime.css';
 import React, {useEffect, useRef} from 'react';
+
+hljs.configure({
+	languages: ['language-java', 'language-javascript', 'html', 'plaintext'],
+});
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('java', java);
+hljs.registerLanguage('plaintext', plaintext);
 
 function Highlight(props) {
 	const {children, element: Element, innerHTML} = props;
-	const el = useRef(null);
-
-	hljs.configure({
-		languages: [
-			'language-java',
-			'language-javascript',
-			'html',
-			'plaintext',
-		],
-	});
+	const elementRef = useRef(null);
 
 	const highlightCode = () => {
-		if (el.current) {
-			const nodes = el.current.querySelectorAll('pre code');
+		if (elementRef.current) {
+			const nodes = elementRef.current.querySelectorAll('pre code');
 			for (let i = 0; i < nodes.length; i++) {
 				hljs.highlightBlock(nodes[i]);
 			}
@@ -38,7 +41,7 @@ function Highlight(props) {
 	};
 
 	useEffect(highlightCode, []);
-	const elProps = {ref: el};
+	const elProps = {ref: elementRef};
 
 	if (innerHTML) {
 		elProps.dangerouslySetInnerHTML = {__html: children};
@@ -53,7 +56,7 @@ function Highlight(props) {
 	}
 
 	return (
-		<pre ref={el}>
+		<pre ref={elementRef}>
 			<code>{children}</code>
 		</pre>
 	);

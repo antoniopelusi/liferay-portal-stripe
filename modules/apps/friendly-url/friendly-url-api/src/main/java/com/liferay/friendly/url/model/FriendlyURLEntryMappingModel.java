@@ -178,4 +178,7 @@ public interface FriendlyURLEntryMappingModel
 	 */
 	public void setFriendlyURLEntryId(long friendlyURLEntryId);
 
+	@Override
+	public FriendlyURLEntryMapping cloneWithOriginalValues();
+
 }

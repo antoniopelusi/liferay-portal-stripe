@@ -22,6 +22,7 @@ import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory
 import com.liferay.dynamic.data.mapping.form.web.internal.configuration.DDMFormWebConfiguration;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormGuestUploadFieldUtil;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormInstanceStagingUtil;
+import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormInstanceSubmissionLimitStatusUtil;
 import com.liferay.dynamic.data.mapping.form.web.internal.security.permission.resource.DDMFormInstancePermission;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -37,8 +38,9 @@ import com.liferay.dynamic.data.mapping.model.DDMFormLayoutRow;
 import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
+import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalService;
-import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordLocalService;
+import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceVersionLocalService;
@@ -46,8 +48,13 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.DDMStorageAdapter;
 import com.liferay.dynamic.data.mapping.storage.DDMStorageAdapterTracker;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesMerger;
+import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectRelationship;
+import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -72,6 +79,7 @@ import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -106,7 +114,7 @@ public class DDMFormDisplayContext {
 	public DDMFormDisplayContext(
 		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker,
 		DDMFormInstanceLocalService ddmFormInstanceLocalService,
-		DDMFormInstanceRecordLocalService ddmFormInstanceRecordLocalService,
+		DDMFormInstanceRecordService ddmFormInstanceRecordService,
 		DDMFormInstanceRecordVersionLocalService
 			ddmFormInstanceRecordVersionLocalService,
 		DDMFormInstanceService ddmFormInstanceService,
@@ -117,6 +125,8 @@ public class DDMFormDisplayContext {
 		DDMFormWebConfiguration ddmFormWebConfiguration,
 		DDMStorageAdapterTracker ddmStorageAdapterTracker,
 		GroupLocalService groupLocalService, JSONFactory jsonFactory,
+		ObjectFieldLocalService objectFieldLocalService,
+		ObjectRelationshipLocalService objectRelationshipLocalService,
 		Portal portal, RenderRequest renderRequest,
 		RenderResponse renderResponse, RoleLocalService roleLocalService,
 		UserLocalService userLocalService,
@@ -124,7 +134,7 @@ public class DDMFormDisplayContext {
 
 		_ddmFormFieldTypeServicesTracker = ddmFormFieldTypeServicesTracker;
 		_ddmFormInstanceLocalService = ddmFormInstanceLocalService;
-		_ddmFormInstanceRecordLocalService = ddmFormInstanceRecordLocalService;
+		_ddmFormInstanceRecordService = ddmFormInstanceRecordService;
 		_ddmFormInstanceRecordVersionLocalService =
 			ddmFormInstanceRecordVersionLocalService;
 		_ddmFormInstanceService = ddmFormInstanceService;
@@ -137,6 +147,8 @@ public class DDMFormDisplayContext {
 		_ddmStorageAdapterTracker = ddmStorageAdapterTracker;
 		_groupLocalService = groupLocalService;
 		_jsonFactory = jsonFactory;
+		_objectFieldLocalService = objectFieldLocalService;
+		_objectRelationshipLocalService = objectRelationshipLocalService;
 		_portal = portal;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
@@ -168,7 +180,7 @@ public class DDMFormDisplayContext {
 	public String[] getAvailableLanguageIds() throws PortalException {
 		ThemeDisplay themeDisplay = getThemeDisplay();
 
-		Set<Locale> siteAvailablesLocales = LanguageUtil.getAvailableLocales(
+		Set<Locale> siteAvailableLocales = LanguageUtil.getAvailableLocales(
 			themeDisplay.getSiteGroupId());
 
 		DDMForm ddmForm = getDDMForm();
@@ -178,7 +190,7 @@ public class DDMFormDisplayContext {
 		Stream<Locale> availableLocalesStream = availableLocales.stream();
 
 		return availableLocalesStream.filter(
-			locale -> siteAvailablesLocales.contains(locale)
+			locale -> siteAvailableLocales.contains(locale)
 		).map(
 			locale -> LanguageUtil.getLanguageId(locale)
 		).toArray(
@@ -202,7 +214,7 @@ public class DDMFormDisplayContext {
 				ddmFormInstance, _getHttpServletRequest(),
 				_ddmFormWebConfiguration.guestUploadMaximumSubmissions());
 
-		boolean requireCaptcha = isCaptchaRequired(ddmFormInstance);
+		boolean requireCaptcha = _isCaptchaRequired(ddmFormInstance);
 
 		DDMForm ddmForm = getDDMForm(ddmFormInstance, requireCaptcha);
 
@@ -221,6 +233,16 @@ public class DDMFormDisplayContext {
 						_ddmFormWebConfiguration.
 							maximumRepetitionsForUploadFields());
 				}
+			}
+			else if (Objects.equals(
+						ddmFormInstance.getStorageType(), "object") &&
+					 Objects.equals(
+						 ddmFormField.getType(), "object-relationship")) {
+
+				ddmFormField.setProperty(
+					"objectDefinitionId",
+					String.valueOf(
+						_getObjectDefinitionId(ddmFormField, ddmFormInstance)));
 			}
 		}
 
@@ -246,7 +268,7 @@ public class DDMFormDisplayContext {
 			ddmFormInstanceRecordVersion =
 				_ddmFormInstanceRecordVersionLocalService.
 					fetchLatestFormInstanceRecordVersion(
-						getUserId(), getFormInstanceId(),
+						_getUserId(), getFormInstanceId(),
 						getFormInstanceVersion(),
 						WorkflowConstants.STATUS_DRAFT);
 		}
@@ -304,13 +326,25 @@ public class DDMFormDisplayContext {
 		try {
 			_ddmFormInstance = _ddmFormInstanceService.fetchFormInstance(
 				getFormInstanceId());
+
+			if ((_ddmFormInstance != null) && !isPreview()) {
+				DDMFormInstanceVersion latestApprovedDDMFormInstanceVersion =
+					_getLatestApprovedDDMFormInstanceVersion();
+
+				if (Validator.isNotNull(
+						latestApprovedDDMFormInstanceVersion.getSettings())) {
+
+					_ddmFormInstance.setSettings(
+						latestApprovedDDMFormInstanceVersion.getSettings());
+				}
+			}
 		}
 		catch (PortalException portalException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return null;
@@ -328,7 +362,7 @@ public class DDMFormDisplayContext {
 			_renderRequest.getPreferences(), _renderRequest, "formInstanceId");
 
 		if (_ddmFormInstanceId == 0) {
-			_ddmFormInstanceId = getFormInstanceIdFromSession();
+			_ddmFormInstanceId = _getFormInstanceIdFromSession();
 		}
 
 		return _ddmFormInstanceId;
@@ -339,9 +373,16 @@ public class DDMFormDisplayContext {
 			return _ddmFormInstanceRecord;
 		}
 
-		_ddmFormInstanceRecord =
-			_ddmFormInstanceRecordLocalService.fetchDDMFormInstanceRecord(
-				getFormInstanceRecordId());
+		try {
+			_ddmFormInstanceRecord =
+				_ddmFormInstanceRecordService.getFormInstanceRecord(
+					getFormInstanceRecordId());
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
 
 		return _ddmFormInstanceRecord;
 	}
@@ -388,10 +429,10 @@ public class DDMFormDisplayContext {
 			return submitLabel;
 		}
 
-		ResourceBundle resourceBundle = getResourceBundle(
+		ResourceBundle resourceBundle = _getResourceBundle(
 			getLocale(_getHttpServletRequest(), getDDMForm()));
 
-		if (hasWorkflowEnabled(getFormInstance(), getThemeDisplay())) {
+		if (_hasWorkflowEnabled(getFormInstance(), getThemeDisplay())) {
 			DDMFormInstanceRecord ddmFormInstanceRecord =
 				getFormInstanceRecord();
 
@@ -410,6 +451,32 @@ public class DDMFormDisplayContext {
 		}
 
 		return LanguageUtil.get(resourceBundle, "submit-form");
+	}
+
+	public String getSuccessPageDescription(Locale locale)
+		throws PortalException {
+
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+			getDDMFormSuccessPageSettings();
+
+		LocalizedValue body = ddmFormSuccessPageSettings.getBody();
+
+		return HtmlUtil.escape(
+			GetterUtil.getString(
+				body.getString(locale),
+				body.getString(body.getDefaultLocale())));
+	}
+
+	public String getSuccessPageTitle(Locale locale) throws PortalException {
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+			getDDMFormSuccessPageSettings();
+
+		LocalizedValue title = ddmFormSuccessPageSettings.getTitle();
+
+		return HtmlUtil.escape(
+			GetterUtil.getString(
+				title.getString(locale),
+				title.getString(title.getDefaultLocale())));
 	}
 
 	public boolean hasAddFormInstanceRecordPermission() throws PortalException {
@@ -445,7 +512,7 @@ public class DDMFormDisplayContext {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -558,6 +625,17 @@ public class DDMFormDisplayContext {
 		return ParamUtil.getBoolean(_renderRequest, "shared");
 	}
 
+	public boolean isLoggedUser() {
+		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		if (themeDisplay.isSignedIn()) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public boolean isPreview() throws PortalException {
 		ThemeDisplay themeDisplay = getThemeDisplay();
 
@@ -607,6 +685,13 @@ public class DDMFormDisplayContext {
 		return false;
 	}
 
+	public boolean isSharedURL() {
+		ThemeDisplay themeDisplay = getThemeDisplay();
+
+		return StringUtil.contains(
+			themeDisplay.getURLCurrent(), "shared", StringPool.BLANK);
+	}
+
 	public boolean isShowConfigurationIcon() throws PortalException {
 		if (_showConfigurationIcon != null) {
 			return _showConfigurationIcon;
@@ -633,13 +718,28 @@ public class DDMFormDisplayContext {
 		return _showConfigurationIcon;
 	}
 
+	public boolean isShowPartialResultsToRespondents() throws PortalException {
+		DDMFormInstance ddmFormInstance = getFormInstance();
+
+		if (ddmFormInstance == null) {
+			return false;
+		}
+
+		DDMFormInstanceSettings ddmFormInstanceSettings =
+			ddmFormInstance.getSettingsModel();
+
+		return ddmFormInstanceSettings.showPartialResultsToRespondents();
+	}
+
 	public boolean isShowSubmitButton() {
 		return !ParamUtil.getBoolean(_renderRequest, "preview");
 	}
 
 	public boolean isShowSuccessPage() throws PortalException {
 		if (!SessionErrors.isEmpty(_renderRequest) ||
-			SessionMessages.isEmpty(_renderRequest)) {
+			!SessionMessages.contains(
+				_renderRequest, "formInstanceRecordAdded") ||
+			Validator.isNotNull(getRedirectURL())) {
 
 			return false;
 		}
@@ -650,28 +750,23 @@ public class DDMFormDisplayContext {
 		return ddmFormSuccessPageSettings.isEnabled();
 	}
 
-	protected String createCaptchaResourceURL() {
-		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		String captchaResourceURL =
-			themeDisplay.getPathMain() + "/portal/captcha/get_image";
-
-		String portletId = PortalUtil.getPortletId(_renderRequest);
-
-		if (Validator.isNotNull(portletId)) {
-			captchaResourceURL = captchaResourceURL.concat(
-				"?portletId=" + portletId);
-		}
-
-		return captchaResourceURL;
+	public boolean isSubmissionLimitReached() throws PortalException {
+		return DDMFormInstanceSubmissionLimitStatusUtil.
+			isSubmissionLimitReached(
+				getFormInstance(), _ddmFormInstanceRecordVersionLocalService,
+				getUser());
 	}
 
 	protected DDMFormRenderingContext createDDMFormRenderingContext(
-		DDMForm ddmForm) {
+			DDMForm ddmForm)
+		throws PortalException {
 
 		DDMFormRenderingContext ddmFormRenderingContext =
 			new DDMFormRenderingContext();
+
+		ddmFormRenderingContext.addProperty(
+			"showPartialResultsToRespondents",
+			isShowPartialResultsToRespondents());
 
 		String redirectURL = ParamUtil.getString(_renderRequest, "redirect");
 
@@ -710,19 +805,6 @@ public class DDMFormDisplayContext {
 		return ddmFormRenderingContext;
 	}
 
-	protected DDMFormLayoutRow createFullColumnDDMFormLayoutRow(
-		String ddmFormFieldName) {
-
-		DDMFormLayoutRow ddmFormLayoutRow = new DDMFormLayoutRow();
-
-		DDMFormLayoutColumn ddmFormLayoutColumn = new DDMFormLayoutColumn(
-			DDMFormLayoutColumn.FULL, ddmFormFieldName);
-
-		ddmFormLayoutRow.addDDMFormLayoutColumn(ddmFormLayoutColumn);
-
-		return ddmFormLayoutRow;
-	}
-
 	protected DDMForm getDDMForm() throws PortalException {
 		DDMFormInstance ddmFormInstance = getFormInstance();
 
@@ -747,10 +829,7 @@ public class DDMFormDisplayContext {
 		}
 		else {
 			DDMFormInstanceVersion latestFormInstanceVersion =
-				_ddmFormInstanceVersionLocalService.
-					getLatestFormInstanceVersion(
-						ddmFormInstance.getFormInstanceId(),
-						WorkflowConstants.STATUS_APPROVED);
+				_getLatestApprovedDDMFormInstanceVersion();
 
 			DDMStructureVersion structureVersion =
 				latestFormInstanceVersion.getStructureVersion();
@@ -763,7 +842,7 @@ public class DDMFormDisplayContext {
 				_DDM_FORM_FIELD_NAME_CAPTCHA, "captcha");
 
 			captchaDDMFormField.setDataType("string");
-			captchaDDMFormField.setProperty("url", createCaptchaResourceURL());
+			captchaDDMFormField.setProperty("url", _createCaptchaResourceURL());
 
 			ddmForm.addDDMFormField(captchaDDMFormField);
 		}
@@ -787,10 +866,7 @@ public class DDMFormDisplayContext {
 		}
 		else {
 			DDMFormInstanceVersion latestFormInstanceVersion =
-				_ddmFormInstanceVersionLocalService.
-					getLatestFormInstanceVersion(
-						ddmFormInstance.getFormInstanceId(),
-						WorkflowConstants.STATUS_APPROVED);
+				_getLatestApprovedDDMFormInstanceVersion();
 
 			DDMStructureVersion structureVersion =
 				latestFormInstanceVersion.getStructureVersion();
@@ -799,23 +875,16 @@ public class DDMFormDisplayContext {
 		}
 
 		if (requireCaptcha) {
-			DDMFormLayoutPage lastDDMFormLayoutPage = getLastDDMFormLayoutPage(
+			DDMFormLayoutPage lastDDMFormLayoutPage = _getLastDDMFormLayoutPage(
 				ddmFormLayout);
 
 			DDMFormLayoutRow ddmFormLayoutRow =
-				createFullColumnDDMFormLayoutRow(_DDM_FORM_FIELD_NAME_CAPTCHA);
+				_createFullColumnDDMFormLayoutRow(_DDM_FORM_FIELD_NAME_CAPTCHA);
 
 			lastDDMFormLayoutPage.addDDMFormLayoutRow(ddmFormLayoutRow);
 		}
 
 		return ddmFormLayout;
-	}
-
-	protected long getFormInstanceIdFromSession() {
-		PortletSession portletSession = _renderRequest.getPortletSession();
-
-		return GetterUtil.getLong(
-			portletSession.getAttribute("ddmFormInstanceId"));
 	}
 
 	protected String getFormInstanceVersion() {
@@ -826,15 +895,6 @@ public class DDMFormDisplayContext {
 		}
 
 		return ddmFormInstance.getVersion();
-	}
-
-	protected DDMFormLayoutPage getLastDDMFormLayoutPage(
-		DDMFormLayout ddmFormLayout) {
-
-		List<DDMFormLayoutPage> ddmFormLayoutPages =
-			ddmFormLayout.getDDMFormLayoutPages();
-
-		return ddmFormLayoutPages.get(ddmFormLayoutPages.size() - 1);
 	}
 
 	protected Locale getLocale(
@@ -875,16 +935,6 @@ public class DDMFormDisplayContext {
 		return portletDisplay.getPortletResource();
 	}
 
-	protected ResourceBundle getResourceBundle(Locale locale) {
-		ResourceBundle portalResourceBundle = _portal.getResourceBundle(locale);
-
-		ResourceBundle moduleResourceBundle = ResourceBundleUtil.getBundle(
-			"content.Language", locale, getClass());
-
-		return new AggregateResourceBundle(
-			moduleResourceBundle, portalResourceBundle);
-	}
-
 	protected ThemeDisplay getThemeDisplay() {
 		return (ThemeDisplay)_renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
 	}
@@ -893,30 +943,6 @@ public class DDMFormDisplayContext {
 		ThemeDisplay themeDisplay = getThemeDisplay();
 
 		return themeDisplay.getUser();
-	}
-
-	protected long getUserId() {
-		ThemeDisplay themeDisplay = getThemeDisplay();
-
-		return themeDisplay.getUserId();
-	}
-
-	protected boolean hasWorkflowEnabled(
-		DDMFormInstance ddmFormInstance, ThemeDisplay themeDisplay) {
-
-		return _workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
-			themeDisplay.getCompanyId(), ddmFormInstance.getGroupId(),
-			DDMFormInstance.class.getName(),
-			ddmFormInstance.getFormInstanceId());
-	}
-
-	protected boolean isCaptchaRequired(DDMFormInstance ddmFormInstance)
-		throws PortalException {
-
-		DDMFormInstanceSettings ddmFormInstanceSettings =
-			ddmFormInstance.getSettingsModel();
-
-		return ddmFormInstanceSettings.requireCaptcha();
 	}
 
 	protected boolean isDefaultUser() {
@@ -938,16 +964,138 @@ public class DDMFormDisplayContext {
 		return ddmFormInstanceSettings.published();
 	}
 
-	protected boolean isSharedURL() {
-		ThemeDisplay themeDisplay = getThemeDisplay();
+	private String _createCaptchaResourceURL() {
+		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
-		String urlCurrent = themeDisplay.getURLCurrent();
+		String captchaResourceURL =
+			themeDisplay.getPathMain() + "/portal/captcha/get_image";
 
-		return urlCurrent.contains("/shared");
+		String portletId = PortalUtil.getPortletId(_renderRequest);
+
+		if (Validator.isNotNull(portletId)) {
+			captchaResourceURL = captchaResourceURL.concat(
+				"?portletId=" + portletId);
+		}
+
+		return captchaResourceURL;
+	}
+
+	private DDMFormLayoutRow _createFullColumnDDMFormLayoutRow(
+		String ddmFormFieldName) {
+
+		DDMFormLayoutRow ddmFormLayoutRow = new DDMFormLayoutRow();
+
+		DDMFormLayoutColumn ddmFormLayoutColumn = new DDMFormLayoutColumn(
+			DDMFormLayoutColumn.FULL, ddmFormFieldName);
+
+		ddmFormLayoutRow.addDDMFormLayoutColumn(ddmFormLayoutColumn);
+
+		return ddmFormLayoutRow;
+	}
+
+	private long _getFormInstanceIdFromSession() {
+		PortletSession portletSession = _renderRequest.getPortletSession();
+
+		return GetterUtil.getLong(
+			portletSession.getAttribute("ddmFormInstanceId"));
 	}
 
 	private HttpServletRequest _getHttpServletRequest() {
 		return PortalUtil.getHttpServletRequest(_renderRequest);
+	}
+
+	private DDMFormLayoutPage _getLastDDMFormLayoutPage(
+		DDMFormLayout ddmFormLayout) {
+
+		List<DDMFormLayoutPage> ddmFormLayoutPages =
+			ddmFormLayout.getDDMFormLayoutPages();
+
+		return ddmFormLayoutPages.get(ddmFormLayoutPages.size() - 1);
+	}
+
+	private DDMFormInstanceVersion _getLatestApprovedDDMFormInstanceVersion()
+		throws PortalException {
+
+		if (_latestDDMFormInstanceVersion != null) {
+			return _latestDDMFormInstanceVersion;
+		}
+
+		_latestDDMFormInstanceVersion =
+			_ddmFormInstanceVersionLocalService.getLatestFormInstanceVersion(
+				_ddmFormInstance.getFormInstanceId(),
+				WorkflowConstants.STATUS_APPROVED);
+
+		return _latestDDMFormInstanceVersion;
+	}
+
+	private long _getObjectDefinitionId(
+			DDMFormField ddmFormField, DDMFormInstance ddmFormInstance)
+		throws Exception {
+
+		DDMFormInstanceSettings ddmFormInstanceSettings =
+			ddmFormInstance.getSettingsModel();
+
+		ObjectField objectField = _objectFieldLocalService.getObjectField(
+			GetterUtil.getLong(ddmFormInstanceSettings.objectDefinitionId()),
+			_getObjectFieldName(ddmFormField));
+
+		ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.
+				fetchObjectRelationshipByObjectFieldId2(
+					objectField.getObjectFieldId());
+
+		return objectRelationship.getObjectDefinitionId1();
+	}
+
+	private String _getObjectFieldName(DDMFormField ddmFormField) {
+		try {
+			JSONArray jsonArray = _jsonFactory.createJSONArray(
+				(String)ddmFormField.getProperty("objectFieldName"));
+
+			return jsonArray.getString(0);
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+
+			return StringPool.BLANK;
+		}
+	}
+
+	private ResourceBundle _getResourceBundle(Locale locale) {
+		ResourceBundle portalResourceBundle = _portal.getResourceBundle(locale);
+
+		ResourceBundle moduleResourceBundle = ResourceBundleUtil.getBundle(
+			"content.Language", locale, getClass());
+
+		return new AggregateResourceBundle(
+			moduleResourceBundle, portalResourceBundle);
+	}
+
+	private long _getUserId() {
+		ThemeDisplay themeDisplay = getThemeDisplay();
+
+		return themeDisplay.getUserId();
+	}
+
+	private boolean _hasWorkflowEnabled(
+		DDMFormInstance ddmFormInstance, ThemeDisplay themeDisplay) {
+
+		return _workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
+			themeDisplay.getCompanyId(), ddmFormInstance.getGroupId(),
+			DDMFormInstance.class.getName(),
+			ddmFormInstance.getFormInstanceId());
+	}
+
+	private boolean _isCaptchaRequired(DDMFormInstance ddmFormInstance)
+		throws Exception {
+
+		DDMFormInstanceSettings ddmFormInstanceSettings =
+			ddmFormInstance.getSettingsModel();
+
+		return ddmFormInstanceSettings.requireCaptcha();
 	}
 
 	private static final String _DDM_FORM_FIELD_NAME_CAPTCHA = "_CAPTCHA_";
@@ -964,8 +1112,7 @@ public class DDMFormDisplayContext {
 	private final DDMFormInstanceLocalService _ddmFormInstanceLocalService;
 	private DDMFormInstanceRecord _ddmFormInstanceRecord;
 	private long _ddmFormInstanceRecordId;
-	private final DDMFormInstanceRecordLocalService
-		_ddmFormInstanceRecordLocalService;
+	private final DDMFormInstanceRecordService _ddmFormInstanceRecordService;
 	private final DDMFormInstanceRecordVersionLocalService
 		_ddmFormInstanceRecordVersionLocalService;
 	private final DDMFormInstanceService _ddmFormInstanceService;
@@ -980,6 +1127,10 @@ public class DDMFormDisplayContext {
 	private Boolean _hasAddFormInstanceRecordPermission;
 	private Boolean _hasViewPermission;
 	private final JSONFactory _jsonFactory;
+	private DDMFormInstanceVersion _latestDDMFormInstanceVersion;
+	private final ObjectFieldLocalService _objectFieldLocalService;
+	private final ObjectRelationshipLocalService
+		_objectRelationshipLocalService;
 	private final Portal _portal;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;

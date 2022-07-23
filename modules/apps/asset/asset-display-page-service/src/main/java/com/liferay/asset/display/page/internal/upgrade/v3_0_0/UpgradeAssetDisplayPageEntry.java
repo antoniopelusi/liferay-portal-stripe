@@ -52,64 +52,61 @@ public class UpgradeAssetDisplayPageEntry
 		long fileEntryClassNameId = PortalUtil.getClassNameId(
 			FileEntry.class.getName());
 
-		StringBundler sb1 = new StringBundler(7);
-
-		sb1.append("select groupId, companyId, userId, userName, fileEntryId ");
-		sb1.append("from DLFileEntry where fileEntryId not in (select ");
-		sb1.append("classPK from AssetDisplayPageEntry where classNameId in (");
-		sb1.append(dlFileEntryClassNameId);
-		sb1.append(", ");
-		sb1.append(fileEntryClassNameId);
-		sb1.append("))");
-
-		StringBundler sb2 = new StringBundler(5);
-
-		sb2.append("insert into AssetDisplayPageEntry (uuid_, ");
-		sb2.append("assetDisplayPageEntryId, groupId, companyId, userId, ");
-		sb2.append("userName, createDate, modifiedDate, classNameId, ");
-		sb2.append("classPK, layoutPageTemplateEntryId, type_, plid) values( ");
-		sb2.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select groupId, companyId, userId, userName, fileEntryId ",
+					"from DLFileEntry where fileEntryId not in (select ",
+					"classPK from AssetDisplayPageEntry where classNameId in (",
+					dlFileEntryClassNameId, ", ", fileEntryClassNameId, "))"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb2.toString())) {
+					connection,
+					StringBundler.concat(
+						"insert into AssetDisplayPageEntry (uuid_, ",
+						"assetDisplayPageEntryId, groupId, companyId, userId, ",
+						"userName, createDate, modifiedDate, classNameId, ",
+						"classPK, layoutPageTemplateEntryId, type_, plid) ",
+						"values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
 					Timestamp now = new Timestamp(System.currentTimeMillis());
 
-					ps2.setString(1, PortalUUIDUtil.generate());
-					ps2.setLong(2, increment());
-					ps2.setLong(3, rs.getLong("groupId"));
-					ps2.setLong(4, rs.getLong("companyId"));
-					ps2.setLong(5, rs.getLong("userId"));
-					ps2.setString(6, rs.getString("userName"));
-					ps2.setTimestamp(7, now);
-					ps2.setTimestamp(8, now);
-					ps2.setLong(9, fileEntryClassNameId);
-					ps2.setLong(10, rs.getLong("fileEntryId"));
-					ps2.setLong(11, 0);
-					ps2.setLong(12, AssetDisplayPageConstants.TYPE_NONE);
-					ps2.setLong(13, 0);
+					preparedStatement2.setString(1, PortalUUIDUtil.generate());
+					preparedStatement2.setLong(2, increment());
+					preparedStatement2.setLong(3, resultSet.getLong("groupId"));
+					preparedStatement2.setLong(
+						4, resultSet.getLong("companyId"));
+					preparedStatement2.setLong(5, resultSet.getLong("userId"));
+					preparedStatement2.setString(
+						6, resultSet.getString("userName"));
+					preparedStatement2.setTimestamp(7, now);
+					preparedStatement2.setTimestamp(8, now);
+					preparedStatement2.setLong(9, fileEntryClassNameId);
+					preparedStatement2.setLong(
+						10, resultSet.getLong("fileEntryId"));
+					preparedStatement2.setLong(11, 0);
+					preparedStatement2.setLong(
+						12, AssetDisplayPageConstants.TYPE_NONE);
+					preparedStatement2.setLong(13, 0);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"delete from AssetDisplayPageEntry where (classNameId = ? or " +
 					"classNameId = ?) and type_ = ?")) {
 
-			ps.setLong(1, dlFileEntryClassNameId);
-			ps.setLong(2, fileEntryClassNameId);
-			ps.setLong(3, AssetDisplayPageConstants.TYPE_DEFAULT);
+			preparedStatement.setLong(1, dlFileEntryClassNameId);
+			preparedStatement.setLong(2, fileEntryClassNameId);
+			preparedStatement.setLong(
+				3, AssetDisplayPageConstants.TYPE_DEFAULT);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

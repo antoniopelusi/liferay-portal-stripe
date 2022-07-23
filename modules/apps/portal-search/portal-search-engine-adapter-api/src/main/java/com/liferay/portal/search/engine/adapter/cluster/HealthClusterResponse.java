@@ -38,15 +38,9 @@ public class HealthClusterResponse implements ClusterResponse {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{_clusterHealthStatus=");
-		sb.append(_clusterHealthStatus);
-		sb.append(", _healthStatusMessage='");
-		sb.append(_healthStatusMessage);
-		sb.append("'}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{_clusterHealthStatus=", _clusterHealthStatus,
+			", _healthStatusMessage='", _healthStatusMessage, "'}");
 	}
 
 	private final ClusterHealthStatus _clusterHealthStatus;

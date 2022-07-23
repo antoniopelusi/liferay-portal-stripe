@@ -21,6 +21,7 @@ import com.liferay.commerce.inventory.exception.MVCCException;
 import com.liferay.commerce.inventory.internal.search.CommerceInventoryWarehouseIndexer;
 import com.liferay.commerce.inventory.model.CommerceInventoryWarehouse;
 import com.liferay.commerce.inventory.service.base.CommerceInventoryWarehouseLocalServiceBaseImpl;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.GroupConstants;
@@ -45,12 +46,12 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Luca Pellizzon
@@ -170,7 +171,7 @@ public class CommerceInventoryWarehouseLocalServiceImpl
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId());
 
 		// Resources
@@ -291,7 +292,7 @@ public class CommerceInventoryWarehouseLocalServiceImpl
 	}
 
 	@Override
-	public List<CommerceInventoryWarehouse> searchCommerceInventoryWarehouses(
+	public List<CommerceInventoryWarehouse> search(
 			long companyId, Boolean active, String commerceCountryCode,
 			String keywords, int start, int end, Sort sort)
 		throws PortalException {
@@ -301,7 +302,7 @@ public class CommerceInventoryWarehouseLocalServiceImpl
 
 		searchContext.setKeywords(keywords);
 
-		return searchCommerceInventoryWarehouses(searchContext);
+		return search(searchContext);
 	}
 
 	@Override
@@ -385,7 +386,7 @@ public class CommerceInventoryWarehouseLocalServiceImpl
 
 		SearchContext searchContext = new SearchContext();
 
-		Map<String, Serializable> attributes =
+		searchContext.setAttributes(
 			HashMapBuilder.<String, Serializable>put(
 				CommerceInventoryWarehouseIndexer.FIELD_CITY, keywords
 			).put(
@@ -403,21 +404,19 @@ public class CommerceInventoryWarehouseLocalServiceImpl
 				LinkedHashMapBuilder.<String, Object>put(
 					"keywords", keywords
 				).build()
-			).build();
-
-		if (active != null) {
-			attributes.put(
-				CommerceInventoryWarehouseIndexer.FIELD_ACTIVE, active);
-		}
-
-		if (Validator.isNotNull(commerceCountryCode)) {
-			attributes.put(
+			).put(
+				CommerceInventoryWarehouseIndexer.FIELD_ACTIVE, () -> active
+			).put(
 				CommerceInventoryWarehouseIndexer.
 					FIELD_COUNTRY_TWO_LETTERS_ISO_CODE,
-				commerceCountryCode);
-		}
+				() -> {
+					if (Validator.isNotNull(commerceCountryCode)) {
+						return commerceCountryCode;
+					}
 
-		searchContext.setAttributes(attributes);
+					return null;
+				}
+			).build());
 
 		searchContext.setCompanyId(companyId);
 		searchContext.setEnd(end);
@@ -474,8 +473,8 @@ public class CommerceInventoryWarehouseLocalServiceImpl
 		return commerceInventoryWarehouses;
 	}
 
-	protected List<CommerceInventoryWarehouse>
-			searchCommerceInventoryWarehouses(SearchContext searchContext)
+	protected List<CommerceInventoryWarehouse> search(
+			SearchContext searchContext)
 		throws PortalException {
 
 		Indexer<CommerceInventoryWarehouse> indexer =
@@ -524,5 +523,8 @@ public class CommerceInventoryWarehouseLocalServiceImpl
 	private static final String[] _SELECTED_FIELD_NAMES = {
 		Field.ENTRY_CLASS_PK, Field.COMPANY_ID
 	};
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 }

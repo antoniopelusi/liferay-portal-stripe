@@ -87,9 +87,8 @@ definition {
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type Name");
 
-		DataEngine.viewFieldReference(
-			fieldFieldLabel = "Geolocation",
-			fieldName = "Geolocation",
+		DEBuilder.assertFieldReference(
+			fieldLabel = "Geolocation",
 			fieldReference = "GeolocationReference");
 
 		DataEngine.editFieldReference(
@@ -101,9 +100,8 @@ definition {
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type Name");
 
-		DataEngine.viewFieldReference(
-			fieldFieldLabel = "Geolocation",
-			fieldName = "Geolocation",
+		DEBuilder.assertFieldReference(
+			fieldLabel = "Geolocation",
 			fieldReference = "GeolocationReferenceValidCharacters");
 	}
 
@@ -112,17 +110,17 @@ definition {
 	test RepeatableGeolocationOnRenderer {
 		property portal.acceptance = "false";
 
-		DataEngine.editFieldRepeatable(fieldFieldLabel = "Geolocation");
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Geolocation");
 
 		DDLDataDefinition.save();
 
-		DMNavigator.gotoDocumentsAndMedia();
+		Navigator.gotoNavItem(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type Name");
 
 		PortletEntry.inputTitle(title = "Documents and Media Title");
 
-		DataEngine.addRepeatableField(fieldName = "Geolocation");
+		DataEngine.addRepeatableField(fieldLabel = "Geolocation");
 
 		PortletEntry.publish();
 
@@ -184,23 +182,23 @@ definition {
 
 		var key_fieldFieldLabel = "Geolocation";
 
-		DataEngine.editFieldShowLabel(fieldFieldLabel = "${key_fieldFieldLabel}");
+		DataEngine.toggleShowLabel(fieldLabel = "${key_fieldFieldLabel}");
 
 		DDLDataDefinition.save();
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type Name");
 
-		AssertElementPresent(locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "${key_fieldFieldLabel}");
 
-		DataEngine.editShowOrHideLabel(
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "${key_fieldFieldLabel}");
+
+		DDLDataDefinition.save();
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type Name");
+
+		DataEngine.viewField(
 			fieldFieldLabel = "${key_fieldFieldLabel}",
-			showLabel = "false");
-
-		DDLDataDefinition.save();
-
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Type Name");
-
-		AssertElementNotPresent(locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
+			fieldName = "${key_fieldFieldLabel}");
 	}
 
 	@description = "Verify if duplicated geolocation field is correctly loaded."
@@ -212,7 +210,7 @@ definition {
 
 		DDLDataDefinition.save();
 
-		DMNavigator.gotoDocumentsAndMedia();
+		Navigator.gotoNavItem(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type Name");
 
@@ -238,7 +236,7 @@ definition {
 
 		DDLDataDefinition.save();
 
-		DMNavigator.gotoDocumentsAndMedia();
+		Navigator.gotoNavItem(navItem = "Files");
 
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "DM Document Type Name");
 

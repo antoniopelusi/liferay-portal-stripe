@@ -20,8 +20,9 @@ import com.liferay.commerce.price.list.model.CommercePriceListChannelRelTable;
 import com.liferay.commerce.price.list.model.impl.CommercePriceListChannelRelImpl;
 import com.liferay.commerce.price.list.model.impl.CommercePriceListChannelRelModelImpl;
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListChannelRelPersistence;
+import com.liferay.commerce.price.list.service.persistence.CommercePriceListChannelRelUtil;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
+import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -31,35 +32,37 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the commerce price list channel rel service.
@@ -169,25 +172,28 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid;
 				finderArgs = new Object[] {uuid};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid;
 			finderArgs = new Object[] {uuid, start, end, orderByComparator};
 		}
 
 		List<CommercePriceListChannelRel> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CommercePriceListChannelRel>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -256,7 +262,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -581,11 +587,21 @@ public class CommercePriceListChannelRelPersistenceImpl
 	public int countByUuid(String uuid) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
 
-		Object[] finderArgs = new Object[] {uuid};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid;
+
+			finderArgs = new Object[] {uuid};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -620,7 +636,9 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -724,18 +742,21 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid_C;
 				finderArgs = new Object[] {uuid, companyId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid_C;
 			finderArgs = new Object[] {
 				uuid, companyId, start, end, orderByComparator
@@ -744,7 +765,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 		List<CommercePriceListChannelRel> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CommercePriceListChannelRel>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -820,7 +841,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -1165,11 +1186,21 @@ public class CommercePriceListChannelRelPersistenceImpl
 	public int countByUuid_C(String uuid, long companyId) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid_C;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
 
-		Object[] finderArgs = new Object[] {uuid, companyId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid_C;
+
+			finderArgs = new Object[] {uuid, companyId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -1208,7 +1239,9 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -1309,19 +1342,22 @@ public class CommercePriceListChannelRelPersistenceImpl
 		OrderByComparator<CommercePriceListChannelRel> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath =
 					_finderPathWithoutPaginationFindByCommercePriceListId;
 				finderArgs = new Object[] {commercePriceListId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByCommercePriceListId;
 			finderArgs = new Object[] {
 				commercePriceListId, start, end, orderByComparator
@@ -1330,7 +1366,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 		List<CommercePriceListChannelRel> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CommercePriceListChannelRel>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -1391,7 +1427,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -1706,11 +1742,21 @@ public class CommercePriceListChannelRelPersistenceImpl
 	 */
 	@Override
 	public int countByCommercePriceListId(long commercePriceListId) {
-		FinderPath finderPath = _finderPathCountByCommercePriceListId;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
 
-		Object[] finderArgs = new Object[] {commercePriceListId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByCommercePriceListId;
+
+			finderArgs = new Object[] {commercePriceListId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -1734,7 +1780,9 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -1751,8 +1799,8 @@ public class CommercePriceListChannelRelPersistenceImpl
 		_FINDER_COLUMN_COMMERCEPRICELISTID_COMMERCEPRICELISTID_2 =
 			"commercePriceListChannelRel.commercePriceListId = ?";
 
-	private FinderPath _finderPathFetchByC_C;
-	private FinderPath _finderPathCountByC_C;
+	private FinderPath _finderPathFetchByCCI_CPI;
+	private FinderPath _finderPathCountByCCI_CPI;
 
 	/**
 	 * Returns the commerce price list channel rel where commerceChannelId = &#63; and commercePriceListId = &#63; or throws a <code>NoSuchPriceListChannelRelException</code> if it could not be found.
@@ -1763,12 +1811,12 @@ public class CommercePriceListChannelRelPersistenceImpl
 	 * @throws NoSuchPriceListChannelRelException if a matching commerce price list channel rel could not be found
 	 */
 	@Override
-	public CommercePriceListChannelRel findByC_C(
+	public CommercePriceListChannelRel findByCCI_CPI(
 			long commerceChannelId, long commercePriceListId)
 		throws NoSuchPriceListChannelRelException {
 
-		CommercePriceListChannelRel commercePriceListChannelRel = fetchByC_C(
-			commerceChannelId, commercePriceListId);
+		CommercePriceListChannelRel commercePriceListChannelRel =
+			fetchByCCI_CPI(commerceChannelId, commercePriceListId);
 
 		if (commercePriceListChannelRel == null) {
 			StringBundler sb = new StringBundler(6);
@@ -1801,10 +1849,10 @@ public class CommercePriceListChannelRelPersistenceImpl
 	 * @return the matching commerce price list channel rel, or <code>null</code> if a matching commerce price list channel rel could not be found
 	 */
 	@Override
-	public CommercePriceListChannelRel fetchByC_C(
+	public CommercePriceListChannelRel fetchByCCI_CPI(
 		long commerceChannelId, long commercePriceListId) {
 
-		return fetchByC_C(commerceChannelId, commercePriceListId, true);
+		return fetchByCCI_CPI(commerceChannelId, commercePriceListId, true);
 	}
 
 	/**
@@ -1816,20 +1864,24 @@ public class CommercePriceListChannelRelPersistenceImpl
 	 * @return the matching commerce price list channel rel, or <code>null</code> if a matching commerce price list channel rel could not be found
 	 */
 	@Override
-	public CommercePriceListChannelRel fetchByC_C(
+	public CommercePriceListChannelRel fetchByCCI_CPI(
 		long commerceChannelId, long commercePriceListId,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {commerceChannelId, commercePriceListId};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
-			result = finderCache.getResult(_finderPathFetchByC_C, finderArgs);
+		if (useFinderCache && productionMode) {
+			result = finderCache.getResult(
+				_finderPathFetchByCCI_CPI, finderArgs);
 		}
 
 		if (result instanceof CommercePriceListChannelRel) {
@@ -1850,9 +1902,9 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 			sb.append(_SQL_SELECT_COMMERCEPRICELISTCHANNELREL_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_COMMERCECHANNELID_2);
+			sb.append(_FINDER_COLUMN_CCI_CPI_COMMERCECHANNELID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_COMMERCEPRICELISTID_2);
+			sb.append(_FINDER_COLUMN_CCI_CPI_COMMERCEPRICELISTID_2);
 
 			String sql = sb.toString();
 
@@ -1872,9 +1924,9 @@ public class CommercePriceListChannelRelPersistenceImpl
 				List<CommercePriceListChannelRel> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
-							_finderPathFetchByC_C, finderArgs, list);
+							_finderPathFetchByCCI_CPI, finderArgs, list);
 					}
 				}
 				else {
@@ -1910,11 +1962,11 @@ public class CommercePriceListChannelRelPersistenceImpl
 	 * @return the commerce price list channel rel that was removed
 	 */
 	@Override
-	public CommercePriceListChannelRel removeByC_C(
+	public CommercePriceListChannelRel removeByCCI_CPI(
 			long commerceChannelId, long commercePriceListId)
 		throws NoSuchPriceListChannelRelException {
 
-		CommercePriceListChannelRel commercePriceListChannelRel = findByC_C(
+		CommercePriceListChannelRel commercePriceListChannelRel = findByCCI_CPI(
 			commerceChannelId, commercePriceListId);
 
 		return remove(commercePriceListChannelRel);
@@ -1928,23 +1980,33 @@ public class CommercePriceListChannelRelPersistenceImpl
 	 * @return the number of matching commerce price list channel rels
 	 */
 	@Override
-	public int countByC_C(long commerceChannelId, long commercePriceListId) {
-		FinderPath finderPath = _finderPathCountByC_C;
+	public int countByCCI_CPI(
+		long commerceChannelId, long commercePriceListId) {
 
-		Object[] finderArgs = new Object[] {
-			commerceChannelId, commercePriceListId
-		};
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByCCI_CPI;
+
+			finderArgs = new Object[] {commerceChannelId, commercePriceListId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
 
 			sb.append(_SQL_COUNT_COMMERCEPRICELISTCHANNELREL_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_COMMERCECHANNELID_2);
+			sb.append(_FINDER_COLUMN_CCI_CPI_COMMERCECHANNELID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_COMMERCEPRICELISTID_2);
+			sb.append(_FINDER_COLUMN_CCI_CPI_COMMERCEPRICELISTID_2);
 
 			String sql = sb.toString();
 
@@ -1963,7 +2025,9 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -1976,10 +2040,10 @@ public class CommercePriceListChannelRelPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_C_C_COMMERCECHANNELID_2 =
+	private static final String _FINDER_COLUMN_CCI_CPI_COMMERCECHANNELID_2 =
 		"commercePriceListChannelRel.commerceChannelId = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_COMMERCEPRICELISTID_2 =
+	private static final String _FINDER_COLUMN_CCI_CPI_COMMERCEPRICELISTID_2 =
 		"commercePriceListChannelRel.commercePriceListId = ?";
 
 	public CommercePriceListChannelRelPersistenceImpl() {
@@ -2007,19 +2071,25 @@ public class CommercePriceListChannelRelPersistenceImpl
 	public void cacheResult(
 		CommercePriceListChannelRel commercePriceListChannelRel) {
 
+		if (commercePriceListChannelRel.getCtCollectionId() != 0) {
+			return;
+		}
+
 		entityCache.putResult(
 			CommercePriceListChannelRelImpl.class,
 			commercePriceListChannelRel.getPrimaryKey(),
 			commercePriceListChannelRel);
 
 		finderCache.putResult(
-			_finderPathFetchByC_C,
+			_finderPathFetchByCCI_CPI,
 			new Object[] {
 				commercePriceListChannelRel.getCommerceChannelId(),
 				commercePriceListChannelRel.getCommercePriceListId()
 			},
 			commercePriceListChannelRel);
 	}
+
+	private int _valueObjectFinderCacheListThreshold;
 
 	/**
 	 * Caches the commerce price list channel rels in the entity cache if it is enabled.
@@ -2030,8 +2100,20 @@ public class CommercePriceListChannelRelPersistenceImpl
 	public void cacheResult(
 		List<CommercePriceListChannelRel> commercePriceListChannelRels) {
 
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (commercePriceListChannelRels.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (CommercePriceListChannelRel commercePriceListChannelRel :
 				commercePriceListChannelRels) {
+
+			if (commercePriceListChannelRel.getCtCollectionId() != 0) {
+				continue;
+			}
 
 			if (entityCache.getResult(
 					CommercePriceListChannelRelImpl.class,
@@ -2103,9 +2185,10 @@ public class CommercePriceListChannelRelPersistenceImpl
 			commercePriceListChannelRelModelImpl.getCommercePriceListId()
 		};
 
-		finderCache.putResult(_finderPathCountByC_C, args, Long.valueOf(1));
+		finderCache.putResult(_finderPathCountByCCI_CPI, args, Long.valueOf(1));
 		finderCache.putResult(
-			_finderPathFetchByC_C, args, commercePriceListChannelRelModelImpl);
+			_finderPathFetchByCCI_CPI, args,
+			commercePriceListChannelRelModelImpl);
 	}
 
 	/**
@@ -2125,7 +2208,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 		commercePriceListChannelRel.setPrimaryKey(
 			CommercePriceListChannelRelId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		commercePriceListChannelRel.setUuid(uuid);
 
@@ -2208,7 +2291,9 @@ public class CommercePriceListChannelRelPersistenceImpl
 						commercePriceListChannelRel.getPrimaryKeyObj());
 			}
 
-			if (commercePriceListChannelRel != null) {
+			if ((commercePriceListChannelRel != null) &&
+				ctPersistenceHelper.isRemove(commercePriceListChannelRel)) {
+
 				session.delete(commercePriceListChannelRel);
 			}
 		}
@@ -2259,7 +2344,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 					commercePriceListChannelRel;
 
 		if (Validator.isNull(commercePriceListChannelRel.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			commercePriceListChannelRel.setUuid(uuid);
 		}
@@ -2267,25 +2352,25 @@ public class CommercePriceListChannelRelPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (commercePriceListChannelRel.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				commercePriceListChannelRel.setCreateDate(now);
+				commercePriceListChannelRel.setCreateDate(date);
 			}
 			else {
 				commercePriceListChannelRel.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!commercePriceListChannelRelModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				commercePriceListChannelRel.setModifiedDate(now);
+				commercePriceListChannelRel.setModifiedDate(date);
 			}
 			else {
 				commercePriceListChannelRel.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -2294,7 +2379,13 @@ public class CommercePriceListChannelRelPersistenceImpl
 		try {
 			session = openSession();
 
-			if (isNew) {
+			if (ctPersistenceHelper.isInsert(commercePriceListChannelRel)) {
+				if (!isNew) {
+					session.evict(
+						CommercePriceListChannelRelImpl.class,
+						commercePriceListChannelRel.getPrimaryKeyObj());
+				}
+
 				session.save(commercePriceListChannelRel);
 			}
 			else {
@@ -2308,6 +2399,16 @@ public class CommercePriceListChannelRelPersistenceImpl
 		}
 		finally {
 			closeSession(session);
+		}
+
+		if (commercePriceListChannelRel.getCtCollectionId() != 0) {
+			if (isNew) {
+				commercePriceListChannelRel.setNew(false);
+			}
+
+			commercePriceListChannelRel.resetOriginalValues();
+
+			return commercePriceListChannelRel;
 		}
 
 		entityCache.putResult(
@@ -2369,6 +2470,47 @@ public class CommercePriceListChannelRelPersistenceImpl
 	/**
 	 * Returns the commerce price list channel rel with the primary key or returns <code>null</code> if it could not be found.
 	 *
+	 * @param primaryKey the primary key of the commerce price list channel rel
+	 * @return the commerce price list channel rel, or <code>null</code> if a commerce price list channel rel with the primary key could not be found
+	 */
+	@Override
+	public CommercePriceListChannelRel fetchByPrimaryKey(
+		Serializable primaryKey) {
+
+		if (ctPersistenceHelper.isProductionMode(
+				CommercePriceListChannelRel.class)) {
+
+			return super.fetchByPrimaryKey(primaryKey);
+		}
+
+		CommercePriceListChannelRel commercePriceListChannelRel = null;
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			commercePriceListChannelRel =
+				(CommercePriceListChannelRel)session.get(
+					CommercePriceListChannelRelImpl.class, primaryKey);
+
+			if (commercePriceListChannelRel != null) {
+				cacheResult(commercePriceListChannelRel);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return commercePriceListChannelRel;
+	}
+
+	/**
+	 * Returns the commerce price list channel rel with the primary key or returns <code>null</code> if it could not be found.
+	 *
 	 * @param CommercePriceListChannelRelId the primary key of the commerce price list channel rel
 	 * @return the commerce price list channel rel, or <code>null</code> if a commerce price list channel rel with the primary key could not be found
 	 */
@@ -2377,6 +2519,104 @@ public class CommercePriceListChannelRelPersistenceImpl
 		long CommercePriceListChannelRelId) {
 
 		return fetchByPrimaryKey((Serializable)CommercePriceListChannelRelId);
+	}
+
+	@Override
+	public Map<Serializable, CommercePriceListChannelRel> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+
+		if (ctPersistenceHelper.isProductionMode(
+				CommercePriceListChannelRel.class)) {
+
+			return super.fetchByPrimaryKeys(primaryKeys);
+		}
+
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, CommercePriceListChannelRel> map =
+			new HashMap<Serializable, CommercePriceListChannelRel>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			CommercePriceListChannelRel commercePriceListChannelRel =
+				fetchByPrimaryKey(primaryKey);
+
+			if (commercePriceListChannelRel != null) {
+				map.put(primaryKey, commercePriceListChannelRel);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
+			}
+
+			return map;
+		}
+
+		StringBundler sb = new StringBundler((primaryKeys.size() * 2) + 1);
+
+		sb.append(getSelectSQL());
+		sb.append(" WHERE ");
+		sb.append(getPKDBName());
+		sb.append(" IN (");
+
+		for (Serializable primaryKey : primaryKeys) {
+			sb.append((long)primaryKey);
+
+			sb.append(",");
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(")");
+
+		String sql = sb.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query query = session.createQuery(sql);
+
+			for (CommercePriceListChannelRel commercePriceListChannelRel :
+					(List<CommercePriceListChannelRel>)query.list()) {
+
+				map.put(
+					commercePriceListChannelRel.getPrimaryKeyObj(),
+					commercePriceListChannelRel);
+
+				cacheResult(commercePriceListChannelRel);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
@@ -2444,25 +2684,28 @@ public class CommercePriceListChannelRelPersistenceImpl
 		OrderByComparator<CommercePriceListChannelRel> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindAll;
 				finderArgs = FINDER_ARGS_EMPTY;
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<CommercePriceListChannelRel> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CommercePriceListChannelRel>)finderCache.getResult(
 				finderPath, finderArgs);
 		}
@@ -2501,7 +2744,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -2536,8 +2779,15 @@ public class CommercePriceListChannelRelPersistenceImpl
 	 */
 	@Override
 	public int countAll() {
-		Long count = (Long)finderCache.getResult(
-			_finderPathCountAll, FINDER_ARGS_EMPTY);
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CommercePriceListChannelRel.class);
+
+		Long count = null;
+
+		if (productionMode) {
+			count = (Long)finderCache.getResult(
+				_finderPathCountAll, FINDER_ARGS_EMPTY);
+		}
 
 		if (count == null) {
 			Session session = null;
@@ -2550,8 +2800,10 @@ public class CommercePriceListChannelRelPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				if (productionMode) {
+					finderCache.putResult(
+						_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -2585,23 +2837,79 @@ public class CommercePriceListChannelRelPersistenceImpl
 	}
 
 	@Override
-	protected Map<String, Integer> getTableColumnsMap() {
+	public Set<String> getCTColumnNames(
+		CTColumnResolutionType ctColumnResolutionType) {
+
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
+	}
+
+	@Override
+	public List<String> getMappingTableNames() {
+		return _mappingTableNames;
+	}
+
+	@Override
+	public Map<String, Integer> getTableColumnsMap() {
 		return CommercePriceListChannelRelModelImpl.TABLE_COLUMNS_MAP;
+	}
+
+	@Override
+	public String getTableName() {
+		return "CommercePriceListChannelRel";
+	}
+
+	@Override
+	public List<String[]> getUniqueIndexColumnNames() {
+		return _uniqueIndexColumnNames;
+	}
+
+	private static final Map<CTColumnResolutionType, Set<String>>
+		_ctColumnNamesMap = new EnumMap<CTColumnResolutionType, Set<String>>(
+			CTColumnResolutionType.class);
+	private static final List<String> _mappingTableNames =
+		new ArrayList<String>();
+	private static final List<String[]> _uniqueIndexColumnNames =
+		new ArrayList<String[]>();
+
+	static {
+		Set<String> ctControlColumnNames = new HashSet<String>();
+		Set<String> ctIgnoreColumnNames = new HashSet<String>();
+		Set<String> ctStrictColumnNames = new HashSet<String>();
+
+		ctControlColumnNames.add("mvccVersion");
+		ctControlColumnNames.add("ctCollectionId");
+		ctStrictColumnNames.add("uuid_");
+		ctStrictColumnNames.add("companyId");
+		ctStrictColumnNames.add("userId");
+		ctStrictColumnNames.add("userName");
+		ctStrictColumnNames.add("createDate");
+		ctIgnoreColumnNames.add("modifiedDate");
+		ctStrictColumnNames.add("commerceChannelId");
+		ctStrictColumnNames.add("commercePriceListId");
+		ctStrictColumnNames.add("order_");
+		ctStrictColumnNames.add("lastPublishDate");
+
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.CONTROL, ctControlColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.PK,
+			Collections.singleton("CommercePriceListChannelRelId"));
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.STRICT, ctStrictColumnNames);
+
+		_uniqueIndexColumnNames.add(
+			new String[] {"commerceChannelId", "commercePriceListId"});
 	}
 
 	/**
 	 * Initializes the commerce price list channel rel persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommercePriceListChannelRelPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new CommercePriceListChannelRelModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -2670,25 +2978,46 @@ public class CommercePriceListChannelRelPersistenceImpl
 			"countByCommercePriceListId", new String[] {Long.class.getName()},
 			new String[] {"commercePriceListId"}, false);
 
-		_finderPathFetchByC_C = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByC_C",
+		_finderPathFetchByCCI_CPI = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByCCI_CPI",
 			new String[] {Long.class.getName(), Long.class.getName()},
 			new String[] {"commerceChannelId", "commercePriceListId"}, true);
 
-		_finderPathCountByC_C = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_C",
+		_finderPathCountByCCI_CPI = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCCI_CPI",
 			new String[] {Long.class.getName(), Long.class.getName()},
 			new String[] {"commerceChannelId", "commercePriceListId"}, false);
+
+		_setCommercePriceListChannelRelUtilPersistence(this);
 	}
 
 	public void destroy() {
+		_setCommercePriceListChannelRelUtilPersistence(null);
+
 		entityCache.removeCache(
 			CommercePriceListChannelRelImpl.class.getName());
-
-		_argumentsResolverServiceRegistration.unregister();
 	}
 
-	private BundleContext _bundleContext;
+	private void _setCommercePriceListChannelRelUtilPersistence(
+		CommercePriceListChannelRelPersistence
+			commercePriceListChannelRelPersistence) {
+
+		try {
+			Field field =
+				CommercePriceListChannelRelUtil.class.getDeclaredField(
+					"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, commercePriceListChannelRelPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
+
+	@ServiceReference(type = CTPersistenceHelper.class)
+	protected CTPersistenceHelper ctPersistenceHelper;
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -2728,121 +3057,7 @@ public class CommercePriceListChannelRelPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class CommercePriceListChannelRelModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			CommercePriceListChannelRelModelImpl
-				commercePriceListChannelRelModelImpl =
-					(CommercePriceListChannelRelModelImpl)baseModel;
-
-			long columnBitmask =
-				commercePriceListChannelRelModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					commercePriceListChannelRelModelImpl, columnNames,
-					original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						commercePriceListChannelRelModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					commercePriceListChannelRelModelImpl, columnNames,
-					original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return CommercePriceListChannelRelImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return CommercePriceListChannelRelTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			CommercePriceListChannelRelModelImpl
-				commercePriceListChannelRelModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						commercePriceListChannelRelModelImpl.
-							getColumnOriginalValue(columnName);
-				}
-				else {
-					arguments[i] =
-						commercePriceListChannelRelModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |=
-				CommercePriceListChannelRelModelImpl.getColumnBitmask("order_");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

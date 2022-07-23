@@ -20,7 +20,7 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -52,7 +52,7 @@ definition {
 		Tag.addCP(tagName = "americas");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -68,7 +68,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Drools Page");
+		PagesAdmin.addPage(pageName = "Drools Page");
 
 		Navigator.gotoPage(pageName = "Drools Page");
 
@@ -77,6 +77,8 @@ definition {
 		Drools.viewContentPG(
 			droolsContent = "Web Content Title",
 			welcomeMessage = "Welcome Test Test!");
+
+		takeScreenshot();
 	}
 
 }

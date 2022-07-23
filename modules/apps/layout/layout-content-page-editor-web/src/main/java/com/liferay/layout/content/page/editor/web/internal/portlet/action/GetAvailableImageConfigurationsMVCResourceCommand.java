@@ -28,7 +28,7 @@ import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
-import com.liferay.portal.kernel.image.ImageToolUtil;
+import com.liferay.portal.kernel.image.ImageTool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -51,8 +51,6 @@ import java.util.Optional;
 
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -80,19 +78,23 @@ public class GetAvailableImageConfigurationsMVCResourceCommand
 
 		FileEntry fileEntry = _dlAppService.getFileEntry(fileEntryId);
 
-		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
-			resourceRequest);
-		Image image = ImageToolUtil.getImage(fileEntry.getContentStream());
-
 		JSONArray jsonArray = JSONUtil.put(
 			JSONUtil.put(
-				"label", LanguageUtil.get(httpServletRequest, "auto")
+				"label",
+				LanguageUtil.get(
+					_portal.getHttpServletRequest(resourceRequest), "auto")
 			).put(
 				"size", fileEntry.getSize() / 1000
 			).put(
 				"value", "auto"
 			).put(
-				"width", image.getWidth()
+				"width",
+				() -> {
+					Image image = _imageTool.getImage(
+						fileEntry.getContentStream());
+
+					return image.getWidth();
+				}
 			));
 
 		Map<String, String> mediaQueriesMap = new HashMap<>();
@@ -180,6 +182,9 @@ public class GetAvailableImageConfigurationsMVCResourceCommand
 
 	@Reference
 	private DLAppService _dlAppService;
+
+	@Reference
+	private ImageTool _imageTool;
 
 	@Reference
 	private MediaQueryProvider _mediaQueryProvider;

@@ -124,6 +124,11 @@ public class PortletPreferenceValueWrapper
 		}
 	}
 
+	@Override
+	public PortletPreferenceValue cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this portlet preference value.
 	 *

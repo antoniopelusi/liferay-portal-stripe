@@ -404,4 +404,7 @@ public interface KaleoTaskFormModel
 	 */
 	public void setPriority(int priority);
 
+	@Override
+	public KaleoTaskForm cloneWithOriginalValues();
+
 }

@@ -54,17 +54,8 @@ public class DateRangeTermFilter extends RangeTermFilter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{(");
-		sb.append(super.toString());
-		sb.append("), ");
-		sb.append(_dateFormat);
-		sb.append(", ");
-		sb.append(_timeZone);
-		sb.append(")}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(", super.toString(), "), ", _dateFormat, ", ", _timeZone, ")}");
 	}
 
 	private String _dateFormat = "yyyyMMddHHmmss";

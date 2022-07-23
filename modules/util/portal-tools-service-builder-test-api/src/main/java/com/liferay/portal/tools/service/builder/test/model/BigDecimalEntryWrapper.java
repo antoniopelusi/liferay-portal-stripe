@@ -72,6 +72,11 @@ public class BigDecimalEntryWrapper
 		}
 	}
 
+	@Override
+	public BigDecimalEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the big decimal entry ID of this big decimal entry.
 	 *

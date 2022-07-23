@@ -23,18 +23,23 @@ import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.RolePermissions;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.UserGroupLocalService;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.ResourcePermissionTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserGroupTestUtil;
@@ -74,6 +79,54 @@ public class GroupFinderTest {
 			TestPropsValues.getUserId());
 
 		Assert.assertFalse(groups.toString(), groups.isEmpty());
+	}
+
+	@Test
+	public void testFindByC_C_N_DJoinByActionId() throws Exception {
+		_user = UserTestUtil.addUser();
+
+		Group withActionIdGroup = GroupTestUtil.addGroup();
+
+		_groups.addFirst(withActionIdGroup);
+
+		Group withoutActionIdGroup = GroupTestUtil.addGroup();
+
+		_groups.addFirst(withoutActionIdGroup);
+
+		_userLocalService.addGroupUser(withActionIdGroup.getGroupId(), _user);
+
+		List<ResourceAction> resourceActions =
+			_resourceActionLocalService.getResourceActions(
+				Group.class.getName());
+
+		_arbitraryResourceAction = resourceActions.get(0);
+
+		_role = RoleTestUtil.addRole(RoleConstants.TYPE_SITE);
+
+		_userGroupRoleLocalService.addUserGroupRoles(
+			_user.getUserId(), withActionIdGroup.getGroupId(),
+			new long[] {_role.getRoleId()});
+
+		_resourcePermission = ResourcePermissionTestUtil.addResourcePermission(
+			_arbitraryResourceAction.getBitwiseValue(),
+			_arbitraryResourceAction.getName(),
+			String.valueOf(withActionIdGroup.getGroupId()), _role.getRoleId(),
+			ResourceConstants.SCOPE_GROUP);
+
+		List<Group> groups = _groupFinder.findByC_C_PG_N_D(
+			TestPropsValues.getCompanyId(),
+			new long[] {_portal.getClassNameId(Group.class)},
+			GroupConstants.ANY_PARENT_GROUP_ID, new String[] {null},
+			new String[] {null},
+			LinkedHashMapBuilder.<String, Object>put(
+				"actionId", _arbitraryResourceAction.getActionId()
+			).put(
+				"userId", _user.getUserId()
+			).build(),
+			true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+		Assert.assertTrue(groups.contains(withActionIdGroup));
+		Assert.assertFalse(groups.contains(withoutActionIdGroup));
 	}
 
 	@Test
@@ -208,19 +261,19 @@ public class GroupFinderTest {
 
 		_groups.addFirst(parentGroup);
 
-		LayoutTestUtil.addLayout(parentGroup, false);
+		LayoutTestUtil.addTypePortletLayout(parentGroup, false);
 
 		Group childGroup1 = GroupTestUtil.addGroup(parentGroup.getGroupId());
 
 		_groups.addFirst(childGroup1);
 
-		LayoutTestUtil.addLayout(childGroup1, false);
+		LayoutTestUtil.addTypePortletLayout(childGroup1, false);
 
 		Group childGroup2 = GroupTestUtil.addGroup(parentGroup.getGroupId());
 
 		_groups.addFirst(childGroup2);
 
-		LayoutTestUtil.addLayout(childGroup2, true);
+		LayoutTestUtil.addTypePortletLayout(childGroup2, true);
 
 		groups = _findByLayouts(GroupConstants.DEFAULT_PARENT_GROUP_ID);
 
@@ -246,19 +299,19 @@ public class GroupFinderTest {
 
 		_groups.addFirst(parentGroup);
 
-		LayoutTestUtil.addLayout(parentGroup, false);
+		LayoutTestUtil.addTypePortletLayout(parentGroup, false);
 
 		Group childGroup1 = GroupTestUtil.addGroup(parentGroup.getGroupId());
 
 		_groups.addFirst(childGroup1);
 
-		LayoutTestUtil.addLayout(childGroup1, false);
+		LayoutTestUtil.addTypePortletLayout(childGroup1, false);
 
 		Group childGroup2 = GroupTestUtil.addGroup(parentGroup.getGroupId());
 
 		_groups.addFirst(childGroup2);
 
-		LayoutTestUtil.addLayout(childGroup2, true);
+		LayoutTestUtil.addTypePortletLayout(childGroup2, true);
 
 		_groupLocalService.updateGroup(
 			parentGroup.getGroupId(), parentGroup.getParentGroupId(),
@@ -319,6 +372,9 @@ public class GroupFinderTest {
 	private ResourcePermission _resourcePermission;
 
 	@DeleteAfterTestRun
+	private Role _role;
+
+	@DeleteAfterTestRun
 	private User _user;
 
 	@DeleteAfterTestRun
@@ -326,5 +382,11 @@ public class GroupFinderTest {
 
 	@Inject
 	private UserGroupLocalService _userGroupLocalService;
+
+	@Inject
+	private UserGroupRoleLocalService _userGroupRoleLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

@@ -19,8 +19,10 @@ import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.LocalizedModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedAuditedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.math.BigDecimal;
 
@@ -43,8 +45,9 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CPDefinitionOptionValueRelModel
-	extends BaseModel<CPDefinitionOptionValueRel>, GroupedModel, LocalizedModel,
-			ShardedModel, StagedAuditedModel {
+	extends BaseModel<CPDefinitionOptionValueRel>,
+			CTModel<CPDefinitionOptionValueRel>, GroupedModel, LocalizedModel,
+			MVCCModel, ShardedModel, StagedAuditedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -57,6 +60,7 @@ public interface CPDefinitionOptionValueRelModel
 	 *
 	 * @return the primary key of this cp definition option value rel
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -64,7 +68,40 @@ public interface CPDefinitionOptionValueRelModel
 	 *
 	 * @param primaryKey the primary key of this cp definition option value rel
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this cp definition option value rel.
+	 *
+	 * @return the mvcc version of this cp definition option value rel
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this cp definition option value rel.
+	 *
+	 * @param mvccVersion the mvcc version of this cp definition option value rel
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this cp definition option value rel.
+	 *
+	 * @return the ct collection ID of this cp definition option value rel
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this cp definition option value rel.
+	 *
+	 * @param ctCollectionId the ct collection ID of this cp definition option value rel
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the uuid of this cp definition option value rel.
@@ -443,5 +480,8 @@ public interface CPDefinitionOptionValueRelModel
 	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
+
+	@Override
+	public CPDefinitionOptionValueRel cloneWithOriginalValues();
 
 }

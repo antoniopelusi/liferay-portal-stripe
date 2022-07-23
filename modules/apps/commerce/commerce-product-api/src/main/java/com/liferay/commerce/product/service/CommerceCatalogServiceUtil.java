@@ -96,13 +96,12 @@ public class CommerceCatalogServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
-	public static List<CommerceCatalog> searchCommerceCatalogs(
+	public static List<CommerceCatalog> search(
 			long companyId, String keywords, int start, int end,
 			com.liferay.portal.kernel.search.Sort sort)
 		throws PortalException {
 
-		return getService().searchCommerceCatalogs(
-			companyId, keywords, start, end, sort);
+		return getService().search(companyId, keywords, start, end, sort);
 	}
 
 	public static int searchCommerceCatalogsCount(

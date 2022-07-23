@@ -322,22 +322,6 @@ public class SourceFormatterDefaultsPlugin
 				Boolean.parseBoolean(showDebugInformation));
 		}
 
-		String showDocumentation = GradleUtil.getProperty(
-			project, "source.formatter.show.documentation", (String)null);
-
-		if (Validator.isNotNull(showDocumentation)) {
-			formatSourceTask.setShowDocumentation(
-				Boolean.parseBoolean(showDocumentation));
-		}
-
-		String showStatusUpdates = GradleUtil.getProperty(
-			project, "source.formatter.show.status.updates", (String)null);
-
-		if (Validator.isNotNull(showStatusUpdates)) {
-			formatSourceTask.setShowStatusUpdates(
-				Boolean.parseBoolean(showStatusUpdates));
-		}
-
 		String sourceFileNames = GradleUtil.getProperty(
 			project, "source.files", (String)null);
 

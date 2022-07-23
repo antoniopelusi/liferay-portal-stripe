@@ -22,7 +22,8 @@ import java.util.List;
 /**
  * @author Drew Brokke
  */
-public class DummyContainerUADDisplay extends DummyUADDisplay<DummyContainer> {
+public class DummyContainerUADDisplay
+	extends BaseDummyUADDisplay<DummyContainer> {
 
 	public DummyContainerUADDisplay(
 		DummyService<DummyContainer> dummyContainerService) {

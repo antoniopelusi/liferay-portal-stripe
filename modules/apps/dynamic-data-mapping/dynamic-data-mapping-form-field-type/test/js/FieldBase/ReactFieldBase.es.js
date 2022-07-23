@@ -12,9 +12,11 @@
  * details.
  */
 
-import {act, cleanup, render} from '@testing-library/react';
-import {PageProvider} from 'dynamic-data-mapping-form-renderer';
+import {act, fireEvent, render} from '@testing-library/react';
+import {PageProvider} from 'data-engine-js-components-web';
 import React from 'react';
+
+import '@testing-library/jest-dom/extend-expect';
 
 import {FieldBase} from '../../../src/main/resources/META-INF/resources/FieldBase/ReactFieldBase.es';
 
@@ -31,6 +33,11 @@ describe('ReactFieldBase', () => {
 	const originalWarn = console.warn;
 
 	beforeAll(() => {
+		window.themeDisplay = {
+			...window.themeDisplay,
+			getPathThemeImages: () => 'http://localhost:8080',
+		};
+
 		// eslint-disable-next-line no-console
 		console.warn = (...args) => {
 			if (/DataProvider: Trying/.test(args[0])) {
@@ -44,8 +51,6 @@ describe('ReactFieldBase', () => {
 		// eslint-disable-next-line no-console
 		console.warn = originalWarn;
 	});
-
-	afterEach(cleanup);
 
 	beforeEach(() => {
 		jest.useFakeTimers();
@@ -115,6 +120,18 @@ describe('ReactFieldBase', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('renders the FieldBase with tooltip', () => {
+		const {container} = render(
+			<FieldBaseWithProvider spritemap={spritemap} tooltip="Tooltip" />
+		);
+
+		act(() => {
+			jest.runAllTimers();
+		});
+
+		expect(container.querySelector('.ddm-tooltip')).not.toBeNull();
+	});
+
 	it('does not render the label if showLabel is false', () => {
 		const {container} = render(
 			<FieldBaseWithProvider
@@ -178,5 +195,74 @@ describe('ReactFieldBase', () => {
 		});
 
 		expect(container).toMatchSnapshot();
+	});
+
+	it('shows the popover for Format field when hovering over the tooltip icon', async () => {
+		const {container, findByTestId, getByRole, getByText} = render(
+			<FieldBaseWithProvider
+				fieldName="inputMaskFormat"
+				spritemap={spritemap}
+				tooltip="Tooltip Description"
+			/>
+		);
+
+		const tooltipIcon = container.querySelector('.ddm-tooltip');
+
+		fireEvent.mouseOver(tooltipIcon);
+
+		const clayPopover = await findByTestId('clayPopover');
+
+		expect(clayPopover.style).toHaveProperty('maxWidth', '256px');
+
+		expect(getByRole('img')).toHaveAttribute('height', '170');
+		expect(getByRole('img')).toHaveAttribute(
+			'src',
+			'http://localhost:8080/forms/input_mask_format.png'
+		);
+		expect(getByRole('img')).toHaveAttribute('width', '232');
+
+		expect(getByText('input-mask-format')).toBeInTheDocument();
+		expect(getByText('Tooltip Description')).toBeInTheDocument();
+	});
+
+	describe('Hide Field', () => {
+		it('renders the FieldBase with hideField markup', () => {
+			const {getByText} = render(
+				<FieldBaseWithProvider
+					hideField
+					label="Text"
+					spritemap={spritemap}
+				/>
+			);
+
+			expect(getByText('hidden')).toBeInTheDocument();
+			expect(getByText('Text')).toBeInTheDocument();
+
+			expect(getByText('hidden').parentNode).toHaveAttribute(
+				'class',
+				'label ml-1 label-secondary'
+			);
+			expect(getByText('Text')).toHaveAttribute(
+				'class',
+				'text-secondary'
+			);
+		});
+
+		it('renders the FieldBase with hideField markup when the label is empty', () => {
+			const {getByText} = render(
+				<FieldBaseWithProvider
+					hideField
+					label=""
+					spritemap={spritemap}
+				/>
+			);
+
+			expect(getByText('hidden')).toBeInTheDocument();
+
+			expect(getByText('hidden').parentNode).toHaveAttribute(
+				'class',
+				'label ml-1 label-secondary'
+			);
+		});
 	});
 });

@@ -34,8 +34,8 @@ import org.osgi.service.component.annotations.Component;
 public class SessionDestroyAction extends SessionAction {
 
 	@Override
-	public void run(HttpSession session) {
-		Long userId = (Long)session.getAttribute(WebKeys.USER_ID);
+	public void run(HttpSession httpSession) {
+		Long userId = (Long)httpSession.getAttribute(WebKeys.USER_ID);
 
 		JabberUtil.disconnect(userId);
 	}

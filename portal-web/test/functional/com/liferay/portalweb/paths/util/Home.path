@@ -2,11 +2,13 @@
 <head>
 <title>Home</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Home</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>API_AXIS_URL</td>
@@ -119,11 +121,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>EMBEDDED_SITE_LIFERAY_BANNER_LOGO</td>
-	<td>//div[@class='banner-content']//img[@alt='Liferay']</td>
-	<td></td>
-</tr>
-<tr>
 	<td>STATUS_MESSAGE</td>
 	<td>//div[contains(.,'This ${key_resource} is inactive. Please contact the administrator.')]</td>
 	<td></td>
@@ -218,7 +215,7 @@
 <!--PAGE-->
 <tr>
 	<td>PAGE</td>
-	<td>//div[contains(@id,'navbar')]/ul/li/a[contains(.,'${key_pageName}')]</td>
+	<td>//div[contains(@id,'navbar')]/ul/li/a[normalize-space()='${key_pageName}']</td>
 	<td>Page</td>
 </tr>
 <tr>
@@ -228,7 +225,7 @@
 </tr>
 <tr>
 	<td>PAGE_ACTIVE</td>
-	<td>//div[contains(@id,'navbar')]/ul//*[contains(@class,'selected active')][contains(.,'${key_pageName}')]</td>
+	<td>//div[contains(@id,'navbar')]/ul//*[contains(@class,'active')][.//*[normalize-space(text())='${key_pageName}']]</td>
 	<td>Page</td>
 </tr>
 <tr>
@@ -369,43 +366,13 @@
 </tr>
 <!--PAGE_COLUMN-->
 <tr>
-	<td>PAGE_COLUMN_1</td>
-	<td>//div[@id='layout-column_column-1']</td>
+	<td>PAGE_COLUMN</td>
+	<td>//div[contains(@id,'main-content')]//div[contains(@class,'portlet-dropzone') and contains(@id,'layout-column_column-${key_pageColumnId}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>PAGE_COLUMN_2</td>
-	<td>//div[@id='layout-column_column-2']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_3</td>
-	<td>//div[@id='layout-column_column-3']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_1_LAYOUT_1_COLUMN</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'col-md-12')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_1_LAYOUT_2_COLUMNS_30_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'col-md-4')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_2_LAYOUT_2_COLUMNS_70_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-2' and contains(@class,'col-md-8')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_1_LAYOUT_2_COLUMNS_50_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'col-md-6')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_2_LAYOUT_2_COLUMNS_50_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-2' and contains(@class,'col-md-6')]</td>
+	<td>PAGE_COLUMN_LAYOUT</td>
+	<td>//div[contains(@id,'main-content')]//div[contains(@class,'col-md-${key_span}') and contains(@id,'column-${key_pageColumnId}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -415,39 +382,8 @@
 </tr>
 <!--PAGE_COLUMN_PORTLET-->
 <tr>
-	<td>PAGE_COLUMN_PORTLET_COLUMN_1_PORTLET_TITLE</td>
-	<td>//div[@id='column-1']//h2[contains(.,'${key_portletTitleName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_PORTLET_COLUMN_2_PORTLET_TITLE</td>
-	<td>//div[@id='column-2']//h2[contains(.,'${key_portletTitleName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_PORTLET_COLUMN_3_PORTLET_TITLE</td>
-	<td>//div[@id='column-3']//h2[contains(.,'${key_portletTitleName}')]</td>
-	//div[@id='layout-column_column-3']
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_PORTLET_COLUMN_1_PORTLET_HEADER</td>
-	<td>//div[@id='column-1']//header[contains(.,'${key_portletTitleName}')]/div/span</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_PORTLET_COLUMN_2_PORTLET_HEADER</td>
-	<td>//div[@id='column-2']//header[contains(.,'${key_portletTitleName}')]/div/span</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_COLUMN_PORTLET_COLUMN_3_PORTLET_HEADER</td>
-	<td>//div[@id='column-3']//header[contains(.,'${key_portletTitleName}')]/div/span</td>
-	<td></td>
-</tr>
-<tr>
 	<td>PAGE_COLUMN_PORTLET_HEADER_ELLIPSIS</td>
-	<td>//div[@id='column-${key_columnNumber}']//header[@class='portlet-topper' and contains(.,'${key_portletName}')]//div[contains(@class,'portlet-options')]/a</td>
+	<td>//div[@id='column-${key_columnNumber}']//header[contains(@class,'portlet-topper') and contains(.,'${key_portletName}')]//div[contains(@class,'portlet-options')]/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -458,48 +394,7 @@
 <!--PAGE_CUSTOMIZATION-->
 <tr>
 	<td>PAGE_CUSTOMIZATION_MESSAGE_INFO</td>
-	<td>//li[contains(@class,'control-menu') and contains(@class,'nav-item')]/span[contains(.,'You can customize this page')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_CUSTOMIZATION_VIEW_DEFAULT_PAGE</td>
-	<td>//li/a[contains(.,'View Page without my customizations')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_CUSTOMIZATION_RESET_MY_CUSTOMIZATIONS</td>
-	<td>//li/a[contains(.,'Reset My Customizations')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PAGE_CUSTOMIZATION_VIEW_MY_CUSTOMIZED_PAGE</td>
-	<td>//li/a[contains(.,'View My Customized')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<!--PORTLET_COLUMN-->
-<tr>
-	<td>PORTLET_COLUMN_1</td>
-	<td>//div[contains(@class,'col-md-6 portlet-column portlet-column-first')]/div</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PORTLET_COLUMN_2</td>
-	<td>//div[contains(@class,'col-md-6 portlet-column portlet-column-last')]/div</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PORTLET_COLUMN_1_NESTED_PORTLET_TITLE</td>
-	<td>//section[contains(@id,'NestedPortlets')]//div[contains(@id,'column-1')]//h2[contains(@class,'portlet-title') and contains(.,'${key_portletTitleName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PORTLET_COLUMN_2_NESTED_PORTLET_TITLE</td>
-	<td>//section[contains(@id,'NestedPortlets')]//div[contains(@id,'column-2')]//h2[contains(@class,'portlet-title') and contains(.,'${key_portletTitleName}')]</td>
+	<td>//div[contains(@id,'customizationBar')]//li[contains(@class,'control-menu')]/span[@class='text-info']</td>
 	<td></td>
 </tr>
 <tr>
@@ -535,21 +430,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PORTLET_1</td>
-	<td>xpath=(//section)[1]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PORTLET_2</td>
-	<td>xpath=(//section)[2]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PORTLET_3</td>
-	<td>xpath=(//section)[3]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>PORTLET_BORDERLESS</td>
 	<td>//div[contains(@class,'portlet-borderless')]/span[contains(@id,'${key_portletName}')]</td>
 	<td></td>
@@ -571,7 +451,7 @@
 </tr>
 <tr>
 	<td>PORTLET_HEADER</td>
-	<td>//section[contains(@id, '${key_portletTitleName}')]//header[@class='portlet-topper']</td>
+	<td>//section[contains(@id, '${key_portletTitleName}')]//header[contains(@class,'portlet-topper')]</td>
 	<td></td>
 </tr>
 <tr>

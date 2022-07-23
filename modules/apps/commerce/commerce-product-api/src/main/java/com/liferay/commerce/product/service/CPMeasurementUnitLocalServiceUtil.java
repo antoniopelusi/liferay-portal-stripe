@@ -146,6 +146,10 @@ public class CPMeasurementUnitLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -229,6 +233,13 @@ public class CPMeasurementUnitLocalServiceUtil {
 		return getService().fetchCPMeasurementUnit(CPMeasurementUnitId);
 	}
 
+	public static CPMeasurementUnit fetchCPMeasurementUnit(
+			long companyId, String key)
+		throws PortalException {
+
+		return getService().fetchCPMeasurementUnit(companyId, key);
+	}
+
 	/**
 	 * Returns the cp measurement unit matching the UUID and group.
 	 *
@@ -267,6 +278,13 @@ public class CPMeasurementUnitLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getCPMeasurementUnit(CPMeasurementUnitId);
+	}
+
+	public static CPMeasurementUnit getCPMeasurementUnit(
+			long companyId, String key)
+		throws PortalException {
+
+		return getService().getCPMeasurementUnit(companyId, key);
 	}
 
 	/**
@@ -324,9 +342,9 @@ public class CPMeasurementUnitLocalServiceUtil {
 	}
 
 	public static List<CPMeasurementUnit> getCPMeasurementUnits(
-		long companyId, String[] keys, int type) {
+		long companyId, String[] keys) {
 
-		return getService().getCPMeasurementUnits(companyId, keys, type);
+		return getService().getCPMeasurementUnits(companyId, keys);
 	}
 
 	/**

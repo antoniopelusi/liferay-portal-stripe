@@ -1,0 +1,16 @@
+[
+	{
+		"ddmStructureKey": "TEST DDM STRUCTURE NAME",
+		"title": "Test Asset List Entry 1",
+		"unicodeProperties": {
+			"classNameIds": "com.liferay.journal.model.JournalArticle"
+		}
+	},
+	{
+		"ddmStructureKey": "TEST DDM STRUCTURE NAME",
+		"title": "Test Asset List Entry 2",
+		"unicodeProperties": {
+			"classNameIds": "com.liferay.journal.model.JournalArticle"
+		}
+	}
+]

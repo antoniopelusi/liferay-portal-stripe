@@ -84,18 +84,11 @@ public class HTMLImageAttachmentElementHandler
 	private static final Pattern _tempAttachmentPattern;
 
 	static {
-		StringBundler sb = new StringBundler(8);
-
-		sb.append("<\\s*?img");
-		sb.append(_ATTRIBUTE_LIST_REGEXP);
-		sb.append(EditorConstants.ATTRIBUTE_DATA_IMAGE_ID);
-		sb.append("\\s*?=\\s*?\"");
-		sb.append("([^\"]*)");
-		sb.append("\"");
-		sb.append(_ATTRIBUTE_LIST_REGEXP);
-		sb.append("/>");
-
-		_tempAttachmentPattern = Pattern.compile(sb.toString());
+		_tempAttachmentPattern = Pattern.compile(
+			StringBundler.concat(
+				"<\\s*?img", _ATTRIBUTE_LIST_REGEXP,
+				EditorConstants.ATTRIBUTE_DATA_IMAGE_ID, "\\s*?=\\s*?\"",
+				"([^\"]*)\"", _ATTRIBUTE_LIST_REGEXP, "/>"));
 	}
 
 	@Reference(

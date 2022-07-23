@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class LVEntryLocalServiceWrapper
 	implements LVEntryLocalService, ServiceWrapper<LVEntryLocalService> {
 
+	public LVEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LVEntryLocalServiceWrapper(LVEntryLocalService lvEntryLocalService) {
 		_lvEntryLocalService = lvEntryLocalService;
 	}
@@ -240,6 +244,13 @@ public class LVEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _lvEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _lvEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

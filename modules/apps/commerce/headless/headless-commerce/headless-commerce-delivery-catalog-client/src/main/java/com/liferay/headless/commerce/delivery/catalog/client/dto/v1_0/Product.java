@@ -306,6 +306,30 @@ public class Product implements Cloneable, Serializable {
 
 	protected String name;
 
+	public ProductConfiguration getProductConfiguration() {
+		return productConfiguration;
+	}
+
+	public void setProductConfiguration(
+		ProductConfiguration productConfiguration) {
+
+		this.productConfiguration = productConfiguration;
+	}
+
+	public void setProductConfiguration(
+		UnsafeSupplier<ProductConfiguration, Exception>
+			productConfigurationUnsafeSupplier) {
+
+		try {
+			productConfiguration = productConfigurationUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected ProductConfiguration productConfiguration;
+
 	public Long getProductId() {
 		return productId;
 	}
@@ -516,6 +540,27 @@ public class Product implements Cloneable, Serializable {
 	}
 
 	protected String urlImage;
+
+	public Map<String, String> getUrls() {
+		return urls;
+	}
+
+	public void setUrls(Map<String, String> urls) {
+		this.urls = urls;
+	}
+
+	public void setUrls(
+		UnsafeSupplier<Map<String, String>, Exception> urlsUnsafeSupplier) {
+
+		try {
+			urls = urlsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, String> urls;
 
 	@Override
 	public Product clone() throws CloneNotSupportedException {

@@ -16,7 +16,6 @@ package com.liferay.portlet.documentlibrary.model.impl;
 
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeModel;
-import com.liferay.document.library.kernel.model.DLFileEntryTypeSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -36,21 +35,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -186,66 +184,6 @@ public class DLFileEntryTypeModelImpl
 	@Deprecated
 	public static final long FILEENTRYTYPEID_COLUMN_BITMASK = 32L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DLFileEntryType toModel(DLFileEntryTypeSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DLFileEntryType model = new DLFileEntryTypeImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setFileEntryTypeId(soapModel.getFileEntryTypeId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setDataDefinitionId(soapModel.getDataDefinitionId());
-		model.setFileEntryTypeKey(soapModel.getFileEntryTypeKey());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setScope(soapModel.getScope());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DLFileEntryType> toModels(
-		DLFileEntryTypeSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DLFileEntryType> models = new ArrayList<DLFileEntryType>(
-			soapModels.length);
-
-		for (DLFileEntryTypeSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final String MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME =
 		"DLFileEntryTypes_DLFolders";
 
@@ -353,34 +291,6 @@ public class DLFileEntryTypeModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DLFileEntryType>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DLFileEntryType.class.getClassLoader(), DLFileEntryType.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DLFileEntryType> constructor =
-				(Constructor<DLFileEntryType>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DLFileEntryType, Object>>
@@ -1169,6 +1079,46 @@ public class DLFileEntryTypeModelImpl
 	}
 
 	@Override
+	public DLFileEntryType cloneWithOriginalValues() {
+		DLFileEntryTypeImpl dlFileEntryTypeImpl = new DLFileEntryTypeImpl();
+
+		dlFileEntryTypeImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		dlFileEntryTypeImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		dlFileEntryTypeImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		dlFileEntryTypeImpl.setFileEntryTypeId(
+			this.<Long>getColumnOriginalValue("fileEntryTypeId"));
+		dlFileEntryTypeImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		dlFileEntryTypeImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		dlFileEntryTypeImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		dlFileEntryTypeImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		dlFileEntryTypeImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		dlFileEntryTypeImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		dlFileEntryTypeImpl.setDataDefinitionId(
+			this.<Long>getColumnOriginalValue("dataDefinitionId"));
+		dlFileEntryTypeImpl.setFileEntryTypeKey(
+			this.<String>getColumnOriginalValue("fileEntryTypeKey"));
+		dlFileEntryTypeImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		dlFileEntryTypeImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		dlFileEntryTypeImpl.setScope(
+			this.<Integer>getColumnOriginalValue("scope"));
+		dlFileEntryTypeImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return dlFileEntryTypeImpl;
+	}
+
+	@Override
 	public int compareTo(DLFileEntryType dlFileEntryType) {
 		long primaryKey = dlFileEntryType.getPrimaryKey();
 
@@ -1335,7 +1285,7 @@ public class DLFileEntryTypeModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1346,9 +1296,26 @@ public class DLFileEntryTypeModelImpl
 			Function<DLFileEntryType, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DLFileEntryType)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DLFileEntryType)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1395,7 +1362,9 @@ public class DLFileEntryTypeModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DLFileEntryType>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DLFileEntryType.class, ModelWrapper.class);
 
 	}
 

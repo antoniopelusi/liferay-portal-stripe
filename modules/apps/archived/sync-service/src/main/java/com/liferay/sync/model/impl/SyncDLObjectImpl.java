@@ -21,9 +21,6 @@ import java.util.Date;
  */
 public class SyncDLObjectImpl extends SyncDLObjectBaseImpl {
 
-	public SyncDLObjectImpl() {
-	}
-
 	@Override
 	public String buildTreePath() {
 		throw new UnsupportedOperationException();

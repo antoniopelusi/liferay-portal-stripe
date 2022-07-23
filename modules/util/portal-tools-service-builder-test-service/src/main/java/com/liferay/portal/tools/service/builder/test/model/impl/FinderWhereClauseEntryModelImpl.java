@@ -24,17 +24,19 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.service.builder.test.model.FinderWhereClauseEntry;
 import com.liferay.portal.tools.service.builder.test.model.FinderWhereClauseEntryModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -218,34 +220,6 @@ public class FinderWhereClauseEntryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, FinderWhereClauseEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			FinderWhereClauseEntry.class.getClassLoader(),
-			FinderWhereClauseEntry.class, ModelWrapper.class);
-
-		try {
-			Constructor<FinderWhereClauseEntry> constructor =
-				(Constructor<FinderWhereClauseEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<FinderWhereClauseEntry, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<FinderWhereClauseEntry, Object>>
@@ -415,6 +389,21 @@ public class FinderWhereClauseEntryModelImpl
 	}
 
 	@Override
+	public FinderWhereClauseEntry cloneWithOriginalValues() {
+		FinderWhereClauseEntryImpl finderWhereClauseEntryImpl =
+			new FinderWhereClauseEntryImpl();
+
+		finderWhereClauseEntryImpl.setFinderWhereClauseEntryId(
+			this.<Long>getColumnOriginalValue("finderWhereClauseEntryId"));
+		finderWhereClauseEntryImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		finderWhereClauseEntryImpl.setNickname(
+			this.<String>getColumnOriginalValue("nickname"));
+
+		return finderWhereClauseEntryImpl;
+	}
+
+	@Override
 	public int compareTo(FinderWhereClauseEntry finderWhereClauseEntry) {
 		long primaryKey = finderWhereClauseEntry.getPrimaryKey();
 
@@ -515,7 +504,7 @@ public class FinderWhereClauseEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -526,10 +515,27 @@ public class FinderWhereClauseEntryModelImpl
 			Function<FinderWhereClauseEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((FinderWhereClauseEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(FinderWhereClauseEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -577,7 +583,9 @@ public class FinderWhereClauseEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, FinderWhereClauseEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					FinderWhereClauseEntry.class, ModelWrapper.class);
 
 	}
 

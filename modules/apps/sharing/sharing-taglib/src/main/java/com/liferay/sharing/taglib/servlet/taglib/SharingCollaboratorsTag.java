@@ -63,7 +63,7 @@ public class SharingCollaboratorsTag extends BaseSharingTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	@Override
@@ -85,8 +85,11 @@ public class SharingCollaboratorsTag extends BaseSharingTag {
 
 		long classNameId = PortalUtil.getClassNameId(getClassName());
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest parentHttpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)parentHttpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		boolean canManageCollaborators = _canManageCollaborators(
 			classNameId, getClassPK(), themeDisplay);
@@ -104,7 +107,8 @@ public class SharingCollaboratorsTag extends BaseSharingTag {
 		data.put("classPK", getClassPK());
 
 		ResourceURL collaboratorsResourceURL = PortletURLFactoryUtil.create(
-			request, SharingPortletKeys.SHARING, PortletRequest.RESOURCE_PHASE);
+			parentHttpServletRequest, SharingPortletKeys.SHARING,
+			PortletRequest.RESOURCE_PHASE);
 
 		collaboratorsResourceURL.setParameter("className", getClassName());
 		collaboratorsResourceURL.setParameter(
@@ -136,7 +140,7 @@ public class SharingCollaboratorsTag extends BaseSharingTag {
 				themeDisplay.getScopeGroupId());
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return false;
 		}

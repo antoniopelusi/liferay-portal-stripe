@@ -165,6 +165,9 @@ public interface KaleoInstanceTokenLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -267,6 +270,10 @@ public interface KaleoInstanceTokenLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<KaleoInstanceToken> getKaleoInstanceTokens(
+		long kaleoInstanceId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<KaleoInstanceToken> getKaleoInstanceTokens(
 		long parentKaleoInstanceTokenId, Date completionDate,
 		ServiceContext serviceContext);
 
@@ -316,7 +323,8 @@ public interface KaleoInstanceTokenLocalService
 	public Hits search(
 		Long userId, String assetClassName, String assetTitle,
 		String assetDescription, String currentKaleoNodeName,
-		String kaleoDefinitionName, Boolean completed, int start, int end,
+		String kaleoDefinitionName, Boolean completed,
+		boolean searchByActiveWorkflowHandlers, int start, int end,
 		Sort[] sorts, ServiceContext serviceContext);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -324,7 +332,7 @@ public interface KaleoInstanceTokenLocalService
 		Long userId, String assetClassName, String assetTitle,
 		String assetDescription, String currentKaleoNodeName,
 		String kaleoDefinitionName, Boolean completed,
-		ServiceContext serviceContext);
+		boolean searchByActiveWorkflowHandlers, ServiceContext serviceContext);
 
 	/**
 	 * Updates the kaleo instance token in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.

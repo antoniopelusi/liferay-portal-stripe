@@ -178,4 +178,7 @@ public interface DDMStructureLinkModel
 	 */
 	public void setStructureId(long structureId);
 
+	@Override
+	public DDMStructureLink cloneWithOriginalValues();
+
 }

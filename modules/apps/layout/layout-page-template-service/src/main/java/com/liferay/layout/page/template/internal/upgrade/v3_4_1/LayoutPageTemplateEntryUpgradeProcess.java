@@ -36,16 +36,14 @@ public class LayoutPageTemplateEntryUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _updateFileEntryClassNameId() throws Exception {
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("update LayoutPageTemplateEntry set classNameId = ");
-		sb.append(_portal.getClassNameId(FileEntry.class.getName()));
-		sb.append(" where classNameId = ");
-		sb.append(_portal.getClassNameId(DLFileEntry.class.getName()));
-		sb.append(" and type_ = ");
-		sb.append(LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE);
-
-		runSQL(sb.toString());
+		runSQL(
+			StringBundler.concat(
+				"update LayoutPageTemplateEntry set classNameId = ",
+				_portal.getClassNameId(FileEntry.class.getName()),
+				" where classNameId = ",
+				_portal.getClassNameId(DLFileEntry.class.getName()),
+				" and type_ = ",
+				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE));
 	}
 
 	private final Portal _portal;

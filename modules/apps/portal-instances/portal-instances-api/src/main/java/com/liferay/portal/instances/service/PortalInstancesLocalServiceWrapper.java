@@ -27,6 +27,10 @@ public class PortalInstancesLocalServiceWrapper
 	implements PortalInstancesLocalService,
 			   ServiceWrapper<PortalInstancesLocalService> {
 
+	public PortalInstancesLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PortalInstancesLocalServiceWrapper(
 		PortalInstancesLocalService portalInstancesLocalService) {
 
@@ -77,10 +81,12 @@ public class PortalInstancesLocalServiceWrapper
 
 	@Override
 	public void initializePortalInstance(
-		javax.servlet.ServletContext servletContext, String webId) {
+			long companyId, String siteInitializerKey,
+			javax.servlet.ServletContext servletContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_portalInstancesLocalService.initializePortalInstance(
-			servletContext, webId);
+			companyId, siteInitializerKey, servletContext);
 	}
 
 	@Override

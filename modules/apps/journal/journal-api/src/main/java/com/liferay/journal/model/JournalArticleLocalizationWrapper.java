@@ -110,6 +110,11 @@ public class JournalArticleLocalizationWrapper
 		}
 	}
 
+	@Override
+	public JournalArticleLocalization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the article localization ID of this journal article localization.
 	 *

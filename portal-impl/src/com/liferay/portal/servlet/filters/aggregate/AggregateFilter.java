@@ -142,13 +142,32 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 						importX + _CSS_IMPORT_BEGIN.length(), importY);
 				}
 
+				String normalizedImportFileName = importFileName;
+
+				if (!importFileName.isEmpty()) {
+					char firstCharacter = importFileName.charAt(0);
+
+					if ((firstCharacter == CharPool.APOSTROPHE) ||
+						(firstCharacter == CharPool.QUOTE)) {
+
+						normalizedImportFileName = importFileName.substring(
+							1, importFileName.length() - 1);
+					}
+				}
+
 				String importContent = null;
 
-				if (Validator.isUrl(importFileName)) {
+				if (Validator.isUrl(normalizedImportFileName)) {
 					ServletPaths downServletPaths = servletPaths.down(
-						importFileName);
+						normalizedImportFileName);
 
 					importContent = downServletPaths.getContent();
+
+					if (importContent == null) {
+						importContent =
+							_CSS_IMPORT_BEGIN + importFileName +
+								_CSS_IMPORT_END;
+					}
 				}
 				else {
 					int queryPos = importFileName.indexOf(CharPool.QUESTION);

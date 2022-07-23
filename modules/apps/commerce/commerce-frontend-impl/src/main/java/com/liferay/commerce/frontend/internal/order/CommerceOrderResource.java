@@ -14,11 +14,6 @@
 
 package com.liferay.commerce.frontend.internal.order;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.frontend.internal.account.model.Order;
 import com.liferay.commerce.frontend.internal.account.model.OrderList;
@@ -29,8 +24,6 @@ import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -43,9 +36,6 @@ import java.util.List;
 import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -68,14 +58,37 @@ public class CommerceOrderResource {
 			_commerceChannelLocalService.getCommerceChannelGroupIdBySiteGroupId(
 				groupId);
 
-		List<Order> orders = getOrders(
+		List<Order> orders = _getOrders(
 			companyId, groupId, keywords, page, pageSize, httpServletRequest);
 
 		return new OrderList(
-			orders, getOrdersCount(companyId, groupId, keywords));
+			orders, _getOrdersCount(companyId, groupId, keywords));
 	}
 
-	protected List<Order> getOrders(
+	private String _getOrderLinkURL(
+			long commerceOrderId, HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		PortletURL editURL = PortletURLBuilder.create(
+			PortletProviderUtil.getPortletURL(
+				httpServletRequest, CommerceOrder.class.getName(),
+				PortletProvider.Action.EDIT)
+		).setActionName(
+			"/commerce_open_order_content/edit_commerce_order"
+		).setCMD(
+			"setCurrent"
+		).setParameter(
+			"commerceOrderId", commerceOrderId
+		).buildPortletURL();
+
+		String redirect = _portal.getCurrentURL(httpServletRequest);
+
+		editURL.setParameter("redirect", redirect);
+
+		return editURL.toString();
+	}
+
+	private List<Order> _getOrders(
 			long companyId, long groupId, String keywords, int page,
 			int pageSize, HttpServletRequest httpServletRequest)
 		throws PortalException {
@@ -115,68 +128,12 @@ public class CommerceOrderResource {
 		return orders;
 	}
 
-	protected int getOrdersCount(long companyId, long groupId, String keywords)
+	private int _getOrdersCount(long companyId, long groupId, String keywords)
 		throws PortalException {
 
 		return (int)_commerceOrderService.getUserPendingCommerceOrdersCount(
 			companyId, groupId, keywords);
 	}
-
-	protected Response getResponse(Object object) {
-		if (object == null) {
-			return Response.status(
-				Response.Status.NOT_FOUND
-			).build();
-		}
-
-		try {
-			String json = _OBJECT_MAPPER.writeValueAsString(object);
-
-			return Response.ok(
-				json, MediaType.APPLICATION_JSON
-			).build();
-		}
-		catch (JsonProcessingException jsonProcessingException) {
-			_log.error(jsonProcessingException, jsonProcessingException);
-		}
-
-		return Response.status(
-			Response.Status.NOT_FOUND
-		).build();
-	}
-
-	private String _getOrderLinkURL(
-			long commerceOrderId, HttpServletRequest httpServletRequest)
-		throws PortalException {
-
-		PortletURL editURL = PortletURLBuilder.create(
-			PortletProviderUtil.getPortletURL(
-				httpServletRequest, CommerceOrder.class.getName(),
-				PortletProvider.Action.EDIT)
-		).setActionName(
-			"/commerce_open_order_content/edit_commerce_order"
-		).setCMD(
-			"setCurrent"
-		).setParameter(
-			"commerceOrderId", commerceOrderId
-		).build();
-
-		String redirect = _portal.getCurrentURL(httpServletRequest);
-
-		editURL.setParameter("redirect", redirect);
-
-		return editURL.toString();
-	}
-
-	private static final ObjectMapper _OBJECT_MAPPER = new ObjectMapper() {
-		{
-			configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
-			disable(SerializationFeature.INDENT_OUTPUT);
-		}
-	};
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CommerceOrderResource.class);
 
 	@Reference
 	private CommerceChannelLocalService _commerceChannelLocalService;

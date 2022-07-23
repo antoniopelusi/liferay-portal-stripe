@@ -41,7 +41,6 @@ public class PortletContextBagPool {
 	}
 
 	private PortletContextBagPool() {
-		_portletContextBagMap = new ConcurrentHashMap<>();
 	}
 
 	private PortletContextBag _get(String servletContextName) {
@@ -61,6 +60,7 @@ public class PortletContextBagPool {
 	private static final PortletContextBagPool _portletContextBagPool =
 		new PortletContextBagPool();
 
-	private final Map<String, PortletContextBag> _portletContextBagMap;
+	private final Map<String, PortletContextBag> _portletContextBagMap =
+		new ConcurrentHashMap<>();
 
 }

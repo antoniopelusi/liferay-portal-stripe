@@ -29,8 +29,8 @@ public class AssetTagNamesFieldQueryBuilderFactory
 	implements FieldQueryBuilderFactory {
 
 	@Override
-	public FieldQueryBuilder getQueryBuilder(String field) {
-		if (field.startsWith(Field.ASSET_TAG_NAMES)) {
+	public FieldQueryBuilder getQueryBuilder(String fieldName) {
+		if (fieldName.startsWith(Field.ASSET_TAG_NAMES)) {
 			return titleQueryBuilder;
 		}
 

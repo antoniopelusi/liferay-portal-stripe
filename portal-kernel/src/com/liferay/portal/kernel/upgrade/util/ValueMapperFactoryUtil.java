@@ -20,7 +20,7 @@ package com.liferay.portal.kernel.upgrade.util;
 public class ValueMapperFactoryUtil {
 
 	public static ValueMapper getValueMapper() {
-		return getValueMapperFactory().getValueMapper();
+		return _valueMapperFactory.getValueMapper();
 	}
 
 	public static ValueMapperFactory getValueMapperFactory() {

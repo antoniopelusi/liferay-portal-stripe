@@ -7,7 +7,7 @@
 	<description/>
 	<groupId>com.liferay</groupId>
 	<artifactId>com.liferay.portal.tools.upgrade.table.builder</artifactId>
-	<version>1.0.10</version>
+	<version>1.0.11</version>
 	<goalPrefix>upgrade-table-builder</goalPrefix>
 	<isolatedRealm>false</isolatedRealm>
 	<inheritedByDefault>true</inheritedByDefault>

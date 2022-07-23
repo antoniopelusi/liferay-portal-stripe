@@ -23,7 +23,7 @@ import com.liferay.portal.search.query.function.score.ScoreFunctionTranslator;
  * @author André de Oliveira
  */
 public class LinearDecayScoreFunctionImpl
-	extends DecayScoreFunctionImpl implements LinearDecayScoreFunction {
+	extends BaseDecayScoreFunctionImpl implements LinearDecayScoreFunction {
 
 	public LinearDecayScoreFunctionImpl(
 		String field, Object origin, Object scale, Object offset) {

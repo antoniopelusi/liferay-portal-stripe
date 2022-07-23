@@ -130,12 +130,12 @@ public interface DataRecordCollectionResource {
 				Long dataRecordCollectionId, String roleNames)
 		throws Exception;
 
-	public void putDataRecordCollectionPermission(
+	public Page<Permission> putDataRecordCollectionPermissionsPage(
 			Long dataRecordCollectionId, Permission[] permissions)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			putDataRecordCollectionPermissionHttpResponse(
+			putDataRecordCollectionPermissionsPageHttpResponse(
 				Long dataRecordCollectionId, Permission[] permissions)
 		throws Exception;
 
@@ -703,6 +703,8 @@ public interface DataRecordCollectionResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -1073,12 +1075,12 @@ public interface DataRecordCollectionResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putDataRecordCollectionPermission(
+		public Page<Permission> putDataRecordCollectionPermissionsPage(
 				Long dataRecordCollectionId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putDataRecordCollectionPermissionHttpResponse(
+				putDataRecordCollectionPermissionsPageHttpResponse(
 					dataRecordCollectionId, permissions);
 
 			String content = httpResponse.getContent();
@@ -1107,7 +1109,7 @@ public interface DataRecordCollectionResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -1119,7 +1121,7 @@ public interface DataRecordCollectionResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putDataRecordCollectionPermissionHttpResponse(
+				putDataRecordCollectionPermissionsPageHttpResponse(
 					Long dataRecordCollectionId, Permission[] permissions)
 			throws Exception {
 

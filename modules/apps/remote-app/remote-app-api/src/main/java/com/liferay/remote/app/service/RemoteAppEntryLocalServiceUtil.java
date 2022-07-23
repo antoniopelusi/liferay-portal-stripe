@@ -45,13 +45,48 @@ public class RemoteAppEntryLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.remote.app.service.impl.RemoteAppEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
-	public static RemoteAppEntry addRemoteAppEntry(
-			long userId, Map<java.util.Locale, String> nameMap, String url,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public static RemoteAppEntry addCustomElementRemoteAppEntry(
+			String externalReferenceCode, long userId,
+			String customElementCSSURLs, String customElementHTMLElementName,
+			String customElementURLs, boolean customElementUseESM,
+			String description, String friendlyURLMapping, boolean instanceable,
+			Map<java.util.Locale, String> nameMap, String portletCategoryName,
+			String properties, String sourceCodeURL)
 		throws PortalException {
 
-		return getService().addRemoteAppEntry(
-			userId, nameMap, url, serviceContext);
+		return getService().addCustomElementRemoteAppEntry(
+			externalReferenceCode, userId, customElementCSSURLs,
+			customElementHTMLElementName, customElementURLs,
+			customElementUseESM, description, friendlyURLMapping, instanceable,
+			nameMap, portletCategoryName, properties, sourceCodeURL);
+	}
+
+	public static RemoteAppEntry addIFrameRemoteAppEntry(
+			long userId, String description, String friendlyURLMapping,
+			String iFrameURL, boolean instanceable,
+			Map<java.util.Locale, String> nameMap, String portletCategoryName,
+			String properties, String sourceCodeURL)
+		throws PortalException {
+
+		return getService().addIFrameRemoteAppEntry(
+			userId, description, friendlyURLMapping, iFrameURL, instanceable,
+			nameMap, portletCategoryName, properties, sourceCodeURL);
+	}
+
+	public static RemoteAppEntry addOrUpdateCustomElementRemoteAppEntry(
+			String externalReferenceCode, long userId,
+			String customElementCSSURLs, String customElementHTMLElementName,
+			String customElementURLs, boolean customElementUseESM,
+			String description, String friendlyURLMapping, boolean instanceable,
+			Map<java.util.Locale, String> nameMap, String portletCategoryName,
+			String properties, String sourceCodeURL)
+		throws PortalException {
+
+		return getService().addOrUpdateCustomElementRemoteAppEntry(
+			externalReferenceCode, userId, customElementCSSURLs,
+			customElementHTMLElementName, customElementURLs,
+			customElementUseESM, description, friendlyURLMapping, instanceable,
+			nameMap, portletCategoryName, properties, sourceCodeURL);
 	}
 
 	/**
@@ -126,15 +161,25 @@ public class RemoteAppEntryLocalServiceUtil {
 	 *
 	 * @param remoteAppEntry the remote app entry
 	 * @return the remote app entry that was removed
+	 * @throws PortalException
 	 */
 	public static RemoteAppEntry deleteRemoteAppEntry(
-		RemoteAppEntry remoteAppEntry) {
+			RemoteAppEntry remoteAppEntry)
+		throws PortalException {
 
 		return getService().deleteRemoteAppEntry(remoteAppEntry);
 	}
 
+	public static void deployRemoteAppEntry(RemoteAppEntry remoteAppEntry) {
+		getService().deployRemoteAppEntry(remoteAppEntry);
+	}
+
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -216,6 +261,31 @@ public class RemoteAppEntryLocalServiceUtil {
 
 	public static RemoteAppEntry fetchRemoteAppEntry(long remoteAppEntryId) {
 		return getService().fetchRemoteAppEntry(remoteAppEntryId);
+	}
+
+	/**
+	 * Returns the remote app entry with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the remote app entry's external reference code
+	 * @return the matching remote app entry, or <code>null</code> if a matching remote app entry could not be found
+	 */
+	public static RemoteAppEntry fetchRemoteAppEntryByExternalReferenceCode(
+		long companyId, String externalReferenceCode) {
+
+		return getService().fetchRemoteAppEntryByExternalReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchRemoteAppEntryByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	public static RemoteAppEntry fetchRemoteAppEntryByReferenceCode(
+		long companyId, String externalReferenceCode) {
+
+		return getService().fetchRemoteAppEntryByReferenceCode(
+			companyId, externalReferenceCode);
 	}
 
 	/**
@@ -309,6 +379,22 @@ public class RemoteAppEntryLocalServiceUtil {
 	}
 
 	/**
+	 * Returns the remote app entry with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the remote app entry's external reference code
+	 * @return the matching remote app entry
+	 * @throws PortalException if a matching remote app entry could not be found
+	 */
+	public static RemoteAppEntry getRemoteAppEntryByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getRemoteAppEntryByExternalReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	/**
 	 * Returns the remote app entry with the matching UUID and company.
 	 *
 	 * @param uuid the remote app entry's UUID
@@ -324,30 +410,49 @@ public class RemoteAppEntryLocalServiceUtil {
 			uuid, companyId);
 	}
 
-	public static List<RemoteAppEntry> searchRemoteAppEntries(
+	public static List<RemoteAppEntry> search(
 			long companyId, String keywords, int start, int end,
 			com.liferay.portal.kernel.search.Sort sort)
 		throws PortalException {
 
-		return getService().searchRemoteAppEntries(
-			companyId, keywords, start, end, sort);
+		return getService().search(companyId, keywords, start, end, sort);
 	}
 
-	public static int searchRemoteAppEntriesCount(
-			long companyId, String keywords)
+	public static int searchCount(long companyId, String keywords)
 		throws PortalException {
 
-		return getService().searchRemoteAppEntriesCount(companyId, keywords);
+		return getService().searchCount(companyId, keywords);
 	}
 
-	public static RemoteAppEntry updateRemoteAppEntry(
-			long remoteAppEntryId, Map<java.util.Locale, String> nameMap,
-			String url,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public static void undeployRemoteAppEntry(RemoteAppEntry remoteAppEntry) {
+		getService().undeployRemoteAppEntry(remoteAppEntry);
+	}
+
+	public static RemoteAppEntry updateCustomElementRemoteAppEntry(
+			long userId, long remoteAppEntryId, String customElementCSSURLs,
+			String customElementHTMLElementName, String customElementURLs,
+			boolean customElementUseESM, String description,
+			String friendlyURLMapping, Map<java.util.Locale, String> nameMap,
+			String portletCategoryName, String properties, String sourceCodeURL)
 		throws PortalException {
 
-		return getService().updateRemoteAppEntry(
-			remoteAppEntryId, nameMap, url, serviceContext);
+		return getService().updateCustomElementRemoteAppEntry(
+			userId, remoteAppEntryId, customElementCSSURLs,
+			customElementHTMLElementName, customElementURLs,
+			customElementUseESM, description, friendlyURLMapping, nameMap,
+			portletCategoryName, properties, sourceCodeURL);
+	}
+
+	public static RemoteAppEntry updateIFrameRemoteAppEntry(
+			long userId, long remoteAppEntryId, String description,
+			String friendlyURLMapping, String iFrameURL,
+			Map<java.util.Locale, String> nameMap, String portletCategoryName,
+			String properties, String sourceCodeURL)
+		throws PortalException {
+
+		return getService().updateIFrameRemoteAppEntry(
+			userId, remoteAppEntryId, description, friendlyURLMapping,
+			iFrameURL, nameMap, portletCategoryName, properties, sourceCodeURL);
 	}
 
 	/**
@@ -364,6 +469,13 @@ public class RemoteAppEntryLocalServiceUtil {
 		RemoteAppEntry remoteAppEntry) {
 
 		return getService().updateRemoteAppEntry(remoteAppEntry);
+	}
+
+	public static RemoteAppEntry updateStatus(
+			long userId, long remoteAppEntryId, int status)
+		throws PortalException {
+
+		return getService().updateStatus(userId, remoteAppEntryId, status);
 	}
 
 	public static RemoteAppEntryLocalService getService() {

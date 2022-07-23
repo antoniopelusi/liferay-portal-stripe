@@ -22,12 +22,18 @@ export const ACTIONS = {
 	}) {
 		this.openFragmentCollectionsItemSelector(
 			Liferay.Language.get('delete'),
-			Liferay.Language.get('delete-collection'),
+			Liferay.Language.get('delete-fragment-set'),
 			viewDeleteFragmentCollectionsURL,
 			(selectedItems) => {
-				const fragmentCollectionsForm = document.getElementById(
-					`${portletNamespace}fragmentCollectionsFm`
-				);
+				if (!selectedItems?.length) {
+					return;
+				}
+
+				const form = document.getElementById(`${portletNamespace}fm`);
+
+				if (!form) {
+					return;
+				}
 
 				if (
 					confirm(
@@ -36,17 +42,19 @@ export const ACTIONS = {
 						)
 					)
 				) {
-					selectedItems.forEach((item) => {
-						fragmentCollectionsForm.appendChild(
-							item.cloneNode(true)
-						);
-					});
+					let input = form.elements[`${portletNamespace}rowIds`];
+
+					if (!input) {
+						input = document.createElement('input');
+						input.name = `${portletNamespace}rowIds`;
+					}
+
+					input.value = selectedItems.map((item) => item.value);
+
+					form.appendChild(input);
 				}
 
-				submitForm(
-					fragmentCollectionsForm,
-					deleteFragmentCollectionURL
-				);
+				submitForm(form, deleteFragmentCollectionURL);
 			},
 			null,
 			portletNamespace
@@ -62,21 +70,32 @@ export const ACTIONS = {
 
 		this.openFragmentCollectionsItemSelector(
 			Liferay.Language.get('export'),
-			Liferay.Language.get('export-collection'),
+			Liferay.Language.get('export-fragment-set'),
 			viewExportFragmentCollectionsURL,
 			(selectedItems) => {
-				const fragmentCollectionsForm = document.getElementById(
-					`${portletNamespace}fragmentCollectionsFm`
-				);
+				if (!selectedItems?.length) {
+					return;
+				}
 
-				selectedItems.forEach((item) => {
-					fragmentCollectionsForm.appendChild(item.cloneNode(true));
-				});
+				const form = document.getElementById(`${portletNamespace}fm`);
 
-				submitForm(
-					fragmentCollectionsForm,
-					exportFragmentCollectionsURL
-				);
+				if (!form) {
+					return;
+				}
+
+				let input = form.elements[`${portletNamespace}rowIds`];
+
+				if (!input) {
+					input = document.createElement('input');
+					input.name = `${portletNamespace}rowIds`;
+				}
+
+				input.value = selectedItems.map((item) => item.value);
+				input.setAttribute('type', 'hidden');
+
+				form.appendChild(input);
+
+				submitForm(form, exportFragmentCollectionsURL);
 
 				processed = true;
 			},

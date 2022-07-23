@@ -11,9 +11,9 @@ if (System.properties["http.proxyHost"] == "squid.lax.liferay.com") {
 
 gradle.buildFinished {
 	if (System.getenv("JENKINS_HOME")) {
-		Date now = new Date()
+		Date date = new Date()
 
-		logger.lifecycle "Gradle build finished at {}.", now.format("yyyy-MM-dd HH:mm:ss.SSS", TimeZone.getTimeZone("UTC"))
+		logger.lifecycle "Gradle build finished at {}.", date.format("yyyy-MM-dd HH:mm:ss.SSS", TimeZone.getTimeZone("UTC"))
 	}
 
 	ByteArrayOutputStream errorByteArrayOutputStream = new ByteArrayOutputStream()

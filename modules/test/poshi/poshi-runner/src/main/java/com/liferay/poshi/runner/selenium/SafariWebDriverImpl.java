@@ -18,7 +18,7 @@ import org.openqa.selenium.ElementNotVisibleException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.internal.WrapsDriver;
+import org.openqa.selenium.WrapsDriver;
 
 /**
  * @author Brian Wing Shun Chan
@@ -54,7 +54,7 @@ public class SafariWebDriverImpl extends BaseWebDriverImpl {
 				javascriptExecutor.executeScript(
 					"confirm = function(){return true;};");
 
-				webElement.click();
+				javaScriptClick(locator);
 			}
 			catch (ElementNotVisibleException elementNotVisibleException) {
 				if (isVisible(locator)) {
@@ -79,11 +79,7 @@ public class SafariWebDriverImpl extends BaseWebDriverImpl {
 
 		scrollWebElementIntoView(webElement);
 
-		if (webElement.isDisplayed()) {
-			return true;
-		}
-
-		if (!isObscured(webElement)) {
+		if (webElement.isDisplayed() || !isObscured(webElement)) {
 			return true;
 		}
 

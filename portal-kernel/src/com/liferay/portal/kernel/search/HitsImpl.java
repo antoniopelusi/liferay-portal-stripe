@@ -31,9 +31,6 @@ import java.util.Map;
  */
 public class HitsImpl implements Hits {
 
-	public HitsImpl() {
-	}
-
 	@Override
 	public void addGroupedHits(String groupValue, Hits hits) {
 		_groupedHits.put(groupValue, hits);
@@ -219,15 +216,9 @@ public class HitsImpl implements Hits {
 	@Override
 	public String toString() {
 		if ((_docs == null) || (_docs.length == 0)) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("{docs={}, length=");
-			sb.append(_length);
-			sb.append(", query=");
-			sb.append(_query);
-			sb.append(StringPool.CLOSE_BRACKET);
-
-			return sb.toString();
+			return StringBundler.concat(
+				"{docs={}, length=", _length, ", query=", _query,
+				StringPool.CLOSE_BRACKET);
 		}
 
 		StringBundler sb = new StringBundler((2 * _docs.length) + 4);

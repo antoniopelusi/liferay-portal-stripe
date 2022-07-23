@@ -32,6 +32,7 @@ import com.liferay.headless.commerce.core.util.ExpandoUtil;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
 import com.liferay.petra.function.UnsafeConsumer;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
@@ -61,6 +62,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	properties = "OSGI-INF/liferay/rest/v1_0/product-group.properties",
 	scope = ServiceScope.PROTOTYPE, service = ProductGroupResource.class
 )
+@CTAware
 public class ProductGroupResourceImpl
 	extends BaseProductGroupResourceImpl implements EntityModelResource {
 
@@ -80,7 +82,7 @@ public class ProductGroupResourceImpl
 
 		if (commercePricingClass == null) {
 			throw new NoSuchPricingClassException(
-				"Unable to find Product Group with externalReferenceCode: " +
+				"Unable to find product group with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -111,7 +113,7 @@ public class ProductGroupResourceImpl
 
 		if (commercePricingClass == null) {
 			throw new NoSuchPricingClassException(
-				"Unable to find Product Group with externalReferenceCode: " +
+				"Unable to find product group with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -126,7 +128,7 @@ public class ProductGroupResourceImpl
 
 		return SearchUtil.search(
 			null, booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CommercePricingClass.class, search, pagination,
+			CommercePricingClass.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -167,7 +169,7 @@ public class ProductGroupResourceImpl
 
 		if (commercePricingClass == null) {
 			throw new NoSuchPricingClassException(
-				"Unable to find Product Group with externalReferenceCode: " +
+				"Unable to find product group with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -194,9 +196,8 @@ public class ProductGroupResourceImpl
 		throws Exception {
 
 		CommercePricingClass commercePricingClass =
-			_commercePricingClassService.upsertCommercePricingClass(
+			_commercePricingClassService.addOrUpdateCommercePricingClass(
 				productGroup.getExternalReferenceCode(), 0L,
-				contextUser.getUserId(),
 				LanguageUtils.getLocalizedMap(productGroup.getTitle()),
 				LanguageUtils.getLocalizedMap(productGroup.getDescription()),
 				_serviceContextHelper.getServiceContext());
@@ -245,7 +246,7 @@ public class ProductGroupResourceImpl
 						productGroupProduct.getProductExternalReferenceCode();
 
 					throw new NoSuchCProductException(
-						"Unable to find Product with externalReferenceCode: " +
+						"Unable to find product with external reference code " +
 							productExternalReferenceCode);
 				}
 
@@ -280,7 +281,6 @@ public class ProductGroupResourceImpl
 		commercePricingClass =
 			_commercePricingClassService.updateCommercePricingClass(
 				commercePricingClass.getCommercePricingClassId(),
-				commercePricingClass.getUserId(),
 				LanguageUtils.getLocalizedMap(productGroup.getTitle()),
 				LanguageUtils.getLocalizedMap(productGroup.getDescription()),
 				_serviceContextHelper.getServiceContext());

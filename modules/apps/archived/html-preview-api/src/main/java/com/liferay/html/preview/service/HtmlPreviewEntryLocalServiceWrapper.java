@@ -27,6 +27,10 @@ public class HtmlPreviewEntryLocalServiceWrapper
 	implements HtmlPreviewEntryLocalService,
 			   ServiceWrapper<HtmlPreviewEntryLocalService> {
 
+	public HtmlPreviewEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public HtmlPreviewEntryLocalServiceWrapper(
 		HtmlPreviewEntryLocalService htmlPreviewEntryLocalService) {
 
@@ -146,6 +150,13 @@ public class HtmlPreviewEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _htmlPreviewEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _htmlPreviewEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

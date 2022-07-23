@@ -80,14 +80,14 @@ PortletURL renderURL = PortletURLBuilder.createRenderURL(
 ).setMVCRenderCommandName(
 	"/staging_processes/view_publish_configurations"
 ).setParameter(
-	"groupId", String.valueOf(stagingGroupId)
+	"groupId", stagingGroupId
 ).setParameter(
-	"layoutSetBranchId", String.valueOf(layoutSetBranchId)
+	"layoutSetBranchId", layoutSetBranchId
 ).setParameter(
 	"layoutSetBranchName", layoutSetBranchName
 ).setParameter(
-	"privateLayout", String.valueOf(privateLayout)
-).build();
+	"privateLayout", privateLayout
+).buildPortletURL();
 
 response.setHeader("Ajax-ID", request.getHeader("Ajax-ID"));
 

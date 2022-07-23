@@ -14,7 +14,6 @@
 
 package com.liferay.layout.page.template.internal.upgrade.v3_2_0;
 
-import com.liferay.layout.page.template.internal.upgrade.v2_0_0.util.LayoutPageTemplateCollectionTable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -22,7 +21,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -33,43 +31,12 @@ public class LayoutPageTemplateCollectionUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		upgradeSchema();
-		upgradeLayoutPageTemplateCollectionKey();
-	}
-
-	protected void upgradeLayoutPageTemplateCollectionKey()
-		throws SQLException {
-
-		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
-				"select layoutPageTemplateCollectionId, name from " +
-					"LayoutPageTemplateCollection");
-			PreparedStatement ps = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update LayoutPageTemplateCollection set " +
-						"lptCollectionKey = ? where " +
-							"layoutPageTemplateCollectionId = ?"))) {
-
-			while (rs.next()) {
-				long layoutPageTemplateCollectionId = rs.getLong(
-					"layoutPageTemplateCollectionId");
-
-				String name = rs.getString("name");
-
-				ps.setString(1, _generateLayoutPageTemplateCollectionKey(name));
-
-				ps.setLong(2, layoutPageTemplateCollectionId);
-
-				ps.addBatch();
-			}
-
-			ps.executeBatch();
-		}
+		_upgradeLayoutPageTemplateCollectionKey();
 	}
 
 	protected void upgradeSchema() throws Exception {
-		alter(
-			LayoutPageTemplateCollectionTable.class,
-			new AlterTableAddColumn("lptCollectionKey", "VARCHAR(75)"));
+		alterTableAddColumn(
+			"LayoutPageTemplateCollection", "lptCollectionKey", "VARCHAR(75)");
 	}
 
 	private String _generateLayoutPageTemplateCollectionKey(String name) {
@@ -77,6 +44,36 @@ public class LayoutPageTemplateCollectionUpgradeProcess extends UpgradeProcess {
 			StringUtil.toLowerCase(name.trim()),
 			new char[] {CharPool.FORWARD_SLASH, CharPool.SPACE},
 			new char[] {CharPool.DASH, CharPool.DASH});
+	}
+
+	private void _upgradeLayoutPageTemplateCollectionKey() throws Exception {
+		try (Statement s = connection.createStatement();
+			ResultSet resultSet = s.executeQuery(
+				"select layoutPageTemplateCollectionId, name from " +
+					"LayoutPageTemplateCollection");
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update LayoutPageTemplateCollection set " +
+							"lptCollectionKey = ? where " +
+								"layoutPageTemplateCollectionId = ?"))) {
+
+			while (resultSet.next()) {
+				long layoutPageTemplateCollectionId = resultSet.getLong(
+					"layoutPageTemplateCollectionId");
+
+				String name = resultSet.getString("name");
+
+				preparedStatement.setString(
+					1, _generateLayoutPageTemplateCollectionKey(name));
+
+				preparedStatement.setLong(2, layoutPageTemplateCollectionId);
+
+				preparedStatement.addBatch();
+			}
+
+			preparedStatement.executeBatch();
+		}
 	}
 
 }

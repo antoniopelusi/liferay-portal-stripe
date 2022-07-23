@@ -27,6 +27,10 @@ public class CommerceDiscountRelLocalServiceWrapper
 	implements CommerceDiscountRelLocalService,
 			   ServiceWrapper<CommerceDiscountRelLocalService> {
 
+	public CommerceDiscountRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceDiscountRelLocalServiceWrapper(
 		CommerceDiscountRelLocalService commerceDiscountRelLocalService) {
 
@@ -163,6 +167,13 @@ public class CommerceDiscountRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceDiscountRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceDiscountRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -419,6 +430,25 @@ public class CommerceDiscountRelLocalServiceWrapper
 		return _commerceDiscountRelLocalService.
 			getCPDefinitionsByCommerceDiscountIdCount(
 				commerceDiscountId, name, languageId);
+	}
+
+	@Override
+	public java.util.List
+		<com.liferay.commerce.discount.model.CommerceDiscountRel>
+			getCPInstancesByCommerceDiscountId(
+				long commerceDiscountId, String sku, int start, int end) {
+
+		return _commerceDiscountRelLocalService.
+			getCPInstancesByCommerceDiscountId(
+				commerceDiscountId, sku, start, end);
+	}
+
+	@Override
+	public int getCPInstancesByCommerceDiscountIdCount(
+		long commerceDiscountId, String sku) {
+
+		return _commerceDiscountRelLocalService.
+			getCPInstancesByCommerceDiscountIdCount(commerceDiscountId, sku);
 	}
 
 	@Override

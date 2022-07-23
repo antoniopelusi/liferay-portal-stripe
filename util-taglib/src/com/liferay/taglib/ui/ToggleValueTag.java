@@ -15,6 +15,7 @@
 package com.liferay.taglib.ui;
 
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.SessionClicks;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +26,9 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 /**
  * @author Brian Wing Shun Chan
+ * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
  */
+@Deprecated
 public class ToggleValueTag extends TagSupport {
 
 	public static void doTag(
@@ -44,7 +47,7 @@ public class ToggleValueTag extends TagSupport {
 
 		JspWriter jspWriter = pageContext.getOut();
 
-		jspWriter.write(value);
+		jspWriter.write(HtmlUtil.escapeAttribute(value));
 	}
 
 	@Override

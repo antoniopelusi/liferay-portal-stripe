@@ -16,6 +16,7 @@ package com.liferay.account.admin.web.internal.dao.search;
 
 import com.liferay.account.admin.web.internal.security.permission.resource.AccountEntryPermission;
 import com.liferay.account.constants.AccountActionKeys;
+import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.retriever.AccountOrganizationRetriever;
 import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
@@ -25,7 +26,7 @@ import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
-import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -65,19 +66,28 @@ public class AccountOrganizationSearchContainerFactory {
 
 		searchContainer.setId("accountOrganizations");
 
-		String orderByCol = ParamUtil.getString(
-			liferayPortletRequest, "orderByCol", "name");
+		String orderByCol = SearchOrderByUtil.getOrderByCol(
+			liferayPortletRequest, AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+			"organization-order-by-col", "name");
 
 		if (orderByCol.equals("id")) {
 			orderByCol = "organizationId";
 		}
 
 		searchContainer.setOrderByCol(orderByCol);
+		searchContainer.setOrderByType(
+			SearchOrderByUtil.getOrderByType(
+				liferayPortletRequest, AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+				"organization-order-by-type", "asc"));
 
-		String orderByType = ParamUtil.getString(
-			liferayPortletRequest, "orderByType", "asc");
+		String keywords = ParamUtil.getString(
+			liferayPortletRequest, "keywords", null);
 
-		searchContainer.setOrderByType(orderByType);
+		searchContainer.setResultsAndTotal(
+			_accountOrganizationRetriever.searchAccountOrganizations(
+				accountEntryId, keywords, searchContainer.getStart(),
+				searchContainer.getDelta(), searchContainer.getOrderByCol(),
+				Objects.equals(searchContainer.getOrderByType(), "desc")));
 
 		if (AccountEntryPermission.contains(
 				PermissionCheckerFactoryUtil.create(
@@ -87,18 +97,6 @@ public class AccountOrganizationSearchContainerFactory {
 			searchContainer.setRowChecker(
 				new EmptyOnClickRowChecker(liferayPortletResponse));
 		}
-
-		String keywords = ParamUtil.getString(
-			liferayPortletRequest, "keywords", null);
-
-		BaseModelSearchResult<Organization> baseModelSearchResult =
-			_accountOrganizationRetriever.searchAccountOrganizations(
-				accountEntryId, keywords, searchContainer.getStart(),
-				searchContainer.getDelta(), searchContainer.getOrderByCol(),
-				Objects.equals(orderByType, "desc"));
-
-		searchContainer.setResults(baseModelSearchResult.getBaseModels());
-		searchContainer.setTotal(baseModelSearchResult.getLength());
 
 		return searchContainer;
 	}

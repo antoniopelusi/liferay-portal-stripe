@@ -28,7 +28,7 @@
 	<div class="sheet-section">
 		<liferay-portlet:actionURL name="/connected_app/revoke_connected_app" varImpl="actionCommandURL" />
 
-		<aui:form action="<%= actionCommandURL.toString() %>" cssClass="portlet-users-admin-edit-user" data-senna-off="true" method="post" name="fm">
+		<aui:form action="<%= actionCommandURL %>" cssClass="portlet-users-admin-edit-user" data-senna-off="true" method="post" name="fm">
 
 			<%
 			User selUser = PortalUtil.getSelectedUser(request);

@@ -365,4 +365,7 @@ public interface KaleoNotificationModel
 	 */
 	public void setNotificationTypes(String notificationTypes);
 
+	@Override
+	public KaleoNotification cloneWithOriginalValues();
+
 }

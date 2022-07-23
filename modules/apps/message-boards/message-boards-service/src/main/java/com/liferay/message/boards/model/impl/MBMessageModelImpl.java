@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.message.boards.model.MBMessage;
 import com.liferay.message.boards.model.MBMessageModel;
-import com.liferay.message.boards.model.MBMessageSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
@@ -37,22 +36,21 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -137,7 +135,7 @@ public class MBMessageModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table MBMessage (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,messageId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,categoryId LONG,threadId LONG,rootMessageId LONG,parentMessageId LONG,treePath STRING null,subject VARCHAR(75) null,urlSubject VARCHAR(255) null,body TEXT null,format VARCHAR(75) null,anonymous BOOLEAN,priority DOUBLE,allowPingbacks BOOLEAN,answer BOOLEAN,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (messageId, ctCollectionId))";
+		"create table MBMessage (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,messageId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,categoryId LONG,threadId LONG,rootMessageId LONG,parentMessageId LONG,treePath STRING null,subject VARCHAR(255) null,urlSubject VARCHAR(255) null,body TEXT null,format VARCHAR(75) null,anonymous BOOLEAN,priority DOUBLE,allowPingbacks BOOLEAN,answer BOOLEAN,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (messageId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table MBMessage";
 
@@ -259,78 +257,6 @@ public class MBMessageModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static MBMessage toModel(MBMessageSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		MBMessage model = new MBMessageImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setMessageId(soapModel.getMessageId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setCategoryId(soapModel.getCategoryId());
-		model.setThreadId(soapModel.getThreadId());
-		model.setRootMessageId(soapModel.getRootMessageId());
-		model.setParentMessageId(soapModel.getParentMessageId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setSubject(soapModel.getSubject());
-		model.setUrlSubject(soapModel.getUrlSubject());
-		model.setBody(soapModel.getBody());
-		model.setFormat(soapModel.getFormat());
-		model.setAnonymous(soapModel.isAnonymous());
-		model.setPriority(soapModel.getPriority());
-		model.setAllowPingbacks(soapModel.isAllowPingbacks());
-		model.setAnswer(soapModel.isAnswer());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<MBMessage> toModels(MBMessageSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<MBMessage> models = new ArrayList<MBMessage>(soapModels.length);
-
-		for (MBMessageSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public MBMessageModelImpl() {
 	}
 
@@ -413,34 +339,6 @@ public class MBMessageModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, MBMessage>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			MBMessage.class.getClassLoader(), MBMessage.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<MBMessage> constructor =
-				(Constructor<MBMessage>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<MBMessage, Object>>
@@ -1615,6 +1513,68 @@ public class MBMessageModelImpl
 	}
 
 	@Override
+	public MBMessage cloneWithOriginalValues() {
+		MBMessageImpl mbMessageImpl = new MBMessageImpl();
+
+		mbMessageImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		mbMessageImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		mbMessageImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		mbMessageImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		mbMessageImpl.setMessageId(
+			this.<Long>getColumnOriginalValue("messageId"));
+		mbMessageImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		mbMessageImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		mbMessageImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		mbMessageImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		mbMessageImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		mbMessageImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		mbMessageImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		mbMessageImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		mbMessageImpl.setCategoryId(
+			this.<Long>getColumnOriginalValue("categoryId"));
+		mbMessageImpl.setThreadId(
+			this.<Long>getColumnOriginalValue("threadId"));
+		mbMessageImpl.setRootMessageId(
+			this.<Long>getColumnOriginalValue("rootMessageId"));
+		mbMessageImpl.setParentMessageId(
+			this.<Long>getColumnOriginalValue("parentMessageId"));
+		mbMessageImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		mbMessageImpl.setSubject(
+			this.<String>getColumnOriginalValue("subject"));
+		mbMessageImpl.setUrlSubject(
+			this.<String>getColumnOriginalValue("urlSubject"));
+		mbMessageImpl.setBody(this.<String>getColumnOriginalValue("body"));
+		mbMessageImpl.setFormat(this.<String>getColumnOriginalValue("format"));
+		mbMessageImpl.setAnonymous(
+			this.<Boolean>getColumnOriginalValue("anonymous"));
+		mbMessageImpl.setPriority(
+			this.<Double>getColumnOriginalValue("priority"));
+		mbMessageImpl.setAllowPingbacks(
+			this.<Boolean>getColumnOriginalValue("allowPingbacks"));
+		mbMessageImpl.setAnswer(this.<Boolean>getColumnOriginalValue("answer"));
+		mbMessageImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		mbMessageImpl.setStatus(this.<Integer>getColumnOriginalValue("status"));
+		mbMessageImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		mbMessageImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		mbMessageImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return mbMessageImpl;
+	}
+
+	@Override
 	public int compareTo(MBMessage mbMessage) {
 		int value = 0;
 
@@ -1855,7 +1815,7 @@ public class MBMessageModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1866,9 +1826,26 @@ public class MBMessageModelImpl
 			Function<MBMessage, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((MBMessage)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((MBMessage)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1915,7 +1892,9 @@ public class MBMessageModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, MBMessage>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					MBMessage.class, ModelWrapper.class);
 
 	}
 

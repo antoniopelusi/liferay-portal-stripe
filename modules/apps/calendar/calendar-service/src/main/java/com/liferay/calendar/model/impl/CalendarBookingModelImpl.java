@@ -16,7 +16,6 @@ package com.liferay.calendar.model.impl;
 
 import com.liferay.calendar.model.CalendarBooking;
 import com.liferay.calendar.model.CalendarBookingModel;
-import com.liferay.calendar.model.CalendarBookingSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -39,22 +38,21 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -86,12 +84,12 @@ public class CalendarBookingModelImpl
 	public static final String TABLE_NAME = "CalendarBooking";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
-		{"calendarBookingId", Types.BIGINT}, {"groupId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
-		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
-		{"modifiedDate", Types.TIMESTAMP}, {"calendarId", Types.BIGINT},
-		{"calendarResourceId", Types.BIGINT},
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
+		{"uuid_", Types.VARCHAR}, {"calendarBookingId", Types.BIGINT},
+		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"calendarId", Types.BIGINT}, {"calendarResourceId", Types.BIGINT},
 		{"parentCalendarBookingId", Types.BIGINT},
 		{"recurringCalendarBookingId", Types.BIGINT},
 		{"vEventUid", Types.VARCHAR}, {"title", Types.VARCHAR},
@@ -110,6 +108,7 @@ public class CalendarBookingModelImpl
 
 	static {
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("calendarBookingId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -142,7 +141,7 @@ public class CalendarBookingModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CalendarBooking (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,calendarBookingId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,calendarId LONG,calendarResourceId LONG,parentCalendarBookingId LONG,recurringCalendarBookingId LONG,vEventUid VARCHAR(255) null,title STRING null,description TEXT null,location STRING null,startTime LONG,endTime LONG,allDay BOOLEAN,recurrence STRING null,firstReminder LONG,firstReminderType VARCHAR(75) null,secondReminder LONG,secondReminderType VARCHAR(75) null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table CalendarBooking (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,calendarBookingId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,calendarId LONG,calendarResourceId LONG,parentCalendarBookingId LONG,recurringCalendarBookingId LONG,vEventUid VARCHAR(255) null,title STRING null,description TEXT null,location STRING null,startTime LONG,endTime LONG,allDay BOOLEAN,recurrence STRING null,firstReminder LONG,firstReminderType VARCHAR(75) null,secondReminder LONG,secondReminderType VARCHAR(75) null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (calendarBookingId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table CalendarBooking";
 
@@ -240,82 +239,6 @@ public class CalendarBookingModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CalendarBooking toModel(CalendarBookingSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		CalendarBooking model = new CalendarBookingImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setCalendarBookingId(soapModel.getCalendarBookingId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setCalendarId(soapModel.getCalendarId());
-		model.setCalendarResourceId(soapModel.getCalendarResourceId());
-		model.setParentCalendarBookingId(
-			soapModel.getParentCalendarBookingId());
-		model.setRecurringCalendarBookingId(
-			soapModel.getRecurringCalendarBookingId());
-		model.setVEventUid(soapModel.getVEventUid());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setLocation(soapModel.getLocation());
-		model.setStartTime(soapModel.getStartTime());
-		model.setEndTime(soapModel.getEndTime());
-		model.setAllDay(soapModel.isAllDay());
-		model.setRecurrence(soapModel.getRecurrence());
-		model.setFirstReminder(soapModel.getFirstReminder());
-		model.setFirstReminderType(soapModel.getFirstReminderType());
-		model.setSecondReminder(soapModel.getSecondReminder());
-		model.setSecondReminderType(soapModel.getSecondReminderType());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CalendarBooking> toModels(
-		CalendarBookingSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CalendarBooking> models = new ArrayList<CalendarBooking>(
-			soapModels.length);
-
-		for (CalendarBookingSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public CalendarBookingModelImpl() {
 	}
 
@@ -401,34 +324,6 @@ public class CalendarBookingModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CalendarBooking>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CalendarBooking.class.getClassLoader(), CalendarBooking.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CalendarBooking> constructor =
-				(Constructor<CalendarBooking>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CalendarBooking, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CalendarBooking, Object>>
@@ -446,6 +341,12 @@ public class CalendarBookingModelImpl
 		attributeSetterBiConsumers.put(
 			"mvccVersion",
 			(BiConsumer<CalendarBooking, Long>)CalendarBooking::setMvccVersion);
+		attributeGetterFunctions.put(
+			"ctCollectionId", CalendarBooking::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<CalendarBooking, Long>)
+				CalendarBooking::setCtCollectionId);
 		attributeGetterFunctions.put("uuid", CalendarBooking::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -618,6 +519,21 @@ public class CalendarBookingModelImpl
 		}
 
 		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -1793,6 +1709,7 @@ public class CalendarBookingModelImpl
 		CalendarBookingImpl calendarBookingImpl = new CalendarBookingImpl();
 
 		calendarBookingImpl.setMvccVersion(getMvccVersion());
+		calendarBookingImpl.setCtCollectionId(getCtCollectionId());
 		calendarBookingImpl.setUuid(getUuid());
 		calendarBookingImpl.setCalendarBookingId(getCalendarBookingId());
 		calendarBookingImpl.setGroupId(getGroupId());
@@ -1826,6 +1743,76 @@ public class CalendarBookingModelImpl
 		calendarBookingImpl.setStatusDate(getStatusDate());
 
 		calendarBookingImpl.resetOriginalValues();
+
+		return calendarBookingImpl;
+	}
+
+	@Override
+	public CalendarBooking cloneWithOriginalValues() {
+		CalendarBookingImpl calendarBookingImpl = new CalendarBookingImpl();
+
+		calendarBookingImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		calendarBookingImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		calendarBookingImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		calendarBookingImpl.setCalendarBookingId(
+			this.<Long>getColumnOriginalValue("calendarBookingId"));
+		calendarBookingImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		calendarBookingImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		calendarBookingImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		calendarBookingImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		calendarBookingImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		calendarBookingImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		calendarBookingImpl.setCalendarId(
+			this.<Long>getColumnOriginalValue("calendarId"));
+		calendarBookingImpl.setCalendarResourceId(
+			this.<Long>getColumnOriginalValue("calendarResourceId"));
+		calendarBookingImpl.setParentCalendarBookingId(
+			this.<Long>getColumnOriginalValue("parentCalendarBookingId"));
+		calendarBookingImpl.setRecurringCalendarBookingId(
+			this.<Long>getColumnOriginalValue("recurringCalendarBookingId"));
+		calendarBookingImpl.setVEventUid(
+			this.<String>getColumnOriginalValue("vEventUid"));
+		calendarBookingImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+		calendarBookingImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		calendarBookingImpl.setLocation(
+			this.<String>getColumnOriginalValue("location"));
+		calendarBookingImpl.setStartTime(
+			this.<Long>getColumnOriginalValue("startTime"));
+		calendarBookingImpl.setEndTime(
+			this.<Long>getColumnOriginalValue("endTime"));
+		calendarBookingImpl.setAllDay(
+			this.<Boolean>getColumnOriginalValue("allDay"));
+		calendarBookingImpl.setRecurrence(
+			this.<String>getColumnOriginalValue("recurrence"));
+		calendarBookingImpl.setFirstReminder(
+			this.<Long>getColumnOriginalValue("firstReminder"));
+		calendarBookingImpl.setFirstReminderType(
+			this.<String>getColumnOriginalValue("firstReminderType"));
+		calendarBookingImpl.setSecondReminder(
+			this.<Long>getColumnOriginalValue("secondReminder"));
+		calendarBookingImpl.setSecondReminderType(
+			this.<String>getColumnOriginalValue("secondReminderType"));
+		calendarBookingImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		calendarBookingImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		calendarBookingImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		calendarBookingImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		calendarBookingImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
 
 		return calendarBookingImpl;
 	}
@@ -1917,6 +1904,8 @@ public class CalendarBookingModelImpl
 			new CalendarBookingCacheModel();
 
 		calendarBookingCacheModel.mvccVersion = getMvccVersion();
+
+		calendarBookingCacheModel.ctCollectionId = getCtCollectionId();
 
 		calendarBookingCacheModel.uuid = getUuid();
 
@@ -2079,7 +2068,7 @@ public class CalendarBookingModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -2090,9 +2079,26 @@ public class CalendarBookingModelImpl
 			Function<CalendarBooking, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CalendarBooking)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CalendarBooking)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -2139,11 +2145,14 @@ public class CalendarBookingModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CalendarBooking>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CalendarBooking.class, ModelWrapper.class);
 
 	}
 
 	private long _mvccVersion;
+	private long _ctCollectionId;
 	private String _uuid;
 	private long _calendarBookingId;
 	private long _groupId;
@@ -2207,6 +2216,7 @@ public class CalendarBookingModelImpl
 		_columnOriginalValues = new HashMap<String, Object>();
 
 		_columnOriginalValues.put("mvccVersion", _mvccVersion);
+		_columnOriginalValues.put("ctCollectionId", _ctCollectionId);
 		_columnOriginalValues.put("uuid_", _uuid);
 		_columnOriginalValues.put("calendarBookingId", _calendarBookingId);
 		_columnOriginalValues.put("groupId", _groupId);
@@ -2263,63 +2273,65 @@ public class CalendarBookingModelImpl
 
 		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("uuid_", 2L);
+		columnBitmasks.put("ctCollectionId", 2L);
 
-		columnBitmasks.put("calendarBookingId", 4L);
+		columnBitmasks.put("uuid_", 4L);
 
-		columnBitmasks.put("groupId", 8L);
+		columnBitmasks.put("calendarBookingId", 8L);
 
-		columnBitmasks.put("companyId", 16L);
+		columnBitmasks.put("groupId", 16L);
 
-		columnBitmasks.put("userId", 32L);
+		columnBitmasks.put("companyId", 32L);
 
-		columnBitmasks.put("userName", 64L);
+		columnBitmasks.put("userId", 64L);
 
-		columnBitmasks.put("createDate", 128L);
+		columnBitmasks.put("userName", 128L);
 
-		columnBitmasks.put("modifiedDate", 256L);
+		columnBitmasks.put("createDate", 256L);
 
-		columnBitmasks.put("calendarId", 512L);
+		columnBitmasks.put("modifiedDate", 512L);
 
-		columnBitmasks.put("calendarResourceId", 1024L);
+		columnBitmasks.put("calendarId", 1024L);
 
-		columnBitmasks.put("parentCalendarBookingId", 2048L);
+		columnBitmasks.put("calendarResourceId", 2048L);
 
-		columnBitmasks.put("recurringCalendarBookingId", 4096L);
+		columnBitmasks.put("parentCalendarBookingId", 4096L);
 
-		columnBitmasks.put("vEventUid", 8192L);
+		columnBitmasks.put("recurringCalendarBookingId", 8192L);
 
-		columnBitmasks.put("title", 16384L);
+		columnBitmasks.put("vEventUid", 16384L);
 
-		columnBitmasks.put("description", 32768L);
+		columnBitmasks.put("title", 32768L);
 
-		columnBitmasks.put("location", 65536L);
+		columnBitmasks.put("description", 65536L);
 
-		columnBitmasks.put("startTime", 131072L);
+		columnBitmasks.put("location", 131072L);
 
-		columnBitmasks.put("endTime", 262144L);
+		columnBitmasks.put("startTime", 262144L);
 
-		columnBitmasks.put("allDay", 524288L);
+		columnBitmasks.put("endTime", 524288L);
 
-		columnBitmasks.put("recurrence", 1048576L);
+		columnBitmasks.put("allDay", 1048576L);
 
-		columnBitmasks.put("firstReminder", 2097152L);
+		columnBitmasks.put("recurrence", 2097152L);
 
-		columnBitmasks.put("firstReminderType", 4194304L);
+		columnBitmasks.put("firstReminder", 4194304L);
 
-		columnBitmasks.put("secondReminder", 8388608L);
+		columnBitmasks.put("firstReminderType", 8388608L);
 
-		columnBitmasks.put("secondReminderType", 16777216L);
+		columnBitmasks.put("secondReminder", 16777216L);
 
-		columnBitmasks.put("lastPublishDate", 33554432L);
+		columnBitmasks.put("secondReminderType", 33554432L);
 
-		columnBitmasks.put("status", 67108864L);
+		columnBitmasks.put("lastPublishDate", 67108864L);
 
-		columnBitmasks.put("statusByUserId", 134217728L);
+		columnBitmasks.put("status", 134217728L);
 
-		columnBitmasks.put("statusByUserName", 268435456L);
+		columnBitmasks.put("statusByUserId", 268435456L);
 
-		columnBitmasks.put("statusDate", 536870912L);
+		columnBitmasks.put("statusByUserName", 536870912L);
+
+		columnBitmasks.put("statusDate", 1073741824L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

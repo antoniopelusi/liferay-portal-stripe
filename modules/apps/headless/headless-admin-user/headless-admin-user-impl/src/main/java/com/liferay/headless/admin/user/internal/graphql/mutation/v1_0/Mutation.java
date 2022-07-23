@@ -14,20 +14,28 @@
 
 package com.liferay.headless.admin.user.internal.graphql.mutation.v1_0;
 
+import com.liferay.headless.admin.user.dto.v1_0.Account;
+import com.liferay.headless.admin.user.dto.v1_0.AccountRole;
 import com.liferay.headless.admin.user.dto.v1_0.Organization;
 import com.liferay.headless.admin.user.dto.v1_0.UserAccount;
+import com.liferay.headless.admin.user.dto.v1_0.UserGroup;
+import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
+import com.liferay.headless.admin.user.resource.v1_0.AccountRoleResource;
 import com.liferay.headless.admin.user.resource.v1_0.OrganizationResource;
 import com.liferay.headless.admin.user.resource.v1_0.RoleResource;
 import com.liferay.headless.admin.user.resource.v1_0.SubscriptionResource;
 import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
+import com.liferay.headless.admin.user.resource.v1_0.UserGroupResource;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
+import com.liferay.portal.vulcan.pagination.Page;
 
 import java.util.function.BiFunction;
 
@@ -49,6 +57,22 @@ import org.osgi.service.component.ComponentServiceObjects;
  */
 @Generated("")
 public class Mutation {
+
+	public static void setAccountResourceComponentServiceObjects(
+		ComponentServiceObjects<AccountResource>
+			accountResourceComponentServiceObjects) {
+
+		_accountResourceComponentServiceObjects =
+			accountResourceComponentServiceObjects;
+	}
+
+	public static void setAccountRoleResourceComponentServiceObjects(
+		ComponentServiceObjects<AccountRoleResource>
+			accountRoleResourceComponentServiceObjects) {
+
+		_accountRoleResourceComponentServiceObjects =
+			accountRoleResourceComponentServiceObjects;
+	}
 
 	public static void setOrganizationResourceComponentServiceObjects(
 		ComponentServiceObjects<OrganizationResource>
@@ -82,6 +106,485 @@ public class Mutation {
 			userAccountResourceComponentServiceObjects;
 	}
 
+	public static void setUserGroupResourceComponentServiceObjects(
+		ComponentServiceObjects<UserGroupResource>
+			userGroupResourceComponentServiceObjects) {
+
+		_userGroupResourceComponentServiceObjects =
+			userGroupResourceComponentServiceObjects;
+	}
+
+	@GraphQLField(description = "Creates a new account")
+	public Account createAccount(@GraphQLName("account") Account account)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.postAccount(account));
+	}
+
+	@GraphQLField
+	public Response createAccountBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.postAccountBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField(description = "Deletes an account.")
+	public boolean deleteAccountByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource ->
+				accountResource.deleteAccountByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the account with information sent in the request body. Only the provided fields are updated."
+	)
+	public Account patchAccountByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("account") Account account)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource ->
+				accountResource.patchAccountByExternalReferenceCode(
+					externalReferenceCode, account));
+	}
+
+	@GraphQLField(
+		description = "Replaces the account with information sent in the request body. Any missing fields are deleted unless they are required."
+	)
+	public Account updateAccountByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("account") Account account)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource ->
+				accountResource.putAccountByExternalReferenceCode(
+					externalReferenceCode, account));
+	}
+
+	@GraphQLField(description = "Deletes an account.")
+	public boolean deleteAccount(@GraphQLName("accountId") Long accountId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.deleteAccount(accountId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deleteAccountBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.deleteAccountBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField(
+		description = "Updates the account with information sent in the request body. Only the provided fields are updated."
+	)
+	public Account patchAccount(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("account") Account account)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.patchAccount(
+				accountId, account));
+	}
+
+	@GraphQLField(
+		description = "Replaces the account with information sent in the request body. Any missing fields are deleted unless they are required."
+	)
+	public Account updateAccount(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("account") Account account)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.putAccount(accountId, account));
+	}
+
+	@GraphQLField
+	public Response updateAccountBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.putAccountBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField
+	public boolean patchOrganizationMoveAccounts(
+			@GraphQLName("sourceOrganizationId") Long sourceOrganizationId,
+			@GraphQLName("targetOrganizationId") Long targetOrganizationId,
+			@GraphQLName("longs") Long[] longs)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.patchOrganizationMoveAccounts(
+				sourceOrganizationId, targetOrganizationId, longs));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean patchOrganizationMoveAccountsByExternalReferenceCode(
+			@GraphQLName("sourceOrganizationId") Long sourceOrganizationId,
+			@GraphQLName("targetOrganizationId") Long targetOrganizationId,
+			@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource ->
+				accountResource.
+					patchOrganizationMoveAccountsByExternalReferenceCode(
+						sourceOrganizationId, targetOrganizationId, strings));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean deleteOrganizationAccounts(
+			@GraphQLName("organizationId") Long organizationId,
+			@GraphQLName("longs") Long[] longs)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.deleteOrganizationAccounts(
+				organizationId, longs));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createOrganizationAccounts(
+			@GraphQLName("organizationId") Long organizationId,
+			@GraphQLName("longs") Long[] longs)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource -> accountResource.postOrganizationAccounts(
+				organizationId, longs));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean deleteOrganizationAccountsByExternalReferenceCode(
+			@GraphQLName("organizationId") Long organizationId,
+			@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource ->
+				accountResource.
+					deleteOrganizationAccountsByExternalReferenceCode(
+						organizationId, strings));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createOrganizationAccountsByExternalReferenceCode(
+			@GraphQLName("organizationId") Long organizationId,
+			@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountResource ->
+				accountResource.postOrganizationAccountsByExternalReferenceCode(
+					organizationId, strings));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Unassigns account users by external reference code from the account role"
+	)
+	public boolean
+			deleteAccountByExternalReferenceCodeAccountRoleUserAccountByExternalReferenceCode(
+				@GraphQLName("accountExternalReferenceCode") String
+					accountExternalReferenceCode,
+				@GraphQLName("accountRoleId") Long accountRoleId,
+				@GraphQLName("userAccountExternalReferenceCode") String
+					userAccountExternalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.
+					deleteAccountByExternalReferenceCodeAccountRoleUserAccountByExternalReferenceCode(
+						accountExternalReferenceCode, accountRoleId,
+						userAccountExternalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns account users by external reference code to the account role"
+	)
+	public boolean
+			createAccountByExternalReferenceCodeAccountRoleUserAccountByExternalReferenceCode(
+				@GraphQLName("accountExternalReferenceCode") String
+					accountExternalReferenceCode,
+				@GraphQLName("accountRoleId") Long accountRoleId,
+				@GraphQLName("userAccountExternalReferenceCode") String
+					userAccountExternalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.
+					postAccountByExternalReferenceCodeAccountRoleUserAccountByExternalReferenceCode(
+						accountExternalReferenceCode, accountRoleId,
+						userAccountExternalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(description = "Adds a role for the account")
+	public AccountRole createAccountAccountRoleByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("accountRole") AccountRole accountRole)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.
+					postAccountAccountRoleByExternalReferenceCode(
+						externalReferenceCode, accountRole));
+	}
+
+	@GraphQLField(
+		description = "Unassigns account users by email address from the account role"
+	)
+	public boolean
+			deleteAccountByExternalReferenceCodeAccountRoleUserAccountByEmailAddress(
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("accountRoleId") Long accountRoleId,
+				@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.
+					deleteAccountByExternalReferenceCodeAccountRoleUserAccountByEmailAddress(
+						externalReferenceCode, accountRoleId, emailAddress));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns account users by email address to the account role"
+	)
+	public boolean
+			createAccountByExternalReferenceCodeAccountRoleUserAccountByEmailAddress(
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("accountRoleId") Long accountRoleId,
+				@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.
+					postAccountByExternalReferenceCodeAccountRoleUserAccountByEmailAddress(
+						externalReferenceCode, accountRoleId, emailAddress));
+
+		return true;
+	}
+
+	@GraphQLField(description = "Adds a role for the account")
+	public AccountRole createAccountAccountRole(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("accountRole") AccountRole accountRole)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource -> accountRoleResource.postAccountAccountRole(
+				accountId, accountRole));
+	}
+
+	@GraphQLField
+	public Response createAccountAccountRoleBatch(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.postAccountAccountRoleBatch(
+					accountId, callbackURL, object));
+	}
+
+	@GraphQLField(description = "Unassigns account users to the account role")
+	public boolean deleteAccountAccountRoleUserAccountAssociation(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("accountRoleId") Long accountRoleId,
+			@GraphQLName("userAccountId") Long userAccountId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.
+					deleteAccountAccountRoleUserAccountAssociation(
+						accountId, accountRoleId, userAccountId));
+
+		return true;
+	}
+
+	@GraphQLField(description = "Assigns account users to the account role")
+	public boolean createAccountAccountRoleUserAccountAssociation(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("accountRoleId") Long accountRoleId,
+			@GraphQLName("userAccountId") Long userAccountId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_accountRoleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			accountRoleResource ->
+				accountRoleResource.
+					postAccountAccountRoleUserAccountAssociation(
+						accountId, accountRoleId, userAccountId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean deleteAccountByExternalReferenceCodeOrganization(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.
+					deleteAccountByExternalReferenceCodeOrganization(
+						externalReferenceCode, organizationId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createAccountByExternalReferenceCodeOrganization(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.
+					postAccountByExternalReferenceCodeOrganization(
+						externalReferenceCode, organizationId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean deleteAccountOrganization(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.deleteAccountOrganization(
+					accountId, organizationId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createAccountOrganization(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.postAccountOrganization(
+					accountId, organizationId));
+
+		return true;
+	}
+
 	@GraphQLField(description = "Creates a new organization")
 	public Organization createOrganization(
 			@GraphQLName("organization") Organization organization)
@@ -105,6 +608,53 @@ public class Mutation {
 			this::_populateResourceContext,
 			organizationResource -> organizationResource.postOrganizationBatch(
 				callbackURL, object));
+	}
+
+	@GraphQLField(description = "Deletes an organization.")
+	public boolean deleteOrganizationByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.deleteOrganizationByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the organization with information sent in the request body. Only the provided fields are updated."
+	)
+	public Organization patchOrganizationByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organization") Organization organization)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.patchOrganizationByExternalReferenceCode(
+					externalReferenceCode, organization));
+	}
+
+	@GraphQLField(
+		description = "Replaces the organization with information sent in the request body. Any missing fields are deleted unless they are required."
+	)
+	public Organization updateOrganizationByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organization") Organization organization)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.putOrganizationByExternalReferenceCode(
+					externalReferenceCode, organization));
 	}
 
 	@GraphQLField(description = "Deletes an organization.")
@@ -176,6 +726,79 @@ public class Mutation {
 			this::_populateResourceContext,
 			organizationResource -> organizationResource.putOrganizationBatch(
 				callbackURL, object));
+	}
+
+	@GraphQLField(
+		description = "Removes users from an organization by their email addresses"
+	)
+	public boolean deleteUserAccountsByEmailAddress(
+			@GraphQLName("organizationId") String organizationId,
+			@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.deleteUserAccountsByEmailAddress(
+					organizationId, strings));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns users to an organization by their email addresses"
+	)
+	public java.util.Collection<UserAccount> createUserAccountsByEmailAddress(
+			@GraphQLName("organizationId") String organizationId,
+			@GraphQLName("organizationRoleIds") String organizationRoleIds,
+			@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource -> {
+				Page paginationPage =
+					organizationResource.postUserAccountsByEmailAddress(
+						organizationId, organizationRoleIds, strings);
+
+				return paginationPage.getItems();
+			});
+	}
+
+	@GraphQLField(
+		description = "Removes a user from an organization by their email address"
+	)
+	public boolean deleteUserAccountByEmailAddress(
+			@GraphQLName("organizationId") String organizationId,
+			@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.deleteUserAccountByEmailAddress(
+					organizationId, emailAddress));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns a user to an organization by their email address"
+	)
+	public UserAccount createUserAccountByEmailAddress(
+			@GraphQLName("organizationId") String organizationId,
+			@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.postUserAccountByEmailAddress(
+					organizationId, emailAddress));
 	}
 
 	@GraphQLField(description = "Unassociates a role with a user account")
@@ -293,6 +916,257 @@ public class Mutation {
 		return true;
 	}
 
+	@GraphQLField(
+		description = "Removes a user by their external reference code from an account by external reference code"
+	)
+	public boolean
+			deleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCode(
+				@GraphQLName("accountExternalReferenceCode") String
+					accountExternalReferenceCode,
+				@GraphQLName("userAccountExternalReferenceCode") String
+					userAccountExternalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.
+					deleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCode(
+						accountExternalReferenceCode,
+						userAccountExternalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns a user by their external reference code to an account by external reference code"
+	)
+	public boolean
+			createAccountByExternalReferenceCodeUserAccountByExternalReferenceCode(
+				@GraphQLName("accountExternalReferenceCode") String
+					accountExternalReferenceCode,
+				@GraphQLName("userAccountExternalReferenceCode") String
+					userAccountExternalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.
+					postAccountByExternalReferenceCodeUserAccountByExternalReferenceCode(
+						accountExternalReferenceCode,
+						userAccountExternalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Creates a user and assigns them to the account"
+	)
+	public UserAccount createAccountUserAccountByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("userAccount") UserAccount userAccount)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.
+					postAccountUserAccountByExternalReferenceCode(
+						externalReferenceCode, userAccount));
+	}
+
+	@GraphQLField(
+		description = "Removes users from an account by their email addresses"
+	)
+	public boolean
+			deleteAccountUserAccountsByExternalReferenceCodeByEmailAddress(
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.
+					deleteAccountUserAccountsByExternalReferenceCodeByEmailAddress(
+						externalReferenceCode, strings));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns users to an account by their email addresses"
+	)
+	public boolean
+			createAccountUserAccountsByExternalReferenceCodeByEmailAddress(
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.
+					postAccountUserAccountsByExternalReferenceCodeByEmailAddress(
+						externalReferenceCode, strings));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Removes a user from an account by external reference code by their email address"
+	)
+	public boolean
+			deleteAccountUserAccountByExternalReferenceCodeByEmailAddress(
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.
+					deleteAccountUserAccountByExternalReferenceCodeByEmailAddress(
+						externalReferenceCode, emailAddress));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns a user to an account by external reference code by their email address"
+	)
+	public boolean
+			createAccountUserAccountByExternalReferenceCodeByEmailAddress(
+				@GraphQLName("externalReferenceCode") String
+					externalReferenceCode,
+				@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.
+					postAccountUserAccountByExternalReferenceCodeByEmailAddress(
+						externalReferenceCode, emailAddress));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Creates a user and assigns them to the account"
+	)
+	public UserAccount createAccountUserAccount(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("userAccount") UserAccount userAccount)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource -> userAccountResource.postAccountUserAccount(
+				accountId, userAccount));
+	}
+
+	@GraphQLField
+	public Response createAccountUserAccountBatch(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.postAccountUserAccountBatch(
+					accountId, callbackURL, object));
+	}
+
+	@GraphQLField(
+		description = "Removes users from an account by their email addresses"
+	)
+	public boolean deleteAccountUserAccountsByEmailAddress(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.deleteAccountUserAccountsByEmailAddress(
+					accountId, strings));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns users to an account by their email addresses"
+	)
+	public java.util.Collection<UserAccount>
+			createAccountUserAccountsByEmailAddress(
+				@GraphQLName("accountId") Long accountId,
+				@GraphQLName("accountRoleIds") String accountRoleIds,
+				@GraphQLName("strings") String[] strings)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource -> {
+				Page paginationPage =
+					userAccountResource.postAccountUserAccountsByEmailAddress(
+						accountId, accountRoleIds, strings);
+
+				return paginationPage.getItems();
+			});
+	}
+
+	@GraphQLField(
+		description = "Removes a user from an account by their email address"
+	)
+	public boolean deleteAccountUserAccountByEmailAddress(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.deleteAccountUserAccountByEmailAddress(
+					accountId, emailAddress));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Assigns a user to an account by their email address"
+	)
+	public UserAccount createAccountUserAccountByEmailAddress(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("emailAddress") String emailAddress)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.postAccountUserAccountByEmailAddress(
+					accountId, emailAddress));
+	}
+
 	@GraphQLField(description = "Creates a new user account")
 	public UserAccount createUserAccount(
 			@GraphQLName("userAccount") UserAccount userAccount)
@@ -316,6 +1190,35 @@ public class Mutation {
 			this::_populateResourceContext,
 			userAccountResource -> userAccountResource.postUserAccountBatch(
 				callbackURL, object));
+	}
+
+	@GraphQLField
+	public boolean deleteUserAccountByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.deleteUserAccountByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField
+	public UserAccount updateUserAccountByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("userAccount") UserAccount userAccount)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userAccountResource ->
+				userAccountResource.putUserAccountByExternalReferenceCode(
+					externalReferenceCode, userAccount));
 	}
 
 	@GraphQLField(description = "Deletes the user account")
@@ -388,6 +1291,168 @@ public class Mutation {
 				callbackURL, object));
 	}
 
+	@GraphQLField
+	public UserGroup createUserGroup(
+			@GraphQLName("userGroup") UserGroup userGroup)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.postUserGroup(userGroup));
+	}
+
+	@GraphQLField
+	public Response createUserGroupBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.postUserGroupBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField
+	public boolean deleteUserGroupByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource ->
+				userGroupResource.deleteUserGroupByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField
+	public UserGroup patchUserGroupByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("userGroup") UserGroup userGroup)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource ->
+				userGroupResource.patchUserGroupByExternalReferenceCode(
+					externalReferenceCode, userGroup));
+	}
+
+	@GraphQLField
+	public UserGroup updateUserGroupByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("userGroup") UserGroup userGroup)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource ->
+				userGroupResource.putUserGroupByExternalReferenceCode(
+					externalReferenceCode, userGroup));
+	}
+
+	@GraphQLField
+	public boolean deleteUserGroup(@GraphQLName("userGroupId") Long userGroupId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.deleteUserGroup(
+				userGroupId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deleteUserGroupBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.deleteUserGroupBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField
+	public UserGroup patchUserGroup(
+			@GraphQLName("userGroupId") Long userGroupId,
+			@GraphQLName("userGroup") UserGroup userGroup)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.patchUserGroup(
+				userGroupId, userGroup));
+	}
+
+	@GraphQLField
+	public UserGroup updateUserGroup(
+			@GraphQLName("userGroupId") Long userGroupId,
+			@GraphQLName("userGroup") UserGroup userGroup)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.putUserGroup(
+				userGroupId, userGroup));
+	}
+
+	@GraphQLField
+	public Response updateUserGroupBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.putUserGroupBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField
+	public boolean deleteUserGroupUsers(
+			@GraphQLName("userGroupId") Long userGroupId,
+			@GraphQLName("longs") Long[] longs)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.deleteUserGroupUsers(
+				userGroupId, longs));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createUserGroupUsers(
+			@GraphQLName("userGroupId") Long userGroupId,
+			@GraphQLName("longs") Long[] longs)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.postUserGroupUsers(
+				userGroupId, longs));
+
+		return true;
+	}
+
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R
 			_applyComponentServiceObjects(
 				ComponentServiceObjects<T> componentServiceObjects,
@@ -426,6 +1491,39 @@ public class Mutation {
 		}
 	}
 
+	private void _populateResourceContext(AccountResource accountResource)
+		throws Exception {
+
+		accountResource.setContextAcceptLanguage(_acceptLanguage);
+		accountResource.setContextCompany(_company);
+		accountResource.setContextHttpServletRequest(_httpServletRequest);
+		accountResource.setContextHttpServletResponse(_httpServletResponse);
+		accountResource.setContextUriInfo(_uriInfo);
+		accountResource.setContextUser(_user);
+		accountResource.setGroupLocalService(_groupLocalService);
+		accountResource.setRoleLocalService(_roleLocalService);
+
+		accountResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
+	}
+
+	private void _populateResourceContext(
+			AccountRoleResource accountRoleResource)
+		throws Exception {
+
+		accountRoleResource.setContextAcceptLanguage(_acceptLanguage);
+		accountRoleResource.setContextCompany(_company);
+		accountRoleResource.setContextHttpServletRequest(_httpServletRequest);
+		accountRoleResource.setContextHttpServletResponse(_httpServletResponse);
+		accountRoleResource.setContextUriInfo(_uriInfo);
+		accountRoleResource.setContextUser(_user);
+		accountRoleResource.setGroupLocalService(_groupLocalService);
+		accountRoleResource.setRoleLocalService(_roleLocalService);
+
+		accountRoleResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
+	}
+
 	private void _populateResourceContext(
 			OrganizationResource organizationResource)
 		throws Exception {
@@ -439,6 +1537,9 @@ public class Mutation {
 		organizationResource.setContextUser(_user);
 		organizationResource.setGroupLocalService(_groupLocalService);
 		organizationResource.setRoleLocalService(_roleLocalService);
+
+		organizationResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
 	}
 
 	private void _populateResourceContext(RoleResource roleResource)
@@ -452,6 +1553,9 @@ public class Mutation {
 		roleResource.setContextUser(_user);
 		roleResource.setGroupLocalService(_groupLocalService);
 		roleResource.setRoleLocalService(_roleLocalService);
+
+		roleResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
 	}
 
 	private void _populateResourceContext(
@@ -467,6 +1571,9 @@ public class Mutation {
 		subscriptionResource.setContextUser(_user);
 		subscriptionResource.setGroupLocalService(_groupLocalService);
 		subscriptionResource.setRoleLocalService(_roleLocalService);
+
+		subscriptionResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
 	}
 
 	private void _populateResourceContext(
@@ -481,8 +1588,31 @@ public class Mutation {
 		userAccountResource.setContextUser(_user);
 		userAccountResource.setGroupLocalService(_groupLocalService);
 		userAccountResource.setRoleLocalService(_roleLocalService);
+
+		userAccountResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
 	}
 
+	private void _populateResourceContext(UserGroupResource userGroupResource)
+		throws Exception {
+
+		userGroupResource.setContextAcceptLanguage(_acceptLanguage);
+		userGroupResource.setContextCompany(_company);
+		userGroupResource.setContextHttpServletRequest(_httpServletRequest);
+		userGroupResource.setContextHttpServletResponse(_httpServletResponse);
+		userGroupResource.setContextUriInfo(_uriInfo);
+		userGroupResource.setContextUser(_user);
+		userGroupResource.setGroupLocalService(_groupLocalService);
+		userGroupResource.setRoleLocalService(_roleLocalService);
+
+		userGroupResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
+	}
+
+	private static ComponentServiceObjects<AccountResource>
+		_accountResourceComponentServiceObjects;
+	private static ComponentServiceObjects<AccountRoleResource>
+		_accountRoleResourceComponentServiceObjects;
 	private static ComponentServiceObjects<OrganizationResource>
 		_organizationResourceComponentServiceObjects;
 	private static ComponentServiceObjects<RoleResource>
@@ -491,6 +1621,8 @@ public class Mutation {
 		_subscriptionResourceComponentServiceObjects;
 	private static ComponentServiceObjects<UserAccountResource>
 		_userAccountResourceComponentServiceObjects;
+	private static ComponentServiceObjects<UserGroupResource>
+		_userGroupResourceComponentServiceObjects;
 
 	private AcceptLanguage _acceptLanguage;
 	private com.liferay.portal.kernel.model.Company _company;
@@ -501,5 +1633,7 @@ public class Mutation {
 	private BiFunction<Object, String, Sort[]> _sortsBiFunction;
 	private UriInfo _uriInfo;
 	private com.liferay.portal.kernel.model.User _user;
+	private VulcanBatchEngineImportTaskResource
+		_vulcanBatchEngineImportTaskResource;
 
 }

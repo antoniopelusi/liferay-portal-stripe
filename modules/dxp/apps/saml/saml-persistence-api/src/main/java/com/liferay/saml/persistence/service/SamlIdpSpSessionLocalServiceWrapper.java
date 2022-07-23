@@ -27,6 +27,10 @@ public class SamlIdpSpSessionLocalServiceWrapper
 	implements SamlIdpSpSessionLocalService,
 			   ServiceWrapper<SamlIdpSpSessionLocalService> {
 
+	public SamlIdpSpSessionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SamlIdpSpSessionLocalServiceWrapper(
 		SamlIdpSpSessionLocalService samlIdpSpSessionLocalService) {
 
@@ -147,6 +151,13 @@ public class SamlIdpSpSessionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _samlIdpSpSessionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _samlIdpSpSessionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

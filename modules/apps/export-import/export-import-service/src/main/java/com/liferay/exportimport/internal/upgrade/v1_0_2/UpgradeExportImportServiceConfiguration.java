@@ -18,7 +18,7 @@ import com.liferay.exportimport.configuration.ExportImportServiceConfiguration;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.staging.configuration.StagingConfiguration;
 
 import java.util.Dictionary;
@@ -41,10 +41,10 @@ public class UpgradeExportImportServiceConfiguration extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeExportImportServiceConfiguration();
+		_upgradeExportImportServiceConfiguration();
 	}
 
-	protected void upgradeExportImportServiceConfiguration() throws Exception {
+	private void _upgradeExportImportServiceConfiguration() throws Exception {
 		Configuration[] exportImportServiceConfigurations =
 			_configurationAdmin.listConfigurations(
 				"(service.pid=" +
@@ -65,31 +65,30 @@ public class UpgradeExportImportServiceConfiguration extends UpgradeProcess {
 			}
 
 			Dictionary<String, Object> stagingProperties =
-				new HashMapDictionary<>();
-
-			stagingProperties.put(
-				"publishParentLayoutsByDefault",
-				GetterUtil.getBoolean(
-					exportImportProperties.remove(
-						"publishParentLayoutsByDefault"),
-					true));
-			stagingProperties.put(
-				"stagingDeleteTempLAROnFailure",
-				GetterUtil.getBoolean(
-					exportImportProperties.remove(
-						"stagingDeleteTempLAROnFailure"),
-					true));
-			stagingProperties.put(
-				"stagingDeleteTempLAROnSuccess",
-				GetterUtil.getBoolean(
-					exportImportProperties.remove(
-						"stagingDeleteTempLarOnSuccess"),
-					true));
-			stagingProperties.put(
-				"stagingUseVirtualHostForRemoteSite",
-				GetterUtil.getBoolean(
-					exportImportProperties.remove(
-						"stagingUseVirtualHostForRemoteSite")));
+				HashMapDictionaryBuilder.<String, Object>put(
+					"publishParentLayoutsByDefault",
+					GetterUtil.getBoolean(
+						exportImportProperties.remove(
+							"publishParentLayoutsByDefault"),
+						true)
+				).put(
+					"stagingDeleteTempLAROnFailure",
+					GetterUtil.getBoolean(
+						exportImportProperties.remove(
+							"stagingDeleteTempLAROnFailure"),
+						true)
+				).put(
+					"stagingDeleteTempLAROnSuccess",
+					GetterUtil.getBoolean(
+						exportImportProperties.remove(
+							"stagingDeleteTempLarOnSuccess"),
+						true)
+				).put(
+					"stagingUseVirtualHostForRemoteSite",
+					GetterUtil.getBoolean(
+						exportImportProperties.remove(
+							"stagingUseVirtualHostForRemoteSite"))
+				).build();
 
 			exportImportServiceConfiguration.update(exportImportProperties);
 

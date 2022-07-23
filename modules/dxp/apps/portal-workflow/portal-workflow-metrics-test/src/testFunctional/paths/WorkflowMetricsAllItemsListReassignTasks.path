@@ -1,0 +1,56 @@
+<html>
+<head>
+<title>WorkflowMetricsAllItemsListReassignTasks</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">WorkflowMetricsAllItemsListReassignTasks</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>FILTER_CLEAR_ALL</td>
+	<td>//div[contains(@class, 'modal-content')]//button[contains(@class, 'component-link tbar-link btn btn-sm btn-link')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_REASSIGN_TASKS_CARD_FILTER_PROCESS_STEP</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), 'Process Step')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_REASSIGN_TASKS_CARD_FILTER_OPTION_PROCESS_STEP</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//span[contains(@class, 'dropdown-item')]//*[text()='${key_workflowStep}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_REASSIGN_TASKS_CARD_FILTER_ASSIGNEE</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), 'Assignee')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_REASSIGN_TASKS_CARD_FILTER_OPTION_ASSIGNEE</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//span[contains(@class, 'dropdown-item')]//*[text()='${key_workflowAssignee}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER</td>
+	<td>//strong[contains(text(), '${key_workflowFilter}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_ALL_ITEMS_LIST_ORDER</td>
+	<td>//tbody//tr[@class][${key_order}]//td[@title='${key_title}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METRICS_REASSIGN_LIST_ORDER</td>
+	<td>//div[contains(@class, 'modal-content')]//tbody//tr[@class][${key_order}]//td[text()='${key_title}']</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

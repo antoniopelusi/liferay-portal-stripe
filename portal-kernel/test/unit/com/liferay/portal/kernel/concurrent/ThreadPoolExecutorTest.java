@@ -562,8 +562,7 @@ public class ThreadPoolExecutorTest {
 		Assert.assertEquals(
 			60 * 1000000000L,
 			threadPoolExecutor.getKeepAliveTime(TimeUnit.NANOSECONDS));
-		Assert.assertEquals(
-			false, threadPoolExecutor.isAllowCoreThreadTimeout());
+		Assert.assertFalse(threadPoolExecutor.isAllowCoreThreadTimeout());
 		Assert.assertEquals(
 			Integer.MAX_VALUE,
 			threadPoolExecutor.getRemainingTaskQueueCapacity());
@@ -594,8 +593,7 @@ public class ThreadPoolExecutorTest {
 		Assert.assertEquals(
 			TestUtil.KEEPALIVE_TIME * 1000000,
 			threadPoolExecutor.getKeepAliveTime(TimeUnit.NANOSECONDS));
-		Assert.assertEquals(
-			true, threadPoolExecutor.isAllowCoreThreadTimeout());
+		Assert.assertTrue(threadPoolExecutor.isAllowCoreThreadTimeout());
 		Assert.assertEquals(
 			3, threadPoolExecutor.getRemainingTaskQueueCapacity());
 
@@ -633,8 +631,7 @@ public class ThreadPoolExecutorTest {
 		Assert.assertEquals(
 			TestUtil.KEEPALIVE_TIME * 1000000,
 			threadPoolExecutor.getKeepAliveTime(TimeUnit.NANOSECONDS));
-		Assert.assertEquals(
-			true, threadPoolExecutor.isAllowCoreThreadTimeout());
+		Assert.assertTrue(threadPoolExecutor.isAllowCoreThreadTimeout());
 		Assert.assertEquals(
 			3, threadPoolExecutor.getRemainingTaskQueueCapacity());
 		Assert.assertSame(
@@ -795,9 +792,7 @@ public class ThreadPoolExecutorTest {
 		executeLatch.await();
 
 		try {
-			MarkerBlockingJob markerBlockingJob = new MarkerBlockingJob();
-
-			threadPoolExecutor.execute(markerBlockingJob);
+			threadPoolExecutor.execute(new MarkerBlockingJob());
 
 			List<Runnable> rejectedList =
 				recordRejectedExecutionHandler.getRejectedList();

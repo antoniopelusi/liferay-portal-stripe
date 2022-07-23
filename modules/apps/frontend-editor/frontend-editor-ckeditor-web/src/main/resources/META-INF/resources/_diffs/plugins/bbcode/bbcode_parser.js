@@ -15,12 +15,13 @@
 (function () {
 	var A = AUI();
 
-	var entities = A.merge(Liferay.Util.MAP_HTML_CHARS_ESCAPED, {
+	var entities = {
+		...Liferay.Util.MAP_HTML_CHARS_ESCAPED,
 		'(': '&#40;',
 		')': '&#41;',
 		'[': '&#91;',
 		']': '&#93;',
-	});
+	};
 
 	var BBCodeUtil = Liferay.namespace('BBCodeUtil');
 
@@ -57,24 +58,24 @@
 	var hasOwnProperty = Object.prototype.hasOwnProperty;
 
 	var isString = function (val) {
-		return typeof val == 'string';
+		return typeof val === 'string';
 	};
 
 	var ELEMENTS_BLOCK = {
 		'*': 1,
-		center: 1,
-		code: 1,
-		justify: 1,
-		left: 1,
-		li: 1,
-		list: 1,
-		q: 1,
-		quote: 1,
-		right: 1,
-		table: 1,
-		td: 1,
-		th: 1,
-		tr: 1,
+		'center': 1,
+		'code': 1,
+		'justify': 1,
+		'left': 1,
+		'li': 1,
+		'list': 1,
+		'q': 1,
+		'quote': 1,
+		'right': 1,
+		'table': 1,
+		'td': 1,
+		'th': 1,
+		'tr': 1,
 	};
 
 	var ELEMENTS_CLOSE_SELF = {
@@ -86,6 +87,7 @@
 		color: 1,
 		font: 1,
 		i: 1,
+		// eslint-disable-next-line @liferay/no-abbreviations
 		img: 1,
 		s: 1,
 		size: 1,
@@ -157,7 +159,7 @@
 				tagName = tagName.toLowerCase();
 
 				for (pos = stack.length - 1; pos >= 0; pos--) {
-					if (stack[pos] == tagName) {
+					if (stack[pos] === tagName) {
 						break;
 					}
 				}
@@ -198,7 +200,7 @@
 
 				if (
 					hasOwnProperty.call(ELEMENTS_CLOSE_SELF, tagName) &&
-					stack.last() == tagName
+					stack.last() === tagName
 				) {
 					instance._handleTagEnd(tagName);
 				}
@@ -269,10 +271,10 @@
 				if (token[1]) {
 					instance._handleTagStart(token);
 
-					if (token[1].toLowerCase() == STR_TAG_CODE) {
+					if (token[1].toLowerCase() === STR_TAG_CODE) {
 						while (
 							(token = lexer.getNextToken()) &&
-							token[3] != STR_TAG_CODE
+							token[3] !== STR_TAG_CODE
 						) {
 
 							// Continue.
@@ -334,43 +336,44 @@
 
 	var MAP_HANDLERS = {
 		'*': '_handleListItem',
-		b: '_handleStrong',
-		center: '_handleTextAlign',
-		code: '_handleCode',
-		color: '_handleColor',
-		colour: '_handleColor',
-		email: '_handleEmail',
-		font: '_handleFont',
-		i: '_handleEm',
-		img: '_handleImage',
-		justify: '_handleTextAlign',
-		left: '_handleTextAlign',
-		li: '_handleListItem',
-		list: '_handleList',
-		q: '_handleQuote',
-		quote: '_handleQuote',
-		right: '_handleTextAlign',
-		s: '_handleStrikeThrough',
-		size: '_handleSize',
-		table: '_handleTable',
-		td: '_handleTableCell',
-		th: '_handleTableHeader',
-		tr: '_handleTableRow',
-		url: '_handleURL',
+		'b': '_handleStrong',
+		'center': '_handleTextAlign',
+		'code': '_handleCode',
+		'color': '_handleColor',
+		'colour': '_handleColor',
+		'email': '_handleEmail',
+		'font': '_handleFont',
+		'i': '_handleEm',
+		// eslint-disable-next-line @liferay/no-abbreviations
+		'img': '_handleImage',
+		'justify': '_handleTextAlign',
+		'left': '_handleTextAlign',
+		'li': '_handleListItem',
+		'list': '_handleList',
+		'q': '_handleQuote',
+		'quote': '_handleQuote',
+		'right': '_handleTextAlign',
+		's': '_handleStrikeThrough',
+		'size': '_handleSize',
+		'table': '_handleTable',
+		'td': '_handleTableCell',
+		'th': '_handleTableHeader',
+		'tr': '_handleTableRow',
+		'url': '_handleURL',
 	};
 
 	var MAP_IMAGE_ATTRIBUTES = {
-		alt: 1,
-		class: 1,
+		'alt': 1,
+		'class': 1,
 		'data-image-id': 1,
-		dir: 1,
-		height: 1,
-		id: 1,
-		lang: 1,
-		longdesc: 1,
-		style: 1,
-		title: 1,
-		width: 1,
+		'dir': 1,
+		'height': 1,
+		'id': 1,
+		'lang': 1,
+		'longdesc': 1,
+		'style': 1,
+		'title': 1,
+		'width': 1,
 	};
 
 	var MAP_ORDERED_LIST_STYLES = {
@@ -383,11 +386,11 @@
 
 	var MAP_TOKENS_EXCLUDE_NEW_LINE = {
 		'*': 3,
-		li: 3,
-		table: 2,
-		td: 3,
-		th: 3,
-		tr: 3,
+		'li': 3,
+		'table': 2,
+		'td': 3,
+		'th': 3,
+		'tr': 3,
 	};
 
 	var MAP_UNORDERED_LIST_STYLES = {

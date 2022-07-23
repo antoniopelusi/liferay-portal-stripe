@@ -70,7 +70,7 @@ CommerceCountriesDisplayContext commerceCountriesDisplayContext = (CommerceCount
 
 		<liferay-frontend:management-bar-action-buttons>
 			<liferay-frontend:management-bar-button
-				href='<%= "javascript:" + liferayPortletResponse.getNamespace() + "deleteCountries();" %>'
+				href='<%= "javascript:" + liferayPortletResponse.getNamespace() + "deleteCommerceCountries();" %>'
 				icon="times"
 				label="delete"
 			/>
@@ -95,7 +95,7 @@ CommerceCountriesDisplayContext commerceCountriesDisplayContext = (CommerceCount
 					modelVar="country"
 				>
 					<liferay-ui:search-container-column-text
-						cssClass="important table-cell-expand"
+						cssClass="font-weight-bold important table-cell-expand"
 						href='<%=
 							PortletURLBuilder.createRenderURL(
 								renderResponse
@@ -105,7 +105,7 @@ CommerceCountriesDisplayContext commerceCountriesDisplayContext = (CommerceCount
 								currentURL
 							).setParameter(
 								"countryId", country.getCountryId()
-							).build()
+							).buildPortletURL()
 						%>'
 						name="name"
 						value="<%= HtmlUtil.escape(country.getTitle(locale)) %>"

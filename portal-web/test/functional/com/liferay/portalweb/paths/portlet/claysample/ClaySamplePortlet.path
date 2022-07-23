@@ -2,11 +2,13 @@
 <head>
 <title>ClaySamplePortlet</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ClaySamplePortlet</td></tr>
 </thead>
+
 <tbody>
 <!--FORM_ELEMENTS-->
 <tr>
@@ -32,6 +34,31 @@
 <tr>
 	<td>CHECKBOX_WITH_CUSTOM_CLASS_AND_ID</td>
 	<td>//input[@type='checkbox' and @id='customId' and contains(@class,'custom-css-class')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECKBOX_SELECTABLE_IMAGE_CARD</td>
+	<td>//h4[contains(text(), '${key_header}')]//following::div[contains(@id,'image-card-icon-block')]//input[contains(@type,'checkbox')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECKBOX_NESTED</td>
+	<td>//div[contains(@class,'autofit-row')]//div[contains(text(),'${key_label}')]//..//..//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CARD_ACTIVE</td>
+	<td>//h4[contains(text(), '${key_header}')]//following::div[contains(@class,'active file-card')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>KEBAB_DROPDOWN_CARD_OPTION</td>
+	<td>//h4[contains(text(), '${key_header}')]//following::div[contains(@id,'image-card-icon-block')]//button[contains(@class, 'dropdown-toggle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TITLE_CARD</td>
+	<td>//h4[contains(text(), '${key_header}')]//following::a[contains(text(),'${key_title}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -77,6 +104,22 @@
 <tr>
 	<td>MULTISELECT_DROPDOWN_ITEM_STICKER</td>
 	<td>//div[contains(@class,'dropdown-menu') and contains(@class, 'show')]//button[.='${key_item}']/..//span[contains(@class,'sticker-overlay')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CLAY_SECTION</td>
+	<td>//section[contains(@id,'portlet_ClaySamplePortlet')]</td>
+	<td></td>
+</tr>
+<!--MANAGEMENT_TOOLBARS-->
+<tr>
+	<td>DISPLAY_CONTEXT_CHECKBOX</td>
+	<td>//div[not(contains(@class,'hide')) and contains(@id, 'tabs')]//h3[text()='USING DISPLAY CONTEXT']//following::nav[contains(@class,'management-bar')][1]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_CONTEXT_CONTAINER</td>
+	<td>//h3[text()='USING DISPLAY CONTEXT']//following::nav[contains(@class,'management-bar')]/*[contains(@class,'container')]</td>
 	<td></td>
 </tr>
 </tbody>

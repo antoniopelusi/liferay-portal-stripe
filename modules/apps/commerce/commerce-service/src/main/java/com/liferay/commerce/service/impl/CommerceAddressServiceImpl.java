@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.service.impl;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.account.service.CommerceAccountService;
 import com.liferay.commerce.model.CommerceAddress;
@@ -394,7 +395,9 @@ public class CommerceAddressServiceImpl extends CommerceAddressServiceBaseImpl {
 		if (className.equals(CommerceOrder.class.getName())) {
 			commerceOrderService.getCommerceOrder(classPK);
 		}
-		else if (className.equals(CommerceAccount.class.getName())) {
+		else if (className.equals(AccountEntry.class.getName()) ||
+				 className.equals(CommerceAccount.class.getName())) {
+
 			_commerceAccountService.getCommerceAccount(classPK);
 		}
 	}

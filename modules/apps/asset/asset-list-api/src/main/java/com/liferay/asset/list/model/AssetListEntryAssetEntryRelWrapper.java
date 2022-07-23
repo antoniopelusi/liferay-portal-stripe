@@ -163,6 +163,11 @@ public class AssetListEntryAssetEntryRelWrapper
 		}
 	}
 
+	@Override
+	public AssetListEntryAssetEntryRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the asset entry ID of this asset list entry asset entry rel.
 	 *

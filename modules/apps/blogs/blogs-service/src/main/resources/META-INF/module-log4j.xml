@@ -3,7 +3,6 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="INFO" name="com.liferay.blogs.service.impl.BlogsEntryLocalServiceImpl" />
-
 		<Logger level="INFO" name="com.liferay.blogs.util" />
 	</Loggers>
 </Configuration>

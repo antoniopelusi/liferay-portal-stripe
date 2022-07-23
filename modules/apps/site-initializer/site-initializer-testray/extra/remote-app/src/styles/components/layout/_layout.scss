@@ -1,0 +1,24 @@
+.testray-main {
+	display: flex;
+	flex-direction: column;
+
+	.testray-body {
+		background-color: $color-gray-lighter;
+		display: flex;
+		flex: 1;
+
+		.testray-page {
+			height: 100vh;
+			overflow: auto;
+			padding: 0;
+			position: relative;
+			width: 100%;
+
+			.testray-content {
+				overflow: auto;
+				padding: 25px 30px 30px;
+				position: relative;
+			}
+		}
+	}
+}

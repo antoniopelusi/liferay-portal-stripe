@@ -26,6 +26,268 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LRQA-66585. This test validates the creation, edition and persistence of fields with Options on the Web Content Admin."
+	@priority = "5"
+	test AddAndEditTranslatedFieldsWithOptions {
+		property portal.acceptance = "true";
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Select from List",
+			fieldName = "Select from List");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Single Selection",
+			fieldName = "Single Selection",
+			targetFieldLabel = "Select from List");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection",
+			targetFieldGroupLabel = "Fields Group");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			for (var index : list "1,2,3") {
+				DataEngine.addFieldOption(
+					fieldFieldLabel = "${fieldName}",
+					index = "${index}",
+					optionValue = "Option ${index}");
+			}
+		}
+
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		WebContentStructures.addName(structureName = "WC Structure Title - pt-BR");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DataEngine.editFieldLabel(
+				fieldFieldLabel = "${fieldName}",
+				fieldFieldLabelEdit = "${fieldName} - pt-BR");
+		}
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			for (var index : list "1,2,3") {
+				DataEngine.addFieldOption(
+					fieldFieldLabel = "${fieldName} - pt-BR",
+					index = "${index}",
+					optionValue = "Option ${index} - pt-BR");
+			}
+		}
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DataEngine.viewField(
+				fieldFieldLabel = "${fieldName}",
+				fieldName = "${fieldName}");
+		}
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DEBuilder.assertFieldOptionLabels(
+				fieldFieldLabel = "${fieldName}",
+				optionLabelList = "Option 1,Option 2,Option 3");
+		}
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DataEngine.viewField(
+				fieldFieldLabel = "${fieldName} - pt-BR",
+				fieldName = "${fieldName}");
+		}
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DEBuilder.assertFieldOptionLabels(
+				fieldFieldLabel = "${fieldName} - pt-BR",
+				optionLabelList = "Option 1 - pt-BR,Option 2 - pt-BR,Option 3 - pt-BR");
+		}
+
+		PortletEntry.changeLocale(locale = "en-US");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DataEngine.editFieldLabel(
+				fieldFieldLabel = "${fieldName}",
+				fieldFieldLabelEdit = "${fieldName} - edited");
+		}
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			for (var index : list "1,2,3") {
+				DataEngine.addFieldOption(
+					fieldFieldLabel = "${fieldName} - edited",
+					index = "${index}",
+					optionValue = "Option ${index} - edited");
+			}
+		}
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DataEngine.editFieldLabel(
+				fieldFieldLabel = "${fieldName} - pt-BR",
+				fieldFieldLabelEdit = "${fieldName} - pt-BR edited");
+		}
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			for (var index : list "1,2,3") {
+				DataEngine.addFieldOption(
+					fieldFieldLabel = "${fieldName} - pt-BR edited",
+					index = "${index}",
+					optionValue = "Option ${index} - pt-BR edited");
+			}
+		}
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DataEngine.viewField(
+				fieldFieldLabel = "${fieldName} - edited",
+				fieldName = "${fieldName}");
+		}
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DEBuilder.assertFieldOptionLabels(
+				fieldFieldLabel = "${fieldName} - edited",
+				optionLabelList = "Option 1 - edited,Option 2 - edited,Option 3 - edited");
+		}
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DataEngine.viewField(
+				fieldFieldLabel = "${fieldName} - pt-BR edited",
+				fieldName = "${fieldName}");
+		}
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			DEBuilder.assertFieldOptionLabels(
+				fieldFieldLabel = "${fieldName} - pt-BR edited",
+				optionLabelList = "Option 1 - pt-BR edited,Option 2 - pt-BR edited,Option 3 - pt-BR edited");
+		}
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			WebContent.assertFieldOnWebContent(fieldFieldLabel = "${fieldName} - edited");
+		}
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		for (var fieldName : list "Select from List,Single Selection,Multiple Selection") {
+			WebContent.assertFieldOnWebContent(fieldFieldLabel = "${fieldName} - pt-BR edited");
+		}
+
+		PortletEntry.changeLocale(locale = "en-US");
+
+		WebContent.addWithStructureCP(
+			webContentMultipleSelection = "Option 1 - edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - edited",
+			webContentSelectFromList = "Option 1 - edited",
+			webContentSelectFromListFieldLabel = "Select from List - edited",
+			webContentSingleSelection = "Option 1 - edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - edited",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		WebContent.addWithStructureCP(
+			webContentMultipleSelection = "Option 2 - pt-BR edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",
+			webContentSelectFromList = "Option 2 - pt-BR edited",
+			webContentSelectFromListFieldLabel = "Select from List - pt-BR edited",
+			webContentSingleSelection = "Option 2 - pt-BR edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - pt-BR edited",
+			webContentTitle = "Web Content Title - pt-BR");
+
+		DataEngine.toggleMultipleSelectionOption(
+			webContentMultipleSelection = "Option 1 - pt-BR edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited");
+
+		PortletEntry.publish();
+
+		WebContent.viewWithStructureCP(
+			webContentMultipleSelection = "Option 1 - edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - edited",
+			webContentSelectFromList = "Option 1 - edited",
+			webContentSelectFromListFieldLabel = "Select from List - edited",
+			webContentSingleSelection = "Option 1 - edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - edited",
+			webContentTitle = "Web Content Title");
+
+		WebContent.viewWithStructureCP(
+			skipGotoEditCp = "true",
+			webContentLocaleFieldLabel = "pt-BR",
+			webContentMultipleSelection = "Option 2 - pt-BR edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",
+			webContentSelectFromList = "Option 2 - pt-BR edited",
+			webContentSelectFromListFieldLabel = "Select from List - pt-BR edited",
+			webContentSingleSelection = "Option 2 - pt-BR edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - pt-BR edited",
+			webContentTitle = "Web Content Title - pt-BR");
+
+		PortletEntry.changeLocale(locale = "en-US");
+
+		WebContent.addWithStructureCP(
+			webContentMultipleSelection = "Option 3 - edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - edited",
+			webContentSelectFromList = "Option 3 - edited",
+			webContentSelectFromListFieldLabel = "Select from List - edited",
+			webContentSingleSelection = "Option 3 - edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - edited");
+
+		DataEngine.toggleMultipleSelectionOption(
+			webContentMultipleSelection = "Option 1 - edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - edited");
+
+		PortletEntry.changeLocale(locale = "pt-BR");
+
+		WebContent.addWithStructureCP(
+			webContentMultipleSelection = "Option 1 - pt-BR edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",
+			webContentSelectFromList = "Option 1 - pt-BR edited",
+			webContentSelectFromListFieldLabel = "Select from List - pt-BR edited",
+			webContentSingleSelection = "Option 1 - pt-BR edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - pt-BR edited");
+
+		DataEngine.toggleMultipleSelectionOption(
+			webContentMultipleSelection = "Option 2 - pt-BR edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited");
+
+		PortletEntry.publish();
+
+		WebContent.viewWithStructureCP(
+			webContentMultipleSelection = "Option 3 - edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - edited",
+			webContentSelectFromList = "Option 3 - edited",
+			webContentSelectFromListFieldLabel = "Select from List - edited",
+			webContentSingleSelection = "Option 3 - edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - edited",
+			webContentTitle = "Web Content Title");
+
+		WebContent.viewWithStructureCP(
+			skipGotoEditCp = "true",
+			webContentLocaleFieldLabel = "pt-BR",
+			webContentMultipleSelection = "Option 1 - pt-BR edited",
+			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",
+			webContentSelectFromList = "Option 1 - pt-BR edited",
+			webContentSelectFromListFieldLabel = "Select from List - pt-BR edited",
+			webContentSingleSelection = "Option 1 - pt-BR edited",
+			webContentSingleSelectionFieldLabel = "Single Selection - pt-BR edited",
+			webContentTitle = "Web Content Title - pt-BR");
+	}
+
 	@description = "This test ensures translations persists for a repeatable duplicated field group."
 	@priority = "5"
 	test CheckDuplicatedRepeatableStructureOnWebContent {
@@ -42,7 +304,9 @@ definition {
 			fieldName = "Numeric",
 			targetFieldLabel = "Text");
 
-		DataEngine.editFieldsGroupRepeatable();
+		Translations.addLanguageManageTranslations(key_language = "pt-BR");
+
+		DataEngine.toggleFieldRepeatable(fieldsGroupLabel = "Fields Group");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
@@ -68,7 +332,7 @@ definition {
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
-		DataEngine.addRepeatableFieldsGroup(fieldsGroupLabel = "Grupo de Campos");
+		DataEngine.addRepeatableField(fieldLabel = "Grupo de Campos");
 
 		PortletEntry.publish();
 
@@ -115,7 +379,7 @@ definition {
 			locator1 = "FormFields#FIELD_REMOVE");
 	}
 
-	@description = "This test ensures that the language selector is succesfully displayed and functional on the Web Content."
+	@description = "This test ensures that the language selector is successfully displayed and functional on the Web Content."
 	@priority = "4"
 	test CheckLanguageSelector {
 		NavItem.gotoStructures();
@@ -142,13 +406,12 @@ definition {
 		Click.clickNoMouseOver(locator1 = "Button#LOCALIZATION_GENERIC");
 
 		AssertElementPresent(
-			key_locale = "en_US",
-			locator1 = "Translation#LOCALIZATION_NAME",
-			value1 = "lexicon-icon-en-us");
+			key_text = "en-us",
+			locator1 = "MenuItem#ANY_ICON");
 
-		AssertElementPresent(
-			key_locale = "en_US",
-			locator1 = "Translation#LOCALIZATION_NAME",
+		AssertTextEquals(
+			key_localizedLanguage = "en-US",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
 			value1 = "Default");
 	}
 
@@ -227,14 +490,14 @@ definition {
 
 		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
 
-		PortletEntry.changeLocale(locale = "pt_BR");
+		PortletEntry.changeLocale(locale = "pt-BR");
 
 		WebContent.addWithStructureCP(
 			webContentDate = "10/10/2020",
 			webContentText = "Este é um campo de texto",
 			webContentTitle = "Título do conteúdo da web");
 
-		PortletEntry.changeLocale(locale = "en_US");
+		PortletEntry.changeLocale(locale = "en-US");
 
 		WebContent.addWithStructureCP(
 			webContentDate = "01/01/2021",
@@ -590,7 +853,7 @@ definition {
 		WebContent.viewWithStructureCP(
 			webContentColor = "000000",
 			webContentDate = "03/02/2021",
-			webContentLocaleFieldLabel = "pt_BR",
+			webContentLocaleFieldLabel = "pt-BR",
 			webContentMultipleSelection = "Option 2",
 			webContentNumeric = "13",
 			webContentRichText = "Este é um campo de texto completo",

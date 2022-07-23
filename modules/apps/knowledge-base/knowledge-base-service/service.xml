@@ -27,6 +27,7 @@
 
 		<!-- Other fields -->
 
+		<column name="externalReferenceCode" type="String" />
 		<column filter-primary="true" name="rootResourcePrimKey" type="long" />
 		<column name="parentResourceClassNameId" type="long" />
 		<column name="parentResourcePrimKey" type="long" />
@@ -74,6 +75,10 @@
 		<finder name="R_S" return-type="Collection">
 			<finder-column arrayable-operator="OR" name="resourcePrimKey" />
 			<finder-column name="status" />
+		</finder>
+		<finder name="G_ERC" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="externalReferenceCode" />
 		</finder>
 		<finder name="G_L" return-type="Collection">
 			<finder-column name="groupId" />
@@ -131,6 +136,11 @@
 			<finder-column name="groupId" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="G_ERC_V" return-type="KBArticle">
+			<finder-column name="groupId" />
+			<finder-column name="externalReferenceCode" />
+			<finder-column name="version" />
+		</finder>
 		<finder name="G_P_L" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column arrayable-operator="OR" name="parentResourcePrimKey" />
@@ -161,17 +171,17 @@
 			<finder-column name="kbFolderId" />
 			<finder-column name="status" />
 		</finder>
-		<finder db-index="false" name="G_S_L" return-type="Collection">
+		<finder db-index="false" name="G_LikeS_L" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column arrayable-operator="OR" comparator="LIKE" name="sections" />
 			<finder-column name="latest" />
 		</finder>
-		<finder db-index="false" name="G_S_M" return-type="Collection">
+		<finder db-index="false" name="G_LikeS_M" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column arrayable-operator="OR" comparator="LIKE" name="sections" />
 			<finder-column name="main" />
 		</finder>
-		<finder db-index="false" name="G_S_S" return-type="Collection">
+		<finder db-index="false" name="G_LikeS_S" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column arrayable-operator="OR" comparator="LIKE" name="sections" />
 			<finder-column name="status" />
@@ -188,17 +198,6 @@
 			<finder-column name="urlTitle" />
 			<finder-column arrayable-operator="OR" name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ClassName" package-path="com.liferay.portal" />
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetLink" package-path="com.liferay.portlet.asset" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
-		<reference entity="RatingsStats" package-path="com.liferay.portlet.ratings" />
-		<reference entity="SocialActivity" package-path="com.liferay.portlet.social" />
 	</entity>
 	<entity local-service="true" name="KBComment" remote-service="true" uuid="true">
 
@@ -260,14 +259,8 @@
 			<finder-column name="classPK" />
 			<finder-column arrayable-operator="OR" name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ClassName" package-path="com.liferay.portal" />
-		<reference entity="RatingsEntry" package-path="com.liferay.portlet.ratings" />
-		<reference entity="SocialActivity" package-path="com.liferay.portlet.social" />
 	</entity>
-	<entity local-service="true" name="KBFolder" remote-service="true" uuid="true">
+	<entity external-reference-code="group" local-service="true" name="KBFolder" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -312,11 +305,6 @@
 			<finder-column name="parentKBFolderId" />
 			<finder-column name="urlTitle" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ClassName" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="KBTemplate" remote-service="true" uuid="true">
 
@@ -353,12 +341,10 @@
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="SocialActivity" package-path="com.liferay.portlet.social" />
 	</entity>
 	<exceptions>
+		<exception>DuplicateKBArticleExternalReferenceCode</exception>
+		<exception>DuplicateKBFolderExternalReferenceCode</exception>
 		<exception>DuplicateKBFolderName</exception>
 		<exception>InvalidKBFolderName</exception>
 		<exception>KBArticleContent</exception>

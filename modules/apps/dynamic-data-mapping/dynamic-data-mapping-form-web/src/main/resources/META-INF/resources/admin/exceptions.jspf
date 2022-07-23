@@ -14,103 +14,165 @@
  */
 --%>
 
-<liferay-ui:error exception="<%= DDMFormLayoutValidationException.class %>" message="please-enter-a-valid-form-layout" />
+<clay:container-fluid>
+	<div class="ddm-form-web__exception-container ddm-form-web__exception-container--sidebar-open">
+		<%@ include file="/admin/error_model_listener_exception.jspf" %>
 
-<liferay-ui:error exception="<%= DDMFormLayoutValidationException.MustNotDuplicateFieldName.class %>">
+		<div>
+			<react:component
+				module="admin/js/util/ShowPartialResultsAlert"
+				props='<%=
+					HashMapBuilder.<String, Object>put(
+						"showPartialResultsToRespondents", ddmFormAdminDisplayContext.isShowPartialResultsToRespondents(ddmFormAdminDisplayContext.getDDMFormInstance())
+					).build()
+				%>'
+			/>
+		</div>
 
-	<%
-	DDMFormLayoutValidationException.MustNotDuplicateFieldName mndfn = (DDMFormLayoutValidationException.MustNotDuplicateFieldName)errorException;
-	%>
+		<liferay-ui:error exception="<%= DDMFormLayoutValidationException.class %>" message="please-enter-a-valid-form-layout" />
 
-	<liferay-ui:message arguments="<%= HtmlUtil.escape(StringUtil.merge(mndfn.getDuplicatedFieldNames(), StringPool.COMMA_AND_SPACE)) %>" key="the-definition-field-name-x-was-defined-more-than-once" translateArguments="<%= false %>" />
-</liferay-ui:error>
+		<liferay-ui:error exception="<%= DDMFormLayoutValidationException.MustNotDuplicateFieldName.class %>">
 
-<liferay-ui:error exception="<%= DDMFormValidationException.class %>" message="please-enter-a-valid-form-definition" />
+			<%
+			DDMFormLayoutValidationException.MustNotDuplicateFieldName mndfn = (DDMFormLayoutValidationException.MustNotDuplicateFieldName)errorException;
+			%>
 
-<liferay-ui:error exception="<%= DDMFormValidationException.MustNotDuplicateFieldName.class %>">
+			<liferay-ui:message arguments="<%= HtmlUtil.escape(StringUtil.merge(mndfn.getDuplicatedFieldNames(), StringPool.COMMA_AND_SPACE)) %>" key="the-definition-field-name-x-was-defined-more-than-once" translateArguments="<%= false %>" />
+		</liferay-ui:error>
 
-	<%
-	DDMFormValidationException.MustNotDuplicateFieldName mndfn = (DDMFormValidationException.MustNotDuplicateFieldName)errorException;
-	%>
+		<liferay-ui:error exception="<%= DDMFormValidationException.class %>" message="please-enter-a-valid-form-definition" />
 
-	<liferay-ui:message arguments="<%= HtmlUtil.escape(mndfn.getFieldName()) %>" key="the-definition-field-name-x-was-defined-more-than-once" translateArguments="<%= false %>" />
-</liferay-ui:error>
+		<liferay-ui:error exception="<%= DDMFormValidationException.MustNotDuplicateFieldName.class %>">
 
-<liferay-ui:error exception="<%= DDMFormValidationException.MustSetFieldsForForm.class %>" message="please-add-at-least-one-field" />
+			<%
+			DDMFormValidationException.MustNotDuplicateFieldName mndfn = (DDMFormValidationException.MustNotDuplicateFieldName)errorException;
+			%>
 
-<liferay-ui:error exception="<%= DDMFormValidationException.MustSetOptionsForField.class %>">
+			<liferay-ui:message arguments="<%= HtmlUtil.escape(mndfn.getFieldName()) %>" key="the-definition-field-name-x-was-defined-more-than-once" translateArguments="<%= false %>" />
+		</liferay-ui:error>
 
-	<%
-	DDMFormValidationException.MustSetOptionsForField msoff = (DDMFormValidationException.MustSetOptionsForField)errorException;
-	%>
+		<liferay-ui:error exception="<%= DDMFormValidationException.MustSetFieldsForForm.class %>" message="please-add-at-least-one-field" />
 
-	<liferay-ui:message arguments="<%= HtmlUtil.escape(msoff.getFieldLabel()) %>" key="at-least-one-option-should-be-set-for-field-x" translateArguments="<%= false %>" />
-</liferay-ui:error>
+		<liferay-ui:error exception="<%= DDMFormValidationException.MustSetOptionsForField.class %>">
 
-<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidCharactersForFieldName.class %>">
+			<%
+			DDMFormValidationException.MustSetOptionsForField msoff = (DDMFormValidationException.MustSetOptionsForField)errorException;
+			%>
 
-	<%
-	DDMFormValidationException.MustSetValidCharactersForFieldName msvcffn = (DDMFormValidationException.MustSetValidCharactersForFieldName)errorException;
-	%>
+			<liferay-ui:message arguments="<%= HtmlUtil.escape(msoff.getFieldLabel()) %>" key="at-least-one-option-should-be-set-for-field-x" translateArguments="<%= false %>" />
+		</liferay-ui:error>
 
-	<liferay-ui:message arguments="<%= HtmlUtil.escape(msvcffn.getFieldName()) %>" key="invalid-characters-were-defined-for-field-name-x" translateArguments="<%= false %>" />
-</liferay-ui:error>
+		<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidCharactersForFieldName.class %>">
 
-<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidFormRuleExpression.class %>" message="there-are-invalid-rule-expressions" />
+			<%
+			DDMFormValidationException.MustSetValidCharactersForFieldName msvcffn = (DDMFormValidationException.MustSetValidCharactersForFieldName)errorException;
+			%>
 
-<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidValidationExpression.class %>">
+			<liferay-ui:message arguments="<%= HtmlUtil.escape(msvcffn.getFieldName()) %>" key="invalid-characters-were-defined-for-field-name-x" translateArguments="<%= false %>" />
+		</liferay-ui:error>
 
-	<%
-	DDMFormValidationException.MustSetValidValidationExpression msvve = (DDMFormValidationException.MustSetValidValidationExpression)errorException;
-	%>
+		<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidFormRuleExpression.class %>" message="there-are-invalid-rule-expressions" />
 
-	<liferay-ui:message arguments='<%= new Object[] {StringBundler.concat("<b>", HtmlUtil.escape(msvve.getValidationExpressionArgument()), "</b>"), StringBundler.concat("<b>", HtmlUtil.escape(msvve.getFieldName()), "</b>")} %>' key="the-validation-expression-x-set-for-field-x-is-invalid" translateArguments="<%= false %>" />
-</liferay-ui:error>
+		<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidValidationExpression.class %>">
 
-<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidVisibilityExpression.class %>">
+			<%
+			DDMFormValidationException.MustSetValidValidationExpression msvve = (DDMFormValidationException.MustSetValidValidationExpression)errorException;
+			%>
 
-	<%
-	DDMFormValidationException.MustSetValidVisibilityExpression msvve = (DDMFormValidationException.MustSetValidVisibilityExpression)errorException;
-	%>
+			<liferay-ui:message arguments='<%= new Object[] {StringBundler.concat("<b>", HtmlUtil.escape(msvve.getValidationExpressionArgument()), "</b>"), StringBundler.concat("<b>", HtmlUtil.escape(msvve.getFieldName()), "</b>")} %>' key="the-validation-expression-x-set-for-field-x-is-invalid" translateArguments="<%= false %>" />
+		</liferay-ui:error>
 
-	<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(msvve.getVisibilityExpression()), HtmlUtil.escape(msvve.getFieldName())} %>" key="the-visibility-expression-x-set-for-field-x-is-invalid" translateArguments="<%= false %>" />
-</liferay-ui:error>
+		<liferay-ui:error exception="<%= DDMFormValidationException.MustSetValidVisibilityExpression.class %>">
 
-<liferay-ui:error exception="<%= FormInstanceFieldSettingsException.MustSetValidValueForProperties.class %>">
+			<%
+			DDMFormValidationException.MustSetValidVisibilityExpression msvve = (DDMFormValidationException.MustSetValidVisibilityExpression)errorException;
+			%>
 
-	<%
-	FormInstanceFieldSettingsException.MustSetValidValueForProperties msvvfp = (FormInstanceFieldSettingsException.MustSetValidValueForProperties)errorException;
+			<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(msvve.getVisibilityExpression()), HtmlUtil.escape(msvve.getFieldName())} %>" key="the-visibility-expression-x-set-for-field-x-is-invalid" translateArguments="<%= false %>" />
+		</liferay-ui:error>
 
-	Map<String, Set<String>> fieldNamePropertiesMap = msvvfp.getFieldNamePropertiesMap();
+		<%
+		boolean showExpirationDateError = false;
+		%>
 
-	StringBundler sb = new StringBundler(fieldNamePropertiesMap.size());
+		<liferay-ui:error exception="<%= DDMFormValuesValidationException.MustSetValidValue.class %>">
 
-	for (Entry<String, Set<String>> fieldNameProperties : fieldNamePropertiesMap.entrySet()) {
-		Set<String> value = fieldNameProperties.getValue();
+			<%
+			DDMFormValuesValidationException.MustSetValidValue msvv = (DDMFormValuesValidationException.MustSetValidValue)errorException;
 
-		sb.append(LanguageUtil.format(request, (value.size() == 1) ? "the-setting-x-set-for-field-x-is-invalid" : "the-settings-x-set-for-field-x-are-invalid", new Object[] {HtmlUtil.escape(StringUtil.merge(value, StringPool.COMMA_AND_SPACE)), HtmlUtil.escape(fieldNameProperties.getKey())}, false));
+			String fieldLabelValue = msvv.getFieldLabelValue(themeDisplay.getLocale());
 
-		sb.append(StringPool.SPACE);
-	}
+			if (Validator.isNull(fieldLabelValue)) {
+				fieldLabelValue = msvv.getFieldName();
+			}
 
-	sb.setIndex(sb.index() - 1);
-	%>
+			showExpirationDateError = Objects.equals(msvv.getFieldName(), "expirationDate");
+			%>
 
-	<%= sb.toString() %>
-</liferay-ui:error>
+			<c:choose>
+				<c:when test="<%= showExpirationDateError %>">
+					<liferay-ui:message key="please-enter-a-valid-expiration-date-only-future-dates-are-accepted" />
+				</c:when>
+				<c:otherwise>
+					<liferay-ui:message arguments="<%= HtmlUtil.escape(fieldLabelValue) %>" key="validation-failed-for-field-x" translateArguments="<%= false %>" />
+				</c:otherwise>
+			</c:choose>
+		</liferay-ui:error>
 
-<liferay-ui:error exception="<%= FormInstanceNameException.class %>" message="please-enter-a-valid-form-name" />
+		<liferay-ui:error exception="<%= FormInstanceFieldSettingsException.MustSetValidValueForProperties.class %>">
 
-<liferay-ui:error exception="<%= FormInstanceSettingsRedirectURLException.class %>">
+			<%
+			FormInstanceFieldSettingsException.MustSetValidValueForProperties msvvfp = (FormInstanceFieldSettingsException.MustSetValidValueForProperties)errorException;
 
-	<%
-	FormInstanceSettingsRedirectURLException formInstanceSettingsRedirectURLException = (FormInstanceSettingsRedirectURLException)errorException;
-	%>
+			Map<String, Set<String>> fieldNamePropertiesMap = msvvfp.getFieldNamePropertiesMap();
 
-	<%= formInstanceSettingsRedirectURLException.getMessage() %>
-</liferay-ui:error>
+			StringBundler sb = new StringBundler(fieldNamePropertiesMap.size());
 
-<liferay-ui:error exception="<%= StorageException.class %>" message="please-enter-a-valid-form-settings" />
-<liferay-ui:error exception="<%= StructureDefinitionException.class %>" message="please-enter-a-valid-form-definition" />
-<liferay-ui:error exception="<%= StructureLayoutException.class %>" message="please-enter-a-valid-form-layout" />
-<liferay-ui:error exception="<%= StructureNameException.class %>" message="please-enter-a-valid-form-name" />
+			for (Entry<String, Set<String>> fieldNameProperties : fieldNamePropertiesMap.entrySet()) {
+				Set<String> value = fieldNameProperties.getValue();
+
+				sb.append(LanguageUtil.format(request, (value.size() == 1) ? "the-setting-x-set-for-field-x-is-invalid" : "the-settings-x-set-for-field-x-are-invalid", new Object[] {HtmlUtil.escape(StringUtil.merge(value, StringPool.COMMA_AND_SPACE)), HtmlUtil.escape(fieldNameProperties.getKey())}, false));
+
+				sb.append(StringPool.SPACE);
+			}
+
+			sb.setIndex(sb.index() - 1);
+			%>
+
+			<%= sb.toString() %>
+		</liferay-ui:error>
+
+		<liferay-ui:error exception="<%= FormInstanceNameException.class %>" message="please-enter-a-valid-form-name" />
+
+		<liferay-ui:error exception="<%= FormInstanceSettingsRedirectURLException.class %>">
+
+			<%
+			FormInstanceSettingsRedirectURLException formInstanceSettingsRedirectURLException = (FormInstanceSettingsRedirectURLException)errorException;
+			%>
+
+			<%= formInstanceSettingsRedirectURLException.getMessage() %>
+		</liferay-ui:error>
+
+		<liferay-ui:error exception="<%= FormInstanceSettingsStorageTypeException.class %>">
+
+			<%
+			FormInstanceSettingsStorageTypeException formInstanceSettingsStorageTypeException = (FormInstanceSettingsStorageTypeException)errorException;
+			%>
+
+			<%= formInstanceSettingsStorageTypeException.getMessage() %>
+		</liferay-ui:error>
+
+		<liferay-ui:error exception="<%= StorageException.class %>" message="please-enter-a-valid-form-settings" />
+		<liferay-ui:error exception="<%= StructureDefinitionException.class %>" message="please-enter-a-valid-form-definition" />
+		<liferay-ui:error exception="<%= StructureLayoutException.class %>" message="please-enter-a-valid-form-layout" />
+		<liferay-ui:error exception="<%= StructureNameException.class %>" message="please-enter-a-valid-form-name" />
+
+		<c:if test="<%= !showExpirationDateError && DDMFormInstanceExpirationStatusUtil.isFormExpired(ddmFormAdminDisplayContext.getDDMFormInstance(), timeZone) %>">
+			<clay:alert
+				dismissible="<%= true %>"
+				displayType="warning"
+				message="the-form-is-expired-and-is-no-longer-available-for-editing-or-submitting-new-answers"
+			/>
+		</c:if>
+	</div>
+</clay:container-fluid>

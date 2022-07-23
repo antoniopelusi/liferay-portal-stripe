@@ -57,22 +57,6 @@ public class SPATopHeadJSPDynamicInclude extends BaseJSPDynamicInclude {
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		JSONObject userNotificationJSONObject = JSONUtil.put(
-			"message",
-			_language.get(
-				_spaHelper.getLanguageResourceBundle(
-					"frontend-js-spa-web", themeDisplay.getLocale()),
-				"it-looks-like-this-is-taking-longer-than-expected")
-		).put(
-			"timeout", _spaHelper.getUserNotificationTimeout()
-		).put(
-			"title",
-			_language.get(
-				_spaHelper.getLanguageResourceBundle(
-					"frontend-js-spa-web", themeDisplay.getLocale()),
-				"oops")
-		);
-
 		JSONObject configJSONObject = JSONUtil.put(
 			"cacheExpirationTime",
 			_spaHelper.getCacheExpirationTime(themeDisplay.getCompanyId())
@@ -96,7 +80,22 @@ public class SPATopHeadJSPDynamicInclude extends BaseJSPDynamicInclude {
 		).put(
 			"requestTimeout", _spaHelper.getRequestTimeout()
 		).put(
-			"userNotification", userNotificationJSONObject
+			"userNotification",
+			JSONUtil.put(
+				"message",
+				_language.get(
+					_spaHelper.getLanguageResourceBundle(
+						"frontend-js-spa-web", themeDisplay.getLocale()),
+					"it-looks-like-this-is-taking-longer-than-expected")
+			).put(
+				"timeout", _spaHelper.getUserNotificationTimeout()
+			).put(
+				"title",
+				_language.get(
+					_spaHelper.getLanguageResourceBundle(
+						"frontend-js-spa-web", themeDisplay.getLocale()),
+					"oops")
+			)
 		).put(
 			"validStatusCodes", _spaHelper.getValidStatusCodesJSONArray()
 		);

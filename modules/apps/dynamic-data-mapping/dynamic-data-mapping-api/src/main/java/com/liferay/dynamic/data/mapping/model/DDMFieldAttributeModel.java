@@ -210,4 +210,7 @@ public interface DDMFieldAttributeModel
 	 */
 	public void setSmallAttributeValue(String smallAttributeValue);
 
+	@Override
+	public DDMFieldAttribute cloneWithOriginalValues();
+
 }

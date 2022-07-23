@@ -1,0 +1,694 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			Navigator.gotoNavItem(navItem = "Element Sets");
+
+			FormsAdmin.teardownElementSets();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "LPS-59331 - Verify that a user can navigate to the correct Form when multiple Forms exist"
+	@priority = "5"
+	test CanNavigateToCorrectForm {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsInterface#CanNavigateToCorrectForm";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Text");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.editFieldLabelMetal(fieldValue = "Text");
+
+		Form.closeSidebar();
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Text");
+
+		Form.viewFormName(formName = "Text");
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Checkbox");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		Form.editFieldLabelMetal(fieldValue = "Checkbox");
+
+		FormFields.editOptionsRow(
+			optionName = "Checkbox1",
+			optionValue = "Checkbox 1",
+			rowNumber = "1");
+
+		Form.closeSidebar();
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Checkbox");
+
+		Form.viewFormName(formName = "Checkbox");
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Text");
+
+		Form.viewFormName(formName = "Text");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Checkbox");
+
+		Form.viewFormName(formName = "Checkbox");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Text");
+
+		Form.viewFormName(formName = "Text");
+	}
+
+	@description = "Verify if individual fields can be moved to different positions after being added via element set"
+	@priority = "5"
+	test FieldsAddedViaElementSetCanBeReordered {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Text",
+			fieldPositionNumber = "0");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Numeric",
+			fieldPositionNumber = "1");
+
+		Form.moveFieldToRow(
+			fieldLabel = "Numeric",
+			fieldNameTarget = "Text");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Numeric",
+			fieldPositionNumber = "0");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Text",
+			fieldPositionNumber = "1");
+	}
+
+	@description = "Verify that fields can be moved between pages"
+	@priority = "5"
+	test FieldsCanBeMovedBetweenPages {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		FormFields.viewField(fieldName = "Text");
+
+		Form.addPage(formAddNewPageNumber = "1");
+
+		DragAndDrop.javaScriptDragAndDropToObject(
+			key_fieldLabel = "Text",
+			key_fieldPositionNumber = "0",
+			key_formPageNumber = "1",
+			locator1 = "FormFields#LABEL",
+			locator2 = "Form#ADD_FIELD_POSITION",
+			value1 = "");
+
+		FormFields.viewPaginationField(
+			key_currentPage = "2",
+			key_lastPage = "2");
+
+		FormFields.viewField(fieldName = "Text");
+
+		Form.viewPageEmptyField(pageIndex = "0");
+	}
+
+	@description = "Verify that fields can be reordered by DND"
+	@priority = "5"
+	test FieldsCanBeReorderedViaDND {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		FormFields.viewFieldByIndex(
+			fieldLabel = "Text",
+			formPageNumber = "0",
+			index = "2");
+
+		FormFields.viewFieldByIndex(
+			fieldLabel = "Numeric",
+			formPageNumber = "0",
+			index = "3");
+
+		Form.reorderFields(
+			fieldName = "Numeric",
+			index = "1");
+
+		FormFields.viewFieldByIndex(
+			fieldLabel = "Numeric",
+			formPageNumber = "0",
+			index = "2");
+
+		FormFields.viewFieldByIndex(
+			fieldLabel = "Text",
+			formPageNumber = "0",
+			index = "3");
+	}
+
+	@description = "Verify that fields can be resized"
+	@priority = "5"
+	test FieldsCanBeResized {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		FormFields.viewFieldSize(
+			fieldName = "Text",
+			size = "12");
+
+		FormFields.resizeField(
+			fieldName = "Text",
+			moveForce = "-200");
+
+		FormFields.viewFieldSize(
+			fieldName = "Text",
+			size = "8");
+
+		FormFields.viewFieldSizeNotEquals(
+			fieldName = "Text",
+			size = "12");
+	}
+
+	@description = "Verify that after resizing, the field does not lose any functionality (edit, duplicate, etc...)"
+	@priority = "5"
+	test FieldsDoNotLoseFunctionalityAfterResizing {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		var fieldTextField1 = FormFields.getFieldName();
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "${fieldTextField1}");
+
+		FormFields.viewFieldSize(
+			fieldName = "${fieldTextField1}",
+			size = "12");
+
+		FormFields.resizeField(
+			fieldName = "${fieldTextField1}",
+			moveForce = "-300");
+
+		FormFields.viewFieldSize(
+			fieldName = "${fieldTextField1}",
+			size = "6");
+
+		Form.editFieldLabelMetal(fieldValue = "Text edited");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text edited",
+			fieldName = "${fieldTextField1}");
+
+		FormFields.duplicateField();
+
+		var fieldTextField2 = FormFields.getFieldName();
+
+		FormFields.viewField(fieldName = "${fieldTextField1}");
+
+		FormFields.viewField(fieldName = "${fieldTextField2}");
+
+		FormFields.viewLabel(
+			fieldLabel = "Copy of Text edited",
+			fieldName = "${fieldTextField2}");
+
+		FormFields.viewFieldSize(
+			fieldName = "${fieldTextField2}",
+			size = "12");
+	}
+
+	@description = "Verify that after resizing, the labels, text fields, help text, properties, etc. remain the same"
+	@priority = "5"
+	test FieldsDoNotLosePropertiesAfterResizing {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		var fieldTextField1 = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Edited");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text edited",
+			fieldName = "${fieldTextField1}");
+
+		FormFields.editHelpTextField(fieldHelpText = "Text Tip");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Text Tip",
+			fieldName = "${fieldTextField1}");
+
+		FormFields.editPlaceholderField(fieldValue = "Placeholder Text Test");
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "${fieldTextField1}",
+			placeHolder = "Placeholder Text Test");
+
+		FormFields.resizeField(
+			fieldName = "${fieldTextField1}",
+			moveForce = "-300");
+
+		FormFields.viewFieldSize(
+			fieldName = "${fieldTextField1}",
+			size = "6");
+
+		Form.save();
+
+		FormFields.viewLabel(
+			fieldLabel = "Text edited",
+			fieldName = "${fieldTextField1}");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Text Tip",
+			fieldName = "${fieldTextField1}");
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "${fieldTextField1}",
+			placeHolder = "Placeholder Text Test");
+	}
+
+	@description = "Verify that Fields Groups can be reordered by DND"
+	@priority = "5"
+	test FieldsGroupsCanBeReorderedViaDND {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		Form.gotoFieldContainer(fieldName = "Fields Group");
+
+		FormFields.viewField(fieldName = "FieldsGroup");
+
+		FormFields.duplicateField();
+
+		Form.gotoFieldContainer(fieldName = "Copy of Fields Group");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Fields Group",
+			fieldPositionNumber = "0");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Copy of Fields Group",
+			fieldPositionNumber = "1");
+
+		Form.moveFieldToRow(
+			fieldLabel = "Copy of Fields Group",
+			fieldNameTarget = "FieldsGroup");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Fields Group",
+			fieldPositionNumber = "1");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Copy of Fields Group",
+			fieldPositionNumber = "0");
+	}
+
+	@description = "Verify that Fields Groups can be resized"
+	@priority = "5"
+	test FieldsGroupsCanBeResized {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.addFieldFromSidebarToFieldsGroup(
+			key_fieldLabel = "Text",
+			key_fieldName = "Numeric");
+
+		FormFields.assertFieldsGroup(fieldName = "Fields Group");
+
+		Form.closeSidebar();
+
+		FormFields.viewFieldSize(
+			fieldName = "FieldsGroup",
+			size = "12");
+
+		FormFields.resizeFieldGroup(
+			fieldName = "Fields Group",
+			moveForce = "-300");
+
+		FormFields.viewFieldSize(
+			fieldName = "FieldsGroup",
+			size = "6");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldSize(
+			fieldName = "FieldsGroup",
+			size = "6");
+	}
+
+	@description = "Verify that a second field can be added to the same row as a resized field"
+	@priority = "5"
+	test MultipleFieldsCanBeAddedToARow {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		FormFields.resizeField(
+			fieldName = "Text",
+			moveForce = "-300");
+
+		Form.closeSidebar();
+
+		Form.addFieldSameRow(
+			fieldColumnNumber = "1",
+			fieldType = "Numeric");
+
+		FormFields.viewFieldsSameRow(
+			fieldNames = "Text,Numeric",
+			fieldRowNumber = "0");
+
+		FormFields.viewFieldSize(
+			fieldName = "Text",
+			size = "6");
+
+		FormFields.viewFieldSize(
+			fieldName = "Numeric",
+			size = "6");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldsSameRow(
+			fieldNames = "Text,Numeric",
+			fieldRowNumber = "0");
+	}
+
+	@description = "Verify that a second Fields Group can be added to the same row as a resized Fields Group"
+	@priority = "5"
+	test MultipleFieldsGroupsCanBeAddedToARow {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.addFieldToFieldsGroup(
+			sourceFieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		FormFields.viewField(fieldName = "FieldsGroup");
+
+		Form.gotoFieldContainer(fieldName = "Fields Group");
+
+		FormFields.duplicateField();
+
+		var copyFieldGroup = FormFields.getFieldName();
+
+		FormFields.viewField(fieldName = "${copyFieldGroup}");
+
+		FormFields.viewTextLabel(fieldLabel = "Copy of Fields Group");
+
+		FormFields.resizeFieldGroup(
+			fieldName = "Fields Group",
+			moveForce = "-350");
+
+		Form.gotoFieldContainer(fieldName = "Copy of Fields Group");
+
+		FormFields.moveFieldToPosition(
+			fieldColumnNumber = "1",
+			fieldLabel = "Copy of Fields Group");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Fields Group",
+			fieldPositionNumber = "0");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Copy of Fields Group",
+			fieldPositionNumber = "0");
+
+		FormFields.viewFieldSize(
+			fieldName = "${copyFieldGroup}",
+			size = "7");
+	}
+
+	@description = "Verify that when there is more than one Fields Group per row and one of the Fields Groups is resized, the non-resized Fields Group adapts its width as well"
+	@priority = "5"
+	test MultipleFieldsGroupsInARowCanBeResized {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.addFieldToFieldsGroup(
+			sourceFieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		FormFields.viewField(fieldName = "FieldsGroup");
+
+		Form.gotoFieldContainer(fieldName = "Fields Group");
+
+		FormFields.duplicateField();
+
+		var copyFieldGroup = FormFields.getFieldName();
+
+		FormFields.viewField(fieldName = "${copyFieldGroup}");
+
+		FormFields.viewTextLabel(fieldLabel = "Copy of Fields Group");
+
+		FormFields.resizeFieldGroup(
+			fieldName = "Fields Group",
+			moveForce = "-300");
+
+		Form.gotoFieldContainer(fieldName = "Copy of Fields Group");
+
+		FormFields.moveFieldToPosition(
+			fieldColumnNumber = "1",
+			fieldLabel = "Copy of Fields Group");
+
+		FormFields.viewFieldSize(
+			fieldName = "FieldsGroup",
+			size = "6");
+
+		FormFields.viewFieldSize(
+			fieldName = "${copyFieldGroup}",
+			size = "6");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Fields Group",
+			fieldPositionNumber = "0");
+
+		FormFields.viewFieldPosition(
+			fieldLabel = "Copy of Fields Group",
+			fieldPositionNumber = "0");
+
+		FormFields.resizeFieldGroup(
+			fieldName = "Fields Group",
+			moveForce = "50");
+
+		FormFields.viewFieldSize(
+			fieldName = "FieldsGroup",
+			size = "7");
+
+		FormFields.viewFieldSize(
+			fieldName = "${copyFieldGroup}",
+			size = "5");
+	}
+
+	@description = "Verify that when there is more than one field per row and one of those fields is resized, the non-resized field adapts its width as well"
+	@priority = "5"
+	test MultipleFieldsInARowCanBeResized {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		FormFields.resizeField(
+			fieldName = "Text",
+			moveForce = "-300");
+
+		Form.closeSidebar();
+
+		Form.addFieldSameRow(
+			fieldColumnNumber = "1",
+			fieldType = "Numeric");
+
+		FormFields.viewFieldSize(
+			fieldName = "Text",
+			size = "6");
+
+		FormFields.viewFieldSize(
+			fieldName = "Numeric",
+			size = "6");
+
+		FormFields.viewFieldsSameRow(
+			fieldNames = "Text,Numeric",
+			fieldRowNumber = "0");
+
+		FormFields.resizeField(
+			fieldName = "Text",
+			moveForce = "-100");
+
+		FormFields.viewFieldSize(
+			fieldName = "Text",
+			size = "4");
+
+		FormFields.viewFieldSize(
+			fieldName = "Numeric",
+			size = "8");
+	}
+
+}

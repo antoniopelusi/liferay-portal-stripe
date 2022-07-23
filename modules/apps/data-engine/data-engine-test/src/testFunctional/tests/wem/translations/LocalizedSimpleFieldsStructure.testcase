@@ -104,6 +104,8 @@ definition {
 			fieldFieldLabel = "Text",
 			fieldName = "Text");
 
+		WebContentStructures.addTranslations(localeList = "pt-BR");
+
 		PortletEntry.changeLocale(locale = "pt-BR");
 
 		WebContentStructures.addName(structureName = "${defaultStructureName_pt}");
@@ -145,6 +147,8 @@ definition {
 		DataEngine.addField(
 			fieldFieldLabel = "Text Test",
 			fieldName = "Text");
+
+		WebContentStructures.addTranslations(localeList = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
@@ -190,6 +194,8 @@ definition {
 		WebContentStructures.saveCP();
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		WebContentStructures.addTranslations(localeList = "pt-BR,ca-ES,zh-CN,fr-FR");
 
 		for (var language : list "pt-BR,ca-ES,zh-CN,fr-FR") {
 			PortletEntry.changeLocale(locale = "${language}");
@@ -349,6 +355,8 @@ definition {
 			structureDescription = "WC Structure Description",
 			structureName = "WC Structure Title");
 
+		WebContentStructures.addTranslations(localeList = "pt-BR");
+
 		PortletEntry.changeLocale(locale = "pt-BR");
 
 		AssertTextEquals(
@@ -370,6 +378,8 @@ definition {
 		DataEngine.editFieldTip(
 			fieldFieldLabel = "Text",
 			fieldHelp = "Text Help Text");
+
+		WebContentStructures.addTranslations(localeList = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
@@ -413,6 +423,8 @@ definition {
 			fieldFieldLabel = "Lbltest",
 			fieldHelp = "Help Text test");
 
+		WebContentStructures.addTranslations(localeList = "pt-BR");
+
 		PortletEntry.changeLocale(locale = "pt-BR");
 
 		DataEngine.editFieldTip(
@@ -453,6 +465,8 @@ definition {
 			fieldFieldLabel = "Text",
 			fieldName = "Text");
 
+		WebContentStructures.addTranslations(localeList = "pt-BR");
+
 		PortletEntry.changeLocale(locale = "pt-BR");
 
 		WebContentStructures.addName(structureName = "Nome da Estrutura WC");
@@ -483,7 +497,7 @@ definition {
 	@description = "This test validates the creation and edition of localized fields as well as deletion of structure in different instance language"
 	@priority = "5"
 	test EditAndDeleteWithDifferentInstanceLanguage {
-		property portal.acceptance = "quarantine";
+		property portal.acceptance = "true";
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -517,6 +531,8 @@ definition {
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
 
+		WebContentStructures.addTranslations(localeList = "en-US,ca-ES,zh-CN,fr-FR");
+
 		for (var language : list "en-US,ca-ES,zh-CN,fr-FR") {
 			PortletEntry.changeLocale(locale = "${language}");
 
@@ -537,7 +553,7 @@ definition {
 
 		WebContentStructures.saveCP();
 
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title - en-US");
 
 		DataEngine.viewField(
 			fieldFieldLabel = "Text",
@@ -583,7 +599,7 @@ definition {
 
 		WebContentStructures.saveCP();
 
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title - en-US");
 
 		DataEngine.viewField(
 			fieldFieldLabel = "Edited Text",
@@ -629,7 +645,7 @@ definition {
 
 		WebContentStructures.saveCP();
 
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title - en-US");
 
 		DataEngine.viewField(
 			fieldFieldLabel = "Edited Text",
@@ -661,10 +677,10 @@ definition {
 
 		WebContentStructures.saveCP();
 
-		WebContentStructures.deleteCP(structureName = "WC Structure Title");
+		WebContentStructures.deleteCP(structureName = "WC Structure Title - en-US");
 
 		AssertElementNotPresent(
-			key_ddlDataDefinitionName = "WC Structure Title",
+			key_ddlDataDefinitionName = "WC Structure Title - en-US",
 			locator1 = "DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK");
 
 		ApplicationsMenu.gotoPortlet(
@@ -690,13 +706,17 @@ definition {
 		DataEngine.addFields(fieldNameList = "Web Content,Date,Rich Text,Single Selection,Grid,Select from List,Numeric,Link to Page,Image,Upload,Color,Text,Multiple Selection,Geolocation,Separator");
 
 		var index = "1";
+
 		for (var optionValue : list "Value 1,Value 2") {
 			DataEngine.addFieldOption(
 				fieldFieldLabel = "Multiple Selection",
 				index = "${index}",
 				optionValue = "${optionValue}");
+
 			var index = ${index} + 1;
 		}
+
+		WebContentStructures.addTranslations(localeList = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
@@ -787,6 +807,8 @@ definition {
 			fieldFieldLabel = "Text",
 			fieldName = "Text");
 
+		WebContentStructures.addTranslations(localeList = "pt-BR");
+
 		PortletEntry.changeLocale(locale = "pt-BR");
 
 		DataEngine.editFieldLabel(
@@ -798,8 +820,6 @@ definition {
 		PortletEntry.changeLocale(locale = "en-US");
 
 		Button.clickSave();
-
-		AssertElementPresent(locator1 = "TextInput#REQUIRED_ALERT");
 
 		Alert.viewErrorMessage(errorMessage = "Please enter a valid title for the default language: en-US");
 	}
@@ -821,6 +841,8 @@ definition {
 		DataEngine.editFieldTip(
 			fieldFieldLabel = "${fieldLabelDefault}",
 			fieldHelp = "Help Text test");
+
+		WebContentStructures.addTranslations(localeList = "pt-BR,de-DE");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 
@@ -901,6 +923,8 @@ definition {
 		DataEngine.editFieldTip(
 			fieldFieldLabel = "Text Test",
 			fieldHelp = "Help Text test");
+
+		WebContentStructures.addTranslations(localeList = "pt-BR");
 
 		PortletEntry.changeLocale(locale = "pt-BR");
 

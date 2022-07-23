@@ -102,7 +102,17 @@ public class NodeExtension {
 					}
 
 					sb.append(os);
-					sb.append("-x");
+
+					String processorArchitecture = "-x";
+
+					int nodeMajorVersion = NodePluginUtil.getNodeMajorVersion(
+						nodeVersion);
+
+					if (OSDetector.isAppleARM() && (nodeMajorVersion > 15)) {
+						processorArchitecture = "-arm";
+					}
+
+					sb.append(processorArchitecture);
 
 					String bitmode = OSDetector.getBitmode();
 

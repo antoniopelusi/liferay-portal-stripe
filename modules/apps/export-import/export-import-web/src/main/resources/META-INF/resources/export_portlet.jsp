@@ -23,9 +23,9 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCRenderCommandName(
 	"/export_import/export_import"
-).setParameter(
-	"portletResource", portletResource
-).build();
+).setPortletResource(
+	portletResource
+).buildPortletURL();
 %>
 
 <clay:navigation-bar

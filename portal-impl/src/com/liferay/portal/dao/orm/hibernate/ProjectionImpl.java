@@ -32,13 +32,7 @@ public class ProjectionImpl implements Projection {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("{_projection=");
-		sb.append(String.valueOf(_projection));
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat("{_projection=", _projection, "}");
 	}
 
 	private final org.hibernate.criterion.Projection _projection;

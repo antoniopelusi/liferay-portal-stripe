@@ -33,7 +33,6 @@ import com.liferay.frontend.taglib.chart.model.point.scatter.ScatterChartConfig;
 import com.liferay.frontend.taglib.chart.model.point.spline.SplineChartConfig;
 import com.liferay.frontend.taglib.chart.model.point.step.StepChartConfig;
 import com.liferay.frontend.taglib.chart.model.predictive.PredictiveChartConfig;
-import com.liferay.petra.string.StringPool;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -192,14 +191,10 @@ public class ChartSampleDisplayContext {
 
 		_geomapConfig2.setColor(geomapColor);
 
-		StringBuilder sb = new StringBuilder();
+		String dataHREF = _portletRequest.getContextPath() + "/geomap.geo.json";
 
-		sb.append(_portletRequest.getContextPath());
-		sb.append(StringPool.SLASH);
-		sb.append("geomap.geo.json");
-
-		_geomapConfig1.setDataHREF(sb.toString());
-		_geomapConfig2.setDataHREF(sb.toString());
+		_geomapConfig1.setDataHREF(dataHREF);
+		_geomapConfig2.setDataHREF(dataHREF);
 	}
 
 	private void _initLineChartConfig() {

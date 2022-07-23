@@ -17,7 +17,6 @@ package com.liferay.account.service.base;
 import com.liferay.account.model.AccountEntryUserRel;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalServiceUtil;
-import com.liferay.account.service.persistence.AccountEntryPersistence;
 import com.liferay.account.service.persistence.AccountEntryUserRelPersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
@@ -152,6 +151,13 @@ public abstract class AccountEntryUserRelLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return accountEntryUserRelPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -484,14 +490,7 @@ public abstract class AccountEntryUserRelLocalServiceBaseImpl
 	protected AccountEntryUserRelPersistence accountEntryUserRelPersistence;
 
 	@Reference
-	protected AccountEntryPersistence accountEntryPersistence;
-
-	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
 
 }

@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 public class KaleoTaskAssignmentSelectorTracker
 	implements KaleoTaskAssignmentSelectorRegistry {
 
+	@Override
 	public KaleoTaskAssignmentSelector getKaleoTaskAssignmentSelector(
 		String assigneeClassName) {
 

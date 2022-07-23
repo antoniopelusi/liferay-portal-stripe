@@ -81,7 +81,7 @@ public class AnnouncementsEntryChecker extends EmptyOnClickRowChecker {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return StringPool.BLANK;
@@ -105,21 +105,15 @@ public class AnnouncementsEntryChecker extends EmptyOnClickRowChecker {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("['");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(AnnouncementsEntry.class.getSimpleName());
-		sb.append("']");
-
-		String checkBoxRowIds = sb.toString();
+		String checkBoxRowIds = StringBundler.concat(
+			"['", _liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			AnnouncementsEntry.class.getSimpleName(), "']");
 
 		String checkBoxAllRowIds = "'#" + getAllRowIds() + "'";
 

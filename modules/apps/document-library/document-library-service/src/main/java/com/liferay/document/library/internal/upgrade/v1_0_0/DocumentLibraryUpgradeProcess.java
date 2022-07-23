@@ -40,12 +40,12 @@ public class DocumentLibraryUpgradeProcess extends UpgradeProcess {
 
 	private void _deleteChecksumDirectory() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select distinct companyId from DLFileEntry");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				long companyId = rs.getLong("companyId");
+			while (resultSet.next()) {
+				long companyId = resultSet.getLong("companyId");
 
 				_store.deleteDirectory(companyId, 0, "checksum");
 			}

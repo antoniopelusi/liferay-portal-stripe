@@ -274,4 +274,7 @@ public interface MFATimeBasedOTPEntryModel
 	 */
 	public void setSharedSecret(String sharedSecret);
 
+	@Override
+	public MFATimeBasedOTPEntry cloneWithOriginalValues();
+
 }

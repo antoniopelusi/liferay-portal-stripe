@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+
+<project basedir="." name="portal-test-aws-s3" xmlns:antelope="antlib:ise.antelope.tasks">
+	<import file="build-test.xml" />
+
+	<macrodef name="delete-expired-buckets">
+		<sequential>
+			<local name="bucket.list" />
+
+			<exec executable="aws" outputproperty="bucket.list">
+				<arg line="s3api list-buckets" />
+			</exec>
+
+			<script language="javascript"><![CDATA[
+				var bucketList = project.getProperty("bucket.list");
+
+				var expiredBuckets = [];
+
+				var json = JSON.parse(bucketList);
+
+				for (var i = 0; i < json.Buckets.length; i++) {
+					var bucket = json.Buckets[i];
+
+					var name = JSON.stringify(bucket.Name);
+
+					if (name.indexOf('lfr-qa-poshi-test') > -1) {
+						var createDate = bucket.CreationDate;
+
+						var currentDate = new Date();
+						var bucketDate = new Date(createDate);
+
+						var diffHours = (currentDate - bucketDate) / (1000 * 60 * 60);
+
+						if (diffHours > 12) {
+							expiredBuckets.push(name);
+						}
+					}
+				}
+
+				project.setProperty("expired.buckets", expiredBuckets.toString());]]>
+			</script>
+
+			<for list="${expired.buckets}" param="delete.name">
+				<sequential>
+					<echo>Expired Bucket: @{delete.name}</echo>
+
+					<exec executable="aws">
+						<arg line="s3 rb s3://@{delete.name} --force" />
+					</exec>
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+	<target name="assert-document-in-bucket">
+		<local name="bucket.objects" />
+
+		<exec executable="aws" outputproperty="bucket.objects">
+			<arg line="s3api list-objects --bucket lfr-qa-poshi-test-${aws.bucket.id} --prefix ${companyId}/${groupId}" />
+		</exec>
+
+		<echo>${bucket.objects}</echo>
+
+		<if>
+			<contains string="${bucket.objects}" substring="1.0" />
+			<then>
+				<echo>Document is in bucket.</echo>
+			</then>
+			<else>
+				<fail>Document is not in bucket.</fail>
+			</else>
+		</if>
+	</target>
+
+	<target name="assert-no-document-in-bucket">
+		<local name="bucket.objects" />
+
+		<exec executable="aws" outputproperty="bucket.objects">
+			<arg line="s3api list-objects --bucket lfr-qa-poshi-test-${aws.bucket.id} --prefix ${companyId}/${groupId}" />
+		</exec>
+
+		<echo>${bucket.objects}</echo>
+
+		<if>
+			<equals arg1="${bucket.objects}" arg2="" />
+			<then>
+				<echo>The bucket is empty.</echo>
+			</then>
+			<else>
+				<fail>The bucket is not empty.</fail>
+			</else>
+		</if>
+	</target>
+
+	<target name="configure-aws-cli">
+		<exec executable="aws">
+			<arg line="configure set aws_access_key_id ${aws.s3.access.key.id}" />
+		</exec>
+
+		<exec executable="aws">
+			<arg line="configure set aws_secret_access_key ${aws.s3.secret.access.key}" />
+		</exec>
+
+		<exec executable="aws">
+			<arg line="configure set default.region us-west-1" />
+		</exec>
+
+		<exec executable="aws">
+			<arg line="configure set default.s3.signature_version s3v4" />
+		</exec>
+
+		<local name="bucket.configuration" />
+
+		<exec executable="aws" outputproperty="bucket.configuration">
+			<arg line="configure list" />
+		</exec>
+
+		<echo>${bucket.configuration}</echo>
+	</target>
+
+	<target name="create-s3-bucket">
+		<local name="bucket.create.output" />
+
+		<exec executable="aws" outputproperty="bucket.create.output">
+			<arg line="s3api create-bucket --bucket lfr-qa-poshi-test-${aws.bucket.id} --region us-west-1 --create-bucket-configuration LocationConstraint=us-west-1" />
+		</exec>
+
+		<echo>${bucket.create.output}</echo>
+
+		<if>
+			<not>
+				<contains string="${bucket.create.output}" substring="lfr-qa-poshi-test-${aws.bucket.id}" />
+			</not>
+			<then>
+				<fail>Bucket was not created.</fail>
+			</then>
+		</if>
+	</target>
+
+	<target name="delete-s3-bucket">
+		<exec executable="aws">
+			<arg line="s3 rb s3://lfr-qa-poshi-test-${aws.bucket.id}  --force" />
+		</exec>
+
+		<delete-expired-buckets />
+	</target>
+</project>

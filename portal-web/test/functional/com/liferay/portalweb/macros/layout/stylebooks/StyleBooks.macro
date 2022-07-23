@@ -1,15 +1,51 @@
 definition {
 
+	macro clickManagementBar {
+		Click(locator1 = "StyleBookEditor#MANAGEMENT_BAR");
+	}
+
 	macro clickPublish {
 		Button.clickNoError(button = "Publish");
 
-		AssertConfirm.assertConfirmationNoError(value1 = "Once published, these changes will affect all instances of the site using these properties. Do you want to publish now?");
+		if (IsTextEqual(locator1 = "Modal#HEADER", value1 = "Style Errors Detected")) {
+			AssertTextEquals(
+				locator1 = "Modal#BODY",
+				value1 = "Some of the fields have invalid values. If you continue publishing, the latest valid values will display.");
+
+			if ("${publishing}" == "Cancel") {
+				Click(
+					key_text = "Cancel",
+					locator1 = "Modal#MODAL_FOOTER_BUTTON");
+			}
+			else {
+				Click(
+					key_text = "Continue",
+					locator1 = "Modal#MODAL_FOOTER_BUTTON");
+
+				AssertTextEquals(
+					locator1 = "Modal#BODY",
+					value1 = "Once published, these changes will affect all instances of the site using these properties. Do you want to publish now?");
+
+				Click(
+					key_text = "Continue",
+					locator1 = "Modal#MODAL_FOOTER_BUTTON");
+			}
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "Modal#BODY",
+				value1 = "Once published, these changes will affect all instances of the site using these properties. Do you want to publish now?");
+
+			Click(
+				key_text = "Continue",
+				locator1 = "Modal#MODAL_FOOTER_BUTTON");
+		}
 
 		Alert.viewSuccessMessage();
 	}
 
 	macro expandSection {
-		if (IsElementPresent(locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_COLLAPSED", key_sectionName = "${sectionName}")) {
+		if (IsElementPresent(key_sectionName = "${sectionName}", locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_COLLAPSED")) {
 			AssertClick(
 				key_sectionName = "${sectionName}",
 				locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_COLLAPSED",
@@ -21,16 +57,65 @@ definition {
 			locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_EXPANDED");
 	}
 
-	macro goToPageViaPagePreviewInfoBar {
-		Click(locator1 = "StyleBookEditor#PAGE_PREVIEW_INFO_BAR_TOGGLE");
+	macro linkValueFromStyleBook {
+		Click.clickNoWaitForVisible(
+			key_fieldLabel = "${fieldLabel}",
+			key_text = "theme",
+			locator1 = "Icon#ANY_ITEM_SELECTOR");
 
-		MenuItem.click(menuItem = "${pageName}");
+		Click(
+			key_colorSwatchItem = "${colorSwatchItem}",
+			locator1 = "Button#COLOR_SWATCH_ITEM");
+
+		StyleBooks.waitForAutoSave();
+
+		AssertElementPresent(
+			key_fieldLabel = "${fieldLabel}",
+			key_text = "chain-broken",
+			locator1 = "Icon#ANY_ITEM_SELECTOR");
 	}
 
 	macro selectForm {
 		Click(locator1 = "StyleBookEditor#FORM_CONTROL_SELECT_BUTTON");
 
 		MenuItem.click(menuItem = "${formName}");
+	}
+
+	macro selectPreviewItem {
+		Click(
+			index = "2",
+			locator1 = "StyleBookEditor#PREVIEW_SELECTOR");
+
+		if ((IsElementNotPresent(key_menuItem = "${previewItem}", locator1 = "MenuItem#ANY_MENU_ITEM")) && (IsElementPresent(key_text = "More", locator1 = "Button#ANY"))) {
+			AssertElementPresent(
+				key_caption = "${caption}",
+				locator1 = "Dropdown#CAPTION");
+
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			Button.clickMore();
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			if (isSet(scope)) {
+				NavItem.click(navItem = "${scope}");
+			}
+
+			LexiconCard.clickCard(card = "${previewItem}");
+
+			SelectFrameTop();
+		}
+		else {
+			MenuItem.click(menuItem = "${previewItem}");
+		}
+	}
+
+	macro selectPreviewType {
+		Click(
+			index = "1",
+			locator1 = "StyleBookEditor#PREVIEW_SELECTOR");
+
+		MenuItem.click(menuItem = "${previewType}");
 	}
 
 	macro selectStyleBook {
@@ -57,6 +142,20 @@ definition {
 		AssertElementPresent(
 			key_card = "${styleBookName}",
 			locator1 = "Card#CARD_SELECTED");
+	}
+
+	macro viewCurrentPreviewItem {
+		AssertTextEquals(
+			index = "2",
+			locator1 = "StyleBookEditor#PREVIEW_SELECTOR",
+			value1 = "${previewItem}");
+	}
+
+	macro viewCurrentPreviewType {
+		AssertTextEquals(
+			index = "1",
+			locator1 = "StyleBookEditor#PREVIEW_SELECTOR",
+			value1 = "${previewType}");
 	}
 
 	macro waitForAutoSave {

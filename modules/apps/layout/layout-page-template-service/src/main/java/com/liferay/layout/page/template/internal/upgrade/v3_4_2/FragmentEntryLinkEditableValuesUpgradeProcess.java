@@ -14,6 +14,7 @@
 
 package com.liferay.layout.page.template.internal.upgrade.v3_4_2;
 
+import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -29,19 +30,21 @@ public class FragmentEntryLinkEditableValuesUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select fragmentEntryLinkId,editableValues,rendererKey from " +
 					"FragmentEntryLink where rendererKey = " +
 						"'BASIC_COMPONENT-separator'");
-			PreparedStatement ps2 = connection.prepareStatement(
-				"update FragmentEntryLink set editableValues = ? where " +
-					"fragmentEntryLinkId = ?");
-			ResultSet rs = ps.executeQuery()) {
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update FragmentEntryLink set editableValues = ? " +
+							"where fragmentEntryLinkId = ?"));
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
+			while (resultSet.next()) {
 				JSONObject editablesJSONObject =
 					JSONFactoryUtil.createJSONObject(
-						rs.getString("editableValues"));
+						resultSet.getString("editableValues"));
 
 				JSONObject configurationJSONObject =
 					editablesJSONObject.getJSONObject(
@@ -58,13 +61,14 @@ public class FragmentEntryLinkEditableValuesUpgradeProcess
 						configurationJSONObject.remove("verticalSpace"));
 				}
 
-				ps2.setString(1, editablesJSONObject.toString());
-				ps2.setLong(2, rs.getLong("fragmentEntryLinkId"));
+				preparedStatement2.setString(1, editablesJSONObject.toString());
+				preparedStatement2.setLong(
+					2, resultSet.getLong("fragmentEntryLinkId"));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

@@ -1,11 +1,8 @@
-<definition default="isVisible">
-	<command name="isVisible">
-		<execute selenium="isVisible" />
-	</command>
+@default = "isVisible"
+definition {
 
-	<command name="waitForVisible">
-		<execute selenium="waitForVisible" />
+	function isVisible {
+		selenium.isVisible();
+	}
 
-		<execute function="IsVisible#isVisible" />
-	</command>
-</definition>
+}

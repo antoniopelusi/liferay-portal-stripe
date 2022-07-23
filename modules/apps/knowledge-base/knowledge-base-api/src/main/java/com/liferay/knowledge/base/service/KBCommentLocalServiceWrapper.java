@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class KBCommentLocalServiceWrapper
 	implements KBCommentLocalService, ServiceWrapper<KBCommentLocalService> {
 
+	public KBCommentLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KBCommentLocalServiceWrapper(
 		KBCommentLocalService kbCommentLocalService) {
 
@@ -153,6 +157,13 @@ public class KBCommentLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kbCommentLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kbCommentLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

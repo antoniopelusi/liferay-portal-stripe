@@ -19,9 +19,13 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.db.Index;
+import com.liferay.portal.kernel.dao.db.IndexMetadata;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -29,6 +33,7 @@ import com.liferay.portal.kernel.util.Validator;
 import java.io.IOException;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -51,6 +56,80 @@ public class OracleDB extends BaseDB {
 	}
 
 	@Override
+	public void alterColumnType(
+			Connection connection, String tableName, String columnName,
+			String newColumnType)
+		throws Exception {
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		if (!dbInspector.hasColumn(tableName, columnName)) {
+			throw new SQLException(
+				StringBundler.concat(
+					"Unknown column ", columnName, " in table ", tableName));
+		}
+
+		try {
+			super.alterColumnType(
+				connection, tableName, columnName, newColumnType);
+		}
+		catch (SQLException sqlException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Attempting to upgrade table ", tableName,
+						" by adding a temporary column due to: ",
+						sqlException.getMessage()));
+			}
+
+			String tempColumnName = "temp" + columnName;
+
+			alterTableAddColumn(
+				connection, tableName, tempColumnName, newColumnType);
+
+			runSQL(
+				StringBundler.concat(
+					"update ", tableName, " set ", tempColumnName, " = ",
+					columnName));
+
+			List<IndexMetadata> indexMetadatas = dropIndexes(
+				connection, tableName, columnName);
+
+			String[] primaryKeyColumnNames = getPrimaryKeyColumnNames(
+				connection, tableName);
+
+			boolean primaryKey = ArrayUtil.contains(
+				primaryKeyColumnNames, columnName);
+
+			if (primaryKey) {
+				removePrimaryKey(connection, tableName);
+			}
+
+			alterColumnName(
+				connection, tableName, columnName,
+				tempColumnName + "2 " + newColumnType);
+
+			alterColumnName(
+				connection, tableName, tempColumnName,
+				columnName + StringPool.SPACE + newColumnType);
+
+			if (!indexMetadatas.isEmpty()) {
+				addIndexes(connection, indexMetadatas);
+			}
+
+			if (primaryKey) {
+				addPrimaryKey(connection, tableName, primaryKeyColumnNames);
+			}
+
+			alterTableDropColumn(connection, tableName, tempColumnName + "2");
+
+			if (_log.isInfoEnabled()) {
+				_log.info("Successfully upgraded table " + tableName);
+			}
+		}
+	}
+
+	@Override
 	public String buildSQL(String template) throws IOException, SQLException {
 		template = replaceTemplate(template);
 		template = reword(template);
@@ -62,24 +141,20 @@ public class OracleDB extends BaseDB {
 	}
 
 	@Override
-	public List<Index> getIndexes(Connection con) throws SQLException {
+	public List<Index> getIndexes(Connection connection) throws SQLException {
 		List<Index> indexes = new ArrayList<>();
 
-		StringBundler sb = new StringBundler(3);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select index_name, table_name, uniqueness from ",
+					"user_indexes where index_name like 'LIFERAY_%' or ",
+					"index_name like 'IX_%'"));
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-		sb.append("select index_name, table_name, uniqueness from ");
-		sb.append("user_indexes where index_name like 'LIFERAY_%' or ");
-		sb.append("index_name like 'IX_%'");
-
-		String sql = sb.toString();
-
-		try (PreparedStatement ps = con.prepareStatement(sql);
-			ResultSet rs = ps.executeQuery()) {
-
-			while (rs.next()) {
-				String indexName = rs.getString("index_name");
-				String tableName = rs.getString("table_name");
-				String uniqueness = rs.getString("uniqueness");
+			while (resultSet.next()) {
+				String indexName = resultSet.getString("index_name");
+				String tableName = resultSet.getString("table_name");
+				String uniqueness = resultSet.getString("uniqueness");
 
 				boolean unique = true;
 
@@ -95,16 +170,22 @@ public class OracleDB extends BaseDB {
 	}
 
 	@Override
+	public ResultSet getIndexResultSet(Connection connection, String tableName)
+		throws SQLException {
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		return databaseMetaData.getIndexInfo(
+			dbInspector.getCatalog(), dbInspector.getSchema(), tableName, false,
+			true);
+	}
+
+	@Override
 	public String getPopulateSQL(String databaseName, String sqlContent) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("connect &1/&2;\n");
-		sb.append("set define off;\n");
-		sb.append("\n");
-		sb.append(sqlContent);
-		sb.append("quit");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"connect &1/&2;\n", "set define off;\n\n", sqlContent, "quit");
 	}
 
 	@Override
@@ -144,6 +225,11 @@ public class OracleDB extends BaseDB {
 	}
 
 	@Override
+	protected int[] getSQLVarcharSizes() {
+		return _SQL_VARCHAR_SIZES;
+	}
+
+	@Override
 	protected String[] getTemplate() {
 		return _ORACLE;
 	}
@@ -151,11 +237,16 @@ public class OracleDB extends BaseDB {
 	protected boolean isNullable(String tableName, String columnName)
 		throws SQLException {
 
-		try (Connection con = DataAccess.getConnection()) {
-			DBInspector dbInspector = new DBInspector(con);
+		try (Connection connection = DataAccess.getConnection()) {
+			DBInspector dbInspector = new DBInspector(connection);
 
 			return dbInspector.isNullable(tableName, columnName);
 		}
+	}
+
+	@Override
+	protected String limitColumnLength(String column, int length) {
+		return StringBundler.concat("substr(", column, ", 1, ", length, ")");
 	}
 
 	@Override
@@ -255,12 +346,20 @@ public class OracleDB extends BaseDB {
 		" varchar2", "", "commit"
 	};
 
+	private static final int _SQL_STRING_SIZE = 4000;
+
 	private static final int[] _SQL_TYPES = {
 		Types.BLOB, Types.BLOB, Types.NUMERIC, Types.TIMESTAMP, Types.NUMERIC,
 		Types.NUMERIC, Types.NUMERIC, Types.VARCHAR, Types.CLOB, Types.VARCHAR
 	};
 
+	private static final int[] _SQL_VARCHAR_SIZES = {
+		_SQL_STRING_SIZE, SQL_SIZE_NONE
+	};
+
 	private static final boolean _SUPPORTS_INLINE_DISTINCT = false;
+
+	private static final Log _log = LogFactoryUtil.getLog(OracleDB.class);
 
 	private static final Pattern _varchar2CharPattern = Pattern.compile(
 		"VARCHAR2\\((\\d+) CHAR\\)", Pattern.CASE_INSENSITIVE);

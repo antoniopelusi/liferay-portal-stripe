@@ -17,6 +17,8 @@ package com.liferay.akismet.service.impl;
 import com.liferay.akismet.model.AkismetEntry;
 import com.liferay.akismet.service.base.AkismetEntryLocalServiceBaseImpl;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.Date;
 
@@ -36,13 +38,13 @@ public class AkismetEntryLocalServiceImpl
 		throws PortalException {
 
 		akismetEntryPersistence.removeByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
 	public AkismetEntry fetchAkismetEntry(String className, long classPK) {
 		return akismetEntryPersistence.fetchByC_C(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -50,7 +52,7 @@ public class AkismetEntryLocalServiceImpl
 		String className, long classPK, String type, String permalink,
 		String referrer, String userAgent, String userIP, String userURL) {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
+		long classNameId = _classNameLocalService.getClassNameId(className);
 
 		AkismetEntry akismetEntry = akismetEntryPersistence.fetchByC_C(
 			classNameId, classPK);
@@ -73,5 +75,8 @@ public class AkismetEntryLocalServiceImpl
 
 		return akismetEntryPersistence.update(akismetEntry);
 	}
+
+	@ServiceReference(type = ClassNameLocalService.class)
+	private ClassNameLocalService _classNameLocalService;
 
 }

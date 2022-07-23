@@ -1,0 +1,73 @@
+definition {
+
+	macro _deleteCommerceMeasurementUnits {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var commerceMeasurementUnitsIds = CommerceJSONMeasurementUnitsAPI._getCommerceMeasurementUnits();
+
+		if ("${commerceMeasurementUnitsIds}" != "") {
+			for (var commerceMeasurementUnitsId : list "${commerceMeasurementUnitsIds}") {
+				echo("Deleting Commerce Measurement Units with id: ${commerceMeasurementUnitsId}");
+
+				var curl = '''
+					${baseURL}/api/jsonws/commerce.cpmeasurementunit/delete-cp-measurement-unit \
+						-u test@liferay.com:test \
+						-d cpMeasurementUnitId=${commerceMeasurementUnitsId}
+				''';
+
+				JSONCurlUtil.post("${curl}");
+			}
+		}
+		else {
+			echo("No Commerce Measurement Units to be deleted");
+		}
+	}
+
+	macro _getCommerceAvailableMeasurementUnitsCount {
+		var availableMeasurementUnits = "0";
+
+		var commerceMeasurementUnitsIds = CommerceJSONMeasurementUnitsAPI._getCommerceMeasurementUnits();
+
+		for (var commerceMeasurementUnitsId : list "${commerceMeasurementUnitsIds}") {
+			if ("${commerceMeasurementUnitsId}" != "") {
+				var availableMeasurementUnits = ${availableMeasurementUnits} + 1;
+			}
+		}
+
+		echo("The Commerce available measurement units count is: ${availableMeasurementUnits}");
+
+		return "${availableMeasurementUnits}";
+	}
+
+	macro _getCommerceMeasurementUnits {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var companyId = JSONCompany.getCompanyId();
+
+		var curl = '''
+			  ${baseURL}/api/jsonws/commerce.cpmeasurementunit/get-cp-measurement-units \
+				  -u test@liferay.com:test \
+				  -d companyId=${companyId} \
+				  -d "start=-1" \
+				  -d "end=-1" \
+				  -d -orderByComparator=''
+		''';
+
+		echo("curl: ${curl}");
+
+		var commerceMeasurementUnits = JSONCurlUtil.post("${curl}", "$..['CPMeasurementUnitId']");
+
+		echo("commerceMeasurementUnits: ${commerceMeasurementUnits}");
+
+		return "${commerceMeasurementUnits}";
+	}
+
+}

@@ -41,11 +41,11 @@ public class OrderFactoryUtil {
 	}
 
 	public static Order asc(String propertyName) {
-		return getOrderFactory().asc(propertyName);
+		return _orderFactory.asc(propertyName);
 	}
 
 	public static Order desc(String propertyName) {
-		return getOrderFactory().desc(propertyName);
+		return _orderFactory.desc(propertyName);
 	}
 
 	public static OrderFactory getOrderFactory() {

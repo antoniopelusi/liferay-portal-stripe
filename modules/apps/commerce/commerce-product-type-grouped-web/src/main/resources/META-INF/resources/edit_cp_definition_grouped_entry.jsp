@@ -32,10 +32,10 @@ PortletURL groupedProductsURL = PortletURLBuilder.createRenderURL(
 ).setMVCRenderCommandName(
 	"/cp_definitions/edit_cp_definition"
 ).setParameter(
-	"cpDefinitionId", String.valueOf(cpDefinition.getCPDefinitionId())
+	"cpDefinitionId", cpDefinition.getCPDefinitionId()
 ).setParameter(
 	"screenNavigationCategoryKey", cpDefinitionGroupedEntriesDisplayContext.getScreenNavigationCategoryKey()
-).build();
+).buildPortletURL();
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(groupedProductsURL.toString());

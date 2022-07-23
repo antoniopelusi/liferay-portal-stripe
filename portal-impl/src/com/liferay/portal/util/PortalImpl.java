@@ -14,6 +14,7 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.document.library.kernel.exception.ImageSizeException;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolder;
@@ -86,6 +87,7 @@ import com.liferay.portal.kernel.model.VirtualHost;
 import com.liferay.portal.kernel.model.VirtualLayoutConstants;
 import com.liferay.portal.kernel.model.impl.VirtualLayout;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapperThreadLocal;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolver;
@@ -112,6 +114,7 @@ import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.UserAttributes;
+import com.liferay.portal.kernel.redirect.RedirectURLSettingsUtil;
 import com.liferay.portal.kernel.security.auth.AlwaysAllowDoAsUser;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.FullNameGenerator;
@@ -145,7 +148,6 @@ import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.servlet.HttpSessionWrapper;
 import com.liferay.portal.kernel.servlet.NonSerializableObjectRequestWrapper;
 import com.liferay.portal.kernel.servlet.PersistentHttpServletRequestWrapper;
-import com.liferay.portal.kernel.servlet.PortalMessages;
 import com.liferay.portal.kernel.servlet.PortalSessionContext;
 import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
 import com.liferay.portal.kernel.servlet.PortalWebResourcesUtil;
@@ -169,7 +171,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.InheritableMap;
 import com.liferay.portal.kernel.util.JavaConstants;
@@ -188,10 +190,8 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletCategoryKeys;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.ServerDetector;
-import com.liferay.portal.kernel.util.SessionClicks;
 import com.liferay.portal.kernel.util.StringComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
@@ -204,7 +204,6 @@ import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.model.impl.CookieRemotePreference;
 import com.liferay.portal.model.impl.LayoutTypeImpl;
-import com.liferay.portal.plugin.PluginPackageUtil;
 import com.liferay.portal.security.jaas.JAASHelper;
 import com.liferay.portal.security.sso.SSOUtil;
 import com.liferay.portal.servlet.filters.i18n.I18nFilter;
@@ -218,11 +217,6 @@ import com.liferay.portlet.LiferayPortletUtil;
 import com.liferay.portlet.PortletPreferencesImpl;
 import com.liferay.portlet.PortletPreferencesWrapper;
 import com.liferay.portlet.admin.util.OmniadminUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.ServiceTrackerCustomizer;
 import com.liferay.sites.kernel.util.Sites;
 import com.liferay.sites.kernel.util.SitesUtil;
 import com.liferay.social.kernel.model.SocialRelationConstants;
@@ -241,6 +235,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 import java.sql.Connection;
@@ -298,6 +293,11 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Brian Myunghun Kim
@@ -334,7 +334,7 @@ public class PortalImpl implements Portal {
 			}
 			catch (UnknownHostException unknownHostException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(unknownHostException, unknownHostException);
+					_log.debug(unknownHostException);
 				}
 			}
 		}
@@ -359,7 +359,7 @@ public class PortalImpl implements Portal {
 		catch (Exception exception) {
 			_log.error("Unable to determine server's IP addresses");
 
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		// Paths
@@ -466,8 +466,6 @@ public class PortalImpl implements Portal {
 
 		// Reserved parameter names
 
-		_reservedParams = new HashSet<>();
-
 		// Portal authentication
 
 		_reservedParams.add("p_auth");
@@ -541,11 +539,9 @@ public class PortalImpl implements Portal {
 		// Always allow do as user service tracker
 
 		try {
-			Registry registry = RegistryUtil.getRegistry();
-
 			ServiceTracker<AlwaysAllowDoAsUser, AlwaysAllowDoAsUser>
-				alwaysAllowDoAsUserServiceTracker = registry.trackServices(
-					AlwaysAllowDoAsUser.class,
+				alwaysAllowDoAsUserServiceTracker = new ServiceTracker<>(
+					_bundleContext, AlwaysAllowDoAsUser.class,
 					new AlwaysAllowDoAsUserServiceTrackerCustomizer());
 
 			alwaysAllowDoAsUserServiceTracker.open();
@@ -554,22 +550,23 @@ public class PortalImpl implements Portal {
 				<PortalInetSocketAddressEventListener,
 				 PortalInetSocketAddressEventListener>
 					portalInetSocketAddressEventListenerServiceTracker =
-						registry.trackServices(
+						new ServiceTracker<>(
+							_bundleContext,
 							PortalInetSocketAddressEventListener.class,
 							new PortalInetSocketAddressEventListenerServiceTrackerCustomizer());
 
 			portalInetSocketAddressEventListenerServiceTracker.open();
 
 			ServiceTracker<StrutsAction, StrutsAction>
-				commentsStrutsActionServiceTracker = registry.trackServices(
-					StrutsAction.class,
+				commentsStrutsActionServiceTracker = new ServiceTracker<>(
+					_bundleContext, StrutsAction.class,
 					new CommentsStrutsActionServiceTrackerCustomizer());
 
 			commentsStrutsActionServiceTracker.open();
 		}
 		catch (NullPointerException nullPointerException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(nullPointerException, nullPointerException);
+				_log.debug(nullPointerException);
 			}
 		}
 	}
@@ -797,12 +794,12 @@ public class PortalImpl implements Portal {
 
 		if (doAsUser) {
 			if (Validator.isNotNull(themeDisplay.getDoAsUserId())) {
-				url = HttpUtil.setParameter(
+				url = HttpComponentsUtil.setParameter(
 					url, "doAsUserId", themeDisplay.getDoAsUserId());
 			}
 
 			if (Validator.isNotNull(themeDisplay.getDoAsUserLanguageId())) {
-				url = HttpUtil.setParameter(
+				url = HttpComponentsUtil.setParameter(
 					url, "doAsUserLanguageId",
 					themeDisplay.getDoAsUserLanguageId());
 			}
@@ -810,61 +807,29 @@ public class PortalImpl implements Portal {
 
 		if (typeControlPanel) {
 			if (Validator.isNotNull(themeDisplay.getPpid())) {
-				url = HttpUtil.setParameter(
+				url = HttpComponentsUtil.setParameter(
 					url, "p_p_id", themeDisplay.getPpid());
 			}
 
 			if (themeDisplay.getDoAsGroupId() > 0) {
-				url = HttpUtil.setParameter(
+				url = HttpComponentsUtil.setParameter(
 					url, "doAsGroupId", themeDisplay.getDoAsGroupId());
 			}
 
 			if (themeDisplay.getRefererGroupId() !=
 					GroupConstants.DEFAULT_PARENT_GROUP_ID) {
 
-				url = HttpUtil.setParameter(
+				url = HttpComponentsUtil.setParameter(
 					url, "refererGroupId", themeDisplay.getRefererGroupId());
 			}
 
 			if (themeDisplay.getRefererPlid() != LayoutConstants.DEFAULT_PLID) {
-				url = HttpUtil.setParameter(
+				url = HttpComponentsUtil.setParameter(
 					url, "refererPlid", themeDisplay.getRefererPlid());
 			}
 		}
 
 		return url;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void addUserLocaleOptionsMessage(
-		HttpServletRequest httpServletRequest) {
-
-		boolean ignoreUserLocaleOptions = GetterUtil.getBoolean(
-			SessionClicks.get(
-				httpServletRequest.getSession(), "ignoreUserLocaleOptions",
-				Boolean.FALSE.toString()));
-
-		if (ignoreUserLocaleOptions) {
-			return;
-		}
-
-		boolean showUserLocaleOptionsMessage = ParamUtil.getBoolean(
-			httpServletRequest, "showUserLocaleOptionsMessage", true);
-
-		if (!showUserLocaleOptionsMessage) {
-			return;
-		}
-
-		PortalMessages.add(
-			httpServletRequest, PortalMessages.KEY_ANIMATION, false);
-		PortalMessages.add(
-			httpServletRequest, PortalMessages.KEY_JSP_PATH,
-			"/html/common/themes/user_locale_options.jsp");
-		PortalMessages.add(httpServletRequest, PortalMessages.KEY_TIMEOUT, -1);
 	}
 
 	@Override
@@ -943,35 +908,43 @@ public class PortalImpl implements Portal {
 			return url;
 		}
 
-		URI uri = HttpUtil.getURI(url);
+		if (url.contains(_UNICODE_REPLACEMENT_CHARACTER)) {
+			return null;
+		}
+
+		URI uri = null;
+
+		try {
+			uri = HttpComponentsUtil.getURI(url);
+		}
+		catch (URISyntaxException uriSyntaxException) {
+			_log.error(uriSyntaxException);
+		}
 
 		if (uri == null) {
 			return null;
 		}
 
-		String domain = uri.getHost();
+		if (!uri.isAbsolute()) {
 
-		String protocol = uri.getScheme();
+			// https://datatracker.ietf.org/doc/html/rfc3986#section-4.2
 
-		if (domain == null) {
-			if (uri.getPath() == null) {
+			if (url.startsWith(StringPool.DOUBLE_SLASH)) {
+
+				// "//" authority path-abempty
+
 				return null;
 			}
-
-			// Specs allow URL of protocol followed by path, but we do not
-
-			if (protocol != null) {
-				return null;
-			}
-
-			// The URL is a relative path
 
 			return url;
 		}
 
-		// Specs regard URL starting with double slashes as valid, but we do not
+		String domain = uri.getHost();
 
-		if (protocol == null) {
+		if (Validator.isNull(domain)) {
+
+			// Absolute URL must have a domain
+
 			return null;
 		}
 
@@ -979,10 +952,14 @@ public class PortalImpl implements Portal {
 			return url;
 		}
 
-		String securityMode = PropsValues.REDIRECT_URL_SECURITY_MODE;
+		long companyId = CompanyThreadLocal.getCompanyId();
+
+		String securityMode = RedirectURLSettingsUtil.getSecurityMode(
+			companyId);
 
 		if (securityMode.equals("domain")) {
-			String[] allowedDomains = PropsValues.REDIRECT_URL_DOMAINS_ALLOWED;
+			String[] allowedDomains = RedirectURLSettingsUtil.getAllowedDomains(
+				companyId);
 
 			if (allowedDomains.length == 0) {
 				return url;
@@ -1011,16 +988,10 @@ public class PortalImpl implements Portal {
 			url = null;
 		}
 		else {
-			if (!securityMode.equals("ip") && _log.isWarnEnabled()) {
-				_log.warn(
-					StringBundler.concat(
-						"Property \"", PropsKeys.REDIRECT_URL_SECURITY_MODE,
-						"\" has invalid value: ", securityMode));
-			}
+			String[] allowedIPs = RedirectURLSettingsUtil.getAllowedIPs(
+				companyId);
 
-			String[] allowedIps = PropsValues.REDIRECT_URL_IPS_ALLOWED;
-
-			if (allowedIps.length == 0) {
+			if (allowedIPs.length == 0) {
 				return url;
 			}
 
@@ -1033,7 +1004,7 @@ public class PortalImpl implements Portal {
 				boolean serverIpIsHostAddress = _computerAddresses.contains(
 					hostAddress);
 
-				for (String ip : allowedIps) {
+				for (String ip : allowedIPs) {
 					if ((serverIpIsHostAddress && ip.equals("SERVER_IP")) ||
 						ip.equals(hostAddress)) {
 
@@ -1083,7 +1054,7 @@ public class PortalImpl implements Portal {
 			WebKeys.RENDER_PORTLET_COLUMN_ID);
 
 		if (columnId != null) {
-			sb.append(JS.getSafeName(columnId.toString()));
+			sb.append(HtmlUtil.getAUICompatibleId(columnId.toString()));
 		}
 
 		sb.append(StringPool.UNDERLINE);
@@ -1092,7 +1063,7 @@ public class PortalImpl implements Portal {
 			WebKeys.RENDER_PORTLET_COLUMN_POS);
 
 		if (columnPos != null) {
-			sb.append(JS.getSafeName(columnPos.toString()));
+			sb.append(HtmlUtil.getAUICompatibleId(columnPos.toString()));
 		}
 
 		return sb.toString();
@@ -1113,9 +1084,9 @@ public class PortalImpl implements Portal {
 		if (!CookieKeys.hasSessionId(httpServletRequest) &&
 			url.startsWith(portalURL)) {
 
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
-			url = getURLWithSessionId(url, session.getId());
+			url = getURLWithSessionId(url, httpSession.getId());
 		}
 
 		return url;
@@ -1222,7 +1193,7 @@ public class PortalImpl implements Portal {
 		throws PortalException {
 
 		Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(
-			themeDisplay.getSiteGroupId());
+			layout.getGroupId());
 
 		return _getAlternateURLs(
 			canonicalURL, themeDisplay, layout, availableLocales);
@@ -1434,14 +1405,14 @@ public class PortalImpl implements Portal {
 				getSiteDefaultLocale(layout.getGroupId()));
 		}
 
-		Group siteGroup = themeDisplay.getSiteGroup();
+		Group layoutGroup = layout.getGroup();
 
 		if (forceLayoutFriendlyURL ||
 			((!layout.isFirstParent() || Validator.isNotNull(parametersURL)) &&
 			 _requiresLayoutFriendlyURL(
-				 siteGroup.getFriendlyURL(),
+				 layoutGroup.getFriendlyURL(),
 				 themeDisplay.getLayoutFriendlyURL(layout),
-				 groupFriendlyURL)) ||
+				 StringUtil.toLowerCase(groupFriendlyURL))) ||
 			groupFriendlyURL.endsWith(
 				StringPool.SLASH + layout.getLayoutId())) {
 
@@ -1453,7 +1424,7 @@ public class PortalImpl implements Portal {
 			layout.isTypeControlPanel());
 
 		if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) {
-			String groupFriendlyURLDomain = HttpUtil.getDomain(
+			String groupFriendlyURLDomain = HttpComponentsUtil.getDomain(
 				groupFriendlyURL);
 
 			int pos = groupFriendlyURL.indexOf(groupFriendlyURLDomain);
@@ -1580,7 +1551,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1613,7 +1584,7 @@ public class PortalImpl implements Portal {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(systemException, systemException);
+				_log.debug(systemException);
 			}
 		}
 
@@ -1653,19 +1624,20 @@ public class PortalImpl implements Portal {
 			return ClassNameLocalServiceUtil.getClassNameId(value);
 		}
 
-		try (Connection con = DataAccess.getConnection()) {
-			if (PortalUpgradeProcess.isInLatestSchemaVersion(con)) {
+		try (Connection connection = DataAccess.getConnection()) {
+			if (PortalUpgradeProcess.isInLatestSchemaVersion(connection)) {
 				return ClassNameLocalServiceUtil.getClassNameId(value);
 			}
 
-			try (PreparedStatement ps = con.prepareStatement(
-					"select classNameId from ClassName_ where value = ?")) {
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select classNameId from ClassName_ where value = ?")) {
 
-				ps.setString(1, value);
+				preparedStatement.setString(1, value);
 
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						return rs.getLong("classNameId");
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					if (resultSet.next()) {
+						return resultSet.getLong("classNameId");
 					}
 				}
 			}
@@ -1864,12 +1836,12 @@ public class PortalImpl implements Portal {
 			).setMVCRenderCommandName(
 				"/login/create_account"
 			).setParameter(
-				"saveLastPath", Boolean.FALSE.toString()
+				"saveLastPath", false
 			).setPortletMode(
 				PortletMode.VIEW
 			).setWindowState(
 				WindowState.MAXIMIZED
-			).build();
+			).buildPortletURL();
 
 			if (!PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS) {
 				return createAccountURL.toString();
@@ -1892,7 +1864,7 @@ public class PortalImpl implements Portal {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchLayoutException, noSuchLayoutException);
+				_log.debug(noSuchLayoutException);
 			}
 		}
 
@@ -2007,7 +1979,8 @@ public class PortalImpl implements Portal {
 			WebKeys.CURRENT_COMPLETE_URL);
 
 		if (currentCompleteURL == null) {
-			currentCompleteURL = HttpUtil.getCompleteURL(httpServletRequest);
+			currentCompleteURL = HttpComponentsUtil.getCompleteURL(
+				httpServletRequest);
 
 			httpServletRequest.setAttribute(
 				WebKeys.CURRENT_COMPLETE_URL, currentCompleteURL);
@@ -2028,7 +2001,7 @@ public class PortalImpl implements Portal {
 		currentURL = ParamUtil.getString(httpServletRequest, "currentURL");
 
 		if (Validator.isNull(currentURL)) {
-			currentURL = HttpUtil.getCompleteURL(httpServletRequest);
+			currentURL = HttpComponentsUtil.getCompleteURL(httpServletRequest);
 
 			if (Validator.isNotNull(currentURL) &&
 				!currentURL.contains(_J_SECURITY_CHECK)) {
@@ -2511,11 +2484,6 @@ public class PortalImpl implements Portal {
 	}
 
 	@Override
-	public String getGlobalLibDir() {
-		return PropsValues.LIFERAY_LIB_GLOBAL_DIR;
-	}
-
-	@Override
 	public String getGoogleGadgetURL(Portlet portlet, ThemeDisplay themeDisplay)
 		throws PortalException {
 
@@ -2525,10 +2493,18 @@ public class PortalImpl implements Portal {
 
 	@Override
 	public String getGroupFriendlyURL(
-			LayoutSet layoutSet, ThemeDisplay themeDisplay)
+			LayoutSet layoutSet, ThemeDisplay themeDisplay,
+			boolean canonicalURL, boolean controlPanel)
 		throws PortalException {
 
-		return getGroupFriendlyURL(layoutSet, themeDisplay, false, false);
+		Group group = themeDisplay.getSiteGroup();
+
+		if (group.getGroupId() != layoutSet.getGroupId()) {
+			group = layoutSet.getGroup();
+		}
+
+		return _getGroupFriendlyURL(
+			group, layoutSet, themeDisplay, canonicalURL, controlPanel);
 	}
 
 	@Override
@@ -2543,7 +2519,7 @@ public class PortalImpl implements Portal {
 		try {
 			setThemeDisplayI18n(themeDisplay, locale);
 
-			return getGroupFriendlyURL(layoutSet, themeDisplay);
+			return getGroupFriendlyURL(layoutSet, themeDisplay, false, false);
 		}
 		finally {
 			resetThemeDisplayI18n(
@@ -2950,7 +2926,7 @@ public class PortalImpl implements Portal {
 
 		String layoutURL = getLayoutURL(layout, themeDisplay, doAsUser);
 
-		if (!HttpUtil.hasProtocol(layoutURL)) {
+		if (!HttpComponentsUtil.hasProtocol(layoutURL)) {
 			layoutURL = getPortalURL(layout, themeDisplay) + layoutURL;
 		}
 
@@ -3048,7 +3024,7 @@ public class PortalImpl implements Portal {
 			Layout layout, ThemeDisplay themeDisplay, boolean doAsUser)
 		throws PortalException {
 
-		return HttpUtil.removeDomain(
+		return HttpComponentsUtil.removeDomain(
 			getLayoutFullURL(layout, themeDisplay, doAsUser));
 	}
 
@@ -3059,6 +3035,9 @@ public class PortalImpl implements Portal {
 
 		Company company = CompanyLocalServiceUtil.getCompany(
 			layoutSet.getCompanyId());
+
+		String defaultVirtualHostName = _getDefaultVirtualHostName(company);
+
 		int portalPort = getPortalServerPort(secureConnection);
 
 		String portalURL = getPortalURL(
@@ -3068,14 +3047,14 @@ public class PortalImpl implements Portal {
 			layoutSet);
 
 		if (!virtualHostnames.isEmpty() &&
-			!virtualHostnames.containsKey(_LOCALHOST)) {
+			!virtualHostnames.containsKey(defaultVirtualHostName)) {
 
 			int index = portalURL.indexOf("://");
 
 			String portalDomain = portalURL.substring(index + 3);
 
 			String virtualHostname = getCanonicalDomain(
-				virtualHostnames, portalDomain);
+				virtualHostnames, portalDomain, defaultVirtualHostName);
 
 			virtualHostname = getPortalURL(
 				virtualHostname, portalPort, secureConnection);
@@ -3118,10 +3097,21 @@ public class PortalImpl implements Portal {
 			LayoutSet layoutSet, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		String virtualHostname = getVirtualHostname(layoutSet);
+		String defaultVirtualHostName = _getDefaultVirtualHostName(
+			themeDisplay.getCompany());
+
+		String virtualHostname = null;
+
+		TreeMap<String, String> virtualHostnames = getVirtualHostnames(
+			layoutSet);
+
+		if (!virtualHostnames.isEmpty()) {
+			virtualHostname = virtualHostnames.firstKey();
+		}
 
 		if (Validator.isNotNull(virtualHostname) &&
-			!StringUtil.equalsIgnoreCase(virtualHostname, _LOCALHOST)) {
+			!StringUtil.equalsIgnoreCase(
+				virtualHostname, defaultVirtualHostName)) {
 
 			String portalURL = getPortalURL(
 				virtualHostname, themeDisplay.getServerPort(),
@@ -3323,14 +3313,14 @@ public class PortalImpl implements Portal {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchUserException, noSuchUserException);
+					_log.debug(noSuchUserException);
 				}
 
 				return null;
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -3361,7 +3351,7 @@ public class PortalImpl implements Portal {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -3413,10 +3403,10 @@ public class PortalImpl implements Portal {
 			}
 		}
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
-		if (session != null) {
-			locale = (Locale)session.getAttribute(WebKeys.LOCALE);
+		if (httpSession != null) {
+			locale = (Locale)httpSession.getAttribute(WebKeys.LOCALE);
 
 			if (LanguageUtil.isAvailableLocale(groupId, locale)) {
 				return locale;
@@ -3431,7 +3421,7 @@ public class PortalImpl implements Portal {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -3517,7 +3507,7 @@ public class PortalImpl implements Portal {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -3531,7 +3521,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -3546,7 +3536,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -3573,7 +3563,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -3582,7 +3572,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return LocaleUtil.getDefault();
@@ -3604,7 +3594,10 @@ public class PortalImpl implements Portal {
 		HttpServletRequest originalHttpServletRequest =
 			getOriginalServletRequest(httpServletRequest);
 
-		if (originalHttpServletRequest.getPathInfo() == null) {
+		StringBuffer originRequestURL =
+			originalHttpServletRequest.getRequestURL();
+
+		if (originRequestURL.indexOf(_PUBLIC_GROUP_SERVLET_MAPPING) < 0) {
 			requestURI = originalHttpServletRequest.getRequestURI();
 		}
 
@@ -3673,7 +3666,9 @@ public class PortalImpl implements Portal {
 
 			String i18nPath = StringPool.SLASH + i18nPathLanguageId;
 
-			localizedFriendlyURL += i18nPath;
+			if (!requestURI.contains(i18nPath)) {
+				localizedFriendlyURL += i18nPath;
+			}
 		}
 
 		localizedFriendlyURL += requestURI;
@@ -3900,7 +3895,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -3934,7 +3929,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -3945,59 +3940,40 @@ public class PortalImpl implements Portal {
 	public long getPlidFromPortletId(
 		long groupId, boolean privateLayout, String portletId) {
 
-		long plid = LayoutConstants.DEFAULT_PLID;
-
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(groupId);
-		sb.append(StringPool.SPACE);
-		sb.append(privateLayout);
-		sb.append(StringPool.SPACE);
-		sb.append(portletId);
-
-		String key = sb.toString();
+		String key = StringBundler.concat(
+			groupId, StringPool.SPACE, privateLayout, StringPool.SPACE,
+			portletId);
 
 		Long plidObj = _plidToPortletIdMap.get(key);
 
 		if (plidObj == null) {
-			plid = doGetPlidFromPortletId(groupId, privateLayout, portletId);
+			long plid = doGetPlidFromPortletId(
+				groupId, privateLayout, portletId);
 
 			if (plid != LayoutConstants.DEFAULT_PLID) {
 				_plidToPortletIdMap.put(key, plid);
 			}
+
+			return plid;
 		}
-		else {
-			plid = plidObj.longValue();
 
-			boolean validPlid = false;
+		long plid = plidObj.longValue();
 
-			try {
-				Layout layout = LayoutLocalServiceUtil.getLayout(plid);
+		boolean validPlid = false;
 
-				LayoutTypePortlet layoutTypePortlet =
-					(LayoutTypePortlet)layout.getLayoutType();
+		Layout layout = LayoutLocalServiceUtil.fetchLayout(plid);
 
-				if (layoutTypePortlet.hasDefaultScopePortletId(
-						groupId, portletId)) {
+		if ((layout != null) && _layoutContainsPortletId(layout, portletId)) {
+			validPlid = true;
+		}
 
-					validPlid = true;
-				}
-			}
-			catch (Exception exception) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
-				}
-			}
+		if (!validPlid) {
+			_plidToPortletIdMap.remove(key);
 
-			if (!validPlid) {
-				_plidToPortletIdMap.remove(key);
+			plid = doGetPlidFromPortletId(groupId, privateLayout, portletId);
 
-				plid = doGetPlidFromPortletId(
-					groupId, privateLayout, portletId);
-
-				if (plid != LayoutConstants.DEFAULT_PLID) {
-					_plidToPortletIdMap.put(key, plid);
-				}
+			if (plid != LayoutConstants.DEFAULT_PLID) {
+				_plidToPortletIdMap.put(key, plid);
 			}
 		}
 
@@ -4030,11 +4006,6 @@ public class PortalImpl implements Portal {
 
 		return _portalInetSocketAddressEventListeners.toArray(
 			new PortalInetSocketAddressEventListener[0]);
-	}
-
-	@Override
-	public String getPortalLibDir() {
-		return PropsValues.LIFERAY_LIB_PORTAL_DIR;
 	}
 
 	@Override
@@ -4141,8 +4112,6 @@ public class PortalImpl implements Portal {
 	public String getPortalURL(Layout layout, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		String serverName = themeDisplay.getServerName();
-
 		if (layout == null) {
 			layout = themeDisplay.getLayout();
 		}
@@ -4161,7 +4130,8 @@ public class PortalImpl implements Portal {
 		}
 
 		return getPortalURL(
-			serverName, themeDisplay.getServerPort(), themeDisplay.isSecure());
+			themeDisplay.getServerName(), themeDisplay.getServerPort(),
+			themeDisplay.isSecure());
 	}
 
 	@Override
@@ -4291,138 +4261,16 @@ public class PortalImpl implements Portal {
 				Map<String, Object> requestContext)
 		throws PortalException {
 
-		boolean foundFriendlyURLMapper = false;
-
-		String friendlyURL = url;
-		String queryString = StringPool.BLANK;
-
-		List<Portlet> portlets =
-			PortletLocalServiceUtil.getFriendlyURLMapperPortlets();
-
-		for (Portlet portlet : portlets) {
-			FriendlyURLMapper friendlyURLMapper =
-				portlet.getFriendlyURLMapperInstance();
-
-			if (url.endsWith(
-					StringPool.SLASH + friendlyURLMapper.getMapping())) {
-
-				url += StringPool.SLASH;
-			}
-
-			int pos = -1;
-
-			if (friendlyURLMapper.isCheckMappingWithPrefix()) {
-				pos = url.indexOf(
-					FRIENDLY_URL_SEPARATOR + friendlyURLMapper.getMapping() +
-						StringPool.SLASH);
-			}
-			else {
-				pos = url.indexOf(
-					StringPool.SLASH + friendlyURLMapper.getMapping() +
-						StringPool.SLASH);
-			}
-
-			if (pos == -1) {
-				continue;
-			}
-
-			foundFriendlyURLMapper = true;
-
-			friendlyURL = url.substring(0, pos);
-
-			InheritableMap<String, String[]> actualParams =
-				new InheritableMap<>();
-
-			if (params != null) {
-				actualParams.setParentMap(params);
-			}
-
-			Map<String, String> prpIdentifiers = new HashMap<>();
-
-			Set<PublicRenderParameter> publicRenderParameters =
-				portlet.getPublicRenderParameters();
-
-			for (PublicRenderParameter publicRenderParameter :
-					publicRenderParameters) {
-
-				QName qName = publicRenderParameter.getQName();
-
-				String publicRenderParameterIdentifier = qName.getLocalPart();
-
-				prpIdentifiers.put(
-					publicRenderParameterIdentifier,
-					PortletQNameUtil.getPublicRenderParameterName(qName));
-			}
-
-			FriendlyURLMapperThreadLocal.setPRPIdentifiers(prpIdentifiers);
-
-			if (friendlyURLMapper.isCheckMappingWithPrefix()) {
-				friendlyURLMapper.populateParams(
-					url.substring(pos + 2), actualParams, requestContext);
-			}
-			else {
-				friendlyURLMapper.populateParams(
-					url.substring(pos), actualParams, requestContext);
-			}
-
-			queryString =
-				StringPool.AMPERSAND +
-					HttpUtil.parameterMapToString(actualParams, false);
-
-			break;
-		}
-
-		if (!foundFriendlyURLMapper) {
-			int x = url.indexOf(FRIENDLY_URL_SEPARATOR);
-
-			if (x != -1) {
-				int y = url.indexOf(CharPool.SLASH, x + 3);
-
-				if (y == -1) {
-					y = url.length();
-				}
-
-				String ppid = url.substring(x + 3, y);
-
-				if (Validator.isNotNull(ppid)) {
-					friendlyURL = url.substring(0, x);
-
-					Map<String, String[]> actualParams = null;
-
-					if (params != null) {
-						actualParams = new HashMap<>(params);
-					}
-					else {
-						actualParams = new HashMap<>();
-					}
-
-					actualParams.put("p_p_id", new String[] {ppid});
-					actualParams.put("p_p_lifecycle", new String[] {"0"});
-					actualParams.put(
-						"p_p_mode", new String[] {PortletMode.VIEW.toString()});
-					actualParams.put(
-						"p_p_state",
-						new String[] {WindowState.MAXIMIZED.toString()});
-
-					queryString =
-						StringPool.AMPERSAND +
-							HttpUtil.parameterMapToString(actualParams, false);
-				}
-			}
-		}
-
-		friendlyURL = StringUtil.replace(
-			friendlyURL, StringPool.DOUBLE_SLASH, StringPool.SLASH);
-
-		if (friendlyURL.endsWith(StringPool.SLASH)) {
-			friendlyURL = friendlyURL.substring(0, friendlyURL.length() - 1);
-		}
+		LayoutQueryStringComposite layoutQueryStringComposite =
+			_getPortletFriendlyURLMapperLayoutQueryStringComposite(
+				url, params, requestContext);
 
 		Layout layout = null;
 
-		if (Validator.isNotNull(friendlyURL)) {
+		if (Validator.isNotNull(layoutQueryStringComposite.getFriendlyURL())) {
 			layout = LayoutLocalServiceUtil.getFriendlyURLLayout(
-				groupId, privateLayout, friendlyURL);
+				groupId, privateLayout,
+				layoutQueryStringComposite.getFriendlyURL());
 
 			if (Validator.isNotNull(layout.getSourcePrototypeLayoutUuid())) {
 				layout = LayoutLocalServiceUtil.getLayout(layout.getPlid());
@@ -4435,7 +4283,19 @@ public class PortalImpl implements Portal {
 			layout = LayoutLocalServiceUtil.getLayout(defaultPlid);
 		}
 
-		return new LayoutQueryStringComposite(layout, friendlyURL, queryString);
+		layoutQueryStringComposite.setLayout(layout);
+
+		return layoutQueryStringComposite;
+	}
+
+	@Override
+	public LayoutQueryStringComposite
+		getPortletFriendlyURLMapperLayoutQueryStringComposite(
+			String url, Map<String, String[]> params,
+			Map<String, Object> requestContext) {
+
+		return _getPortletFriendlyURLMapperLayoutQueryStringComposite(
+			url, params, requestContext);
 	}
 
 	@Override
@@ -4493,7 +4353,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return getPortletTitle(portlet, servletContext, locale);
@@ -4579,8 +4439,7 @@ public class PortalImpl implements Portal {
 
 		Locale locale = portletRequest.getLocale();
 
-		String portletTitle = _getPortletTitle(
-			PortletIdCodec.decodePortletName(portletId), portletConfig, locale);
+		String portletTitle = null;
 
 		if (portletConfig == null) {
 			Portlet portlet = PortletLocalServiceUtil.getPortletById(
@@ -4593,6 +4452,11 @@ public class PortalImpl implements Portal {
 				(ServletContext)httpServletRequest.getAttribute(WebKeys.CTX);
 
 			portletTitle = getPortletTitle(portlet, servletContext, locale);
+		}
+		else {
+			portletTitle = _getPortletTitle(
+				PortletIdCodec.decodePortletName(portletId), portletConfig,
+				locale);
 		}
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
@@ -4641,6 +4505,10 @@ public class PortalImpl implements Portal {
 	@Override
 	public String getPortletTitle(String portletId, Locale locale) {
 		PortletConfig portletConfig = PortletConfigFactoryUtil.get(portletId);
+
+		if (portletConfig == null) {
+			return PortletIdCodec.decodePortletName(portletId);
+		}
 
 		return getPortletTitle(
 			portletId, portletConfig.getResourceBundle(locale));
@@ -4816,7 +4684,7 @@ public class PortalImpl implements Portal {
 					}
 					catch (Exception exception) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(exception, exception);
+							_log.debug(exception);
 						}
 					}
 				}
@@ -4900,7 +4768,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -4943,7 +4811,7 @@ public class PortalImpl implements Portal {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchUserException, noSuchUserException);
+				_log.debug(noSuchUserException);
 			}
 		}
 
@@ -5075,7 +4943,7 @@ public class PortalImpl implements Portal {
 			"p_p_state", new String[] {WindowState.MAXIMIZED.toString()});
 		params.put("p_p_mode", new String[] {PortletMode.VIEW.toString()});
 
-		sb.append(HttpUtil.parameterMapToString(params, true));
+		sb.append(HttpComponentsUtil.parameterMapToString(params, true));
 
 		return sb.toString();
 	}
@@ -5220,10 +5088,10 @@ public class PortalImpl implements Portal {
 		Map<String, String[]> parameterMap = null;
 
 		if (Validator.isNotNull(queryString)) {
-			parameterMap = HttpUtil.getParameterMap(queryString);
+			parameterMap = HttpComponentsUtil.getParameterMap(queryString);
 		}
 
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(15);
 
 		// URI
 
@@ -5341,11 +5209,6 @@ public class PortalImpl implements Portal {
 		}
 
 		sb.append(themeDisplay.getLanguageId());
-
-		// Build number
-
-		sb.append("&b=");
-		sb.append(ReleaseInfo.getBuildNumber());
 
 		// Timestamp
 
@@ -5602,14 +5465,8 @@ public class PortalImpl implements Portal {
 		x = url.indexOf(CharPool.QUESTION);
 
 		if (x != -1) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(url.substring(0, x));
-			sb.append(JSESSIONID);
-			sb.append(sessionId);
-			sb.append(url.substring(x));
-
-			return sb.toString();
+			return StringBundler.concat(
+				url.substring(0, x), JSESSIONID, sessionId, url.substring(x));
 		}
 
 		// In IE6, http://www.abc.com;jsessionid=XYZ does not work, but
@@ -5657,9 +5514,9 @@ public class PortalImpl implements Portal {
 			String remoteUser = httpServletRequest.getRemoteUser();
 
 			if ((remoteUser == null) && !PropsValues.PORTAL_JAAS_ENABLE) {
-				HttpSession session = httpServletRequest.getSession();
+				HttpSession httpSession = httpServletRequest.getSession();
 
-				remoteUser = (String)session.getAttribute("j_remoteuser");
+				remoteUser = (String)httpSession.getAttribute("j_remoteuser");
 			}
 
 			if (remoteUser == null) {
@@ -5674,7 +5531,7 @@ public class PortalImpl implements Portal {
 				}
 				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(exception, exception);
+						_log.warn(exception);
 					}
 				}
 			}
@@ -5724,7 +5581,7 @@ public class PortalImpl implements Portal {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return StringPool.BLANK;
@@ -5749,7 +5606,6 @@ public class PortalImpl implements Portal {
 				httpServletRequest, "mvcRenderCommandName");
 			String path = GetterUtil.getString(
 				httpServletRequest.getPathInfo());
-			String strutsAction = getStrutsAction(httpServletRequest);
 
 			boolean alwaysAllowDoAsUser = false;
 
@@ -5758,14 +5614,15 @@ public class PortalImpl implements Portal {
 					"/document_library/edit_file_entry") ||
 				path.equals("/portal/session_click") ||
 				isAlwaysAllowDoAsUser(
-					actionName, mvcRenderCommandName, path, strutsAction)) {
+					actionName, mvcRenderCommandName, path,
+					getStrutsAction(httpServletRequest))) {
 
 				try {
 					alwaysAllowDoAsUser = isAlwaysAllowDoAsUser(
 						httpServletRequest);
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 
@@ -5794,9 +5651,9 @@ public class PortalImpl implements Portal {
 			}
 		}
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		userIdObj = (Long)session.getAttribute(WebKeys.USER_ID);
+		userIdObj = (Long)httpSession.getAttribute(WebKeys.USER_ID);
 
 		if (userIdObj != null) {
 			httpServletRequest.setAttribute(WebKeys.USER_ID, userIdObj);
@@ -5910,7 +5767,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -5925,8 +5782,8 @@ public class PortalImpl implements Portal {
 	}
 
 	@Override
-	public String getUserPassword(HttpSession session) {
-		return (String)session.getAttribute(WebKeys.USER_PASSWORD);
+	public String getUserPassword(HttpSession httpSession) {
+		return (String)httpSession.getAttribute(WebKeys.USER_PASSWORD);
 	}
 
 	@Override
@@ -5986,23 +5843,6 @@ public class PortalImpl implements Portal {
 		}
 
 		return userId;
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #getVirtualHostnames(LayoutSet)}
-	 */
-	@Deprecated
-	@Override
-	public String getVirtualHostname(LayoutSet layoutSet) {
-		TreeMap<String, String> virtualHostnames = getVirtualHostnames(
-			layoutSet);
-
-		if (virtualHostnames.isEmpty()) {
-			return layoutSet.getCompanyFallbackVirtualHostname();
-		}
-
-		return virtualHostnames.firstKey();
 	}
 
 	@Override
@@ -6103,15 +5943,15 @@ public class PortalImpl implements Portal {
 		}
 		catch (NoSuchUserException noSuchUserException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(noSuchUserException.getMessage());
+				_log.warn(noSuchUserException);
 			}
 
 			long userId = getUserId(httpServletRequest);
 
 			if (userId > 0) {
-				HttpSession session = httpServletRequest.getSession();
+				HttpSession httpSession = httpServletRequest.getSession();
 
-				session.invalidate();
+				httpSession.invalidate();
 			}
 
 			throw noSuchUserException;
@@ -6148,7 +5988,7 @@ public class PortalImpl implements Portal {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(systemException, systemException);
+				_log.debug(systemException);
 			}
 		}
 
@@ -6338,13 +6178,10 @@ public class PortalImpl implements Portal {
 	public boolean isLoginRedirectRequired(
 		HttpServletRequest httpServletRequest) {
 
-		if (PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS &&
-			!httpServletRequest.isSecure()) {
+		if ((PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS &&
+			 !httpServletRequest.isSecure()) ||
+			SSOUtil.isLoginRedirectRequired(getCompanyId(httpServletRequest))) {
 
-			return true;
-		}
-
-		if (SSOUtil.isLoginRedirectRequired(getCompanyId(httpServletRequest))) {
 			return true;
 		}
 
@@ -6435,13 +6272,13 @@ public class PortalImpl implements Portal {
 			return httpServletRequest.isSecure();
 		}
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		if (session == null) {
+		if (httpSession == null) {
 			return httpServletRequest.isSecure();
 		}
 
-		Boolean httpsInitial = (Boolean)session.getAttribute(
+		Boolean httpsInitial = (Boolean)httpSession.getAttribute(
 			WebKeys.HTTPS_INITIAL);
 
 		if ((httpsInitial == null) || httpsInitial) {
@@ -6525,11 +6362,6 @@ public class PortalImpl implements Portal {
 	}
 
 	@Override
-	public boolean isUpdateAvailable() {
-		return PluginPackageUtil.isUpdateAvailable();
-	}
-
-	@Override
 	public boolean isValidResourceId(String resourceId) {
 		if (Validator.isNull(resourceId)) {
 			return true;
@@ -6544,7 +6376,7 @@ public class PortalImpl implements Portal {
 		int count = _PORTLET_RESOURCE_ID_URL_DECODE_COUNT;
 
 		while ((count > 0) && resourceId.contains("%")) {
-			resourceId = HttpUtil.decodePath(resourceId);
+			resourceId = HttpComponentsUtil.decodePath(resourceId);
 
 			if (Validator.isNull(resourceId)) {
 				return false;
@@ -6603,11 +6435,12 @@ public class PortalImpl implements Portal {
 
 		String portletNamespace = getPortletNamespace(portletId);
 
-		Map<String, String[]> parameterMap = HttpUtil.getParameterMap(url);
+		Map<String, String[]> parameterMap = HttpComponentsUtil.getParameterMap(
+			url);
 
 		for (String name : parameterMap.keySet()) {
 			if (name.startsWith(portletNamespace)) {
-				url = HttpUtil.removeParameter(url, name);
+				url = HttpComponentsUtil.removeParameter(url, name);
 			}
 		}
 
@@ -6689,12 +6522,12 @@ public class PortalImpl implements Portal {
 					}
 				}
 				else {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
 		else if (_log.isWarnEnabled()) {
-			_log.warn(exception, exception);
+			_log.warn(exception);
 		}
 
 		if (httpServletResponse.isCommitted()) {
@@ -6728,13 +6561,17 @@ public class PortalImpl implements Portal {
 			Validator.isNotNull(
 				PropsValues.SITES_FRIENDLY_URL_PAGE_NOT_FOUND)) {
 
-			redirect = PropsValues.SITES_FRIENDLY_URL_PAGE_NOT_FOUND;
+			redirect = _get18nErrorRedirect(
+				httpServletRequest,
+				PropsValues.SITES_FRIENDLY_URL_PAGE_NOT_FOUND);
 		}
 		else if ((exception instanceof NoSuchLayoutException) &&
 				 Validator.isNotNull(
 					 PropsValues.LAYOUT_FRIENDLY_URL_PAGE_NOT_FOUND)) {
 
-			redirect = PropsValues.LAYOUT_FRIENDLY_URL_PAGE_NOT_FOUND;
+			redirect = _get18nErrorRedirect(
+				httpServletRequest,
+				PropsValues.LAYOUT_FRIENDLY_URL_PAGE_NOT_FOUND);
 
 			httpServletRequest.setAttribute(
 				NoSuchLayoutException.class.getName(), Boolean.TRUE);
@@ -6765,17 +6602,17 @@ public class PortalImpl implements Portal {
 		}
 
 		if (Validator.isNotNull(redirect)) {
-			HttpSession session = PortalSessionThreadLocal.getHttpSession();
+			HttpSession httpSession = PortalSessionThreadLocal.getHttpSession();
 
-			if (session == null) {
-				session = httpServletRequest.getSession();
+			if (httpSession == null) {
+				httpSession = httpServletRequest.getSession();
 			}
 
 			httpServletResponse.setStatus(status);
 
-			SessionErrors.add(session, exception.getClass(), exception);
+			SessionErrors.add(httpSession, exception.getClass(), exception);
 
-			ServletContext servletContext = session.getServletContext();
+			ServletContext servletContext = httpSession.getServletContext();
 
 			RequestDispatcher requestDispatcher =
 				servletContext.getRequestDispatcher(redirect);
@@ -7021,7 +6858,16 @@ public class PortalImpl implements Portal {
 			}
 		}
 
-		Image image = ImageLocalServiceUtil.moveImage(imageId, bytes);
+		Image image = null;
+
+		if (imageId > 0) {
+			image = ImageLocalServiceUtil.moveImage(imageId, bytes);
+		}
+		else {
+			image = ImageLocalServiceUtil.updateImage(
+				BeanPropertiesUtil.getLong(baseModel, "companyId"),
+				CounterLocalServiceUtil.increment(), bytes);
+		}
 
 		BeanPropertiesUtil.setProperty(
 			baseModel, fieldName, image.getImageId());
@@ -7195,9 +7041,9 @@ public class PortalImpl implements Portal {
 			return redirect;
 		}
 
-		String queryString = HttpUtil.getQueryString(redirect);
+		String queryString = HttpComponentsUtil.getQueryString(redirect);
 
-		String redirectParam = HttpUtil.getParameter(
+		String redirectParam = HttpComponentsUtil.getParameter(
 			redirect, "redirect", false);
 
 		if (Validator.isNotNull(redirectParam)) {
@@ -7209,7 +7055,7 @@ public class PortalImpl implements Portal {
 				queryString, redirectParam, newRedirectParam);
 		}
 
-		String redirectPath = HttpUtil.getPath(redirect);
+		String redirectPath = HttpComponentsUtil.getPath(redirect);
 
 		int pos = redirect.indexOf(redirectPath);
 
@@ -7349,32 +7195,19 @@ public class PortalImpl implements Portal {
 			}
 
 			List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
-				groupId, privateLayout, LayoutConstants.TYPE_PORTLET);
-
-			long plid = getPlidFromPortletId(layouts, portletId, scopeGroupId);
-
-			if (plid != LayoutConstants.DEFAULT_PLID) {
-				return plid;
-			}
-
-			layouts = LayoutLocalServiceUtil.getLayouts(
 				groupId, privateLayout,
-				LayoutConstants.TYPE_FULL_PAGE_APPLICATION);
-
-			plid = getPlidFromPortletId(layouts, portletId, scopeGroupId);
-
-			if (plid != LayoutConstants.DEFAULT_PLID) {
-				return plid;
-			}
-
-			layouts = LayoutLocalServiceUtil.getLayouts(
-				groupId, privateLayout, LayoutConstants.TYPE_PANEL);
+				new String[] {
+					LayoutConstants.TYPE_CONTENT,
+					LayoutConstants.TYPE_COLLECTION,
+					LayoutConstants.TYPE_FULL_PAGE_APPLICATION,
+					LayoutConstants.TYPE_PANEL, LayoutConstants.TYPE_PORTLET
+				});
 
 			return getPlidFromPortletId(layouts, portletId, scopeGroupId);
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -7401,7 +7234,7 @@ public class PortalImpl implements Portal {
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				iterator.remove();
 			}
@@ -7519,36 +7352,13 @@ public class PortalImpl implements Portal {
 		return LayoutLocalServiceUtil.fetchLayout(defaultPlid);
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #getCanonicalDomain(TreeMap, String)}
-	 */
-	@Deprecated
 	protected String getCanonicalDomain(
-		String virtualHostname, String portalDomain) {
+		TreeMap<String, String> virtualHostnames, String portalDomain,
+		String defaultVirtualHostName) {
 
 		if (Validator.isBlank(portalDomain) ||
-			StringUtil.equalsIgnoreCase(portalDomain, _LOCALHOST) ||
-			!StringUtil.equalsIgnoreCase(virtualHostname, _LOCALHOST)) {
-
-			return virtualHostname;
-		}
-
-		int pos = portalDomain.indexOf(CharPool.COLON);
-
-		if (pos == -1) {
-			return portalDomain;
-		}
-
-		return portalDomain.substring(0, pos);
-	}
-
-	protected String getCanonicalDomain(
-		TreeMap<String, String> virtualHostnames, String portalDomain) {
-
-		if (Validator.isBlank(portalDomain) ||
-			StringUtil.equalsIgnoreCase(portalDomain, _LOCALHOST) ||
-			!virtualHostnames.containsKey(_LOCALHOST)) {
+			StringUtil.equalsIgnoreCase(portalDomain, defaultVirtualHostName) ||
+			!virtualHostnames.containsKey(defaultVirtualHostName)) {
 
 			return virtualHostnames.firstKey();
 		}
@@ -7639,6 +7449,14 @@ public class PortalImpl implements Portal {
 			return 0;
 		}
 
+		HttpSession httpSession = httpServletRequest.getSession();
+
+		Long realUserIdObj = (Long)httpSession.getAttribute(WebKeys.USER_ID);
+
+		if (!alwaysAllowDoAsUser && (realUserIdObj == null)) {
+			return 0;
+		}
+
 		long doAsUserId = GetterUtil.getLong(doAsUserIdString);
 
 		if (doAsUserId == 0) {
@@ -7649,11 +7467,16 @@ public class PortalImpl implements Portal {
 					Encryptor.decrypt(company.getKeyObj(), doAsUserIdString));
 			}
 			catch (Exception exception) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
+				if (_log.isDebugEnabled()) {
+					_log.debug(
 						"Unable to impersonate " + doAsUserIdString +
 							" because the string cannot be decrypted",
 						exception);
+				}
+				else if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Unable to impersonate " + doAsUserIdString +
+							" because the string cannot be decrypted");
 				}
 
 				return 0;
@@ -7678,17 +7501,7 @@ public class PortalImpl implements Portal {
 			return doAsUserId;
 		}
 
-		HttpSession session = httpServletRequest.getSession();
-
-		Long realUserIdObj = (Long)session.getAttribute(WebKeys.USER_ID);
-
-		if (realUserIdObj == null) {
-			return 0;
-		}
-
 		User doAsUser = UserLocalServiceUtil.getUserById(doAsUserId);
-
-		long[] organizationIds = doAsUser.getOrganizationIds();
 
 		User realUser = UserLocalServiceUtil.getUserById(
 			realUserIdObj.longValue());
@@ -7698,7 +7511,7 @@ public class PortalImpl implements Portal {
 
 		if (doAsUser.isDefaultUser() ||
 			UserPermissionUtil.contains(
-				permissionChecker, doAsUserId, organizationIds,
+				permissionChecker, doAsUserId, doAsUser.getOrganizationIds(),
 				ActionKeys.IMPERSONATE)) {
 
 			httpServletRequest.setAttribute(
@@ -7722,21 +7535,6 @@ public class PortalImpl implements Portal {
 
 		return getGroupFriendlyURL(
 			layoutSet, themeDisplay, canonicalURL, false);
-	}
-
-	protected String getGroupFriendlyURL(
-			LayoutSet layoutSet, ThemeDisplay themeDisplay,
-			boolean canonicalURL, boolean controlPanel)
-		throws PortalException {
-
-		Group group = themeDisplay.getSiteGroup();
-
-		if (group.getGroupId() != layoutSet.getGroupId()) {
-			group = layoutSet.getGroup();
-		}
-
-		return _getGroupFriendlyURL(
-			group, layoutSet, themeDisplay, canonicalURL, controlPanel);
 	}
 
 	protected String[] getGroupPermissions(
@@ -7775,21 +7573,12 @@ public class PortalImpl implements Portal {
 		List<Layout> layouts, String portletId, long scopeGroupId) {
 
 		for (Layout layout : layouts) {
-			LayoutTypePortlet layoutTypePortlet =
-				(LayoutTypePortlet)layout.getLayoutType();
-
 			if (getScopeGroupId(layout, portletId) != scopeGroupId) {
 				continue;
 			}
 
-			for (Portlet portlet : layoutTypePortlet.getAllPortlets()) {
-				if ((portletId.equals(portlet.getPortletId()) ||
-					 portletId.equals(portlet.getRootPortletId())) &&
-					!layout.isPortletEmbedded(portletId, layout.getGroupId()) &&
-					!layoutTypePortlet.isPortletCustomizable(portletId)) {
-
-					return layout.getPlid();
-				}
+			if (_layoutContainsPortletId(layout, portletId)) {
+				return layout.getPlid();
 			}
 		}
 
@@ -7946,7 +7735,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;
@@ -8038,19 +7827,11 @@ public class PortalImpl implements Portal {
 			}
 		}
 
-		if (StringUtil.equalsIgnoreCase(domain, PropsValues.WEB_SERVER_HOST)) {
-			return true;
-		}
+		if (StringUtil.equalsIgnoreCase(domain, PropsValues.WEB_SERVER_HOST) ||
+			isValidVirtualHostname(domain) ||
+			StringUtil.equalsIgnoreCase(domain, getCDNHostHttp(companyId)) ||
+			StringUtil.equalsIgnoreCase(domain, getCDNHostHttps(companyId))) {
 
-		if (isValidVirtualHostname(domain)) {
-			return true;
-		}
-
-		if (StringUtil.equalsIgnoreCase(domain, getCDNHostHttp(companyId))) {
-			return true;
-		}
-
-		if (StringUtil.equalsIgnoreCase(domain, getCDNHostHttps(companyId))) {
 			return true;
 		}
 
@@ -8074,7 +7855,7 @@ public class PortalImpl implements Portal {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -8102,12 +7883,12 @@ public class PortalImpl implements Portal {
 	}
 
 	protected String removeRedirectParameter(String url) {
-		Map<String, String[]> parameterMap = HttpUtil.getParameterMap(
-			HttpUtil.getQueryString(url));
+		Map<String, String[]> parameterMap = HttpComponentsUtil.getParameterMap(
+			HttpComponentsUtil.getQueryString(url));
 
 		for (String parameter : parameterMap.keySet()) {
 			if (parameter.endsWith("redirect")) {
-				url = HttpUtil.removeParameter(url, parameter);
+				url = HttpComponentsUtil.removeParameter(url, parameter);
 			}
 		}
 
@@ -8127,9 +7908,9 @@ public class PortalImpl implements Portal {
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse, Locale locale) {
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		session.setAttribute(WebKeys.LOCALE, locale);
+		httpSession.setAttribute(WebKeys.LOCALE, locale);
 
 		LanguageUtil.updateCookie(
 			httpServletRequest, httpServletResponse, locale);
@@ -8243,25 +8024,58 @@ public class PortalImpl implements Portal {
 		return false;
 	}
 
+	private String _get18nErrorRedirect(
+		HttpServletRequest httpServletRequest, String redirect) {
+
+		String i18nErrorPath = GetterUtil.getString(
+			httpServletRequest.getAttribute(WebKeys.I18N_ERROR_PATH));
+
+		if (Validator.isNull(i18nErrorPath)) {
+			return redirect;
+		}
+
+		return i18nErrorPath.concat(redirect);
+	}
+
+	private List<Portlet> _getAllPortlets(
+		Layout layout, LayoutTypePortlet layoutTypePortlet) {
+
+		List<Portlet> staticPortlets = layoutTypePortlet.getStaticPortlets(
+			PropsKeys.LAYOUT_STATIC_PORTLETS_ALL);
+
+		List<Portlet> explicitlyAddedPortlets = new ArrayList<>();
+
+		if (!layout.isTypeAssetDisplay() && !layout.isTypeContent()) {
+			explicitlyAddedPortlets =
+				layoutTypePortlet.getExplicitlyAddedPortlets(false);
+		}
+
+		return layoutTypePortlet.addStaticPortlets(
+			explicitlyAddedPortlets, staticPortlets,
+			layoutTypePortlet.getEmbeddedPortlets());
+	}
+
 	private Map<Locale, String> _getAlternateURLs(
 			String canonicalURL, ThemeDisplay themeDisplay, Layout layout,
 			Set<Locale> availableLocales)
 		throws PortalException {
 
-		String virtualHostname = getVirtualHostname(
-			themeDisplay.getLayoutSet());
-
-		if (Validator.isNull(virtualHostname)) {
-			Company company = themeDisplay.getCompany();
-
-			virtualHostname = company.getVirtualHostname();
-		}
-
+		String defaultVirtualHostName = _getDefaultVirtualHostName(
+			themeDisplay.getCompany());
 		String portalDomain = themeDisplay.getPortalDomain();
 
-		if (!Validator.isBlank(portalDomain) &&
-			!StringUtil.equalsIgnoreCase(portalDomain, _LOCALHOST) &&
-			StringUtil.equalsIgnoreCase(virtualHostname, _LOCALHOST)) {
+		TreeMap<String, String> virtualHostnames = getVirtualHostnames(
+			themeDisplay.getLayoutSet());
+
+		String virtualHostname = _getVirtualHostname(
+			virtualHostnames, themeDisplay);
+
+		if ((!Validator.isBlank(portalDomain) &&
+			 !StringUtil.equalsIgnoreCase(
+				 portalDomain, defaultVirtualHostName) &&
+			 StringUtil.equalsIgnoreCase(
+				 virtualHostname, defaultVirtualHostName)) ||
+			virtualHostnames.containsKey(portalDomain)) {
 
 			virtualHostname = portalDomain;
 		}
@@ -8422,6 +8236,16 @@ public class PortalImpl implements Portal {
 		return alternateURLs;
 	}
 
+	private String _getDefaultVirtualHostName(Company company) {
+		if ((company != null) &&
+			Validator.isNotNull(company.getVirtualHostname())) {
+
+			return company.getVirtualHostname();
+		}
+
+		return _LOCALHOST;
+	}
+
 	private String _getGroupFriendlyURL(
 			Group group, LayoutSet layoutSet, ThemeDisplay themeDisplay,
 			boolean canonicalURL, boolean controlPanel)
@@ -8433,9 +8257,19 @@ public class PortalImpl implements Portal {
 
 		boolean useGroupVirtualHostname = false;
 
+		String defaultVirtualHostName = _LOCALHOST;
+
+		Company company = themeDisplay.getCompany();
+
+		if ((company != null) &&
+			Validator.isNotNull(company.getVirtualHostname())) {
+
+			defaultVirtualHostName = company.getVirtualHostname();
+		}
+
 		if (canonicalURL ||
 			!StringUtil.equalsIgnoreCase(
-				themeDisplay.getServerName(), _LOCALHOST)) {
+				themeDisplay.getServerName(), defaultVirtualHostName)) {
 
 			useGroupVirtualHostname = true;
 		}
@@ -8454,16 +8288,17 @@ public class PortalImpl implements Portal {
 			}
 		}
 
+		String portalDomain = themeDisplay.getPortalDomain();
+
+		TreeMap<String, String> virtualHostnames = getVirtualHostnames(
+			layoutSet);
+
 		if (useGroupVirtualHostname) {
-			TreeMap<String, String> virtualHostnames = getVirtualHostnames(
-				layoutSet);
-
-			String portalDomain = themeDisplay.getPortalDomain();
-
 			if (!virtualHostnames.isEmpty() &&
-				(canonicalURL || !virtualHostnames.containsKey(_LOCALHOST))) {
+				(canonicalURL ||
+				 !virtualHostnames.containsKey(defaultVirtualHostName))) {
 
-				if (!controlPanel) {
+				if (!controlPanel || !privateLayoutSet) {
 					if (canonicalURL) {
 						String path = StringPool.BLANK;
 
@@ -8471,7 +8306,8 @@ public class PortalImpl implements Portal {
 							path = PropsValues.WIDGET_SERVLET_MAPPING;
 						}
 
-						if (!virtualHostnames.containsKey(_LOCALHOST) &&
+						if (!virtualHostnames.containsKey(
+								defaultVirtualHostName) &&
 							!_containsHostname(
 								virtualHostnames, portalDomain)) {
 
@@ -8512,13 +8348,12 @@ public class PortalImpl implements Portal {
 
 						String serverName = themeDisplay.getServerName();
 
-						if (Validator.isNotNull(serverName)) {
+						if (Validator.isNotNull(serverName) &&
+							!serverName.equals(defaultVirtualHostName)) {
+
 							virtualHostnames.put(serverName, StringPool.BLANK);
 						}
-
-						if (virtualHostnames.isEmpty() ||
-							virtualHostnames.containsKey(_LOCALHOST)) {
-
+						else {
 							LayoutSet curLayoutSet =
 								LayoutSetLocalServiceUtil.getLayoutSet(
 									themeDisplay.getSiteGroupId(),
@@ -8530,23 +8365,19 @@ public class PortalImpl implements Portal {
 					}
 
 					if (virtualHostnames.isEmpty() ||
-						virtualHostnames.containsKey(_LOCALHOST)) {
+						virtualHostnames.containsKey(defaultVirtualHostName)) {
 
 						virtualHostnames = TreeMapBuilder.put(
-							() -> {
-								Company company = themeDisplay.getCompany();
-
-								return company.getVirtualHostname();
-							},
-							StringPool.BLANK
+							company::getVirtualHostname, StringPool.BLANK
 						).build();
 					}
 
 					if (canonicalURL ||
-						!virtualHostnames.containsKey(_LOCALHOST)) {
+						!virtualHostnames.containsKey(defaultVirtualHostName)) {
 
 						String virtualHostname = getCanonicalDomain(
-							virtualHostnames, portalDomain);
+							virtualHostnames, portalDomain,
+							defaultVirtualHostName);
 
 						portalURL = getPortalURL(
 							virtualHostname, themeDisplay.getServerPort(),
@@ -8554,20 +8385,6 @@ public class PortalImpl implements Portal {
 					}
 				}
 			}
-		}
-
-		String friendlyURL = null;
-
-		if (privateLayoutSet) {
-			if (group.isUser()) {
-				friendlyURL = _PRIVATE_USER_SERVLET_MAPPING;
-			}
-			else {
-				friendlyURL = _PRIVATE_GROUP_SERVLET_MAPPING;
-			}
-		}
-		else {
-			friendlyURL = _PUBLIC_GROUP_SERVLET_MAPPING;
 		}
 
 		StringBundler sb = new StringBundler(6);
@@ -8586,8 +8403,26 @@ public class PortalImpl implements Portal {
 			sb.append(PropsValues.WIDGET_SERVLET_MAPPING);
 		}
 
-		sb.append(friendlyURL);
-		sb.append(group.getFriendlyURL());
+		if (privateLayoutSet) {
+			if (group.isUser()) {
+				sb.append(_PRIVATE_USER_SERVLET_MAPPING);
+			}
+			else {
+				sb.append(_PRIVATE_GROUP_SERVLET_MAPPING);
+			}
+
+			sb.append(group.getFriendlyURL());
+		}
+		else if (!StringUtil.equals(
+					group.getGroupKey(),
+					PropsValues.VIRTUAL_HOSTS_DEFAULT_SITE_NAME) ||
+				 (!StringUtil.equalsIgnoreCase(
+					 portalDomain, defaultVirtualHostName) &&
+				  !_containsHostname(virtualHostnames, portalDomain))) {
+
+			sb.append(_PUBLIC_GROUP_SERVLET_MAPPING);
+			sb.append(group.getFriendlyURL());
+		}
 
 		return sb.toString();
 	}
@@ -8664,6 +8499,143 @@ public class PortalImpl implements Portal {
 		return null;
 	}
 
+	private LayoutQueryStringComposite
+		_getPortletFriendlyURLMapperLayoutQueryStringComposite(
+			String url, Map<String, String[]> params,
+			Map<String, Object> requestContext) {
+
+		boolean foundFriendlyURLMapper = false;
+
+		String friendlyURL = url;
+		String queryString = StringPool.BLANK;
+
+		List<Portlet> portlets =
+			PortletLocalServiceUtil.getFriendlyURLMapperPortlets();
+
+		for (Portlet portlet : portlets) {
+			FriendlyURLMapper friendlyURLMapper =
+				portlet.getFriendlyURLMapperInstance();
+
+			if (url.endsWith(
+					StringPool.SLASH + friendlyURLMapper.getMapping())) {
+
+				url += StringPool.SLASH;
+			}
+
+			int pos = -1;
+
+			if (friendlyURLMapper.isCheckMappingWithPrefix()) {
+				pos = url.indexOf(
+					FRIENDLY_URL_SEPARATOR + friendlyURLMapper.getMapping() +
+						StringPool.SLASH);
+			}
+			else {
+				pos = url.indexOf(
+					StringPool.SLASH + friendlyURLMapper.getMapping() +
+						StringPool.SLASH);
+			}
+
+			if (pos == -1) {
+				continue;
+			}
+
+			foundFriendlyURLMapper = true;
+
+			friendlyURL = url.substring(0, pos);
+
+			InheritableMap<String, String[]> actualParams =
+				new InheritableMap<>();
+
+			if (params != null) {
+				actualParams.setParentMap(params);
+			}
+
+			Map<String, String> prpIdentifiers = new HashMap<>();
+
+			Set<PublicRenderParameter> publicRenderParameters =
+				portlet.getPublicRenderParameters();
+
+			for (PublicRenderParameter publicRenderParameter :
+					publicRenderParameters) {
+
+				QName qName = publicRenderParameter.getQName();
+
+				String publicRenderParameterIdentifier = qName.getLocalPart();
+
+				prpIdentifiers.put(
+					publicRenderParameterIdentifier,
+					PortletQNameUtil.getPublicRenderParameterName(qName));
+			}
+
+			FriendlyURLMapperThreadLocal.setPRPIdentifiers(prpIdentifiers);
+
+			if (friendlyURLMapper.isCheckMappingWithPrefix()) {
+				friendlyURLMapper.populateParams(
+					url.substring(pos + 2), actualParams, requestContext);
+			}
+			else {
+				friendlyURLMapper.populateParams(
+					url.substring(pos), actualParams, requestContext);
+			}
+
+			String actualParamsString = HttpComponentsUtil.parameterMapToString(
+				actualParams, false);
+
+			queryString = StringPool.AMPERSAND + actualParamsString;
+
+			break;
+		}
+
+		if (!foundFriendlyURLMapper) {
+			int x = url.indexOf(FRIENDLY_URL_SEPARATOR);
+
+			if (x != -1) {
+				int y = url.indexOf(CharPool.SLASH, x + 3);
+
+				if (y == -1) {
+					y = url.length();
+				}
+
+				String ppid = url.substring(x + 3, y);
+
+				if (Validator.isNotNull(ppid)) {
+					friendlyURL = url.substring(0, x);
+
+					Map<String, String[]> actualParams = null;
+
+					if (params != null) {
+						actualParams = new HashMap<>(params);
+					}
+					else {
+						actualParams = new HashMap<>();
+					}
+
+					actualParams.put("p_p_id", new String[] {ppid});
+					actualParams.put("p_p_lifecycle", new String[] {"0"});
+					actualParams.put(
+						"p_p_mode", new String[] {PortletMode.VIEW.toString()});
+					actualParams.put(
+						"p_p_state",
+						new String[] {WindowState.MAXIMIZED.toString()});
+
+					String result = HttpComponentsUtil.parameterMapToString(
+						actualParams, false);
+
+					queryString = StringPool.AMPERSAND + result;
+				}
+			}
+		}
+
+		friendlyURL = StringUtil.replace(
+			friendlyURL, StringPool.DOUBLE_SLASH, StringPool.SLASH);
+
+		if (friendlyURL.endsWith(StringPool.SLASH)) {
+			friendlyURL = friendlyURL.substring(0, friendlyURL.length() - 1);
+		}
+
+		return new LayoutQueryStringComposite(null, friendlyURL, queryString);
+	}
+
 	private String _getPortletTitle(
 		String rootPortletId, PortletConfig portletConfig, Locale locale) {
 
@@ -8695,52 +8667,55 @@ public class PortalImpl implements Portal {
 			return layout.getGroupId();
 		}
 
-		try {
-			PortletPreferences portletSetup = null;
+		PortletPreferences portletSetup = null;
 
-			if (themeDisplay == null) {
-				portletSetup =
-					PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
-						layout, portletId);
-			}
-			else {
-				portletSetup = themeDisplay.getStrictLayoutPortletSetup(
+		if (themeDisplay == null) {
+			portletSetup =
+				PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
 					layout, portletId);
-			}
+		}
+		else {
+			portletSetup = themeDisplay.getStrictLayoutPortletSetup(
+				layout, portletId);
+		}
 
-			String scopeType = GetterUtil.getString(
-				portletSetup.getValue("lfrScopeType", null));
+		String scopeType = GetterUtil.getString(
+			portletSetup.getValue("lfrScopeType", null));
 
-			if (Validator.isNull(scopeType)) {
+		if (Validator.isNull(scopeType)) {
+			return layout.getGroupId();
+		}
+
+		if (scopeType.equals("company")) {
+			Group companyGroup = GroupLocalServiceUtil.fetchCompanyGroup(
+				layout.getCompanyId());
+
+			if (companyGroup == null) {
 				return layout.getGroupId();
 			}
 
-			if (scopeType.equals("company")) {
-				Group companyGroup = GroupLocalServiceUtil.getCompanyGroup(
-					layout.getCompanyId());
-
-				return companyGroup.getGroupId();
-			}
-
-			String scopeLayoutUuid = GetterUtil.getString(
-				portletSetup.getValue("lfrScopeLayoutUuid", null));
-
-			Layout scopeLayout =
-				LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-					scopeLayoutUuid, layout.getGroupId(),
-					layout.isPrivateLayout());
-
-			Group scopeGroup = scopeLayout.getScopeGroup();
-
-			return scopeGroup.getGroupId();
+			return companyGroup.getGroupId();
 		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
-			}
 
+		String scopeLayoutUuid = GetterUtil.getString(
+			portletSetup.getValue("lfrScopeLayoutUuid", null));
+
+		Layout scopeLayout = LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
+			scopeLayoutUuid, layout.getGroupId(), layout.isPrivateLayout());
+
+		if (scopeLayout == null) {
 			return layout.getGroupId();
 		}
+
+		Group scopeGroup = GroupLocalServiceUtil.fetchGroup(
+			scopeLayout.getCompanyId(), getClassNameId(Layout.class),
+			scopeLayout.getPlid());
+
+		if (scopeGroup == null) {
+			return layout.getGroupId();
+		}
+
+		return scopeGroup.getGroupId();
 	}
 
 	private Group _getSiteGroup(long groupId) {
@@ -8761,11 +8736,41 @@ public class PortalImpl implements Portal {
 		return group;
 	}
 
+	private String _getVirtualHostname(
+		TreeMap<String, String> virtualHostnames, ThemeDisplay themeDisplay) {
+
+		if (virtualHostnames.isEmpty()) {
+			Company company = themeDisplay.getCompany();
+
+			return company.getVirtualHostname();
+		}
+
+		return virtualHostnames.firstKey();
+	}
+
+	private boolean _layoutContainsPortletId(Layout layout, String portletId) {
+		LayoutTypePortlet layoutTypePortlet =
+			(LayoutTypePortlet)layout.getLayoutType();
+
+		for (Portlet portlet : _getAllPortlets(layout, layoutTypePortlet)) {
+			if ((portletId.equals(portlet.getPortletId()) ||
+				 portletId.equals(portlet.getRootPortletId())) &&
+				!layout.isPortletEmbedded(portletId, layout.getGroupId())) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private boolean _requiresLayoutFriendlyURL(
 		String siteGroupFriendlyURL, String layoutFriendlyURL,
 		String groupFriendlyURL) {
 
-		if (groupFriendlyURL.contains(_PUBLIC_GROUP_SERVLET_MAPPING)) {
+		if (groupFriendlyURL.contains(
+				_PUBLIC_GROUP_SERVLET_MAPPING + StringPool.SLASH)) {
+
 			if (groupFriendlyURL.contains(
 					StringBundler.concat(
 						_PUBLIC_GROUP_SERVLET_MAPPING, siteGroupFriendlyURL,
@@ -8800,6 +8805,8 @@ public class PortalImpl implements Portal {
 	private static final String _PUBLIC_GROUP_SERVLET_MAPPING =
 		PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING;
 
+	private static final String _UNICODE_REPLACEMENT_CHARACTER = "\uFFFD";
+
 	private static final Log _log = LogFactoryUtil.getLog(PortalImpl.class);
 
 	private static final Pattern _bannedResourceIdPattern = Pattern.compile(
@@ -8827,6 +8834,8 @@ public class PortalImpl implements Portal {
 	private final String[] _allSystemSiteRoles;
 	private final List<AlwaysAllowDoAsUser> _alwaysAllowDoAsUsers =
 		new ArrayList<>();
+	private final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
 	private final Set<String> _computerAddresses = new HashSet<>();
 	private final String _computerName;
 	private String[] _customSqlKeys;
@@ -8849,7 +8858,7 @@ public class PortalImpl implements Portal {
 		_portalLocalInetSocketAddress = new AtomicReference<>();
 	private final AtomicReference<InetSocketAddress>
 		_portalServerInetSocketAddress = new AtomicReference<>();
-	private final Set<String> _reservedParams;
+	private final Set<String> _reservedParams = new HashSet<>();
 	private final AtomicReference<InetSocketAddress>
 		_securePortalLocalInetSocketAddress = new AtomicReference<>();
 	private final AtomicReference<InetSocketAddress>
@@ -8869,9 +8878,7 @@ public class PortalImpl implements Portal {
 		public AlwaysAllowDoAsUser addingService(
 			ServiceReference<AlwaysAllowDoAsUser> serviceReference) {
 
-			Registry registry = RegistryUtil.getRegistry();
-
-			AlwaysAllowDoAsUser alwaysAllowDoAsUser = registry.getService(
+			AlwaysAllowDoAsUser alwaysAllowDoAsUser = _bundleContext.getService(
 				serviceReference);
 
 			if (_log.isDebugEnabled()) {
@@ -8902,9 +8909,7 @@ public class PortalImpl implements Portal {
 			ServiceReference<AlwaysAllowDoAsUser> serviceReference,
 			AlwaysAllowDoAsUser alwaysAllowDoAsUser) {
 
-			Registry registry = RegistryUtil.getRegistry();
-
-			registry.ungetService(serviceReference);
+			_bundleContext.ungetService(serviceReference);
 
 			if (_log.isDebugEnabled()) {
 				_log.debug(
@@ -8930,12 +8935,11 @@ public class PortalImpl implements Portal {
 		public StrutsAction addingService(
 			ServiceReference<StrutsAction> serviceReference) {
 
-			Registry registry = RegistryUtil.getRegistry();
-
 			String path = GetterUtil.getString(
 				serviceReference.getProperty("path"));
 
-			StrutsAction strutsAction = registry.getService(serviceReference);
+			StrutsAction strutsAction = _bundleContext.getService(
+				serviceReference);
 
 			if (Objects.equals(path, "/portal/comment/discussion/edit")) {
 				_editDiscussionStrutsAction = strutsAction;
@@ -8964,8 +8968,6 @@ public class PortalImpl implements Portal {
 			ServiceReference<StrutsAction> serviceReference,
 			StrutsAction strutsAction) {
 
-			Registry registry = RegistryUtil.getRegistry();
-
 			String path = GetterUtil.getString(
 				serviceReference.getProperty("path"));
 
@@ -8978,7 +8980,7 @@ public class PortalImpl implements Portal {
 				_getCommentsStrutsAction = null;
 			}
 
-			registry.ungetService(serviceReference);
+			_bundleContext.ungetService(serviceReference);
 		}
 
 	}
@@ -8993,11 +8995,9 @@ public class PortalImpl implements Portal {
 			ServiceReference<PortalInetSocketAddressEventListener>
 				serviceReference) {
 
-			Registry registry = RegistryUtil.getRegistry();
-
 			PortalInetSocketAddressEventListener
-				portalInetSocketAddressEventListener = registry.getService(
-					serviceReference);
+				portalInetSocketAddressEventListener =
+					_bundleContext.getService(serviceReference);
 
 			addPortalInetSocketAddressEventListener(
 				portalInetSocketAddressEventListener);
@@ -9020,9 +9020,7 @@ public class PortalImpl implements Portal {
 			PortalInetSocketAddressEventListener
 				portalInetSocketAddressEventListener) {
 
-			Registry registry = RegistryUtil.getRegistry();
-
-			registry.ungetService(serviceReference);
+			_bundleContext.ungetService(serviceReference);
 
 			removePortalInetSocketAddressEventListener(
 				portalInetSocketAddressEventListener);

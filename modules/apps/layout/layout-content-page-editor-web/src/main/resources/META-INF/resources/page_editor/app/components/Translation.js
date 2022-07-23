@@ -23,14 +23,13 @@ import {updateLanguageId} from '../actions/index';
 import {BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR} from '../config/constants/backgroundImageFragmentEntryProcessor';
 import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../config/constants/editableFragmentEntryProcessor';
 import {TRANSLATION_STATUS_TYPE} from '../config/constants/translationStatusType';
-import {useSelector} from '../store/index';
-import getLanguages from '../utils/getLanguages';
 
 const getEditableValues = (fragmentEntryLinks) =>
 	Object.values(fragmentEntryLinks)
 		.filter(
 			(fragmentEntryLink) =>
 				!fragmentEntryLink.masterLayout &&
+				!fragmentEntryLink.removed &&
 				fragmentEntryLink.editableValues
 		)
 		.map((fragmentEntryLink) => [
@@ -106,6 +105,7 @@ const TranslationItem = ({
 			) : (
 				<span>{languageLabel}</span>
 			)}
+
 			<span className="dropdown-item-indicator-end page-editor__translation__label-wrapper">
 				<div
 					className={classNames(
@@ -114,6 +114,7 @@ const TranslationItem = ({
 					)}
 				>
 					{TRANSLATION_STATUS_LANGUAGE[status]}
+
 					{TRANSLATION_STATUS_TYPE[status] ===
 						TRANSLATION_STATUS_TYPE.translating &&
 						` ${translatedValuesLength}/${editableValuesLength}`}
@@ -129,64 +130,47 @@ export default function Translation({
 	dispatch,
 	fragmentEntryLinks,
 	languageId,
-	segmentsExperienceId,
+	showNotTranslated = true,
 }) {
 	const [active, setActive] = useState(false);
 	const editableValues = useMemo(
 		() => getEditableValues(fragmentEntryLinks),
 		[fragmentEntryLinks]
 	);
-
-	const availableSegmentsExperiences = useSelector(
-		(state) => state.availableSegmentsExperiences
-	);
-
-	const languages = getLanguages(
-		availableLanguages,
-		availableSegmentsExperiences,
-		segmentsExperienceId
-	);
-
 	const languageValues = useMemo(() => {
-		const availableLanguagesMut = {...languages};
+		const availableLanguagesMut = {...availableLanguages};
 
-		const defaultLanguage = languages[defaultLanguageId];
+		const defaultLanguage = availableLanguages[defaultLanguageId];
 
 		delete availableLanguagesMut[defaultLanguageId];
 
 		return Object.keys({
 			[defaultLanguageId]: defaultLanguage,
 			...availableLanguagesMut,
-		}).map((languageId) => ({
-			languageId,
-			values: editableValues.filter((editableValue) =>
-				isTranslated(editableValue, languageId)
-			),
-		}));
-	}, [defaultLanguageId, editableValues, languages]);
-
-	const selectedExperienceLanguage = (
+		})
+			.filter(
+				(languageId) =>
+					showNotTranslated ||
+					editableValues.filter(
+						(editableValue) =>
+							isTranslated(editableValue, languageId) ||
+							languageId === defaultLanguageId
+					).length > 0
+			)
+			.map((languageId) => ({
+				languageId,
+				values: editableValues.filter((editableValue) =>
+					isTranslated(editableValue, languageId)
+				),
+			}));
+	}, [
+		availableLanguages,
 		defaultLanguageId,
-		languageId,
-		languages
-	) => {
-		if (!languages[languageId]) {
-			dispatch(
-				updateLanguageId({
-					languageId: defaultLanguageId,
-				})
-			);
+		editableValues,
+		showNotTranslated,
+	]);
 
-			return languages[defaultLanguageId];
-		}
-
-		return languages[languageId];
-	};
-
-	const {
-		languageIcon,
-		w3cLanguageId: languageLabel,
-	} = selectedExperienceLanguage(defaultLanguageId, languageId, languages);
+	const {languageIcon, languageLabel} = availableLanguages[languageId];
 
 	return (
 		<ClayDropDown
@@ -195,6 +179,9 @@ export default function Translation({
 			hasRightSymbols
 			menuElementAttrs={{
 				className: 'page-editor__translation',
+				containerProps: {
+					className: 'cadmin',
+				},
 			}}
 			onActiveChange={setActive}
 			trigger={
@@ -205,6 +192,7 @@ export default function Translation({
 					small
 				>
 					<ClayIcon symbol={languageIcon} />
+
 					<span className="sr-only">{languageLabel}</span>
 				</ClayButton>
 			}
@@ -217,11 +205,12 @@ export default function Translation({
 						key={language.languageId}
 						language={language}
 						languageIcon={
-							languages[language.languageId].languageIcon
+							availableLanguages[language.languageId].languageIcon
 						}
 						languageId={languageId}
 						languageLabel={
-							languages[language.languageId].w3cLanguageId
+							availableLanguages[language.languageId]
+								.w3cLanguageId
 						}
 						onClick={() => {
 							dispatch(
@@ -242,10 +231,7 @@ export default function Translation({
 Translation.propTypes = {
 	availableLanguages: PropTypes.objectOf(
 		PropTypes.shape({
-			default: PropTypes.bool,
-			displayName: PropTypes.string,
 			languageIcon: PropTypes.string.isRequired,
-			languageId: PropTypes.string,
 			w3cLanguageId: PropTypes.string.isRequired,
 		})
 	).isRequired,
@@ -253,5 +239,4 @@ Translation.propTypes = {
 	dispatch: PropTypes.func.isRequired,
 	fragmentEntryLinks: PropTypes.object.isRequired,
 	languageId: PropTypes.string.isRequired,
-	segmentsExperienceId: PropTypes.string,
 };

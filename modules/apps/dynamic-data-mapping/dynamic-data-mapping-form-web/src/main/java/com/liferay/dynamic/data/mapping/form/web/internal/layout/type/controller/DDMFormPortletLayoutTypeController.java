@@ -19,7 +19,7 @@ import com.liferay.layout.type.controller.BaseLayoutTypeControllerImpl;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTypeController;
-import com.liferay.taglib.servlet.PipingServletResponse;
+import com.liferay.portal.kernel.servlet.PipingServletResponse;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletResponse;
@@ -82,22 +82,6 @@ public class DDMFormPortletLayoutTypeController
 	@Override
 	public boolean isURLFriendliable() {
 		return true;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #createServletResponse(HttpServletResponse,
-	 *             UnsyncStringWriter)}
-	 */
-	@Deprecated
-	@Override
-	protected ServletResponse createServletResponse(
-		HttpServletResponse httpServletResponse,
-		com.liferay.portal.kernel.io.unsync.UnsyncStringWriter
-			unsyncStringWriter) {
-
-		return new PipingServletResponse(
-			httpServletResponse, unsyncStringWriter);
 	}
 
 	@Override

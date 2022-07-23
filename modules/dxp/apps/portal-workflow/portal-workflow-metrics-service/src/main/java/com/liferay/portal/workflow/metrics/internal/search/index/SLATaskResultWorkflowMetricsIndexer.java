@@ -50,6 +50,8 @@ public class SLATaskResultWorkflowMetricsIndexer
 
 		DocumentBuilder documentBuilder = documentBuilderFactory.builder();
 
+		documentBuilder.setValue("active", true);
+
 		if (workflowMetricsSLATaskResult.getAssigneeIds() != null) {
 			documentBuilder.setLongs(
 				"assigneeIds", workflowMetricsSLATaskResult.getAssigneeIds());
@@ -96,11 +98,11 @@ public class SLATaskResultWorkflowMetricsIndexer
 		documentBuilder.setLong(
 			"instanceId", workflowMetricsSLATaskResult.getInstanceId());
 
-		if (workflowMetricsSLATaskResult.getLastCheckLocalDateTime() != null) {
+		if (workflowMetricsSLATaskResult.getModifiedLocalDateTime() != null) {
 			documentBuilder.setDate(
-				"lastCheckDate",
+				"modifiedDate",
 				formatLocalDateTime(
-					workflowMetricsSLATaskResult.getLastCheckLocalDateTime()));
+					workflowMetricsSLATaskResult.getModifiedLocalDateTime()));
 		}
 
 		documentBuilder.setLong(

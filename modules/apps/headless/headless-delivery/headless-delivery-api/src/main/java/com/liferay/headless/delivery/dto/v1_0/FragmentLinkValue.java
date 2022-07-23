@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -56,6 +58,10 @@ public class FragmentLinkValue implements Serializable {
 
 	public static FragmentLinkValue toDTO(String json) {
 		return ObjectMapperUtil.readValue(FragmentLinkValue.class, json);
+	}
+
+	public static FragmentLinkValue unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(FragmentLinkValue.class, json);
 	}
 
 	@Schema(
@@ -165,7 +171,17 @@ public class FragmentLinkValue implements Serializable {
 
 			sb.append("\"href\": ");
 
-			sb.append(String.valueOf(href));
+			if (href instanceof Map) {
+				sb.append(JSONFactoryUtil.createJSONObject((Map<?, ?>)href));
+			}
+			else if (href instanceof String) {
+				sb.append("\"");
+				sb.append(_escape((String)href));
+				sb.append("\"");
+			}
+			else {
+				sb.append(href);
+			}
 		}
 
 		if (target != null) {
@@ -201,13 +217,17 @@ public class FragmentLinkValue implements Serializable {
 
 		@JsonCreator
 		public static Target create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (Target target : values()) {
 				if (Objects.equals(target.getValue(), value)) {
 					return target;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -229,9 +249,9 @@ public class FragmentLinkValue implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -257,7 +277,7 @@ public class FragmentLinkValue implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -289,7 +309,7 @@ public class FragmentLinkValue implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -305,5 +325,10 @@ public class FragmentLinkValue implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

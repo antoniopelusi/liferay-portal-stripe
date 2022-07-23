@@ -230,4 +230,7 @@ public interface EntryModel
 	 */
 	public void setComments(String comments);
 
+	@Override
+	public Entry cloneWithOriginalValues();
+
 }

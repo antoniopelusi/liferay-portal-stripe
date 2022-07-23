@@ -44,56 +44,22 @@ public class PostgreSQLDB extends BaseDB {
 	public static String getCreateRulesSQL(
 		String tableName, String columnName) {
 
-		StringBundler sb = new StringBundler(45);
-
-		sb.append("create or replace rule delete_");
-		sb.append(tableName);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(columnName);
-		sb.append(" as on delete to ");
-		sb.append(tableName);
-		sb.append(" do also select case when exists(select 1 from ");
-		sb.append("pg_catalog.pg_largeobject_metadata where (oid = old.");
-		sb.append(columnName);
-		sb.append(")) then lo_unlink(old.");
-		sb.append(columnName);
-		sb.append(") end from ");
-		sb.append(tableName);
-		sb.append(" where ");
-		sb.append(tableName);
-		sb.append(StringPool.PERIOD);
-		sb.append(columnName);
-		sb.append(" = old.");
-		sb.append(columnName);
-
-		sb.append(";\ncreate or replace rule update_");
-		sb.append(tableName);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(columnName);
-		sb.append(" as on update to ");
-		sb.append(tableName);
-		sb.append(" where old.");
-		sb.append(columnName);
-		sb.append(" is distinct from new.");
-		sb.append(columnName);
-		sb.append(" and old.");
-		sb.append(columnName);
-		sb.append(" is not null do also select case when exists(select 1 ");
-		sb.append("from pg_catalog.pg_largeobject_metadata where (oid = old.");
-		sb.append(columnName);
-		sb.append(")) then lo_unlink(old.");
-		sb.append(columnName);
-		sb.append(") end from ");
-		sb.append(tableName);
-		sb.append(" where ");
-		sb.append(tableName);
-		sb.append(StringPool.PERIOD);
-		sb.append(columnName);
-		sb.append(" = old.");
-		sb.append(columnName);
-		sb.append(StringPool.SEMICOLON);
-
-		return sb.toString();
+		return StringBundler.concat(
+			"create or replace rule delete_", tableName, StringPool.UNDERLINE,
+			columnName, " as on delete to ", tableName,
+			" do also select case when exists(select 1 from ",
+			"pg_catalog.pg_largeobject_metadata where (oid = old.", columnName,
+			")) then lo_unlink(old.", columnName, ") end from ", tableName,
+			" where ", tableName, StringPool.PERIOD, columnName, " = old.",
+			columnName, ";\ncreate or replace rule update_", tableName,
+			StringPool.UNDERLINE, columnName, " as on update to ", tableName,
+			" where old.", columnName, " is distinct from new.", columnName,
+			" and old.", columnName,
+			" is not null do also select case when exists(select 1 from ",
+			"pg_catalog.pg_largeobject_metadata where (oid = old.", columnName,
+			")) then lo_unlink(old.", columnName, ") end from ", tableName,
+			" where ", tableName, StringPool.PERIOD, columnName, " = old.",
+			columnName, StringPool.SEMICOLON);
 	}
 
 	public PostgreSQLDB(int majorVersion, int minorVersion) {
@@ -110,31 +76,30 @@ public class PostgreSQLDB extends BaseDB {
 	}
 
 	@Override
-	public List<Index> getIndexes(Connection con) throws SQLException {
+	public List<Index> getIndexes(Connection connection) throws SQLException {
 		List<Index> indexes = new ArrayList<>();
 
-		StringBundler sb = new StringBundler(3);
+		// https://issues.liferay.com/browse/LPS-136307
+		// https://www.postgresql.org/docs/13/catalog-pg-index.html
+		// https://www.postgresql.org/docs/13/catalog-pg-class.html
+		// https://www.postgresql.org/docs/13/view-pg-indexes.html
 
-		sb.append("select indexname, tablename, indexdef from pg_indexes ");
-		sb.append("where schemaname = current_schema() and (indexname like ");
-		sb.append("'liferay_%' or indexname like 'ix_%')");
+		String sql = StringBundler.concat(
+			"select pg_indexes.indexname, pg_indexes.tablename, ",
+			"pg_index.indisunique from pg_indexes, pg_index, pg_class where ",
+			"pg_indexes.schemaname = current_schema() and ",
+			"(pg_indexes.indexname like 'liferay_%' or pg_indexes.indexname ",
+			"like 'ix_%') and pg_class.relname = pg_indexes.indexname and ",
+			"pg_index.indexrelid = pg_class.oid");
 
-		String sql = sb.toString();
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				sql);
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-		try (PreparedStatement ps = con.prepareStatement(sql);
-			ResultSet rs = ps.executeQuery()) {
-
-			while (rs.next()) {
-				String indexName = rs.getString("indexname");
-				String tableName = rs.getString("tablename");
-				String indexSQL = StringUtil.toLowerCase(
-					StringUtil.trim(rs.getString("indexdef")));
-
-				boolean unique = true;
-
-				if (indexSQL.startsWith("create index ")) {
-					unique = false;
-				}
+			while (resultSet.next()) {
+				String indexName = resultSet.getString("indexname");
+				String tableName = resultSet.getString("tablename");
+				boolean unique = resultSet.getBoolean("indisunique");
 
 				indexes.add(new Index(indexName, tableName, unique));
 			}
@@ -145,28 +110,14 @@ public class PostgreSQLDB extends BaseDB {
 
 	@Override
 	public String getPopulateSQL(String databaseName, String sqlContent) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("\\c ");
-		sb.append(databaseName);
-		sb.append(";\n\n");
-		sb.append(sqlContent);
-
-		return sb.toString();
+		return StringBundler.concat("\\c ", databaseName, ";\n\n", sqlContent);
 	}
 
 	@Override
 	public String getRecreateSQL(String databaseName) {
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("drop database ");
-		sb.append(databaseName);
-		sb.append(";\n");
-		sb.append("create database ");
-		sb.append(databaseName);
-		sb.append(" encoding = 'UNICODE';\n");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"drop database ", databaseName, ";\n", "create database ",
+			databaseName, " encoding = 'UNICODE';\n");
 	}
 
 	@Override
@@ -177,6 +128,11 @@ public class PostgreSQLDB extends BaseDB {
 	@Override
 	protected int[] getSQLTypes() {
 		return _SQL_TYPES;
+	}
+
+	@Override
+	protected int[] getSQLVarcharSizes() {
+		return _SQL_VARCHAR_SIZES;
 	}
 
 	@Override
@@ -286,6 +242,10 @@ public class PostgreSQLDB extends BaseDB {
 	private static final int[] _SQL_TYPES = {
 		Types.BIGINT, Types.BINARY, Types.BIT, Types.TIMESTAMP, Types.DOUBLE,
 		Types.INTEGER, Types.BIGINT, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR
+	};
+
+	private static final int[] _SQL_VARCHAR_SIZES = {
+		SQL_VARCHAR_MAX_SIZE, SQL_VARCHAR_MAX_SIZE
 	};
 
 	private static final boolean _SUPPORTS_QUERYING_AFTER_EXCEPTION = false;

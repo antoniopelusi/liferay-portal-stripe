@@ -19,8 +19,8 @@ import com.liferay.analytics.settings.web.internal.constants.AnalyticsSettingsWe
 import com.liferay.analytics.settings.web.internal.search.OrganizationChecker;
 import com.liferay.analytics.settings.web.internal.search.OrganizationSearch;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationConstants;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
@@ -31,7 +31,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.util.comparator.OrganizationNameComparator;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Objects;
 
 import javax.portlet.PortletURL;
@@ -59,8 +58,9 @@ public class OrganizationDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_renderRequest, AnalyticsSettingsWebKeys.ANALYTICS_CONFIGURATION,
+			"organization-order-by-type", "asc");
 
 		return _orderByType;
 	}
@@ -71,26 +71,22 @@ public class OrganizationDisplayContext {
 
 		organizationSearch.setOrderByCol(_getOrderByCol());
 		organizationSearch.setOrderByType(getOrderByType());
-
-		List<Organization> organizations = OrganizationLocalServiceUtil.search(
-			_getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
-			_getKeywords(), null, null, null, _getOrganizationParams(),
-			organizationSearch.getStart(), organizationSearch.getEnd(),
-			new OrganizationNameComparator(_isOrderByAscending()));
-
-		organizationSearch.setResults(organizations);
-
+		organizationSearch.setResultsAndTotal(
+			() -> OrganizationLocalServiceUtil.search(
+				_getCompanyId(),
+				OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
+				_getKeywords(), null, null, null, _getOrganizationParams(),
+				organizationSearch.getStart(), organizationSearch.getEnd(),
+				new OrganizationNameComparator(_isOrderByAscending())),
+			OrganizationLocalServiceUtil.searchCount(
+				_getCompanyId(),
+				OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
+				_getKeywords(), null, null, null, _getOrganizationParams()));
 		organizationSearch.setRowChecker(
 			new OrganizationChecker(
 				_renderResponse,
 				SetUtil.fromArray(
 					_analyticsConfiguration.syncedOrganizationIds())));
-
-		int total = OrganizationLocalServiceUtil.searchCount(
-			_getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
-			_getKeywords(), null, null, null, _getOrganizationParams());
-
-		organizationSearch.setTotal(total);
 
 		return organizationSearch;
 	}
@@ -100,7 +96,7 @@ public class OrganizationDisplayContext {
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/analytics_settings/edit_synced_contacts_organizations"
-		).build();
+		).buildPortletURL();
 	}
 
 	private long _getCompanyId() {
@@ -125,8 +121,9 @@ public class OrganizationDisplayContext {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_renderRequest, "orderByCol", "organization-name");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_renderRequest, AnalyticsSettingsWebKeys.ANALYTICS_CONFIGURATION,
+			"organization-order-by-col", "organization-name");
 
 		return _orderByCol;
 	}

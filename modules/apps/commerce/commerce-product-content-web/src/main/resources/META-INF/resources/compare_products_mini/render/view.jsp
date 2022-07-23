@@ -18,15 +18,10 @@
 
 <%
 CPCompareContentHelper cpCompareContentHelper = (CPCompareContentHelper)request.getAttribute(CPContentWebKeys.CP_COMPARE_CONTENT_HELPER);
+
 CommerceContext commerceContext = (CommerceContext)request.getAttribute(CommerceWebKeys.COMMERCE_CONTEXT);
 
-long commerceAccountId = 0;
-
-CommerceAccount commerceAccount = commerceContext.getCommerceAccount();
-
-if (commerceAccount != null) {
-	commerceAccountId = GetterUtil.getLong(commerceAccount.getCommerceAccountId());
-}
+long commerceAccountId = CommerceUtil.getCommerceAccountId(commerceContext);
 
 List<CPCatalogEntry> cpCatalogEntries = cpCompareContentHelper.getCPCatalogEntries(commerceContext.getCommerceChannelGroupId(), commerceAccountId, request);
 %>
@@ -47,7 +42,8 @@ List<CPCatalogEntry> cpCatalogEntries = cpCompareContentHelper.getCPCatalogEntri
 
 				{
 					id: '<%= cpCatalogEntry.getCPDefinitionId() %>',
-					thumbnail: '<%= cpCatalogEntry.getDefaultImageFileUrl() %>',
+					thumbnail:
+						'<%= cpCompareContentHelper.getDefaultImageFileURL(commerceAccountId, cpCatalogEntry.getCPDefinitionId()) %>',
 				},
 
 			<%
@@ -58,7 +54,6 @@ List<CPCatalogEntry> cpCatalogEntries = cpCompareContentHelper.getCPCatalogEntri
 		itemsLimit: <%= cpCompareContentHelper.getProductsLimit(portletDisplay) %>,
 		portletNamespace:
 			'<%= cpCompareContentHelper.getCompareContentPortletNamespace() %>',
-		spritemap:
-			'<%= themeDisplay.getPathThemeImages() + "/lexicon/icons.svg" %>',
+		spritemap: '<%= themeDisplay.getPathThemeImages() + "/clay/icons.svg" %>',
 	});
 </aui:script>

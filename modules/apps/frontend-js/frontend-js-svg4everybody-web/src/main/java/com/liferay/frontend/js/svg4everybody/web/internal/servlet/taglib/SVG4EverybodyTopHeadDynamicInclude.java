@@ -93,7 +93,7 @@ public class SVG4EverybodyTopHeadDynamicInclude extends BaseDynamicInclude {
 					"<script data-senna-track=\"permanent\" src=\"");
 
 				printWriter.print(
-					absolutePortalURLBuilder.forModule(
+					absolutePortalURLBuilder.forModuleScript(
 						_bundleContext.getBundle(), jsFileName
 					).build());
 
@@ -121,7 +121,7 @@ public class SVG4EverybodyTopHeadDynamicInclude extends BaseDynamicInclude {
 	@Reference
 	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
 
-	private BundleContext _bundleContext;
+	private volatile BundleContext _bundleContext;
 
 	@Reference
 	private Portal _portal;

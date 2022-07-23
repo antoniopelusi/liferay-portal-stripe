@@ -28,23 +28,21 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.reports.engine.console.model.Entry;
 import com.liferay.portal.reports.engine.console.model.EntryModel;
-import com.liferay.portal.reports.engine.console.model.EntrySoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -150,68 +148,6 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Entry toModel(EntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Entry model = new EntryImpl();
-
-		model.setEntryId(soapModel.getEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setDefinitionId(soapModel.getDefinitionId());
-		model.setFormat(soapModel.getFormat());
-		model.setScheduleRequest(soapModel.isScheduleRequest());
-		model.setStartDate(soapModel.getStartDate());
-		model.setEndDate(soapModel.getEndDate());
-		model.setRepeating(soapModel.isRepeating());
-		model.setRecurrence(soapModel.getRecurrence());
-		model.setEmailNotifications(soapModel.getEmailNotifications());
-		model.setEmailDelivery(soapModel.getEmailDelivery());
-		model.setPortletId(soapModel.getPortletId());
-		model.setPageURL(soapModel.getPageURL());
-		model.setReportParameters(soapModel.getReportParameters());
-		model.setErrorMessage(soapModel.getErrorMessage());
-		model.setStatus(soapModel.getStatus());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Entry> toModels(EntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Entry> models = new ArrayList<Entry>(soapModels.length);
-
-		for (EntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public EntryModelImpl() {
 	}
 
@@ -290,33 +226,6 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Entry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Entry.class.getClassLoader(), Entry.class, ModelWrapper.class);
-
-		try {
-			Constructor<Entry> constructor =
-				(Constructor<Entry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Entry, Object>>
@@ -890,6 +799,46 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 	}
 
 	@Override
+	public Entry cloneWithOriginalValues() {
+		EntryImpl entryImpl = new EntryImpl();
+
+		entryImpl.setEntryId(this.<Long>getColumnOriginalValue("entryId"));
+		entryImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		entryImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		entryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		entryImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		entryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		entryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		entryImpl.setDefinitionId(
+			this.<Long>getColumnOriginalValue("definitionId"));
+		entryImpl.setFormat(this.<String>getColumnOriginalValue("format"));
+		entryImpl.setScheduleRequest(
+			this.<Boolean>getColumnOriginalValue("scheduleRequest"));
+		entryImpl.setStartDate(this.<Date>getColumnOriginalValue("startDate"));
+		entryImpl.setEndDate(this.<Date>getColumnOriginalValue("endDate"));
+		entryImpl.setRepeating(
+			this.<Boolean>getColumnOriginalValue("repeating"));
+		entryImpl.setRecurrence(
+			this.<String>getColumnOriginalValue("recurrence"));
+		entryImpl.setEmailNotifications(
+			this.<String>getColumnOriginalValue("emailNotifications"));
+		entryImpl.setEmailDelivery(
+			this.<String>getColumnOriginalValue("emailDelivery"));
+		entryImpl.setPortletId(
+			this.<String>getColumnOriginalValue("portletId"));
+		entryImpl.setPageURL(this.<String>getColumnOriginalValue("pageURL"));
+		entryImpl.setReportParameters(
+			this.<String>getColumnOriginalValue("reportParameters"));
+		entryImpl.setErrorMessage(
+			this.<String>getColumnOriginalValue("errorMessage"));
+		entryImpl.setStatus(this.<String>getColumnOriginalValue("status"));
+
+		return entryImpl;
+	}
+
+	@Override
 	public int compareTo(Entry entry) {
 		int value = 0;
 
@@ -1101,7 +1050,7 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1111,9 +1060,26 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 			String attributeName = entry.getKey();
 			Function<Entry, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Entry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Entry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1159,7 +1125,9 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Entry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Entry.class, ModelWrapper.class);
 
 	}
 

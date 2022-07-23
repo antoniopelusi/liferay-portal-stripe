@@ -26,42 +26,44 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.PropsImpl;
 
 import java.util.Locale;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-
-import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
  * @author Adam Brandizzi
  */
-@RunWith(PowerMockRunner.class)
-@SuppressStaticInitializationFor("com.liferay.portal.kernel.search.BaseIndexer")
 public class FolderTitleLookupTest {
 
-	@Before
-	public void setUp() {
-		setUpPropsUtil();
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
+
+	@BeforeClass
+	public static void setUpClass() {
+		PropsUtil.setProps(new PropsImpl());
 	}
 
 	@Test
 	public void testGetFolderTitle() throws SearchException {
-		Hits hits = getHitsWithDocument(
-			getTitleLocalizedFieldName(LocaleUtil.BRAZIL), "My Title");
+		Hits hits = _getHitsWithDocument(
+			_getTitleLocalizedFieldName(LocaleUtil.BRAZIL), "My Title");
 
 		FolderTitleLookup folderTitleLookup = new FolderTitleLookupImpl(
-			mockFolderSearcher(hits), mockHttpServletRequest(LocaleUtil.US));
+			_mockFolderSearcher(hits), _mockHttpServletRequest(LocaleUtil.US));
 
 		Assert.assertEquals(
 			"My Title",
@@ -72,11 +74,11 @@ public class FolderTitleLookupTest {
 	public void testGetFolderTitleFromAnyLocalizedField()
 		throws SearchException {
 
-		Hits hits = getHitsWithDocument(Field.TITLE, "My Title");
+		Hits hits = _getHitsWithDocument(Field.TITLE, "My Title");
 
 		FolderTitleLookup folderTitleLookup = new FolderTitleLookupImpl(
-			mockFolderSearcher(hits),
-			mockHttpServletRequest(LocaleUtil.BRAZIL));
+			_mockFolderSearcher(hits),
+			_mockHttpServletRequest(LocaleUtil.BRAZIL));
 
 		Assert.assertEquals(
 			"My Title",
@@ -87,19 +89,19 @@ public class FolderTitleLookupTest {
 	public void testGetFolderTitleFromDisplayLocaleLocalizedField()
 		throws SearchException {
 
-		Hits hits = getHitsWithDocument(
-			getTitleLocalizedFieldName(LocaleUtil.BRAZIL), "My Title");
+		Hits hits = _getHitsWithDocument(
+			_getTitleLocalizedFieldName(LocaleUtil.BRAZIL), "My Title");
 
 		FolderTitleLookup folderTitleLookup = new FolderTitleLookupImpl(
-			mockFolderSearcher(hits),
-			mockHttpServletRequest(LocaleUtil.BRAZIL));
+			_mockFolderSearcher(hits),
+			_mockHttpServletRequest(LocaleUtil.BRAZIL));
 
 		Assert.assertEquals(
 			"My Title",
 			folderTitleLookup.getFolderTitle(RandomTestUtil.randomLong()));
 	}
 
-	protected Hits getHitsWithDocument(String fieldName, String value) {
+	private Hits _getHitsWithDocument(String fieldName, String value) {
 		Document document = new DocumentImpl();
 
 		document.addText(fieldName, value);
@@ -112,11 +114,11 @@ public class FolderTitleLookupTest {
 		return hits;
 	}
 
-	protected String getTitleLocalizedFieldName(Locale locale) {
+	private String _getTitleLocalizedFieldName(Locale locale) {
 		return Field.TITLE + StringPool.UNDERLINE + locale;
 	}
 
-	protected FolderSearcher mockFolderSearcher(Hits hits)
+	private FolderSearcher _mockFolderSearcher(Hits hits)
 		throws SearchException {
 
 		FolderSearcher folderSearcher = Mockito.mock(FolderSearcher.class);
@@ -130,7 +132,7 @@ public class FolderTitleLookupTest {
 		return folderSearcher;
 	}
 
-	protected MockHttpServletRequest mockHttpServletRequest(Locale locale) {
+	private MockHttpServletRequest _mockHttpServletRequest(Locale locale) {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 
 		ThemeDisplay themeDisplay = Mockito.mock(ThemeDisplay.class);
@@ -144,10 +146,6 @@ public class FolderTitleLookupTest {
 		request.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
 
 		return request;
-	}
-
-	protected void setUpPropsUtil() {
-		PropsUtil.setProps(new PropsImpl());
 	}
 
 }

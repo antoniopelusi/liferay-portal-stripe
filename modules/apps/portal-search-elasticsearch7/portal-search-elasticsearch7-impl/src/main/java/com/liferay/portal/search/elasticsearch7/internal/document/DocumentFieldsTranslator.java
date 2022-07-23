@@ -38,15 +38,10 @@ public class DocumentFieldsTranslator {
 		Map<String, DocumentField> documentFieldsMap,
 		DocumentBuilder documentBuilder, String alternateUidFieldName) {
 
-		if (MapUtil.isEmpty(documentFieldsMap)) {
-			return;
-		}
+		if (MapUtil.isEmpty(documentFieldsMap) ||
+			documentFieldsMap.containsKey(_UID_FIELD_NAME) ||
+			Validator.isBlank(alternateUidFieldName)) {
 
-		if (documentFieldsMap.containsKey(_UID_FIELD_NAME)) {
-			return;
-		}
-
-		if (Validator.isBlank(alternateUidFieldName)) {
 			return;
 		}
 
@@ -88,7 +83,7 @@ public class DocumentFieldsTranslator {
 		DocumentField documentField, DocumentBuilder documentBuilder,
 		Map<String, DocumentField> documentFieldsMap) {
 
-		if (translateGeoLocationPoint(
+		if (_translateGeoLocationPoint(
 				documentField, documentBuilder, documentFieldsMap)) {
 
 			return;
@@ -115,7 +110,7 @@ public class DocumentFieldsTranslator {
 		}
 	}
 
-	protected boolean translateGeoLocationPoint(
+	private boolean _translateGeoLocationPoint(
 		DocumentField documentField1, DocumentBuilder documentBuilder,
 		Map<String, DocumentField> documentFieldsMap) {
 

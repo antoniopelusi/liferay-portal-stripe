@@ -188,6 +188,11 @@ public class SegmentsExperimentWrapper
 		}
 	}
 
+	@Override
+	public SegmentsExperiment cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this segments experiment.
 	 *

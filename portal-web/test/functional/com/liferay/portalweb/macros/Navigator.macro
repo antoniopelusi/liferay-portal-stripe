@@ -159,9 +159,13 @@ definition {
 	macro gotoSidebarTab {
 		var key_tabName = "${tabName}";
 
-		Click.clickNoMouseOver(locator1 = "Sidebar#TAB");
+		if (IsElementNotPresent(locator1 = "Sidebar#ACTIVE_TAB")) {
+			Click(locator1 = "Sidebar#TAB");
+		}
 
 		AssertElementPresent(locator1 = "Sidebar#ACTIVE_TAB");
+
+		WaitForLiferayEvent.initializeLiferayEventLog();
 	}
 
 	macro gotoSitePage {
@@ -207,7 +211,7 @@ definition {
 		var pageNameURL = StringUtil.lowerCase("${pageNameURL}");
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -219,7 +223,7 @@ definition {
 		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -231,7 +235,7 @@ definition {
 		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -241,7 +245,7 @@ definition {
 	macro openPrivateURL {
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -253,7 +257,7 @@ definition {
 		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -263,12 +267,24 @@ definition {
 		Open(locator1 = "${baseURL}/web/${siteNameURL}/${pageNameURL}");
 	}
 
+	macro openSiteStagingConfiguration {
+		var siteNameURL = StringUtil.replace("${siteName}", " ", "-");
+		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteNameURL}-staging/~/control_panel/manage?p_p_id=com_liferay_staging_processes_web_portlet_StagingProcessesPortlet");
+	}
+
 	macro openSiteURL {
 		var siteNameURL = StringUtil.replace("${siteName}", " ", "-");
 		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -277,6 +293,8 @@ definition {
 
 	macro openSpecificURL {
 		Open(locator1 = "${url}");
+
+		Alert.confirmSecurity(domain = "${domain}");
 	}
 
 	macro openStagingSiteURL {
@@ -284,17 +302,44 @@ definition {
 		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
 		if (isSet(defaultSite)) {
 			Open(locator1 = "${baseURL}/web/guest-staging");
 		}
-
 		else {
 			Open(locator1 = "${baseURL}/web/${siteNameURL}-staging");
 		}
+	}
+
+	macro openToGroupPagesPortlet {
+		var plid = JSONLayout.getPlid(
+			groupName = "${groupName}",
+			layoutName = "${layoutName}",
+			portalURL = "${portalURL}",
+			site = "${site}");
+
+		if ("${portlet}" == "General") {
+			var screenNavigationEntryKey = "general";
+		}
+
+		if ("${portlet}" == "Open Graph") {
+			var screenNavigationEntryKey = "open-graph";
+		}
+
+		if ("${portlet}" == "SEO") {
+			var screenNavigationEntryKey = "seo";
+		}
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		Open(locator1 = "${baseURL}/group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_layout_admin_web_portlet_GroupPagesPortlet&_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_tabs1=pages&_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_privateLayout=false&_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_displayStyle=miller-columns&_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_mvcRenderCommandName=%2Flayout_admin%2Fedit_layout&_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_portletResource=com_liferay_layout_admin_web_portlet_GroupPagesPortlet&p_r_p_selPlid=${plid}&_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_screenNavigationEntryKey=${screenNavigationEntryKey}");
 	}
 
 	macro openURL {
@@ -302,26 +347,15 @@ definition {
 
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
-		if (isSet(freeLogin)) {
-			if (!(isSet(userEmailAddress))) {
-				var userEmailAddress = "test@liferay.com";
-			}
-
-			Open(locator1 = "${baseURL}/web/guest?SM_USER=${userEmailAddress}");
-		}
-		else {
-			Open(locator1 = "${baseURL}/web/guest/home");
-		}
+		Open(locator1 = "${baseURL}/web/guest/home");
 	}
 
 	macro openWithAppendToBaseURL {
-		var baseURL = "${baseURL}";
-
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -330,6 +364,12 @@ definition {
 
 	macro selectSpecificWindow {
 		SelectWindow(locator1 = "title=${windowTitle}");
+	}
+
+	macro viewActivatedNavTab {
+		AssertElementPresent(
+			key_tab = "${navTab}",
+			locator1 = "NavTab#ACTIVE_TAB_LINK");
 	}
 
 	macro viewNoNavTab {

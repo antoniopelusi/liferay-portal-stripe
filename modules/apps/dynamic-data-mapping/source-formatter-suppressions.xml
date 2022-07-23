@@ -4,7 +4,6 @@
 	<checkstyle>
 		<suppress checks="CamelCaseNameCheck" files="dynamic-data-mapping-data-provider-impl/src/main/java/com/liferay/dynamic/data/mapping/data/provider/internal/rest/DDMRESTDataProviderSettings\.java" />
 		<suppress checks="CamelCaseNameCheck" files="dynamic-data-mapping-data-provider-impl/src/test/java/com/liferay/dynamic/data/mapping/data/provider/internal/rest/DDMRESTDataProviderSettingsTest\.java" />
-		<suppress checks="GenericTypeCheck" files="dynamic-data-mapping-data-provider-impl/src/test/java/com/liferay/dynamic/data/mapping/data/provider/internal/rest/DDMRESTDataProviderTest.java" />
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-form-field-type/src/main/java/com/liferay/dynamic/data/mapping/form/field/type/internal/document/library/DocumentLibraryDDMFormFieldTemplateContextContributor\.java" />
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-form-field-type/src/main/java/com/liferay/dynamic/data/mapping/form/field/type/internal/select/SelectDDMFormFieldTemplateContextContributor\.java" />
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-form-renderer/src/main/java/com/liferay/dynamic/data/mapping/form/renderer/internal/DDMFormFieldTemplateContextFactory\.java" />
@@ -12,10 +11,12 @@
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-form-renderer/src/main/java/com/liferay/dynamic/data/mapping/form/renderer/internal/DDMFormTemplateContextFactoryImpl\.java" />
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-form-renderer/src/test/java/com/liferay/dynamic/data/mapping/form/renderer/internal/DDMFormFieldTemplateContextFactoryTest\.java" />
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-service/src/main/java/com/liferay/dynamic/data/mapping/internal/notification/DDMFormEmailNotificationSender\.java" />
+		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-service/src/test/java/com/liferay/dynamic/data/mapping/internal/report/NumericDDMFormFieldTypeReportProcessorTest\.java" />
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-test-util/src/main/java/com/liferay/dynamic/data/mapping/test/util/DDMStructureTestHelper\.java" />
 		<suppress checks="MapBuilderCheck" files="dynamic-data-mapping-test/src/testIntegration/java/com/liferay/dynamic/data/mapping/service/test/BaseDDMServiceTestCase\.java" />
 	</checkstyle>
 	<source-check>
 		<suppress checks="JavaForLoopCheck" files="dynamic-data-mapping-form-values-query/src/main/java/com/liferay/dynamic/data/mapping/form/values/query/internal/model/DDMFormValuesFilterImpl\.java" />
+		<suppress checks="JavaUpgradeIndexCheck" files="dynamic-data-mapping-service/src/main/java/com/liferay/dynamic/data/mapping/internal/upgrade/v4_3_0/DLFileEntryTypeDataDefinitionIdUpgradeProcess\.java" />
 	</source-check>
 </suppressions>

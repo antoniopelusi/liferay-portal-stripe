@@ -1,0 +1,965 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property custom.properties = "jsonws.web.service.paths.excludes=";
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		task ("Copy the token from AC") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Set up instance and sign in DXP") {
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+		}
+
+		task ("Add a new site and add a web content in this site") {
+			ACUtils.addSiteAndPage();
+
+			ACUtils.createWCAndAddToPage();
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		JSONUser.tearDownNonAdminUsers();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8456 | Test Summary: Web content appears on card shows the pages that the web content appears on"
+	@priority = "5"
+	test AssertAppearsOnListShowsPagesWebContentExists {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		task ("Go to the site page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch to new property in AC and go to WC tab") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Go to the WC overview") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+
+			ACNavigation.openItem(itemName = "Web Content AC Title");
+		}
+
+		task ("Assert appears on metric") {
+			var portalURL = PropsUtil.get("portal.url");
+
+			var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+			ACAssets.viewAssetAppearsOnMetric(
+				canonicalURL = "${portalURL}/web/site-name",
+				cardTitle = "Asset Appears On",
+				pageName = "AC Page - Site Name - ${siteName}");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8446 | Test Summary: Assert 180 day time filter in Assets"
+	@ignore = "true"
+	@priority = "3"
+	test AssertAssetsPageTimeFilter180Days {
+
+		// AC Refactor: the test needs data from a past date
+		// AC Refactor ticket: LRAC-8860
+
+		task ("Connect DXP to Analytics Cloud and get the property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Go to Site Page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Navigate to AC workspace") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Web Content tab in Assets") {
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Set time filter to 24hs and Assert WC presence") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+
+			ACUtils.viewNameList(nameList = "Web Content AC Title");
+		}
+
+		task ("Set time filter use 180Days") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast180Days();
+		}
+
+		// Task ("Assert not present the Web Content when time filter use 180 Days")
+		// It is not possible to perform the assert because this test needs data from the past
+
+		task ("Assert result returns") {
+			ACTimeFilter.assertCurrentTimeFilterRange(timeFilterRange = "Last 180 days");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8448 | Test Summary: Web content audience card shows expected amount of known and anonymous individuals"
+	@priority = "5"
+	test AudienceCardShowsExpectedAmountKnowAndAnonymousIndividualsInWC {
+		var usernameList = "ac,liferay";
+		var emailList = "ac@liferay.com,liferay@liferay.com";
+
+		for (var name : list "${usernameList}") {
+			JSONUser.addUser(
+				userEmailAddress = "${name}@liferay.com",
+				userFirstName = "${name}",
+				userLastName = "${name}",
+				userScreenName = "${name}");
+		}
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		ACUtils.navigateToSitePageWithUser(
+			emailList = "${emailList}",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		User.logoutPG();
+
+		ACUtils.navigateToSitePage(
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToAssets();
+
+		ACNavigation.switchTab(tabName = "Web Content");
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACNavigation.openItem(itemName = "Web Content AC Title");
+
+		ACIndividualsDashboard.goToOverviewTab();
+
+		ACNavigation.viewActiveSwitchTab(tabName = "Overview");
+
+		ACUtils.assertAudienceCard(
+			index = "1",
+			percentageList = "66.67%,33.33%");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8449 | Test Summary: Web content audience card shows expected amount of segmented and unsegmented individuals"
+	@priority = "5"
+	test AudienceCardShowsExpectedAmountSegmentedAndUnsegmentedInWC {
+		property portal.upstream = "quarantine";
+
+		// AC Quarantine Reason: The membership list takes a long time to update
+		// AC Refactor ticket: LRAC-10769 and LRAC-10024
+
+		property test.name.skip.portal.instance = "AssetsWebContent#AudienceCardShowsExpectedAmountSegmentedAndUnsegmentedInWC";
+
+		var usernameList = "ac,liferay";
+		var emailList = "ac@liferay.com,liferay@liferay.com";
+
+		task ("Create users and sync") {
+			for (var name : list "${usernameList}") {
+				JSONUser.addUser(
+					userEmailAddress = "${name}@liferay.com",
+					userFirstName = "${name}",
+					userLastName = "${name}",
+					userScreenName = "${name}");
+			}
+
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Go to page and get data for unsegmented individuals") {
+			ACUtils.navigateToSitePageWithUser(
+				emailList = "${emailList}",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("View page with anonymous user") {
+			User.logoutPG();
+
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close all sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Go to AC and create segment for the user") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToSegments();
+
+			ACSegments.createStaticSegment();
+
+			ACUtils.setItemName(itemName = "Static Segment Test");
+
+			ACSegments.addStaticMember(tableMember = "ac ac");
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Go to page and get data for segmented individuals") {
+			ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
+
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close all sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Go to created WC") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+
+			ACNavigation.openItem(itemName = "Web Content AC Title");
+		}
+
+		task ("Assert the correct percentage") {
+			ACIndividualsDashboard.goToOverviewTab();
+
+			ACNavigation.viewActiveSwitchTab(tabName = "Overview");
+
+			ACUtils.assertAudienceCard(
+				index = "2",
+				percentageList = "66.67%,33.33%");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8444 | Test Summary: Custom Range time filter in Web Content assets page"
+	@ignore = "true"
+	@priority = "4"
+	test CanAssertWebContentTimeFilterCustom {
+
+		// AC Refactor: It is not possible to perform the assert because this test needs data from the past.
+		// AC Refactor ticket: LRAC-8817
+
+		task ("Connect DXP to Analytics Cloud and get the property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Go to Site Page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Navigate to AC workspace") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Web Content tab in Assets") {
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Set time filter to 24hs and Assert WC presence") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+
+			ACUtils.viewNameList(nameList = "Web Content AC Title");
+		}
+
+		task ("Set time filter use Custom Range") {
+			ACTimeFilter.setCustomRange(
+				endDay = "13",
+				endMonth = "July",
+				endYear = "2021",
+				startDay = "1",
+				startMonth = "July",
+				startYear = "2021");
+		}
+
+		task ("Assert result returns") {
+			ACTimeFilter.assertCurrentTimeFilterRange(timeFilterRange = "Jul 1, 2021 - Jul 13, 2021");
+		}
+
+		task ("Assert result returns the Custom Range") {
+
+			// Use a macro to assert time filter return the right data
+			// Create a locator that can be used later
+
+			ACUtils.viewNameList(nameList = "Web Content AC Title Custom Range");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8130 | Test Summary: Click a web content in the web content list navigates to the web content overview page"
+	@priority = "5"
+	test CanNavigateToWebContentOverviewPage {
+		property test.name.skip.portal.instance = "AssetsWebContent#CanNavigateToWebContentOverviewPage";
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "ac@liferay.com",
+			userFirstName = "ac",
+			userLastName = "ac",
+			userScreenName = "ac");
+
+		ACDXPSettings.syncNewContactData();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "ac@liferay.com",
+			userLoginFullName = "ac ac");
+
+		ACUtils.navigateToSitePage(
+			documentTitleList = "1,2,3",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToAssets();
+
+		ACNavigation.switchTab(tabName = "Web Content");
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACNavigation.openItem(itemName = "Web Content AC Title");
+
+		ACIndividualsDashboard.goToOverviewTab();
+
+		ACNavigation.viewActiveSwitchTab(tabName = "Overview");
+
+		for (var cardTitle : list "Visitors Behavior,Audience,Views by Location,Views by Technology,Asset Appears On") {
+			ACCards.viewCards(cardTitle = "${cardTitle}");
+		}
+
+		ACAssets.viewVisitorsBehaviorMetric(
+			metricTitle = "Views",
+			metricValue = "3");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8441 | Test Summary: Web content list is searchable"
+	@priority = "5"
+	test CanSearchWebContentList {
+		property test.name.skip.portal.instance = "AssetsWebContent#CanSearchWebContentList";
+
+		var assetNameList = "Web Content AC Title,Web Content AC Title 2,Web Content AC Title 3";
+
+		task ("Add pages and add web content to earch of the page") {
+			for (var layoutName : list "AC Page 2,AC Page 3") {
+				ACUtils.addPage(layoutName = "${layoutName}");
+			}
+
+			for (var n : list "2,3") {
+				ACUtils.createWCAndAddToPage(
+					layoutName = "AC Page ${n}",
+					webContentTitle = "Web Content AC Title ${n}");
+			}
+		}
+
+		task ("Get site assigned property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Add a new user in DXP") {
+			JSONUser.addUser(
+				userEmailAddress = "ac@liferay.com",
+				userFirstName = "ac",
+				userLastName = "ac",
+				userScreenName = "ac");
+		}
+
+		task ("Sync the Contact Data") {
+			ACDXPSettings.syncNewContactData();
+		}
+
+		task ("Sign in with the new user to visit the site pages") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "ac@liferay.com",
+				userLoginFullName = "ac ac");
+
+			for (var pageName : list "AC Page,AC Page 2,AC Page 3") {
+				ACUtils.navigateToSitePage(
+					pageName = "${pageName}",
+					siteName = "Site Name");
+			}
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Go to Web Content assets") {
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Choose Last 24 Hours") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("Search the Web Contents") {
+			ACUtils.searchBar(searchItem = "Web Content AC Title");
+
+			ACUtils.viewNameList(nameList = "${assetNameList}");
+
+			ACUtils.searchBar(searchItem = "2");
+
+			ACUtils.viewNameList(nameList = "Web Content AC Title 2");
+
+			ACUtils.searchBar(searchItem = "3");
+
+			ACUtils.viewNameList(nameList = "Web Content AC Title 3");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8445 | Test Summary: Assert Web Content 180 Days Time Filter In Web Content Assets Page"
+	@ignore = "true"
+	@priority = "5"
+	test CanUse180DaysTimeFilterInWebContentOverview {
+
+		// AC Refactor: the test needs data from a past date
+		// AC Refactor ticket: LRAC-8861
+
+		task ("Connect DXP to Analytics Cloud and get the property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		// Use a macro that create the page in the last 180 days.
+
+		task ("Navigate to AC property") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Navigate to Web Content tab in Assets") {
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Navigate to Web Content entry's Overview tab") {
+
+			// It is not possible to perform the assert because this test needs data from the past
+
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast180Days();
+
+			ACNavigation.openItem(itemName = "Web Content AC Title");
+
+			ACIndividualsDashboard.goToOverviewTab();
+
+			ACNavigation.viewActiveSwitchTab(tabName = "Overview");
+		}
+
+		task ("Set time filter use 180Days") {
+			ACTimeFilter.assertCurrentTimeFilterRange(
+				cardName = "Visitors Behavior",
+				timeFilterRange = "Last 180 days");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8443 | Test Summary: Assert Custom Range time filter in assets"
+	@ignore = "true"
+	@priority = "5"
+	test CanUseCustomRangeTimeFilterInWebContentOverview {
+
+		// AC Refactor: the test needs data from a past date
+		// AC Refactor ticket: LRAC-8865
+
+		task ("Connect DXP to Analytics Cloud and get the property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		// Use a macro that create the page in the custom range time.
+
+		task ("Navigate to AC property") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Navigate to Web Content tab in Assets") {
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Navigate to Web Content entry's Overview tab") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			// Switch to the Custom Range Time
+
+			ACNavigation.openItem(itemName = "Web Content AC Title");
+
+			ACIndividualsDashboard.goToOverviewTab();
+
+			ACNavigation.viewActiveSwitchTab(tabName = "Overview");
+		}
+
+		task ("Set time filter use Custom Range") {
+			ACTimeFilter.setCustomRange(
+				endDay = "13",
+				endMonth = "July",
+				endYear = "2020",
+				startDay = "1",
+				startMonth = "July",
+				startYear = "2020");
+		}
+
+		task ("Assert result returns") {
+			ACTimeFilter.assertCurrentTimeFilterRange(timeFilterRange = "Jul 1, 2020 - Jul 13, 2020");
+
+			// It is not possible to perform the assert because this test needs data from the past.
+
+			ACAssets.viewVisitorsBehaviorMetric(
+				metricTitle = "Views",
+				metricValue = "0");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8131 | Test Summary: Web content known individuals shows which individuals interact with the web content"
+	@priority = "5"
+	test KnownIndividualsShowsWhichIndividualsInteractWithWebContent {
+		property test.name.skip.portal.instance = "AssetsWebContent#KnownIndividualsShowsWhichIndividualsInteractWithWebContent";
+
+		var nameList = "ac ac,liferay liferay,dxp dxp";
+		var usernameList = "ac,liferay,dxp";
+		var emailList = "ac@liferay.com,liferay@liferay.com,dxp@liferay.com";
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		for (var name : list "${usernameList}") {
+			JSONUser.addUser(
+				userEmailAddress = "${name}@liferay.com",
+				userFirstName = "${name}",
+				userLastName = "${name}",
+				userScreenName = "${name}");
+		}
+
+		ACDXPSettings.syncNewContactData();
+
+		ACUtils.navigateToSitePageWithUser(
+			emailList = "${emailList}",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "userac@liferay.com",
+			userFirstName = "userac",
+			userLastName = "userac",
+			userScreenName = "userac");
+
+		ACUtils.navigateToSitePageWithUser(
+			emailList = "userac@liferay.com",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToAssets();
+
+		ACNavigation.switchTab(tabName = "Web Content");
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACNavigation.openItem(itemName = "Web Content AC Title");
+
+		ACIndividualsDashboard.goToKnownIndividualsTab();
+
+		ACNavigation.viewActiveSwitchTab(tabName = "Known Individuals");
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACUtils.viewNameList(nameList = "${nameList}");
+
+		AssertElementNotPresent(
+			key_userName = "userac userac",
+			locator1 = "ACSegments#SEGMENT_MEMBERS");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8125 | Test Summary: Web content list shows all web content in a list"
+	@priority = "5"
+	test ViewAllWebContentShownInAssetList {
+		property test.name.skip.portal.instance = "AssetsWebContent#ViewAllWebContentShownInAssetList";
+
+		var assetNameList = "Web Content AC Title,Web Content AC Title 2,Web Content AC Title 3";
+
+		for (var layoutName : list "AC Page 2,AC Page 3") {
+			ACUtils.addPage(layoutName = "${layoutName}");
+		}
+
+		for (var n : list "2,3") {
+			ACUtils.createWCAndAddToPage(
+				layoutName = "AC Page ${n}",
+				webContentTitle = "Web Content AC Title ${n}");
+		}
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "ac@liferay.com",
+			userFirstName = "ac",
+			userLastName = "ac",
+			userScreenName = "ac");
+
+		ACDXPSettings.syncNewContactData();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "ac@liferay.com",
+			userLoginFullName = "ac ac");
+
+		for (var pageName : list "AC Page,AC Page 2,AC Page 3") {
+			ACUtils.navigateToSitePage(
+				pageName = "${pageName}",
+				siteName = "Site Name");
+		}
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToAssets();
+
+		ACNavigation.switchTab(tabName = "Web Content");
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACUtils.viewNameList(nameList = "${assetNameList}");
+	}
+
+	@description = "Web content visitor behavior card shows expected amount of views"
+	@priority = "5"
+	test VisitorBehaviorCardShowsExpectedAmountOfViewsInWC {
+		property test.name.skip.portal.instance = "AssetsWebContent#VisitorBehaviorCardShowsExpectedAmountOfViewsInWC";
+
+		task ("Connect DXP to Analytics Cloud and get the property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Visit page 4 times on DXP") {
+			ACUtils.navigateToSitePage(
+				documentTitleList = "1,2,3,4",
+				pageName = "AC Page",
+				siteName = "Site Name");
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Navigate to AC property") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Navigate to Web Content tab in Assets") {
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Navigate into Web Content entry") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+
+			ACNavigation.openItem(itemName = "Web Content AC Title");
+		}
+
+		task ("Confirm the Views number is correct") {
+			ACAssets.viewVisitorsBehaviorMetric(
+				metricTitle = "Views",
+				metricValue = "4");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8451 | Test Summary: Web content submissions by location card shows expected views by location"
+	@ignore = "true"
+	@priority = "5"
+	test WebContentLocationCardShowsViewsByExpectedLocation {
+
+		// AC Refactor: The location data should show the name of the country but it's actually showing "Local network"
+		// AC Refactor: Personas
+		// AC Refactor ticket: LRAC-9346
+
+		task ("Add a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Connect the DXP to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Sync the Contact Data") {
+			ACDXPSettings.syncNewContactData();
+		}
+
+		task ("Sign in as new user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+		}
+
+		task ("View the site page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Get the ip country") {
+			var country = ACUtils.getIPCountry();
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch the property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Navigate to Web Content tab") {
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Web Content");
+		}
+
+		task ("Select the Last 24 Hours in time filter") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("Access to the web content report entry") {
+			ACNavigation.openItem(itemName = "Web Content AC Title");
+		}
+
+		task ("View the time filter of Views by Location map is Last 24 Hours") {
+			ACTimeFilter.assertCurrentTimeFilterRange(
+				cardName = "Views by Location",
+				timeFilterRange = "Last 24 hours");
+		}
+
+		task ("View the views by location info shown in geomap") {
+			ACUtils.viewNoResultsMessageNotPresent(noResultMessage = "There are no views on any location on the selected period.");
+
+			ACCards.viewGeomapContainer(cardTitle = "Views by Location");
+
+			ACCards.viewGeomapTableText(
+				cardTitle = "Views by Location",
+				leftText = "${country}",
+				rightText = "1 100%");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8454 | Test Summary: Web content submissions by technology card shows views by expected browser"
+	@priority = "5"
+	test WebContentTechnologyCardShowsViewsByExpectedBrowser {
+		property test.name.skip.portal.instance = "AssetsWebContent#WebContentTechnologyCardShowsViewsByExpectedBrowser";
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "ac@liferay.com",
+			userFirstName = "ac",
+			userLastName = "ac",
+			userScreenName = "ac");
+
+		ACDXPSettings.syncNewContactData();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "ac@liferay.com",
+			userLoginFullName = "ac ac");
+
+		ACUtils.navigateToSitePage(
+			documentTitleList = "1,2,3",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToAssets();
+
+		ACNavigation.switchTab(tabName = "Web Content");
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACNavigation.openItem(itemName = "Web Content AC Title");
+
+		ACIndividualsDashboard.goToOverviewTab();
+
+		ACNavigation.viewActiveSwitchTab(tabName = "Overview");
+
+		ACNavigation.switchTabInCard(tabName = "Browsers");
+
+		ACAssets.viewViewsByTechnologyTabActive(
+			cardTitle = "Views by Technology",
+			tabName = "Browsers");
+
+		ACAssets.viewTechnologyBrowsersMetric(
+			browserMetricValue = "Chrome",
+			cardTitle = "Views by Technology",
+			cssValue = "rgb(75, 155, 255)",
+			percentageMetricValue = "100%");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8453 | Test Summary: Web content submissions by technology card shows views by expected device"
+	@priority = "5"
+	test WebContentTechnologyCardShowsViewsByExpectedDevice {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "ac@liferay.com",
+			userFirstName = "ac",
+			userLastName = "ac",
+			userScreenName = "ac");
+
+		ACDXPSettings.syncNewContactData();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "ac@liferay.com",
+			userLoginFullName = "ac ac");
+
+		ACUtils.navigateToSitePage(
+			documentTitleList = "1,2,3",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToAssets();
+
+		ACNavigation.switchTab(tabName = "Web Content");
+
+		ACTimeFilter.clickTimeFilterButton();
+
+		ACTimeFilter.setLast24Hours();
+
+		ACNavigation.openItem(itemName = "Web Content AC Title");
+
+		ACIndividualsDashboard.goToOverviewTab();
+
+		ACNavigation.viewActiveSwitchTab(tabName = "Overview");
+
+		ACAssets.viewTechnologyDeviceViewsAndPercentage(
+			actionValue = "3 Views",
+			cardTitle = "Views by Technology",
+			deviceName = "Desktop",
+			percentageValue = "100%");
+	}
+
+}

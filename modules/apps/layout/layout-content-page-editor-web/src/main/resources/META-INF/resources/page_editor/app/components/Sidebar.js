@@ -15,22 +15,24 @@
 import {ClayButtonWithIcon, default as ClayButton} from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
-import {useIsMounted, useStateSafe} from '@liferay/frontend-js-react-web';
+import {
+	ReactPortal,
+	useIsMounted,
+	useStateSafe,
+} from '@liferay/frontend-js-react-web';
 import classNames from 'classnames';
 import React from 'react';
-import {createPortal} from 'react-dom';
 
 import useLazy from '../../core/hooks/useLazy';
 import useLoad from '../../core/hooks/useLoad';
 import usePlugins from '../../core/hooks/usePlugins';
 import * as Actions from '../actions/index';
 import {config} from '../config/index';
+import {useSelectItem} from '../contexts/ControlsContext';
+import {useDispatch, useSelector} from '../contexts/StoreContext';
 import selectAvailablePanels from '../selectors/selectAvailablePanels';
-import selectAvailableSidebarPanels from '../selectors/selectAvailableSidebarPanels';
-import {useDispatch, useSelector} from '../store/index';
 import {useDropClear} from '../utils/drag-and-drop/useDragAndDrop';
 import {useId} from '../utils/useId';
-import {useSelectItem} from './Controls';
 
 const {Suspense, useCallback, useEffect} = React;
 
@@ -51,7 +53,9 @@ const swallow = [(value) => value, (_error) => undefined];
 const getActivePanelData = ({panelId, panels, sidebarPanels}) => {
 	let sidebarPanelId = panelId;
 
-	let panel = sidebarPanels[sidebarPanelId];
+	let panel = panels.some((panel) => panel.includes(sidebarPanelId))
+		? sidebarPanels[sidebarPanelId]
+		: null;
 
 	if (!panel) {
 		sidebarPanelId = panels[0][0];
@@ -73,14 +77,11 @@ export default function Sidebar() {
 	const store = useSelector((state) => state);
 
 	const panels = useSelector(selectAvailablePanels(config.panels));
-	const sidebarPanels = useSelector(
-		selectAvailableSidebarPanels(config.sidebarPanels)
-	);
 	const sidebarOpen = store.sidebar.open;
 	const {panel, sidebarPanelId} = getActivePanelData({
 		panelId: store.sidebar.panelId,
 		panels,
-		sidebarPanels,
+		sidebarPanels: config.sidebarPanels,
 	});
 
 	const promise = panel
@@ -168,6 +169,22 @@ export default function Sidebar() {
 		}
 	}, []);
 
+	useEffect(() => {
+		const wrapper = document.getElementById('wrapper');
+
+		if (!wrapper) {
+			return;
+		}
+
+		wrapper.classList.add('page-editor__wrapper');
+		wrapper.classList.toggle('page-editor__wrapper--padded', sidebarOpen);
+
+		return () => {
+			wrapper.classList.remove('page-editor__wrapper');
+			wrapper.classList.remove('page-editor__wrapper--padded');
+		};
+	}, [sidebarOpen]);
+
 	const SidebarPanel = useLazy(
 		useCallback(({instance}) => {
 			if (typeof instance.renderSidebar === 'function') {
@@ -204,129 +221,139 @@ export default function Sidebar() {
 		);
 	};
 
-	return createPortal(
-		<div
-			className="page-editor__sidebar page-editor__theme-adapter-forms"
-			ref={dropClearRef}
-		>
+	return (
+		<ReactPortal>
 			<div
-				className={classNames('page-editor__sidebar__buttons', {
-					light: true,
-				})}
-				onClick={deselectItem}
+				className="cadmin page-editor__sidebar page-editor__theme-adapter-forms"
+				ref={dropClearRef}
 			>
-				{panels.reduce((elements, group, groupIndex) => {
-					const buttons = group.map((panelId) => {
-						const panel = sidebarPanels[panelId];
+				<div
+					className={classNames('page-editor__sidebar__buttons', {
+						light: true,
+					})}
+					onClick={deselectItem}
+				>
+					{panels.reduce((elements, group, groupIndex) => {
+						const buttons = group.map((panelId) => {
+							const panel = config.sidebarPanels[panelId];
 
-						const active =
-							sidebarOpen && sidebarPanelId === panelId;
-						const {
-							icon,
-							isLink,
-							label,
-							pluginEntryPoint,
-							url,
-						} = panel;
+							const active =
+								sidebarOpen && sidebarPanelId === panelId;
+							const {
+								icon,
+								isLink,
+								label,
+								pluginEntryPoint,
+								url,
+							} = panel;
 
-						if (isLink) {
+							if (isLink) {
+								return (
+									<a
+										className={classNames({active})}
+										data-tooltip-align="left"
+										href={url}
+										key={panel.sidebarPanelId}
+										title={label}
+									>
+										<ClayIcon symbol={icon} />
+									</a>
+								);
+							}
+
+							const prefetch = () =>
+								load(
+									panel.sidebarPanelId,
+									pluginEntryPoint
+								).then(...swallow);
+
 							return (
-								<a
+								<ClayButtonWithIcon
+									aria-pressed={active}
 									className={classNames({active})}
 									data-tooltip-align="left"
-									href={url}
+									displayType="unstyled"
+									id={`${sidebarId}${panel.sidebarPanelId}`}
 									key={panel.sidebarPanelId}
+									onClick={() => handleClick(panel)}
+									onFocus={prefetch}
+									onMouseEnter={prefetch}
+									small={true}
+									symbol={icon}
 									title={label}
-								>
-									<ClayIcon symbol={icon} />
-								</a>
+								/>
 							);
+						});
+
+						// Add separator between groups.
+
+						if (groupIndex === panels.length - 1) {
+							return elements.concat(buttons);
 						}
+						else {
+							return elements.concat([
+								...buttons,
+								<hr key={`separator-${groupIndex}`} />,
+							]);
+						}
+					}, [])}
+				</div>
 
-						const prefetch = () =>
-							load(panel.sidebarPanelId, pluginEntryPoint).then(
-								...swallow
-							);
-
-						return (
-							<ClayButtonWithIcon
-								aria-pressed={active}
-								className={classNames({active})}
-								data-tooltip-align="left"
-								displayType="unstyled"
-								id={`${sidebarId}${panel.sidebarPanelId}`}
-								key={panel.sidebarPanelId}
-								onClick={() => handleClick(panel)}
-								onFocus={prefetch}
-								onMouseEnter={prefetch}
-								small={true}
-								symbol={icon}
-								title={label}
-							/>
-						);
-					});
-
-					// Add separator between groups.
-
-					if (groupIndex === panels.length - 1) {
-						return elements.concat(buttons);
-					}
-					else {
-						return elements.concat([
-							...buttons,
-							<hr key={`separator-${groupIndex}`} />,
-						]);
-					}
-				}, [])}
-			</div>
-			<div
-				className={classNames({
-					'page-editor__sidebar__content': true,
-					'page-editor__sidebar__content--open': sidebarOpen,
-					rtl:
-						Liferay.Language.direction[
-							themeDisplay?.getLanguageId()
-						] === 'rtl',
-				})}
-				onClick={deselectItem}
-			>
-				{hasError ? (
-					<div>
-						<ClayButton
-							block
-							displayType="secondary"
-							onClick={() => {
-								dispatch(
-									Actions.switchSidebarPanel({
-										sidebarOpen: false,
-										sidebarPanelId:
-											panels[0] && panels[0][0],
-									})
-								);
-								setHasError(false);
+				<div
+					className={classNames({
+						'page-editor__sidebar__content': true,
+						'page-editor__sidebar__content--open': sidebarOpen,
+						'rtl':
+							Liferay.Language.direction[
+								themeDisplay?.getLanguageId()
+							] === 'rtl',
+					})}
+					onClick={deselectItem}
+				>
+					{hasError ? (
+						<div>
+							<ClayButton
+								block
+								displayType="secondary"
+								onClick={() => {
+									dispatch(
+										Actions.switchSidebarPanel({
+											sidebarOpen: false,
+											sidebarPanelId:
+												panels[0] && panels[0][0],
+										})
+									);
+									setHasError(false);
+								}}
+								small
+							>
+								{Liferay.Language.get('refresh')}
+							</ClayButton>
+						</div>
+					) : (
+						<ErrorBoundary
+							handleError={() => {
+								setHasError(true);
 							}}
-							small
 						>
-							{Liferay.Language.get('refresh')}
-						</ClayButton>
-					</div>
-				) : (
-					<ErrorBoundary
-						handleError={() => {
-							setHasError(true);
-						}}
-					>
-						<Suspense fallback={<ClayLoadingIndicator />}>
-							<SidebarPanel
-								getInstance={getInstance}
-								pluginId={sidebarPanelId}
-							/>
-						</Suspense>
-					</ErrorBoundary>
-				)}
+							<Suspense
+								fallback={
+									<ClayLoadingIndicator
+										className="my-4"
+										small
+									/>
+								}
+							>
+								<SidebarPanel
+									getInstance={getInstance}
+									pluginId={sidebarPanelId}
+								/>
+							</Suspense>
+						</ErrorBoundary>
+					)}
+				</div>
 			</div>
-		</div>,
-		document.body
+		</ReactPortal>
 	);
 }
 

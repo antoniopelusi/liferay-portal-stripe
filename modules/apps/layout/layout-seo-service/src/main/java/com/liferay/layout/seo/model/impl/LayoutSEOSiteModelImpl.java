@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.layout.seo.model.LayoutSEOSite;
 import com.liferay.layout.seo.model.LayoutSEOSiteModel;
-import com.liferay.layout.seo.model.LayoutSEOSiteSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.LocaleException;
@@ -36,21 +35,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -167,62 +165,6 @@ public class LayoutSEOSiteModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static LayoutSEOSite toModel(LayoutSEOSiteSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		LayoutSEOSite model = new LayoutSEOSiteImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setLayoutSEOSiteId(soapModel.getLayoutSEOSiteId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setOpenGraphEnabled(soapModel.isOpenGraphEnabled());
-		model.setOpenGraphImageAlt(soapModel.getOpenGraphImageAlt());
-		model.setOpenGraphImageFileEntryId(
-			soapModel.getOpenGraphImageFileEntryId());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<LayoutSEOSite> toModels(LayoutSEOSiteSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<LayoutSEOSite> models = new ArrayList<LayoutSEOSite>(
-			soapModels.length);
-
-		for (LayoutSEOSiteSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public LayoutSEOSiteModelImpl() {
 	}
 
@@ -306,34 +248,6 @@ public class LayoutSEOSiteModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutSEOSite>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutSEOSite.class.getClassLoader(), LayoutSEOSite.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<LayoutSEOSite> constructor =
-				(Constructor<LayoutSEOSite>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutSEOSite, Object>>
@@ -934,6 +848,39 @@ public class LayoutSEOSiteModelImpl
 	}
 
 	@Override
+	public LayoutSEOSite cloneWithOriginalValues() {
+		LayoutSEOSiteImpl layoutSEOSiteImpl = new LayoutSEOSiteImpl();
+
+		layoutSEOSiteImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutSEOSiteImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		layoutSEOSiteImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		layoutSEOSiteImpl.setLayoutSEOSiteId(
+			this.<Long>getColumnOriginalValue("layoutSEOSiteId"));
+		layoutSEOSiteImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		layoutSEOSiteImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutSEOSiteImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		layoutSEOSiteImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		layoutSEOSiteImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutSEOSiteImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutSEOSiteImpl.setOpenGraphEnabled(
+			this.<Boolean>getColumnOriginalValue("openGraphEnabled"));
+		layoutSEOSiteImpl.setOpenGraphImageAlt(
+			this.<String>getColumnOriginalValue("openGraphImageAlt"));
+		layoutSEOSiteImpl.setOpenGraphImageFileEntryId(
+			this.<Long>getColumnOriginalValue("openGraphImageFileEntryId"));
+
+		return layoutSEOSiteImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutSEOSite layoutSEOSite) {
 		long primaryKey = layoutSEOSite.getPrimaryKey();
 
@@ -1075,7 +1022,7 @@ public class LayoutSEOSiteModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1086,9 +1033,26 @@ public class LayoutSEOSiteModelImpl
 			Function<LayoutSEOSite, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((LayoutSEOSite)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((LayoutSEOSite)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1135,7 +1099,9 @@ public class LayoutSEOSiteModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, LayoutSEOSite>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					LayoutSEOSite.class, ModelWrapper.class);
 
 	}
 

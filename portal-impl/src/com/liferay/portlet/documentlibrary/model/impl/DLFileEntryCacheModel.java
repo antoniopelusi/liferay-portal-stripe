@@ -77,7 +77,7 @@ public class DLFileEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(63);
+		StringBundler sb = new StringBundler(69);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -85,6 +85,8 @@ public class DLFileEntryCacheModel
 		sb.append(ctCollectionId);
 		sb.append(", uuid=");
 		sb.append(uuid);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
 		sb.append(", fileEntryId=");
 		sb.append(fileEntryId);
 		sb.append(", groupId=");
@@ -139,6 +141,10 @@ public class DLFileEntryCacheModel
 		sb.append(custom2ImageId);
 		sb.append(", manualCheckInRequired=");
 		sb.append(manualCheckInRequired);
+		sb.append(", expirationDate=");
+		sb.append(expirationDate);
+		sb.append(", reviewDate=");
+		sb.append(reviewDate);
 		sb.append(", lastPublishDate=");
 		sb.append(lastPublishDate);
 		sb.append("}");
@@ -158,6 +164,13 @@ public class DLFileEntryCacheModel
 		}
 		else {
 			dlFileEntryImpl.setUuid(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			dlFileEntryImpl.setExternalReferenceCode("");
+		}
+		else {
+			dlFileEntryImpl.setExternalReferenceCode(externalReferenceCode);
 		}
 
 		dlFileEntryImpl.setFileEntryId(fileEntryId);
@@ -263,6 +276,20 @@ public class DLFileEntryCacheModel
 		dlFileEntryImpl.setCustom2ImageId(custom2ImageId);
 		dlFileEntryImpl.setManualCheckInRequired(manualCheckInRequired);
 
+		if (expirationDate == Long.MIN_VALUE) {
+			dlFileEntryImpl.setExpirationDate(null);
+		}
+		else {
+			dlFileEntryImpl.setExpirationDate(new Date(expirationDate));
+		}
+
+		if (reviewDate == Long.MIN_VALUE) {
+			dlFileEntryImpl.setReviewDate(null);
+		}
+		else {
+			dlFileEntryImpl.setReviewDate(new Date(reviewDate));
+		}
+
 		if (lastPublishDate == Long.MIN_VALUE) {
 			dlFileEntryImpl.setLastPublishDate(null);
 		}
@@ -283,6 +310,7 @@ public class DLFileEntryCacheModel
 
 		ctCollectionId = objectInput.readLong();
 		uuid = objectInput.readUTF();
+		externalReferenceCode = objectInput.readUTF();
 
 		fileEntryId = objectInput.readLong();
 
@@ -325,6 +353,8 @@ public class DLFileEntryCacheModel
 		custom2ImageId = objectInput.readLong();
 
 		manualCheckInRequired = objectInput.readBoolean();
+		expirationDate = objectInput.readLong();
+		reviewDate = objectInput.readLong();
 		lastPublishDate = objectInput.readLong();
 	}
 
@@ -339,6 +369,13 @@ public class DLFileEntryCacheModel
 		}
 		else {
 			objectOutput.writeUTF(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
 		}
 
 		objectOutput.writeLong(fileEntryId);
@@ -443,12 +480,15 @@ public class DLFileEntryCacheModel
 		objectOutput.writeLong(custom2ImageId);
 
 		objectOutput.writeBoolean(manualCheckInRequired);
+		objectOutput.writeLong(expirationDate);
+		objectOutput.writeLong(reviewDate);
 		objectOutput.writeLong(lastPublishDate);
 	}
 
 	public long mvccVersion;
 	public long ctCollectionId;
 	public String uuid;
+	public String externalReferenceCode;
 	public long fileEntryId;
 	public long groupId;
 	public long companyId;
@@ -476,6 +516,8 @@ public class DLFileEntryCacheModel
 	public long custom1ImageId;
 	public long custom2ImageId;
 	public boolean manualCheckInRequired;
+	public long expirationDate;
+	public long reviewDate;
 	public long lastPublishDate;
 
 }

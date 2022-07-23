@@ -1,0 +1,313 @@
+@component-name = "portal-document-management"
+definition {
+
+	property custom.properties = "default.layout.template.id=1_column";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Document Management";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.firstLoginPG();
+
+			DMDocument.tearDownCP();
+
+			DMFolder.tearDownCP();
+
+			DMDocumentType.tearDownCP();
+
+			DMMetadataSet.tearDownCP();
+
+			PagesAdmin.tearDownCP();
+
+			JSONUser.tearDownNonAdminUsers();
+
+			Site.tearDownCP();
+		}
+	}
+
+	@description = "This is a test for LPS-80187. It checks that the Email configuration changes can be canceled."
+	@priority = "4"
+	test CancelingEmailConfigurationScreenDoesNotSaveChanges {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.configureDocumentEmailSenderInfo(
+			cancel = "true",
+			senderName = "Test Test");
+
+		Portlet.gotoPortletOptions(portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		InputField.viewText(
+			fieldLabel = "Name",
+			text = "Joe Bloggs");
+	}
+
+	@description = "This is a test for LPS-91199. It checks that all files selected on different pages can be deleted."
+	@priority = "5"
+	test CanDeleteAllDocumentsOnDifferentPagesAtOnce {
+		for (var entryCount : list "1,2,3,4,5") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title ${entryCount}",
+				groupName = "Guest",
+				mimeType = "text/txt",
+				sourceFileName = "Document_${entryCount}.txt");
+		}
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		Pagination.changePagination(itemsPerPage = "4");
+
+		DMDocument.deleteCP(deleteAll = "true");
+
+		DMDocument.viewDefault();
+	}
+
+	@description = "This test ensures that user is not able to upload the mimetypes files that bigger than the limit set when the admin sets a size limit for multiple mimetypes."
+	@priority = "4"
+	test CanLimitMultipleMimeTypesSize {
+		property test.name.skip.portal.instance = "DMAdmin#CanLimitMultipleMimeTypesSize";
+
+		DMDocument.updateMimeTypeSizeLimit(fieldValue = "image/jpeg:40960");
+
+		for (var fieldValue : list "application/pdf:30720,application/msword:20480") {
+			DMDocument.updateMimeTypeSizeLimit(
+				fieldValue = "${fieldValue}",
+				indexNumber = "2");
+		}
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.addMultipleCP(
+			dmDocumentFileFailed = "Document_1.doc,large_file.pdf,Commerce_Blue.jpg",
+			dmDocumentFileList = "Commerce_Black.jpg,Commerce_Blue.jpg,Document_2.pdf,large_file.pdf,Document_1.doc,Document_3.docx",
+			validationError = "Please enter a file with a valid file size no larger than 20 KB,Please enter a file with a valid file size no larger than 30 KB,Please enter a file with a valid file size no larger than 40 KB");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		for (var fileName : list "Document_1,large_file,Commerce_Blue") {
+			LexiconCard.viewCardNotPresent(card = "${fileName}");
+		}
+
+		for (var fileName : list "Commerce_Black,Document_3,Document_2") {
+			LexiconCard.viewCardTitle(card = "${fileName}");
+		}
+	}
+
+	@description = "This is a test for LPS-91861. It checks that the counts can be reset in management toolbar."
+	@priority = "5"
+	test CanResetCountsInManagementToolbar {
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Guest");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Description",
+			dmDocumentTitle = "Document_1.doc",
+			folderName = "DM Folder Name",
+			groupName = "Guest",
+			mimeType = "application/msword",
+			sourceFileName = "Document_1.doc");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Description",
+			dmDocumentTitle = "Document_2.doc",
+			folderName = "DM Folder Name",
+			groupName = "Guest",
+			mimeType = "application/msword",
+			sourceFileName = "Document_2.doc");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "Document_2.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpg",
+			sourceFileName = "Document_2.jpg");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		PortletEntry.selectAll();
+
+		AssertTextEquals(
+			locator1 = "ManagementBar#NAVBAR_TEXT",
+			value1 = "All Selected");
+
+		Button.click(button = "Clear");
+
+		DMNavigator.openToFolderInAdmin(
+			dmFolderName = "DM Folder Name",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		DMDocument.checkDocumentCheckboxCP(dmDocumentTitle = "Document_1.doc");
+
+		AssertTextEquals(
+			locator1 = "ManagementBar#NAVBAR_TEXT",
+			value1 = "1 of 2 Selected");
+	}
+
+	@description = "This test covers LPS-141587. It validates that if the 'Delete Application Data Before Importing' option is selected the Doc Lib will not increase in size after the LAR import."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test DLSizeDoesNotIncreaseIfAppDataIsDeletedBeforeImport {
+
+		// TODO LPS-149404
+
+	}
+
+	@description = "This is a use case for LPS-50760."
+	@priority = "4"
+	@refactordone
+	test StagingFileSizeIsNotAffectedByDLRestrictions {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "DMAdmin#StagingFileSizeIsNotAffectedByDLRestrictions";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Guest",
+			mimeType = "audio/x-mpeg",
+			sourceFileName = "Document_1.mp3");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		LAR.exportPortlet(larFileName = "DM.portlet.lar");
+
+		DMDocument.updateMaximumFileSize(fieldValue = "300000");
+
+		VerifyElementPresent(locator1 = "Message#SUCCESS");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		LAR._gotoExportImport();
+
+		AssertElementPresent(locator1 = "IFrame#MODAL_BODY");
+
+		LAR._export(
+			exportPermissions = "${exportPermissions}",
+			larFileName = "DM.portlet.lar");
+	}
+
+	@description = "This test covers LPS-93601 and LPS-91661. It ensures that the user can check all files in the current pagination using the DM toolbar and can move documents not on the current pagination to another folder."
+	@priority = "4"
+	@refactorneeded
+	test ViewPaginationToolbarCheckboxAndMoveMultiplePaginationDocuments {
+		property portal.acceptance = "true";
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Documents and Media Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Documents and Media Page",
+			widgetName = "Documents and Media");
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Guest");
+
+		for (var documentName : list "Document_2.doc,Document_1.xls,Document_4.jpg,Document_3.jpg,Document_2.xls,Document_1.txt,Document_4.txt,Document_3.xls,Document_2.jpg,Document_1.doc") {
+			var extension = StringUtil.extractLast("${documentName}", ".");
+
+			if ("${extension}" == "doc") {
+				var mimeType = "application/msword";
+			}
+			else if ("${extension}" == "jpg") {
+				var mimeType = "image/jpg";
+			}
+			else if ("${extension}" == "png") {
+				var mimeType = "image/png";
+			}
+			else if ("${extension}" == "xls") {
+				var mimeType = "application/vnd.ms-excel";
+			}
+			else if ("${extension}" == "txt") {
+				var mimeType = "text/plain";
+			}
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "${documentName}",
+				folderName = "DM Folder Name",
+				groupName = "Guest",
+				mimeType = "${mimeType}",
+				sourceFileName = "${documentName}");
+		}
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMFolder.gotoEntry(dmFolderName = "DM Folder Name");
+
+		Pagination.changePagination(itemsPerPage = "4");
+
+		Pagination.viewResults(results = "Showing 1 to 4 of 10 entries.");
+
+		DMDocument.moveToFolderCP(
+			dmFolderName = "Home",
+			selectAll = "true");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		Pagination.changePagination(itemsPerPage = "20");
+
+		Pagination.viewResults(results = "Showing 1 to 11 of 11 entries.");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "List");
+
+		Pagination.changePagination(itemsPerPage = "4");
+
+		Pagination.viewResults(results = "Showing 1 to 4 of 11 entries.");
+
+		DMDocument.checkDocumentCheckboxPG(dmDocumentTitle = "Document_2.jpg");
+
+		AssertTextEquals(
+			locator1 = "ManagementBar#NAVBAR_TEXT",
+			value1 = "1 of 11 Selected");
+
+		Click(locator1 = "Pagination#NEXT_LINK");
+
+		Click.clickNoWaitForVisible(locator1 = "Checkbox#LEXICON_SELECT_ALL_INPUT");
+
+		AssertTextEquals(
+			locator1 = "ManagementBar#NAVBAR_TEXT",
+			value1 = "5 of 11 Selected");
+	}
+
+	@description = "This test covers LPS-103231. It validates that the owner name from a document cannot execute XSS from the info panel."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test XSSCannotBeExecutedFromTheOwnerNameInTheInfoPanel {
+
+		// TODO LPS-129153
+
+	}
+
+}

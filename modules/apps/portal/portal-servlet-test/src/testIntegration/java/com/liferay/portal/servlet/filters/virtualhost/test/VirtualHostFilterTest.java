@@ -31,6 +31,7 @@ import com.liferay.portal.servlet.filters.virtualhost.VirtualHostFilter;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.PortalImpl;
+import com.liferay.portal.util.PropsValues;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
@@ -133,6 +134,36 @@ public class VirtualHostFilterTest {
 			_getLastPath(
 				_mockHttpServletRequest, _mockHttpServletResponse,
 				_mockFilterChain));
+	}
+
+	@Test
+	public void testProcessFilter4() {
+		String homeURL = PropsValues.COMPANY_DEFAULT_HOME_URL;
+
+		try {
+			ReflectionTestUtil.setFieldValue(
+				PropsValues.class, "COMPANY_DEFAULT_HOME_URL",
+				StringPool.SLASH);
+			_mockHttpServletRequest.setRequestURI(StringPool.SLASH);
+
+			_virtualHostFilter.init(_mockFilterConfig);
+
+			ReflectionTestUtil.invoke(
+				_virtualHostFilter, "processFilter",
+				new Class<?>[] {
+					HttpServletRequest.class, HttpServletResponse.class,
+					FilterChain.class
+				},
+				_mockHttpServletRequest, _mockHttpServletResponse,
+				_mockFilterChain);
+		}
+		finally {
+			ReflectionTestUtil.setFieldValue(
+				PropsValues.class, "COMPANY_DEFAULT_HOME_URL", homeURL);
+		}
+
+		Assert.assertNotEquals(
+			StringPool.SLASH, _mockHttpServletResponse.getForwardedUrl());
 	}
 
 	private String _getLastPath(

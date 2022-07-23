@@ -42,3 +42,33 @@ c5b407137658cba35c4c5b4ad2c30387f9ca1053^..7e29fdc1572c2ee6dac4187d68bf8a403d80d
 # Bundle Version 5.0.2
 #
 7e29fdc1572c2ee6dac4187d68bf8a403d80ddf8^..fd4df3d5fae250baab8cce2290fe15d8f0f8d9c7=LPS-129065
+
+#
+# Bundle Version 5.0.3
+#
+fd4df3d5fae250baab8cce2290fe15d8f0f8d9c7^..9bab2051be272d4e5e9e038b8b3e5bff23e13dac=LPS-129043 LPS-130505
+
+#
+# Bundle Version 5.0.4
+#
+9bab2051be272d4e5e9e038b8b3e5bff23e13dac^..b5a031407e960fa734c1ff85f7b84de6f7f1cf95=LPS-133200 LRQA-51488
+
+#
+# Bundle Version 5.0.7
+#
+b5a031407e960fa734c1ff85f7b84de6f7f1cf95^..966e49f50f9a8aa637f078661351b04d180e92a2=LPS-119446
+
+#
+# Bundle Version 5.0.8
+#
+966e49f50f9a8aa637f078661351b04d180e92a2^..56a8ae9cba3441dde84849f3380fa22ec39ad10e=LPS-135504
+
+#
+# Bundle Version 5.0.10
+#
+56a8ae9cba3441dde84849f3380fa22ec39ad10e^..0746484ed0edcea7aecabee9ca113cddef9b1ffc=LPS-105380
+
+#
+# Bundle Version 5.0.12
+#
+0746484ed0edcea7aecabee9ca113cddef9b1ffc^..7daffd995659ecd0cb822ec303005cd749dfc100=LPS-143591

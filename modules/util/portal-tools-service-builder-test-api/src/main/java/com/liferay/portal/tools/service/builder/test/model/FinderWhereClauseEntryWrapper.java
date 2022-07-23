@@ -73,6 +73,11 @@ public class FinderWhereClauseEntryWrapper
 		}
 	}
 
+	@Override
+	public FinderWhereClauseEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the finder where clause entry ID of this finder where clause entry.
 	 *

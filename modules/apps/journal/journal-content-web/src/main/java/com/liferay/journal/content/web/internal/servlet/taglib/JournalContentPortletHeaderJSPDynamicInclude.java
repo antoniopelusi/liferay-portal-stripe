@@ -15,9 +15,7 @@
 package com.liferay.journal.content.web.internal.servlet.taglib;
 
 import com.liferay.journal.constants.JournalContentPortletKeys;
-import com.liferay.journal.content.web.internal.constants.JournalContentWebKeys;
 import com.liferay.journal.content.web.internal.display.context.JournalContentDisplayContext;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -57,8 +55,8 @@ public class JournalContentPortletHeaderJSPDynamicInclude
 
 		JournalContentDisplayContext journalContentDisplayContext =
 			(JournalContentDisplayContext)httpServletRequest.getAttribute(
-				JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT +
-					StringPool.POUND + portletDisplay.getId());
+				JournalContentDisplayContext.getRequestAttributeName(
+					portletDisplay.getId()));
 
 		try {
 			if ((journalContentDisplayContext == null) ||
@@ -69,7 +67,7 @@ public class JournalContentPortletHeaderJSPDynamicInclude
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return;

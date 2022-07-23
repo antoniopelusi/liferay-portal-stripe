@@ -12,15 +12,15 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
+import ClayLabel from '@clayui/label';
 import classnames from 'classnames';
+import {useMutation} from 'graphql-hooks';
 import React, {useCallback, useEffect, useState} from 'react';
 import {withRouter} from 'react-router-dom';
 
 import {
-	client,
 	deleteMessageQuery,
 	markAsAnswerMessageBoardMessageQuery,
 } from '../utils/client.es';
@@ -51,44 +51,14 @@ export default withRouter(
 			false
 		);
 
-		const [deleteMessage] = useMutation(deleteMessageQuery, {
-			onCompleted() {
-				if (comments && comments.length) {
-					Promise.all(
-						comments.map(({id}) =>
-							client.mutate({
-								mutation: deleteMessageQuery,
-								variables: {messageBoardMessageId: id},
-							})
-						)
-					).then(() => {
-						deleteAnswer(answer);
-					});
-				}
-				else {
-					deleteAnswer(answer);
-				}
-			},
-			update(proxy) {
-				proxy.evict(`MessageBoardMessage:${answer.id}`);
-				proxy.gc();
-			},
-		});
+		const [deleteMessage] = useMutation(deleteMessageQuery);
 
 		const _commentsChange = useCallback((comments) => {
 			setComments([...comments]);
 		}, []);
 
 		const [markAsAnswerMessageBoardMessage] = useMutation(
-			markAsAnswerMessageBoardMessageQuery,
-			{
-				onCompleted() {
-					setShowAsAnswer(!showAsAnswer);
-					if (answerChange) {
-						answerChange(answer.id);
-					}
-				},
-			}
+			markAsAnswerMessageBoardMessageQuery
 		);
 
 		useEffect(() => {
@@ -140,9 +110,19 @@ export default withRouter(
 									dateModified,
 								])}
 							</span>
+
+							{answer.status && answer.status !== 'approved' && (
+								<span className="c-ml-2 text-secondary">
+									<ClayLabel displayType="info">
+										{answer.status}
+									</ClayLabel>
+								</span>
+							)}
+
 							<div className="c-mt-2">
 								<ArticleBodyRenderer {...answer} />
 							</div>
+
 							<div className="d-flex justify-content-between">
 								<div>
 									{editable && (
@@ -152,19 +132,22 @@ export default withRouter(
 										>
 											{answer.actions[
 												'reply-to-message'
-											] && (
-												<ClayButton
-													className="text-reset"
-													displayType="unstyled"
-													onClick={() =>
-														setShowNewComment(true)
-													}
-												>
-													{Liferay.Language.get(
-														'reply'
-													)}
-												</ClayButton>
-											)}
+											] &&
+												answer.status !== 'pending' && (
+													<ClayButton
+														className="text-reset"
+														displayType="unstyled"
+														onClick={() =>
+															setShowNewComment(
+																true
+															)
+														}
+													>
+														{Liferay.Language.get(
+															'reply'
+														)}
+													</ClayButton>
+												)}
 
 											{answer.actions.delete && (
 												<>
@@ -191,6 +174,10 @@ export default withRouter(
 																	messageBoardMessageId:
 																		answer.id,
 																},
+															}).then(() => {
+																deleteAnswer(
+																	answer
+																);
 															});
 														}}
 														onClose={() => {
@@ -226,7 +213,16 @@ export default withRouter(
 																	showAsAnswer: !showAsAnswer,
 																},
 															}
-														);
+														).then(() => {
+															setShowAsAnswer(
+																!showAsAnswer
+															);
+															if (answerChange) {
+																answerChange(
+																	answer.id
+																);
+															}
+														});
 													}}
 												>
 													{Liferay.Language.get(
@@ -238,6 +234,7 @@ export default withRouter(
 											)}
 
 											{/* this is an extra double check, remove it without creating 2 clay-group-item */}
+
 											{answer.actions.replace && (
 												<ClayButton
 													className="text-reset"
@@ -256,6 +253,7 @@ export default withRouter(
 										</ClayButton.Group>
 									)}
 								</div>
+
 								<div className="c-ml-md-auto c-ml-sm-2 c-mr-lg-2 c-mr-md-4 c-mr-xl-2">
 									<UserRow
 										creator={answer.creator}

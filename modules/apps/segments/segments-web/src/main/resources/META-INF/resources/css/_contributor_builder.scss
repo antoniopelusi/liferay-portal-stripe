@@ -12,6 +12,16 @@
 		padding-right: 0;
 		width: 100%;
 
+		.criteria-builder-empty-errors-alert {
+			border-bottom: 1px solid;
+			position: sticky;
+			top: 0;
+			z-index: 1;
+			&__inner {
+				padding-right: 0;
+			}
+		}
+
 		.contributor-container {
 			background-color: $lightBackground;
 			height: 100%;
@@ -109,6 +119,16 @@
 
 					.content-wrapper {
 						padding-right: 32px;
+					}
+				}
+				.criteria-builder-empty-errors-alert {
+					&__inner {
+						margin: 0 auto;
+						max-width: $pageContentMaxWidth;
+						padding-right: calc(
+							#{$sidebarWidth} - ((100% - #{$pageContentMaxWidth}) /
+										2)
+						);
 					}
 				}
 			}

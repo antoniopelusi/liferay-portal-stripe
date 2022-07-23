@@ -14,6 +14,8 @@
 
 package com.liferay.user.groups.admin.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
@@ -47,6 +49,8 @@ public abstract class BaseUserGroupUADAnonymizer
 		if (userGroup.getUserId() == userId) {
 			userGroup.setUserId(anonymousUser.getUserId());
 			userGroup.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(userGroup, anonymousUser);
 		}
 
 		userGroupLocalService.updateUserGroup(userGroup);
@@ -62,6 +66,19 @@ public abstract class BaseUserGroupUADAnonymizer
 		return UserGroup.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		UserGroup userGroup, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(userGroup);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return userGroupLocalService.getActionableDynamicQuery();
@@ -71,6 +88,14 @@ public abstract class BaseUserGroupUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return UserGroupsAdminUADConstants.USER_ID_FIELD_NAMES_USER_GROUP;
 	}
+
+	protected AssetEntry fetchAssetEntry(UserGroup userGroup) {
+		return assetEntryLocalService.fetchEntry(
+			UserGroup.class.getName(), userGroup.getUserGroupId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected UserGroupLocalService userGroupLocalService;

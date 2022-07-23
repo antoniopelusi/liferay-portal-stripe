@@ -2,20 +2,27 @@
 <head>
 <title>AssetLists</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">AssetLists</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ADD_VARIATION_ICON</td>
+	<td>xpath=((//div[contains(@class, 'justify-content-between')] | //ul[contains(@class, 'navbar-nav')])//*[contains(@class, 'btn-sm')])</td>
+	<td></td>
+</tr>
 <tr>
 	<td>ASSET_LIST_ELLIPSIS</td>
 	<td>//div[contains(@class,'dropdown')]//a[span/*[name()='svg'][contains(@class,'lexicon-icon-ellipsis')]]</td>
 	<td></td>
-</tr>	
+</tr>
 <tr>
 	<td>ASSET_LIST_ENTRY_TITLE</td>
-	<td>//li[contains(@class,'list-group-item')]//a[contains(.,'${key_title}')] | //li[contains(@class,'list-group-item')]//p[contains(.,'${key_title}')]</td>
+	<td>//*[contains(@class,'list-group-item')]//a[contains(.,'${key_title}')] | //*[contains(@class,'list-group-item')]//p[contains(.,'${key_title}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -25,7 +32,7 @@
 </tr>
 <tr>
 	<td>ASSET_LIST_ENTRY_TYPE</td>
-	<td>//li[contains(@class,'list-group-item')]//h6[contains(.,'${key_type}')]</td>
+	<td>//*[contains(@class,'list-group-item')]//h6[contains(.,'${key_type}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -64,6 +71,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>VARIATION_ELLIPSIS</td>
+	<td>//div[contains(., '${key_variation}')]/following-sibling::div[contains(@class, 'more-icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VARIATION_INDEX</td>
+	<td>xpath=(//nav[contains(@role, 'navigation')]//p[contains(@class, 'list-group-title')]/a)[${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VARIATION_TITLE</td>
+	<td>//nav[contains(@role, 'navigation')] //a[contains(text(), '${key_variation}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -77,11 +99,6 @@
 <tr>
 	<td>ASSET_TYPE_ROW</td>
 	<td>//tr[contains(@data-qa-id,'row')][contains(.,'${key_assetTitle}')]//td[contains(@class,'lfr-type-column')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERSONALIZATION_DROPDOWN</td>
-	<td>//div[contains(.,'Anyone')]//*[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
 </tr>
 <tr>

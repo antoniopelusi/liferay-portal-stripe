@@ -21,10 +21,12 @@ import com.liferay.multi.factor.authentication.timebased.otp.service.base.MFATim
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserLocalService;
 
 import java.util.Date;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Arthur Chan
@@ -52,7 +54,7 @@ public class MFATimeBasedOTPEntryLocalServiceImpl
 		mfaTimeBasedOTPEntry = mfaTimeBasedOTPEntryPersistence.create(
 			counterLocalService.increment());
 
-		User user = userLocalService.getUserById(userId);
+		User user = _userLocalService.getUserById(userId);
 
 		mfaTimeBasedOTPEntry.setCompanyId(user.getCompanyId());
 
@@ -116,5 +118,8 @@ public class MFATimeBasedOTPEntryLocalServiceImpl
 
 		return mfaTimeBasedOTPEntryPersistence.update(mfaTimeBasedOTPEntry);
 	}
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

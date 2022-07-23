@@ -137,6 +137,7 @@
 		</field>
 		<field name="kaleoDefinitionVersion" type="int" />
 		<field name="rootKaleoInstanceTokenId" type="long" />
+		<field name="active" type="boolean" />
 		<field name="className" type="String">
 			<hint name="max-length">200</hint>
 		</field>
@@ -245,6 +246,7 @@
 		<field name="name" type="String">
 			<hint name="max-length">200</hint>
 		</field>
+		<field localized="true" name="label" type="String" />
 		<field name="metadata" type="String">
 			<hint-collection name="TEXTAREA" />
 		</field>
@@ -572,6 +574,7 @@
 		<field name="name" type="String">
 			<hint name="max-length">200</hint>
 		</field>
+		<field localized="true" name="label" type="String" />
 		<field name="description" type="String">
 			<hint-collection name="TEXTAREA" />
 		</field>

@@ -37,80 +37,77 @@ public class JournalArticleDatesUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _updateCreateDate() throws Exception {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("select resourcePrimKey, min(createDate) from ");
-		sb.append("JournalArticle group by resourcePrimKey having count(*) > ");
-		sb.append("1");
-
 		try (Statement s = connection.createStatement();
-			PreparedStatement ps =
+			PreparedStatement preparedStatement =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update JournalArticle set createDate = ? where " +
 						"resourcePrimKey = ?")) {
 
-			try (ResultSet rs = s.executeQuery(sb.toString())) {
-				while (rs.next()) {
-					long resourcePrimKey = rs.getLong(1);
+			try (ResultSet resultSet = s.executeQuery(
+					StringBundler.concat(
+						"select resourcePrimKey, min(createDate) from ",
+						"JournalArticle group by resourcePrimKey having ",
+						"count(*) > 1"))) {
 
-					Timestamp createDate = rs.getTimestamp(2);
+				while (resultSet.next()) {
+					long resourcePrimKey = resultSet.getLong(1);
 
-					ps.setTimestamp(1, createDate);
+					Timestamp createDate = resultSet.getTimestamp(2);
 
-					ps.setLong(2, resourcePrimKey);
+					preparedStatement.setTimestamp(1, createDate);
 
-					ps.addBatch();
+					preparedStatement.setLong(2, resourcePrimKey);
+
+					preparedStatement.addBatch();
 				}
 
-				ps.executeBatch();
+				preparedStatement.executeBatch();
 			}
 		}
 	}
 
 	private void _updateModifiedDate() throws Exception {
-		StringBundler sb = new StringBundler(11);
-
-		sb.append("select classPK, version, AssetEntry.modifiedDate from ");
-		sb.append("AssetEntry, (select modifiedDate, ");
-		sb.append("JournalArticle.resourcePrimKey, version from ");
-		sb.append("JournalArticle, (select resourcePrimKey, max(version) as ");
-		sb.append("maxVersion from JournalArticle where status = ? group by ");
-		sb.append("resourcePrimKey) LatestVersion where ");
-		sb.append("JournalArticle.resourcePrimKey = ");
-		sb.append("LatestVersion.resourcePrimKey and version = maxVersion) ");
-		sb.append("JournalArticle where classNameId = ? and classPK = ");
-		sb.append("JournalArticle.resourcePrimKey and ");
-		sb.append("AssetEntry.modifiedDate != JournalArticle.modifiedDate");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select classPK, version, AssetEntry.modifiedDate from ",
+					"AssetEntry, (select modifiedDate, ",
+					"JournalArticle.resourcePrimKey, version from ",
+					"JournalArticle, (select resourcePrimKey, max(version) as ",
+					"maxVersion from JournalArticle where status = ? group by ",
+					"resourcePrimKey) LatestVersion where ",
+					"JournalArticle.resourcePrimKey = ",
+					"LatestVersion.resourcePrimKey and version = maxVersion) ",
+					"JournalArticle where classNameId = ? and classPK = ",
+					"JournalArticle.resourcePrimKey and ",
+					"AssetEntry.modifiedDate != JournalArticle.modifiedDate"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update JournalArticle set modifiedDate = ? where " +
 						"resourcePrimKey = ? and version = ?")) {
 
-			ps1.setInt(1, WorkflowConstants.STATUS_APPROVED);
-			ps1.setLong(
+			preparedStatement1.setInt(1, WorkflowConstants.STATUS_APPROVED);
+			preparedStatement1.setLong(
 				2, PortalUtil.getClassNameId(_CLASS_NAME_JOURNAL_ARTICLE));
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					long resourcePrimKey = rs.getLong(1);
-					Double latestVersion = rs.getDouble(2);
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					long resourcePrimKey = resultSet.getLong(1);
+					Double latestVersion = resultSet.getDouble(2);
 
-					Timestamp assetModifiedDate = rs.getTimestamp(3);
+					Timestamp assetModifiedDate = resultSet.getTimestamp(3);
 
-					ps2.setTimestamp(1, assetModifiedDate);
+					preparedStatement2.setTimestamp(1, assetModifiedDate);
 
-					ps2.setLong(2, resourcePrimKey);
+					preparedStatement2.setLong(2, resourcePrimKey);
 
-					ps2.setDouble(3, latestVersion);
+					preparedStatement2.setDouble(3, latestVersion);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

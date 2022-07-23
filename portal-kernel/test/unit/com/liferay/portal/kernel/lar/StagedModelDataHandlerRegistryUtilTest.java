@@ -16,11 +16,8 @@ package com.liferay.portal.kernel.lar;
 
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
-import com.liferay.registry.BasicRegistryImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,23 +25,18 @@ import java.util.Objects;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Leon Chi
  */
 public class StagedModelDataHandlerRegistryUtilTest {
 
-	@BeforeClass
-	public static void setUpClass() {
-		RegistryUtil.setRegistry(new BasicRegistryImpl());
-	}
-
 	@Before
 	public void setUp() {
-		Registry registry = RegistryUtil.getRegistry();
-
 		_stagedModelDataHandler =
 			(StagedModelDataHandler<?>)ProxyUtil.newProxyInstance(
 				StagedModelDataHandlerRegistryUtilTest.class.getClassLoader(),
@@ -57,10 +49,12 @@ public class StagedModelDataHandlerRegistryUtilTest {
 					return null;
 				});
 
-		_serviceRegistration = registry.registerService(
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
+
+		_serviceRegistration = bundleContext.registerService(
 			(Class<StagedModelDataHandler<?>>)
 				(Class<?>)StagedModelDataHandler.class,
-			_stagedModelDataHandler);
+			_stagedModelDataHandler, null);
 	}
 
 	@After

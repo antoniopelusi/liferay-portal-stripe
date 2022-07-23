@@ -10,7 +10,7 @@ exports[`document-library-preview-document renders a document previewer with nin
     >
       <img
         class="preview-file-document preview-file-document-fit"
-        src="/document-images/5"
+        src="http://localhost/document-images/?previewFileIndex=5"
       />
     </div>
     <div
@@ -93,7 +93,7 @@ exports[`document-library-preview-document renders a document previewer with ten
     >
       <img
         class="preview-file-document preview-file-document-fit"
-        src="/document-images/1"
+        src="http://localhost/document-images/?previewFileIndex=1"
       />
     </div>
     <div

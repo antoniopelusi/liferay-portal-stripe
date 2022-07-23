@@ -29,6 +29,10 @@ public class WorkflowDefinitionLinkLocalServiceWrapper
 	implements ServiceWrapper<WorkflowDefinitionLinkLocalService>,
 			   WorkflowDefinitionLinkLocalService {
 
+	public WorkflowDefinitionLinkLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WorkflowDefinitionLinkLocalServiceWrapper(
 		WorkflowDefinitionLinkLocalService workflowDefinitionLinkLocalService) {
 
@@ -154,6 +158,13 @@ public class WorkflowDefinitionLinkLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _workflowDefinitionLinkLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _workflowDefinitionLinkLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -391,6 +402,15 @@ public class WorkflowDefinitionLinkLocalServiceWrapper
 
 		return _workflowDefinitionLinkLocalService.getWorkflowDefinitionLinks(
 			start, end);
+	}
+
+	@Override
+	public java.util.List<WorkflowDefinitionLink> getWorkflowDefinitionLinks(
+			long companyId, long groupId, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _workflowDefinitionLinkLocalService.getWorkflowDefinitionLinks(
+			companyId, groupId, classPK);
 	}
 
 	@Override

@@ -131,7 +131,7 @@ public class MBCategoryAssetRenderer extends BaseJSPAssetRenderer<MBCategory> {
 			"/message_boards/edit_category"
 		).setParameter(
 			"mbCategoryId", _category.getCategoryId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

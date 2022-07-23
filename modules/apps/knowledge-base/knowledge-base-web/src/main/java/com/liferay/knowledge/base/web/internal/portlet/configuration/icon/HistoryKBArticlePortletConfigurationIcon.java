@@ -69,7 +69,7 @@ public class HistoryKBArticlePortletConfigurationIcon
 
 				return themeDisplay.getURLCurrent();
 			}
-		).build();
+		).buildPortletURL();
 
 		KBArticle kbArticle = getKBArticle(portletRequest);
 

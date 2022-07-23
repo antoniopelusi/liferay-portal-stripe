@@ -14,6 +14,8 @@
 
 package com.liferay.roles.admin.panel.category.role.type.mapper;
 
+import com.liferay.portal.kernel.model.Role;
+
 /**
  * Defines a mapping between role types and a panel category. When implemented,
  * the returned role types will be able to define permissions for apps under the
@@ -24,6 +26,10 @@ package com.liferay.roles.admin.panel.category.role.type.mapper;
  * @review
  */
 public interface PanelCategoryRoleTypeMapper {
+
+	public default String[] getExcludedPanelAppKeys(Role role) {
+		return new String[0];
+	}
 
 	public String getPanelCategoryKey();
 

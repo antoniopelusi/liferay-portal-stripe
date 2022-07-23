@@ -23,11 +23,13 @@ import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserLocalService;
 
 import java.util.Date;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Rachael Koestartyo
@@ -50,7 +52,7 @@ public class AnalyticsMessageLocalServiceImpl
 		analyticsMessage.setCompanyId(companyId);
 		analyticsMessage.setUserId(userId);
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		analyticsMessage.setUserName(user.getFullName());
 
@@ -93,5 +95,8 @@ public class AnalyticsMessageLocalServiceImpl
 
 		return analyticsMessagePersistence.findWithDynamicQuery(dynamicQuery);
 	}
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

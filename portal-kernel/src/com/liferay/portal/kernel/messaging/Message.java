@@ -271,23 +271,11 @@ public class Message implements Cloneable, Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(13);
-
-		sb.append("{destinationName=");
-		sb.append(_destinationName);
-		sb.append(", response=");
-		sb.append(_response);
-		sb.append(", responseDestinationName=");
-		sb.append(_responseDestinationName);
-		sb.append(", responseId=");
-		sb.append(_responseId);
-		sb.append(", payload=");
-		sb.append(_payload);
-		sb.append(", values=");
-		sb.append(MapUtil.toString(_values, null, ".*[pP]assword.*"));
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{destinationName=", _destinationName, ", response=", _response,
+			", responseDestinationName=", _responseDestinationName,
+			", responseId=", _responseId, ", payload=", _payload, ", values=",
+			MapUtil.toString(_values, null, ".*[pP]assword.*"), "}");
 	}
 
 	private String _destinationName;

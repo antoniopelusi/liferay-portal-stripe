@@ -70,10 +70,10 @@ public class ModuleBuildAutoUpgradeTest extends BaseBuildAutoUpgradeTestCase {
 	private byte[] _createBundleBytes(Object[][] tableColumns, int version)
 		throws Exception {
 
-		try (UnsyncByteArrayOutputStream unsyncbyteArrayOutputStream =
+		try (UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 				new UnsyncByteArrayOutputStream();
 			JarOutputStream jarOutputStream = new JarOutputStream(
-				unsyncbyteArrayOutputStream)) {
+				unsyncByteArrayOutputStream)) {
 
 			Manifest manifest = new Manifest();
 
@@ -115,7 +115,7 @@ public class ModuleBuildAutoUpgradeTest extends BaseBuildAutoUpgradeTestCase {
 
 			jarOutputStream.finish();
 
-			return unsyncbyteArrayOutputStream.toByteArray();
+			return unsyncByteArrayOutputStream.toByteArray();
 		}
 	}
 

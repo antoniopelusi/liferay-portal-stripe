@@ -72,12 +72,15 @@ public class AccountEntryUserRelLocalServiceUtil {
 	public static AccountEntryUserRel addAccountEntryUserRel(
 			long accountEntryId, long creatorUserId, String screenName,
 			String emailAddress, java.util.Locale locale, String firstName,
-			String middleName, String lastName, long prefixId, long suffixId)
+			String middleName, String lastName, long prefixId, long suffixId,
+			String jobTitle,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addAccountEntryUserRel(
 			accountEntryId, creatorUserId, screenName, emailAddress, locale,
-			firstName, middleName, lastName, prefixId, suffixId);
+			firstName, middleName, lastName, prefixId, suffixId, jobTitle,
+			serviceContext);
 	}
 
 	public static AccountEntryUserRel addAccountEntryUserRelByEmailAddress(
@@ -101,12 +104,15 @@ public class AccountEntryUserRelLocalServiceUtil {
 	public static AccountEntryUserRel addPersonTypeAccountEntryUserRel(
 			long accountEntryId, long creatorUserId, String screenName,
 			String emailAddress, java.util.Locale locale, String firstName,
-			String middleName, String lastName, long prefixId, long suffixId)
+			String middleName, String lastName, long prefixId, long suffixId,
+			String jobTitle,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addPersonTypeAccountEntryUserRel(
 			accountEntryId, creatorUserId, screenName, emailAddress, locale,
-			firstName, middleName, lastName, prefixId, suffixId);
+			firstName, middleName, lastName, prefixId, suffixId, jobTitle,
+			serviceContext);
 	}
 
 	/**
@@ -165,6 +171,14 @@ public class AccountEntryUserRelLocalServiceUtil {
 		return getService().deleteAccountEntryUserRel(accountEntryUserRelId);
 	}
 
+	public static void deleteAccountEntryUserRelByEmailAddress(
+			long accountEntryId, String emailAddress)
+		throws PortalException {
+
+		getService().deleteAccountEntryUserRelByEmailAddress(
+			accountEntryId, emailAddress);
+	}
+
 	public static void deleteAccountEntryUserRels(
 			long accountEntryId, long[] accountUserIds)
 		throws PortalException {
@@ -196,6 +210,10 @@ public class AccountEntryUserRelLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -400,6 +418,10 @@ public class AccountEntryUserRelLocalServiceUtil {
 		long accountEntryId, long userId) {
 
 		return getService().hasAccountEntryUserRel(accountEntryId, userId);
+	}
+
+	public static boolean isAccountEntryUser(long userId) {
+		return getService().isAccountEntryUser(userId);
 	}
 
 	public static void setPersonTypeAccountEntryUser(

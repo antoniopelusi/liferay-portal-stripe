@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
@@ -64,7 +65,7 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 
 	public void register(long companyId) {
 		try {
-			List<SAPEntryScope> sapEntryScopes = loadSAPEntryScopes(companyId);
+			List<SAPEntryScope> sapEntryScopes = _loadSAPEntryScopes(companyId);
 
 			SAPEntryScopeDescriptorFinder sapEntryScopeDescriptorFinder =
 				new SAPEntryScopeDescriptorFinder(
@@ -82,12 +83,14 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 						_buildScopeDescriptorProperties(companyId));
 				});
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put("companyId", String.valueOf(companyId));
-			properties.put(
-				"osgi.jaxrs.name", OAuth2JSONWSConstants.APPLICATION_NAME);
-			properties.put("sap.scope.finder", Boolean.TRUE);
+			Dictionary<String, Object> properties =
+				HashMapDictionaryBuilder.<String, Object>put(
+					"companyId", String.valueOf(companyId)
+				).put(
+					"osgi.jaxrs.name", OAuth2JSONWSConstants.APPLICATION_NAME
+				).put(
+					"sap.scope.finder", Boolean.TRUE
+				).build();
 
 			_scopeFinderServiceRegistrations.compute(
 				companyId,
@@ -159,7 +162,7 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 			}
 			catch (IllegalStateException illegalStateException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(illegalStateException, illegalStateException);
+					_log.debug(illegalStateException);
 				}
 
 				// Concurrent unregistration from register(long)
@@ -187,26 +190,6 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 		_scopeDescriptorServiceRegistrations.clear();
 	}
 
-	protected boolean isOAuth2ExportedSAPEntry(SAPEntry sapEntry) {
-		return StringUtil.startsWith(sapEntry.getName(), _sapEntryOAuth2Prefix);
-	}
-
-	protected List<SAPEntryScope> loadSAPEntryScopes(long companyId) {
-		List<SAPEntryScope> sapEntryScopes = new ArrayList<>();
-
-		for (SAPEntry sapEntry :
-				_sapEntryLocalService.getCompanySAPEntries(
-					companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
-
-			if (isOAuth2ExportedSAPEntry(sapEntry)) {
-				sapEntryScopes.add(
-					new SAPEntryScope(sapEntry, _parseScope(sapEntry)));
-			}
-		}
-
-		return sapEntryScopes;
-	}
-
 	protected void removeJaxRsApplicationName(
 		ServiceReference<ScopeFinder> serviceReference) {
 
@@ -226,7 +209,7 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 			}
 			catch (IllegalStateException illegalStateException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(illegalStateException, illegalStateException);
+					_log.debug(illegalStateException);
 				}
 
 				// Concurrent unregistration from register(long)
@@ -238,14 +221,31 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 	private HashMapDictionary<String, Object> _buildScopeDescriptorProperties(
 		long companyId) {
 
-		HashMapDictionary<String, Object> properties =
-			new HashMapDictionary<>();
+		return HashMapDictionaryBuilder.<String, Object>put(
+			"companyId", String.valueOf(companyId)
+		).put(
+			"osgi.jaxrs.name", _jaxRsApplicationNames.toArray(new String[0])
+		).build();
+	}
 
-		properties.put("companyId", String.valueOf(companyId));
-		properties.put(
-			"osgi.jaxrs.name", _jaxRsApplicationNames.toArray(new String[0]));
+	private boolean _isOAuth2ExportedSAPEntry(SAPEntry sapEntry) {
+		return StringUtil.startsWith(sapEntry.getName(), _sapEntryOAuth2Prefix);
+	}
 
-		return properties;
+	private List<SAPEntryScope> _loadSAPEntryScopes(long companyId) {
+		List<SAPEntryScope> sapEntryScopes = new ArrayList<>();
+
+		for (SAPEntry sapEntry :
+				_sapEntryLocalService.getCompanySAPEntries(
+					companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+			if (_isOAuth2ExportedSAPEntry(sapEntry)) {
+				sapEntryScopes.add(
+					new SAPEntryScope(sapEntry, _parseScope(sapEntry)));
+			}
+		}
+
+		return sapEntryScopes;
 	}
 
 	private String _parseScope(SAPEntry sapEntry) {

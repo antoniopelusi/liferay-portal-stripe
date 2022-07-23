@@ -113,6 +113,12 @@
 					</c:when>
 				</c:choose>
 
+				<c:if test="<%= PropsValues.SESSION_ENABLE_PERSISTENT_COOKIES && PropsValues.SESSION_TEST_COOKIE_SUPPORT %>">
+					<div class="alert alert-danger" id="<portlet:namespace />cookieDisabled" style="display: none;">
+						<liferay-ui:message key="authentication-failed-please-enable-browser-cookies" />
+					</div>
+				</c:if>
+
 				<liferay-ui:error exception="<%= AuthException.class %>" message="authentication-failed" />
 				<liferay-ui:error exception="<%= CompanyMaxUsersException.class %>" message="unable-to-log-in-because-the-maximum-number-of-users-has-been-reached" />
 				<liferay-ui:error exception="<%= CookieNotSupportedException.class %>" message="authentication-failed-please-enable-browser-cookies" />
@@ -177,7 +183,7 @@
 
 					<span id="<portlet:namespace />passwordCapsLockSpan" style="display: none;"><liferay-ui:message key="caps-lock-is-on" /></span>
 
-					<c:if test="<%= company.isAutoLogin() && !PropsValues.SESSION_DISABLED %>">
+					<c:if test="<%= company.isAutoLogin() %>">
 						<aui:input checked="<%= rememberMe %>" name="rememberMe" type="checkbox" />
 					</c:if>
 				</aui:fieldset>
@@ -195,6 +201,16 @@
 
 			if (form) {
 				form.addEventListener('submit', (event) => {
+					<c:if test="<%= PropsValues.SESSION_ENABLE_PERSISTENT_COOKIES && PropsValues.SESSION_TEST_COOKIE_SUPPORT %>">
+						if (!navigator.cookieEnabled) {
+							document.getElementById(
+								'<portlet:namespace />cookieDisabled'
+							).style.display = '';
+
+							return;
+						}
+					</c:if>
+
 					<c:if test="<%= Validator.isNotNull(redirect) %>">
 						var redirect = form.querySelector('#<portlet:namespace />redirect');
 

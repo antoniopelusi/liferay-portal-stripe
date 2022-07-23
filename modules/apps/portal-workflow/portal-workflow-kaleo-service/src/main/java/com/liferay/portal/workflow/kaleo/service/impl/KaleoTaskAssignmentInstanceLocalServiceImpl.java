@@ -55,7 +55,7 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 		throws PortalException {
 
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoTaskAssignmentInstanceId = counterLocalService.increment();
 
@@ -67,8 +67,8 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 		kaleoTaskAssignmentInstance.setCompanyId(user.getCompanyId());
 		kaleoTaskAssignmentInstance.setUserId(user.getUserId());
 		kaleoTaskAssignmentInstance.setUserName(user.getFullName());
-		kaleoTaskAssignmentInstance.setCreateDate(now);
-		kaleoTaskAssignmentInstance.setModifiedDate(now);
+		kaleoTaskAssignmentInstance.setCreateDate(date);
+		kaleoTaskAssignmentInstance.setModifiedDate(date);
 		kaleoTaskAssignmentInstance.setKaleoDefinitionId(
 			kaleoTaskInstanceToken.getKaleoDefinitionId());
 		kaleoTaskAssignmentInstance.setKaleoDefinitionVersionId(
@@ -171,7 +171,7 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 
 		List<KaleoTaskAssignmentInstance> kaleoTaskAssignmentInstances =
 			kaleoTaskAssignmentInstancePersistence.
-				findBykaleoTaskInstanceTokenId(kaleoTaskInstanceTokenId);
+				findByKaleoTaskInstanceTokenId(kaleoTaskInstanceTokenId);
 
 		if (kaleoTaskAssignmentInstances.size() > 1) {
 			throw new WorkflowException(
@@ -216,7 +216,7 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 
 		List<KaleoTaskAssignmentInstance> kaleoTaskAssignmentInstances =
 			kaleoTaskAssignmentInstancePersistence.
-				findBykaleoTaskInstanceTokenId(
+				findByKaleoTaskInstanceTokenId(
 					kaleoTaskInstanceToken.getKaleoTaskInstanceTokenId());
 
 		for (KaleoTaskAssignmentInstance kaleoTaskAssignmentInstance :
@@ -233,7 +233,7 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 		OrderByComparator<KaleoTaskAssignmentInstance> orderByComparator) {
 
 		return kaleoTaskAssignmentInstancePersistence.
-			fetchBykaleoTaskInstanceTokenId_First(
+			fetchByKaleoTaskInstanceTokenId_First(
 				kaleoTaskInstanceTokenId, orderByComparator);
 	}
 
@@ -251,7 +251,7 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 		long kaleoTaskInstanceTokenId) {
 
 		return kaleoTaskAssignmentInstancePersistence.
-			findBykaleoTaskInstanceTokenId(kaleoTaskInstanceTokenId);
+			findByKaleoTaskInstanceTokenId(kaleoTaskInstanceTokenId);
 	}
 
 	@Override
@@ -259,7 +259,7 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 		long kaleoTaskInstanceTokenId) {
 
 		return kaleoTaskAssignmentInstancePersistence.
-			countBykaleoTaskInstanceTokenId(kaleoTaskInstanceTokenId);
+			countByKaleoTaskInstanceTokenId(kaleoTaskInstanceTokenId);
 	}
 
 }

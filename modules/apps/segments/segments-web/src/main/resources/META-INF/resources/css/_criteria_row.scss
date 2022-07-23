@@ -41,6 +41,13 @@
 			&.select-entity-input {
 				min-width: 200px;
 			}
+
+			&--error {
+				border-color: var(--danger);
+				&:focus {
+					box-shadow: 0 0 0 0.125rem #fff, 0 0 0 0.25rem var(--danger);
+				}
+			}
 		}
 
 		.criterion-string {

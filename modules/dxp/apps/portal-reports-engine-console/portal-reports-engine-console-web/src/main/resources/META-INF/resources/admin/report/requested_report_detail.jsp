@@ -196,7 +196,7 @@ renderResponse.setTitle(definition.getName(locale));
 				"entryId", entryId
 			).setWindowState(
 				WindowState.NORMAL
-			).build();
+			).buildPortletURL();
 			%>
 
 			<liferay-ui:search-container
@@ -206,7 +206,8 @@ renderResponse.setTitle(definition.getName(locale));
 				total="<%= attachmentsFiles.size() %>"
 			>
 				<liferay-ui:search-container-results
-					results="<%= ListUtil.subList(attachmentsFiles, searchContainer.getStart(), searchContainer.getEnd()) %>"
+					calculateStartAndEnd="<%= true %>"
+					results="<%= attachmentsFiles %>"
 				/>
 
 				<liferay-ui:search-container-row

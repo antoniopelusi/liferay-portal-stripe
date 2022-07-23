@@ -29,6 +29,10 @@ import com.liferay.trash.model.TrashEntry;
 public class TrashEntryLocalServiceWrapper
 	implements ServiceWrapper<TrashEntryLocalService>, TrashEntryLocalService {
 
+	public TrashEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public TrashEntryLocalServiceWrapper(
 		TrashEntryLocalService trashEntryLocalService) {
 
@@ -197,6 +201,13 @@ public class TrashEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _trashEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _trashEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -243,7 +243,7 @@ public class DLFileEntryAssetRenderer
 			"/document_library/edit_file_entry"
 		).setParameter(
 			"fileEntryId", _fileEntry.getFileEntryId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -261,7 +261,7 @@ public class DLFileEntryAssetRenderer
 			"groupId", _fileEntry.getRepositoryId()
 		).setParameter(
 			"title", _fileEntry.getTitle()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -476,7 +476,7 @@ public class DLFileEntryAssetRenderer
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

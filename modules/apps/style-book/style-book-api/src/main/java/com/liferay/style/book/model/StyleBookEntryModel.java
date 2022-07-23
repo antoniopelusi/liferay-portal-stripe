@@ -338,4 +338,7 @@ public interface StyleBookEntryModel
 	 */
 	public void setStyleBookEntryKey(String styleBookEntryKey);
 
+	@Override
+	public StyleBookEntry cloneWithOriginalValues();
+
 }

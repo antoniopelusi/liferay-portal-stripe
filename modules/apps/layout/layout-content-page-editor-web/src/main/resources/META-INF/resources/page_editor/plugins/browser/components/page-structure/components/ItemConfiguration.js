@@ -17,13 +17,17 @@ import ClayTabs from '@clayui/tabs';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
 
-import {useCollectionActiveItemContext} from '../../../../../app/components/CollectionActiveItemContext';
-import {CollectionItemContext} from '../../../../../app/components/CollectionItemContext';
+import {useCollectionActiveItemContext} from '../../../../../app/contexts/CollectionActiveItemContext';
+import {CollectionItemContext} from '../../../../../app/contexts/CollectionItemContext';
 import {
 	useActiveItemId,
 	useActiveItemType,
-} from '../../../../../app/components/Controls';
-import {useSelectorCallback} from '../../../../../app/store/index';
+} from '../../../../../app/contexts/ControlsContext';
+import {
+	useSelector,
+	useSelectorCallback,
+} from '../../../../../app/contexts/StoreContext';
+import selectCanViewItemConfiguration from '../../../../../app/selectors/selectCanViewItemConfiguration';
 import {deepEqual} from '../../../../../app/utils/checkDeepEqual';
 import {useId} from '../../../../../app/utils/useId';
 import {PANELS, selectPanels} from '../selectors/selectPanels';
@@ -32,11 +36,15 @@ import PageStructureSidebarSection from './PageStructureSidebarSection';
 export default function ItemConfiguration() {
 	const collectionContext = useCollectionActiveItemContext();
 
-	return (
+	const canViewItemConfiguration = useSelector(
+		selectCanViewItemConfiguration
+	);
+
+	return canViewItemConfiguration ? (
 		<CollectionItemContext.Provider value={collectionContext}>
 			<ItemConfigurationContent />
 		</CollectionItemContext.Provider>
-	);
+	) : null;
 }
 
 function ItemConfigurationContent() {
@@ -86,20 +94,22 @@ function ItemConfigurationContent() {
 	return (
 		<PageStructureSidebarSection resizable size={1.5}>
 			<div className="page-editor__page-structure__item-configuration">
-				<ClayTabs className="pt-2 px-3" modern>
+				<ClayTabs className="flex-nowrap pt-2 px-3">
 					{panels.map((panel) => (
 						<ClayTabs.Item
 							active={panel.panelId === activePanelId}
 							innerProps={{
 								'aria-controls': `${panelIdPrefix}-${panel.panelId}`,
-								id: `${tabIdPrefix}-${panel.panelId}`,
+								'id': `${tabIdPrefix}-${panel.panelId}`,
 							}}
 							key={panel.panelId}
 							onClick={() => setActivePanelId(panel.panelId)}
 						>
 							<span
-								className="c-inner page-editor__page-structure__item-configuration-tab"
+								className="c-inner page-editor__page-structure__item-configuration-tab text-truncate"
+								data-tooltip-align="top"
 								tabIndex="-1"
+								title={panel.label}
 							>
 								{panel.label}
 							</span>
@@ -115,7 +125,7 @@ function ItemConfigurationContent() {
 					{panels.map((panel) => (
 						<ClayTabs.TabPane
 							aria-labelledby={`${tabIdPrefix}-${panel.panelId}`}
-							className="p-3"
+							className="pb-3 pt-4 px-3"
 							id={`${panelIdPrefix}-${panel.panelId}`}
 							key={panel.panelId}
 						>

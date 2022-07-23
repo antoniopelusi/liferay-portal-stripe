@@ -17,7 +17,7 @@ package com.liferay.portal.security.ldap.internal.messaging.config;
 import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.security.ldap.internal.constants.LDAPDestinationNames;
 
 import java.util.Dictionary;
@@ -47,9 +47,10 @@ public class MessagingConfigurator {
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("destination.name", destination.getName());
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		_serviceRegistration = bundleContext.registerService(
 			Destination.class, destination, dictionary);

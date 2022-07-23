@@ -17,6 +17,7 @@ package com.liferay.commerce.machine.learning.internal.recommendation;
 import com.liferay.commerce.machine.learning.internal.recommendation.constants.CommerceMLRecommendationField;
 import com.liferay.commerce.machine.learning.recommendation.CommerceMLRecommendation;
 import com.liferay.petra.lang.HashUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -122,7 +123,7 @@ public abstract class BaseCommerceMLRecommendationServiceImpl
 	}
 
 	protected long getHash(Object... values) {
-		StringBuilder sb = new StringBuilder(values.length);
+		StringBundler sb = new StringBundler(values.length);
 
 		for (Object value : values) {
 			sb.append(value);
@@ -202,7 +203,7 @@ public abstract class BaseCommerceMLRecommendationServiceImpl
 		}
 		catch (ParseException parseException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(parseException, parseException);
+				_log.debug(parseException);
 			}
 		}
 

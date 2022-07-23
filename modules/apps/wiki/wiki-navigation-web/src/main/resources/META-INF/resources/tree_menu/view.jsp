@@ -23,7 +23,7 @@ PortletURL viewURL = PortletURLBuilder.createRenderURL(
 	liferayPortletResponse, PortletProviderUtil.getPortletId(WikiPage.class.getName(), PortletProvider.Action.VIEW)
 ).setMVCRenderCommandName(
 	"/wiki/view_page"
-).build();
+).buildPortletURL();
 
 List<MenuItem> menuItems = MenuItem.fromWikiNode(selNodeId, depth, viewURL);
 %>

@@ -20,13 +20,21 @@ import com.liferay.dynamic.data.mapping.annotations.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.annotations.DDMFormLayoutColumn;
 import com.liferay.dynamic.data.mapping.annotations.DDMFormLayoutPage;
 import com.liferay.dynamic.data.mapping.annotations.DDMFormLayoutRow;
+import com.liferay.dynamic.data.mapping.annotations.DDMFormRule;
 import com.liferay.dynamic.data.mapping.form.field.type.DefaultDDMFormFieldTypeSettings;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 
 /**
  * @author Marcela Cunha
  */
-@DDMForm
+@DDMForm(
+	rules = {
+		@DDMFormRule(
+			actions = "setVisible('requiredErrorMessage', getValue('required'))",
+			condition = "TRUE"
+		)
+	}
+)
 @DDMFormLayout(
 	paginationMode = com.liferay.dynamic.data.mapping.model.DDMFormLayout.TABBED_MODE,
 	value = {
@@ -36,7 +44,11 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 				@DDMFormLayoutRow(
 					{
 						@DDMFormLayoutColumn(
-							size = 12, value = {"label", "tip", "required"}
+							size = 12,
+							value = {
+								"label", "tip", "required",
+								"requiredErrorMessage"
+							}
 						)
 					}
 				)
@@ -51,9 +63,10 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 							size = 12,
 							value = {
 								"name", "fieldReference", "predefinedValue",
-								"visibilityExpression", "fieldNamespace",
-								"indexType", "localizable", "readOnly",
-								"dataType", "type", "showLabel", "repeatable"
+								"objectFieldName", "visibilityExpression",
+								"fieldNamespace", "indexType", "localizable",
+								"readOnly", "dataType", "type", "showLabel",
+								"repeatable"
 							}
 						)
 					}

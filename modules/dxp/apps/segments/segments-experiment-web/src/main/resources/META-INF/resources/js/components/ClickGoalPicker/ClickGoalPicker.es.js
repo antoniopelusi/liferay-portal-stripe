@@ -12,12 +12,11 @@
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
-import {useEventListener} from '@liferay/frontend-js-react-web';
+import {ReactPortal, useEventListener} from '@liferay/frontend-js-react-web';
 import classNames from 'classnames';
 import {throttle} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React from 'react';
-import ReactDOM from 'react-dom';
 
 import {StateContext as GlobalStateContext} from './../../state/context.es';
 import {StateContext, getInitialState, reducer} from './reducer.es';
@@ -63,6 +62,18 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 
 	const {isValidTarget, mode, selectedTarget} = state;
 
+	const isSelectedTargetInDOM = document.getElementById(selectedTarget);
+
+	// If the parent passes as a prop an empty target and the old selected target
+	// is not in the DOM anymore we must update it in the Context
+
+	if (!target && selectedTarget && !isSelectedTargetInDOM) {
+		dispatch({
+			selector: target,
+			type: 'selectTarget',
+		});
+	}
+
 	const [selectorInputValue, setSelectorInputValue] = useState(
 		selectedTarget
 	);
@@ -73,13 +84,12 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 
 	useEffect(() => {
 		ref.current = selectedTarget;
-
 		setSelectorInputValue(selectedTarget);
 	}, [selectedTarget]);
 
 	const previousTarget = ref.current;
 
-	if (selectedTarget != previousTarget) {
+	if (selectedTarget !== previousTarget && selectedTarget !== target) {
 		if (onSelectClickGoalTarget) {
 			onSelectClickGoalTarget(selectedTarget);
 		}
@@ -182,6 +192,7 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 			<StateContext.Provider value={state}>
 				<h4 className="mb-3 mt-4 sheet-subtitle">
 					{Liferay.Language.get('click-goal')}
+
 					<ClayIcon
 						className="lexicon-icon-sm ml-1 reference-mark text-warning"
 						style={{verticalAlign: 'super'}}
@@ -201,6 +212,7 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 							className="c-mr-2"
 							symbol="exclamation-full"
 						/>
+
 						{Liferay.Language.get(
 							'an-element-needs-to-be-selected'
 						)}
@@ -232,6 +244,7 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 							title={Liferay.Language.get('element-id-help')}
 						/>
 					</label>
+
 					<ClayInput.Group
 						className={classNames({
 							'has-error': !isValidTarget,
@@ -240,6 +253,7 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 						<ClayInput.GroupItem prepend shrink>
 							<ClayInput.GroupText>#</ClayInput.GroupText>
 						</ClayInput.GroupItem>
+
 						<ClayInput.GroupItem append>
 							<ClayInput
 								className={classNames({
@@ -271,6 +285,7 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 								</ClayInput.GroupInsetItem>
 							)}
 						</ClayInput.GroupItem>
+
 						<ClayInput.GroupItem shrink>
 							<ClayButtonWithIcon
 								data-tooltip-align="bottom-right"
@@ -281,10 +296,12 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 								title={Liferay.Language.get('show-element')}
 							/>
 						</ClayInput.GroupItem>
+
 						{!isValidTarget && (
 							<ClayForm.FeedbackGroup>
 								<ClayForm.FeedbackItem>
 									<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+
 									{Liferay.Language.get('id-was-not-found')}
 								</ClayForm.FeedbackItem>
 							</ClayForm.FeedbackGroup>
@@ -321,11 +338,11 @@ function OverlayContainer({allowEdit, root}) {
 	const dispatch = useContext(DispatchContext);
 	const {selectedTarget} = useContext(StateContext);
 
-	const targetableElements = useRef();
+	const targetableElementsRef = useRef();
 
 	// Before mount.
 
-	if (!targetableElements.current) {
+	if (!targetableElementsRef.current) {
 
 		// Apply CSS overrides.
 
@@ -361,7 +378,7 @@ function OverlayContainer({allowEdit, root}) {
 
 		// This must happen after hiding the toppers.
 
-		targetableElements.current = getTargetableElements(
+		targetableElementsRef.current = getTargetableElements(
 			root,
 			selectedTarget
 		);
@@ -417,13 +434,14 @@ function OverlayContainer({allowEdit, root}) {
 	useEventListener('mousedown', handleMouseDown, false, document);
 	useEventListener('mouseup', handleMouseUp, false, document);
 
-	return ReactDOM.createPortal(
-		<ClickGoalPicker.Overlay
-			allowEdit={allowEdit}
-			root={root}
-			targetableElements={targetableElements.current}
-		/>,
-		root
+	return (
+		<ReactPortal container={root}>
+			<ClickGoalPicker.Overlay
+				allowEdit={allowEdit}
+				root={root}
+				targetableElements={targetableElementsRef.current}
+			/>
+		</ReactPortal>
 	);
 }
 
@@ -585,6 +603,7 @@ function Target({allowEdit, element, geometry, mode, selector}) {
 					selector={selector}
 				/>
 			)}
+
 			{mode === 'editing' && (
 				<ClickGoalPicker.TargetPopover selector={selector} />
 			)}
@@ -643,7 +662,7 @@ function TargetTopper({allowEdit, geometry, isEditing, selector}) {
 				'lfr-segments-experiment-click-goal-target-topper': true,
 				'lfr-segments-experiment-click-goal-target-topper-editing': isEditing,
 				'px-2': true,
-				small: true,
+				'small': true,
 				'text-white': true,
 			})}
 			onClick={stopImmediatePropagation}
@@ -656,6 +675,7 @@ function TargetTopper({allowEdit, geometry, isEditing, selector}) {
 			<span className="mr-2 text-truncate">
 				{isEditing ? selector : Liferay.Language.get('target')}
 			</span>
+
 			{allowEdit && (
 				<ClayButton
 					className="lfr-segments-experiment-click-goal-target-delete small text-white"
@@ -715,6 +735,7 @@ function TargetPopover({selector}) {
 			<div className="mb-2 text-secondary text-truncate" title={selector}>
 				{selector}
 			</div>
+
 			<ClayButton onClick={handleClick} ref={buttonRef}>
 				{Liferay.Language.get('set-element-as-click-target')}
 			</ClayButton>

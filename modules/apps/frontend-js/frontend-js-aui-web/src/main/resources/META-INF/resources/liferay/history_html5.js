@@ -22,6 +22,7 @@
 AUI.add(
 	'liferay-history-html5',
 	(A) => {
+		// eslint-disable-next-line @liferay/aui/no-object
 		var AObject = A.Object;
 		var History = Liferay.History;
 		var Lang = A.Lang;
@@ -45,7 +46,7 @@ AUI.add(
 					var hash = LOCATION.hash;
 
 					var locationHashValid =
-						hash.indexOf(History.VALUE_SEPARATOR) != -1;
+						hash.indexOf(History.VALUE_SEPARATOR) !== -1;
 
 					if (locationHashValid) {
 						HISTORY.replaceState(null, null, instance._updateURI());

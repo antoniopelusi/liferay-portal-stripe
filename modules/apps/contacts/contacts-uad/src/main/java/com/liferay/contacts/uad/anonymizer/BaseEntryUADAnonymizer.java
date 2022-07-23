@@ -14,6 +14,8 @@
 
 package com.liferay.contacts.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.contacts.model.Entry;
 import com.liferay.contacts.service.EntryLocalService;
 import com.liferay.contacts.uad.constants.ContactsUADConstants;
@@ -46,6 +48,8 @@ public abstract class BaseEntryUADAnonymizer
 		if (entry.getUserId() == userId) {
 			entry.setUserId(anonymousUser.getUserId());
 			entry.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(entry, anonymousUser);
 		}
 
 		entryLocalService.updateEntry(entry);
@@ -61,6 +65,17 @@ public abstract class BaseEntryUADAnonymizer
 		return Entry.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(Entry entry, User anonymousUser) {
+		AssetEntry assetEntry = fetchAssetEntry(entry);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return entryLocalService.getActionableDynamicQuery();
@@ -70,6 +85,14 @@ public abstract class BaseEntryUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return ContactsUADConstants.USER_ID_FIELD_NAMES_ENTRY;
 	}
+
+	protected AssetEntry fetchAssetEntry(Entry entry) {
+		return assetEntryLocalService.fetchEntry(
+			Entry.class.getName(), entry.getEntryId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected EntryLocalService entryLocalService;

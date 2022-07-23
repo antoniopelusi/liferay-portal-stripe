@@ -280,4 +280,7 @@ public interface RatingsEntryModel
 	 */
 	public void setScore(double score);
 
+	@Override
+	public RatingsEntry cloneWithOriginalValues();
+
 }

@@ -139,6 +139,10 @@ public class LibraryReferenceTest {
 	@Test
 	public void testLibDependencyJarsInVersionsExt() {
 		for (String jar : _libDependencyJars) {
+			if (_excludeJars.contains(jar)) {
+				continue;
+			}
+
 			Assert.assertTrue(
 				_VERSIONS_EXT_FILE_NAME + " is missing a reference to " + jar,
 				_versionsExtJars.contains(jar));
@@ -487,10 +491,10 @@ public class LibraryReferenceTest {
 
 		Properties properties = new Properties();
 
-		try (InputStream in = Files.newInputStream(
+		try (InputStream inputStream = Files.newInputStream(
 				Paths.get(_NETBEANS_PROPERTIES_FILE_NAME))) {
 
-			properties.load(in);
+			properties.load(inputStream);
 		}
 
 		Collections.addAll(

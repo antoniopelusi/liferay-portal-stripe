@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.model.BackgroundTaskModel;
-import com.liferay.portal.background.task.model.BackgroundTaskSoap;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
@@ -32,20 +31,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -181,66 +179,6 @@ public class BackgroundTaskModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static BackgroundTask toModel(BackgroundTaskSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		BackgroundTask model = new BackgroundTaskImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setBackgroundTaskId(soapModel.getBackgroundTaskId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setServletContextNames(soapModel.getServletContextNames());
-		model.setTaskExecutorClassName(soapModel.getTaskExecutorClassName());
-		model.setTaskContextMap(soapModel.getTaskContextMap());
-		model.setCompleted(soapModel.isCompleted());
-		model.setCompletionDate(soapModel.getCompletionDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusMessage(soapModel.getStatusMessage());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<BackgroundTask> toModels(
-		BackgroundTaskSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<BackgroundTask> models = new ArrayList<BackgroundTask>(
-			soapModels.length);
-
-		for (BackgroundTaskSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public BackgroundTaskModelImpl() {
 	}
 
@@ -324,34 +262,6 @@ public class BackgroundTaskModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, BackgroundTask>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			BackgroundTask.class.getClassLoader(), BackgroundTask.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<BackgroundTask> constructor =
-				(Constructor<BackgroundTask>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<BackgroundTask, Object>>
@@ -880,6 +790,45 @@ public class BackgroundTaskModelImpl
 	}
 
 	@Override
+	public BackgroundTask cloneWithOriginalValues() {
+		BackgroundTaskImpl backgroundTaskImpl = new BackgroundTaskImpl();
+
+		backgroundTaskImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		backgroundTaskImpl.setBackgroundTaskId(
+			this.<Long>getColumnOriginalValue("backgroundTaskId"));
+		backgroundTaskImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		backgroundTaskImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		backgroundTaskImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		backgroundTaskImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		backgroundTaskImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		backgroundTaskImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		backgroundTaskImpl.setName(this.<String>getColumnOriginalValue("name"));
+		backgroundTaskImpl.setServletContextNames(
+			this.<String>getColumnOriginalValue("servletContextNames"));
+		backgroundTaskImpl.setTaskExecutorClassName(
+			this.<String>getColumnOriginalValue("taskExecutorClassName"));
+		backgroundTaskImpl.setTaskContextMap(
+			this.<Map>getColumnOriginalValue("taskContextMap"));
+		backgroundTaskImpl.setCompleted(
+			this.<Boolean>getColumnOriginalValue("completed"));
+		backgroundTaskImpl.setCompletionDate(
+			this.<Date>getColumnOriginalValue("completionDate"));
+		backgroundTaskImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		backgroundTaskImpl.setStatusMessage(
+			this.<String>getColumnOriginalValue("statusMessage"));
+
+		return backgroundTaskImpl;
+	}
+
+	@Override
 	public int compareTo(BackgroundTask backgroundTask) {
 		int value = 0;
 
@@ -1051,7 +1000,7 @@ public class BackgroundTaskModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1062,9 +1011,26 @@ public class BackgroundTaskModelImpl
 			Function<BackgroundTask, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((BackgroundTask)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((BackgroundTask)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1111,7 +1077,9 @@ public class BackgroundTaskModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, BackgroundTask>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					BackgroundTask.class, ModelWrapper.class);
 
 	}
 

@@ -1,0 +1,1823 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a translation can be added"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Click(
+			key_name = "Text",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Text ES");
+
+		Form.save();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "English (United States)");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "Spanish (Spain)");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
+	}
+
+	@description = "Verify that multiple translations can be added"
+	@priority = "5"
+	test CanBeCreatedInMultipleLanguages {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text",
+			label = "Español");
+
+		Form.addTranslation(localizedLanguage = "Japanese (Japan)");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text",
+			label = "日本語");
+
+		Form.addTranslation(localizedLanguage = "Arabic (Saudi Arabia)");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text",
+			label = "عربى");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Español");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "es-ES");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "日本語-日本");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "日本語");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "ja-JP");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "العربية-السعودية");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "عربى");
+	}
+
+	@description = "Verify that only one translation is supported for each language"
+	@priority = "5"
+	test CanBeCreatedOnlyOncePerLanguage {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text",
+			label = "Text ES");
+
+		Form.save();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "Spanish (Spain)");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormFields.viewTransltaionNotDuplicated(
+			key_language1 = "Spanish (Spain)",
+			key_language2 = "Spanish (Spain)",
+			key_position1 = "2",
+			key_position2 = "3");
+	}
+
+	@description = "Verify that a Form can be created with Spanish as the default portal language"
+	@priority = "5"
+	test CanBeCreatedWithSpanishAsDefaultLanguage {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsTranslations#CanBeCreatedWithSpanishAsDefaultLanguage";
+
+		Navigator.openURL();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Language",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureCurrentLanguagesCP(defaultPortalLanguage = "Spanish (Spain)");
+
+		FormsAdmin.addForm();
+
+		Type(
+			locator1 = "Form#NAME_FIELD",
+			value1 = "Formulario");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldTextField = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field On Spanish Portal");
+
+		Form.closeSidebar();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Enviar");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Text Field On Spanish Portal",
+			fieldName = "${fieldTextField}");
+
+		FormFields.editText(
+			fieldName = "${fieldTextField}",
+			fieldValue = "Text Field Value");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "Enviar");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Text Field On Spanish Portal",
+			fieldValue = "Text Field Value");
+
+		FormsAdminNavigator.gotoView();
+
+		FormsAdmin.viewTextEntry(
+			fieldLabel = "Text Field On Spanish Portal",
+			fieldName = "${fieldTextField}",
+			fieldValue = "Text Field Value");
+
+		Navigator.openURL();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Language",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureCurrentLanguagesCP(defaultPortalLanguage = "English (United States)");
+	}
+
+	@description = "Verify that a translation can be deactivated"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text",
+			label = "Text ES");
+
+		Form.save();
+
+		FormFields.removeTranslation(key_language = "Spanish (Spain)");
+
+		FormFields.viewAddedLanguage(key_language = "English (United States)");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Text ES");
+	}
+
+	@description = "Verify that a translation can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text",
+			label = "Text ES");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form1");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "Spanish (Spain)");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text ES",
+			label = "Text ES Edit");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form1");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "Spanish (Spain)");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES Edit");
+	}
+
+	@description = "Verify that a translation can be previewed"
+	@priority = "5"
+	test CanBePreviewed {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Text ES");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		FormPortletConfiguration.viewTranslationLanguage(language = "en-US");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormPortletConfiguration.changeLanguage(
+			currentLanguage = "en-US",
+			newLanguage = "español-España");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text ES",
+			fieldName = "Text ES");
+	}
+
+	@description = "Verify that a translation can be published"
+	@priority = "5"
+	test CanBePublished {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Click(
+			key_name = "Text",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Text ES");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		AssertElementPresent(
+			changeAppLanguageTo = "en-US",
+			locator1 = "FormViewBuilder#SELECT_LANGUAGE_AT_APP_DEPLOYED");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		AssertElementPresent(
+			changeAppLanguageTo = "español-España",
+			locator1 = "FormViewBuilder#SELECT_LANGUAGE_AT_APP_DEPLOYED");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
+	}
+
+	@description = "Verify that a translated Form can be submitted"
+	@priority = "5"
+	test CanBeSubmitted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Click(
+			key_name = "Text",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Text ES");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
+
+		Pause(locator1 = "6000");
+
+		Refresh();
+
+		FormViewBuilder.editText(
+			fieldName = "Text ES",
+			fieldValue = "Text ES");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "Enviar");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Text ES",
+			fieldValue = "Text ES");
+	}
+
+	@description = "Verify that a Color field's Label and Help Text can be translated"
+	@priority = "5"
+	test ColorFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Color ES");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Color");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Color",
+			fieldValue = "Test Help Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Color ES");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Color ES",
+			fieldValue = "Texto de Ayuda");
+	}
+
+	@description = "Verify that a Date field's Label and Help Text can be translated"
+	@priority = "5"
+	test DateFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Date");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Fecha");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Date");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Date",
+			fieldValue = "Test Help Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Fecha");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Fecha",
+			fieldValue = "Texto de Ayuda");
+	}
+
+	@description = "Verify that Fieldsets can be translated"
+	@priority = "5"
+	test ElementSetsCanBeTranslated {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.editDescription(formDescription = "Element Set Description");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		FormFields.enableSwitch(fieldName = "required");
+
+		Form.editElementSetFieldLabel(fieldValue = "Text Field Required");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Select from List");
+
+		Form.editElementSetFieldLabel(fieldValue = "Select Repeatable");
+
+		for (var number : list "1,2,3") {
+			FormFields.editOptionsRow(
+				optionName = "Select${number}",
+				optionValue = "Select ${number}",
+				rowNumber = "${number}");
+		}
+
+		Form.gotoAdvancedTab();
+
+		FormFields.enableSwitch(fieldName = "repeatable");
+
+		Form.closeSidebar();
+
+		Form.saveElementSet();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "Element Set 1");
+
+		Form.addTranslation(localizedLanguage = "Chinese (China)");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Text Field Required");
+
+		Form.editElementSetFieldLabel(fieldValue = "表格文本");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Select Repeatable");
+
+		Form.editElementSetFieldLabel(fieldValue = "表单选择");
+
+		Form.closeSidebar();
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Date");
+
+		Form.editFieldLabelMetal(fieldValue = "Date Field");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Text Field Required");
+
+		Form.gotoAdvancedTab();
+
+		var textFieldRequiredName1 = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Select Repeatable");
+
+		Form.gotoAdvancedTab();
+
+		var selectRepeatableName1 = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
+		Form.addTranslation(localizedLanguage = "Chinese (China)");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "表格文本",
+			fieldName = "${textFieldRequiredName1}");
+
+		FormFields.viewSelectLabel(
+			fieldLabel = "表单选择",
+			fieldName = "${selectRepeatableName1}");
+
+		FormFields.viewRequiredAsterisk();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "${selectRepeatableName1}");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.viewSwitchChecked(fieldName = "Repeatable");
+
+		Form.closeSidebar();
+
+		Form.selectTranslation(localizedLanguage = "English (United States)");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "3");
+
+		FormsAdminNavigator.gotoEditField(
+			fieldName = "Text Field Required",
+			fieldPositionNumber = "3");
+
+		Form.gotoAdvancedTab();
+
+		var textFieldRequiredName2 = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoEditField(
+			fieldName = "Select Repeatable",
+			fieldPositionNumber = "4");
+
+		Form.gotoAdvancedTab();
+
+		var selectRepeatableName2 = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Text Field Required",
+			fieldName = "${textFieldRequiredName1}");
+
+		FormFields.viewSelectLabel(
+			fieldLabel = "Select Repeatable",
+			fieldName = "${selectRepeatableName1}");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Text Field Required",
+			fieldName = "${textFieldRequiredName2}");
+
+		FormFields.viewSelectLabel(
+			fieldLabel = "Select Repeatable",
+			fieldName = "${selectRepeatableName2}");
+
+		FormFields.viewRequiredAsterisk();
+
+		FormPortlet.changeLocale(locale = "中文-中国");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "表格文本",
+			fieldName = "${textFieldRequiredName1}");
+
+		FormFields.viewSelectLabel(
+			fieldLabel = "表单选择",
+			fieldName = "${selectRepeatableName1}");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "表格文本",
+			fieldName = "${textFieldRequiredName2}");
+
+		FormFields.viewSelectLabel(
+			fieldLabel = "表单选择",
+			fieldName = "${selectRepeatableName2}");
+
+		FormFields.viewRequiredAsterisk();
+
+		FormFields.editText(
+			fieldName = "${textFieldRequiredName1}",
+			fieldValue = "文本输入中文");
+
+		FormFields.editText(
+			fieldName = "${textFieldRequiredName2}",
+			fieldValue = "文本再次输入中文");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "提交");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 2");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Text Field Required");
+
+		Form.gotoAdvancedTab();
+
+		var textFieldRequiredName3 = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Select Repeatable");
+
+		Form.gotoAdvancedTab();
+
+		var selectRepeatableName3 = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
+		Form.addTranslation(localizedLanguage = "Chinese (China)");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "表格文本",
+			fieldName = "${textFieldRequiredName3}");
+
+		FormFields.viewSelectLabel(
+			fieldLabel = "表单选择",
+			fieldName = "${selectRepeatableName3}");
+
+		FormFields.viewRequiredAsterisk();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "表单选择");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.viewSwitchChecked(fieldName = "Repeatable");
+
+		Form.closeSidebar();
+
+		Form.selectTranslation(localizedLanguage = "English (United States)");
+
+		Form.addTextField(fieldPositionNumber = "2");
+
+		Form.editElementSetFieldLabel(fieldValue = "Text Field New");
+
+		Form.closeSidebar();
+
+		Form.saveElementSet();
+	}
+
+	@description = "Verify that Forms submitted in different languages show the appropriate country flags in View Entries"
+	@priority = "5"
+	test EntriesDisplayTheCorrectLanguageFlag {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Click(
+			key_name = "Text",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Text ES");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
+
+		Pause(locator1 = "6000");
+
+		Refresh();
+
+		FormViewBuilder.editText(
+			fieldName = "Text ES",
+			fieldValue = "Text ES");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "Enviar");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		AssertElementPresent(locator1 = "Icon#FLAG_1");
+	}
+
+	@description = "Verify that a field that is added in a translation is also added to the default language"
+	@priority = "5"
+	test FieldsAddedToTranslationAreAddedToDefaultLanguage {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.save();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "English (United States)");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numeric");
+	}
+
+	@description = "Verify that if a field is deleted on the translation, it is also deleted on the default language"
+	@priority = "5"
+	test FieldsDeletedInATranslationAreDeletedInTheDefaultLanguage {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Text");
+
+		Form.save();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "English (United States)");
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Text");
+	}
+
+	@description = "Verify that a Grid field's Label, Help Text and Options can be translated"
+	@priority = "5"
+	test GridFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option One",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option Two",
+			rowNumber = "1");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Cuadrícula");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Opción Uno",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Opción Dos",
+			rowNumber = "1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Grid");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Grid",
+			fieldValue = "Test Help Text");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Option One",
+			rowNumber = "1");
+
+		FormFields.viewOptionColumnsName(
+			fieldTitle = "Grid",
+			optionName = "Option Two",
+			rowNumber = "1");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Cuadrícula");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Cuadrícula",
+			fieldValue = "Texto de Ayuda");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Cuadrícula",
+			optionName = "Opción Uno",
+			rowNumber = "1");
+
+		FormFields.viewOptionColumnsName(
+			fieldTitle = "Cuadrícula",
+			optionName = "Opción Dos",
+			rowNumber = "1");
+	}
+
+	@description = "Verify that an Image field's Label and Help Text can be translated"
+	@priority = "5"
+	test ImageFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Image");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Help Text Test");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Imagen");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormFields.viewTextLabel(fieldLabel = "Image");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Image");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormFields.viewTextLabel(fieldLabel = "Imagen");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Texto de Ayuda",
+			fieldName = "Image");
+	}
+
+	@description = "Verify that the properties of a field remain the same when adding a translation"
+	@priority = "5"
+	test MaintainPropertiesFromDefaultLanguage {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		FormViewBuilder.setPlaceholder(fieldValue = "Test Placeholder Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormViewBuilder.assertPlaceholderTextAtSidebar(placeHolder = "Test Placeholder Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		AssertElementPresent(
+			key_fieldName = "Text",
+			locator1 = "FormFields#TEXT_FIELD",
+			value1 = "Test Placeholder Text");
+	}
+
+	@description = "Verify that a Multiple Selection field's Label, Help Text and Options can be translated"
+	@priority = "5"
+	test MultipleSelectionFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection",
+			formPageNumber = "0");
+
+		FormViewBuilder.editText(
+			fieldName = "Help Text",
+			fieldValue = "Help Text Test");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option One",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option Two",
+			rowNumber = "2");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Selección Múltiple");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Opción Uno",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Opción Dos",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Multiple Selection");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Multiple Selection",
+			fieldValue = "Help Text Test");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option One",
+			fieldName = "Multiple Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option Two",
+			fieldName = "Multiple Selection");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Selección Múltiple");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Selección Múltiple",
+			fieldValue = "Texto de Ayuda");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Opción Uno",
+			fieldName = "Selección Múltiple");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Opción Dos",
+			fieldName = "Selección Múltiple");
+	}
+
+	@description = "Verify that a Numeric field's Label, Placeholder Text and Help Text can be translated"
+	@priority = "5"
+	test NumericFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		FormViewBuilder.setPlaceholder(fieldValue = "Test Placeholder Text");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Numérica");
+
+		FormViewBuilder.setPlaceholder(fieldValue = "Texto del Marcador");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numeric");
+
+		Form.viewFormPlaceholderText(fieldPlaceholderText = "Test Placeholder Text");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Numeric",
+			fieldValue = "Test Help Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numérica");
+
+		Form.viewFormPlaceholderText(fieldPlaceholderText = "Texto del Marcador");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Numérica",
+			fieldValue = "Texto de Ayuda");
+	}
+
+	@description = "Verify that a Paragraph field's Label and Body Text can be translated"
+	@priority = "5"
+	test ParagraphFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Paragraph");
+
+		FormFields.editParagraphBody(content = "Paragraph body text.");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Párrafo");
+
+		FormFields.editParagraphBody(content = "Texto de Párrafo");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormFields.viewParagraphField(
+			fieldName = "Paragraph",
+			fieldTitle = "Paragraph",
+			fieldValue = "Paragraph body text.");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "es-ES");
+
+		FormFields.viewParagraphField(
+			fieldName = "Paragraph",
+			fieldTitle = "Párrafo",
+			fieldValue = "Texto de Párrafo");
+	}
+
+	@description = "Verify that a Rich Text field's Label, Help Text and Predefined Value can be translated"
+	@priority = "5"
+	test RichTextFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.addRichTextContent(
+			content = "Test Predefined Value",
+			fieldLabel = "Predefined Value");
+
+		Form.gotoBasicTab();
+
+		FormFields.editHelpText(
+			fieldHelpText = "Test Help Text",
+			fieldName = "tip");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Texto Rico");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.addRichTextContent(
+			content = "Valor Predefinido",
+			fieldLabel = "Predefined Value");
+
+		Form.gotoBasicTab();
+
+		FormFields.editHelpText(
+			fieldHelpText = "Texto de Ayuda",
+			fieldName = "tip");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortletConfiguration.viewTranslationLanguage(language = "en-US");
+
+		FormFields.viewLabel(
+			fieldLabel = "Rich Text",
+			fieldName = "Rich Text");
+
+		FormFields.viewRichTextPredefinedValue(fieldValue = "Test Predefined Value");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Test Help Text",
+			fieldName = "Rich Text");
+
+		FormPortletConfiguration.changeLanguage(
+			currentLanguage = "en-US",
+			newLanguage = "español-España");
+
+		FormFields.viewLabel(
+			fieldLabel = "Texto Rico",
+			fieldName = "Texto Rico");
+
+		SelectFrame.selectFrameNoLoading(
+			key_fieldLabel = "Texto Rico",
+			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
+
+		AssertTextEquals(
+			key_fieldName = "Texto Rico",
+			locator1 = "CKEditor#BODY",
+			value1 = "Valor Predefinido");
+
+		SelectFrame(value1 = "relative=top");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Texto de Ayuda",
+			fieldName = "Texto Rico");
+	}
+
+	@description = "Verify that a Select From List field's Label, Help Text and Options can be translated"
+	@priority = "5"
+	test SelectFromListFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Select from List");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option One");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option Two",
+			rowNumber = "2");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Seleccionar de la Lista");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Opción Uno");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Opción Dos",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Select from List");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Select from List",
+			fieldValue = "Test Help Text");
+
+		FormFields.viewSelectOptionsList(
+			fieldName = "Select from List",
+			selectOption = "Option One");
+
+		Refresh();
+
+		FormFields.viewSelectOptionsList(
+			fieldName = "Select from List",
+			selectOption = "Option Two");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Seleccionar de la Lista");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Seleccionar de la Lista",
+			fieldValue = "Texto de Ayuda");
+
+		FormFields.viewSelectOptionsList(
+			fieldName = "Seleccionar de la Lista",
+			selectOption = "Opción Uno");
+
+		Refresh();
+
+		FormFields.viewSelectOptionsList(
+			fieldName = "Seleccionar de la Lista",
+			selectOption = "Opción Dos");
+	}
+
+	@description = "Verify that a Separator field's Label and Help Text can be translated"
+	@priority = "5"
+	test SeparatorFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Separador");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Separator");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Separator",
+			fieldValue = "Test Help Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Separador");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Separador",
+			fieldValue = "Texto de Ayuda");
+	}
+
+	@description = "Verify that a Single Selection field's Label, Help Text and Options can be translated"
+	@priority = "5"
+	test SingleSelectionFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option One");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option Two",
+			rowNumber = "2");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Selección Única");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Opción Uno");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Opción Dos",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Single Selection");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Single Selection",
+			fieldValue = "Test Help Text");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option One",
+			fieldName = "Single Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option Two",
+			fieldName = "Single Selection");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Selección Única");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Selección Única",
+			fieldValue = "Texto de Ayuda");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Opción Uno",
+			fieldName = "Selección Única");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Opción Dos",
+			fieldName = "Selección Única");
+	}
+
+	@description = "LPS-116866 - Verify the Submit Button Label can be translated to multiple languages"
+	@priority = "4"
+	test SubmitButtonLabelCanBeTranslated {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.editDescription();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var textFieldName = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
+		Form.addTranslation(localizedLanguage = "Portuguese (Brazil)");
+
+		FormsAdminNavigator.gotoSettings();
+
+		Form.configureSubmitLabel(submitLabel = "Enviar Personalizado");
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormPortlet.changeLocale(locale = "português-Brasil");
+
+		FormFields.editText(
+			fieldName = "${textFieldName}",
+			fieldValue = "Campo de Texto");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "Enviar Personalizado");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName();
+
+		Form.addTranslation(localizedLanguage = "Japanese (Japan)");
+
+		FormsAdminNavigator.gotoSettings();
+
+		Form.configureSubmitLabel(submitLabel = "参加する");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormPortlet.changeLocale(locale = "日本語-日本");
+
+		FormFields.editText(
+			fieldName = "${textFieldName}",
+			fieldValue = "テキストフィールド");
+
+		FormPortlet.submitLocalizedSuccessfully(buttonName = "参加する");
+	}
+
+	@description = "Verify that a Text field's Autocomplete Options can be translated"
+	@priority = "5"
+	test TextFieldAutocompleteOptionsCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.gotoAutocompleteTab();
+
+		FormViewBuilder.editAutoComplete(key_optionValue = "Manually");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Apple",
+			optionValue = "1");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Manzana",
+			optionValue = "1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		Refresh();
+
+		FormViewBuilder.editText(
+			fieldName = "Text",
+			fieldValue = "Man");
+
+		FormFields.viewAutoCompleteOption(autocompleteOption = "Manzana");
+
+		FormFields.selectAutoCompleteOption(autocompleteOption = "Manzana");
+
+		Button.click(button = "Enviar");
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that a Text field's Label, Placeholder Text and Help Text can be translated"
+	@priority = "5"
+	test TextFieldBasicPropertiesCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		FormViewBuilder.setPlaceholder(fieldValue = "Test Placeholder Text");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Text",
+			label = "Texto");
+
+		FormViewBuilder.setPlaceholder(fieldValue = "Texto del Marcador");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		Form.viewFormPlaceholderText(fieldPlaceholderText = "Test Placeholder Text");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Test Help Text",
+			fieldName = "Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Texto");
+
+		Form.viewFormPlaceholderText(fieldPlaceholderText = "Texto del Marcador");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Texto de Ayuda",
+			fieldName = "Texto");
+	}
+
+	@description = "Verify that a Text field's Predefined Value can be translated"
+	@priority = "5"
+	test TextFieldPredefinedValueCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		FormFields.editPredefinedValueInput(fieldValue = "Predefined value");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		FormFields.editPredefinedValueInput(fieldValue = "Valor predefinido");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validatePredefinedText(
+			fieldValue = "Valor predefinido",
+			key_fieldName = "Text");
+	}
+
+	@description = "Verify that an Upload field's Label and Help Text can be translated"
+	@priority = "5"
+	test UploadFieldCanBeTranslated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Upload");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Test Help Text");
+
+		Form.addTranslation(localizedLanguage = "Spanish (Spain)");
+
+		Form.editFieldLabelMetal(fieldValue = "Cargar");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Texto de Ayuda");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewTranslationLanguage(symbolName = "en-US");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Upload");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Upload",
+			fieldValue = "Test Help Text");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "en-US");
+
+		FormViewBuilder.changeAppLanguageTo(changeAppLanguageTo = "español-España");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Cargar");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Color ES",
+			fieldValue = "Texto de Ayuda");
+	}
+
+}

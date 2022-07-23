@@ -24,7 +24,9 @@ function Item({
 	return (
 		<ClayTable.Row>
 			<ClayTable.Cell className="table-title">
-				<ChildLink to={`/metrics/${id}`}>{title}</ChildLink>
+				<ChildLink to={`/metrics/${id}`}>
+					{title || Liferay.Language.get('untitled-workflow')}
+				</ChildLink>
 			</ClayTable.Cell>
 
 			<ClayTable.Cell className="text-right">

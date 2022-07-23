@@ -2,11 +2,13 @@
 <head>
 <title>RolesPermissions</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">RolesPermissions</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>PERMISSION_HEADER</td>
@@ -21,6 +23,58 @@
 <tr>
 	<td>SAVE_BUTTON</td>
 	<td>//button[@type='button']/span[contains(.,'Save')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ACCOUNTS-->
+<tr>
+	<td>ACCOUNTS_APPLICATION_PERMISSIONS_SELECT_ALL</td>
+	<td>//h4[contains(.,'Application Permissions')]//following::input[contains(@name,'allRowIds')][1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ACCOUNTS_RESOURCE_PERMISSIONS_ACCOUNT_ENTRY_SELECT_ALL</td>
+	<td>//h4[contains(.,'Resource Permissions')]//following::input[contains(@name,'allRowIds')][1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS-->
+<tr>
+	<td>CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS_APPLICATION_PERMISSION_ACCESS_CONTROL_PANEL_CHECKBOX</td>
+	<td>//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'ACCESS_IN_CONTROL_PANEL')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS_RESOURCE_PERMISSIONS_UPDATE_CHECKBOX</td>
+	<td>//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'UPDATE')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS_RESOURCE_PERMISSIONS_VIEW_CHECKBOX</td>
+	<td>xpath=(//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'VIEW')])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS_APPLICATION_PERMISSION_ACTION_CHECKBOX</td>
+	<td>xpath=(//input[contains(@name,'RolesAdminPortlet_allRowIds') and contains(@title,'Select All')])[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS_RESOURCE_PERMISSION_ADD_ENTRY_CHECKBOX</td>
+	<td>//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'ADD_OBJECT_ENTRY')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS_RESOURCE_PERMISSIONS_DELETE_CHECKBOX</td>
+	<td>//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'DELETE')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -67,6 +121,32 @@
 <tr>
 	<td>CONTROL_PANEL_GENERAL_PERMISSIONS_GO_TO_CONTROL_PANEL_CHECKBOX</td>
 	<td>//input[@value='90VIEW_CONTROL_PANEL']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CONTROL_PANEL_OBJECTS_PERMISSIONS-->
+<tr>
+	<td>CONTROL_PANEL_OBJECTS_PERMISSIONS_APPLICATION_PERMISSION_ACCESS_CONTROL_PANEL_CHECKBOX</td>
+	<td>//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'ACCESS_IN_CONTROL_PANEL')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_OBJECTS_PERMISSIONS_RESOURCE_PERMISSION_ADD_OBJECT_DEFINITION</td>
+	<td>//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'ADD_OBJECT_DEFINITION')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_OBJECTS_PERMISSIONS_RESOURCE_PERMISSION_VIEW_OBJECT_DEFINITION_CHECKBOX</td>
+	<td>xpath=(//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'VIEW')])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_OBJECTS_PERMISSIONS_RESOURCE_PERMISSIONS_DELETE_CHECKBOX</td>
+	<td>//input[contains(@name,'_com_liferay_roles_admin_web_portlet_RolesAdminPortlet_rowIds') and contains(@value,'DELETE')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -251,6 +331,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SITE_ADMIN_PAGES_SITE_PAGES_GENERAL_PERMISSIONS_VIEW_CHECKBOX</td>
+	<td>//input[contains(@value,'GroupPagesPortletVIEW')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -292,6 +377,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_VIEW_CHECKBOX</td>
+	<td>//input[contains(@value,'GroupVIEW')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -310,6 +400,11 @@
 <tr>
 	<td>SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_UPDATE_CHECKBOX</td>
 	<td>//input[contains(@value,'LayoutUPDATE')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_VIEW_CHECKBOX</td>
+	<td>//input[contains(@value,'LayoutVIEW')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -1187,6 +1282,11 @@
 <tr>
 	<td>SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_VIEW_CHECKBOX</td>
 	<td>//input[contains(@value,'DLFileEntryVIEW')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_VIEW_REMOVE_SITE_SCOPE</td>
+	<td>//span[contains(@id,'DLFileEntryVIE')]/span[contains(.,'${key_removeSiteScope}')]/span//button[*[name()='svg'][contains(@class,'times-small')]]</td>
 	<td></td>
 </tr>
 <tr>

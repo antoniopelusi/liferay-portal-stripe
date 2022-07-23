@@ -15,7 +15,6 @@
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -25,11 +24,12 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.tools.service.builder.test.exception.NoSuchLVEntryLocalizationException;
@@ -38,21 +38,17 @@ import com.liferay.portal.tools.service.builder.test.model.LVEntryLocalizationTa
 import com.liferay.portal.tools.service.builder.test.model.impl.LVEntryLocalizationImpl;
 import com.liferay.portal.tools.service.builder.test.model.impl.LVEntryLocalizationModelImpl;
 import com.liferay.portal.tools.service.builder.test.service.persistence.LVEntryLocalizationPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.LVEntryLocalizationUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the lv entry localization service.
@@ -1084,6 +1080,8 @@ public class LVEntryLocalizationPersistenceImpl
 			lvEntryLocalization);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the lv entry localizations in the entity cache if it is enabled.
 	 *
@@ -1091,6 +1089,14 @@ public class LVEntryLocalizationPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<LVEntryLocalization> lvEntryLocalizations) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (lvEntryLocalizations.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (LVEntryLocalization lvEntryLocalization : lvEntryLocalizations) {
 			if (entityCache.getResult(
 					LVEntryLocalizationImpl.class,
@@ -1590,15 +1596,8 @@ public class LVEntryLocalizationPersistenceImpl
 	 * Initializes the lv entry localization persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			LVEntryLocalizationPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new LVEntryLocalizationModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1649,15 +1648,31 @@ public class LVEntryLocalizationPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByHeadId",
 			new String[] {Long.class.getName()}, new String[] {"headId"},
 			false);
+
+		_setLVEntryLocalizationUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(LVEntryLocalizationImpl.class.getName());
+		_setLVEntryLocalizationUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(LVEntryLocalizationImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setLVEntryLocalizationUtilPersistence(
+		LVEntryLocalizationPersistence lvEntryLocalizationPersistence) {
+
+		try {
+			Field field = LVEntryLocalizationUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, lvEntryLocalizationPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -1691,100 +1706,6 @@ public class LVEntryLocalizationPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class LVEntryLocalizationModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			LVEntryLocalizationModelImpl lvEntryLocalizationModelImpl =
-				(LVEntryLocalizationModelImpl)baseModel;
-
-			long columnBitmask =
-				lvEntryLocalizationModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					lvEntryLocalizationModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						lvEntryLocalizationModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					lvEntryLocalizationModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return LVEntryLocalizationImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return LVEntryLocalizationTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			LVEntryLocalizationModelImpl lvEntryLocalizationModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						lvEntryLocalizationModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = lvEntryLocalizationModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
 	}
 
 }

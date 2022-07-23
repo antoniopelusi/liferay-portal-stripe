@@ -19,7 +19,7 @@ import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.form.web.internal.constants.DDMFormWebKeys;
-import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormAdminRequestHelper;
+import com.liferay.dynamic.data.mapping.form.web.internal.display.context.helper.DDMFormAdminRequestHelper;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
@@ -120,7 +120,7 @@ public class DDMFormViewFormInstanceRecordDisplayContext {
 		DDMStructureVersion latestApprovedStructureVersion =
 			latestApprovedFormInstanceVersion.getStructureVersion();
 
-		updateDDMFormFields(
+		_updateDDMFormFields(
 			ddmForm, latestApprovedStructureVersion.getDDMForm());
 
 		Map<String, DDMFormField> ddmFormFieldsMap =
@@ -217,7 +217,7 @@ public class DDMFormViewFormInstanceRecordDisplayContext {
 		return mergedFormValues;
 	}
 
-	protected boolean isDDMFormFieldRemoved(
+	private boolean _isDDMFormFieldRemoved(
 		Map<String, DDMFormField> latestFormFieldMap, String fieldName) {
 
 		if (latestFormFieldMap.containsKey(fieldName)) {
@@ -227,7 +227,7 @@ public class DDMFormViewFormInstanceRecordDisplayContext {
 		return true;
 	}
 
-	protected void setDDMFormFieldRemovedLabel(DDMFormField formField) {
+	private void _setDDMFormFieldRemovedLabel(DDMFormField formField) {
 		Locale locale = _ddmFormAdminRequestHelper.getLocale();
 
 		LocalizedValue label = formField.getLabel();
@@ -243,14 +243,14 @@ public class DDMFormViewFormInstanceRecordDisplayContext {
 				resourceBundle, "x-removed", labelString, false));
 	}
 
-	protected void updateDDMFormField(
+	private void _updateDDMFormField(
 		Map<String, DDMFormField> latestFormFieldMap, DDMFormField formField) {
 
-		boolean removed = isDDMFormFieldRemoved(
+		boolean removed = _isDDMFormFieldRemoved(
 			latestFormFieldMap, formField.getName());
 
 		if (removed) {
-			setDDMFormFieldRemovedLabel(formField);
+			_setDDMFormFieldRemovedLabel(formField);
 		}
 
 		formField.setReadOnly(true);
@@ -260,13 +260,11 @@ public class DDMFormViewFormInstanceRecordDisplayContext {
 		for (DDMFormField nestedFormField :
 				formField.getNestedDDMFormFields()) {
 
-			updateDDMFormField(latestFormFieldMap, nestedFormField);
+			_updateDDMFormField(latestFormFieldMap, nestedFormField);
 		}
 	}
 
-	protected void updateDDMFormFields(
-		DDMForm currentForm, DDMForm latestForm) {
-
+	private void _updateDDMFormFields(DDMForm currentForm, DDMForm latestForm) {
 		if (Objects.equals(currentForm, latestForm)) {
 			return;
 		}
@@ -275,7 +273,7 @@ public class DDMFormViewFormInstanceRecordDisplayContext {
 			latestForm.getDDMFormFieldsMap(true);
 
 		for (DDMFormField formField : currentForm.getDDMFormFields()) {
-			updateDDMFormField(latestDDMFormFieldMap, formField);
+			_updateDDMFormField(latestDDMFormFieldMap, formField);
 		}
 	}
 

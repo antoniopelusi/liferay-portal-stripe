@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -215,34 +217,6 @@ public class ServiceComponentModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ServiceComponent>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ServiceComponent.class.getClassLoader(), ServiceComponent.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ServiceComponent> constructor =
-				(Constructor<ServiceComponent>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<ServiceComponent, Object>>
@@ -480,6 +454,26 @@ public class ServiceComponentModelImpl
 	}
 
 	@Override
+	public ServiceComponent cloneWithOriginalValues() {
+		ServiceComponentImpl serviceComponentImpl = new ServiceComponentImpl();
+
+		serviceComponentImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		serviceComponentImpl.setServiceComponentId(
+			this.<Long>getColumnOriginalValue("serviceComponentId"));
+		serviceComponentImpl.setBuildNamespace(
+			this.<String>getColumnOriginalValue("buildNamespace"));
+		serviceComponentImpl.setBuildNumber(
+			this.<Long>getColumnOriginalValue("buildNumber"));
+		serviceComponentImpl.setBuildDate(
+			this.<Long>getColumnOriginalValue("buildDate"));
+		serviceComponentImpl.setData(
+			this.<String>getColumnOriginalValue("data_"));
+
+		return serviceComponentImpl;
+	}
+
+	@Override
 	public int compareTo(ServiceComponent serviceComponent) {
 		int value = 0;
 
@@ -601,7 +595,7 @@ public class ServiceComponentModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -612,9 +606,27 @@ public class ServiceComponentModelImpl
 			Function<ServiceComponent, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ServiceComponent)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(ServiceComponent)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -661,7 +673,9 @@ public class ServiceComponentModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ServiceComponent>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ServiceComponent.class, ModelWrapper.class);
 
 	}
 

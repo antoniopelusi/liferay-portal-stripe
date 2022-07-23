@@ -26,8 +26,9 @@ import com.liferay.item.selector.ItemSelector;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceComparator;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.portal.kernel.exception.DataLimitExceededException;
 import com.liferay.portal.kernel.exception.DuplicateRoleException;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.NoSuchRoleException;
@@ -59,7 +60,8 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -140,14 +142,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		long roleId = ParamUtil.getLong(actionRequest, "roleId");
-		String name = ParamUtil.getString(actionRequest, "name");
-		int scope = ParamUtil.getInteger(actionRequest, "scope");
-		String primKey = ParamUtil.getString(actionRequest, "primKey");
-		String actionId = ParamUtil.getString(actionRequest, "actionId");
 
 		Role role = _roleLocalService.getRole(roleId);
 
@@ -162,6 +157,14 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 			throw new RolePermissionsException(roleName);
 		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String name = ParamUtil.getString(actionRequest, "name");
+		int scope = ParamUtil.getInteger(actionRequest, "scope");
+		String primKey = ParamUtil.getString(actionRequest, "primKey");
+		String actionId = ParamUtil.getString(actionRequest, "actionId");
 
 		_resourcePermissionService.removeResourcePermission(
 			themeDisplay.getScopeGroupId(), themeDisplay.getCompanyId(), name,
@@ -241,7 +244,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 
-			redirect = _http.setParameter(
+			redirect = HttpComponentsUtil.setParameter(
 				redirect, actionResponse.getNamespace() + "roleId",
 				role.getRoleId());
 
@@ -263,7 +266,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 			boolean manageSubgroups = ParamUtil.getBoolean(
 				actionRequest, "manageSubgroups");
 
-			updateAction(
+			_updateAction(
 				_roleLocalService.getRole(roleId),
 				themeDisplay.getScopeGroupId(), Group.class.getName(),
 				ActionKeys.MANAGE_SUBGROUPS, manageSubgroups,
@@ -296,8 +299,8 @@ public class RolesAdminPortlet extends MVCPortlet {
 		if (!ArrayUtil.isEmpty(addUserIds) ||
 			!ArrayUtil.isEmpty(removeUserIds)) {
 
-			try (SafeClosable safeClosable =
-					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+			try (SafeCloseable safeCloseable =
+					ProxyModeThreadLocal.setWithSafeCloseable(true)) {
 
 				_userService.addRoleUsers(roleId, addUserIds);
 				_userService.unsetRoleUsers(roleId, removeUserIds);
@@ -325,8 +328,8 @@ public class RolesAdminPortlet extends MVCPortlet {
 			ParamUtil.getString(actionRequest, "addSegmentsEntryIds"), 0L);
 
 		if (ArrayUtil.isNotEmpty(addSegmentsEntryIds)) {
-			try (SafeClosable safeClosable =
-					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+			try (SafeCloseable safeCloseable =
+					ProxyModeThreadLocal.setWithSafeCloseable(true)) {
 
 				for (long segmentsEntryId : addSegmentsEntryIds) {
 					_segmentsEntryRoleLocalService.addSegmentsEntryRole(
@@ -341,8 +344,8 @@ public class RolesAdminPortlet extends MVCPortlet {
 			ParamUtil.getString(actionRequest, "removeSegmentsEntryIds"), 0L);
 
 		if (ArrayUtil.isNotEmpty(removeSegmentsEntryIds)) {
-			try (SafeClosable safeClosable =
-					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+			try (SafeCloseable safeCloseable =
+					ProxyModeThreadLocal.setWithSafeCloseable(true)) {
 
 				for (long segmentsEntryId : removeSegmentsEntryIds) {
 					_segmentsEntryRoleLocalService.deleteSegmentsEntryRole(
@@ -370,7 +373,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws IOException, PortletException {
 
-		setAttributes(resourceRequest);
+		_setAttributes(resourceRequest);
 
 		super.serveResource(resourceRequest, resourceResponse);
 	}
@@ -378,9 +381,6 @@ public class RolesAdminPortlet extends MVCPortlet {
 	public void updateActions(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
 
 		long roleId = ParamUtil.getLong(actionRequest, "roleId");
 
@@ -397,6 +397,9 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 			throw new RolePermissionsException(roleName);
 		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
@@ -461,30 +464,29 @@ public class RolesAdminPortlet extends MVCPortlet {
 				groupIds = ArrayUtil.distinct(
 					ArrayUtil.filter(groupIds, Validator::isNotNull));
 
-				int scope = ResourceConstants.SCOPE_COMPANY;
+				int scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
 
-				if ((role.getType() == RoleConstants.TYPE_ACCOUNT) ||
-					(role.getType() == RoleConstants.TYPE_DEPOT) ||
-					(role.getType() == RoleConstants.TYPE_ORGANIZATION) ||
-					(role.getType() == RoleConstants.TYPE_PROVIDER) ||
-					(role.getType() == RoleConstants.TYPE_SITE)) {
+				if ((role.getType() == RoleConstants.TYPE_REGULAR) ||
+					((role.getType() == RoleConstants.TYPE_ACCOUNT) &&
+					 ParamUtil.getBoolean(
+						 actionRequest, "accountRoleGroupScope"))) {
 
-					scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
-				}
-				else {
 					if (groupIds.length > 0) {
 						scope = ResourceConstants.SCOPE_GROUP;
 					}
+					else {
+						scope = ResourceConstants.SCOPE_COMPANY;
+					}
 				}
 
-				updateAction(
+				_updateAction(
 					role, themeDisplay.getScopeGroupId(), selResource, actionId,
 					selected, scope, groupIds);
 
 				if (selected &&
 					actionId.equals(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
 
-					updateViewControlPanelPermission(
+					_updateViewControlPanelPermission(
 						role, themeDisplay.getScopeGroupId(), selResource,
 						scope, groupIds);
 
@@ -497,7 +499,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 		// LPS-38031
 
 		if (rootResourceGroupIds != null) {
-			updateViewRootResourcePermission(
+			_updateViewRootResourcePermission(
 				role, themeDisplay.getScopeGroupId(), portletResource,
 				rootResourceScope, rootResourceGroupIds);
 		}
@@ -545,7 +547,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		setAttributes(renderRequest);
+		_setAttributes(renderRequest);
 
 		long roleId = ParamUtil.getLong(renderRequest, "roleId");
 
@@ -570,7 +572,10 @@ public class RolesAdminPortlet extends MVCPortlet {
 			include("/edit_role.jsp", renderRequest, renderResponse);
 		}
 		else if (SessionErrors.contains(
-					renderRequest, NoSuchRoleException.class.getName()) ||
+					renderRequest,
+					DataLimitExceededException.class.getName()) ||
+				 SessionErrors.contains(
+					 renderRequest, NoSuchRoleException.class.getName()) ||
 				 SessionErrors.contains(
 					 renderRequest, PrincipalException.getNestedClasses()) ||
 				 SessionErrors.contains(
@@ -595,7 +600,8 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 	@Override
 	protected boolean isSessionErrorException(Throwable throwable) {
-		if (throwable instanceof DuplicateRoleException ||
+		if (throwable instanceof DataLimitExceededException ||
+			throwable instanceof DuplicateRoleException ||
 			throwable instanceof NoSuchRoleException ||
 			throwable instanceof PrincipalException ||
 			throwable instanceof RequiredRoleException ||
@@ -609,7 +615,97 @@ public class RolesAdminPortlet extends MVCPortlet {
 		return false;
 	}
 
-	protected void setAttributes(PortletRequest portletRequest) {
+	@Reference(unbind = "-")
+	protected void setGroupService(GroupService groupService) {
+		_groupService = groupService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setPanelAppRegistry(PanelAppRegistry panelAppRegistry) {
+		_panelAppRegistry = panelAppRegistry;
+	}
+
+	@Reference(unbind = "-")
+	protected void setPanelCategoryRegistry(
+		PanelCategoryRegistry panelCategoryRegistry) {
+
+		_panelCategoryRegistry = panelCategoryRegistry;
+	}
+
+	@Reference(unbind = "-")
+	protected void setResourcePermissionService(
+		ResourcePermissionService resourcePermissionService) {
+
+		_resourcePermissionService = resourcePermissionService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setRoleLocalService(RoleLocalService roleLocalService) {
+		_roleLocalService = roleLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setRoleService(RoleService roleService) {
+		_roleService = roleService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setUserService(UserService userService) {
+		_userService = userService;
+	}
+
+	private String[] _getExcludedPanelAppKeys(Role role) {
+		Set<String> panelAppKeys = new HashSet<>();
+
+		for (PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper :
+				_panelCategoryRoleTypeMapperServiceTrackerList) {
+
+			if (ArrayUtil.contains(
+					panelCategoryRoleTypeMapper.getRoleTypes(),
+					role.getType())) {
+
+				Collections.addAll(
+					panelAppKeys,
+					panelCategoryRoleTypeMapper.getExcludedPanelAppKeys(role));
+			}
+		}
+
+		return panelAppKeys.toArray(new String[0]);
+	}
+
+	private String[] _getPanelCategoryKeys(int type) {
+		Set<String> panelCategoryKeys = new HashSet<>();
+
+		for (PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper :
+				_panelCategoryRoleTypeMapperServiceTrackerList) {
+
+			if (ArrayUtil.contains(
+					panelCategoryRoleTypeMapper.getRoleTypes(), type)) {
+
+				panelCategoryKeys.add(
+					panelCategoryRoleTypeMapper.getPanelCategoryKey());
+			}
+		}
+
+		return panelCategoryKeys.toArray(new String[0]);
+	}
+
+	private boolean _isDepotGroup(long groupId) {
+		try {
+			Group group = _groupService.getGroup(groupId);
+
+			if (group.isDepot()) {
+				return true;
+			}
+
+			return false;
+		}
+		catch (PortalException portalException) {
+			return ReflectionUtil.throwException(portalException);
+		}
+	}
+
+	private void _setAttributes(PortletRequest portletRequest) {
 		portletRequest.setAttribute(
 			ApplicationListWebKeys.PANEL_APP_REGISTRY, _panelAppRegistry);
 
@@ -653,51 +749,15 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 		if (mvcPath.equals("/edit_role_permissions.jsp")) {
 			portletRequest.setAttribute(
+				RolesAdminWebKeys.EXCLUDED_PANEL_APP_KEYS,
+				_getExcludedPanelAppKeys(role));
+			portletRequest.setAttribute(
 				RolesAdminWebKeys.PANEL_CATEGORY_KEYS,
 				_getPanelCategoryKeys(type));
 		}
 	}
 
-	@Reference(unbind = "-")
-	protected void setGroupService(GroupService groupService) {
-		_groupService = groupService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setPanelAppRegistry(PanelAppRegistry panelAppRegistry) {
-		_panelAppRegistry = panelAppRegistry;
-	}
-
-	@Reference(unbind = "-")
-	protected void setPanelCategoryRegistry(
-		PanelCategoryRegistry panelCategoryRegistry) {
-
-		_panelCategoryRegistry = panelCategoryRegistry;
-	}
-
-	@Reference(unbind = "-")
-	protected void setResourcePermissionService(
-		ResourcePermissionService resourcePermissionService) {
-
-		_resourcePermissionService = resourcePermissionService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setRoleLocalService(RoleLocalService roleLocalService) {
-		_roleLocalService = roleLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setRoleService(RoleService roleService) {
-		_roleService = roleService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setUserService(UserService userService) {
-		_userService = userService;
-	}
-
-	protected void updateAction(
+	private void _updateAction(
 			Role role, long groupId, String selResource, String actionId,
 			boolean selected, int scope, String[] groupIds)
 		throws Exception {
@@ -731,6 +791,22 @@ public class RolesAdminPortlet extends MVCPortlet {
 				}
 			}
 		}
+		else if (role.getType() == RoleConstants.TYPE_ACCOUNT) {
+			if (scope == ResourceConstants.SCOPE_GROUP_TEMPLATE) {
+				_resourcePermissionService.removeResourcePermissions(
+					groupId, companyId, selResource,
+					ResourceConstants.SCOPE_GROUP_TEMPLATE, roleId, actionId);
+			}
+			else {
+				_resourcePermissionService.removeResourcePermissions(
+					groupId, companyId, selResource,
+					ResourceConstants.SCOPE_COMPANY, roleId, actionId);
+
+				_resourcePermissionService.removeResourcePermissions(
+					groupId, companyId, selResource,
+					ResourceConstants.SCOPE_GROUP, roleId, actionId);
+			}
+		}
 		else {
 
 			// Remove company, group template, and group permissions
@@ -749,7 +825,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 		}
 	}
 
-	protected void updateViewControlPanelPermission(
+	private void _updateViewControlPanelPermission(
 			Role role, long scopeGroupId, String portletId, int scope,
 			String[] groupIds)
 		throws Exception {
@@ -772,25 +848,25 @@ public class RolesAdminPortlet extends MVCPortlet {
 		else if (panelCategoryHelper.containsPortlet(
 					portletId, PanelCategoryKeys.SITE_ADMINISTRATION)) {
 
-			updateAction(
+			_updateAction(
 				role, scopeGroupId, DepotEntry.class.getName(),
 				ActionKeys.VIEW_SITE_ADMINISTRATION, true, scope,
 				ArrayUtil.filter(
 					groupIds,
-					groupId -> _isDepotGroup(role.getCompanyId(), groupId)));
+					groupId -> _isDepotGroup(GetterUtil.getLong(groupId))));
 
 			selResource = Group.class.getName();
 			actionId = ActionKeys.VIEW_SITE_ADMINISTRATION;
 		}
 
 		if (selResource != null) {
-			updateAction(
+			_updateAction(
 				role, scopeGroupId, selResource, actionId, true, scope,
 				groupIds);
 		}
 	}
 
-	protected void updateViewRootResourcePermission(
+	private void _updateViewRootResourcePermission(
 			Role role, long scopeGroupId, String portletId, int scope,
 			String[] groupIds)
 		throws Exception {
@@ -803,42 +879,10 @@ public class RolesAdminPortlet extends MVCPortlet {
 				modelResource);
 
 			if (actions.contains(ActionKeys.VIEW)) {
-				updateAction(
+				_updateAction(
 					role, scopeGroupId, modelResource, ActionKeys.VIEW, true,
 					scope, groupIds);
 			}
-		}
-	}
-
-	private String[] _getPanelCategoryKeys(int type) {
-		Set<String> panelCategoryKeys = new HashSet<>();
-
-		for (PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper :
-				_panelCategoryRoleTypeMapperServiceTrackerList) {
-
-			if (ArrayUtil.contains(
-					panelCategoryRoleTypeMapper.getRoleTypes(), type)) {
-
-				panelCategoryKeys.add(
-					panelCategoryRoleTypeMapper.getPanelCategoryKey());
-			}
-		}
-
-		return panelCategoryKeys.toArray(new String[0]);
-	}
-
-	private boolean _isDepotGroup(long companyId, String groupKey) {
-		try {
-			Group group = _groupService.getGroup(companyId, groupKey);
-
-			if (group.isDepot()) {
-				return true;
-			}
-
-			return false;
-		}
-		catch (PortalException portalException) {
-			return ReflectionUtil.throwException(portalException);
 		}
 	}
 
@@ -848,17 +892,13 @@ public class RolesAdminPortlet extends MVCPortlet {
 	private GroupService _groupService;
 
 	@Reference
-	private Http _http;
-
-	@Reference
 	private ItemSelector _itemSelector;
 
 	private PanelAppRegistry _panelAppRegistry;
 	private PanelCategoryRegistry _panelCategoryRegistry;
-	private ServiceTrackerList
-		<PanelCategoryRoleTypeMapper, PanelCategoryRoleTypeMapper>
-			_panelCategoryRoleTypeMapperServiceTrackerList;
-	private ServiceTrackerList<PersonalMenuEntry, PersonalMenuEntry>
+	private ServiceTrackerList<PanelCategoryRoleTypeMapper>
+		_panelCategoryRoleTypeMapperServiceTrackerList;
+	private ServiceTrackerList<PersonalMenuEntry>
 		_personalMenuEntryServiceTrackerList;
 
 	@Reference

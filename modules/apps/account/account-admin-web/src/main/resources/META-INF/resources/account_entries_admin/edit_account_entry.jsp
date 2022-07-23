@@ -21,7 +21,7 @@ AccountEntryDisplay accountEntryDisplay = (AccountEntryDisplay)request.getAttrib
 %>
 
 <liferay-frontend:screen-navigation
-	context="<%= accountEntryDisplay %>"
+	context="<%= accountEntryDisplay.getAccountEntry() %>"
 	key="<%= AccountScreenNavigationEntryConstants.SCREEN_NAVIGATION_KEY_ACCOUNT_ENTRY %>"
 	portletURL='<%=
 		PortletURLBuilder.createRenderURL(
@@ -30,6 +30,6 @@ AccountEntryDisplay accountEntryDisplay = (AccountEntryDisplay)request.getAttrib
 			"/account_admin/edit_account_entry"
 		).setParameter(
 			"accountEntryId", accountEntryDisplay.getAccountEntryId()
-		).build()
+		).buildPortletURL()
 	%>'
 />

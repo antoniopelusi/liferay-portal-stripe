@@ -23,13 +23,14 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.SearchResultPermissionFilter;
 import com.liferay.portal.kernel.search.SearchResultPermissionFilterFactory;
+import com.liferay.portal.kernel.search.SearchResultPermissionFilterSearcher;
 import com.liferay.portal.kernel.search.hits.HitsProcessorRegistry;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.search.indexer.IndexerPermissionPostFilter;
 import com.liferay.portal.search.indexer.IndexerQueryBuilder;
 import com.liferay.portal.search.indexer.IndexerSearcher;
-import com.liferay.portal.search.internal.searcher.IndexSearcherHelper;
+import com.liferay.portal.search.internal.searcher.helper.IndexSearcherHelper;
 import com.liferay.portal.search.spi.model.query.contributor.QueryConfigContributor;
 import com.liferay.portal.search.spi.model.query.contributor.helper.QueryConfigContributorHelper;
 import com.liferay.portal.search.spi.model.registrar.ModelSearchSettings;
@@ -97,12 +98,7 @@ public class IndexerSearcherImpl<T extends BaseModel<?>>
 
 		Hits hits = _search(searchContext);
 
-		try {
-			_hitsProcessorRegistry.process(searchContext, hits);
-		}
-		catch (SearchException searchException) {
-			throw new RuntimeException(searchException);
-		}
+		_processHits(searchContext, hits);
 
 		return hits;
 	}
@@ -138,7 +134,7 @@ public class IndexerSearcherImpl<T extends BaseModel<?>>
 		return _indexSearcherHelper.searchCount(searchContext, fullQuery);
 	}
 
-	protected Hits doSearch(SearchContext searchContext) {
+	private Hits _doSearch(SearchContext searchContext) {
 		searchContext.setSearchEngineId(
 			_modelSearchSettings.getSearchEngineId());
 
@@ -149,27 +145,58 @@ public class IndexerSearcherImpl<T extends BaseModel<?>>
 		return _indexSearcherHelper.search(searchContext, fullQuery);
 	}
 
-	private Hits _search(SearchContext searchContext) {
+	private SearchResultPermissionFilter _getSearchResultPermissionFilter(
+		SearchContext searchContext,
+		SearchResultPermissionFilterSearcher
+			searchResultPermissionFilterSearcher) {
+
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
-		if ((permissionChecker == null) ||
-			!_indexerPermissionPostFilter.isPermissionAware() ||
-			_modelSearchSettings.isSearchResultPermissionFilterSuppressed()) {
-
-			return doSearch(searchContext);
+		if (permissionChecker == null) {
+			return null;
 		}
 
 		if (searchContext.getUserId() == 0) {
 			searchContext.setUserId(permissionChecker.getUserId());
 		}
 
-		SearchResultPermissionFilter searchResultPermissionFilter =
-			_searchResultPermissionFilterFactory.create(
-				this::doSearch, permissionChecker);
+		return _searchResultPermissionFilterFactory.create(
+			searchResultPermissionFilterSearcher, permissionChecker);
+	}
 
+	private boolean _isUseSearchResultPermissionFilter() {
+		if (_indexerPermissionPostFilter.isPermissionAware() &&
+			!_modelSearchSettings.isSearchResultPermissionFilterSuppressed()) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private void _processHits(SearchContext searchContext, Hits hits) {
 		try {
-			return searchResultPermissionFilter.search(searchContext);
+			_hitsProcessorRegistry.process(searchContext, hits);
+		}
+		catch (SearchException searchException) {
+			throw new RuntimeException(searchException);
+		}
+	}
+
+	private Hits _search(SearchContext searchContext) {
+		try {
+			if (_isUseSearchResultPermissionFilter()) {
+				SearchResultPermissionFilter searchResultPermissionFilter =
+					_getSearchResultPermissionFilter(
+						searchContext, this::_doSearch);
+
+				if (searchResultPermissionFilter != null) {
+					return searchResultPermissionFilter.search(searchContext);
+				}
+			}
+
+			return _doSearch(searchContext);
 		}
 		catch (SearchException searchException) {
 			throw new RuntimeException(searchException);

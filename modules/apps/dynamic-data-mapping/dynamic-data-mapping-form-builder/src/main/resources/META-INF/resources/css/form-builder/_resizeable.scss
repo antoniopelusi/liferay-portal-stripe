@@ -32,9 +32,7 @@ $c: '.ddm-form-builder';
 				opacity: 0.5;
 			}
 		}
-	}
 
-	.ddm-field-container {
 		&.dragging,
 		&.expanded,
 		&.hovered,
@@ -46,9 +44,7 @@ $c: '.ddm-form-builder';
 				opacity: 1;
 			}
 		}
-	}
 
-	.ddm-field-container {
 		&.ddm-fieldset {
 			&.hovered,
 			&.selected {

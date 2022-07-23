@@ -1,0 +1,582 @@
+@component-name = "portal-security"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "OpenID Connect";
+	property user.time.zone = "UTC";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	@description = "This is a use case for LPS-124898 TC-6: Verify Refresh Token Offset is not existing in the Instance Settings."
+	@priority = "4"
+	test AssertTokenRefreshOffsetCannotBeSetAtInstanceLevel {
+		property test.name.skip.portal.instance = "OpenIDConnect#AssertTokenRefreshOffsetCannotBeSetAtInstanceLevel";
+
+		PortalSettings.openInstanceSettingsAdmin();
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect",
+			configurationScope = "Virtual Instance Scope");
+
+		AssertElementNotPresent(locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET");
+	}
+
+	@description = "This is a use case for LPS-124900 TC-4: Users should be logged out when they don't have a valid access token because a misconfigured refresh token lifetime at Portal."
+	@priority = "4"
+	test AssertUserIsLoggedOutWithHigherRefreshToken {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property test.name.skip.portal.instance = "OpenIDConnect#AssertUserIsLoggedOutWithHigherRefreshToken";
+
+		task ("Startup Keycloak for test") {
+			AntCommand(
+				locator1 = "build-test-keycloak.xml",
+				value1 = "prepare-selenium-keycloak-server");
+		}
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~default.config");
+		}
+
+		User.logoutPG();
+
+		task ("Verify that the User is logged out due his token lifespan is over at OIDC provider") {
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "user1",
+				userPassword = "test");
+
+			Pause(locator1 = "70000");
+
+			MyAccount.openMyAccountAdmin();
+
+			User.viewLoggedOutPG();
+		}
+	}
+
+	@description = "This is a use case for LPS-105151. Users could configure multiple OpenID Connect providers."
+	@priority = "4"
+	test ConfigureMultipleOpenIDConnectProviders {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;";
+		property test.name.skip.portal.instance = "OpenIDConnect#ConfigureMultipleOpenIDConnectProviders";
+
+		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.2");
+		var openIdConnectClientId1 = PropsUtil.get("google.client.id.3");
+		var openIdConnectClientSecret1 = PropsUtil.get("google.client.secret.3");
+		var userEmailAddress = PropsUtil.get("email.address.2");
+		var userPassword = PropsUtil.get("email.password.2");
+
+		task ("Add CP www.able.com") {
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Add CP www.baker.com") {
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.baker.com",
+				portalInstanceId = "www.baker.com",
+				virtualHost = "www.baker.com");
+		}
+
+		task ("Add SSO OpenID Connect provider") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect Provider Connection",
+				configurationScope = "Virtual Instance Scope");
+
+			OpenIDConnect.addProvider(
+				openIdConnectClientId = "${openIdConnectClientId}",
+				openIdConnectClientSecret = "${openIdConnectClientSecret}",
+				providerName = "Google");
+		}
+
+		task ("Login at www.able.com and add SSO OpenID Connect provider") {
+			User.firstLoginPG(
+				password = "test",
+				userEmailAddress = "test@www.able.com",
+				virtualHostsURL = "http://www.able.com:8080");
+
+			PortalSettings.openInstanceSettingsAdmin(baseURL = "http://www.able.com:8080");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect Provider Connection",
+				configurationScope = "Virtual Instance Scope");
+
+			OpenIDConnect.addProvider(
+				openIdConnectClientId = "${openIdConnectClientId1}",
+				openIdConnectClientSecret = "${openIdConnectClientSecret1}",
+				providerName = "Test Google");
+		}
+
+		task ("Sign out and go to able.com") {
+			UserBar.signOut();
+
+			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
+		}
+
+		task ("View provider and assert OpenID Connect login option") {
+			OpenIDConnect.viewProvider();
+
+			AssertElementPresent(
+				key_providerNname = "Test Google",
+				locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_OPTION");
+		}
+
+		task ("Login and logout at baker.com and view provider") {
+			User.firstLoginPG(
+				password = "test",
+				userEmailAddress = "test@www.baker.com",
+				virtualHostsURL = "http://www.baker.com:8080");
+
+			UserBar.signOut();
+
+			Navigator.openSpecificURL(
+				domain = "www.baker.com",
+				url = "http://www.baker.com:8080/");
+
+			OpenIDConnect.viewProvider();
+		}
+	}
+
+	@description = "This is a use case for LPS-105151. Enabled system level OpenID Connect Provider is also enabled in instance."
+	@priority = "4"
+	test EnabledOpenIDConnectOnSystemLevel {
+		property dummy.socket.proxy.disabled = "true";
+		property portal.ssl.enabled = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#EnabledOpenIDConnectOnSystemLevel";
+
+		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.2");
+		var userEmailAddress = PropsUtil.get("email.address.2");
+		var userPassword = PropsUtil.get("email.password.2");
+
+		task ("Add CP") {
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Goto new CP url and sign in") {
+			Navigator.openSpecificURL(
+				domain = "www.able.com",
+				url = "https://www.able.com:8443/");
+
+			OpenIDConnect.viewNoProvider();
+		}
+
+		task ("Enable openID connect CP") {
+			Navigator.openURL(baseURL = "https://localhost:8443");
+
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect",
+				configurationScope = "System Scope");
+
+			PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
+		}
+
+		task ("Add OpenID connect provider") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect Provider Connection",
+				configurationScope = "Virtual Instance Scope");
+
+			OpenIDConnect.addProvider(
+				openIdConnectClientId = "${openIdConnectClientId}",
+				openIdConnectClientSecret = "${openIdConnectClientSecret}",
+				providerName = "Google");
+		}
+
+		task ("Go to able.com and assert openId connect") {
+			Navigator.openSpecificURL(
+				domain = "www.able.com",
+				url = "https://www.able.com:8443/");
+
+			OpenIDConnect.viewProvider();
+		}
+	}
+
+	@description = "This is a use case for LPS-105151. Users could login with instance-level configured OpenID Connect provider."
+	@priority = "4"
+	test OpenIDConnectOnInstanceLevelSmoke {
+		property portal.acceptance = "true";
+		property portal.ssl.enabled = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectOnInstanceLevelSmoke";
+
+		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
+		var userEmailAddress = PropsUtil.get("email.address.2");
+		var userPassword = PropsUtil.get("email.password.2");
+
+		task ("Add CP") {
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Login at able.com and enable OpenId connect CP") {
+			User.firstLoginUI(
+				domain = "www.able.com",
+				password = "test",
+				specificURL = "https://www.able.com:8443",
+				userEmailAddress = "test@www.able.com");
+
+			PortalSettings.gotoConfiguration(
+				baseURL = "https://www.able.com:8443",
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect",
+				configurationScope = "Virtual Instance Scope");
+
+			PortalSettings.enableOpenIDConnectCP();
+		}
+
+		task ("Add SSO openID connect provider") {
+			PortalSettings.openInstanceSettingsAdmin(baseURL = "https://www.able.com:8443");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect Provider Connection",
+				configurationScope = "Virtual Instance Scope");
+
+			OpenIDConnect.addProvider(
+				openIdConnectClientId = "${openIdConnectClientId}",
+				openIdConnectClientSecret = "${openIdConnectClientSecret}",
+				providerName = "Google");
+		}
+
+		task ("Sign out and Login at able.com with OpenID Connect enabled") {
+			UserBar.signOut();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				specificURL = "https://www.able.com:8443",
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Sign out and Login") {
+			UserBar.signOut();
+
+			User.firstLoginUI(
+				password = "test",
+				specificURL = "https://www.able.com:8443",
+				userEmailAddress = "test@www.able.com");
+		}
+	}
+
+	@description = "This is a use case for LRQA-40911. Users could login and logout using OpenID Connect provider."
+	@priority = "4"
+	test OpenIDConnectSmoke {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmoke";
+
+		var openIdConnectClientId = PropsUtil.get("google.client.id.3");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.3");
+		var userEmailAddress = PropsUtil.get("email.address.2");
+		var userPassword = PropsUtil.get("email.password.2");
+
+		task ("Add SSO OpenID Connect provider") {
+			PortalSettings.gotoConfiguration(
+				baseURL = "http://localhost:8080",
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect",
+				configurationScope = "Virtual Instance Scope");
+
+			PortalSettings.enableOpenIDConnectCP();
+
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect Provider Connection",
+				configurationScope = "Virtual Instance Scope");
+
+			OpenIDConnect.addProvider(
+				openIdConnectClientId = "${openIdConnectClientId}",
+				openIdConnectClientSecret = "${openIdConnectClientSecret}",
+				providerName = "Google");
+		}
+
+		task ("Logout and login with OpenID Connect") {
+			User.logoutPG();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Logout and login") {
+			User.logoutAndLoginPG();
+		}
+	}
+
+	@description = "This is a use case for LRQA-72792. Users could login and logout using Auth0 as OpenID Connect provider."
+	@priority = "5"
+	test OpenIDConnectSmokeWithAuth0 {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithAuth0";
+
+		var userEmailAddress = PropsUtil.get("openid.provider.auth0.test.account.email.address");
+		var userPassword = PropsUtil.get("openid.provider.auth0.test.account.password");
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Auth0.config");
+		}
+
+		task ("Logout and login with OpenID Connect") {
+			User.logoutPG();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Logout and login") {
+			User.logoutAndLoginPG();
+		}
+	}
+
+	@description = "This is a use case for LRQA-72792. Users could login and logout using Azure as OpenID Connect provider. Blocked by LRQA-73513."
+	@priority = "5"
+	test OpenIDConnectSmokeWithAzure {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithAzure";
+
+		var userEmailAddress = PropsUtil.get("openid.provider.azure.test.account.email.address");
+		var userPassword = PropsUtil.get("openid.provider.azure.test.account.password");
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Azure.config");
+		}
+
+		task ("Logout and login with OpenID Connect") {
+			User.logoutPG();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Logout and login") {
+			User.logoutAndLoginPG();
+		}
+	}
+
+	@description = "This is a use case for LRQA-72792. Users could login and logout using Okta as OpenID Connect provider."
+	@priority = "5"
+	test OpenIDConnectSmokeWithOkta {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithOkta";
+
+		var userEmailAddress = PropsUtil.get("openid.provider.okta.test.account.email.address");
+		var userPassword = PropsUtil.get("openid.provider.okta.test.account.password");
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Okta.config");
+		}
+
+		task ("Logout and login with OpenID Connect") {
+			User.logoutPG();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Logout and login") {
+			User.logoutAndLoginPG();
+		}
+	}
+
+	@description = "This is a use case for LRQA-72792. Users could login and logout using PingOne as OpenID Connect provider."
+	@priority = "5"
+	test OpenIDConnectSmokeWithPingOne {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithPingOne";
+
+		var userName = PropsUtil.get("openid.provider.pingone.test.account.username");
+		var userPassword = PropsUtil.get("openid.provider.pingone.test.account.password");
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~PingOne.config");
+		}
+
+		task ("Logout and login with OpenID Connect") {
+			User.logoutPG();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userName}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Logout and login") {
+			User.logoutAndLoginPG();
+		}
+	}
+
+	@description = "This is a use case for LPS-148619. User could log in and log out using Google as OpenID Connect provider, using custom parameters for the connection."
+	test OpenIDConnectWithGoogleCustomParameters {
+		property dummy.socket.proxy.disabled = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#EnabledOpenIDConnectOnSystemLevel";
+
+		var customTokenRequestParameters = "resource=https://contacts.google.com";
+		var customAuthorizationRequestParameters = "access_type=offline";
+		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.2");
+		var userEmailAddress = PropsUtil.get("email.address.2");
+		var userPassword = PropsUtil.get("email.password.2");
+
+		task ("Given the correct log levels are set to DEBUG") {
+			OpenIDConnect.enableOpenIDConnectDebugLogs();
+
+			OpenIDConnect.enableOpenIDConnectCustomParametersDebugLogs();
+		}
+
+		task ("When OpenID Connect provider is set to Google and the connection is established with custom parameters") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect",
+				configurationScope = "System Scope");
+
+			PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
+
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "SSO",
+				configurationName = "OpenID Connect Provider Connection",
+				configurationScope = "Virtual Instance Scope");
+
+			OpenIDConnect.addProvider(
+				customAuthorizationRequestParameters = "${customAuthorizationRequestParameters}",
+				customTokenRequestParameters = "${customTokenRequestParameters}",
+				openIdConnectClientId = "${openIdConnectClientId}",
+				openIdConnectClientSecret = "${openIdConnectClientSecret}",
+				providerName = "Google");
+		}
+
+		task ("Then the user can log in and log out through the provider and the correct parameters are shown in the console") {
+			UserBar.signOut();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+
+			AssertConsoleTextPresent(value1 = "${customAuthorizationRequestParameters}");
+
+			AssertConsoleTextPresent(value1 = "resource");
+		}
+
+		task (" And the user is still logged in after the first access token's lifetime is over and they receive a new access token in the background") {
+			Pause(locator1 = "65000");
+
+			Refresh();
+
+			User.viewLoggedInPG();
+		}
+	}
+
+	@description = "This is a use case for LPS-124898 TC-1: Verify Instance admin can set the token refresh offset via System settings."
+	@priority = "4"
+	test TokenRefreshOffsetCanBeSetAtSystemLevel {
+		property test.name.skip.portal.instance = "OpenIDConnect#TokenRefreshOffsetCanBeSetAtSystemLevel";
+
+		task ("Enable and set the OpenID connect token refresh offset time") {
+			OpenIDConnect.enableOpenIdConnect();
+
+			OpenIDConnect.setTokenRefreshOffset(expirationTime = "60");
+		}
+	}
+
+	@description = "This is a use case for LPS-124898 TC-5: Verify Token Refresh Offset cannot be saved with a value under 30 second. Blocked by LPS-138193."
+	@priority = "4"
+	test VerifyTokenRefreshOffsetMinimum {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~default.config";
+		property portal.upstream = "quarantine";
+		property test.name.skip.portal.instance = "OpenIDConnect#VerifyTokenRefreshOffsetMinimum";
+
+		OpenIDConnect.enableOpenIdConnect();
+
+		OpenIDConnect.setTokenRefreshOffset(expirationTime = "20");
+
+		WaitForConsoleTextPresent(value1 = "Token refresh offset needs to be at least 30 seconds");
+
+		AssertTextEquals(
+			locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET",
+			value1 = "30");
+	}
+
+	@description = "This is a use case for LPS-124900 TC-2: User is still logged in after the first access token's lifetime is over and they receive a new access token in the background."
+	@priority = "5"
+	test VerifyUserIsStillLoggedInAfterAccessTokenExpiresAndRenew {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#VerifyUserIsStillLoggedInAfterAccessTokenExpiresAndRenew";
+
+		task ("Startup Keycloak for test") {
+			AntCommand(
+				locator1 = "build-test-keycloak.xml",
+				value1 = "prepare-selenium-keycloak-server");
+		}
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~default.config");
+		}
+
+		User.logoutPG();
+
+		task ("Verify that the User stay logged in after a new access token is generated") {
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "user1",
+				userPassword = "test");
+
+			Pause(locator1 = "65000");
+
+			Refresh();
+
+			User.viewLoggedInPG();
+		}
+	}
+
+}

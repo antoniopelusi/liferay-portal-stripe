@@ -15,7 +15,7 @@
 package com.liferay.commerce.address.web.internal.frontend.taglib.servlet.taglib;
 
 import com.liferay.commerce.address.web.internal.display.context.CommerceRegionsDisplayContext;
-import com.liferay.commerce.address.web.internal.portlet.action.ActionHelper;
+import com.liferay.commerce.address.web.internal.portlet.action.helper.ActionHelper;
 import com.liferay.commerce.address.web.internal.servlet.taglib.ui.constants.CommerceCountryScreenNavigationConstants;
 import com.liferay.commerce.constants.CommerceConstants;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
@@ -127,7 +127,7 @@ public class CommerceCountryRegionsScreenNavigationCategory
 	private JSPRenderer _jspRenderer;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_ADDRESS + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_ADDRESS + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

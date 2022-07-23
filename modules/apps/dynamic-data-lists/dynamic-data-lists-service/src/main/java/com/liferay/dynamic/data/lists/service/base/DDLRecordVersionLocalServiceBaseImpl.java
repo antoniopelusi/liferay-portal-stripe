@@ -17,8 +17,6 @@ package com.liferay.dynamic.data.lists.service.base;
 import com.liferay.dynamic.data.lists.model.DDLRecordVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService;
 import com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalServiceUtil;
-import com.liferay.dynamic.data.lists.service.persistence.DDLRecordFinder;
-import com.liferay.dynamic.data.lists.service.persistence.DDLRecordPersistence;
 import com.liferay.dynamic.data.lists.service.persistence.DDLRecordVersionPersistence;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
@@ -153,6 +151,13 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return ddlRecordVersionPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -488,11 +493,5 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected DDLRecordPersistence ddlRecordPersistence;
-
-	@Reference
-	protected DDLRecordFinder ddlRecordFinder;
 
 }

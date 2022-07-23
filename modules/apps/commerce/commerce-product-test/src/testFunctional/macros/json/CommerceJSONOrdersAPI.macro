@@ -1,0 +1,145 @@
+definition {
+
+	macro _addOrderType {
+		Variables.assertDefined(parameterList = "${orderTypeName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (!(isSet(active))) {
+			var active = "false";
+		}
+
+		if (!(isSet(expirationDate))) {
+			var displayDateYear = DateUtil.getCurrentYear();
+			var displayDateYear = ${displayDateYear} + 1;
+			var expirationDate = "${displayDateYear}-01-01T01:01:00Z";
+		}
+
+		if (!(isSet(displayOrder))) {
+			var displayOrder = "0";
+		}
+
+		if (!(isSet(neverExpire))) {
+			var neverExpire = "true";
+		}
+
+		if (!(isSet(orderTypeDescription))) {
+			var orderTypeDescription = "Test Order Type Description";
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-order/v1.0/order-types \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+ 			-H 'Content-Type: application/json' \
+  			-d '{
+  					"active": ${active},
+					"customFields": {},
+					"description": {
+						"en_US": "${orderTypeDescription}"
+					},
+					"displayOrder": ${displayOrder},
+					"expirationDate": "${expirationDate}",
+					"externalReferenceCode": "",
+					"name": {
+						"en_US": "${orderTypeName}"
+					},
+					"neverExpire": ${neverExpire},
+					"workflowStatusInfo": {
+					"code": 0,
+					"label": "approved",
+					"label_i18n": "Approved"
+					}
+				}'
+			''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	macro _deleteAllCommerceOrders {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var ordersCount = CommerceJSONOrdersAPI._getCommerceOrdersCount();
+
+		if ("${ordersCount}" != "0") {
+			var orderIds = CommerceJSONOrdersAPI._getCommerceOrderIds(orderCount = "${ordersCount}");
+
+			for (var orderId : list "${orderIds}") {
+				echo("Deleting Commerce order with id: ${orderId}");
+
+				var curl = '''
+					${baseURL}/o/headless-commerce-admin-order/v1.0/orders/${orderId} \
+					-u test@liferay.com:test \
+					-H 'accept: application/json' \
+				''';
+
+				JSONCurlUtil.delete("${curl}");
+			}
+		}
+		else {
+			echo("No Commerce Orders to be deleted");
+		}
+	}
+
+	macro _deleteAllCommerceOrdersAndCheck {
+		CommerceJSONOrdersAPI._deleteAllCommerceOrders();
+
+		var orderCount = CommerceJSONOrdersAPI._getCommerceOrdersCount();
+
+		TestUtils.assertEquals(
+			actual = "${orderCount}",
+			expected = "0");
+	}
+
+	macro _getCommerceOrderIds {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (isSet(orderCount)) {
+			var ordersCount = "${orderCount}";
+		}
+		else {
+			var ordersCount = "100";
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-order/v1.0/orders?pageSize=${ordersCount} \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+		var orderIds = JSONCurlUtil.get("${curl}", "$..['id']");
+
+		return "${orderIds}";
+	}
+
+	macro _getCommerceOrdersCount {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-order/v1.0/orders \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+		var ordersCount = JSONCurlUtil.get("${curl}", "$['totalCount']");
+
+		echo("The Commerce orders count is: ${ordersCount}");
+
+		return "${ordersCount}";
+	}
+
+}

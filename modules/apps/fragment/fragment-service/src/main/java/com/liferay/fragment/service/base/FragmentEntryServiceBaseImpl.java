@@ -17,10 +17,7 @@ package com.liferay.fragment.service.base;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentEntryService;
 import com.liferay.fragment.service.FragmentEntryServiceUtil;
-import com.liferay.fragment.service.persistence.FragmentCollectionPersistence;
 import com.liferay.fragment.service.persistence.FragmentEntryFinder;
-import com.liferay.fragment.service.persistence.FragmentEntryLinkFinder;
-import com.liferay.fragment.service.persistence.FragmentEntryLinkPersistence;
 import com.liferay.fragment.service.persistence.FragmentEntryPersistence;
 import com.liferay.fragment.service.persistence.FragmentEntryVersionPersistence;
 import com.liferay.portal.aop.AopService;
@@ -154,26 +151,6 @@ public abstract class FragmentEntryServiceBaseImpl
 		counterLocalService;
 
 	@Reference
-	protected FragmentCollectionPersistence fragmentCollectionPersistence;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
 	protected FragmentEntryVersionPersistence fragmentEntryVersionPersistence;
-
-	@Reference
-	protected FragmentEntryLinkPersistence fragmentEntryLinkPersistence;
-
-	@Reference
-	protected FragmentEntryLinkFinder fragmentEntryLinkFinder;
 
 }

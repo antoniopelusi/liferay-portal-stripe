@@ -36,7 +36,7 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = MVCRenderCommand.class
 )
-public class EditMessageMVCRenderCommand extends GetMessageMVCRenderCommand {
+public class EditMessageMVCRenderCommand extends BaseMessageMVCRenderCommand {
 
 	@Override
 	protected void checkPermissions(

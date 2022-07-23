@@ -19,7 +19,7 @@ import {
 	useConfig,
 	useForm,
 	useFormState,
-} from 'dynamic-data-mapping-form-renderer';
+} from 'data-engine-js-components-web';
 import {fetch} from 'frontend-js-web';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {Route, Switch} from 'react-router-dom';
@@ -29,7 +29,7 @@ import {EVENT_TYPES} from '../eventTypes.es';
 import {RuleEditor} from './RuleEditor.es';
 import {RuleList} from './RuleList.es';
 
-export const RuleBuilder = ({history, location}) => {
+export function RuleBuilder({history, location}) {
 	const {
 		cache,
 		dataProviderInstanceParameterSettingsURL,
@@ -64,7 +64,7 @@ export const RuleBuilder = ({history, location}) => {
 
 		visitor.mapFields(
 			(field, fieldIndex, columnIndex, rowIndex, pageIndex) => {
-				if (field.type != 'fieldset') {
+				if (field.type !== 'fieldset') {
 					fields.push({
 						...field,
 						pageIndex,
@@ -80,13 +80,15 @@ export const RuleBuilder = ({history, location}) => {
 	}, [pages]);
 
 	const pageOptions = useMemo(() => {
-		return pages.map(({title}, index) => ({
-			label: `${index + 1} ${
-				title || Liferay.Language.get('page-title')
-			}`,
-			name: index.toString(),
-			value: index.toString(),
-		}));
+		return pages
+			.filter(({contentRenderer}) => contentRenderer !== 'success')
+			.map(({title}, index) => ({
+				label: `${index + 1} ${
+					title || Liferay.Language.get('page-title')
+				}`,
+				name: index.toString(),
+				value: index.toString(),
+			}));
 	}, [pages]);
 
 	const dataProvider = resourceDataProvider?.map((data) => ({
@@ -104,11 +106,13 @@ export const RuleBuilder = ({history, location}) => {
 	const navigate = useCallback(
 		(path) => {
 			const method =
-				path === location.pathname ? history.replace : history.push;
+				path === history.location.pathname
+					? history.replace
+					: history.push;
 
 			method(path);
 		},
-		[history, location.pathname]
+		[history]
 	);
 
 	useEffect(() => {
@@ -136,6 +140,7 @@ export const RuleBuilder = ({history, location}) => {
 				portletNamespace={portletNamespace}
 				variant="rules"
 			/>
+
 			<Switch>
 				<Route exact path="/rules">
 					<RuleList
@@ -154,10 +159,12 @@ export const RuleBuilder = ({history, location}) => {
 							});
 							navigate('/rules/editor');
 						}}
+						operatorsByType={functionsMetadata}
 						pages={pageOptions}
 						rules={rules}
 					/>
 				</Route>
+
 				<Route path="/rules/editor">
 					<RuleEditor
 						dataProvider={dataProvider}
@@ -201,6 +208,6 @@ export const RuleBuilder = ({history, location}) => {
 			</Switch>
 		</ClayLayout.Container>
 	);
-};
+}
 
 RuleBuilder.displayName = 'RuleBuilder';

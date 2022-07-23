@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -207,10 +205,19 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 
 		ProductTaxConfiguration getProductTaxConfiguration =
 			productTaxConfigurationResource.
-				getProductByExternalReferenceCodeTaxConfiguration(null);
+				getProductByExternalReferenceCodeTaxConfiguration(
+					testGetProductByExternalReferenceCodeTaxConfiguration_getExternalReferenceCode());
 
 		assertEquals(postProductTaxConfiguration, getProductTaxConfiguration);
 		assertValid(getProductTaxConfiguration);
+	}
+
+	protected String
+			testGetProductByExternalReferenceCodeTaxConfiguration_getExternalReferenceCode()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected ProductTaxConfiguration
@@ -226,7 +233,7 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 		throws Exception {
 
 		ProductTaxConfiguration productTaxConfiguration =
-			testGraphQLProductTaxConfiguration_addProductTaxConfiguration();
+			testGraphQLGetProductByExternalReferenceCodeTaxConfiguration_addProductTaxConfiguration();
 
 		Assert.assertTrue(
 			equals(
@@ -238,12 +245,24 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 								"productByExternalReferenceCodeTaxConfiguration",
 								new HashMap<String, Object>() {
 									{
-										put("externalReferenceCode", null);
+										put(
+											"externalReferenceCode",
+											"\"" +
+												testGraphQLGetProductByExternalReferenceCodeTaxConfiguration_getExternalReferenceCode() +
+													"\"");
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data",
 						"Object/productByExternalReferenceCodeTaxConfiguration"))));
+	}
+
+	protected String
+			testGraphQLGetProductByExternalReferenceCodeTaxConfiguration_getExternalReferenceCode()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -269,6 +288,13 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ProductTaxConfiguration
+			testGraphQLGetProductByExternalReferenceCodeTaxConfiguration_addProductTaxConfiguration()
+		throws Exception {
+
+		return testGraphQLProductTaxConfiguration_addProductTaxConfiguration();
 	}
 
 	@Test
@@ -302,7 +328,7 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 	@Test
 	public void testGraphQLGetProductIdTaxConfiguration() throws Exception {
 		ProductTaxConfiguration productTaxConfiguration =
-			testGraphQLProductTaxConfiguration_addProductTaxConfiguration();
+			testGraphQLGetProductIdTaxConfiguration_addProductTaxConfiguration();
 
 		Assert.assertTrue(
 			equals(
@@ -346,6 +372,13 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 				"Object/code"));
 	}
 
+	protected ProductTaxConfiguration
+			testGraphQLGetProductIdTaxConfiguration_addProductTaxConfiguration()
+		throws Exception {
+
+		return testGraphQLProductTaxConfiguration_addProductTaxConfiguration();
+	}
+
 	@Test
 	public void testPatchProductIdTaxConfiguration() throws Exception {
 		Assert.assertTrue(false);
@@ -357,6 +390,26 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		ProductTaxConfiguration productTaxConfiguration,
+		List<ProductTaxConfiguration> productTaxConfigurations) {
+
+		boolean contains = false;
+
+		for (ProductTaxConfiguration item : productTaxConfigurations) {
+			if (equals(productTaxConfiguration, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			productTaxConfigurations + " does not contain " +
+				productTaxConfiguration,
+			contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -486,8 +539,8 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.catalog.dto.v1_0.
 						ProductTaxConfiguration.class)) {
 
@@ -503,12 +556,13 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -522,7 +576,7 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -612,6 +666,19 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -830,8 +897,9 @@ public abstract class BaseProductTaxConfigurationResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProductTaxConfigurationResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(
+			BaseProductTaxConfigurationResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

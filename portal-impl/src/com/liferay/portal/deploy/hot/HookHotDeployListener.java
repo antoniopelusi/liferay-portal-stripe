@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
-import com.liferay.portal.kernel.deploy.DeployManagerUtil;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployListener;
 import com.liferay.portal.kernel.deploy.hot.BaseHotDeployListener;
 import com.liferay.portal.kernel.deploy.hot.HotDeployEvent;
@@ -48,6 +47,7 @@ import com.liferay.portal.kernel.lock.LockListener;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ModelListener;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.portlet.ControlPanelEntry;
 import com.liferay.portal.kernel.resource.bundle.CacheResourceBundleLoader;
@@ -78,6 +78,7 @@ import com.liferay.portal.kernel.service.ReleaseLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
+import com.liferay.portal.kernel.servlet.FileAvailabilityUtil;
 import com.liferay.portal.kernel.servlet.LiferayFilter;
 import com.liferay.portal.kernel.servlet.LiferayFilterTracker;
 import com.liferay.portal.kernel.servlet.TryFilter;
@@ -92,6 +93,7 @@ import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.url.ServletContextURLContainer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
@@ -116,15 +118,12 @@ import com.liferay.portal.spring.aop.AopInvocationHandler;
 import com.liferay.portal.util.JavaScriptBundleUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
-import com.liferay.taglib.FileAvailabilityUtil;
 
 import java.io.InputStream;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 
 import java.net.URL;
 
@@ -140,9 +139,13 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import javax.servlet.Filter;
 import javax.servlet.ServletContext;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Brian Wing Shun Chan
@@ -174,11 +177,9 @@ public class HookHotDeployListener
 		"company.settings.form.miscellaneous", "company.settings.form.social",
 		"control.panel.entry.class.default", "default.landing.page.path",
 		"default.regular.color.scheme.id", "default.regular.theme.id",
-		"dl.file.entry.drafts.enabled",
-		"dl.file.entry.open.in.ms.office.manual.check.in.required",
-		"dl.file.entry.processors", "dl.repository.impl",
-		"dl.store.antivirus.enabled", "dl.store.antivirus.impl",
-		"dl.store.impl",
+		"dl.file.entry.drafts.enabled", "dl.file.entry.processors",
+		"dl.repository.impl", "dl.store.antivirus.enabled",
+		"dl.store.antivirus.impl", "dl.store.impl",
 		"field.enable.com.liferay.portal.kernel.model.Contact.birthday",
 		"field.enable.com.liferay.portal.kernel.model.Contact.male",
 		"field.enable.com.liferay.portal.kernel.model.Organization.status",
@@ -284,10 +285,14 @@ public class HookHotDeployListener
 		Map<Object, ServiceRegistration<?>> serviceRegistrations =
 			getServiceRegistrations(servletContextName);
 
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
-		ServiceRegistration<T> serviceRegistration = registry.registerService(
-			clazz, service, properties);
+		ServiceRegistration<T> serviceRegistration =
+			bundleContext.registerService(
+				clazz, service,
+				HashMapDictionaryBuilder.putAll(
+					properties
+				).build());
 
 		serviceRegistrations.put(serviceRegistrationKey, serviceRegistration);
 	}
@@ -444,8 +449,6 @@ public class HookHotDeployListener
 			HotDeployUtil.fireUndeployEvent(
 				new HotDeployEvent(servletContext, portletClassLoader));
 
-			DeployManagerUtil.undeploy(servletContextName);
-
 			return;
 		}
 
@@ -580,7 +583,7 @@ public class HookHotDeployListener
 		}
 		catch (BeanLocatorException beanLocatorException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(beanLocatorException, beanLocatorException);
+				_log.debug(beanLocatorException);
 			}
 
 			return (BasePersistence<?>)PortletBeanLocatorUtil.locate(
@@ -1697,12 +1700,10 @@ public class HookHotDeployListener
 			}
 			catch (BeanLocatorException beanLocatorException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(beanLocatorException, beanLocatorException);
+					_log.debug(beanLocatorException);
 				}
 
-				Registry registry = RegistryUtil.getRegistry();
-
-				registry.callService(
+				SystemBundleUtil.callService(
 					serviceTypeClass,
 					registryServiceProxy -> {
 						try {
@@ -1856,8 +1857,7 @@ public class HookHotDeployListener
 
 		if (strutsActionObject instanceof StrutsAction) {
 			StrutsAction strutsAction =
-				(StrutsAction)ProxyUtil.newProxyInstance(
-					portletClassLoader, new Class<?>[] {StrutsAction.class},
+				_strutsActionProxyProviderFunction.apply(
 					new ClassLoaderBeanHandler(
 						strutsActionObject, portletClassLoader));
 
@@ -2184,9 +2184,7 @@ public class HookHotDeployListener
 
 	private static final String[] _PROPS_VALUES_BOOLEAN = {
 		"auth.forward.by.last.path", "captcha.check.portal.create_account",
-		"dl.file.entry.drafts.enabled",
-		"dl.file.entry.open.in.ms.office.manual.check.in.required",
-		"dl.store.antivirus.enabled",
+		"dl.file.entry.drafts.enabled", "dl.store.antivirus.enabled",
 		"field.enable.com.liferay.portal.kernel.model.Contact.birthday",
 		"field.enable.com.liferay.portal.kernel.model.Contact.male",
 		"field.enable.com.liferay.portal.kernel.model.Organization.status",
@@ -2280,6 +2278,10 @@ public class HookHotDeployListener
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		HookHotDeployListener.class);
+
+	private static final Function<InvocationHandler, StrutsAction>
+		_strutsActionProxyProviderFunction = ProxyUtil.getProxyProviderFunction(
+			StrutsAction.class);
 
 	private final Map<String, DLFileEntryProcessorContainer>
 		_dlFileEntryProcessorContainerMap = new HashMap<>();

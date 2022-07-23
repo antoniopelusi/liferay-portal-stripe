@@ -26,24 +26,26 @@ public class ResourcePermissionUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (hasResourcePermission("com.liferay.knowledgebase.model.Article")) {
-			updateKBArticleResourcePermissions();
+		if (_hasResourcePermission("com.liferay.knowledgebase.model.Article")) {
+			_updateKBArticleResourcePermissions();
 		}
 
-		if (hasResourcePermission("com.liferay.knowledgebase.model.Template")) {
-			updateKBTemplateResourcePermissions();
+		if (_hasResourcePermission(
+				"com.liferay.knowledgebase.model.Template")) {
+
+			_updateKBTemplateResourcePermissions();
 		}
 	}
 
-	protected boolean hasResourcePermission(String name) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private boolean _hasResourcePermission(String name) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select count(*) from ResourcePermission where name = ?")) {
 
-			ps.setString(1, name);
+			preparedStatement.setString(1, name);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					int count = rs.getInt(1);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					int count = resultSet.getInt(1);
 
 					if (count > 0) {
 						return true;
@@ -55,14 +57,14 @@ public class ResourcePermissionUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void updateKBArticleResourcePermissions() throws Exception {
+	private void _updateKBArticleResourcePermissions() throws Exception {
 		runSQL(
 			"update ResourcePermission set name = " +
 				"'com.liferay.knowledgebase.model.KBArticle' where name = " +
 					"'com.liferay.knowledgebase.model.Article'");
 	}
 
-	protected void updateKBTemplateResourcePermissions() throws Exception {
+	private void _updateKBTemplateResourcePermissions() throws Exception {
 		runSQL(
 			"update ResourcePermission set name = " +
 				"'com.liferay.knowledgebase.model.KBTemplate' where name = " +

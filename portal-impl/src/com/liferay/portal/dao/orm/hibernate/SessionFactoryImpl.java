@@ -14,6 +14,8 @@
 
 package com.liferay.portal.dao.orm.hibernate;
 
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.portal.kernel.dao.orm.Dialect;
 import com.liferay.portal.kernel.dao.orm.ORMException;
 import com.liferay.portal.kernel.dao.orm.Session;
@@ -21,18 +23,22 @@ import com.liferay.portal.kernel.dao.orm.SessionCustomizer;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PreloadClassLoader;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerList;
 
 import java.sql.Connection;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hibernate.engine.SessionFactoryImplementor;
+import org.hibernate.SessionBuilder;
+import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
+import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.resource.jdbc.spi.LogicalConnectionImplementor;
+import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 
 /**
  * @author Brian Wing Shun Chan
@@ -61,7 +67,10 @@ public class SessionFactoryImpl implements SessionFactory {
 
 	@Override
 	public Dialect getDialect() throws ORMException {
-		return new DialectImpl(_sessionFactoryImplementor.getDialect());
+		JdbcServices jdbcServices =
+			_sessionFactoryImplementor.getJdbcServices();
+
+		return new DialectImpl(jdbcServices.getDialect());
 	}
 
 	public SessionFactoryImplementor getSessionFactoryImplementor() {
@@ -70,7 +79,13 @@ public class SessionFactoryImpl implements SessionFactory {
 
 	@Override
 	public Session openNewSession(Connection connection) throws ORMException {
-		return wrapSession(_sessionFactoryImplementor.openSession(connection));
+		SessionBuilder sessionBuilder =
+			_sessionFactoryImplementor.withOptions();
+
+		return wrapSession(
+			sessionBuilder.connection(
+				connection
+			).openSession());
 	}
 
 	@Override
@@ -85,12 +100,20 @@ public class SessionFactoryImpl implements SessionFactory {
 		}
 
 		if (_log.isDebugEnabled()) {
-			org.hibernate.impl.SessionImpl sessionImpl =
-				(org.hibernate.impl.SessionImpl)session;
+			org.hibernate.internal.SessionImpl sessionImpl =
+				(org.hibernate.internal.SessionImpl)session;
+
+			JdbcCoordinator jdbcCoordinator = sessionImpl.getJdbcCoordinator();
+
+			LogicalConnectionImplementor logicalConnectionImplementor =
+				jdbcCoordinator.getLogicalConnection();
+
+			PhysicalConnectionHandlingMode physicalConnectionHandlingMode =
+				logicalConnectionImplementor.getConnectionHandlingMode();
 
 			_log.debug(
 				"Session is using connection release mode " +
-					sessionImpl.getConnectionReleaseMode());
+					physicalConnectionHandlingMode.getReleaseMode());
 		}
 
 		return wrapSession(session);
@@ -152,7 +175,8 @@ public class SessionFactoryImpl implements SessionFactory {
 		SessionFactoryImpl.class);
 
 	private final ServiceTrackerList<SessionCustomizer> _sessionCustomizers =
-		ServiceTrackerCollections.openList(SessionCustomizer.class);
+		ServiceTrackerListFactory.open(
+			SystemBundleUtil.getBundleContext(), SessionCustomizer.class);
 	private ClassLoader _sessionFactoryClassLoader;
 	private SessionFactoryImplementor _sessionFactoryImplementor;
 

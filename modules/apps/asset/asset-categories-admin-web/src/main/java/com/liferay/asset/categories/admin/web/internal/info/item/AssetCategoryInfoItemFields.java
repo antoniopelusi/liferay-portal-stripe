@@ -14,6 +14,7 @@
 
 package com.liferay.asset.categories.admin.web.internal.info.item;
 
+import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.info.field.InfoField;
 import com.liferay.info.field.type.TextInfoFieldType;
 import com.liferay.info.localized.InfoLocalizedValue;
@@ -21,11 +22,10 @@ import com.liferay.info.localized.InfoLocalizedValue;
 /**
  * @author Jürgen Kappler
  */
-public interface AssetCategoryInfoItemFields {
+public class AssetCategoryInfoItemFields {
 
 	public static final InfoField<TextInfoFieldType> descriptionInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			TextInfoFieldType.INSTANCE
 		).name(
 			"description"
@@ -33,9 +33,17 @@ public interface AssetCategoryInfoItemFields {
 			InfoLocalizedValue.localize(
 				AssetCategoryInfoItemFields.class, "description")
 		).build();
+	public static final InfoField<TextInfoFieldType> displayPageURLInfoField =
+		BuilderHolder._builder.infoFieldType(
+			TextInfoFieldType.INSTANCE
+		).name(
+			"displayPageURL"
+		).labelInfoLocalizedValue(
+			InfoLocalizedValue.localize(
+				AssetCategoryInfoItemFields.class, "display-page-url")
+		).build();
 	public static final InfoField<TextInfoFieldType> nameInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			TextInfoFieldType.INSTANCE
 		).name(
 			"name"
@@ -44,8 +52,7 @@ public interface AssetCategoryInfoItemFields {
 				AssetCategoryInfoItemFields.class, "name")
 		).build();
 	public static final InfoField<TextInfoFieldType> vocabularyInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			TextInfoFieldType.INSTANCE
 		).name(
 			"vocabulary"
@@ -53,5 +60,12 @@ public interface AssetCategoryInfoItemFields {
 			InfoLocalizedValue.localize(
 				AssetCategoryInfoItemFields.class, "vocabulary")
 		).build();
+
+	private static class BuilderHolder {
+
+		private static final InfoField.NamespacedBuilder _builder =
+			InfoField.builder(AssetCategory.class.getSimpleName());
+
+	}
 
 }

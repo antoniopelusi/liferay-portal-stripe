@@ -208,6 +208,7 @@
 					<attribute name="Liferay-Portal-Release-Info" value="${release.info.release.info}" />
 					<attribute name="Liferay-Portal-Server-Info" value="${release.info.server.info}" />
 					<attribute name="Liferay-Portal-Version" value="${release.info.version}" />
+					<attribute name="Liferay-Portal-Version-Display-Name" value="${release.info.version.display.name}" />
 				</manifest>
 
 				<if>

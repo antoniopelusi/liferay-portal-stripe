@@ -42,16 +42,12 @@ public class PortalSessionCreator extends BasePortalLifecycle {
 
 	@Override
 	protected void doPortalInit() {
-		if (PropsValues.SESSION_DISABLED) {
-			return;
-		}
-
 		try {
 			PortalSessionContext.put(_httpSession.getId(), _httpSession);
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(illegalStateException, illegalStateException);
+				_log.warn(illegalStateException);
 			}
 		}
 
@@ -63,7 +59,7 @@ public class PortalSessionCreator extends BasePortalLifecycle {
 				PropsValues.SERVLET_SESSION_CREATE_EVENTS, _httpSession);
 		}
 		catch (ActionException actionException) {
-			_log.error(actionException, actionException);
+			_log.error(actionException);
 		}
 	}
 

@@ -2,11 +2,13 @@
 <head>
 <title>JSFShowcase</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">JSFShowcase</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ATTRIBUTE_BUTTON</td>
@@ -135,11 +137,21 @@
 </tr>
 <tr>
 	<td>GENERAL_SELECT</td>
-	<td>//select[contains(@id,':select')]//option[contains(.,'${key_opt}')]</td>
+	<td>//select[contains(@id,':select')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>GENERAL_SELECT_2</td>
+	<td>xpath=(//select[contains(@id,':select')])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GENERAL_SELECT_OPTION</td>
+	<td>//select[contains(@id,':select')]//option[contains(.,'${key_opt}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GENERAL_SELECT_OPTION_2</td>
 	<td>xpath=(//select[contains(@id,':select')]//option[contains(.,'${key_opt}')])[2]</td>
 	<td></td>
 </tr>
@@ -215,7 +227,7 @@
 </tr>
 <tr>
 	<td>OUTPUTLINK_SELECT</td>
-	<td>//select[contains(@id,':selectOneMenuId')]//option[contains(.,'${key_opt}')]</td>
+	<td>//select[contains(@id,':selectOneMenuId')]</td>
 	<td></td>
 </tr>
 <tr>

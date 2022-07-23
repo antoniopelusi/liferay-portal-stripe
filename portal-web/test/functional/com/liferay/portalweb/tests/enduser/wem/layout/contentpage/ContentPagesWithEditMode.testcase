@@ -30,7 +30,7 @@ definition {
 
 	@description = "This is a use case for LPS-114438. Only can edit inline content, mapped content and comments of elements when select Content Editing."
 	@priority = "5"
-	test OnlyCanEditContentWhenSelectContentEdition {
+	test CanOnlyEditContentInContentEditionMode {
 		property portal.acceptance = "true";
 
 		task ("Add a Web Content Article, a Blogs Entry and a Document") {
@@ -39,10 +39,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Web Content Title");
 
-			JSONBlog.addEntry(
-				entryContent = "Blogs Entry Content",
-				entryTitle = "Blogs Entry Title",
-				groupName = "Test Site Name");
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
 
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document Title",
@@ -119,11 +119,10 @@ definition {
 
 			PageEditor.waitForAutoSave();
 
-			AssertTextEquals(
-				id = "element-text",
-				key_fragmentName = "Paragraph",
-				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_EDITABLE_FIELD",
-				value1 = "Web Content Title");
+			PageEditor.viewFragmentEditableText(
+				editableText = "Web Content Title",
+				fragmentName = "Paragraph",
+				id = "element-text");
 		}
 
 		task ("Select document as inline content of Image") {
@@ -155,8 +154,8 @@ definition {
 				value1 = "Content Editing");
 		}
 
-		task ("Assert only Selection, Contents and Comments are shown in sidebar") {
-			for (var tabName : list "Selection,Contents,Comments") {
+		task ("Assert only Browser and Comments are shown in sidebar") {
+			for (var tabName : list "Browser,Comments") {
 				AssertVisible(
 					key_tabName = "${tabName}",
 					locator1 = "PageEditor#FRAGMENT_SIDEBAR_TAB_BUTTON");
@@ -171,22 +170,22 @@ definition {
 
 		task ("Assert topper of elements are hidden") {
 			for (var elementName : list "Heading,Paragraph,Image,Asset Publisher") {
-				AssertElementNotPresent(
-					key_fragmentName = "${elementName}",
-					locator1 = "Fragment#FRAGMENT_HEADER");
+				PageEditor.viewFragmentNotPresent(fragmentName = "${elementName}");
 			}
 		}
 
 		task ("Assert can edit editable field of Heading fragment") {
 			Click(
+				fragmentName = "heading",
 				id = "element-text",
-				key_fragmentName = "heading",
-				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_WITHOUT_TOPPER");
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
 
 			DoubleClick(
+				fragmentName = "heading",
 				id = "element-text",
-				key_fragmentName = "heading",
-				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_WITHOUT_TOPPER");
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
 
 			AssertElementPresent(locator1 = "//*[contains(@class,'component-heading') and contains(@data-lfr-editable-id,'element-text')]/div[contains(@class,'cke_editable_inline')]");
 
@@ -195,20 +194,15 @@ definition {
 
 		task ("Assert can select mapped content of Paragraph fragment") {
 			Click(
+				fragmentName = "paragraph",
 				id = "element-text",
-				key_fragmentName = "paragraph",
-				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_WITHOUT_TOPPER");
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
 
-			PageEditor.gotoTab(tabName = "Selection");
-
-			var key_navItem = "Mapping";
-
-			AssertClick(
-				locator1 = "PageEditor#NAV_ITEM_BUTTON",
-				value1 = "Mapping");
+			Navigator.gotoNavTab(navTab = "Mapping");
 
 			AssertVisible(
-				key_fieldLabel = "Content",
+				key_fieldLabel = "Item",
 				key_text = "change",
 				locator1 = "Icon#ANY_ITEM_SELECTOR");
 
@@ -233,7 +227,9 @@ definition {
 
 		task ("Edit Web Content Article and Blogs Entry via Contents panel") {
 			for (var title : list "Web Content Title,Blogs Entry Title") {
-				PageEditor.gotoTab(tabName = "Contents");
+				PageEditor.gotoTab(tabName = "Browser");
+
+				Navigator.gotoNavTab(navTab = "Page Content");
 
 				LexiconEntry.gotoFragmentPageContentEllipsisMenuItem(
 					menuItem = "Edit",
@@ -270,11 +266,10 @@ definition {
 		}
 
 		task ("Assert Edited Web Content") {
-			AssertTextEquals(
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
 				id = "element-text",
-				key_fragmentName = "paragraph",
-				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_WITHOUT_TOPPER",
-				value1 = "Web Content Title Edit");
+				text = "Web Content Title Edit");
 		}
 
 		task ("Assert Edited Blogs Entry") {

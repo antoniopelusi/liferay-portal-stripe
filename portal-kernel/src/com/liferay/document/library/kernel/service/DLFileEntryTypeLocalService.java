@@ -233,6 +233,9 @@ public interface DLFileEntryTypeLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -440,14 +443,6 @@ public interface DLFileEntryTypeLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DLFileEntryType getFileEntryType(
 			long groupId, String fileEntryTypeKey)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x)
-	 */
-	@Deprecated
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<DLFileEntryType> getFileEntryTypes(long ddmStructureId)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)

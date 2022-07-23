@@ -65,7 +65,7 @@ public class ProductNavigationControlMenuEntryRegistryImpl
 		getProductNavigationControlMenuEntries(
 			ProductNavigationControlMenuCategory
 				productNavigationControlMenuCategory,
-			final HttpServletRequest httpServletRequest) {
+			HttpServletRequest httpServletRequest) {
 
 		List<ProductNavigationControlMenuEntry>
 			productNavigationControlMenuEntries =
@@ -85,7 +85,7 @@ public class ProductNavigationControlMenuEntryRegistryImpl
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 

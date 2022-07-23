@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2021 Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -57,6 +57,9 @@ import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.mule.runtime.http.api.domain.entity.HttpEntity;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Matija Petanjek
  */
@@ -79,7 +82,7 @@ public class LiferayBatchOperations {
 			@Placement(order = 2, tab = Placement.ADVANCED_TAB)
 			@Summary("Time unit to be used in the timeout configurations")
 			TimeUnit connectionTimeoutTimeUnit)
-		throws InterruptedException, IOException {
+		throws ModuleException {
 
 		long connectionTimeoutMillis = connectionTimeoutTimeUnit.toMillis(
 			connectionTimeout);
@@ -87,27 +90,46 @@ public class LiferayBatchOperations {
 		String exportTaskId = submitExportTask(
 			className, connection, fieldNames, siteId, connectionTimeoutMillis);
 
-		while (true) {
-			JsonNode exportTaskJsonNode = getExportTaskJsonNode(
-				connection, exportTaskId, connectionTimeoutMillis);
+		logger.info("Started batch export task with ID {}", exportTaskId);
 
-			String exportTaskStatus = exportTaskJsonNode.get(
-				"executeStatus"
-			).asText();
+		try {
+			while (true) {
+				JsonNode exportTaskJsonNode = getExportTaskJsonNode(
+					connection, exportTaskId, connectionTimeoutMillis);
 
-			if (exportTaskStatus.equalsIgnoreCase("completed")) {
-				break;
-			}
-			else if (exportTaskStatus.equalsIgnoreCase("failed")) {
-				throw new ModuleException(
-					exportTaskJsonNode.get(
+				String exportTaskStatus = exportTaskJsonNode.get(
+					"executeStatus"
+				).asText();
+
+				if (exportTaskStatus.equalsIgnoreCase("completed")) {
+					break;
+				}
+				else if (exportTaskStatus.equalsIgnoreCase("failed")) {
+					String errorMessage = exportTaskJsonNode.get(
 						"errorMessage"
-					).asText(),
-					LiferayError.BATCH_EXPORT_FAILED);
-			}
+					).asText();
 
-			Thread.sleep(1000);
+					logger.error(
+						"Batch export task with ID {} failed with message: {}",
+						exportTaskId, errorMessage);
+
+					throw new ModuleException(
+						exportTaskJsonNode.get(
+							"errorMessage"
+						).asText(),
+						LiferayError.BATCH_EXPORT_FAILED);
+				}
+
+				Thread.sleep(1000);
+			}
 		}
+		catch (InterruptedException interruptedException) {
+			throw new ModuleException(
+				LiferayError.EXECUTION, interruptedException);
+		}
+
+		logger.info(
+			"Batch export with ID {} finished successfully", exportTaskId);
 
 		return getExportTaskResult(
 			getExportTaskContentZipInputStream(
@@ -130,7 +152,7 @@ public class LiferayBatchOperations {
 			@Placement(order = 2, tab = Placement.ADVANCED_TAB)
 			@Summary("Time unit to be used in the timeout configurations")
 			TimeUnit connectionTimeoutTimeUnit)
-		throws InterruptedException {
+		throws ModuleException {
 
 		long connectionTimeoutMillis = connectionTimeoutTimeUnit.toMillis(
 			connectionTimeout);
@@ -139,8 +161,13 @@ public class LiferayBatchOperations {
 			connection, inputStream, className, fieldNameMappings,
 			connectionTimeoutMillis);
 
+		logger.info("Started batch create task with ID {}", importTaskId);
+
 		checkImportTaskExecutionResult(
 			connection, importTaskId, connectionTimeoutMillis);
+
+		logger.info(
+			"Batch create task with ID {} finished successfully", importTaskId);
 	}
 
 	@DisplayName("Batch - Import Records - Delete")
@@ -158,7 +185,7 @@ public class LiferayBatchOperations {
 			@Placement(order = 2, tab = Placement.ADVANCED_TAB)
 			@Summary("Time unit to be used in the timeout configurations")
 			TimeUnit connectionTimeoutTimeUnit)
-		throws InterruptedException {
+		throws ModuleException {
 
 		long connectionTimeoutMillis = connectionTimeoutTimeUnit.toMillis(
 			connectionTimeout);
@@ -166,8 +193,13 @@ public class LiferayBatchOperations {
 		String importTaskId = submitImportDeleteTask(
 			connection, inputStream, className, connectionTimeoutMillis);
 
+		logger.info("Started batch delete task with ID {}", importTaskId);
+
 		checkImportTaskExecutionResult(
 			connection, importTaskId, connectionTimeoutMillis);
+
+		logger.info(
+			"Batch delete task with ID {} finished successfully", importTaskId);
 	}
 
 	@DisplayName("Batch - Import Records - Update")
@@ -185,7 +217,7 @@ public class LiferayBatchOperations {
 			@Placement(order = 2, tab = Placement.ADVANCED_TAB)
 			@Summary("Time unit to be used in the timeout configurations")
 			TimeUnit connectionTimeoutTimeUnit)
-		throws InterruptedException {
+		throws ModuleException {
 
 		long connectionTimeoutMillis = connectionTimeoutTimeUnit.toMillis(
 			connectionTimeout);
@@ -193,41 +225,58 @@ public class LiferayBatchOperations {
 		String importTaskId = submitImportUpdateTask(
 			connection, inputStream, className, connectionTimeoutMillis);
 
+		logger.info("Started batch update task with ID {}", importTaskId);
+
 		checkImportTaskExecutionResult(
 			connection, importTaskId, connectionTimeoutMillis);
+
+		logger.info(
+			"Batch update task with ID {} finished successfully", importTaskId);
 	}
 
 	private void checkImportTaskExecutionResult(
 			LiferayConnection connection, String importTaskId,
 			long connectionTimeoutMillis)
-		throws InterruptedException {
+		throws ModuleException {
 
-		while (true) {
-			JsonNode importTaskJsonNode = getImportTaskJsonNode(
-				connection, importTaskId, connectionTimeoutMillis);
+		try {
+			while (true) {
+				JsonNode importTaskJsonNode = getImportTaskJsonNode(
+					connection, importTaskId, connectionTimeoutMillis);
 
-			String importTaskStatus = importTaskJsonNode.get(
-				"executeStatus"
-			).asText();
+				String importTaskStatus = importTaskJsonNode.get(
+					"executeStatus"
+				).asText();
 
-			if (importTaskStatus.equalsIgnoreCase("completed")) {
-				break;
-			}
-			else if (importTaskStatus.equalsIgnoreCase("failed")) {
-				throw new ModuleException(
-					importTaskJsonNode.get(
+				if (importTaskStatus.equalsIgnoreCase("completed")) {
+					break;
+				}
+				else if (importTaskStatus.equalsIgnoreCase("failed")) {
+					String errorMessage = importTaskJsonNode.get(
 						"errorMessage"
-					).asText(),
-					LiferayError.BATCH_IMPORT_FAILED);
-			}
+					).asText();
 
-			Thread.sleep(1000);
+					logger.error(
+						"Batch import task with ID {} failed with message: {}",
+						importTaskId, errorMessage);
+
+					throw new ModuleException(
+						errorMessage, LiferayError.BATCH_IMPORT_FAILED);
+				}
+
+				Thread.sleep(1000);
+			}
+		}
+		catch (InterruptedException interruptedException) {
+			throw new ModuleException(
+				LiferayError.EXECUTION, interruptedException);
 		}
 	}
 
 	private ZipInputStream getExportTaskContentZipInputStream(
-		LiferayConnection connection, String exportTaskId,
-		long connectionTimeout) {
+			LiferayConnection connection, String exportTaskId,
+			long connectionTimeout)
+		throws ModuleException {
 
 		ResourceContext.Builder builder = new ResourceContext.Builder();
 
@@ -254,8 +303,9 @@ public class LiferayBatchOperations {
 	}
 
 	private JsonNode getExportTaskJsonNode(
-		LiferayConnection connection, String exportTaskId,
-		long connectionTimeout) {
+			LiferayConnection connection, String exportTaskId,
+			long connectionTimeout)
+		throws ModuleException {
 
 		ResourceContext.Builder builder = new ResourceContext.Builder();
 
@@ -281,19 +331,25 @@ public class LiferayBatchOperations {
 
 	private Result<InputStream, Void> getExportTaskResult(
 			ZipInputStream zipInputStream)
-		throws IOException {
+		throws ModuleException {
 
-		zipInputStream.getNextEntry();
+		try {
+			zipInputStream.getNextEntry();
 
-		return Result.<InputStream, Void>builder(
-		).output(
-			zipInputStream
-		).build();
+			return Result.<InputStream, Void>builder(
+			).output(
+				zipInputStream
+			).build();
+		}
+		catch (IOException ioException) {
+			throw new ModuleException(LiferayError.EXECUTION, ioException);
+		}
 	}
 
 	private JsonNode getImportTaskJsonNode(
-		LiferayConnection connection, String importTaskId,
-		long connectionTimeout) {
+			LiferayConnection connection, String importTaskId,
+			long connectionTimeout)
+		throws ModuleException {
 
 		ResourceContext.Builder builder = new ResourceContext.Builder();
 
@@ -318,8 +374,9 @@ public class LiferayBatchOperations {
 	}
 
 	private String submitExportTask(
-		String className, LiferayConnection connection, String fieldNames,
-		String siteId, long connectionTimeout) {
+			String className, LiferayConnection connection, String fieldNames,
+			String siteId, long connectionTimeout)
+		throws ModuleException {
 
 		ResourceContext.Builder builder = new ResourceContext.Builder();
 
@@ -351,6 +408,8 @@ public class LiferayBatchOperations {
 				queryParams
 			).build());
 
+		liferayResponseValidator.validate(httpResponse);
+
 		JsonNode payloadJsonNode = jsonNodeReader.fromHttpResponse(
 			httpResponse);
 
@@ -360,8 +419,10 @@ public class LiferayBatchOperations {
 	}
 
 	private String submitImportCreateTask(
-		LiferayConnection connection, InputStream inputStream, String className,
-		Map<String, String> fieldNameMappings, long connectionTimeout) {
+			LiferayConnection connection, InputStream inputStream,
+			String className, Map<String, String> fieldNameMappings,
+			long connectionTimeout)
+		throws ModuleException {
 
 		ResourceContext.Builder builder = new ResourceContext.Builder();
 
@@ -404,6 +465,8 @@ public class LiferayBatchOperations {
 				queryParams
 			).build());
 
+		liferayResponseValidator.validate(httpResponse);
+
 		JsonNode payloadJsonNode = jsonNodeReader.fromHttpResponse(
 			httpResponse);
 
@@ -413,8 +476,9 @@ public class LiferayBatchOperations {
 	}
 
 	private String submitImportDeleteTask(
-		LiferayConnection connection, InputStream inputStream, String className,
-		long connectionTimeout) {
+			LiferayConnection connection, InputStream inputStream,
+			String className, long connectionTimeout)
+		throws ModuleException {
 
 		ResourceContext.Builder builder = new ResourceContext.Builder();
 
@@ -437,6 +501,8 @@ public class LiferayBatchOperations {
 				pathParams
 			).build());
 
+		liferayResponseValidator.validate(httpResponse);
+
 		JsonNode payloadJsonNode = jsonNodeReader.fromHttpResponse(
 			httpResponse);
 
@@ -446,8 +512,9 @@ public class LiferayBatchOperations {
 	}
 
 	private String submitImportUpdateTask(
-		LiferayConnection connection, InputStream inputStream, String className,
-		long connectionTimeout) {
+			LiferayConnection connection, InputStream inputStream,
+			String className, long connectionTimeout)
+		throws ModuleException {
 
 		ResourceContext.Builder builder = new ResourceContext.Builder();
 
@@ -470,6 +537,8 @@ public class LiferayBatchOperations {
 				pathParams
 			).build());
 
+		liferayResponseValidator.validate(httpResponse);
+
 		JsonNode payloadJsonNode = jsonNodeReader.fromHttpResponse(
 			httpResponse);
 
@@ -477,6 +546,9 @@ public class LiferayBatchOperations {
 
 		return String.valueOf(idJsonNode.longValue());
 	}
+
+	private static final Logger logger = LoggerFactory.getLogger(
+		LiferayBatchOperations.class);
 
 	private final JsonNodeReader jsonNodeReader = new JsonNodeReader();
 	private final LiferayResponseValidator liferayResponseValidator =

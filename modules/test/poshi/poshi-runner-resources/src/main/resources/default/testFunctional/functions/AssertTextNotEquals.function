@@ -1,37 +1,39 @@
-<definition default="assertTextNotEquals" summary="Assert that '${locator1}' does not equal the value '${value1}'">
-	<command name="assertNotPartialText" summary="Assert that '${locator1}' does not contain the value '${value1}'">
-		<execute selenium="waitForVisible" />
+@default = "assertTextNotEquals"
+@summary = "Assert that '${locator1}' does not equal the value '${value1}'"
+definition {
 
-		<execute selenium="waitForNotPartialText" />
+	@summary = "Assert that '${locator1}' does not contain the value '${value1}'"
+	function assertNotPartialText {
+		selenium.waitForVisible();
 
-		<execute selenium="assertNotPartialText" />
-	</command>
+		selenium.waitForNotPartialText();
 
-	<command name="assertNotText">
-		<execute selenium="waitForVisible" />
+		selenium.assertNotPartialText();
+	}
 
-		<execute selenium="waitForNotText" />
+	function assertNotText {
+		selenium.waitForVisible();
 
-		<execute selenium="assertNotText" />
-	</command>
+		selenium.waitForNotText();
 
-	<command name="assertNotValue">
-		<execute selenium="waitForVisible" />
+		selenium.assertNotText();
+	}
 
-		<execute selenium="waitForNotValue" />
+	function assertNotValue {
+		selenium.waitForVisible();
 
-		<execute selenium="assertNotValue" />
-	</command>
+		selenium.waitForNotValue();
 
-	<command name="assertTextNotEquals">
-		<if>
-			<contains string="${locator1}" substring="/input" />
-			<then>
-				<execute function="AssertTextNotEquals#assertNotValue" />
-			</then>
-			<else>
-				<execute function="AssertTextNotEquals#assertNotText" />
-			</else>
-		</if>
-	</command>
-</definition>
+		selenium.assertNotValue();
+	}
+
+	function assertTextNotEquals {
+		if (contains("${locator1}", "/input")) {
+			AssertTextNotEquals.assertNotValue();
+		}
+		else {
+			AssertTextNotEquals.assertNotText();
+		}
+	}
+
+}

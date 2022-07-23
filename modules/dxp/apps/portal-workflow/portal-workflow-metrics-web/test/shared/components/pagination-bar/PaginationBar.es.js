@@ -53,7 +53,6 @@ describe('The PaginationBar component should', () => {
 		expect(pageLinks.length).toBe(3);
 
 		expect(pageLinks[0]).toHaveAttribute('disabled');
-		expect(pageLinks[1]).not.toHaveAttribute('disabled');
 		expect(pageLinks[1]).toHaveTextContent('1');
 		expect(pageLinks[2]).toHaveAttribute('disabled');
 

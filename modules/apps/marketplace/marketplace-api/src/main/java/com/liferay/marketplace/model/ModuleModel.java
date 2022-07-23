@@ -158,4 +158,7 @@ public interface ModuleModel extends BaseModel<Module>, ShardedModel {
 	 */
 	public void setContextName(String contextName);
 
+	@Override
+	public Module cloneWithOriginalValues();
+
 }

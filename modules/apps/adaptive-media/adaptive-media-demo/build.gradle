@@ -1,7 +1,7 @@
 dependencies {
 	compileOnly fileTree(dir: "libs", include: "*.jar")
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
-	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.3.0"
+	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly project(":apps:adaptive-media:adaptive-media-demo-data-creator-api")
 	compileOnly project(":apps:document-library:document-library-demo-data-creator-api")
 	compileOnly project(":apps:portal:portal-instance-lifecycle-api")

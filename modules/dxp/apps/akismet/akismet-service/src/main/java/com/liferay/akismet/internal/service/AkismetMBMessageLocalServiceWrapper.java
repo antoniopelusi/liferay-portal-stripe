@@ -23,6 +23,7 @@ import com.liferay.message.boards.constants.MBMessageConstants;
 import com.liferay.message.boards.model.MBMessage;
 import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.message.boards.service.MBMessageLocalServiceWrapper;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -30,7 +31,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.ObjectValuePair;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -57,10 +57,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class AkismetMBMessageLocalServiceWrapper
 	extends MBMessageLocalServiceWrapper {
-
-	public AkismetMBMessageLocalServiceWrapper() {
-		super(null);
-	}
 
 	@Override
 	public MBMessage addMessage(
@@ -152,24 +148,16 @@ public class AkismetMBMessageLocalServiceWrapper
 			return contentURL;
 		}
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(serviceContext.getPortalURL());
-		sb.append(serviceContext.getPathMain());
-		sb.append("/message_boards/find_entry?messageId=");
-		sb.append(message.getMessageId());
-
-		return sb.toString();
+		return StringBundler.concat(
+			serviceContext.getPortalURL(), serviceContext.getPathMain(),
+			"/message_boards/find_entry?messageId=", message.getMessageId());
 	}
 
 	private boolean _isCheckSpamEnabled(
 		long userId, long groupId, ServiceContext serviceContext) {
 
-		if (!_akismetServiceConfiguration.messageBoardsEnabled()) {
-			return false;
-		}
-
-		if (!_akismetClient.hasRequiredInfo(
+		if (!_akismetServiceConfiguration.messageBoardsEnabled() ||
+			!_akismetClient.hasRequiredInfo(
 				serviceContext.getRemoteAddr(), serviceContext.getHeaders())) {
 
 			return false;

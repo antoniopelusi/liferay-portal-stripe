@@ -1,6 +1,9 @@
 @component-name = "portal-segmentation"
 definition {
 
+	property custom.properties = "jsonws.web.service.paths.excludes=";
+	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
+	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Segmentation";
@@ -12,25 +15,30 @@ definition {
 
 		Navigator.openURL();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Instance Settings");
+		task ("Create an user using JSONWS") {
+			JSONUser.addUser(
+				jobTitle = "Test Engineer1",
+				userEmailAddress = "userea1@liferay.com",
+				userFirstName = "userfn1",
+				userLastName = "userln1",
+				userScreenName = "usersn1");
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "User Authentication",
-			configurationName = "General",
-			configurationScope = "Virtual Instance Scope");
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea1@liferay.com");
 
-		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-
-		// Create site and content page
+			JSONRole.assignRoleToUser(
+				roleTitle = "Administrator",
+				userEmailAddress = "userea1@liferay.com");
+		}
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
-		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-
-		ContentPages.addPage(pageName = "Experience Content Page");
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Experience Content Page",
+			type = "content");
 	}
 
 	tearDown {
@@ -40,18 +48,20 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
-			Site.tearDownCP();
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
 		}
+
+		JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea1@liferay.com");
 	}
 
-	@description = "When the user creates a new experience, it is always placed in the last position of the list, always below the default experience and always set as non-active"
+	@description = "This is a use case for LPS-106776. When the user creates a new experience, it is always placed in the last position of the list, always below the default experience and always set as non-active"
 	@priority = "5"
 	test AddNewAnyoneExperience {
 		property portal.acceptance = "true";
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addFragment(
 			collectionName = "Basic Components",
@@ -70,7 +80,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addExperience(
 			experienceName = "NewAnyoneExperience",
@@ -111,7 +121,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addExperience(
 			experienceName = "NewExp1",
@@ -151,207 +161,967 @@ definition {
 	}
 
 	@description = "This is a test for LPS-130348."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceBasedOtherSegmentsSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130348 AddNewExperienceBasedOtherSegmentsSegment pending implementation
+		JSONUser.addUser(
+			jobTitle = "Test Engineer2",
+			userEmailAddress = "userea2@liferay.com",
+			userFirstName = "userfn2",
+			userLastName = "userln2",
+			userScreenName = "usersn2");
 
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea2@liferay.com");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Administrator",
+			userEmailAddress = "userea2@liferay.com");
+
+		for (var num : list "1,2") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Last Name",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Segment With User${num}",
+				text = "userln${num}");
+		}
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Segments");
+
+		Segmentation.addProperties(propertyOption = "Segment");
+
+		Segmentation.fillProperty(selectLink = "Segment With User1");
+
+		Segmentation.addProperties(propertyOption = "Segment");
+
+		Segmentation.fillProperty(
+			indexNumber = "2",
+			selectLink = "Segment With User2");
+
+		Segmentation.changeCriterionConjunction(criterionConjunctionItem = "Or");
+
+		Segmentation.fillTitle(titleField = "AddNewExperienceBasedOtherSegmentsSegment Test");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "AddNewExperienceBasedOtherSegmentsSegment",
+			segmentName = "AddNewExperienceBasedOtherSegmentsSegment Test");
+
+		PageEditor.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "AddNewExperienceBasedOtherSegmentsSegment");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "User1 and User2 will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "AddNewExperienceBasedOtherSegmentsSegment");
+
+		PageEditor.clickPublish();
+
+		for (var num : list "1,2") {
+			User.logoutAndLoginPG(
+				freeLogin = "true",
+				userLoginEmailAddress = "userea${num}@liferay.com",
+				userLoginFullName = "userfn${num} userln${num}");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+			AssertTextEquals(
+				locator1 = "Experience#FRAGMENT_HEADING",
+				value1 = "User1 and User2 will see this heading");
+		}
+
+		JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea2@liferay.com");
 	}
 
 	@description = "This is a test for LPS-130309."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationCountrySegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130309 AddNewExperienceOrganizationCountrySegment pending implementation
+		JSONOrganization.addOrganization(organizationName = "organization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		Organization.editOrganizationCP(orgName = "organization Name");
+
+		Select(
+			locator1 = "Select#COUNTRY",
+			value1 = "China");
+
+		PortletEntry.save();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Country");
+
+		Segmentation.fillTitle(titleField = "Org with Country");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(optionsValue = "China");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Org with Country",
+			segmentName = "Org with Country");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Org with Country");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Org with Country");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130302."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationDateModifiedSegment {
-		property portal.acceptance = "false";
+		JSONOrganization.addOrganization(organizationName = "organization Name");
 
-		// TODO LPS-130302 AddNewExperienceOrganizationDateModifiedSegment pending implementation
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Date Modified");
+
+		Segmentation.fillTitle(titleField = "Org with Date Modified");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Not Equals");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Org with Modified Date",
+			segmentName = "Org with Date Modified");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Org with Modified Date");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Org with Modified Date");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130303."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationHierarchyPathSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130303 AddNewExperienceOrganizationHierarchyPathSegment pending implementation
+		JSONOrganization.addOrganization(organizationName = "organization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Hierarchy Path");
+
+		Segmentation.fillTitle(titleField = "Org with Hierarchy Path");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "organization Name");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Org with Hierarchy Path",
+			segmentName = "Org with Hierarchy Path");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Org with Hierarchy Path");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Org with Hierarchy Path");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130304."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationNameSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130304 AddNewExperienceOrganizationNameSegment pending implementation
+		JSONOrganization.addOrganization(organizationName = "organization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Name");
+
+		Segmentation.fillTitle(titleField = "Org with Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "organization Name");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Org with Name",
+			segmentName = "Org with Name");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Org with Name");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Org with Name");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130306."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationOrganizationSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130306 AddNewExperienceOrganizationOrganizationSegment pending implementation
+		JSONOrganization.addOrganization(organizationName = "organization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Organization");
+
+		Segmentation.fillTitle(titleField = "Users In A Specific Org");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(selectCheckbox = "organization Name");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Users In A Specific Org",
+			segmentName = "Users In A Specific Org");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Users In A Specific Org");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Users In A Specific Org");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130307."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationParentOrganizationSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130307 AddNewExperienceOrganizationParentOrganizationSegment pending implementation
+		JSONOrganization.addOrganization(organizationName = "organization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		JSONOrganization.addOrganization(organizationName = "Suborganization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "Suborganization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		User.openUsersAdmin();
+
+		UsersAndOrganizationsNavigator.gotoOrganizations();
+
+		Organization.searchCP(
+			orgName = "Suborganization Name",
+			searchTerm = "Suborganization Name");
+
+		Organization.selectParentOrganizationCP(
+			orgName = "Suborganization Name",
+			parentOrgName = "organization Name");
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Parent Organization");
+
+		Segmentation.fillTitle(titleField = "Org with Parent");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(selectCheckbox = "organization Name");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Parent Organization",
+			segmentName = "Org with Parent");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Parent Organization");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Parent Organization");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130310."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationRegionSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130310 AddNewExperienceOrganizationRegionSegment pending implementation
+		JSONOrganization.addOrganization(organizationName = "organization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		Organization.editOrganizationCP(orgName = "organization Name");
+
+		Select(
+			locator1 = "Select#COUNTRY",
+			value1 = "United States");
+
+		Select(
+			locator1 = "Select#REGION",
+			value1 = "Utah");
+
+		PortletEntry.save();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Region");
+
+		Segmentation.fillTitle(titleField = "Org with Region");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(optionsValue = "United States - Utah");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Org with Region",
+			segmentName = "Org with Region");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Org with Region");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Org with Region");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130311."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationTagSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130311 AddNewExperienceOrganizationTagSegment pending implementation
+		JSONOrganization.addOrganization(organizationName = "organization Name");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "organization Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		Organization.editOrganizationCP(orgName = "organization Name");
+
+		AssetCategorization.addTag(tagName = "tagName");
+
+		PortletEntry.save();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Tag");
+
+		Segmentation.fillTitle(titleField = "Org with Tag");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(selectLink = "tagname");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Org with Tag",
+			segmentName = "Org with Tag");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Org with Tag");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Org with Tag");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 	}
 
 	@description = "This is a test for LPS-130308."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceOrganizationTypeSegment {
 		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "ExperienceCreateExperience#AddNewExperienceOrganizationTypeSegment";
 
-		// TODO LPS-130308 AddNewExperienceOrganizationTypeSegment pending implementation
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Users",
+			configurationName = "Organization Type",
+			configurationScope = "System Scope");
+
+		Button.clickAdd();
+
+		for (var settingName : list "Name,Children Types") {
+			SystemSettings.editTextAreaSetting(
+				settingName = "${settingName}",
+				settingValue = "Location");
+		}
+
+		for (var fieldName : list "countryEnabled,rootable") {
+			FormFields.enableCheckbox(fieldName = "${fieldName}");
+		}
+
+		SystemSettings.saveConfiguration();
+
+		JSONOrganization.addOrganization(
+			organizationName = "United States",
+			organizationType = "Location");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "United States",
+			userEmailAddress = "userea1@liferay.com");
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Organization");
+
+		Segmentation.addProperties(propertyOption = "Type");
+
+		Segmentation.fillTitle(titleField = "Org with Type");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "t");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "Experience For Org with Type",
+			segmentName = "Org with Type");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "Experience For Org with Type");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Org users will see this heading");
+
+		PageEditor.prioritizeExperience(experienceName = "Experience For Org with Type");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "Org users will see this heading");
+
+		JSONOrganization.deleteOrganizationByName(organizationName = "United States");
 	}
 
 	@description = "This is a test for LPS-130327."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceSessionBrowserSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130327 AddNewExperienceSessionBrowserSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130328."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionCookiesSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130328 AddNewExperienceSessionCookiesSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130329."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionDeviceBrandSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130329 AddNewExperienceSessionDeviceBrandSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130330."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionDeviceModelSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130330 AddNewExperienceSessionDeviceModelSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130331."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionDeviceScreenResolutionHeightSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130331 AddNewExperienceSessionDeviceScreenResolutionHeightSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130332."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionDeviceScreenResolutionWidthSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130332 AddNewExperienceSessionDeviceScreenResolutionWidthSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130333."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionHostnameSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130333 AddNewExperienceSessionHostnameSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130334."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionLanguageSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130334 AddNewExperienceSessionLanguageSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130335."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionLastSignInDateSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130335 AddNewExperienceSessionLastSignInDateSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130336."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionLocalDateSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130336 AddNewExperienceSessionLocalDateSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130337."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionReferrerURLSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130337 AddNewExperienceSessionReferrerURLSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130338."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionRequestParametersSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130338 AddNewExperienceSessionRequestParametersSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130339."
-	@priority = "5"
-	test AddNewExperienceSessionSignedInSegment {
 		property portal.acceptance = "false";
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
@@ -362,16 +1132,13 @@ definition {
 
 		LexiconEntry.gotoAdd();
 
-		Segmentation.selectSession();
+		Segmentation.gotoSidebar(fieldType = "Session");
 
-		Segmentation.addProperties(propertyOption = "Signed In");
+		Segmentation.addProperties(propertyOption = "Browser");
 
-		Segmentation.fillTitle(titleField = "Session Signed In Segment");
+		Segmentation.fillTitle(titleField = "Session Browser Segment");
 
-		Select(
-			key_criterion = "options",
-			locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
-			value1 = "FALSE");
+		Segmentation.fillProperty(propertyField = "Chrome");
 
 		Button.clickSave();
 
@@ -379,7 +1146,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addFragment(
 			collectionName = "Basic Components",
@@ -398,7 +1165,869 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addExperience(
+			experienceName = "NewBrowserExperience",
+			segmentName = "Session Browser Segment");
+
+		Refresh();
+
+		PageEditor.changeExperience(newExperience = "NewBrowserExperience");
+
+		PageEditor.viewFragmentStyle(
+			fragmentName = "Heading",
+			headingLevel = "h1");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Chrome Browser Heading");
+
+		PageEditor.prioritizeExperience(experienceName = "NewBrowserExperience");
+
+		Button.clickPublish();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		Navigator.gotoSitePage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		var browserType = PropsUtil.get("browser.type");
+
+		if ("${browserType}" == "chrome") {
+			AssertTextEquals(
+				locator1 = "Experience#FRAGMENT_HEADING",
+				value1 = "Chrome Browser Heading");
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "Experience#FRAGMENT_HEADING",
+				value1 = "Default");
+		}
+	}
+
+	@description = "This is a test for LPS-130328."
+	@priority = "5"
+	test AddNewExperienceSessionCookiesSegment {
+		property portal.acceptance = "false";
+
+		JSONUser.addUser(
+			preferredLocale = "zh_CN",
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Cookies");
+
+		Segmentation.fillTitle(titleField = "SessionCookiesSegment Name");
+
+		Segmentation.fillProperty(
+			criterionKey = "GUEST_LANGUAGE_ID",
+			criterionValue = "zh_CN");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionCookiesSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130329."
+	@priority = "5"
+	test AddNewExperienceSessionDeviceBrandSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Device Brand");
+
+		Segmentation.fillTitle(titleField = "SessionDeviceBrandSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Not Equals");
+
+		Segmentation.fillProperty(propertyField = "Apple");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionDeviceBrandSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130330."
+	@priority = "5"
+	test AddNewExperienceSessionDeviceModelSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Device Model");
+
+		Segmentation.fillTitle(titleField = "SessionDeviceModelSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Not Equals");
+
+		Segmentation.fillProperty(propertyField = "ios");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionDeviceModelSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130331."
+	@priority = "5"
+	test AddNewExperienceSessionDeviceScreenResolutionHeightSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Device Screen Resolution Height");
+
+		Segmentation.fillTitle(titleField = "SessionDeviceScreenResolutionHeightSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Not Equals");
+
+		Segmentation.fillProperty(resolutionValue = "480");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionDeviceScreenResolutionHeightSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130332."
+	@priority = "5"
+	test AddNewExperienceSessionDeviceScreenResolutionWidthSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Device Screen Resolution Width");
+
+		Segmentation.fillTitle(titleField = "SessionDeviceScreenResolutionWidthSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Not Equals");
+
+		Segmentation.fillProperty(resolutionValue = "320");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionDeviceScreenResolutionWidthSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130333."
+	@priority = "5"
+	test AddNewExperienceSessionHostnameSegment {
+		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "ExperienceCreateExperience#AddNewExperienceSessionHostnameSegment";
+
+		HeadlessPortalInstanceAPI.addPortalInstance(
+			domain = "www.able.com",
+			portalInstanceId = "www.able.com",
+			virtualHost = "www.able.com");
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+		User.firstLoginPG(
+			password = "test",
+			userEmailAddress = "test@www.able.com",
+			virtualHostsURL = "http://www.able.com:8080");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		ContentPages.addPage(pageName = "Experience Content Page");
+
+		PageEditor.clickPublish();
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			portlet = "Segments");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Hostname");
+
+		Segmentation.fillTitle(titleField = "HostnameSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "www.able.com");
+
+		Button.clickSave();
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+		Navigator._gotoPage(pageName = "Experience Content Page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "HostnameSegment Name");
+
+		Button.clickPublish();
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+		Navigator._gotoPage(pageName = "Experience Content Page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080/group/control_panel/manage?p_p_id=com_liferay_users_admin_web_portlet_UsersAdminPortlet");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		User.firstLoginPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com",
+			virtualHostsURL = "http://www.able.com:8080");
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+		Navigator._gotoPage(pageName = "Experience Content Page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130335."
+	@priority = "5"
+	test AddNewExperienceSessionLastSignInDateSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Last Sign In Date");
+
+		Segmentation.fillTitle(titleField = "LastSignInDateSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Greater Than");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "LastSignInDateSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130336."
+	@priority = "5"
+	test AddNewExperienceSessionLocalDateSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Local Date");
+
+		Segmentation.fillTitle(titleField = "LocalDateSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Greater Than or Equals");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "LocalDateSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130337."
+	@priority = "5"
+	test AddNewExperienceSessionReferrerURLSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Referrer URL");
+
+		Segmentation.fillTitle(titleField = "ReferrerURLSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "8080");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "ReferrerURLSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		// Navigating to content page is a workaroud for LPS-132766, remove this when LPS-132766 get resolved
+
+		AssertClick.assertPartialTextClickAt(
+			key_pageName = "Experience Content Page",
+			locator1 = "Home#PAGE",
+			value1 = "Experience Content Page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130338."
+	@priority = "5"
+	test AddNewExperienceSessionRequestParametersSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Request Parameters");
+
+		Segmentation.fillTitle(titleField = "SessionRequestParametersSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(
+			criterionKey = "languageId",
+			criterionValue = "zh_CN");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionRequestParametersSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page?languageId=zh_CN");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130339."
+	@priority = "5"
+	test AddNewExperienceSessionSignedInSegment {
+		property portal.acceptance = "false";
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			portlet = "Segments");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "Signed In");
+
+		Segmentation.fillTitle(titleField = "Session Signed In Segment");
+
+		Select(
+			key_criterion = "options",
+			locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
+			value1 = "False");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.viewFragmentStyle(
+			fragmentName = "Heading",
+			headingLevel = "h1");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "Default");
+
+		Button.clickPublish();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addExperience(
 			experienceName = "NewSignedInExperience",
@@ -431,204 +2060,2228 @@ definition {
 	}
 
 	@description = "This is a test for LPS-130340."
-	@ignore = "true"
 	@priority = "5"
 	test AddNewExperienceSessionURLSegment {
 		property portal.acceptance = "false";
 
-		// TODO LPS-130340 AddNewExperienceSessionURLSegment pending implementation
-	}
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
 
-	@description = "This is a test for LPS-130341."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceSessionUserAgentSegment {
-		property portal.acceptance = "false";
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
 
-		// TODO LPS-130341 AddNewExperienceSessionUserAgentSegment pending implementation
-	}
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 
-	@description = "This is a test for LPS-130293."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserDateModifiedSegment {
-		property portal.acceptance = "false";
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
 
-		// TODO LPS-130293 AddNewExperienceUserDateModifiedSegment pending implementation
-	}
+		LexiconEntry.gotoAdd();
 
-	@description = "This is a test for LPS-130294."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserDateOfBirthSegment {
-		property portal.acceptance = "false";
+		Segmentation.gotoSidebar(fieldType = "Session");
 
-		// TODO LPS-130294 AddNewExperienceUserDateOfBirthSegment pending implementation
-	}
+		Segmentation.addProperties(propertyOption = "URL");
 
-	@description = "This is a test for LPS-130301."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserEmailAddressSegment {
-		property portal.acceptance = "false";
+		Segmentation.fillTitle(titleField = "SessionURLSegment Name");
 
-		// TODO LPS-130301 AddNewExperienceUserEmailAddressSegment pending implementation
-	}
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
 
-	@description = "This is a test for LPS-130295."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserFirstNameSegment {
-		property portal.acceptance = "false";
+		Segmentation.fillProperty(propertyField = "test-site-name");
 
-		// TODO LPS-130295 AddNewExperienceUserFirstNameSegment pending implementation
-	}
+		Button.clickSave();
 
-	@description = "This is a test for LPS-130296."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserJobTitleSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130296 AddNewExperienceUserJobTitleSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130297."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserLastNameSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130297 AddNewExperienceUserLastNameSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130298."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserNameSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130298 AddNewExperienceUserNameSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130299."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserRoleSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130299 AddNewExperienceUserRoleSegment pending implementation
-	}
-
-	@description = "This is a test for LPS-130300."
-	@ignore = "true"
-	@priority = "5"
-	test AddNewExperienceUserScreenNameSegment {
-		property portal.acceptance = "false";
-
-		// TODO LPS-130300 AddNewExperienceUserScreenNameSegment pending implementation
-	}
-
-	@description = "When the user opens the experiences selection modal and select a different locale for an experience, the experience version for that language is shown"
-	@priority = "5"
-	test AddNewExperienceWithLanguage {
-		property portal.acceptance = "true";
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-		ContentPages.clickPencil();
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
 
 		PageEditor.addFragment(
 			collectionName = "Basic Components",
 			fragmentName = "Heading");
 
-		PageEditor.editFragmentText(
-			fragmentName = "Heading",
-			id = "element-text",
-			text = "Text in english");
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionURLSegment Name");
 
 		Button.clickPublish();
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
 
-		ContentPages.clickPencil();
-
-		PageEditor.addExperienceWithLanguage(
-			experienceName = "NewAnyoneExperience",
-			language = "Spanish",
-			segmentName = "Anyone");
-
-		Refresh();
-
-		PageEditor.changeExperienceLanguage(
-			language = "es-ES",
-			newExperience = "NewAnyoneExperience");
+		PageEditor.changeExperience(newExperience = "New Experience");
 
 		PageEditor.editFragmentText(
 			fragmentName = "Heading",
 			id = "element-text",
-			text = "Texto en español");
+			text = "This is a new experience for you");
 
-		Button.clickPublish();
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
 
-		PageEditor.changeExperience(newExperience = "NewAnyoneExperience");
+	@description = "This is a test for LPS-130341."
+	@priority = "5"
+	test AddNewExperienceSessionUserAgentSegment {
+		property portal.acceptance = "false";
 
-		PageEditor.prioritizeExperience(experienceName = "NewAnyoneExperience");
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.gotoSidebar(fieldType = "Session");
+
+		Segmentation.addProperties(propertyOption = "User Agent");
+
+		Segmentation.fillTitle(titleField = "SessionUserAgentSegment Name");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "Chrome");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "SessionUserAgentSegment Name");
 
 		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130293."
+	@priority = "5"
+	test AddNewExperienceUserDateModifiedSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Date Modified");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Not Equals");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "2 Members");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is heading for the new experience");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is heading for the new experience");
+	}
+
+	@description = "This is a test for LPS-130294."
+	@priority = "5"
+	test AddNewExperienceUserDateOfBirthSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Date of Birth");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Less Than");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "2 Members");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is heading for the new experience");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is heading for the new experience");
+	}
+
+	@description = "This is a test for LPS-130301."
+	@priority = "5"
+	test AddNewExperienceUserEmailAddressSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Email Address");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "userea1@liferay.com");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130295."
+	@priority = "5"
+	test AddNewExperienceUserFirstNameSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "First Name");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "userfn1");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130296."
+	@priority = "5"
+	test AddNewExperienceUserJobTitleSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Job Title");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "Test Engineer1");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130297."
+	@priority = "5"
+	test AddNewExperienceUserLastNameSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Last Name");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "userln1");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130298."
+	@priority = "5"
+	test AddNewExperienceUserNameSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "User Name");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "userfn1 userln1");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130299."
+	@priority = "5"
+	test AddNewExperienceUserRoleSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Regular Role");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(selectCheckbox = "Administrator");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "2 Members");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-130300."
+	@priority = "5"
+	test AddNewExperienceUserScreenNameSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Screen Name");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(propertyField = "usersn1");
+
+		AssertTextEquals(
+			locator1 = "Segmentation#MEMBERS_MATCHED",
+			value1 = "1 Member");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-132101."
+	@priority = "5"
+	test AddNewExperienceUserSiteOrganizationRoleSegment {
+		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "ExperienceCreateExperience#AddNewExperienceUserSiteOrganizationRoleSegment";
+
+		JSONGroup.assignUserToGroup(
+			groupName = "Test Site Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		JSONRole.addSiteRole(
+			roleKey = "Site Role Name",
+			roleTitle = "Site Role Name");
+
+		JSONGroup.assignGroupRoleToUser(
+			groupName = "Test Site Name",
+			roleTitle = "Site Role Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		SearchAdministration.executeReindex();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Site and Organization Role");
+
+		Segmentation.fillTitle(titleField = "UserSiteOrganizationRoleSegment Name");
+
+		Segmentation.fillProperty(selectCheckbox = "Site Role Name");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "UserSiteOrganizationRoleSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-132100."
+	@priority = "5"
+	test AddNewExperienceUserSiteSegment {
+		property portal.acceptance = "false";
+
+		JSONGroup.assignUserToGroup(
+			groupName = "Test Site Name",
+			userEmailAddress = "userea1@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Site");
+
+		Segmentation.fillTitle(titleField = "UserSiteSegment Name");
+
+		Segmentation.fillProperty(selectLink = "Test Site Name");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "UserSiteSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-132101."
+	@priority = "5"
+	test AddNewExperienceUserTagSegment {
+		property portal.acceptance = "false";
 
 		JSONUser.addUser(
+			assetTagNames = "tagname",
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
 
 		ApplicationsMenu.gotoPortlet(
-			category = "Users",
+			category = "Configuration",
 			panel = "Control Panel",
-			portlet = "Users and Organizations");
+			portlet = "Instance Settings");
 
-		User.editPasswordCP(
-			requirePasswordReset = "true",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Tag");
+
+		Segmentation.fillProperty(selectLink = "tagname");
+
+		Segmentation.fillTitle(titleField = "UserTagSegment Name");
+
+		Segmentation.viewMembers(memberName = "userfn userln");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "UserTagSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-132103."
+	@priority = "5"
+	test AddNewExperienceUserTeamSegment {
+		property portal.acceptance = "false";
+
+		JSONGroup.assignUserToGroup(
+			groupName = "Test Site Name",
+			userEmailAddress = "userea1@liferay.com");
 
 		ApplicationsMenu.gotoPortlet(
-			category = "Users",
+			category = "Configuration",
 			panel = "Control Panel",
-			portlet = "Users and Organizations");
+			portlet = "Instance Settings");
 
-		User.editDisplaySettingsCP(
-			languageName = "español (España)",
-			userScreenName = "usersn");
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
 
-		User.logoutPG();
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 
-		Navigator.gotoSitePage(
+		Site.openSiteTeamsAdmin(siteURLKey = "test-site-name");
+
+		Team.addCP(
+			teamDescription = "Site Team Description",
+			teamName = "Site Team Name");
+
+		Team.assignMembersCP(
+			teamName = "Site Team Name",
+			userScreenName = "usersn1");
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Team");
+
+		Segmentation.fillProperty(selectLink = "Site Team Name");
+
+		Segmentation.fillTitle(titleField = "UserTeamSegment Name");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
 			pageName = "Experience Content Page",
 			siteName = "Test Site Name");
 
-		AssertTextEquals(
-			locator1 = "Experience#FRAGMENT_HEADING",
-			value1 = "Text in english");
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
 
-		User.loginUserPG(
-			password = "test",
-			userEmailAddress = "userea@liferay.com");
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "UserTeamSegment Name");
 
-		Navigator.gotoSitePage(
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
 			pageName = "Experience Content Page",
 			siteName = "Test Site Name");
 
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			freeLogin = "true",
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
 		AssertTextEquals(
 			locator1 = "Experience#FRAGMENT_HEADING",
-			value1 = "Texto en español");
+			value1 = "This is a new experience for you");
+	}
 
-		User.firstLoginPG();
+	@description = "This is a test for LPS-132105."
+	@priority = "5"
+	test AddNewExperienceUserUserGroupSegment {
+		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "ExperienceCreateExperience#AddNewExperienceUserUserGroupSegment";
+
+		JSONUserGroup.addUserGroup(
+			userGroupDescription = "UG UserGroup Name Description",
+			userGroupName = "UG UserGroup Name");
+
+		JSONUser.addUserToUserGroup(
+			userEmailAddress = "userea1@liferay.com",
+			userGroupName = "UG UserGroup Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		SearchAdministration.executeReindex();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "User Group");
+
+		Segmentation.fillProperty(chooseItem = "UG UserGroup Name");
+
+		Segmentation.fillTitle(titleField = "UserUserGroupSegment Name");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "UserUserGroupSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "This is a test for LPS-132104."
+	@priority = "5"
+	test AddNewExperienceUserUserSegment {
+		property portal.acceptance = "false";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "User");
+
+		Segmentation.fillProperty(selectCheckbox = "userfn1 userln1");
+
+		Segmentation.fillTitle(titleField = "UserUserSegment Name");
+
+		Segmentation.viewMembers(memberName = "userfn1 userln1");
+
+		Button.clickSave();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "UserUserSegment Name");
+
+		Button.clickPublish();
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This is a new experience for you");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This is a new experience for you");
+	}
+
+	@description = "LPS-125710 When a user, that Belongs To two or more different segments with experiences for them and these experiences are below of any other Anyone-targeted experience, lands on the page, the Anyone-targeted experience labeled as active will be shown"
+	@priority = "3"
+	@uitest
+	test AddTwoExperiencesBelowDefault {
+		property portal.acceptance = "true";
+
+		task ("Uncheck verify strangers email option") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "User Authentication",
+				configurationName = "General",
+				configurationScope = "Virtual Instance Scope");
+
+			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+		}
+
+		task ("Add segment for the user created") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Segment Screen Name",
+				text = "usersn1");
+		}
+
+		task ("Add another segment for the user created") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Email Address",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Segment Email Address",
+				text = "userea1@liferay.com");
+		}
+
+		task ("Go to the Content Page and add a new experience for the first segment") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.addExperience(
+				experienceName = "Screen Name Experience",
+				segmentName = "Segment Screen Name");
+
+			Button.clickPublish();
+		}
+
+		task ("Edit the experience created and leave it below the Default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.changeExperience(newExperience = "Screen Name Experience");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "This is a new Screen Name experience for you");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Go to the Content Page and add a new experience for the second segment") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addExperience(
+				experienceName = "Email Address Experience",
+				segmentName = "Segment Email Address");
+
+			Button.clickPublish();
+		}
+
+		task ("Edit the experience created and leave it below the Default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.changeExperience(newExperience = "Email Address Experience");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "This is a new Email Address Experience for you");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Login with the user and check that the correct experience is shown") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea1@liferay.com",
+				userLoginFullName = "userfn1 userln1");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+			AssertTextEquals(
+				locator1 = "Experience#FRAGMENT_HEADING",
+				value1 = "Heading Example");
+		}
+	}
+
+	@description = "LPS-125710 When a user, that Belongs To two or more different segments with experiences for them and these experiences are above the all other Anyone-targeted experiences, lands on the page, the experience with the higher position will be shown"
+	@priority = "3"
+	@uitest
+	test AddTwoExperiencesOverDefault {
+		property portal.acceptance = "true";
+
+		task ("Uncheck verify strangers email option") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "User Authentication",
+				configurationName = "General",
+				configurationScope = "Virtual Instance Scope");
+
+			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+		}
+
+		task ("Add segment for the user created") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Segment Screen Name",
+				text = "usersn1");
+		}
+
+		task ("Add another segment for the user created") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Email Address",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Segment Email Address",
+				text = "userea1@liferay.com");
+		}
+
+		task ("Go to the Content Page and add a new experience for the first segment") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.addExperience(
+				experienceName = "Screen Name Experience",
+				segmentName = "Segment Screen Name");
+
+			Button.clickPublish();
+		}
+
+		task ("Edit the experience created and prioritize it over the Default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.changeExperience(newExperience = "Screen Name Experience");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "This is a new Screen Name experience for you");
+
+			PageEditor.prioritizeExperience(experienceName = "Screen Name Experience");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Go to the Content Page and add a new experience for the second segment") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addExperience(
+				experienceName = "Email Address Experience",
+				segmentName = "Segment Email Address");
+
+			Button.clickPublish();
+		}
+
+		task ("Edit the experience created and prioritize it over the Default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.changeExperience(newExperience = "Email Address Experience");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "This is a new Email Address Experience for you");
+
+			PageEditor.prioritizeExperience(experienceName = "Email Address Experience");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Login with the user and check that the correct experience is shown") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea1@liferay.com",
+				userLoginFullName = "userfn1 userln1");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+			AssertTextEquals(
+				locator1 = "Experience#FRAGMENT_HEADING",
+				value1 = "This is a new Screen Name experience for you");
+		}
+	}
+
+	@description = "LPS-90586: Validate if the user can cancel the confirmation from delete alert and your experience is not deleted"
+	@priority = "3"
+	test CancelDeletingExperience {
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+
+			Refresh();
+		}
+
+		task ("try to delete an experience and click cancel button") {
+			Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			ClickNoError(locator1 = "PageEditor#EXPERIENCE_DELETE_BUTTON");
+
+			Confirm.dismissAlert();
+
+			AssertElementPresent(
+				key_experienceName = "Segment Name Experience",
+				locator1 = "PageEditor#EXPERIENCE_SELECT_ITEM");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			PageEditor.clickPublish();
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can change the background color of some section in the experiences that can be different from other experiences (already published)"
+	@priority = "3"
+	test ChangingBackgroundColor {
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+
+			PageEditor.editLayoutContainer(
+				backgroundColor = "Danger",
+				panel = "Styles");
+
+			PageEditor.clickPublish();
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Change the background color of the default experience") {
+			PageEditor.editLayoutContainer(
+				backgroundColor = "Success",
+				panel = "Styles");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Check if any experience has its own container with its own background color") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewContainerStyle(
+				backgroundColor = "success",
+				position = "1");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.viewContainerStyle(
+				backgroundColor = "danger",
+				position = "1");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can change the background image of some section in the experiences that can be different from other experiences (already published)"
+	@priority = "3"
+	test ChangingBackgroundImage {
+		task ("Go to Experience Content Page and create a container") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+		}
+
+		task ("Create an experience and add a background image to the container") {
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Direct",
+				panel = "Styles",
+				uploadFileName = "high_resolution_photo.jpg");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Change the background image in the default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Direct",
+				panel = "Styles",
+				uploadFileName = "Document_4.jpg");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Check if any experience has his own background image") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewContainerStyle(backgroundImage = "Document_4.jpg");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.viewContainerStyle(backgroundImage = "high_resolution_photo.jpg");
+		}
+	}
+
+	@description = "LPS-90586: Validate if all experiences were deleted, only the Default experience will appear"
+	@priority = "5"
+	test CheckDefaultAfterDeletingExperiences {
+		property portal.acceptance = "true";
+
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Create Email Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Email Address",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Segment Email Address",
+				text = "test@liferay.com");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+
+			Refresh();
+		}
+
+		task ("Create an experience with Segment Email") {
+			PageEditor.addExperience(
+				experienceName = "Segment Email Experience",
+				segmentName = "Segment Email Address");
+
+			Refresh();
+		}
+
+		task ("Delete all experiences") {
+			for (var experienceName : list "Segment Name Experience,Segment Email Experience") {
+				var key_experienceName = "${newExperience}";
+
+				Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+				ClickNoError(locator1 = "PageEditor#EXPERIENCE_DELETE_BUTTON");
+
+				AssertConfirm(value1 = "Do you want to delete this experience? Its content will be deleted.");
+
+				Alert.viewSuccessMessage();
+
+				AssertElementNotPresent(
+					key_experienceName = "${newExperience}",
+					locator1 = "PageEditor#EXPERIENCE_SELECT_ITEM");
+
+				Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+			}
+		}
+
+		task ("Assert that Experience Default button is present") {
+			AssertElementPresent(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			PageEditor.clickPublish();
+		}
+	}
+
+	@description = "LPS-90586: Validate if the Default experience doesn't offer a delete button"
+	@priority = "3"
+	test CheckDefaultDeleteButton {
+		task ("Add Content Page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page",
+				type = "content");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+		}
+
+		task ("Create an experience and add on content page") {
+			ContentPages.gotoPageEditor();
+
+			PageEditor.addExperience(
+				experienceName = "Name Experience",
+				segmentName = "Anyone");
+
+			Refresh();
+		}
+
+		task ("Assert that 'Default' can not be deleted") {
+			Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			ClickNoError(locator1 = "PageEditor#EXPERIENCE_DELETE_BUTTON");
+
+			AssertConfirm(value1 = "Do you want to delete this experience? Its content will be deleted.");
+
+			Alert.viewSuccessMessage();
+
+			AssertElementNotPresent(
+				key_experienceName = "Name Experience",
+				locator1 = "PageEditor#EXPERIENCE_SELECT_ITEM");
+
+			AssertElementNotPresent(locator1 = "PageEditor#EXPERIENCE_DELETE_BUTTON");
+
+			PageEditor.clickPublish();
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can create the content in the experiences that can be different from others experiences"
+	@priority = "3"
+	test CreatingContentInDifferentExperiences {
+		task ("Create a Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "WC Content",
+				groupName = "Test Site Name",
+				title = "WC Title 1");
+		}
+
+		task ("Create a Blog Entry") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Go to edit Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addWidget(portletName = "Asset Publisher");
+		}
+
+		task ("Create an Experience") {
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add content to both experiences") {
+			AssetPublisherPortlet.configureManualAssetSelectionPG(
+				assetTitle = "WC Title 1",
+				assetType = "Basic Web Content");
+
+			IFrame.closeFrame();
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			AssetPublisherPortlet.configureManualAssetSelectionPG(
+				assetTitle = "Blogs Entry Title",
+				assetType = "Blogs Entry");
+
+			IFrame.closeFrame();
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Check if the content is present only in the New Experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			AssertTextEquals(
+				key_assetTitle = "WC Title 1",
+				locator1 = "AP#ASSET_ABSTRACT_TITLE",
+				value1 = "WC Title 1");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			AssertTextEquals(
+				key_assetTitle = "Blogs Entry Title",
+				locator1 = "AP#ASSET_ABSTRACT_TITLE",
+				value1 = "Blogs Entry Title");
+		}
+	}
+
+	@description = "LPS-90585: Validate in the list of Experiences if the decrease priority button working properly"
+	@priority = "4"
+	test DecreaseExperiencePriority {
+		property portal.acceptance = "true";
+
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+		}
+
+		task ("Add an element to page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Priorize experience") {
+			if (IsElementPresent(locator1 = "PageEditor#EXPERIENCE_DROPDOWN")) {
+				Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+			}
+
+			PageEditor.prioritizeExperience(experienceName = "Segment Name Experience");
+		}
+
+		task ("Assert the experience is 'Active'") {
+			PageEditor.viewExperienceActive(experienceName = "Segment Name Experience");
+		}
+
+		task ("Depriorize experience") {
+			PageEditor.deprioritizeExperience(experienceName = "Segment Name Experience");
+		}
+
+		task ("Assert the experience is not 'Active'") {
+			if (IsElementNotPresent(locator1 = "PageEditor#EXPERIENCE_DROPDOWN")) {
+				Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+			}
+
+			AssertElementNotPresent(
+				key_experienceName = "Segment Name Experience",
+				locator1 = "PageEditor#EXPERIENCE_ACTIVE_LABEL");
+		}
+
+		task ("Publish and go to experience content page") {
+			Button.clickPublish();
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+		}
+	}
+
+	@description = "LPS-90585: Validate if the Default segment doesn't offer any option to be prioritized"
+	@priority = "3"
+	test DefaultExperienceCantBePrioritized {
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+		}
+
+		task ("Add an element to page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Priorize experience") {
+			if (IsElementPresent(locator1 = "PageEditor#EXPERIENCE_DROPDOWN")) {
+				Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+			}
+
+			PageEditor.prioritizeExperience(experienceName = "Segment Name Experience");
+		}
+
+		task ("Assert Default segment buttons is not present") {
+			AssertElementNotPresent(
+				key_index = "2",
+				locator1 = "PageEditor#EXPERIENCE_PRIORITIZE_BUTTON");
+		}
+
+		task ("Publish and go to experience content page") {
+			Button.clickPublish();
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+		}
+	}
+
+	@description = "LPS-90585: Validate in the list of Experiences if the default option is always the last option"
+	@priority = "3"
+	test DefaultExperienceLastOption {
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Create Email Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Email Address",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Segment Email Address",
+				text = "test@liferay.com");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+
+			Refresh();
+		}
+
+		task ("Create an experience with Segment Email") {
+			PageEditor.addExperience(
+				experienceName = "Segment Email Experience",
+				segmentName = "Segment Email Address");
+		}
+
+		task ("Priorize experiences") {
+			for (var index : list "1,2") {
+				if (IsElementNotPresent(locator1 = "PageEditor#EXPERIENCE_DROPDOWN")) {
+					Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+				}
+
+				Click(
+					key_index = "${index}",
+					locator1 = "PageEditor#EXPERIENCE_PRIORITIZE_BUTTON");
+			}
+		}
+
+		task ("Assert that Default Segment is active and at the bottom") {
+			PageEditor.viewExperienceActive(experienceName = "Default");
+
+			PageEditor.viewExperiencesNameOrder(experienceName = "Segment Name Experience,Segment Email Experience,Default");
+		}
+
+		task ("Publish and go to experience content page") {
+			Button.clickPublish();
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can discard the section when he is editing the experiences (not published)	"
+	@priority = "3"
+	test DiscardingASectionOfAnUnpublishedExperience {
+		task ("Create an experience, add a component and make changes without publish it") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+
+			PageEditor.clickPublish();
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+		}
+
+		task ("Go to the pages menu and discard changes") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "Test Site Name");
+
+			PageEditor.clickDiscardDraft(pageName = "Experience Content Page");
+		}
+
+		task ("Go to Experience Content Page and check the Experience is not present") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragment(fragmentName = "Container");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+
+			AssertElementNotPresent(
+				key_experienceName = "New Experience",
+				locator1 = "PageEditor#EXPERIENCE_SELECT_ITEM");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can discard the changes when he is editing the experiences (not published)"
+	@priority = "3"
+	test DiscardingChangesFromUnpublishedExperiences {
+		task ("Create a component and add a component without publishing them") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.clickPublish();
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+		}
+
+		task ("Edit the the component without publishing the changes") {
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "New editable fragment text");
+		}
+
+		task ("Go to the pages menu and discard changes") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "Test Site Name");
+
+			PageEditor.clickDiscardDraft(pageName = "Experience Content Page");
+		}
+
+		task ("Go to Experience Content Page and the Experience is not present") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragment(fragmentName = "Heading");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+
+			AssertElementNotPresent(
+				key_experienceName = "New Experience",
+				locator1 = "PageEditor#EXPERIENCE_SELECT_ITEM");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can discard the changes when he is editing the experiences (already published)"
+	@priority = "4"
+	test DiscardingChangesStillInTheEdition {
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience with a component and publish it") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Edit the fragment recently added without publishing the changes") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "New editable fragment text");
+		}
+
+		task ("Go to the pages menu and discard changes") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "Test Site Name");
+
+			PageEditor.clickDiscardDraft(pageName = "Experience Content Page");
+		}
+
+		task ("Go to Experience Content Page and check if the changes are discarded") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can discard the section when he is editing the experiences (already published)"
+	@priority = "3"
+	test DiscardingSection {
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience, add a component and make changes without publish it") {
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.clickPublish();
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+		}
+
+		task ("Go to the pages menu and discard changes") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "Test Site Name");
+
+			PageEditor.clickDiscardDraft(pageName = "Experience Content Page");
+		}
+
+		task ("Go to Experience Content Page and check the discarted changes") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Container");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Container");
+		}
 	}
 
 	@description = "When the user clicks on the Duplicate option of an experience, a new experience with [the same name] + Copy and the same audience (Segment) appears in the last position of the list, always below the default experience"
@@ -638,7 +4291,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addFragment(
 			collectionName = "Basic Components",
@@ -651,7 +4304,7 @@ definition {
 
 		Button.clickPublish();
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addExperience(
 			experienceName = "NewExp1",
@@ -659,7 +4312,7 @@ definition {
 
 		Button.clickPublish();
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.changeExperience(newExperience = "NewExp1");
 
@@ -672,7 +4325,7 @@ definition {
 
 		Button.clickPublish();
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.changeExperience(newExperience = "NewExp1");
 
@@ -680,9 +4333,9 @@ definition {
 
 		Button.clickPublish();
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
-		PageEditor.changeExperience(newExperience = "NewExp1 (Copy)");
+		PageEditor.changeExperience(newExperience = "Copy of NewExp1");
 
 		AssertTextEquals(
 			locator1 = "Experience#FRAGMENT_HEADING",
@@ -702,73 +4355,6 @@ definition {
 		PageEditor.clickPublish();
 	}
 
-	@description = "When the user duplicates an experience, the new experience has the same locales selected than the duplicated one"
-	@priority = "5"
-	test DuplicateExperienceWithLanguage {
-		property portal.acceptance = "true";
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-		ContentPages.clickPencil();
-
-		PageEditor.addFragment(
-			collectionName = "Basic Components",
-			fragmentName = "Heading");
-
-		PageEditor.editFragmentText(
-			fragmentName = "Heading",
-			id = "element-text",
-			text = "Text in english");
-
-		Button.clickPublish();
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-		ContentPages.clickPencil();
-
-		PageEditor.addExperienceWithLanguage(
-			experienceName = "NewAnyoneExperience",
-			language = "Spanish",
-			segmentName = "Anyone");
-
-		Refresh();
-
-		PageEditor.changeExperienceLanguage(
-			language = "es-ES",
-			newExperience = "NewAnyoneExperience");
-
-		PageEditor.editFragmentText(
-			fragmentName = "Heading",
-			id = "element-text",
-			text = "Texto en español");
-
-		Button.clickPublish();
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-		ContentPages.clickPencil();
-
-		PageEditor.changeExperience(newExperience = "NewAnyoneExperience");
-
-		PageEditor.duplicateExperience(experienceName = "NewAnyoneExperience");
-
-		PageEditor.clickPublish();
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-		ContentPages.clickPencil();
-
-		PageEditor.changeExperienceLanguage(
-			language = "es-ES",
-			newExperience = "NewAnyoneExperience (Copy)");
-
-		AssertTextEquals(
-			locator1 = "Experience#FRAGMENT_HEADING",
-			value1 = "Texto en español");
-
-		PageEditor.clickPublish();
-	}
-
 	@description = "Validate experience edition and deletion"
 	@priority = "5"
 	test EditAndDeleteExperience {
@@ -776,7 +4362,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-		ContentPages.clickPencil();
+		ContentPages.gotoPageEditor();
 
 		PageEditor.addExperience(
 			experienceName = "exp1",
@@ -789,6 +4375,701 @@ definition {
 		PageEditor.deleteExperience(experienceName = "exp1_edited");
 
 		PageEditor.clickPublish();
+	}
+
+	@description = "LPS-91876: Validate if when the user tries to edit the name of some Experience can be edited with success"
+	@priority = "5"
+	test EditExperienceName {
+		property portal.acceptance = "true";
+
+		task ("Create an experience and add on content page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+			ContentPages.gotoPageEditor();
+
+			PageEditor.addExperience(
+				experienceName = "NewAnyoneExperience",
+				segmentName = "Anyone");
+
+			Refresh();
+		}
+
+		task ("Change experience's name") {
+			Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_EDIT_BUTTON");
+
+			Type(
+				locator1 = "PageEditor#EXPERIENCE_NAME",
+				value1 = "NewAnyoneExperience edited");
+
+			Click(locator1 = "Button#SAVE");
+
+			Refresh();
+		}
+
+		task ("Assert that experience's name is changed") {
+			Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			AssertElementPresent(
+				key_experienceName = "NewAnyoneExperience edited",
+				locator1 = "PageEditor#EXPERIENCE_SELECT_ITEM");
+
+			PageEditor.clickPublish();
+		}
+	}
+
+	@description = "LPS-91876: Validate if when the user tries to edit the segment associated of some Experience can be changed with success"
+	@priority = "3"
+	test EditExperienceSegment {
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Anyone");
+
+			Refresh();
+		}
+
+		task ("Change experience's segment") {
+			Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_EDIT_BUTTON");
+
+			Select(
+				locator1 = "PageEditor#EXPERIENCE_SELECT_SEGMENT",
+				value1 = "Name Segment");
+
+			Click(locator1 = "Button#SAVE");
+
+			Refresh();
+		}
+
+		task ("Assert that experience's segment is changed") {
+			Click(locator1 = "PageEditor#EXPERIENCE_DEFAULT_BUTTON_NAME");
+
+			AssertElementPresent(
+				key_experienceName = "Segment Name Experience",
+				key_segmentName = "Name Segment",
+				locator1 = "PageEditor#EXPERIENCE_SEGMENT_NAMES",
+				value1 = "Name Segment");
+
+			PageEditor.clickPublish();
+		}
+	}
+
+	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when the user has permissions and segments are available and interact with the New Segment by New Experience"
+	@ignore = "true"
+	@priority = "3"
+	test ExperienceDropdownAddNewSegment {
+
+		// TODO LPS-90588 ExperienceDropdownAddNewSegment pending implementation
+
+	}
+
+	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when the user has permissions but no segments are available and interact with the New Segment by New Experience"
+	@ignore = "true"
+	@priority = "3"
+	test ExperienceDropdownAddNewSegmentButton {
+
+		// TODO LPS-90588 ExperienceDropdownAddNewSegmentButton pending implementation
+
+	}
+
+	@description = "LPS-90588: Validate the interaction with once the user is creating the new Segment, when the user saves the segment	"
+	@ignore = "true"
+	@priority = "5"
+	test ExperienceDropdownAddNewSegmentCancel {
+
+		// TODO LPS-90588 ExperienceDropdownAddNewSegmentCancel pending implementation
+
+	}
+
+	@description = "LPS-90588: Validate the interaction with once the user is creating the new Segment, when the user closes segments edition"
+	@ignore = "true"
+	@priority = "3"
+	test ExperienceDropdownAddNewSegmentCancelInputs {
+
+		// TODO LPS-90588 ExperienceDropdownAddNewSegmentCancelInputs pending implementation
+
+	}
+
+	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when the user has permissions and segments are available and interact with the New Experience button"
+	@ignore = "true"
+	@priority = "3"
+	test ExperienceDropdownAddNewSegmentEmpty {
+
+		// TODO LPS-90588 ExperienceDropdownAddNewSegmentEmpty pending implementation
+
+	}
+
+	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when the user has permissions but no segments are available and interact with the New Experience button"
+	@ignore = "true"
+	@priority = "3"
+	test ExperienceDropdownWithNoSegmentsUserWithNoPermisisons {
+
+		// TODO LPS-90588 ExperienceDropdownWithNoSegmentsUserWithNoPermisisons pending implementation
+
+	}
+
+	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when segments available but the user has no permissions"
+	@ignore = "true"
+	@priority = "3"
+	test ExperienceDropdownWithSegmentsUserWithNoPermisisons {
+
+		// TODO LPS-90588 ExperienceDropdownWithSegmentsUserWithNoPermisisons pending implementation
+
+	}
+
+	@description = "LPS-91946: Given: in the Site Editor => Page => Content Editor; Having at least on Segment created, with a faulty edition and creation experience web service
+	When: trying to create a new experience
+	Then: the modal does not hides away and an toast error message appears at the bottom left side of the screen."
+	@ignore = "true"
+	@priority = "4"
+	test GeneralErrorOrToastError {
+
+		// TODO LPS-91946 GeneralErrorOrToastError pending implementation
+
+	}
+
+	@description = "LPS-86292: Validate if, on simulate view, is possible to have no segment selected, in this case, the page shown is the default
+	Create a segment;
+	Create an experience based on that segment;
+	Validate that in the simulation mode the default experience is shown when no segment is selected"
+	@priority = "4"
+	test PreviewDefaultExperience {
+		property portal.acceptance = "true";
+
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+		}
+
+		task ("Add an element to page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			Button.clickPublish();
+		}
+
+		task ("Go to simulation mode") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+			MobileDevice.previewPG();
+
+			SelectFrameTop();
+		}
+
+		task ("Select the segment on Simulation panel") {
+			Check.checkNotVisible(
+				checkboxName = "Name Segment",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+
+		task ("Assert that element is present not present in Default experience") {
+			AssertElementNotPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+	}
+
+	@description = "LPS-86292: Validate if, on simulate view, after selecting a segment, the page updates related to the criteria of the segment
+	Create a segment;
+	Create an experience based on that segment;
+	Validate that in the simulation mode the experience is shown for that segment"
+	@priority = "5"
+	test PreviewExperience {
+		property portal.acceptance = "true";
+
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+		}
+
+		task ("Add an element to page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Priorize experience and publish page") {
+			Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+
+			PageEditor.prioritizeExperience(experienceName = "Segment Name Experience");
+
+			Button.clickPublish();
+		}
+
+		task ("Go to simulation mode") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+			MobileDevice.previewPG();
+
+			SelectFrameTop();
+		}
+
+		task ("Select the segment on Simulation panel") {
+			Check.checkNotVisible(
+				checkboxName = "Name Segment",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+
+		task ("Assert that element is present at page") {
+			AssertElementPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+	}
+
+	@description = "LPS-86292: Validate if, on simulate view, is possible to navigate inside the page under the selected segment criteria
+	Create a segment;
+	Create an experience based on that segment;
+	Validate that in the simulation mode its possible to navigate insided the page"
+	@priority = "3"
+	test PreviewExperienceNavigation {
+		task ("Create Name Segment") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Screen Name",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Name Segment",
+				text = "Test");
+		}
+
+		task ("Create content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Home");
+		}
+
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience and add on content page") {
+			PageEditor.addExperience(
+				experienceName = "Segment Name Experience",
+				segmentName = "Name Segment");
+		}
+
+		task ("Add an element to page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Priorize experience and publish page") {
+			Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+
+			PageEditor.prioritizeExperience(experienceName = "Segment Name Experience");
+
+			Button.clickPublish();
+		}
+
+		task ("Go to simulation mode") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+
+			MobileDevice.previewPG();
+
+			SelectFrameTop();
+		}
+
+		task ("Select the segment on Simulation panel") {
+			Check.checkNotVisible(
+				checkboxName = "Name Segment",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+
+		task ("Assert that element is present") {
+			AssertElementPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+
+		task ("Navigate to another page via Navigation Menu widget and assert that element is not present") {
+			Navigator._gotoPage(pageName = "Home");
+
+			AssertElementNotPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can publish the content in the experiences that can be different from others experiences"
+	@priority = "5"
+	test PublishContentInDifferentExperiences {
+		task ("Create a Web Content and add it to the page") {
+			JSONWebcontent.addWebContent(
+				content = "WC Content",
+				groupName = "Test Site Name",
+				title = "WC Title 1");
+		}
+
+		task ("Create an experience and add the Content on it") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.addWidget(portletName = "Asset Publisher");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Check if the content is present only in the New Experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Asset Publisher");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.viewFragment(fragmentName = "Asset Publisher");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can remove a section in the experiences that can be different from others experiences (already published)"
+	@priority = "5"
+	test RemoveDifferentSections {
+		task ("Add an element to page, create an experience and publish it") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Grid");
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Remove the fragment from the Default Experience and check that is not present") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.removeFragment(fragmentName = "Grid");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Check the fragment is present in the Default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Grid");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.viewFragment(fragmentName = "Grid");
+		}
+	}
+
+	@description = "This is a test for LPS-132573. Assert no error occurs after switching back to default experience with fragment removed."
+	@priority = "4"
+	test RemoveFragmentAndChangeBackToDefaultExperience {
+		property test.name.skip.portal.instance = "ExperienceCreateExperience#RemoveFragmentAndChangeBackToDefaultExperience";
+
+		JSONWebcontent.addWebContent(
+			content = "Web Content Content",
+			groupName = "Test Site Name",
+			title = "Web Content Title");
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Experience Content Page",
+			siteName = "Test Site Name");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditorMapping.gotoEditableFieldMapping(
+			fragmentName = "Heading",
+			id = "element-text");
+
+		PageEditorMapping.mapEditableFieldToAsset(
+			entryTitle = "Web Content Title",
+			navItem = "Web Content");
+
+		Select(
+			locator1 = "PageEditorEditableLink#FIELD",
+			value1 = "Title");
+
+		PageEditor.waitForAutoSave();
+
+		PageEditor.viewFragmentEditableText(
+			editableText = "Web Content Title",
+			fragmentName = "Heading",
+			id = "element-text");
+
+		PageEditor.addExperience(
+			experienceName = "NewExperienceName",
+			segmentName = "Anyone");
+
+		Refresh();
+
+		PageEditor.changeExperience(newExperience = "Default");
+
+		PageEditor.removeFragment(fragmentName = "Heading");
+
+		AssertConsoleTextNotPresent(value1 = "java.lang.NullPointerException");
+
+		PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can remove a section in the experiences that can be different from others experiences (not published)"
+	@priority = "3"
+	test RemovingASectionOfDifferentAndUnpublishedExperiences {
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create an experience, add a component and make changes without publish it") {
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+		}
+
+		task ("Go to the pages menu and discard changes") {
+			PageEditor.removeFragment(fragmentName = "Container");
+		}
+
+		task ("Go to Experience Content Page and the Experience is not present") {
+			PageEditor.viewFragmentNotPresent(fragmentName = "Container");
+
+			PageEditor.changeExperience(newExperience = "Default");
+
+			PageEditor.viewFragment(fragmentName = "Container");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can remove fragment in the experiences that can be different from others experiences (already published)"
+	@priority = "4"
+	test RemovingFragmentInDifferentExperiences {
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Create an experience and add a fragment on both experiences") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Remove the fragment created from the default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.removeFragment(fragmentName = "Heading");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Check if the fragment is only present in the new experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.viewFragment(fragmentName = "Heading");
+		}
+	}
+
+	@description = "LPS-86285: Validate in the content page if, the user can remove fragment in the experiences that can be different from others experiences (not published)"
+	@priority = "3"
+	test RemovingFragmentOfUnpublishedExperiences {
+		task ("Go to Experience Content Page, add an experience and a fragment without publishing them") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.clickPublish();
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			Click(locator1 = "PageEditor#EXPERIENCE_LABEL");
+		}
+
+		task ("Remove the fragment created from the experience") {
+			PageEditor.removeFragment(fragmentName = "Heading");
+		}
+
+		task ("Check if the fragment is present") {
+			PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+
+			PageEditor.changeExperience(newExperience = "Default");
+
+			PageEditor.viewFragment(fragmentName = "Heading");
+		}
+	}
+
+	@description = "LPS-91946: Given: in the Site Editor => Page => Content Editor; Having at least on Segment created.
+	When: trying to create a new experience without filling the Experience Name input
+	Then: the modal does not hides away and the Experience Name input reports an error"
+	@priority = "4"
+	test RequiredExperienceNameField {
+		task ("Try to create new experience without name") {
+			ContentPages.gotoPageEditor();
+
+			PageEditor.addExperience(
+				experienceName = "",
+				segmentName = "Anyone");
+		}
+
+		task ("Check if the warning message appears") {
+			AssertTextEquals(
+				locator1 = "Message#WARNING_FEEDBACK",
+				value1 = "An experience name is required.");
+		}
+	}
+
+	@description = "LPS-139951 Bug: Some fragments break the page editor when added to experiences"
+	@priority = "4"
+	test UseBannerFragmentWithExperience {
+		task ("Go to Experience Content Page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
+		}
+
+		task ("Create a new Experience") {
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Banner Center to default experience") {
+			PageEditor.changeExperience(newExperience = "Default");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Add a Banner Center to created experience") {
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Title of Banner");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Check that Banner fragment was properly added") {
+			PageEditor.viewFragment(fragmentName = "Button");
+
+			PageEditor.viewFragment(fragmentName = "Heading");
+		}
 	}
 
 }

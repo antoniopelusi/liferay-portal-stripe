@@ -78,6 +78,9 @@ components:
         Availability:
             properties:
                 label:
+                    example: available
+                    type: string
+                label_i18n:
                     example: Available
                     type: string
                 stockQuantity:
@@ -132,6 +135,125 @@ components:
                 - errorDescription
                 - message
                 - status
+            type: object
+        MappedProduct:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                availability:
+                    $ref: "#/components/schemas/Availability"
+                firstAvailableReplacementMappedProduct:
+                    $ref: "#/components/schemas/MappedProduct"
+                    readOnly: true
+                id:
+                    example: 33130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                price:
+                    $ref: "#/components/schemas/Price"
+                productConfiguration:
+                    $ref: "#/components/schemas/ProductConfiguration"
+                productExternalReferenceCode:
+                    example: exampleERC
+                    type: string
+                productId:
+                    example: 33131
+                    format: int64
+                    minimum: 0
+                    type: integer
+                productName:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Hand Saw
+                        hr_HR: Product Name HR
+                        hu_HU: Product Name HU
+                    readOnly: true
+                    type: object
+                productOptions:
+                    items:
+                        $ref: "#/components/schemas/ProductOption"
+                    type: array
+                purchasable:
+                    example: true
+                    readOnly: true
+                    type: boolean
+                quantity:
+                    example: 1
+                    format: int32
+                    minimum: 0
+                    type: integer
+                replacementMappedProduct:
+                    $ref: "#/components/schemas/MappedProduct"
+                    readOnly: true
+                replacementMessage:
+                    example: MIN3123 has been replaced by MIN1289
+                    readOnly: true
+                    type: string
+                sequence:
+                    example: 1
+                    type: string
+                sku:
+                    example: SKU01
+                    type: string
+                skuExternalReferenceCode:
+                    example: SKU0111
+                    type: string
+                skuId:
+                    example: 33135
+                    format: int64
+                    minimum: 0
+                    type: integer
+                skuOptions:
+                    items:
+                        $ref: "#/components/schemas/SkuOption"
+                    type: array
+                thumbnail:
+                    example: simple
+                    readOnly: true
+                    type: string
+                type:
+                    enum:
+                        - diagram
+                        - external
+                        - sku
+                    example: sku
+                    type: string
+                urls:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: product-url-us
+                        hr_HR: product-url-hr
+                        hu_HU: product-url-hu
+                    type: object
+            type: object
+        Pin:
+            properties:
+                id:
+                    example: 33130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                mappedProduct:
+                    $ref: "#/components/schemas/MappedProduct"
+                positionX:
+                    example: 33.54
+                    format: double
+                    type: number
+                positionY:
+                    example: 33.54
+                    format: double
+                    type: number
+                sequence:
+                    example: 1
+                    type: string
             type: object
         Price:
             properties:
@@ -205,6 +327,9 @@ components:
                     type: integer
                 name:
                     type: string
+                productConfiguration:
+                    $ref: "#/components/schemas/ProductConfiguration"
+                    readOnly: true
                 productId:
                     format: int64
                     readOnly: true
@@ -242,6 +367,57 @@ components:
                     type: array
                 urlImage:
                     type: string
+                urls:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: product-url-us
+                        hr_HR: product-url-hr
+                        hu_HU: product-url-hu
+                    readOnly: true
+                    type: object
+            type: object
+        ProductConfiguration:
+            properties:
+                allowBackOrder:
+                    example: true
+                    type: boolean
+                allowedOrderQuantities:
+                    example:
+                        - 10
+                        - 20
+                        - 30
+                        - 40
+                    items:
+                        format: int32
+                        type: integer
+                    type: array
+                displayAvailability:
+                    example: true
+                    type: boolean
+                displayStockQuantity:
+                    example: true
+                    type: boolean
+                inventoryEngine:
+                    description:
+                        The inventory engine that will be used to manage the product inventory
+                    type: string
+                lowStockAction:
+                    description:
+                        The low stock action that will be performed when a product is out of stock
+                    type: string
+                maxOrderQuantity:
+                    format: int32
+                    type: integer
+                minOrderQuantity:
+                    format: int32
+                    type: integer
+                minStockQuantity:
+                    format: int32
+                    type: integer
+                multipleOrderQuantity:
+                    format: int32
+                    type: integer
             type: object
         ProductOption:
             properties:
@@ -402,14 +578,6 @@ components:
                 neverExpire:
                     example: true
                     type: boolean
-                options:
-                    additionalProperties:
-                        type: string
-                    example:
-                        color: yellow
-                        optionKey: optionValueKey
-                        size: xs
-                    type: object
                 price:
                     $ref: "#/components/schemas/Price"
                 published:
@@ -420,6 +588,10 @@ components:
                     type: boolean
                 sku:
                     type: string
+                skuOptions:
+                    items:
+                        $ref: "#/components/schemas/SkuOption"
+                    type: array
                 weight:
                     example: 1.1
                     format: double
@@ -431,10 +603,25 @@ components:
                     minimum: 0
                     type: number
             type: object
+        SkuOption:
+            properties:
+                key:
+                    example: 31130
+                    format: int64
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+                value:
+                    example: 31130
+                    format: int64
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            type: object
 info:
     description:
         "Headless Commerce Delivery Catalog API. A Java client JAR is available for use with the group ID 'com.liferay',
-        artifact ID 'com.liferay.headless.commerce.delivery.catalog.client', and version '4.0.2'."
+        artifact ID 'com.liferay.headless.commerce.delivery.catalog.client', and version '4.0.18'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -642,6 +829,16 @@ paths:
                       type: integer
                   style: simple
                 - in: query
+                  name: accountId
+                  required: false
+                  schema:
+                      description:
+                          Account Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                - in: query
                   name: page
                   required: false
                   schema:
@@ -813,6 +1010,16 @@ paths:
                       type: integer
                   style: simple
                 - in: query
+                  name: accountId
+                  required: false
+                  schema:
+                      description:
+                          Account Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                - in: query
                   name: page
                   required: false
                   schema:
@@ -869,6 +1076,230 @@ paths:
                         Unexpected error
             summary: Gets a list of Images related to a Product.
             tags: ["Attachment"]
+    /channels/{channelId}/products/{productId}/mapped-products:
+        get:
+            operationId: getChannelProductMappedProductsPage
+            parameters:
+                - in: path
+                  explode: false
+                  name: channelId
+                  required: true
+                  schema:
+                      description:
+                          The Channel Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+                - in: path
+                  explode: false
+                  name: productId
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+                - in: query
+                  name: accountId
+                  required: false
+                  schema:
+                      description:
+                          Account Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                - in: query
+                  explode: true
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  explode: true
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  name: search
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  required: false
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/MappedProduct"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/MappedProduct"
+                                type: array
+                    description:
+                        Successful operation
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            summary: Gets a list of mapped product.
+            tags: ["MappedProduct"]
+    /channels/{channelId}/products/{productId}/pins:
+        get:
+            operationId: getChannelProductPinsPage
+            parameters:
+                - in: path
+                  explode: false
+                  name: channelId
+                  required: true
+                  schema:
+                      description:
+                          The Channel Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+                - in: path
+                  explode: false
+                  name: productId
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+                - in: query
+                  name: accountId
+                  required: false
+                  schema:
+                      description:
+                          Account Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                - in: query
+                  explode: true
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  explode: true
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  name: search
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  required: false
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Pin"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Pin"
+                                type: array
+                    description:
+                        Successful operation
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            summary: Gets a list of pin.
+            tags: ["Pin"]
     /channels/{channelId}/products/{productId}/product-options:
         get:
             operationId: getChannelProductOptionsPage

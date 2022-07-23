@@ -20,6 +20,7 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.renderer.constants.FragmentRendererConstants;
+import com.liferay.fragment.renderer.react.internal.util.FragmentEntryFragmentRendererReactUtil;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.js.loader.modules.extender.npm.JSPackage;
 import com.liferay.frontend.js.loader.modules.extender.npm.ModuleNameUtil;
@@ -113,6 +114,7 @@ public class FragmentEntryFragmentRendererReact implements FragmentRenderer {
 			printWriter.write(
 				_renderFragmentEntry(
 					fragmentEntryLink,
+					fragmentRendererContext.getFragmentElementId(),
 					HashMapBuilder.<String, Object>put(
 						"configuration", configurationJSONObject
 					).build(),
@@ -157,23 +159,14 @@ public class FragmentEntryFragmentRendererReact implements FragmentRenderer {
 	}
 
 	private String _renderFragmentEntry(
-			FragmentEntryLink fragmentEntryLink, Map<String, Object> data,
-			HttpServletRequest httpServletRequest)
+			FragmentEntryLink fragmentEntryLink, String fragmentElementId,
+			Map<String, Object> data, HttpServletRequest httpServletRequest)
 		throws IOException {
 
 		StringBundler sb = new StringBundler(9);
 
 		sb.append("<div id=\"");
-
-		StringBundler fragmentIdSB = new StringBundler(4);
-
-		fragmentIdSB.append("fragment-");
-		fragmentIdSB.append(fragmentEntryLink.getFragmentEntryId());
-		fragmentIdSB.append("-");
-		fragmentIdSB.append(fragmentEntryLink.getNamespace());
-
-		sb.append(fragmentIdSB.toString());
-
+		sb.append(fragmentElementId);
 		sb.append("\" >");
 		sb.append(fragmentEntryLink.getHtml());
 
@@ -183,8 +176,8 @@ public class FragmentEntryFragmentRendererReact implements FragmentRenderer {
 			new ComponentDescriptor(
 				ModuleNameUtil.getModuleResolvedId(
 					_jsPackage,
-					"fragmentEntryLink/" +
-						fragmentEntryLink.getFragmentEntryLinkId()),
+					FragmentEntryFragmentRendererReactUtil.getModuleName(
+						fragmentEntryLink)),
 				"fragment" + fragmentEntryLink.getFragmentEntryLinkId(),
 				Collections.emptyList(), true),
 			data, httpServletRequest, writer);

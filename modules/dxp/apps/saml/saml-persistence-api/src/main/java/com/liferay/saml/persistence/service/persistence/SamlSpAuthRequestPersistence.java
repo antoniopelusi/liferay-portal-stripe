@@ -49,7 +49,8 @@ public interface SamlSpAuthRequestPersistence
 	 * @param createDate the create date
 	 * @return the matching saml sp auth requests
 	 */
-	public java.util.List<SamlSpAuthRequest> findByCreateDate(Date createDate);
+	public java.util.List<SamlSpAuthRequest> findByLtCreateDate(
+		Date createDate);
 
 	/**
 	 * Returns a range of all the saml sp auth requests where createDate &lt; &#63;.
@@ -63,7 +64,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @param end the upper bound of the range of saml sp auth requests (not inclusive)
 	 * @return the range of matching saml sp auth requests
 	 */
-	public java.util.List<SamlSpAuthRequest> findByCreateDate(
+	public java.util.List<SamlSpAuthRequest> findByLtCreateDate(
 		Date createDate, int start, int end);
 
 	/**
@@ -79,7 +80,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching saml sp auth requests
 	 */
-	public java.util.List<SamlSpAuthRequest> findByCreateDate(
+	public java.util.List<SamlSpAuthRequest> findByLtCreateDate(
 		Date createDate, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpAuthRequest>
 			orderByComparator);
@@ -98,7 +99,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching saml sp auth requests
 	 */
-	public java.util.List<SamlSpAuthRequest> findByCreateDate(
+	public java.util.List<SamlSpAuthRequest> findByLtCreateDate(
 		Date createDate, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpAuthRequest>
 			orderByComparator,
@@ -112,7 +113,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @return the first matching saml sp auth request
 	 * @throws NoSuchSpAuthRequestException if a matching saml sp auth request could not be found
 	 */
-	public SamlSpAuthRequest findByCreateDate_First(
+	public SamlSpAuthRequest findByLtCreateDate_First(
 			Date createDate,
 			com.liferay.portal.kernel.util.OrderByComparator<SamlSpAuthRequest>
 				orderByComparator)
@@ -125,7 +126,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching saml sp auth request, or <code>null</code> if a matching saml sp auth request could not be found
 	 */
-	public SamlSpAuthRequest fetchByCreateDate_First(
+	public SamlSpAuthRequest fetchByLtCreateDate_First(
 		Date createDate,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpAuthRequest>
 			orderByComparator);
@@ -138,7 +139,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @return the last matching saml sp auth request
 	 * @throws NoSuchSpAuthRequestException if a matching saml sp auth request could not be found
 	 */
-	public SamlSpAuthRequest findByCreateDate_Last(
+	public SamlSpAuthRequest findByLtCreateDate_Last(
 			Date createDate,
 			com.liferay.portal.kernel.util.OrderByComparator<SamlSpAuthRequest>
 				orderByComparator)
@@ -151,7 +152,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching saml sp auth request, or <code>null</code> if a matching saml sp auth request could not be found
 	 */
-	public SamlSpAuthRequest fetchByCreateDate_Last(
+	public SamlSpAuthRequest fetchByLtCreateDate_Last(
 		Date createDate,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpAuthRequest>
 			orderByComparator);
@@ -165,7 +166,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @return the previous, current, and next saml sp auth request
 	 * @throws NoSuchSpAuthRequestException if a saml sp auth request with the primary key could not be found
 	 */
-	public SamlSpAuthRequest[] findByCreateDate_PrevAndNext(
+	public SamlSpAuthRequest[] findByLtCreateDate_PrevAndNext(
 			long samlSpAuthnRequestId, Date createDate,
 			com.liferay.portal.kernel.util.OrderByComparator<SamlSpAuthRequest>
 				orderByComparator)
@@ -176,7 +177,7 @@ public interface SamlSpAuthRequestPersistence
 	 *
 	 * @param createDate the create date
 	 */
-	public void removeByCreateDate(Date createDate);
+	public void removeByLtCreateDate(Date createDate);
 
 	/**
 	 * Returns the number of saml sp auth requests where createDate &lt; &#63;.
@@ -184,7 +185,7 @@ public interface SamlSpAuthRequestPersistence
 	 * @param createDate the create date
 	 * @return the number of matching saml sp auth requests
 	 */
-	public int countByCreateDate(Date createDate);
+	public int countByLtCreateDate(Date createDate);
 
 	/**
 	 * Returns the saml sp auth request where samlIdpEntityId = &#63; and samlSpAuthRequestKey = &#63; or throws a <code>NoSuchSpAuthRequestException</code> if it could not be found.

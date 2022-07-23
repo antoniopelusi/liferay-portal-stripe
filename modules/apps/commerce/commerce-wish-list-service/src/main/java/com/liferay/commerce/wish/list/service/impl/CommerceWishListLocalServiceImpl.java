@@ -25,9 +25,11 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCachable;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.spring.extender.service.ServiceReference;
@@ -72,6 +74,7 @@ public class CommerceWishListLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommerceWishList deleteCommerceWishList(
 		CommerceWishList commerceWishList) {
 
@@ -190,12 +193,6 @@ public class CommerceWishListLocalServiceImpl
 		serviceContext.setUserId(user.getUserId());
 
 		if (user.isDefaultUser()) {
-			if (guestCommerceWishList == null) {
-				guestCommerceWishList =
-					commerceWishListLocalService.addCommerceWishList(
-						_DEFAULT_NAME, false, serviceContext);
-			}
-
 			return guestCommerceWishList;
 		}
 
@@ -213,11 +210,6 @@ public class CommerceWishListLocalServiceImpl
 				commerceWishList = commerceWishListPersistence.update(
 					commerceWishList);
 			}
-		}
-
-		if (commerceWishList == null) {
-			commerceWishList = commerceWishListLocalService.addCommerceWishList(
-				_DEFAULT_NAME, true, serviceContext);
 		}
 
 		if (guestCommerceWishList != null) {
@@ -340,8 +332,6 @@ public class CommerceWishListLocalServiceImpl
 			throw new GuestWishListMaxAllowedException();
 		}
 	}
-
-	private static final String _DEFAULT_NAME = "default";
 
 	@ServiceReference(type = CommerceWishListConfiguration.class)
 	private CommerceWishListConfiguration _commerceWishListConfiguration;

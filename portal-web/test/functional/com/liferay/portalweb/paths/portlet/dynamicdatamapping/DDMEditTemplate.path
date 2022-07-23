@@ -2,11 +2,13 @@
 <head>
 <title>DDMEditTemplate</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">DDMEditTemplate</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>SCRIPT_VARIABLE</td>
@@ -20,7 +22,7 @@
 </tr>
 <tr>
 	<td>SCRIPT_FIELD</td>
-	<td>//*[contains(@class,'palette-section') and contains(@id,'fields')]//ul/li/span[contains(@class,'palette-item') and contains(.,'${key_fieldName}')]</td>
+	<td>//*[contains(@class,'palette-section') and contains(@id,'fields')]//ul/li/span[contains(@class,'palette-item') and contains(.,'${key_fieldName}')] | //div[contains(@class,'ddm_template_editor')]//button[contains(@class,'App-sidebar-button') and contains(.,'${key_fieldName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -60,11 +62,6 @@
 </tr>
 <!--DETAILS-->
 <tr>
-	<td>DETAILS_SELECT_STRUCTURE</td>
-	<td>//button[contains(@id,'selectDDMStructure')]/span</td>
-	<td></td>
-</tr>
-<tr>
 	<td>DETAILS_SMALL_IMAGE</td>
 	<td>//label[contains(@for,'smallImage')]/input[@type='checkbox']</td>
 	<td></td>
@@ -77,11 +74,6 @@
 <tr>
 	<td>DETAILS_SMALL_IMAGE_URL_INPUT</td>
 	<td>//div[contains(@class,'input-String-wrapper')]/input[contains(@id,'URL')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DETAILS_STRUCTURE</td>
-	<td>//input[contains(@id,'structure') and contains(@type,'text')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -117,13 +109,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>WEB_CONTENT_SCRIPT_FILE_FIELD</td>
-	<td>//div[contains(@class,'input-text-wrapper')]/input[contains(@id,'Script')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>WEB_CONTENT_SCRIPT_VARIABLE</td>
-	<td>//div[contains(@class,'ButtonList')][button[span[normalize-space(text())='${key_panelTitle}']]]//button[normalize-space(text())='${key_variableName}']</td>
+	<td>//div[contains(@class,'panel-group')][.//*[normalize-space(text())='${key_panelTitle}']]//button[normalize-space(text())='${key_variableName}']</td>
 	<td></td>
 </tr>
 </tbody>

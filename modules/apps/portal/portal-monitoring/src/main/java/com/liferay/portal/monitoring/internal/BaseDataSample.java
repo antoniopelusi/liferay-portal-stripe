@@ -149,33 +149,12 @@ public class BaseDataSample implements DataSample, Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
-
-		sb.append("{attributes=");
-		sb.append(_attributes);
-		sb.append(", companyId=");
-		sb.append(_companyId);
-		sb.append(", groupId=");
-		sb.append(_groupId);
-		sb.append(", description=");
-		sb.append(_description);
-		sb.append(", duration=");
-		sb.append(_duration);
-		sb.append(", name=");
-		sb.append(_name);
-		sb.append(", namespace=");
-		sb.append(_namespace);
-		sb.append(", requestStatus=");
-		sb.append(_requestStatus);
-		sb.append(", stopWatch=");
-		sb.append(_stopWatch);
-		sb.append(", timeout=");
-		sb.append(_timeout);
-		sb.append(", user=");
-		sb.append(_user);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{attributes=", _attributes, ", companyId=", _companyId,
+			", groupId=", _groupId, ", description=", _description,
+			", duration=", _duration, ", name=", _name, ", namespace=",
+			_namespace, ", requestStatus=", _requestStatus, ", stopWatch=",
+			_stopWatch, ", timeout=", _timeout, ", user=", _user, "}");
 	}
 
 	private Map<String, String> _attributes;

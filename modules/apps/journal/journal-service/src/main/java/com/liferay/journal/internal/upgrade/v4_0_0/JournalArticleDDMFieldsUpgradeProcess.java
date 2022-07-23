@@ -19,15 +19,11 @@ import com.liferay.dynamic.data.mapping.service.DDMFieldLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverter;
-import com.liferay.journal.internal.upgrade.v4_0_0.util.JournalArticleTable;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.util.JournalConverter;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.Portal;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 /**
  * @author Preston Crary
@@ -54,31 +50,38 @@ public class JournalArticleDDMFieldsUpgradeProcess extends UpgradeProcess {
 		long classNameId = _classNameLocalService.getClassNameId(
 			JournalArticle.class);
 
-		try (PreparedStatement preparedStatement = connection.prepareStatement(
-				"select id_, groupId, content, DDMStructureKey from " +
-					"JournalArticle where ctCollectionId = 0");
-			ResultSet resultSet = preparedStatement.executeQuery()) {
+		processConcurrently(
+			"select id_, groupId, content, DDMStructureKey from " +
+				"JournalArticle where ctCollectionId = 0",
+			resultSet -> new Object[] {
+				resultSet.getLong("id_"), resultSet.getLong("groupId"),
+				resultSet.getString("content"),
+				resultSet.getString("DDMStructureKey")
+			},
+			values -> {
+				long id = (Long)values[0];
+				long groupId = (Long)values[1];
 
-			while (resultSet.next()) {
+				String content = (String)values[2];
+
+				String ddmStructureKey = (String)values[3];
+
 				DDMStructure ddmStructure =
 					_ddmStructureLocalService.getStructure(
-						_portal.getSiteGroupId(resultSet.getLong("groupId")),
-						classNameId, resultSet.getString("DDMStructureKey"),
-						true);
+						_portal.getSiteGroupId(groupId), classNameId,
+						ddmStructureKey, true);
 
 				DDMFormValues ddmFormValues =
 					_fieldsToDDMFormValuesConverter.convert(
 						ddmStructure,
-						_journalConverter.getDDMFields(
-							ddmStructure, resultSet.getString("content")));
+						_journalConverter.getDDMFields(ddmStructure, content));
 
 				_ddmFieldLocalService.updateDDMFormValues(
-					ddmStructure.getStructureId(), resultSet.getLong("id_"),
-					ddmFormValues);
-			}
-		}
+					ddmStructure.getStructureId(), id, ddmFormValues);
+			},
+			null);
 
-		alter(JournalArticleTable.class, new AlterTableDropColumn("content"));
+		alterTableDropColumn("JournalArticle", "content");
 	}
 
 	private final ClassNameLocalService _classNameLocalService;

@@ -27,6 +27,10 @@ public class SiteFriendlyURLLocalServiceWrapper
 	implements ServiceWrapper<SiteFriendlyURLLocalService>,
 			   SiteFriendlyURLLocalService {
 
+	public SiteFriendlyURLLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SiteFriendlyURLLocalServiceWrapper(
 		SiteFriendlyURLLocalService siteFriendlyURLLocalService) {
 
@@ -166,6 +170,13 @@ public class SiteFriendlyURLLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _siteFriendlyURLLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _siteFriendlyURLLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

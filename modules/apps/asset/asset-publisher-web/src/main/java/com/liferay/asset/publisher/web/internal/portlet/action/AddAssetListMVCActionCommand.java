@@ -18,6 +18,7 @@ import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.list.service.AssetListEntryService;
 import com.liferay.asset.publisher.constants.AssetPublisherPortletKeys;
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
+import com.liferay.asset.publisher.web.internal.constants.AssetPublisherSelectionStyleConstants;
 import com.liferay.asset.publisher.web.internal.handler.AssetListExceptionRequestHandler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -38,7 +39,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Objects;
 
 import javax.portlet.ActionRequest;
@@ -84,10 +84,16 @@ public class AddAssetListMVCActionCommand extends BaseMVCActionCommand {
 			"selectionStyle", "dynamic");
 
 		try {
-			if (Objects.equals(selectionStyle, "dynamic")) {
+			if (Objects.equals(
+					selectionStyle,
+					AssetPublisherSelectionStyleConstants.TYPE_DYNAMIC)) {
+
 				_saveDynamicAssetList(actionRequest, title, portletPreferences);
 			}
-			else if (Objects.equals(selectionStyle, "manual")) {
+			else if (Objects.equals(
+						selectionStyle,
+						AssetPublisherSelectionStyleConstants.TYPE_MANUAL)) {
+
 				_saveManualAssetList(actionRequest, title, portletPreferences);
 			}
 
@@ -157,12 +163,11 @@ public class AddAssetListMVCActionCommand extends BaseMVCActionCommand {
 			portletPreferences, themeDisplay.getScopeGroupId(),
 			themeDisplay.getLayout());
 
-		List<AssetEntry> assetEntries = _assetPublisherHelper.getAssetEntries(
-			actionRequest, portletPreferences,
-			themeDisplay.getPermissionChecker(), groupIds, true, true);
-
 		long[] assetEntryIds = ListUtil.toLongArray(
-			assetEntries, AssetEntry::getEntryId);
+			_assetPublisherHelper.getAssetEntries(
+				actionRequest, portletPreferences,
+				themeDisplay.getPermissionChecker(), groupIds, true, true),
+			AssetEntry::getEntryId);
 
 		_assetListEntryService.addManualAssetListEntry(
 			themeDisplay.getUserId(), themeDisplay.getScopeGroupId(), title,

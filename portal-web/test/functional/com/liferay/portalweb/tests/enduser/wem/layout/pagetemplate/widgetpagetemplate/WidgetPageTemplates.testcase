@@ -3,8 +3,8 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.component.names = "Page Templates";
-	property testray.main.component.name = "Page Templates";
+	property testray.component.names = "Widget Page Templates";
+	property testray.main.component.name = "Widget Page Templates";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -25,71 +25,94 @@ definition {
 		}
 	}
 
+	@description = "Add a page template in global site."
 	@priority = "4"
+	@uitest
 	test AddGlobalPageTemplate {
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Go to page template admin in global site") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		}
 
-		PageTemplatesAdminGlobalSite.addCP(
-			pageTemplateActive = "Active",
-			pageTemplateName = "Page Template Name");
+		task ("Add an active page template") {
+			PageTemplatesAdminGlobalSite.addCP(
+				pageTemplateActive = "Active",
+				pageTemplateName = "Page Template Name");
+		}
 	}
 
+	@description = "Add a page using gloabl page template, disable inherit changes and check it works."
 	@priority = "5"
 	test AddPageBasedOnGlobalPageTemplate {
 		property portal.acceptance = "true";
 		property testray.component.names = "Training";
 
-		JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-			pageTemplateEntryActive = "true",
-			pageTemplateEntryName = "Page Template Name");
+		task ("Add an active page template") {
+			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
+				pageTemplateEntryActive = "true",
+				pageTemplateEntryName = "Page Template Name");
+		}
 
-		JSONGroup.addGroup(groupName = "Site Name");
+		task ("Add a site and page basing on the created page template") {
+			JSONGroup.addGroup(groupName = "Site Name");
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
-		SitePages.addPublicPage(
-			pageName = "Site Page",
-			pageTemplateName = "Page Template Name");
+			PagesAdmin.addPage(
+				pageName = "Site Page",
+				pageTemplateName = "Page Template Name");
+		}
 
-		Navigator.openSiteURL(siteName = "Site Name");
+		task ("View page template is added") {
+			Navigator.openSiteURL(siteName = "Site Name");
 
-		Page.viewPageTemplate(
-			page = "Site Page",
-			pageTemplateName = "Page Template Name");
+			PagesAdmin.viewPageTemplate(
+				pageName = "Site Page",
+				pageTemplateName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Edit page template and add a blogs widget") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.gotoPageTemplateViaEdit(pageTemplateName = "Page Template Name");
+			PageTemplatesAdminGlobalSite.gotoPageTemplateViaEdit(pageTemplateName = "Page Template Name");
 
-		Portlet.addPG(portletName = "Blogs");
+			Portlet.addPG(portletName = "Blogs");
+		}
 
-		Navigator.gotoSitePage(
-			pageName = "Site Page",
-			siteName = "Site Name");
+		task ("Assert blog widget in page basing on page template") {
+			Navigator.gotoSitePage(
+				pageName = "Site Page",
+				siteName = "Site Name");
 
-		Portlet.viewPG(portletName = "Blogs");
+			Portlet.viewPG(portletName = "Blogs");
+		}
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name");
+		task ("Disable inherit changes") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
-		SitePages.gotoPageMenuItem(
-			menuItem = "Configure",
-			pageName = "Site Page");
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Configure",
+				pageName = "Site Page");
 
-		Page.togglePageTemplateInheritChanges(toggleValue = "disable");
+			PagesAdmin.togglePageTemplateInheritChanges(toggleValue = "disable");
 
-		Button.clickSave();
+			Button.clickSave();
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Assert web content display in page basing on page template") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.gotoPageTemplateViaEdit(pageTemplateName = "Page Template Name");
+			PageTemplatesAdminGlobalSite.gotoPageTemplateViaEdit(pageTemplateName = "Page Template Name");
 
-		Portlet.addPG(portletName = "Web Content Display");
+			Portlet.addPG(portletName = "Web Content Display");
+		}
 
-		Navigator.gotoSitePage(
-			pageName = "Site Page",
-			siteName = "Site Name");
+		task ("Assert no web content display widget in page basing on page template") {
+			Navigator.gotoSitePage(
+				pageName = "Site Page",
+				siteName = "Site Name");
 
-		Portlet.viewNoSpecificPG(portletName = "Web Content Display");
+			Portlet.viewNoSpecificPG(portletName = "Web Content Display");
+		}
 	}
 
 	@description = "This is a use case for LPS-115361. Add a widget page template in normal site."
@@ -167,9 +190,9 @@ definition {
 		}
 
 		task ("Add a page based on the widget page template") {
-			SitePages.openPagesAdmin(siteURLKey = "site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
-			SitePages.addPublicPage(
+			PagesAdmin.addPage(
 				collectionName = "Page Template Collection",
 				pageName = "Test Page Name",
 				pageTemplateName = "Page Template Name");
@@ -178,7 +201,7 @@ definition {
 				pageName = "Test Page Name",
 				siteName = "Site Name");
 
-			Pause(locator1 = "3000");
+			WaitForPageLoad();
 
 			Portlet.viewPG(portletName = "Web Content Display");
 		}
@@ -194,64 +217,84 @@ definition {
 		}
 	}
 
+	@description = "Add a active page template in global site, deactive and active it."
 	@priority = "4"
 	test DeactivateAndActivateGlobalPageTemplate {
-		JSONGroup.addGroup(groupName = "Site Name");
+		task ("Add a new site") {
+			JSONGroup.addGroup(groupName = "Site Name");
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Add an active page template") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.addCP(
-			pageTemplateActive = "Active",
-			pageTemplateName = "Page Template Name");
+			PageTemplatesAdminGlobalSite.addCP(
+				pageTemplateActive = "Active",
+				pageTemplateName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.deactivateAndActivate(
-			pageTemplateName = "Page Template Name",
-			pageTemplateStatus = "Not Active");
+		task ("Deactive the created page template and view status") {
+			PageTemplatesAdminGlobalSite.deactivateAndActivate(
+				pageTemplateName = "Page Template Name",
+				pageTemplateStatus = "Not Active");
 
-		PageTemplatesAdminGlobalSite.viewStatus(
-			pageTemplateName = "Page Template Name",
-			pageTemplateStatus = "Not Active");
+			PageTemplatesAdminGlobalSite.viewStatus(
+				pageTemplateName = "Page Template Name",
+				pageTemplateStatus = "Not Active");
+		}
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name");
+		task ("View inactive page template doesn't display") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
-		LexiconEntry.gotoAddMenuItem(menuItem = "Public Page");
+			LexiconEntry.gotoAddMenuItem(menuItem = "Page");
 
-		Navigator.gotoNavNested(navNested = "Global Templates");
+			Navigator.gotoNavNested(navNested = "Global Templates");
 
-		Page.viewPageTemplateTypeNotPresent(pageTemplateName = "Page Template Name");
+			PagesAdmin.viewPageTemplateTypeNotPresent(pageTemplateName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Active the created page template and view status") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.deactivateAndActivate(
-			pageTemplateName = "Page Template Name",
-			pageTemplateStatus = "Active");
+			PageTemplatesAdminGlobalSite.deactivateAndActivate(
+				pageTemplateName = "Page Template Name",
+				pageTemplateStatus = "Active");
 
-		PageTemplatesAdminGlobalSite.viewStatus(
-			pageTemplateName = "Page Template Name",
-			pageTemplateStatus = "Active");
+			PageTemplatesAdminGlobalSite.viewStatus(
+				pageTemplateName = "Page Template Name",
+				pageTemplateStatus = "Active");
+		}
 
-		SitePages.openPagesAdmin(siteURLKey = "site-name");
+		task ("View active page template displays") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
-		LexiconEntry.gotoAddMenuItem(menuItem = "Public Page");
+			LexiconEntry.gotoAddMenuItem(menuItem = "Page");
 
-		Navigator.gotoNavNested(navNested = "Global Templates");
+			Navigator.gotoNavNested(navNested = "Global Templates");
 
-		Page.viewPageTemplateTypePresent(pageTemplateName = "Page Template Name");
+			PagesAdmin.viewPageTemplateTypePresent(pageTemplateName = "Page Template Name");
+		}
 	}
 
+	@description = "Delete a page template in global site."
 	@priority = "5"
 	test DeleteGlobalPageTemplate {
 		property portal.acceptance = "true";
 
-		JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-			pageTemplateEntryActive = "true",
-			pageTemplateEntryName = "Page Template Name");
+		task ("Add an active page template") {
+			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
+				pageTemplateEntryActive = "true",
+				pageTemplateEntryName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Delete the created page template") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.deleteCP(pageTemplateName = "Page Template Name");
+			PageTemplatesAdminGlobalSite.deleteCP(pageTemplateName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.viewDefaultCP();
+		task ("View no new page template") {
+			PageTemplatesAdminGlobalSite.viewDefaultCP();
+		}
 	}
 
 	@description = "This is a use case for LPS-115361. Delete a widget page template in normal site."
@@ -289,52 +332,63 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LPS-54099."
+	@description = "This is a use case for LPS-54099. Can configure MVC portlets in Page Templates."
 	@priority = "5"
 	test EditGlobalPageTemplate {
 		property portal.acceptance = "true";
 
-		JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-			pageTemplateEntryActive = "true",
-			pageTemplateEntryName = "Page Template Name");
+		task ("Add an active page template") {
+			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
+				pageTemplateEntryActive = "true",
+				pageTemplateEntryName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Add a calebdar widget to page template and configure calendar") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.gotoPageTemplateViaEdit(pageTemplateName = "Page Template Name");
+			PageTemplatesAdminGlobalSite.gotoPageTemplateViaEdit(pageTemplateName = "Page Template Name");
 
-		Portlet.addPG(portletName = "Calendar");
+			Portlet.addPG(portletName = "Calendar");
 
-		Refresh();
+			CalendarNavigator.gotoConfiguration();
 
-		CalendarNavigator.gotoConfiguration();
+			CalendarConfiguration.selectWeekStartsOn(weekStartDay = "Saturday");
 
-		CalendarConfiguration.selectWeekStartsOn(weekStartDay = "Saturday");
+			CalendarConfiguration.save();
+		}
 
-		CalendarConfiguration.save();
+		task ("Assert able to deactive page template") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
-
-		PageTemplatesAdminGlobalSite.editCP(
-			pageTemplateActive = "Not Active",
-			pageTemplateName = "Page Template Name");
+			PageTemplatesAdminGlobalSite.editCP(
+				pageTemplateActive = "Not Active",
+				pageTemplateName = "Page Template Name");
+		}
 	}
 
+	@description = "Edit page template description in global site."
 	@priority = "4"
 	test EditGlobalPageTemplateDescription {
-		JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-			pageTemplateEntryActive = "true",
-			pageTemplateEntryDescription = "This is a page template description",
-			pageTemplateEntryName = "Page Template Name");
+		task ("Add an active page template with description") {
+			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
+				pageTemplateEntryActive = "true",
+				pageTemplateEntryDescription = "This is a page template description",
+				pageTemplateEntryName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Edit page template description") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.editDescription(
-			pageTemplateDescription = "This is a page template description",
-			pageTemplateName = "Page Template Name");
+			PageTemplatesAdminGlobalSite.editDescription(
+				pageTemplateDescription = "This is a page template description",
+				pageTemplateName = "Page Template Name");
+		}
 
-		PageTemplatesAdminGlobalSite.viewDescription(
-			pageTemplateDescription = "This is a page template description edit",
-			pageTemplateName = "Page Template Name");
+		task ("View edited page template description") {
+			PageTemplatesAdminGlobalSite.viewDescription(
+				pageTemplateDescription = "This is a page template description edit",
+				pageTemplateName = "Page Template Name");
+		}
 	}
 
 	@description = "This is a use case for LPS-115361. Edit a widget page template in normal site."
@@ -376,167 +430,192 @@ definition {
 		}
 	}
 
+	@description = "Export lar with global page templates and check all persist after importing."
 	@priority = "5"
 	test ImportLAR {
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property testray.component.names = "Training";
 
-		JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-			pageTemplateEntryActive = "true",
-			pageTemplateEntryName = "College Landing Page");
+		task ("Add 2 active page templates") {
+			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
+				pageTemplateEntryActive = "true",
+				pageTemplateEntryName = "College Landing Page");
 
-		JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-			pageTemplateEntryActive = "true",
-			pageTemplateEntryName = "Department Landing Page");
-
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
-
-		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
-			item = "Edit",
-			pageTemplateName = "College Landing Page");
-
-		for (var portletName : list "Media Gallery,Web Content Display,Web Content Display,Web Content Display,Asset Publisher") {
-			Portlet.addPG(portletName = "${portletName}");
-
-			Refresh();
+			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
+				pageTemplateEntryActive = "true",
+				pageTemplateEntryName = "Department Landing Page");
 		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Edit College Landing Page and add several widgets") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
-			item = "Edit",
-			pageTemplateName = "Department Landing Page");
+			PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
+				item = "Edit",
+				pageTemplateName = "College Landing Page");
 
-		for (var portletName : list "Media Gallery,Web Content Display,Web Content Display,Navigation Menu,Members,Asset Publisher") {
-			Portlet.addPG(portletName = "${portletName}");
-
-			Refresh();
+			for (var portletName : list "Media Gallery,Web Content Display,Web Content Display,Web Content Display,Asset Publisher") {
+				Portlet.addPG(portletName = "${portletName}");
+			}
 		}
 
-		LAR.exportSiteCP(
-			larFileName = "college-and-department-page-templates",
-			siteScopeName = "Global");
+		task ("Edit Department Landing Page and add several widgets") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		var key_larFileName = "${larFileName}";
+			PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
+				item = "Edit",
+				pageTemplateName = "Department Landing Page");
 
-		var larFileName = LAR.getLarFileName();
+			for (var portletName : list "Media Gallery,Web Content Display,Web Content Display,Menu Display,Members,Asset Publisher") {
+				Portlet.addPG(portletName = "${portletName}");
+			}
+		}
 
-		LAR.downloadLar();
+		task ("Export site lar and download it") {
+			LAR.exportSiteCP(
+				larFileName = "college-and-department-page-templates",
+				siteScopeName = "Global");
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+			var key_larFileName = "${larFileName}";
 
-		PageTemplatesAdminGlobalSite.deleteCP(pageTemplateName = "College Landing Page");
+			var larFileName = LAR.getLarFileName();
 
-		PageTemplatesAdminGlobalSite.deleteCP(pageTemplateName = "Department Landing Page");
+			LAR.downloadLar();
+		}
 
-		LAR.importSiteCP(
-			larFileName = "${larFileName}",
-			siteName = "Global");
+		task ("Delete 2 new added page templates") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+			PageTemplatesAdminGlobalSite.deleteCP(pageTemplateName = "College Landing Page");
 
-		PageTemplatesAdminGlobalSite.viewCP(pageTemplateName = "College Landing Page");
+			PageTemplatesAdminGlobalSite.deleteCP(pageTemplateName = "Department Landing Page");
+		}
 
-		PageTemplatesAdminGlobalSite.viewCP(pageTemplateName = "Department Landing Page");
+		task ("Import site lar and check widgets in page templates persist") {
+			LAR.importSiteCP(
+				larFileName = "${larFileName}",
+				siteName = "Global");
 
-		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.viewPG(
-			pageTemplateName = "College Landing Page",
-			siteName = "${siteName}");
+			PageTemplatesAdminGlobalSite.viewCP(pageTemplateName = "College Landing Page");
 
-		Portlet.viewSpecificPG(portletName = "Media Gallery");
+			PageTemplatesAdminGlobalSite.viewCP(pageTemplateName = "Department Landing Page");
 
-		Portlet.viewDuplicatePG(
-			portletName = "Web Content Display",
-			totalPortletCount = "3");
+			var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
-		Portlet.viewSpecificPG(portletName = "Asset Publisher");
+			PageTemplatesAdminGlobalSite.viewPG(
+				pageTemplateName = "College Landing Page",
+				siteName = "${siteName}");
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+			Portlet.viewSpecificPG(portletName = "Media Gallery");
 
-		PageTemplatesAdminGlobalSite.viewPG(
-			pageTemplateName = "Department Landing Page",
-			siteName = "${siteName}");
+			Portlet.viewDuplicatePG(
+				portletName = "Web Content Display",
+				totalPortletCount = "3");
 
-		Portlet.viewSpecificPG(portletName = "Media Gallery");
+			Portlet.viewSpecificPG(portletName = "Asset Publisher");
 
-		Portlet.viewDuplicatePG(
-			portletName = "Web Content Display",
-			totalPortletCount = "2");
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		Portlet.viewSpecificPG(portletName = "Members");
+			PageTemplatesAdminGlobalSite.viewPG(
+				pageTemplateName = "Department Landing Page",
+				siteName = "${siteName}");
 
-		Portlet.viewSpecificPG(portletName = "Navigation Menu");
+			Portlet.viewSpecificPG(portletName = "Media Gallery");
+
+			Portlet.viewDuplicatePG(
+				portletName = "Web Content Display",
+				totalPortletCount = "2");
+
+			Portlet.viewSpecificPG(portletName = "Members");
+
+			Portlet.viewSpecificPG(portletName = "Menu Display");
+		}
 	}
 
+	@description = "View page template in Spanish and English."
 	@priority = "4"
 	test LocalizeGlobalDefaultPageTemplates {
 		property test.name.skip.portal.instance = "WidgetPageTemplates#LocalizeDefaultPageTemplates";
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("Edit Department Landing Page and add several widgets") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.viewDefaultCP();
+			PageTemplatesAdminGlobalSite.viewDefaultCP();
+		}
 
-		Navigator.gotoAccountSettings();
+		task ("Change locale to Spanish") {
+			Navigator.gotoAccountSettings();
 
-		MyAccount.changeUserLanguage(
-			languageName = "español (España)",
-			saveButton = "Save",
-			successMessage = "Su petición ha terminado con éxito.");
+			MyAccount.changeUserLanguage(
+				languageName = "español (España)",
+				saveButton = "Save",
+				successMessage = "Su petición ha terminado con éxito.");
+		}
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+		task ("View page template name in Spanish") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.viewDefaultLocalizedCP(
-			pageTemplateNameList = "Blog,Búsqueda,Wiki",
-			portletTitle = "Plantillas de página");
+			PageTemplatesAdminGlobalSite.viewDefaultLocalizedCP(
+				pageTemplateNameList = "Búsqueda",
+				portletTitle = "Plantillas de página");
+		}
 
-		Navigator.openURL();
+		task ("Change locale back to English") {
+			Navigator.openURL();
 
-		Click(locator1 = "UserBar#USER_AVATAR_IMAGE");
+			Click(locator1 = "UserBar#USER_AVATAR_IMAGE");
 
-		Click(
-			key_dropdownItem = "Mi cuenta",
-			locator1 = "UserBar#USER_AVATAR_DROPDOWN_ITEM");
+			Click(
+				key_dropdownItem = "Mi cuenta",
+				locator1 = "UserBar#USER_AVATAR_DROPDOWN_ITEM");
 
-		MyAccount.changeUserLanguage(
-			languageName = "English (United States)",
-			saveButton = "Guardar",
-			successMessage = "Your request completed successfully.");
+			MyAccount.changeUserLanguage(
+				languageName = "English (United States)",
+				saveButton = "Guardar",
+				successMessage = "Your request completed successfully.");
+		}
 
-		Navigator.openURL();
+		task ("View page template name change back to English") {
+			Navigator.openURL();
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.viewDefaultCP();
+			PageTemplatesAdminGlobalSite.viewDefaultCP();
+		}
 	}
 
+	@description = "Rename page template in global site."
 	@priority = "4"
 	test RenameGlobalPageTemplate {
-		property testray.component.names = "Page Templates";
+		task ("Add an active page template") {
+			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
+				pageTemplateEntryActive = "true",
+				pageTemplateEntryName = "Page Template Name");
+		}
 
-		JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-			pageTemplateEntryActive = "true",
-			pageTemplateEntryName = "Page Template Name");
+		task ("View added page template") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+			var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
-		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+			PageTemplatesAdminGlobalSite.viewPG(
+				pageTemplateName = "Page Template Name",
+				siteName = "${siteName}");
+		}
 
-		PageTemplatesAdminGlobalSite.viewPG(
-			pageTemplateName = "Page Template Name",
-			siteName = "${siteName}");
+		task ("Rename page template and view change") {
+			PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
 
-		PageTemplatesAdminGlobalSite.openGlobalPageTemplatesAdmin();
+			PageTemplatesAdminGlobalSite.editCP(
+				pageTemplateActive = "Active",
+				pageTemplateName = "Page Template Name");
 
-		PageTemplatesAdminGlobalSite.editCP(
-			pageTemplateActive = "Active",
-			pageTemplateName = "Page Template Name");
-
-		PageTemplatesAdminGlobalSite.viewPG(
-			pageTemplateName = "Page Template Name Edit",
-			siteName = "${siteName}");
+			PageTemplatesAdminGlobalSite.viewPG(
+				pageTemplateName = "Page Template Name Edit",
+				siteName = "${siteName}");
+		}
 	}
 
 }

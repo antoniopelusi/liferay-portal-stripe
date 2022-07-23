@@ -50,7 +50,7 @@ public class CaptchaConfigurationModelListener
 			if (Validator.isNotNull(captchaEngine) &&
 				captchaEngine.equals(ReCaptchaImpl.class.getName())) {
 
-				validateReCaptchaKeys(properties);
+				_validateReCaptchaKeys(properties);
 			}
 		}
 		catch (CaptchaConfigurationException captchaConfigurationException) {
@@ -61,7 +61,7 @@ public class CaptchaConfigurationModelListener
 		}
 	}
 
-	protected ResourceBundle getResourceBundle() {
+	private ResourceBundle _getResourceBundle() {
 		if (_resourceBundle == null) {
 			Locale locale = LocaleThreadLocal.getThemeDisplayLocale();
 
@@ -72,25 +72,26 @@ public class CaptchaConfigurationModelListener
 		return _resourceBundle;
 	}
 
-	protected void validateReCaptchaKeys(Dictionary<String, Object> properties)
+	private void _validateReCaptchaKeys(Dictionary<String, Object> properties)
 		throws CaptchaConfigurationException {
 
 		String reCaptchaPublicKey = (String)properties.get(
 			"reCaptchaPublicKey");
-		String reCaptchaPrivateKey = (String)properties.get(
-			"reCaptchaPrivateKey");
 
 		if (Validator.isNull(reCaptchaPublicKey)) {
 			throw new CaptchaConfigurationException(
 				ResourceBundleUtil.getString(
-					getResourceBundle(),
+					_getResourceBundle(),
 					"the-recaptcha-public-key-is-not-valid"));
 		}
+
+		String reCaptchaPrivateKey = (String)properties.get(
+			"reCaptchaPrivateKey");
 
 		if (Validator.isNull(reCaptchaPrivateKey)) {
 			throw new CaptchaConfigurationException(
 				ResourceBundleUtil.getString(
-					getResourceBundle(),
+					_getResourceBundle(),
 					"the-recaptcha-private-key-is-not-valid"));
 		}
 	}

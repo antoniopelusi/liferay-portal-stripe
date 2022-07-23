@@ -67,21 +67,10 @@ public class MessageStatus implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
-
-		sb.append("{startTime=");
-		sb.append(_startTime);
-		sb.append(", endTime=");
-		sb.append(_endTime);
-		sb.append(", payload=");
-		sb.append(_payload);
-		sb.append(", errorMessage=");
-		sb.append(_exceptionMessage);
-		sb.append(", errorStackTrace=");
-		sb.append(_exceptionStackTrace);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{startTime=", _startTime, ", endTime=", _endTime, ", payload=",
+			_payload, ", errorMessage=", _exceptionMessage,
+			", errorStackTrace=", _exceptionStackTrace, "}");
 	}
 
 	private long _endTime;

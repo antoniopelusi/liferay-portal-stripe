@@ -67,7 +67,7 @@ public class ConfigurationModelConfigurationEntry
 			renderResponse
 		).setParameter(
 			"factoryPid", _configurationModel.getFactoryPid()
-		).build();
+		).buildPortletURL();
 
 		if (_configurationModel.isFactory()) {
 			portletURL.setParameter(

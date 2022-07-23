@@ -17,7 +17,7 @@ package com.liferay.document.library.search.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.dynamic.data.mapping.configuration.DDMIndexerConfiguration;
 import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -34,11 +34,9 @@ public class DLFileEntrySearchLegacyDDMIndexFieldsTest
 	public static void setUpClass() throws Exception {
 		ConfigurationTestUtil.saveConfiguration(
 			DDMIndexerConfiguration.class.getName(),
-			new HashMapDictionary() {
-				{
-					put("enableLegacyDDMIndexFields", true);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"enableLegacyDDMIndexFields", true
+			).build());
 	}
 
 	@AfterClass

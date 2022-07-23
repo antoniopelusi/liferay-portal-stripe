@@ -16,7 +16,6 @@ package com.liferay.portlet.asset.model.impl;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetEntryModel;
-import com.liferay.asset.kernel.model.AssetEntrySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -35,21 +34,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -91,7 +89,7 @@ public class AssetEntryModelImpl
 		{"visible", Types.BOOLEAN}, {"startDate", Types.TIMESTAMP},
 		{"endDate", Types.TIMESTAMP}, {"publishDate", Types.TIMESTAMP},
 		{"expirationDate", Types.TIMESTAMP}, {"mimeType", Types.VARCHAR},
-		{"title", Types.VARCHAR}, {"description", Types.CLOB},
+		{"title", Types.CLOB}, {"description", Types.CLOB},
 		{"summary", Types.CLOB}, {"url", Types.VARCHAR},
 		{"layoutUuid", Types.VARCHAR}, {"height", Types.INTEGER},
 		{"width", Types.INTEGER}, {"priority", Types.DOUBLE}
@@ -121,7 +119,7 @@ public class AssetEntryModelImpl
 		TABLE_COLUMNS_MAP.put("publishDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("expirationDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("mimeType", Types.VARCHAR);
-		TABLE_COLUMNS_MAP.put("title", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("title", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("description", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("summary", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("url", Types.VARCHAR);
@@ -132,7 +130,7 @@ public class AssetEntryModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AssetEntry (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,entryId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,classUuid VARCHAR(75) null,classTypeId LONG,listable BOOLEAN,visible BOOLEAN,startDate DATE null,endDate DATE null,publishDate DATE null,expirationDate DATE null,mimeType VARCHAR(75) null,title STRING null,description TEXT null,summary TEXT null,url STRING null,layoutUuid VARCHAR(75) null,height INTEGER,width INTEGER,priority DOUBLE,primary key (entryId, ctCollectionId))";
+		"create table AssetEntry (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,entryId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,classUuid VARCHAR(75) null,classTypeId LONG,listable BOOLEAN,visible BOOLEAN,startDate DATE null,endDate DATE null,publishDate DATE null,expirationDate DATE null,mimeType VARCHAR(75) null,title TEXT null,description TEXT null,summary TEXT null,url STRING null,layoutUuid VARCHAR(75) null,height INTEGER,width INTEGER,priority DOUBLE,primary key (entryId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table AssetEntry";
 
@@ -226,75 +224,6 @@ public class AssetEntryModelImpl
 	 */
 	@Deprecated
 	public static final long ENTRYID_COLUMN_BITMASK = 512L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AssetEntry toModel(AssetEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		AssetEntry model = new AssetEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setEntryId(soapModel.getEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setClassUuid(soapModel.getClassUuid());
-		model.setClassTypeId(soapModel.getClassTypeId());
-		model.setListable(soapModel.isListable());
-		model.setVisible(soapModel.isVisible());
-		model.setStartDate(soapModel.getStartDate());
-		model.setEndDate(soapModel.getEndDate());
-		model.setPublishDate(soapModel.getPublishDate());
-		model.setExpirationDate(soapModel.getExpirationDate());
-		model.setMimeType(soapModel.getMimeType());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setSummary(soapModel.getSummary());
-		model.setUrl(soapModel.getUrl());
-		model.setLayoutUuid(soapModel.getLayoutUuid());
-		model.setHeight(soapModel.getHeight());
-		model.setWidth(soapModel.getWidth());
-		model.setPriority(soapModel.getPriority());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AssetEntry> toModels(AssetEntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AssetEntry> models = new ArrayList<AssetEntry>(soapModels.length);
-
-		for (AssetEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final String MAPPING_TABLE_ASSETENTRIES_ASSETTAGS_NAME =
 		"AssetEntries_AssetTags";
@@ -401,34 +330,6 @@ public class AssetEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AssetEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetEntry.class.getClassLoader(), AssetEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AssetEntry> constructor =
-				(Constructor<AssetEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AssetEntry, Object>>
@@ -1623,6 +1524,62 @@ public class AssetEntryModelImpl
 	}
 
 	@Override
+	public AssetEntry cloneWithOriginalValues() {
+		AssetEntryImpl assetEntryImpl = new AssetEntryImpl();
+
+		assetEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetEntryImpl.setEntryId(this.<Long>getColumnOriginalValue("entryId"));
+		assetEntryImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		assetEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetEntryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		assetEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		assetEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		assetEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		assetEntryImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		assetEntryImpl.setClassUuid(
+			this.<String>getColumnOriginalValue("classUuid"));
+		assetEntryImpl.setClassTypeId(
+			this.<Long>getColumnOriginalValue("classTypeId"));
+		assetEntryImpl.setListable(
+			this.<Boolean>getColumnOriginalValue("listable"));
+		assetEntryImpl.setVisible(
+			this.<Boolean>getColumnOriginalValue("visible"));
+		assetEntryImpl.setStartDate(
+			this.<Date>getColumnOriginalValue("startDate"));
+		assetEntryImpl.setEndDate(this.<Date>getColumnOriginalValue("endDate"));
+		assetEntryImpl.setPublishDate(
+			this.<Date>getColumnOriginalValue("publishDate"));
+		assetEntryImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+		assetEntryImpl.setMimeType(
+			this.<String>getColumnOriginalValue("mimeType"));
+		assetEntryImpl.setTitle(this.<String>getColumnOriginalValue("title"));
+		assetEntryImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		assetEntryImpl.setSummary(
+			this.<String>getColumnOriginalValue("summary"));
+		assetEntryImpl.setUrl(this.<String>getColumnOriginalValue("url"));
+		assetEntryImpl.setLayoutUuid(
+			this.<String>getColumnOriginalValue("layoutUuid"));
+		assetEntryImpl.setHeight(
+			this.<Integer>getColumnOriginalValue("height"));
+		assetEntryImpl.setWidth(this.<Integer>getColumnOriginalValue("width"));
+		assetEntryImpl.setPriority(
+			this.<Double>getColumnOriginalValue("priority"));
+
+		return assetEntryImpl;
+	}
+
+	@Override
 	public int compareTo(AssetEntry assetEntry) {
 		long primaryKey = assetEntry.getPrimaryKey();
 
@@ -1850,7 +1807,7 @@ public class AssetEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1861,9 +1818,26 @@ public class AssetEntryModelImpl
 			Function<AssetEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AssetEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((AssetEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1910,7 +1884,9 @@ public class AssetEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AssetEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AssetEntry.class, ModelWrapper.class);
 
 	}
 

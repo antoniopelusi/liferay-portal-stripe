@@ -18,7 +18,7 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.opener.constants.DLOpenerMimeTypes;
 import com.liferay.document.library.opener.google.drive.web.internal.DLOpenerGoogleDriveManager;
 import com.liferay.document.library.portlet.toolbar.contributor.DLPortletToolbarContributorContext;
-import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
+import com.liferay.portal.kernel.bean.BeanProperties;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
@@ -35,11 +35,9 @@ import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.ResourceBundle;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
@@ -95,7 +93,7 @@ public class DLOpenerGoogleDriveDLPortletToolbarContributorContext
 					_ICON_NAME_SPREADSHEET, _ICON_COLOR_SPREADSHEET));
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 	}
 
@@ -128,14 +126,14 @@ public class DLOpenerGoogleDriveDLPortletToolbarContributorContext
 				"/document_library/edit_in_google_docs");
 			liferayPortletURL.setParameter(Constants.CMD, Constants.ADD);
 
-			long repositoryId = BeanPropertiesUtil.getLong(
+			long repositoryId = _beanProperties.getLong(
 				folder, "repositoryId",
 				_portal.getScopeGroupId(portletRequest));
 
 			liferayPortletURL.setParameter(
 				"repositoryId", String.valueOf(repositoryId));
 
-			long folderId = BeanPropertiesUtil.getLong(
+			long folderId = _beanProperties.getLong(
 				folder, "folderId", DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 			liferayPortletURL.setParameter(
@@ -155,11 +153,7 @@ public class DLOpenerGoogleDriveDLPortletToolbarContributorContext
 	}
 
 	private String _translate(PortletRequest portletRequest, String key) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			_portal.getLocale(portletRequest),
-			DLOpenerGoogleDriveDLPortletToolbarContributorContext.class);
-
-		return _language.get(resourceBundle, key);
+		return _language.get(_portal.getLocale(portletRequest), key);
 	}
 
 	private static final String _ICON_COLOR_DOCUMENT = "6";
@@ -177,6 +171,9 @@ public class DLOpenerGoogleDriveDLPortletToolbarContributorContext
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DLOpenerGoogleDriveDLPortletToolbarContributorContext.class);
+
+	@Reference
+	private BeanProperties _beanProperties;
 
 	@Reference
 	private DLOpenerGoogleDriveManager _dlOpenerGoogleDriveManager;

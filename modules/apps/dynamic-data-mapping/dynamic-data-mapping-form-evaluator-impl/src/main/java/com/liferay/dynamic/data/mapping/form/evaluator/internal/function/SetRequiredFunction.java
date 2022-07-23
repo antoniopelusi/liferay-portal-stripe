@@ -17,7 +17,7 @@ package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 /**
  * @author Leonardo Barros
  */
-public class SetRequiredFunction extends SetPropertyFunction<Boolean> {
+public class SetRequiredFunction extends BaseSetPropertyFunction<Boolean> {
 
 	public static final String NAME = "setRequired";
 

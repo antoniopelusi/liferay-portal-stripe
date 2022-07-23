@@ -119,7 +119,7 @@ public class DepotBreadcrumbEntryContributorImpl
 			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		breadcrumbEntries.addAll(originalBreadcrumbEntries);
@@ -150,22 +150,21 @@ public class DepotBreadcrumbEntryContributorImpl
 
 		Group group = depotEntry.getGroup();
 
-		PortletURL portletURL = PortletURLBuilder.create(
-			_portal.getControlPanelPortletURL(
-				httpServletRequest, group, DepotPortletKeys.DEPOT_ADMIN, 0, 0,
-				PortletRequest.RENDER_PHASE)
-		).setMVCRenderCommandName(
-			"/depot/view_depot_dashboard"
-		).setParameter(
-			"depotEntryId", depotEntry.getDepotEntryId()
-		).build();
-
 		BreadcrumbEntry breadcrumbEntry = new BreadcrumbEntry();
 
 		breadcrumbEntry.setTitle(
 			group.getDescriptiveName(_portal.getLocale(httpServletRequest)));
 
-		breadcrumbEntry.setURL(portletURL.toString());
+		breadcrumbEntry.setURL(
+			PortletURLBuilder.create(
+				_portal.getControlPanelPortletURL(
+					httpServletRequest, group, DepotPortletKeys.DEPOT_ADMIN, 0,
+					0, PortletRequest.RENDER_PHASE)
+			).setMVCRenderCommandName(
+				"/depot/view_depot_dashboard"
+			).setParameter(
+				"depotEntryId", depotEntry.getDepotEntryId()
+			).buildString());
 
 		return breadcrumbEntry;
 	}

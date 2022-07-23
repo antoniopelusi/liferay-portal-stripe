@@ -73,19 +73,14 @@ public class PortletPermissionsPortletConfigurationIcon
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		try {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("Liferay.Util.openModal({title: '");
-			sb.append(HtmlUtil.escapeJS(getMessage(portletRequest)));
-			sb.append("', url: '");
-			sb.append(_generatePermissionURL(portletRequest));
-			sb.append("'});");
-
-			return sb.toString();
+			return StringBundler.concat(
+				"Liferay.Util.openModal({title: '",
+				HtmlUtil.escapeJS(getMessage(portletRequest)), "', url: '",
+				_generatePermissionURL(portletRequest), "'});");
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -148,22 +143,17 @@ public class PortletPermissionsPortletConfigurationIcon
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 
 				showPermissionsIcon = false;
 			}
 		}
 
-		if (layout.isLayoutPrototypeLinkActive()) {
-			showPermissionsIcon = false;
-		}
+		if (layout.isLayoutPrototypeLinkActive() ||
+			layout.isTypeControlPanel() ||
+			isEmbeddedPersonalApplicationLayout(layout)) {
 
-		if (layout.isTypeControlPanel()) {
-			showPermissionsIcon = false;
-		}
-
-		if (isEmbeddedPersonalApplicationLayout(layout)) {
 			showPermissionsIcon = false;
 		}
 
@@ -203,10 +193,10 @@ public class PortletPermissionsPortletConfigurationIcon
 				PortletProvider.Action.VIEW)
 		).setMVCPath(
 			"/edit_permissions.jsp"
+		).setPortletResource(
+			portletDisplay.getId()
 		).setParameter(
-			"portletConfiguration", Boolean.TRUE.toString()
-		).setParameter(
-			"portletResource", portletDisplay.getId()
+			"portletConfiguration", true
 		).setParameter(
 			"resourcePrimKey",
 			PortletPermissionUtil.getPrimaryKey(

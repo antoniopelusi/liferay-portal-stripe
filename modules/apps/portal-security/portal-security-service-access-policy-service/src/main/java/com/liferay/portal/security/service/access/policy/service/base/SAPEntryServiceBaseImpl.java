@@ -156,21 +156,6 @@ public abstract class SAPEntryServiceBaseImpl
 		resourceLocalService;
 
 	@Reference
-	protected com.liferay.portal.kernel.service.ResourcePermissionLocalService
-		resourcePermissionLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourcePermissionService
-		resourcePermissionService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.RoleLocalService
-		roleLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.RoleService roleService;
-
-	@Reference
 	protected com.liferay.portal.kernel.service.UserLocalService
 		userLocalService;
 

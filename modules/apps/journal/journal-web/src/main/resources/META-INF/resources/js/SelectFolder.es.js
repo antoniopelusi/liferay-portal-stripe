@@ -12,15 +12,133 @@
  * details.
  */
 
+import {TreeView as ClayTreeView} from '@clayui/core';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import {Treeview} from 'frontend-js-components-web';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 const SelectFolder = ({itemSelectorSaveEvent, nodes}) => {
-	const [filter, setFilter] = useState('');
+	const [filterQuery, setFilterQuery] = useState('');
 
+	const handleSelectionChange = (item) => {
+		Liferay.Util.getOpener().Liferay.fire(itemSelectorSaveEvent, {
+			data: {
+				folderId: item.id,
+				folderName: item.name,
+			},
+		});
+	};
+
+	return (
+		<ClayLayout.ContainerFluid className="p-4 select-folder">
+			<ClayForm.Group>
+				<ClayInput.Group>
+					<ClayInput.GroupItem prepend>
+						<ClayInput
+							aria-label={Liferay.Language.get('search')}
+							className="input-group-inset input-group-inset-after"
+							onChange={(event) =>
+								setFilterQuery(event.target.value)
+							}
+							placeholder={`${Liferay.Language.get('search')}`}
+							type="text"
+						/>
+
+						<ClayInput.GroupInsetItem after>
+							<div className="link-monospaced">
+								<ClayIcon symbol="search" />
+							</div>
+						</ClayInput.GroupInsetItem>
+					</ClayInput.GroupItem>
+				</ClayInput.Group>
+			</ClayForm.Group>
+
+			{Liferay.__FF__.enableClayTreeView ? (
+				<FolderTree
+					filterQuery={filterQuery}
+					handleSelectionChange={handleSelectionChange}
+					items={nodes}
+				/>
+			) : (
+				<OldFolderTree
+					filterQuery={filterQuery}
+					handleSelectionChange={handleSelectionChange}
+					nodes={nodes}
+				/>
+			)}
+		</ClayLayout.ContainerFluid>
+	);
+};
+
+function FolderTree({filterQuery, handleSelectionChange, items: initialItems}) {
+	const [items, setItems] = useState(initialItems);
+
+	const nodeByName = (items, name) => {
+		return items.reduce(function reducer(acc, item) {
+			if (item.name.match(new RegExp(name, 'i'))) {
+				acc.push(item);
+			}
+
+			if (item.children) {
+				acc.concat(item.children.reduce(reducer, acc));
+			}
+
+			return acc;
+		}, []);
+	};
+
+	const filteredItems = useMemo(() => {
+		if (!filterQuery) {
+			return items;
+		}
+
+		return nodeByName(items, filterQuery);
+	}, [items, filterQuery]);
+
+	return (
+		<ClayTreeView
+			items={filteredItems}
+			onItemsChange={setItems}
+			showExpanderOnHover={false}
+		>
+			{(item) => (
+				<ClayTreeView.Item>
+					<ClayTreeView.ItemStack
+						onClick={(event) => {
+							event.preventDefault();
+
+							handleSelectionChange(item);
+						}}
+					>
+						<ClayIcon symbol="folder" />
+
+						{item.name}
+					</ClayTreeView.ItemStack>
+
+					<ClayTreeView.Group items={item.children}>
+						{(item) => (
+							<ClayTreeView.Item
+								onClick={(event) => {
+									event.preventDefault();
+
+									handleSelectionChange(item);
+								}}
+							>
+								<ClayIcon symbol="folder" />
+
+								{item.name}
+							</ClayTreeView.Item>
+						)}
+					</ClayTreeView.Group>
+				</ClayTreeView.Item>
+			)}
+		</ClayTreeView>
+	);
+}
+
+function OldFolderTree({filterQuery, handleSelectionChange, nodes}) {
 	const nodesById = useMemo(() => {
 		const result = {};
 
@@ -37,55 +155,22 @@ const SelectFolder = ({itemSelectorSaveEvent, nodes}) => {
 		return result;
 	}, [nodes]);
 
-	const handleQueryChange = useCallback((event) => {
-		const value = event.target.value;
-
-		setFilter(value);
-	}, []);
-
-	const handleSelectionChange = (selectedNodeIds) => {
+	const onSelectedNodesChange = (selectedNodeIds) => {
 		const node = nodesById[[...selectedNodeIds][0]];
 
 		if (node) {
-			Liferay.Util.getOpener().Liferay.fire(itemSelectorSaveEvent, {
-				data: {
-					folderId: node.id,
-					folderName: node.name,
-				},
-			});
+			handleSelectionChange({id: node.id, name: node.name});
 		}
 	};
 
 	return (
-		<ClayLayout.ContainerFluid className="p-4 select-folder">
-			<ClayForm.Group>
-				<ClayInput.Group>
-					<ClayInput.GroupItem prepend>
-						<ClayInput
-							aria-label={Liferay.Language.get('search')}
-							className="input-group-inset input-group-inset-after"
-							onChange={handleQueryChange}
-							placeholder={`${Liferay.Language.get('search')}`}
-							type="text"
-						/>
-
-						<ClayInput.GroupInsetItem after>
-							<div className="link-monospaced">
-								<ClayIcon symbol="search" />
-							</div>
-						</ClayInput.GroupInsetItem>
-					</ClayInput.GroupItem>
-				</ClayInput.Group>
-			</ClayForm.Group>
-
-			<Treeview
-				NodeComponent={Treeview.Card}
-				filter={filter}
-				nodes={nodes}
-				onSelectedNodesChange={handleSelectionChange}
-			/>
-		</ClayLayout.ContainerFluid>
+		<Treeview
+			NodeComponent={Treeview.Card}
+			filter={filterQuery}
+			nodes={nodes}
+			onSelectedNodesChange={onSelectedNodesChange}
+		/>
 	);
-};
+}
 
 export default SelectFolder;

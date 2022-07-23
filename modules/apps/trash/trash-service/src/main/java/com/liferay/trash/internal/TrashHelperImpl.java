@@ -161,7 +161,7 @@ public class TrashHelperImpl implements TrashHelper {
 
 				return themeDisplay.getURLCurrent();
 			}
-		).build();
+		).buildPortletURL();
 
 		TrashEntry trashEntry = _trashEntryLocalService.getEntry(
 			className, classPK);
@@ -202,13 +202,7 @@ public class TrashHelperImpl implements TrashHelper {
 	}
 
 	private String _getNewName(String oldName, String token) {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(oldName);
-		sb.append(StringPool.SPACE);
-		sb.append(token);
-
-		return sb.toString();
+		return StringBundler.concat(oldName, StringPool.SPACE, token);
 	}
 
 	private String _getOriginalTitle(

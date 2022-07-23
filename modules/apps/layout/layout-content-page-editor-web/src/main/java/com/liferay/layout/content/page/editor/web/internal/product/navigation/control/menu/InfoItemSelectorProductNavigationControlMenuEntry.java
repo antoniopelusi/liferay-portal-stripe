@@ -14,8 +14,6 @@
 
 package com.liferay.layout.content.page.editor.web.internal.product.navigation.control.menu;
 
-import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
-import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
@@ -46,7 +44,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"product.navigation.control.menu.category.key=" + ProductNavigationControlMenuCategoryKeys.USER,
-		"product.navigation.control.menu.entry.order:Integer=100"
+		"product.navigation.control.menu.entry.order:Integer=50"
 	},
 	service = ProductNavigationControlMenuEntry.class
 )
@@ -86,11 +84,7 @@ public class InfoItemSelectorProductNavigationControlMenuEntry
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
-
-		if (!_isDisplayPage(layout)) {
+		if (layout.isTypeControlPanel() || !layout.isTypeAssetDisplay()) {
 			return false;
 		}
 
@@ -102,31 +96,6 @@ public class InfoItemSelectorProductNavigationControlMenuEntry
 		}
 
 		return super.isShow(httpServletRequest);
-	}
-
-	private boolean _isDisplayPage(Layout layout) {
-		if (layout.getMasterLayoutPlid() > 0) {
-			return false;
-		}
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.
-				fetchLayoutPageTemplateEntryByPlid(layout.getPlid());
-
-		if (layoutPageTemplateEntry == null) {
-			layoutPageTemplateEntry =
-				_layoutPageTemplateEntryLocalService.
-					fetchLayoutPageTemplateEntryByPlid(layout.getClassPK());
-		}
-
-		if ((layoutPageTemplateEntry == null) ||
-			(layoutPageTemplateEntry.getType() !=
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE)) {
-
-			return false;
-		}
-
-		return true;
 	}
 
 	private static final String _TMPL_CONTENT = StringUtil.read(

@@ -132,6 +132,11 @@ public class LockWrapper
 		}
 	}
 
+	@Override
+	public Lock cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the class name of this lock.
 	 *

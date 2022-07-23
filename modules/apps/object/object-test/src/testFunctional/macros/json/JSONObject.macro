@@ -1,0 +1,514 @@
+definition {
+
+	@summary = "This calls the JSON WS API to add an object"
+	macro addObject {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		if (!(isSet(panelCategoryKey))) {
+			var panelCategoryKey = "control_panel.object";
+		}
+
+		if (!(isSet(scope))) {
+			var scope = "company";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"label": {
+				"en_US": "${labelName}"
+			},
+			"name": "${objectName}",
+			"objectFields": [],
+			"panelCategoryKey": "${panelCategoryKey}",
+			"pluralLabel": {
+				"en_US": "${pluralLabelName}"
+			},
+			"scope": "${scope}"
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to add a field in an object"
+	macro addObjectField {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var objectId = JSONObject.getObjectId(
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		if (!(isSet(picklistName))) {
+			var picklistId = "0";
+		}
+		else {
+			var picklistId = JSONObject.getPicklistId(
+				picklistName = "${picklistName}",
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		if (!(isSet(indexed))) {
+			var indexed = "true";
+		}
+
+		if (!(isSet(indexedAsKeyword))) {
+			var indexedAsKeyword = "true";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId}/object-fields \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"DBType": "${fieldType}",
+			"businessType": "${fieldBusinessType}",
+			"indexed": ${indexed},
+			"indexedAsKeyword": ${indexedAsKeyword},
+			"label": {
+				"en_US": "${fieldLabelName}"
+			},
+			"listTypeDefinitionId": ${picklistId},
+			"name": "${fieldName}",
+			"required": ${isRequired}
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to add a layout in an object"
+	macro addObjectLayout {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var objectId = JSONObject.getObjectId(
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId}/object-layouts \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"defaultObjectLayout": false,
+			"name": {
+				"en_US": "${layoutName}"
+			},
+			"objectDefinitionId": ${objectId}
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to add a relationship in an object"
+	macro addObjectRelationship {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var objectID_1 = JSONObject.getObjectId(
+			objectName = "${objectName_1}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		var objectID_2 = JSONObject.getObjectId(
+			objectName = "${objectName_2}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		if (!(isSet(deletionType))) {
+			var deletionType = "prevent";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectID_1}/object-relationships \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"deletionType": "${deletionType}",
+			"label": {
+			  "en_US": "${relationshipLabel}"
+			},
+			"name": "${relationshipName}",
+			"objectDefinitionId1": ${objectID_1},
+			"objectDefinitionId2": ${objectID_2},
+			"objectDefinitionName2": "${objectName_2}",
+			"type": "${relationshipType}"
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to add a single field entry in an object"
+	macro addObjectSingleFieldEntry {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var objectName = StringUtil.toLowerCase("${objectName}");
+
+		var curl = '''
+			${portalURL}/o/c/${objectName}s \
+			-H 'accept: application/json' \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"${fieldName}": "${value}"
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to add a picklist"
+	macro addPicklist {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-admin-list-type/v1.0/list-type-definitions \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"name": "${picklistName}",
+			"name_i18n": {
+				"en_US": "${picklistName}"
+			}
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to add a picklist item"
+	macro addPicklistItem {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var picklistId = JSONObject.getPicklistId(
+			picklistName = "${picklistName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-admin-list-type/v1.0/list-type-definitions/${picklistId}/list-type-entries \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"key": "${itemKey}",
+			"name": "${itemName}",
+			"name_i18n": {
+				"en_US": "${itemName}"
+			}
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to delete all custom objects"
+	macro deleteAllCustomObjects {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+		var objectIdList = JSONCurlUtil.get("${curl}", "$.items[?(@['system'] == false)]['id']");
+
+		if ("${objectIdList}" != "") {
+			for (var objectId : list "${objectIdList}") {
+				var curl = '''
+				${portalURL}/o/object-admin/v1.0/object-definitions/${objectId} \
+				-u ${userEmailAddress}:${userPassword}
+			''';
+
+				JSONCurlUtil.delete("${curl}");
+			}
+		}
+	}
+
+	@summary = "This calls the JSON WS API to delete all picklists"
+	macro deleteAllPicklists {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-admin-list-type/v1.0/list-type-definitions \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+		var picklistIdList = JSONCurlUtil.get("${curl}", "$.items..id");
+
+		if ("${picklistIdList}" != "") {
+			for (var picklistId : list "${picklistIdList}") {
+				var curl = '''
+				${portalURL}/o/headless-admin-list-type/v1.0/list-type-definitions/${picklistId} \
+				-u ${userEmailAddress}:${userPassword}
+			''';
+
+				JSONCurlUtil.delete("${curl}");
+			}
+		}
+	}
+
+	@summary = "This calls the JSON WS API to delete an object"
+	macro deleteObject {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var objectId = JSONObject.getObjectId(
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId} \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+
+		JSONCurlUtil.delete("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to delete an entry in an object"
+	macro deleteObjectEntry {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var entryId = JSONObject.getObjectEntryId(
+			entryValue = "${value}",
+			fieldName = "${fieldName}",
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var objectName = StringUtil.toLowerCase("${objectName}");
+
+		var curl = '''
+			${portalURL}/o/c/${objectName}s/${entryId} \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+
+		JSONCurlUtil.delete("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to delete a picklist"
+	macro deletePicklist {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var picklistId = JSONObject.getPicklistId(
+			picklistName = "${picklistName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-admin-list-type/v1.0/list-type-definitions/${picklistId} \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+
+		JSONCurlUtil.delete("${curl}");
+	}
+
+	@summary = "Get a objectDefinitionId by name"
+	macro getObjectDefinitionId {
+		Variables.assertDefined(parameterList = "${name}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/object.objectdefinition/get-object-definitions \
+				-u test@liferay.com:test \
+				-d <CURL_DATA[start=-1]CURL_DATA> \
+				-d <CURL_DATA[end=-1]CURL_DATA>
+		''';
+		var objectDefinitionId = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${name}')]['objectDefinitionId']");
+
+		if ("${objectDefinitionId}" == "") {
+			echo("The ${name} doesn't exist.");
+		}
+
+		return "${objectDefinitionId}";
+	}
+
+	macro getObjectEntryId {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var objectName = StringUtil.toLowerCase("${objectName}");
+
+		var curl = '''
+			${portalURL}/o/c/${objectName}s \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+		var entryId = JSONCurlUtil.get("${curl}", "$.items[?(@['${fieldName}'] == '${entryValue}')]['id']");
+
+		return "${entryId}";
+	}
+
+	macro getObjectId {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+		var objectId = JSONCurlUtil.get("${curl}", "$.items[?(@['name'] == '${objectName}')]['id']");
+
+		return "${objectId}";
+	}
+
+	macro getPicklistId {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-admin-list-type/v1.0/list-type-definitions \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+		var picklistId = JSONCurlUtil.get("${curl}", "$.items[?(@['name'] == '${picklistName}')]['id']");
+
+		return "${picklistId}";
+	}
+
+	@summary = "This calls the JSON WS API to publish an object"
+	macro publishObject {
+		var portalURL = JSONCompany.getPortalURL();
+
+		var objectId = JSONObject.getObjectId(
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var curl = '''
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId}/publish \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword}
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+}

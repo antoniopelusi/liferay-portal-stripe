@@ -33,16 +33,16 @@ public class DLFileEntryTypeUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select fileEntryTypeId, companyId, userId from " +
 					"DLFileEntryType where fileEntryTypeKey in ('IMAGE " +
 						"GALLERY IMAGE', 'Image Gallery Image')");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				long fileEntryTypeId = rs.getLong("fileEntryTypeId");
-				long companyId = rs.getLong("companyId");
-				long userId = rs.getLong("userId");
+			while (resultSet.next()) {
+				long fileEntryTypeId = resultSet.getLong("fileEntryTypeId");
+				long companyId = resultSet.getLong("companyId");
+				long userId = resultSet.getLong("userId");
 
 				_resourceLocalService.addResources(
 					companyId, 0, userId,

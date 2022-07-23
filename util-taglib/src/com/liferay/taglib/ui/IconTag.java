@@ -17,12 +17,6 @@ package com.liferay.taglib.ui;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Portlet;
-import com.liferay.portal.kernel.model.PortletApp;
-import com.liferay.portal.kernel.model.SpriteImage;
-import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -36,9 +30,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
 import com.liferay.taglib.util.TagResourceBundleUtil;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -310,15 +301,10 @@ public class IconTag extends IncludeTag {
 		}
 
 		if (isForcePost()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("event.preventDefault();");
-			sb.append(onClick);
-			sb.append("submitForm(document.hrefFm, '");
-			sb.append(HtmlUtil.escapeJS(getUrl()));
-			sb.append("')");
-
-			onClick = sb.toString();
+			onClick = StringBundler.concat(
+				"event.preventDefault();", onClick,
+				"submitForm(document.hrefFm, '", HtmlUtil.escapeJS(getUrl()),
+				"')");
 		}
 
 		return onClick;
@@ -365,11 +351,7 @@ public class IconTag extends IncludeTag {
 	}
 
 	protected boolean isForcePost() {
-		if (StringUtil.equalsIgnoreCase(_target, "_blank")) {
-			return false;
-		}
-
-		if (_url == null) {
+		if (StringUtil.equalsIgnoreCase(_target, "_blank") || (_url == null)) {
 			return false;
 		}
 
@@ -448,7 +430,7 @@ public class IconTag extends IncludeTag {
 		httpServletRequest.setAttribute("liferay-ui:icon:cssClass", _cssClass);
 		httpServletRequest.setAttribute("liferay-ui:icon:data", _getData());
 		httpServletRequest.setAttribute(
-			"liferay-ui:icon:details", _getDetails(themeDisplay));
+			"liferay-ui:icon:details", _getDetails());
 		httpServletRequest.setAttribute(
 			"liferay-ui:icon:forcePost", String.valueOf(isForcePost()));
 		httpServletRequest.setAttribute("liferay-ui:icon:icon", _icon);
@@ -520,7 +502,7 @@ public class IconTag extends IncludeTag {
 		return data;
 	}
 
-	private String _getDetails(ThemeDisplay themeDisplay) {
+	private String _getDetails() {
 		String details = null;
 
 		if (_alt != null) {
@@ -555,106 +537,6 @@ public class IconTag extends IncludeTag {
 			details = sb.toString();
 		}
 
-		if (Validator.isNull(_src) || !themeDisplay.isThemeImagesFastLoad() ||
-			isAUIImage()) {
-
-			return details;
-		}
-
-		SpriteImage spriteImage = null;
-		String spriteFileName = null;
-		String spriteFileURL = null;
-
-		String imageFileName = StringUtil.removeSubstring(_src, "common/../");
-
-		HttpServletRequest httpServletRequest = getRequest();
-
-		if (imageFileName.contains(Http.PROTOCOL_DELIMITER)) {
-			String portalURL = PortalUtil.getPortalURL(httpServletRequest);
-
-			if (imageFileName.startsWith(portalURL)) {
-				imageFileName = imageFileName.substring(portalURL.length());
-			}
-			else {
-				URL imageURL = null;
-
-				try {
-					imageURL = new URL(imageFileName);
-
-					imageFileName = imageURL.getPath();
-				}
-				catch (MalformedURLException malformedURLException) {
-					if (_log.isDebugEnabled()) {
-						_log.debug(
-							malformedURLException, malformedURLException);
-					}
-				}
-			}
-		}
-
-		Theme theme = themeDisplay.getTheme();
-
-		String contextPath = theme.getContextPath();
-
-		String imagesPath = contextPath.concat(theme.getImagesPath());
-
-		if (imageFileName.startsWith(imagesPath)) {
-			spriteImage = theme.getSpriteImage(imageFileName);
-
-			if (spriteImage != null) {
-				spriteFileName = spriteImage.getSpriteFileName();
-
-				String cdnBaseURL = themeDisplay.getCDNBaseURL();
-
-				spriteFileURL = cdnBaseURL.concat(spriteFileName);
-			}
-		}
-
-		if (spriteImage == null) {
-			Portlet portlet = (Portlet)httpServletRequest.getAttribute(
-				"liferay-portlet:icon_portlet:portlet");
-
-			if (portlet == null) {
-				portlet = (Portlet)httpServletRequest.getAttribute(
-					WebKeys.RENDER_PORTLET);
-			}
-
-			if (portlet != null) {
-				PortletApp portletApp = portlet.getPortletApp();
-
-				spriteImage = portletApp.getSpriteImage(imageFileName);
-
-				if (spriteImage != null) {
-					spriteFileName = spriteImage.getSpriteFileName();
-
-					String cdnBaseURL = themeDisplay.getCDNBaseURL();
-
-					spriteFileURL = cdnBaseURL.concat(spriteFileName);
-				}
-			}
-		}
-
-		if (spriteImage != null) {
-			String themeImagesPath = themeDisplay.getPathThemeImages();
-
-			_src = themeImagesPath.concat("/spacer.png");
-
-			StringBundler sb = new StringBundler(10);
-
-			sb.append(details);
-			sb.append(" style=\"background-image: url('");
-			sb.append(HtmlUtil.escapeCSS(spriteFileURL));
-			sb.append("'); background-position: 50% -");
-			sb.append(spriteImage.getOffset());
-			sb.append("px; background-repeat: no-repeat; height: ");
-			sb.append(spriteImage.getHeight());
-			sb.append("px; width: ");
-			sb.append(spriteImage.getWidth());
-			sb.append("px;\"");
-
-			details = sb.toString();
-		}
-
 		return details;
 	}
 
@@ -678,14 +560,11 @@ public class IconTag extends IncludeTag {
 			return pathThemeImages.concat("/spacer.png");
 		}
 		else if (Validator.isNotNull(_image)) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(themeDisplay.getPathThemeImages());
-			sb.append("/common/");
-			sb.append(_image);
-			sb.append(".png");
-
-			return StringUtil.removeSubstring(sb.toString(), "common/../");
+			return StringUtil.removeSubstring(
+				StringBundler.concat(
+					themeDisplay.getPathThemeImages(), "/common/", _image,
+					".png"),
+				"common/../");
 		}
 
 		return StringPool.BLANK;
@@ -696,22 +575,13 @@ public class IconTag extends IncludeTag {
 			return _srcHover;
 		}
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(themeDisplay.getPathThemeImages());
-
-		sb.append("/common/");
-		sb.append(_imageHover);
-		sb.append(".png");
-
-		return sb.toString();
+		return StringBundler.concat(
+			themeDisplay.getPathThemeImages(), "/common/", _imageHover, ".png");
 	}
 
 	private static final String _AUI_PATH = "../aui/";
 
 	private static final boolean _CLEAN_UP_SET_ATTRIBUTES = true;
-
-	private static final Log _log = LogFactoryUtil.getLog(IconTag.class);
 
 	private String _alt;
 	private String _ariaRole;

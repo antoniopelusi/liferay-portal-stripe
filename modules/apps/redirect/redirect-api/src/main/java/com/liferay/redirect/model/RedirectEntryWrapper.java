@@ -148,6 +148,11 @@ public class RedirectEntryWrapper
 		}
 	}
 
+	@Override
+	public RedirectEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this redirect entry.
 	 *

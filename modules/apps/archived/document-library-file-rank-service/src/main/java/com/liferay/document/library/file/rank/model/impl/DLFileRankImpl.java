@@ -38,7 +38,5 @@ public class DLFileRankImpl extends DLFileRankBaseImpl {
 	 * com.liferay.document.library.file.rank.model.DLFileRank} interface
 	 * instead.
 	 */
-	public DLFileRankImpl() {
-	}
 
 }

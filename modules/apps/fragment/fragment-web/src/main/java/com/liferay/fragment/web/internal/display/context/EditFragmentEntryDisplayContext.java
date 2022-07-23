@@ -54,7 +54,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.portlet.PortletRequest;
-import javax.portlet.PortletURL;
 import javax.portlet.RenderResponse;
 
 import javax.servlet.http.HttpServletRequest;
@@ -212,19 +211,20 @@ public class EditFragmentEntryDisplayContext {
 			return redirect;
 		}
 
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCRenderCommandName(
 			"/fragment/view"
-		).build();
+		).setParameter(
+			"fragmentCollectionId",
+			() -> {
+				if (getFragmentCollectionId() > 0) {
+					return getFragmentCollectionId();
+				}
 
-		if (getFragmentCollectionId() > 0) {
-			portletURL.setParameter(
-				"fragmentCollectionId",
-				String.valueOf(getFragmentCollectionId()));
-		}
-
-		return portletURL.toString();
+				return null;
+			}
+		).buildString();
 	}
 
 	private String _getConfigurationContent() {
@@ -378,39 +378,28 @@ public class EditFragmentEntryDisplayContext {
 			"freeMarkerVariables", freeMarkerVariables
 		).put(
 			"htmlEditorCustomEntities",
-			() -> {
-				List<Map<String, Object>> htmlEditorCustomEntities =
-					new ArrayList<>();
-
-				htmlEditorCustomEntities.add(
-					HashMapBuilder.<String, Object>put(
-						"content", freeMarkerTaglibs
-					).put(
-						"end", "]"
-					).put(
-						"start", "[@"
-					).build());
-
-				htmlEditorCustomEntities.add(
-					HashMapBuilder.<String, Object>put(
-						"content", freeMarkerVariables
-					).put(
-						"end", "}"
-					).put(
-						"start", "${"
-					).build());
-
-				htmlEditorCustomEntities.add(
-					HashMapBuilder.<String, Object>put(
-						"content", resources
-					).put(
-						"end", "]"
-					).put(
-						"start", "[resources:"
-					).build());
-
-				return htmlEditorCustomEntities;
-			}
+			ListUtil.fromArray(
+				HashMapBuilder.<String, Object>put(
+					"content", freeMarkerTaglibs
+				).put(
+					"end", "]"
+				).put(
+					"start", "[@"
+				).build(),
+				HashMapBuilder.<String, Object>put(
+					"content", freeMarkerVariables
+				).put(
+					"end", "}"
+				).put(
+					"start", "${"
+				).build(),
+				HashMapBuilder.<String, Object>put(
+					"content", resources
+				).put(
+					"end", "]"
+				).put(
+					"start", "[resources:"
+				).build())
 		).put(
 			"initialConfiguration", _getConfigurationContent()
 		).put(
@@ -528,17 +517,14 @@ public class EditFragmentEntryDisplayContext {
 			return;
 		}
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(getFragmentEntryTitle());
-		sb.append(" (");
-		sb.append(
-			LanguageUtil.get(
-				_httpServletRequest,
-				WorkflowConstants.getStatusLabel(fragmentEntry.getStatus())));
-		sb.append(")");
-
-		_renderResponse.setTitle(sb.toString());
+		_renderResponse.setTitle(
+			StringBundler.concat(
+				getFragmentEntryTitle(), " (",
+				LanguageUtil.get(
+					_httpServletRequest,
+					WorkflowConstants.getStatusLabel(
+						fragmentEntry.getStatus())),
+				")"));
 	}
 
 	private String _configurationContent;

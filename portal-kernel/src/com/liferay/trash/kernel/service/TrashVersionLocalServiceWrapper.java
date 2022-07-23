@@ -41,6 +41,18 @@ public class TrashVersionLocalServiceWrapper implements TrashVersionLocalService
 	}
 
 	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _trashVersionLocalService.dynamicQuery();
 	}

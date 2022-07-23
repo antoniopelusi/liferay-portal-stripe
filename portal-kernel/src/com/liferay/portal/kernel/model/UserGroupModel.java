@@ -299,4 +299,7 @@ public interface UserGroupModel
 	 */
 	public void setAddedByLDAPImport(boolean addedByLDAPImport);
 
+	@Override
+	public UserGroup cloneWithOriginalValues();
+
 }

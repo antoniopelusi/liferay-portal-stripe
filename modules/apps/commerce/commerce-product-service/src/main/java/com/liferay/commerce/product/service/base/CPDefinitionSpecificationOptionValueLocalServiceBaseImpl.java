@@ -43,12 +43,12 @@ import com.liferay.commerce.product.service.persistence.CommerceCatalogPersisten
 import com.liferay.commerce.product.service.persistence.CommerceChannelPersistence;
 import com.liferay.commerce.product.service.persistence.CommerceChannelRelFinder;
 import com.liferay.commerce.product.service.persistence.CommerceChannelRelPersistence;
-import com.liferay.expando.kernel.service.persistence.ExpandoRowPersistence;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -70,9 +70,11 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -100,6 +102,7 @@ import javax.sql.DataSource;
 public abstract class CPDefinitionSpecificationOptionValueLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements CPDefinitionSpecificationOptionValueLocalService,
+			   CTService<CPDefinitionSpecificationOptionValue>,
 			   IdentifiableOSGiService {
 
 	/*
@@ -196,6 +199,13 @@ public abstract class CPDefinitionSpecificationOptionValueLocalServiceBaseImpl
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return cpDefinitionSpecificationOptionValuePersistence.dslQuery(
 			dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -1720,49 +1730,6 @@ public abstract class CPDefinitionSpecificationOptionValueLocalServiceBaseImpl
 		this.userPersistence = userPersistence;
 	}
 
-	/**
-	 * Returns the expando row local service.
-	 *
-	 * @return the expando row local service
-	 */
-	public com.liferay.expando.kernel.service.ExpandoRowLocalService
-		getExpandoRowLocalService() {
-
-		return expandoRowLocalService;
-	}
-
-	/**
-	 * Sets the expando row local service.
-	 *
-	 * @param expandoRowLocalService the expando row local service
-	 */
-	public void setExpandoRowLocalService(
-		com.liferay.expando.kernel.service.ExpandoRowLocalService
-			expandoRowLocalService) {
-
-		this.expandoRowLocalService = expandoRowLocalService;
-	}
-
-	/**
-	 * Returns the expando row persistence.
-	 *
-	 * @return the expando row persistence
-	 */
-	public ExpandoRowPersistence getExpandoRowPersistence() {
-		return expandoRowPersistence;
-	}
-
-	/**
-	 * Sets the expando row persistence.
-	 *
-	 * @param expandoRowPersistence the expando row persistence
-	 */
-	public void setExpandoRowPersistence(
-		ExpandoRowPersistence expandoRowPersistence) {
-
-		this.expandoRowPersistence = expandoRowPersistence;
-	}
-
 	public void afterPropertiesSet() {
 		persistedModelLocalServiceRegistry.register(
 			"com.liferay.commerce.product.model.CPDefinitionSpecificationOptionValue",
@@ -1789,8 +1756,27 @@ public abstract class CPDefinitionSpecificationOptionValueLocalServiceBaseImpl
 		return CPDefinitionSpecificationOptionValueLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<CPDefinitionSpecificationOptionValue>
+		getCTPersistence() {
+
+		return cpDefinitionSpecificationOptionValuePersistence;
+	}
+
+	@Override
+	public Class<CPDefinitionSpecificationOptionValue> getModelClass() {
 		return CPDefinitionSpecificationOptionValue.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction
+				<CTPersistence<CPDefinitionSpecificationOptionValue>, R, E>
+					updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(
+			cpDefinitionSpecificationOptionValuePersistence);
 	}
 
 	protected String getModelClassName() {
@@ -2073,15 +2059,6 @@ public abstract class CPDefinitionSpecificationOptionValueLocalServiceBaseImpl
 
 	@ServiceReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
-
-	@ServiceReference(
-		type = com.liferay.expando.kernel.service.ExpandoRowLocalService.class
-	)
-	protected com.liferay.expando.kernel.service.ExpandoRowLocalService
-		expandoRowLocalService;
-
-	@ServiceReference(type = ExpandoRowPersistence.class)
-	protected ExpandoRowPersistence expandoRowPersistence;
 
 	@ServiceReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry

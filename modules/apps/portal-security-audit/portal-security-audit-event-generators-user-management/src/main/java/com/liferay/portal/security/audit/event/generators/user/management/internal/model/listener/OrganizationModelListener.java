@@ -73,22 +73,19 @@ public class OrganizationModelListener extends BaseModelListener<Organization> {
 			associationClassPK);
 	}
 
-	public void onBeforeUpdate(Organization newOrganization)
+	public void onBeforeUpdate(
+			Organization originalOrganization, Organization organization)
 		throws ModelListenerException {
 
 		try {
-			Organization oldOrganization =
-				_organizationLocalService.getOrganization(
-					newOrganization.getOrganizationId());
-
 			List<Attribute> attributes = getModifiedAttributes(
-				newOrganization, oldOrganization);
+				originalOrganization, organization);
 
 			if (!attributes.isEmpty()) {
 				AuditMessage auditMessage =
 					AuditMessageBuilder.buildAuditMessage(
 						EventTypes.UPDATE, Organization.class.getName(),
-						newOrganization.getOrganizationId(), attributes);
+						organization.getOrganizationId(), attributes);
 
 				_auditRouter.route(auditMessage);
 			}
@@ -149,10 +146,10 @@ public class OrganizationModelListener extends BaseModelListener<Organization> {
 	}
 
 	protected List<Attribute> getModifiedAttributes(
-		Organization newOrganization, Organization oldOrganization) {
+		Organization originalOrganization, Organization organization) {
 
 		AttributesBuilder attributesBuilder = new AttributesBuilder(
-			newOrganization, oldOrganization);
+			organization, originalOrganization);
 
 		attributesBuilder.add("comments");
 		attributesBuilder.add("countryId");

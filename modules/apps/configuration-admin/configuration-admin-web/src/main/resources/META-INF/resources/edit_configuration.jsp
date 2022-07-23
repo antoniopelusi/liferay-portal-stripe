@@ -35,7 +35,7 @@ PortletURL viewFactoryInstancesURL = PortletURLBuilder.createRenderURL(
 	"/configuration_admin/view_factory_instances"
 ).setParameter(
 	"factoryPid", configurationModel.getFactoryPid()
-).build();
+).buildPortletURL();
 
 if (configurationModel.isFactory()) {
 	bindRedirectURL = viewFactoryInstancesURL.toString();
@@ -209,9 +209,15 @@ renderResponse.setTitle(categoryDisplayName);
 						</c:if>
 					</h2>
 
+					<c:if test="<%= configurationModel.hasScopeConfiguration(configurationScopeDisplayContext.getScope()) && configurationModel.isReadOnly() %>">
+						<aui:alert closeable="<%= false %>" id="readonlyAlert" type="info">
+							<liferay-ui:message key="this-configuration-is-read-only" />
+						</aui:alert>
+					</c:if>
+
 					<c:if test="<%= !configurationModel.hasScopeConfiguration(configurationScopeDisplayContext.getScope()) %>">
 						<aui:alert closeable="<%= false %>" id="errorAlert" type="info">
-							<liferay-ui:message key="this-configuration-is-not-saved-yet" />
+							<liferay-ui:message key="this-configuration-is-not-saved-yet.-the-values-shown-are-the-default" />
 						</aui:alert>
 					</c:if>
 
@@ -230,23 +236,34 @@ renderResponse.setTitle(categoryDisplayName);
 					<%
 					ConfigurationFormRenderer configurationFormRenderer = (ConfigurationFormRenderer)request.getAttribute(ConfigurationAdminWebKeys.CONFIGURATION_FORM_RENDERER);
 
-					configurationFormRenderer.render(request, PipingServletResponse.createPipingServletResponse(pageContext));
+					configurationFormRenderer.render(request, PipingServletResponseFactory.createPipingServletResponse(pageContext));
 					%>
 
 					<liferay-util:dynamic-include key='<%= "com.liferay.configuration.admin.web#/edit_configuration.jsp#" + configurationModel.getFactoryPid() + "#post" %>' />
 
-					<aui:button-row>
-						<c:choose>
-							<c:when test="<%= configurationModel.hasScopeConfiguration(configurationScopeDisplayContext.getScope()) %>">
-								<aui:button name="update" type="submit" value="update" />
-							</c:when>
-							<c:otherwise>
-								<aui:button name="save" type="submit" value="save" />
-							</c:otherwise>
-						</c:choose>
+					<c:if test="<%= !configurationModel.isReadOnly() %>">
+						<aui:button-row>
+							<c:choose>
+								<c:when test="<%= configurationModel.hasScopeConfiguration(configurationScopeDisplayContext.getScope()) %>">
+									<aui:button name="update" type="submit" value="update" />
+								</c:when>
+								<c:otherwise>
+									<aui:button name="save" type="submit" value="save" />
+								</c:otherwise>
+							</c:choose>
 
-						<aui:button href="<%= redirect %>" name="cancel" type="cancel" />
-					</aui:button-row>
+							<aui:button href="<%= redirect %>" name="cancel" type="cancel" />
+
+							<c:if test="<%= Validator.isNotNull(configurationModel.getLiferayLearnMessageKey()) && Validator.isNotNull(configurationModel.getLiferayLearnMessageResource()) %>">
+								<div class="btn float-right">
+									<liferay-learn:message
+										key="<%= configurationModel.getLiferayLearnMessageKey() %>"
+										resource="<%= configurationModel.getLiferayLearnMessageResource() %>"
+									/>
+								</div>
+							</c:if>
+						</aui:button-row>
+					</c:if>
 				</aui:form>
 			</clay:sheet>
 		</clay:col>

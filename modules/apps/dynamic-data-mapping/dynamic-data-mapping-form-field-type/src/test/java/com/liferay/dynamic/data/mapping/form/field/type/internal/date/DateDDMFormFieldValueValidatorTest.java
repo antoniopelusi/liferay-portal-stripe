@@ -22,29 +22,32 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.portal.json.JSONFactoryImpl;
-import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.DateFormatFactoryImpl;
 import com.liferay.portal.util.FastDateFormatFactoryImpl;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Marcela Cunha
  * @author Pedro Queiroz
  */
-@RunWith(PowerMockRunner.class)
-public class DateDDMFormFieldValueValidatorTest extends PowerMockito {
+public class DateDDMFormFieldValueValidatorTest {
 
-	@Before
-	public void setUp() throws Exception {
-		setUpDateDDMFormFieldValueValidator();
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
+
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		_setUpDateDDMFormFieldValueValidator();
 		setUpDateFormatFactoryUtil();
 		setUpFastDateFormatFactoryUtil();
 	}
@@ -68,8 +71,8 @@ public class DateDDMFormFieldValueValidatorTest extends PowerMockito {
 			ddmFormField, ddmFormFieldValue.getValue());
 	}
 
-	@Test(expected = DDMFormFieldValueValidationException.class)
-	public void testValidationWithEmptyRequiredDateShouldThrowException()
+	@Test
+	public void testValidationWithEmptyRequiredDateShouldNotThrowException()
 		throws Exception {
 
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
@@ -125,24 +128,14 @@ public class DateDDMFormFieldValueValidatorTest extends PowerMockito {
 			ddmFormField, ddmFormFieldValue.getValue());
 	}
 
-	protected void setUpDateDDMFormFieldValueValidator() throws Exception {
-		_dateDDMFormFieldValueValidator = new DateDDMFormFieldValueValidator();
-
-		field(
-			DateDDMFormFieldValueValidator.class, "jsonFactory"
-		).set(
-			_dateDDMFormFieldValueValidator, _jsonFactory
-		);
-	}
-
-	protected void setUpDateFormatFactoryUtil() {
+	protected static void setUpDateFormatFactoryUtil() {
 		DateFormatFactoryUtil dateFormatFactoryUtil =
 			new DateFormatFactoryUtil();
 
 		dateFormatFactoryUtil.setDateFormatFactory(new DateFormatFactoryImpl());
 	}
 
-	protected void setUpFastDateFormatFactoryUtil() {
+	protected static void setUpFastDateFormatFactoryUtil() {
 		FastDateFormatFactoryUtil fastDateFormatFactoryUtil =
 			new FastDateFormatFactoryUtil();
 
@@ -150,7 +143,15 @@ public class DateDDMFormFieldValueValidatorTest extends PowerMockito {
 			new FastDateFormatFactoryImpl());
 	}
 
-	private DateDDMFormFieldValueValidator _dateDDMFormFieldValueValidator;
-	private final JSONFactory _jsonFactory = new JSONFactoryImpl();
+	private static void _setUpDateDDMFormFieldValueValidator() {
+		_dateDDMFormFieldValueValidator = new DateDDMFormFieldValueValidator();
+
+		ReflectionTestUtil.setFieldValue(
+			_dateDDMFormFieldValueValidator, "jsonFactory",
+			new JSONFactoryImpl());
+	}
+
+	private static DateDDMFormFieldValueValidator
+		_dateDDMFormFieldValueValidator;
 
 }

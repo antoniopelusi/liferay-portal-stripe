@@ -30,12 +30,13 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -70,10 +71,11 @@ public class CommerceOrderPaymentModelImpl
 	public static final String TABLE_NAME = "CommerceOrderPayment";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"commerceOrderPaymentId", Types.BIGINT}, {"groupId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
-		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
-		{"modifiedDate", Types.TIMESTAMP}, {"commerceOrderId", Types.BIGINT},
+		{"mvccVersion", Types.BIGINT}, {"commerceOrderPaymentId", Types.BIGINT},
+		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"commerceOrderId", Types.BIGINT},
 		{"commercePaymentMethodKey", Types.VARCHAR}, {"content", Types.CLOB},
 		{"status", Types.INTEGER}
 	};
@@ -82,6 +84,7 @@ public class CommerceOrderPaymentModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("commerceOrderPaymentId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -96,7 +99,7 @@ public class CommerceOrderPaymentModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CommerceOrderPayment (commerceOrderPaymentId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commerceOrderId LONG,commercePaymentMethodKey VARCHAR(75) null,content TEXT null,status INTEGER)";
+		"create table CommerceOrderPayment (mvccVersion LONG default 0 not null,commerceOrderPaymentId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,commerceOrderId LONG,commercePaymentMethodKey VARCHAR(75) null,content TEXT null,status INTEGER)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CommerceOrderPayment";
@@ -233,34 +236,6 @@ public class CommerceOrderPaymentModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CommerceOrderPayment>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommerceOrderPayment.class.getClassLoader(),
-			CommerceOrderPayment.class, ModelWrapper.class);
-
-		try {
-			Constructor<CommerceOrderPayment> constructor =
-				(Constructor<CommerceOrderPayment>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CommerceOrderPayment, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CommerceOrderPayment, Object>>
@@ -276,6 +251,12 @@ public class CommerceOrderPaymentModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<CommerceOrderPayment, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", CommerceOrderPayment::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CommerceOrderPayment, Long>)
+				CommerceOrderPayment::setMvccVersion);
 		attributeGetterFunctions.put(
 			"commerceOrderPaymentId",
 			CommerceOrderPayment::getCommerceOrderPaymentId);
@@ -347,6 +328,20 @@ public class CommerceOrderPaymentModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -608,6 +603,7 @@ public class CommerceOrderPaymentModelImpl
 		CommerceOrderPaymentImpl commerceOrderPaymentImpl =
 			new CommerceOrderPaymentImpl();
 
+		commerceOrderPaymentImpl.setMvccVersion(getMvccVersion());
 		commerceOrderPaymentImpl.setCommerceOrderPaymentId(
 			getCommerceOrderPaymentId());
 		commerceOrderPaymentImpl.setGroupId(getGroupId());
@@ -623,6 +619,39 @@ public class CommerceOrderPaymentModelImpl
 		commerceOrderPaymentImpl.setStatus(getStatus());
 
 		commerceOrderPaymentImpl.resetOriginalValues();
+
+		return commerceOrderPaymentImpl;
+	}
+
+	@Override
+	public CommerceOrderPayment cloneWithOriginalValues() {
+		CommerceOrderPaymentImpl commerceOrderPaymentImpl =
+			new CommerceOrderPaymentImpl();
+
+		commerceOrderPaymentImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		commerceOrderPaymentImpl.setCommerceOrderPaymentId(
+			this.<Long>getColumnOriginalValue("commerceOrderPaymentId"));
+		commerceOrderPaymentImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		commerceOrderPaymentImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commerceOrderPaymentImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commerceOrderPaymentImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commerceOrderPaymentImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commerceOrderPaymentImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commerceOrderPaymentImpl.setCommerceOrderId(
+			this.<Long>getColumnOriginalValue("commerceOrderId"));
+		commerceOrderPaymentImpl.setCommercePaymentMethodKey(
+			this.<String>getColumnOriginalValue("commercePaymentMethodKey"));
+		commerceOrderPaymentImpl.setContent(
+			this.<String>getColumnOriginalValue("content"));
+		commerceOrderPaymentImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
 
 		return commerceOrderPaymentImpl;
 	}
@@ -703,6 +732,8 @@ public class CommerceOrderPaymentModelImpl
 		CommerceOrderPaymentCacheModel commerceOrderPaymentCacheModel =
 			new CommerceOrderPaymentCacheModel();
 
+		commerceOrderPaymentCacheModel.mvccVersion = getMvccVersion();
+
 		commerceOrderPaymentCacheModel.commerceOrderPaymentId =
 			getCommerceOrderPaymentId();
 
@@ -772,7 +803,7 @@ public class CommerceOrderPaymentModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -783,10 +814,27 @@ public class CommerceOrderPaymentModelImpl
 			Function<CommerceOrderPayment, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((CommerceOrderPayment)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CommerceOrderPayment)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -834,10 +882,13 @@ public class CommerceOrderPaymentModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CommerceOrderPayment>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CommerceOrderPayment.class, ModelWrapper.class);
 
 	}
 
+	private long _mvccVersion;
 	private long _commerceOrderPaymentId;
 	private long _groupId;
 	private long _companyId;
@@ -878,6 +929,7 @@ public class CommerceOrderPaymentModelImpl
 	private void _setColumnOriginalValues() {
 		_columnOriginalValues = new HashMap<String, Object>();
 
+		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put(
 			"commerceOrderPaymentId", _commerceOrderPaymentId);
 		_columnOriginalValues.put("groupId", _groupId);
@@ -904,27 +956,29 @@ public class CommerceOrderPaymentModelImpl
 	static {
 		Map<String, Long> columnBitmasks = new HashMap<>();
 
-		columnBitmasks.put("commerceOrderPaymentId", 1L);
+		columnBitmasks.put("mvccVersion", 1L);
 
-		columnBitmasks.put("groupId", 2L);
+		columnBitmasks.put("commerceOrderPaymentId", 2L);
 
-		columnBitmasks.put("companyId", 4L);
+		columnBitmasks.put("groupId", 4L);
 
-		columnBitmasks.put("userId", 8L);
+		columnBitmasks.put("companyId", 8L);
 
-		columnBitmasks.put("userName", 16L);
+		columnBitmasks.put("userId", 16L);
 
-		columnBitmasks.put("createDate", 32L);
+		columnBitmasks.put("userName", 32L);
 
-		columnBitmasks.put("modifiedDate", 64L);
+		columnBitmasks.put("createDate", 64L);
 
-		columnBitmasks.put("commerceOrderId", 128L);
+		columnBitmasks.put("modifiedDate", 128L);
 
-		columnBitmasks.put("commercePaymentMethodKey", 256L);
+		columnBitmasks.put("commerceOrderId", 256L);
 
-		columnBitmasks.put("content", 512L);
+		columnBitmasks.put("commercePaymentMethodKey", 512L);
 
-		columnBitmasks.put("status", 1024L);
+		columnBitmasks.put("content", 1024L);
+
+		columnBitmasks.put("status", 2048L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

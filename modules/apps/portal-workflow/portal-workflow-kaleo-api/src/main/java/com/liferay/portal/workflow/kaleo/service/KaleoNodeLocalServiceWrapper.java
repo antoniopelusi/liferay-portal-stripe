@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class KaleoNodeLocalServiceWrapper
 	implements KaleoNodeLocalService, ServiceWrapper<KaleoNodeLocalService> {
 
+	public KaleoNodeLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoNodeLocalServiceWrapper(
 		KaleoNodeLocalService kaleoNodeLocalService) {
 
@@ -147,6 +151,13 @@ public class KaleoNodeLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoNodeLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoNodeLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

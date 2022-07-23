@@ -40,6 +40,10 @@ if (isDraggable) {
 }
 %>
 
+<liferay-util:html-top>
+	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/css/image_selector.css") %>" rel="stylesheet" type="text/css" />
+</liferay-util:html-top>
+
 <div>
 	<react:component
 		module="image_selector/js/ImageSelector"
@@ -110,7 +114,7 @@ if (isDraggable) {
 
 				<div class="file-validation-info">
 					<c:if test="<%= Validator.isNotNull(validExtensions) %>">
-						<strong><%= validExtensions %></strong>
+						<strong><%= HtmlUtil.escape(validExtensions) %></strong>
 					</c:if>
 
 					<c:if test="<%= maxFileSize != 0 %>">

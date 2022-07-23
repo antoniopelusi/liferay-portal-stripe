@@ -45,14 +45,14 @@ public interface NodeMetricResource {
 
 	public Page<NodeMetric> getProcessNodeMetricsPage(
 			Long processId, Boolean completed, java.util.Date dateEnd,
-			java.util.Date dateStart, String key, Pagination pagination,
-			String sortString)
+			java.util.Date dateStart, String key, String processVersion,
+			Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getProcessNodeMetricsPageHttpResponse(
 			Long processId, Boolean completed, java.util.Date dateEnd,
-			java.util.Date dateStart, String key, Pagination pagination,
-			String sortString)
+			java.util.Date dateStart, String key, String processVersion,
+			Pagination pagination, String sortString)
 		throws Exception;
 
 	public static class Builder {
@@ -128,14 +128,14 @@ public interface NodeMetricResource {
 
 		public Page<NodeMetric> getProcessNodeMetricsPage(
 				Long processId, Boolean completed, java.util.Date dateEnd,
-				java.util.Date dateStart, String key, Pagination pagination,
-				String sortString)
+				java.util.Date dateStart, String key, String processVersion,
+				Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getProcessNodeMetricsPageHttpResponse(
-					processId, completed, dateEnd, dateStart, key, pagination,
-					sortString);
+					processId, completed, dateEnd, dateStart, key,
+					processVersion, pagination, sortString);
 
 			String content = httpResponse.getContent();
 
@@ -176,8 +176,8 @@ public interface NodeMetricResource {
 
 		public HttpInvoker.HttpResponse getProcessNodeMetricsPageHttpResponse(
 				Long processId, Boolean completed, java.util.Date dateEnd,
-				java.util.Date dateStart, String key, Pagination pagination,
-				String sortString)
+				java.util.Date dateStart, String key, String processVersion,
+				Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -202,7 +202,7 @@ public interface NodeMetricResource {
 			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
 
 			DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-				"yyyy-MM-dd'T'HH:mm:ss'Z'");
+				"yyyy-MM-dd'T'HH:mm:ssXX");
 
 			if (completed != null) {
 				httpInvoker.parameter("completed", String.valueOf(completed));
@@ -220,6 +220,11 @@ public interface NodeMetricResource {
 
 			if (key != null) {
 				httpInvoker.parameter("key", String.valueOf(key));
+			}
+
+			if (processVersion != null) {
+				httpInvoker.parameter(
+					"processVersion", String.valueOf(processVersion));
 			}
 
 			if (pagination != null) {

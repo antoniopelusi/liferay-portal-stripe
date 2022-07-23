@@ -14,6 +14,7 @@
 
 package com.liferay.portal.instances.web.internal.portlet.action;
 
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.instances.service.PortalInstancesLocalService;
 import com.liferay.portal.instances.web.internal.constants.PortalInstancesPortletKeys;
 import com.liferay.portal.kernel.exception.CompanyMxException;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.CompanyService;
@@ -57,16 +59,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditInstanceMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteInstance(ActionRequest actionRequest)
-		throws Exception {
-
-		long companyId = ParamUtil.getLong(actionRequest, "companyId");
-
-		_companyService.deleteCompany(companyId);
-
-		synchronizePortalInstances();
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -76,16 +68,20 @@ public class EditInstanceMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			if (cmd.equals(Constants.DELETE)) {
-				deleteInstance(actionRequest);
+				_deleteInstance(actionRequest);
 			}
 			else {
-				updateInstance(actionRequest);
+				_updateInstance(actionRequest);
 			}
 
 			sendRedirect(actionRequest, actionResponse);
 		}
 		catch (Exception exception) {
 			String mvcPath = "/error.jsp";
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
 
 			if (exception instanceof NoSuchCompanyException ||
 				exception instanceof PrincipalException) {
@@ -118,7 +114,7 @@ public class EditInstanceMVCActionCommand extends BaseMVCActionCommand {
 				SessionErrors.add(actionRequest, exception.getClass());
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				throw exception;
 			}
@@ -127,13 +123,19 @@ public class EditInstanceMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void synchronizePortalInstances() {
+	private void _deleteInstance(ActionRequest actionRequest) throws Exception {
+		long companyId = ParamUtil.getLong(actionRequest, "companyId");
+
+		_companyService.deleteCompany(companyId);
+
+		_synchronizePortalInstances();
+	}
+
+	private void _synchronizePortalInstances() {
 		_portalInstancesLocalService.synchronizePortalInstances();
 	}
 
-	protected void updateInstance(ActionRequest actionRequest)
-		throws Exception {
-
+	private void _updateInstance(ActionRequest actionRequest) throws Exception {
 		long companyId = ParamUtil.getLong(actionRequest, "companyId");
 
 		String virtualHostname = ParamUtil.getString(
@@ -151,21 +153,34 @@ public class EditInstanceMVCActionCommand extends BaseMVCActionCommand {
 			Company company = _companyService.addCompany(
 				webId, virtualHostname, mx, false, maxUsers, active);
 
+			String siteInitializerKey = ParamUtil.getString(
+				actionRequest, "siteInitializerKey");
 			ServletContext servletContext =
 				(ServletContext)actionRequest.getAttribute(WebKeys.CTX);
 
-			_portalInstancesLocalService.initializePortalInstance(
-				servletContext, company.getWebId());
+			try (SafeCloseable safeCloseable =
+					CompanyThreadLocal.setWithSafeCloseable(
+						company.getCompanyId())) {
+
+				_portalInstancesLocalService.initializePortalInstance(
+					company.getCompanyId(), siteInitializerKey, servletContext);
+			}
 		}
 		else {
 
 			// Update instance
 
+			if (companyId ==
+					_portalInstancesLocalService.getDefaultCompanyId()) {
+
+				active = true;
+			}
+
 			_companyService.updateCompany(
 				companyId, virtualHostname, mx, maxUsers, active);
 		}
 
-		synchronizePortalInstances();
+		_synchronizePortalInstances();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

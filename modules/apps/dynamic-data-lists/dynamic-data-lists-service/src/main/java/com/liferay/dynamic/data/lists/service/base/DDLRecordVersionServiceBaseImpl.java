@@ -17,8 +17,6 @@ package com.liferay.dynamic.data.lists.service.base;
 import com.liferay.dynamic.data.lists.model.DDLRecordVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordVersionService;
 import com.liferay.dynamic.data.lists.service.DDLRecordVersionServiceUtil;
-import com.liferay.dynamic.data.lists.service.persistence.DDLRecordFinder;
-import com.liferay.dynamic.data.lists.service.persistence.DDLRecordPersistence;
 import com.liferay.dynamic.data.lists.service.persistence.DDLRecordVersionPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -147,11 +145,5 @@ public abstract class DDLRecordVersionServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected DDLRecordPersistence ddlRecordPersistence;
-
-	@Reference
-	protected DDLRecordFinder ddlRecordFinder;
 
 }

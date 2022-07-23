@@ -30,13 +30,13 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 ).setParameter(
 	"articleId", articleId
 ).setParameter(
-	"groupId", String.valueOf(groupId)
+	"groupId", groupId
 ).setParameter(
-	"sourceVersion", String.valueOf(sourceVersion)
-).build();
+	"sourceVersion", sourceVersion
+).buildPortletURL();
 %>
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="selectVersionFm">
+<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="selectVersionFm">
 	<liferay-ui:search-container
 		iteratorURL="<%= portletURL %>"
 		total="<%= JournalArticleLocalServiceUtil.getArticlesCount(groupId, articleId) %>"

@@ -15,16 +15,19 @@
 package com.liferay.external.reference.service.impl;
 
 import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.external.reference.service.base.ERAssetCategoryLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 
 import java.util.Locale;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Dylan Rebelak
@@ -44,24 +47,25 @@ public class ERAssetCategoryLocalServiceImpl
 			String[] categoryProperties, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		AssetCategory assetCategory =
-			assetCategoryLocalService.fetchAssetCategoryByReferenceCode(
+			_assetCategoryLocalService.fetchAssetCategoryByReferenceCode(
 				user.getCompanyId(), externalReferenceCode);
 
 		if (assetCategory == null) {
-			assetCategory = assetCategoryLocalService.addCategory(
-				userId, groupId, parentCategoryId, titleMap, descriptionMap,
-				vocabularyId, categoryProperties, serviceContext);
+			assetCategory = _assetCategoryLocalService.addCategory(
+				null, userId, groupId, parentCategoryId, titleMap,
+				descriptionMap, vocabularyId, categoryProperties,
+				serviceContext);
 
 			assetCategory.setExternalReferenceCode(externalReferenceCode);
 
-			assetCategory = assetCategoryLocalService.updateAssetCategory(
+			assetCategory = _assetCategoryLocalService.updateAssetCategory(
 				assetCategory);
 		}
 		else {
-			assetCategory = assetCategoryLocalService.updateCategory(
+			assetCategory = _assetCategoryLocalService.updateCategory(
 				userId, assetCategory.getCategoryId(), parentCategoryId,
 				titleMap, descriptionMap, vocabularyId, categoryProperties,
 				serviceContext);
@@ -69,5 +73,11 @@ public class ERAssetCategoryLocalServiceImpl
 
 		return assetCategory;
 	}
+
+	@Reference
+	private AssetCategoryLocalService _assetCategoryLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -156,13 +156,11 @@ public class CommerceCatalogIndexer extends BaseIndexer<CommerceCatalog> {
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCommerceCatalogs(companyId);
+		_reindexCommerceCatalogs(companyId);
 	}
 
-	protected void reindexCommerceCatalogs(long companyId)
-		throws PortalException {
-
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+	private void _reindexCommerceCatalogs(long companyId) throws Exception {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_commerceCatalogLocalService.getIndexableActionableDynamicQuery();
 
 		indexableActionableDynamicQuery.setCompanyId(companyId);

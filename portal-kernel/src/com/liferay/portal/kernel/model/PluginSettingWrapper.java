@@ -104,6 +104,11 @@ public class PluginSettingWrapper
 		model.addRole(role);
 	}
 
+	@Override
+	public PluginSetting cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this plugin setting.
 	 *

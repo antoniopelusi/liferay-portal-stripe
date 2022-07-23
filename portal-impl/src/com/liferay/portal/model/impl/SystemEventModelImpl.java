@@ -31,13 +31,14 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -263,34 +264,6 @@ public class SystemEventModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SystemEvent>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SystemEvent.class.getClassLoader(), SystemEvent.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SystemEvent> constructor =
-				(Constructor<SystemEvent>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SystemEvent, Object>>
@@ -780,6 +753,44 @@ public class SystemEventModelImpl
 	}
 
 	@Override
+	public SystemEvent cloneWithOriginalValues() {
+		SystemEventImpl systemEventImpl = new SystemEventImpl();
+
+		systemEventImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		systemEventImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		systemEventImpl.setSystemEventId(
+			this.<Long>getColumnOriginalValue("systemEventId"));
+		systemEventImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		systemEventImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		systemEventImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		systemEventImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		systemEventImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		systemEventImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		systemEventImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		systemEventImpl.setClassUuid(
+			this.<String>getColumnOriginalValue("classUuid"));
+		systemEventImpl.setReferrerClassNameId(
+			this.<Long>getColumnOriginalValue("referrerClassNameId"));
+		systemEventImpl.setParentSystemEventId(
+			this.<Long>getColumnOriginalValue("parentSystemEventId"));
+		systemEventImpl.setSystemEventSetKey(
+			this.<Long>getColumnOriginalValue("systemEventSetKey"));
+		systemEventImpl.setType(this.<Integer>getColumnOriginalValue("type_"));
+		systemEventImpl.setExtraData(
+			this.<String>getColumnOriginalValue("extraData"));
+
+		return systemEventImpl;
+	}
+
+	@Override
 	public int compareTo(SystemEvent systemEvent) {
 		int value = 0;
 
@@ -918,7 +929,7 @@ public class SystemEventModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -929,9 +940,26 @@ public class SystemEventModelImpl
 			Function<SystemEvent, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SystemEvent)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SystemEvent)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -978,7 +1006,9 @@ public class SystemEventModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SystemEvent>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SystemEvent.class, ModelWrapper.class);
 
 	}
 

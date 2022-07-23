@@ -12,75 +12,25 @@
  * details.
  */
 
-import ClayColorPicker from '@clayui/color-picker';
-import ClayForm, {ClayInput} from '@clayui/form';
-import {debounce} from 'frontend-js-web';
+import {ColorPicker} from '@liferay/layout-content-page-editor-web';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 
-import {useId} from '../useId';
-
-const debouncedOnValueSelect = debounce(
-	(onValueSelect, value) => onValueSelect(value),
-	300
-);
 export default function ColorFrontendToken({
 	frontendToken,
+	frontendTokensValues,
 	onValueSelect,
+	tokenValues,
 	value,
 }) {
-	const {label} = frontendToken;
-
-	const [customColors, setCustomColors] = useState([]);
-	const [color, setColor] = useState(value || '');
-	const ref = useRef(null);
-	const id = useId();
-
-	useEffect(() => {
-		if (ref.current) {
-			ref.current.style.setProperty(
-				'--style-book-color-picker-color',
-				color
-			);
-		}
-	}, [color]);
-
 	return (
-		<ClayForm.Group
-			className="style-book-editor__color-frontend-token"
-			ref={ref}
-			small
-		>
-			<label htmlFor={id}>{label}</label>
-			<ClayInput.Group small>
-				<ClayInput.GroupItem prepend shrink>
-					<ClayColorPicker
-						colors={customColors}
-						onColorsChange={setCustomColors}
-						onValueChange={(color) => {
-							setColor(`#${color}`);
-							debouncedOnValueSelect(onValueSelect, `#${color}`);
-						}}
-						showHex={false}
-						showPalette={false}
-						value={color?.replace('#', '') ?? ''}
-					/>
-				</ClayInput.GroupItem>
-				<ClayInput.GroupItem append>
-					<ClayInput
-						id={id}
-						onChange={(event) => {
-							setColor(event.target.value);
-							debouncedOnValueSelect(
-								onValueSelect,
-								event.target.value
-							);
-						}}
-						value={color}
-					/>
-				</ClayInput.GroupItem>
-			</ClayInput.Group>
-		</ClayForm.Group>
+		<ColorPicker
+			editedTokenValues={frontendTokensValues}
+			field={frontendToken}
+			onValueSelect={onValueSelect}
+			tokenValues={tokenValues}
+			value={value}
+		/>
 	);
 }
 

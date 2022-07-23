@@ -14,26 +14,28 @@
 
 package com.liferay.layout.reports.web.internal.product.navigation.control.menu;
 
+import com.liferay.blogs.model.BlogsEntry;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
-import com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedConfiguration;
+import com.liferay.journal.constants.JournalConstants;
+import com.liferay.journal.model.JournalArticle;
 import com.liferay.layout.reports.web.internal.configuration.provider.LayoutReportsGooglePageSpeedConfigurationProvider;
 import com.liferay.layout.reports.web.internal.constants.LayoutReportsPortletKeys;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletURLFactory;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
@@ -78,20 +80,21 @@ import javax.servlet.jsp.PageContext;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Sarai Díaz
  */
 @Component(
-	configurationPid = "com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedConfiguration",
 	immediate = true,
 	property = {
 		"product.navigation.control.menu.category.key=" + ProductNavigationControlMenuCategoryKeys.USER,
 		"product.navigation.control.menu.entry.order:Integer=550"
 	},
-	service = ProductNavigationControlMenuEntry.class
+	service = {
+		LayoutReportsProductNavigationControlMenuEntry.class,
+		ProductNavigationControlMenuEntry.class
+	}
 )
 public class LayoutReportsProductNavigationControlMenuEntry
 	extends BaseProductNavigationControlMenuEntry {
@@ -148,7 +151,7 @@ public class LayoutReportsProductNavigationControlMenuEntry
 
 		Map<String, String> values = new HashMap<>();
 
-		if (_isPanelStateOpen(httpServletRequest)) {
+		if (isPanelStateOpen(httpServletRequest)) {
 			values.put("cssClass", "active");
 		}
 		else {
@@ -185,13 +188,26 @@ public class LayoutReportsProductNavigationControlMenuEntry
 		return true;
 	}
 
+	public boolean isPanelStateOpen(HttpServletRequest httpServletRequest) {
+		String layoutReportsPanelState = SessionClicks.get(
+			httpServletRequest, _SESSION_CLICKS_KEY, "closed");
+
+		if (Objects.equals(layoutReportsPanelState, "open")) {
+			return true;
+		}
+
+		return false;
+	}
+
 	@Override
 	public boolean isShow(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		if (!_layoutReportsGooglePageSpeedConfigurationProvider.isEnabled(
-				_groupLocalService.getGroup(
-					_portal.getScopeGroupId(httpServletRequest)))) {
+		long scopeGroupId = _portal.getScopeGroupId(httpServletRequest);
+
+		if ((scopeGroupId == 0) ||
+			!_layoutReportsGooglePageSpeedConfigurationProvider.isEnabled(
+				_groupLocalService.getGroup(scopeGroupId))) {
 
 			return false;
 		}
@@ -200,13 +216,17 @@ public class LayoutReportsProductNavigationControlMenuEntry
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		if (!_isShow(themeDisplay.getPlid()) ||
-			!_isShowPanel(httpServletRequest)) {
-
+		if (!_isShow(themeDisplay) || !_isShowPanel(httpServletRequest)) {
 			return false;
 		}
 
 		return super.isShow(httpServletRequest);
+	}
+
+	public void setPanelState(
+		HttpServletRequest httpServletRequest, String panelState) {
+
+		SessionClicks.put(httpServletRequest, _SESSION_CLICKS_KEY, panelState);
 	}
 
 	public static class ProcessBodyBottomTagBodyException
@@ -219,15 +239,7 @@ public class LayoutReportsProductNavigationControlMenuEntry
 	}
 
 	@Activate
-	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_layoutReportsGooglePageSpeedConfigurationProvider =
-			new LayoutReportsGooglePageSpeedConfigurationProvider(
-				_configurationProvider,
-				ConfigurableUtil.createConfigurable(
-					LayoutReportsGooglePageSpeedConfiguration.class,
-					properties));
-
 		_portletNamespace = _portal.getPortletNamespace(
 			LayoutReportsPortletKeys.LAYOUT_REPORTS);
 	}
@@ -235,27 +247,30 @@ public class LayoutReportsProductNavigationControlMenuEntry
 	private String _getLayoutReportsDataURL(
 		HttpServletRequest httpServletRequest) {
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
 		return PortletURLBuilder.create(
 			_portletURLFactory.create(
 				httpServletRequest, LayoutReportsPortletKeys.LAYOUT_REPORTS,
 				PortletRequest.RESOURCE_PHASE)
 		).setParameter(
-			"plid", themeDisplay.getPlid()
-		).setParameter(
 			"p_p_resource_id", "/layout_reports/data"
+		).setParameter(
+			"plid",
+			() -> {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				return themeDisplay.getPlid();
+			}
 		).buildString();
 	}
 
-	private boolean _hasViewPermission(
+	private boolean _hasEditPermission(
 			Layout layout, PermissionChecker permissionChecker)
 		throws PortalException {
 
 		if (!LayoutPermissionUtil.contains(
-				permissionChecker, layout, ActionKeys.VIEW)) {
+				permissionChecker, layout, ActionKeys.UPDATE)) {
 
 			return false;
 		}
@@ -280,21 +295,12 @@ public class LayoutReportsProductNavigationControlMenuEntry
 		return false;
 	}
 
-	private boolean _isPanelStateOpen(HttpServletRequest httpServletRequest) {
-		String layoutReportsPanelState = SessionClicks.get(
-			httpServletRequest,
-			"com.liferay.layout.reports.web_layoutReportsPanelState", "closed");
+	private boolean _isShow(ThemeDisplay themeDisplay) {
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
 
-		if (Objects.equals(layoutReportsPanelState, "open")) {
-			return true;
-		}
-
-		return false;
-	}
-
-	private boolean _isShow(long plid) {
 		return Optional.ofNullable(
-			_layoutLocalService.fetchLayout(plid)
+			_layoutLocalService.fetchLayout(themeDisplay.getPlid())
 		).filter(
 			layout ->
 				layout.isTypeAssetDisplay() || layout.isTypeContent() ||
@@ -304,11 +310,28 @@ public class LayoutReportsProductNavigationControlMenuEntry
 		).filter(
 			layout -> {
 				try {
-					return _hasViewPermission(
+					if (permissionChecker.hasPermission(
+							themeDisplay.getScopeGroup(),
+							BlogsEntry.class.getName(),
+							BlogsEntry.class.getName(), ActionKeys.UPDATE) ||
+						permissionChecker.hasPermission(
+							themeDisplay.getScopeGroup(),
+							DLFileEntry.class.getName(),
+							DLFileEntry.class.getName(), ActionKeys.UPDATE) ||
+						permissionChecker.hasPermission(
+							themeDisplay.getScopeGroup(),
+							JournalArticle.class.getName(),
+							JournalArticle.class.getName(),
+							ActionKeys.UPDATE)) {
+
+						return true;
+					}
+
+					return _hasEditPermission(
 						layout, PermissionThreadLocal.getPermissionChecker());
 				}
 				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+					_log.error(portalException);
 
 					return false;
 				}
@@ -352,17 +375,17 @@ public class LayoutReportsProductNavigationControlMenuEntry
 
 		JspWriter jspWriter = pageContext.getOut();
 
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(20);
 
 		sb.append("<div class=\"");
 
-		if (_isPanelStateOpen(httpServletRequest)) {
+		if (isPanelStateOpen(httpServletRequest)) {
 			sb.append("lfr-has-layout-reports-panel open-admin-panel ");
 		}
 
-		sb.append("d-print-none lfr-admin-panel lfr-product-menu-panel ");
-		sb.append("lfr-layout-reports-panel sidenav-fixed ");
-		sb.append("sidenav-menu-slider sidenav-right\" id=\"");
+		sb.append("cadmin d-print-none lfr-admin-panel ");
+		sb.append("lfr-product-menu-panel lfr-layout-reports-panel ");
+		sb.append("sidenav-fixed sidenav-menu-slider sidenav-right\" id=\"");
 		sb.append(_portletNamespace);
 		sb.append("layoutReportsPanelId\"><div class=\"sidebar sidebar-light ");
 		sb.append("sidenav-menu sidebar-sm\"><div class=\"sidebar-header\">");
@@ -384,17 +407,19 @@ public class LayoutReportsProductNavigationControlMenuEntry
 
 		sb.append(iconTag.doTagAsString(pageContext));
 
-		sb.append("</div></div></div><div class=\"p-3 sidebar-body\"><span ");
+		sb.append("</div></div></div><div class=\"sidebar-body\"><span ");
 		sb.append("aria-hidden=\"true\" class=\"loading-animation ");
-		sb.append("loading-animation-sm\"></span>");
+		sb.append("loading-animation-sm\"></span></div>");
+
+		jspWriter.write(sb.toString());
 
 		try {
 			_reactRenderer.renderReact(
 				new ComponentDescriptor(
 					_npmResolver.resolveModuleName("layout-reports-web") +
-						"/js/LayoutReportsApp"),
+						"/js/App"),
 				HashMapBuilder.<String, Object>put(
-					"isPanelStateOpen", _isPanelStateOpen(httpServletRequest)
+					"isPanelStateOpen", isPanelStateOpen(httpServletRequest)
 				).put(
 					"layoutReportsDataURL",
 					_getLayoutReportsDataURL(httpServletRequest)
@@ -407,19 +432,17 @@ public class LayoutReportsProductNavigationControlMenuEntry
 			throw new IOException(exception);
 		}
 
-		sb.append("</div></div></div>");
-
-		jspWriter.write(sb.toString());
+		jspWriter.write("</div></div>");
 	}
 
 	private static final String _ICON_TMPL_CONTENT = StringUtil.read(
 		LayoutReportsProductNavigationControlMenuEntry.class, "icon.tmpl");
 
+	private static final String _SESSION_CLICKS_KEY =
+		"com.liferay.layout.reports.web_layoutReportsPanelState";
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		LayoutReportsProductNavigationControlMenuEntry.class);
-
-	@Reference
-	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private GroupLocalService _groupLocalService;
@@ -433,7 +456,8 @@ public class LayoutReportsProductNavigationControlMenuEntry
 	@Reference
 	private LayoutLocalService _layoutLocalService;
 
-	private volatile LayoutReportsGooglePageSpeedConfigurationProvider
+	@Reference
+	private LayoutReportsGooglePageSpeedConfigurationProvider
 		_layoutReportsGooglePageSpeedConfigurationProvider;
 
 	@Reference
@@ -443,6 +467,11 @@ public class LayoutReportsProductNavigationControlMenuEntry
 	private Portal _portal;
 
 	private String _portletNamespace;
+
+	@Reference(
+		target = "(resource.name=" + JournalConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission _portletResourcePermission;
 
 	@Reference
 	private PortletURLFactory _portletURLFactory;

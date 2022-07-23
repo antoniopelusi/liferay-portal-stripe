@@ -90,6 +90,11 @@ public class CountryLocalizationWrapper
 		}
 	}
 
+	@Override
+	public CountryLocalization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this country localization.
 	 *

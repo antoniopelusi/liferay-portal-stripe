@@ -25,6 +25,10 @@ public class UserIdMapperLocalServiceWrapper
 	implements ServiceWrapper<UserIdMapperLocalService>,
 			   UserIdMapperLocalService {
 
+	public UserIdMapperLocalServiceWrapper() {
+		this(null);
+	}
+
 	public UserIdMapperLocalServiceWrapper(
 		UserIdMapperLocalService userIdMapperLocalService) {
 
@@ -127,6 +131,13 @@ public class UserIdMapperLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _userIdMapperLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _userIdMapperLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -555,4 +555,7 @@ public interface KaleoLogModel
 	 */
 	public void setWorkflowContext(String workflowContext);
 
+	@Override
+	public KaleoLog cloneWithOriginalValues();
+
 }

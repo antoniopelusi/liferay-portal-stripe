@@ -20,15 +20,13 @@ import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.service.CommerceOrderItemLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 /**
  * @author Alessio Antonio Rendina
  */
 public class CommerceSubscriptionEntryImpl
 	extends CommerceSubscriptionEntryBaseImpl {
-
-	public CommerceSubscriptionEntryImpl() {
-	}
 
 	@Override
 	public CommerceOrderItem fetchCommerceOrderItem() {
@@ -84,10 +82,11 @@ public class CommerceSubscriptionEntryImpl
 	public UnicodeProperties getDeliverySubscriptionTypeSettingsProperties() {
 		if (_deliverySubscriptionTypeSettingsUnicodeProperties == null) {
 			_deliverySubscriptionTypeSettingsUnicodeProperties =
-				new UnicodeProperties(true);
-
-			_deliverySubscriptionTypeSettingsUnicodeProperties.fastLoad(
-				getDeliverySubscriptionTypeSettings());
+				UnicodePropertiesBuilder.create(
+					true
+				).fastLoad(
+					getDeliverySubscriptionTypeSettings()
+				).build();
 		}
 
 		return _deliverySubscriptionTypeSettingsUnicodeProperties;
@@ -96,11 +95,12 @@ public class CommerceSubscriptionEntryImpl
 	@Override
 	public UnicodeProperties getSubscriptionTypeSettingsProperties() {
 		if (_subscriptionTypeSettingsUnicodeProperties == null) {
-			_subscriptionTypeSettingsUnicodeProperties = new UnicodeProperties(
-				true);
-
-			_subscriptionTypeSettingsUnicodeProperties.fastLoad(
-				getSubscriptionTypeSettings());
+			_subscriptionTypeSettingsUnicodeProperties =
+				UnicodePropertiesBuilder.create(
+					true
+				).fastLoad(
+					getSubscriptionTypeSettings()
+				).build();
 		}
 
 		return _subscriptionTypeSettingsUnicodeProperties;

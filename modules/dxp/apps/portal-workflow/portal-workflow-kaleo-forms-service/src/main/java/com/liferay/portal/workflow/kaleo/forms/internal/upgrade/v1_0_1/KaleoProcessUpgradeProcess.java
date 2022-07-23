@@ -28,28 +28,28 @@ public class KaleoProcessUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateWorkflowDefinition();
+		_updateWorkflowDefinition();
 	}
 
-	protected void updateKaleoProcess(
+	private void _updateKaleoProcess(
 			long kaleoProcessId, String workflowDefinitioName,
 			int workflowDefinitionVersion)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update KaleoProcess set workflowDefinitionName = ?, " +
 					"workflowDefinitionVersion = ? where kaleoProcessId = ?")) {
 
-			ps.setString(1, workflowDefinitioName);
-			ps.setInt(2, workflowDefinitionVersion);
-			ps.setLong(3, kaleoProcessId);
+			preparedStatement.setString(1, workflowDefinitioName);
+			preparedStatement.setInt(2, workflowDefinitionVersion);
+			preparedStatement.setLong(3, kaleoProcessId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void updateWorkflowDefinition() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private void _updateWorkflowDefinition() throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select classPK, workflowDefinitionName, " +
 					"workflowDefinitionVersion from WorkflowDefinitionLink " +
 						"where classNameId = ?")) {
@@ -57,17 +57,17 @@ public class KaleoProcessUpgradeProcess extends UpgradeProcess {
 			long kaleoProcessClassNameId = PortalUtil.getClassNameId(
 				KaleoProcess.class);
 
-			ps.setLong(1, kaleoProcessClassNameId);
+			preparedStatement.setLong(1, kaleoProcessClassNameId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					long kaleoProcessId = rs.getLong("classPK");
-					String workflowDefinitionName = rs.getString(
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					long kaleoProcessId = resultSet.getLong("classPK");
+					String workflowDefinitionName = resultSet.getString(
 						"workflowDefinitionName");
-					int workflowDefinitionVersion = rs.getInt(
+					int workflowDefinitionVersion = resultSet.getInt(
 						"workflowDefinitionVersion");
 
-					updateKaleoProcess(
+					_updateKaleoProcess(
 						kaleoProcessId, workflowDefinitionName,
 						workflowDefinitionVersion);
 				}

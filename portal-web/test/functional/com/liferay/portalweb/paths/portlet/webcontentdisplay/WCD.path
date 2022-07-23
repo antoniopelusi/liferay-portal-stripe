@@ -2,11 +2,13 @@
 <head>
 <title>WCD</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WCD</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ARTICLE_ELLIPSIS_ICON</td>
@@ -15,12 +17,7 @@
 </tr>
 <tr>
 	<td>ARTICLE_BAREBONE_ELLIPSIS_ICON</td>
-	<td>//section[contains(@id,'JournalContentPortlet')]//div[contains(@class,'portlet-content')][div//div[contains(@data-analytics-asset-title,'${key_webContentTitle}')]]//a[contains(@id,'JournalContentPortlet')][span/*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_STRUCTURED_WEB_CONTENT</td>
-	<td>//span[contains(@class,'taglib-text-icon') and contains(.,'${key_structureName}')]</td>
+	<td>//section[contains(@id,'JournalContentPortlet')][.//*[contains(@class,'portlet-title')][normalize-space(text())='${key_webContentTitle}']]//div[contains(@class,'portlet-content')]//a[contains(@id,'JournalContentPortlet')][span/*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -41,13 +38,18 @@
 </tr>
 <!--WEB_CONTENT-->
 <tr>
-	<td>WEB_CONTENT_TITLE</td>
-	<td>//section[contains(@id,'journal_content_web')]//h2[contains(@class,'title')]</td>
+	<td>WEB_CONTENT_AUDIO</td>
+	<td>//div[contains(@class,'portlet-content')][*//*[contains(@class,'portlet-title')][normalize-space(text())='${key_webContentTitle}']]//audio//source[contains(@src,'${key_audioFileName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WEB_CONTENT_IMAGE</td>
+	<td>//div[contains(@class,'portlet-content')][*//*[contains(@class,'portlet-title')][normalize-space(text())='${key_webContentTitle}']]//img[contains(@src,'${key_imageFileName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>WEB_CONTENT_CONTENT</td>
-	<td>//div[contains(@class,'journal-content-article')]</td>
+	<td>xpath=(//div[contains(@class,'journal-content-article')])[${index}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -56,53 +58,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>WEB_CONTENT_CONTENT_2</td>
-	<td>xPath=(//div[contains(@class,'journal-content-article')])[2]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_CONTENT_3</td>
-	<td>xPath=(//div[contains(@class,'journal-content-article')])[3]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_CONTENT_IMAGE</td>
-	<td>//div[contains(@class,'journal-content-article')]//img[contains(@src,'${key_image}')] | //img[contains(@src,'${key_image}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_CONTENT_IMAGE_ON_LIVE</td>
-	<td>//div[contains(@class,'journal-content-article')]//p//img</td>
-	<td></td>
-</tr>
-<tr>
 	<td>WEB_CONTENT_LINK</td>
-	<td>//div[contains(@class,'journal-content-article')]//p/a</td>
+	<td>//div[contains(@class,'portlet-content')][*//*[contains(@class,'portlet-title')][normalize-space(text())='${key_webContentTitle}']]//div[contains(@class,'journal-content-article')]//a[contains(.,'${key_displayText}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>WEB_CONTENT_TEXT_LINK_URL</td>
-	<td>//div[contains(@class,'journal-content-article')]//a[contains(.,'${key_contentText}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_AUDIO</td>
-	<td>//div[@class='audio-content']/audio[@class='audio-node']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_IMAGE_PNG</td>
-	<td>//img[contains(@src,'Document_2.jpeg')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_INLINE_IMAGE</td>
-	<td>//img[contains(@src,'Document')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_VIDEO</td>
-	<td>//div[contains(@class,'VideoPortlet')]//video[contains(@poster,'${key_videoShortcutTitle}')]</td>
+	<td>WEB_CONTENT_TITLE</td>
+	<td>xpath=(//section[contains(@id,'JournalContentPortlet')])[${index}]//h2[contains(@class,'title')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -115,10 +77,15 @@
 	<td>//a[contains(.,'${key_locale}')]</td>
 	<td></td>
 </tr>
-<tr>  
+<tr>
 	<td>WEB_CONTENT_TRANSLATION_SPAN_LANGUAGE_ENGLISH</td>
-    <td>//div[contains(@class, 'input-localized-palette')]//li//span[contains(@id,'qfkd')]</td>
-    <td></td>
+	<td>//div[contains(@class, 'input-localized-palette')]//li//span[contains(@id,'qfkd')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WEB_CONTENT_VIDEO</td>
+	<td>//div[contains(@class,'video-player')][contains(.,'${key_videoShortcutTitle}')]</td>
+	<td></td>
 </tr>
 </tbody>
 </table>

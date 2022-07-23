@@ -81,9 +81,9 @@ public class DDMFormImporter {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(user.getCompanyId());
 		serviceContext.setScopeGroupId(scopeGroupId);
 		serviceContext.setUserId(userId);
-		serviceContext.setCompanyId(user.getCompanyId());
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			_addDDMFormInstance(
@@ -132,7 +132,7 @@ public class DDMFormImporter {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		//DDM Form
+		// DDM Form
 
 		Locale locale = serviceContext.getLocale();
 
@@ -203,12 +203,12 @@ public class DDMFormImporter {
 			DDMForm ddmForm, String jsonFormSettings)
 		throws Exception {
 
-		final List<DDMFormField> ddmFormFields = ddmForm.getDDMFormFields();
+		List<DDMFormField> ddmFormFields = ddmForm.getDDMFormFields();
 
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 			jsonFormSettings);
 
-		final Stream<DDMFormField> ddmFormFieldsStream = ddmFormFields.stream();
+		Stream<DDMFormField> ddmFormFieldsStream = ddmFormFields.stream();
 
 		return ddmFormFieldsStream.map(
 			formField -> {
@@ -256,14 +256,13 @@ public class DDMFormImporter {
 
 		defaultDDMFormLayout.setPaginationMode(StringPool.BLANK);
 
-		long classNameId = _classNameLocalService.getClassNameId(
-			DDLRecordSet.class);
 		long userId = serviceContext.getUserId();
 		long groupId = serviceContext.getScopeGroupId();
 
 		DDMStructure ddmStructure = _ddmStructureLocalService.addStructure(
 			userId, groupId, DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
-			classNameId, StringPool.BLANK, nameMap, descriptionMap, ddmForm,
+			_classNameLocalService.getClassNameId(DDLRecordSet.class),
+			StringPool.BLANK, nameMap, descriptionMap, ddmForm,
 			defaultDDMFormLayout, StorageType.DEFAULT.toString(),
 			DDMStructureConstants.TYPE_AUTO, serviceContext);
 

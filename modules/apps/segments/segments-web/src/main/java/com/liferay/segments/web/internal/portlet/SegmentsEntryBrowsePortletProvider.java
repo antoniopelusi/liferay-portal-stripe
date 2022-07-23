@@ -50,7 +50,7 @@ public class SegmentsEntryBrowsePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCRenderCommandName(
 			"/segments/select_segments_entry"
-		).build();
+		).buildPortletURL();
 	}
 
 }

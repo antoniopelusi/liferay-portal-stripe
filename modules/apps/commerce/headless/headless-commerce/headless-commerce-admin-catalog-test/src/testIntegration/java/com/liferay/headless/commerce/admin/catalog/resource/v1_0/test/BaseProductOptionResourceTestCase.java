@@ -35,7 +35,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -52,9 +51,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -232,7 +229,7 @@ public abstract class BaseProductOptionResourceTestCase {
 	@Test
 	public void testGraphQLDeleteProductOption() throws Exception {
 		ProductOption productOption =
-			testGraphQLProductOption_addProductOption();
+			testGraphQLDeleteProductOption_addProductOption();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -245,7 +242,6 @@ public abstract class BaseProductOptionResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteProductOption"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -259,6 +255,12 @@ public abstract class BaseProductOptionResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected ProductOption testGraphQLDeleteProductOption_addProductOption()
+		throws Exception {
+
+		return testGraphQLProductOption_addProductOption();
 	}
 
 	@Test
@@ -283,7 +285,7 @@ public abstract class BaseProductOptionResourceTestCase {
 	@Test
 	public void testGraphQLGetProductOption() throws Exception {
 		ProductOption productOption =
-			testGraphQLProductOption_addProductOption();
+			testGraphQLGetProductOption_addProductOption();
 
 		Assert.assertTrue(
 			equals(
@@ -322,6 +324,12 @@ public abstract class BaseProductOptionResourceTestCase {
 				"Object/code"));
 	}
 
+	protected ProductOption testGraphQLGetProductOption_addProductOption()
+		throws Exception {
+
+		return testGraphQLProductOption_addProductOption();
+	}
+
 	@Test
 	public void testPatchProductOption() throws Exception {
 		Assert.assertTrue(false);
@@ -331,18 +339,17 @@ public abstract class BaseProductOptionResourceTestCase {
 	public void testGetProductByExternalReferenceCodeProductOptionsPage()
 		throws Exception {
 
-		Page<ProductOption> page =
-			productOptionResource.
-				getProductByExternalReferenceCodeProductOptionsPage(
-					testGetProductByExternalReferenceCodeProductOptionsPage_getExternalReferenceCode(),
-					RandomTestUtil.randomString(), Pagination.of(1, 2), null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		String externalReferenceCode =
 			testGetProductByExternalReferenceCodeProductOptionsPage_getExternalReferenceCode();
 		String irrelevantExternalReferenceCode =
 			testGetProductByExternalReferenceCodeProductOptionsPage_getIrrelevantExternalReferenceCode();
+
+		Page<ProductOption> page =
+			productOptionResource.
+				getProductByExternalReferenceCodeProductOptionsPage(
+					externalReferenceCode, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantExternalReferenceCode != null) {
 			ProductOption irrelevantProductOption =
@@ -375,7 +382,7 @@ public abstract class BaseProductOptionResourceTestCase {
 		page =
 			productOptionResource.
 				getProductByExternalReferenceCodeProductOptionsPage(
-					externalReferenceCode, null, Pagination.of(1, 2), null);
+					externalReferenceCode, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -456,6 +463,20 @@ public abstract class BaseProductOptionResourceTestCase {
 	}
 
 	@Test
+	public void testGetProductByExternalReferenceCodeProductOptionsPageWithSortDouble()
+		throws Exception {
+
+		testGetProductByExternalReferenceCodeProductOptionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, productOption1, productOption2) -> {
+				BeanUtils.setProperty(
+					productOption1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					productOption2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetProductByExternalReferenceCodeProductOptionsPageWithSortInteger()
 		throws Exception {
 
@@ -478,7 +499,7 @@ public abstract class BaseProductOptionResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -609,16 +630,15 @@ public abstract class BaseProductOptionResourceTestCase {
 
 	@Test
 	public void testGetProductIdProductOptionsPage() throws Exception {
-		Page<ProductOption> page =
-			productOptionResource.getProductIdProductOptionsPage(
-				testGetProductIdProductOptionsPage_getId(),
-				RandomTestUtil.randomString(), Pagination.of(1, 2), null);
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetProductIdProductOptionsPage_getId();
 		Long irrelevantId =
 			testGetProductIdProductOptionsPage_getIrrelevantId();
+
+		Page<ProductOption> page =
+			productOptionResource.getProductIdProductOptionsPage(
+				id, null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			ProductOption irrelevantProductOption =
@@ -645,7 +665,7 @@ public abstract class BaseProductOptionResourceTestCase {
 				id, randomProductOption());
 
 		page = productOptionResource.getProductIdProductOptionsPage(
-			id, null, Pagination.of(1, 2), null);
+			id, null, Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -722,6 +742,20 @@ public abstract class BaseProductOptionResourceTestCase {
 	}
 
 	@Test
+	public void testGetProductIdProductOptionsPageWithSortDouble()
+		throws Exception {
+
+		testGetProductIdProductOptionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, productOption1, productOption2) -> {
+				BeanUtils.setProperty(
+					productOption1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					productOption2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetProductIdProductOptionsPageWithSortInteger()
 		throws Exception {
 
@@ -744,7 +778,7 @@ public abstract class BaseProductOptionResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -865,6 +899,23 @@ public abstract class BaseProductOptionResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		ProductOption productOption, List<ProductOption> productOptions) {
+
+		boolean contains = false;
+
+		for (ProductOption item : productOptions) {
+			if (equals(productOption, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			productOptions + " does not contain " + productOption, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -1052,8 +1103,8 @@ public abstract class BaseProductOptionResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.catalog.dto.v1_0.
 						ProductOption.class)) {
 
@@ -1069,12 +1120,13 @@ public abstract class BaseProductOptionResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -1088,7 +1140,7 @@ public abstract class BaseProductOptionResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -1278,6 +1330,19 @@ public abstract class BaseProductOptionResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -1375,8 +1440,9 @@ public abstract class BaseProductOptionResourceTestCase {
 		}
 
 		if (entityFieldName.equals("priority")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(productOption.getPriority()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("productOptionValues")) {
@@ -1538,8 +1604,8 @@ public abstract class BaseProductOptionResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProductOptionResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseProductOptionResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

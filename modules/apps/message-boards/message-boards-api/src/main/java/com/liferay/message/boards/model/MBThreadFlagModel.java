@@ -269,4 +269,7 @@ public interface MBThreadFlagModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public MBThreadFlag cloneWithOriginalValues();
+
 }

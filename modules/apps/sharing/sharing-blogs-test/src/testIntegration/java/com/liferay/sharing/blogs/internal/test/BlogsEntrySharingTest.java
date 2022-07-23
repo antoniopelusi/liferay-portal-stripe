@@ -62,8 +62,8 @@ public class BlogsEntrySharingTest extends BaseSharingTestCase<BlogsEntry> {
 			ServiceContextTestUtil.getServiceContext(
 				group.getGroupId(), user.getUserId());
 
-		serviceContext.setAddGuestPermissions(false);
 		serviceContext.setAddGroupPermissions(false);
+		serviceContext.setAddGuestPermissions(false);
 		serviceContext.setScopeGroupId(group.getGroupId());
 
 		return _blogsEntryLocalService.addEntry(
@@ -95,8 +95,8 @@ public class BlogsEntrySharingTest extends BaseSharingTestCase<BlogsEntry> {
 			ServiceContextTestUtil.getServiceContext(
 				group.getGroupId(), user.getUserId());
 
-		serviceContext.setAddGuestPermissions(false);
 		serviceContext.setAddGroupPermissions(false);
+		serviceContext.setAddGuestPermissions(false);
 		serviceContext.setScopeGroupId(group.getGroupId());
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
 

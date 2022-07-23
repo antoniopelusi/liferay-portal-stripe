@@ -24,11 +24,9 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.upload.UniqueFileNameProvider;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -86,7 +84,7 @@ public class UniqueFileEntryTitleProviderImpl
 		}
 		catch (NoSuchFileEntryException noSuchFileEntryException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileEntryException, noSuchFileEntryException);
+				_log.debug(noSuchFileEntryException);
 			}
 		}
 		catch (PortalException portalException) {
@@ -105,10 +103,7 @@ public class UniqueFileEntryTitleProviderImpl
 	}
 
 	private String _getDefaultTitle(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, UniqueFileEntryTitleProviderImpl.class);
-
-		return _language.get(resourceBundle, "untitled");
+		return _language.get(locale, "untitled");
 	}
 
 	private String _provide(

@@ -1,0 +1,123 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		task ("Copy the token from AC") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Set up instance and sign in DXP") {
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+		}
+
+		task ("Add a new site and page") {
+			ACUtils.addSiteAndPage();
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+
+			JSONUser.tearDownNonAdminUsers();
+		}
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8849 | Test Summary: Add a CSV data source with an individual whose email matches another individual that already has activities and check that the indiviual details are updated"
+	@priority = "5"
+	test AddCSVWithIndividualWhoseEmailMatchesAnotherIndividualAlreadyHasActivitiesCheckIndividualDetailsUpdated {
+		property portal.upstream = "quarantine";
+
+		// AC Quarantine reason: CSV data source takes too long to update individual details
+		// AC Quarantine: Maybe it is possible to validate in personas
+
+		task ("Add user") {
+			JSONUser.addUser(
+				userEmailAddress = "ac@liferay.com",
+				userFirstName = "ac",
+				userLastName = "ac",
+				userScreenName = "ac");
+		}
+
+		task ("Connect to AC") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Login as another user and visit DXP") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "ac@liferay.com",
+				userLoginFullName = "ac ac");
+		}
+
+		task ("View the site page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+
+			ACUtils.launchAC();
+		}
+
+		task ("Assert Field not present") {
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToIndividuals();
+
+			ACNavigation.switchTab(tabName = "Known Individuals");
+
+			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "ac ac");
+
+			ACNavigation.switchTab(tabName = "Details");
+
+			ACUtils.viewNameList(nameList = "ac@liferay.com");
+
+			ACUtils.viewNameListIsNotPresent(nameList = "Farmer");
+		}
+
+		task ("Add a CSV Data Source") {
+			ACSettings.addCSVDataSource(
+				dataSourceName = "CSV Job Title",
+				sourceFileName = "jobTitle.csv");
+		}
+
+		task ("Exit Settings") {
+			ACNavigation.exitSettings();
+		}
+
+		task ("Go to Known Individuals tab") {
+			ACNavigation.goToIndividuals();
+
+			ACNavigation.switchTab(tabName = "Known Individuals");
+		}
+
+		task ("Assert that the new user is present") {
+			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "ac ac");
+
+			ACNavigation.switchTab(tabName = "Details");
+
+			ACUtils.viewNameList(nameList = "ac@liferay.com,Farmer");
+		}
+	}
+
+}

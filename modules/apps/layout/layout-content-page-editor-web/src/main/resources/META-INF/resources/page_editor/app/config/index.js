@@ -12,6 +12,8 @@
  * details.
  */
 
+import {LAYOUT_TYPES} from './constants/layoutTypes';
+
 const DEFAULT_CONFIG = {
 	toolbarId: 'pageEditorToolbar',
 };
@@ -26,7 +28,13 @@ export let config = DEFAULT_CONFIG;
  * the app, so we can safely store is as a variable.
  */
 export function initializeConfig(backendConfig) {
-	const {pluginsRootPath, portletNamespace, sidebarPanels} = backendConfig;
+	const {
+		commonStyles,
+		layoutType,
+		pluginsRootPath,
+		portletNamespace,
+		sidebarPanels,
+	} = backendConfig;
 	const toolbarId = `${portletNamespace}${DEFAULT_CONFIG.toolbarId}`;
 
 	// Special items requiring augmentation, creation, or transformation.
@@ -34,11 +42,15 @@ export function initializeConfig(backendConfig) {
 	const augmentedPanels = augmentPanelData(pluginsRootPath, sidebarPanels);
 
 	const syntheticItems = {
-		marginOptions: [...backendConfig.paddingOptions],
+		commonStylesFields: getCommonStylesFields(commonStyles),
 		panels: generatePanels(augmentedPanels),
 		sidebarPanels: partitionPanels(augmentedPanels),
 		toolbarId,
-		toolbarPlugins: getToolbarPlugins(pluginsRootPath, toolbarId),
+		toolbarPlugins: getToolbarPlugins(
+			layoutType,
+			pluginsRootPath,
+			toolbarId
+		),
 	};
 
 	config = {
@@ -95,31 +107,58 @@ function generatePanels(sidebarPanels) {
 	);
 }
 
+function getCommonStylesFields(commonStyles) {
+	const commonStylesFields = {};
+
+	const fieldSets = Object.values(commonStyles);
+
+	fieldSets.forEach((fieldSet) => {
+		fieldSet.styles.forEach((field) => {
+			commonStylesFields[field.name] = {
+				cssTemplate: field.cssTemplate,
+				defaultValue: field.defaultValue,
+			};
+		});
+	});
+
+	return commonStylesFields;
+}
+
 /**
  * Currently we have segments experience data sprinkled throughout the
  * server data. In the future we may choose to encapsulate it better and
  * deal with it inside the plugin.
  */
-function getToolbarPlugins(pluginsRootPath, toolbarId) {
+function getToolbarPlugins(layoutType, pluginsRootPath, toolbarId) {
 	const toolbarPluginId = 'experience';
 	const selectId = `${toolbarId}_${toolbarPluginId}`;
 
-	return [
-		{
-			loadingPlaceholder: `
-				<div class="align-items-center d-flex mr-2">
-					<label class="mr-2" for="${selectId}">
-						Experience
-					</label>
-					<select class="form-control" disabled id="${selectId}">
-						<option value="1">Default</option>
-					</select>
-				</div>
-			`,
-			pluginEntryPoint: `${pluginsRootPath}/experience/index`,
-			toolbarPluginId: 'experience',
-		},
-	];
+	return layoutType === LAYOUT_TYPES.content
+		? [
+				{
+					loadingPlaceholder: `
+			<div class="page-editor__toolbar-experience">
+				<label class="d-lg-block d-none mr-2" for="${selectId}">
+					Experience
+				</label>
+				<button class="form-control-select pr-4 text-left text-truncate btn btn-sm btn-secondary"
+					type="button" 
+					id="${selectId}"
+					disabled>
+					<div class="autofit-row autofit-row-center">
+						<div class="autofit-col autofit-col-expand">
+							<span class="text-truncate">Default</span>
+						</div>
+						<div class="autofit-col"></div>
+					</div>
+				</button>
+			</div>
+		`,
+					pluginEntryPoint: `${pluginsRootPath}/experience/index`,
+					toolbarPluginId: 'experience',
+				},
+		  ]
+		: [];
 }
 
 function isSeparator(panel) {

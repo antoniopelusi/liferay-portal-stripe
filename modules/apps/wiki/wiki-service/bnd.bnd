@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Wiki Service
 Bundle-SymbolicName: com.liferay.wiki.service
-Bundle-Version: 5.0.3
+Bundle-Version: 5.0.30
 Import-Package:\
 	!com.liferay.portal.tools.sql,\
 	\
@@ -23,7 +23,6 @@ Import-Package:\
 	\
 	!org.apache.commons.dbcp.*,\
 	!org.apache.commons.fileupload.*,\
-	!org.apache.commons.jrcs.*,\
 	!org.apache.commons.pool.impl.*,\
 	!org.apache.lucene.*,\
 	!org.apache.xerces.framework,\
@@ -37,9 +36,7 @@ Import-Package:\
 	\
 	!org.jgroups.*,\
 	\
-	com.liferay.portal.kernel.search;version="[8.1.0,9.6.0)",\
-	\
 	*
-Liferay-Require-SchemaVersion: 2.1.1
+Liferay-Require-SchemaVersion: 2.2.0
 Liferay-Service: true
 -dsannotations-options: inherit

@@ -100,12 +100,9 @@ public class MicroblogsEntryModelResourcePermission
 		if (permissionChecker.hasOwnerPermission(
 				microblogsEntry.getCompanyId(), MicroblogsEntry.class.getName(),
 				microblogsEntry.getMicroblogsEntryId(),
-				microblogsEntry.getUserId(), actionId)) {
+				microblogsEntry.getUserId(), actionId) ||
+			(microblogsEntry.getSocialRelationType() == 0)) {
 
-			return true;
-		}
-
-		if (microblogsEntry.getSocialRelationType() == 0) {
 			return true;
 		}
 

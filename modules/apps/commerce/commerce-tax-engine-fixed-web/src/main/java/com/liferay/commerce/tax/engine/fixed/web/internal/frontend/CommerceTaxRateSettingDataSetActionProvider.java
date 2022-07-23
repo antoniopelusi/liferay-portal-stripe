@@ -104,10 +104,6 @@ public class CommerceTaxRateSettingDataSetActionProvider
 	private String _getTaxRateSettingDeleteURL(
 		HttpServletRequest httpServletRequest, long taxRateSettingId) {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				httpServletRequest, CommercePortletKeys.COMMERCE_TAX_METHODS,
@@ -117,7 +113,9 @@ public class CommerceTaxRateSettingDataSetActionProvider
 		).setCMD(
 			Constants.DELETE
 		).setRedirect(
-			redirect
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"commerceTaxFixedRateAddressRelId", taxRateSettingId
 		).buildString();
@@ -133,7 +131,7 @@ public class CommerceTaxRateSettingDataSetActionProvider
 				PortletProvider.Action.EDIT)
 		).setMVCRenderCommandName(
 			"/commerce_tax_methods/edit_commerce_tax_fixed_rate_address_rel"
-		).build();
+		).buildPortletURL();
 
 		long commerceTaxMethodId = ParamUtil.getLong(
 			httpServletRequest, "commerceTaxMethodId");

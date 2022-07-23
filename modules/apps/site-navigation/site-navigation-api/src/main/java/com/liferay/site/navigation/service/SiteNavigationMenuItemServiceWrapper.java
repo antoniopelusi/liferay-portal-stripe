@@ -28,6 +28,10 @@ public class SiteNavigationMenuItemServiceWrapper
 	implements ServiceWrapper<SiteNavigationMenuItemService>,
 			   SiteNavigationMenuItemService {
 
+	public SiteNavigationMenuItemServiceWrapper() {
+		this(null);
+	}
+
 	public SiteNavigationMenuItemServiceWrapper(
 		SiteNavigationMenuItemService siteNavigationMenuItemService) {
 
@@ -57,6 +61,15 @@ public class SiteNavigationMenuItemServiceWrapper
 	}
 
 	@Override
+	public SiteNavigationMenuItem deleteSiteNavigationMenuItem(
+			long siteNavigationMenuItemId, boolean deleteChildren)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _siteNavigationMenuItemService.deleteSiteNavigationMenuItem(
+			siteNavigationMenuItemId, deleteChildren);
+	}
+
+	@Override
 	public void deleteSiteNavigationMenuItems(long siteNavigationMenuId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -72,6 +85,15 @@ public class SiteNavigationMenuItemServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _siteNavigationMenuItemService.getOSGiServiceIdentifier();
+	}
+
+	@Override
+	public java.util.List<Long> getParentSiteNavigationMenuItemIds(
+		long siteNavigationMenuId, String typeSettingsKeyword) {
+
+		return _siteNavigationMenuItemService.
+			getParentSiteNavigationMenuItemIds(
+				siteNavigationMenuId, typeSettingsKeyword);
 	}
 
 	@Override

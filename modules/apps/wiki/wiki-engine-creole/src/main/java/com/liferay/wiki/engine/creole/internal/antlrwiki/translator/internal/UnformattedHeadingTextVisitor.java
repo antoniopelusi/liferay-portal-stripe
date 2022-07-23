@@ -19,7 +19,7 @@ import com.liferay.wiki.engine.creole.internal.parser.ast.HeadingNode;
 /**
  * @author Miguel Pastor
  */
-public class UnformattedHeadingTextVisitor extends UnformattedTextVisitor {
+public class UnformattedHeadingTextVisitor extends BaseUnformattedTextVisitor {
 
 	public String getUnformattedText(HeadingNode headingNode) {
 		traverse(headingNode.getChildASTNodes());

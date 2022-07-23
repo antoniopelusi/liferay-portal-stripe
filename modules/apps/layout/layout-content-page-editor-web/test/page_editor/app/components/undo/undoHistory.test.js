@@ -13,13 +13,13 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {act, cleanup, render} from '@testing-library/react';
+import {act, render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import UndoHistory from '../../../../../src/main/resources/META-INF/resources/page_editor/app/components/undo/UndoHistory';
 import {UNDO_TYPES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/undoTypes';
-import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/store/index';
+import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
 import multipleUndo from '../../../../../src/main/resources/META-INF/resources/page_editor/app/thunks/multipleUndo';
 
 const mockDispatch = jest.fn((a) => {
@@ -96,7 +96,6 @@ function renderUndoHistory() {
 
 describe('UndoHistory', () => {
 	afterEach(() => {
-		cleanup();
 		multipleUndo.mockClear();
 	});
 

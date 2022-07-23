@@ -29,7 +29,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setParameter(
 	"nodeName", node.getName()
-).build();
+).buildPortletURL();
 
 if (wikiPage != null) {
 	portletURL.setParameter("title", wikiPage.getTitle());

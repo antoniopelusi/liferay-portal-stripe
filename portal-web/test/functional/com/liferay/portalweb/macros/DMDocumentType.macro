@@ -5,13 +5,16 @@ definition {
 			dmDocumentTypeDescription = "${dmDocumentTypeDescription}",
 			dmDocumentTypeFieldNames = "${dmDocumentTypeFieldNames}",
 			dmDocumentTypeName = "${dmDocumentTypeName}",
-			metadataSetName = "${metadataSetName}");
+			metadataSetName = "${metadataSetName}",
+			skipNavigation = "${skipNavigation}");
 
 		DDLDataDefinition.save();
 	}
 
 	macro addWithoutSave {
-		LexiconEntry.gotoAdd();
+		if (!(isSet(skipNavigation))) {
+			LexiconEntry.gotoAdd();
+		}
 
 		PortletEntry.inputName(name = "${dmDocumentTypeName}");
 
@@ -42,8 +45,6 @@ definition {
 
 			Click(locator1 = "DocumentsAndMediaDocumentTypes#SIDEBAR_BACK");
 
-			Click(locator1 = "DocumentsAndMediaDocumentTypes#SIDEBAR_DELETE");
-
 			var rowNum = ${rowNum} + 1;
 		}
 
@@ -60,23 +61,7 @@ definition {
 		}
 	}
 
-	macro deleteFields {
-		DMDocumentType.selectDocumentTypeFrame();
-
-		var key_dmDocumentTypeName = "${dmDocumentTypeName}";
-
-		LexiconEntry.openEntryMenu(rowEntry = "${dmDocumentTypeName}");
-
-		MenuItem.clickNoError(menuItem = "Edit");
-
-		for (var fieldFieldLabel : list "${fieldFieldLabel}") {
-			DataEngine.delete(fieldFieldLabel = "${fieldFieldLabel}");
-		}
-
-		DDLDataDefinition.save();
-	}
-
-	macro deletePG {
+	macro delete {
 		DMDocumentType.selectDocumentTypeFrame();
 
 		var key_dmDocumentTypeName = "${dmDocumentTypeName}";
@@ -101,6 +86,22 @@ definition {
 				locator1 = "DocumentsAndMediaDocumentTypes#DOCUMENT_TYPES_TABLE_NAME",
 				value1 = "${dmDocumentTypeName}");
 		}
+	}
+
+	macro deleteFields {
+		DMDocumentType.selectDocumentTypeFrame();
+
+		var key_dmDocumentTypeName = "${dmDocumentTypeName}";
+
+		LexiconEntry.openEntryMenu(rowEntry = "${dmDocumentTypeName}");
+
+		MenuItem.clickNoError(menuItem = "Edit");
+
+		for (var fieldFieldLabel : list "${fieldFieldLabel}") {
+			DataEngine.delete(fieldFieldLabel = "${fieldFieldLabel}");
+		}
+
+		DDLDataDefinition.save();
 	}
 
 	macro edit {
@@ -176,7 +177,9 @@ definition {
 
 			DMDocumentType.gotoEditField(fieldName = "${dmDocumentTypeFieldRequiredEdit}");
 
-			FormFields.enableSwitcher(fieldName = "Required Field");
+			Check.checkToggleSwitch(
+				key_toggleSwitchLabel = "Required Field",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 		}
 
 		if (isSet(dmDocumentTypeFieldNames)) {
@@ -272,13 +275,7 @@ definition {
 	}
 
 	macro tearDownCP {
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Documents and Media");
-
-		DMNavigator.gotoDocumentType();
+		DMNavigator.openDocumentTypesAdmin(siteURLKey = "guest");
 
 		DMDocumentType.selectDocumentTypeFrame();
 
@@ -319,6 +316,7 @@ definition {
 		AssertElementNotPresent(
 			key_dmDocumentTypeName = "Google Drive Shortcut",
 			locator1 = "DocumentsAndMediaDocumentTypes#DOCUMENT_TYPES_TABLE_NAME");
+
 		AssertElementNotPresent(
 			key_dmDocumentTypeName = "External Video Shortcut",
 			locator1 = "DocumentsAndMediaDocumentTypes#DOCUMENT_TYPES_TABLE_NAME");

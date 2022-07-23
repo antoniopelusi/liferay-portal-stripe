@@ -38,6 +38,10 @@ public class LinkTag extends BaseContainerTag {
 
 		setContainerElement("a");
 
+		if (Validator.isNotNull(_download)) {
+			setDynamicAttribute(StringPool.BLANK, "download", _download);
+		}
+
 		if (Validator.isNotNull(_href)) {
 			setDynamicAttribute(StringPool.BLANK, "href", _href);
 		}
@@ -57,6 +61,10 @@ public class LinkTag extends BaseContainerTag {
 		}
 
 		return super.doStartTag();
+	}
+
+	public boolean getBlock() {
+		return _block;
 	}
 
 	public boolean getBorderless() {
@@ -97,6 +105,10 @@ public class LinkTag extends BaseContainerTag {
 
 	public String getType() {
 		return _type;
+	}
+
+	public void setBlock(boolean block) {
+		_block = block;
 	}
 
 	public void setBorderless(boolean borderless) {
@@ -143,6 +155,7 @@ public class LinkTag extends BaseContainerTag {
 	protected void cleanUp() {
 		super.cleanUp();
 
+		_block = false;
 		_borderless = false;
 		_displayType = null;
 		_download = null;
@@ -156,6 +169,38 @@ public class LinkTag extends BaseContainerTag {
 	}
 
 	@Override
+	protected String getHydratedModuleName() {
+		if ((getAdditionalProps() != null) || (getPropsTransformer() != null)) {
+			return "frontend-taglib-clay/Link";
+		}
+
+		return null;
+	}
+
+	@Override
+	protected Map<String, Object> prepareProps(Map<String, Object> props) {
+		props.put("block", _block);
+		props.put("borderless", _borderless);
+		props.put("button", _type.equals("button"));
+		props.put("displayType", _displayType);
+		props.put("icon", _icon);
+
+		if (Validator.isNotNull(_label)) {
+			props.put(
+				"label",
+				LanguageUtil.get(
+					TagResourceBundleUtil.getResourceBundle(pageContext),
+					_label));
+		}
+
+		props.put("monospaced", _monospaced);
+		props.put("outline", _outline);
+		props.put("small", _small);
+
+		return super.prepareProps(props);
+	}
+
+	@Override
 	protected String processCssClasses(Set<String> cssClasses) {
 		String cssPrefix = "link-";
 
@@ -163,6 +208,10 @@ public class LinkTag extends BaseContainerTag {
 			cssPrefix = "btn-";
 
 			cssClasses.add("btn");
+		}
+
+		if (_block) {
+			cssClasses.add(cssPrefix + "block");
 		}
 
 		if (_borderless) {
@@ -224,6 +273,7 @@ public class LinkTag extends BaseContainerTag {
 
 	private static final String _ATTRIBUTE_NAMESPACE = "clay:link:";
 
+	private boolean _block;
 	private boolean _borderless;
 	private String _displayType;
 	private String _download;

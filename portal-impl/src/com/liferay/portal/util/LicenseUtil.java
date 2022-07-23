@@ -142,7 +142,7 @@ public class LicenseUtil {
 			return (Map<String, String>)clusterNodeResponse.getResult();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			throw exception;
 		}
@@ -183,9 +183,9 @@ public class LicenseUtil {
 		return HashMapBuilder.put(
 			"hostName", PortalUtil.getComputerName()
 		).put(
-			"ipAddresses", StringUtil.merge(getIpAddresses())
+			"ipAddresses", StringUtil.merge(_ipAddresses)
 		).put(
-			"macAddresses", StringUtil.merge(getMacAddresses())
+			"macAddresses", StringUtil.merge(_macAddresses)
 		).put(
 			"processorCores", String.valueOf(getProcessorCores())
 		).build();
@@ -226,7 +226,7 @@ public class LicenseUtil {
 						productEntryName, maxServers);
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 
 					InetAddress inetAddress = clusterNode.getBindInetAddress();
 
@@ -288,7 +288,7 @@ public class LicenseUtil {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			attributes.put(
 				"ERROR_MESSAGE",
@@ -446,9 +446,9 @@ public class LicenseUtil {
 			jsonObject.put(
 				"hostName", PortalUtil.getComputerName()
 			).put(
-				"ipAddresses", StringUtil.merge(getIpAddresses())
+				"ipAddresses", StringUtil.merge(_ipAddresses)
 			).put(
-				"macAddresses", StringUtil.merge(getMacAddresses())
+				"macAddresses", StringUtil.merge(_macAddresses)
 			).put(
 				"processorCores", getProcessorCores()
 			).put(
@@ -573,7 +573,7 @@ public class LicenseUtil {
 					continue;
 				}
 
-				StringBuilder sb = new StringBuilder(
+				StringBundler sb = new StringBundler(
 					(hardwareAddress.length * 3) - 1);
 
 				String hexString = StringUtil.bytesToHexString(hardwareAddress);

@@ -3,7 +3,7 @@ definition {
 	macro addAssociatedAssetType {
 		Panel.expandPanel(panel = "Associated Asset Types");
 
-		if (contains("${rowNumber}", "{rowNumber}")) {
+		if (!(isSet(rowNumber))) {
 			var rowNumber = "1";
 		}
 
@@ -131,6 +131,18 @@ definition {
 			value1 = "${vocabularyName}");
 	}
 
+	macro assertVocabularyVisibilityNonEditable {
+		Navigator.gotoNavNested(navNested = "${vocabularyName}");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Edit");
+
+		AssertElementPresent(
+			key_visibilityType = "${visibilityType}",
+			locator1 = "Categories#VOCABULARY_VISIBILITY_DISABLED");
+
+		Button.clickCancel();
+	}
+
 	macro deleteAssociatedAssetTypeViaVocabularyCP {
 		Navigator.gotoNavNested(navNested = "${vocabularyName}");
 
@@ -240,6 +252,14 @@ definition {
 		}
 	}
 
+	macro goToVocabulary {
+		Navigator.gotoNavNested(navNested = "${vocabularyName}");
+
+		AssertElementPresent(
+			key_title = "${vocabularyName}",
+			locator1 = "Header#H2_TITLE");
+	}
+
 	macro tearDownCP {
 		Navigator.openURL();
 
@@ -281,6 +301,28 @@ definition {
 		}
 	}
 
+	macro viewVocabularyAllowMultipleCAtegories {
+		Navigator.gotoNavNested(navNested = "${vocabularyName}");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Edit");
+
+		AssertChecked.assertCheckedNotVisible(locator1 = "Categories#VOCABULARY_EDIT_CHECKBOX");
+
+		Button.clickCancel();
+	}
+
+	macro viewVocabularyAssociatedAssetTypesRequirement {
+		Navigator.gotoNavNested(navNested = "${vocabularyName}");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Edit");
+
+		Panel.expandPanel(panel = "Associated Asset Types");
+
+		AssertNotChecked.assertNotCheckedNotVisible(locator1 = "Categories#VOCABULARY_EDIT_CHECKBOX");
+
+		Button.clickCancel();
+	}
+
 	macro viewVocabularyPermissionsCP {
 		Navigator.gotoNavNested(navNested = "${vocabularyName}");
 
@@ -301,6 +343,16 @@ definition {
 		}
 
 		SelectFrameTop(value1 = "relative=top");
+	}
+
+	macro viewVocabularyVisibilityEdit {
+		Navigator.gotoNavNested(navNested = "${vocabularyName}");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Edit");
+
+		AssertChecked.assertCheckedNotVisible(locator1 = "Categories#VOCABULARY_EDIT_CHECKBOX");
+
+		Button.clickCancel();
 	}
 
 	macro viewWithAssociatedAssetTypeCP {

@@ -139,6 +139,9 @@ public interface DDMFormInstanceRecordVersionLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -265,6 +268,10 @@ public interface DDMFormInstanceRecordVersionLocalService
 	public List<DDMFormInstanceRecordVersion> getFormInstanceRecordVersions(
 		long ddmFormInstanceRecordId, int start, int end,
 		OrderByComparator<DDMFormInstanceRecordVersion> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DDMFormInstanceRecordVersion> getFormInstanceRecordVersions(
+		long userId, long formInstanceId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getFormInstanceRecordVersionsCount(long ddmFormInstanceRecordId);

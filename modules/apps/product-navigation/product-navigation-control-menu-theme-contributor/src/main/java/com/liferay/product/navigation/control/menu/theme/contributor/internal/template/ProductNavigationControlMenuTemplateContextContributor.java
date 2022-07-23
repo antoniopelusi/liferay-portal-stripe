@@ -51,7 +51,7 @@ public class ProductNavigationControlMenuTemplateContextContributor
 		Map<String, Object> contextObjects,
 		HttpServletRequest httpServletRequest) {
 
-		if (!isShowControlMenu(httpServletRequest)) {
+		if (!_isShowControlMenu(httpServletRequest)) {
 			return;
 		}
 
@@ -61,7 +61,7 @@ public class ProductNavigationControlMenuTemplateContextContributor
 		contextObjects.put("bodyCssClass", cssClass + " has-control-menu");
 	}
 
-	protected boolean isShowControlMenu(HttpServletRequest httpServletRequest) {
+	private boolean _isShowControlMenu(HttpServletRequest httpServletRequest) {
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
@@ -100,8 +100,15 @@ public class ProductNavigationControlMenuTemplateContextContributor
 							productNavigationControlMenuCategory,
 							httpServletRequest);
 
-			if (!productNavigationControlMenuEntries.isEmpty()) {
-				return true;
+			for (ProductNavigationControlMenuEntry
+					productNavigationControlMenuEntry :
+						productNavigationControlMenuEntries) {
+
+				if (productNavigationControlMenuEntry.isRelevant(
+						httpServletRequest)) {
+
+					return true;
+				}
 			}
 		}
 

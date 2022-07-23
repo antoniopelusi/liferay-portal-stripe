@@ -89,7 +89,7 @@ public class LPKGRevertOverrideVerifyTest {
 				Version version = new Version(versionString);
 
 				Assert.assertEquals(
-					"JAR not sucessfully reverted: " + symbolicName,
+					"JAR not successfully reverted: " + symbolicName,
 					new Version(
 						version.getMajor(), version.getMinor(),
 						version.getMicro() - 1, version.getQualifier()),
@@ -99,7 +99,7 @@ public class LPKGRevertOverrideVerifyTest {
 				String location = bundle.getLocation();
 
 				Assert.assertTrue(
-					"Static JAR not sucessfully reverted: " + symbolicName,
+					"Static JAR not successfully reverted: " + symbolicName,
 					location.contains("protocol=lpkg"));
 			}
 			else {

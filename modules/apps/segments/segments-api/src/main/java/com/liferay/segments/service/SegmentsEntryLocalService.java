@@ -175,6 +175,9 @@ public interface SegmentsEntryLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -378,19 +381,6 @@ public interface SegmentsEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public SegmentsEntry getSegmentsEntryByUuidAndGroupId(
 			String uuid, long groupId)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #searchSegmentsEntries(long, long, String, boolean,
-	 LinkedHashMap, int, int, Sort)}
-	 */
-	@Deprecated
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public BaseModelSearchResult<SegmentsEntry> searchSegmentsEntries(
-			long companyId, long groupId, String keywords,
-			boolean includeAncestorSegmentsEntries, int start, int end,
-			Sort sort)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)

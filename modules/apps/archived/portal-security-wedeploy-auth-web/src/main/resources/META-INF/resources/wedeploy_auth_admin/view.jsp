@@ -21,13 +21,11 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCRenderCommandName(
 	"/wedeploy_auth_admin/view"
-).build();
+).buildPortletURL();
 
 SearchContainer<WeDeployAuthApp> weDeployAuthAppsSearchContainer = new SearchContainer(renderRequest, portletURL, null, "no-wedeploy-apps-were-found");
 
-weDeployAuthAppsSearchContainer.setTotal(WeDeployAuthAppLocalServiceUtil.getWeDeployAuthAppsCount());
-
-weDeployAuthAppsSearchContainer.setResults(WeDeployAuthAppLocalServiceUtil.getWeDeployAuthApps(QueryUtil.ALL_POS, QueryUtil.ALL_POS));
+weDeployAuthAppsSearchContainer.setResultsAndTotal(() -> WeDeployAuthAppLocalServiceUtil.getWeDeployAuthApps(QueryUtil.ALL_POS, QueryUtil.ALL_POS), WeDeployAuthAppLocalServiceUtil.getWeDeployAuthAppsCount());
 %>
 
 <clay:management-toolbar

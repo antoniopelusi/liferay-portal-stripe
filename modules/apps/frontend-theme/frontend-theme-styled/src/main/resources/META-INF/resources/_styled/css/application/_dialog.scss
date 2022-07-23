@@ -1,17 +1,6 @@
-.dialog-bd {
-	min-height: 30px;
-}
-
-.dialog-content {
-	border: 1px solid #c8c9ca;
-	padding: 5px;
-}
-
 .portal-popup {
-	.sheet {
-		> .lfr-nav {
-			margin-top: -24px;
-		}
+	.sheet > .lfr-nav {
+		margin-top: -24px;
 	}
 
 	.contacts-portlet .portlet-configuration-container .form {
@@ -45,8 +34,8 @@
 			padding-top: 20px;
 
 			.nav-tabs-underline {
-				margin-left: -$grid-gutter-width / 2;
-				margin-right: -$grid-gutter-width / 2;
+				margin-left: $grid-gutter-width * -0.5;
+				margin-right: $grid-gutter-width * -0.5;
 				margin-top: -20px;
 			}
 		}
@@ -168,11 +157,17 @@
 		}
 	}
 
-	.lfr-dynamic-uploader.hide-dialog-footer {
-		bottom: 0;
+	.lfr-dynamic-uploader {
+		display: table;
+		table-layout: fixed;
+		width: 100%;
 
-		+ .dialog-footer {
-			display: none;
+		&.hide-dialog-footer {
+			bottom: 0;
+
+			+ .dialog-footer {
+				display: none;
+			}
 		}
 	}
 
@@ -192,5 +187,33 @@
 
 	.portlet-configuration-edit-templates .portlet-configuration-body-content {
 		bottom: 0;
+	}
+
+	&:not(.article-preview) {
+		#main-content,
+		#wrapper {
+			bottom: 0;
+			left: 0;
+			overflow: auto;
+			padding: $dialog-iframe-padding;
+			position: absolute;
+			right: 0;
+			top: 0;
+			-webkit-overflow-scrolling: touch;
+
+			@media print {
+				position: initial;
+			}
+		}
+	}
+
+	.columns-max > .portlet-layout.row {
+		margin-left: 0;
+		margin-right: 0;
+
+		> .portlet-column {
+			padding-left: 0;
+			padding-right: 0;
+		}
 	}
 }

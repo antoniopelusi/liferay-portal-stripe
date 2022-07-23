@@ -23,6 +23,31 @@ import java.util.Map;
  */
 public class LinkedHashMapBuilder<K, V> extends BaseMapBuilder {
 
+	public static <K, V> LinkedHashMapWrapper<K, V> create(
+		int initialCapacity) {
+
+		return new LinkedHashMapWrapper<>(initialCapacity);
+	}
+
+	public static <K, V> LinkedHashMapWrapper<K, V> create(
+		int initialCapacity, float loadFactor) {
+
+		return new LinkedHashMapWrapper<>(initialCapacity, loadFactor);
+	}
+
+	public static <K, V> LinkedHashMapWrapper<K, V> create(
+		int initialCapacity, float loadFactor, boolean accessOrder) {
+
+		return new LinkedHashMapWrapper<>(
+			initialCapacity, loadFactor, accessOrder);
+	}
+
+	public static <K, V> LinkedHashMapWrapper<K, V> create(
+		Map<? extends K, ? extends V> map) {
+
+		return new LinkedHashMapWrapper<>(map);
+	}
+
 	public static <K, V> LinkedHashMapWrapper<K, V> put(
 		Collection<? extends K> inputCollection,
 		UnsafeFunction<K, V, Exception> unsafeFunction) {
@@ -79,6 +104,29 @@ public class LinkedHashMapBuilder<K, V> extends BaseMapBuilder {
 
 	public static final class LinkedHashMapWrapper<K, V>
 		extends BaseMapWrapper<K, V> {
+
+		public LinkedHashMapWrapper() {
+			_linkedHashMap = new LinkedHashMap<>();
+		}
+
+		public LinkedHashMapWrapper(int initialCapacity) {
+			_linkedHashMap = new LinkedHashMap<>(initialCapacity);
+		}
+
+		public LinkedHashMapWrapper(int initialCapacity, float loadFactor) {
+			_linkedHashMap = new LinkedHashMap<>(initialCapacity, loadFactor);
+		}
+
+		public LinkedHashMapWrapper(
+			int initialCapacity, float loadFactor, boolean accessOrder) {
+
+			_linkedHashMap = new LinkedHashMap<>(
+				initialCapacity, loadFactor, accessOrder);
+		}
+
+		public LinkedHashMapWrapper(Map<? extends K, ? extends V> map) {
+			_linkedHashMap = new LinkedHashMap<>(map);
+		}
 
 		public LinkedHashMap<K, V> build() {
 			return _linkedHashMap;
@@ -137,8 +185,7 @@ public class LinkedHashMapBuilder<K, V> extends BaseMapBuilder {
 			return _linkedHashMap;
 		}
 
-		private final LinkedHashMap<K, V> _linkedHashMap =
-			new LinkedHashMap<>();
+		private final LinkedHashMap<K, V> _linkedHashMap;
 
 	}
 

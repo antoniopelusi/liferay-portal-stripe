@@ -14,18 +14,18 @@
 
 package com.liferay.portal.servlet.filters.util;
 
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.Digester;
 import com.liferay.portal.kernel.util.DigesterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -42,7 +42,7 @@ public class CacheFileNameGenerator {
 			CacheKeyGeneratorUtil.getCacheKeyGenerator(cacheName);
 
 		cacheKeyGenerator.append(
-			HttpUtil.getProtocol(httpServletRequest.isSecure()));
+			HttpComponentsUtil.getProtocol(httpServletRequest.isSecure()));
 		cacheKeyGenerator.append(StringPool.UNDERLINE);
 		cacheKeyGenerator.append(httpServletRequest.getRequestURI());
 
@@ -85,8 +85,9 @@ public class CacheFileNameGenerator {
 			});
 	}
 
-	private static final List<CacheFileNameContributor>
-		_cacheFileNameContributors = ServiceTrackerCollections.openList(
+	private static final ServiceTrackerList<CacheFileNameContributor>
+		_cacheFileNameContributors = ServiceTrackerListFactory.open(
+			SystemBundleUtil.getBundleContext(),
 			CacheFileNameContributor.class);
 
 }

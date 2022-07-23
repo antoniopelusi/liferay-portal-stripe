@@ -39,11 +39,10 @@ public class ProtectedAnnotatedObjectInputStream
 
 		String contextName = readUTF();
 
-		ClassLoader classLoader = ClassLoaderPool.getClassLoader(contextName);
-
 		String className = objectStreamClass.getName();
 
-		return ClassResolverUtil.resolve(className, classLoader);
+		return ClassResolverUtil.resolve(
+			className, ClassLoaderPool.getClassLoader(contextName));
 	}
 
 }

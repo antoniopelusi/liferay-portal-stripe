@@ -65,7 +65,7 @@ public class LodashTopHeadDynamicInclude extends BaseDynamicInclude {
 			printWriter.print("<script data-senna-track=\"permanent\" src=\"");
 
 			printWriter.print(
-				absolutePortalURLBuilder.forModule(
+				absolutePortalURLBuilder.forModuleScript(
 					_bundleContext.getBundle(), fileName
 				).build());
 
@@ -98,7 +98,7 @@ public class LodashTopHeadDynamicInclude extends BaseDynamicInclude {
 	@Reference
 	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
 
-	private BundleContext _bundleContext;
+	private volatile BundleContext _bundleContext;
 	private volatile JSLodashConfiguration _jsLodashConfiguration;
 
 }

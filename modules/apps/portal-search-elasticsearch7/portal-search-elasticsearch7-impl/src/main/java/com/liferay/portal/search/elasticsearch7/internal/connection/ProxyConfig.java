@@ -16,6 +16,7 @@ package com.liferay.portal.search.elasticsearch7.internal.connection;
 
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -72,7 +73,9 @@ public class ProxyConfig {
 		}
 
 		public Builder host(String host) {
-			_host = host;
+			if (!Validator.isBlank(host)) {
+				_host = host;
+			}
 
 			return this;
 		}
@@ -90,7 +93,9 @@ public class ProxyConfig {
 		}
 
 		public Builder port(int port) {
-			_port = port;
+			if (port > 0) {
+				_port = port;
+			}
 
 			return this;
 		}
@@ -102,27 +107,15 @@ public class ProxyConfig {
 		}
 
 		protected String getHost() {
-			if (!Validator.isBlank(_host)) {
-				return _host;
-			}
-
-			return SystemProperties.get("http.proxyHost");
+			return _host;
 		}
 
 		protected int getPort() {
-			if (hasHostAndPort()) {
-				return _port;
-			}
-
-			return GetterUtil.getInteger(SystemProperties.get("http.port"));
+			return _port;
 		}
 
 		protected boolean hasHostAndPort() {
-			if (Validator.isBlank(_host)) {
-				return false;
-			}
-
-			if (_port <= 0) {
+			if (Validator.isBlank(_host) || (_port <= 0)) {
 				return false;
 			}
 
@@ -131,41 +124,33 @@ public class ProxyConfig {
 
 		protected boolean shouldApplyConfig() {
 			if (hasHostAndPort()) {
-				return true;
+				return Stream.of(
+					_networkHostAddresses
+				).allMatch(
+					host -> !_http.isNonProxyHost(
+						HttpComponentsUtil.getDomain(host))
+				);
 			}
 
-			if (!_http.hasProxyConfig()) {
-				return false;
-			}
-
-			return Stream.of(
-				_networkHostAddresses
-			).allMatch(
-				host -> !_http.isNonProxyHost(host)
-			);
+			return false;
 		}
 
 		protected boolean shouldApplyCredentials() {
-			if (!shouldApplyConfig()) {
-				return false;
-			}
+			if (!shouldApplyConfig() || Validator.isBlank(_password) ||
+				Validator.isBlank(_userName)) {
 
-			if (Validator.isBlank(_password)) {
-				return false;
-			}
-
-			if (Validator.isBlank(_userName)) {
 				return false;
 			}
 
 			return true;
 		}
 
-		private String _host;
+		private String _host = SystemProperties.get("http.proxyHost");
 		private final Http _http;
 		private String[] _networkHostAddresses = {};
 		private String _password;
-		private int _port;
+		private int _port = GetterUtil.getInteger(
+			SystemProperties.get("http.proxyPort"));
 		private String _userName;
 
 	}

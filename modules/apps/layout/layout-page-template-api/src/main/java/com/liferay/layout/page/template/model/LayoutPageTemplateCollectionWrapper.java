@@ -159,6 +159,11 @@ public class LayoutPageTemplateCollectionWrapper
 		}
 	}
 
+	@Override
+	public LayoutPageTemplateCollection cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this layout page template collection.
 	 *

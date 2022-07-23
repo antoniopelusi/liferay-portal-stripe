@@ -22,7 +22,7 @@ export function parseOptions(jsonString) {
 	let options;
 
 	try {
-		options = JSON.parse(jsonString);
+		options = JSON.parse(jsonString) || '';
 	}
 	catch (ignore) {
 		options = '';
@@ -34,6 +34,14 @@ export function parseOptions(jsonString) {
 }
 
 export function regenerateOrderDetailURL(orderUUID, siteDefaultURL) {
+	if (!orderUUID || !siteDefaultURL) {
+		throw new Error(
+			`Cannot generate a new Order Detail URL. Invalid "${
+				siteDefaultURL ? 'orderUUID' : 'siteDefaultURL'
+			}"`
+		);
+	}
+
 	const orderDetailURL = new URL(
 		`${siteDefaultURL}${ORDER_DETAILS_ENDPOINT}`
 	);
@@ -56,42 +64,54 @@ export function regenerateOrderDetailURL(orderUUID, siteDefaultURL) {
 	return orderDetailURL.toString();
 }
 
-export function summaryDataMapper(summary) {
-	return Object.keys(summary).reduce((values, key) => {
-		const summaryItem = {value: summary[key]};
+export function generateProductPageURL(
+	baseURL,
+	productRelativeURLs,
+	productURLSeparator
+) {
+	const actualLang = themeDisplay.getLanguageId();
+	let productLocalizedURL = productRelativeURLs[actualLang];
 
-		switch (key) {
-			case 'itemsQuantity':
-				values.push({
-					label: Liferay.Language.get('quantity'),
-					...summaryItem,
-				});
-				break;
-			case 'subtotalFormatted':
-				values.push({
-					label: Liferay.Language.get('subtotal'),
-					...summaryItem,
-				});
-				break;
-			case 'totalDiscountValueFormatted':
-				values.push({
-					label: Liferay.Language.get('order-discount'),
-					...summaryItem,
-				});
-				break;
-			case 'totalFormatted':
-				values.push({
-					label: Liferay.Language.get('total'),
-					style: 'big',
-					...summaryItem,
-				});
-				break;
-			default:
-				break;
-		}
+	if (!productLocalizedURL) {
+		const defaultLang = themeDisplay.getDefaultLanguageId();
+		productLocalizedURL = productRelativeURLs[defaultLang];
+	}
 
-		return values;
-	}, []);
+	return [baseURL, productURLSeparator, productLocalizedURL]
+		.map((url) => url.replace(/^\//, '').replace(/\/$/, ''))
+		.join('/');
+}
+
+export function summaryDataMapper({
+	itemsQuantity,
+	subtotalDiscountValueFormatted,
+	subtotalFormatted,
+	totalDiscountValueFormatted,
+	totalFormatted,
+}) {
+	return [
+		{
+			label: Liferay.Language.get('quantity'),
+			value: itemsQuantity,
+		},
+		{
+			label: Liferay.Language.get('subtotal'),
+			value: subtotalFormatted,
+		},
+		{
+			label: Liferay.Language.get('subtotal-discount'),
+			value: subtotalDiscountValueFormatted,
+		},
+		{
+			label: Liferay.Language.get('order-discount'),
+			value: totalDiscountValueFormatted,
+		},
+		{
+			label: Liferay.Language.get('total'),
+			style: 'big',
+			value: totalFormatted,
+		},
+	];
 }
 
 export function hasErrors(cartItems) {

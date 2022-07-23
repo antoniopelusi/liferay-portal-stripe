@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -46,6 +48,8 @@ public class CommercePriceListDiscountRelWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put(
 			"commercePriceListDiscountRelId",
@@ -65,6 +69,18 @@ public class CommercePriceListDiscountRelWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -133,6 +149,11 @@ public class CommercePriceListDiscountRelWrapper
 		}
 	}
 
+	@Override
+	public CommercePriceListDiscountRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the commerce discount ID of this commerce price list discount rel.
 	 *
@@ -191,6 +212,16 @@ public class CommercePriceListDiscountRelWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this commerce price list discount rel.
+	 *
+	 * @return the ct collection ID of this commerce price list discount rel
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the last publish date of this commerce price list discount rel.
 	 *
 	 * @return the last publish date of this commerce price list discount rel
@@ -208,6 +239,16 @@ public class CommercePriceListDiscountRelWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce price list discount rel.
+	 *
+	 * @return the mvcc version of this commerce price list discount rel
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -328,6 +369,16 @@ public class CommercePriceListDiscountRelWrapper
 	}
 
 	/**
+	 * Sets the ct collection ID of this commerce price list discount rel.
+	 *
+	 * @param ctCollectionId the ct collection ID of this commerce price list discount rel
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
+	}
+
+	/**
 	 * Sets the last publish date of this commerce price list discount rel.
 	 *
 	 * @param lastPublishDate the last publish date of this commerce price list discount rel
@@ -345,6 +396,16 @@ public class CommercePriceListDiscountRelWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce price list discount rel.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce price list discount rel
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -405,6 +466,20 @@ public class CommercePriceListDiscountRelWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<CommercePriceListDiscountRel, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<CommercePriceListDiscountRel, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

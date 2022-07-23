@@ -56,8 +56,8 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true,
 	property = {
-		"product.navigation.control.menu.category.key=" + ProductNavigationControlMenuCategoryKeys.TOOLS,
-		"product.navigation.control.menu.entry.order:Integer=200"
+		"product.navigation.control.menu.category.key=" + ProductNavigationControlMenuCategoryKeys.USER,
+		"product.navigation.control.menu.entry.order:Integer=50"
 	},
 	service = ProductNavigationControlMenuEntry.class
 )
@@ -113,11 +113,7 @@ public class EditDisplayPageMenuProductNavigationControlMenuEntry
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
-
-		if (!layout.isTypeAssetDisplay()) {
+		if (layout.isTypeControlPanel() || !layout.isTypeAssetDisplay()) {
 			return false;
 		}
 

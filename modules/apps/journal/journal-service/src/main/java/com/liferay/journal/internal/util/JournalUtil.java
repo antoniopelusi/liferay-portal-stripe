@@ -54,7 +54,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -136,16 +136,10 @@ public class JournalUtil {
 			smallImageURL = article.getSmallImageURL();
 		}
 		else if ((themeDisplay != null) && article.isSmallImage()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(themeDisplay.getPathImage());
-			sb.append("/journal/article?img_id=");
-			sb.append(article.getSmallImageId());
-			sb.append("&t=");
-			sb.append(
+			smallImageURL = StringBundler.concat(
+				themeDisplay.getPathImage(), "/journal/article?img_id=",
+				article.getSmallImageId(), "&t=",
 				WebServerServletTokenUtil.getToken(article.getSmallImageId()));
-
-			smallImageURL = sb.toString();
 		}
 
 		_addReservedEl(
@@ -215,23 +209,24 @@ public class JournalUtil {
 		}
 
 		try {
-			String portletId = PortletProviderUtil.getPortletId(
-				JournalArticle.class.getName(), PortletProvider.Action.EDIT);
-
 			String articleURL = PortalUtil.getControlPanelFullURL(
-				groupId, portletId, null);
+				groupId,
+				PortletProviderUtil.getPortletId(
+					JournalArticle.class.getName(),
+					PortletProvider.Action.EDIT),
+				null);
 
 			String namespace = PortalUtil.getPortletNamespace(
 				JournalPortletKeys.JOURNAL);
 
-			articleURL = HttpUtil.addParameter(
+			articleURL = HttpComponentsUtil.addParameter(
 				articleURL, namespace + "groupId", groupId);
 
-			return HttpUtil.addParameter(
+			return HttpComponentsUtil.addParameter(
 				articleURL, namespace + "folderId", folderId);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return StringPool.BLANK;
@@ -300,7 +295,7 @@ public class JournalUtil {
 				}
 				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(exception, exception);
+						_log.warn(exception);
 					}
 				}
 			}
@@ -433,8 +428,7 @@ public class JournalUtil {
 			ThemeDisplay themeDisplay, Map<String, String> tokens,
 			String viewMode, String languageId, Document document,
 			PortletRequestModel portletRequestModel, String script,
-			String langType, boolean propagateException,
-			Map<String, Object> contextObjects)
+			boolean propagateException, Map<String, Object> contextObjects)
 		throws Exception {
 
 		TemplateHandler templateHandler =
@@ -445,8 +439,7 @@ public class JournalUtil {
 
 		return _journalTransformer.transform(
 			themeDisplay, contextObjects, tokens, viewMode, languageId,
-			document, portletRequestModel, script, langType,
-			propagateException);
+			document, portletRequestModel, script, propagateException);
 	}
 
 	private static void _addReservedEl(
@@ -515,7 +508,7 @@ public class JournalUtil {
 					JournalServiceConfiguration.class, companyId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		if (journalServiceConfiguration == null) {
@@ -598,9 +591,11 @@ public class JournalUtil {
 		tokens.put("main_path", themeDisplay.getPathMain());
 		tokens.put("portal_ctx", themeDisplay.getPathContext());
 		tokens.put(
-			"portal_url", HttpUtil.removeProtocol(themeDisplay.getURLPortal()));
+			"portal_url",
+			HttpComponentsUtil.removeProtocol(themeDisplay.getURLPortal()));
 		tokens.put(
-			"protocol", HttpUtil.getProtocol(themeDisplay.getURLPortal()));
+			"protocol",
+			HttpComponentsUtil.getProtocol(themeDisplay.getURLPortal()));
 		tokens.put("root_path", themeDisplay.getPathContext());
 		tokens.put(
 			"scope_group_id", String.valueOf(themeDisplay.getScopeGroupId()));
@@ -669,9 +664,11 @@ public class JournalUtil {
 		tokens.put("portal_ctx", themeDisplayModel.getPathContext());
 		tokens.put(
 			"portal_url",
-			HttpUtil.removeProtocol(themeDisplayModel.getURLPortal()));
+			HttpComponentsUtil.removeProtocol(
+				themeDisplayModel.getURLPortal()));
 		tokens.put(
-			"protocol", HttpUtil.getProtocol(themeDisplayModel.getURLPortal()));
+			"protocol",
+			HttpComponentsUtil.getProtocol(themeDisplayModel.getURLPortal()));
 		tokens.put("root_path", themeDisplayModel.getPathContext());
 		tokens.put(
 			"scope_group_id",

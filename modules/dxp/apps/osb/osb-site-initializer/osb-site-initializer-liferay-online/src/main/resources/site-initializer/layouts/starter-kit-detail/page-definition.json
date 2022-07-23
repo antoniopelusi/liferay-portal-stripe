@@ -1,0 +1,28 @@
+{
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"fragmentStyle": {
+						"marginBottom": "3"
+					},
+					"widgetInstance": {
+						"widgetConfig": {
+							"displayStyle": "ddmTemplate_STARTERKIT-DETAIL",
+							"displayStyleGroupId": "[$GROUP_ID$]",
+							"selectionStyle": "adt"
+						},
+						"widgetName": "com_liferay_commerce_product_content_web_internal_portlet_CPContentPortlet"
+					}
+				},
+				"type": "Widget"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "main"
+		}
+	}
+}

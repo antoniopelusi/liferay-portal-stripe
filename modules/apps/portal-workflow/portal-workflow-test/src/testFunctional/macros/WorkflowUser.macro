@@ -1,0 +1,23 @@
+definition {
+
+	macro disableCaptchaToCreateNewUserAndSendPassword {
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Security Tools",
+			configurationName = "CAPTCHA",
+			configurationScope = "System Scope");
+
+		for (var settingFieldName : list "Create Account CAPTCHA Enabled,Send Password CAPTCHA Enabled") {
+			SystemSettings.configureSystemSetting(
+				enableSetting = "false",
+				settingFieldName = "${settingFieldName}");
+		}
+
+		Refresh();
+	}
+
+}

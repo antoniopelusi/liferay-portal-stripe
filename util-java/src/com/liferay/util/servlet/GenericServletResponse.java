@@ -31,8 +31,6 @@ public class GenericServletResponse extends HttpServletResponseWrapper {
 
 	public GenericServletResponse(HttpServletResponse httpServletResponse) {
 		super(httpServletResponse);
-
-		_unsyncByteArrayOutputStream = new UnsyncByteArrayOutputStream();
 	}
 
 	public int getContentLength() {
@@ -90,6 +88,7 @@ public class GenericServletResponse extends HttpServletResponseWrapper {
 
 	private long _contentLength;
 	private String _contentType;
-	private final UnsyncByteArrayOutputStream _unsyncByteArrayOutputStream;
+	private final UnsyncByteArrayOutputStream _unsyncByteArrayOutputStream =
+		new UnsyncByteArrayOutputStream();
 
 }

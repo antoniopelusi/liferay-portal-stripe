@@ -104,7 +104,7 @@ public class PortletContainerUtil {
 			HttpServletRequest httpServletRequest, Portlet portlet)
 		throws PortletContainerException {
 
-		getPortletContainer().preparePortlet(httpServletRequest, portlet);
+		_portletContainer.preparePortlet(httpServletRequest, portlet);
 	}
 
 	public static void processAction(
@@ -112,7 +112,7 @@ public class PortletContainerUtil {
 			HttpServletResponse httpServletResponse, Portlet portlet)
 		throws PortletContainerException {
 
-		PortletContainer portletContainer = getPortletContainer();
+		PortletContainer portletContainer = _portletContainer;
 
 		ActionResult actionResult = portletContainer.processAction(
 			httpServletRequest, httpServletResponse, portlet);
@@ -182,7 +182,7 @@ public class PortletContainerUtil {
 			Layout layout, Event event)
 		throws PortletContainerException {
 
-		PortletContainer portletContainer = getPortletContainer();
+		PortletContainer portletContainer = _portletContainer;
 
 		List<Event> events = portletContainer.processEvent(
 			httpServletRequest, httpServletResponse, portlet, layout, event);
@@ -195,14 +195,14 @@ public class PortletContainerUtil {
 	public static void processPublicRenderParameters(
 		HttpServletRequest httpServletRequest, Layout layout) {
 
-		getPortletContainer().processPublicRenderParameters(
+		_portletContainer.processPublicRenderParameters(
 			httpServletRequest, layout);
 	}
 
 	public static void processPublicRenderParameters(
 		HttpServletRequest httpServletRequest, Layout layout, Portlet portlet) {
 
-		getPortletContainer().processPublicRenderParameters(
+		_portletContainer.processPublicRenderParameters(
 			httpServletRequest, layout, portlet);
 	}
 
@@ -211,7 +211,7 @@ public class PortletContainerUtil {
 			HttpServletResponse httpServletResponse, Portlet portlet)
 		throws PortletContainerException {
 
-		getPortletContainer().render(
+		_portletContainer.render(
 			httpServletRequest, httpServletResponse, portlet);
 	}
 
@@ -220,7 +220,7 @@ public class PortletContainerUtil {
 			HttpServletResponse httpServletResponse, Portlet portlet)
 		throws PortletContainerException {
 
-		getPortletContainer().renderHeaders(
+		_portletContainer.renderHeaders(
 			httpServletRequest, httpServletResponse, portlet);
 	}
 
@@ -229,7 +229,7 @@ public class PortletContainerUtil {
 			HttpServletResponse httpServletResponse, Portlet portlet)
 		throws PortletContainerException {
 
-		getPortletContainer().serveResource(
+		_portletContainer.serveResource(
 			httpServletRequest, httpServletResponse, portlet);
 	}
 
@@ -346,12 +346,9 @@ public class PortletContainerUtil {
 
 		int y2 = length + x2;
 
-		if (y2 > queryString2.length()) {
-			return false;
-		}
-
-		if ((y2 != queryString2.length()) &&
-			(queryString2.charAt(y2) != CharPool.AMPERSAND)) {
+		if ((y2 > queryString2.length()) ||
+			((y2 != queryString2.length()) &&
+			 (queryString2.charAt(y2) != CharPool.AMPERSAND))) {
 
 			return false;
 		}

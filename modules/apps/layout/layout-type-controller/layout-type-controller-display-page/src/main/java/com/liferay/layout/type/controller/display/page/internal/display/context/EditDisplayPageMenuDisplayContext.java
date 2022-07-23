@@ -21,13 +21,12 @@ import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -59,7 +58,7 @@ public class EditDisplayPageMenuDisplayContext {
 	public List<DropdownItem> getDropdownItems() {
 		UnsafeConsumer<DropdownItem, Exception>
 			editURLDropdownItemUnsafeConsumer =
-				getEditURLDropdownItemUnsafeConsumer(_infoEditURLProvider);
+				_getEditURLDropdownItemUnsafeConsumer(_infoEditURLProvider);
 
 		return DropdownItemListBuilder.add(
 			() -> editURLDropdownItemUnsafeConsumer != null,
@@ -69,17 +68,16 @@ public class EditDisplayPageMenuDisplayContext {
 				_themeDisplay.getPermissionChecker(), _themeDisplay.getLayout(),
 				ActionKeys.UPDATE),
 			dropdownItem -> {
-				Layout draftLayout = LayoutLocalServiceUtil.fetchDraftLayout(
-					_themeDisplay.getPlid());
-
 				String editLayoutURL = PortalUtil.getLayoutFullURL(
-					draftLayout, _themeDisplay);
+					LayoutLocalServiceUtil.fetchDraftLayout(
+						_themeDisplay.getPlid()),
+					_themeDisplay);
 
-				editLayoutURL = HttpUtil.setParameter(
+				editLayoutURL = HttpComponentsUtil.setParameter(
 					editLayoutURL, "p_l_back_url",
 					_themeDisplay.getURLCurrent());
 
-				editLayoutURL = HttpUtil.setParameter(
+				editLayoutURL = HttpComponentsUtil.setParameter(
 					editLayoutURL, "p_l_mode", Constants.EDIT);
 
 				dropdownItem.setHref(editLayoutURL);
@@ -94,8 +92,8 @@ public class EditDisplayPageMenuDisplayContext {
 		).build();
 	}
 
-	protected UnsafeConsumer<DropdownItem, Exception>
-		getEditURLDropdownItemUnsafeConsumer(
+	private UnsafeConsumer<DropdownItem, Exception>
+		_getEditURLDropdownItemUnsafeConsumer(
 			InfoEditURLProvider<Object> infoEditURLProvider) {
 
 		if (infoEditURLProvider == null) {

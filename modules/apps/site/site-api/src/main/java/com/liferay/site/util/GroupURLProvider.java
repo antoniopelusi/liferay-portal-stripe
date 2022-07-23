@@ -26,12 +26,14 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.GroupPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.site.constants.SiteWebKeys;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -114,21 +116,27 @@ public class GroupURLProvider {
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String groupDisplayURL = group.getDisplayURL(themeDisplay, false);
+		String groupDisplayURL = group.getDisplayURL(
+			themeDisplay, false,
+			GetterUtil.getBoolean(
+				portletRequest.getAttribute(
+					SiteWebKeys.GROUP_URL_PROVIDER_CONTROL_PANEL)));
 
 		if (Validator.isNotNull(groupDisplayURL)) {
-			return _http.removeParameter(groupDisplayURL, "p_p_id");
+			return HttpComponentsUtil.removeParameter(
+				groupDisplayURL, "p_p_id");
 		}
 
 		groupDisplayURL = group.getDisplayURL(themeDisplay, true);
 
 		if (Validator.isNotNull(groupDisplayURL)) {
-			return _http.removeParameter(groupDisplayURL, "p_p_id");
+			return HttpComponentsUtil.removeParameter(
+				groupDisplayURL, "p_p_id");
 		}
 
 		if (includeStagingGroup && group.hasStagingGroup()) {
 			try {
-				if (GroupPermissionUtil.contains(
+				if (_groupPermission.contains(
 						themeDisplay.getPermissionChecker(), group,
 						ActionKeys.VIEW_STAGING)) {
 
@@ -182,7 +190,7 @@ public class GroupURLProvider {
 			).buildString();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return null;
 		}
@@ -201,7 +209,7 @@ public class GroupURLProvider {
 	private volatile DepotEntryLocalService _depotEntryLocalService;
 
 	@Reference
-	private Http _http;
+	private GroupPermission _groupPermission;
 
 	private PanelAppRegistry _panelAppRegistry;
 	private PanelCategoryRegistry _panelCategoryRegistry;

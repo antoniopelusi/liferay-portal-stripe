@@ -38,7 +38,6 @@ import com.liferay.commerce.test.util.context.TestCommerceContext;
 import com.liferay.petra.lang.CentralizedThreadLocal;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
@@ -47,10 +46,8 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.Sync;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -81,7 +78,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 @Sync
 public class CommerceOrderHttpHelperImplTest {
@@ -95,17 +91,14 @@ public class CommerceOrderHttpHelperImplTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
+		_user = UserTestUtil.addUser();
 
 		PermissionThreadLocal.setPermissionChecker(
 			PermissionCheckerFactoryUtil.create(_user));
 
 		PrincipalThreadLocal.setName(_user.getUserId());
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
 
 		List<CommerceInventoryBookedQuantity>
 			commerceInventoryBookedQuantities =
@@ -146,11 +139,11 @@ public class CommerceOrderHttpHelperImplTest {
 
 		_themeDisplay = ThemeDisplayFactory.create();
 
-		_themeDisplay.setScopeGroupId(_group.getGroupId());
-		_themeDisplay.setUser(_user);
-		_themeDisplay.setSignedIn(true);
 		_themeDisplay.setPermissionChecker(
 			PermissionCheckerFactoryUtil.create(_user));
+		_themeDisplay.setScopeGroupId(_group.getGroupId());
+		_themeDisplay.setSignedIn(true);
+		_themeDisplay.setUser(_user);
 
 		_httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, _themeDisplay);
 
@@ -243,6 +236,8 @@ public class CommerceOrderHttpHelperImplTest {
 	@Rule
 	public FrutillaRule frutillaRule = new FrutillaRule();
 
+	private static User _user;
+
 	private CommerceAccount _commerceAccount;
 
 	@Inject
@@ -271,10 +266,6 @@ public class CommerceOrderHttpHelperImplTest {
 	private CommerceOrderLocalService _commerceOrderLocalService;
 
 	private final List<CommerceOrder> _commerceOrders = new ArrayList<>();
-
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private Group _group;
 
 	@Inject
@@ -282,7 +273,6 @@ public class CommerceOrderHttpHelperImplTest {
 
 	private HttpServletRequest _httpServletRequest;
 	private ThemeDisplay _themeDisplay;
-	private User _user;
 
 	@Inject
 	private UserLocalService _userLocalService;

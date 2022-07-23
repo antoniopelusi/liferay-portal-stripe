@@ -27,6 +27,10 @@ public class AccountEntryUserRelLocalServiceWrapper
 	implements AccountEntryUserRelLocalService,
 			   ServiceWrapper<AccountEntryUserRelLocalService> {
 
+	public AccountEntryUserRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AccountEntryUserRelLocalServiceWrapper(
 		AccountEntryUserRelLocalService accountEntryUserRelLocalService) {
 
@@ -64,12 +68,15 @@ public class AccountEntryUserRelLocalServiceWrapper
 	public com.liferay.account.model.AccountEntryUserRel addAccountEntryUserRel(
 			long accountEntryId, long creatorUserId, String screenName,
 			String emailAddress, java.util.Locale locale, String firstName,
-			String middleName, String lastName, long prefixId, long suffixId)
+			String middleName, String lastName, long prefixId, long suffixId,
+			String jobTitle,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _accountEntryUserRelLocalService.addAccountEntryUserRel(
 			accountEntryId, creatorUserId, screenName, emailAddress, locale,
-			firstName, middleName, lastName, prefixId, suffixId);
+			firstName, middleName, lastName, prefixId, suffixId, jobTitle,
+			serviceContext);
 	}
 
 	@Override
@@ -101,13 +108,15 @@ public class AccountEntryUserRelLocalServiceWrapper
 				long accountEntryId, long creatorUserId, String screenName,
 				String emailAddress, java.util.Locale locale, String firstName,
 				String middleName, String lastName, long prefixId,
-				long suffixId)
+				long suffixId, String jobTitle,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _accountEntryUserRelLocalService.
 			addPersonTypeAccountEntryUserRel(
 				accountEntryId, creatorUserId, screenName, emailAddress, locale,
-				firstName, middleName, lastName, prefixId, suffixId);
+				firstName, middleName, lastName, prefixId, suffixId, jobTitle,
+				serviceContext);
 	}
 
 	/**
@@ -176,6 +185,16 @@ public class AccountEntryUserRelLocalServiceWrapper
 	}
 
 	@Override
+	public void deleteAccountEntryUserRelByEmailAddress(
+			long accountEntryId, String emailAddress)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountEntryUserRelLocalService.
+			deleteAccountEntryUserRelByEmailAddress(
+				accountEntryId, emailAddress);
+	}
+
+	@Override
 	public void deleteAccountEntryUserRels(
 			long accountEntryId, long[] accountUserIds)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -213,6 +232,13 @@ public class AccountEntryUserRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _accountEntryUserRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _accountEntryUserRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -450,6 +476,11 @@ public class AccountEntryUserRelLocalServiceWrapper
 	public boolean hasAccountEntryUserRel(long accountEntryId, long userId) {
 		return _accountEntryUserRelLocalService.hasAccountEntryUserRel(
 			accountEntryId, userId);
+	}
+
+	@Override
+	public boolean isAccountEntryUser(long userId) {
+		return _accountEntryUserRelLocalService.isAccountEntryUser(userId);
 	}
 
 	@Override

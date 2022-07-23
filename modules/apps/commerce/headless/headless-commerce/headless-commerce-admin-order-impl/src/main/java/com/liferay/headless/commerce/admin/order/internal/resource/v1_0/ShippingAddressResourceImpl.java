@@ -61,7 +61,7 @@ public class ShippingAddressResourceImpl
 
 		if (commerceOrder == null) {
 			throw new NoSuchOrderException(
-				"Unable to find Order with externalReferenceCode: " +
+				"Unable to find order with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -124,11 +124,11 @@ public class ShippingAddressResourceImpl
 
 		if (commerceOrder == null) {
 			throw new NoSuchOrderException(
-				"Unable to find Order with externalReferenceCode: " +
+				"Unable to find order with external reference code " +
 					externalReferenceCode);
 		}
 
-		ShippingAddressUtil.upsertShippingAddress(
+		ShippingAddressUtil.addOrUpdateShippingAddress(
 			_commerceAddressService, _commerceOrderService, commerceOrder,
 			shippingAddress, _serviceContextHelper.getServiceContext());
 
@@ -142,7 +142,7 @@ public class ShippingAddressResourceImpl
 			Long id, ShippingAddress shippingAddress)
 		throws Exception {
 
-		ShippingAddressUtil.upsertShippingAddress(
+		ShippingAddressUtil.addOrUpdateShippingAddress(
 			_commerceAddressService, _commerceOrderService,
 			_commerceOrderService.getCommerceOrder(id), shippingAddress,
 			_serviceContextHelper.getServiceContext());

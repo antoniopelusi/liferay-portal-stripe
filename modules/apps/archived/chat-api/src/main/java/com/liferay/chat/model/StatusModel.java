@@ -202,4 +202,7 @@ public interface StatusModel extends BaseModel<Status> {
 	 */
 	public void setPlaySound(boolean playSound);
 
+	@Override
+	public Status cloneWithOriginalValues();
+
 }

@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 
-import java.io.IOException;
-
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 
@@ -86,7 +84,7 @@ public class FixCommerceHealthStatusIssueMVCActionCommand
 		catch (Exception exception) {
 			hideDefaultErrorMessage(actionRequest);
 
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			jsonObject.put(
 				"error", exception.getMessage()
@@ -97,13 +95,13 @@ public class FixCommerceHealthStatusIssueMVCActionCommand
 
 		httpServletResponse.setContentType(ContentTypes.APPLICATION_JSON);
 
-		writeJSON(actionResponse, jsonObject);
+		_writeJSON(actionResponse, jsonObject);
 
 		hideDefaultSuccessMessage(actionRequest);
 	}
 
-	protected void writeJSON(ActionResponse actionResponse, Object object)
-		throws IOException {
+	private void _writeJSON(ActionResponse actionResponse, Object object)
+		throws Exception {
 
 		HttpServletResponse httpServletResponse =
 			_portal.getHttpServletResponse(actionResponse);

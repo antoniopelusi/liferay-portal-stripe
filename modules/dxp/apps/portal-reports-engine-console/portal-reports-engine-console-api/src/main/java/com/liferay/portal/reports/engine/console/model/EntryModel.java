@@ -404,4 +404,7 @@ public interface EntryModel
 	 */
 	public void setStatus(String status);
 
+	@Override
+	public Entry cloneWithOriginalValues();
+
 }

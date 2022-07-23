@@ -113,6 +113,11 @@ public class DDMStorageLinkWrapper
 		}
 	}
 
+	@Override
+	public DDMStorageLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this ddm storage link.
 	 *

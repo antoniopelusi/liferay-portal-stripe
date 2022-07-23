@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.search.experiences.model.SXPBlueprint">
+		<field name="mvccVersion" type="long" />
+		<field name="uuid" type="String" />
+		<field name="SXPBlueprintId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="configurationJSON" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field localized="true" name="description" type="String">
+			<hint-collection name="TEXTAREA" />
+		</field>
+		<field name="elementInstancesJSON" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="schemaVersion" type="String" />
+		<field localized="true" name="title" type="String">
+			<hint name="max-length">500</hint>
+			<sanitize content-type="text/plain" modes="ALL" />
+			<validator name="required" />
+		</field>
+		<field name="status" type="int" />
+		<field name="statusByUserId" type="long" />
+		<field name="statusByUserName" type="String" />
+		<field name="statusDate" type="Date" />
+	</model>
+	<model name="com.liferay.search.experiences.model.SXPElement">
+		<field name="mvccVersion" type="long" />
+		<field name="uuid" type="String" />
+		<field name="SXPElementId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field localized="true" name="description" type="String">
+			<hint-collection name="TEXTAREA" />
+		</field>
+		<field name="elementDefinitionJSON" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="hidden" type="boolean" />
+		<field name="readOnly" type="boolean" />
+		<field name="schemaVersion" type="String" />
+		<field localized="true" name="title" type="String">
+			<hint name="max-length">500</hint>
+			<sanitize content-type="text/plain" modes="ALL" />
+			<validator name="required" />
+		</field>
+		<field name="type" type="int" />
+		<field name="status" type="int" />
+	</model>
+</model-hints>

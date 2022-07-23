@@ -20,6 +20,7 @@ import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.service.CPDefinitionLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 /**
  * @author Marco Leo
@@ -28,9 +29,6 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
  * @author Luca Pellizzon
  */
 public class CPInstanceImpl extends CPInstanceBaseImpl {
-
-	public CPInstanceImpl() {
-	}
 
 	@Override
 	public CommerceCatalog getCommerceCatalog() throws PortalException {
@@ -61,7 +59,9 @@ public class CPInstanceImpl extends CPInstanceBaseImpl {
 		else if (!isOverrideSubscriptionInfo()) {
 			CPDefinition cpDefinition = getCPDefinition();
 
-			if (cpDefinition.isSubscriptionEnabled()) {
+			if (cpDefinition.isSubscriptionEnabled() ||
+				cpDefinition.isDeliverySubscriptionEnabled()) {
+
 				return new CPSubscriptionInfo(
 					cpDefinition.getSubscriptionLength(),
 					cpDefinition.getSubscriptionType(),
@@ -82,10 +82,11 @@ public class CPInstanceImpl extends CPInstanceBaseImpl {
 	public UnicodeProperties getDeliverySubscriptionTypeSettingsProperties() {
 		if (_deliverySubscriptionTypeSettingsUnicodeProperties == null) {
 			_deliverySubscriptionTypeSettingsUnicodeProperties =
-				new UnicodeProperties(true);
-
-			_deliverySubscriptionTypeSettingsUnicodeProperties.fastLoad(
-				getDeliverySubscriptionTypeSettings());
+				UnicodePropertiesBuilder.create(
+					true
+				).fastLoad(
+					getDeliverySubscriptionTypeSettings()
+				).build();
 		}
 
 		return _deliverySubscriptionTypeSettingsUnicodeProperties;
@@ -94,11 +95,12 @@ public class CPInstanceImpl extends CPInstanceBaseImpl {
 	@Override
 	public UnicodeProperties getSubscriptionTypeSettingsProperties() {
 		if (_subscriptionTypeSettingsUnicodeProperties == null) {
-			_subscriptionTypeSettingsUnicodeProperties = new UnicodeProperties(
-				true);
-
-			_subscriptionTypeSettingsUnicodeProperties.fastLoad(
-				getSubscriptionTypeSettings());
+			_subscriptionTypeSettingsUnicodeProperties =
+				UnicodePropertiesBuilder.create(
+					true
+				).fastLoad(
+					getSubscriptionTypeSettings()
+				).build();
 		}
 
 		return _subscriptionTypeSettingsUnicodeProperties;

@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -80,7 +81,7 @@ public class CalendarLocalServiceImpl extends CalendarLocalServiceBaseImpl {
 			color = CalendarServiceConfigurationValues.CALENDAR_COLOR_DEFAULT;
 		}
 
-		Date now = new Date();
+		Date date = new Date();
 
 		validate(nameMap);
 
@@ -93,8 +94,8 @@ public class CalendarLocalServiceImpl extends CalendarLocalServiceBaseImpl {
 		calendar.setCompanyId(user.getCompanyId());
 		calendar.setUserId(user.getUserId());
 		calendar.setUserName(user.getFullName());
-		calendar.setCreateDate(serviceContext.getCreateDate(now));
-		calendar.setModifiedDate(serviceContext.getModifiedDate(now));
+		calendar.setCreateDate(serviceContext.getCreateDate(date));
+		calendar.setModifiedDate(serviceContext.getModifiedDate(date));
 		calendar.setCalendarResourceId(calendarResourceId);
 		calendar.setNameMap(nameMap);
 		calendar.setDescriptionMap(descriptionMap);
@@ -216,7 +217,8 @@ public class CalendarLocalServiceImpl extends CalendarLocalServiceBaseImpl {
 		long liveGroupId = calendar.getGroupId();
 
 		try {
-			Group stagingGroup = groupLocalService.getStagingGroup(liveGroupId);
+			Group stagingGroup = _groupLocalService.getStagingGroup(
+				liveGroupId);
 
 			Calendar stagedCalendar =
 				calendarLocalService.fetchCalendarByUuidAndGroupId(
@@ -233,7 +235,7 @@ public class CalendarLocalServiceImpl extends CalendarLocalServiceBaseImpl {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchGroupException, noSuchGroupException);
+				_log.debug(noSuchGroupException);
 			}
 
 			return false;
@@ -255,7 +257,7 @@ public class CalendarLocalServiceImpl extends CalendarLocalServiceBaseImpl {
 
 	@Override
 	public boolean isStagingCalendar(Calendar calendar) {
-		return CalendarUtil.isStagingCalendar(calendar, groupLocalService);
+		return CalendarUtil.isStagingCalendar(calendar, _groupLocalService);
 	}
 
 	@Override
@@ -419,5 +421,8 @@ public class CalendarLocalServiceImpl extends CalendarLocalServiceBaseImpl {
 	@Reference
 	private CalendarNotificationTemplateLocalService
 		_calendarNotificationTemplateLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 }

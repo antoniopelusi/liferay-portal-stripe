@@ -12,35 +12,43 @@
  * details.
  */
 
-import './Editor.scss';
-
+import {useResource} from '@clayui/data-provider';
 import {ClayModalProvider} from '@clayui/modal';
-import RulesSupport from 'dynamic-data-mapping-form-builder/js/components/RuleBuilder/RulesSupport.es';
 import {
 	PageProvider as FieldProvider,
+	RulesSupport,
+	SettingsContext,
 	useFieldTypesResource,
-} from 'dynamic-data-mapping-form-renderer';
+} from 'data-engine-js-components-web';
+import {fetch} from 'frontend-js-web';
 import React, {useEffect, useReducer} from 'react';
 
 import {Actions} from './Actions.es';
 import {Conditions} from './Conditions.es';
 import {ACTIONS_TYPES} from './actionsTypes.es';
-import {
-	ACTION_TARGET_SHAPE,
-	BINARY_OPERATOR,
-	DEFAULT_RULE,
-	RIGHT_TYPES,
-} from './config.es';
+import {ACTION_TARGET_SHAPE, DEFAULT_RULE, RIGHT_TYPES} from './config.es';
+
+import './Editor.scss';
 
 const CONFIG_DATA = {
 	actions: {
 		component: Actions,
 		expression: Liferay.Language.get('do'),
+		fieldFilter: ({settingsContext}) =>
+			!SettingsContext.getSettingsContextProperty(
+				settingsContext,
+				'rulesActionDisabled'
+			),
 		name: Liferay.Language.get('actions'),
 	},
 	conditions: {
 		component: Conditions,
 		expression: Liferay.Language.get('if'),
+		fieldFilter: ({settingsContext}) =>
+			!SettingsContext.getSettingsContextProperty(
+				settingsContext,
+				'rulesConditionDisabled'
+			),
 		name: Liferay.Language.get('condition'),
 	},
 };
@@ -54,7 +62,7 @@ const normalizeValue = (value, right) => {
 		case 'option':
 			return value[0];
 		default:
-			return value;
+			return Array.isArray(value) ? value[0] : value;
 	}
 };
 
@@ -134,8 +142,21 @@ const reducer = (state, action) => {
 			const {actions, conditions} = state.ifStatement;
 			const {loc, value, ...otherPayloads} = action.payload;
 
+			let newActions = actions[loc];
+
+			if (
+				newActions.action === 'auto-fill' &&
+				newActions.label !== value
+			) {
+				newActions = {
+					...newActions,
+					inputs: {},
+					outputs: {},
+				};
+			}
+
 			actions[loc] = {
-				...actions[loc],
+				...newActions,
 				...otherPayloads,
 				label: value,
 				target: value,
@@ -296,13 +317,15 @@ const reducer = (state, action) => {
 
 			const operands = [left];
 
-			if (BINARY_OPERATOR.includes(value) && newRight) {
+			const {isBinaryOperator, operator} = value;
+
+			if (isBinaryOperator && newRight) {
 				operands.push(newRight);
 			}
 
 			conditions[loc] = {
 				operands,
-				operator: value,
+				operator,
 			};
 
 			return {
@@ -440,6 +463,29 @@ export function Editor({
 		init
 	);
 
+	const InputOutputLength = ({target, url}) => {
+		const {resource} = useResource({
+			fetch,
+			link: location.origin + url,
+			variables: {
+				ddmDataProviderInstanceId: target,
+			},
+		});
+
+		return resource?.inputs?.length + resource?.outputs?.length;
+	};
+
+	const {dataProviderInstanceParameterSettingsURL} = otherProps;
+
+	const newDataProvider =
+		dataProvider?.map((provider) => ({
+			...provider,
+			inputOutputLength: InputOutputLength({
+				target: provider.id,
+				url: dataProviderInstanceParameterSettingsURL,
+			}),
+		})) ?? [];
+
 	const {resource: fieldTypes} = useFieldTypesResource();
 
 	useEffect(() => {
@@ -465,7 +511,7 @@ export function Editor({
 		};
 
 		onValidator(
-			RulesSupport.isActionsValid(actions) &&
+			RulesSupport.isActionsValid(actions, newDataProvider) &&
 				RulesSupport.isConditionsValid(newRule.conditions)
 		);
 		onChange(newRule);
@@ -477,9 +523,11 @@ export function Editor({
 		<ClayModalProvider>
 			<FieldProvider value={{fieldTypes}}>
 				{state.panels.map((key) => {
-					const {component: Component, ...otherData} = CONFIG_DATA[
-						key
-					];
+					const {
+						component: Component,
+						fieldFilter,
+						...otherData
+					} = CONFIG_DATA[key];
 
 					return (
 						<Component
@@ -489,7 +537,7 @@ export function Editor({
 							allowActions={allowActions}
 							dataProvider={dataProvider}
 							dispatch={dispatch}
-							fields={fields}
+							fields={fields?.filter(fieldFilter)}
 							key={key}
 							state={state}
 						/>

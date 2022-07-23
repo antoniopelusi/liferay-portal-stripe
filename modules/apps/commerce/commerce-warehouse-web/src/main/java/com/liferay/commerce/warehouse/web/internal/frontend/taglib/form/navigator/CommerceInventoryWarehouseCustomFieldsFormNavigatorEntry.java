@@ -85,7 +85,7 @@ public class CommerceInventoryWarehouseCustomFieldsFormNavigatorEntry
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -103,7 +103,7 @@ public class CommerceInventoryWarehouseCustomFieldsFormNavigatorEntry
 
 	@Override
 	protected String getJspPath() {
-		return "/warehouse/custom_fields.jsp";
+		return "/commerce_inventory_warehouse/custom_fields.jsp";
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

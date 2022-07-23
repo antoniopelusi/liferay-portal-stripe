@@ -49,11 +49,13 @@ import com.liferay.dynamic.data.mapping.internal.upgrade.v3_0_0.util.DDMTemplate
 import com.liferay.dynamic.data.mapping.internal.upgrade.v3_0_0.util.DDMTemplateVersionTable;
 import com.liferay.dynamic.data.mapping.internal.upgrade.v3_1_0.DDMStructureLayoutUpgradeProcess;
 import com.liferay.dynamic.data.mapping.internal.upgrade.v3_2_4.DDMContentUpgradeProcess;
-import com.liferay.dynamic.data.mapping.internal.upgrade.v3_5_0.DDMFormInstanceReportUpgradeProcess;
+import com.liferay.dynamic.data.mapping.internal.upgrade.v3_5_0.util.DDMFormInstanceReportTable;
 import com.liferay.dynamic.data.mapping.internal.upgrade.v3_7_1.DDMStructureEmptyValidationUpgradeProcess;
 import com.liferay.dynamic.data.mapping.internal.upgrade.v4_1_0.DDMFieldUpgradeProcess;
-import com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_0.DLFileEntryTypeDDMFieldAttributeUpgradeProcess;
 import com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_0.DLFileEntryTypeDataDefinitionIdUpgradeProcess;
+import com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_4.DDMStructureLinkDLFileEntryTypeUpgradeProcess;
+import com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_4.DLFileEntryTypeDDMFieldAttributeUpgradeProcess;
+import com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_5.DDMTemplateVersionUpgradeProcess;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutSerializer;
@@ -98,22 +100,20 @@ public class DDMServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Override
 	public void register(Registry registry) {
-		DDMFormSerializer ddmFormSerializer = getDDMFormSerializer();
+		DDMFormSerializer ddmFormSerializer = _jsonDDMFormSerializer;
 
 		DDMFormLayoutSerializer ddmFormLayoutSerializer =
-			getDDMFormLayoutSerializer();
+			_jsonDDMFormLayoutSerializer;
 
-		DDMFormDeserializer ddmFormJSONDeserializer =
-			getDDMFormJSONDeserializer();
+		DDMFormDeserializer ddmFormJSONDeserializer = _jsonDDMFormDeserializer;
 
-		DDMFormDeserializer ddmFormXSDDeserializer =
-			getDDMFormXSDDeserializer();
+		DDMFormDeserializer ddmFormXSDDeserializer = _xsdDDMFormDeserializer;
 
 		DDMFormValuesSerializer ddmFormValuesSerializer =
-			getDDMFormValuesSerializer();
+			_jsonDDMFormValuesSerializer;
 
 		DDMFormValuesDeserializer ddmFormValuesDeserializer =
-			getDDMFormValuesDeserializer();
+			_jsonDDMFormValuesDeserializer;
 
 		registry.register("0.0.1", "0.0.2", new SchemaUpgradeProcess());
 
@@ -328,7 +328,7 @@ public class DDMServiceUpgrade implements UpgradeStepRegistrator {
 			new CTModelUpgradeProcess("DDMStructureLink", "DDMTemplateLink"));
 
 		registry.register(
-			"3.4.0", "3.5.0", new DDMFormInstanceReportUpgradeProcess());
+			"3.4.0", "3.5.0", DDMFormInstanceReportTable.create());
 
 		registry.register(
 			"3.5.0", "3.6.0",
@@ -398,7 +398,20 @@ public class DDMServiceUpgrade implements UpgradeStepRegistrator {
 		registry.register("3.10.0", "3.10.1", new DummyUpgradeStep());
 
 		registry.register(
-			"3.10.1", "4.0.0",
+			"3.10.1", "3.10.2",
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v3_10_2.
+				DDMContentUpgradeProcess(
+					ddmFormJSONDeserializer, ddmFormValuesDeserializer,
+					ddmFormValuesSerializer, _jsonFactory),
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v3_10_2.
+				DDMFormInstanceReportUpgradeProcess(_jsonFactory),
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v3_10_2.
+				DDMStructureUpgradeProcess(
+					ddmFormJSONDeserializer, _ddmFormLayoutDeserializer,
+					ddmFormLayoutSerializer, ddmFormSerializer, _jsonFactory));
+
+		registry.register(
+			"3.10.2", "4.0.0",
 			new com.liferay.dynamic.data.mapping.internal.upgrade.v4_0_0.
 				DDMStructureUpgradeProcess(_ddmDataDefinitionConverter));
 
@@ -415,7 +428,6 @@ public class DDMServiceUpgrade implements UpgradeStepRegistrator {
 
 		registry.register(
 			"4.2.0", "4.3.0",
-			new DLFileEntryTypeDDMFieldAttributeUpgradeProcess(),
 			new DLFileEntryTypeDataDefinitionIdUpgradeProcess(
 				_dlFileEntryTypeLocalService));
 
@@ -428,6 +440,50 @@ public class DDMServiceUpgrade implements UpgradeStepRegistrator {
 			"4.3.1", "4.3.2",
 			new com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_2.
 				DDMTemplateUpgradeProcess());
+
+		registry.register(
+			"4.3.2", "4.3.3",
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v4_3_3.
+				DDMStructureLayoutUpgradeProcess(
+					_ddmFormLayoutDeserializer, ddmFormLayoutSerializer,
+					_jsonFactory));
+
+		registry.register(
+			"4.3.3", "4.3.4",
+			new DDMStructureLinkDLFileEntryTypeUpgradeProcess(
+				_dlFileEntryTypeLocalService),
+			new DLFileEntryTypeDDMFieldAttributeUpgradeProcess());
+
+		registry.register(
+			"4.3.4", "4.3.5", new DDMTemplateVersionUpgradeProcess());
+
+		registry.register(
+			"4.3.5", "5.0.0",
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v5_0_0.
+				PollsToDDMUpgradeProcess(
+					ddmFormLayoutSerializer, ddmFormSerializer,
+					ddmFormValuesSerializer, _resourceActionLocalService,
+					_resourcePermissionLocalService));
+
+		registry.register(
+			"5.0.0", "5.1.0",
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v5_1_0.
+				DDMFieldUpgradeProcess());
+
+		registry.register(
+			"5.1.0", "5.1.1",
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v5_1_1.
+				DDMValidationUpgradeProcess(_jsonFactory));
+
+		registry.register(
+			"5.1.1", "5.1.2",
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v5_1_2.
+				DDMFormInstanceUpgradeProcess(_jsonFactory));
+
+		registry.register(
+			"5.1.2", "5.1.3",
+			new com.liferay.dynamic.data.mapping.internal.upgrade.v5_1_3.
+				FieldNameUpgradeProcess());
 	}
 
 	@Activate
@@ -441,30 +497,6 @@ public class DDMServiceUpgrade implements UpgradeStepRegistrator {
 	@Deactivate
 	protected void deactivate() {
 		_ddmDataProviderSettingsProviderServiceTracker.close();
-	}
-
-	protected DDMFormDeserializer getDDMFormJSONDeserializer() {
-		return _jsonDDMFormDeserializer;
-	}
-
-	protected DDMFormLayoutSerializer getDDMFormLayoutSerializer() {
-		return _jsonDDMFormLayoutSerializer;
-	}
-
-	protected DDMFormSerializer getDDMFormSerializer() {
-		return _jsonDDMFormSerializer;
-	}
-
-	protected DDMFormValuesDeserializer getDDMFormValuesDeserializer() {
-		return _jsonDDMFormValuesDeserializer;
-	}
-
-	protected DDMFormValuesSerializer getDDMFormValuesSerializer() {
-		return _jsonDDMFormValuesSerializer;
-	}
-
-	protected DDMFormDeserializer getDDMFormXSDDeserializer() {
-		return _xsdDDMFormDeserializer;
 	}
 
 	@Reference

@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.source.formatter.SourceFormatterMessage;
-import com.liferay.source.formatter.checks.configuration.SourceFormatterSuppressions;
+import com.liferay.source.formatter.check.configuration.SourceFormatterSuppressions;
 import com.liferay.source.formatter.checkstyle.util.CheckstyleLogger;
 import com.liferay.source.formatter.checkstyle.util.CheckstyleUtil;
 
@@ -205,7 +205,7 @@ public class Checker extends com.puppycrawl.tools.checkstyle.Checker {
 		}
 		catch (CheckstyleException checkstyleException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(checkstyleException, checkstyleException);
+				_log.debug(checkstyleException);
 			}
 
 			return new TreeSet<>();

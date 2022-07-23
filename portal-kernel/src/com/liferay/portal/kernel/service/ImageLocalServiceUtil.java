@@ -123,6 +123,10 @@ public class ImageLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -306,12 +310,20 @@ public class ImageLocalServiceUtil {
 		return getService().updateImage(image);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #updateImage(long, long, byte[])}
+	 */
+	@Deprecated
 	public static Image updateImage(long imageId, byte[] bytes)
 		throws PortalException {
 
 		return getService().updateImage(imageId, bytes);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #updateImage(long, long, byte[], String, int, int, int)}
+	 */
+	@Deprecated
 	public static Image updateImage(
 			long imageId, byte[] bytes, String type, int height, int width,
 			int size)
@@ -321,23 +333,73 @@ public class ImageLocalServiceUtil {
 			imageId, bytes, type, height, width, size);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #updateImage(long, long, File)}
+	 */
+	@Deprecated
 	public static Image updateImage(long imageId, java.io.File file)
 		throws PortalException {
 
 		return getService().updateImage(imageId, file);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #updateImage(long, long, InputStream)}
+	 */
+	@Deprecated
 	public static Image updateImage(long imageId, InputStream inputStream)
 		throws PortalException {
 
 		return getService().updateImage(imageId, inputStream);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #updateImage(long, long, InputStream, boolean)}
+	 */
+	@Deprecated
 	public static Image updateImage(
 			long imageId, InputStream inputStream, boolean cleanUpStream)
 		throws PortalException {
 
 		return getService().updateImage(imageId, inputStream, cleanUpStream);
+	}
+
+	public static Image updateImage(long companyId, long imageId, byte[] bytes)
+		throws PortalException {
+
+		return getService().updateImage(companyId, imageId, bytes);
+	}
+
+	public static Image updateImage(
+			long companyId, long imageId, byte[] bytes, String type, int height,
+			int width, int size)
+		throws PortalException {
+
+		return getService().updateImage(
+			companyId, imageId, bytes, type, height, width, size);
+	}
+
+	public static Image updateImage(
+			long companyId, long imageId, java.io.File file)
+		throws PortalException {
+
+		return getService().updateImage(companyId, imageId, file);
+	}
+
+	public static Image updateImage(
+			long companyId, long imageId, InputStream inputStream)
+		throws PortalException {
+
+		return getService().updateImage(companyId, imageId, inputStream);
+	}
+
+	public static Image updateImage(
+			long companyId, long imageId, InputStream inputStream,
+			boolean cleanUpStream)
+		throws PortalException {
+
+		return getService().updateImage(
+			companyId, imageId, inputStream, cleanUpStream);
 	}
 
 	public static ImageLocalService getService() {

@@ -207,7 +207,7 @@ public class LPKGOverrideTest {
 			Path manifestPath = fileSystem.getPath("META-INF/MANIFEST.MF");
 
 			try (InputStream inputStream = Files.newInputStream(manifestPath);
-				UnsyncByteArrayOutputStream outputStream =
+				UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 					new UnsyncByteArrayOutputStream()) {
 
 				Manifest manifest = new Manifest(inputStream);
@@ -232,10 +232,10 @@ public class LPKGOverrideTest {
 						versionString);
 				}
 
-				manifest.write(outputStream);
+				manifest.write(unsyncByteArrayOutputStream);
 
 				Files.write(
-					manifestPath, outputStream.toByteArray(),
+					manifestPath, unsyncByteArrayOutputStream.toByteArray(),
 					StandardOpenOption.TRUNCATE_EXISTING,
 					StandardOpenOption.WRITE);
 			}

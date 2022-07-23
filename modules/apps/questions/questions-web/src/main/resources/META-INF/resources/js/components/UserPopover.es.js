@@ -18,7 +18,7 @@ import React from 'react';
 import {dateToBriefInternationalHuman} from '../utils/utils.es';
 import UserIcon from './UserIcon.es';
 
-export default ({creator, statistics}) => {
+export default function UserPopover({creator, statistics}) {
 	return (
 		<ClayPopover
 			alignPosition="bottom"
@@ -27,32 +27,47 @@ export default ({creator, statistics}) => {
 			header={
 				<div className="align-items-center d-flex">
 					<UserIcon
-						fullName={creator.name}
-						portraitURL={creator.image}
-						userId={String(creator.id)}
+						fullName={creator?.name}
+						portraitURL={creator?.image}
+						userId={String(creator?.id)}
 					/>
 
 					<div className="c-ml-2">
 						<h4 className="font-weight-light h6 text-secondary">
-							{statistics.rank}
+							{statistics?.rank}
 						</h4>
 
-						<h3 className="h5">{creator.name}</h3>
+						<h3 className="h5">
+							{creator?.name ||
+								Liferay.Language.get(
+									'anonymous-user-configuration-name'
+								)}
+						</h3>
 					</div>
 				</div>
 			}
 		>
 			<div className="text-secondary">
-				<p className="c-mb-0">Posts: {statistics.postsNumber}</p>
+				<p className="c-mb-0">Posts: {statistics?.postsNumber}</p>
+
 				<p className="c-mb-0">
-					Join Date:{' '}
-					{dateToBriefInternationalHuman(statistics.joinDate)}
+					{`Join Date: ${
+						statistics
+							? dateToBriefInternationalHuman(statistics.joinDate)
+							: ''
+					}`}
 				</p>
+
 				<p className="c-mb-0">
-					Last Post Date:{' '}
-					{dateToBriefInternationalHuman(statistics.lastPostDate)}
+					{`Last Post Date: ${
+						statistics
+							? dateToBriefInternationalHuman(
+									statistics.lastPostDate
+							  )
+							: ''
+					}`}
 				</p>
 			</div>
 		</ClayPopover>
 	);
-};
+}

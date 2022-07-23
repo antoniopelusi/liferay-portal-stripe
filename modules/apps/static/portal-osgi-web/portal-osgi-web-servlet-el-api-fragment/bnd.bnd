@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Portal OSGi Web Servlet EL API Fragment
 Bundle-SymbolicName: com.liferay.portal.osgi.web.servlet.el.api.fragment
-Bundle-Version: 4.0.1
+Bundle-Version: 4.0.5
 Fragment-Host: com.sun.el.javax.el
 Provide-Capability:\
 	osgi.contract;\

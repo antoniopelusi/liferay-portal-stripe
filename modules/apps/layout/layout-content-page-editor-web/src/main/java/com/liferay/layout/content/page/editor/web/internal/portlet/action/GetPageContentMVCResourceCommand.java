@@ -16,10 +16,12 @@ package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
 import com.liferay.layout.content.page.editor.web.internal.util.ContentUtil;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -47,14 +49,25 @@ public class GetPageContentMVCResourceCommand extends BaseMVCResourceCommand {
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
+		JSONPortletResponseUtil.writeJSON(
+			resourceRequest, resourceResponse,
+			_getPageContentsJSONArray(resourceRequest, resourceResponse));
+	}
+
+	private JSONArray _getPageContentsJSONArray(
+			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+		throws Exception {
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		JSONPortletResponseUtil.writeJSON(
-			resourceRequest, resourceResponse,
-			ContentUtil.getPageContentsJSONArray(
-				themeDisplay.getPlid(),
-				_portal.getHttpServletRequest(resourceRequest)));
+		long segmentsExperienceId = ParamUtil.getLong(
+			resourceRequest, "segmentsExperienceId");
+
+		return ContentUtil.getPageContentsJSONArray(
+			_portal.getHttpServletRequest(resourceRequest),
+			_portal.getHttpServletResponse(resourceResponse),
+			themeDisplay.getPlid(), segmentsExperienceId);
 	}
 
 	@Reference

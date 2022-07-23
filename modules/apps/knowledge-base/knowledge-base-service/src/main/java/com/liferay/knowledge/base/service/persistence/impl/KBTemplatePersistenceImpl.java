@@ -20,10 +20,10 @@ import com.liferay.knowledge.base.model.KBTemplateTable;
 import com.liferay.knowledge.base.model.impl.KBTemplateImpl;
 import com.liferay.knowledge.base.model.impl.KBTemplateModelImpl;
 import com.liferay.knowledge.base.service.persistence.KBTemplatePersistence;
+import com.liferay.knowledge.base.service.persistence.KBTemplateUtil;
 import com.liferay.knowledge.base.service.persistence.impl.constants.KBPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -36,7 +36,6 @@ import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -49,15 +48,17 @@ import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -66,12 +67,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2356,6 +2354,8 @@ public class KBTemplatePersistenceImpl
 			kbTemplate);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the kb templates in the entity cache if it is enabled.
 	 *
@@ -2363,6 +2363,13 @@ public class KBTemplatePersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<KBTemplate> kbTemplates) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (kbTemplates.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (KBTemplate kbTemplate : kbTemplates) {
 			if (entityCache.getResult(
 					KBTemplateImpl.class, kbTemplate.getPrimaryKey()) == null) {
@@ -2439,7 +2446,7 @@ public class KBTemplatePersistenceImpl
 		kbTemplate.setNew(true);
 		kbTemplate.setPrimaryKey(kbTemplateId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		kbTemplate.setUuid(uuid);
 
@@ -2555,7 +2562,7 @@ public class KBTemplatePersistenceImpl
 			(KBTemplateModelImpl)kbTemplate;
 
 		if (Validator.isNull(kbTemplate.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			kbTemplate.setUuid(uuid);
 		}
@@ -2563,23 +2570,24 @@ public class KBTemplatePersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (kbTemplate.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				kbTemplate.setCreateDate(now);
+				kbTemplate.setCreateDate(date);
 			}
 			else {
-				kbTemplate.setCreateDate(serviceContext.getCreateDate(now));
+				kbTemplate.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!kbTemplateModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				kbTemplate.setModifiedDate(now);
+				kbTemplate.setModifiedDate(date);
 			}
 			else {
-				kbTemplate.setModifiedDate(serviceContext.getModifiedDate(now));
+				kbTemplate.setModifiedDate(
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -2899,12 +2907,9 @@ public class KBTemplatePersistenceImpl
 	 * Initializes the kb template persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new KBTemplateModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -2982,13 +2987,30 @@ public class KBTemplatePersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByGroupId",
 			new String[] {Long.class.getName()}, new String[] {"groupId"},
 			false);
+
+		_setKBTemplateUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(KBTemplateImpl.class.getName());
+		_setKBTemplateUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(KBTemplateImpl.class.getName());
+	}
+
+	private void _setKBTemplateUtilPersistence(
+		KBTemplatePersistence kbTemplatePersistence) {
+
+		try {
+			Field field = KBTemplateUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, kbTemplatePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -3016,8 +3038,6 @@ public class KBTemplatePersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -3079,111 +3099,10 @@ public class KBTemplatePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class KBTemplateModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			KBTemplateModelImpl kbTemplateModelImpl =
-				(KBTemplateModelImpl)baseModel;
-
-			long columnBitmask = kbTemplateModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(kbTemplateModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						kbTemplateModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(kbTemplateModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return KBTemplateImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return KBTemplateTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			KBTemplateModelImpl kbTemplateModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = kbTemplateModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = kbTemplateModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= KBTemplateModelImpl.getColumnBitmask(
-				"modifiedDate");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private KBTemplateModelArgumentsResolver _kbTemplateModelArgumentsResolver;
 
 }

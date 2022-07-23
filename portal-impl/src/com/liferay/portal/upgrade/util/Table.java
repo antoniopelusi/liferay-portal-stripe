@@ -112,18 +112,18 @@ public class Table {
 	}
 
 	public void appendColumn(
-			StringBuilder sb, ResultSet rs, String name, Integer type,
+			StringBuilder sb, ResultSet resultSet, String name, Integer type,
 			boolean last)
 		throws Exception {
 
 		Object value = null;
 
 		try {
-			value = getValue(rs, name, type);
+			value = getValue(resultSet, name, type);
 		}
 		catch (SQLException sqlException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(sqlException, sqlException);
+				_log.debug(sqlException);
 			}
 
 			if (name.equals("uuid_")) {
@@ -143,12 +143,12 @@ public class Table {
 	}
 
 	public void generateTempFile() throws Exception {
-		try (Connection con = DataAccess.getConnection()) {
-			generateTempFile(con);
+		try (Connection connection = DataAccess.getConnection()) {
+			generateTempFile(connection);
 		}
 	}
 
-	public void generateTempFile(Connection con) throws Exception {
+	public void generateTempFile(Connection connection) throws Exception {
 		boolean empty = true;
 
 		String tempFileName = String.valueOf(
@@ -168,14 +168,15 @@ public class Table {
 
 		try (UnsyncBufferedWriter unsyncBufferedWriter =
 				new UnsyncBufferedWriter(new FileWriter(tempFileName));
-			PreparedStatement ps = getSelectPreparedStatement(con);
-			ResultSet rs = ps.executeQuery()) {
+			PreparedStatement preparedStatement = getSelectPreparedStatement(
+				connection);
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
+			while (resultSet.next()) {
 				String data = null;
 
 				try {
-					data = getExportedData(rs);
+					data = getExportedData(resultSet);
 
 					unsyncBufferedWriter.write(data);
 
@@ -227,7 +228,7 @@ public class Table {
 		return "DELETE FROM " + _tableName;
 	}
 
-	public String getExportedData(ResultSet rs) throws Exception {
+	public String getExportedData(ResultSet resultSet) throws Exception {
 		StringBuilder sb = new StringBuilder();
 
 		Object[][] columns = getColumns();
@@ -240,7 +241,8 @@ public class Table {
 			}
 
 			appendColumn(
-				sb, rs, (String)columns[i][0], (Integer)columns[i][1], last);
+				sb, resultSet, (String)columns[i][0], (Integer)columns[i][1],
+				last);
 		}
 
 		return sb.toString();
@@ -302,10 +304,10 @@ public class Table {
 		return _order;
 	}
 
-	public PreparedStatement getSelectPreparedStatement(Connection con)
+	public PreparedStatement getSelectPreparedStatement(Connection connection)
 		throws Exception {
 
-		return con.prepareStatement(getSelectSQL());
+		return connection.prepareStatement(getSelectSQL());
 	}
 
 	public String getSelectSQL() throws Exception {
@@ -346,7 +348,7 @@ public class Table {
 	/**
 	 * @see com.liferay.object.service.impl.ObjectEntryLocalServiceImpl#_getValue
 	 */
-	public Object getValue(ResultSet rs, String name, Integer type)
+	public Object getValue(ResultSet resultSet, String name, Integer type)
 		throws Exception {
 
 		Object value = null;
@@ -355,18 +357,18 @@ public class Table {
 
 		if (t == Types.BIGINT) {
 			try {
-				value = GetterUtil.getLong(rs.getLong(name));
+				value = GetterUtil.getLong(resultSet.getLong(name));
 			}
 			catch (SQLException sqlException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(sqlException, sqlException);
+					_log.debug(sqlException);
 				}
 
-				value = GetterUtil.getLong(rs.getString(name));
+				value = GetterUtil.getLong(resultSet.getString(name));
 			}
 		}
 		else if (t == Types.BIT) {
-			value = GetterUtil.getBoolean(rs.getBoolean(name));
+			value = GetterUtil.getBoolean(resultSet.getBoolean(name));
 		}
 		else if ((t == Types.BLOB) || (t == Types.LONGVARBINARY)) {
 			DB db = DBManagerUtil.getDB();
@@ -374,12 +376,12 @@ public class Table {
 			DBType dbType = db.getDBType();
 
 			if (dbType.equals(DBType.POSTGRESQL) &&
-				PostgreSQLJDBCUtil.isPGStatement(rs.getStatement())) {
+				PostgreSQLJDBCUtil.isPGStatement(resultSet.getStatement())) {
 
-				value = PostgreSQLJDBCUtil.getLargeObject(rs, name);
+				value = PostgreSQLJDBCUtil.getLargeObject(resultSet, name);
 			}
 			else {
-				value = rs.getBytes(name);
+				value = resultSet.getBytes(name);
 			}
 
 			if (value == null) {
@@ -387,11 +389,11 @@ public class Table {
 			}
 		}
 		else if (t == Types.BOOLEAN) {
-			value = GetterUtil.getBoolean(rs.getBoolean(name));
+			value = GetterUtil.getBoolean(resultSet.getBoolean(name));
 		}
 		else if (t == Types.CLOB) {
 			try {
-				Clob clob = rs.getClob(name);
+				Clob clob = resultSet.getClob(name);
 
 				if (clob == null) {
 					value = StringPool.BLANK;
@@ -421,54 +423,54 @@ public class Table {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 
 				// If the database doesn't allow CLOB types for the column
 				// value, then try retrieving it as a String
 
-				value = GetterUtil.getString(rs.getString(name));
+				value = GetterUtil.getString(resultSet.getString(name));
 			}
 		}
 		else if (t == Types.DECIMAL) {
 			try {
-				value = rs.getBigDecimal(name);
+				value = resultSet.getBigDecimal(name);
 			}
 			catch (SQLException sqlException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(sqlException, sqlException);
+					_log.debug(sqlException);
 				}
 
-				value = rs.getString(name);
+				value = resultSet.getString(name);
 			}
 
 			value = GetterUtil.get(value, BigDecimal.ZERO);
 		}
 		else if (t == Types.DOUBLE) {
-			value = GetterUtil.getDouble(rs.getDouble(name));
+			value = GetterUtil.getDouble(resultSet.getDouble(name));
 		}
 		else if (t == Types.FLOAT) {
-			value = GetterUtil.getFloat(rs.getFloat(name));
+			value = GetterUtil.getFloat(resultSet.getFloat(name));
 		}
 		else if (t == Types.INTEGER) {
-			value = GetterUtil.getInteger(rs.getInt(name));
+			value = GetterUtil.getInteger(resultSet.getInt(name));
 		}
 		else if (t == Types.LONGVARCHAR) {
-			value = GetterUtil.getString(rs.getString(name));
+			value = GetterUtil.getString(resultSet.getString(name));
 		}
 		else if (t == Types.NUMERIC) {
-			value = GetterUtil.getLong(rs.getLong(name));
+			value = GetterUtil.getLong(resultSet.getLong(name));
 		}
 		else if (t == Types.SMALLINT) {
-			value = GetterUtil.getShort(rs.getShort(name));
+			value = GetterUtil.getShort(resultSet.getShort(name));
 		}
 		else if (t == Types.TIMESTAMP) {
 			try {
-				value = rs.getTimestamp(name);
+				value = resultSet.getTimestamp(name);
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 
@@ -477,10 +479,10 @@ public class Table {
 			}
 		}
 		else if (t == Types.TINYINT) {
-			value = GetterUtil.getShort(rs.getShort(name));
+			value = GetterUtil.getShort(resultSet.getShort(name));
 		}
 		else if (t == Types.VARCHAR) {
-			value = GetterUtil.getString(rs.getString(name));
+			value = GetterUtil.getString(resultSet.getString(name));
 		}
 		else {
 			throw new UpgradeException(
@@ -491,18 +493,19 @@ public class Table {
 	}
 
 	public void populateTable() throws Exception {
-		try (Connection con = DataAccess.getConnection()) {
-			populateTable(con);
+		try (Connection connection = DataAccess.getConnection()) {
+			populateTable(connection);
 		}
 	}
 
-	public void populateTable(Connection con) throws Exception {
+	public void populateTable(Connection connection) throws Exception {
 		if (_tempFileName == null) {
 			return;
 		}
 
-		try (PreparedStatement ps = AutoBatchPreparedStatementUtil.autoBatch(
-				con.prepareStatement(getInsertSQL()));
+		try (PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(getInsertSQL()));
 			UnsyncBufferedReader unsyncBufferedReader =
 				new UnsyncBufferedReader(new FileReader(_tempFileName))) {
 
@@ -525,13 +528,15 @@ public class Table {
 				for (int i = 0; i < order.length; i++) {
 					int pos = order[i];
 
-					setColumn(ps, i, (Integer)columns[pos][1], values[pos]);
+					setColumn(
+						preparedStatement, i, (Integer)columns[pos][1],
+						values[pos]);
 				}
 
-				ps.addBatch();
+				preparedStatement.addBatch();
 			}
 
-			ps.executeBatch();
+			preparedStatement.executeBatch();
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -539,7 +544,8 @@ public class Table {
 		}
 	}
 
-	public void populateTableRows(PreparedStatement ps, boolean batch)
+	public void populateTableRows(
+			PreparedStatement preparedStatement, boolean batch)
 		throws Exception {
 
 		if (_log.isDebugEnabled()) {
@@ -547,13 +553,13 @@ public class Table {
 		}
 
 		if (batch) {
-			ps.executeBatch();
+			preparedStatement.executeBatch();
 		}
 		else {
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 
-		ps.close();
+		preparedStatement.close();
 	}
 
 	/**
@@ -669,28 +675,21 @@ public class Table {
 	public void updateColumnValue(
 		String columnName, String oldValue, String newValue) {
 
-		StringBundler sb = new StringBundler(7);
+		String sql = StringBundler.concat(
+			"update ", _tableName, " set ", columnName, " = ? where ",
+			columnName, " = ?");
 
-		sb.append("update ");
-		sb.append(_tableName);
-		sb.append(" set ");
-		sb.append(columnName);
-		sb.append(" = ? where ");
-		sb.append(columnName);
-		sb.append(" = ?");
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				sql)) {
 
-		String sql = sb.toString();
+			preparedStatement.setString(1, newValue);
+			preparedStatement.setString(2, oldValue);
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(sql)) {
-
-			ps.setString(1, newValue);
-			ps.setString(2, oldValue);
-
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (SQLException sqlException) {
-			_log.error(sqlException, sqlException);
+			_log.error(sqlException);
 
 			throw new RuntimeException(
 				"Unable to execute " + sql, sqlException);

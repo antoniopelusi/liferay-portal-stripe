@@ -51,9 +51,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.ratings.kernel.model.RatingsEntry;
 import com.liferay.ratings.test.util.RatingsTestUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceTracker;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,10 +58,8 @@ import java.util.Set;
 
 import javax.portlet.PortletPreferences;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,36 +76,13 @@ public class DLExportImportPortletPreferencesProcessorTest {
 	public static final AggregateTestRule aggregateTestRule =
 		new LiferayIntegrationTestRule();
 
-	@BeforeClass
-	public static void setUpClass() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("(&(javax.portlet.name=");
-		sb.append(DLPortletKeys.DOCUMENT_LIBRARY);
-		sb.append(")(objectClass=");
-		sb.append(ExportImportPortletPreferencesProcessor.class.getName());
-		sb.append("))");
-
-		_serviceTracker = registry.trackServices(
-			registry.getFilter(sb.toString()));
-
-		_serviceTracker.open();
-	}
-
-	@AfterClass
-	public static void tearDownClass() {
-		_serviceTracker.close();
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		_group = GroupTestUtil.addGroup();
 
-		_layout = LayoutTestUtil.addLayout(_group.getGroupId());
+		_layout = LayoutTestUtil.addTypePortletLayout(_group.getGroupId());
 
 		LayoutTestUtil.addPortletToLayout(
 			TestPropsValues.getUserId(), _layout,
@@ -131,8 +103,6 @@ public class DLExportImportPortletPreferencesProcessorTest {
 		_portletDataContextImport.setPlid(_layout.getPlid());
 		_portletDataContextImport.setPortletId(DLPortletKeys.DOCUMENT_LIBRARY);
 
-		_exportImportPortletPreferencesProcessor = _serviceTracker.getService();
-
 		_portletPreferences =
 			PortletPreferencesFactoryUtil.getStrictPortletSetup(
 				_layout, DLPortletKeys.DOCUMENT_LIBRARY);
@@ -143,10 +113,13 @@ public class DLExportImportPortletPreferencesProcessorTest {
 	@Test
 	public void testExportDLFileEntryIdWithComments() throws Exception {
 		FileEntry fileEntry = _addDLFileEntry(
-			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		_portletPreferences.setValue(
-			"fileEntryId", String.valueOf(fileEntry.getFileEntryId()));
+			"rootFolderId", String.valueOf(fileEntry.getFolderId()));
+		_portletPreferences.setValue(
+			"selectedRepositoryId",
+			String.valueOf(fileEntry.getRepositoryId()));
 
 		_portletPreferences.store();
 
@@ -195,10 +168,13 @@ public class DLExportImportPortletPreferencesProcessorTest {
 	@Test
 	public void testExportDLFileEntryIdWithRatings() throws Exception {
 		FileEntry fileEntry = _addDLFileEntry(
-			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		_portletPreferences.setValue(
-			"fileEntryId", String.valueOf(fileEntry.getFileEntryId()));
+			"rootFolderId", String.valueOf(fileEntry.getFolderId()));
+		_portletPreferences.setValue(
+			"selectedRepositoryId",
+			String.valueOf(fileEntry.getRepositoryId()));
 
 		_portletPreferences.store();
 
@@ -240,11 +216,76 @@ public class DLExportImportPortletPreferencesProcessorTest {
 	}
 
 	@Test
+	public void testExportDLFileEntryInDifferentGroup() throws Exception {
+		FileEntry fileEntry = _addDLFileEntry(
+			TestPropsValues.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		_portletPreferences.setValue(
+			"rootFolderId", String.valueOf(fileEntry.getFolderId()));
+		_portletPreferences.setValue(
+			"selectedRepositoryId",
+			String.valueOf(fileEntry.getRepositoryId()));
+
+		_portletPreferences.store();
+
+		Document document = SAXReaderUtil.createDocument();
+
+		Element rootElement = document.addElement("root");
+
+		_portletExportController.exportPortlet(
+			_portletDataContextExport, _layout.getPlid(), rootElement, false,
+			false, true, true, false);
+
+		Set<String> primaryKeys = _portletDataContextExport.getPrimaryKeys();
+
+		Assert.assertFalse(
+			primaryKeys.toString(),
+			primaryKeys.contains(
+				StringBundler.concat(
+					String.class.getName(), StringPool.POUND,
+					DLFileEntry.class.getName(), StringPool.POUND,
+					fileEntry.getFileEntryId())));
+	}
+
+	@Test
+	public void testExportDLFileEntryInSameGroup() throws Exception {
+		FileEntry fileEntry = _addDLFileEntry(
+			_layout.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		_portletPreferences.setValue(
+			"rootFolderId", String.valueOf(fileEntry.getFolderId()));
+		_portletPreferences.setValue(
+			"selectedRepositoryId",
+			String.valueOf(fileEntry.getRepositoryId()));
+
+		_portletPreferences.store();
+
+		Document document = SAXReaderUtil.createDocument();
+
+		Element rootElement = document.addElement("root");
+
+		_portletExportController.exportPortlet(
+			_portletDataContextExport, _layout.getPlid(), rootElement, false,
+			false, true, true, false);
+
+		Set<String> primaryKeys = _portletDataContextExport.getPrimaryKeys();
+
+		Assert.assertTrue(
+			primaryKeys.toString(),
+			primaryKeys.contains(
+				StringBundler.concat(
+					String.class.getName(), StringPool.POUND,
+					DLFileEntry.class.getName(), StringPool.POUND,
+					fileEntry.getFileEntryId())));
+	}
+
+	@Test
 	public void testProcessExportPortletPreferencesDLFileEntryId()
 		throws Exception {
 
 		FileEntry fileEntry = _addDLFileEntry(
-			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		_portletPreferences.setValue(
 			"fileEntryId", String.valueOf(fileEntry.getFileEntryId()));
@@ -269,27 +310,24 @@ public class DLExportImportPortletPreferencesProcessorTest {
 			GetterUtil.getLong(importedfileEntryId));
 	}
 
-	private FileEntry _addDLFileEntry(String fileName, String content)
+	private FileEntry _addDLFileEntry(long groupId, long folderId)
 		throws Exception {
 
 		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
+			ServiceContextTestUtil.getServiceContext(groupId);
 
 		return _dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, fileName,
-			ContentTypes.TEXT_PLAIN, RandomTestUtil.randomString(),
-			StringPool.BLANK, StringPool.BLANK, content.getBytes(),
+			null, TestPropsValues.getUserId(), groupId, folderId,
+			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
+			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
+			StringPool.BLANK, RandomTestUtil.randomBytes(), null, null,
 			serviceContext);
 	}
-
-	private static ServiceTracker
-		<ExportImportPortletPreferencesProcessor,
-		 ExportImportPortletPreferencesProcessor> _serviceTracker;
 
 	@Inject
 	private DLAppLocalService _dlAppLocalService;
 
+	@Inject(filter = "javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY)
 	private ExportImportPortletPreferencesProcessor
 		_exportImportPortletPreferencesProcessor;
 

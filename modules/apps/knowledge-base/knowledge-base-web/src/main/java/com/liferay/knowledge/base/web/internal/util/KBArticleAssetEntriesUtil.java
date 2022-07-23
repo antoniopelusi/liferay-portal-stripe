@@ -110,7 +110,7 @@ public class KBArticleAssetEntriesUtil {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(principalException, principalException);
+					_log.debug(principalException);
 				}
 
 				continue;
@@ -149,7 +149,7 @@ public class KBArticleAssetEntriesUtil {
 				"/blogs/view_entry"
 			).setParameter(
 				"entryId", classPK
-			).build();
+			).buildPortletURL();
 		}
 		else if (className.equals(JournalArticle.class.getName())) {
 			JournalArticle journalArticle =
@@ -164,7 +164,7 @@ public class KBArticleAssetEntriesUtil {
 				"groupId", journalArticle.getGroupId()
 			).setParameter(
 				"struts_action", "/journal_content/view"
-			).build();
+			).buildPortletURL();
 		}
 		else if (className.equals(KBArticle.class.getName())) {
 			portletURL = PortletURLBuilder.create(
@@ -176,7 +176,7 @@ public class KBArticleAssetEntriesUtil {
 				"/article/view_article.jsp"
 			).setParameter(
 				"resourcePrimKey", classPK
-			).build();
+			).buildPortletURL();
 		}
 		else if (className.equals(MBMessage.class.getName())) {
 			portletURL = PortletURLBuilder.create(
@@ -186,7 +186,7 @@ public class KBArticleAssetEntriesUtil {
 				"messageId", classPK
 			).setParameter(
 				"struts_action", "/message_boards/view_message"
-			).build();
+			).buildPortletURL();
 		}
 		else if (className.equals(WikiPage.class.getName())) {
 			WikiPage wikiPage = WikiPageLocalServiceUtil.getPage(classPK);
@@ -200,7 +200,7 @@ public class KBArticleAssetEntriesUtil {
 				"struts_action", "/wiki/view"
 			).setParameter(
 				"title", wikiPage.getTitle()
-			).build();
+			).buildPortletURL();
 		}
 
 		String currentURL = PortalUtil.getCurrentURL(httpServletRequest);

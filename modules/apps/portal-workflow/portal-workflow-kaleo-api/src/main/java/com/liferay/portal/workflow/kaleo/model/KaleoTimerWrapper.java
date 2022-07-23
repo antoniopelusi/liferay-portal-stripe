@@ -185,6 +185,11 @@ public class KaleoTimerWrapper
 		}
 	}
 
+	@Override
+	public KaleoTimer cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the blocking of this kaleo timer.
 	 *

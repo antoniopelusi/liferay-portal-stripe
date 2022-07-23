@@ -32,12 +32,11 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
-import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -74,17 +73,17 @@ public class AddAssetListEntryMVCActionCommand extends BaseMVCActionCommand {
 					(ThemeDisplay)actionRequest.getAttribute(
 						WebKeys.THEME_DISPLAY);
 
-				UnicodeProperties unicodeProperties = new UnicodeProperties(
-					true);
-
-				unicodeProperties.setProperty(
-					"groupIds", String.valueOf(themeDisplay.getScopeGroupId()));
-
 				assetListEntry =
 					_assetListEntryService.addDynamicAssetListEntry(
 						serviceContext.getUserId(),
 						serviceContext.getScopeGroupId(), title,
-						unicodeProperties.toString(), serviceContext);
+						UnicodePropertiesBuilder.create(
+							true
+						).put(
+							"groupIds",
+							String.valueOf(themeDisplay.getScopeGroupId())
+						).buildString(),
+						serviceContext);
 			}
 			else {
 				assetListEntry = _assetListEntryService.addAssetListEntry(
@@ -119,23 +118,23 @@ public class AddAssetListEntryMVCActionCommand extends BaseMVCActionCommand {
 		ActionRequest actionRequest, ActionResponse actionResponse,
 		AssetListEntry assetListEntry) {
 
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_portal.getLiferayPortletResponse(actionResponse)
 		).setMVCPath(
 			"/edit_asset_list_entry.jsp"
-		).build();
+		).setBackURL(
+			() -> {
+				String backURL = ParamUtil.getString(actionRequest, "backURL");
 
-		String backURL = ParamUtil.getString(actionRequest, "backURL");
+				if (backURL != null) {
+					return backURL;
+				}
 
-		if (backURL != null) {
-			portletURL.setParameter("backURL", backURL);
-		}
-
-		portletURL.setParameter(
-			"assetListEntryId",
-			String.valueOf(assetListEntry.getAssetListEntryId()));
-
-		return portletURL.toString();
+				return null;
+			}
+		).setParameter(
+			"assetListEntryId", assetListEntry.getAssetListEntryId()
+		).buildString();
 	}
 
 	@Reference

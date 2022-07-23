@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleWrapper;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceWrapper;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,26 +40,21 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
  * @author Jorge Ferrer
  */
-@PrepareForTest(ResourceActionsUtil.class)
-@RunWith(PowerMockRunner.class)
-public class ModelPermissionsFactoryTest extends PowerMockito {
+public class ModelPermissionsFactoryTest {
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		ReflectionTestUtil.setFieldValue(
 			RoleLocalServiceUtil.class, "_service",
-			new RoleLocalServiceWrapper(null) {
+			new RoleLocalServiceWrapper() {
 
 				@Override
 				public Role getDefaultGroupRole(long groupId) {
@@ -189,18 +186,22 @@ public class ModelPermissionsFactoryTest extends PowerMockito {
 
 		String className = RandomTestUtil.randomString();
 
-		mockStatic(ResourceActionsUtil.class);
+		ResourceActionsUtil resourceActionsUtil = new ResourceActionsUtil();
 
-		when(
-			ResourceActionsUtil.getModelResourceGroupDefaultActions(className)
+		ResourceActions resourceActions = Mockito.mock(ResourceActions.class);
+
+		resourceActionsUtil.setResourceActions(resourceActions);
+
+		Mockito.when(
+			resourceActions.getModelResourceGroupDefaultActions(className)
 		).thenReturn(
-			Arrays.asList(ActionKeys.VIEW)
+			Collections.singletonList(ActionKeys.VIEW)
 		);
 
-		when(
-			ResourceActionsUtil.getModelResourceGuestDefaultActions(className)
+		Mockito.when(
+			resourceActions.getModelResourceGuestDefaultActions(className)
 		).thenReturn(
-			Arrays.asList(ActionKeys.VIEW)
+			Collections.singletonList(ActionKeys.VIEW)
 		);
 
 		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
@@ -227,16 +228,15 @@ public class ModelPermissionsFactoryTest extends PowerMockito {
 
 	@Test
 	public void testCreateWithParameterForOneRole() throws Exception {
-		Map<String, String[]> parameterMap = HashMapBuilder.put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
-				RoleConstants.GUEST,
-			new String[] {ActionKeys.VIEW}
-		).build();
-
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
-		mockHttpServletRequest.setParameters(parameterMap);
+		mockHttpServletRequest.setParameters(
+			HashMapBuilder.put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
+					RoleConstants.GUEST,
+				new String[] {ActionKeys.VIEW}
+			).build());
 
 		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
 			mockHttpServletRequest);
@@ -258,20 +258,19 @@ public class ModelPermissionsFactoryTest extends PowerMockito {
 
 		String className = RandomTestUtil.randomString();
 
-		Map<String, String[]> parameterMap = HashMapBuilder.put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
-				RoleConstants.GUEST,
-			new String[] {ActionKeys.VIEW}
-		).put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX + className +
-				RoleConstants.GUEST,
-			new String[] {ActionKeys.UPDATE, ActionKeys.VIEW}
-		).build();
-
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
-		mockHttpServletRequest.setParameters(parameterMap);
+		mockHttpServletRequest.setParameters(
+			HashMapBuilder.put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
+					RoleConstants.GUEST,
+				new String[] {ActionKeys.VIEW}
+			).put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX + className +
+					RoleConstants.GUEST,
+				new String[] {ActionKeys.UPDATE, ActionKeys.VIEW}
+			).build());
 
 		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
 			mockHttpServletRequest, className);
@@ -289,20 +288,19 @@ public class ModelPermissionsFactoryTest extends PowerMockito {
 
 	@Test
 	public void testCreateWithParameterForTwoRoles() throws Exception {
-		Map<String, String[]> parameterMap = HashMapBuilder.put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
-				RoleConstants.GUEST,
-			new String[] {ActionKeys.VIEW}
-		).put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
-				RoleConstants.SITE_MEMBER,
-			new String[] {ActionKeys.UPDATE, ActionKeys.VIEW}
-		).build();
-
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
-		mockHttpServletRequest.setParameters(parameterMap);
+		mockHttpServletRequest.setParameters(
+			HashMapBuilder.put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
+					RoleConstants.GUEST,
+				new String[] {ActionKeys.VIEW}
+			).put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
+					RoleConstants.SITE_MEMBER,
+				new String[] {ActionKeys.UPDATE, ActionKeys.VIEW}
+			).build());
 
 		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
 			mockHttpServletRequest);
@@ -328,28 +326,27 @@ public class ModelPermissionsFactoryTest extends PowerMockito {
 
 		String className = RandomTestUtil.randomString();
 
-		Map<String, String[]> parameterMap = HashMapBuilder.put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
-				RoleConstants.GUEST,
-			new String[] {ActionKeys.VIEW}
-		).put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
-				RoleConstants.SITE_MEMBER,
-			new String[] {ActionKeys.VIEW}
-		).put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX + className +
-				RoleConstants.ORGANIZATION_USER,
-			new String[] {ActionKeys.DELETE, ActionKeys.VIEW}
-		).put(
-			ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX + className +
-				RoleConstants.POWER_USER,
-			new String[] {ActionKeys.UPDATE, ActionKeys.VIEW}
-		).build();
-
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
-		mockHttpServletRequest.setParameters(parameterMap);
+		mockHttpServletRequest.setParameters(
+			HashMapBuilder.put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
+					RoleConstants.GUEST,
+				new String[] {ActionKeys.VIEW}
+			).put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX +
+					RoleConstants.SITE_MEMBER,
+				new String[] {ActionKeys.VIEW}
+			).put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX + className +
+					RoleConstants.ORGANIZATION_USER,
+				new String[] {ActionKeys.DELETE, ActionKeys.VIEW}
+			).put(
+				ModelPermissionsFactory.MODEL_PERMISSIONS_PREFIX + className +
+					RoleConstants.POWER_USER,
+				new String[] {ActionKeys.UPDATE, ActionKeys.VIEW}
+			).build());
 
 		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
 			mockHttpServletRequest, className);

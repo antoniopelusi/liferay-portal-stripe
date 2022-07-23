@@ -20,6 +20,7 @@ import React, {useContext, useState} from 'react';
 
 import LayoutsTree from './LayoutsTree';
 import {StyleBookContext} from './StyleBookContext';
+import {config} from './config';
 import {useId} from './useId';
 
 export default function LayoutSelector() {
@@ -35,6 +36,9 @@ export default function LayoutSelector() {
 			alignmentPosition={Align.BottomRight}
 			menuElementAttrs={{
 				className: 'style-book-editor__page-selector',
+				containerProps: {
+					className: 'cadmin',
+				},
 			}}
 			onActiveChange={setActive}
 			trigger={
@@ -44,39 +48,45 @@ export default function LayoutSelector() {
 					small
 					symbol="time"
 				>
-					{previewLayout?.layoutName}
+					{previewLayout?.name}
+
 					<ClayIcon className="mt-0" symbol="caret-bottom-l" />
 				</ClayButton>
 			}
 		>
 			<ClayDropDown.ItemList>
-				<div className="style-book-editor__page-type-selector">
-					<ClayForm.Group small>
-						<label className="sr-only" htmlFor={id}>
-							{Liferay.Language.get('page-type-selector')}
-						</label>
-						<ClaySelectWithOption
-							id={id}
-							onChange={(event) =>
-								setShowPrivateLayouts(
-									event.target.value === 'private-pages'
-								)
-							}
-							options={[
-								{
-									label: Liferay.Language.get('public-pages'),
-									value: 'public-pages',
-								},
-								{
-									label: Liferay.Language.get(
-										'private-pages'
-									),
-									value: 'private-pages',
-								},
-							]}
-						/>
-					</ClayForm.Group>
-				</div>
+				{config.isPrivateLayoutsEnabled && (
+					<div className="style-book-editor__page-type-selector">
+						<ClayForm.Group small>
+							<label className="sr-only" htmlFor={id}>
+								{Liferay.Language.get('page-type-selector')}
+							</label>
+
+							<ClaySelectWithOption
+								id={id}
+								onChange={(event) =>
+									setShowPrivateLayouts(
+										event.target.value === 'private-pages'
+									)
+								}
+								options={[
+									{
+										label: Liferay.Language.get(
+											'public-pages'
+										),
+										value: 'public-pages',
+									},
+									{
+										label: Liferay.Language.get(
+											'private-pages'
+										),
+										value: 'private-pages',
+									},
+								]}
+							/>
+						</ClayForm.Group>
+					</div>
+				)}
 
 				<LayoutsTree showPrivateLayouts={showPrivateLayouts} />
 			</ClayDropDown.ItemList>

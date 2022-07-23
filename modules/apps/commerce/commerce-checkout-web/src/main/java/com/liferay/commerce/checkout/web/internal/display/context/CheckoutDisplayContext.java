@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.taglib.servlet.PipingServletResponse;
+import com.liferay.taglib.servlet.PipingServletResponseFactory;
 
 import java.util.List;
 
@@ -70,7 +70,7 @@ public class CheckoutDisplayContext {
 		if ((commerceCheckoutStep == null) && (_commerceOrder != null)) {
 			List<CommerceCheckoutStep> commerceCheckoutSteps =
 				_commerceCheckoutStepServicesTracker.getCommerceCheckoutSteps(
-					_httpServletRequest, _httpServletResponse);
+					_httpServletRequest, _httpServletResponse, true);
 
 			commerceCheckoutStep = commerceCheckoutSteps.get(0);
 		}
@@ -82,7 +82,7 @@ public class CheckoutDisplayContext {
 		throws Exception {
 
 		return _commerceCheckoutStepServicesTracker.getCommerceCheckoutSteps(
-			_httpServletRequest, _httpServletResponse);
+			_httpServletRequest, _httpServletResponse, true);
 	}
 
 	public String getCommerceOrderUuid() {
@@ -148,7 +148,8 @@ public class CheckoutDisplayContext {
 
 		_commerceCheckoutStep.render(
 			_httpServletRequest,
-			PipingServletResponse.createPipingServletResponse(pageContext));
+			PipingServletResponseFactory.createPipingServletResponse(
+				pageContext));
 	}
 
 	public boolean showControls() {

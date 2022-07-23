@@ -154,4 +154,7 @@ public interface PasswordPolicyRelModel
 	@Override
 	public void setClassPK(long classPK);
 
+	@Override
+	public PasswordPolicyRel cloneWithOriginalValues();
+
 }

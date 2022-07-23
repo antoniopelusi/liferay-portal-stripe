@@ -37,12 +37,17 @@ import com.liferay.portal.kernel.service.RepositoryEntryLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 
 import java.io.File;
 import java.io.InputStream;
 
+import java.lang.reflect.InvocationHandler;
+
+import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Mika Koivisto
@@ -60,28 +65,33 @@ public class BaseRepositoryProxyBean
 
 	@Override
 	public FileEntry addFileEntry(
-			long userId, long folderId, String sourceFileName, String mimeType,
-			String title, String description, String changeLog, File file,
-			ServiceContext serviceContext)
+			String externalReferenceCode, long userId, long folderId,
+			String sourceFileName, String mimeType, String title,
+			String urlTitle, String description, String changeLog, File file,
+			Date expirationDate, Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
 
 		FileEntry fileEntry = _baseRepository.addFileEntry(
-			userId, folderId, sourceFileName, mimeType, title, description,
-			changeLog, file, serviceContext);
+			externalReferenceCode, userId, folderId, sourceFileName, mimeType,
+			title, urlTitle, description, changeLog, file, expirationDate,
+			reviewDate, serviceContext);
 
 		return newFileEntryProxyBean(fileEntry);
 	}
 
 	@Override
 	public FileEntry addFileEntry(
-			long userId, long folderId, String sourceFileName, String mimeType,
-			String title, String description, String changeLog,
-			InputStream inputStream, long size, ServiceContext serviceContext)
+			String externalReferenceCode, long userId, long folderId,
+			String sourceFileName, String mimeType, String title,
+			String urlTitle, String description, String changeLog,
+			InputStream inputStream, long size, Date expirationDate,
+			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
 
 		FileEntry fileEntry = _baseRepository.addFileEntry(
-			userId, folderId, sourceFileName, mimeType, title, description,
-			changeLog, inputStream, size, serviceContext);
+			externalReferenceCode, userId, folderId, sourceFileName, mimeType,
+			title, urlTitle, description, changeLog, inputStream, size,
+			expirationDate, reviewDate, serviceContext);
 
 		return newFileEntryProxyBean(fileEntry);
 	}
@@ -616,7 +626,7 @@ public class BaseRepositoryProxyBean
 	public Lock lockFolder(long folderId) throws PortalException {
 		Lock lock = _baseRepository.lockFolder(folderId);
 
-		return (Lock)newProxyInstance(lock, Lock.class);
+		return newProxyInstance(lock, _lockProxyProviderFunction);
 	}
 
 	@Override
@@ -628,7 +638,7 @@ public class BaseRepositoryProxyBean
 		Lock lock = _baseRepository.lockFolder(
 			folderId, owner, inheritable, expirationTime);
 
-		return (Lock)newProxyInstance(lock, Lock.class);
+		return newProxyInstance(lock, _lockProxyProviderFunction);
 	}
 
 	@Override
@@ -663,7 +673,7 @@ public class BaseRepositoryProxyBean
 		Lock lock = _baseRepository.refreshFileEntryLock(
 			lockUuid, companyId, expirationTime);
 
-		return (Lock)newProxyInstance(lock, Lock.class);
+		return newProxyInstance(lock, _lockProxyProviderFunction);
 	}
 
 	@Override
@@ -674,7 +684,7 @@ public class BaseRepositoryProxyBean
 		Lock lock = _baseRepository.refreshFolderLock(
 			lockUuid, companyId, expirationTime);
 
-		return (Lock)newProxyInstance(lock, Lock.class);
+		return newProxyInstance(lock, _lockProxyProviderFunction);
 	}
 
 	@Override
@@ -797,14 +807,16 @@ public class BaseRepositoryProxyBean
 	@Override
 	public FileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease, File file,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, DLVersionNumberIncrease dlVersionNumberIncrease,
+			File file, Date expirationDate, Date reviewDate,
 			ServiceContext serviceContext)
 		throws PortalException {
 
 		FileEntry fileEntry = _baseRepository.updateFileEntry(
-			userId, fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, dlVersionNumberIncrease, file, serviceContext);
+			userId, fileEntryId, sourceFileName, mimeType, title, urlTitle,
+			description, changeLog, dlVersionNumberIncrease, file,
+			expirationDate, reviewDate, serviceContext);
 
 		return newFileEntryProxyBean(fileEntry);
 	}
@@ -812,15 +824,16 @@ public class BaseRepositoryProxyBean
 	@Override
 	public FileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
-			InputStream inputStream, long size, ServiceContext serviceContext)
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, DLVersionNumberIncrease dlVersionNumberIncrease,
+			InputStream inputStream, long size, Date expirationDate,
+			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
 
 		FileEntry fileEntry = _baseRepository.updateFileEntry(
-			userId, fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, dlVersionNumberIncrease, inputStream, size,
-			serviceContext);
+			userId, fileEntryId, sourceFileName, mimeType, title, urlTitle,
+			description, changeLog, dlVersionNumberIncrease, inputStream, size,
+			expirationDate, reviewDate, serviceContext);
 
 		return newFileEntryProxyBean(fileEntry);
 	}
@@ -889,6 +902,10 @@ public class BaseRepositoryProxyBean
 
 		return _baseRepository.verifyInheritableLock(folderId, lockUuid);
 	}
+
+	private static final Function<InvocationHandler, Lock>
+		_lockProxyProviderFunction = ProxyUtil.getProxyProviderFunction(
+			Lock.class);
 
 	private final BaseRepository _baseRepository;
 

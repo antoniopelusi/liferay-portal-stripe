@@ -14,6 +14,7 @@
 
 package com.liferay.flags.internal.messaging;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.service.ServiceContext;
 
 import java.io.Serializable;
@@ -116,29 +117,12 @@ public class FlagsRequest implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("{className=");
-		sb.append(_className);
-		sb.append(", classPK=");
-		sb.append(_classPK);
-		sb.append(", comments=");
-		sb.append(_comments);
-		sb.append(", contentTitle=");
-		sb.append(_contentTitle);
-		sb.append(", contentURL=");
-		sb.append(_contentURL);
-		sb.append(", reason=");
-		sb.append(_reason);
-		sb.append(", reportedUserId=");
-		sb.append(_reportedUserId);
-		sb.append(", reporterEmailAddress=");
-		sb.append(_reporterEmailAddress);
-		sb.append(", serviceContext=");
-		sb.append(_serviceContext);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{className=", _className, ", classPK=", _classPK, ", comments=",
+			_comments, ", contentTitle=", _contentTitle, ", contentURL=",
+			_contentURL, ", reason=", _reason, ", reportedUserId=",
+			_reportedUserId, ", reporterEmailAddress=", _reporterEmailAddress,
+			", serviceContext=", _serviceContext, "}");
 	}
 
 	private String _className;

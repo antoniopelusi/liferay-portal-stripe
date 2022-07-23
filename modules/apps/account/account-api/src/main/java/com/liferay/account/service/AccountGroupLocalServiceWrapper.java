@@ -27,6 +27,10 @@ public class AccountGroupLocalServiceWrapper
 	implements AccountGroupLocalService,
 			   ServiceWrapper<AccountGroupLocalService> {
 
+	public AccountGroupLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AccountGroupLocalServiceWrapper(
 		AccountGroupLocalService accountGroupLocalService) {
 
@@ -57,6 +61,14 @@ public class AccountGroupLocalServiceWrapper
 
 		return _accountGroupLocalService.addAccountGroup(
 			userId, description, name);
+	}
+
+	@Override
+	public com.liferay.account.model.AccountGroup checkGuestAccountGroup(
+			long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountGroupLocalService.checkGuestAccountGroup(companyId);
 	}
 
 	/**
@@ -92,10 +104,12 @@ public class AccountGroupLocalServiceWrapper
 	 *
 	 * @param accountGroup the account group
 	 * @return the account group that was removed
+	 * @throws PortalException
 	 */
 	@Override
 	public com.liferay.account.model.AccountGroup deleteAccountGroup(
-		com.liferay.account.model.AccountGroup accountGroup) {
+			com.liferay.account.model.AccountGroup accountGroup)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _accountGroupLocalService.deleteAccountGroup(accountGroup);
 	}
@@ -133,6 +147,13 @@ public class AccountGroupLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _accountGroupLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _accountGroupLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -324,6 +345,14 @@ public class AccountGroupLocalServiceWrapper
 			companyId, start, end, orderByComparator);
 	}
 
+	@Override
+	public java.util.List<com.liferay.account.model.AccountGroup>
+		getAccountGroupsByAccountGroupId(long[] accountGroupIds) {
+
+		return _accountGroupLocalService.getAccountGroupsByAccountGroupId(
+			accountGroupIds);
+	}
+
 	/**
 	 * Returns the number of account groups.
 	 *
@@ -332,6 +361,11 @@ public class AccountGroupLocalServiceWrapper
 	@Override
 	public int getAccountGroupsCount() {
 		return _accountGroupLocalService.getAccountGroupsCount();
+	}
+
+	@Override
+	public int getAccountGroupsCount(long companyId) {
+		return _accountGroupLocalService.getAccountGroupsCount(companyId);
 	}
 
 	@Override
@@ -390,6 +424,18 @@ public class AccountGroupLocalServiceWrapper
 
 		return _accountGroupLocalService.searchAccountGroups(
 			companyId, keywords, start, end, orderByComparator);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult
+		<com.liferay.account.model.AccountGroup> searchAccountGroups(
+			long companyId, String keywords,
+			java.util.LinkedHashMap<String, Object> params, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.account.model.AccountGroup> orderByComparator) {
+
+		return _accountGroupLocalService.searchAccountGroups(
+			companyId, keywords, params, start, end, orderByComparator);
 	}
 
 	/**

@@ -236,6 +236,11 @@ public class LayoutPageTemplateEntryWrapper
 		}
 	}
 
+	@Override
+	public LayoutPageTemplateEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this layout page template entry.
 	 *
@@ -274,17 +279,6 @@ public class LayoutPageTemplateEntryWrapper
 	@Override
 	public long getCompanyId() {
 		return model.getCompanyId();
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String getContent()
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return model.getContent();
 	}
 
 	/**

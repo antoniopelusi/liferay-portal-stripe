@@ -18,7 +18,7 @@
 
 <portlet:renderURL var="basePortletURL" />
 
-<div class="data-engine-form-builder-messages data-engine-form-builder-messages--collapsed">
+<div class="data-engine-form-builder-messages">
 	<liferay-ui:error exception="<%= DataDefinitionValidationException.class %>" message="please-enter-a-valid-form-definition" />
 
 	<liferay-ui:error exception="<%= DataDefinitionValidationException.MustNotDuplicateFieldName.class %>">
@@ -102,6 +102,8 @@
 				"sidebarPanels", sidebarPanels
 			).put(
 				"spritemap", themeDisplay.getPathThemeImages() + "/clay/icons.svg"
+			).put(
+				"submitButtonId", submitButtonId
 			).build()
 		%>'
 		servletContext="<%= moduleServletContext %>"

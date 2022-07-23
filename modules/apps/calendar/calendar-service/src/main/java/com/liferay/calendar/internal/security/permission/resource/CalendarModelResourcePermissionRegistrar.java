@@ -26,9 +26,7 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionLogic;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -45,10 +43,6 @@ public class CalendarModelResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", Calendar.class.getName());
-
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<Calendar>>)
 				(Class<?>)ModelResourcePermission.class,
@@ -58,7 +52,9 @@ public class CalendarModelResourcePermissionRegistrar {
 				(modelResourcePermission, consumer) -> consumer.accept(
 					new StagingModelResourcePermissionLogic(
 						_stagingPermission))),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", Calendar.class.getName()
+			).build());
 	}
 
 	@Deactivate

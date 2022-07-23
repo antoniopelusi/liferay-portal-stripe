@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.redirect.model.RedirectNotFoundEntry;
 import com.liferay.redirect.model.RedirectNotFoundEntryModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -228,34 +229,6 @@ public class RedirectNotFoundEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, RedirectNotFoundEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			RedirectNotFoundEntry.class.getClassLoader(),
-			RedirectNotFoundEntry.class, ModelWrapper.class);
-
-		try {
-			Constructor<RedirectNotFoundEntry> constructor =
-				(Constructor<RedirectNotFoundEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<RedirectNotFoundEntry, Object>>
@@ -611,6 +584,35 @@ public class RedirectNotFoundEntryModelImpl
 	}
 
 	@Override
+	public RedirectNotFoundEntry cloneWithOriginalValues() {
+		RedirectNotFoundEntryImpl redirectNotFoundEntryImpl =
+			new RedirectNotFoundEntryImpl();
+
+		redirectNotFoundEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		redirectNotFoundEntryImpl.setRedirectNotFoundEntryId(
+			this.<Long>getColumnOriginalValue("redirectNotFoundEntryId"));
+		redirectNotFoundEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		redirectNotFoundEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		redirectNotFoundEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		redirectNotFoundEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		redirectNotFoundEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		redirectNotFoundEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		redirectNotFoundEntryImpl.setIgnored(
+			this.<Boolean>getColumnOriginalValue("ignored"));
+		redirectNotFoundEntryImpl.setUrl(
+			this.<String>getColumnOriginalValue("url"));
+
+		return redirectNotFoundEntryImpl;
+	}
+
+	@Override
 	public int compareTo(RedirectNotFoundEntry redirectNotFoundEntry) {
 		long primaryKey = redirectNotFoundEntry.getPrimaryKey();
 
@@ -742,7 +744,7 @@ public class RedirectNotFoundEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -753,10 +755,27 @@ public class RedirectNotFoundEntryModelImpl
 			Function<RedirectNotFoundEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((RedirectNotFoundEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(RedirectNotFoundEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -804,7 +823,9 @@ public class RedirectNotFoundEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, RedirectNotFoundEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					RedirectNotFoundEntry.class, ModelWrapper.class);
 
 	}
 

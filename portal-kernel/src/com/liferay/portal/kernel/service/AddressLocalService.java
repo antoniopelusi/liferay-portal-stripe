@@ -171,6 +171,9 @@ public interface AddressLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -365,6 +368,15 @@ public interface AddressLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<Address> getTypeAddresses(
+		long companyId, String className, long classPK, long[] typeIds);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<Address> getTypeAddresses(
+		long companyId, String className, long classPK, long[] typeIds,
+		int start, int end, OrderByComparator<Address> orderByComparator);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public BaseModelSearchResult<Address> searchAddresses(

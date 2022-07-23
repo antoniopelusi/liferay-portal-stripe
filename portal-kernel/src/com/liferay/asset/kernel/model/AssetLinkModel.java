@@ -236,4 +236,7 @@ public interface AssetLinkModel
 	 */
 	public void setWeight(int weight);
 
+	@Override
+	public AssetLink cloneWithOriginalValues();
+
 }

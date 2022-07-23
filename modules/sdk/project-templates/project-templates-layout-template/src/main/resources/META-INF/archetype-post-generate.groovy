@@ -21,3 +21,17 @@ Path projectPath = Paths.get(request.outputDirectory, request.artifactId)
 Path buildGradlePath = projectPath.resolve("build.gradle")
 
 Files.deleteIfExists buildGradlePath
+
+def buildDir = projectPath.toFile()
+
+def webINFDir = new File(buildDir, "src/main/webapp/WEB-INF")
+
+String liferayVersion = request.properties.get("liferayVersion")
+
+char minorVersion = liferayVersion.charAt(2)
+
+File liferayLayoutTemplatesXML = new File(webINFDir, "liferay-layout-templates.xml");
+
+def newLiferayLayoutTemplatesContent = liferayLayoutTemplatesXML.text.replace("7.0", "7." + minorVersion).replace("7_0", "7_" + minorVersion)
+
+liferayLayoutTemplatesXML.text = newLiferayLayoutTemplatesContent

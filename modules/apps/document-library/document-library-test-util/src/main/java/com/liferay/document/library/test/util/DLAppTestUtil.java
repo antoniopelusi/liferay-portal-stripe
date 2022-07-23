@@ -52,10 +52,10 @@ public abstract class DLAppTestUtil {
 				WorkflowConstants.ACTION_SAVE_DRAFT);
 
 			FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
-				userId, groupId, folderId, sourceFileName,
+				null, userId, groupId, folderId, sourceFileName,
 				ContentTypes.TEXT_PLAIN, title, StringPool.BLANK,
-				StringPool.BLANK, TestDataConstants.TEST_BYTE_ARRAY,
-				serviceContext);
+				StringPool.BLANK, StringPool.BLANK,
+				TestDataConstants.TEST_BYTE_ARRAY, null, null, serviceContext);
 
 			if (approved) {
 				return updateStatus(fileEntry, serviceContext);

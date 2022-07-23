@@ -23,8 +23,9 @@ export const INITIAL_ANALYTICS_CONFIG = {
 /**
  * Flush the current Promise queue.
  */
-export const flushPromises = () =>
-	new Promise((resolve) => setImmediate(resolve));
+export function flushPromises() {
+	return new Promise((resolve) => setImmediate(resolve));
+}
 
 /**
  * Generate a single dummy event.
@@ -32,10 +33,10 @@ export const flushPromises = () =>
  * @param {Number} [eventId] - Event id.
  * @param {object} [data] - Object to override event data.
  */
-export const getDummyEvent = (eventId = 0, data = {}) => {
+export function getDummyEvent(eventId = 0, data = {}) {
 	return {
 		applicationId: 'test',
-		eventId,
+		eventId: String(eventId),
 		properties: {
 			a: 1,
 			b: 2,
@@ -43,14 +44,14 @@ export const getDummyEvent = (eventId = 0, data = {}) => {
 		},
 		...data,
 	};
-};
+}
 
 /**
  * Generate dummy events.
  *
  * @param {number} eventsNumber - Number of events to generate.
  */
-export const getDummyEvents = (eventsNumber = 5) => {
+export function getDummyEvents(eventsNumber = 5) {
 	const events = [];
 
 	for (let i = 0; i < eventsNumber; i++) {
@@ -58,7 +59,7 @@ export const getDummyEvents = (eventsNumber = 5) => {
 	}
 
 	return events;
-};
+}
 
 /**
  * Sends dummy events to test the Analytics API
@@ -66,32 +67,32 @@ export const getDummyEvents = (eventsNumber = 5) => {
  * @param {Analytics} analyticsInstance - Analytics instance.
  * @param {number} eventsNumber - Number of events to send.
  */
-export const sendDummyEvents = (analyticsInstance, eventsNumber) => {
+export async function sendDummyEvents(analyticsInstance, eventsNumber) {
 	const events = getDummyEvents(eventsNumber);
 
-	events.forEach((event) => {
+	await events.forEach((event) => {
 		analyticsInstance.send(
 			event.eventId,
 			event.applicationId,
 			event.properties
 		);
 	});
-};
-export const trackDummyEvents = (analyticsInstance, eventsNumber) => {
+}
+export async function trackDummyEvents(analyticsInstance, eventsNumber) {
 	const events = getDummyEvents(eventsNumber);
 
-	events.forEach((event) => {
+	await events.forEach((event) => {
 		analyticsInstance.track(event.eventId, event.properties);
 	});
-};
+}
 
 /**
  * Wait during a test. Cannot use with jest.useFakeTimers()
  *
  * @param {Number} msToWait
  */
-export const wait = (msToWait) => {
+export function wait(msToWait) {
 	return new Promise((resolve) => {
 		setTimeout(resolve, msToWait);
 	});
-};
+}

@@ -28,6 +28,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class UserGroupLocalServiceWrapper
 	implements ServiceWrapper<UserGroupLocalService>, UserGroupLocalService {
 
+	public UserGroupLocalServiceWrapper() {
+		this(null);
+	}
+
 	public UserGroupLocalServiceWrapper(
 		UserGroupLocalService userGroupLocalService) {
 
@@ -54,6 +58,17 @@ public class UserGroupLocalServiceWrapper
 	@Override
 	public void addGroupUserGroups(long groupId, long[] userGroupIds) {
 		_userGroupLocalService.addGroupUserGroups(groupId, userGroupIds);
+	}
+
+	@Override
+	public UserGroup addOrUpdateUserGroup(
+			String externalReferenceCode, long userId, long companyId,
+			String name, String description, ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userGroupLocalService.addOrUpdateUserGroup(
+			externalReferenceCode, userId, companyId, name, description,
+			serviceContext);
 	}
 
 	@Override
@@ -304,6 +319,13 @@ public class UserGroupLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _userGroupLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _userGroupLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -1039,6 +1061,15 @@ public class UserGroupLocalServiceWrapper
 	@Override
 	public void unsetTeamUserGroups(long teamId, long[] userGroupIds) {
 		_userGroupLocalService.unsetTeamUserGroups(teamId, userGroupIds);
+	}
+
+	@Override
+	public UserGroup updateExternalReferenceCode(
+			UserGroup userGroup, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userGroupLocalService.updateExternalReferenceCode(
+			userGroup, externalReferenceCode);
 	}
 
 	/**

@@ -16,6 +16,7 @@ package com.liferay.commerce.order;
 
 import com.liferay.portal.kernel.exception.PortalException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -25,7 +26,17 @@ import java.util.Map;
  */
 public interface CommerceDefinitionTermContributor {
 
-	public Map<String, String> getDefinitionTerms(Locale locale);
+	public default Map<String, String> getDefinitionTerms(Locale locale) {
+		Map<String, String> map = new HashMap<>();
+
+		List<String> terms = getTerms();
+
+		for (String term : terms) {
+			map.put(term, getLabel(term, locale));
+		}
+
+		return map;
+	}
 
 	public String getFilledTerm(String term, Object object, Locale locale)
 		throws PortalException;

@@ -1,0 +1,294 @@
+@component-name = "portal-commerce"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Order Management";
+
+	setUp {
+		CommerceConfiguration.commerceSetUp();
+	}
+
+	tearDown {
+		CommerceConfiguration.commerceTearDown();
+	}
+
+	@description = "[Please Update]"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test AddANewPaymentTerm {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-8279 AddANewPaymentTerm pending implementation
+
+	}
+
+	@description = "This is a test for COMMERCE-8295. Assert Payment terms are automatically sorted by Priority by default"
+	@priority = "4"
+	test AssertPaymentTermIsSortedByPriority {
+		property portal.acceptance = "false";
+
+		task ("Given a new entry with "Priority" set to 2 into the "Terms and Conditions".") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Terms and Condition Entry 1",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "2");
+
+			Click(locator1 = "Button#BACK");
+		}
+
+		task ("When the Sales Manager create a new entry with "Priority" set to 1.") {
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Terms and Condition Entry 2",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "1");
+
+			Click(locator1 = "Button#BACK");
+		}
+
+		task ("Then after the redirect if the Sales Manager return on the dashboard the second entry that we created it's the first.") {
+			CommercePaymentTerms.viewTermsAndConditionEntrySortByPriority(
+				rowNumber = "1",
+				termsAndConditionName = "Terms and Condition Entry 2",
+				valuePosition = "1");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-8283. Payment Term Name needs to be unique"
+	@priority = "4"
+	test AssertPaymentTermNameIsUnique {
+		property portal.acceptance = "false";
+
+		task ("Given a new entry into the "Terms and Conditions" with a specific name, and the Type is set to "Payment Terms".") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Terms and Condition Entry 1",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "");
+
+			Click(locator1 = "Button#BACK");
+		}
+
+		task ("When the Sales Manager tries to create another new entry with the same name, and the Type is set as "Delivery Terms".") {
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Terms and Condition Entry 1",
+				termsAndConditionType = "Delivery Terms",
+				valuePosition = "");
+		}
+
+		task ("Then the Sales Manager receives an error.") {
+			Alert.viewErrorMessage(errorMessage = "Error:Please enter a valid name.");
+		}
+	}
+
+	@description = "[Please Update]"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test AssertPaymentTermPriority {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-8293 AssertPaymentTermPriority pending implementation
+
+	}
+
+	@description = "This is a test for COMMERCE-8296. Payment Term Priority needs to be unique"
+	@priority = "4"
+	test AssertPaymentTermPriorityIsUnique {
+		property portal.acceptance = "false";
+
+		task ("Given a new entry "Test" into the "Terms and Conditions".") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Test",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "1");
+
+			Click(locator1 = "Button#BACK");
+		}
+
+		task ("When the Sales Manager create a new entry with a different name from "Test".") {
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Terms and Condition Entry 1",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "1");
+		}
+
+		task ("Then the Sales Manager receives an error because the priority is not unique.") {
+			Alert.viewErrorMessage(errorMessage = "Error:Please enter a valid priority.");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-8286. Cancel the creation of a new entry and return to the dashboard view"
+	@priority = "4"
+	test CanCancelTheCreationOfANewEntry {
+		property portal.acceptance = "false";
+
+		task ("Given I am creating a new Terms and Conditions entry") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+		}
+
+		task ("When I cancel creating the entry") {
+			CommercePaymentTerms.cancelAddTermsAndCondition(
+				termsAndConditionName = "Test Terms and Condition",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "");
+		}
+
+		task ("Then the entry should not be created") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+
+			CommercePaymentTerms.viewNoPG();
+		}
+	}
+
+	@description = "COMMERCE-8281. Delete a new payment term to Terms and Conditions."
+	@priority = "3"
+	test CanDeleteAPaymentTerm {
+		property portal.acceptance = "false";
+
+		task ("Given a new entry into the Terms and Conditions with the status to Active") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+
+			CommercePaymentTerms.addTermsAndCondition(
+				active = "true",
+				termsAndConditionName = "Test Terms and Condition",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "");
+
+			Click(locator1 = "Icon#BACK");
+
+			CommercePaymentTerms.viewTermsAndConditionEntry(
+				termsAndConditionActiveStatus = "Yes",
+				termsAndConditionName = "Test Terms and Condition",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "0");
+		}
+
+		task ("When I delete the terms and conditions") {
+			CommercePaymentTerms.gotoEntryMenuItem(
+				menuItem = "Delete",
+				termsAndConditionName = "Test Terms and Condition");
+		}
+
+		task ("Then the entry is deleted") {
+			CommercePaymentTerms.viewNoPG();
+		}
+	}
+
+	@description = "This is a test for COMMERCE-8282. Verify can edit payment term"
+	@priority = "4"
+	test CanEditAPaymentTerm {
+		property portal.acceptance = "false";
+
+		task ("Given a new entry into the Terms and Conditions") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+
+			CommercePaymentTerms.addTermsAndCondition(
+				active = "true",
+				termsAndConditionName = "Test Terms and Condition",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "");
+		}
+
+		task ("When I edit the name and description of the payment term and publish it") {
+			CommercePaymentTerms.openTermsAndConditionAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Test Terms and Condition");
+
+			CommercePaymentTerms.editTermsAndCondition(
+				termsAndConditionDescription = "Test Terms and Condition Description Edit",
+				termsAndConditionName = "Test Terms and Condition Edit");
+		}
+
+		task ("Then the payment term name and description should be updated") {
+			Navigator.gotoBack();
+
+			CommerceNavigator.gotoEntry(entryName = "Test Terms and Condition Edit");
+
+			CommercePaymentTerms.assertTermsAndConditionEntry(
+				termsAndConditionDescription = "Test Terms and Condition Description Edit",
+				termsAndConditionName = "Test Terms and Condition Edit");
+		}
+	}
+
+	@description = "COMMERCE-8291. The Sales Manager can use the search bar to search a specific entry."
+	@priority = "4"
+	test CanSearchForSpecificEntry {
+		property portal.acceptance = "false";
+
+		task ("Given active Terms & Conditions entries") {
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Terms and Conditions");
+
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Terms1",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "");
+
+			Click(locator1 = "Icon#BACK");
+
+			CommercePaymentTerms.addTermsAndCondition(
+				termsAndConditionName = "Terms2",
+				termsAndConditionType = "Payment Terms",
+				valuePosition = "1");
+
+			Click(locator1 = "Icon#BACK");
+		}
+
+		task ("When I search for a specific term") {
+			Search.searchCP(searchTerm = "Terms1");
+		}
+
+		task ("Then the search results should display the searched entry") {
+			AssertTextPresent(
+				locator1 = "CommercePaymentTerms#ORDER_DETAILS_TERMS_AND_CONDITIONS_NAME",
+				value1 = "Terms1");
+
+			AssertTextNotPresent(
+				locator1 = "CommercePaymentTerms#ORDER_DETAILS_TERMS_AND_CONDITIONS_NAME",
+				value1 = "Terms2");
+		}
+	}
+
+	@description = "[Please Update]"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ChangeTheStatus {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-8280 ChangeTheStatus pending implementation
+
+	}
+
+	@description = "[Please Update]"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test UseTheLocalization {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-8284 UseTheLocalization pending implementation
+
+	}
+
+}

@@ -258,4 +258,7 @@ public interface MFAEmailOTPEntryModel
 	 */
 	public void setLastSuccessIP(String lastSuccessIP);
 
+	@Override
+	public MFAEmailOTPEntry cloneWithOriginalValues();
+
 }

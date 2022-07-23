@@ -51,12 +51,10 @@ import com.liferay.taglib.util.CustomAttributesUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import javax.portlet.PortletURL;
-import javax.portlet.RenderURL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -105,21 +103,20 @@ public class CPDefinitionOptionRelDisplayContext
 	}
 
 	public CreationMenu getCreationMenu() throws Exception {
-		RenderURL portletURL = liferayPortletResponse.createRenderURL();
-
-		portletURL.setParameter(
-			"mvcRenderCommandName",
-			"/cp_definitions/edit_cp_definition_option_value_rel");
-		portletURL.setParameter(
-			"cpDefinitionId", String.valueOf(getCPDefinitionId()));
-		portletURL.setParameter(
-			"cpDefinitionOptionRelId",
-			String.valueOf(getCPDefinitionOptionRelId()));
-		portletURL.setWindowState(LiferayWindowState.POP_UP);
-
 		return CreationMenuBuilder.addDropdownItem(
 			dropdownItem -> {
-				dropdownItem.setHref(portletURL.toString());
+				dropdownItem.setHref(
+					PortletURLBuilder.createRenderURL(
+						liferayPortletResponse
+					).setMVCRenderCommandName(
+						"/cp_definitions/edit_cp_definition_option_value_rel"
+					).setParameter(
+						"cpDefinitionId", getCPDefinitionId()
+					).setParameter(
+						"cpDefinitionOptionRelId", getCPDefinitionOptionRelId()
+					).setWindowState(
+						LiferayWindowState.POP_UP
+					).buildString());
 				dropdownItem.setLabel(
 					LanguageUtil.get(
 						cpRequestHelper.getRequest(), "add-value"));
@@ -131,12 +128,10 @@ public class CPDefinitionOptionRelDisplayContext
 	public String getDDMFormFieldTypeLabel(
 		DDMFormFieldType ddmFormFieldType, Locale locale) {
 
-		Map<String, Object> ddmFormFieldTypeProperties =
-			_ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
-				ddmFormFieldType.getName());
-
 		String label = MapUtil.getString(
-			ddmFormFieldTypeProperties, "ddm.form.field.type.label");
+			_ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
+				ddmFormFieldType.getName()),
+			"ddm.form.field.type.label");
 
 		try {
 			if (Validator.isNotNull(label)) {
@@ -148,7 +143,7 @@ public class CPDefinitionOptionRelDisplayContext
 		}
 		catch (MissingResourceException missingResourceException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(missingResourceException, missingResourceException);
+				_log.warn(missingResourceException);
 			}
 		}
 
@@ -212,7 +207,7 @@ public class CPDefinitionOptionRelDisplayContext
 			"cpDefinitionId", getCPDefinitionId()
 		).setParameter(
 			"screenNavigationCategoryKey", getScreenNavigationCategoryKey()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

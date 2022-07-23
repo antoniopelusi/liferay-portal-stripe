@@ -16,7 +16,6 @@ package com.liferay.portal.workflow.kaleo.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,14 +26,15 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.workflow.kaleo.exception.NoSuchTaskAssignmentException;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignment;
@@ -42,10 +42,12 @@ import com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentTable;
 import com.liferay.portal.workflow.kaleo.model.impl.KaleoTaskAssignmentImpl;
 import com.liferay.portal.workflow.kaleo.model.impl.KaleoTaskAssignmentModelImpl;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoTaskAssignmentPersistence;
+import com.liferay.portal.workflow.kaleo.service.persistence.KaleoTaskAssignmentUtil;
 import com.liferay.portal.workflow.kaleo.service.persistence.impl.constants.KaleoPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -53,12 +55,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2422,6 +2421,8 @@ public class KaleoTaskAssignmentPersistenceImpl
 			kaleoTaskAssignment);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the kaleo task assignments in the entity cache if it is enabled.
 	 *
@@ -2429,6 +2430,14 @@ public class KaleoTaskAssignmentPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<KaleoTaskAssignment> kaleoTaskAssignments) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (kaleoTaskAssignments.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (KaleoTaskAssignment kaleoTaskAssignment : kaleoTaskAssignments) {
 			if (entityCache.getResult(
 					KaleoTaskAssignmentImpl.class,
@@ -2619,25 +2628,25 @@ public class KaleoTaskAssignmentPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (kaleoTaskAssignment.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				kaleoTaskAssignment.setCreateDate(now);
+				kaleoTaskAssignment.setCreateDate(date);
 			}
 			else {
 				kaleoTaskAssignment.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!kaleoTaskAssignmentModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				kaleoTaskAssignment.setModifiedDate(now);
+				kaleoTaskAssignment.setModifiedDate(date);
 			}
 			else {
 				kaleoTaskAssignment.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -2930,13 +2939,9 @@ public class KaleoTaskAssignmentPersistenceImpl
 	 * Initializes the kaleo task assignment persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new KaleoTaskAssignmentModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -3043,13 +3048,31 @@ public class KaleoTaskAssignmentPersistenceImpl
 				"kaleoClassName", "kaleoClassPK", "assigneeClassName"
 			},
 			false);
+
+		_setKaleoTaskAssignmentUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(KaleoTaskAssignmentImpl.class.getName());
+		_setKaleoTaskAssignmentUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(KaleoTaskAssignmentImpl.class.getName());
+	}
+
+	private void _setKaleoTaskAssignmentUtilPersistence(
+		KaleoTaskAssignmentPersistence kaleoTaskAssignmentPersistence) {
+
+		try {
+			Field field = KaleoTaskAssignmentUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, kaleoTaskAssignmentPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -3077,8 +3100,6 @@ public class KaleoTaskAssignmentPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -3114,113 +3135,8 @@ public class KaleoTaskAssignmentPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class KaleoTaskAssignmentModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			KaleoTaskAssignmentModelImpl kaleoTaskAssignmentModelImpl =
-				(KaleoTaskAssignmentModelImpl)baseModel;
-
-			long columnBitmask =
-				kaleoTaskAssignmentModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					kaleoTaskAssignmentModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						kaleoTaskAssignmentModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					kaleoTaskAssignmentModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return KaleoTaskAssignmentImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return KaleoTaskAssignmentTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			KaleoTaskAssignmentModelImpl kaleoTaskAssignmentModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						kaleoTaskAssignmentModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = kaleoTaskAssignmentModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private KaleoTaskAssignmentModelArgumentsResolver
+		_kaleoTaskAssignmentModelArgumentsResolver;
 
 }

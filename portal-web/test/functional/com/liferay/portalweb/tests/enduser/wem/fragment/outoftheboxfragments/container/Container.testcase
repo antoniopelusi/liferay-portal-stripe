@@ -3,7 +3,7 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Content Pages,Fragments";
+	property testray.main.component.name = "Fragments";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -96,8 +96,6 @@ definition {
 	@description = "This is a test for LPS-91000, LPS-95002, LPS-115224 and LPS-120693. Configure the Flex Column and Fixed Width Container styles."
 	@priority = "5"
 	test ConfigureFlexColumnAndFixedWidthContainerStyles {
-		property osgi.module.configuration.file.names = "com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration.config";
-		property osgi.module.configurations = "containerItemFlexEnabled=&quot;true&quot;";
 		property portal.acceptance = "true";
 
 		task ("Add a Container to page") {
@@ -117,32 +115,13 @@ definition {
 				navTab = "Fragments");
 		}
 
-		task ("Add a Tabs below the Container") {
-			PageEditor.addFragment(
+		task ("Add a Tabs to the top of Paragraph inside the Container") {
+			PageEditor.addElementToContainer(
 				collectionName = "Basic Components",
+				dropTarget = "Up",
 				fragmentName = "Tabs",
-				targetFragmentName = "Container");
-		}
-
-		task ("Move the Tabs to the top of Paragraph inside the Container via Selection Panel") {
-			PageEditor.gotoTab(tabName = "Selection");
-
-			Pause(locator1 = "3000");
-
-			Click(
-				key_nodeName = "Container",
-				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_COLLAPSED");
-
-			DragAndDrop.javaScriptDragAndDropToUp(
-				locator1 = "//div[contains(@class,'list-item__node')][contains(.,'Tabs')]//div[@role='button'][@draggable='true']",
-				locator2 = "//div[contains(@class,'list-item__node')][contains(.,'Paragraph')]//div[@role='button'][@draggable='true']");
-
-			Pause(locator1 = "3000");
-
-			AssertElementPresent(
-				key_elementHeader = "//li[contains(@class,'topper__title') and contains(.,'Tabs')]",
-				key_position = "1",
-				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+				navTab = "Fragments",
+				targetElementName = "Paragraph");
 		}
 
 		task ("Assert the Container styles") {
@@ -153,21 +132,22 @@ definition {
 
 			PageEditor.viewContainerStyle(
 				containerWidth = "Fluid",
-				paddingBottom = "0",
 				paddingLeft = "0",
 				paddingRight = "0",
-				paddingTop = "0",
 				position = "1");
 		}
 
 		task ("Configure the Container styles") {
 			PageEditor.editLayoutContainer(
 				alignItems = "Baseline",
-				backgroundColor = "Success",
 				containerWidth = "Fixed Width",
 				contentDisplay = "Flex Column",
 				height = "600px",
 				justifyContent = "Around",
+				panel = "General");
+
+			PageEditor.editLayoutContainer(
+				backgroundColor = "Success",
 				paddingBottom = "4",
 				paddingTop = "2",
 				panel = "Styles");
@@ -175,14 +155,12 @@ definition {
 
 		task ("Assert the Margin Left and Margin Right fields are disabled") {
 			AssertNotEditable(
-				key_borderBottom = "Margin",
-				key_fieldLabel = "Left",
-				locator1 = "Select#BORDER_BOTTOM_SELECT_FIELD");
+				ariaLabel = "Margin Left",
+				locator1 = "Button#ANY_WITH_ARIA_LABEL");
 
 			AssertNotEditable(
-				key_borderBottom = "Margin",
-				key_fieldLabel = "Right",
-				locator1 = "Select#BORDER_BOTTOM_SELECT_FIELD");
+				ariaLabel = "Margin Right",
+				locator1 = "Button#ANY_WITH_ARIA_LABEL");
 		}
 
 		task ("View the Container styles") {
@@ -205,23 +183,22 @@ definition {
 				pageName = "Content Page Name",
 				siteName = "Test Site Name");
 
-			var screenWidth	= selenium.getElementWidth("//body");
-
-			var containerWidth	= selenium.getElementWidth("//div[contains(@class,'container')][contains(@class,'pb-4 pt-2')]");
+			var screenWidth = selenium.getElementWidth("//body");
+			var containerWidth = selenium.getElementWidth("//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]");
 
 			TestUtils.assertNotEquals(
 				actual = "${containerWidth}",
 				expected = "${screenWidth}");
 
-			AssertVisible(locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4 pt-2')]");
+			AssertVisible(locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]");
 
 			AssertCssValue(
-				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4 pt-2')]",
+				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]",
 				locator2 = "background-color",
 				value1 = "rgba(40, 125, 60, 1)");
 
 			AssertCssValue(
-				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4 pt-2')]",
+				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]",
 				locator2 = "max-width",
 				value1 = "${containerWidth}px");
 
@@ -234,8 +211,7 @@ definition {
 	@description = "This is a test for LPS-120693. Configure the Flex Column and Fluid Container styles."
 	@priority = "5"
 	test ConfigureFlexColumnAndFluidContainerStyles {
-		property osgi.module.configuration.file.names = "com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration.config";
-		property osgi.module.configurations = "containerItemFlexEnabled=&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Add a Container to page") {
 			ContentPagesNavigator.openEditContentPage(
@@ -254,32 +230,13 @@ definition {
 				navTab = "Fragments");
 		}
 
-		task ("Add a Image below the Container") {
-			PageEditor.addFragment(
+		task ("Add an Image to the top of Button inside the Container") {
+			PageEditor.addElementToContainer(
 				collectionName = "Basic Components",
+				dropTarget = "Up",
 				fragmentName = "Image",
-				targetFragmentName = "Container");
-		}
-
-		task ("Move the Image to the top of Button inside the Container via Selection Panel") {
-			PageEditor.gotoTab(tabName = "Selection");
-
-			Pause(locator1 = "3000");
-
-			Click(
-				key_nodeName = "Container",
-				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_COLLAPSED");
-
-			DragAndDrop.javaScriptDragAndDropToUp(
-				locator1 = "//div[contains(@class,'list-item__node')][contains(.,'Image')]//div[@role='button'][@draggable='true']",
-				locator2 = "//div[contains(@class,'list-item__node')][contains(.,'Button')]//div[@role='button'][@draggable='true']");
-
-			Pause(locator1 = "3000");
-
-			AssertElementPresent(
-				key_elementHeader = "//li[contains(@class,'topper__title') and contains(.,'Image')]",
-				key_position = "1",
-				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+				navTab = "Fragments",
+				targetElementName = "Button");
 		}
 
 		task ("View the Container styles") {
@@ -299,7 +256,7 @@ definition {
 				contentDisplay = "Flex Column",
 				height = "1000px",
 				justifyContent = "Between",
-				panel = "Styles");
+				panel = "General");
 		}
 
 		task ("View the Container styles") {
@@ -315,8 +272,7 @@ definition {
 	@description = "This is a test for LPS-120693. Configure the Flex Row and Fixed Width Container styles."
 	@priority = "5"
 	test ConfigureFlexRowAndFixedWidthContainerStyles {
-		property osgi.module.configuration.file.names = "com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration.config";
-		property osgi.module.configurations = "containerItemFlexEnabled=&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Add a Container to page") {
 			ContentPagesNavigator.openEditContentPage(
@@ -335,30 +291,19 @@ definition {
 				navTab = "Fragments");
 		}
 
-		task ("Add a Banner Center below the Container") {
-			PageEditor.addFragment(
+		task ("Add a Banner Center to the top of Heading inside the Container") {
+			PageEditor.addElementToContainer(
 				collectionName = "Featured Content",
+				composition = "true",
+				dropTarget = "Up",
 				fragmentName = "Banner Center",
-				targetFragmentName = "Container");
-		}
-
-		task ("Move the Banner Center to the top of Heading inside the Container via Selection Panel") {
-			PageEditor.gotoTab(tabName = "Selection");
-
-			Pause(locator1 = "3000");
-
-			Click(
-				key_nodeName = "Container",
-				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_COLLAPSED");
-
-			DragAndDrop.javaScriptDragAndDropToUp(
-				locator1 = "//div[contains(@class,'list-item__node')][contains(.,'Banner Center')]//div[@role='button'][@draggable='true']",
-				locator2 = "//div[contains(@class,'list-item__node')][contains(.,'Heading')]//div[@role='button'][@draggable='true']");
-
-			Pause(locator1 = "3000");
+				index = "2",
+				layoutElementName = "Container",
+				navTab = "Fragments",
+				targetElementName = "Heading");
 
 			AssertElementPresent(
-				key_elementHeader = "//li[contains(@class,'topper__title') and contains(.,'Banner Center')]",
+				key_elementHeader = "//*[contains(@data-lfr-editable-id,'element-text')][normalize-space()='Banner Title Example']",
 				key_position = "1",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
 		}
@@ -380,7 +325,7 @@ definition {
 				containerWidth = "Fixed Width",
 				contentDisplay = "Flex Row",
 				justifyContent = "End",
-				panel = "Styles");
+				panel = "General");
 		}
 
 		task ("View the Container styles") {
@@ -393,11 +338,9 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-106776, LPS-111657 and LPS-120693. Configure the Flex Row and Fluid Container styles."
+	@description = "This is a use case for LPS-106776, LPS-111657 and LPS-120693. Configure the Flex Row and Fluid Container styles."
 	@priority = "5"
 	test ConfigureFlexRowAndFluidContainerStyles {
-		property osgi.module.configuration.file.names = "com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration.config";
-		property osgi.module.configurations = "containerItemFlexEnabled=&quot;true&quot;";
 		property portal.acceptance = "true";
 
 		task ("Add a Container to page") {
@@ -417,32 +360,13 @@ definition {
 				navTab = "Fragments");
 		}
 
-		task ("Add a Card below the Container") {
-			PageEditor.addFragment(
+		task ("Add a Card to the top of Heading inside the Container") {
+			PageEditor.addElementToContainer(
 				collectionName = "Basic Components",
+				dropTarget = "Up",
 				fragmentName = "Card",
-				targetFragmentName = "Container");
-		}
-
-		task ("Move the Card to the top of Heading inside the Container via Selection Panel") {
-			PageEditor.gotoTab(tabName = "Selection");
-
-			Pause(locator1 = "3000");
-
-			Click(
-				key_nodeName = "Container",
-				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_COLLAPSED");
-
-			DragAndDrop.javaScriptDragAndDropToUp(
-				locator1 = "//div[contains(@class,'list-item__node')][contains(.,'Card')]//div[@role='button'][@draggable='true']",
-				locator2 = "//div[contains(@class,'list-item__node')][contains(.,'Heading')]//div[@role='button'][@draggable='true']");
-
-			Pause(locator1 = "3000");
-
-			AssertElementPresent(
-				key_elementHeader = "//li[contains(@class,'topper__title') and contains(.,'Card')]",
-				key_position = "1",
-				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+				navTab = "Fragments",
+				targetElementName = "Heading");
 		}
 
 		task ("View the Container styles") {
@@ -459,13 +383,16 @@ definition {
 		task ("Configure the Container styles") {
 			PageEditor.editLayoutContainer(
 				alignItems = "Center",
+				contentDisplay = "Flex Row",
+				justifyContent = "Center",
+				panel = "General");
+
+			PageEditor.editLayoutContainer(
 				backgroundColor = "Warning",
 				borderColor = "Danger",
 				borderRadius = "Border Radius Large",
 				borderWidth = "5",
 				boxShadow = "Box Shadow Large",
-				contentDisplay = "Flex Row",
-				justifyContent = "Center",
 				marginBottom = "2",
 				marginLeft = "2",
 				marginRight = "2",
@@ -510,6 +437,50 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-147394. View warning message and view change in DOM and Page Elements panel."
+	@priority = "4"
+	test ConfigureHTMLTagOfContainer {
+		property osgi.module.configuration.file.names = "com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration.config";
+		property osgi.module.configurations = "fragmentAdvancedOptionsEnabled=&quot;true&quot;";
+
+		task ("Add a Container to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+		}
+
+		task ("Change the HTML tag of Container to section") {
+			PageEditor.editLayoutContainer(
+				htmlTag = "section",
+				panel = "Advanced");
+		}
+
+		task ("View the warning message shown below the HTML Tag field") {
+			AssertVisible(
+				key_fieldLabel = "HTML Tag",
+				key_subtitle = "Misusing this setup might impact SEO.",
+				locator1 = "Message#SUBTITLE");
+		}
+
+		task ("View the HTML tag of Container is section") {
+			AssertVisible(
+				key_position = "1",
+				key_type = "section",
+				locator1 = "PageEditor#CONTAINER_CONTAINER_TYPE");
+		}
+
+		task ("View the HTML tag type is shown in Container item") {
+			AssertVisible(
+				key_info = "section",
+				key_nodeName = "Container",
+				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_NAME_INFO");
+		}
+	}
+
 	@description = "This is a test for LPS-107285. When duplicate the Container with the Grid, the Grid should also be duplicated."
 	@priority = "5"
 	test DuplicateContainerWithGrid {
@@ -538,7 +509,7 @@ definition {
 			PageEditor.viewDuplicateFragment(fragmentName = "Container");
 
 			AssertElementPresent(
-				key_elementHeader = "/div[contains(@class,'page-editor__topper')][1]/div[contains(.,'Grid')]//li[contains(@class,'title')]",
+				key_elementHeader = "//div[@aria-label='Grid']",
 				key_position = "2",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
 		}
@@ -614,7 +585,7 @@ definition {
 
 			AssertVisible(
 				key_append = "//img",
-				key_URL = "${baseURL}/en/web/test-site-name/w/web-content-title",
+				key_url = "${baseURL}/web/test-site-name/w/web-content-title",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -627,22 +598,22 @@ definition {
 
 			AssertVisible(
 				key_append = "/img",
-				key_URL = "${baseURL}/en/web/test-site-name/w/web-content-title",
+				key_url = "${baseURL}/web/test-site-name/w/web-content-title",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "/img",
-				key_URL = "${baseURL}/en/web/test-site-name/w/web-content-title",
+				key_url = "${baseURL}/web/test-site-name/w/web-content-title",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertTextEquals(
 				locator1 = "ControlMenu#HEADING",
 				value1 = "Display Page Name");
 
-			AssertVisible(
-				key_assetContent = "Web Content Content",
-				key_assetTitle = "Web Content Title",
-				locator1 = "PageEditor#ASSET_CONTENT");
+			ContentPages.viewFragmentText(
+				assetType = "journal",
+				fragmentName = "Display Page Content",
+				text = "Web Content Content");
 		}
 	}
 
@@ -651,36 +622,44 @@ definition {
 	test MapDMImageToBackgroundImageOfContainer {
 		property portal.acceptance = "true";
 
-		JSONDocument.addFileWithUploadedFile(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentTitle = "Document_1.jpg",
-			groupName = "Test Site Name",
-			mimeType = "image/jpeg",
-			sourceFileName = "Document_1.jpg");
+		task ("Add a document with an image") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "Document_1.jpg",
+				groupName = "Test Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_1.jpg");
+		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("Add a Container to a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.addFragment(
-			collectionName = "Layout Elements",
-			fragmentName = "Container");
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+		}
 
-		PageEditor.editLayoutContainer(
-			backgroundImage = "Mapping",
-			entryTitle = "Document_1.jpg",
-			fieldName = "File URL",
-			navItem = "Documents and Media",
-			paddingTop = "2",
-			panel = "Styles");
+		task ("Map the File URL field of document to background image of Container") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "Document_1.jpg",
+				fieldName = "File URL",
+				navItem = "Documents and Media",
+				paddingTop = "2",
+				panel = "Styles");
 
-		PageEditor.clickPublish();
+			PageEditor.clickPublish();
+		}
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page-name");
+		task ("View the mapped image shown in Container at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		AssertElementPresent(
-			key_imageName = "Document_1.jpg",
-			locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_1.jpg");
+		}
 	}
 
 	@description = "This is a test for LPS-119817. Map manual URL to Container element."
@@ -712,7 +691,7 @@ definition {
 
 			AssertVisible(
 				key_append = "//img",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -725,12 +704,12 @@ definition {
 
 			AssertVisible(
 				key_append = "/img",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "/img",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
@@ -742,65 +721,75 @@ definition {
 	test MapWebContentImageToBackgroundImageOfContainerInContentPage {
 		property portal.acceptance = "true";
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		task ("Add a web content structure with an Image field") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
-		NavItem.gotoStructures();
+			NavItem.gotoStructures();
 
-		WebContentStructures.addCP(
-			structureDescription = "WC Structure Description",
-			structureName = "WC Structure Name");
+			WebContentStructures.addCP(
+				structureDescription = "WC Structure Description",
+				structureName = "WC Structure Name");
 
-		DataEngine.addField(
-			fieldFieldLabel = "Image",
-			fieldName = "Image");
+			DataEngine.addField(
+				fieldFieldLabel = "Image",
+				fieldName = "Image");
 
-		WebContentStructures.saveCP(structureName = "WC Structure Name");
+			WebContentStructures.saveCP();
+		}
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		task ("Add a template for new structure") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
-		NavItem.gotoTemplates();
+			NavItem.gotoTemplates();
 
-		WebContentTemplates.addCP(
-			structureName = "WC Structure Name",
-			templateDescription = "WC Template Description",
-			templateFieldNames = "Image",
-			templateName = "WC Template Name");
+			WebContentTemplates.addCP(
+				structureName = "WC Structure Name",
+				templateDescription = "WC Template Description",
+				templateFieldNames = "Image",
+				templateName = "WC Template Name");
+		}
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		task ("Add a web content based on new structure") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
-		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+			WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
 
-		WebContent.addWithStructureCP(
-			navTab = "Web Content Images",
-			structureName = "WC Structure Name",
-			templateName = "WC Template Name",
-			webContentImage = "Document_2.jpeg",
-			webContentTitle = "WC WebContent Title");
+			WebContent.addWithStructureCP(
+				navTab = "Web Content Images",
+				structureName = "WC Structure Name",
+				templateName = "WC Template Name",
+				webContentImage = "Document_2.jpeg",
+				webContentTitle = "WC WebContent Title");
 
-		PortletEntry.publish();
+			PortletEntry.publish();
+		}
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Content Page Name",
-			siteName = "Test Site Name");
+		task ("Add a Container to a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-		PageEditor.addFragment(
-			collectionName = "Layout Elements",
-			fragmentName = "Container");
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+		}
 
-		PageEditor.editLayoutContainer(
-			backgroundImage = "Mapping",
-			entryTitle = "WC WebContent Title",
-			navItem = "Web Content",
-			panel = "Styles");
+		task ("Map the Image field of web content to background image of Container") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "WC WebContent Title",
+				navItem = "Web Content",
+				panel = "Styles");
 
-		task ("Assert the layout background field contains the mapped image.") {
 			PageEditor.clickPublish();
+		}
 
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page-name");
+		task ("View the mapped image shown in Container at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
 
-			AssertElementPresent(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
 		}
 	}
 
@@ -875,15 +864,13 @@ definition {
 		}
 
 		task ("Assert the mapped image is shown in background image field") {
-			AssertVisible(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
 
 			PageEditor.clickPublish();
 		}
 
 		task ("Add a content page based on content page template") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -892,9 +879,7 @@ definition {
 		}
 
 		task ("Assert the mapped image is shown in background image field in edit mode") {
-			AssertVisible(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
 
 			PageEditor.clickPublish();
 		}
@@ -904,9 +889,7 @@ definition {
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			AssertVisible(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
 		}
 	}
 
@@ -984,13 +967,11 @@ definition {
 		}
 
 		task ("Assert mapped image is shown in display page template") {
-			AssertVisible(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
 		}
 	}
 
-	@description = "This is a test for LPS-107285. When the Container fragment is duplicated, the configuration of it and its components should also be duplicated."
+	@description = "This is a test for LPS-107285 and LPS-106776. When the Container fragment is duplicated, the configuration of it and its components should also be duplicated."
 	@priority = "4"
 	test ViewConfigurationDuplicatedInDuplicatedContainerWithHeading {
 		task ("Add a Container to page") {
@@ -1038,7 +1019,7 @@ definition {
 				position = "2");
 
 			AssertElementPresent(
-				key_elementHeader = "//div[contains(@class,'page-editor__topper__bar') and contains(.,'Heading')]/following-sibling::div[contains(@class,'page-editor__topper__content')]//div[contains(@style,'color: var(--white)')]",
+				key_elementHeader = "//div[@aria-label='Heading']//div[contains(@class,'page-editor__topper__content')]//div[contains(@style,'color: var(--white)')]",
 				key_position = "2",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
 		}
@@ -1127,9 +1108,10 @@ definition {
 
 			PageEditor.waitForAutoSave();
 
-			AssertVisible(
-				key_text = "WC WebContent Content",
-				locator1 = "Fragment#EDITABLE_FIELD_CONTENT");
+			PageEditor.viewFragmentEditableText(
+				editableText = "WC WebContent Content",
+				fragmentName = "Heading",
+				id = "element-text");
 		}
 
 		task ("Assert mapped content duplicated with nested Heading") {

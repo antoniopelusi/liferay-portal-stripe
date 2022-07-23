@@ -324,4 +324,7 @@ public interface SharingEntryModel
 	 */
 	public void setExpirationDate(Date expirationDate);
 
+	@Override
+	public SharingEntry cloneWithOriginalValues();
+
 }

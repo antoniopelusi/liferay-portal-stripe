@@ -14,6 +14,7 @@
 
 package com.liferay.knowledge.base.internal.upgrade.v1_1_0.util;
 
+import com.liferay.document.library.kernel.store.DLStoreRequest;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.petra.string.StringPool;
@@ -45,7 +46,7 @@ public class KBArticleAttachmentsUtil {
 				companyId, CompanyConstants.SYSTEM, "knowledgebase/articles");
 		}
 		catch (Exception exception) {
-			_log.error(exception.getMessage());
+			_log.error(exception);
 		}
 	}
 
@@ -72,8 +73,15 @@ public class KBArticleAttachmentsUtil {
 					fileName);
 
 				DLStoreUtil.addFile(
-					kbArticle.getCompanyId(), CompanyConstants.SYSTEM,
-					newDirName + StringPool.SLASH + shortFileName, bytes);
+					DLStoreRequest.builder(
+						kbArticle.getCompanyId(), CompanyConstants.SYSTEM,
+						newDirName + StringPool.SLASH + shortFileName
+					).className(
+						KBArticleAttachmentsUtil.class.getName()
+					).size(
+						bytes.length
+					).build(),
+					bytes);
 			}
 
 			DLStoreUtil.deleteDirectory(
@@ -84,7 +92,7 @@ public class KBArticleAttachmentsUtil {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception.getMessage());
+			_log.error(exception);
 		}
 	}
 

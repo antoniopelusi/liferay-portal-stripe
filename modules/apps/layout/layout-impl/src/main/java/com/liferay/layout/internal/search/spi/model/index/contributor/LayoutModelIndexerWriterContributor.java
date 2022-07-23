@@ -17,7 +17,6 @@ package com.liferay.layout.internal.search.spi.model.index.contributor;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.search.batch.BatchIndexingActionable;
-import com.liferay.portal.search.batch.BatchIndexingHelper;
 import com.liferay.portal.search.batch.DynamicQueryBatchIndexingActionableFactory;
 import com.liferay.portal.search.spi.model.index.contributor.ModelIndexerWriterContributor;
 import com.liferay.portal.search.spi.model.index.contributor.helper.ModelIndexerWriterDocumentHelper;
@@ -41,8 +40,6 @@ public class LayoutModelIndexerWriterContributor
 		BatchIndexingActionable batchIndexingActionable,
 		ModelIndexerWriterDocumentHelper modelIndexerWriterDocumentHelper) {
 
-		batchIndexingActionable.setInterval(
-			_batchIndexingHelper.getBulkSize(Layout.class.getName()));
 		batchIndexingActionable.setPerformActionMethod(
 			(Layout layout) -> batchIndexingActionable.addDocuments(
 				modelIndexerWriterDocumentHelper.getDocument(layout)));
@@ -66,8 +63,5 @@ public class LayoutModelIndexerWriterContributor
 
 	@Reference
 	protected LayoutLocalService layoutLocalService;
-
-	@Reference
-	private BatchIndexingHelper _batchIndexingHelper;
 
 }

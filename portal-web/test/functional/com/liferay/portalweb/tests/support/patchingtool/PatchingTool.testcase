@@ -21,6 +21,15 @@ definition {
 		property test.assert.warning.exceptions = "true";
 		property test.name.skip.portal.instance = "PatchingTool#RevertFixPack";
 
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		JSONWebcontent.addWebContent(
+			content = "WC WebContent Content",
+			groupName = "Guest",
+			title = "WC WebContent Title");
+
 		SignOut.signOut();
 
 		Portlet.shutdownServer();
@@ -32,6 +41,16 @@ definition {
 			keepCachedAppServerData = "true");
 
 		SignIn.signIn();
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "table");
+
+		BlogsEntry.viewEntryTable(entryTitle = "Blogs Entry Title");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContent.viewTitle(webContentTitle = "WC WebContent Title");
 
 		SignOut.signOut();
 
@@ -61,21 +80,17 @@ definition {
 	test RevertHotfix {
 		property portal.hotfix.release = "true";
 		property portal.release = "true";
-		property skip.install-patch = "true";
 		property test.assert.warning.exceptions = "true";
 		property test.name.skip.portal.instance = "PatchingTool#RevertHotfix";
 
-		SignOut.signOut();
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
 
-		Portlet.shutdownServer();
-
-		PatchingTool.installPatch(patchFileZipURL = "${testBuildFixPackZipURL}");
-
-		Portlet.startServer(
-			deleteLiferayHome = "true",
-			keepCachedAppServerData = "true");
-
-		SignIn.signIn();
+		JSONWebcontent.addWebContent(
+			content = "WC WebContent Content",
+			groupName = "Guest",
+			title = "WC WebContent Title");
 
 		SignOut.signOut();
 
@@ -88,6 +103,16 @@ definition {
 			keepCachedAppServerData = "true");
 
 		SignIn.signIn();
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "table");
+
+		BlogsEntry.viewEntryTable(entryTitle = "Blogs Entry Title");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContent.viewTitle(webContentTitle = "WC WebContent Title");
 
 		GogoShell.openGogoShellAdmin();
 

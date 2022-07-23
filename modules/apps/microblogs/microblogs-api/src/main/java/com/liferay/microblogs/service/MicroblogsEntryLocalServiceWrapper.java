@@ -27,6 +27,10 @@ public class MicroblogsEntryLocalServiceWrapper
 	implements MicroblogsEntryLocalService,
 			   ServiceWrapper<MicroblogsEntryLocalService> {
 
+	public MicroblogsEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MicroblogsEntryLocalServiceWrapper(
 		MicroblogsEntryLocalService microblogsEntryLocalService) {
 
@@ -171,6 +175,13 @@ public class MicroblogsEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _microblogsEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _microblogsEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

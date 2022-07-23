@@ -316,4 +316,7 @@ public interface LayoutFriendlyURLModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public LayoutFriendlyURL cloneWithOriginalValues();
+
 }

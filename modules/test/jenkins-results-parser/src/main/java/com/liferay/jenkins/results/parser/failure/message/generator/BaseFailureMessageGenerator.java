@@ -16,9 +16,13 @@ package com.liferay.jenkins.results.parser.failure.message.generator;
 
 import com.liferay.jenkins.results.parser.Build;
 import com.liferay.jenkins.results.parser.Dom4JUtil;
+import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.PullRequest;
 import com.liferay.jenkins.results.parser.SourceFormatBuild;
 import com.liferay.jenkins.results.parser.TopLevelBuild;
+import com.liferay.jenkins.results.parser.Workspace;
+import com.liferay.jenkins.results.parser.WorkspaceBuild;
+import com.liferay.jenkins.results.parser.WorkspaceGitRepository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +56,23 @@ public abstract class BaseFailureMessageGenerator
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("https://github.com/");
+
+		if (!topLevelBuild.isFromArchive() &&
+			(topLevelBuild instanceof WorkspaceBuild)) {
+
+			WorkspaceBuild workspaceBuild = (WorkspaceBuild)topLevelBuild;
+
+			Workspace workspace = workspaceBuild.getWorkspace();
+
+			WorkspaceGitRepository workspaceGitRepository =
+				workspace.getPrimaryWorkspaceGitRepository();
+
+			return Dom4JUtil.getNewAnchorElement(
+				workspaceGitRepository.getGitHubURL(),
+				JenkinsResultsParserUtil.combine(
+					workspaceGitRepository.getSenderBranchUsername(), "/",
+					workspaceGitRepository.getSenderBranchName()));
+		}
 
 		Map<String, String> pullRequestDetailsMap = null;
 
@@ -150,24 +171,47 @@ public abstract class BaseFailureMessageGenerator
 	protected Element getGitCommitPluginsAnchorElement(
 		TopLevelBuild topLevelBuild) {
 
-		String gitRepositoryName = topLevelBuild.getBaseGitRepositoryName();
+		String portalGitRepositoryName =
+			topLevelBuild.getBaseGitRepositoryName();
 
-		Map<String, String> portalGitRepositoryGitDetailsTempMap =
-			topLevelBuild.getBaseGitRepositoryDetailsTempMap();
+		String portalSenderBranchUsername;
+		String portalSenderBranchName;
+
+		if (!topLevelBuild.isFromArchive() &&
+			(topLevelBuild instanceof WorkspaceBuild)) {
+
+			WorkspaceBuild workspaceBuild = (WorkspaceBuild)topLevelBuild;
+
+			Workspace workspace = workspaceBuild.getWorkspace();
+
+			WorkspaceGitRepository workspaceGitRepository =
+				workspace.getPrimaryWorkspaceGitRepository();
+
+			portalSenderBranchUsername =
+				workspaceGitRepository.getSenderBranchUsername();
+			portalSenderBranchName =
+				workspaceGitRepository.getSenderBranchName();
+		}
+		else {
+			Map<String, String> portalGitRepositoryGitDetailsTempMap =
+				topLevelBuild.getBaseGitRepositoryDetailsTempMap();
+
+			portalSenderBranchUsername =
+				portalGitRepositoryGitDetailsTempMap.get("github.origin.name");
+			portalSenderBranchName = portalGitRepositoryGitDetailsTempMap.get(
+				"github.sender.branch.name");
+		}
 
 		Element gitCommitPluginsAnchorElement = Dom4JUtil.getNewElement("a");
 
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("https://github.com/");
-		sb.append(
-			portalGitRepositoryGitDetailsTempMap.get("github.origin.name"));
+		sb.append(portalSenderBranchUsername);
 		sb.append("/");
-		sb.append(gitRepositoryName);
+		sb.append(portalGitRepositoryName);
 		sb.append("/blob/");
-		sb.append(
-			portalGitRepositoryGitDetailsTempMap.get(
-				"github.sender.branch.name"));
+		sb.append(portalSenderBranchName);
 		sb.append("/git-commit-plugins");
 
 		gitCommitPluginsAnchorElement.addAttribute("href", sb.toString());

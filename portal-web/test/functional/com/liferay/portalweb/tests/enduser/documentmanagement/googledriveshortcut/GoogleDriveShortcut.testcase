@@ -4,7 +4,7 @@ definition {
 	property custom.properties = "default.layout.template.id=1_column";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Documents Management";
+	property testray.main.component.name = "Document Management";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -16,14 +16,14 @@ definition {
 			configurationName = "Google Drive",
 			configurationScope = "Virtual Instance Scope");
 
-		var googleClientID = PropsUtil.get("google.client.id.4");
+		var googleClientId = PropsUtil.get("google.client.id.4");
 		var googleClientSecret = PropsUtil.get("google.client.secret.4");
-		var googlePickerAPIKey = PropsUtil.get("google.api.key.4");
+		var googlePickerApiKey = PropsUtil.get("google.api.key.4");
 
 		PortalSettings.configureGoogleDrive(
-			googleClientID = "${googleClientID}",
+			googleClientId = "${googleClientId}",
 			googleClientSecret = "${googleClientSecret}",
-			googlePickerAPIKey = "${googlePickerAPIKey}");
+			googlePickerApiKey = "${googlePickerApiKey}");
 
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",
@@ -55,7 +55,7 @@ definition {
 
 			DMDocumentType.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -167,6 +167,10 @@ definition {
 
 		PageEditor.clickPublish();
 
+		ContentPagesNavigator.openViewContentPage(
+			pageName = "Test Content Page Name",
+			siteName = "Guest");
+
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
 		Navigator.gotoPage(pageName = "Test Content Page Name");
@@ -186,7 +190,7 @@ definition {
 
 		PortletEntry.publish();
 
-		JSONDocument.addFolder(
+		JSONFolder.addFolder(
 			dmFolderDescription = "DM Folder Description",
 			dmFolderName = "DM Folder Name",
 			groupName = "Guest");

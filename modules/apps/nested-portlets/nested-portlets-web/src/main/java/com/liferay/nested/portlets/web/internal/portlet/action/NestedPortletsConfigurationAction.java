@@ -16,7 +16,6 @@ package com.liferay.nested.portlets.web.internal.portlet.action;
 
 import com.liferay.nested.portlets.web.internal.constants.NestedPortletsPortletKeys;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTemplate;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
@@ -81,7 +80,7 @@ public class NestedPortletsConfigurationAction
 			String portletResource = ParamUtil.getString(
 				actionRequest, "portletResource");
 
-			reorganizeNestedColumns(
+			_reorganizeNestedColumns(
 				actionRequest, portletResource, layoutTemplateId,
 				oldLayoutTemplateId);
 		}
@@ -98,7 +97,21 @@ public class NestedPortletsConfigurationAction
 		super.setServletContext(servletContext);
 	}
 
-	protected List<String> getColumnNames(String content, String portletId) {
+	@Reference(unbind = "-")
+	protected void setLayoutLocalService(
+		LayoutLocalService layoutLocalService) {
+
+		_layoutLocalService = layoutLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutTemplateLocalService(
+		LayoutTemplateLocalService layoutTemplateLocalService) {
+
+		_layoutTemplateLocalService = layoutTemplateLocalService;
+	}
+
+	private List<String> _getColumnNames(String content, String portletId) {
 		Matcher matcher = _pattern.matcher(content);
 
 		Set<String> columnIds = new HashSet<>();
@@ -122,10 +135,10 @@ public class NestedPortletsConfigurationAction
 		return new ArrayList<>(columnNames);
 	}
 
-	protected void reorganizeNestedColumns(
+	private void _reorganizeNestedColumns(
 			ActionRequest actionRequest, String portletResource,
 			String newLayoutTemplateId, String oldLayoutTemplateId)
-		throws PortalException {
+		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -136,41 +149,29 @@ public class NestedPortletsConfigurationAction
 
 		Theme theme = themeDisplay.getTheme();
 
-		LayoutTemplate newLayoutTemplate =
-			_layoutTemplateLocalService.getLayoutTemplate(
-				newLayoutTemplateId, false, theme.getThemeId());
-
-		List<String> newColumns = getColumnNames(
-			newLayoutTemplate.getContent(), portletResource);
-
 		LayoutTemplate oldLayoutTemplate =
 			_layoutTemplateLocalService.getLayoutTemplate(
 				oldLayoutTemplateId, false, theme.getThemeId());
 
-		List<String> oldColumns = getColumnNames(
-			oldLayoutTemplate.getContent(), portletResource);
+		if (oldLayoutTemplate != null) {
+			LayoutTemplate newLayoutTemplate =
+				_layoutTemplateLocalService.getLayoutTemplate(
+					newLayoutTemplateId, false, theme.getThemeId());
 
-		layoutTypePortlet.reorganizePortlets(newColumns, oldColumns);
+			List<String> newColumns = _getColumnNames(
+				newLayoutTemplate.getContent(), portletResource);
+
+			List<String> oldColumns = _getColumnNames(
+				oldLayoutTemplate.getContent(), portletResource);
+
+			layoutTypePortlet.reorganizePortlets(newColumns, oldColumns);
+		}
 
 		layoutTypePortlet.setStateMax(StringPool.BLANK);
 
 		_layoutLocalService.updateLayout(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutLocalService(
-		LayoutLocalService layoutLocalService) {
-
-		_layoutLocalService = layoutLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutTemplateLocalService(
-		LayoutTemplateLocalService layoutTemplateLocalService) {
-
-		_layoutTemplateLocalService = layoutTemplateLocalService;
 	}
 
 	private static final Pattern _pattern = Pattern.compile(

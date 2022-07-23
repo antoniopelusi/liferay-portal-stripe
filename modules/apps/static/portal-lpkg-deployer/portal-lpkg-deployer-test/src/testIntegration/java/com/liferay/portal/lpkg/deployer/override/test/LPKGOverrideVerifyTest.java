@@ -84,14 +84,14 @@ public class LPKGOverrideVerifyTest {
 
 			if (Validator.isNotNull(version)) {
 				Assert.assertEquals(
-					"JAR not sucessfully overridden: " + symbolicName,
+					"JAR not successfully overridden: " + symbolicName,
 					new Version(version), bundle.getVersion());
 			}
 			else if (statics.remove(symbolicName)) {
 				String location = bundle.getLocation();
 
 				Assert.assertTrue(
-					"Static JAR not sucessfully overridden: " + symbolicName,
+					"Static JAR not successfully overridden: " + symbolicName,
 					location.contains("protocol=jar"));
 			}
 			else {

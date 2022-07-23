@@ -208,4 +208,7 @@ public interface TrashVersionModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public TrashVersion cloneWithOriginalValues();
+
 }

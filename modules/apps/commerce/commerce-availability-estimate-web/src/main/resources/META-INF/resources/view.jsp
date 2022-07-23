@@ -88,7 +88,7 @@ CommerceAvailabilityEstimateDisplayContext commerceAvailabilityEstimateDisplayCo
 					modelVar="commerceAvailabilityEstimate"
 				>
 					<liferay-ui:search-container-column-text
-						cssClass="important table-cell-expand"
+						cssClass="font-weight-bold important table-cell-expand"
 						href='<%=
 							PortletURLBuilder.createRenderURL(
 								renderResponse
@@ -98,7 +98,7 @@ CommerceAvailabilityEstimateDisplayContext commerceAvailabilityEstimateDisplayCo
 								currentURL
 							).setParameter(
 								"commerceAvailabilityEstimateId", commerceAvailabilityEstimate.getCommerceAvailabilityEstimateId()
-							).build()
+							).buildPortletURL()
 						%>'
 						name="title"
 						value="<%= HtmlUtil.escape(commerceAvailabilityEstimate.getTitle(languageId)) %>"

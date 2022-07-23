@@ -47,12 +47,12 @@ public class SessionParameters {
 		return get(httpServletRequest.getSession(), parameter);
 	}
 
-	public static String get(HttpSession session, String parameter) {
+	public static String get(HttpSession httpSession, String parameter) {
 		if (!USE_SESSION_PARAMETERS) {
 			return parameter;
 		}
 
-		Map<String, String> parameters = _getParameters(session);
+		Map<String, String> parameters = _getParameters(httpSession);
 
 		String newParameter = parameters.get(parameter);
 
@@ -89,21 +89,21 @@ public class SessionParameters {
 		return newParameter;
 	}
 
-	private static Map<String, String> _getParameters(HttpSession session) {
+	private static Map<String, String> _getParameters(HttpSession httpSession) {
 		Map<String, String> parameters = null;
 
 		try {
-			parameters = (Map<String, String>)session.getAttribute(KEY);
+			parameters = (Map<String, String>)httpSession.getAttribute(KEY);
 
 			if (parameters == null) {
 				parameters = new HashMap<>();
 
-				session.setAttribute(KEY, parameters);
+				httpSession.setAttribute(KEY, parameters);
 			}
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			parameters = new HashMap<>();
@@ -128,7 +128,7 @@ public class SessionParameters {
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			parameters = new LinkedHashMap<>();

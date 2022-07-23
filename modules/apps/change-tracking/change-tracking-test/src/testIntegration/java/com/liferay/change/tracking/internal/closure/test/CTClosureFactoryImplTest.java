@@ -586,15 +586,19 @@ public class CTClosureFactoryImplTest {
 
 		public static final ChildTable INSTANCE = new ChildTable();
 
-		public final Column<ChildTable, Long> childId = createColumn(
+		public final Column<ChildTable, Long> childIdColumn = createColumn(
 			"childId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
-		public final Column<ChildTable, Long> ctCollectionId = createColumn(
-			"ctCollectionId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
-		public final Column<ChildTable, Long> grandParentId = createColumn(
-			"grandParentId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-		public final Column<ChildTable, Long> parentChildId = createColumn(
-			"parentChildId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-		public final Column<ChildTable, String> parentName = createColumn(
+		public final Column<ChildTable, Long> ctCollectionIdColumn =
+			createColumn(
+				"ctCollectionId", Long.class, Types.BIGINT,
+				Column.FLAG_PRIMARY);
+		public final Column<ChildTable, Long> grandParentIdColumn =
+			createColumn(
+				"grandParentId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+		public final Column<ChildTable, Long> parentChildIdColumn =
+			createColumn(
+				"parentChildId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+		public final Column<ChildTable, String> parentNameColumn = createColumn(
 			"parentName", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 
 		private ChildTable() {
@@ -622,8 +626,8 @@ public class CTClosureFactoryImplTest {
 					GrandParentTable.INSTANCE
 				).innerJoinON(
 					ChildTable.INSTANCE,
-					ChildTable.INSTANCE.grandParentId.eq(
-						GrandParentTable.INSTANCE.grandParentId)
+					ChildTable.INSTANCE.grandParentIdColumn.eq(
+						GrandParentTable.INSTANCE.grandParentIdColumn)
 				)
 			).referenceInnerJoin(
 				fromStep -> {
@@ -634,8 +638,8 @@ public class CTClosureFactoryImplTest {
 						aliasChildTable
 					).innerJoinON(
 						ChildTable.INSTANCE,
-						ChildTable.INSTANCE.parentChildId.eq(
-							aliasChildTable.childId)
+						ChildTable.INSTANCE.parentChildIdColumn.eq(
+							aliasChildTable.childIdColumn)
 					);
 				}
 			);
@@ -665,10 +669,10 @@ public class CTClosureFactoryImplTest {
 
 		public static final GrandParentTable INSTANCE = new GrandParentTable();
 
-		public final Column<GrandParentTable, Long> grandParentId =
+		public final Column<GrandParentTable, Long> grandParentIdColumn =
 			createColumn(
 				"grandParentId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
-		public final Column<GrandParentTable, Long> parentGrandParentId =
+		public final Column<GrandParentTable, Long> parentGrandParentIdColumn =
 			createColumn(
 				"parentGrandParentId", Long.class, Types.BIGINT,
 				Column.FLAG_DEFAULT);
@@ -692,8 +696,8 @@ public class CTClosureFactoryImplTest {
 					ChildTable.INSTANCE
 				).innerJoinON(
 					GrandParentTable.INSTANCE,
-					GrandParentTable.INSTANCE.grandParentId.eq(
-						ChildTable.INSTANCE.grandParentId)
+					GrandParentTable.INSTANCE.grandParentIdColumn.eq(
+						ChildTable.INSTANCE.grandParentIdColumn)
 				));
 		}
 
@@ -703,8 +707,8 @@ public class CTClosureFactoryImplTest {
 				parentTableReferenceInfoBuilder) {
 
 			parentTableReferenceInfoBuilder.parentColumnReference(
-				GrandParentTable.INSTANCE.grandParentId,
-				GrandParentTable.INSTANCE.parentGrandParentId);
+				GrandParentTable.INSTANCE.grandParentIdColumn,
+				GrandParentTable.INSTANCE.parentGrandParentIdColumn);
 		}
 
 		@Override
@@ -731,13 +735,16 @@ public class CTClosureFactoryImplTest {
 
 		public static final ParentTable INSTANCE = new ParentTable();
 
-		public final Column<ParentTable, Long> ctCollectionId = createColumn(
-			"ctCollectionId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
-		public final Column<ParentTable, Long> grandParentId = createColumn(
-			"grandParentId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-		public final Column<ParentTable, String> name = createColumn(
+		public final Column<ParentTable, Long> ctCollectionIdColumn =
+			createColumn(
+				"ctCollectionId", Long.class, Types.BIGINT,
+				Column.FLAG_PRIMARY);
+		public final Column<ParentTable, Long> grandParentIdColumn =
+			createColumn(
+				"grandParentId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+		public final Column<ParentTable, String> nameColumn = createColumn(
 			"name", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
-		public final Column<ParentTable, Long> parentId = createColumn(
+		public final Column<ParentTable, Long> parentIdColumn = createColumn(
 			"parentId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
 
 		private ParentTable() {
@@ -759,11 +766,11 @@ public class CTClosureFactoryImplTest {
 					ChildTable.INSTANCE
 				).innerJoinON(
 					ParentTable.INSTANCE,
-					ParentTable.INSTANCE.grandParentId.eq(
-						ChildTable.INSTANCE.grandParentId
+					ParentTable.INSTANCE.grandParentIdColumn.eq(
+						ChildTable.INSTANCE.grandParentIdColumn
 					).and(
-						ParentTable.INSTANCE.name.eq(
-							ChildTable.INSTANCE.parentName)
+						ParentTable.INSTANCE.nameColumn.eq(
+							ChildTable.INSTANCE.parentNameColumn)
 					)
 				));
 		}
@@ -778,8 +785,8 @@ public class CTClosureFactoryImplTest {
 					GrandParentTable.INSTANCE
 				).innerJoinON(
 					ParentTable.INSTANCE,
-					ParentTable.INSTANCE.grandParentId.eq(
-						GrandParentTable.INSTANCE.grandParentId)
+					ParentTable.INSTANCE.grandParentIdColumn.eq(
+						GrandParentTable.INSTANCE.grandParentIdColumn)
 				));
 		}
 
@@ -843,6 +850,11 @@ public class CTClosureFactoryImplTest {
 
 		@Override
 		public Object clone() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public T cloneWithOriginalValues() {
 			throw new UnsupportedOperationException();
 		}
 

@@ -99,8 +99,6 @@ public class UADHierarchyDisplay {
 			RenderResponse renderResponse, Locale locale)
 		throws Exception {
 
-		String scope = ParamUtil.getString(httpServletRequest, "scope");
-
 		PortletURL baseURL = PortletURLBuilder.createRenderURL(
 			renderResponse
 		).setParameter(
@@ -108,11 +106,18 @@ public class UADHierarchyDisplay {
 			ParamUtil.getString(httpServletRequest, "applicationKey")
 		).setParameter(
 			"p_u_i_d", ParamUtil.getString(httpServletRequest, "p_u_i_d")
-		).build();
+		).setParameter(
+			"scope",
+			() -> {
+				String scope = ParamUtil.getString(httpServletRequest, "scope");
 
-		if (Validator.isNotNull(scope)) {
-			baseURL.setParameter("scope", scope);
-		}
+				if (Validator.isNotNull(scope)) {
+					return scope;
+				}
+
+				return null;
+			}
+		).buildPortletURL();
 
 		String className = ParamUtil.getString(
 			httpServletRequest, "parentContainerClass");
@@ -298,10 +303,6 @@ public class UADHierarchyDisplay {
 			return null;
 		}
 
-		String primaryKey = ParamUtil.getString(
-			actionRequest, "parentContainerId");
-		String scope = ParamUtil.getString(actionRequest, "scope");
-
 		PortletURL portletURL = PortletURLBuilder.createRenderURL(
 			liferayPortletResponse
 		).setParameter(
@@ -309,18 +310,26 @@ public class UADHierarchyDisplay {
 			ParamUtil.getString(actionRequest, "applicationKey")
 		).setParameter(
 			"p_u_i_d", ParamUtil.getString(actionRequest, "p_u_i_d")
-		).build();
+		).setParameter(
+			"scope",
+			() -> {
+				String scope = ParamUtil.getString(actionRequest, "scope");
 
-		if (Validator.isNotNull(scope)) {
-			portletURL.setParameter("scope", scope);
-		}
+				if (Validator.isNotNull(scope)) {
+					return scope;
+				}
+
+				return null;
+			}
+		).buildPortletURL();
 
 		UADDisplay<Object> uadDisplay =
 			(UADDisplay<Object>)_getUADDisplayByTypeClassName(className);
 
-		Object container = uadDisplay.get(primaryKey);
+		String primaryKey = ParamUtil.getString(
+			actionRequest, "parentContainerId");
 
-		Class<?> parentContainerClass = uadDisplay.getParentContainerClass();
+		Object container = uadDisplay.get(primaryKey);
 
 		String parentContainerId = String.valueOf(
 			uadDisplay.getParentContainerId(container));
@@ -334,8 +343,13 @@ public class UADHierarchyDisplay {
 			portletURL.setParameter(
 				"mvcRenderCommandName",
 				"/user_associated_data/view_uad_hierarchy");
+
+			Class<?> parentContainerClass =
+				uadDisplay.getParentContainerClass();
+
 			portletURL.setParameter(
 				"parentContainerClass", parentContainerClass.getName());
+
 			portletURL.setParameter("parentContainerId", parentContainerId);
 		}
 
@@ -447,7 +461,7 @@ public class UADHierarchyDisplay {
 				_uadHierarchyDeclaration.getContainerUADDisplays()) {
 
 			searchResults.addAll(
-				getContainerDisplays(
+				_getContainerDisplays(
 					containerUADDisplay, parentContainerClass,
 					parentContainerId, allUserItems));
 		}
@@ -493,7 +507,20 @@ public class UADHierarchyDisplay {
 		return (T)object;
 	}
 
-	protected <T> Collection<ContainerDisplay<T>> getContainerDisplays(
+	private void _addEntities(
+		Map<Class<?>, List<Serializable>> entitiesMap,
+		List<Serializable> entities, Class<?> typeClass) {
+
+		if (!entitiesMap.containsKey(typeClass)) {
+			entitiesMap.put(typeClass, new ArrayList<>());
+		}
+
+		List<Serializable> entitiesList = entitiesMap.get(typeClass);
+
+		entitiesList.addAll(entities);
+	}
+
+	private <T> Collection<ContainerDisplay<T>> _getContainerDisplays(
 		UADDisplay<T> containerUADDisplay, Class<?> parentContainerClass,
 		Serializable parentContainerId, List<Object> allUserItems) {
 
@@ -542,19 +569,6 @@ public class UADHierarchyDisplay {
 		}
 
 		return topLevelCategories.values();
-	}
-
-	private void _addEntities(
-		Map<Class<?>, List<Serializable>> entitiesMap,
-		List<Serializable> entities, Class<?> typeClass) {
-
-		if (!entitiesMap.containsKey(typeClass)) {
-			entitiesMap.put(typeClass, new ArrayList<>());
-		}
-
-		List<Serializable> entitiesList = entitiesMap.get(typeClass);
-
-		entitiesList.addAll(entities);
 	}
 
 	private <T> List<Serializable> _getContainerItemPKs(

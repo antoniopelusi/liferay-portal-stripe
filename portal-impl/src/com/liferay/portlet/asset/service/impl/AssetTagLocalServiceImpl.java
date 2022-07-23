@@ -19,9 +19,12 @@ import com.liferay.asset.kernel.exception.AssetTagNameException;
 import com.liferay.asset.kernel.exception.DuplicateTagException;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetTag;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.kernel.service.persistence.AssetEntryPersistence;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCachable;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -45,8 +48,11 @@ import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -94,7 +100,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		// Tag
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long tagId = counterLocalService.increment();
 
@@ -179,7 +185,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	public List<AssetTag> checkTags(long userId, long groupId, String[] names)
 		throws PortalException {
 
-		return checkTags(userId, groupLocalService.getGroup(groupId), names);
+		return checkTags(userId, _groupLocalService.getGroup(groupId), names);
 	}
 
 	/**
@@ -237,7 +243,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		// Indexer
 
-		assetEntryLocalService.reindex(entries);
+		_assetEntryLocalService.reindex(entries);
 
 		Indexer<AssetTag> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
 			AssetTag.class);
@@ -278,7 +284,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	 */
 	@Override
 	public List<AssetTag> getEntryTags(long entryId) {
-		return assetEntryPersistence.getAssetTags(entryId);
+		return _assetEntryPersistence.getAssetTags(entryId);
 	}
 
 	/**
@@ -518,14 +524,14 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	 */
 	@Override
 	public List<AssetTag> getTags(long classNameId, long classPK) {
-		AssetEntry entry = assetEntryPersistence.fetchByC_C(
+		AssetEntry entry = _assetEntryPersistence.fetchByC_C(
 			classNameId, classPK);
 
 		if (entry == null) {
 			return Collections.emptyList();
 		}
 
-		return assetEntryPersistence.getAssetTags(entry.getEntryId());
+		return _assetEntryPersistence.getAssetTags(entry.getEntryId());
 	}
 
 	@Override
@@ -554,7 +560,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	@ThreadLocalCachable
 	public List<AssetTag> getTags(String className, long classPK) {
 		return getTags(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -677,6 +683,22 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 		return searchTags(searchContext);
 	}
 
+	@Override
+	public void subscribeTag(long userId, long groupId, long tagId)
+		throws PortalException {
+
+		throw new UnsupportedOperationException(
+			"This method is implemented in com.liferay.asset.tags.internal." +
+				"service.AssetTagLocalServiceWrapper");
+	}
+
+	@Override
+	public void unsubscribeTag(long userId, long tagId) throws PortalException {
+		throw new UnsupportedOperationException(
+			"This method is implemented in com.liferay.asset.tags.internal." +
+				"service.AssetTagLocalServiceWrapper");
+	}
+
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public AssetTag updateTag(
@@ -691,7 +713,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		name = StringUtil.toLowerCase(StringUtil.trim(name));
 
-		if (!name.equals(tag.getName()) && hasTag(tag.getGroupId(), name)) {
+		if (!name.equals(oldName) && hasTag(tag.getGroupId(), name)) {
 			throw new DuplicateTagException(
 				"A tag with the name " + name + " already exists");
 		}
@@ -721,7 +743,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 			List<AssetEntry> entries = assetTagPersistence.getAssetEntries(
 				tag.getTagId());
 
-			assetEntryLocalService.reindex(entries);
+			_assetEntryLocalService.reindex(entries);
 		}
 
 		return tag;
@@ -871,5 +893,20 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AssetTagLocalServiceImpl.class);
+
+	@BeanReference(type = AssetEntryLocalService.class)
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@BeanReference(type = AssetEntryPersistence.class)
+	private AssetEntryPersistence _assetEntryPersistence;
+
+	@BeanReference(type = ClassNameLocalService.class)
+	private ClassNameLocalService _classNameLocalService;
+
+	@BeanReference(type = GroupLocalService.class)
+	private GroupLocalService _groupLocalService;
+
+	@BeanReference(type = UserLocalService.class)
+	private UserLocalService _userLocalService;
 
 }

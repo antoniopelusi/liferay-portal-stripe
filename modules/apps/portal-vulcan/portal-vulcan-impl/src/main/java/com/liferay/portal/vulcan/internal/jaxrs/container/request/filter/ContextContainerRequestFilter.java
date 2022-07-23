@@ -17,25 +17,25 @@ package com.liferay.portal.vulcan.internal.jaxrs.container.request.filter;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.internal.accept.language.AcceptLanguageImpl;
+import com.liferay.portal.vulcan.internal.configuration.util.ConfigurationUtil;
 import com.liferay.portal.vulcan.internal.jaxrs.context.provider.ContextProviderUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import java.util.Dictionary;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -53,7 +53,7 @@ import org.apache.cxf.jaxrs.impl.UriInfoImpl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptorChain;
 
-import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * @author Javier Gamarra
@@ -62,7 +62,9 @@ import org.osgi.service.cm.Configuration;
 public class ContextContainerRequestFilter implements ContainerRequestFilter {
 
 	public ContextContainerRequestFilter(
-		Map<String, Configuration> configurations,
+		ConfigurationAdmin configurationAdmin,
+		ExpressionConvert<Filter> expressionConvert,
+		FilterParserProvider filterParserProvider,
 		GroupLocalService groupLocalService, Language language, Portal portal,
 		ResourceActionLocalService resourceActionLocalService,
 		ResourcePermissionLocalService resourcePermissionLocalService,
@@ -70,7 +72,9 @@ public class ContextContainerRequestFilter implements ContainerRequestFilter {
 		VulcanBatchEngineImportTaskResource
 			vulcanBatchEngineImportTaskResource) {
 
-		_configurations = configurations;
+		_configurationAdmin = configurationAdmin;
+		_expressionConvert = expressionConvert;
+		_filterParserProvider = filterParserProvider;
 		_groupLocalService = groupLocalService;
 		_language = language;
 		_portal = portal;
@@ -101,40 +105,26 @@ public class ContextContainerRequestFilter implements ContainerRequestFilter {
 	}
 
 	private void _filterExcludedOperationIds(
-		ContainerRequestContext containerRequestContext, Object instance,
-		Message message) {
+		ContainerRequestContext containerRequestContext, Message message) {
 
 		String path = StringUtil.removeSubstring(
 			(String)message.get(Message.BASE_PATH), "/o");
 
 		path = StringUtil.replaceLast(path, '/', "");
 
-		if (_configurations.containsKey(path)) {
-			Configuration configuration = _configurations.get(path);
+		Set<String> excludedOperationIds =
+			ConfigurationUtil.getExcludedOperationIds(
+				_configurationAdmin, path);
 
-			Dictionary<String, Object> properties =
-				configuration.getProperties();
+		Method method = (Method)message.get("org.apache.cxf.resource.method");
 
-			String excludedOperationIds = GetterUtil.getString(
-				properties.get("excludedOperationIds"));
-
-			Set<String> excludedOperationIdsList = SetUtil.fromArray(
-				excludedOperationIds.split(","));
-
-			Class<?> clazz = instance.getClass();
-
-			Method[] methods = clazz.getMethods();
-
-			for (Method method : methods) {
-				if (excludedOperationIdsList.contains(method.getName())) {
-					containerRequestContext.abortWith(
-						Response.status(
-							Response.Status.CONFLICT
-						).entity(
-							"Conflict with " + method.getName()
-						).build());
-				}
-			}
+		if (excludedOperationIds.contains(method.getName())) {
+			containerRequestContext.abortWith(
+				Response.status(
+					Response.Status.CONFLICT
+				).entity(
+					"Conflict with " + method.getName()
+				).build());
 		}
 	}
 
@@ -151,7 +141,7 @@ public class ContextContainerRequestFilter implements ContainerRequestFilter {
 		HttpServletRequest httpServletRequest =
 			ContextProviderUtil.getHttpServletRequest(message);
 
-		_filterExcludedOperationIds(containerRequestContext, instance, message);
+		_filterExcludedOperationIds(containerRequestContext, message);
 
 		Class<?> clazz = instance.getClass();
 
@@ -188,6 +178,16 @@ public class ContextContainerRequestFilter implements ContainerRequestFilter {
 				field.setAccessible(true);
 
 				field.set(instance, _portal.getCompany(httpServletRequest));
+			}
+			else if (fieldClass.isAssignableFrom(ExpressionConvert.class)) {
+				field.setAccessible(true);
+
+				field.set(instance, _expressionConvert);
+			}
+			else if (fieldClass.isAssignableFrom(FilterParserProvider.class)) {
+				field.setAccessible(true);
+
+				field.set(instance, _filterParserProvider);
 			}
 			else if (fieldClass.isAssignableFrom(GroupLocalService.class)) {
 				field.setAccessible(true);
@@ -244,7 +244,9 @@ public class ContextContainerRequestFilter implements ContainerRequestFilter {
 		}
 	}
 
-	private final Map<String, Configuration> _configurations;
+	private final ConfigurationAdmin _configurationAdmin;
+	private final ExpressionConvert<Filter> _expressionConvert;
+	private final FilterParserProvider _filterParserProvider;
 	private final GroupLocalService _groupLocalService;
 	private final Language _language;
 	private final Portal _portal;

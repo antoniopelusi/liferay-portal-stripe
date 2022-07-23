@@ -40,10 +40,11 @@ public interface RoleResource {
 		return new Builder();
 	}
 
-	public Page<Role> getRolesPage(Pagination pagination) throws Exception;
+	public Page<Role> getRolesPage(Integer[] types, Pagination pagination)
+		throws Exception;
 
 	public HttpInvoker.HttpResponse getRolesPageHttpResponse(
-			Pagination pagination)
+			Integer[] types, Pagination pagination)
 		throws Exception;
 
 	public Role getRole(Long roleId) throws Exception;
@@ -174,9 +175,11 @@ public interface RoleResource {
 
 	public static class RoleResourceImpl implements RoleResource {
 
-		public Page<Role> getRolesPage(Pagination pagination) throws Exception {
+		public Page<Role> getRolesPage(Integer[] types, Pagination pagination)
+			throws Exception {
+
 			HttpInvoker.HttpResponse httpResponse = getRolesPageHttpResponse(
-				pagination);
+				types, pagination);
 
 			String content = httpResponse.getContent();
 
@@ -216,7 +219,7 @@ public interface RoleResource {
 		}
 
 		public HttpInvoker.HttpResponse getRolesPageHttpResponse(
-				Pagination pagination)
+				Integer[] types, Pagination pagination)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -239,6 +242,12 @@ public interface RoleResource {
 			}
 
 			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (types != null) {
+				for (int i = 0; i < types.length; i++) {
+					httpInvoker.parameter("types", String.valueOf(types[i]));
+				}
+			}
 
 			if (pagination != null) {
 				httpInvoker.parameter(
@@ -471,8 +480,6 @@ public interface RoleResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
-			httpInvoker.body(userAccountId.toString(), "application/json");
-
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -643,8 +650,6 @@ public interface RoleResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(organizationId.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -817,8 +822,6 @@ public interface RoleResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(siteId.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(

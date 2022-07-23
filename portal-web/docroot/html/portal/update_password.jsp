@@ -192,6 +192,8 @@ if (referer.startsWith(themeDisplay.getPathMain() + "/portal/update_password") &
 
 					<aui:button-row>
 						<aui:button type="submit" />
+
+						<aui:button href='<%= themeDisplay.getPathMain() + "/portal/logout" %>' type="cancel" />
 					</aui:button-row>
 				</aui:form>
 			</c:otherwise>

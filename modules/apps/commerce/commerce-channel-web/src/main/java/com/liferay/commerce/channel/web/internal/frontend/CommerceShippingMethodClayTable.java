@@ -42,7 +42,6 @@ import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -81,10 +80,10 @@ public class CommerceShippingMethodClayTable
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField nameField =
+		ClayTableSchemaField nameClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("name", "name");
 
-		nameField.setContentRenderer("actionLink");
+		nameClayTableSchemaField.setContentRenderer("actionLink");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
 			"description", "description");
@@ -92,10 +91,10 @@ public class CommerceShippingMethodClayTable
 		clayTableSchemaBuilder.addClayTableSchemaField(
 			"shippingEngine", "shipping-engine");
 
-		ClayTableSchemaField statusField =
+		ClayTableSchemaField statusClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("status", "status");
 
-		statusField.setContentRenderer("label");
+		statusClayTableSchemaField.setContentRenderer("label");
 
 		return clayTableSchemaBuilder.build();
 	}
@@ -181,11 +180,9 @@ public class CommerceShippingMethodClayTable
 
 			shippingMethods.add(
 				new ShippingMethod(
-					HtmlUtil.escape(commerceShippingDescription),
-					entry.getKey(), HtmlUtil.escape(commerceShippingName),
-					HtmlUtil.escape(
-						commerceShippingEngine.getName(
-							themeDisplay.getLocale())),
+					commerceShippingDescription, entry.getKey(),
+					commerceShippingName,
+					commerceShippingEngine.getName(themeDisplay.getLocale()),
 					CommerceChannelClayTableUtil.getLabelField(
 						_isActive(commerceShippingMethod),
 						themeDisplay.getLocale())));

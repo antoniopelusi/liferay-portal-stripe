@@ -14,6 +14,8 @@
 
 package com.liferay.portal.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEvent;
@@ -47,6 +49,8 @@ public abstract class BaseSystemEventUADAnonymizer
 		if (systemEvent.getUserId() == userId) {
 			systemEvent.setUserId(anonymousUser.getUserId());
 			systemEvent.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(systemEvent, anonymousUser);
 		}
 
 		systemEventLocalService.updateSystemEvent(systemEvent);
@@ -62,6 +66,19 @@ public abstract class BaseSystemEventUADAnonymizer
 		return SystemEvent.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		SystemEvent systemEvent, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(systemEvent);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return systemEventLocalService.getActionableDynamicQuery();
@@ -71,6 +88,14 @@ public abstract class BaseSystemEventUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return PortalUADConstants.USER_ID_FIELD_NAMES_SYSTEM_EVENT;
 	}
+
+	protected AssetEntry fetchAssetEntry(SystemEvent systemEvent) {
+		return assetEntryLocalService.fetchEntry(
+			SystemEvent.class.getName(), systemEvent.getSystemEventId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected SystemEventLocalService systemEventLocalService;

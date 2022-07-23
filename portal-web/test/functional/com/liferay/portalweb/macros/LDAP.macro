@@ -1,0 +1,34 @@
+definition {
+
+	@description = "Add Apache DS server and test the connection between it and Liferay DXP"
+	macro addLDAPServerAndTestConnection {
+		PortalSettings.addLDAPServer(ldapServerName = "${ldapServerName}");
+
+		PortalSettings.editLDAPServer(ldapServerName = "${ldapServerName}");
+
+		PortalSettings.testLDAPConnection();
+	}
+
+	@description = "Assert no pagination display in the LDAP connection page"
+	macro assertNoPagination {
+		PortalSettings.editLDAPServer(ldapServerName = "${ldapServerName}");
+
+		AssertClick(
+			locator1 = "PortalSettingsAuthentication#LDAP_SERVER_TEST_LDAP_USERS_BUTTON",
+			value1 = "Test LDAP Users");
+
+		AssertElementNotPresent(locator1 = "Pagination#PAGE_ITERATOR");
+
+		Click(
+			key_modalTitle = "LDAP",
+			locator1 = "Button#CLOSE_MODAL");
+	}
+
+	@description = "Enable various LDAP related settings"
+	macro enableLDAPSettings {
+		PortalSettings.configureLDAPSetting(enableSettingList = "${enableSettingList}");
+
+		PortalSettings.viewEnabledLDAPSetting(enableSettingList = "${enableSettingList}");
+	}
+
+}

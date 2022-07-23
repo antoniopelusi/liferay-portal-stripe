@@ -140,7 +140,7 @@ definition {
 		if (isSet(embedVideo)) {
 			WaitForLiferayEvent.initializeLiferayEventLog();
 
-			Click.pauseClickAt(locator1 = "CKEditor#CONTENT_VIDEO_IMAGE");
+			Click.pauseClickAt(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
 
 			if ("${navTab}" == "Documents and Media") {
 				ItemSelector.addVideoFromDM(
@@ -260,7 +260,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "MessageBoardsThread#MESSAGE_ATTACHMENT_INVALID_SIZE_ERROR",
-			value1 = "Request is larger than ${maxFileSize}KB and could not be processed.");
+			value1 = "Please enter a file with a valid file size no larger than ${maxFileSize}KB.");
 
 		PortletEntry.publish();
 	}
@@ -573,7 +573,7 @@ definition {
 
 		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
 
-		if (isSet(deleteViaKBArticle)) {
+		if (isSet(deleteViaKbArticle)) {
 			AssertTextEquals.assertPartialText(
 				locator1 = "Message#INFO",
 				value1 = "Please configure this portlet to make it visible to all users.");
@@ -614,7 +614,9 @@ definition {
 			locator1 = "TextInput#TITLE",
 			value1 = "${kbArticleTitleEdit}");
 
-		CKEditor.addContent(kbArticleContentEdit = "${kbArticleContentEdit}");
+		if (isSet(kbArticleContentEdit)) {
+			CKEditor.addContent(kbArticleContentEdit = "${kbArticleContentEdit}");
+		}
 
 		if (isSet(kbArticleAttachment)) {
 			KBArticle.selectAttachmentCP(kbArticleAttachment = "${kbArticleAttachment}");
@@ -811,9 +813,7 @@ definition {
 	macro importCP {
 		LexiconEntry.gotoAddDropdownMenuItem(menuItem = "Import");
 
-		UploadCommonFile(
-			locator1 = "TextInput#UPLOAD_FILE",
-			value1 = "${kbZipFile}");
+		UploadDependencyFile.uploadArchiveFile(fileName = "${kbZipFile}");
 
 		if ("${applyNumericalPrefix}" == "true") {
 			Check(locator1 = "Checkbox#PRIORITIZATION_STRATEGY");
@@ -903,6 +903,60 @@ definition {
 		AssertClick(
 			locator1 = "Button#SELECT",
 			value1 = "Select");
+	}
+
+	macro openToAddKBArticle {
+
+		// You can use this navigation when you need to access the configuration quickly without checking the UI.
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var groupId = JSONWebcontentSetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
+
+		var parentResourceClassNameId = JSONClassname._getClassNameId(value = "com.liferay.knowledge.base.model.KBFolder");
+
+		if (!(isSet(parentResourcePrimKey))) {
+			var parentResourcePrimKey = "0";
+		}
+
+		// Articles accessed in admin will stay in admin after publishing.
+
+		Open(locator1 = "${baseURL}/group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_knowledge_base_web_portlet_AdminPortlet&_com_liferay_knowledge_base_web_portlet_AdminPortlet_mvcPath=%2Fadmin%2Fedit_article.jsp&_com_liferay_knowledge_base_web_portlet_AdminPortlet_redirect=%2Fgroup%2F${siteURLKey}%2F~%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_knowledge_base_web_portlet_AdminPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_v_l_s_g_id%3D${groupId}%26p_p_auth%3D6eOinWLB&_com_liferay_knowledge_base_web_portlet_AdminPortlet_parentResourceClassNameId=${parentResourceClassNameId}&_com_liferay_knowledge_base_web_portlet_AdminPortlet_parentResourcePrimKey=${parentResourcePrimKey}");
+	}
+
+	macro openToKBArticleInSite {
+
+		// You can use this navigation when you need to access the configuration quickly without checking the UI.
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (isSet(folderName)) {
+			var resourcePrimKey = JSONKnowledgeBase._getKBResourcePrimKey(
+				folderName = "${folderName}",
+				groupName = "${groupName}",
+				kbArticleTitle = "${kbArticleTitle}",
+				site = "${site}");
+		}
+		else {
+			var resourcePrimKey = JSONKnowledgeBase._getKBResourcePrimKey(
+				groupName = "${groupName}",
+				kbArticleTitle = "${kbArticleTitle}",
+				site = "${site}");
+		}
+
+		var resourceClassNameId = JSONClassname._getClassNameId(value = "com.liferay.knowledge.base.model.KBArticle");
+
+		Open(locator1 = "${baseURL}/group/${siteURLKey}/~/control_panel/manage/-/knowledge_base_admin/article/${resourcePrimKey}/maximized?_com_liferay_knowledge_base_web_portlet_AdminPortlet_resourceClassNameId=${resourceClassNameId}");
 	}
 
 	macro selectAllCP {
@@ -1008,7 +1062,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Knowledge Base");
 
 		if (IsElementPresent(locator1 = "KnowledgeBase#ARTICLE_DESCRIPTIVE_ARTICLE_TITLE_GENERIC")) {
@@ -1054,7 +1108,7 @@ definition {
 				value1 = "${kbArticleContentAddedDiff}");
 		}
 
-		if ("${viewNoXMLInTitle}" == "true") {
+		if ("${viewNoXmlInTitle}" == "true") {
 			AssertTextNotPresent(
 				locator1 = "KnowledgeBaseArticle#TITLE",
 				value1 = "xml");
@@ -1076,6 +1130,12 @@ definition {
 	}
 
 	macro viewBlogsEntryRelatedAsset {
+		var key_kbArticleRelatedAssetTitle = "${kbArticleRelatedAssetTitle}";
+
+		AssertClick.assertTextClickAt(
+			locator1 = "AssetRelatedAssets#KB_RELATED_ASSETS_LINKS",
+			value1 = "${kbArticleRelatedAssetTitle}");
+
 		AssertTextEquals(
 			locator1 = "BlogsEntry#CONTENT_GENERIC",
 			value1 = "Blogs Entry Content");
@@ -1177,17 +1237,14 @@ definition {
 					key_service = "${service}",
 					locator1 = "BlogsEntry#CONTENT_VIDEO");
 			}
-
 			else if ("${service}" == "facebook") {
 				AssertVisible(
 					key_service = "${service}",
 					locator1 = "BlogsEntry#CONTENT_VIDEO");
 			}
-
 			else if ("${internalVideo}" == "true") {
 				DMDocument.viewInternalVideoPreview(videoName = "${videoName}");
 			}
-
 			else {
 				AssertElementPresent(
 					key_service = "youtube",
@@ -1338,10 +1395,6 @@ definition {
 	}
 
 	macro viewKBDisplayPG {
-		if (isSet(kbArticleFriendlyURL)) {
-			AssertLocation(value1 = "http://localhost:8080/web/guest/knowledge-base-display/-/knowledge_base/${kbArticleFriendlyURL}");
-		}
-
 		if ("${sourceURL}" == "true") {
 			AssertClick(
 				locator1 = "KnowledgeBaseArticle#EDIT_ON_GITHUB",
@@ -1439,6 +1492,16 @@ definition {
 		AssertTextEquals(
 			locator1 = "KnowledgeBase#DISPLAY_CONTENT",
 			value1 = "${kbArticleContent}");
+
+		if (isSet(embedVideo)) {
+			AssertElementPresent(
+				key_service = "youtube",
+				locator1 = "BlogsEntry#CONTENT_VIDEO");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#EMBEDDED_VIDEO_IFRAME");
+
+			AssertElementPresent(locator1 = "CKEditor#VIDEO_BUTTON_PLAY");
+		}
 
 		if (isSet(customFieldName)) {
 			AssertTextEquals(

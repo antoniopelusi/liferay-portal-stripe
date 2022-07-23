@@ -272,15 +272,11 @@ public class JournalFeedStagedModelDataHandler
 
 			if (!feedId.equals(importedFeed.getFeedId())) {
 				if (_log.isWarnEnabled()) {
-					StringBundler sb = new StringBundler(5);
-
-					sb.append("A feed with the ID ");
-					sb.append(feedId);
-					sb.append(" already exists. The new generated ID is ");
-					sb.append(importedFeed.getFeedId());
-					sb.append(".");
-
-					_log.warn(sb.toString());
+					_log.warn(
+						StringBundler.concat(
+							"A feed with the ID ", feedId,
+							" already exists. The new generated ID is ",
+							importedFeed.getFeedId(), "."));
 				}
 			}
 		}
@@ -288,17 +284,12 @@ public class JournalFeedStagedModelDataHandler
 					feedTargetLayoutFriendlyUrlException) {
 
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(7);
-
-				sb.append("A feed with the ID ");
-				sb.append(feedId);
-				sb.append(" cannot be imported because layout with friendly ");
-				sb.append("URL ");
-				sb.append(feed.getTargetLayoutFriendlyUrl());
-				sb.append(" does not exist: ");
-				sb.append(feedTargetLayoutFriendlyUrlException.getMessage());
-
-				_log.warn(sb.toString());
+				_log.warn(
+					StringBundler.concat(
+						"A feed with the ID ", feedId,
+						" cannot be imported because layout with friendly URL ",
+						feed.getTargetLayoutFriendlyUrl(), " does not exist: ",
+						feedTargetLayoutFriendlyUrlException.getMessage()));
 			}
 		}
 	}

@@ -106,4 +106,7 @@ public interface LocalizedEntryModel extends BaseModel<LocalizedEntry> {
 
 	public Map<String, String> getLanguageIdToContentMap();
 
+	@Override
+	public LocalizedEntry cloneWithOriginalValues();
+
 }

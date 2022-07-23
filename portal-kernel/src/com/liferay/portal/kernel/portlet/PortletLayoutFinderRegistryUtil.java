@@ -14,13 +14,14 @@
 
 package com.liferay.portal.kernel.portlet;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerMap;
-import com.liferay.registry.util.StringPlus;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.List;
 
@@ -44,11 +45,12 @@ public class PortletLayoutFinderRegistryUtil {
 		PortletLayoutFinderRegistryUtil.class);
 
 	private static final ServiceTrackerMap<String, List<PortletLayoutFinder>>
-		_serviceTrackerMap = ServiceTrackerCollections.openMultiValueMap(
-			PortletLayoutFinder.class, "(model.class.name=*)",
+		_serviceTrackerMap = ServiceTrackerMapFactory.openMultiValueMap(
+			SystemBundleUtil.getBundleContext(), PortletLayoutFinder.class,
+			"(model.class.name=*)",
 			(serviceReference, emitter) -> {
 				for (String modelClassName :
-						StringPlus.asList(
+						StringUtil.asList(
 							serviceReference.getProperty("model.class.name"))) {
 
 					emitter.emit(modelClassName);
@@ -80,7 +82,7 @@ public class PortletLayoutFinderRegistryUtil {
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 

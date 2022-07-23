@@ -1,6 +1,5 @@
 {
 	"dependencies": {
-		"frontend-js-web": "*"
 	},
 	"main": "index.es.js",
 	"name": "item-selector-web",
@@ -9,5 +8,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "7.0.4"
+	"version": "7.0.18"
 }

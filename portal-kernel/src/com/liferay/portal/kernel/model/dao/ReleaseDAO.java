@@ -38,29 +38,26 @@ public class ReleaseDAO {
 
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-		StringBundler sb = new StringBundler(4);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"insert into Release_ (mvccVersion, releaseId, ",
+					"createDate, modifiedDate, servletContextName, ",
+					"schemaVersion, buildNumber, buildDate, verified, state_, ",
+					"testString) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-		sb.append("insert into Release_ (mvccVersion, releaseId, createDate, ");
-		sb.append("modifiedDate, servletContextName, schemaVersion, ");
-		sb.append("buildNumber, buildDate, verified, state_, testString) ");
-		sb.append("values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			preparedStatement.setLong(1, 0);
+			preparedStatement.setLong(2, increment());
+			preparedStatement.setTimestamp(3, timestamp);
+			preparedStatement.setTimestamp(4, timestamp);
+			preparedStatement.setString(5, bundleSymbolicName);
+			preparedStatement.setString(6, "0.0.1");
+			preparedStatement.setInt(7, 001);
+			preparedStatement.setTimestamp(8, timestamp);
+			preparedStatement.setBoolean(9, false);
+			preparedStatement.setInt(10, 0);
+			preparedStatement.setString(11, ReleaseConstants.TEST_STRING);
 
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			ps.setLong(1, 0);
-			ps.setLong(2, increment());
-			ps.setTimestamp(3, timestamp);
-			ps.setTimestamp(4, timestamp);
-			ps.setString(5, bundleSymbolicName);
-			ps.setString(6, "0.0.1");
-			ps.setInt(7, 001);
-			ps.setTimestamp(8, timestamp);
-			ps.setBoolean(9, false);
-			ps.setInt(10, 0);
-			ps.setString(11, ReleaseConstants.TEST_STRING);
-
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
@@ -68,13 +65,13 @@ public class ReleaseDAO {
 			Connection connection, String bundleSymbolicName)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from Release_ where servletContextName = ?")) {
 
-			ps.setString(1, bundleSymbolicName);
+			preparedStatement.setString(1, bundleSymbolicName);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				return rs.next();
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				return resultSet.next();
 			}
 		}
 	}

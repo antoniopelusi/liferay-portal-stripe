@@ -211,15 +211,10 @@ public class AssetCategoryFinderImpl
 			closeSession(session);
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("No AssetCategory exists with the key {groupId=");
-		sb.append(groupId);
-		sb.append(", name=");
-		sb.append(name);
-		sb.append("}");
-
-		throw new NoSuchCategoryException(sb.toString());
+		throw new NoSuchCategoryException(
+			StringBundler.concat(
+				"No AssetCategory exists with the key {groupId=", groupId,
+				", name=", name, "}"));
 	}
 
 	@Override

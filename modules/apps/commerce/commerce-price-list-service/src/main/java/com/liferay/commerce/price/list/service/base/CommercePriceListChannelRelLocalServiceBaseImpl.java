@@ -26,6 +26,7 @@ import com.liferay.commerce.price.list.service.persistence.CommercePriceListComm
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListCommerceAccountGroupRelPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListDiscountRelPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListFinder;
+import com.liferay.commerce.price.list.service.persistence.CommercePriceListOrderTypeRelPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommercePriceListPersistence;
 import com.liferay.commerce.price.list.service.persistence.CommerceTierPriceEntryPersistence;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
@@ -33,6 +34,7 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -54,9 +56,11 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -84,7 +88,7 @@ import javax.sql.DataSource;
 public abstract class CommercePriceListChannelRelLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements CommercePriceListChannelRelLocalService,
-			   IdentifiableOSGiService {
+			   CTService<CommercePriceListChannelRel>, IdentifiableOSGiService {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -173,6 +177,13 @@ public abstract class CommercePriceListChannelRelLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return commercePriceListChannelRelPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -900,6 +911,56 @@ public abstract class CommercePriceListChannelRelLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the commerce price list order type rel local service.
+	 *
+	 * @return the commerce price list order type rel local service
+	 */
+	public com.liferay.commerce.price.list.service.
+		CommercePriceListOrderTypeRelLocalService
+			getCommercePriceListOrderTypeRelLocalService() {
+
+		return commercePriceListOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Sets the commerce price list order type rel local service.
+	 *
+	 * @param commercePriceListOrderTypeRelLocalService the commerce price list order type rel local service
+	 */
+	public void setCommercePriceListOrderTypeRelLocalService(
+		com.liferay.commerce.price.list.service.
+			CommercePriceListOrderTypeRelLocalService
+				commercePriceListOrderTypeRelLocalService) {
+
+		this.commercePriceListOrderTypeRelLocalService =
+			commercePriceListOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Returns the commerce price list order type rel persistence.
+	 *
+	 * @return the commerce price list order type rel persistence
+	 */
+	public CommercePriceListOrderTypeRelPersistence
+		getCommercePriceListOrderTypeRelPersistence() {
+
+		return commercePriceListOrderTypeRelPersistence;
+	}
+
+	/**
+	 * Sets the commerce price list order type rel persistence.
+	 *
+	 * @param commercePriceListOrderTypeRelPersistence the commerce price list order type rel persistence
+	 */
+	public void setCommercePriceListOrderTypeRelPersistence(
+		CommercePriceListOrderTypeRelPersistence
+			commercePriceListOrderTypeRelPersistence) {
+
+		this.commercePriceListOrderTypeRelPersistence =
+			commercePriceListOrderTypeRelPersistence;
+	}
+
+	/**
 	 * Returns the commerce tier price entry local service.
 	 *
 	 * @return the commerce tier price entry local service
@@ -1103,8 +1164,24 @@ public abstract class CommercePriceListChannelRelLocalServiceBaseImpl
 		return CommercePriceListChannelRelLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<CommercePriceListChannelRel> getCTPersistence() {
+		return commercePriceListChannelRelPersistence;
+	}
+
+	@Override
+	public Class<CommercePriceListChannelRel> getModelClass() {
 		return CommercePriceListChannelRel.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CommercePriceListChannelRel>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(
+			commercePriceListChannelRelPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -1231,6 +1308,17 @@ public abstract class CommercePriceListChannelRelLocalServiceBaseImpl
 	@BeanReference(type = CommercePriceListDiscountRelPersistence.class)
 	protected CommercePriceListDiscountRelPersistence
 		commercePriceListDiscountRelPersistence;
+
+	@BeanReference(
+		type = com.liferay.commerce.price.list.service.CommercePriceListOrderTypeRelLocalService.class
+	)
+	protected com.liferay.commerce.price.list.service.
+		CommercePriceListOrderTypeRelLocalService
+			commercePriceListOrderTypeRelLocalService;
+
+	@BeanReference(type = CommercePriceListOrderTypeRelPersistence.class)
+	protected CommercePriceListOrderTypeRelPersistence
+		commercePriceListOrderTypeRelPersistence;
 
 	@BeanReference(
 		type = com.liferay.commerce.price.list.service.CommerceTierPriceEntryLocalService.class

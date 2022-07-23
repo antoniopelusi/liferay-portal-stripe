@@ -56,15 +56,8 @@ public class LogEvent {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{level=");
-		sb.append(getPriority());
-		sb.append(", message=");
-		sb.append(getMessage());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{level=", getPriority(), ", message=", getMessage(), "}");
 	}
 
 	private final LoggingEvent _loggingEvent;

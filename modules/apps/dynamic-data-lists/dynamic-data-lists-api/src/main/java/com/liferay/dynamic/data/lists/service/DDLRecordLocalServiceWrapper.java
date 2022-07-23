@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class DDLRecordLocalServiceWrapper
 	implements DDLRecordLocalService, ServiceWrapper<DDLRecordLocalService> {
 
+	public DDLRecordLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDLRecordLocalServiceWrapper(
 		DDLRecordLocalService ddlRecordLocalService) {
 
@@ -215,6 +219,13 @@ public class DDLRecordLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddlRecordLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddlRecordLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -149,6 +149,10 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -392,6 +396,17 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 	 */
 	public static int getLayoutPageTemplateCollectionsCount() {
 		return getService().getLayoutPageTemplateCollectionsCount();
+	}
+
+	public static int getLayoutPageTemplateCollectionsCount(long groupId) {
+		return getService().getLayoutPageTemplateCollectionsCount(groupId);
+	}
+
+	public static int getLayoutPageTemplateCollectionsCount(
+		long groupId, String name) {
+
+		return getService().getLayoutPageTemplateCollectionsCount(
+			groupId, name);
 	}
 
 	/**

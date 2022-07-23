@@ -64,8 +64,7 @@ public class DeleteMBMessagesListener extends BaseMessageListener {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_akismetServiceConfiguration = ConfigurableUtil.createConfigurable(
-			AkismetServiceConfiguration.class, properties);
+		modified(properties);
 
 		String cronExpression = GetterUtil.getString(
 			properties.get("cron.expression"), _DEFAULT_CRON_EXPRESSION);
@@ -141,10 +140,16 @@ public class DeleteMBMessagesListener extends BaseMessageListener {
 			}
 			catch (NoSuchMessageException noSuchMessageException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchMessageException, noSuchMessageException);
+					_log.debug(noSuchMessageException);
 				}
 			}
 		}
+	}
+
+	@Modified
+	protected void modified(Map<String, Object> properties) {
+		_akismetServiceConfiguration = ConfigurableUtil.createConfigurable(
+			AkismetServiceConfiguration.class, properties);
 	}
 
 	private static final String _DEFAULT_CRON_EXPRESSION = "0 0 0 * * ?";
@@ -164,7 +169,7 @@ public class DeleteMBMessagesListener extends BaseMessageListener {
 	@Reference
 	private SchedulerEngineHelper _schedulerEngineHelper;
 
-	private SchedulerEntryImpl _schedulerEntryImpl;
+	private volatile SchedulerEntryImpl _schedulerEntryImpl;
 
 	@Reference
 	private TriggerFactory _triggerFactory;

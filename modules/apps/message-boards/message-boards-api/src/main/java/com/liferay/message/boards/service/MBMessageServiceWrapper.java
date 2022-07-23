@@ -27,6 +27,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class MBMessageServiceWrapper
 	implements MBMessageService, ServiceWrapper<MBMessageService> {
 
+	public MBMessageServiceWrapper() {
+		this(null);
+	}
+
 	public MBMessageServiceWrapper(MBMessageService mbMessageService) {
 		_mbMessageService = mbMessageService;
 	}
@@ -240,6 +244,28 @@ public class MBMessageServiceWrapper
 		return _mbMessageService.getCategoryMessagesRSS(
 			groupId, categoryId, status, max, type, version, displayStyle,
 			feedURL, entryURL, themeDisplay);
+	}
+
+	@Override
+	public java.util.List<MBMessage> getChildMessages(
+			long parentMessageId, boolean flatten,
+			com.liferay.portal.kernel.dao.orm.QueryDefinition<MBMessage>
+				queryDefinition)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _mbMessageService.getChildMessages(
+			parentMessageId, flatten, queryDefinition);
+	}
+
+	@Override
+	public int getChildMessagesCount(
+			long parentMessageId, boolean flatten,
+			com.liferay.portal.kernel.dao.orm.QueryDefinition<MBMessage>
+				queryDefinition)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _mbMessageService.getChildMessagesCount(
+			parentMessageId, flatten, queryDefinition);
 	}
 
 	@Override

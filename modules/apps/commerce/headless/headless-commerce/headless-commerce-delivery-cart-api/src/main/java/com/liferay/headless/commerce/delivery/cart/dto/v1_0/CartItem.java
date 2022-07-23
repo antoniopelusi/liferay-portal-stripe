@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -52,6 +53,40 @@ public class CartItem implements Serializable {
 	public static CartItem toDTO(String json) {
 		return ObjectMapperUtil.readValue(CartItem.class, json);
 	}
+
+	public static CartItem unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(CartItem.class, json);
+	}
+
+	@Schema
+	public String getAdaptiveMediaImageHTMLTag() {
+		return adaptiveMediaImageHTMLTag;
+	}
+
+	public void setAdaptiveMediaImageHTMLTag(String adaptiveMediaImageHTMLTag) {
+		this.adaptiveMediaImageHTMLTag = adaptiveMediaImageHTMLTag;
+	}
+
+	@JsonIgnore
+	public void setAdaptiveMediaImageHTMLTag(
+		UnsafeSupplier<String, Exception>
+			adaptiveMediaImageHTMLTagUnsafeSupplier) {
+
+		try {
+			adaptiveMediaImageHTMLTag =
+				adaptiveMediaImageHTMLTagUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String adaptiveMediaImageHTMLTag;
 
 	@Schema
 	@Valid
@@ -303,6 +338,36 @@ public class CartItem implements Serializable {
 	protected Long productId;
 
 	@Schema
+	@Valid
+	public Map<String, String> getProductURLs() {
+		return productURLs;
+	}
+
+	public void setProductURLs(Map<String, String> productURLs) {
+		this.productURLs = productURLs;
+	}
+
+	@JsonIgnore
+	public void setProductURLs(
+		UnsafeSupplier<Map<String, String>, Exception>
+			productURLsUnsafeSupplier) {
+
+		try {
+			productURLs = productURLsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Map<String, String> productURLs;
+
+	@Schema
 	public Integer getQuantity() {
 		return quantity;
 	}
@@ -522,6 +587,20 @@ public class CartItem implements Serializable {
 
 		sb.append("{");
 
+		if (adaptiveMediaImageHTMLTag != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"adaptiveMediaImageHTMLTag\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(adaptiveMediaImageHTMLTag));
+
+			sb.append("\"");
+		}
+
 		if (cartItems != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -644,6 +723,16 @@ public class CartItem implements Serializable {
 			sb.append(productId);
 		}
 
+		if (productURLs != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"productURLs\": ");
+
+			sb.append(_toJSON(productURLs));
+		}
+
 		if (quantity != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -735,9 +824,9 @@ public class CartItem implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -763,7 +852,7 @@ public class CartItem implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -795,7 +884,7 @@ public class CartItem implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -811,5 +900,10 @@ public class CartItem implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

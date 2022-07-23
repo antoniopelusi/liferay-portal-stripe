@@ -1,0 +1,64 @@
+definition {
+
+	@description = "Create a page or child page to an existing site template."
+	macro addLayoutToSiteTemplate {
+		Variables.assertDefined(parameterList = "${groupName},${layoutName}");
+
+		JSONLayout.addPrivateLayout(
+			groupName = "${groupName}",
+			layoutName = "${layoutName}",
+			parentLayoutName = "${parentLayoutName}",
+			site = "false");
+	}
+
+	macro addSiteFromSiteTemplate {
+		Variables.assertDefined(parameterList = "${groupName},${siteTemplateName}");
+
+		var privateLayout = JSONLayoutSetter.setPrivateLayout(privateLayout = "${privateLayout}");
+
+		var layoutSetPrototypeUuid = JSONSiteTemplateAPI._getSiteTemplateUuidByName(siteTemplateName = "${siteTemplateName}");
+
+		JSONGroup.addGroup(groupName = "${groupName}");
+
+		var groupId = JSONGroupSetter.setGroupId(groupName = "${groupName}");
+
+		JSONSiteTemplateAPI._applyTemplateToSite(
+			groupId = "${groupId}",
+			layoutSetPrototypeUuid = "${layoutSetPrototypeUuid}",
+			privateLayout = "${privateLayout}");
+	}
+
+	macro addSiteTemplate {
+		Variables.assertDefined(parameterList = "${siteTemplateName}");
+
+		var description = JSONSiteTemplateSetter.setTemplateDescription(description = "${description}");
+
+		var active = JSONSiteTemplateSetter.setTemplateStatus(active = "${active}");
+
+		var layoutsUpdateable = JSONSiteTemplateSetter.setTemplateIsUpdateable(layoutsUpdateable = "${layoutsUpdateable}");
+
+		var readyForPropagation = JSONSiteTemplateSetter.setTemplatePropagation(readyForPropagation = "${readyForPropagation}");
+
+		JSONSiteTemplateAPI._addSiteTemplateByName(
+			active = "${active}",
+			description = "${description}",
+			layoutsUpdateable = "${layoutsUpdateable}",
+			name = "${siteTemplateName}",
+			readyForPropagation = "${readyForPropagation}");
+	}
+
+	macro deleteNonDefaultTemplates {
+		var companyId = JSONCompany.getCompanyId();
+
+		JSONSiteTemplateAPI._deleteNonDefaultSiteTemplates(companyId = "${companyId}");
+	}
+
+	macro deleteSiteTemplateByName {
+		Variables.assertDefined(parameterList = "${siteTemplateName}");
+
+		var layoutSetPrototypeId = JSONSiteTemplateAPI._getSiteTemplateIdByName(companyId = "${companyId}");
+
+		JSONSiteTemplateAPI._deleteSiteTemplateById(layoutSetPrototypeId = "${layoutSetPrototypeId}");
+	}
+
+}

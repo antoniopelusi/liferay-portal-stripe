@@ -15,7 +15,6 @@
 import '@testing-library/jest-dom/extend-expect';
 import {
 	act,
-	cleanup,
 	fireEvent,
 	getByLabelText,
 	getByText,
@@ -24,26 +23,54 @@ import {
 } from '@testing-library/react';
 import React from 'react';
 
-import {useCollectionConfig} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/components/CollectionItemContext';
 import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/editableFragmentEntryProcessor';
 import {LAYOUT_TYPES} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/layoutTypes';
 import {config} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/config/index';
+import {useCollectionConfig} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/CollectionItemContext';
+import {StoreAPIContextProvider} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
 import CollectionService from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/services/CollectionService';
-import InfoItemService from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/services/InfoItemService';
-import {StoreAPIContextProvider} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/store/index';
 import MappingSelector from '../../../../../../src/main/resources/META-INF/resources/page_editor/common/components/MappingSelector';
+
+const defaultMappingFields = {
+	'InfoItemClassNameId-infoItemClassTypeId': [
+		{
+			fields: [
+				{key: 'unmapped', label: 'unmapped'},
+				{
+					key: 'text-field-1',
+					label: 'Text Field 1',
+					type: 'text',
+				},
+			],
+		},
+	],
+	'mappingType-mappingSubtype': [
+		{
+			fields: [
+				{
+					key: 'structure-field-1',
+					label: 'Structure Field 1',
+					type: 'text',
+				},
+			],
+		},
+	],
+};
 
 const infoItem = {
 	className: 'InfoItemClassName',
 	classNameId: 'InfoItemClassNameId',
 	classPK: 'infoItemClassPK',
+	classTypeId: 'infoItemClassTypeId',
 	title: 'Info Item',
 };
 
 const emptyCollectionConfig = {
 	collection: {
-		itemSubtype: '',
-		itemType: '',
+		classNameId: 'collectionClassNameId',
+		classPK: 'collectionClassPK',
+		itemSubtype: 'collectionItemSubtype',
+		itemType: 'collectionItemType',
 	},
 };
 
@@ -54,11 +81,11 @@ jest.mock(
 			layoutType: '0',
 			selectedMappingTypes: {
 				subtype: {
-					id: '0',
+					id: 'mappingSubtype',
 					label: 'mappingSubtype',
 				},
 				type: {
-					id: '1',
+					id: 'mappingType',
 					label: 'mappingType',
 				},
 			},
@@ -81,20 +108,6 @@ jest.mock(
 jest.mock(
 	'../../../../../../src/main/resources/META-INF/resources/page_editor/app/services/InfoItemService',
 	() => ({
-		getAvailableInfoItemMappingFields: jest.fn(() =>
-			Promise.resolve([
-				{
-					fields: [
-						{key: 'unmapped', label: 'unmapped'},
-						{
-							key: 'text-field-1',
-							label: 'Text Field 1',
-							type: 'text',
-						},
-					],
-				},
-			])
-		),
 		getAvailableStructureMappingFields: jest.fn(() =>
 			Promise.resolve([
 				{
@@ -112,13 +125,17 @@ jest.mock(
 );
 
 jest.mock(
-	'../../../../../../src/main/resources/META-INF/resources/page_editor/app/components/CollectionItemContext',
+	'../../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/CollectionItemContext',
 	() => ({
 		useCollectionConfig: jest.fn(),
 	})
 );
 
-function renderMappingSelector({mappedItem = {}, onMappingSelect = () => {}}) {
+function renderMappingSelector({
+	mappedItem = {},
+	mappingFields = defaultMappingFields,
+	onMappingSelect = () => {},
+}) {
 	const state = {
 		fragmentEntryLinks: {
 			0: {
@@ -131,7 +148,17 @@ function renderMappingSelector({mappedItem = {}, onMappingSelect = () => {}}) {
 				},
 			},
 		},
-		mappedInfoItems: [],
+		mappingFields,
+		pageContents: [
+			{
+				classNameId: 'mappedItemClassNameId',
+				classPK: 'mappedItemClassPK',
+				classTypeId: 'mappedItemClassTypeId',
+				itemSubtype: 'Mapped Item Subtype',
+				itemType: 'Mapped Item Type',
+				title: 'mappedItemTitle',
+			},
+		],
 		segmentsExperienceId: 0,
 	};
 
@@ -154,16 +181,10 @@ describe('MappingSelector', () => {
 		[langKey, args].join('-')
 	);
 
-	afterEach(() => {
-		cleanup();
-	});
-
 	it('renders correct selects in content pages', async () => {
-		await act(async () => {
-			renderMappingSelector({});
-		});
+		renderMappingSelector({});
 
-		expect(getByText(document.body, 'content')).toBeInTheDocument();
+		expect(getByText(document.body, 'item')).toBeInTheDocument();
 		expect(getByText(document.body, 'field')).toBeInTheDocument();
 
 		expect(queryByText(document.body, 'source')).not.toBeInTheDocument();
@@ -172,9 +193,7 @@ describe('MappingSelector', () => {
 	it('renders correct selects in display pages', async () => {
 		config.layoutType = LAYOUT_TYPES.display;
 
-		await act(async () => {
-			renderMappingSelector({});
-		});
+		renderMappingSelector({});
 
 		expect(getByText(document.body, 'field')).toBeInTheDocument();
 		expect(getByText(document.body, 'source')).toBeInTheDocument();
@@ -189,16 +208,14 @@ describe('MappingSelector', () => {
 
 		const sourceTypeSelect = getByLabelText('source');
 
-		await act(async () => {
-			fireEvent.change(sourceTypeSelect, {
-				target: {value: 'structure'},
-			});
+		fireEvent.change(sourceTypeSelect, {
+			target: {value: 'structure'},
 		});
 
 		expect(getByText('field')).toBeInTheDocument();
 		expect(getByText('source')).toBeInTheDocument();
 
-		expect(queryByText('content')).not.toBeInTheDocument();
+		expect(queryByText('item')).not.toBeInTheDocument();
 	});
 
 	it('calls onMappingSelect with correct params when mapping to content', async () => {
@@ -206,25 +223,22 @@ describe('MappingSelector', () => {
 
 		const onMappingSelect = jest.fn();
 
-		await act(async () => {
-			renderMappingSelector({
-				mappedItem: infoItem,
-				onMappingSelect,
-			});
+		renderMappingSelector({
+			mappedItem: infoItem,
+			onMappingSelect,
 		});
 
 		const fieldSelect = getByLabelText(document.body, 'field');
 
-		await act(async () => {
-			fireEvent.change(fieldSelect, {
-				target: {value: 'text-field-1'},
-			});
+		fireEvent.change(fieldSelect, {
+			target: {value: 'text-field-1'},
 		});
 
 		expect(onMappingSelect).toBeCalledWith({
 			className: 'InfoItemClassName',
 			classNameId: 'InfoItemClassNameId',
 			classPK: 'infoItemClassPK',
+			classTypeId: 'infoItemClassTypeId',
 			fieldId: 'text-field-1',
 			title: 'Info Item',
 		});
@@ -235,26 +249,20 @@ describe('MappingSelector', () => {
 
 		const onMappingSelect = jest.fn();
 
-		await act(async () => {
-			renderMappingSelector({
-				onMappingSelect,
-			});
+		renderMappingSelector({
+			onMappingSelect,
 		});
 
 		const sourceTypeSelect = getByLabelText(document.body, 'source');
 
-		await act(async () => {
-			fireEvent.change(sourceTypeSelect, {
-				target: {value: 'structure'},
-			});
+		fireEvent.change(sourceTypeSelect, {
+			target: {value: 'structure'},
 		});
 
 		const fieldSelect = getByLabelText(document.body, 'field');
 
-		await act(async () => {
-			fireEvent.change(fieldSelect, {
-				target: {value: 'structure-field-1'},
-			});
+		fireEvent.change(fieldSelect, {
+			target: {value: 'structure-field-1'},
 		});
 
 		expect(onMappingSelect).toBeCalledWith({
@@ -265,19 +273,15 @@ describe('MappingSelector', () => {
 	it('calls onMappingSelect with empty object when unmapping', async () => {
 		const onMappingSelect = jest.fn();
 
-		await act(async () => {
-			renderMappingSelector({
-				mappedItem: infoItem,
-				onMappingSelect,
-			});
+		renderMappingSelector({
+			mappedItem: infoItem,
+			onMappingSelect,
 		});
 
 		const fieldSelect = getByLabelText(document.body, 'field');
 
-		await act(async () => {
-			fireEvent.change(fieldSelect, {
-				target: {value: 'unmapped'},
-			});
+		fireEvent.change(fieldSelect, {
+			target: {value: 'unmapped'},
 		});
 
 		expect(onMappingSelect).toBeCalledWith({});
@@ -302,34 +306,39 @@ describe('MappingSelector', () => {
 		);
 
 		await act(async () => {
-			renderMappingSelector({});
+			renderMappingSelector({
+				mappingFields: {
+					'collectionClassNameId-collectionClassPK': [
+						{
+							fields: collectionFields,
+						},
+					],
+				},
+			});
 		});
 
+		useCollectionConfig.mockReset();
+
+		CollectionService.getCollectionMappingFields.mockReset();
+
 		expect(queryByText(document.body, 'source')).not.toBeInTheDocument();
-		expect(queryByText(document.body, 'content')).not.toBeInTheDocument();
+		expect(queryByText(document.body, 'item')).not.toBeInTheDocument();
 
 		expect(getByText(document.body, 'field')).toBeInTheDocument();
 
 		collectionFields.forEach((field) =>
 			expect(getByText(document.body, field.label)).toBeInTheDocument()
 		);
-
-		useCollectionConfig.mockReset();
-
-		CollectionService.getCollectionMappingFields.mockReset();
 	});
 
 	it('shows a warning and disables the selector if the fields array is empty', async () => {
 		config.layoutType = LAYOUT_TYPES.content;
 
-		InfoItemService.getAvailableInfoItemMappingFields.mockImplementation(
-			() => Promise.resolve([])
-		);
-
-		await act(async () => {
-			renderMappingSelector({
-				mappedItem: infoItem,
-			});
+		renderMappingSelector({
+			mappedItem: infoItem,
+			mappingFields: {
+				'InfoItemClassNameId-infoItemClassTypeId': [],
+			},
 		});
 
 		const fieldSelect = getByLabelText(document.body, 'field');
@@ -340,6 +349,25 @@ describe('MappingSelector', () => {
 				document.body,
 				'no-fields-are-available-for-x-editable-text'
 			)
+		).toBeInTheDocument();
+	});
+
+	it('shows type and subtype label when some item is mapped', async () => {
+		config.layoutType = LAYOUT_TYPES.content;
+
+		renderMappingSelector({
+			mappedItem: {
+				classNameId: 'mappedItemClassNameId',
+				classPK: 'mappedItemClassPK',
+			},
+		});
+
+		expect(
+			getByText(document.body, 'Mapped Item Type')
+		).toBeInTheDocument();
+
+		expect(
+			getByText(document.body, 'Mapped Item Subtype')
 		).toBeInTheDocument();
 	});
 });

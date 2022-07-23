@@ -18,8 +18,4 @@ package com.liferay.view.count.model.impl;
  * @author Preston Crary
  */
 public class ViewCountEntryImpl extends ViewCountEntryBaseImpl {
-
-	public ViewCountEntryImpl() {
-	}
-
 }

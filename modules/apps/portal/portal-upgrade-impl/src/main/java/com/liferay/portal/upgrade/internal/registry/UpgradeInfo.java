@@ -89,17 +89,10 @@ public class UpgradeInfo {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{fromSchemaVersionString=");
-		sb.append(_fromSchemaVersionString);
-		sb.append(", toSchemaVersionString=");
-		sb.append(_toSchemaVersionString);
-		sb.append(", upgradeStep=");
-		sb.append(_upgradeStep);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{fromSchemaVersionString=", _fromSchemaVersionString,
+			", toSchemaVersionString=", _toSchemaVersionString,
+			", upgradeStep=", _upgradeStep, "}");
 	}
 
 	private final int _buildNumber;

@@ -1,0 +1,253 @@
+definition {
+
+	macro addColumnsViaUI {
+		LexiconEntry.gotoAdd();
+
+		Click.clickAtNotVisible(
+			key_columnOption = "${columnOption}",
+			locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
+
+		Click(
+			key_tab = "Save",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+	}
+
+	macro addObjectViewViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectCustomViews#ADD_VIEW_NAME",
+			value1 = "${viewName}");
+
+		Button.clickSave();
+
+		WaitForPageLoad();
+	}
+
+	macro assertColumnNotPresent {
+		AssertElementNotPresent(
+			key_columnName = "${colunmName}",
+			locator1 = "ObjectCustomViews#VIEW_BUILDER_SEARCH_RESULT");
+	}
+
+	macro assertColumnNotVisibleOnAddColumnModal {
+		AssertNotVisible(
+			key_columnName = "${columnOption}",
+			locator1 = "ObjectCustomViews#ADD_COLUMNS_COLUMN_LABEL");
+	}
+
+	macro assertColumnPresent {
+		AssertElementPresent(
+			key_columnName = "${colunmName}",
+			locator1 = "ObjectCustomViews#VIEW_BUILDER_SEARCH_RESULT");
+	}
+
+	macro assertColumnVisibleOnAddColumnModal {
+		AssertVisible(
+			key_columnName = "${columnOption}",
+			locator1 = "ObjectCustomViews#ADD_COLUMNS_COLUMN_LABEL");
+	}
+
+	macro assertEmptyStateTextOnViewBuilder {
+		AssertElementPresent(
+			key_text = "${text}",
+			locator1 = "ObjectCustomViews#VIEW_BUILDER_EMPTY_STATE_TEXT");
+	}
+
+	macro assertObjectView {
+		var key_viewLabel = "${viewLabel}";
+
+		AssertElementPresent(locator1 = "ObjectCustomViews#OBJECT_VIEW_LABEL");
+	}
+
+	macro assertObjectViewNotPresent {
+		var key_viewLabel = "${viewLabel}";
+
+		AssertElementNotPresent(locator1 = "ObjectCustomViews#OBJECT_VIEW_LABEL");
+	}
+
+	macro deleteObjectCustomViewViaUI {
+		Click(
+			key_objectCustomViewLabel = "${viewLabel}",
+			locator1 = "ObjectCustomViews#OBJECT_VIEW_KEBAB_MENU");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+	}
+
+	macro deleteSpecificColumn {
+		Click(
+			key_columnName = "${columnName}",
+			locator1 = "ObjectCustomViews#VIEW_BUILDER_DROPDOWN_SPECIFIC_COLUMN");
+
+		DropdownMenuItem.click(menuItem = "Delete");
+	}
+
+	macro editName {
+		Type(
+			locator1 = "ObjectCustomViews#OBJECT_VIEWS_NAME",
+			value1 = "${name}");
+	}
+
+	macro gotoPermissions {
+		Click(
+			key_objectLabel = "${entryName}",
+			locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+		MenuItem.click(menuItem = "Permissions");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+	}
+
+	macro goToViewsBuilderTab {
+		if (IsElementPresent(locator1 = "ObjectCustomViews#VIEW_BUILDER_TAB")) {
+			Click(locator1 = "ObjectCustomViews#VIEW_BUILDER_TAB");
+		}
+	}
+
+	macro goToViewsDetails {
+		Click(
+			key_label = "${label}",
+			locator1 = "ObjectCustomViews#SELECT_OBJECT_VIEWS");
+
+		SelectFrame(locator1 = "IFrame#IFRAME");
+	}
+
+	macro goToViewsTab {
+		Click(locator1 = "ObjectCustomViews#OBJECT_VIEWS_TAB");
+	}
+
+	macro markViewAsDefault {
+		Click(locator1 = "ObjectAdmin#LAYOUT_INFO_TAB");
+
+		Click.clickAtNotVisible(locator1 = "ObjectCustomViews#MARK_AS_DEFAULT");
+	}
+
+	macro saveColumnsModal {
+		Click(
+			key_tab = "Save",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+	}
+
+	macro searchOnAddColumnModal {
+		Click(locator1 = "ObjectCustomViews#ADD_COLUMNS_SEARCH_BAR");
+
+		Type(
+			locator1 = "ObjectCustomViews#ADD_COLUMNS_SEARCH_BAR",
+			value1 = "${colunmName}");
+	}
+
+	macro searchOnViewBuilder {
+		Click(locator1 = "ObjectCustomViews#VIEW_BUILDER_SEARCH_BAR");
+
+		Type(
+			locator1 = "ObjectCustomViews#VIEW_BUILDER_SEARCH_BAR",
+			value1 = "${colunmName}");
+	}
+
+	macro selectAnyPermissions {
+		for (var permissionsName : list "${permissionsList}") {
+			if (isSet(analyticsAdministrator)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "analytics-administrator",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(guest)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "guest",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(owner)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "owner",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(powerUser)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "power-user",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(portalContentReviewer)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "portal-content-reviewer",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(publicationsUser)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "publications-user",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(siteContentReviewer)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "site-content-reviewer",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(siteMember)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "site-member",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+
+			if (isSet(user)) {
+				Click(
+					key_permissionName = "${permissionsName}",
+					key_roleName = "user",
+					locator1 = "ObjectCustomViews#SELECT_ANY_PERMISSIONS");
+			}
+		}
+	}
+
+	macro selectPermissionToRegularRole {
+		for (var permissionsName : list "${permissionsList}") {
+			Click(
+				key_permissionName = "${permissionsName}",
+				locator1 = "ObjectCustomViews#SELECT_PERMISSIONS_TO_REGULAR_ROLE");
+		}
+	}
+
+	macro viewColumnsOrder {
+		AssertElementPresent(
+			key_columnName = "${colunmName}",
+			key_position = "${position}",
+			locator1 = "ObjectCustomViews#VIEW_COLUMN_ENTRIES");
+	}
+
+	macro viewOptionNotPresentInKebabMenu {
+		if (IsElementPresent(key_objectLabel = "${entryName}", locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU")) {
+			Click(
+				key_objectLabel = "${entryName}",
+				locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+			AssertElementNotPresent(
+				key_menuItem = "${menuItem}",
+				locator1 = "MenuItem#ANY_MENU_ITEM");
+		}
+		else {
+			AssertElementNotPresent(
+				key_objectCustomViewLabel = "${entryName}",
+				locator1 = "ObjectCustomViews#OBJECT_VIEW_KEBAB_MENU");
+		}
+	}
+
+	macro viewOrdersOfTheColumns {
+		AssertVisible(
+			key_colunmName1 = "${colunmName}",
+			key_position = "${position}",
+			locator1 = "ObjectCustomViews#VIEW_LIST_COLUMNS_BY_POSITION");
+	}
+
+}

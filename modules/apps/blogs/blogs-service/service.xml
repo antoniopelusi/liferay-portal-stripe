@@ -3,7 +3,7 @@
 
 <service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.blogs">
 	<namespace>Blogs</namespace>
-	<entity local-service="true" name="BlogsEntry" remote-service="true" trash-enabled="true" uuid="true">
+	<entity change-tracking-enabled="true" external-reference-code="group" local-service="true" name="BlogsEntry" remote-service="true" trash-enabled="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -23,12 +23,12 @@
 
 		<!-- Other fields -->
 
-		<column name="title" type="String" uad-nonanonymizable="true" />
-		<column name="subtitle" type="String" uad-nonanonymizable="true" />
-		<column name="urlTitle" type="String" uad-nonanonymizable="true" />
-		<column name="description" type="String" uad-nonanonymizable="true" />
-		<column name="content" type="String" uad-nonanonymizable="true" />
-		<column name="displayDate" type="Date" />
+		<column change-tracking-resolution-type="merge" name="title" type="String" uad-nonanonymizable="true" />
+		<column change-tracking-resolution-type="merge" name="subtitle" type="String" uad-nonanonymizable="true" />
+		<column change-tracking-resolution-type="merge" name="urlTitle" type="String" uad-nonanonymizable="true" />
+		<column change-tracking-resolution-type="merge" name="description" type="String" uad-nonanonymizable="true" />
+		<column change-tracking-resolution-type="merge" name="content" type="String" uad-nonanonymizable="true" />
+		<column change-tracking-resolution-type="merge" name="displayDate" type="Date" />
 		<column name="allowPingbacks" type="boolean" />
 		<column name="allowTrackbacks" type="boolean" />
 		<column name="trackbacks" type="String" />
@@ -163,81 +163,11 @@
 			<finder-column comparator="&lt;" name="displayDate" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Company" package-path="com.liferay.portal" />
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="Image" package-path="com.liferay.portal" />
-		<reference entity="Organization" package-path="com.liferay.portal" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetLink" package-path="com.liferay.portlet.asset" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
-		<reference entity="RatingsStats" package-path="com.liferay.portlet.ratings" />
 	</entity>
 	<entity local-service="true" name="BlogsStatsUser" remote-service="false">
-
-		<!-- PK fields -->
-
-		<column name="statsUserId" primary="true" type="long" />
-
-		<!-- Group instance -->
-
-		<column name="groupId" type="long" />
-
-		<!-- Audit fields -->
-
-		<column name="companyId" type="long" />
-		<column name="userId" type="long" />
-
-		<!-- Other fields -->
-
-		<column name="entryCount" type="int" />
-		<column name="lastPostDate" type="Date" />
-		<column name="ratingsTotalEntries" type="int" />
-		<column name="ratingsTotalScore" type="double" />
-		<column name="ratingsAverageScore" type="double" />
-
-		<!-- Order -->
-
-		<order by="desc">
-			<order-column name="entryCount" />
-		</order>
-
-		<!-- Finder methods -->
-
-		<finder name="GroupId" return-type="Collection">
-			<finder-column name="groupId" />
-		</finder>
-		<finder name="UserId" return-type="Collection">
-			<finder-column name="userId" />
-		</finder>
-		<finder name="G_U" return-type="BlogsStatsUser" unique="true">
-			<finder-column name="groupId" />
-			<finder-column name="userId" />
-		</finder>
-		<finder name="G_NotE" return-type="Collection">
-			<finder-column name="groupId" />
-			<finder-column comparator="!=" name="entryCount" />
-		</finder>
-		<finder name="C_NotE" return-type="Collection">
-			<finder-column name="companyId" />
-			<finder-column comparator="!=" name="entryCount" />
-		</finder>
-		<finder name="U_L" return-type="Collection">
-			<finder-column name="userId" />
-			<finder-column name="lastPostDate" />
-		</finder>
-
-		<!-- References -->
-
-		<reference entity="BlogsEntry" package-path="com.liferay.blogs" />
-		<reference entity="Group" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
+		<exception>DuplicateEntryExternalReferenceCode</exception>
 		<exception>EntryContent</exception>
 		<exception>EntryCoverImageCrop</exception>
 		<exception>EntryDescription</exception>

@@ -14,10 +14,19 @@
 
 package com.liferay.object.model.impl;
 
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectField;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+import com.liferay.object.service.ObjectFieldLocalServiceUtil;
+import com.liferay.object.util.ObjectEntryFieldValueUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.cache.CacheField;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 
 import java.io.Serializable;
 
@@ -30,14 +39,63 @@ import java.util.Map;
  */
 public class ObjectEntryImpl extends ObjectEntryBaseImpl {
 
-	public ObjectEntryImpl() {
+	@Override
+	public ObjectEntry cloneWithOriginalValues() {
+		ObjectEntry objectEntry = super.cloneWithOriginalValues();
+
+		objectEntry.setValues(_transientValues);
+
+		return objectEntry;
+	}
+
+	@Override
+	public String getModelClassName() {
+		return "com.liferay.object.model.ObjectDefinition#" +
+			getObjectDefinitionId();
+	}
+
+	@Override
+	public long getNonzeroGroupId() throws PortalException {
+
+		// TODO If permission checking works with the group's company ID, then
+		// we should ensure it is always set and remove this workaround
+
+		long groupId = getGroupId();
+
+		if (groupId == 0) {
+			Company company = CompanyLocalServiceUtil.getCompany(
+				getCompanyId());
+
+			groupId = company.getGroupId();
+		}
+
+		return groupId;
+	}
+
+	@Override
+	public String getTitleValue() throws PortalException {
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionLocalServiceUtil.getObjectDefinition(
+				getObjectDefinitionId());
+
+		if ((objectDefinition != null) &&
+			(objectDefinition.getTitleObjectFieldId() > 0)) {
+
+			ObjectField objectField =
+				ObjectFieldLocalServiceUtil.fetchObjectField(
+					objectDefinition.getTitleObjectFieldId());
+
+			if (objectField != null) {
+				return ObjectEntryFieldValueUtil.getValueString(
+					objectField, getValues());
+			}
+		}
+
+		return String.valueOf(getObjectEntryId());
 	}
 
 	@Override
 	public Map<String, Serializable> getValues() {
-
-		// TODO Cache does not work for ObjectEntryLocalServiceTest#_getValues
-
 		if (_values == null) {
 			if (_log.isDebugEnabled()) {
 				_log.debug("Get values for object entry " + getObjectEntryId());
@@ -47,7 +105,7 @@ public class ObjectEntryImpl extends ObjectEntryBaseImpl {
 				_values = ObjectEntryLocalServiceUtil.getValues(this);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return new HashMap<>();
 			}
@@ -61,12 +119,19 @@ public class ObjectEntryImpl extends ObjectEntryBaseImpl {
 	}
 
 	@Override
+	public void setTransientValues(Map<String, Serializable> values) {
+		_transientValues = values;
+	}
+
+	@Override
 	public void setValues(Map<String, Serializable> values) {
 		_values = values;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ObjectEntryImpl.class);
+
+	private Map<String, Serializable> _transientValues;
 
 	@CacheField(propagateToInterface = true)
 	private Map<String, Serializable> _values;

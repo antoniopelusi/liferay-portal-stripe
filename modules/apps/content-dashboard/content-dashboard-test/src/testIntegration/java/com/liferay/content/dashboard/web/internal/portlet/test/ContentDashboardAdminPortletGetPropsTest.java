@@ -20,6 +20,7 @@ import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -45,7 +46,6 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -136,7 +136,9 @@ public class ContentDashboardAdminPortletGetPropsTest {
 
 			Map<String, Object> data = _getData(
 				_getMockLiferayPortletRenderRequest(
-					new String[] {assetVocabulary.getName()}));
+					new String[] {
+						String.valueOf(assetVocabulary.getVocabularyId())
+					}));
 
 			Map<String, Object> props = (Map<String, Object>)data.get("props");
 
@@ -164,7 +166,7 @@ public class ContentDashboardAdminPortletGetPropsTest {
 				String.valueOf(props.get("vocabularies")));
 		}
 		finally {
-			_assetVocabularyLocalService.deleteAssetVocabulary(assetVocabulary);
+			_assetVocabularyLocalService.deleteVocabulary(assetVocabulary);
 		}
 	}
 
@@ -223,8 +225,8 @@ public class ContentDashboardAdminPortletGetPropsTest {
 			Map<String, Object> data = _getData(
 				_getMockLiferayPortletRenderRequest(
 					new String[] {
-						assetVocabulary.getName(),
-						childAssetVocabulary.getName()
+						String.valueOf(assetVocabulary.getVocabularyId()),
+						String.valueOf(childAssetVocabulary.getVocabularyId())
 					}));
 
 			Map<String, Object> props = (Map<String, Object>)data.get("props");
@@ -318,8 +320,8 @@ public class ContentDashboardAdminPortletGetPropsTest {
 			Map<String, Object> data = _getData(
 				_getMockLiferayPortletRenderRequest(
 					new String[] {
-						assetVocabulary.getName(),
-						childAssetVocabulary.getName()
+						String.valueOf(assetVocabulary.getVocabularyId()),
+						String.valueOf(childAssetVocabulary.getVocabularyId())
 					}));
 
 			Map<String, Object> props = (Map<String, Object>)data.get("props");
@@ -403,8 +405,8 @@ public class ContentDashboardAdminPortletGetPropsTest {
 			Map<String, Object> data = _getData(
 				_getMockLiferayPortletRenderRequest(
 					new String[] {
-						assetVocabulary.getName(),
-						childAssetVocabulary.getName()
+						String.valueOf(assetVocabulary.getVocabularyId()),
+						String.valueOf(childAssetVocabulary.getVocabularyId())
 					}));
 
 			Map<String, Object> props = (Map<String, Object>)data.get("props");
@@ -460,8 +462,8 @@ public class ContentDashboardAdminPortletGetPropsTest {
 			Map<String, Object> data = _getData(
 				_getMockLiferayPortletRenderRequest(
 					new String[] {
-						assetVocabulary.getName(),
-						childAssetVocabulary.getName()
+						String.valueOf(assetVocabulary.getVocabularyId()),
+						String.valueOf(childAssetVocabulary.getVocabularyId())
 					}));
 
 			Map<String, Object> props = (Map<String, Object>)data.get("props");
@@ -481,9 +483,8 @@ public class ContentDashboardAdminPortletGetPropsTest {
 				String.valueOf(props.get("vocabularies")));
 		}
 		finally {
-			_assetVocabularyLocalService.deleteAssetVocabulary(assetVocabulary);
-			_assetVocabularyLocalService.deleteAssetVocabulary(
-				childAssetVocabulary);
+			_assetVocabularyLocalService.deleteVocabulary(assetVocabulary);
+			_assetVocabularyLocalService.deleteVocabulary(childAssetVocabulary);
 		}
 	}
 
@@ -531,8 +532,8 @@ public class ContentDashboardAdminPortletGetPropsTest {
 			Map<String, Object> data = _getData(
 				_getMockLiferayPortletRenderRequest(
 					new String[] {
-						assetVocabulary.getName(),
-						childAssetVocabulary.getName()
+						String.valueOf(assetVocabulary.getVocabularyId()),
+						String.valueOf(childAssetVocabulary.getVocabularyId())
 					}));
 
 			Map<String, Object> props = (Map<String, Object>)data.get("props");
@@ -590,9 +591,8 @@ public class ContentDashboardAdminPortletGetPropsTest {
 				String.valueOf(props.get("vocabularies")));
 		}
 		finally {
-			_assetVocabularyLocalService.deleteAssetVocabulary(assetVocabulary);
-			_assetVocabularyLocalService.deleteAssetVocabulary(
-				childAssetVocabulary);
+			_assetVocabularyLocalService.deleteVocabulary(assetVocabulary);
+			_assetVocabularyLocalService.deleteVocabulary(childAssetVocabulary);
 		}
 	}
 
@@ -613,7 +613,7 @@ public class ContentDashboardAdminPortletGetPropsTest {
 	}
 
 	private MockLiferayPortletRenderRequest _getMockLiferayPortletRenderRequest(
-			String[] assetVocabularyNames)
+			String[] assetVocabularyIds)
 		throws Exception {
 
 		MockLiferayPortletRenderRequest mockLiferayPortletRenderRequest =
@@ -643,8 +643,7 @@ public class ContentDashboardAdminPortletGetPropsTest {
 		PortletPreferences portletPreferences =
 			mockLiferayPortletRenderRequest.getPreferences();
 
-		portletPreferences.setValues(
-			"assetVocabularyNames", assetVocabularyNames);
+		portletPreferences.setValues("assetVocabularyIds", assetVocabularyIds);
 
 		return mockLiferayPortletRenderRequest;
 	}

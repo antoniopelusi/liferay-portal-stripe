@@ -21,13 +21,9 @@ import com.liferay.commerce.discount.service.CommerceDiscountLocalService;
 import com.liferay.commerce.discount.test.util.CommerceDiscountTestUtil;
 import com.liferay.commerce.discount.test.util.TestCommerceDiscountValidator;
 import com.liferay.commerce.discount.validator.CommerceDiscountValidatorResult;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.test.rule.Inject;
@@ -46,7 +42,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Riccardo Alberti
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommerceDiscountValidatorTest {
 
@@ -58,12 +53,9 @@ public class CommerceDiscountValidatorTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 	}
 
 	@Test
@@ -201,13 +193,11 @@ public class CommerceDiscountValidatorTest {
 	@Rule
 	public FrutillaRule frutillaRule = new FrutillaRule();
 
+	private static User _user;
+
 	@Inject
 	private CommerceDiscountLocalService _commerceDiscountLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private Group _group;
-	private User _user;
 
 }

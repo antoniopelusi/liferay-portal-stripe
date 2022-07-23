@@ -29,7 +29,6 @@ import com.liferay.analytics.reports.web.internal.model.TimeRange;
 import com.liferay.analytics.reports.web.internal.model.TimeSpan;
 import com.liferay.analytics.reports.web.internal.model.TrafficChannel;
 import com.liferay.analytics.reports.web.internal.model.TrafficSource;
-import com.liferay.analytics.reports.web.internal.model.util.TrafficChannelUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -62,14 +61,20 @@ public class AnalyticsReportsDataProvider {
 	}
 
 	public Map<String, AcquisitionChannel> getAcquisitionChannels(
-			long companyId, String url)
+			long companyId, TimeRange timeRange, String url)
 		throws PortalException {
 
 		try {
 			String response = _asahFaroBackendClient.doGet(
 				companyId,
-				"api/1.0/pages/acquisition-channels?canonicalURL=" + url +
-					"&interval=D&rangeKey=30");
+				String.format(
+					"api/1.0/pages/acquisition-channels?canonicalURL=" +
+						"%s&endDate=%s&interval=D&startDate=%s",
+					HtmlUtil.escapeURL(url),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getEndLocalDate()),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getStartLocalDate())));
 
 			TypeFactory typeFactory = _objectMapper.getTypeFactory();
 
@@ -106,14 +111,21 @@ public class AnalyticsReportsDataProvider {
 		}
 	}
 
-	public List<ReferringURL> getDomainReferringURLs(long companyId, String url)
+	public List<ReferringURL> getDomainReferringURLs(
+			long companyId, TimeRange timeRange, String url)
 		throws PortalException {
 
 		try {
 			String response = _asahFaroBackendClient.doGet(
 				companyId,
-				"api/1.0/pages/page-referrer-hosts?canonicalURL=" + url +
-					"&interval=D&rangeKey=30");
+				String.format(
+					"api/1.0/pages/page-referrer-hosts?canonicalURL=" +
+						"%s&endDate=%s&interval=D&startDate=%s",
+					HtmlUtil.escapeURL(url),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getEndLocalDate()),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getStartLocalDate())));
 
 			TypeFactory typeFactory = _objectMapper.getTypeFactory();
 
@@ -188,14 +200,21 @@ public class AnalyticsReportsDataProvider {
 		}
 	}
 
-	public List<ReferringURL> getPageReferringURLs(long companyId, String url)
+	public List<ReferringURL> getPageReferringURLs(
+			long companyId, TimeRange timeRange, String url)
 		throws PortalException {
 
 		try {
 			String response = _asahFaroBackendClient.doGet(
 				companyId,
-				"api/1.0/pages/page-referrers?canonicalURL=" + url +
-					"&interval=D&rangeKey=30");
+				String.format(
+					"api/1.0/pages/page-referrers?canonicalURL=%s&endDate=%s&" +
+						"interval=D&startDate=%s",
+					HtmlUtil.escapeURL(url),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getEndLocalDate()),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getStartLocalDate())));
 
 			TypeFactory typeFactory = _objectMapper.getTypeFactory();
 
@@ -223,14 +242,20 @@ public class AnalyticsReportsDataProvider {
 	}
 
 	public List<ReferringSocialMedia> getReferringSocialMediaList(
-			long companyId, String url)
+			long companyId, TimeRange timeRange, String url)
 		throws PortalException {
 
 		try {
 			String response = _asahFaroBackendClient.doGet(
 				companyId,
-				"api/1.0/pages/social-page-referrers?canonicalURL=" + url +
-					"&interval=D&rangeKey=30");
+				String.format(
+					"api/1.0/pages/social-page-referrers?canonicalURL=" +
+						"%s&endDate=%s&interval=D&startDate=%s",
+					HtmlUtil.escapeURL(url),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getEndLocalDate()),
+					DateTimeFormatter.ISO_DATE.format(
+						timeRange.getStartLocalDate())));
 
 			TypeFactory typeFactory = _objectMapper.getTypeFactory();
 
@@ -292,25 +317,13 @@ public class AnalyticsReportsDataProvider {
 		}
 	}
 
-	public Map<String, TrafficChannel> getTrafficChannels(
-			long companyId, String url)
+	public Map<TrafficChannel.Type, TrafficChannel> getTrafficChannels(
+			long companyId, TimeRange timeRange, String url)
 		throws PortalException {
 
 		try {
-			Map<String, TrafficSource> trafficSourceMap = getTrafficSources(
-				companyId, url);
-
-			List<ReferringURL> domainReferringURLs = getDomainReferringURLs(
-				companyId, url);
-
-			List<ReferringURL> pageReferringURLs = getPageReferringURLs(
-				companyId, url);
-
-			List<ReferringSocialMedia> referringSocialMediaList =
-				getReferringSocialMediaList(companyId, url);
-
 			Map<String, AcquisitionChannel> acquisitionChannels =
-				getAcquisitionChannels(companyId, url);
+				getAcquisitionChannels(companyId, timeRange, url);
 
 			Collection<AcquisitionChannel> values =
 				acquisitionChannels.values();
@@ -318,12 +331,10 @@ public class AnalyticsReportsDataProvider {
 			Stream<AcquisitionChannel> stream = values.stream();
 
 			return stream.map(
-				acquisitionChannel -> TrafficChannelUtil.toTrafficChannel(
-					acquisitionChannel, domainReferringURLs, pageReferringURLs,
-					referringSocialMediaList, trafficSourceMap)
+				TrafficChannel::newInstance
 			).map(
 				trafficChannel -> new AbstractMap.SimpleEntry<>(
-					trafficChannel.getName(), trafficChannel)
+					trafficChannel.getType(), trafficChannel)
 			).collect(
 				Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
 			);

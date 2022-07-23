@@ -27,6 +27,10 @@ public class CommerceAvailabilityEstimateLocalServiceWrapper
 	implements CommerceAvailabilityEstimateLocalService,
 			   ServiceWrapper<CommerceAvailabilityEstimateLocalService> {
 
+	public CommerceAvailabilityEstimateLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceAvailabilityEstimateLocalServiceWrapper(
 		CommerceAvailabilityEstimateLocalService
 			commerceAvailabilityEstimateLocalService) {
@@ -160,6 +164,14 @@ public class CommerceAvailabilityEstimateLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceAvailabilityEstimateLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceAvailabilityEstimateLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override

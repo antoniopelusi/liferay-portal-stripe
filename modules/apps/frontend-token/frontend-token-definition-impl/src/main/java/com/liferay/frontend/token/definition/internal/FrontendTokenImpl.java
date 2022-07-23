@@ -24,8 +24,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Iván Zaera
@@ -42,6 +40,8 @@ public class FrontendTokenImpl implements FrontendToken {
 
 		_jsonLocalizer = frontendTokenDefinitionImpl.createJSONLocalizer(
 			jsonObject);
+
+		_name = jsonObject.getString("name");
 
 		_type = Type.parse(jsonObject.getString("type"));
 
@@ -89,13 +89,18 @@ public class FrontendTokenImpl implements FrontendToken {
 	public Collection<FrontendTokenMapping> getFrontendTokenMappings(
 		String type) {
 
-		Stream<FrontendTokenMapping> stream = _frontendTokenMappings.stream();
+		Collection<FrontendTokenMapping> frontendTokenMappings =
+			new ArrayList<>();
 
-		return stream.filter(
-			frontendTokenMapping -> type.equals(frontendTokenMapping.getType())
-		).collect(
-			Collectors.toList()
-		);
+		for (FrontendTokenMapping frontendTokenMapping :
+				_frontendTokenMappings) {
+
+			if (type.equals(frontendTokenMapping.getType())) {
+				frontendTokenMappings.add(frontendTokenMapping);
+			}
+		}
+
+		return frontendTokenMappings;
 	}
 
 	@Override
@@ -104,8 +109,13 @@ public class FrontendTokenImpl implements FrontendToken {
 	}
 
 	@Override
-	public String getJSON(Locale locale) {
-		return _jsonLocalizer.getJSON(locale);
+	public JSONObject getJSONObject(Locale locale) {
+		return _jsonLocalizer.getJSONObject(locale);
+	}
+
+	@Override
+	public String getName() {
+		return _name;
 	}
 
 	@Override
@@ -122,6 +132,7 @@ public class FrontendTokenImpl implements FrontendToken {
 		new ArrayList<>();
 	private final FrontendTokenSetImpl _frontendTokenSetImpl;
 	private final JSONLocalizer _jsonLocalizer;
+	private final String _name;
 	private final Type _type;
 
 }

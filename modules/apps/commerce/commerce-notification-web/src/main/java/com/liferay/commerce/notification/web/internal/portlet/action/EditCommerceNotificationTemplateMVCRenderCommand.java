@@ -61,7 +61,7 @@ public class EditCommerceNotificationTemplateMVCRenderCommand
 
 		RequestDispatcher requestDispatcher =
 			_servletContext.getRequestDispatcher(
-				"/edit_notification_template.jsp");
+				"/edit_commerce_notification_template.jsp");
 
 		try {
 			HttpServletRequest httpServletRequest =
@@ -92,8 +92,7 @@ public class EditCommerceNotificationTemplateMVCRenderCommand
 				return "/error.jsp";
 			}
 
-			throw new PortletException(
-				"Unable to include edit_notification_template.jsp", exception);
+			throw new PortletException(exception);
 		}
 
 		return MVCRenderConstants.MVC_PATH_VALUE_SKIP_DISPATCH;

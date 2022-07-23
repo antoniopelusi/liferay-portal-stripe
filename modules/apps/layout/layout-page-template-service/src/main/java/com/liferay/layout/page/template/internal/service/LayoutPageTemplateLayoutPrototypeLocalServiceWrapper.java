@@ -19,7 +19,6 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.LayoutPrototype;
-import com.liferay.portal.kernel.service.LayoutPrototypeLocalService;
 import com.liferay.portal.kernel.service.LayoutPrototypeLocalServiceWrapper;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
@@ -40,16 +39,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = ServiceWrapper.class)
 public class LayoutPageTemplateLayoutPrototypeLocalServiceWrapper
 	extends LayoutPrototypeLocalServiceWrapper {
-
-	public LayoutPageTemplateLayoutPrototypeLocalServiceWrapper() {
-		super(null);
-	}
-
-	public LayoutPageTemplateLayoutPrototypeLocalServiceWrapper(
-		LayoutPrototypeLocalService layoutPrototypeLocalService) {
-
-		super(layoutPrototypeLocalService);
-	}
 
 	@Override
 	public LayoutPrototype addLayoutPrototype(
@@ -133,10 +122,14 @@ public class LayoutPageTemplateLayoutPrototypeLocalServiceWrapper
 			return layoutPrototype;
 		}
 
-		String nameXML = layoutPrototype.getName();
+		long userId = serviceContext.getUserId();
+
+		if (userId == 0) {
+			userId = layoutPageTemplateEntry.getUserId();
+		}
 
 		Locale defaultLocale = LocaleUtil.fromLanguageId(
-			LocalizationUtil.getDefaultLanguageId(nameXML));
+			LocalizationUtil.getDefaultLanguageId(layoutPrototype.getName()));
 
 		int status = WorkflowConstants.STATUS_INACTIVE;
 
@@ -145,8 +138,7 @@ public class LayoutPageTemplateLayoutPrototypeLocalServiceWrapper
 		}
 
 		_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
-			layoutPageTemplateEntry.getUserId(),
-			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+			userId, layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
 			nameMap.get(defaultLocale), status);
 
 		return layoutPrototype;

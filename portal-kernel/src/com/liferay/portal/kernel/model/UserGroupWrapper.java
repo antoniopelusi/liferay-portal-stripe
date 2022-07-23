@@ -151,6 +151,11 @@ public class UserGroupWrapper
 		}
 	}
 
+	@Override
+	public UserGroup cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the added by ldap import of this user group.
 	 *

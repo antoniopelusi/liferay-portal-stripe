@@ -50,7 +50,7 @@ public class UsersAdminBrowsePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/select_organization.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

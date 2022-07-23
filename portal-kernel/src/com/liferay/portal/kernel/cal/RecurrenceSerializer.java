@@ -142,23 +142,11 @@ public class RecurrenceSerializer {
 			}
 		}
 
-		StringBundler sb = new StringBundler(13);
-
-		sb.append(startDateSecond);
-		sb.append(StringPool.SPACE);
-		sb.append(startDateMinute);
-		sb.append(StringPool.SPACE);
-		sb.append(startDateHour);
-		sb.append(StringPool.SPACE);
-		sb.append(dayOfMonth);
-		sb.append(StringPool.SPACE);
-		sb.append(month);
-		sb.append(StringPool.SPACE);
-		sb.append(dayOfWeek);
-		sb.append(StringPool.SPACE);
-		sb.append(year);
-
-		return sb.toString();
+		return StringBundler.concat(
+			startDateSecond, StringPool.SPACE, startDateMinute,
+			StringPool.SPACE, startDateHour, StringPool.SPACE, dayOfMonth,
+			StringPool.SPACE, month, StringPool.SPACE, dayOfWeek,
+			StringPool.SPACE, year);
 	}
 
 	protected static String getDayOfWeek(DayAndPosition dayPos) {

@@ -14,19 +14,18 @@
 
 package com.liferay.portal.search;
 
-import com.liferay.petra.lang.SafeClosable;
 import com.liferay.portal.kernel.aop.AopMethodInvocation;
 import com.liferay.portal.kernel.aop.ChainableMethodAdvice;
+import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
 import com.liferay.portal.kernel.search.Indexable;
-import com.liferay.portal.kernel.search.IndexableThreadLocal;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 
@@ -100,8 +99,41 @@ public class IndexableAdvice extends ChainableMethodAdvice {
 		Indexer<Object> indexer = IndexerRegistryUtil.getIndexer(name);
 
 		if (indexer == null) {
+			DependencyManagerSyncUtil.registerSyncCallable(
+				() -> {
+					Indexer<Object> curIndexer = IndexerRegistryUtil.getIndexer(
+						name);
+
+					if (curIndexer != null) {
+						_reindex(
+							curIndexer, indexableContext, arguments, result);
+					}
+
+					return null;
+				});
+
 			return;
 		}
+
+		_reindex(indexer, indexableContext, arguments, result);
+	}
+
+	private int _getServiceContextParameterIndex(Method method) {
+		Class<?>[] parameterTypes = method.getParameterTypes();
+
+		for (int i = parameterTypes.length - 1; i >= 0; i--) {
+			if (ServiceContext.class.isAssignableFrom(parameterTypes[i])) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	private void _reindex(
+			Indexer<Object> indexer, IndexableContext indexableContext,
+			Object[] arguments, Object result)
+		throws SearchException {
 
 		if (IndexWriterHelperUtil.isIndexReadOnly(indexer.getClassName())) {
 			if (_log.isDebugEnabled()) {
@@ -126,29 +158,12 @@ public class IndexableAdvice extends ChainableMethodAdvice {
 			}
 		}
 
-		try (SafeClosable safeClosable =
-				ProxyModeThreadLocal.setWithSafeClosable(
-					IndexableThreadLocal.isForceSync())) {
-
-			if (indexableContext._indexableType == IndexableType.DELETE) {
-				indexer.delete(result);
-			}
-			else {
-				indexer.reindex(result);
-			}
+		if (indexableContext._indexableType == IndexableType.DELETE) {
+			indexer.delete(result);
 		}
-	}
-
-	private int _getServiceContextParameterIndex(Method method) {
-		Class<?>[] parameterTypes = method.getParameterTypes();
-
-		for (int i = parameterTypes.length - 1; i >= 0; i--) {
-			if (ServiceContext.class.isAssignableFrom(parameterTypes[i])) {
-				return i;
-			}
+		else {
+			indexer.reindex(result);
 		}
-
-		return -1;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

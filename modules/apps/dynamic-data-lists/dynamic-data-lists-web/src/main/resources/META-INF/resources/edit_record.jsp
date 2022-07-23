@@ -184,7 +184,12 @@ else {
 				<liferay-ui:error exception="<%= DuplicateFileEntryException.class %>" message="a-file-with-that-name-already-exists" />
 
 				<liferay-ui:error exception="<%= FileSizeException.class %>">
-					<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(DLValidatorUtil.getMaxAllowableSize(), locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
+
+					<%
+					FileSizeException fileSizeException = (FileSizeException)errorException;
+					%>
+
+					<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(fileSizeException.getMaxSize(), locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 				</liferay-ui:error>
 
 				<liferay-ui:error exception="<%= StorageFieldRequiredException.class %>" message="please-fill-out-all-required-fields" />
@@ -303,7 +308,7 @@ PortalUtil.addPortletBreadcrumbEntry(
 	).setMVCPath(
 		"/view_record_set.jsp"
 	).setParameter(
-		"recordSetId", String.valueOf(recordSetId)
+		"recordSetId", recordSetId
 	).buildString());
 
 if (record != null) {

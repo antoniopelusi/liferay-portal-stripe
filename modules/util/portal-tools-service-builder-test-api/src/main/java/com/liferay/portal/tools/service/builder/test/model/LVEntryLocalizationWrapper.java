@@ -105,6 +105,11 @@ public class LVEntryLocalizationWrapper
 		}
 	}
 
+	@Override
+	public LVEntryLocalization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this lv entry localization.
 	 *

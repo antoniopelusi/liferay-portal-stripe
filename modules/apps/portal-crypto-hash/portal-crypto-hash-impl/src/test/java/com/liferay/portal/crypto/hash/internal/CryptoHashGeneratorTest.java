@@ -67,10 +67,11 @@ public class CryptoHashGeneratorTest {
 		_cryptoHashGenerators = Arrays.asList(
 			new CryptoHashGeneratorImpl(
 				bCryptCryptoHashProviderFactory.create(
-					Collections.singletonMap("rounds", "10"))),
+					Collections.singletonMap("bcrypt.rounds", "10"))),
 			new CryptoHashGeneratorImpl(
 				messageDigestCryptoHashProviderFactory.create(
-					Collections.singletonMap("algorithm", "SHA-256"))));
+					Collections.singletonMap(
+						"message.digest.algorithm", "SHA-256"))));
 
 		_cryptoHashVerifier = new CryptoHashVerifierImpl(
 			cryptoHashProviderFactoryRegistry);
@@ -84,7 +85,7 @@ public class CryptoHashGeneratorTest {
 
 			Assert.assertFalse(
 				_cryptoHashVerifier.verify(
-					_randomBytes(), cryptoHashResponse.getHash(),
+					RandomTestUtil.randomBytes(), cryptoHashResponse.getHash(),
 					cryptoHashResponse.getCryptoHashVerificationContext()));
 			Assert.assertTrue(
 				_cryptoHashVerifier.verify(
@@ -108,7 +109,8 @@ public class CryptoHashGeneratorTest {
 
 		Assert.assertFalse(
 			_cryptoHashVerifier.verify(
-				_randomBytes(), hash, cryptoHashVerificationContexts));
+				RandomTestUtil.randomBytes(), hash,
+				cryptoHashVerificationContexts));
 		Assert.assertTrue(
 			_cryptoHashVerifier.verify(
 				_INPUT, hash, cryptoHashVerificationContexts));
@@ -123,13 +125,7 @@ public class CryptoHashGeneratorTest {
 			RandomTestUtil.randomString(), Collections.emptyMap());
 	}
 
-	private static byte[] _randomBytes() {
-		String string = RandomTestUtil.randomString();
-
-		return string.getBytes();
-	}
-
-	private static final byte[] _INPUT = _randomBytes();
+	private static final byte[] _INPUT = RandomTestUtil.randomBytes();
 
 	private List<CryptoHashGenerator> _cryptoHashGenerators;
 	private CryptoHashVerifier _cryptoHashVerifier;

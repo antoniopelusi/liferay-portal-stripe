@@ -18,7 +18,6 @@ import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.expando.kernel.model.CustomAttributesDisplay;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
-import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
 import com.liferay.portal.kernel.notifications.UserNotificationHandler;
 import com.liferay.portal.kernel.poller.PollerProcessor;
@@ -59,8 +58,6 @@ public interface PortletBag extends Cloneable {
 
 	public List<AssetRendererFactory<?>> getAssetRendererFactoryInstances();
 
-	public List<AtomCollectionAdapter<?>> getAtomCollectionAdapterInstances();
-
 	public List<ConfigurationAction> getConfigurationActionInstances();
 
 	public List<ControlPanelEntry> getControlPanelEntryInstances();
@@ -78,6 +75,9 @@ public interface PortletBag extends Cloneable {
 	public List<PollerProcessor> getPollerProcessorInstances();
 
 	public List<MessageListener> getPopMessageListenerInstances();
+
+	public List<PortletConfigurationListener>
+		getPortletConfigurationListenerInstances();
 
 	public List<PortletDataHandler> getPortletDataHandlerInstances();
 
@@ -122,9 +122,6 @@ public interface PortletBag extends Cloneable {
 	public List<WorkflowHandler<?>> getWorkflowHandlerInstances();
 
 	public List<Method> getXmlRpcMethodInstances();
-
-	public void setPortletDataHandlerInstances(
-		List<PortletDataHandler> portletDataHandlerInstances);
 
 	public void setPortletInstance(Portlet portletInstance);
 

@@ -86,14 +86,10 @@ public class LayoutRevisionAssetRendererFactory
 			_portal.getClassNameId(LayoutRevision.class.getName()));
 		assetEntry.setClassPK(layoutRevision.getLayoutRevisionId());
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(layoutRevision.getHTMLTitle(LocaleUtil.getSiteDefault()));
-		sb.append(" [");
-		sb.append(layoutSetBranch.getName());
-		sb.append("]");
-
-		assetEntry.setTitle(sb.toString());
+		assetEntry.setTitle(
+			StringBundler.concat(
+				layoutRevision.getHTMLTitle(LocaleUtil.getSiteDefault()), " [",
+				layoutSetBranch.getName(), "]"));
 
 		return assetEntry;
 	}

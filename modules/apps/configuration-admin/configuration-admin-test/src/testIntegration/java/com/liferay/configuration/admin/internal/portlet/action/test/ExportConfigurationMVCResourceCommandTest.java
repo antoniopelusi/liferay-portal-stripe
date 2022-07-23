@@ -68,22 +68,21 @@ public class ExportConfigurationMVCResourceCommandTest {
 		Assert.assertEquals(
 			expectedFileName,
 			ReflectionTestUtil.invoke(
-				_mvcResourceCommand, "getFileName",
+				_mvcResourceCommand, "_getFileName",
 				new Class<?>[] {String.class, String.class}, factoryPid, pid));
 	}
 
 	private String _getExpectedFileName(String pid, String subname) {
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(4);
 
 		sb.append(pid);
 
 		if (Validator.isNotNull(subname)) {
-			sb.append(StringPool.DASH);
+			sb.append(StringPool.TILDE);
 			sb.append(subname);
 		}
 
-		sb.append(StringPool.PERIOD);
-		sb.append("config");
+		sb.append(".config");
 
 		return sb.toString();
 	}

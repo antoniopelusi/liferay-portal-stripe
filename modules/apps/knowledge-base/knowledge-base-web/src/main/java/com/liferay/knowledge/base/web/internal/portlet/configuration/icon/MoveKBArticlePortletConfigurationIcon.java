@@ -67,7 +67,7 @@ public class MoveKBArticlePortletConfigurationIcon
 			"/admin/move_object.jsp"
 		).setRedirect(
 			_portal.getCurrentURL(portletRequest)
-		).build();
+		).buildPortletURL();
 
 		KBArticle kbArticle = getKBArticle(portletRequest);
 
@@ -104,7 +104,7 @@ public class MoveKBArticlePortletConfigurationIcon
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 

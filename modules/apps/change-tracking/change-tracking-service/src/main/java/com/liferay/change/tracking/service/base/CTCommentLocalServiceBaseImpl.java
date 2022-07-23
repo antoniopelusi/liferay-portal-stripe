@@ -17,7 +17,6 @@ package com.liferay.change.tracking.service.base;
 import com.liferay.change.tracking.model.CTComment;
 import com.liferay.change.tracking.service.CTCommentLocalService;
 import com.liferay.change.tracking.service.CTCommentLocalServiceUtil;
-import com.liferay.change.tracking.service.persistence.CTCollectionPersistence;
 import com.liferay.change.tracking.service.persistence.CTCommentPersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
@@ -142,6 +141,13 @@ public abstract class CTCommentLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return ctCommentPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -449,9 +455,6 @@ public abstract class CTCommentLocalServiceBaseImpl
 
 	@Reference
 	protected CTCommentPersistence ctCommentPersistence;
-
-	@Reference
-	protected CTCollectionPersistence ctCollectionPersistence;
 
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService

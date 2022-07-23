@@ -23,12 +23,6 @@ import java.io.Serializable;
  */
 public class DefaultOAuthConsumer implements OAuthConsumer, Serializable {
 
-	public DefaultOAuthConsumer(net.oauth.OAuthConsumer oAuthConsumer) {
-		_oAuthConsumer = oAuthConsumer;
-
-		_oAuthApplication = null;
-	}
-
 	public DefaultOAuthConsumer(OAuthApplication oAuthApplication) {
 		_oAuthApplication = oAuthApplication;
 
@@ -36,6 +30,12 @@ public class DefaultOAuthConsumer implements OAuthConsumer, Serializable {
 			oAuthApplication.getCallbackURI(),
 			oAuthApplication.getConsumerKey(),
 			oAuthApplication.getConsumerSecret(), null);
+	}
+
+	public DefaultOAuthConsumer(net.oauth.OAuthConsumer oAuthConsumer) {
+		_oAuthConsumer = oAuthConsumer;
+
+		_oAuthApplication = null;
 	}
 
 	@Override

@@ -29,7 +29,7 @@ PortletURL searchDefinitionURL = PortletURLBuilder.create(
 	"/admin/view.jsp"
 ).setTabs1(
 	"definitions"
-).build();
+).buildPortletURL();
 
 portletDisplay.setURLBack(searchDefinitionURL.toString());
 

@@ -27,6 +27,10 @@ public class KaleoDefinitionLocalServiceWrapper
 	implements KaleoDefinitionLocalService,
 			   ServiceWrapper<KaleoDefinitionLocalService> {
 
+	public KaleoDefinitionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoDefinitionLocalServiceWrapper(
 		KaleoDefinitionLocalService kaleoDefinitionLocalService) {
 
@@ -82,24 +86,6 @@ public class KaleoDefinitionLocalServiceWrapper
 				kaleoDefinition) {
 
 		return _kaleoDefinitionLocalService.addKaleoDefinition(kaleoDefinition);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #addKaleoDefinition(String, String, String, String, String,
-	 int, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.workflow.kaleo.model.KaleoDefinition
-			addKaleoDefinition(
-				String name, String title, String description, String content,
-				int version,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _kaleoDefinitionLocalService.addKaleoDefinition(
-			name, title, description, content, version, serviceContext);
 	}
 
 	@Override
@@ -219,6 +205,13 @@ public class KaleoDefinitionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoDefinitionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoDefinitionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

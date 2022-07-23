@@ -77,15 +77,13 @@ public class VideoProcessorImpl
 		}
 
 		if (!valid && _log.isWarnEnabled()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("Liferay is incorrectly configured to generate video ");
-			sb.append("previews using video containers other than MP4 or ");
-			sb.append("OGV. Please change the property ");
-			sb.append(PropsKeys.DL_FILE_ENTRY_PREVIEW_VIDEO_CONTAINERS);
-			sb.append(" in portal-ext.properties.");
-
-			_log.warn(sb.toString());
+			_log.warn(
+				StringBundler.concat(
+					"Liferay is incorrectly configured to generate video ",
+					"previews using video containers other than MP4 or OGV. ",
+					"Please change the property ",
+					PropsKeys.DL_FILE_ENTRY_PREVIEW_VIDEO_CONTAINERS,
+					" in portal-ext.properties."));
 		}
 
 		FileUtil.mkdirs(PREVIEW_TMP_PATH);
@@ -150,7 +148,7 @@ public class VideoProcessorImpl
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return hasVideo;
@@ -388,7 +386,7 @@ public class VideoProcessorImpl
 			}
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			throw exception;
@@ -430,7 +428,11 @@ public class VideoProcessorImpl
 			_fileVersionPreviewEventListener.onFailure(fileVersion);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(
+				StringBundler.concat(
+					"Unable to process ", fileVersion.getFileVersionId(), " ",
+					fileVersion.getTitle()),
+				exception);
 
 			_fileVersionPreviewEventListener.onFailure(fileVersion);
 		}
@@ -487,7 +489,7 @@ public class VideoProcessorImpl
 					_fileVersionPreviewEventListener.onFailure(
 						destinationFileVersion);
 
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 
@@ -496,13 +498,13 @@ public class VideoProcessorImpl
 					_generateThumbnail(destinationFileVersion, videoTempFile);
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 		}
 		catch (NoSuchFileEntryException noSuchFileEntryException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileEntryException, noSuchFileEntryException);
+				_log.debug(noSuchFileEntryException);
 			}
 
 			_fileVersionPreviewEventListener.onFailure(destinationFileVersion);
@@ -519,10 +521,6 @@ public class VideoProcessorImpl
 	}
 
 	private boolean _hasVideo(FileVersion fileVersion) throws Exception {
-		if (!isSupported(fileVersion)) {
-			return false;
-		}
-
 		if (hasPreviews(fileVersion) && hasThumbnails(fileVersion)) {
 			return true;
 		}

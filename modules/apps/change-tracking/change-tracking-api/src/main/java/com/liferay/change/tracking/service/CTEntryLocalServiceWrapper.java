@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CTEntryLocalServiceWrapper
 	implements CTEntryLocalService, ServiceWrapper<CTEntryLocalService> {
 
+	public CTEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CTEntryLocalServiceWrapper(CTEntryLocalService ctEntryLocalService) {
 		_ctEntryLocalService = ctEntryLocalService;
 	}
@@ -134,6 +138,13 @@ public class CTEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ctEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ctEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

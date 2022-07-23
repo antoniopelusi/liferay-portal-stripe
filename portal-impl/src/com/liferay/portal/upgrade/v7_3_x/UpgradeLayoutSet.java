@@ -15,7 +15,6 @@
 package com.liferay.portal.upgrade.v7_3_x;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.upgrade.v7_3_x.util.LayoutSetTable;
 
 /**
  * @author Preston Crary
@@ -24,13 +23,16 @@ public class UpgradeLayoutSet extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (hasColumn("LayoutSet", "headId") ||
-			hasColumn("LayoutSet", "head")) {
+		if (hasColumn("LayoutSet", "headId")) {
+			alterTableDropColumn("LayoutSet", "headId");
+		}
 
-			alter(
-				LayoutSetTable.class, new AlterTableDropColumn("headId"),
-				new AlterTableDropColumn("head"),
-				new AlterTableDropColumn("pageCount"));
+		if (hasColumn("LayoutSet", "head")) {
+			alterTableDropColumn("LayoutSet", "head");
+		}
+
+		if (hasColumn("LayoutSet", "pageCount")) {
+			alterTableDropColumn("LayoutSet", "pageCount");
 		}
 
 		runSQL("DROP_TABLE_IF_EXISTS(LayoutSetVersion)");

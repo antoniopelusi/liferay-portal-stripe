@@ -35,7 +35,7 @@ import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -121,7 +121,7 @@ public class LayoutAction implements Action {
 					).setMVCRenderCommandName(
 						"/login/login"
 					).setParameter(
-						"saveLastPath", Boolean.FALSE.toString()
+						"saveLastPath", false
 					).setPortletMode(
 						PortletMode.VIEW
 					).setWindowState(
@@ -129,11 +129,11 @@ public class LayoutAction implements Action {
 					).buildString();
 				}
 
-				authLoginURL = HttpUtil.setParameter(
+				authLoginURL = HttpComponentsUtil.setParameter(
 					authLoginURL, "p_p_id",
 					PropsValues.AUTH_LOGIN_PORTLET_NAME);
 
-				authLoginURL = HttpUtil.setParameter(
+				authLoginURL = HttpComponentsUtil.setParameter(
 					authLoginURL, redirectParam,
 					PortalUtil.getCurrentURL(httpServletRequest));
 
@@ -219,12 +219,12 @@ public class LayoutAction implements Action {
 		}
 
 		if (Validator.isNotNull(themeDisplay.getDoAsUserId())) {
-			forwardURL = HttpUtil.addParameter(
+			forwardURL = HttpComponentsUtil.addParameter(
 				forwardURL, "doAsUserId", themeDisplay.getDoAsUserId());
 		}
 
 		if (Validator.isNotNull(themeDisplay.getDoAsUserLanguageId())) {
-			forwardURL = HttpUtil.addParameter(
+			forwardURL = HttpComponentsUtil.addParameter(
 				forwardURL, "doAsUserLanguageId",
 				themeDisplay.getDoAsUserLanguageId());
 		}
@@ -278,7 +278,7 @@ public class LayoutAction implements Action {
 			HttpServletResponse httpServletResponse, long plid)
 		throws Exception {
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
@@ -295,13 +295,13 @@ public class LayoutAction implements Action {
 				return null;
 			}
 
-			Long previousLayoutPlid = (Long)session.getAttribute(
+			Long previousLayoutPlid = (Long)httpSession.getAttribute(
 				WebKeys.PREVIOUS_LAYOUT_PLID);
 
 			if ((previousLayoutPlid == null) ||
 				(layout.getPlid() != previousLayoutPlid.longValue())) {
 
-				session.setAttribute(
+				httpSession.setAttribute(
 					WebKeys.PREVIOUS_LAYOUT_PLID, layout.getPlid());
 
 				if (themeDisplay.isSignedIn() &&

@@ -35,6 +35,8 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
+import java.util.Collections;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.osgi.service.component.annotations.Component;
@@ -58,6 +60,25 @@ public class ChannelResourceImpl
 	}
 
 	@Override
+	public void deleteChannelByExternalReferenceCode(
+			String externalReferenceCode)
+		throws Exception {
+
+		CommerceChannel commerceChannel =
+			_commerceChannelService.fetchByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
+
+		if (commerceChannel == null) {
+			throw new NoSuchChannelException(
+				"Unable to find product with external reference code " +
+					externalReferenceCode);
+		}
+
+		_commerceChannelService.deleteCommerceChannel(
+			commerceChannel.getCommerceChannelId());
+	}
+
+	@Override
 	public Channel getChannel(Long channelId) throws Exception {
 		CommerceChannel commerceChannel =
 			_commerceChannelService.fetchCommerceChannel(channelId);
@@ -70,13 +91,32 @@ public class ChannelResourceImpl
 	}
 
 	@Override
+	public Channel getChannelByExternalReferenceCode(
+			String externalReferenceCode)
+		throws Exception {
+
+		CommerceChannel commerceChannel =
+			_commerceChannelService.fetchByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
+
+		if (commerceChannel == null) {
+			throw new NoSuchChannelException(
+				"Unable to find product with external reference code " +
+					externalReferenceCode);
+		}
+
+		return _toChannel(commerceChannel);
+	}
+
+	@Override
 	public Page<Channel> getChannelsPage(
 			String search, Filter filter, Pagination pagination, Sort[] sorts)
 		throws Exception {
 
 		return SearchUtil.search(
+			Collections.emptyMap(),
 			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CommerceChannel.class, search, pagination,
+			CommerceChannel.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -88,9 +128,9 @@ public class ChannelResourceImpl
 				}
 
 			},
+			sorts,
 			document -> _toChannel(
-				GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK))),
-			sorts);
+				GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK))));
 	}
 
 	@Override
@@ -125,6 +165,45 @@ public class ChannelResourceImpl
 	}
 
 	@Override
+	public Channel patchChannelByExternalReferenceCode(
+			String externalReferenceCode, Channel channel)
+		throws Exception {
+
+		CommerceChannel commerceChannel =
+			_commerceChannelService.fetchByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
+
+		if (commerceChannel == null) {
+			throw new NoSuchChannelException(
+				"Unable to find product with external reference code " +
+					externalReferenceCode);
+		}
+
+		Channel existingChannel = getChannel(
+			commerceChannel.getCommerceChannelId());
+
+		if (channel.getCurrencyCode() != null) {
+			existingChannel.setCurrencyCode(channel.getCurrencyCode());
+		}
+
+		if (channel.getExternalReferenceCode() != null) {
+			existingChannel.setExternalReferenceCode(
+				channel.getExternalReferenceCode());
+		}
+
+		if (channel.getName() != null) {
+			existingChannel.setName(channel.getName());
+		}
+
+		if (channel.getType() != null) {
+			existingChannel.setType(channel.getType());
+		}
+
+		return putChannel(
+			commerceChannel.getCommerceChannelId(), existingChannel);
+	}
+
+	@Override
 	public Channel postChannel(Channel channel) throws Exception {
 		return _toChannel(
 			_commerceChannelService.addCommerceChannel(
@@ -138,10 +217,30 @@ public class ChannelResourceImpl
 	public Channel putChannel(Long channelId, Channel channel)
 		throws Exception {
 
+		CommerceChannel commerceChannel =
+			_commerceChannelService.fetchCommerceChannel(channelId);
+
+		if (commerceChannel == null) {
+			return postChannel(channel);
+		}
+
 		return _toChannel(
 			_commerceChannelService.updateCommerceChannel(
 				channelId, channel.getSiteGroupId(), channel.getName(),
 				channel.getType(), null, channel.getCurrencyCode()));
+	}
+
+	@Override
+	public Channel putChannelByExternalReferenceCode(
+			String externalReferenceCode, Channel channel)
+		throws Exception {
+
+		return _toChannel(
+			_commerceChannelService.addOrUpdateCommerceChannel(
+				externalReferenceCode, channel.getSiteGroupId(),
+				channel.getName(), channel.getType(), null,
+				channel.getCurrencyCode(),
+				_serviceContextHelper.getServiceContext()));
 	}
 
 	private Channel _toChannel(CommerceChannel commerceChannel)

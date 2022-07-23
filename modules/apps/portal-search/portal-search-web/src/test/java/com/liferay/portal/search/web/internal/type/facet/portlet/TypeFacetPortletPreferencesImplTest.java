@@ -15,6 +15,7 @@
 package com.liferay.portal.search.web.internal.type.facet.portlet;
 
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.search.internal.asset.AssetRendererFactoryRegistry;
@@ -50,7 +51,7 @@ public class TypeFacetPortletPreferencesImplTest {
 		MockitoAnnotations.initMocks(this);
 
 		typeFacetPortletPreferencesImpl = new TypeFacetPortletPreferencesImpl(
-			Optional.empty(),
+			_objectDefinitionLocalService, Optional.empty(),
 			new SearchableAssetClassNamesProviderImpl() {
 				{
 					assetRendererFactoryRegistry =
@@ -59,25 +60,25 @@ public class TypeFacetPortletPreferencesImplTest {
 				}
 			});
 
-		mockAssetRendererFactoryGetClassName(
+		_mockAssetRendererFactoryGetClassName(
 			assetRendererFactory1, CLASS_NAME_1);
 
-		mockAssetRendererFactoryGetClassName(
+		_mockAssetRendererFactoryGetClassName(
 			assetRendererFactory2, CLASS_NAME_2);
 
-		mockAssetRendererFactoryIsSearchable(assetRendererFactory1, true);
+		_mockAssetRendererFactoryIsSearchable(assetRendererFactory1, true);
 
-		mockAssetRendererFactoryIsSearchable(assetRendererFactory2, true);
+		_mockAssetRendererFactoryIsSearchable(assetRendererFactory2, true);
 	}
 
 	@Test
 	public void testGetAssetTypes() {
-		mockAssetRendererFactoryRegistry(
+		_mockAssetRendererFactoryRegistry(
 			assetRendererFactory1, assetRendererFactory2);
 
 		String[] entryClassNames = {CLASS_NAME_1, CLASS_NAME_2};
 
-		mockSearchEngineHelperEntryClassNames(entryClassNames);
+		_mockSearchEngineHelperEntryClassNames(entryClassNames);
 
 		Assert.assertArrayEquals(
 			entryClassNames,
@@ -87,11 +88,11 @@ public class TypeFacetPortletPreferencesImplTest {
 
 	@Test
 	public void testGetAssetTypesNotInRegistry() {
-		mockAssetRendererFactoryRegistry(assetRendererFactory2);
+		_mockAssetRendererFactoryRegistry(assetRendererFactory2);
 
 		String[] entryClassNames = {CLASS_NAME_1, CLASS_NAME_2};
 
-		mockSearchEngineHelperEntryClassNames(entryClassNames);
+		_mockSearchEngineHelperEntryClassNames(entryClassNames);
 
 		Assert.assertArrayEquals(
 			new String[] {CLASS_NAME_2},
@@ -101,12 +102,12 @@ public class TypeFacetPortletPreferencesImplTest {
 
 	@Test
 	public void testGetAssetTypesNotInSearchEngineHelper() {
-		mockAssetRendererFactoryRegistry(
+		_mockAssetRendererFactoryRegistry(
 			assetRendererFactory1, assetRendererFactory2);
 
 		String[] entryClassNames = {CLASS_NAME_1};
 
-		mockSearchEngineHelperEntryClassNames(entryClassNames);
+		_mockSearchEngineHelperEntryClassNames(entryClassNames);
 
 		Assert.assertArrayEquals(
 			entryClassNames,
@@ -116,60 +117,19 @@ public class TypeFacetPortletPreferencesImplTest {
 
 	@Test
 	public void testGetAssetTypesNotSearchable() {
-		mockAssetRendererFactoryIsSearchable(assetRendererFactory1, false);
+		_mockAssetRendererFactoryIsSearchable(assetRendererFactory1, false);
 
-		mockAssetRendererFactoryRegistry(
+		_mockAssetRendererFactoryRegistry(
 			assetRendererFactory1, assetRendererFactory2);
 
 		String[] entryClassNames = {CLASS_NAME_1, CLASS_NAME_2};
 
-		mockSearchEngineHelperEntryClassNames(entryClassNames);
+		_mockSearchEngineHelperEntryClassNames(entryClassNames);
 
 		Assert.assertArrayEquals(
 			new String[] {CLASS_NAME_2},
 			typeFacetPortletPreferencesImpl.getAllAssetTypes(
 				RandomTestUtil.randomLong()));
-	}
-
-	protected void mockAssetRendererFactoryGetClassName(
-		AssetRendererFactory<?> assetRendererFactory, String className) {
-
-		Mockito.when(
-			assetRendererFactory.getClassName()
-		).thenReturn(
-			className
-		);
-	}
-
-	protected void mockAssetRendererFactoryIsSearchable(
-		AssetRendererFactory<?> assetRendererFactory, boolean searchable) {
-
-		Mockito.when(
-			assetRendererFactory.isSearchable()
-		).thenReturn(
-			searchable
-		);
-	}
-
-	protected void mockAssetRendererFactoryRegistry(
-		AssetRendererFactory<?>... assetRendererFactories) {
-
-		Mockito.when(
-			_assetRendererFactoryRegistry.getAssetRendererFactories(
-				Matchers.anyLong())
-		).thenReturn(
-			Arrays.asList(assetRendererFactories)
-		);
-	}
-
-	protected void mockSearchEngineHelperEntryClassNames(
-		String[] entryClassNames) {
-
-		Mockito.when(
-			_searchEngineHelper.getEntryClassNames()
-		).thenReturn(
-			entryClassNames
-		);
 	}
 
 	protected static final String CLASS_NAME_1 = "com.liferay.model.Model1";
@@ -184,8 +144,52 @@ public class TypeFacetPortletPreferencesImplTest {
 
 	protected TypeFacetPortletPreferencesImpl typeFacetPortletPreferencesImpl;
 
+	private void _mockAssetRendererFactoryGetClassName(
+		AssetRendererFactory<?> assetRendererFactory, String className) {
+
+		Mockito.when(
+			assetRendererFactory.getClassName()
+		).thenReturn(
+			className
+		);
+	}
+
+	private void _mockAssetRendererFactoryIsSearchable(
+		AssetRendererFactory<?> assetRendererFactory, boolean searchable) {
+
+		Mockito.when(
+			assetRendererFactory.isSearchable()
+		).thenReturn(
+			searchable
+		);
+	}
+
+	private void _mockAssetRendererFactoryRegistry(
+		AssetRendererFactory<?>... assetRendererFactories) {
+
+		Mockito.when(
+			_assetRendererFactoryRegistry.getAssetRendererFactories(
+				Matchers.anyLong())
+		).thenReturn(
+			Arrays.asList(assetRendererFactories)
+		);
+	}
+
+	private void _mockSearchEngineHelperEntryClassNames(
+		String[] entryClassNames) {
+
+		Mockito.when(
+			_searchEngineHelper.getEntryClassNames()
+		).thenReturn(
+			entryClassNames
+		);
+	}
+
 	@Mock
 	private AssetRendererFactoryRegistry _assetRendererFactoryRegistry;
+
+	@Mock
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
 	@Mock
 	private SearchEngineHelper _searchEngineHelper;

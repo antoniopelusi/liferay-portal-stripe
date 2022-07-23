@@ -14,6 +14,8 @@
 
 package com.liferay.wiki.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
@@ -47,6 +49,8 @@ public abstract class BaseWikiNodeUADAnonymizer
 		if (wikiNode.getUserId() == userId) {
 			wikiNode.setUserId(anonymousUser.getUserId());
 			wikiNode.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(wikiNode, anonymousUser);
 		}
 
 		if (wikiNode.getStatusByUserId() == userId) {
@@ -67,6 +71,19 @@ public abstract class BaseWikiNodeUADAnonymizer
 		return WikiNode.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		WikiNode wikiNode, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(wikiNode);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return wikiNodeLocalService.getActionableDynamicQuery();
@@ -76,6 +93,14 @@ public abstract class BaseWikiNodeUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return WikiUADConstants.USER_ID_FIELD_NAMES_WIKI_NODE;
 	}
+
+	protected AssetEntry fetchAssetEntry(WikiNode wikiNode) {
+		return assetEntryLocalService.fetchEntry(
+			WikiNode.class.getName(), wikiNode.getNodeId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected WikiNodeLocalService wikiNodeLocalService;

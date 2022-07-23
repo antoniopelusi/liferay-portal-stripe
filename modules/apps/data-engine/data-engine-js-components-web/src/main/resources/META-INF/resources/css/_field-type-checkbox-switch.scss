@@ -1,0 +1,34 @@
+.lfr-ddm-form-field-checkbox-switch {
+	display: block;
+	margin-bottom: 0 0 0.25rem;
+	min-height: 0;
+	padding-left: 0;
+	position: relative;
+	word-break: break-word;
+
+	&.lfr-ddm-form-field-checkbox-switch-inline {
+		display: inline-block;
+		margin-right: 1rem;
+	}
+
+	.simple-toggle-switch .toggle-switch-label {
+		max-width: none;
+	}
+}
+
+.ddm-info {
+	color: #6b6c7e;
+	display: flex;
+	font-size: 0.875rem;
+	font-weight: 400;
+	padding-top: 14px;
+
+	.ddm-info-text {
+		margin-left: 9px;
+	}
+
+	.ddm-tooltip {
+		color: #6b6c7e;
+		padding-left: 0;
+	}
+}

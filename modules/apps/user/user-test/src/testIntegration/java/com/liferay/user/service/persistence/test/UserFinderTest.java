@@ -248,6 +248,23 @@ public class UserFinderTest {
 	}
 
 	@Test
+	public void testFindByC_FN_MN_LN_SN_EA_S() throws Exception {
+		String[] firstNames = {null};
+		String[] middleNames = {null};
+		String[] lastNames = {null};
+		String[] screenNames = {null};
+		String[] emailAddresses = {null};
+
+		_userFinder.findByC_FN_MN_LN_SN_EA_S(
+			TestPropsValues.getCompanyId(), firstNames, middleNames, lastNames,
+			screenNames, emailAddresses, 0,
+			LinkedHashMapBuilder.<String, Object>put(
+				"announcementsDeliveryEmailOrSms", "general"
+			).build(),
+			true, 0, 1, null);
+	}
+
+	@Test
 	public void testFindByKeywordsGroupUsers() throws Exception {
 		List<User> users = _userFinder.findByKeywords(
 			TestPropsValues.getCompanyId(), null,

@@ -14,9 +14,14 @@
 
 package com.liferay.portal.upgrade;
 
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ReleaseConstants;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.kernel.version.Version;
 import com.liferay.portal.upgrade.util.PortalUpgradeProcessRegistry;
@@ -41,15 +46,16 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 	public static Version getCurrentSchemaVersion(Connection connection)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select schemaVersion from Release_ where servletContextName " +
 					"= ?")) {
 
-			ps.setString(1, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
+			preparedStatement.setString(
+				1, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					String schemaVersion = rs.getString("schemaVersion");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					String schemaVersion = resultSet.getString("schemaVersion");
 
 					return Version.parseVersion(schemaVersion);
 				}
@@ -127,6 +133,40 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 	}
 
 	@Override
+	public void upgrade() throws UpgradeException {
+		long start = System.currentTimeMillis();
+
+		String message = "Completed upgrade process ";
+
+		try (Connection connection = getConnection()) {
+			this.connection = connection;
+
+			if (_log.isInfoEnabled()) {
+				String info = "Upgrading " + ClassUtil.getClassName(this);
+
+				_log.info(info);
+			}
+
+			doUpgrade();
+		}
+		catch (Exception exception) {
+			message = "Failed upgrade process ";
+
+			throw new UpgradeException(exception);
+		}
+		finally {
+			this.connection = null;
+
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					StringBundler.concat(
+						message, ClassUtil.getClassName(this), " in ",
+						System.currentTimeMillis() - start, " ms"));
+			}
+		}
+	}
+
+	@Override
 	protected void doUpgrade() throws Exception {
 		_initializeSchemaVersion(connection);
 
@@ -151,28 +191,30 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 	protected void updateSchemaVersion(Version newSchemaVersion)
 		throws SQLException {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update Release_ set schemaVersion = ? where " +
 					"servletContextName = ?")) {
 
-			ps.setString(1, newSchemaVersion.toString());
-			ps.setString(2, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
+			preparedStatement.setString(1, newSchemaVersion.toString());
+			preparedStatement.setString(
+				2, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
 	private void _initializeSchemaVersion(Connection connection)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update Release_ set schemaVersion = ? where " +
 					"servletContextName = ? and buildNumber < 7100")) {
 
-			ps.setString(1, _initialSchemaVersion.toString());
-			ps.setString(2, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
+			preparedStatement.setString(1, _initialSchemaVersion.toString());
+			preparedStatement.setString(
+				2, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
 
-			ps.execute();
+			preparedStatement.execute();
 		}
 	}
 
@@ -184,6 +226,9 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 			class,
 		com.liferay.portal.upgrade.v7_4_x.PortalUpgradeProcessRegistryImpl.class
 	};
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		PortalUpgradeProcess.class);
 
 	private static final Version _initialSchemaVersion = new Version(0, 1, 0);
 	private static final TreeMap<Version, UpgradeProcess> _upgradeProcesses =

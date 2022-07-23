@@ -1,0 +1,79 @@
+<definition>
+	<command name="configureBreadcrumb">
+		<execute function="SelectFrame" locator1="IFrame#CONFIGURATION"/>
+	</command>
+	<command prose="I want to print rows-hash table: ${table}" name="echoRowsHashTable">
+		<var name="rowsHashTable" from="${table}" type="RowsHashTable"/>
+		<for param="row" table="${rowsHashTable}">
+			<execute macro="TableEcho#echoTwoVars">
+				<var name="v0" from="${row}" hash="project_id"/>
+				<var name="v1" from="${row}" hash="status"/>
+			</execute>
+		</for>
+		<var name="rawTable" from="${table}" type="RawTable"/>
+		<for param="row" table="${rawTable}">
+			<execute macro="TableEcho#echoTwoVars">
+				<var name="v0" from="${row}" index="0"/>
+				<var name="v1" from="${row}" index="1"/>
+			</execute>
+		</for>
+	</command>
+	<command prose="I assert the ${breadcrumbName}" name="viewPG">
+		<var name="key_breadcrumbName" value="${breadcrumbName}"/>
+		<var static="true" name="breadcrumbNameUppercase" method="StringUtil#upperCase('${breadcrumbName}')"/>
+		<var name="integer" method="MathUtil#sum('5', '5')"/>
+		<var name="newInteger" method="MathUtil#sum('34', '${integer}')"/>
+		<execute function="AssertTextEquals" locator1="Breadcrumb#BREADCRUMB_ENTRY" value1="${breadcrumbNameUppercase}"/>
+		<if>
+			<not>
+				<or>
+					<condition function="IsElementPresent" locator1="ExportPersonalData#EXPORT_PROCESS_IN_PROGRESS"/>
+					<condition function="IsElementPresent" locator1="ExportPersonalData#EXPORT_PROCESS_APPLICATION_IN_PROGRESS"/>
+				</or>
+			</not>
+			<then>
+				<execute function="AssertElementPresent" locator1="ExportPersonalData#EXPORT_PROCESS_SUCCESSFUL"/>
+			</then>
+		</if>
+		<while max-iterations="200">
+			<equals arg1="${allLinksChecked}" arg2="no"/>
+			<then>
+				<execute macro="Navigator#gotoPage">
+					<var name="pageName" value="Documents and Media Page"/>
+				</execute>
+			</then>
+		</while>
+		<while>
+			<and>
+				<not>
+					<equals arg1="${videoGenerationTimeCounter}" arg2="${videoGenerationTimeMaxWaitTime}"/>
+				</not>
+				<condition function="IsElementPresent" locator1="Message#INFO"/>
+			</and>
+			<then>
+				<execute macro="Navigator#gotoPage">
+					<var name="pageName" value="Documents and Media Page"/>
+				</execute>
+			</then>
+		</while>
+		<if>
+			<not>
+				<equals arg1="${url}" arg2="https://www.google.com/[#]gws_rd=ssl"/>
+			</not>
+			<then>
+				<execute function="AssertLocation" value1="https://www.google.com/?gws_rd=ssl"/>
+			</then>
+		</if>
+		<if>
+			<and>
+				<condition function="IsElementPresent" locator1="Blogs#ADD_BLOGS_ENTRY"/>
+				<equals arg1="${check}" arg2="true"/>
+				<isset var="duplicate"/>
+			</and>
+			<then>
+				<execute macro="Alert#viewSuccessMessage"/>
+			</then>
+		</if>
+		<return value="${breadcrumbNameUppercase}"/>
+	</command>
+</definition>

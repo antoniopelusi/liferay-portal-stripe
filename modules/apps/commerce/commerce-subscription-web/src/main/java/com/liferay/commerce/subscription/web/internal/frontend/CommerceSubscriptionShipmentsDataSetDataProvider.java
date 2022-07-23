@@ -113,12 +113,6 @@ public class CommerceSubscriptionShipmentsDataSetDataProvider
 				_commerceAddressService.getCommerceAddress(
 					commerceShipment.getCommerceAddressId());
 
-			StringBundler addressSB = new StringBundler(3);
-
-			addressSB.append(commerceAddress.getName());
-			addressSB.append(CharPool.SPACE);
-			addressSB.append(commerceAddress.getStreet1());
-
 			Shipment shipment = new Shipment(
 				dateTimeFormat.format(commerceShipment.getCreateDate()),
 				new Link(
@@ -132,7 +126,9 @@ public class CommerceSubscriptionShipmentsDataSetDataProvider
 					_getEditCommerceOrderURL(
 						commerceOrderItem.getCommerceOrderId(),
 						httpServletRequest)),
-				addressSB.toString(),
+				StringBundler.concat(
+					commerceAddress.getName(), CharPool.SPACE,
+					commerceAddress.getStreet1()),
 				new Link(commerceShipment.getTrackingNumber(), ""));
 
 			shipments.add(shipment);

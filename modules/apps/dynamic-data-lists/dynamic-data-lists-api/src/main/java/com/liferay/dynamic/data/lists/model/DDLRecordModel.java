@@ -399,4 +399,7 @@ public interface DDLRecordModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public DDLRecord cloneWithOriginalValues();
+
 }

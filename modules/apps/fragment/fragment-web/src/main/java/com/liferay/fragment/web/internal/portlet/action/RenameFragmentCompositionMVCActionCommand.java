@@ -60,13 +60,12 @@ public class RenameFragmentCompositionMVCActionCommand
 		String name = ParamUtil.getString(actionRequest, "name");
 
 		try {
-			FragmentComposition fragmentComposition =
-				_fragmentCompositionService.updateFragmentComposition(
-					fragmentCompositionId, name);
-
 			JSONObject jsonObject = JSONUtil.put(
 				"redirectURL",
-				getRedirectURL(actionResponse, fragmentComposition));
+				getRedirectURL(
+					actionResponse,
+					_fragmentCompositionService.updateFragmentComposition(
+						fragmentCompositionId, name)));
 
 			if (SessionErrors.contains(actionRequest, "fragmentNameInvalid")) {
 				addSuccessMessage(actionRequest, actionResponse);

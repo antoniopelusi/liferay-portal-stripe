@@ -26,10 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the saml idp sso session service. This utility wraps <code>com.liferay.saml.persistence.service.persistence.impl.SamlIdpSsoSessionPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -132,8 +128,8 @@ public class SamlIdpSsoSessionUtil {
 	 * @param createDate the create date
 	 * @return the matching saml idp sso sessions
 	 */
-	public static List<SamlIdpSsoSession> findByCreateDate(Date createDate) {
-		return getPersistence().findByCreateDate(createDate);
+	public static List<SamlIdpSsoSession> findByLtCreateDate(Date createDate) {
+		return getPersistence().findByLtCreateDate(createDate);
 	}
 
 	/**
@@ -148,10 +144,10 @@ public class SamlIdpSsoSessionUtil {
 	 * @param end the upper bound of the range of saml idp sso sessions (not inclusive)
 	 * @return the range of matching saml idp sso sessions
 	 */
-	public static List<SamlIdpSsoSession> findByCreateDate(
+	public static List<SamlIdpSsoSession> findByLtCreateDate(
 		Date createDate, int start, int end) {
 
-		return getPersistence().findByCreateDate(createDate, start, end);
+		return getPersistence().findByLtCreateDate(createDate, start, end);
 	}
 
 	/**
@@ -167,11 +163,11 @@ public class SamlIdpSsoSessionUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching saml idp sso sessions
 	 */
-	public static List<SamlIdpSsoSession> findByCreateDate(
+	public static List<SamlIdpSsoSession> findByLtCreateDate(
 		Date createDate, int start, int end,
 		OrderByComparator<SamlIdpSsoSession> orderByComparator) {
 
-		return getPersistence().findByCreateDate(
+		return getPersistence().findByLtCreateDate(
 			createDate, start, end, orderByComparator);
 	}
 
@@ -189,12 +185,12 @@ public class SamlIdpSsoSessionUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching saml idp sso sessions
 	 */
-	public static List<SamlIdpSsoSession> findByCreateDate(
+	public static List<SamlIdpSsoSession> findByLtCreateDate(
 		Date createDate, int start, int end,
 		OrderByComparator<SamlIdpSsoSession> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByCreateDate(
+		return getPersistence().findByLtCreateDate(
 			createDate, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -206,13 +202,13 @@ public class SamlIdpSsoSessionUtil {
 	 * @return the first matching saml idp sso session
 	 * @throws NoSuchIdpSsoSessionException if a matching saml idp sso session could not be found
 	 */
-	public static SamlIdpSsoSession findByCreateDate_First(
+	public static SamlIdpSsoSession findByLtCreateDate_First(
 			Date createDate,
 			OrderByComparator<SamlIdpSsoSession> orderByComparator)
 		throws com.liferay.saml.persistence.exception.
 			NoSuchIdpSsoSessionException {
 
-		return getPersistence().findByCreateDate_First(
+		return getPersistence().findByLtCreateDate_First(
 			createDate, orderByComparator);
 	}
 
@@ -223,11 +219,11 @@ public class SamlIdpSsoSessionUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching saml idp sso session, or <code>null</code> if a matching saml idp sso session could not be found
 	 */
-	public static SamlIdpSsoSession fetchByCreateDate_First(
+	public static SamlIdpSsoSession fetchByLtCreateDate_First(
 		Date createDate,
 		OrderByComparator<SamlIdpSsoSession> orderByComparator) {
 
-		return getPersistence().fetchByCreateDate_First(
+		return getPersistence().fetchByLtCreateDate_First(
 			createDate, orderByComparator);
 	}
 
@@ -239,13 +235,13 @@ public class SamlIdpSsoSessionUtil {
 	 * @return the last matching saml idp sso session
 	 * @throws NoSuchIdpSsoSessionException if a matching saml idp sso session could not be found
 	 */
-	public static SamlIdpSsoSession findByCreateDate_Last(
+	public static SamlIdpSsoSession findByLtCreateDate_Last(
 			Date createDate,
 			OrderByComparator<SamlIdpSsoSession> orderByComparator)
 		throws com.liferay.saml.persistence.exception.
 			NoSuchIdpSsoSessionException {
 
-		return getPersistence().findByCreateDate_Last(
+		return getPersistence().findByLtCreateDate_Last(
 			createDate, orderByComparator);
 	}
 
@@ -256,11 +252,11 @@ public class SamlIdpSsoSessionUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching saml idp sso session, or <code>null</code> if a matching saml idp sso session could not be found
 	 */
-	public static SamlIdpSsoSession fetchByCreateDate_Last(
+	public static SamlIdpSsoSession fetchByLtCreateDate_Last(
 		Date createDate,
 		OrderByComparator<SamlIdpSsoSession> orderByComparator) {
 
-		return getPersistence().fetchByCreateDate_Last(
+		return getPersistence().fetchByLtCreateDate_Last(
 			createDate, orderByComparator);
 	}
 
@@ -273,13 +269,13 @@ public class SamlIdpSsoSessionUtil {
 	 * @return the previous, current, and next saml idp sso session
 	 * @throws NoSuchIdpSsoSessionException if a saml idp sso session with the primary key could not be found
 	 */
-	public static SamlIdpSsoSession[] findByCreateDate_PrevAndNext(
+	public static SamlIdpSsoSession[] findByLtCreateDate_PrevAndNext(
 			long samlIdpSsoSessionId, Date createDate,
 			OrderByComparator<SamlIdpSsoSession> orderByComparator)
 		throws com.liferay.saml.persistence.exception.
 			NoSuchIdpSsoSessionException {
 
-		return getPersistence().findByCreateDate_PrevAndNext(
+		return getPersistence().findByLtCreateDate_PrevAndNext(
 			samlIdpSsoSessionId, createDate, orderByComparator);
 	}
 
@@ -288,8 +284,8 @@ public class SamlIdpSsoSessionUtil {
 	 *
 	 * @param createDate the create date
 	 */
-	public static void removeByCreateDate(Date createDate) {
-		getPersistence().removeByCreateDate(createDate);
+	public static void removeByLtCreateDate(Date createDate) {
+		getPersistence().removeByLtCreateDate(createDate);
 	}
 
 	/**
@@ -298,8 +294,8 @@ public class SamlIdpSsoSessionUtil {
 	 * @param createDate the create date
 	 * @return the number of matching saml idp sso sessions
 	 */
-	public static int countByCreateDate(Date createDate) {
-		return getPersistence().countByCreateDate(createDate);
+	public static int countByLtCreateDate(Date createDate) {
+		return getPersistence().countByLtCreateDate(createDate);
 	}
 
 	/**
@@ -527,29 +523,9 @@ public class SamlIdpSsoSessionUtil {
 	}
 
 	public static SamlIdpSsoSessionPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<SamlIdpSsoSessionPersistence, SamlIdpSsoSessionPersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			SamlIdpSsoSessionPersistence.class);
-
-		ServiceTracker
-			<SamlIdpSsoSessionPersistence, SamlIdpSsoSessionPersistence>
-				serviceTracker =
-					new ServiceTracker
-						<SamlIdpSsoSessionPersistence,
-						 SamlIdpSsoSessionPersistence>(
-							 bundle.getBundleContext(),
-							 SamlIdpSsoSessionPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile SamlIdpSsoSessionPersistence _persistence;
 
 }

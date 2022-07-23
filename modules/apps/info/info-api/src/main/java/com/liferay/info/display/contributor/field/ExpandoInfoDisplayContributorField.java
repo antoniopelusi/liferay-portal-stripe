@@ -113,13 +113,9 @@ public class ExpandoInfoDisplayContributorField
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 					attributeValue.toString());
 
-				StringBundler sb = new StringBundler(3);
-
-				sb.append(jsonObject.get("latitude"));
-				sb.append(StringPool.COMMA_AND_SPACE);
-				sb.append(jsonObject.get("longitude"));
-
-				attributeValue = sb.toString();
+				attributeValue = StringBundler.concat(
+					jsonObject.get("latitude"), StringPool.COMMA_AND_SPACE,
+					jsonObject.get("longitude"));
 			}
 			catch (JSONException jsonException) {
 				_log.error("Unable to parse geolocation JSON", jsonException);

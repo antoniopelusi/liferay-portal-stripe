@@ -89,6 +89,11 @@ public class ServiceComponentWrapper
 		}
 	}
 
+	@Override
+	public ServiceComponent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the build date of this service component.
 	 *

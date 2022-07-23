@@ -16,7 +16,6 @@ package com.liferay.change.tracking.model.impl;
 
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTCollectionModel;
-import com.liferay.change.tracking.model.CTCollectionSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -32,20 +31,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -156,60 +154,6 @@ public class CTCollectionModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CTCollection toModel(CTCollectionSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		CTCollection model = new CTCollectionImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setSchemaVersionId(soapModel.getSchemaVersionId());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CTCollection> toModels(CTCollectionSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CTCollection> models = new ArrayList<CTCollection>(
-			soapModels.length);
-
-		for (CTCollectionSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public CTCollectionModelImpl() {
 	}
 
@@ -293,34 +237,6 @@ public class CTCollectionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CTCollection>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CTCollection.class.getClassLoader(), CTCollection.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CTCollection> constructor =
-				(Constructor<CTCollection>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CTCollection, Object>>
@@ -726,6 +642,36 @@ public class CTCollectionModelImpl
 	}
 
 	@Override
+	public CTCollection cloneWithOriginalValues() {
+		CTCollectionImpl ctCollectionImpl = new CTCollectionImpl();
+
+		ctCollectionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ctCollectionImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ctCollectionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ctCollectionImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		ctCollectionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ctCollectionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		ctCollectionImpl.setSchemaVersionId(
+			this.<Long>getColumnOriginalValue("schemaVersionId"));
+		ctCollectionImpl.setName(this.<String>getColumnOriginalValue("name"));
+		ctCollectionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		ctCollectionImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		ctCollectionImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		ctCollectionImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return ctCollectionImpl;
+	}
+
+	@Override
 	public int compareTo(CTCollection ctCollection) {
 		int value = 0;
 
@@ -864,7 +810,7 @@ public class CTCollectionModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -875,9 +821,26 @@ public class CTCollectionModelImpl
 			Function<CTCollection, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CTCollection)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CTCollection)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -924,7 +887,9 @@ public class CTCollectionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CTCollection>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CTCollection.class, ModelWrapper.class);
 
 	}
 

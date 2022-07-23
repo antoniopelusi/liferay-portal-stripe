@@ -22,6 +22,7 @@ import java.util.Locale;
 
 /**
  * @author Andrea Di Giorgi
+ * @author Alessio Antonio Rendina
  */
 public interface CommerceShippingEngine {
 
@@ -33,6 +34,11 @@ public interface CommerceShippingEngine {
 		throws CommerceShippingEngineException;
 
 	public String getDescription(Locale locale);
+
+	public List<CommerceShippingOption> getEnabledCommerceShippingOptions(
+			CommerceContext commerceContext, CommerceOrder commerceOrder,
+			Locale locale)
+		throws CommerceShippingEngineException;
 
 	public String getName(Locale locale);
 

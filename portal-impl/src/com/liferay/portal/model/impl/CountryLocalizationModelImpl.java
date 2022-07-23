@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -224,34 +226,6 @@ public class CountryLocalizationModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CountryLocalization>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CountryLocalization.class.getClassLoader(),
-			CountryLocalization.class, ModelWrapper.class);
-
-		try {
-			Constructor<CountryLocalization> constructor =
-				(Constructor<CountryLocalization>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CountryLocalization, Object>>
@@ -496,6 +470,27 @@ public class CountryLocalizationModelImpl
 	}
 
 	@Override
+	public CountryLocalization cloneWithOriginalValues() {
+		CountryLocalizationImpl countryLocalizationImpl =
+			new CountryLocalizationImpl();
+
+		countryLocalizationImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		countryLocalizationImpl.setCountryLocalizationId(
+			this.<Long>getColumnOriginalValue("countryLocalizationId"));
+		countryLocalizationImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		countryLocalizationImpl.setCountryId(
+			this.<Long>getColumnOriginalValue("countryId"));
+		countryLocalizationImpl.setLanguageId(
+			this.<String>getColumnOriginalValue("languageId"));
+		countryLocalizationImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+
+		return countryLocalizationImpl;
+	}
+
+	@Override
 	public int compareTo(CountryLocalization countryLocalization) {
 		long primaryKey = countryLocalization.getPrimaryKey();
 
@@ -601,7 +596,7 @@ public class CountryLocalizationModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -612,9 +607,27 @@ public class CountryLocalizationModelImpl
 			Function<CountryLocalization, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CountryLocalization)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CountryLocalization)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -661,7 +674,9 @@ public class CountryLocalizationModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CountryLocalization>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CountryLocalization.class, ModelWrapper.class);
 
 	}
 

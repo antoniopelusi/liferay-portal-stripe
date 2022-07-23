@@ -56,15 +56,27 @@ public class ProjectTemplatesRESTBuilderWorkspaceTest
 	public static Iterable<Object[]> data() {
 		return Arrays.asList(
 			new Object[][] {
-				{"guestbook", "com.liferay.docs.guestbook", "7.1.3"},
-				{"guestbook", "com.liferay.docs.guestbook", "7.2.1"},
-				{"guestbook", "com.liferay.docs.guestbook", "7.3.5"},
-				{"backend-integration", "com.liferay.docs.guestbook", "7.1.3"},
-				{"backend-integration", "com.liferay.docs.guestbook", "7.2.1"},
-				{"backend-integration", "com.liferay.docs.guestbook", "7.3.5"},
-				{"sample", "com.test.sample", "7.1.3"},
-				{"sample", "com.test.sample", "7.2.1"},
-				{"sample", "com.test.sample", "7.3.5"}
+				{"guestbook", "com.liferay.docs.guestbook", "7.1.3-1"},
+				{"guestbook", "com.liferay.docs.guestbook", "7.2.1-1"},
+				{"guestbook", "com.liferay.docs.guestbook", "7.3.7"},
+				{"guestbook", "com.liferay.docs.guestbook", "7.4.3.4"},
+				{
+					"backend-integration", "com.liferay.docs.guestbook",
+					"7.1.3-1"
+				},
+				{
+					"backend-integration", "com.liferay.docs.guestbook",
+					"7.2.1-1"
+				},
+				{"backend-integration", "com.liferay.docs.guestbook", "7.3.7"},
+				{
+					"backend-integration", "com.liferay.docs.guestbook",
+					"7.4.3.4"
+				},
+				{"sample", "com.test.sample", "7.1.3-1"},
+				{"sample", "com.test.sample", "7.2.1-1"},
+				{"sample", "com.test.sample", "7.3.7"},
+				{"sample", "com.test.sample", "7.4.3.4"}
 			});
 	}
 
@@ -99,6 +111,27 @@ public class ProjectTemplatesRESTBuilderWorkspaceTest
 		File gradleWorkspaceDir = buildWorkspace(
 			temporaryFolder, "gradle", "gradleWS", _liferayVersion,
 			mavenExecutor);
+
+		if (_liferayVersion.startsWith("7.0")) {
+			writeGradlePropertiesInWorkspace(
+				gradleWorkspaceDir, "liferay.workspace.product=portal-7.0-ga7");
+		}
+		else if (_liferayVersion.startsWith("7.1")) {
+			writeGradlePropertiesInWorkspace(
+				gradleWorkspaceDir, "liferay.workspace.product=portal-7.1-ga4");
+		}
+		else if (_liferayVersion.startsWith("7.2")) {
+			writeGradlePropertiesInWorkspace(
+				gradleWorkspaceDir, "liferay.workspace.product=portal-7.2-ga2");
+		}
+		else if (_liferayVersion.startsWith("7.3")) {
+			writeGradlePropertiesInWorkspace(
+				gradleWorkspaceDir, "liferay.workspace.product=portal-7.3-ga8");
+		}
+		else {
+			writeGradlePropertiesInWorkspace(
+				gradleWorkspaceDir, "liferay.workspace.product=portal-7.4-ga4");
+		}
 
 		File gradleWorkspaceModulesDir = new File(
 			gradleWorkspaceDir, "modules");
@@ -139,7 +172,7 @@ public class ProjectTemplatesRESTBuilderWorkspaceTest
 				"compileOnly group: \"org.apache.felix\", name: \"org.apache." +
 					"felix.http.servlet-api\", version: \"1.1.2\"");
 		}
-		else {
+		else if (_liferayVersion.startsWith("7.2")) {
 			testContains(
 				gradleProjectDir, _name + "-api/build.gradle",
 				"compileOnly group: \"org.apache.felix\", name: \"org.apache." +
@@ -157,6 +190,14 @@ public class ProjectTemplatesRESTBuilderWorkspaceTest
 				gradleProjectDir, _name + "-impl/build.gradle",
 				"compileOnly group: \"javax.servlet\", name: " +
 					"\"javax.servlet-api\"");
+		}
+		else {
+			testContains(
+				gradleProjectDir, _name + "-api/build.gradle",
+				DEPENDENCY_RELEASE_PORTAL_API);
+			testContains(
+				gradleProjectDir, _name + "-impl/build.gradle",
+				DEPENDENCY_RELEASE_PORTAL_API);
 		}
 
 		File mavenWorkspaceDir = buildWorkspace(

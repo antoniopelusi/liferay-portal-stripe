@@ -52,8 +52,53 @@ public class ObjectDefinitionTable extends BaseTable<ObjectDefinitionTable> {
 	public final Column<ObjectDefinitionTable, Date> modifiedDate =
 		createColumn(
 			"modifiedDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Long> descriptionObjectFieldId =
+		createColumn(
+			"descriptionObjectFieldId", Long.class, Types.BIGINT,
+			Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Long> titleObjectFieldId =
+		createColumn(
+			"titleObjectFieldId", Long.class, Types.BIGINT,
+			Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Boolean> active = createColumn(
+		"active_", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> dbTableName =
+		createColumn(
+			"dbTableName", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> label = createColumn(
+		"label", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> className = createColumn(
+		"className", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<ObjectDefinitionTable, String> name = createColumn(
 		"name", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> panelAppOrder =
+		createColumn(
+			"panelAppOrder", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> panelCategoryKey =
+		createColumn(
+			"panelCategoryKey", String.class, Types.VARCHAR,
+			Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String>
+		pkObjectFieldDBColumnName = createColumn(
+			"pkObjectFieldDBColumnName", String.class, Types.VARCHAR,
+			Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> pkObjectFieldName =
+		createColumn(
+			"pkObjectFieldName", String.class, Types.VARCHAR,
+			Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> pluralLabel =
+		createColumn(
+			"pluralLabel", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Boolean> portlet = createColumn(
+		"portlet", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, String> scope = createColumn(
+		"scope", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Boolean> system = createColumn(
+		"system_", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Integer> version = createColumn(
+		"version", Integer.class, Types.INTEGER, Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Integer> status = createColumn(
+		"status", Integer.class, Types.INTEGER, Column.FLAG_DEFAULT);
 
 	private ObjectDefinitionTable() {
 		super("ObjectDefinition", ObjectDefinitionTable::new);

@@ -19,7 +19,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PrefsProps;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -63,12 +63,11 @@ public class PortletPreferencesUpgradeProcess extends UpgradeProcess {
 
 					_configurationProvider.saveCompanyConfiguration(
 						DLGoogleDriveCompanyConfiguration.class, companyId,
-						new HashMapDictionary<String, Object>() {
-							{
-								put("clientId", clientId);
-								put("pickerAPIKey", apiKey);
-							}
-						});
+						HashMapDictionaryBuilder.<String, Object>put(
+							"clientId", clientId
+						).put(
+							"pickerAPIKey", apiKey
+						).build());
 				}
 			});
 	}

@@ -25,7 +25,7 @@ PortletURL portletURL = PortletURLBuilder.create(
 	ddmDataProviderDisplayContext.getPortletURL()
 ).setParameter(
 	"displayStyle", displayStyle
-).build();
+).buildPortletURL();
 
 portletDisplay.setShowBackIcon(ddmDataProviderDisplayContext.isShowBackIcon());
 portletDisplay.setURLBack(backURL);
@@ -42,7 +42,7 @@ renderResponse.setTitle(ddmDataProviderDisplayContext.getTitle());
 <clay:container-fluid
 	id='<%= liferayPortletResponse.getNamespace() + "formContainer" %>'
 >
-	<aui:form action="<%= portletURL.toString() %>" method="post" name="searchContainerForm">
+	<aui:form action="<%= portletURL %>" method="post" name="searchContainerForm">
 		<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
 		<aui:input name="deleteDataProviderInstanceIds" type="hidden" />
 

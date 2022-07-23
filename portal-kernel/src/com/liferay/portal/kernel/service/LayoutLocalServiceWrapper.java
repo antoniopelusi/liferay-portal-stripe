@@ -28,6 +28,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class LayoutLocalServiceWrapper
 	implements LayoutLocalService, ServiceWrapper<LayoutLocalService> {
 
+	public LayoutLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutLocalServiceWrapper(LayoutLocalService layoutLocalService) {
 		_layoutLocalService = layoutLocalService;
 	}
@@ -517,6 +521,13 @@ public class LayoutLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _layoutLocalService.dynamicQuery();
 	}
@@ -932,6 +943,27 @@ public class LayoutLocalServiceWrapper
 	}
 
 	/**
+	 * Returns a range of all the layouts belonging to the group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param privateLayout whether the layout is private to the group
+	 * @param start the lower bound of the range of layouts
+	 * @param end the upper bound of the range of layouts (not inclusive)
+	 * @param orderByComparator the comparator to order the layouts
+	 * @return the matching layouts, or <code>null</code> if no matches were
+	 found
+	 */
+	@Override
+	public java.util.List<Layout> getLayouts(
+		long groupId, boolean privateLayout, int[] statuses, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<Layout>
+			orderByComparator) {
+
+		return _layoutLocalService.getLayouts(
+			groupId, privateLayout, statuses, start, end, orderByComparator);
+	}
+
+	/**
 	 * Returns all the layouts belonging to the group that are children of the
 	 * parent layout.
 	 *
@@ -1078,6 +1110,25 @@ public class LayoutLocalServiceWrapper
 	}
 
 	/**
+	 * Returns all the layouts that match the type and belong to the group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param privateLayout whether the layout is private to the group
+	 * @param types the layout's type (optionally {@link
+	 LayoutConstants#TYPE_PORTLET}). The possible types can be found
+	 in {@link LayoutConstants}.
+	 * @return the matching layouts, or <code>null</code> if no matches were
+	 found
+	 */
+	@Override
+	public java.util.List<Layout> getLayouts(
+			long groupId, boolean privateLayout, String[] types)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutLocalService.getLayouts(groupId, privateLayout, types);
+	}
+
+	/**
 	 * Returns a range of all the layouts belonging to the group.
 	 *
 	 * @param groupId the primary key of the group
@@ -1125,6 +1176,33 @@ public class LayoutLocalServiceWrapper
 	}
 
 	/**
+	 * Returns a range of all the layouts belonging to the group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param userId the primary key of the user
+	 * @param privateLayout whether the layout is private to the group
+	 * @param keywords keywords
+	 * @param types layout types
+	 * @param start the lower bound of the range of layouts
+	 * @param end the upper bound of the range of layouts (not inclusive)
+	 * @param orderByComparator the comparator to order the layouts
+	 * @return the matching layouts, or <code>null</code> if no matches were
+	 found
+	 */
+	@Override
+	public java.util.List<Layout> getLayouts(
+			long groupId, long userId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<Layout>
+				orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutLocalService.getLayouts(
+			groupId, userId, privateLayout, keywords, types, statuses, start,
+			end, orderByComparator);
+	}
+
+	/**
 	 * Returns the layout references for all the layouts that belong to the
 	 * company and belong to the portlet that matches the preferences.
 	 *
@@ -1164,6 +1242,30 @@ public class LayoutLocalServiceWrapper
 
 		return _layoutLocalService.getLayouts(
 			groupId, keywords, types, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns a range of all the layouts belonging to the group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param keywords keywords
+	 * @param types layout types
+	 * @param start the lower bound of the range of layouts
+	 * @param end the upper bound of the range of layouts (not inclusive)
+	 * @param orderByComparator the comparator to order the layouts
+	 * @return the matching layouts, or <code>null</code> if no matches were
+	 found
+	 */
+	@Override
+	public java.util.List<Layout> getLayouts(
+			long groupId, String keywords, String[] types, int[] statuses,
+			int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<Layout>
+				orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutLocalService.getLayouts(
+			groupId, keywords, types, statuses, start, end, orderByComparator);
 	}
 
 	@Override
@@ -1294,10 +1396,29 @@ public class LayoutLocalServiceWrapper
 	}
 
 	@Override
+	public int getLayoutsCount(
+			long groupId, long userId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutLocalService.getLayoutsCount(
+			groupId, userId, privateLayout, keywords, types, statuses);
+	}
+
+	@Override
 	public int getLayoutsCount(long groupId, String keywords, String[] types)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _layoutLocalService.getLayoutsCount(groupId, keywords, types);
+	}
+
+	@Override
+	public int getLayoutsCount(
+			long groupId, String keywords, String[] types, int[] statuses)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutLocalService.getLayoutsCount(
+			groupId, keywords, types, statuses);
 	}
 
 	@Override
@@ -1369,6 +1490,21 @@ public class LayoutLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _layoutLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	@Override
+	public java.util.List<Layout> getPublishedLayouts(
+		long groupId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<Layout>
+			orderByComparator) {
+
+		return _layoutLocalService.getPublishedLayouts(
+			groupId, start, end, orderByComparator);
+	}
+
+	@Override
+	public int getPublishedLayoutsCount(long groupId) {
+		return _layoutLocalService.getPublishedLayoutsCount(groupId);
 	}
 
 	@Override
@@ -1686,6 +1822,19 @@ public class LayoutLocalServiceWrapper
 
 		return _layoutLocalService.updateLayout(
 			groupId, privateLayout, layoutId, typeSettings);
+	}
+
+	@Override
+	public Layout updateLayout(
+			long groupId, boolean privateLayout, long layoutId,
+			String typeSettings, byte[] iconBytes, String themeId,
+			String colorSchemeId, long styleBookEntryId, String css,
+			long masterLayoutPlid)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutLocalService.updateLayout(
+			groupId, privateLayout, layoutId, typeSettings, iconBytes, themeId,
+			colorSchemeId, styleBookEntryId, css, masterLayoutPlid);
 	}
 
 	/**

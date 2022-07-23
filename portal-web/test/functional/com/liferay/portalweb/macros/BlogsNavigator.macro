@@ -1,19 +1,13 @@
 definition {
 
 	macro gotoAddEntry {
-		if (IsElementNotPresent(locator1 = "Blogs#ADD_BLOGS_ENTRY") || IsElementNotPresent(key_tab = "New Entry", locator1 = "Button#ANY")) {
-			Pause(locator = "1000");
-		}
-
 		if (IsElementPresent(locator1 = "Blogs#ADD_BLOGS_ENTRY")) {
 			Click(locator1 = "Blogs#ADD_BLOGS_ENTRY");
 		}
 		else {
-			var key_text = "New Entry";
-
-			AssertClick(
-				locator1 = "Button#ANY",
-				value1 = "New Entry");
+			Click(
+				key_text = "New Entry",
+				locator1 = "Button#ANY");
 		}
 
 		AssertVisible(locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_SELECT_FILE");
@@ -97,7 +91,9 @@ definition {
 				item = "Edit");
 		}
 
-		AssertVisible(locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_SELECT_FILE");
+		AssertVisible(
+			key_text = "Title",
+			locator1 = "TextArea#ANY");
 	}
 
 	macro gotoEntryCP {
@@ -146,6 +142,10 @@ definition {
 		AssertClick(
 			locator1 = "BlogsEntry#TITLE_LINK",
 			value1 = "${entryTitle}");
+	}
+
+	macro gotoFriendlyURLHistory {
+		Click(locator1 = "Icon#FRIENDLY_URL_HISTORY");
 	}
 
 	macro gotoPG {
@@ -202,13 +202,23 @@ definition {
 	}
 
 	macro openBlogsAdmin {
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_blogs_web_portlet_BlogsAdminPortlet");
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_blogs_web_portlet_BlogsAdminPortlet");
 	}
+
+	macro openBlogsImages {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_blogs_web_portlet_BlogsAdminPortlet&_com_liferay_blogs_web_portlet_BlogsAdminPortlet_navigation=images");
+	}
+
+	// You can use this navigation when you need to access the configuration quickly without checking the UI.
 
 	macro openToAddEntry {
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -223,22 +233,65 @@ definition {
 	}
 
 	macro openToBlogEntry {
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}/-/blogs/${entryTitle}");
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		Open(locator1 = "${baseURL}/web/${siteURLKey}/${layoutName}/-/blogs/${entryTitle}");
+	}
+
+	macro openToConfigInInstanceSettings {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if ("${portlet}" == "Blogs Service") {
+			var portletId = "com.liferay.blogs.configuration.BlogsGroupServiceConfiguration";
+		}
+
+		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet&_com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet_factoryPid=${portletId}&_com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fedit_configuration");
 	}
 
 	macro openToEditEntryInSite {
 		var entryId = JSONBlog.getBlogEntryId(
-			friendlyURL = "${friendlyURL}",
 			entryTitle = "${entryTitle}",
-			groupName = "${groupName}");
+			friendlyURL = "${friendlyURL}",
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
 		Open(locator1 = "${baseURL}/group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_blogs_web_portlet_BlogsAdminPortlet&p_p_lifecycle=0&p_p_state=maximized&refererPlid=12&_com_liferay_blogs_web_portlet_BlogsAdminPortlet_mvcRenderCommandName=%2Fblogs%2Fedit_entry&_com_liferay_blogs_web_portlet_BlogsAdminPortlet_entryId=${entryId}");
+	}
+
+	macro openToNotPublishedTab {
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}?p_p_id=com_liferay_blogs_web_portlet_BlogsPortlet&_com_liferay_blogs_web_portlet_BlogsPortlet_mvcRenderCommandName=%2Fblogs%2Fview_not_published_entries");
+	}
+
+	macro openToStagingCP {
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		var stagingId = JSONGroupAPI._getGroupIdByName(
+			groupName = "${groupName}",
+			site = "${site}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		Open(locator1 = "${baseURL}/group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_blogs_web_portlet_BlogsAdminPortlet&p_v_l_s_g_id=${stagingId}");
 	}
 
 }

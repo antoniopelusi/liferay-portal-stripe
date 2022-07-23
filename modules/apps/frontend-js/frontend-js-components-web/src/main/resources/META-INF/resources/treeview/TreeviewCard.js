@@ -27,7 +27,7 @@ export default function TreeviewCard({node}) {
 
 	const path =
 		node.nodePath && filter ? (
-			<div className="lfr-card-subtitle-text text-default text-truncate treeview-node-name">
+			<div className="font-weight-normal h5 lfr-card-subtitle-text small text-default text-truncate treeview-node-name">
 				{node.nodePath}
 			</div>
 		) : null;
@@ -36,22 +36,28 @@ export default function TreeviewCard({node}) {
 		<div
 			className={classNames({
 				'card-type-directory': true,
-				disabled: node.disabled,
-				focused: node.id === focusedNodeId,
+				'disabled': node.disabled,
+				'focused': node.id === focusedNodeId,
 				'form-check': true,
 				'form-check-card': true,
 				'form-check-middle-left': true,
-				selected: node.selected,
+				'selected': node.selected,
 			})}
 		>
 			<div className="card card-horizontal">
 				<div className="card-body">
 					<ClayCard.Row className="autofit-row-center">
-						<div className="autofit-col">
-							<ClaySticker displayType="secondary" inline>
-								<ClayIcon symbol={node.icon} />
-							</ClaySticker>
-						</div>
+						{node.icon && (
+							<div className="autofit-col">
+								<ClaySticker
+									className={node.iconCssClass}
+									displayType="secondary"
+									inline
+								>
+									<ClayIcon symbol={node.icon} />
+								</ClaySticker>
+							</div>
+						)}
 
 						<div className="autofit-col autofit-col-expand autofit-col-gutters">
 							<ClayCard.Description displayType="title">
@@ -70,6 +76,7 @@ export default function TreeviewCard({node}) {
 TreeviewCard.propTypes = {
 	node: PropTypes.shape({
 		icon: PropTypes.string,
+		iconCssClass: PropTypes.string,
 		name: PropTypes.string.isRequired,
 		nodePath: PropTypes.string,
 	}).isRequired,

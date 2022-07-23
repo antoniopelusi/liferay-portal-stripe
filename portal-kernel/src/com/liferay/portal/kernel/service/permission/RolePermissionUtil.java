@@ -26,22 +26,21 @@ public class RolePermissionUtil {
 			PermissionChecker permissionChecker, long roleId, String actionId)
 		throws PrincipalException {
 
-		getRolePermission().check(permissionChecker, roleId, actionId);
+		_rolePermission.check(permissionChecker, roleId, actionId);
 	}
 
 	public static boolean contains(
 		PermissionChecker permissionChecker, long groupId, long roleId,
 		String actionId) {
 
-		return getRolePermission().contains(
+		return _rolePermission.contains(
 			permissionChecker, groupId, roleId, actionId);
 	}
 
 	public static boolean contains(
 		PermissionChecker permissionChecker, long roleId, String actionId) {
 
-		return getRolePermission().contains(
-			permissionChecker, roleId, actionId);
+		return _rolePermission.contains(permissionChecker, roleId, actionId);
 	}
 
 	public static RolePermission getRolePermission() {

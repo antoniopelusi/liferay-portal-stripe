@@ -186,19 +186,21 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 				ColumnLayoutStructureItem columnLayoutStructureItem =
 					(ColumnLayoutStructureItem)layoutStructureItem;
 
-				Map<String, JSONObject> viewportConfigurations =
-					columnLayoutStructureItem.getViewportConfigurations();
+				Map<String, JSONObject> viewportConfigurationJSONObjects =
+					columnLayoutStructureItem.
+						getViewportConfigurationJSONObjects();
 
 				JSONObject mobileLandscapeJSONObject =
-					viewportConfigurations.get(
+					viewportConfigurationJSONObjects.get(
 						ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId());
 
 				JSONObject portraitMobileJSONObject =
-					viewportConfigurations.get(
+					viewportConfigurationJSONObjects.get(
 						ViewportSize.PORTRAIT_MOBILE.getViewportSizeId());
 
-				JSONObject tabletJSONObject = viewportConfigurations.get(
-					ViewportSize.TABLET.getViewportSizeId());
+				JSONObject tabletJSONObject =
+					viewportConfigurationJSONObjects.get(
+						ViewportSize.TABLET.getViewportSizeId());
 
 				if (_isEmpty(mobileLandscapeJSONObject) &&
 					_isEmpty(portraitMobileJSONObject) &&
@@ -274,28 +276,29 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 
 	private void _upgradeLayoutPageTemplateStructureRel() throws Exception {
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select lPageTemplateStructureRelId, segmentsExperienceId, " +
 					"data_ from LayoutPageTemplateStructureRel");
-			PreparedStatement ps = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update LayoutPageTemplateStructureRel set data_ = ? " +
-						"where lPageTemplateStructureRelId = ?"))) {
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update LayoutPageTemplateStructureRel set data_ = ? " +
+							"where lPageTemplateStructureRelId = ?"))) {
 
-			while (rs.next()) {
-				long layoutPageTemplateStructureRelId = rs.getLong(
+			while (resultSet.next()) {
+				long layoutPageTemplateStructureRelId = resultSet.getLong(
 					"lPageTemplateStructureRelId");
 
-				String data = rs.getString("data_");
+				String data = resultSet.getString("data_");
 
-				ps.setString(1, _upgradeLayoutData(data));
+				preparedStatement.setString(1, _upgradeLayoutData(data));
 
-				ps.setLong(2, layoutPageTemplateStructureRelId);
+				preparedStatement.setLong(2, layoutPageTemplateStructureRelId);
 
-				ps.addBatch();
+				preparedStatement.addBatch();
 			}
 
-			ps.executeBatch();
+			preparedStatement.executeBatch();
 		}
 	}
 

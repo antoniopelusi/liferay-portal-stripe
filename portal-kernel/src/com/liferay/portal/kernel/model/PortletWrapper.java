@@ -167,6 +167,11 @@ public class PortletWrapper
 		return new PortletWrapper((Portlet)model.clone());
 	}
 
+	@Override
+	public Portlet cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Compares this portlet to the specified object.
 	 *
@@ -302,31 +307,6 @@ public class PortletWrapper
 			getAssetRendererFactoryInstances() {
 
 		return model.getAssetRendererFactoryInstances();
-	}
-
-	/**
-	 * Returns the names of the classes that represent atom collection adapters
-	 * associated with the portlet.
-	 *
-	 * @return the names of the classes that represent atom collection adapters
-	 associated with the portlet
-	 */
-	@Override
-	public java.util.List<String> getAtomCollectionAdapterClasses() {
-		return model.getAtomCollectionAdapterClasses();
-	}
-
-	/**
-	 * Returns the atom collection adapter instances of the portlet.
-	 *
-	 * @return the atom collection adapter instances of the portlet
-	 */
-	@Override
-	public java.util.List
-		<com.liferay.portal.kernel.atom.AtomCollectionAdapter<?>>
-			getAtomCollectionAdapterInstances() {
-
-		return model.getAtomCollectionAdapterInstances();
 	}
 
 	/**
@@ -1027,6 +1007,18 @@ public class PortletWrapper
 	@Override
 	public String getPortletClass() {
 		return model.getPortletClass();
+	}
+
+	@Override
+	public String getPortletConfigurationListenerClass() {
+		return model.getPortletConfigurationListenerClass();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.portlet.PortletConfigurationListener
+		getPortletConfigurationListenerInstance() {
+
+		return model.getPortletConfigurationListenerInstance();
 	}
 
 	/**
@@ -2482,20 +2474,6 @@ public class PortletWrapper
 	}
 
 	/**
-	 * Sets the names of the classes that represent atom collection adapters
-	 * associated with the portlet.
-	 *
-	 * @param atomCollectionAdapterClasses the names of the classes that
-	 represent atom collection adapters associated with the portlet
-	 */
-	@Override
-	public void setAtomCollectionAdapterClasses(
-		java.util.List<String> atomCollectionAdapterClasses) {
-
-		model.setAtomCollectionAdapterClasses(atomCollectionAdapterClasses);
-	}
-
-	/**
 	 * Sets the names of the parameters that will be automatically propagated
 	 * through the portlet.
 	 *
@@ -3067,6 +3045,14 @@ public class PortletWrapper
 	@Override
 	public void setPortletClass(String portletClass) {
 		model.setPortletClass(portletClass);
+	}
+
+	@Override
+	public void setPortletConfigurationListenerClass(
+		String portletConfigurationListenerClass) {
+
+		model.setPortletConfigurationListenerClass(
+			portletConfigurationListenerClass);
 	}
 
 	/**

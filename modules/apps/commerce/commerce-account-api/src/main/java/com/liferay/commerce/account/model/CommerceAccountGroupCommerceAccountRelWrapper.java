@@ -123,6 +123,11 @@ public class CommerceAccountGroupCommerceAccountRelWrapper
 	}
 
 	@Override
+	public CommerceAccountGroupCommerceAccountRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public CommerceAccount getCommerceAccount()
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -237,11 +242,6 @@ public class CommerceAccountGroupCommerceAccountRelWrapper
 	@Override
 	public String getUserUuid() {
 		return model.getUserUuid();
-	}
-
-	@Override
-	public void persist() {
-		model.persist();
 	}
 
 	/**

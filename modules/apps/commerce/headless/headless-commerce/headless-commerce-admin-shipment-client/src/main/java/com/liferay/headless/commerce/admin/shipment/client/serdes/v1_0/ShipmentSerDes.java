@@ -59,7 +59,7 @@ public class ShipmentSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (shipment.getAccountId() != null) {
 			if (sb.length() > 1) {
@@ -120,6 +120,20 @@ public class ShipmentSerDes {
 
 			sb.append(
 				liferayToJSONDateFormat.format(shipment.getExpectedDate()));
+
+			sb.append("\"");
+		}
+
+		if (shipment.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(shipment.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -295,7 +309,7 @@ public class ShipmentSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (shipment.getAccountId() == null) {
 			map.put("accountId", null);
@@ -334,6 +348,15 @@ public class ShipmentSerDes {
 			map.put(
 				"expectedDate",
 				liferayToJSONDateFormat.format(shipment.getExpectedDate()));
+		}
+
+		if (shipment.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(shipment.getExternalReferenceCode()));
 		}
 
 		if (shipment.getId() == null) {
@@ -482,6 +505,14 @@ public class ShipmentSerDes {
 				if (jsonParserFieldValue != null) {
 					shipment.setExpectedDate(
 						toDate((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					shipment.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {

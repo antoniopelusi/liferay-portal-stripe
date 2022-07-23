@@ -5,11 +5,13 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${vocabularyName}");
 
 		JSONUtil2._exclusiveOrCheck(
-			A = "${title}",
-			B = "${titleMap}",
+			a = "${title}",
+			b = "${titleMap}",
 			failMessage = "Please only set 'title' or only 'titleMap' but not both or none.");
 
-		var groupId = JSONCategorySetter.setGroupId(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONCategorySetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var parentCategoryId = JSONCategorySetter.setParentCategoryId();
 
@@ -43,19 +45,21 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${parentCategoryName},${vocabularyName}");
 
 		JSONUtil2._exclusiveOrCheck(
-			A = "${title}",
-			B = "${titleMap}",
+			a = "${title}",
+			b = "${titleMap}",
 			failMessage = "Please only set 'title' or only 'titleMap' but not both or none.");
 
-		var groupId = JSONCategorySetter.setGroupId(groupName = "${groupName}");
+		var groupId = JSONCategorySetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var vocabularyId = JSONCategorySetter.setVocabularyId(
 			groupId = "${groupId}",
 			vocabularyName = "${vocabularyName}");
 
 		var parentCategoryId = JSONCategorySetter.setParentCategoryId(
-			parentCategoryName = "${parentCategoryName}",
 			groupId = "${groupId}",
+			parentCategoryName = "${parentCategoryName}",
 			vocabularyId = "${vocabularyId}");
 
 		var serviceContext = JSONCategorySetter.setServiceContext(serviceContext = "${serviceContext}");
@@ -82,11 +86,13 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName}");
 
 		JSONUtil2._exclusiveOrCheck(
-			A = "${title}",
-			B = "${titleMap}",
+			a = "${title}",
+			b = "${titleMap}",
 			failMessage = "Please only set 'title' or only 'titleMap' but not both or none.");
 
-		var groupId = JSONCategorySetter.setGroupId(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONCategorySetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var serviceContext = JSONCategorySetter.setServiceContext(serviceContext = "${serviceContext}");
 
@@ -98,11 +104,18 @@ definition {
 			description = "${description}",
 			descriptionMap = "${descriptionMap}");
 
+		if (!(isSet(visibility))) {
+			var visibility = "public";
+		}
+
+		var visibilityType = JSONCategorySetter.setVisibilityType(visibility = "${visibility}");
+
 		JSONCategoryAPI._addVocabulary(
 			descriptionMap = "${descriptionMap}",
 			groupId = "${groupId}",
 			serviceContext = "${serviceContext}",
-			titleMap = "${titleMap}");
+			titleMap = "${titleMap}",
+			visibilityType = "${visibilityType}");
 	}
 
 	@summary = "Delete a category"
@@ -117,11 +130,26 @@ definition {
 		JSONCategoryAPI._deleteCategory(categoryId = "${categoryId}");
 	}
 
+	@summary = "Delete a vocabulary"
+	macro deleteVocabulary {
+		Variables.assertDefined(parameterList = "${groupName},${vocabularyName}");
+
+		var groupId = JSONCategorySetter.setGroupId(groupName = "${groupName}");
+
+		var vocabularyId = JSONCategorySetter.setVocabularyId(
+			groupId = "${groupId}",
+			vocabularyName = "${vocabularyName}");
+
+		JSONCategoryAPI._deleteVocabulary(vocabularyId = "${vocabularyId}");
+	}
+
 	@summary = "Get the categoryId from any category by using categoryName, groupId, and vocabularyId"
 	macro getCategoryId {
 		Variables.assertDefined(parameterList = "${groupName},${categoryName},${vocabularyName}");
 
-		var groupId = JSONCategorySetter.setGroupId(groupName = "${groupName}", site = "${site}");
+		var groupId = JSONCategorySetter.setGroupId(
+			groupName = "${groupName}",
+			site = "${site}");
 
 		var vocabularyId = JSONCategorySetter.setVocabularyId(
 			groupId = "${groupId}",
@@ -130,18 +158,34 @@ definition {
 		var categoryId = JSONCategoryAPI._getCategoryIdByName(
 			categoryName = "${categoryName}",
 			groupId = "${groupId}",
-			vocabularyId = "${vocabularyId}"
-		);
+			vocabularyId = "${vocabularyId}");
 
 		return "${categoryId}";
+	}
+
+	@summary = "Delete all categories from a vocabulary"
+	macro tearDownCategories {
+		Variables.assertDefined(parameterList = "${groupName},${vocabularyName}");
+
+		var groupId = JSONCategorySetter.setGroupId(groupName = "${groupName}");
+
+		var vocabularyId = JSONCategorySetter.setVocabularyId(
+			groupId = "${groupId}",
+			vocabularyName = "${vocabularyName}");
+
+		var categoriesIds = JSONCategoryAPI._getVocabularyCategoriesIds(vocabularyId = "${vocabularyId}");
+
+		for (var categoryId : list "${categoriesIds}") {
+			JSONCategoryAPI._deleteCategory(categoryId = "${categoryId}");
+		}
 	}
 
 	macro updateCategoryName {
 		Variables.assertDefined(parameterList = "${groupName},${categoryName},${vocabularyName}");
 
 		JSONUtil2._exclusiveOrCheck(
-			A = "${title}",
-			B = "${titleMap}",
+			a = "${title}",
+			b = "${titleMap}",
 			failMessage = "Please only set 'title' or only 'titleMap' but not both or none.");
 
 		var groupId = JSONCategorySetter.setGroupId(groupName = "${groupName}");

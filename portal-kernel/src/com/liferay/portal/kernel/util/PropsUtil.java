@@ -24,33 +24,33 @@ import java.util.Properties;
 public class PropsUtil {
 
 	public static boolean contains(String key) {
-		return getProps().contains(key);
+		return _props.contains(key);
 	}
 
 	public static String get(String key) {
-		return getProps().get(key);
+		return _props.get(key);
 	}
 
 	public static String get(String key, Filter filter) {
-		return getProps().get(key, filter);
+		return _props.get(key, filter);
 	}
 
 	public static String[] getArray(String key) {
-		return getProps().getArray(key);
+		return _props.getArray(key);
 	}
 
 	public static String[] getArray(String key, Filter filter) {
-		return getProps().getArray(key, filter);
+		return _props.getArray(key, filter);
 	}
 
 	public static Properties getProperties() {
-		return getProps().getProperties();
+		return _props.getProperties();
 	}
 
 	public static Properties getProperties(
 		String prefix, boolean removePrefix) {
 
-		return getProps().getProperties(prefix, removePrefix);
+		return _props.getProperties(prefix, removePrefix);
 	}
 
 	public static Props getProps() {

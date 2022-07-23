@@ -22,23 +22,23 @@ import com.liferay.portal.kernel.model.Theme;
 public class ThemeFactoryUtil {
 
 	public static Theme getDefaultRegularTheme(long companyId) {
-		return getThemeFactory().getDefaultRegularTheme(companyId);
+		return _themeFactory.getDefaultRegularTheme(companyId);
 	}
 
 	public static String getDefaultRegularThemeId(long companyId) {
-		return getThemeFactory().getDefaultRegularThemeId(companyId);
+		return _themeFactory.getDefaultRegularThemeId(companyId);
 	}
 
 	public static Theme getTheme() {
-		return getThemeFactory().getTheme();
+		return _themeFactory.getTheme();
 	}
 
 	public static Theme getTheme(String themeId) {
-		return getThemeFactory().getTheme(themeId);
+		return _themeFactory.getTheme(themeId);
 	}
 
 	public static Theme getTheme(String themeId, String name) {
-		return getThemeFactory().getTheme(themeId, name);
+		return _themeFactory.getTheme(themeId, name);
 	}
 
 	public static ThemeFactory getThemeFactory() {

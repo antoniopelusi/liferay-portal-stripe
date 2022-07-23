@@ -229,4 +229,7 @@ public interface CTEntryModel
 	 */
 	public void setChangeType(int changeType);
 
+	@Override
+	public CTEntry cloneWithOriginalValues();
+
 }

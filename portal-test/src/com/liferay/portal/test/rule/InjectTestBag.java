@@ -16,24 +16,22 @@ package com.liferay.portal.test.rule;
 
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.ServiceTrackerCustomizer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Preston Crary
@@ -63,24 +61,28 @@ public class InjectTestBag {
 	}
 
 	public void injectFields() throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		for (Field field : _fields) {
 			Inject inject = field.getAnnotation(Inject.class);
 
 			Class<?> clazz = inject.type();
 
-			if (clazz == Object.class) {
+			if (clazz == Inject.FieldType.class) {
 				clazz = field.getType();
+			}
+			else if (clazz == Inject.NoType.class) {
+				clazz = null;
 			}
 
 			ServiceReference<?> serviceReference = _getServiceReference(
-				registry, clazz, field, inject.filter(), inject.blocking());
+				bundleContext, clazz, field, inject.filter(),
+				inject.blocking());
 
 			if (serviceReference != null) {
 				_serviceReferences.add(serviceReference);
 
-				field.set(_target, registry.getService(serviceReference));
+				field.set(_target, bundleContext.getService(serviceReference));
 			}
 		}
 	}
@@ -90,10 +92,10 @@ public class InjectTestBag {
 			field.set(_target, null);
 		}
 
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		for (ServiceReference<?> serviceReference : _serviceReferences) {
-			registry.ungetService(serviceReference);
+			bundleContext.ungetService(serviceReference);
 		}
 	}
 
@@ -102,7 +104,7 @@ public class InjectTestBag {
 			return "(objectClass=" + clazz.getName() + ")";
 		}
 
-		if ((clazz != Object.class) && !filterString.contains("objectClass")) {
+		if ((clazz != null) && !filterString.contains("objectClass")) {
 			int index = filterString.indexOf('&');
 
 			StringBundler sb = new StringBundler(5);
@@ -124,19 +126,22 @@ public class InjectTestBag {
 
 			filterString = sb.toString();
 		}
+		else if (!filterString.startsWith("(")) {
+			filterString = StringBundler.concat("(", filterString, ")");
+		}
 
 		return filterString;
 	}
 
 	private <T> ServiceReference<T> _getServiceReference(
-			Registry registry, Class<T> clazz, Field field, String filterString,
-			boolean blocking)
+			BundleContext bundleContext, Class<T> clazz, Field field,
+			String filterString, boolean blocking)
 		throws Exception {
 
 		String filterStringString = _getFilterString(clazz, filterString);
 
 		ServiceReference<T> serviceReference = _getServiceReference(
-			registry, clazz, filterStringString);
+			bundleContext, clazz, filterStringString);
 
 		if ((serviceReference != null) || !blocking) {
 			return serviceReference;
@@ -147,8 +152,8 @@ public class InjectTestBag {
 		AtomicReference<ServiceTracker<T, T>> atomicReference =
 			new AtomicReference<>();
 
-		ServiceTracker<T, T> serviceTracker = registry.trackServices(
-			registry.getFilter(filterStringString),
+		ServiceTracker<T, T> serviceTracker = new ServiceTracker<>(
+			bundleContext, SystemBundleUtil.createFilter(filterStringString),
 			new ServiceTrackerCustomizer<T, T>() {
 
 				@Override
@@ -180,7 +185,11 @@ public class InjectTestBag {
 
 		int waitTime = 0;
 
-		String className = clazz.getName();
+		String className = "(no type)";
+
+		if (clazz != null) {
+			className = clazz.getName();
+		}
 
 		while (serviceReference == null) {
 			waitTime += _SLEEP_TIME;
@@ -213,24 +222,30 @@ public class InjectTestBag {
 			}
 
 			serviceReference = _getServiceReference(
-				registry, clazz, filterStringString);
+				bundleContext, clazz, filterStringString);
 		}
 
 		return serviceReference;
 	}
 
 	private <T> ServiceReference<T> _getServiceReference(
-			Registry registry, Class<T> clazz, String filterString)
+			BundleContext bundleContext, Class<T> clazz, String filterString)
 		throws Exception {
 
-		Collection<ServiceReference<T>> serviceReferences =
-			registry.getServiceReferences(clazz, filterString);
+		String className = null;
 
-		Stream<ServiceReference<T>> stream = serviceReferences.stream();
+		if (clazz != null) {
+			className = clazz.getName();
+		}
 
-		Optional<ServiceReference<T>> optional = stream.findFirst();
+		ServiceReference<?>[] serviceReferences =
+			bundleContext.getAllServiceReferences(className, filterString);
 
-		return optional.orElse(null);
+		if ((serviceReferences == null) || (serviceReferences.length == 0)) {
+			return null;
+		}
+
+		return (ServiceReference<T>)serviceReferences[0];
 	}
 
 	private static final int _SLEEP_TIME = 2000;

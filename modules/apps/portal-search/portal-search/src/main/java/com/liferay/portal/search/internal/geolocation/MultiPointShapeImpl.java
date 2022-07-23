@@ -25,7 +25,8 @@ import java.util.List;
  * @author Michael C. Han
  * @author André de Oliveira
  */
-public class MultiPointShapeImpl extends ShapeImpl implements MultiPointShape {
+public class MultiPointShapeImpl
+	extends BaseShapeImpl implements MultiPointShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

@@ -2,11 +2,13 @@
 <head>
 <title>Wiki</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Wiki</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_PAGE_FORMAT_DROPDOWN</td>
@@ -16,6 +18,11 @@
 <tr>
 	<td>CUSTOM_FIELD_CONTENT</td>
 	<td>//div[contains(@class,'custom-attributes')]/div/span[contains(.,'${key_customFieldContent}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMPORT_PAGES_MEDIAWIKI</td>
+	<td>//label[contains(text(),'${key_tag}')]/following-sibling::input[(@type='file')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -156,7 +163,7 @@
 <!--DESCRIPTIVE_VIEW-->
 <tr>
 	<td>DESCRIPTIVE_VIEW_ENTRY_TITLE</td>
-	<td>//li[@data-qa-id='row']/*[@data-qa-id='rowItemContent']/h4[contains(.,'${key_wikiPageTitle}')]/a</td>
+	<td>//*[@data-qa-id='row']/*[@data-qa-id='rowItemContent']/h4[contains(.,'${key_wikiPageTitle}')]/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -228,7 +235,7 @@
 </tr>
 <tr>
 	<td>COMPARE_VERSIONS_VERSION_ACTIONS</td>
-	<td>//li[contains(@class,'list-group-item')]/div[contains(.,'${key_wikiPageVersion}')]/..//div//a[span/*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
+	<td>//*[contains(@class,'list-group-item')]/div[contains(.,'${key_wikiPageVersion}')]/..//div//a[span/*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
 	<td></td>
 </tr>
 <tr>

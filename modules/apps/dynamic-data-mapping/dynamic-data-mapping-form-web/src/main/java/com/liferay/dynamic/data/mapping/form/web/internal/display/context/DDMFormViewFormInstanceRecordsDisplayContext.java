@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.mapping.form.web.internal.display.context;
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueRenderer;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.form.web.internal.search.DDMFormInstanceRecordSearch;
 import com.liferay.dynamic.data.mapping.form.web.internal.security.permission.resource.DDMFormInstancePermission;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
@@ -41,10 +42,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.portlet.PortalPreferences;
-import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
-import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchContextFactory;
@@ -52,9 +51,8 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParserUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -64,6 +62,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -103,10 +102,21 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
 		portletDisplay.setShowBackIcon(true);
-		portletDisplay.setURLBack(
-			ParamUtil.getString(_renderRequest, "redirect"));
 
-		setDDMFormFields();
+		String redirect = ParamUtil.getString(_renderRequest, "redirect");
+
+		if (Validator.isNull(redirect)) {
+			DDMFormAdminDisplayContext ddmFormAdminDisplayContext =
+				(DDMFormAdminDisplayContext)_renderRequest.getAttribute(
+					WebKeys.PORTLET_DISPLAY_CONTEXT);
+
+			redirect = String.valueOf(
+				ddmFormAdminDisplayContext.getPortletURL());
+		}
+
+		portletDisplay.setURLBack(redirect);
+
+		_setDDMFormFields();
 	}
 
 	public List<DropdownItem> getActionItemsDropdownItems() {
@@ -162,7 +172,8 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 	}
 
 	public String getColumnValue(
-		DDMFormField ddmFormField, List<DDMFormFieldValue> ddmFormFieldValues) {
+		DDMFormField ddmFormField, String ddmFormFieldName,
+		List<DDMFormFieldValue> ddmFormFieldValues) {
 
 		if ((ddmFormField == null) || (ddmFormFieldValues == null)) {
 			return StringPool.BLANK;
@@ -181,6 +192,14 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 				@Override
 				public String apply(DDMFormFieldValue ddmFormFieldValue) {
 					Value value = ddmFormFieldValue.getValue();
+
+					if (ddmFormFieldType.equals(
+							DDMFormFieldTypeConstants.SEARCH_LOCATION)) {
+
+						return ddmFormFieldValueRenderer.render(
+							ddmFormFieldName, ddmFormFieldValue,
+							value.getDefaultLocale());
+					}
 
 					return ddmFormFieldValueRenderer.render(
 						ddmFormFieldValue, value.getDefaultLocale());
@@ -256,6 +275,24 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		).build();
 	}
 
+	public String getLocalizedColumnValues(String columnValues) {
+		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Stream<String> stream = Arrays.stream(
+			columnValues.split(StringPool.COMMA_AND_SPACE));
+
+		return StringUtil.merge(
+			stream.map(
+				value -> value.toLowerCase()
+			).map(
+				value -> LanguageUtil.get(themeDisplay.getLocale(), value)
+			).toArray(
+				String[]::new
+			),
+			StringPool.COMMA_AND_SPACE);
+	}
+
 	public List<NavigationItem> getNavigationItems() {
 		return NavigationItemListBuilder.add(
 			navigationItem -> {
@@ -264,50 +301,34 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 				DDMFormInstance ddmFormInstance = getDDMFormInstance();
 
 				navigationItem.setLabel(
-					HtmlUtil.extractText(
+					HtmlParserUtil.extractText(
 						ddmFormInstance.getName(_renderRequest.getLocale())));
 			}
 		).build();
 	}
 
 	public String getOrderByCol() {
-		PortalPreferences portalPreferences =
-			PortletPreferencesFactoryUtil.getPortalPreferences(_renderRequest);
-
-		String orderByCol = ParamUtil.getString(_renderRequest, "orderByCol");
-
-		if (Validator.isNull(orderByCol)) {
-			orderByCol = portalPreferences.getValue(
-				DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN,
-				"view-entries-order-by-col", "modified-date");
-		}
-		else {
-			portalPreferences.setValue(
-				DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN,
-				"view-entries-order-by-col", orderByCol);
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
 		}
 
-		return orderByCol;
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_renderRequest, DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN,
+			"view-entries-order-by-col", "modified-date");
+
+		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		PortalPreferences portalPreferences =
-			PortletPreferencesFactoryUtil.getPortalPreferences(_renderRequest);
-
-		String orderByType = ParamUtil.getString(_renderRequest, "orderByType");
-
-		if (Validator.isNull(orderByType)) {
-			orderByType = portalPreferences.getValue(
-				DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN,
-				"view-entries-order-by-type", "asc");
-		}
-		else {
-			portalPreferences.setValue(
-				DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN,
-				"view-entries-order-by-type", orderByType);
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
 		}
 
-		return orderByType;
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_renderRequest, DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN,
+			"view-entries-order-by-type", "asc");
+
+		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
@@ -364,23 +385,11 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 			getPortletURL()
 		).setParameter(
 			"displayStyle", getDisplayStyle()
-		).build();
+		).buildPortletURL();
 
 		DDMFormInstanceRecordSearch ddmFormInstanceRecordSearch =
 			new DDMFormInstanceRecordSearch(
-				_renderRequest, portletURL, getHeaderNames());
-
-		String orderByCol = getOrderByCol();
-		String orderByType = getOrderByType();
-
-		OrderByComparator<DDMFormInstanceRecord> orderByComparator =
-			DDMFormInstanceRecordSearch.
-				getDDMFormInstanceRecordOrderByComparator(
-					orderByCol, orderByType);
-
-		ddmFormInstanceRecordSearch.setOrderByCol(orderByCol);
-		ddmFormInstanceRecordSearch.setOrderByComparator(orderByComparator);
-		ddmFormInstanceRecordSearch.setOrderByType(orderByType);
+				_renderRequest, portletURL, _getHeaderNames());
 
 		if (ddmFormInstanceRecordSearch.isSearch()) {
 			ddmFormInstanceRecordSearch.setEmptyResultsMessage(
@@ -391,8 +400,34 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 				"there-are-no-entries");
 		}
 
-		setDDMFormInstanceRecordSearchResults(ddmFormInstanceRecordSearch);
-		setDDMFormInstanceRecordSearchTotal(ddmFormInstanceRecordSearch);
+		ddmFormInstanceRecordSearch.setOrderByCol(getOrderByCol());
+		ddmFormInstanceRecordSearch.setOrderByComparator(
+			DDMFormInstanceRecordSearch.
+				getDDMFormInstanceRecordOrderByComparator(
+					getOrderByCol(), getOrderByType()));
+		ddmFormInstanceRecordSearch.setOrderByType(getOrderByType());
+
+		if (_ddmFormInstance == null) {
+			ddmFormInstanceRecordSearch.setResultsAndTotal(
+				Collections::emptyList, 0);
+		}
+		else if (Validator.isNull(getKeywords())) {
+			ddmFormInstanceRecordSearch.setResultsAndTotal(
+				() -> _ddmFormInstanceRecordLocalService.getFormInstanceRecords(
+					_ddmFormInstance.getFormInstanceId(),
+					WorkflowConstants.STATUS_ANY,
+					ddmFormInstanceRecordSearch.getStart(),
+					ddmFormInstanceRecordSearch.getEnd(),
+					ddmFormInstanceRecordSearch.getOrderByComparator()),
+				_ddmFormInstanceRecordLocalService.getFormInstanceRecordsCount(
+					_ddmFormInstance.getFormInstanceId(),
+					WorkflowConstants.STATUS_ANY));
+		}
+		else {
+			ddmFormInstanceRecordSearch.setResultsAndTotal(
+				_ddmFormInstanceRecordLocalService.searchFormInstanceRecords(
+					_getSearchContext(WorkflowConstants.STATUS_ANY)));
+		}
 
 		return ddmFormInstanceRecordSearch;
 	}
@@ -443,12 +478,25 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		return searchContainer.getTotal();
 	}
 
-	public boolean isDisabledManagementBar() {
-		if (hasResults()) {
-			return false;
-		}
+	public List<String> getVisibleFields(DDMFormField ddmFormField) {
+		LocalizedValue visibleFields = (LocalizedValue)ddmFormField.getProperty(
+			"visibleFields");
 
-		if (isSearch()) {
+		return Stream.of(
+			StringUtil.split(
+				StringUtil.removeChars(
+					visibleFields.getString(_renderRequest.getLocale()),
+					CharPool.CLOSE_BRACKET, CharPool.OPEN_BRACKET,
+					CharPool.QUOTE))
+		).map(
+			String::trim
+		).collect(
+			Collectors.toList()
+		);
+	}
+
+	public boolean isDisabledManagementBar() {
+		if (hasResults() || isSearch()) {
 			return false;
 		}
 
@@ -470,7 +518,52 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		).build();
 	}
 
-	protected List<String> getHeaderNames() {
+	protected String getKeywords() {
+		return ParamUtil.getString(_renderRequest, "keywords");
+	}
+
+	protected List<DropdownItem> getOrderByDropdownItems() {
+		return DropdownItemListBuilder.add(
+			dropdownItem -> {
+				String orderByCol = "modified-date";
+
+				dropdownItem.setActive(orderByCol.equals(getOrderByCol()));
+				dropdownItem.setHref(getPortletURL(), "orderByCol", orderByCol);
+				dropdownItem.setLabel(
+					LanguageUtil.get(
+						PortalUtil.getHttpServletRequest(_renderRequest),
+						orderByCol));
+			}
+		).build();
+	}
+
+	protected boolean hasResults() {
+		if (getTotalItems() > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isSearch() {
+		if (Validator.isNotNull(getKeywords())) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private DDMFormValues _getDDMFormValues(
+			DDMFormInstanceRecord ddmFormInstanceRecord)
+		throws PortalException {
+
+		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion =
+			ddmFormInstanceRecord.getFormInstanceRecordVersion();
+
+		return ddmFormInstanceRecordVersion.getDDMFormValues();
+	}
+
+	private List<String> _getHeaderNames() {
 		List<String> headerNames = new ArrayList<>();
 
 		List<DDMFormField> ddmFormFields = getDDMFormFields();
@@ -493,11 +586,7 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		return headerNames;
 	}
 
-	protected String getKeywords() {
-		return ParamUtil.getString(_renderRequest, "keywords");
-	}
-
-	protected List<DDMFormField> getNontransientFormFields(DDMForm ddmForm) {
+	private List<DDMFormField> _getNontransientFormFields(DDMForm ddmForm) {
 		List<DDMFormField> ddmFormFields = new ArrayList<>();
 
 		Map<String, DDMFormField> ddmFormFieldsMap =
@@ -512,130 +601,6 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		}
 
 		return ddmFormFields;
-	}
-
-	protected List<DropdownItem> getOrderByDropdownItems() {
-		return DropdownItemListBuilder.add(
-			dropdownItem -> {
-				String orderByCol = "modified-date";
-
-				dropdownItem.setActive(orderByCol.equals(getOrderByCol()));
-				dropdownItem.setHref(getPortletURL(), "orderByCol", orderByCol);
-				dropdownItem.setLabel(
-					LanguageUtil.get(
-						PortalUtil.getHttpServletRequest(_renderRequest),
-						orderByCol));
-			}
-		).build();
-	}
-
-	protected SearchContext getSearchContext(int status) {
-		SearchContext searchContext = SearchContextFactory.getInstance(
-			PortalUtil.getHttpServletRequest(_renderRequest));
-
-		searchContext.setAttribute(Field.STATUS, status);
-		searchContext.setAttribute(
-			"formInstanceId", _ddmFormInstance.getFormInstanceId());
-		searchContext.setEnd(searchContext.getEnd());
-		searchContext.setKeywords(getKeywords());
-		searchContext.setStart(searchContext.getStart());
-
-		return searchContext;
-	}
-
-	protected boolean hasResults() {
-		if (getTotalItems() > 0) {
-			return true;
-		}
-
-		return false;
-	}
-
-	protected boolean isSearch() {
-		if (Validator.isNotNull(getKeywords())) {
-			return true;
-		}
-
-		return false;
-	}
-
-	protected void setDDMFormFields() throws PortalException {
-		if (_ddmFormInstance == null) {
-			return;
-		}
-
-		DDMStructure ddmStructure = _ddmFormInstance.getStructure();
-
-		List<DDMFormField> ddmFormFields = getNontransientFormFields(
-			ddmStructure.getDDMForm());
-
-		for (DDMFormField ddmFormField : ddmFormFields) {
-			_ddmFormFields.add(ddmFormField);
-		}
-	}
-
-	protected void setDDMFormInstanceRecordSearchResults(
-		DDMFormInstanceRecordSearch ddmFormInstanceRecordSearch) {
-
-		List<DDMFormInstanceRecord> results;
-
-		int status = WorkflowConstants.STATUS_ANY;
-
-		if (_ddmFormInstance == null) {
-			results = new ArrayList<>();
-		}
-		else if (Validator.isNull(getKeywords())) {
-			results = _ddmFormInstanceRecordLocalService.getFormInstanceRecords(
-				_ddmFormInstance.getFormInstanceId(), status,
-				ddmFormInstanceRecordSearch.getStart(),
-				ddmFormInstanceRecordSearch.getEnd(),
-				ddmFormInstanceRecordSearch.getOrderByComparator());
-		}
-		else {
-			BaseModelSearchResult<DDMFormInstanceRecord> baseModelSearchResult =
-				_ddmFormInstanceRecordLocalService.searchFormInstanceRecords(
-					getSearchContext(status));
-
-			results = baseModelSearchResult.getBaseModels();
-		}
-
-		ddmFormInstanceRecordSearch.setResults(results);
-	}
-
-	protected void setDDMFormInstanceRecordSearchTotal(
-		DDMFormInstanceRecordSearch ddmFormInstanceRecordSearch) {
-
-		int total;
-
-		int status = WorkflowConstants.STATUS_ANY;
-
-		if (_ddmFormInstance == null) {
-			total = 0;
-		}
-		else if (Validator.isNull(getKeywords())) {
-			total =
-				_ddmFormInstanceRecordLocalService.getFormInstanceRecordsCount(
-					_ddmFormInstance.getFormInstanceId(), status);
-		}
-		else {
-			BaseModelSearchResult<DDMFormInstanceRecord> baseModelSearchResult =
-				_ddmFormInstanceRecordLocalService.searchFormInstanceRecords(
-					getSearchContext(status));
-
-			total = baseModelSearchResult.getLength();
-		}
-
-		ddmFormInstanceRecordSearch.setTotal(total);
-	}
-
-	private DDMFormValues _getDDMFormValues(
-			DDMFormInstanceRecord ddmFormInstanceRecord)
-		throws PortalException {
-
-		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion =
-			ddmFormInstanceRecord.getFormInstanceRecordVersion();
-
-		return ddmFormInstanceRecordVersion.getDDMFormValues();
 	}
 
 	private List<String> _getOptionsRenderedFormFieldValues(
@@ -672,6 +637,35 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 			});
 	}
 
+	private SearchContext _getSearchContext(int status) {
+		SearchContext searchContext = SearchContextFactory.getInstance(
+			PortalUtil.getHttpServletRequest(_renderRequest));
+
+		searchContext.setAttribute(Field.STATUS, status);
+		searchContext.setAttribute(
+			"formInstanceId", _ddmFormInstance.getFormInstanceId());
+		searchContext.setEnd(searchContext.getEnd());
+		searchContext.setKeywords(getKeywords());
+		searchContext.setStart(searchContext.getStart());
+
+		return searchContext;
+	}
+
+	private void _setDDMFormFields() throws PortalException {
+		if (_ddmFormInstance == null) {
+			return;
+		}
+
+		DDMStructure ddmStructure = _ddmFormInstance.getStructure();
+
+		List<DDMFormField> ddmFormFields = _getNontransientFormFields(
+			ddmStructure.getDDMForm());
+
+		for (DDMFormField ddmFormField : ddmFormFields) {
+			_ddmFormFields.add(ddmFormField);
+		}
+	}
+
 	private static final int _MAX_COLUMNS = 5;
 
 	private final List<DDMFormField> _ddmFormFields = new ArrayList<>();
@@ -680,6 +674,8 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 	private final DDMFormInstance _ddmFormInstance;
 	private final DDMFormInstanceRecordLocalService
 		_ddmFormInstanceRecordLocalService;
+	private String _orderByCol;
+	private String _orderByType;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;
 

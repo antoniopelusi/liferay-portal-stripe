@@ -30,6 +30,10 @@ public class DLFileVersionPreviewLocalServiceWrapper
 	implements DLFileVersionPreviewLocalService,
 			   ServiceWrapper<DLFileVersionPreviewLocalService> {
 
+	public DLFileVersionPreviewLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLFileVersionPreviewLocalServiceWrapper(
 		DLFileVersionPreviewLocalService dlFileVersionPreviewLocalService) {
 
@@ -148,6 +152,13 @@ public class DLFileVersionPreviewLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dlFileVersionPreviewLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlFileVersionPreviewLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

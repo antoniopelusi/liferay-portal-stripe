@@ -113,6 +113,9 @@ public interface Layout extends LayoutModel, PersistedModel {
 	public java.util.List<Layout> getAncestors()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
+	public String getBreadcrumb(java.util.Locale locale)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
 	/**
 	 * Returns all child layouts of the current layout, independent of user
 	 * access permissions.
@@ -338,6 +341,8 @@ public interface Layout extends LayoutModel, PersistedModel {
 
 	public boolean isCustomizable();
 
+	public boolean isDraftLayout();
+
 	/**
 	 * Returns <code>true</code> if the current layout is the first layout in
 	 * its parent's hierarchical list of children layouts.
@@ -393,6 +398,8 @@ public interface Layout extends LayoutModel, PersistedModel {
 	 layout set; <code>false</code> otherwise
 	 */
 	public boolean isPublicLayout();
+
+	public boolean isPublished();
 
 	/**
 	 * Returns <code>true</code> if the current layout is the root layout.

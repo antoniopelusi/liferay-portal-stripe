@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.spring.aop.AopCacheManager;
 import com.liferay.portal.spring.aop.AopInvocationHandler;
@@ -86,10 +86,12 @@ public class AopServiceManagerTest {
 
 	@Test
 	public void testAopService() {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("key", "value");
-		properties.put(Constants.SERVICE_RANKING, 1);
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				Constants.SERVICE_RANKING, 1
+			).put(
+				"key", "value"
+			).build();
 
 		ServiceRegistration<AopService> aopServiceServiceRegistration =
 			_bundleContext.registerService(

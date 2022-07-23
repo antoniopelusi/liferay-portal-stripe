@@ -16,6 +16,9 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceMode;
@@ -27,6 +30,7 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.Team;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.BaseModelPermissionChecker;
@@ -35,13 +39,15 @@ import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.TeamLocalService;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
 import com.liferay.portal.kernel.service.permission.TeamPermissionUtil;
+import com.liferay.portal.kernel.service.persistence.RolePersistence;
+import com.liferay.portal.kernel.service.persistence.TeamPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.service.base.PermissionServiceBaseImpl;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerMap;
 
 import java.util.List;
 
@@ -95,7 +101,7 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 		if (className.equals(Team.class.getName())) {
 			className = Group.class.getName();
 
-			Team team = teamLocalService.fetchTeam(classPK);
+			Team team = _teamLocalService.fetchTeam(classPK);
 
 			classPK = team.getGroupId();
 
@@ -180,13 +186,13 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}
 
 			ResourcePermission resourcePermission =
-				resourcePermissionLocalService.getResourcePermission(
+				_resourcePermissionLocalService.getResourcePermission(
 					permissionChecker.getCompanyId(), name,
 					ResourceConstants.SCOPE_INDIVIDUAL, primKey,
 					permissionChecker.getOwnerRoleId());
@@ -203,11 +209,12 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 			if (name.equals(Role.class.getName())) {
 				long roleId = GetterUtil.getLong(primKey);
 
-				role = rolePersistence.findByPrimaryKey(roleId);
+				role = _rolePersistence.findByPrimaryKey(roleId);
 			}
 
 			if ((role != null) && role.isTeam()) {
-				Team team = teamPersistence.findByPrimaryKey(role.getClassPK());
+				Team team = _teamPersistence.findByPrimaryKey(
+					role.getClassPK());
 
 				TeamPermissionUtil.check(
 					permissionChecker, team, ActionKeys.PERMISSIONS);
@@ -234,12 +241,26 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 
 	private static final ServiceTrackerMap<String, BaseModelPermissionChecker>
 		_baseModelPermissionCheckers =
-			ServiceTrackerCollections.openSingleValueMap(
+			ServiceTrackerMapFactory.openSingleValueMap(
+				SystemBundleUtil.getBundleContext(),
 				BaseModelPermissionChecker.class, "model.class.name");
 	private static final ServiceTrackerMap<String, ModelResourcePermission<?>>
-		_modelPermissions = ServiceTrackerCollections.openSingleValueMap(
+		_modelPermissions = ServiceTrackerMapFactory.openSingleValueMap(
+			SystemBundleUtil.getBundleContext(),
 			(Class<ModelResourcePermission<?>>)
 				(Class<?>)ModelResourcePermission.class,
 			"model.class.name");
+
+	@BeanReference(type = ResourcePermissionLocalService.class)
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@BeanReference(type = RolePersistence.class)
+	private RolePersistence _rolePersistence;
+
+	@BeanReference(type = TeamLocalService.class)
+	private TeamLocalService _teamLocalService;
+
+	@BeanReference(type = TeamPersistence.class)
+	private TeamPersistence _teamPersistence;
 
 }

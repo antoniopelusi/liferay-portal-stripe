@@ -75,6 +75,11 @@ public class ListTypeWrapper
 		}
 	}
 
+	@Override
+	public ListType cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the list type ID of this list type.
 	 *

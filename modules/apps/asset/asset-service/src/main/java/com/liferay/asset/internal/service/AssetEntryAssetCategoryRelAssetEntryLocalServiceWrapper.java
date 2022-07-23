@@ -34,16 +34,6 @@ import org.osgi.service.component.annotations.Reference;
 public class AssetEntryAssetCategoryRelAssetEntryLocalServiceWrapper
 	extends AssetEntryLocalServiceWrapper {
 
-	public AssetEntryAssetCategoryRelAssetEntryLocalServiceWrapper() {
-		super(null);
-	}
-
-	public AssetEntryAssetCategoryRelAssetEntryLocalServiceWrapper(
-		AssetEntryLocalService assetEntryLocalService) {
-
-		super(assetEntryLocalService);
-	}
-
 	@Override
 	public AssetEntry deleteAssetEntry(AssetEntry entry) {
 		_assetEntryAssetCategoryRelLocalService.
@@ -105,12 +95,12 @@ public class AssetEntryAssetCategoryRelAssetEntryLocalServiceWrapper
 		if ((categoryIds != null) &&
 			(!entry.isNew() || (categoryIds.length > 0))) {
 
+			categoryIds = _assetCategoryLocalService.getViewableCategoryIds(
+				className, classPK, categoryIds);
+
 			_assetEntryAssetCategoryRelLocalService.
 				deleteAssetEntryAssetCategoryRelByAssetEntryId(
 					entry.getEntryId());
-
-			categoryIds = _assetCategoryLocalService.getViewableCategoryIds(
-				className, classPK, categoryIds);
 
 			for (long categoryId : categoryIds) {
 				_assetEntryAssetCategoryRelLocalService.

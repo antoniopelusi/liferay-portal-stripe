@@ -19,7 +19,7 @@ import com.liferay.document.library.repository.external.ExtRepositoryFileVersion
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
-import com.liferay.sharepoint.rest.repository.internal.util.SharepointURLHelper;
+import com.liferay.sharepoint.rest.repository.internal.helper.SharepointURLHelper;
 
 import java.util.Date;
 
@@ -93,11 +93,9 @@ public class SharepointFileEntry
 			bitIndex = 1;
 		}
 
-		if (bitIndex == 0) {
-			return false;
-		}
+		if ((bitIndex == 0) ||
+			((_effectiveBasePermissionsBits & (1 << (bitIndex - 1))) == 0)) {
 
-		if ((_effectiveBasePermissionsBits & (1 << (bitIndex - 1))) == 0) {
 			return false;
 		}
 

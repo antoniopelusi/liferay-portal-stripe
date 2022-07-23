@@ -1,0 +1,51 @@
+.masterclass-private-header {
+	align-items: center;
+	display: flex;
+	font-family: var(--font-family-sans-serif);
+	justify-content: space-between;
+	padding: 0;
+	z-index: 2;
+}
+
+.masterclass-private-header .nav-item .nav-link {
+	color: inherit;
+	padding: var(--spacer-1) 0;
+}
+
+.masterclass-private-header .nav-item a:hover,
+.masterclass-private-header .nav-item a:focus {
+	color: inherit;
+}
+
+.masterclass-private-header .small {
+	font-size: 0.8rem;
+	font-weight: var(--font-weight-bold);
+	letter-spacing: 1px;
+}
+
+.navbar-collapse {
+	flex-grow: 0;
+}
+
+.masterclass-private-header .course-name {
+	border-left: 1px solid var(--gray-900);
+	font-weight: var(--font-weight-bold);
+	margin-bottom: 4px;
+}
+
+
+@media (max-width: 992px) {
+	.masterclass-private-header.open .dropdown-item {
+		color: initial;
+		font-size: initial;
+		font-weight: var(--font-weight-bold);
+		padding: var(--spacer-2) 0;
+	}
+
+}
+
+@media (max-width: 575px) {
+	.masterclass-private-header .course-name {
+		font-size: 16px;
+	}
+}

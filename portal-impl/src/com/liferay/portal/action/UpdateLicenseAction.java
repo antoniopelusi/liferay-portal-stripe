@@ -66,23 +66,20 @@ public class UpdateLicenseAction implements Action {
 				httpServletRequest, "clusterNodeId");
 
 			if (cmd.equals("licenseProperties")) {
-				String licenseProperties = _getLicenseProperties(clusterNodeId);
-
 				httpServletResponse.setContentType(
 					ContentTypes.APPLICATION_JSON);
 
 				ServletResponseUtil.write(
-					httpServletResponse, licenseProperties);
+					httpServletResponse, _getLicenseProperties(clusterNodeId));
 
 				return null;
 			}
 			else if (cmd.equals("serverInfo")) {
-				String serverInfo = _getServerInfo(clusterNodeId);
-
 				httpServletResponse.setContentType(
 					ContentTypes.APPLICATION_JSON);
 
-				ServletResponseUtil.write(httpServletResponse, serverInfo);
+				ServletResponseUtil.write(
+					httpServletResponse, _getServerInfo(clusterNodeId));
 
 				return null;
 			}
@@ -142,7 +139,7 @@ public class UpdateLicenseAction implements Action {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

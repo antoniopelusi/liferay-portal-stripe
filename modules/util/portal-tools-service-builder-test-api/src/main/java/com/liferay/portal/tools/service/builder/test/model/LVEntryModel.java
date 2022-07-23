@@ -205,4 +205,7 @@ public interface LVEntryModel
 
 	public Map<String, String> getLanguageIdToContentMap();
 
+	@Override
+	public LVEntry cloneWithOriginalValues();
+
 }

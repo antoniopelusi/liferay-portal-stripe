@@ -15,6 +15,7 @@
 package com.liferay.wiki.web.internal.item.selector.view.display.context;
 
 import com.liferay.document.library.kernel.util.DLUtil;
+import com.liferay.document.library.kernel.util.DLValidatorUtil;
 import com.liferay.item.selector.ItemSelectorReturnTypeResolver;
 import com.liferay.item.selector.ItemSelectorReturnTypeResolverHandler;
 import com.liferay.item.selector.taglib.servlet.taglib.util.RepositoryEntryBrowserTagUtil;
@@ -27,7 +28,9 @@ import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.wiki.configuration.WikiFileUploadConfiguration;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.item.selector.criterion.WikiAttachmentItemSelectorCriterion;
@@ -35,7 +38,9 @@ import com.liferay.wiki.model.WikiPage;
 import com.liferay.wiki.service.WikiPageLocalServiceUtil;
 import com.liferay.wiki.web.internal.item.selector.view.WikiAttachmentItemSelectorView;
 
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
@@ -67,6 +72,25 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 
 		_portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(
 			_httpServletRequest);
+	}
+
+	public Set<String> getAllowedCreationMenuUIItemKeys() {
+		return Collections.emptySet();
+	}
+
+	public PortletURL getEditImageURL(
+		LiferayPortletResponse liferayPortletResponse) {
+
+		return PortletURLBuilder.createActionURL(
+			liferayPortletResponse, WikiPortletKeys.WIKI
+		).setActionName(
+			"/wiki/image_editor"
+		).setParameter(
+			"mimeTypes", _wikiAttachmentItemSelectorCriterion.getMimeTypes()
+		).setParameter(
+			"resourcePrimKey",
+			_wikiAttachmentItemSelectorCriterion.getWikiPageResourceId()
+		).buildPortletURL();
 	}
 
 	public String getItemSelectedEventName() {
@@ -113,7 +137,7 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 			PortletURLUtil.clone(_portletURL, liferayPortletResponse)
 		).setParameter(
 			"selectedTab", getTitle(httpServletRequest.getLocale())
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getTitle(Locale locale) {
@@ -132,7 +156,7 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 		).setParameter(
 			"resourcePrimKey",
 			_wikiAttachmentItemSelectorCriterion.getWikiPageResourceId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public WikiAttachmentItemSelectorCriterion
@@ -145,7 +169,14 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 		WikiFileUploadConfiguration wikiFileUploadConfiguration =
 			_getWikiFileUploadsConfiguration();
 
-		return wikiFileUploadConfiguration.attachmentMaxSize();
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return Math.min(
+			wikiFileUploadConfiguration.attachmentMaxSize(),
+			DLValidatorUtil.getMaxAllowableSize(
+				themeDisplay.getScopeGroupId(), null));
 	}
 
 	public WikiPage getWikiPage() throws PortalException {

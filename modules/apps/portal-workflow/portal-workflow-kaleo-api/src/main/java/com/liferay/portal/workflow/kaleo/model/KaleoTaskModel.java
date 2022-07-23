@@ -274,4 +274,7 @@ public interface KaleoTaskModel
 	 */
 	public void setDescription(String description);
 
+	@Override
+	public KaleoTask cloneWithOriginalValues();
+
 }

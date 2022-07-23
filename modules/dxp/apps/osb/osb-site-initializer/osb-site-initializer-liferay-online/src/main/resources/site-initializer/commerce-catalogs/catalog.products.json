@@ -1,0 +1,137 @@
+[
+	{
+		"backOrders": true,
+		"categories": [
+			"Education"
+		],
+		"description": "Masterclass description.",
+		"displayAvailability": true,
+		"displayStockQuantity": true,
+		"externalReferenceCode": "com.liferay.site.initializer.masterclass",
+		"images": [
+			"masterclass.png"
+		],
+		"name": "Masterclass",
+		"options": [
+			{
+				"key": "admin-email-address"
+			},
+			{
+				"key": "admin-first-name"
+			},
+			{
+				"key": "admin-last-name"
+			},
+			{
+				"key": "site-domain"
+			},
+			{
+				"key": "site-initializer-key"
+			},
+			{
+				"key": "site-name"
+			}
+		],
+		"price": 0.0,
+		"sku": "com.liferay.site.initializer.masterclass",
+		"specificationOptions": [
+		],
+		"subscriptionInfo": {
+			"maxSubscriptionCycles": 1,
+			"subscriptionEnabled": true,
+			"subscriptionLength": 6,
+			"subscriptionType": "monthly"
+		},
+		"warehouse1": 10000
+	},
+	{
+		"backOrders": true,
+		"categories": [
+			"Insurance"
+		],
+		"description": "Raylife description.",
+		"displayAvailability": true,
+		"displayStockQuantity": true,
+		"externalReferenceCode": "com.liferay.site.initializer.raylife",
+		"images": [
+			"raylife.png"
+		],
+		"name": "Raylife",
+		"options": [
+			{
+				"key": "admin-email-address"
+			},
+			{
+				"key": "admin-first-name"
+			},
+			{
+				"key": "admin-last-name"
+			},
+			{
+				"key": "site-domain"
+			},
+			{
+				"key": "site-initializer-key"
+			},
+			{
+				"key": "site-name"
+			}
+		],
+		"price": 0.0,
+		"sku": "com.liferay.site.initializer.raylife",
+		"specificationOptions": [
+		],
+		"subscriptionInfo": {
+			"maxSubscriptionCycles": 1,
+			"subscriptionEnabled": true,
+			"subscriptionLength": 6,
+			"subscriptionType": "monthly"
+		},
+		"warehouse1": 10000
+	},
+	{
+		"backOrders": true,
+		"categories": [
+			"Team"
+		],
+		"description": "Team Extranet description.",
+		"displayAvailability": true,
+		"displayStockQuantity": true,
+		"externalReferenceCode": "com.liferay.site.initializer.team.extranet",
+		"images": [
+			"team_extranet.png"
+		],
+		"name": "Team",
+		"options": [
+			{
+				"key": "admin-email-address"
+			},
+			{
+				"key": "admin-first-name"
+			},
+			{
+				"key": "admin-last-name"
+			},
+			{
+				"key": "site-domain"
+			},
+			{
+				"key": "site-initializer-key"
+			},
+			{
+				"key": "site-name"
+			}
+		],
+		"price": 0.0,
+		"sku": "com.liferay.site.initializer.team.extranet",
+		"specificationOptions": [
+		],
+		"subscriptionInfo": {
+			"maxSubscriptionCycles": 1,
+			"subscriptionEnabled": true,
+			"subscriptionLength": 6,
+			"subscriptionType": "monthly"
+		},
+		"warehouse1": 10000
+	}
+]

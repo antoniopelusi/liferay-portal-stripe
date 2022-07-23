@@ -44,6 +44,7 @@ public class CommerceOrderItemWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("commerceOrderItemId", getCommerceOrderItemId());
 		attributes.put("groupId", getGroupId());
@@ -56,10 +57,11 @@ public class CommerceOrderItemWrapper
 		attributes.put("commerceOrderId", getCommerceOrderId());
 		attributes.put("commercePriceListId", getCommercePriceListId());
 		attributes.put("CPInstanceId", getCPInstanceId());
+		attributes.put("CPMeasurementUnitId", getCPMeasurementUnitId());
 		attributes.put("CProductId", getCProductId());
 		attributes.put(
 			"parentCommerceOrderItemId", getParentCommerceOrderItemId());
-		attributes.put("shippingAddressId", getShippingAddressId());
+		attributes.put("decimalQuantity", getDecimalQuantity());
 		attributes.put("deliveryGroup", getDeliveryGroup());
 		attributes.put(
 			"deliveryMaxSubscriptionCycles",
@@ -107,6 +109,7 @@ public class CommerceOrderItemWrapper
 		attributes.put("promoPriceWithTaxAmount", getPromoPriceWithTaxAmount());
 		attributes.put("quantity", getQuantity());
 		attributes.put("requestedDeliveryDate", getRequestedDeliveryDate());
+		attributes.put("shippingAddressId", getShippingAddressId());
 		attributes.put("shipSeparately", isShipSeparately());
 		attributes.put("shippable", isShippable());
 		attributes.put("shippedQuantity", getShippedQuantity());
@@ -127,6 +130,12 @@ public class CommerceOrderItemWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String externalReferenceCode = (String)attributes.get(
 			"externalReferenceCode");
 
@@ -200,6 +209,12 @@ public class CommerceOrderItemWrapper
 			setCPInstanceId(CPInstanceId);
 		}
 
+		Long CPMeasurementUnitId = (Long)attributes.get("CPMeasurementUnitId");
+
+		if (CPMeasurementUnitId != null) {
+			setCPMeasurementUnitId(CPMeasurementUnitId);
+		}
+
 		Long CProductId = (Long)attributes.get("CProductId");
 
 		if (CProductId != null) {
@@ -213,10 +228,11 @@ public class CommerceOrderItemWrapper
 			setParentCommerceOrderItemId(parentCommerceOrderItemId);
 		}
 
-		Long shippingAddressId = (Long)attributes.get("shippingAddressId");
+		BigDecimal decimalQuantity = (BigDecimal)attributes.get(
+			"decimalQuantity");
 
-		if (shippingAddressId != null) {
-			setShippingAddressId(shippingAddressId);
+		if (decimalQuantity != null) {
+			setDecimalQuantity(decimalQuantity);
 		}
 
 		String deliveryGroup = (String)attributes.get("deliveryGroup");
@@ -416,6 +432,12 @@ public class CommerceOrderItemWrapper
 			setRequestedDeliveryDate(requestedDeliveryDate);
 		}
 
+		Long shippingAddressId = (Long)attributes.get("shippingAddressId");
+
+		if (shippingAddressId != null) {
+			setShippingAddressId(shippingAddressId);
+		}
+
 		Boolean shipSeparately = (Boolean)attributes.get("shipSeparately");
 
 		if (shipSeparately != null) {
@@ -500,8 +522,20 @@ public class CommerceOrderItemWrapper
 	}
 
 	@Override
+	public CommerceOrderItem cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public com.liferay.commerce.product.model.CPInstance fetchCPInstance() {
 		return model.fetchCPInstance();
+	}
+
+	@Override
+	public com.liferay.commerce.product.model.CPMeasurementUnit
+		fetchCPMeasurementUnit() {
+
+		return model.fetchCPMeasurementUnit();
 	}
 
 	@Override
@@ -610,6 +644,16 @@ public class CommerceOrderItemWrapper
 	}
 
 	/**
+	 * Returns the cp measurement unit ID of this commerce order item.
+	 *
+	 * @return the cp measurement unit ID of this commerce order item
+	 */
+	@Override
+	public long getCPMeasurementUnitId() {
+		return model.getCPMeasurementUnitId();
+	}
+
+	/**
 	 * @deprecated As of Athanasius (7.3.x)
 	 */
 	@Deprecated
@@ -638,6 +682,16 @@ public class CommerceOrderItemWrapper
 	@Override
 	public Date getCreateDate() {
 		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the decimal quantity of this commerce order item.
+	 *
+	 * @return the decimal quantity of this commerce order item
+	 */
+	@Override
+	public BigDecimal getDecimalQuantity() {
+		return model.getDecimalQuantity();
 	}
 
 	@Override
@@ -935,6 +989,16 @@ public class CommerceOrderItemWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce order item.
+	 *
+	 * @return the mvcc version of this commerce order item
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -1425,6 +1489,16 @@ public class CommerceOrderItemWrapper
 	}
 
 	/**
+	 * Sets the cp measurement unit ID of this commerce order item.
+	 *
+	 * @param CPMeasurementUnitId the cp measurement unit ID of this commerce order item
+	 */
+	@Override
+	public void setCPMeasurementUnitId(long CPMeasurementUnitId) {
+		model.setCPMeasurementUnitId(CPMeasurementUnitId);
+	}
+
+	/**
 	 * Sets the c product ID of this commerce order item.
 	 *
 	 * @param CProductId the c product ID of this commerce order item
@@ -1442,6 +1516,16 @@ public class CommerceOrderItemWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the decimal quantity of this commerce order item.
+	 *
+	 * @param decimalQuantity the decimal quantity of this commerce order item
+	 */
+	@Override
+	public void setDecimalQuantity(BigDecimal decimalQuantity) {
+		model.setDecimalQuantity(decimalQuantity);
 	}
 
 	/**
@@ -1727,6 +1811,16 @@ public class CommerceOrderItemWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce order item.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce order item
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

@@ -24,6 +24,8 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +61,7 @@ public class TextDDMFormFieldTemplateContextContributor
 
 		if (ddmFormFieldRenderingContext.isReturnFullContext()) {
 			parameters = HashMapBuilder.<String, Object>put(
-				"autocompleteEnabled", isAutocompleteEnabled(ddmFormField)
+				"autocompleteEnabled", _isAutocompleteEnabled(ddmFormField)
 			).put(
 				"confirmationErrorMessage",
 				DDMFormFieldTypeUtil.getPropertyValue(
@@ -71,17 +73,63 @@ public class TextDDMFormFieldTemplateContextContributor
 			).put(
 				"direction", ddmFormField.getProperty("direction")
 			).put(
-				"displayStyle", getDisplayStyle(ddmFormField)
+				"displayStyle", _getDisplayStyle(ddmFormField)
+			).put(
+				"hideField",
+				GetterUtil.getBoolean(ddmFormField.getProperty("hideField"))
+			).put(
+				"maxLength",
+				() -> {
+					try {
+						if (!GetterUtil.getBoolean(
+								PropsUtil.get("feature.flag.LPS-146889"))) {
+
+							return null;
+						}
+					}
+					catch (NullPointerException nullPointerException) {
+						return null;
+					}
+
+					Object maxLength = ddmFormField.getProperty("maxLength");
+
+					if (Validator.isNotNull(maxLength)) {
+						return GetterUtil.getInteger(maxLength);
+					}
+
+					return null;
+				}
 			).put(
 				"placeholder",
 				DDMFormFieldTypeUtil.getPropertyValue(
 					ddmFormField, locale, "placeholder")
 			).put(
-				"regex", GetterUtil.getString(ddmFormField.getProperty("regex"))
-			).put(
 				"requireConfirmation",
 				GetterUtil.getBoolean(
 					ddmFormField.getProperty("requireConfirmation"))
+			).put(
+				"showCounter",
+				() -> {
+					try {
+						if (!GetterUtil.getBoolean(
+								PropsUtil.get("feature.flag.LPS-146889"))) {
+
+							return null;
+						}
+					}
+					catch (NullPointerException nullPointerException) {
+						return null;
+					}
+
+					Object showCounter = ddmFormField.getProperty(
+						"showCounter");
+
+					if (showCounter != null) {
+						return GetterUtil.getBoolean(showCounter);
+					}
+
+					return null;
+				}
 			).put(
 				"tooltip",
 				DDMFormFieldTypeUtil.getPropertyValue(
@@ -89,25 +137,33 @@ public class TextDDMFormFieldTemplateContextContributor
 			).build();
 		}
 
-		parameters.put(
-			"options", getOptions(ddmFormField, ddmFormFieldRenderingContext));
-
-		String predefinedValue = getPredefinedValue(
-			ddmFormField, ddmFormFieldRenderingContext);
-
-		if (predefinedValue != null) {
-			parameters.put("predefinedValue", predefinedValue);
-		}
-
-		return parameters;
+		return HashMapBuilder.<String, Object>put(
+			"invalidCharacters",
+			GetterUtil.getString(ddmFormField.getProperty("invalidCharacters"))
+		).put(
+			"normalizeField",
+			GetterUtil.getBoolean(ddmFormField.getProperty("normalizeField"))
+		).put(
+			"options", _getOptions(ddmFormField, ddmFormFieldRenderingContext)
+		).put(
+			"predefinedValue",
+			DDMFormFieldTypeUtil.getPropertyValue(
+				ddmFormField, ddmFormFieldRenderingContext.getLocale(),
+				"predefinedValue")
+		).putAll(
+			parameters
+		).build();
 	}
 
-	protected String getDisplayStyle(DDMFormField ddmFormField) {
+	@Reference
+	protected DDMFormFieldOptionsFactory ddmFormFieldOptionsFactory;
+
+	private String _getDisplayStyle(DDMFormField ddmFormField) {
 		return GetterUtil.getString(
 			ddmFormField.getProperty("displayStyle"), "singleline");
 	}
 
-	protected List<Object> getOptions(
+	private List<Object> _getOptions(
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
@@ -143,25 +199,8 @@ public class TextDDMFormFieldTemplateContextContributor
 		return options;
 	}
 
-	protected String getPredefinedValue(
-		DDMFormField ddmFormField,
-		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
-
-		LocalizedValue predefinedValue = ddmFormField.getPredefinedValue();
-
-		if (predefinedValue == null) {
-			return null;
-		}
-
-		return predefinedValue.getString(
-			ddmFormFieldRenderingContext.getLocale());
-	}
-
-	protected boolean isAutocompleteEnabled(DDMFormField ddmFormField) {
+	private boolean _isAutocompleteEnabled(DDMFormField ddmFormField) {
 		return GetterUtil.getBoolean(ddmFormField.getProperty("autocomplete"));
 	}
-
-	@Reference
-	protected DDMFormFieldOptionsFactory ddmFormFieldOptionsFactory;
 
 }

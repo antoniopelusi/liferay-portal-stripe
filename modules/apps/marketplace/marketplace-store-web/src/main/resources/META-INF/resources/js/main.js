@@ -54,7 +54,7 @@ AUI.add(
 				else {
 					instance._messages.push(message);
 
-					if (instance._messages.length == 1) {
+					if (instance._messages.length === 1) {
 						A.postMessage(
 							message,
 							instance._targetURI,
@@ -128,7 +128,7 @@ AUI.add(
 			namespaceObject(namespace, object) {
 				var returnObject = {};
 
-				var keys = A.Object.keys(object);
+				var keys = Object.keys(object);
 
 				A.Array.each(keys, (key) => {
 					returnObject[namespace + key] = object[key];

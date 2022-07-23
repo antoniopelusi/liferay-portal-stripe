@@ -1,16 +1,14 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property custom.properties = "default.layout.template.id=1_column";
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Social Bookmarks";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 	}
 
 	tearDown {
@@ -28,7 +26,7 @@ definition {
 
 			KBArticle.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -36,8 +34,6 @@ definition {
 	@refactordone
 	test BlogsEntryWithSocialBookmarksAreViewableInSite {
 		property osgi.app.includes = "social-bookmarks";
-
-		var portalURL = PropsUtil.get("portal.url");
 
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",
@@ -54,11 +50,12 @@ definition {
 			entrySubtitle = "Blogs Entry Subtitle",
 			entryTitle = "Blogs Entry Title");
 
-		Navigator.openSpecificURL(url = "${portalURL}/web/guest/blogs-page/-/blogs/blogs-entry-title");
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
 
 		SocialBookmarks.viewDefaultSharableBookmarks();
-
-		Navigator.gotoPage(pageName = "Blogs Page");
 
 		Blogs.disableSocialBookmarkSites(disableSocialBookmarkSites = "Facebook,LinkedIn,Twitter");
 
@@ -70,7 +67,10 @@ definition {
 
 		Blogs.enableSocialBookmarkSites(enableSocialBookmarkSites = "Facebook,LinkedIn,Twitter");
 
-		Navigator.openSpecificURL(url = "${portalURL}/web/guest/blogs-page/-/blogs/blogs-entry-title");
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
 
 		SocialBookmarks.viewDefaultSharableBookmarks();
 	}
@@ -91,6 +91,7 @@ definition {
 			widgetName = "Knowledge Base Display");
 
 		JSONKnowledgeBase.addkBArticle(
+			groupName = "Guest",
 			kbArticleContent = "Knowledge Base Article Content",
 			kbArticleTitle = "Knowledge Base Article Title");
 
@@ -115,6 +116,7 @@ definition {
 			widgetName = "Knowledge Base Display");
 
 		JSONKnowledgeBase.addkBArticle(
+			groupName = "Guest",
 			kbArticleContent = "Knowledge Base Article Content",
 			kbArticleTitle = "Knowledge Base Article Title");
 

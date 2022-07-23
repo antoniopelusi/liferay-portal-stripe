@@ -50,12 +50,14 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.InheritableMap;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -63,11 +65,12 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
+import com.liferay.portal.kernel.workflow.permission.WorkflowPermission;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.portlet.WindowState;
@@ -109,6 +112,14 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 				layoutDisplayPageObjectProvider.getClassTypeId())) {
 
 			ThemeDisplay themeDisplay = new ThemeDisplay();
+
+			themeDisplay.setCompany(_companyLocalService.getCompany(companyId));
+
+			String portalURL = _portal.getPortalURL(httpServletRequest);
+
+			themeDisplay.setPortalDomain(
+				HttpComponentsUtil.getDomain(portalURL));
+			themeDisplay.setPortalURL(portalURL);
 
 			themeDisplay.setScopeGroupId(groupId);
 			themeDisplay.setSiteGroupId(groupId);
@@ -297,15 +308,32 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 				urlTitle);
 
 		if (friendlyURLEntryLocalization != null) {
-			locale = LocaleUtil.fromLanguageId(
-				friendlyURLEntryLocalization.getLanguageId());
+			String languageId = LocaleUtil.toLanguageId(locale);
 
-			actualParams.put(
-				namespace + "languageId",
-				new String[] {friendlyURLEntryLocalization.getLanguageId()});
+			if (!Objects.equals(
+					friendlyURLEntryLocalization.getLanguageId(), languageId) &&
+				ArrayUtil.contains(
+					journalArticle.getAvailableLanguageIds(), languageId)) {
+
+				actualParams.put(
+					namespace + "languageId", new String[] {languageId});
+
+				locale = LocaleUtil.fromLanguageId(languageId);
+			}
+			else {
+				actualParams.put(
+					namespace + "languageId",
+					new String[] {
+						friendlyURLEntryLocalization.getLanguageId()
+					});
+
+				locale = LocaleUtil.fromLanguageId(
+					friendlyURLEntryLocalization.getLanguageId());
+			}
 		}
 
-		String queryString = _http.parameterMapToString(actualParams, false);
+		String queryString = HttpComponentsUtil.parameterMapToString(
+			actualParams, false);
 
 		if (layoutActualURL.contains(StringPool.QUESTION)) {
 			layoutActualURL =
@@ -382,7 +410,7 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 		throws PortalException {
 
 		String normalizedUrlTitle =
-			FriendlyURLNormalizerUtil.normalizeWithEncoding(
+			_friendlyURLNormalizer.normalizeWithEncoding(
 				_getFullURLTitle(friendlyURL));
 
 		JournalArticle journalArticle =
@@ -399,7 +427,7 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 					WorkflowConstants.STATUS_PENDING);
 
 			if ((journalArticle != null) &&
-				!WorkflowPermissionUtil.hasPermission(
+				!_workflowPermission.hasPermission(
 					permissionChecker, groupId,
 					"com.liferay.journal.model.JournalArticle",
 					journalArticle.getId(), ActionKeys.VIEW)) {
@@ -409,9 +437,8 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 		}
 
 		if (journalArticle == null) {
-			normalizedUrlTitle =
-				FriendlyURLNormalizerUtil.normalizeWithEncoding(
-					_getURLTitle(friendlyURL));
+			normalizedUrlTitle = _friendlyURLNormalizer.normalizeWithEncoding(
+				_getURLTitle(friendlyURL));
 
 			double version = _getVersion(friendlyURL);
 
@@ -429,9 +456,8 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 		}
 
 		if (journalArticle == null) {
-			normalizedUrlTitle =
-				FriendlyURLNormalizerUtil.normalizeWithEncoding(
-					_getURLTitle(friendlyURL));
+			normalizedUrlTitle = _friendlyURLNormalizer.normalizeWithEncoding(
+				_getURLTitle(friendlyURL));
 
 			long id = _getId(friendlyURL);
 
@@ -449,7 +475,7 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 					groupId, normalizedUrlTitle,
 					WorkflowConstants.STATUS_PENDING);
 
-			if (!WorkflowPermissionUtil.hasPermission(
+			if (!_workflowPermission.hasPermission(
 					permissionChecker, groupId,
 					"com.liferay.journal.model.JournalArticle",
 					journalArticle.getId(), ActionKeys.VIEW)) {
@@ -533,13 +559,16 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 	private ClassNameLocalService _classNameLocalService;
 
 	@Reference
+	private CompanyLocalService _companyLocalService;
+
+	@Reference
 	private DDMTemplateLocalService _ddmTemplateLocalService;
 
 	@Reference
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@Reference
-	private Http _http;
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;
@@ -549,5 +578,8 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private WorkflowPermission _workflowPermission;
 
 }

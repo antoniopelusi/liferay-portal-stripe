@@ -36,11 +36,19 @@ definition {
 	}
 
 	macro addViaSiteCP {
-		Panel.expandPanel(panel = "Categorization");
+		Click(
+			key_itemName = "Assets",
+			locator1 = "ListGroupItem#ITEM_TEXT");
 
-		AssetCategorization.addTag(tagName = "${tagName}");
+		Navigator.gotoNavTab(navTab = "Categorization");
+
+		for (var tagName : list "${tagNameList}") {
+			AssetCategorization.addTag(tagName = "${tagName}");
+		}
 
 		PortletEntry.save();
+
+		Navigator.gotoBack();
 	}
 
 	macro addWithNullTitleCP {
@@ -53,6 +61,34 @@ definition {
 		Alert.viewRequiredField();
 	}
 
+	macro cancelEditCP {
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "${tagMenuName}");
+
+		PortletEntry.inputName(name = "${tagNameEdit}");
+
+		Button.clickCancel();
+	}
+
+	macro deleteCP {
+		for (var tagName : list "${tagNameList}") {
+			PortletEntry.deleteViaMenuItem(rowEntry = "${tagName}");
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	macro editCP {
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "${tagMenuName}");
+
+		PortletEntry.inputName(name = "${tagNameEdit}");
+
+		PortletEntry.save();
+	}
+
 	macro gotoMerge {
 		if ("${mergeMethod}" == "menuItem") {
 			LexiconEntry.gotoEntryMenuItem(
@@ -60,6 +96,10 @@ definition {
 				rowEntry = "${tagName}");
 		}
 		else {
+			for (var tagName : list "${tagNameList}") {
+				LexiconEntry.selectEntry(rowEntry = "${tagName}");
+			}
+
 			Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
 
 			Click(locator1 = "Button#MERGE");
@@ -75,6 +115,11 @@ definition {
 	}
 
 	macro mergeTags {
+		Select(
+			key_fieldLabel = "Into This Tag:",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${mergedTag}");
+
 		ClickNoError(locator1 = "Button#SAVE");
 
 		var message = "Are you sure you want to merge &quot;${tagNameList}&quot; into &quot;${mergedTag}&quot;? This will change all items tagged with &quot;${tagNameList}&quot; to instead be tagged with &quot;${mergedTag}&quot;.";
@@ -93,7 +138,9 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		LexiconEntry.selectEntry(rowEntry = "${tagName}");
+		for (var tagName : list "${tagNameList}") {
+			LexiconEntry.selectEntry(rowEntry = "${tagName}");
+		}
 
 		SelectFrameTop();
 
@@ -132,11 +179,15 @@ definition {
 	}
 
 	macro viewCP {
-		var key_tagName = "${tagName}";
+		for (var tagName : list "${tagNameList}") {
+			LexiconEntry.viewEntryName(rowEntry = "${tagName}");
+		}
+	}
 
-		AssertTextEquals(
-			locator1 = "Tags#TAG_ENTRY_TABLE_NAME",
-			value1 = "${tagName}");
+	macro viewNotPresentCP {
+		for (var tagName : list "${tagNameList}") {
+			LexiconEntry.viewNoEntry(rowEntry = "${tagName}");
+		}
 	}
 
 }

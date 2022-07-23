@@ -1,8 +1,6 @@
 definition {
 
-	@summary = "Asserts that the currently selected Time Filter range matches the specified range \
-	@param cardName optional argument that is supplied when you want to assert the Time Filter within a specific card \
-	@param timeFilterRange the currently set range of the Time Filter, as displayed on the Time Filter dropdown button"
+	@summary = "Asserts that the currently selected Time Filter range matches the specified range \  @param cardName optional argument that is supplied when you want to assert the Time Filter within a specific card \  @param timeFilterRange the currently set range of the Time Filter, as displayed on the Time Filter dropdown button"
 	macro assertCurrentTimeFilterRange {
 		if (isSet(cardName)) {
 			var key_cardName = "${cardName}";
@@ -10,6 +8,11 @@ definition {
 			AssertTextEquals(
 				locator1 = "ACTimeFilter#CARD_TIME_FILTER_DROPDOWN",
 				value1 = "${timeFilterRange}");
+		}
+		else if (isSet(invalid)) {
+			AssertTextEquals(
+				locator1 = "ACTimeFilter#DATE_PICKER_RANGE_WARNING",
+				value1 = "${timeFilterRangeWarning}");
 		}
 		else {
 			AssertTextEquals(
@@ -25,8 +28,7 @@ definition {
 		Click(locator1 = "ACTimeFilter#TIME_FILTER_DROPDOWN_OPTION");
 	}
 
-	@summary = "Clicks the Time Filter dropdown button. If `cardName` argument is provided, it clicks the TimeFilter within a card specified by name \
-	@param cardName name of the card who's Time Filter you want to click"
+	@summary = "Clicks the Time Filter dropdown button. If `cardName` argument is provided, it clicks the TimeFilter within a card specified by name \  @param cardName name of the card who's Time Filter you want to click"
 	macro clickTimeFilterButton {
 		if (isSet(cardName)) {
 			var key_cardName = "${cardName}";
@@ -38,47 +40,50 @@ definition {
 		}
 	}
 
-	@summary = "Filters the card or table by a Custom Date range \
-	@param startDay \
-	@param startMonth Full name of the start month \
-	@param startYear \
-	@param endDay \
-	@param endMonth Full name of the end month \
-	@param endYear"
+	@summary = "Filters the card or table by a Custom Date range \  @param startDay \  @param startMonth Full name of the start month \  @param startYear \  @param endDay \  @param endMonth Full name of the end month \  @param endYear"
 	macro setCustomRange {
 		var key_dropdownOption = "Custom Range";
+
+		if (isSet(cardName)) {
+			ACTimeFilter.clickTimeFilterButton(cardName = "${cardName}");
+		}
+		else {
+			ACTimeFilter.clickTimeFilterButton();
+		}
 
 		Click(locator1 = "ACTimeFilter#TIME_FILTER_DROPDOWN_OPTION");
 
 		WaitForElementPresent(locator1 = "ACTimeFilter#DATE_PICKER");
 
-		var key_Day = "${startDay}";
-		var key_Month = "${startMonth}";
-		var key_Year = "${startYear}";
+		var key_day = "${startDay}";
 
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_MONTH_DROPDOWN");
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_MONTH_DROPDOWN_OPTION");
+		Select(
+			locator1 = "ACTimeFilter#DATE_PICKER_YEAR_DROPDOWN",
+			value1 = "${startYear}");
 
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_YEAR_DROPDOWN");
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_YEAR_DROPDOWN_OPTION");
-
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_DAY");
-
-		var key_Day = "${endDay}";
-		var key_Month = "${endMonth}";
-		var key_Year = "${endYear}";
-
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_MONTH_DROPDOWN");
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_MONTH_DROPDOWN_OPTION");
-
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_YEAR_DROPDOWN");
-		Click(locator1 = "ACTimeFilter#DATE_PICKER_YEAR_DROPDOWN_OPTION");
+		Select(
+			locator1 = "ACTimeFilter#DATE_PICKER_MONTH_DROPDOWN",
+			value1 = "${startMonth}");
 
 		Click(locator1 = "ACTimeFilter#DATE_PICKER_DAY");
 
-		WaitForElementNotPresent(locator1 = "ACTimeFilter#DATE_PICKER");
+		var key_day = "${endDay}";
 
-		ACLoading.waitForLoadingComplete();
+		Select(
+			locator1 = "ACTimeFilter#DATE_PICKER_YEAR_DROPDOWN",
+			value1 = "${endYear}");
+
+		Select(
+			locator1 = "ACTimeFilter#DATE_PICKER_MONTH_DROPDOWN",
+			value1 = "${endMonth}");
+
+		Click(locator1 = "ACTimeFilter#DATE_PICKER_DAY");
+
+		if (!(isSet(invalid))) {
+			WaitForElementNotPresent(locator1 = "ACTimeFilter#DATE_PICKER");
+
+			ACLoading.waitForLoadingComplete();
+		}
 	}
 
 	@summary = "Clicks the 'Last 7 days' option in the Time Filter Dropdown"

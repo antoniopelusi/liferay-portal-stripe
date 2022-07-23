@@ -1,7 +1,5 @@
 {
 	"dependencies": {
-		"frontend-js-components-web": "*",
-		"frontend-js-web": "*"
 	},
 	"name": "asset-categories-item-selector-web",
 	"scripts": {
@@ -9,5 +7,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "1.0.4"
+	"version": "1.0.27"
 }

@@ -336,16 +336,12 @@ public class OrganizationFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(CustomSQLUtil.get(COUNT_O_BY_C_PO));
-			sb.append(") UNION ALL (");
-			sb.append(getUsersSQL(COUNT_U_BY_C_S_O, queryDefinition));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
-				sb.toString());
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					CustomSQLUtil.get(COUNT_O_BY_C_PO), ") UNION ALL (",
+					getUsersSQL(COUNT_U_BY_C_S_O, queryDefinition),
+					StringPool.CLOSE_PARENTHESIS));
 
 			sqlQuery.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -652,16 +648,13 @@ public class OrganizationFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(CustomSQLUtil.get(FIND_O_BY_C_PO));
-			sb.append(") UNION ALL (");
-			sb.append(getUsersSQL(FIND_U_BY_C_S_O, queryDefinition));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
 			String sql = CustomSQLUtil.replaceOrderBy(
-				sb.toString(), queryDefinition.getOrderByComparator());
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					CustomSQLUtil.get(FIND_O_BY_C_PO), ") UNION ALL (",
+					getUsersSQL(FIND_U_BY_C_S_O, queryDefinition),
+					StringPool.CLOSE_PARENTHESIS),
+				queryDefinition.getOrderByComparator());
 
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 

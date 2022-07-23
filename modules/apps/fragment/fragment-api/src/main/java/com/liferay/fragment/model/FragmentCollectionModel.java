@@ -300,4 +300,7 @@ public interface FragmentCollectionModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public FragmentCollection cloneWithOriginalValues();
+
 }

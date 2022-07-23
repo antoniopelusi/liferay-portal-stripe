@@ -88,6 +88,10 @@ public interface Group extends GroupModel, PersistedModel, TreeModel {
 		com.liferay.portal.kernel.theme.ThemeDisplay themeDisplay,
 		boolean privateLayout);
 
+	public String getDisplayURL(
+		com.liferay.portal.kernel.theme.ThemeDisplay themeDisplay,
+		boolean privateLayout, boolean controlPanel);
+
 	public String getIconCssClass();
 
 	public String getIconURL(
@@ -179,6 +183,8 @@ public interface Group extends GroupModel, PersistedModel, TreeModel {
 	public boolean isLimitedToParentSiteMembers();
 
 	public boolean isOrganization();
+
+	public boolean isPrivateLayoutsEnabled();
 
 	public boolean isRegularSite();
 

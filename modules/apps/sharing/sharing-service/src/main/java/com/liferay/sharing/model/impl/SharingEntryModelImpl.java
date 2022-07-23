@@ -30,24 +30,22 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.sharing.model.SharingEntry;
 import com.liferay.sharing.model.SharingEntryModel;
-import com.liferay.sharing.model.SharingEntrySoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -191,62 +189,6 @@ public class SharingEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SharingEntry toModel(SharingEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		SharingEntry model = new SharingEntryImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setSharingEntryId(soapModel.getSharingEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setToUserId(soapModel.getToUserId());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setShareable(soapModel.isShareable());
-		model.setActionIds(soapModel.getActionIds());
-		model.setExpirationDate(soapModel.getExpirationDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SharingEntry> toModels(SharingEntrySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SharingEntry> models = new ArrayList<SharingEntry>(
-			soapModels.length);
-
-		for (SharingEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public SharingEntryModelImpl() {
 	}
 
@@ -330,34 +272,6 @@ public class SharingEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SharingEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SharingEntry.class.getClassLoader(), SharingEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SharingEntry> constructor =
-				(Constructor<SharingEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SharingEntry, Object>>
@@ -879,6 +793,40 @@ public class SharingEntryModelImpl
 	}
 
 	@Override
+	public SharingEntry cloneWithOriginalValues() {
+		SharingEntryImpl sharingEntryImpl = new SharingEntryImpl();
+
+		sharingEntryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		sharingEntryImpl.setSharingEntryId(
+			this.<Long>getColumnOriginalValue("sharingEntryId"));
+		sharingEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		sharingEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		sharingEntryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		sharingEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		sharingEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		sharingEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		sharingEntryImpl.setToUserId(
+			this.<Long>getColumnOriginalValue("toUserId"));
+		sharingEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		sharingEntryImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		sharingEntryImpl.setShareable(
+			this.<Boolean>getColumnOriginalValue("shareable"));
+		sharingEntryImpl.setActionIds(
+			this.<Long>getColumnOriginalValue("actionIds"));
+		sharingEntryImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+
+		return sharingEntryImpl;
+	}
+
+	@Override
 	public int compareTo(SharingEntry sharingEntry) {
 		long primaryKey = sharingEntry.getPrimaryKey();
 
@@ -1022,7 +970,7 @@ public class SharingEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1033,9 +981,26 @@ public class SharingEntryModelImpl
 			Function<SharingEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SharingEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SharingEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1082,7 +1047,9 @@ public class SharingEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SharingEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SharingEntry.class, ModelWrapper.class);
 
 	}
 

@@ -30,6 +30,10 @@ public class SocialActivitySetLocalServiceWrapper
 	implements ServiceWrapper<SocialActivitySetLocalService>,
 			   SocialActivitySetLocalService {
 
+	public SocialActivitySetLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SocialActivitySetLocalServiceWrapper(
 		SocialActivitySetLocalService socialActivitySetLocalService) {
 
@@ -152,6 +156,13 @@ public class SocialActivitySetLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _socialActivitySetLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _socialActivitySetLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

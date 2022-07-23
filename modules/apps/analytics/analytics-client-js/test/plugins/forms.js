@@ -64,7 +64,7 @@ describe('Forms Plugin', () => {
 	});
 
 	describe('formViewed event', () => {
-		it('is fired for every form on the page', () => {
+		it('is fired for every form on the page', async () => {
 			const formWithAssetId = document.createElement('form');
 
 			formWithAssetId.dataset.analyticsAssetId = 'assetId';
@@ -81,7 +81,7 @@ describe('Forms Plugin', () => {
 
 			const domContentLoaded = new Event('DOMContentLoaded');
 
-			document.dispatchEvent(domContentLoaded);
+			await document.dispatchEvent(domContentLoaded);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'formViewed'
@@ -110,7 +110,7 @@ describe('Forms Plugin', () => {
 	});
 
 	describe('formSubmitted event', () => {
-		it('is fired when a form is submitted', () => {
+		it('is fired when a form is submitted', async () => {
 			const form = document.createElement('form');
 
 			form.dataset.analyticsAssetId = 'formId';
@@ -124,7 +124,7 @@ describe('Forms Plugin', () => {
 				cancelable: true,
 			});
 
-			form.dispatchEvent(event);
+			await form.dispatchEvent(event);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'formSubmitted'
@@ -144,7 +144,7 @@ describe('Forms Plugin', () => {
 	});
 
 	describe('fieldFocused event', () => {
-		it('is fired whenever a field is focused', () => {
+		it('is fired whenever a field is focused', async () => {
 			const form = document.createElement('form');
 
 			form.dataset.analyticsAssetId = 'formId';
@@ -159,7 +159,7 @@ describe('Forms Plugin', () => {
 
 			form.appendChild(field);
 
-			field.dispatchEvent(new Event('focus'));
+			await field.dispatchEvent(new Event('focus'));
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'fieldFocused'
@@ -179,7 +179,7 @@ describe('Forms Plugin', () => {
 	});
 
 	describe('fieldBlurred event', () => {
-		it('is fired whenever a field is blurred', () => {
+		it('is fired whenever a field is blurred', async () => {
 			const form = document.createElement('form');
 
 			form.dataset.analyticsAssetId = 'formId';
@@ -200,7 +200,7 @@ describe('Forms Plugin', () => {
 
 			duration = 1500;
 
-			field.dispatchEvent(new Event('blur'));
+			await field.dispatchEvent(new Event('blur'));
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'fieldBlurred'

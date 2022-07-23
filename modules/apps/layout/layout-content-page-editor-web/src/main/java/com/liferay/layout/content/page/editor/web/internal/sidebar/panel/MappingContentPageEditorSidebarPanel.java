@@ -68,14 +68,11 @@ public class MappingContentPageEditorSidebarPanel
 
 		Layout layout = _layoutLocalService.fetchLayout(plid);
 
-		if (layout == null) {
-			return false;
-		}
-
-		if ((layoutType !=
+		if ((layout == null) ||
+			((layoutType !=
 				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE) &&
-			!Objects.equals(
-				layout.getType(), LayoutConstants.TYPE_COLLECTION)) {
+			 !Objects.equals(
+				 layout.getType(), LayoutConstants.TYPE_COLLECTION))) {
 
 			return false;
 		}
@@ -89,7 +86,7 @@ public class MappingContentPageEditorSidebarPanel
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoCondition;
 import com.liferay.portal.workflow.kaleo.model.KaleoConditionModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -238,34 +239,6 @@ public class KaleoConditionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoCondition>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoCondition.class.getClassLoader(), KaleoCondition.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KaleoCondition> constructor =
-				(Constructor<KaleoCondition>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoCondition, Object>>
@@ -705,6 +678,42 @@ public class KaleoConditionModelImpl
 	}
 
 	@Override
+	public KaleoCondition cloneWithOriginalValues() {
+		KaleoConditionImpl kaleoConditionImpl = new KaleoConditionImpl();
+
+		kaleoConditionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoConditionImpl.setKaleoConditionId(
+			this.<Long>getColumnOriginalValue("kaleoConditionId"));
+		kaleoConditionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		kaleoConditionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoConditionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		kaleoConditionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoConditionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoConditionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoConditionImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoConditionImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoConditionImpl.setKaleoNodeId(
+			this.<Long>getColumnOriginalValue("kaleoNodeId"));
+		kaleoConditionImpl.setScript(
+			this.<String>getColumnOriginalValue("script"));
+		kaleoConditionImpl.setScriptLanguage(
+			this.<String>getColumnOriginalValue("scriptLanguage"));
+		kaleoConditionImpl.setScriptRequiredContexts(
+			this.<String>getColumnOriginalValue("scriptRequiredContexts"));
+
+		return kaleoConditionImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoCondition kaleoCondition) {
 		int value = 0;
 
@@ -864,7 +873,7 @@ public class KaleoConditionModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -875,9 +884,26 @@ public class KaleoConditionModelImpl
 			Function<KaleoCondition, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KaleoCondition)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KaleoCondition)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -924,7 +950,9 @@ public class KaleoConditionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoCondition>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoCondition.class, ModelWrapper.class);
 
 	}
 

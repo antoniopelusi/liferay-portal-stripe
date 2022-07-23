@@ -20,7 +20,6 @@ import {
 	viewDurationByCharacters,
 	viewDurationByWords,
 } from '../../src/plugins/read';
-import {wait} from './../helpers';
 
 const ENGLISH_TEXT =
 	'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain';
@@ -47,6 +46,8 @@ const createMetaTag = () => {
 
 	return meta;
 };
+
+jest.useFakeTimers();
 
 describe('Read Plugin', () => {
 	let Analytics;
@@ -101,7 +102,7 @@ describe('Read Plugin', () => {
 			window.scrollTo(0, SCROLL_HEIGHT);
 			document.dispatchEvent(new Event('scroll'));
 
-			await wait(expectedReadDuration);
+			await jest.advanceTimersByTime(expectedReadDuration);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'pageRead'
@@ -122,9 +123,9 @@ describe('Read Plugin', () => {
 			document.dispatchEvent(domContentLoaded);
 
 			window.scrollTo(0, SCROLL_HEIGHT);
-			document.dispatchEvent(new Event('scroll'));
+			await document.dispatchEvent(new Event('scroll'));
 
-			await wait(expectedReadDuration / 2);
+			jest.advanceTimersByTime(expectedReadDuration / 2);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'pageRead'
@@ -145,9 +146,9 @@ describe('Read Plugin', () => {
 			document.dispatchEvent(domContentLoaded);
 
 			window.scrollTo(0, PAGE_HEIGHT / 2);
-			document.dispatchEvent(new Event('scroll'));
+			await document.dispatchEvent(new Event('scroll'));
 
-			await wait(expectedReadDuration + 1000);
+			jest.advanceTimersByTime(expectedReadDuration + 1000);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'pageRead'
@@ -179,7 +180,7 @@ describe('Read Plugin', () => {
 			const domContentLoaded = new Event('DOMContentLoaded');
 			document.dispatchEvent(domContentLoaded);
 
-			await wait(expectedReadDuration);
+			await jest.advanceTimersByTime(expectedReadDuration);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'pageRead'
@@ -202,7 +203,7 @@ describe('Read Plugin', () => {
 			window.scrollTo(0, SCROLL_HEIGHT * 0.5);
 			document.dispatchEvent(new Event('scroll'));
 
-			await wait(expectedReadDuration);
+			await jest.advanceTimersByTime(expectedReadDuration);
 
 			window.scrollTo(0, SCROLL_HEIGHT);
 			document.dispatchEvent(new Event('scroll'));

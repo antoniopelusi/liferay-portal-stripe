@@ -17,6 +17,7 @@ package com.liferay.project.templates.service.builder.internal;
 import com.liferay.project.templates.extensions.ProjectTemplateCustomizer;
 import com.liferay.project.templates.extensions.ProjectTemplatesArgs;
 import com.liferay.project.templates.extensions.util.FileUtil;
+import com.liferay.project.templates.extensions.util.VersionUtil;
 import com.liferay.project.templates.extensions.util.WorkspaceUtil;
 
 import java.io.File;
@@ -51,20 +52,33 @@ public class ServiceBuilderProjectTemplateCustomizer
 
 		String addOns = serviceBuilderProjectTemplatesArgs.getAddOns();
 
+		Path destinationDirPath = destinationDir.toPath();
+
+		Path projectPath = destinationDirPath.resolve(
+			projectTemplatesArgs.getName());
+
+		File projectDir = projectPath.toFile();
+
+		String artifactId = projectTemplatesArgs.getName();
+
 		if (addOns.equals("false")) {
-			Path destinationDirPath = destinationDir.toPath();
-
-			Path projectPath = destinationDirPath.resolve(
-				projectTemplatesArgs.getName());
-
-			File projectDir = projectPath.toFile();
-
-			String artifactId = projectTemplatesArgs.getName();
-
 			File uadDir = new File(projectDir, artifactId + "-uad");
 
 			FileUtil.deleteDir(uadDir.toPath());
 		}
+
+		File serviceDir = new File(projectDir, artifactId + "-service");
+
+		File serviceXMLFile = new File(serviceDir, "service.xml");
+
+		String minorVersionString = String.valueOf(
+			VersionUtil.getMinorVersion(
+				projectTemplatesArgs.getLiferayVersion()));
+
+		FileUtil.replaceString(
+			serviceXMLFile, "7.0", "7." + minorVersionString);
+		FileUtil.replaceString(
+			serviceXMLFile, "7_0", "7_" + minorVersionString);
 	}
 
 	@Override

@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.journal.model.JournalFeed;
 import com.liferay.journal.model.JournalFeedModel;
-import com.liferay.journal.model.JournalFeedSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -177,74 +175,6 @@ public class JournalFeedModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static JournalFeed toModel(JournalFeedSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		JournalFeed model = new JournalFeedImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setId(soapModel.getId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setFeedId(soapModel.getFeedId());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setDDMStructureKey(soapModel.getDDMStructureKey());
-		model.setDDMTemplateKey(soapModel.getDDMTemplateKey());
-		model.setDDMRendererTemplateKey(soapModel.getDDMRendererTemplateKey());
-		model.setDelta(soapModel.getDelta());
-		model.setOrderByCol(soapModel.getOrderByCol());
-		model.setOrderByType(soapModel.getOrderByType());
-		model.setTargetLayoutFriendlyUrl(
-			soapModel.getTargetLayoutFriendlyUrl());
-		model.setTargetPortletId(soapModel.getTargetPortletId());
-		model.setContentField(soapModel.getContentField());
-		model.setFeedFormat(soapModel.getFeedFormat());
-		model.setFeedVersion(soapModel.getFeedVersion());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<JournalFeed> toModels(JournalFeedSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<JournalFeed> models = new ArrayList<JournalFeed>(
-			soapModels.length);
-
-		for (JournalFeedSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public JournalFeedModelImpl() {
 	}
 
@@ -328,34 +258,6 @@ public class JournalFeedModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, JournalFeed>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			JournalFeed.class.getClassLoader(), JournalFeed.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<JournalFeed> constructor =
-				(Constructor<JournalFeed>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<JournalFeed, Object>>
@@ -1083,6 +985,59 @@ public class JournalFeedModelImpl
 	}
 
 	@Override
+	public JournalFeed cloneWithOriginalValues() {
+		JournalFeedImpl journalFeedImpl = new JournalFeedImpl();
+
+		journalFeedImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		journalFeedImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		journalFeedImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		journalFeedImpl.setId(this.<Long>getColumnOriginalValue("id_"));
+		journalFeedImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		journalFeedImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		journalFeedImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		journalFeedImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		journalFeedImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		journalFeedImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		journalFeedImpl.setFeedId(
+			this.<String>getColumnOriginalValue("feedId"));
+		journalFeedImpl.setName(this.<String>getColumnOriginalValue("name"));
+		journalFeedImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		journalFeedImpl.setDDMStructureKey(
+			this.<String>getColumnOriginalValue("DDMStructureKey"));
+		journalFeedImpl.setDDMTemplateKey(
+			this.<String>getColumnOriginalValue("DDMTemplateKey"));
+		journalFeedImpl.setDDMRendererTemplateKey(
+			this.<String>getColumnOriginalValue("DDMRendererTemplateKey"));
+		journalFeedImpl.setDelta(this.<Integer>getColumnOriginalValue("delta"));
+		journalFeedImpl.setOrderByCol(
+			this.<String>getColumnOriginalValue("orderByCol"));
+		journalFeedImpl.setOrderByType(
+			this.<String>getColumnOriginalValue("orderByType"));
+		journalFeedImpl.setTargetLayoutFriendlyUrl(
+			this.<String>getColumnOriginalValue("targetLayoutFriendlyUrl"));
+		journalFeedImpl.setTargetPortletId(
+			this.<String>getColumnOriginalValue("targetPortletId"));
+		journalFeedImpl.setContentField(
+			this.<String>getColumnOriginalValue("contentField"));
+		journalFeedImpl.setFeedFormat(
+			this.<String>getColumnOriginalValue("feedFormat"));
+		journalFeedImpl.setFeedVersion(
+			this.<Double>getColumnOriginalValue("feedVersion"));
+		journalFeedImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return journalFeedImpl;
+	}
+
+	@Override
 	public int compareTo(JournalFeed journalFeed) {
 		int value = 0;
 
@@ -1326,7 +1281,7 @@ public class JournalFeedModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1337,9 +1292,26 @@ public class JournalFeedModelImpl
 			Function<JournalFeed, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((JournalFeed)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((JournalFeed)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1386,7 +1358,9 @@ public class JournalFeedModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, JournalFeed>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					JournalFeed.class, ModelWrapper.class);
 
 	}
 

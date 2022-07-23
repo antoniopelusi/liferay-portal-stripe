@@ -2,16 +2,24 @@
 <head>
 <title>FormPortletConfiguration</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">FormPortletConfiguration</td></tr>
 </thead>
+
 <tbody>
 <!--FORMS_TABLE-->
 <tr>
 	<td>FORMS_TABLE_NAME</td>
 	<td>xpath=(//div[contains(@id,'SearchContainer')]//tr[contains(.,'${key_formName}')]/td//a)[1]</td>
+	<td></td>
+</tr>
+<!--TRANSLATE-->
+<tr>
+	<td>SELECT_LANGUAGE</td>
+	<td>//span[contains(text(),'${key_language}')]</td>
 	<td></td>
 </tr>
 </tbody>

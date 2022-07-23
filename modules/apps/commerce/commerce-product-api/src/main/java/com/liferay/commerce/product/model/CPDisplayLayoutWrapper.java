@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -43,6 +45,8 @@ public class CPDisplayLayoutWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("CPDisplayLayoutId", getCPDisplayLayoutId());
 		attributes.put("groupId", getGroupId());
@@ -60,6 +64,18 @@ public class CPDisplayLayoutWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -125,6 +141,11 @@ public class CPDisplayLayoutWrapper
 		if (layoutUuid != null) {
 			setLayoutUuid(layoutUuid);
 		}
+	}
+
+	@Override
+	public CPDisplayLayout cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	@Override
@@ -203,6 +224,16 @@ public class CPDisplayLayoutWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this cp display layout.
+	 *
+	 * @return the ct collection ID of this cp display layout
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the group ID of this cp display layout.
 	 *
 	 * @return the group ID of this cp display layout
@@ -230,6 +261,16 @@ public class CPDisplayLayoutWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this cp display layout.
+	 *
+	 * @return the mvcc version of this cp display layout
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -343,6 +384,16 @@ public class CPDisplayLayoutWrapper
 	}
 
 	/**
+	 * Sets the ct collection ID of this cp display layout.
+	 *
+	 * @param ctCollectionId the ct collection ID of this cp display layout
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
+	}
+
+	/**
 	 * Sets the group ID of this cp display layout.
 	 *
 	 * @param groupId the group ID of this cp display layout
@@ -370,6 +421,16 @@ public class CPDisplayLayoutWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this cp display layout.
+	 *
+	 * @param mvccVersion the mvcc version of this cp display layout
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -420,6 +481,20 @@ public class CPDisplayLayoutWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<CPDisplayLayout, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<CPDisplayLayout, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

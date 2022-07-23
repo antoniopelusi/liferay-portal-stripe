@@ -21,6 +21,7 @@
 
 		<column db-name="oA2AScopeAliasesId" name="oAuth2ApplicationScopeAliasesId" type="long" />
 		<column name="allowedGrantTypes" type="String" />
+		<column name="clientAuthenticationMethod" type="String" />
 		<column name="clientCredentialUserId" type="long" />
 		<column name="clientCredentialUserName" type="String" />
 		<column name="clientId" type="String" />
@@ -30,6 +31,7 @@
 		<column name="features" type="String" />
 		<column name="homePageURL" type="String" />
 		<column name="iconFileEntryId" type="long" />
+		<column name="jwks" type="String" />
 		<column name="name" type="String" />
 		<column name="privacyPolicyURL" type="String" />
 		<column name="redirectURIs" type="String" />
@@ -38,19 +40,13 @@
 
 		<!-- Finder methods -->
 
-		<finder name="C" return-type="Collection">
+		<finder name="CompanyId" return-type="Collection">
 			<finder-column name="companyId" />
 		</finder>
 		<finder name="C_C" return-type="OAuth2Application">
 			<finder-column name="companyId" />
 			<finder-column name="clientId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="OAuth2ApplicationScopeAliases" remote-service="false">
 
@@ -71,13 +67,12 @@
 
 		<!-- Finder methods -->
 
-		<finder name="C" return-type="Collection">
+		<finder name="CompanyId" return-type="Collection">
 			<finder-column name="companyId" />
 		</finder>
 		<finder name="OAuth2ApplicationId" return-type="Collection">
 			<finder-column name="oAuth2ApplicationId" />
 		</finder>
-		<reference entity="OAuth2Application" package-path="com.liferay.oauth2.provider" />
 	</entity>
 	<entity json-enabled="false" local-service="true" name="OAuth2Authorization" remote-service="true">
 
@@ -120,11 +115,11 @@
 		<finder name="OAuth2ApplicationId" return-type="Collection">
 			<finder-column name="oAuth2ApplicationId" />
 		</finder>
-		<finder name="AccessTokenContentHash" return-type="Collection">
+		<finder name="C_ATCH" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="accessTokenContentHash" />
 		</finder>
-		<finder name="RefreshTokenContentHash" return-type="Collection">
+		<finder name="C_RTCH" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="refreshTokenContentHash" />
 		</finder>
@@ -133,10 +128,6 @@
 			<finder-column name="oAuth2ApplicationId"></finder-column>
 			<finder-column name="rememberDeviceContent"></finder-column>
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="OAuth2ScopeGrant" package-path="com.liferay.oauth2.provider" />
 	</entity>
 	<entity json-enabled="false" local-service="true" name="OAuth2ScopeGrant" remote-service="false">
 
@@ -172,10 +163,6 @@
 			<finder-column name="bundleSymbolicName" />
 			<finder-column name="scope" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="OAuth2Authorization" package-path="com.liferay.oauth2.provider" />
 	</entity>
 	<exceptions>
 		<exception>DuplicateOAuth2ApplicationClientId</exception>

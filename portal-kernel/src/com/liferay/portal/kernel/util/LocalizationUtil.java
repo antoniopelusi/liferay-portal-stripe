@@ -46,22 +46,22 @@ import javax.servlet.http.HttpServletRequest;
 public class LocalizationUtil {
 
 	public static Object deserialize(JSONObject jsonObject) {
-		return getLocalization().deserialize(jsonObject);
+		return _localization.deserialize(jsonObject);
 	}
 
 	public static String[] getAvailableLanguageIds(Document document) {
-		return getLocalization().getAvailableLanguageIds(document);
+		return _localization.getAvailableLanguageIds(document);
 	}
 
 	public static String[] getAvailableLanguageIds(String xml) {
-		return getLocalization().getAvailableLanguageIds(xml);
+		return _localization.getAvailableLanguageIds(xml);
 	}
 
 	public static Locale getDefaultImportLocale(
 		String className, long classPK, Locale contentDefaultLocale,
 		Locale[] contentAvailableLocales) {
 
-		return getLocalization().getDefaultImportLocale(
+		return _localization.getDefaultImportLocale(
 			className, classPK, contentDefaultLocale, contentAvailableLocales);
 	}
 
@@ -69,29 +69,29 @@ public class LocalizationUtil {
 		String className, Serializable primaryKey, Locale contentDefaultLocale,
 		Locale[] contentAvailableLocales) {
 
-		return getLocalization().getDefaultImportLocale(
+		return _localization.getDefaultImportLocale(
 			className, primaryKey, contentDefaultLocale,
 			contentAvailableLocales);
 	}
 
 	public static String getDefaultLanguageId(Document document) {
-		return getLocalization().getDefaultLanguageId(document);
+		return _localization.getDefaultLanguageId(document);
 	}
 
 	public static String getDefaultLanguageId(
 		Document document, Locale defaultLocale) {
 
-		return getLocalization().getDefaultLanguageId(document, defaultLocale);
+		return _localization.getDefaultLanguageId(document, defaultLocale);
 	}
 
 	public static String getDefaultLanguageId(String xml) {
-		return getLocalization().getDefaultLanguageId(xml);
+		return _localization.getDefaultLanguageId(xml);
 	}
 
 	public static String getDefaultLanguageId(
 		String xml, Locale defaultLocale) {
 
-		return getLocalization().getDefaultLanguageId(xml, defaultLocale);
+		return _localization.getDefaultLanguageId(xml, defaultLocale);
 	}
 
 	public static Localization getLocalization() {
@@ -102,20 +102,20 @@ public class LocalizationUtil {
 		Function<String, String> localizationFunction,
 		String requestedLanguageId, String defaultLanguageId) {
 
-		return getLocalization().getLocalization(
+		return _localization.getLocalization(
 			localizationFunction, requestedLanguageId, defaultLanguageId);
 	}
 
 	public static String getLocalization(
 		String xml, String requestedLanguageId) {
 
-		return getLocalization().getLocalization(xml, requestedLanguageId);
+		return _localization.getLocalization(xml, requestedLanguageId);
 	}
 
 	public static String getLocalization(
 		String xml, String requestedLanguageId, boolean useDefault) {
 
-		return getLocalization().getLocalization(
+		return _localization.getLocalization(
 			xml, requestedLanguageId, useDefault);
 	}
 
@@ -123,36 +123,33 @@ public class LocalizationUtil {
 		String xml, String requestedLanguageId, boolean useDefault,
 		String defaultValue) {
 
-		return getLocalization().getLocalization(
+		return _localization.getLocalization(
 			xml, requestedLanguageId, useDefault, defaultValue);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		Collection<Locale> locales, Locale defaultLocale, String key) {
 
-		return getLocalization().getLocalizationMap(
-			locales, defaultLocale, key);
+		return _localization.getLocalizationMap(locales, defaultLocale, key);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		HttpServletRequest httpServletRequest, String parameter) {
 
-		return getLocalization().getLocalizationMap(
-			httpServletRequest, parameter);
+		return _localization.getLocalizationMap(httpServletRequest, parameter);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		PortletPreferences preferences, String preferenceName) {
 
-		return getLocalization().getLocalizationMap(
-			preferences, preferenceName);
+		return _localization.getLocalizationMap(preferences, preferenceName);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		PortletPreferences preferences, String preferenceName,
 		String propertyName) {
 
-		return getLocalization().getLocalizationMap(
+		return _localization.getLocalizationMap(
 			preferences, preferenceName, propertyName);
 	}
 
@@ -161,7 +158,7 @@ public class LocalizationUtil {
 		String propertyName, String defaultPropertyValue,
 		ClassLoader classLoader) {
 
-		return getLocalization().getLocalizationMap(
+		return _localization.getLocalizationMap(
 			preferences, preferenceName, propertyName, defaultPropertyValue,
 			classLoader);
 	}
@@ -169,46 +166,46 @@ public class LocalizationUtil {
 	public static Map<Locale, String> getLocalizationMap(
 		PortletRequest portletRequest, String parameter) {
 
-		return getLocalization().getLocalizationMap(portletRequest, parameter);
+		return _localization.getLocalizationMap(portletRequest, parameter);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		PortletRequest portletRequest, String parameter,
 		Map<Locale, String> defaultValues) {
 
-		return getLocalization().getLocalizationMap(
+		return _localization.getLocalizationMap(
 			portletRequest, parameter, defaultValues);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(String xml) {
-		return getLocalization().getLocalizationMap(xml);
+		return _localization.getLocalizationMap(xml);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		String xml, boolean useDefault) {
 
-		return getLocalization().getLocalizationMap(xml, useDefault);
+		return _localization.getLocalizationMap(xml, useDefault);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		String bundleName, ClassLoader classLoader, String key,
 		boolean includeBetaLocales) {
 
-		return getLocalization().getLocalizationMap(
+		return _localization.getLocalizationMap(
 			bundleName, classLoader, key, includeBetaLocales);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
 		String[] languageIds, String[] values) {
 
-		return getLocalization().getLocalizationMap(languageIds, values);
+		return _localization.getLocalizationMap(languageIds, values);
 	}
 
 	public static String getLocalizationXmlFromPreferences(
 		PortletPreferences preferences, PortletRequest portletRequest,
 		String parameter) {
 
-		return getLocalization().getLocalizationXmlFromPreferences(
+		return _localization.getLocalizationXmlFromPreferences(
 			preferences, portletRequest, parameter);
 	}
 
@@ -216,7 +213,7 @@ public class LocalizationUtil {
 		PortletPreferences preferences, PortletRequest portletRequest,
 		String parameter, String defaultValue) {
 
-		return getLocalization().getLocalizationXmlFromPreferences(
+		return _localization.getLocalizationXmlFromPreferences(
 			preferences, portletRequest, parameter, defaultValue);
 	}
 
@@ -224,18 +221,18 @@ public class LocalizationUtil {
 		PortletPreferences preferences, PortletRequest portletRequest,
 		String parameter, String prefix, String defaultValue) {
 
-		return getLocalization().getLocalizationXmlFromPreferences(
+		return _localization.getLocalizationXmlFromPreferences(
 			preferences, portletRequest, parameter, prefix, defaultValue);
 	}
 
 	public static String getLocalizedName(String name, String languageId) {
-		return getLocalization().getLocalizedName(name, languageId);
+		return _localization.getLocalizedName(name, languageId);
 	}
 
 	public static Map<Locale, String> getMap(
 		LocalizedValuesMap localizedValuesMap) {
 
-		return getLocalization().getMap(localizedValuesMap);
+		return _localization.getMap(localizedValuesMap);
 	}
 
 	public static List<Locale> getModifiedLocales(
@@ -262,90 +259,87 @@ public class LocalizationUtil {
 	public static String getPreferencesValue(
 		PortletPreferences preferences, String key, String languageId) {
 
-		return getLocalization().getPreferencesValue(
-			preferences, key, languageId);
+		return _localization.getPreferencesValue(preferences, key, languageId);
 	}
 
 	public static String getPreferencesValue(
 		PortletPreferences preferences, String key, String languageId,
 		boolean useDefault) {
 
-		return getLocalization().getPreferencesValue(
+		return _localization.getPreferencesValue(
 			preferences, key, languageId, useDefault);
 	}
 
 	public static String[] getPreferencesValues(
 		PortletPreferences preferences, String key, String languageId) {
 
-		return getLocalization().getPreferencesValues(
-			preferences, key, languageId);
+		return _localization.getPreferencesValues(preferences, key, languageId);
 	}
 
 	public static String[] getPreferencesValues(
 		PortletPreferences preferences, String key, String languageId,
 		boolean useDefault) {
 
-		return getLocalization().getPreferencesValues(
+		return _localization.getPreferencesValues(
 			preferences, key, languageId, useDefault);
 	}
 
 	public static String getSettingsValue(
 		Settings settings, String key, String languageId) {
 
-		return getLocalization().getSettingsValue(settings, key, languageId);
+		return _localization.getSettingsValue(settings, key, languageId);
 	}
 
 	public static String getSettingsValue(
 		Settings settings, String key, String languageId, boolean useDefault) {
 
-		return getLocalization().getSettingsValue(
+		return _localization.getSettingsValue(
 			settings, key, languageId, useDefault);
 	}
 
 	public static String[] getSettingsValues(
 		Settings settings, String key, String languageId) {
 
-		return getLocalization().getSettingsValues(settings, key, languageId);
+		return _localization.getSettingsValues(settings, key, languageId);
 	}
 
 	public static String[] getSettingsValues(
 		Settings settings, String key, String languageId, boolean useDefault) {
 
-		return getLocalization().getSettingsValues(
+		return _localization.getSettingsValues(
 			settings, key, languageId, useDefault);
 	}
 
 	public static String getXml(
 		LocalizedValuesMap localizedValuesMap, String key) {
 
-		return getLocalization().getXml(localizedValuesMap, key);
+		return _localization.getXml(localizedValuesMap, key);
 	}
 
 	public static String getXml(
 		Map<String, String> map, String defaultLanguageId, String key) {
 
-		return getLocalization().getXml(map, defaultLanguageId, key);
+		return _localization.getXml(map, defaultLanguageId, key);
 	}
 
 	public static Map<Locale, String> populateLocalizationMap(
 		Map<Locale, String> localizationMap, String defaultLanguageId,
 		long groupId) {
 
-		return getLocalization().populateLocalizationMap(
+		return _localization.populateLocalizationMap(
 			localizationMap, defaultLanguageId, groupId);
 	}
 
 	public static String removeLocalization(
 		String xml, String key, String requestedLanguageId) {
 
-		return getLocalization().removeLocalization(
-			xml, key, requestedLanguageId);
+		return _localization.removeLocalization(xml, key, requestedLanguageId);
 	}
 
 	public static String removeLocalization(
 		String xml, String key, String requestedLanguageId, boolean cdata) {
 
-		return getLocalization().removeLocalization(
+		return _localization.removeLocalization(
 			xml, key, requestedLanguageId, cdata);
 	}
 
@@ -353,7 +347,7 @@ public class LocalizationUtil {
 		String xml, String key, String requestedLanguageId, boolean cdata,
 		boolean localized) {
 
-		return getLocalization().removeLocalization(
+		return _localization.removeLocalization(
 			xml, key, requestedLanguageId, cdata, localized);
 	}
 
@@ -362,7 +356,7 @@ public class LocalizationUtil {
 			String parameter)
 		throws Exception {
 
-		getLocalization().setLocalizedPreferencesValues(
+		_localization.setLocalizedPreferencesValues(
 			portletRequest, preferences, parameter);
 	}
 
@@ -371,8 +365,7 @@ public class LocalizationUtil {
 			String value)
 		throws Exception {
 
-		getLocalization().setPreferencesValue(
-			preferences, key, languageId, value);
+		_localization.setPreferencesValue(preferences, key, languageId, value);
 	}
 
 	public static void setPreferencesValues(
@@ -380,7 +373,7 @@ public class LocalizationUtil {
 			String[] values)
 		throws Exception {
 
-		getLocalization().setPreferencesValues(
+		_localization.setPreferencesValues(
 			preferences, key, languageId, values);
 	}
 
@@ -388,20 +381,20 @@ public class LocalizationUtil {
 		Map<Locale, String> localizationMap, String xml, String key,
 		String defaultLanguageId) {
 
-		return getLocalization().updateLocalization(
+		return _localization.updateLocalization(
 			localizationMap, xml, key, defaultLanguageId);
 	}
 
 	public static String updateLocalization(
 		String xml, String key, String value) {
 
-		return getLocalization().updateLocalization(xml, key, value);
+		return _localization.updateLocalization(xml, key, value);
 	}
 
 	public static String updateLocalization(
 		String xml, String key, String value, String requestedLanguageId) {
 
-		return getLocalization().updateLocalization(
+		return _localization.updateLocalization(
 			xml, key, value, requestedLanguageId);
 	}
 
@@ -409,7 +402,7 @@ public class LocalizationUtil {
 		String xml, String key, String value, String requestedLanguageId,
 		String defaultLanguageId) {
 
-		return getLocalization().updateLocalization(
+		return _localization.updateLocalization(
 			xml, key, value, requestedLanguageId, defaultLanguageId);
 	}
 
@@ -417,7 +410,7 @@ public class LocalizationUtil {
 		String xml, String key, String value, String requestedLanguageId,
 		String defaultLanguageId, boolean cdata) {
 
-		return getLocalization().updateLocalization(
+		return _localization.updateLocalization(
 			xml, key, value, requestedLanguageId, defaultLanguageId, cdata);
 	}
 
@@ -425,7 +418,7 @@ public class LocalizationUtil {
 		String xml, String key, String value, String requestedLanguageId,
 		String defaultLanguageId, boolean cdata, boolean localized) {
 
-		return getLocalization().updateLocalization(
+		return _localization.updateLocalization(
 			xml, key, value, requestedLanguageId, defaultLanguageId, cdata,
 			localized);
 	}

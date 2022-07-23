@@ -31,7 +31,7 @@ public class PortalBeanLocatorUtil {
 	}
 
 	public static <T> Map<String, T> locate(Class<T> clazz) {
-		BeanLocator beanLocator = getBeanLocator();
+		BeanLocator beanLocator = _beanLocator;
 
 		if (beanLocator == null) {
 			_log.error("BeanLocator is null");
@@ -60,7 +60,7 @@ public class PortalBeanLocatorUtil {
 	}
 
 	public static Object locate(String name) {
-		BeanLocator beanLocator = getBeanLocator();
+		BeanLocator beanLocator = _beanLocator;
 
 		if (beanLocator == null) {
 			_log.error("BeanLocator is null");

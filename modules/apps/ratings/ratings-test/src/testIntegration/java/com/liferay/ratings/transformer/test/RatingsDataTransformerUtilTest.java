@@ -18,6 +18,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portlet.PortletPreferencesImpl;
 import com.liferay.ratings.kernel.transformer.RatingsDataTransformer;
@@ -123,27 +124,24 @@ public class RatingsDataTransformerUtilTest {
 	}
 
 	private UnicodeProperties _createUnicodeProperties(String value) {
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.setProperty(
-			"com.liferay.blogs.model.BlogsEntry_RatingsType", value);
-		unicodeProperties.setProperty(
-			"com.liferay.bookmarks.model.BookmarksEntry_RatingsType", value);
-		unicodeProperties.setProperty(
+		return UnicodePropertiesBuilder.put(
+			"com.liferay.blogs.model.BlogsEntry_RatingsType", value
+		).put(
+			"com.liferay.bookmarks.model.BookmarksEntry_RatingsType", value
+		).put(
 			"com.liferay.document.library.kernel.model.DLFileEntry_RatingsType",
-			value);
-		unicodeProperties.setProperty(
-			"com.liferay.journal.model.JournalArticle_RatingsType", value);
-		unicodeProperties.setProperty(
-			"com.liferay.knowledge.base.model.KBArticle_RatingsType", value);
-		unicodeProperties.setProperty(
-			"com.liferay.message.boards.model.MBDiscussion_RatingsType", value);
-		unicodeProperties.setProperty(
-			"com.liferay.message.boards.model.MBMessage_RatingsType", value);
-		unicodeProperties.setProperty(
-			"com.liferay.wiki.model.WikiPage_RatingsType", value);
-
-		return unicodeProperties;
+			value
+		).put(
+			"com.liferay.journal.model.JournalArticle_RatingsType", value
+		).put(
+			"com.liferay.knowledge.base.model.KBArticle_RatingsType", value
+		).put(
+			"com.liferay.message.boards.model.MBDiscussion_RatingsType", value
+		).put(
+			"com.liferay.message.boards.model.MBMessage_RatingsType", value
+		).put(
+			"com.liferay.wiki.model.WikiPage_RatingsType", value
+		).build();
 	}
 
 	private static boolean _calledTransformRatingsData;

@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -42,6 +44,8 @@ public class CommerceChannelWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("commerceChannelId", getCommerceChannelId());
 		attributes.put("companyId", getCompanyId());
@@ -62,6 +66,18 @@ public class CommerceChannelWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String externalReferenceCode = (String)attributes.get(
 			"externalReferenceCode");
 
@@ -150,6 +166,11 @@ public class CommerceChannelWrapper
 		}
 	}
 
+	@Override
+	public CommerceChannel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the commerce channel ID of this commerce channel.
 	 *
@@ -191,6 +212,16 @@ public class CommerceChannelWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this commerce channel.
+	 *
+	 * @return the ct collection ID of this commerce channel
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the discounts target net price of this commerce channel.
 	 *
 	 * @return the discounts target net price of this commerce channel
@@ -228,6 +259,16 @@ public class CommerceChannelWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce channel.
+	 *
+	 * @return the mvcc version of this commerce channel
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -383,6 +424,16 @@ public class CommerceChannelWrapper
 	}
 
 	/**
+	 * Sets the ct collection ID of this commerce channel.
+	 *
+	 * @param ctCollectionId the ct collection ID of this commerce channel
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
+	}
+
+	/**
 	 * Sets whether this commerce channel is discounts target net price.
 	 *
 	 * @param discountsTargetNetPrice the discounts target net price of this commerce channel
@@ -410,6 +461,16 @@ public class CommerceChannelWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce channel.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce channel
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -508,6 +569,20 @@ public class CommerceChannelWrapper
 	@Override
 	public void setUserUuid(String userUuid) {
 		model.setUserUuid(userUuid);
+	}
+
+	@Override
+	public Map<String, Function<CommerceChannel, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<CommerceChannel, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

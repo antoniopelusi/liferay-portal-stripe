@@ -14,6 +14,7 @@
 
 package com.liferay.calendar.service;
 
+import com.liferay.calendar.model.CalendarNotificationTemplate;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -27,6 +28,10 @@ public class CalendarNotificationTemplateServiceWrapper
 	implements CalendarNotificationTemplateService,
 			   ServiceWrapper<CalendarNotificationTemplateService> {
 
+	public CalendarNotificationTemplateServiceWrapper() {
+		this(null);
+	}
+
 	public CalendarNotificationTemplateServiceWrapper(
 		CalendarNotificationTemplateService
 			calendarNotificationTemplateService) {
@@ -36,16 +41,14 @@ public class CalendarNotificationTemplateServiceWrapper
 	}
 
 	@Override
-	public com.liferay.calendar.model.CalendarNotificationTemplate
-			addCalendarNotificationTemplate(
-				long calendarId,
-				com.liferay.calendar.notification.NotificationType
-					notificationType,
-				String notificationTypeSettings,
-				com.liferay.calendar.notification.NotificationTemplateType
-					notificationTemplateType,
-				String subject, String body,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CalendarNotificationTemplate addCalendarNotificationTemplate(
+			long calendarId,
+			com.liferay.calendar.notification.NotificationType notificationType,
+			String notificationTypeSettings,
+			com.liferay.calendar.notification.NotificationTemplateType
+				notificationTemplateType,
+			String subject, String body,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarNotificationTemplateService.
@@ -65,11 +68,10 @@ public class CalendarNotificationTemplateServiceWrapper
 	}
 
 	@Override
-	public com.liferay.calendar.model.CalendarNotificationTemplate
-			updateCalendarNotificationTemplate(
-				long calendarNotificationTemplateId,
-				String notificationTypeSettings, String subject, String body,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public CalendarNotificationTemplate updateCalendarNotificationTemplate(
+			long calendarNotificationTemplateId,
+			String notificationTypeSettings, String subject, String body,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _calendarNotificationTemplateService.

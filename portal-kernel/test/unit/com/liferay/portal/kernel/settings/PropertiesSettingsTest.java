@@ -34,8 +34,8 @@ public class PropertiesSettingsTest {
 			new LocationVariableResolver(null, (SettingsLocatorHelper)null),
 			new Properties() {
 				{
-					put(_SINGLE_KEY, _SINGLE_VALUE);
 					put(_MULTIPLE_KEY, _MULTIPLE_VALUES);
+					put(_SINGLE_KEY, _SINGLE_VALUE);
 				}
 			});
 
@@ -67,8 +67,7 @@ public class PropertiesSettingsTest {
 
 	@Test
 	public void testGetValuesWithResourceValue() {
-		final String expectedValue =
-			"resourceValue0,resourceValue1,resourceValue2";
+		String expectedValue = "resourceValue0,resourceValue1,resourceValue2";
 
 		PropertiesSettings propertiesSettings = new PropertiesSettings(
 			_createLocationVariableResolver(
@@ -104,7 +103,7 @@ public class PropertiesSettingsTest {
 
 	@Test
 	public void testGetValueWithResourceValue() {
-		final String expectedValue = "resourceValue";
+		String expectedValue = "resourceValue";
 
 		PropertiesSettings propertiesSettings = new PropertiesSettings(
 			_createLocationVariableResolver(

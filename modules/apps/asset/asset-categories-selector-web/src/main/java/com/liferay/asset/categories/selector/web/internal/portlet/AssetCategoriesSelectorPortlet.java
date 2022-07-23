@@ -78,7 +78,8 @@ public class AssetCategoriesSelectorPortlet extends MVCPortlet {
 			try {
 				JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-				List<AssetCategory> categories = getCategories(resourceRequest);
+				List<AssetCategory> categories = _getCategories(
+					resourceRequest);
 
 				for (AssetCategory category : categories) {
 					List<AssetCategory> childCategories =
@@ -113,7 +114,7 @@ public class AssetCategoriesSelectorPortlet extends MVCPortlet {
 		}
 	}
 
-	protected List<AssetCategory> getCategories(PortletRequest portletRequest)
+	private List<AssetCategory> _getCategories(PortletRequest portletRequest)
 		throws PortalException {
 
 		long categoryId = ParamUtil.getLong(portletRequest, "categoryId");

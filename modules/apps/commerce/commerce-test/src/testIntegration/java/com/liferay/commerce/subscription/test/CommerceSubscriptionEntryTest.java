@@ -45,13 +45,10 @@ import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.commerce.util.comparator.CommerceSubscriptionEntryCreateDateComparator;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -78,7 +75,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Alessio Antonio Rendina
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommerceSubscriptionEntryTest {
 
@@ -90,12 +86,9 @@ public class CommerceSubscriptionEntryTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
 			_user.getCompanyId());
@@ -106,7 +99,7 @@ public class CommerceSubscriptionEntryTest {
 
 	@After
 	public void tearDown() throws Exception {
-		_cpOptionLocalService.deleteCPOptions(_company.getCompanyId());
+		_cpOptionLocalService.deleteCPOptions(_group.getCompanyId());
 	}
 
 	@Test
@@ -130,12 +123,11 @@ public class CommerceSubscriptionEntryTest {
 			_commerceCurrency.getCommerceCurrencyId(),
 			_commerceSubscriptionEntryHelper);
 
-		int commerceSubscriptionEntriesCount =
+		Assert.assertEquals(
+			1,
 			_commerceSubscriptionEntryLocalService.
 				getCommerceSubscriptionEntriesCount(
-					_user.getCompanyId(), _user.getUserId());
-
-		Assert.assertEquals(1, commerceSubscriptionEntriesCount);
+					_user.getCompanyId(), _user.getUserId()));
 	}
 
 	@Test
@@ -224,7 +216,7 @@ public class CommerceSubscriptionEntryTest {
 		throws Exception {
 
 		CommerceCatalog commerceCatalog = CommerceTestUtil.addCommerceCatalog(
-			_company.getCompanyId(), _group.getGroupId(), _user.getUserId(),
+			_group.getCompanyId(), _group.getGroupId(), _user.getUserId(),
 			_commerceCurrency.getCode());
 
 		long groupId = commerceCatalog.getGroupId();
@@ -248,6 +240,9 @@ public class CommerceSubscriptionEntryTest {
 		long cpDefinitionMaxSubscriptionCycles = RandomTestUtil.randomLong();
 
 		if (cpDefinitionSubscriptionEnabled) {
+			cpDefinition = _cpDefinitionLocalService.getCPDefinition(
+				cpDefinition.getCPDefinitionId());
+
 			cpDefinition.setSubscriptionEnabled(true);
 			cpDefinition.setSubscriptionLength(cpDefinitionSubscriptionLength);
 			cpDefinition.setSubscriptionType(cpDefinitionSubscriptionType);
@@ -393,6 +388,8 @@ public class CommerceSubscriptionEntryTest {
 		}
 	}
 
+	private static User _user;
+
 	@DeleteAfterTestRun
 	private CommerceChannel _commerceChannel;
 
@@ -409,9 +406,6 @@ public class CommerceSubscriptionEntryTest {
 	private CommerceSubscriptionEntryLocalService
 		_commerceSubscriptionEntryLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	@Inject
 	private CPDefinitionLocalService _cpDefinitionLocalService;
 
@@ -422,6 +416,5 @@ public class CommerceSubscriptionEntryTest {
 	private CPOptionLocalService _cpOptionLocalService;
 
 	private Group _group;
-	private User _user;
 
 }

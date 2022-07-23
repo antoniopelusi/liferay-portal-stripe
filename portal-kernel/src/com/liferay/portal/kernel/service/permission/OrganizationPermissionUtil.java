@@ -28,7 +28,7 @@ public class OrganizationPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		getOrganizationPermission().check(
+		_organizationPermission.check(
 			permissionChecker, organizationId, actionId);
 	}
 
@@ -37,7 +37,7 @@ public class OrganizationPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		getOrganizationPermission().check(
+		_organizationPermission.check(
 			permissionChecker, organization, actionId);
 	}
 
@@ -46,7 +46,7 @@ public class OrganizationPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		return getOrganizationPermission().contains(
+		return _organizationPermission.contains(
 			permissionChecker, organizationId, actionId);
 	}
 
@@ -55,7 +55,7 @@ public class OrganizationPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		return getOrganizationPermission().contains(
+		return _organizationPermission.contains(
 			permissionChecker, organizationIds, actionId);
 	}
 
@@ -64,7 +64,7 @@ public class OrganizationPermissionUtil {
 			String actionId)
 		throws PortalException {
 
-		return getOrganizationPermission().contains(
+		return _organizationPermission.contains(
 			permissionChecker, organization, actionId);
 	}
 

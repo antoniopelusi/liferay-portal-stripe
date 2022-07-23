@@ -88,17 +88,8 @@ public class SelectSiteInitializerDisplayContext {
 				_renderRequest, _getPortletURL(), null,
 				"there-are-no-site-templates");
 
-		List<SiteInitializerItem> siteInitializerItems =
-			_getSiteInitializerItems();
-
-		siteInitializerItemSearchContainer.setTotal(
-			siteInitializerItems.size());
-
-		siteInitializerItems = ListUtil.subList(
-			siteInitializerItems, siteInitializerItemSearchContainer.getStart(),
-			siteInitializerItemSearchContainer.getEnd());
-
-		siteInitializerItemSearchContainer.setResults(siteInitializerItems);
+		siteInitializerItemSearchContainer.setResultsAndTotal(
+			_getSiteInitializerItems());
 
 		return siteInitializerItemSearchContainer;
 	}
@@ -110,7 +101,7 @@ public class SelectSiteInitializerDisplayContext {
 			"/site_admin/select_site_initializer"
 		).setRedirect(
 			getBackURL()
-		).build();
+		).buildPortletURL();
 	}
 
 	private List<SiteInitializerItem> _getSiteInitializerItems()
@@ -134,13 +125,12 @@ public class SelectSiteInitializerDisplayContext {
 
 		List<SiteInitializer> siteInitializers =
 			_siteInitializerRegistry.getSiteInitializers(
-				themeDisplay.getCompanyId());
+				themeDisplay.getCompanyId(), true);
 
 		for (SiteInitializer siteInitializer : siteInitializers) {
-			SiteInitializerItem siteInitializerItem = new SiteInitializerItem(
-				siteInitializer, themeDisplay.getLocale());
-
-			siteInitializerItems.add(siteInitializerItem);
+			siteInitializerItems.add(
+				new SiteInitializerItem(
+					siteInitializer, themeDisplay.getLocale()));
 		}
 
 		return ListUtil.sort(

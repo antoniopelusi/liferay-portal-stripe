@@ -8,22 +8,22 @@ definition {
 	property test.run.environment = "EE";
 	property testray.main.component.name = "Sharepoint";
 
+	var authorizationGrantEndpoint = PropsUtil.get("sharepoint.oauth.authorization.grant.endpoint");
+	var authorizationTokenEndpoint = PropsUtil.get("sharepoint.oauth.authorization.token.endpoint");
+	var clientId = PropsUtil.get("sharepoint.oauth.client.id");
+	var clientSecret = PropsUtil.get("sharepoint.oauth.client.secret");
+	var configurationName = PropsUtil.get("sharepoint.oauth.configuration.name");
+	var configurationResource = PropsUtil.get("sharepoint.oauth.configuration.resource");
+	var configurationScope = PropsUtil.get("sharepoint.oauth.configuration.scope");
+	var siteDomain = PropsUtil.get("sharepoint.oauth.site.domain");
+	var tenantId = PropsUtil.get("sharepoint.oauth.tenant.id");
+	var userName = PropsUtil.get("sharepoint.oauth.user.name");
+	var userPassword = PropsUtil.get("sharepoint.oauth.user.password");
+
 	setUp {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
-
-		var authorizationGrantEndpoint = PropsUtil.get("sharepoint.oauth.authorization.grant.endpoint");
-		var authorizationTokenEndpoint = PropsUtil.get("sharepoint.oauth.authorization.token.endpoint");
-		var clientId = PropsUtil.get("sharepoint.oauth.client.id");
-		var clientSecret = PropsUtil.get("sharepoint.oauth.client.secret");
-		var configurationName = PropsUtil.get("sharepoint.oauth.configuration.name");
-		var configurationResource = PropsUtil.get("sharepoint.oauth.configuration.resource");
-		var configurationScope = PropsUtil.get("sharepoint.oauth.configuration.scope");
-		var siteDomain = PropsUtil.get("sharepoint.oauth.site.domain");
-		var tenantId = PropsUtil.get("sharepoint.oauth.tenant.id");
-		var userName = PropsUtil.get("sharepoint.oauth.user.name");
-		var userPassword = PropsUtil.get("sharepoint.oauth.user.password");
 
 		SystemSettings.openSystemSettingsAdmin();
 
@@ -84,7 +84,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
@@ -127,6 +127,162 @@ definition {
 		if ("${testPortalInstance}" == "true") {
 			PortalInstances.tearDownCP();
 		}
+	}
+
+	@description = "This is a test for LPS-136821. It checks that a repository can be published."
+	@priority = "3"
+	test CanPublishRepository {
+		property test.name.skip.portal.instance = "SharepointREST#CanPublishRepository";
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Documents and Media Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Documents and Media Page",
+			widgetName = "Documents and Media");
+
+		JSONStaging.enableLocalStaging(groupName = "Guest");
+
+		Navigator.gotoStagedSitePage(
+			defaultSite = "true",
+			pageName = "Documents and Media Page");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoRepository(dmRepositoryName = "Collaboration Test Application");
+	}
+
+	@description = "This is a test for LPS-122682. It checks that a repository can be remote published in depot."
+	@priority = "4"
+	test CanRemotePublishRepositoryInDepot {
+		property app.server.bundles.size = "1";
+		property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
+		property databases.size = "1";
+		property minimum.slave.ram = "24";
+		property test.name.skip.portal.instance = "SharepointREST#CanRemotePublishRepositoryInDepot";
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		SystemSettings.openSystemSettingsAdmin(baseURL = "http://localhost:9080");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Documents and Media",
+			configurationName = "Sharepoint OAuth2",
+			configurationScope = "System Scope");
+
+		Button.clickAdd();
+
+		Type(
+			key_text = "name",
+			locator1 = "TextArea#ANY",
+			value1 = "${configurationName}");
+
+		Type(
+			key_text = "authorizationGrantEndpoint",
+			locator1 = "TextArea#ANY",
+			value1 = "${authorizationGrantEndpoint}");
+
+		Type(
+			key_text = "authorizationTokenEndpoint",
+			locator1 = "TextArea#ANY",
+			value1 = "${authorizationTokenEndpoint}");
+
+		Type(
+			key_text = "clientId",
+			locator1 = "TextArea#ANY",
+			value1 = "${clientId}");
+
+		Type(
+			key_text = "clientSecret",
+			locator1 = "TextArea#ANY",
+			value1 = "${clientSecret}");
+
+		Type(
+			key_text = "scope",
+			locator1 = "TextArea#ANY",
+			value1 = "${configurationScope}");
+
+		Type(
+			key_text = "tenantId",
+			locator1 = "TextArea#ANY",
+			value1 = "${tenantId}");
+
+		Type(
+			key_text = "siteDomain",
+			locator1 = "TextArea#ANY",
+			value1 = "${siteDomain}");
+
+		Type(
+			key_text = "resource",
+			locator1 = "TextArea#ANY",
+			value1 = "${configurationResource}");
+
+		PortletEntry.save();
+
+		User.loginPG(
+			nodePort = "8080",
+			password = "test",
+			userEmailAddress = "test@liferay.com");
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		Depot.remoteStagingSetUpViaJson(
+			groupName = "Test Depot Name",
+			remotePort = "9080",
+			site = "false");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		DMNavigator.gotoAddRepositoryCP();
+
+		Type(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "Collaboration Test Application");
+
+		DMRepository.addSharepoint(
+			dmRepositoryLibraryPath = "Documentos compartidos",
+			dmRepositoryName = "Sharepoint (${configurationName})",
+			dmRepositorySiteAbsoluteURL = "https://liferaycolab.sharepoint.com");
+
+		PortletEntry.save();
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		DepotNavigator.openDepotAdmin(baseURL = "http://localhost:9080");
+
+		DepotNavigator.gotoDepot(depotName = "Remote Depot");
+
+		DepotNavigator.gotoPortlet(portlet = "Documents and Media");
+
+		DMFolder.viewEntryPresent(dmFolderName = "Collaboration Test Application");
 	}
 
 	@priority = "4"
@@ -220,7 +376,7 @@ definition {
 
 		DMDocument.cannotViewCP(dmDocumentTitle = "Document_2.doc");
 
-		DMDocument.viewDefaultCP();
+		DMDocument.viewDefault();
 
 		DMRepository.cleanRepository(dmFolderName = "DM Folder3 Name");
 	}
@@ -263,11 +419,11 @@ definition {
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_3.doc");
 
 		DMDocument.viewCP(
-			dmDocumentSize = "37 KB",
+			dmDocumentSize = "38 KB",
 			dmDocumentTitle = "Document_3.doc");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Collaboration Test Application");
@@ -279,7 +435,7 @@ definition {
 		Navigator.openSpecificURL(url = "https://localhost:8443");
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Collaboration Test Application");
@@ -421,19 +577,22 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Documents and Media Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Documents and Media Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Documents and Media Page");
 
 		Portlet.addPG(portletName = "Documents and Media");
+
+		DMDocument.enableActionsMenuOnPortlet();
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
 
 		DMRepository.cleanRepository(dmDocumentTitle = "Document_1.doc");
 
@@ -616,6 +775,10 @@ definition {
 		DMDocument.enableActionsMenuOnPortlet();
 
 		PageEditor.clickPublish();
+
+		ContentPagesNavigator.openViewContentPage(
+			pageName = "Test Content Page Name",
+			siteName = "Guest");
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 

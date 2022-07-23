@@ -14,19 +14,23 @@
 
 package com.liferay.layout.seo.service.impl;
 
+import com.liferay.layout.seo.exception.NoSuchSiteException;
 import com.liferay.layout.seo.model.LayoutSEOSite;
 import com.liferay.layout.seo.service.base.LayoutSEOSiteLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Alicia Garcia
@@ -40,8 +44,22 @@ public class LayoutSEOSiteLocalServiceImpl
 	extends LayoutSEOSiteLocalServiceBaseImpl {
 
 	@Override
+	public void deleteLayoutSEOSite(String uuid, long groupId)
+		throws NoSuchSiteException {
+
+		layoutSEOSitePersistence.removeByUUID_G(uuid, groupId);
+	}
+
+	@Override
 	public LayoutSEOSite fetchLayoutSEOSiteByGroupId(long groupId) {
 		return layoutSEOSitePersistence.fetchByGroupId(groupId);
+	}
+
+	@Override
+	public List<LayoutSEOSite> getLayoutSEOSitesByUuidAndCompanyId(
+		String uuid, long companyId) {
+
+		return layoutSEOSitePersistence.findByUuid_C(uuid, companyId);
 	}
 
 	@Override
@@ -87,7 +105,7 @@ public class LayoutSEOSiteLocalServiceImpl
 		layoutSEOSite.setUuid(serviceContext.getUuid());
 		layoutSEOSite.setGroupId(groupId);
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		layoutSEOSite.setCompanyId(group.getCompanyId());
 
@@ -106,5 +124,8 @@ public class LayoutSEOSiteLocalServiceImpl
 
 		return layoutSEOSitePersistence.update(layoutSEOSite);
 	}
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 }

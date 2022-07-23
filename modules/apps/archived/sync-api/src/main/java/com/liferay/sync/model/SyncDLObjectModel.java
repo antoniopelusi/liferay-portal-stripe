@@ -494,4 +494,7 @@ public interface SyncDLObjectModel
 	 */
 	public void setTypeUuid(String typeUuid);
 
+	@Override
+	public SyncDLObject cloneWithOriginalValues();
+
 }

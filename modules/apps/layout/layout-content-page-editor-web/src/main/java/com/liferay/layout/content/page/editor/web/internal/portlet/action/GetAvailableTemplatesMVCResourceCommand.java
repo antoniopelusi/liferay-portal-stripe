@@ -71,12 +71,15 @@ public class GetAvailableTemplatesMVCResourceCommand
 
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-		List<InfoItemRenderer<?>> infoItemRenderers =
-			_infoItemRendererTracker.getInfoItemRenderers(className);
-
 		Object infoItemObject = _getInfoItemObject(className, classPK);
 
-		for (InfoItemRenderer<?> infoItemRenderer : infoItemRenderers) {
+		for (InfoItemRenderer<?> infoItemRenderer :
+				_infoItemRendererTracker.getInfoItemRenderers(className)) {
+
+			if (!infoItemRenderer.isAvailable()) {
+				continue;
+			}
+
 			if (infoItemRenderer instanceof InfoItemTemplatedRenderer) {
 				JSONArray templatesJSONArray =
 					JSONFactoryUtil.createJSONArray();
@@ -87,6 +90,10 @@ public class GetAvailableTemplatesMVCResourceCommand
 				List<InfoItemRendererTemplate> infoItemRendererTemplates =
 					infoItemTemplatedRenderer.getInfoItemRendererTemplates(
 						infoItemObject, themeDisplay.getLocale());
+
+				if (infoItemRendererTemplates.isEmpty()) {
+					continue;
+				}
 
 				Collections.sort(
 					infoItemRendererTemplates,

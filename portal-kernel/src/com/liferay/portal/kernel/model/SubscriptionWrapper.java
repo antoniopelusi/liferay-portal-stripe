@@ -127,6 +127,11 @@ public class SubscriptionWrapper
 		}
 	}
 
+	@Override
+	public Subscription cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this subscription.
 	 *

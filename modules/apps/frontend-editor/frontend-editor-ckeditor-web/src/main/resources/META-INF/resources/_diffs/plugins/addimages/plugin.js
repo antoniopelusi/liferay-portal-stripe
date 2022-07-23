@@ -163,6 +163,7 @@
 
 			const filter = new CKEDITOR.htmlParser.filter({
 				elements: {
+					// eslint-disable-next-line @liferay/no-abbreviations
 					img(element) {
 						if (image.src === instance._tempImage.src) {
 							element.attributes.src = image.src;
@@ -237,7 +238,7 @@
 								);
 
 								editor.fire('imageAdd', {
-									el: element,
+									element,
 									file,
 								});
 							})
@@ -288,14 +289,14 @@
 			reader.addEventListener('loadend', () => {
 				const bin = reader.result;
 
-				const el = CKEDITOR.dom.element.createFromHtml(
+				const element = CKEDITOR.dom.element.createFromHtml(
 					'<img src="' + bin + '">'
 				);
 
-				editor.insertElement(el);
+				editor.insertElement(element);
 
 				const imageData = {
-					el,
+					element,
 					file,
 				};
 
@@ -419,6 +420,7 @@
 
 							editor.fire('imageUploaded', {
 								editor,
+								// eslint-disable-next-line @liferay/no-abbreviations
 								el: image,
 								fileEntryId: data.file.fileEntryId,
 								uploadImageReturnType: '',

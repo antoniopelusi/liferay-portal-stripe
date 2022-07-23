@@ -113,6 +113,11 @@ public class ChangesetCollectionWrapper
 		}
 	}
 
+	@Override
+	public ChangesetCollection cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the changeset collection ID of this changeset collection.
 	 *

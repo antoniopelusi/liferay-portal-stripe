@@ -106,7 +106,7 @@ create table MBMessage (
 	rootMessageId LONG,
 	parentMessageId LONG,
 	treePath STRING null,
-	subject VARCHAR(75) null,
+	subject VARCHAR(255) null,
 	urlSubject VARCHAR(255) null,
 	body TEXT null,
 	format VARCHAR(75) null,
@@ -120,18 +120,6 @@ create table MBMessage (
 	statusByUserName VARCHAR(75) null,
 	statusDate DATE null,
 	primary key (messageId, ctCollectionId)
-);
-
-create table MBStatsUser (
-	mvccVersion LONG default 0 not null,
-	ctCollectionId LONG default 0 not null,
-	statsUserId LONG not null,
-	groupId LONG,
-	companyId LONG,
-	userId LONG,
-	messageCount INTEGER,
-	lastPostDate DATE null,
-	primary key (statsUserId, ctCollectionId)
 );
 
 create table MBThread (
@@ -148,7 +136,7 @@ create table MBThread (
 	categoryId LONG,
 	rootMessageId LONG,
 	rootMessageUserId LONG,
-	title VARCHAR(75) null,
+	title VARCHAR(255) null,
 	lastPostByUserId LONG,
 	lastPostDate DATE null,
 	priority DOUBLE,

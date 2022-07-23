@@ -69,15 +69,11 @@ public class PortalCacheContentPageEditorListener
 			fragmentEntryLink.getGroupId());
 
 		for (Locale locale : availableLocales) {
-			StringBundler cacheKeySB = new StringBundler(5);
-
-			cacheKeySB.append(fragmentEntryLink.getFragmentEntryLinkId());
-			cacheKeySB.append(StringPool.DASH);
-			cacheKeySB.append(locale);
-			cacheKeySB.append(StringPool.DASH);
-			cacheKeySB.append(fragmentEntryLink.getSegmentsExperienceId());
-
-			_portalCache.remove(cacheKeySB.toString());
+			_portalCache.remove(
+				StringBundler.concat(
+					fragmentEntryLink.getFragmentEntryLinkId(), StringPool.DASH,
+					locale, StringPool.DASH,
+					fragmentEntryLink.getSegmentsExperienceId()));
 		}
 	}
 

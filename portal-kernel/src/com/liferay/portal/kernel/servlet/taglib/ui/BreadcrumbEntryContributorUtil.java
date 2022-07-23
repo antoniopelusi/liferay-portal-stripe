@@ -14,8 +14,9 @@
 
 package com.liferay.portal.kernel.servlet.taglib.ui;
 
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 
 import java.util.List;
 
@@ -41,7 +42,8 @@ public class BreadcrumbEntryContributorUtil {
 	}
 
 	private static final ServiceTrackerList<BreadcrumbEntryContributor>
-		_breadcrumbEntryContributors = ServiceTrackerCollections.openList(
+		_breadcrumbEntryContributors = ServiceTrackerListFactory.open(
+			SystemBundleUtil.getBundleContext(),
 			BreadcrumbEntryContributor.class);
 
 }

@@ -36,15 +36,8 @@ public class UninstalledBundleData {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{location=");
-		sb.append(_location);
-		sb.append(", startLevel=");
-		sb.append(_startLevel);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{location=", _location, ", startLevel=", _startLevel, "}");
 	}
 
 	private final String _location;

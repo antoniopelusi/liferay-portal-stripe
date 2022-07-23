@@ -28,12 +28,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -268,34 +269,6 @@ public class AssetEntryUsageModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AssetEntryUsage>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetEntryUsage.class.getClassLoader(), AssetEntryUsage.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AssetEntryUsage> constructor =
-				(Constructor<AssetEntryUsage>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AssetEntryUsage, Object>>
@@ -761,6 +734,41 @@ public class AssetEntryUsageModelImpl
 	}
 
 	@Override
+	public AssetEntryUsage cloneWithOriginalValues() {
+		AssetEntryUsageImpl assetEntryUsageImpl = new AssetEntryUsageImpl();
+
+		assetEntryUsageImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetEntryUsageImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetEntryUsageImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		assetEntryUsageImpl.setAssetEntryUsageId(
+			this.<Long>getColumnOriginalValue("assetEntryUsageId"));
+		assetEntryUsageImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		assetEntryUsageImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetEntryUsageImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetEntryUsageImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		assetEntryUsageImpl.setAssetEntryId(
+			this.<Long>getColumnOriginalValue("assetEntryId"));
+		assetEntryUsageImpl.setContainerType(
+			this.<Long>getColumnOriginalValue("containerType"));
+		assetEntryUsageImpl.setContainerKey(
+			this.<String>getColumnOriginalValue("containerKey"));
+		assetEntryUsageImpl.setPlid(this.<Long>getColumnOriginalValue("plid"));
+		assetEntryUsageImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		assetEntryUsageImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return assetEntryUsageImpl;
+	}
+
+	@Override
 	public int compareTo(AssetEntryUsage assetEntryUsage) {
 		long primaryKey = assetEntryUsage.getPrimaryKey();
 
@@ -905,7 +913,7 @@ public class AssetEntryUsageModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -916,9 +924,26 @@ public class AssetEntryUsageModelImpl
 			Function<AssetEntryUsage, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AssetEntryUsage)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((AssetEntryUsage)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -965,7 +990,9 @@ public class AssetEntryUsageModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AssetEntryUsage>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AssetEntryUsage.class, ModelWrapper.class);
 
 	}
 

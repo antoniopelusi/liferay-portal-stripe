@@ -1,0 +1,48 @@
+[
+	{
+		"menuItems": [
+			{
+				"friendlyURL": "/team",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/careers",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/blog",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/resources",
+				"privateLayout": false,
+				"type": "layout"
+			}
+		],
+		"name": "Main Navigation"
+	},
+	{
+		"menuItems": [
+			{
+				"friendlyURL": "/privacy-policy",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/cookie-settings",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"name": "Github",
+				"type": "url",
+				"url": false,
+				"useNewTab": "https://github.com"
+			}
+		],
+		"name": "Privacy Navigation"
+	}
+]

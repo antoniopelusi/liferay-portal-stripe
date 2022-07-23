@@ -161,6 +161,9 @@ public interface LayoutPageTemplateStructureRelLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -375,6 +378,12 @@ public interface LayoutPageTemplateStructureRelLocalService
 	public LayoutPageTemplateStructureRel updateLayoutPageTemplateStructureRel(
 			long layoutPageTemplateStructureId, long segmentsExperienceId,
 			String data)
+		throws PortalException;
+
+	public LayoutPageTemplateStructureRel updateStatus(
+			long userId, long layoutPageTemplateStructureId,
+			long segmentsExperienceId, int status,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	@Override

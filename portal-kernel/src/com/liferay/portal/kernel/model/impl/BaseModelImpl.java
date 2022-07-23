@@ -35,9 +35,6 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public abstract class BaseModelImpl<T> implements BaseModel<T> {
 
-	public BaseModelImpl() {
-	}
-
 	@Override
 	public abstract Object clone();
 

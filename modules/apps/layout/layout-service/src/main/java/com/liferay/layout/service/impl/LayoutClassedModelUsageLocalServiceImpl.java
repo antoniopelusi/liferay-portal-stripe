@@ -24,6 +24,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
@@ -69,7 +71,7 @@ public class LayoutClassedModelUsageLocalServiceImpl
 
 		long companyId = serviceContext.getCompanyId();
 
-		Group group = groupLocalService.fetchGroup(groupId);
+		Group group = _groupLocalService.fetchGroup(groupId);
 
 		if (group != null) {
 			companyId = group.getCompanyId();
@@ -92,7 +94,7 @@ public class LayoutClassedModelUsageLocalServiceImpl
 
 	@Override
 	public void deleteLayoutClassedModelUsages(long classNameId, long classPK) {
-		layoutClassedModelUsagePersistence.removeByC_C(classNameId, classPK);
+		layoutClassedModelUsagePersistence.removeByCN_CPK(classNameId, classPK);
 	}
 
 	@Override
@@ -113,7 +115,7 @@ public class LayoutClassedModelUsageLocalServiceImpl
 		long classNameId, long classPK, String containerKey, long containerType,
 		long plid) {
 
-		return layoutClassedModelUsagePersistence.fetchByC_C_CK_CT_P(
+		return layoutClassedModelUsagePersistence.fetchByCN_CPK_CK_CT_P(
 			classNameId, classPK, containerKey, containerType, plid);
 	}
 
@@ -121,7 +123,7 @@ public class LayoutClassedModelUsageLocalServiceImpl
 	public List<LayoutClassedModelUsage> getLayoutClassedModelUsages(
 		long classNameId, long classPK) {
 
-		return layoutClassedModelUsagePersistence.findByC_C(
+		return layoutClassedModelUsagePersistence.findByCN_CPK(
 			classNameId, classPK);
 	}
 
@@ -130,7 +132,7 @@ public class LayoutClassedModelUsageLocalServiceImpl
 		long classNameId, long classPK, int type, int start, int end,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		return layoutClassedModelUsagePersistence.findByC_C_T(
+		return layoutClassedModelUsagePersistence.findByCN_CPK_T(
 			classNameId, classPK, type, start, end, orderByComparator);
 	}
 
@@ -139,8 +141,16 @@ public class LayoutClassedModelUsageLocalServiceImpl
 		long classNameId, long classPK, int start, int end,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		return layoutClassedModelUsagePersistence.findByC_C(
+		return layoutClassedModelUsagePersistence.findByCN_CPK(
 			classNameId, classPK, start, end, orderByComparator);
+	}
+
+	@Override
+	public List<LayoutClassedModelUsage> getLayoutClassedModelUsages(
+		long companyId, long classNameId, long containerType) {
+
+		return layoutClassedModelUsagePersistence.findByC_CN_CT(
+			companyId, classNameId, containerType);
 	}
 
 	@Override
@@ -154,7 +164,7 @@ public class LayoutClassedModelUsageLocalServiceImpl
 	public int getLayoutClassedModelUsagesCount(
 		long classNameId, long classPK) {
 
-		return layoutClassedModelUsagePersistence.countByC_C(
+		return layoutClassedModelUsagePersistence.countByCN_CPK(
 			classNameId, classPK);
 	}
 
@@ -162,7 +172,7 @@ public class LayoutClassedModelUsageLocalServiceImpl
 	public int getLayoutClassedModelUsagesCount(
 		long classNameId, long classPK, int type) {
 
-		return layoutClassedModelUsagePersistence.countByC_C_T(
+		return layoutClassedModelUsagePersistence.countByCN_CPK_T(
 			classNameId, classPK, type);
 	}
 
@@ -193,13 +203,13 @@ public class LayoutClassedModelUsageLocalServiceImpl
 			return LayoutClassedModelUsageConstants.TYPE_DEFAULT;
 		}
 
-		Layout layout = layoutLocalService.fetchLayout(plid);
+		Layout layout = _layoutLocalService.fetchLayout(plid);
 
 		if (layout == null) {
 			return LayoutClassedModelUsageConstants.TYPE_DEFAULT;
 		}
 
-		if ((layout.getClassNameId() > 0) && (layout.getClassPK() > 0)) {
+		if (layout.isDraftLayout()) {
 			plid = layout.getClassPK();
 		}
 
@@ -219,6 +229,12 @@ public class LayoutClassedModelUsageLocalServiceImpl
 
 		return LayoutClassedModelUsageConstants.TYPE_PAGE_TEMPLATE;
 	}
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private LayoutPageTemplateEntryLocalService

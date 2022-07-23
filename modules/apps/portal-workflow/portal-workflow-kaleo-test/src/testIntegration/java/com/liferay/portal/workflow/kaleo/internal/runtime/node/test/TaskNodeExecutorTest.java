@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -123,13 +123,9 @@ public class TaskNodeExecutorTest {
 
 					return null;
 				}),
-			new HashMapDictionary<String, String>() {
-				{
-					put(
-						"model.class.name=",
-						TaskNodeExecutorTest.class.getName());
-				}
-			});
+			HashMapDictionaryBuilder.put(
+				"model.class.name=", TaskNodeExecutorTest.class.getName()
+			).build());
 	}
 
 	@AfterClass
@@ -159,7 +155,7 @@ public class TaskNodeExecutorTest {
 		).build();
 
 		String content = StringUtil.read(
-			getClass(), "dependencies/workflow-definition-timer-tasks.xml");
+			getClass(), "dependencies/timer-tasks-workflow-definition.xml");
 
 		_workflowDefinition =
 			_workflowDefinitionManager.deployWorkflowDefinition(

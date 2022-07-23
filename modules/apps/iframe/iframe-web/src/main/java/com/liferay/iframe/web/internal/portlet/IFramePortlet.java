@@ -74,10 +74,10 @@ public class IFramePortlet extends MVCPortlet {
 		String src = null;
 
 		try {
-			src = transformSrc(renderRequest, renderResponse);
+			src = _transformSrc(renderRequest, renderResponse);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		renderRequest.setAttribute(IFrameWebKeys.IFRAME_SRC, src);
@@ -99,7 +99,7 @@ public class IFramePortlet extends MVCPortlet {
 	protected void setRelease(Release release) {
 	}
 
-	protected String transformSrc(
+	private String _transformSrc(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws PortalException {
 

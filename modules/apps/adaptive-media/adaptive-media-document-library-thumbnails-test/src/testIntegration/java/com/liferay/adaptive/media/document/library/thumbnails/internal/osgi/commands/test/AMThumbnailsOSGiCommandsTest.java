@@ -21,10 +21,12 @@ import com.liferay.adaptive.media.image.processor.AMImageProcessor;
 import com.liferay.adaptive.media.image.service.AMImageEntryLocalServiceUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.model.DLProcessorConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.document.library.kernel.util.DLPreviewableProcessor;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.document.library.kernel.util.DLProcessor;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -47,10 +49,8 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -89,28 +89,12 @@ public class AMThumbnailsOSGiCommandsTest {
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_amImageConfigurationHelperServiceReference =
-			registry.getServiceReference(AMImageConfigurationHelper.class);
-		_amImageFinderServiceReference = registry.getServiceReference(
-			AMImageFinder.class);
-
-		_amImageConfigurationHelper = registry.getService(
-			_amImageConfigurationHelperServiceReference);
-		_amImageFinder = registry.getService(_amImageFinderServiceReference);
-
 		_disableAMThumbnails();
 		_disableDocumentLibraryAM();
 	}
 
 	@AfterClass
 	public static void tearDownClass() throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
-
-		registry.ungetService(_amImageConfigurationHelperServiceReference);
-		registry.ungetService(_amImageFinderServiceReference);
-
 		_enableAMThumbnails();
 		_enableDocumentLibraryAM();
 	}
@@ -204,10 +188,12 @@ public class AMThumbnailsOSGiCommandsTest {
 	@Ignore
 	@Test
 	public void testMigrateOnlyProcessesImages() throws Exception {
-		try (SafeClosable safeClosable1 = PropsValuesTestUtil.swap(
-				"DL_FILE_ENTRY_THUMBNAIL_CUSTOM_1_MAX_HEIGHT", 100);
-			SafeClosable safeClosable2 = PropsValuesTestUtil.swap(
-				"DL_FILE_ENTRY_THUMBNAIL_CUSTOM_1_MAX_WIDTH", 100)) {
+		try (SafeCloseable safeCloseable1 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"DL_FILE_ENTRY_THUMBNAIL_CUSTOM_1_MAX_HEIGHT", 100);
+			SafeCloseable safeCloseable2 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"DL_FILE_ENTRY_THUMBNAIL_CUSTOM_1_MAX_WIDTH", 100)) {
 
 			FileEntry pdfFileEntry = _addPDFFileEntry();
 			FileEntry pngFileEntry = _addPNGFileEntry();
@@ -223,10 +209,12 @@ public class AMThumbnailsOSGiCommandsTest {
 	public void testMigrateThrowsExceptionWhenNoValidConfiguration()
 		throws Exception {
 
-		try (SafeClosable safeClosable1 = PropsValuesTestUtil.swap(
-				"DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT", 999);
-			SafeClosable safeClosable2 = PropsValuesTestUtil.swap(
-				"DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT", 999)) {
+		try (SafeCloseable safeCloseable1 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT", 999);
+			SafeCloseable safeCloseable2 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT", 999)) {
 
 			_addPNGFileEntry();
 
@@ -235,24 +223,17 @@ public class AMThumbnailsOSGiCommandsTest {
 	}
 
 	private static void _disableAMThumbnails() throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
-
-		ServiceComponentRuntime serviceComponentRuntime = registry.getService(
-			registry.getServiceReference(ServiceComponentRuntime.class));
-
-		Object service = registry.getService(
-			registry.getServiceReference(_CLASS_NAME_PROCESSOR));
+		Class<?> clazz = _dlProcessor.getClass();
 
 		ComponentDescriptionDTO componentDescriptionDTO =
-			serviceComponentRuntime.getComponentDescriptionDTO(
-				FrameworkUtil.getBundle(service.getClass()),
-				_CLASS_NAME_PROCESSOR);
+			_serviceComponentRuntime.getComponentDescriptionDTO(
+				FrameworkUtil.getBundle(clazz), clazz.getName());
 
 		if (componentDescriptionDTO == null) {
 			return;
 		}
 
-		Promise<Void> promise = serviceComponentRuntime.disableComponent(
+		Promise<Void> promise = _serviceComponentRuntime.disableComponent(
 			componentDescriptionDTO);
 
 		promise.getValue();
@@ -276,24 +257,17 @@ public class AMThumbnailsOSGiCommandsTest {
 	}
 
 	private static void _enableAMThumbnails() throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
-
-		ServiceComponentRuntime serviceComponentRuntime = registry.getService(
-			registry.getServiceReference(ServiceComponentRuntime.class));
-
-		Object service = registry.getService(
-			registry.getServiceReference(_CLASS_NAME_OSGI_COMMAND));
+		Class<?> clazz = _dlProcessor.getClass();
 
 		ComponentDescriptionDTO componentDescriptionDTO =
-			serviceComponentRuntime.getComponentDescriptionDTO(
-				FrameworkUtil.getBundle(service.getClass()),
-				_CLASS_NAME_PROCESSOR);
+			_serviceComponentRuntime.getComponentDescriptionDTO(
+				FrameworkUtil.getBundle(clazz), clazz.getName());
 
 		if (componentDescriptionDTO == null) {
 			return;
 		}
 
-		Promise<Void> promise = serviceComponentRuntime.enableComponent(
+		Promise<Void> promise = _serviceComponentRuntime.enableComponent(
 			componentDescriptionDTO);
 
 		promise.getValue();
@@ -330,18 +304,19 @@ public class AMThumbnailsOSGiCommandsTest {
 
 	private FileEntry _addPDFFileEntry() throws Exception {
 		return DLAppLocalServiceUtil.addFileEntry(
-			_user.getUserId(), _group.getGroupId(),
+			null, _user.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString() + ".pdf",
-			ContentTypes.APPLICATION_PDF, _read("sample.pdf"), _serviceContext);
+			ContentTypes.APPLICATION_PDF, _read("sample.pdf"), null, null,
+			_serviceContext);
 	}
 
 	private FileEntry _addPNGFileEntry() throws Exception {
 		_pngFileEntry = DLAppLocalServiceUtil.addFileEntry(
-			_user.getUserId(), _group.getGroupId(),
+			null, _user.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString() + ".png", ContentTypes.IMAGE_PNG,
-			_read("sample.png"), _serviceContext);
+			_read("sample.png"), null, null, _serviceContext);
 
 		return _pngFileEntry;
 	}
@@ -377,39 +352,36 @@ public class AMThumbnailsOSGiCommandsTest {
 	}
 
 	private void _run(String functionName) throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
-
-		Object service = registry.getService(
-			registry.getServiceReference(_CLASS_NAME_OSGI_COMMAND));
-
-		Class<?> clazz = service.getClass();
+		Class<?> clazz = _amThumbnailsOSGiCommands.getClass();
 
 		Method method = clazz.getMethod(functionName, String[].class);
 
 		method.invoke(
-			service,
+			_amThumbnailsOSGiCommands,
 			(Object)new String[] {String.valueOf(_company.getCompanyId())});
 	}
 
 	private static final String _BUNDLE_SYMBOLIC_NAME =
 		"com.liferay.adaptive.media.document.library";
 
-	private static final String _CLASS_NAME_OSGI_COMMAND =
-		"com.liferay.adaptive.media.document.library.thumbnails.internal." +
-			"osgi.commands.AMThumbnailsOSGiCommands";
-
-	private static final String _CLASS_NAME_PROCESSOR =
-		"com.liferay.adaptive.media.document.library.thumbnails.internal." +
-			"processor.AMImageEntryProcessor";
-
 	private static final String _THUMBNAIL_CONFIGURATION = "thumbnail";
 
+	@Inject
 	private static AMImageConfigurationHelper _amImageConfigurationHelper;
-	private static ServiceReference<AMImageConfigurationHelper>
-		_amImageConfigurationHelperServiceReference;
+
+	@Inject
 	private static AMImageFinder _amImageFinder;
-	private static ServiceReference<AMImageFinder>
-		_amImageFinderServiceReference;
+
+	@Inject(
+		filter = "osgi.command.scope=thumbnails", type = Inject.NoType.class
+	)
+	private static Object _amThumbnailsOSGiCommands;
+
+	@Inject(filter = "type=" + DLProcessorConstants.IMAGE_PROCESSOR)
+	private static DLProcessor _dlProcessor;
+
+	@Inject
+	private static ServiceComponentRuntime _serviceComponentRuntime;
 
 	private Company _company;
 	private Group _group;

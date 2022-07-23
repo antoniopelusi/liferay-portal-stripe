@@ -20,7 +20,7 @@
 
 <#assign scope_group = theme_display.getScopeGroup() />
 
-<div id="wrapper">
+<div class="position-relative" id="wrapper">
 	<div id="content-wrapper">
 		<div id="content">
 			<#if selectable>

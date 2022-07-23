@@ -45,10 +45,6 @@
 			<finder-column name="categoryId" />
 			<finder-column name="key" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>CategoryPropertyKey</exception>

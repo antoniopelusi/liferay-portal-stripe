@@ -54,7 +54,13 @@
 
 		<footer class="card fixed-bottom m-0 p-2 rounded-0" id="footer" role="contentinfo">
 			<p class="m-0 powered-by">
-				<liferay-ui:message key="powered-by" /> <a href="http://www.liferay.com" rel="external">Liferay</a>
+				<liferay-util:buffer
+					var="poweredByLiferay"
+				>
+					<a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>
+				</liferay-util:buffer>
+
+				<liferay-ui:message arguments="<%= poweredByLiferay %>" key="powered-by-x" />
 			</p>
 		</footer>
 	</div>

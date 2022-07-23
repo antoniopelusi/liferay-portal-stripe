@@ -18,9 +18,6 @@ import com.liferay.commerce.product.constants.CommerceChannelConstants;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.model.CommerceChannel;
-import com.liferay.commerce.product.model.impl.CommerceCatalogModelImpl;
-import com.liferay.commerce.product.model.impl.CommerceChannelModelImpl;
-import com.liferay.commerce.product.model.impl.CommerceChannelRelModelImpl;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -49,18 +46,6 @@ public class CommerceCatalogUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasTable(CommerceChannelModelImpl.TABLE_NAME)) {
-			runSQL(CommerceChannelModelImpl.TABLE_SQL_CREATE);
-		}
-
-		if (!hasTable(CommerceChannelRelModelImpl.TABLE_NAME)) {
-			runSQL(CommerceChannelRelModelImpl.TABLE_SQL_CREATE);
-		}
-
-		if (!hasTable(CommerceCatalogModelImpl.TABLE_NAME)) {
-			runSQL(CommerceCatalogModelImpl.TABLE_SQL_CREATE);
-		}
-
 		String insertCommerceCatalogSQL = StringBundler.concat(
 			"insert into CommerceCatalog (commerceCatalogId, companyId, ",
 			"userId, userName, createDate, modifiedDate, name, ",
@@ -76,18 +61,18 @@ public class CommerceCatalogUpgradeProcess extends UpgradeProcess {
 			"userId, userName, createDate, modifiedDate, classNameId, ",
 			"classPK, commerceChannelId) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-		try (PreparedStatement ps1 =
+		try (PreparedStatement preparedStatement1 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, insertCommerceCatalogSQL);
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, insertCommerceChannelSQL);
-			PreparedStatement ps3 =
+			PreparedStatement preparedStatement3 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection, insertCommerceChannelRelSQL);
 			Statement s1 = connection.createStatement(
 				ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs = s1.executeQuery(
+			ResultSet resultSet = s1.executeQuery(
 				"select distinct groupId, companyId, userId, userName, " +
 					"defaultLanguageId from CPDefinition")) {
 
@@ -95,42 +80,46 @@ public class CommerceCatalogUpgradeProcess extends UpgradeProcess {
 				_classNameLocalService.getClassNameId(
 					CPDefinition.class.getName());
 
-			while (rs.next()) {
+			while (resultSet.next()) {
 				long commerceCatalogId = increment();
 				long commerceChannelId = increment();
-				long groupId = rs.getLong("groupId");
-				long companyId = rs.getLong("companyId");
-				long userId = rs.getLong("userId");
-				String userName = rs.getString("userName");
-				Date now = new Date(System.currentTimeMillis());
-				String defaultLanguageId = rs.getString("defaultLanguageId");
+				long groupId = resultSet.getLong("groupId");
+				long companyId = resultSet.getLong("companyId");
+				long userId = resultSet.getLong("userId");
+				String userName = resultSet.getString("userName");
+				Date date = new Date(System.currentTimeMillis());
+				String defaultLanguageId = resultSet.getString(
+					"defaultLanguageId");
 
 				Group siteGroup = _groupLocalService.getGroup(groupId);
 
-				ps1.setLong(1, commerceCatalogId);
-				ps1.setLong(2, companyId);
-				ps1.setLong(3, userId);
-				ps1.setString(4, userName);
-				ps1.setDate(5, now);
-				ps1.setDate(6, now);
+				preparedStatement1.setLong(1, commerceCatalogId);
+				preparedStatement1.setLong(2, companyId);
+				preparedStatement1.setLong(3, userId);
+				preparedStatement1.setString(4, userName);
+				preparedStatement1.setDate(5, date);
+				preparedStatement1.setDate(6, date);
 
-				ps1.setString(7, siteGroup.getName(defaultLanguageId));
+				preparedStatement1.setString(
+					7, siteGroup.getName(defaultLanguageId));
 
-				ps1.setString(8, defaultLanguageId);
+				preparedStatement1.setString(8, defaultLanguageId);
 
-				ps1.addBatch();
+				preparedStatement1.addBatch();
 
-				ps2.setLong(1, commerceChannelId);
-				ps2.setLong(2, companyId);
-				ps2.setLong(3, userId);
-				ps2.setString(4, userName);
-				ps2.setDate(5, now);
-				ps2.setDate(6, now);
-				ps2.setString(7, siteGroup.getName(defaultLanguageId));
-				ps2.setLong(8, siteGroup.getGroupId());
-				ps2.setString(9, CommerceChannelConstants.CHANNEL_TYPE_SITE);
+				preparedStatement2.setLong(1, commerceChannelId);
+				preparedStatement2.setLong(2, companyId);
+				preparedStatement2.setLong(3, userId);
+				preparedStatement2.setString(4, userName);
+				preparedStatement2.setDate(5, date);
+				preparedStatement2.setDate(6, date);
+				preparedStatement2.setString(
+					7, siteGroup.getName(defaultLanguageId));
+				preparedStatement2.setLong(8, siteGroup.getGroupId());
+				preparedStatement2.setString(
+					9, CommerceChannelConstants.CHANNEL_TYPE_SITE);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 
 				Group catalogGroup = _groupLocalService.addGroup(
 					userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
@@ -168,19 +157,19 @@ public class CommerceCatalogUpgradeProcess extends UpgradeProcess {
 				while (cpDefinitionsResultSet.next()) {
 					long commerceChannelRelId = increment();
 
-					ps3.setLong(1, commerceChannelRelId);
+					preparedStatement3.setLong(1, commerceChannelRelId);
 
-					ps3.setLong(2, companyId);
-					ps3.setLong(3, userId);
-					ps3.setString(4, userName);
-					ps3.setDate(5, now);
-					ps3.setDate(6, now);
-					ps3.setLong(7, cpDefinitionClassNameId);
-					ps3.setLong(
+					preparedStatement3.setLong(2, companyId);
+					preparedStatement3.setLong(3, userId);
+					preparedStatement3.setString(4, userName);
+					preparedStatement3.setDate(5, date);
+					preparedStatement3.setDate(6, date);
+					preparedStatement3.setLong(7, cpDefinitionClassNameId);
+					preparedStatement3.setLong(
 						8, cpDefinitionsResultSet.getLong("cpDefinitionId"));
-					ps3.setLong(9, commerceChannelId);
+					preparedStatement3.setLong(9, commerceChannelId);
 
-					ps3.addBatch();
+					preparedStatement3.addBatch();
 				}
 
 				runSQL(
@@ -248,9 +237,9 @@ public class CommerceCatalogUpgradeProcess extends UpgradeProcess {
 						catalogGroup.getGroupId(), siteGroup.getGroupId()));
 			}
 
-			ps1.executeBatch();
-			ps2.executeBatch();
-			ps3.executeBatch();
+			preparedStatement1.executeBatch();
+			preparedStatement2.executeBatch();
+			preparedStatement3.executeBatch();
 		}
 	}
 

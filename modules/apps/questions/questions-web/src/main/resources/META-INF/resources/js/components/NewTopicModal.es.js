@@ -12,60 +12,35 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
 import ClayButton from '@clayui/button';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayModal, {useModal} from '@clayui/modal';
+import {useMutation} from 'graphql-hooks';
 import React, {useContext, useRef} from 'react';
 
 import {AppContext} from '../AppContext.es';
 import {createSubTopicQuery, createTopicQuery} from '../utils/client.es';
 import lang from '../utils/lang.es';
-import {deleteCacheVariables} from '../utils/utils.es';
+import {deleteCache} from '../utils/utils.es';
 
-export default ({
+export default function NewTopicModal({
 	currentSectionId,
 	onClose,
 	onCreateNavigateTo,
 	setError,
 	visible,
-}) => {
+}) {
 	const context = useContext(AppContext);
-	const topicName = useRef(null);
-	const topicDescription = useRef(null);
+	const topicNameRef = useRef(null);
+	const topicDescriptionRef = useRef(null);
 
-	const [createNewSubTopic] = useMutation(createSubTopicQuery, {
-		onCompleted(data) {
-			onCreateNavigateTo(
-				context.useTopicNamesInURL
-					? data.createMessageBoardSectionMessageBoardSection.title
-					: data.createMessageBoardSectionMessageBoardSection.id
-			);
-		},
-		update(proxy) {
-			deleteCacheVariables(proxy, 'MessageBoardSection');
-			proxy.gc();
-		},
-	});
+	const [createNewSubTopic] = useMutation(createSubTopicQuery);
 
-	const [createNewTopic] = useMutation(createTopicQuery, {
-		onCompleted(data) {
-			onCreateNavigateTo(
-				context.useTopicNamesInURL
-					? data.createSiteMessageBoardSection.title
-					: data.createSiteMessageBoardSection.id
-			);
-		},
-		update(proxy) {
-			deleteCacheVariables(proxy, 'MessageBoardSection');
-			deleteCacheVariables(proxy, 'ROOT_QUERY');
-			proxy.gc();
-		},
-	});
+	const [createNewTopic] = useMutation(createTopicQuery);
 
 	const isValidTopic = (topic) => {
-		const hyphens = /-+/g;
-		if (hyphens.test(topic)) {
+		const invalidCharacters = /.*[-|&|'|@|\\\\|\]|}|:|,|=|>|/|<|\n|[|{|||+|#|`|?|\\"|\r|;|/|*|~|%]/g;
+		if (invalidCharacters.test(topic)) {
 			const error = {
 				message: lang.sub(
 					Liferay.Language.get(
@@ -73,7 +48,7 @@ export default ({
 					),
 					[
 						Liferay.Language.get('topic-name'),
-						' - & \' @ \\\\ ] } : , = > / < \\n [ {  | + # ` ? \\" \\r ; / * ~',
+						' - & \' @ \\\\ ] } : , = > / < \\n [ {  | + # ` ? \\" \\r ; / * ~ %',
 					]
 				),
 			};
@@ -86,24 +61,40 @@ export default ({
 	};
 
 	const createTopic = () => {
-		if (isValidTopic(topicName.current.value)) {
+		if (isValidTopic(topicNameRef.current.value)) {
+			deleteCache();
 			if (currentSectionId) {
 				createNewSubTopic({
 					variables: {
-						description: topicDescription.current.value,
+						description: topicDescriptionRef.current.value,
 						parentMessageBoardSectionId: currentSectionId,
-						title: topicName.current.value,
+						title: topicNameRef.current.value,
 					},
-				});
+				}).then(
+					({
+						data: {
+							createMessageBoardSectionMessageBoardSection: section,
+						},
+					}) =>
+						onCreateNavigateTo(
+							context.useTopicNamesInURL
+								? section.title
+								: section.id
+						)
+				);
 			}
 			else {
 				createNewTopic({
 					variables: {
-						description: topicDescription.current.value,
+						description: topicDescriptionRef.current.value,
 						siteKey: context.siteKey,
-						title: topicName.current.value,
+						title: topicNameRef.current.value,
 					},
-				});
+				}).then(({data: {createSiteMessageBoardSection: section}}) =>
+					onCreateNavigateTo(
+						context.useTopicNamesInURL ? section.title : section.id
+					)
+				);
 			}
 		}
 	};
@@ -119,35 +110,40 @@ export default ({
 					<ClayModal.Header>
 						{Liferay.Language.get('new-topic')}
 					</ClayModal.Header>
+
 					<ClayModal.Body>
 						<ClayForm>
 							<ClayForm.Group className="form-group-sm">
 								<label htmlFor="basicInput">
 									{Liferay.Language.get('topic-name')}
 								</label>
+
 								<ClayInput
 									placeholder={Liferay.Language.get(
 										'please-enter-a-valid-topic-name'
 									)}
-									ref={topicName}
+									ref={topicNameRef}
 									type="text"
 								/>
 							</ClayForm.Group>
+
 							<ClayForm.Group className="form-group-sm">
 								<label htmlFor="basicInput">
 									{Liferay.Language.get('description')}
 								</label>
+
 								<ClayInput
 									className="form-control"
 									component="textarea"
 									placeholder={Liferay.Language.get(
 										'description'
 									)}
-									ref={topicDescription}
+									ref={topicDescriptionRef}
 								/>
 							</ClayForm.Group>
 						</ClayForm>
 					</ClayModal.Body>
+
 					<ClayModal.Footer
 						last={
 							<ClayButton.Group spaced>
@@ -157,6 +153,7 @@ export default ({
 								>
 									{Liferay.Language.get('cancel')}
 								</ClayButton>
+
 								<ClayButton
 									displayType="primary"
 									onClick={() => {
@@ -173,4 +170,4 @@ export default ({
 			)}
 		</>
 	);
-};
+}

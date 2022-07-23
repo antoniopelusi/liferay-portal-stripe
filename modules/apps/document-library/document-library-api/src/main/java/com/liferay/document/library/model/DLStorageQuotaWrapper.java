@@ -76,6 +76,11 @@ public class DLStorageQuotaWrapper
 		}
 	}
 
+	@Override
+	public DLStorageQuota cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this dl storage quota.
 	 *

@@ -63,7 +63,7 @@ public class UserCTDisplayRenderer extends BaseCTDisplayRenderer<User> {
 			"/users_admin/edit_user"
 		).setParameter(
 			"p_u_i_d", user.getUserId()
-		).build();
+		).buildPortletURL();
 
 		String currentURL = _portal.getCurrentURL(httpServletRequest);
 

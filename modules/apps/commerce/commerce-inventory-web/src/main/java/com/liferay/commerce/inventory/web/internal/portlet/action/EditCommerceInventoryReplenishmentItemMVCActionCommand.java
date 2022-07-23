@@ -15,7 +15,6 @@
 package com.liferay.commerce.inventory.web.internal.portlet.action;
 
 import com.liferay.commerce.inventory.exception.MVCCException;
-import com.liferay.commerce.inventory.model.CommerceInventoryReplenishmentItem;
 import com.liferay.commerce.inventory.service.CommerceInventoryReplenishmentItemService;
 import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -23,8 +22,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -52,7 +49,40 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCommerceInventoryReplenishmentItemMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void addCommerceInventoryReplenishmentItem(
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
+		try {
+			if (cmd.equals(Constants.ADD)) {
+				_addCommerceInventoryReplenishmentItem(actionRequest);
+			}
+			else if (cmd.equals(Constants.DELETE)) {
+				_deleteCommerceInventoryReplenishmentItem(actionRequest);
+			}
+			else if (cmd.equals(Constants.UPDATE)) {
+				_updateCommerceInventoryReplenishmentItem(actionRequest);
+			}
+		}
+		catch (Exception exception) {
+			if (exception instanceof MVCCException) {
+				SessionErrors.add(actionRequest, exception.getClass());
+
+				hideDefaultErrorMessage(actionRequest);
+				hideDefaultSuccessMessage(actionRequest);
+
+				sendRedirect(actionRequest, actionResponse);
+			}
+			else {
+				_log.error(exception);
+			}
+		}
+	}
+
+	private void _addCommerceInventoryReplenishmentItem(
 			ActionRequest actionRequest)
 		throws PortalException {
 
@@ -71,16 +101,13 @@ public class EditCommerceInventoryReplenishmentItemMVCActionCommand
 
 		calendar.set(year, month, day);
 
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			CommerceInventoryReplenishmentItem.class.getName(), actionRequest);
-
 		_commerceInventoryReplenishmentItemService.
 			addCommerceInventoryReplenishmentItem(
-				serviceContext.getUserId(), commerceInventoryWarehouseId, sku,
-				calendar.getTime(), quantity);
+				commerceInventoryWarehouseId, sku, calendar.getTime(),
+				quantity);
 	}
 
-	protected void deleteCommerceInventoryReplenishmentItem(
+	private void _deleteCommerceInventoryReplenishmentItem(
 			ActionRequest actionRequest)
 		throws PortalException {
 
@@ -92,40 +119,7 @@ public class EditCommerceInventoryReplenishmentItemMVCActionCommand
 				commerceInventoryReplenishmentItemId);
 	}
 
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
-		try {
-			if (cmd.equals(Constants.ADD)) {
-				addCommerceInventoryReplenishmentItem(actionRequest);
-			}
-			else if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceInventoryReplenishmentItem(actionRequest);
-			}
-			else if (cmd.equals(Constants.UPDATE)) {
-				updateCommerceInventoryReplenishmentItem(actionRequest);
-			}
-		}
-		catch (Exception exception) {
-			if (exception instanceof MVCCException) {
-				SessionErrors.add(actionRequest, exception.getClass());
-
-				hideDefaultErrorMessage(actionRequest);
-				hideDefaultSuccessMessage(actionRequest);
-
-				sendRedirect(actionRequest, actionResponse);
-			}
-			else {
-				_log.error(exception, exception);
-			}
-		}
-	}
-
-	protected void updateCommerceInventoryReplenishmentItem(
+	private void _updateCommerceInventoryReplenishmentItem(
 			ActionRequest actionRequest)
 		throws PortalException {
 

@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.portlet.configuration.icon.BasePortletConfigura
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.PortletLocalService;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.GroupPermission;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -121,7 +121,7 @@ public class ExportImportPortletConfigurationIcon
 		}
 
 		try {
-			return GroupPermissionUtil.contains(
+			return _groupPermission.contains(
 				themeDisplay.getPermissionChecker(),
 				themeDisplay.getScopeGroup(),
 				ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
@@ -131,11 +131,16 @@ public class ExportImportPortletConfigurationIcon
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;
 		}
+	}
+
+	@Override
+	public boolean isShowInEditMode(PortletRequest portletRequest) {
+		return true;
 	}
 
 	@Override
@@ -145,6 +150,9 @@ public class ExportImportPortletConfigurationIcon
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ExportImportPortletConfigurationIcon.class);
+
+	@Reference
+	private GroupPermission _groupPermission;
 
 	@Reference
 	private PortletLocalService _portletLocalService;

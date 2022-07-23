@@ -45,11 +45,20 @@ public class RecurrenceUtil {
 		CalendarBooking calendarBooking, long startTime, long endTime,
 		int maxSize) {
 
+		return expandCalendarBooking(
+			calendarBooking, startTime, endTime, calendarBooking.getTimeZone(),
+			maxSize);
+	}
+
+	public static List<CalendarBooking> expandCalendarBooking(
+		CalendarBooking calendarBooking, long startTime, long endTime,
+		TimeZone displayTimeZone, int maxSize) {
+
 		List<CalendarBooking> expandedCalendarBookings = new ArrayList<>();
 
 		try {
 			CalendarBookingIterator calendarBookingIterator =
-				new CalendarBookingIterator(calendarBooking);
+				new CalendarBookingIterator(calendarBooking, displayTimeZone);
 
 			while (calendarBookingIterator.hasNext()) {
 				CalendarBooking newCalendarBooking =
@@ -95,6 +104,32 @@ public class RecurrenceUtil {
 			List<CalendarBooking> expandedCalendarBooking =
 				expandCalendarBooking(
 					calendarBooking, startTime, endTime, maxSize);
+
+			expandedCalendarBookings.addAll(expandedCalendarBooking);
+		}
+
+		return expandedCalendarBookings;
+	}
+
+	public static List<CalendarBooking> expandCalendarBookings(
+		List<CalendarBooking> calendarBookings, long startTime, long endTime,
+		TimeZone displayTimeZone) {
+
+		return expandCalendarBookings(
+			calendarBookings, startTime, endTime, displayTimeZone, 0);
+	}
+
+	public static List<CalendarBooking> expandCalendarBookings(
+		List<CalendarBooking> calendarBookings, long startTime, long endTime,
+		TimeZone displayTimeZone, int maxSize) {
+
+		List<CalendarBooking> expandedCalendarBookings = new ArrayList<>();
+
+		for (CalendarBooking calendarBooking : calendarBookings) {
+			List<CalendarBooking> expandedCalendarBooking =
+				expandCalendarBooking(
+					calendarBooking, startTime, endTime, displayTimeZone,
+					maxSize);
 
 			expandedCalendarBookings.addAll(expandedCalendarBooking);
 		}
@@ -238,9 +273,8 @@ public class RecurrenceUtil {
 
 			jCalendar.set(Calendar.DAY_OF_WEEK, weekday.getCalendarWeekday());
 
-			jCalendar = JCalendarUtil.getJCalendar(jCalendar, timeZone);
-
-			weekday = Weekday.getWeekday(jCalendar);
+			weekday = Weekday.getWeekday(
+				JCalendarUtil.getJCalendar(jCalendar, timeZone));
 
 			positionalWeekday = new PositionalWeekday(
 				weekday, positionalWeekday.getPosition());
@@ -282,11 +316,9 @@ public class RecurrenceUtil {
 	}
 
 	protected static boolean hasLimit(Recurrence recurrence) {
-		if (recurrence.getUntilJCalendar() != null) {
-			return true;
-		}
+		if ((recurrence.getUntilJCalendar() != null) ||
+			(recurrence.getCount() != 0)) {
 
-		if (recurrence.getCount() != 0) {
 			return true;
 		}
 

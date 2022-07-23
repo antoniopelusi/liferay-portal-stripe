@@ -17,23 +17,21 @@ package com.liferay.headless.admin.workflow.internal.resource.v1_0;
 import com.liferay.headless.admin.workflow.dto.v1_0.WorkflowLog;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowLogResource;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,14 +42,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -59,7 +49,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v1.0")
+@javax.ws.rs.Path("/v1.0")
 public abstract class BaseWorkflowLogResourceImpl
 	implements WorkflowLogResource {
 
@@ -68,24 +58,42 @@ public abstract class BaseWorkflowLogResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-instances/{workflowInstanceId}/workflow-logs'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "workflowInstanceId"),
-			@Parameter(in = ParameterIn.QUERY, name = "types"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "workflowInstanceId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "types"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			)
 		}
 	)
-	@Path("/workflow-instances/{workflowInstanceId}/workflow-logs")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WorkflowLog")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "WorkflowLog")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/workflow-instances/{workflowInstanceId}/workflow-logs")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<WorkflowLog> getWorkflowInstanceWorkflowLogsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("workflowInstanceId")
-				Long workflowInstanceId,
-			@Parameter(hidden = true) @QueryParam("types") String[] types,
-			@Context Pagination pagination)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("workflowInstanceId")
+			Long workflowInstanceId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("types")
+			String[] types,
+			@javax.ws.rs.core.Context Pagination pagination)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -96,17 +104,26 @@ public abstract class BaseWorkflowLogResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-logs/{workflowLogId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "workflowLogId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "workflowLogId"
+			)
+		}
 	)
-	@Path("/workflow-logs/{workflowLogId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WorkflowLog")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "WorkflowLog")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/workflow-logs/{workflowLogId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public WorkflowLog getWorkflowLog(
-			@NotNull @Parameter(hidden = true) @PathParam("workflowLogId") Long
-				workflowLogId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("workflowLogId")
+			Long workflowLogId)
 		throws Exception {
 
 		return new WorkflowLog();
@@ -117,24 +134,42 @@ public abstract class BaseWorkflowLogResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-tasks/{workflowTaskId}/workflow-logs'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "workflowTaskId"),
-			@Parameter(in = ParameterIn.QUERY, name = "types"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "workflowTaskId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "types"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			)
 		}
 	)
-	@Path("/workflow-tasks/{workflowTaskId}/workflow-logs")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WorkflowLog")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "WorkflowLog")}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/workflow-tasks/{workflowTaskId}/workflow-logs")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<WorkflowLog> getWorkflowTaskWorkflowLogsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("workflowTaskId") Long
-				workflowTaskId,
-			@Parameter(hidden = true) @QueryParam("types") String[] types,
-			@Context Pagination pagination)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("workflowTaskId")
+			Long workflowTaskId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("types")
+			String[] types,
+			@javax.ws.rs.core.Context Pagination pagination)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -172,8 +207,32 @@ public abstract class BaseWorkflowLogResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
+	}
+
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
 	}
 
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
@@ -249,9 +308,14 @@ public abstract class BaseWorkflowLogResourceImpl
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseWorkflowLogResourceImpl.class);
 
 }

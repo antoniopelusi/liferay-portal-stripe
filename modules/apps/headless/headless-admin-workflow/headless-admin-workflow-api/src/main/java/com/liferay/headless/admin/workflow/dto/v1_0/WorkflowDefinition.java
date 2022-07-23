@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -55,6 +56,10 @@ public class WorkflowDefinition implements Serializable {
 
 	public static WorkflowDefinition toDTO(String json) {
 		return ObjectMapperUtil.readValue(WorkflowDefinition.class, json);
+	}
+
+	public static WorkflowDefinition unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(WorkflowDefinition.class, json);
 	}
 
 	@Schema
@@ -224,6 +229,35 @@ public class WorkflowDefinition implements Serializable {
 	protected String name;
 
 	@Schema
+	@Valid
+	public Node[] getNodes() {
+		return nodes;
+	}
+
+	public void setNodes(Node[] nodes) {
+		this.nodes = nodes;
+	}
+
+	@JsonIgnore
+	public void setNodes(
+		UnsafeSupplier<Node[], Exception> nodesUnsafeSupplier) {
+
+		try {
+			nodes = nodesUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Node[] nodes;
+
+	@Schema
 	public String getTitle() {
 		return title;
 	}
@@ -278,8 +312,37 @@ public class WorkflowDefinition implements Serializable {
 	}
 
 	@GraphQLField
-	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Map<String, String> title_i18n;
+
+	@Schema
+	@Valid
+	public Transition[] getTransitions() {
+		return transitions;
+	}
+
+	public void setTransitions(Transition[] transitions) {
+		this.transitions = transitions;
+	}
+
+	@JsonIgnore
+	public void setTransitions(
+		UnsafeSupplier<Transition[], Exception> transitionsUnsafeSupplier) {
+
+		try {
+			transitions = transitionsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Transition[] transitions;
 
 	@Schema
 	public String getVersion() {
@@ -419,6 +482,26 @@ public class WorkflowDefinition implements Serializable {
 			sb.append("\"");
 		}
 
+		if (nodes != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"nodes\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < nodes.length; i++) {
+				sb.append(String.valueOf(nodes[i]));
+
+				if ((i + 1) < nodes.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (title != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -441,6 +524,26 @@ public class WorkflowDefinition implements Serializable {
 			sb.append("\"title_i18n\": ");
 
 			sb.append(_toJSON(title_i18n));
+		}
+
+		if (transitions != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"transitions\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < transitions.length; i++) {
+				sb.append(String.valueOf(transitions[i]));
+
+				if ((i + 1) < transitions.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
 		}
 
 		if (version != null) {
@@ -470,9 +573,9 @@ public class WorkflowDefinition implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -498,7 +601,7 @@ public class WorkflowDefinition implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -530,7 +633,7 @@ public class WorkflowDefinition implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -546,5 +649,10 @@ public class WorkflowDefinition implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

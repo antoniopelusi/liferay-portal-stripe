@@ -16,6 +16,7 @@ package com.liferay.commerce.address.content.web.internal.portlet.action;
 
 import com.liferay.commerce.account.util.CommerceAccountHelper;
 import com.liferay.commerce.address.content.web.internal.display.context.CommerceAddressDisplayContext;
+import com.liferay.commerce.address.content.web.internal.portlet.action.helper.ActionHelper;
 import com.liferay.commerce.constants.CommercePortletKeys;
 import com.liferay.commerce.service.CommerceAddressService;
 import com.liferay.portal.kernel.log.Log;
@@ -68,7 +69,7 @@ public class CommerceAddressContentConfigurationAction
 				WebKeys.PORTLET_DISPLAY_CONTEXT, commerceAddressDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		super.include(portletConfig, httpServletRequest, httpServletResponse);

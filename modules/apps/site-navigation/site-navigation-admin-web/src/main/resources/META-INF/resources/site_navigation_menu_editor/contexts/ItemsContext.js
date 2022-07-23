@@ -15,18 +15,19 @@
 import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 
-const getFlatItems = (items) =>
-	items.reduce((acc, item) => {
-		return [...acc, item, ...getFlatItems(item.children)];
-	}, []);
+import getFlatItems from '../utils/getFlatItems';
 
 export const ItemsContext = React.createContext([]);
 export const SetItemsContext = React.createContext(() => {});
 
-export const useItems = () => useContext(ItemsContext);
-export const useSetItems = () => useContext(SetItemsContext);
+export function useItems() {
+	return useContext(ItemsContext);
+}
+export function useSetItems() {
+	return useContext(SetItemsContext);
+}
 
-export const ItemsProvider = ({children, initialItems}) => {
+export function ItemsProvider({children, initialItems}) {
 	const [items, setItems] = useState(getFlatItems(initialItems));
 
 	return (
@@ -36,7 +37,7 @@ export const ItemsProvider = ({children, initialItems}) => {
 			</ItemsContext.Provider>
 		</SetItemsContext.Provider>
 	);
-};
+}
 
 ItemsProvider.propTypes = {
 	initialItems: PropTypes.arrayOf(

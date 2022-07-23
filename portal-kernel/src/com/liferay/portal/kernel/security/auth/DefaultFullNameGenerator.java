@@ -243,15 +243,11 @@ public class DefaultFullNameGenerator implements FullNameGenerator {
 
 	protected String shortenFullName(String fullName) {
 		if (_log.isInfoEnabled()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("Full name exceeds ");
-			sb.append(UserConstants.FULL_NAME_MAX_LENGTH);
-			sb.append(" characters for user ");
-			sb.append(fullName);
-			sb.append(". Full name was shortened.");
-
-			_log.info(sb.toString());
+			_log.info(
+				StringBundler.concat(
+					"Full name exceeds ", UserConstants.FULL_NAME_MAX_LENGTH,
+					" characters for user ", fullName,
+					". Full name was shortened."));
 		}
 
 		return fullName.substring(0, UserConstants.FULL_NAME_MAX_LENGTH);

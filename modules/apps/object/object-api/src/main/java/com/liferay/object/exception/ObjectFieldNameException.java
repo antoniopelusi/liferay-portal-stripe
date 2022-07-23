@@ -21,19 +21,59 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class ObjectFieldNameException extends PortalException {
 
-	public ObjectFieldNameException() {
+	public static class MustBeginWithLowerCaseLetter
+		extends ObjectFieldNameException {
+
+		public MustBeginWithLowerCaseLetter() {
+			super("The first character of a name must be a lower case letter");
+		}
+
 	}
 
-	public ObjectFieldNameException(String msg) {
+	public static class MustBeLessThan41Characters
+		extends ObjectFieldNameException {
+
+		public MustBeLessThan41Characters() {
+			super("Names must be less than 41 characters");
+		}
+
+	}
+
+	public static class MustNotBeDuplicate extends ObjectFieldNameException {
+
+		public MustNotBeDuplicate(String name) {
+			super("Duplicate name " + name);
+		}
+
+	}
+
+	public static class MustNotBeNull extends ObjectFieldNameException {
+
+		public MustNotBeNull() {
+			super("Name is null");
+		}
+
+	}
+
+	public static class MustNotBeReserved extends ObjectFieldNameException {
+
+		public MustNotBeReserved(String name) {
+			super("Reserved name " + name);
+		}
+
+	}
+
+	public static class MustOnlyContainLettersAndDigits
+		extends ObjectFieldNameException {
+
+		public MustOnlyContainLettersAndDigits() {
+			super("Name must only contain letters and digits");
+		}
+
+	}
+
+	private ObjectFieldNameException(String msg) {
 		super(msg);
-	}
-
-	public ObjectFieldNameException(String msg, Throwable throwable) {
-		super(msg, throwable);
-	}
-
-	public ObjectFieldNameException(Throwable throwable) {
-		super(throwable);
 	}
 
 }

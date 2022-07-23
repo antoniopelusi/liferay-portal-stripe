@@ -131,4 +131,7 @@ public interface CTMessageModel
 	 */
 	public void setMessageContent(String messageContent);
 
+	@Override
+	public CTMessage cloneWithOriginalValues();
+
 }

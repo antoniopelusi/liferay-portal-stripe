@@ -15,7 +15,6 @@
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -24,10 +23,11 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.tools.service.builder.test.exception.NoSuchManyColumnsEntryException;
 import com.liferay.portal.tools.service.builder.test.model.ManyColumnsEntry;
@@ -35,18 +35,15 @@ import com.liferay.portal.tools.service.builder.test.model.ManyColumnsEntryTable
 import com.liferay.portal.tools.service.builder.test.model.impl.ManyColumnsEntryImpl;
 import com.liferay.portal.tools.service.builder.test.model.impl.ManyColumnsEntryModelImpl;
 import com.liferay.portal.tools.service.builder.test.service.persistence.ManyColumnsEntryPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.ManyColumnsEntryUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the many columns entry service.
@@ -101,6 +98,8 @@ public class ManyColumnsEntryPersistenceImpl
 			manyColumnsEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the many columns entries in the entity cache if it is enabled.
 	 *
@@ -108,6 +107,14 @@ public class ManyColumnsEntryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<ManyColumnsEntry> manyColumnsEntries) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (manyColumnsEntries.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (ManyColumnsEntry manyColumnsEntry : manyColumnsEntries) {
 			if (entityCache.getResult(
 					ManyColumnsEntryImpl.class,
@@ -554,15 +561,8 @@ public class ManyColumnsEntryPersistenceImpl
 	 * Initializes the many columns entry persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			ManyColumnsEntryPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new ManyColumnsEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -575,15 +575,31 @@ public class ManyColumnsEntryPersistenceImpl
 		_finderPathCountAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
 			new String[0], new String[0], false);
+
+		_setManyColumnsEntryUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(ManyColumnsEntryImpl.class.getName());
+		_setManyColumnsEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(ManyColumnsEntryImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setManyColumnsEntryUtilPersistence(
+		ManyColumnsEntryPersistence manyColumnsEntryPersistence) {
+
+		try {
+			Field field = ManyColumnsEntryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, manyColumnsEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -608,96 +624,6 @@ public class ManyColumnsEntryPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class ManyColumnsEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			ManyColumnsEntryModelImpl manyColumnsEntryModelImpl =
-				(ManyColumnsEntryModelImpl)baseModel;
-
-			if (!checkColumn ||
-				_hasModifiedColumns(manyColumnsEntryModelImpl, columnNames)) {
-
-				return _getValue(
-					manyColumnsEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return ManyColumnsEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return ManyColumnsEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			ManyColumnsEntryModelImpl manyColumnsEntryModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						manyColumnsEntryModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = manyColumnsEntryModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static boolean _hasModifiedColumns(
-			ManyColumnsEntryModelImpl manyColumnsEntryModelImpl,
-			String[] columnNames) {
-
-			if (columnNames.length == 0) {
-				return false;
-			}
-
-			for (String columnName : columnNames) {
-				if (!Objects.equals(
-						manyColumnsEntryModelImpl.getColumnOriginalValue(
-							columnName),
-						manyColumnsEntryModelImpl.getColumnValue(columnName))) {
-
-					return true;
-				}
-			}
-
-			return false;
-		}
-
 	}
 
 }

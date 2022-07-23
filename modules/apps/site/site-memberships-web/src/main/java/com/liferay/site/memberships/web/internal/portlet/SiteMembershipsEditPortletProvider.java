@@ -50,7 +50,7 @@ public class SiteMembershipsEditPortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/edit_site_assignments.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

@@ -15,7 +15,6 @@
 package com.liferay.portlet;
 
 import com.liferay.petra.encryptor.Encryptor;
-import com.liferay.petra.encryptor.EncryptorException;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -37,6 +36,7 @@ import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.model.PortletPreferencesIds;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.LiferayPortletMode;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
@@ -137,7 +137,7 @@ public class PortletPreferencesFactoryImpl
 				}
 				catch (XMLStreamException xmlStreamException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(xmlStreamException, xmlStreamException);
+						_log.debug(xmlStreamException);
 					}
 				}
 			}
@@ -313,11 +313,14 @@ public class PortletPreferencesFactoryImpl
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
+		User user = themeDisplay.getRealUser();
+
 		long userId = themeDisplay.getUserId();
 
 		String doAsUserId = themeDisplay.getDoAsUserId();
 
-		if (Validator.isNotNull(doAsUserId) &&
+		if ((user != null) && !user.isDefaultUser() &&
+			Validator.isNotNull(doAsUserId) &&
 			!Objects.equals(String.valueOf(userId), doAsUserId)) {
 
 			Company company = themeDisplay.getCompany();
@@ -326,8 +329,15 @@ public class PortletPreferencesFactoryImpl
 				userId = GetterUtil.getLong(
 					Encryptor.decrypt(company.getKeyObj(), doAsUserId), userId);
 			}
-			catch (EncryptorException encryptorException) {
-				_log.error("Unable to decrypt user ID", encryptorException);
+			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unable to decrypt user ID from " + doAsUserId,
+						exception);
+				}
+				else if (_log.isWarnEnabled()) {
+					_log.warn("Unable to decrypt user ID from " + doAsUserId);
+				}
 			}
 		}
 
@@ -337,7 +347,7 @@ public class PortletPreferencesFactoryImpl
 
 	@Override
 	public PortalPreferences getPortalPreferences(
-		HttpSession session, long userId, boolean signedIn) {
+		HttpSession httpSession, long userId, boolean signedIn) {
 
 		PortalPreferences portalPreferences = null;
 
@@ -351,8 +361,8 @@ public class PortletPreferencesFactoryImpl
 				portalPreferencesWrapper.getPortalPreferencesImpl();
 		}
 		else {
-			if (session != null) {
-				portalPreferences = (PortalPreferences)session.getAttribute(
+			if (httpSession != null) {
+				portalPreferences = (PortalPreferences)httpSession.getAttribute(
 					WebKeys.PORTAL_PREFERENCES);
 			}
 
@@ -360,8 +370,8 @@ public class PortletPreferencesFactoryImpl
 				portalPreferences =
 					portalPreferencesWrapper.getPortalPreferencesImpl();
 
-				if (session != null) {
-					session.setAttribute(
+				if (httpSession != null) {
+					httpSession.setAttribute(
 						WebKeys.PORTAL_PREFERENCES, portalPreferences);
 				}
 			}
@@ -410,8 +420,6 @@ public class PortletPreferencesFactoryImpl
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		long siteGroupId = themeDisplay.getSiteGroupId();
-
 		LayoutTypePortlet layoutTypePortlet =
 			themeDisplay.getLayoutTypePortlet();
 
@@ -428,8 +436,9 @@ public class PortletPreferencesFactoryImpl
 		}
 
 		return _getPortletPreferencesIds(
-			themeDisplay, siteGroupId, PortalUtil.getUserId(httpServletRequest),
-			layout, portletId, modeEditGuest);
+			themeDisplay, themeDisplay.getSiteGroupId(),
+			PortalUtil.getUserId(httpServletRequest), layout, portletId,
+			modeEditGuest);
 	}
 
 	@Override
@@ -483,7 +492,7 @@ public class PortletPreferencesFactoryImpl
 			ownerId = PortletIdCodec.decodeUserId(originalPortletId);
 			ownerType = PortletKeys.PREFS_OWNER_TYPE_USER;
 		}
-		else if (portlet.isPreferencesUniquePerLayout()) {
+		else if (portlet.isPreferencesUniquePerLayout() && (plid != 0)) {
 			ownerType = PortletKeys.PREFS_OWNER_TYPE_LAYOUT;
 		}
 		else if (portlet.isPreferencesOwnedByGroup()) {
@@ -902,10 +911,6 @@ public class PortletPreferencesFactoryImpl
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
 			layout.getCompanyId(), portletId);
 
-		long ownerId = 0;
-		int ownerType = 0;
-		long plid = 0;
-
 		if (modeEditGuest) {
 			PermissionChecker permissionChecker =
 				PermissionThreadLocal.getPermissionChecker();
@@ -925,6 +930,10 @@ public class PortletPreferencesFactoryImpl
 					layout.getLayoutId(), ActionKeys.UPDATE);
 			}
 		}
+
+		long ownerId = 0;
+		int ownerType = 0;
+		long plid = 0;
 
 		long masterLayoutPlid = layout.getMasterLayoutPlid();
 

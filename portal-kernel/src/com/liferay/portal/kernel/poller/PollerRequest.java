@@ -125,21 +125,10 @@ public class PollerRequest implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
-
-		sb.append("{chunkId=");
-		sb.append(_chunkId);
-		sb.append(", parameterMap=");
-		sb.append(_parameterMap);
-		sb.append(", pollerHeader=");
-		sb.append(_pollerHeader);
-		sb.append(", portletId=");
-		sb.append(_portletId);
-		sb.append(", receiveRequest=");
-		sb.append(_receiveRequest);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{chunkId=", _chunkId, ", parameterMap=", _parameterMap,
+			", pollerHeader=", _pollerHeader, ", portletId=", _portletId,
+			", receiveRequest=", _receiveRequest, "}");
 	}
 
 	private final String _chunkId;

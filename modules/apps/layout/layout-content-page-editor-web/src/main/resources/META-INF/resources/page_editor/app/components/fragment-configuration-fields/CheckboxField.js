@@ -12,31 +12,76 @@
  * details.
  */
 
+import {ClayButtonWithIcon} from '@clayui/button';
 import ClayForm, {ClayCheckbox} from '@clayui/form';
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React from 'react';
 
+import useControlledState from '../../../core/hooks/useControlledState';
 import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
+import {VIEWPORT_SIZES} from '../../config/constants/viewportSizes';
+import {useSelector} from '../../contexts/StoreContext';
 
-export const CheckboxField = ({field, onValueSelect, value}) => {
-	const [nextValue, setNextValue] = useState(!!value);
+export function CheckboxField({disabled, field, onValueSelect, title, value}) {
+	const [nextValue, setNextValue] = useControlledState(value || false);
+
+	const selectedViewportSize = useSelector(
+		(state) => state.selectedViewportSize
+	);
+
+	const customValues = field.typeOptions?.customValues;
 
 	return (
-		<ClayForm.Group className="mt-1">
-			<ClayCheckbox
-				aria-label={field.label}
-				checked={nextValue}
-				label={field.label}
-				onChange={(event) => {
-					setNextValue(event.target.checked);
-					onValueSelect(field.name, event.target.checked);
-				}}
-			/>
+		<ClayForm.Group className="mb-0 mt-1">
+			<div
+				className="align-items-center d-flex justify-content-between page-editor__sidebar__fieldset__field-checkbox"
+				data-tooltip-align="bottom"
+				title={title}
+			>
+				<ClayCheckbox
+					aria-label={field.label}
+					checked={
+						customValues
+							? nextValue === customValues.checked
+							: nextValue
+					}
+					containerProps={{className: 'mb-0'}}
+					disabled={disabled}
+					label={field.label}
+					onChange={(event) => {
+						let eventValue = event.target.checked;
+
+						if (customValues) {
+							eventValue = eventValue
+								? customValues.checked
+								: customValues.unchecked;
+						}
+
+						setNextValue(eventValue);
+						onValueSelect(field.name, eventValue);
+					}}
+				/>
+
+				{field.responsive &&
+					selectedViewportSize !== VIEWPORT_SIZES.desktop && (
+						<ClayButtonWithIcon
+							data-tooltip-align="bottom"
+							displayType="secondary"
+							onClick={() => {
+								onValueSelect(field.name, null);
+							}}
+							small
+							symbol="restore"
+							title={Liferay.Language.get('restore-default')}
+						/>
+					)}
+			</div>
 		</ClayForm.Group>
 	);
-};
+}
 
 CheckboxField.propTypes = {
+	disabled: PropTypes.bool,
 	field: PropTypes.shape(ConfigurationFieldPropTypes).isRequired,
 	onValueSelect: PropTypes.func.isRequired,
 	value: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),

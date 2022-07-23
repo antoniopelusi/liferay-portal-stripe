@@ -375,4 +375,7 @@ public interface SAPEntryModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public SAPEntry cloneWithOriginalValues();
+
 }

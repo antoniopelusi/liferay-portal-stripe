@@ -63,15 +63,9 @@ public class ClassPKInfoItemIdentifier extends BaseInfoItemIdentifier {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{className=");
-		sb.append(ClassPKInfoItemIdentifier.class.getName());
-		sb.append(", classPK=");
-		sb.append(_classPK);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{className=", ClassPKInfoItemIdentifier.class.getName(),
+			", classPK=", _classPK, "}");
 	}
 
 	private final long _classPK;

@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 
-import javax.portlet.PortletURL;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -65,9 +63,7 @@ public class RoleItemSelectorViewDisplayContext<T extends ItemSelectorCriterion>
 
 	@Override
 	public String getSearchActionURL() {
-		PortletURL portletURL = getPortletURL();
-
-		return portletURL.toString();
+		return String.valueOf(getPortletURL());
 	}
 
 	public SearchContainer<?> getSearchContainer() {

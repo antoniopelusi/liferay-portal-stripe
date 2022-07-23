@@ -94,7 +94,7 @@ public class AssetRendererSharingEntryInterpreter
 			return assetEntry.getTitle();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return StringPool.BLANK;
@@ -105,11 +105,7 @@ public class AssetRendererSharingEntryInterpreter
 		AssetRenderer<?> assetRenderer =
 			AssetRendererSharingUtil.getAssetRenderer(sharingEntry);
 
-		if (assetRenderer == null) {
-			return false;
-		}
-
-		if (!assetRenderer.isDisplayable()) {
+		if ((assetRenderer == null) || !assetRenderer.isDisplayable()) {
 			return false;
 		}
 

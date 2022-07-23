@@ -36,7 +36,5 @@ public class FooImpl extends FooBaseImpl {
 	 * instance should use the {@link com.example.sample.model.Foo} interface
 	 * instead.
 	 */
-	public FooImpl() {
-	}
 
 }

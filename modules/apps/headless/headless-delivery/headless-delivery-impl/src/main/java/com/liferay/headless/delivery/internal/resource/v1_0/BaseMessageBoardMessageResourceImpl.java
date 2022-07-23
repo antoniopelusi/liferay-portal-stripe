@@ -17,10 +17,12 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 import com.liferay.headless.delivery.dto.v1_0.MessageBoardMessage;
 import com.liferay.headless.delivery.dto.v1_0.Rating;
 import com.liferay.headless.delivery.resource.v1_0.MessageBoardMessageResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.ResourceAction;
-import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -30,10 +32,14 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
@@ -44,13 +50,6 @@ import com.liferay.portal.vulcan.permission.PermissionUtil;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.io.Serializable;
 
@@ -64,19 +63,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -87,7 +73,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v1.0")
+@javax.ws.rs.Path("/v1.0")
 public abstract class BaseMessageBoardMessageResourceImpl
 	implements EntityModelResource, MessageBoardMessageResource,
 			   VulcanBatchEngineTaskItemDelegate<MessageBoardMessage> {
@@ -97,22 +83,32 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Deletes the message board message and returns a 204 if the operation succeeds."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/message-board-messages/{messageBoardMessageId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteMessageBoardMessage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId)
 		throws Exception {
 	}
@@ -122,18 +118,30 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@DELETE
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/message-board-messages/batch")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/message-board-messages/batch")
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response deleteMessageBoardMessageBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -158,20 +166,32 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the message board message.")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the message board message."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/message-board-messages/{messageBoardMessageId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public MessageBoardMessage getMessageBoardMessage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId)
 		throws Exception {
 
@@ -183,23 +203,33 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}' -d $'{"anonymous": ___, "articleBody": ___, "creatorStatistics": ___, "customFields": ___, "encodingFormat": ___, "externalReferenceCode": ___, "friendlyUrlPath": ___, "headline": ___, "keywords": ___, "messageBoardSectionId": ___, "parentMessageBoardMessageId": ___, "showAsAnswer": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Updates only the fields received in the request body, leaving any other fields untouched."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@PATCH
-	@Path("/message-board-messages/{messageBoardMessageId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.PATCH
+	@javax.ws.rs.Path("/message-board-messages/{messageBoardMessageId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public MessageBoardMessage patchMessageBoardMessage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId,
 			MessageBoardMessage messageBoardMessage)
 		throws Exception {
@@ -292,6 +322,11 @@ public abstract class BaseMessageBoardMessageResourceImpl
 				messageBoardMessage.getSiteId());
 		}
 
+		if (messageBoardMessage.getStatus() != null) {
+			existingMessageBoardMessage.setStatus(
+				messageBoardMessage.getStatus());
+		}
+
 		if (messageBoardMessage.getSubscribed() != null) {
 			existingMessageBoardMessage.setSubscribed(
 				messageBoardMessage.getSubscribed());
@@ -313,23 +348,33 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}' -d $'{"anonymous": ___, "articleBody": ___, "creatorStatistics": ___, "customFields": ___, "encodingFormat": ___, "externalReferenceCode": ___, "friendlyUrlPath": ___, "headline": ___, "keywords": ___, "messageBoardSectionId": ___, "parentMessageBoardMessageId": ___, "showAsAnswer": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Replaces the message board message with the information sent in the request body. Any missing fields are deleted, unless they are required."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/message-board-messages/{messageBoardMessageId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public MessageBoardMessage putMessageBoardMessage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId,
 			MessageBoardMessage messageBoardMessage)
 		throws Exception {
@@ -342,18 +387,30 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
+		}
 	)
-	@Path("/message-board-messages/batch")
-	@Produces("application/json")
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path("/message-board-messages/batch")
+	@javax.ws.rs.Produces("application/json")
+	@javax.ws.rs.PUT
+	@Override
 	public Response putMessageBoardMessageBatch(
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -378,22 +435,34 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/my-rating'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Deletes the message board message's rating and returns a 204 if the operation succeeds."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/my-rating")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/my-rating"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteMessageBoardMessageMyRating(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId)
 		throws Exception {
 	}
@@ -403,20 +472,34 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/my-rating'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the message board message's rating.")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the message board message's rating."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/my-rating")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/my-rating"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Rating getMessageBoardMessageMyRating(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId)
 		throws Exception {
 
@@ -428,21 +511,35 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/my-rating' -d $'{"ratingValue": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(description = "Creates a rating for the message board message.")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Creates a rating for the message board message."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/my-rating")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/my-rating"
+	)
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Rating postMessageBoardMessageMyRating(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId,
 			Rating rating)
 		throws Exception {
@@ -455,23 +552,35 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/my-rating' -d $'{"ratingValue": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Replaces the rating with the information sent in the request body. Any missing fields are deleted, unless they are required."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/my-rating")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/my-rating"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public Rating putMessageBoardMessageMyRating(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId,
 			Rating rating)
 		throws Exception {
@@ -484,24 +593,40 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/permissions"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getMessageBoardMessagePermissionsPage(
-				@NotNull @Parameter(hidden = true)
-				@PathParam("messageBoardMessageId")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("messageBoardMessageId")
 				Long messageBoardMessageId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -512,7 +637,21 @@ public abstract class BaseMessageBoardMessageResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, resourceName, resourceId,
 			getPermissionCheckerGroupId(messageBoardMessageId));
 
-		return toPermissionPage(resourceId, resourceName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getMessageBoardMessagePermissionsPage", resourceName,
+					resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putMessageBoardMessagePermissionsPage", resourceName,
+					resourceId)
+			).build(),
+			resourceId, resourceName, roleNames);
 	}
 
 	/**
@@ -520,21 +659,34 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/permissions'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
-	public void putMessageBoardMessagePermission(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
-			Long messageBoardMessageId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/permissions"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putMessageBoardMessagePermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("messageBoardMessageId")
+				Long messageBoardMessageId,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String resourceName = getPermissionCheckerResourceName(
@@ -546,12 +698,29 @@ public abstract class BaseMessageBoardMessageResourceImpl
 			getPermissionCheckerGroupId(messageBoardMessageId));
 
 		resourcePermissionLocalService.updateResourcePermissions(
-			contextCompany.getCompanyId(), 0, resourceName,
+			contextCompany.getCompanyId(),
+			getPermissionCheckerGroupId(messageBoardMessageId), resourceName,
 			String.valueOf(resourceId),
 			ModelPermissionsUtil.toModelPermissions(
 				contextCompany.getCompanyId(), permissions, resourceId,
 				resourceName, resourceActionLocalService,
 				resourcePermissionLocalService, roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getMessageBoardMessagePermissionsPage", resourceName,
+					resourceId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putMessageBoardMessagePermissionsPage", resourceName,
+					resourceId)
+			).build(),
+			resourceId, resourceName, null);
 	}
 
 	/**
@@ -559,19 +728,31 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/subscribe'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/subscribe")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/subscribe"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public void putMessageBoardMessageSubscribe(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId)
 		throws Exception {
 	}
@@ -581,19 +762,31 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/unsubscribe'  -u 'test@liferay.com:test'
 	 */
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardMessageId"
+			)
 		}
 	)
-	@Path("/message-board-messages/{messageBoardMessageId}/unsubscribe")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Path(
+		"/message-board-messages/{messageBoardMessageId}/unsubscribe"
+	)
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public void putMessageBoardMessageUnsubscribe(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardMessageId")
 			Long messageBoardMessageId)
 		throws Exception {
 	}
@@ -603,41 +796,72 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{parentMessageBoardMessageId}/message-board-messages'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Retrieves the parent message board message's child messages. Results can be paginated, filtered, searched, and sorted."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(
-				in = ParameterIn.PATH, name = "parentMessageBoardMessageId"
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "parentMessageBoardMessageId"
 			),
-			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
-			@Parameter(in = ParameterIn.QUERY, name = "search"),
-			@Parameter(in = ParameterIn.QUERY, name = "filter"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "flatten"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "search"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
 		"/message-board-messages/{parentMessageBoardMessageId}/message-board-messages"
 	)
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<MessageBoardMessage>
 			getMessageBoardMessageMessageBoardMessagesPage(
-				@NotNull @Parameter(hidden = true)
-				@PathParam("parentMessageBoardMessageId")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("parentMessageBoardMessageId")
 				Long parentMessageBoardMessageId,
-				@Parameter(hidden = true) @QueryParam("flatten") Boolean
-					flatten,
-				@Parameter(hidden = true) @QueryParam("search") String search,
-				@Context com.liferay.portal.vulcan.aggregation.Aggregation
-					aggregation,
-				@Context Filter filter, @Context Pagination pagination,
-				@Context Sort[] sorts)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("flatten")
+				Boolean flatten,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("search")
+				String search,
+				@javax.ws.rs.core.Context
+					com.liferay.portal.vulcan.aggregation.Aggregation
+						aggregation,
+				@javax.ws.rs.core.Context Filter filter,
+				@javax.ws.rs.core.Context Pagination pagination,
+				@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -648,27 +872,35 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{parentMessageBoardMessageId}/message-board-messages' -d $'{"anonymous": ___, "articleBody": ___, "creatorStatistics": ___, "customFields": ___, "encodingFormat": ___, "externalReferenceCode": ___, "friendlyUrlPath": ___, "headline": ___, "keywords": ___, "messageBoardSectionId": ___, "parentMessageBoardMessageId": ___, "showAsAnswer": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Creates a child message board message of the parent message."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(
-				in = ParameterIn.PATH, name = "parentMessageBoardMessageId"
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "parentMessageBoardMessageId"
 			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
 		"/message-board-messages/{parentMessageBoardMessageId}/message-board-messages"
 	)
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public MessageBoardMessage postMessageBoardMessageMessageBoardMessage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("parentMessageBoardMessageId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("parentMessageBoardMessageId")
 			Long parentMessageBoardMessageId,
 			MessageBoardMessage messageBoardMessage)
 		throws Exception {
@@ -681,36 +913,65 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-threads/{messageBoardThreadId}/message-board-messages'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Retrieves the message board thread's messages. Results can be paginated, filtered, searched, and sorted."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardThreadId"),
-			@Parameter(in = ParameterIn.QUERY, name = "search"),
-			@Parameter(in = ParameterIn.QUERY, name = "filter"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardThreadId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "search"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
 		"/message-board-threads/{messageBoardThreadId}/message-board-messages"
 	)
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<MessageBoardMessage>
 			getMessageBoardThreadMessageBoardMessagesPage(
-				@NotNull @Parameter(hidden = true)
-				@PathParam("messageBoardThreadId")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("messageBoardThreadId")
 				Long messageBoardThreadId,
-				@Parameter(hidden = true) @QueryParam("search") String search,
-				@Context com.liferay.portal.vulcan.aggregation.Aggregation
-					aggregation,
-				@Context Filter filter, @Context Pagination pagination,
-				@Context Sort[] sorts)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("search")
+				String search,
+				@javax.ws.rs.core.Context
+					com.liferay.portal.vulcan.aggregation.Aggregation
+						aggregation,
+				@javax.ws.rs.core.Context Filter filter,
+				@javax.ws.rs.core.Context Pagination pagination,
+				@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -721,25 +982,35 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-threads/{messageBoardThreadId}/message-board-messages' -d $'{"anonymous": ___, "articleBody": ___, "creatorStatistics": ___, "customFields": ___, "encodingFormat": ___, "externalReferenceCode": ___, "friendlyUrlPath": ___, "headline": ___, "keywords": ___, "messageBoardSectionId": ___, "parentMessageBoardMessageId": ___, "showAsAnswer": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Creates a new message in the message board thread."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardThreadId")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardThreadId"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
 		"/message-board-threads/{messageBoardThreadId}/message-board-messages"
 	)
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public MessageBoardMessage postMessageBoardThreadMessageBoardMessage(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardThreadId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardThreadId")
 			Long messageBoardThreadId,
 			MessageBoardMessage messageBoardMessage)
 		throws Exception {
@@ -752,26 +1023,40 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-threads/{messageBoardThreadId}/message-board-messages/batch'  -u 'test@liferay.com:test'
 	 */
-	@Consumes("application/json")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "messageBoardThreadId"),
-			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "messageBoardThreadId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "callbackURL"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes("application/json")
+	@javax.ws.rs.Path(
 		"/message-board-threads/{messageBoardThreadId}/message-board-messages/batch"
 	)
-	@POST
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces("application/json")
+	@Override
 	public Response postMessageBoardThreadMessageBoardMessageBatch(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("messageBoardThreadId")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("messageBoardThreadId")
 			Long messageBoardThreadId,
-			@Parameter(hidden = true) @QueryParam("callbackURL") String
-				callbackURL,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("callbackURL")
+			String callbackURL,
 			Object object)
 		throws Exception {
 
@@ -796,31 +1081,68 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the site's message board messages.")
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the site's message board messages."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
-			@Parameter(in = ParameterIn.QUERY, name = "search"),
-			@Parameter(in = ParameterIn.QUERY, name = "filter"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "flatten"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "search"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "page"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "sort"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/message-board-messages")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/sites/{siteId}/message-board-messages")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<MessageBoardMessage> getSiteMessageBoardMessagesPage(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Parameter(hidden = true) @QueryParam("flatten") Boolean flatten,
-			@Parameter(hidden = true) @QueryParam("search") String search,
-			@Context com.liferay.portal.vulcan.aggregation.Aggregation
-				aggregation,
-			@Context Filter filter, @Context Pagination pagination,
-			@Context Sort[] sorts)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("flatten")
+			Boolean flatten,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("search")
+			String search,
+			@javax.ws.rs.core.Context
+				com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+			@javax.ws.rs.core.Context Filter filter,
+			@javax.ws.rs.core.Context Pagination pagination,
+			@javax.ws.rs.core.Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -831,26 +1153,42 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages/by-external-reference-code/{externalReferenceCode}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Deletes the site's message board message by external reference code."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "externalReferenceCode")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "externalReferenceCode"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path(
 		"/sites/{siteId}/message-board-messages/by-external-reference-code/{externalReferenceCode}"
 	)
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deleteSiteMessageBoardMessageByExternalReferenceCode(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true)
-			@PathParam("externalReferenceCode")
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("externalReferenceCode")
 			String externalReferenceCode)
 		throws Exception {
 	}
@@ -860,28 +1198,43 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages/by-external-reference-code/{externalReferenceCode}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Retrieves the site's message board message by external reference code."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "externalReferenceCode")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "externalReferenceCode"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
 		"/sites/{siteId}/message-board-messages/by-external-reference-code/{externalReferenceCode}"
 	)
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public MessageBoardMessage
 			getSiteMessageBoardMessageByExternalReferenceCode(
-				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
-					siteId,
-				@NotNull @Parameter(hidden = true)
-				@PathParam("externalReferenceCode")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("externalReferenceCode")
 				String externalReferenceCode)
 		throws Exception {
 
@@ -893,29 +1246,44 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages/by-external-reference-code/{externalReferenceCode}' -d $'{"anonymous": ___, "articleBody": ___, "creatorStatistics": ___, "customFields": ___, "encodingFormat": ___, "externalReferenceCode": ___, "friendlyUrlPath": ___, "headline": ___, "keywords": ___, "messageBoardSectionId": ___, "parentMessageBoardMessageId": ___, "showAsAnswer": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Updates the site's message board message with the given external reference code, or creates it if it not exists."
 	)
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "externalReferenceCode")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "externalReferenceCode"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path(
 		"/sites/{siteId}/message-board-messages/by-external-reference-code/{externalReferenceCode}"
 	)
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public MessageBoardMessage
 			putSiteMessageBoardMessageByExternalReferenceCode(
-				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
-					siteId,
-				@NotNull @Parameter(hidden = true)
-				@PathParam("externalReferenceCode")
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("externalReferenceCode")
 				String externalReferenceCode,
 				MessageBoardMessage messageBoardMessage)
 		throws Exception {
@@ -928,23 +1296,40 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages/by-friendly-url-path/{friendlyUrlPath}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "friendlyUrlPath")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "friendlyUrlPath"
+			)
 		}
 	)
-	@Path(
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path(
 		"/sites/{siteId}/message-board-messages/by-friendly-url-path/{friendlyUrlPath}"
 	)
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public MessageBoardMessage getSiteMessageBoardMessageByFriendlyUrlPath(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true) @PathParam("friendlyUrlPath")
-				String friendlyUrlPath)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("siteId")
+			Long siteId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("friendlyUrlPath")
+			String friendlyUrlPath)
 		throws Exception {
 
 		return new MessageBoardMessage();
@@ -955,23 +1340,38 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages/permissions'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Override
-	@Parameters(
+	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "roleNames"
+			)
 		}
 	)
-	@Path("/sites/{siteId}/message-board-messages/permissions")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/sites/{siteId}/message-board-messages/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getSiteMessageBoardMessagePermissionsPage(
-				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
-					siteId,
-				@Parameter(hidden = true) @QueryParam("roleNames") String
-					roleNames)
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.ws.rs.QueryParam("roleNames")
+				String roleNames)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(siteId);
@@ -980,7 +1380,21 @@ public abstract class BaseMessageBoardMessageResourceImpl
 			ActionKeys.PERMISSIONS, groupLocalService, portletName, siteId,
 			siteId);
 
-		return toPermissionPage(siteId, portletName, roleNames);
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getSiteMessageBoardMessagePermissionsPage", portletName,
+					siteId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putSiteMessageBoardMessagePermissionsPage", portletName,
+					siteId)
+			).build(),
+			siteId, portletName, roleNames);
 	}
 
 	/**
@@ -988,15 +1402,32 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages/permissions'  -u 'test@liferay.com:test'
 	 */
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "siteId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(
+				name = "MessageBoardMessage"
+			)
+		}
+	)
+	@javax.ws.rs.Path("/sites/{siteId}/message-board-messages/permissions")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
 	@Override
-	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
-	@Path("/sites/{siteId}/message-board-messages/permissions")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "MessageBoardMessage")})
-	public void putSiteMessageBoardMessagePermission(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putSiteMessageBoardMessagePermissionsPage(
+				@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+				@javax.validation.constraints.NotNull
+				@javax.ws.rs.PathParam("siteId")
+				Long siteId,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
 
 		String portletName = getPermissionCheckerPortletName(siteId);
@@ -1012,6 +1443,22 @@ public abstract class BaseMessageBoardMessageResourceImpl
 				contextCompany.getCompanyId(), permissions, siteId, portletName,
 				resourceActionLocalService, resourcePermissionLocalService,
 				roleLocalService));
+
+		return toPermissionPage(
+			HashMapBuilder.put(
+				"get",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"getSiteMessageBoardMessagePermissionsPage", portletName,
+					siteId)
+			).put(
+				"replace",
+				addAction(
+					ActionKeys.PERMISSIONS,
+					"putSiteMessageBoardMessagePermissionsPage", portletName,
+					siteId)
+			).build(),
+			siteId, portletName, null);
 	}
 
 	@Override
@@ -1021,10 +1468,24 @@ public abstract class BaseMessageBoardMessageResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (MessageBoardMessage messageBoardMessage : messageBoardMessages) {
-			postMessageBoardThreadMessageBoardMessage(
-				(Long)parameters.get("messageBoardThreadId"),
-				messageBoardMessage);
+		UnsafeConsumer<MessageBoardMessage, Exception>
+			messageBoardMessageUnsafeConsumer =
+				messageBoardMessage ->
+					postMessageBoardThreadMessageBoardMessage(
+						Long.parseLong(
+							(String)parameters.get("messageBoardThreadId")),
+						messageBoardMessage);
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				messageBoardMessages, messageBoardMessageUnsafeConsumer);
+		}
+		else {
+			for (MessageBoardMessage messageBoardMessage :
+					messageBoardMessages) {
+
+				messageBoardMessageUnsafeConsumer.accept(messageBoardMessage);
+			}
 		}
 	}
 
@@ -1054,15 +1515,27 @@ public abstract class BaseMessageBoardMessageResourceImpl
 		return null;
 	}
 
+	public String getVersion() {
+		return "v1.0";
+	}
+
 	@Override
 	public Page<MessageBoardMessage> read(
 			Filter filter, Pagination pagination, Sort[] sorts,
 			Map<String, Serializable> parameters, String search)
 		throws Exception {
 
-		return getSiteMessageBoardMessagesPage(
-			(Long)parameters.get("siteId"), (Boolean)parameters.get("flatten"),
-			search, null, filter, pagination, sorts);
+		if (parameters.containsKey("siteId")) {
+			return getSiteMessageBoardMessagesPage(
+				(Long)parameters.get("siteId"),
+				Boolean.parseBoolean((String)parameters.get("flatten")), search,
+				null, filter, pagination, sorts);
+		}
+		else {
+			return getMessageBoardThreadMessageBoardMessagesPage(
+				Long.parseLong((String)parameters.get("messageBoardThreadId")),
+				search, null, filter, pagination, sorts);
+		}
 	}
 
 	@Override
@@ -1097,7 +1570,8 @@ public abstract class BaseMessageBoardMessageResourceImpl
 			putMessageBoardMessage(
 				messageBoardMessage.getId() != null ?
 					messageBoardMessage.getId() :
-						(Long)parameters.get("messageBoardMessageId"),
+						Long.parseLong(
+							(String)parameters.get("messageBoardMessageId")),
 				messageBoardMessage);
 		}
 	}
@@ -1132,7 +1606,9 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	}
 
 	protected Page<com.liferay.portal.vulcan.permission.Permission>
-			toPermissionPage(long id, String resourceName, String roleNames)
+			toPermissionPage(
+				Map<String, Map<String, String>> actions, long id,
+				String resourceName, String roleNames)
 		throws Exception {
 
 		List<ResourceAction> resourceActions =
@@ -1140,6 +1616,7 @@ public abstract class BaseMessageBoardMessageResourceImpl
 
 		if (Validator.isNotNull(roleNames)) {
 			return Page.of(
+				actions,
 				transform(
 					PermissionUtil.getRoles(
 						contextCompany, roleLocalService,
@@ -1150,10 +1627,11 @@ public abstract class BaseMessageBoardMessageResourceImpl
 		}
 
 		return Page.of(
+			actions,
 			transform(
-				resourcePermissionLocalService.getResourcePermissions(
-					contextCompany.getCompanyId(), resourceName,
-					ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(id)),
+				PermissionUtil.getResourcePermissions(
+					contextCompany.getCompanyId(), id, resourceName,
+					resourcePermissionLocalService),
 				resourcePermission -> PermissionUtil.toPermission(
 					resourceActions, resourcePermission,
 					roleLocalService.getRole(resourcePermission.getRoleId()))));
@@ -1161,6 +1639,15 @@ public abstract class BaseMessageBoardMessageResourceImpl
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
+	}
+
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<MessageBoardMessage>,
+			 UnsafeConsumer<MessageBoardMessage, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
 	}
 
 	public void setContextCompany(
@@ -1191,12 +1678,69 @@ public abstract class BaseMessageBoardMessageResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
+	}
+
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
+	}
+
+	@Override
+	public Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		try {
+			EntityModel entityModel = getEntityModel(multivaluedMap);
+
+			FilterParser filterParser = filterParserProvider.provide(
+				entityModel);
+
+			com.liferay.portal.odata.filter.Filter oDataFilter =
+				new com.liferay.portal.odata.filter.Filter(
+					filterParser.parse(filterString));
+
+			return expressionConvert.convert(
+				oDataFilter.getExpression(),
+				contextAcceptLanguage.getPreferredLocale(), entityModel);
+		}
+		catch (Exception exception) {
+			_log.error("Invalid filter " + filterString, exception);
+		}
+
+		return null;
 	}
 
 	protected Map<String, String> addAction(
@@ -1267,17 +1811,26 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<MessageBoardMessage>,
+		 UnsafeConsumer<MessageBoardMessage, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
 	protected VulcanBatchEngineImportTaskResource
 		vulcanBatchEngineImportTaskResource;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseMessageBoardMessageResourceImpl.class);
 
 }

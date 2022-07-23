@@ -21,6 +21,7 @@ import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
 import com.liferay.document.library.versioning.VersionPurger;
 import com.liferay.petra.function.UnsafeRunnable;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
@@ -35,14 +36,11 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -54,6 +52,11 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Alejandro Tardín
@@ -174,12 +177,16 @@ public class LiferayVersioningCapabilityTest {
 
 				List<FileVersion> deletedFileVersions = new ArrayList<>();
 
-				Registry registry = RegistryUtil.getRegistry();
+				Bundle bundle = FrameworkUtil.getBundle(
+					LiferayVersioningCapabilityTest.class);
+
+				BundleContext bundleContext = bundle.getBundleContext();
 
 				ServiceRegistration<VersionPurger.VersionPurgedListener>
-					capabilityServiceRegistration = registry.registerService(
-						VersionPurger.VersionPurgedListener.class,
-						deletedFileVersions::add);
+					capabilityServiceRegistration =
+						bundleContext.registerService(
+							VersionPurger.VersionPurgedListener.class,
+							deletedFileVersions::add, null);
 
 				try {
 					for (int i = 0; i < 10; i++) {
@@ -240,10 +247,10 @@ public class LiferayVersioningCapabilityTest {
 		throws PortalException {
 
 		return DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
-			TestDataConstants.TEST_BYTE_ARRAY, serviceContext);
+			TestDataConstants.TEST_BYTE_ARRAY, null, null, serviceContext);
 	}
 
 	private FileEntry _generateNewVersion(
@@ -252,9 +259,10 @@ public class LiferayVersioningCapabilityTest {
 
 		return DLAppServiceUtil.updateFileEntry(
 			fileEntry.getFileEntryId(), fileEntry.getFileName(),
-			fileEntry.getMimeType(), fileEntry.getTitle(),
+			fileEntry.getMimeType(), fileEntry.getTitle(), StringPool.BLANK,
 			fileEntry.getDescription(), RandomTestUtil.randomString(),
 			DLVersionNumberIncrease.MINOR, TestDataConstants.TEST_BYTE_ARRAY,
+			fileEntry.getExpirationDate(), fileEntry.getReviewDate(),
 			serviceContext);
 	}
 
@@ -263,9 +271,10 @@ public class LiferayVersioningCapabilityTest {
 			UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("maximumNumberOfVersions", maximumNumberOfVersions);
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"maximumNumberOfVersions", maximumNumberOfVersions
+			).build();
 
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(

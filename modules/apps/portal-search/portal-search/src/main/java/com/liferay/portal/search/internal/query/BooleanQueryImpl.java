@@ -35,6 +35,7 @@ public class BooleanQueryImpl extends BaseQueryImpl implements BooleanQuery {
 		return queryVisitor.visit(this);
 	}
 
+	@Override
 	public BooleanQuery addFilterQueryClauses(Query... clauses) {
 		if (ArrayUtil.isEmpty(clauses)) {
 			return this;
@@ -45,6 +46,7 @@ public class BooleanQueryImpl extends BaseQueryImpl implements BooleanQuery {
 		return this;
 	}
 
+	@Override
 	public BooleanQuery addMustNotQueryClauses(Query... clauses) {
 		if (ArrayUtil.isEmpty(clauses)) {
 			return this;
@@ -55,6 +57,7 @@ public class BooleanQueryImpl extends BaseQueryImpl implements BooleanQuery {
 		return this;
 	}
 
+	@Override
 	public BooleanQuery addMustQueryClauses(Query... clauses) {
 		if (ArrayUtil.isEmpty(clauses)) {
 			return this;
@@ -65,6 +68,7 @@ public class BooleanQueryImpl extends BaseQueryImpl implements BooleanQuery {
 		return this;
 	}
 
+	@Override
 	public BooleanQuery addShouldQueryClauses(Query... clauses) {
 		if (ArrayUtil.isEmpty(clauses)) {
 			return this;
@@ -107,19 +111,9 @@ public class BooleanQueryImpl extends BaseQueryImpl implements BooleanQuery {
 
 	@Override
 	public boolean hasClauses() {
-		if (!_filterQueryClauses.isEmpty()) {
-			return true;
-		}
+		if (!_filterQueryClauses.isEmpty() || !_mustQueryClauses.isEmpty() ||
+			!_mustNotQueryClauses.isEmpty() || !_shouldQueryClauses.isEmpty()) {
 
-		if (!_mustQueryClauses.isEmpty()) {
-			return true;
-		}
-
-		if (!_mustNotQueryClauses.isEmpty()) {
-			return true;
-		}
-
-		if (!_shouldQueryClauses.isEmpty()) {
 			return true;
 		}
 

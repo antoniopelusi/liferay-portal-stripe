@@ -27,10 +27,54 @@ public class ObjectRelationshipServiceWrapper
 	implements ObjectRelationshipService,
 			   ServiceWrapper<ObjectRelationshipService> {
 
+	public ObjectRelationshipServiceWrapper() {
+		this(null);
+	}
+
 	public ObjectRelationshipServiceWrapper(
 		ObjectRelationshipService objectRelationshipService) {
 
 		_objectRelationshipService = objectRelationshipService;
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectRelationship addObjectRelationship(
+			long objectDefinitionId1, long objectDefinitionId2,
+			String deletionType,
+			java.util.Map<java.util.Locale, String> labelMap, String name,
+			String type)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectRelationshipService.addObjectRelationship(
+			objectDefinitionId1, objectDefinitionId2, deletionType, labelMap,
+			name, type);
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectRelationship deleteObjectRelationship(
+			long objectRelationshipId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectRelationshipService.deleteObjectRelationship(
+			objectRelationshipId);
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectRelationship getObjectRelationship(
+			long objectRelationshipId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectRelationshipService.getObjectRelationship(
+			objectRelationshipId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.object.model.ObjectRelationship>
+			getObjectRelationships(long objectDefinitionId1, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectRelationshipService.getObjectRelationships(
+			objectDefinitionId1, start, end);
 	}
 
 	/**
@@ -41,6 +85,16 @@ public class ObjectRelationshipServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _objectRelationshipService.getOSGiServiceIdentifier();
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectRelationship updateObjectRelationship(
+			long objectRelationshipId, String deletionType,
+			java.util.Map<java.util.Locale, String> labelMap)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectRelationshipService.updateObjectRelationship(
+			objectRelationshipId, deletionType, labelMap);
 	}
 
 	@Override

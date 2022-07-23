@@ -17,18 +17,19 @@ package com.liferay.portal.configuration.metatype.bnd.util;
 import aQute.bnd.annotation.metatype.Meta;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.test.SwappableSecurityManager;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.rule.NewEnv;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.test.util.ReflectionUtilTestUtil;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.test.aspects.ReflectionUtilAdvice;
 import com.liferay.portal.test.rule.AdviseWith;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.PropsImpl;
 
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
@@ -65,21 +66,21 @@ public class ConfigurableUtilTest {
 		_testBigString(65536);
 	}
 
-	@AdviseWith(adviceClasses = ReflectionUtilAdvice.class)
 	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testClassInitializationFailure() throws Exception {
-		Throwable throwable = new Throwable();
+		SecurityException securityException = new SecurityException();
 
-		ReflectionUtilAdvice.setDeclaredMethodThrowable(throwable);
+		try (SwappableSecurityManager swappableSecurityManager =
+				ReflectionUtilTestUtil.throwForSuppressAccessChecks(
+					securityException)) {
 
-		try {
 			Class.forName(ConfigurableUtil.class.getName());
 
 			Assert.fail();
 		}
 		catch (ExceptionInInitializerError eiie) {
-			Assert.assertSame(throwable, eiie.getCause());
+			Assert.assertSame(securityException, eiie.getCause());
 		}
 	}
 
@@ -117,13 +118,12 @@ public class ConfigurableUtilTest {
 
 		// Test dictionary
 
-		Dictionary<String, String> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("testReqiredString", "testReqiredString1");
-
 		_assertTestConfiguration(
 			ConfigurableUtil.createConfigurable(
-				TestConfiguration.class, dictionary),
+				TestConfiguration.class,
+				HashMapDictionaryBuilder.put(
+					"testReqiredString", "testReqiredString1"
+				).build()),
 			"testReqiredString1");
 
 		// Test map
@@ -179,13 +179,12 @@ public class ConfigurableUtilTest {
 				"_testReqiredString",
 			"\"testReqiredString3\"");
 
-		Dictionary<String, String> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("testReqiredString", "testReqiredString1");
-
 		_assertTestConfiguration(
 			ConfigurableUtil.createConfigurable(
-				TestConfiguration.class, dictionary),
+				TestConfiguration.class,
+				HashMapDictionaryBuilder.put(
+					"testReqiredString", "testReqiredString1"
+				).build()),
 			"testReqiredString3");
 
 		// Test map override
@@ -196,6 +195,16 @@ public class ConfigurableUtilTest {
 				Collections.singletonMap(
 					"testReqiredString", "testReqiredString2")),
 			"testReqiredString3");
+	}
+
+	@Test
+	public void testSyntheticMethod() {
+		TestSyntheticMethodConfiguration testSyntheticMethodConfiguration =
+			ConfigurableUtil.createConfigurable(
+				TestSyntheticMethodConfiguration.class, Collections.emptyMap());
+
+		Assert.assertEquals(
+			"test_string", testSyntheticMethodConfiguration.testString());
 	}
 
 	@Aspect
@@ -263,6 +272,9 @@ public class ConfigurableUtilTest {
 			new String[] {"test_string_1", "test_string_2"},
 			testConfiguration.testStringArray());
 		Assert.assertArrayEquals(
+			new String[0],
+			testConfiguration.testStringArrayWithEmptyStringAsDefault());
+		Assert.assertArrayEquals(
 			new String[] {"a=b", "c=d,e=f"},
 			testConfiguration.testStringEscapeMultiValuedAttribute());
 		Assert.assertEquals(
@@ -275,13 +287,13 @@ public class ConfigurableUtilTest {
 	}
 
 	private void _testBigString(int length) {
-		StringBuilder stringBuilder = new StringBuilder(length);
+		StringBundler sb = new StringBundler(length);
 
 		for (int i = 0; i < length; i++) {
-			stringBuilder.append(CharPool.LOWER_CASE_A);
+			sb.append(CharPool.LOWER_CASE_A);
 		}
 
-		String bigString = stringBuilder.toString();
+		String bigString = sb.toString();
 
 		_assertTestConfiguration(
 			ConfigurableUtil.createConfigurable(
@@ -331,6 +343,9 @@ public class ConfigurableUtilTest {
 		@Meta.AD(deflt = "test_string_1|test_string_2", required = false)
 		public String[] testStringArray();
 
+		@Meta.AD(deflt = "", required = false)
+		public String[] testStringArrayWithEmptyStringAsDefault();
+
 		@Meta.AD(deflt = "a=b,c=d\\,e=f", required = false)
 		public String[] testStringEscapeMultiValuedAttribute();
 
@@ -342,6 +357,16 @@ public class ConfigurableUtilTest {
 	private enum TestEnum {
 
 		TEST_VALUE
+
+	}
+
+	private interface TestSyntheticMethodConfiguration {
+
+		@Meta.AD(deflt = "test_string", required = false)
+		public String testString();
+
+		public Runnable runnable = () -> {
+		};
 
 	}
 

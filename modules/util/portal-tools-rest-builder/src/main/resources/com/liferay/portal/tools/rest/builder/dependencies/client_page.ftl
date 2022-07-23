@@ -31,6 +31,16 @@ public class Page<T> {
 		return (Page<T>)pageJSONParser.parseToDTO(json);
 	}
 
+	public T fetchFirstItem() {
+		Iterator<T> iterator = _items.iterator();
+
+		if (iterator.hasNext()) {
+			return iterator.next();
+		}
+
+		return null;
+	}
+
 	public Map<String, Map> getActions() {
 		return _actions;
 	}

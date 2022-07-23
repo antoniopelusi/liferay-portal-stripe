@@ -15,6 +15,7 @@
 package com.liferay.commerce.product.service;
 
 import com.liferay.commerce.product.model.CommerceCatalog;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -41,6 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -99,7 +101,7 @@ public interface CommerceCatalogService extends BaseService {
 	public String getOSGiServiceIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CommerceCatalog> searchCommerceCatalogs(
+	public List<CommerceCatalog> search(
 			long companyId, String keywords, int start, int end, Sort sort)
 		throws PortalException;
 

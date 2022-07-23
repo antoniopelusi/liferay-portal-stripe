@@ -16,14 +16,17 @@ package com.liferay.content.dashboard.web.internal.portlet.action;
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetTag;
+import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.model.AssetVocabularyConstants;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.content.dashboard.item.action.ContentDashboardItemAction;
 import com.liferay.content.dashboard.web.internal.constants.ContentDashboardPortletKeys;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItem;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItemFactory;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItemFactoryTracker;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemType;
+import com.liferay.content.dashboard.web.internal.util.ContentDashboardGroupUtil;
 import com.liferay.info.item.InfoItemReference;
-import com.liferay.info.type.WebImage;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -35,15 +38,17 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -51,14 +56,16 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import javax.portlet.ResourceRequest;
@@ -91,6 +98,9 @@ public class GetContentDashboardItemInfoMVCResourceCommand
 		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
 			resourceRequest);
 		Locale locale = _portal.getLocale(resourceRequest);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		try {
 			String className = ParamUtil.getString(
@@ -110,37 +120,59 @@ public class GetContentDashboardItemInfoMVCResourceCommand
 							contentDashboardItemFactory.create(classPK));
 					}
 					catch (PortalException portalException) {
-						_log.error(portalException, portalException);
+						_log.error(portalException);
 
 						return Optional.empty();
 					}
 				}
 			).map(
 				contentDashboardItem -> JSONUtil.put(
-					"categories",
-					_getAssetCategoriesJSONArray(contentDashboardItem, locale)
-				).put(
 					"className", _getClassName(contentDashboardItem)
 				).put(
 					"classPK", _getClassPK(contentDashboardItem)
 				).put(
+					"clipboard", _getClipboardJSONObject(contentDashboardItem)
+				).put(
 					"createDate",
 					_toString(contentDashboardItem.getCreateDate())
 				).put(
-					"data", _getDataJSONObject(contentDashboardItem, locale)
+					"description", contentDashboardItem.getDescription(locale)
 				).put(
 					"languageTag", locale.toLanguageTag()
 				).put(
 					"modifiedDate",
 					_toString(contentDashboardItem.getModifiedDate())
 				).put(
-					"subType", _getSubtype(contentDashboardItem, locale)
+					"preview",
+					Optional.ofNullable(
+						contentDashboardItem.getPreview()
+					).map(
+						ContentDashboardItem.Preview::toJSONObject
+					).orElse(
+						null
+					)
+				).put(
+					"specificFields",
+					_getSpecificFieldsJSONObject(contentDashboardItem, locale)
+				).put(
+					"subType",
+					Optional.ofNullable(
+						contentDashboardItem.getContentDashboardItemSubtype()
+					).map(
+						contentDashboardItemSubtype ->
+							contentDashboardItemSubtype.getLabel(locale)
+					).orElse(
+						StringPool.BLANK
+					)
 				).put(
 					"tags", _getAssetTagsJSONArray(contentDashboardItem)
 				).put(
 					"title", contentDashboardItem.getTitle(locale)
 				).put(
-					"user", _getUserJSONObject(contentDashboardItem, locale)
+					"type", contentDashboardItem.getTypeLabel(locale)
+				).put(
+					"user",
+					_getUserJSONObject(contentDashboardItem, themeDisplay)
 				).put(
 					"versions",
 					_getVersionsJSONArray(contentDashboardItem, locale)
@@ -148,6 +180,10 @@ public class GetContentDashboardItemInfoMVCResourceCommand
 					"viewURLs",
 					_getViewURLsJSONArray(
 						contentDashboardItem, httpServletRequest)
+				).put(
+					"vocabularies",
+					_getAssetVocabulariesJSONObject(
+						contentDashboardItem, locale)
 				)
 			).orElseGet(
 				JSONFactoryUtil::createJSONObject
@@ -158,33 +194,17 @@ public class GetContentDashboardItemInfoMVCResourceCommand
 		}
 		catch (Exception exception) {
 			if (_log.isInfoEnabled()) {
-				_log.info(exception, exception);
+				_log.info(exception);
 			}
-
-			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-				locale, getClass());
 
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse,
 				JSONUtil.put(
 					"error",
 					ResourceBundleUtil.getString(
-						resourceBundle, "an-unexpected-error-occurred")));
+						ResourceBundleUtil.getBundle(locale, getClass()),
+						"an-unexpected-error-occurred")));
 		}
-	}
-
-	private JSONArray _getAssetCategoriesJSONArray(
-		ContentDashboardItem contentDashboardItem, Locale locale) {
-
-		List<AssetCategory> assetCategories =
-			contentDashboardItem.getAssetCategories();
-
-		Stream<AssetCategory> stream = assetCategories.stream();
-
-		return JSONUtil.putAll(
-			stream.map(
-				assetCategory -> assetCategory.getTitle(locale)
-			).toArray());
 	}
 
 	private JSONArray _getAssetTagsJSONArray(
@@ -198,6 +218,41 @@ public class GetContentDashboardItemInfoMVCResourceCommand
 			stream.map(
 				AssetTag::getName
 			).toArray());
+	}
+
+	private JSONObject _getAssetVocabulariesJSONObject(
+		ContentDashboardItem contentDashboardItem, Locale locale) {
+
+		List<AssetCategory> assetCategories =
+			contentDashboardItem.getAssetCategories();
+
+		Stream<AssetCategory> stream = assetCategories.stream();
+
+		return JSONFactoryUtil.createJSONObject(
+			stream.collect(_getCollector(locale)));
+	}
+
+	private Map<String, Object> _getAssetVocabularyData(
+		Locale locale, AssetVocabulary assetVocabulary) {
+
+		return HashMapBuilder.<String, Object>put(
+			"categories", ListUtil.fromArray()
+		).put(
+			"groupName",
+			Optional.ofNullable(
+				_groupLocalService.fetchGroup(assetVocabulary.getGroupId())
+			).map(
+				group -> ContentDashboardGroupUtil.getGroupName(group, locale)
+			).orElse(
+				StringPool.BLANK
+			)
+		).put(
+			"isPublic",
+			assetVocabulary.getVisibilityType() ==
+				AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC
+		).put(
+			"vocabularyName", assetVocabulary.getTitle(locale)
+		).build();
 	}
 
 	private String _getClassName(ContentDashboardItem<?> contentDashboardItem) {
@@ -214,57 +269,108 @@ public class GetContentDashboardItemInfoMVCResourceCommand
 		return infoItemReference.getClassPK();
 	}
 
-	private JSONObject _getDataJSONObject(
+	private JSONObject _getClipboardJSONObject(
+		ContentDashboardItem contentDashboardItem) {
+
+		return Optional.ofNullable(
+			contentDashboardItem.getClipboard()
+		).map(
+			ContentDashboardItem.Clipboard::toJSONObject
+		).orElse(
+			null
+		);
+	}
+
+	private Collector<AssetCategory, ?, Map<Long, Map<String, Object>>>
+		_getCollector(Locale locale) {
+
+		return Collector.of(
+			() -> new HashMap<>(),
+			(assetVocabulariesData, assetCategory) -> {
+				assetVocabulariesData.computeIfAbsent(
+					assetCategory.getVocabularyId(),
+					vocabularyId -> _getAssetVocabularyData(
+						locale,
+						_assetVocabularyLocalService.fetchAssetVocabulary(
+							vocabularyId)));
+
+				Map<String, Object> assetVocabularyData =
+					assetVocabulariesData.get(assetCategory.getVocabularyId());
+
+				List<String> assetCategories =
+					(List<String>)assetVocabularyData.get("categories");
+
+				assetCategories.add(assetCategory.getTitle(locale));
+			},
+			(first, second) -> {
+				first.putAll(second);
+
+				return first;
+			});
+	}
+
+	private JSONObject _getSpecificFieldsJSONObject(
 		ContentDashboardItem contentDashboardItem, Locale locale) {
 
-		Map<String, Object> data = contentDashboardItem.getData(locale);
+		Map<String, Object> specificInformation =
+			contentDashboardItem.getSpecificInformation(locale);
 
-		Set<Map.Entry<String, Object>> entries = data.entrySet();
+		Set<Map.Entry<String, Object>> entries = specificInformation.entrySet();
 
 		Stream<Map.Entry<String, Object>> stream = entries.stream();
 
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-		stream.forEach(
+		stream.sorted(
+			Comparator.comparing(entry -> entry.getKey())
+		).forEach(
 			entry -> jsonObject.put(
 				entry.getKey(),
 				JSONUtil.put(
 					"title", _language.get(locale, entry.getKey())
 				).put(
+					"type", _getSpecificInformationType(entry.getValue())
+				).put(
 					"value", _toString(entry.getValue())
-				)));
+				))
+		);
 
 		return jsonObject;
 	}
 
-	private String _getSubtype(
-		ContentDashboardItem contentDashboardItem, Locale locale) {
+	private String _getSpecificInformationType(Object object) {
+		if (object instanceof Date) {
+			return "Date";
+		}
 
-		ContentDashboardItemType contentDashboardItemType =
-			contentDashboardItem.getContentDashboardItemType();
-
-		return contentDashboardItemType.getLabel(locale);
+		return "String";
 	}
 
 	private JSONObject _getUserJSONObject(
-		ContentDashboardItem contentDashboardItem, Locale locale) {
-
-		String authorProfileImage = null;
-
-		WebImage webImage = (WebImage)contentDashboardItem.getDisplayFieldValue(
-			"authorProfileImage", locale);
-
-		long portraitId = GetterUtil.getLong(
-			_http.getParameter(HtmlUtil.escape(webImage.getUrl()), "img_id"));
-
-		if (portraitId > 0) {
-			authorProfileImage = webImage.getUrl();
-		}
+		ContentDashboardItem contentDashboardItem, ThemeDisplay themeDisplay) {
 
 		return JSONUtil.put(
-			"name", webImage.getAlt()
+			"name", contentDashboardItem.getUserName()
 		).put(
-			"url", authorProfileImage
+			"url",
+			Optional.ofNullable(
+				_userLocalService.fetchUser(contentDashboardItem.getUserId())
+			).filter(
+				user -> user.getPortraitId() > 0
+			).map(
+				user -> {
+					try {
+						return user.getPortraitURL(themeDisplay);
+					}
+					catch (PortalException portalException) {
+						_log.error(portalException);
+
+						return null;
+					}
+				}
+			).orElse(
+				null
+			)
 		).put(
 			"userId", contentDashboardItem.getUserId()
 		);
@@ -352,11 +458,14 @@ public class GetContentDashboardItemInfoMVCResourceCommand
 		GetContentDashboardItemInfoMVCResourceCommand.class);
 
 	@Reference
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
+
+	@Reference
 	private ContentDashboardItemFactoryTracker
 		_contentDashboardItemFactoryTracker;
 
 	@Reference
-	private Http _http;
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private Language _language;

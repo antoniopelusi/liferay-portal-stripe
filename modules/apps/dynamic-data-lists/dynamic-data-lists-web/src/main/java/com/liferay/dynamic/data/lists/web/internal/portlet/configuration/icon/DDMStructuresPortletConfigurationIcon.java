@@ -86,7 +86,7 @@ public class DDMStructuresPortletConfigurationIcon
 		).setParameter(
 			"refererWebDAVToken", WebDAVUtil.getStorageToken(portlet)
 		).setParameter(
-			"showAncestorScopes", Boolean.TRUE.toString()
+			"showAncestorScopes", true
 		).buildString();
 	}
 

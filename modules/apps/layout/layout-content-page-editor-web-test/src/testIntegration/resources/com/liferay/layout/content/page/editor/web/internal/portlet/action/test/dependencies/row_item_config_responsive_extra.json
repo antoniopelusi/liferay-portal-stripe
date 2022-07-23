@@ -6,43 +6,19 @@
 	"gutters": true,
 	"invalidProperty": "invalidProperty",
 	"landscapeMobile": {
-		"styles": {
-		}
 	},
 	"modulesPerRow": 6,
 	"numberOfColumns": 6,
 	"portraitMobile": {
 		"modulesPerRow": 3,
 		"reverseOrder": true,
+		"styles": {
+			"display": "none"
+		},
 		"verticalAlignment": "bottom"
 	},
 	"reverseOrder": false,
 	"styles": {
-		"backgroundImage": {
-		},
-		"borderRadius": "",
-		"borderWidth": 0,
-		"fontFamily": "",
-		"fontSize": "",
-		"fontWeight": "",
-		"height": "",
-		"marginBottom": "",
-		"marginLeft": "",
-		"marginRight": "",
-		"marginTop": "",
-		"maxHeight": "",
-		"maxWidth": "",
-		"minHeight": "",
-		"minWidth": "",
-		"opacity": 100,
-		"overflow": "",
-		"paddingBottom": "",
-		"paddingLeft": "",
-		"paddingRight": "",
-		"paddingTop": "",
-		"shadow": "",
-		"textAlign": "",
-		"width": ""
 	},
 	"tablet": {
 		"modulesPerRow": 2,

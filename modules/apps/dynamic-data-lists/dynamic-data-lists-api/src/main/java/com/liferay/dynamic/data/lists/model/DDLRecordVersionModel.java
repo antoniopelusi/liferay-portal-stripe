@@ -427,4 +427,7 @@ public interface DDLRecordVersionModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public DDLRecordVersion cloneWithOriginalValues();
+
 }

@@ -17,6 +17,47 @@ definition {
 		SystemSettings.saveConfiguration();
 	}
 
+	macro getDependenciesDirPath {
+		var projectDir = PropsUtil.get("project.dir");
+		var testBaseDir = PropsUtil.get("test.base.dir.name");
+		var testDependenciesDir = PropsUtil.get("test.dependencies.dir.name");
+		var testName = selenium.getTestName();
+		var testName = StringUtil.extractLast("${testName}", ".");
+		var testName = StringUtil.extractFirst("${testName}", "#");
+
+		var testFileName = StringUtil.split("**/${testName}.testcase");
+		var testFilePaths = FileUtil.getIncludedResourceURLs("${testFileName}", "${projectDir}/portal-web");
+		var testFilePaths = StringUtil.valueOf("${testFilePaths}");
+
+		if ("${testFilePaths}" == "[]") {
+			var testFilePaths = FileUtil.getIncludedResourceURLs("${testFileName}", "${projectDir}/modules");
+			var testFilePaths = StringUtil.valueOf("${testFilePaths}");
+		}
+
+		var testFilePath = RegexUtil.replace("${testFilePaths}", "\[(.*)\]", "1");
+		var testFilePath = StringUtil.extractLast("${testFilePath}", "file:");
+		var testFileParentDir = StringUtil.extractFirst("${testFilePath}", "${testName}.testcase");
+		var dependenciesDir = "${testFileParentDir}${testDependenciesDir}";
+
+		if (isSet(filePath)) {
+			var dependenciesDir = "${dependenciesDir}/${filePath}";
+		}
+
+		var dependencyFilePath = "${dependenciesDir}/${fileName}";
+		var fileExists = FileUtil.exists("${dependencyFilePath}");
+
+		if ("${fileExists}" == "false") {
+			var dependencyFilePath = "${testBaseDir}${testDependenciesDir}/${fileName}";
+			var globalFileExists = FileUtil.exists("${dependencyFilePath}");
+
+			if ("${globalFileExists}" == "false") {
+				fail("Unable to find dependency file at ${dependenciesDir}/${fileName} or ${dependencyFilePath}");
+			}
+		}
+
+		return "${dependencyFilePath}";
+	}
+
 	macro getDownloadedTempFileName {
 		var tempDir = PropsUtil.get("output.dir.name");
 
@@ -31,9 +72,9 @@ definition {
 	}
 
 	macro getFileContent {
-		var baseDir = PropsUtil.get("test.base.dir.name");
-		var dependenciesDir = PropsUtil.get("test.dependencies.dir.name");
-		var fileContent = FileUtil.read("${baseDir}${dependenciesDir}/${fileName}");
+		var dependencyFilePath = TestCase.getDependenciesDirPath(fileName = "${fileName}");
+
+		var fileContent = FileUtil.read("${dependencyFilePath}");
 
 		return "${fileContent}";
 	}
@@ -42,8 +83,8 @@ definition {
 		var testNameSkipPortalInstance = PropsUtil.get("test.name.skip.portal.instance");
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
-		if (("${siteName}" == "Liferay") || (!(isSet(siteName)))) {
-			if (("${testPortalInstance}" == "true") && (!(IsTestName(locator1 = "", value1 = "${testNameSkipPortalInstance}")))) {
+		if (("${siteName}" == "Liferay") || !(isSet(siteName))) {
+			if (("${testPortalInstance}" == "true") && !(IsTestName(locator1 = "", value1 = "${testNameSkipPortalInstance}"))) {
 				var portalURL = PropsUtil.get("portal.url");
 				var portalURL = StringUtil.replace("${portalURL}", "http://", "");
 				var portalURL = StringUtil.replace("${portalURL}", ":8080", "");
@@ -66,6 +107,23 @@ definition {
 		}
 	}
 
+	macro getTempFileContent {
+		var tempDir = PropsUtil.get("output.dir.name");
+		var tempFile = "${tempDir}/${fileName}";
+		var tempFileExists = FileUtil.exists("${tempFile}");
+
+		if ("${tempFileExists}" == "true") {
+			echo("Fetching ${fileName} content.");
+		}
+		else {
+			fail("Temp file not found at ${tempFile}");
+		}
+
+		var fileContent = FileUtil.read("${tempFile}");
+
+		return "${fileContent}";
+	}
+
 	macro getTestName {
 		var testName = PropsUtil.get("test.name");
 		var testName = RegexUtil.replace("${testName}", "[^\.]*\.(.*)", "1");
@@ -77,13 +135,10 @@ definition {
 		var testNameSkipPortalInstance = PropsUtil.get("test.name.skip.portal.instance");
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
-		if (("${testPortalInstance}" == "true") && (!(IsTestName(locator1 = "", value1 = "${testNameSkipPortalInstance}")))) {
-			if (isSet(freeLogin)) {
-				SignIn.signInPortalInstanceSetUp(
-					freeLogin = "true",
-					userEmailAddress = "${userEmailAddress}");
-			}
-			else {
+		if (!(IsTestName(locator1 = "", value1 = "${testNameSkipPortalInstance}"))) {
+			HeadlessPortalInstanceAPI.cleanAllPortalInstances(authenticationMethod = "${authenticationMethod}");
+
+			if ("${testPortalInstance}" == "true") {
 				SignIn.signInPortalInstanceSetUp();
 			}
 		}

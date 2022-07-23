@@ -34,105 +34,23 @@ renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 <clay:container-fluid
 	cssClass="container-view"
 >
+
+	<%
+	AssetListEntry assetListEntry = assetListDisplayContext.getAssetListEntry();
+	%>
+
 	<clay:row>
-
-		<%
-		AssetListEntry assetListEntry = assetListDisplayContext.getAssetListEntry();
-		%>
-
 		<clay:col
 			lg="3"
 		>
-			<nav class="menubar menubar-transparent menubar-vertical-expand-lg">
-				<ul class="nav nav-nested">
-					<li class="nav-item">
+			<div>
+				<span aria-hidden="true" class="loading-animation loading-animation-sm mt-4"></span>
 
-						<%
-						List<SegmentsEntry> availableSegmentsEntries = editAssetListDisplayContext.getAvailableSegmentsEntries();
-
-						List<AssetListEntrySegmentsEntryRel> assetEntryListSegmentsEntryRels = editAssetListDisplayContext.getAssetListEntrySegmentsEntryRels();
-						%>
-
-						<c:choose>
-							<c:when test="<%= assetEntryListSegmentsEntryRels.size() > 1 %>">
-								<clay:content-row
-									verticalAlign="center"
-								>
-									<clay:content-col
-										expand="<%= true %>"
-									>
-										<strong class="text-uppercase">
-											<liferay-ui:message key="personalized-variations" />
-										</strong>
-									</clay:content-col>
-
-									<c:if test="<%= Validator.isNotNull(assetListEntry.getAssetEntryType()) %>">
-										<clay:content-col>
-											<ul class="navbar-nav">
-												<li>
-													<c:if test="<%= !availableSegmentsEntries.isEmpty() %>">
-														<liferay-ui:icon
-															icon="plus"
-															iconCssClass="btn btn-monospaced btn-outline-borderless btn-outline-secondary btn-sm"
-															id="addAssetListEntryVariationIcon"
-															markupView="lexicon"
-															url='<%= "javascript:" + liferayPortletResponse.getNamespace() + "openSelectSegmentsEntryDialog();" %>'
-														/>
-													</c:if>
-												</li>
-											</ul>
-										</clay:content-col>
-									</c:if>
-								</clay:content-row>
-
-								<ul class="nav nav-stacked">
-
-									<%
-									for (AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel : assetEntryListSegmentsEntryRels) {
-									%>
-
-										<li class="nav-item">
-											<a
-												class="nav-link text-truncate <%= (editAssetListDisplayContext.getSegmentsEntryId() == assetListEntrySegmentsEntryRel.getSegmentsEntryId()) ? "active" : StringPool.BLANK %>"
-												href="<%=
-													PortletURLBuilder.createRenderURL(
-														renderResponse
-													).setMVCPath(
-														"/edit_asset_list_entry.jsp"
-													).setParameter(
-														"assetListEntryId", assetListEntrySegmentsEntryRel.getAssetListEntryId()
-													).setParameter(
-														"segmentsEntryId", assetListEntrySegmentsEntryRel.getSegmentsEntryId()
-													).buildString()
-												%>"
-											>
-												<%= HtmlUtil.escape(editAssetListDisplayContext.getSegmentsEntryName(assetListEntrySegmentsEntryRel.getSegmentsEntryId(), locale)) %>
-											</a>
-										</li>
-
-									<%
-									}
-									%>
-
-								</ul>
-							</c:when>
-							<c:otherwise>
-								<p class="text-uppercase">
-									<strong><liferay-ui:message key="personalized-variations" /></strong>
-								</p>
-
-								<liferay-frontend:empty-result-message
-									actionDropdownItems="<%= ((availableSegmentsEntries.size() > 0) && Validator.isNotNull(assetListEntry.getAssetEntryType()) && !editAssetListDisplayContext.isLiveGroup()) ? editAssetListDisplayContext.getAssetListEntryVariationActionDropdownItems() : null %>"
-									animationType="<%= EmptyResultMessageKeys.AnimationType.NONE %>"
-									componentId='<%= liferayPortletResponse.getNamespace() + "emptyResultMessageComponent" %>'
-									description='<%= LanguageUtil.get(request, "no-personalized-variations-were-found") %>'
-									elementType='<%= LanguageUtil.get(request, "personalized-variations") %>'
-								/>
-							</c:otherwise>
-						</c:choose>
-					</li>
-				</ul>
-			</nav>
+				<react:component
+					module="js/components/VariationsNav/index"
+					props="<%= editAssetListDisplayContext.getData() %>"
+				/>
+			</div>
 		</clay:col>
 
 		<clay:col
@@ -152,8 +70,8 @@ renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 
 <script>
 	<portlet:actionURL name="/asset_list/add_asset_list_entry_variation" var="addAssetListEntryVariationURL">
-		<portlet:param name="assetListEntryId" value="<%= String.valueOf(editAssetListDisplayContext.getAssetListEntryId()) %>" />
-		<portlet:param name="type" value="<%= String.valueOf(editAssetListDisplayContext.getAssetListEntryType()) %>" />
+	<portlet:param name="assetListEntryId" value="<%= String.valueOf(editAssetListDisplayContext.getAssetListEntryId()) %>" />
+	<portlet:param name="type" value="<%= String.valueOf(editAssetListDisplayContext.getAssetListEntryType()) %>" />
 	</portlet:actionURL>
 
 	function <portlet:namespace />openSelectSegmentsEntryDialog() {

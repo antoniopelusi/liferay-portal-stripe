@@ -16,9 +16,9 @@ package com.liferay.portal.workflow.metrics.internal.search.index;
 
 import com.liferay.portal.search.document.Document;
 import com.liferay.portal.search.document.DocumentBuilder;
+import com.liferay.portal.workflow.metrics.model.AddTransitionRequest;
+import com.liferay.portal.workflow.metrics.model.DeleteTransitionRequest;
 import com.liferay.portal.workflow.metrics.search.index.TransitionWorkflowMetricsIndexer;
-
-import java.util.Date;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -32,49 +32,45 @@ public class TransitionWorkflowMetricsIndexerImpl
 	implements TransitionWorkflowMetricsIndexer {
 
 	@Override
-	public Document addTransition(
-		long companyId, Date createDate, Date modifiedDate, String name,
-		long nodeId, long processId, String processVersion, long sourceNodeId,
-		String sourceNodeName, long targetNodeId, String targetNodeName,
-		long transitionId, long userId) {
-
+	public Document addTransition(AddTransitionRequest addTransitionRequest) {
 		if (searchEngineAdapter == null) {
 			return null;
 		}
 
 		DocumentBuilder documentBuilder = documentBuilderFactory.builder();
 
-		documentBuilder.setLong(
-			"companyId", companyId
+		Document document = documentBuilder.setLong(
+			"companyId", addTransitionRequest.getCompanyId()
 		).setDate(
-			"createDate", getDate(createDate)
+			"createDate", getDate(addTransitionRequest.getCreateDate())
 		).setValue(
 			"deleted", false
 		).setDate(
-			"modifiedDate", getDate(modifiedDate)
+			"modifiedDate", getDate(addTransitionRequest.getModifiedDate())
 		).setString(
-			"name", name
+			"name", addTransitionRequest.getName()
 		).setLong(
-			"nodeId", nodeId
+			"nodeId", addTransitionRequest.getNodeId()
 		).setLong(
-			"processId", processId
+			"processId", addTransitionRequest.getProcessId()
 		).setLong(
-			"sourceNodeId", sourceNodeId
+			"sourceNodeId", addTransitionRequest.getSourceNodeId()
 		).setString(
-			"sourceNodeName", sourceNodeName
+			"sourceNodeName", addTransitionRequest.getSourceNodeName()
 		).setLong(
-			"targetNodeId", targetNodeId
+			"targetNodeId", addTransitionRequest.getTargetNodeId()
 		).setString(
-			"targetNodeName", targetNodeName
+			"targetNodeName", addTransitionRequest.getTargetNodeName()
 		).setString(
-			"uid", digest(companyId, transitionId)
+			"uid",
+			digest(
+				addTransitionRequest.getCompanyId(),
+				addTransitionRequest.getTransitionId())
 		).setLong(
-			"userId", userId
+			"userId", addTransitionRequest.getUserId()
 		).setString(
-			"version", processVersion
-		);
-
-		Document document = documentBuilder.build();
+			"version", addTransitionRequest.getProcessVersion()
+		).build();
 
 		workflowMetricsPortalExecutor.execute(() -> addDocument(document));
 
@@ -82,15 +78,20 @@ public class TransitionWorkflowMetricsIndexerImpl
 	}
 
 	@Override
-	public void deleteTransition(long companyId, long transitionId) {
+	public void deleteTransition(
+		DeleteTransitionRequest deleteTransitionRequest) {
+
 		DocumentBuilder documentBuilder = documentBuilderFactory.builder();
 
 		documentBuilder.setLong(
-			"companyId", companyId
+			"companyId", deleteTransitionRequest.getCompanyId()
 		).setLong(
-			"transitionId", transitionId
+			"transitionId", deleteTransitionRequest.getTransitionId()
 		).setString(
-			"uid", digest(companyId, transitionId)
+			"uid",
+			digest(
+				deleteTransitionRequest.getCompanyId(),
+				deleteTransitionRequest.getTransitionId())
 		);
 
 		workflowMetricsPortalExecutor.execute(

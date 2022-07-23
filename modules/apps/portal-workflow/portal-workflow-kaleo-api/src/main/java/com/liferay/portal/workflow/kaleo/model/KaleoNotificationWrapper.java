@@ -184,6 +184,11 @@ public class KaleoNotificationWrapper
 		}
 	}
 
+	@Override
+	public KaleoNotification cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this kaleo notification.
 	 *

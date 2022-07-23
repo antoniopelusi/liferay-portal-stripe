@@ -17,8 +17,8 @@ import ClayDropDown, {Align} from '@clayui/drop-down';
 import React, {useState} from 'react';
 
 import togglePermission from '../actions/togglePermission';
+import {useDispatch, useSelector} from '../contexts/StoreContext';
 import selectCanSwitchEditMode from '../selectors/selectCanSwitchEditMode';
-import {useDispatch, useSelector} from '../store/index';
 
 const EDIT_MODES = {
 	contentEditing: Liferay.Language.get('content-editing'),
@@ -38,6 +38,12 @@ export default function EditModeSelector() {
 		<ClayDropDown
 			active={active}
 			alignmentPosition={Align.BottomLeft}
+			menuElementAttrs={{
+				className: 'page-editor__edit-mode-dropdown-menu',
+				containerProps: {
+					className: 'cadmin',
+				},
+			}}
 			onActiveChange={setActive}
 			trigger={
 				<ClayButton
@@ -62,6 +68,7 @@ export default function EditModeSelector() {
 				>
 					{EDIT_MODES.pageDesign}
 				</ClayDropDown.Item>
+
 				<ClayDropDown.Item
 					onClick={() => {
 						setActive(false);

@@ -72,34 +72,26 @@ public class KBCommentsChecker extends EmptyOnClickRowChecker {
 
 		long kbCommentId = GetterUtil.getLong(primaryKey);
 
-		KBComment kbComment = null;
-
 		try {
-			kbComment = KBCommentLocalServiceUtil.getKBComment(kbCommentId);
-
 			KBCommentPermission.contains(
-				_permissionChecker, kbComment, ActionKeys.DELETE);
+				_permissionChecker,
+				KBCommentLocalServiceUtil.getKBComment(kbCommentId),
+				ActionKeys.DELETE);
 		}
 		catch (PortalException portalException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("['");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(KBComment.class.getSimpleName());
-		sb.append("']");
-
-		String checkBoxRowIds = sb.toString();
+		String checkBoxRowIds = StringBundler.concat(
+			"['", _liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			KBComment.class.getSimpleName(), "']");
 
 		return getRowCheckBox(
 			httpServletRequest, checked, disabled,

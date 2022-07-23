@@ -1,33 +1,29 @@
-<definition default="mouseOver" summary="Mouse over '${locator1}'">
-	<command name="mouseOver">
-		<execute selenium="waitForVisible" />
+@default = "mouseOver"
+@summary = "Mouse over '${locator1}'"
+definition {
 
-		<execute selenium="mouseOver" />
-	</command>
+	function javaScriptMouseOver {
+		selenium.javaScriptMouseOver();
+	}
 
-	<command name="mouseOverNotVisible">
-		<execute selenium="waitForElementPresent" />
+	function mouseOver {
+		selenium.waitForVisible();
 
-		<execute selenium="mouseOver" />
+		selenium.mouseOver();
+	}
 
-		<execute selenium="waitForVisible" />
-	</command>
+	function mouseOverInvisible {
+		selenium.waitForElementPresent();
 
-	<command name="partialTextMouseOver">
-		<execute function="AssertTextEquals#assertPartialText" />
+		selenium.mouseOver();
+	}
 
-		<execute selenium="mouseOver" />
-	</command>
+	function mouseOverNotVisible {
+		selenium.waitForElementPresent();
 
-	<command name="textMouseOver">
-		<execute function="AssertTextEquals#assertText" />
+		selenium.mouseOver();
 
-		<execute selenium="mouseOver" />
-	</command>
+		selenium.waitForVisible();
+	}
 
-	<command name="valueMouseOver">
-		<execute function="AssertTextEquals#assertValue" />
-
-		<execute selenium="mouseOver" />
-	</command>
-</definition>
+}

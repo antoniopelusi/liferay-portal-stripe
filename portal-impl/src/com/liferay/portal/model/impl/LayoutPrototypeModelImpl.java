@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.LayoutPrototype;
 import com.liferay.portal.kernel.model.LayoutPrototypeModel;
-import com.liferay.portal.kernel.model.LayoutPrototypeSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -36,21 +35,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -168,62 +166,6 @@ public class LayoutPrototypeModelImpl
 	@Deprecated
 	public static final long LAYOUTPROTOTYPEID_COLUMN_BITMASK = 8L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static LayoutPrototype toModel(LayoutPrototypeSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		LayoutPrototype model = new LayoutPrototypeImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setLayoutPrototypeId(soapModel.getLayoutPrototypeId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setSettings(soapModel.getSettings());
-		model.setActive(soapModel.isActive());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<LayoutPrototype> toModels(
-		LayoutPrototypeSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<LayoutPrototype> models = new ArrayList<LayoutPrototype>(
-			soapModels.length);
-
-		for (LayoutPrototypeSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.LayoutPrototype"));
@@ -311,34 +253,6 @@ public class LayoutPrototypeModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutPrototype>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutPrototype.class.getClassLoader(), LayoutPrototype.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<LayoutPrototype> constructor =
-				(Constructor<LayoutPrototype>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutPrototype, Object>>
@@ -1027,6 +941,38 @@ public class LayoutPrototypeModelImpl
 	}
 
 	@Override
+	public LayoutPrototype cloneWithOriginalValues() {
+		LayoutPrototypeImpl layoutPrototypeImpl = new LayoutPrototypeImpl();
+
+		layoutPrototypeImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutPrototypeImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		layoutPrototypeImpl.setLayoutPrototypeId(
+			this.<Long>getColumnOriginalValue("layoutPrototypeId"));
+		layoutPrototypeImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutPrototypeImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		layoutPrototypeImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		layoutPrototypeImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutPrototypeImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutPrototypeImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		layoutPrototypeImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		layoutPrototypeImpl.setSettings(
+			this.<String>getColumnOriginalValue("settings_"));
+		layoutPrototypeImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+
+		return layoutPrototypeImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutPrototype layoutPrototype) {
 		long primaryKey = layoutPrototype.getPrimaryKey();
 
@@ -1177,7 +1123,7 @@ public class LayoutPrototypeModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1188,9 +1134,26 @@ public class LayoutPrototypeModelImpl
 			Function<LayoutPrototype, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((LayoutPrototype)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((LayoutPrototype)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1237,7 +1200,9 @@ public class LayoutPrototypeModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, LayoutPrototype>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					LayoutPrototype.class, ModelWrapper.class);
 
 	}
 

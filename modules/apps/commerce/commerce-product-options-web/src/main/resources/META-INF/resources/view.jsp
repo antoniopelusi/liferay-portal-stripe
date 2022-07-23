@@ -23,7 +23,7 @@ PortletURL portletURL = renderResponse.createRenderURL();
 %>
 
 <div class="pt-4" id="<portlet:namespace />optionsContainer">
-	<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+	<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
 		<clay:headless-data-set-display
 			apiURL="/o/headless-commerce-admin-catalog/v1.0/options"
 			clayDataSetActionDropdownItems="<%= cpOptionDisplayContext.getOptionClayDataSetActionDropdownItems() %>"

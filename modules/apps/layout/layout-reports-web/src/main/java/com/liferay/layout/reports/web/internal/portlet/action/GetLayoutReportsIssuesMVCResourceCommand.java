@@ -14,13 +14,17 @@
 
 package com.liferay.layout.reports.web.internal.portlet.action;
 
-import com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedConfiguration;
+import com.liferay.configuration.admin.constants.ConfigurationAdminPortletKeys;
+import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
 import com.liferay.layout.reports.web.internal.configuration.provider.LayoutReportsGooglePageSpeedConfigurationProvider;
 import com.liferay.layout.reports.web.internal.constants.LayoutReportsPortletKeys;
 import com.liferay.layout.reports.web.internal.data.provider.LayoutReportsDataProvider;
 import com.liferay.layout.reports.web.internal.model.LayoutReportsIssue;
-import com.liferay.layout.seo.kernel.LayoutSEOLinkManager;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.cache.PortalCache;
+import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
+import com.liferay.portal.kernel.cache.PortalCacheManagerNames;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
@@ -28,7 +32,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
@@ -36,32 +39,33 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
+import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.text.Format;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
+import javax.portlet.PortletRequest;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Cristina González
  */
 @Component(
-	configurationPid = "com.liferay.layout.reports.web.internal.configuration.LayoutReportsPageSpeedConfiguration",
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + LayoutReportsPortletKeys.LAYOUT_REPORTS,
@@ -71,17 +75,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class GetLayoutReportsIssuesMVCResourceCommand
 	extends BaseMVCResourceCommand {
-
-	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_layoutReportsGooglePageSpeedConfigurationProvider =
-			new LayoutReportsGooglePageSpeedConfigurationProvider(
-				_configurationProvider,
-				ConfigurableUtil.createConfigurable(
-					LayoutReportsGooglePageSpeedConfiguration.class,
-					properties));
-	}
 
 	@Override
 	protected void doServeResource(
@@ -106,8 +99,7 @@ public class GetLayoutReportsIssuesMVCResourceCommand
 				resourceRequest, resourceResponse,
 				JSONUtil.put(
 					"error",
-					_language.get(
-						resourceBundle, "an-unexpected-error-occurred")));
+					_language.get(locale, "an-unexpected-error-occurred")));
 
 			return;
 		}
@@ -125,39 +117,35 @@ public class GetLayoutReportsIssuesMVCResourceCommand
 					JSONUtil.put(
 						"error",
 						_language.format(
-							resourceBundle, "no-site-exists-with-site-id-x",
-							groupId)));
+							locale, "no-site-exists-with-site-id-x", groupId)));
 
 				return;
 			}
 
-			LayoutReportsDataProvider layoutReportsDataProvider =
-				new LayoutReportsDataProvider(
-					_layoutReportsGooglePageSpeedConfigurationProvider.
-						getApiKey(group));
+			JSONPortletResponseUtil.writeJSON(
+				resourceRequest, resourceResponse,
+				_getLayoutReportIssuesResponseJSONObject(
+					ParamUtil.getBoolean(resourceRequest, "refreshCache"),
+					group, resourceBundle, themeDisplay,
+					ParamUtil.getString(resourceRequest, "url")));
+		}
+		catch (LayoutReportsDataProvider.LayoutReportsDataProviderException
+					layoutReportsDataProviderException) {
 
-			String canonicalURL = ParamUtil.getString(
-				resourceRequest, "canonicalURL");
-
-			List<LayoutReportsIssue> layoutReportsIssues =
-				layoutReportsDataProvider.getLayoutReportsIssues(canonicalURL);
-
-			Stream<LayoutReportsIssue> stream = layoutReportsIssues.stream();
+			_log.error(layoutReportsDataProviderException);
 
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse,
 				JSONUtil.put(
-					"layoutReportsIssues",
-					JSONUtil.putAll(
-						stream.map(
-							layoutReportsIssue ->
-								layoutReportsIssue.toJSONObject(resourceBundle)
-						).toArray(
-							size -> new JSONObject[size]
-						))));
+					"error", layoutReportsDataProviderException.getMessage()
+				).put(
+					"googlePageSpeedError",
+					layoutReportsDataProviderException.
+						getGooglePageSpeedErrorJSONObject()
+				));
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse,
@@ -165,6 +153,157 @@ public class GetLayoutReportsIssuesMVCResourceCommand
 					"error",
 					_language.get(locale, "an-unexpected-error-occurred")));
 		}
+	}
+
+	private JSONObject _fetchLayoutReportIssuesJSONObject(
+			Group group, ResourceBundle resourceBundle,
+			ThemeDisplay themeDisplay, String url)
+		throws PortalException {
+
+		LayoutReportsDataProvider layoutReportsDataProvider =
+			new LayoutReportsDataProvider(
+				_layoutReportsGooglePageSpeedConfigurationProvider.getApiKey(
+					group),
+				_layoutReportsGooglePageSpeedConfigurationProvider.getStrategy(
+					group));
+
+		List<LayoutReportsIssue> layoutReportsIssues =
+			layoutReportsDataProvider.getLayoutReportsIssues(
+				resourceBundle.getLocale(), url);
+
+		Stream<LayoutReportsIssue> stream = layoutReportsIssues.stream();
+
+		return JSONUtil.put(
+			"issues",
+			JSONUtil.putAll(
+				stream.map(
+					layoutReportsIssue -> layoutReportsIssue.toJSONObject(
+						_getConfigureLayoutSeoURL(themeDisplay),
+						_getConfigurePagesSeoURL(themeDisplay), resourceBundle)
+				).toArray(
+					size -> new JSONObject[size]
+				))
+		).put(
+			"timestamp", System.currentTimeMillis()
+		);
+	}
+
+	private String _getCompleteURL(ThemeDisplay themeDisplay) {
+		try {
+			return _portal.getLayoutURL(themeDisplay);
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
+
+			return _portal.getCurrentCompleteURL(themeDisplay.getRequest());
+		}
+	}
+
+	private String _getConfigureLayoutSeoURL(ThemeDisplay themeDisplay) {
+		Layout layout = themeDisplay.getLayout();
+
+		try {
+			if (LayoutPermissionUtil.contains(
+					themeDisplay.getPermissionChecker(), layout,
+					ActionKeys.UPDATE)) {
+
+				String completeURL = _getCompleteURL(themeDisplay);
+
+				return PortletURLBuilder.create(
+					_portal.getControlPanelPortletURL(
+						themeDisplay.getRequest(),
+						LayoutAdminPortletKeys.GROUP_PAGES,
+						PortletRequest.RENDER_PHASE)
+				).setMVCRenderCommandName(
+					"/layout_admin/edit_layout"
+				).setRedirect(
+					completeURL
+				).setBackURL(
+					completeURL
+				).setPortletResource(
+					() -> {
+						PortletDisplay portletDisplay =
+							themeDisplay.getPortletDisplay();
+
+						return portletDisplay.getId();
+					}
+				).setParameter(
+					"groupId", layout.getGroupId()
+				).setParameter(
+					"privateLayout", layout.isPrivateLayout()
+				).setParameter(
+					"screenNavigationEntryKey", "seo"
+				).setParameter(
+					"selPlid", layout.getPlid()
+				).buildString();
+			}
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
+		}
+
+		return null;
+	}
+
+	private String _getConfigurePagesSeoURL(ThemeDisplay themeDisplay) {
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		if (permissionChecker.isCompanyAdmin()) {
+			String configurationPid =
+				"com.liferay.layout.seo.internal.configuration." +
+					"LayoutSEOCompanyConfiguration";
+
+			return PortletURLBuilder.create(
+				_portal.getControlPanelPortletURL(
+					themeDisplay.getRequest(),
+					ConfigurationAdminPortletKeys.INSTANCE_SETTINGS,
+					PortletRequest.RENDER_PHASE)
+			).setMVCRenderCommandName(
+				"/configuration_admin/edit_configuration"
+			).setRedirect(
+				_getCompleteURL(themeDisplay)
+			).setParameter(
+				"factoryPid", configurationPid
+			).setParameter(
+				"pid", configurationPid
+			).buildString();
+		}
+
+		return null;
+	}
+
+	private JSONObject _getLayoutReportIssuesResponseJSONObject(
+			boolean refreshCache, Group group, ResourceBundle resourceBundle,
+			ThemeDisplay themeDisplay, String url)
+		throws PortalException {
+
+		String cacheKey = themeDisplay.getLocale() + "-" + url;
+
+		if (refreshCache) {
+			_layoutReportsIssuesPortalCache.put(
+				cacheKey,
+				_fetchLayoutReportIssuesJSONObject(
+					group, resourceBundle, themeDisplay, url));
+		}
+
+		JSONObject layoutReportsIssuesJSONObject =
+			_layoutReportsIssuesPortalCache.get(cacheKey);
+
+		if (layoutReportsIssuesJSONObject != null) {
+			Format format = DateFormatFactoryUtil.getSimpleDateFormat(
+				"MMMM d, yyyy HH:mm a", resourceBundle.getLocale(),
+				themeDisplay.getTimeZone());
+
+			layoutReportsIssuesJSONObject.put(
+				"date",
+				format.format(
+					new Date(
+						layoutReportsIssuesJSONObject.getLong("timestamp"))));
+		}
+
+		return JSONUtil.put(
+			"layoutReportsIssues", layoutReportsIssuesJSONObject);
 	}
 
 	private boolean _hasViewPermission(
@@ -183,23 +322,20 @@ public class GetLayoutReportsIssuesMVCResourceCommand
 	private static final Log _log = LogFactoryUtil.getLog(
 		GetLayoutReportsIssuesMVCResourceCommand.class);
 
-	@Reference
-	private ConfigurationProvider _configurationProvider;
+	private static final PortalCache<String, JSONObject>
+		_layoutReportsIssuesPortalCache = PortalCacheHelperUtil.getPortalCache(
+			PortalCacheManagerNames.MULTI_VM,
+			GetLayoutReportsIssuesMVCResourceCommand.class.getName());
 
 	@Reference
 	private GroupLocalService _groupLocalService;
 
 	@Reference
-	private Http _http;
-
-	@Reference
 	private Language _language;
 
-	private volatile LayoutReportsGooglePageSpeedConfigurationProvider
-		_layoutReportsGooglePageSpeedConfigurationProvider;
-
 	@Reference
-	private LayoutSEOLinkManager _layoutSEOLinkManager;
+	private LayoutReportsGooglePageSpeedConfigurationProvider
+		_layoutReportsGooglePageSpeedConfigurationProvider;
 
 	@Reference
 	private Portal _portal;

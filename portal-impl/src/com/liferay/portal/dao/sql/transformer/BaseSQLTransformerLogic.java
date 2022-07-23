@@ -14,6 +14,7 @@
 
 package com.liferay.portal.dao.sql.transformer;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.internal.dao.sql.transformer.SQLFunctionTransformer;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -142,7 +143,7 @@ public abstract class BaseSQLTransformerLogic implements SQLTransformerLogic {
 				return sql;
 			}
 
-			StringBuilder sb = new StringBuilder(sql.length());
+			StringBundler sb = new StringBundler(sql.length());
 
 			int y = 0;
 

@@ -2,11 +2,13 @@
 <head>
 <title>Link</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Link</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_CHILD_PAGE</td>
@@ -55,7 +57,7 @@
 </tr>
 <tr>
 	<td>DOWNLOAD</td>
-	<td>//div[contains(@class,'btn-group-item')]/a[contains(@class,'btn-primary') and contains(.,'Download')]</td>
+	<td>//a[contains(.,'Download')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -85,7 +87,7 @@
 </tr>
 <tr>
 	<td>GUEST</td>
-	<td>//div[@class='navigation']/ul/li/a/span[contains(.,'Guest')]</td>
+	<td>//div[contains(@class,'navigation')]//span[contains(.,'Guest')]</td>
 	<td></td>
 </tr>
 <tr>

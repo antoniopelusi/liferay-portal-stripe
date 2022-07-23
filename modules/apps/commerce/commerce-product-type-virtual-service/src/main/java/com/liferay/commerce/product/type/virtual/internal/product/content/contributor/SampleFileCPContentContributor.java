@@ -108,16 +108,11 @@ public class SampleFileCPContentContributor implements CPContentContributor {
 	private String _getSampleFileHtml(
 		String sampleURL, HttpServletRequest httpServletRequest) {
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("<a class=\"btn btn-primary\" href=\"");
-		sb.append(sampleURL);
-		sb.append(StringPool.QUOTE);
-		sb.append(StringPool.GREATER_THAN);
-		sb.append(LanguageUtil.get(httpServletRequest, "download-sample-file"));
-		sb.append("</a>");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"<a class=\"btn btn-primary\" href=\"", sampleURL, StringPool.QUOTE,
+			StringPool.GREATER_THAN,
+			LanguageUtil.get(httpServletRequest, "download-sample-file"),
+			"</a>");
 	}
 
 	@Reference

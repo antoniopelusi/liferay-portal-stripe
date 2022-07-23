@@ -14,8 +14,9 @@
 
 package com.liferay.dispatch.web.internal.display.context;
 
-import com.liferay.dispatch.web.internal.display.context.util.DispatchRequestHelper;
+import com.liferay.dispatch.web.internal.display.context.helper.DispatchRequestHelper;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemList;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -47,32 +48,24 @@ public abstract class BaseDisplayContext {
 			httpServletRequest, "tabs1", "dispatch-trigger");
 
 		return NavigationItemList.of(
-			() -> {
-				NavigationItem navigationItem = new NavigationItem();
-
-				navigationItem.setActive(tabs1.equals("dispatch-trigger"));
-				navigationItem.setHref(
-					liferayPortletResponse.createRenderURL(), "tabs1",
-					"dispatch-trigger", "mvcRenderCommandName",
-					"/dispatch/view_dispatch_trigger");
-				navigationItem.setLabel(
-					LanguageUtil.get(httpServletRequest, "dispatch-triggers"));
-
-				return navigationItem;
-			},
-			() -> {
-				NavigationItem navigationItem = new NavigationItem();
-
-				navigationItem.setActive(tabs1.equals("scheduler-response"));
-				navigationItem.setHref(
-					liferayPortletResponse.createRenderURL(), "tabs1",
-					"scheduler-response", "mvcRenderCommandName",
-					"/dispatch/edit_scheduler_response");
-				navigationItem.setLabel(
-					LanguageUtil.get(httpServletRequest, "scheduled-jobs"));
-
-				return navigationItem;
-			});
+			NavigationItemBuilder.setActive(
+				tabs1.equals("dispatch-trigger")
+			).setHref(
+				liferayPortletResponse.createRenderURL(), "tabs1",
+				"dispatch-trigger", "mvcRenderCommandName",
+				"/dispatch/view_dispatch_trigger"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "dispatch-triggers")
+			).build(),
+			NavigationItemBuilder.setActive(
+				tabs1.equals("scheduler-response")
+			).setHref(
+				liferayPortletResponse.createRenderURL(), "tabs1",
+				"scheduler-response", "mvcRenderCommandName",
+				"/dispatch/edit_scheduler_response"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "scheduled-jobs")
+			).build());
 	}
 
 	protected final DispatchRequestHelper dispatchRequestHelper;

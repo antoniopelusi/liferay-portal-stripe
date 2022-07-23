@@ -123,20 +123,23 @@ public class DDLRecordAssetRendererFactory
 		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse, long classTypeId) {
 
-		PortletURL portletURL = PortletURLBuilder.create(
+		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				liferayPortletRequest, getGroup(liferayPortletRequest),
 				DDLPortletKeys.DYNAMIC_DATA_LISTS, 0, 0,
 				PortletRequest.RENDER_PHASE)
 		).setMVCPath(
 			"/edit_record.jsp"
-		).build();
+		).setParameter(
+			"recordSetId",
+			() -> {
+				if (classTypeId > 0) {
+					return classTypeId;
+				}
 
-		if (classTypeId > 0) {
-			portletURL.setParameter("recordSetId", String.valueOf(classTypeId));
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	@Override

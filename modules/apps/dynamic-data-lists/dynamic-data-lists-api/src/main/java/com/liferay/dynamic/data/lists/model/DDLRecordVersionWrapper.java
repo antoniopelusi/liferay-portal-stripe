@@ -177,6 +177,11 @@ public class DDLRecordVersionWrapper
 		}
 	}
 
+	@Override
+	public DDLRecordVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ddl record version.
 	 *

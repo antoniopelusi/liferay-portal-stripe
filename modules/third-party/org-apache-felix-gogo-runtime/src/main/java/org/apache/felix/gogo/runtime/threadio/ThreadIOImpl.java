@@ -25,19 +25,25 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 import org.apache.felix.service.threadio.ThreadIO;
+import org.osgi.annotation.bundle.Capability;
+import org.osgi.namespace.service.ServiceNamespace;
 
+@Capability(
+    namespace = ServiceNamespace.SERVICE_NAMESPACE,
+    attribute = "objectClass='org.apache.felix.service.threadio.ThreadIO'"
+)
 public class ThreadIOImpl implements ThreadIO
 {
-	final Marker defaultMarker = new Marker(System.in, System.out, System.err, null);
+    final Marker defaultMarker = new Marker(System.in, System.out, System.err, null);
     final ThreadPrintStream err = new ThreadPrintStream(this, System.err, true);
     final ThreadPrintStream out = new ThreadPrintStream(this, System.out, false);
     final ThreadInputStream in = new ThreadInputStream(this, System.in);
     final ThreadLocal<Deque<Marker>> current = new InheritableThreadLocal<Deque<Marker>>()
     {
-		@Override
-		protected Deque<Marker> childValue(Deque<Marker> markers) {
-			return new LinkedList<Marker>(markers);
-		}
+        @Override
+        protected Deque<Marker> childValue(Deque<Marker> markers) {
+            return new LinkedList<Marker>(markers);
+        }
 
         @Override
         protected Deque<Marker> initialValue()
@@ -58,39 +64,39 @@ public class ThreadIOImpl implements ThreadIO
     {
         Deque<Marker> markers = current.get();
 
-		while (true) {
-			Marker marker = markers.peek();
+        while (true) {
+            Marker marker = markers.peek();
 
-			if (marker == null) {
-				current.remove();
+            if (marker == null) {
+                current.remove();
 
-				return defaultMarker;
-			}
+                return defaultMarker;
+            }
 
-			if (marker.deactivated) {
-				markers.pop();
-			}
-			else {
-				return marker;
-			}
-		}
+            if (marker.deactivated) {
+                markers.pop();
+            }
+            else {
+                return marker;
+            }
+        }
     }
 
     public void close()
     {
         Deque<Marker> markers = current.get();
 
-		Marker marker = markers.pop();
+        Marker marker = markers.pop();
 
-		marker.deactivate();
+        marker.deactivate();
 
-		if (markers.isEmpty()) {
-			current.remove();
+        if (markers.isEmpty()) {
+            current.remove();
 
-			System.setOut(this.out);
-			System.setIn(this.in);
-			System.setErr(this.err);
-		}
+            System.setOut(this.out);
+            System.setIn(this.in);
+            System.setErr(this.err);
+        }
     }
 
     public void setStreams(InputStream in, PrintStream out, PrintStream err)
@@ -99,34 +105,34 @@ public class ThreadIOImpl implements ThreadIO
         assert out != null;
         assert err != null;
 
-		Deque<Marker> markers = current.get();
+        Deque<Marker> markers = current.get();
 
-		Marker previousMarker = null;
+        Marker previousMarker = null;
 
-		if (markers.isEmpty()) {
-			previousMarker = defaultMarker;
+        if (markers.isEmpty()) {
+            previousMarker = defaultMarker;
 
-			System.setErr(this.err);
-			System.setIn(this.in);
-			System.setOut(this.out);
-		}
-		else {
-			previousMarker = markers.peek();
-		}
+            System.setErr(this.err);
+            System.setIn(this.in);
+            System.setOut(this.out);
+        }
+        else {
+            previousMarker = markers.peek();
+        }
 
-		if (in == this.in) {
-			in = previousMarker.in;
-		}
+        if (in == this.in) {
+            in = previousMarker.in;
+        }
 
-		if (out == this.out) {
-			out = previousMarker.out;
-		}
+        if (out == this.out) {
+            out = previousMarker.out;
+        }
 
-		if (err == this.err) {
-			err = previousMarker.err;
-		}
+        if (err == this.err) {
+            err = previousMarker.err;
+        }
 
-		markers.push(new Marker(in, out, err, null));
+        markers.push(new Marker(in, out, err, null));
     }
 }
 /* @generated */

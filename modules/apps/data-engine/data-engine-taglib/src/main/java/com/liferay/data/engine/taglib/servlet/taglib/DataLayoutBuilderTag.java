@@ -71,7 +71,8 @@ public class DataLayoutBuilderTag extends BaseDataLayoutBuilderTag {
 			setNamespacedAttribute(
 				httpServletRequest, "fieldTypes",
 				DataLayoutTaglibUtil.getFieldTypesJSONArray(
-					httpServletRequest, getScopes()));
+					httpServletRequest, getScopes(),
+					getSearchableFieldsDisabled()));
 			setNamespacedAttribute(
 				httpServletRequest, "fieldTypesModules",
 				DataLayoutTaglibUtil.resolveFieldTypesModules());
@@ -80,7 +81,7 @@ public class DataLayoutBuilderTag extends BaseDataLayoutBuilderTag {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -115,8 +116,8 @@ public class DataLayoutBuilderTag extends BaseDataLayoutBuilderTag {
 		setNamespacedAttribute(
 			httpServletRequest, "dataLayout",
 			DataLayoutTaglibUtil.getDataLayoutJSONObject(
-				availableLocales, getDataDefinitionId(), getDataLayoutId(),
-				httpServletRequest,
+				availableLocales, getContentType(), getDataDefinitionId(),
+				getDataLayoutId(), httpServletRequest,
 				(HttpServletResponse)pageContext.getResponse()));
 		setNamespacedAttribute(
 			httpServletRequest, "defaultLanguageId", _getDefaultLanguageId());
@@ -158,11 +159,7 @@ public class DataLayoutBuilderTag extends BaseDataLayoutBuilderTag {
 
 	private String _getModule() {
 		if (Validator.isBlank(getModule())) {
-			if (DataLayoutTaglibUtil.isUsingNewFormProvider()) {
-				return "data_layout_builder/new-js/App";
-			}
-
-			return "data_layout_builder/js/App.es";
+			return "data_layout_builder/js/App";
 		}
 
 		return getModule();
@@ -177,15 +174,9 @@ public class DataLayoutBuilderTag extends BaseDataLayoutBuilderTag {
 	}
 
 	private String _getPluginEntryPoint(String value) {
-		if (DataLayoutTaglibUtil.isUsingNewFormProvider()) {
-			return DataLayoutTaglibUtil.resolveModule(
-				"data-engine-taglib/data_layout_builder/new-js/plugins/" +
-					value + "/index");
-		}
-
 		return DataLayoutTaglibUtil.resolveModule(
 			"data-engine-taglib/data_layout_builder/js/plugins/" + value +
-				"/index.es");
+				"/index");
 	}
 
 	private Map<String, Object> _getSidebarPanels() {
@@ -208,27 +199,31 @@ public class DataLayoutBuilderTag extends BaseDataLayoutBuilderTag {
 				).put(
 					"sidebarPanelId", "fields"
 				).build()
-			).build();
-
-		JSONObject dataLayoutConfigJSONObject =
-			DataLayoutTaglibUtil.getDataLayoutConfigJSONObject(
-				getContentType(), httpServletRequest.getLocale());
-
-		if (dataLayoutConfigJSONObject.getBoolean("allowRules")) {
-			sidebarPanels.put(
+			).put(
 				"rules",
-				HashMapBuilder.<String, Object>put(
-					"icon", "rules"
-				).put(
-					"isLink", false
-				).put(
-					"label", LanguageUtil.get(resourceBundle, "rules")
-				).put(
-					"pluginEntryPoint", _getPluginEntryPoint("rules-sidebar")
-				).put(
-					"sidebarPanelId", "rules"
-				).build());
-		}
+				() -> {
+					JSONObject dataLayoutConfigJSONObject =
+						DataLayoutTaglibUtil.getDataLayoutConfigJSONObject(
+							getContentType(), httpServletRequest.getLocale());
+
+					if (dataLayoutConfigJSONObject.getBoolean("allowRules")) {
+						return HashMapBuilder.<String, Object>put(
+							"icon", "rules"
+						).put(
+							"isLink", false
+						).put(
+							"label", LanguageUtil.get(resourceBundle, "rules")
+						).put(
+							"pluginEntryPoint",
+							_getPluginEntryPoint("rules-sidebar")
+						).put(
+							"sidebarPanelId", "rules"
+						).build();
+					}
+
+					return null;
+				}
+			).build();
 
 		List<Map<String, Object>> additionalPanels = getAdditionalPanels();
 

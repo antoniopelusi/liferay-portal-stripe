@@ -35,13 +35,16 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.NotificationThreadLocal;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
@@ -52,6 +55,7 @@ import com.liferay.trash.model.TrashEntry;
 import com.liferay.trash.service.TrashEntryLocalService;
 import com.liferay.wiki.configuration.WikiGroupServiceConfiguration;
 import com.liferay.wiki.constants.WikiConstants;
+import com.liferay.wiki.exception.DuplicateNodeExternalReferenceCodeException;
 import com.liferay.wiki.exception.DuplicateNodeNameException;
 import com.liferay.wiki.exception.NodeNameException;
 import com.liferay.wiki.importer.WikiImporter;
@@ -61,6 +65,7 @@ import com.liferay.wiki.model.WikiPage;
 import com.liferay.wiki.model.WikiPageDisplay;
 import com.liferay.wiki.service.WikiPageLocalService;
 import com.liferay.wiki.service.base.WikiNodeLocalServiceBaseImpl;
+import com.liferay.wiki.service.persistence.WikiPagePersistence;
 
 import java.io.InputStream;
 
@@ -96,6 +101,11 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			StringPool.BLANK, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 * #addNode(String, long, String, String, ServiceContext)}
+	 */
+	@Deprecated
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public WikiNode addNode(
@@ -103,9 +113,19 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
+		return addNode(null, userId, name, description, serviceContext);
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public WikiNode addNode(
+			String externalReferenceCode, long userId, String name,
+			String description, ServiceContext serviceContext)
+		throws PortalException {
+
 		// Node
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long groupId = serviceContext.getScopeGroupId();
 
@@ -113,9 +133,16 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		long nodeId = counterLocalService.increment();
 
+		if (Validator.isNull(externalReferenceCode)) {
+			externalReferenceCode = String.valueOf(nodeId);
+		}
+
+		_validateExternalReferenceCode(externalReferenceCode, groupId);
+
 		WikiNode node = wikiNodePersistence.create(nodeId);
 
 		node.setUuid(serviceContext.getUuid());
+		node.setExternalReferenceCode(externalReferenceCode);
 		node.setGroupId(groupId);
 		node.setCompanyId(user.getCompanyId());
 		node.setUserId(user.getUserId());
@@ -176,7 +203,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			boolean addGuestPermissions)
 		throws PortalException {
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			node.getCompanyId(), node.getGroupId(), node.getUserId(),
 			WikiNode.class.getName(), node.getNodeId(), false,
 			addGroupPermissions, addGuestPermissions);
@@ -187,7 +214,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			WikiNode node, ModelPermissions modelPermissions)
 		throws PortalException {
 
-		resourceLocalService.addModelResources(
+		_resourceLocalService.addModelResources(
 			node.getCompanyId(), node.getGroupId(), node.getUserId(),
 			WikiNode.class.getName(), node.getNodeId(), modelPermissions);
 	}
@@ -227,7 +254,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		// Resources
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			node.getCompanyId(), WikiNode.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL, node.getNodeId());
 
@@ -375,8 +402,6 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			InputStream[] inputStreams, Map<String, String[]> options)
 		throws PortalException {
 
-		WikiNode node = getNode(nodeId);
-
 		WikiImporter wikiImporter = _wikiImporterServiceTrackerMap.getService(
 			importer);
 
@@ -384,6 +409,8 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			throw new SystemException(
 				"Unable to instantiate wiki importer with name " + importer);
 		}
+
+		WikiNode node = getNode(nodeId);
 
 		boolean notificationsEnabled = NotificationThreadLocal.isEnabled();
 		boolean clearCache = WikiCacheThreadLocal.isClearCache();
@@ -429,15 +456,12 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		// Trash
 
-		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		typeSettingsUnicodeProperties.put("title", node.getName());
-
 		TrashEntry trashEntry = _trashEntryLocalService.addTrashEntry(
 			userId, node.getGroupId(), WikiNode.class.getName(),
 			node.getNodeId(), node.getUuid(), null, oldStatus, null,
-			typeSettingsUnicodeProperties);
+			UnicodePropertiesBuilder.put(
+				"title", node.getName()
+			).build());
 
 		node.setName(_trashHelper.getTrashTitle(trashEntry.getEntryId()));
 
@@ -520,7 +544,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		// Node
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		node.setStatus(status);
 		node.setStatusByUserId(userId);
@@ -552,9 +576,9 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	protected List<WikiNode> addDefaultNode(long groupId)
 		throws PortalException {
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
-		long defaultUserId = userLocalService.getDefaultUserId(
+		long defaultUserId = _userLocalService.getDefaultUserId(
 			group.getCompanyId());
 
 		ServiceContext serviceContext = new ServiceContext();
@@ -577,7 +601,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		try {
 			WikiCacheThreadLocal.setClearCache(false);
 
-			List<WikiPage> pages = wikiPagePersistence.findByN_H(nodeId, true);
+			List<WikiPage> pages = _wikiPagePersistence.findByN_H(nodeId, true);
 
 			for (WikiPage page : pages) {
 				_wikiPageLocalService.moveDependentToTrash(page, trashEntryId);
@@ -593,7 +617,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	protected void restoreDependentsFromTrash(long userId, long nodeId)
 		throws PortalException {
 
-		List<WikiPage> pages = wikiPagePersistence.findByN_H(nodeId, true);
+		List<WikiPage> pages = _wikiPagePersistence.findByN_H(nodeId, true);
 
 		for (WikiPage page : pages) {
 			if (!page.isInTrashImplicitly()) {
@@ -630,8 +654,26 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		validate(0, groupId, name);
 	}
 
+	private void _validateExternalReferenceCode(
+			String externalReferenceCode, long groupId)
+		throws PortalException {
+
+		WikiNode wikiNode = wikiNodePersistence.fetchByG_ERC(
+			groupId, externalReferenceCode);
+
+		if (wikiNode != null) {
+			throw new DuplicateNodeExternalReferenceCodeException(
+				StringBundler.concat(
+					"Duplicate node external reference code ",
+					externalReferenceCode, " in group ", groupId));
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		WikiNodeLocalServiceImpl.class);
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private IndexerRegistry _indexerRegistry;
@@ -645,6 +687,9 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	private PortletFileRepository _portletFileRepository;
 
 	@Reference
+	private ResourceLocalService _resourceLocalService;
+
+	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;
 
 	@Reference
@@ -654,6 +699,9 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	private TrashHelper _trashHelper;
 
 	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
 	private WikiGroupServiceConfiguration _wikiGroupServiceConfiguration;
 
 	private ServiceTrackerMap<String, WikiImporter>
@@ -661,5 +709,8 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 	@Reference
 	private WikiPageLocalService _wikiPageLocalService;
+
+	@Reference
+	private WikiPagePersistence _wikiPagePersistence;
 
 }

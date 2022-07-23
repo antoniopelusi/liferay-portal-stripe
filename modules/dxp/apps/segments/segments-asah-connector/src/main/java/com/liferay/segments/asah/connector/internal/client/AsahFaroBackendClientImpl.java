@@ -270,18 +270,12 @@ public class AsahFaroBackendClientImpl implements AsahFaroBackendClient {
 	}
 
 	private Map<String, String> _getHeaders(long companyId) {
-		Map<String, String> headers = HashMapBuilder.put(
+		return HashMapBuilder.put(
 			"OSB-Asah-Faro-Backend-Security-Signature",
 			AsahUtil.getAsahFaroBackendSecuritySignature(companyId)
+		).put(
+			"OSB-Asah-Project-ID", () -> AsahUtil.getAsahProjectId(companyId)
 		).build();
-
-		String projectId = AsahUtil.getAsahProjectId(companyId);
-
-		if (projectId != null) {
-			headers.put("OSB-Asah-Project-ID", projectId);
-		}
-
-		return headers;
 	}
 
 	private MultivaluedMap<String, Object> _getParameters(
@@ -325,7 +319,7 @@ public class AsahFaroBackendClientImpl implements AsahFaroBackendClient {
 		uriVariables.putSingle("page", cur - 1);
 		uriVariables.putSingle("size", delta);
 
-		if ((orderByFields == null) || orderByFields.isEmpty()) {
+		if (ListUtil.isEmpty(orderByFields)) {
 			return uriVariables;
 		}
 

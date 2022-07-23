@@ -14,12 +14,12 @@
 
 package com.liferay.content.dashboard.web.internal.portlet.action;
 
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.content.dashboard.web.internal.constants.ContentDashboardPortletKeys;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -30,6 +30,7 @@ import javax.portlet.PortletPreferences;
 import javax.portlet.ValidatorException;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author David Arques
@@ -50,20 +51,19 @@ public class UpdateContentDashboardConfigurationMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		String[] assetVocabularyNames = StringUtil.split(
-			ParamUtil.getString(actionRequest, "assetVocabularyNames"));
+		String[] assetVocabularyIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "assetVocabularyIds"));
 
-		if (ArrayUtil.isEmpty(assetVocabularyNames)) {
+		if (assetVocabularyIds.length == 0) {
 			hideDefaultSuccessMessage(actionRequest);
-			SessionMessages.add(
-				actionRequest, "emptyAssetVocabularyNames", true);
+			SessionMessages.add(actionRequest, "emptyAssetVocabularyIds", true);
 		}
 		else {
 			PortletPreferences portletPreferences =
 				actionRequest.getPreferences();
 
 			portletPreferences.setValues(
-				"assetVocabularyNames", assetVocabularyNames);
+				"assetVocabularyIds", assetVocabularyIds);
 
 			try {
 				portletPreferences.store();
@@ -81,5 +81,8 @@ public class UpdateContentDashboardConfigurationMVCActionCommand
 			sendRedirect(actionRequest, actionResponse, redirect);
 		}
 	}
+
+	@Reference
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
 
 }

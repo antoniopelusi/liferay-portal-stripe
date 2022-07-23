@@ -24,9 +24,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 public class CommerceNotificationAttachmentImpl
 	extends CommerceNotificationAttachmentBaseImpl {
 
-	public CommerceNotificationAttachmentImpl() {
-	}
-
 	@Override
 	public FileEntry getFileEntry() throws PortalException {
 		return DLAppLocalServiceUtil.getFileEntry(getFileEntryId());

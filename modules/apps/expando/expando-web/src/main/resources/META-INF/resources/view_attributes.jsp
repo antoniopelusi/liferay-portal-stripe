@@ -37,7 +37,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	redirect
 ).setParameter(
 	"modelResource", modelResource
-).build();
+).buildPortletURL();
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
@@ -65,7 +65,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "view-at
 	showSearch="<%= false %>"
 />
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
 	<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
 	<aui:input name="columnIds" type="hidden" />
 

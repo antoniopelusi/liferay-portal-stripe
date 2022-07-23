@@ -27,6 +27,10 @@ public class DLStorageQuotaLocalServiceWrapper
 	implements DLStorageQuotaLocalService,
 			   ServiceWrapper<DLStorageQuotaLocalService> {
 
+	public DLStorageQuotaLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLStorageQuotaLocalServiceWrapper(
 		DLStorageQuotaLocalService dlStorageQuotaLocalService) {
 
@@ -127,6 +131,13 @@ public class DLStorageQuotaLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dlStorageQuotaLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlStorageQuotaLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import com.liferay.data.engine.rest.dto.v2_0.DataDefinition;
 import com.liferay.data.engine.rest.dto.v2_0.DataDefinitionField;
 import com.liferay.data.engine.rest.internal.content.type.DataDefinitionContentTypeTracker;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
@@ -35,6 +36,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -148,6 +150,13 @@ public class DataDefinitionUtil {
 					entry.getKey(),
 					_toMap((DDMFormFieldOptions)entry.getValue()));
 			}
+			else if (Objects.equals(settingsDDMFormField.getType(), "select") ||
+					 _isFieldSetRows(ddmFormField, settingsDDMFormField)) {
+
+				customProperties.put(
+					entry.getKey(),
+					_toJSONArray(String.valueOf(entry.getValue())));
+			}
 			else if (Objects.equals(
 						settingsDDMFormField.getType(), "validation")) {
 
@@ -194,11 +203,24 @@ public class DataDefinitionUtil {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
 		return StringPool.BLANK;
+	}
+
+	private static boolean _isFieldSetRows(
+		DDMFormField ddmFormField, DDMFormField settingsDDMFormField) {
+
+		if (Objects.equals(
+				ddmFormField.getType(), DDMFormFieldTypeConstants.FIELDSET) &&
+			Objects.equals(settingsDDMFormField.getName(), "rows")) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private static DataDefinitionField _toDataDefinitionField(
@@ -257,6 +279,19 @@ public class DataDefinitionUtil {
 		);
 	}
 
+	private static JSONArray _toJSONArray(String value) {
+		try {
+			return JSONFactoryUtil.createJSONArray(value);
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+		}
+
+		return JSONFactoryUtil.createJSONArray();
+	}
+
 	private static String[] _toLanguageIds(Set<Locale> locales) {
 		Stream<Locale> stream = locales.stream();
 
@@ -269,7 +304,7 @@ public class DataDefinitionUtil {
 		);
 	}
 
-	private static Map<String, List<Map<String, String>>> _toMap(
+	private static Map<String, List<JSONObject>> _toMap(
 		DDMFormFieldOptions ddmFormFieldOptions) {
 
 		Set<String> optionsValues = ddmFormFieldOptions.getOptionsValues();
@@ -278,7 +313,7 @@ public class DataDefinitionUtil {
 			return Collections.emptyMap();
 		}
 
-		Map<String, List<Map<String, String>>> options = new HashMap<>();
+		Map<String, List<JSONObject>> options = new HashMap<>();
 
 		for (String optionValue : optionsValues) {
 			LocalizedValue localizedValue = ddmFormFieldOptions.getOptionLabels(
@@ -288,23 +323,23 @@ public class DataDefinitionUtil {
 				String languageId = LanguageUtil.getLanguageId(locale);
 
 				if (options.containsKey(languageId)) {
-					List<Map<String, String>> values = options.get(languageId);
+					List<JSONObject> values = options.get(languageId);
 
 					values.add(
-						HashMapBuilder.put(
+						JSONUtil.put(
 							"label", localizedValue.getString(locale)
 						).put(
 							"reference",
 							ddmFormFieldOptions.getOptionReference(optionValue)
 						).put(
 							"value", optionValue
-						).build());
+						));
 				}
 				else {
 					options.put(
 						languageId,
 						ListUtil.toList(
-							HashMapBuilder.put(
+							JSONUtil.put(
 								"label", localizedValue.getString(locale)
 							).put(
 								"reference",
@@ -312,7 +347,7 @@ public class DataDefinitionUtil {
 									optionValue)
 							).put(
 								"value", optionValue
-							).build()));
+							)));
 				}
 			}
 		}

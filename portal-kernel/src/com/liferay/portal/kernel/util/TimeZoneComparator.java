@@ -22,9 +22,6 @@ import java.util.TimeZone;
  */
 public class TimeZoneComparator implements Comparator<TimeZone> {
 
-	public TimeZoneComparator() {
-	}
-
 	@Override
 	public int compare(TimeZone timeZone1, TimeZone timeZone2) {
 		long currentTime = System.currentTimeMillis();

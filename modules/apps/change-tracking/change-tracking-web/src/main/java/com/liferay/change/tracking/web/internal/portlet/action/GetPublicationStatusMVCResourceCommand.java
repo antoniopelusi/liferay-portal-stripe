@@ -14,9 +14,9 @@
 
 package com.liferay.change.tracking.web.internal.portlet.action;
 
+import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.model.CTProcess;
 import com.liferay.change.tracking.service.CTProcessLocalService;
-import com.liferay.change.tracking.web.internal.constants.CTPortletKeys;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
@@ -90,14 +90,18 @@ public class GetPublicationStatusMVCResourceCommand
 		if (backgroundTask.getStatus() ==
 				BackgroundTaskConstants.STATUS_IN_PROGRESS) {
 
-			BackgroundTaskDisplay backgroundTaskDisplay =
-				_backgroundTaskDisplayFactory.getBackgroundTaskDisplay(
-					backgroundTask.getBackgroundTaskId());
-
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse,
 				JSONUtil.put(
-					"percentage", backgroundTaskDisplay.getPercentage()));
+					"percentage",
+					() -> {
+						BackgroundTaskDisplay backgroundTaskDisplay =
+							_backgroundTaskDisplayFactory.
+								getBackgroundTaskDisplay(
+									backgroundTask.getBackgroundTaskId());
+
+						return backgroundTaskDisplay.getPercentage();
+					}));
 
 			return;
 		}

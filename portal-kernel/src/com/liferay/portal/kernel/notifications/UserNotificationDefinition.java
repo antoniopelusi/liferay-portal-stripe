@@ -32,6 +32,10 @@ public class UserNotificationDefinition {
 
 	public static final int NOTIFICATION_TYPE_ADD_ENTRY = 0;
 
+	public static final int NOTIFICATION_TYPE_EXPIRED_ENTRY = 3;
+
+	public static final int NOTIFICATION_TYPE_REVIEW_ENTRY = 2;
+
 	public static final int NOTIFICATION_TYPE_UPDATE_ENTRY = 1;
 
 	public UserNotificationDefinition(
@@ -94,7 +98,7 @@ public class UserNotificationDefinition {
 		}
 		catch (MissingResourceException missingResourceException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(missingResourceException, missingResourceException);
+				_log.debug(missingResourceException);
 			}
 
 			return ResourceBundleUtil.getBundle(

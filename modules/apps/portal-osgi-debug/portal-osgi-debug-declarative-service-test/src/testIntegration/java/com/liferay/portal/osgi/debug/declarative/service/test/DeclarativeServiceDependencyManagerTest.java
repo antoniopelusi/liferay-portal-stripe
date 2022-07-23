@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.osgi.debug.declarative.service.test.component.DeclarativeServiceTestComponent;
@@ -153,14 +154,10 @@ public class DeclarativeServiceDependencyManagerTest {
 			message = message.replaceAll("\\n", "");
 			message = message.replaceAll("_", "");
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("name: ");
-			sb.append(DeclarativeServiceTestComponent.class.getName());
-			sb.append(", unsatisfied references: {name: ");
-			sb.append("declarativeServiceTestReference, target: null}");
-
-			String s = sb.toString();
+			String s = StringBundler.concat(
+				"name: ", DeclarativeServiceTestComponent.class.getName(),
+				", unsatisfied references: {name: ",
+				"declarativeServiceTestReference, target: null}");
 
 			Assert.assertTrue(
 				message, message.contains(s.replaceAll("\\s", "")));
@@ -225,11 +222,10 @@ public class DeclarativeServiceDependencyManagerTest {
 
 			});
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("unsatisfiedComponentScanningInterval", 1);
-
-		_unsatisfiedComponentScannerConfiguration.update(properties);
+		_unsatisfiedComponentScannerConfiguration.update(
+			HashMapDictionaryBuilder.<String, Object>put(
+				"unsatisfiedComponentScanningInterval", 1
+			).build());
 
 		countDownLatch.await();
 

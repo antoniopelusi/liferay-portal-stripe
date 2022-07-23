@@ -33,6 +33,8 @@ else {
 }
 %>
 
+<liferay-ui:success key='<%= portletDisplay.getId() + "requestProcessed" %>' message="your-request-completed-successfully" />
+
 <portlet:actionURL name="/journal/restore_trash_entries" var="restoreTrashEntriesURL" />
 
 <liferay-trash:undo
@@ -45,12 +47,11 @@ else {
 />
 
 <clay:management-toolbar
-	additionalProps="<%= journalManagementToolbarDisplayContext.getAdditionalProps() %>"
 	managementToolbarDisplayContext="<%= journalManagementToolbarDisplayContext %>"
 	propsTransformer="js/ManagementToolbarPropsTransformer"
 />
 
-<div class="closed sidenav-container sidenav-right" id="<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>">
+<div class="closed sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
 	<c:if test="<%= journalDisplayContext.isShowInfoButton() %>">
 		<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/journal/info_panel" var="sidebarPanelURL">
 			<portlet:param name="folderId" value="<%= String.valueOf(journalDisplayContext.getFolderId()) %>" />
@@ -139,13 +140,6 @@ else {
 				</c:choose>
 			</aui:form>
 		</clay:container-fluid>
-	</div>
-
-	<div>
-		<react:component
-			module="js/export_translation/ExportTranslation.es"
-			props="<%= journalDisplayContext.getExportTranslationData() %>"
-		/>
 	</div>
 </div>
 

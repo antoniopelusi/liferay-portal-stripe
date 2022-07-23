@@ -16,9 +16,15 @@ package com.liferay.portal.dao.db;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBType;
+import com.liferay.portal.kernel.dao.db.IndexMetadata;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -31,7 +37,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -44,6 +52,150 @@ public class DB2DB extends BaseDB {
 
 	public DB2DB(int majorVersion, int minorVersion) {
 		super(DBType.DB2, majorVersion, minorVersion);
+	}
+
+	@Override
+	public void alterColumnName(
+			Connection connection, String tableName, String oldColumnName,
+			String newColumnDefinition)
+		throws Exception {
+
+		List<IndexMetadata> indexMetadatas = dropIndexes(
+			connection, tableName, oldColumnName);
+
+		String[] primaryKeyColumnNames = getPrimaryKeyColumnNames(
+			connection, tableName);
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		String normalizedOldColumnName = dbInspector.normalizeName(
+			oldColumnName);
+
+		boolean primaryKey = ArrayUtil.contains(
+			primaryKeyColumnNames, normalizedOldColumnName);
+
+		if (primaryKey) {
+			removePrimaryKey(connection, tableName);
+		}
+
+		super.alterColumnName(
+			connection, tableName, oldColumnName, newColumnDefinition);
+
+		String normalizedNewColumnName = dbInspector.normalizeName(
+			StringUtil.extractFirst(newColumnDefinition, StringPool.SPACE));
+
+		if (primaryKey) {
+			ArrayUtil.replace(
+				primaryKeyColumnNames, normalizedOldColumnName,
+				normalizedNewColumnName);
+
+			addPrimaryKey(connection, tableName, primaryKeyColumnNames);
+		}
+
+		List<IndexMetadata> newIndexMetadatas = new ArrayList<>();
+
+		for (IndexMetadata indexMetadata : indexMetadatas) {
+			String[] columnNames = indexMetadata.getColumnNames();
+
+			ArrayUtil.replace(
+				columnNames, normalizedOldColumnName, normalizedNewColumnName);
+
+			newIndexMetadatas.add(
+				new IndexMetadata(
+					indexMetadata.getIndexName(), indexMetadata.getTableName(),
+					indexMetadata.isUnique(), columnNames));
+		}
+
+		if (!newIndexMetadatas.isEmpty()) {
+			addIndexes(connection, newIndexMetadatas);
+		}
+	}
+
+	@Override
+	public void alterColumnType(
+			Connection connection, String tableName, String columnName,
+			String newColumnType)
+		throws Exception {
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		if (!dbInspector.hasColumn(tableName, columnName)) {
+			throw new SQLException(
+				StringBundler.concat(
+					"Unknown column ", columnName, " in table ", tableName));
+		}
+
+		try {
+			super.alterColumnType(
+				connection, tableName, columnName, newColumnType);
+		}
+		catch (SQLException sqlException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Attempting to upgrade table ", tableName,
+						" by adding a temporary column due to: ",
+						sqlException.getMessage()));
+			}
+
+			String tempColumnName = "temp" + columnName;
+
+			if (newColumnType.endsWith("not null")) {
+				runSQL(
+					StringBundler.concat(
+						"alter table ", tableName, " add ", tempColumnName,
+						StringPool.SPACE, newColumnType, " default 0"));
+
+				runSQL(
+					StringBundler.concat(
+						"alter table ", tableName, " alter column ",
+						tempColumnName, " drop default"));
+			}
+			else {
+				alterTableAddColumn(
+					connection, tableName, tempColumnName, newColumnType);
+			}
+
+			runSQL(
+				StringBundler.concat(
+					"update ", tableName, " set ", tempColumnName, " = ",
+					columnName));
+
+			List<IndexMetadata> indexMetadatas = dropIndexes(
+				connection, tableName, columnName);
+
+			String[] primaryKeyColumnNames = getPrimaryKeyColumnNames(
+				connection, tableName);
+
+			boolean primaryKey = ArrayUtil.contains(
+				primaryKeyColumnNames, columnName);
+
+			if (primaryKey) {
+				removePrimaryKey(connection, tableName);
+			}
+
+			alterColumnName(
+				connection, tableName, columnName,
+				tempColumnName + "2 " + newColumnType);
+
+			alterColumnName(
+				connection, tableName, tempColumnName,
+				columnName + StringPool.SPACE + newColumnType);
+
+			if (!indexMetadatas.isEmpty()) {
+				addIndexes(connection, indexMetadatas);
+			}
+
+			if (primaryKey) {
+				addPrimaryKey(connection, tableName, primaryKeyColumnNames);
+			}
+
+			alterTableDropColumn(connection, tableName, tempColumnName + "2");
+
+			if (_log.isInfoEnabled()) {
+				_log.info("Successfully upgraded table " + tableName);
+			}
+		}
 	}
 
 	@Override
@@ -60,29 +212,17 @@ public class DB2DB extends BaseDB {
 
 	@Override
 	public String getPopulateSQL(String databaseName, String sqlContent) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("connect to ");
-		sb.append(databaseName);
-		sb.append(";\n");
-		sb.append(sqlContent);
-
-		return sb.toString();
+		return StringBundler.concat(
+			"connect to ", databaseName, ";\n", sqlContent);
 	}
 
 	@Override
 	public String getRecreateSQL(String databaseName) {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("drop database ");
-		sb.append(databaseName);
-		sb.append(";\n");
-		sb.append("create database ");
-		sb.append(databaseName);
-		sb.append(" pagesize 32768 temporary tablespace managed by automatic ");
-		sb.append("storage;\n");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"drop database ", databaseName, ";\n", "create database ",
+			databaseName,
+			" pagesize 32768 temporary tablespace managed by automatic ",
+			"storage;\n");
 	}
 
 	@Override
@@ -96,12 +236,14 @@ public class DB2DB extends BaseDB {
 	}
 
 	@Override
-	public void runSQL(Connection con, String[] templates)
+	public void runSQL(Connection connection, String[] templates)
 		throws IOException, SQLException {
 
-		super.runSQL(con, templates);
+		reorgTables(connection, templates);
 
-		reorgTables(con, templates);
+		super.runSQL(connection, templates);
+
+		reorgTables(connection, templates);
 	}
 
 	@Override
@@ -130,27 +272,31 @@ public class DB2DB extends BaseDB {
 	}
 
 	@Override
+	protected int[] getSQLVarcharSizes() {
+		return _SQL_VARCHAR_SIZES;
+	}
+
+	@Override
 	protected String[] getTemplate() {
 		return _DB2;
 	}
 
-	protected boolean isRequiresReorgTable(Connection con, String tableName)
+	protected boolean isRequiresReorgTable(
+			Connection connection, String tableName)
 		throws SQLException {
 
 		boolean reorgTableRequired = false;
 
-		StringBundler sb = new StringBundler(4);
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select num_reorg_rec_alters from table(",
+					"sysproc.admin_get_tab_info(current_schema, '",
+					StringUtil.toUpperCase(tableName),
+					"')) where reorg_pending = 'Y'"));
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-		sb.append("select num_reorg_rec_alters from table(");
-		sb.append("sysproc.admin_get_tab_info(current_schema, '");
-		sb.append(StringUtil.toUpperCase(tableName));
-		sb.append("')) where reorg_pending = 'Y'");
-
-		try (PreparedStatement ps = con.prepareStatement(sb.toString());
-			ResultSet rs = ps.executeQuery()) {
-
-			if (rs.next()) {
-				int numReorgRecAlters = rs.getInt(1);
+			if (resultSet.next()) {
+				int numReorgRecAlters = resultSet.getInt(1);
 
 				if (numReorgRecAlters >= 1) {
 					reorgTableRequired = true;
@@ -161,14 +307,14 @@ public class DB2DB extends BaseDB {
 		return reorgTableRequired;
 	}
 
-	protected void reorgTable(Connection con, String tableName)
+	protected void reorgTable(Connection connection, String tableName)
 		throws SQLException {
 
-		if (!isRequiresReorgTable(con, tableName)) {
+		if (!isRequiresReorgTable(connection, tableName)) {
 			return;
 		}
 
-		try (CallableStatement callableStatement = con.prepareCall(
+		try (CallableStatement callableStatement = connection.prepareCall(
 				"call sysproc.admin_cmd(?)")) {
 
 			callableStatement.setString(1, "reorg table " + tableName);
@@ -177,7 +323,7 @@ public class DB2DB extends BaseDB {
 		}
 	}
 
-	protected void reorgTables(Connection con, String[] templates)
+	protected void reorgTables(Connection connection, String[] templates)
 		throws SQLException {
 
 		Set<String> tableNames = new HashSet<>();
@@ -187,7 +333,9 @@ public class DB2DB extends BaseDB {
 
 			String lowerCaseTemplate = StringUtil.toLowerCase(template);
 
-			if (lowerCaseTemplate.startsWith("alter table")) {
+			if (lowerCaseTemplate.startsWith("alter table") ||
+				lowerCaseTemplate.startsWith("delete from")) {
+
 				tableNames.add(template.split(" ")[2]);
 			}
 			else if (lowerCaseTemplate.startsWith(ALTER_COLUMN_TYPE)) {
@@ -200,7 +348,7 @@ public class DB2DB extends BaseDB {
 		}
 
 		for (String tableName : tableNames) {
-			reorgTable(con, tableName);
+			reorgTable(connection, tableName);
 		}
 	}
 
@@ -290,13 +438,21 @@ public class DB2DB extends BaseDB {
 		" generated always as identity", "commit"
 	};
 
+	private static final int _SQL_STRING_SIZE = 4000;
+
 	private static final int[] _SQL_TYPES = {
 		Types.BLOB, Types.BLOB, Types.SMALLINT, Types.TIMESTAMP, Types.DOUBLE,
 		Types.INTEGER, Types.BIGINT, Types.VARCHAR, Types.CLOB, Types.VARCHAR
 	};
 
+	private static final int[] _SQL_VARCHAR_SIZES = {
+		_SQL_STRING_SIZE, SQL_SIZE_NONE
+	};
+
 	private static final boolean _SUPPORTS_INLINE_DISTINCT = false;
 
 	private static final boolean _SUPPORTS_SCROLLABLE_RESULTS = false;
+
+	private static final Log _log = LogFactoryUtil.getLog(DB2DB.class);
 
 }

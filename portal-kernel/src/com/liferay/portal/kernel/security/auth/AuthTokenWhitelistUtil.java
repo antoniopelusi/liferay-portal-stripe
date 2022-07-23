@@ -14,10 +14,11 @@
 
 package com.liferay.portal.kernel.security.auth;
 
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerList;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -106,7 +107,7 @@ public class AuthTokenWhitelistUtil {
 	}
 
 	private static final ServiceTrackerList<AuthTokenWhitelist>
-		_authTokenWhitelists = ServiceTrackerCollections.openList(
-			AuthTokenWhitelist.class);
+		_authTokenWhitelists = ServiceTrackerListFactory.open(
+			SystemBundleUtil.getBundleContext(), AuthTokenWhitelist.class);
 
 }

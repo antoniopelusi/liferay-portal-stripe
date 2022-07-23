@@ -43,12 +43,9 @@ definition {
 				-u test@liferay.com:test \
 				-d name=${userGroupName}
 		''';
-
 		var userGroupId = JSONCurlUtil.post("${curl}", "$.userGroupId");
-		var userGroupId = StringUtil.replace("${userGroupId}", "[&quot;", "");
-		var userGroupId = StringUtil.replace("${userGroupId}", "&quot;]", "");
 
-		if ("${groupId}" == "[]") {
+		if ("${groupId}" == "") {
 			fail("FAIL. Cannot find user group.");
 		}
 

@@ -184,4 +184,7 @@ public interface VirtualHostModel
 	 */
 	public void setLanguageId(String languageId);
 
+	@Override
+	public VirtualHost cloneWithOriginalValues();
+
 }

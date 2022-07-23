@@ -17,7 +17,6 @@ package com.liferay.message.boards.internal.search.spi.model.result.contributor;
 import com.liferay.message.boards.model.MBCategory;
 import com.liferay.message.boards.service.MBCategoryLocalService;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.search.spi.model.result.contributor.ModelVisibilityContributor;
 
 import org.osgi.service.component.annotations.Component;
@@ -46,17 +45,6 @@ public class MBCategoryModelVisibilityContributor
 		}
 
 		return isVisible(mbCategory.getStatus(), status);
-	}
-
-	protected boolean isVisible(int entryStatus, int queryStatus) {
-		if (((queryStatus != WorkflowConstants.STATUS_ANY) &&
-			 (entryStatus == queryStatus)) ||
-			(entryStatus != WorkflowConstants.STATUS_IN_TRASH)) {
-
-			return true;
-		}
-
-		return false;
 	}
 
 	@Reference

@@ -29,6 +29,10 @@ public class
 				   ServiceWrapper
 					   <CommerceNotificationTemplateCommerceAccountGroupRelLocalService> {
 
+	public CommerceNotificationTemplateCommerceAccountGroupRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceNotificationTemplateCommerceAccountGroupRelLocalServiceWrapper(
 		CommerceNotificationTemplateCommerceAccountGroupRelLocalService
 			commerceNotificationTemplateCommerceAccountGroupRelLocalService) {
@@ -187,6 +191,14 @@ public class
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceNotificationTemplateCommerceAccountGroupRelLocalService.
 			dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceNotificationTemplateCommerceAccountGroupRelLocalService.
+			dslQueryCount(dslQuery);
 	}
 
 	@Override

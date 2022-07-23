@@ -34,30 +34,16 @@ public class USAPhoneNumberFormatImpl implements PhoneNumberFormat {
 		}
 
 		if (phoneNumber.length() > 10) {
-			StringBundler sb = new StringBundler(8);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(phoneNumber.substring(0, 3));
-			sb.append(") ");
-			sb.append(phoneNumber.substring(3, 6));
-			sb.append(StringPool.DASH);
-			sb.append(phoneNumber.substring(6, 10));
-			sb.append(" x");
-			sb.append(phoneNumber.substring(10));
-
-			return sb.toString();
+			return StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS, phoneNumber.substring(0, 3), ") ",
+				phoneNumber.substring(3, 6), StringPool.DASH,
+				phoneNumber.substring(6, 10), " x", phoneNumber.substring(10));
 		}
 		else if (phoneNumber.length() == 10) {
-			StringBundler sb = new StringBundler(6);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(phoneNumber.substring(0, 3));
-			sb.append(") ");
-			sb.append(phoneNumber.substring(3, 6));
-			sb.append(StringPool.DASH);
-			sb.append(phoneNumber.substring(6));
-
-			return sb.toString();
+			return StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS, phoneNumber.substring(0, 3), ") ",
+				phoneNumber.substring(3, 6), StringPool.DASH,
+				phoneNumber.substring(6));
 		}
 		else if (phoneNumber.length() == 7) {
 			return StringBundler.concat(

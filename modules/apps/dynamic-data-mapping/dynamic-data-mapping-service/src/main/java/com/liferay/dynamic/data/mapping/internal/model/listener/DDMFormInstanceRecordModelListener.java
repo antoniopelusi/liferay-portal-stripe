@@ -63,14 +63,12 @@ public class DDMFormInstanceRecordModelListener
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("Unable to update dynamic data mapping form ");
-				sb.append("instance report for dynamic data mapping form ");
-				sb.append("instance record ");
-				sb.append(ddmFormInstanceRecord.getFormInstanceRecordId());
-
-				_log.warn(sb.toString(), exception);
+				_log.warn(
+					StringBundler.concat(
+						"Unable to update dynamic data mapping form instance ",
+						"report for dynamic data mapping form instance record ",
+						ddmFormInstanceRecord.getFormInstanceRecordId()),
+					exception);
 			}
 		}
 	}

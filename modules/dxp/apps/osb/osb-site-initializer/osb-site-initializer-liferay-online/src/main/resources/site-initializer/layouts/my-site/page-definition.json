@@ -1,0 +1,24 @@
+{
+	"pageElement": {
+		"pageElements": [
+			{
+				"definition": {
+					"widgetInstance": {
+						"widgetConfig": {
+							"displayStyle": "ddmTemplate_MY-SITE",
+							"displayStyleGroupId": "[$GROUP_ID$]"
+						},
+						"widgetName": "com_liferay_commerce_order_content_web_internal_portlet_CommerceOrderContentPortlet"
+					}
+				},
+				"type": "Widget"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "dashboard"
+		}
+	}
+}

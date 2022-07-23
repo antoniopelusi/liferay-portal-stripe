@@ -47,17 +47,9 @@ public class FooBean5 {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{doubleValue=");
-		sb.append(_doubleValue);
-		sb.append(", integerValue=");
-		sb.append(_integerValue);
-		sb.append(", longValue=");
-		sb.append(_longValue);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{doubleValue=", _doubleValue, ", integerValue=", _integerValue,
+			", longValue=", _longValue, "}");
 	}
 
 	private double _doubleValue;

@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupModel;
-import com.liferay.portal.kernel.model.GroupSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -35,20 +34,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -82,12 +81,12 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"uuid_", Types.VARCHAR}, {"groupId", Types.BIGINT},
 		{"companyId", Types.BIGINT}, {"creatorUserId", Types.BIGINT},
-		{"classNameId", Types.BIGINT}, {"classPK", Types.BIGINT},
-		{"parentGroupId", Types.BIGINT}, {"liveGroupId", Types.BIGINT},
-		{"treePath", Types.VARCHAR}, {"groupKey", Types.VARCHAR},
-		{"name", Types.VARCHAR}, {"description", Types.VARCHAR},
-		{"type_", Types.INTEGER}, {"typeSettings", Types.CLOB},
-		{"manualMembership", Types.BOOLEAN},
+		{"modifiedDate", Types.TIMESTAMP}, {"classNameId", Types.BIGINT},
+		{"classPK", Types.BIGINT}, {"parentGroupId", Types.BIGINT},
+		{"liveGroupId", Types.BIGINT}, {"treePath", Types.VARCHAR},
+		{"groupKey", Types.VARCHAR}, {"name", Types.VARCHAR},
+		{"description", Types.VARCHAR}, {"type_", Types.INTEGER},
+		{"typeSettings", Types.CLOB}, {"manualMembership", Types.BOOLEAN},
 		{"membershipRestriction", Types.INTEGER},
 		{"friendlyURL", Types.VARCHAR}, {"site", Types.BOOLEAN},
 		{"remoteStagingGroupCount", Types.INTEGER},
@@ -104,6 +103,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("creatorUserId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("parentGroupId", Types.BIGINT);
@@ -124,7 +124,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table Group_ (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,groupId LONG not null,companyId LONG,creatorUserId LONG,classNameId LONG,classPK LONG,parentGroupId LONG,liveGroupId LONG,treePath STRING null,groupKey VARCHAR(150) null,name STRING null,description STRING null,type_ INTEGER,typeSettings TEXT null,manualMembership BOOLEAN,membershipRestriction INTEGER,friendlyURL VARCHAR(255) null,site BOOLEAN,remoteStagingGroupCount INTEGER,inheritContent BOOLEAN,active_ BOOLEAN,primary key (groupId, ctCollectionId))";
+		"create table Group_ (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,groupId LONG not null,companyId LONG,creatorUserId LONG,modifiedDate DATE null,classNameId LONG,classPK LONG,parentGroupId LONG,liveGroupId LONG,treePath STRING null,groupKey VARCHAR(150) null,name STRING null,description STRING null,type_ INTEGER,typeSettings TEXT null,manualMembership BOOLEAN,membershipRestriction INTEGER,friendlyURL VARCHAR(255) null,site BOOLEAN,remoteStagingGroupCount INTEGER,inheritContent BOOLEAN,active_ BOOLEAN,primary key (groupId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table Group_";
 
@@ -245,71 +245,6 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	 */
 	@Deprecated
 	public static final long UUID_COLUMN_BITMASK = 16384L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Group toModel(GroupSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Group model = new GroupImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setCreatorUserId(soapModel.getCreatorUserId());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setParentGroupId(soapModel.getParentGroupId());
-		model.setLiveGroupId(soapModel.getLiveGroupId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setGroupKey(soapModel.getGroupKey());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setType(soapModel.getType());
-		model.setTypeSettings(soapModel.getTypeSettings());
-		model.setManualMembership(soapModel.isManualMembership());
-		model.setMembershipRestriction(soapModel.getMembershipRestriction());
-		model.setFriendlyURL(soapModel.getFriendlyURL());
-		model.setSite(soapModel.isSite());
-		model.setRemoteStagingGroupCount(
-			soapModel.getRemoteStagingGroupCount());
-		model.setInheritContent(soapModel.isInheritContent());
-		model.setActive(soapModel.isActive());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Group> toModels(GroupSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Group> models = new ArrayList<Group>(soapModels.length);
-
-		for (GroupSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final String MAPPING_TABLE_GROUPS_ORGS_NAME = "Groups_Orgs";
 
@@ -460,33 +395,6 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, Group>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Group.class.getClassLoader(), Group.class, ModelWrapper.class);
-
-		try {
-			Constructor<Group> constructor =
-				(Constructor<Group>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<Group, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<Group, Object>>
@@ -518,6 +426,9 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		attributeGetterFunctions.put("creatorUserId", Group::getCreatorUserId);
 		attributeSetterBiConsumers.put(
 			"creatorUserId", (BiConsumer<Group, Long>)Group::setCreatorUserId);
+		attributeGetterFunctions.put("modifiedDate", Group::getModifiedDate);
+		attributeSetterBiConsumers.put(
+			"modifiedDate", (BiConsumer<Group, Date>)Group::setModifiedDate);
 		attributeGetterFunctions.put("classNameId", Group::getClassNameId);
 		attributeSetterBiConsumers.put(
 			"classNameId", (BiConsumer<Group, Long>)Group::setClassNameId);
@@ -721,6 +632,27 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 
 	@Override
 	public void setCreatorUserUuid(String creatorUserUuid) {
+	}
+
+	@JSON
+	@Override
+	public Date getModifiedDate() {
+		return _modifiedDate;
+	}
+
+	public boolean hasSetModifiedDate() {
+		return _setModifiedDate;
+	}
+
+	@Override
+	public void setModifiedDate(Date modifiedDate) {
+		_setModifiedDate = true;
+
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_modifiedDate = modifiedDate;
 	}
 
 	@Override
@@ -1496,6 +1428,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		groupImpl.setGroupId(getGroupId());
 		groupImpl.setCompanyId(getCompanyId());
 		groupImpl.setCreatorUserId(getCreatorUserId());
+		groupImpl.setModifiedDate(getModifiedDate());
 		groupImpl.setClassNameId(getClassNameId());
 		groupImpl.setClassPK(getClassPK());
 		groupImpl.setParentGroupId(getParentGroupId());
@@ -1515,6 +1448,52 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		groupImpl.setActive(isActive());
 
 		groupImpl.resetOriginalValues();
+
+		return groupImpl;
+	}
+
+	@Override
+	public Group cloneWithOriginalValues() {
+		GroupImpl groupImpl = new GroupImpl();
+
+		groupImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		groupImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		groupImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		groupImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		groupImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		groupImpl.setCreatorUserId(
+			this.<Long>getColumnOriginalValue("creatorUserId"));
+		groupImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		groupImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		groupImpl.setClassPK(this.<Long>getColumnOriginalValue("classPK"));
+		groupImpl.setParentGroupId(
+			this.<Long>getColumnOriginalValue("parentGroupId"));
+		groupImpl.setLiveGroupId(
+			this.<Long>getColumnOriginalValue("liveGroupId"));
+		groupImpl.setTreePath(this.<String>getColumnOriginalValue("treePath"));
+		groupImpl.setGroupKey(this.<String>getColumnOriginalValue("groupKey"));
+		groupImpl.setName(this.<String>getColumnOriginalValue("name"));
+		groupImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		groupImpl.setType(this.<Integer>getColumnOriginalValue("type_"));
+		groupImpl.setTypeSettings(
+			this.<String>getColumnOriginalValue("typeSettings"));
+		groupImpl.setManualMembership(
+			this.<Boolean>getColumnOriginalValue("manualMembership"));
+		groupImpl.setMembershipRestriction(
+			this.<Integer>getColumnOriginalValue("membershipRestriction"));
+		groupImpl.setFriendlyURL(
+			this.<String>getColumnOriginalValue("friendlyURL"));
+		groupImpl.setSite(this.<Boolean>getColumnOriginalValue("site"));
+		groupImpl.setRemoteStagingGroupCount(
+			this.<Integer>getColumnOriginalValue("remoteStagingGroupCount"));
+		groupImpl.setInheritContent(
+			this.<Boolean>getColumnOriginalValue("inheritContent"));
+		groupImpl.setActive(this.<Boolean>getColumnOriginalValue("active_"));
 
 		return groupImpl;
 	}
@@ -1581,6 +1560,8 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	public void resetOriginalValues() {
 		_columnOriginalValues = Collections.emptyMap();
 
+		_setModifiedDate = false;
+
 		_columnBitmask = 0;
 	}
 
@@ -1605,6 +1586,15 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		groupCacheModel.companyId = getCompanyId();
 
 		groupCacheModel.creatorUserId = getCreatorUserId();
+
+		Date modifiedDate = getModifiedDate();
+
+		if (modifiedDate != null) {
+			groupCacheModel.modifiedDate = modifiedDate.getTime();
+		}
+		else {
+			groupCacheModel.modifiedDate = Long.MIN_VALUE;
+		}
 
 		groupCacheModel.classNameId = getClassNameId();
 
@@ -1685,7 +1675,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1695,9 +1685,26 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 			String attributeName = entry.getKey();
 			Function<Group, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Group)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Group)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1743,7 +1750,9 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Group>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Group.class, ModelWrapper.class);
 
 	}
 
@@ -1753,6 +1762,8 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	private long _groupId;
 	private long _companyId;
 	private long _creatorUserId;
+	private Date _modifiedDate;
+	private boolean _setModifiedDate;
 	private long _classNameId;
 	private long _classPK;
 	private long _parentGroupId;
@@ -1808,6 +1819,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		_columnOriginalValues.put("groupId", _groupId);
 		_columnOriginalValues.put("companyId", _companyId);
 		_columnOriginalValues.put("creatorUserId", _creatorUserId);
+		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("classNameId", _classNameId);
 		_columnOriginalValues.put("classPK", _classPK);
 		_columnOriginalValues.put("parentGroupId", _parentGroupId);
@@ -1864,39 +1876,41 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 
 		columnBitmasks.put("creatorUserId", 32L);
 
-		columnBitmasks.put("classNameId", 64L);
+		columnBitmasks.put("modifiedDate", 64L);
 
-		columnBitmasks.put("classPK", 128L);
+		columnBitmasks.put("classNameId", 128L);
 
-		columnBitmasks.put("parentGroupId", 256L);
+		columnBitmasks.put("classPK", 256L);
 
-		columnBitmasks.put("liveGroupId", 512L);
+		columnBitmasks.put("parentGroupId", 512L);
 
-		columnBitmasks.put("treePath", 1024L);
+		columnBitmasks.put("liveGroupId", 1024L);
 
-		columnBitmasks.put("groupKey", 2048L);
+		columnBitmasks.put("treePath", 2048L);
 
-		columnBitmasks.put("name", 4096L);
+		columnBitmasks.put("groupKey", 4096L);
 
-		columnBitmasks.put("description", 8192L);
+		columnBitmasks.put("name", 8192L);
 
-		columnBitmasks.put("type_", 16384L);
+		columnBitmasks.put("description", 16384L);
 
-		columnBitmasks.put("typeSettings", 32768L);
+		columnBitmasks.put("type_", 32768L);
 
-		columnBitmasks.put("manualMembership", 65536L);
+		columnBitmasks.put("typeSettings", 65536L);
 
-		columnBitmasks.put("membershipRestriction", 131072L);
+		columnBitmasks.put("manualMembership", 131072L);
 
-		columnBitmasks.put("friendlyURL", 262144L);
+		columnBitmasks.put("membershipRestriction", 262144L);
 
-		columnBitmasks.put("site", 524288L);
+		columnBitmasks.put("friendlyURL", 524288L);
 
-		columnBitmasks.put("remoteStagingGroupCount", 1048576L);
+		columnBitmasks.put("site", 1048576L);
 
-		columnBitmasks.put("inheritContent", 2097152L);
+		columnBitmasks.put("remoteStagingGroupCount", 2097152L);
 
-		columnBitmasks.put("active_", 4194304L);
+		columnBitmasks.put("inheritContent", 4194304L);
+
+		columnBitmasks.put("active_", 8388608L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

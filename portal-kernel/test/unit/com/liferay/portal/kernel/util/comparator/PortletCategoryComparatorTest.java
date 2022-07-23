@@ -21,36 +21,40 @@ import com.liferay.portal.kernel.test.util.PropsTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 
 import java.util.Collections;
-import java.util.Locale;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
-import org.mockito.Mock;
-
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 /**
  * @author Eduardo García
  */
-@PrepareForTest(LanguageUtil.class)
-@RunWith(PowerMockRunner.class)
-public class PortletCategoryComparatorTest extends PowerMockito {
-
-	@Before
-	public void setUp() {
-		PropsTestUtil.setProps(Collections.emptyMap());
-
-		setUpLanguageUtil();
-	}
+public class PortletCategoryComparatorTest {
 
 	@Test
 	public void testCompareLocalized() {
+		PropsTestUtil.setProps(Collections.emptyMap());
+
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		Language language = Mockito.mock(Language.class);
+
+		languageUtil.setLanguage(language);
+
+		Mockito.when(
+			language.get(Matchers.eq(LocaleUtil.SPAIN), Matchers.eq("area"))
+		).thenReturn(
+			"Área"
+		);
+
+		Mockito.when(
+			language.get(Matchers.eq(LocaleUtil.SPAIN), Matchers.eq("zone"))
+		).thenReturn(
+			"Zona"
+		);
+
 		PortletCategory portletCategory1 = new PortletCategory("area");
 		PortletCategory portletCategory2 = new PortletCategory("zone");
 
@@ -62,25 +66,5 @@ public class PortletCategoryComparatorTest extends PowerMockito {
 
 		Assert.assertTrue(value < 0);
 	}
-
-	protected void setUpLanguageUtil() {
-		LanguageUtil languageUtil = new LanguageUtil();
-
-		languageUtil.setLanguage(_language);
-
-		whenLanguageGet(LocaleUtil.SPAIN, "area", "Área");
-		whenLanguageGet(LocaleUtil.SPAIN, "zone", "Zona");
-	}
-
-	protected void whenLanguageGet(Locale locale, String key, String value) {
-		when(
-			_language.get(Matchers.eq(locale), Matchers.eq(key))
-		).thenReturn(
-			value
-		);
-	}
-
-	@Mock
-	private Language _language;
 
 }

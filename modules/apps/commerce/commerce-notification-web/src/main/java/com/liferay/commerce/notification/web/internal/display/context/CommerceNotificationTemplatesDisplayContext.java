@@ -18,7 +18,7 @@ import com.liferay.commerce.notification.model.CommerceNotificationTemplate;
 import com.liferay.commerce.notification.service.CommerceNotificationTemplateService;
 import com.liferay.commerce.notification.type.CommerceNotificationType;
 import com.liferay.commerce.notification.type.CommerceNotificationTypeRegistry;
-import com.liferay.commerce.notification.web.internal.display.context.util.CommerceNotificationsRequestHelper;
+import com.liferay.commerce.notification.web.internal.display.context.helper.CommerceNotificationsRequestHelper;
 import com.liferay.commerce.order.CommerceDefinitionTermContributor;
 import com.liferay.commerce.order.CommerceDefinitionTermContributorRegistry;
 import com.liferay.commerce.product.model.CommerceChannel;

@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.LayoutSetPrototypeModel;
-import com.liferay.portal.kernel.model.LayoutSetPrototypeSoap;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
@@ -36,21 +35,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -169,62 +167,6 @@ public class LayoutSetPrototypeModelImpl
 	@Deprecated
 	public static final long LAYOUTSETPROTOTYPEID_COLUMN_BITMASK = 8L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static LayoutSetPrototype toModel(LayoutSetPrototypeSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		LayoutSetPrototype model = new LayoutSetPrototypeImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setLayoutSetPrototypeId(soapModel.getLayoutSetPrototypeId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setSettings(soapModel.getSettings());
-		model.setActive(soapModel.isActive());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<LayoutSetPrototype> toModels(
-		LayoutSetPrototypeSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<LayoutSetPrototype> models = new ArrayList<LayoutSetPrototype>(
-			soapModels.length);
-
-		for (LayoutSetPrototypeSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.LayoutSetPrototype"));
@@ -312,34 +254,6 @@ public class LayoutSetPrototypeModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutSetPrototype>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutSetPrototype.class.getClassLoader(), LayoutSetPrototype.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<LayoutSetPrototype> constructor =
-				(Constructor<LayoutSetPrototype>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutSetPrototype, Object>>
@@ -1045,6 +959,39 @@ public class LayoutSetPrototypeModelImpl
 	}
 
 	@Override
+	public LayoutSetPrototype cloneWithOriginalValues() {
+		LayoutSetPrototypeImpl layoutSetPrototypeImpl =
+			new LayoutSetPrototypeImpl();
+
+		layoutSetPrototypeImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutSetPrototypeImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		layoutSetPrototypeImpl.setLayoutSetPrototypeId(
+			this.<Long>getColumnOriginalValue("layoutSetPrototypeId"));
+		layoutSetPrototypeImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutSetPrototypeImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		layoutSetPrototypeImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		layoutSetPrototypeImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutSetPrototypeImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutSetPrototypeImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		layoutSetPrototypeImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		layoutSetPrototypeImpl.setSettings(
+			this.<String>getColumnOriginalValue("settings_"));
+		layoutSetPrototypeImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+
+		return layoutSetPrototypeImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutSetPrototype layoutSetPrototype) {
 		long primaryKey = layoutSetPrototype.getPrimaryKey();
 
@@ -1196,7 +1143,7 @@ public class LayoutSetPrototypeModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1207,9 +1154,27 @@ public class LayoutSetPrototypeModelImpl
 			Function<LayoutSetPrototype, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((LayoutSetPrototype)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(LayoutSetPrototype)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1256,7 +1221,9 @@ public class LayoutSetPrototypeModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, LayoutSetPrototype>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					LayoutSetPrototype.class, ModelWrapper.class);
 
 	}
 

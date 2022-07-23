@@ -127,7 +127,7 @@ public class SyncJSONFilter implements Filter {
 					httpServletRequest);
 			}
 
-			if (!isSyncJSONRequest(servletRequest)) {
+			if (!_isSyncJSONRequest(servletRequest)) {
 				filterChain.doFilter(servletRequest, servletResponse);
 
 				return;
@@ -233,7 +233,7 @@ public class SyncJSONFilter implements Filter {
 	public void init(FilterConfig filterConfig) {
 	}
 
-	protected boolean isSyncJSONRequest(ServletRequest servletRequest) {
+	private boolean _isSyncJSONRequest(ServletRequest servletRequest) {
 		try {
 			String cmd = servletRequest.getParameter(Constants.CMD);
 
@@ -274,7 +274,7 @@ public class SyncJSONFilter implements Filter {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;

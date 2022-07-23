@@ -329,4 +329,7 @@ public interface AssetListEntryModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public AssetListEntry cloneWithOriginalValues();
+
 }

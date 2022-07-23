@@ -1,5 +1,0 @@
-<definition default="sikuliRightMouseUp">
-	<command name="sikuliRightMouseUp">
-		<execute selenium="sikuliRightMouseUp" />
-	</command>
-</definition>

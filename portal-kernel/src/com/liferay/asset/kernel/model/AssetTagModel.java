@@ -284,4 +284,7 @@ public interface AssetTagModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public AssetTag cloneWithOriginalValues();
+
 }

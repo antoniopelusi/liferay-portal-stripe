@@ -20,7 +20,6 @@ import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.wish.list.model.impl.CommerceWishListItemModelImpl;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -45,23 +44,18 @@ public class CommerceWishListItemUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		_addColumn(
-			CommerceWishListItemModelImpl.class,
-			CommerceWishListItemModelImpl.TABLE_NAME, "CPInstanceUuid",
-			"VARCHAR(75)");
-		_addColumn(
-			CommerceWishListItemModelImpl.class,
-			CommerceWishListItemModelImpl.TABLE_NAME, "CProductId", "LONG");
+		_addColumn("CommerceWishListItem", "CPInstanceUuid", "VARCHAR(75)");
+		_addColumn("CommerceWishListItem", "CProductId", "LONG");
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update CommerceWishListItem set CProductId = ?," +
 					"CPInstanceUuid = ? where CPInstanceId = ?");
 			Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select distinct CPInstanceId from CommerceWishListItem")) {
 
-			while (rs.next()) {
-				long cpInstanceId = rs.getLong("CPInstanceId");
+			while (resultSet.next()) {
+				long cpInstanceId = resultSet.getLong("CPInstanceId");
 
 				CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(
 					cpInstanceId);
@@ -70,12 +64,12 @@ public class CommerceWishListItemUpgradeProcess extends UpgradeProcess {
 					_cpDefinitionLocalService.getCPDefinition(
 						cpInstance.getCPDefinitionId());
 
-				ps.setLong(1, cpDefinition.getCProductId());
+				preparedStatement.setLong(1, cpDefinition.getCProductId());
 
-				ps.setString(2, cpInstance.getCPInstanceUuid());
-				ps.setLong(3, cpInstanceId);
+				preparedStatement.setString(2, cpInstance.getCPInstanceUuid());
+				preparedStatement.setLong(3, cpInstanceId);
 
-				ps.execute();
+				preparedStatement.execute();
 			}
 		}
 
@@ -84,8 +78,7 @@ public class CommerceWishListItemUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _addColumn(
-			Class<?> entityClass, String tableName, String columnName,
-			String columnType)
+			String tableName, String columnName, String columnType)
 		throws Exception {
 
 		if (_log.isInfoEnabled()) {
@@ -95,10 +88,7 @@ public class CommerceWishListItemUpgradeProcess extends UpgradeProcess {
 		}
 
 		if (!hasColumn(tableName, columnName)) {
-			alter(
-				entityClass,
-				new AlterTableAddColumn(
-					columnName + StringPool.SPACE + columnType));
+			alterTableAddColumn(tableName, columnName, columnType);
 		}
 		else {
 			if (_log.isInfoEnabled()) {

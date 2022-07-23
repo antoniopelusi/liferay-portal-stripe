@@ -20,6 +20,7 @@ import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycle
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.exportimport.kernel.staging.StagingURLHelper;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -138,7 +139,14 @@ public class EventRemotePropagatorExportImportLifecycleListener
 			return false;
 		}
 
-		return true;
+		String remoteAddress = GetterUtil.getString(
+			settingsMapOptional.map(
+				settingsMap -> settingsMap.get("remoteAddress")
+			).orElse(
+				StringPool.BLANK
+			));
+
+		return !remoteAddress.equals("localhost");
 	}
 
 	private Optional<ExportImportConfiguration> _getExportImportConfiguration(

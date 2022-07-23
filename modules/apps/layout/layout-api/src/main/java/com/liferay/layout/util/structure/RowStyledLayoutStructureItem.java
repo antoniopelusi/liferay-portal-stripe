@@ -72,6 +72,8 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		jsonObject.put(
 			"gutters", _gutters
 		).put(
+			"indexed", _indexed
+		).put(
 			"modulesPerRow", getModulesPerRow()
 		).put(
 			"numberOfColumns", _numberOfColumns
@@ -81,7 +83,7 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 			"verticalAlignment", _verticalAlignment
 		);
 
-		for (ViewportSize viewportSize : ViewportSize.values()) {
+		for (ViewportSize viewportSize : _viewportSizes) {
 			if (viewportSize.equals(ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -95,7 +97,7 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 			}
 
 			JSONObject viewportConfigurationJSONObject =
-				_viewportConfigurations.getOrDefault(
+				_viewportConfigurationJSONObjects.getOrDefault(
 					viewportSize.getViewportSizeId(),
 					JSONFactoryUtil.createJSONObject());
 
@@ -150,17 +152,8 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		return _verticalAlignment;
 	}
 
-	public Map<String, JSONObject> getViewportConfigurations() {
-		return _viewportConfigurations;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getViewportConfigurations()}
-	 */
-	@Deprecated
-	public Map<String, JSONObject> getViewportSizeConfigurations() {
-		return getViewportConfigurations();
+	public Map<String, JSONObject> getViewportConfigurationJSONObjects() {
+		return _viewportConfigurationJSONObjects;
 	}
 
 	@Override
@@ -172,12 +165,20 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		return _gutters;
 	}
 
+	public boolean isIndexed() {
+		return _indexed;
+	}
+
 	public boolean isReverseOrder() {
 		return _reverseOrder;
 	}
 
 	public void setGutters(boolean gutters) {
 		_gutters = gutters;
+	}
+
+	public void setIndexed(boolean indexed) {
+		_indexed = indexed;
 	}
 
 	public void setModulesPerRow(int modulesPerRow) {
@@ -199,41 +200,40 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 	public void setViewportConfiguration(
 		String viewportSizeId, JSONObject configurationJSONObject) {
 
-		JSONObject currentConfigurationJSONObject =
-			_viewportConfigurations.getOrDefault(
-				viewportSizeId, JSONFactoryUtil.createJSONObject());
-
-		if (configurationJSONObject.has("modulesPerRow")) {
-			currentConfigurationJSONObject.put(
+		_viewportConfigurationJSONObjects.put(
+			viewportSizeId,
+			_viewportConfigurationJSONObjects.getOrDefault(
+				viewportSizeId, JSONFactoryUtil.createJSONObject()
+			).put(
 				"modulesPerRow",
-				configurationJSONObject.getInt("modulesPerRow"));
-		}
+				() -> {
+					if (configurationJSONObject.has("modulesPerRow")) {
+						return configurationJSONObject.getInt("modulesPerRow");
+					}
 
-		if (configurationJSONObject.has("reverseOrder")) {
-			currentConfigurationJSONObject.put(
+					return null;
+				}
+			).put(
 				"reverseOrder",
-				configurationJSONObject.getBoolean("reverseOrder"));
-		}
+				() -> {
+					if (configurationJSONObject.has("reverseOrder")) {
+						return configurationJSONObject.getBoolean(
+							"reverseOrder");
+					}
 
-		if (configurationJSONObject.has("verticalAlignment")) {
-			currentConfigurationJSONObject.put(
+					return null;
+				}
+			).put(
 				"verticalAlignment",
-				configurationJSONObject.getString("verticalAlignment"));
-		}
+				() -> {
+					if (configurationJSONObject.has("verticalAlignment")) {
+						return configurationJSONObject.getString(
+							"verticalAlignment");
+					}
 
-		_viewportConfigurations.put(
-			viewportSizeId, currentConfigurationJSONObject);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #setViewportConfiguration(String, JSONObject)}
-	 */
-	@Deprecated
-	public void setViewportSizeConfiguration(
-		String viewportSizeId, JSONObject configurationJSONObject) {
-
-		setViewportConfiguration(viewportSizeId, configurationJSONObject);
+					return null;
+				}
+			));
 	}
 
 	@Override
@@ -246,6 +246,10 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 
 		if (itemConfigJSONObject.has("modulesPerRow")) {
 			setModulesPerRow(itemConfigJSONObject.getInt("modulesPerRow"));
+		}
+
+		if (itemConfigJSONObject.has("indexed")) {
+			setIndexed(itemConfigJSONObject.getBoolean("indexed"));
 		}
 
 		if (itemConfigJSONObject.has("numberOfColumns")) {
@@ -261,7 +265,7 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 				itemConfigJSONObject.getString("verticalAlignment"));
 		}
 
-		for (ViewportSize viewportSize : ViewportSize.values()) {
+		for (ViewportSize viewportSize : _viewportSizes) {
 			if (viewportSize.equals(ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -275,12 +279,15 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		}
 	}
 
+	private static final ViewportSize[] _viewportSizes = ViewportSize.values();
+
 	private boolean _gutters = true;
+	private boolean _indexed = true;
 	private Integer _modulesPerRow;
 	private int _numberOfColumns;
 	private boolean _reverseOrder;
 	private String _verticalAlignment = "top";
-	private final Map<String, JSONObject> _viewportConfigurations =
+	private final Map<String, JSONObject> _viewportConfigurationJSONObjects =
 		new HashMap<>();
 
 }

@@ -110,6 +110,10 @@ public class DLPortletInstanceSettings {
 			"rootFolderId", DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 	}
 
+	public long getSelectedRepositoryId() {
+		return _typedSettings.getLongValue("selectedRepositoryId");
+	}
+
 	public boolean isEnableCommentRatings() {
 		return _typedSettings.getBooleanValue("enableCommentRatings");
 	}

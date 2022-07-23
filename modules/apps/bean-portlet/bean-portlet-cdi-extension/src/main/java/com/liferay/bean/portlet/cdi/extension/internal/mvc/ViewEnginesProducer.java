@@ -51,7 +51,7 @@ public class ViewEnginesProducer {
 	}
 
 	private static class ViewEnginePriorityComparator
-		extends DescendingPriorityComparator<ViewEngine> {
+		extends BaseDescendingPriorityComparator<ViewEngine> {
 
 		private ViewEnginePriorityComparator() {
 

@@ -28,9 +28,6 @@ import java.util.List;
  */
 public class KaleoTaskImpl extends KaleoTaskBaseImpl {
 
-	public KaleoTaskImpl() {
-	}
-
 	@Override
 	public KaleoNode getKaleoNode() throws PortalException {
 		return KaleoNodeLocalServiceUtil.getKaleoNode(getKaleoNodeId());

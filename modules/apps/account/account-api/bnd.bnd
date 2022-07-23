@@ -1,13 +1,14 @@
 Bundle-Name: Liferay Account API
 Bundle-SymbolicName: com.liferay.account.api
-Bundle-Version: 2.0.1
+Bundle-Version: 8.2.1
 Export-Package:\
 	com.liferay.account.configuration,\
 	com.liferay.account.constants,\
 	com.liferay.account.exception,\
+	com.liferay.account.manager,\
 	com.liferay.account.model,\
 	com.liferay.account.retriever,\
 	com.liferay.account.role,\
 	com.liferay.account.service,\
-	com.liferay.account.service.persistence
--liferay-aggregate-resource-bundles: com.liferay.account.lang
+	com.liferay.account.service.persistence,\
+	com.liferay.account.settings

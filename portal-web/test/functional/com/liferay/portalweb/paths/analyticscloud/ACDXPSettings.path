@@ -1,0 +1,170 @@
+<html>
+<head>
+<title>ACDXPSettings</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">ACDXPSettings</td></tr>
+</thead>
+
+<tbody>
+<!-- INSTANCE SETTINGS OPTION -->
+<tr>
+	<td>ANALYTICS_CLOUD_DXP_OPTION</td>
+	<td>//*[contains(@href, 'analytics-cloud-connection')]</td>
+	<td></td>
+</tr>
+<!-- ANALYTICS CLOUD CONNECTION SCREEN -->
+<tr>
+	<td>TOKEN_INPUT_FIELD</td>
+	<td>//input[contains(@id,'token')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONNECT_DISCONNECT_BUTTON</td>
+	<td>//button[contains(@id,'tokenButton')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONNECT_DISCONNECT_BUTTON_DISABLED</td>
+	<td>//button[@disabled='' and contains(@class,'btn-primary')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANALYTICS_CLOUD_CONNECTED_CONFIRMATION_MESSAGE</td>
+	<td>//*[contains(@class, 'control-label') and contains(text(), 'Your DXP instance is connected to Analytics Cloud.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_NAME</td>
+	<td>//td[contains(@class, 'lfr-site-name-column')]</td>
+	<td></td>
+</tr>
+<!-- NAVIGATION SIDEBAR ITEMS -->
+<tr>
+	<td>AC_CONNECTION_NAV_SIDEBAR</td>
+	<td>//*[contains(@class, 'nav-link') and contains(@href,'connection')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNCED_SITES_NAV_SIDEBAR</td>
+	<td>//*[contains(@class, 'nav-link') and contains(@href,'synced-sites')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNCED_CONTACT_DATA_NAV_SIDEBAR</td>
+	<td>//*[contains(@class, 'nav-link') and contains(@href,'contact')]</td>
+	<td></td>
+</tr>
+<!-- SYNCS SITES TO PROPERTY SCREEN -->
+<tr>
+	<td>AVAILABLE_PROPERTY_NAME</td>
+	<td>//td[contains(., '${key_availablePropertyName}')]</td>
+	<td></td>
+</tr>
+<!-- GENERIC CHECKBOX -->
+<tr>
+	<td>AC_GENERIC_CHECKBOX</td>
+	<td>//*[contains(@type, 'checkbox')]</td>
+	<td></td>
+</tr>
+<!-- GENERIC ADD OR CONFIRMATION BUTTON -->
+<tr>
+	<td>AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON</td>
+	<td>//*[contains(@class, 'btn-primary')]</td>
+	<td></td>
+</tr>
+<!-- GENERIC CANCEL BUTTON -->
+<tr>
+	<td>AC_GENERIC_CANCEL_BUTTON</td>
+	<td>//*[contains(@class, 'btn-secondary')]</td>
+	<td></td>
+</tr>
+<!-- NEW PROPERTY SCREEN -->
+<tr>
+	<td>COMBINATED_PROPERTY_OPTION</td>
+	<td>//*[contains(@value, 'combined')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSIGNED_PROPERTY</td>
+	<td>//input[@disabled=""]//../following::td[contains(@class,'lfr-assigned-property-column')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNCED_SITES_SEARCH_FIELD</td>
+	<td>//input[contains(@class, 'input-group-inset-after')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MULTIPLE_PROPERTY_OPTION</td>
+	<td>//*[contains(@value, 'multiple')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROPERTY_NAME_CHECKBOX</td>
+	<td>//td[contains(., '${key_propertyName}')]//preceding-sibling::td</td>
+	<td></td>
+</tr>
+<!-- SYNC CONTACT DATA SCREEN -->
+<tr>
+	<td>FIELD_NAME_CHECKBOX</td>
+	<td>//td/input[contains(@value, '${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNCED_CONTACT_DATA_USER_TAB</td>
+	<td>//li[contains(@class, 'nav-item') and contains(.,'User')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNC_ALL_CONTACTS_TOGGLE</td>
+	<td>//*[contains(@class, 'toggle-switch-check')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNC_ALL_CONTACTS_NUMBER</td>
+	<td>//*[contains(@class, 'toggle-switch-text')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNC_CONTACTS_OPTION</td>
+	<td>//fieldset//*[contains(@href, 'synced-contact-data')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNC_BY_ORGANIZATIONS_PREVIEW</td>
+	<td>//fieldset//a[2]//div[2]//small[contains(@class,'list-group-subtext')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNC_BY_ORGANIZATIONS_BUTTON</td>
+	<td>//fieldset//a[2]//div[2]//p[contains(@class,'list-group-title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTACT_SYNC_OPTIONS</td>
+	<td>//p[contains(@class,'list-group-title') and contains (text(),'${key_option}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>USER_GROUP_OPTION_CHECKBOX</td>
+	<td>//tr[contains(., '${key_entry}')]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>AC_CHECKBOX_INDEX</td>
+	<td>xpath=(//*[contains(@type, 'checkbox')])[${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SYNC_BY_USER_GROUPS_PREVIEW</td>
+	<td>//fieldset//a[1]//div[2]//small[contains(@class,'list-group-subtext')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -321,4 +321,7 @@ public interface OrgLaborModel
 	 */
 	public void setSatClose(int satClose);
 
+	@Override
+	public OrgLabor cloneWithOriginalValues();
+
 }

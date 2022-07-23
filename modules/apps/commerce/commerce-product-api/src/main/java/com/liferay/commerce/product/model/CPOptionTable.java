@@ -32,6 +32,10 @@ public class CPOptionTable extends BaseTable<CPOptionTable> {
 
 	public static final CPOptionTable INSTANCE = new CPOptionTable();
 
+	public final Column<CPOptionTable, Long> mvccVersion = createColumn(
+		"mvccVersion", Long.class, Types.BIGINT, Column.FLAG_NULLITY);
+	public final Column<CPOptionTable, Long> ctCollectionId = createColumn(
+		"ctCollectionId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
 	public final Column<CPOptionTable, String> uuid = createColumn(
 		"uuid_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<CPOptionTable, String> externalReferenceCode =

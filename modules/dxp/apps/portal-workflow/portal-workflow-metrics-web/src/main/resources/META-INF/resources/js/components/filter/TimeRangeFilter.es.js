@@ -30,7 +30,6 @@ import CustomTimeRangeForm from './CustomTimeRangeForm.es';
 import {getCustomTimeRange, parseDateItems} from './util/timeRangeUtil.es';
 
 export default function TimeRangeFilter({
-	buttonClassName,
 	className,
 	disabled,
 	filterKey = filterConstants.timeRange.key,
@@ -40,7 +39,6 @@ export default function TimeRangeFilter({
 	options = {
 		hideControl: true,
 		multiple: false,
-		position: 'left',
 		withSelectionTitle: true,
 		withoutRouteParams: false,
 		...options,
@@ -66,8 +64,6 @@ export default function TimeRangeFilter({
 			else {
 				handleClick(currentItem);
 			}
-
-			document.dispatchEvent(new Event('mousedown'));
 
 			return true;
 		},
@@ -138,7 +134,7 @@ export default function TimeRangeFilter({
 
 	return (
 		<Filter
-			buttonClassName={buttonClassName}
+			childrenVisibility={formVisible}
 			defaultItem={defaultItem}
 			disabled={disabled}
 			elementClasses={className}
@@ -147,18 +143,15 @@ export default function TimeRangeFilter({
 			name={filterName}
 			onClickFilter={onClickFilter(handleSelectFilter)}
 			prefixKey={prefixKey}
-			preventClick
 			{...options}
 		>
-			{formVisible && (
-				<CustomTimeRangeForm
-					handleSelectFilter={handleSelectFilter}
-					items={items}
-					prefixKey={prefixKey}
-					setFormVisible={setFormVisible}
-					withoutRouteParams={options.withoutRouteParams}
-				/>
-			)}
+			<CustomTimeRangeForm
+				handleSelectFilter={handleSelectFilter}
+				items={items}
+				prefixKey={prefixKey}
+				setFormVisible={setFormVisible}
+				withoutRouteParams={options.withoutRouteParams}
+			/>
 		</Filter>
 	);
 }

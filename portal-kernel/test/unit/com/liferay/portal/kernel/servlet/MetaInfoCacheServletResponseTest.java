@@ -1785,15 +1785,13 @@ public class MetaInfoCacheServletResponseTest {
 		MetaInfoCacheServletResponse metaInfoCacheServletResponse =
 			new MetaInfoCacheServletResponse(stubHttpServletResponse);
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("{bufferSize=0, charsetName=null, committed=false, ");
-		sb.append("contentLength=-1, contentType=null, error=false, ");
-		sb.append("errorMessage=null, headers={}, location=null, ");
-		sb.append("locale=null, status=200}");
-
 		Assert.assertEquals(
-			sb.toString(), metaInfoCacheServletResponse.toString());
+			StringBundler.concat(
+				"{bufferSize=0, charsetName=null, committed=false, ",
+				"contentLength=-1, contentType=null, error=false, ",
+				"errorMessage=null, headers={}, location=null, locale=null, ",
+				"status=200}"),
+			metaInfoCacheServletResponse.toString());
 	}
 
 }

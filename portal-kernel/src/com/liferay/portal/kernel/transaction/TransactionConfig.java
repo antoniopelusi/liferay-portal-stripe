@@ -144,27 +144,14 @@ public class TransactionConfig {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
-
-		sb.append("{isolation=");
-		sb.append(_isolation);
-		sb.append(", noRollbackForClassNames=");
-		sb.append(Arrays.toString(_noRollbackForClassNames));
-		sb.append(", noRollbackForClasses=");
-		sb.append(Arrays.toString(_noRollbackForClasses));
-		sb.append(", propagation=");
-		sb.append(_propagation);
-		sb.append(", readOnly=");
-		sb.append(_readOnly);
-		sb.append(", rollbackForClassNames=");
-		sb.append(Arrays.toString(_rollbackForClassNames));
-		sb.append(", rollbackForClasses=");
-		sb.append(Arrays.toString(_rollbackForClasses));
-		sb.append(", timeout=");
-		sb.append(_timeout);
-		sb.append(StringPool.CLOSE_CURLY_BRACE);
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{isolation=", _isolation, ", noRollbackForClassNames=",
+			Arrays.toString(_noRollbackForClassNames),
+			", noRollbackForClasses=", Arrays.toString(_noRollbackForClasses),
+			", propagation=", _propagation, ", readOnly=", _readOnly,
+			", rollbackForClassNames=", Arrays.toString(_rollbackForClassNames),
+			", rollbackForClasses=", Arrays.toString(_rollbackForClasses),
+			", timeout=", _timeout, StringPool.CLOSE_CURLY_BRACE);
 	}
 
 	public static class Builder {

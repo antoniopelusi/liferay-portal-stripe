@@ -13,7 +13,7 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {act, cleanup, render, wait} from '@testing-library/react';
+import {act, render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import Price from '../../../src/main/resources/META-INF/resources/components/price/Price';
@@ -35,10 +35,6 @@ describe('Price', () => {
 			jest.resetAllMocks();
 
 			window.Liferay.Language.get = jest.fn();
-		});
-
-		afterEach(() => {
-			cleanup();
 		});
 
 		it('displays the formatted list price of an item', () => {
@@ -312,10 +308,6 @@ describe('Price', () => {
 			window.Liferay.Language.get = jest.fn();
 		});
 
-		afterEach(() => {
-			cleanup();
-		});
-
 		it('displays the formatted discounted gross price of an item', () => {
 			const netPrice = false;
 
@@ -540,9 +532,6 @@ describe('Price', () => {
 
 			expect(singleDiscountPercentage).not.toBeInTheDocument();
 		});
-
-		// jest.mock('../../../src/main/resources/META-INF/resources/components/price/util/index');
-
 	});
 
 	describe('by event update', () => {
@@ -550,10 +539,6 @@ describe('Price', () => {
 			jest.resetAllMocks();
 
 			window.Liferay.Language.get = jest.fn();
-		});
-
-		afterEach(() => {
-			cleanup();
 		});
 
 		it('attaches a namespaced event listener for price update via event', () => {
@@ -642,7 +627,7 @@ describe('Price', () => {
 				updatePriceCB(incomingCPInstancePrice);
 			});
 
-			await wait(() => {
+			await waitFor(() => {
 				const labels = container.querySelectorAll('.price-label');
 				const values = container.querySelectorAll('.price-value');
 

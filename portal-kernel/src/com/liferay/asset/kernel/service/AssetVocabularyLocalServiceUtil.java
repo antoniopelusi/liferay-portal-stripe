@@ -106,25 +106,25 @@ public class AssetVocabularyLocalServiceUtil {
 			long userId, long groupId, String name, String title,
 			Map<java.util.Locale, String> titleMap,
 			Map<java.util.Locale, String> descriptionMap, String settings,
-			int visibilityType,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().addVocabulary(
-			userId, groupId, name, title, titleMap, descriptionMap, settings,
-			visibilityType, serviceContext);
-	}
-
-	public static AssetVocabulary addVocabulary(
-			long userId, long groupId, String name, String title,
-			Map<java.util.Locale, String> titleMap,
-			Map<java.util.Locale, String> descriptionMap, String settings,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addVocabulary(
 			userId, groupId, name, title, titleMap, descriptionMap, settings,
 			serviceContext);
+	}
+
+	public static AssetVocabulary addVocabulary(
+			String externalReferenceCode, long userId, long groupId,
+			String name, String title, Map<java.util.Locale, String> titleMap,
+			Map<java.util.Locale, String> descriptionMap, String settings,
+			int visibilityType,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addVocabulary(
+			externalReferenceCode, userId, groupId, name, title, titleMap,
+			descriptionMap, settings, visibilityType, serviceContext);
 	}
 
 	public static void addVocabularyResources(
@@ -228,6 +228,10 @@ public class AssetVocabularyLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -310,17 +314,17 @@ public class AssetVocabularyLocalServiceUtil {
 	}
 
 	/**
-	 * Returns the asset vocabulary with the matching external reference code and company.
+	 * Returns the asset vocabulary with the matching external reference code and group.
 	 *
-	 * @param companyId the primary key of the company
+	 * @param groupId the primary key of the group
 	 * @param externalReferenceCode the asset vocabulary's external reference code
 	 * @return the matching asset vocabulary, or <code>null</code> if a matching asset vocabulary could not be found
 	 */
 	public static AssetVocabulary fetchAssetVocabularyByExternalReferenceCode(
-		long companyId, String externalReferenceCode) {
+		long groupId, String externalReferenceCode) {
 
 		return getService().fetchAssetVocabularyByExternalReferenceCode(
-			companyId, externalReferenceCode);
+			groupId, externalReferenceCode);
 	}
 
 	/**
@@ -328,10 +332,10 @@ public class AssetVocabularyLocalServiceUtil {
 	 */
 	@Deprecated
 	public static AssetVocabulary fetchAssetVocabularyByReferenceCode(
-		long companyId, String externalReferenceCode) {
+		long groupId, String externalReferenceCode) {
 
 		return getService().fetchAssetVocabularyByReferenceCode(
-			companyId, externalReferenceCode);
+			groupId, externalReferenceCode);
 	}
 
 	/**
@@ -431,19 +435,19 @@ public class AssetVocabularyLocalServiceUtil {
 	}
 
 	/**
-	 * Returns the asset vocabulary with the matching external reference code and company.
+	 * Returns the asset vocabulary with the matching external reference code and group.
 	 *
-	 * @param companyId the primary key of the company
+	 * @param groupId the primary key of the group
 	 * @param externalReferenceCode the asset vocabulary's external reference code
 	 * @return the matching asset vocabulary
 	 * @throws PortalException if a matching asset vocabulary could not be found
 	 */
 	public static AssetVocabulary getAssetVocabularyByExternalReferenceCode(
-			long companyId, String externalReferenceCode)
+			long groupId, String externalReferenceCode)
 		throws PortalException {
 
 		return getService().getAssetVocabularyByExternalReferenceCode(
-			companyId, externalReferenceCode);
+			groupId, externalReferenceCode);
 	}
 
 	/**

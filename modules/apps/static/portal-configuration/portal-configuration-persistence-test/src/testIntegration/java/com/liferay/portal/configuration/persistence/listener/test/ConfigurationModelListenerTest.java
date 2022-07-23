@@ -19,15 +19,20 @@ import com.liferay.osgi.util.service.OSGiServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListener;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListenerException;
+import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.felix.cm.PersistenceManager;
 
@@ -51,7 +56,7 @@ public class ConfigurationModelListenerTest {
 
 	@After
 	public void tearDown() throws Exception {
-		_serviceRegistration.unregister();
+		_serviceRegistrations.forEach(ServiceRegistration::unregister);
 
 		if (_configuration != null) {
 			Object delegatee = ReflectionTestUtil.getFieldValue(
@@ -65,7 +70,7 @@ public class ConfigurationModelListenerTest {
 	public void testListenForScopedConfiguration() throws Exception {
 		String pid = RandomTestUtil.randomString(20);
 
-		_serviceRegistration = _registerConfigurationModelListener(
+		_registerConfigurationModelListener(
 			new ConfigurationModelListener() {
 
 				@Override
@@ -109,8 +114,7 @@ public class ConfigurationModelListenerTest {
 
 			};
 
-		_serviceRegistration = _registerConfigurationModelListener(
-			configurationModelListener, pid);
+		_registerConfigurationModelListener(configurationModelListener, pid);
 
 		_configuration = _getConfiguration(pid);
 
@@ -124,9 +128,10 @@ public class ConfigurationModelListenerTest {
 	public void testOnAfterSave() throws Exception {
 		String pid = StringUtil.randomString(20);
 
-		Dictionary<String, Object> testProperties = new HashMapDictionary<>();
-
-		testProperties.put(_TEST_KEY, _TEST_VALUE);
+		Dictionary<String, Object> testProperties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				_TEST_KEY, _TEST_VALUE
+			).build();
 
 		AtomicBoolean called = new AtomicBoolean();
 
@@ -144,8 +149,7 @@ public class ConfigurationModelListenerTest {
 
 			};
 
-		_serviceRegistration = _registerConfigurationModelListener(
-			configurationModelListener, pid);
+		_registerConfigurationModelListener(configurationModelListener, pid);
 
 		_configuration = _getConfiguration(pid);
 
@@ -176,8 +180,7 @@ public class ConfigurationModelListenerTest {
 
 			};
 
-		_serviceRegistration = _registerConfigurationModelListener(
-			configurationModelListener, pid);
+		_registerConfigurationModelListener(configurationModelListener, pid);
 
 		_configuration = _getConfiguration(pid);
 
@@ -200,9 +203,10 @@ public class ConfigurationModelListenerTest {
 	public void testOnBeforeSave() throws Exception {
 		String pid = StringUtil.randomString(20);
 
-		Dictionary<String, Object> testProperties = new HashMapDictionary<>();
-
-		testProperties.put(_TEST_KEY, _TEST_VALUE);
+		Dictionary<String, Object> testProperties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				_TEST_KEY, _TEST_VALUE
+			).build();
 
 		_configuration = _getConfiguration(pid);
 
@@ -231,8 +235,7 @@ public class ConfigurationModelListenerTest {
 
 			};
 
-		_serviceRegistration = _registerConfigurationModelListener(
-			configurationModelListener, pid);
+		_registerConfigurationModelListener(configurationModelListener, pid);
 
 		testProperties.put(_TEST_KEY, newValue);
 
@@ -257,6 +260,52 @@ public class ConfigurationModelListenerTest {
 		}
 	}
 
+	@Test
+	public void testRegisterConfigurationModelListeners() throws Exception {
+		int configurationModelListenersCount = 3;
+		AtomicInteger methodInvocationsCount = new AtomicInteger();
+		String pid = RandomTestUtil.randomString(20);
+
+		for (int i = 0; i < configurationModelListenersCount; i++) {
+			_registerConfigurationModelListener(
+				new ConfigurationModelListener() {
+
+					@Override
+					public void onAfterDelete(String pid) {
+						methodInvocationsCount.incrementAndGet();
+					}
+
+					@Override
+					public void onAfterSave(
+						String pid, Dictionary<String, Object> properties) {
+
+						methodInvocationsCount.incrementAndGet();
+					}
+
+					@Override
+					public void onBeforeDelete(String pid) {
+						methodInvocationsCount.incrementAndGet();
+					}
+
+					@Override
+					public void onBeforeSave(
+						String pid, Dictionary<String, Object> properties) {
+
+						methodInvocationsCount.incrementAndGet();
+					}
+
+				},
+				pid);
+		}
+
+		ConfigurationTestUtil.saveConfiguration(pid, new HashMapDictionary<>());
+
+		ConfigurationTestUtil.deleteConfiguration(pid);
+
+		Assert.assertEquals(
+			configurationModelListenersCount * 4, methodInvocationsCount.get());
+	}
+
 	private Configuration _getConfiguration(String pid) throws IOException {
 		return OSGiServiceUtil.callService(
 			_bundleContext, ConfigurationAdmin.class,
@@ -270,16 +319,16 @@ public class ConfigurationModelListenerTest {
 			persistenceManager -> persistenceManager.exists(pid));
 	}
 
-	private ServiceRegistration<?> _registerConfigurationModelListener(
+	private void _registerConfigurationModelListener(
 		ConfigurationModelListener configurationModelListener, String pid) {
 
-		Dictionary<String, String> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", pid);
-
-		return _bundleContext.registerService(
-			ConfigurationModelListener.class.getName(),
-			configurationModelListener, properties);
+		_serviceRegistrations.add(
+			_bundleContext.registerService(
+				ConfigurationModelListener.class.getName(),
+				configurationModelListener,
+				HashMapDictionaryBuilder.put(
+					"model.class.name", pid
+				).build()));
 	}
 
 	private static final String _TEST_KEY = StringUtil.randomString(20);
@@ -301,6 +350,7 @@ public class ConfigurationModelListenerTest {
 	}
 
 	private Configuration _configuration;
-	private ServiceRegistration<?> _serviceRegistration;
+	private final List<ServiceRegistration<?>> _serviceRegistrations =
+		new ArrayList<>();
 
 }

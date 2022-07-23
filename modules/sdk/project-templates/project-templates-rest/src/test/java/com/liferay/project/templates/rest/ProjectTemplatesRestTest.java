@@ -48,7 +48,7 @@ public class ProjectTemplatesRestTest implements BaseProjectTemplatesTestCase {
 	public static Iterable<Object[]> data() {
 		return Arrays.asList(
 			new Object[][] {
-				{"7.0.6"}, {"7.1.3"}, {"7.2.1"}, {"7.3.6"}, {"7.4.0"}
+				{"7.0.6-2"}, {"7.1.3-1"}, {"7.2.1-1"}, {"7.3.7"}, {"7.4.1-1"}
 			});
 	}
 
@@ -101,7 +101,7 @@ public class ProjectTemplatesRestTest implements BaseProjectTemplatesTestCase {
 					"\"org.osgi.service.jaxrs");
 		}
 
-		if (_liferayVersion.equals("7.0.6")) {
+		if (_liferayVersion.startsWith("7.0")) {
 			testContains(
 				gradleProjectDir,
 				"src/main/resources/configuration" +

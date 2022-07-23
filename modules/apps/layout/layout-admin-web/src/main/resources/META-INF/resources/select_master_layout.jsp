@@ -17,18 +17,14 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectMasterLayout");
-
-SelectLayoutPageTemplateEntryDisplayContext selectLayoutPageTemplateEntryDisplayContext = new SelectLayoutPageTemplateEntryDisplayContext(request);
-
-List<LayoutPageTemplateEntry> masterLayoutPageTemplateEntries = selectLayoutPageTemplateEntryDisplayContext.getMasterLayoutPageTemplateEntries();
+SelectLayoutPageTemplateEntryDisplayContext selectLayoutPageTemplateEntryDisplayContext = new SelectLayoutPageTemplateEntryDisplayContext(request, liferayPortletResponse);
 %>
 
 <aui:form cssClass="container-fluid container-fluid-max-xl container-view" name="fm">
 	<ul class="card-page card-page-equal-height">
 
 		<%
-		for (LayoutPageTemplateEntry masterLayoutPageTemplateEntry : masterLayoutPageTemplateEntries) {
+		for (LayoutPageTemplateEntry masterLayoutPageTemplateEntry : selectLayoutPageTemplateEntryDisplayContext.getMasterLayoutPageTemplateEntries()) {
 		%>
 
 			<li class="card-page-item card-page-item-asset">
@@ -46,42 +42,7 @@ List<LayoutPageTemplateEntry> masterLayoutPageTemplateEntries = selectLayoutPage
 	</ul>
 </aui:form>
 
-<aui:script require="frontend-js-web/liferay/delegate/delegate.es as delegateModule">
-	var delegate = delegateModule.default;
-
-	var delegateHandler = delegate(
-		document.body,
-		'click',
-		'.select-master-layout-option',
-		(event) => {
-			var activeCards = document.querySelectorAll('.form-check-card.active');
-
-			if (activeCards.length) {
-				activeCards.forEach((card) => {
-					card.classList.remove('active');
-				});
-			}
-
-			var newSelectedCard = event.delegateTarget.closest('.form-check-card');
-
-			if (newSelectedCard) {
-				newSelectedCard.classList.add('active');
-			}
-
-			Liferay.Util.getOpener().Liferay.fire(
-				'<%= HtmlUtil.escape(eventName) %>',
-				{
-					data: event.delegateTarget.dataset,
-				}
-			);
-		}
-	);
-
-	var onDestroyPortlet = function () {
-		delegateHandler.dipose();
-
-		Liferay.detach('destroyPortlet', onDestroyPortlet);
-	};
-
-	Liferay.on('destroyPortlet', onDestroyPortlet);
-</aui:script>
+<liferay-frontend:component
+	context="<%= selectLayoutPageTemplateEntryDisplayContext.getComponentContext() %>"
+	module="js/SelectCardHandler"
+/>

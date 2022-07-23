@@ -38,7 +38,7 @@ import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.CPInstanceHelper;
 import com.liferay.commerce.service.CommerceOrderItemService;
 import com.liferay.commerce.service.CommerceOrderService;
-import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -68,7 +68,7 @@ public class CommerceCartResourceUtil {
 		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
 			commerceOrderId);
 
-		List<Product> product = getProducts(
+		List<Product> product = _getProducts(
 			commerceOrder, commerceContext, locale);
 
 		if (valid && product.isEmpty()) {
@@ -84,129 +84,8 @@ public class CommerceCartResourceUtil {
 
 		return new Cart(
 			detailsUrl, commerceOrderId, product,
-			getSummary(commerceOrder, locale, commerceContext), valid,
+			_getSummary(commerceOrder, locale, commerceContext), valid,
 			orderStatusInfo);
-	}
-
-	protected String[] getErrorMessages(
-			Locale locale, CommerceOrderItem commerceOrderItem)
-		throws PortalException {
-
-		String[] errorMessages = new String[0];
-
-		List<CommerceOrderValidatorResult> commerceOrderValidatorResults =
-			_commerceOrderValidatorRegistry.validate(locale, commerceOrderItem);
-
-		for (CommerceOrderValidatorResult commerceOrderValidatorResult :
-				commerceOrderValidatorResults) {
-
-			errorMessages = ArrayUtil.append(
-				errorMessages,
-				commerceOrderValidatorResult.getLocalizedMessage());
-		}
-
-		return errorMessages;
-	}
-
-	protected List<Product> getProducts(
-			CommerceOrder commerceOrder, CommerceContext commerceContext,
-			Locale locale)
-		throws Exception {
-
-		List<Product> products = new ArrayList<>();
-
-		List<CommerceOrderItem> commerceOrderItems =
-			commerceOrder.getCommerceOrderItems();
-
-		for (CommerceOrderItem commerceOrderItem : commerceOrderItems) {
-			PriceModel prices = _getCommerceOrderItemPriceModel(
-				commerceOrderItem, commerceContext, locale);
-
-			ProductSettingsModel settings =
-				_productHelper.getProductSettingsModel(
-					commerceOrderItem.getCPInstanceId());
-
-			Product product = new Product(
-				commerceOrderItem.getCommerceOrderItemId(),
-				commerceOrderItem.getParentCommerceOrderItemId(),
-				commerceOrderItem.getName(locale), commerceOrderItem.getSku(),
-				commerceOrderItem.getQuantity(),
-				_cpInstanceHelper.getCPInstanceThumbnailSrc(
-					commerceOrderItem.getCPInstanceId()),
-				prices, settings, getErrorMessages(locale, commerceOrderItem),
-				commerceOrderItem.getCPInstanceId());
-
-			long commerceOptionValueCPDefinitionId =
-				commerceOrderItem.getCPDefinitionId();
-
-			if (commerceOrderItem.hasParentCommerceOrderItem()) {
-				commerceOptionValueCPDefinitionId =
-					commerceOrderItem.
-						getParentCommerceOrderItemCPDefinitionId();
-			}
-
-			product.setOptions(
-				_cpInstanceHelper.getKeyValuePairs(
-					commerceOptionValueCPDefinitionId,
-					commerceOrderItem.getJson(), locale));
-
-			products.add(product);
-		}
-
-		return _groupProductByOrderItemId(products);
-	}
-
-	protected Summary getSummary(
-			CommerceOrder commerceOrder, Locale locale,
-			CommerceContext commerceContext)
-		throws PortalException {
-
-		CommerceOrderPrice commerceOrderPrice =
-			_commerceOrderPriceCalculation.getCommerceOrderPrice(
-				commerceOrder, commerceContext);
-
-		if (commerceOrderPrice == null) {
-			return null;
-		}
-
-		CommerceMoney subtotalCommerceMoney = commerceOrderPrice.getSubtotal();
-		CommerceMoney totalCommerceMoney = commerceOrderPrice.getTotal();
-
-		int itemsQuantity =
-			_commerceOrderItemService.getCommerceOrderItemsQuantity(
-				commerceOrder.getCommerceOrderId());
-
-		CommerceDiscountValue totalCommerceDiscountValue =
-			commerceOrderPrice.getTotalDiscountValue();
-
-		CommerceChannel commerceChannel =
-			_commerceChannelLocalService.getCommerceChannelByOrderGroupId(
-				commerceOrder.getGroupId());
-
-		String priceDisplayType = commerceChannel.getPriceDisplayType();
-
-		if (priceDisplayType.equals(
-				CommercePricingConstants.TAX_INCLUDED_IN_PRICE)) {
-
-			subtotalCommerceMoney =
-				commerceOrderPrice.getSubtotalWithTaxAmount();
-			totalCommerceMoney = commerceOrderPrice.getTotalWithTaxAmount();
-			totalCommerceDiscountValue =
-				commerceOrderPrice.getTotalDiscountValueWithTaxAmount();
-		}
-
-		Summary summary = new Summary(
-			subtotalCommerceMoney.format(locale),
-			totalCommerceMoney.format(locale), itemsQuantity);
-
-		if (totalCommerceDiscountValue != null) {
-			CommerceMoney discountAmountCommerceMoney =
-				totalCommerceDiscountValue.getDiscountAmount();
-
-			summary.setDiscount(discountAmountCommerceMoney.format(locale));
-		}
-
-		return summary;
 	}
 
 	private PriceModel _getCommerceOrderItemPriceModel(
@@ -228,6 +107,26 @@ public class CommerceCartResourceUtil {
 			commerceOrderItemPrice.getDiscountPercentageLevel3(),
 			commerceOrderItemPrice.getDiscountPercentageLevel4(),
 			commerceOrderItemPrice.getFinalPrice(), locale);
+	}
+
+	private String[] _getErrorMessages(
+			Locale locale, CommerceOrderItem commerceOrderItem)
+		throws Exception {
+
+		String[] errorMessages = new String[0];
+
+		List<CommerceOrderValidatorResult> commerceOrderValidatorResults =
+			_commerceOrderValidatorRegistry.validate(locale, commerceOrderItem);
+
+		for (CommerceOrderValidatorResult commerceOrderValidatorResult :
+				commerceOrderValidatorResults) {
+
+			errorMessages = ArrayUtil.append(
+				errorMessages,
+				commerceOrderValidatorResult.getLocalizedMessage());
+		}
+
+		return errorMessages;
 	}
 
 	private PriceModel _getPriceModel(
@@ -296,6 +195,108 @@ public class CommerceCartResourceUtil {
 		priceModel.setFinalPrice(finalPriceCommerceMoney.format(locale));
 
 		return priceModel;
+	}
+
+	private List<Product> _getProducts(
+			CommerceOrder commerceOrder, CommerceContext commerceContext,
+			Locale locale)
+		throws Exception {
+
+		List<Product> products = new ArrayList<>();
+
+		List<CommerceOrderItem> commerceOrderItems =
+			commerceOrder.getCommerceOrderItems();
+
+		for (CommerceOrderItem commerceOrderItem : commerceOrderItems) {
+			PriceModel prices = _getCommerceOrderItemPriceModel(
+				commerceOrderItem, commerceContext, locale);
+
+			ProductSettingsModel settings =
+				_productHelper.getProductSettingsModel(
+					commerceOrderItem.getCPInstanceId());
+
+			Product product = new Product(
+				commerceOrderItem.getCommerceOrderItemId(),
+				commerceOrderItem.getParentCommerceOrderItemId(),
+				commerceOrderItem.getName(locale), commerceOrderItem.getSku(),
+				commerceOrderItem.getQuantity(),
+				_cpInstanceHelper.getCPInstanceThumbnailSrc(
+					CommerceUtil.getCommerceAccountId(commerceContext),
+					commerceOrderItem.getCPInstanceId()),
+				prices, settings, _getErrorMessages(locale, commerceOrderItem),
+				commerceOrderItem.getCPInstanceId());
+
+			long commerceOptionValueCPDefinitionId =
+				commerceOrderItem.getCPDefinitionId();
+
+			if (commerceOrderItem.hasParentCommerceOrderItem()) {
+				commerceOptionValueCPDefinitionId =
+					commerceOrderItem.
+						getParentCommerceOrderItemCPDefinitionId();
+			}
+
+			product.setOptions(
+				_cpInstanceHelper.getKeyValuePairs(
+					commerceOptionValueCPDefinitionId,
+					commerceOrderItem.getJson(), locale));
+
+			products.add(product);
+		}
+
+		return _groupProductByOrderItemId(products);
+	}
+
+	private Summary _getSummary(
+			CommerceOrder commerceOrder, Locale locale,
+			CommerceContext commerceContext)
+		throws Exception {
+
+		CommerceOrderPrice commerceOrderPrice =
+			_commerceOrderPriceCalculation.getCommerceOrderPrice(
+				commerceOrder, commerceContext);
+
+		if (commerceOrderPrice == null) {
+			return null;
+		}
+
+		CommerceMoney subtotalCommerceMoney = commerceOrderPrice.getSubtotal();
+		CommerceMoney totalCommerceMoney = commerceOrderPrice.getTotal();
+
+		int itemsQuantity =
+			_commerceOrderItemService.getCommerceOrderItemsQuantity(
+				commerceOrder.getCommerceOrderId());
+
+		CommerceDiscountValue totalCommerceDiscountValue =
+			commerceOrderPrice.getTotalDiscountValue();
+
+		CommerceChannel commerceChannel =
+			_commerceChannelLocalService.getCommerceChannelByOrderGroupId(
+				commerceOrder.getGroupId());
+
+		String priceDisplayType = commerceChannel.getPriceDisplayType();
+
+		if (priceDisplayType.equals(
+				CommercePricingConstants.TAX_INCLUDED_IN_PRICE)) {
+
+			subtotalCommerceMoney =
+				commerceOrderPrice.getSubtotalWithTaxAmount();
+			totalCommerceMoney = commerceOrderPrice.getTotalWithTaxAmount();
+			totalCommerceDiscountValue =
+				commerceOrderPrice.getTotalDiscountValueWithTaxAmount();
+		}
+
+		Summary summary = new Summary(
+			subtotalCommerceMoney.format(locale),
+			totalCommerceMoney.format(locale), itemsQuantity);
+
+		if (totalCommerceDiscountValue != null) {
+			CommerceMoney discountAmountCommerceMoney =
+				totalCommerceDiscountValue.getDiscountAmount();
+
+			summary.setDiscount(discountAmountCommerceMoney.format(locale));
+		}
+
+		return summary;
 	}
 
 	private List<Product> _groupProductByOrderItemId(List<Product> products) {

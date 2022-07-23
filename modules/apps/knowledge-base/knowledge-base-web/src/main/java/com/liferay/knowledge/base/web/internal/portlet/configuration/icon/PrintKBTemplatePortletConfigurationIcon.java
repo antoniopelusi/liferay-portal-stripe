@@ -60,11 +60,8 @@ public class PrintKBTemplatePortletConfigurationIcon
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		try {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("window.open('");
-
-			sb.append(
+			return StringBundler.concat(
+				"window.open('",
 				PortletURLBuilder.create(
 					_portal.getControlPanelPortletURL(
 						portletRequest, KBPortletKeys.KNOWLEDGE_BASE_ADMIN,
@@ -84,17 +81,14 @@ public class PrintKBTemplatePortletConfigurationIcon
 					"viewMode", Constants.PRINT
 				).setWindowState(
 					LiferayWindowState.POP_UP
-				).buildString());
-
-			sb.append("', '', 'directories=no,height=640,location=no,");
-			sb.append("menubar=no,resizable=yes,scrollbars=yes,status=0,");
-			sb.append("toolbar=0,width=680');");
-
-			return sb.toString();
+				).buildString(),
+				"', '', 'directories=no,height=640,location=no,",
+				"menubar=no,resizable=yes,scrollbars=yes,status=0,",
+				"toolbar=0,width=680');");
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

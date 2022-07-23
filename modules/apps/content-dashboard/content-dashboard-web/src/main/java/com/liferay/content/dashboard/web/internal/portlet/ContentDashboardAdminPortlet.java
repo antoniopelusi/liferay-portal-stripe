@@ -25,11 +25,13 @@ import com.liferay.content.dashboard.web.internal.display.context.ContentDashboa
 import com.liferay.content.dashboard.web.internal.display.context.ContentDashboardAdminManagementToolbarDisplayContext;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItem;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItemFactoryTracker;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemTypeFactoryTracker;
+import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtypeFactoryTracker;
 import com.liferay.content.dashboard.web.internal.provider.AssetVocabulariesProvider;
+import com.liferay.content.dashboard.web.internal.search.request.ContentDashboardItemSearchClassMapperTracker;
 import com.liferay.content.dashboard.web.internal.search.request.ContentDashboardSearchContextBuilder;
 import com.liferay.content.dashboard.web.internal.searcher.ContentDashboardSearchRequestBuilderFactory;
 import com.liferay.content.dashboard.web.internal.servlet.taglib.util.ContentDashboardDropdownItemsProvider;
+import com.liferay.content.dashboard.web.internal.util.ContentDashboardUtil;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.language.Language;
@@ -39,7 +41,6 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.search.aggregation.Aggregations;
@@ -53,7 +54,6 @@ import java.util.ResourceBundle;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
-import javax.portlet.PortletPreferences;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
@@ -82,9 +82,9 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + ContentDashboardPortletKeys.CONTENT_DASHBOARD_ADMIN,
 		"javax.portlet.portlet-mode=text/html",
-		"javax.portlet.preferences=classpath:/META-INF/portlet-preferences/default-portlet-preferences.xml",
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -118,19 +118,16 @@ public class ContentDashboardAdminPortlet extends MVCPortlet {
 				ContentDashboardItemSearchContainerFactory.getInstance(
 					_assetCategoryLocalService, _assetVocabularyLocalService,
 					_contentDashboardItemFactoryTracker,
+					_contentDashboardItemSearchClassMapperTracker,
 					_contentDashboardSearchRequestBuilderFactory, _portal,
 					renderRequest, renderResponse, _searcher);
 
 		SearchContainer<ContentDashboardItem<?>> searchContainer =
 			contentDashboardItemSearchContainerFactory.create();
 
-		PortletPreferences portletPreferences = renderRequest.getPreferences();
-
 		List<AssetVocabulary> assetVocabularies =
 			_assetVocabulariesProvider.getAssetVocabularies(
-				portletPreferences.getValues(
-					"assetVocabularyNames", new String[0]),
-				_portal.getCompanyId(liferayPortletRequest));
+				ContentDashboardUtil.getAssetVocabularyIds(renderRequest));
 
 		ContentDashboardAdminDisplayContext
 			contentDashboardAdminDisplayContext =
@@ -139,9 +136,9 @@ public class ContentDashboardAdminPortlet extends MVCPortlet {
 					contentDashboardDataProvider.getAssetVocabularyMetric(
 						assetVocabularies),
 					new ContentDashboardDropdownItemsProvider(
-						_http, _language, liferayPortletRequest,
+						_language, liferayPortletRequest,
 						liferayPortletResponse, _portal),
-					_contentDashboardItemTypeFactoryTracker, _itemSelector,
+					_contentDashboardItemSubtypeFactoryTracker, _itemSelector,
 					_language.get(
 						_portal.getLocale(liferayPortletRequest),
 						LanguageConstants.KEY_DIR),
@@ -186,8 +183,12 @@ public class ContentDashboardAdminPortlet extends MVCPortlet {
 		_contentDashboardItemFactoryTracker;
 
 	@Reference
-	private ContentDashboardItemTypeFactoryTracker
-		_contentDashboardItemTypeFactoryTracker;
+	private ContentDashboardItemSearchClassMapperTracker
+		_contentDashboardItemSearchClassMapperTracker;
+
+	@Reference
+	private ContentDashboardItemSubtypeFactoryTracker
+		_contentDashboardItemSubtypeFactoryTracker;
 
 	@Reference
 	private ContentDashboardSearchRequestBuilderFactory
@@ -195,9 +196,6 @@ public class ContentDashboardAdminPortlet extends MVCPortlet {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference
-	private Http _http;
 
 	@Reference
 	private ItemSelector _itemSelector;

@@ -1,0 +1,12 @@
+{
+	"articleId": "job04",
+	"assetCategoryERCs": [
+		"CAT_IT"
+	],
+	"assetTagNames": [
+	],
+	"ddmStructureKey": "Job",
+	"ddmTemplateKey": "JOB",
+	"folder": "jobs",
+	"name": "System Administrator"
+}

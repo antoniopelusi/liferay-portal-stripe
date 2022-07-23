@@ -27,6 +27,10 @@ public class DSLQueryStatusEntryLocalServiceWrapper
 	implements DSLQueryStatusEntryLocalService,
 			   ServiceWrapper<DSLQueryStatusEntryLocalService> {
 
+	public DSLQueryStatusEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DSLQueryStatusEntryLocalServiceWrapper(
 		DSLQueryStatusEntryLocalService dslQueryStatusEntryLocalService) {
 
@@ -138,6 +142,13 @@ public class DSLQueryStatusEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dslQueryStatusEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dslQueryStatusEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

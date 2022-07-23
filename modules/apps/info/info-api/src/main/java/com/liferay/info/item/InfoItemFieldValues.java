@@ -42,16 +42,6 @@ public class InfoItemFieldValues {
 	 * @deprecated As of Athanasius (7.3.x)
 	 */
 	@Deprecated
-	public InfoItemFieldValues(
-		InfoItemClassPKReference infoItemClassPKReference) {
-
-		this(builder().infoItemClassPKReference(infoItemClassPKReference));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
 	public InfoItemFieldValues add(InfoFieldValue<Object> infoFieldValue) {
 		_builder.infoFieldValue(infoFieldValue);
 
@@ -72,7 +62,13 @@ public class InfoItemFieldValues {
 
 	public InfoFieldValue<Object> getInfoFieldValue(String infoFieldName) {
 		Collection<InfoFieldValue<Object>> infoFieldValues =
-			_builder._infoFieldValuesMap.get(infoFieldName);
+			_builder._infoFieldValuesByIdMap.getOrDefault(
+				infoFieldName, Collections.emptyList());
+
+		if (infoFieldValues.isEmpty()) {
+			infoFieldValues = _builder._infoFieldValuesByNameMap.getOrDefault(
+				infoFieldName, Collections.emptyList());
+		}
 
 		if (infoFieldValues != null) {
 			Iterator<InfoFieldValue<Object>> iterator =
@@ -93,17 +89,16 @@ public class InfoItemFieldValues {
 	public Collection<InfoFieldValue<Object>> getInfoFieldValues(
 		String infoFieldName) {
 
-		return _builder._infoFieldValuesMap.getOrDefault(
-			infoFieldName, Collections.emptyList());
-	}
+		Collection<InfoFieldValue<Object>> infoFieldValues =
+			_builder._infoFieldValuesByIdMap.getOrDefault(
+				infoFieldName, Collections.emptyList());
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getInfoItemReference()}
-	 */
-	@Deprecated
-	public InfoItemClassPKReference getInfoItemClassPKReference() {
-		return _builder._infoItemClassPKReference;
+		if (!infoFieldValues.isEmpty()) {
+			return infoFieldValues;
+		}
+
+		return _builder._infoFieldValuesByNameMap.getOrDefault(
+			infoFieldName, Collections.emptyList());
 	}
 
 	public InfoItemReference getInfoItemReference() {
@@ -120,30 +115,16 @@ public class InfoItemFieldValues {
 			InfoField infoField = infoFieldValue.getInfoField();
 
 			map.put(infoField.getName(), infoFieldValue.getValue(locale));
+			map.put(infoField.getUniqueId(), infoFieldValue.getValue(locale));
 		}
 
 		return map;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public void setInfoItemClassPKReference(
-		InfoItemClassPKReference infoItemClassPKReference) {
-
-		_builder.infoItemClassPKReference(infoItemClassPKReference);
-	}
-
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("{infoFieldValues: ");
-		sb.append(_builder._infoFieldValues);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{infoFieldValues: ", _builder._infoFieldValues, "}");
 	}
 
 	public static class Builder {
@@ -158,8 +139,13 @@ public class InfoItemFieldValues {
 			InfoField infoField = infoFieldValue.getInfoField();
 
 			Collection<InfoFieldValue<Object>> infoFieldValues =
-				_infoFieldValuesMap.computeIfAbsent(
+				_infoFieldValuesByNameMap.computeIfAbsent(
 					infoField.getName(), key -> new ArrayList<>());
+
+			infoFieldValues.add(infoFieldValue);
+
+			infoFieldValues = _infoFieldValuesByIdMap.computeIfAbsent(
+				infoField.getUniqueId(), key -> new ArrayList<>());
 
 			infoFieldValues.add(infoFieldValue);
 
@@ -168,10 +154,10 @@ public class InfoItemFieldValues {
 
 		public <T extends Throwable> Builder infoFieldValue(
 				UnsafeConsumer<UnsafeConsumer<InfoFieldValue<Object>, T>, T>
-					consumer)
+					unsafeConsumer)
 			throws T {
 
-			consumer.accept(this::infoFieldValue);
+			unsafeConsumer.accept(this::infoFieldValue);
 
 			return this;
 		}
@@ -186,19 +172,6 @@ public class InfoItemFieldValues {
 			return this;
 		}
 
-		/**
-		 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-		 *             #infoItemReference(InfoItemReference)}
-		 */
-		@Deprecated
-		public Builder infoItemClassPKReference(
-			InfoItemClassPKReference infoItemClassPKReference) {
-
-			_infoItemClassPKReference = infoItemClassPKReference;
-
-			return this;
-		}
-
 		public Builder infoItemReference(InfoItemReference infoItemReference) {
 			_infoItemReference = infoItemReference;
 
@@ -208,8 +181,9 @@ public class InfoItemFieldValues {
 		private final Collection<InfoFieldValue<Object>> _infoFieldValues =
 			new LinkedHashSet<>();
 		private final Map<String, Collection<InfoFieldValue<Object>>>
-			_infoFieldValuesMap = new HashMap<>();
-		private InfoItemClassPKReference _infoItemClassPKReference;
+			_infoFieldValuesByIdMap = new HashMap<>();
+		private final Map<String, Collection<InfoFieldValue<Object>>>
+			_infoFieldValuesByNameMap = new HashMap<>();
 		private InfoItemReference _infoItemReference;
 
 	}

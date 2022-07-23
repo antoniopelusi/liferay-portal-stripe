@@ -31,7 +31,5 @@ public class MFAFIDO2CredentialEntryImpl
 	 *
 	 * Never reference this class directly. All methods that expect a mfafido2 credential entry model instance should use the {@link com.liferay.multi.factor.authentication.fido2.credential.model.MFAFIDO2CredentialEntry} interface instead.
 	 */
-	public MFAFIDO2CredentialEntryImpl() {
-	}
 
 }

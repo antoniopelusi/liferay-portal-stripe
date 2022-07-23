@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.model.CompanyConstants;
  */
 public class DefinitionImpl extends DefinitionBaseImpl {
 
-	public DefinitionImpl() {
-	}
-
 	@Override
 	public String getAttachmentsDir() {
 		return "reports_templates/".concat(String.valueOf(getDefinitionId()));

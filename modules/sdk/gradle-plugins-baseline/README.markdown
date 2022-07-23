@@ -19,7 +19,7 @@ To use the plugin, include it in your build script:
 ```gradle
 buildscript {
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.baseline", version: "6.0.3"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.baseline", version: "6.0.6"
 	}
 
 	repositories {
@@ -66,11 +66,16 @@ multiple checks are performed in order, using the following version ranges as
 baseline:
 
 1. `[L.0.0, (L + 1).0.0)`
-2. `[(L + 1).0.0, (L + 2).0.0)`
-3. ...
-4. `[(M - 2).0.0, (M - 1).0.0)`
-5. `[(M - 1).0.0, M.0.0)`
-6. `[M.0.0, M.x.y)`
+
+1. `[(L + 1).0.0, (L + 2).0.0)`
+
+1. ...
+
+1. `[(M - 2).0.0, (M - 1).0.0)`
+
+1. `[(M - 1).0.0, M.0.0)`
+
+1. `[M.0.0, M.x.y)`
 
 The first failing check fails the whole build.
 
@@ -123,14 +128,19 @@ one for each major version between `L` and the major version `M` of the project:
 
 1. Task `baseline${L + 1}`, which depends on `baseline${L + 2}` and uses the
 version range `[(L + 1).0.0, (L + 2).0.0)` as baseline.
-2. Task `baseline${L + 2}`, which depends on `baseline${L + 3}` and uses the
+
+1. Task `baseline${L + 2}`, which depends on `baseline${L + 3}` and uses the
 version range `[(L + 2).0.0, (L + 3).0.0)` as baseline.
-3. ...
-4. Task `baseline${M - 2}`, which depends on `baseline${M - 1}` and uses the
+
+1. ...
+
+1. Task `baseline${M - 2}`, which depends on `baseline${M - 1}` and uses the
 version range `[(M - 2).0.0, (M - 1).0.0)` as baseline.
-5. Task `baseline${M - 1}`, which depends on `baseline${M}` and uses the
+
+1. Task `baseline${M - 1}`, which depends on `baseline${M}` and uses the
 version range `[(M - 1).0.0, M.0.0)` as baseline.
-5. Task `baseline${M}`, which uses the version range `[M.0.0, M.x.y)` as
+
+1. Task `baseline${M}`, which uses the version range `[M.0.0, M.x.y)` as
 baseline.
 
 The `baseline` task is also configured to use the version range

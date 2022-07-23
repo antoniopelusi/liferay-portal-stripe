@@ -83,6 +83,11 @@ public class CTMessageWrapper
 		}
 	}
 
+	@Override
+	public CTMessage cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ct message.
 	 *

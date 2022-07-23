@@ -20,10 +20,8 @@ import com.liferay.commerce.price.list.service.CommercePriceListService;
 import com.liferay.commerce.price.list.util.comparator.CommercePriceListCreateDateComparator;
 import com.liferay.commerce.price.list.util.comparator.CommercePriceListDisplayDateComparator;
 import com.liferay.commerce.price.list.util.comparator.CommercePriceListPriorityComparator;
-import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
@@ -32,8 +30,6 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-
-import java.util.List;
 
 import javax.portlet.PortletURL;
 
@@ -71,64 +67,51 @@ public class CommercePriceListItemSelectorViewDisplayContext
 				WebKeys.THEME_DISPLAY);
 
 		searchContainer = new SearchContainer<>(
-			cpRequestHelper.getRenderRequest(), getPortletURL(), null, null);
-
-		searchContainer.setEmptyResultsMessage("there-are-no-price-lists");
+			cpRequestHelper.getRenderRequest(), getPortletURL(), null,
+			"there-are-no-price-lists");
 
 		searchContainer.setOrderByCol(getOrderByCol());
-
-		OrderByComparator<CommercePriceList> orderByComparator =
-			getCommercePriceListOrderByComparator(
-				getOrderByCol(), getOrderByType());
-
-		searchContainer.setOrderByComparator(orderByComparator);
-
+		searchContainer.setOrderByComparator(
+			_getCommercePriceListOrderByComparator(
+				getOrderByCol(), getOrderByType()));
 		searchContainer.setOrderByType(getOrderByType());
 
-		RowChecker rowChecker = new CommercePriceListItemSelectorChecker(
-			cpRequestHelper.getRenderResponse(),
-			getCheckedCommercePriceListIds());
-
-		searchContainer.setRowChecker(rowChecker);
-
 		if (searchContainer.isSearch()) {
-			Sort sort = getCommercePriceListSort(
-				getOrderByCol(), getOrderByType());
-
-			BaseModelSearchResult<CommercePriceList>
-				commercePriceListBaseModelSearchResult =
-					_commercePriceListService.searchCommercePriceLists(
-						themeDisplay.getCompanyId(), getKeywords(),
-						WorkflowConstants.STATUS_APPROVED,
-						searchContainer.getStart(), searchContainer.getEnd(),
-						sort);
-
-			searchContainer.setResults(
-				commercePriceListBaseModelSearchResult.getBaseModels());
-			searchContainer.setTotal(
-				commercePriceListBaseModelSearchResult.getLength());
+			searchContainer.setResultsAndTotal(
+				_commercePriceListService.searchCommercePriceLists(
+					themeDisplay.getCompanyId(), getKeywords(),
+					WorkflowConstants.STATUS_APPROVED,
+					searchContainer.getStart(), searchContainer.getEnd(),
+					_getCommercePriceListSort(
+						getOrderByCol(), getOrderByType())));
 		}
 		else {
-			List<CommercePriceList> results =
-				_commercePriceListService.getCommercePriceLists(
+			searchContainer.setResultsAndTotal(
+				() -> _commercePriceListService.getCommercePriceLists(
 					themeDisplay.getCompanyId(),
 					WorkflowConstants.STATUS_APPROVED,
 					searchContainer.getStart(), searchContainer.getEnd(),
-					orderByComparator);
-
-			searchContainer.setResults(results);
-
-			int total = _commercePriceListService.getCommercePriceListsCount(
-				themeDisplay.getCompanyId(), WorkflowConstants.STATUS_APPROVED);
-
-			searchContainer.setTotal(total);
+					searchContainer.getOrderByComparator()),
+				_commercePriceListService.getCommercePriceListsCount(
+					themeDisplay.getCompanyId(),
+					WorkflowConstants.STATUS_APPROVED));
 		}
+
+		searchContainer.setRowChecker(
+			new CommercePriceListItemSelectorChecker(
+				cpRequestHelper.getRenderResponse(),
+				_getCheckedCommercePriceListIds()));
 
 		return searchContainer;
 	}
 
-	protected static OrderByComparator<CommercePriceList>
-		getCommercePriceListOrderByComparator(
+	private long[] _getCheckedCommercePriceListIds() {
+		return ParamUtil.getLongValues(
+			cpRequestHelper.getRenderRequest(), "checkedCommercePriceListIds");
+	}
+
+	private OrderByComparator<CommercePriceList>
+		_getCommercePriceListOrderByComparator(
 			String orderByCol, String orderByType) {
 
 		boolean orderByAsc = false;
@@ -150,7 +133,7 @@ public class CommercePriceListItemSelectorViewDisplayContext
 		return null;
 	}
 
-	protected static Sort getCommercePriceListSort(
+	private Sort _getCommercePriceListSort(
 		String orderByCol, String orderByType) {
 
 		boolean reverse = true;
@@ -170,11 +153,6 @@ public class CommercePriceListItemSelectorViewDisplayContext
 		}
 
 		return null;
-	}
-
-	protected long[] getCheckedCommercePriceListIds() {
-		return ParamUtil.getLongValues(
-			cpRequestHelper.getRenderRequest(), "checkedCommercePriceListIds");
 	}
 
 	private final CommercePriceListService _commercePriceListService;

@@ -169,4 +169,7 @@ public interface DataLimitEntryModel
 	@Override
 	public void setModifiedDate(Date modifiedDate);
 
+	@Override
+	public DataLimitEntry cloneWithOriginalValues();
+
 }

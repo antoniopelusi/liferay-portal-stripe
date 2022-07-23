@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class DefinitionLocalServiceWrapper
 	implements DefinitionLocalService, ServiceWrapper<DefinitionLocalService> {
 
+	public DefinitionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DefinitionLocalServiceWrapper(
 		DefinitionLocalService definitionLocalService) {
 
@@ -161,6 +165,13 @@ public class DefinitionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _definitionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _definitionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

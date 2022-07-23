@@ -14,6 +14,8 @@
 
 package com.liferay.document.library.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
 import com.liferay.document.library.uad.constants.DLUADConstants;
@@ -47,6 +49,8 @@ public abstract class BaseDLFileEntryTypeUADAnonymizer
 		if (dlFileEntryType.getUserId() == userId) {
 			dlFileEntryType.setUserId(anonymousUser.getUserId());
 			dlFileEntryType.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(dlFileEntryType, anonymousUser);
 		}
 
 		dlFileEntryTypeLocalService.updateDLFileEntryType(dlFileEntryType);
@@ -62,6 +66,19 @@ public abstract class BaseDLFileEntryTypeUADAnonymizer
 		return DLFileEntryType.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		DLFileEntryType dlFileEntryType, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(dlFileEntryType);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return dlFileEntryTypeLocalService.getActionableDynamicQuery();
@@ -71,6 +88,15 @@ public abstract class BaseDLFileEntryTypeUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return DLUADConstants.USER_ID_FIELD_NAMES_DL_FILE_ENTRY_TYPE;
 	}
+
+	protected AssetEntry fetchAssetEntry(DLFileEntryType dlFileEntryType) {
+		return assetEntryLocalService.fetchEntry(
+			DLFileEntryType.class.getName(),
+			dlFileEntryType.getFileEntryTypeId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected DLFileEntryTypeLocalService dlFileEntryTypeLocalService;

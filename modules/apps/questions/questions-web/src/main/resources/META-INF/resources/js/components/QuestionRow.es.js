@@ -15,6 +15,7 @@
 import {ClayButtonWithIcon} from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
+import ClayLabel from '@clayui/label';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -30,12 +31,31 @@ import SectionLabel from './SectionLabel.es';
 import TagList from './TagList.es';
 import UserIcon from './UserIcon.es';
 
-export default ({currentSection, items, question, showSectionLabel}) => {
+export default function QuestionRow({
+	currentSection,
+	items,
+	question,
+	showSectionLabel,
+}) {
 	const sectionTitle =
 		currentSection || currentSection === '0'
 			? currentSection
 			: question.messageBoardSection &&
 			  question.messageBoardSection.title;
+
+	const creatorInformation = question.creator
+		? {
+				link: `/questions/${sectionTitle}/creator/${question.creator.id}`,
+				name: question.creator.name,
+				portraitURL: question.creator.image,
+				userId: String(question.creator.id),
+		  }
+		: {
+				link: `/questions/${sectionTitle}`,
+				name: '',
+				portraitURL: '',
+				userId: '0',
+		  };
 
 	return (
 		<div className="c-mt-4 c-p-3 position-relative question-row text-secondary">
@@ -84,7 +104,7 @@ export default ({currentSection, items, question, showSectionLabel}) => {
 						/>
 					</li>
 
-					{items && items.length && (
+					{items && !!items.length && (
 						<li>
 							<ClayDropDownWithItems
 								className="c-py-1"
@@ -118,6 +138,14 @@ export default ({currentSection, items, question, showSectionLabel}) => {
 				>
 					{question.headline}
 
+					{question.status && question.status !== 'approved' && (
+						<span className="c-ml-2">
+							<ClayLabel displayType="info">
+								{question.status}
+							</ClayLabel>
+						</span>
+					)}
+
 					{!!question.locked && (
 						<span className="c-ml-2">
 							<ClayIcon
@@ -142,18 +170,19 @@ export default ({currentSection, items, question, showSectionLabel}) => {
 
 			<div className="align-items-sm-center align-items-start d-flex flex-column-reverse flex-sm-row justify-content-between">
 				<div className="c-mt-3 c-mt-sm-0 stretched-link-layer">
-					<Link
-						to={`/questions/${sectionTitle}/creator/${question.creator.id}`}
-					>
+					<Link to={creatorInformation.link}>
 						<UserIcon
-							fullName={question.creator.name}
-							portraitURL={question.creator.image}
+							fullName={creatorInformation.name}
+							portraitURL={creatorInformation.portraitURL}
 							size="sm"
-							userId={String(question.creator.id)}
+							userId={creatorInformation.userId}
 						/>
 
 						<strong className="c-ml-2 text-dark">
-							{question.creator.name}
+							{creatorInformation.name ||
+								Liferay.Language.get(
+									'anonymous-user-configuration-name'
+								)}
 						</strong>
 					</Link>
 
@@ -166,4 +195,4 @@ export default ({currentSection, items, question, showSectionLabel}) => {
 			</div>
 		</div>
 	);
-};
+}

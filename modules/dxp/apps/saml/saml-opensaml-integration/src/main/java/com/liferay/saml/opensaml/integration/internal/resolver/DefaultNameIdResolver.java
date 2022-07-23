@@ -15,7 +15,8 @@
 package com.liferay.saml.opensaml.integration.internal.resolver;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
-import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanProperties;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.saml.opensaml.integration.internal.metadata.MetadataManager;
@@ -39,7 +40,7 @@ public class DefaultNameIdResolver implements NameIdResolver {
 		boolean allowCreate,
 		NameIdResolverSAMLContext nameIdResolverSAMLContext) {
 
-		return getNameIdValue(user, entityId);
+		return _getNameIdValue(user, entityId);
 	}
 
 	@Reference(unbind = "-")
@@ -47,17 +48,15 @@ public class DefaultNameIdResolver implements NameIdResolver {
 		_metadataManager = metadataManager;
 	}
 
-	protected String getNameIdAttributeName(String entityId) {
+	private String _getNameIdAttributeName(String entityId) {
 		return _metadataManager.getNameIdAttribute(entityId);
 	}
 
-	protected String getNameIdValue(User user, String entityId) {
-		String nameIdAttributeName = getNameIdAttributeName(entityId);
-
-		String nameIdValue = user.getEmailAddress();
+	private String _getNameIdValue(User user, String entityId) {
+		String nameIdAttributeName = _getNameIdAttributeName(entityId);
 
 		if (Validator.isNull(nameIdAttributeName)) {
-			return nameIdValue;
+			return user.getEmailAddress();
 		}
 
 		if (nameIdAttributeName.startsWith("expando:")) {
@@ -65,19 +64,26 @@ public class DefaultNameIdResolver implements NameIdResolver {
 
 			ExpandoBridge expandoBridge = user.getExpandoBridge();
 
-			nameIdValue = String.valueOf(
-				expandoBridge.getAttribute(attributeName));
-		}
-		else if (nameIdAttributeName.startsWith("static:")) {
-			nameIdValue = nameIdAttributeName.substring(7);
-		}
-		else {
-			nameIdValue = String.valueOf(
-				BeanPropertiesUtil.getObject(user, nameIdAttributeName));
+			return _toString(expandoBridge.getAttribute(attributeName));
 		}
 
-		return nameIdValue;
+		if (nameIdAttributeName.startsWith("static:")) {
+			return nameIdAttributeName.substring(7);
+		}
+
+		return _toString(_beanProperties.getObject(user, nameIdAttributeName));
 	}
+
+	private String _toString(Object object) {
+		if (object == null) {
+			return StringPool.BLANK;
+		}
+
+		return object.toString();
+	}
+
+	@Reference
+	private BeanProperties _beanProperties;
 
 	private MetadataManager _metadataManager;
 

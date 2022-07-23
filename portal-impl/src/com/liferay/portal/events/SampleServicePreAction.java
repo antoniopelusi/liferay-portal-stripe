@@ -40,9 +40,9 @@ public class SampleServicePreAction extends Action {
 		// sure that "TEST_SHARED_" is also one of the prefixed attributes that
 		// will be shared across all portlets.
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		session.setAttribute("TEST_SHARED_HELLO", "world");
+		httpSession.setAttribute("TEST_SHARED_HELLO", "world");
 	}
 
 }

@@ -116,7 +116,7 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 							%>
 
 							<span class="text-default">
-								<liferay-ui:message arguments="<%= new String[] {modifiedDateDescription, HtmlUtil.escape(curArticle.getUserName())} %>" key="modified-x-ago-by-x" />
+								<liferay-ui:message arguments="<%= new String[] {modifiedDateDescription, HtmlUtil.escape(curArticle.getStatusByUserName())} %>" key="modified-x-ago-by-x" />
 							</span>
 
 							<p class="font-weight-bold h5">
@@ -161,6 +161,12 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 					<c:when test='<%= Objects.equals(journalDisplayContext.getDisplayStyle(), "icon") %>'>
 						<liferay-ui:search-container-column-text>
 							<clay:vertical-card
+								additionalProps='<%=
+									HashMapBuilder.<String, Object>put(
+										"trashEnabled", componentContext.get("trashEnabled")
+									).build()
+								%>'
+								propsTransformer="js/ElementsDefaultPropsTransformer"
 								verticalCard="<%= new JournalArticleVerticalCard(curArticle, renderRequest, renderResponse, searchContainer.getRowChecker(), assetDisplayPageFriendlyURLProvider, trashHelper) %>"
 							/>
 						</liferay-ui:search-container-column-text>
@@ -186,7 +192,7 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 							value="<%= StringUtil.shorten(HtmlUtil.stripHtml(curArticle.getDescription(locale)), 200) %>"
 						/>
 
-						<c:if test="<%= journalDisplayContext.isSearch() && ((curArticle.getFolderId() <= 0) || JournalFolderPermission.contains(permissionChecker, curArticle.getFolder(), ActionKeys.VIEW)) %>">
+						<c:if test="<%= journalDisplayContext.isSearch() %>">
 							<liferay-ui:search-container-column-text
 								cssClass="table-cell-expand-smallest table-cell-minw-200"
 								name="path"
@@ -194,14 +200,10 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 							/>
 						</c:if>
 
-						<%
-						List<JournalArticle> articles = JournalArticleLocalServiceUtil.getArticles(curArticle.getGroupId(), curArticle.getArticleId(), 0, 1, new ArticleVersionComparator(true));
-						%>
-
 						<liferay-ui:search-container-column-text
 							cssClass="table-cell-expand-smallest table-cell-minw-100"
 							name="author"
-							value="<%= HtmlUtil.escape(PortalUtil.getUserName(articles.get(0))) %>"
+							value="<%= HtmlUtil.escape(curArticle.getUserName()) %>"
 						/>
 
 						<liferay-ui:search-container-column-text
@@ -232,7 +234,7 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 							String modifiedDateDescription = LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - createDate.getTime(), true);
 							%>
 
-							<liferay-ui:message arguments="<%= new String[] {modifiedDateDescription, HtmlUtil.escape(curArticle.getUserName())} %>" key="modified-x-ago-by-x" />
+							<liferay-ui:message arguments="<%= new String[] {modifiedDateDescription, HtmlUtil.escape(curArticle.getStatusByUserName())} %>" key="modified-x-ago-by-x" />
 						</liferay-ui:search-container-column-text>
 
 						<liferay-ui:search-container-column-date
@@ -290,7 +292,7 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 					"folderId", curFolder.getFolderId()
 				).setParameter(
 					"groupId", curFolder.getGroupId()
-				).build();
+				).buildPortletURL();
 				%>
 
 				<c:choose>
@@ -378,7 +380,7 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 							value="<%= HtmlUtil.escape(curFolder.getDescription()) %>"
 						/>
 
-						<c:if test="<%= journalDisplayContext.isSearch() && ((curFolder.getParentFolderId() <= 0) || JournalFolderPermission.contains(permissionChecker, curFolder.getParentFolder(), ActionKeys.VIEW)) %>">
+						<c:if test="<%= journalDisplayContext.isSearch() %>">
 							<liferay-ui:search-container-column-text
 								cssClass="table-cell-expand-smallest table-cell-minw-200"
 								name="path"

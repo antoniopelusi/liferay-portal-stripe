@@ -17,12 +17,16 @@ package com.liferay.commerce.price.list.service.impl;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.model.CommercePriceListCommerceAccountGroupRel;
 import com.liferay.commerce.price.list.service.base.CommercePriceListCommerceAccountGroupRelLocalServiceBaseImpl;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
 
@@ -35,11 +39,12 @@ public class CommercePriceListCommerceAccountGroupRelLocalServiceImpl
 	@Override
 	public CommercePriceListCommerceAccountGroupRel
 			addCommercePriceListCommerceAccountGroupRel(
-				long commercePriceListId, long commerceAccountGroupId,
-				int order, ServiceContext serviceContext)
+				long userId, long commercePriceListId,
+				long commerceAccountGroupId, int order,
+				ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = userLocalService.getUser(userId);
 
 		long commercePriceListCommerceAccountGroupRelId =
 			counterLocalService.increment();
@@ -64,17 +69,16 @@ public class CommercePriceListCommerceAccountGroupRelLocalServiceImpl
 		commercePriceListCommerceAccountGroupRel.setExpandoBridgeAttributes(
 			serviceContext);
 
-		// Commerce price list
+		commercePriceListCommerceAccountGroupRel =
+			commercePriceListCommerceAccountGroupRelPersistence.update(
+				commercePriceListCommerceAccountGroupRel);
 
 		reindexPriceList(commercePriceListId);
-
-		// Cache
 
 		commercePriceListLocalService.cleanPriceListCache(
 			serviceContext.getCompanyId());
 
-		return commercePriceListCommerceAccountGroupRelPersistence.update(
-			commercePriceListCommerceAccountGroupRel);
+		return commercePriceListCommerceAccountGroupRel;
 	}
 
 	@Override
@@ -86,6 +90,7 @@ public class CommercePriceListCommerceAccountGroupRelLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceListCommerceAccountGroupRel
 			deleteCommercePriceListCommerceAccountGroupRel(
 				CommercePriceListCommerceAccountGroupRel
@@ -95,18 +100,12 @@ public class CommercePriceListCommerceAccountGroupRelLocalServiceImpl
 		commercePriceListCommerceAccountGroupRelPersistence.remove(
 			commercePriceListCommerceAccountGroupRel);
 
-		// Commerce price list
-
-		reindexPriceList(
-			commercePriceListCommerceAccountGroupRel.getCommercePriceListId());
-
-		// Expando
-
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			commercePriceListCommerceAccountGroupRel.
 				getCommercePriceListCommerceAccountGroupRelId());
 
-		// Cache
+		reindexPriceList(
+			commercePriceListCommerceAccountGroupRel.getCommercePriceListId());
 
 		commercePriceListLocalService.cleanPriceListCache(
 			commercePriceListCommerceAccountGroupRel.getCompanyId());
@@ -156,8 +155,8 @@ public class CommercePriceListCommerceAccountGroupRelLocalServiceImpl
 		fetchCommercePriceListCommerceAccountGroupRel(
 			long commercePriceListId, long commerceAccountGroupId) {
 
-		return commercePriceListCommerceAccountGroupRelPersistence.fetchByC_C(
-			commercePriceListId, commerceAccountGroupId);
+		return commercePriceListCommerceAccountGroupRelPersistence.
+			fetchByCAGI_CPI(commercePriceListId, commerceAccountGroupId);
 	}
 
 	@Override
@@ -244,5 +243,8 @@ public class CommercePriceListCommerceAccountGroupRelLocalServiceImpl
 
 		indexer.reindex(CommercePriceList.class.getName(), commercePriceListId);
 	}
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 }

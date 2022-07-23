@@ -17,11 +17,10 @@ package com.liferay.portal.app.license.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.app.license.AppLicenseVerifier;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.Iterator;
 
 import org.junit.AfterClass;
@@ -55,19 +54,17 @@ public class AppLicenseVerifierTest {
 
 		_bundleContext = bundle.getBundleContext();
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("version", "1.0.0");
-
 		_failServiceRegistration = _bundleContext.registerService(
-			AppLicenseVerifier.class, new FailAppLicenseVerifier(), properties);
-
-		properties = new HashMapDictionary<>();
-
-		properties.put("version", "1.0.1");
+			AppLicenseVerifier.class, new FailAppLicenseVerifier(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				"version", "1.0.0"
+			).build());
 
 		_passServiceRegistration = _bundleContext.registerService(
-			AppLicenseVerifier.class, new PassAppLicenseVerifier(), properties);
+			AppLicenseVerifier.class, new PassAppLicenseVerifier(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				"version", "1.0.1"
+			).build());
 	}
 
 	@AfterClass

@@ -28,7 +28,7 @@ SearchContainer<CPCatalogEntry> cpCatalogEntrySearchContainer = cpSearchResultsD
 			<liferay-ui:message arguments="<%= cpCatalogEntrySearchContainer.getTotal() %>" key="x-products-available" />
 		</p>
 
-		<button aria-expanded="false" aria-haspopup="true" class="btn btn-secondary commerce-order-by dropdown-toggle" data-toggle="dropdown" onclick="<portlet:namespace />toggleDropdown();" type="button">
+		<button aria-expanded="false" aria-haspopup="true" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" id="commerce-order-by" type="button">
 			<c:set var="orderByColArgument">
 				<span class="ml-1">
 					<liferay-ui:message key="<%= cpSearchResultsDisplayContext.getOrderByCol() %>" />
@@ -37,7 +37,9 @@ SearchContainer<CPCatalogEntry> cpCatalogEntrySearchContainer = cpSearchResultsD
 
 			<liferay-ui:message arguments="${orderByColArgument}" key="sort-by-colon-x" />
 
-			<aui:icon image="caret-double-l" markupView="lexicon" />
+			<clay:icon
+				symbol="caret-double-l"
+			/>
 		</button>
 
 		<div class="dropdown-menu dropdown-menu-right" id="<portlet:namespace />commerce-dropdown-order-by">
@@ -49,21 +51,13 @@ SearchContainer<CPCatalogEntry> cpCatalogEntrySearchContainer = cpSearchResultsD
 			%>
 
 				<clay:link
-					cssClass="dropdown-item transition-link"
+					cssClass="dropdown-item transition-link sortWidgetOptions"
+					data-label="<%= sortOption %>"
 					href="#"
 					id="<%= liferayPortletResponse.getNamespace() + sortOption %>"
 					label="<%= LanguageUtil.get(request, sortOption) %>"
 					style="secondary"
 				/>
-
-				<aui:script>
-					document
-						.querySelector('#<%= liferayPortletResponse.getNamespace() + sortOption %>')
-						.addEventListener('click', (e) => {
-							e.preventDefault();
-							<%= liferayPortletResponse.getNamespace() + "changeOrderBy('" + sortOption + "');" %>;
-						});
-				</aui:script>
 
 			<%
 			}
@@ -73,35 +67,13 @@ SearchContainer<CPCatalogEntry> cpCatalogEntrySearchContainer = cpSearchResultsD
 	</div>
 </div>
 
-<aui:script>
-	Liferay.provide(
-		window,
-		'<portlet:namespace />changeOrderBy',
-		(orderBy) => {
-			var portletURL = new Liferay.PortletURL.createURL(
-				'<%= themeDisplay.getURLCurrent() %>'
-			);
-
-			portletURL.setParameter('orderByCol', orderBy);
-			portletURL.setPortletId('<%= portletDisplay.getId() %>');
-
-			window.location.replace(portletURL.toString());
-		},
-		['liferay-portlet-url']
-	);
-
-	Liferay.provide(window, '<portlet:namespace />toggleDropdown', () => {
-		var dropdownElement = window.document.querySelector(
-			'#<portlet:namespace />commerce-dropdown-order-by'
-		);
-
-		if (dropdownElement) {
-			if (dropdownElement.classList.contains('show')) {
-				dropdownElement.classList.remove('show');
-			}
-			else {
-				dropdownElement.classList.add('show');
-			}
-		}
-	});
-</aui:script>
+<liferay-frontend:component
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"currentURL", themeDisplay.getURLCurrent()
+		).put(
+			"portletDisplayId", portletDisplay.getId()
+		).build()
+	%>'
+	module="js/sort/view"
+/>

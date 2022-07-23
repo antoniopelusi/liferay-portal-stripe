@@ -1,0 +1,231 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Automation ID: LRAC-9051 | Test Summary: Admin can be edited or removed"
+	@priority = "3"
+	test AdminCanBeEditedOrRemoved {
+		task ("Create a new user and change your permission to Administrator") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+
+			ACSettings.addUser(userInvite = "user@liferay.com");
+
+			ACSettings.changeUserRole(
+				newRole = "Administrator",
+				permissionType = "Member",
+				userEmail = "user@liferay.com");
+
+			AssertElementPresent(
+				key_permissionType = "Administrator",
+				key_userEmail = "user@liferay.com",
+				locator1 = "ACSettings#USER_ROLE_BY_EMAIL");
+		}
+
+		task ("Assert delete this user") {
+			ACSettings.deleteUser(userDelete = "user@liferay.com");
+
+			Alert.viewSuccessMessage();
+
+			AssertElementNotPresent(
+				key_permissionType = "Administrator",
+				key_userEmail = "user@liferay.com",
+				locator1 = "ACSettings#USER_ROLE_BY_EMAIL");
+		}
+	}
+
+	@description = "Automation ID: LRAC-9052 | Test Summary: Admin can be selected in the user list"
+	@priority = "3"
+	test AdminCanBeSelected {
+		task ("Go to settings and go to user management") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+		}
+
+		task ("Search for a Administrator user and check if it is possible to select") {
+			ACUtils.searchBar(searchItem = "corbin.murakami@faro.io");
+
+			ACInterests.clickKeywordCheckbox(keyword = "corbin murakami");
+
+			AssertChecked.assertCheckedNotVisible(locator1 = "ACSettings#USER_LIST_CHECKBOX");
+		}
+	}
+
+	@description = "Automation ID: LRAC-9048 | Test Summary: Assert the User Management Page"
+	@priority = "3"
+	test AssertUserManagementPage {
+		task ("go to User Management page and assert page elements") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+
+			ACSettings.assertUserManagementHeader();
+
+			ACSettings.assertUserManagementDescription();
+
+			ACSettings.assertInviteUsersButton();
+		}
+	}
+
+	@description = "Automation ID: LRAC-9053 | Test Summary: Member can be edited or removed"
+	@priority = "3"
+	test MemberCanBeEditedOrRemoved {
+		task ("Create a new user as a member ") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+
+			ACSettings.addUser(userInvite = "user@liferay.com");
+		}
+
+		task ("Change your permission to adm and delete this user") {
+			ACSettings.changeUserRole(
+				newRole = "Administrator",
+				permissionType = "Member",
+				userEmail = "user@liferay.com");
+
+			AssertElementPresent(
+				key_permissionType = "Administrator",
+				key_userEmail = "user@liferay.com",
+				locator1 = "ACSettings#USER_ROLE_BY_EMAIL");
+
+			ACSettings.changeUserRole(
+				newRole = "Member",
+				permissionType = "Administrator",
+				userEmail = "user@liferay.com");
+
+			AssertElementPresent(
+				key_permissionType = "Member",
+				key_userEmail = "user@liferay.com",
+				locator1 = "ACSettings#USER_ROLE_BY_EMAIL");
+
+			ACSettings.deleteUser(userDelete = "user@liferay.com");
+
+			Alert.viewSuccessMessage();
+
+			AssertElementNotPresent(
+				key_permissionType = "Member",
+				key_userEmail = "user@liferay.com",
+				locator1 = "ACSettings#USER_ROLE_BY_EMAIL");
+		}
+	}
+
+	@description = "Automation ID: LRAC-9054 | Test Summary: Member can be selected in the user list"
+	@priority = "3"
+	test MemberCanBeSelected {
+		var emailAdress = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
+
+		task ("Go to settings and go to user management") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+		}
+
+		task ("Add multiples users, go to data sources and go back to user management") {
+			ACSettings.addMultiplesOptions(optionsList = "${emailAdress}");
+
+			ACSettings.goToDataSources();
+
+			ACSettings.goToUserManagement();
+		}
+
+		task ("Click on user") {
+			ACSettings.clickUsersByEmail(userEmail = "${emailAdress}");
+
+			for (var email : list "${emailAdress}") {
+				ACUtils.searchBar(searchItem = "${email}");
+
+				AssertChecked.assertCheckedNotVisible(locator1 = "ACSettings#USER_LIST_CHECKBOX");
+			}
+		}
+	}
+
+	@description = "Automation ID: LRAC-9055 | Test Summary: View list of all users"
+	@priority = "3"
+	test ViewAllUserList {
+		var emailAdress = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
+
+		task ("Go to settings and go to user management") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+		}
+
+		task ("Add multiples users, go to data sources and go back to user management") {
+			ACSettings.addMultiplesOptions(optionsList = "${emailAdress}");
+
+			ACSettings.goToDataSources();
+
+			ACSettings.goToUserManagement();
+		}
+
+		task ("Assert the users in the list") {
+			for (var user : list "${emailAdress}") {
+				ACUtils.searchBar(searchItem = "${user}");
+
+				ACSettings.assertUserListEmail(userEmail = "${user}");
+			}
+		}
+
+		task ("Delete Pending All Users") {
+			ACSettings.deleteAllPendingUsers();
+		}
+	}
+
+	@description = "Automation ID: LRAC-9049 | Test Summary: Owner cannot be edited or removed"
+	@priority = "5"
+	test ViewOwnerCannotBeEditedOrRemoved {
+		task ("go to User Manaagement page and assert you are there") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+		}
+
+		task ("search for owner user") {
+			ACUtils.searchBar(searchItem = "bryan.cheung@faro.io");
+		}
+
+		task ("view owner cannot be edited") {
+			ACSettings.viewEditnotAvailable();
+		}
+
+		task ("view owner cannot be removed") {
+			ACSettings.viewDeleteNotAvailable();
+		}
+	}
+
+	@description = "Automation ID: LRAC-9050 | Test Summary: Owner cannot be selected in the user list"
+	@priority = "5"
+	test ViewOwnerCannotBeSelectedInUserList {
+		task ("go to User Management page") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUserManagement();
+		}
+
+		task ("search for owner user") {
+			ACUtils.searchBar(searchItem = "bryan.cheung@faro.io");
+		}
+
+		task ("view owner cannot be selected") {
+			ACSettings.viewUserNotSelectable(email = "bryan.cheung@faro.io");
+		}
+	}
+
+}

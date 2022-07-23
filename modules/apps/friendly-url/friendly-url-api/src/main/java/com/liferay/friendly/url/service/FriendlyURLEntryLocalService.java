@@ -176,6 +176,9 @@ public interface FriendlyURLEntryLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -270,6 +273,10 @@ public interface FriendlyURLEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public FriendlyURLEntryLocalization fetchFriendlyURLEntryLocalization(
 		long friendlyURLEntryId, String languageId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public FriendlyURLEntry fetchMainFriendlyURLEntry(
+		long classNameId, long classPK);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();

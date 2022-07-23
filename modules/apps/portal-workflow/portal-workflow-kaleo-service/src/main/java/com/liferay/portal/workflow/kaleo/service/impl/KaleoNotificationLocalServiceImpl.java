@@ -58,7 +58,7 @@ public class KaleoNotificationLocalServiceImpl
 		// Kaleo notification
 
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoNotificationId = counterLocalService.increment();
 
@@ -68,8 +68,8 @@ public class KaleoNotificationLocalServiceImpl
 		kaleoNotification.setCompanyId(user.getCompanyId());
 		kaleoNotification.setUserId(user.getUserId());
 		kaleoNotification.setUserName(user.getFullName());
-		kaleoNotification.setCreateDate(now);
-		kaleoNotification.setModifiedDate(now);
+		kaleoNotification.setCreateDate(date);
+		kaleoNotification.setModifiedDate(date);
 		kaleoNotification.setKaleoClassName(kaleoClassName);
 		kaleoNotification.setKaleoClassPK(kaleoClassPK);
 		kaleoNotification.setKaleoDefinitionId(kaleoDefinitionId);

@@ -18,15 +18,15 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Http;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.webcache.WebCacheItem;
 import com.liferay.portal.kernel.webcache.WebCachePoolUtil;
 import com.liferay.rss.web.internal.configuration.RSSWebCacheConfiguration;
 
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.feed.synd.SyndImage;
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.feed.synd.SyndImage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,11 +66,11 @@ public class RSSFeed {
 		String syndFeedLink = syndFeed.getLink();
 
 		if (Validator.isNull(syndFeedLink) ||
-			!HttpUtil.hasDomain(syndFeedLink)) {
+			!HttpComponentsUtil.hasDomain(syndFeedLink)) {
 
 			baseURL = StringBundler.concat(
-				HttpUtil.getProtocol(_url), Http.PROTOCOL_DELIMITER,
-				HttpUtil.getDomain(_url));
+				HttpComponentsUtil.getProtocol(_url), Http.PROTOCOL_DELIMITER,
+				HttpComponentsUtil.getDomain(_url));
 
 			if (Validator.isNotNull(syndFeedLink)) {
 				syndFeedLink = baseURL.concat(syndFeedLink);
@@ -81,8 +81,9 @@ public class RSSFeed {
 		}
 		else {
 			baseURL = StringBundler.concat(
-				HttpUtil.getProtocol(syndFeedLink), Http.PROTOCOL_DELIMITER,
-				HttpUtil.getDomain(syndFeedLink));
+				HttpComponentsUtil.getProtocol(syndFeedLink),
+				Http.PROTOCOL_DELIMITER,
+				HttpComponentsUtil.getDomain(syndFeedLink));
 		}
 
 		SyndImage syndImage = syndFeed.getImage();
@@ -90,13 +91,13 @@ public class RSSFeed {
 		if (syndImage != null) {
 			syndFeedImageLink = syndImage.getLink();
 
-			if (!HttpUtil.hasDomain(syndFeedImageLink)) {
+			if (!HttpComponentsUtil.hasDomain(syndFeedImageLink)) {
 				syndFeedImageLink = baseURL + syndFeedImageLink;
 			}
 
 			syndFeedImageURL = syndImage.getUrl();
 
-			if (!HttpUtil.hasDomain(syndFeedImageURL)) {
+			if (!HttpComponentsUtil.hasDomain(syndFeedImageURL)) {
 				syndFeedImageURL = baseURL + syndFeedImageURL;
 			}
 		}

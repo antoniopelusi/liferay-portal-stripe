@@ -19,15 +19,17 @@ definition {
 		}
 	}
 
+	@description = "Verify loading bar can be visible during new location based SPA load event"
 	@priority = "5"
-	test AssertLoadingBar {
+	@refactordone
+	test NewURLLoadEventCanDisplayLoadingBar {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "SPA#AssertLoadingBar";
+		property test.name.skip.portal.instance = "SPA#NewURLLoadEventCanDisplayLoadingBar";
 
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Web Content");
 
 		AssertVisible.assertVisibleNoSPAWait(locator1 = "//html[contains(@class,'lfr-spa-loading')]");

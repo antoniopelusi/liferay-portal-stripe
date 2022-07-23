@@ -14,10 +14,8 @@
 
 package com.liferay.frontend.taglib.clay.servlet.taglib;
 
-import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.frontend.taglib.clay.data.set.ClayDataSetDisplayViewSerializer;
 import com.liferay.frontend.taglib.clay.data.set.model.ClayPaginationEntry;
-import com.liferay.frontend.taglib.clay.internal.js.loader.modules.extender.npm.NPMResolverProvider;
 import com.liferay.frontend.taglib.clay.internal.servlet.ServletContextUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
@@ -34,7 +32,6 @@ import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.taglib.util.IncludeTag;
@@ -59,8 +56,11 @@ public class DataSetDisplayTag extends IncludeTag {
 
 	@Override
 	public int doStartTag() throws JspException {
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		Layout layout = themeDisplay.getLayout();
 
@@ -68,7 +68,7 @@ public class DataSetDisplayTag extends IncludeTag {
 
 		try {
 			_appURL =
-				PortalUtil.getPortalURL(request) +
+				PortalUtil.getPortalURL(httpServletRequest) +
 					"/o/frontend-taglib-clay/app";
 
 			StringBundler sb = new StringBundler(
@@ -99,19 +99,12 @@ public class DataSetDisplayTag extends IncludeTag {
 				_creationMenu = new CreationMenu();
 			}
 
-			NPMResolver npmResolver = NPMResolverProvider.getNPMResolver();
-
-			if ((npmResolver != null) && Validator.isNull(_module)) {
-				_module = npmResolver.resolveModuleName(
-					"frontend-taglib-clay/data_set_display/entry");
-			}
-
 			_setActiveViewSettingsJSON();
 			_setClayDataSetDisplayViewsContext();
 			_setClayPaginationEntries();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return super.doStartTag();
@@ -145,16 +138,16 @@ public class DataSetDisplayTag extends IncludeTag {
 		return _formId;
 	}
 
+	public String getFormName() {
+		return _formName;
+	}
+
 	public String getId() {
 		return _id;
 	}
 
 	public int getItemsPerPage() {
 		return _itemsPerPage;
-	}
-
-	public String getModule() {
-		return _module;
 	}
 
 	public String getNamespace() {
@@ -239,6 +232,10 @@ public class DataSetDisplayTag extends IncludeTag {
 		_formId = formId;
 	}
 
+	public void setFormName(String formName) {
+		_formName = formName;
+	}
+
 	public void setId(String id) {
 		_id = id;
 	}
@@ -266,7 +263,7 @@ public class DataSetDisplayTag extends IncludeTag {
 
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setPageNumber(int pageNumber) {
@@ -326,9 +323,9 @@ public class DataSetDisplayTag extends IncludeTag {
 		_dataProviderKey = null;
 		_deltaParam = null;
 		_formId = null;
+		_formName = null;
 		_id = null;
 		_itemsPerPage = 0;
-		_module = null;
 		_namespace = null;
 		_nestedItemsKey = null;
 		_nestedItemsReferenceKey = null;
@@ -352,56 +349,67 @@ public class DataSetDisplayTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest httpServletRequest) {
-		request.setAttribute(
+		httpServletRequest = getRequest();
+
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:actionParameterName", _actionParameterName);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:activeViewSettingsJSON",
 			_activeViewSettingsJSON);
-		request.setAttribute("clay:data-set-display:apiURL", _apiURL);
-		request.setAttribute("clay:data-set-display:appURL", _appURL);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:apiURL", _apiURL);
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:appURL", _appURL);
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:bulkActionDropdownItems",
 			_bulkActionDropdownItems);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:clayDataSetDisplayViewsContext",
 			_clayDataSetDisplayViewsContext);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:clayPaginationEntries",
 			_clayPaginationEntries);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:creationMenu", _creationMenu);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:dataProviderKey", _dataProviderKey);
-		request.setAttribute("clay:data-set-display:deltaParam", _deltaParam);
-		request.setAttribute("clay:data-set-display:formId", _formId);
-		request.setAttribute("clay:data-set-display:id", _id);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:deltaParam", _deltaParam);
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:formId", _formId);
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:formName", _formName);
+		httpServletRequest.setAttribute("clay:data-set-display:id", _id);
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:itemsPerPage", _itemsPerPage);
-		request.setAttribute("clay:data-set-display:module", _module);
-		request.setAttribute("clay:data-set-display:namespace", _namespace);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:namespace", _namespace);
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:nestedItemsKey", _nestedItemsKey);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:nestedItemsReferenceKey",
 			_nestedItemsReferenceKey);
-		request.setAttribute("clay:data-set-display:pageNumber", _pageNumber);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:pageNumber", _pageNumber);
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:paginationSelectedEntry",
 			_paginationSelectedEntry);
-		request.setAttribute("clay:data-set-display:portletURL", _portletURL);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:portletURL", _portletURL);
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:selectedItems", _selectedItems);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:selectedItemsKey", _selectedItemsKey);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:selectionType", _selectionType);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:showManagementBar", _showManagementBar);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"clay:data-set-display:showPagination", _showPagination);
-		request.setAttribute("clay:data-set-display:showSearch", _showSearch);
-		request.setAttribute("clay:data-set-display:style", _style);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
+			"clay:data-set-display:showSearch", _showSearch);
+		httpServletRequest.setAttribute("clay:data-set-display:style", _style);
+		httpServletRequest.setAttribute(
 			"clay:headless-data-set-display:sortItemList", _sortItemList);
 	}
 
@@ -420,21 +428,22 @@ public class DataSetDisplayTag extends IncludeTag {
 	}
 
 	private void _setActiveViewSettingsJSON() {
-		PortalPreferences portalPreferences =
-			PortletPreferencesFactoryUtil.getPortalPreferences(request);
+		HttpServletRequest httpServletRequest = getRequest();
 
-		String clayDataSetDisplaySettingsNamespace =
-			ServletContextUtil.getClayDataSetDisplaySettingsNamespace(
-				request, _id);
+		PortalPreferences portalPreferences =
+			PortletPreferencesFactoryUtil.getPortalPreferences(
+				httpServletRequest);
 
 		_activeViewSettingsJSON = portalPreferences.getValue(
-			clayDataSetDisplaySettingsNamespace, "activeViewSettingsJSON");
+			ServletContextUtil.getClayDataSetDisplaySettingsNamespace(
+				httpServletRequest, _id),
+			"activeViewSettingsJSON");
 	}
 
 	private void _setClayDataSetDisplayViewsContext() {
 		_clayDataSetDisplayViewsContext =
 			_clayDataSetDisplayViewSerializer.serialize(
-				_id, PortalUtil.getLocale(request));
+				_id, PortalUtil.getLocale(getRequest()));
 	}
 
 	private void _setClayPaginationEntries() {
@@ -453,7 +462,7 @@ public class DataSetDisplayTag extends IncludeTag {
 			clayPaginationEntry);
 	}
 
-	private static final String _PAGE = "/data_set_display/page.jsp";
+	private static final String _PAGE = "/data_set/page.jsp";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DataSetDisplayTag.class);
@@ -471,9 +480,9 @@ public class DataSetDisplayTag extends IncludeTag {
 	private String _dataProviderKey;
 	private String _deltaParam;
 	private String _formId;
+	private String _formName;
 	private String _id;
 	private int _itemsPerPage;
-	private String _module;
 	private String _namespace;
 	private String _nestedItemsKey;
 	private String _nestedItemsReferenceKey;

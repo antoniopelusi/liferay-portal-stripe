@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.remote.cors.configuration.WebContextCORSConfiguration;
 import com.liferay.portal.remote.cors.internal.CORSSupport;
 
@@ -129,7 +129,7 @@ public class CORSServletFilterServletContextHelperTracker {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -137,17 +137,19 @@ public class CORSServletFilterServletContextHelperTracker {
 		private Dictionary<String, Object> _buildProperties(
 			ServiceReference<ServletContextHelper> serviceReference) {
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put(Constants.SERVICE_RANKING, -1);
-			properties.put(
-				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
-				GetterUtil.getString(
-					serviceReference.getProperty(
-						HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_NAME)));
-			properties.put(
-				HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_NAME,
-				CORSServletFilter.class.getName());
+			Dictionary<String, Object> properties =
+				HashMapDictionaryBuilder.<String, Object>put(
+					Constants.SERVICE_RANKING, -1
+				).put(
+					HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
+					GetterUtil.getString(
+						serviceReference.getProperty(
+							HttpWhiteboardConstants.
+								HTTP_WHITEBOARD_CONTEXT_NAME))
+				).put(
+					HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_NAME,
+					CORSServletFilter.class.getName()
+				).build();
 
 			if (ArrayUtil.isEmpty(_filterMappingUrlPatterns) ||
 				ArrayUtil.contains(

@@ -43,8 +43,6 @@ public class CentralGitSubrepository {
 
 		_gitSubrepositoryName = _getGitSubrepositoryName();
 
-		StringBuilder sb = new StringBuilder();
-
 		Properties buildProperties = null;
 
 		try {
@@ -54,6 +52,8 @@ public class CentralGitSubrepository {
 			throw new RuntimeException(
 				"Unable to get build properties", ioException);
 		}
+
+		StringBuilder sb = new StringBuilder();
 
 		sb.append(buildProperties.getProperty("base.repository.dir"));
 		sb.append("/");

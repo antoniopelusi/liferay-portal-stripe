@@ -34,6 +34,8 @@ export default withRouter(({history, location}) => {
 	const sectionTitle =
 		(match &&
 			match.params &&
+			match.params.sectionTitle !== 'activity' &&
+			match.params.sectionTitle !== 'subscriptions' &&
 			match.params.sectionTitle !== 'tag' &&
 			match.params.sectionTitle) ||
 		queryParams.get('sectiontitle');
@@ -77,10 +79,7 @@ export default withRouter(({history, location}) => {
 								)
 							}
 						>
-							<ClayLink
-								className="nav-link"
-								displayType="unstyled"
-							>
+							<ClayLink>
 								{Liferay.Language.get('questions')}
 							</ClayLink>
 						</ClayNavigationBar.Item>
@@ -89,17 +88,12 @@ export default withRouter(({history, location}) => {
 							active={isActive(`/tags`)}
 							onClick={() => historyPushParser('/tags')}
 						>
-							<ClayLink
-								className="nav-link"
-								displayType="unstyled"
-							>
-								{Liferay.Language.get('tags')}
-							</ClayLink>
+							<ClayLink>{Liferay.Language.get('tags')}</ClayLink>
 						</ClayNavigationBar.Item>
 
 						<ClayNavigationBar.Item
 							active={isActive(
-								`/subscriptions/${context.userId}`
+								`/questions/subscriptions/${context.userId}`
 							)}
 							className={
 								Liferay.ThemeDisplay.isSignedIn()
@@ -108,7 +102,9 @@ export default withRouter(({history, location}) => {
 							}
 							onClick={() =>
 								historyPushParser(
-									`/subscriptions/${context.userId}${
+									`/questions/subscriptions/${
+										context.userId
+									}${
 										sectionTitle
 											? '?sectionTitle=' + sectionTitle
 											: ''
@@ -116,16 +112,15 @@ export default withRouter(({history, location}) => {
 								)
 							}
 						>
-							<ClayLink
-								className="nav-link"
-								displayType="unstyled"
-							>
+							<ClayLink>
 								{Liferay.Language.get('my-subscriptions')}
 							</ClayLink>
 						</ClayNavigationBar.Item>
 
 						<ClayNavigationBar.Item
-							active={isActive(`/activity/${context.userId}`)}
+							active={isActive(
+								`/questions/activity/${context.userId}`
+							)}
 							className={
 								Liferay.ThemeDisplay.isSignedIn()
 									? ''
@@ -133,7 +128,7 @@ export default withRouter(({history, location}) => {
 							}
 							onClick={() =>
 								historyPushParser(
-									`/activity/${context.userId}${
+									`/questions/activity/${context.userId}${
 										sectionTitle
 											? '?sectionTitle=' + sectionTitle
 											: ''
@@ -141,10 +136,7 @@ export default withRouter(({history, location}) => {
 								)
 							}
 						>
-							<ClayLink
-								className="nav-link"
-								displayType="unstyled"
-							>
+							<ClayLink>
 								{Liferay.Language.get('my-activity')}
 							</ClayLink>
 						</ClayNavigationBar.Item>

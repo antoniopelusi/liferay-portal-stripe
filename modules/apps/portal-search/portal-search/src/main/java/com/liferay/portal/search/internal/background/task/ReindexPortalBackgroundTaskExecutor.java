@@ -28,7 +28,7 @@ import org.osgi.framework.BundleContext;
  * @author Andrew Betts
  */
 public class ReindexPortalBackgroundTaskExecutor
-	extends ReindexBackgroundTaskExecutor {
+	extends BaseReindexBackgroundTaskExecutor {
 
 	public ReindexPortalBackgroundTaskExecutor(
 		BundleContext bundleContext,
@@ -61,7 +61,7 @@ public class ReindexPortalBackgroundTaskExecutor
 				searchEngineInitializer.reindex();
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 			finally {
 				ReindexStatusMessageSenderUtil.sendStatusMessage(

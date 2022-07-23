@@ -1,5 +1,0 @@
-<definition default="sikuliMouseMove">
-	<command name="sikuliMouseMove">
-		<execute selenium="sikuliMouseMove" />
-	</command>
-</definition>

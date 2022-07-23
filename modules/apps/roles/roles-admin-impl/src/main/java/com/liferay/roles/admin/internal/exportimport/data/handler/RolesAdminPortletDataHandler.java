@@ -112,7 +112,7 @@ public class RolesAdminPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected String doExportData(
-			final PortletDataContext portletDataContext, String portletId,
+			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
 		throws Exception {
 
@@ -124,7 +124,7 @@ public class RolesAdminPortletDataHandler extends BasePortletDataHandler {
 			"group-id", String.valueOf(portletDataContext.getScopeGroupId()));
 
 		ActionableDynamicQuery actionableDynamicQuery =
-			getRoleActionableDynamicQuery(portletDataContext, true);
+			_getRoleActionableDynamicQuery(portletDataContext, true);
 
 		actionableDynamicQuery.performActions();
 
@@ -159,13 +159,26 @@ public class RolesAdminPortletDataHandler extends BasePortletDataHandler {
 		throws Exception {
 
 		ActionableDynamicQuery actionableDynamicQuery =
-			getRoleActionableDynamicQuery(portletDataContext, false);
+			_getRoleActionableDynamicQuery(portletDataContext, false);
 
 		actionableDynamicQuery.performCount();
 	}
 
-	protected ActionableDynamicQuery getRoleActionableDynamicQuery(
-		final PortletDataContext portletDataContext, final boolean export) {
+	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
+	protected void setModuleServiceLifecycle(
+		ModuleServiceLifecycle moduleServiceLifecycle) {
+	}
+
+	@Reference(unbind = "-")
+	protected void setPortal(Portal portal) {
+		Collections.addAll(
+			_allSystemRoleNames, portal.getSystemOrganizationRoles());
+		Collections.addAll(_allSystemRoleNames, portal.getSystemRoles());
+		Collections.addAll(_allSystemRoleNames, portal.getSystemSiteRoles());
+	}
+
+	private ActionableDynamicQuery _getRoleActionableDynamicQuery(
+		PortletDataContext portletDataContext, boolean export) {
 
 		ActionableDynamicQuery actionableDynamicQuery =
 			_roleLocalService.getExportActionableDynamicQuery(
@@ -216,19 +229,6 @@ public class RolesAdminPortletDataHandler extends BasePortletDataHandler {
 		return actionableDynamicQuery;
 	}
 
-	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
-	protected void setModuleServiceLifecycle(
-		ModuleServiceLifecycle moduleServiceLifecycle) {
-	}
-
-	@Reference(unbind = "-")
-	protected void setPortal(Portal portal) {
-		Collections.addAll(
-			_allSystemRoleNames, portal.getSystemOrganizationRoles());
-		Collections.addAll(_allSystemRoleNames, portal.getSystemRoles());
-		Collections.addAll(_allSystemRoleNames, portal.getSystemSiteRoles());
-	}
-
 	private final Set<String> _allSystemRoleNames = new HashSet<>();
 
 	@Reference
@@ -252,13 +252,10 @@ public class RolesAdminPortletDataHandler extends BasePortletDataHandler {
 
 		@Override
 		public void performAction(Role role) throws PortalException {
-			if (!_export) {
-				return;
-			}
-
-			if (!_portletDataContext.getBooleanParameter(
+			if (!_export ||
+				(!_portletDataContext.getBooleanParameter(
 					NAMESPACE, "system-roles") &&
-				_allSystemRoleNames.contains(role.getName())) {
+				 _allSystemRoleNames.contains(role.getName()))) {
 
 				return;
 			}

@@ -20,10 +20,10 @@ import com.liferay.knowledge.base.model.KBCommentTable;
 import com.liferay.knowledge.base.model.impl.KBCommentImpl;
 import com.liferay.knowledge.base.model.impl.KBCommentModelImpl;
 import com.liferay.knowledge.base.service.persistence.KBCommentPersistence;
+import com.liferay.knowledge.base.service.persistence.KBCommentUtil;
 import com.liferay.knowledge.base.service.persistence.impl.constants.KBPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,23 +34,25 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -59,12 +61,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -5028,6 +5027,8 @@ public class KBCommentPersistenceImpl
 			kbComment);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the kb comments in the entity cache if it is enabled.
 	 *
@@ -5035,6 +5036,13 @@ public class KBCommentPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<KBComment> kbComments) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (kbComments.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (KBComment kbComment : kbComments) {
 			if (entityCache.getResult(
 					KBCommentImpl.class, kbComment.getPrimaryKey()) == null) {
@@ -5111,7 +5119,7 @@ public class KBCommentPersistenceImpl
 		kbComment.setNew(true);
 		kbComment.setPrimaryKey(kbCommentId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		kbComment.setUuid(uuid);
 
@@ -5226,7 +5234,7 @@ public class KBCommentPersistenceImpl
 		KBCommentModelImpl kbCommentModelImpl = (KBCommentModelImpl)kbComment;
 
 		if (Validator.isNull(kbComment.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			kbComment.setUuid(uuid);
 		}
@@ -5234,23 +5242,23 @@ public class KBCommentPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (kbComment.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				kbComment.setCreateDate(now);
+				kbComment.setCreateDate(date);
 			}
 			else {
-				kbComment.setCreateDate(serviceContext.getCreateDate(now));
+				kbComment.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!kbCommentModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				kbComment.setModifiedDate(now);
+				kbComment.setModifiedDate(date);
 			}
 			else {
-				kbComment.setModifiedDate(serviceContext.getModifiedDate(now));
+				kbComment.setModifiedDate(serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -5545,12 +5553,9 @@ public class KBCommentPersistenceImpl
 	 * Initializes the kb comment persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new KBCommentModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -5741,13 +5746,30 @@ public class KBCommentPersistenceImpl
 				Integer.class.getName()
 			},
 			new String[] {"classNameId", "classPK", "status"}, false);
+
+		_setKBCommentUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(KBCommentImpl.class.getName());
+		_setKBCommentUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(KBCommentImpl.class.getName());
+	}
+
+	private void _setKBCommentUtilPersistence(
+		KBCommentPersistence kbCommentPersistence) {
+
+		try {
+			Field field = KBCommentUtil.class.getDeclaredField("_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, kbCommentPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -5775,8 +5797,6 @@ public class KBCommentPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -5815,111 +5835,10 @@ public class KBCommentPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class KBCommentModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			KBCommentModelImpl kbCommentModelImpl =
-				(KBCommentModelImpl)baseModel;
-
-			long columnBitmask = kbCommentModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(kbCommentModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						kbCommentModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(kbCommentModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return KBCommentImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return KBCommentTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			KBCommentModelImpl kbCommentModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = kbCommentModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = kbCommentModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= KBCommentModelImpl.getColumnBitmask(
-				"modifiedDate");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private KBCommentModelArgumentsResolver _kbCommentModelArgumentsResolver;
 
 }

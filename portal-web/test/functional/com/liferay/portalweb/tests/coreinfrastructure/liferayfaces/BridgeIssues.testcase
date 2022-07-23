@@ -13,7 +13,7 @@ definition {
 
 		JSONGroup.addGroup(groupName = "Bridge Issues");
 
-		SitePages.openPagesAdmin(siteURLKey = "Bridge Issues");
+		PagesAdmin.openPagesAdmin(siteURLKey = "Bridge Issues");
 	}
 
 	tearDown {
@@ -55,7 +55,7 @@ definition {
 			urlAppend = "web/bridge-issues/faces-1470?p_p_id=FACES1470_WAR_comliferayfacesissuejsfportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_FACES1470_WAR_comliferayfacesissuejsfportlet__facesViewIdRender=%2FWEB-INF%2Fviews%2FFACES-1470%2Fview1.xhtml");
 
 		Click(
-			key_PageLink = "Click me to navigate to view1.xhtml via Ajax",
+			key_pageLink = "Click me to navigate to view1.xhtml via Ajax",
 			locator1 = "BridgeIssues#NAVIGATE_TO_VIEW");
 
 		BridgeIssues.navigateToDo(
@@ -69,7 +69,7 @@ definition {
 			urlAppend = "web/bridge-issues/faces-1470?p_p_id=FACES1470_WAR_comliferayfacesissuejsfportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_FACES1470_WAR_comliferayfacesissuejsfportlet__facesViewIdRender=%2FWEB-INF%2Fviews%2FFACES-1470%2Fview1.xhtml");
 
 		Click(
-			key_PageLink = "Click me to navigate to view1.xhtml via non-Ajax (full postback)",
+			key_pageLink = "Click me to navigate to view1.xhtml via non-Ajax (full postback)",
 			locator1 = "BridgeIssues#NAVIGATE_TO_VIEW");
 
 		BridgeIssues.navigateToDo(
@@ -83,7 +83,7 @@ definition {
 			urlAppend = "web/bridge-issues/faces-1470?p_p_id=FACES1470_WAR_comliferayfacesissuejsfportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_FACES1470_WAR_comliferayfacesissuejsfportlet__facesViewIdRender=%2FWEB-INF%2Fviews%2FFACES-1470%2Fview1.xhtml");
 
 		Click(
-			key_PageLink = "Click me to navigate to view1.xhtml via non-Ajax (full postback)",
+			key_pageLink = "Click me to navigate to view1.xhtml via non-Ajax (full postback)",
 			locator1 = "BridgeIssues#NAVIGATE_TO_VIEW");
 
 		BridgeIssues.navigateToDo(
@@ -110,7 +110,7 @@ definition {
 
 		// FACES-1478
 
-		SitePages.openPagesAdmin(siteURLKey = "Bridge Issues");
+		PagesAdmin.openPagesAdmin(siteURLKey = "Bridge Issues");
 
 		BridgeIssues.addPageAndPortlet(
 			pageURL = "faces-1478",
@@ -125,7 +125,7 @@ definition {
 			value1 = "${portalURL}/web/bridge-issues/faces-1478?p_p_id=FACES1478_WAR_comliferayfacesissuejsfportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_FACES1478_WAR_comliferayfacesissuejsfportlet_testParam=foo&_FACES1478_WAR_comliferayfacesissuejsfportlet_testParam=bar");
 
 		Click(
-			key_PageLink = "should be the same as the href attribute of this link",
+			key_pageLink = "should be the same as the href attribute of this link",
 			locator1 = "BridgeIssues#NAVIGATE_TO_VIEW");
 
 		AssertLocation(value1 = "${portalURL}/web/bridge-issues/faces-1478?p_p_id=FACES1478_WAR_comliferayfacesissuejsfportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&_FACES1478_WAR_comliferayfacesissuejsfportlet_testParam=foo&_FACES1478_WAR_comliferayfacesissuejsfportlet_testParam=bar");
@@ -167,7 +167,7 @@ definition {
 			value1 = "javax.faces:jsf.js");
 
 		Click(
-			key_PageLink = "go to next view with immediate=",
+			key_pageLink = "go to next view with immediate=",
 			locator1 = "BridgeIssues#NAVIGATE_TO_VIEW");
 
 		AssertTextEquals(
@@ -187,7 +187,7 @@ definition {
 			value1 = "javax.faces:jsf.js");
 
 		Click(
-			key_PageLink = "go to previous view with immediate=",
+			key_pageLink = "go to previous view with immediate=",
 			locator1 = "BridgeIssues#NAVIGATE_TO_VIEW");
 
 		AssertTextEquals(
@@ -208,40 +208,40 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-issues/faces-1638");
 
-		for (var Index : list "1,2") {
+		for (var index : list "1,2") {
 			BridgeIssues.verifyParam(
 				liIndex = "1",
 				paramLink = "First-Item",
-				ulIndex = "${Index}");
+				ulIndex = "${index}");
 
 			BridgeIssues.verifyParam(
 				liIndex = "1",
 				paramValue = "1",
-				ulIndex = "${Index}");
+				ulIndex = "${index}");
 		}
 
-		for (var Index : list "1,2") {
+		for (var index : list "1,2") {
 			BridgeIssues.verifyParam(
 				liIndex = "2",
 				paramLink = "Second-Item",
-				ulIndex = "${Index}");
+				ulIndex = "${index}");
 
 			BridgeIssues.verifyParam(
 				liIndex = "2",
 				paramValue = "2",
-				ulIndex = "${Index}");
+				ulIndex = "${index}");
 		}
 
-		for (var Index : list "1,2") {
+		for (var index : list "1,2") {
 			BridgeIssues.verifyParam(
 				liIndex = "3",
 				paramLink = "Third-Item",
-				ulIndex = "${Index}");
+				ulIndex = "${index}");
 
 			BridgeIssues.verifyParam(
 				liIndex = "3",
 				paramValue = "3",
-				ulIndex = "${Index}");
+				ulIndex = "${index}");
 		}
 	}
 
@@ -310,7 +310,7 @@ definition {
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-issues/jsfspec-1433");
 
 		Click(
-			key_PageLink = "Run Test",
+			key_pageLink = "Run Test",
 			locator1 = "BridgeIssues#RUN_TEST_BUTTON");
 
 		for (var key_field : list "1,2,3,4,5,6,7,8,9,10,11") {
@@ -582,27 +582,32 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-issues/faces-3250");
 
-		Click(locator1 = "BridgeIssues#CHOOSE_FILE_BUTTON");
+		BridgeIssues.upload3250File(
+			fileName = "Document_2.doc",
+			instantAjax = "false",
+			mode = "advancedMode");
+
+		AssertElementPresent(
+			key_fileName = "Document_2.doc",
+			locator1 = "BridgeIssues#FILE_NAME");
 
 		BridgeIssues.upload3250File(
-			fileName = "Document_2.jpeg",
-			instantAjax = "false");
+			fileName = "Document_2.docx",
+			instantAjax = "true",
+			mode = "simpleMode");
 
-		AssertElementPresent(locator1 = "BridgeIssues#FILE_NAME");
-
-		Click(locator1 = "BridgeIssues#CHOOSE_FILE_BUTTON_2");
+		AssertElementPresent(
+			key_fileName = "Document_2.docx",
+			locator1 = "BridgeIssues#FILE_NAME");
 
 		BridgeIssues.upload3250File(
 			fileName = "Document_2.jpeg",
 			instantAjax = "true",
-			submit = "skinSimple=false");
+			mode = "skinSimpleMode");
 
-		Click(locator1 = "BridgeIssues#CHOOSE_FILE_BUTTON_3");
-
-		BridgeIssues.upload3250File(
-			fileName = "Document_2.jpeg",
-			instantAjax = "true",
-			submit = "skinSimple=true");
+		AssertElementPresent(
+			key_fileName = "Document_2.jpeg",
+			locator1 = "BridgeIssues#FILE_NAME");
 
 		// FACES_3327
 

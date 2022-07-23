@@ -69,7 +69,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + SearchPortletKeys.SEARCH,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -108,7 +109,7 @@ public class SearchPortlet extends MVCPortlet {
 			try {
 				ServletResponseUtil.sendFile(
 					httpServletRequest, httpServletResponse, null,
-					getXML(resourceRequest, resourceResponse),
+					_getXML(resourceRequest, resourceResponse),
 					ContentTypes.TEXT_XML_UTF8);
 			}
 			catch (Exception exception) {
@@ -118,7 +119,7 @@ public class SearchPortlet extends MVCPortlet {
 				}
 				catch (ServletException servletException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(servletException, servletException);
+						_log.debug(servletException);
 					}
 				}
 			}
@@ -128,7 +129,17 @@ public class SearchPortlet extends MVCPortlet {
 		}
 	}
 
-	protected byte[] getXML(
+	@Reference(
+		target = "(&(release.bundle.symbolic.name=com.liferay.portal.search.web)(&(release.schema.version>=2.0.0)(!(release.schema.version>=3.0.0))))",
+		unbind = "-"
+	)
+	protected void setRelease(Release release) {
+	}
+
+	@Reference
+	protected SearchDisplayContextFactory searchDisplayContextFactory;
+
+	private byte[] _getXML(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
@@ -161,16 +172,6 @@ public class SearchPortlet extends MVCPortlet {
 
 		return xml.getBytes();
 	}
-
-	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.portal.search.web)(&(release.schema.version>=2.0.0)(!(release.schema.version>=3.0.0))))",
-		unbind = "-"
-	)
-	protected void setRelease(Release release) {
-	}
-
-	@Reference
-	protected SearchDisplayContextFactory searchDisplayContextFactory;
 
 	private static final Log _log = LogFactoryUtil.getLog(SearchPortlet.class);
 

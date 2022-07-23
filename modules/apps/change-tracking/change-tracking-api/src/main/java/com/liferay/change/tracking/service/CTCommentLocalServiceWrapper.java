@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class CTCommentLocalServiceWrapper
 	implements CTCommentLocalService, ServiceWrapper<CTCommentLocalService> {
 
+	public CTCommentLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CTCommentLocalServiceWrapper(
 		CTCommentLocalService ctCommentLocalService) {
 
@@ -132,6 +136,13 @@ public class CTCommentLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ctCommentLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ctCommentLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

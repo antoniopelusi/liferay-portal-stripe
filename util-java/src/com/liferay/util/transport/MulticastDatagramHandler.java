@@ -52,7 +52,7 @@ public class MulticastDatagramHandler implements DatagramHandler {
 				bytes = getUnzippedBytes(bytes);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -64,15 +64,10 @@ public class MulticastDatagramHandler implements DatagramHandler {
 			bytes = temp;
 		}
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("[");
-		sb.append(packet.getSocketAddress());
-		sb.append("] ");
-		sb.append(new String(bytes));
-
 		if (_log.isInfoEnabled()) {
-			_log.info(sb.toString());
+			_log.info(
+				StringBundler.concat(
+					"[", packet.getSocketAddress(), "] ", new String(bytes)));
 		}
 	}
 
@@ -80,7 +75,7 @@ public class MulticastDatagramHandler implements DatagramHandler {
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream(bytes.length);
 
-		try (InputStream is = new GZIPInputStream(
+		try (InputStream inputStream = new GZIPInputStream(
 				new UnsyncByteArrayInputStream(bytes))) {
 
 			byte[] buffer = new byte[1500];
@@ -91,7 +86,7 @@ public class MulticastDatagramHandler implements DatagramHandler {
 					break;
 				}
 
-				c = is.read(buffer, 0, 1500);
+				c = inputStream.read(buffer, 0, 1500);
 
 				if (c != -1) {
 					unsyncByteArrayOutputStream.write(buffer, 0, c);

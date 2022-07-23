@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.liferay.headless.admin.user.client.dto.v1_0.Site;
 import com.liferay.headless.admin.user.client.http.HttpInvoker;
 import com.liferay.headless.admin.user.client.pagination.Page;
+import com.liferay.headless.admin.user.client.pagination.Pagination;
 import com.liferay.headless.admin.user.client.resource.v1_0.SiteResource;
 import com.liferay.headless.admin.user.client.serdes.v1_0.SiteSerDes;
 import com.liferay.petra.reflect.ReflectionUtil;
@@ -32,7 +33,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -49,7 +50,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -200,7 +200,65 @@ public abstract class BaseSiteResourceTestCase {
 
 	@Test
 	public void testGetMyUserAccountSitesPage() throws Exception {
-		Assert.assertTrue(false);
+		Page<Site> page = siteResource.getMyUserAccountSitesPage(
+			Pagination.of(1, 10));
+
+		long totalCount = page.getTotalCount();
+
+		Site site1 = testGetMyUserAccountSitesPage_addSite(randomSite());
+
+		Site site2 = testGetMyUserAccountSitesPage_addSite(randomSite());
+
+		page = siteResource.getMyUserAccountSitesPage(Pagination.of(1, 10));
+
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
+
+		assertContains(site1, (List<Site>)page.getItems());
+		assertContains(site2, (List<Site>)page.getItems());
+		assertValid(page);
+	}
+
+	@Test
+	public void testGetMyUserAccountSitesPageWithPagination() throws Exception {
+		Page<Site> totalPage = siteResource.getMyUserAccountSitesPage(null);
+
+		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+
+		Site site1 = testGetMyUserAccountSitesPage_addSite(randomSite());
+
+		Site site2 = testGetMyUserAccountSitesPage_addSite(randomSite());
+
+		Site site3 = testGetMyUserAccountSitesPage_addSite(randomSite());
+
+		Page<Site> page1 = siteResource.getMyUserAccountSitesPage(
+			Pagination.of(1, totalCount + 2));
+
+		List<Site> sites1 = (List<Site>)page1.getItems();
+
+		Assert.assertEquals(sites1.toString(), totalCount + 2, sites1.size());
+
+		Page<Site> page2 = siteResource.getMyUserAccountSitesPage(
+			Pagination.of(2, totalCount + 2));
+
+		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+		List<Site> sites2 = (List<Site>)page2.getItems();
+
+		Assert.assertEquals(sites2.toString(), 1, sites2.size());
+
+		Page<Site> page3 = siteResource.getMyUserAccountSitesPage(
+			Pagination.of(1, totalCount + 3));
+
+		assertContains(site1, (List<Site>)page3.getItems());
+		assertContains(site2, (List<Site>)page3.getItems());
+		assertContains(site3, (List<Site>)page3.getItems());
+	}
+
+	protected Site testGetMyUserAccountSitesPage_addSite(Site site)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -221,7 +279,7 @@ public abstract class BaseSiteResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSiteByFriendlyUrlPath() throws Exception {
-		Site site = testGraphQLSite_addSite();
+		Site site = testGraphQLGetSiteByFriendlyUrlPath_addSite();
 
 		Assert.assertTrue(
 			equals(
@@ -266,6 +324,12 @@ public abstract class BaseSiteResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Site testGraphQLGetSiteByFriendlyUrlPath_addSite()
+		throws Exception {
+
+		return testGraphQLSite_addSite();
+	}
+
 	@Test
 	public void testGetSite() throws Exception {
 		Site postSite = testGetSite_addSite();
@@ -283,7 +347,7 @@ public abstract class BaseSiteResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSite() throws Exception {
-		Site site = testGraphQLSite_addSite();
+		Site site = testGraphQLGetSite_addSite();
 
 		Assert.assertTrue(
 			equals(
@@ -322,9 +386,27 @@ public abstract class BaseSiteResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Site testGraphQLGetSite_addSite() throws Exception {
+		return testGraphQLSite_addSite();
+	}
+
 	protected Site testGraphQLSite_addSite() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Site site, List<Site> sites) {
+		boolean contains = false;
+
+		for (Site item : sites) {
+			if (equals(site, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(sites + " does not contain " + site, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -503,8 +585,8 @@ public abstract class BaseSiteResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.admin.user.dto.v1_0.Site.class)) {
 
 			if (!ArrayUtil.contains(
@@ -519,12 +601,13 @@ public abstract class BaseSiteResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -538,7 +621,7 @@ public abstract class BaseSiteResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -709,6 +792,19 @@ public abstract class BaseSiteResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -980,8 +1076,8 @@ public abstract class BaseSiteResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseSiteResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseSiteResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

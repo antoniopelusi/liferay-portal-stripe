@@ -24,6 +24,7 @@ import org.osgi.service.component.annotations.Component;
  * @author Eudaldo Alonso
  */
 @Component(
+	configurationPid = "com.liferay.layout.set.prototype.configuration.LayoutSetPrototypeConfiguration",
 	immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=true",

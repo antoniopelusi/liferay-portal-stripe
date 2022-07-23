@@ -14,6 +14,9 @@
 
 package com.liferay.portal.search.elasticsearch7.internal.connection;
 
+import com.liferay.portal.search.elasticsearch7.internal.connection.helper.IndexCreationHelper;
+import com.liferay.portal.search.elasticsearch7.internal.connection.helper.LiferayIndexCreationHelper;
+
 import java.io.IOException;
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
@@ -32,7 +35,7 @@ import org.mockito.Mockito;
 public class IndexCreator {
 
 	public Index createIndex(IndexName indexName) {
-		IndicesClient indicesClient = getIndicesClient();
+		IndicesClient indicesClient = _getIndicesClient();
 
 		String name = indexName.getName();
 
@@ -40,7 +43,7 @@ public class IndexCreator {
 
 		CreateIndexRequest createIndexRequest = new CreateIndexRequest(name);
 
-		IndexCreationHelper indexCreationHelper = getIndexCreationHelper();
+		IndexCreationHelper indexCreationHelper = _getIndexCreationHelper();
 
 		indexCreationHelper.contribute(createIndexRequest);
 
@@ -66,7 +69,7 @@ public class IndexCreator {
 	}
 
 	public void deleteIndex(IndexName indexName) {
-		deleteIndex(getIndicesClient(), indexName.getName());
+		deleteIndex(_getIndicesClient(), indexName.getName());
 	}
 
 	protected void deleteIndex(IndicesClient indicesClient, String name) {
@@ -82,7 +85,25 @@ public class IndexCreator {
 		}
 	}
 
-	protected IndexCreationHelper getIndexCreationHelper() {
+	protected void setElasticsearchClientResolver(
+		ElasticsearchClientResolver elasticsearchClientResolver) {
+
+		_elasticsearchClientResolver = elasticsearchClientResolver;
+	}
+
+	protected void setIndexCreationHelper(
+		IndexCreationHelper indexCreationHelper) {
+
+		_indexCreationHelper = indexCreationHelper;
+	}
+
+	protected void setLiferayMappingsAddedToIndex(
+		boolean liferayMappingsAddedToIndex) {
+
+		_liferayMappingsAddedToIndex = liferayMappingsAddedToIndex;
+	}
+
+	private IndexCreationHelper _getIndexCreationHelper() {
 		if (!_liferayMappingsAddedToIndex) {
 			if (_indexCreationHelper != null) {
 				return _indexCreationHelper;
@@ -124,29 +145,11 @@ public class IndexCreator {
 		};
 	}
 
-	protected final IndicesClient getIndicesClient() {
+	private final IndicesClient _getIndicesClient() {
 		RestHighLevelClient restHighLevelClient =
 			_elasticsearchClientResolver.getRestHighLevelClient();
 
 		return restHighLevelClient.indices();
-	}
-
-	protected void setElasticsearchClientResolver(
-		ElasticsearchClientResolver elasticsearchClientResolver) {
-
-		_elasticsearchClientResolver = elasticsearchClientResolver;
-	}
-
-	protected void setIndexCreationHelper(
-		IndexCreationHelper indexCreationHelper) {
-
-		_indexCreationHelper = indexCreationHelper;
-	}
-
-	protected void setLiferayMappingsAddedToIndex(
-		boolean liferayMappingsAddedToIndex) {
-
-		_liferayMappingsAddedToIndex = liferayMappingsAddedToIndex;
 	}
 
 	private ElasticsearchClientResolver _elasticsearchClientResolver;

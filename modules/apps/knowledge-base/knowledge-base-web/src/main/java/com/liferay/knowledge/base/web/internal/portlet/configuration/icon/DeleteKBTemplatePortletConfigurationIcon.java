@@ -70,7 +70,7 @@ public class DeleteKBTemplatePortletConfigurationIcon
 			"deleteKBTemplate"
 		).setMVCPath(
 			"/admin/view_template.jsp"
-		).build();
+		).buildPortletURL();
 
 		KBTemplate kbTemplate = (KBTemplate)portletRequest.getAttribute(
 			KBWebKeys.KNOWLEDGE_BASE_KB_TEMPLATE);
@@ -109,7 +109,7 @@ public class DeleteKBTemplatePortletConfigurationIcon
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 		}
 

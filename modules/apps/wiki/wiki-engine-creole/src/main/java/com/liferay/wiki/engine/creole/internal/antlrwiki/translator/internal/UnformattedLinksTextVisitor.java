@@ -20,7 +20,7 @@ import com.liferay.wiki.engine.creole.internal.parser.ast.link.LinkNode;
 /**
  * @author Miguel Pastor
  */
-public class UnformattedLinksTextVisitor extends UnformattedTextVisitor {
+public class UnformattedLinksTextVisitor extends BaseUnformattedTextVisitor {
 
 	public String getUnformattedText(LinkNode linkNode) {
 		CollectionNode altCollectionNode = linkNode.getAltCollectionNode();

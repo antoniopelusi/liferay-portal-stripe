@@ -25,21 +25,10 @@ public class AMStoreUtil {
 	public static String getFileVersionPath(
 		FileVersion fileVersion, String configurationUuid) {
 
-		StringBundler sb = new StringBundler(11);
-
-		sb.append("adaptive/");
-		sb.append(configurationUuid);
-		sb.append("/");
-		sb.append(fileVersion.getGroupId());
-		sb.append("/");
-		sb.append(fileVersion.getRepositoryId());
-		sb.append("/");
-		sb.append(fileVersion.getFileEntryId());
-		sb.append("/");
-		sb.append(fileVersion.getFileVersionId());
-		sb.append("/");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"adaptive/", configurationUuid, "/", fileVersion.getGroupId(), "/",
+			fileVersion.getRepositoryId(), "/", fileVersion.getFileEntryId(),
+			"/", fileVersion.getFileVersionId(), "/");
 	}
 
 }

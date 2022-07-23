@@ -39,20 +39,24 @@ portletDisplay.setURLBack(redirect);
 renderResponse.setTitle(assetRenderer.getTitle(locale));
 %>
 
-<c:if test="<%= assetEntry != null %>">
-	<liferay-asset:asset-display
-		assetEntry="<%= assetEntry %>"
-		assetRenderer="<%= assetRenderer %>"
-		assetRendererFactory="<%= assetRendererFactory %>"
-	/>
+<clay:container-fluid>
+	<div class="instance-content-container">
+		<c:if test="<%= assetEntry != null %>">
+			<liferay-asset:asset-display
+				assetEntry="<%= assetEntry %>"
+				assetRenderer="<%= assetRenderer %>"
+				assetRendererFactory="<%= assetRendererFactory %>"
+			/>
 
-	<%
-	String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, null);
-	%>
+			<%
+			String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, null);
+			%>
 
-	<c:if test="<%= viewInContextURL != null %>">
-		<div class="asset-more">
-			<aui:a href="<%= viewInContextURL %>"><liferay-ui:message key="view-in-context" /> &raquo;</aui:a>
-		</div>
-	</c:if>
-</c:if>
+			<c:if test="<%= viewInContextURL != null %>">
+				<div class="asset-more">
+					<aui:a href="<%= viewInContextURL %>"><liferay-ui:message key="view-in-context" /> &raquo;</aui:a>
+				</div>
+			</c:if>
+		</c:if>
+	</div>
+</clay:container-fluid>

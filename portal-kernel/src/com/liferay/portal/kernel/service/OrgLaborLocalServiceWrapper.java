@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class OrgLaborLocalServiceWrapper
 	implements OrgLaborLocalService, ServiceWrapper<OrgLaborLocalService> {
 
+	public OrgLaborLocalServiceWrapper() {
+		this(null);
+	}
+
 	public OrgLaborLocalServiceWrapper(
 		OrgLaborLocalService orgLaborLocalService) {
 
@@ -135,6 +139,13 @@ public class OrgLaborLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _orgLaborLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _orgLaborLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -248,6 +248,11 @@ public class AssetEntryWrapper
 	}
 
 	@Override
+	public AssetEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public AssetRenderer<?> getAssetRenderer() {
 		return model.getAssetRenderer();
 	}

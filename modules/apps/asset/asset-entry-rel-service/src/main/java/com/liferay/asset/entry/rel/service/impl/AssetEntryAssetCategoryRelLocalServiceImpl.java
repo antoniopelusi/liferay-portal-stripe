@@ -18,6 +18,7 @@ import com.liferay.asset.entry.rel.model.AssetEntryAssetCategoryRel;
 import com.liferay.asset.entry.rel.service.base.AssetEntryAssetCategoryRelLocalServiceBaseImpl;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetRenderer;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -30,6 +31,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
@@ -189,6 +191,14 @@ public class AssetEntryAssetCategoryRelLocalServiceImpl
 	}
 
 	@Override
+	public int getAssetEntryAssetCategoryRelsCountByAssetCategoryId(
+		long assetCategoryId) {
+
+		return assetEntryAssetCategoryRelPersistence.countByAssetCategoryId(
+			assetCategoryId);
+	}
+
+	@Override
 	public long[] getAssetEntryPrimaryKeys(long assetCategoryId) {
 		List<AssetEntryAssetCategoryRel> assetEntryAssetCategoryRels =
 			getAssetEntryAssetCategoryRelsByAssetCategoryId(assetCategoryId);
@@ -203,7 +213,8 @@ public class AssetEntryAssetCategoryRelLocalServiceImpl
 			return;
 		}
 
-		AssetEntry assetEntry = assetEntryLocalService.fetchEntry(assetEntryId);
+		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
+			assetEntryId);
 
 		if (assetEntry == null) {
 			return;
@@ -238,5 +249,8 @@ public class AssetEntryAssetCategoryRelLocalServiceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AssetEntryAssetCategoryRelLocalServiceImpl.class);
+
+	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
 
 }

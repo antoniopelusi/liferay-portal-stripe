@@ -57,42 +57,38 @@ public class CTModelUpgradeProcess extends UpgradeProcess {
 		String normalizedTableName = dbInspector.normalizeName(
 			tableName, databaseMetaData);
 
-		try (ResultSet rs = databaseMetaData.getColumns(
+		ensureTableExists(databaseMetaData, dbInspector, normalizedTableName);
+
+		try (ResultSet resultSet = databaseMetaData.getColumns(
 				dbInspector.getCatalog(), dbInspector.getSchema(),
 				normalizedTableName,
 				dbInspector.normalizeName(
 					"ctCollectionId", databaseMetaData))) {
 
-			if (rs.next()) {
+			if (resultSet.next()) {
 				return;
 			}
 		}
 
-		String primaryKeyColumnName1 = null;
-		String primaryKeyColumnName2 = null;
+		String[] primaryKeyColumnNames = getPrimaryKeyColumnNames(
+			connection, tableName);
 
-		try (ResultSet rs = databaseMetaData.getPrimaryKeys(
-				dbInspector.getCatalog(), dbInspector.getSchema(),
-				normalizedTableName)) {
-
-			if (rs.next()) {
-				primaryKeyColumnName1 = rs.getString("COLUMN_NAME");
-
-				if (rs.next()) {
-					primaryKeyColumnName2 = rs.getString("COLUMN_NAME");
-
-					if (rs.next()) {
-						throw new UpgradeException(
-							"Too many primary key columns to upgrade " +
-								normalizedTableName);
-					}
-				}
-			}
-		}
-
-		if (primaryKeyColumnName1 == null) {
+		if (primaryKeyColumnNames.length == 0) {
 			throw new UpgradeException(
 				"No primary key column found for " + normalizedTableName);
+		}
+		else if (primaryKeyColumnNames.length > 2) {
+			throw new UpgradeException(
+				"Too many primary key columns to upgrade " +
+					normalizedTableName);
+		}
+
+		String primaryKeyColumnName1 = primaryKeyColumnNames[0];
+
+		String primaryKeyColumnName2 = null;
+
+		if (primaryKeyColumnNames.length == 2) {
+			primaryKeyColumnName2 = primaryKeyColumnNames[1];
 		}
 
 		runSQL(

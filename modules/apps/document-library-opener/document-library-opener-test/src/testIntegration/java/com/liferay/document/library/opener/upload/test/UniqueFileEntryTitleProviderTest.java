@@ -67,10 +67,11 @@ public class UniqueFileEntryTitleProviderTest {
 	@Test
 	public void testProvideWithExistingFileName() throws PortalException {
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_folder.getFolderId(), "someTitle.jpg", ContentTypes.IMAGE_JPEG,
-			StringUtil.randomString(), StringUtil.randomString(),
-			StringPool.BLANK, "test".getBytes(),
+			StringUtil.randomString(), StringPool.BLANK,
+			StringUtil.randomString(), StringPool.BLANK, "test".getBytes(),
+			null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -83,9 +84,10 @@ public class UniqueFileEntryTitleProviderTest {
 	@Test
 	public void testProvideWithExistingName() throws PortalException {
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_folder.getFolderId(), null, ContentTypes.IMAGE_JPEG, "someTitle",
-			StringUtil.randomString(), StringPool.BLANK, "test".getBytes(),
+			StringPool.BLANK, StringUtil.randomString(), StringPool.BLANK,
+			"test".getBytes(), null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -114,10 +116,11 @@ public class UniqueFileEntryTitleProviderTest {
 			DLOpenerMimeTypes.APPLICATION_VND_DOCX);
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_folder.getFolderId(), "Untitled" + mimeTypeExtension,
 			ContentTypes.IMAGE_JPEG, StringUtil.randomString(),
-			StringUtil.randomString(), StringPool.BLANK, "test".getBytes(),
+			StringPool.BLANK, StringUtil.randomString(), StringPool.BLANK,
+			"test".getBytes(), null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -132,9 +135,10 @@ public class UniqueFileEntryTitleProviderTest {
 		throws PortalException {
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_folder.getFolderId(), null, ContentTypes.IMAGE_JPEG, "Untitled",
-			StringUtil.randomString(), StringPool.BLANK, "test".getBytes(),
+			StringPool.BLANK, StringUtil.randomString(), StringPool.BLANK,
+			"test".getBytes(), null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -151,10 +155,10 @@ public class UniqueFileEntryTitleProviderTest {
 		throws PortalException {
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_folder.getFolderId(), "Untitled.ppt", ContentTypes.IMAGE_JPEG,
-			"Untitled", StringUtil.randomString(), StringPool.BLANK,
-			"test".getBytes(),
+			"Untitled", StringPool.BLANK, StringUtil.randomString(),
+			StringPool.BLANK, "test".getBytes(), null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -179,10 +183,11 @@ public class UniqueFileEntryTitleProviderTest {
 		throws PortalException {
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_folder.getFolderId(), "Untitled", ContentTypes.IMAGE_JPEG,
-			StringUtil.randomString(), StringUtil.randomString(),
-			StringPool.BLANK, "test".getBytes(),
+			StringUtil.randomString(), StringPool.BLANK,
+			StringUtil.randomString(), StringPool.BLANK, "test".getBytes(),
+			null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -196,9 +201,10 @@ public class UniqueFileEntryTitleProviderTest {
 		throws PortalException {
 
 		_dlAppLocalService.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_folder.getFolderId(), null, ContentTypes.IMAGE_JPEG, "Untitled",
-			StringUtil.randomString(), StringPool.BLANK, "test".getBytes(),
+			StringPool.BLANK, StringUtil.randomString(), StringPool.BLANK,
+			"test".getBytes(), null, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(

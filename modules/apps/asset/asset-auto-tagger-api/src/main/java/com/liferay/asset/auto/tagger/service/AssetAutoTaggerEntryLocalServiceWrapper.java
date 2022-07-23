@@ -30,6 +30,10 @@ public class AssetAutoTaggerEntryLocalServiceWrapper
 	implements AssetAutoTaggerEntryLocalService,
 			   ServiceWrapper<AssetAutoTaggerEntryLocalService> {
 
+	public AssetAutoTaggerEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetAutoTaggerEntryLocalServiceWrapper(
 		AssetAutoTaggerEntryLocalService assetAutoTaggerEntryLocalService) {
 
@@ -152,6 +156,13 @@ public class AssetAutoTaggerEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _assetAutoTaggerEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetAutoTaggerEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

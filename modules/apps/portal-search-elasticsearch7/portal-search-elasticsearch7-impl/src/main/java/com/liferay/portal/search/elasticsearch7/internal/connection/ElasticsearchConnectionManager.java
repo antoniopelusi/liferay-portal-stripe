@@ -27,7 +27,7 @@ import com.liferay.portal.search.elasticsearch7.internal.configuration.Elasticse
 import com.liferay.portal.search.elasticsearch7.internal.configuration.ElasticsearchConfigurationWrapper;
 import com.liferay.portal.search.elasticsearch7.internal.configuration.OperationModeResolver;
 import com.liferay.portal.search.elasticsearch7.internal.connection.constants.ConnectionConstants;
-import com.liferay.portal.search.elasticsearch7.internal.util.SearchLogHelperUtil;
+import com.liferay.portal.search.elasticsearch7.internal.helper.SearchLogHelperUtil;
 
 import java.net.InetAddress;
 

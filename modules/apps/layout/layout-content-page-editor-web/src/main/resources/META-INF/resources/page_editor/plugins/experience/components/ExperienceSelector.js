@@ -17,15 +17,14 @@ import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import {useModal} from '@clayui/modal';
-import {useIsMounted} from '@liferay/frontend-js-react-web';
+import {ReactPortal, useIsMounted} from '@liferay/frontend-js-react-web';
 import {openToast} from 'frontend-js-web';
 import React, {useEffect, useRef, useState} from 'react';
-import {createPortal} from 'react-dom';
 
 import {config} from '../../../app/config/index';
+import {useDispatch, useSelector} from '../../../app/contexts/StoreContext';
 import selectCanUpdateExperiences from '../../../app/selectors/selectCanUpdateExperiences';
 import selectCanUpdateSegments from '../../../app/selectors/selectCanUpdateSegments';
-import {useDispatch, useSelector} from '../../../app/store/index';
 import createExperience from '../thunks/createExperience';
 import duplicateExperience from '../thunks/duplicateExperience';
 import removeExperience from '../thunks/removeExperience';
@@ -139,7 +138,6 @@ const ExperienceSelector = ({
 			) {
 				setOpenModal(true);
 				setEditingExperience({
-					languageIds: modalExperienceState.languageIds,
 					name: modalExperienceState.experienceName,
 					segmentsEntryId:
 						config.selectedSegmentsEntryId ||
@@ -176,25 +174,19 @@ const ExperienceSelector = ({
 		});
 	}, [
 
-		//LPS-127205
+		// LPS-127205
 
 		experiences.length,
 	]);
 
 	const handleExperienceCreation = ({
-		languageIds,
 		name,
 		segmentsEntryId,
 		segmentsExperienceId,
 	}) => {
 		if (segmentsExperienceId) {
 			return dispatch(
-				updateExperience({
-					languageIds,
-					name,
-					segmentsEntryId,
-					segmentsExperienceId,
-				})
+				updateExperience({name, segmentsEntryId, segmentsExperienceId})
 			)
 				.then(() => {
 					if (isMounted()) {
@@ -213,7 +205,6 @@ const ExperienceSelector = ({
 							error: Liferay.Language.get(
 								'an-unexpected-error-occurred-while-updating-the-experience'
 							),
-							languageIds,
 							name,
 							segmentsEntryId,
 							segmentsExperienceId,
@@ -224,7 +215,6 @@ const ExperienceSelector = ({
 		else {
 			return dispatch(
 				createExperience({
-					languageIds,
 					name,
 					segmentsEntryId,
 				})
@@ -246,7 +236,6 @@ const ExperienceSelector = ({
 							error: Liferay.Language.get(
 								'an-unexpected-error-occurred-while-creating-the-experience'
 							),
-							languageIds,
 							name,
 							segmentsEntryId,
 							segmentsExperienceId,
@@ -259,17 +248,11 @@ const ExperienceSelector = ({
 	const handleOnNewExperiecneClick = () => setOpenModal(true);
 
 	const handleEditExperienceClick = (experienceData) => {
-		const {
-			languageIds,
-			name,
-			segmentsEntryId,
-			segmentsExperienceId,
-		} = experienceData;
+		const {name, segmentsEntryId, segmentsExperienceId} = experienceData;
 
 		setOpenModal(true);
 
 		setEditingExperience({
-			languageIds,
 			name,
 			segmentsEntryId,
 			segmentsExperienceId,
@@ -349,6 +332,7 @@ const ExperienceSelector = ({
 		<>
 			<ClayButton
 				className="form-control-select pr-4 text-left text-truncate"
+				disabled={!canUpdateExperiences}
 				displayType="secondary"
 				id={selectId}
 				onBlur={handleDropdownButtonBlur}
@@ -363,6 +347,7 @@ const ExperienceSelector = ({
 							{selectedExperience.name}
 						</span>
 					</ClayLayout.ContentCol>
+
 					<ClayLayout.ContentCol>
 						{selectedExperience.hasLockedSegmentsExperiment && (
 							<ClayIcon symbol="lock" />
@@ -371,8 +356,8 @@ const ExperienceSelector = ({
 				</ClayLayout.ContentRow>
 			</ClayButton>
 
-			{open &&
-				createPortal(
+			{open && (
+				<ReactPortal className="cadmin">
 					<div
 						className="dropdown-menu p-4 page-editor__toolbar-experience__dropdown-menu toggled"
 						onBlur={handleDropdownBlur}
@@ -408,9 +393,9 @@ const ExperienceSelector = ({
 								onPriorityIncrease={increasePriority}
 							/>
 						)}
-					</div>,
-					document.body
-				)}
+					</div>
+				</ReactPortal>
+			)}
 
 			{openModal && (
 				<ExperienceModal
@@ -418,7 +403,6 @@ const ExperienceSelector = ({
 					errorMessage={editingExperience.error}
 					experienceId={editingExperience.segmentsExperienceId}
 					initialName={editingExperience.name}
-					languageIds={editingExperience.languageIds}
 					observer={modalObserver}
 					onClose={onModalClose}
 					onErrorDismiss={() => setEditingExperience({error: null})}
@@ -445,6 +429,7 @@ const ExperiencesSelectorHeader = ({
 						{Liferay.Language.get('select-experience')}
 					</h3>
 				</ClayLayout.ContentCol>
+
 				<ClayLayout.ContentCol>
 					{canCreateExperiences === true && (
 						<ClayButton

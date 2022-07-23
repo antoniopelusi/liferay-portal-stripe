@@ -17,6 +17,8 @@
 <%@ include file="/admin/common/init.jsp" %>
 
 <%
+String backURL = ParamUtil.getString(request, "backURL");
+
 KBArticle kbArticle = (KBArticle)request.getAttribute(KBWebKeys.KNOWLEDGE_BASE_KB_ARTICLE);
 
 if (enableKBArticleViewCountIncrement && kbArticle.isApproved()) {
@@ -35,6 +37,10 @@ if (enableKBArticleRatings && kbArticle.isDraft()) {
 	if (latestKBArticle != null) {
 		enableKBArticleSuggestions = true;
 	}
+}
+
+if (Validator.isNotNull(backURL)) {
+	portletDisplay.setURLBack(backURL);
 }
 
 boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));

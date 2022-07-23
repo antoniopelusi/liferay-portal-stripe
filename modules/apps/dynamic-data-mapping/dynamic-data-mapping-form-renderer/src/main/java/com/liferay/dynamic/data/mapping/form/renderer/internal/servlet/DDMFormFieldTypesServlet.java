@@ -85,7 +85,7 @@ public class DDMFormFieldTypesServlet extends HttpServlet {
 		}
 		catch (ActionException actionException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(actionException, actionException);
+				_log.debug(actionException);
 			}
 		}
 	}
@@ -104,7 +104,7 @@ public class DDMFormFieldTypesServlet extends HttpServlet {
 		Stream<String> stream = ddmFormFieldTypeNames.stream();
 
 		stream.map(
-			ddmFormFieldTypeName -> getFieldTypeMetadataJSONObject(
+			ddmFormFieldTypeName -> _getFieldTypeMetadataJSONObject(
 				ddmFormFieldTypeName, Collections.emptyMap())
 		).forEach(
 			fieldTypesJSONArray::put
@@ -117,18 +117,26 @@ public class DDMFormFieldTypesServlet extends HttpServlet {
 			httpServletResponse, fieldTypesJSONArray.toJSONString());
 	}
 
-	protected JSONObject getFieldTypeMetadataJSONObject(
+	@Reference
+	protected NPMResolver npmResolver;
+
+	private JSONObject _getFieldTypeMetadataJSONObject(
 		String ddmFormFieldName, Map<String, Object> configuration) {
 
 		JSONObject jsonObject = new JSONObjectImpl();
 
-		if (!configuration.isEmpty()) {
-			jsonObject.put("configuration", configuration);
-		}
-
 		return jsonObject.put(
+			"configuration",
+			() -> {
+				if (!configuration.isEmpty()) {
+					return configuration;
+				}
+
+				return null;
+			}
+		).put(
 			"javaScriptModule",
-			resolveModuleName(
+			_resolveModuleName(
 				_ddmFormFieldTypeServicesTracker.getDDMFormFieldType(
 					ddmFormFieldName))
 		).put(
@@ -136,7 +144,7 @@ public class DDMFormFieldTypesServlet extends HttpServlet {
 		);
 	}
 
-	protected String resolveModuleName(DDMFormFieldType ddmFormFieldType) {
+	private String _resolveModuleName(DDMFormFieldType ddmFormFieldType) {
 		if (Validator.isNull(ddmFormFieldType.getModuleName())) {
 			return StringPool.BLANK;
 		}
@@ -147,9 +155,6 @@ public class DDMFormFieldTypesServlet extends HttpServlet {
 
 		return npmResolver.resolveModuleName(ddmFormFieldType.getModuleName());
 	}
-
-	@Reference
-	protected NPMResolver npmResolver;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMFormFieldTypesServlet.class);

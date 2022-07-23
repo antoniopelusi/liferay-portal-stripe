@@ -14,18 +14,29 @@
 
 package com.liferay.portal.search.test.util.count;
 
-import com.liferay.portal.kernel.search.BooleanClauseOccur;
-import com.liferay.portal.kernel.search.Query;
-import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
-import com.liferay.portal.kernel.search.generic.MatchQuery;
+import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
+import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
+import com.liferay.portal.search.engine.adapter.search.SearchSearchResponse;
+import com.liferay.portal.search.hits.SearchHits;
 import com.liferay.portal.search.test.util.document.BaseDocumentTestCase;
 
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * @author Wade Cao
  */
 public abstract class BaseDocumentCountTestCase extends BaseDocumentTestCase {
+
+	@Before
+	public void setUp() throws Exception {
+		super.setUp();
+
+		addDocuments(
+			screenName -> document -> populate(document, screenName),
+			getScreenNamesStream());
+	}
 
 	@Test
 	public void testAllWordsInAllDocuments() throws Exception {
@@ -57,23 +68,24 @@ public abstract class BaseDocumentCountTestCase extends BaseDocumentTestCase {
 
 		assertSearch(
 			indexingTestHelper -> {
-				indexingTestHelper.setQuery(getQuery(keywords));
+				SearchEngineAdapter searchEngineAdapter =
+					getSearchEngineAdapter();
 
-				indexingTestHelper.search();
+				SearchSearchResponse searchSearchResponse =
+					searchEngineAdapter.execute(
+						new SearchSearchRequest() {
+							{
+								setIndexNames(String.valueOf(getCompanyId()));
+								setQuery(
+									BaseDocumentTestCase.getQuery(keywords));
+							}
+						});
 
-				indexingTestHelper.assertResultCount(expectedCount);
+				SearchHits searchHits = searchSearchResponse.getSearchHits();
+
+				Assert.assertEquals(
+					"Total hits", expectedCount, searchHits.getTotalHits());
 			});
-	}
-
-	protected Query getQuery(String keywords) {
-		BooleanQueryImpl booleanQueryImpl = new BooleanQueryImpl();
-
-		booleanQueryImpl.add(
-			new MatchQuery("firstName", keywords), BooleanClauseOccur.SHOULD);
-		booleanQueryImpl.add(
-			new MatchQuery("lastName", keywords), BooleanClauseOccur.SHOULD);
-
-		return booleanQueryImpl;
 	}
 
 }

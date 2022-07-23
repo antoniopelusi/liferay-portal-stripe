@@ -39,7 +39,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.search.facet.type.AssetEntriesFacetFactory;
 import com.liferay.portal.search.test.util.FacetsAssert;
@@ -48,7 +48,6 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 
@@ -138,7 +137,7 @@ public class PermissionFilterFacetedSearcherTest
 		String content = DDMStructureTestUtil.getSampleStructuredContent();
 
 		JournalArticle article = journalArticleLocalService.addArticle(
-			user.getUserId(), group.getGroupId(), folderId,
+			null, user.getUserId(), group.getGroupId(), folderId,
 			Collections.singletonMap(LocaleUtil.US, title), null, content,
 			"BASIC-WEB-CONTENT", "BASIC-WEB-CONTENT", serviceContext);
 
@@ -183,11 +182,10 @@ public class PermissionFilterFacetedSearcherTest
 		_configuration = configurationAdmin.getConfiguration(
 			JournalServiceConfiguration.class.getName(), StringPool.QUESTION);
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("articleViewPermissionsCheckEnabled", true);
-
-		_configuration.update(properties);
+		_configuration.update(
+			HashMapDictionaryBuilder.<String, Object>put(
+				"articleViewPermissionsCheckEnabled", true
+			).build());
 	}
 
 	protected void tearDownJournalServiceConfiguration() throws Exception {

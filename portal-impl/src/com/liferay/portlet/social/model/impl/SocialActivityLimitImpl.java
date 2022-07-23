@@ -104,15 +104,11 @@ public class SocialActivityLimitImpl extends SocialActivityLimitBaseImpl {
 		else if (limitPeriod ==
 					SocialActivityCounterDefinition.LIMIT_PERIOD_PERIOD) {
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(SocialCounterPeriodUtil.getStartPeriod());
-			sb.append(StringPool.DASH);
-			sb.append(SocialCounterPeriodUtil.getEndPeriod());
-			sb.append(StringPool.SLASH);
-			sb.append(count);
-
-			setValue(sb.toString());
+			setValue(
+				StringBundler.concat(
+					SocialCounterPeriodUtil.getStartPeriod(), StringPool.DASH,
+					SocialCounterPeriodUtil.getEndPeriod(), StringPool.SLASH,
+					count));
 		}
 	}
 

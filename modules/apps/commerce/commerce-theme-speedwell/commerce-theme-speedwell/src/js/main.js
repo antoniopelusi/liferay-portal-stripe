@@ -15,8 +15,8 @@
 AUI().ready(() => {
 	const Speedwell = window.Speedwell;
 
-	const RETRY_TIMES = 3,
-		RETRY_INTERVAL = 333;
+	const RETRY_TIMES = 3;
+	const RETRY_INTERVAL = 333;
 
 	function retrySlidersBootUp() {
 		let currentRetry = 0;
@@ -57,8 +57,10 @@ AUI().ready(() => {
 			Liferay.componentReady('SpeedwellSlider')
 				.catch(retrySlidersBootUp)
 				.then((sliderComponent) => {
-					Speedwell.features.sliderCallbacks.forEach((cb) => {
-						Speedwell.features.sliders.push(cb(sliderComponent));
+					Speedwell.features.sliderCallbacks.forEach((callback) => {
+						Speedwell.features.sliders.push(
+							callback(sliderComponent)
+						);
 					});
 
 					return Promise.resolve();

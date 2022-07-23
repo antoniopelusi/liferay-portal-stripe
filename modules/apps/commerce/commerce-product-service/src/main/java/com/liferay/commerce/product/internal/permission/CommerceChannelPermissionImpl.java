@@ -119,17 +119,10 @@ public class CommerceChannelPermissionImpl
 		throws PortalException {
 
 		if (permissionChecker.isCompanyAdmin(commerceChannel.getCompanyId()) ||
-			permissionChecker.isOmniadmin()) {
-
-			return true;
-		}
-
-		if (permissionChecker.hasOwnerPermission(
-				permissionChecker.getCompanyId(),
-				CommerceChannel.class.getName(),
+			permissionChecker.hasOwnerPermission(
+				commerceChannel.getCompanyId(), CommerceChannel.class.getName(),
 				commerceChannel.getCommerceChannelId(),
-				permissionChecker.getUserId(), actionId) &&
-			(commerceChannel.getUserId() == permissionChecker.getUserId())) {
+				commerceChannel.getUserId(), actionId)) {
 
 			return true;
 		}

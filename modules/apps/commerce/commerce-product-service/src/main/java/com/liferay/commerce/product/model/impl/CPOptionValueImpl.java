@@ -24,9 +24,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CPOptionValueImpl extends CPOptionValueBaseImpl {
 
-	public CPOptionValueImpl() {
-	}
-
 	@Override
 	public CPOption getCPOption() throws PortalException {
 		return CPOptionLocalServiceUtil.getCPOption(getCPOptionId());

@@ -12,81 +12,41 @@
  * details.
  */
 
-import {PagesVisitor} from 'dynamic-data-mapping-form-renderer';
-import {useContext} from 'react';
+import {useForm, useFormState} from 'data-engine-js-components-web';
 
-import AppContext from '../../../AppContext.es';
-import {
-	DELETE_DATA_DEFINITION_FIELD,
-	UPDATE_FIELDSETS,
-} from '../../../actions.es';
+import {EVENT_TYPES} from '../../../eventTypes';
 import {deleteItem} from '../../../utils/client.es';
 import {errorToast, successToast} from '../../../utils/toast.es';
 
-export default ({dataLayoutBuilder}) => {
-	const [{dataDefinition, fieldSets}, dispatch] = useContext(AppContext);
+const useDeleteFieldSet = () => {
+	const dispatch = useForm();
+	const {fieldSets} = useFormState();
 
-	return (fieldSet) => {
+	return async (fieldSet) => {
 		const endpoint = '/o/data-engine/v2.0/data-definitions/';
 
-		const onError = () =>
-			errorToast(Liferay.Language.get('the-item-could-not-be-deleted'));
+		try {
+			const {ok} = await deleteItem(`${endpoint}${fieldSet.id}`);
 
-		const onSuccess = () => {
+			if (!ok) {
+				throw new Error();
+			}
+
 			dispatch({
 				payload: {
 					fieldSets: fieldSets.filter(({id}) => id !== fieldSet.id),
 				},
-				type: UPDATE_FIELDSETS,
+				type: EVENT_TYPES.FIELD_SET.UPDATE_LIST,
 			});
 
 			successToast(
 				Liferay.Language.get('the-item-was-deleted-successfully')
 			);
-
-			return Promise.resolve();
-		};
-
-		const deleteField = ({ok}) => {
-			if (!ok) {
-				return Promise.reject();
-			}
-
-			const dataDefinitionField = dataDefinition.dataDefinitionFields.find(
-				({customProperties: {ddmStructureId}}) =>
-					ddmStructureId == fieldSet.id
-			);
-
-			if (dataDefinitionField) {
-				const {
-					pages,
-				} = dataLayoutBuilder.formBuilderWithLayoutProvider.refs.layoutProvider.state;
-				const visitor = new PagesVisitor(pages);
-				const fieldName = dataDefinitionField.name;
-				const event = {
-					activePage: 0,
-					fieldName,
-				};
-				if (visitor.containsField(fieldName, true)) {
-					dataLayoutBuilder.formBuilderWithLayoutProvider.refs.layoutProvider?.dispatch?.(
-						'fieldDeleted',
-						event
-					);
-				}
-				else {
-					dispatch({
-						payload: {fieldName},
-						type: DELETE_DATA_DEFINITION_FIELD,
-					});
-				}
-			}
-
-			return Promise.resolve();
-		};
-
-		return deleteItem(`${endpoint}${fieldSet.id}`)
-			.then(deleteField)
-			.then(onSuccess)
-			.catch(onError);
+		}
+		catch (error) {
+			errorToast(Liferay.Language.get('the-item-could-not-be-deleted'));
+		}
 	};
 };
+
+export default useDeleteFieldSet;

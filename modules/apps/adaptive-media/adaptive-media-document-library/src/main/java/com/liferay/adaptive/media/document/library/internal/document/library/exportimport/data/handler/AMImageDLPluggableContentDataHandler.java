@@ -185,14 +185,12 @@ public class AMImageDLPluggableContentDataHandler
 				).done());
 		}
 		catch (PortalException portalException) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Unable to find adaptive media for file entry ");
-			sb.append(fileEntry.getFileEntryId());
-			sb.append(" and configuration ");
-			sb.append(amImageConfigurationEntry.getUUID());
-
-			_log.error(sb.toString(), portalException);
+			_log.error(
+				StringBundler.concat(
+					"Unable to find adaptive media for file entry ",
+					fileEntry.getFileEntryId(), " and configuration ",
+					amImageConfigurationEntry.getUUID()),
+				portalException);
 		}
 
 		return Stream.empty();

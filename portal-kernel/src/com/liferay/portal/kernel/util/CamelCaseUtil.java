@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.util;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 
 /**
  * @author Igor Spasic
@@ -27,7 +28,7 @@ public class CamelCaseUtil {
 	}
 
 	public static String fromCamelCase(String s, char delimiter) {
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		boolean upperCase = false;
 
@@ -106,7 +107,7 @@ public class CamelCaseUtil {
 	}
 
 	public static String toCamelCase(String s, char delimiter) {
-		StringBuilder sb = new StringBuilder(s.length());
+		StringBundler sb = new StringBundler(s.length());
 
 		boolean upperCase = false;
 

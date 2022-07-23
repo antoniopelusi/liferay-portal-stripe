@@ -37,10 +37,6 @@ import com.liferay.redirect.service.RedirectNotFoundEntryLocalService;
 import java.util.List;
 import java.util.Map;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionURL;
-import javax.portlet.PortletURL;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -53,15 +49,14 @@ public class RedirectNotFoundEntriesManagementToolbarDisplayContext
 		HttpServletRequest httpServletRequest,
 		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse,
+		RedirectNotFoundEntryLocalService redirectNotFoundEntryLocalService,
 		SearchContainer<RedirectNotFoundEntry> searchContainer) {
 
 		super(
 			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
 			searchContainer);
 
-		_redirectNotFoundEntryLocalService =
-			(RedirectNotFoundEntryLocalService)httpServletRequest.getAttribute(
-				RedirectNotFoundEntryLocalService.class.getName());
+		_redirectNotFoundEntryLocalService = redirectNotFoundEntryLocalService;
 	}
 
 	@Override
@@ -87,26 +82,23 @@ public class RedirectNotFoundEntriesManagementToolbarDisplayContext
 		).build();
 	}
 
+	@Override
 	public Map<String, Object> getAdditionalProps() {
 		return HashMapBuilder.<String, Object>put(
 			"editRedirectNotFoundEntriesURL",
-			() -> {
-				ActionURL editRedirectNotFoundEntriesURL =
-					liferayPortletResponse.createActionURL();
+			() -> PortletURLBuilder.createActionURL(
+				liferayPortletResponse
+			).setActionName(
+				"/redirect/edit_redirect_not_found_entry"
+			).setRedirect(
+				() -> {
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)httpServletRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
 
-				editRedirectNotFoundEntriesURL.setParameter(
-					ActionRequest.ACTION_NAME,
-					"/redirect/edit_redirect_not_found_entry");
-
-				ThemeDisplay themeDisplay =
-					(ThemeDisplay)httpServletRequest.getAttribute(
-						WebKeys.THEME_DISPLAY);
-
-				editRedirectNotFoundEntriesURL.setParameter(
-					"redirect", themeDisplay.getURLCurrent());
-
-				return editRedirectNotFoundEntriesURL.toString();
-			}
+					return themeDisplay.getURLCurrent();
+				}
+			).buildString()
 		).build();
 	}
 
@@ -285,13 +277,12 @@ public class RedirectNotFoundEntriesManagementToolbarDisplayContext
 		return dropdownItem -> {
 			dropdownItem.setActive(days == _getFilterDate());
 
-			PortletURL portletURL = PortletURLBuilder.create(
-				getPortletURL()
-			).setParameter(
-				"filterDate", days
-			).build();
-
-			dropdownItem.setHref(portletURL);
+			dropdownItem.setHref(
+				PortletURLBuilder.create(
+					getPortletURL()
+				).setParameter(
+					"filterDate", days
+				).buildPortletURL());
 
 			dropdownItem.setLabel(_getFilterDateLabel(days));
 		};

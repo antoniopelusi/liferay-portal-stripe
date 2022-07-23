@@ -2,30 +2,22 @@
 <head>
 <title>Portlet</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Portlet</td></tr>
 </thead>
+
 <tbody>
-<tr>
-	<td>APPLICATION_DECORATOR_SELECT</td>
-	<td>//select[contains(@id,'portletDecorator')]</td>
-	<td></td>
-</tr>
 <tr>
 	<td>BODY</td>
 	<td>//div[@id='main-content']//section[contains(.,'${key_portletName}')]//div[@class='portlet-body']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>BORDER_WIDTH_TOP_INPUT</td>
-	<td>//div[contains(@class,'form-group') and contains(.,'Top')]//input</td>
-	<td></td>
-</tr>
-<tr>
 	<td>CONFIGURATION_CHECKBOX</td>
-	<td>//label[contains(.,'${key_fieldName}')]/input[contains(@id,'PortletConfiguration')]</td>
+	<td>//label[text()[normalize-space()='${key_fieldName}']]/input[contains(@id,'PortletConfiguration')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -74,6 +66,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>HEADER_INSIDE_PAGE_COLUMN</td>
+	<td>//div[@id='main-content']//div[contains(@id,'column-${key_pageColumnNumber}')]//header[contains(@class,'portlet-topper')]//span[.='${key_portletName}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ICON_PLUS_SIGN</td>
 	<td>//header[div/span[.='${key_portletName}']]//*[@data-qa-id='addButton']//a/span</td>
 	<td></td>
@@ -91,6 +88,11 @@
 <tr>
 	<td>MODAL_TITLE</td>
 	<td>//div[contains(@class,'modal-content')]//*[@class='modal-title']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NESTED_APPLICATION_COLUMN</td>
+	<td>//div[contains(@id,'NestedPortletsPortlet')]//div[contains(@class,'portlet-dropzone') and contains(@id,'column-${key_nestedColumnNumber}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -114,13 +116,23 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SEARCH_FIELD</td>
-	<td>//div[*[normalize-space()='${key_portletName}']]//input[contains(@name,'keywords')]</td>
+	<td>PORTLET_SELECTOR</td>
+	<td>//section[contains(.,'${key_portletName}')]//div[@class='portlet-body']//a[contains(@onclick,'portletSelector')][normalize-space(text())='${key_text}']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SIGN_IN_CUSTOM_LOOK_AND_FEEL</td>
-	<td>portal/screenshots/home/sign_in_custom_look_and_feel.png</td>
+	<td>PORTLET_TITLE_INSIDE_NESTED_APPLICATION_COLUMN</td>
+	<td>//section[contains(@id,'NestedPortlets')]//div[contains(@id,'column-${key_nestedColumnNumber}')]//h2[contains(@class,'portlet-title') and contains(.,'${key_portletName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PORTLET_TITLE_INSIDE_PAGE_COLUMN</td>
+	<td>//div[@id='main-content']//div[contains(@id,'column-${key_pageColumnNumber}')]//h2[contains(@class,'portlet-title') and (.='${key_portletName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_FIELD</td>
+	<td>//div[*[normalize-space()='${key_portletName}']]//input[contains(@name,'keywords')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -130,7 +142,12 @@
 </tr>
 <tr>
 	<td>SPECIFIC_BORDERLESS_ELLIPSIS_ICON</td>
-	<td>//header[@class='portlet-topper' and contains(.,'${key_portletName}')]//div[contains(@class,'portlet-options')]/a</td>
+	<td>//header[contains(@class,'portlet-topper') and contains(.,'${key_portletName}')]//div[contains(@class,'portlet-options')]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SPECIFIC_BORDERLESS_ELLIPSIS_ICON_INDEX</td>
+	<td>xpath=(//header[contains(@class,'portlet-topper') and contains(.,'${key_portletName}')]//div[contains(@class,'portlet-options')]/a)[${portletIndex}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -149,18 +166,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SPECIFIC_DEFAULT_TITLE</td>
+	<td>//div[@id='main-content']//div[contains(@class,'portlet-title-default')][normalize-space()='${key_portletName}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SPECIFIC_TITLE</td>
 	<td>//div[@id='main-content']//h2[contains(@class,'portlet-title') and (.='${key_portletTitleName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>TEXT_FONT_SELECT</td>
-	<td>//div[contains(@class,'form-group') and contains(.,'Font')]//select</td>
-	<td></td>
-</tr>
-<tr>
-	<td>TEXT_FONT_SIZE_SELECT</td>
-	<td>//div[contains(@class,'form-group') and contains(.,'Size')]//select</td>
 	<td></td>
 </tr>
 <tr>

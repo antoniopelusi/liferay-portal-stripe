@@ -43,8 +43,6 @@ import com.liferay.commerce.product.service.persistence.CommerceCatalogPersisten
 import com.liferay.commerce.product.service.persistence.CommerceChannelPersistence;
 import com.liferay.commerce.product.service.persistence.CommerceChannelRelFinder;
 import com.liferay.commerce.product.service.persistence.CommerceChannelRelPersistence;
-import com.liferay.document.library.kernel.service.persistence.DLFileEntryPersistence;
-import com.liferay.expando.kernel.service.persistence.ExpandoRowPersistence;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
@@ -52,6 +50,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -79,9 +78,11 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -109,7 +110,8 @@ import javax.sql.DataSource;
  */
 public abstract class CPAttachmentFileEntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
-	implements CPAttachmentFileEntryLocalService, IdentifiableOSGiService {
+	implements CPAttachmentFileEntryLocalService,
+			   CTService<CPAttachmentFileEntry>, IdentifiableOSGiService {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -194,6 +196,13 @@ public abstract class CPAttachmentFileEntryLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return cpAttachmentFileEntryPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -1827,115 +1836,6 @@ public abstract class CPAttachmentFileEntryLocalServiceBaseImpl
 		this.userPersistence = userPersistence;
 	}
 
-	/**
-	 * Returns the dl app local service.
-	 *
-	 * @return the dl app local service
-	 */
-	public com.liferay.document.library.kernel.service.DLAppLocalService
-		getDLAppLocalService() {
-
-		return dlAppLocalService;
-	}
-
-	/**
-	 * Sets the dl app local service.
-	 *
-	 * @param dlAppLocalService the dl app local service
-	 */
-	public void setDLAppLocalService(
-		com.liferay.document.library.kernel.service.DLAppLocalService
-			dlAppLocalService) {
-
-		this.dlAppLocalService = dlAppLocalService;
-	}
-
-	/**
-	 * Returns the document library file entry local service.
-	 *
-	 * @return the document library file entry local service
-	 */
-	public com.liferay.document.library.kernel.service.DLFileEntryLocalService
-		getDLFileEntryLocalService() {
-
-		return dlFileEntryLocalService;
-	}
-
-	/**
-	 * Sets the document library file entry local service.
-	 *
-	 * @param dlFileEntryLocalService the document library file entry local service
-	 */
-	public void setDLFileEntryLocalService(
-		com.liferay.document.library.kernel.service.DLFileEntryLocalService
-			dlFileEntryLocalService) {
-
-		this.dlFileEntryLocalService = dlFileEntryLocalService;
-	}
-
-	/**
-	 * Returns the document library file entry persistence.
-	 *
-	 * @return the document library file entry persistence
-	 */
-	public DLFileEntryPersistence getDLFileEntryPersistence() {
-		return dlFileEntryPersistence;
-	}
-
-	/**
-	 * Sets the document library file entry persistence.
-	 *
-	 * @param dlFileEntryPersistence the document library file entry persistence
-	 */
-	public void setDLFileEntryPersistence(
-		DLFileEntryPersistence dlFileEntryPersistence) {
-
-		this.dlFileEntryPersistence = dlFileEntryPersistence;
-	}
-
-	/**
-	 * Returns the expando row local service.
-	 *
-	 * @return the expando row local service
-	 */
-	public com.liferay.expando.kernel.service.ExpandoRowLocalService
-		getExpandoRowLocalService() {
-
-		return expandoRowLocalService;
-	}
-
-	/**
-	 * Sets the expando row local service.
-	 *
-	 * @param expandoRowLocalService the expando row local service
-	 */
-	public void setExpandoRowLocalService(
-		com.liferay.expando.kernel.service.ExpandoRowLocalService
-			expandoRowLocalService) {
-
-		this.expandoRowLocalService = expandoRowLocalService;
-	}
-
-	/**
-	 * Returns the expando row persistence.
-	 *
-	 * @return the expando row persistence
-	 */
-	public ExpandoRowPersistence getExpandoRowPersistence() {
-		return expandoRowPersistence;
-	}
-
-	/**
-	 * Sets the expando row persistence.
-	 *
-	 * @param expandoRowPersistence the expando row persistence
-	 */
-	public void setExpandoRowPersistence(
-		ExpandoRowPersistence expandoRowPersistence) {
-
-		this.expandoRowPersistence = expandoRowPersistence;
-	}
-
 	public void afterPropertiesSet() {
 		persistedModelLocalServiceRegistry.register(
 			"com.liferay.commerce.product.model.CPAttachmentFileEntry",
@@ -1961,8 +1861,23 @@ public abstract class CPAttachmentFileEntryLocalServiceBaseImpl
 		return CPAttachmentFileEntryLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<CPAttachmentFileEntry> getCTPersistence() {
+		return cpAttachmentFileEntryPersistence;
+	}
+
+	@Override
+	public Class<CPAttachmentFileEntry> getModelClass() {
 		return CPAttachmentFileEntry.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CPAttachmentFileEntry>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(cpAttachmentFileEntryPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -2242,31 +2157,6 @@ public abstract class CPAttachmentFileEntryLocalServiceBaseImpl
 
 	@ServiceReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
-
-	@ServiceReference(
-		type = com.liferay.document.library.kernel.service.DLAppLocalService.class
-	)
-	protected com.liferay.document.library.kernel.service.DLAppLocalService
-		dlAppLocalService;
-
-	@ServiceReference(
-		type = com.liferay.document.library.kernel.service.DLFileEntryLocalService.class
-	)
-	protected
-		com.liferay.document.library.kernel.service.DLFileEntryLocalService
-			dlFileEntryLocalService;
-
-	@ServiceReference(type = DLFileEntryPersistence.class)
-	protected DLFileEntryPersistence dlFileEntryPersistence;
-
-	@ServiceReference(
-		type = com.liferay.expando.kernel.service.ExpandoRowLocalService.class
-	)
-	protected com.liferay.expando.kernel.service.ExpandoRowLocalService
-		expandoRowLocalService;
-
-	@ServiceReference(type = ExpandoRowPersistence.class)
-	protected ExpandoRowPersistence expandoRowPersistence;
 
 	@ServiceReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry

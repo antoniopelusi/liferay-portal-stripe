@@ -18,8 +18,4 @@ package com.liferay.multi.factor.authentication.email.otp.model.impl;
  * @author Arthur Chan
  */
 public class MFAEmailOTPEntryImpl extends MFAEmailOTPEntryBaseImpl {
-
-	public MFAEmailOTPEntryImpl() {
-	}
-
 }

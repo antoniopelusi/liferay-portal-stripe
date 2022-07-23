@@ -57,16 +57,6 @@ public class ExpandoInfoItemFieldReader
 		_expandoBridge = expandoBridge;
 	}
 
-	/**
-	 *   @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *          #getInfoField()}
-	 */
-	@Deprecated
-	@Override
-	public InfoField getField() {
-		return getInfoField();
-	}
-
 	@Override
 	public InfoField getInfoField() {
 		InfoLocalizedValue<String> labelInfoLocalizedValue =
@@ -80,6 +70,8 @@ public class ExpandoInfoItemFieldReader
 		return InfoField.builder(
 		).infoFieldType(
 			TextInfoFieldType.INSTANCE
+		).namespace(
+			StringPool.BLANK
 		).name(
 			getName()
 		).labelInfoLocalizedValue(
@@ -143,13 +135,9 @@ public class ExpandoInfoItemFieldReader
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 					attributeValue.toString());
 
-				StringBundler sb = new StringBundler(3);
-
-				sb.append(jsonObject.get("latitude"));
-				sb.append(StringPool.COMMA_AND_SPACE);
-				sb.append(jsonObject.get("longitude"));
-
-				attributeValue = sb.toString();
+				attributeValue = StringBundler.concat(
+					jsonObject.get("latitude"), StringPool.COMMA_AND_SPACE,
+					jsonObject.get("longitude"));
 			}
 			catch (JSONException jsonException) {
 				_log.error("Unable to parse geolocation JSON", jsonException);

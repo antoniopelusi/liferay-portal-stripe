@@ -27,6 +27,10 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 	implements OAuth2ScopeGrantLocalService,
 			   ServiceWrapper<OAuth2ScopeGrantLocalService> {
 
+	public OAuth2ScopeGrantLocalServiceWrapper() {
+		this(null);
+	}
+
 	public OAuth2ScopeGrantLocalServiceWrapper(
 		OAuth2ScopeGrantLocalService oAuth2ScopeGrantLocalService) {
 
@@ -241,6 +245,13 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _oAuth2ScopeGrantLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _oAuth2ScopeGrantLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

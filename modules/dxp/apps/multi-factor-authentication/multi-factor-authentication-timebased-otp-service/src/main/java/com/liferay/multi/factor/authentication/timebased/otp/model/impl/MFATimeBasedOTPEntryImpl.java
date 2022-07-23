@@ -18,8 +18,4 @@ package com.liferay.multi.factor.authentication.timebased.otp.model.impl;
  * @author Arthur Chan
  */
 public class MFATimeBasedOTPEntryImpl extends MFATimeBasedOTPEntryBaseImpl {
-
-	public MFATimeBasedOTPEntryImpl() {
-	}
-
 }

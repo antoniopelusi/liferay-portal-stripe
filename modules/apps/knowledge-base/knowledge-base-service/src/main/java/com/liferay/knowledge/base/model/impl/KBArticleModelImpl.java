@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.knowledge.base.model.KBArticleModel;
-import com.liferay.knowledge.base.model.KBArticleSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -34,21 +33,20 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -82,6 +80,7 @@ public class KBArticleModelImpl
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"externalReferenceCode", Types.VARCHAR},
 		{"rootResourcePrimKey", Types.BIGINT},
 		{"parentResourceClassNameId", Types.BIGINT},
 		{"parentResourcePrimKey", Types.BIGINT}, {"kbFolderId", Types.BIGINT},
@@ -109,6 +108,7 @@ public class KBArticleModelImpl
 		TABLE_COLUMNS_MAP.put("userName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("externalReferenceCode", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("rootResourcePrimKey", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("parentResourceClassNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("parentResourcePrimKey", Types.BIGINT);
@@ -131,7 +131,7 @@ public class KBArticleModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table KBArticle (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,kbArticleId LONG not null primary key,resourcePrimKey LONG,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,rootResourcePrimKey LONG,parentResourceClassNameId LONG,parentResourcePrimKey LONG,kbFolderId LONG,version INTEGER,title STRING null,urlTitle VARCHAR(75) null,content TEXT null,description STRING null,priority DOUBLE,sections STRING null,latest BOOLEAN,main BOOLEAN,sourceURL STRING null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table KBArticle (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,kbArticleId LONG not null primary key,resourcePrimKey LONG,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,externalReferenceCode VARCHAR(75) null,rootResourcePrimKey LONG,parentResourceClassNameId LONG,parentResourcePrimKey LONG,kbFolderId LONG,version INTEGER,title STRING null,urlTitle VARCHAR(75) null,content TEXT null,description STRING null,priority DOUBLE,sections STRING null,latest BOOLEAN,main BOOLEAN,sourceURL STRING null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table KBArticle";
 
@@ -157,74 +157,80 @@ public class KBArticleModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long GROUPID_COLUMN_BITMASK = 2L;
+	public static final long EXTERNALREFERENCECODE_COLUMN_BITMASK = 2L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long KBFOLDERID_COLUMN_BITMASK = 4L;
+	public static final long GROUPID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long LATEST_COLUMN_BITMASK = 8L;
+	public static final long KBFOLDERID_COLUMN_BITMASK = 8L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long MAIN_COLUMN_BITMASK = 16L;
+	public static final long LATEST_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long PARENTRESOURCEPRIMKEY_COLUMN_BITMASK = 32L;
+	public static final long MAIN_COLUMN_BITMASK = 32L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long RESOURCEPRIMKEY_COLUMN_BITMASK = 64L;
+	public static final long PARENTRESOURCEPRIMKEY_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long SECTIONS_COLUMN_BITMASK = 128L;
+	public static final long RESOURCEPRIMKEY_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long STATUS_COLUMN_BITMASK = 256L;
+	public static final long SECTIONS_COLUMN_BITMASK = 256L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long URLTITLE_COLUMN_BITMASK = 512L;
+	public static final long STATUS_COLUMN_BITMASK = 512L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 1024L;
+	public static final long URLTITLE_COLUMN_BITMASK = 1024L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long VERSION_COLUMN_BITMASK = 2048L;
+	public static final long UUID_COLUMN_BITMASK = 2048L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long VERSION_COLUMN_BITMASK = 4096L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long MODIFIEDDATE_COLUMN_BITMASK = 4096L;
+	public static final long MODIFIEDDATE_COLUMN_BITMASK = 8192L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -238,77 +244,6 @@ public class KBArticleModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static KBArticle toModel(KBArticleSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		KBArticle model = new KBArticleImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setKbArticleId(soapModel.getKbArticleId());
-		model.setResourcePrimKey(soapModel.getResourcePrimKey());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setRootResourcePrimKey(soapModel.getRootResourcePrimKey());
-		model.setParentResourceClassNameId(
-			soapModel.getParentResourceClassNameId());
-		model.setParentResourcePrimKey(soapModel.getParentResourcePrimKey());
-		model.setKbFolderId(soapModel.getKbFolderId());
-		model.setVersion(soapModel.getVersion());
-		model.setTitle(soapModel.getTitle());
-		model.setUrlTitle(soapModel.getUrlTitle());
-		model.setContent(soapModel.getContent());
-		model.setDescription(soapModel.getDescription());
-		model.setPriority(soapModel.getPriority());
-		model.setSections(soapModel.getSections());
-		model.setLatest(soapModel.isLatest());
-		model.setMain(soapModel.isMain());
-		model.setSourceURL(soapModel.getSourceURL());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<KBArticle> toModels(KBArticleSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<KBArticle> models = new ArrayList<KBArticle>(soapModels.length);
-
-		for (KBArticleSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public KBArticleModelImpl() {
@@ -395,34 +330,6 @@ public class KBArticleModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, KBArticle>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KBArticle.class.getClassLoader(), KBArticle.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KBArticle> constructor =
-				(Constructor<KBArticle>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<KBArticle, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<KBArticle, Object>>
@@ -471,6 +378,11 @@ public class KBArticleModelImpl
 		attributeSetterBiConsumers.put(
 			"modifiedDate",
 			(BiConsumer<KBArticle, Date>)KBArticle::setModifiedDate);
+		attributeGetterFunctions.put(
+			"externalReferenceCode", KBArticle::getExternalReferenceCode);
+		attributeSetterBiConsumers.put(
+			"externalReferenceCode",
+			(BiConsumer<KBArticle, String>)KBArticle::setExternalReferenceCode);
 		attributeGetterFunctions.put(
 			"rootResourcePrimKey", KBArticle::getRootResourcePrimKey);
 		attributeSetterBiConsumers.put(
@@ -776,6 +688,35 @@ public class KBArticleModelImpl
 		}
 
 		_modifiedDate = modifiedDate;
+	}
+
+	@JSON
+	@Override
+	public String getExternalReferenceCode() {
+		if (_externalReferenceCode == null) {
+			return "";
+		}
+		else {
+			return _externalReferenceCode;
+		}
+	}
+
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_externalReferenceCode = externalReferenceCode;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public String getOriginalExternalReferenceCode() {
+		return getColumnOriginalValue("externalReferenceCode");
 	}
 
 	@JSON
@@ -1356,6 +1297,7 @@ public class KBArticleModelImpl
 		kbArticleImpl.setUserName(getUserName());
 		kbArticleImpl.setCreateDate(getCreateDate());
 		kbArticleImpl.setModifiedDate(getModifiedDate());
+		kbArticleImpl.setExternalReferenceCode(getExternalReferenceCode());
 		kbArticleImpl.setRootResourcePrimKey(getRootResourcePrimKey());
 		kbArticleImpl.setParentResourceClassNameId(
 			getParentResourceClassNameId());
@@ -1378,6 +1320,67 @@ public class KBArticleModelImpl
 		kbArticleImpl.setStatusDate(getStatusDate());
 
 		kbArticleImpl.resetOriginalValues();
+
+		return kbArticleImpl;
+	}
+
+	@Override
+	public KBArticle cloneWithOriginalValues() {
+		KBArticleImpl kbArticleImpl = new KBArticleImpl();
+
+		kbArticleImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kbArticleImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		kbArticleImpl.setKbArticleId(
+			this.<Long>getColumnOriginalValue("kbArticleId"));
+		kbArticleImpl.setResourcePrimKey(
+			this.<Long>getColumnOriginalValue("resourcePrimKey"));
+		kbArticleImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		kbArticleImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kbArticleImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		kbArticleImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kbArticleImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kbArticleImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kbArticleImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		kbArticleImpl.setRootResourcePrimKey(
+			this.<Long>getColumnOriginalValue("rootResourcePrimKey"));
+		kbArticleImpl.setParentResourceClassNameId(
+			this.<Long>getColumnOriginalValue("parentResourceClassNameId"));
+		kbArticleImpl.setParentResourcePrimKey(
+			this.<Long>getColumnOriginalValue("parentResourcePrimKey"));
+		kbArticleImpl.setKbFolderId(
+			this.<Long>getColumnOriginalValue("kbFolderId"));
+		kbArticleImpl.setVersion(
+			this.<Integer>getColumnOriginalValue("version"));
+		kbArticleImpl.setTitle(this.<String>getColumnOriginalValue("title"));
+		kbArticleImpl.setUrlTitle(
+			this.<String>getColumnOriginalValue("urlTitle"));
+		kbArticleImpl.setContent(
+			this.<String>getColumnOriginalValue("content"));
+		kbArticleImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		kbArticleImpl.setPriority(
+			this.<Double>getColumnOriginalValue("priority"));
+		kbArticleImpl.setSections(
+			this.<String>getColumnOriginalValue("sections"));
+		kbArticleImpl.setLatest(this.<Boolean>getColumnOriginalValue("latest"));
+		kbArticleImpl.setMain(this.<Boolean>getColumnOriginalValue("main"));
+		kbArticleImpl.setSourceURL(
+			this.<String>getColumnOriginalValue("sourceURL"));
+		kbArticleImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		kbArticleImpl.setStatus(this.<Integer>getColumnOriginalValue("status"));
+		kbArticleImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		kbArticleImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		kbArticleImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
 
 		return kbArticleImpl;
 	}
@@ -1502,6 +1505,17 @@ public class KBArticleModelImpl
 			kbArticleCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
+		kbArticleCacheModel.externalReferenceCode = getExternalReferenceCode();
+
+		String externalReferenceCode =
+			kbArticleCacheModel.externalReferenceCode;
+
+		if ((externalReferenceCode != null) &&
+			(externalReferenceCode.length() == 0)) {
+
+			kbArticleCacheModel.externalReferenceCode = null;
+		}
+
 		kbArticleCacheModel.rootResourcePrimKey = getRootResourcePrimKey();
 
 		kbArticleCacheModel.parentResourceClassNameId =
@@ -1606,7 +1620,7 @@ public class KBArticleModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1617,9 +1631,26 @@ public class KBArticleModelImpl
 			Function<KBArticle, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KBArticle)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KBArticle)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1666,7 +1697,9 @@ public class KBArticleModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KBArticle>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KBArticle.class, ModelWrapper.class);
 
 	}
 
@@ -1681,6 +1714,7 @@ public class KBArticleModelImpl
 	private Date _createDate;
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
+	private String _externalReferenceCode;
 	private long _rootResourcePrimKey;
 	private long _parentResourceClassNameId;
 	private long _parentResourcePrimKey;
@@ -1740,6 +1774,8 @@ public class KBArticleModelImpl
 		_columnOriginalValues.put("userName", _userName);
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
+		_columnOriginalValues.put(
+			"externalReferenceCode", _externalReferenceCode);
 		_columnOriginalValues.put("rootResourcePrimKey", _rootResourcePrimKey);
 		_columnOriginalValues.put(
 			"parentResourceClassNameId", _parentResourceClassNameId);
@@ -1804,43 +1840,45 @@ public class KBArticleModelImpl
 
 		columnBitmasks.put("modifiedDate", 512L);
 
-		columnBitmasks.put("rootResourcePrimKey", 1024L);
+		columnBitmasks.put("externalReferenceCode", 1024L);
 
-		columnBitmasks.put("parentResourceClassNameId", 2048L);
+		columnBitmasks.put("rootResourcePrimKey", 2048L);
 
-		columnBitmasks.put("parentResourcePrimKey", 4096L);
+		columnBitmasks.put("parentResourceClassNameId", 4096L);
 
-		columnBitmasks.put("kbFolderId", 8192L);
+		columnBitmasks.put("parentResourcePrimKey", 8192L);
 
-		columnBitmasks.put("version", 16384L);
+		columnBitmasks.put("kbFolderId", 16384L);
 
-		columnBitmasks.put("title", 32768L);
+		columnBitmasks.put("version", 32768L);
 
-		columnBitmasks.put("urlTitle", 65536L);
+		columnBitmasks.put("title", 65536L);
 
-		columnBitmasks.put("content", 131072L);
+		columnBitmasks.put("urlTitle", 131072L);
 
-		columnBitmasks.put("description", 262144L);
+		columnBitmasks.put("content", 262144L);
 
-		columnBitmasks.put("priority", 524288L);
+		columnBitmasks.put("description", 524288L);
 
-		columnBitmasks.put("sections", 1048576L);
+		columnBitmasks.put("priority", 1048576L);
 
-		columnBitmasks.put("latest", 2097152L);
+		columnBitmasks.put("sections", 2097152L);
 
-		columnBitmasks.put("main", 4194304L);
+		columnBitmasks.put("latest", 4194304L);
 
-		columnBitmasks.put("sourceURL", 8388608L);
+		columnBitmasks.put("main", 8388608L);
 
-		columnBitmasks.put("lastPublishDate", 16777216L);
+		columnBitmasks.put("sourceURL", 16777216L);
 
-		columnBitmasks.put("status", 33554432L);
+		columnBitmasks.put("lastPublishDate", 33554432L);
 
-		columnBitmasks.put("statusByUserId", 67108864L);
+		columnBitmasks.put("status", 67108864L);
 
-		columnBitmasks.put("statusByUserName", 134217728L);
+		columnBitmasks.put("statusByUserId", 134217728L);
 
-		columnBitmasks.put("statusDate", 268435456L);
+		columnBitmasks.put("statusByUserName", 268435456L);
+
+		columnBitmasks.put("statusDate", 536870912L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

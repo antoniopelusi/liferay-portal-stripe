@@ -23,7 +23,10 @@ import com.liferay.asset.util.AssetHelper;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 
 import java.util.List;
 
@@ -46,14 +49,14 @@ public class AssetCategoryPropertyLocalServiceImpl
 			long userId, long categoryId, String key, String value)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
-
 		validate(key, value);
 
 		if (hasCategoryProperty(categoryId, key)) {
 			throw new DuplicateCategoryPropertyException(
 				"A category property already exists with the key " + key);
 		}
+
+		User user = _userLocalService.getUser(userId);
 
 		long categoryPropertyId = counterLocalService.increment();
 
@@ -81,6 +84,7 @@ public class AssetCategoryPropertyLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public void deleteCategoryProperty(AssetCategoryProperty categoryProperty) {
 		assetCategoryPropertyPersistence.remove(categoryProperty);
 	}
@@ -157,7 +161,7 @@ public class AssetCategoryPropertyLocalServiceImpl
 		validate(key, value);
 
 		if (userId != 0) {
-			User user = userLocalService.getUser(userId);
+			User user = _userLocalService.getUser(userId);
 
 			categoryProperty.setUserId(userId);
 			categoryProperty.setUserName(user.getFullName());
@@ -216,5 +220,8 @@ public class AssetCategoryPropertyLocalServiceImpl
 
 	@Reference
 	private AssetHelper _assetHelper;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

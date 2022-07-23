@@ -222,13 +222,13 @@ public class CPSpecificationOptionIndexer
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCPSpecificationOptions(companyId);
+		_reindexCPSpecificationOptions(companyId);
 	}
 
-	protected void reindexCPSpecificationOptions(long companyId)
-		throws PortalException {
+	private void _reindexCPSpecificationOptions(long companyId)
+		throws Exception {
 
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_cpSpecificationOptionLocalService.
 				getIndexableActionableDynamicQuery();
 

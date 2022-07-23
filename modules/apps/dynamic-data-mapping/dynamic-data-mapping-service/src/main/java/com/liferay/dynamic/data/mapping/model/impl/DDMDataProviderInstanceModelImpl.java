@@ -16,7 +16,6 @@ package com.liferay.dynamic.data.mapping.model.impl;
 
 import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance;
 import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstanceModel;
-import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstanceSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -36,21 +35,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -171,67 +169,6 @@ public class DDMDataProviderInstanceModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DDMDataProviderInstance toModel(
-		DDMDataProviderInstanceSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		DDMDataProviderInstance model = new DDMDataProviderInstanceImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setDataProviderInstanceId(soapModel.getDataProviderInstanceId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setDefinition(soapModel.getDefinition());
-		model.setType(soapModel.getType());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DDMDataProviderInstance> toModels(
-		DDMDataProviderInstanceSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DDMDataProviderInstance> models =
-			new ArrayList<DDMDataProviderInstance>(soapModels.length);
-
-		for (DDMDataProviderInstanceSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DDMDataProviderInstanceModelImpl() {
 	}
 
@@ -316,34 +253,6 @@ public class DDMDataProviderInstanceModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DDMDataProviderInstance>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DDMDataProviderInstance.class.getClassLoader(),
-			DDMDataProviderInstance.class, ModelWrapper.class);
-
-		try {
-			Constructor<DDMDataProviderInstance> constructor =
-				(Constructor<DDMDataProviderInstance>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DDMDataProviderInstance, Object>>
@@ -1116,6 +1025,45 @@ public class DDMDataProviderInstanceModelImpl
 	}
 
 	@Override
+	public DDMDataProviderInstance cloneWithOriginalValues() {
+		DDMDataProviderInstanceImpl ddmDataProviderInstanceImpl =
+			new DDMDataProviderInstanceImpl();
+
+		ddmDataProviderInstanceImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ddmDataProviderInstanceImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ddmDataProviderInstanceImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		ddmDataProviderInstanceImpl.setDataProviderInstanceId(
+			this.<Long>getColumnOriginalValue("dataProviderInstanceId"));
+		ddmDataProviderInstanceImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		ddmDataProviderInstanceImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ddmDataProviderInstanceImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		ddmDataProviderInstanceImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		ddmDataProviderInstanceImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ddmDataProviderInstanceImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		ddmDataProviderInstanceImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		ddmDataProviderInstanceImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		ddmDataProviderInstanceImpl.setDefinition(
+			this.<String>getColumnOriginalValue("definition"));
+		ddmDataProviderInstanceImpl.setType(
+			this.<String>getColumnOriginalValue("type_"));
+		ddmDataProviderInstanceImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return ddmDataProviderInstanceImpl;
+	}
+
+	@Override
 	public int compareTo(DDMDataProviderInstance ddmDataProviderInstance) {
 		long primaryKey = ddmDataProviderInstance.getPrimaryKey();
 
@@ -1289,7 +1237,7 @@ public class DDMDataProviderInstanceModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1300,10 +1248,27 @@ public class DDMDataProviderInstanceModelImpl
 			Function<DDMDataProviderInstance, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((DDMDataProviderInstance)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DDMDataProviderInstance)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1353,7 +1318,8 @@ public class DDMDataProviderInstanceModelImpl
 		private static final Function
 			<InvocationHandler, DDMDataProviderInstance>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						DDMDataProviderInstance.class, ModelWrapper.class);
 
 	}
 

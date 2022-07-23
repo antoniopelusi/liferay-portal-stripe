@@ -59,18 +59,18 @@ public class DLAppServiceWhenRevertingAFileEntryTest extends BaseDLAppTestCase {
 			Assert.assertEquals(
 				1,
 				workflowHandlerInvocationCounter.getCount(
-					"updateStatus", int.class, Map.class));
+					"updateStatus", Object.class, int.class, Map.class));
 
 			String version = fileEntry.getVersion();
 
 			DLAppServiceTestUtil.updateFileEntry(
 				group.getGroupId(), fileEntry.getFileEntryId(),
-				RandomTestUtil.randomString(), true);
+				RandomTestUtil.randomString(), null, null, true);
 
 			Assert.assertEquals(
 				2,
 				workflowHandlerInvocationCounter.getCount(
-					"updateStatus", int.class, Map.class));
+					"updateStatus", Object.class, int.class, Map.class));
 
 			DLAppServiceUtil.revertFileEntry(
 				fileEntry.getFileEntryId(), version,
@@ -79,7 +79,7 @@ public class DLAppServiceWhenRevertingAFileEntryTest extends BaseDLAppTestCase {
 			Assert.assertEquals(
 				3,
 				workflowHandlerInvocationCounter.getCount(
-					"updateStatus", int.class, Map.class));
+					"updateStatus", Object.class, int.class, Map.class));
 		}
 	}
 
@@ -98,7 +98,7 @@ public class DLAppServiceWhenRevertingAFileEntryTest extends BaseDLAppTestCase {
 
 		DLAppServiceTestUtil.updateFileEntry(
 			group.getGroupId(), fileEntry.getFileEntryId(),
-			RandomTestUtil.randomString(), true);
+			RandomTestUtil.randomString(), null, null, true);
 
 		Assert.assertEquals(2, updateCounter.get());
 

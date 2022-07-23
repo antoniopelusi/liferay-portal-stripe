@@ -232,7 +232,7 @@ public class DLFileEntryTrashHandlerTest
 					trashEntryException) {
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(trashEntryException, trashEntryException);
+				_log.debug(trashEntryException);
 			}
 
 			throw new TrashEntryException();
@@ -249,7 +249,7 @@ public class DLFileEntryTrashHandlerTest
 					restoreEntryException) {
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(restoreEntryException, restoreEntryException);
+				_log.debug(restoreEntryException);
 			}
 
 			throw new RestoreEntryException();
@@ -269,8 +269,9 @@ public class DLFileEntryTrashHandlerTest
 		FileEntry fileEntry = DLAppServiceUtil.updateFileEntry(
 			primaryKey, RandomTestUtil.randomString() + ".txt",
 			ContentTypes.TEXT_PLAIN, dlFileEntry.getTitle(), StringPool.BLANK,
-			StringPool.BLANK, DLVersionNumberIncrease.MINOR, content.getBytes(),
-			serviceContext);
+			StringPool.BLANK, StringPool.BLANK, DLVersionNumberIncrease.MINOR,
+			content.getBytes(), dlFileEntry.getExpirationDate(),
+			dlFileEntry.getReviewDate(), serviceContext);
 
 		LiferayFileEntry liferayFileEntry = (LiferayFileEntry)fileEntry;
 
@@ -292,14 +293,12 @@ public class DLFileEntryTrashHandlerTest
 			long groupId, long folderId, boolean approved)
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				group.getGroupId(), TestPropsValues.getUserId());
-
 		FileEntry fileEntry = DLAppTestUtil.addFileEntryWithWorkflow(
 			TestPropsValues.getUserId(), groupId, folderId,
 			RandomTestUtil.randomString() + ".txt", getSearchKeywords(),
-			approved, serviceContext);
+			approved,
+			ServiceContextTestUtil.getServiceContext(
+				group.getGroupId(), TestPropsValues.getUserId()));
 
 		return (DLFileEntry)fileEntry.getModel();
 	}

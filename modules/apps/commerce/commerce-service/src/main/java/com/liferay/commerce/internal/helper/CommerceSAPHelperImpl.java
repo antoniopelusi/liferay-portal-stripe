@@ -18,9 +18,6 @@ import com.liferay.commerce.constants.CommerceSAPConstants;
 import com.liferay.commerce.helper.CommerceSAPHelper;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.resource.bundle.AggregateResourceBundleLoader;
-import com.liferay.portal.kernel.resource.bundle.ClassResourceBundleLoader;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.language.LanguageResources;
@@ -45,14 +42,6 @@ public class CommerceSAPHelperImpl implements CommerceSAPHelper {
 	public void addCommerceDefaultSAPEntries(long companyId, long userId)
 		throws PortalException {
 
-		Class<?> clazz = getClass();
-
-		ResourceBundleLoader resourceBundleLoader =
-			new AggregateResourceBundleLoader(
-				new ClassResourceBundleLoader(
-					"content.Language", clazz.getClassLoader()),
-				LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER);
-
 		for (String[] sapEntryObjectArray :
 				CommerceSAPConstants.SAP_ENTRY_OBJECT_ARRAYS) {
 
@@ -67,7 +56,7 @@ public class CommerceSAPHelperImpl implements CommerceSAPHelper {
 
 			Map<Locale, String> titleMap =
 				ResourceBundleUtil.getLocalizationMap(
-					resourceBundleLoader,
+					LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER,
 					"public-access-to-the-commerce-service-apis");
 
 			_sapEntryLocalService.addSAPEntry(

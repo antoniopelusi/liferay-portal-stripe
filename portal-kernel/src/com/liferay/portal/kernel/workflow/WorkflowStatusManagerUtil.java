@@ -32,7 +32,7 @@ public class WorkflowStatusManagerUtil {
 			int status, Map<String, Serializable> workflowContext)
 		throws WorkflowException {
 
-		getWorkflowStatusManager().updateStatus(status, workflowContext);
+		_workflowStatusManager.updateStatus(status, workflowContext);
 	}
 
 	public void setWorkflowStatusManager(

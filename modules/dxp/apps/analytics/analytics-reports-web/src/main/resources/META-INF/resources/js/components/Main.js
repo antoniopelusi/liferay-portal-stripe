@@ -10,18 +10,26 @@
  */
 
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useContext, useMemo} from 'react';
 
+import {
+	ChartStateContext,
+	useDateTitle,
+	useIsPreviousPeriodButtonDisabled,
+} from '../context/ChartStateContext';
+import {StoreStateContext} from '../context/StoreContext';
+import {generateDateFormatters as dateFormat} from '../utils/dateFormat';
 import BasicInformation from './BasicInformation';
 import Chart from './Chart';
+import TimeSpanSelector from './TimeSpanSelector';
 import TotalCount from './TotalCount';
 import TrafficSources from './TrafficSources';
-import Translation from './Translation';
 
 export default function Main({
 	author,
 	canonicalURL,
 	chartDataProviders,
+	className,
 	onSelectedLanguageClick,
 	onTrafficSourceClick,
 	pagePublishDate,
@@ -32,21 +40,44 @@ export default function Main({
 	trafficSourcesDataProvider,
 	viewURLs,
 }) {
+	const {timeSpanKey, timeSpanOffset} = useContext(ChartStateContext);
+	const {languageTag} = useContext(StoreStateContext);
+
+	const isPreviousPeriodButtonDisabled = useIsPreviousPeriodButtonDisabled();
+
+	const {firstDate, lastDate} = useDateTitle();
+
+	const dateFormatters = useMemo(() => dateFormat(languageTag), [
+		languageTag,
+	]);
+
+	const title = dateFormatters.formatChartTitle([firstDate, lastDate]);
+
 	return (
-		<div className="c-p-3">
+		<div className={`analytics-reports-app-main pb-3 px-3 ${className}`}>
 			<BasicInformation
 				author={author}
 				canonicalURL={canonicalURL}
+				onSelectedLanguageClick={onSelectedLanguageClick}
 				publishDate={pagePublishDate}
 				title={pageTitle}
+				viewURLs={viewURLs}
 			/>
 
-			<div className="mt-4">
-				<Translation
-					onSelectedLanguageClick={onSelectedLanguageClick}
-					viewURLs={viewURLs}
-				/>
-			</div>
+			{!!timeSpanOptions.length && (
+				<div className="c-mb-2 c-mt-4">
+					<TimeSpanSelector
+						disabledNextTimeSpan={timeSpanOffset === 0}
+						disabledPreviousPeriodButton={
+							isPreviousPeriodButtonDisabled
+						}
+						timeSpanKey={timeSpanKey}
+						timeSpanOptions={timeSpanOptions}
+					/>
+				</div>
+			)}
+
+			{title && <h5 className="c-mb-4">{title}</h5>}
 
 			<h5 className="mt-3 sheet-subtitle">
 				{Liferay.Language.get('engagement')}
@@ -64,6 +95,7 @@ export default function Main({
 
 			{totalReadsDataProvider && (
 				<TotalCount
+					className="mb-2"
 					dataProvider={totalReadsDataProvider}
 					label={Liferay.Util.sub(
 						Liferay.Language.get('total-reads')
@@ -89,10 +121,17 @@ export default function Main({
 	);
 }
 
-Main.proptypes = {
-	author: PropTypes.object.isRequired,
+Main.defaultProps = {
+	author: null,
+	className: '',
+	totalReadsDataProvider: null,
+};
+
+Main.propTypes = {
+	author: PropTypes.object,
 	canonicalURL: PropTypes.string.isRequired,
 	chartDataProviders: PropTypes.arrayOf(PropTypes.func.isRequired).isRequired,
+	className: PropTypes.string,
 	onSelectedLanguageClick: PropTypes.func.isRequired,
 	onTrafficSourceClick: PropTypes.func.isRequired,
 	pagePublishDate: PropTypes.string.isRequired,
@@ -103,7 +142,7 @@ Main.proptypes = {
 			label: PropTypes.string,
 		})
 	).isRequired,
-	totalReadsDataProvider: PropTypes.func.isRequired,
+	totalReadsDataProvider: PropTypes.func,
 	totalViewsDataProvider: PropTypes.func.isRequired,
 	trafficSourcesDataProvider: PropTypes.func.isRequired,
 	viewURLs: PropTypes.arrayOf(

@@ -48,7 +48,7 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		validate(user.getCompanyId(), 0, userId, fullName, emailAddress);
 
@@ -59,8 +59,8 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 		entry.setCompanyId(user.getCompanyId());
 		entry.setUserId(user.getUserId());
 		entry.setUserName(user.getFullName());
-		entry.setCreateDate(now);
-		entry.setModifiedDate(now);
+		entry.setCreateDate(date);
+		entry.setModifiedDate(date);
 		entry.setFullName(fullName);
 		entry.setEmailAddress(emailAddress);
 		entry.setComments(comments);

@@ -18,10 +18,10 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.user.associated.data.anonymizer.UADAnonymizer;
+import com.liferay.user.associated.data.anonymizer.UADAnonymousUserProvider;
 import com.liferay.user.associated.data.constants.UserAssociatedDataPortletKeys;
 import com.liferay.user.associated.data.display.UADDisplay;
 import com.liferay.user.associated.data.web.internal.display.UADHierarchyDisplay;
-import com.liferay.user.associated.data.web.internal.util.UADAnonymizerHelper;
 
 import java.io.Serializable;
 
@@ -55,7 +55,7 @@ public class AnonymizeUADEntitiesMVCActionCommand
 
 		User selectedUser = getSelectedUser(actionRequest);
 
-		User anonymousUser = _uadAnonymizerHelper.getAnonymousUser(
+		User anonymousUser = _uadAnonymousUserProvider.getAnonymousUser(
 			selectedUser.getCompanyId());
 
 		String applicationKey = ParamUtil.getString(
@@ -132,6 +132,6 @@ public class AnonymizeUADEntitiesMVCActionCommand
 	}
 
 	@Reference
-	private UADAnonymizerHelper _uadAnonymizerHelper;
+	private UADAnonymousUserProvider _uadAnonymousUserProvider;
 
 }

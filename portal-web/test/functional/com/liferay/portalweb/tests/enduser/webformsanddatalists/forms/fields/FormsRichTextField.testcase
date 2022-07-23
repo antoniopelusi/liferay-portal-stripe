@@ -1,0 +1,483 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Rich Text Field can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text",
+			formPageNumber = "0");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewTextLabel(fieldLabel = "Rich Text");
+	}
+
+	@description = "Verify that a Rich Text Field can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(
+			fieldLabel = "Rich Text",
+			fieldName = "Rich Text");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Rich Text");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Rich Text");
+	}
+
+	@description = "Verify that a Rich Text Field can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		FormFields.editHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "tip");
+
+		Form.gotoAdvancedTab();
+
+		SelectFrame.selectFrameNoLoading(
+			key_fieldLabel = "Predefined Value",
+			locator1 = "FormFields#PREDEFINED_VALUE_IFRAME");
+
+		Type(
+			locator1 = "FormFields#PREDEFINED_VALUE_BODY",
+			value1 = "R");
+
+		SelectFrame(value1 = "relative=top");
+
+		FormFields.duplicateField();
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Rich Text",
+			fieldName = "Rich Text");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Copy of Rich Text",
+			fieldName = "Copy of Rich Text");
+
+		FormFields.viewRichTextValue(
+			fieldName = "Predefined Value",
+			fieldValue = "R");
+
+		FormFields.viewRichTextValue(
+			fieldName = "Field",
+			fieldValue = "R");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Help Text");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Field");
+	}
+
+	@description = "Verify that a Rich Text Field can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Rich Text");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Rich Text");
+
+		FormFields.viewTextLabel(fieldLabel = "Test Rich Text");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewTextLabel(fieldLabel = "Test Rich Text");
+
+		Form.validateNoFieldLabel(fieldLabel = "Rich Text");
+	}
+
+	@description = "Verify that a Rich Text Field can be required"
+	@priority = "5"
+	test CanBeRequired {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		FormViewBuilder.setFieldRequired();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewRequiredAsterisk();
+
+		FormPortlet.clickSubmit();
+
+		FormPortlet.viewValidationErrorMessage();
+
+		CKEditor.addContentInWebContent(
+			content = "Test",
+			fieldLabel = "Rich Text");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Rich Text Field can be set to repeatable"
+	@priority = "5"
+	test CanBeSetToRepeatable {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.setFieldRepeatable();
+
+		AssertElementPresent(locator1 = "Button#DUPLICATE");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		Click(locator1 = "Button#DUPLICATE");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Rich Text",
+			fieldName = "Rich Text");
+
+		CKEditor.addContentInWebContent(
+			content = "Test",
+			fieldLabel = "Rich Text");
+
+		SelectFrame.selectFrameNoLoading(
+			index = "2",
+			key_fieldLabel = "Rich Text",
+			locator1 = "CKEditor#ANY_BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
+
+		Type(
+			locator1 = "CKEditor#BODY",
+			value1 = "Test");
+
+		SelectFrame(value1 = "relative=top");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Form can be submitted with the Rich Text Field"
+	@priority = "5"
+	test CanBeSubmitted {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.addRichTextContent(
+			content = "Test",
+			fieldLabel = "Rich Text");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries(formName = "Form1");
+
+		FormsAdminNavigator.gotoView(rowIndexNumber = "1");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Rich Text");
+
+		FormFields.viewRichTextValue(
+			fieldName = "Rich Text",
+			fieldValue = "Test");
+	}
+
+	@description = "Verify that changes to the Field can be canceled"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ChangesCanBeCanceled {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133116 ChangesCanBeCanceled pending implementation
+
+	}
+
+	@description = "Verify that a help text can be added to a Rich Text Field"
+	@priority = "5"
+	test HelpTextCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		FormFields.editHelpText(
+			fieldHelpText = "Rich Text Help Text",
+			fieldName = "tip");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Rich Text",
+			fieldValue = "Rich Text Help Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Rich Text",
+			fieldValue = "Rich Text Help Text");
+
+		FormFields.editFrameField(
+			fieldLabel = "Rich Text",
+			fielName = "Test");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that the Field Label can be changed"
+	@priority = "5"
+	test LabelCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text",
+			formPageNumber = "0");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Rich Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewRadioLabel(
+			fieldLabel = "Test Rich Text",
+			fieldName = "Test Rich Text");
+	}
+
+	@description = "Verify that the Field Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.clickShowLabel();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Rich Text");
+	}
+
+	@description = "Verify that a Predefined Value can be set for the Rich Text Field"
+	@priority = "5"
+	test PredefinedValueCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.gotoAdvancedTab();
+
+		CKEditor.addContentInWebContent(
+			content = "R",
+			fieldLabel = "Predefined Value");
+
+		FormFields.viewRichTextValue(
+			fieldName = "Rich Text",
+			fieldValue = "R");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewRichTextValue(
+			fieldName = "Rich Text",
+			fieldValue = "R");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that the Field Reference can be changed"
+	@priority = "5"
+	test ReferenceCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "RichText1234");
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldReference(
+			fieldName = "Rich Text",
+			key_fieldReferenceValue = "RichText1234");
+	}
+
+	@description = "Verify that the Field Type can be changed"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test TypeCanBeChanged {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133115 TypeCanBeChanged pending implementation
+
+	}
+
+}

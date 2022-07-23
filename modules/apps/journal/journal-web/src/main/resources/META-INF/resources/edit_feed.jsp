@@ -191,7 +191,7 @@ renderResponse.setTitle((feed == null) ? LanguageUtil.get(request, "new-feed") :
 			<liferay-frontend:fieldset
 				collapsed="<%= true %>"
 				collapsible="<%= true %>"
-				label="web-content-contraints"
+				label="web-content-constraints"
 			>
 				<div class="form-group">
 					<aui:input name="ddmStructureKey" required="<%= true %>" type="hidden" value="<%= ddmStructureKey %>" />

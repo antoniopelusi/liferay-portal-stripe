@@ -62,55 +62,6 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCommerceOrderItemMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void addCommerceOrderItems(ActionRequest actionRequest)
-		throws Exception {
-
-		long commerceOrderId = ParamUtil.getLong(
-			actionRequest, "commerceOrderId");
-
-		CommerceContext commerceContext =
-			(CommerceContext)actionRequest.getAttribute(
-				CommerceWebKeys.COMMERCE_CONTEXT);
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			CommerceOrderItem.class.getName(), actionRequest);
-
-		long[] cpInstanceIds = ParamUtil.getLongValues(
-			actionRequest, "cpInstanceIds");
-
-		for (long cpInstanceId : cpInstanceIds) {
-			_commerceOrderItemService.addCommerceOrderItem(
-				commerceOrderId, cpInstanceId, null, 1, 0, commerceContext,
-				serviceContext);
-		}
-	}
-
-	protected void deleteCommerceOrderItems(ActionRequest actionRequest)
-		throws Exception {
-
-		CommerceContext commerceContext =
-			(CommerceContext)actionRequest.getAttribute(
-				CommerceWebKeys.COMMERCE_CONTEXT);
-
-		long[] deleteCommerceOrderItemIds = null;
-
-		long commerceOrderItemId = ParamUtil.getLong(
-			actionRequest, "commerceOrderItemId");
-
-		if (commerceOrderItemId > 0) {
-			deleteCommerceOrderItemIds = new long[] {commerceOrderItemId};
-		}
-		else {
-			deleteCommerceOrderItemIds = ParamUtil.getLongValues(
-				actionRequest, "deleteCommerceOrderItemIds");
-		}
-
-		for (long deleteCommerceOrderItemId : deleteCommerceOrderItemIds) {
-			_commerceOrderItemService.deleteCommerceOrderItem(
-				deleteCommerceOrderItemId, commerceContext);
-		}
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -120,7 +71,7 @@ public class EditCommerceOrderItemMVCActionCommand
 
 		try {
 			if (cmd.equals(Constants.ADD)) {
-				addCommerceOrderItems(actionRequest);
+				_addCommerceOrderItems(actionRequest);
 			}
 			else if (cmd.equals(Constants.UPDATE)) {
 				Callable<Object> commerceOrderItemCallable =
@@ -130,7 +81,7 @@ public class EditCommerceOrderItemMVCActionCommand
 					_transactionConfig, commerceOrderItemCallable);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceOrderItems(actionRequest);
+				_deleteCommerceOrderItems(actionRequest);
 			}
 			else if (cmd.equals("customFields")) {
 				updateCustomFields(actionRequest);
@@ -168,57 +119,6 @@ public class EditCommerceOrderItemMVCActionCommand
 		}
 	}
 
-	protected void updateCommerceOrderItem(ActionRequest actionRequest)
-		throws PortalException {
-
-		long commerceOrderItemId = ParamUtil.getLong(
-			actionRequest, "commerceOrderItemId");
-		int quantity = ParamUtil.getInteger(actionRequest, "quantity");
-
-		CommerceOrderItem commerceOrderItem =
-			_commerceOrderItemService.getCommerceOrderItem(commerceOrderItemId);
-
-		CommerceOrder commerceOrder = commerceOrderItem.getCommerceOrder();
-
-		if (commerceOrder.isOpen()) {
-			CommerceContext commerceContext =
-				(CommerceContext)actionRequest.getAttribute(
-					CommerceWebKeys.COMMERCE_CONTEXT);
-
-			ServiceContext serviceContext = ServiceContextFactory.getInstance(
-				CommerceOrderItem.class.getName(), actionRequest);
-
-			commerceOrderItem =
-				_commerceOrderItemService.updateCommerceOrderItem(
-					commerceOrderItemId, quantity, commerceContext,
-					serviceContext);
-		}
-		else {
-			BigDecimal price = (BigDecimal)ParamUtil.getNumber(
-				actionRequest, "price");
-
-			commerceOrderItem =
-				_commerceOrderItemService.updateCommerceOrderItemUnitPrice(
-					commerceOrderItemId, quantity, price);
-		}
-
-		int requestedDeliveryDateMonth = ParamUtil.getInteger(
-			actionRequest, "requestedDeliveryDateMonth");
-		int requestedDeliveryDateDay = ParamUtil.getInteger(
-			actionRequest, "requestedDeliveryDateDay");
-		int requestedDeliveryDateYear = ParamUtil.getInteger(
-			actionRequest, "requestedDeliveryDateYear");
-
-		String deliveryGroup = ParamUtil.getString(
-			actionRequest, "deliveryGroup");
-
-		_commerceOrderItemService.updateCommerceOrderItemInfo(
-			commerceOrderItem.getCommerceOrderItemId(),
-			commerceOrderItem.getShippingAddressId(), deliveryGroup,
-			commerceOrderItem.getPrintedNote(), requestedDeliveryDateMonth,
-			requestedDeliveryDateDay, requestedDeliveryDateYear);
-	}
-
 	protected void updateCustomFields(ActionRequest actionRequest)
 		throws PortalException {
 
@@ -230,6 +130,120 @@ public class EditCommerceOrderItemMVCActionCommand
 
 		_commerceOrderItemService.updateCustomFields(
 			commerceOrderItemId, serviceContext);
+	}
+
+	private void _addCommerceOrderItems(ActionRequest actionRequest)
+		throws Exception {
+
+		long commerceOrderId = ParamUtil.getLong(
+			actionRequest, "commerceOrderId");
+
+		CommerceContext commerceContext =
+			(CommerceContext)actionRequest.getAttribute(
+				CommerceWebKeys.COMMERCE_CONTEXT);
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			CommerceOrderItem.class.getName(), actionRequest);
+
+		long[] cpInstanceIds = ParamUtil.getLongValues(
+			actionRequest, "cpInstanceIds");
+
+		for (long cpInstanceId : cpInstanceIds) {
+			_commerceOrderItemService.addCommerceOrderItem(
+				commerceOrderId, cpInstanceId, null, 1, 0, commerceContext,
+				serviceContext);
+		}
+	}
+
+	private void _deleteCommerceOrderItems(ActionRequest actionRequest)
+		throws Exception {
+
+		CommerceContext commerceContext =
+			(CommerceContext)actionRequest.getAttribute(
+				CommerceWebKeys.COMMERCE_CONTEXT);
+
+		long[] deleteCommerceOrderItemIds = null;
+
+		long commerceOrderItemId = ParamUtil.getLong(
+			actionRequest, "commerceOrderItemId");
+
+		if (commerceOrderItemId > 0) {
+			deleteCommerceOrderItemIds = new long[] {commerceOrderItemId};
+		}
+		else {
+			deleteCommerceOrderItemIds = ParamUtil.getLongValues(
+				actionRequest, "deleteCommerceOrderItemIds");
+		}
+
+		for (long deleteCommerceOrderItemId : deleteCommerceOrderItemIds) {
+			_commerceOrderItemService.deleteCommerceOrderItem(
+				deleteCommerceOrderItemId, commerceContext);
+		}
+	}
+
+	private void _updateCommerceOrderItem(ActionRequest actionRequest)
+		throws Exception {
+
+		long commerceOrderItemId = ParamUtil.getLong(
+			actionRequest, "commerceOrderItemId");
+
+		CommerceOrderItem commerceOrderItem =
+			_commerceOrderItemService.getCommerceOrderItem(commerceOrderItemId);
+
+		CommerceOrder commerceOrder = commerceOrderItem.getCommerceOrder();
+
+		long cpMeasurementUnitId = ParamUtil.getLong(
+			actionRequest, "cpMeasurementUnitId");
+		BigDecimal decimalQuantity = (BigDecimal)ParamUtil.getNumber(
+			actionRequest, "decimalQuantity");
+
+		commerceOrderItem = _commerceOrderItemService.updateCommerceOrderItem(
+			commerceOrderItemId, cpMeasurementUnitId,
+			decimalQuantity.intValue(),
+			(CommerceContext)actionRequest.getAttribute(
+				CommerceWebKeys.COMMERCE_CONTEXT),
+			ServiceContextFactory.getInstance(
+				CommerceOrderItem.class.getName(), actionRequest));
+
+		if (!commerceOrder.isOpen()) {
+			BigDecimal price = (BigDecimal)ParamUtil.getNumber(
+				actionRequest, "price");
+
+			commerceOrderItem =
+				_commerceOrderItemService.updateCommerceOrderItemUnitPrice(
+					commerceOrderItemId, decimalQuantity, price);
+
+			BigDecimal discountAmount = (BigDecimal)ParamUtil.getNumber(
+				actionRequest, "discountAmount");
+
+			BigDecimal finalPrice = (BigDecimal)ParamUtil.getNumber(
+				actionRequest, "finalPrice");
+
+			commerceOrderItem =
+				_commerceOrderItemService.updateCommerceOrderItemPrices(
+					commerceOrderItemId, discountAmount,
+					commerceOrderItem.getDiscountPercentageLevel1(),
+					commerceOrderItem.getDiscountPercentageLevel2(),
+					commerceOrderItem.getDiscountPercentageLevel3(),
+					commerceOrderItem.getDiscountPercentageLevel4(), finalPrice,
+					commerceOrderItem.getPromoPrice(),
+					commerceOrderItem.getUnitPrice());
+		}
+
+		String deliveryGroup = ParamUtil.getString(
+			actionRequest, "deliveryGroup");
+		int requestedDeliveryDateMonth = ParamUtil.getInteger(
+			actionRequest, "requestedDeliveryDateMonth");
+		int requestedDeliveryDateDay = ParamUtil.getInteger(
+			actionRequest, "requestedDeliveryDateDay");
+		int requestedDeliveryDateYear = ParamUtil.getInteger(
+			actionRequest, "requestedDeliveryDateYear");
+
+		_commerceOrderItemService.updateCommerceOrderItemInfo(
+			commerceOrderItem.getCommerceOrderItemId(),
+			commerceOrderItem.getShippingAddressId(), deliveryGroup,
+			commerceOrderItem.getPrintedNote(), requestedDeliveryDateMonth,
+			requestedDeliveryDateDay, requestedDeliveryDateYear);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -249,7 +263,7 @@ public class EditCommerceOrderItemMVCActionCommand
 
 		@Override
 		public Object call() throws Exception {
-			updateCommerceOrderItem(_actionRequest);
+			_updateCommerceOrderItem(_actionRequest);
 
 			return null;
 		}

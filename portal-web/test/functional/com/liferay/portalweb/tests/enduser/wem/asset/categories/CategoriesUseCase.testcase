@@ -1,17 +1,15 @@
 @component-name = "portal-categories"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Categories";
 	property testray.main.component.name = "Categories";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 	}
@@ -100,7 +98,6 @@ definition {
 
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
-				freeLogin = "true",
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
@@ -113,6 +110,171 @@ definition {
 			Category.addCP(
 				categoryName = "Category Name",
 				vocabularyName = "Vocabulary Name");
+		}
+	}
+
+	@description = "LPS-134960 When in Blogs, search by category or to assign a category to an item, all categories, regardless the visibility of the vocabularies they belong to, are available."
+	@priority = "4"
+	test AddCategoryOfAnyVisibilityToBlogs {
+		task ("Create public vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Public Vocabulary Name");
+		}
+
+		task ("Add category to public vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Public Category Name",
+				vocabularyName = "Public Vocabulary Name");
+		}
+
+		task ("Create internal vocabulary") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.addInternalVocabulary(vocabularyName = "Internal Vocabulary Name");
+		}
+
+		task ("Add categories to internal vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Internal Category Name",
+				vocabularyName = "Internal Vocabulary Name");
+		}
+
+		task ("Create a new blog") {
+			HeadlessBlog.addBlogEntry(
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
+		}
+
+		task ("Add public and internal categories to Blogs") {
+			BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
+
+			BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
+
+			Panel.expandPanel(panel = "Categorization");
+
+			AssetCategorization.addCategory(
+				categoryName = "Public Category Name",
+				vocabularyName = "Public Vocabulary Name");
+
+			AssetCategorization.addCategory(
+				categoryName = "Internal Category Name",
+				vocabularyName = "Internal Vocabulary Name");
+
+			PortletEntry.publish();
+		}
+	}
+
+	@description = "LPS-134960 When in Documents & Media, search by category or to assign a category to an item, all categories, regardless the visibility of the vocabularies they belong to, are available."
+	@priority = "4"
+	test AddCategoryOfAnyVisibilityToDocsAndMedia {
+		task ("Create public vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Public Vocabulary Name");
+		}
+
+		task ("Add category to public vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Public Category Name",
+				vocabularyName = "Public Vocabulary Name");
+		}
+
+		task ("Create internal vocabulary") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.addInternalVocabulary(vocabularyName = "Internal Vocabulary Name");
+		}
+
+		task ("Add categories to internal vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Internal Category Name",
+				vocabularyName = "Internal Vocabulary Name");
+		}
+
+		task ("Create a new Document") {
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add public and internal categories to Document") {
+			DMDocument.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "DM Document Title");
+
+			DMDocument.addCategories(
+				categoryNameList = "Public Category Name",
+				vocabularyName = "Public Vocabulary Name");
+
+			DMDocument.addCategories(
+				categoryNameList = "Internal Category Name",
+				vocabularyName = "Internal Vocabulary Name");
+
+			Button.clickSubmitButton();
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	@description = "LPS-134960 When in Web Content, search by category or to assign a category to an item, all categories, regardless the visibility of the vocabularies they belong to, are available."
+	@priority = "4"
+	test AddCategoryOfAnyVisibilityToWebContent {
+		task ("Create public vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Public Vocabulary Name");
+		}
+
+		task ("Add category to public vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Public Category Name",
+				vocabularyName = "Public Vocabulary Name");
+		}
+
+		task ("Create internal vocabulary") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.addInternalVocabulary(vocabularyName = "Internal Vocabulary Name");
+		}
+
+		task ("Add categories to internal vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Internal Category Name",
+				vocabularyName = "Internal Vocabulary Name");
+		}
+
+		task ("Create a new web content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Add public and internal categories to web content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			WebContent.selectCategory(
+				categoryName = "Public Category Name",
+				vocabularyName = "Public Vocabulary Name");
+
+			WebContent.selectCategory(
+				categoryName = "Internal Category Name",
+				vocabularyName = "Internal Vocabulary Name");
+
+			PortletEntry.publish();
 		}
 	}
 
@@ -133,7 +295,7 @@ definition {
 		}
 
 		task ("Add a child site") {
-			JSONGroup.addChildSite(
+			JSONGroup.addChildGroup(
 				groupName = "Child SiteName",
 				parentGroupName = "Test Site Name");
 		}
@@ -386,7 +548,6 @@ definition {
 
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
-				freeLogin = "true",
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
@@ -492,7 +653,7 @@ definition {
 		}
 
 		task ("Add widgets to page") {
-			for (var portletName : list "Asset Publisher,Categories Navigation") {
+			for (var portletName : list "Asset Publisher,Category Filter") {
 				JSONLayout.addWidgetToPublicLayout(
 					groupName = "Test Site Name",
 					layoutName = "Test Page Name",
@@ -542,8 +703,8 @@ definition {
 
 			var key_larFileName = "${larFileName}";
 
-			AssertTextEquals.assertPartialText(
-				locator1 = "SitePagesExport#CURRENT_AND_PREVIOUS_STATUS",
+			AssertTextEquals(
+				locator1 = "ExportImport#CURRENT_AND_PREVIOUS_STATUS_1",
 				value1 = "Successful");
 
 			var larFileName = LAR.getLarFileName();
@@ -682,7 +843,7 @@ definition {
 
 			Category.addCategoryLocalizationCP(
 				categoryName = "Category Name",
-				locale = "de_DE",
+				locale = "de-DE",
 				localizationName = "Kategorienamen",
 				vocabularyName = "Vocabulary Name");
 		}
@@ -770,7 +931,6 @@ definition {
 
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
-				freeLogin = "true",
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
@@ -924,8 +1084,8 @@ definition {
 		}
 	}
 
-	@Description ="This is for LPS-101409. Validate selecting multiple categories when creating page with blank template."
-	@priority ="4"
+	@description = "This is for LPS-101409. Validate selecting multiple categories when creating page with blank template."
+	@priority = "4"
 	test SelectMultipleRequiredCategoriesInContentPageCreation {
 		task ("Add a vocabulary with required for page") {
 			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
@@ -946,7 +1106,7 @@ definition {
 		}
 
 		task ("Select all categories in content page creation") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				categoryNameList = "Category Name 1,Category Name 2,Category Name 3",
@@ -957,16 +1117,16 @@ definition {
 		}
 
 		task ("View the new page in Pages admin") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			AssertVisible(
 				key_itemName = "Test Content Page Name",
-				locator1 = "SitePages#LIST_GROUP_ITEM");
+				locator1 = "PagesAdmin#LIST_GROUP_ITEM");
 		}
 	}
 
-	@Description ="This is for LPS-101409. Validate if select a required category when entering the page name not based on a page template."
-	@priority ="5"
+	@description = "This is for LPS-101409. Validate if select a required category when entering the page name not based on a page template."
+	@priority = "5"
 	test SelectRequiredCategoryInContentPageCreation {
 		property portal.acceptance = "true";
 
@@ -987,7 +1147,7 @@ definition {
 		}
 
 		task ("Add a content page and select a required category") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				categoryName = "Category Name",
@@ -998,16 +1158,16 @@ definition {
 		}
 
 		task ("View the new page in Pages admin") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			AssertVisible(
 				key_itemName = "Test Content Page Name",
-				locator1 = "SitePages#LIST_GROUP_ITEM");
+				locator1 = "PagesAdmin#LIST_GROUP_ITEM");
 		}
 	}
 
-	@Description ="This is for LPS-101409. Validate if select a required category when entering the page name based on a page template. Also add a step to check adding page with category successfully via json."
-	@priority ="5"
+	@description = "This is for LPS-101409. Validate if select a required category when entering the page name based on a page template. Also add a step to check adding page with category successfully via json."
+	@priority = "5"
 	test SelectRequiredCategoryInWidgetPageCreation {
 		property portal.acceptance = "true";
 
@@ -1028,9 +1188,9 @@ definition {
 		}
 
 		task ("Add a widget page and select a required category") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
-			SitePages.addPublicPage(
+			PagesAdmin.addPage(
 				categoryName = "Category Name",
 				pageName = "Test Widget Page Name",
 				vocabularyName = "Vocabulary Name");
@@ -1039,11 +1199,11 @@ definition {
 		}
 
 		task ("View the new page in Pages admin") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			AssertVisible(
 				key_itemName = "Test Widget Page Name",
-				locator1 = "SitePages#LIST_GROUP_ITEM");
+				locator1 = "PagesAdmin#LIST_GROUP_ITEM");
 		}
 
 		task ("Add a page with category via JSONWS") {
@@ -1054,11 +1214,11 @@ definition {
 		}
 
 		task ("View the new page in Pages admin") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			AssertVisible(
 				key_itemName = "Test Page Name 2",
-				locator1 = "SitePages#LIST_GROUP_ITEM");
+				locator1 = "PagesAdmin#LIST_GROUP_ITEM");
 		}
 	}
 
@@ -1109,6 +1269,42 @@ definition {
 
 		task ("View empty search result") {
 			Subcategory.viewSearchResultsCP(nullResult = "true");
+		}
+	}
+
+	@description = "This is a use case for LPS-142234. The user could view error message when save site settings without required category."
+	@priority = "4"
+	test ViewErrorMessageWhenSaveSiteSettingsWithoutRequiredCategory {
+		task ("Add a vocabulary with associated asset type") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.addWithAssociatedAssetTypeCP(
+				assetType = "Site",
+				required = "true",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Go to Categorization settings") {
+			Site.openSiteSettingsAdmin(siteURLKey = "test-site-name");
+
+			Click(
+				key_itemName = "Assets",
+				locator1 = "ListGroupItem#ITEM_TEXT");
+
+			Navigator.gotoNavTab(navTab = "Categorization");
+		}
+
+		task ("View error message is shown when save site settings") {
+			Button.click(button = "Save");
+
+			Alert.viewErrorMessage(errorMessage = "Error: Please select at least one category for Vocabulary Name.");
 		}
 	}
 
@@ -1170,7 +1366,7 @@ definition {
 		}
 	}
 
-	@description = "View vocabulary for specific Asset Types in asset editor."
+	@description = "This is a test for LPS-131984. View vocabulary for specific Asset Types in asset editor."
 	@priority = "4"
 	test ViewVocabularyForSpecificAssetTypesInAssetEditor {
 		task ("Add a vocabulary for specific assets types") {
@@ -1180,9 +1376,7 @@ definition {
 
 			PortletEntry.inputName(name = "Vocabulary Name");
 
-			Vocabulary.addAssociatedAssetType(
-				assetType = "Blogs Entry",
-				required = "true");
+			Vocabulary.addAssociatedAssetType(assetType = "Blogs Entry");
 
 			Button.clickAddRow();
 
@@ -1196,6 +1390,13 @@ definition {
 			AssertConfirm.assertPartialConfirmation(value1 = "Are you sure you want to create this vocabulary with public visibility?");
 
 			Alert.viewSuccessMessage();
+		}
+
+		task ("View associated asset types of vocabulary in Categories admin") {
+			AssertVisible(
+				assetTitle = "Vocabulary Name",
+				info = "Asset Types: Blogs Entry, Web Content Article *(Required)",
+				locator1 = "Message#ASSET_INFO");
 		}
 
 		task ("Add a category") {
@@ -1224,13 +1425,13 @@ definition {
 		}
 
 		task ("View the vocabulary not shown in page editor") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
-			SitePages.gotoPageMenuItem(
+			PagesAdmin.gotoPageEllipsisMenuItem(
 				menuItem = "Configure",
 				pageName = "Page Name");
 
-			Page.viewNoSelectCategory(
+			PagesAdmin.viewVocabularyNotPresent(
 				pageName = "Page Name",
 				vocabularyName = "Vocabulary Name");
 		}

@@ -54,49 +54,13 @@ WikiURLHelper wikiURLHelper = new WikiURLHelper(wikiRequestHelper, renderRespons
 		/>
 	</div>
 
+	<%
+	WikiSearchDisplayContext wikiSearchDisplayContext = new WikiSearchDisplayContext(request, renderRequest, renderResponse, wikiPortletInstanceSettingsHelper);
+	%>
+
 	<liferay-ui:search-container
-		emptyResultsMessage='<%= LanguageUtil.format(request, "no-pages-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
-		iteratorURL='<%=
-			PortletURLBuilder.createRenderURL(
-				renderResponse
-			).setMVCRenderCommandName(
-				"/wiki/search"
-			).setRedirect(
-				redirect
-			).setKeywords(
-				keywords
-			).setParameter(
-				"nodeId", nodeId
-			).build()
-		%>'
+		searchContainer="<%= wikiSearchDisplayContext.getSearchContainer() %>"
 	>
-
-		<%
-		Indexer<WikiPage> indexer = IndexerRegistryUtil.getIndexer(WikiPage.class);
-
-		SearchContext searchContext = SearchContextFactory.getInstance(request);
-
-		QueryConfig queryConfig = searchContext.getQueryConfig();
-
-		queryConfig.setHighlightEnabled(wikiPortletInstanceSettingsHelper.isEnableHighlighting());
-
-		searchContext.setAttribute("paginationType", "more");
-		searchContext.setEnd(searchContainer.getEnd());
-		searchContext.setIncludeAttachments(true);
-		searchContext.setIncludeDiscussions(true);
-		searchContext.setKeywords(keywords);
-		searchContext.setNodeIds(nodeIds);
-		searchContext.setStart(searchContainer.getStart());
-
-		Hits hits = indexer.search(searchContext);
-
-		searchContainer.setTotal(hits.getLength());
-		%>
-
-		<liferay-ui:search-container-results
-			results="<%= SearchResultUtil.getSearchResults(hits, locale) %>"
-		/>
-
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.kernel.search.SearchResult"
 			modelVar="searchResult"
@@ -135,7 +99,7 @@ WikiURLHelper wikiURLHelper = new WikiURLHelper(wikiRequestHelper, renderRespons
 				"nodeId", node.getNodeId()
 			).setParameter(
 				"title", title
-			).build();
+			).buildPortletURL();
 
 			WikiEngineRenderer wikiEngineRenderer = (WikiEngineRenderer)request.getAttribute(WikiWebKeys.WIKI_ENGINE_RENDERER);
 

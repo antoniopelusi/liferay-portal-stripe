@@ -1,0 +1,10 @@
+{
+	"articleId": "COURSE-01",
+	"assetCategoryERCs": [
+		"MASCAT0001"
+	],
+	"ddmStructureKey": "COURSE",
+	"ddmTemplateKey": "COURSE",
+	"folder": "Courses",
+	"name": "Product Design Bootcamp"
+}

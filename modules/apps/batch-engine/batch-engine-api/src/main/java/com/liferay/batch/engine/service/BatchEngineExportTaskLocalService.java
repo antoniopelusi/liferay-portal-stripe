@@ -83,8 +83,9 @@ public interface BatchEngineExportTaskLocalService
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public BatchEngineExportTask addBatchEngineExportTask(
-		long companyId, long userId, String callbackURL, String className,
-		String contentType, String executeStatus, List<String> fieldNamesList,
+		String externalReferenceCode, long companyId, long userId,
+		String callbackURL, String className, String contentType,
+		String executeStatus, List<String> fieldNamesList,
 		Map<String, Serializable> parameters, String taskItemDelegateName);
 
 	/**
@@ -142,6 +143,9 @@ public interface BatchEngineExportTaskLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -214,6 +218,26 @@ public interface BatchEngineExportTaskLocalService
 		long batchEngineExportTaskId);
 
 	/**
+	 * Returns the batch engine export task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine export task's external reference code
+	 * @return the matching batch engine export task, or <code>null</code> if a matching batch engine export task could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BatchEngineExportTask
+		fetchBatchEngineExportTaskByExternalReferenceCode(
+			long companyId, String externalReferenceCode);
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchBatchEngineExportTaskByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BatchEngineExportTask fetchBatchEngineExportTaskByReferenceCode(
+		long companyId, String externalReferenceCode);
+
+	/**
 	 * Returns the batch engine export task with the matching UUID and company.
 	 *
 	 * @param uuid the batch engine export task's UUID
@@ -237,6 +261,20 @@ public interface BatchEngineExportTaskLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public BatchEngineExportTask getBatchEngineExportTask(
 			long batchEngineExportTaskId)
+		throws PortalException;
+
+	/**
+	 * Returns the batch engine export task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine export task's external reference code
+	 * @return the matching batch engine export task
+	 * @throws PortalException if a matching batch engine export task could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BatchEngineExportTask
+			getBatchEngineExportTaskByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
 		throws PortalException;
 
 	/**
@@ -269,6 +307,15 @@ public interface BatchEngineExportTaskLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<BatchEngineExportTask> getBatchEngineExportTasks(
+		long companyId, int start, int end);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<BatchEngineExportTask> getBatchEngineExportTasks(
+		long companyId, int start, int end,
+		OrderByComparator<BatchEngineExportTask> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<BatchEngineExportTask> getBatchEngineExportTasks(
 		String executeStatus);
 
 	/**
@@ -278,6 +325,9 @@ public interface BatchEngineExportTaskLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getBatchEngineExportTasksCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getBatchEngineExportTasksCount(long companyId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public BatchEngineExportTaskContentBlobModel getContentBlobModel(

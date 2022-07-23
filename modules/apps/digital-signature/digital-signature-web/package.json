@@ -1,0 +1,30 @@
+{
+	"dependencies": {
+		"image-promise": "^5.0.1",
+		"moment": "^2.22.2",
+		"qs": "^6.9.6",
+		"react-router-dom": "^5.0.1"
+	},
+	"description": "",
+	"jest": {
+		"collectCoverageFrom": [
+			"src/main/resources/META-INF/resources/js/**/*.js"
+		],
+		"setupFiles": [
+			"<rootDir>/jest-setup.config.js"
+		],
+		"testPathIgnorePatterns": [
+			"<rootDir>/test/js/[^/]+\\.js"
+		]
+	},
+	"main": "js/index.js",
+	"name": "@liferay/digital-signature-web",
+	"private": true,
+	"scripts": {
+		"build": "liferay-npm-scripts build",
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix",
+		"test": "env TZ=utc liferay-npm-scripts test"
+	},
+	"version": "1.0.23"
+}

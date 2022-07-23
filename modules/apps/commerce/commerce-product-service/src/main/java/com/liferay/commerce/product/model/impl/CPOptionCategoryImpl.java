@@ -18,8 +18,4 @@ package com.liferay.commerce.product.model.impl;
  * @author Marco Leo
  */
 public class CPOptionCategoryImpl extends CPOptionCategoryBaseImpl {
-
-	public CPOptionCategoryImpl() {
-	}
-
 }

@@ -24,8 +24,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -51,35 +49,6 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCommerceInventoryWarehouseMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void addCommerceInventoryWarehouse(ActionRequest actionRequest)
-		throws PortalException {
-
-		long commerceInventoryWarehouseId = ParamUtil.getLong(
-			actionRequest, "commerceInventoryWarehouseId");
-
-		String sku = ParamUtil.getString(actionRequest, "sku");
-
-		int quantity = ParamUtil.getInteger(actionRequest, "quantity");
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			CommerceInventoryWarehouseItem.class.getName(), actionRequest);
-
-		_commerceInventoryWarehouseItemService.
-			addCommerceInventoryWarehouseItem(
-				serviceContext.getUserId(), commerceInventoryWarehouseId, sku,
-				quantity);
-	}
-
-	protected void deleteCommerceInventoryWarehouse(ActionRequest actionRequest)
-		throws PortalException {
-
-		String sku = ParamUtil.getString(actionRequest, "sku");
-
-		_commerceInventoryWarehouseItemService.
-			deleteCommerceInventoryWarehouseItems(
-				_portal.getCompanyId(actionRequest), sku);
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -89,13 +58,13 @@ public class EditCommerceInventoryWarehouseMVCActionCommand
 
 		try {
 			if (cmd.equals(Constants.ADD)) {
-				addCommerceInventoryWarehouse(actionRequest);
+				_addCommerceInventoryWarehouse(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceInventoryWarehouse(actionRequest);
+				_deleteCommerceInventoryWarehouse(actionRequest);
 			}
 			else if (cmd.equals(Constants.UPDATE)) {
-				updateCommerceInventoryWarehouse(actionRequest);
+				_updateCommerceInventoryWarehouse(actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -111,12 +80,37 @@ public class EditCommerceInventoryWarehouseMVCActionCommand
 				sendRedirect(actionRequest, actionResponse);
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
 
-	protected void updateCommerceInventoryWarehouse(ActionRequest actionRequest)
+	private void _addCommerceInventoryWarehouse(ActionRequest actionRequest)
+		throws PortalException {
+
+		long commerceInventoryWarehouseId = ParamUtil.getLong(
+			actionRequest, "commerceInventoryWarehouseId");
+
+		String sku = ParamUtil.getString(actionRequest, "sku");
+
+		int quantity = ParamUtil.getInteger(actionRequest, "quantity");
+
+		_commerceInventoryWarehouseItemService.
+			addCommerceInventoryWarehouseItem(
+				commerceInventoryWarehouseId, sku, quantity);
+	}
+
+	private void _deleteCommerceInventoryWarehouse(ActionRequest actionRequest)
+		throws PortalException {
+
+		String sku = ParamUtil.getString(actionRequest, "sku");
+
+		_commerceInventoryWarehouseItemService.
+			deleteCommerceInventoryWarehouseItems(
+				_portal.getCompanyId(actionRequest), sku);
+	}
+
+	private void _updateCommerceInventoryWarehouse(ActionRequest actionRequest)
 		throws PortalException {
 
 		long commerceInventoryWarehouseId = ParamUtil.getLong(
@@ -132,13 +126,9 @@ public class EditCommerceInventoryWarehouseMVCActionCommand
 					commerceInventoryWarehouseId, sku);
 
 		if (commerceInventoryWarehouseItem == null) {
-			ServiceContext serviceContext = ServiceContextFactory.getInstance(
-				CommerceInventoryWarehouseItem.class.getName(), actionRequest);
-
 			_commerceInventoryWarehouseItemService.
 				addCommerceInventoryWarehouseItem(
-					serviceContext.getUserId(), commerceInventoryWarehouseId,
-					sku, quantity);
+					commerceInventoryWarehouseId, sku, quantity);
 		}
 		else {
 			_commerceInventoryWarehouseItemService.

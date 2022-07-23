@@ -349,4 +349,7 @@ public interface StyleBookEntryVersionModel
 	 */
 	public void setStyleBookEntryKey(String styleBookEntryKey);
 
+	@Override
+	public StyleBookEntryVersion cloneWithOriginalValues();
+
 }

@@ -133,6 +133,11 @@ public class MFAEmailOTPEntryWrapper
 		}
 	}
 
+	@Override
+	public MFAEmailOTPEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this mfa email otp entry.
 	 *

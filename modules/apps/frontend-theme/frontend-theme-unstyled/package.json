@@ -1,11 +1,10 @@
 {
 	"dependencies": {
-		"@clayui/css": "3.26.0"
 	},
 	"name": "liferay-frontend-theme-unstyled",
 	"scripts": {
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "6.0.3"
+	"version": "6.0.29"
 }

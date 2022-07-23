@@ -1,16 +1,14 @@
 @component-name = "portal-wcm"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Content and Application Templates";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
@@ -38,6 +36,7 @@ definition {
 	@description = "View the widget template applied to Asset Publisher widget."
 	@priority = "3"
 	test ViewWidgetTemplateAppliedToAssetPublisher {
+		property portal.acceptance = "true";
 		property testray.component.names = "Asset Publisher,Content and Application Templates";
 
 		task ("Add an Asset Publisher to page") {
@@ -54,15 +53,12 @@ definition {
 				title = "Web Content Title");
 		}
 
-		task ("Add a widget template via Asset Publisher") {
-			Navigator.gotoSitePage(
-				pageName = "ADT Test Page",
-				siteName = "Test Site Name");
+		task ("Add a widget template for Asset Publisher") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
 
-			ApplicationDisplayTemplates.addPG(
+			ApplicationDisplayTemplates.addCP(
 				adtFile = "adt_asset_publisher_rich_summary.ftl",
-				adtType = "Asset Publisher",
-				siteName = "Test Site Name");
+				adtType = "Asset Publisher");
 		}
 
 		task ("Configure the display setttings of Asset Publisher") {
@@ -93,7 +89,7 @@ definition {
 				siteName = "Test Site Name");
 
 			AssetPublisherPortlet.viewCustomADTRichSummaryPG(
-				assetDescription = "Web Content Content",
+				assetContent = "Web Content Content",
 				assetTitle = "Web Content Title");
 		}
 	}
@@ -122,7 +118,7 @@ definition {
 				portletName = "Breadcrumb",
 				portletOption = "Configuration");
 
-			Breadcrumb.configureBreadcrumb(selectADTType = "Arrows");
+			Breadcrumb.configureBreadcrumb(selectAdtType = "Arrows");
 		}
 
 		task ("View the widget template applied to Breadcrumb") {
@@ -130,7 +126,7 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			Breadcrumb.viewADTApplied(breadcrumbADTType = "arrows");
+			Breadcrumb.viewADTApplied(breadcrumbAdtType = "arrows");
 		}
 	}
 
@@ -161,7 +157,7 @@ definition {
 			JSONLayout.addWidgetToPublicLayout(
 				groupName = "Test Site Name",
 				layoutName = "ADT Test Page",
-				widgetName = "Categories Navigation");
+				widgetName = "Category Filter");
 		}
 
 		task ("View the displayed content in Categories Navigation") {
@@ -178,11 +174,12 @@ definition {
 				vocabularyName = "Vocabulary Name 3");
 		}
 
-		task ("Add a widget template via Categories Navigation") {
-			ApplicationDisplayTemplates.addPG(
+		task ("Add a widget template for Categories Navigation") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
+
+			ApplicationDisplayTemplates.addCP(
 				adtFile = "adt_categories_navigation_multi_column.ftl",
-				adtType = "Categories Navigation",
-				siteName = "Test Site Name");
+				adtType = "Category Filter");
 		}
 
 		task ("Select the widget template in Categories Navigation") {
@@ -190,7 +187,7 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			ApplicationDisplayTemplates.selectPortletADT(templateName = "Categories Navigation Test ADT");
+			ApplicationDisplayTemplates.selectPortletADT(templateName = "Category Filter Test ADT");
 		}
 
 		task ("View the widget template applied to Categories Navigation") {
@@ -223,31 +220,19 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			Portlet.gotoPortletOptions(
-				portletName = "RSS Publisher",
-				portletOption = "Configuration");
-
 			RSSPortlet.addFeed(
 				feedRowIndexNumber = "0",
-				feedTitle = "Latimes &gt; Technology News",
+				feedTitle = "Latimes > Technology News",
 				feedType = "file",
-				feedUrlLink = "rss2.0.xml");
-
-			PortletEntry.save();
+				feedURLLink = "rss2.0.xml");
 		}
 
-		task ("Add a widget template via RSS Publisher") {
-			Navigator.gotoSitePage(
-				pageName = "ADT Test Page",
-				siteName = "Test Site Name");
+		task ("Add a widget template for RSS Publisher") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
 
-			RSSPortlet.waitForRSSLoad();
-
-			Portlet.gotoPortletOptions(
-				portletName = "RSS Publisher",
-				portletOption = "Configuration");
-
-			ApplicationDisplayTemplates.addManualViaRSS(siteName = "Test Site Name");
+			ApplicationDisplayTemplates.addCP(
+				adtType = "RSS Publisher",
+				fieldNameList = "RSS Feeds*");
 		}
 
 		task ("Select the widget template in RSS Publisher") {
@@ -257,7 +242,7 @@ definition {
 
 			RSSPortlet.waitForRSSLoad();
 
-			ApplicationDisplayTemplates.selectPortletADT(templateName = "RSS Test ADT");
+			ApplicationDisplayTemplates.selectPortletADT(templateName = "RSS Publisher Test ADT");
 		}
 
 		task ("View the widget template applied to RSS Publisher") {
@@ -303,16 +288,15 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			SiteMapPortlet.viewDefaultPG(
-				listChildPageName = "ADT Child Page Name",
-				listPageName = "ADT Test Page,ADT Test Page 2,ADT Test Page 3");
+			SiteMapPortlet.viewPageItem(pageNameList = "ADT Test Page,ADT Test Page 2,ADT Test Page 3,ADT Child Page Name");
 		}
 
-		task ("Add a widget template in Site Map") {
-			ApplicationDisplayTemplates.addPG(
+		task ("Add a widget template for Site Map") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
+
+			ApplicationDisplayTemplates.addCP(
 				adtFile = "adt_sitemap_multi_column.ftl",
-				adtType = "Site Map",
-				siteName = "Test Site Name");
+				adtType = "Site Map");
 		}
 
 		task ("Select the widget template in Site Map") {
@@ -328,9 +312,7 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			SiteMapPortlet.viewCustomADTMultiColumnPG(
-				listChildPageName = "ADT Child Page Name",
-				listPageName = "ADT Test Page,ADT Test Page 2,ADT Test Page 3");
+			SiteMapPortlet.viewPageItem(pageNameList = "ADT Test Page,ADT Test Page 2,ADT Test Page 3,ADT Child Page Name");
 		}
 	}
 
@@ -344,7 +326,7 @@ definition {
 			JSONLayout.addWidgetToPublicLayout(
 				groupName = "Test Site Name",
 				layoutName = "ADT Test Page",
-				widgetName = "Tags Navigation");
+				widgetName = "Tag Filter");
 		}
 
 		task ("Add a widget page") {
@@ -361,23 +343,23 @@ definition {
 		}
 
 		task ("Add three blogs entry with tag") {
-			JSONBlog.addEntry(
+			HeadlessBlog.addBlogEntry(
 				assetTagNames = "tag name 1,tag name 2,tag name 3",
-				entryContent = "Blogs Entry Content",
-				entryTitle = "Blogs Entry Title",
-				groupName = "Test Site Name");
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
 
-			JSONBlog.addEntry(
+			HeadlessBlog.addBlogEntry(
 				assetTagNames = "tag name 2,tag name 3",
-				entryContent = "Blogs Entry Content",
-				entryTitle = "Blogs Entry Title",
-				groupName = "Test Site Name");
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
 
-			JSONBlog.addEntry(
+			HeadlessBlog.addBlogEntry(
 				assetTagNames = "tag name 3",
-				entryContent = "Blogs Entry Content",
-				entryTitle = "Blogs Entry Title",
-				groupName = "Test Site Name");
+				content = "Blogs Entry Content",
+				groupName = "Test Site Name",
+				title = "Blogs Entry Title");
 		}
 
 		task ("View the displayed content in Tags Navigation") {
@@ -388,11 +370,12 @@ definition {
 			TagsNavigationPortlet.viewDefaultPG(tagNameList = "tag name 1,tag name 2,tag name 3");
 		}
 
-		task ("Add a widget template via Tags Navigation") {
-			ApplicationDisplayTemplates.addPG(
+		task ("Add a widget template for Tags Navigation") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
+
+			ApplicationDisplayTemplates.addCP(
 				adtFile = "adt_tags_color.ftl",
-				adtType = "Tags Navigation",
-				siteName = "Test Site Name");
+				adtType = "Tag Cloud");
 		}
 
 		task ("Select the widget template in Tags Navigation") {
@@ -400,7 +383,7 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			ApplicationDisplayTemplates.selectPortletADT(templateName = "Tags Navigation Test ADT");
+			ApplicationDisplayTemplates.selectPortletADT(templateName = "Tag Cloud Test ADT");
 		}
 
 		task ("View the widget template applied to Tags Navigation") {
@@ -435,16 +418,16 @@ definition {
 				widgetName = "Wiki");
 		}
 
-		task ("Add a front page") {
+		task ("Add content to FrontPage") {
 			Navigator.gotoSitePage(
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			WikiPage.addFrontPagePG(wikiPageContent = "Test Wiki Content");
-
-			WikiNavigator.gotoFrontPagePG();
-
-			WikiPage.viewFrontPageDefaultADTPG(wikiPageContent = "Test Wiki Content");
+			JSONWiki.updateWikiPage(
+				groupName = "Test Site Name",
+				wikiNodeName = "Main",
+				wikiPageContent = "Test Wiki Content",
+				wikiPageName = "FrontPage");
 		}
 
 		task ("Add a Wiki type widget template") {
@@ -491,28 +474,19 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			Portlet.gotoPortletOptions(
-				portletName = "RSS Publisher",
-				portletOption = "Configuration");
-
 			RSSPortlet.addFeed(
 				feedRowIndexNumber = "0",
 				feedTitle = "Technology",
 				feedType = "file",
-				feedUrlLink = "Technology.xml");
-
-			PortletEntry.save();
+				feedURLLink = "Technology.xml");
 		}
 
-		task ("Add a widget template based on script file via RSS Publisher") {
-			Navigator.gotoSitePage(
-				pageName = "ADT Test Page",
-				siteName = "Test Site Name");
+		task ("Add a widget template based on script file for RSS Publisher") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
 
-			ApplicationDisplayTemplates.addPG(
+			ApplicationDisplayTemplates.addCP(
 				adtFile = "adt_rss_navigation.ftl",
-				adtType = "RSS",
-				siteName = "Test Site Name");
+				adtType = "RSS Publisher");
 		}
 
 		task ("Select the widget template") {
@@ -520,7 +494,7 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			ApplicationDisplayTemplates.selectPortletADT(templateName = "RSS Test ADT");
+			ApplicationDisplayTemplates.selectPortletADT(templateName = "RSS Publisher Test ADT");
 		}
 
 		task ("View the widget template applied to RSS Publisher") {
@@ -530,7 +504,7 @@ definition {
 
 			RSSPortlet.viewNavigationDisplayFeedTitle(
 				feedTitle = "Technology",
-				navigationNullADT = "true");
+				navigationNullAdt = "true");
 		}
 	}
 
@@ -541,12 +515,7 @@ definition {
 		property testray.component.names = "Asset Publisher,Content and Application Templates";
 
 		task ("Execute reindex all search indexes") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Search");
-
-			SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+			SearchAdministration.executeReindex();
 		}
 
 		task ("Edit Rich Summary widget template") {
@@ -618,28 +587,19 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			Portlet.gotoPortletOptions(
-				portletName = "RSS Publisher",
-				portletOption = "Configuration");
-
 			RSSPortlet.addFeed(
 				feedRowIndexNumber = "0",
-				feedTitle = "Latimes &gt; Technology News",
+				feedTitle = "Latimes > Technology News",
 				feedType = "file",
-				feedUrlLink = "rss2.0.xml");
-
-			PortletEntry.save();
+				feedURLLink = "rss2.0.xml");
 		}
 
-		task ("Add a widget template in RSS Publisher") {
-			Navigator.gotoSitePage(
-				pageName = "ADT Test Page",
-				siteName = "Test Site Name");
+		task ("Add a widget template for RSS Publisher") {
+			ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "test-site-name");
 
-			ApplicationDisplayTemplates.addPG(
+			ApplicationDisplayTemplates.addCP(
 				adtFile = "adt_rss_navigation_corrupt.ftl",
-				adtType = "RSS",
-				siteName = "Test Site Name");
+				adtType = "RSS Publisher");
 		}
 
 		task ("Select the widget template in RSS Publisher") {
@@ -647,7 +607,7 @@ definition {
 				pageName = "ADT Test Page",
 				siteName = "Test Site Name");
 
-			ApplicationDisplayTemplates.selectPortletADT(templateName = "RSS Test ADT");
+			ApplicationDisplayTemplates.selectPortletADT(templateName = "RSS Publisher Test ADT");
 		}
 
 		task ("View the widget template with corrupt script applied to RSS Publisher widget") {

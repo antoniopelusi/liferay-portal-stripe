@@ -42,7 +42,7 @@ CommerceInventoryWarehousesDisplayContext commerceInventoryWarehousesDisplayCont
 	%>
 
 	<liferay-ui:error exception="<%= CommerceGeocoderException.class %>">
-		<liferay-ui:message arguments="<%= errorException %>" key="an-unexpected-error-occurred-while-invoking-the-geolocation-service-x" translateArguments="<%= false %>" />
+		<liferay-ui:message arguments="<%= HtmlUtil.escape(errorException.toString()) %>" key="an-unexpected-error-occurred-while-invoking-the-geolocation-service-x" translateArguments="<%= false %>" />
 	</liferay-ui:error>
 
 	<liferay-frontend:management-bar
@@ -110,7 +110,7 @@ CommerceInventoryWarehousesDisplayContext commerceInventoryWarehousesDisplayCont
 				modelVar="commerceInventoryWarehouse"
 			>
 				<liferay-ui:search-container-column-text
-					cssClass="important table-cell-expand"
+					cssClass="font-weight-bold important table-cell-expand"
 					href='<%=
 						PortletURLBuilder.createRenderURL(
 							renderResponse
@@ -120,7 +120,7 @@ CommerceInventoryWarehousesDisplayContext commerceInventoryWarehousesDisplayCont
 							currentURL
 						).setParameter(
 							"commerceInventoryWarehouseId", commerceInventoryWarehouse.getCommerceInventoryWarehouseId()
-						).build()
+						).buildPortletURL()
 					%>'
 					name="name"
 					value="<%= HtmlUtil.escape(commerceInventoryWarehouse.getName()) %>"

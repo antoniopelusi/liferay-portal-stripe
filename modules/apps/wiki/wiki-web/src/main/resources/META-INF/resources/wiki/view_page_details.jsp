@@ -34,7 +34,7 @@ PortletURL viewPageURL = PortletURLBuilder.createRenderURL(
 	"nodeName", node.getName()
 ).setParameter(
 	"title", wikiPage.getTitle()
-).build();
+).buildPortletURL();
 
 PortletURL editPageURL = PortletURLBuilder.createRenderURL(
 	renderResponse
@@ -43,10 +43,10 @@ PortletURL editPageURL = PortletURLBuilder.createRenderURL(
 ).setRedirect(
 	currentURL
 ).setParameter(
-	"nodeId", String.valueOf(node.getNodeId())
+	"nodeId", node.getNodeId()
 ).setParameter(
 	"title", wikiPage.getTitle()
-).build();
+).buildPortletURL();
 
 PortalUtil.addPortletBreadcrumbEntry(request, wikiPage.getTitle(), viewPageURL.toString());
 
@@ -132,7 +132,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 			"version", wikiPage.getVersion()
 		).setWindowState(
 			LiferayWindowState.EXCLUSIVE
-		).build();
+		).buildPortletURL();
 		%>
 
 		<tr>
@@ -358,7 +358,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 								).setMVCRenderCommandName(
 									"/wiki/move_page"
 								).setRedirect(
-									viewPageURL.toString()
+									viewPageURL
 								).buildString()
 							%>'
 						/>
@@ -371,7 +371,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 							PortletURLUtil.clone(editPageURL, PortletRequest.ACTION_PHASE, renderResponse)
 						).setActionName(
 							"/wiki/edit_page"
-						).build();
+						).buildPortletURL();
 
 						if (trashHelper.isTrashEnabled(scopeGroupId)) {
 							deletePageURL.setParameter(Constants.CMD, Constants.MOVE_TO_TRASH);

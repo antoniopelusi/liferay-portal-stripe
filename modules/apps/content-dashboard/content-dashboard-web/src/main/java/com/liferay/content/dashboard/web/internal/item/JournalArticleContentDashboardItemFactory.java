@@ -17,8 +17,8 @@ package com.liferay.content.dashboard.web.internal.item;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.content.dashboard.web.internal.item.action.ContentDashboardItemActionProviderTracker;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemTypeFactory;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemTypeFactoryTracker;
+import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtypeFactory;
+import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtypeFactoryTracker;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
@@ -74,14 +74,12 @@ public class JournalArticleContentDashboardItemFactory
 					journalArticle.getPrimaryKey());
 		}
 
-		Optional<ContentDashboardItemTypeFactory>
-			contentDashboardItemTypeFactoryOptional =
-				_contentDashboardItemTypeFactoryTracker.
-					getContentDashboardItemTypeFactoryOptional(
-						DDMStructure.class.getName());
+		Optional<ContentDashboardItemSubtypeFactory>
+			contentDashboardItemSubtypeFactoryOptional =
+				getContentDashboardItemSubtypeFactoryOptional();
 
-		ContentDashboardItemTypeFactory contentDashboardItemTypeFactory =
-			contentDashboardItemTypeFactoryOptional.orElseThrow(
+		ContentDashboardItemSubtypeFactory contentDashboardItemSubtypeFactory =
+			contentDashboardItemSubtypeFactoryOptional.orElseThrow(
 				NoSuchModelException::new);
 
 		DDMStructure ddmStructure = journalArticle.getDDMStructure();
@@ -99,11 +97,20 @@ public class JournalArticleContentDashboardItemFactory
 		return new JournalArticleContentDashboardItem(
 			assetEntry.getCategories(), assetEntry.getTags(),
 			_contentDashboardItemActionProviderTracker,
-			contentDashboardItemTypeFactory.create(
+			contentDashboardItemSubtypeFactory.create(
 				ddmStructure.getStructureId()),
 			_groupLocalService.fetchGroup(journalArticle.getGroupId()),
 			infoItemFieldValuesProvider, journalArticle, _language,
 			latestApprovedJournalArticle, _portal);
+	}
+
+	@Override
+	public Optional<ContentDashboardItemSubtypeFactory>
+		getContentDashboardItemSubtypeFactoryOptional() {
+
+		return _contentDashboardItemSubtypeFactoryTracker.
+			getContentDashboardItemSubtypeFactoryOptional(
+				DDMStructure.class.getName());
 	}
 
 	@Reference
@@ -117,8 +124,8 @@ public class JournalArticleContentDashboardItemFactory
 		_contentDashboardItemActionProviderTracker;
 
 	@Reference
-	private ContentDashboardItemTypeFactoryTracker
-		_contentDashboardItemTypeFactoryTracker;
+	private ContentDashboardItemSubtypeFactoryTracker
+		_contentDashboardItemSubtypeFactoryTracker;
 
 	@Reference
 	private GroupLocalService _groupLocalService;

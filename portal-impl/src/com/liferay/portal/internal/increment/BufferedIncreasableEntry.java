@@ -52,14 +52,9 @@ public class BufferedIncreasableEntry<K, T>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(_aopMethodInvocation.toString());
-		sb.append(StringPool.OPEN_PARENTHESIS);
-		sb.append(Arrays.toString(_arguments));
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-
-		return sb.toString();
+		return StringBundler.concat(
+			_aopMethodInvocation.toString(), StringPool.OPEN_PARENTHESIS,
+			Arrays.toString(_arguments), StringPool.CLOSE_PARENTHESIS);
 	}
 
 	private final AopMethodInvocation _aopMethodInvocation;

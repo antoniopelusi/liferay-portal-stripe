@@ -21,9 +21,11 @@
 	</fileSets>
 	<requiredProperties>
 		<requiredProperty key="liferayVersion">
+			<validationRegex>^[0-7]\.\d+\.\d+.*</validationRegex>
 		</requiredProperty>
 		<requiredProperty key="product">
 			<defaultValue>portal</defaultValue>
+			<validationRegex>(dxp)|(portal)</validationRegex>
 		</requiredProperty>
 	</requiredProperties>
 </archetype-descriptor>

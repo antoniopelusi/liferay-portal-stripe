@@ -273,4 +273,7 @@ public interface MFAFIDO2CredentialEntryModel
 	 */
 	public void setSignatureCount(long signatureCount);
 
+	@Override
+	public MFAFIDO2CredentialEntry cloneWithOriginalValues();
+
 }

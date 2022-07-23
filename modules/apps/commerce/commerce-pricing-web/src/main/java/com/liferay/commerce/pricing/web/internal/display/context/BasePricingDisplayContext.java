@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.pricing.web.internal.display.context;
 
-import com.liferay.commerce.pricing.web.internal.display.context.util.CommercePricingRequestHelper;
+import com.liferay.commerce.pricing.web.internal.display.context.helper.CommercePricingRequestHelper;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortalPreferences;

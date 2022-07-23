@@ -19,11 +19,17 @@ import com.fasterxml.jackson.databind.util.ISO8601Utils;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.test.util.AssetTestUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.Team;
 import com.liferay.portal.kernel.model.User;
@@ -31,19 +37,23 @@ import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ContactLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.TeamLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.randomizerbumpers.NumericStringRandomizerBumper;
+import com.liferay.portal.kernel.test.randomizerbumpers.UniqueStringRandomizerBumper;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
-import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
+import com.liferay.portal.kernel.test.util.PropsValuesTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
-import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserGroupTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
@@ -60,14 +70,20 @@ import java.time.temporal.ChronoUnit;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Dictionary;
 import java.util.List;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * @author David Arques
@@ -82,28 +98,55 @@ public class UserODataRetrieverTest {
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
 
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		try (ConfigurationTemporarySwapper
+				elasticSearchConfigurationTemporarySwapper =
+					new ConfigurationTemporarySwapper(
+						_CONFIGURATION_PID_ELASTICSEARCH,
+						_setUpElasticsearchProperties())) {
+
+			_company = CompanyTestUtil.addCompany();
+
+			_companyGuestGroup = _groupLocalService.getGroup(
+				_company.getCompanyId(), GroupConstants.GUEST);
+			_companyUser = UserTestUtil.getAdminUser(_company.getCompanyId());
+		}
+
+		_safeCloseable = PropsValuesTestUtil.swapWithSafeCloseable(
+			"INDEX_SEARCH_LIMIT", _ELASTICSEARCH_MAX_RESULT_WINDOW);
+	}
+
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+		if (_safeCloseable != null) {
+			_safeCloseable.close();
+		}
+
+		_companyLocalService.deleteCompany(_company);
+	}
+
 	@Before
 	public void setUp() throws Exception {
-		_group1 = GroupTestUtil.addGroup();
-		_group2 = GroupTestUtil.addGroup();
+		_group1 = _addGroup();
+		_group2 = _addGroup();
 	}
 
 	@Test
 	public void testGetUsersFilterByAncestorOrganizationIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Organization parentOrganization =
-			OrganizationTestUtil.addOrganization();
+			_organizationLocalService.addOrganization(
+				_companyUser.getUserId(),
+				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+				RandomTestUtil.randomString(), RandomTestUtil.randomBoolean());
 
-		Organization organization = OrganizationTestUtil.addOrganization(
-			parentOrganization.getOrganizationId(),
+		Organization organization = _organizationLocalService.addOrganization(
+			_companyUser.getUserId(), parentOrganization.getOrganizationId(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomBoolean());
 
 		_organizations.add(organization);
@@ -133,12 +176,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByAssetTagIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Company company = _companyLocalService.getCompany(
 			_user1.getCompanyId());
@@ -148,7 +187,7 @@ public class UserODataRetrieverTest {
 		_assetTags.add(tag);
 
 		_userLocalService.updateAsset(
-			TestPropsValues.getUserId(), _user1, new long[0],
+			_companyUser.getUserId(), _user1, new long[0],
 			new String[] {tag.getName()});
 
 		String filterString = String.format(
@@ -171,12 +210,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByBirthDateEquals() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date birthDate = _user1.getBirthday();
 
@@ -205,12 +240,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByBirthDateGreater() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date birthDate = _user1.getBirthday();
 
@@ -241,12 +272,8 @@ public class UserODataRetrieverTest {
 
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date birthDate = _user1.getBirthday();
 
@@ -269,12 +296,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByBirthDateLower() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date birthDate = _user1.getBirthday();
 
@@ -303,12 +326,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByBirthDateLowerOrEquals() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date birthDate = _user1.getBirthday();
 
@@ -331,9 +350,7 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByCompanyId() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
 
 		String filterString = String.format(
 			"(firstName eq '%s') and (companyId eq '%s')", firstName,
@@ -355,12 +372,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByDateModifiedEquals() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date modifiedDate = _user1.getModifiedDate();
 
@@ -390,12 +403,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByDateModifiedGreater() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date modifiedDate = _user1.getModifiedDate();
 
@@ -427,12 +436,8 @@ public class UserODataRetrieverTest {
 
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date modifiedDate = _user1.getModifiedDate();
 
@@ -462,12 +467,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByDateModifiedLower() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date modifiedDate = _user1.getModifiedDate();
 
@@ -499,12 +500,8 @@ public class UserODataRetrieverTest {
 
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		Date modifiedDate = _user1.getModifiedDate();
 
@@ -532,7 +529,7 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByEmailAddress() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		String filterString =
 			"(emailAddress eq '" + _user1.getEmailAddress() + "')";
@@ -551,7 +548,7 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByFirstName() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		String filterString = "(firstName eq '" + _user1.getFirstName() + "')";
 
@@ -569,7 +566,7 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByFirstNameAndLastName() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", _user1.getFirstName(), "') and (lastName eq ",
@@ -591,12 +588,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByFirstNameAndNotTeamIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		_team = _addTeam();
 
@@ -620,8 +613,8 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByFirstNameOrLastName() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
-		_user2 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
+		_user2 = _addUser(_group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", _user1.getFirstName(), "') or (lastName eq '",
@@ -644,7 +637,7 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByFirstNameOrLastNameWithSameFirstName()
 		throws Exception {
 
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", _user1.getFirstName(), "') or (lastName eq ",
@@ -666,7 +659,7 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByFirstNameOrLastNameWithSameFirstNameAndLastName()
 		throws Exception {
 
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", _user1.getFirstName(), "') or (lastName eq '",
@@ -688,13 +681,9 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByGroupId() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(),
-			new long[] {_group1.getGroupId(), _group2.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(
+			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
+		_user2 = _addUser(firstName, _group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", firstName, "') and (groupId eq '",
@@ -716,13 +705,9 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByGroupIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(),
-			new long[] {_group1.getGroupId(), _group2.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(
+			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
+		_user2 = _addUser(firstName, _group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", firstName, "') and (groupIds eq '",
@@ -744,13 +729,9 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByGroupIdsWithOr() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(),
-			new long[] {_group1.getGroupId(), _group2.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(
+			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
+		_user2 = _addUser(firstName, _group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", firstName, "') and ((groupIds eq '",
@@ -774,13 +755,9 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByGroupIdWithAnd() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(),
-			new long[] {_group1.getGroupId(), _group2.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(
+			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
+		_user2 = _addUser(firstName, _group1);
 
 		String filterString = String.format(
 			"(firstName eq '%s') and (groupId eq '%s') and (groupId eq '%s')",
@@ -800,14 +777,13 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByJobTitle() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		_user1.setJobTitle(RandomTestUtil.randomString());
 
 		_userLocalService.updateUser(_user1);
 
-		_user2 = UserTestUtil.addUser(
-			_group1.getGroupId(), LocaleUtil.getDefault());
+		_user2 = _addUser(_group1);
 
 		String filterString = "(jobTitle eq '" + _user1.getJobTitle() + "')";
 
@@ -825,7 +801,7 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByJobTitleContains() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		String jobTitlePrefix = RandomTestUtil.randomString();
 
@@ -833,8 +809,7 @@ public class UserODataRetrieverTest {
 
 		_userLocalService.updateUser(_user1);
 
-		_user2 = UserTestUtil.addUser(
-			_group1.getGroupId(), LocaleUtil.getDefault());
+		_user2 = _addUser(_group1);
 
 		List<User> users = _oDataRetriever.getResults(
 			_group1.getCompanyId(),
@@ -847,8 +822,8 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByLastName() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
-		_user2 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
+		_user2 = _addUser(_group1);
 
 		String filterString = "(lastName eq '" + _user1.getLastName() + "')";
 
@@ -868,13 +843,9 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByMultipleGroupIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(),
-			new long[] {_group1.getGroupId(), _group2.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(
+			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
+		_user2 = _addUser(firstName, _group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", firstName, "') and (groupIds eq '",
@@ -897,14 +868,13 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByOrganizationIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
-		Organization organization = OrganizationTestUtil.addOrganization();
+		Organization organization = _organizationLocalService.addOrganization(
+			_companyUser.getUserId(),
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			RandomTestUtil.randomString(), RandomTestUtil.randomBoolean());
 
 		_organizations.add(organization);
 
@@ -931,12 +901,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByRoleIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		_role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
 
@@ -962,13 +928,9 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByScopeGroupId() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(),
-			new long[] {_group1.getGroupId(), _group2.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(
+			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
+		_user2 = _addUser(firstName, _group1);
 
 		String filterString = StringBundler.concat(
 			"(firstName eq '", firstName, "') and (scopeGroupId eq '",
@@ -988,8 +950,8 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByScreenName() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
-		_user2 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
+		_user2 = _addUser(_group1);
 
 		String filterString =
 			"(screenName eq '" + _user1.getScreenName() + "')";
@@ -1010,12 +972,8 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByTeamIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
 		_team = _addTeam();
 
@@ -1041,14 +999,11 @@ public class UserODataRetrieverTest {
 	public void testGetUsersFilterByUserGroupIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
-		_user1 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
-		_user2 = UserTestUtil.addUser(
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(), firstName,
-			RandomTestUtil.randomString(), new long[] {_group1.getGroupId()});
+		_user1 = _addUser(firstName, _group1);
+		_user2 = _addUser(firstName, _group1);
 
-		_userGroup = UserGroupTestUtil.addUserGroup();
+		_userGroup = UserGroupTestUtil.addUserGroup(
+			_companyGuestGroup.getGroupId());
 
 		_userLocalService.addUserGroupUser(_userGroup.getUserGroupId(), _user1);
 
@@ -1070,7 +1025,7 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByUserId() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
 
 		String filterString = "(userId eq '" + _user1.getUserId() + "')";
 
@@ -1088,8 +1043,8 @@ public class UserODataRetrieverTest {
 
 	@Test
 	public void testGetUsersFilterByUserName() throws Exception {
-		_user1 = UserTestUtil.addUser(_group1.getGroupId());
-		_user2 = UserTestUtil.addUser(_group1.getGroupId());
+		_user1 = _addUser(_group1);
+		_user2 = _addUser(_group1);
 
 		String filterString =
 			"(userName eq '" + StringUtil.toLowerCase(_user1.getFullName()) +
@@ -1107,11 +1062,78 @@ public class UserODataRetrieverTest {
 		Assert.assertEquals(_user1, users.get(0));
 	}
 
+	@Test
+	public void testGetUsersWithMoreUsersThanElasticsearchMaxResultWindow()
+		throws Exception {
+
+		String firstName = RandomTestUtil.randomString();
+
+		for (int i = 0; i < _MORE_USERS_THAN_ELASTICSEARCH_MAX_RESULT_WINDOW;
+			 i++) {
+
+			_addUser(firstName, _group1);
+		}
+
+		String filterString = String.format("(firstName eq '%s')", firstName);
+
+		List<User> users = _oDataRetriever.getResults(
+			_group1.getCompanyId(), filterString, LocaleUtil.getDefault(),
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		Assert.assertEquals(
+			users.toString(), _MORE_USERS_THAN_ELASTICSEARCH_MAX_RESULT_WINDOW,
+			users.size());
+	}
+
+	private static Dictionary<String, Object> _setUpElasticsearchProperties()
+		throws Exception {
+
+		Configuration configuration = _configurationAdmin.getConfiguration(
+			_CONFIGURATION_PID_ELASTICSEARCH, StringPool.QUESTION);
+
+		Dictionary<String, Object> properties = configuration.getProperties();
+
+		if (properties == null) {
+			properties = new HashMapDictionary<>();
+		}
+
+		properties.put(
+			"additionalIndexConfigurations",
+			"{\"max_result_window\" : \"" + _ELASTICSEARCH_MAX_RESULT_WINDOW +
+				"\"}");
+
+		return properties;
+	}
+
+	private Group _addGroup() throws Exception {
+		return GroupTestUtil.addGroup(
+			_company.getCompanyId(), _companyUser.getUserId(),
+			GroupConstants.DEFAULT_PARENT_GROUP_ID);
+	}
+
 	private Team _addTeam() throws Exception {
 		return _teamLocalService.addTeam(
-			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
+			_companyUser.getUserId(), _companyGuestGroup.getGroupId(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			ServiceContextTestUtil.getServiceContext());
+	}
+
+	private User _addUser(Group group) throws Exception {
+		return _addUser(RandomTestUtil.randomString(), group);
+	}
+
+	private User _addUser(String firstName, Group group) throws Exception {
+		return _addUser(firstName, new long[] {group.getGroupId()});
+	}
+
+	private User _addUser(String firstName, long... groupIds) throws Exception {
+		return UserTestUtil.addUser(
+			_company.getCompanyId(), _companyUser.getUserId(),
+			RandomTestUtil.randomString(
+				NumericStringRandomizerBumper.INSTANCE,
+				UniqueStringRandomizerBumper.INSTANCE),
+			LocaleUtil.getDefault(), firstName, RandomTestUtil.randomString(),
+			groupIds, ServiceContextTestUtil.getServiceContext());
 	}
 
 	private String _toISOFormat(Instant instant) {
@@ -1134,11 +1156,33 @@ public class UserODataRetrieverTest {
 		_userLocalService.updateUser(_user2);
 	}
 
-	@DeleteAfterTestRun
-	private final List<AssetTag> _assetTags = new ArrayList<>();
+	private static final String _CONFIGURATION_PID_ELASTICSEARCH =
+		"com.liferay.portal.search.elasticsearch7.configuration." +
+			"ElasticsearchConfiguration";
+
+	private static final int _ELASTICSEARCH_MAX_RESULT_WINDOW = 10;
+
+	private static final int _MORE_USERS_THAN_ELASTICSEARCH_MAX_RESULT_WINDOW =
+		_ELASTICSEARCH_MAX_RESULT_WINDOW * 3;
+
+	private static Company _company;
+	private static Group _companyGuestGroup;
 
 	@Inject
-	private CompanyLocalService _companyLocalService;
+	private static CompanyLocalService _companyLocalService;
+
+	private static User _companyUser;
+
+	@Inject
+	private static ConfigurationAdmin _configurationAdmin;
+
+	@Inject
+	private static GroupLocalService _groupLocalService;
+
+	private static SafeCloseable _safeCloseable;
+
+	@DeleteAfterTestRun
+	private final List<AssetTag> _assetTags = new ArrayList<>();
 
 	@Inject
 	private ContactLocalService _contactLocalService;

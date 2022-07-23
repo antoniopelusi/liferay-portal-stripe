@@ -68,7 +68,7 @@ long websiteId = website.getWebsiteId();
 		"listType", ListTypeConstants.WEBSITE
 	).setParameter(
 		"primaryKey", websiteId
-	).build();
+	).buildPortletURL();
 	%>
 
 	<liferay-ui:icon

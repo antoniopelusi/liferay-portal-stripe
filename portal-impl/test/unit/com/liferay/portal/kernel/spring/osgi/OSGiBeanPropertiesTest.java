@@ -330,9 +330,9 @@ public class OSGiBeanPropertiesTest {
 
 		Boolean[] values = (Boolean[])value;
 
-		Assert.assertEquals(true, values[0]);
-		Assert.assertEquals(false, values[1]);
-		Assert.assertEquals(true, values[2]);
+		Assert.assertTrue(values[0]);
+		Assert.assertFalse(values[1]);
+		Assert.assertTrue(values[2]);
 		Assert.assertEquals(Arrays.toString(values), 3, values.length);
 	}
 

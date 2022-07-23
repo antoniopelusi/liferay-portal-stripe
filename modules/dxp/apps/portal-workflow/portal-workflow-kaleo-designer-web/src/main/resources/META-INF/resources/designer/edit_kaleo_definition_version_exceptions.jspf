@@ -52,6 +52,15 @@
 	<liferay-ui:message arguments="<%= mnsit.getNode() %>" key="the-x-node-cannot-have-an-incoming-transition" translateArguments="<%= false %>" />
 </liferay-ui:error>
 
+<liferay-ui:error exception="<%= KaleoDefinitionValidationException.MustNotSetMoreThanOneDefaultTransition.class %>">
+
+	<%
+	KaleoDefinitionValidationException.MustNotSetMoreThanOneDefaultTransition ent = (KaleoDefinitionValidationException.MustNotSetMoreThanOneDefaultTransition)errorException;
+	%>
+
+	<liferay-ui:message arguments="<%= ent.getNode() %>" key="<%= ent.getMessage() %>" translateArguments="<%= false %>" />
+</liferay-ui:error>
+
 <liferay-ui:error exception="<%= KaleoDefinitionValidationException.MustPairedForkAndJoinNodes.class %>">
 
 	<%

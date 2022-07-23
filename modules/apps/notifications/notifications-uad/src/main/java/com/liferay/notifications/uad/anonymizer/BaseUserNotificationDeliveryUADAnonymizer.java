@@ -14,6 +14,8 @@
 
 package com.liferay.notifications.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.notifications.uad.constants.NotificationsUADConstants;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -47,6 +49,8 @@ public abstract class BaseUserNotificationDeliveryUADAnonymizer
 
 		if (userNotificationDelivery.getUserId() == userId) {
 			delete(userNotificationDelivery);
+
+			autoAnonymizeAssetEntry(userNotificationDelivery, anonymousUser);
 		}
 	}
 
@@ -63,6 +67,19 @@ public abstract class BaseUserNotificationDeliveryUADAnonymizer
 		return UserNotificationDelivery.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		UserNotificationDelivery userNotificationDelivery, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(userNotificationDelivery);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return userNotificationDeliveryLocalService.getActionableDynamicQuery();
@@ -73,6 +90,17 @@ public abstract class BaseUserNotificationDeliveryUADAnonymizer
 		return NotificationsUADConstants.
 			USER_ID_FIELD_NAMES_USER_NOTIFICATION_DELIVERY;
 	}
+
+	protected AssetEntry fetchAssetEntry(
+		UserNotificationDelivery userNotificationDelivery) {
+
+		return assetEntryLocalService.fetchEntry(
+			UserNotificationDelivery.class.getName(),
+			userNotificationDelivery.getUserNotificationDeliveryId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected UserNotificationDeliveryLocalService

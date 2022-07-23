@@ -155,6 +155,11 @@ public class KBCommentWrapper
 		}
 	}
 
+	@Override
+	public KBComment cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this kb comment.
 	 *

@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.model;
 
 import com.liferay.petra.lang.HashUtil;
+import com.liferay.portal.kernel.json.JSONArray;
 
 import java.io.Serializable;
 
@@ -207,16 +208,17 @@ public class DDMForm implements Serializable {
 		return ddmFormFieldsReferencesMap;
 	}
 
+	public JSONArray getObjectFieldsJSONArray() {
+		return _objectFieldsJSONArray;
+	}
+
 	@Override
 	public int hashCode() {
 		int hash = HashUtil.hash(0, _availableLocales);
 
 		hash = HashUtil.hash(hash, _defaultLocale);
-
 		hash = HashUtil.hash(hash, _ddmFormFields);
-
 		hash = HashUtil.hash(hash, _ddmFormRules);
-
 		hash = HashUtil.hash(hash, _ddmFormSuccessPageSettings);
 
 		return HashUtil.hash(hash, _definitionSchemaVersion);
@@ -260,6 +262,10 @@ public class DDMForm implements Serializable {
 		_definitionSchemaVersion = definitionSchemaVersion;
 	}
 
+	public void setObjectFieldsJSONArray(JSONArray objectFieldsJSONArray) {
+		_objectFieldsJSONArray = objectFieldsJSONArray;
+	}
+
 	private boolean _allowInvalidAvailableLocalesForProperty;
 	private Set<Locale> _availableLocales;
 	private List<DDMFormField> _ddmFormFields;
@@ -267,5 +273,6 @@ public class DDMForm implements Serializable {
 	private DDMFormSuccessPageSettings _ddmFormSuccessPageSettings;
 	private Locale _defaultLocale;
 	private String _definitionSchemaVersion;
+	private JSONArray _objectFieldsJSONArray;
 
 }

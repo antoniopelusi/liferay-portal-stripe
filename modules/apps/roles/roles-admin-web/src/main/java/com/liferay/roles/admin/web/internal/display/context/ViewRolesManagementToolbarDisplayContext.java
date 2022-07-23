@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.rolesadmin.search.RoleSearch;
 import com.liferay.portlet.rolesadmin.search.RoleSearchTerms;
+import com.liferay.roles.admin.constants.RolesAdminPortletKeys;
 import com.liferay.roles.admin.role.type.contributor.RoleTypeContributor;
 import com.liferay.roles.admin.web.internal.role.type.contributor.util.RoleTypeContributorRetrieverUtil;
 import com.liferay.roles.admin.web.internal.search.RoleChecker;
@@ -95,12 +96,11 @@ public class ViewRolesManagementToolbarDisplayContext {
 					"/edit_role.jsp", "redirect", getPortletURL(), "tabs1",
 					"details", "roleType",
 					String.valueOf(_currentRoleTypeContributor.getType()));
-
-				String label = _currentRoleTypeContributor.getTitle(
-					_renderRequest.getLocale());
-
 				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, label));
+					LanguageUtil.get(
+						_httpServletRequest,
+						_currentRoleTypeContributor.getTitle(
+							_renderRequest.getLocale())));
 			}
 		).build();
 	}
@@ -132,19 +132,25 @@ public class ViewRolesManagementToolbarDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		if (Validator.isNull(_orderByCol)) {
-			_orderByCol = ParamUtil.getString(
-				_httpServletRequest, "orderByCol", "title");
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
 		}
+
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, RolesAdminPortletKeys.ROLES_ADMIN,
+			"view-roles-order-by-col", "title");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (Validator.isNull(_orderByType)) {
-			_orderByType = ParamUtil.getString(
-				_httpServletRequest, "orderByType", "asc");
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
 		}
+
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, RolesAdminPortletKeys.ROLES_ADMIN,
+			"view-roles-order-by-type", "asc");
 
 		return _orderByType;
 	}
@@ -154,18 +160,23 @@ public class ViewRolesManagementToolbarDisplayContext {
 			_renderResponse
 		).setMVCPath(
 			"/view.jsp"
+		).setKeywords(
+			() -> {
+				if (Validator.isNotNull(getKeywords())) {
+					return getKeywords();
+				}
+
+				return null;
+			}
 		).setParameter(
 			"displayStyle", _displayStyle
 		).setParameter(
+			"orderByCol", getOrderByCol()
+		).setParameter(
+			"orderByType", getOrderByType()
+		).setParameter(
 			"roleType", _currentRoleTypeContributor.getType()
-		).build();
-
-		if (Validator.isNotNull(getKeywords())) {
-			portletURL.setParameter("keywords", getKeywords());
-		}
-
-		portletURL.setParameter("orderByCol", getOrderByCol());
-		portletURL.setParameter("orderByType", getOrderByType());
+		).buildPortletURL();
 
 		if (_roleSearch != null) {
 			portletURL.setParameter(
@@ -192,9 +203,6 @@ public class ViewRolesManagementToolbarDisplayContext {
 
 		RoleSearch roleSearch = new RoleSearch(_renderRequest, getPortletURL());
 
-		roleSearch.setRowChecker(
-			new RoleChecker(_renderRequest, _renderResponse));
-
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
@@ -202,14 +210,14 @@ public class ViewRolesManagementToolbarDisplayContext {
 		RoleSearchTerms roleSearchTerms =
 			(RoleSearchTerms)roleSearch.getSearchTerms();
 
-		BaseModelSearchResult<Role> baseModelSearchResult =
+		roleSearch.setResultsAndTotal(
 			_currentRoleTypeContributor.searchRoles(
 				themeDisplay.getCompanyId(), roleSearchTerms.getKeywords(),
 				roleSearch.getStart(), roleSearch.getEnd(),
-				roleSearch.getOrderByComparator());
+				roleSearch.getOrderByComparator()));
 
-		roleSearch.setResults(baseModelSearchResult.getBaseModels());
-		roleSearch.setTotal(baseModelSearchResult.getLength());
+		roleSearch.setRowChecker(
+			new RoleChecker(_renderRequest, _renderResponse));
 
 		_roleSearch = roleSearch;
 

@@ -15,12 +15,16 @@
 package com.liferay.object.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
+import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.LocalizedModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedAuditedModel;
 
 import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -37,8 +41,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface ObjectDefinitionModel
-	extends BaseModel<ObjectDefinition>, MVCCModel, ShardedModel,
-			StagedAuditedModel {
+	extends BaseModel<ObjectDefinition>, LocalizedModel, MVCCModel,
+			ShardedModel, StagedAuditedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -205,6 +209,184 @@ public interface ObjectDefinitionModel
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
+	 * Returns the description object field ID of this object definition.
+	 *
+	 * @return the description object field ID of this object definition
+	 */
+	public long getDescriptionObjectFieldId();
+
+	/**
+	 * Sets the description object field ID of this object definition.
+	 *
+	 * @param descriptionObjectFieldId the description object field ID of this object definition
+	 */
+	public void setDescriptionObjectFieldId(long descriptionObjectFieldId);
+
+	/**
+	 * Returns the title object field ID of this object definition.
+	 *
+	 * @return the title object field ID of this object definition
+	 */
+	public long getTitleObjectFieldId();
+
+	/**
+	 * Sets the title object field ID of this object definition.
+	 *
+	 * @param titleObjectFieldId the title object field ID of this object definition
+	 */
+	public void setTitleObjectFieldId(long titleObjectFieldId);
+
+	/**
+	 * Returns the active of this object definition.
+	 *
+	 * @return the active of this object definition
+	 */
+	public boolean getActive();
+
+	/**
+	 * Returns <code>true</code> if this object definition is active.
+	 *
+	 * @return <code>true</code> if this object definition is active; <code>false</code> otherwise
+	 */
+	public boolean isActive();
+
+	/**
+	 * Sets whether this object definition is active.
+	 *
+	 * @param active the active of this object definition
+	 */
+	public void setActive(boolean active);
+
+	/**
+	 * Returns the db table name of this object definition.
+	 *
+	 * @return the db table name of this object definition
+	 */
+	@AutoEscape
+	public String getDBTableName();
+
+	/**
+	 * Sets the db table name of this object definition.
+	 *
+	 * @param dbTableName the db table name of this object definition
+	 */
+	public void setDBTableName(String dbTableName);
+
+	/**
+	 * Returns the label of this object definition.
+	 *
+	 * @return the label of this object definition
+	 */
+	public String getLabel();
+
+	/**
+	 * Returns the localized label of this object definition in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the locale of the language
+	 * @return the localized label of this object definition
+	 */
+	@AutoEscape
+	public String getLabel(Locale locale);
+
+	/**
+	 * Returns the localized label of this object definition in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the local of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this object definition. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
+	 */
+	@AutoEscape
+	public String getLabel(Locale locale, boolean useDefault);
+
+	/**
+	 * Returns the localized label of this object definition in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @return the localized label of this object definition
+	 */
+	@AutoEscape
+	public String getLabel(String languageId);
+
+	/**
+	 * Returns the localized label of this object definition in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this object definition
+	 */
+	@AutoEscape
+	public String getLabel(String languageId, boolean useDefault);
+
+	@AutoEscape
+	public String getLabelCurrentLanguageId();
+
+	@AutoEscape
+	public String getLabelCurrentValue();
+
+	/**
+	 * Returns a map of the locales and localized labels of this object definition.
+	 *
+	 * @return the locales and localized labels of this object definition
+	 */
+	public Map<Locale, String> getLabelMap();
+
+	/**
+	 * Sets the label of this object definition.
+	 *
+	 * @param label the label of this object definition
+	 */
+	public void setLabel(String label);
+
+	/**
+	 * Sets the localized label of this object definition in the language.
+	 *
+	 * @param label the localized label of this object definition
+	 * @param locale the locale of the language
+	 */
+	public void setLabel(String label, Locale locale);
+
+	/**
+	 * Sets the localized label of this object definition in the language, and sets the default locale.
+	 *
+	 * @param label the localized label of this object definition
+	 * @param locale the locale of the language
+	 * @param defaultLocale the default locale
+	 */
+	public void setLabel(String label, Locale locale, Locale defaultLocale);
+
+	public void setLabelCurrentLanguageId(String languageId);
+
+	/**
+	 * Sets the localized labels of this object definition from the map of locales and localized labels.
+	 *
+	 * @param labelMap the locales and localized labels of this object definition
+	 */
+	public void setLabelMap(Map<Locale, String> labelMap);
+
+	/**
+	 * Sets the localized labels of this object definition from the map of locales and localized labels, and sets the default locale.
+	 *
+	 * @param labelMap the locales and localized labels of this object definition
+	 * @param defaultLocale the default locale
+	 */
+	public void setLabelMap(Map<Locale, String> labelMap, Locale defaultLocale);
+
+	/**
+	 * Returns the class name of this object definition.
+	 *
+	 * @return the class name of this object definition
+	 */
+	@AutoEscape
+	public String getClassName();
+
+	/**
+	 * Sets the class name of this object definition.
+	 *
+	 * @param className the class name of this object definition
+	 */
+	public void setClassName(String className);
+
+	/**
 	 * Returns the name of this object definition.
 	 *
 	 * @return the name of this object definition
@@ -218,5 +400,267 @@ public interface ObjectDefinitionModel
 	 * @param name the name of this object definition
 	 */
 	public void setName(String name);
+
+	/**
+	 * Returns the panel app order of this object definition.
+	 *
+	 * @return the panel app order of this object definition
+	 */
+	@AutoEscape
+	public String getPanelAppOrder();
+
+	/**
+	 * Sets the panel app order of this object definition.
+	 *
+	 * @param panelAppOrder the panel app order of this object definition
+	 */
+	public void setPanelAppOrder(String panelAppOrder);
+
+	/**
+	 * Returns the panel category key of this object definition.
+	 *
+	 * @return the panel category key of this object definition
+	 */
+	@AutoEscape
+	public String getPanelCategoryKey();
+
+	/**
+	 * Sets the panel category key of this object definition.
+	 *
+	 * @param panelCategoryKey the panel category key of this object definition
+	 */
+	public void setPanelCategoryKey(String panelCategoryKey);
+
+	/**
+	 * Returns the pk object field db column name of this object definition.
+	 *
+	 * @return the pk object field db column name of this object definition
+	 */
+	@AutoEscape
+	public String getPKObjectFieldDBColumnName();
+
+	/**
+	 * Sets the pk object field db column name of this object definition.
+	 *
+	 * @param pkObjectFieldDBColumnName the pk object field db column name of this object definition
+	 */
+	public void setPKObjectFieldDBColumnName(String pkObjectFieldDBColumnName);
+
+	/**
+	 * Returns the pk object field name of this object definition.
+	 *
+	 * @return the pk object field name of this object definition
+	 */
+	@AutoEscape
+	public String getPKObjectFieldName();
+
+	/**
+	 * Sets the pk object field name of this object definition.
+	 *
+	 * @param pkObjectFieldName the pk object field name of this object definition
+	 */
+	public void setPKObjectFieldName(String pkObjectFieldName);
+
+	/**
+	 * Returns the plural label of this object definition.
+	 *
+	 * @return the plural label of this object definition
+	 */
+	public String getPluralLabel();
+
+	/**
+	 * Returns the localized plural label of this object definition in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the locale of the language
+	 * @return the localized plural label of this object definition
+	 */
+	@AutoEscape
+	public String getPluralLabel(Locale locale);
+
+	/**
+	 * Returns the localized plural label of this object definition in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the local of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized plural label of this object definition. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
+	 */
+	@AutoEscape
+	public String getPluralLabel(Locale locale, boolean useDefault);
+
+	/**
+	 * Returns the localized plural label of this object definition in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @return the localized plural label of this object definition
+	 */
+	@AutoEscape
+	public String getPluralLabel(String languageId);
+
+	/**
+	 * Returns the localized plural label of this object definition in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized plural label of this object definition
+	 */
+	@AutoEscape
+	public String getPluralLabel(String languageId, boolean useDefault);
+
+	@AutoEscape
+	public String getPluralLabelCurrentLanguageId();
+
+	@AutoEscape
+	public String getPluralLabelCurrentValue();
+
+	/**
+	 * Returns a map of the locales and localized plural labels of this object definition.
+	 *
+	 * @return the locales and localized plural labels of this object definition
+	 */
+	public Map<Locale, String> getPluralLabelMap();
+
+	/**
+	 * Sets the plural label of this object definition.
+	 *
+	 * @param pluralLabel the plural label of this object definition
+	 */
+	public void setPluralLabel(String pluralLabel);
+
+	/**
+	 * Sets the localized plural label of this object definition in the language.
+	 *
+	 * @param pluralLabel the localized plural label of this object definition
+	 * @param locale the locale of the language
+	 */
+	public void setPluralLabel(String pluralLabel, Locale locale);
+
+	/**
+	 * Sets the localized plural label of this object definition in the language, and sets the default locale.
+	 *
+	 * @param pluralLabel the localized plural label of this object definition
+	 * @param locale the locale of the language
+	 * @param defaultLocale the default locale
+	 */
+	public void setPluralLabel(
+		String pluralLabel, Locale locale, Locale defaultLocale);
+
+	public void setPluralLabelCurrentLanguageId(String languageId);
+
+	/**
+	 * Sets the localized plural labels of this object definition from the map of locales and localized plural labels.
+	 *
+	 * @param pluralLabelMap the locales and localized plural labels of this object definition
+	 */
+	public void setPluralLabelMap(Map<Locale, String> pluralLabelMap);
+
+	/**
+	 * Sets the localized plural labels of this object definition from the map of locales and localized plural labels, and sets the default locale.
+	 *
+	 * @param pluralLabelMap the locales and localized plural labels of this object definition
+	 * @param defaultLocale the default locale
+	 */
+	public void setPluralLabelMap(
+		Map<Locale, String> pluralLabelMap, Locale defaultLocale);
+
+	/**
+	 * Returns the portlet of this object definition.
+	 *
+	 * @return the portlet of this object definition
+	 */
+	public boolean getPortlet();
+
+	/**
+	 * Returns <code>true</code> if this object definition is portlet.
+	 *
+	 * @return <code>true</code> if this object definition is portlet; <code>false</code> otherwise
+	 */
+	public boolean isPortlet();
+
+	/**
+	 * Sets whether this object definition is portlet.
+	 *
+	 * @param portlet the portlet of this object definition
+	 */
+	public void setPortlet(boolean portlet);
+
+	/**
+	 * Returns the scope of this object definition.
+	 *
+	 * @return the scope of this object definition
+	 */
+	@AutoEscape
+	public String getScope();
+
+	/**
+	 * Sets the scope of this object definition.
+	 *
+	 * @param scope the scope of this object definition
+	 */
+	public void setScope(String scope);
+
+	/**
+	 * Returns the system of this object definition.
+	 *
+	 * @return the system of this object definition
+	 */
+	public boolean getSystem();
+
+	/**
+	 * Returns <code>true</code> if this object definition is system.
+	 *
+	 * @return <code>true</code> if this object definition is system; <code>false</code> otherwise
+	 */
+	public boolean isSystem();
+
+	/**
+	 * Sets whether this object definition is system.
+	 *
+	 * @param system the system of this object definition
+	 */
+	public void setSystem(boolean system);
+
+	/**
+	 * Returns the version of this object definition.
+	 *
+	 * @return the version of this object definition
+	 */
+	public int getVersion();
+
+	/**
+	 * Sets the version of this object definition.
+	 *
+	 * @param version the version of this object definition
+	 */
+	public void setVersion(int version);
+
+	/**
+	 * Returns the status of this object definition.
+	 *
+	 * @return the status of this object definition
+	 */
+	public int getStatus();
+
+	/**
+	 * Sets the status of this object definition.
+	 *
+	 * @param status the status of this object definition
+	 */
+	public void setStatus(int status);
+
+	@Override
+	public String[] getAvailableLanguageIds();
+
+	@Override
+	public String getDefaultLanguageId();
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
+
+	@Override
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
+	@Override
+	public ObjectDefinition cloneWithOriginalValues();
 
 }

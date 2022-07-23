@@ -16,7 +16,6 @@ package com.liferay.portal.workflow.kaleo.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,15 +26,17 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.exception.NoSuchInstanceException;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstance;
@@ -43,26 +44,26 @@ import com.liferay.portal.workflow.kaleo.model.KaleoInstanceTable;
 import com.liferay.portal.workflow.kaleo.model.impl.KaleoInstanceImpl;
 import com.liferay.portal.workflow.kaleo.model.impl.KaleoInstanceModelImpl;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstancePersistence;
+import com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstanceUtil;
 import com.liferay.portal.workflow.kaleo.service.persistence.impl.constants.KaleoPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.sql.Timestamp;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -4333,6 +4334,12 @@ public class KaleoInstancePersistenceImpl
 		"kaleoInstance.completionDate = ?";
 
 	public KaleoInstancePersistenceImpl() {
+		Map<String, String> dbColumnNames = new HashMap<String, String>();
+
+		dbColumnNames.put("active", "active_");
+
+		setDBColumnNames(dbColumnNames);
+
 		setModelClass(KaleoInstance.class);
 
 		setModelImplClass(KaleoInstanceImpl.class);
@@ -4361,6 +4368,8 @@ public class KaleoInstancePersistenceImpl
 			kaleoInstance);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the kaleo instances in the entity cache if it is enabled.
 	 *
@@ -4368,6 +4377,13 @@ public class KaleoInstancePersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<KaleoInstance> kaleoInstances) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (kaleoInstances.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (KaleoInstance kaleoInstance : kaleoInstances) {
 			if (entityCache.getResult(
 					KaleoInstanceImpl.class, kaleoInstance.getPrimaryKey()) ==
@@ -4564,24 +4580,24 @@ public class KaleoInstancePersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (kaleoInstance.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				kaleoInstance.setCreateDate(now);
+				kaleoInstance.setCreateDate(date);
 			}
 			else {
-				kaleoInstance.setCreateDate(serviceContext.getCreateDate(now));
+				kaleoInstance.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!kaleoInstanceModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				kaleoInstance.setModifiedDate(now);
+				kaleoInstance.setModifiedDate(date);
 			}
 			else {
 				kaleoInstance.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4849,6 +4865,11 @@ public class KaleoInstancePersistenceImpl
 	}
 
 	@Override
+	public Set<String> getBadColumnNames() {
+		return _badColumnNames;
+	}
+
+	@Override
 	protected EntityCache getEntityCache() {
 		return entityCache;
 	}
@@ -4872,12 +4893,9 @@ public class KaleoInstancePersistenceImpl
 	 * Initializes the kaleo instance persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new KaleoInstanceModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -5059,13 +5077,31 @@ public class KaleoInstancePersistenceImpl
 				"completionDate"
 			},
 			false);
+
+		_setKaleoInstanceUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(KaleoInstanceImpl.class.getName());
+		_setKaleoInstanceUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(KaleoInstanceImpl.class.getName());
+	}
+
+	private void _setKaleoInstanceUtilPersistence(
+		KaleoInstancePersistence kaleoInstancePersistence) {
+
+		try {
+			Field field = KaleoInstanceUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, kaleoInstancePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -5093,8 +5129,6 @@ public class KaleoInstancePersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -5133,114 +5167,16 @@ public class KaleoInstancePersistenceImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		KaleoInstancePersistenceImpl.class);
 
+	private static final Set<String> _badColumnNames = SetUtil.fromArray(
+		new String[] {"active"});
+
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class KaleoInstanceModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			KaleoInstanceModelImpl kaleoInstanceModelImpl =
-				(KaleoInstanceModelImpl)baseModel;
-
-			long columnBitmask = kaleoInstanceModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(kaleoInstanceModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						kaleoInstanceModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(kaleoInstanceModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return KaleoInstanceImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return KaleoInstanceTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			KaleoInstanceModelImpl kaleoInstanceModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						kaleoInstanceModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = kaleoInstanceModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private KaleoInstanceModelArgumentsResolver
+		_kaleoInstanceModelArgumentsResolver;
 
 }

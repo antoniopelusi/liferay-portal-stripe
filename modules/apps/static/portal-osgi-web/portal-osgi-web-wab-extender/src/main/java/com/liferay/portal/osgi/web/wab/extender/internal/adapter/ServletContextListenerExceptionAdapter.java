@@ -62,7 +62,7 @@ public class ServletContextListenerExceptionAdapter
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -72,9 +72,7 @@ public class ServletContextListenerExceptionAdapter
 	}
 
 	@Override
-	public void contextInitialized(
-		final ServletContextEvent servletContextEvent) {
-
+	public void contextInitialized(ServletContextEvent servletContextEvent) {
 		if (ServerDetector.isJBoss() || ServerDetector.isWildfly()) {
 			ServletContext servletContext =
 				servletContextEvent.getServletContext();
@@ -99,7 +97,7 @@ public class ServletContextListenerExceptionAdapter
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}

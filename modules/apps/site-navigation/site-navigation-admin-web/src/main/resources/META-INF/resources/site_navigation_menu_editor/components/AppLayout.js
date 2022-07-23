@@ -23,11 +23,11 @@ import {
 
 const DEFAULT_SIDEBAR_PANELS = [];
 
-export const AppLayout = ({
+export function AppLayout({
 	contentChildren,
 	sidebarPanels = DEFAULT_SIDEBAR_PANELS,
 	toolbarChildren,
-}) => {
+}) {
 	const setSidebarPanelId = useSetSidebarPanelId();
 	const sidebarPanelId = useSidebarPanelId();
 
@@ -61,7 +61,9 @@ export const AppLayout = ({
 		<>
 			<div className="bg-white component-tbar tbar">
 				<div className="container-fluid container-fluid-max-xl">
-					<div className="px-1 tbar-nav">{toolbarChildren}</div>
+					<div className="cadmin px-1 tbar-nav">
+						{toolbarChildren}
+					</div>
 				</div>
 			</div>
 
@@ -88,7 +90,7 @@ export const AppLayout = ({
 			</div>
 		</>
 	);
-};
+}
 
 AppLayout.propTypes = {
 	contentChildren: PropTypes.node,

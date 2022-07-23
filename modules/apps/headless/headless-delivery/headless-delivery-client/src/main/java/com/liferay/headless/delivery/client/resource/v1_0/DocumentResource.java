@@ -89,12 +89,12 @@ public interface DocumentResource {
 				Long assetLibraryId, String roleNames)
 		throws Exception;
 
-	public void putAssetLibraryDocumentPermission(
+	public Page<Permission> putAssetLibraryDocumentPermissionsPage(
 			Long assetLibraryId, Permission[] permissions)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			putAssetLibraryDocumentPermissionHttpResponse(
+			putAssetLibraryDocumentPermissionsPageHttpResponse(
 				Long assetLibraryId, Permission[] permissions)
 		throws Exception;
 
@@ -211,10 +211,11 @@ public interface DocumentResource {
 			Long documentId, String roleNames)
 		throws Exception;
 
-	public void putDocumentPermission(Long documentId, Permission[] permissions)
+	public Page<Permission> putDocumentPermissionsPage(
+			Long documentId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putDocumentPermissionHttpResponse(
+	public HttpInvoker.HttpResponse putDocumentPermissionsPageHttpResponse(
 			Long documentId, Permission[] permissions)
 		throws Exception;
 
@@ -257,6 +258,35 @@ public interface DocumentResource {
 			String callbackURL, Object object)
 		throws Exception;
 
+	public void deleteSiteDocumentByExternalReferenceCode(
+			Long siteId, String externalReferenceCode)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			deleteSiteDocumentByExternalReferenceCodeHttpResponse(
+				Long siteId, String externalReferenceCode)
+		throws Exception;
+
+	public Document getSiteDocumentByExternalReferenceCode(
+			Long siteId, String externalReferenceCode)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			getSiteDocumentByExternalReferenceCodeHttpResponse(
+				Long siteId, String externalReferenceCode)
+		throws Exception;
+
+	public Document putSiteDocumentByExternalReferenceCode(
+			Long siteId, String externalReferenceCode, Document document,
+			Map<String, File> multipartFiles)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			putSiteDocumentByExternalReferenceCodeHttpResponse(
+				Long siteId, String externalReferenceCode, Document document,
+				Map<String, File> multipartFiles)
+		throws Exception;
+
 	public Page<Permission> getSiteDocumentPermissionsPage(
 			Long siteId, String roleNames)
 		throws Exception;
@@ -265,10 +295,11 @@ public interface DocumentResource {
 			Long siteId, String roleNames)
 		throws Exception;
 
-	public void putSiteDocumentPermission(Long siteId, Permission[] permissions)
+	public Page<Permission> putSiteDocumentPermissionsPage(
+			Long siteId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putSiteDocumentPermissionHttpResponse(
+	public HttpInvoker.HttpResponse putSiteDocumentPermissionsPageHttpResponse(
 			Long siteId, Permission[] permissions)
 		throws Exception;
 
@@ -721,12 +752,12 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putAssetLibraryDocumentPermission(
+		public Page<Permission> putAssetLibraryDocumentPermissionsPage(
 				Long assetLibraryId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putAssetLibraryDocumentPermissionHttpResponse(
+				putAssetLibraryDocumentPermissionsPageHttpResponse(
 					assetLibraryId, permissions);
 
 			String content = httpResponse.getContent();
@@ -755,7 +786,7 @@ public interface DocumentResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -767,7 +798,7 @@ public interface DocumentResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putAssetLibraryDocumentPermissionHttpResponse(
+				putAssetLibraryDocumentPermissionsPageHttpResponse(
 					Long assetLibraryId, Permission[] permissions)
 			throws Exception {
 
@@ -1221,6 +1252,8 @@ public interface DocumentResource {
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -2008,12 +2041,12 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putDocumentPermission(
+		public Page<Permission> putDocumentPermissionsPage(
 				Long documentId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putDocumentPermissionHttpResponse(documentId, permissions);
+				putDocumentPermissionsPageHttpResponse(documentId, permissions);
 
 			String content = httpResponse.getContent();
 
@@ -2041,7 +2074,7 @@ public interface DocumentResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -2052,7 +2085,7 @@ public interface DocumentResource {
 			}
 		}
 
-		public HttpInvoker.HttpResponse putDocumentPermissionHttpResponse(
+		public HttpInvoker.HttpResponse putDocumentPermissionsPageHttpResponse(
 				Long documentId, Permission[] permissions)
 			throws Exception {
 
@@ -2471,6 +2504,271 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
+		public void deleteSiteDocumentByExternalReferenceCode(
+				Long siteId, String externalReferenceCode)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteSiteDocumentByExternalReferenceCodeHttpResponse(
+					siteId, externalReferenceCode);
+
+			String content = httpResponse.getContent();
+
+			if ((httpResponse.getStatusCode() / 100) != 2) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response content: " + content);
+				_logger.log(
+					Level.WARNING,
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.log(
+					Level.WARNING,
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+			else {
+				_logger.fine("HTTP response content: " + content);
+				_logger.fine(
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.fine(
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+			}
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				deleteSiteDocumentByExternalReferenceCodeHttpResponse(
+					Long siteId, String externalReferenceCode)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/documents/by-external-reference-code/{externalReferenceCode}");
+
+			httpInvoker.path("siteId", siteId);
+			httpInvoker.path("externalReferenceCode", externalReferenceCode);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Document getSiteDocumentByExternalReferenceCode(
+				Long siteId, String externalReferenceCode)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getSiteDocumentByExternalReferenceCodeHttpResponse(
+					siteId, externalReferenceCode);
+
+			String content = httpResponse.getContent();
+
+			if ((httpResponse.getStatusCode() / 100) != 2) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response content: " + content);
+				_logger.log(
+					Level.WARNING,
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.log(
+					Level.WARNING,
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+			else {
+				_logger.fine("HTTP response content: " + content);
+				_logger.fine(
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.fine(
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+			}
+
+			try {
+				return DocumentSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getSiteDocumentByExternalReferenceCodeHttpResponse(
+					Long siteId, String externalReferenceCode)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/documents/by-external-reference-code/{externalReferenceCode}");
+
+			httpInvoker.path("siteId", siteId);
+			httpInvoker.path("externalReferenceCode", externalReferenceCode);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Document putSiteDocumentByExternalReferenceCode(
+				Long siteId, String externalReferenceCode, Document document,
+				Map<String, File> multipartFiles)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putSiteDocumentByExternalReferenceCodeHttpResponse(
+					siteId, externalReferenceCode, document, multipartFiles);
+
+			String content = httpResponse.getContent();
+
+			if ((httpResponse.getStatusCode() / 100) != 2) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response content: " + content);
+				_logger.log(
+					Level.WARNING,
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.log(
+					Level.WARNING,
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+			else {
+				_logger.fine("HTTP response content: " + content);
+				_logger.fine(
+					"HTTP response message: " + httpResponse.getMessage());
+				_logger.fine(
+					"HTTP response status code: " +
+						httpResponse.getStatusCode());
+			}
+
+			try {
+				return DocumentSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				putSiteDocumentByExternalReferenceCodeHttpResponse(
+					Long siteId, String externalReferenceCode,
+					Document document, Map<String, File> multipartFiles)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.multipart();
+
+			httpInvoker.part("document", DocumentSerDes.toJSON(document));
+
+			for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
+				httpInvoker.part(entry.getKey(), entry.getValue());
+			}
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/documents/by-external-reference-code/{externalReferenceCode}");
+
+			httpInvoker.path("siteId", siteId);
+			httpInvoker.path("externalReferenceCode", externalReferenceCode);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public Page<Permission> getSiteDocumentPermissionsPage(
 				Long siteId, String roleNames)
 			throws Exception {
@@ -2558,12 +2856,12 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putSiteDocumentPermission(
+		public Page<Permission> putSiteDocumentPermissionsPage(
 				Long siteId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putSiteDocumentPermissionHttpResponse(siteId, permissions);
+				putSiteDocumentPermissionsPageHttpResponse(siteId, permissions);
 
 			String content = httpResponse.getContent();
 
@@ -2591,7 +2889,7 @@ public interface DocumentResource {
 			}
 
 			try {
-				return;
+				return Page.of(content, Permission::toDTO);
 			}
 			catch (Exception e) {
 				_logger.log(
@@ -2602,8 +2900,9 @@ public interface DocumentResource {
 			}
 		}
 
-		public HttpInvoker.HttpResponse putSiteDocumentPermissionHttpResponse(
-				Long siteId, Permission[] permissions)
+		public HttpInvoker.HttpResponse
+				putSiteDocumentPermissionsPageHttpResponse(
+					Long siteId, Permission[] permissions)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();

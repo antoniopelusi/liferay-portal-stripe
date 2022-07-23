@@ -130,4 +130,7 @@ public interface AccountEntryOrganizationRelModel
 	 */
 	public void setOrganizationId(long organizationId);
 
+	@Override
+	public AccountEntryOrganizationRel cloneWithOriginalValues();
+
 }

@@ -106,7 +106,7 @@ public class EntryURLUtil {
 		).setParameter(
 			"selectedTab",
 			ParamUtil.getString(liferayPortletRequest, "selectedTab")
-		).build();
+		).buildPortletURL();
 	}
 
 }

@@ -15,7 +15,6 @@
 package com.liferay.document.library.internal.service;
 
 import com.liferay.document.library.kernel.model.DLFileEntryType;
-import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalServiceWrapper;
 import com.liferay.dynamic.data.mapping.constants.DDMStructureConstants;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
@@ -24,6 +23,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
@@ -36,16 +36,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = ServiceWrapper.class)
 public class DataEngineDLFileEntryTypeLocalServiceWrapper
 	extends DLFileEntryTypeLocalServiceWrapper {
-
-	public DataEngineDLFileEntryTypeLocalServiceWrapper() {
-		this(null);
-	}
-
-	public DataEngineDLFileEntryTypeLocalServiceWrapper(
-		DLFileEntryTypeLocalService dlFileEntryTypeLocalService) {
-
-		super(dlFileEntryTypeLocalService);
-	}
 
 	@Override
 	public DLFileEntryType addDLFileEntryType(DLFileEntryType dlFileEntryType) {
@@ -88,6 +78,16 @@ public class DataEngineDLFileEntryTypeLocalServiceWrapper
 		_updateDDMStructure(dataDefinitionId);
 
 		return fileEntryType;
+	}
+
+	@Override
+	public void deleteFileEntryType(DLFileEntryType dlFileEntryType)
+		throws PortalException {
+
+		super.deleteFileEntryType(dlFileEntryType);
+
+		updateDDMStructureLinks(
+			dlFileEntryType.getFileEntryTypeId(), Collections.emptySet());
 	}
 
 	private void _updateDDMStructure(long structureId) {

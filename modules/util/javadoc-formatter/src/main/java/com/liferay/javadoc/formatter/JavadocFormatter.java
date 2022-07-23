@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.ArgumentsUtil;
-import com.liferay.portal.tools.JavaImportsFormatter;
 import com.liferay.portal.tools.ToolsUtil;
 import com.liferay.portal.xml.SAXReaderFactory;
 import com.liferay.util.xml.Dom4jDocUtil;
@@ -165,7 +164,7 @@ public class JavadocFormatter {
 		String[] excludes = {
 			"**/.git/**", "**/.gradle/**", "**/bin/**", "**/build/**",
 			"**/classes/**", "**/node_modules/**", "**/node_modules_cache/**",
-			"**/portal-client/**", "**/tmp/**"
+			"**/tmp/**"
 		};
 
 		for (String limit : limits) {
@@ -1084,8 +1083,6 @@ public class JavadocFormatter {
 			return;
 		}
 
-		_imports = JavaImportsFormatter.getImports(originalContent);
-
 		JavaClass javaClass = null;
 
 		try {
@@ -1094,7 +1091,7 @@ public class JavadocFormatter {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			if (!fileName.contains("__")) {
@@ -1345,7 +1342,7 @@ public class JavadocFormatter {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			_deprecationsDocument = DocumentHelper.createDocument();
@@ -2369,7 +2366,6 @@ public class JavadocFormatter {
 	private final String _deprecationSyncDirName;
 	private String _fullyQualifiedName;
 	private final boolean _generateXml;
-	private String _imports;
 	private final boolean _initializeMissingJavadocs;
 	private final String _inputDirName;
 	private final Map<String, Tuple> _javadocxXmlTuples = new HashMap<>();

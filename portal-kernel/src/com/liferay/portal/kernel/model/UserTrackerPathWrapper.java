@@ -90,6 +90,11 @@ public class UserTrackerPathWrapper
 		}
 	}
 
+	@Override
+	public UserTrackerPath cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this user tracker path.
 	 *

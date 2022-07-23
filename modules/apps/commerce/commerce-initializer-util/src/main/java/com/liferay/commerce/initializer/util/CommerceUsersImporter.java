@@ -44,7 +44,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -80,8 +80,6 @@ public class CommerceUsersImporter {
 			String imageDependenciesPath, long scopeGroupId, long userId)
 		throws Exception {
 
-		ServiceContext serviceContext = getServiceContext(scopeGroupId, userId);
-
 		MappingJsonFactory mappingJsonFactory = new MappingJsonFactory();
 
 		JsonParser jsonFactoryParser = mappingJsonFactory.createParser(
@@ -92,6 +90,8 @@ public class CommerceUsersImporter {
 		if (jsonToken != JsonToken.START_ARRAY) {
 			throw new Exception("JSON Array Expected");
 		}
+
+		ServiceContext serviceContext = getServiceContext(scopeGroupId, userId);
 
 		int importCount = 0;
 
@@ -127,9 +127,9 @@ public class CommerceUsersImporter {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(user.getCompanyId());
 		serviceContext.setScopeGroupId(scopeGroupId);
 		serviceContext.setUserId(userId);
-		serviceContext.setCompanyId(user.getCompanyId());
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			_importCommerceUser(
@@ -138,21 +138,7 @@ public class CommerceUsersImporter {
 		}
 	}
 
-	protected ServiceContext getServiceContext(long scopeGroupId, long userId)
-		throws PortalException {
-
-		User user = _userLocalService.getUser(userId);
-
-		ServiceContext serviceContext = new ServiceContext();
-
-		serviceContext.setScopeGroupId(scopeGroupId);
-		serviceContext.setUserId(userId);
-		serviceContext.setCompanyId(user.getCompanyId());
-
-		return serviceContext;
-	}
-
-	protected User upsertUser(
+	protected User addOrUpdateUser(
 			String password, String userReminderQueryQuestion,
 			String userReminderQueryAnswer, String screenName,
 			String emailAddress, long facebookId, String openId,
@@ -185,11 +171,10 @@ public class CommerceUsersImporter {
 
 			user = _userLocalService.addUser(
 				creatorUserId, companyId, autoPassword, password, password,
-				autoScreenName, screenName, emailAddress, facebookId, openId,
-				locale, firstName, middleName, lastName, prefixId, suffixId,
-				male, birthdayMonth, birthdayDay, birthdayYear, jobTitle,
-				groupIds, organizationIds, roleIds, userGroupIds, false,
-				serviceContext);
+				autoScreenName, screenName, emailAddress, locale, firstName,
+				middleName, lastName, prefixId, suffixId, male, birthdayMonth,
+				birthdayDay, birthdayYear, jobTitle, groupIds, organizationIds,
+				roleIds, userGroupIds, false, serviceContext);
 		}
 		else {
 			groupIds = ArrayUtil.append(user.getGroupIds(), groupIds);
@@ -201,12 +186,11 @@ public class CommerceUsersImporter {
 			user = _userLocalService.updateUser(
 				user.getUserId(), StringPool.BLANK, StringPool.BLANK,
 				StringPool.BLANK, false, userReminderQueryQuestion,
-				userReminderQueryAnswer, screenName, emailAddress, facebookId,
-				openId, portrait, portraitBytes,
-				LocaleUtil.toLanguageId(locale), timeZoneId, greeting, comments,
-				firstName, middleName, lastName, prefixId, suffixId, male,
-				birthdayMonth, birthdayDay, birthdayYear, smsSn, facebookSn,
-				jabberSn, skypeSn, twitterSn, jobTitle, groupIds,
+				userReminderQueryAnswer, screenName, emailAddress, portrait,
+				portraitBytes, LocaleUtil.toLanguageId(locale), timeZoneId,
+				greeting, comments, firstName, middleName, lastName, prefixId,
+				suffixId, male, birthdayMonth, birthdayDay, birthdayYear, smsSn,
+				facebookSn, jabberSn, skypeSn, twitterSn, jobTitle, groupIds,
 				organizationIds, roleIds, null, userGroupIds, serviceContext);
 		}
 		else if (portrait) {
@@ -214,6 +198,20 @@ public class CommerceUsersImporter {
 		}
 
 		return user;
+	}
+
+	protected ServiceContext getServiceContext(long scopeGroupId, long userId)
+		throws PortalException {
+
+		User user = _userLocalService.getUser(userId);
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(user.getCompanyId());
+		serviceContext.setScopeGroupId(scopeGroupId);
+		serviceContext.setUserId(userId);
+
+		return serviceContext;
 	}
 
 	@SuppressFBWarnings("PATH_TRAVERSAL_IN")
@@ -261,7 +259,7 @@ public class CommerceUsersImporter {
 				hasPortrait = true;
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 			finally {
 				if (inputStream != null) {
@@ -367,7 +365,7 @@ public class CommerceUsersImporter {
 
 		long[] userGroupIds = null;
 
-		user = upsertUser(
+		user = addOrUpdateUser(
 			password, userReminderQueryQuestion, userReminderQueryAnswer,
 			screenName, emailAddress, facebookId, openId, hasPortrait,
 			portraitBytes, locale, timeZoneId, greeting, comments, firstName,
@@ -427,7 +425,7 @@ public class CommerceUsersImporter {
 						_commerceAccountLocalService.
 							fetchByExternalReferenceCode(
 								serviceContext.getCompanyId(),
-								FriendlyURLNormalizerUtil.normalize(
+								_friendlyURLNormalizer.normalize(
 									accountJSONObject.getString("name")));
 
 					CommerceAccountUserRelPK commerceAccountUserRelPK =
@@ -477,6 +475,9 @@ public class CommerceUsersImporter {
 	@Reference
 	private CommerceAccountUserRelLocalService
 		_commerceAccountUserRelLocalService;
+
+	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 	@Reference
 	private OrganizationLocalService _organizationLocalService;

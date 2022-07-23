@@ -18,7 +18,6 @@ import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.info.item.InfoItemIdentifier;
 
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,8 +45,8 @@ public class DefaultFragmentEntryProcessorContext
 	}
 
 	@Override
-	public Optional<Map<String, Object>> getFieldValuesOptional() {
-		return Optional.ofNullable(_fieldValues);
+	public String getFragmentElementId() {
+		return _fragmentElementId;
 	}
 
 	@Override
@@ -91,16 +90,16 @@ public class DefaultFragmentEntryProcessorContext
 	}
 
 	@Override
-	public long[] getSegmentsExperienceIds() {
-		return _segmentsExperienceIds;
+	public long[] getSegmentsEntryIds() {
+		return _segmentsEntryIds;
 	}
 
 	public void setDisplayObject(Object object) {
 		_displayObject = object;
 	}
 
-	public void setFieldValues(Map<String, Object> fieldValues) {
-		_fieldValues = fieldValues;
+	public void setFragmentElementId(String fragmentElementId) {
+		_fragmentElementId = fragmentElementId;
 	}
 
 	public void setPreviewClassNameId(long previewClassNameId) {
@@ -119,12 +118,12 @@ public class DefaultFragmentEntryProcessorContext
 		_previewVersion = previewVersion;
 	}
 
-	public void setSegmentsExperienceIds(long[] segmentsExperienceIds) {
-		_segmentsExperienceIds = segmentsExperienceIds;
+	public void setSegmentsEntryIds(long[] segmentsEntryIds) {
+		_segmentsEntryIds = segmentsEntryIds;
 	}
 
 	private Object _displayObject;
-	private Map<String, Object> _fieldValues;
+	private String _fragmentElementId;
 	private final HttpServletRequest _httpServletRequest;
 	private final HttpServletResponse _httpServletResponse;
 	private final Locale _locale;
@@ -133,6 +132,6 @@ public class DefaultFragmentEntryProcessorContext
 	private long _previewClassPK;
 	private int _previewType = AssetRendererFactory.TYPE_LATEST_APPROVED;
 	private String _previewVersion = InfoItemIdentifier.VERSION_LATEST_APPROVED;
-	private long[] _segmentsExperienceIds = new long[0];
+	private long[] _segmentsEntryIds = new long[0];
 
 }

@@ -93,10 +93,12 @@ public class BndBundleUtil {
 				jar.write(path.toFile());
 			}
 
-			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-				jar.write(baos);
+			try (ByteArrayOutputStream byteArrayOutputStream =
+					new ByteArrayOutputStream()) {
 
-				return baos.toByteArray();
+				jar.write(byteArrayOutputStream);
+
+				return byteArrayOutputStream.toByteArray();
 			}
 		}
 	}

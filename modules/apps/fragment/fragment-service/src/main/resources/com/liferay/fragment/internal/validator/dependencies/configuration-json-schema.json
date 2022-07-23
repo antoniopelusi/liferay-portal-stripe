@@ -94,6 +94,7 @@
 			"properties": {
 				"dataType": {
 					"enum": [
+						"array",
 						"double",
 						"int",
 						"object",
@@ -105,6 +106,7 @@
 				"defaultValue": {
 					"title": "The DefaultValue Schema",
 					"type": [
+						"array",
 						"boolean",
 						"object",
 						"string"
@@ -141,7 +143,8 @@
 						"itemSelector",
 						"navigationMenuSelector",
 						"select",
-						"text"
+						"text",
+						"videoSelector"
 					],
 					"title": "The Type Schema",
 					"type": "string"
@@ -345,6 +348,7 @@
 				"configurationRole": {
 					"default": "",
 					"enum": [
+						"advanced",
 						"style"
 					],
 					"title": "The Configuration Role Schema",

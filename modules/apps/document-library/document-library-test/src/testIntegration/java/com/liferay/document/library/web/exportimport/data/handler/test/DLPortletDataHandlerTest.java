@@ -15,6 +15,8 @@
 package com.liferay.document.library.web.exportimport.data.handler.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.data.engine.rest.dto.v2_0.DataDefinition;
+import com.liferay.data.engine.rest.test.util.DataDefinitionTestUtil;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.exportimport.data.handler.DLExportableRepositoryPublisher;
 import com.liferay.document.library.kernel.model.DLFileEntry;
@@ -35,6 +37,7 @@ import com.liferay.document.library.kernel.service.DLTrashServiceUtil;
 import com.liferay.document.library.test.util.BaseDLAppTestCase;
 import com.liferay.document.library.test.util.DLAppTestUtil;
 import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.exportimport.kernel.lar.DataLevel;
 import com.liferay.exportimport.kernel.lar.ExportImportDateUtil;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
@@ -51,6 +54,7 @@ import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RepositoryLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -65,6 +69,7 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.LongWrapper;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.repository.liferayrepository.LiferayRepository;
@@ -73,9 +78,6 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portlet.PortletPreferencesImpl;
 import com.liferay.portlet.dynamicdatamapping.util.test.DDMStructureTestUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,6 +95,11 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Zsolt Berentey
@@ -205,10 +212,37 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 
 		GroupLocalServiceUtil.deleteGroup(group);
 
-		int foldersCount = DLFolderLocalServiceUtil.getFoldersCount(
-			group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+		Assert.assertEquals(
+			0,
+			DLFolderLocalServiceUtil.getFoldersCount(
+				group.getGroupId(),
+				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID));
+	}
 
-		Assert.assertEquals(0, foldersCount);
+	@Test
+	public void testDeleteGroup() throws Exception {
+		Class<?> clazz = getClass();
+
+		String json = StringUtil.read(
+			clazz.getResourceAsStream(
+				"dependencies/valid_data_definition.json"));
+
+		Group group = GroupTestUtil.addGroup();
+
+		DataDefinition dataDefinition =
+			DataDefinitionTestUtil.addDataDefinition(
+				"document-library", group.getGroupId(), json,
+				TestPropsValues.getUser());
+
+		Assert.assertNotNull(
+			_ddmStructureLocalService.fetchDDMStructure(
+				dataDefinition.getId()));
+
+		_groupLocalService.deleteGroup(group);
+
+		Assert.assertNull(
+			_ddmStructureLocalService.fetchDDMStructure(
+				dataDefinition.getId()));
 	}
 
 	@Test
@@ -265,10 +299,11 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 			new ServiceContext());
 
 		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
-			folder.getGroupId(), folder.getFolderId(),
+			null, folder.getGroupId(), folder.getFolderId(),
 			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
 			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
-			BaseDLAppTestCase.CONTENT.getBytes(), new ServiceContext());
+			StringPool.BLANK, BaseDLAppTestCase.CONTENT.getBytes(), null, null,
+			new ServiceContext());
 
 		FileVersion fileVersion = fileEntry.getFileVersion();
 
@@ -320,10 +355,11 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 			new ServiceContext());
 
 		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
-			folder.getGroupId(), folder.getFolderId(),
+			null, folder.getGroupId(), folder.getFolderId(),
 			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
 			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
-			BaseDLAppTestCase.CONTENT.getBytes(), new ServiceContext());
+			StringPool.BLANK, BaseDLAppTestCase.CONTENT.getBytes(), null, null,
+			new ServiceContext());
 
 		FileVersion fileVersion = fileEntry.getFileVersion();
 
@@ -431,11 +467,9 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 	}
 
 	protected long addRepositoryEntries() throws Exception {
-		long classNameId = PortalUtil.getClassNameId(
-			LiferayRepository.class.getName());
-
 		Repository repository = RepositoryLocalServiceUtil.addRepository(
-			TestPropsValues.getUserId(), stagingGroup.getGroupId(), classNameId,
+			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+			PortalUtil.getClassNameId(LiferayRepository.class.getName()),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			PortletKeys.BACKGROUND_TASK, StringPool.BLANK,
 			PortletKeys.BACKGROUND_TASK, new UnicodeProperties(), true,
@@ -452,10 +486,10 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 			serviceContext);
 
 		DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), repository.getRepositoryId(),
+			null, TestPropsValues.getUserId(), repository.getRepositoryId(),
 			folder.getFolderId(), RandomTestUtil.randomString() + ".txt",
-			ContentTypes.TEXT_PLAIN, TestDataConstants.TEST_BYTE_ARRAY,
-			serviceContext);
+			ContentTypes.TEXT_PLAIN, TestDataConstants.TEST_BYTE_ARRAY, null,
+			null, serviceContext);
 
 		return repository.getRepositoryId();
 	}
@@ -485,10 +519,10 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 			serviceContext, dlFileEntryType.getFileEntryTypeId());
 
 		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+			null, TestPropsValues.getUserId(), stagingGroup.getGroupId(),
 			folder.getFolderId(), RandomTestUtil.randomString() + ".txt",
-			ContentTypes.TEXT_PLAIN, TestDataConstants.TEST_BYTE_ARRAY,
-			serviceContext);
+			ContentTypes.TEXT_PLAIN, TestDataConstants.TEST_BYTE_ARRAY, null,
+			null, serviceContext);
 
 		DLAppLocalServiceUtil.addFileShortcut(
 			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
@@ -502,7 +536,7 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 
 	@Override
 	protected String[] getDataPortletPreferences() {
-		return new String[] {"rootFolderId"};
+		return new String[] {"rootFolderId", "selectedRepositoryId"};
 	}
 
 	@Override
@@ -634,13 +668,21 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 	private void _registerService(
 		DLExportableRepositoryPublisher dlExportableRepositoryPublisher) {
 
-		Registry registry = RegistryUtil.getRegistry();
+		Bundle bundle = FrameworkUtil.getBundle(DLPortletDataHandlerTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
 
 		_serviceRegistrations.add(
-			registry.registerService(
+			bundleContext.registerService(
 				DLExportableRepositoryPublisher.class,
-				dlExportableRepositoryPublisher, new HashMap<>()));
+				dlExportableRepositoryPublisher, null));
 	}
+
+	@Inject
+	private static DDMStructureLocalService _ddmStructureLocalService;
+
+	@Inject
+	private static GroupLocalService _groupLocalService;
 
 	@Inject
 	private DLAppHelperLocalService _dlAppHelperLocalService;

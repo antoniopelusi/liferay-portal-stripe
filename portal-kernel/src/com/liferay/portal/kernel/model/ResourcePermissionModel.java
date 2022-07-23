@@ -240,4 +240,7 @@ public interface ResourcePermissionModel
 	 */
 	public void setViewActionId(boolean viewActionId);
 
+	@Override
+	public ResourcePermission cloneWithOriginalValues();
+
 }

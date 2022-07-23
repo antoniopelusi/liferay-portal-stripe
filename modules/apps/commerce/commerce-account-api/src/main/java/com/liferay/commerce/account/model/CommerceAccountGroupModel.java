@@ -234,4 +234,7 @@ public interface CommerceAccountGroupModel
 	 */
 	public void setSystem(boolean system);
 
+	@Override
+	public CommerceAccountGroup cloneWithOriginalValues();
+
 }

@@ -151,6 +151,11 @@ public class SiteNavigationMenuWrapper
 		}
 	}
 
+	@Override
+	public SiteNavigationMenu cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the auto of this site navigation menu.
 	 *

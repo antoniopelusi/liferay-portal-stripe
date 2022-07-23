@@ -177,4 +177,7 @@ public interface LVEntryVersionModel
 	 */
 	public void setUniqueGroupKey(String uniqueGroupKey);
 
+	@Override
+	public LVEntryVersion cloneWithOriginalValues();
+
 }

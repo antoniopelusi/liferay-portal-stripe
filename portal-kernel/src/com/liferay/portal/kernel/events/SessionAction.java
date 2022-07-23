@@ -28,6 +28,6 @@ public abstract class SessionAction implements LifecycleAction {
 		run(lifecycleEvent.getSession());
 	}
 
-	public abstract void run(HttpSession session) throws ActionException;
+	public abstract void run(HttpSession httpSession) throws ActionException;
 
 }

@@ -640,10 +640,10 @@ public class DefaultPortalLDAP implements PortalLDAP {
 
 		Properties userMappings = _ldapSettings.getUserMappings(
 			ldapServerId, companyId);
-		Properties userExpandoMappings = _ldapSettings.getUserExpandoMappings(
-			ldapServerId, companyId);
 
-		PropertiesUtil.merge(userMappings, userExpandoMappings);
+		PropertiesUtil.merge(
+			userMappings,
+			_ldapSettings.getUserExpandoMappings(ldapServerId, companyId));
 
 		Properties contactMappings = _ldapSettings.getContactMappings(
 			ldapServerId, companyId);
@@ -808,16 +808,6 @@ public class DefaultPortalLDAP implements PortalLDAP {
 			Properties groupMappings = _ldapSettings.getGroupMappings(
 				ldapServerId, companyId);
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(groupMappings.getProperty("user"));
-			sb.append(StringPool.EQUAL);
-			sb.append(
-				encodeFilterAttribute(
-					StringUtil.replace(userDN, '\\', "\\\\"), false));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
 			SearchControls searchControls = new SearchControls(
 				SearchControls.SUBTREE_SCOPE, 1, 0, null, false, false);
 
@@ -826,7 +816,14 @@ public class DefaultPortalLDAP implements PortalLDAP {
 			name.add(groupDN);
 
 			enumeration = ldapContext.search(
-				name, sb.toString(), searchControls);
+				name,
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					groupMappings.getProperty("user"), StringPool.EQUAL,
+					encodeFilterAttribute(
+						StringUtil.replace(userDN, '\\', "\\\\"), false),
+					StringPool.CLOSE_PARENTHESIS),
+				searchControls);
 
 			if (enumeration.hasMoreElements()) {
 				return true;
@@ -871,21 +868,19 @@ public class DefaultPortalLDAP implements PortalLDAP {
 			Properties userMappings = _ldapSettings.getUserMappings(
 				ldapServerId, companyId);
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(userMappings.getProperty(UserConverterKeys.GROUP));
-			sb.append(StringPool.EQUAL);
-			sb.append(
-				encodeFilterAttribute(
-					StringUtil.replace(groupDN, '\\', "\\\\"), false));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
 			SearchControls searchControls = new SearchControls(
 				SearchControls.SUBTREE_SCOPE, 1, 0, null, false, false);
 
 			enumeration = ldapContext.search(
-				userDN, sb.toString(), searchControls);
+				userDN,
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					userMappings.getProperty(UserConverterKeys.GROUP),
+					StringPool.EQUAL,
+					encodeFilterAttribute(
+						StringUtil.replace(groupDN, '\\', "\\\\"), false),
+					StringPool.CLOSE_PARENTHESIS),
+				searchControls);
 
 			if (enumeration.hasMoreElements()) {
 				return true;
@@ -963,9 +958,7 @@ public class DefaultPortalLDAP implements PortalLDAP {
 		}
 		catch (OperationNotSupportedException operationNotSupportedException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					operationNotSupportedException,
-					operationNotSupportedException);
+				_log.debug(operationNotSupportedException);
 			}
 
 			if (enumeration != null) {
@@ -1130,16 +1123,8 @@ public class DefaultPortalLDAP implements PortalLDAP {
 			end += systemLDAPConfiguration.rangeSize();
 		}
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(originalAttributeId);
-		sb.append(StringPool.SEMICOLON);
-		sb.append("range=");
-		sb.append(start);
-		sb.append(StringPool.DASH);
-		sb.append(end);
-
-		return sb.toString();
+		return StringBundler.concat(
+			originalAttributeId, ";range=", start, StringPool.DASH, end);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

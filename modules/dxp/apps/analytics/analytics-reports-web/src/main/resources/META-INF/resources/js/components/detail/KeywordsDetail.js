@@ -9,7 +9,6 @@
  * distribution rights of the Software.
  */
 
-import {ALIGN_POSITIONS} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React from 'react';
 
@@ -27,7 +26,6 @@ export default function KeywordsDetail({
 				className="mb-2"
 				dataProvider={trafficVolumeDataProvider}
 				label={Liferay.Util.sub(Liferay.Language.get('traffic-volume'))}
-				popoverAlign={ALIGN_POSITIONS.Bottom}
 				popoverHeader={Liferay.Language.get('traffic-volume')}
 				popoverMessage={Liferay.Language.get(
 					'traffic-volume-is-the-number-of-page-views-coming-from-one-channel'
@@ -51,7 +49,7 @@ export default function KeywordsDetail({
 	);
 }
 
-KeywordsDetail.proptypes = {
+KeywordsDetail.propTypes = {
 	currentPage: PropTypes.object.isRequired,
 	trafficShareDataProvider: PropTypes.func.isRequired,
 	trafficVolumeDataProvider: PropTypes.func.isRequired,

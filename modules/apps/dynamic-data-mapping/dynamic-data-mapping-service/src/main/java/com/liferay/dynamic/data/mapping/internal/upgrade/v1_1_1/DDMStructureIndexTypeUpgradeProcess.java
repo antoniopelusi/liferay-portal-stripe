@@ -14,13 +14,14 @@
 
 package com.liferay.dynamic.data.mapping.internal.upgrade.v1_1_1;
 
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.metadata.RawMetadataProcessor;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
@@ -42,44 +43,43 @@ public class DDMStructureIndexTypeUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _upgradeDDMStructureDefinition() throws Exception {
-		StringBundler sb = new StringBundler(2);
-
-		sb.append("select DDMStructure.definition, DDMStructure.structureId ");
-		sb.append("from DDMStructure where structureKey = ? ");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				"select DDMStructure.definition, DDMStructure.structureId " +
+					"from DDMStructure where structureKey = ? ");
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
 						"structureId = ?");
-			PreparedStatement ps3 =
+			PreparedStatement preparedStatement3 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureVersion set definition = ? where " +
 						"structureId = ?")) {
 
-			ps1.setString(1, RawMetadataProcessor.TIKA_RAW_METADATA);
+			preparedStatement1.setString(
+				1, RawMetadataProcessor.TIKA_RAW_METADATA);
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String newDefinition = _upgradeIndexType(rs.getString(1));
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String newDefinition = _upgradeIndexType(
+						resultSet.getString(1));
 
-					ps2.setString(1, newDefinition);
+					preparedStatement2.setString(1, newDefinition);
 
-					ps2.setLong(2, rs.getLong(2));
+					preparedStatement2.setLong(2, resultSet.getLong(2));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 
-					ps3.setString(1, newDefinition);
+					preparedStatement3.setString(1, newDefinition);
 
-					ps3.setLong(2, rs.getLong(2));
+					preparedStatement3.setLong(2, resultSet.getLong(2));
 
-					ps3.addBatch();
+					preparedStatement3.addBatch();
 				}
 
-				ps2.executeBatch();
-				ps3.executeBatch();
+				preparedStatement2.executeBatch();
+				preparedStatement3.executeBatch();
 			}
 		}
 	}
@@ -103,9 +103,16 @@ public class DDMStructureIndexTypeUpgradeProcess extends UpgradeProcess {
 			return definitionJSONObject.toString();
 		}
 		catch (JSONException jsonException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(jsonException);
+			}
+
 			return definition;
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		DDMStructureIndexTypeUpgradeProcess.class);
 
 	private final JSONFactory _jsonFactory;
 

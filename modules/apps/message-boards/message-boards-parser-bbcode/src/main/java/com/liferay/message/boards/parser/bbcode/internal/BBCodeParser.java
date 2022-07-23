@@ -40,17 +40,13 @@ public class BBCodeParser {
 
 	public BBCodeParser() {
 		_blockElements = SetUtil.fromArray(
-			new String[] {
-				"*", "center", "code", "justify", "left", "li", "list", "q",
-				"quote", "right", "table", "td", "th", "tr"
-			});
+			"*", "center", "code", "justify", "left", "li", "list", "q",
+			"quote", "right", "table", "td", "th", "tr");
 
 		_inlineElements = SetUtil.fromArray(
-			new String[] {
-				"b", "color", "font", "i", "img", "s", "size", "u", "url"
-			});
+			"b", "color", "font", "i", "img", "s", "size", "u", "url");
 
-		_selfCloseElements = SetUtil.fromArray(new String[] {"*"});
+		_selfCloseElements = SetUtil.fromArray("*");
 	}
 
 	public List<BBCodeItem> parse(String text) {
@@ -128,7 +124,7 @@ public class BBCodeParser {
 				tag = bbCodeToken.getEndTag();
 			}
 
-			if (isValidTag(tag)) {
+			if (_isValidTag(tag)) {
 				length = bbCodeToken.getStart();
 			}
 		}
@@ -177,7 +173,7 @@ public class BBCodeParser {
 
 		String startTag = bbCodeToken.getStartTag();
 
-		if (!isValidTag(startTag)) {
+		if (!_isValidTag(startTag)) {
 			return;
 		}
 
@@ -213,7 +209,7 @@ public class BBCodeParser {
 		bbCodeItems.add(bbCodeItem);
 	}
 
-	protected boolean isValidTag(String tag) {
+	private boolean _isValidTag(String tag) {
 		if ((tag != null) && (tag.length() > 0)) {
 			Matcher matcher = _tagPattern.matcher(tag);
 

@@ -56,91 +56,9 @@ public class LayoutPrototypeUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeSchema();
+		_upgradeSchema();
 
-		upgradeLayoutPrototype();
-	}
-
-	protected void upgradeLayoutPrototype() throws Exception {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("insert into LayoutPageTemplateEntry (uuid_, ");
-		sb.append("layoutPageTemplateEntryId, groupId, companyId, userId, ");
-		sb.append("userName, createDate, modifiedDate, ");
-		sb.append("layoutPageTemplateCollectionId, name, type_, ");
-		sb.append("layoutPrototypeId, status) values (?, ?, ?, ?, ?, ?, ?, ");
-		sb.append("?, ?, ?, ?, ?, ?)");
-
-		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps =
-				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb.toString())) {
-
-			Set<String> existingNames = new HashSet<>();
-
-			List<LayoutPrototype> layoutPrototypes =
-				_layoutPrototypeLocalService.getLayoutPrototypes(
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-			for (LayoutPrototype layoutPrototype : layoutPrototypes) {
-				String nameXML = layoutPrototype.getName();
-
-				Company company = _companyLocalService.getCompany(
-					layoutPrototype.getCompanyId());
-
-				Map<Locale, String> nameMap =
-					LocalizationUtil.getLocalizationMap(nameXML);
-
-				Locale defaultLocale = LocaleUtil.fromLanguageId(
-					LocalizationUtil.getDefaultLanguageId(nameXML));
-
-				String name = nameMap.get(defaultLocale);
-
-				if (existingNames.contains(name)) {
-					name = _generateNewName(name, existingNames);
-
-					nameMap.put(defaultLocale, name);
-
-					layoutPrototype.setNameMap(nameMap);
-
-					_layoutPrototypeLocalService.updateLayoutPrototype(
-						layoutPrototype);
-				}
-
-				existingNames.add(name);
-
-				ps.setString(1, layoutPrototype.getUuid());
-				ps.setLong(2, increment());
-				ps.setLong(3, company.getGroupId());
-				ps.setLong(4, layoutPrototype.getCompanyId());
-				ps.setLong(5, layoutPrototype.getUserId());
-				ps.setString(6, layoutPrototype.getUserName());
-
-				Date date = new Date(System.currentTimeMillis());
-
-				ps.setDate(7, date);
-				ps.setDate(8, date);
-
-				ps.setLong(9, 0);
-				ps.setString(10, name);
-				ps.setInt(
-					11, LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE);
-				ps.setLong(12, layoutPrototype.getLayoutPrototypeId());
-				ps.setInt(13, WorkflowConstants.STATUS_APPROVED);
-
-				ps.addBatch();
-			}
-
-			ps.executeBatch();
-		}
-	}
-
-	protected void upgradeSchema() throws Exception {
-		String template = StringUtil.read(
-			LayoutPrototypeUpgradeProcess.class.getResourceAsStream(
-				"dependencies/update.sql"));
-
-		runSQLTemplateString(template, false);
+		_upgradeLayoutPrototype();
 	}
 
 	private String _generateNewName(String name, Set<String> existingNames) {
@@ -173,6 +91,102 @@ public class LayoutPrototypeUpgradeProcess extends UpgradeProcess {
 
 			return newName;
 		}
+	}
+
+	private void _upgradeLayoutPrototype() throws Exception {
+		Date date = new Date(System.currentTimeMillis());
+
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					StringBundler.concat(
+						"insert into LayoutPageTemplateEntry (uuid_, ",
+						"layoutPageTemplateEntryId, groupId, companyId, ",
+						"userId, userName, createDate, modifiedDate, ",
+						"layoutPageTemplateCollectionId, name, type_, ",
+						"layoutPrototypeId, status) values (?, ?, ?, ?, ?, ?, ",
+						"?, ?, ?, ?, ?, ?, ?)"))) {
+
+			Set<String> existingNames = new HashSet<>();
+
+			List<LayoutPrototype> layoutPrototypes =
+				_layoutPrototypeLocalService.getLayoutPrototypes(
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+			for (LayoutPrototype layoutPrototype : layoutPrototypes) {
+				String nameXML = layoutPrototype.getName();
+
+				Company company = _companyLocalService.getCompany(
+					layoutPrototype.getCompanyId());
+
+				Map<Locale, String> nameMap =
+					LocalizationUtil.getLocalizationMap(nameXML);
+
+				Locale defaultLocale = LocaleUtil.fromLanguageId(
+					LocalizationUtil.getDefaultLanguageId(nameXML));
+
+				String name = nameMap.get(defaultLocale);
+
+				if (existingNames.contains(name)) {
+					name = _generateNewName(name, existingNames);
+
+					nameMap.put(defaultLocale, name);
+
+					layoutPrototype.setNameMap(nameMap);
+
+					layoutPrototype =
+						_layoutPrototypeLocalService.updateLayoutPrototype(
+							layoutPrototype);
+				}
+
+				if ((layoutPrototype.getCreateDate() == null) ||
+					(layoutPrototype.getModifiedDate() == null)) {
+
+					if (layoutPrototype.getCreateDate() == null) {
+						layoutPrototype.setCreateDate(date);
+					}
+
+					if (layoutPrototype.getModifiedDate() == null) {
+						layoutPrototype.setModifiedDate(date);
+					}
+
+					_layoutPrototypeLocalService.updateLayoutPrototype(
+						layoutPrototype);
+				}
+
+				existingNames.add(name);
+
+				preparedStatement.setString(1, layoutPrototype.getUuid());
+				preparedStatement.setLong(2, increment());
+				preparedStatement.setLong(3, company.getGroupId());
+				preparedStatement.setLong(4, layoutPrototype.getCompanyId());
+				preparedStatement.setLong(5, layoutPrototype.getUserId());
+				preparedStatement.setString(6, layoutPrototype.getUserName());
+				preparedStatement.setDate(7, date);
+				preparedStatement.setDate(8, date);
+
+				preparedStatement.setLong(9, 0);
+				preparedStatement.setString(10, name);
+				preparedStatement.setInt(
+					11, LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE);
+				preparedStatement.setLong(
+					12, layoutPrototype.getLayoutPrototypeId());
+				preparedStatement.setInt(13, WorkflowConstants.STATUS_APPROVED);
+
+				preparedStatement.addBatch();
+			}
+
+			preparedStatement.executeBatch();
+		}
+	}
+
+	private void _upgradeSchema() throws Exception {
+		String template = StringUtil.read(
+			LayoutPrototypeUpgradeProcess.class.getResourceAsStream(
+				"dependencies/update.sql"));
+
+		runSQLTemplateString(template, false);
 	}
 
 	private static final int _MAX_NAME_LENGTH = 75;

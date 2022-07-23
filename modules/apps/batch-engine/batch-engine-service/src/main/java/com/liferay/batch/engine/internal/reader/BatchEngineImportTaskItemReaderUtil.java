@@ -14,11 +14,10 @@
 
 package com.liferay.batch.engine.internal.reader;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
@@ -27,6 +26,7 @@ import java.lang.reflect.Field;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Ivica Cardic
@@ -44,45 +44,51 @@ public class BatchEngineImportTaskItemReaderUtil {
 
 			Field field = null;
 
-			try {
-				field = itemClass.getDeclaredField(name);
-			}
-			catch (NoSuchFieldException noSuchFieldException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchFieldException, noSuchFieldException);
-				}
+			for (Field declaredField : itemClass.getDeclaredFields()) {
+				if (name.equals(declaredField.getName()) ||
+					Objects.equals(
+						StringPool.UNDERLINE + name, declaredField.getName())) {
 
-				field = itemClass.getDeclaredField(StringPool.UNDERLINE + name);
+					field = declaredField;
+
+					break;
+				}
+			}
+
+			if (field != null) {
+				field.setAccessible(true);
+
+				field.set(
+					item,
+					_objectMapper.convertValue(
+						entry.getValue(), field.getType()));
+
+				continue;
+			}
+
+			for (Field declaredField : itemClass.getDeclaredFields()) {
+				JsonAnySetter[] jsonAnySetters =
+					declaredField.getAnnotationsByType(JsonAnySetter.class);
+
+				if (jsonAnySetters.length > 0) {
+					field = declaredField;
+
+					break;
+				}
+			}
+
+			if (field == null) {
+				throw new NoSuchFieldException(entry.getKey());
 			}
 
 			field.setAccessible(true);
 
-			field.set(
-				item,
-				_objectMapper.convertValue(entry.getValue(), field.getType()));
+			Map<String, Object> map = (Map)field.get(item);
+
+			map.put(entry.getKey(), entry.getValue());
 		}
 
 		return item;
-	}
-
-	public static void handleMapField(
-		String fieldName, Map<String, Object> fieldNameValueMap,
-		int lastDelimiterIndex, String value) {
-
-		String key = fieldName.substring(lastDelimiterIndex + 1);
-
-		fieldName = fieldName.substring(0, lastDelimiterIndex);
-
-		Map<String, String> valueMap =
-			(Map<String, String>)fieldNameValueMap.get(fieldName);
-
-		if (valueMap == null) {
-			valueMap = new HashMap<>();
-
-			fieldNameValueMap.put(fieldName, valueMap);
-		}
-
-		valueMap.put(key, value);
 	}
 
 	public static Map<String, Object> mapFieldNames(
@@ -106,9 +112,6 @@ public class BatchEngineImportTaskItemReaderUtil {
 
 		return targetFieldNameValueMap;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		BatchEngineImportTaskItemReaderUtil.class);
 
 	private static final ObjectMapper _objectMapper = new ObjectMapper();
 

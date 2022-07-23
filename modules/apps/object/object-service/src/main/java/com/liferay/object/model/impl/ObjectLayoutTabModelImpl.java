@@ -19,9 +19,9 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.object.model.ObjectLayoutTab;
 import com.liferay.object.model.ObjectLayoutTabModel;
-import com.liferay.object.model.ObjectLayoutTabSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.model.CacheModel;
@@ -31,24 +31,29 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -78,7 +83,10 @@ public class ObjectLayoutTabModelImpl
 		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
 		{"objectLayoutTabId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP}
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"objectLayoutId", Types.BIGINT},
+		{"objectRelationshipId", Types.BIGINT}, {"name", Types.VARCHAR},
+		{"priority", Types.INTEGER}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -93,10 +101,14 @@ public class ObjectLayoutTabModelImpl
 		TABLE_COLUMNS_MAP.put("userName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("objectLayoutId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("objectRelationshipId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("priority", Types.INTEGER);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ObjectLayoutTab (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectLayoutTabId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null)";
+		"create table ObjectLayoutTab (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectLayoutTabId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectLayoutId LONG,objectRelationshipId LONG,name STRING null,priority INTEGER)";
 
 	public static final String TABLE_SQL_DROP = "drop table ObjectLayoutTab";
 
@@ -122,14 +134,26 @@ public class ObjectLayoutTabModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 2L;
+	public static final long OBJECTLAYOUTID_COLUMN_BITMASK = 2L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long OBJECTRELATIONSHIPID_COLUMN_BITMASK = 4L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 8L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long OBJECTLAYOUTTABID_COLUMN_BITMASK = 4L;
+	public static final long OBJECTLAYOUTTABID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -143,58 +167,6 @@ public class ObjectLayoutTabModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ObjectLayoutTab toModel(ObjectLayoutTabSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ObjectLayoutTab model = new ObjectLayoutTabImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setObjectLayoutTabId(soapModel.getObjectLayoutTabId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ObjectLayoutTab> toModels(
-		ObjectLayoutTabSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ObjectLayoutTab> models = new ArrayList<ObjectLayoutTab>(
-			soapModels.length);
-
-		for (ObjectLayoutTabSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public ObjectLayoutTabModelImpl() {
@@ -282,34 +254,6 @@ public class ObjectLayoutTabModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, ObjectLayoutTab>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ObjectLayoutTab.class.getClassLoader(), ObjectLayoutTab.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ObjectLayoutTab> constructor =
-				(Constructor<ObjectLayoutTab>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<ObjectLayoutTab, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<ObjectLayoutTab, Object>>
@@ -361,6 +305,26 @@ public class ObjectLayoutTabModelImpl
 			"modifiedDate",
 			(BiConsumer<ObjectLayoutTab, Date>)
 				ObjectLayoutTab::setModifiedDate);
+		attributeGetterFunctions.put(
+			"objectLayoutId", ObjectLayoutTab::getObjectLayoutId);
+		attributeSetterBiConsumers.put(
+			"objectLayoutId",
+			(BiConsumer<ObjectLayoutTab, Long>)
+				ObjectLayoutTab::setObjectLayoutId);
+		attributeGetterFunctions.put(
+			"objectRelationshipId", ObjectLayoutTab::getObjectRelationshipId);
+		attributeSetterBiConsumers.put(
+			"objectRelationshipId",
+			(BiConsumer<ObjectLayoutTab, Long>)
+				ObjectLayoutTab::setObjectRelationshipId);
+		attributeGetterFunctions.put("name", ObjectLayoutTab::getName);
+		attributeSetterBiConsumers.put(
+			"name",
+			(BiConsumer<ObjectLayoutTab, String>)ObjectLayoutTab::setName);
+		attributeGetterFunctions.put("priority", ObjectLayoutTab::getPriority);
+		attributeSetterBiConsumers.put(
+			"priority",
+			(BiConsumer<ObjectLayoutTab, Integer>)ObjectLayoutTab::setPriority);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
@@ -539,6 +503,178 @@ public class ObjectLayoutTabModelImpl
 		_modifiedDate = modifiedDate;
 	}
 
+	@JSON
+	@Override
+	public long getObjectLayoutId() {
+		return _objectLayoutId;
+	}
+
+	@Override
+	public void setObjectLayoutId(long objectLayoutId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_objectLayoutId = objectLayoutId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalObjectLayoutId() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("objectLayoutId"));
+	}
+
+	@JSON
+	@Override
+	public long getObjectRelationshipId() {
+		return _objectRelationshipId;
+	}
+
+	@Override
+	public void setObjectRelationshipId(long objectRelationshipId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_objectRelationshipId = objectRelationshipId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalObjectRelationshipId() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("objectRelationshipId"));
+	}
+
+	@JSON
+	@Override
+	public String getName() {
+		if (_name == null) {
+			return "";
+		}
+		else {
+			return _name;
+		}
+	}
+
+	@Override
+	public String getName(Locale locale) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		return getName(languageId);
+	}
+
+	@Override
+	public String getName(Locale locale, boolean useDefault) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		return getName(languageId, useDefault);
+	}
+
+	@Override
+	public String getName(String languageId) {
+		return LocalizationUtil.getLocalization(getName(), languageId);
+	}
+
+	@Override
+	public String getName(String languageId, boolean useDefault) {
+		return LocalizationUtil.getLocalization(
+			getName(), languageId, useDefault);
+	}
+
+	@Override
+	public String getNameCurrentLanguageId() {
+		return _nameCurrentLanguageId;
+	}
+
+	@JSON
+	@Override
+	public String getNameCurrentValue() {
+		Locale locale = getLocale(_nameCurrentLanguageId);
+
+		return getName(locale);
+	}
+
+	@Override
+	public Map<Locale, String> getNameMap() {
+		return LocalizationUtil.getLocalizationMap(getName());
+	}
+
+	@Override
+	public void setName(String name) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_name = name;
+	}
+
+	@Override
+	public void setName(String name, Locale locale) {
+		setName(name, locale, LocaleUtil.getDefault());
+	}
+
+	@Override
+	public void setName(String name, Locale locale, Locale defaultLocale) {
+		String languageId = LocaleUtil.toLanguageId(locale);
+		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
+
+		if (Validator.isNotNull(name)) {
+			setName(
+				LocalizationUtil.updateLocalization(
+					getName(), "Name", name, languageId, defaultLanguageId));
+		}
+		else {
+			setName(
+				LocalizationUtil.removeLocalization(
+					getName(), "Name", languageId));
+		}
+	}
+
+	@Override
+	public void setNameCurrentLanguageId(String languageId) {
+		_nameCurrentLanguageId = languageId;
+	}
+
+	@Override
+	public void setNameMap(Map<Locale, String> nameMap) {
+		setNameMap(nameMap, LocaleUtil.getDefault());
+	}
+
+	@Override
+	public void setNameMap(Map<Locale, String> nameMap, Locale defaultLocale) {
+		if (nameMap == null) {
+			return;
+		}
+
+		setName(
+			LocalizationUtil.updateLocalization(
+				nameMap, getName(), "Name",
+				LocaleUtil.toLanguageId(defaultLocale)));
+	}
+
+	@JSON
+	@Override
+	public int getPriority() {
+		return _priority;
+	}
+
+	@Override
+	public void setPriority(int priority) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_priority = priority;
+	}
+
 	@Override
 	public StagedModelType getStagedModelType() {
 		return new StagedModelType(
@@ -583,6 +719,72 @@ public class ObjectLayoutTabModelImpl
 	}
 
 	@Override
+	public String[] getAvailableLanguageIds() {
+		Set<String> availableLanguageIds = new TreeSet<String>();
+
+		Map<Locale, String> nameMap = getNameMap();
+
+		for (Map.Entry<Locale, String> entry : nameMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		return availableLanguageIds.toArray(
+			new String[availableLanguageIds.size()]);
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		String xml = getName();
+
+		if (xml == null) {
+			return "";
+		}
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException {
+		Locale defaultLocale = LocaleUtil.fromLanguageId(
+			getDefaultLanguageId());
+
+		Locale[] availableLocales = LocaleUtil.fromLanguageIds(
+			getAvailableLanguageIds());
+
+		Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(
+			ObjectLayoutTab.class.getName(), getPrimaryKey(), defaultLocale,
+			availableLocales);
+
+		prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		String modelDefaultLanguageId = getDefaultLanguageId();
+
+		String name = getName(defaultLocale);
+
+		if (Validator.isNull(name)) {
+			setName(getName(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setName(getName(defaultLocale), defaultLocale, defaultLocale);
+		}
+	}
+
+	@Override
 	public ObjectLayoutTab toEscapedModel() {
 		if (_escapedModel == null) {
 			Function<InvocationHandler, ObjectLayoutTab>
@@ -609,8 +811,44 @@ public class ObjectLayoutTabModelImpl
 		objectLayoutTabImpl.setUserName(getUserName());
 		objectLayoutTabImpl.setCreateDate(getCreateDate());
 		objectLayoutTabImpl.setModifiedDate(getModifiedDate());
+		objectLayoutTabImpl.setObjectLayoutId(getObjectLayoutId());
+		objectLayoutTabImpl.setObjectRelationshipId(getObjectRelationshipId());
+		objectLayoutTabImpl.setName(getName());
+		objectLayoutTabImpl.setPriority(getPriority());
 
 		objectLayoutTabImpl.resetOriginalValues();
+
+		return objectLayoutTabImpl;
+	}
+
+	@Override
+	public ObjectLayoutTab cloneWithOriginalValues() {
+		ObjectLayoutTabImpl objectLayoutTabImpl = new ObjectLayoutTabImpl();
+
+		objectLayoutTabImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		objectLayoutTabImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		objectLayoutTabImpl.setObjectLayoutTabId(
+			this.<Long>getColumnOriginalValue("objectLayoutTabId"));
+		objectLayoutTabImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		objectLayoutTabImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		objectLayoutTabImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		objectLayoutTabImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		objectLayoutTabImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		objectLayoutTabImpl.setObjectLayoutId(
+			this.<Long>getColumnOriginalValue("objectLayoutId"));
+		objectLayoutTabImpl.setObjectRelationshipId(
+			this.<Long>getColumnOriginalValue("objectRelationshipId"));
+		objectLayoutTabImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		objectLayoutTabImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
 
 		return objectLayoutTabImpl;
 	}
@@ -731,6 +969,21 @@ public class ObjectLayoutTabModelImpl
 			objectLayoutTabCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
+		objectLayoutTabCacheModel.objectLayoutId = getObjectLayoutId();
+
+		objectLayoutTabCacheModel.objectRelationshipId =
+			getObjectRelationshipId();
+
+		objectLayoutTabCacheModel.name = getName();
+
+		String name = objectLayoutTabCacheModel.name;
+
+		if ((name != null) && (name.length() == 0)) {
+			objectLayoutTabCacheModel.name = null;
+		}
+
+		objectLayoutTabCacheModel.priority = getPriority();
+
 		return objectLayoutTabCacheModel;
 	}
 
@@ -740,7 +993,7 @@ public class ObjectLayoutTabModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -751,9 +1004,26 @@ public class ObjectLayoutTabModelImpl
 			Function<ObjectLayoutTab, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ObjectLayoutTab)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ObjectLayoutTab)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -800,7 +1070,9 @@ public class ObjectLayoutTabModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ObjectLayoutTab>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ObjectLayoutTab.class, ModelWrapper.class);
 
 	}
 
@@ -813,6 +1085,11 @@ public class ObjectLayoutTabModelImpl
 	private Date _createDate;
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
+	private long _objectLayoutId;
+	private long _objectRelationshipId;
+	private String _name;
+	private String _nameCurrentLanguageId;
+	private int _priority;
 
 	public <T> T getColumnValue(String columnName) {
 		columnName = _attributeNames.getOrDefault(columnName, columnName);
@@ -851,6 +1128,11 @@ public class ObjectLayoutTabModelImpl
 		_columnOriginalValues.put("userName", _userName);
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
+		_columnOriginalValues.put("objectLayoutId", _objectLayoutId);
+		_columnOriginalValues.put(
+			"objectRelationshipId", _objectRelationshipId);
+		_columnOriginalValues.put("name", _name);
+		_columnOriginalValues.put("priority", _priority);
 	}
 
 	private static final Map<String, String> _attributeNames;
@@ -889,6 +1171,14 @@ public class ObjectLayoutTabModelImpl
 		columnBitmasks.put("createDate", 64L);
 
 		columnBitmasks.put("modifiedDate", 128L);
+
+		columnBitmasks.put("objectLayoutId", 256L);
+
+		columnBitmasks.put("objectRelationshipId", 512L);
+
+		columnBitmasks.put("name", 1024L);
+
+		columnBitmasks.put("priority", 2048L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

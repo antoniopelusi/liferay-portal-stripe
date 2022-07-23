@@ -61,12 +61,6 @@ public class UnicastSettingsContributor extends BaseSettingsContributor {
 			ElasticsearchConfiguration.class, properties);
 	}
 
-	protected void setClusterSettingsContext(
-		ClusterSettingsContext clusterSettingsContext) {
-
-		_clusterSettingsContext = clusterSettingsContext;
-	}
-
 	protected volatile ElasticsearchConfiguration elasticsearchConfiguration;
 
 	private String[] _getHosts() {

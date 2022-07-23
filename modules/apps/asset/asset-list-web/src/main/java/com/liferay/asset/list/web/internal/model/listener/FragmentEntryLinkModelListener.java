@@ -20,7 +20,7 @@ import com.liferay.asset.list.service.AssetListEntryUsageLocalService;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.util.configuration.FragmentConfigurationField;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.info.list.provider.InfoListProvider;
+import com.liferay.info.collection.provider.InfoCollectionProvider;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -67,7 +67,9 @@ public class FragmentEntryLinkModelListener
 	}
 
 	@Override
-	public void onAfterUpdate(FragmentEntryLink fragmentEntryLink)
+	public void onAfterUpdate(
+			FragmentEntryLink originalFragmentEntryLink,
+			FragmentEntryLink fragmentEntryLink)
 		throws ModelListenerException {
 
 		_updateAssetListEntryUsages(fragmentEntryLink);
@@ -100,7 +102,7 @@ public class FragmentEntryLinkModelListener
 				serviceContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 	}
 
@@ -152,7 +154,7 @@ public class FragmentEntryLinkModelListener
 
 			if (fieldValueJSONObject.has("key")) {
 				_addAssetListEntryUsage(
-					_portal.getClassNameId(InfoListProvider.class),
+					_portal.getClassNameId(InfoCollectionProvider.class),
 					fragmentEntryLink.getFragmentEntryLinkId(),
 					fragmentEntryLink.getGroupId(),
 					fieldValueJSONObject.getString("key"),

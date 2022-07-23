@@ -28,13 +28,12 @@ import com.liferay.commerce.notification.service.CommerceNotificationQueueEntryL
 import com.liferay.commerce.notification.test.util.CommerceNotificationTestUtil;
 import com.liferay.commerce.notification.util.CommerceNotificationHelper;
 import com.liferay.commerce.product.constants.CommerceChannelConstants;
+import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
@@ -46,9 +45,7 @@ import com.liferay.portal.kernel.service.UserGroupLocalService;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -71,7 +68,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommerceNotificationTest {
 
@@ -84,20 +80,17 @@ public class CommerceNotificationTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
-			_company.getCompanyId());
+			_group.getCompanyId());
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
-			_company.getCompanyId(), _group.getGroupId(), _user.getUserId());
+			_group.getCompanyId(), _group.getGroupId(), _user.getUserId());
 
-		_commerceChannelLocalService.addCommerceChannel(
+		_commerceChannel = _commerceChannelLocalService.addCommerceChannel(
 			StringPool.BLANK, _group.getGroupId(),
 			_group.getName(_serviceContext.getLanguageId()) + " Portal",
 			CommerceChannelConstants.CHANNEL_TYPE_SITE, null, StringPool.BLANK,
@@ -168,35 +161,17 @@ public class CommerceNotificationTest {
 				_serviceContext);
 
 		_commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
-			_user.getUserId(), _group.getGroupId(),
+			_user.getUserId(), _commerceChannel.getGroupId(),
 			_commerceCurrency.getCommerceCurrencyId());
 
 		_commerceNotificationHelper.sendNotifications(
 			_group.getGroupId(), _user.getUserId(),
 			CommerceOrderConstants.ORDER_NOTIFICATION_PLACED, _commerceOrder);
 
-		int commerceNotificationQueueEntriesCount =
+		Assert.assertEquals(
+			1,
 			_commerceNotificationQueueEntryLocalService.
-				getCommerceNotificationQueueEntriesCount(_group.getGroupId());
-
-		Assert.assertEquals(1, commerceNotificationQueueEntriesCount);
-	}
-
-	@Test(expected = NoSuchUserException.class)
-	public void testNonexistingEmailAddressRecipient() throws Exception {
-		_commerceNotificationTemplate =
-			CommerceNotificationTestUtil.addNotificationTemplate(
-				"nonexisting@mail.com",
-				CommerceOrderConstants.ORDER_NOTIFICATION_PLACED,
-				_serviceContext);
-
-		_commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
-			_user.getUserId(), _group.getGroupId(),
-			_commerceCurrency.getCommerceCurrencyId());
-
-		_commerceNotificationHelper.sendNotifications(
-			_group.getGroupId(), _user.getUserId(),
-			CommerceOrderConstants.ORDER_NOTIFICATION_PLACED, _commerceOrder);
+				getCommerceNotificationQueueEntriesCount(_group.getGroupId()));
 	}
 
 	@Test
@@ -208,7 +183,7 @@ public class CommerceNotificationTest {
 				_serviceContext);
 
 		_commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
-			_user.getUserId(), _group.getGroupId(),
+			_user.getUserId(), _commerceChannel.getGroupId(),
 			_commerceCurrency.getCommerceCurrencyId());
 
 		_commerceNotificationHelper.sendNotifications(
@@ -282,18 +257,17 @@ public class CommerceNotificationTest {
 				_serviceContext);
 
 		_commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
-			_user.getUserId(), _group.getGroupId(),
+			_user.getUserId(), _commerceChannel.getGroupId(),
 			_commerceCurrency.getCommerceCurrencyId());
 
 		_commerceNotificationHelper.sendNotifications(
 			_group.getGroupId(), _user.getUserId(),
 			CommerceOrderConstants.ORDER_NOTIFICATION_PLACED, _commerceOrder);
 
-		int commerceNotificationQueueEntriesCount =
+		Assert.assertEquals(
+			1,
 			_commerceNotificationQueueEntryLocalService.
-				getCommerceNotificationQueueEntriesCount(_group.getGroupId());
-
-		Assert.assertEquals(1, commerceNotificationQueueEntriesCount);
+				getCommerceNotificationQueueEntriesCount(_group.getGroupId()));
 	}
 
 	@Test
@@ -311,18 +285,17 @@ public class CommerceNotificationTest {
 				_serviceContext);
 
 		_commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
-			_user.getUserId(), _group.getGroupId(),
+			_user.getUserId(), _commerceChannel.getGroupId(),
 			_commerceCurrency.getCommerceCurrencyId());
 
 		_commerceNotificationHelper.sendNotifications(
 			_group.getGroupId(), _user.getUserId(),
 			CommerceOrderConstants.ORDER_NOTIFICATION_PLACED, _commerceOrder);
 
-		int commerceNotificationQueueEntriesCount =
+		Assert.assertEquals(
+			1,
 			_commerceNotificationQueueEntryLocalService.
-				getCommerceNotificationQueueEntriesCount(_group.getGroupId());
-
-		Assert.assertEquals(1, commerceNotificationQueueEntriesCount);
+				getCommerceNotificationQueueEntriesCount(_group.getGroupId()));
 	}
 
 	private void _setUpAccountAdministrator() throws Exception {
@@ -339,7 +312,7 @@ public class CommerceNotificationTest {
 			_serviceContext);
 
 		_accountAdminRole = _roleLocalService.fetchRole(
-			_company.getCompanyId(),
+			_group.getCompanyId(),
 			CommerceAccountConstants.ROLE_NAME_ACCOUNT_ADMINISTRATOR);
 
 		if (_accountAdminRole == null) {
@@ -373,7 +346,7 @@ public class CommerceNotificationTest {
 			new long[] {_serviceContext.getScopeGroupId()}, _serviceContext);
 
 		_orderManagerRole = _roleLocalService.fetchRole(
-			_company.getCompanyId(), "Order Manager");
+			_group.getCompanyId(), "Order Manager");
 
 		if (_orderManagerRole == null) {
 			_orderManagerRole = _roleLocalService.addRole(
@@ -398,7 +371,7 @@ public class CommerceNotificationTest {
 
 	private String _setUpUserGroup() throws Exception {
 		UserGroup userGroup = _userGroupLocalService.addUserGroup(
-			_user.getUserId(), _company.getCompanyId(), "Test User Group",
+			_user.getUserId(), _group.getCompanyId(), "Test User Group",
 			RandomTestUtil.randomString(), _serviceContext);
 
 		long[] userIds = new long[1];
@@ -411,11 +384,16 @@ public class CommerceNotificationTest {
 		return userGroup.getName();
 	}
 
+	private static User _user;
+
 	@DeleteAfterTestRun
 	private User _accountAdmin;
 
 	private Role _accountAdminRole;
 	private CommerceAccount _commerceAccount;
+
+	@DeleteAfterTestRun
+	private CommerceChannel _commerceChannel;
 
 	@Inject
 	private CommerceChannelLocalService _commerceChannelLocalService;
@@ -436,9 +414,6 @@ public class CommerceNotificationTest {
 	@DeleteAfterTestRun
 	private CommerceOrder _commerceOrder;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	private boolean _createdAdminRole;
 	private boolean _createdOrderManagerRole;
 	private Group _group;
@@ -449,7 +424,6 @@ public class CommerceNotificationTest {
 	private RoleLocalService _roleLocalService;
 
 	private ServiceContext _serviceContext;
-	private User _user;
 
 	@Inject
 	private UserGroupLocalService _userGroupLocalService;

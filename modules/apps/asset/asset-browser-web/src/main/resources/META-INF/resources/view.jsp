@@ -37,6 +37,7 @@
 		<liferay-ui:search-container-row
 			className="com.liferay.asset.kernel.model.AssetEntry"
 			escapedModel="<%= true %>"
+			keyProperty="entryId"
 			modelVar="assetEntry"
 		>
 
@@ -207,7 +208,7 @@
 
 					<%
 					if (assetRenderer == null) {
-						_log.error("Unable to get asset renderer for assetEntry with primary key " + assetEntry.getEntryId());
+						_log.error("Unable to get asset renderer for asset entry with primary key " + assetEntry.getEntryId());
 					}
 
 					row.setSkip(true);
@@ -225,49 +226,7 @@
 </aui:form>
 
 <c:choose>
-	<c:when test="<%= assetBrowserDisplayContext.isMultipleSelection() %>">
-		<aui:script use="liferay-search-container">
-			var searchContainer = Liferay.SearchContainer.get(
-				'<portlet:namespace />selectAssetEntries'
-			);
-
-			searchContainer.on('rowToggled', (event) => {
-				var selectedItems = event.elements.allSelectedElements;
-
-				var arr = [];
-
-				selectedItems.each(function () {
-					var domElement = this.ancestor('tr');
-
-					if (domElement == null) {
-						domElement = this.ancestor('li');
-					}
-
-					if (domElement != null) {
-						var data = domElement.getDOM().dataset;
-
-						arr.push(data);
-					}
-				});
-
-				Liferay.Util.getOpener().Liferay.fire(
-					'<%= HtmlUtil.escapeJS(assetBrowserDisplayContext.getEventName()) %>',
-					{
-						data: arr,
-					}
-				);
-			});
-		</aui:script>
-	</c:when>
-	<c:when test="<%= assetBrowserDisplayContext.isLegacySingleSelection() %>">
-		<aui:script>
-			Liferay.Util.selectEntityHandler(
-				'#<portlet:namespace />selectAssetFm',
-				'<%= HtmlUtil.escapeJS(assetBrowserDisplayContext.getEventName()) %>'
-			);
-		</aui:script>
-	</c:when>
-	<c:otherwise>
+	<c:when test="<%= !assetBrowserDisplayContext.isMultipleSelection() %>">
 		<aui:script require="frontend-js-web/liferay/delegate/delegate.es as delegateModule">
 			var delegate = delegateModule.default;
 
@@ -295,7 +254,7 @@
 
 			Liferay.on('destroyPortlet', onDestroyPortlet);
 		</aui:script>
-	</c:otherwise>
+	</c:when>
 </c:choose>
 
 <%!

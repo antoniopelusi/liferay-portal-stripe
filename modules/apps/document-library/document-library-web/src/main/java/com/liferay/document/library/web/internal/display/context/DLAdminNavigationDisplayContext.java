@@ -15,7 +15,7 @@
 package com.liferay.document.library.web.internal.display.context;
 
 import com.liferay.document.library.constants.DLPortletKeys;
-import com.liferay.document.library.web.internal.display.context.util.DLRequestHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemListBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
@@ -90,14 +90,11 @@ public class DLAdminNavigationDisplayContext {
 				_liferayPortletResponse
 			).setMVCRenderCommandName(
 				"/document_library/view"
-			).setRedirect(
-				_currentURLObj.toString()
 			).buildString());
 
 		navigationItem.setLabel(
 			LanguageUtil.get(
-				_liferayPortletRequest.getHttpServletRequest(),
-				"documents-and-media"));
+				_liferayPortletRequest.getHttpServletRequest(), "files"));
 	}
 
 	private void _populateFileEntryTypesNavigationItem(
@@ -108,8 +105,6 @@ public class DLAdminNavigationDisplayContext {
 		navigationItem.setHref(
 			PortletURLBuilder.createRenderURL(
 				_liferayPortletResponse
-			).setRedirect(
-				_currentURLObj.toString()
 			).setNavigation(
 				"file_entry_types"
 			).buildString());
@@ -130,10 +125,6 @@ public class DLAdminNavigationDisplayContext {
 		navigationItem.setHref(
 			PortletURLBuilder.createRenderURL(
 				_liferayPortletResponse
-			).setRedirect(
-				_currentURLObj.toString()
-			).setBackURL(
-				_themeDisplay.getURLCurrent()
 			).setNavigation(
 				"file_entry_metadata_sets"
 			).setParameter(

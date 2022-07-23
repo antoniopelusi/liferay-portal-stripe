@@ -20,22 +20,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hibernate.engine.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.Type;
-import org.hibernate.usertype.CompositeUserType;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author Brian Wing Shun Chan
  */
-public class DoubleType implements CompositeUserType, Serializable {
+public class DoubleType implements Serializable, UserType {
 
 	public static final Double DEFAULT_VALUE = Double.valueOf(0);
 
 	@Override
-	public Object assemble(
-		Serializable cached, SessionImplementor session, Object owner) {
-
+	public Object assemble(Serializable cached, Object owner) {
 		return cached;
 	}
 
@@ -45,7 +42,7 @@ public class DoubleType implements CompositeUserType, Serializable {
 	}
 
 	@Override
-	public Serializable disassemble(Object value, SessionImplementor session) {
+	public Serializable disassemble(Object value) {
 		return (Serializable)value;
 	}
 
@@ -62,21 +59,6 @@ public class DoubleType implements CompositeUserType, Serializable {
 	}
 
 	@Override
-	public String[] getPropertyNames() {
-		return new String[0];
-	}
-
-	@Override
-	public Type[] getPropertyTypes() {
-		return new Type[] {StandardBasicTypes.DOUBLE};
-	}
-
-	@Override
-	public Object getPropertyValue(Object component, int property) {
-		return component;
-	}
-
-	@Override
 	public int hashCode(Object x) {
 		return x.hashCode();
 	}
@@ -88,12 +70,13 @@ public class DoubleType implements CompositeUserType, Serializable {
 
 	@Override
 	public Object nullSafeGet(
-			ResultSet rs, String[] names, SessionImplementor session,
+			ResultSet resultSet, String[] names,
+			SharedSessionContractImplementor sharedSessionContractImplementor,
 			Object owner)
 		throws SQLException {
 
 		Double value = StandardBasicTypes.DOUBLE.nullSafeGet(
-			rs, names[0], session);
+			resultSet, names[0], sharedSessionContractImplementor);
 
 		if (value == null) {
 			return DEFAULT_VALUE;
@@ -104,22 +87,19 @@ public class DoubleType implements CompositeUserType, Serializable {
 
 	@Override
 	public void nullSafeSet(
-			PreparedStatement ps, Object target, int index,
-			SessionImplementor session)
+			PreparedStatement preparedStatement, Object target, int index,
+			SharedSessionContractImplementor sharedSessionContractImplementor)
 		throws SQLException {
 
 		if (target == null) {
 			target = DEFAULT_VALUE;
 		}
 
-		ps.setDouble(index, (Double)target);
+		preparedStatement.setDouble(index, (Double)target);
 	}
 
 	@Override
-	public Object replace(
-		Object original, Object target, SessionImplementor session,
-		Object owner) {
-
+	public Object replace(Object original, Object target, Object owner) {
 		return original;
 	}
 
@@ -129,7 +109,8 @@ public class DoubleType implements CompositeUserType, Serializable {
 	}
 
 	@Override
-	public void setPropertyValue(Object component, int property, Object value) {
+	public int[] sqlTypes() {
+		return new int[] {StandardBasicTypes.DOUBLE.sqlType()};
 	}
 
 }

@@ -41,6 +41,10 @@ public class SearchEngineHelperUtil {
 		return _searchEngineHelper.getEntryClassNames();
 	}
 
+	public static Collection<Long> getIndexedCompanyIds() {
+		return _searchEngineHelper.getIndexedCompanyIds();
+	}
+
 	public static SearchEngine getSearchEngine(String searchEngineId) {
 		return _searchEngineHelper.getSearchEngine(searchEngineId);
 	}
@@ -85,6 +89,10 @@ public class SearchEngineHelperUtil {
 
 	public static void removeCompany(long companyId) {
 		_searchEngineHelper.removeCompany(companyId);
+	}
+
+	public static void removeCompany(long companyId, boolean force) {
+		_searchEngineHelper.removeCompany(companyId, force);
 	}
 
 	public static SearchEngine removeSearchEngine(String searchEngineId) {

@@ -1,0 +1,474 @@
+@component-name = "portal-document-management"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Bulk Editing";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Documents and Media Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Documents and Media Page",
+			widgetName = "Documents and Media");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMDocument.enableActionsMenuOnPortlet();
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			DMDocument.tearDownCP();
+
+			DMFolder.tearDownCP();
+
+			User.logoutPG();
+		}
+	}
+
+	@description = "This test adds a tag for a single document via management toolbar"
+	@priority = "4"
+	test AddTagToSingleAsset {
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.jpeg,Document_2.docx");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_1");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(tagName = "newtag");
+
+		DMNavigator.gotoDocumentPG(dmDocumentTitle = "Document_1");
+
+		DMDocument.viewTagInfo(tagName = "newtag");
+
+		SearchPortlets.searchEmbedded(searchTerm = "newtag");
+
+		SearchResultPortlet.viewSearchResults(
+			searchAssetTitle = "Document_1",
+			searchAssetType = "Document");
+	}
+
+	@description = "This test covers LPS-91749. It ensures that a user can edit tags by using the bulk append action for checked out document files."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanEditAndAppendTagForCheckedOutFiles {
+
+		// TODO LPS-149965 CanEditAndAppendTagsForCheckedOutFiles pending implementation
+
+	}
+
+	@description = "This test covers LPS-94956. It ensures that users can delete common category tags by using the bulk append action."
+	@priority = "5"
+	test DeleteCommonCategoryTags {
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.doc,Document_2.jpg");
+
+		for (var categoryName : list "Books,Plants,Pets") {
+			JSONCategory.addCategory(
+				groupName = "Guest",
+				title = "${categoryName}",
+				vocabularyName = "Topic");
+		}
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddCategoriesPG(dmDocumentTitleList = "Document_1");
+
+		DMDocument.editCategoryTags(categoryNameList = "Books,Plants");
+
+		DMDocument.unselectDocuments(dmDocumentTitle = "Document_1");
+
+		DMNavigator.gotoAddCategoriesPG(dmDocumentTitleList = "Document_2");
+
+		DMDocument.editCategoryTags(categoryNameList = "Books,Pets");
+
+		DMDocument.unselectDocuments(dmDocumentTitle = "Document_2");
+
+		DMNavigator.gotoAddCategoriesPG(dmDocumentTitleList = "Document_1,Document_2");
+
+		DMDocument.removeCategories(categoriesNameList = "Books");
+
+		DMNavigator.gotoDocumentPG(dmDocumentTitle = "Document_1");
+
+		DMDocument.viewCategoriesInfo(categoryNameList = "Plants");
+
+		DMDocument.viewNoCategoriesPG(categoryName = "Books");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoDocumentPG(dmDocumentTitle = "Document_2");
+
+		DMDocument.viewCategoriesInfo(categoryNameList = "Pets");
+
+		DMDocument.viewNoCategoriesPG(categoryName = "Books");
+	}
+
+	@description = "This test covers LPS-94955. It ensures that users can edit category tags by using the bulk append action."
+	@priority = "5"
+	test EditAndAppendCategoryTags {
+		property portal.acceptance = "true";
+
+		JSONCategory.addVocabulary(
+			groupName = "Guest",
+			title = "Vocabulary Name");
+
+		JSONCategory.addCategory(
+			groupName = "Guest",
+			title = "Books",
+			vocabularyName = "Vocabulary Name");
+
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.doc,Document_2.jpg");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddCategoriesPG(dmDocumentTitleList = "Document_1,Document_2");
+
+		DMDocument.editCategoryTags(
+			categoryNameList = "Books",
+			itemNumber = "2",
+			multipleDocuments = "true");
+
+		for (var key_dmDocumentTitle : list "Document_1,Document_2") {
+			DMNavigator.gotoDocumentPG(dmDocumentTitle = "${key_dmDocumentTitle}");
+
+			DMDocument.viewCategoriesInfo(categoryName = "Books");
+
+			Navigator.gotoPage(pageName = "Documents and Media Page");
+		}
+	}
+
+	@description = "This test edits tags by using the bulk append action."
+	@priority = "4"
+	test EditAndAppendTags {
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.doc,Document_2.jpg,Document_3.xls,Document_4.txt");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_2,Document_4");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(
+			itemNumber = "2",
+			multipleDocuments = "true",
+			tagName = "tagone");
+
+		for (var key_dmDocumentTitle : list "Document_2,Document_4") {
+			DMNavigator.gotoDocumentPG(dmDocumentTitle = "${key_dmDocumentTitle}");
+
+			DMDocument.viewTagInfo(tagName = "tagone");
+
+			Navigator.gotoPage(pageName = "Documents and Media Page");
+		}
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_2,Document_4");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(
+			itemNumber = "2",
+			multipleDocuments = "true",
+			tagName = "tagtwo");
+
+		for (var key_dmDocumentTitle : list "Document_2,Document_4") {
+			DMNavigator.gotoDocumentPG(dmDocumentTitle = "${key_dmDocumentTitle}");
+
+			DMDocument.viewTagInfo(tagName = "tagone,tagtwo");
+
+			Navigator.gotoPage(pageName = "Documents and Media Page");
+		}
+
+		for (var key_searchTerm : list "tagone,tagtwo") {
+			SearchPortlets.searchEmbedded(searchTerm = "${key_searchTerm}");
+
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "Document_2",
+				searchAssetType = "Document");
+
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "Document_4",
+				searchAssetType = "Document");
+		}
+	}
+
+	@description = "This test edits tags by using the bulk append action, also covers LPS-91586."
+	@priority = "4"
+	test EditAndReplaceTags {
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.doc,Document_2.jpg,Document_3.xls,Document_4.txt");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_1");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(tagName = "one");
+
+		DMDocument.unselectDocuments(dmDocumentTitle = "Document_1");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_2");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(tagName = "two");
+
+		DMDocument.unselectDocuments(dmDocumentTitle = "Document_2");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_3");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(tagName = "three");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_1,Document_3");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(
+			editAction = "Replace",
+			itemNumber = "2",
+			multipleDocuments = "true",
+			tagName = "four");
+
+		for (var key_dmDocumentTitle : list "Document_1,Document_3") {
+			DMNavigator.gotoDocumentPG(dmDocumentTitle = "${key_dmDocumentTitle}");
+
+			DMDocument.viewTagInfo(tagName = "four");
+
+			Navigator.gotoPage(pageName = "Documents and Media Page");
+		}
+
+		SearchPortlets.searchEmbedded(searchTerm = "four");
+
+		SearchResultPortlet.viewSearchResults(
+			searchAssetTitle = "Document_1",
+			searchAssetType = "Document");
+
+		SearchResultPortlet.viewSearchResults(
+			searchAssetTitle = "Document_3",
+			searchAssetType = "Document");
+
+		for (var key_searchTerm : list "one,three") {
+			SearchPortlets.searchEmbedded(searchTerm = "${key_searchTerm}");
+
+			SearchResultPortlet.viewNoSearchResults(searchTerm = "${key_searchTerm}");
+		}
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_1,Document_2");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		DMDocument.editTags(
+			editAction = "Replace",
+			itemNumber = "2",
+			multipleDocuments = "true",
+			tagName = "");
+
+		for (var key_dmDocumentTitle : list "Document_1,Document_2") {
+			DMNavigator.gotoDocumentPG(dmDocumentTitle = "${key_dmDocumentTitle}");
+
+			DMDocument.viewNoTagInfo();
+
+			Navigator.gotoPage(pageName = "Documents and Media Page");
+		}
+	}
+
+	@description = "This test selects multiple documents and moves them into one folder."
+	@priority = "5"
+	test MoveDocumentsToFolder {
+		DMFolder.addPG(
+			dmFolderDescription = "Folder 1",
+			dmFolderName = "Folder 1");
+
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.doc,Document_2.doc");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_1,Document_2");
+
+		DMDocument.moveToFolderPG(
+			bulkSelection = "2 of 3 Selected",
+			dmFolderName = "Folder 1");
+
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoFolder(dmFolderName = "Folder 1");
+
+		DMDocument.viewPG(dmDocumentTitle = "Document_1");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoFolder(dmFolderName = "Folder 1");
+
+		DMDocument.viewPG(dmDocumentTitle = "Document_2");
+	}
+
+	@description = "This test covers LPS-94994. It ensures that users can edit category tags by using the bulk append action."
+	@priority = "5"
+	test ReplaceUncommonCategoryTags {
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.doc,Document_2.jpg");
+
+		for (var categoryName : list "Books,Plants,Pets,Furniture") {
+			JSONCategory.addCategory(
+				groupName = "Guest",
+				title = "${categoryName}",
+				vocabularyName = "Topic");
+		}
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddCategoriesPG(dmDocumentTitleList = "Document_1");
+
+		DMDocument.editCategoryTags(categoryNameList = "Books,Plants");
+
+		DMDocument.unselectDocuments(dmDocumentTitle = "Document_1");
+
+		DMNavigator.gotoAddCategoriesPG(dmDocumentTitleList = "Document_2");
+
+		DMDocument.editCategoryTags(categoryNameList = "Books,Pets");
+
+		DMDocument.unselectDocuments(dmDocumentTitle = "Document_2");
+
+		DMNavigator.gotoAddCategoriesPG(dmDocumentTitleList = "Document_1,Document_2");
+
+		DMDocument.editCategoryTags(
+			categoryNameList = "Furniture",
+			editAction = "Replace",
+			itemNumber = "2",
+			multipleDocuments = "true");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		for (var key_dmDocumentTitle : list "Document_1,Document_2") {
+			DMNavigator.gotoDocumentPG(dmDocumentTitle = "${key_dmDocumentTitle}");
+
+			DMDocument.viewCategoriesInfo(categoryNameList = "Books,Furniture");
+
+			Navigator.gotoPage(pageName = "Documents and Media Page");
+		}
+	}
+
+	@description = "This test covers LPS-89636. It saves tags without clicking Enter or adding a Comma."
+	@priority = "4"
+	test SaveTags {
+		DMDocument.addMultiplePG(dmDocumentFileList = "Document_1.doc,Document_2.jpg,Document_3.xls,Document_4.txt");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "Document_1,Document_2,Document_3,Document_4");
+
+		Click(locator1 = "Icon#EDIT_TAGS");
+
+		SelectFrame(value1 = "relative=top");
+
+		AssertTextEquals(
+			locator1 = "Modal#HEADER",
+			value1 = "Edit Tags");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Modal#BODY",
+			value1 = "You are editing the common tags for 4 items. Select edit or replace current tags.");
+
+		Click(locator1 = "Modal#BODY");
+
+		Type(
+			locator1 = "DocumentsAndMedia#EDIT_TAGS_FIELD",
+			value1 = "tagone");
+
+		Button.clickSave();
+
+		SelectFrame(value1 = "relative=top");
+
+		Alert.viewSuccessMessageText(successMessage = "Changes Saved");
+
+		for (var key_dmDocumentTitle : list "Document_1,Document_2,Document_3,Document_4") {
+			DMNavigator.gotoDocumentPG(dmDocumentTitle = "${key_dmDocumentTitle}");
+
+			DMDocument.viewTagInfo(tagName = "tagone");
+
+			Navigator.gotoPage(pageName = "Documents and Media Page");
+		}
+	}
+
+	@priority = "4"
+	@refactordone
+	test SingleDocumentSelectionDoesNotCheckAllEntries {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document1 Title",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document2 Title",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		DMDocument.checkDocumentCheckboxCP(dmDocumentTitle = "DM Document1 Title");
+
+		AssertElementPresent(locator1 = "Checkbox#SELECT_ALL_CHECKBOX_TICK");
+
+		DMDocument.uncheckDocumentCheckboxCP(dmDocumentTitle = "DM Document1 Title");
+
+		AssertElementNotPresent(locator1 = "Checkbox#SELECT_ALL_CHECKBOX_TICK");
+	}
+
+	@description = "This test covers LPS-91524. It asserts that the Edit Tags icon is disabled when workflow is enabled. "
+	@priority = "4"
+	test ViewEditTagsIconWithWorkflow {
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Guest");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMFolder.configureWorkflowCP(
+			dmFolderName = "DM Folder Name",
+			workflowDefinition = "Single Approver",
+			workflowRestriction = "Default Workflow");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMNavigator.gotoFolder(dmFolderName = "DM Folder Name");
+
+		DMDocument.addWithWorkflowCP(
+			dmDocumentDescription = "DM Document 1 in Folder",
+			dmDocumentFile = "Document_1.doc",
+			dmDocumentTitle = "DM Document 1 in Folder");
+
+		DMDocument.addWithWorkflowCP(
+			dmDocumentDescription = "DM Document 2 in Folder",
+			dmDocumentFile = "Document_2.jpg",
+			dmDocumentTitle = "DM Document 2 in Folder");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		DMNavigator.gotoFolder(dmFolderName = "DM Folder Name");
+
+		DMDocument.selectDocuments(dmDocumentTitle = "DM Document 1 in Folder,DM Document 2 in Folder");
+
+		AssertElementPresent(locator1 = "Icon#EDIT_TAGS_DISABLED");
+	}
+
+}

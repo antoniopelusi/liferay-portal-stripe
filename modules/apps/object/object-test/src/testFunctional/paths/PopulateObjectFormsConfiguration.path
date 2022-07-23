@@ -1,0 +1,146 @@
+<html>
+<head>
+<title>PopulateObjectFormsConfiguration</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">PopulateObjectFormsConfiguration</td></tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td>ALERT_ICON_MESSAGE</td>
+		<td>//span[contains(text(),'This form was created using an inactive object as storage type. Activate "Custom Object 59" object to make it available for editing.')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ANY_SEARCHABLE_SECTION_TITLE</td>
+		<td>//*[contains (text(), 'Searchable')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OPEN_FORM_SETTINGS</td>
+		<td>//button[@class='btn btn-monospaced btn-outline-borderless btn-outline-secondary btn-sm lfr-ddm-button lfr-ddm-settings-button']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DEFAULT_STORAGE_TYPE</td>
+		<td>//div[(@class='option-selected') and contains(text(),'Default')]/../../div[@class='form-control results-chosen select-field-trigger']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DISPLAY_SELECT_OBJECT</td>
+		<td>//button[@label='${key_label}']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DEFAULT_SELECT_OBJECT</td>
+		<td>//div[(@class='form-builder-select-field input-group-container')and contains(.,'Choose an Option')]/div[@class='form-control results-chosen select-field-trigger']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>BUTTON_SETTINGS_FORM</td>
+		<td>//button[@class='btn btn-primary']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>BUTTON_SAVE_FORM</td>
+		<td>//button[contains(.,'Save') and not (contains(@class,'disabled'))]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>BUTTON_PUBLISH_FORM</td>
+		<td>//button[@class='btn btn-primary btn-sm lfr-ddm-button lfr-ddm-publish-button']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_FORM_FIELDS_ERROR_MODAL_TITLE</td>
+		<td>//div[@class='modal-title' and contains(text(),'Unmapped Object Required Fields')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_FORM_FIELDS_ERROR_MODAL_BODY</td>
+		<td>//div[@class='modal-body']//p[contains(text(),'All fields in this form must be mapped to a field in the object.')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_FORM_FIELDS_ERROR_PANEL_TITLE</td>
+		<td>//span[@class='panel-title' and contains(text(),'Unmapped Form Fields')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_FORM_FIELDS_ERROR_PANEL_BODY</td>
+		<td>//strong[@class='text-capitalize' and contains(text(),'${key_fieldType}')]/following-sibling::ol//li[contains(text(),'${key_fieldLabel}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_MODAL_TITLE</td>
+		<td>//div[@class='modal-title' and contains(text(),'Unmapped Object Required Fields')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_MODAL_BODY</td>
+		<td>//div[@class='modal-body']//p[contains(text(),'To save this form, all required fields of the selected object need to be mapped.')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_PANEL_TITLE</td>
+		<td>//span[@class='panel-title' and contains(text(),'Unmapped Object Required Fields')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UNMAPPED_OBJECT_REQUIRED_FIELDS_ERROR_PANEL_BODY</td>
+		<td>//strong[@class='text-capitalize' and contains(text(),'${key_fieldType}')]/following-sibling::ol//li[contains(text(),'${key_fieldLabelName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>CLOSE_UNMAPPED_ERROR</td>
+		<td>//button[@class='btn btn-secondary']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>BUILDER_FORM_FIELDS</td>
+		<td>//button[@class='mr-2 btn btn-secondary']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADVANCED_TAB</td>
+		<td>//button[@class='nav-link btn btn-unstyled']/span[@class='navbar-text-truncate' and contains(.,'Advanced')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>OBJECT_FIELD_TAB</td>
+		<td>//div[@class='form-control results-chosen select-field-trigger']//div[contains(text(),'Choose an Option')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>MAP_OBJECT_FIELD</td>
+		<td>//button[@label='${key_fieldLabelName}']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>GO_TO_FORM_FIELD</td>
+		<td>//label[contains(.,'${key_formFieldName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>REPEATABLE_TOGGLE_SWITCH</td>
+		<td>//div[@data-field-name = 'repeatable']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>REQUIRED_FIELD_OPTION_DISABLED</td>
+		<td>//label[@class = 'toggle-switch' and contains(text(),'Required Field')]//label[@class = 'toggle-switch simple-toggle-switch disabled']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>FORM_OBJECT_FIELD</td>
+		<td>//div[@data-field-name='objectFieldName']//div[contains(text(),'${key_formObjectField}')]</td>
+		<td></td>
+	</tr>
+</tbody>
+</table>
+</body>
+</html>

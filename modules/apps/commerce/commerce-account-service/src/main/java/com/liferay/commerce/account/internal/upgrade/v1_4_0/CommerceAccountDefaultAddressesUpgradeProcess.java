@@ -14,8 +14,6 @@
 
 package com.liferay.commerce.account.internal.upgrade.v1_4_0;
 
-import com.liferay.commerce.account.model.impl.CommerceAccountImpl;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -26,9 +24,14 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 public class CommerceAccountDefaultAddressesUpgradeProcess
 	extends UpgradeProcess {
 
-	protected void addColumn(
-			Class<?> entityClass, String tableName, String columnName,
-			String columnType)
+	@Override
+	protected void doUpgrade() throws Exception {
+		_addColumn("CommerceAccount", "defaultBillingAddressId", "LONG");
+		_addColumn("CommerceAccount", "defaultShippingAddressId", "LONG");
+	}
+
+	private void _addColumn(
+			String tableName, String columnName, String columnType)
 		throws Exception {
 
 		if (_log.isInfoEnabled()) {
@@ -38,10 +41,7 @@ public class CommerceAccountDefaultAddressesUpgradeProcess
 		}
 
 		if (!hasColumn(tableName, columnName)) {
-			alter(
-				entityClass,
-				new UpgradeProcess.AlterTableAddColumn(
-					columnName + StringPool.SPACE + columnType));
+			alterTableAddColumn(tableName, columnName, columnType);
 		}
 		else {
 			if (_log.isInfoEnabled()) {
@@ -51,16 +51,6 @@ public class CommerceAccountDefaultAddressesUpgradeProcess
 						tableName));
 			}
 		}
-	}
-
-	@Override
-	protected void doUpgrade() throws Exception {
-		addColumn(
-			CommerceAccountImpl.class, CommerceAccountImpl.TABLE_NAME,
-			"defaultBillingAddressId", "LONG");
-		addColumn(
-			CommerceAccountImpl.class, CommerceAccountImpl.TABLE_NAME,
-			"defaultShippingAddressId", "LONG");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

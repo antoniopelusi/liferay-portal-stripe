@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>CalendarPage</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">CalendarPage</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>MINI_CALENDAR_SIDE_BAR</td>
+	<td>//div[contains(@class,'calendar-portlet-mini-calendar')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CURRENT_MONTH_BY_MINI_CALENDAR</td>
+	<td>//div[contains(@class,'calendar-portlet-mini-calendar')]//..//h1[contains(text(),'')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CURRENT_MONTH_BY_BASE_NAV</td>
+	<td>//div[contains(@class,'scheduler-base-nav-date') and text()='${currentMonth}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_AGENDA_CURRENT_DAY</td>
+	<td>//div[contains(@class,'scheduler-view-agenda-info-label') and not(contains(@class,'hide'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MINI_CALENDAR_SIDE_BAR_HIDE</td>
+	<td>//div[contains(@class, 'calendar-portlet-column-options hide')]</td>
+	<td></td>
+</tr>
+
+</tbody>
+</table>
+</body>
+</html>

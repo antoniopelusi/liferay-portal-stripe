@@ -15,7 +15,7 @@
 package com.liferay.dynamic.data.mapping.form.web.internal.display.context;
 
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
-import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormWebRequestHelper;
+import com.liferay.dynamic.data.mapping.form.web.internal.display.context.helper.DDMFormWebRequestHelper;
 import com.liferay.dynamic.data.mapping.form.web.internal.search.DDMFormInstanceSearch;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -83,20 +84,10 @@ public class DDMFormBrowserDisplayContext {
 			getPortletURL()
 		).setParameter(
 			"displayStyle", getDisplayStyle()
-		).build();
+		).buildPortletURL();
 
 		DDMFormInstanceSearch ddmFormInstanceSearch = new DDMFormInstanceSearch(
 			_renderRequest, portletURL);
-
-		String orderByType = getOrderByType();
-
-		OrderByComparator<DDMFormInstance> orderByComparator =
-			_getDDMFormInstanceOrderByComparator(orderByType);
-
-		ddmFormInstanceSearch.setOrderByCol(getOrderByCol());
-
-		ddmFormInstanceSearch.setOrderByComparator(orderByComparator);
-		ddmFormInstanceSearch.setOrderByType(orderByType);
 
 		if (ddmFormInstanceSearch.isSearch()) {
 			ddmFormInstanceSearch.setEmptyResultsMessage("no-forms-were-found");
@@ -105,15 +96,18 @@ public class DDMFormBrowserDisplayContext {
 			ddmFormInstanceSearch.setEmptyResultsMessage("there-are-no-forms");
 		}
 
-		List<DDMFormInstance> results = _ddmFormInstanceService.search(
-			_formWebRequestHelper.getCompanyId(),
-			_formWebRequestHelper.getScopeGroupId(), getKeywords(),
-			ddmFormInstanceSearch.getStart(), ddmFormInstanceSearch.getEnd(),
-			ddmFormInstanceSearch.getOrderByComparator());
-
-		ddmFormInstanceSearch.setResults(results);
-
-		ddmFormInstanceSearch.setTotal(getTotalItems());
+		ddmFormInstanceSearch.setOrderByCol(getOrderByCol());
+		ddmFormInstanceSearch.setOrderByComparator(
+			_getDDMFormInstanceOrderByComparator(getOrderByType()));
+		ddmFormInstanceSearch.setOrderByType(getOrderByType());
+		ddmFormInstanceSearch.setResultsAndTotal(
+			() -> _ddmFormInstanceService.search(
+				_formWebRequestHelper.getCompanyId(),
+				_formWebRequestHelper.getScopeGroupId(), getKeywords(),
+				ddmFormInstanceSearch.getStart(),
+				ddmFormInstanceSearch.getEnd(),
+				ddmFormInstanceSearch.getOrderByComparator()),
+			getTotalItems());
 
 		_ddmFormInstanceSearch = ddmFormInstanceSearch;
 
@@ -197,8 +191,9 @@ public class DDMFormBrowserDisplayContext {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_httpServletRequest, "orderByCol", "modified-date");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest,
+			DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_BROWSER, "modified-date");
 
 		return _orderByCol;
 	}
@@ -208,59 +203,82 @@ public class DDMFormBrowserDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest,
+			DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_BROWSER, "asc");
 
 		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/browser/view.jsp"
+		).setKeywords(
+			() -> {
+				String keywords = getKeywords();
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"delta",
+			() -> {
+				String delta = ParamUtil.getString(_renderRequest, "delta");
+
+				if (Validator.isNotNull(delta)) {
+					return delta;
+				}
+
+				return null;
+			}
 		).setParameter(
 			"displayStyle", getDisplayStyle()
+		).setParameter(
+			"displayStyle",
+			() -> {
+				String displayStyle = ParamUtil.getString(
+					_renderRequest, "displayStyle");
+
+				if (Validator.isNotNull(displayStyle)) {
+					return getDisplayStyle();
+				}
+
+				return null;
+			}
 		).setParameter(
 			"eventName", getEventName()
 		).setParameter(
 			"orderByCol", getOrderByCol()
 		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
+
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
+
+				return null;
+			}
+		).setParameter(
 			"orderByType", getOrderByType()
-		).build();
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
 
-		String delta = ParamUtil.getString(_renderRequest, "delta");
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
 
-		if (Validator.isNotNull(delta)) {
-			portletURL.setParameter("delta", delta);
-		}
-
-		String displayStyle = ParamUtil.getString(
-			_renderRequest, "displayStyle");
-
-		if (Validator.isNotNull(displayStyle)) {
-			portletURL.setParameter("displayStyle", getDisplayStyle());
-		}
-
-		String keywords = getKeywords();
-
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		String orderByCol = getOrderByCol();
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	public String getSearchActionURL() {

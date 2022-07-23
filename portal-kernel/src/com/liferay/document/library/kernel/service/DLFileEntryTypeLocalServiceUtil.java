@@ -283,6 +283,10 @@ public class DLFileEntryTypeLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -552,16 +556,6 @@ public class DLFileEntryTypeLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getFileEntryType(groupId, fileEntryTypeKey);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x)
-	 */
-	@Deprecated
-	public static List<DLFileEntryType> getFileEntryTypes(long ddmStructureId)
-		throws PortalException {
-
-		return getService().getFileEntryTypes(ddmStructureId);
 	}
 
 	public static List<DLFileEntryType> getFileEntryTypes(long[] groupIds) {

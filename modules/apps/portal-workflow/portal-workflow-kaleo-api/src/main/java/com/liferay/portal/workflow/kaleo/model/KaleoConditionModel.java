@@ -289,4 +289,7 @@ public interface KaleoConditionModel
 	 */
 	public void setScriptRequiredContexts(String scriptRequiredContexts);
 
+	@Override
+	public KaleoCondition cloneWithOriginalValues();
+
 }

@@ -146,6 +146,11 @@ public class PhoneWrapper
 		}
 	}
 
+	@Override
+	public Phone cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this phone.
 	 *

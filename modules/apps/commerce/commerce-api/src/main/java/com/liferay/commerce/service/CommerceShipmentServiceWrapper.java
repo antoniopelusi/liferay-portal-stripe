@@ -27,23 +27,14 @@ public class CommerceShipmentServiceWrapper
 	implements CommerceShipmentService,
 			   ServiceWrapper<CommerceShipmentService> {
 
+	public CommerceShipmentServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceShipmentServiceWrapper(
 		CommerceShipmentService commerceShipmentService) {
 
 		_commerceShipmentService = commerceShipmentService;
-	}
-
-	@Override
-	public com.liferay.commerce.model.CommerceShipment addCommerceShipment(
-			long groupId, long commerceAccountId, long commerceAddressId,
-			long commerceShippingMethodId, String commerceShippingOptionName,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _commerceShipmentService.addCommerceShipment(
-			groupId, commerceAccountId, commerceAddressId,
-			commerceShippingMethodId, commerceShippingOptionName,
-			serviceContext);
 	}
 
 	@Override
@@ -54,6 +45,20 @@ public class CommerceShipmentServiceWrapper
 
 		return _commerceShipmentService.addCommerceShipment(
 			commerceOrderId, serviceContext);
+	}
+
+	@Override
+	public com.liferay.commerce.model.CommerceShipment addCommerceShipment(
+			String externalReferenceCode, long groupId, long commerceAccountId,
+			long commerceAddressId, long commerceShippingMethodId,
+			String commerceShippingOptionName,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentService.addCommerceShipment(
+			externalReferenceCode, groupId, commerceAccountId,
+			commerceAddressId, commerceShippingMethodId,
+			commerceShippingOptionName, serviceContext);
 	}
 
 	/**
@@ -74,6 +79,17 @@ public class CommerceShipmentServiceWrapper
 
 		_commerceShipmentService.deleteCommerceShipment(
 			commerceShipmentId, restoreStockQuantity);
+	}
+
+	@Override
+	public com.liferay.commerce.model.CommerceShipment
+			fetchCommerceShipmentByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentService.
+			fetchCommerceShipmentByExternalReferenceCode(
+				companyId, externalReferenceCode);
 	}
 
 	@Override
@@ -292,6 +308,16 @@ public class CommerceShipmentServiceWrapper
 		return _commerceShipmentService.updateExpectedDate(
 			commerceShipmentId, expectedDateMonth, expectedDateDay,
 			expectedDateYear, expectedDateHour, expectedDateMinute);
+	}
+
+	@Override
+	public com.liferay.commerce.model.CommerceShipment
+			updateExternalReferenceCode(
+				long commerceShipmentId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentService.updateExternalReferenceCode(
+			commerceShipmentId, externalReferenceCode);
 	}
 
 	@Override

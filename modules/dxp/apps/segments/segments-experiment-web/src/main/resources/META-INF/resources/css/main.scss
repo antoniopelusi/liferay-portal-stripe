@@ -1,74 +1,69 @@
-@import 'mixins';
+@import 'cadmin-variables';
+@import 'click-goal';
 
-@import './click-goal';
+html#{$cadmin-selector} {
+	.cadmin {
+		&.lfr-segments-experiment-panel {
+			&.open-admin-panel.sidenav-menu-slider {
+				visibility: visible;
+				width: 320px;
+			}
 
-.lfr-segments-experiment-panel {
-	&.open-admin-panel.sidenav-menu-slider {
-		visibility: visible;
-		width: 320px;
-	}
-
-	.sidebar-body {
-		background-color: #fff;
-		border-left-color: #e7e7ed;
-		border-left-style: solid;
-		border-left-width: 1px;
-	}
-}
-
-.lfr-has-segments-experiment-panel {
-	overflow: auto;
-
-	.lfr-configurator-visibility {
-		display: none;
-	}
-}
-
-.lfr-segments-experiment-panel {
-	.btn-secondary {
-		svg.lexicon-icon-ellipsis-v {
-			fill: #6b6c7e;
+			.sidebar {
+				border-left: 1px solid $cadmin-gray-300;
+			}
 		}
-	}
 
-	.sidebar .sidebar-header {
-		padding-bottom: 0.75rem;
-		padding-top: 0.75rem;
-	}
-	@media only screen and (min-width: 768px) {
-		.sidebar-header {
-			padding-bottom: 12px;
-			padding-left: 24px;
-			padding-top: 12px;
-		}
-	}
-	.sidebar-header {
-		background-color: #272833;
-		color: #d5d6e1;
-		display: flex;
-		justify-content: space-between;
-		line-height: 32px;
-		padding-bottom: 8px;
-		padding-right: 9px;
-		padding-top: 8px;
-	}
-	.sidebar-body {
-		bottom: 0;
-		left: 0;
-		padding: 0;
-		position: absolute;
-		right: 0;
-		top: 56px;
-	}
-	@media only screen and (min-width: 768px) {
-		.sidebar-header {
-			padding-bottom: 12px;
-			padding-left: 24px;
-			padding-top: 12px;
-		}
-	}
+		.lfr-has-segments-experiment-panel {
+			overflow: auto;
 
-	dt {
-		font-weight: 500;
+			.lfr-configurator-visibility {
+				display: none;
+			}
+		}
+
+		&.lfr-segments-experiment-panel {
+			.btn-secondary {
+				svg.lexicon-icon-ellipsis-v {
+					fill: #6b6c7e;
+				}
+			}
+
+			.sidebar .sidebar-header {
+				padding-bottom: 12px;
+				padding-top: 12px;
+
+				@include media-breakpoint-up(md, $cadmin-grid-breakpoints) {
+					padding-bottom: 12px;
+					padding-left: 24px;
+					padding-top: 12px;
+				}
+			}
+			.sidebar-header {
+				height: 64px;
+				line-height: 32px;
+
+				.lexicon-icon {
+					font-size: 14px;
+				}
+			}
+			.sidebar-body {
+				bottom: 0;
+				left: 0;
+				padding: 0;
+				position: absolute;
+				right: 0;
+				top: 56px;
+			}
+
+			dt {
+				font-weight: 500;
+			}
+
+			.segments-experiment-details {
+				hyphens: auto;
+				overflow-wrap: break-word;
+			}
+		}
 	}
 }

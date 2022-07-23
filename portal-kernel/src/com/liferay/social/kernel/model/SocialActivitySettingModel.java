@@ -207,4 +207,7 @@ public interface SocialActivitySettingModel
 	 */
 	public void setValue(String value);
 
+	@Override
+	public SocialActivitySetting cloneWithOriginalValues();
+
 }

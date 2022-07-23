@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 
+import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponse;
 import com.liferay.dynamic.data.mapping.expression.GetFieldPropertyRequest;
 import com.liferay.dynamic.data.mapping.expression.GetFieldPropertyResponse;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorFieldContextKey;
@@ -28,8 +29,11 @@ import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+
+import java.math.BigDecimal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +77,7 @@ public class CallFunctionTest extends PowerMockito {
 
 		jsonArray.put("test");
 
-		mockDDMExpressionFieldAccessor(jsonArray);
+		_mockDDMExpressionFieldAccessor(jsonArray);
 
 		Assert.assertEquals(
 			"test", _callFunction.getDDMFormFieldValue("field0"));
@@ -81,7 +85,7 @@ public class CallFunctionTest extends PowerMockito {
 
 	@Test
 	public void testGetFieldValueFromString() {
-		mockDDMExpressionFieldAccessor("test");
+		_mockDDMExpressionFieldAccessor("test");
 
 		Assert.assertEquals(
 			"test", _callFunction.getDDMFormFieldValue("field0"));
@@ -99,7 +103,7 @@ public class CallFunctionTest extends PowerMockito {
 				"1", "field0", new UnlocalizedValue("a")));
 
 		MockDDMExpressionObserver mockDDMExpressionObserver =
-			mockDDMExpressionObserver(ddmFormValues);
+			_mockDDMExpressionObserver(ddmFormValues);
 
 		List<KeyValuePair> keyValuePairs = new ArrayList<>();
 
@@ -128,7 +132,7 @@ public class CallFunctionTest extends PowerMockito {
 				"2", "field0", new UnlocalizedValue("b")));
 
 		MockDDMExpressionObserver mockDDMExpressionObserver =
-			mockDDMExpressionObserver(ddmFormValues);
+			_mockDDMExpressionObserver(ddmFormValues);
 
 		List<KeyValuePair> keyValuePairs = new ArrayList<>();
 
@@ -145,6 +149,37 @@ public class CallFunctionTest extends PowerMockito {
 			keyValuePairs,
 			mockDDMExpressionObserver.getFieldPropertyValue(
 				"field0", "2", "options"));
+	}
+
+	@Test
+	public void testSetDDMFormFieldValuesWithNumberOutput() {
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm("fieldName0");
+
+		DDMFormValues ddmFormValues = DDMFormValuesTestUtil.createDDMFormValues(
+			ddmForm);
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"1", "fieldName0", new UnlocalizedValue("10")));
+
+		MockDDMExpressionObserver mockDDMExpressionObserver =
+			_mockDDMExpressionObserver(ddmFormValues);
+
+		DDMDataProviderResponse.Builder builder =
+			DDMDataProviderResponse.Builder.newBuilder();
+
+		builder.withOutput("numberOutputId", 10);
+
+		_callFunction.setDDMFormFieldValues(
+			builder.build(),
+			HashMapBuilder.put(
+				"fieldName0", "numberOutputId"
+			).build());
+
+		Assert.assertEquals(
+			new BigDecimal(10),
+			mockDDMExpressionObserver.getFieldPropertyValue(
+				"fieldName0", "1", "value"));
 	}
 
 	public static class MockDDMExpressionObserver
@@ -180,7 +215,7 @@ public class CallFunctionTest extends PowerMockito {
 
 	}
 
-	protected void mockDDMExpressionFieldAccessor(Object... values) {
+	private void _mockDDMExpressionFieldAccessor(Object... values) {
 		DDMFormEvaluatorExpressionFieldAccessor
 			ddmFormEvaluatorExpressionFieldAccessor = mock(
 				DDMFormEvaluatorExpressionFieldAccessor.class);
@@ -209,7 +244,7 @@ public class CallFunctionTest extends PowerMockito {
 			ddmFormEvaluatorExpressionFieldAccessor);
 	}
 
-	protected MockDDMExpressionObserver mockDDMExpressionObserver(
+	private MockDDMExpressionObserver _mockDDMExpressionObserver(
 		DDMFormValues ddmFormValues) {
 
 		MockDDMExpressionObserver mockDDMExpressionObserver =

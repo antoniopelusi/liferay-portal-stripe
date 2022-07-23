@@ -209,8 +209,8 @@ public class JavaTermComparator implements Comparator<JavaTerm> {
 			JavaParameter parameter1 = parameters1.get(i);
 			JavaParameter parameter2 = parameters2.get(i);
 
-			String parameterType1 = parameter1.getParameterType();
-			String parameterType2 = parameter2.getParameterType();
+			String parameterType1 = parameter1.getParameterType(false);
+			String parameterType2 = parameter2.getParameterType(false);
 
 			if ((parameters1.size() != parameters2.size()) &&
 				(parameterType1.equals(parameterType2.concat("...")) ||
@@ -218,6 +218,17 @@ public class JavaTermComparator implements Comparator<JavaTerm> {
 
 				continue;
 			}
+
+			if (parameterType1.compareToIgnoreCase(parameterType2) != 0) {
+				return parameterType1.compareToIgnoreCase(parameterType2);
+			}
+
+			if (parameterType1.compareTo(parameterType2) != 0) {
+				return -parameterType1.compareTo(parameterType2);
+			}
+
+			parameterType1 = parameter1.getParameterType(true);
+			parameterType2 = parameter2.getParameterType(true);
 
 			if (parameterType1.compareToIgnoreCase(parameterType2) != 0) {
 				return parameterType1.compareToIgnoreCase(parameterType2);

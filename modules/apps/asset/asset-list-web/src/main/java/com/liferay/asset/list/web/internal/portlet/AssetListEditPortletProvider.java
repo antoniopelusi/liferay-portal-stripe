@@ -50,7 +50,7 @@ public class AssetListEditPortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/edit_asset_list_entry.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

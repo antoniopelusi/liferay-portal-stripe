@@ -1,0 +1,102 @@
+@component-name = "portal-solutions"
+definition {
+
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Raylife";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		Raylife.tearDownCP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.logoutPG();
+		}
+	}
+
+	@description = "Verify if Raylife can be created"
+	@priority = "5"
+	test CanRaylifeBeCreated {
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		LexiconEntry.gotoAdd();
+
+		LexiconCard.clickCard(card = "Raylife");
+
+		SelectFrame(
+			key_title = "Add Site",
+			locator1 = "IFrame#MODAL_ANY");
+
+		PortletEntry.inputName(name = "Raylife");
+
+		Click(locator1 = "Button#ADD");
+
+		AssertElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION");
+
+		while (IsElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION")) {
+			Pause(locator1 = "1500");
+		}
+
+		WaitForElementPresent(
+			key_itemName = "Site Configuration",
+			locator1 = "ListGroupItem#ITEM_TEXT");
+
+		Click(
+			key_itemName = "Site Configuration",
+			locator1 = "ListGroupItem#ITEM_TEXT");
+
+		AssertTextEquals(
+			locator1 = "SitesEditSite#DETAILS_NAME",
+			value1 = "Raylife");
+	}
+
+	@description = "LPS-142178 - Verify if when Raylife is created, a Catalog in Commerce will be created for it as well."
+	@priority = "5"
+	test CatalogForRaylifeIsCreated {
+		Raylife.createRaylifeSite(siteName = "Raylife");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Catalogs");
+
+		AssertElementPresent(
+			locator1 = "Raylife#TABLE_CATALOG_NAME",
+			name = "Raylife");
+
+		Click(
+			locator1 = "Raylife#TABLE_CATALOG_NAME",
+			name = "Raylife");
+
+		AssertElementPresent(
+			locator1 = "Raylife#CATALOG_TITLE",
+			title = "Raylife");
+	}
+
+	@description = "LPS-142180 - Verify if, when Raylife is created, Products related to Raylife are also created."
+	@priority = "5"
+	test ProductsForRaylifeIsCreated {
+		Raylife.createRaylifeSite(siteName = "Raylife");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		Raylife.viewProductsList(productList = "General Liability,Professional Liability,Workers Compensation,Business Owners Policy");
+	}
+
+}

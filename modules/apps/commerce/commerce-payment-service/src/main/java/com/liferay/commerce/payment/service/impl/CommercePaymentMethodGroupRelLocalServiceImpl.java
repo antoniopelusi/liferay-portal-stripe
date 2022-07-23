@@ -22,8 +22,11 @@ import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
 import com.liferay.commerce.payment.service.base.CommercePaymentMethodGroupRelLocalServiceBaseImpl;
 import com.liferay.commerce.service.CommerceAddressRestrictionLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
@@ -118,7 +121,8 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 		// Image
 
 		if (imageFile != null) {
-			imageLocalService.updateImage(
+			_imageLocalService.updateImage(
+				commercePaymentMethodGroupRel.getCompanyId(),
 				commercePaymentMethodGroupRel.getImageId(), imageFile);
 		}
 
@@ -135,6 +139,7 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePaymentMethodGroupRel deleteCommercePaymentMethodGroupRel(
 			CommercePaymentMethodGroupRel commercePaymentMethodGroupRel)
 		throws PortalException {
@@ -147,7 +152,7 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 		// Image
 
 		if (commercePaymentMethodGroupRel.getImageId() > 0) {
-			imageLocalService.deleteImage(
+			_imageLocalService.deleteImage(
 				commercePaymentMethodGroupRel.getImageId());
 		}
 
@@ -371,7 +376,7 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 		// Image
 
 		if (imageFile != null) {
-			imageLocalService.updateImage(
+			_imageLocalService.updateImage(
 				commercePaymentMethodGroupRel.getImageId(), imageFile);
 		}
 
@@ -397,5 +402,8 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 	@ServiceReference(type = CommerceAddressRestrictionLocalService.class)
 	private CommerceAddressRestrictionLocalService
 		_commerceAddressRestrictionLocalService;
+
+	@ServiceReference(type = ImageLocalService.class)
+	private ImageLocalService _imageLocalService;
 
 }

@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.product.definitions.web.internal.portlet.action;
 
+import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.exception.CPDisplayLayoutEntryException;
 import com.liferay.commerce.product.exception.CPDisplayLayoutLayoutUuidException;
@@ -30,6 +31,10 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
+import com.liferay.portal.kernel.settings.ModifiableSettings;
+import com.liferay.portal.kernel.settings.Settings;
+import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -55,29 +60,6 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCPDefinitionCPDisplayLayoutMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void deleteCPDisplayLayouts(ActionRequest actionRequest)
-		throws Exception {
-
-		long[] deleteCPDisplayLayoutIds = null;
-
-		long cpDisplayLayoutId = ParamUtil.getLong(
-			actionRequest, "cpDisplayLayoutId");
-
-		if (cpDisplayLayoutId > 0) {
-			deleteCPDisplayLayoutIds = new long[] {cpDisplayLayoutId};
-		}
-		else {
-			deleteCPDisplayLayoutIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "deleteCPDisplayLayoutIds"),
-				0L);
-		}
-
-		for (long deleteCPDisplayLayoutId : deleteCPDisplayLayoutIds) {
-			_cpDisplayLayoutService.deleteCPDisplayLayout(
-				deleteCPDisplayLayoutId);
-		}
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -87,10 +69,13 @@ public class EditCPDefinitionCPDisplayLayoutMVCActionCommand
 
 		try {
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateCPDisplayLayout(actionRequest);
+				_updateCPDisplayLayout(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteCPDisplayLayouts(actionRequest);
+				_deleteCPDisplayLayouts(actionRequest);
+			}
+			else if (cmd.equals("setDefaultLayout")) {
+				_setDefaultLayout(actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -114,25 +99,73 @@ public class EditCPDefinitionCPDisplayLayoutMVCActionCommand
 					"/commerce_channels/edit_cp_definition_cp_display_layout");
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				throw exception;
 			}
 		}
 	}
 
-	protected void updateCPDisplayLayout(ActionRequest actionRequest)
+	private void _deleteCPDisplayLayouts(ActionRequest actionRequest)
+		throws Exception {
+
+		long[] deleteCPDisplayLayoutIds = null;
+
+		long cpDisplayLayoutId = ParamUtil.getLong(
+			actionRequest, "cpDisplayLayoutId");
+
+		if (cpDisplayLayoutId > 0) {
+			deleteCPDisplayLayoutIds = new long[] {cpDisplayLayoutId};
+		}
+		else {
+			deleteCPDisplayLayoutIds = StringUtil.split(
+				ParamUtil.getString(actionRequest, "deleteCPDisplayLayoutIds"),
+				0L);
+		}
+
+		for (long deleteCPDisplayLayoutId : deleteCPDisplayLayoutIds) {
+			_cpDisplayLayoutService.deleteCPDisplayLayout(
+				deleteCPDisplayLayoutId);
+		}
+	}
+
+	private void _setDefaultLayout(ActionRequest actionRequest)
+		throws Exception {
+
+		long commerceChannelId = ParamUtil.getLong(
+			actionRequest, "commerceChannelId");
+
+		CommerceChannel commerceChannel =
+			_commerceChannelService.getCommerceChannel(commerceChannelId);
+
+		Settings settings = _settingsFactory.getSettings(
+			new GroupServiceSettingsLocator(
+				commerceChannel.getGroupId(),
+				CPConstants.RESOURCE_NAME_CP_DISPLAY_LAYOUT));
+
+		ModifiableSettings modifiableSettings =
+			settings.getModifiableSettings();
+
+		String layoutUuid = ParamUtil.getString(actionRequest, "layoutUuid");
+
+		modifiableSettings.setValue("productLayoutUuid", layoutUuid);
+
+		modifiableSettings.store();
+	}
+
+	private void _updateCPDisplayLayout(ActionRequest actionRequest)
 		throws PortalException {
 
 		long cpDisplayLayoutId = ParamUtil.getLong(
 			actionRequest, "cpDisplayLayoutId");
 
 		long classPK = ParamUtil.getLong(actionRequest, "classPK");
+
 		String layoutUuid = ParamUtil.getString(actionRequest, "layoutUuid");
 
 		if (cpDisplayLayoutId > 0) {
 			_cpDisplayLayoutService.updateCPDisplayLayout(
-				cpDisplayLayoutId, layoutUuid);
+				cpDisplayLayoutId, classPK, layoutUuid);
 		}
 		else {
 			long commerceChannelId = ParamUtil.getLong(
@@ -142,7 +175,6 @@ public class EditCPDefinitionCPDisplayLayoutMVCActionCommand
 				_commerceChannelService.getCommerceChannel(commerceChannelId);
 
 			_cpDisplayLayoutService.addCPDisplayLayout(
-				_portal.getUserId(actionRequest),
 				commerceChannel.getSiteGroupId(), CPDefinition.class, classPK,
 				layoutUuid);
 		}
@@ -159,5 +191,8 @@ public class EditCPDefinitionCPDisplayLayoutMVCActionCommand
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SettingsFactory _settingsFactory;
 
 }

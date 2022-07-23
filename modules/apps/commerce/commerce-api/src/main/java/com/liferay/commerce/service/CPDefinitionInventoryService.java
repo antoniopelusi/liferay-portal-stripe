@@ -15,6 +15,7 @@
 package com.liferay.commerce.service;
 
 import com.liferay.commerce.model.CPDefinitionInventory;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -37,6 +38,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -58,12 +60,11 @@ public interface CPDefinitionInventoryService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.commerce.service.impl.CPDefinitionInventoryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the cp definition inventory remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CPDefinitionInventoryServiceUtil} if injection and service tracking are not available.
 	 */
 	public CPDefinitionInventory addCPDefinitionInventory(
-			long userId, long cpDefinitionId,
-			String cpDefinitionInventoryEngine, String lowStockActivity,
-			boolean displayAvailability, boolean displayStockQuantity,
-			int minStockQuantity, boolean backOrders, int minOrderQuantity,
-			int maxOrderQuantity, String allowedOrderQuantities,
-			int multipleOrderQuantity)
+			long cpDefinitionId, String cpDefinitionInventoryEngine,
+			String lowStockActivity, boolean displayAvailability,
+			boolean displayStockQuantity, int minStockQuantity,
+			boolean backOrders, int minOrderQuantity, int maxOrderQuantity,
+			String allowedOrderQuantities, int multipleOrderQuantity)
 		throws PortalException;
 
 	public void deleteCPDefinitionInventory(long cpDefinitionInventoryId)

@@ -140,6 +140,11 @@ public class EmailAddressWrapper
 		}
 	}
 
+	@Override
+	public EmailAddress cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the address of this email address.
 	 *

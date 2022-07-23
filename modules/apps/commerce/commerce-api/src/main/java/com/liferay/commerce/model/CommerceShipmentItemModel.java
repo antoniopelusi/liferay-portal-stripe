@@ -17,6 +17,7 @@ package com.liferay.commerce.model;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 
 import java.util.Date;
@@ -36,7 +37,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CommerceShipmentItemModel
-	extends BaseModel<CommerceShipmentItem>, GroupedModel, ShardedModel {
+	extends BaseModel<CommerceShipmentItem>, GroupedModel, MVCCModel,
+			ShardedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -57,6 +59,37 @@ public interface CommerceShipmentItemModel
 	 * @param primaryKey the primary key of this commerce shipment item
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this commerce shipment item.
+	 *
+	 * @return the mvcc version of this commerce shipment item
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this commerce shipment item.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce shipment item
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the external reference code of this commerce shipment item.
+	 *
+	 * @return the external reference code of this commerce shipment item
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this commerce shipment item.
+	 *
+	 * @param externalReferenceCode the external reference code of this commerce shipment item
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
 
 	/**
 	 * Returns the commerce shipment item ID of this commerce shipment item.
@@ -241,5 +274,8 @@ public interface CommerceShipmentItemModel
 	 * @param quantity the quantity of this commerce shipment item
 	 */
 	public void setQuantity(int quantity);
+
+	@Override
+	public CommerceShipmentItem cloneWithOriginalValues();
 
 }

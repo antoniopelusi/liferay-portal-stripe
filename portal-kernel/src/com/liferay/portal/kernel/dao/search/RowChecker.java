@@ -200,21 +200,13 @@ public class RowChecker {
 			return StringPool.BLANK;
 		}
 
-		StringBuilder sb = new StringBuilder(10);
-
-		sb.append("<label><input name=\"");
-		sb.append(name);
-		sb.append("\" title=\"");
-		sb.append(
-			LanguageUtil.get(getLocale(httpServletRequest), "select-all"));
-		sb.append("\" type=\"checkbox\" ");
-		sb.append(HtmlUtil.buildData(_data));
-		sb.append("onClick=\"Liferay.Util.checkAll(AUI().one(this).ancestor(");
-		sb.append("'.table'), ");
-		sb.append(checkBoxRowIds);
-		sb.append(", this, 'tr:not(.lfr-template)');\"></label>");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"<label><input name=\"", name, "\" title=\"",
+			LanguageUtil.get(getLocale(httpServletRequest), "select-all"),
+			"\" type=\"checkbox\" ", HtmlUtil.buildData(_data),
+			"onClick=\"Liferay.Util.checkAll(AUI().one(this).ancestor(",
+			"'.table'), ", checkBoxRowIds,
+			", this, 'tr:not(.d-none)');\"></label>");
 	}
 
 	protected Locale getLocale(HttpServletRequest httpServletRequest) {
@@ -258,7 +250,7 @@ public class RowChecker {
 
 		sb.append("onClick=\"Liferay.Util.rowCheckerCheckAllBox(AUI().");
 		sb.append("one(this).ancestor('.table'), AUI().one(this).");
-		sb.append("ancestor('tr:not(.lfr-template)'), ");
+		sb.append("ancestor('tr:not(.d-none)'), ");
 		sb.append(checkBoxRowIds);
 		sb.append(", ");
 		sb.append(checkBoxAllRowIds);

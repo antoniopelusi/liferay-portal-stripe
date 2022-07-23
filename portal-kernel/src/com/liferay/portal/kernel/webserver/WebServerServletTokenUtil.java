@@ -21,7 +21,7 @@ package com.liferay.portal.kernel.webserver;
 public class WebServerServletTokenUtil {
 
 	public static String getToken(long imageId) {
-		return getWebServerServletToken().getToken(imageId);
+		return _webServerServletToken.getToken(imageId);
 	}
 
 	public static WebServerServletToken getWebServerServletToken() {
@@ -29,7 +29,7 @@ public class WebServerServletTokenUtil {
 	}
 
 	public static void resetToken(long imageId) {
-		getWebServerServletToken().resetToken(imageId);
+		_webServerServletToken.resetToken(imageId);
 	}
 
 	public void setWebServerServletToken(

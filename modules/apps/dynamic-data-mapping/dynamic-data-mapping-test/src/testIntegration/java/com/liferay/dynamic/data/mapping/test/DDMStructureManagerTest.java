@@ -83,15 +83,12 @@ public class DDMStructureManagerTest {
 	public void testAddAttributes() throws Exception {
 		DDMStructure structure = addStructure();
 
-		Document document = new DocumentImpl();
-
 		_ddmStructureManager.addAttributes(
-			structure.getStructureId(), document, createDDMFormValues());
+			structure.getStructureId(), new DocumentImpl(),
+			createDDMFormValues());
 
-		String fieldProperty = structure.getFieldProperty(
-			"fieldName", "indexType");
-
-		Assert.assertNotNull(fieldProperty);
+		Assert.assertNotNull(
+			structure.getFieldProperty("fieldName", "indexType"));
 	}
 
 	@Test
@@ -109,11 +106,10 @@ public class DDMStructureManagerTest {
 
 		_ddmStructureManager.deleteStructure(structure.getStructureId());
 
-		structure = _ddmStructureManager.fetchStructure(
-			structure.getGroupId(), structure.getClassNameId(),
-			structure.getStructureKey());
-
-		Assert.assertNull(structure);
+		Assert.assertNull(
+			_ddmStructureManager.fetchStructure(
+				structure.getGroupId(), structure.getClassNameId(),
+				structure.getStructureKey()));
 	}
 
 	@Test

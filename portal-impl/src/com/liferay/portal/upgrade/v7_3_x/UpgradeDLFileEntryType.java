@@ -36,42 +36,45 @@ public class UpgradeDLFileEntryType extends UpgradeProcess {
 	}
 
 	private void _populateFields() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select uuid_, fileEntryTypeId, groupId, fileEntryTypeKey " +
 					"from DLFileEntryType where (dataDefinitionId IS NULL OR " +
 						"dataDefinitionId = 0)");
-			PreparedStatement ps2 = connection.prepareStatement(
+			PreparedStatement preparedStatement2 = connection.prepareStatement(
 				"select structureId FROM DDMStructure where groupId = ? AND " +
 					"classNameId = ? AND (structureKey = ? OR structureKey = " +
 						"? OR structureKey = ? ) ");
-			PreparedStatement ps3 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update DLFileEntryType set dataDefinitionId = ? where " +
-						"fileEntryTypeId = ? "));
-			ResultSet rs1 = ps1.executeQuery()) {
+			PreparedStatement preparedStatement3 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update DLFileEntryType set dataDefinitionId = ? " +
+							"where fileEntryTypeId = ? "));
+			ResultSet resultSet1 = preparedStatement1.executeQuery()) {
 
 			long classNameId = PortalUtil.getClassNameId(
 				DLFileEntryMetadata.class);
 
-			while (rs1.next()) {
-				ps2.setLong(1, rs1.getLong(3));
-				ps2.setLong(2, classNameId);
-				ps2.setString(3, DLUtil.getDDMStructureKey(rs1.getString(1)));
-				ps2.setString(
-					4, DLUtil.getDeprecatedDDMStructureKey(rs1.getLong(2)));
-				ps2.setString(5, rs1.getString(4));
+			while (resultSet1.next()) {
+				preparedStatement2.setLong(1, resultSet1.getLong(3));
+				preparedStatement2.setLong(2, classNameId);
+				preparedStatement2.setString(
+					3, DLUtil.getDDMStructureKey(resultSet1.getString(1)));
+				preparedStatement2.setString(
+					4,
+					DLUtil.getDeprecatedDDMStructureKey(resultSet1.getLong(2)));
+				preparedStatement2.setString(5, resultSet1.getString(4));
 
-				try (ResultSet rs2 = ps2.executeQuery()) {
-					if (rs2.next()) {
-						ps3.setLong(1, rs2.getLong(1));
-						ps3.setLong(2, rs1.getLong(2));
+				try (ResultSet resultSet2 = preparedStatement2.executeQuery()) {
+					if (resultSet2.next()) {
+						preparedStatement3.setLong(1, resultSet2.getLong(1));
+						preparedStatement3.setLong(2, resultSet1.getLong(2));
 
-						ps3.addBatch();
+						preparedStatement3.addBatch();
 					}
 				}
 			}
 
-			ps3.executeBatch();
+			preparedStatement3.executeBatch();
 		}
 	}
 

@@ -22,11 +22,9 @@ import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -65,11 +63,8 @@ public class FriendlyURLEntryMappingCTDisplayRenderer
 			modelResource = classNames[0];
 		}
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
 		return _language.format(
-			resourceBundle, "x-for-x",
+			locale, "x-for-x",
 			new String[] {
 				"model.resource." + FriendlyURLEntryMapping.class.getName(),
 				modelResource

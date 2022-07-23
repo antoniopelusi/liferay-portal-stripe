@@ -1,0 +1,25 @@
+.member-header {
+	color: var(--white);
+	padding-left: var(--spacer-2);
+	padding-right: var(--spacer-2);
+}
+
+.member-header::before {
+	background-color: var(--brand-color-1);
+	content: '';
+	height: calc(100% - 150px);
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 100%;
+}
+
+.member-header .member-image {
+	width: 420px;
+}
+
+@media (max-width: 576px) {
+	.member-header::before {
+		height: calc(100% - 150px);
+	}
+}

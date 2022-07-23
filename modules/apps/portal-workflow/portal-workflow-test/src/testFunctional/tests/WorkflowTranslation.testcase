@@ -1,0 +1,327 @@
+@component-name = "portal-workflow"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Workflow";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			WebContent.tearDownCP();
+
+			Workflow.tearDownPortalWorkflow();
+
+			Workflow.tearDownSiteWorkflow();
+		}
+	}
+
+	@description = "Verify that the user can Approve a Translation"
+	@priority = "5"
+	test CanApproveTranslation {
+		property portal.upstream = "quarantine";
+
+		Workflow.openWorkflowProcessBuilderConfiguration();
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Workflow.webContentGoToAddCP();
+
+		WebContent.addCP(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.publish();
+
+		Refresh();
+
+		Translations.gotoTranslate(webContentTitle = "Web Content Title");
+
+		Translations.changeTargetLocale(
+			currentTargetLocale = "ar-SA",
+			newTargetLocale = "pt-BR");
+
+		Button.clickSubmitForPublication();
+
+		WorkflowTranslation.openTranslationProcessesAdmin();
+
+		Translations.viewTranslationEntry(
+			language = "pt-BR",
+			status = "Pending",
+			title = "Translation of Web Content Title to pt-BR");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		WorkflowTranslation.openTranslationProcessesAdmin();
+
+		Translations.viewTranslationEntry(
+			language = "pt-BR",
+			status = "Approved",
+			title = "Translation of Web Content Title to pt-BR");
+	}
+
+	@description = "Verify that a notification is sent when the Translation is rejected"
+	@priority = "3"
+	test NotificationIsSentOnReject {
+		Workflow.openWorkflowProcessBuilderConfiguration();
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Workflow.webContentGoToAddCP();
+
+		WebContent.addCP(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.publish();
+
+		Refresh();
+
+		Translations.gotoTranslate(webContentTitle = "Web Content Title");
+
+		Translations.changeTargetLocale(
+			currentTargetLocale = "ar-SA",
+			newTargetLocale = "pt-BR");
+
+		Button.clickSubmitForPublication();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Workflow.rejectTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Notifications.gotoNotifications();
+
+		AssertElementPresent(
+			locator1 = "Notifications#NOTIFICATIONS_WORKFLOW_TITLE",
+			value1 = "Your submission was rejected by Test Test, please modify and resubmit.");
+	}
+
+	@description = "Verify that the Translation status changes after approval"
+	@priority = "4"
+	test TranslationStatusChangesAfterApproval {
+		Workflow.openWorkflowProcessBuilderConfiguration();
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Workflow.webContentGoToAddCP();
+
+		WebContent.addCP(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.publish();
+
+		Refresh();
+
+		Translations.gotoTranslate(webContentTitle = "Web Content Title");
+
+		Translations.changeTargetLocale(
+			currentTargetLocale = "ar-SA",
+			newTargetLocale = "pt-BR");
+
+		Button.clickSubmitForPublication();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		Click.clickNoMouseOver(
+			key_currentLocale = StringUtil.lowerCase("en-US"),
+			locator1 = "Button#TRANSLATIONS_LOCALIZATION");
+
+		AssertTextEquals(
+			key_localizedLanguage = "pt-BR",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
+			value1 = "Not Translated");
+
+		Navigator.gotoBack();
+
+		WorkflowTranslation.openTranslationProcessesAdmin();
+
+		Translations.viewTranslationEntry(
+			language = "pt-BR",
+			status = "Pending",
+			title = "Translation of Web Content Title to pt-BR");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		Click.clickNoMouseOver(
+			key_currentLocale = StringUtil.lowerCase("en-US"),
+			locator1 = "Button#TRANSLATIONS_LOCALIZATION");
+
+		AssertTextEquals(
+			key_localizedLanguage = "pt-BR",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
+			value1 = "Translated");
+	}
+
+	@description = "Verify that the Translation status does not change when the Translation is rejected"
+	@priority = "4"
+	test TranslationStatusDoesNotChangeAfterReject {
+		Workflow.openWorkflowProcessBuilderConfiguration();
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Workflow.webContentGoToAddCP();
+
+		WebContent.addCP(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.publish();
+
+		Refresh();
+
+		Translations.gotoTranslate(webContentTitle = "Web Content Title");
+
+		Translations.changeTargetLocale(
+			currentTargetLocale = "ar-SA",
+			newTargetLocale = "pt-BR");
+
+		Button.clickSubmitForPublication();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		Click.clickNoMouseOver(
+			key_currentLocale = StringUtil.lowerCase("en-US"),
+			locator1 = "Button#TRANSLATIONS_LOCALIZATION");
+
+		AssertTextEquals(
+			key_localizedLanguage = "pt-BR",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
+			value1 = "Not Translated");
+
+		Navigator.gotoBack();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Workflow.rejectTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		Click.clickNoMouseOver(
+			key_currentLocale = StringUtil.lowerCase("en-US"),
+			locator1 = "Button#TRANSLATIONS_LOCALIZATION");
+
+		AssertTextEquals(
+			key_localizedLanguage = "pt-BR",
+			locator1 = "Translation#TRANSLATION_STATUS_TITLE",
+			value1 = "Not Translated");
+	}
+
+	@description = "Verify that the Translation status still Pending when the Translation is rejected"
+	@priority = "4"
+	test TranslationStatusIsPendingOnReject {
+		Workflow.openWorkflowProcessBuilderConfiguration();
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Translation");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		Workflow.webContentGoToAddCP();
+
+		WebContent.addCP(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
+
+		PortletEntry.publish();
+
+		Refresh();
+
+		Translations.gotoTranslate(webContentTitle = "Web Content Title");
+
+		Translations.changeTargetLocale(
+			currentTargetLocale = "ar-SA",
+			newTargetLocale = "pt-BR");
+
+		Button.clickSubmitForPublication();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		Workflow.rejectTaskByActions(
+			workflowAssetTitle = "Translation of Web Content Title to pt-BR",
+			workflowAssetType = "Translation",
+			workflowTask = "Review");
+
+		WorkflowTranslation.openTranslationProcessesAdmin();
+
+		Translations.viewTranslationEntry(
+			language = "pt-BR",
+			status = "Pending",
+			title = "Translation of Web Content Title to pt-BR");
+	}
+
+}

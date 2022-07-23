@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParserUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -60,7 +60,7 @@ public class JournalArticleCommentsVerticalCard implements VerticalCard {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -87,7 +87,7 @@ public class JournalArticleCommentsVerticalCard implements VerticalCard {
 
 		String content = _mbMessage.getBody(translate);
 
-		return HtmlUtil.extractText(content);
+		return HtmlParserUtil.extractText(content);
 	}
 
 	@Override

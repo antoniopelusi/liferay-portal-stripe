@@ -20,44 +20,45 @@ import com.liferay.account.model.AccountRoleTable;
 import com.liferay.account.model.impl.AccountRoleImpl;
 import com.liferay.account.model.impl.AccountRoleModelImpl;
 import com.liferay.account.service.persistence.AccountRolePersistence;
+import com.liferay.account.service.persistence.AccountRoleUtil;
 import com.liferay.account.service.persistence.impl.constants.AccountPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -524,6 +525,334 @@ public class AccountRolePersistenceImpl
 	}
 
 	/**
+	 * Returns all the account roles that the user has permission to view where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @return the matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByCompanyId(long companyId) {
+		return filterFindByCompanyId(
+			companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account roles that the user has permission to view where companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @return the range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByCompanyId(
+		long companyId, int start, int end) {
+
+		return filterFindByCompanyId(companyId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles that the user has permissions to view where companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByCompanyId(
+		long companyId, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByCompanyId(companyId, start, end, orderByComparator);
+		}
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				3 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			return (List<AccountRole>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the account roles before and after the current account role in the ordered set of account roles that the user has permission to view where companyId = &#63;.
+	 *
+	 * @param accountRoleId the primary key of the current account role
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account role
+	 * @throws NoSuchRoleException if a account role with the primary key could not be found
+	 */
+	@Override
+	public AccountRole[] filterFindByCompanyId_PrevAndNext(
+			long accountRoleId, long companyId,
+			OrderByComparator<AccountRole> orderByComparator)
+		throws NoSuchRoleException {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByCompanyId_PrevAndNext(
+				accountRoleId, companyId, orderByComparator);
+		}
+
+		AccountRole accountRole = findByPrimaryKey(accountRoleId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountRole[] array = new AccountRoleImpl[3];
+
+			array[0] = filterGetByCompanyId_PrevAndNext(
+				session, accountRole, companyId, orderByComparator, true);
+
+			array[1] = accountRole;
+
+			array[2] = filterGetByCompanyId_PrevAndNext(
+				session, accountRole, companyId, orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountRole filterGetByCompanyId_PrevAndNext(
+		Session session, AccountRole accountRole, long companyId,
+		OrderByComparator<AccountRole> orderByComparator, boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
+							true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
+							true));
+				}
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
+				}
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+		}
+		else {
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+		}
+
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+		queryPos.add(companyId);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountRole)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountRole> list = sqlQuery.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
 	 * Removes all the account roles where companyId = &#63; from the database.
 	 *
 	 * @param companyId the company ID
@@ -585,6 +914,54 @@ public class AccountRolePersistenceImpl
 		}
 
 		return count.intValue();
+	}
+
+	/**
+	 * Returns the number of account roles that the user has permission to view where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @return the number of matching account roles that the user has permission to view
+	 */
+	@Override
+	public int filterCountByCompanyId(long companyId) {
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return countByCompanyId(companyId);
+		}
+
+		StringBundler sb = new StringBundler(2);
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTROLE_WHERE);
+
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
 	}
 
 	private static final String _FINDER_COLUMN_COMPANYID_COMPANYID_2 =
@@ -1024,6 +1401,476 @@ public class AccountRolePersistenceImpl
 	}
 
 	/**
+	 * Returns all the account roles that the user has permission to view where accountEntryId = &#63;.
+	 *
+	 * @param accountEntryId the account entry ID
+	 * @return the matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByAccountEntryId(long accountEntryId) {
+		return filterFindByAccountEntryId(
+			accountEntryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account roles that the user has permission to view where accountEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @return the range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByAccountEntryId(
+		long accountEntryId, int start, int end) {
+
+		return filterFindByAccountEntryId(accountEntryId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles that the user has permissions to view where accountEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByAccountEntryId(
+		long accountEntryId, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return findByAccountEntryId(
+				accountEntryId, start, end, orderByComparator);
+		}
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				3 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_ACCOUNTENTRYID_ACCOUNTENTRYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(accountEntryId);
+
+			return (List<AccountRole>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the account roles before and after the current account role in the ordered set of account roles that the user has permission to view where accountEntryId = &#63;.
+	 *
+	 * @param accountRoleId the primary key of the current account role
+	 * @param accountEntryId the account entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account role
+	 * @throws NoSuchRoleException if a account role with the primary key could not be found
+	 */
+	@Override
+	public AccountRole[] filterFindByAccountEntryId_PrevAndNext(
+			long accountRoleId, long accountEntryId,
+			OrderByComparator<AccountRole> orderByComparator)
+		throws NoSuchRoleException {
+
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return findByAccountEntryId_PrevAndNext(
+				accountRoleId, accountEntryId, orderByComparator);
+		}
+
+		AccountRole accountRole = findByPrimaryKey(accountRoleId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountRole[] array = new AccountRoleImpl[3];
+
+			array[0] = filterGetByAccountEntryId_PrevAndNext(
+				session, accountRole, accountEntryId, orderByComparator, true);
+
+			array[1] = accountRole;
+
+			array[2] = filterGetByAccountEntryId_PrevAndNext(
+				session, accountRole, accountEntryId, orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountRole filterGetByAccountEntryId_PrevAndNext(
+		Session session, AccountRole accountRole, long accountEntryId,
+		OrderByComparator<AccountRole> orderByComparator, boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_ACCOUNTENTRYID_ACCOUNTENTRYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
+							true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
+							true));
+				}
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
+				}
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+		}
+		else {
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+		}
+
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+		queryPos.add(accountEntryId);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountRole)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountRole> list = sqlQuery.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns all the account roles that the user has permission to view where accountEntryId = any &#63;.
+	 *
+	 * @param accountEntryIds the account entry IDs
+	 * @return the matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByAccountEntryId(
+		long[] accountEntryIds) {
+
+		return filterFindByAccountEntryId(
+			accountEntryIds, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the account roles that the user has permission to view where accountEntryId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountEntryIds the account entry IDs
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @return the range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByAccountEntryId(
+		long[] accountEntryIds, int start, int end) {
+
+		return filterFindByAccountEntryId(accountEntryIds, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles that the user has permission to view where accountEntryId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param accountEntryIds the account entry IDs
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByAccountEntryId(
+		long[] accountEntryIds, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return findByAccountEntryId(
+				accountEntryIds, start, end, orderByComparator);
+		}
+
+		if (accountEntryIds == null) {
+			accountEntryIds = new long[0];
+		}
+		else if (accountEntryIds.length > 1) {
+			accountEntryIds = ArrayUtil.sortedUnique(accountEntryIds);
+		}
+
+		StringBundler sb = new StringBundler();
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		if (accountEntryIds.length > 0) {
+			sb.append("(");
+
+			sb.append(_FINDER_COLUMN_ACCOUNTENTRYID_ACCOUNTENTRYID_7);
+
+			sb.append(StringUtil.merge(accountEntryIds));
+
+			sb.append(")");
+
+			sb.append(")");
+		}
+
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+			}
+
+			return (List<AccountRole>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
 	 * Returns all the account roles where accountEntryId = any &#63;.
 	 *
 	 * <p>
@@ -1336,6 +2183,118 @@ public class AccountRolePersistenceImpl
 		return count.intValue();
 	}
 
+	/**
+	 * Returns the number of account roles that the user has permission to view where accountEntryId = &#63;.
+	 *
+	 * @param accountEntryId the account entry ID
+	 * @return the number of matching account roles that the user has permission to view
+	 */
+	@Override
+	public int filterCountByAccountEntryId(long accountEntryId) {
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return countByAccountEntryId(accountEntryId);
+		}
+
+		StringBundler sb = new StringBundler(2);
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTROLE_WHERE);
+
+		sb.append(_FINDER_COLUMN_ACCOUNTENTRYID_ACCOUNTENTRYID_2);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(accountEntryId);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the number of account roles that the user has permission to view where accountEntryId = any &#63;.
+	 *
+	 * @param accountEntryIds the account entry IDs
+	 * @return the number of matching account roles that the user has permission to view
+	 */
+	@Override
+	public int filterCountByAccountEntryId(long[] accountEntryIds) {
+		if (!InlineSQLHelperUtil.isEnabled()) {
+			return countByAccountEntryId(accountEntryIds);
+		}
+
+		if (accountEntryIds == null) {
+			accountEntryIds = new long[0];
+		}
+		else if (accountEntryIds.length > 1) {
+			accountEntryIds = ArrayUtil.sortedUnique(accountEntryIds);
+		}
+
+		StringBundler sb = new StringBundler();
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTROLE_WHERE);
+
+		if (accountEntryIds.length > 0) {
+			sb.append("(");
+
+			sb.append(_FINDER_COLUMN_ACCOUNTENTRYID_ACCOUNTENTRYID_7);
+
+			sb.append(StringUtil.merge(accountEntryIds));
+
+			sb.append(")");
+
+			sb.append(")");
+		}
+
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
 	private static final String _FINDER_COLUMN_ACCOUNTENTRYID_ACCOUNTENTRYID_2 =
 		"accountRole.accountEntryId = ?";
 
@@ -1549,6 +2508,1442 @@ public class AccountRolePersistenceImpl
 	private static final String _FINDER_COLUMN_ROLEID_ROLEID_2 =
 		"accountRole.roleId = ?";
 
+	private FinderPath _finderPathWithPaginationFindByC_A;
+	private FinderPath _finderPathWithoutPaginationFindByC_A;
+	private FinderPath _finderPathCountByC_A;
+	private FinderPath _finderPathWithPaginationCountByC_A;
+
+	/**
+	 * Returns all the account roles where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @return the matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(long companyId, long accountEntryId) {
+		return findByC_A(
+			companyId, accountEntryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			null);
+	}
+
+	/**
+	 * Returns a range of all the account roles where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @return the range of matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(
+		long companyId, long accountEntryId, int start, int end) {
+
+		return findByC_A(companyId, accountEntryId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(
+		long companyId, long accountEntryId, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		return findByC_A(
+			companyId, accountEntryId, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(
+		long companyId, long accountEntryId, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator,
+		boolean useFinderCache) {
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByC_A;
+				finderArgs = new Object[] {companyId, accountEntryId};
+			}
+		}
+		else if (useFinderCache) {
+			finderPath = _finderPathWithPaginationFindByC_A;
+			finderArgs = new Object[] {
+				companyId, accountEntryId, start, end, orderByComparator
+			};
+		}
+
+		List<AccountRole> list = null;
+
+		if (useFinderCache) {
+			list = (List<AccountRole>)finderCache.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (AccountRole accountRole : list) {
+					if ((companyId != accountRole.getCompanyId()) ||
+						(accountEntryId != accountRole.getAccountEntryId())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					4 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(4);
+			}
+
+			sb.append(_SQL_SELECT_ACCOUNTROLE_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+			sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_2);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				queryPos.add(accountEntryId);
+
+				list = (List<AccountRole>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first account role in the ordered set where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching account role
+	 * @throws NoSuchRoleException if a matching account role could not be found
+	 */
+	@Override
+	public AccountRole findByC_A_First(
+			long companyId, long accountEntryId,
+			OrderByComparator<AccountRole> orderByComparator)
+		throws NoSuchRoleException {
+
+		AccountRole accountRole = fetchByC_A_First(
+			companyId, accountEntryId, orderByComparator);
+
+		if (accountRole != null) {
+			return accountRole;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", accountEntryId=");
+		sb.append(accountEntryId);
+
+		sb.append("}");
+
+		throw new NoSuchRoleException(sb.toString());
+	}
+
+	/**
+	 * Returns the first account role in the ordered set where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching account role, or <code>null</code> if a matching account role could not be found
+	 */
+	@Override
+	public AccountRole fetchByC_A_First(
+		long companyId, long accountEntryId,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		List<AccountRole> list = findByC_A(
+			companyId, accountEntryId, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last account role in the ordered set where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching account role
+	 * @throws NoSuchRoleException if a matching account role could not be found
+	 */
+	@Override
+	public AccountRole findByC_A_Last(
+			long companyId, long accountEntryId,
+			OrderByComparator<AccountRole> orderByComparator)
+		throws NoSuchRoleException {
+
+		AccountRole accountRole = fetchByC_A_Last(
+			companyId, accountEntryId, orderByComparator);
+
+		if (accountRole != null) {
+			return accountRole;
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", accountEntryId=");
+		sb.append(accountEntryId);
+
+		sb.append("}");
+
+		throw new NoSuchRoleException(sb.toString());
+	}
+
+	/**
+	 * Returns the last account role in the ordered set where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching account role, or <code>null</code> if a matching account role could not be found
+	 */
+	@Override
+	public AccountRole fetchByC_A_Last(
+		long companyId, long accountEntryId,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		int count = countByC_A(companyId, accountEntryId);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<AccountRole> list = findByC_A(
+			companyId, accountEntryId, count - 1, count, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the account roles before and after the current account role in the ordered set where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param accountRoleId the primary key of the current account role
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account role
+	 * @throws NoSuchRoleException if a account role with the primary key could not be found
+	 */
+	@Override
+	public AccountRole[] findByC_A_PrevAndNext(
+			long accountRoleId, long companyId, long accountEntryId,
+			OrderByComparator<AccountRole> orderByComparator)
+		throws NoSuchRoleException {
+
+		AccountRole accountRole = findByPrimaryKey(accountRoleId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountRole[] array = new AccountRoleImpl[3];
+
+			array[0] = getByC_A_PrevAndNext(
+				session, accountRole, companyId, accountEntryId,
+				orderByComparator, true);
+
+			array[1] = accountRole;
+
+			array[2] = getByC_A_PrevAndNext(
+				session, accountRole, companyId, accountEntryId,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountRole getByC_A_PrevAndNext(
+		Session session, AccountRole accountRole, long companyId,
+		long accountEntryId, OrderByComparator<AccountRole> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(4);
+		}
+
+		sb.append(_SQL_SELECT_ACCOUNTROLE_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_2);
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(companyId);
+
+		queryPos.add(accountEntryId);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountRole)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountRole> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns all the account roles that the user has permission to view where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @return the matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByC_A(
+		long companyId, long accountEntryId) {
+
+		return filterFindByC_A(
+			companyId, accountEntryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			null);
+	}
+
+	/**
+	 * Returns a range of all the account roles that the user has permission to view where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @return the range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByC_A(
+		long companyId, long accountEntryId, int start, int end) {
+
+		return filterFindByC_A(companyId, accountEntryId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles that the user has permissions to view where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByC_A(
+		long companyId, long accountEntryId, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByC_A(
+				companyId, accountEntryId, start, end, orderByComparator);
+		}
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				4 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			queryPos.add(accountEntryId);
+
+			return (List<AccountRole>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the account roles before and after the current account role in the ordered set of account roles that the user has permission to view where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param accountRoleId the primary key of the current account role
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next account role
+	 * @throws NoSuchRoleException if a account role with the primary key could not be found
+	 */
+	@Override
+	public AccountRole[] filterFindByC_A_PrevAndNext(
+			long accountRoleId, long companyId, long accountEntryId,
+			OrderByComparator<AccountRole> orderByComparator)
+		throws NoSuchRoleException {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByC_A_PrevAndNext(
+				accountRoleId, companyId, accountEntryId, orderByComparator);
+		}
+
+		AccountRole accountRole = findByPrimaryKey(accountRoleId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AccountRole[] array = new AccountRoleImpl[3];
+
+			array[0] = filterGetByC_A_PrevAndNext(
+				session, accountRole, companyId, accountEntryId,
+				orderByComparator, true);
+
+			array[1] = accountRole;
+
+			array[2] = filterGetByC_A_PrevAndNext(
+				session, accountRole, companyId, accountEntryId,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected AccountRole filterGetByC_A_PrevAndNext(
+		Session session, AccountRole accountRole, long companyId,
+		long accountEntryId, OrderByComparator<AccountRole> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_2);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
+							true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
+							true));
+				}
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
+				}
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+		}
+		else {
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+		}
+
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+		queryPos.add(companyId);
+
+		queryPos.add(accountEntryId);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(accountRole)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<AccountRole> list = sqlQuery.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns all the account roles that the user has permission to view where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @return the matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByC_A(
+		long companyId, long[] accountEntryIds) {
+
+		return filterFindByC_A(
+			companyId, accountEntryIds, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			null);
+	}
+
+	/**
+	 * Returns a range of all the account roles that the user has permission to view where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @return the range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByC_A(
+		long companyId, long[] accountEntryIds, int start, int end) {
+
+		return filterFindByC_A(companyId, accountEntryIds, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles that the user has permission to view where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account roles that the user has permission to view
+	 */
+	@Override
+	public List<AccountRole> filterFindByC_A(
+		long companyId, long[] accountEntryIds, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return findByC_A(
+				companyId, accountEntryIds, start, end, orderByComparator);
+		}
+
+		if (accountEntryIds == null) {
+			accountEntryIds = new long[0];
+		}
+		else if (accountEntryIds.length > 1) {
+			accountEntryIds = ArrayUtil.sortedUnique(accountEntryIds);
+		}
+
+		StringBundler sb = new StringBundler();
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_ACCOUNTROLE_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+		if (accountEntryIds.length > 0) {
+			sb.append("(");
+
+			sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_7);
+
+			sb.append(StringUtil.merge(accountEntryIds));
+
+			sb.append(")");
+
+			sb.append(")");
+		}
+
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AccountRoleImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AccountRoleImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			return (List<AccountRole>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns all the account roles where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @return the matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(long companyId, long[] accountEntryIds) {
+		return findByC_A(
+			companyId, accountEntryIds, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			null);
+	}
+
+	/**
+	 * Returns a range of all the account roles where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @return the range of matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(
+		long companyId, long[] accountEntryIds, int start, int end) {
+
+		return findByC_A(companyId, accountEntryIds, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(
+		long companyId, long[] accountEntryIds, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator) {
+
+		return findByC_A(
+			companyId, accountEntryIds, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the account roles where companyId = &#63; and accountEntryId = &#63;, optionally using the finder cache.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AccountRoleModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @param start the lower bound of the range of account roles
+	 * @param end the upper bound of the range of account roles (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching account roles
+	 */
+	@Override
+	public List<AccountRole> findByC_A(
+		long companyId, long[] accountEntryIds, int start, int end,
+		OrderByComparator<AccountRole> orderByComparator,
+		boolean useFinderCache) {
+
+		if (accountEntryIds == null) {
+			accountEntryIds = new long[0];
+		}
+		else if (accountEntryIds.length > 1) {
+			accountEntryIds = ArrayUtil.sortedUnique(accountEntryIds);
+		}
+
+		if (accountEntryIds.length == 1) {
+			return findByC_A(
+				companyId, accountEntryIds[0], start, end, orderByComparator);
+		}
+
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache) {
+				finderArgs = new Object[] {
+					companyId, StringUtil.merge(accountEntryIds)
+				};
+			}
+		}
+		else if (useFinderCache) {
+			finderArgs = new Object[] {
+				companyId, StringUtil.merge(accountEntryIds), start, end,
+				orderByComparator
+			};
+		}
+
+		List<AccountRole> list = null;
+
+		if (useFinderCache) {
+			list = (List<AccountRole>)finderCache.getResult(
+				_finderPathWithPaginationFindByC_A, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (AccountRole accountRole : list) {
+					if ((companyId != accountRole.getCompanyId()) ||
+						!ArrayUtil.contains(
+							accountEntryIds, accountRole.getAccountEntryId())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = new StringBundler();
+
+			sb.append(_SQL_SELECT_ACCOUNTROLE_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+			if (accountEntryIds.length > 0) {
+				sb.append("(");
+
+				sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_7);
+
+				sb.append(StringUtil.merge(accountEntryIds));
+
+				sb.append(")");
+
+				sb.append(")");
+			}
+
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(AccountRoleModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				list = (List<AccountRole>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache) {
+					finderCache.putResult(
+						_finderPathWithPaginationFindByC_A, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Removes all the account roles where companyId = &#63; and accountEntryId = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 */
+	@Override
+	public void removeByC_A(long companyId, long accountEntryId) {
+		for (AccountRole accountRole :
+				findByC_A(
+					companyId, accountEntryId, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, null)) {
+
+			remove(accountRole);
+		}
+	}
+
+	/**
+	 * Returns the number of account roles where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @return the number of matching account roles
+	 */
+	@Override
+	public int countByC_A(long companyId, long accountEntryId) {
+		FinderPath finderPath = _finderPathCountByC_A;
+
+		Object[] finderArgs = new Object[] {companyId, accountEntryId};
+
+		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append(_SQL_COUNT_ACCOUNTROLE_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+			sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				queryPos.add(accountEntryId);
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	/**
+	 * Returns the number of account roles where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @return the number of matching account roles
+	 */
+	@Override
+	public int countByC_A(long companyId, long[] accountEntryIds) {
+		if (accountEntryIds == null) {
+			accountEntryIds = new long[0];
+		}
+		else if (accountEntryIds.length > 1) {
+			accountEntryIds = ArrayUtil.sortedUnique(accountEntryIds);
+		}
+
+		Object[] finderArgs = new Object[] {
+			companyId, StringUtil.merge(accountEntryIds)
+		};
+
+		Long count = (Long)finderCache.getResult(
+			_finderPathWithPaginationCountByC_A, finderArgs);
+
+		if (count == null) {
+			StringBundler sb = new StringBundler();
+
+			sb.append(_SQL_COUNT_ACCOUNTROLE_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+			if (accountEntryIds.length > 0) {
+				sb.append("(");
+
+				sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_7);
+
+				sb.append(StringUtil.merge(accountEntryIds));
+
+				sb.append(")");
+
+				sb.append(")");
+			}
+
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				count = (Long)query.uniqueResult();
+
+				finderCache.putResult(
+					_finderPathWithPaginationCountByC_A, finderArgs, count);
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	/**
+	 * Returns the number of account roles that the user has permission to view where companyId = &#63; and accountEntryId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryId the account entry ID
+	 * @return the number of matching account roles that the user has permission to view
+	 */
+	@Override
+	public int filterCountByC_A(long companyId, long accountEntryId) {
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return countByC_A(companyId, accountEntryId);
+		}
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTROLE_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_2);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			queryPos.add(accountEntryId);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the number of account roles that the user has permission to view where companyId = &#63; and accountEntryId = any &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param accountEntryIds the account entry IDs
+	 * @return the number of matching account roles that the user has permission to view
+	 */
+	@Override
+	public int filterCountByC_A(long companyId, long[] accountEntryIds) {
+		if (!InlineSQLHelperUtil.isEnabled(companyId, 0)) {
+			return countByC_A(companyId, accountEntryIds);
+		}
+
+		if (accountEntryIds == null) {
+			accountEntryIds = new long[0];
+		}
+		else if (accountEntryIds.length > 1) {
+			accountEntryIds = ArrayUtil.sortedUnique(accountEntryIds);
+		}
+
+		StringBundler sb = new StringBundler();
+
+		sb.append(_FILTER_SQL_COUNT_ACCOUNTROLE_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_A_COMPANYID_2);
+
+		if (accountEntryIds.length > 0) {
+			sb.append("(");
+
+			sb.append(_FINDER_COLUMN_C_A_ACCOUNTENTRYID_7);
+
+			sb.append(StringUtil.merge(accountEntryIds));
+
+			sb.append(")");
+
+			sb.append(")");
+		}
+
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), AccountRole.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(companyId);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	private static final String _FINDER_COLUMN_C_A_COMPANYID_2 =
+		"accountRole.companyId = ? AND ";
+
+	private static final String _FINDER_COLUMN_C_A_ACCOUNTENTRYID_2 =
+		"accountRole.accountEntryId = ?";
+
+	private static final String _FINDER_COLUMN_C_A_ACCOUNTENTRYID_7 =
+		"accountRole.accountEntryId IN (";
+
 	public AccountRolePersistenceImpl() {
 		setModelClass(AccountRole.class);
 
@@ -1573,6 +3968,8 @@ public class AccountRolePersistenceImpl
 			accountRole);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the account roles in the entity cache if it is enabled.
 	 *
@@ -1580,6 +3977,13 @@ public class AccountRolePersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<AccountRole> accountRoles) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (accountRoles.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (AccountRole accountRole : accountRoles) {
 			if (entityCache.getResult(
 					AccountRoleImpl.class, accountRole.getPrimaryKey()) ==
@@ -2052,12 +4456,9 @@ public class AccountRolePersistenceImpl
 	 * Initializes the account role persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new AccountRoleModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -2120,13 +4521,55 @@ public class AccountRolePersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByRoleId",
 			new String[] {Long.class.getName()}, new String[] {"roleId"},
 			false);
+
+		_finderPathWithPaginationFindByC_A = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_A",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
+			},
+			new String[] {"companyId", "accountEntryId"}, true);
+
+		_finderPathWithoutPaginationFindByC_A = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_A",
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"companyId", "accountEntryId"}, true);
+
+		_finderPathCountByC_A = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_A",
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"companyId", "accountEntryId"}, false);
+
+		_finderPathWithPaginationCountByC_A = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByC_A",
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"companyId", "accountEntryId"}, false);
+
+		_setAccountRoleUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(AccountRoleImpl.class.getName());
+		_setAccountRoleUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(AccountRoleImpl.class.getName());
+	}
+
+	private void _setAccountRoleUtilPersistence(
+		AccountRolePersistence accountRolePersistence) {
+
+		try {
+			Field field = AccountRoleUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, accountRolePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -2155,8 +4598,6 @@ public class AccountRolePersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private BundleContext _bundleContext;
-
 	@Reference
 	protected EntityCache entityCache;
 
@@ -2175,7 +4616,30 @@ public class AccountRolePersistenceImpl
 	private static final String _SQL_COUNT_ACCOUNTROLE_WHERE =
 		"SELECT COUNT(accountRole) FROM AccountRole accountRole WHERE ";
 
+	private static final String _FILTER_ENTITY_TABLE_FILTER_PK_COLUMN =
+		"accountRole.accountRoleId";
+
+	private static final String _FILTER_SQL_SELECT_ACCOUNTROLE_WHERE =
+		"SELECT DISTINCT {accountRole.*} FROM AccountRole accountRole WHERE ";
+
+	private static final String
+		_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_1 =
+			"SELECT {AccountRole.*} FROM (SELECT DISTINCT accountRole.accountRoleId FROM AccountRole accountRole WHERE ";
+
+	private static final String
+		_FILTER_SQL_SELECT_ACCOUNTROLE_NO_INLINE_DISTINCT_WHERE_2 =
+			") TEMP_TABLE INNER JOIN AccountRole ON TEMP_TABLE.accountRoleId = AccountRole.accountRoleId";
+
+	private static final String _FILTER_SQL_COUNT_ACCOUNTROLE_WHERE =
+		"SELECT COUNT(DISTINCT accountRole.accountRoleId) AS COUNT_VALUE FROM AccountRole accountRole WHERE ";
+
+	private static final String _FILTER_ENTITY_ALIAS = "accountRole";
+
+	private static final String _FILTER_ENTITY_TABLE = "AccountRole";
+
 	private static final String _ORDER_BY_ENTITY_ALIAS = "accountRole.";
+
+	private static final String _ORDER_BY_ENTITY_TABLE = "AccountRole.";
 
 	private static final String _NO_SUCH_ENTITY_WITH_PRIMARY_KEY =
 		"No AccountRole exists with the primary key ";
@@ -2191,93 +4655,8 @@ public class AccountRolePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class AccountRoleModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AccountRoleModelImpl accountRoleModelImpl =
-				(AccountRoleModelImpl)baseModel;
-
-			long columnBitmask = accountRoleModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(accountRoleModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						accountRoleModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(accountRoleModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AccountRoleImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AccountRoleTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AccountRoleModelImpl accountRoleModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] = accountRoleModelImpl.getColumnOriginalValue(
-						columnName);
-				}
-				else {
-					arguments[i] = accountRoleModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private AccountRoleModelArgumentsResolver
+		_accountRoleModelArgumentsResolver;
 
 }

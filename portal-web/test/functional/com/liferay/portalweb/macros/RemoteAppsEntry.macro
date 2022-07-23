@@ -1,24 +1,116 @@
 definition {
 
-	macro addEntry {
+	macro addCSSURLRow {
+		Click(
+			key_id = "customElementCSSURLs",
+			locator1 = "RemoteAppsEntry#ADD_URL_ROW");
+	}
 
-		// Workaround for LPS-121683
-
+	macro addCustomElement {
 		Type(
-			locator1 = "RemoteAppsEntry#NAME",
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
 			value1 = "${entryName}");
 
-		/* Use this instead when LPS-121683 is fixed
 		Type(
-		 	key_text = "Name"
+			key_text = "HTML Element Name",
 			locator1 = "TextInput#ANY",
-			value1 = "${name}");
-		*/
+			value1 = "${entryHtmlName}");
 
 		Type(
-			key_text = "URL",
-			locator1 = "TextInput#ANY",
+			key_id = "customElementURLs",
+			locator1 = "RemoteAppsEntry#URL",
 			value1 = "${entryURL}");
+	}
+
+	macro addCustomElementAllFields {
+		Type(
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryName}");
+
+		Type(
+			key_text = "HTML Element Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryHtmlName}");
+
+		Type(
+			key_id = "customElementURLs",
+			locator1 = "RemoteAppsEntry#URL",
+			value1 = "${entryURL}");
+
+		Type(
+			key_text = "CSS URL",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryCssurl}");
+
+		Type(
+			locator1 = "RemoteAppsEntry#REMOTE_APPS_PROPERTIES",
+			value1 = "${entryProperties}");
+	}
+
+	macro addCustomElementMultipleURLs {
+		Type(
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryName}");
+
+		Type(
+			key_text = "HTML Element Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryHtmlName}");
+
+		RemoteAppsEntry.addURLRow();
+
+		RemoteAppsEntry.addCSSURLRow();
+
+		Type(
+			key_id = "customElementURLs",
+			key_index = "1",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "${entryUrl1}");
+
+		Type(
+			key_id = "customElementURLs",
+			key_index = "2",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "${entryUrl2}");
+
+		Type(
+			key_id = "customElementCSSURLs",
+			key_index = "1",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "${entryCssurl1}");
+
+		Type(
+			key_id = "customElementCSSURLs",
+			key_index = "2",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "${entryCssurl2}");
+	}
+
+	macro addEntry {
+		Type(
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryName}");
+
+		Type(
+			key_id = "iFrameURL",
+			locator1 = "RemoteAppsEntry#URL",
+			value1 = "${entryURL}");
+	}
+
+	macro addPortletCategory {
+		Select(
+			locator1 = "RemoteAppsEntry#REMOTE_APPS_PORTLET_CATEGORY_NAME",
+			value1 = "${categoryName}");
+	}
+
+	macro addURLRow {
+		Click(
+			key_id = "customElementURLs",
+			locator1 = "RemoteAppsEntry#ADD_URL_ROW");
 	}
 
 }

@@ -1,0 +1,1594 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Style Books";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site via JSON") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-116078 and LPS-143302. Can navigate to preview page via page preview info bar but not interact with preview page in style book editor."
+	@priority = "4"
+	test CanNavigateToPreviewPageViaPagePreviewInfoBarButNotAllowInteractWithPreviewPage {
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Content Page Name",
+				type = "content");
+		}
+
+		task ("Add a Banner Center to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name");
+		}
+
+		task ("Add a Blogs portlet to page") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name",
+				widgetName = "Blogs");
+		}
+
+		task ("Add a style book") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.addStyleBooks(styleBookName = "Test Style Book Name");
+		}
+
+		task ("Assert the widget page is shown in preview iframe") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertVisible(
+				key_pageName = "Test Widget Page Name",
+				locator1 = "Home#PAGE_ACTIVE");
+
+			Portlet.viewTitle(portletName = "Blogs");
+		}
+
+		task ("Assert not allow interact with preview page") {
+			AssertCssValue(
+				locator1 = "StyleBookEditor#CURSOR_NOT_ALLOWED",
+				locator2 = "z-index",
+				value1 = "100000");
+
+			SelectFrameTop();
+		}
+
+		task ("Navigate to content page via preview type selector") {
+			StyleBooks.selectPreviewItem(previewItem = "Test Content Page Name");
+		}
+
+		task ("Assert the content page is shown in preview iframe") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertVisible(
+				key_pageName = "Test Content Page Name",
+				locator1 = "Home#PAGE_ACTIVE");
+
+			AssertVisible(
+				key_content = "Banner Title Example",
+				key_element = "h1",
+				key_id = "element-text",
+				key_type = "text",
+				locator1 = "StyleBookEditor#CONTRIBUTED_FRAGMENT_INLINE_CONTENT");
+		}
+
+		task ("Assert not allow interact with preview page") {
+			AssertCssValue(
+				locator1 = "StyleBookEditor#CURSOR_NOT_ALLOWED",
+				locator2 = "z-index",
+				value1 = "100000");
+
+			SelectFrameTop();
+		}
+	}
+
+	@description = "This is a test for LPS-137065. The user cannot preview the effects of styles on draft changes."
+	@priority = "4"
+	test CannotPreviewStyleBookOnDraftChanges {
+		task ("Add a Heading fragment to a master page without publish") {
+			JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+				groupName = "Test Site Name",
+				masterPageTemplateEntryName = "Custom Masters Page Template");
+
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				dropTarget = "Header",
+				fragmentName = "Heading",
+				scope = "Master");
+		}
+
+		task ("Add a Heading fragment to a content page template without publish") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Content Page Template Name",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Heading fragment to a display page template for Web Content Article and Basic Web Content without publish") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Template Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Heading fragment to a content page without publish") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View only the Fragments is available to the preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Fragments");
+
+			Click(
+				index = "1",
+				locator1 = "StyleBookEditor#PREVIEW_SELECTOR");
+
+			for (var previewType : list "Masters,Pages,Page Templates,Display Page Templates") {
+				MenuItem.viewNotPresent(menuItem = "${previewType}");
+			}
+		}
+
+		task ("Publish the master page") {
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+
+			MastersPageTemplates.publishMaster();
+		}
+
+		task ("Edit the inline text of Heading in master page without publish") {
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Welcome to Liferay");
+		}
+
+		task ("Publish the content page template") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template Name");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Edit the inline text of Heading in content page template without publish") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template Name");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Welcome to Liferay");
+		}
+
+		task ("Publish the display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Edit the inline text of Heading in display page template without publish") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Template Name");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Welcome to Liferay");
+		}
+
+		task ("Publish the content page") {
+			JSONLayout.publishLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("Edit the inline text of Heading in content page without publish") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Welcome to Liferay");
+		}
+
+		task ("Navigate to the style book editor") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBook(styleBookName = "Test Style Book Name");
+		}
+
+		task ("View the content page with default inline text shown in preview window") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Test Page Name");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the Masters in the preview type selector") {
+			StyleBooks.selectPreviewType(previewType = "Masters");
+		}
+
+		task ("View the master page with default inline text shown in preview window") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Custom Masters Page Template");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the Page Templates in the preview type selector") {
+			StyleBooks.selectPreviewType(previewType = "Page Templates");
+		}
+
+		task ("View the content page template with default inline text shown in preview window") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Content Page Template Name");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+
+			SelectFrameTop();
+		}
+
+		task ("Select the Display Page Templates in the preview type selector") {
+			StyleBooks.selectPreviewType(previewType = "Display Page Templates");
+		}
+
+		task ("View the display page template with default inline text shown in preview window") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Display Page Template Name");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+
+			SelectFrameTop();
+		}
+	}
+
+	@description = "This is a test for LPS-140774. The user can preview the effects on current site fragments in styles book editor."
+	@priority = "4"
+	test PreviewEffectOnCurrentSiteFragment {
+		property portal.release = "false";
+
+		task ("Add a fragment set in current site") {
+			JSONFragment.addFragmentCollection(
+				groupName = "Test Site Name",
+				name = "Collection Name");
+		}
+
+		task ("Copy the Heading fragment from Basic Components to new set") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Basic Components");
+
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Heading",
+				item = "Copy To");
+
+			FragmentsAdmin.selectCollection(collectionName = "Collection Name");
+		}
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View the Fragments is selected in the preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Fragments");
+		}
+
+		task ("View the new fragment set is selected in the preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Collection Name");
+		}
+
+		task ("View the help text is shown in dropdown list of preview item selector") {
+			Click(
+				index = "2",
+				locator1 = "StyleBookEditor#PREVIEW_SELECTOR");
+
+			AssertElementPresent(
+				key_caption = "Showing 4 of 7 Items",
+				locator1 = "Dropdown#CAPTION");
+		}
+
+		task ("Define the Heading 1 Font Size of Headings") {
+			StyleBooks.selectForm(formName = "Typography");
+
+			StyleBooks.expandSection(sectionName = "Headings");
+
+			Type(
+				key_fieldLabel = "Heading 1 Font Size",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "2rem");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("View the defined Heading 1 Font Size applied on Heading fragment") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				key_content = "Heading Example",
+				key_element = "h1",
+				key_id = "element-text",
+				key_type = "text",
+				locator1 = "StyleBookEditor#CONTRIBUTED_FRAGMENT_INLINE_CONTENT",
+				locator2 = "font-size",
+				value1 = "32px");
+		}
+	}
+
+	@description = "This is a test for LPS-140774. The user can preview the effects on default fragments in styles book editor."
+	@priority = "4"
+	test PreviewEffectOnDefaultFragment {
+		property portal.release = "false";
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View the Fragments is selected in the preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Fragments");
+		}
+
+		task ("View the Basic Components set is selected in the preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Basic Components");
+		}
+
+		task ("Select the Navigation Bars from Default fragment set in the preview item selector") {
+			StyleBooks.selectPreviewItem(
+				caption = "Showing 4 of 6 Items",
+				previewItem = "Navigation Bars",
+				scope = "Default");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			for (var text : list "Header Dark,Header Light") {
+				AssertVisible(
+					key_title = "${text}",
+					locator1 = "Header#H3_TITLE");
+			}
+
+			SelectFrameTop();
+		}
+
+		task ("Select the Basic Components in the preview item selector") {
+			StyleBooks.selectPreviewItem(previewItem = "Basic Components");
+		}
+
+		task ("Define the color of Button Primary") {
+			StyleBooks.selectForm(formName = "Buttons");
+
+			StyleBooks.expandSection(sectionName = "Button Primary");
+
+			Type(
+				key_fieldLabel = "Color",
+				key_groupLabel = "Button Primary",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#00FF00");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("View the defined color applied on Button fragments") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			for (var i : list "1,2,3") {
+				AssertCssValue(
+					fragmentName = "button",
+					id = "link",
+					index = "${i}",
+					locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+					locator2 = "color",
+					value1 = "rgba(0, 255, 0, 1)");
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-140774. The user can preview the effects on global fragments in styles book editor."
+	@priority = "4"
+	test PreviewEffectOnGlobalFragment {
+		property portal.release = "false";
+
+		task ("Add a fragment set in Global site") {
+			JSONFragment.addFragmentCollection(
+				groupName = "Global",
+				name = "Collection Name");
+		}
+
+		task ("Copy the Heading fragment from Basic Components to new set") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Basic Components");
+
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Heading",
+				item = "Copy To");
+
+			FragmentsAdmin.selectCollection(collectionName = "Collection Name");
+		}
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View the Fragments is selected in the preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Fragments");
+		}
+
+		task ("View the new fragment set is selected in the preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Collection Name");
+		}
+
+		task ("View the help text is shown in dropdown list of preview item selector") {
+			Click(
+				index = "2",
+				locator1 = "StyleBookEditor#PREVIEW_SELECTOR");
+
+			AssertElementPresent(
+				key_caption = "Showing 4 of 7 Items",
+				locator1 = "Dropdown#CAPTION");
+		}
+
+		task ("Define the Heading 1 Font Size of Headings") {
+			StyleBooks.selectForm(formName = "Typography");
+
+			StyleBooks.expandSection(sectionName = "Headings");
+
+			Type(
+				key_fieldLabel = "Heading 1 Font Size",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "2rem");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("View the defined Heading 1 Font Size applied on Heading fragment") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				key_content = "Heading Example",
+				key_element = "h1",
+				key_id = "element-text",
+				key_type = "text",
+				locator1 = "StyleBookEditor#CONTRIBUTED_FRAGMENT_INLINE_CONTENT",
+				locator2 = "font-size",
+				value1 = "32px");
+		}
+
+		task ("Delete the global fragment set") {
+			JSONFragment.deleteFragmentCollection(
+				groupName = "Global",
+				name = "Collection Name");
+		}
+	}
+
+	@description = "This is a test for LPS-137065. The designer could preview the effects of styles on all display page templates."
+	@priority = "5"
+	test PreviewStyleBookOnDisplayPageTemplates {
+		property portal.acceptance = "true";
+
+		task ("Add a Heading fragment to the first display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Web Content DPT 1",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Web Content DPT 1");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Title field to Heading fragment then publish") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Heading fragment to the second display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Web Content DPT 2",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Web Content DPT 2");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Display Page URL field to a Heading fragment then publish") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Display Page URL",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Heading fragment to a display page template for Blogs Entry") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Blogs Entry",
+				displayPageTemplateEntryName = "Blogs Entry DPT",
+				groupName = "Test Site Name");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Blogs Entry DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Content field to a Heading fragment then publish") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Content",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Heading fragment to a display page template for Document and Basic Document") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Document",
+				displayPageTemplateEntryName = "Document DPT",
+				groupName = "Test Site Name",
+				subType = "Basic Document");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Document DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Author Name field to a Heading fragment then publish") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Author Name",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Heading fragment display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Category DPT",
+				groupName = "Test Site Name");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Category DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Name field to a Heading fragment then publish") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Name",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View the Display Page Templates is shown in preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Display Page Templates");
+		}
+
+		task ("View the display page template for Category is shown in preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Category DPT");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			StyleBooks.selectForm(formName = "General");
+
+			StyleBooks.expandSection(sectionName = "Body");
+
+			Type(
+				key_fieldLabel = "Body Color",
+				key_groupLabel = "Body",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#227777");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the display page template for Category") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(34, 119, 119, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("Change the preview item to display page template for Document and Basic Document") {
+			StyleBooks.selectPreviewItem(previewItem = "Document DPT");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			Type(
+				key_fieldLabel = "Body Color",
+				key_groupLabel = "Body",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#556622");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the display page template for Document and Basic Document") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(85, 102, 34, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("Change the preview item to display page template for Blogs Entry") {
+			StyleBooks.selectPreviewItem(previewItem = "Blogs Entry DPT");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			Type(
+				key_fieldLabel = "Body Color",
+				key_groupLabel = "Body",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#995511");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the display page template for Blogs Entry") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(153, 85, 17, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("Change the preview item to the second display page template for Web Content Article and Basic Web Content") {
+			StyleBooks.selectPreviewItem(previewItem = "Web Content DPT 2");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			Type(
+				key_fieldLabel = "Body Color",
+				key_groupLabel = "Body",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#666666");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the second display page template for Web Content Article and Basic Web Content") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(102, 102, 102, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("View the Showing 4 of 5 Items shown in dropdown menu of preview item selector then change the preview item to the first display page template") {
+			StyleBooks.selectPreviewItem(
+				caption = "Showing 4 of 5 Items",
+				previewItem = "Web Content DPT 1");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			Type(
+				key_fieldLabel = "Body Color",
+				key_groupLabel = "Body",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#005566");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the first display page template for Web Content Article and Basic Web Content") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(0, 85, 102, 1)");
+
+			SelectFrameTop();
+		}
+	}
+
+	@description = "This is a test for LPS-137065. The designer could preview the effects of styles on master page."
+	@priority = "5"
+	test PreviewStyleBookOnMasterPage {
+		property portal.acceptance = "true";
+
+		task ("Add a master with a Header Dark fragment then publish") {
+			JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+				groupName = "Test Site Name",
+				masterPageTemplateEntryName = "Custom Masters Page Template");
+
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+
+			PageEditor.addFragment(
+				collectionName = "Navigation Bars",
+				dropTarget = "Header",
+				fragmentName = "Header Dark",
+				scope = "Master");
+
+			MastersPageTemplates.publishMaster();
+		}
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View the Masters is shown in preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Masters");
+		}
+
+		task ("View the master page is shown in preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Custom Masters Page Template");
+		}
+
+		task ("View the help information") {
+			Tooltip.viewHelpInformation(info = "Edit the style book using the sidebar form. You can preview the changes instantly.");
+		}
+
+		task ("Change Font Family Base to times in Typography form") {
+			StyleBooks.selectForm(formName = "Typography");
+
+			StyleBooks.expandSection(sectionName = "Font Family");
+
+			Type(
+				key_fieldLabel = "Font Family Base",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "times");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the master") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				locator1 = "//*[contains(@data-lfr-editable-id,'link')][normalize-space(text())='Sign In']",
+				locator2 = "font-family",
+				value1 = "times");
+
+			SelectFrameTop();
+		}
+	}
+
+	@description = "This is a test for LPS-137065. The designer could preview the effects of styles on all pages."
+	@priority = "5"
+	test PreviewStyleBookOnPages {
+		property portal.acceptance = "true";
+
+		task ("Add the first widget page with a Blogs widget") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name 1");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name 1",
+				widgetName = "Blogs");
+		}
+
+		task ("Add the second widget page with a My Sites widget") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name 2");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name 2",
+				widgetName = "My Sites");
+		}
+
+		task ("Add a Heading fragment to the first content page then publish") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name 1",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name 1",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Button fragment to the second content page then publish") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name 2",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name 2",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Paragraph fragment to the third content page then publish") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name 3",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name 3",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View the Pages is shown in preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Pages");
+		}
+
+		task ("View the third content page name is shown in preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Content Page Name 3");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			StyleBooks.selectForm(formName = "General");
+
+			StyleBooks.expandSection(sectionName = "Body");
+
+			Type(
+				key_fieldLabel = "Body Color",
+				key_groupLabel = "Body",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#227777");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the third content page") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "paragraph",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(34, 119, 119, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("Change the preview item to the second content page") {
+			StyleBooks.selectPreviewItem(previewItem = "Content Page Name 2");
+		}
+
+		task ("Change Color of Button Primary in Buttons form") {
+			StyleBooks.selectForm(formName = "Buttons");
+
+			StyleBooks.expandSection(sectionName = "Button Primary");
+
+			Type(
+				key_fieldLabel = "Color",
+				key_groupLabel = "Button Primary",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#880022");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the second content page") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "button",
+				id = "link",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(136, 0, 34, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("Change the preview item to the first content page") {
+			StyleBooks.selectPreviewItem(previewItem = "Content Page Name 1");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			StyleBooks.selectForm(formName = "General");
+
+			StyleBooks.expandSection(sectionName = "Body");
+
+			Type(
+				key_fieldLabel = "Body Color",
+				key_groupLabel = "Body",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#995511");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the first content page") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(153, 85, 17, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("Change the preview item to the second widget page") {
+			StyleBooks.selectPreviewItem(previewItem = "Widget Page Name 2");
+		}
+
+		task ("Change Font Family Base in Typography form") {
+			StyleBooks.selectForm(formName = "Typography");
+
+			StyleBooks.expandSection(sectionName = "Font Family");
+
+			Type(
+				key_fieldLabel = "Font Family Base",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "times");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the second widget page") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				key_navItem = "My Sites",
+				locator1 = "NavBar#NAV_ITEM_LINK",
+				locator2 = "font-family",
+				value1 = "times");
+
+			SelectFrameTop();
+		}
+
+		task ("View the Showing 4 of 5 Items shown in dropdown menu of preview item selector then change the preview item to the first widget page") {
+			StyleBooks.selectPreviewItem(
+				caption = "Showing 4 of 5 Items",
+				previewItem = "Widget Page Name 1");
+		}
+
+		task ("Change Body Color of Body in General form") {
+			Type(
+				key_fieldLabel = "Font Family Base",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "courier");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the first widget page") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				key_text = "New Entry",
+				locator1 = "Button#ANY",
+				locator2 = "font-family",
+				value1 = "courier");
+
+			SelectFrameTop();
+		}
+	}
+
+	@description = "This is a test for LPS-137065. The designer could preview the effects of styles on all page templates."
+	@priority = "5"
+	test PreviewStyleBookOnPageTemplates {
+		property portal.acceptance = "true";
+
+		task ("Add a page template collection") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+		}
+
+		task ("Add a widget page template with a Blog widget") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Widget Page Template Name",
+				layoutPageTemplateStatus = "Approved",
+				layoutPageTemplateType = "Widget Page Template");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplateEllipsisItem(
+				item = "Edit",
+				pageTemplateName = "Widget Page Template Name");
+
+			Portlet.addPG(portletName = "Blogs");
+		}
+
+		task ("Add a content page template with a Button fragment then publish") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Content Page Template Name",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("View the Page Templates is shown in preview type selector") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+
+			StyleBooks.viewCurrentPreviewType(previewType = "Page Templates");
+		}
+
+		task ("View the content page template is shown in preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Content Page Template Name");
+		}
+
+		task ("Change Color of Button Primary in Buttons form") {
+			StyleBooks.selectForm(formName = "Buttons");
+
+			StyleBooks.expandSection(sectionName = "Button Primary");
+
+			Type(
+				key_fieldLabel = "Color",
+				key_groupLabel = "Button Primary",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#880022");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effects on the content page template") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				fragmentName = "button",
+				id = "link",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(136, 0, 34, 1)");
+
+			SelectFrameTop();
+		}
+
+		task ("Preview the effects on the widget page template") {
+			StyleBooks.selectPreviewItem(previewItem = "Widget Page Template Name");
+
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Widget Page Template Name");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				key_text = "New Entry",
+				locator1 = "Button#ANY",
+				locator2 = "color",
+				value1 = "rgba(136, 0, 34, 1)");
+
+			SelectFrameTop();
+		}
+	}
+
+	@description = "This is a test for LPS-116078 and LPS-119898. Can preview the effect on page when edit the style book."
+	@priority = "5"
+	test PreviewStyleBookWhenEditStyleBook {
+		property portal.acceptance = "true";
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+		}
+
+		task ("Add a Banner Center to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Change the background color of Container and publish the page") {
+			PageEditor.editLayoutContainer(
+				backgroundColor = "Danger",
+				panel = "Styles");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a style book") {
+			ProductMenu.gotoPortlet(
+				category = "Design",
+				portlet = "Style Books");
+
+			StyleBooksAdmin.addStyleBooks(styleBookName = "Test Style Book Name");
+		}
+
+		task ("Assert the content page is shown in preview iframe") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertVisible(
+				key_pageName = "Test Page Name",
+				locator1 = "Home#PAGE");
+
+			AssertVisible(
+				key_content = "Banner Title Example",
+				key_element = "h1",
+				key_id = "element-text",
+				key_type = "text",
+				locator1 = "StyleBookEditor#CONTRIBUTED_FRAGMENT_INLINE_CONTENT");
+
+			SelectFrameTop();
+		}
+
+		task ("Select Buttons in sidebar") {
+			StyleBooks.selectForm(formName = "Buttons");
+		}
+
+		task ("Edit Background Color in Button Primary section") {
+			StyleBooks.expandSection(sectionName = "Button Primary");
+
+			Type(
+				key_fieldLabel = "Background Color",
+				key_groupLabel = "Button Primary",
+				locator1 = "TextInput#GROUPED_TEXT_INPUT",
+				value1 = "#FF0000");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Select Typography in sidebar") {
+			StyleBooks.selectForm(formName = "Typography");
+		}
+
+		task ("Edit Heading 1 Font Size in Headings section") {
+			StyleBooks.expandSection(sectionName = "Headings");
+
+			Type(
+				key_fieldLabel = "Heading 1 Font Size",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "2rem");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Select Color System in sidebar") {
+			StyleBooks.selectForm(formName = "Color System");
+		}
+
+		task ("Edit the Danger in Theme Colors section") {
+			StyleBooks.expandSection(sectionName = "Theme Colors");
+
+			Type(
+				key_fieldLabel = "Danger",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "#0b5fff");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+		}
+
+		task ("Preview the effect in page preivew iframe") {
+			SelectFrame.selectFrameNoLoading(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertCssValue(
+				key_content = "Go Somewhere",
+				key_element = "a",
+				key_id = "link",
+				key_type = "link",
+				locator1 = "StyleBookEditor#CONTRIBUTED_FRAGMENT_INLINE_CONTENT",
+				locator2 = "background-color",
+				value1 = "rgba(255, 0, 0, 1)");
+
+			AssertCssValue(
+				key_content = "Banner Title Example",
+				key_element = "h1",
+				key_id = "element-text",
+				key_type = "text",
+				locator1 = "StyleBookEditor#CONTRIBUTED_FRAGMENT_INLINE_CONTENT",
+				locator2 = "font-size",
+				value1 = "32px");
+
+			AssertCssValue(
+				locator1 = "//div[contains(@class,'bg-dangerColor')]",
+				locator2 = "background-color",
+				value1 = "rgba(11, 95, 255, 1)");
+
+			SelectFrameTop();
+
+			StyleBooks.clickPublish();
+		}
+
+		task ("Assert the new style book in Style Books admin") {
+			StyleBooksAdmin.viewStyleBooksPresent(styleBookName = "Test Style Book Name");
+		}
+	}
+
+	@description = "This is a test for LPS-116078 and LPS-137065. The user could view the empty state when the site is empty."
+	@priority = "4"
+	test ViewEmptyStateWhenSiteIsEmpty {
+		property portal.release = "false";
+		property test.name.skip.portal.instance = "StyleBooksWithPreview#ViewEmptyStateWhenSiteIsEmpty";
+
+		task ("Deactivate the Default fragment sets") {
+			ApplicationsMenu.gotoPortlet(
+				category = "System",
+				panel = "Control Panel",
+				portlet = "App Manager");
+
+			for (var collectionName : list "Basic Component,Cookie Banner,Dialect,Featured Content,Footers,Navigation Bars") {
+				Search.searchCP(searchTerm = "Fragment Collection Contributor");
+
+				AppManager.deactivateApp(appName = "Liferay Fragment Collection Contributor ${collectionName}");
+			}
+		}
+
+		task ("Add a style book") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.addStyleBooks(styleBookName = "Test Style Book Name");
+		}
+
+		task ("View the empty state in style book editor") {
+			AssertElementNotPresent(locator1 = "StyleBookEditor#PAGE_PREVIEW_IFRAME");
+
+			AssertVisible(locator1 = "StyleBookEditor#EMPTY_MESSAGE");
+
+			AssertElementNotPresent(
+				index = "1",
+				locator1 = "StyleBookEditor#PREVIEW_SELECTOR");
+
+			AssertVisible(
+				key_text = "Publish",
+				locator1 = "Button#ANY");
+		}
+	}
+
+	@description = "This is a use case for LPS-140253. View no private page in style book."
+	@priority = "4"
+	test ViewNoPrivatePageInStyleBooks {
+		task ("Add 4 public pages") {
+			for (var i : list "1,2,3,4") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Public Page Name ${i}");
+			}
+		}
+
+		task ("Add a private page") {
+			JSONLayout.addPrivateLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Private Page Name");
+		}
+
+		task ("Add a style book") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.addStyleBooks(styleBookName = "Test Style Book Name");
+		}
+
+		task ("View the private page is shown in preview item selector") {
+			StyleBooks.viewCurrentPreviewItem(previewItem = "Test Private Page Name");
+		}
+
+		task ("View the Public Pages and Private Pages nav items are not shown in select preview item modal") {
+			Click(
+				index = "2",
+				locator1 = "StyleBookEditor#PREVIEW_SELECTOR");
+
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			Button.clickMore();
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			for (var navItem : list "Public Pages,Private Pages") {
+				AssertElementNotPresent(
+					locator1 = "NavBar#NAV_ITEM_LINK",
+					value1 = "${navItem}");
+			}
+		}
+	}
+
+}

@@ -226,20 +226,6 @@ public interface ContactModel
 	public void setClassPK(long classPK);
 
 	/**
-	 * Returns the account ID of this contact.
-	 *
-	 * @return the account ID of this contact
-	 */
-	public long getAccountId();
-
-	/**
-	 * Sets the account ID of this contact.
-	 *
-	 * @param accountId the account ID of this contact
-	 */
-	public void setAccountId(long accountId);
-
-	/**
 	 * Returns the parent contact ID of this contact.
 	 *
 	 * @return the parent contact ID of this contact
@@ -525,5 +511,8 @@ public interface ContactModel
 	 * @param hoursOfOperation the hours of operation of this contact
 	 */
 	public void setHoursOfOperation(String hoursOfOperation);
+
+	@Override
+	public Contact cloneWithOriginalValues();
 
 }

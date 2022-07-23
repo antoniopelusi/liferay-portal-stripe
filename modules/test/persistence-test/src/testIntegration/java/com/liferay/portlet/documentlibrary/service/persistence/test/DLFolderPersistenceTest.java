@@ -327,6 +327,15 @@ public class DLFolderPersistenceTest {
 	}
 
 	@Test
+	public void testCountByGtF_C_P() throws Exception {
+		_persistence.countByGtF_C_P(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+			RandomTestUtil.nextLong());
+
+		_persistence.countByGtF_C_P(0L, 0L, 0L);
+	}
+
+	@Test
 	public void testCountByG_M_P() throws Exception {
 		_persistence.countByG_M_P(
 			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(),
@@ -346,12 +355,12 @@ public class DLFolderPersistenceTest {
 	}
 
 	@Test
-	public void testCountByF_C_P_NotS() throws Exception {
-		_persistence.countByF_C_P_NotS(
+	public void testCountByGtF_C_P_NotS() throws Exception {
+		_persistence.countByGtF_C_P_NotS(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
 			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
 
-		_persistence.countByF_C_P_NotS(0L, 0L, 0L, 0);
+		_persistence.countByGtF_C_P_NotS(0L, 0L, 0L, 0);
 	}
 
 	@Test
@@ -366,16 +375,16 @@ public class DLFolderPersistenceTest {
 	}
 
 	@Test
-	public void testCountByG_M_T_H() throws Exception {
-		_persistence.countByG_M_T_H(
+	public void testCountByG_M_LikeT_H() throws Exception {
+		_persistence.countByG_M_LikeT_H(
 			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(), "",
 			RandomTestUtil.randomBoolean());
 
-		_persistence.countByG_M_T_H(
+		_persistence.countByG_M_LikeT_H(
 			0L, RandomTestUtil.randomBoolean(), "null",
 			RandomTestUtil.randomBoolean());
 
-		_persistence.countByG_M_T_H(
+		_persistence.countByG_M_LikeT_H(
 			0L, RandomTestUtil.randomBoolean(), (String)null,
 			RandomTestUtil.randomBoolean());
 	}
@@ -398,6 +407,21 @@ public class DLFolderPersistenceTest {
 
 		_persistence.countByG_M_P_H_S(
 			0L, RandomTestUtil.randomBoolean(), 0L,
+			RandomTestUtil.randomBoolean(), 0);
+	}
+
+	@Test
+	public void testCountByG_M_LikeT_H_NotS() throws Exception {
+		_persistence.countByG_M_LikeT_H_NotS(
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean(), "",
+			RandomTestUtil.randomBoolean(), RandomTestUtil.nextInt());
+
+		_persistence.countByG_M_LikeT_H_NotS(
+			0L, RandomTestUtil.randomBoolean(), "null",
+			RandomTestUtil.randomBoolean(), 0);
+
+		_persistence.countByG_M_LikeT_H_NotS(
+			0L, RandomTestUtil.randomBoolean(), (String)null,
 			RandomTestUtil.randomBoolean(), 0);
 	}
 

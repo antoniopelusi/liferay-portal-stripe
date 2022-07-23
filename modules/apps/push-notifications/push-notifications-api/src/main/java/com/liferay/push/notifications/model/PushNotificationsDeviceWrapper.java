@@ -95,6 +95,11 @@ public class PushNotificationsDeviceWrapper
 		}
 	}
 
+	@Override
+	public PushNotificationsDevice cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this push notifications device.
 	 *

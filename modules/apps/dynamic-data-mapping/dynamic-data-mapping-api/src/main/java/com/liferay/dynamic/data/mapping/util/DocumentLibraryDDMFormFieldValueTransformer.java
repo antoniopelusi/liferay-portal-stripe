@@ -67,13 +67,14 @@ public class DocumentLibraryDDMFormFieldValueTransformer
 
 		String fileName = DLUtil.getUniqueFileName(
 			tempFileEntry.getGroupId(), tempFileEntry.getFolderId(),
-			tempFileEntry.getFileName());
+			tempFileEntry.getFileName(), false);
 
 		return DLAppServiceUtil.addFileEntry(
-			tempFileEntry.getGroupId(), 0, fileName,
+			null, tempFileEntry.getGroupId(), 0, fileName,
 			tempFileEntry.getMimeType(), fileName, StringPool.BLANK,
-			StringPool.BLANK, tempFileEntry.getContentStream(),
-			tempFileEntry.getSize(), new ServiceContext());
+			StringPool.BLANK, StringPool.BLANK,
+			tempFileEntry.getContentStream(), tempFileEntry.getSize(), null,
+			null, new ServiceContext());
 	}
 
 	protected FileEntry fetchTempFileEntry(String value)
@@ -96,15 +97,13 @@ public class DocumentLibraryDDMFormFieldValueTransformer
 	}
 
 	protected String toJSON(FileEntry fileEntry) {
-		JSONObject jsonObject = JSONUtil.put(
+		return JSONUtil.put(
 			"groupId", fileEntry.getGroupId()
 		).put(
 			"title", fileEntry.getTitle()
 		).put(
 			"uuid", fileEntry.getUuid()
-		);
-
-		return jsonObject.toString();
+		).toString();
 	}
 
 }

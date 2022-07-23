@@ -83,19 +83,15 @@ public class JSModuleLauncherImpl implements JSModuleLauncher {
 	public void writeModuleInvocation(
 		Writer writer, String javascriptModule, String... parameters) {
 
-		StringBundler javaScriptCodeSB = new StringBundler(3);
-
-		javaScriptCodeSB.append("(__module__.default || __module__)(");
-		javaScriptCodeSB.append(
-			StringUtil.merge(parameters, StringPool.COMMA_AND_SPACE));
-		javaScriptCodeSB.append(");");
-
 		_writeScriptData(
 			writer,
 			_getScriptBody(
 				Arrays.asList(
 					new JSModuleDependency(javascriptModule, "__module__")),
-				javaScriptCodeSB.toString()),
+				StringBundler.concat(
+					"(__module__.default || __module__)(",
+					StringUtil.merge(parameters, StringPool.COMMA_AND_SPACE),
+					");")),
 			null);
 	}
 

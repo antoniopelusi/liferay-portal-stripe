@@ -19,13 +19,13 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import ItemSelector from '../../../common/components/ItemSelector';
 import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
+import {CollectionItemContext} from '../../contexts/CollectionItemContext';
+import {useDispatch} from '../../contexts/StoreContext';
 import InfoItemService from '../../services/InfoItemService';
-import {useDispatch} from '../../store/index';
 import itemSelectorValueToInfoItem from '../../utils/item-selector-value/itemSelectorValueToInfoItem';
 import {useId} from '../../utils/useId';
-import {CollectionItemContext} from '../CollectionItemContext';
 
-export const ItemSelectorField = ({field, onValueSelect, value}) => {
+export function ItemSelectorField({field, onValueSelect, value}) {
 	const collectionItemContext = useContext(CollectionItemContext);
 
 	const {typeOptions = {}} = field;
@@ -48,13 +48,14 @@ export const ItemSelectorField = ({field, onValueSelect, value}) => {
 				onItemSelect={(item) => {
 					onValueSelect(field.name, item);
 				}}
-				selectedItemTitle={
+				selectedItem={
 					isWithinCollection
-						? collectionItem.title ||
-						  Liferay.Language.get('collection-item')
-						: value.title
+						? collectionItem || {
+								title: Liferay.Language.get('collection-item'),
+						  }
+						: value
 				}
-				showAddButton={!isWithinCollection}
+				showEditControls={!isWithinCollection}
 				transformValueCallback={itemSelectorValueToInfoItem}
 			/>
 
@@ -72,7 +73,7 @@ export const ItemSelectorField = ({field, onValueSelect, value}) => {
 			)}
 		</>
 	);
-};
+}
 
 ItemSelectorField.propTypes = {
 	field: PropTypes.shape({

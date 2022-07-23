@@ -24,14 +24,15 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.sync.model.SyncDLFileVersionDiff;
 import com.liferay.sync.model.SyncDLFileVersionDiffModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -234,34 +235,6 @@ public class SyncDLFileVersionDiffModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SyncDLFileVersionDiff>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SyncDLFileVersionDiff.class.getClassLoader(),
-			SyncDLFileVersionDiff.class, ModelWrapper.class);
-
-		try {
-			Constructor<SyncDLFileVersionDiff> constructor =
-				(Constructor<SyncDLFileVersionDiff>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SyncDLFileVersionDiff, Object>>
@@ -563,6 +536,31 @@ public class SyncDLFileVersionDiffModelImpl
 	}
 
 	@Override
+	public SyncDLFileVersionDiff cloneWithOriginalValues() {
+		SyncDLFileVersionDiffImpl syncDLFileVersionDiffImpl =
+			new SyncDLFileVersionDiffImpl();
+
+		syncDLFileVersionDiffImpl.setSyncDLFileVersionDiffId(
+			this.<Long>getColumnOriginalValue("syncDLFileVersionDiffId"));
+		syncDLFileVersionDiffImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		syncDLFileVersionDiffImpl.setFileEntryId(
+			this.<Long>getColumnOriginalValue("fileEntryId"));
+		syncDLFileVersionDiffImpl.setSourceFileVersionId(
+			this.<Long>getColumnOriginalValue("sourceFileVersionId"));
+		syncDLFileVersionDiffImpl.setTargetFileVersionId(
+			this.<Long>getColumnOriginalValue("targetFileVersionId"));
+		syncDLFileVersionDiffImpl.setDataFileEntryId(
+			this.<Long>getColumnOriginalValue("dataFileEntryId"));
+		syncDLFileVersionDiffImpl.setSize(
+			this.<Long>getColumnOriginalValue("size_"));
+		syncDLFileVersionDiffImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+
+		return syncDLFileVersionDiffImpl;
+	}
+
+	@Override
 	public int compareTo(SyncDLFileVersionDiff syncDLFileVersionDiff) {
 		long primaryKey = syncDLFileVersionDiff.getPrimaryKey();
 
@@ -671,7 +669,7 @@ public class SyncDLFileVersionDiffModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -682,10 +680,27 @@ public class SyncDLFileVersionDiffModelImpl
 			Function<SyncDLFileVersionDiff, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((SyncDLFileVersionDiff)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(SyncDLFileVersionDiff)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -733,7 +748,9 @@ public class SyncDLFileVersionDiffModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SyncDLFileVersionDiff>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SyncDLFileVersionDiff.class, ModelWrapper.class);
 
 	}
 

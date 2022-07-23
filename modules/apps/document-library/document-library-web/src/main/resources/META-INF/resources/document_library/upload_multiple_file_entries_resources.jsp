@@ -189,13 +189,14 @@ else {
 								}
 						%>
 
-								<div class="document-type-fields">
+								<div class="document-type-fields" data-ddm-fieldset>
 									<liferay-data-engine:data-layout-renderer
 										containerId='<%= liferayPortletResponse.getNamespace() + "dataEngineLayoutRenderer" + ddmStructure.getStructureId() %>'
 										dataDefinitionId="<%= ddmStructure.getStructureId() %>"
 										dataRecordValues="<%= DataRecordValuesUtil.getDataRecordValues(ddmFormValues, ddmStructure) %>"
 										namespace="<%= liferayPortletResponse.getNamespace() + ddmStructure.getStructureId() + StringPool.UNDERLINE %>"
 										persisted="<%= fileEntry != null %>"
+										submittable="<%= false %>"
 									/>
 								</div>
 
@@ -304,7 +305,7 @@ else {
 			id="dlFileEntryDisplayPagePanel"
 			markupView="lexicon"
 			persistState="<%= true %>"
-			title="display-page-template"
+			title="display-page"
 		>
 			<aui:fieldset>
 				<liferay-asset:select-asset-display-page
@@ -342,6 +343,28 @@ else {
 				</aui:fieldset>
 			</liferay-ui:panel>
 		</c:if>
+
+		<liferay-ui:panel
+			cssClass="expiration-date-panel"
+			defaultState="closed"
+			extended="<%= false %>"
+			id="dlFileEntryExpirationDatePanel"
+			markupView="lexicon"
+			persistState="<%= true %>"
+			title="expiration-date"
+		>
+			<aui:fieldset>
+				<liferay-ui:error exception="<%= FileEntryExpirationDateException.class %>" message="please-enter-a-valid-expiration-date" />
+				<liferay-ui:error exception="<%= FileEntryReviewDateException.class %>" message="please-enter-a-valid-review-date" />
+
+				<p class="text-secondary">
+					<liferay-ui:message key="including-an-expiration-date-will-allow-your-documents-or-media-to-expire-automatically-and-become-unpublished" />
+				</p>
+
+				<aui:input dateTogglerCheckboxLabel="never-expire" disabled="<%= dlEditFileEntryDisplayContext.isNeverExpire() %>" name="expirationDate" wrapperCssClass="expiration-date" />
+				<aui:input dateTogglerCheckboxLabel="never-review" disabled="<%= dlEditFileEntryDisplayContext.isNeverReview() %>" name="reviewDate" wrapperCssClass="review-date" />
+			</aui:fieldset>
+		</liferay-ui:panel>
 
 		<liferay-ui:panel
 			cssClass="mb-3"

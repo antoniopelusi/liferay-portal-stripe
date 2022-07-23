@@ -16,13 +16,12 @@ package com.liferay.portal.search.web.internal.suggestions.portlet;
 
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.util.Html;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.search.web.internal.portlet.shared.task.PortletSharedRequestHelper;
+import com.liferay.portal.search.web.internal.portlet.shared.task.helper.PortletSharedRequestHelper;
 import com.liferay.portal.search.web.internal.suggestions.constants.SuggestionsPortletKeys;
-import com.liferay.portal.search.web.internal.suggestions.display.context.SuggestionsPortletDisplayBuilder;
 import com.liferay.portal.search.web.internal.suggestions.display.context.SuggestionsPortletDisplayContext;
+import com.liferay.portal.search.web.internal.suggestions.display.context.builder.SuggestionsPortletDisplayContextBuilder;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchRequest;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchResponse;
 import com.liferay.portal.search.web.search.request.SearchSettings;
@@ -65,7 +64,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/suggestions/view.jsp",
 		"javax.portlet.name=" + SuggestionsPortletKeys.SUGGESTIONS,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -84,7 +84,7 @@ public class SuggestionsPortlet extends MVCPortlet {
 			portletSharedSearchRequest.search(renderRequest);
 
 		SuggestionsPortletDisplayContext suggestionsPortletDisplayContext =
-			buildDisplayContext(
+			_buildDisplayContext(
 				suggestionsPortletPreferences, portletSharedSearchResponse,
 				renderRequest);
 
@@ -101,53 +101,8 @@ public class SuggestionsPortlet extends MVCPortlet {
 		super.render(renderRequest, renderResponse);
 	}
 
-	protected static <T> void copy(Supplier<Optional<T>> from, Consumer<T> to) {
-		Optional<T> optional = from.get();
-
-		optional.ifPresent(to);
-	}
-
-	protected SuggestionsPortletDisplayContext buildDisplayContext(
-		SuggestionsPortletPreferences suggestionsPortletPreferences,
-		PortletSharedSearchResponse portletSharedSearchResponse,
-		RenderRequest renderRequest) {
-
-		SuggestionsPortletDisplayBuilder suggestionsPortletDisplayBuilder =
-			new SuggestionsPortletDisplayBuilder(html, http);
-
-		copy(
-			portletSharedSearchResponse::getKeywordsOptional,
-			suggestionsPortletDisplayBuilder::setKeywords);
-
-		SearchSettings searchSettings =
-			portletSharedSearchResponse.getSearchSettings();
-
-		copy(
-			searchSettings::getKeywordsParameterName,
-			suggestionsPortletDisplayBuilder::setKeywordsParameterName);
-
-		suggestionsPortletDisplayBuilder.setRelatedQueriesSuggestions(
-			portletSharedSearchResponse.getRelatedQueriesSuggestions());
-		suggestionsPortletDisplayBuilder.setRelatedQueriesSuggestionsEnabled(
-			suggestionsPortletPreferences.isRelatedQueriesSuggestionsEnabled());
-		suggestionsPortletDisplayBuilder.setSearchURL(
-			portletSharedRequestHelper.getCompleteURL(renderRequest));
-
-		copy(
-			portletSharedSearchResponse::getSpellCheckSuggestionOptional,
-			suggestionsPortletDisplayBuilder::setSpellCheckSuggestion);
-
-		suggestionsPortletDisplayBuilder.setSpellCheckSuggestionEnabled(
-			suggestionsPortletPreferences.isSpellCheckSuggestionEnabled());
-
-		return suggestionsPortletDisplayBuilder.build();
-	}
-
 	@Reference
 	protected Html html;
-
-	@Reference
-	protected Http http;
 
 	@Reference
 	protected Portal portal;
@@ -157,5 +112,50 @@ public class SuggestionsPortlet extends MVCPortlet {
 
 	@Reference
 	protected PortletSharedSearchRequest portletSharedSearchRequest;
+
+	private SuggestionsPortletDisplayContext _buildDisplayContext(
+		SuggestionsPortletPreferences suggestionsPortletPreferences,
+		PortletSharedSearchResponse portletSharedSearchResponse,
+		RenderRequest renderRequest) {
+
+		SuggestionsPortletDisplayContextBuilder
+			suggestionsPortletDisplayContextBuilder =
+				new SuggestionsPortletDisplayContextBuilder(html);
+
+		_copy(
+			portletSharedSearchResponse::getKeywordsOptional,
+			suggestionsPortletDisplayContextBuilder::setKeywords);
+
+		SearchSettings searchSettings =
+			portletSharedSearchResponse.getSearchSettings();
+
+		_copy(
+			searchSettings::getKeywordsParameterName,
+			suggestionsPortletDisplayContextBuilder::setKeywordsParameterName);
+
+		suggestionsPortletDisplayContextBuilder.setRelatedQueriesSuggestions(
+			portletSharedSearchResponse.getRelatedQueriesSuggestions());
+		suggestionsPortletDisplayContextBuilder.
+			setRelatedQueriesSuggestionsEnabled(
+				suggestionsPortletPreferences.
+					isRelatedQueriesSuggestionsEnabled());
+		suggestionsPortletDisplayContextBuilder.setSearchURL(
+			portletSharedRequestHelper.getCompleteURL(renderRequest));
+
+		_copy(
+			portletSharedSearchResponse::getSpellCheckSuggestionOptional,
+			suggestionsPortletDisplayContextBuilder::setSpellCheckSuggestion);
+
+		suggestionsPortletDisplayContextBuilder.setSpellCheckSuggestionEnabled(
+			suggestionsPortletPreferences.isSpellCheckSuggestionEnabled());
+
+		return suggestionsPortletDisplayContextBuilder.build();
+	}
+
+	private <T> void _copy(Supplier<Optional<T>> from, Consumer<T> to) {
+		Optional<T> optional = from.get();
+
+		optional.ifPresent(to);
+	}
 
 }

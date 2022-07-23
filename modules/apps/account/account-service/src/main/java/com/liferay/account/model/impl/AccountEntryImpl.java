@@ -28,9 +28,6 @@ import com.liferay.portal.kernel.util.StringUtil;
  */
 public class AccountEntryImpl extends AccountEntryBaseImpl {
 
-	public AccountEntryImpl() {
-	}
-
 	@Override
 	public Group getAccountEntryGroup() {
 		return _getAccountEntryGroup();

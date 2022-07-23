@@ -67,7 +67,7 @@ public class IdReplacer {
 				}
 				catch (StagnantRowException stagnantRowException) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(stagnantRowException, stagnantRowException);
+						_log.warn(stagnantRowException);
 					}
 				}
 
@@ -121,7 +121,7 @@ public class IdReplacer {
 			}
 			catch (StagnantRowException stagnantRowException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(stagnantRowException, stagnantRowException);
+					_log.warn(stagnantRowException);
 				}
 			}
 
@@ -139,11 +139,7 @@ public class IdReplacer {
 
 	private static int _getEndPos(char[] chars, int pos) {
 		while (true) {
-			if (pos >= chars.length) {
-				break;
-			}
-
-			if (!Character.isDigit(chars[pos])) {
+			if ((pos >= chars.length) || !Character.isDigit(chars[pos])) {
 				break;
 			}
 

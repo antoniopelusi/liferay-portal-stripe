@@ -94,8 +94,8 @@ BlogsGroupServiceOverriddenConfiguration blogsGroupServiceOverriddenConfiguratio
 						"/blogs/edit_entry"
 					).setRedirect(
 						currentURL
-					).setParameter(
-						"portletResource", portletDisplay.getId()
+					).setPortletResource(
+						portletDisplay.getId()
 					).buildString()
 				%>'
 				label="new-entry"

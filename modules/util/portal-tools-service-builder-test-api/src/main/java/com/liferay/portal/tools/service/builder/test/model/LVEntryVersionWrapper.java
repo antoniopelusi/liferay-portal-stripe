@@ -104,6 +104,11 @@ public class LVEntryVersionWrapper
 		}
 	}
 
+	@Override
+	public LVEntryVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this lv entry version.
 	 *

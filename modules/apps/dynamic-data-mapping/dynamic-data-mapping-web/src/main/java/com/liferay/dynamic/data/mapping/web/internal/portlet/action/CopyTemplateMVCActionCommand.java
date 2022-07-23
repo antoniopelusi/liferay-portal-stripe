@@ -50,31 +50,14 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = MVCActionCommand.class
 )
-public class CopyTemplateMVCActionCommand extends DDMBaseMVCActionCommand {
-
-	protected DDMTemplate copyTemplate(ActionRequest actionRequest)
-		throws Exception {
-
-		long templateId = ParamUtil.getLong(actionRequest, "templateId");
-
-		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
-			actionRequest, "name");
-		Map<Locale, String> descriptionMap =
-			LocalizationUtil.getLocalizationMap(actionRequest, "description");
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			DDMTemplate.class.getName(), actionRequest);
-
-		return _ddmTemplateService.copyTemplate(
-			templateId, nameMap, descriptionMap, serviceContext);
-	}
+public class CopyTemplateMVCActionCommand extends BaseDDMMVCActionCommand {
 
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		DDMTemplate template = copyTemplate(actionRequest);
+		DDMTemplate template = _copyTemplate(actionRequest);
 
 		setRedirectAttribute(actionRequest, template);
 	}
@@ -103,6 +86,23 @@ public class CopyTemplateMVCActionCommand extends DDMBaseMVCActionCommand {
 		DDMTemplateService ddmTemplateService) {
 
 		_ddmTemplateService = ddmTemplateService;
+	}
+
+	private DDMTemplate _copyTemplate(ActionRequest actionRequest)
+		throws Exception {
+
+		long templateId = ParamUtil.getLong(actionRequest, "templateId");
+
+		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
+			actionRequest, "name");
+		Map<Locale, String> descriptionMap =
+			LocalizationUtil.getLocalizationMap(actionRequest, "description");
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			DDMTemplate.class.getName(), actionRequest);
+
+		return _ddmTemplateService.copyTemplate(
+			templateId, nameMap, descriptionMap, serviceContext);
 	}
 
 	private DDMTemplateService _ddmTemplateService;

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -65,6 +66,11 @@ public class KnowledgeBaseArticle implements Serializable {
 
 	public static KnowledgeBaseArticle toDTO(String json) {
 		return ObjectMapperUtil.readValue(KnowledgeBaseArticle.class, json);
+	}
+
+	public static KnowledgeBaseArticle unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(
+			KnowledgeBaseArticle.class, json);
 	}
 
 	@Schema(
@@ -342,6 +348,34 @@ public class KnowledgeBaseArticle implements Serializable {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String encodingFormat;
 
+	@Schema(description = "The article's external reference code.")
+	public String getExternalReferenceCode() {
+		return externalReferenceCode;
+	}
+
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		this.externalReferenceCode = externalReferenceCode;
+	}
+
+	@JsonIgnore
+	public void setExternalReferenceCode(
+		UnsafeSupplier<String, Exception> externalReferenceCodeUnsafeSupplier) {
+
+		try {
+			externalReferenceCode = externalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(description = "The article's external reference code.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String externalReferenceCode;
+
 	@Schema(description = "The article's relative URL.")
 	public String getFriendlyUrlPath() {
 		return friendlyUrlPath;
@@ -483,6 +517,38 @@ public class KnowledgeBaseArticle implements Serializable {
 	@GraphQLField(description = "The number of this article's child articles.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfKnowledgeBaseArticles;
+
+	@Schema(description = "The ID of the article's parent, if it exists.")
+	public Long getParentKnowledgeBaseArticleId() {
+		return parentKnowledgeBaseArticleId;
+	}
+
+	public void setParentKnowledgeBaseArticleId(
+		Long parentKnowledgeBaseArticleId) {
+
+		this.parentKnowledgeBaseArticleId = parentKnowledgeBaseArticleId;
+	}
+
+	@JsonIgnore
+	public void setParentKnowledgeBaseArticleId(
+		UnsafeSupplier<Long, Exception>
+			parentKnowledgeBaseArticleIdUnsafeSupplier) {
+
+		try {
+			parentKnowledgeBaseArticleId =
+				parentKnowledgeBaseArticleIdUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(description = "The ID of the article's parent, if it exists.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Long parentKnowledgeBaseArticleId;
 
 	@Schema(description = "The article's parent folder, if it exists.")
 	@Valid
@@ -931,6 +997,20 @@ public class KnowledgeBaseArticle implements Serializable {
 			sb.append("\"");
 		}
 
+		if (externalReferenceCode != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(externalReferenceCode));
+
+			sb.append("\"");
+		}
+
 		if (friendlyUrlPath != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -997,6 +1077,16 @@ public class KnowledgeBaseArticle implements Serializable {
 			sb.append("\"numberOfKnowledgeBaseArticles\": ");
 
 			sb.append(numberOfKnowledgeBaseArticles);
+		}
+
+		if (parentKnowledgeBaseArticleId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"parentKnowledgeBaseArticleId\": ");
+
+			sb.append(parentKnowledgeBaseArticleId);
 		}
 
 		if (parentKnowledgeBaseFolder != null) {
@@ -1146,13 +1236,17 @@ public class KnowledgeBaseArticle implements Serializable {
 
 		@JsonCreator
 		public static ViewableBy create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (ViewableBy viewableBy : values()) {
 				if (Objects.equals(viewableBy.getValue(), value)) {
 					return viewableBy;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -1174,9 +1268,9 @@ public class KnowledgeBaseArticle implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -1202,7 +1296,7 @@ public class KnowledgeBaseArticle implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -1234,7 +1328,7 @@ public class KnowledgeBaseArticle implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -1250,5 +1344,10 @@ public class KnowledgeBaseArticle implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

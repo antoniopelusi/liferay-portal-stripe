@@ -27,10 +27,10 @@ import Button from '../../common/components/Button';
 import InvisibleFieldset from '../../common/components/InvisibleFieldset';
 import {openImageSelector} from '../../core/openImageSelector';
 import {config} from '../config/index';
+import {useActiveItemId} from '../contexts/ControlsContext';
+import {useDispatch, useSelector} from '../contexts/StoreContext';
 import selectSegmentsExperienceId from '../selectors/selectSegmentsExperienceId';
-import {useDispatch, useSelector} from '../store/index';
 import addFragmentComposition from '../thunks/addFragmentComposition';
-import {useActiveItemId} from './Controls';
 
 const SaveFragmentCompositionModal = ({onCloseModal}) => {
 	const dispatch = useDispatch();
@@ -103,6 +103,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 	return (
 		<ClayModal
 			className="page-editor__save-fragment-composition-modal page-editor__theme-adapter-buttons page-editor__theme-adapter-forms"
+			containerProps={{className: 'cadmin'}}
 			observer={observer}
 			size="lg"
 		>
@@ -148,6 +149,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 								<ClayForm.FeedbackGroup>
 									<ClayForm.FeedbackItem>
 										<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+
 										{Liferay.Language.get(
 											'this-field-is-required'
 										)}
@@ -184,6 +186,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 										)}
 									</ClayButton>
 								</ClayInput.GroupItem>
+
 								<ClayInput.GroupItem className="align-items-center">
 									<span className="ml-2 text-truncate">
 										{thumbnail.title}
@@ -227,6 +230,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 										}
 									/>
 								</ClayInput.GroupItem>
+
 								<ClayInput.GroupItem>
 									<ClayCheckbox
 										checked={saveMappingConfiguration}
@@ -243,12 +247,13 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 								</ClayInput.GroupItem>
 							</ClayInput.Group>
 						</ClayForm.Group>
+
 						<ClayForm.Group>
 							{collections.length > 0 ? (
 								<>
 									<p className="sheet-tertiary-title">
 										{Liferay.Language.get(
-											'select-collection'
+											'select-fragment-set'
 										)}
 									</p>
 
@@ -284,6 +289,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 																	<ClayIcon symbol="folder" />
 																</ClaySticker>
 															</ClayLayout.ContentCol>
+
 															<ClayLayout.ContentCol
 																containerElement="span"
 																expand
@@ -316,7 +322,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 									/>
 
 									{Liferay.Language.get(
-										'this-fragment-will-be-saved-in-a-new-collection-called-saved-fragments'
+										'this-fragment-will-be-saved-in-a-new-fragment-set-called-saved-fragments'
 									)}
 								</div>
 							)}
@@ -324,6 +330,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 					</InvisibleFieldset>
 				</ClayForm>
 			</ClayModal.Body>
+
 			<ClayModal.Footer
 				last={
 					<ClayButton.Group spaced>

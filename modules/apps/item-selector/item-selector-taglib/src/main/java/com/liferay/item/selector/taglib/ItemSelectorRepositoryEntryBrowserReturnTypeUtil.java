@@ -19,7 +19,6 @@ import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
 import com.liferay.item.selector.criteria.URLItemSelectorReturnType;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -69,7 +68,7 @@ public class ItemSelectorRepositoryEntryBrowserReturnTypeUtil
 			FileEntry fileEntry, ThemeDisplay themeDisplay)
 		throws Exception {
 
-		JSONObject fileEntryJSONObject = JSONUtil.put(
+		return JSONUtil.put(
 			"fileEntryId", fileEntry.getFileEntryId()
 		).put(
 			"groupId", fileEntry.getGroupId()
@@ -84,9 +83,7 @@ public class ItemSelectorRepositoryEntryBrowserReturnTypeUtil
 				StringPool.BLANK, false, false)
 		).put(
 			"uuid", fileEntry.getUuid()
-		);
-
-		return fileEntryJSONObject.toString();
+		).toString();
 	}
 
 	protected static ItemSelectorReturnType

@@ -423,17 +423,9 @@ public class SQLQueryImpl implements SQLQuery {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{names=");
-		sb.append(Arrays.toString(_names));
-		sb.append(", _sqlQuery=");
-		sb.append(String.valueOf(_sqlQuery));
-		sb.append(", _strictName=");
-		sb.append(_strictName);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{names=", Arrays.toString(_names), ", _sqlQuery=", _sqlQuery,
+			", _strictName=", _strictName, "}");
 	}
 
 	@Override

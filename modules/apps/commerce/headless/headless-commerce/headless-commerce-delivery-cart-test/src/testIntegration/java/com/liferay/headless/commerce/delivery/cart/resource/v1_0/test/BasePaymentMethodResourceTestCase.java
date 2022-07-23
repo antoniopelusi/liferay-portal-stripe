@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -196,15 +194,14 @@ public abstract class BasePaymentMethodResourceTestCase {
 
 	@Test
 	public void testGetCartPaymentMethodsPage() throws Exception {
-		Page<PaymentMethod> page =
-			paymentMethodResource.getCartPaymentMethodsPage(
-				testGetCartPaymentMethodsPage_getCartId());
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long cartId = testGetCartPaymentMethodsPage_getCartId();
 		Long irrelevantCartId =
 			testGetCartPaymentMethodsPage_getIrrelevantCartId();
+
+		Page<PaymentMethod> page =
+			paymentMethodResource.getCartPaymentMethodsPage(cartId);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantCartId != null) {
 			PaymentMethod irrelevantPaymentMethod =
@@ -257,6 +254,23 @@ public abstract class BasePaymentMethodResourceTestCase {
 		throws Exception {
 
 		return null;
+	}
+
+	protected void assertContains(
+		PaymentMethod paymentMethod, List<PaymentMethod> paymentMethods) {
+
+		boolean contains = false;
+
+		for (PaymentMethod item : paymentMethods) {
+			if (equals(paymentMethod, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			paymentMethods + " does not contain " + paymentMethod, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -374,8 +388,8 @@ public abstract class BasePaymentMethodResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.delivery.cart.dto.v1_0.
 						PaymentMethod.class)) {
 
@@ -391,12 +405,13 @@ public abstract class BasePaymentMethodResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -410,7 +425,7 @@ public abstract class BasePaymentMethodResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -497,6 +512,19 @@ public abstract class BasePaymentMethodResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -711,8 +739,8 @@ public abstract class BasePaymentMethodResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BasePaymentMethodResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BasePaymentMethodResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

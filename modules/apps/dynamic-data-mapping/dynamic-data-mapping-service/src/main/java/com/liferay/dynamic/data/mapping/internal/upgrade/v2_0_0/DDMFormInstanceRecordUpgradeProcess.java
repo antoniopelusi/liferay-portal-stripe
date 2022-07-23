@@ -46,7 +46,76 @@ public class DDMFormInstanceRecordUpgradeProcess extends UpgradeProcess {
 		_assetEntryLocalService = assetEntryLocalService;
 	}
 
-	protected void addAssetEntry(
+	@Override
+	protected void doUpgrade() throws Exception {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDLRecord.*, DDMFormInstance.groupId as ",
+					"formInstanceGroupId, DDMFormInstance.version as ",
+					"formInstanceVersion, DDMFormInstance.name as ",
+					"formInstanceName from DDLRecord inner join ",
+					"DDMFormInstance on DDLRecord.recordSetId = ",
+					"DDMFormInstance.formInstanceId"));
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					StringBundler.concat(
+						"insert into DDMFormInstanceRecord(uuid_, ",
+						"formInstanceRecordId, groupId, companyId, userId, ",
+						"userName, versionUserId, versionUserName, ",
+						"createDate, modifiedDate, formInstanceId, ",
+						"formInstanceVersion, storageId, version, ",
+						"lastPublishDate) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+						"?, ?, ?, ?, ?, ?)"))) {
+
+			while (resultSet.next()) {
+				String uuid = PortalUUIDUtil.generate();
+				long recordId = resultSet.getLong("recordId");
+				long groupId = resultSet.getLong("formInstanceGroupId");
+				long userId = resultSet.getLong("userId");
+				Timestamp createDate = resultSet.getTimestamp("createDate");
+				Timestamp modifiedDate = resultSet.getTimestamp("modifiedDate");
+
+				preparedStatement2.setString(1, uuid);
+				preparedStatement2.setLong(2, recordId);
+				preparedStatement2.setLong(3, groupId);
+				preparedStatement2.setLong(4, resultSet.getLong("companyId"));
+				preparedStatement2.setLong(5, userId);
+				preparedStatement2.setString(
+					6, resultSet.getString("userName"));
+				preparedStatement2.setLong(
+					7, resultSet.getLong("versionUserId"));
+				preparedStatement2.setString(
+					8, resultSet.getString("versionUserName"));
+				preparedStatement2.setTimestamp(9, createDate);
+				preparedStatement2.setTimestamp(10, modifiedDate);
+
+				preparedStatement2.setLong(
+					11, resultSet.getLong("recordSetId"));
+				preparedStatement2.setString(
+					12, resultSet.getString("formInstanceVersion"));
+				preparedStatement2.setLong(
+					13, resultSet.getLong("DDMStorageId"));
+				preparedStatement2.setString(
+					14, resultSet.getString("version"));
+				preparedStatement2.setTimestamp(
+					15, resultSet.getTimestamp("lastPublishDate"));
+
+				_deleteDDLRecord(recordId);
+
+				_addAssetEntry(
+					uuid, recordId, groupId, userId, createDate, modifiedDate,
+					resultSet.getString("formInstanceName"));
+
+				preparedStatement2.addBatch();
+			}
+
+			preparedStatement2.executeBatch();
+		}
+	}
+
+	private void _addAssetEntry(
 			String uuid, long formInstanceRecordId, long groupId, long userId,
 			Timestamp createDate, Timestamp modifiedDate,
 			String formInstanceName)
@@ -61,7 +130,7 @@ public class DDMFormInstanceRecordUpgradeProcess extends UpgradeProcess {
 			localizationMap.containsKey(defautLocale)) {
 
 			String title = LanguageUtil.format(
-				getResourceBundle(defautLocale), "form-record-for-form-x",
+				_getResourceBundle(defautLocale), "form-record-for-form-x",
 				localizationMap.get(defautLocale), false);
 
 			_assetEntryLocalService.updateEntry(
@@ -73,82 +142,17 @@ public class DDMFormInstanceRecordUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void deleteDDLRecord(long recordId) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private void _deleteDDLRecord(long recordId) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"delete from DDLRecord where recordId = ?")) {
 
-			ps.setLong(1, recordId);
+			preparedStatement.setLong(1, recordId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		StringBundler sb1 = new StringBundler(6);
-
-		sb1.append("select DDLRecord.*, DDMFormInstance.groupId as ");
-		sb1.append("formInstanceGroupId, DDMFormInstance.version as ");
-		sb1.append("formInstanceVersion, DDMFormInstance.name as ");
-		sb1.append("formInstanceName from DDLRecord inner join ");
-		sb1.append("DDMFormInstance on DDLRecord.recordSetId = ");
-		sb1.append("DDMFormInstance.formInstanceId");
-
-		StringBundler sb2 = new StringBundler(6);
-
-		sb2.append("insert into DDMFormInstanceRecord(uuid_, ");
-		sb2.append("formInstanceRecordId, groupId, companyId, userId, ");
-		sb2.append("userName, versionUserId, versionUserName, createDate, ");
-		sb2.append("modifiedDate, formInstanceId, formInstanceVersion, ");
-		sb2.append("storageId, version, lastPublishDate) values(?, ?, ?, ?, ");
-		sb2.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 =
-				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb2.toString())) {
-
-			while (rs.next()) {
-				String uuid = PortalUUIDUtil.generate();
-				long recordId = rs.getLong("recordId");
-				long groupId = rs.getLong("formInstanceGroupId");
-				long userId = rs.getLong("userId");
-				Timestamp createDate = rs.getTimestamp("createDate");
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-
-				ps2.setString(1, uuid);
-				ps2.setLong(2, recordId);
-				ps2.setLong(3, groupId);
-				ps2.setLong(4, rs.getLong("companyId"));
-				ps2.setLong(5, userId);
-				ps2.setString(6, rs.getString("userName"));
-				ps2.setLong(7, rs.getLong("versionUserId"));
-				ps2.setString(8, rs.getString("versionUserName"));
-				ps2.setTimestamp(9, createDate);
-				ps2.setTimestamp(10, modifiedDate);
-
-				ps2.setLong(11, rs.getLong("recordSetId"));
-				ps2.setString(12, rs.getString("formInstanceVersion"));
-				ps2.setLong(13, rs.getLong("DDMStorageId"));
-				ps2.setString(14, rs.getString("version"));
-				ps2.setTimestamp(15, rs.getTimestamp("lastPublishDate"));
-
-				deleteDDLRecord(recordId);
-
-				addAssetEntry(
-					uuid, recordId, groupId, userId, createDate, modifiedDate,
-					rs.getString("formInstanceName"));
-
-				ps2.addBatch();
-			}
-
-			ps2.executeBatch();
-		}
-	}
-
-	protected ResourceBundle getResourceBundle(Locale defaultLocale) {
+	private ResourceBundle _getResourceBundle(Locale defaultLocale) {
 		return PortalUtil.getResourceBundle(defaultLocale);
 	}
 

@@ -23,6 +23,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
+import com.liferay.exportimport.staged.model.repository.StagedModelRepositoryHelper;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -109,7 +110,13 @@ public class DDMFormInstanceStagedModelRepository
 			_ddmFormInstanceLocalService.deleteFormInstance(formInstance);
 		}
 
-		deleteDDMStructures(formInstanceDDMStructureIds);
+		_deleteDDMStructures(formInstanceDDMStructureIds);
+	}
+
+	@Override
+	public DDMFormInstance fetchMissingReference(String uuid, long groupId) {
+		return _stagedModelRepositoryHelper.fetchMissingReference(
+			uuid, groupId, this);
 	}
 
 	@Override
@@ -132,7 +139,7 @@ public class DDMFormInstanceStagedModelRepository
 
 	@Override
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		final PortletDataContext portletDataContext) {
+		PortletDataContext portletDataContext) {
 
 		ExportActionableDynamicQuery exportActionableDynamicQuery =
 			_ddmFormInstanceLocalService.getExportActionableDynamicQuery(
@@ -184,7 +191,7 @@ public class DDMFormInstanceStagedModelRepository
 			ddmFormInstance.getSettingsDDMFormValues(), serviceContext);
 	}
 
-	protected void deleteDDMStructures(Set<Long> ddmStructureIds)
+	private void _deleteDDMStructures(Set<Long> ddmStructureIds)
 		throws PortalException {
 
 		for (Long ddmStructureId : ddmStructureIds) {
@@ -201,5 +208,8 @@ public class DDMFormInstanceStagedModelRepository
 
 	@Reference
 	private DDMStructureLocalService _ddmStructureLocalService;
+
+	@Reference
+	private StagedModelRepositoryHelper _stagedModelRepositoryHelper;
 
 }

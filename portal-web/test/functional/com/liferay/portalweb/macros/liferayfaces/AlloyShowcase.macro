@@ -5,7 +5,6 @@ definition {
 	var description3 = "Liferay is designed for integrating with both enterprise systems and web-based resources.";
 	var description4 = "With Liferay, projects are completed faster and with smaller budgets so you can see immediate results.";
 	var description5 = "Our open source community fosters innovation, increase security, and improves quality of the software.";
-
 	var title1 = "Compatible";
 	var title2 = "Enterprise Ready";
 	var title3 = "Powerful Integration";
@@ -89,11 +88,9 @@ definition {
 		if (isSet(checkAll)) {
 			Check(locator1 = "AlloyShowcase#SELECTION_CHECKBOX_ALL");
 		}
-
 		else if (isSet(uncheckAll)) {
 			Uncheck(locator1 = "AlloyShowcase#SELECTION_CHECKBOX_ALL");
 		}
-
 		else {
 			Check(
 				key_num = "${num}",
@@ -164,12 +161,11 @@ definition {
 			modalDialogResult = "No Customers Selected",
 			uncheckAll = "true");
 
-		Click(
-			key_opt = "checkbox",
-			locator1 = "AlloyShowcase#SELECTION_MODAL_SELECT");
+		Select(
+			locator1 = "AlloyShowcase#SELECTION_MODAL_SELECT",
+			value1 = "checkbox");
 
-		Click(
-			key_opt = "radio",
+		Select(
 			locator1 = "AlloyShowcase#SELECTION_MODAL_SELECT",
 			value1 = "radio");
 
@@ -201,9 +197,9 @@ definition {
 	}
 
 	macro selectRowsPerPage {
-		Click(
-			key_opt = "100",
-			locator1 = "AlloyShowcase#PAGINATOR_DROP_DOWN_LIST");
+		Select(
+			locator1 = "AlloyShowcase#PAGINATOR_DROP_DOWN_LIST",
+			value1 = "100");
 
 		AssertElementPresent(
 			key_pageNum = "«",
@@ -304,7 +300,7 @@ definition {
 		if (isSet(columnName2)) {
 			KeyPress.keyDown(
 				key_pageNum = "«",
-				locator1 = "AlloyShowcase#PAGINATOR_DROP_DOWN_SELECTED",
+				locator1 = "AlloyShowcase#PAGE_NUMBER_BUTTON",
 				value1 = "\COMMAND");
 
 			Click(
@@ -313,7 +309,7 @@ definition {
 
 			KeyPress.keyUp(
 				key_pageNum = "«",
-				locator1 = "AlloyShowcase#PAGINATOR_DROP_DOWN_SELECTED",
+				locator1 = "AlloyShowcase#PAGE_NUMBER_BUTTON",
 				value1 = "\COMMAND");
 
 			AssertElementPresent(
@@ -344,7 +340,7 @@ definition {
 		if (isSet(columnName2)) {
 			KeyPress.keyDown(
 				key_pageNum = "«",
-				locator1 = "AlloyShowcase#PAGINATOR_DROP_DOWN_SELECTED",
+				locator1 = "AlloyShowcase#PAGE_NUMBER_BUTTON",
 				value1 = "\COMMAND");
 
 			Click(
@@ -357,7 +353,7 @@ definition {
 
 			KeyPress.keyUp(
 				key_pageNum = "«",
-				locator1 = "AlloyShowcase#PAGINATOR_DROP_DOWN_SELECTED",
+				locator1 = "AlloyShowcase#PAGE_NUMBER_BUTTON",
 				value1 = "\COMMAND");
 
 			AssertElementPresent(
@@ -385,18 +381,22 @@ definition {
 			key_item = "1",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem1}");
+
 		AssertTextEquals(
 			key_item = "2",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem2}");
+
 		AssertTextEquals(
 			key_item = "3",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem3}");
+
 		AssertTextEquals(
 			key_item = "4",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem4}");
+
 		AssertTextEquals(
 			key_item = "5",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
@@ -406,18 +406,22 @@ definition {
 			key_item = "1",
 			locator1 = "AlloyShowcase#DATA_LIST_ORDERED",
 			value1 = "${dataListItem1}");
+
 		AssertTextEquals(
 			key_item = "2",
 			locator1 = "AlloyShowcase#DATA_LIST_ORDERED",
 			value1 = "${dataListItem2}");
+
 		AssertTextEquals(
 			key_item = "3",
 			locator1 = "AlloyShowcase#DATA_LIST_ORDERED",
 			value1 = "${dataListItem3}");
+
 		AssertTextEquals(
 			key_item = "4",
 			locator1 = "AlloyShowcase#DATA_LIST_ORDERED",
 			value1 = "${dataListItem4}");
+
 		AssertTextEquals(
 			key_item = "5",
 			locator1 = "AlloyShowcase#DATA_LIST_ORDERED",
@@ -427,18 +431,22 @@ definition {
 			key_item = "1",
 			locator1 = "AlloyShowcase#DATA_LIST_DESCRIPTIOND",
 			value1 = "${dataListItem1}");
+
 		AssertTextEquals(
 			key_item = "2",
 			locator1 = "AlloyShowcase#DATA_LIST_DESCRIPTIOND",
 			value1 = "${dataListItem2}");
+
 		AssertTextEquals(
 			key_item = "3",
 			locator1 = "AlloyShowcase#DATA_LIST_DESCRIPTIOND",
 			value1 = "${dataListItem3}");
+
 		AssertTextEquals(
 			key_item = "4",
 			locator1 = "AlloyShowcase#DATA_LIST_DESCRIPTIOND",
 			value1 = "${dataListItem4}");
+
 		AssertTextEquals(
 			key_item = "5",
 			locator1 = "AlloyShowcase#DATA_LIST_DESCRIPTIOND",
@@ -451,7 +459,6 @@ definition {
 		var dataListItem3 = "${title3}";
 		var dataListItem4 = "${title4}";
 		var dataListItem5 = "${title5}";
-
 		var dataModal1 = "${title1}: ${description1}";
 		var dataModal2 = "${title2}: ${description2}";
 		var dataModal3 = "${title3}: ${description3}";
@@ -462,22 +469,27 @@ definition {
 			key_item = "1",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem1}");
+
 		AssertTextEquals(
 			key_item = "2",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem2}");
+
 		AssertTextEquals(
 			key_item = "3",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem3}");
+
 		AssertTextEquals(
 			key_item = "4",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem4}");
+
 		AssertTextEquals(
 			key_item = "5",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED",
 			value1 = "${dataListItem5}");
+
 		AssertElementNotPresent(
 			key_item = "6",
 			locator1 = "AlloyShowcase#DATA_LIST_UNORDERED");
@@ -485,15 +497,19 @@ definition {
 		AssertElementPresent(
 			key_item = "1",
 			locator1 = "AlloyShowcase#SEARCH_ICON");
+
 		AssertElementPresent(
 			key_item = "2",
 			locator1 = "AlloyShowcase#SEARCH_ICON");
+
 		AssertElementPresent(
 			key_item = "3",
 			locator1 = "AlloyShowcase#SEARCH_ICON");
+
 		AssertElementPresent(
 			key_item = "4",
 			locator1 = "AlloyShowcase#SEARCH_ICON");
+
 		AssertElementPresent(
 			key_item = "5",
 			locator1 = "AlloyShowcase#SEARCH_ICON");
@@ -555,22 +571,27 @@ definition {
 			key_item = "1",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_TERM",
 			value1 = "${dataListItemTitle1}");
+
 		AssertTextEquals(
 			key_item = "2",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_TERM",
 			value1 = "${dataListItemTitle2}");
+
 		AssertTextEquals(
 			key_item = "3",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_TERM",
 			value1 = "${dataListItemTitle3}");
+
 		AssertTextEquals(
 			key_item = "4",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_TERM",
 			value1 = "${dataListItemTitle4}");
+
 		AssertTextEquals(
 			key_item = "5",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_TERM",
 			value1 = "${dataListItemTitle5}");
+
 		AssertElementNotPresent(
 			key_item = "6",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_TERM");
@@ -578,15 +599,19 @@ definition {
 		AssertElementPresent(
 			key_icon = "icon-compatible.png",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_ICON");
+
 		AssertElementPresent(
 			key_icon = "icon-enterprise.png",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_ICON");
+
 		AssertElementPresent(
 			key_icon = "icon-integration.png",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_ICON");
+
 		AssertElementPresent(
 			key_icon = "icon-lightweight.png",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_ICON");
+
 		AssertElementPresent(
 			key_icon = "icon-open-source.png",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_ICON");
@@ -595,22 +620,27 @@ definition {
 			key_item = "1",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_DESCRIPTION",
 			value1 = "${dataListItemDescription1}");
+
 		AssertTextEquals(
 			key_item = "2",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_DESCRIPTION",
 			value1 = "${dataListItemDescription2}");
+
 		AssertTextEquals(
 			key_item = "3",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_DESCRIPTION",
 			value1 = "${dataListItemDescription3}");
+
 		AssertTextEquals(
 			key_item = "4",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_DESCRIPTION",
 			value1 = "${dataListItemDescription4}");
+
 		AssertTextEquals(
 			key_item = "5",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_DESCRIPTION",
 			value1 = "${dataListItemDescription5}");
+
 		AssertElementNotPresent(
 			key_item = "6",
 			locator1 = "AlloyShowcase#ALLOY_DATA_LIST_ITEM_DESCRIPTION");
@@ -645,7 +675,7 @@ definition {
 			key_pageNum = "2",
 			locator1 = "AlloyShowcase#PAGE_BUTTON_ACTIVE");
 
-		if ("${useCase}" == "selection" || "${useCase}" == "serverEvents") {
+		if (("${useCase}" == "selection") || ("${useCase}" == "serverEvents")) {
 			AssertTextEquals(
 				locator1 = "AlloyShowcase#SELECTION_FIRST_NAME_CELL",
 				value1 = "${screenName2}");
@@ -664,7 +694,7 @@ definition {
 			key_pageNum = "3",
 			locator1 = "AlloyShowcase#PAGE_BUTTON_ACTIVE");
 
-		if ("${useCase}" == "selection" || "${useCase}" == "serverEvents") {
+		if (("${useCase}" == "selection") || ("${useCase}" == "serverEvents")) {
 			AssertTextEquals(
 				locator1 = "AlloyShowcase#SELECTION_FIRST_NAME_CELL",
 				value1 = "${screenName3}");
@@ -683,7 +713,7 @@ definition {
 			key_pageNum = "2",
 			locator1 = "AlloyShowcase#PAGE_BUTTON_ACTIVE");
 
-		if ("${useCase}" == "selection" || "${useCase}" == "serverEvents") {
+		if (("${useCase}" == "selection") || ("${useCase}" == "serverEvents")) {
 			AssertTextEquals(
 				locator1 = "AlloyShowcase#SELECTION_FIRST_NAME_CELL",
 				value1 = "${screenName2}");
@@ -701,11 +731,12 @@ definition {
 		AssertElementPresent(
 			key_pageNum = "»",
 			locator1 = "AlloyShowcase#PAGE_BUTTON_DISABLE");
+
 		AssertElementPresent(
 			key_pageNum = "›",
 			locator1 = "AlloyShowcase#PAGE_BUTTON_DISABLE");
 
-		if ("${useCase}" == "selection" || "${useCase}" == "serverEvents") {
+		if (("${useCase}" == "selection") || ("${useCase}" == "serverEvents")) {
 			AssertTextEquals(
 				locator1 = "AlloyShowcase#SELECTION_FIRST_NAME_CELL",
 				value1 = "${screenName4}");
@@ -723,11 +754,12 @@ definition {
 		AssertElementPresent(
 			key_pageNum = "«",
 			locator1 = "AlloyShowcase#PAGE_BUTTON_DISABLE");
+
 		AssertElementPresent(
 			key_pageNum = "‹",
 			locator1 = "AlloyShowcase#PAGE_BUTTON_DISABLE");
 
-		if ("${useCase}" == "selection" || "${useCase}" == "serverEvents") {
+		if (("${useCase}" == "selection") || ("${useCase}" == "serverEvents")) {
 			AssertTextEquals(
 				locator1 = "AlloyShowcase#SELECTION_FIRST_NAME_CELL",
 				value1 = "${screenName1}");
@@ -785,12 +817,11 @@ definition {
 			key_eventText = "Received RowDeselectRangeEvent for rowIndexes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] Customers=[John Adams, Samuel Adams, Josiah Bartlett, Carter Braxton, Charles Carroll, Benjamin Franklin, Elbridge Gerry, John Hancock, Thomas Jefferson, Francis Lewis] in the APPLY_REQUEST_VALUES 2 phase.",
 			locator1 = "AlloyShowcase#EVENT_TABLE");
 
-		Click(
-			key_opt = "checkbox",
-			locator1 = "AlloyShowcase#SELECTION_MODAL_SELECT");
+		Select(
+			locator1 = "AlloyShowcase#SELECTION_MODAL_SELECT",
+			value1 = "checkbox");
 
-		Click(
-			key_opt = "radio",
+		Select(
 			locator1 = "AlloyShowcase#SELECTION_MODAL_SELECT",
 			value1 = "radio");
 

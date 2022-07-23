@@ -27,7 +27,7 @@ PortletURL portletURL = PortletURLBuilder.create(
 	cpOptionCategoryDisplayContext.getPortletURL()
 ).setParameter(
 	"searchContainerId", "cpOptionCategories"
-).build();
+).buildPortletURL();
 
 request.setAttribute("view.jsp-portletURL", portletURL);
 
@@ -116,7 +116,7 @@ renderResponse.setTitle(LanguageUtil.get(request, "specifications"));
 
 		<div class="sidenav-content">
 			<clay:container-fluid>
-				<aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
+				<aui:form action="<%= portletURL %>" method="post" name="fm">
 					<aui:input name="<%= Constants.CMD %>" type="hidden" />
 					<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
 					<aui:input name="deleteCPOptionCategoryIds" type="hidden" />
@@ -142,11 +142,11 @@ renderResponse.setTitle(LanguageUtil.get(request, "specifications"));
 									currentURL
 								).setParameter(
 									"cpOptionCategoryId", cpOptionCategory.getCPOptionCategoryId()
-								).build();
+								).buildPortletURL();
 								%>
 
 								<liferay-ui:search-container-column-text
-									cssClass="important table-cell-expand"
+									cssClass="font-weight-bold important table-cell-expand"
 									href="<%= rowURL %>"
 									name="group"
 									value="<%= HtmlUtil.escape(cpOptionCategory.getTitle(locale)) %>"

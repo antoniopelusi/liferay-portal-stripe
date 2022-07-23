@@ -40,11 +40,11 @@ public class ClearRenderParametersAction extends Action {
 		// in portal.properties to disable the remembering of window states
 		// across requests.
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
 		Map<Long, Map<String, Map<String, String[]>>> renderParametersPool =
-			(Map<Long, Map<String, Map<String, String[]>>>)session.getAttribute(
-				WebKeys.PORTLET_RENDER_PARAMETERS);
+			(Map<Long, Map<String, Map<String, String[]>>>)
+				httpSession.getAttribute(WebKeys.PORTLET_RENDER_PARAMETERS);
 
 		if (renderParametersPool != null) {
 			renderParametersPool.clear();

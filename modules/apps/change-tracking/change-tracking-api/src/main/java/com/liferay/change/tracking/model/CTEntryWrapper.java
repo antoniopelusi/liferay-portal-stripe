@@ -126,6 +126,11 @@ public class CTEntryWrapper
 		}
 	}
 
+	@Override
+	public CTEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the change type of this ct entry.
 	 *

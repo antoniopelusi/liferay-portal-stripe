@@ -17,8 +17,8 @@ package com.liferay.object.service;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.system.SystemObjectDefinitionMetadata;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
-import com.liferay.portal.kernel.cluster.Clusterable;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
@@ -27,10 +27,12 @@ import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -39,6 +41,8 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -65,8 +69,12 @@ public interface ObjectDefinitionLocalService
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectDefinitionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the object definition local service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link ObjectDefinitionLocalServiceUtil} if injection and service tracking are not available.
 	 */
-	public ObjectDefinition addObjectDefinition(
-			long userId, String name, List<ObjectField> objectFields)
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectDefinition addCustomObjectDefinition(
+			long userId, Map<Locale, String> labelMap, String name,
+			String panelAppOrder, String panelCategoryKey,
+			Map<Locale, String> pluralLabelMap, String scope,
+			List<ObjectField> objectFields)
 		throws PortalException;
 
 	/**
@@ -83,6 +91,21 @@ public interface ObjectDefinitionLocalService
 	public ObjectDefinition addObjectDefinition(
 		ObjectDefinition objectDefinition);
 
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectDefinition addOrUpdateSystemObjectDefinition(
+			long companyId,
+			SystemObjectDefinitionMetadata systemObjectDefinitionMetadata)
+		throws PortalException;
+
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectDefinition addSystemObjectDefinition(
+			long userId, String className, String dbTableName,
+			Map<Locale, String> labelMap, String name,
+			String pkObjectFieldDBColumnName, String pkObjectFieldName,
+			Map<Locale, String> pluralLabelMap, String scope, int version,
+			List<ObjectField> objectFields)
+		throws PortalException;
+
 	/**
 	 * Creates a new object definition with the primary key. Does not add the object definition to the database.
 	 *
@@ -96,6 +119,9 @@ public interface ObjectDefinitionLocalService
 	 * @throws PortalException
 	 */
 	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException;
+
+	public void deleteCompanyObjectDefinitions(long companyId)
 		throws PortalException;
 
 	/**
@@ -125,6 +151,7 @@ public interface ObjectDefinitionLocalService
 	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public ObjectDefinition deleteObjectDefinition(
 			ObjectDefinition objectDefinition)
 		throws PortalException;
@@ -136,8 +163,13 @@ public interface ObjectDefinitionLocalService
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException;
 
+	public void deployObjectDefinition(ObjectDefinition objectDefinition);
+
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -208,6 +240,14 @@ public interface ObjectDefinitionLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ObjectDefinition fetchObjectDefinition(long objectDefinitionId);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectDefinition fetchObjectDefinition(long companyId, String name);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ObjectDefinition fetchObjectDefinitionByClassName(
+			long companyId, String className)
+		throws PortalException;
+
 	/**
 	 * Returns the object definition with the matching UUID and company.
 	 *
@@ -221,6 +261,9 @@ public interface ObjectDefinitionLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectDefinition> getCustomObjectDefinitions(int status);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
@@ -267,6 +310,14 @@ public interface ObjectDefinitionLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<ObjectDefinition> getObjectDefinitions(int start, int end);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectDefinition> getObjectDefinitions(
+		long companyId, boolean active, boolean system, int status);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectDefinition> getObjectDefinitions(
+		long companyId, boolean active, int status);
+
 	/**
 	 * Returns the number of object definitions.
 	 *
@@ -293,13 +344,23 @@ public interface ObjectDefinitionLocalService
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException;
 
-	@Clusterable
-	public void registerObjectDefinition(ObjectDefinition objectDefinition);
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectDefinition> getSystemObjectDefinitions();
 
-	@Clusterable
-	public void unregisterObjectDefinition(long objectDefinitionId);
+	public ObjectDefinition publishCustomObjectDefinition(
+			long userId, long objectDefinitionId)
+		throws PortalException;
 
-	public void unregisterObjectDefinitions();
+	public void undeployObjectDefinition(ObjectDefinition objectDefinition);
+
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectDefinition updateCustomObjectDefinition(
+			long objectDefinitionId, long descriptionObjectFieldId,
+			long titleObjectFieldId, boolean active,
+			Map<Locale, String> labelMap, String name, String panelAppOrder,
+			String panelCategoryKey, boolean portlet,
+			Map<Locale, String> pluralLabelMap, String scope)
+		throws PortalException;
 
 	/**
 	 * Updates the object definition in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
@@ -314,5 +375,10 @@ public interface ObjectDefinitionLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public ObjectDefinition updateObjectDefinition(
 		ObjectDefinition objectDefinition);
+
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectDefinition updateTitleObjectFieldId(
+			long objectDefinitionId, long titleObjectFieldId)
+		throws PortalException;
 
 }

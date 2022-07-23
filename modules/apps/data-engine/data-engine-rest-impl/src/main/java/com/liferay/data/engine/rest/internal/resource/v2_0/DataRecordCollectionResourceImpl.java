@@ -28,6 +28,7 @@ import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -46,12 +47,12 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
-import com.liferay.portal.vulcan.permission.ModelPermissionsUtil;
 import com.liferay.portal.vulcan.permission.Permission;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
 import com.liferay.portal.vulcan.util.SearchUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -69,6 +70,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	properties = "OSGI-INF/liferay/rest/v2_0/data-record-collection.properties",
 	scope = ServiceScope.PROTOTYPE, service = DataRecordCollectionResource.class
 )
+@CTAware
 public class DataRecordCollectionResourceImpl
 	extends BaseDataRecordCollectionResourceImpl {
 
@@ -240,31 +242,6 @@ public class DataRecordCollectionResourceImpl
 	}
 
 	@Override
-	public void putDataRecordCollectionPermission(
-			Long dataRecordCollectionId, Permission[] permissions)
-		throws Exception {
-
-		DataRecordCollection dataRecordCollection = _getDataRecordCollection(
-			dataRecordCollectionId);
-
-		_dataDefinitionModelResourcePermission.check(
-			PermissionThreadLocal.getPermissionChecker(),
-			dataRecordCollection.getDataDefinitionId(), ActionKeys.PERMISSIONS);
-
-		String resourceName = getPermissionCheckerResourceName(
-			dataRecordCollectionId);
-
-		resourcePermissionLocalService.updateResourcePermissions(
-			contextCompany.getCompanyId(), 0, resourceName,
-			String.valueOf(dataRecordCollectionId),
-			ModelPermissionsUtil.toModelPermissions(
-				contextCompany.getCompanyId(), permissions,
-				dataRecordCollectionId, resourceName,
-				resourceActionLocalService, resourcePermissionLocalService,
-				roleLocalService));
-	}
-
-	@Override
 	protected Long getPermissionCheckerGroupId(Object id) throws Exception {
 		DDLRecordSet ddlRecordSet = _ddlRecordSetLocalService.getRecordSet(
 			(long)id);
@@ -354,9 +331,10 @@ public class DataRecordCollectionResourceImpl
 		}
 
 		return SearchUtil.search(
+			Collections.emptyMap(),
 			booleanQuery -> {
 			},
-			null, DDLRecordSet.class, keywords, pagination,
+			null, DDLRecordSet.class.getName(), keywords, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
@@ -370,10 +348,10 @@ public class DataRecordCollectionResourceImpl
 				searchContext.setGroupIds(
 					new long[] {ddmStructure.getGroupId()});
 			},
+			null,
 			document -> DataRecordCollectionUtil.toDataRecordCollection(
 				_ddlRecordSetLocalService.getRecordSet(
-					GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK)))),
-			null);
+					GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	private String _getResourceName(DDLRecordSet ddlRecordSet)

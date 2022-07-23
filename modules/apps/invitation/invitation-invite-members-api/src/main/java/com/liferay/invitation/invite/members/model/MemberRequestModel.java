@@ -270,4 +270,7 @@ public interface MemberRequestModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public MemberRequest cloneWithOriginalValues();
+
 }

@@ -37,13 +37,6 @@
 		<finder name="DDLRecordSetId" return-type="KaleoProcess">
 			<finder-column name="DDLRecordSetId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="DDLRecord" package-path="com.liferay.dynamic.data.lists" />
-		<reference entity="DDLRecordSet" package-path="com.liferay.dynamic.data.lists" />
-		<reference entity="WorkflowDefinitionLink" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="KaleoProcessLink" remote-service="false">
 

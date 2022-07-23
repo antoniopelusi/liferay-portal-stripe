@@ -54,11 +54,11 @@ public class NotificationTemplateRenderer {
 			calendarNotificationTemplate, notificationField.toString(),
 			defaultTemplate);
 
-		return replaceTokens(
+		return _replaceTokens(
 			notificationTemplate, notificationTemplateContext, mode);
 	}
 
-	protected static String replaceTokens(
+	private static String _replaceTokens(
 			String notificationTemplate,
 			NotificationTemplateContext notificationTemplateContext, int mode)
 		throws Exception {

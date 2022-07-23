@@ -224,4 +224,7 @@ public interface FriendlyURLEntryLocalizationModel
 	@Override
 	public void setClassPK(long classPK);
 
+	@Override
+	public FriendlyURLEntryLocalization cloneWithOriginalValues();
+
 }

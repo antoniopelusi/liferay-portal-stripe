@@ -145,18 +145,4 @@ public abstract class LayoutSEOEntryServiceBaseImpl
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
 
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupService groupService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutLocalService
-		layoutLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutService layoutService;
-
 }

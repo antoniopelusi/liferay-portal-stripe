@@ -134,19 +134,9 @@ public class ProxyRequest implements Externalizable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{arguments=");
-		sb.append(Arrays.toString(_arguments));
-		sb.append(", local");
-		sb.append(_local);
-		sb.append(", method=");
-		sb.append(_method);
-		sb.append(", synchronous");
-		sb.append(_synchronous);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{arguments=", Arrays.toString(_arguments), ", local", _local,
+			", method=", _method, ", synchronous", _synchronous, "}");
 	}
 
 	@Override

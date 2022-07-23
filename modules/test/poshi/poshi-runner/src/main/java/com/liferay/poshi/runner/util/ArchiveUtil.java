@@ -57,7 +57,7 @@ public class ArchiveUtil {
 
 					@Override
 					public FileVisitResult visitFile(
-						Path file, BasicFileAttributes attributes) {
+						Path file, BasicFileAttributes basicFileAttributes) {
 
 						String targetFilePathString = String.valueOf(
 							sourceFilePath.relativize(file));

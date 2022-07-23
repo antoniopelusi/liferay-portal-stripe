@@ -33,15 +33,12 @@ public abstract class BaseDBTestCase {
 
 	@Test
 	public void testReplaceTemplate() throws IOException, SQLException {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("select * from SomeTable where someColumn1 = ");
-		sb.append(_db.getTemplateFalse());
-		sb.append(" and someColumn2 = ");
-		sb.append(_db.getTemplateTrue());
-		sb.append(StringPool.NEW_LINE);
-
-		Assert.assertEquals(sb.toString(), buildSQL(_BOOLEAN_LITERAL_QUERY));
+		Assert.assertEquals(
+			StringBundler.concat(
+				"select * from SomeTable where someColumn1 = ",
+				_db.getTemplateFalse(), " and someColumn2 = ",
+				_db.getTemplateTrue(), StringPool.NEW_LINE),
+			buildSQL(_BOOLEAN_LITERAL_QUERY));
 
 		Assert.assertEquals(
 			_BOOLEAN_PATTERN_QUERY + StringPool.NEW_LINE,

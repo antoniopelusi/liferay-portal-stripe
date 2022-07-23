@@ -503,4 +503,7 @@ public interface DDMDataProviderInstanceModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public DDMDataProviderInstance cloneWithOriginalValues();
+
 }

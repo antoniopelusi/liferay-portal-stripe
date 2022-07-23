@@ -23,12 +23,14 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuil
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.ViewTypeItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.ViewTypeItemList;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -36,6 +38,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.staging.constants.StagingProcessesPortletKeys;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.portlet.PortletURL;
 
@@ -101,13 +104,10 @@ public class StagingProcessesWebToolbarDisplayContext {
 							TYPE_PUBLISH_LAYOUT_LOCAL;
 				}
 
-				List<ExportImportConfiguration> exportImportConfigurations =
-					ExportImportConfigurationLocalServiceUtil.
-						getExportImportConfigurations(
-							stagingGroupId, configurationType);
-
 				for (ExportImportConfiguration exportImportConfiguration :
-						exportImportConfigurations) {
+						ExportImportConfigurationLocalServiceUtil.
+							getExportImportConfigurations(
+								stagingGroupId, configurationType)) {
 
 					addRestDropdownItem(
 						dropdownItem -> {
@@ -197,14 +197,34 @@ public class StagingProcessesWebToolbarDisplayContext {
 		).build();
 	}
 
+	public String getOrderByCol() {
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
+		}
+
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, StagingProcessesPortletKeys.STAGING_PROCESSES,
+			StringPool.BLANK);
+
+		return _orderByCol;
+	}
+
 	public String getSortingOrder() {
-		return ParamUtil.getString(_httpServletRequest, "orderByType", "asc");
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, StagingProcessesPortletKeys.STAGING_PROCESSES,
+			"asc");
+
+		return _orderByType;
 	}
 
 	public String getSortingURL() {
 		PortletURL sortingURL = _getStagingRenderURL();
 
-		if (getSortingOrder().equals("asc")) {
+		if (Objects.equals(getSortingOrder(), "asc")) {
 			sortingURL.setParameter("orderByType", "desc");
 		}
 		else {
@@ -252,7 +272,7 @@ public class StagingProcessesWebToolbarDisplayContext {
 			_getStagingRenderURL()
 		).setNavigation(
 			navigation
-		).build();
+		).buildPortletURL();
 	}
 
 	private List<DropdownItem> _getOrderByDropDownItems() {
@@ -282,7 +302,7 @@ public class StagingProcessesWebToolbarDisplayContext {
 			_getStagingRenderURL()
 		).setParameter(
 			"orderByCol", orderByColumnName
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getStagingRenderURL() {
@@ -295,21 +315,22 @@ public class StagingProcessesWebToolbarDisplayContext {
 		).setParameter(
 			"groupId", ParamUtil.getLong(_httpServletRequest, "groupId")
 		).setParameter(
-			"orderByCol", ParamUtil.getString(_httpServletRequest, "orderByCol")
+			"orderByCol", getOrderByCol()
 		).setParameter(
-			"orderByType",
-			ParamUtil.getString(_httpServletRequest, "orderByType", "asc")
+			"orderByType", getSortingOrder()
 		).setParameter(
 			"privateLayout",
 			ParamUtil.getBoolean(_httpServletRequest, "privateLayout")
 		).setParameter(
 			"searchContainerId",
 			ParamUtil.getString(_httpServletRequest, "searchContainerId")
-		).build();
+		).buildPortletURL();
 	}
 
 	private final HttpServletRequest _httpServletRequest;
 	private final LiferayPortletResponse _liferayPortletResponse;
+	private String _orderByCol;
+	private String _orderByType;
 	private final PageContext _pageContext;
 	private final String _portletNamespace;
 

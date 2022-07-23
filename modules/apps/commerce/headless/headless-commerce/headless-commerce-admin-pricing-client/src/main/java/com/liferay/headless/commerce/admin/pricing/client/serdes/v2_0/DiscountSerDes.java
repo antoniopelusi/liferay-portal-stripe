@@ -19,6 +19,7 @@ import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountAccou
 import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountAccountGroup;
 import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountCategory;
 import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountChannel;
+import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountOrderType;
 import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountProduct;
 import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountProductGroup;
 import com.liferay.headless.commerce.admin.pricing.client.dto.v2_0.DiscountRule;
@@ -67,7 +68,7 @@ public class DiscountSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (discount.getActions() != null) {
 			if (sb.length() > 1) {
@@ -203,6 +204,26 @@ public class DiscountSerDes {
 				sb.append(String.valueOf(discount.getDiscountChannels()[i]));
 
 				if ((i + 1) < discount.getDiscountChannels().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
+		if (discount.getDiscountOrderTypes() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"discountOrderTypes\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < discount.getDiscountOrderTypes().length; i++) {
+				sb.append(String.valueOf(discount.getDiscountOrderTypes()[i]));
+
+				if ((i + 1) < discount.getDiscountOrderTypes().length) {
 					sb.append(", ");
 				}
 			}
@@ -522,7 +543,7 @@ public class DiscountSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (discount.getActions() == null) {
 			map.put("actions", null);
@@ -595,6 +616,15 @@ public class DiscountSerDes {
 			map.put(
 				"discountChannels",
 				String.valueOf(discount.getDiscountChannels()));
+		}
+
+		if (discount.getDiscountOrderTypes() == null) {
+			map.put("discountOrderTypes", null);
+		}
+		else {
+			map.put(
+				"discountOrderTypes",
+				String.valueOf(discount.getDiscountOrderTypes()));
 		}
 
 		if (discount.getDiscountProductGroups() == null) {
@@ -890,6 +920,21 @@ public class DiscountSerDes {
 								(String)object)
 						).toArray(
 							size -> new DiscountChannel[size]
+						));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "discountOrderTypes")) {
+
+				if (jsonParserFieldValue != null) {
+					discount.setDiscountOrderTypes(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> DiscountOrderTypeSerDes.toDTO(
+								(String)object)
+						).toArray(
+							size -> new DiscountOrderType[size]
 						));
 				}
 			}

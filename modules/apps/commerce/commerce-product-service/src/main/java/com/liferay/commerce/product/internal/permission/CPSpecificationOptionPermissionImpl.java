@@ -122,18 +122,11 @@ public class CPSpecificationOptionPermissionImpl
 
 		if (permissionChecker.isCompanyAdmin(
 				cpSpecificationOption.getCompanyId()) ||
-			permissionChecker.isOmniadmin()) {
-
-			return true;
-		}
-
-		if (permissionChecker.hasOwnerPermission(
-				permissionChecker.getCompanyId(),
+			permissionChecker.hasOwnerPermission(
+				cpSpecificationOption.getCompanyId(),
 				CPSpecificationOption.class.getName(),
 				cpSpecificationOption.getCPSpecificationOptionId(),
-				permissionChecker.getUserId(), actionId) &&
-			(cpSpecificationOption.getUserId() ==
-				permissionChecker.getUserId())) {
+				cpSpecificationOption.getUserId(), actionId)) {
 
 			return true;
 		}

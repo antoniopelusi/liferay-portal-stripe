@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.LocalizedModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 
 import java.math.BigDecimal;
@@ -43,7 +44,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface CommerceOrderItemModel
 	extends BaseModel<CommerceOrderItem>, GroupedModel, LocalizedModel,
-			ShardedModel {
+			MVCCModel, ShardedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -64,6 +65,22 @@ public interface CommerceOrderItemModel
 	 * @param primaryKey the primary key of this commerce order item
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this commerce order item.
+	 *
+	 * @return the mvcc version of this commerce order item
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this commerce order item.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce order item
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the external reference code of this commerce order item.
@@ -264,6 +281,20 @@ public interface CommerceOrderItemModel
 	public void setCPInstanceId(long CPInstanceId);
 
 	/**
+	 * Returns the cp measurement unit ID of this commerce order item.
+	 *
+	 * @return the cp measurement unit ID of this commerce order item
+	 */
+	public long getCPMeasurementUnitId();
+
+	/**
+	 * Sets the cp measurement unit ID of this commerce order item.
+	 *
+	 * @param CPMeasurementUnitId the cp measurement unit ID of this commerce order item
+	 */
+	public void setCPMeasurementUnitId(long CPMeasurementUnitId);
+
+	/**
 	 * Returns the c product ID of this commerce order item.
 	 *
 	 * @return the c product ID of this commerce order item
@@ -292,18 +323,18 @@ public interface CommerceOrderItemModel
 	public void setParentCommerceOrderItemId(long parentCommerceOrderItemId);
 
 	/**
-	 * Returns the shipping address ID of this commerce order item.
+	 * Returns the decimal quantity of this commerce order item.
 	 *
-	 * @return the shipping address ID of this commerce order item
+	 * @return the decimal quantity of this commerce order item
 	 */
-	public long getShippingAddressId();
+	public BigDecimal getDecimalQuantity();
 
 	/**
-	 * Sets the shipping address ID of this commerce order item.
+	 * Sets the decimal quantity of this commerce order item.
 	 *
-	 * @param shippingAddressId the shipping address ID of this commerce order item
+	 * @param decimalQuantity the decimal quantity of this commerce order item
 	 */
-	public void setShippingAddressId(long shippingAddressId);
+	public void setDecimalQuantity(BigDecimal decimalQuantity);
 
 	/**
 	 * Returns the delivery group of this commerce order item.
@@ -826,6 +857,20 @@ public interface CommerceOrderItemModel
 	public void setRequestedDeliveryDate(Date requestedDeliveryDate);
 
 	/**
+	 * Returns the shipping address ID of this commerce order item.
+	 *
+	 * @return the shipping address ID of this commerce order item
+	 */
+	public long getShippingAddressId();
+
+	/**
+	 * Sets the shipping address ID of this commerce order item.
+	 *
+	 * @param shippingAddressId the shipping address ID of this commerce order item
+	 */
+	public void setShippingAddressId(long shippingAddressId);
+
+	/**
 	 * Returns the ship separately of this commerce order item.
 	 *
 	 * @return the ship separately of this commerce order item
@@ -1043,5 +1088,8 @@ public interface CommerceOrderItemModel
 	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
+
+	@Override
+	public CommerceOrderItem cloneWithOriginalValues();
 
 }

@@ -69,19 +69,14 @@ public class CsrfValidationInterceptor extends BeanPortletMethodInterceptor {
 						csrfProtection.toString());
 				}
 				catch (IllegalArgumentException illegalArgumentException) {
-					_log.error(
-						illegalArgumentException.getMessage(),
-						illegalArgumentException);
+					_log.error(illegalArgumentException);
 				}
 			}
 		}
 
-		if (csrfOptions == Csrf.CsrfOptions.OFF) {
-			return super.invoke(args);
-		}
-
-		if ((csrfOptions == Csrf.CsrfOptions.EXPLICIT) &&
-			!_method.isAnnotationPresent(CsrfProtected.class)) {
+		if ((csrfOptions == Csrf.CsrfOptions.OFF) ||
+			((csrfOptions == Csrf.CsrfOptions.EXPLICIT) &&
+			 !_method.isAnnotationPresent(CsrfProtected.class))) {
 
 			return super.invoke(args);
 		}

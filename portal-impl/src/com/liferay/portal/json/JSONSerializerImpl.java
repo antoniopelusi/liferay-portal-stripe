@@ -31,8 +31,6 @@ import org.json.JSONObject;
 public class JSONSerializerImpl implements JSONSerializer {
 
 	public JSONSerializerImpl() {
-		_jsonSerializer = new JsonSerializer();
-
 		_jsonSerializer.strictStringEncoding(true);
 	}
 
@@ -98,7 +96,7 @@ public class JSONSerializerImpl implements JSONSerializer {
 		return this;
 	}
 
-	private final JsonSerializer _jsonSerializer;
+	private final JsonSerializer _jsonSerializer = new JsonSerializer();
 
 	private static class JSONArrayTypeJSONSerializer
 		implements TypeJsonSerializer<JSONArray> {

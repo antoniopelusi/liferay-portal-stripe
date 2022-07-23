@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.initializer.util;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.commerce.account.constants.CommerceAccountConstants;
 import com.liferay.commerce.account.exception.NoSuchAccountGroupException;
 import com.liferay.commerce.account.model.CommerceAccount;
@@ -31,7 +32,6 @@ import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.service.CommercePriceListAccountRelLocalService;
 import com.liferay.commerce.price.list.service.CommercePriceListLocalService;
 import com.liferay.commerce.service.CommerceAddressLocalService;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
@@ -53,7 +53,7 @@ import com.liferay.portal.kernel.service.RegionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.FileNotFoundException;
@@ -79,9 +79,9 @@ public class CommerceAccountsImporter {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(user.getCompanyId());
 		serviceContext.setScopeGroupId(scopeGroupId);
 		serviceContext.setUserId(userId);
-		serviceContext.setCompanyId(user.getCompanyId());
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			_importCommerceAccount(
@@ -115,20 +115,20 @@ public class CommerceAccountsImporter {
 			String dependenciesPath, ServiceContext serviceContext)
 		throws Exception {
 
-		String name = jsonObject.getString("Name");
+		String name = jsonObject.getString("name");
 
 		CommerceAccount commerceAccount =
 			_commerceAccountLocalService.fetchCommerceAccountByReferenceCode(
 				serviceContext.getCompanyId(),
-				FriendlyURLNormalizerUtil.normalize(name));
+				_friendlyURLNormalizer.normalize(name));
 
 		if (commerceAccount != null) {
 			return;
 		}
 
-		String accountType = jsonObject.getString("AccountType");
-		String email = jsonObject.getString("Email");
-		String taxId = jsonObject.getString("TaxId");
+		String accountType = jsonObject.getString("accountType");
+		String email = jsonObject.getString("email");
+		String taxId = jsonObject.getString("taxId");
 
 		// Add Commerce Account
 
@@ -142,15 +142,15 @@ public class CommerceAccountsImporter {
 		commerceAccount = _commerceAccountLocalService.addCommerceAccount(
 			name, CommerceAccountConstants.DEFAULT_PARENT_ACCOUNT_ID, email,
 			taxId, commerceAccountType, true,
-			FriendlyURLNormalizerUtil.normalize(name), serviceContext);
+			_friendlyURLNormalizer.normalize(name), serviceContext);
 
-		String twoLetterISOCode = jsonObject.getString("Country");
+		String twoLetterISOCode = jsonObject.getString("country");
 
 		Country country = getCountry(twoLetterISOCode);
 
 		long regionId = 0;
 
-		String regionCode = jsonObject.getString("Region");
+		String regionCode = jsonObject.getString("region");
 
 		if (!Validator.isBlank(regionCode)) {
 			try {
@@ -160,18 +160,18 @@ public class CommerceAccountsImporter {
 				regionId = region.getRegionId();
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 
-		String street1 = jsonObject.getString("Street1");
-		String city = jsonObject.getString("City");
-		String zip = jsonObject.getString("Zip");
+		String street1 = jsonObject.getString("street1");
+		String city = jsonObject.getString("city");
+		String zip = jsonObject.getString("zip");
 
 		// Add Commerce Address
 
 		_commerceAddressLocalService.addCommerceAddress(
-			commerceAccount.getModelClassName(),
+			AccountEntry.class.getName(),
 			commerceAccount.getCommerceAccountId(), commerceAccount.getName(),
 			StringPool.BLANK, street1, StringPool.BLANK, StringPool.BLANK, city,
 			zip, regionId, country.getCountryId(), StringPool.BLANK, true, true,
@@ -179,7 +179,7 @@ public class CommerceAccountsImporter {
 
 		// Add Company Logo
 
-		String companyLogo = jsonObject.getString("CompanyLogo");
+		String companyLogo = jsonObject.getString("companyLogo");
 
 		if (!Validator.isBlank(companyLogo)) {
 			String filePath = dependenciesPath + "images/" + companyLogo;
@@ -203,7 +203,7 @@ public class CommerceAccountsImporter {
 		// Add Related Organization
 
 		String relatedOrganization = jsonObject.getString(
-			"RelatedOrganization");
+			"relatedOrganization");
 
 		if (!Validator.isBlank(relatedOrganization)) {
 			Organization organization =
@@ -238,13 +238,13 @@ public class CommerceAccountsImporter {
 
 		// Add Price List Account Rel
 
-		JSONArray priceListsJSONArray = jsonObject.getJSONArray("PriceLists");
+		JSONArray priceListsJSONArray = jsonObject.getJSONArray("priceLists");
 
 		if (priceListsJSONArray != null) {
 			for (int i = 0; i < priceListsJSONArray.length(); i++) {
 				try {
 					String externalReferenceCode =
-						FriendlyURLNormalizerUtil.normalize(
+						_friendlyURLNormalizer.normalize(
 							priceListsJSONArray.getString(i));
 
 					CommercePriceList commercePriceList =
@@ -256,14 +256,14 @@ public class CommerceAccountsImporter {
 					if (commercePriceList != null) {
 						_commercePriceListAccountRelLocalService.
 							addCommercePriceListAccountRel(
+								serviceContext.getUserId(),
 								commercePriceList.getCommercePriceListId(),
 								commerceAccount.getCommerceAccountId(), 0,
 								serviceContext);
 					}
 				}
 				catch (NoSuchPriceListException noSuchPriceListException) {
-					_log.error(
-						noSuchPriceListException, noSuchPriceListException);
+					_log.error(noSuchPriceListException);
 				}
 			}
 		}
@@ -271,7 +271,7 @@ public class CommerceAccountsImporter {
 		// Add/Find Account Group and Add Rel
 
 		JSONArray accountGroupsJSONArray = jsonObject.getJSONArray(
-			"AccountGroups");
+			"accountGroups");
 
 		if (accountGroupsJSONArray != null) {
 			for (int i = 0; i < accountGroupsJSONArray.length(); i++) {
@@ -280,11 +280,11 @@ public class CommerceAccountsImporter {
 						i);
 
 					String externalReferenceCode =
-						FriendlyURLNormalizerUtil.normalize(accountGroupName);
+						_friendlyURLNormalizer.normalize(accountGroupName);
 
 					CommerceAccountGroup commerceAccountGroup =
 						_commerceAccountGroupLocalService.
-							fetchCommerceAccountGroupByReferenceCode(
+							fetchByExternalReferenceCode(
 								serviceContext.getCompanyId(),
 								externalReferenceCode);
 
@@ -300,18 +300,13 @@ public class CommerceAccountsImporter {
 									serviceContext);
 					}
 
-					String relExternalReferenceCode = StringBundler.concat(
-						FriendlyURLNormalizerUtil.normalize(accountGroupName),
-						"_",
-						FriendlyURLNormalizerUtil.normalize(
-							commerceAccount.getName()));
-
 					CommerceAccountGroupCommerceAccountRel
 						commerceAccountGroupCommerceAccountRel =
 							_commerceAccountGroupCommerceAccountRelLocalService.
-								fetchCommerceAccountGroupCommerceAccountRelByReferenceCode(
-									serviceContext.getCompanyId(),
-									relExternalReferenceCode);
+								fetchCommerceAccountGroupCommerceAccountRel(
+									commerceAccountGroup.
+										getCommerceAccountGroupId(),
+									commerceAccount.getCommerceAccountId());
 
 					if (commerceAccountGroupCommerceAccountRel == null) {
 						_commerceAccountGroupCommerceAccountRelLocalService.
@@ -319,15 +314,13 @@ public class CommerceAccountsImporter {
 								commerceAccountGroup.
 									getCommerceAccountGroupId(),
 								commerceAccount.getCommerceAccountId(),
-								relExternalReferenceCode, serviceContext);
+								serviceContext);
 					}
 				}
 				catch (NoSuchAccountGroupException
 							noSuchAccountGroupException) {
 
-					_log.error(
-						noSuchAccountGroupException,
-						noSuchAccountGroupException);
+					_log.error(noSuchAccountGroupException);
 				}
 			}
 		}
@@ -362,6 +355,9 @@ public class CommerceAccountsImporter {
 
 	@Reference
 	private CountryLocalService _countryLocalService;
+
+	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 	@Reference
 	private OrganizationLocalService _organizationLocalService;

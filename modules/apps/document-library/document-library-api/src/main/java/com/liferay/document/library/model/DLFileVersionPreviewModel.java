@@ -177,4 +177,7 @@ public interface DLFileVersionPreviewModel
 	 */
 	public void setPreviewStatus(int previewStatus);
 
+	@Override
+	public DLFileVersionPreview cloneWithOriginalValues();
+
 }

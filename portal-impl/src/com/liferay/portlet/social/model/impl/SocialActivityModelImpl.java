@@ -29,23 +29,22 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.model.SocialActivityModel;
-import com.liferay.social.kernel.model.SocialActivitySoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -201,66 +200,6 @@ public class SocialActivityModelImpl
 	@Deprecated
 	public static final long USERID_COLUMN_BITMASK = 512L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SocialActivity toModel(SocialActivitySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		SocialActivity model = new SocialActivityImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setActivityId(soapModel.getActivityId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setActivitySetId(soapModel.getActivitySetId());
-		model.setMirrorActivityId(soapModel.getMirrorActivityId());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setParentClassNameId(soapModel.getParentClassNameId());
-		model.setParentClassPK(soapModel.getParentClassPK());
-		model.setType(soapModel.getType());
-		model.setExtraData(soapModel.getExtraData());
-		model.setReceiverUserId(soapModel.getReceiverUserId());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SocialActivity> toModels(
-		SocialActivitySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SocialActivity> models = new ArrayList<SocialActivity>(
-			soapModels.length);
-
-		for (SocialActivitySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.social.kernel.model.SocialActivity"));
@@ -348,34 +287,6 @@ public class SocialActivityModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SocialActivity>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SocialActivity.class.getClassLoader(), SocialActivity.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SocialActivity> constructor =
-				(Constructor<SocialActivity>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SocialActivity, Object>>
@@ -947,6 +858,46 @@ public class SocialActivityModelImpl
 	}
 
 	@Override
+	public SocialActivity cloneWithOriginalValues() {
+		SocialActivityImpl socialActivityImpl = new SocialActivityImpl();
+
+		socialActivityImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		socialActivityImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		socialActivityImpl.setActivityId(
+			this.<Long>getColumnOriginalValue("activityId"));
+		socialActivityImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		socialActivityImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		socialActivityImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		socialActivityImpl.setCreateDate(
+			this.<Long>getColumnOriginalValue("createDate"));
+		socialActivityImpl.setActivitySetId(
+			this.<Long>getColumnOriginalValue("activitySetId"));
+		socialActivityImpl.setMirrorActivityId(
+			this.<Long>getColumnOriginalValue("mirrorActivityId"));
+		socialActivityImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		socialActivityImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		socialActivityImpl.setParentClassNameId(
+			this.<Long>getColumnOriginalValue("parentClassNameId"));
+		socialActivityImpl.setParentClassPK(
+			this.<Long>getColumnOriginalValue("parentClassPK"));
+		socialActivityImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		socialActivityImpl.setExtraData(
+			this.<String>getColumnOriginalValue("extraData"));
+		socialActivityImpl.setReceiverUserId(
+			this.<Long>getColumnOriginalValue("receiverUserId"));
+
+		return socialActivityImpl;
+	}
+
+	@Override
 	public int compareTo(SocialActivity socialActivity) {
 		int value = 0;
 
@@ -1073,7 +1024,7 @@ public class SocialActivityModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1084,9 +1035,26 @@ public class SocialActivityModelImpl
 			Function<SocialActivity, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SocialActivity)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SocialActivity)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1133,7 +1101,9 @@ public class SocialActivityModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SocialActivity>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SocialActivity.class, ModelWrapper.class);
 
 	}
 

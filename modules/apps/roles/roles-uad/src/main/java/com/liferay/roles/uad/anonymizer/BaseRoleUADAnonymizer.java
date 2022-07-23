@@ -14,6 +14,8 @@
 
 package com.liferay.roles.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Role;
@@ -46,6 +48,8 @@ public abstract class BaseRoleUADAnonymizer
 		if (role.getUserId() == userId) {
 			role.setUserId(anonymousUser.getUserId());
 			role.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(role, anonymousUser);
 		}
 
 		roleLocalService.updateRole(role);
@@ -61,6 +65,17 @@ public abstract class BaseRoleUADAnonymizer
 		return Role.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(Role role, User anonymousUser) {
+		AssetEntry assetEntry = fetchAssetEntry(role);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return roleLocalService.getActionableDynamicQuery();
@@ -70,6 +85,14 @@ public abstract class BaseRoleUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return RolesUADConstants.USER_ID_FIELD_NAMES_ROLE;
 	}
+
+	protected AssetEntry fetchAssetEntry(Role role) {
+		return assetEntryLocalService.fetchEntry(
+			Role.class.getName(), role.getRoleId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected RoleLocalService roleLocalService;

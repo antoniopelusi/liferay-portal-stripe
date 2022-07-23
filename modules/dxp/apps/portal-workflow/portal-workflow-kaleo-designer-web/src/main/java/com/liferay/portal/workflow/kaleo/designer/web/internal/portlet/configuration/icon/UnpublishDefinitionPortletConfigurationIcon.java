@@ -24,15 +24,12 @@ import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfiguration
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.workflow.kaleo.designer.web.constants.KaleoDesignerPortletKeys;
 import com.liferay.portal.workflow.kaleo.designer.web.internal.constants.KaleoDesignerWebKeys;
 import com.liferay.portal.workflow.kaleo.designer.web.internal.permission.KaleoDefinitionVersionPermission;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
-
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
@@ -57,11 +54,7 @@ public class UnpublishDefinitionPortletConfigurationIcon
 
 	@Override
 	public String getMessage(PortletRequest portletRequest) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			getLocale(portletRequest),
-			UnpublishDefinitionPortletConfigurationIcon.class);
-
-		return LanguageUtil.get(resourceBundle, "unpublish");
+		return LanguageUtil.get(getLocale(portletRequest), "unpublish");
 	}
 
 	@Override
@@ -76,7 +69,7 @@ public class UnpublishDefinitionPortletConfigurationIcon
 			"/kaleo_designer/unpublish_kaleo_definition_version"
 		).setMVCPath(
 			portletRequest.getParameter("mvcPath")
-		).build();
+		).buildPortletURL();
 
 		KaleoDefinition kaleoDefinition = getKaleoDefinition(portletRequest);
 
@@ -121,7 +114,7 @@ public class UnpublishDefinitionPortletConfigurationIcon
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 		}
@@ -144,7 +137,7 @@ public class UnpublishDefinitionPortletConfigurationIcon
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

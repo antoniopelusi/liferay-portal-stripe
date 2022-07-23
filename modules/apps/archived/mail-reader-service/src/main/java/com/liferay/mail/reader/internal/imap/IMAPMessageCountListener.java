@@ -64,7 +64,7 @@ public class IMAPMessageCountListener implements MessageCountListener {
 				_imapAccessor.closeFolder(jxFolder, false);
 			}
 			catch (MailException mailException) {
-				_log.error(mailException, mailException);
+				_log.error(mailException);
 			}
 		}
 	}
@@ -82,13 +82,13 @@ public class IMAPMessageCountListener implements MessageCountListener {
 				FolderLocalServiceUtil.getFolder(
 					_account.getAccountId(), jxFolder.getFullName());
 
-			long[] remoteMessageIds = _imapAccessor.getMessageUIDs(
+			long[] remoteMessageUIDs = _imapAccessor.getMessageUIDs(
 				jxFolder, jxMessages);
 
-			for (long remoteMessageId : remoteMessageIds) {
+			for (long remoteMessageUID : remoteMessageUIDs) {
 				com.liferay.mail.reader.model.Message message =
 					MessageLocalServiceUtil.getMessage(
-						folder.getFolderId(), remoteMessageId);
+						folder.getFolderId(), remoteMessageUID);
 
 				MessageLocalServiceUtil.deleteMessage(message.getMessageId());
 			}
@@ -101,7 +101,7 @@ public class IMAPMessageCountListener implements MessageCountListener {
 				_imapAccessor.closeFolder(jxFolder, false);
 			}
 			catch (MailException mailException) {
-				_log.error(mailException, mailException);
+				_log.error(mailException);
 			}
 		}
 	}

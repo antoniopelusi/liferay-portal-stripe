@@ -57,9 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -126,7 +124,7 @@ public class RequestContextMapperImpl implements RequestContextMapper {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -200,19 +198,21 @@ public class RequestContextMapperImpl implements RequestContextMapper {
 	}
 
 	private String[] _getCookies(HttpServletRequest httpServletRequest) {
-		Cookie[] cookies = httpServletRequest.getCookies();
+		Cookie[] httpServletRequestCookies = httpServletRequest.getCookies();
 
-		if (cookies == null) {
+		if (httpServletRequestCookies == null) {
 			return new String[0];
 		}
 
-		return Stream.of(
-			cookies
-		).map(
-			c -> c.getName() + "=" + c.getValue()
-		).toArray(
-			String[]::new
-		);
+		String[] cookies = new String[httpServletRequestCookies.length];
+
+		for (int i = 0; i < httpServletRequestCookies.length; i++) {
+			cookies[i] =
+				httpServletRequestCookies[i].getName() + "=" +
+					httpServletRequestCookies[i].getValue();
+		}
+
+		return cookies;
 	}
 
 	private String[] _getRequestParameters(
@@ -225,15 +225,14 @@ public class RequestContextMapperImpl implements RequestContextMapper {
 			return new String[0];
 		}
 
-		Set<Map.Entry<String, String[]>> entrySet = parameterMap.entrySet();
+		List<String> requestParameters = new ArrayList<>();
 
-		Stream<Map.Entry<String, String[]>> stream = entrySet.stream();
+		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+			requestParameters.add(
+				entry.getKey() + "=" + StringUtil.merge(entry.getValue()));
+		}
 
-		return stream.map(
-			e -> e.getKey() + "=" + StringUtil.merge(e.getValue())
-		).toArray(
-			String[]::new
-		);
+		return requestParameters.toArray(new String[0]);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

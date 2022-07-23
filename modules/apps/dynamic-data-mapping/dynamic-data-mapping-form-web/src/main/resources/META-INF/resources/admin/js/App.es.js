@@ -17,14 +17,17 @@ import {
 	ConfigProvider,
 	FormProvider,
 	parseProps,
-} from 'dynamic-data-mapping-form-renderer';
+} from 'data-engine-js-components-web';
 import {
 	dragAndDropReducer,
 	fieldEditableReducer,
 	languageReducer,
 	pagesStructureReducer,
-} from 'dynamic-data-mapping-form-renderer/js/core/reducers/index.es';
-import {pageReducer} from 'dynamic-data-mapping-form-renderer/js/custom/form/reducers/index.es';
+} from 'data-engine-js-components-web/js/core/reducers/index.es';
+import {
+	objectFieldsReducer,
+	pageReducer,
+} from 'data-engine-js-components-web/js/custom/form/reducers/index.es';
 import React from 'react';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
@@ -36,7 +39,7 @@ import {BUILDER_INITIAL_STATE, initState} from './config/initialState.es';
 import {AutoSaveProvider} from './hooks/useAutoSave.es';
 import {ToastProvider} from './hooks/useToast.es';
 import {FormBuilder} from './pages/FormBuilder.es';
-import {Report} from './pages/Report.es';
+import {Report} from './pages/Report';
 import {RuleBuilder} from './pages/RuleBuilder.es';
 import {
 	elementSetReducer,
@@ -49,7 +52,7 @@ import {
  * Exporting default application to Forms Admin. Only Providers and
  * routing must be defined.
  */
-export const App = ({autosaveInterval, autosaveURL, ...otherProps}) => {
+export function App({autosaveInterval, autosaveURL, ...otherProps}) {
 	const {config, state} = parseProps(otherProps);
 
 	return (
@@ -68,6 +71,7 @@ export const App = ({autosaveInterval, autosaveURL, ...otherProps}) => {
 							fieldEditableReducer,
 							formInfoReducer,
 							languageReducer,
+							objectFieldsReducer,
 							pageReducer,
 							pagesStructureReducer,
 							rulesReducer,
@@ -75,43 +79,43 @@ export const App = ({autosaveInterval, autosaveURL, ...otherProps}) => {
 						]}
 						value={state}
 					>
-						<AutoSaveProvider
-							interval={autosaveInterval}
-							published={config.published}
-							url={autosaveURL}
-						>
-							<ToastProvider>
-								<Router>
-									<Switch>
+						<ToastProvider>
+							<Router>
+								<Switch>
+									<AutoSaveProvider
+										interval={autosaveInterval}
+										url={autosaveURL}
+									>
 										<Route
 											component={NavigationBar}
 											path="/"
 										/>
-									</Switch>
-									<Switch>
+
 										<Route
 											component={FormBuilder}
 											exact
 											path="/"
 										/>
+
 										<Route
 											component={RuleBuilder}
 											path="/rules"
 										/>
+
 										<Route
 											component={Report}
 											path="/report"
 										/>
-									</Switch>
-								</Router>
-							</ToastProvider>
-						</AutoSaveProvider>
+									</AutoSaveProvider>
+								</Switch>
+							</Router>
+						</ToastProvider>
 					</FormProvider>
 				</ClayModalProvider>
 			</ConfigProvider>
 		</DndProvider>
 	);
-};
+}
 
 App.displayName = 'App';
 

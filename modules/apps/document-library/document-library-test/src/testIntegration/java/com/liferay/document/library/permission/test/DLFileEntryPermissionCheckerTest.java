@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -81,14 +80,12 @@ public class DLFileEntryPermissionCheckerTest extends BasePermissionTestCase {
 	}
 
 	protected FileEntry addFileEntry(long folderId) throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				group.getGroupId(), TestPropsValues.getUserId());
-
 		return DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), group.getGroupId(), folderId,
+			null, TestPropsValues.getUserId(), group.getGroupId(), folderId,
 			RandomTestUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
-			TestDataConstants.TEST_BYTE_ARRAY, serviceContext);
+			TestDataConstants.TEST_BYTE_ARRAY, null, null,
+			ServiceContextTestUtil.getServiceContext(
+				group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	@Override
@@ -104,17 +101,15 @@ public class DLFileEntryPermissionCheckerTest extends BasePermissionTestCase {
 		}
 		catch (NoSuchFolderException noSuchFolderException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFolderException, noSuchFolderException);
+				_log.debug(noSuchFolderException);
 			}
 		}
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				group.getGroupId(), TestPropsValues.getUserId());
-
 		Folder folder = DLAppServiceUtil.addFolder(
 			group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			name, RandomTestUtil.randomString(), serviceContext);
+			name, RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				group.getGroupId(), TestPropsValues.getUserId()));
 
 		_subfileEntry = addFileEntry(folder.getFolderId());
 	}

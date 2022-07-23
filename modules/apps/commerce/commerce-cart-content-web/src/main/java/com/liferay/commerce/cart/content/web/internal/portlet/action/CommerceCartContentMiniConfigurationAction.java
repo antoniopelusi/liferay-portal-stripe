@@ -21,7 +21,6 @@ import com.liferay.commerce.order.CommerceOrderHttpHelper;
 import com.liferay.commerce.order.CommerceOrderValidatorRegistry;
 import com.liferay.commerce.percentage.PercentageFormatter;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
-import com.liferay.commerce.price.CommerceProductPriceCalculation;
 import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
@@ -33,6 +32,7 @@ import com.liferay.portal.kernel.portlet.ConfigurationAction;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.PortletConfig;
@@ -71,22 +71,21 @@ public class CommerceCartContentMiniConfigurationAction
 			CommerceCartContentMiniDisplayContext
 				commerceCartContentDisplayContext =
 					new CommerceCartContentMiniDisplayContext(
-						httpServletRequest, _commerceChannelLocalService,
-						_commerceOrderHttpHelper, _commerceOrderItemService,
+						_commerceChannelLocalService, _commerceOrderHttpHelper,
+						_commerceOrderItemService,
 						_commerceOrderPriceCalculation,
-						_commerceOrderValidatorRegistry,
-						_commerceProductPriceCalculation, _cpDefinitionHelper,
+						_commerceOrderValidatorRegistry, _cpDefinitionHelper,
 						_cpInstanceHelper,
 						_commerceOrderModelResourcePermission,
 						_commerceProductPortletResourcePermission,
-						_percentageFormatter);
+						_percentageFormatter, httpServletRequest, _portal);
 
 			httpServletRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
 				commerceCartContentDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		super.include(portletConfig, httpServletRequest, httpServletResponse);
@@ -131,9 +130,6 @@ public class CommerceCartContentMiniConfigurationAction
 	private PortletResourcePermission _commerceProductPortletResourcePermission;
 
 	@Reference
-	private CommerceProductPriceCalculation _commerceProductPriceCalculation;
-
-	@Reference
 	private CPDefinitionHelper _cpDefinitionHelper;
 
 	@Reference
@@ -141,5 +137,8 @@ public class CommerceCartContentMiniConfigurationAction
 
 	@Reference
 	private PercentageFormatter _percentageFormatter;
+
+	@Reference
+	private Portal _portal;
 
 }

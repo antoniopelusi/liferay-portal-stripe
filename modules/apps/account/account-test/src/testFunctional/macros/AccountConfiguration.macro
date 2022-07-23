@@ -27,19 +27,13 @@ definition {
 			roleTitle = "${orgRoleTitle}",
 			userScreenName = "${userScreenName}");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Accounts",
-			panel = "Applications",
-			portlet = "Accounts");
+		Accounts.openAccountsAdmin();
 
 		LexiconEntry.gotoEntry(rowEntry = "${accountName}");
 
-		Accounts.gotoAssigneeTab(assigneeTab = "Organizations");
-
-		Accounts.addAssignee(
+		Accounts.assignOrganizations(
 			accountName = "${accountName}",
-			assigneeName = "${orgName}",
-			assigneeType = "Organizations");
+			assigneeName = "${orgName}");
 	}
 
 	macro addBlockedEmailDomain {
@@ -53,6 +47,19 @@ definition {
 			settingValues = "${settingValues}");
 
 		SystemSettings.saveConfiguration();
+	}
+
+	macro disableAccountEmailDomain {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Accounts",
+			configurationName = "Email Domains",
+			configurationScope = "Virtual Instance Scope");
+
+		Uncheck.uncheckToggleSwitch(
+			key_toggleSwitchLabel = "Enable Email Domain Validation",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		PortletEntry.update();
 	}
 
 	macro enableAccountEmailDomain {

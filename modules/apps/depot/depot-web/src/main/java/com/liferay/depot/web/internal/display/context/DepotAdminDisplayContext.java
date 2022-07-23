@@ -101,8 +101,8 @@ public class DepotAdminDisplayContext {
 		}
 
 		_displayStyle = SearchDisplayStyleUtil.getDisplayStyle(
-			PortalUtil.getHttpServletRequest(_liferayPortletRequest),
-			DepotPortletKeys.DEPOT_ADMIN, getDefaultDisplayStyle());
+			_liferayPortletRequest, DepotPortletKeys.DEPOT_ADMIN,
+			getDefaultDisplayStyle());
 
 		return _displayStyle;
 	}
@@ -157,8 +157,8 @@ public class DepotAdminDisplayContext {
 
 		Stream<Group> stream = searchResults.stream();
 
-		_depotEntrySearch.setResults(
-			stream.map(
+		_depotEntrySearch.setResultsAndTotal(
+			() -> stream.map(
 				this::_getGroup
 			).map(
 				Group::getGroupId
@@ -166,9 +166,8 @@ public class DepotAdminDisplayContext {
 				_depotEntryLocalService::fetchGroupDepotEntry
 			).collect(
 				Collectors.toList()
-			));
-
-		_depotEntrySearch.setTotal(groupSearch.getTotal());
+			),
+			groupSearch.getTotal());
 
 		return _depotEntrySearch;
 	}
@@ -188,7 +187,7 @@ public class DepotAdminDisplayContext {
 			_liferayPortletResponse
 		).setParameter(
 			"displayStyle", getDisplayStyle()
-		).build();
+		).buildPortletURL();
 	}
 
 	private final DepotAdminGroupSearchProvider _depotAdminGroupSearchProvider;

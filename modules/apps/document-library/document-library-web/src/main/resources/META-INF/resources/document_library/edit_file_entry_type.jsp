@@ -45,7 +45,7 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 	<portlet:param name="mvcRenderCommandName" value="/document_library/edit_file_entry_type" />
 </portlet:actionURL>
 
-<aui:form action="<%= editFileEntryTypeURL %>" cssClass="edit-metadata-type-form" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " %>'>
+<aui:form action="<%= editFileEntryTypeURL %>" cssClass="edit-metadata-type-form" method="post" name="fm" onSubmit="event.preventDefault(); ">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (fileEntryType == null) ? Constants.ADD : Constants.UPDATE %>" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="fileEntryTypeId" type="hidden" value="<%= fileEntryTypeId %>" />
@@ -73,7 +73,7 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 					<div class="metadata-type-button-row tbar-section text-right">
 						<aui:button cssClass="btn-secondary btn-sm mr-3" href="<%= redirect %>" type="cancel" />
 
-						<aui:button cssClass="btn-sm mr-3" type="submit" />
+						<aui:button cssClass="btn-sm mr-3" id="submitButton" type="submit" />
 					</div>
 				</li>
 			</ul>
@@ -97,6 +97,8 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 				dataLayoutInputId="dataLayout"
 				groupId="<%= scopeGroupId %>"
 				namespace="<%= liferayPortletResponse.getNamespace() %>"
+				scopes='<%= SetUtil.fromCollection(Arrays.asList("document-library")) %>'
+				submitButtonId='<%= liferayPortletResponse.getNamespace() + "submitButton" %>'
 			/>
 		</clay:container-fluid>
 	</div>

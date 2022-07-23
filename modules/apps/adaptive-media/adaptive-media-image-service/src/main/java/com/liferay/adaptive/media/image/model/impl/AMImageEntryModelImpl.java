@@ -26,12 +26,13 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -241,34 +242,6 @@ public class AMImageEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AMImageEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AMImageEntry.class.getClassLoader(), AMImageEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AMImageEntry> constructor =
-				(Constructor<AMImageEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AMImageEntry, Object>>
@@ -624,6 +597,34 @@ public class AMImageEntryModelImpl
 	}
 
 	@Override
+	public AMImageEntry cloneWithOriginalValues() {
+		AMImageEntryImpl amImageEntryImpl = new AMImageEntryImpl();
+
+		amImageEntryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		amImageEntryImpl.setAmImageEntryId(
+			this.<Long>getColumnOriginalValue("amImageEntryId"));
+		amImageEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		amImageEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		amImageEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		amImageEntryImpl.setConfigurationUuid(
+			this.<String>getColumnOriginalValue("configurationUuid"));
+		amImageEntryImpl.setFileVersionId(
+			this.<Long>getColumnOriginalValue("fileVersionId"));
+		amImageEntryImpl.setMimeType(
+			this.<String>getColumnOriginalValue("mimeType"));
+		amImageEntryImpl.setHeight(
+			this.<Integer>getColumnOriginalValue("height"));
+		amImageEntryImpl.setWidth(
+			this.<Integer>getColumnOriginalValue("width"));
+		amImageEntryImpl.setSize(this.<Long>getColumnOriginalValue("size_"));
+
+		return amImageEntryImpl;
+	}
+
+	@Override
 	public int compareTo(AMImageEntry amImageEntry) {
 		long primaryKey = amImageEntry.getPrimaryKey();
 
@@ -751,7 +752,7 @@ public class AMImageEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -762,9 +763,26 @@ public class AMImageEntryModelImpl
 			Function<AMImageEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AMImageEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((AMImageEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -811,7 +829,9 @@ public class AMImageEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AMImageEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AMImageEntry.class, ModelWrapper.class);
 
 	}
 

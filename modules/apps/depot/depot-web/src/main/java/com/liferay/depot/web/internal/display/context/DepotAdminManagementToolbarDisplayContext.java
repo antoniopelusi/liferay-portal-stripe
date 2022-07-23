@@ -82,6 +82,7 @@ public class DepotAdminManagementToolbarDisplayContext
 		).build();
 	}
 
+	@Override
 	public Map<String, Object> getAdditionalProps() {
 		return HashMapBuilder.<String, Object>put(
 			"deleteDepotEntriesURL",
@@ -133,7 +134,7 @@ public class DepotAdminManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

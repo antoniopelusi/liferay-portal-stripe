@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.servlet.NonSerializableObjectRequestWrapper;
 import com.liferay.portal.kernel.servlet.SanitizedServletResponse;
 import com.liferay.portal.kernel.util.BasePortalLifecycle;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -128,7 +128,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 				doPortalInit();
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				throw new ServletException(exception);
 			}
@@ -136,8 +136,8 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 	}
 
 	protected void clearFilterChainsCache() {
-		if (_filterChains != null) {
-			_filterChains.removeAll();
+		if (_filterChainsPortalCache != null) {
+			_filterChainsPortalCache.removeAll();
 		}
 	}
 
@@ -164,7 +164,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 	@Override
 	protected void doPortalInit() throws Exception {
 		if (_INVOKER_FILTER_CHAIN_ENABLED) {
-			_filterChains = PortalCacheHelperUtil.getPortalCache(
+			_filterChainsPortalCache = PortalCacheHelperUtil.getPortalCache(
 				PortalCacheManagerNames.SINGLE_VM, _getPortalCacheName());
 		}
 
@@ -195,7 +195,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 		HttpServletRequest httpServletRequest, String uri,
 		FilterChain filterChain) {
 
-		if (_filterChains == null) {
+		if (_filterChainsPortalCache == null) {
 			return _invokerFilterHelper.createInvokerFilterChain(
 				httpServletRequest, _dispatcher, uri, filterChain);
 		}
@@ -208,13 +208,14 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 			key = StringBundler.concat(key, StringPool.QUESTION, queryString);
 		}
 
-		InvokerFilterChain invokerFilterChain = _filterChains.get(key);
+		InvokerFilterChain invokerFilterChain = _filterChainsPortalCache.get(
+			key);
 
 		if (invokerFilterChain == null) {
 			invokerFilterChain = _invokerFilterHelper.createInvokerFilterChain(
 				httpServletRequest, _dispatcher, uri, filterChain);
 
-			_filterChains.put(key, invokerFilterChain);
+			_filterChainsPortalCache.put(key, invokerFilterChain);
 		}
 
 		return invokerFilterChain.clone(filterChain);
@@ -240,16 +241,6 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 		return uri;
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link #getURI(String)}
-	 */
-	@Deprecated
-	protected String getURI(
-		HttpServletRequest httpServletRequest, String originalURI) {
-
-		return getURI(originalURI);
-	}
-
 	protected String getURI(String originalURI) {
 		if (Validator.isNotNull(_contextPath) &&
 			!_contextPath.equals(StringPool.SLASH) &&
@@ -258,7 +249,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 			originalURI = originalURI.substring(_contextPath.length());
 		}
 
-		return HttpUtil.normalizePath(originalURI);
+		return HttpComponentsUtil.normalizePath(originalURI);
 	}
 
 	protected boolean handleLongRequestURL(
@@ -282,17 +273,13 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 			HttpServletResponse.SC_REQUEST_URI_TOO_LONG);
 
 		if (_log.isWarnEnabled()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("Rejected ");
-			sb.append(
-				StringUtil.shorten(
-					originalURI, _INVOKER_FILTER_URI_MAX_LENGTH));
-			sb.append(" because it has more than ");
-			sb.append(_INVOKER_FILTER_URI_MAX_LENGTH);
-			sb.append(" characters");
-
-			_log.warn(sb.toString());
+			_log.warn(
+				StringBundler.concat(
+					"Rejected ",
+					StringUtil.shorten(
+						originalURI, _INVOKER_FILTER_URI_MAX_LENGTH),
+					" because it has more than ",
+					_INVOKER_FILTER_URI_MAX_LENGTH, " characters"));
 		}
 
 		return false;
@@ -356,7 +343,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
 	private String _contextPath;
 	private Dispatcher _dispatcher;
-	private PortalCache<String, InvokerFilterChain> _filterChains;
+	private PortalCache<String, InvokerFilterChain> _filterChainsPortalCache;
 	private FilterConfig _filterConfig;
 	private InvokerFilterHelper _invokerFilterHelper;
 

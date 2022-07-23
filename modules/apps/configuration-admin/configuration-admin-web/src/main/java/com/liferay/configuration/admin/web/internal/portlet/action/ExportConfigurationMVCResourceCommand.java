@@ -19,7 +19,6 @@ import com.liferay.configuration.admin.web.internal.display.context.Configuratio
 import com.liferay.configuration.admin.web.internal.display.context.ConfigurationScopeDisplayContextFactory;
 import com.liferay.configuration.admin.web.internal.exporter.ConfigurationExporter;
 import com.liferay.configuration.admin.web.internal.model.ConfigurationModel;
-import com.liferay.configuration.admin.web.internal.util.AttributeDefinitionUtil;
 import com.liferay.configuration.admin.web.internal.util.ConfigurationModelRetriever;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition.Scope;
@@ -40,6 +39,7 @@ import com.liferay.portal.util.PropsValues;
 import java.io.FileInputStream;
 import java.io.Serializable;
 
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -82,13 +82,13 @@ public class ExportConfigurationMVCResourceCommand
 
 		try {
 			if (Validator.isNotNull(pid)) {
-				exportPid(resourceRequest, resourceResponse);
+				_exportPid(resourceRequest, resourceResponse);
 			}
 			else if (Validator.isNotNull(factoryPid)) {
-				exportFactoryPid(resourceRequest, resourceResponse);
+				_exportFactoryPid(resourceRequest, resourceResponse);
 			}
 			else {
-				exportAll(resourceRequest, resourceResponse);
+				_exportAll(resourceRequest, resourceResponse);
 			}
 		}
 		catch (Exception exception) {
@@ -98,7 +98,70 @@ public class ExportConfigurationMVCResourceCommand
 		return false;
 	}
 
-	protected void exportAll(
+	protected Properties getProperties(
+			String languageId, String factoryPid, String pid, Scope scope,
+			Serializable scopePK)
+		throws Exception {
+
+		Properties properties = new Properties();
+
+		Map<String, ConfigurationModel> configurationModels =
+			_configurationModelRetriever.getConfigurationModels(
+				languageId, scope, scopePK);
+
+		ConfigurationModel configurationModel = configurationModels.get(pid);
+
+		if ((configurationModel == null) && Validator.isNotNull(factoryPid)) {
+			configurationModel = configurationModels.get(factoryPid);
+		}
+
+		if (configurationModel == null) {
+			return properties;
+		}
+
+		Configuration configuration =
+			_configurationModelRetriever.getConfiguration(pid, scope, scopePK);
+
+		if (configuration == null) {
+			return properties;
+		}
+
+		Dictionary<String, Object> configurationProperties =
+			configuration.getProperties();
+
+		ExtendedObjectClassDefinition extendedObjectClassDefinition =
+			configurationModel.getExtendedObjectClassDefinition();
+
+		ExtendedAttributeDefinition[] attributeDefinitions =
+			extendedObjectClassDefinition.getAttributeDefinitions(
+				ConfigurationModel.ALL);
+
+		for (AttributeDefinition attributeDefinition : attributeDefinitions) {
+			if (!PropsValues.MODULE_FRAMEWORK_EXPORT_PASSWORD_ATTRIBUTES &&
+				(attributeDefinition.getType() ==
+					AttributeDefinition.PASSWORD)) {
+
+				continue;
+			}
+
+			Object value = configurationProperties.get(
+				attributeDefinition.getID());
+
+			if (value == null) {
+				continue;
+			}
+
+			properties.put(attributeDefinition.getID(), value);
+		}
+
+		if (!Scope.SYSTEM.equals(scope)) {
+			properties.put(scope.getPropertyKey(), scopePK);
+		}
+
+		return properties;
+	}
+
+	private void _exportAll(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
@@ -133,7 +196,7 @@ public class ExportConfigurationMVCResourceCommand
 				for (ConfigurationModel factoryInstance : factoryInstances) {
 					String curPid = factoryInstance.getID();
 
-					String curFileName = getFileName(curFactoryPid, curPid);
+					String curFileName = _getFileName(curFactoryPid, curPid);
 
 					zipWriter.addEntry(
 						curFileName,
@@ -148,7 +211,7 @@ public class ExportConfigurationMVCResourceCommand
 			else if (configurationModel.hasConfiguration()) {
 				String curPid = configurationModel.getID();
 
-				String curFileName = getFileName(null, curPid);
+				String curFileName = _getFileName(null, curPid);
 
 				zipWriter.addEntry(
 					curFileName,
@@ -168,7 +231,7 @@ public class ExportConfigurationMVCResourceCommand
 			ContentTypes.APPLICATION_ZIP);
 	}
 
-	protected void exportFactoryPid(
+	private void _exportFactoryPid(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
@@ -202,7 +265,7 @@ public class ExportConfigurationMVCResourceCommand
 		for (ConfigurationModel factoryInstance : factoryInstances) {
 			String curPid = factoryInstance.getID();
 
-			String curFileName = getFileName(factoryPid, curPid);
+			String curFileName = _getFileName(factoryPid, curPid);
 
 			zipWriter.addEntry(
 				curFileName,
@@ -223,7 +286,7 @@ public class ExportConfigurationMVCResourceCommand
 			ContentTypes.APPLICATION_ZIP);
 	}
 
-	protected void exportPid(
+	private void _exportPid(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
@@ -235,7 +298,7 @@ public class ExportConfigurationMVCResourceCommand
 
 		String languageId = themeDisplay.getLanguageId();
 
-		String fileName = getFileName(factoryPid, pid);
+		String fileName = _getFileName(factoryPid, pid);
 
 		ConfigurationScopeDisplayContext configurationScopeDisplayContext =
 			ConfigurationScopeDisplayContextFactory.create(resourceRequest);
@@ -250,83 +313,29 @@ public class ExportConfigurationMVCResourceCommand
 			ContentTypes.TEXT_XML_UTF8);
 	}
 
-	protected String getFileName(String factoryPid, String pid) {
+	private String _getFileName(String factoryPid, String pid) {
 		String fileName = pid;
 
 		if (Validator.isNotNull(factoryPid) && !factoryPid.equals(pid)) {
 			String factoryInstanceId = pid.substring(factoryPid.length() + 1);
 
-			if (factoryInstanceId.startsWith("scoped")) {
+			if (factoryInstanceId.startsWith("scoped.")) {
 				factoryPid = factoryPid + ".scoped";
 
 				factoryInstanceId = StringUtil.removeSubstring(
 					factoryInstanceId, "scoped.");
 			}
+			else if (factoryInstanceId.startsWith("scoped~")) {
+				factoryPid = factoryPid + ".scoped";
 
-			fileName = factoryPid + StringPool.DASH + factoryInstanceId;
+				factoryInstanceId = StringUtil.removeSubstring(
+					factoryInstanceId, "scoped~");
+			}
+
+			fileName = factoryPid + StringPool.TILDE + factoryInstanceId;
 		}
 
 		return fileName + ".config";
-	}
-
-	protected Properties getProperties(
-			String languageId, String factoryPid, String pid, Scope scope,
-			Serializable scopePK)
-		throws Exception {
-
-		Properties properties = new Properties();
-
-		Map<String, ConfigurationModel> configurationModels =
-			_configurationModelRetriever.getConfigurationModels(
-				languageId, scope, scopePK);
-
-		ConfigurationModel configurationModel = configurationModels.get(pid);
-
-		if ((configurationModel == null) && Validator.isNotNull(factoryPid)) {
-			configurationModel = configurationModels.get(factoryPid);
-		}
-
-		if (configurationModel == null) {
-			return properties;
-		}
-
-		Configuration configuration =
-			_configurationModelRetriever.getConfiguration(pid, scope, scopePK);
-
-		if (configuration == null) {
-			return properties;
-		}
-
-		ExtendedObjectClassDefinition extendedObjectClassDefinition =
-			configurationModel.getExtendedObjectClassDefinition();
-
-		ExtendedAttributeDefinition[] attributeDefinitions =
-			extendedObjectClassDefinition.getAttributeDefinitions(
-				ConfigurationModel.ALL);
-
-		for (AttributeDefinition attributeDefinition : attributeDefinitions) {
-			if (!PropsValues.MODULE_FRAMEWORK_EXPORT_PASSWORD_ATTRIBUTES &&
-				(attributeDefinition.getType() ==
-					AttributeDefinition.PASSWORD)) {
-
-				continue;
-			}
-
-			Object value = AttributeDefinitionUtil.getPropertyObject(
-				attributeDefinition, configuration);
-
-			if (value == null) {
-				continue;
-			}
-
-			properties.put(attributeDefinition.getID(), value);
-		}
-
-		if (!Scope.SYSTEM.equals(scope)) {
-			properties.put(scope.getPropertyKey(), scopePK);
-		}
-
-		return properties;
 	}
 
 	@Reference(target = "(filter.visibility=*)")

@@ -63,7 +63,7 @@ public class EditCPOptionMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			if (cmd.equals(Constants.UPDATE)) {
-				updateCPOption(cpOptionId, actionRequest);
+				_updateCPOption(cpOptionId, actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -73,14 +73,14 @@ public class EditCPOptionMVCActionCommand extends BaseMVCActionCommand {
 				SessionErrors.add(actionRequest, exception.getClass());
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				throw new Exception(exception);
 			}
 		}
 	}
 
-	protected CPOption updateCPOption(
+	private CPOption _updateCPOption(
 			long cpOptionId, ActionRequest actionRequest)
 		throws Exception {
 

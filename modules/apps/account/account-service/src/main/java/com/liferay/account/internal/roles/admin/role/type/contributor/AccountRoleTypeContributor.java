@@ -23,12 +23,10 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 import com.liferay.roles.admin.role.type.contributor.RoleTypeContributor;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -64,18 +62,12 @@ public class AccountRoleTypeContributor implements RoleTypeContributor {
 
 	@Override
 	public String getTabTitle(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, AccountRoleTypeContributor.class);
-
-		return _language.get(resourceBundle, "account-roles");
+		return _language.get(locale, "account-roles");
 	}
 
 	@Override
 	public String getTitle(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, AccountRoleTypeContributor.class);
-
-		return _language.get(resourceBundle, "account-role");
+		return _language.get(locale, "account-role");
 	}
 
 	@Override
@@ -118,8 +110,9 @@ public class AccountRoleTypeContributor implements RoleTypeContributor {
 
 		BaseModelSearchResult<AccountRole> accountRoleBaseModelSearchResult =
 			_accountRoleLocalService.searchAccountRoles(
-				companyId, AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT, keywords,
-				start, end, orderByComparator);
+				companyId,
+				new long[] {AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT},
+				keywords, null, start, end, orderByComparator);
 
 		return new BaseModelSearchResult<>(
 			TransformUtil.transform(

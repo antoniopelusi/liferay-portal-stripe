@@ -39,11 +39,11 @@ public class Main {
 	private static MainParameters _validate(String[] arguments)
 		throws Exception {
 
-		MainParameters mainParameters = new MainParameters();
-
 		if ((arguments == null) || (arguments.length == 0)) {
 			throw new IllegalArgumentException("Arguments are null");
 		}
+
+		MainParameters mainParameters = new MainParameters();
 
 		new JCommander(mainParameters, arguments);
 

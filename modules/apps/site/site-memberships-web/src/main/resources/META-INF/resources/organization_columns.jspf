@@ -17,14 +17,15 @@
 <c:choose>
 	<c:when test='<%= displayStyle.equals("icon") %>'>
 		<liferay-ui:search-container-column-text>
-			<clay:vertical-card
-				verticalCard="<%= new OrganizationsVerticalCard(organization, !selectOrganizations, renderRequest, renderResponse, searchContainer.getRowChecker()) %>"
+			<clay:user-card
+				propsTransformer="js/OrganizationCardPropsTransformer"
+				userCard="<%= new OrganizationsUserCard(organization, !selectOrganizations, renderRequest, renderResponse, searchContainer.getRowChecker()) %>"
 			/>
 		</liferay-ui:search-container-column-text>
 	</c:when>
 	<c:when test='<%= displayStyle.equals("descriptive") %>'>
 		<liferay-ui:search-container-column-icon
-			icon="users"
+			icon="organizations"
 			toggleRowChecker="<%= true %>"
 		/>
 

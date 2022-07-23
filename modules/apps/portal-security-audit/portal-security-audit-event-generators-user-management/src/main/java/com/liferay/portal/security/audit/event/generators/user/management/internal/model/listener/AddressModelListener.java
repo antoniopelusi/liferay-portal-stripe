@@ -39,27 +39,24 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = ModelListener.class)
 public class AddressModelListener extends BaseModelListener<Address> {
 
-	public void onBeforeUpdate(Address newAddress)
+	public void onBeforeUpdate(Address originalAddress, Address address)
 		throws ModelListenerException {
 
 		try {
-			String className = newAddress.getClassName();
+			String className = address.getClassName();
 
 			if (!className.equals(User.class.getName())) {
 				return;
 			}
 
-			Address oldAddress = _addressLocalService.getAddress(
-				newAddress.getAddressId());
-
 			List<Attribute> attributes = getModifiedAttributes(
-				newAddress, oldAddress);
+				originalAddress, address);
 
 			if (!attributes.isEmpty()) {
 				AuditMessage auditMessage =
 					AuditMessageBuilder.buildAuditMessage(
 						EventTypes.UPDATE, User.class.getName(),
-						newAddress.getClassPK(), attributes);
+						address.getClassPK(), attributes);
 
 				_auditRouter.route(auditMessage);
 			}
@@ -70,10 +67,10 @@ public class AddressModelListener extends BaseModelListener<Address> {
 	}
 
 	protected List<Attribute> getModifiedAttributes(
-		Address newAddress, Address oldAddress) {
+		Address originalAddress, Address address) {
 
 		AttributesBuilder attributesBuilder = new AttributesBuilder(
-			newAddress, oldAddress);
+			address, originalAddress);
 
 		attributesBuilder.add("countryId");
 		attributesBuilder.add("city");

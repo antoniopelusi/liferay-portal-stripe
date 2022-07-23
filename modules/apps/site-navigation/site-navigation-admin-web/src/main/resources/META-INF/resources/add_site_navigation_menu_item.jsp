@@ -32,20 +32,20 @@ if (addURL == null) {
 		renderResponse
 	).setActionName(
 		"/site_navigation_admin/add_site_navigation_menu_item"
-	).build();
+	).buildPortletURL();
 }
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
 
-renderResponse.setTitle(LanguageUtil.format(request, "add-x", siteNavigationMenuItemType.getLabel(locale)));
+renderResponse.setTitle(siteNavigationMenuItemType.getAddTitle(locale));
 %>
 
 <liferay-ui:error exception="<%= SiteNavigationMenuItemNameException.class %>">
 	<liferay-ui:message arguments='<%= ModelHintsUtil.getMaxLength(SiteNavigationMenuItem.class.getName(), "name") %>' key="please-enter-a-name-with-fewer-than-x-characters" translateArguments="<%= false %>" />
 </liferay-ui:error>
 
-<aui:form action="<%= addURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" name="fm" onSubmit="event.preventDefault();">
+<aui:form action="<%= addURL %>" cssClass="container-fluid container-fluid-max-xl" name="fm" onSubmit="event.preventDefault();">
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="siteNavigationMenuId" type="hidden" value="<%= siteNavigationMenuId %>" />
 	<aui:input name="type" type="hidden" value="<%= type %>" />
@@ -54,14 +54,14 @@ renderResponse.setTitle(LanguageUtil.format(request, "add-x", siteNavigationMenu
 		<aui:fieldset>
 
 			<%
-			siteNavigationMenuItemType.renderAddPage(request, PipingServletResponse.createPipingServletResponse(pageContext));
+			siteNavigationMenuItemType.renderAddPage(request, PipingServletResponseFactory.createPipingServletResponse(pageContext));
 			%>
 
 		</aui:fieldset>
 	</aui:fieldset-group>
 
 	<aui:button-row>
-		<aui:button name="addButton" type="submit" value="add" />
+		<aui:button name="addButton" type="submit" value='<%= type.equals("layout") ? "select" : "add" %>' />
 
 		<aui:button href="<%= redirect %>" type="cancel" />
 	</aui:button-row>

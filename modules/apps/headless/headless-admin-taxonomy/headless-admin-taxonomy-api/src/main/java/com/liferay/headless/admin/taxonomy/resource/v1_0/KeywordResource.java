@@ -18,12 +18,20 @@ import com.liferay.headless.admin.taxonomy.dto.v1_0.Keyword;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Generated;
 
@@ -68,9 +76,10 @@ public interface KeywordResource {
 				Long assetLibraryId, String roleNames)
 		throws Exception;
 
-	public void putAssetLibraryKeywordPermission(
-			Long assetLibraryId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putAssetLibraryKeywordPermissionsPage(
+				Long assetLibraryId,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception;
 
 	public Page<Keyword> getKeywordsRankedPage(
@@ -89,14 +98,9 @@ public interface KeywordResource {
 	public Response putKeywordBatch(String callbackURL, Object object)
 		throws Exception;
 
-	public Page<com.liferay.portal.vulcan.permission.Permission>
-			getKeywordPermissionsPage(Long keywordId, String roleNames)
-		throws Exception;
+	public void putKeywordSubscribe(Long keywordId) throws Exception;
 
-	public void putKeywordPermission(
-			Long keywordId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
-		throws Exception;
+	public void putKeywordUnsubscribe(Long keywordId) throws Exception;
 
 	public Page<Keyword> getSiteKeywordsPage(
 			Long siteId, String search, Filter filter, Pagination pagination,
@@ -114,9 +118,10 @@ public interface KeywordResource {
 			getSiteKeywordPermissionsPage(Long siteId, String roleNames)
 		throws Exception;
 
-	public void putSiteKeywordPermission(
-			Long siteId,
-			com.liferay.portal.vulcan.permission.Permission[] permissions)
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putSiteKeywordPermissionsPage(
+				Long siteId,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception;
 
 	public default void setContextAcceptLanguage(
@@ -140,9 +145,36 @@ public interface KeywordResource {
 	public void setContextUser(
 		com.liferay.portal.kernel.model.User contextUser);
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert);
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider);
+
 	public void setGroupLocalService(GroupLocalService groupLocalService);
 
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService);
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService);
+
 	public void setRoleLocalService(RoleLocalService roleLocalService);
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource);
+
+	public default Filter toFilter(String filterString) {
+		return toFilter(
+			filterString, Collections.<String, List<String>>emptyMap());
+	}
+
+	public default Filter toFilter(
+		String filterString, Map<String, List<String>> multivaluedMap) {
+
+		return null;
+	}
 
 	public static class FactoryHolder {
 
@@ -159,6 +191,9 @@ public interface KeywordResource {
 
 		public Builder httpServletRequest(
 			HttpServletRequest httpServletRequest);
+
+		public Builder httpServletResponse(
+			HttpServletResponse httpServletResponse);
 
 		public Builder preferredLocale(Locale preferredLocale);
 

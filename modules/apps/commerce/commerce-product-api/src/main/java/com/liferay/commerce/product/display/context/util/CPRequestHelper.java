@@ -15,7 +15,7 @@
 package com.liferay.commerce.product.display.context.util;
 
 import com.liferay.commerce.product.service.CommerceChannelLocalServiceUtil;
-import com.liferay.portal.kernel.display.context.util.BaseRequestHelper;
+import com.liferay.portal.kernel.display.context.helper.BaseRequestHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.JavaConstants;
 
@@ -25,8 +25,11 @@ import javax.portlet.RenderResponse;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author Alessio Antonio Rendina
+ * @author     Alessio Antonio Rendina
+ * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+ *             com.liferay.commerce.product.display.context.helper.CPRequestHelper}
  */
+@Deprecated
 public class CPRequestHelper extends BaseRequestHelper {
 
 	public CPRequestHelper(HttpServletRequest httpServletRequest) {
@@ -47,7 +50,7 @@ public class CPRequestHelper extends BaseRequestHelper {
 		}
 	}
 
-	public long getChannelGroupId() throws PortalException {
+	public long getCommerceChannelGroupId() throws PortalException {
 		return CommerceChannelLocalServiceUtil.
 			getCommerceChannelGroupIdBySiteGroupId(getScopeGroupId());
 	}

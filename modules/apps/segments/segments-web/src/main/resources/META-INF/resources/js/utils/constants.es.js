@@ -30,8 +30,6 @@ export const NOT_OPERATORS = {
 	NOT_EQ: 'not-eq',
 };
 
-export const GROUP = 'GROUP';
-
 export const RELATIONAL_OPERATORS = {
 	EQ: 'eq',
 	GE: 'ge',
@@ -137,24 +135,11 @@ export const SUPPORTED_PROPERTY_TYPES = {
 
 export const BOOLEAN_OPTIONS = [
 	{
-		label: 'TRUE',
+		label: Liferay.Language.get('true'),
 		value: 'true',
 	},
 	{
-		label: 'FALSE',
+		label: Liferay.Language.get('false'),
 		value: 'false',
 	},
 ];
-
-export const SOURCES = {
-	ASAH_FARO_BACKEND: {
-		icon: '/ac-icon.svg',
-		label: Liferay.Language.get('source.analytics-cloud'),
-		name: 'ASAH_FARO_BACKEND',
-	},
-	DEFAULT: {
-		icon: '/dxp-icon.svg',
-		label: Liferay.Language.get('source.dxp'),
-		name: 'DEFAULT',
-	},
-};

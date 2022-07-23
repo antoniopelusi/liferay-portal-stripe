@@ -1,31 +1,13 @@
 {
 	"dependencies": {
-		"@clayui/alert": "3.26.0",
-		"@clayui/button": "3.6.0",
-		"@clayui/card": "3.25.1",
-		"@clayui/drop-down": "3.25.1",
-		"@clayui/form": "3.14.4",
-		"@clayui/icon": "3.1.0",
-		"@clayui/label": "3.4.1",
-		"@clayui/layout": "3.3.0",
-		"@clayui/link": "3.2.0",
-		"@clayui/list": "3.25.1",
-		"@clayui/loading-indicator": "3.2.0",
-		"@clayui/modal": "3.8.5",
-		"@clayui/popover": "3.5.5",
-		"@clayui/shared": "3.5.1",
-		"@clayui/sticker": "3.3.0",
-		"@clayui/tabs": "3.3.5",
-		"@liferay/frontend-js-react-web": "*",
-		"classnames": "2.2.6",
-		"frontend-js-web": "*",
-		"prop-types": "15.7.2",
-		"react": "16.12.0",
-		"react-dnd": "11.1.1",
-		"react-dnd-html5-backend": "11.1.1",
-		"react-dom": "16.12.0"
 	},
-	"name": "layout-content-page-editor-web",
+	"jest": {
+		"setupFiles": [
+			"<rootDir>/jest-setup.config.js"
+		]
+	},
+	"main": "js/index.js",
+	"name": "@liferay/layout-content-page-editor-web",
 	"optionalDependencies": {
 		"fsevents": "^1.2.7"
 	},
@@ -35,5 +17,5 @@
 		"format": "liferay-npm-scripts fix",
 		"test": "liferay-npm-scripts test"
 	},
-	"version": "3.0.15"
+	"version": "3.0.91"
 }

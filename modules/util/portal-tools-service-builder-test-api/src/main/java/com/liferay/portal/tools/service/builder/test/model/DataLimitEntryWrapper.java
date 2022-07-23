@@ -91,6 +91,11 @@ public class DataLimitEntryWrapper
 		}
 	}
 
+	@Override
+	public DataLimitEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this data limit entry.
 	 *

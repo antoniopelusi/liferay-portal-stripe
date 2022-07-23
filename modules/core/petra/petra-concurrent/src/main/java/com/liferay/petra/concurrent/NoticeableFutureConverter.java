@@ -28,8 +28,6 @@ public abstract class NoticeableFutureConverter<T, V>
 	public NoticeableFutureConverter(NoticeableFuture<V> noticeableFuture) {
 		super(noticeableFuture);
 
-		_defaultNoticeableFuture = new DefaultNoticeableFuture<>();
-
 		noticeableFuture.addFutureListener(
 			new FutureListener<V>() {
 
@@ -78,6 +76,7 @@ public abstract class NoticeableFutureConverter<T, V>
 		return _defaultNoticeableFuture.removeFutureListener(futureListener);
 	}
 
-	private final DefaultNoticeableFuture<T> _defaultNoticeableFuture;
+	private final DefaultNoticeableFuture<T> _defaultNoticeableFuture =
+		new DefaultNoticeableFuture<>();
 
 }

@@ -18,11 +18,13 @@ import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.content.render.list.CPContentListRendererRegistry;
 import com.liferay.commerce.product.content.render.list.entry.CPContentListEntryRendererRegistry;
 import com.liferay.commerce.product.content.web.internal.display.context.CPPublisherDisplayContext;
-import com.liferay.commerce.product.content.web.internal.util.CPPublisherWebHelper;
+import com.liferay.commerce.product.content.web.internal.helper.CPPublisherWebHelper;
 import com.liferay.commerce.product.data.source.CPDataSourceRegistry;
 import com.liferay.commerce.product.service.CPDefinitionService;
 import com.liferay.commerce.product.type.CPTypeServicesTracker;
+import com.liferay.commerce.product.url.CPFriendlyURL;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
+import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -77,15 +79,15 @@ public class CPPublisherPortlet extends MVCPortlet {
 				new CPPublisherDisplayContext(
 					_cpContentListEntryRendererRegistry,
 					_cpContentListRendererRegistry, _cpDataSourceRegistry,
-					_cpDefinitionHelper, _cpPublisherWebHelper,
-					_cpTypeServicesTracker,
+					_cpDefinitionHelper, _cpFriendlyURL, _cpPublisherWebHelper,
+					_cpTypeServicesTracker, _friendlyURLEntryLocalService,
 					_portal.getHttpServletRequest(renderRequest));
 
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT, cpPublisherDisplayContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		super.render(renderRequest, renderResponse);
@@ -111,10 +113,16 @@ public class CPPublisherPortlet extends MVCPortlet {
 	private CPDefinitionService _cpDefinitionService;
 
 	@Reference
+	private CPFriendlyURL _cpFriendlyURL;
+
+	@Reference
 	private CPPublisherWebHelper _cpPublisherWebHelper;
 
 	@Reference
 	private CPTypeServicesTracker _cpTypeServicesTracker;
+
+	@Reference
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@Reference
 	private Portal _portal;

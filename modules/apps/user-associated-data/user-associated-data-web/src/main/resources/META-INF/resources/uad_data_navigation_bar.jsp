@@ -22,8 +22,8 @@ String servletPath = GetterUtil.getString(request.getServletPath());
 PortletURL baseURL = PortletURLBuilder.createRenderURL(
 	liferayPortletResponse
 ).setParameter(
-	"p_u_i_d", String.valueOf(selectedUser.getUserId())
-).build();
+	"p_u_i_d", selectedUser.getUserId()
+).buildPortletURL();
 %>
 
 <clay:navigation-bar
@@ -41,7 +41,7 @@ PortletURL baseURL = PortletURLBuilder.createRenderURL(
 								PortletURLUtil.clone(baseURL, renderResponse)
 							).setMVCRenderCommandName(
 								"/user_associated_data/review_uad_data"
-							).build();
+							).buildPortletURL();
 						}
 						catch (PortletException e) {
 							reviewDataURL = baseURL;
@@ -62,7 +62,7 @@ PortletURL baseURL = PortletURLBuilder.createRenderURL(
 								PortletURLUtil.clone(baseURL, renderResponse)
 							).setMVCRenderCommandName(
 								"/user_associated_data/anonymize_nonreviewable_uad_data"
-							).build();
+							).buildPortletURL();
 						}
 						catch (PortletException e) {
 							nonreviewableDataURL = baseURL;

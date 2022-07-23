@@ -1,11 +1,20 @@
 .table-list {
+	.bounded-column {
+		max-width: 12ch;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
 	td:first-child,
 	th:first-child {
 		> .table-first-element-group {
+			align-items: center;
 			display: flex;
 			justify-content: space-between;
 		}
 	}
+
 	td {
 		border-top: 1px solid #e7e7ed !important;
 

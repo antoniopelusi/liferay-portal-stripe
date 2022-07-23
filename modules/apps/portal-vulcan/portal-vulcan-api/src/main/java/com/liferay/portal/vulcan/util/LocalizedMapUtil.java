@@ -50,6 +50,12 @@ public class LocalizedMapUtil {
 		return i18nMap;
 	}
 
+	public static Map<String, String> getI18nMap(
+		Map<Locale, String> localizedMap) {
+
+		return getI18nMap(true, localizedMap);
+	}
+
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *             #getI18nMap(boolean, Map)}
@@ -203,12 +209,12 @@ public class LocalizedMapUtil {
 		notFoundLocales.removeAll(localizedMap.keySet());
 
 		if (!notFoundLocales.isEmpty()) {
-			Stream<Locale> notFoundLocaleStream = notFoundLocales.stream();
+			Stream<Locale> notFoundLocalesStream = notFoundLocales.stream();
 
 			throw new BadRequestException(
 				StringBundler.concat(
 					entityName, " title missing in the languages: ",
-					notFoundLocaleStream.map(
+					notFoundLocalesStream.map(
 						LocaleUtil::toW3cLanguageId
 					).collect(
 						Collectors.joining(",")

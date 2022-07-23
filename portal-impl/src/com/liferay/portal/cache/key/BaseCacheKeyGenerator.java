@@ -24,20 +24,6 @@ import java.io.Serializable;
  */
 public abstract class BaseCacheKeyGenerator implements CacheKeyGenerator {
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #append(StringBundler)}
-	 */
-	@Deprecated
-	@Override
-	public CacheKeyGenerator append(
-		com.liferay.portal.kernel.util.StringBundler sb) {
-
-		keyBundler.append(sb.getStrings());
-
-		return this;
-	}
-
 	@Override
 	public CacheKeyGenerator append(String key) {
 		keyBundler.append(key);
@@ -71,17 +57,6 @@ public abstract class BaseCacheKeyGenerator implements CacheKeyGenerator {
 		return cacheKey;
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public boolean isCallingGetCacheKeyThreadSafe() {
-		return _CALLING_GET_CACHE_KEY_THREAD_SAFE;
-	}
-
 	protected StringBundler keyBundler = new StringBundler();
-
-	private static final boolean _CALLING_GET_CACHE_KEY_THREAD_SAFE = true;
 
 }

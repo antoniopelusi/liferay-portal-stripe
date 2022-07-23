@@ -116,6 +116,21 @@ public interface DLFileEntryModel
 	public void setUuid(String uuid);
 
 	/**
+	 * Returns the external reference code of this document library file entry.
+	 *
+	 * @return the external reference code of this document library file entry
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this document library file entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this document library file entry
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
+
+	/**
 	 * Returns the file entry ID of this document library file entry.
 	 *
 	 * @return the file entry ID of this document library file entry
@@ -553,6 +568,34 @@ public interface DLFileEntryModel
 	public void setManualCheckInRequired(boolean manualCheckInRequired);
 
 	/**
+	 * Returns the expiration date of this document library file entry.
+	 *
+	 * @return the expiration date of this document library file entry
+	 */
+	public Date getExpirationDate();
+
+	/**
+	 * Sets the expiration date of this document library file entry.
+	 *
+	 * @param expirationDate the expiration date of this document library file entry
+	 */
+	public void setExpirationDate(Date expirationDate);
+
+	/**
+	 * Returns the review date of this document library file entry.
+	 *
+	 * @return the review date of this document library file entry
+	 */
+	public Date getReviewDate();
+
+	/**
+	 * Sets the review date of this document library file entry.
+	 *
+	 * @param reviewDate the review date of this document library file entry
+	 */
+	public void setReviewDate(Date reviewDate);
+
+	/**
 	 * Returns the last publish date of this document library file entry.
 	 *
 	 * @return the last publish date of this document library file entry
@@ -624,5 +667,8 @@ public interface DLFileEntryModel
 
 	@Override
 	public boolean isInTrashImplicitly();
+
+	@Override
+	public DLFileEntry cloneWithOriginalValues();
 
 }

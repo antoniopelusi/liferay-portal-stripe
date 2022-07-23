@@ -19,7 +19,7 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.output.stream.container.OutputStreamContainer;
 import com.liferay.portal.output.stream.container.OutputStreamContainerFactory;
 import com.liferay.portal.output.stream.container.OutputStreamContainerFactoryTracker;
@@ -184,10 +184,12 @@ public class OutputStreamContainerFactoryTrackerImpl
 
 		rootLogger.addAppender(_writerAppender);
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("name", "console");
-		dictionary.put("service.ranking:Integer", "100");
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"name", "console"
+			).put(
+				"service.ranking:Integer", "100"
+			).build();
 
 		_serviceRegistrations.add(
 			bundleContext.registerService(

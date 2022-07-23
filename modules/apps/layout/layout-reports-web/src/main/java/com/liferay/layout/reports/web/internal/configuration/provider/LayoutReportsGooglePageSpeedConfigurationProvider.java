@@ -16,76 +16,74 @@ package com.liferay.layout.reports.web.internal.configuration.provider;
 
 import com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedCompanyConfiguration;
 import com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedConfiguration;
-import com.liferay.portal.kernel.model.Company;
+import com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedGroupConfiguration;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.kernel.util.Validator;
+
+import java.util.Map;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Cristina González
  */
+@Component(
+	configurationPid = "com.liferay.layout.reports.web.internal.configuration.LayoutReportsGooglePageSpeedConfiguration",
+	service = LayoutReportsGooglePageSpeedConfigurationProvider.class
+)
 public class LayoutReportsGooglePageSpeedConfigurationProvider {
 
-	public LayoutReportsGooglePageSpeedConfigurationProvider(
-		ConfigurationProvider configurationProvider,
-		LayoutReportsGooglePageSpeedConfiguration
-			layoutReportsGooglePageSpeedConfiguration) {
-
-		_configurationProvider = configurationProvider;
-		_layoutReportsGooglePageSpeedConfiguration =
-			layoutReportsGooglePageSpeedConfiguration;
-	}
-
-	public String getApiKey(Company company) throws ConfigurationException {
-		return _getApiKey(company.getCompanyId());
-	}
-
 	public String getApiKey(Group group) throws ConfigurationException {
-		UnicodeProperties unicodeProperties = group.getTypeSettingsProperties();
+		LayoutReportsGooglePageSpeedGroupConfiguration
+			layoutReportsGooglePageSpeedGroupConfiguration =
+				_configurationProvider.getGroupConfiguration(
+					LayoutReportsGooglePageSpeedGroupConfiguration.class,
+					group.getGroupId());
 
-		String googlePageSpeedApikey = unicodeProperties.getProperty(
-			"googlePageSpeedApiKey");
+		return layoutReportsGooglePageSpeedGroupConfiguration.apiKey();
+	}
 
-		if (Validator.isNotNull(googlePageSpeedApikey)) {
-			return googlePageSpeedApikey;
+	public String getStrategy(Group group) throws ConfigurationException {
+		LayoutReportsGooglePageSpeedGroupConfiguration
+			layoutReportsGooglePageSpeedGroupConfiguration =
+				_configurationProvider.getGroupConfiguration(
+					LayoutReportsGooglePageSpeedGroupConfiguration.class,
+					group.getGroupId());
+
+		String strategy =
+			layoutReportsGooglePageSpeedGroupConfiguration.strategy();
+
+		if (!strategy.equals("DESKTOP") && !strategy.equals("MOBILE")) {
+			return "DESKTOP";
 		}
 
-		return _getApiKey(group.getCompanyId());
+		return strategy;
 	}
 
-	public boolean isEnabled(Company company) throws ConfigurationException {
-		return _isEnabled(company.getCompanyId());
+	public boolean isEnabled() {
+		return _layoutReportsGooglePageSpeedConfiguration.enabled();
 	}
 
 	public boolean isEnabled(Group group) throws ConfigurationException {
-		UnicodeProperties unicodeProperties = group.getTypeSettingsProperties();
-
-		return GetterUtil.getBoolean(
-			unicodeProperties.getProperty("googlePageSpeedEnabled"),
-			_isEnabled(group.getCompanyId()));
-	}
-
-	private String _getApiKey(long companyId) throws ConfigurationException {
-		LayoutReportsGooglePageSpeedCompanyConfiguration
-			layoutReportsGooglePageSpeedCompanyConfiguration =
-				_configurationProvider.getCompanyConfiguration(
-					LayoutReportsGooglePageSpeedCompanyConfiguration.class,
-					companyId);
-
-		String apiKey =
-			layoutReportsGooglePageSpeedCompanyConfiguration.apiKey();
-
-		if (Validator.isNotNull(apiKey)) {
-			return apiKey;
+		if (!isEnabled(group.getCompanyId())) {
+			return false;
 		}
 
-		return _layoutReportsGooglePageSpeedConfiguration.apiKey();
+		LayoutReportsGooglePageSpeedGroupConfiguration
+			layoutReportsGooglePageSpeedGroupConfiguration =
+				_configurationProvider.getGroupConfiguration(
+					LayoutReportsGooglePageSpeedGroupConfiguration.class,
+					group.getGroupId());
+
+		return layoutReportsGooglePageSpeedGroupConfiguration.enabled();
 	}
 
-	private boolean _isEnabled(long companyId) throws ConfigurationException {
+	public boolean isEnabled(long companyId) throws ConfigurationException {
 		if (!_layoutReportsGooglePageSpeedConfiguration.enabled()) {
 			return false;
 		}
@@ -103,8 +101,18 @@ public class LayoutReportsGooglePageSpeedConfigurationProvider {
 		return true;
 	}
 
-	private final ConfigurationProvider _configurationProvider;
-	private final LayoutReportsGooglePageSpeedConfiguration
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		_layoutReportsGooglePageSpeedConfiguration =
+			ConfigurableUtil.createConfigurable(
+				LayoutReportsGooglePageSpeedConfiguration.class, properties);
+	}
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
+
+	private volatile LayoutReportsGooglePageSpeedConfiguration
 		_layoutReportsGooglePageSpeedConfiguration;
 
 }

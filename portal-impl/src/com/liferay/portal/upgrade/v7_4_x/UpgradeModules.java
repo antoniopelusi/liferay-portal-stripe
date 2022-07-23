@@ -14,6 +14,8 @@
 
 package com.liferay.portal.upgrade.v7_4_x;
 
+import com.liferay.portal.kernel.util.LoggingTimer;
+
 /**
  * @author Alberto Chaparro
  */
@@ -30,13 +32,41 @@ public class UpgradeModules
 		return _CONVERTED_LEGACY_MODULES;
 	}
 
+	public String[][] getLegacyServiceModules() {
+		return _LEGACY_SERVICE_MODULES;
+	}
+
+	@Override
+	protected void doUpgrade() throws Exception {
+		super.doUpgrade();
+
+		updateLegacyServiceModules();
+	}
+
+	protected void updateLegacyServiceModules() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			for (String[] legacyServiceModule : getLegacyServiceModules()) {
+				if (hasTable(legacyServiceModule[1])) {
+					addRelease(legacyServiceModule[0]);
+				}
+			}
+		}
+	}
+
 	private static final String[] _BUNDLE_SYMBOLIC_NAMES = {
+		"com.liferay.change.tracking.web",
 		"com.liferay.document.library.asset.auto.tagger.tensorflow",
 		"com.liferay.portal.bundle.blacklist.impl",
 		"com.liferay.portal.component.blacklist.impl",
-		"com.liferay.portal.search"
+		"com.liferay.portal.search", "com.liferay.template.web"
 	};
 
-	private static final String[][] _CONVERTED_LEGACY_MODULES = {};
+	private static final String[][] _CONVERTED_LEGACY_MODULES = {
+		{"opensocial-portlet", "opensocial-portlet", "OpenSocial"}
+	};
+
+	private static final String[][] _LEGACY_SERVICE_MODULES = {
+		{"com.liferay.softwarecatalog.service", "SCFrameworkVersion"}
+	};
 
 }

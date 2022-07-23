@@ -100,4 +100,7 @@ public interface ERCCompanyEntryModel
 	@Override
 	public void setCompanyId(long companyId);
 
+	@Override
+	public ERCCompanyEntry cloneWithOriginalValues();
+
 }

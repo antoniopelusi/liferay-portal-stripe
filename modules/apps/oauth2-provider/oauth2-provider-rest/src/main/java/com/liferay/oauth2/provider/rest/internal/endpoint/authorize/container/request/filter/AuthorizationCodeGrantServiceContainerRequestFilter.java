@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.ProtectedPrincipal;
 import com.liferay.portal.kernel.settings.CompanyServiceSettingsLocator;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -98,7 +98,7 @@ public class AuthorizationCodeGrantServiceContainerRequestFilter
 					_httpServletRequest, "client_id");
 
 				if (!Validator.isBlank(clientId)) {
-					guestAuthorized = containsOAuth2ApplicationViewPermission(
+					guestAuthorized = _containsOAuth2ApplicationViewPermission(
 						clientId, user);
 				}
 			}
@@ -139,7 +139,7 @@ public class AuthorizationCodeGrantServiceContainerRequestFilter
 		String loginURL = null;
 
 		try {
-			loginURL = getLoginURL();
+			loginURL = _getLoginURL();
 		}
 		catch (ConfigurationException configurationException) {
 			_log.error(
@@ -168,7 +168,8 @@ public class AuthorizationCodeGrantServiceContainerRequestFilter
 			StringUtil.replace(
 				"?" + requestURI.getRawQuery(), CharPool.COLON, "%3a"));
 
-		loginURL = _http.addParameter(loginURL, "redirect", requestURIString);
+		loginURL = HttpComponentsUtil.addParameter(
+			loginURL, "redirect", requestURIString);
 
 		containerRequestContext.abortWith(
 			Response.status(
@@ -178,7 +179,7 @@ public class AuthorizationCodeGrantServiceContainerRequestFilter
 			).build());
 	}
 
-	protected boolean containsOAuth2ApplicationViewPermission(
+	private boolean _containsOAuth2ApplicationViewPermission(
 			String clientId, User user)
 		throws Exception {
 
@@ -200,7 +201,7 @@ public class AuthorizationCodeGrantServiceContainerRequestFilter
 		return false;
 	}
 
-	protected String getLoginURL() throws ConfigurationException {
+	private String _getLoginURL() throws ConfigurationException {
 		AuthorizeScreenConfiguration authorizeScreenConfiguration =
 			_configurationProvider.getConfiguration(
 				AuthorizeScreenConfiguration.class,
@@ -211,16 +212,12 @@ public class AuthorizationCodeGrantServiceContainerRequestFilter
 		String loginURL = authorizeScreenConfiguration.loginURL();
 
 		if (Validator.isBlank(loginURL)) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(_portal.getPortalURL(_httpServletRequest));
-			sb.append(_portal.getPathContext());
-			sb.append(_portal.getPathMain());
-			sb.append("/portal/login");
-
-			loginURL = sb.toString();
+			loginURL = StringBundler.concat(
+				_portal.getPortalURL(_httpServletRequest),
+				_portal.getPathContext(), _portal.getPathMain(),
+				"/portal/login");
 		}
-		else if (!_http.hasDomain(loginURL)) {
+		else if (!HttpComponentsUtil.hasDomain(loginURL)) {
 			String portalURL = _portal.getPortalURL(_httpServletRequest);
 
 			loginURL = portalURL + loginURL;
@@ -234,9 +231,6 @@ public class AuthorizationCodeGrantServiceContainerRequestFilter
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;
-
-	@Reference
-	private Http _http;
 
 	@Context
 	private HttpServletRequest _httpServletRequest;

@@ -1,0 +1,129 @@
+definition {
+
+	macro commerceApisTearDowm {
+		CommerceJSONAccountsAPI._deleteAllCommerceAccounts();
+
+		CommerceJSONAccountGroupsAPI._deleteAllCommerceAccountGroups();
+
+		CommerceJSONProductsAPI._deleteAllCommerceProducts();
+
+		CommerceJSONChannelsAPI._deleteAllCommerceChannels();
+
+		CommerceJSONCatalogsAPI._deleteAllNoSystemCommerceCatalogs();
+
+		CommerceJSONPriceListsAndPromotionsAPI._deleteAllNoMasterPriceListsAndPromotions();
+
+		CommerceJSONAvailableEstimatesAPI._deleteCommerceAvailableEstimates();
+
+		CommerceJSONMeasurementUnitsAPI._deleteCommerceMeasurementUnits();
+
+		CommerceJSONTaxCategoriesAPI._deleteCommerceTaxCategories();
+
+		CommerceJSONWarehousesAndInventoriesAPI._deleteAllWarehouseItems();
+	}
+
+	macro createRaylifeSite {
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		LexiconEntry.gotoAdd();
+
+		LexiconCard.clickCard(card = "Raylife");
+
+		SelectFrame(
+			key_title = "Add Site",
+			locator1 = "IFrame#MODAL_ANY");
+
+		PortletEntry.inputName(name = "${siteName}");
+
+		Click(locator1 = "Button#ADD");
+
+		AssertElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION");
+
+		while (IsElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION")) {
+			Pause(locator1 = "1500");
+		}
+
+		WaitForElementPresent(
+			key_itemName = "Site Configuration",
+			locator1 = "ListGroupItem#ITEM_TEXT");
+
+		Click(
+			key_itemName = "Site Configuration",
+			locator1 = "ListGroupItem#ITEM_TEXT");
+
+		AssertTextEquals(
+			locator1 = "SitesEditSite#DETAILS_NAME",
+			value1 = "${siteName}");
+	}
+
+	macro dismissAlert {
+		ApplicationsMenuHelper.openApplicationsMenu();
+
+		var panel = "Control Panel";
+
+		ApplicationsMenu.gotoPanel(panel = "${panel}");
+
+		ClickNoError(
+			key_category = "Sites",
+			key_portlet = "Sites",
+			locator1 = "ApplicationsMenu#PORTLET");
+
+		AssertConfirm(value1 = "");
+	}
+
+	macro formsFlow {
+		RaylifeContactInfo.typeAllBasicsInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeBusiness.typeAllBusinessInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeEmployees.typeAllEmployeesInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		RaylifeProperty.typeAllPropertyInfoFields();
+
+		Click(locator1 = "Raylife#BUTTON_CONTINUE");
+
+		Click(
+			locator1 = "RaylifeQuoteComparison#BUTTON_PURCHASE_THIS_POLICY",
+			policy = "standard");
+	}
+
+	macro tearDownCP {
+		Raylife.commerceApisTearDowm();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Refresh();
+
+		PortletEntry.selectAll();
+
+		Click(locator1 = "Icon#SITES_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro viewProductsList {
+		for (var productsName : list "${productList}") {
+			AssertElementPresent(
+				key_productsName = "${productsList}",
+				locator1 = "Raylife#PRODUCTS_NAME",
+				value1 = "${productsName}");
+		}
+	}
+
+}

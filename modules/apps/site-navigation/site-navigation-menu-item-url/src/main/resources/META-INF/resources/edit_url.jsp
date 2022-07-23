@@ -23,9 +23,9 @@ String url = StringPool.BLANK;
 boolean useNewTab = false;
 
 if (siteNavigationMenuItem != null) {
-	UnicodeProperties typeSettingsProperties = new UnicodeProperties();
-
-	typeSettingsProperties.fastLoad(siteNavigationMenuItem.getTypeSettings());
+	UnicodeProperties typeSettingsProperties = UnicodePropertiesBuilder.fastLoad(
+		siteNavigationMenuItem.getTypeSettings()
+	).build();
 
 	url = typeSettingsProperties.getProperty("url");
 	useNewTab = GetterUtil.getBoolean(typeSettingsProperties.getProperty("useNewTab", Boolean.FALSE.toString()));

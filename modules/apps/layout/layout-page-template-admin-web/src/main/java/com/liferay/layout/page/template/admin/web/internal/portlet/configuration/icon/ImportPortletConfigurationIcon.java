@@ -56,13 +56,10 @@ public class ImportPortletConfigurationIcon
 	public String getOnClick(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("Liferay.Util.openModal({onClose: function(event){");
-		sb.append("window.location.reload();}, title: '");
-		sb.append(getMessage(portletRequest));
-		sb.append("', url: '");
-		sb.append(
+		return StringBundler.concat(
+			"Liferay.Util.openModal({onClose: function(event){",
+			"window.location.reload();}, title: '", getMessage(portletRequest),
+			"', url: '",
 			PortletURLBuilder.create(
 				_portal.getControlPanelPortletURL(
 					portletRequest,
@@ -72,10 +69,8 @@ public class ImportPortletConfigurationIcon
 				"/view_import.jsp"
 			).setWindowState(
 				LiferayWindowState.POP_UP
-			).buildString());
-		sb.append("'});");
-
-		return sb.toString();
+			).buildString(),
+			"'});");
 	}
 
 	@Override

@@ -38,8 +38,6 @@ import com.liferay.saml.web.internal.upload.CertificateUploadResponseHandler;
 import com.liferay.saml.web.internal.util.SamlTempFileEntryUtil;
 import com.liferay.upload.UploadHandler;
 
-import java.io.IOException;
-
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
@@ -60,49 +58,6 @@ import org.osgi.service.component.annotations.Reference;
 public class UpdateCertificateMVCResourceCommand
 	extends BaseMVCResourceCommand {
 
-	protected void addTempFile(
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
-		throws Exception {
-
-		_uploadHandler.upload(
-			_certificateUploadFileEntryHandler,
-			_certificateUploadResponseHandler, resourceRequest,
-			resourceResponse);
-	}
-
-	protected void deleteTempFile(
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse,
-			ThemeDisplay themeDisplay)
-		throws Exception {
-
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-
-		try {
-			SamlTempFileEntryUtil.deleteTempFileEntry(
-				themeDisplay.getUser(),
-				ParamUtil.getString(resourceRequest, "fileName"));
-
-			jsonObject.put("deleted", Boolean.TRUE);
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
-			}
-
-			String errorMessage = themeDisplay.translate(
-				"an-unexpected-error-occurred-while-deleting-the-file");
-
-			jsonObject.put(
-				"deleted", Boolean.FALSE
-			).put(
-				"errorMessage", errorMessage
-			);
-		}
-
-		JSONPortletResponseUtil.writeJSON(
-			resourceRequest, resourceResponse, jsonObject);
-	}
-
 	@Override
 	protected void doServeResource(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
@@ -122,21 +77,64 @@ public class UpdateCertificateMVCResourceCommand
 			resourceRequest, Constants.CMD, Constants.GET_TEMP);
 
 		if (cmd.equals(Constants.ADD_TEMP)) {
-			addTempFile(resourceRequest, resourceResponse);
+			_addTempFile(resourceRequest, resourceResponse);
 		}
 		else if (cmd.equals(Constants.DELETE_TEMP)) {
-			deleteTempFile(resourceRequest, resourceResponse, themeDisplay);
+			_deleteTempFile(resourceRequest, resourceResponse, themeDisplay);
 		}
 		else if (cmd.equals(Constants.GET_TEMP)) {
-			includeTempFileName(
+			_includeTempFileName(
 				resourceRequest, resourceResponse, themeDisplay.getUser());
 		}
 	}
 
-	protected void includeTempFileName(
+	private void _addTempFile(
+			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+		throws Exception {
+
+		_uploadHandler.upload(
+			_certificateUploadFileEntryHandler,
+			_certificateUploadResponseHandler, resourceRequest,
+			resourceResponse);
+	}
+
+	private void _deleteTempFile(
+			ResourceRequest resourceRequest, ResourceResponse resourceResponse,
+			ThemeDisplay themeDisplay)
+		throws Exception {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		try {
+			SamlTempFileEntryUtil.deleteTempFileEntry(
+				themeDisplay.getUser(),
+				ParamUtil.getString(resourceRequest, "fileName"));
+
+			jsonObject.put("deleted", Boolean.TRUE);
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+
+			String errorMessage = themeDisplay.translate(
+				"an-unexpected-error-occurred-while-deleting-the-file");
+
+			jsonObject.put(
+				"deleted", Boolean.FALSE
+			).put(
+				"errorMessage", errorMessage
+			);
+		}
+
+		JSONPortletResponseUtil.writeJSON(
+			resourceRequest, resourceResponse, jsonObject);
+	}
+
+	private void _includeTempFileName(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse,
 			User user)
-		throws IOException {
+		throws Exception {
 
 		String selectUploadedFile = ParamUtil.getString(
 			resourceRequest, "selectUploadedFile");

@@ -42,29 +42,29 @@ public class CommerceSubscriptionEntryClayTableDataSetDisplayView
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField subscriptionIdField =
+		ClayTableSchemaField subscriptionIdClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField(
 				"subscriptionId", "id");
 
-		subscriptionIdField.setContentRenderer("actionLink");
+		subscriptionIdClayTableSchemaField.setContentRenderer("actionLink");
 
-		ClayTableSchemaField subscriptionStatusField =
+		ClayTableSchemaField subscriptionStatusClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField(
 				"subscriptionStatus", "status");
 
-		subscriptionStatusField.setContentRenderer("label");
+		subscriptionStatusClayTableSchemaField.setContentRenderer("label");
 
-		ClayTableSchemaField orderIdField =
+		ClayTableSchemaField orderIdClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField(
 				"orderId", "order-id");
 
-		orderIdField.setContentRenderer("link");
+		orderIdClayTableSchemaField.setContentRenderer("link");
 
-		ClayTableSchemaField accountIdField =
+		ClayTableSchemaField commerceAccountIdClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField(
 				"commerceAccountId", "account-id");
 
-		accountIdField.setContentRenderer("link");
+		commerceAccountIdClayTableSchemaField.setContentRenderer("link");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
 			"commerceAccountName", "account-name");

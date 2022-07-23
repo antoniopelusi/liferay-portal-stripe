@@ -34,7 +34,7 @@ public final class CheckOutFileOperation extends BaseOperation {
 				listsSoap12Stub.checkOutFile(
 					_getCheckOutFileDocument(filePath));
 
-			return _getResponse(checkOutFileResponseDocument);
+			return _isCheckOutFile(checkOutFileResponseDocument);
 		}
 		catch (RemoteException remoteException) {
 			throw RemoteExceptionSharepointExceptionMapper.map(
@@ -56,7 +56,7 @@ public final class CheckOutFileOperation extends BaseOperation {
 		return checkOutFileDocument;
 	}
 
-	private boolean _getResponse(
+	private boolean _isCheckOutFile(
 		CheckOutFileResponseDocument checkOutFileResponseDocument) {
 
 		CheckOutFileResponseDocument.CheckOutFileResponse checkOutFileResponse =

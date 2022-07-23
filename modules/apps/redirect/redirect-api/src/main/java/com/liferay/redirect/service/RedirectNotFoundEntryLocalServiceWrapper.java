@@ -27,6 +27,10 @@ public class RedirectNotFoundEntryLocalServiceWrapper
 	implements RedirectNotFoundEntryLocalService,
 			   ServiceWrapper<RedirectNotFoundEntryLocalService> {
 
+	public RedirectNotFoundEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public RedirectNotFoundEntryLocalServiceWrapper(
 		RedirectNotFoundEntryLocalService redirectNotFoundEntryLocalService) {
 
@@ -143,6 +147,13 @@ public class RedirectNotFoundEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _redirectNotFoundEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _redirectNotFoundEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

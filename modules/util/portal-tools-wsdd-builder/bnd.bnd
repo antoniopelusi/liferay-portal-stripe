@@ -18,6 +18,7 @@ Main-Class: com.liferay.portal.tools.wsdd.builder.WSDDBuilder
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/ImportsFormatter.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/JavaImportsFormatter.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/ToolsUtil.class,\
+	@com.liferay.portal.impl-*.jar!/com/liferay/portal/tools/ToolsUtil$1.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/util/EntityResolver.class,\
 	@com.liferay.portal.impl-*.jar!/com/liferay/portal/xml/SAXReaderFactory.class,\
 	@com.liferay.portal.kernel-*.jar!/com/liferay/portal/kernel/exception/NestableRuntimeException.class,\

@@ -33,29 +33,26 @@ public class CPDefinitionLinkUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		addColumn(
-			CPDefinitionLinkModelImpl.class,
-			CPDefinitionLinkModelImpl.TABLE_NAME, "CProductId", "LONG");
+		addColumn("CPDefinitionLink", "CProductId", "LONG");
 
 		_renameColumn(
-			CPDefinitionLinkModelImpl.class,
-			CPDefinitionLinkModelImpl.TABLE_NAME, "CPDefinitionId1",
-			"CPDefinitionId LONG");
+			"CPDefinitionLink", "CPDefinitionId1", "CPDefinitionId LONG");
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update CPDefinitionLink set CProductId = ? where " +
 					"CPDefinitionId2 = ?");
 			Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery("select * from CPDefinitionLink")) {
+			ResultSet resultSet = s.executeQuery(
+				"select * from CPDefinitionLink")) {
 
-			while (rs.next()) {
-				long cpDefinitionId2 = rs.getLong("CPDefinitionId2");
+			while (resultSet.next()) {
+				long cpDefinitionId2 = resultSet.getLong("CPDefinitionId2");
 
-				ps.setLong(1, _getCProductId(cpDefinitionId2));
+				preparedStatement.setLong(1, _getCProductId(cpDefinitionId2));
 
-				ps.setLong(2, cpDefinitionId2);
+				preparedStatement.setLong(2, cpDefinitionId2);
 
-				ps.execute();
+				preparedStatement.execute();
 			}
 		}
 
@@ -64,12 +61,12 @@ public class CPDefinitionLinkUpgradeProcess
 
 	private long _getCProductId(long cpDefinitionId) throws Exception {
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(
+			ResultSet resultSet = s.executeQuery(
 				"select CProductId from CPDefinition where CPDefinitionId = " +
 					cpDefinitionId)) {
 
-			if (rs.next()) {
-				return rs.getLong("CProductId");
+			if (resultSet.next()) {
+				return resultSet.getLong("CProductId");
 			}
 		}
 
@@ -77,8 +74,7 @@ public class CPDefinitionLinkUpgradeProcess
 	}
 
 	private void _renameColumn(
-			Class<?> tableClass, String tableName, String oldColumnName,
-			String newColumnName)
+			String tableName, String oldColumnName, String newColumnName)
 		throws Exception {
 
 		if (_log.isInfoEnabled()) {
@@ -92,8 +88,7 @@ public class CPDefinitionLinkUpgradeProcess
 			newColumnName, StringPool.SPACE);
 
 		if (!hasColumn(tableName, newColumnSimpleName)) {
-			alter(
-				tableClass, new AlterColumnName(oldColumnName, newColumnName));
+			alterColumnName(tableName, oldColumnName, newColumnName);
 		}
 		else {
 			if (_log.isInfoEnabled()) {

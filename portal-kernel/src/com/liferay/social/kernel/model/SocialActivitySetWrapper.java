@@ -141,6 +141,11 @@ public class SocialActivitySetWrapper
 		}
 	}
 
+	@Override
+	public SocialActivitySet cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the activity count of this social activity set.
 	 *

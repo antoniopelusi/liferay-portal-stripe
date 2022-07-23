@@ -18,6 +18,8 @@ import com.liferay.talend.common.oas.OASException;
 import com.liferay.talend.common.oas.OASSource;
 import com.liferay.talend.common.util.StringUtil;
 import com.liferay.talend.properties.connection.LiferayConnectionProperties;
+import com.liferay.talend.properties.parameters.RequestParameter;
+import com.liferay.talend.properties.parameters.RequestParameterProperties;
 import com.liferay.talend.runtime.client.LiferayClient;
 import com.liferay.talend.runtime.client.ResponseHandler;
 import com.liferay.talend.runtime.client.exception.ResponseContentClientException;
@@ -88,6 +90,15 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 			liferayClient.executePostRequest(resourceURL, jsonValue));
 	}
 
+	public Optional<JsonObject> doPutRequest(
+		String resourceURL, JsonValue jsonValue) {
+
+		LiferayClient liferayClient = getLiferayClient();
+
+		return _getResponseContentJsonObjectOptional(
+			liferayClient.executePutRequest(resourceURL, jsonValue));
+	}
+
 	@Override
 	public Schema getEndpointSchema(
 		RuntimeContainer runtimeContainer, String endpoint) {
@@ -106,18 +117,10 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 		liferayClientBuilder.setConnectionTimeoutMills(
 			_liferayConnectionProperties.getConnectTimeout() * 1000);
 
-		if (_liferayConnectionProperties.isOAuth2Authorization()) {
-			liferayClientBuilder.setAuthorizationIdentityId(
-				_liferayConnectionProperties.getOAuthClientId());
-			liferayClientBuilder.setAuthorizationIdentitySecret(
-				_liferayConnectionProperties.getOAuthClientSecret());
-		}
-		else {
-			liferayClientBuilder.setAuthorizationIdentityId(
-				_liferayConnectionProperties.getUserId());
-			liferayClientBuilder.setAuthorizationIdentitySecret(
-				_liferayConnectionProperties.getPassword());
-		}
+		liferayClientBuilder.setAuthorizationIdentityId(
+			_liferayConnectionProperties.getUserId());
+		liferayClientBuilder.setAuthorizationIdentitySecret(
+			_liferayConnectionProperties.getPassword());
 
 		liferayClientBuilder.setFollowRedirects(
 			_liferayConnectionProperties.isFollowRedirects());
@@ -127,6 +130,9 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 			_liferayConnectionProperties.getHostURL());
 		liferayClientBuilder.setOAuthAuthorization(
 			_liferayConnectionProperties.isOAuth2Authorization());
+
+		_setProxyParameters(liferayClientBuilder);
+
 		liferayClientBuilder.setRadTimeoutMills(
 			_liferayConnectionProperties.getReadTimeout() * 1000);
 
@@ -184,20 +190,28 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 
 		Objects.requireNonNull(componentProperties);
 
+		if (componentProperties instanceof LiferayConnectionProperties) {
+			return new ValidationResult(
+				ValidationResult.Result.ERROR,
+				"Connection properties are not allowed here");
+		}
+
+		Properties aggregatedProperties = componentProperties.getProperties(
+			getRequestParameterPropertiesPath());
+
+		if (aggregatedProperties instanceof RequestParameterProperties) {
+			_requestParameterProperties =
+				(RequestParameterProperties)aggregatedProperties;
+		}
+
 		LiferayConnectionProperties liferayConnectionProperties = null;
 
-		if (componentProperties instanceof LiferayConnectionProperties) {
-			liferayConnectionProperties =
-				(LiferayConnectionProperties)componentProperties;
-		}
-		else {
-			Properties aggregatedProperties = componentProperties.getProperties(
-				getLiferayConnectionPropertiesPath());
+		aggregatedProperties = componentProperties.getProperties(
+			getLiferayConnectionPropertiesPath());
 
-			if (aggregatedProperties instanceof LiferayConnectionProperties) {
-				liferayConnectionProperties =
-					(LiferayConnectionProperties)aggregatedProperties;
-			}
+		if (aggregatedProperties instanceof LiferayConnectionProperties) {
+			liferayConnectionProperties =
+				(LiferayConnectionProperties)aggregatedProperties;
 		}
 
 		if (liferayConnectionProperties == null) {
@@ -224,28 +238,19 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 
 	@Override
 	public ValidationResult validate(RuntimeContainer runtimeContainer) {
-		if (_liferayConnectionProperties.isBasicAuthorization()) {
-			if (StringUtil.isEmpty(_liferayConnectionProperties.getUserId()) ||
-				StringUtil.isEmpty(
-					_liferayConnectionProperties.getPassword())) {
-
-				return new ValidationResult(
-					ValidationResult.Result.ERROR,
-					i18nMessages.getMessage(
-						"error.validation.connection.credentials"));
-			}
+		if (_liferayConnectionProperties == null) {
+			return new ValidationResult(
+				ValidationResult.Result.ERROR,
+				i18nMessages.getMessage("error.validation.connection"));
 		}
-		else {
-			if (StringUtil.isEmpty(
-					_liferayConnectionProperties.getOAuthClientId()) ||
-				StringUtil.isEmpty(
-					_liferayConnectionProperties.getOAuthClientSecret())) {
 
-				return new ValidationResult(
-					ValidationResult.Result.ERROR,
-					i18nMessages.getMessage(
-						"error.validation.connection.credentials"));
-			}
+		if (StringUtil.isEmpty(_liferayConnectionProperties.getPassword()) ||
+			StringUtil.isEmpty(_liferayConnectionProperties.getUserId())) {
+
+			return new ValidationResult(
+				ValidationResult.Result.ERROR,
+				i18nMessages.getMessage(
+					"error.validation.connection.credentials"));
 		}
 
 		return validateConnection();
@@ -296,6 +301,10 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 		return "connection";
 	}
 
+	protected String getRequestParameterPropertiesPath() {
+		return "resource.parameters";
+	}
+
 	protected static final I18nMessages i18nMessages;
 
 	static {
@@ -323,6 +332,30 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 		return Optional.of(_responseHandler.asJsonObject(response));
 	}
 
+	private void _setProxyParameters(
+		LiferayClient.Builder liferayClientBuilder) {
+
+		if (_requestParameterProperties == null) {
+			return;
+		}
+
+		List<RequestParameter> proxyRequestParameters =
+			_requestParameterProperties.getProxyRequestParameters();
+
+		for (RequestParameter requestParameter : proxyRequestParameters) {
+			if (Objects.equals(requestParameter.getName(), "proxyIdentityId")) {
+				liferayClientBuilder.setProxyIdentityId(
+					requestParameter.getValue());
+			}
+			else if (Objects.equals(
+						requestParameter.getName(), "proxyIdentitySecret")) {
+
+				liferayClientBuilder.setProxyIdentitySecret(
+					requestParameter.getValue());
+			}
+		}
+	}
+
 	private static final Logger _logger = LoggerFactory.getLogger(
 		LiferaySourceOrSink.class);
 
@@ -330,6 +363,7 @@ public class LiferaySourceOrSink implements OASSource, SourceOrSink {
 
 	private transient LiferayClient _liferayClient;
 	private transient LiferayConnectionProperties _liferayConnectionProperties;
+	private transient RequestParameterProperties _requestParameterProperties;
 	private final ResponseHandler _responseHandler = new ResponseHandler();
 
 }

@@ -26,6 +26,8 @@ definition {
 
 	@priority = "3"
 	test BlogsOrganizationWorkflowStaging {
+		property test.name.skip.portal.instance = "PGStagingUsecase#BlogsOrganizationWorkflowStaging";
+
 		Role.openRolesAdmin();
 
 		Role.definePermissionCP(
@@ -50,9 +52,9 @@ definition {
 			organizationName = "Staging Organization Name",
 			organizationSite = "true");
 
-		SitePages.openPagesAdmin(siteURLKey = "Staging Organization Name");
+		PagesAdmin.openPagesAdmin(siteURLKey = "Staging Organization Name");
 
-		SitePages.addPublicPage(pageName = "Staging Test Page");
+		PagesAdmin.addPage(pageName = "Staging Test Page");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -116,7 +118,7 @@ definition {
 			roleTitle = "Organization Administrator",
 			userEmailAddress = "usereaoa@liferay.com");
 
-		JSONStaging.enableLocalStaging(groupName = "Staging Organization Name LFR_ORGANIZATION");
+		JSONStaging.enableLocalStaging(groupName = "Staging Organization Name");
 
 		Workflow.openWorkflowAdmin(siteURLKey = "staging-organization-name-staging");
 
@@ -136,7 +138,7 @@ definition {
 
 		User.logoutPG();
 
-		SitePages.openPagesAdmin(siteURLKey = "Staging Organization Name");
+		PagesAdmin.openPagesAdmin(siteURLKey = "Staging Organization Name");
 
 		AssertElementNotPresent(
 			key_portletName = "Blogs",
@@ -172,7 +174,7 @@ definition {
 
 		User.logoutPG();
 
-		SitePages.openPagesAdmin(siteURLKey = "Staging Organization Name");
+		PagesAdmin.openPagesAdmin(siteURLKey = "Staging Organization Name");
 
 		AssertElementNotPresent(
 			key_entryTitle = "Blogs Entry Title",
@@ -196,7 +198,7 @@ definition {
 
 		User.logoutPG();
 
-		SitePages.openPagesAdmin(siteURLKey = "Staging Organization Name");
+		PagesAdmin.openPagesAdmin(siteURLKey = "Staging Organization Name");
 
 		AssertElementNotPresent(
 			key_entryTitle = "Blogs Entry Title",

@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class MBCategoryLocalServiceWrapper
 	implements MBCategoryLocalService, ServiceWrapper<MBCategoryLocalService> {
 
+	public MBCategoryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MBCategoryLocalServiceWrapper(
 		MBCategoryLocalService mbCategoryLocalService) {
 
@@ -221,6 +225,13 @@ public class MBCategoryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mbCategoryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mbCategoryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

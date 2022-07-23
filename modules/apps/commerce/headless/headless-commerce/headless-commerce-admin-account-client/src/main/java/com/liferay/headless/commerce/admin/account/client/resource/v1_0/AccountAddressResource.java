@@ -565,6 +565,8 @@ public interface AccountAddressResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -592,7 +594,7 @@ public interface AccountAddressResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-account/v1.0/accountAddresses/{id}/batch");
+						"/o/headless-commerce-admin-account/v1.0/accountAddresses/batch");
 
 			httpInvoker.path("id", id);
 
@@ -916,7 +918,7 @@ public interface AccountAddressResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-account/v1.0/accountAddresses/{id}/batch");
+						"/o/headless-commerce-admin-account/v1.0/accountAddresses/batch");
 
 			httpInvoker.path("id", id);
 
@@ -1348,7 +1350,7 @@ public interface AccountAddressResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-account/v1.0/accounts/{id}/accountAddresses/batch");
+						"/o/headless-commerce-admin-account/v1.0/accounts/accountAddresses/batch");
 
 			httpInvoker.path("id", id);
 

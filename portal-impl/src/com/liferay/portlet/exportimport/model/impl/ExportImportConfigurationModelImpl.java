@@ -18,7 +18,6 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.model.ExportImportConfigurationModel;
-import com.liferay.exportimport.kernel.model.ExportImportConfigurationSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
@@ -35,22 +34,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -180,69 +178,6 @@ public class ExportImportConfigurationModelImpl
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 16L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ExportImportConfiguration toModel(
-		ExportImportConfigurationSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		ExportImportConfiguration model = new ExportImportConfigurationImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setExportImportConfigurationId(
-			soapModel.getExportImportConfigurationId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setType(soapModel.getType());
-		model.setSettings(soapModel.getSettings());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ExportImportConfiguration> toModels(
-		ExportImportConfigurationSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ExportImportConfiguration> models =
-			new ArrayList<ExportImportConfiguration>(soapModels.length);
-
-		for (ExportImportConfigurationSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.exportimport.kernel.model.ExportImportConfiguration"));
@@ -331,34 +266,6 @@ public class ExportImportConfigurationModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ExportImportConfiguration>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ExportImportConfiguration.class.getClassLoader(),
-			ExportImportConfiguration.class, ModelWrapper.class);
-
-		try {
-			Constructor<ExportImportConfiguration> constructor =
-				(Constructor<ExportImportConfiguration>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -1134,6 +1041,47 @@ public class ExportImportConfigurationModelImpl
 	}
 
 	@Override
+	public ExportImportConfiguration cloneWithOriginalValues() {
+		ExportImportConfigurationImpl exportImportConfigurationImpl =
+			new ExportImportConfigurationImpl();
+
+		exportImportConfigurationImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		exportImportConfigurationImpl.setExportImportConfigurationId(
+			this.<Long>getColumnOriginalValue("exportImportConfigurationId"));
+		exportImportConfigurationImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		exportImportConfigurationImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		exportImportConfigurationImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		exportImportConfigurationImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		exportImportConfigurationImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		exportImportConfigurationImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		exportImportConfigurationImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		exportImportConfigurationImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		exportImportConfigurationImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		exportImportConfigurationImpl.setSettings(
+			this.<String>getColumnOriginalValue("settings_"));
+		exportImportConfigurationImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		exportImportConfigurationImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		exportImportConfigurationImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		exportImportConfigurationImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return exportImportConfigurationImpl;
+	}
+
+	@Override
 	public int compareTo(ExportImportConfiguration exportImportConfiguration) {
 		int value = 0;
 
@@ -1307,7 +1255,7 @@ public class ExportImportConfigurationModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1318,10 +1266,27 @@ public class ExportImportConfigurationModelImpl
 			Function<ExportImportConfiguration, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((ExportImportConfiguration)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(ExportImportConfiguration)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1371,7 +1336,8 @@ public class ExportImportConfigurationModelImpl
 		private static final Function
 			<InvocationHandler, ExportImportConfiguration>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						ExportImportConfiguration.class, ModelWrapper.class);
 
 	}
 

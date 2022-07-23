@@ -19,26 +19,9 @@
 <%
 String navigation = ParamUtil.getString(request, "navigation", "announcements");
 
-String distributionScope = ParamUtil.getString(request, "distributionScope");
+AnnouncementsAdminViewManagementToolbarDisplayContext announcementsAdminViewManagementToolbarDisplayContext = new AnnouncementsAdminViewManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, renderRequest);
 
-long classNameId = 0;
-long classPK = 0;
-
-String[] distributionScopeArray = StringUtil.split(distributionScope);
-
-if (distributionScopeArray.length == 2) {
-	classNameId = GetterUtil.getLong(distributionScopeArray[0]);
-	classPK = GetterUtil.getLong(distributionScopeArray[1]);
-}
-
-SearchContainer<AnnouncementsEntry> announcementsEntriesSearchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, currentURLObj, null, "no-entries-were-found");
-
-announcementsEntriesSearchContainer.setRowChecker(new AnnouncementsEntryChecker(liferayPortletRequest, liferayPortletResponse));
-
-announcementsEntriesSearchContainer.setTotal(AnnouncementsEntryLocalServiceUtil.getEntriesCount(themeDisplay.getCompanyId(), classNameId, classPK, navigation.equals("alerts")));
-announcementsEntriesSearchContainer.setResults(AnnouncementsEntryLocalServiceUtil.getEntries(themeDisplay.getCompanyId(), classNameId, classPK, navigation.equals("alerts"), announcementsEntriesSearchContainer.getStart(), announcementsEntriesSearchContainer.getEnd()));
-
-AnnouncementsAdminViewManagementToolbarDisplayContext announcementsAdminViewManagementToolbarDisplayContext = new AnnouncementsAdminViewManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, announcementsEntriesSearchContainer);
+SearchContainer<AnnouncementsEntry> announcementsEntriesSearchContainer = announcementsAdminViewManagementToolbarDisplayContext.getSearchContainer();
 %>
 
 <clay:navigation-bar
@@ -80,7 +63,7 @@ AnnouncementsAdminViewManagementToolbarDisplayContext announcementsAdminViewMana
 	disabled="<%= announcementsAdminViewManagementToolbarDisplayContext.isDisabled() %>"
 	filterDropdownItems="<%= announcementsAdminViewManagementToolbarDisplayContext.getFilterDropdownItems() %>"
 	filterLabelItems="<%= announcementsAdminViewManagementToolbarDisplayContext.getFilterLabelItems() %>"
-	itemsTotal="<%= announcementsAdminViewManagementToolbarDisplayContext.getTotal() %>"
+	itemsTotal="<%= announcementsEntriesSearchContainer.getTotal() %>"
 	propsTransformer="announcements_admin/js/AnnouncementsManagementToolbarPropsTransformer"
 	searchContainerId="<%= announcementsAdminViewManagementToolbarDisplayContext.getSearchContainerId() %>"
 	selectable="<%= true %>"
@@ -125,7 +108,7 @@ AnnouncementsAdminViewManagementToolbarDisplayContext announcementsAdminViewMana
 							currentURL
 						).setParameter(
 							"entryId", entry.getEntryId()
-						).build()
+						).buildPortletURL()
 					%>'
 					name="title"
 					value="<%= HtmlUtil.escape(entry.getTitle()) %>"
@@ -133,7 +116,7 @@ AnnouncementsAdminViewManagementToolbarDisplayContext announcementsAdminViewMana
 
 				<liferay-ui:search-container-column-text
 					name="type"
-					value="<%= LanguageUtil.get(resourceBundle, entry.getType()) %>"
+					value="<%= HtmlUtil.escape(LanguageUtil.get(resourceBundle, entry.getType())) %>"
 				/>
 
 				<liferay-ui:search-container-column-date

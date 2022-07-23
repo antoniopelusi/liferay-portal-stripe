@@ -108,24 +108,21 @@ public class DLViewFileEntryTypesDisplayContext {
 		boolean includeBasicFileEntryType = ParamUtil.getBoolean(
 			_renderRequest, "includeBasicFileEntryType");
 
-		int total = DLFileEntryTypeServiceUtil.searchCount(
-			themeDisplay.getCompanyId(),
-			PortalUtil.getCurrentAndAncestorSiteGroupIds(
-				themeDisplay.getScopeGroupId()),
-			displayTerms.getKeywords(), includeBasicFileEntryType,
-			DLFileEntryTypeConstants.FILE_ENTRY_TYPE_SCOPE_DEFAULT);
-
-		searchContainer.setTotal(total);
-
-		searchContainer.setResults(
-			DLFileEntryTypeServiceUtil.search(
+		searchContainer.setResultsAndTotal(
+			() -> DLFileEntryTypeServiceUtil.search(
 				themeDisplay.getCompanyId(),
 				PortalUtil.getCurrentAndAncestorSiteGroupIds(
 					themeDisplay.getScopeGroupId()),
 				displayTerms.getKeywords(), includeBasicFileEntryType,
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_SCOPE_DEFAULT,
 				searchContainer.getStart(), searchContainer.getEnd(),
-				searchContainer.getOrderByComparator()));
+				searchContainer.getOrderByComparator()),
+			DLFileEntryTypeServiceUtil.searchCount(
+				themeDisplay.getCompanyId(),
+				PortalUtil.getCurrentAndAncestorSiteGroupIds(
+					themeDisplay.getScopeGroupId()),
+				displayTerms.getKeywords(), includeBasicFileEntryType,
+				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_SCOPE_DEFAULT));
 
 		_searchContainer = searchContainer;
 
@@ -157,7 +154,7 @@ public class DLViewFileEntryTypesDisplayContext {
 			renderResponse
 		).setNavigation(
 			"file_entry_types"
-		).build();
+		).buildPortletURL();
 	}
 
 	protected final RenderResponse renderResponse;

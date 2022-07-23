@@ -2,11 +2,13 @@
 <head>
 <title>Blogs</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Blogs</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_BLOGS_ENTRY</td>
@@ -77,6 +79,11 @@
 </tr>
 <!--WIDGET_VIEW-->
 <tr>
+	<td>WIDGET_VIEW_ENTRY_AUTHOR</td>
+	<td>//div[contains(@class,'widget-mode')]//div[contains(.,'${key_entryTitle}')]//a[contains(@class,'username')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>WIDGET_VIEW_ENTRY_ELLIPSIS</td>
 	<td>//div[contains(@class,'widget-mode')]//div[contains(.,'${key_entryTitle}')]//div[contains(@class,'dropdown')]//button[span/*[name()='svg'][contains(@class,'lexicon-icon-ellipsis')]]</td>
 	<td></td>
@@ -120,17 +127,6 @@
 <tr>
 	<td></td>
 	<td></td>
-	<td></td>
-</tr>
-<!--RECENT_BLOGGER-->
-<tr>
-	<td>RECENT_BLOGGER_USER_NAME</td>
-	<td>//span[contains(@class,'user-name') and contains(.,'${key_entryAuthor}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>RECENT_BLOGGER_POSTS</td>
-	<td>//div[@class='blogger-post-count']</td>
 	<td></td>
 </tr>
 </tbody>

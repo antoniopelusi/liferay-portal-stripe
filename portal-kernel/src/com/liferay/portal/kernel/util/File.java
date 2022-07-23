@@ -85,16 +85,15 @@ public interface File {
 
 	public boolean exists(String fileName);
 
-	public String extractText(InputStream inputStream, String fileName);
+	public String extractText(InputStream inputStream);
 
-	public String extractText(
-		InputStream inputStream, String fileName, int maxStringLength);
-
-	public String[] find(String directory, String includes, String excludes);
+	public String extractText(InputStream inputStream, int maxStringLength);
 
 	public String getAbsolutePath(java.io.File file);
 
 	public byte[] getBytes(Class<?> clazz, String fileName) throws IOException;
+
+	public byte[] getBytes(java.io.File file) throws IOException;
 
 	public byte[] getBytes(InputStream inputStream) throws IOException;
 
@@ -105,8 +104,6 @@ public interface File {
 			InputStream inputStream, int bufferSize, boolean cleanUpStream)
 		throws IOException;
 
-	public byte[] getBytes(java.io.File file) throws IOException;
-
 	public String getExtension(String fileName);
 
 	public String getMD5Checksum(java.io.File file) throws IOException;
@@ -114,8 +111,6 @@ public interface File {
 	public String getPath(String fullFileName);
 
 	public String getShortFileName(String fullFileName);
-
-	public boolean isAscii(java.io.File file) throws IOException;
 
 	public boolean isSameContent(java.io.File file, byte[] bytes, int length);
 

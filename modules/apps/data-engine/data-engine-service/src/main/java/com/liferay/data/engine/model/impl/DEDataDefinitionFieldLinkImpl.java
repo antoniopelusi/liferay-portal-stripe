@@ -39,7 +39,5 @@ public class DEDataDefinitionFieldLinkImpl
 	 * com.liferay.data.engine.model.DEDataDefinitionFieldLink} interface
 	 * instead.
 	 */
-	public DEDataDefinitionFieldLinkImpl() {
-	}
 
 }

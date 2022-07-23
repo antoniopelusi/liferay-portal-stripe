@@ -27,7 +27,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 @Meta.OCD(
 	id = "com.liferay.commerce.avalara.connector.configuration.CommerceAvalaraConnectorConfiguration",
 	localization = "content/Language",
-	name = "commerce-avalara-connecto-configuration-name"
+	name = "commerce-avalara-connector-configuration-name"
 )
 public interface CommerceAvalaraConnectorConfiguration {
 

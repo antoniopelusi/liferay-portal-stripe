@@ -370,4 +370,7 @@ public interface AnnouncementsEntryModel
 	 */
 	public void setAlert(boolean alert);
 
+	@Override
+	public AnnouncementsEntry cloneWithOriginalValues();
+
 }

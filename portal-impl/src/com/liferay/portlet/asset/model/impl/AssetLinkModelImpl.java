@@ -29,12 +29,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -237,34 +238,6 @@ public class AssetLinkModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AssetLink>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetLink.class.getClassLoader(), AssetLink.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AssetLink> constructor =
-				(Constructor<AssetLink>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AssetLink, Object>>
@@ -601,6 +574,32 @@ public class AssetLinkModelImpl
 	}
 
 	@Override
+	public AssetLink cloneWithOriginalValues() {
+		AssetLinkImpl assetLinkImpl = new AssetLinkImpl();
+
+		assetLinkImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetLinkImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetLinkImpl.setLinkId(this.<Long>getColumnOriginalValue("linkId"));
+		assetLinkImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetLinkImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		assetLinkImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		assetLinkImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetLinkImpl.setEntryId1(
+			this.<Long>getColumnOriginalValue("entryId1"));
+		assetLinkImpl.setEntryId2(
+			this.<Long>getColumnOriginalValue("entryId2"));
+		assetLinkImpl.setType(this.<Integer>getColumnOriginalValue("type_"));
+		assetLinkImpl.setWeight(this.<Integer>getColumnOriginalValue("weight"));
+
+		return assetLinkImpl;
+	}
+
+	@Override
 	public int compareTo(AssetLink assetLink) {
 		int value = 0;
 
@@ -721,7 +720,7 @@ public class AssetLinkModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -732,9 +731,26 @@ public class AssetLinkModelImpl
 			Function<AssetLink, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AssetLink)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((AssetLink)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -781,7 +797,9 @@ public class AssetLinkModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AssetLink>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AssetLink.class, ModelWrapper.class);
 
 	}
 

@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Brian Wing Shun Chan
- * @see CTPreferencesServiceSoap
  * @generated
  */
 public class CTPreferencesServiceHttp {
@@ -93,10 +92,53 @@ public class CTPreferencesServiceHttp {
 		}
 	}
 
+	public static com.liferay.change.tracking.model.CTPreferences
+			enablePublications(
+				HttpPrincipal httpPrincipal, long companyId, boolean enable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				CTPreferencesServiceUtil.class, "enablePublications",
+				_enablePublicationsParameterTypes1);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, companyId, enable);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.change.tracking.model.CTPreferences)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(
 		CTPreferencesServiceHttp.class);
 
 	private static final Class<?>[] _checkoutCTCollectionParameterTypes0 =
 		new Class[] {long.class, long.class, long.class};
+	private static final Class<?>[] _enablePublicationsParameterTypes1 =
+		new Class[] {long.class, boolean.class};
 
 }

@@ -20,9 +20,12 @@ import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
-import com.liferay.document.library.web.internal.display.context.logic.DLPortletInstanceSettingsHelper;
-import com.liferay.document.library.web.internal.display.context.util.DLRequestHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLPortletInstanceSettingsHelper;
+import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
 import com.liferay.document.library.web.internal.security.permission.resource.DLFolderPermission;
+import com.liferay.item.selector.ItemSelector;
+import com.liferay.item.selector.criteria.FolderItemSelectorReturnType;
+import com.liferay.item.selector.criteria.folder.criterion.FolderItemSelectorCriterion;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
@@ -49,13 +53,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionURL;
 import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-import javax.portlet.RenderURL;
 import javax.portlet.ResourceURL;
 import javax.portlet.WindowStateException;
 
@@ -81,27 +82,28 @@ public class DLViewDisplayContext {
 	}
 
 	public String getAddFileEntryURL() {
-		RenderURL renderURL = _renderResponse.createRenderURL();
+		return PortletURLBuilder.createRenderURL(
+			_renderResponse
+		).setMVCRenderCommandName(
+			"/document_library/edit_file_entry"
+		).setCMD(
+			Constants.ADD
+		).setRedirect(
+			_getRedirect()
+		).setParameter(
+			"folderId", _dlAdminDisplayContext.getFolderId()
+		).setParameter(
+			"groupId",
+			() -> {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)_httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
 
-		renderURL.setParameter(
-			"mvcRenderCommandName", "/document_library/edit_file_entry");
-		renderURL.setParameter(Constants.CMD, Constants.ADD);
-		renderURL.setParameter("redirect", _getRedirect());
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		renderURL.setParameter(
-			"groupId", String.valueOf(themeDisplay.getScopeGroupId()));
-
-		renderURL.setParameter(
-			"repositoryId",
-			String.valueOf(_dlAdminDisplayContext.getRepositoryId()));
-		renderURL.setParameter(
-			"folderId", String.valueOf(_dlAdminDisplayContext.getFolderId()));
-
-		return renderURL.toString();
+				return themeDisplay.getScopeGroupId();
+			}
+		).setParameter(
+			"repositoryId", _dlAdminDisplayContext.getRepositoryId()
+		).buildString();
 	}
 
 	public String getColumnNames() {
@@ -133,21 +135,19 @@ public class DLViewDisplayContext {
 			return StringPool.BLANK;
 		}
 
-		ActionURL actionURL = _renderResponse.createActionURL();
-
-		actionURL.setParameter(
-			ActionRequest.ACTION_NAME, "/document_library/edit_entry");
-
-		return actionURL.toString();
+		return PortletURLBuilder.createActionURL(
+			_renderResponse
+		).setActionName(
+			"/document_library/edit_entry"
+		).buildString();
 	}
 
 	public String getEditFileEntryURL() {
-		RenderURL renderURL = _renderResponse.createRenderURL();
-
-		renderURL.setParameter(
-			"mvcRenderCommandName", "/document_library/edit_file_entry");
-
-		return renderURL.toString();
+		return PortletURLBuilder.createRenderURL(
+			_renderResponse
+		).setMVCRenderCommandName(
+			"/document_library/edit_file_entry"
+		).buildString();
 	}
 
 	public Folder getFolder() {
@@ -163,13 +163,13 @@ public class DLViewDisplayContext {
 	}
 
 	public String getRestoreTrashEntriesURL() {
-		ActionURL actionURL = _renderResponse.createActionURL();
-
-		actionURL.setParameter(
-			ActionRequest.ACTION_NAME, "/document_library/edit_entry");
-		actionURL.setParameter(Constants.CMD, Constants.RESTORE);
-
-		return actionURL.toString();
+		return PortletURLBuilder.createActionURL(
+			_renderResponse
+		).setActionName(
+			"/document_library/edit_entry"
+		).setCMD(
+			Constants.RESTORE
+		).buildString();
 	}
 
 	public String getSelectCategoriesURL()
@@ -193,27 +193,39 @@ public class DLViewDisplayContext {
 	}
 
 	public String getSelectFileEntryTypeURL() throws WindowStateException {
-		RenderURL renderURL = _renderResponse.createRenderURL();
-
-		renderURL.setParameter(
-			"mvcPath", "/document_library/select_file_entry_type.jsp");
-		renderURL.setParameter(
-			"fileEntryTypeId", String.valueOf(_getFileEntryTypeId()));
-		renderURL.setWindowState(LiferayWindowState.POP_UP);
-
-		return renderURL.toString();
+		return PortletURLBuilder.createRenderURL(
+			_renderResponse
+		).setMVCPath(
+			"/document_library/select_file_entry_type.jsp"
+		).setParameter(
+			"fileEntryTypeId", _getFileEntryTypeId()
+		).setWindowState(
+			LiferayWindowState.POP_UP
+		).buildString();
 	}
 
 	public String getSelectFolderURL() throws WindowStateException {
-		RenderURL renderURL = _renderResponse.createRenderURL();
+		ItemSelector itemSelector =
+			(ItemSelector)_httpServletRequest.getAttribute(
+				ItemSelector.class.getName());
 
-		renderURL.setParameter(
-			"mvcRenderCommandName", "/document_library/select_folder");
-		renderURL.setParameter(
-			"folderId", String.valueOf(_dlAdminDisplayContext.getFolderId()));
-		renderURL.setWindowState(LiferayWindowState.POP_UP);
+		FolderItemSelectorCriterion folderItemSelectorCriterion =
+			new FolderItemSelectorCriterion();
 
-		return renderURL.toString();
+		folderItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+			new FolderItemSelectorReturnType());
+		folderItemSelectorCriterion.setFolderId(getFolderId());
+		folderItemSelectorCriterion.setRepositoryId(
+			_dlAdminDisplayContext.getSelectedRepositoryId());
+		folderItemSelectorCriterion.setSelectedFolderId(getFolderId());
+		folderItemSelectorCriterion.setSelectedRepositoryId(
+			_dlAdminDisplayContext.getSelectedRepositoryId());
+
+		PortletURL portletURL = itemSelector.getItemSelectorURL(
+			RequestBackedPortletURLFactoryUtil.create(_renderRequest),
+			"itemSelected", folderItemSelectorCriterion);
+
+		return portletURL.toString();
 	}
 
 	public String getSidebarPanelURL() {
@@ -234,17 +246,17 @@ public class DLViewDisplayContext {
 			return StringPool.BLANK;
 		}
 
-		ActionURL actionURL = _renderResponse.createActionURL();
-
-		actionURL.setParameter(
-			ActionRequest.ACTION_NAME, "/document_library/edit_file_entry");
-		actionURL.setParameter(Constants.CMD, Constants.ADD_DYNAMIC);
-		actionURL.setParameter("folderId", "{folderId}");
-		actionURL.setParameter(
-			"repositoryId",
-			String.valueOf(_dlAdminDisplayContext.getRepositoryId()));
-
-		return actionURL.toString();
+		return PortletURLBuilder.createActionURL(
+			_renderResponse
+		).setActionName(
+			"/document_library/edit_file_entry"
+		).setCMD(
+			Constants.ADD_DYNAMIC
+		).setParameter(
+			"folderId", "{folderId}"
+		).setParameter(
+			"repositoryId", _dlAdminDisplayContext.getRepositoryId()
+		).buildString();
 	}
 
 	public String getViewFileEntryTypeURL() throws PortletException {
@@ -258,27 +270,27 @@ public class DLViewDisplayContext {
 	}
 
 	public String getViewFileEntryURL() {
-		RenderURL renderURL = _renderResponse.createRenderURL();
-
-		renderURL.setParameter(
-			"mvcRenderCommandName", "/document_library/view_file_entry");
-		renderURL.setParameter("redirect", _getRedirect());
-
-		return renderURL.toString();
+		return PortletURLBuilder.createRenderURL(
+			_renderResponse
+		).setMVCRenderCommandName(
+			"/document_library/view_file_entry"
+		).setRedirect(
+			_getRedirect()
+		).buildString();
 	}
 
 	public String getViewMoreFileEntryTypesURL() throws WindowStateException {
-		RenderURL renderURL = _renderResponse.createRenderURL();
-
-		renderURL.setParameter(
-			"mvcPath", "/document_library/view_more_menu_items.jsp");
-		renderURL.setParameter(
-			"folderId", String.valueOf(_dlAdminDisplayContext.getFolderId()));
-		renderURL.setParameter(
-			"eventName", _renderResponse.getNamespace() + "selectAddMenuItem");
-		renderURL.setWindowState(LiferayWindowState.POP_UP);
-
-		return renderURL.toString();
+		return PortletURLBuilder.createRenderURL(
+			_renderResponse
+		).setMVCPath(
+			"/document_library/view_more_menu_items.jsp"
+		).setParameter(
+			"eventName", _renderResponse.getNamespace() + "selectAddMenuItem"
+		).setParameter(
+			"folderId", _dlAdminDisplayContext.getFolderId()
+		).setWindowState(
+			LiferayWindowState.POP_UP
+		).buildString();
 	}
 
 	public boolean isFileEntryMetadataSetsNavigation() {

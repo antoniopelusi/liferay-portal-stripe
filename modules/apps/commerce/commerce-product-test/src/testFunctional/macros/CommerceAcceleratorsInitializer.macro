@@ -1,5 +1,122 @@
 definition {
 
+	macro addAddressToAccount {
+		Click(
+			key_text = "Add Address",
+			locator1 = "Button#ANY");
+
+		Select(
+			key_fieldLabel = "Type",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${keyType}");
+
+		Type(
+			key_fieldLabel = "Address",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${keyAddress}");
+
+		Type(
+			key_fieldLabel = "City",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${keyCity}");
+
+		Select(
+			key_fieldLabel = "Country",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${keyCountry}");
+
+		Select(
+			key_fieldLabel = "Region",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${keyRegion}");
+
+		Type(
+			key_fieldLabel = "Zip Code",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${keyZipCode}");
+
+		Click(locator1 = "Button#ARROW_SUBMIT_BTN");
+
+		Type(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${keyName}");
+
+		Type(
+			locator1 = "CommerceAccelerators#ACCOUNT_MANAGEMENT_INPUT_TELEPHONE",
+			value1 = "${keyTelephone}");
+
+		Click(
+			key_tab = "Create",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+
+		AssertElementPresent(
+			key_addressType = "${keyType}",
+			locator1 = "CommerceAccelerators#ACCOUNT_MANAGEMENT_ADDRESS_TYPE");
+	}
+
+	macro addADT {
+		var key_adtType = "${adtType}";
+
+		LexiconEntry.gotoAdd();
+
+		if (IsElementPresent(key_text = "More", locator1 = "Button#ANY")) {
+			Button.clickMore();
+
+			if ("${adtType}" == "Search Results") {
+				ScrollWebElementIntoView(locator1 = "CommerceEntry#COMMERCE_SEARCH_RESULTS_TEMPLATE_MENU_ITEM");
+
+				Click(locator1 = "CommerceEntry#COMMERCE_SEARCH_RESULTS_TEMPLATE_MENU_ITEM");
+			}
+			else {
+				ScrollWebElementIntoView(
+					key_menuItem = "${adtType} Template",
+					locator1 = "MenuItem#ANY_MENU_ITEM");
+
+				MenuItem.click(menuItem = "${adtType} Template");
+			}
+		}
+		else {
+			MenuItem.click(menuItem = "${adtType} Template");
+		}
+
+		SiteAdmin.viewPortletTitle(portletTitle = "Add ${adtType} Template");
+
+		PortletEntry.inputName(name = "${adtType} Test ADT");
+
+		if (isSet(templateScript)) {
+			Type.sendKeysAceEditor(
+				locator1 = "DDMEditTemplate#CODE_MIRROR_EDITOR_CONTENT",
+				value1 = "${templateScript}");
+		}
+		else if (isSet(fieldNameList)) {
+			for (var fieldName : list "${fieldNameList}") {
+				AssertClick(
+					key_panelTitle = "Fields",
+					key_variableName = "${fieldName}",
+					locator1 = "DDMEditTemplate#WEB_CONTENT_SCRIPT_VARIABLE",
+					value1 = "${fieldName}");
+			}
+		}
+		else {
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			var filePath = TestCase.getDependenciesDirPath(fileName = "${adtFile}");
+
+			UploadFile(
+				inputFieldId = "importScript",
+				locator1 = "TextInput#INPUT_ID",
+				value1 = "${filePath}");
+		}
+
+		PortletEntry.save();
+
+		AssertTextEquals(
+			key_rowEntry = "${adtType} Test ADT",
+			locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME",
+			value1 = "${adtType} Test ADT");
+	}
+
 	macro addPortlet {
 		if ("${portletName}" == "Where are the Liferay members?") {
 			var portletName = "Map";
@@ -32,7 +149,7 @@ definition {
 
 		AssertElementPresent(
 			key_portletName = "${portletName}",
-			locator1 = "CommerceAccelerators#PORTLET_LOADED");
+			locator1 = "Portlet#LOADED");
 
 		Refresh();
 	}
@@ -46,23 +163,7 @@ definition {
 	}
 
 	macro createNewAccountViaFront {
-		Click.mouseDownMouseUp(
-			key_text = "Add Account",
-			locator1 = "Button#ANY");
-
-		Pause(locator1 = "2000");
-
-		Type(
-			locator1 = "TextInput#NAME",
-			value1 = "${accountName}");
-
-		Click(
-			key_userEmailAddress = "${adminEmailAddress}",
-			locator1 = "CommerceAccelerators#ACCOUNT_MANAGEMENT_ADD_MODAL_PLUS_BUTTON");
-
-		Click(
-			key_button = "Create Account",
-			locator1 = "CommerceAccelerators#ANY_BUTTON");
+		Accounts.addBusinessAccount(accountName = "${accountName}");
 	}
 
 	macro createNewOrderFromAccountSelectorDropdown {
@@ -71,14 +172,14 @@ definition {
 		Button.click(button = "Create New Order");
 	}
 
+	macro createNewOrderFromPendingOrders {
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
+
+		Button.click(button = "Add Order");
+	}
+
 	macro deactivateCommerceAccountViaFront {
-		Click(
-			key_entryName = "${accountName}",
-			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
-
-		CommerceEntry.clickNoError(menuItem = "Deactivate");
-
-		Alert.viewSuccessMessage();
+		Accounts.deactivateAccount(accountName = "${accountName}");
 	}
 
 	macro gotoMiniumProductDetailsPage {
@@ -88,38 +189,16 @@ definition {
 	}
 
 	macro inviteNewMemberWithRoleToAccount {
-		Click(
-			key_text = "Invite user",
-			locator1 = "Button#ANY");
+		Accounts.addNewUserToBusinessAccount(
+			accountName = "${accountName}",
+			userEmailAddress = "${emailAddress}",
+			userFirstName = "${userFirstName}",
+			userLastName = "${userLastName}",
+			userScreenName = "${userScreenName}");
 
-		Type(
-			key_fieldLabel = "Name or Email",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "${emailAddress}");
-
-		Click(
-			key_userEmailAddress = "${emailAddress}",
-			locator1 = "CommerceAccelerators#ACCOUNT_MANAGEMENT_ADD_MODAL_PLUS_BUTTON");
-
-		Click(
-			key_button = "Invite user",
-			locator1 = "CommerceAccelerators#ANY_BUTTON");
-
-		Click(
-			key_memberEmailAddress = "${emailAddress}",
-			locator1 = "CommerceAccelerators#ACCOUNT_MANAGEMENT_MEMBER_ACTIONS_DROPDOWN");
-
-		CommerceEntry.clickNoError(menuItem = "View");
-
-		Click(locator1 = "CommerceAccelerators#ROLES_BUTTON");
-
-		Click(
-			key_role = "${role}",
-			locator1 = "CommerceAccelerators#ROLES_MODAL_ROLE_CHECKBOX");
-
-		Click(
-			key_button = "Done",
-			locator1 = "CommerceAccelerators#ANY_BUTTON");
+		Accounts.addAssigneeToRoleViaUsersTab(
+			accountRoleTitle = "${role}",
+			accountUserName = "${emailAddress}");
 	}
 
 	macro reviewOrder {
@@ -129,7 +208,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_SKU",
-			value1 = "${productSKU}");
+			value1 = "${productSku}");
 
 		AssertTextEquals(
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_NAME",

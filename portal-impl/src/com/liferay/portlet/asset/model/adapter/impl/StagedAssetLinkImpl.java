@@ -54,6 +54,11 @@ public class StagedAssetLinkImpl implements StagedAssetLink {
 	}
 
 	@Override
+	public AssetLink cloneWithOriginalValues() {
+		return new StagedAssetLinkImpl(_assetLink.cloneWithOriginalValues());
+	}
+
+	@Override
 	public int compareTo(AssetLink assetLink) {
 		return _assetLink.compareTo(assetLink);
 	}

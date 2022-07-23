@@ -1,11 +1,10 @@
 {
 	"dependencies": {
-		"frontend-js-web": "*"
 	},
 	"name": "commerce-product-options-web",
 	"scripts": {
 		"build": "liferay-npm-scripts build",
 		"checkFormat": "liferay-npm-scripts check"
 	},
-	"version": "4.0.3"
+	"version": "4.0.27"
 }

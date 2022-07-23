@@ -78,7 +78,7 @@ public class DeleteTrashPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -97,11 +97,7 @@ public class DeleteTrashPortletConfigurationIcon
 
 		TrashHandler trashHandler = trashDisplayContext.getTrashHandler();
 
-		if (trashHandler == null) {
-			return false;
-		}
-
-		if (trashHandler.isContainerModel()) {
+		if ((trashHandler == null) || trashHandler.isContainerModel()) {
 			return false;
 		}
 
@@ -114,7 +110,7 @@ public class DeleteTrashPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;

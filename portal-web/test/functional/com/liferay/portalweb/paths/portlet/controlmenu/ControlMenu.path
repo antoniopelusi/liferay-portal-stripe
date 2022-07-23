@@ -2,11 +2,13 @@
 <head>
 <title>ControlMenu</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ControlMenu</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD</td>
@@ -24,8 +26,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DISPLAY_PAGE_PREVIEW_ITEM_SELECTOR</td>
+	<td>//button[contains(@class,'display-page-preview-item-selector')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>HEADING</td>
 	<td>//*[@data-qa-id='headerTitle']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>HEADING_LABEL</td>
+	<td>//*[@data-qa-id='headerTitle']//following-sibling::span//span[contains(@class,'label-item')]</td>
 	<td></td>
 </tr>
 <tr>

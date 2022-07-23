@@ -16,21 +16,28 @@ import ClayAlert from '@clayui/alert';
 import {Treeview} from 'frontend-js-components-web';
 import React, {useCallback, useMemo, useState} from 'react';
 
-import {useActiveItemId} from '../../../../../app/components/Controls';
 import getAllEditables from '../../../../../app/components/fragment-content/getAllEditables';
 import getAllPortals from '../../../../../app/components/layout-data-items/getAllPortals';
 import hasDropZoneChild from '../../../../../app/components/layout-data-items/hasDropZoneChild';
+import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../app/config/constants/editableFragmentEntryProcessor';
 import {EDITABLE_TYPES} from '../../../../../app/config/constants/editableTypes';
 import {ITEM_TYPES} from '../../../../../app/config/constants/itemTypes';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../app/config/constants/layoutDataItemTypes';
 import {LAYOUT_TYPES} from '../../../../../app/config/constants/layoutTypes';
 import {config} from '../../../../../app/config/index';
+import {useActiveItemId} from '../../../../../app/contexts/ControlsContext';
+import {useSelector} from '../../../../../app/contexts/StoreContext';
 import selectCanUpdateEditables from '../../../../../app/selectors/selectCanUpdateEditables';
 import selectCanUpdateItemConfiguration from '../../../../../app/selectors/selectCanUpdateItemConfiguration';
-import {useSelector} from '../../../../../app/store/index';
+import {selectPageContents} from '../../../../../app/selectors/selectPageContents';
 import canActivateEditable from '../../../../../app/utils/canActivateEditable';
 import {DragAndDropContextProvider} from '../../../../../app/utils/drag-and-drop/useDragAndDrop';
+import isMapped from '../../../../../app/utils/editable-value/isMapped';
+import isMappedToCollection from '../../../../../app/utils/editable-value/isMappedToCollection';
 import getLayoutDataItemLabel from '../../../../../app/utils/getLayoutDataItemLabel';
+import getMappingFieldsKey from '../../../../../app/utils/getMappingFieldsKey';
+import {getResponsiveConfig} from '../../../../../app/utils/getResponsiveConfig';
+import getSelectedField from '../../../../../app/utils/getSelectedField';
 import PageStructureSidebarSection from './PageStructureSidebarSection';
 import StructureTreeNode from './StructureTreeNode';
 
@@ -62,6 +69,9 @@ export default function PageStructureSidebar() {
 	);
 	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
 	const layoutData = useSelector((state) => state.layoutData);
+	const pageContents = useSelector(selectPageContents);
+
+	const mappingFields = useSelector((state) => state.mappingFields);
 	const masterLayoutData = useSelector(
 		(state) => state.masterLayout?.masterLayoutData
 	);
@@ -92,8 +102,10 @@ export default function PageStructureSidebar() {
 				fragmentEntryLinks,
 				isMasterPage,
 				layoutData,
+				mappingFields,
 				masterLayoutData,
 				onHoverNode,
+				pageContents,
 				selectedViewportSize,
 			}).children,
 		[
@@ -106,7 +118,9 @@ export default function PageStructureSidebar() {
 			fragmentEntryLinks,
 			isMasterPage,
 			layoutData,
+			mappingFields,
 			masterLayoutData,
+			pageContents,
 			onHoverNode,
 			selectedViewportSize,
 		]
@@ -125,6 +139,7 @@ export default function PageStructureSidebar() {
 						)}
 					</ClayAlert>
 				)}
+
 				<DragAndDropContextProvider>
 					<Treeview
 						NodeComponent={StructureTreeNode}
@@ -135,6 +150,133 @@ export default function PageStructureSidebar() {
 			</div>
 		</PageStructureSidebarSection>
 	);
+}
+
+function getCollectionAncestor(layoutData, itemId) {
+	const item = layoutData.items[itemId];
+
+	const parent = layoutData.items[item.parentId];
+
+	if (!parent) {
+		return null;
+	}
+
+	return parent.type === LAYOUT_DATA_ITEM_TYPES.collection
+		? parent
+		: getCollectionAncestor(layoutData, item.parentId);
+}
+
+function getDocumentFragment(content) {
+	const fragment = document.createDocumentFragment();
+	const div = document.createElement('div');
+
+	div.innerHTML = content;
+
+	return fragment.appendChild(div);
+}
+
+function getKey({collectionConfig, editable, infoItem, selectedMappingTypes}) {
+	if (collectionConfig) {
+		if (collectionConfig.classNameId) {
+			return getMappingFieldsKey(
+				collectionConfig.classNameId,
+				collectionConfig.classPK
+			);
+		}
+		else {
+			return collectionConfig.key;
+		}
+	}
+	else if (editable.mappedField) {
+		return getMappingFieldsKey(
+			selectedMappingTypes.type.id,
+			selectedMappingTypes.subtype.id || 0
+		);
+	}
+	else if (!infoItem) {
+		return null;
+	}
+
+	return getMappingFieldsKey(infoItem.classNameId, infoItem.classTypeId);
+}
+
+function getMappedFieldLabel(
+	editable,
+	collectionConfig,
+	pageContents,
+	mappingFields
+) {
+	const infoItem = pageContents.find(
+		({classNameId, classPK}) =>
+			editable.classNameId === classNameId && editable.classPK === classPK
+	);
+
+	const {selectedMappingTypes} = config;
+
+	if (!infoItem && !selectedMappingTypes && !collectionConfig) {
+		for (const [mappingFieldsKey, fields] of Object.entries(
+			mappingFields
+		)) {
+			if (mappingFieldsKey.startsWith(editable.classNameId)) {
+				const field = getSelectedField({
+					fields,
+					mappingFieldsKey,
+					value:
+						editable.mappedField ||
+						editable.fieldId ||
+						editable.collectionFieldId,
+				});
+
+				return field?.label;
+			}
+		}
+
+		return null;
+	}
+
+	const key = getKey({
+		collectionConfig,
+		editable,
+		infoItem,
+		selectedMappingTypes,
+	});
+	const fields = mappingFields[key];
+
+	if (fields) {
+		const field = getSelectedField({
+			fields,
+			mappingFieldsKey: key,
+			value:
+				editable.mappedField ||
+				editable.fieldId ||
+				editable.collectionFieldId,
+		});
+
+		return field?.label;
+	}
+
+	return null;
+}
+
+function getNameInfo(item) {
+	if (
+		config.fragmentAdvancedOptionsEnabled &&
+		item.type === LAYOUT_DATA_ITEM_TYPES.container &&
+		item.config.htmlTag !== 'div'
+	) {
+		return item.config.htmlTag;
+	}
+
+	return null;
+}
+
+function isItemHidden(item, selectedViewportSize) {
+	const responsiveConfig = getResponsiveConfig(
+		item.config,
+		selectedViewportSize
+	);
+
+	return responsiveConfig.styles.display === 'none';
 }
 
 function isRemovable(item, layoutData) {
@@ -158,10 +300,13 @@ function visit(
 		canUpdateItemConfiguration,
 		dragAndDropHoveredItemId,
 		fragmentEntryLinks,
+		hasHiddenAncestor,
 		isMasterPage,
 		layoutData,
+		mappingFields,
 		masterLayoutData,
 		onHoverNode,
+		pageContents,
 		selectedViewportSize,
 	}
 ) {
@@ -170,6 +315,8 @@ function visit(
 	const itemInMasterLayout =
 		masterLayoutData &&
 		Object.keys(masterLayoutData.items).includes(item.itemId);
+
+	const hidden = isItemHidden(item, selectedViewportSize);
 
 	let icon = LAYOUT_DATA_ITEM_TYPE_ICONS[item.type];
 
@@ -188,27 +335,59 @@ function visit(
 
 		const editableTypes = fragmentEntryLink.editableTypes;
 
+		let collectionAncestor = null;
+
 		sortedElements.forEach((element) => {
 			if (element.editableId) {
 				const {editableId} = element;
 
+				const editable =
+					fragmentEntryLink.editableValues[
+						EDITABLE_FRAGMENT_ENTRY_PROCESSOR
+					][editableId];
+
 				const childId = `${item.config.fragmentEntryLinkId}-${editableId}`;
 				const type =
 					editableTypes[editableId] || EDITABLE_TYPES.backgroundImage;
+
+				if (!collectionAncestor) {
+					collectionAncestor = isMappedToCollection(editable)
+						? getCollectionAncestor(
+								fragmentEntryLink.masterLayout
+									? masterLayoutData
+									: layoutData,
+								item.itemId
+						  )
+						: null;
+				}
+
+				const collectionConfig = collectionAncestor?.config?.collection;
+
+				const mappedFieldLabel = isMapped(editable)
+					? getMappedFieldLabel(
+							editable,
+							collectionConfig,
+							pageContents,
+							mappingFields
+					  )
+					: null;
 
 				children.push({
 					activable:
 						canUpdateEditables &&
 						canActivateEditable(selectedViewportSize, type),
 					children: [],
-					disabled: !isMasterPage && itemInMasterLayout,
 					dragAndDropHoveredItemId,
 					draggable: false,
 					expanded: childId === activeItemId,
+					hidden: false,
+					hiddenAncestor: hasHiddenAncestor || hidden,
 					icon: EDITABLE_TYPE_ICONS[type],
 					id: childId,
+					isMasterItem: !isMasterPage && itemInMasterLayout,
 					itemType: ITEM_TYPES.editable,
-					name: editableId,
+					mapped: isMapped(editable),
+					name: mappedFieldLabel || editableId,
 					onHoverNode,
 					parentId: item.parentId,
 					removable: false,
@@ -224,10 +403,13 @@ function visit(
 						canUpdateItemConfiguration,
 						dragAndDropHoveredItemId,
 						fragmentEntryLinks,
+						hasHiddenAncestor: hasHiddenAncestor || hidden,
 						isMasterPage,
 						layoutData,
+						mappingFields,
 						masterLayoutData,
 						onHoverNode,
+						pageContents,
 						selectedViewportSize,
 					}),
 
@@ -261,10 +443,13 @@ function visit(
 						canUpdateItemConfiguration,
 						dragAndDropHoveredItemId,
 						fragmentEntryLinks,
+						hasHiddenAncestor: hasHiddenAncestor || hidden,
 						isMasterPage,
 						layoutData,
+						mappingFields,
 						masterLayoutData,
 						onHoverNode,
+						pageContents,
 						selectedViewportSize,
 					}
 				).children;
@@ -278,10 +463,13 @@ function visit(
 					canUpdateItemConfiguration,
 					dragAndDropHoveredItemId,
 					fragmentEntryLinks,
+					hasHiddenAncestor: hasHiddenAncestor || hidden,
 					isMasterPage,
 					layoutData,
+					mappingFields,
 					masterLayoutData,
 					onHoverNode,
+					pageContents,
 					selectedViewportSize,
 				});
 
@@ -297,27 +485,21 @@ function visit(
 			item.type !== LAYOUT_DATA_ITEM_TYPES.fragmentDropZone &&
 			canUpdateItemConfiguration,
 		children,
-		disabled: !isMasterPage && itemInMasterLayout,
 		draggable: true,
 		expanded:
 			item.itemId === activeItemId ||
 			dragAndDropHoveredItemId === item.itemId,
+		hidden,
+		hiddenAncestor: hasHiddenAncestor,
 		icon,
 		id: item.itemId,
+		isMasterItem: !isMasterPage && itemInMasterLayout,
 		itemType: ITEM_TYPES.layoutDataItem,
 		name: getLayoutDataItemLabel(item, fragmentEntryLinks),
+		nameInfo: getNameInfo(item),
 		onHoverNode,
 		parentItemId: item.parentId,
 		removable: !itemInMasterLayout && isRemovable(item, layoutData),
 		type: item.type,
 	};
-}
-
-function getDocumentFragment(content) {
-	const fragment = document.createDocumentFragment();
-	const div = document.createElement('div');
-
-	div.innerHTML = content;
-
-	return fragment.appendChild(div);
 }

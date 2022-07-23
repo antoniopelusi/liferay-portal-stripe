@@ -33,10 +33,6 @@ import javax.servlet.ServletContext;
  */
 public class PortletConfigFactoryImpl implements PortletConfigFactory {
 
-	public PortletConfigFactoryImpl() {
-		_pool = new ConcurrentHashMap<>();
-	}
-
 	@Override
 	public PortletConfig create(
 		Portlet portlet, ServletContext servletContext) {
@@ -134,7 +130,8 @@ public class PortletConfigFactoryImpl implements PortletConfigFactory {
 		return false;
 	}
 
-	private final Map<String, Map<String, PortletConfig>> _pool;
+	private final Map<String, Map<String, PortletConfig>> _pool =
+		new ConcurrentHashMap<>();
 	private PortletContextFactory _portletContextFactory;
 
 }

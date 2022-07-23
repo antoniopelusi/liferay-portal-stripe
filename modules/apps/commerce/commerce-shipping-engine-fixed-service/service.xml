@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce.shipping.engine.fixed">
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.shipping.engine.fixed">
 	<author>Alessio Antonio Rendina</author>
 	<namespace>Commerce</namespace>
 	<entity local-service="true" name="CommerceShippingFixedOption" remote-service="true">
@@ -25,9 +25,10 @@
 		<!-- Other fields -->
 
 		<column name="commerceShippingMethodId" type="long" />
-		<column localized="true" name="name" type="String" />
-		<column localized="true" name="description" type="String" />
 		<column name="amount" type="BigDecimal" />
+		<column localized="true" name="description" type="String" />
+		<column name="key" type="String" />
+		<column localized="true" name="name" type="String" />
 		<column name="priority" type="double" />
 
 		<!-- Order -->
@@ -40,6 +41,51 @@
 
 		<finder name="CommerceShippingMethodId" return-type="Collection">
 			<finder-column name="commerceShippingMethodId" />
+		</finder>
+		<finder name="C_K" return-type="CommerceShippingFixedOption" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="key" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="CommerceShippingFixedOptionQualifier" remote-service="true" table="CSFixedOptionQualifier">
+
+		<!-- PK fields -->
+
+		<column db-name="CSFixedOptionQualifierId" name="commerceShippingFixedOptionQualifierId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="classNameId" type="long" />
+		<column name="classPK" type="long" />
+		<column name="commerceShippingFixedOptionId" type="long" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="createDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CommerceShippingFixedOptionId" return-type="Collection">
+			<finder-column name="commerceShippingFixedOptionId" />
+		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="commerceShippingFixedOptionId" />
+		</finder>
+		<finder name="C_C_C" return-type="CommerceShippingFixedOptionQualifier" unique="true">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+			<finder-column name="commerceShippingFixedOptionId" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="CommerceShippingFixedOptionRel" remote-service="true" table="CShippingFixedOptionRel">
@@ -89,4 +135,8 @@
 			<finder-column name="commerceShippingFixedOptionId" />
 		</finder>
 	</entity>
+	<exceptions>
+		<exception>CommerceShippingFixedOptionKey</exception>
+		<exception>DuplicateCommerceShippingFixedOptionQualifier</exception>
+	</exceptions>
 </service-builder>

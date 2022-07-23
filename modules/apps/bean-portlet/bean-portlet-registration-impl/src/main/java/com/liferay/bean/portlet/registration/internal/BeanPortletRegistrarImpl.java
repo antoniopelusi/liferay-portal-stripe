@@ -37,7 +37,7 @@ import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -50,7 +50,6 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -132,7 +131,7 @@ public class BeanPortletRegistrarImpl implements BeanPortletRegistrar {
 					displayDescriptorURL);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -148,7 +147,7 @@ public class BeanPortletRegistrarImpl implements BeanPortletRegistrar {
 					liferayDescriptorURL);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -191,7 +190,7 @@ public class BeanPortletRegistrarImpl implements BeanPortletRegistrar {
 					portletDescriptorURL, preferencesValidatorFunction);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -261,21 +260,19 @@ public class BeanPortletRegistrarImpl implements BeanPortletRegistrar {
 			}
 		}
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
-			servletContext.getServletContextName());
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
-			PortletServlet.class.getName());
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN,
-			"/portlet-servlet/*");
-
 		serviceRegistrations.add(
 			bundleContext.registerService(
-				Servlet.class, new PortletServlet(), properties));
+				Servlet.class, new PortletServlet(),
+				HashMapDictionaryBuilder.<String, Object>put(
+					HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
+					servletContext.getServletContextName()
+				).put(
+					HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
+					PortletServlet.class.getName()
+				).put(
+					HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN,
+					"/portlet-servlet/*"
+				).build()));
 
 		Set<String> portletNames = descriptorDisplayCategories.keySet();
 
@@ -329,7 +326,7 @@ public class BeanPortletRegistrarImpl implements BeanPortletRegistrar {
 			}
 			catch (IllegalStateException illegalStateException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(illegalStateException, illegalStateException);
+					_log.debug(illegalStateException);
 				}
 
 				// Ignore since the service has been unregistered

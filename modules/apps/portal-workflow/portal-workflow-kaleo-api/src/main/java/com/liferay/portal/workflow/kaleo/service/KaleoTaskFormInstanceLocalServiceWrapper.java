@@ -27,6 +27,10 @@ public class KaleoTaskFormInstanceLocalServiceWrapper
 	implements KaleoTaskFormInstanceLocalService,
 			   ServiceWrapper<KaleoTaskFormInstanceLocalService> {
 
+	public KaleoTaskFormInstanceLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoTaskFormInstanceLocalServiceWrapper(
 		KaleoTaskFormInstanceLocalService kaleoTaskFormInstanceLocalService) {
 
@@ -186,6 +190,13 @@ public class KaleoTaskFormInstanceLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoTaskFormInstanceLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoTaskFormInstanceLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

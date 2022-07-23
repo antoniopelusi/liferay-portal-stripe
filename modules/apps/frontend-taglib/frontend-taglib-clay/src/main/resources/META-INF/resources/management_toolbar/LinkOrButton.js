@@ -15,33 +15,58 @@
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayLink from '@clayui/link';
-import React from 'react';
+import classNames from 'classnames';
+import React, {useContext} from 'react';
+
+import FeatureFlagContext from './FeatureFlagContext';
 
 const LinkOrButton = ({
-	button,
+	ariaLabel,
 	children,
+	className,
 	disabled,
 	href,
 	symbol,
+	title,
+	wide,
 	...otherProps
 }) => {
+	const {showDesignImprovements} = useContext(FeatureFlagContext);
+	const responsive = symbol && children;
+	const Wrapper = href && !disabled ? ClayLink : ClayButton;
+
 	return (
 		<>
-			{href && !disabled ? (
-				<ClayLink {...otherProps} button={button} href={href}>
-					{symbol ? <ClayIcon symbol={symbol} /> : children}
-				</ClayLink>
-			) : (
-				<ClayButton
-					{...otherProps}
-					block={button?.block}
+			<Wrapper
+				aria-label={symbol && ariaLabel}
+				block={otherProps.button?.block}
+				className={classNames(className, {
+					'd-md-none': showDesignImprovements && responsive,
+					'nav-btn-monospaced': showDesignImprovements && responsive,
+					'pl-4 pr-4': wide && !symbol,
+				})}
+				disabled={disabled}
+				href={href}
+				{...otherProps}
+				title={symbol && title}
+			>
+				{symbol ? <ClayIcon symbol={symbol} /> : children}
+			</Wrapper>
+
+			{showDesignImprovements && responsive && (
+				<Wrapper
+					block={otherProps.button?.block}
+					className={classNames(className, 'd-md-flex d-none', {
+						'pl-4 pr-4': wide,
+					})}
 					disabled={disabled}
+					href={href}
+					{...otherProps}
 				>
-					{symbol ? <ClayIcon symbol={symbol} /> : children}
-				</ClayButton>
+					{children}
+				</Wrapper>
 			)}
 		</>
 	);
 };
-
 export default LinkOrButton;

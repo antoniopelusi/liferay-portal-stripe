@@ -20,7 +20,7 @@ package com.liferay.portal.kernel.dao.orm;
 public class PropertyFactoryUtil {
 
 	public static Property forName(String propertyName) {
-		return getPropertyFactory().forName(propertyName);
+		return _projectionFactory.forName(propertyName);
 	}
 
 	public static PropertyFactory getPropertyFactory() {

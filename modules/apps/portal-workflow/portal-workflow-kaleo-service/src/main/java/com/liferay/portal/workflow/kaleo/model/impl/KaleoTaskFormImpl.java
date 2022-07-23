@@ -18,8 +18,4 @@ package com.liferay.portal.workflow.kaleo.model.impl;
  * @author Michael C. Han
  */
 public class KaleoTaskFormImpl extends KaleoTaskFormBaseImpl {
-
-	public KaleoTaskFormImpl() {
-	}
-
 }

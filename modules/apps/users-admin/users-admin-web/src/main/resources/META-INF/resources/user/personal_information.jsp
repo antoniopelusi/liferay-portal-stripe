@@ -33,6 +33,10 @@ if (selContact != null) {
 }
 
 String organizationIdsString = ParamUtil.getString(request, "organizationsSearchContainerPrimaryKeys");
+
+if (Validator.isNull(organizationIdsString)) {
+	organizationIdsString = ParamUtil.getString(request, "addOrganizationIds");
+}
 %>
 
 <aui:model-context bean="<%= selUser %>" model="<%= User.class %>" />

@@ -67,7 +67,9 @@ public class KaleoInstanceModelListener
 	}
 
 	@Override
-	public void onBeforeUpdate(KaleoInstance kaleoInstance) {
+	public void onBeforeUpdate(
+		KaleoInstance originalKaleoInstance, KaleoInstance kaleoInstance) {
+
 		KaleoInstance currentKaleoInstance =
 			_kaleoInstanceLocalService.fetchKaleoInstance(
 				kaleoInstance.getKaleoInstanceId());
@@ -88,6 +90,7 @@ public class KaleoInstanceModelListener
 		}
 		else {
 			_instanceWorkflowMetricsIndexer.updateInstance(
+				kaleoInstance.isActive(),
 				_indexerHelper.createAssetTitleLocalizationMap(
 					kaleoInstance.getClassName(), kaleoInstance.getClassPK(),
 					kaleoInstance.getGroupId()),

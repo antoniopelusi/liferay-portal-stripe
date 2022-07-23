@@ -12,7 +12,6 @@
  * details.
  */
 
-import {ClayIconSpriteContext} from '@clayui/icon';
 import {fetch} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
@@ -26,17 +25,17 @@ import {
 import AddOrCreate from './AddOrCreate';
 
 function ItemFinder(props) {
-	const [items, updateItems] = useState([]);
-	const [pageSize, updatePageSize] = useState(props.pageSize);
-	const [currentPage, updateCurrentPage] = useState(props.currentPage);
-	const [textFilter, updateTextFilter] = useState('');
-	const [itemsCount, updateItemsCount] = useState(props.itemsCount || 0);
-	const [selectedItems, updateSelectedItems] = useState([]);
+	const [items, setItems] = useState([]);
+	const [pageSize, setPageSize] = useState(props.pageSize);
+	const [currentPage, setCurrentPage] = useState(props.currentPage);
+	const [textFilter, setTextFilter] = useState('');
+	const [itemsCount, setItemsCount] = useState(props.itemsCount || 0);
+	const [selectedItems, setSelectedItems] = useState([]);
 
 	useEffect(() => {
 		if (!textFilter) {
-			updateItems(null);
-			updateItemsCount(0);
+			setItems(null);
+			setItemsCount(0);
 
 			return;
 		}
@@ -54,30 +53,30 @@ function ItemFinder(props) {
 		)
 			.then((data) => data.json())
 			.then((jsonResponse) => {
-				updateItems(jsonResponse.items);
-				updateItemsCount(jsonResponse.totalCount);
+				setItems(jsonResponse.items);
+				setItemsCount(jsonResponse.totalCount);
 			})
 			.catch(showErrorNotification);
 	}, [
 		pageSize,
 		currentPage,
 		textFilter,
-		updateItems,
-		updateItemsCount,
+		setItems,
+		setItemsCount,
 		props.apiUrl,
 	]);
 
 	useEffect(() => {
 		props
 			.getSelectedItems()
-			.then((selectedItems = []) => updateSelectedItems(selectedItems));
+			.then((selectedItems = []) => setSelectedItems(selectedItems));
 
-		function handleDatasetActions(e) {
-			if (props.linkedDatasetsId.includes(e.id)) {
+		function handleDatasetActions(event) {
+			if (props.linkedDatasetsId.includes(event.id)) {
 				props
 					.getSelectedItems()
 					.then((selectedItems = []) =>
-						updateSelectedItems(selectedItems)
+						setSelectedItems(selectedItems)
 					);
 			}
 		}
@@ -99,7 +98,7 @@ function ItemFinder(props) {
 					showNotification(props.itemSelectedMessage);
 				}
 				else {
-					updateSelectedItems((i) => [...i, itemId]);
+					setSelectedItems((i) => [...i, itemId]);
 				}
 			})
 			.catch(showErrorNotification);
@@ -109,40 +108,39 @@ function ItemFinder(props) {
 		props
 			.onItemCreated(textFilter)
 			.then((id) => {
-				updateTextFilter('');
+				showNotification(props.itemCreatedMessage);
+
+				setTextFilter('');
 
 				if (id) {
-					updateSelectedItems((i) => [...i, id]);
+					setSelectedItems((i) => [...i, id]);
 				}
 			})
 			.catch(showErrorNotification);
 	}
 
 	return (
-		<ClayIconSpriteContext.Provider value={props.spritemap}>
-			<AddOrCreate
-				createNewItemLabel={props.createNewItemLabel}
-				currentPage={currentPage}
-				inputPlaceholder={props.inputPlaceholder}
-				inputSearchValue={textFilter}
-				itemCreation={props.itemCreation}
-				items={items}
-				itemsCount={itemsCount}
-				itemsKey={props.itemsKey}
-				onInputSearchChange={updateTextFilter}
-				onItemCreated={createItem}
-				onItemSelected={selectItem}
-				pageSize={pageSize}
-				panelHeaderLabel={props.panelHeaderLabel}
-				schema={props.schema}
-				searchInputValue={textFilter}
-				selectedItems={selectedItems}
-				spritemap={props.spritemap}
-				titleLabel={props.titleLabel}
-				updateCurrentPage={updateCurrentPage}
-				updatePageSize={updatePageSize}
-			/>
-		</ClayIconSpriteContext.Provider>
+		<AddOrCreate
+			createNewItemLabel={props.createNewItemLabel}
+			currentPage={currentPage}
+			inputPlaceholder={props.inputPlaceholder}
+			inputSearchValue={textFilter}
+			itemCreation={props.itemCreation}
+			items={items}
+			itemsCount={itemsCount}
+			itemsKey={props.itemsKey}
+			onInputSearchChange={setTextFilter}
+			onItemCreated={createItem}
+			onItemSelected={selectItem}
+			pageSize={pageSize}
+			panelHeaderLabel={props.panelHeaderLabel}
+			schema={props.schema}
+			searchInputValue={textFilter}
+			selectedItems={selectedItems}
+			titleLabel={props.titleLabel}
+			updateCurrentPage={setCurrentPage}
+			updatePageSize={setPageSize}
+		/>
 	);
 }
 
@@ -151,6 +149,7 @@ ItemFinder.propTypes = {
 	createNewItemLabel: PropTypes.string,
 	getSelectedItems: PropTypes.func.isRequired,
 	inputPlaceholder: PropTypes.string,
+	itemCreatedMessage: PropTypes.string,
 	itemCreation: PropTypes.bool,
 	itemSelectedMessage: PropTypes.string,
 	itemsKey: PropTypes.string.isRequired,
@@ -166,6 +165,7 @@ ItemFinder.propTypes = {
 
 ItemFinder.defaultProps = {
 	currentPage: 1,
+	itemCreatedMessage: Liferay.Language.get('item-created'),
 	itemCreation: true,
 	itemSelectedMessage: Liferay.Language.get('item-selected'),
 	multiSelectableEntries: false,

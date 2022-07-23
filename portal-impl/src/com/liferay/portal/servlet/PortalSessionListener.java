@@ -35,22 +35,23 @@ public class PortalSessionListener implements HttpSessionListener {
 
 	@Override
 	public void sessionCreated(HttpSessionEvent httpSessionEvent) {
-		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter()) {
-			CompoundSessionIdHttpSession compoundSessionIdHttpSession =
-				new CompoundSessionIdHttpSession(httpSessionEvent.getSession());
+		HttpSession httpSession = httpSessionEvent.getSession();
 
-			httpSessionEvent = new HttpSessionEvent(
-				compoundSessionIdHttpSession);
+		if (_log.isDebugEnabled()) {
+			_log.debug("Session " + httpSession.getId() + " was created");
 		}
 
-		HttpSession session = httpSessionEvent.getSession();
+		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter()) {
+			httpSession = new CompoundSessionIdHttpSession(
+				httpSessionEvent.getSession());
+		}
 
-		new PortalSessionCreator(session);
+		new PortalSessionCreator(httpSession);
 
 		if ((PropsValues.SESSION_MAX_ALLOWED > 0) &&
 			(_counter.incrementAndGet() > PropsValues.SESSION_MAX_ALLOWED)) {
 
-			session.setAttribute(WebKeys.SESSION_MAX_ALLOWED, Boolean.TRUE);
+			httpSession.setAttribute(WebKeys.SESSION_MAX_ALLOWED, Boolean.TRUE);
 
 			_log.error(
 				StringBundler.concat(
@@ -63,15 +64,18 @@ public class PortalSessionListener implements HttpSessionListener {
 
 	@Override
 	public void sessionDestroyed(HttpSessionEvent httpSessionEvent) {
-		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter()) {
-			CompoundSessionIdHttpSession compoundSessionIdHttpSession =
-				new CompoundSessionIdHttpSession(httpSessionEvent.getSession());
+		HttpSession httpSession = httpSessionEvent.getSession();
 
-			httpSessionEvent = new HttpSessionEvent(
-				compoundSessionIdHttpSession);
+		if (_log.isDebugEnabled()) {
+			_log.debug("Session " + httpSession.getId() + " was destroyed");
 		}
 
-		new PortalSessionDestroyer(httpSessionEvent.getSession());
+		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter()) {
+			httpSession = new CompoundSessionIdHttpSession(
+				httpSessionEvent.getSession());
+		}
+
+		new PortalSessionDestroyer(httpSession);
 
 		if (PropsValues.SESSION_MAX_ALLOWED > 0) {
 			_counter.decrementAndGet();

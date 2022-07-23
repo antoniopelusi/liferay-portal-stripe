@@ -27,12 +27,9 @@ import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfiguration
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
 import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsPortletKeys;
-
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
@@ -53,12 +50,9 @@ public class FieldSetsPortletConfigurationIcon
 
 	@Override
 	public String getMessage(PortletRequest portletRequest) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			getLocale(portletRequest), FieldSetsPortletConfigurationIcon.class);
-
 		return LanguageUtil.format(
 			getLocale(portletRequest), "manage-x",
-			LanguageUtil.get(resourceBundle, "field-sets"));
+			LanguageUtil.get(getLocale(portletRequest), "field-sets"));
 	}
 
 	@Override
@@ -90,9 +84,9 @@ public class FieldSetsPortletConfigurationIcon
 		).setParameter(
 			"refererWebDAVToken", WebDAVUtil.getStorageToken(portlet)
 		).setParameter(
-			"showAncestorScopes", Boolean.TRUE.toString()
+			"showAncestorScopes", true
 		).setParameter(
-			"showManageTemplates", Boolean.TRUE.toString()
+			"showManageTemplates", true
 		).buildString();
 	}
 

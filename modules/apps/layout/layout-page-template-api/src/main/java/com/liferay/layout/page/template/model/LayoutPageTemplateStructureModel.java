@@ -285,4 +285,7 @@ public interface LayoutPageTemplateStructureModel
 	@Override
 	public void setClassPK(long classPK);
 
+	@Override
+	public LayoutPageTemplateStructure cloneWithOriginalValues();
+
 }

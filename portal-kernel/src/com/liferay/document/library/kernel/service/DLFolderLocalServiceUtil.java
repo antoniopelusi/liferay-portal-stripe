@@ -230,6 +230,10 @@ public class DLFolderLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -536,22 +540,6 @@ public class DLFolderLocalServiceUtil {
 
 		return getService().getFolders(
 			groupId, parentFolderId, includeMountfolders, start, end,
-			orderByComparator);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getFolders(long, long, boolean, int, int,
-	 OrderByComparator)}
-	 */
-	@Deprecated
-	public static List<DLFolder> getFolders(
-		long groupId, long parentFolderId, int status,
-		boolean includeMountfolders, int start, int end,
-		OrderByComparator<DLFolder> orderByComparator) {
-
-		return getService().getFolders(
-			groupId, parentFolderId, status, includeMountfolders, start, end,
 			orderByComparator);
 	}
 

@@ -304,4 +304,7 @@ public interface WorkflowDefinitionLinkModel
 	 */
 	public void setWorkflowDefinitionVersion(int workflowDefinitionVersion);
 
+	@Override
+	public WorkflowDefinitionLink cloneWithOriginalValues();
+
 }

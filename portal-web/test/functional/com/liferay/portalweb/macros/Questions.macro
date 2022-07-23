@@ -8,55 +8,12 @@ definition {
 		}
 	}
 
-	macro addQuestionByAPI {
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			portlet = "Message Boards");
-
-		MessageboardsCategory.gotoPG(categoryName = "${categoryName}");
-
-		Pause(locator = "3000");
-
-		var categoryId = JSONMBMessage.getCategoryId();
-
-		var rightCategoryId = StringUtil.extractLast("${categoryId}", "CategoryId=");
-		JSONQuestionsAPI._addQuestion(
-			bodyField = "${bodyField}",
-			categoryId = "${rightCategoryId}",
-			tagField = "${tagField}",
-			titleField = "${titleField}");
-	}
-
-	macro addQuestionWithoutTagByAPI {
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Message Boards");
-
-		MessageboardsCategory.gotoPG(categoryName = "${categoryName}");
-
-		if (isSet(subCategoryName)) {
-			MessageboardsCategory.gotoPG(categoryName = "${subCategoryName}");
-		}
-
-		Pause(locator = "3000");
-
-		var categoryId = JSONMBMessage.getCategoryId();
-
-		var rightCategoryId = StringUtil.extractLast("${categoryId}", "CategoryId=");
-
-		JSONQuestionsAPI._addQuestionWithoutTag(
-			bodyField = "${bodyField}",
-			categoryId = "${rightCategoryId}",
-			titleField = "${titleField}");
+	macro _openToAddQuestion {
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}#/questions/${topicName}/new");
 	}
 
 	macro addRootTopic {
-		if (IsElementPresent(locator1 = "Button#ANY", key_text = "New Topic")) {
+		if (IsElementPresent(key_text = "New Topic", locator1 = "Button#ANY")) {
 			Click(
 				key_text = "New Topic",
 				locator1 = "Button#ANY");
@@ -79,10 +36,15 @@ definition {
 
 		Button.click(button = "Create");
 
-		AssertTextEquals(
-			key_card = "${rootTopicName}",
-			locator1 = "Card#CARD_TITLE",
-			value1 = "${rootTopicName}");
+		if ("${invalidCharacters}" == "Topic") {
+			Alert.viewErrorMessage(errorMessage = "The Topic Name cannot contain the following invalid characters");
+		}
+		else {
+			AssertTextEquals(
+				key_card = "${rootTopicName}",
+				locator1 = "Card#CARD_TITLE",
+				value1 = "${rootTopicName}");
+		}
 	}
 
 	macro addSubTopic {
@@ -135,7 +97,15 @@ definition {
 	}
 
 	macro askQuestionFillingTheMandatoryFields {
-		Click(locator1 = "Questions#ASK_QUESTION_BUTTON");
+		if (isSet(siteURLKey)) {
+			Questions._openToAddQuestion(
+				layoutName = "${layoutName}",
+				siteURLKey = "${siteURLKey}",
+				topicName = "${topicName}");
+		}
+		else {
+			Click(locator1 = "Questions#ASK_QUESTION_BUTTON");
+		}
 
 		if (isSet(anonymousUser)) {
 			Type.typePause(
@@ -186,6 +156,22 @@ definition {
 		}
 
 		Click(locator1 = "Questions#ASK_QUESTION_POST_YOUR_QUESTION_BUTTON");
+
+		if ("${invalidCharacters}" == "Tag") {
+			Alert.viewErrorMessage(errorMessage = "The Tag cannot contain the following invalid characters");
+		}
+	}
+
+	macro assertCanonicalURL {
+		var html = '''<link href="''';
+
+		var html2 = '''" rel="canonical" data-react-helmet="true">''';
+		var portalURL = "${portalURL}/web/guest";
+		var pageName = StringUtil.lowerCase("${pageName}");
+		var pageNameURL = StringUtil.replace("${pageName}", " ", "-");
+		var pageSource = StringUtil.add("${html}", "${portalURL}/${pageNameURL}/questions/${category}/${title}${html2}", "");
+
+		AssertHTMLSourceTextPresent(value1 = "${pageSource}");
 	}
 
 	macro changeDisplayStyle {
@@ -251,15 +237,9 @@ definition {
 	}
 
 	macro configureFilter {
-		Click(locator1 = "Questions#QUESTIONS_SELECT_FILTER");
-
-		Pause(locator1 = "1000");
-
-		Click(
-			key_filter = "${filterBy}",
-			locator1 = "Questions#QUESTIONS_SELECT_FILTER_VALUE");
-
-		Pause(locator1 = "1000");
+		Select(
+			locator1 = "Questions#QUESTIONS_SELECT_FILTER",
+			value1 = "${filterBy}");
 	}
 
 	macro configureLandingPageTopicNavigation {
@@ -333,13 +313,9 @@ definition {
 	}
 
 	macro configureTagsFilter {
-		Click(locator1 = "Questions#QUESTIONS_TAGS_SELECT_FILTER");
-
-		Pause(locator1 = "1000");
-
-		Click(
-			key_filter = "${filterBy}",
-			locator1 = "Questions#QUESTIONS_SELECT_FILTER_VALUE");
+		Select(
+			locator1 = "Questions#QUESTIONS_TAGS_SELECT_FILTER",
+			value1 = "${filterBy}");
 	}
 
 	macro createSomethingInMessageBoards {
@@ -473,17 +449,27 @@ definition {
 			key_text = "Update Your Question",
 			locator1 = "Button#ANY");
 
+		Refresh();
+
 		AssertVisible(
 			key_questionTitle = "${titleFieldEdit}",
 			locator1 = "Questions#QUESTIONS_DETAILS_TITLE");
 	}
 
 	macro editRootTopic {
-		var key_categoryName = "${categoryName}";
+		if (isSet(siteURLKey)) {
+			MessageboardsCategory.openToEditCategory(
+				categoryName = "${categoryName}",
+				groupName = "${groupName}",
+				siteURLKey = "${siteURLKey}");
+		}
+		else {
+			var key_categoryName = "${categoryName}";
 
-		LexiconEntry.openEntryMenu(rowEntry = "${categoryName}");
+			LexiconEntry.openEntryMenu(rowEntry = "${categoryName}");
 
-		MenuItem.click(menuItem = "Edit");
+			MenuItem.click(menuItem = "Edit");
+		}
 
 		PortletEntry.inputName(name = "${categoryNameEdit}");
 
@@ -492,24 +478,33 @@ definition {
 			value1 = "Save");
 
 		Alert.viewSuccessMessage();
+	}
 
-		AssertTextEquals(
-			locator1 = "MessageBoards#CATEGORY_LIST_CATEGORY",
-			value1 = "${categoryNameEdit}");
+	macro enableAnonymousRead {
+		Questions.openToConfigInSystemSettings(portlet = "Questions");
+
+		if (IsNotChecked.isNotCheckedNotVisible(key_fieldName = "enableAnonymousRead", locator1 = "FormFields#CHECKBOX")) {
+			Check.checkNotVisible(
+				key_fieldName = "enableAnonymousRead",
+				locator1 = "FormFields#CHECKBOX");
+		}
+
+		FormFields.viewCheckboxChecked(fieldName = "enableAnonymousRead");
+
+		if (IsElementPresent(locator1 = "Button#UPDATE")) {
+			Button.clickUpdate();
+		}
+		else {
+			Button.clickSave();
+		}
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro enableRedirectToLogin {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
+		Questions.openToConfigInSystemSettings(portlet = "Questions");
 
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "Message Boards",
-			configurationName = "Questions",
-			configurationScope = "Widget Scope");
-
-		if (IsNotChecked.isNotCheckedNotVisible(locator1 = "FormFields#CHECKBOX", key_fieldName = "enableRedirectToLogin")) {
+		if (IsNotChecked.isNotCheckedNotVisible(key_fieldName = "enableRedirectToLogin", locator1 = "FormFields#CHECKBOX")) {
 			Check.checkNotVisible(
 				key_fieldName = "enableRedirectToLogin",
 				locator1 = "FormFields#CHECKBOX");
@@ -537,12 +532,10 @@ definition {
 
 	macro gotoCategory {
 		Click(
-			key_questionNameField = "${categoryName}",
-			locator1 = "Questions#QUESTIONS_NAME_FIELD");
+			key_card = "${categoryName}",
+			locator1 = "Card#CARD_TITLE");
 
 		AssertElementPresent(locator1 = "Questions#QUESTIONS_HOME_ICON");
-
-		Pause(locator1 = "3000");
 
 		AssertVisible(
 			key_categoryTitle = "${categoryName}",
@@ -550,9 +543,16 @@ definition {
 	}
 
 	macro gotoDetails {
-		Click(
-			key_questionTitle = "${questionTitle}",
-			locator1 = "Questions#QUESTIONS_TITLE");
+		if (isSet(duplicatedQuestions)) {
+			Click(
+				key_lastQuestionTitle = "${questionTitle}",
+				locator1 = "Questions#QUESTIONS_TITLE_LAST");
+		}
+		else {
+			Click(
+				key_questionTitle = "${questionTitle}",
+				locator1 = "Questions#QUESTIONS_TITLE");
+		}
 
 		AssertTextEquals(
 			key_questionTitle = "${questionTitle}",
@@ -568,6 +568,44 @@ definition {
 		AssertVisible(
 			key_questionTabField = "${questionTabField}",
 			locator1 = "Questions#QUESTIONS_LIST_ACTIVE_TAB_FIELD");
+	}
+
+	macro openToConfigInSystemSettings {
+		var baseURL = PropsUtil.get("portal.url");
+
+		if ("${portlet}" == "Message Boards Moderation Workflow") {
+			var portletId = "com.liferay.message.boards.moderation.configuration.MBModerationGroupConfiguration";
+		}
+
+		if ("${portlet}" == "Questions") {
+			var portletId = "com.liferay.questions.web.internal.configuration.QuestionsConfiguration";
+		}
+
+		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=${portletId}&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fedit_configuration");
+	}
+
+	macro openToEditQuestion {
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}#/questions/${topicName}/${questionsTitle}/edit");
+	}
+
+	macro openToQuestionDetails {
+		if (isSet(localization)) {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}#/questions/${topicName}/-");
+		}
+		else if (isSet(historyRouter)) {
+			Navigator.openWithAppendToBaseURL(urlAppend = "${friendlyURL}/questions/${topicName}/${questionsTitle}");
+		}
+		else {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}#/questions/${topicName}/${questionsTitle}");
+		}
+	}
+
+	macro openToQuestionsTopic {
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}#/questions/${topicName}");
+	}
+
+	macro openToTagsTab {
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/${siteURLKey}/${layoutName}#/tags");
 	}
 
 	macro removeRootTopicConfiguration {
@@ -637,6 +675,12 @@ definition {
 		}
 	}
 
+	macro subscribeFromTag {
+		Click(locator1 = "Questions#QUESTIONS_BELL_BUTTON");
+
+		AssertElementPresent(locator1 = "Questions#QUESTIONS_UNSUBSCRIBE");
+	}
+
 	macro subscribeQuestion {
 		Click(locator1 = "Questions#QUESTIONS_BELL_BUTTON");
 	}
@@ -657,7 +701,7 @@ definition {
 		AssertElementNotPresent(locator1 = "Questions#QUESTIONS_LIST");
 	}
 
-	macro unSubscribeQuestion {
+	macro unsubscribeFromQuestion {
 		Click.waitForMenuToggleJSClick(
 			key_questionTitle = "${questionTitle}",
 			locator1 = "Questions#QUESTIONS_ELLIPSIS_ICON");
@@ -665,7 +709,19 @@ definition {
 		MenuItem.clickNoError(menuItem = "Unsubscribe");
 	}
 
-	macro unSubscribeTopic {
+	macro unsubscribeFromQuestionViaDetails {
+		Click(locator1 = "Questions#QUESTIONS_UNSUBSCRIBE");
+
+		AssertElementNotPresent(locator1 = "Questions#QUESTIONS_UNSUBSCRIBE");
+	}
+
+	macro unsubscribeFromTag {
+		Click(locator1 = "Questions#QUESTIONS_UNSUBSCRIBE");
+
+		AssertElementNotPresent(locator1 = "Questions#QUESTIONS_UNSUBSCRIBE");
+	}
+
+	macro unsubscribeFromTopic {
 		LexiconCard.clickEllipsisItem(
 			card = "${topicName}",
 			item = "Unsubscribe");
@@ -676,6 +732,13 @@ definition {
 			key_emptyInfo = "This page has no topics.",
 			locator1 = "Questions#EMPTY_STATE_MESSAGE",
 			value1 = "This page has no topics.");
+	}
+
+	macro viewDetailsTitle {
+		AssertTextEquals(
+			key_questionTitle = "${questionTitle}",
+			locator1 = "Questions#QUESTIONS_DETAILS_TITLE",
+			value1 = "${questionTitle}");
 	}
 
 	macro viewFilterResults {
@@ -699,6 +762,12 @@ definition {
 				locator1 = "Questions#QUESTIONS_BREADCRUMB_TOPIC_DROPDOWN_OPTION",
 				value1 = "${topicName}");
 		}
+	}
+
+	macro viewImageInQuestion {
+		AssertVisible(
+			key_imageFileName = "${imageFileName}",
+			locator1 = "Questions#QUESTIONS_IMAGE_NAME");
 	}
 
 	macro viewList {
@@ -752,9 +821,36 @@ definition {
 
 	macro viewMyActivityDefault {
 		AssertTextEquals(
-			key_emptyInfo = "No results found",
+			key_emptyInfo = "There are no results.",
 			locator1 = "Questions#EMPTY_STATE_MESSAGE",
-			value1 = "No results found");
+			value1 = "There are no results.");
+	}
+
+	macro viewNoAnswerField {
+		AssertElementNotPresent(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+
+		AssertElementNotPresent(
+			key_text = "Post Answer",
+			locator1 = "Button#ANY_DISABLED");
+	}
+
+	macro viewNoBreadcrumbEllipsis {
+		AssertElementNotPresent(locator1 = "Questions#QUESTIONS_BREADCRUMB_ELLIPSIS");
+	}
+
+	macro viewNoFilteredResult {
+		AssertTextEquals(
+			key_emptyInfo = "There are no results.",
+			locator1 = "Questions#EMPTY_STATE_MESSAGE",
+			value1 = "There are no results.");
+	}
+
+	macro viewNoPermissionsAddQuestion {
+		AssertElementNotPresent(locator1 = "Questions#ASK_QUESTION_BUTTON");
+	}
+
+	macro viewNoPermissionsAddTopic {
+		AssertElementNotPresent(locator1 = "Questions#NEW_TOPIC");
 	}
 
 	macro viewNoSearchResults {
@@ -773,10 +869,35 @@ definition {
 		}
 	}
 
+	macro viewNoTopicDropdownToggle {
+		AssertElementNotPresent(
+			key_topicName = "${topicName}",
+			locator1 = "Questions#QUESTIONS_BREADCRUMB_TOPIC_DROPDOWN_TOGGLE");
+	}
+
 	macro viewPaginationResults {
 		AssertTextEquals(
 			locator1 = "Questions#PAGINATION_RESULTS",
 			value1 = "${results}");
+	}
+
+	macro viewQuestionViaTag {
+		Click(
+			key_tagName = "${tagName}",
+			locator1 = "Questions#TAGS_LIST_TAB_NAMES");
+
+		AssertElementPresent(
+			key_titleField = "${questionTitle}",
+			locator1 = "Questions#ASK_QUESTION_SEARCH_QUESTION");
+	}
+
+	macro viewSearchField {
+		if (isSet(noQuestion)) {
+			AssertElementNotPresent(locator1 = "Questions#SEARCH_QUESTION_FIELD");
+		}
+		else {
+			AssertElementPresent(locator1 = "Questions#SEARCH_QUESTION_FIELD");
+		}
 	}
 
 	macro viewSearchResults {
@@ -785,6 +906,15 @@ definition {
 				key_questionTitle = "${questionTitle}",
 				locator1 = "Questions#QUESTIONS_TITLE",
 				value1 = "${questionTitle}");
+		}
+	}
+
+	macro viewSelectFilter {
+		if (isSet(noQuestion)) {
+			AssertElementNotPresent(locator1 = "Questions#QUESTIONS_SELECT_FILTER");
+		}
+		else {
+			AssertElementPresent(locator1 = "Questions#QUESTIONS_SELECT_FILTER");
 		}
 	}
 
@@ -801,6 +931,21 @@ definition {
 			AssertElementPresent(
 				key_itemName = "${itemNameList}",
 				locator1 = "Questions#QUESTIONS_STATISTICS_ITEM");
+		}
+	}
+
+	macro viewStatus {
+		if ("${status}" == "pending") {
+			AssertVisible(
+				key_status = "pending",
+				locator1 = "Questions#WORKFLOW_STATUS");
+
+			Questions.viewNoAnswerField();
+		}
+		else {
+			AssertElementNotPresent(
+				key_status = "pending",
+				locator1 = "Questions#WORKFLOW_STATUS");
 		}
 	}
 
@@ -829,6 +974,16 @@ definition {
 			AssertTextEquals(
 				locator1 = "Questions#QUESTIONS_DEFAULT_SUBSCRIPTION_TOPICS",
 				value1 = "There are no results.");
+		}
+	}
+
+	macro viewSubscriptionStatusFromDetails {
+		if (isSet(subscribedQuestion)) {
+			AssertElementPresent(locator1 = "Questions#QUESTIONS_UNSUBSCRIBE");
+		}
+
+		if (isSet(unsubscribedQuestion)) {
+			AssertElementPresent(locator1 = "Questions#QUESTIONS_SUBSCRIBE");
 		}
 	}
 
@@ -872,6 +1027,27 @@ definition {
 		}
 	}
 
+	macro viewTopicDefault {
+		AssertElementPresent(
+			key_emptyInfo = "This topic is empty.",
+			locator1 = "Questions#EMPTY_STATE_MESSAGE");
+	}
+
+	macro viewTopicOnHomePage {
+		if (IsElementNotPresent(key_card = "New Topic", locator1 = "Card#CARD")) {
+			Click(locator1 = "Questions#QUESTIONS_HOME_ICON");
+		}
+
+		for (var topicName : list "${topicNameList}") {
+			AssertTextEquals(
+				key_card = "${topicName}",
+				locator1 = "Card#CARD_TITLE",
+				value1 = "${topicName}");
+		}
+
+		AssertElementNotPresent(locator1 = "Questions#QUESTIONS_HOME_ICON");
+	}
+
 	macro viewUnlockedQuestion {
 		AssertElementNotPresent(
 			key_questionTitle = "${questionTitle}",
@@ -903,6 +1079,12 @@ definition {
 			AssertTextEquals(
 				key_votedResult = "${votedCount}",
 				locator1 = "Questions#VOTED_RESULT_ANSWER",
+				value1 = "${votedCount}");
+		}
+		else if (isSet(questionTitle)) {
+			AssertTextEquals(
+				key_questionTitle = "${questionTitle}",
+				locator1 = "Questions#QUESTIONS_VOTED_COUNT",
 				value1 = "${votedCount}");
 		}
 		else {

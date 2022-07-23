@@ -26,20 +26,25 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class KBFolderServiceWrapper
 	implements KBFolderService, ServiceWrapper<KBFolderService> {
 
+	public KBFolderServiceWrapper() {
+		this(null);
+	}
+
 	public KBFolderServiceWrapper(KBFolderService kbFolderService) {
 		_kbFolderService = kbFolderService;
 	}
 
 	@Override
 	public com.liferay.knowledge.base.model.KBFolder addKBFolder(
-			long groupId, long parentResourceClassNameId,
-			long parentResourcePrimKey, String name, String description,
+			String externalReferenceCode, long groupId,
+			long parentResourceClassNameId, long parentResourcePrimKey,
+			String name, String description,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _kbFolderService.addKBFolder(
-			groupId, parentResourceClassNameId, parentResourcePrimKey, name,
-			description, serviceContext);
+			externalReferenceCode, groupId, parentResourceClassNameId,
+			parentResourcePrimKey, name, description, serviceContext);
 	}
 
 	@Override

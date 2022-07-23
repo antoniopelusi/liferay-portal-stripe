@@ -19,12 +19,10 @@ import com.liferay.portal.kernel.messaging.proxy.MessagingProxyInvocationHandler
 import com.liferay.portal.kernel.messaging.sender.SynchronousMessageSender;
 import com.liferay.portal.kernel.scheduler.SchedulerEngine;
 import com.liferay.portal.kernel.spring.aop.InvocationHandlerFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ProxyUtil;
 
 import java.lang.reflect.InvocationHandler;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -64,16 +62,12 @@ public class SchedulerEngineProxyBeanConfigurator {
 				beanClass.getClassLoader(), beanClass.getInterfaces(),
 				invocationHandler);
 
-		Dictionary<String, Object> schedulerEngineDictionary =
-			new HashMapDictionary<>();
-
-		schedulerEngineDictionary.put(
-			"scheduler.engine.proxy.bean", Boolean.TRUE);
-
 		_schedulerEngineProxyBeanServiceRegistration =
 			bundleContext.registerService(
 				SchedulerEngine.class, schedulerEngine,
-				schedulerEngineDictionary);
+				HashMapDictionaryBuilder.<String, Object>put(
+					"scheduler.engine.proxy.bean", Boolean.TRUE
+				).build());
 	}
 
 	@Deactivate

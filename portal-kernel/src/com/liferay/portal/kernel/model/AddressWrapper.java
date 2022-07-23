@@ -239,6 +239,11 @@ public class AddressWrapper
 		}
 	}
 
+	@Override
+	public Address cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the address ID of this address.
 	 *

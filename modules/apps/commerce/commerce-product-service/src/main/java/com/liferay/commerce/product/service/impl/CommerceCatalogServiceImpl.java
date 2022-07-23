@@ -130,11 +130,11 @@ public class CommerceCatalogServiceImpl extends CommerceCatalogServiceBaseImpl {
 	}
 
 	@Override
-	public List<CommerceCatalog> searchCommerceCatalogs(
+	public List<CommerceCatalog> search(
 			long companyId, String keywords, int start, int end, Sort sort)
 		throws PortalException {
 
-		return commerceCatalogLocalService.searchCommerceCatalogs(
+		return commerceCatalogLocalService.search(
 			companyId, keywords, start, end, sort);
 	}
 

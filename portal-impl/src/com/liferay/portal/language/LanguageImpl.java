@@ -31,9 +31,11 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CookieKeys;
@@ -304,7 +306,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -474,7 +476,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -653,7 +655,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -793,7 +795,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -1041,7 +1043,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1172,20 +1174,6 @@ public class LanguageImpl implements Language, Serializable {
 		return companyLocalesBag.getByLanguageCode(languageCode);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getResourceBundleLoader}
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.util.ResourceBundleLoader
-		getPortalResourceBundleLoader() {
-
-		ResourceBundleLoader resourceBundleLoader = getResourceBundleLoader();
-
-		return locale -> resourceBundleLoader.loadResourceBundle(locale);
-	}
-
 	@Override
 	public ResourceBundleLoader getResourceBundleLoader() {
 		return LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER;
@@ -1302,7 +1290,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -1445,7 +1433,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -1561,12 +1549,17 @@ public class LanguageImpl implements Language, Serializable {
 
 		try {
 			if (isInheritLocales(groupId)) {
-				return isAvailableLocale(languageId);
+				Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+				CompanyLocalesBag companyLocalesBag = _getCompanyLocalesBag(
+					group.getCompanyId());
+
+				return companyLocalesBag.containsLanguageId(languageId);
 			}
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1764,7 +1757,7 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -2081,7 +2074,7 @@ public class LanguageImpl implements Language, Serializable {
 					// LPS-52675
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(systemException, systemException);
+						_log.debug(systemException);
 					}
 
 					languageIds = PropsValues.LOCALES_ENABLED;
@@ -2091,6 +2084,24 @@ public class LanguageImpl implements Language, Serializable {
 			Locale defaultLocale = LocaleUtil.getDefault();
 
 			String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
+
+			if ((companyId != CompanyConstants.SYSTEM) &&
+				!ArrayUtil.contains(languageIds, defaultLanguageId)) {
+
+				User defaultUser = UserLocalServiceUtil.fetchDefaultUser(
+					companyId);
+
+				if (defaultUser != null) {
+					Locale defaultUserLocale = defaultUser.getLocale();
+
+					if (defaultUserLocale != null) {
+						defaultLocale = defaultUserLocale;
+
+						defaultLanguageId = LocaleUtil.toLanguageId(
+							defaultLocale);
+					}
+				}
+			}
 
 			_languageCodeLocalesMap.put(
 				defaultLocale.getLanguage(), defaultLocale);

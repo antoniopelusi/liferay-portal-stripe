@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.TransientValue;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 
-import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,7 +84,7 @@ public class GogoShellPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		initCommandSession(renderRequest);
+		_initCommandSession(renderRequest);
 
 		CommandSession commandSession = _getSessionAttribute(
 			renderRequest, GogoShellWebKeys.COMMAND_SESSION);
@@ -106,7 +104,7 @@ public class GogoShellPortlet extends MVCPortlet {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		initCommandSession(actionRequest);
+		_initCommandSession(actionRequest);
 
 		CommandSession commandSession = _getSessionAttribute(
 			actionRequest, GogoShellWebKeys.COMMAND_SESSION);
@@ -126,7 +124,7 @@ public class GogoShellPortlet extends MVCPortlet {
 		try {
 			SessionMessages.add(actionRequest, "command", command);
 
-			checkCommand(command, themeDisplay);
+			_checkCommand(command, themeDisplay);
 
 			Object result = commandSession.execute(command);
 
@@ -164,7 +162,7 @@ public class GogoShellPortlet extends MVCPortlet {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws IOException, PortletException {
 
-		checkOmniAdmin();
+		_checkOmniAdmin();
 
 		super.processAction(actionRequest, actionResponse);
 	}
@@ -174,27 +172,25 @@ public class GogoShellPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		checkOmniAdmin();
+		_checkOmniAdmin();
 
 		super.render(renderRequest, renderResponse);
 	}
 
-	protected void checkCommand(String command, ThemeDisplay themeDisplay)
+	private void _checkCommand(String command, ThemeDisplay themeDisplay)
 		throws Exception {
 
 		Matcher matcher = _pattern.matcher(command);
 
 		if (matcher.find()) {
-			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-				themeDisplay.getLocale(), GogoShellPortlet.class);
-
 			throw new Exception(
 				LanguageUtil.format(
-					resourceBundle, "the-command-x-is-not-supported", command));
+					themeDisplay.getLocale(), "the-command-x-is-not-supported",
+					command));
 		}
 	}
 
-	protected void checkOmniAdmin() throws PortletException {
+	private void _checkOmniAdmin() throws PortletException {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
@@ -206,7 +202,24 @@ public class GogoShellPortlet extends MVCPortlet {
 		}
 	}
 
-	protected void initCommandSession(PortletRequest portletRequest) {
+	private <T> T _getSessionAttribute(
+		PortletRequest portletRequest, String name) {
+
+		PortletSession portletSession = portletRequest.getPortletSession();
+
+		Object sessionAttribute = portletSession.getAttribute(name);
+
+		if (sessionAttribute instanceof TransientValue) {
+			TransientValue<T> transientValue =
+				(TransientValue<T>)sessionAttribute;
+
+			return transientValue.getValue();
+		}
+
+		return null;
+	}
+
+	private void _initCommandSession(PortletRequest portletRequest) {
 		PortletSession portletSession = portletRequest.getPortletSession();
 
 		Object commandSessionAttribute = portletSession.getAttribute(
@@ -247,23 +260,6 @@ public class GogoShellPortlet extends MVCPortlet {
 		portletSession.setAttribute(
 			GogoShellWebKeys.COMMAND_SESSION_OUTPUT_STREAM,
 			new TransientValue<>(outputUnsyncByteArrayOutputStream));
-	}
-
-	private <T> T _getSessionAttribute(
-		PortletRequest portletRequest, String name) {
-
-		PortletSession portletSession = portletRequest.getPortletSession();
-
-		Object sessionAttribute = portletSession.getAttribute(name);
-
-		if (sessionAttribute instanceof TransientValue) {
-			TransientValue<T> transientValue =
-				(TransientValue<T>)sessionAttribute;
-
-			return transientValue.getValue();
-		}
-
-		return null;
 	}
 
 	private static final InputStream _emptyInputStream =

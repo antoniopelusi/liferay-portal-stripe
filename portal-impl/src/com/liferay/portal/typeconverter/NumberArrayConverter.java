@@ -24,10 +24,6 @@ import jodd.util.CsvUtil;
  */
 public class NumberArrayConverter implements TypeConverter<Number[]> {
 
-	public NumberArrayConverter() {
-		_bigDecimalConverter = new BigDecimalConverter();
-	}
-
 	@Override
 	public Number[] convert(Object value) {
 		if (value == null) {
@@ -141,6 +137,7 @@ public class NumberArrayConverter implements TypeConverter<Number[]> {
 		return results;
 	}
 
-	private final BigDecimalConverter _bigDecimalConverter;
+	private final BigDecimalConverter _bigDecimalConverter =
+		new BigDecimalConverter();
 
 }

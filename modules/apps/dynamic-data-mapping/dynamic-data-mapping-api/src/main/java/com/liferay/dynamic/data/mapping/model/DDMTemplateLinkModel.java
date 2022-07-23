@@ -178,4 +178,7 @@ public interface DDMTemplateLinkModel
 	 */
 	public void setTemplateId(long templateId);
 
+	@Override
+	public DDMTemplateLink cloneWithOriginalValues();
+
 }

@@ -240,6 +240,88 @@ public class CommerceDiscountLocalServiceUtil {
 			neverExpire, serviceContext);
 	}
 
+	public static CommerceDiscount addOrUpdateCommerceDiscount(
+			String externalReferenceCode, long userId, long commerceDiscountId,
+			String title, String target, boolean useCouponCode,
+			String couponCode, boolean usePercentage,
+			java.math.BigDecimal maximumDiscountAmount,
+			java.math.BigDecimal level1, java.math.BigDecimal level2,
+			java.math.BigDecimal level3, java.math.BigDecimal level4,
+			String limitationType, int limitationTimes, boolean active,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateCommerceDiscount(
+			externalReferenceCode, userId, commerceDiscountId, title, target,
+			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
+			level1, level2, level3, level4, limitationType, limitationTimes,
+			active, displayDateMonth, displayDateDay, displayDateYear,
+			displayDateHour, displayDateMinute, expirationDateMonth,
+			expirationDateDay, expirationDateYear, expirationDateHour,
+			expirationDateMinute, neverExpire, serviceContext);
+	}
+
+	public static CommerceDiscount addOrUpdateCommerceDiscount(
+			String externalReferenceCode, long userId, long commerceDiscountId,
+			String title, String target, boolean useCouponCode,
+			String couponCode, boolean usePercentage,
+			java.math.BigDecimal maximumDiscountAmount, String level,
+			java.math.BigDecimal level1, java.math.BigDecimal level2,
+			java.math.BigDecimal level3, java.math.BigDecimal level4,
+			String limitationType, int limitationTimes,
+			boolean rulesConjunction, boolean active, int displayDateMonth,
+			int displayDateDay, int displayDateYear, int displayDateHour,
+			int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateCommerceDiscount(
+			externalReferenceCode, userId, commerceDiscountId, title, target,
+			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
+			level, level1, level2, level3, level4, limitationType,
+			limitationTimes, rulesConjunction, active, displayDateMonth,
+			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
+			expirationDateMonth, expirationDateDay, expirationDateYear,
+			expirationDateHour, expirationDateMinute, neverExpire,
+			serviceContext);
+	}
+
+	public static CommerceDiscount addOrUpdateCommerceDiscount(
+			String externalReferenceCode, long userId, long commerceDiscountId,
+			String title, String target, boolean useCouponCode,
+			String couponCode, boolean usePercentage,
+			java.math.BigDecimal maximumDiscountAmount, String level,
+			java.math.BigDecimal level1, java.math.BigDecimal level2,
+			java.math.BigDecimal level3, java.math.BigDecimal level4,
+			String limitationType, int limitationTimes,
+			int limitationTimesPerAccount, boolean rulesConjunction,
+			boolean active, int displayDateMonth, int displayDateDay,
+			int displayDateYear, int displayDateHour, int displayDateMinute,
+			int expirationDateMonth, int expirationDateDay,
+			int expirationDateYear, int expirationDateHour,
+			int expirationDateMinute, boolean neverExpire,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateCommerceDiscount(
+			externalReferenceCode, userId, commerceDiscountId, title, target,
+			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
+			level, level1, level2, level3, level4, limitationType,
+			limitationTimes, limitationTimesPerAccount, rulesConjunction,
+			active, displayDateMonth, displayDateDay, displayDateYear,
+			displayDateHour, displayDateMinute, expirationDateMonth,
+			expirationDateDay, expirationDateYear, expirationDateHour,
+			expirationDateMinute, neverExpire, serviceContext);
+	}
+
 	public static void checkCommerceDiscounts() throws PortalException {
 		getService().checkCommerceDiscounts();
 	}
@@ -320,6 +402,10 @@ public class CommerceDiscountLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -463,66 +549,145 @@ public class CommerceDiscountLocalServiceUtil {
 			uuid, companyId);
 	}
 
-	public static List<CommerceDiscount> getAccountAndChannelCommerceDiscounts(
-		long commerceAccountId, long commerceChannelId, long cpDefinitionId) {
+	public static List<CommerceDiscount>
+		getAccountAndChannelAndOrderTypeCommerceDiscounts(
+			long commerceAccountId, long commerceChannelId,
+			long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId) {
 
-		return getService().getAccountAndChannelCommerceDiscounts(
-			commerceAccountId, commerceChannelId, cpDefinitionId);
+		return getService().getAccountAndChannelAndOrderTypeCommerceDiscounts(
+			commerceAccountId, commerceChannelId, commerceOrderTypeId,
+			cpDefinitionId, cpInstanceId);
+	}
+
+	public static List<CommerceDiscount>
+		getAccountAndChannelAndOrderTypeCommerceDiscounts(
+			long commerceAccountId, long commerceChannelId,
+			long commerceOrderTypeId, String target) {
+
+		return getService().getAccountAndChannelAndOrderTypeCommerceDiscounts(
+			commerceAccountId, commerceChannelId, commerceOrderTypeId, target);
 	}
 
 	public static List<CommerceDiscount> getAccountAndChannelCommerceDiscounts(
-		long commerceAccountId, long commerceChannelId,
-		String commerceDiscountTargetType) {
+		long commerceAccountId, long commerceChannelId, long cpDefinitionId,
+		long cpInstanceId) {
 
 		return getService().getAccountAndChannelCommerceDiscounts(
-			commerceAccountId, commerceChannelId, commerceDiscountTargetType);
+			commerceAccountId, commerceChannelId, cpDefinitionId, cpInstanceId);
+	}
+
+	public static List<CommerceDiscount> getAccountAndChannelCommerceDiscounts(
+		long commerceAccountId, long commerceChannelId, String target) {
+
+		return getService().getAccountAndChannelCommerceDiscounts(
+			commerceAccountId, commerceChannelId, target);
+	}
+
+	public static List<CommerceDiscount>
+		getAccountAndOrderTypeCommerceDiscounts(
+			long commerceAccountId, long commerceOrderTypeId, String target) {
+
+		return getService().getAccountAndOrderTypeCommerceDiscounts(
+			commerceAccountId, commerceOrderTypeId, target);
+	}
+
+	public static List<CommerceDiscount>
+		getAccountCommerceAndOrderTypeDiscounts(
+			long commerceAccountId, long commerceOrderTypeId,
+			long cpDefinitionId, long cpInstanceId) {
+
+		return getService().getAccountCommerceAndOrderTypeDiscounts(
+			commerceAccountId, commerceOrderTypeId, cpDefinitionId,
+			cpInstanceId);
 	}
 
 	public static List<CommerceDiscount> getAccountCommerceDiscounts(
-		long commerceAccountId, long cpDefinitionId) {
+		long commerceAccountId, long cpDefinitionId, long cpInstanceId) {
 
 		return getService().getAccountCommerceDiscounts(
-			commerceAccountId, cpDefinitionId);
+			commerceAccountId, cpDefinitionId, cpInstanceId);
 	}
 
 	public static List<CommerceDiscount> getAccountCommerceDiscounts(
-		long commerceAccountId, String commerceDiscountTargetType) {
+		long commerceAccountId, String target) {
 
 		return getService().getAccountCommerceDiscounts(
-			commerceAccountId, commerceDiscountTargetType);
+			commerceAccountId, target);
+	}
+
+	public static List<CommerceDiscount>
+		getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
+			long[] commerceAccountGroupIds, long commerceChannelId,
+			long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId) {
+
+		return getService().
+			getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
+				commerceAccountGroupIds, commerceChannelId, commerceOrderTypeId,
+				cpDefinitionId, cpInstanceId);
+	}
+
+	public static List<CommerceDiscount>
+		getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
+			long[] commerceAccountGroupIds, long commerceChannelId,
+			long commerceOrderTypeId, String target) {
+
+		return getService().
+			getAccountGroupAndChannelAndOrderTypeCommerceDiscount(
+				commerceAccountGroupIds, commerceChannelId, commerceOrderTypeId,
+				target);
 	}
 
 	public static List<CommerceDiscount>
 		getAccountGroupAndChannelCommerceDiscount(
 			long[] commerceAccountGroupIds, long commerceChannelId,
-			long cpDefinitionId) {
+			long cpDefinitionId, long cpInstanceId) {
 
 		return getService().getAccountGroupAndChannelCommerceDiscount(
-			commerceAccountGroupIds, commerceChannelId, cpDefinitionId);
+			commerceAccountGroupIds, commerceChannelId, cpDefinitionId,
+			cpInstanceId);
 	}
 
 	public static List<CommerceDiscount>
 		getAccountGroupAndChannelCommerceDiscount(
 			long[] commerceAccountGroupIds, long commerceChannelId,
-			String commerceDiscountTargetType) {
+			String target) {
 
 		return getService().getAccountGroupAndChannelCommerceDiscount(
-			commerceAccountGroupIds, commerceChannelId,
-			commerceDiscountTargetType);
+			commerceAccountGroupIds, commerceChannelId, target);
+	}
+
+	public static List<CommerceDiscount>
+		getAccountGroupAndOrderTypeCommerceDiscount(
+			long[] commerceAccountGroupIds, long commerceOrderTypeId,
+			long cpDefinitionId, long cpInstanceId) {
+
+		return getService().getAccountGroupAndOrderTypeCommerceDiscount(
+			commerceAccountGroupIds, commerceOrderTypeId, cpDefinitionId,
+			cpInstanceId);
+	}
+
+	public static List<CommerceDiscount>
+		getAccountGroupAndOrderTypeCommerceDiscount(
+			long[] commerceAccountGroupIds, long commerceOrderTypeId,
+			String target) {
+
+		return getService().getAccountGroupAndOrderTypeCommerceDiscount(
+			commerceAccountGroupIds, commerceOrderTypeId, target);
 	}
 
 	public static List<CommerceDiscount> getAccountGroupCommerceDiscount(
-		long[] commerceAccountGroupIds, long cpDefinitionId) {
+		long[] commerceAccountGroupIds, long cpDefinitionId,
+		long cpInstanceId) {
 
 		return getService().getAccountGroupCommerceDiscount(
-			commerceAccountGroupIds, cpDefinitionId);
+			commerceAccountGroupIds, cpDefinitionId, cpInstanceId);
 	}
 
 	public static List<CommerceDiscount> getAccountGroupCommerceDiscount(
-		long[] commerceAccountGroupIds, String commerceDiscountTargetType) {
+		long[] commerceAccountGroupIds, String target) {
 
 		return getService().getAccountGroupCommerceDiscount(
-			commerceAccountGroupIds, commerceDiscountTargetType);
+			commerceAccountGroupIds, target);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
@@ -546,18 +711,36 @@ public class CommerceDiscountLocalServiceUtil {
 			companyId, couponCode, active);
 	}
 
-	public static List<CommerceDiscount> getChannelCommerceDiscounts(
-		long commerceChannelId, long cpDefinitionId) {
+	public static List<CommerceDiscount>
+		getChannelAndOrderTypeCommerceDiscounts(
+			long commerceChannelId, long commerceOrderTypeId,
+			long cpDefinitionId, long cpInstanceId) {
 
-		return getService().getChannelCommerceDiscounts(
-			commerceChannelId, cpDefinitionId);
+		return getService().getChannelAndOrderTypeCommerceDiscounts(
+			commerceChannelId, commerceOrderTypeId, cpDefinitionId,
+			cpInstanceId);
+	}
+
+	public static List<CommerceDiscount>
+		getChannelAndOrderTypeCommerceDiscounts(
+			long commerceChannelId, long commerceOrderTypeId, String target) {
+
+		return getService().getChannelAndOrderTypeCommerceDiscounts(
+			commerceChannelId, commerceOrderTypeId, target);
 	}
 
 	public static List<CommerceDiscount> getChannelCommerceDiscounts(
-		long commerceChannelId, String commerceDiscountTargetType) {
+		long commerceChannelId, long cpDefinitionId, long cpInstanceId) {
 
 		return getService().getChannelCommerceDiscounts(
-			commerceChannelId, commerceDiscountTargetType);
+			commerceChannelId, cpDefinitionId, cpInstanceId);
+	}
+
+	public static List<CommerceDiscount> getChannelCommerceDiscounts(
+		long commerceChannelId, String target) {
+
+		return getService().getChannelCommerceDiscounts(
+			commerceChannelId, target);
 	}
 
 	/**
@@ -673,6 +856,20 @@ public class CommerceDiscountLocalServiceUtil {
 		return getService().getIndexableActionableDynamicQuery();
 	}
 
+	public static List<CommerceDiscount> getOrderTypeCommerceDiscounts(
+		long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId) {
+
+		return getService().getOrderTypeCommerceDiscounts(
+			commerceOrderTypeId, cpDefinitionId, cpInstanceId);
+	}
+
+	public static List<CommerceDiscount> getOrderTypeCommerceDiscounts(
+		long commerceOrderTypeId, String target) {
+
+		return getService().getOrderTypeCommerceDiscounts(
+			commerceOrderTypeId, target);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -699,17 +896,16 @@ public class CommerceDiscountLocalServiceUtil {
 	}
 
 	public static List<CommerceDiscount> getUnqualifiedCommerceDiscounts(
-		long companyId, long cpDefinitionId) {
+		long companyId, long cpDefinitionId, long cpInstanceId) {
 
 		return getService().getUnqualifiedCommerceDiscounts(
-			companyId, cpDefinitionId);
+			companyId, cpDefinitionId, cpInstanceId);
 	}
 
 	public static List<CommerceDiscount> getUnqualifiedCommerceDiscounts(
-		long companyId, String commerceDiscountTargetType) {
+		long companyId, String target) {
 
-		return getService().getUnqualifiedCommerceDiscounts(
-			companyId, commerceDiscountTargetType);
+		return getService().getUnqualifiedCommerceDiscounts(companyId, target);
 	}
 
 	public static int getValidCommerceDiscountsCount(
@@ -882,7 +1078,7 @@ public class CommerceDiscountLocalServiceUtil {
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 #upsertCommerceDiscount(String, long, long, String, String,
+	 #addOrUpdateCommerceDiscount(String, long, long, String, String,
 	 boolean, String, boolean, BigDecimal, BigDecimal,
 	 BigDecimal, BigDecimal, BigDecimal, String, int, boolean,
 	 int, int, int, int, int, int, int, int, int, int, boolean,
@@ -916,7 +1112,7 @@ public class CommerceDiscountLocalServiceUtil {
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 #upsertCommerceDiscount(String, long, long, String, String,
+	 #addOrUpdateCommerceDiscount(String, long, long, String, String,
 	 boolean, String, boolean, BigDecimal, String, BigDecimal,
 	 BigDecimal, BigDecimal, BigDecimal, String, int, boolean,
 	 boolean, int, int, int, int, int, int, int, int, int, int,
@@ -952,7 +1148,7 @@ public class CommerceDiscountLocalServiceUtil {
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 #upsertCommerceDiscount(String, long, long, String, String,
+	 #addOrUpdateCommerceDiscount(String, long, long, String, String,
 	 boolean, String, boolean, BigDecimal, String, BigDecimal,
 	 BigDecimal, BigDecimal, BigDecimal, String, int, int,
 	 boolean, boolean, int, int, int, int, int, int, int, int,
@@ -985,88 +1181,6 @@ public class CommerceDiscountLocalServiceUtil {
 			displayDateMinute, expirationDateMonth, expirationDateDay,
 			expirationDateYear, expirationDateHour, expirationDateMinute,
 			externalReferenceCode, neverExpire, serviceContext);
-	}
-
-	public static CommerceDiscount upsertCommerceDiscount(
-			String externalReferenceCode, long userId, long commerceDiscountId,
-			String title, String target, boolean useCouponCode,
-			String couponCode, boolean usePercentage,
-			java.math.BigDecimal maximumDiscountAmount,
-			java.math.BigDecimal level1, java.math.BigDecimal level2,
-			java.math.BigDecimal level3, java.math.BigDecimal level4,
-			String limitationType, int limitationTimes, boolean active,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().upsertCommerceDiscount(
-			externalReferenceCode, userId, commerceDiscountId, title, target,
-			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
-			level1, level2, level3, level4, limitationType, limitationTimes,
-			active, displayDateMonth, displayDateDay, displayDateYear,
-			displayDateHour, displayDateMinute, expirationDateMonth,
-			expirationDateDay, expirationDateYear, expirationDateHour,
-			expirationDateMinute, neverExpire, serviceContext);
-	}
-
-	public static CommerceDiscount upsertCommerceDiscount(
-			String externalReferenceCode, long userId, long commerceDiscountId,
-			String title, String target, boolean useCouponCode,
-			String couponCode, boolean usePercentage,
-			java.math.BigDecimal maximumDiscountAmount, String level,
-			java.math.BigDecimal level1, java.math.BigDecimal level2,
-			java.math.BigDecimal level3, java.math.BigDecimal level4,
-			String limitationType, int limitationTimes,
-			boolean rulesConjunction, boolean active, int displayDateMonth,
-			int displayDateDay, int displayDateYear, int displayDateHour,
-			int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().upsertCommerceDiscount(
-			externalReferenceCode, userId, commerceDiscountId, title, target,
-			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
-			level, level1, level2, level3, level4, limitationType,
-			limitationTimes, rulesConjunction, active, displayDateMonth,
-			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire,
-			serviceContext);
-	}
-
-	public static CommerceDiscount upsertCommerceDiscount(
-			String externalReferenceCode, long userId, long commerceDiscountId,
-			String title, String target, boolean useCouponCode,
-			String couponCode, boolean usePercentage,
-			java.math.BigDecimal maximumDiscountAmount, String level,
-			java.math.BigDecimal level1, java.math.BigDecimal level2,
-			java.math.BigDecimal level3, java.math.BigDecimal level4,
-			String limitationType, int limitationTimes,
-			int limitationTimesPerAccount, boolean rulesConjunction,
-			boolean active, int displayDateMonth, int displayDateDay,
-			int displayDateYear, int displayDateHour, int displayDateMinute,
-			int expirationDateMonth, int expirationDateDay,
-			int expirationDateYear, int expirationDateHour,
-			int expirationDateMinute, boolean neverExpire,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().upsertCommerceDiscount(
-			externalReferenceCode, userId, commerceDiscountId, title, target,
-			useCouponCode, couponCode, usePercentage, maximumDiscountAmount,
-			level, level1, level2, level3, level4, limitationType,
-			limitationTimes, limitationTimesPerAccount, rulesConjunction,
-			active, displayDateMonth, displayDateDay, displayDateYear,
-			displayDateHour, displayDateMinute, expirationDateMonth,
-			expirationDateDay, expirationDateYear, expirationDateHour,
-			expirationDateMinute, neverExpire, serviceContext);
 	}
 
 	public static CommerceDiscountLocalService getService() {

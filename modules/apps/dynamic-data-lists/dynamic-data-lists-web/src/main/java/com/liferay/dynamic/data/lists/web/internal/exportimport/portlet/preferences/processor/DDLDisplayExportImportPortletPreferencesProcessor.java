@@ -23,7 +23,9 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.exportimport.portlet.preferences.processor.Capability;
 import com.liferay.exportimport.portlet.preferences.processor.ExportImportPortletPreferencesProcessor;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
@@ -68,10 +70,23 @@ public class DDLDisplayExportImportPortletPreferencesProcessor
 	}
 
 	@Override
+	public boolean isPublishDisplayedContent() {
+		return false;
+	}
+
+	@Override
 	public PortletPreferences processExportPortletPreferences(
 			PortletDataContext portletDataContext,
 			PortletPreferences portletPreferences)
 		throws PortletDataException {
+
+		if (!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.PORTLET_DATA) &&
+			MergeLayoutPrototypesThreadLocal.isInProgress()) {
+
+			return portletPreferences;
+		}
 
 		try {
 			portletDataContext.addPortletPermissions(
@@ -105,7 +120,7 @@ public class DDLDisplayExportImportPortletPreferencesProcessor
 				portletDataContext, portletId, recordSet);
 
 			ActionableDynamicQuery recordActionableDynamicQuery =
-				getRecordActionableDynamicQuery(
+				_getRecordActionableDynamicQuery(
 					portletDataContext, recordSet, portletId);
 
 			try {
@@ -191,35 +206,6 @@ public class DDLDisplayExportImportPortletPreferencesProcessor
 		return portletPreferences;
 	}
 
-	protected ActionableDynamicQuery getRecordActionableDynamicQuery(
-		final PortletDataContext portletDataContext,
-		final DDLRecordSet recordSet, final String portletId) {
-
-		ActionableDynamicQuery recordActionableDynamicQuery =
-			_ddlRecordStagedModelRepository.getExportActionableDynamicQuery(
-				portletDataContext);
-
-		final ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
-			recordActionableDynamicQuery.getAddCriteriaMethod();
-
-		recordActionableDynamicQuery.setAddCriteriaMethod(
-			dynamicQuery -> {
-				addCriteriaMethod.addCriteria(dynamicQuery);
-
-				Property property = PropertyFactoryUtil.forName("recordSetId");
-
-				dynamicQuery.add(property.eq(recordSet.getRecordSetId()));
-			});
-
-		recordActionableDynamicQuery.setGroupId(recordSet.getGroupId());
-		recordActionableDynamicQuery.setPerformActionMethod(
-			(DDLRecord record) ->
-				StagedModelDataHandlerUtil.exportReferenceStagedModel(
-					portletDataContext, portletId, record));
-
-		return recordActionableDynamicQuery;
-	}
-
 	@Reference(unbind = "-")
 	protected void setDDLRecordSetLocalService(
 		DDLRecordSetLocalService ddlRecordSetLocalService) {
@@ -267,6 +253,35 @@ public class DDLDisplayExportImportPortletPreferencesProcessor
 
 		StagedModelDataHandlerUtil.exportReferenceStagedModel(
 			portletDataContext, portletId, ddmTemplate);
+	}
+
+	private ActionableDynamicQuery _getRecordActionableDynamicQuery(
+		PortletDataContext portletDataContext, DDLRecordSet recordSet,
+		String portletId) {
+
+		ActionableDynamicQuery recordActionableDynamicQuery =
+			_ddlRecordStagedModelRepository.getExportActionableDynamicQuery(
+				portletDataContext);
+
+		ActionableDynamicQuery.AddCriteriaMethod addCriteriaMethod =
+			recordActionableDynamicQuery.getAddCriteriaMethod();
+
+		recordActionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				addCriteriaMethod.addCriteria(dynamicQuery);
+
+				Property property = PropertyFactoryUtil.forName("recordSetId");
+
+				dynamicQuery.add(property.eq(recordSet.getRecordSetId()));
+			});
+
+		recordActionableDynamicQuery.setGroupId(recordSet.getGroupId());
+		recordActionableDynamicQuery.setPerformActionMethod(
+			(DDLRecord record) ->
+				StagedModelDataHandlerUtil.exportReferenceStagedModel(
+					portletDataContext, portletId, record));
+
+		return recordActionableDynamicQuery;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

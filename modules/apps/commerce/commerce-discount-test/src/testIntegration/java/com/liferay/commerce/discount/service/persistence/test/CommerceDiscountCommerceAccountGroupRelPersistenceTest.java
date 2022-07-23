@@ -134,6 +134,9 @@ public class CommerceDiscountCommerceAccountGroupRelPersistenceTest {
 			newCommerceDiscountCommerceAccountGroupRel = _persistence.create(
 				pk);
 
+		newCommerceDiscountCommerceAccountGroupRel.setMvccVersion(
+			RandomTestUtil.nextLong());
+
 		newCommerceDiscountCommerceAccountGroupRel.setCompanyId(
 			RandomTestUtil.nextLong());
 
@@ -163,6 +166,9 @@ public class CommerceDiscountCommerceAccountGroupRelPersistenceTest {
 				_persistence.findByPrimaryKey(
 					newCommerceDiscountCommerceAccountGroupRel.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCommerceDiscountCommerceAccountGroupRel.getMvccVersion(),
+			newCommerceDiscountCommerceAccountGroupRel.getMvccVersion());
 		Assert.assertEquals(
 			existingCommerceDiscountCommerceAccountGroupRel.
 				getCommerceDiscountCommerceAccountGroupRelId(),
@@ -215,11 +221,11 @@ public class CommerceDiscountCommerceAccountGroupRelPersistenceTest {
 	}
 
 	@Test
-	public void testCountByC_C() throws Exception {
-		_persistence.countByC_C(
+	public void testCountByCDI_CAGI() throws Exception {
+		_persistence.countByCDI_CAGI(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
-		_persistence.countByC_C(0L, 0L);
+		_persistence.countByCDI_CAGI(0L, 0L);
 	}
 
 	@Test
@@ -255,7 +261,7 @@ public class CommerceDiscountCommerceAccountGroupRelPersistenceTest {
 		getOrderByComparator() {
 
 		return OrderByComparatorFactoryUtil.create(
-			"CDiscountCAccountGroupRel",
+			"CDiscountCAccountGroupRel", "mvccVersion", true,
 			"commerceDiscountCommerceAccountGroupRelId", true, "companyId",
 			true, "userId", true, "userName", true, "createDate", true,
 			"modifiedDate", true, "commerceDiscountId", true,
@@ -621,6 +627,9 @@ public class CommerceDiscountCommerceAccountGroupRelPersistenceTest {
 
 		CommerceDiscountCommerceAccountGroupRel
 			commerceDiscountCommerceAccountGroupRel = _persistence.create(pk);
+
+		commerceDiscountCommerceAccountGroupRel.setMvccVersion(
+			RandomTestUtil.nextLong());
 
 		commerceDiscountCommerceAccountGroupRel.setCompanyId(
 			RandomTestUtil.nextLong());

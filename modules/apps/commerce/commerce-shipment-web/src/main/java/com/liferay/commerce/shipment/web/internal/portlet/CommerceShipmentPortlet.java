@@ -22,7 +22,7 @@ import com.liferay.commerce.service.CommerceAddressService;
 import com.liferay.commerce.service.CommerceOrderItemService;
 import com.liferay.commerce.service.CommerceOrderLocalService;
 import com.liferay.commerce.shipment.web.internal.display.context.CommerceShipmentDisplayContext;
-import com.liferay.commerce.shipment.web.internal.portlet.action.ActionHelper;
+import com.liferay.commerce.shipment.web.internal.portlet.action.helper.ActionHelper;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.CountryService;
@@ -61,7 +61,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CommercePortletKeys.COMMERCE_SHIPMENT,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CommerceShipmentPortlet.class, Portlet.class}
 )
@@ -111,7 +112,7 @@ public class CommerceShipmentPortlet extends MVCPortlet {
 	private Portal _portal;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_SHIPMENT + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_SHIPMENT + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

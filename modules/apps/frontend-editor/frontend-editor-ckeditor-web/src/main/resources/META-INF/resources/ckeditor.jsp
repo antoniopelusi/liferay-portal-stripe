@@ -105,7 +105,7 @@ if (inlineEdit && Validator.isNotNull(inlineEditSaveURL)) {
 	var="editor"
 >
 	<c:if test="<%= Validator.isNotNull(placeholder) %>">
-		<label class="control-label" for="<%= name %>">
+		<label class="control-label" for="<%= HtmlUtil.escapeAttribute(name) %>">
 			<liferay-ui:message key="<%= placeholder %>" />
 		</label>
 	</c:if>
@@ -140,7 +140,7 @@ name = HtmlUtil.escapeJS(name);
 	var windowNode = A.getWin();
 
 	var instanceDataReady = false;
-	var instancePendingData;
+	var instancePendingData = null;
 
 	var getInitialContent = function () {
 		var data;
@@ -625,7 +625,7 @@ name = HtmlUtil.escapeJS(name);
 		});
 
 		ckEditor.on('dataReady', (event) => {
-			if (instancePendingData) {
+			if (instancePendingData !== null) {
 				var pendingData = instancePendingData;
 
 				instancePendingData = null;

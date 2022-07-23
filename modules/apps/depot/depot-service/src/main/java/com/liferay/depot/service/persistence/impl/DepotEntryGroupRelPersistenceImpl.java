@@ -20,10 +20,10 @@ import com.liferay.depot.model.DepotEntryGroupRelTable;
 import com.liferay.depot.model.impl.DepotEntryGroupRelImpl;
 import com.liferay.depot.model.impl.DepotEntryGroupRelModelImpl;
 import com.liferay.depot.service.persistence.DepotEntryGroupRelPersistence;
+import com.liferay.depot.service.persistence.DepotEntryGroupRelUtil;
 import com.liferay.depot.service.persistence.impl.constants.DepotPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,21 +34,23 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -57,12 +59,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -3845,6 +3844,8 @@ public class DepotEntryGroupRelPersistenceImpl
 			depotEntryGroupRel);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the depot entry group rels in the entity cache if it is enabled.
 	 *
@@ -3852,6 +3853,14 @@ public class DepotEntryGroupRelPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<DepotEntryGroupRel> depotEntryGroupRels) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (depotEntryGroupRels.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (DepotEntryGroupRel depotEntryGroupRel : depotEntryGroupRels) {
 			if (entityCache.getResult(
 					DepotEntryGroupRelImpl.class,
@@ -3941,7 +3950,7 @@ public class DepotEntryGroupRelPersistenceImpl
 		depotEntryGroupRel.setNew(true);
 		depotEntryGroupRel.setPrimaryKey(depotEntryGroupRelId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		depotEntryGroupRel.setUuid(uuid);
 
@@ -4066,7 +4075,7 @@ public class DepotEntryGroupRelPersistenceImpl
 			(DepotEntryGroupRelModelImpl)depotEntryGroupRel;
 
 		if (Validator.isNull(depotEntryGroupRel.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			depotEntryGroupRel.setUuid(uuid);
 		}
@@ -4074,25 +4083,25 @@ public class DepotEntryGroupRelPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (depotEntryGroupRel.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				depotEntryGroupRel.setCreateDate(now);
+				depotEntryGroupRel.setCreateDate(date);
 			}
 			else {
 				depotEntryGroupRel.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!depotEntryGroupRelModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				depotEntryGroupRel.setModifiedDate(now);
+				depotEntryGroupRel.setModifiedDate(date);
 			}
 			else {
 				depotEntryGroupRel.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4392,13 +4401,9 @@ public class DepotEntryGroupRelPersistenceImpl
 	 * Initializes the depot entry group rel persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new DepotEntryGroupRelModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4542,13 +4547,31 @@ public class DepotEntryGroupRelPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByS_TGI",
 			new String[] {Boolean.class.getName(), Long.class.getName()},
 			new String[] {"searchable", "toGroupId"}, false);
+
+		_setDepotEntryGroupRelUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(DepotEntryGroupRelImpl.class.getName());
+		_setDepotEntryGroupRelUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(DepotEntryGroupRelImpl.class.getName());
+	}
+
+	private void _setDepotEntryGroupRelUtilPersistence(
+		DepotEntryGroupRelPersistence depotEntryGroupRelPersistence) {
+
+		try {
+			Field field = DepotEntryGroupRelUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, depotEntryGroupRelPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -4576,8 +4599,6 @@ public class DepotEntryGroupRelPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -4616,97 +4637,11 @@ public class DepotEntryGroupRelPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class DepotEntryGroupRelModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			DepotEntryGroupRelModelImpl depotEntryGroupRelModelImpl =
-				(DepotEntryGroupRelModelImpl)baseModel;
-
-			long columnBitmask = depotEntryGroupRelModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					depotEntryGroupRelModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						depotEntryGroupRelModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					depotEntryGroupRelModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return DepotEntryGroupRelImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return DepotEntryGroupRelTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			DepotEntryGroupRelModelImpl depotEntryGroupRelModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						depotEntryGroupRelModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = depotEntryGroupRelModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private DepotEntryGroupRelModelArgumentsResolver
+		_depotEntryGroupRelModelArgumentsResolver;
 
 }

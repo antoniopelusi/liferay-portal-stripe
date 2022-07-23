@@ -27,29 +27,30 @@ public class StorageQuotaUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select companyId, sum(size_) from DLFileVersion group by " +
 					"companyId");
-			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"insert into DLStorageQuota (mvccVersion, " +
-						"dlStorageQuotaId, companyId, storageSize) values " +
-							"(?, ?, ?, ?)"));
-			ResultSet rs = ps1.executeQuery()) {
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"insert into DLStorageQuota (mvccVersion, " +
+							"dlStorageQuotaId, companyId, storageSize) " +
+								"values (?, ?, ?, ?)"));
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				long companyId = rs.getLong(1);
-				long storageSize = rs.getLong(2);
+			while (resultSet.next()) {
+				long companyId = resultSet.getLong(1);
+				long storageSize = resultSet.getLong(2);
 
-				ps2.setLong(1, 0);
-				ps2.setLong(2, increment());
-				ps2.setLong(3, companyId);
-				ps2.setLong(4, storageSize);
+				preparedStatement2.setLong(1, 0);
+				preparedStatement2.setLong(2, increment());
+				preparedStatement2.setLong(3, companyId);
+				preparedStatement2.setLong(4, storageSize);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

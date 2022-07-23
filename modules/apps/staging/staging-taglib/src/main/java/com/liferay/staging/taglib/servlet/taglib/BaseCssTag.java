@@ -16,7 +16,6 @@ package com.liferay.staging.taglib.servlet.taglib;
 
 import com.liferay.frontend.taglib.util.TagAccessor;
 import com.liferay.frontend.taglib.util.TagResourceHandler;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.taglib.util.IncludeTag;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,12 +41,8 @@ public abstract class BaseCssTag extends IncludeTag {
 	}
 
 	private void _outputStylesheetLink() {
-		StringBundler sb = new StringBundler(2);
-
-		sb.append(getTagNameForCssPath());
-		sb.append("/css/main.css");
-
-		_tagResourceHandler.outputBundleStyleSheet(sb.toString());
+		_tagResourceHandler.outputBundleStyleSheet(
+			getTagNameForCssPath() + "/css/main.css");
 	}
 
 	private final TagResourceHandler _tagResourceHandler =

@@ -18,6 +18,7 @@ import com.liferay.commerce.model.CommerceShipmentItem;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class CommerceShipmentItemCacheModel
-	implements CacheModel<CommerceShipmentItem>, Externalizable {
+	implements CacheModel<CommerceShipmentItem>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object object) {
@@ -48,8 +49,9 @@ public class CommerceShipmentItemCacheModel
 		CommerceShipmentItemCacheModel commerceShipmentItemCacheModel =
 			(CommerceShipmentItemCacheModel)object;
 
-		if (commerceShipmentItemId ==
-				commerceShipmentItemCacheModel.commerceShipmentItemId) {
+		if ((commerceShipmentItemId ==
+				commerceShipmentItemCacheModel.commerceShipmentItemId) &&
+			(mvccVersion == commerceShipmentItemCacheModel.mvccVersion)) {
 
 			return true;
 		}
@@ -59,14 +61,30 @@ public class CommerceShipmentItemCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, commerceShipmentItemId);
+		int hashCode = HashUtil.hash(0, commerceShipmentItemId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(27);
 
-		sb.append("{commerceShipmentItemId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
+		sb.append(", commerceShipmentItemId=");
 		sb.append(commerceShipmentItemId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -97,6 +115,16 @@ public class CommerceShipmentItemCacheModel
 	public CommerceShipmentItem toEntityModel() {
 		CommerceShipmentItemImpl commerceShipmentItemImpl =
 			new CommerceShipmentItemImpl();
+
+		commerceShipmentItemImpl.setMvccVersion(mvccVersion);
+
+		if (externalReferenceCode == null) {
+			commerceShipmentItemImpl.setExternalReferenceCode("");
+		}
+		else {
+			commerceShipmentItemImpl.setExternalReferenceCode(
+				externalReferenceCode);
+		}
 
 		commerceShipmentItemImpl.setCommerceShipmentItemId(
 			commerceShipmentItemId);
@@ -138,6 +166,9 @@ public class CommerceShipmentItemCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		externalReferenceCode = objectInput.readUTF();
+
 		commerceShipmentItemId = objectInput.readLong();
 
 		groupId = objectInput.readLong();
@@ -160,6 +191,15 @@ public class CommerceShipmentItemCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
+		}
+
 		objectOutput.writeLong(commerceShipmentItemId);
 
 		objectOutput.writeLong(groupId);
@@ -187,6 +227,8 @@ public class CommerceShipmentItemCacheModel
 		objectOutput.writeInt(quantity);
 	}
 
+	public long mvccVersion;
+	public String externalReferenceCode;
 	public long commerceShipmentItemId;
 	public long groupId;
 	public long companyId;

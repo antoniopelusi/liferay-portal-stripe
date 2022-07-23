@@ -17,14 +17,14 @@ import React from 'react';
 import {useItems} from '../contexts/ItemsContext';
 import {MenuItem} from './MenuItem';
 
-export const Menu = () => {
+export function Menu() {
 	const items = useItems();
 
 	return (
-		<div className="container p-3" role="list">
+		<div className="container p-3 pt-4" role="list">
 			{items.map((item) => (
 				<MenuItem item={item} key={item.siteNavigationMenuItemId} />
 			))}
 		</div>
 	);
-};
+}

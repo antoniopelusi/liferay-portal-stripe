@@ -48,14 +48,14 @@ public class UpgradeCountry extends UpgradeProcess {
 	private void _updateAddressCountryToChina(long oldCountryId, long regionId)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update Address set countryId = 2, regionId = ? where " +
 					"countryId = ?")) {
 
-			ps.setLong(1, regionId);
-			ps.setLong(2, oldCountryId);
+			preparedStatement.setLong(1, regionId);
+			preparedStatement.setLong(2, oldCountryId);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 

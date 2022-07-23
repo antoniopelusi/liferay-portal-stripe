@@ -12,19 +12,21 @@
  * details.
  */
 
-import ClayAlert from '@clayui/alert';
+import ClayEmptyState from '@clayui/empty-state';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import {FRAGMENTS_DISPLAY_STYLES} from '../../../app/config/constants/fragmentsDisplayStyles';
 import TabCollection from './TabCollection';
 
 export default function SearchResultsPanel({filteredTabs}) {
 	return filteredTabs.length ? (
 		filteredTabs.map((tab, index) => (
 			<div key={index}>
-				<div className="page-editor__fragments-widgets__search-results-panel__filter-subtitle">
+				<div className="font-weight-semi-bold page-editor__fragments-widgets__search-results-panel__filter-subtitle py-2">
 					{tab.label}
 				</div>
+
 				{tab.collections.map((collection, index) => (
 					<TabCollection
 						collection={collection}
@@ -36,14 +38,18 @@ export default function SearchResultsPanel({filteredTabs}) {
 			</div>
 		))
 	) : (
-		<ClayAlert displayType="info" title={Liferay.Language.get('info')}>
-			{Liferay.Language.get(
-				'there-are-no-fragments-or-widgets-on-this-page'
+		<ClayEmptyState
+			description={Liferay.Language.get(
+				'try-again-with-a-different-search'
 			)}
-		</ClayAlert>
+			imgSrc={`${themeDisplay.getPathThemeImages()}/states/search_state.gif`}
+			small
+			title={Liferay.Language.get('no-results-found')}
+		/>
 	);
 }
 
 SearchResultsPanel.proptypes = {
+	displayStyle: PropTypes.oneOf(Object.values(FRAGMENTS_DISPLAY_STYLES)),
 	filteredTabs: PropTypes.object.isRequired,
 };

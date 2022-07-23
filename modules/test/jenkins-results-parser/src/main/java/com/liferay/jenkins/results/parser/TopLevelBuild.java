@@ -30,6 +30,7 @@ import com.liferay.jenkins.results.parser.failure.message.generator.PoshiTestFai
 import com.liferay.jenkins.results.parser.failure.message.generator.PoshiValidationFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.RebaseFailureMessageGenerator;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 
@@ -47,6 +48,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
@@ -82,40 +84,6 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 		if (getTopLevelBuild() == this) {
 			addDownstreamBuildsTimelineData(timelineData);
-		}
-	}
-
-	@Override
-	public void archive(String archiveName) {
-		super.archive(archiveName);
-
-		if (getParentBuild() == null) {
-			Properties archiveProperties = new Properties();
-
-			archiveProperties.setProperty(
-				"top.level.build.url", replaceBuildURL(getBuildURL()));
-
-			try {
-				StringWriter sw = new StringWriter();
-
-				archiveProperties.store(sw, null);
-
-				writeArchiveFile(
-					sw.toString(), archiveName + "/archive.properties");
-			}
-			catch (IOException ioException) {
-				throw new RuntimeException(
-					"Unable to write archive properties");
-			}
-		}
-
-		try {
-			writeArchiveFile(
-				getJenkinsReport(), getArchivePath() + "/jenkins-report.html");
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(
-				"Unable to archive Jenkins report", ioException);
 		}
 	}
 
@@ -160,6 +128,47 @@ public abstract class TopLevelBuild extends BaseBuild {
 	}
 
 	@Override
+	public List<Callable<Object>> getArchiveCallables() {
+		List<Callable<Object>> archiveCallables = super.getArchiveCallables();
+
+		archiveCallables.add(
+			new Callable<Object>() {
+
+				@Override
+				public Object call() {
+					_archiveBuildDatabase();
+
+					return null;
+				}
+
+			});
+		archiveCallables.add(
+			new Callable<Object>() {
+
+				@Override
+				public Object call() {
+					_archiveJenkinsReport();
+
+					return null;
+				}
+
+			});
+		archiveCallables.add(
+			new Callable<Object>() {
+
+				@Override
+				public Object call() {
+					_archiveProperties();
+
+					return null;
+				}
+
+			});
+
+		return archiveCallables;
+	}
+
+	@Override
 	public URL getArtifactsBaseURL() {
 		StringBuilder sb = new StringBuilder();
 
@@ -176,12 +185,17 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 		TopLevelBuild topLevelBuild = getTopLevelBuild();
 
+		sb.append("/");
+
+		sb.append(
+			JenkinsResultsParserUtil.toDateString(
+				new Date(topLevelBuild.getStartTime()), "yyyy-MM",
+				"America/Los_Angeles"));
+
 		JenkinsMaster jenkinsMaster = topLevelBuild.getJenkinsMaster();
 
 		sb.append("/");
 		sb.append(jenkinsMaster.getName());
-		sb.append("/");
-		sb.append(topLevelBuild.getStartTime());
 		sb.append("/");
 		sb.append(topLevelBuild.getJobName());
 		sb.append("/");
@@ -204,8 +218,15 @@ public abstract class TopLevelBuild extends BaseBuild {
 		return getTempMap(tempMapName);
 	}
 
+	@Override
 	public JSONObject getBuildResultsJSONObject(
 		String[] buildResults, String[] testStatuses, String[] dataTypes) {
+
+		if (dataTypes == null) {
+			dataTypes = new String[] {"name", "status"};
+		}
+
+		List<String> dataTypesList = Arrays.asList(dataTypes);
 
 		JSONObject buildResultsJSONObject = new JSONObject();
 
@@ -229,53 +250,31 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 		buildResultsJSONObject.put("batchResults", downstreamBuildJSONArray);
 		buildResultsJSONObject.put("buildNumber", getBuildNumber());
+
+		if (dataTypesList.contains("duration")) {
+			buildResultsJSONObject.put("duration", getDuration());
+		}
+
 		buildResultsJSONObject.put("jobURL", getJobURL());
+		buildResultsJSONObject.put("result", getResult());
 		buildResultsJSONObject.put("startTime", getStartTime());
+
+		if (dataTypesList.contains("stopWatchRecords")) {
+			StopWatchRecordsGroup stopWatchRecordsGroup =
+				getStopWatchRecordsGroup();
+
+			JSONArray stopWatchRecordsGroupJSONArray =
+				stopWatchRecordsGroup.getJSONArray();
+
+			if (stopWatchRecordsGroupJSONArray.length() > 0) {
+				buildResultsJSONObject.put(
+					"stopWatchRecords", stopWatchRecordsGroupJSONArray);
+			}
+		}
+
 		buildResultsJSONObject.put("upstreamBranchSHA", getUpstreamBranchSHA());
 
 		return buildResultsJSONObject;
-	}
-
-	public String getCompanionBranchName() {
-		TopLevelBuild topLevelBuild = getTopLevelBuild();
-
-		Map<String, String> gitRepositoryGitDetailsTempMap =
-			topLevelBuild.getCompanionGitRepositoryDetailsTempMap();
-
-		return gitRepositoryGitDetailsTempMap.get("github.sender.branch.name");
-	}
-
-	public Map<String, String> getCompanionGitRepositoryDetailsTempMap() {
-		String branchName = getBranchName();
-		String branchType = "ee";
-		String gitRepositoryType = getBaseGitRepositoryType();
-
-		if (branchName.endsWith("-private")) {
-			branchType = "base";
-		}
-
-		String tempMapName = JenkinsResultsParserUtil.combine(
-			"git.", gitRepositoryType, ".", branchType, ".properties");
-
-		return getTempMap(tempMapName);
-	}
-
-	public String getCompanionGitRepositorySHA() {
-		TopLevelBuild topLevelBuild = getTopLevelBuild();
-
-		Map<String, String> gitRepositoryGitDetailsTempMap =
-			topLevelBuild.getCompanionGitRepositoryDetailsTempMap();
-
-		return gitRepositoryGitDetailsTempMap.get("github.sender.branch.sha");
-	}
-
-	public String getCompanionUsername() {
-		TopLevelBuild topLevelBuild = getTopLevelBuild();
-
-		Map<String, String> gitRepositoryGitDetailsTempMap =
-			topLevelBuild.getCompanionGitRepositoryDetailsTempMap();
-
-		return gitRepositoryGitDetailsTempMap.get("github.sender.username");
 	}
 
 	public Build getControllerBuild() {
@@ -483,6 +482,22 @@ public abstract class TopLevelBuild extends BaseBuild {
 			String.valueOf(getBuildNumber()), "/jenkins-report.html");
 	}
 
+	public File getJobSummaryDir() {
+		File jobSummaryDir = new File(getBuildDirPath(), "job-summary");
+
+		if (!jobSummaryDir.exists()) {
+			try {
+				CIJobSummaryReportUtil.writeJobSummaryReport(
+					jobSummaryDir, getJob());
+			}
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
+			}
+		}
+
+		return jobSummaryDir;
+	}
+
 	@Override
 	public Map<String, String> getMetricLabels() {
 		Map<String, String> metricLabels = new TreeMap<>();
@@ -493,21 +508,8 @@ public abstract class TopLevelBuild extends BaseBuild {
 		return metricLabels;
 	}
 
-	@Override
-	public String getStatusReport(int indentSize) {
-		String statusReport = super.getStatusReport(indentSize);
-
-		if (getDownstreamBuildCount(null) > 0) {
-			while (statusReport.endsWith("\n")) {
-				statusReport = statusReport.substring(
-					0, statusReport.length() - 1);
-			}
-
-			statusReport += " / ";
-		}
-
-		return statusReport + "Update took " + _updateDuration +
-			" milliseconds.\n";
+	public List<String> getProjectNames() {
+		return Collections.emptyList();
 	}
 
 	@Override
@@ -554,6 +556,21 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 	public BaseBuild.TimelineData getTimelineData() {
 		return new BaseBuild.TimelineData(500, this);
+	}
+
+	public URL getUserContentURL() {
+		JenkinsMaster jenkinsMaster = getJenkinsMaster();
+
+		try {
+			return new URL(
+				JenkinsResultsParserUtil.combine(
+					"https://", jenkinsMaster.getName(),
+					".liferay.com/userContent/jobs/", getJobName(), "/builds/",
+					String.valueOf(getBuildNumber())));
+		}
+		catch (MalformedURLException malformedURLException) {
+			throw new RuntimeException(malformedURLException);
+		}
 	}
 
 	public Element getValidationGitHubMessageElement() {
@@ -612,6 +629,97 @@ public abstract class TopLevelBuild extends BaseBuild {
 		}
 	}
 
+	public static class WorkspaceBranchInformation
+		implements BranchInformation {
+
+		@Override
+		public String getCachedRemoteGitRefName() {
+			return _workspaceGitRepository.getGitHubDevBranchName();
+		}
+
+		@Override
+		public String getOriginName() {
+			return _workspaceGitRepository.getSenderBranchUsername();
+		}
+
+		@Override
+		public Integer getPullRequestNumber() {
+			Matcher matcher = _pattern.matcher(
+				_workspaceGitRepository.getGitHubURL());
+
+			if (!matcher.find()) {
+				return 0;
+			}
+
+			return Integer.parseInt(matcher.group("pullNumber"));
+		}
+
+		@Override
+		public String getReceiverUsername() {
+			Matcher matcher = _pattern.matcher(
+				_workspaceGitRepository.getGitHubURL());
+
+			if (!matcher.find()) {
+				return "liferay";
+			}
+
+			return matcher.group("username");
+		}
+
+		@Override
+		public String getRepositoryName() {
+			return _workspaceGitRepository.getName();
+		}
+
+		@Override
+		public String getSenderBranchName() {
+			return _workspaceGitRepository.getSenderBranchName();
+		}
+
+		@Override
+		public String getSenderBranchSHA() {
+			return _workspaceGitRepository.getSenderBranchSHA();
+		}
+
+		@Override
+		public RemoteGitRef getSenderRemoteGitRef() {
+			String remoteURL = JenkinsResultsParserUtil.combine(
+				"git@github.com:", getSenderUsername(), "/",
+				getRepositoryName(), ".git");
+
+			return GitUtil.getRemoteGitRef(
+				getSenderBranchName(), new File("."), remoteURL);
+		}
+
+		@Override
+		public String getSenderUsername() {
+			return _workspaceGitRepository.getSenderBranchUsername();
+		}
+
+		@Override
+		public String getUpstreamBranchName() {
+			return _workspaceGitRepository.getUpstreamBranchName();
+		}
+
+		@Override
+		public String getUpstreamBranchSHA() {
+			return _workspaceGitRepository.getBaseBranchSHA();
+		}
+
+		protected WorkspaceBranchInformation(
+			WorkspaceGitRepository workspaceGitRepository) {
+
+			_workspaceGitRepository = workspaceGitRepository;
+		}
+
+		private static final Pattern _pattern = Pattern.compile(
+			"https://github.com/(?<username>[^/]+)/[^/]/pull/" +
+				"(?<pullNumber>\\d+)");
+
+		private final WorkspaceGitRepository _workspaceGitRepository;
+
+	}
+
 	protected TopLevelBuild(String url) {
 		this(url, null);
 	}
@@ -659,55 +767,6 @@ public abstract class TopLevelBuild extends BaseBuild {
 					StatsDMetricsUtil.generateGaugeDeltaMetric(
 						"build_slave_usage_gauge", 1, getMetricLabels()));
 			}
-		}
-	}
-
-	@Override
-	protected void archiveJSON() {
-		super.archiveJSON();
-
-		try {
-			Properties buildProperties =
-				JenkinsResultsParserUtil.getBuildProperties();
-
-			String gitRepositoryTypes = buildProperties.getProperty(
-				"repository.types");
-
-			if (jobName.startsWith(
-					"test-subrepository-acceptance-pullrequest")) {
-
-				gitRepositoryTypes += "," + getBaseGitRepositoryName();
-			}
-
-			for (String gitRepositoryType : gitRepositoryTypes.split(",")) {
-				try {
-					JSONObject gitRepositoryDetailsJSONObject =
-						JenkinsResultsParserUtil.toJSONObject(
-							getGitRepositoryDetailsPropertiesTempMapURL(
-								gitRepositoryType));
-
-					Set<?> set = gitRepositoryDetailsJSONObject.keySet();
-
-					if (set.isEmpty()) {
-						continue;
-					}
-
-					writeArchiveFile(
-						gitRepositoryDetailsJSONObject.toString(4),
-						getArchivePath() + "/git." + gitRepositoryType +
-							".properties.json");
-				}
-				catch (IOException ioException) {
-					throw new RuntimeException(
-						"Unable to create git." + gitRepositoryType +
-							".properties.json",
-						ioException);
-				}
-			}
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(
-				"Unable to get build properties", ioException);
 		}
 	}
 
@@ -798,8 +857,18 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 		String baseGitRepositorySHA = null;
 
-		if (!baseGitRepositoryName.equals("liferay-jenkins-ee") &&
-			baseGitRepositoryName.endsWith("-ee")) {
+		if ((this instanceof WorkspaceBuild) && !fromArchive) {
+			WorkspaceBuild workspaceBuild = (WorkspaceBuild)this;
+
+			Workspace workspace = workspaceBuild.getWorkspace();
+
+			WorkspaceGitRepository workspaceGitRepository =
+				workspace.getPrimaryWorkspaceGitRepository();
+
+			baseGitRepositorySHA = workspaceGitRepository.getBaseBranchSHA();
+		}
+		else if (!baseGitRepositoryName.equals("liferay-jenkins-ee") &&
+				 baseGitRepositoryName.endsWith("-ee")) {
 
 			baseGitRepositorySHA = getBaseGitRepositorySHA(
 				baseGitRepositoryName.substring(
@@ -1076,12 +1145,6 @@ public abstract class TopLevelBuild extends BaseBuild {
 	}
 
 	protected Element getJenkinsReportBodyElement() {
-		String buildURL = getBuildURL();
-
-		Element headingElement = Dom4JUtil.getNewElement(
-			"h1", null, "Jenkins report for ",
-			Dom4JUtil.getNewAnchorElement(buildURL, buildURL));
-
 		Element subheadingElement = null;
 
 		JSONObject jobJSONObject = getBuildJSONObject();
@@ -1100,6 +1163,12 @@ public abstract class TopLevelBuild extends BaseBuild {
 					documentException);
 			}
 		}
+
+		String buildURL = getBuildURL();
+
+		Element headingElement = Dom4JUtil.getNewElement(
+			"h1", null, "Jenkins report for ",
+			Dom4JUtil.getNewAnchorElement(buildURL, buildURL));
 
 		return Dom4JUtil.getNewElement(
 			"body", null, headingElement, subheadingElement,
@@ -1777,6 +1846,159 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 	protected static final Pattern gitRepositoryTempMapNamePattern =
 		Pattern.compile("git\\.(?<gitRepositoryType>.*)\\.properties");
+
+	private void _archiveBuildDatabase() {
+		String status = getStatus();
+
+		String urlSuffix = "build-database.json";
+
+		File archiveFile = getArchiveFile(urlSuffix);
+
+		if (!status.equals("completed")) {
+			if (archiveFile.exists()) {
+				JenkinsResultsParserUtil.delete(archiveFile);
+			}
+
+			return;
+		}
+
+		if (archiveFile.exists()) {
+			return;
+		}
+
+		long start = JenkinsResultsParserUtil.getCurrentTimeMillis();
+
+		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase(this);
+
+		try {
+			JSONObject buildDatabaseJSONObject = new JSONObject(
+				JenkinsResultsParserUtil.read(
+					buildDatabase.getBuildDatabaseFile()));
+
+			writeArchiveFile(
+				buildDatabaseJSONObject.toString(4),
+				getArchivePath() + "/" + urlSuffix);
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(
+				"Unable to archive " + urlSuffix, ioException);
+		}
+		finally {
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"Archived ", String.valueOf(getArchiveFile(urlSuffix)),
+					" in ",
+					JenkinsResultsParserUtil.toDurationString(
+						JenkinsResultsParserUtil.getCurrentTimeMillis() -
+							start)));
+		}
+	}
+
+	private void _archiveJenkinsReport() {
+		String status = getStatus();
+
+		String urlSuffix = "jenkins-report.html";
+
+		File archiveFile = getArchiveFile(urlSuffix);
+
+		if (!status.equals("completed")) {
+			if (archiveFile.exists()) {
+				JenkinsResultsParserUtil.delete(archiveFile);
+			}
+
+			return;
+		}
+
+		if (archiveFile.exists()) {
+			return;
+		}
+
+		long start = JenkinsResultsParserUtil.getCurrentTimeMillis();
+
+		File jenkinsReportFile = new File(getBuildDirPath(), urlSuffix);
+
+		try {
+			if (jenkinsReportFile.exists()) {
+				JenkinsResultsParserUtil.copy(jenkinsReportFile, archiveFile);
+
+				return;
+			}
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(
+				"Unable to copy the Jenkins report", ioException);
+		}
+		finally {
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"Archived ", String.valueOf(archiveFile), " in ",
+					JenkinsResultsParserUtil.toDurationString(
+						JenkinsResultsParserUtil.getCurrentTimeMillis() -
+							start)));
+		}
+
+		try {
+			writeArchiveFile(
+				getJenkinsReport(), getArchivePath() + "/jenkins-report.html");
+		}
+		catch (Exception exception) {
+			System.out.println("Unable to archive Jenkins report");
+		}
+		finally {
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"Archived ", String.valueOf(archiveFile), " in ",
+					JenkinsResultsParserUtil.toDurationString(
+						JenkinsResultsParserUtil.getCurrentTimeMillis() -
+							start)));
+		}
+	}
+
+	private void _archiveProperties() {
+		String status = getStatus();
+
+		File archiveFile = new File(
+			getArchiveRootDir(), getArchiveName() + "/archive.properties");
+
+		if (!status.equals("completed")) {
+			if (archiveFile.exists()) {
+				JenkinsResultsParserUtil.delete(archiveFile);
+			}
+
+			return;
+		}
+
+		if (archiveFile.exists()) {
+			return;
+		}
+
+		long start = JenkinsResultsParserUtil.getCurrentTimeMillis();
+
+		Properties archiveProperties = new Properties();
+
+		archiveProperties.setProperty(
+			"top.level.build.url", replaceBuildURL(getBuildURL()));
+
+		StringWriter sw = new StringWriter();
+
+		try {
+			archiveProperties.store(sw, null);
+
+			JenkinsResultsParserUtil.write(archiveFile, sw.toString());
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(
+				"Unable to archive properties", ioException);
+		}
+		finally {
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"Archived ", String.valueOf(archiveFile), " in ",
+					JenkinsResultsParserUtil.toDurationString(
+						JenkinsResultsParserUtil.getCurrentTimeMillis() -
+							start)));
+		}
+	}
 
 	private Map<Map<String, String>, Integer> _getSlaveUsageByLabels() {
 		Map<Map<String, String>, Integer> slaveUsages = new HashMap<>();

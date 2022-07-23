@@ -14,6 +14,8 @@
 
 package com.liferay.dynamic.data.mapping.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalService;
 import com.liferay.dynamic.data.mapping.uad.constants.DDMUADConstants;
@@ -47,6 +49,8 @@ public abstract class BaseDDMFormInstanceUADAnonymizer
 		if (ddmFormInstance.getUserId() == userId) {
 			ddmFormInstance.setUserId(anonymousUser.getUserId());
 			ddmFormInstance.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(ddmFormInstance, anonymousUser);
 		}
 
 		if (ddmFormInstance.getVersionUserId() == userId) {
@@ -67,6 +71,19 @@ public abstract class BaseDDMFormInstanceUADAnonymizer
 		return DDMFormInstance.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		DDMFormInstance ddmFormInstance, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(ddmFormInstance);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return ddmFormInstanceLocalService.getActionableDynamicQuery();
@@ -76,6 +93,15 @@ public abstract class BaseDDMFormInstanceUADAnonymizer
 	protected String[] doGetUserIdFieldNames() {
 		return DDMUADConstants.USER_ID_FIELD_NAMES_DDM_FORM_INSTANCE;
 	}
+
+	protected AssetEntry fetchAssetEntry(DDMFormInstance ddmFormInstance) {
+		return assetEntryLocalService.fetchEntry(
+			DDMFormInstance.class.getName(),
+			ddmFormInstance.getFormInstanceId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected DDMFormInstanceLocalService ddmFormInstanceLocalService;

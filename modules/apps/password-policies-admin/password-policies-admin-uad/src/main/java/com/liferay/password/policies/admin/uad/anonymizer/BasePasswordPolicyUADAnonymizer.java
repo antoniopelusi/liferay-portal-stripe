@@ -14,6 +14,8 @@
 
 package com.liferay.password.policies.admin.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.password.policies.admin.uad.constants.PasswordPoliciesAdminUADConstants;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -47,6 +49,8 @@ public abstract class BasePasswordPolicyUADAnonymizer
 		if (passwordPolicy.getUserId() == userId) {
 			passwordPolicy.setUserId(anonymousUser.getUserId());
 			passwordPolicy.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(passwordPolicy, anonymousUser);
 		}
 
 		passwordPolicyLocalService.updatePasswordPolicy(passwordPolicy);
@@ -62,6 +66,19 @@ public abstract class BasePasswordPolicyUADAnonymizer
 		return PasswordPolicy.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		PasswordPolicy passwordPolicy, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(passwordPolicy);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return passwordPolicyLocalService.getActionableDynamicQuery();
@@ -72,6 +89,15 @@ public abstract class BasePasswordPolicyUADAnonymizer
 		return PasswordPoliciesAdminUADConstants.
 			USER_ID_FIELD_NAMES_PASSWORD_POLICY;
 	}
+
+	protected AssetEntry fetchAssetEntry(PasswordPolicy passwordPolicy) {
+		return assetEntryLocalService.fetchEntry(
+			PasswordPolicy.class.getName(),
+			passwordPolicy.getPasswordPolicyId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected PasswordPolicyLocalService passwordPolicyLocalService;

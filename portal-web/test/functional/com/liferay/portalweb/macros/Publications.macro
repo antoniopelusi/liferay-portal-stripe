@@ -12,20 +12,22 @@ definition {
 			key_publicationName = "${publicationName}",
 			locator1 = "Publications#PUBLISHED_PUBLICATION_NAME");
 
-		Pause(locator1 = "1000");
+		WaitForElementPresent(locator1 = "PublicationsChanges#CHANGE_HEADER");
 
 		var key_changeCategory = "${changeCategory}";
 		var key_changeTitle = "${changeTitle}";
 
 		Click(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_TITLE");
 
-		AssertElementNotPresent(locator1 = "PublicationsChanges#PUBLICATIONS_ELLIPSIS");
+		AssertElementNotPresent(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_DROPDOWN");
 	}
 
 	macro assertScheduledPublicationPublished {
 		Click(
 			key_navBarTitle = "History",
-			locator1 = "Publications#MANGE_PUBLICATIONS_NAVBAR_TITLE");
+			locator1 = "Publications#MANAGE_PUBLICATIONS_NAVBAR_TITLE");
+
+		Pause(locator1 = "240000");
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
@@ -37,10 +39,7 @@ definition {
 	}
 
 	macro cancelPublicationCreation {
-		ApplicationsMenu.gotoPortlet(
-			category = "Publications",
-			panel = "Applications",
-			portlet = "Publications");
+		PublicationsNavigator.openPublicationsAdmin();
 
 		Click(locator1 = "Button#PLUS");
 
@@ -51,18 +50,9 @@ definition {
 		Button.clickCancel();
 	}
 
-	macro changeDiffDisplayItem {
-		Click(locator1 = "Publications#CURRENT_DIFF_DISPLAY_ICON");
-
-		MenuItem.click(menuItem = "${displayItem}");
-	}
-
 	macro createNewPublication {
-		if ("${gotoManagePublications}" == "true") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Publications",
-				panel = "Applications",
-				portlet = "Publications");
+		if ("${gotoPublicationsAdmin}" == "true") {
+			PublicationsNavigator.openPublicationsAdmin();
 
 			Click(locator1 = "Button#PLUS");
 		}
@@ -86,168 +76,81 @@ definition {
 
 		Button.click(button = "Create");
 
-		Pause(locator1 = "5000");
+		Alert.viewSuccessMessage();
 	}
 
 	macro deletePublication {
-		LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-		Click(
-			key_publicationName = "${publicationName}",
-			locator1 = "Publications#LIST_PUBLICATION_ELLIPSIS");
-
-		ClickNoError(
-			key_menuItem = "Delete",
-			locator1 = "MenuItem#ANY_MENU_ITEM");
+		PublicationsNavigator._gotoPublicationEllipsisItem(
+			menuItem = "Delete",
+			publicationName = "${publicationName}");
 
 		AssertConfirm(value1 = "Are you sure you want to delete this publication? You will permanently lose the changes in this publication. You will not be able to undo this operation.");
 
 		AssertTextEquals(
-			locator1 = "Publications#MANGE_PUBLICATIONS_PAGE_TITLE",
+			locator1 = "Publications#MANAGE_PUBLICATIONS_PAGE_TITLE",
 			value1 = "Publications");
 
 		Alert.viewSuccessMessage();
 	}
 
 	macro disablePublications {
-		Uncheck.uncheckToggleSwitch(locator1 = "PublicationsSettings#PUBLICATIONS_TOGGLE_SWITCH");
-
-		Click(locator1 = "Button#SAVE");
-
-		Alert.viewSuccessMessage();
-	}
-
-	macro discardChanges {
-		if (isSet(changeOrder)) {
-			var changeOrder = "${changeOrder}";
-		}
-		else {
-			var changeOrder = "1";
-		}
-
-		if ("${conflictingPublications}" == "true") {
-			Click(
-				key_entryTitle = "${entryTitle}",
-				locator1 = "Publications#CONFLICTING_CHANGES_DISCARD_ELLIPSIS");
-
-			MenuItem.click(menuItem = "Discard Change");
-		}
-		else {
-			var key_changeCategory = "${changeCategory}";
-			var key_changeTitle = "${changeTitle}";
-
-			Click(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_TITLE");
-
-			Click(locator1 = "PublicationsChanges#PUBLICATIONS_ELLIPSIS");
-
-			MenuItem.click(menuItem = "Discard");
-		}
-
-		Pause(locator1 = "3000");
-
-		AssertElementPresent(locator1 = "Publications#DISCARDED_CHANGES_TITLE");
-
-		var key_changeCategory = "${changeCategory}";
-		var key_changeTitle = "${changeTitle}";
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "PublicationsChanges#CONTEXT_CHANGE_TITLE",
-			value1 = "${changeTitle}");
-
-		Click(
-			key_text = "Discard",
-			locator1 = "Button#ANY");
-
-		Alert.viewSuccessMessage();
-	}
-
-	macro enablePublications {
-		Pause(locator1 = "2000");
-
-		Check.checkToggleSwitch(locator1 = "PublicationsSettings#PUBLICATIONS_TOGGLE_SWITCH");
-
-		if (isSet(gotoOverview)) {
-			Click(locator1 = "PublicationsSettings#SAVE_AND_GO_TO_OVERVIEW_BUTTON");
-		}
-		else {
-			Click(locator1 = "Button#SUBMIT");
-		}
-
-		Alert.viewSuccessMessage();
-	}
-
-	macro gotoPublish {
-		if ("${gotoManagePublications}" == "true") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Publications",
-				panel = "Applications",
-				portlet = "Publications");
-
-			LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-			Click(
-				key_publicationName = "${publicationName}",
-				locator1 = "Publications#LIST_PUBLICATION_ELLIPSIS");
-
-			MenuItem.click(menuItem = "Publish");
-		}
-		else if ("${gotoReviewChanges}" == "true") {
-			Publications.gotoReviewChanges();
-
-			Click(locator1 = "Publications#PUBLISH_NAV_BAR");
-		}
-		else {
-			Click(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
-
-			MenuItem.click(menuItem = "Publish");
-		}
-	}
-
-	macro gotoReviewChanges {
-		if ("${gotoManagePublications}" == "true") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Publications",
-				panel = "Applications",
-				portlet = "Publications");
-
-			LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-			Click(
-				key_publicationName = "${publicationName}",
-				locator1 = "Publications#LIST_PUBLICATION_ELLIPSIS");
-		}
-		else {
-			Click(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
-		}
-
-		MenuItem.click(menuItem = "Review Changes");
-
-		Pause(locator1 = "3000");
-	}
-
-	macro gotoScheduledPublications {
 		ApplicationsMenu.gotoPortlet(
 			category = "Publications",
 			panel = "Applications",
 			portlet = "Publications");
 
-		Click(
-			key_navBarTitle = "Scheduled",
-			locator1 = "Publications#MANGE_PUBLICATIONS_NAVBAR_TITLE");
+		Click.waitForMenuToggleJSClick(locator1 = "Publications#PUBLICATIONS_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Settings");
+
+		Uncheck.uncheckToggleSwitch(locator1 = "Publications#PUBLICATIONS_TOGGLE_SWITCH");
+
+		Click(locator1 = "Button#SAVE");
 	}
 
-	macro gotoViewDiffInConflictingPublications {
-		Click(
-			key_entryTitle = "${entryTitle}",
-			locator1 = "Publications#CONFLICTING_CHANGES_CONTENT_LINK");
+	macro enablePublications {
+		ApplicationsMenu.gotoPortlet(
+			category = "Publications",
+			panel = "Applications",
+			portlet = "Publications");
 
-		Pause(locator1 = "1000");
+		Check.checkToggleSwitch(locator1 = "Publications#PUBLICATIONS_TOGGLE_SWITCH");
 
-		SelectFrameTop(value1 = "relative=top");
+		Click(locator1 = "Button#SAVE");
+	}
 
-		AssertElementPresent(
-			key_iframeTitle = "${entryTitle}",
-			locator1 = "Publications#CONFLICTING_CHANGES_DIFF_IFRAME_TITLE");
+	macro inviteUsers {
+		PublicationsNavigator._gotoPublicationEllipsisItem(
+			menuItem = "Invite Users",
+			publicationName = "${publicationName}");
+
+		if (isSet(publicationRole)) {
+			Click(
+				key_title = "Viewers can view. Viewers cannot edit, publish, or invite other users.",
+				locator1 = "Button#ANY_TITLE");
+
+			Click(
+				key_publicationRole = "${publicationRole}",
+				locator1 = "Publications#PUBLICATION_ROLE_BUTTON");
+		}
+
+		for (var keyword : list "${userInvite}") {
+			Type(
+				locator1 = "Publications#KEYWORD_TEXTFIELD",
+				value1 = "${keyword}");
+
+			KeyPress(
+				locator1 = "Publications#KEYWORD_TEXTFIELD",
+				value1 = "\ENTER");
+		}
+
+		Button.clickNoError(button = "Send");
+
+		if ("${userMissingPublicationsRole}" == "true") {
+			AssertConfirm(value1 = "You are inviting user ${userInvite} who does not have access to Publications. This user will be assigned the Publications User role to gain access to Publications.");
+		}
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro publishPublication {
@@ -255,17 +158,9 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		var key_navBarTitle = "History";
-
-		AssertTextEquals(
-			locator1 = "Publications#MANGE_PUBLICATIONS_NAVBAR_TITLE",
-			value1 = "History");
+		PublicationsNavigator.openPublicationsHistory();
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-		// Workaround LPS-115320
-
-		Refresh();
 
 		var key_publicationName = "${publicationName}";
 
@@ -319,51 +214,36 @@ definition {
 	}
 
 	macro schedulePublication {
-		if ("${gotoManagePublications}" == "true") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Publications",
-				panel = "Applications",
-				portlet = "Publications");
+		if ("${gotoPublicationsAdmin}" == "true") {
+			PublicationsNavigator.openPublicationsAdmin();
 
-			LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-			Click(
-				key_publicationName = "${publicationName}",
-				locator1 = "Publications#LIST_PUBLICATION_ELLIPSIS");
-
-			MenuItem.click(menuItem = "Schedule");
-		}
-		else if ("${gotoReviewChanges}" == "true") {
-			Publications.gotoReviewChanges();
-
-			Click(locator1 = "Publications#SCHEDULE_NAV_BAR");
+			PublicationsNavigator._gotoPublicationEllipsisItem(
+				menuItem = "Schedule",
+				publicationName = "${publicationName}");
 		}
 		else if ("${reschedule}" == "true") {
-			Publications.gotoScheduledPublications();
+			PublicationsNavigator.openPublicationsScheduled();
 
-			LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-			Click(
-				key_publicationName = "${publicationName}",
-				locator1 = "Publications#LIST_PUBLICATION_ELLIPSIS");
-
-			MenuItem.click(menuItem = "Reschedule");
+			PublicationsNavigator._gotoPublicationEllipsisItem(
+				menuItem = "Reschedule",
+				publicationName = "${publicationName}");
 
 			// Workaround LPS-123416
-
-			Pause(locator1 = "1000");
 
 			Click.mouseOverClick(locator1 = "Publications#DELETE_THE_ENTERED_TIME_BUTTON");
 		}
 		else {
-			Click(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
+			PublicationsNavigator.gotoReviewChanges();
 
-			MenuItem.click(menuItem = "Schedule");
+			Click(locator1 = "Publications#SCHEDULE_NAV_BAR");
 		}
 
 		var publishDateDay = Time.getUTCDay();
+
 		var publishDateMonth = Time.getUTCMonth();
+
 		var publishDateYear = Time.getUTCYear();
+
 		var publishDate = "${publishDateYear}-${publishDateMonth}-${publishDateDay}";
 
 		Type(
@@ -371,20 +251,19 @@ definition {
 			value1 = "${publishDate}");
 
 		var publishTimeHours = Time.getUTCHours();
+
 		var publishTimeMinutes = Time.getUTCMinutes();
 
 		if ("${utcMinutes}" == "58") {
-			publishTimeHours = MathUtil.sum("${publishTimeHours}", "1");
-
-			publishTimeMinutes = "00";
+			var publishTimeHours = ${publishTimeHours} + 1;
+			var publishTimeMinutes = "00";
 		}
 		else if ("${utcMinutes}" == "59") {
-			publishTimeHours = MathUtil.sum("${publishTimeHours}", "1");
-
-			publishTimeMinutes = "01";
+			var publishTimeHours = ${publishTimeHours} + 1;
+			var publishTimeMinutes = "01";
 		}
 		else {
-			publishTimeMinutes = MathUtil.sum("${publishTimeMinutes}", "2");
+			var publishTimeMinutes = ${publishTimeMinutes} + 2;
 		}
 
 		Click(locator1 = "Publications#PUBLISH_TIME_HOURS");
@@ -424,19 +303,12 @@ definition {
 	}
 
 	macro selectPublication {
-		if ("${gotoManagePublications}" == "true") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Publications",
-				panel = "Applications",
-				portlet = "Publications");
+		if ("${gotoPublicationsAdmin}" == "true") {
+			PublicationsNavigator.openPublicationsAdmin();
 
-			LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-			Click(
-				key_publicationName = "${publicationName}",
-				locator1 = "Publications#LIST_PUBLICATION_ELLIPSIS");
-
-			MenuItem.click(menuItem = "Work on Publication");
+			PublicationsNavigator._gotoPublicationEllipsisItem(
+				menuItem = "Work on Publication",
+				publicationName = "${publicationName}");
 		}
 		else {
 			Click(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
@@ -458,15 +330,11 @@ definition {
 	}
 
 	macro unschedulePublication {
-		Publications.gotoScheduledPublications();
+		PublicationsNavigator.openPublicationsScheduled();
 
-		LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-		Click(
-			key_publicationName = "${publicationName}",
-			locator1 = "Publications#LIST_PUBLICATION_ELLIPSIS");
-
-		MenuItem.click(menuItem = "Unschedule");
+		PublicationsNavigator._gotoPublicationEllipsisItem(
+			menuItem = "Unschedule",
+			publicationName = "${publicationName}");
 	}
 
 	macro viewAutomaticallyResolved {
@@ -476,6 +344,12 @@ definition {
 			key_entryTitle = "${entryTitle}",
 			key_successMessage = "${successMessage}",
 			locator1 = "Publications#CONFLICTING_CHANGES_SUCCESS_CONTENT");
+	}
+
+	macro viewConflictingChangesWarning {
+		AssertElementPresent(
+			key_warningMessage = "${warningMessage}",
+			locator1 = "Message#WARNING_SPECIFIC");
 	}
 
 	macro viewNeedsManualResolution {
@@ -489,68 +363,25 @@ definition {
 		AssertVisible(locator1 = "Publications#DISABLED_PUBLISH_BUTTON");
 	}
 
-	macro viewPublicationDiff {
-		AssertTextEquals(
-			key_displayItem = "Unified",
-			locator1 = "Publications#CURRENT_DIFF_DISPLAY_ITEM",
-			value1 = "Unified");
+	macro viewPublicationOrderInHistory {
+		PublicationsNavigator.openPublicationsHistory();
 
-		var key_columnName = "${columnName}";
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
-		if (isSet(diffAddedValue)) {
-			AssertTextEquals.assertPartialText(
-				locator1 = "Publications#DIFF_ADDED_VALUE",
-				value1 = "${diffAddedValue}");
-		}
+		var resultOrder = "0";
 
-		if (isSet(diffRemovedValue)) {
-			AssertTextEquals.assertPartialText(
-				locator1 = "Publications#DIFF_REMOVED_VALUE",
-				value1 = "${diffRemovedValue}");
-		}
-
-		Publications.changeDiffDisplayItem(displayItem = "Production");
-
-		AssertTextEquals(
-			key_displayItem = "Production",
-			locator1 = "Publications#CURRENT_DIFF_DISPLAY_ITEM",
-			value1 = "Production");
-
-		if (isSet(columnValueInProduction)) {
-			key_columnValueInProduction = "${columnValueInProduction}";
+		for (var publicationName : list "${publicationList}") {
+			var resultOrder = ${resultOrder} + 1;
 
 			AssertTextEquals.assertPartialText(
-				locator1 = "Publications#COLUMN_VALUE_IN_PRODUCTION",
-				value1 = "${columnValueInProduction}");
-		}
-
-		Publications.changeDiffDisplayItem(displayItem = "Publication: ${publicationName}");
-
-		AssertTextEquals.assertPartialText(
-			key_displayItem = "${publicationName}",
-			locator1 = "Publications#CURRENT_DIFF_DISPLAY_ITEM",
-			value1 = "${publicationName}");
-
-		if (isSet(columnValueInPublication)) {
-			key_columnValueInPublication = "${columnValueInPublication}";
-
-			AssertTextEquals.assertPartialText(
-				locator1 = "Publications#COLUMN_VALUE_IN_PUBLICATION",
-				value1 = "${columnValueInPublication}");
+				locator1 = "Publications#PUBLICATION_ORDER_IN_HISTORY",
+				resultOrder = "${resultOrder}",
+				value1 = "${publicationName}");
 		}
 	}
 
 	macro viewPublicationPublished {
-		ApplicationsMenu.gotoPortlet(
-			category = "Publications",
-			panel = "Applications",
-			portlet = "Publications");
-
-		var key_navBarTitle = "History";
-
-		Click(
-			locator1 = "Publications#MANGE_PUBLICATIONS_NAVBAR_TITLE",
-			value1 = "History");
+		PublicationsNavigator.openPublicationsHistory();
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 

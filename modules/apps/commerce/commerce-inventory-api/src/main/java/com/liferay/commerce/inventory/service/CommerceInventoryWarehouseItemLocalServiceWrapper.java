@@ -27,6 +27,10 @@ public class CommerceInventoryWarehouseItemLocalServiceWrapper
 	implements CommerceInventoryWarehouseItemLocalService,
 			   ServiceWrapper<CommerceInventoryWarehouseItemLocalService> {
 
+	public CommerceInventoryWarehouseItemLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceInventoryWarehouseItemLocalServiceWrapper(
 		CommerceInventoryWarehouseItemLocalService
 			commerceInventoryWarehouseItemLocalService) {
@@ -97,6 +101,31 @@ public class CommerceInventoryWarehouseItemLocalServiceWrapper
 			addCommerceInventoryWarehouseItem(
 				externalReferenceCode, userId, commerceInventoryWarehouseId,
 				sku, quantity);
+	}
+
+	@Override
+	public com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem
+			addOrUpdateCommerceInventoryWarehouseItem(
+				long userId, long commerceInventoryWarehouseId, String sku,
+				int quantity)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceInventoryWarehouseItemLocalService.
+			addOrUpdateCommerceInventoryWarehouseItem(
+				userId, commerceInventoryWarehouseId, sku, quantity);
+	}
+
+	@Override
+	public com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem
+			addOrUpdateCommerceInventoryWarehouseItem(
+				String externalReferenceCode, long companyId, long userId,
+				long commerceInventoryWarehouseId, String sku, int quantity)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceInventoryWarehouseItemLocalService.
+			addOrUpdateCommerceInventoryWarehouseItem(
+				externalReferenceCode, companyId, userId,
+				commerceInventoryWarehouseId, sku, quantity);
 	}
 
 	@Override
@@ -215,6 +244,14 @@ public class CommerceInventoryWarehouseItemLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceInventoryWarehouseItemLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceInventoryWarehouseItemLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override
@@ -677,7 +714,7 @@ public class CommerceInventoryWarehouseItemLocalServiceWrapper
 
 	/**
 	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 #upsertCommerceInventoryWarehouseItem(String,
+	 #addOrUpdateCommerceInventoryWarehouseItem(String,
 	 long, long, long, String, int)}
 	 */
 	@Deprecated
@@ -692,31 +729,6 @@ public class CommerceInventoryWarehouseItemLocalServiceWrapper
 			upsertCommerceInventoryWarehouseItem(
 				companyId, userId, commerceInventoryWarehouseId,
 				externalReferenceCode, sku, quantity);
-	}
-
-	@Override
-	public com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem
-			upsertCommerceInventoryWarehouseItem(
-				long userId, long commerceInventoryWarehouseId, String sku,
-				int quantity)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _commerceInventoryWarehouseItemLocalService.
-			upsertCommerceInventoryWarehouseItem(
-				userId, commerceInventoryWarehouseId, sku, quantity);
-	}
-
-	@Override
-	public com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem
-			upsertCommerceInventoryWarehouseItem(
-				String externalReferenceCode, long companyId, long userId,
-				long commerceInventoryWarehouseId, String sku, int quantity)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _commerceInventoryWarehouseItemLocalService.
-			upsertCommerceInventoryWarehouseItem(
-				externalReferenceCode, companyId, userId,
-				commerceInventoryWarehouseId, sku, quantity);
 	}
 
 	@Override

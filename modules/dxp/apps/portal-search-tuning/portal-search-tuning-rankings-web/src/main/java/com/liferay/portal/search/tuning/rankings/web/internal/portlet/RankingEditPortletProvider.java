@@ -50,7 +50,7 @@ public class RankingEditPortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/add_results_rankings.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

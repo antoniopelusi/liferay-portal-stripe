@@ -23,11 +23,11 @@ CPContentHelper cpContentHelper = (CPContentHelper)request.getAttribute(CPConten
 
 CPCatalogEntry cpCatalogEntry = cpContentHelper.getCPCatalogEntry(request);
 
-CPSku cpSku = cpContentHelper.getDefaultCPSku(cpCatalogEntry);
-
 long cpDefinitionId = cpCatalogEntry.getCPDefinitionId();
 
-String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortletKeys.CP_CONTENT_WEB);
+CPSku cpSku = cpContentHelper.getDefaultCPSku(cpCatalogEntry);
+
+long commerceAccountId = CommerceUtil.getCommerceAccountId((CommerceContext)request.getAttribute(CommerceWebKeys.COMMERCE_CONTEXT));
 %>
 
 <div class="container-fluid product-detail" id="<portlet:namespace /><%= cpDefinitionId %>ProductContent">
@@ -40,11 +40,11 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 
 							<%
 							for (CPMedia imageCPMedia : cpContentHelper.getImages(cpDefinitionId, themeDisplay)) {
-								String thumbnailUrl = imageCPMedia.getThumbnailUrl();
+								String thumbnailURL = imageCPMedia.getThumbnailURL();
 							%>
 
-								<div class="card thumb" data-url="<%= thumbnailUrl %>">
-									<img class="center-block img-fluid" src="<%= thumbnailUrl %>" />
+								<div class="card thumb" data-url="<%= HtmlUtil.escapeAttribute(thumbnailURL) %>">
+									<img class="center-block img-fluid" src="<%= HtmlUtil.escapeAttribute(thumbnailURL) %>" />
 								</div>
 
 							<%
@@ -55,8 +55,13 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 					</div>
 
 					<div class="col-10 col-lg-10 col-md-9 full-image">
-						<c:if test="<%= Validator.isNotNull(cpCatalogEntry.getDefaultImageFileUrl()) %>">
-							<img class="center-block img-fluid" id="<portlet:namespace />full-image" src="<%= cpCatalogEntry.getDefaultImageFileUrl() %>" />
+
+						<%
+						String defaultImageFileURL = cpContentHelper.getDefaultImageFileURL(commerceAccountId, cpCatalogEntry.getCPDefinitionId());
+						%>
+
+						<c:if test="<%= Validator.isNotNull(defaultImageFileURL) %>">
+							<img class="center-block img-fluid" id="<portlet:namespace />full-image" src="<%= HtmlUtil.escapeAttribute(defaultImageFileURL) %>" />
 						</c:if>
 					</div>
 				</div>
@@ -73,11 +78,11 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 
 						<div class="subscription-info"><commerce-ui:product-subscription-info CPInstanceId="<%= cpSku.getCPInstanceId() %>" /></div>
 
-						<div class="availability"><%= cpContentHelper.getAvailabilityLabel(request) %></div>
+						<div class="availability"><%= HtmlUtil.escape(cpContentHelper.getAvailabilityLabel(request)) %></div>
 
-						<div class="availabilityEstimate"><%= cpContentHelper.getAvailabilityEstimateLabel(request) %></div>
+						<div class="availabilityEstimate"><%= HtmlUtil.escape(cpContentHelper.getAvailabilityEstimateLabel(request)) %></div>
 
-						<div class="stockQuantity"><%= cpContentHelper.getStockQuantityLabel(request) %></div>
+						<div class="stockQuantity"><%= HtmlUtil.escape(cpContentHelper.getStockQuantityLabel(request)) %></div>
 					</c:when>
 					<c:otherwise>
 						<h4 class="sku" data-text-cp-instance-sku=""></h4>
@@ -133,12 +138,12 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 
 				<div class="row">
 					<div class="col-md-4">
-						<img class="img-fluid" src="<%= cProductCPDefinition.getDefaultImageThumbnailSrc() %>" />
+						<img class="img-fluid" src="<%= cProductCPDefinition.getDefaultImageThumbnailSrc(commerceAccountId) %>" />
 					</div>
 
 					<div class="col-md-8">
 						<h5>
-							<%= cProductCPDefinition.getName(LocaleUtil.toLanguageId(locale)) %>
+							<%= HtmlUtil.escape(cProductCPDefinition.getName(LocaleUtil.toLanguageId(locale))) %>
 						</h5>
 
 						<h6>
@@ -156,8 +161,8 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 
 	<%
 	List<CPDefinitionSpecificationOptionValue> cpDefinitionSpecificationOptionValues = cpContentHelper.getCPDefinitionSpecificationOptionValues(cpDefinitionId);
+	List<CPMedia> cpMedias = cpContentHelper.getCPMedias(cpDefinitionId, themeDisplay);
 	List<CPOptionCategory> cpOptionCategories = cpContentHelper.getCPOptionCategories(company.getCompanyId());
-	List<CPMedia> attachmentCPMedias = cpContentHelper.getCPAttachmentFileEntries(cpDefinitionId, themeDisplay);
 	%>
 
 	<div class="row">
@@ -178,7 +183,7 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 						</li>
 					</c:if>
 
-					<c:if test="<%= !attachmentCPMedias.isEmpty() %>">
+					<c:if test="<%= !cpMedias.isEmpty() %>">
 						<li class="nav-item" role="presentation">
 							<a aria-controls="<portlet:namespace />attachments" aria-expanded="false" class="nav-link" data-toggle="tab" href="#<portlet:namespace />attachments" role="tab">
 								<%= LanguageUtil.get(resourceBundle, "attachments") %>
@@ -223,7 +228,7 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 									<div class="table-responsive">
 										<table class="table table-bordered table-striped">
 											<tr>
-												<th><%= cpOptionCategory.getTitle(locale) %></th>
+												<th><%= HtmlUtil.escape(cpOptionCategory.getTitle(locale)) %></th>
 												<th></th>
 											</tr>
 
@@ -252,21 +257,21 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 						</div>
 					</c:if>
 
-					<c:if test="<%= !attachmentCPMedias.isEmpty() %>">
+					<c:if test="<%= !cpMedias.isEmpty() %>">
 						<div class="tab-pane" id="<portlet:namespace />attachments">
 							<div class="table-responsive">
 								<table class="table table-bordered table-striped">
 
 									<%
-									for (CPMedia attachmentCPMedia : attachmentCPMedias) {
+									for (CPMedia cpMedia : cpMedias) {
 									%>
 
 										<tr>
 											<td>
-												<span><%= attachmentCPMedia.getTitle() %></span>
+												<span><%= HtmlUtil.escape(cpMedia.getTitle()) %></span>
 
 												<span>
-													<aui:icon cssClass="icon-monospaced" image="download" markupView="lexicon" url="<%= attachmentCPMedia.getDownloadUrl() %>" />
+													<aui:icon cssClass="icon-monospaced" image="download" markupView="lexicon" url="<%= cpMedia.getDownloadURL() %>" />
 												</span>
 											</td>
 										</tr>
@@ -309,16 +314,17 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 
 <aui:script use="liferay-commerce-product-content">
 	var productContent = new Liferay.Portlet.ProductContent({
-		checkCPInstanceActionURL: '<%= checkCPInstanceURL %>',
+		checkCPInstanceActionURL: '<%= HtmlUtil.escapeJS(checkCPInstanceURL) %>',
 		cpDefinitionId: <%= cpDefinitionId %>,
 		fullImageSelector: '#<portlet:namespace />full-image',
 		namespace: '<portlet:namespace />',
-		productContentAuthToken: '<%= productContentAuthToken %>',
+		productContentAuthToken:
+			'<%= AuthTokenUtil.getToken(request, plid, CPPortletKeys.CP_CONTENT_WEB) %>',
 		productContentSelector:
 			'#<portlet:namespace /><%= cpDefinitionId %>ProductContent',
 		thumbsContainerSelector: '#<portlet:namespace />thumbs-container',
 		viewAttachmentURL:
-			'<%= String.valueOf(cpContentHelper.getViewAttachmentURL(liferayPortletRequest, liferayPortletResponse)) %>',
+			'<%= HtmlUtil.escapeJS(String.valueOf(cpContentHelper.getViewAttachmentURL(liferayPortletRequest, liferayPortletResponse))) %>',
 	});
 
 	Liferay.component(

@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>WorkflowMetricsAllItemsList</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">WorkflowMetricsAllItemsList</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>DUE_DATE_BUTTON_ALL_ITEMS_LIST</td>
+	<td>//button[contains(@class,'component-action quick-action-item')][2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSERT_ALL_ITEMS_LIST_BY_DETAILS</td>
+	<td>//p[span[contains(text(),'${key_rowName}')] and contains(.,'${key_itemName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRACK_WORKFLOW_LINK</td>
+	<td>//a[contains(@class, 'ml-1')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODES_MODAL_TRACK_WORKFLOW</td>
+	<td>//span[contains(@class, 'truncate-container') and contains(text(),'${nodesTrackWorkflow}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_NODE_WORKFLOW</td>
+	<td>//span[contains(@class, 'diagram-builder-connector-name') and contains(text(), '${nodeName}' )]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

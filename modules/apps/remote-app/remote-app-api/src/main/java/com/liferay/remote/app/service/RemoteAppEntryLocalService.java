@@ -16,6 +16,7 @@ package com.liferay.remote.app.service;
 
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
+import com.liferay.portal.kernel.cluster.Clusterable;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
@@ -24,12 +25,13 @@ import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
-import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -68,9 +70,30 @@ public interface RemoteAppEntryLocalService
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.remote.app.service.impl.RemoteAppEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the remote app entry local service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link RemoteAppEntryLocalServiceUtil} if injection and service tracking are not available.
 	 */
 	@Indexable(type = IndexableType.REINDEX)
-	public RemoteAppEntry addRemoteAppEntry(
-			long userId, Map<Locale, String> nameMap, String url,
-			ServiceContext serviceContext)
+	public RemoteAppEntry addCustomElementRemoteAppEntry(
+			String externalReferenceCode, long userId,
+			String customElementCSSURLs, String customElementHTMLElementName,
+			String customElementURLs, boolean customElementUseESM,
+			String description, String friendlyURLMapping, boolean instanceable,
+			Map<Locale, String> nameMap, String portletCategoryName,
+			String properties, String sourceCodeURL)
+		throws PortalException;
+
+	@Indexable(type = IndexableType.REINDEX)
+	public RemoteAppEntry addIFrameRemoteAppEntry(
+			long userId, String description, String friendlyURLMapping,
+			String iFrameURL, boolean instanceable, Map<Locale, String> nameMap,
+			String portletCategoryName, String properties, String sourceCodeURL)
+		throws PortalException;
+
+	@Indexable(type = IndexableType.REINDEX)
+	public RemoteAppEntry addOrUpdateCustomElementRemoteAppEntry(
+			String externalReferenceCode, long userId,
+			String customElementCSSURLs, String customElementHTMLElementName,
+			String customElementURLs, boolean customElementUseESM,
+			String description, String friendlyURLMapping, boolean instanceable,
+			Map<Locale, String> nameMap, String portletCategoryName,
+			String properties, String sourceCodeURL)
 		throws PortalException;
 
 	/**
@@ -132,12 +155,21 @@ public interface RemoteAppEntryLocalService
 	 *
 	 * @param remoteAppEntry the remote app entry
 	 * @return the remote app entry that was removed
+	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
-	public RemoteAppEntry deleteRemoteAppEntry(RemoteAppEntry remoteAppEntry);
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	public RemoteAppEntry deleteRemoteAppEntry(RemoteAppEntry remoteAppEntry)
+		throws PortalException;
+
+	@Clusterable
+	public void deployRemoteAppEntry(RemoteAppEntry remoteAppEntry);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -209,6 +241,25 @@ public interface RemoteAppEntryLocalService
 	public RemoteAppEntry fetchRemoteAppEntry(long remoteAppEntryId);
 
 	/**
+	 * Returns the remote app entry with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the remote app entry's external reference code
+	 * @return the matching remote app entry, or <code>null</code> if a matching remote app entry could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public RemoteAppEntry fetchRemoteAppEntryByExternalReferenceCode(
+		long companyId, String externalReferenceCode);
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchRemoteAppEntryByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public RemoteAppEntry fetchRemoteAppEntryByReferenceCode(
+		long companyId, String externalReferenceCode);
+
+	/**
 	 * Returns the remote app entry with the matching UUID and company.
 	 *
 	 * @param uuid the remote app entry's UUID
@@ -278,6 +329,19 @@ public interface RemoteAppEntryLocalService
 		throws PortalException;
 
 	/**
+	 * Returns the remote app entry with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the remote app entry's external reference code
+	 * @return the matching remote app entry
+	 * @throws PortalException if a matching remote app entry could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public RemoteAppEntry getRemoteAppEntryByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException;
+
+	/**
 	 * Returns the remote app entry with the matching UUID and company.
 	 *
 	 * @param uuid the remote app entry's UUID
@@ -291,18 +355,32 @@ public interface RemoteAppEntryLocalService
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<RemoteAppEntry> searchRemoteAppEntries(
+	public List<RemoteAppEntry> search(
 			long companyId, String keywords, int start, int end, Sort sort)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int searchRemoteAppEntriesCount(long companyId, String keywords)
+	public int searchCount(long companyId, String keywords)
+		throws PortalException;
+
+	@Clusterable
+	public void undeployRemoteAppEntry(RemoteAppEntry remoteAppEntry);
+
+	@Indexable(type = IndexableType.REINDEX)
+	public RemoteAppEntry updateCustomElementRemoteAppEntry(
+			long userId, long remoteAppEntryId, String customElementCSSURLs,
+			String customElementHTMLElementName, String customElementURLs,
+			boolean customElementUseESM, String description,
+			String friendlyURLMapping, Map<Locale, String> nameMap,
+			String portletCategoryName, String properties, String sourceCodeURL)
 		throws PortalException;
 
 	@Indexable(type = IndexableType.REINDEX)
-	public RemoteAppEntry updateRemoteAppEntry(
-			long remoteAppEntryId, Map<Locale, String> nameMap, String url,
-			ServiceContext serviceContext)
+	public RemoteAppEntry updateIFrameRemoteAppEntry(
+			long userId, long remoteAppEntryId, String description,
+			String friendlyURLMapping, String iFrameURL,
+			Map<Locale, String> nameMap, String portletCategoryName,
+			String properties, String sourceCodeURL)
 		throws PortalException;
 
 	/**
@@ -317,5 +395,10 @@ public interface RemoteAppEntryLocalService
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	public RemoteAppEntry updateRemoteAppEntry(RemoteAppEntry remoteAppEntry);
+
+	@Indexable(type = IndexableType.REINDEX)
+	public RemoteAppEntry updateStatus(
+			long userId, long remoteAppEntryId, int status)
+		throws PortalException;
 
 }

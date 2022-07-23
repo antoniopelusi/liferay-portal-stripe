@@ -138,16 +138,26 @@ public abstract class ExpandoTableLocalServiceBaseImpl
 	 *
 	 * @param expandoTable the expando table
 	 * @return the expando table that was removed
+	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public ExpandoTable deleteExpandoTable(ExpandoTable expandoTable) {
+	public ExpandoTable deleteExpandoTable(ExpandoTable expandoTable)
+		throws PortalException {
+
 		return expandoTablePersistence.remove(expandoTable);
 	}
 
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return expandoTablePersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override

@@ -71,15 +71,17 @@ public class DLFileVersionLocalServiceTest {
 				_group.getGroupId(), TestPropsValues.getUserId());
 
 		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
-			TestDataConstants.TEST_BYTE_ARRAY, serviceContext);
+			TestDataConstants.TEST_BYTE_ARRAY, null, null, serviceContext);
 
 		DLAppServiceUtil.updateFileEntry(
 			fileEntry.getFileEntryId(), null, ContentTypes.TEXT_PLAIN,
 			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
-			DLVersionNumberIncrease.MINOR, (byte[])null, serviceContext);
+			StringPool.BLANK, DLVersionNumberIncrease.MINOR, (byte[])null,
+			fileEntry.getExpirationDate(), fileEntry.getReviewDate(),
+			serviceContext);
 
 		DLFileEntry dlFileEntry = _dlFileEntryLocalService.getDLFileEntry(
 			fileEntry.getFileEntryId());
@@ -89,9 +91,8 @@ public class DLFileVersionLocalServiceTest {
 				dlFileEntry.getCompanyId(), dlFileEntry.getDataRepositoryId(),
 				dlFileEntry.getName(), "1.0"));
 
-		_dlFileVersionLocalService.deleteDLFileVersion(
-			_dlFileVersionLocalService.getFileVersion(
-				fileEntry.getFileEntryId(), "1.0"));
+		_dlFileEntryLocalService.deleteFileVersion(
+			TestPropsValues.getUserId(), fileEntry.getFileEntryId(), "1.0");
 
 		Assert.assertFalse(
 			DLStoreUtil.hasFile(

@@ -50,7 +50,7 @@ definition {
 	macro chooseSortOption {
 		Click(locator1 = "Search#SORT_PORTLET_DROPDOWN");
 
-		Click(
+		Click.clickNoMouseOver(
 			locator1 = "Search#SORT_PORTLET_SORT_OPTION",
 			sortOption = "${sortOption}");
 	}
@@ -181,13 +181,31 @@ definition {
 				value1 = "${indexes}");
 		}
 
+		if (isSet(attributesKey)) {
+			Type(
+				locator1 = "TextInput#KEY",
+				value1 = "${attributesKey}");
+
+			Type(
+				key_fieldLabel = "Value",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${attributesValue}");
+		}
+
 		PortletEntry.save();
 
 		IFrame.closeFrame();
 	}
 
 	macro configureSearchBarWidget {
-		SearchPortlets.gotoWidgetOptions(portletOption = "Configuration");
+		if (isSet(index)) {
+			SearchPortlets.gotoWidgetOptionsSpecific(
+				index = "${index}",
+				portletOption = "Configuration");
+		}
+		else {
+			SearchPortlets.gotoWidgetOptions(portletOption = "Configuration");
+		}
 
 		SelectFrame(locator1 = "IFrame#CONFIGURATION");
 
@@ -288,6 +306,13 @@ definition {
 				value1 = "${fields}");
 		}
 
+		if (isSet(linkBehavior)) {
+			Select(
+				locator1 = "Select#SELECT_ID",
+				selectFieldId = "linkBehavior",
+				value1 = "${linkBehavior}");
+		}
+
 		if (isSet(maximumDocumentFrequency)) {
 			Type(
 				key_fieldLabel = "Maximum Document Frequency",
@@ -342,6 +367,12 @@ definition {
 				key_fieldLabel = "Minimum Word Length",
 				locator1 = "TextInput#GENERIC_NUMBER_INPUT",
 				value1 = "${minimumWordLength}");
+		}
+
+		if (isSet(searchScope)) {
+			Select(
+				locator1 = "Select#SCOPE_CONFIGURATION",
+				value1 = "${searchScope}");
 		}
 
 		if (isSet(stopWords)) {
@@ -420,6 +451,22 @@ definition {
 		MouseOver.mouseOverNotVisible(locator1 = "Search#SEARCH_BAR_WIDGET_ELLIPSIS_ICON");
 
 		Click(locator1 = "Search#SEARCH_BAR_WIDGET_ELLIPSIS_ICON");
+
+		if (isSet(portletOption)) {
+			var key_menuItem = "${portletOption}";
+
+			Click(locator1 = "MenuItem#ANY_MENU_ITEM");
+		}
+	}
+
+	macro gotoWidgetOptionsSpecific {
+		MouseOver.mouseOverNotVisible(
+			key_index = "${index}",
+			locator1 = "Search#SEARCH_BAR_WIDGET_ELLIPSIS_ICON_SPECIFIC");
+
+		Click(
+			key_index = "${index}",
+			locator1 = "Search#SEARCH_BAR_WIDGET_ELLIPSIS_ICON_SPECIFIC");
 
 		if (isSet(portletOption)) {
 			var key_menuItem = "${portletOption}";

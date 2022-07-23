@@ -27,6 +27,10 @@ public class MFAEmailOTPEntryLocalServiceWrapper
 	implements MFAEmailOTPEntryLocalService,
 			   ServiceWrapper<MFAEmailOTPEntryLocalService> {
 
+	public MFAEmailOTPEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MFAEmailOTPEntryLocalServiceWrapper(
 		MFAEmailOTPEntryLocalService mfaEmailOTPEntryLocalService) {
 
@@ -147,6 +151,13 @@ public class MFAEmailOTPEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mfaEmailOTPEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mfaEmailOTPEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

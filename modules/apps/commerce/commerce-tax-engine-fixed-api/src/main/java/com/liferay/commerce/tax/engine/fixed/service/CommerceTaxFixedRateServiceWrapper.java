@@ -27,6 +27,10 @@ public class CommerceTaxFixedRateServiceWrapper
 	implements CommerceTaxFixedRateService,
 			   ServiceWrapper<CommerceTaxFixedRateService> {
 
+	public CommerceTaxFixedRateServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceTaxFixedRateServiceWrapper(
 		CommerceTaxFixedRateService commerceTaxFixedRateService) {
 
@@ -51,12 +55,12 @@ public class CommerceTaxFixedRateServiceWrapper
 	@Override
 	public com.liferay.commerce.tax.engine.fixed.model.CommerceTaxFixedRate
 			addCommerceTaxFixedRate(
-				long userId, long groupId, long commerceTaxMethodId,
-				long cpTaxCategoryId, double rate)
+				long groupId, long commerceTaxMethodId, long cpTaxCategoryId,
+				double rate)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceTaxFixedRateService.addCommerceTaxFixedRate(
-			userId, groupId, commerceTaxMethodId, cpTaxCategoryId, rate);
+			groupId, commerceTaxMethodId, cpTaxCategoryId, rate);
 	}
 
 	@Override

@@ -18,8 +18,8 @@ import com.liferay.portal.file.install.FileInstaller;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.osgi.web.wab.generator.internal.artifact.ArtifactURLUtil;
 import com.liferay.portal.osgi.web.wab.generator.internal.artifact.WarArtifactUrlTransformer;
 import com.liferay.portal.osgi.web.wab.generator.internal.handler.WabURLStreamHandlerService;
@@ -38,7 +38,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -91,12 +90,12 @@ public class WabGenerator
 
 	@Activate
 	protected void activate(BundleContext bundleContext) throws Exception {
-		registerURLStreamHandlerService(bundleContext);
+		_registerURLStreamHandlerService(bundleContext);
 
-		registerArtifactUrlTransformer(bundleContext);
+		_registerArtifactUrlTransformer(bundleContext);
 
 		final Set<String> requiredForStartupContextPaths =
-			getRequiredForStartupContextPaths(
+			_getRequiredForStartupContextPaths(
 				Paths.get(PropsValues.LIFERAY_HOME, "osgi/war"));
 
 		if (requiredForStartupContextPaths.isEmpty()) {
@@ -117,7 +116,7 @@ public class WabGenerator
 				}
 
 				if (requiredForStartupContextPaths.remove(
-						_http.getParameter(
+						HttpComponentsUtil.getParameter(
 							location, "Web-ContextPath", false))) {
 
 					if (_log.isDebugEnabled()) {
@@ -169,8 +168,35 @@ public class WabGenerator
 		_serviceRegistration = null;
 	}
 
-	protected Set<String> getRequiredForStartupContextPaths(Path path)
-		throws IOException {
+	/**
+	 * This reference is held to force a dependency on the portal's complete
+	 * startup.
+	 */
+	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
+	protected void setModuleServiceLifecycle(
+		ModuleServiceLifecycle moduleServiceLifecycle) {
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY,
+		target = "(&(original.bean=true)(bean.id=javax.servlet.ServletContext))"
+	)
+	protected void setServletContext(ServletContext servletContext) {
+		_portalIsReady.set(true);
+	}
+
+	protected void unsetModuleServiceLifecycle(
+		ModuleServiceLifecycle moduleServiceLifecycle) {
+	}
+
+	protected void unsetServletContext(ServletContext servletContext) {
+		_portalIsReady.set(false);
+	}
+
+	private Set<String> _getRequiredForStartupContextPaths(Path path)
+		throws Exception {
 
 		Set<String> contextPaths = new HashSet<>();
 
@@ -202,7 +228,7 @@ public class WabGenerator
 					URL url = ArtifactURLUtil.transform(uri.toURL());
 
 					contextPaths.add(
-						_http.getParameter(
+						HttpComponentsUtil.getParameter(
 							url.toString(), "Web-ContextPath", false));
 				}
 			}
@@ -211,62 +237,28 @@ public class WabGenerator
 		return contextPaths;
 	}
 
-	protected void registerArtifactUrlTransformer(BundleContext bundleContext) {
+	private void _registerArtifactUrlTransformer(BundleContext bundleContext) {
 		_serviceRegistration = bundleContext.registerService(
 			FileInstaller.class, new WarArtifactUrlTransformer(_portalIsReady),
 			null);
 	}
 
-	protected void registerURLStreamHandlerService(
-		BundleContext bundleContext) {
-
+	private void _registerURLStreamHandlerService(BundleContext bundleContext) {
 		Bundle bundle = bundleContext.getBundle(0);
 
 		Class<?> clazz = bundle.getClass();
 
 		ClassLoader classLoader = clazz.getClassLoader();
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			URLConstants.URL_HANDLER_PROTOCOL, new String[] {"webbundle"});
-
 		bundleContext.registerService(
 			URLStreamHandlerService.class.getName(),
-			new WabURLStreamHandlerService(classLoader, this), properties);
-	}
-
-	/**
-	 * This reference is held to force a dependency on the portal's complete
-	 * startup.
-	 */
-	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
-	protected void setModuleServiceLifecycle(
-		ModuleServiceLifecycle moduleServiceLifecycle) {
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(&(original.bean=true)(bean.id=javax.servlet.ServletContext))"
-	)
-	protected void setServletContext(ServletContext servletContext) {
-		_portalIsReady.set(true);
-	}
-
-	protected void unsetModuleServiceLifecycle(
-		ModuleServiceLifecycle moduleServiceLifecycle) {
-	}
-
-	protected void unsetServletContext(ServletContext servletContext) {
-		_portalIsReady.set(false);
+			new WabURLStreamHandlerService(classLoader, this),
+			HashMapDictionaryBuilder.<String, Object>put(
+				URLConstants.URL_HANDLER_PROTOCOL, new String[] {"webbundle"}
+			).build());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(WabGenerator.class);
-
-	@Reference
-	private Http _http;
 
 	private final AtomicBoolean _portalIsReady = new AtomicBoolean();
 	private ServiceRegistration<FileInstaller> _serviceRegistration;

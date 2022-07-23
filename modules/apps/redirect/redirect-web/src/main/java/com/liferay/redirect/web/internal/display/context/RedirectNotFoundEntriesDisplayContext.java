@@ -16,6 +16,7 @@ package com.liferay.redirect.web.internal.display.context;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
+import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
@@ -55,10 +56,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionURL;
 import javax.portlet.PortletURL;
-import javax.portlet.RenderURL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -70,15 +68,14 @@ public class RedirectNotFoundEntriesDisplayContext {
 	public RedirectNotFoundEntriesDisplayContext(
 		HttpServletRequest httpServletRequest,
 		LiferayPortletRequest liferayPortletRequest,
-		LiferayPortletResponse liferayPortletResponse) {
+		LiferayPortletResponse liferayPortletResponse,
+		RedirectNotFoundEntryLocalService redirectNotFoundEntryLocalService) {
 
 		_httpServletRequest = httpServletRequest;
 		_liferayPortletRequest = liferayPortletRequest;
 		_liferayPortletResponse = liferayPortletResponse;
+		_redirectNotFoundEntryLocalService = redirectNotFoundEntryLocalService;
 
-		_redirectNotFoundEntryLocalService =
-			(RedirectNotFoundEntryLocalService)_httpServletRequest.getAttribute(
-				RedirectNotFoundEntryLocalService.class.getName());
 		_themeDisplay = (ThemeDisplay)_httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 	}
@@ -88,26 +85,19 @@ public class RedirectNotFoundEntriesDisplayContext {
 
 		return DropdownItemListBuilder.add(
 			dropdownItem -> {
-				ActionURL editRedirectNotFoundEntryURL =
-					_liferayPortletResponse.createActionURL();
-
-				editRedirectNotFoundEntryURL.setParameter(
-					ActionRequest.ACTION_NAME,
-					"/redirect/edit_redirect_not_found_entry");
-
-				editRedirectNotFoundEntryURL.setParameter(
-					"ignored",
-					String.valueOf(!redirectNotFoundEntry.isIgnored()));
-
-				editRedirectNotFoundEntryURL.setParameter(
-					"redirect", _themeDisplay.getURLCurrent());
-
-				editRedirectNotFoundEntryURL.setParameter(
-					"redirectNotFoundEntryId",
-					String.valueOf(
-						redirectNotFoundEntry.getRedirectNotFoundEntryId()));
-
-				dropdownItem.setHref(editRedirectNotFoundEntryURL);
+				dropdownItem.setHref(
+					PortletURLBuilder.createActionURL(
+						_liferayPortletResponse
+					).setActionName(
+						"/redirect/edit_redirect_not_found_entry"
+					).setRedirect(
+						_themeDisplay.getURLCurrent()
+					).setParameter(
+						"ignored", !redirectNotFoundEntry.isIgnored()
+					).setParameter(
+						"redirectNotFoundEntryId",
+						redirectNotFoundEntry.getRedirectNotFoundEntryId()
+					).buildActionURL());
 
 				String label = "ignore";
 
@@ -132,24 +122,31 @@ public class RedirectNotFoundEntriesDisplayContext {
 							 redirectNotFoundEntry.getGroupId()));
 			},
 			dropdownItem -> {
-				RenderURL editRedirectEntryURL =
-					_liferayPortletResponse.createRenderURL();
-
-				editRedirectEntryURL.setParameter(
-					"mvcRenderCommandName", "/redirect/edit_redirect_entry");
-
-				editRedirectEntryURL.setParameter(
-					"redirect", _themeDisplay.getURLCurrent());
-
-				editRedirectEntryURL.setParameter(
-					"sourceURL", redirectNotFoundEntry.getUrl());
-
-				dropdownItem.setHref(editRedirectEntryURL);
+				dropdownItem.setHref(
+					PortletURLBuilder.createRenderURL(
+						_liferayPortletResponse
+					).setMVCRenderCommandName(
+						"/redirect/edit_redirect_entry"
+					).setRedirect(
+						_themeDisplay.getURLCurrent()
+					).setParameter(
+						"sourceURL", redirectNotFoundEntry.getUrl()
+					).buildRenderURL());
 
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "create-redirect"));
 			}
 		).build();
+	}
+
+	public RedirectNotFoundEntriesManagementToolbarDisplayContext
+			getRedirectNotFoundEntriesManagementToolbarDisplayContext()
+		throws Exception {
+
+		return new RedirectNotFoundEntriesManagementToolbarDisplayContext(
+			_httpServletRequest, _liferayPortletRequest,
+			_liferayPortletResponse, _redirectNotFoundEntryLocalService,
+			searchContainer());
 	}
 
 	public String getSearchContainerId() {
@@ -204,21 +201,20 @@ public class RedirectNotFoundEntriesDisplayContext {
 	}
 
 	private Sort _getSorts() {
-		boolean orderByAsc = StringUtil.equals(
-			_redirectNotFoundEntrySearch.getOrderByType(), "asc");
-
 		if (Objects.equals(
 				_redirectNotFoundEntrySearch.getOrderByCol(),
 				"modified-date")) {
 
 			return new Sort(
 				Field.getSortableFieldName(Field.MODIFIED_DATE), Sort.LONG_TYPE,
-				orderByAsc);
+				StringUtil.equals(
+					_redirectNotFoundEntrySearch.getOrderByType(), "asc"));
 		}
 
 		return new Sort(
 			Field.getSortableFieldName("requestCount"), Sort.LONG_TYPE,
-			orderByAsc);
+			StringUtil.equals(
+				_redirectNotFoundEntrySearch.getOrderByType(), "asc"));
 	}
 
 	private void _populateWithSearchIndex(
@@ -247,16 +243,15 @@ public class RedirectNotFoundEntriesDisplayContext {
 
 		Stream<SearchResult> stream = searchResults.stream();
 
-		redirectNotFoundEntrySearch.setResults(
-			stream.map(
+		redirectNotFoundEntrySearch.setResultsAndTotal(
+			() -> stream.map(
 				SearchResult::getClassPK
 			).map(
 				_redirectNotFoundEntryLocalService::fetchRedirectNotFoundEntry
 			).collect(
 				Collectors.toList()
-			));
-
-		redirectNotFoundEntrySearch.setTotal(hits.getLength());
+			),
+			hits.getLength());
 	}
 
 	private final HttpServletRequest _httpServletRequest;

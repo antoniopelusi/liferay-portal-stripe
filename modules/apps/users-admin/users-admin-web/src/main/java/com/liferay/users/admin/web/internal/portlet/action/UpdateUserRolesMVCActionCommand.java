@@ -15,8 +15,11 @@
 package com.liferay.users.admin.web.internal.portlet.action;
 
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.ContactNameException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.exception.RequiredRoleException;
+import com.liferay.portal.kernel.exception.UserEmailAddressException;
+import com.liferay.portal.kernel.exception.UserScreenNameException;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
@@ -29,17 +32,18 @@ import com.liferay.portal.kernel.security.membershippolicy.MembershipPolicyExcep
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
-import com.liferay.portal.kernel.service.RoleService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserService;
-import com.liferay.portal.kernel.service.permission.OrganizationPermissionUtil;
+import com.liferay.portal.kernel.service.permission.OrganizationPermission;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -145,10 +149,13 @@ public class UpdateUserRolesMVCActionCommand extends BaseMVCActionCommand {
 			}
 		}
 		catch (Exception exception) {
-			if (exception instanceof NoSuchUserException ||
+			if (exception instanceof ContactNameException ||
+				exception instanceof NoSuchUserException ||
 				exception instanceof PrincipalException ||
 				exception instanceof
-					RequiredRoleException.MustNotRemoveLastAdministator) {
+					RequiredRoleException.MustNotRemoveLastAdministator ||
+				exception instanceof UserEmailAddressException ||
+				exception instanceof UserScreenNameException) {
 
 				SessionErrors.add(actionRequest, exception.getClass());
 
@@ -197,22 +204,22 @@ public class UpdateUserRolesMVCActionCommand extends BaseMVCActionCommand {
 				httpServletRequest, "redirect");
 
 			if (Validator.isNotNull(redirect)) {
-				Map<String, String[]> parameterMap = _http.getParameterMap(
-					redirect);
+				Map<String, String[]> parameterMap =
+					HttpComponentsUtil.getParameterMap(redirect);
 
 				backURL = parameterMap.get(portletNamespace + "backURL")[0];
 			}
 
 			if (Validator.isNotNull(backURL)) {
-				Map<String, String[]> parameterMap = _http.getParameterMap(
-					backURL);
+				Map<String, String[]> parameterMap =
+					HttpComponentsUtil.getParameterMap(backURL);
 
 				organizationId = GetterUtil.getLong(
 					parameterMap.get(portletNamespace + "organizationId")[0]);
 			}
 
 			if ((organizationId > 0) &&
-				!OrganizationPermissionUtil.contains(
+				!_organizationPermission.contains(
 					permissionChecker, organizationId, ActionKeys.VIEW)) {
 
 				PortletURL portletURL = _portal.getControlPanelPortletURL(
@@ -237,10 +244,10 @@ public class UpdateUserRolesMVCActionCommand extends BaseMVCActionCommand {
 		// this check in UserServiceImpl is useless because UsersAdmin readds
 		// the role.
 
-		Role administratorRole = _roleService.getRole(
+		Role administratorRole = _roleLocalService.getRole(
 			user.getCompanyId(), RoleConstants.ADMINISTRATOR);
 
-		long[] administratorUserIds = _userService.getRoleUserIds(
+		long[] administratorUserIds = _userLocalService.getRoleUserIds(
 			administratorRole.getRoleId());
 
 		if ((administratorUserIds.length == 1) &&
@@ -252,13 +259,16 @@ public class UpdateUserRolesMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	@Reference
-	private Http _http;
+	private OrganizationPermission _organizationPermission;
 
 	@Reference
 	private Portal _portal;
 
 	@Reference
-	private RoleService _roleService;
+	private RoleLocalService _roleLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 	@Reference
 	private UsersAdmin _usersAdmin;

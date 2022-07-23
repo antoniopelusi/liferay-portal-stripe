@@ -14,17 +14,25 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.portal.kernel.bean.BeanReference;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.RegionCodeException;
 import com.liferay.portal.kernel.exception.RegionNameException;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.OrganizationTable;
 import com.liferay.portal.kernel.model.Region;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.AddressLocalService;
+import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.persistence.CountryPersistence;
+import com.liferay.portal.kernel.service.persistence.OrganizationPersistence;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.base.RegionLocalServiceBaseImpl;
@@ -42,7 +50,7 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 			String regionCode, ServiceContext serviceContext)
 		throws PortalException {
 
-		countryPersistence.findByPrimaryKey(countryId);
+		_countryPersistence.findByPrimaryKey(countryId);
 
 		validate(name, regionCode);
 
@@ -52,7 +60,7 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 
 		region.setCompanyId(serviceContext.getCompanyId());
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		region.setUserId(user.getUserId());
 		region.setUserName(user.getFullName());
@@ -68,7 +76,12 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 
 	@Override
 	public void deleteCountryRegions(long countryId) {
-		regionPersistence.removeByCountryId(countryId);
+		for (Region region :
+				getRegions(
+					countryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
+
+			deleteRegion(region);
+		}
 	}
 
 	@Override
@@ -79,7 +92,8 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 	}
 
 	@Override
-	public Region deleteRegion(Region region) throws PortalException {
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	public Region deleteRegion(Region region) {
 
 		// Region
 
@@ -87,11 +101,25 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 
 		// Address
 
-		addressLocalService.deleteRegionAddresses(region.getRegionId());
+		_addressLocalService.deleteRegionAddresses(region.getRegionId());
 
 		// Organizations
 
-		_updateOrganizations(region.getRegionId());
+		for (Organization organization :
+				_organizationPersistence.<List<Organization>>dslQuery(
+					DSLQueryFactoryUtil.select(
+						OrganizationTable.INSTANCE
+					).from(
+						OrganizationTable.INSTANCE
+					).where(
+						OrganizationTable.INSTANCE.regionId.eq(
+							region.getRegionId())
+					))) {
+
+			organization.setRegionId(0);
+
+			_organizationLocalService.updateOrganization(organization);
+		}
 
 		return region;
 	}
@@ -137,7 +165,7 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 	public List<Region> getRegions(long companyId, String a2, boolean active)
 		throws PortalException {
 
-		Country country = countryPersistence.findByC_A2(companyId, a2);
+		Country country = _countryPersistence.findByC_A2(companyId, a2);
 
 		return regionPersistence.findByC_A(country.getCountryId(), active);
 	}
@@ -193,25 +221,19 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 		}
 	}
 
-	private void _updateOrganizations(long regionId) throws PortalException {
-		ActionableDynamicQuery actionableDynamicQuery =
-			organizationLocalService.getActionableDynamicQuery();
+	@BeanReference(type = AddressLocalService.class)
+	private AddressLocalService _addressLocalService;
 
-		actionableDynamicQuery.setAddCriteriaMethod(
-			dynamicQuery -> {
-				Property regionIdProperty = PropertyFactoryUtil.forName(
-					"regionId");
+	@BeanReference(type = CountryPersistence.class)
+	private CountryPersistence _countryPersistence;
 
-				dynamicQuery.add(regionIdProperty.eq(regionId));
-			});
-		actionableDynamicQuery.setPerformActionMethod(
-			(Organization organization) -> {
-				organization.setRegionId(0);
+	@BeanReference(type = OrganizationLocalService.class)
+	private OrganizationLocalService _organizationLocalService;
 
-				organizationLocalService.updateOrganization(organization);
-			});
+	@BeanReference(type = OrganizationPersistence.class)
+	private OrganizationPersistence _organizationPersistence;
 
-		actionableDynamicQuery.performActions();
-	}
+	@BeanReference(type = UserLocalService.class)
+	private UserLocalService _userLocalService;
 
 }

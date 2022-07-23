@@ -14,9 +14,11 @@
 
 package com.liferay.headless.admin.user.client.serdes.v1_0;
 
+import com.liferay.headless.admin.user.client.dto.v1_0.Account;
 import com.liferay.headless.admin.user.client.dto.v1_0.CustomField;
 import com.liferay.headless.admin.user.client.dto.v1_0.Organization;
 import com.liferay.headless.admin.user.client.dto.v1_0.Service;
+import com.liferay.headless.admin.user.client.dto.v1_0.UserAccount;
 import com.liferay.headless.admin.user.client.json.BaseJSONParser;
 
 import java.text.DateFormat;
@@ -62,7 +64,7 @@ public class OrganizationSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (organization.getActions() != null) {
 			if (sb.length() > 1) {
@@ -72,6 +74,29 @@ public class OrganizationSerDes {
 			sb.append("\"actions\": ");
 
 			sb.append(_toJSON(organization.getActions()));
+		}
+
+		if (organization.getChildOrganizations() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"childOrganizations\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < organization.getChildOrganizations().length;
+				 i++) {
+
+				sb.append(
+					String.valueOf(organization.getChildOrganizations()[i]));
+
+				if ((i + 1) < organization.getChildOrganizations().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
 		}
 
 		if (organization.getComment() != null) {
@@ -134,6 +159,20 @@ public class OrganizationSerDes {
 
 			sb.append(
 				liferayToJSONDateFormat.format(organization.getDateModified()));
+
+			sb.append("\"");
+		}
+
+		if (organization.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(organization.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -214,6 +253,16 @@ public class OrganizationSerDes {
 			sb.append("\"");
 		}
 
+		if (organization.getNumberOfAccounts() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfAccounts\": ");
+
+			sb.append(organization.getNumberOfAccounts());
+		}
+
 		if (organization.getNumberOfOrganizations() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -222,6 +271,39 @@ public class OrganizationSerDes {
 			sb.append("\"numberOfOrganizations\": ");
 
 			sb.append(organization.getNumberOfOrganizations());
+		}
+
+		if (organization.getNumberOfUsers() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfUsers\": ");
+
+			sb.append(organization.getNumberOfUsers());
+		}
+
+		if (organization.getOrganizationAccounts() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"organizationAccounts\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < organization.getOrganizationAccounts().length;
+				 i++) {
+
+				sb.append(
+					String.valueOf(organization.getOrganizationAccounts()[i]));
+
+				if ((i + 1) < organization.getOrganizationAccounts().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
 		}
 
 		if (organization.getOrganizationContactInformation() != null) {
@@ -266,6 +348,26 @@ public class OrganizationSerDes {
 			sb.append("]");
 		}
 
+		if (organization.getUserAccounts() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"userAccounts\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < organization.getUserAccounts().length; i++) {
+				sb.append(String.valueOf(organization.getUserAccounts()[i]));
+
+				if ((i + 1) < organization.getUserAccounts().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -286,13 +388,22 @@ public class OrganizationSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (organization.getActions() == null) {
 			map.put("actions", null);
 		}
 		else {
 			map.put("actions", String.valueOf(organization.getActions()));
+		}
+
+		if (organization.getChildOrganizations() == null) {
+			map.put("childOrganizations", null);
+		}
+		else {
+			map.put(
+				"childOrganizations",
+				String.valueOf(organization.getChildOrganizations()));
 		}
 
 		if (organization.getComment() == null) {
@@ -326,6 +437,15 @@ public class OrganizationSerDes {
 			map.put(
 				"dateModified",
 				liferayToJSONDateFormat.format(organization.getDateModified()));
+		}
+
+		if (organization.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(organization.getExternalReferenceCode()));
 		}
 
 		if (organization.getId() == null) {
@@ -363,6 +483,15 @@ public class OrganizationSerDes {
 			map.put("name", String.valueOf(organization.getName()));
 		}
 
+		if (organization.getNumberOfAccounts() == null) {
+			map.put("numberOfAccounts", null);
+		}
+		else {
+			map.put(
+				"numberOfAccounts",
+				String.valueOf(organization.getNumberOfAccounts()));
+		}
+
 		if (organization.getNumberOfOrganizations() == null) {
 			map.put("numberOfOrganizations", null);
 		}
@@ -370,6 +499,24 @@ public class OrganizationSerDes {
 			map.put(
 				"numberOfOrganizations",
 				String.valueOf(organization.getNumberOfOrganizations()));
+		}
+
+		if (organization.getNumberOfUsers() == null) {
+			map.put("numberOfUsers", null);
+		}
+		else {
+			map.put(
+				"numberOfUsers",
+				String.valueOf(organization.getNumberOfUsers()));
+		}
+
+		if (organization.getOrganizationAccounts() == null) {
+			map.put("organizationAccounts", null);
+		}
+		else {
+			map.put(
+				"organizationAccounts",
+				String.valueOf(organization.getOrganizationAccounts()));
 		}
 
 		if (organization.getOrganizationContactInformation() == null) {
@@ -398,6 +545,14 @@ public class OrganizationSerDes {
 			map.put("services", String.valueOf(organization.getServices()));
 		}
 
+		if (organization.getUserAccounts() == null) {
+			map.put("userAccounts", null);
+		}
+		else {
+			map.put(
+				"userAccounts", String.valueOf(organization.getUserAccounts()));
+		}
+
 		return map;
 	}
 
@@ -424,6 +579,20 @@ public class OrganizationSerDes {
 					organization.setActions(
 						(Map)OrganizationSerDes.toMap(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "childOrganizations")) {
+
+				if (jsonParserFieldValue != null) {
+					organization.setChildOrganizations(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> OrganizationSerDes.toDTO((String)object)
+						).toArray(
+							size -> new Organization[size]
+						));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "comment")) {
@@ -455,6 +624,14 @@ public class OrganizationSerDes {
 						toDate((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					organization.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				if (jsonParserFieldValue != null) {
 					organization.setId((String)jsonParserFieldValue);
@@ -482,12 +659,38 @@ public class OrganizationSerDes {
 					organization.setName((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "numberOfAccounts")) {
+				if (jsonParserFieldValue != null) {
+					organization.setNumberOfAccounts(
+						Integer.valueOf((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "numberOfOrganizations")) {
 
 				if (jsonParserFieldValue != null) {
 					organization.setNumberOfOrganizations(
 						Integer.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "numberOfUsers")) {
+				if (jsonParserFieldValue != null) {
+					organization.setNumberOfUsers(
+						Integer.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "organizationAccounts")) {
+
+				if (jsonParserFieldValue != null) {
+					organization.setOrganizationAccounts(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> AccountSerDes.toDTO((String)object)
+						).toArray(
+							size -> new Account[size]
+						));
 				}
 			}
 			else if (Objects.equals(
@@ -517,6 +720,18 @@ public class OrganizationSerDes {
 							object -> ServiceSerDes.toDTO((String)object)
 						).toArray(
 							size -> new Service[size]
+						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "userAccounts")) {
+				if (jsonParserFieldValue != null) {
+					organization.setUserAccounts(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> UserAccountSerDes.toDTO((String)object)
+						).toArray(
+							size -> new UserAccount[size]
 						));
 				}
 			}

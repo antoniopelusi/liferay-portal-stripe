@@ -30,23 +30,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.sync.model.SyncDevice;
 import com.liferay.sync.model.SyncDeviceModel;
-import com.liferay.sync.model.SyncDeviceSoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -163,59 +161,6 @@ public class SyncDeviceModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SyncDevice toModel(SyncDeviceSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		SyncDevice model = new SyncDeviceImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setSyncDeviceId(soapModel.getSyncDeviceId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setType(soapModel.getType());
-		model.setBuildNumber(soapModel.getBuildNumber());
-		model.setFeatureSet(soapModel.getFeatureSet());
-		model.setHostname(soapModel.getHostname());
-		model.setStatus(soapModel.getStatus());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SyncDevice> toModels(SyncDeviceSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SyncDevice> models = new ArrayList<SyncDevice>(soapModels.length);
-
-		for (SyncDeviceSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public SyncDeviceModelImpl() {
 	}
 
@@ -298,34 +243,6 @@ public class SyncDeviceModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SyncDevice>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SyncDevice.class.getClassLoader(), SyncDevice.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SyncDevice> constructor =
-				(Constructor<SyncDevice>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SyncDevice, Object>>
@@ -732,6 +649,35 @@ public class SyncDeviceModelImpl
 	}
 
 	@Override
+	public SyncDevice cloneWithOriginalValues() {
+		SyncDeviceImpl syncDeviceImpl = new SyncDeviceImpl();
+
+		syncDeviceImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		syncDeviceImpl.setSyncDeviceId(
+			this.<Long>getColumnOriginalValue("syncDeviceId"));
+		syncDeviceImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		syncDeviceImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		syncDeviceImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		syncDeviceImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		syncDeviceImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		syncDeviceImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		syncDeviceImpl.setBuildNumber(
+			this.<Long>getColumnOriginalValue("buildNumber"));
+		syncDeviceImpl.setFeatureSet(
+			this.<Integer>getColumnOriginalValue("featureSet"));
+		syncDeviceImpl.setHostname(
+			this.<String>getColumnOriginalValue("hostname"));
+		syncDeviceImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+
+		return syncDeviceImpl;
+	}
+
+	@Override
 	public int compareTo(SyncDevice syncDevice) {
 		long primaryKey = syncDevice.getPrimaryKey();
 
@@ -875,7 +821,7 @@ public class SyncDeviceModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -886,9 +832,26 @@ public class SyncDeviceModelImpl
 			Function<SyncDevice, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SyncDevice)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SyncDevice)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -935,7 +898,9 @@ public class SyncDeviceModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SyncDevice>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SyncDevice.class, ModelWrapper.class);
 
 	}
 

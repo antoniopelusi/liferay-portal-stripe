@@ -143,6 +143,11 @@ public class MFATimeBasedOTPEntryWrapper
 		}
 	}
 
+	@Override
+	public MFATimeBasedOTPEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this mfa time based otp entry.
 	 *

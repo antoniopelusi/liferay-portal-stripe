@@ -15,8 +15,9 @@
 package com.liferay.portal.kernel.security.auth;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
+import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
@@ -24,6 +25,10 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.TimeZoneThreadLocal;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import java.util.Locale;
 import java.util.TimeZone;
@@ -47,6 +52,26 @@ public class CompanyThreadLocal {
 		return _deleteInProcess.get();
 	}
 
+	public static boolean isInitializingPortalInstance() {
+		return _initializingPortalInstance.get();
+	}
+
+	public static boolean isLocked() {
+		return _locked.get();
+	}
+
+	public static SafeCloseable lock(long companyId) {
+		SafeCloseable safeCloseable = setWithSafeCloseable(companyId);
+
+		_locked.set(true);
+
+		return () -> {
+			_locked.set(false);
+
+			safeCloseable.close();
+		};
+	}
+
 	public static void setCompanyId(Long companyId) {
 		if (_setCompanyId(companyId)) {
 			CTCollectionThreadLocal.removeCTCollectionId();
@@ -57,36 +82,94 @@ public class CompanyThreadLocal {
 		_deleteInProcess.set(deleteInProcess);
 	}
 
-	public static SafeClosable setInitializingCompanyId(long companyId) {
+	public static SafeCloseable setInitializingCompanyIdWithSafeCloseable(
+		long companyId) {
+
 		if (companyId > 0) {
-			return _companyId.setWithSafeClosable(companyId);
+			return _companyId.setWithSafeCloseable(companyId);
 		}
 
-		return _companyId.setWithSafeClosable(CompanyConstants.SYSTEM);
+		return _companyId.setWithSafeCloseable(CompanyConstants.SYSTEM);
 	}
 
-	public static SafeClosable setWithSafeClosable(Long companyId) {
+	public static SafeCloseable setInitializingPortalInstance(
+		boolean initializingPortalInstance) {
+
+		return _initializingPortalInstance.setWithSafeCloseable(
+			initializingPortalInstance);
+	}
+
+	public static SafeCloseable setWithSafeCloseable(Long companyId) {
 		long currentCompanyId = _companyId.get();
 		Locale defaultLocale = LocaleThreadLocal.getDefaultLocale();
 		TimeZone defaultTimeZone = TimeZoneThreadLocal.getDefaultTimeZone();
 
 		_setCompanyId(companyId);
 
-		SafeClosable ctCollectionSafeClosable =
-			CTCollectionThreadLocal.setCTCollectionId(0);
+		SafeCloseable ctCollectionSafeCloseable =
+			CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(0);
 
 		return () -> {
 			_companyId.set(currentCompanyId);
 			LocaleThreadLocal.setDefaultLocale(defaultLocale);
 			TimeZoneThreadLocal.setDefaultTimeZone(defaultTimeZone);
 
-			ctCollectionSafeClosable.close();
+			ctCollectionSafeCloseable.close();
 		};
+	}
+
+	private static User _fetchDefaultUser(long companyId) throws Exception {
+		User defaultUser = null;
+
+		try {
+			defaultUser = UserLocalServiceUtil.fetchDefaultUser(companyId);
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+		}
+
+		if (defaultUser != null) {
+			return defaultUser;
+		}
+
+		try (Connection connection = DataAccess.getConnection()) {
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select userId, languageId, timeZoneId from User_ " +
+							"where companyId = ? and defaultUser = ?")) {
+
+				preparedStatement.setLong(1, companyId);
+				preparedStatement.setBoolean(2, true);
+
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					if (!resultSet.next()) {
+						return null;
+					}
+
+					defaultUser = UserLocalServiceUtil.createUser(
+						resultSet.getLong("userId"));
+
+					defaultUser.setLanguageId(
+						resultSet.getString("languageId"));
+					defaultUser.setTimeZoneId(
+						resultSet.getString("timeZoneId"));
+				}
+			}
+		}
+
+		return defaultUser;
 	}
 
 	private static boolean _setCompanyId(Long companyId) {
 		if (companyId.equals(_companyId.get())) {
 			return false;
+		}
+
+		if (isLocked()) {
+			throw new UnsupportedOperationException(
+				"CompanyThreadLocal modification is not allowed");
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -97,8 +180,7 @@ public class CompanyThreadLocal {
 			_companyId.set(companyId);
 
 			try {
-				User defaultUser = UserLocalServiceUtil.fetchDefaultUser(
-					companyId);
+				User defaultUser = _fetchDefaultUser(companyId);
 
 				if (defaultUser == null) {
 					if (_log.isWarnEnabled()) {
@@ -114,7 +196,7 @@ public class CompanyThreadLocal {
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 		else {
@@ -138,5 +220,12 @@ public class CompanyThreadLocal {
 		new CentralizedThreadLocal<>(
 			CompanyThreadLocal.class + "._deleteInProcess",
 			() -> Boolean.FALSE);
+	private static final CentralizedThreadLocal<Boolean>
+		_initializingPortalInstance = new CentralizedThreadLocal<>(
+			CompanyThreadLocal.class + "._initializingPortalInstance",
+			() -> Boolean.FALSE);
+	private static final ThreadLocal<Boolean> _locked =
+		new CentralizedThreadLocal<>(
+			CompanyThreadLocal.class + "._locked", () -> Boolean.FALSE);
 
 }

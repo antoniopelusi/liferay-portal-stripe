@@ -54,7 +54,41 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditImageMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteImages(ActionRequest actionRequest) throws Exception {
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
+		try {
+			if (cmd.equals(Constants.DELETE)) {
+				_deleteImages(actionRequest);
+			}
+
+			sendRedirect(actionRequest, actionResponse);
+		}
+		catch (Exception exception) {
+			if (exception instanceof NoSuchEntryException ||
+				exception instanceof PrincipalException) {
+
+				SessionErrors.add(actionRequest, exception.getClass());
+
+				actionResponse.setRenderParameter(
+					"mvcPath", "/blogs/error.jsp");
+			}
+			else {
+				throw exception;
+			}
+		}
+		catch (Throwable throwable) {
+			_log.error(throwable, throwable);
+
+			actionResponse.setRenderParameter("mvcPath", "/blogs/error.jsp");
+		}
+	}
+
+	private void _deleteImages(ActionRequest actionRequest) throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -84,45 +118,11 @@ public class EditImageMVCActionCommand extends BaseMVCActionCommand {
 			if ((fileEntry.getUserId() == themeDisplay.getUserId()) ||
 				_portletResourcePermission.contains(
 					themeDisplay.getPermissionChecker(),
-					themeDisplay.getScopeGroup(), ActionKeys.UPDATE)) {
+					themeDisplay.getScopeGroup(), ActionKeys.ADD_ENTRY)) {
 
 				_portletFileRepository.deletePortletFileEntry(
 					deleteFileEntryId);
 			}
-		}
-	}
-
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
-		try {
-			if (cmd.equals(Constants.DELETE)) {
-				deleteImages(actionRequest);
-			}
-
-			sendRedirect(actionRequest, actionResponse);
-		}
-		catch (Exception exception) {
-			if (exception instanceof NoSuchEntryException ||
-				exception instanceof PrincipalException) {
-
-				SessionErrors.add(actionRequest, exception.getClass());
-
-				actionResponse.setRenderParameter(
-					"mvcPath", "/blogs/error.jsp");
-			}
-			else {
-				throw exception;
-			}
-		}
-		catch (Throwable throwable) {
-			_log.error(throwable, throwable);
-
-			actionResponse.setRenderParameter("mvcPath", "/blogs/error.jsp");
 		}
 	}
 

@@ -49,7 +49,7 @@ public interface SamlSpMessagePersistence
 	 * @param expirationDate the expiration date
 	 * @return the matching saml sp messages
 	 */
-	public java.util.List<SamlSpMessage> findByExpirationDate(
+	public java.util.List<SamlSpMessage> findByLtExpirationDate(
 		Date expirationDate);
 
 	/**
@@ -64,7 +64,7 @@ public interface SamlSpMessagePersistence
 	 * @param end the upper bound of the range of saml sp messages (not inclusive)
 	 * @return the range of matching saml sp messages
 	 */
-	public java.util.List<SamlSpMessage> findByExpirationDate(
+	public java.util.List<SamlSpMessage> findByLtExpirationDate(
 		Date expirationDate, int start, int end);
 
 	/**
@@ -80,7 +80,7 @@ public interface SamlSpMessagePersistence
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching saml sp messages
 	 */
-	public java.util.List<SamlSpMessage> findByExpirationDate(
+	public java.util.List<SamlSpMessage> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpMessage>
 			orderByComparator);
@@ -99,7 +99,7 @@ public interface SamlSpMessagePersistence
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching saml sp messages
 	 */
-	public java.util.List<SamlSpMessage> findByExpirationDate(
+	public java.util.List<SamlSpMessage> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpMessage>
 			orderByComparator,
@@ -113,7 +113,7 @@ public interface SamlSpMessagePersistence
 	 * @return the first matching saml sp message
 	 * @throws NoSuchSpMessageException if a matching saml sp message could not be found
 	 */
-	public SamlSpMessage findByExpirationDate_First(
+	public SamlSpMessage findByLtExpirationDate_First(
 			Date expirationDate,
 			com.liferay.portal.kernel.util.OrderByComparator<SamlSpMessage>
 				orderByComparator)
@@ -126,7 +126,7 @@ public interface SamlSpMessagePersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching saml sp message, or <code>null</code> if a matching saml sp message could not be found
 	 */
-	public SamlSpMessage fetchByExpirationDate_First(
+	public SamlSpMessage fetchByLtExpirationDate_First(
 		Date expirationDate,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpMessage>
 			orderByComparator);
@@ -139,7 +139,7 @@ public interface SamlSpMessagePersistence
 	 * @return the last matching saml sp message
 	 * @throws NoSuchSpMessageException if a matching saml sp message could not be found
 	 */
-	public SamlSpMessage findByExpirationDate_Last(
+	public SamlSpMessage findByLtExpirationDate_Last(
 			Date expirationDate,
 			com.liferay.portal.kernel.util.OrderByComparator<SamlSpMessage>
 				orderByComparator)
@@ -152,7 +152,7 @@ public interface SamlSpMessagePersistence
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching saml sp message, or <code>null</code> if a matching saml sp message could not be found
 	 */
-	public SamlSpMessage fetchByExpirationDate_Last(
+	public SamlSpMessage fetchByLtExpirationDate_Last(
 		Date expirationDate,
 		com.liferay.portal.kernel.util.OrderByComparator<SamlSpMessage>
 			orderByComparator);
@@ -166,7 +166,7 @@ public interface SamlSpMessagePersistence
 	 * @return the previous, current, and next saml sp message
 	 * @throws NoSuchSpMessageException if a saml sp message with the primary key could not be found
 	 */
-	public SamlSpMessage[] findByExpirationDate_PrevAndNext(
+	public SamlSpMessage[] findByLtExpirationDate_PrevAndNext(
 			long samlSpMessageId, Date expirationDate,
 			com.liferay.portal.kernel.util.OrderByComparator<SamlSpMessage>
 				orderByComparator)
@@ -177,7 +177,7 @@ public interface SamlSpMessagePersistence
 	 *
 	 * @param expirationDate the expiration date
 	 */
-	public void removeByExpirationDate(Date expirationDate);
+	public void removeByLtExpirationDate(Date expirationDate);
 
 	/**
 	 * Returns the number of saml sp messages where expirationDate &lt; &#63;.
@@ -185,7 +185,7 @@ public interface SamlSpMessagePersistence
 	 * @param expirationDate the expiration date
 	 * @return the number of matching saml sp messages
 	 */
-	public int countByExpirationDate(Date expirationDate);
+	public int countByLtExpirationDate(Date expirationDate);
 
 	/**
 	 * Returns the saml sp message where samlIdpEntityId = &#63; and samlIdpResponseKey = &#63; or throws a <code>NoSuchSpMessageException</code> if it could not be found.

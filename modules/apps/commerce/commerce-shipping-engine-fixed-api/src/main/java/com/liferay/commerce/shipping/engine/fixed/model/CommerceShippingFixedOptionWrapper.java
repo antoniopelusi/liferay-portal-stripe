@@ -47,6 +47,7 @@ public class CommerceShippingFixedOptionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"commerceShippingFixedOptionId",
 			getCommerceShippingFixedOptionId());
@@ -58,9 +59,10 @@ public class CommerceShippingFixedOptionWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put(
 			"commerceShippingMethodId", getCommerceShippingMethodId());
-		attributes.put("name", getName());
-		attributes.put("description", getDescription());
 		attributes.put("amount", getAmount());
+		attributes.put("description", getDescription());
+		attributes.put("key", getKey());
+		attributes.put("name", getName());
 		attributes.put("priority", getPriority());
 
 		return attributes;
@@ -68,6 +70,12 @@ public class CommerceShippingFixedOptionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long commerceShippingFixedOptionId = (Long)attributes.get(
 			"commerceShippingFixedOptionId");
 
@@ -118,10 +126,10 @@ public class CommerceShippingFixedOptionWrapper
 			setCommerceShippingMethodId(commerceShippingMethodId);
 		}
 
-		String name = (String)attributes.get("name");
+		BigDecimal amount = (BigDecimal)attributes.get("amount");
 
-		if (name != null) {
-			setName(name);
+		if (amount != null) {
+			setAmount(amount);
 		}
 
 		String description = (String)attributes.get("description");
@@ -130,10 +138,16 @@ public class CommerceShippingFixedOptionWrapper
 			setDescription(description);
 		}
 
-		BigDecimal amount = (BigDecimal)attributes.get("amount");
+		String key = (String)attributes.get("key");
 
-		if (amount != null) {
-			setAmount(amount);
+		if (key != null) {
+			setKey(key);
+		}
+
+		String name = (String)attributes.get("name");
+
+		if (name != null) {
+			setName(name);
 		}
 
 		Double priority = (Double)attributes.get("priority");
@@ -141,6 +155,11 @@ public class CommerceShippingFixedOptionWrapper
 		if (priority != null) {
 			setPriority(priority);
 		}
+	}
+
+	@Override
+	public CommerceShippingFixedOption cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -290,6 +309,16 @@ public class CommerceShippingFixedOptionWrapper
 	}
 
 	/**
+	 * Returns the key of this commerce shipping fixed option.
+	 *
+	 * @return the key of this commerce shipping fixed option
+	 */
+	@Override
+	public String getKey() {
+		return model.getKey();
+	}
+
+	/**
 	 * Returns the modified date of this commerce shipping fixed option.
 	 *
 	 * @return the modified date of this commerce shipping fixed option
@@ -297,6 +326,16 @@ public class CommerceShippingFixedOptionWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce shipping fixed option.
+	 *
+	 * @return the mvcc version of this commerce shipping fixed option
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -575,6 +614,16 @@ public class CommerceShippingFixedOptionWrapper
 	}
 
 	/**
+	 * Sets the key of this commerce shipping fixed option.
+	 *
+	 * @param key the key of this commerce shipping fixed option
+	 */
+	@Override
+	public void setKey(String key) {
+		model.setKey(key);
+	}
+
+	/**
 	 * Sets the modified date of this commerce shipping fixed option.
 	 *
 	 * @param modifiedDate the modified date of this commerce shipping fixed option
@@ -582,6 +631,16 @@ public class CommerceShippingFixedOptionWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce shipping fixed option.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce shipping fixed option
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

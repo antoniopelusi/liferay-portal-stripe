@@ -94,8 +94,8 @@
 									<h4 class="list-group-title text-truncate">
 
 										<%
-										AssignableScopes assignedAssignableScopes = relations.getAssignedAssignableScopes();
 										AssignableScopes assignableScopes = applicationAssignableScopesRelationsEntry.getKey();
+										AssignableScopes assignedAssignableScopes = relations.getAssignedAssignableScopes();
 										%>
 
 										<c:choose>

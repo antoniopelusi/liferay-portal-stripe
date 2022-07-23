@@ -204,6 +204,11 @@ public class CountryWrapper
 		}
 	}
 
+	@Override
+	public Country cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the a2 of this country.
 	 *

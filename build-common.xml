@@ -82,7 +82,7 @@
 		<pathelement path="${classpath.full}" />
 		<fileset
 			dir="${project.dir}/lib/development"
-			includes="osgi-annotation-versioning.jar,jsp-api.jar,mail.jar,servlet-api.jar"
+			includes="osgi-annotation-versioning.jar,osgi-core.jar,jsp-api.jar,mail.jar,servlet-api.jar"
 		/>
 		<fileset
 			dir="${project.dir}/lib/portal"
@@ -148,7 +148,7 @@
 		</not>
 	</condition>
 
-	<property name="aspectj.agent" value="-javaagent:${project.dir}/lib/portal/aspectj-weaver.jar" />
+	<property name="aspectj.agent" value="-javaagent:${project.dir}/lib/development/aspectj-weaver.jar" />
 	<property name="aspectj.configuration" value="com/liferay/aspectj/aop.xml" />
 	<property name="definitions.dir" value="${project.dir}/definitions" />
 	<property name="doc.dir" value="${project.dir}/api" />
@@ -351,6 +351,7 @@ information.
 				<arg value="log" />
 				<arg value="--format=%s" />
 				<arg value="${latest.artifact.git.id}..HEAD" />
+				<arg value=":(exclude)test" />
 				<arg value="." />
 			</exec>
 
@@ -928,7 +929,7 @@ information.
 									<equals arg1="${gradle.executable.task}" arg2="" />
 								</not>
 								<then>
-									<echo message="Executing Gradle task: ${gradle.executable.task}" />
+									<echo>Executing Gradle task: ${gradle.executable.task}</echo>
 								</then>
 							</if>
 
@@ -961,7 +962,7 @@ information.
 
 									<propertycopy from="${redirector.error.property}" name="task.error" />
 
-									<echo message="${task.error}" />
+									<echo>${task.error}</echo>
 								</then>
 							</if>
 
@@ -1017,7 +1018,7 @@ information.
 
 											<propertycopy from="${redirector.output.property}" name="task.output" />
 
-											<echo message="${task.output}" />
+											<echo>${task.output}</echo>
 										</then>
 										<elseif>
 											<and>
@@ -1031,7 +1032,7 @@ information.
 												<if>
 													<contains string="${task.output}" substring="Publishing build scan" />
 													<then>
-														<echo message="${task.output}" />
+														<echo>${task.output}</echo>
 													</then>
 												</if>
 											</then>
@@ -1062,7 +1063,7 @@ information.
 
 					<property name="gradle.execute.silent" value="false" />
 
-					<echo message="Stopping all running Gradle Daemon processes." />
+					<echo>Stopping all running Gradle Daemon processes.</echo>
 
 					<gradle-execute dir="." forcedcacheenabled="false" setupbinariescache="false" task="">
 						<arg value="--stop" />
@@ -1152,9 +1153,9 @@ information.
 			</condition>
 
 			<if>
-				<isset property="junit.java.unit.gc[@{junit.jvm.override.version}]" />
+				<isset property="junit.java.unit.gc[${junit.jvm.override.version}]" />
 				<then>
-					<propertycopy from="junit.java.unit.gc[@{junit.jvm.override.version}]" name="junit.java.unit.gc" override="true" />
+					<propertycopy from="junit.java.unit.gc[${junit.jvm.override.version}]" name="junit.java.unit.gc" override="true" />
 				</then>
 			</if>
 
@@ -1169,16 +1170,16 @@ information.
 			</if>
 
 			<if>
-				<isset property="junit.java.add.opens[@{junit.jvm.override.version}]" />
+				<isset property="junit.java.add.opens[${junit.jvm.override.version}]" />
 				<then>
-					<propertycopy from="junit.java.add.opens[@{junit.jvm.override.version}]" name="junit.java.add.opens" override="true" />
+					<propertycopy from="junit.java.add.opens[${junit.jvm.override.version}]" name="junit.java.add.opens" override="true" />
 				</then>
 			</if>
 
 			<local name="junit.jvm.bin" />
 
-			<condition else="${junit.jvm.override}" property="junit.jvm.bin" value="${junit.jvm}">
-				<equals arg1="${junit.jvm.override}" arg2="" />
+			<condition else="${junit.jvm}" property="junit.jvm.bin" value="${junit.jvm.override}">
+				<isset property="junit.jvm.override" />
 			</condition>
 
 			<junit dir="${project.dir}" fork="on" forkmode="@{forkmode}" haltonfailure="${junit.halt.on.failure}" jvm="${junit.jvm.bin}" outputtoformatters="false" printsummary="on" showoutput="true">
@@ -1187,7 +1188,6 @@ information.
 				<sysproperty file="woven-classes" key="junit.aspectj.dump" />
 				<sysproperty key="junit.code.coverage" value="${junit.code.coverage}" />
 				<sysproperty if:true="${jvm.debug}" key="jvm.debug" value="true" />
-				<sysproperty key="liferay.lib.portal.dir" value="${app.server.tomcat.lib.portal.dir}" />
 				<sysproperty key="liferay.temp.dir" value="${app.server.tomcat.temp.dir}" />
 				<sysproperty if:true="${aspectj.weaver.enabled}" key="org.aspectj.weaver.loadtime.configuration" value="${aspectj.configuration}" />
 				<sysproperty key="whip.agent" value="${whip.agent}" />
@@ -1204,7 +1204,6 @@ information.
 				<jvmarg value="-Dexternal-properties=${test.properties}" />
 				<jvmarg value="-Dfixed.issues=${fixed.issues}" />
 				<jvmarg value="-Dliferay.log.dir=${liferay.home}/logs" />
-				<jvmarg value="-Dliferay.mode=test" />
 				<jvmarg value="-Dosgi.state.dir=${liferay.home}/osgi/state" />
 				<jvmarg value="-Drelease.versions.test.other.dir=${release.versions.test.other.dir}" />
 				<jvmarg value="-Drelease.versions.test.other.dir.names=${release.versions.test.other.dir.names}" />
@@ -1247,7 +1246,7 @@ information.
 			<trycatch>
 				<try>
 					<taskdef
-						classname="com.liferay.util.ant.ManifestHelperTask"
+						classname="com.liferay.ant.manifest.helper.ManifestHelperTask"
 						classpathref="project.classpath"
 						name="liferay-manifest-helper"
 					/>
@@ -1257,7 +1256,7 @@ information.
 					<ant dir="${project.dir}/util-java" inheritAll="false" target="compile" />
 
 					<taskdef
-						classname="com.liferay.util.ant.ManifestHelperTask"
+						classname="com.liferay.ant.manifest.helper.ManifestHelperTask"
 						classpathref="project.classpath"
 						name="liferay-manifest-helper"
 					/>
@@ -1317,7 +1316,7 @@ information.
 				<format pattern="MMMM d, yyyy 'at' hh:mm aa" property="current.time" />
 			</tstamp>
 
-			<echo message="${current.time}" />
+			<echo>${current.time}</echo>
 		</sequential>
 	</macrodef>
 
@@ -1567,7 +1566,7 @@ artifact.url=${remote.repository.cdn.url}/com/liferay/portal/com.liferay.${proce
 				</filterchain>
 			</loadproperties>
 
-			<echo append="true" file="@{file}" message="${line.separator}${processed.artifact.name}=${Bundle-Version}-SNAPSHOT" />
+			<echo append="true" file="@{file}">${line.separator}${processed.artifact.name}=${Bundle-Version}-SNAPSHOT</echo>
 		</sequential>
 	</macrodef>
 
@@ -1628,11 +1627,13 @@ artifact.url=${remote.repository.cdn.url}/com/liferay/portal/com.liferay.${proce
 
 							<echo>Updating ${build.binaries.cache.dir.absolute.path}.</echo>
 
-							<exec dir="${project.dir}/${build.binaries.cache.dir}" executable="git" failonerror="true">
-								<arg value="pull" />
-								<arg value="--rebase" />
-								<arg value="${build.binaries.cache.url}" />
-							</exec>
+							<retry retrycount="3" retrydelay="30000">
+								<exec dir="${project.dir}/${build.binaries.cache.dir}" executable="git" failonerror="true">
+									<arg value="pull" />
+									<arg value="--rebase" />
+									<arg value="${build.binaries.cache.url}" />
+								</exec>
+							</retry>
 						</then>
 					</if>
 
@@ -1661,75 +1662,6 @@ artifact.url=${remote.repository.cdn.url}/com/liferay/portal/com.liferay.${proce
 			</if>
 
 			<property name="setup.binaries.cache.executed" value="true" />
-		</sequential>
-	</macrodef>
-
-	<macrodef name="setup-dxp-app">
-		<attribute name="dxp.app.name" />
-		<attribute name="dxp.app.version" />
-
-		<sequential>
-			<gradle-execute outputproperty="dxp.app.zip.file" setupbinariescache="false" task="printDependencyPath">
-				<arg value="--build-file=${project.dir}/modules/util.gradle" />
-				<arg value="--quiet" />
-				<arg value="-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false" />
-				<arg value="-PdependencyNotation=com.liferay.portal:com.liferay.portal.dxp.apps.@{dxp.app.name}:@{dxp.app.version}" />
-			</gradle-execute>
-
-			<propertyregex
-				input="${dxp.app.zip.file}"
-				override="true"
-				property="dxp.app.zip.file"
-				regexp="(.*$)"
-				select="\1"
-			/>
-
-			<dirname file="${dxp.app.zip.file}" property="dxp.app.zip.dir" />
-
-			<if>
-				<not>
-					<uptodate>
-						<mapper
-							to="${project.dir}/modules/dxp/@{dxp.app.name}"
-							type="merge"
-						/>
-						<srcfiles dir="${dxp.app.zip.dir}" includes="com.liferay.portal.dxp.apps.@{dxp.app.name}-@{dxp.app.version}.zip" />
-					</uptodate>
-				</not>
-				<then>
-					<delete dir="${project.dir}/modules/.releng/dxp/apps/@{dxp.app.name}" />
-
-					<unzip
-						dest="${project.dir}/modules/.releng/dxp/apps"
-						src="${dxp.app.zip.dir}/com.liferay.portal.dxp.apps.@{dxp.app.name}-@{dxp.app.version}.zip"
-					>
-						<mapper
-							from="com.liferay.portal.dxp.apps.@{dxp.app.name}-@{dxp.app.version}/.releng/*"
-							to="@{dxp.app.name}/*"
-							type="glob"
-						/>
-						<patternset>
-							<include name="com.liferay.portal.dxp.apps.@{dxp.app.name}-@{dxp.app.version}/.releng/**" />
-						</patternset>
-					</unzip>
-
-					<delete dir="${project.dir}/modules/dxp/apps/@{dxp.app.name}" />
-
-					<unzip
-						dest="${project.dir}/modules/dxp/apps"
-						src="${dxp.app.zip.dir}/com.liferay.portal.dxp.apps.@{dxp.app.name}-@{dxp.app.version}.zip"
-					>
-						<mapper
-							from="com.liferay.portal.dxp.apps.@{dxp.app.name}-@{dxp.app.version}/apps/*"
-							to="@{dxp.app.name}/*"
-							type="glob"
-						/>
-						<patternset>
-							<include name="com.liferay.portal.dxp.apps.@{dxp.app.name}-@{dxp.app.version}/apps/**" />
-						</patternset>
-					</unzip>
-				</then>
-			</if>
 		</sequential>
 	</macrodef>
 
@@ -1789,6 +1721,16 @@ artifact.url=${remote.repository.cdn.url}/com/liferay/portal/com.liferay.${proce
 				</then>
 			</if>
 
+			<if>
+				<and>
+					<equals arg1="${basedir.unix}" arg2="${project.dir}/util-taglib" />
+					<equals arg1="@{test.type}" arg2="unit" />
+				</and>
+				<then>
+					<var name="junit.classpath" value="${classpath.util-taglib-unit}" />
+				</then>
+			</if>
+
 			<path id="test.classpath">
 				<pathelement path="test-classes/@{test.type}" />
 				<pathelement path="${junit.classpath}" />
@@ -1802,7 +1744,6 @@ artifact.url=${remote.repository.cdn.url}/com/liferay/portal/com.liferay.${proce
 				/>
 				<fileset
 					dir="${project.dir}/lib/portal"
-					excludes="ant.jar"
 					includes="*.jar"
 				/>
 				<fileset
@@ -1961,7 +1902,6 @@ rerun your task.
 						test.type="@{test.type}"
 					>
 						<misc>
-							<jvmarg value="-Dliferay.lib.portal.dir=${project.dir}/lib/portal" />
 							<jvmarg value="-Dtest.class.group.index=${test.class.group.index}" />
 							<jvmarg value="-Dtest.class.groups=${TEST_CLASS_GROUPS}" />
 						</misc>
@@ -2160,8 +2100,8 @@ rerun your task.
 			<isset property="class.names" />
 			<then>
 				<taskdef
-					classname="com.liferay.util.ant.GetFileSetTask"
-					classpath="${project.dir}/util-java/util-java.jar"
+					classname="com.liferay.ant.get.file.set.GetFileSetTask"
+					classpathref="project.classpath"
 					name="get-file-set"
 				/>
 

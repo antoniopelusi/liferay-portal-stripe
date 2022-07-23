@@ -2,15 +2,47 @@
 <head>
 <title>KaleoDesigner</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">KaleoDesigner</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ICON_COUNTRY</td>
+	<td>//button[contains(@class,'btn')]//*[contains(@class,'lexicon-icon-${key_icon}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ROLE_TYPE_ACCOUNT</td>
+	<td>//select[contains(@name,'roleType')]/option[contains(.,'Account')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ROLE_TYPE_OPTION</td>
+	<td>//td[contains(.,'Role Type')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>SAVE_BUTTON</td>
 	<td>//button[contains(.,'Save') and not (contains(@class,'toolbar'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATED_ICON_COUNTRY</td>
+	<td>//*[contains(@class,'lexicon-icon-${key_icon}')]/../../span//span[contains(text(),'Translated')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>UNTRANSLATED_ICON_COUNTRY</td>
+	<td>//*[contains(@class,'lexicon-icon-${key_icon}')]/../../span//span[contains(text(),'Not Translated')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_VALUE_TRUE_DEFAULT_CONNECTORS</td>
+	<td>//td[contains(@class,'table-col-value') and contains(text(),'true')]</td>
 	<td></td>
 </tr>
 </tbody>

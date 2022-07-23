@@ -107,6 +107,9 @@ public class ClassLoaderAggregatePropertiesUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * @see com.liferay.portal.tools.ToolsUtil#_charPoolChars
+	 */
 	private static Map<String, Character> _getCharPoolChars() {
 		try {
 			Map<String, Character> charPoolChars = new HashMap<>();

@@ -16,6 +16,7 @@ package com.liferay.oauth.internal;
 
 import com.liferay.oauth.configuration.OAuthConfigurationValues;
 import com.liferay.oauth.constants.OAuthAccessorConstants;
+import com.liferay.oauth.exception.OAuthException;
 import com.liferay.oauth.model.OAuthApplication;
 import com.liferay.oauth.model.OAuthUser;
 import com.liferay.oauth.service.OAuthApplicationLocalService;
@@ -44,7 +45,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiServiceUtil;
-import com.liferay.portal.kernel.oauth.OAuthException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.Digester;
 import com.liferay.portal.kernel.util.DigesterUtil;
@@ -317,19 +317,6 @@ public class V10aOAuth implements IdentifiableOSGiService, OAuth {
 		_oAuthValidator.validateOAuthMessage(oAuthMessage, accessor);
 	}
 
-	protected static OAuthAccessor deserialize(byte[] bytes) {
-		Deserializer deserializer = new Deserializer(ByteBuffer.wrap(bytes));
-
-		try {
-			return deserializer.readObject();
-		}
-		catch (ClassNotFoundException classNotFoundException) {
-			classNotFoundException.printStackTrace();
-		}
-
-		return null;
-	}
-
 	@Activate
 	protected void activate() {
 		_oAuthValidator = new DefaultOAuthValidator();
@@ -344,21 +331,24 @@ public class V10aOAuth implements IdentifiableOSGiService, OAuth {
 		}
 	}
 
-	protected byte[] serialize(OAuthAccessor oAuthAccessor) {
-		Serializer serializer = new Serializer();
+	private static OAuthAccessor _deserialize(byte[] bytes) {
+		Deserializer deserializer = new Deserializer(ByteBuffer.wrap(bytes));
 
-		serializer.writeObject((DefaultOAuthAccessor)oAuthAccessor);
+		try {
+			return deserializer.readObject();
+		}
+		catch (ClassNotFoundException classNotFoundException) {
+			_log.error(classNotFoundException);
+		}
 
-		ByteBuffer byteBuffer = serializer.toByteBuffer();
-
-		return byteBuffer.array();
+		return null;
 	}
 
 	@SuppressWarnings("unused")
 	private static void _put(
 		String osgiServiceIdentifier, String key, byte[] bytes) {
 
-		OAuthAccessor oAuthAccessor = deserialize(bytes);
+		OAuthAccessor oAuthAccessor = _deserialize(bytes);
 
 		V10aOAuth v10aOAuth =
 			(V10aOAuth)IdentifiableOSGiServiceUtil.getIdentifiableOSGiService(
@@ -374,7 +364,7 @@ public class V10aOAuth implements IdentifiableOSGiService, OAuth {
 
 		MethodHandler putMethodHandler = new MethodHandler(
 			_putMethodKey, getOSGiServiceIdentifier(), key,
-			serialize(oAuthAccessor));
+			_serialize(oAuthAccessor));
 
 		ClusterRequest clusterRequest = ClusterRequest.createMulticastRequest(
 			putMethodHandler, true);
@@ -400,6 +390,16 @@ public class V10aOAuth implements IdentifiableOSGiService, OAuth {
 				_log.error("Unable to notify cluster", exception);
 			}
 		}
+	}
+
+	private byte[] _serialize(OAuthAccessor oAuthAccessor) {
+		Serializer serializer = new Serializer();
+
+		serializer.writeObject((DefaultOAuthAccessor)oAuthAccessor);
+
+		ByteBuffer byteBuffer = serializer.toByteBuffer();
+
+		return byteBuffer.array();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(V10aOAuth.class);
@@ -492,28 +492,18 @@ public class V10aOAuth implements IdentifiableOSGiService, OAuth {
 		}
 
 		private void _logDebug(String method, Serializable key, Object value) {
-			if (!_log.isDebugEnabled()) {
-				return;
-			}
-
-			if (!(value instanceof OAuthAccessor)) {
+			if (!_log.isDebugEnabled() || !(value instanceof OAuthAccessor)) {
 				return;
 			}
 
 			OAuthAccessor oAuthAccessor = (OAuthAccessor)value;
 
-			StringBundler sb = new StringBundler(7);
-
-			sb.append(method);
-			sb.append("  ");
-			sb.append(key);
-			sb.append(":");
-			sb.append(oAuthAccessor.getRequestToken());
-			sb.append(":");
-			sb.append(
-				oAuthAccessor.getProperty(OAuthAccessorConstants.AUTHORIZED));
-
-			_log.debug(sb.toString());
+			_log.debug(
+				StringBundler.concat(
+					method, "  ", key, ":", oAuthAccessor.getRequestToken(),
+					":",
+					oAuthAccessor.getProperty(
+						OAuthAccessorConstants.AUTHORIZED)));
 		}
 
 	}

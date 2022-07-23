@@ -27,6 +27,10 @@ public class CommerceShipmentItemLocalServiceWrapper
 	implements CommerceShipmentItemLocalService,
 			   ServiceWrapper<CommerceShipmentItemLocalService> {
 
+	public CommerceShipmentItemLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceShipmentItemLocalServiceWrapper(
 		CommerceShipmentItemLocalService commerceShipmentItemLocalService) {
 
@@ -56,14 +60,16 @@ public class CommerceShipmentItemLocalServiceWrapper
 	@Override
 	public com.liferay.commerce.model.CommerceShipmentItem
 			addCommerceShipmentItem(
-				long commerceShipmentId, long commerceOrderItemId,
-				long commerceInventoryWarehouseId, int quantity,
+				String externalReferenceCode, long commerceShipmentId,
+				long commerceOrderItemId, long commerceInventoryWarehouseId,
+				int quantity, boolean validateInventory,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceShipmentItemLocalService.addCommerceShipmentItem(
-			commerceShipmentId, commerceOrderItemId,
-			commerceInventoryWarehouseId, quantity, serviceContext);
+			externalReferenceCode, commerceShipmentId, commerceOrderItemId,
+			commerceInventoryWarehouseId, quantity, validateInventory,
+			serviceContext);
 	}
 
 	@Override
@@ -76,6 +82,22 @@ public class CommerceShipmentItemLocalServiceWrapper
 		return _commerceShipmentItemLocalService.
 			addDeliverySubscriptionCommerceShipmentItem(
 				groupId, userId, commerceShipmentId, commerceOrderItemId);
+	}
+
+	@Override
+	public com.liferay.commerce.model.CommerceShipmentItem
+			addOrUpdateCommerceShipmentItem(
+				String externalReferenceCode, long commerceShipmentId,
+				long commerceOrderItemId, long commerceInventoryWarehouseId,
+				int quantity, boolean validateInventory,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentItemLocalService.
+			addOrUpdateCommerceShipmentItem(
+				externalReferenceCode, commerceShipmentId, commerceOrderItemId,
+				commerceInventoryWarehouseId, quantity, validateInventory,
+				serviceContext);
 	}
 
 	/**
@@ -192,6 +214,13 @@ public class CommerceShipmentItemLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceShipmentItemLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _commerceShipmentItemLocalService.dynamicQuery();
 	}
@@ -302,6 +331,37 @@ public class CommerceShipmentItemLocalServiceWrapper
 			commerceInventoryWarehouseId);
 	}
 
+	/**
+	 * Returns the commerce shipment item with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the commerce shipment item's external reference code
+	 * @return the matching commerce shipment item, or <code>null</code> if a matching commerce shipment item could not be found
+	 */
+	@Override
+	public com.liferay.commerce.model.CommerceShipmentItem
+		fetchCommerceShipmentItemByExternalReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return _commerceShipmentItemLocalService.
+			fetchCommerceShipmentItemByExternalReferenceCode(
+				companyId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchCommerceShipmentItemByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Override
+	public com.liferay.commerce.model.CommerceShipmentItem
+		fetchCommerceShipmentItemByReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return _commerceShipmentItemLocalService.
+			fetchCommerceShipmentItemByReferenceCode(
+				companyId, externalReferenceCode);
+	}
+
 	@Override
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
@@ -323,6 +383,25 @@ public class CommerceShipmentItemLocalServiceWrapper
 
 		return _commerceShipmentItemLocalService.getCommerceShipmentItem(
 			commerceShipmentItemId);
+	}
+
+	/**
+	 * Returns the commerce shipment item with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the commerce shipment item's external reference code
+	 * @return the matching commerce shipment item
+	 * @throws PortalException if a matching commerce shipment item could not be found
+	 */
+	@Override
+	public com.liferay.commerce.model.CommerceShipmentItem
+			getCommerceShipmentItemByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentItemLocalService.
+			getCommerceShipmentItemByExternalReferenceCode(
+				companyId, externalReferenceCode);
 	}
 
 	/**
@@ -479,22 +558,23 @@ public class CommerceShipmentItemLocalServiceWrapper
 	@Override
 	public com.liferay.commerce.model.CommerceShipmentItem
 			updateCommerceShipmentItem(
-				long commerceShipmentItemId, int quantity)
+				long commerceShipmentItemId, long commerceInventoryWarehouseId,
+				int quantity, boolean validateInventory)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceShipmentItemLocalService.updateCommerceShipmentItem(
-			commerceShipmentItemId, quantity);
+			commerceShipmentItemId, commerceInventoryWarehouseId, quantity,
+			validateInventory);
 	}
 
 	@Override
 	public com.liferay.commerce.model.CommerceShipmentItem
-			updateCommerceShipmentItem(
-				long commerceShipmentItemId, long commerceInventoryWarehouseId,
-				int quantity)
+			updateExternalReferenceCode(
+				long commerceShipmentItemId, String externalReferenceCode)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _commerceShipmentItemLocalService.updateCommerceShipmentItem(
-			commerceShipmentItemId, commerceInventoryWarehouseId, quantity);
+		return _commerceShipmentItemLocalService.updateExternalReferenceCode(
+			commerceShipmentItemId, externalReferenceCode);
 	}
 
 	@Override

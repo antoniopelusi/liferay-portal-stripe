@@ -149,6 +149,10 @@ public class CPDisplayLayoutLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -417,11 +421,11 @@ public class CPDisplayLayoutLocalServiceUtil {
 	}
 
 	public static CPDisplayLayout updateCPDisplayLayout(
-			long cpDisplayLayoutId, String layoutUuid)
+			long cpDisplayLayoutId, long classPK, String layoutUuid)
 		throws PortalException {
 
 		return getService().updateCPDisplayLayout(
-			cpDisplayLayoutId, layoutUuid);
+			cpDisplayLayoutId, classPK, layoutUuid);
 	}
 
 	public static CPDisplayLayoutLocalService getService() {

@@ -14,7 +14,6 @@
 
 package com.liferay.commerce.discount.internal;
 
-import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.currency.model.CommerceCurrency;
 import com.liferay.commerce.currency.model.CommerceMoney;
@@ -33,6 +32,7 @@ import com.liferay.commerce.pricing.configuration.CommercePricingConfiguration;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.util.CommerceBigDecimalUtil;
+import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -158,11 +158,18 @@ public class CommerceDiscountCalculationV2Impl
 				productUnitPrice, quantity, commerceContext, commerceDiscounts);
 		}
 
+		long commerceOrderTypeId = 0;
+
+		CommerceOrder commerceOrder = commerceContext.getCommerceOrder();
+
+		if (commerceOrder != null) {
+			commerceOrderTypeId = commerceOrder.getCommerceOrderTypeId();
+		}
+
 		List<CommerceDiscount> commerceDiscounts =
 			getProductCommerceDiscountByHierarchy(
-				cpInstance.getCompanyId(), commerceContext.getCommerceAccount(),
-				commerceContext.getCommerceChannelId(),
-				cpInstance.getCPDefinitionId());
+				cpInstance.getCompanyId(), commerceContext, commerceOrderTypeId,
+				cpInstance.getCPDefinitionId(), cpInstanceId);
 
 		if (commerceDiscounts.isEmpty()) {
 			return null;
@@ -374,7 +381,7 @@ public class CommerceDiscountCalculationV2Impl
 
 	private CommerceDiscountValue _getCommerceDiscountValue(
 			CommerceOrder commerceOrder, BigDecimal amount,
-			CommerceContext commerceContext, String discountType)
+			CommerceContext commerceContext, String target)
 		throws PortalException {
 
 		if ((amount == null) ||
@@ -385,9 +392,8 @@ public class CommerceDiscountCalculationV2Impl
 
 		List<CommerceDiscount> commerceDiscounts =
 			getOrderCommerceDiscountByHierarchy(
-				commerceOrder.getCompanyId(),
-				commerceContext.getCommerceAccount(),
-				commerceContext.getCommerceChannelId(), discountType);
+				commerceOrder.getCompanyId(), commerceContext,
+				commerceOrder.getCommerceOrderTypeId(), target);
 
 		if (commerceDiscounts.isEmpty()) {
 			return null;
@@ -496,19 +502,12 @@ public class CommerceDiscountCalculationV2Impl
 			String discountCouponCode, CommerceContext commerceContext)
 		throws PortalException {
 
-		long commerceAccountId = 0;
-
-		CommerceAccount commerceAccount = commerceContext.getCommerceAccount();
-
-		if (commerceAccount != null) {
-			commerceAccountId = commerceAccount.getCommerceAccountId();
-		}
-
 		if ((Validator.isBlank(discountCouponCode) ||
 			 Objects.equals(couponCode, discountCouponCode)) &&
 			_commerceDiscountUsageEntryLocalService.
 				validateDiscountLimitationUsage(
-					commerceAccountId, commerceDiscountId)) {
+					CommerceUtil.getCommerceAccountId(commerceContext),
+					commerceDiscountId)) {
 
 			return true;
 		}

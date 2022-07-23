@@ -206,6 +206,27 @@ public class Product implements Cloneable, Serializable {
 
 	protected Date createDate;
 
+	public CustomField[] getCustomFields() {
+		return customFields;
+	}
+
+	public void setCustomFields(CustomField[] customFields) {
+		this.customFields = customFields;
+	}
+
+	public void setCustomFields(
+		UnsafeSupplier<CustomField[], Exception> customFieldsUnsafeSupplier) {
+
+		try {
+			customFields = customFieldsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected CustomField[] customFields;
+
 	public String getDefaultSku() {
 		return defaultSku;
 	}
@@ -248,6 +269,27 @@ public class Product implements Cloneable, Serializable {
 	}
 
 	protected Map<String, String> description;
+
+	public Diagram getDiagram() {
+		return diagram;
+	}
+
+	public void setDiagram(Diagram diagram) {
+		this.diagram = diagram;
+	}
+
+	public void setDiagram(
+		UnsafeSupplier<Diagram, Exception> diagramUnsafeSupplier) {
+
+		try {
+			diagram = diagramUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Diagram diagram;
 
 	public Date getDisplayDate() {
 		return displayDate;
@@ -372,6 +414,28 @@ public class Product implements Cloneable, Serializable {
 	}
 
 	protected Attachment[] images;
+
+	public MappedProduct[] getMappedProducts() {
+		return mappedProducts;
+	}
+
+	public void setMappedProducts(MappedProduct[] mappedProducts) {
+		this.mappedProducts = mappedProducts;
+	}
+
+	public void setMappedProducts(
+		UnsafeSupplier<MappedProduct[], Exception>
+			mappedProductsUnsafeSupplier) {
+
+		try {
+			mappedProducts = mappedProductsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected MappedProduct[] mappedProducts;
 
 	public Map<String, String> getMetaDescription() {
 		return metaDescription;
@@ -502,6 +566,74 @@ public class Product implements Cloneable, Serializable {
 
 	protected Boolean neverExpire;
 
+	public Pin[] getPins() {
+		return pins;
+	}
+
+	public void setPins(Pin[] pins) {
+		this.pins = pins;
+	}
+
+	public void setPins(UnsafeSupplier<Pin[], Exception> pinsUnsafeSupplier) {
+		try {
+			pins = pinsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Pin[] pins;
+
+	public Boolean getProductAccountGroupFilter() {
+		return productAccountGroupFilter;
+	}
+
+	public void setProductAccountGroupFilter(
+		Boolean productAccountGroupFilter) {
+
+		this.productAccountGroupFilter = productAccountGroupFilter;
+	}
+
+	public void setProductAccountGroupFilter(
+		UnsafeSupplier<Boolean, Exception>
+			productAccountGroupFilterUnsafeSupplier) {
+
+		try {
+			productAccountGroupFilter =
+				productAccountGroupFilterUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean productAccountGroupFilter;
+
+	public ProductAccountGroup[] getProductAccountGroups() {
+		return productAccountGroups;
+	}
+
+	public void setProductAccountGroups(
+		ProductAccountGroup[] productAccountGroups) {
+
+		this.productAccountGroups = productAccountGroups;
+	}
+
+	public void setProductAccountGroups(
+		UnsafeSupplier<ProductAccountGroup[], Exception>
+			productAccountGroupsUnsafeSupplier) {
+
+		try {
+			productAccountGroups = productAccountGroupsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected ProductAccountGroup[] productAccountGroups;
+
 	public Boolean getProductChannelFilter() {
 		return productChannelFilter;
 	}
@@ -544,6 +676,30 @@ public class Product implements Cloneable, Serializable {
 	}
 
 	protected ProductChannel[] productChannels;
+
+	public ProductConfiguration getProductConfiguration() {
+		return productConfiguration;
+	}
+
+	public void setProductConfiguration(
+		ProductConfiguration productConfiguration) {
+
+		this.productConfiguration = productConfiguration;
+	}
+
+	public void setProductConfiguration(
+		UnsafeSupplier<ProductConfiguration, Exception>
+			productConfigurationUnsafeSupplier) {
+
+		try {
+			productConfiguration = productConfigurationUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected ProductConfiguration productConfiguration;
 
 	public Long getProductId() {
 		return productId;

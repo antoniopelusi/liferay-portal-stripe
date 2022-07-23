@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.settings.CompanyServiceSettingsLocator;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -70,7 +70,7 @@ public abstract class BaseMessageBodyWriter<T> implements MessageBodyWriter<T> {
 		String authorizeScreenURL = null;
 
 		try {
-			authorizeScreenURL = getAuthorizeScreenURL(
+			authorizeScreenURL = _getAuthorizeScreenURL(
 				portal.getCompanyId(httpServletRequest));
 		}
 		catch (ConfigurationException configurationException) {
@@ -84,7 +84,7 @@ public abstract class BaseMessageBodyWriter<T> implements MessageBodyWriter<T> {
 				).build());
 		}
 
-		if (!http.hasDomain(authorizeScreenURL)) {
+		if (!HttpComponentsUtil.hasDomain(authorizeScreenURL)) {
 			String portalURL = portal.getPortalURL(httpServletRequest);
 
 			authorizeScreenURL = portalURL + authorizeScreenURL;
@@ -105,7 +105,30 @@ public abstract class BaseMessageBodyWriter<T> implements MessageBodyWriter<T> {
 		}
 	}
 
-	protected String getAuthorizeScreenURL(long companyId)
+	protected String removeParameter(String url, String name) {
+		return HttpComponentsUtil.removeParameter(url, "oauth2_" + name);
+	}
+
+	protected String setParameter(String url, String name, String value) {
+		if (Validator.isBlank(value)) {
+			return url;
+		}
+
+		return HttpComponentsUtil.addParameter(url, "oauth2_" + name, value);
+	}
+
+	protected abstract String writeTo(T t, String authorizeScreenURL);
+
+	@Reference
+	protected ConfigurationProvider configurationProvider;
+
+	@Context
+	protected MessageContext messageContext;
+
+	@Reference
+	protected Portal portal;
+
+	private String _getAuthorizeScreenURL(long companyId)
 		throws ConfigurationException {
 
 		AuthorizeScreenConfiguration authorizeScreenConfiguration =
@@ -116,32 +139,6 @@ public abstract class BaseMessageBodyWriter<T> implements MessageBodyWriter<T> {
 
 		return authorizeScreenConfiguration.authorizeScreenURL();
 	}
-
-	protected String removeParameter(String url, String name) {
-		return http.removeParameter(url, "oauth2_" + name);
-	}
-
-	protected String setParameter(String url, String name, String value) {
-		if (Validator.isBlank(value)) {
-			return url;
-		}
-
-		return http.addParameter(url, "oauth2_" + name, value);
-	}
-
-	protected abstract String writeTo(T t, String authorizeScreenURL);
-
-	@Reference
-	protected ConfigurationProvider configurationProvider;
-
-	@Reference
-	protected Http http;
-
-	@Context
-	protected MessageContext messageContext;
-
-	@Reference
-	protected Portal portal;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseMessageBodyWriter.class);

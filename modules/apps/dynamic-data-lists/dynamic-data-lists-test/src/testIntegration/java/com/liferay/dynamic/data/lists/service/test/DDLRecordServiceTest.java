@@ -44,16 +44,12 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
-import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +66,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
+
 /**
  * @author Marcellus Tavares
  */
@@ -85,10 +86,12 @@ public class DDLRecordServiceTest {
 	public static void setUpClass() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		Registry registry = RegistryUtil.getRegistry();
+		Bundle bundle = FrameworkUtil.getBundle(DDLRecordServiceTest.class);
 
-		_serviceRegistration = registry.registerService(
-			StorageAdapter.class, new FailStorageAdapter());
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		_serviceRegistration = bundleContext.registerService(
+			StorageAdapter.class, new FailStorageAdapter(), null);
 	}
 
 	@AfterClass
@@ -181,14 +184,12 @@ public class DDLRecordServiceTest {
 	public void testAddRecordWithDifferentGroupIdFromRecordSet()
 		throws Exception {
 
-		long groupId = RandomTestUtil.nextLong();
-
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm("Field");
 
 		DDLRecordSet ddlRecordSet = addRecordSet(ddmForm);
 
 		DDLRecordTestHelper ddlRecordTestHelper = new DDLRecordTestHelper(
-			GroupTestUtil.addGroup(groupId), ddlRecordSet);
+			GroupTestUtil.addGroup(), ddlRecordSet);
 
 		ddlRecordTestHelper.addRecord();
 	}
@@ -584,13 +585,10 @@ public class DDLRecordServiceTest {
 			long recordId, DDMFormValues ddmFormValues, int workflowAction)
 		throws Exception {
 
-		ServiceContext serviceContext = DDLRecordTestUtil.getServiceContext(
-			workflowAction);
-
 		return DDLRecordLocalServiceUtil.updateRecord(
 			TestPropsValues.getUserId(), recordId, false,
 			DDLRecordConstants.DISPLAY_INDEX_DEFAULT, ddmFormValues,
-			serviceContext);
+			DDLRecordTestUtil.getServiceContext(workflowAction));
 	}
 
 	private static Group _group;

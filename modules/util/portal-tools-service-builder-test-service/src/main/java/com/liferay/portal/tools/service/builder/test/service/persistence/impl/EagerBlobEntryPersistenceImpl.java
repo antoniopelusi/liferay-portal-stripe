@@ -15,7 +15,6 @@
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -25,23 +24,27 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.tools.service.builder.test.exception.NoSuchEagerBlobEntryException;
 import com.liferay.portal.tools.service.builder.test.model.EagerBlobEntry;
 import com.liferay.portal.tools.service.builder.test.model.EagerBlobEntryTable;
 import com.liferay.portal.tools.service.builder.test.model.impl.EagerBlobEntryImpl;
 import com.liferay.portal.tools.service.builder.test.model.impl.EagerBlobEntryModelImpl;
 import com.liferay.portal.tools.service.builder.test.service.persistence.EagerBlobEntryPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.EagerBlobEntryUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
@@ -49,11 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the eager blob entry service.
@@ -901,6 +899,8 @@ public class EagerBlobEntryPersistenceImpl
 			eagerBlobEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the eager blob entries in the entity cache if it is enabled.
 	 *
@@ -908,6 +908,14 @@ public class EagerBlobEntryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<EagerBlobEntry> eagerBlobEntries) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (eagerBlobEntries.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (EagerBlobEntry eagerBlobEntry : eagerBlobEntries) {
 			if (dummyEntityCache.getResult(
 					EagerBlobEntryImpl.class, eagerBlobEntry.getPrimaryKey()) ==
@@ -988,7 +996,7 @@ public class EagerBlobEntryPersistenceImpl
 		eagerBlobEntry.setNew(true);
 		eagerBlobEntry.setPrimaryKey(eagerBlobEntryId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		eagerBlobEntry.setUuid(uuid);
 
@@ -1106,7 +1114,7 @@ public class EagerBlobEntryPersistenceImpl
 			(EagerBlobEntryModelImpl)eagerBlobEntry;
 
 		if (Validator.isNull(eagerBlobEntry.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			eagerBlobEntry.setUuid(uuid);
 		}
@@ -1403,14 +1411,8 @@ public class EagerBlobEntryPersistenceImpl
 	 * Initializes the eager blob entry persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			EagerBlobEntryPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new EagerBlobEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1451,15 +1453,31 @@ public class EagerBlobEntryPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()},
 			new String[] {"uuid_", "groupId"}, false);
+
+		_setEagerBlobEntryUtilPersistence(this);
 	}
 
 	public void destroy() {
-		dummyEntityCache.removeCache(EagerBlobEntryImpl.class.getName());
+		_setEagerBlobEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		dummyEntityCache.removeCache(EagerBlobEntryImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setEagerBlobEntryUtilPersistence(
+		EagerBlobEntryPersistence eagerBlobEntryPersistence) {
+
+		try {
+			Field field = EagerBlobEntryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, eagerBlobEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	private static final String _SQL_SELECT_EAGERBLOBENTRY =
 		"SELECT eagerBlobEntry FROM EagerBlobEntry eagerBlobEntry";
@@ -1492,94 +1510,7 @@ public class EagerBlobEntryPersistenceImpl
 		return dummyFinderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class EagerBlobEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			EagerBlobEntryModelImpl eagerBlobEntryModelImpl =
-				(EagerBlobEntryModelImpl)baseModel;
-
-			if (!checkColumn ||
-				_hasModifiedColumns(eagerBlobEntryModelImpl, columnNames)) {
-
-				return _getValue(
-					eagerBlobEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return EagerBlobEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return EagerBlobEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			EagerBlobEntryModelImpl eagerBlobEntryModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						eagerBlobEntryModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = eagerBlobEntryModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static boolean _hasModifiedColumns(
-			EagerBlobEntryModelImpl eagerBlobEntryModelImpl,
-			String[] columnNames) {
-
-			if (columnNames.length == 0) {
-				return false;
-			}
-
-			for (String columnName : columnNames) {
-				if (!Objects.equals(
-						eagerBlobEntryModelImpl.getColumnOriginalValue(
-							columnName),
-						eagerBlobEntryModelImpl.getColumnValue(columnName))) {
-
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-	}
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

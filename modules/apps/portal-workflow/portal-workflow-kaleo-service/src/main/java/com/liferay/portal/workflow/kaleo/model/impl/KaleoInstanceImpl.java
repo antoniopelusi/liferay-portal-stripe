@@ -29,9 +29,6 @@ import java.util.Map;
  */
 public class KaleoInstanceImpl extends KaleoInstanceBaseImpl {
 
-	public KaleoInstanceImpl() {
-	}
-
 	@Override
 	public KaleoInstanceToken getRootKaleoInstanceToken(
 			Map<String, Serializable> workflowContext,

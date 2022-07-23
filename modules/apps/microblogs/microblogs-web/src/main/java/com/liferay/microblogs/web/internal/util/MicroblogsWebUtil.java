@@ -16,6 +16,7 @@ package com.liferay.microblogs.web.internal.util;
 
 import com.liferay.microblogs.constants.MicroblogsPortletKeys;
 import com.liferay.microblogs.model.MicroblogsEntry;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
@@ -83,9 +84,9 @@ public class MicroblogsWebUtil {
 			String content, ServiceContext serviceContext)
 		throws PortalException {
 
-		content = replaceHashtags(content, serviceContext);
+		content = _replaceHashtags(content, serviceContext);
 
-		content = replaceUserTags(content, serviceContext);
+		content = _replaceUserTags(content, serviceContext);
 
 		return content;
 	}
@@ -142,7 +143,7 @@ public class MicroblogsWebUtil {
 		return screenNames;
 	}
 
-	protected static String replaceHashtags(
+	private static String _replaceHashtags(
 			String content, ServiceContext serviceContext)
 		throws PortalException {
 
@@ -155,7 +156,7 @@ public class MicroblogsWebUtil {
 		while (matcher.find()) {
 			String result = matcher.group();
 
-			StringBuilder sb = new StringBuilder(6);
+			StringBundler sb = new StringBundler(6);
 
 			sb.append("<span class=\"hashtag\">#</span>");
 			sb.append("<a class=\"hashtag-link\" href=\"");
@@ -179,7 +180,7 @@ public class MicroblogsWebUtil {
 				}
 				catch (WindowStateException windowStateException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(windowStateException, windowStateException);
+						_log.debug(windowStateException);
 					}
 				}
 			}
@@ -195,7 +196,7 @@ public class MicroblogsWebUtil {
 				}
 				catch (WindowStateException windowStateException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(windowStateException, windowStateException);
+						_log.debug(windowStateException);
 					}
 				}
 			}
@@ -222,7 +223,7 @@ public class MicroblogsWebUtil {
 		return escapedContent;
 	}
 
-	protected static String replaceUserTags(
+	private static String _replaceUserTags(
 			String content, ServiceContext serviceContext)
 		throws PortalException {
 
@@ -232,7 +233,7 @@ public class MicroblogsWebUtil {
 			String result = matcher.group();
 
 			try {
-				StringBuilder sb = new StringBuilder(5);
+				StringBundler sb = new StringBundler(5);
 
 				sb.append("<a href=\"");
 
@@ -264,7 +265,7 @@ public class MicroblogsWebUtil {
 			}
 			catch (NoSuchUserException noSuchUserException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchUserException, noSuchUserException);
+					_log.debug(noSuchUserException);
 				}
 			}
 		}

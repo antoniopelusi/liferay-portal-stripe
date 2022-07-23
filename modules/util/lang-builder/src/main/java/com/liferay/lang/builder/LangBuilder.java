@@ -45,6 +45,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,8 @@ import org.apache.commons.io.FileUtils;
 public class LangBuilder {
 
 	public static void main(String[] args) throws Exception {
-		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
+		Map<String, String> arguments = new HashMap<>(
+			ArgumentsUtil.parseArguments(args));
 
 		System.setProperty("line.separator", StringPool.NEW_LINE);
 
@@ -453,6 +455,22 @@ public class LangBuilder {
 		_write(propertiesFile, content);
 	}
 
+	private String _fixContraction(
+		String s, String contraction, String replacement) {
+
+		int i = s.indexOf(contraction);
+
+		if ((i == -1) ||
+			((i > 0) && Character.isLetterOrDigit(s.charAt(i - 1))) ||
+			(((i + contraction.length()) < s.length()) &&
+			 Character.isLetterOrDigit(s.charAt(i + contraction.length())))) {
+
+			return s;
+		}
+
+		return StringUtil.replaceFirst(s, contraction, replacement, i);
+	}
+
 	private String _fixEnglishTranslation(String key, String value) {
 
 		// http://en.wikibooks.org/wiki/Basic_Book_Design/Capitalizing_Words_in_Titles
@@ -499,6 +517,22 @@ public class LangBuilder {
 				'\u201e', '\u201f'
 			},
 			new char[] {'\'', '\'', '\'', '\'', '\"', '\"', '\"', '\"'});
+
+		for (String[] contractionArray : _CONTRACTIONS) {
+			String contraction = contractionArray[0];
+			String replacement = contractionArray[1];
+
+			value = _fixContraction(value, contraction, replacement);
+
+			if (!contraction.startsWith("I'")) {
+				value = _fixContraction(
+					value,
+					Character.toLowerCase(contraction.charAt(0)) +
+						contraction.substring(1),
+					Character.toLowerCase(replacement.charAt(0)) +
+						replacement.substring(1));
+			}
+		}
 
 		return value;
 	}
@@ -737,18 +771,10 @@ public class LangBuilder {
 		String toText = null;
 
 		try {
-			StringBundler sb = new StringBundler(8);
-
-			sb.append("Translating ");
-			sb.append(fromLanguageId);
-			sb.append("_");
-			sb.append(toLanguageId);
-			sb.append(" ");
-			sb.append(key);
-			sb.append(" ");
-			sb.append(fromText);
-
-			System.out.println(sb.toString());
+			System.out.println(
+				StringBundler.concat(
+					"Translating ", fromLanguageId, "_", toLanguageId, " ", key,
+					" ", fromText));
 
 			toText = Translate.execute(fromText, fromLanguage, toLanguage);
 		}
@@ -772,6 +798,22 @@ public class LangBuilder {
 
 	private static final String[] _AUTOMATIC_COPY_LANGUAGE_IDS = {
 		"en_AU", "en_GB", "fr_CA"
+	};
+
+	private static final String[][] _CONTRACTIONS = {
+		{"Aren't", "Are not"}, {"Can't", "Cannot"}, {"Could've", "Could have"},
+		{"Couldn't", "Could not"}, {"Didn't", "Did not"},
+		{"Doesn't", "Does not"}, {"Don't", "Do not"}, {"Hadn't", "Had not"},
+		{"Hasn't", "Has not"}, {"Haven't", "Have not"}, {"How's", "How is"},
+		{"I'd", "I would"}, {"I'll", "I will"}, {"I've", "I have"},
+		{"Isn't", "Is not"}, {"It's", "It is"}, {"Let's", "Let us"},
+		{"Shouldn't", "Should not"}, {"That's", "That is"},
+		{"There's", "There is"}, {"Wasn't", "Was not"}, {"We'd", "We would"},
+		{"We'll", "We will"}, {"We're", "We are"}, {"We've", "We have"},
+		{"Weren't", "Were not"}, {"What's", "What is"}, {"Where's", "Where is"},
+		{"Would've", "Would have"}, {"Wouldn't", "Would not"},
+		{"You'd", "You would"}, {"You'll", "You will"}, {"You're", "You are"},
+		{"You've", "You have"}
 	};
 
 	private final String[] _excludedLanguageIds;

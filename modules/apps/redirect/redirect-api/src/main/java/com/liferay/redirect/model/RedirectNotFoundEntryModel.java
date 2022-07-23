@@ -239,4 +239,7 @@ public interface RedirectNotFoundEntryModel
 	 */
 	public void setUrl(String url);
 
+	@Override
+	public RedirectNotFoundEntry cloneWithOriginalValues();
+
 }

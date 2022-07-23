@@ -16,10 +16,8 @@ package com.liferay.portal.security.wedeploy.auth.internal.security.permission.r
 
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.security.wedeploy.auth.constants.WeDeployConstants;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -35,15 +33,13 @@ public class WeDeployAuthPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.name", WeDeployConstants.RESOURCE_NAME);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
 				WeDeployConstants.RESOURCE_NAME),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", WeDeployConstants.RESOURCE_NAME
+			).build());
 	}
 
 	@Deactivate

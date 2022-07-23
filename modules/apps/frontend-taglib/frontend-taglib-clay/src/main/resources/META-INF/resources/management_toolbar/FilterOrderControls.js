@@ -16,47 +16,78 @@ import ClayButton from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import ClayManagementToolbar from '@clayui/management-toolbar';
-import React from 'react';
+import classNames from 'classnames';
+import React, {useContext} from 'react';
 
+import FeatureFlagContext from './FeatureFlagContext';
 import LinkOrButton from './LinkOrButton';
 
 const FilterOrderControls = ({
 	disabled,
 	filterDropdownItems,
 	onFilterDropdownItemClick,
+	onOrderDropdownItemClick,
+	orderDropdownItems = [],
+	sortingOrder,
 	sortingURL,
 }) => {
+	const {showDesignImprovements} = useContext(FeatureFlagContext);
+
+	const showOrderToggle =
+		!orderDropdownItems || orderDropdownItems.length <= 1;
+
 	return (
 		<>
 			{filterDropdownItems && (
 				<ClayManagementToolbar.Item>
 					<ClayDropDownWithItems
-						items={filterDropdownItems.map((item) => {
-							return {
-								...item,
-								items: item.items.map((childItem) => {
-									return {
-										...childItem,
-										onClick(event) {
+						items={filterDropdownItems.map((item) =>
+							item.items
+								? {
+										...item,
+										items: item.items.map((childItem) => {
+											return {
+												...childItem,
+												onClick(event) {
+													onFilterDropdownItemClick(
+														event,
+														{
+															item: childItem,
+														}
+													);
+												},
+											};
+										}),
+								  }
+								: {
+										...item,
+										onClick: (event) =>
 											onFilterDropdownItemClick(event, {
-												item: childItem,
-											});
-										},
-									};
-								}),
-							};
-						})}
+												item,
+											}),
+								  }
+						)}
 						trigger={
 							<ClayButton
-								className="nav-link"
+								className={classNames('nav-link', {
+									'ml-2 mr-2': showDesignImprovements,
+								})}
 								disabled={disabled}
 								displayType="unstyled"
 							>
 								<span className="navbar-breakpoint-down-d-none">
+									{showDesignImprovements && (
+										<span className="inline-item inline-item-before">
+											<ClayIcon symbol="filter" />
+										</span>
+									)}
+
 									<span className="navbar-text-truncate">
-										{Liferay.Language.get(
-											'filter-and-order'
-										)}
+										{showDesignImprovements
+											? Liferay.Language.get('filter')
+											: Liferay.Language.get(
+													'filter-and-order'
+											  )}
 									</span>
 
 									<ClayIcon
@@ -65,7 +96,15 @@ const FilterOrderControls = ({
 									/>
 								</span>
 
-								<span className="navbar-breakpoint-d-none">
+								<span
+									className="navbar-breakpoint-d-none"
+									title={
+										showDesignImprovements &&
+										Liferay.Language.get(
+											'show-filter-options'
+										)
+									}
+								>
 									<ClayIcon symbol="filter" />
 								</span>
 							</ClayButton>
@@ -74,15 +113,103 @@ const FilterOrderControls = ({
 				</ClayManagementToolbar.Item>
 			)}
 
-			{sortingURL && (
+			{showDesignImprovements && !showOrderToggle && (
+				<ClayManagementToolbar.Item>
+					<ClayDropDownWithItems
+						items={[
+							...orderDropdownItems.map((item) => {
+								return {
+									...item,
+									onClick: (event) => {
+										onOrderDropdownItemClick(event, {
+											item,
+										});
+									},
+								};
+							}),
+							{type: 'divider'},
+							{
+								active: sortingOrder === 'asc',
+								href:
+									sortingOrder === 'asc' ? null : sortingURL,
+								label: Liferay.Language.get('ascending'),
+								type: 'item',
+							},
+							{
+								active: sortingOrder !== 'asc',
+								href:
+									sortingOrder !== 'asc' ? null : sortingURL,
+								label: Liferay.Language.get('descending'),
+								type: 'item',
+							},
+						]}
+						trigger={
+							<ClayButton
+								className="ml-2 mr-2 nav-link"
+								disabled={disabled}
+								displayType="unstyled"
+							>
+								<span className="navbar-breakpoint-down-d-none">
+									<span className="inline-item inline-item-before">
+										<ClayIcon
+											symbol={
+												sortingOrder === 'desc'
+													? 'order-list-down'
+													: 'order-list-up'
+											}
+										/>
+									</span>
+
+									<span className="navbar-text-truncate">
+										{Liferay.Language.get('order')}
+									</span>
+
+									<ClayIcon
+										className="inline-item inline-item-after"
+										symbol="caret-bottom"
+									/>
+								</span>
+
+								<span
+									className="navbar-breakpoint-d-none"
+									title={Liferay.Language.get(
+										'show-order-options'
+									)}
+								>
+									<ClayIcon
+										symbol={
+											sortingOrder === 'desc'
+												? 'order-list-down'
+												: 'order-list-up'
+										}
+									/>
+								</span>
+							</ClayButton>
+						}
+					/>
+				</ClayManagementToolbar.Item>
+			)}
+
+			{((!showDesignImprovements && sortingURL) ||
+				(showDesignImprovements && sortingURL && showOrderToggle)) && (
 				<ClayManagementToolbar.Item>
 					<LinkOrButton
 						className="nav-link nav-link-monospaced"
 						disabled={disabled}
 						displayType="unstyled"
 						href={sortingURL}
-						symbol="order-arrow"
-						title={Liferay.Language.get('reverse-sort-direction')}
+						symbol={classNames({
+							'order-list-down': sortingOrder === 'desc',
+							'order-list-up':
+								sortingOrder === 'asc' || sortingOrder === null,
+						})}
+						title={
+							showDesignImprovements
+								? Liferay.Language.get(
+										'reverse-order-direction'
+								  )
+								: Liferay.Language.get('reverse-sort-direction')
+						}
 					/>
 				</ClayManagementToolbar.Item>
 			)}

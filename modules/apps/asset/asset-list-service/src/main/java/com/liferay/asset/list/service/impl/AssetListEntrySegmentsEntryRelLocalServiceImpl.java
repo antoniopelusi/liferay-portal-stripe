@@ -19,9 +19,12 @@ import com.liferay.asset.list.service.base.AssetListEntrySegmentsEntryRelLocalSe
 import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 
 import java.util.Date;
@@ -47,7 +50,7 @@ public class AssetListEntrySegmentsEntryRelLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long assetListEntrySegmentsEntryRelId = counterLocalService.increment();
 
@@ -65,6 +68,10 @@ public class AssetListEntrySegmentsEntryRelLocalServiceImpl
 		assetListEntrySegmentsEntryRel.setAssetListEntryId(assetListEntryId);
 		assetListEntrySegmentsEntryRel.setSegmentsEntryId(segmentsEntryId);
 		assetListEntrySegmentsEntryRel.setTypeSettings(typeSettings);
+
+		assetListEntrySegmentsEntryRel.setPriority(
+			assetListEntrySegmentsEntryRelPersistence.countByAssetListEntryId(
+				assetListEntryId));
 
 		return assetListEntrySegmentsEntryRelPersistence.update(
 			assetListEntrySegmentsEntryRel);
@@ -142,6 +149,15 @@ public class AssetListEntrySegmentsEntryRelLocalServiceImpl
 	}
 
 	@Override
+	public List<AssetListEntrySegmentsEntryRel>
+		fetchAssetListEntrySegmentsEntryRels(
+			long assetListEntryId, long[] segmentsEntryId) {
+
+		return assetListEntrySegmentsEntryRelPersistence.findByA_S_C(
+			assetListEntryId, segmentsEntryId);
+	}
+
+	@Override
 	public AssetListEntrySegmentsEntryRel getAssetListEntrySegmentsEntryRel(
 			long assetListEntryId, long segmentsEntryId)
 		throws PortalException {
@@ -181,8 +197,38 @@ public class AssetListEntrySegmentsEntryRelLocalServiceImpl
 			assetListEntrySegmentsEntryRel);
 	}
 
+	@Override
+	public void updateVariationsPriority(long[] variationsPriority) {
+		for (int priority = 0; priority < variationsPriority.length;
+			 priority++) {
+
+			AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel =
+				null;
+
+			try {
+				assetListEntrySegmentsEntryRel =
+					getAssetListEntrySegmentsEntryRel(
+						variationsPriority[priority]);
+			}
+			catch (PortalException portalException) {
+				_log.error(portalException);
+			}
+
+			assetListEntrySegmentsEntryRel.setPriority(priority);
+
+			updateAssetListEntrySegmentsEntryRel(
+				assetListEntrySegmentsEntryRel);
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		AssetListEntrySegmentsEntryRelLocalServiceImpl.class);
+
 	@Reference
 	private AssetListEntryAssetEntryRelPersistence
 		_assetListEntryAssetEntryRelPersistence;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

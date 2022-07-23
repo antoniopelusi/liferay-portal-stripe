@@ -16,7 +16,6 @@ package com.liferay.portal.security.wedeploy.auth.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,14 +26,15 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -44,10 +44,12 @@ import com.liferay.portal.security.wedeploy.auth.model.WeDeployAuthTokenTable;
 import com.liferay.portal.security.wedeploy.auth.model.impl.WeDeployAuthTokenImpl;
 import com.liferay.portal.security.wedeploy.auth.model.impl.WeDeployAuthTokenModelImpl;
 import com.liferay.portal.security.wedeploy.auth.service.persistence.WeDeployAuthTokenPersistence;
+import com.liferay.portal.security.wedeploy.auth.service.persistence.WeDeployAuthTokenUtil;
 import com.liferay.portal.security.wedeploy.auth.service.persistence.impl.constants.WeDeployAuthPersistenceConstants;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
@@ -57,12 +59,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -724,6 +723,8 @@ public class WeDeployAuthTokenPersistenceImpl
 			weDeployAuthToken);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the we deploy auth tokens in the entity cache if it is enabled.
 	 *
@@ -731,6 +732,14 @@ public class WeDeployAuthTokenPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<WeDeployAuthToken> weDeployAuthTokens) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (weDeployAuthTokens.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (WeDeployAuthToken weDeployAuthToken : weDeployAuthTokens) {
 			if (entityCache.getResult(
 					WeDeployAuthTokenImpl.class,
@@ -942,25 +951,25 @@ public class WeDeployAuthTokenPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (weDeployAuthToken.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				weDeployAuthToken.setCreateDate(now);
+				weDeployAuthToken.setCreateDate(date);
 			}
 			else {
 				weDeployAuthToken.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!weDeployAuthTokenModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				weDeployAuthToken.setModifiedDate(now);
+				weDeployAuthToken.setModifiedDate(date);
 			}
 			else {
 				weDeployAuthToken.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -1259,13 +1268,9 @@ public class WeDeployAuthTokenPersistenceImpl
 	 * Initializes the we deploy auth token persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new WeDeployAuthTokenModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1304,13 +1309,31 @@ public class WeDeployAuthTokenPersistenceImpl
 				Integer.class.getName()
 			},
 			new String[] {"clientId", "token", "type_"}, false);
+
+		_setWeDeployAuthTokenUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(WeDeployAuthTokenImpl.class.getName());
+		_setWeDeployAuthTokenUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(WeDeployAuthTokenImpl.class.getName());
+	}
+
+	private void _setWeDeployAuthTokenUtilPersistence(
+		WeDeployAuthTokenPersistence weDeployAuthTokenPersistence) {
+
+		try {
+			Field field = WeDeployAuthTokenUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, weDeployAuthTokenPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -1338,8 +1361,6 @@ public class WeDeployAuthTokenPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -1378,96 +1399,8 @@ public class WeDeployAuthTokenPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class WeDeployAuthTokenModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			WeDeployAuthTokenModelImpl weDeployAuthTokenModelImpl =
-				(WeDeployAuthTokenModelImpl)baseModel;
-
-			long columnBitmask = weDeployAuthTokenModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					weDeployAuthTokenModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						weDeployAuthTokenModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					weDeployAuthTokenModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return WeDeployAuthTokenImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return WeDeployAuthTokenTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			WeDeployAuthTokenModelImpl weDeployAuthTokenModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						weDeployAuthTokenModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = weDeployAuthTokenModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private WeDeployAuthTokenModelArgumentsResolver
+		_weDeployAuthTokenModelArgumentsResolver;
 
 }

@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.batch.planner">
+	<author>Igor Beslic</author>
+	<namespace>BatchPlanner</namespace>
+	<entity local-service="true" name="BatchPlannerMapping" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="batchPlannerMappingId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="batchPlannerPlanId" type="long" />
+		<column name="externalFieldName" type="String" />
+		<column name="externalFieldType" type="String" />
+		<column name="internalFieldName" type="String" />
+		<column name="internalFieldType" type="String" />
+		<column name="script" type="String" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="modifiedDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="BatchPlannerPlanId" return-type="Collection">
+			<finder-column name="batchPlannerPlanId" />
+		</finder>
+		<finder name="BPPI_EFN_IFN" return-type="BatchPlannerMapping" unique="true">
+			<finder-column name="batchPlannerPlanId" />
+			<finder-column name="externalFieldName" />
+			<finder-column name="internalFieldName" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="BatchPlannerPlan" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="batchPlannerPlanId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="active" type="boolean" />
+		<column name="export" type="boolean" />
+		<column name="externalType" type="String" />
+		<column name="externalURL" type="String" />
+		<column name="internalClassName" type="String" />
+		<column name="name" type="String" />
+		<column name="size" type="int" />
+		<column name="taskItemDelegateName" type="String" />
+		<column name="total" type="int" />
+		<column name="template" type="boolean" />
+		<column name="status" type="int" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="modifiedDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="C_U" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="userId" />
+		</finder>
+		<finder name="C_E" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="export" />
+		</finder>
+		<finder name="C_N" return-type="BatchPlannerPlan" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="name" />
+		</finder>
+		<finder name="C_T" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="template" />
+		</finder>
+		<finder name="C_E_T" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="export" />
+			<finder-column name="template" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="BatchPlannerPolicy" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="batchPlannerPolicyId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="batchPlannerPlanId" type="long" />
+		<column name="name" type="String" />
+		<column name="value" type="String" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="modifiedDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="BatchPlannerPlanId" return-type="Collection">
+			<finder-column name="batchPlannerPlanId" />
+		</finder>
+		<finder name="BPPI_N" return-type="BatchPlannerPolicy" unique="true">
+			<finder-column name="batchPlannerPlanId" />
+			<finder-column name="name" />
+		</finder>
+	</entity>
+	<exceptions>
+		<exception>BatchPlannerMappingExternalFieldName</exception>
+		<exception>BatchPlannerMappingExternalFieldType</exception>
+		<exception>BatchPlannerMappingInternalFieldName</exception>
+		<exception>BatchPlannerMappingInternalFieldType</exception>
+		<exception>BatchPlannerPlanExternalType</exception>
+		<exception>BatchPlannerPlanInternalClassName</exception>
+		<exception>BatchPlannerPlanName</exception>
+		<exception>BatchPlannerPolicyName</exception>
+		<exception>DuplicateBatchPlannerPlan</exception>
+		<exception>RequiredBatchPlannerPlan</exception>
+	</exceptions>
+</service-builder>

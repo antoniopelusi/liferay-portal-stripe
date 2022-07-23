@@ -144,6 +144,11 @@ public class CommerceInventoryWarehouseItemWrapper
 	}
 
 	@Override
+	public CommerceInventoryWarehouseItem cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public CommerceInventoryWarehouse getCommerceInventoryWarehouse()
 		throws com.liferay.portal.kernel.exception.PortalException {
 

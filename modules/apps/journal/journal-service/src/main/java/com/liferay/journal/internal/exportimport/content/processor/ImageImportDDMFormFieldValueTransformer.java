@@ -93,7 +93,7 @@ public class ImageImportDDMFormFieldValueTransformer
 				continue;
 			}
 
-			FileEntry importedFileEntry = fetchImportedFileEntry(
+			FileEntry importedFileEntry = _fetchImportedFileEntry(
 				_portletDataContext, jsonObject.getLong("fileEntryId"),
 				jsonObject.getString("uuid"));
 
@@ -101,20 +101,17 @@ public class ImageImportDDMFormFieldValueTransformer
 				continue;
 			}
 
-			String fileEntryJSON = toJSON(
+			String fileEntryJSON = _toJSON(
 				importedFileEntry, jsonObject.getString("type"),
 				jsonObject.getString("alt"));
 
 			value.addString(locale, fileEntryJSON);
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("//dynamic-element[@type='image']");
-			sb.append("/dynamic-content[contains(text(),");
-			sb.append(HtmlUtil.escapeXPathAttribute(valueString));
-			sb.append(")]");
-
-			XPath xPath = SAXReaderUtil.createXPath(sb.toString());
+			XPath xPath = SAXReaderUtil.createXPath(
+				StringBundler.concat(
+					"//dynamic-element[@type='image']",
+					"/dynamic-content[contains(text(),",
+					HtmlUtil.escapeXPathAttribute(valueString), ")]"));
 
 			List<Node> imageNodes = xPath.selectNodes(_document);
 
@@ -128,7 +125,7 @@ public class ImageImportDDMFormFieldValueTransformer
 		}
 	}
 
-	protected FileEntry fetchImportedFileEntry(
+	private FileEntry _fetchImportedFileEntry(
 			PortletDataContext portletDataContext, long oldClassPK, String uuid)
 		throws PortalException {
 
@@ -159,30 +156,6 @@ public class ImageImportDDMFormFieldValueTransformer
 		return null;
 	}
 
-	protected String toJSON(FileEntry fileEntry, String type, String alt) {
-		JournalArticle article = (JournalArticle)_stagedModel;
-
-		JSONObject jsonObject = JSONUtil.put(
-			"alt", alt
-		).put(
-			"fileEntryId", fileEntry.getFileEntryId()
-		).put(
-			"groupId", fileEntry.getGroupId()
-		).put(
-			"name", fileEntry.getFileName()
-		).put(
-			"resourcePrimKey", article.getResourcePrimKey()
-		).put(
-			"title", fileEntry.getTitle()
-		).put(
-			"type", type
-		).put(
-			"uuid", fileEntry.getUuid()
-		);
-
-		return jsonObject.toString();
-	}
-
 	private void _setContent(String content) {
 		try {
 			_document = SAXReaderUtil.read(content);
@@ -192,6 +165,31 @@ public class ImageImportDDMFormFieldValueTransformer
 				_log.debug("Invalid content:\n" + content, documentException);
 			}
 		}
+	}
+
+	private String _toJSON(FileEntry fileEntry, String type, String alt) {
+		return JSONUtil.put(
+			"alt", alt
+		).put(
+			"fileEntryId", fileEntry.getFileEntryId()
+		).put(
+			"groupId", fileEntry.getGroupId()
+		).put(
+			"name", fileEntry.getFileName()
+		).put(
+			"resourcePrimKey",
+			() -> {
+				JournalArticle article = (JournalArticle)_stagedModel;
+
+				return article.getResourcePrimKey();
+			}
+		).put(
+			"title", fileEntry.getTitle()
+		).put(
+			"type", type
+		).put(
+			"uuid", fileEntry.getUuid()
+		).toString();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

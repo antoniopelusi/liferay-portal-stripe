@@ -112,6 +112,11 @@ public class OAuthUserWrapper
 		}
 	}
 
+	@Override
+	public OAuthUser cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the access secret of this o auth user.
 	 *

@@ -29,9 +29,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CommerceWishListItemImpl extends CommerceWishListItemBaseImpl {
 
-	public CommerceWishListItemImpl() {
-	}
-
 	@Override
 	public CPInstance fetchCPInstance() throws PortalException {
 		return CPInstanceLocalServiceUtil.fetchCProductInstance(

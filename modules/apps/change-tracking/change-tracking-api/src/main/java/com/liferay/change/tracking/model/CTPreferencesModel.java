@@ -178,4 +178,7 @@ public interface CTPreferencesModel
 	 */
 	public void setConfirmationEnabled(boolean confirmationEnabled);
 
+	@Override
+	public CTPreferences cloneWithOriginalValues();
+
 }

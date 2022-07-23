@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the commerce order item service. This utility wraps <code>com.liferay.commerce.service.persistence.impl.CommerceOrderItemPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -904,10 +900,10 @@ public class CommerceOrderItemUtil {
 	 * @param CPInstanceId the cp instance ID
 	 * @return the matching commerce order items
 	 */
-	public static List<CommerceOrderItem> findByC_I(
+	public static List<CommerceOrderItem> findByC_CPI(
 		long commerceOrderId, long CPInstanceId) {
 
-		return getPersistence().findByC_I(commerceOrderId, CPInstanceId);
+		return getPersistence().findByC_CPI(commerceOrderId, CPInstanceId);
 	}
 
 	/**
@@ -923,10 +919,10 @@ public class CommerceOrderItemUtil {
 	 * @param end the upper bound of the range of commerce order items (not inclusive)
 	 * @return the range of matching commerce order items
 	 */
-	public static List<CommerceOrderItem> findByC_I(
+	public static List<CommerceOrderItem> findByC_CPI(
 		long commerceOrderId, long CPInstanceId, int start, int end) {
 
-		return getPersistence().findByC_I(
+		return getPersistence().findByC_CPI(
 			commerceOrderId, CPInstanceId, start, end);
 	}
 
@@ -944,11 +940,11 @@ public class CommerceOrderItemUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching commerce order items
 	 */
-	public static List<CommerceOrderItem> findByC_I(
+	public static List<CommerceOrderItem> findByC_CPI(
 		long commerceOrderId, long CPInstanceId, int start, int end,
 		OrderByComparator<CommerceOrderItem> orderByComparator) {
 
-		return getPersistence().findByC_I(
+		return getPersistence().findByC_CPI(
 			commerceOrderId, CPInstanceId, start, end, orderByComparator);
 	}
 
@@ -967,12 +963,12 @@ public class CommerceOrderItemUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching commerce order items
 	 */
-	public static List<CommerceOrderItem> findByC_I(
+	public static List<CommerceOrderItem> findByC_CPI(
 		long commerceOrderId, long CPInstanceId, int start, int end,
 		OrderByComparator<CommerceOrderItem> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByC_I(
+		return getPersistence().findByC_CPI(
 			commerceOrderId, CPInstanceId, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -986,12 +982,12 @@ public class CommerceOrderItemUtil {
 	 * @return the first matching commerce order item
 	 * @throws NoSuchOrderItemException if a matching commerce order item could not be found
 	 */
-	public static CommerceOrderItem findByC_I_First(
+	public static CommerceOrderItem findByC_CPI_First(
 			long commerceOrderId, long CPInstanceId,
 			OrderByComparator<CommerceOrderItem> orderByComparator)
 		throws com.liferay.commerce.exception.NoSuchOrderItemException {
 
-		return getPersistence().findByC_I_First(
+		return getPersistence().findByC_CPI_First(
 			commerceOrderId, CPInstanceId, orderByComparator);
 	}
 
@@ -1003,11 +999,11 @@ public class CommerceOrderItemUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching commerce order item, or <code>null</code> if a matching commerce order item could not be found
 	 */
-	public static CommerceOrderItem fetchByC_I_First(
+	public static CommerceOrderItem fetchByC_CPI_First(
 		long commerceOrderId, long CPInstanceId,
 		OrderByComparator<CommerceOrderItem> orderByComparator) {
 
-		return getPersistence().fetchByC_I_First(
+		return getPersistence().fetchByC_CPI_First(
 			commerceOrderId, CPInstanceId, orderByComparator);
 	}
 
@@ -1020,12 +1016,12 @@ public class CommerceOrderItemUtil {
 	 * @return the last matching commerce order item
 	 * @throws NoSuchOrderItemException if a matching commerce order item could not be found
 	 */
-	public static CommerceOrderItem findByC_I_Last(
+	public static CommerceOrderItem findByC_CPI_Last(
 			long commerceOrderId, long CPInstanceId,
 			OrderByComparator<CommerceOrderItem> orderByComparator)
 		throws com.liferay.commerce.exception.NoSuchOrderItemException {
 
-		return getPersistence().findByC_I_Last(
+		return getPersistence().findByC_CPI_Last(
 			commerceOrderId, CPInstanceId, orderByComparator);
 	}
 
@@ -1037,11 +1033,11 @@ public class CommerceOrderItemUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching commerce order item, or <code>null</code> if a matching commerce order item could not be found
 	 */
-	public static CommerceOrderItem fetchByC_I_Last(
+	public static CommerceOrderItem fetchByC_CPI_Last(
 		long commerceOrderId, long CPInstanceId,
 		OrderByComparator<CommerceOrderItem> orderByComparator) {
 
-		return getPersistence().fetchByC_I_Last(
+		return getPersistence().fetchByC_CPI_Last(
 			commerceOrderId, CPInstanceId, orderByComparator);
 	}
 
@@ -1055,12 +1051,12 @@ public class CommerceOrderItemUtil {
 	 * @return the previous, current, and next commerce order item
 	 * @throws NoSuchOrderItemException if a commerce order item with the primary key could not be found
 	 */
-	public static CommerceOrderItem[] findByC_I_PrevAndNext(
+	public static CommerceOrderItem[] findByC_CPI_PrevAndNext(
 			long commerceOrderItemId, long commerceOrderId, long CPInstanceId,
 			OrderByComparator<CommerceOrderItem> orderByComparator)
 		throws com.liferay.commerce.exception.NoSuchOrderItemException {
 
-		return getPersistence().findByC_I_PrevAndNext(
+		return getPersistence().findByC_CPI_PrevAndNext(
 			commerceOrderItemId, commerceOrderId, CPInstanceId,
 			orderByComparator);
 	}
@@ -1071,8 +1067,8 @@ public class CommerceOrderItemUtil {
 	 * @param commerceOrderId the commerce order ID
 	 * @param CPInstanceId the cp instance ID
 	 */
-	public static void removeByC_I(long commerceOrderId, long CPInstanceId) {
-		getPersistence().removeByC_I(commerceOrderId, CPInstanceId);
+	public static void removeByC_CPI(long commerceOrderId, long CPInstanceId) {
+		getPersistence().removeByC_CPI(commerceOrderId, CPInstanceId);
 	}
 
 	/**
@@ -1082,8 +1078,8 @@ public class CommerceOrderItemUtil {
 	 * @param CPInstanceId the cp instance ID
 	 * @return the number of matching commerce order items
 	 */
-	public static int countByC_I(long commerceOrderId, long CPInstanceId) {
-		return getPersistence().countByC_I(commerceOrderId, CPInstanceId);
+	public static int countByC_CPI(long commerceOrderId, long CPInstanceId) {
+		return getPersistence().countByC_CPI(commerceOrderId, CPInstanceId);
 	}
 
 	/**
@@ -1500,29 +1496,9 @@ public class CommerceOrderItemUtil {
 	}
 
 	public static CommerceOrderItemPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CommerceOrderItemPersistence, CommerceOrderItemPersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommerceOrderItemPersistence.class);
-
-		ServiceTracker
-			<CommerceOrderItemPersistence, CommerceOrderItemPersistence>
-				serviceTracker =
-					new ServiceTracker
-						<CommerceOrderItemPersistence,
-						 CommerceOrderItemPersistence>(
-							 bundle.getBundleContext(),
-							 CommerceOrderItemPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CommerceOrderItemPersistence _persistence;
 
 }

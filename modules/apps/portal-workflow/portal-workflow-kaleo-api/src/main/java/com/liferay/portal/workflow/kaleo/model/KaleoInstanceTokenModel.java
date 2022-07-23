@@ -352,4 +352,7 @@ public interface KaleoInstanceTokenModel
 	 */
 	public void setCompletionDate(Date completionDate);
 
+	@Override
+	public KaleoInstanceToken cloneWithOriginalValues();
+
 }

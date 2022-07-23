@@ -34,6 +34,7 @@ export function navigateToExperience(
 	urlSearchParams.delete(EXPERIMENT_KEY_URL_KEY);
 
 	urlSearchParams.set(EXPERIENCE_ID_URL_KEY, experienceId);
+
 	currentUrl.search = urlSearchParams.toString();
 
 	const newUrl = currentUrl.toString();

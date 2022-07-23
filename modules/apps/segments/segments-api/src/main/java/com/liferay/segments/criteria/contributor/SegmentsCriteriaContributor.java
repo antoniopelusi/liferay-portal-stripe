@@ -15,14 +15,12 @@
 package com.liferay.segments.criteria.contributor;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.segments.criteria.Criteria;
 import com.liferay.segments.field.Field;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 
@@ -95,10 +93,7 @@ public interface SegmentsCriteriaContributor {
 	 * @return the label displayed in the user interface
 	 */
 	public default String getLabel(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, getClass());
-
-		return LanguageUtil.get(resourceBundle, "contributor." + getKey());
+		return LanguageUtil.get(locale, "contributor." + getKey());
 	}
 
 	/**

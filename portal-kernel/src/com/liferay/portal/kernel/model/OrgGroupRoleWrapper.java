@@ -85,6 +85,11 @@ public class OrgGroupRoleWrapper
 	}
 
 	@Override
+	public OrgGroupRole cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public boolean containsGroup(java.util.List<Group> groups) {
 		return model.containsGroup(groups);
 	}

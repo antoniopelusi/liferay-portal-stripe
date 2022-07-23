@@ -100,7 +100,7 @@
 		</c:if>
 
 		<c:if test="<%= changesContext %>">
-			<span class="hide-accessible">(<liferay-ui:message key="changing-the-value-of-this-field-reloads-the-page" />)</span>
+			<span class="hide-accessible sr-only">(<liferay-ui:message key="changing-the-value-of-this-field-reloads-the-page" />)</span>
 		</c:if>
 	</label>
 </liferay-util:buffer>
@@ -115,7 +115,7 @@
 			<c:if test='<%= required && showRequiredLabel && !type.equals("radio") %>'>
 				<aui:icon cssClass="reference-mark text-warning" image="asterisk" markupView="lexicon" />
 
-				<span class="hide-accessible"><liferay-ui:message key="required" /></span>
+				<span class="hide-accessible sr-only"><liferay-ui:message key="required" /></span>
 			</c:if>
 
 			<c:if test="<%= Validator.isNotNull(helpMessage) %>">
@@ -124,7 +124,7 @@
 		</c:if>
 
 		<c:if test="<%= changesContext %>">
-			<span class="hide-accessible">(<liferay-ui:message key="changing-the-value-of-this-field-reloads-the-page" />)</span>
+			<span class="hide-accessible sr-only">(<liferay-ui:message key="changing-the-value-of-this-field-reloads-the-page" />)</span>
 		</c:if>
 	</c:if>
 
@@ -235,6 +235,8 @@ boolean choiceField = checkboxField || radioField;
 	</c:when>
 	<c:when test="<%= (model != null) && Validator.isNull(type) %>">
 		<liferay-ui:input-field
+			activeLanguageIds="<%= activeLanguageIds %>"
+			adminMode="<%= adminMode %>"
 			autoComplete='<%= GetterUtil.getString(dynamicAttributes.get("autocomplete")) %>'
 			autoFocus="<%= autoFocus %>"
 			bean="<%= bean %>"
@@ -250,6 +252,7 @@ boolean choiceField = checkboxField || radioField;
 			id="<%= id %>"
 			ignoreRequestValue="<%= ignoreRequestValue %>"
 			languageId="<%= languageId %>"
+			languagesDropdownDirection="<%= languagesDropdownDirection %>"
 			model="<%= model %>"
 			placeholder="<%= placeholder %>"
 			timeFormat='<%= GetterUtil.getString(dynamicAttributes.get("timeFormat")) %>'
@@ -369,6 +372,8 @@ boolean choiceField = checkboxField || radioField;
 		<c:choose>
 			<c:when test='<%= localized && (type.equals("editor") || type.equals("text") || type.equals("textarea")) %>'>
 				<liferay-ui:input-localized
+					activeLanguageIds="<%= activeLanguageIds %>"
+					adminMode="<%= adminMode %>"
 					autoFocus="<%= autoFocus %>"
 					availableLocales='<%= LanguageUtil.getAvailableLocales(BeanPropertiesUtil.getLongSilent(bean, "groupId", themeDisplay.getSiteGroupId())) %>'
 					cssClass="<%= fieldCssClass %>"
@@ -379,6 +384,7 @@ boolean choiceField = checkboxField || radioField;
 					id="<%= id %>"
 					ignoreRequestValue="<%= ignoreRequestValue %>"
 					languageId="<%= languageId %>"
+					languagesDropdownDirection="<%= languagesDropdownDirection %>"
 					name="<%= name %>"
 					onChange="<%= onChange %>"
 					onClick="<%= onClick %>"
@@ -404,7 +410,7 @@ boolean choiceField = checkboxField || radioField;
 				String[] storedDimensions = resizable ? StringUtil.split(SessionClicks.get(request, _TEXTAREA_WIDTH_HEIGHT_PREFIX + namespace + id, StringPool.BLANK)) : StringPool.EMPTY_ARRAY;
 				%>
 
-				<textarea class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(placeholder) ? "placeholder=\"" + LanguageUtil.get(resourceBundle, placeholder) + "\"" : StringPool.BLANK %> <%= (storedDimensions.length > 1) ? "style=\"height: " + storedDimensions[0] + "; width: " + storedDimensions[1] + ";" + title + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + LanguageUtil.get(resourceBundle, title) + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>><%= HtmlUtil.escape(valueString) %></textarea>
+				<textarea class="<%= fieldCssClass %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + (Validator.isBlank(fieldParam) ? name : fieldParam) %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(placeholder) ? "placeholder=\"" + LanguageUtil.get(resourceBundle, placeholder) + "\"" : StringPool.BLANK %> <%= (storedDimensions.length > 1) ? "style=\"height: " + storedDimensions[0] + "; width: " + storedDimensions[1] + ";" + title + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + LanguageUtil.get(resourceBundle, title) + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>><%= HtmlUtil.escape(valueString) %></textarea>
 
 				<c:if test="<%= autoSize %>">
 					<aui:script require="frontend-js-web/liferay/autosize/autosize.es as autoSizeModule">

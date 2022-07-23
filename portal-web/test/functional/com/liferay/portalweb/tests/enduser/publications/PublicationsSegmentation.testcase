@@ -1,0 +1,211 @@
+@component-name = "portal-publications"
+definition {
+
+	property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Publications";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONPublications.enablePublications();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Publications.disablePublications();
+		}
+	}
+
+	@description = "Assert we can publish a publication with an edited Segment."
+	@priority = "4"
+	test CanPublishEditedSegment {
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Regular Role");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(selectCheckbox = "Administrator");
+
+		Button.clickSave();
+
+		JSONPublications.addPublication(publicationName = "Publication Name");
+
+		JSONPublications.selectPublication(publicationName = "Publication Name");
+
+		Segmentation.editSegment(entry = "Segment Title");
+
+		Segmentation.fillTitle(titleField = "Edited Segment Title");
+
+		Button.clickSave();
+
+		JSONPublications.publishPublication(publicationName = "Publication Name");
+
+		Publications.viewPublicationPublished(publicationName = "Publication Name");
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "site-name");
+
+		AssertElementPresent(
+			key_tableEntry = "Edited Segment Title",
+			locator1 = "LexiconTable#TABLE_ENTRY");
+	}
+
+	@description = "Assert we can publish a publication with a Segment and Page Experience."
+	@priority = "4"
+	test CanPublishWithSegmentAndPageExperience {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Administrator",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONPublications.addPublication(publicationName = "Publication Name");
+
+		JSONPublications.selectPublication(publicationName = "Publication Name");
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Experience Content Page",
+			type = "content");
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Regular Role");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(selectCheckbox = "Administrator");
+
+		Button.clickSave();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name/experience-content-page");
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Heading");
+
+		PageEditor.addExperience(
+			experienceName = "New Experience",
+			segmentName = "Segment Title");
+
+		Button.clickPublish();
+
+		ContentPages.gotoPageEditor();
+
+		PageEditor.changeExperience(newExperience = "New Experience");
+
+		PageEditor.editFragmentText(
+			fragmentName = "Heading",
+			id = "element-text",
+			text = "This experience is for Administrators only.");
+
+		PageEditor.prioritizeExperience(experienceName = "New Experience");
+
+		PageEditor.clickPublish();
+
+		JSONPublications.publishPublication(publicationName = "Publication Name");
+
+		Publications.viewPublicationPublished(publicationName = "Publication Name");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name/experience-content-page");
+
+		AssertTextEquals(
+			locator1 = "Experience#FRAGMENT_HEADING",
+			value1 = "This experience is for Administrators only.");
+	}
+
+	@description = "Assert we can resolve conflicting Segment changes by discarding."
+	@priority = "4"
+	test CanResolveConflictingPublicationsByDiscarding {
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		Segmentation.openSegmentsAdmin(siteURLKey = "site-name");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Regular Role");
+
+		Segmentation.fillTitle(titleField = "Segment Title");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Equals");
+
+		Segmentation.fillProperty(selectCheckbox = "Administrator");
+
+		Button.clickSave();
+
+		JSONPublications.addPublication(publicationName = "Publication Name 1");
+
+		JSONPublications.selectPublication(publicationName = "Publication Name 1");
+
+		Segmentation.editSegment(entry = "Segment Title");
+
+		Segmentation.fillTitle(titleField = "Edited Segment Title");
+
+		Button.clickSave();
+
+		JSONPublications.addPublication(publicationName = "Publication Name 2");
+
+		JSONPublications.selectPublication(publicationName = "Publication Name 2");
+
+		Segmentation.deleteSegment(entry = "Segment Title");
+
+		JSONPublications.publishPublication(publicationName = "Publication Name 2");
+
+		Publications.viewPublicationPublished(publicationName = "Publication Name 2");
+
+		Publications.selectPublication(publicationName = "Publication Name 1");
+
+		PublicationsNavigator.gotoPublish(publicationName = "Publication Name 1");
+
+		Publications.viewNeedsManualResolution(
+			entryTitle = "Segments Entry",
+			warningMessage = "Deletion Modification Conflict: Modification conflicts with a deletion.");
+
+		PublicationsNavigator.gotoViewConflictingChangeDetails(entryTitle = "Segments Entry");
+
+		PublicationsChanges.discardChanges(
+			changeCategory = "Asset",
+			changeTitle = "Segments Entry",
+			conflictingChanges = "true",
+			entryTitle = "Segments Entry");
+	}
+
+}

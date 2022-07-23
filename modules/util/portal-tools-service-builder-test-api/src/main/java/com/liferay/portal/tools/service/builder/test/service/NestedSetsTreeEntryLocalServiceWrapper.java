@@ -27,6 +27,10 @@ public class NestedSetsTreeEntryLocalServiceWrapper
 	implements NestedSetsTreeEntryLocalService,
 			   ServiceWrapper<NestedSetsTreeEntryLocalService> {
 
+	public NestedSetsTreeEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public NestedSetsTreeEntryLocalServiceWrapper(
 		NestedSetsTreeEntryLocalService nestedSetsTreeEntryLocalService) {
 
@@ -146,6 +150,13 @@ public class NestedSetsTreeEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _nestedSetsTreeEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _nestedSetsTreeEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

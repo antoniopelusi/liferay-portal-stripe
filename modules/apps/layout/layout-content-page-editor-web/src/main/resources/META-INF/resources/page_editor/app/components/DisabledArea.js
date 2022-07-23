@@ -13,23 +13,14 @@
  */
 
 import ClayPopover from '@clayui/popover';
-import {useEventListener} from '@liferay/frontend-js-react-web';
+import {ReactPortal, useEventListener} from '@liferay/frontend-js-react-web';
 import {ALIGN_POSITIONS, align, suggestAlignBestRegion} from 'frontend-js-web';
-import React, {
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react';
-import {createPortal} from 'react-dom';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 
-import {useSelector} from '../store/index';
-import {useSelectItem} from './Controls';
-import {useGlobalContext} from './GlobalContext';
+import {useSelectItem} from '../contexts/ControlsContext';
+import {useGlobalContext} from '../contexts/GlobalContext';
 
 const DEFAULT_DISABLED_AREA_CLASS = 'page-editor__disabled-area';
-const DEFAULT_DISABLED_AREA_PADDED_CLASS = `${DEFAULT_DISABLED_AREA_CLASS}--padded`;
 const DEFAULT_ORIGIN = '#content';
 
 const DEFAULT_WHITELIST = [
@@ -58,10 +49,7 @@ const DisabledArea = () => {
 	const globalContext = useGlobalContext();
 	const [show, setShow] = useState(false);
 	const [position, setPosition] = useState('bottom');
-	const sidebarOpen = useSelector((state) => state.sidebar.open);
 	const selectItem = useSelectItem();
-
-	const withinIframe = globalContext.window !== window;
 
 	const isDisabled = useCallback(
 		(element) => {
@@ -85,21 +73,6 @@ const DisabledArea = () => {
 		},
 		[globalContext]
 	);
-
-	useEffect(() => {
-		const element = globalContext.document.querySelector(
-			`.${DEFAULT_DISABLED_AREA_CLASS}`
-		);
-
-		if (element) {
-			if (sidebarOpen && !withinIframe) {
-				element.classList.add('collapsed');
-			}
-			else {
-				element.classList.remove('collapsed');
-			}
-		}
-	}, [globalContext, sidebarOpen, withinIframe]);
 
 	useEventListener(
 		'scroll',
@@ -169,10 +142,6 @@ const DisabledArea = () => {
 			Array.from(element.parentElement.children).forEach((child) => {
 				if (isDisabled(child)) {
 					child.classList.add(DEFAULT_DISABLED_AREA_CLASS);
-
-					if (!withinIframe) {
-						child.classList.add(DEFAULT_DISABLED_AREA_PADDED_CLASS);
-					}
 				}
 			});
 
@@ -185,37 +154,37 @@ const DisabledArea = () => {
 			);
 
 			elements.forEach((element) =>
-				element.classList.remove(
-					DEFAULT_DISABLED_AREA_CLASS,
-					DEFAULT_DISABLED_AREA_PADDED_CLASS
-				)
+				element.classList.remove(DEFAULT_DISABLED_AREA_CLASS)
 			);
 		};
-	}, [globalContext, isDisabled, withinIframe]);
+	}, [globalContext, isDisabled]);
 
 	return (
-		show &&
-		createPortal(
-			<ClayPopover alignPosition={position} ref={popoverRef} show>
-				<div
-					dangerouslySetInnerHTML={{
-						__html: Liferay.Util.sub(
-							Liferay.Language.get(
-								'this-area-is-defined-by-the-theme.-you-can-change-the-theme-settings-by-clicking-x-in-the-x-panel-on-the-sidebar'
+		show && (
+			<ReactPortal
+				className="cadmin"
+				container={globalContext.document.body}
+			>
+				<ClayPopover alignPosition={position} ref={popoverRef} show>
+					<div
+						dangerouslySetInnerHTML={{
+							__html: Liferay.Util.sub(
+								Liferay.Language.get(
+									'this-area-is-defined-by-the-theme.-you-can-change-the-theme-settings-by-clicking-x-in-the-x-panel-on-the-sidebar'
+								),
+								[
+									`<strong>${Liferay.Language.get(
+										'more'
+									)}</strong>`,
+									`<strong>${Liferay.Language.get(
+										'page-design-options'
+									)}</strong>`,
+								]
 							),
-							[
-								`<strong>${Liferay.Language.get(
-									'more'
-								)}</strong>`,
-								`<strong>${Liferay.Language.get(
-									'page-design-options'
-								)}</strong>`,
-							]
-						),
-					}}
-				/>
-			</ClayPopover>,
-			globalContext.document.body
+						}}
+					/>
+				</ClayPopover>
+			</ReactPortal>
 		)
 	);
 };

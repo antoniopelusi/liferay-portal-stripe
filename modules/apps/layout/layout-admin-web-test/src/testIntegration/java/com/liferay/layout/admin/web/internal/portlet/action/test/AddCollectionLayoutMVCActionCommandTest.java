@@ -58,7 +58,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.util.List;
 
@@ -112,7 +111,7 @@ public class AddCollectionLayoutMVCActionCommandTest {
 
 	@Test
 	public void testAddChildCollectionLayout() throws Exception {
-		Layout parentLayout = LayoutTestUtil.addLayout(_group);
+		Layout parentLayout = LayoutTestUtil.addTypePortletLayout(_group);
 
 		Layout layout = ReflectionTestUtil.invoke(
 			_mvcActionCommand, "_addCollectionLayout",
@@ -216,7 +215,7 @@ public class AddCollectionLayoutMVCActionCommandTest {
 		ThemeDisplay themeDisplay = new ThemeDisplay();
 
 		themeDisplay.setCompany(_company);
-		themeDisplay.setLayout(LayoutTestUtil.addLayout(_group));
+		themeDisplay.setLayout(LayoutTestUtil.addTypePortletLayout(_group));
 
 		LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
 			_group.getGroupId(), false);
@@ -266,8 +265,7 @@ public class AddCollectionLayoutMVCActionCommandTest {
 		Assert.assertNotNull(layoutPageTemplateStructure);
 
 		LayoutStructure layoutStructure = LayoutStructure.of(
-			layoutPageTemplateStructure.getData(
-				SegmentsExperienceConstants.ID_DEFAULT));
+			layoutPageTemplateStructure.getDefaultSegmentsExperienceData());
 
 		Assert.assertNotNull(layoutStructure.getMainItemId());
 

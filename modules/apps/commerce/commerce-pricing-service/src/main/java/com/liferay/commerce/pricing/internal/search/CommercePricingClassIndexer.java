@@ -132,13 +132,13 @@ public class CommercePricingClassIndexer
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexCommercePricingClasses(companyId);
+		_reindexCommercePricingClasses(companyId);
 	}
 
-	protected void reindexCommercePricingClasses(long companyId)
-		throws PortalException {
+	private void _reindexCommercePricingClasses(long companyId)
+		throws Exception {
 
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_commercePricingClassLocalService.
 				getIndexableActionableDynamicQuery();
 

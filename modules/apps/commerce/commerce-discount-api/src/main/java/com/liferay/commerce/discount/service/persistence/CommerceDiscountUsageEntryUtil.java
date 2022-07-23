@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the commerce discount usage entry service. This utility wraps <code>com.liferay.commerce.discount.service.persistence.impl.CommerceDiscountUsageEntryPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -317,10 +313,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId) {
 
-		return getPersistence().findByA_D(
+		return getPersistence().findByCAI_CDI(
 			commerceAccountId, commerceDiscountId);
 	}
 
@@ -337,10 +333,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param end the upper bound of the range of commerce discount usage entries (not inclusive)
 	 * @return the range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId, int start, int end) {
 
-		return getPersistence().findByA_D(
+		return getPersistence().findByCAI_CDI(
 			commerceAccountId, commerceDiscountId, start, end);
 	}
 
@@ -358,11 +354,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId, int start, int end,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().findByA_D(
+		return getPersistence().findByCAI_CDI(
 			commerceAccountId, commerceDiscountId, start, end,
 			orderByComparator);
 	}
@@ -382,12 +378,12 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId, int start, int end,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByA_D(
+		return getPersistence().findByCAI_CDI(
 			commerceAccountId, commerceDiscountId, start, end,
 			orderByComparator, useFinderCache);
 	}
@@ -401,13 +397,13 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the first matching commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry findByA_D_First(
+	public static CommerceDiscountUsageEntry findByCAI_CDI_First(
 			long commerceAccountId, long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByA_D_First(
+		return getPersistence().findByCAI_CDI_First(
 			commerceAccountId, commerceDiscountId, orderByComparator);
 	}
 
@@ -419,11 +415,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching commerce discount usage entry, or <code>null</code> if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry fetchByA_D_First(
+	public static CommerceDiscountUsageEntry fetchByCAI_CDI_First(
 		long commerceAccountId, long commerceDiscountId,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().fetchByA_D_First(
+		return getPersistence().fetchByCAI_CDI_First(
 			commerceAccountId, commerceDiscountId, orderByComparator);
 	}
 
@@ -436,13 +432,13 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the last matching commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry findByA_D_Last(
+	public static CommerceDiscountUsageEntry findByCAI_CDI_Last(
 			long commerceAccountId, long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByA_D_Last(
+		return getPersistence().findByCAI_CDI_Last(
 			commerceAccountId, commerceDiscountId, orderByComparator);
 	}
 
@@ -454,11 +450,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching commerce discount usage entry, or <code>null</code> if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry fetchByA_D_Last(
+	public static CommerceDiscountUsageEntry fetchByCAI_CDI_Last(
 		long commerceAccountId, long commerceDiscountId,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().fetchByA_D_Last(
+		return getPersistence().fetchByCAI_CDI_Last(
 			commerceAccountId, commerceDiscountId, orderByComparator);
 	}
 
@@ -472,14 +468,14 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the previous, current, and next commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a commerce discount usage entry with the primary key could not be found
 	 */
-	public static CommerceDiscountUsageEntry[] findByA_D_PrevAndNext(
+	public static CommerceDiscountUsageEntry[] findByCAI_CDI_PrevAndNext(
 			long commerceDiscountUsageEntryId, long commerceAccountId,
 			long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByA_D_PrevAndNext(
+		return getPersistence().findByCAI_CDI_PrevAndNext(
 			commerceDiscountUsageEntryId, commerceAccountId, commerceDiscountId,
 			orderByComparator);
 	}
@@ -490,10 +486,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceAccountId the commerce account ID
 	 * @param commerceDiscountId the commerce discount ID
 	 */
-	public static void removeByA_D(
+	public static void removeByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId) {
 
-		getPersistence().removeByA_D(commerceAccountId, commerceDiscountId);
+		getPersistence().removeByCAI_CDI(commerceAccountId, commerceDiscountId);
 	}
 
 	/**
@@ -503,10 +499,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the number of matching commerce discount usage entries
 	 */
-	public static int countByA_D(
+	public static int countByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId) {
 
-		return getPersistence().countByA_D(
+		return getPersistence().countByCAI_CDI(
 			commerceAccountId, commerceDiscountId);
 	}
 
@@ -517,10 +513,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByO_D(
+	public static List<CommerceDiscountUsageEntry> findByCOI_CDI(
 		long commerceOrderId, long commerceDiscountId) {
 
-		return getPersistence().findByO_D(commerceOrderId, commerceDiscountId);
+		return getPersistence().findByCOI_CDI(
+			commerceOrderId, commerceDiscountId);
 	}
 
 	/**
@@ -536,10 +533,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param end the upper bound of the range of commerce discount usage entries (not inclusive)
 	 * @return the range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByO_D(
+	public static List<CommerceDiscountUsageEntry> findByCOI_CDI(
 		long commerceOrderId, long commerceDiscountId, int start, int end) {
 
-		return getPersistence().findByO_D(
+		return getPersistence().findByCOI_CDI(
 			commerceOrderId, commerceDiscountId, start, end);
 	}
 
@@ -557,11 +554,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByO_D(
+	public static List<CommerceDiscountUsageEntry> findByCOI_CDI(
 		long commerceOrderId, long commerceDiscountId, int start, int end,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().findByO_D(
+		return getPersistence().findByCOI_CDI(
 			commerceOrderId, commerceDiscountId, start, end, orderByComparator);
 	}
 
@@ -580,12 +577,12 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByO_D(
+	public static List<CommerceDiscountUsageEntry> findByCOI_CDI(
 		long commerceOrderId, long commerceDiscountId, int start, int end,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByO_D(
+		return getPersistence().findByCOI_CDI(
 			commerceOrderId, commerceDiscountId, start, end, orderByComparator,
 			useFinderCache);
 	}
@@ -599,13 +596,13 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the first matching commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry findByO_D_First(
+	public static CommerceDiscountUsageEntry findByCOI_CDI_First(
 			long commerceOrderId, long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByO_D_First(
+		return getPersistence().findByCOI_CDI_First(
 			commerceOrderId, commerceDiscountId, orderByComparator);
 	}
 
@@ -617,11 +614,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching commerce discount usage entry, or <code>null</code> if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry fetchByO_D_First(
+	public static CommerceDiscountUsageEntry fetchByCOI_CDI_First(
 		long commerceOrderId, long commerceDiscountId,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().fetchByO_D_First(
+		return getPersistence().fetchByCOI_CDI_First(
 			commerceOrderId, commerceDiscountId, orderByComparator);
 	}
 
@@ -634,13 +631,13 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the last matching commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry findByO_D_Last(
+	public static CommerceDiscountUsageEntry findByCOI_CDI_Last(
 			long commerceOrderId, long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByO_D_Last(
+		return getPersistence().findByCOI_CDI_Last(
 			commerceOrderId, commerceDiscountId, orderByComparator);
 	}
 
@@ -652,11 +649,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching commerce discount usage entry, or <code>null</code> if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry fetchByO_D_Last(
+	public static CommerceDiscountUsageEntry fetchByCOI_CDI_Last(
 		long commerceOrderId, long commerceDiscountId,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().fetchByO_D_Last(
+		return getPersistence().fetchByCOI_CDI_Last(
 			commerceOrderId, commerceDiscountId, orderByComparator);
 	}
 
@@ -670,14 +667,14 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the previous, current, and next commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a commerce discount usage entry with the primary key could not be found
 	 */
-	public static CommerceDiscountUsageEntry[] findByO_D_PrevAndNext(
+	public static CommerceDiscountUsageEntry[] findByCOI_CDI_PrevAndNext(
 			long commerceDiscountUsageEntryId, long commerceOrderId,
 			long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByO_D_PrevAndNext(
+		return getPersistence().findByCOI_CDI_PrevAndNext(
 			commerceDiscountUsageEntryId, commerceOrderId, commerceDiscountId,
 			orderByComparator);
 	}
@@ -688,10 +685,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceOrderId the commerce order ID
 	 * @param commerceDiscountId the commerce discount ID
 	 */
-	public static void removeByO_D(
+	public static void removeByCOI_CDI(
 		long commerceOrderId, long commerceDiscountId) {
 
-		getPersistence().removeByO_D(commerceOrderId, commerceDiscountId);
+		getPersistence().removeByCOI_CDI(commerceOrderId, commerceDiscountId);
 	}
 
 	/**
@@ -701,10 +698,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the number of matching commerce discount usage entries
 	 */
-	public static int countByO_D(
+	public static int countByCOI_CDI(
 		long commerceOrderId, long commerceDiscountId) {
 
-		return getPersistence().countByO_D(commerceOrderId, commerceDiscountId);
+		return getPersistence().countByCOI_CDI(
+			commerceOrderId, commerceDiscountId);
 	}
 
 	/**
@@ -715,10 +713,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_O_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_COI_CDI(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId) {
 
-		return getPersistence().findByA_O_D(
+		return getPersistence().findByCAI_COI_CDI(
 			commerceAccountId, commerceOrderId, commerceDiscountId);
 	}
 
@@ -736,11 +734,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param end the upper bound of the range of commerce discount usage entries (not inclusive)
 	 * @return the range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_O_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_COI_CDI(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId,
 		int start, int end) {
 
-		return getPersistence().findByA_O_D(
+		return getPersistence().findByCAI_COI_CDI(
 			commerceAccountId, commerceOrderId, commerceDiscountId, start, end);
 	}
 
@@ -759,12 +757,12 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_O_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_COI_CDI(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId,
 		int start, int end,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().findByA_O_D(
+		return getPersistence().findByCAI_COI_CDI(
 			commerceAccountId, commerceOrderId, commerceDiscountId, start, end,
 			orderByComparator);
 	}
@@ -785,13 +783,13 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching commerce discount usage entries
 	 */
-	public static List<CommerceDiscountUsageEntry> findByA_O_D(
+	public static List<CommerceDiscountUsageEntry> findByCAI_COI_CDI(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId,
 		int start, int end,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByA_O_D(
+		return getPersistence().findByCAI_COI_CDI(
 			commerceAccountId, commerceOrderId, commerceDiscountId, start, end,
 			orderByComparator, useFinderCache);
 	}
@@ -806,14 +804,14 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the first matching commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry findByA_O_D_First(
+	public static CommerceDiscountUsageEntry findByCAI_COI_CDI_First(
 			long commerceAccountId, long commerceOrderId,
 			long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByA_O_D_First(
+		return getPersistence().findByCAI_COI_CDI_First(
 			commerceAccountId, commerceOrderId, commerceDiscountId,
 			orderByComparator);
 	}
@@ -827,11 +825,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching commerce discount usage entry, or <code>null</code> if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry fetchByA_O_D_First(
+	public static CommerceDiscountUsageEntry fetchByCAI_COI_CDI_First(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().fetchByA_O_D_First(
+		return getPersistence().fetchByCAI_COI_CDI_First(
 			commerceAccountId, commerceOrderId, commerceDiscountId,
 			orderByComparator);
 	}
@@ -846,14 +844,14 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the last matching commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry findByA_O_D_Last(
+	public static CommerceDiscountUsageEntry findByCAI_COI_CDI_Last(
 			long commerceAccountId, long commerceOrderId,
 			long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByA_O_D_Last(
+		return getPersistence().findByCAI_COI_CDI_Last(
 			commerceAccountId, commerceOrderId, commerceDiscountId,
 			orderByComparator);
 	}
@@ -867,11 +865,11 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching commerce discount usage entry, or <code>null</code> if a matching commerce discount usage entry could not be found
 	 */
-	public static CommerceDiscountUsageEntry fetchByA_O_D_Last(
+	public static CommerceDiscountUsageEntry fetchByCAI_COI_CDI_Last(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId,
 		OrderByComparator<CommerceDiscountUsageEntry> orderByComparator) {
 
-		return getPersistence().fetchByA_O_D_Last(
+		return getPersistence().fetchByCAI_COI_CDI_Last(
 			commerceAccountId, commerceOrderId, commerceDiscountId,
 			orderByComparator);
 	}
@@ -887,14 +885,14 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @return the previous, current, and next commerce discount usage entry
 	 * @throws NoSuchDiscountUsageEntryException if a commerce discount usage entry with the primary key could not be found
 	 */
-	public static CommerceDiscountUsageEntry[] findByA_O_D_PrevAndNext(
+	public static CommerceDiscountUsageEntry[] findByCAI_COI_CDI_PrevAndNext(
 			long commerceDiscountUsageEntryId, long commerceAccountId,
 			long commerceOrderId, long commerceDiscountId,
 			OrderByComparator<CommerceDiscountUsageEntry> orderByComparator)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountUsageEntryException {
 
-		return getPersistence().findByA_O_D_PrevAndNext(
+		return getPersistence().findByCAI_COI_CDI_PrevAndNext(
 			commerceDiscountUsageEntryId, commerceAccountId, commerceOrderId,
 			commerceDiscountId, orderByComparator);
 	}
@@ -906,10 +904,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceOrderId the commerce order ID
 	 * @param commerceDiscountId the commerce discount ID
 	 */
-	public static void removeByA_O_D(
+	public static void removeByCAI_COI_CDI(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId) {
 
-		getPersistence().removeByA_O_D(
+		getPersistence().removeByCAI_COI_CDI(
 			commerceAccountId, commerceOrderId, commerceDiscountId);
 	}
 
@@ -921,10 +919,10 @@ public class CommerceDiscountUsageEntryUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the number of matching commerce discount usage entries
 	 */
-	public static int countByA_O_D(
+	public static int countByCAI_COI_CDI(
 		long commerceAccountId, long commerceOrderId, long commerceDiscountId) {
 
-		return getPersistence().countByA_O_D(
+		return getPersistence().countByCAI_COI_CDI(
 			commerceAccountId, commerceOrderId, commerceDiscountId);
 	}
 
@@ -1092,29 +1090,9 @@ public class CommerceDiscountUsageEntryUtil {
 	}
 
 	public static CommerceDiscountUsageEntryPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CommerceDiscountUsageEntryPersistence,
-		 CommerceDiscountUsageEntryPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommerceDiscountUsageEntryPersistence.class);
-
-		ServiceTracker
-			<CommerceDiscountUsageEntryPersistence,
-			 CommerceDiscountUsageEntryPersistence> serviceTracker =
-				new ServiceTracker
-					<CommerceDiscountUsageEntryPersistence,
-					 CommerceDiscountUsageEntryPersistence>(
-						 bundle.getBundleContext(),
-						 CommerceDiscountUsageEntryPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CommerceDiscountUsageEntryPersistence _persistence;
 
 }

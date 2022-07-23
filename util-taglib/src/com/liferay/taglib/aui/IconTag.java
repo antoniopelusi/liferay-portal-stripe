@@ -95,6 +95,7 @@ public class IconTag extends BaseIconTag {
 		else {
 			ATag aTag = new ATag();
 
+			aTag.setAriaLabel(getAriaLabel());
 			aTag.setCssClass(getCssClass());
 			aTag.setData(getData());
 			aTag.setHref(getUrl());
@@ -164,7 +165,7 @@ public class IconTag extends BaseIconTag {
 			String label = getLabel();
 
 			if (label != null) {
-				jspWriter.write("<span class=\"taglib-icon-label\">");
+				jspWriter.write("<span class=\"ml-2 taglib-icon-label\">");
 
 				MessageTag messageTag = new MessageTag();
 

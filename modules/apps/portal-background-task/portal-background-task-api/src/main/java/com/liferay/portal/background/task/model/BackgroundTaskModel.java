@@ -328,4 +328,7 @@ public interface BackgroundTaskModel
 	 */
 	public void setStatusMessage(String statusMessage);
 
+	@Override
+	public BackgroundTask cloneWithOriginalValues();
+
 }

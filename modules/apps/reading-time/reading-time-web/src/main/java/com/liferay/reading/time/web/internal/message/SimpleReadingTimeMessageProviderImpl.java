@@ -15,14 +15,12 @@
 package com.liferay.reading.time.web.internal.message;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.reading.time.message.ReadingTimeMessageProvider;
 import com.liferay.reading.time.model.ReadingTimeEntry;
 
 import java.time.Duration;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -38,9 +36,6 @@ public class SimpleReadingTimeMessageProviderImpl
 
 	@Override
 	public String provide(Duration readingTimeDuration, Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, SimpleReadingTimeMessageProviderImpl.class);
-
 		long readingTimeInMinutes = readingTimeDuration.toMinutes();
 
 		if (readingTimeInMinutes == 0) {
@@ -48,8 +43,7 @@ public class SimpleReadingTimeMessageProviderImpl
 		}
 
 		return LanguageUtil.format(
-			resourceBundle,
-			(readingTimeInMinutes == 1) ? "x-minute" : "x-minutes",
+			locale, (readingTimeInMinutes == 1) ? "x-minute" : "x-minutes",
 			readingTimeInMinutes);
 	}
 

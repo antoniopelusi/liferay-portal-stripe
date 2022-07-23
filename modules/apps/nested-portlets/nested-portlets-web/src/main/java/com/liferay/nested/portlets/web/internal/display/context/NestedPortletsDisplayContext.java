@@ -141,8 +141,8 @@ public class NestedPortletsDisplayContext {
 		layoutTemplates = PluginUtil.restrictPlugins(
 			layoutTemplates, themeDisplay.getUser());
 
-		final List<String> unsupportedLayoutTemplateIds =
-			getUnsupportedLayoutTemplateIds();
+		List<String> unsupportedLayoutTemplateIds =
+			_getUnsupportedLayoutTemplateIds();
 
 		return ListUtil.filter(
 			layoutTemplates,
@@ -150,7 +150,7 @@ public class NestedPortletsDisplayContext {
 				layoutTemplate.getLayoutTemplateId()));
 	}
 
-	protected List<String> getUnsupportedLayoutTemplateIds() {
+	private List<String> _getUnsupportedLayoutTemplateIds() {
 		return ListUtil.fromArray(
 			_nestedPortletsPortletInstanceConfiguration.
 				layoutTemplatesUnsupported());

@@ -11,7 +11,7 @@ dependencies {
 	compileOnly group: "org.apache.felix", name: "org.apache.felix.http.servlet-api", version: "1.1.2"
 	compileOnly group: "org.jsoup", name: "jsoup", version: "1.10.2"
 	compileOnly group: "org.osgi", name: "org.osgi.annotation.versioning", version: "1.1.0"
-	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.3.0"
+	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly group: "org.osgi", name: "osgi.core", version: "6.0.0"
 	compileOnly project(":apps:asset:asset-info-display-api")
 	compileOnly project(":apps:asset:asset-list-api")
@@ -21,9 +21,9 @@ dependencies {
 	compileOnly project(":apps:export-import:export-import-api")
 	compileOnly project(":apps:fragment:fragment-api")
 	compileOnly project(":apps:layout:layout-page-template-api")
-	compileOnly project(":apps:petra:petra-json-validator")
 	compileOnly project(":apps:portal:portal-aop-api")
 	compileOnly project(":apps:portal:portal-dao-orm-custom-sql-api")
+	compileOnly project(":apps:portal:portal-json-validator")
 	compileOnly project(":apps:segments:segments-api")
 	compileOnly project(":apps:site-navigation:site-navigation-api")
 	compileOnly project(":apps:staging:staging-api")
@@ -34,7 +34,6 @@ dependencies {
 	compileOnly project(":core:petra:petra-lang")
 	compileOnly project(":core:petra:petra-sql-dsl-api")
 	compileOnly project(":core:petra:petra-string")
-	compileOnly project(":core:registry-api")
 
 	testCompile classifier: "classic", group: "org.joda", name: "joda-convert", version: "2.2.1"
 	testCompile group: "com.damnhandy", name: "handy-uri-templates", version: "2.1.7"

@@ -104,7 +104,7 @@ public class NestedPortletsPortlet extends MVCPortlet {
 		}
 		catch (ConfigurationException configurationException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(configurationException, configurationException);
+				_log.warn(configurationException);
 			}
 		}
 
@@ -120,43 +120,41 @@ public class NestedPortletsPortlet extends MVCPortlet {
 				_layoutTemplateLocalService.getLayoutTemplate(
 					layoutTemplateId, false, theme.getThemeId());
 
-			String content = layoutTemplate.getContent();
+			if (layoutTemplate != null) {
+				String content = layoutTemplate.getContent();
 
-			Matcher processColumnMatcher = _processColumnPattern.matcher(
-				content);
+				Matcher processColumnMatcher = _processColumnPattern.matcher(
+					content);
 
-			while (processColumnMatcher.find()) {
-				String columnId = processColumnMatcher.group(2);
+				while (processColumnMatcher.find()) {
+					String columnId = processColumnMatcher.group(2);
 
-				if (Validator.isNotNull(columnId)) {
-					columnIds.put(
-						columnId,
-						renderResponse.getNamespace() + StringPool.UNDERLINE +
-							columnId);
+					if (Validator.isNotNull(columnId)) {
+						columnIds.put(
+							columnId,
+							renderResponse.getNamespace() +
+								StringPool.UNDERLINE + columnId);
+					}
 				}
+
+				processColumnMatcher.reset();
+
+				templateId = StringBundler.concat(
+					theme.getThemeId(),
+					LayoutTemplateConstants.CUSTOM_SEPARATOR,
+					renderResponse.getNamespace(), layoutTemplateId);
+
+				content = processColumnMatcher.replaceAll(
+					"$1" + renderResponse.getNamespace() + "_$2$3");
+
+				Matcher columnIdMatcher = _columnIdPattern.matcher(content);
+
+				templateContent = columnIdMatcher.replaceAll(
+					"$1" + renderResponse.getNamespace() + "_$2$3");
 			}
-
-			processColumnMatcher.reset();
-
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(theme.getThemeId());
-			sb.append(LayoutTemplateConstants.CUSTOM_SEPARATOR);
-			sb.append(renderResponse.getNamespace());
-			sb.append(layoutTemplateId);
-
-			templateId = sb.toString();
-
-			content = processColumnMatcher.replaceAll(
-				"$1" + renderResponse.getNamespace() + "_$2$3");
-
-			Matcher columnIdMatcher = _columnIdPattern.matcher(content);
-
-			templateContent = columnIdMatcher.replaceAll(
-				"$1" + renderResponse.getNamespace() + "_$2$3");
 		}
 
-		checkLayout(themeDisplay.getLayout(), columnIds.values());
+		_checkLayout(themeDisplay.getLayout(), columnIds.values());
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
@@ -182,7 +180,28 @@ public class NestedPortletsPortlet extends MVCPortlet {
 		super.include(viewTemplate, renderRequest, renderResponse);
 	}
 
-	protected void checkLayout(Layout layout, Collection<String> columnIds) {
+	@Reference(unbind = "-")
+	protected void setLayoutLocalService(
+		LayoutLocalService layoutLocalService) {
+
+		_layoutLocalService = layoutLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutTemplateLocalService(
+		LayoutTemplateLocalService layoutTemplateLocalService) {
+
+		_layoutTemplateLocalService = layoutTemplateLocalService;
+	}
+
+	@Reference(
+		target = "(&(release.bundle.symbolic.name=com.liferay.nested.portlets.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))",
+		unbind = "-"
+	)
+	protected void setRelease(Release release) {
+	}
+
+	private void _checkLayout(Layout layout, Collection<String> columnIds) {
 		UnicodeProperties typeSettingsUnicodeProperties =
 			layout.getTypeSettingsProperties();
 
@@ -219,31 +238,10 @@ public class NestedPortletsPortlet extends MVCPortlet {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		}
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutLocalService(
-		LayoutLocalService layoutLocalService) {
-
-		_layoutLocalService = layoutLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setLayoutTemplateLocalService(
-		LayoutTemplateLocalService layoutTemplateLocalService) {
-
-		_layoutTemplateLocalService = layoutTemplateLocalService;
-	}
-
-	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.nested.portlets.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))",
-		unbind = "-"
-	)
-	protected void setRelease(Release release) {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -50,7 +50,7 @@ public class ExpandoEditPortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/edit/select_field_type.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

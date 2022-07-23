@@ -19,8 +19,4 @@ package com.liferay.commerce.shipping.engine.fixed.model.impl;
  */
 public class CommerceShippingFixedOptionImpl
 	extends CommerceShippingFixedOptionBaseImpl {
-
-	public CommerceShippingFixedOptionImpl() {
-	}
-
 }

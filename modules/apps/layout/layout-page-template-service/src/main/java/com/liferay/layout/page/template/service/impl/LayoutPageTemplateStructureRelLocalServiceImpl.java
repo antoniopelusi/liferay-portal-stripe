@@ -21,12 +21,15 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.Date;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eduardo García
@@ -45,7 +48,7 @@ public class LayoutPageTemplateStructureRelLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long layoutPageTemplateStructureRelId = counterLocalService.increment();
 
@@ -67,6 +70,11 @@ public class LayoutPageTemplateStructureRelLocalServiceImpl
 		layoutPageTemplateStructureRel.setSegmentsExperienceId(
 			segmentsExperienceId);
 		layoutPageTemplateStructureRel.setData(data);
+		layoutPageTemplateStructureRel.setStatus(
+			WorkflowConstants.STATUS_APPROVED);
+		layoutPageTemplateStructureRel.setStatusByUserId(userId);
+		layoutPageTemplateStructureRel.setStatusByUserName(user.getFullName());
+		layoutPageTemplateStructureRel.setStatusDate(new Date());
 
 		return layoutPageTemplateStructureRelPersistence.update(
 			layoutPageTemplateStructureRel);
@@ -146,5 +154,33 @@ public class LayoutPageTemplateStructureRelLocalServiceImpl
 		return layoutPageTemplateStructureRelPersistence.update(
 			layoutPageTemplateStructureRel);
 	}
+
+	@Override
+	public LayoutPageTemplateStructureRel updateStatus(
+			long userId, long layoutPageTemplateStructureId,
+			long segmentsExperienceId, int status,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel =
+			layoutPageTemplateStructureRelPersistence.findByL_S(
+				layoutPageTemplateStructureId, segmentsExperienceId);
+
+		layoutPageTemplateStructureRel.setStatus(status);
+
+		User user = _userLocalService.getUser(userId);
+
+		layoutPageTemplateStructureRel.setStatusByUserId(user.getUserId());
+		layoutPageTemplateStructureRel.setStatusByUserName(user.getFullName());
+
+		layoutPageTemplateStructureRel.setStatusDate(
+			serviceContext.getModifiedDate(new Date()));
+
+		return layoutPageTemplateStructureRelPersistence.update(
+			layoutPageTemplateStructureRel);
+	}
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -54,11 +54,14 @@ public class HeadlessUtilTest {
 
 	@Test
 	public void testUpdateWithQueryParameters() {
-		String url = "https://localhost:1977/o/headless/v1.0/lcs-cluster-nodes";
+		String url =
+			"https://localhost:1977/o/headless-commerce-admin-catalog/v1.0" +
+				"/product";
 
 		Map<String, String> parameters = new HashMap<>();
 
 		parameters.put("archive", "true");
+		parameters.put("id", "1977");
 		parameters.put("key", "197797");
 		parameters.put("subscription", "true");
 

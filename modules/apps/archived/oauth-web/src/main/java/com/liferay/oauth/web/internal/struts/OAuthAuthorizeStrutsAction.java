@@ -31,11 +31,8 @@ import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.io.IOException;
-
 import javax.portlet.PortletMode;
 import javax.portlet.PortletRequest;
-import javax.portlet.PortletURL;
 import javax.portlet.WindowState;
 
 import javax.servlet.http.HttpServletRequest;
@@ -60,45 +57,46 @@ public class OAuthAuthorizeStrutsAction implements StrutsAction {
 			HttpServletResponse httpServletResponse)
 		throws Exception {
 
-		if (!isSignedIn()) {
-			return redirectToLogin(httpServletRequest, httpServletResponse);
+		if (!_isSignedIn()) {
+			return _redirectToLogin(httpServletRequest, httpServletResponse);
 		}
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		PortletURL portletURL = PortletURLBuilder.create(
-			PortletURLFactoryUtil.create(
-				httpServletRequest, OAuthPortletKeys.OAUTH_AUTHORIZE,
-				themeDisplay.getPlid(), PortletRequest.RENDER_PHASE)
-		).setParameter(
-			"saveLastPath", "0"
-		).build();
+		httpServletResponse.sendRedirect(
+			PortletURLBuilder.create(
+				PortletURLFactoryUtil.create(
+					httpServletRequest, OAuthPortletKeys.OAUTH_AUTHORIZE,
+					themeDisplay.getPlid(), PortletRequest.RENDER_PHASE)
+			).setParameter(
+				OAuth.OAUTH_CALLBACK,
+				() -> {
+					String oauthCallback = httpServletRequest.getParameter(
+						OAuth.OAUTH_CALLBACK);
 
-		String oauthCallback = httpServletRequest.getParameter(
-			OAuth.OAUTH_CALLBACK);
+					if (Validator.isNotNull(oauthCallback)) {
+						return oauthCallback;
+					}
 
-		if (Validator.isNotNull(oauthCallback)) {
-			portletURL.setParameter(OAuth.OAUTH_CALLBACK, oauthCallback);
-		}
-
-		portletURL.setParameter(
-			OAuth.OAUTH_TOKEN,
-			httpServletRequest.getParameter(OAuth.OAUTH_TOKEN));
-		portletURL.setPortletMode(PortletMode.VIEW);
-		portletURL.setWindowState(getWindowState(httpServletRequest));
-
-		String redirect = portletURL.toString();
-
-		httpServletResponse.sendRedirect(redirect);
+					return null;
+				}
+			).setParameter(
+				OAuth.OAUTH_TOKEN,
+				httpServletRequest.getParameter(OAuth.OAUTH_TOKEN)
+			).setParameter(
+				"saveLastPath", "0"
+			).setPortletMode(
+				PortletMode.VIEW
+			).setWindowState(
+				_getWindowState(httpServletRequest)
+			).buildString());
 
 		return null;
 	}
 
-	protected WindowState getWindowState(
-		HttpServletRequest httpServletRequest) {
-
+	private WindowState _getWindowState(HttpServletRequest httpServletRequest) {
 		String windowStateString = ParamUtil.getString(
 			httpServletRequest, "windowState");
 
@@ -109,7 +107,7 @@ public class OAuthAuthorizeStrutsAction implements StrutsAction {
 		return LiferayWindowState.POP_UP;
 	}
 
-	protected boolean isSignedIn() {
+	private boolean _isSignedIn() {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
@@ -120,10 +118,10 @@ public class OAuthAuthorizeStrutsAction implements StrutsAction {
 		return true;
 	}
 
-	protected String redirectToLogin(
+	private String _redirectToLogin(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
-		throws IOException {
+		throws Exception {
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(

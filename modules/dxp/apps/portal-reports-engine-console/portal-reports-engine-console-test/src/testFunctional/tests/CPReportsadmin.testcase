@@ -56,7 +56,7 @@ definition {
 
 		Select(
 			locator1 = "Select#REPORT_FORMAT",
-			value1 = "csv");
+			value1 = "CSV");
 
 		Type(
 			locator1 = "TextInput#EMAIL_NOTIFICATIONS",
@@ -159,7 +159,7 @@ definition {
 		ReportsAdmin.addReportEntry(
 			emailNotificationsAddress = "test@liferay.com",
 			emailRecipientAddress = "test@liferay.com",
-			reportFormat = "csv",
+			reportFormat = "CSV",
 			reportName = "Custom Name",
 			reportsDefinitionName = "Reports Definition Name");
 
@@ -195,7 +195,9 @@ definition {
 			templateFile = "reports_admin_template_source_sample_class_name.jrxml");
 
 		Click(locator1 = "Dropdown#FILTER_AND_ORDER");
+
 		MenuItem.click(menuItem = "All");
+
 		ReportsAdmin.assertReportEntryPresent(reportsDefinitionName = "Reports Definition Name");
 	}
 
@@ -218,7 +220,7 @@ definition {
 		ReportsAdmin.addReportEntry(
 			emailNotificationsAddress = "test@liferay.com",
 			emailRecipientAddress = "test@liferay.com",
-			reportFormat = "csv",
+			reportFormat = "CSV",
 			reportsDefinitionName = "Reports Definition Name");
 
 		ReportsAdmin.viewReportEntry(reportsDefinitionName = "Reports Definition Name");
@@ -312,7 +314,7 @@ definition {
 		ReportsAdmin.addReportEntry(
 			emailNotificationsAddress = "test@liferay.com",
 			emailRecipientAddress = "test@liferay.com",
-			reportFormat = "csv",
+			reportFormat = "CSV",
 			reportsDefinitionName = "Reports Definition Name");
 
 		ReportsAdmin.viewReportEntry(reportsDefinitionName = "Reports Definition Name");
@@ -392,9 +394,9 @@ definition {
 			reportsFileName = "reports_admin_template_source_sample_class_name.pdf",
 			userName = "Test Test");
 
-		ReportsAdmin.downloadReportEntryFile(
-			reportFormat = "pdf",
-			reportsFileName = "reports_admin_template_source_sample_class_name.pdf");
+		takeScreenshot();
+
+		ReportsAdmin.downloadReportEntryFile(reportsFileName = "reports_admin_template_source_sample_class_name.pdf");
 	}
 
 	@priority = "4"
@@ -534,7 +536,6 @@ definition {
 	}
 
 	@description = "This is a use case for LPS-43525."
-	@ignore = "true"
 	@priority = "3"
 	test TestDatabaseConnection {
 		property database.types = "mysql";

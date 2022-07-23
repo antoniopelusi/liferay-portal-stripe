@@ -49,9 +49,11 @@
 			<validationRegex>(embedded)</validationRegex>
 		</requiredProperty>
 		<requiredProperty key="liferayVersion">
+			<validationRegex>^[0-7]\.\d+\.\d+.*</validationRegex>
 		</requiredProperty>
 		<requiredProperty key="product">
 			<defaultValue>portal</defaultValue>
+			<validationRegex>(dxp)|(portal)</validationRegex>
 		</requiredProperty>
 		<requiredProperty key="viewType">
 			<validationRegex>(jsp)|(thymeleaf)</validationRegex>

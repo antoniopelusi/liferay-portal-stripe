@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import React from 'react';
 
 import Translation from '../../../src/main/resources/META-INF/resources/js/components/Translation';
@@ -39,7 +39,6 @@ const noop = () => {};
 describe('Translation', () => {
 	afterEach(() => {
 		jest.clearAllMocks();
-		cleanup();
 	});
 
 	it('renders', () => {
@@ -88,11 +87,6 @@ describe('Translation', () => {
 				/>
 			</ChartStateContextProvider>
 		);
-
-		expect(getByText('languages-translated-into')).toBeInTheDocument();
-		expect(
-			getByText('select-language-to-view-its-metrics')
-		).toBeInTheDocument();
 
 		expect(getByText('en-US')).toBeInTheDocument();
 		expect(getByText('English (United States)')).toBeInTheDocument();

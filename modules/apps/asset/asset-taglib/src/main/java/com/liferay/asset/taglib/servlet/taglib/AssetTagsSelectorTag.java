@@ -21,7 +21,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
@@ -128,7 +127,7 @@ public class AssetTagsSelectorTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setRemoveCallback(String removeCallback) {
@@ -170,30 +169,27 @@ public class AssetTagsSelectorTag extends IncludeTag {
 	}
 
 	protected long[] getGroupIds() {
-		if (_groupIds != null) {
-			return _groupIds;
+		try {
+			if (ArrayUtil.isEmpty(_groupIds)) {
+				HttpServletRequest httpServletRequest = getRequest();
+
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				return PortalUtil.getCurrentAndAncestorSiteGroupIds(
+					themeDisplay.getScopeGroupId());
+			}
+
+			return PortalUtil.getCurrentAndAncestorSiteGroupIds(_groupIds);
 		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long[] groupIds = null;
-
-		Group group = themeDisplay.getScopeGroup();
-
-		if (group.isLayout()) {
-			groupIds = new long[] {group.getParentGroupId()};
+			return new long[0];
 		}
-		else {
-			groupIds = new long[] {group.getGroupId()};
-		}
-
-		if (group.getParentGroupId() != themeDisplay.getCompanyGroupId()) {
-			groupIds = ArrayUtil.append(
-				groupIds, themeDisplay.getCompanyGroupId());
-		}
-
-		return groupIds;
 	}
 
 	protected String getId() {
@@ -202,7 +198,7 @@ public class AssetTagsSelectorTag extends IncludeTag {
 		}
 
 		String randomKey = PortalUtil.generateRandomKey(
-			request, "taglib_ui_asset_tags_selector_page");
+			getRequest(), "taglib_ui_asset_tags_selector_page");
 
 		return randomKey + StringPool.UNDERLINE;
 	}
@@ -215,7 +211,7 @@ public class AssetTagsSelectorTag extends IncludeTag {
 	protected PortletURL getPortletURL() {
 		try {
 			PortletURL portletURL = PortletProviderUtil.getPortletURL(
-				request, AssetTag.class.getName(),
+				getRequest(), AssetTag.class.getName(),
 				PortletProvider.Action.BROWSE);
 
 			if (portletURL == null) {
@@ -224,7 +220,8 @@ public class AssetTagsSelectorTag extends IncludeTag {
 
 			if (_groupIds != null) {
 				portletURL.setParameter(
-					"groupIds", StringUtil.merge(_groupIds, StringPool.COMMA));
+					"groupIds",
+					StringUtil.merge(getGroupIds(), StringPool.COMMA));
 			}
 
 			portletURL.setParameter("eventName", getEventName());
@@ -235,7 +232,7 @@ public class AssetTagsSelectorTag extends IncludeTag {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -251,7 +248,10 @@ public class AssetTagsSelectorTag extends IncludeTag {
 		}
 
 		if (!_ignoreRequestValue) {
-			String[] curTagsParam = request.getParameterValues(_hiddenInput);
+			HttpServletRequest httpServletRequest = getRequest();
+
+			String[] curTagsParam = httpServletRequest.getParameterValues(
+				_hiddenInput);
 
 			if (curTagsParam != null) {
 				return ListUtil.fromArray(curTagsParam);
@@ -286,12 +286,7 @@ public class AssetTagsSelectorTag extends IncludeTag {
 		).put(
 			"inputName", _getInputName()
 		).put(
-			"portletURL",
-			() -> {
-				PortletURL portletURL = getPortletURL();
-
-				return portletURL.toString();
-			}
+			"portletURL", String.valueOf(getPortletURL())
 		).put(
 			"removeCallback",
 			() -> {
@@ -307,6 +302,10 @@ public class AssetTagsSelectorTag extends IncludeTag {
 				List<Map<String, String>> selectedItems = new ArrayList<>();
 
 				for (String tagName : getTagNames()) {
+					if (Validator.isNull(tagName)) {
+						continue;
+					}
+
 					selectedItems.add(
 						HashMapBuilder.put(
 							"label", tagName
@@ -331,13 +330,17 @@ public class AssetTagsSelectorTag extends IncludeTag {
 			return _namespace;
 		}
 
-		PortletRequest portletRequest = (PortletRequest)request.getAttribute(
-			JavaConstants.JAVAX_PORTLET_REQUEST);
-		PortletResponse portletResponse = (PortletResponse)request.getAttribute(
-			JavaConstants.JAVAX_PORTLET_RESPONSE);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		PortletRequest portletRequest =
+			(PortletRequest)httpServletRequest.getAttribute(
+				JavaConstants.JAVAX_PORTLET_REQUEST);
+		PortletResponse portletResponse =
+			(PortletResponse)httpServletRequest.getAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE);
 
 		if ((portletRequest == null) || (portletResponse == null)) {
-			_namespace = AUIUtil.getNamespace(request);
+			_namespace = AUIUtil.getNamespace(httpServletRequest);
 
 			return _namespace;
 		}

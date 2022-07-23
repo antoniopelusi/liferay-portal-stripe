@@ -384,6 +384,21 @@ public interface FragmentEntryModel
 	public void setConfiguration(String configuration);
 
 	/**
+	 * Returns the icon of this fragment entry.
+	 *
+	 * @return the icon of this fragment entry
+	 */
+	@AutoEscape
+	public String getIcon();
+
+	/**
+	 * Sets the icon of this fragment entry.
+	 *
+	 * @param icon the icon of this fragment entry
+	 */
+	public void setIcon(String icon);
+
+	/**
 	 * Returns the preview file entry ID of this fragment entry.
 	 *
 	 * @return the preview file entry ID of this fragment entry
@@ -592,5 +607,8 @@ public interface FragmentEntryModel
 	 */
 	@Override
 	public boolean isScheduled();
+
+	@Override
+	public FragmentEntry cloneWithOriginalValues();
 
 }

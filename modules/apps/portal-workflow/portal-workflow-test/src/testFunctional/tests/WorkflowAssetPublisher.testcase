@@ -31,7 +31,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Web Content");
 
@@ -42,7 +42,7 @@ definition {
 			panel = "Site Administration",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Asset Publisher Page");
+		PagesAdmin.addPage(pageName = "Asset Publisher Page");
 
 		Navigator.gotoPage(pageName = "Asset Publisher Page");
 
@@ -62,7 +62,7 @@ definition {
 
 			WebContent.tearDownCP();
 
-			Page.tearDownPG();
+			PagesAdmin.tearDownCP();
 
 			Workflow.tearDownPortalWorkflow();
 
@@ -113,6 +113,56 @@ definition {
 			entryTitle = "Blogs Entry Title");
 	}
 
+	@description = "This is a test for LRQA-70157. Verify that an approved web content is displayed on Asset Publisher."
+	@priority = "4"
+	test ApprovedWebContentIsDisplayed {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavTab(navTab = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Web Content Article");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages",
+			site = "${siteName}");
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		WorkflowAsset.createNewBasicWebContent(wcTitle = "Web Content Title");
+
+		Button.clickSubmitForPublication();
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		AssetPublisherPortlet.viewManualNoAssetsMessagePG();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Navigator.gotoNavTab(navTab = "Assigned to My Roles");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Web Content Title",
+			workflowAssetType = "Web Content Article",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Web Content Title",
+			workflowAssetType = "Web Content Article",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "Web Content Title");
+	}
+
 	@description = "This is a use case for LPS-72846."
 	@priority = "5"
 	test ApproveMessageBoardsThreadPG {
@@ -121,7 +171,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Message Boards");
 
@@ -193,6 +243,133 @@ definition {
 			webContentTitle = "WC WebContent Title");
 	}
 
+	@description = "This is a test for LRQA-69817. Verify that a Draft Blog Entry is not displayed on Asset Publisher."
+	@priority = "3"
+	test DraftBlogIsNotDisplayed {
+		BlogsNavigator.openToAddEntry(
+			layoutName = "Asset Publisher Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.addEntryContent(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.saveAsDraft();
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		AssetPublisherPortlet.viewManualNoAssetsMessagePG();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Blogs");
+
+		BlogsNavigator.gotoEntryCP(
+			entryStatus = "Draft",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntryCP(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+	}
+
+	@description = "This is a test for LRQA-69816. Verify that when the user edits an approved blog, the blog returns to pending and is removed from Asset Publisher."
+	@priority = "3"
+	test EditedBlogReturnsToPendingAndIsNotDisplayed {
+		BlogsNavigator.openToAddEntry(
+			layoutName = "Asset Publisher Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.addEntryContent(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		Button.clickSubmitForPublication();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "Blogs Entry Title");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Blogs");
+
+		AssertClick(
+			key_workflowInstanceName = "Blogs Entry Title",
+			locator1 = "AssetWorkflow#DETAILS_WORKFLOW_TITLE",
+			value1 = "Blogs Entry Title");
+
+		BlogsEntry.editTitle(
+			entryTitle = "Blogs Entry Title",
+			entryTitleEdit = "Blogs Entry Title Edit");
+
+		Button.clickSubmitForPublication();
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		AssetPublisherPortlet.viewManualNoAssetsMessagePG();
+	}
+
+	@description = "This is a test for LRQA-69814. Verify that a Pending Web Content is not displayed on Asset Publisher."
+	@priority = "3"
+	test PendingWebContentIsNotDisplayed {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavTab(navTab = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Web Content Article");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages",
+			site = "${siteName}");
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		WorkflowAsset.createNewBasicWebContent(wcTitle = "Web Content Title");
+
+		Button.clickSubmitForPublication();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Web Content");
+
+		AssertElementPresent(
+			key_webContentTitle = "Web Content Title",
+			locator1 = "WC#ENTRY_LIST_WORKFLOW_STATUS");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			panel = "Site Administration",
+			portlet = "Pages");
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		AssetPublisherPortlet.viewManualNoAssetsMessagePG();
+	}
+
 	@priority = "4"
 	test RejectBlogsEntryPG {
 		Navigator.gotoPage(pageName = "Asset Publisher Page");
@@ -230,6 +407,66 @@ definition {
 		BlogsEntry.viewWithWorkflowPGViaAP(
 			entryTitle = "Blogs Entry Title",
 			webContentTitle = "Blogs Entry Title");
+	}
+
+	@description = "This is a test for LRQA-69815. Verify that a rejected web content is not displayed on Asset Publisher."
+	@priority = "3"
+	test RejectedWebContentIsNotDisplayed {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavTab(navTab = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Web Content Article");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages",
+			site = "${siteName}");
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		WorkflowAsset.createNewBasicWebContent(wcTitle = "Web Content Title");
+
+		Button.clickSubmitForPublication();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Navigator.gotoNavTab(navTab = "Assigned to My Roles");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Web Content Title",
+			workflowAssetType = "Web Content Article",
+			workflowTask = "Review");
+
+		Workflow.rejectTaskByActions(
+			workflowAssetTitle = "Web Content Title",
+			workflowAssetType = "Web Content Article",
+			workflowTask = "Review");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Web Content");
+
+		AssertElementPresent(
+			key_webContentTitle = "Web Content Title",
+			locator1 = "WC#ENTRY_LIST_WORKFLOW_STATUS");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages",
+			site = "${siteName}");
+
+		Navigator.gotoPage(pageName = "Asset Publisher Page");
+
+		AssetPublisherPortlet.viewManualNoAssetsMessagePG();
 	}
 
 }

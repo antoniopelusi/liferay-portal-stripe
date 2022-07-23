@@ -17,13 +17,13 @@ package com.liferay.commerce.channel.web.internal.frontend.taglib.servlet.taglib
 import com.liferay.commerce.channel.web.internal.display.context.SiteCommerceChannelTypeDisplayContext;
 import com.liferay.commerce.channel.web.internal.servlet.taglib.ui.constants.CommerceChannelScreenNavigationConstants;
 import com.liferay.commerce.currency.service.CommerceCurrencyService;
-import com.liferay.commerce.payment.method.CommercePaymentMethodRegistry;
 import com.liferay.commerce.product.channel.CommerceChannelHealthStatusRegistry;
 import com.liferay.commerce.product.channel.CommerceChannelTypeRegistry;
 import com.liferay.commerce.product.constants.CommerceChannelConstants;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CPTaxCategoryLocalService;
 import com.liferay.commerce.product.service.CommerceChannelService;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
@@ -110,21 +110,22 @@ public class CommerceChannelSiteScreenNavigationCategory
 		SiteCommerceChannelTypeDisplayContext
 			siteCommerceChannelTypeDisplayContext =
 				new SiteCommerceChannelTypeDisplayContext(
-					_commerceChannelModelResourcePermission,
 					_commerceChannelHealthStatusRegistry,
+					_commerceChannelModelResourcePermission,
 					_commerceChannelService, _commerceChannelTypeRegistry,
-					_commerceCurrencyService, _commercePaymentMethodRegistry,
-					_configurationProvider, _groupLocalService,
-					httpServletRequest, _itemSelector, _portal,
-					_workflowDefinitionLinkLocalService,
-					_workflowDefinitionManager, _cpTaxCategoryLocalService);
+					_commerceCurrencyService, _configurationProvider,
+					_cpTaxCategoryLocalService, _dlAppLocalService,
+					_groupLocalService, httpServletRequest, _itemSelector,
+					_portal, _workflowDefinitionLinkLocalService,
+					_workflowDefinitionManager);
 
 		httpServletRequest.setAttribute(
 			"site.jsp-portletDisplayContext",
 			siteCommerceChannelTypeDisplayContext);
 
 		_jspRenderer.renderJSP(
-			httpServletRequest, httpServletResponse, "/channel/site.jsp");
+			httpServletRequest, httpServletResponse,
+			"/commerce_channel/site.jsp");
 	}
 
 	@Reference
@@ -147,13 +148,13 @@ public class CommerceChannelSiteScreenNavigationCategory
 	private CommerceCurrencyService _commerceCurrencyService;
 
 	@Reference
-	private CommercePaymentMethodRegistry _commercePaymentMethodRegistry;
-
-	@Reference
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private CPTaxCategoryLocalService _cpTaxCategoryLocalService;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
 	private GroupLocalService _groupLocalService;

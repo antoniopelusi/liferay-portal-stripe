@@ -16,7 +16,6 @@ package com.liferay.commerce.inventory.web.internal.portlet.action;
 
 import com.liferay.commerce.inventory.service.CommerceInventoryWarehouseItemService;
 import com.liferay.commerce.product.constants.CPPortletKeys;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.Constants;
@@ -50,13 +49,11 @@ public class TransferQuantitiesMVCActionCommand extends BaseMVCActionCommand {
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		if (cmd.equals(Constants.MOVE)) {
-			moveQuantities(actionRequest);
+			_moveQuantities(actionRequest);
 		}
 	}
 
-	protected void moveQuantities(ActionRequest actionRequest)
-		throws PortalException {
-
+	private void _moveQuantities(ActionRequest actionRequest) throws Exception {
 		String sku = ParamUtil.getString(actionRequest, "sku");
 
 		long fromCommerceInventoryWarehouseId = ParamUtil.getLong(

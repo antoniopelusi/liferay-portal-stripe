@@ -56,7 +56,7 @@
 
 			.mini-compare-delete {
 				opacity: 1;
-				transform: scale(0.6) translate(50%, -50%);
+				transform: scale(1) translate(50%, -50%);
 			}
 
 			.mini-compare-thumbnail-container {
@@ -84,15 +84,28 @@
 	}
 
 	&-delete {
+		align-items: center;
 		background-color: $danger-primary;
-		border-color: $gray-400;
+		border: none;
+		border-radius: 4px;
 		color: $gray-100;
+		display: inline-flex;
+		font-size: 12px;
+		height: 1.2rem;
+		justify-content: center;
 		opacity: 0;
+		padding: 0;
 		position: absolute;
-		right: 0;
-		top: 0;
+		right: 2px;
+		top: 2px;
+		transform: scale(0) translate(50%, -50%);
 		transform: scale(0) translate(50%, -50%);
 		transition: all 0.2s ease-in;
+		width: 1.2rem;
 		z-index: 10;
+
+		.lexicon-icon {
+			margin-top: -1px;
+		}
 	}
 }

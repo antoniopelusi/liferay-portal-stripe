@@ -14,7 +14,10 @@
 
 package com.liferay.content.dashboard.web.internal.item;
 
+import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtypeFactory;
 import com.liferay.portal.kernel.exception.PortalException;
+
+import java.util.Optional;
 
 /**
  * @author Cristina González
@@ -22,5 +25,12 @@ import com.liferay.portal.kernel.exception.PortalException;
 public interface ContentDashboardItemFactory<T> {
 
 	public ContentDashboardItem<T> create(long classPK) throws PortalException;
+
+	public Optional<ContentDashboardItemSubtypeFactory>
+		getContentDashboardItemSubtypeFactoryOptional();
+
+	public default boolean isEnabled() {
+		return true;
+	}
 
 }

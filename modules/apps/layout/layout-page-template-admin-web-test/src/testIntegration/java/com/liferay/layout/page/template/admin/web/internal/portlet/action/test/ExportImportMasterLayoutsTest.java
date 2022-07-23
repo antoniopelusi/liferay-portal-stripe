@@ -50,6 +50,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.io.File;
 
@@ -103,11 +104,13 @@ public class ExportImportMasterLayoutsTest {
 		Layout layout1 = _layoutLocalService.fetchLayout(
 			layoutPageTemplateEntry1.getPlid());
 
-		_layoutPageTemplateStructureLocalService.addLayoutPageTemplateStructure(
-			TestPropsValues.getUserId(), _group1.getGroupId(),
-			layoutPageTemplateEntry1.getPlid(),
-			_read("export_import_master_layout_layout_data.json"),
-			_serviceContext1);
+		_layoutPageTemplateStructureLocalService.
+			updateLayoutPageTemplateStructureData(
+				_group1.getGroupId(), layoutPageTemplateEntry1.getPlid(),
+				_segmentsExperienceLocalService.
+					fetchDefaultSegmentsExperienceId(
+						layoutPageTemplateEntry1.getPlid()),
+				_read("export_import_master_layout_layout_data.json"));
 
 		Repository repository = PortletFileRepositoryUtil.addPortletRepository(
 			_group1.getGroupId(), RandomTestUtil.randomString(),
@@ -200,9 +203,9 @@ public class ExportImportMasterLayoutsTest {
 					layoutPageTemplateEntry2.getPlid());
 
 		LayoutStructure layoutStructure1 = LayoutStructure.of(
-			layoutPageTemplateStructure1.getData(0));
+			layoutPageTemplateStructure1.getDefaultSegmentsExperienceData());
 		LayoutStructure layoutStructure2 = LayoutStructure.of(
-			layoutPageTemplateStructure2.getData(0));
+			layoutPageTemplateStructure2.getDefaultSegmentsExperienceData());
 
 		DropZoneLayoutStructureItem dropZoneLayoutStructureItem1 =
 			_getDropZoneLayoutStructureItem(layoutStructure1);
@@ -302,6 +305,9 @@ public class ExportImportMasterLayoutsTest {
 		filter = "mvc.command.name=/layout_page_template_admin/export_master_layouts"
 	)
 	private MVCResourceCommand _mvcResourceCommand;
+
+	@Inject
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	private ServiceContext _serviceContext1;
 	private ServiceContext _serviceContext2;

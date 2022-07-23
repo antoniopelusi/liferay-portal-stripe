@@ -44,19 +44,19 @@ import org.osgi.service.component.annotations.Reference;
 public class FieldQueryBuilderFactoryImpl implements FieldQueryBuilderFactory {
 
 	@Override
-	public FieldQueryBuilder getQueryBuilder(String field) {
-		if (queryPreProcessConfiguration.isSubstringSearchAlways(field)) {
+	public FieldQueryBuilder getQueryBuilder(String fieldName) {
+		if (queryPreProcessConfiguration.isSubstringSearchAlways(fieldName)) {
 			return substringFieldQueryBuilder;
 		}
 
-		for (String descriptionField : _descriptionFields) {
-			if (field.startsWith(descriptionField)) {
+		for (String descriptionFieldName : _descriptionFieldNames) {
+			if (fieldName.startsWith(descriptionFieldName)) {
 				return descriptionFieldQueryBuilder;
 			}
 		}
 
-		for (String titleField : _titleFields) {
-			if (field.startsWith(titleField)) {
+		for (String titleFieldName : _titleFieldNames) {
+			if (fieldName.startsWith(titleFieldName)) {
 				return titleFieldQueryBuilder;
 			}
 		}
@@ -67,17 +67,8 @@ public class FieldQueryBuilderFactoryImpl implements FieldQueryBuilderFactory {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_descriptionFields = getFields(properties, "description.fields");
-		_titleFields = getFields(properties, "title.fields");
-	}
-
-	protected Collection<String> getFields(
-		Map<String, Object> properties, String key) {
-
-		String[] values = StringUtil.split(
-			GetterUtil.getString(properties.get(key)), CharPool.PIPE);
-
-		return new HashSet<>(Arrays.asList(values));
+		_descriptionFieldNames = _getFields(properties, "description.fields");
+		_titleFieldNames = _getFields(properties, "title.fields");
 	}
 
 	@Reference
@@ -92,9 +83,18 @@ public class FieldQueryBuilderFactoryImpl implements FieldQueryBuilderFactory {
 	@Reference
 	protected TitleFieldQueryBuilder titleFieldQueryBuilder;
 
-	private volatile Collection<String> _descriptionFields =
+	private Collection<String> _getFields(
+		Map<String, Object> properties, String key) {
+
+		String[] values = StringUtil.split(
+			GetterUtil.getString(properties.get(key)), CharPool.PIPE);
+
+		return new HashSet<>(Arrays.asList(values));
+	}
+
+	private volatile Collection<String> _descriptionFieldNames =
 		Collections.singleton("description");
-	private volatile Collection<String> _titleFields = new HashSet<>(
+	private volatile Collection<String> _titleFieldNames = new HashSet<>(
 		Arrays.asList("name", "title"));
 
 }

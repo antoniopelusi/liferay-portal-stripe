@@ -14,6 +14,7 @@
 
 import {CONTAINER_DISPLAY_OPTIONS} from '../../config/constants/containerDisplayOptions';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../config/constants/layoutDataItemTypes';
+import isItemEmpty from '../isItemEmpty';
 import checkAllowedChild from './checkAllowedChild';
 import {DRAG_DROP_TARGET_TYPE} from './constants/dragDropTargetType';
 import {ORIENTATIONS} from './constants/orientations';
@@ -22,7 +23,6 @@ import getDropTargetPosition from './getDropTargetPosition';
 import getTargetData from './getTargetData';
 import getTargetPositions from './getTargetPositions';
 import itemIsAncestor from './itemIsAncestor';
-import toControlsId from './toControlsId';
 import {initialDragDrop} from './useDragAndDrop';
 
 const ELEVATION_BORDER_SIZE = 15;
@@ -63,7 +63,6 @@ export default function defaultComputeHover({
 	const orientation = getOrientation(
 		siblingItem || targetItem,
 		monitor,
-		layoutDataRef,
 		targetRefs
 	);
 
@@ -74,7 +73,6 @@ export default function defaultComputeHover({
 	] = getItemPosition(
 		siblingItem || targetItem,
 		monitor,
-		layoutDataRef,
 		targetRefs,
 		orientation
 	);
@@ -87,14 +85,11 @@ export default function defaultComputeHover({
 		const targetIsContainerFlex = itemIsContainerFlex(targetItem);
 		const targetIsFragment =
 			targetItem.type === LAYOUT_DATA_ITEM_TYPES.fragment;
-		const targetIsEmpty =
-			layoutDataRef.current.items[targetItem.itemId]?.children.length ===
-			0;
-		const allowedChild = checkAllowedChild(
-			sourceItem,
-			targetItem,
-			layoutDataRef
+		const targetIsEmpty = isItemEmpty(
+			layoutDataRef.current.items[targetItem.itemId],
+			layoutDataRef.current
 		);
+		const allowedChild = checkAllowedChild(sourceItem, targetItem);
 
 		return (
 			targetPositionWithMiddle === TARGET_POSITIONS.MIDDLE &&
@@ -108,7 +103,7 @@ export default function defaultComputeHover({
 		return dispatch({
 			dropItem: sourceItem,
 			dropTargetItem: targetItem,
-			droppable: checkAllowedChild(sourceItem, targetItem, layoutDataRef),
+			droppable: checkAllowedChild(sourceItem, targetItem),
 			elevate: null,
 			targetPositionWithMiddle,
 			targetPositionWithoutMiddle,
@@ -124,7 +119,7 @@ export default function defaultComputeHover({
 
 	if (
 		siblingItem &&
-		checkAllowedChild(sourceItem, targetItem, layoutDataRef) &&
+		checkAllowedChild(sourceItem, targetItem) &&
 		validElevation(siblingItem, orientation, layoutDataRef)
 	) {
 		return dispatch({
@@ -145,18 +140,24 @@ export default function defaultComputeHover({
 
 	if (elevationDepth) {
 		const getElevatedTargetItem = (sibling, maximumDepth) => {
-			const parent = layoutDataRef.current.items[sibling.parentId]
-				? {
-						...layoutDataRef.current.items[sibling.parentId],
-						collectionItemIndex: sibling.collectionItemIndex,
-				  }
-				: null;
+			let parent = layoutDataRef.current.items[sibling.parentId];
+
+			if (parent) {
+				parent = {
+					...parent,
+					collectionItemIndex: sibling.collectionItemIndex,
+					parentToControlsId: sibling.parentToControlsId,
+					toControlsId:
+						parent.type === LAYOUT_DATA_ITEM_TYPES.collection
+							? sibling.parentToControlsId
+							: sibling.toControlsId,
+				};
+			}
 
 			if (parent) {
 				const [siblingPositionWithMiddle] = getItemPosition(
 					sibling,
 					monitor,
-					layoutDataRef,
 					targetRefs,
 					orientation
 				);
@@ -164,7 +165,6 @@ export default function defaultComputeHover({
 				const [parentPositionWithMiddle] = getItemPosition(
 					parent,
 					monitor,
-					layoutDataRef,
 					targetRefs,
 					orientation
 				);
@@ -173,7 +173,7 @@ export default function defaultComputeHover({
 					(siblingPositionWithMiddle === targetPositionWithMiddle ||
 						parentPositionWithMiddle ===
 							targetPositionWithMiddle) &&
-					checkAllowedChild(sourceItem, parent, layoutDataRef)
+					checkAllowedChild(sourceItem, parent)
 				) {
 					if (maximumDepth > 1) {
 						const [
@@ -215,8 +215,8 @@ export default function defaultComputeHover({
 	}
 }
 
-function getOrientation(item, monitor, layoutDataRef, targetRefs) {
-	const targetRef = targetRefs.get(toControlsId(layoutDataRef, item));
+function getOrientation(item, monitor, targetRefs) {
+	const targetRef = targetRefs.get(item.toControlsId(item.itemId));
 	const targetRect = targetRef.current.getBoundingClientRect();
 	const hoverMiddle = targetRect.left + targetRect.width / 2;
 	const clientOffsetX = monitor.getClientOffset().x;
@@ -236,14 +236,8 @@ function getOrientation(item, monitor, layoutDataRef, targetRefs) {
 		: ORIENTATIONS.vertical;
 }
 
-function getItemPosition(
-	item,
-	monitor,
-	layoutDataRef,
-	targetRefs,
-	orientation
-) {
-	const targetRef = targetRefs.get(toControlsId(layoutDataRef, item));
+function getItemPosition(item, monitor, targetRefs, orientation) {
+	const targetRef = targetRefs.get(item.toControlsId(item.itemId));
 
 	if (!targetRef || !targetRef.current) {
 		return [null, null, 0];

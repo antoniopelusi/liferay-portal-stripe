@@ -3,7 +3,6 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="ERROR" name="com.liferay.portal.scheduler.quartz.internal.PortalJobStore" />
-
 		<Logger level="WARN" name="com.liferay.portal.scheduler.quartz.internal.QuartzSchedulerEngine" />
 	</Loggers>
 </Configuration>

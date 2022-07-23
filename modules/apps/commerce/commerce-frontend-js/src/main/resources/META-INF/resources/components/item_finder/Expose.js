@@ -15,10 +15,10 @@
 import React from 'react';
 
 export default function Expose({active, children, onClose}) {
-	const content = React.useRef();
+	const contentRef = React.useRef();
 
 	React.useEffect(() => {
-		const handleEscKey = (e) => e.key === 'Escape' && onClose();
+		const handleEscKey = (event) => event.key === 'Escape' && onClose();
 
 		if (active) {
 			window.addEventListener('keydown', handleEscKey);
@@ -31,7 +31,8 @@ export default function Expose({active, children, onClose}) {
 	return (
 		<div className={`expose mb-4 ${active ? 'is-open' : 'is-closed'}`}>
 			<div className="expose__backdrop" onClick={onClose} />
-			<div className="expose__content" ref={content}>
+
+			<div className="expose__content" ref={contentRef}>
 				{children}
 			</div>
 		</div>

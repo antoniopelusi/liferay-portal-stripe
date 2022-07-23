@@ -18,7 +18,7 @@ import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.portlet.action.ActionHelper;
 import com.liferay.commerce.product.type.virtual.constants.VirtualCPTypeConstants;
 import com.liferay.commerce.product.type.virtual.web.internal.display.context.CPDefinitionVirtualSettingDisplayContext;
-import com.liferay.commerce.product.type.virtual.web.internal.portlet.action.CPDefinitionVirtualSettingActionHelper;
+import com.liferay.commerce.product.type.virtual.web.internal.portlet.action.helper.CPDefinitionVirtualSettingActionHelper;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
@@ -113,7 +113,7 @@ public class CPDefinitionCPTypeVirtualScreenNavigationCategory
 
 		_jspRenderer.renderJSP(
 			_servletContext, httpServletRequest, httpServletResponse,
-			"/edit_definition_virtual_setting.jsp");
+			"/edit_cp_definition_virtual_setting.jsp");
 	}
 
 	@Reference

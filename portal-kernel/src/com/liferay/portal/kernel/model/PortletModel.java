@@ -150,4 +150,7 @@ public interface PortletModel
 	 */
 	public void setActive(boolean active);
 
+	@Override
+	public Portlet cloneWithOriginalValues();
+
 }

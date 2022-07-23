@@ -9,12 +9,13 @@
  * distribution rights of the Software.
  */
 
-import {fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
-import App from '../../src/main/resources/META-INF/resources/js/components/App.es';
-
 import '@testing-library/jest-dom/extend-expect';
+
+import App from '../../src/main/resources/META-INF/resources/js/components/App.es';
+import FetchMock, {fetchMockResponse} from '../mock/fetch.es';
 
 const processItems = [
 	{
@@ -37,34 +38,28 @@ const pending = {
 	untrackedInstanceCount: 0,
 };
 
-const jestEmpty = jest
-	.fn()
-	.mockResolvedValue({data: {items: [], totalCount: 0}});
-
-const client = {
-	get: jest
-		.fn()
-		.mockResolvedValueOnce({data: {items: [], totalCount: 0}})
-		.mockResolvedValueOnce({data: {items: [], totalCount: 0}})
-		.mockResolvedValueOnce({
-			data: {
-				items: processItems,
-				totalCount: processItems.length,
-			},
-		})
-		.mockResolvedValueOnce({data: {items: [], totalCount: 0}})
-		.mockResolvedValueOnce({data: pending})
-		.mockResolvedValue({data: {items: [], totalCount: 0}}),
-	post: jestEmpty,
-	request: jestEmpty,
-};
+const fetchMock = new FetchMock({
+	GET: {
+		'/o/portal-workflow-metrics/v1.0/processes/metrics': fetchMockResponse({
+			items: processItems,
+			totalCount: processItems.length,
+		}),
+		// eslint-disable-next-line sort-keys
+		'/o/portal-workflow-metrics/v1.0/indexes': fetchMockResponse({
+			items: [],
+			totalCount: 0,
+		}),
+		'/o/portal-workflow-metrics/v1.0/processes/1234/metrics': fetchMockResponse(
+			pending
+		),
+		'default': fetchMockResponse({items: [], totalCount: 0}),
+	},
+});
 
 const mockProps = {
-	client,
 	companyId: 12345,
 	defaultDelta: 20,
 	deltaValues: [5, 10, 20, 30, 50, 75],
-	getClient: jest.fn(() => client),
 	isAmPm: false,
 	maxPages: 15,
 	portletNamespace: '_workflow_',
@@ -72,9 +67,11 @@ const mockProps = {
 };
 
 describe('The App component should', () => {
-	let container, getByText;
+	let container;
+	let findByText;
+	let getByText;
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		const header = document.createElement('div');
 
 		header.id = '_workflow_controlMenu';
@@ -86,9 +83,22 @@ describe('The App component should', () => {
 
 		container = renderResult.container;
 		getByText = renderResult.getByText;
+		findByText = renderResult.findByText;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Navigate to settings indexes page', () => {
+	beforeEach(() => {
+		fetchMock.mock();
+	});
+
+	afterEach(() => {
+		fetchMock.reset();
+	});
+
+	it('Navigate to settings indexes page', async () => {
 		const kebabButton = document.getElementById('headerKebab').children[0]
 			.children[0].children[0];
 
@@ -103,9 +113,13 @@ describe('The App component should', () => {
 		expect(window.location.hash).toContain('#/settings/indexes');
 
 		fireEvent.click(document.getElementById('backButton').children[0]);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Return to process list page', () => {
+	it('Return to process list page', async () => {
 		const processName = container.querySelectorAll('.table-title');
 
 		const processNameLink = processName[0].children[0];
@@ -114,14 +128,19 @@ describe('The App component should', () => {
 		expect(window.location.hash).toContain('#/processes');
 
 		fireEvent.click(processNameLink);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Render the process metrics page on dashboard tab', () => {
+	xit('Render the process metrics page on dashboard tab', async () => {
 		expect(window.location.hash).toContain(
 			'#/metrics/1234/dashboard/20/1/overdueInstanceCount%3Aasc'
 		);
 
 		const tabs = container.querySelectorAll('a.nav-link');
+		const metricsCalculated = await findByText('SLA Metrics calculated');
 
 		expect(tabs[0]).toHaveTextContent('dashboard');
 		expect(tabs[0].className.includes('active')).toBe(true);
@@ -131,10 +150,13 @@ describe('The App component should', () => {
 			'#/metrics/1234/dashboard/20/1/overdueInstanceCount%3Aasc'
 		);
 
+		expect(metricsCalculated).toBeTruthy();
+
 		fireEvent.click(tabs[1]);
 	});
 
-	test('Render the process metrics page on performance tab and back to dashboard', () => {
+	xit('Render the process metrics page on performance tab and back to dashboard', async () => {
+		const metricsCalculated = await findByText('SLA Metrics calculated');
 		const tabs = container.querySelectorAll('a.nav-link');
 
 		expect(tabs[0]).toHaveTextContent('dashboard');
@@ -143,13 +165,15 @@ describe('The App component should', () => {
 
 		expect(window.location.hash).toContain('#/metrics/1234/performance');
 
+		expect(metricsCalculated).toBeTruthy();
+
 		fireEvent.click(tabs[0]);
 
 		expect(tabs[0].className.includes('active')).toBe(true);
 		expect(window.location.hash).toContain('#/metrics/1234/dashboard');
 	});
 
-	test('Navigate to new SLA page', () => {
+	it('Navigate to new SLA page', async () => {
 		const slaInfoLink = getByText('add-a-new-sla');
 
 		fireEvent.click(slaInfoLink);

@@ -27,14 +27,15 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignment;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -260,34 +261,6 @@ public class KaleoTaskAssignmentModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoTaskAssignment>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoTaskAssignment.class.getClassLoader(),
-			KaleoTaskAssignment.class, ModelWrapper.class);
-
-		try {
-			Constructor<KaleoTaskAssignment> constructor =
-				(Constructor<KaleoTaskAssignment>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoTaskAssignment, Object>>
@@ -889,6 +862,54 @@ public class KaleoTaskAssignmentModelImpl
 	}
 
 	@Override
+	public KaleoTaskAssignment cloneWithOriginalValues() {
+		KaleoTaskAssignmentImpl kaleoTaskAssignmentImpl =
+			new KaleoTaskAssignmentImpl();
+
+		kaleoTaskAssignmentImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoTaskAssignmentImpl.setKaleoTaskAssignmentId(
+			this.<Long>getColumnOriginalValue("kaleoTaskAssignmentId"));
+		kaleoTaskAssignmentImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		kaleoTaskAssignmentImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoTaskAssignmentImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		kaleoTaskAssignmentImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoTaskAssignmentImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoTaskAssignmentImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoTaskAssignmentImpl.setKaleoClassName(
+			this.<String>getColumnOriginalValue("kaleoClassName"));
+		kaleoTaskAssignmentImpl.setKaleoClassPK(
+			this.<Long>getColumnOriginalValue("kaleoClassPK"));
+		kaleoTaskAssignmentImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoTaskAssignmentImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoTaskAssignmentImpl.setKaleoNodeId(
+			this.<Long>getColumnOriginalValue("kaleoNodeId"));
+		kaleoTaskAssignmentImpl.setAssigneeClassName(
+			this.<String>getColumnOriginalValue("assigneeClassName"));
+		kaleoTaskAssignmentImpl.setAssigneeClassPK(
+			this.<Long>getColumnOriginalValue("assigneeClassPK"));
+		kaleoTaskAssignmentImpl.setAssigneeActionId(
+			this.<String>getColumnOriginalValue("assigneeActionId"));
+		kaleoTaskAssignmentImpl.setAssigneeScript(
+			this.<String>getColumnOriginalValue("assigneeScript"));
+		kaleoTaskAssignmentImpl.setAssigneeScriptLanguage(
+			this.<String>getColumnOriginalValue("assigneeScriptLanguage"));
+		kaleoTaskAssignmentImpl.setAssigneeScriptRequiredContexts(
+			this.<String>getColumnOriginalValue(
+				"assigneeScriptRequiredContexts"));
+
+		return kaleoTaskAssignmentImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoTaskAssignment kaleoTaskAssignment) {
 		int value = 0;
 
@@ -1089,7 +1110,7 @@ public class KaleoTaskAssignmentModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1100,9 +1121,27 @@ public class KaleoTaskAssignmentModelImpl
 			Function<KaleoTaskAssignment, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KaleoTaskAssignment)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(KaleoTaskAssignment)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1149,7 +1188,9 @@ public class KaleoTaskAssignmentModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoTaskAssignment>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoTaskAssignment.class, ModelWrapper.class);
 
 	}
 

@@ -16,7 +16,6 @@ package com.liferay.dispatch.model.impl;
 
 import com.liferay.dispatch.model.DispatchLog;
 import com.liferay.dispatch.model.DispatchLogModel;
-import com.liferay.dispatch.model.DispatchLogSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -32,20 +31,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -152,61 +150,6 @@ public class DispatchLogModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DispatchLog toModel(DispatchLogSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DispatchLog model = new DispatchLogImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setDispatchLogId(soapModel.getDispatchLogId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setDispatchTriggerId(soapModel.getDispatchTriggerId());
-		model.setEndDate(soapModel.getEndDate());
-		model.setError(soapModel.getError());
-		model.setOutput(soapModel.getOutput());
-		model.setStartDate(soapModel.getStartDate());
-		model.setStatus(soapModel.getStatus());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DispatchLog> toModels(DispatchLogSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DispatchLog> models = new ArrayList<DispatchLog>(
-			soapModels.length);
-
-		for (DispatchLogSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DispatchLogModelImpl() {
 	}
 
@@ -290,34 +233,6 @@ public class DispatchLogModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DispatchLog>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DispatchLog.class.getClassLoader(), DispatchLog.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DispatchLog> constructor =
-				(Constructor<DispatchLog>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DispatchLog, Object>>
@@ -707,6 +622,38 @@ public class DispatchLogModelImpl
 	}
 
 	@Override
+	public DispatchLog cloneWithOriginalValues() {
+		DispatchLogImpl dispatchLogImpl = new DispatchLogImpl();
+
+		dispatchLogImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		dispatchLogImpl.setDispatchLogId(
+			this.<Long>getColumnOriginalValue("dispatchLogId"));
+		dispatchLogImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		dispatchLogImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		dispatchLogImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		dispatchLogImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		dispatchLogImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		dispatchLogImpl.setDispatchTriggerId(
+			this.<Long>getColumnOriginalValue("dispatchTriggerId"));
+		dispatchLogImpl.setEndDate(
+			this.<Date>getColumnOriginalValue("endDate"));
+		dispatchLogImpl.setError(this.<String>getColumnOriginalValue("error"));
+		dispatchLogImpl.setOutput(
+			this.<String>getColumnOriginalValue("output_"));
+		dispatchLogImpl.setStartDate(
+			this.<Date>getColumnOriginalValue("startDate"));
+		dispatchLogImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+
+		return dispatchLogImpl;
+	}
+
+	@Override
 	public int compareTo(DispatchLog dispatchLog) {
 		int value = 0;
 
@@ -862,7 +809,7 @@ public class DispatchLogModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -873,9 +820,26 @@ public class DispatchLogModelImpl
 			Function<DispatchLog, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DispatchLog)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DispatchLog)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -922,7 +886,9 @@ public class DispatchLogModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DispatchLog>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DispatchLog.class, ModelWrapper.class);
 
 	}
 

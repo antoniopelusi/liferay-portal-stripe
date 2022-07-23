@@ -28,23 +28,21 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.sync.model.SyncDLObject;
 import com.liferay.sync.model.SyncDLObjectModel;
-import com.liferay.sync.model.SyncDLObjectSoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -203,77 +201,6 @@ public class SyncDLObjectModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static SyncDLObject toModel(SyncDLObjectSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		SyncDLObject model = new SyncDLObjectImpl();
-
-		model.setSyncDLObjectId(soapModel.getSyncDLObjectId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateTime(soapModel.getCreateTime());
-		model.setModifiedTime(soapModel.getModifiedTime());
-		model.setRepositoryId(soapModel.getRepositoryId());
-		model.setParentFolderId(soapModel.getParentFolderId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setName(soapModel.getName());
-		model.setExtension(soapModel.getExtension());
-		model.setMimeType(soapModel.getMimeType());
-		model.setDescription(soapModel.getDescription());
-		model.setChangeLog(soapModel.getChangeLog());
-		model.setExtraSettings(soapModel.getExtraSettings());
-		model.setVersion(soapModel.getVersion());
-		model.setVersionId(soapModel.getVersionId());
-		model.setSize(soapModel.getSize());
-		model.setChecksum(soapModel.getChecksum());
-		model.setEvent(soapModel.getEvent());
-		model.setLanTokenKey(soapModel.getLanTokenKey());
-		model.setLastPermissionChangeDate(
-			soapModel.getLastPermissionChangeDate());
-		model.setLockExpirationDate(soapModel.getLockExpirationDate());
-		model.setLockUserId(soapModel.getLockUserId());
-		model.setLockUserName(soapModel.getLockUserName());
-		model.setType(soapModel.getType());
-		model.setTypePK(soapModel.getTypePK());
-		model.setTypeUuid(soapModel.getTypeUuid());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<SyncDLObject> toModels(SyncDLObjectSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<SyncDLObject> models = new ArrayList<SyncDLObject>(
-			soapModels.length);
-
-		for (SyncDLObjectSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public SyncDLObjectModelImpl() {
 	}
 
@@ -357,34 +284,6 @@ public class SyncDLObjectModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, SyncDLObject>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SyncDLObject.class.getClassLoader(), SyncDLObject.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SyncDLObject> constructor =
-				(Constructor<SyncDLObject>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<SyncDLObject, Object>>
@@ -1218,6 +1117,64 @@ public class SyncDLObjectModelImpl
 	}
 
 	@Override
+	public SyncDLObject cloneWithOriginalValues() {
+		SyncDLObjectImpl syncDLObjectImpl = new SyncDLObjectImpl();
+
+		syncDLObjectImpl.setSyncDLObjectId(
+			this.<Long>getColumnOriginalValue("syncDLObjectId"));
+		syncDLObjectImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		syncDLObjectImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		syncDLObjectImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		syncDLObjectImpl.setCreateTime(
+			this.<Long>getColumnOriginalValue("createTime"));
+		syncDLObjectImpl.setModifiedTime(
+			this.<Long>getColumnOriginalValue("modifiedTime"));
+		syncDLObjectImpl.setRepositoryId(
+			this.<Long>getColumnOriginalValue("repositoryId"));
+		syncDLObjectImpl.setParentFolderId(
+			this.<Long>getColumnOriginalValue("parentFolderId"));
+		syncDLObjectImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		syncDLObjectImpl.setName(this.<String>getColumnOriginalValue("name"));
+		syncDLObjectImpl.setExtension(
+			this.<String>getColumnOriginalValue("extension"));
+		syncDLObjectImpl.setMimeType(
+			this.<String>getColumnOriginalValue("mimeType"));
+		syncDLObjectImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		syncDLObjectImpl.setChangeLog(
+			this.<String>getColumnOriginalValue("changeLog"));
+		syncDLObjectImpl.setExtraSettings(
+			this.<String>getColumnOriginalValue("extraSettings"));
+		syncDLObjectImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		syncDLObjectImpl.setVersionId(
+			this.<Long>getColumnOriginalValue("versionId"));
+		syncDLObjectImpl.setSize(this.<Long>getColumnOriginalValue("size_"));
+		syncDLObjectImpl.setChecksum(
+			this.<String>getColumnOriginalValue("checksum"));
+		syncDLObjectImpl.setEvent(this.<String>getColumnOriginalValue("event"));
+		syncDLObjectImpl.setLanTokenKey(
+			this.<String>getColumnOriginalValue("lanTokenKey"));
+		syncDLObjectImpl.setLastPermissionChangeDate(
+			this.<Date>getColumnOriginalValue("lastPermissionChangeDate"));
+		syncDLObjectImpl.setLockExpirationDate(
+			this.<Date>getColumnOriginalValue("lockExpirationDate"));
+		syncDLObjectImpl.setLockUserId(
+			this.<Long>getColumnOriginalValue("lockUserId"));
+		syncDLObjectImpl.setLockUserName(
+			this.<String>getColumnOriginalValue("lockUserName"));
+		syncDLObjectImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		syncDLObjectImpl.setTypePK(this.<Long>getColumnOriginalValue("typePK"));
+		syncDLObjectImpl.setTypeUuid(
+			this.<String>getColumnOriginalValue("typeUuid"));
+
+		return syncDLObjectImpl;
+	}
+
+	@Override
 	public int compareTo(SyncDLObject syncDLObject) {
 		int value = 0;
 
@@ -1480,7 +1437,7 @@ public class SyncDLObjectModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1491,9 +1448,26 @@ public class SyncDLObjectModelImpl
 			Function<SyncDLObject, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SyncDLObject)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SyncDLObject)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1540,7 +1514,9 @@ public class SyncDLObjectModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SyncDLObject>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SyncDLObject.class, ModelWrapper.class);
 
 	}
 

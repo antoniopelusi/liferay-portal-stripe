@@ -623,7 +623,7 @@ public interface TierPriceResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-pricing/v1.0/priceEntries/{id}/tierPrices/batch");
+						"/o/headless-commerce-admin-pricing/v1.0/priceEntries/tierPrices/batch");
 
 			httpInvoker.path("id", id);
 
@@ -971,6 +971,8 @@ public interface TierPriceResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -998,7 +1000,7 @@ public interface TierPriceResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-pricing/v1.0/tierPrices/{id}/batch");
+						"/o/headless-commerce-admin-pricing/v1.0/tierPrices/batch");
 
 			httpInvoker.path("id", id);
 

@@ -216,4 +216,7 @@ public interface AMImageEntryModel
 	 */
 	public void setSize(long size);
 
+	@Override
+	public AMImageEntry cloneWithOriginalValues();
+
 }

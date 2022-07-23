@@ -83,7 +83,7 @@ public abstract class BasePanelApp implements PanelApp {
 		}
 		catch (MissingResourceException missingResourceException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(missingResourceException, missingResourceException);
+				_log.debug(missingResourceException);
 			}
 		}
 
@@ -206,12 +206,9 @@ public abstract class BasePanelApp implements PanelApp {
 
 		if (Validator.isNull(controlPanelEntryCategory) ||
 			!controlPanelEntryCategory.startsWith(
-				PortletCategoryKeys.SITE_ADMINISTRATION)) {
+				PortletCategoryKeys.SITE_ADMINISTRATION) ||
+			(groupProvider == null)) {
 
-			return null;
-		}
-
-		if (groupProvider == null) {
 			return null;
 		}
 

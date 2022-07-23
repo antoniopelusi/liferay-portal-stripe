@@ -35,7 +35,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -44,6 +43,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -53,9 +53,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
@@ -208,21 +206,21 @@ public abstract class BaseChannelResourceTestCase {
 	@Test
 	public void testGetChannelsPage() throws Exception {
 		Page<Channel> page = channelResource.getChannelsPage(
-			RandomTestUtil.randomString(), null, Pagination.of(1, 2), null);
+			null, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		Channel channel1 = testGetChannelsPage_addChannel(randomChannel());
 
 		Channel channel2 = testGetChannelsPage_addChannel(randomChannel());
 
 		page = channelResource.getChannelsPage(
-			null, null, Pagination.of(1, 2), null);
+			null, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(channel1, channel2), (List<Channel>)page.getItems());
+		assertContains(channel1, (List<Channel>)page.getItems());
+		assertContains(channel2, (List<Channel>)page.getItems());
 		assertValid(page);
 
 		channelResource.deleteChannel(channel1.getId());
@@ -246,6 +244,31 @@ public abstract class BaseChannelResourceTestCase {
 		for (EntityField entityField : entityFields) {
 			Page<Channel> page = channelResource.getChannelsPage(
 				null, getFilterString(entityField, "between", channel1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(channel1),
+				(List<Channel>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetChannelsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Channel channel1 = testGetChannelsPage_addChannel(randomChannel());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Channel channel2 = testGetChannelsPage_addChannel(randomChannel());
+
+		for (EntityField entityField : entityFields) {
+			Page<Channel> page = channelResource.getChannelsPage(
+				null, getFilterString(entityField, "eq", channel1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -281,6 +304,11 @@ public abstract class BaseChannelResourceTestCase {
 
 	@Test
 	public void testGetChannelsPageWithPagination() throws Exception {
+		Page<Channel> totalPage = channelResource.getChannelsPage(
+			null, null, null, null);
+
+		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+
 		Channel channel1 = testGetChannelsPage_addChannel(randomChannel());
 
 		Channel channel2 = testGetChannelsPage_addChannel(randomChannel());
@@ -288,27 +316,28 @@ public abstract class BaseChannelResourceTestCase {
 		Channel channel3 = testGetChannelsPage_addChannel(randomChannel());
 
 		Page<Channel> page1 = channelResource.getChannelsPage(
-			null, null, Pagination.of(1, 2), null);
+			null, null, Pagination.of(1, totalCount + 2), null);
 
 		List<Channel> channels1 = (List<Channel>)page1.getItems();
 
-		Assert.assertEquals(channels1.toString(), 2, channels1.size());
+		Assert.assertEquals(
+			channels1.toString(), totalCount + 2, channels1.size());
 
 		Page<Channel> page2 = channelResource.getChannelsPage(
-			null, null, Pagination.of(2, 2), null);
+			null, null, Pagination.of(2, totalCount + 2), null);
 
-		Assert.assertEquals(3, page2.getTotalCount());
+		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
 
 		List<Channel> channels2 = (List<Channel>)page2.getItems();
 
 		Assert.assertEquals(channels2.toString(), 1, channels2.size());
 
 		Page<Channel> page3 = channelResource.getChannelsPage(
-			null, null, Pagination.of(1, 3), null);
+			null, null, Pagination.of(1, totalCount + 3), null);
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(channel1, channel2, channel3),
-			(List<Channel>)page3.getItems());
+		assertContains(channel1, (List<Channel>)page3.getItems());
+		assertContains(channel2, (List<Channel>)page3.getItems());
+		assertContains(channel3, (List<Channel>)page3.getItems());
 	}
 
 	@Test
@@ -319,6 +348,16 @@ public abstract class BaseChannelResourceTestCase {
 				BeanUtils.setProperty(
 					channel1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetChannelsPageWithSortDouble() throws Exception {
+		testGetChannelsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, channel1, channel2) -> {
+				BeanUtils.setProperty(channel1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(channel2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -341,7 +380,7 @@ public abstract class BaseChannelResourceTestCase {
 
 				String entityFieldName = entityField.getName();
 
-				Method method = clazz.getMethod(
+				java.lang.reflect.Method method = clazz.getMethod(
 					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
@@ -439,7 +478,7 @@ public abstract class BaseChannelResourceTestCase {
 			new HashMap<String, Object>() {
 				{
 					put("page", 1);
-					put("pageSize", 2);
+					put("pageSize", 10);
 				}
 			},
 			new GraphQLField("items", getGraphQLFields()),
@@ -449,21 +488,30 @@ public abstract class BaseChannelResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/channels");
 
-		Assert.assertEquals(0, channelsJSONObject.get("totalCount"));
+		long totalCount = channelsJSONObject.getLong("totalCount");
 
-		Channel channel1 = testGraphQLChannel_addChannel();
-		Channel channel2 = testGraphQLChannel_addChannel();
+		Channel channel1 = testGraphQLGetChannelsPage_addChannel();
+		Channel channel2 = testGraphQLGetChannelsPage_addChannel();
 
 		channelsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/channels");
 
-		Assert.assertEquals(2, channelsJSONObject.get("totalCount"));
+		Assert.assertEquals(
+			totalCount + 2, channelsJSONObject.getLong("totalCount"));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(channel1, channel2),
+		assertContains(
+			channel1,
 			Arrays.asList(
 				ChannelSerDes.toDTOs(channelsJSONObject.getString("items"))));
+		assertContains(
+			channel2,
+			Arrays.asList(
+				ChannelSerDes.toDTOs(channelsJSONObject.getString("items"))));
+	}
+
+	protected Channel testGraphQLGetChannelsPage_addChannel() throws Exception {
+		return testGraphQLChannel_addChannel();
 	}
 
 	@Test
@@ -477,6 +525,195 @@ public abstract class BaseChannelResourceTestCase {
 	}
 
 	protected Channel testPostChannel_addChannel(Channel channel)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testDeleteChannelByExternalReferenceCode() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Channel channel = testDeleteChannelByExternalReferenceCode_addChannel();
+
+		assertHttpResponseStatusCode(
+			204,
+			channelResource.deleteChannelByExternalReferenceCodeHttpResponse(
+				channel.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			404,
+			channelResource.getChannelByExternalReferenceCodeHttpResponse(
+				channel.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			404,
+			channelResource.getChannelByExternalReferenceCodeHttpResponse(
+				channel.getExternalReferenceCode()));
+	}
+
+	protected Channel testDeleteChannelByExternalReferenceCode_addChannel()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGetChannelByExternalReferenceCode() throws Exception {
+		Channel postChannel =
+			testGetChannelByExternalReferenceCode_addChannel();
+
+		Channel getChannel = channelResource.getChannelByExternalReferenceCode(
+			postChannel.getExternalReferenceCode());
+
+		assertEquals(postChannel, getChannel);
+		assertValid(getChannel);
+	}
+
+	protected Channel testGetChannelByExternalReferenceCode_addChannel()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetChannelByExternalReferenceCode()
+		throws Exception {
+
+		Channel channel =
+			testGraphQLGetChannelByExternalReferenceCode_addChannel();
+
+		Assert.assertTrue(
+			equals(
+				channel,
+				ChannelSerDes.toDTO(
+					JSONUtil.getValueAsString(
+						invokeGraphQLQuery(
+							new GraphQLField(
+								"channelByExternalReferenceCode",
+								new HashMap<String, Object>() {
+									{
+										put(
+											"externalReferenceCode",
+											"\"" +
+												channel.
+													getExternalReferenceCode() +
+														"\"");
+									}
+								},
+								getGraphQLFields())),
+						"JSONObject/data",
+						"Object/channelByExternalReferenceCode"))));
+	}
+
+	@Test
+	public void testGraphQLGetChannelByExternalReferenceCodeNotFound()
+		throws Exception {
+
+		String irrelevantExternalReferenceCode =
+			"\"" + RandomTestUtil.randomString() + "\"";
+
+		Assert.assertEquals(
+			"Not Found",
+			JSONUtil.getValueAsString(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"channelByExternalReferenceCode",
+						new HashMap<String, Object>() {
+							{
+								put(
+									"externalReferenceCode",
+									irrelevantExternalReferenceCode);
+							}
+						},
+						getGraphQLFields())),
+				"JSONArray/errors", "Object/0", "JSONObject/extensions",
+				"Object/code"));
+	}
+
+	protected Channel testGraphQLGetChannelByExternalReferenceCode_addChannel()
+		throws Exception {
+
+		return testGraphQLChannel_addChannel();
+	}
+
+	@Test
+	public void testPatchChannelByExternalReferenceCode() throws Exception {
+		Channel postChannel =
+			testPatchChannelByExternalReferenceCode_addChannel();
+
+		Channel randomPatchChannel = randomPatchChannel();
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Channel patchChannel =
+			channelResource.patchChannelByExternalReferenceCode(
+				postChannel.getExternalReferenceCode(), randomPatchChannel);
+
+		Channel expectedPatchChannel = postChannel.clone();
+
+		_beanUtilsBean.copyProperties(expectedPatchChannel, randomPatchChannel);
+
+		Channel getChannel = channelResource.getChannelByExternalReferenceCode(
+			patchChannel.getExternalReferenceCode());
+
+		assertEquals(expectedPatchChannel, getChannel);
+		assertValid(getChannel);
+	}
+
+	protected Channel testPatchChannelByExternalReferenceCode_addChannel()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPutChannelByExternalReferenceCode() throws Exception {
+		Channel postChannel =
+			testPutChannelByExternalReferenceCode_addChannel();
+
+		Channel randomChannel = randomChannel();
+
+		Channel putChannel = channelResource.putChannelByExternalReferenceCode(
+			postChannel.getExternalReferenceCode(), randomChannel);
+
+		assertEquals(randomChannel, putChannel);
+		assertValid(putChannel);
+
+		Channel getChannel = channelResource.getChannelByExternalReferenceCode(
+			putChannel.getExternalReferenceCode());
+
+		assertEquals(randomChannel, getChannel);
+		assertValid(getChannel);
+
+		Channel newChannel =
+			testPutChannelByExternalReferenceCode_createChannel();
+
+		putChannel = channelResource.putChannelByExternalReferenceCode(
+			newChannel.getExternalReferenceCode(), newChannel);
+
+		assertEquals(newChannel, putChannel);
+		assertValid(putChannel);
+
+		getChannel = channelResource.getChannelByExternalReferenceCode(
+			putChannel.getExternalReferenceCode());
+
+		assertEquals(newChannel, getChannel);
+
+		Assert.assertEquals(
+			newChannel.getExternalReferenceCode(),
+			putChannel.getExternalReferenceCode());
+	}
+
+	protected Channel testPutChannelByExternalReferenceCode_createChannel()
+		throws Exception {
+
+		return randomChannel();
+	}
+
+	protected Channel testPutChannelByExternalReferenceCode_addChannel()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
@@ -505,7 +742,7 @@ public abstract class BaseChannelResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteChannel() throws Exception {
-		Channel channel = testGraphQLChannel_addChannel();
+		Channel channel = testGraphQLDeleteChannel_addChannel();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -518,7 +755,6 @@ public abstract class BaseChannelResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteChannel"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -532,6 +768,10 @@ public abstract class BaseChannelResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Channel testGraphQLDeleteChannel_addChannel() throws Exception {
+		return testGraphQLChannel_addChannel();
 	}
 
 	@Test
@@ -551,7 +791,7 @@ public abstract class BaseChannelResourceTestCase {
 
 	@Test
 	public void testGraphQLGetChannel() throws Exception {
-		Channel channel = testGraphQLChannel_addChannel();
+		Channel channel = testGraphQLGetChannel_addChannel();
 
 		Assert.assertTrue(
 			equals(
@@ -588,6 +828,10 @@ public abstract class BaseChannelResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Channel testGraphQLGetChannel_addChannel() throws Exception {
+		return testGraphQLChannel_addChannel();
 	}
 
 	@Test
@@ -644,6 +888,20 @@ public abstract class BaseChannelResourceTestCase {
 	protected Channel testGraphQLChannel_addChannel() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Channel channel, List<Channel> channels) {
+		boolean contains = false;
+
+		for (Channel item : channels) {
+			if (equals(channel, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(channels + " does not contain " + channel, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -778,8 +1036,8 @@ public abstract class BaseChannelResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.channel.dto.v1_0.
 						Channel.class)) {
 
@@ -795,12 +1053,13 @@ public abstract class BaseChannelResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -814,7 +1073,7 @@ public abstract class BaseChannelResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -930,6 +1189,19 @@ public abstract class BaseChannelResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1166,8 +1438,8 @@ public abstract class BaseChannelResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseChannelResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseChannelResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

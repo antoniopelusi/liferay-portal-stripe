@@ -1,13 +1,11 @@
-<definition default="assertElementNotPresent" summary="Assert that '${locator1}' is not available">
-	<command name="assertElementNotPresent">
-		<execute selenium="waitForElementNotPresent" />
+@default = "assertElementNotPresent"
+@summary = "Assert that '${locator1}' is not available"
+definition {
 
-		<execute selenium="assertElementNotPresent" />
-	</command>
+	function assertElementNotPresent {
+		selenium.waitForElementNotPresent();
 
-	<command name="assertNotVisible">
-		<execute selenium="waitForNotVisible" />
+		selenium.assertElementNotPresent();
+	}
 
-		<execute selenium="assertNotVisible" />
-	</command>
-</definition>
+}

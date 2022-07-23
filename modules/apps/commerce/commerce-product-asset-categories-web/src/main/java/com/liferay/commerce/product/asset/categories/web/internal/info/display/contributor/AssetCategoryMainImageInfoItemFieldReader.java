@@ -15,6 +15,7 @@
 package com.liferay.commerce.product.asset.categories.web.internal.info.display.contributor;
 
 import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.commerce.account.constants.CommerceAccountConstants;
 import com.liferay.commerce.media.CommerceMediaResolverUtil;
 import com.liferay.commerce.product.constants.CPAttachmentFileEntryConstants;
 import com.liferay.commerce.product.model.CPAttachmentFileEntry;
@@ -44,21 +45,13 @@ import org.osgi.service.component.annotations.Reference;
 public class AssetCategoryMainImageInfoItemFieldReader
 	implements InfoItemFieldReader<AssetCategory> {
 
-	/**
-	 *   @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *          #getInfoField()}
-	 */
-	@Deprecated
-	@Override
-	public InfoField getField() {
-		return getInfoField();
-	}
-
 	@Override
 	public InfoField getInfoField() {
 		return InfoField.builder(
 		).infoFieldType(
 			ImageInfoFieldType.INSTANCE
+		).namespace(
+			AssetCategory.class.getSimpleName()
 		).name(
 			"mainImage"
 		).labelInfoLocalizedValue(
@@ -87,12 +80,13 @@ public class AssetCategoryMainImageInfoItemFieldReader
 			CPAttachmentFileEntry cpAttachmentFileEntry =
 				cpAttachmentFileEntries.get(0);
 
-			return CommerceMediaResolverUtil.getUrl(
+			return CommerceMediaResolverUtil.getURL(
+				CommerceAccountConstants.ACCOUNT_ID_GUEST,
 				cpAttachmentFileEntry.getCPAttachmentFileEntryId());
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

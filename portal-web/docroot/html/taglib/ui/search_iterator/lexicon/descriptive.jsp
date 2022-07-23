@@ -38,22 +38,31 @@
 		List<com.liferay.portal.kernel.dao.search.ResultRow> curResultRows = resultRowSplitterEntry.getResultRows();
 	%>
 
-		<ul class="<%= searchResultCssClass %>">
-			<c:if test="<%= Validator.isNotNull(resultRowSplitterEntry.getTitle()) %>">
-				<li class="list-group-header">
-					<div class="list-group-header-title">
-						<liferay-ui:message key="<%= resultRowSplitterEntry.getTitle() %>" />
-					</div>
-				</li>
-			</c:if>
+		<dl class="<%= searchResultCssClass %>">
+			<c:choose>
+				<c:when test="<%= Validator.isNotNull(resultRowSplitterEntry.getTitle()) || ((headerNames != null) && Validator.isNotNull(headerNames.get(0))) %>">
+					<c:if test="<%= Validator.isNotNull(resultRowSplitterEntry.getTitle()) %>">
+						<dt class="list-group-header">
+							<div class="list-group-header-title">
+								<liferay-ui:message key="<%= resultRowSplitterEntry.getTitle() %>" />
+							</div>
+						</dt>
+					</c:if>
 
-			<c:if test="<%= (headerNames != null) && Validator.isNotNull(headerNames.get(0)) %>">
-				<li class="list-group-header">
-					<div class="list-group-header-title">
-						<liferay-ui:message key="<%= headerNames.get(0) %>" />
-					</div>
-				</li>
-			</c:if>
+					<c:if test="<%= (headerNames != null) && Validator.isNotNull(headerNames.get(0)) %>">
+						<dt class="list-group-header">
+							<div class="list-group-header-title">
+								<liferay-ui:message key="<%= HtmlUtil.escape(headerNames.get(0)) %>" />
+							</div>
+						</dt>
+					</c:if>
+				</c:when>
+				<c:otherwise>
+					<dt class="sr-only">
+						<%= PortalUtil.getPortletTitle(portletRequest) %>
+					</dt>
+				</c:otherwise>
+			</c:choose>
 
 			<%
 			boolean allRowsIsChecked = true;
@@ -102,7 +111,7 @@
 				}
 			%>
 
-				<li class="list-group-item list-group-item-flex <%= GetterUtil.getString(row.getClassName()) %> <%= row.getCssClass() %> <%= rowIsChecked ? "active" : StringPool.BLANK %> <%= Validator.isNotNull(row.getState()) ? "list-group-item-" + row.getState() : StringPool.BLANK %>" data-qa-id="row" <%= AUIUtil.buildData(data) %>>
+				<dd class="list-group-item list-group-item-flex <%= GetterUtil.getString(row.getClassName()) %> <%= row.getCssClass() %> <%= rowIsChecked ? "active" : StringPool.BLANK %> <%= Validator.isNotNull(row.getState()) ? "list-group-item-" + row.getState() : StringPool.BLANK %>" data-qa-id="row" <%= AUIUtil.buildData(data) %>>
 					<c:if test="<%= rowChecker != null %>">
 						<div class="autofit-col">
 							<div class="checkbox">
@@ -134,7 +143,7 @@
 					}
 					%>
 
-				</li>
+				</dd>
 
 			<%
 				request.removeAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
@@ -144,13 +153,13 @@
 			}
 			%>
 
-			<li class="lfr-template list-group-item"></li>
-		</ul>
+			<dd class="d-none list-group-item"></dd>
+		</dl>
 
 	<%
 	}
 
-	String rowHtmlTag = "li";
+	String rowHtmlTag = "dd";
 	%>
 
 </div>

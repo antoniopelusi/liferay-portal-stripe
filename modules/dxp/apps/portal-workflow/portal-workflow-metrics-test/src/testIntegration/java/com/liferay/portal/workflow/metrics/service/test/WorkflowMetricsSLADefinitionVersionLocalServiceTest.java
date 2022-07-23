@@ -150,15 +150,15 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceTest
 					createWorkflowMetricsSLADefinitionVersion(
 						CounterLocalServiceUtil.increment());
 
-		Date now = new Date();
+		Date date = new Date();
 
-		workflowMetricsSLADefinitionVersion.setCreateDate(now);
-		workflowMetricsSLADefinitionVersion.setModifiedDate(now);
+		workflowMetricsSLADefinitionVersion.setCreateDate(date);
+		workflowMetricsSLADefinitionVersion.setModifiedDate(date);
 
 		workflowMetricsSLADefinitionVersion.setCompanyId(
 			_company.getCompanyId());
-		workflowMetricsSLADefinitionVersion.setCreateDate(now);
-		workflowMetricsSLADefinitionVersion.setModifiedDate(now);
+		workflowMetricsSLADefinitionVersion.setCreateDate(date);
+		workflowMetricsSLADefinitionVersion.setModifiedDate(date);
 		workflowMetricsSLADefinitionVersion.setName(name);
 		workflowMetricsSLADefinitionVersion.setProcessId(processId);
 		workflowMetricsSLADefinitionVersion.setWorkflowMetricsSLADefinitionId(

@@ -24,11 +24,11 @@ import com.liferay.portal.kernel.util.PortalLifecycle;
 public class HotDeployUtil {
 
 	public static void fireDeployEvent(HotDeployEvent hotDeployEvent) {
-		getHotDeploy().fireDeployEvent(hotDeployEvent);
+		_hotDeploy.fireDeployEvent(hotDeployEvent);
 	}
 
 	public static void fireUndeployEvent(HotDeployEvent hotDeployEvent) {
-		getHotDeploy().fireUndeployEvent(hotDeployEvent);
+		_hotDeploy.fireUndeployEvent(hotDeployEvent);
 	}
 
 	public static HotDeploy getHotDeploy() {
@@ -38,30 +38,30 @@ public class HotDeployUtil {
 	public static boolean registerDependentPortalLifecycle(
 		String servletContextName, PortalLifecycle portalLifecycle) {
 
-		return getHotDeploy().registerDependentPortalLifecycle(
+		return _hotDeploy.registerDependentPortalLifecycle(
 			servletContextName, portalLifecycle);
 	}
 
 	public static void registerListener(HotDeployListener hotDeployListener) {
-		getHotDeploy().registerListener(hotDeployListener);
+		_hotDeploy.registerListener(hotDeployListener);
 	}
 
 	public static void reset() {
-		getHotDeploy().reset();
+		_hotDeploy.reset();
 	}
 
 	public static void setCapturePrematureEvents(
 		boolean capturePrematureEvents) {
 
-		getHotDeploy().setCapturePrematureEvents(capturePrematureEvents);
+		_hotDeploy.setCapturePrematureEvents(capturePrematureEvents);
 	}
 
 	public static void unregisterListener(HotDeployListener hotDeployListener) {
-		getHotDeploy().unregisterListener(hotDeployListener);
+		_hotDeploy.unregisterListener(hotDeployListener);
 	}
 
 	public static void unregisterListeners() {
-		getHotDeploy().unregisterListeners();
+		_hotDeploy.unregisterListeners();
 	}
 
 	public void setHotDeploy(HotDeploy hotDeploy) {

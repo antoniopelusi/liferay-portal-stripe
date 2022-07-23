@@ -38,13 +38,14 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
-import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchContextFactory;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -52,10 +53,11 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsPortletKeys;
 import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsWebKeys;
 import com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess;
 import com.liferay.portal.workflow.kaleo.forms.service.permission.KaleoProcessPermission;
-import com.liferay.portal.workflow.kaleo.forms.web.internal.display.context.util.KaleoFormsAdminRequestHelper;
+import com.liferay.portal.workflow.kaleo.forms.web.internal.display.context.helper.KaleoFormsAdminRequestHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,13 +76,14 @@ import javax.servlet.http.HttpServletRequest;
 public class KaleoFormsViewRecordsDisplayContext {
 
 	public KaleoFormsViewRecordsDisplayContext(
-			RenderRequest renderRequest, RenderResponse renderResponse,
-			DDLRecordLocalService ddlRecordLocalService)
+			DDLRecordLocalService ddlRecordLocalService, HtmlParser htmlParser,
+			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws PortalException {
 
+		_ddlRecordLocalService = ddlRecordLocalService;
+		_htmlParser = htmlParser;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
-		_ddlRecordLocalService = ddlRecordLocalService;
 
 		_kaleoProcess = (KaleoProcess)_renderRequest.getAttribute(
 			KaleoFormsWebKeys.KALEO_PROCESS);
@@ -185,7 +188,7 @@ public class KaleoFormsViewRecordsDisplayContext {
 		List<DDMFormField> ddmFormFields = new ArrayList<>();
 
 		for (DDMFormField ddmFormField : ddmForm.getDDMFormFields()) {
-			if (isDDMFormFieldTransient(ddmFormField)) {
+			if (_isDDMFormFieldTransient(ddmFormField)) {
 				continue;
 			}
 
@@ -260,66 +263,103 @@ public class KaleoFormsViewRecordsDisplayContext {
 			navigationItem -> {
 				navigationItem.setActive(true);
 
-				ThemeDisplay themeDisplay = getThemeDisplay();
+				ThemeDisplay themeDisplay = _getThemeDisplay();
 
 				navigationItem.setLabel(
-					HtmlUtil.extractText(
+					_htmlParser.extractText(
 						_kaleoProcess.getName(themeDisplay.getLocale())));
 			}
 		).build();
 	}
 
 	public String getOrderByCol() {
-		return ParamUtil.getString(
-			_renderRequest, "orderByCol", "modified-date");
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
+		}
+
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_renderRequest, KaleoFormsPortletKeys.KALEO_FORMS_ADMIN,
+			"view-order-by-col", "modified-date");
+
+		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		return ParamUtil.getString(_renderRequest, "orderByType", "asc");
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_renderRequest, KaleoFormsPortletKeys.KALEO_FORMS_ADMIN,
+			"view-order-by-type", "asc");
+
+		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.create(
+		return PortletURLBuilder.create(
 			PortletURLUtil.getCurrent(_renderRequest, _renderResponse)
 		).setMVCPath(
 			"/admin/view_kaleo_process.jsp"
 		).setRedirect(
 			ParamUtil.getString(_renderRequest, "redirect")
+		).setKeywords(
+			() -> {
+				String keywords = getKeywords();
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"delta",
+			() -> {
+				String delta = ParamUtil.getString(_renderRequest, "delta");
+
+				if (Validator.isNotNull(delta)) {
+					return delta;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"displayStyle",
+			() -> {
+				String displayStyle = getDisplayStyle();
+
+				if (Validator.isNotNull(displayStyle)) {
+					return displayStyle;
+				}
+
+				return null;
+			}
 		).setParameter(
 			"kaleoProcessId", _kaleoProcess.getKaleoProcessId()
-		).build();
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
 
-		String delta = ParamUtil.getString(_renderRequest, "delta");
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
 
-		if (Validator.isNotNull(delta)) {
-			portletURL.setParameter("delta", delta);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
 
-		String displayStyle = getDisplayStyle();
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
 
-		if (Validator.isNotNull(displayStyle)) {
-			portletURL.setParameter("displayStyle", displayStyle);
-		}
-
-		String keywords = getKeywords();
-
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		String orderByCol = getOrderByCol();
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	public SearchContainer<?> getSearch() throws Exception {
@@ -331,7 +371,7 @@ public class KaleoFormsViewRecordsDisplayContext {
 			getPortletURL()
 		).setParameter(
 			"displayStyle", getDisplayStyle()
-		).build();
+		).buildPortletURL();
 
 		_searchContainer = new SearchContainer<>(
 			_renderRequest, new DisplayTerms(_renderRequest), null,
@@ -345,15 +385,13 @@ public class KaleoFormsViewRecordsDisplayContext {
 						_kaleoFormsAdminRequestHelper.getLocale())),
 				false));
 
-		String orderByCol = getOrderByCol();
-		String orderByType = getOrderByType();
-
-		OrderByComparator<DDLRecord> orderByComparator =
-			getDDLRecordOrderByComparator(orderByCol, orderByType);
-
-		_searchContainer.setOrderByCol(orderByCol);
-		_searchContainer.setOrderByComparator(orderByComparator);
-		_searchContainer.setOrderByType(orderByType);
+		_searchContainer.setOrderByCol(getOrderByCol());
+		_searchContainer.setOrderByComparator(
+			getDDLRecordOrderByComparator(getOrderByCol(), getOrderByType()));
+		_searchContainer.setOrderByType(getOrderByType());
+		_searchContainer.setResultsAndTotal(
+			_ddlRecordLocalService.searchDDLRecords(
+				_getSearchContext(_searchContainer)));
 
 		User user = _kaleoFormsAdminRequestHelper.getUser();
 
@@ -361,13 +399,6 @@ public class KaleoFormsViewRecordsDisplayContext {
 			_searchContainer.setRowChecker(
 				new EmptyOnClickRowChecker(_renderResponse));
 		}
-
-		BaseModelSearchResult<DDLRecord> baseModelSearchResult =
-			_ddlRecordLocalService.searchDDLRecords(
-				getSearchContext(_searchContainer));
-
-		_searchContainer.setResults(baseModelSearchResult.getBaseModels());
-		_searchContainer.setTotal(baseModelSearchResult.getLength());
 
 		return _searchContainer;
 	}
@@ -462,7 +493,23 @@ public class KaleoFormsViewRecordsDisplayContext {
 		).build();
 	}
 
-	protected SearchContext getSearchContext(
+	protected boolean hasResults() throws Exception {
+		if (getTotalItems() > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isSearch() {
+		if (Validator.isNotNull(getKeywords())) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private SearchContext _getSearchContext(
 		SearchContainer<DDLRecord> searchContainer) {
 
 		SearchContext searchContext = SearchContextFactory.getInstance(
@@ -474,13 +521,13 @@ public class KaleoFormsViewRecordsDisplayContext {
 		searchContext.setAttribute("recordSetScope", _ddlRecordSet.getScope());
 		searchContext.setEnd(searchContainer.getEnd());
 		searchContext.setKeywords(getKeywords());
-		searchContext.setSorts(getSort());
+		searchContext.setSorts(_getSort());
 		searchContext.setStart(searchContainer.getStart());
 
 		return searchContext;
 	}
 
-	protected Sort getSort() {
+	private Sort _getSort() {
 		boolean ascending = false;
 
 		if (Objects.equals("asc", getOrderByType())) {
@@ -497,28 +544,12 @@ public class KaleoFormsViewRecordsDisplayContext {
 			Field.getSortableFieldName(fieldName), Sort.LONG_TYPE, !ascending);
 	}
 
-	protected ThemeDisplay getThemeDisplay() {
+	private ThemeDisplay _getThemeDisplay() {
 		return (ThemeDisplay)_renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
 	}
 
-	protected boolean hasResults() throws Exception {
-		if (getTotalItems() > 0) {
-			return true;
-		}
-
-		return false;
-	}
-
-	protected boolean isDDMFormFieldTransient(DDMFormField ddmFormField) {
+	private boolean _isDDMFormFieldTransient(DDMFormField ddmFormField) {
 		if (Validator.isNull(ddmFormField.getDataType())) {
-			return true;
-		}
-
-		return false;
-	}
-
-	protected boolean isSearch() {
-		if (Validator.isNotNull(getKeywords())) {
 			return true;
 		}
 
@@ -530,8 +561,11 @@ public class KaleoFormsViewRecordsDisplayContext {
 	private final DDLRecordLocalService _ddlRecordLocalService;
 	private final DDLRecordSet _ddlRecordSet;
 	private List<DDMFormField> _ddmFormFields;
+	private final HtmlParser _htmlParser;
 	private final KaleoFormsAdminRequestHelper _kaleoFormsAdminRequestHelper;
 	private final KaleoProcess _kaleoProcess;
+	private String _orderByCol;
+	private String _orderByType;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;
 	private SearchContainer<DDLRecord> _searchContainer;

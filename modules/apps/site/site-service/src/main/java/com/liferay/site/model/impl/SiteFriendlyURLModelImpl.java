@@ -29,14 +29,15 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.site.model.SiteFriendlyURL;
 import com.liferay.site.model.SiteFriendlyURLModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -71,10 +72,10 @@ public class SiteFriendlyURLModelImpl
 
 	public static final Object[][] TABLE_COLUMNS = {
 		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
-		{"siteFriendlyURLId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
-		{"groupId", Types.BIGINT}, {"friendlyURL", Types.VARCHAR},
+		{"siteFriendlyURLId", Types.BIGINT}, {"groupId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"modifiedDate", Types.TIMESTAMP}, {"friendlyURL", Types.VARCHAR},
 		{"languageId", Types.VARCHAR}, {"lastPublishDate", Types.TIMESTAMP}
 	};
 
@@ -85,19 +86,19 @@ public class SiteFriendlyURLModelImpl
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("siteFriendlyURLId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("userId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("userName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
-		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("friendlyURL", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("languageId", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("lastPublishDate", Types.TIMESTAMP);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table SiteFriendlyURL (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,siteFriendlyURLId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,groupId LONG,friendlyURL VARCHAR(75) null,languageId VARCHAR(75) null,lastPublishDate DATE null)";
+		"create table SiteFriendlyURL (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,siteFriendlyURLId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,friendlyURL VARCHAR(75) null,languageId VARCHAR(75) null,lastPublishDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table SiteFriendlyURL";
 
@@ -249,34 +250,6 @@ public class SiteFriendlyURLModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, SiteFriendlyURL>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			SiteFriendlyURL.class.getClassLoader(), SiteFriendlyURL.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<SiteFriendlyURL> constructor =
-				(Constructor<SiteFriendlyURL>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<SiteFriendlyURL, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<SiteFriendlyURL, Object>>
@@ -304,6 +277,10 @@ public class SiteFriendlyURLModelImpl
 			"siteFriendlyURLId",
 			(BiConsumer<SiteFriendlyURL, Long>)
 				SiteFriendlyURL::setSiteFriendlyURLId);
+		attributeGetterFunctions.put("groupId", SiteFriendlyURL::getGroupId);
+		attributeSetterBiConsumers.put(
+			"groupId",
+			(BiConsumer<SiteFriendlyURL, Long>)SiteFriendlyURL::setGroupId);
 		attributeGetterFunctions.put(
 			"companyId", SiteFriendlyURL::getCompanyId);
 		attributeSetterBiConsumers.put(
@@ -328,10 +305,6 @@ public class SiteFriendlyURLModelImpl
 			"modifiedDate",
 			(BiConsumer<SiteFriendlyURL, Date>)
 				SiteFriendlyURL::setModifiedDate);
-		attributeGetterFunctions.put("groupId", SiteFriendlyURL::getGroupId);
-		attributeSetterBiConsumers.put(
-			"groupId",
-			(BiConsumer<SiteFriendlyURL, Long>)SiteFriendlyURL::setGroupId);
 		attributeGetterFunctions.put(
 			"friendlyURL", SiteFriendlyURL::getFriendlyURL);
 		attributeSetterBiConsumers.put(
@@ -411,6 +384,29 @@ public class SiteFriendlyURLModelImpl
 		}
 
 		_siteFriendlyURLId = siteFriendlyURLId;
+	}
+
+	@Override
+	public long getGroupId() {
+		return _groupId;
+	}
+
+	@Override
+	public void setGroupId(long groupId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_groupId = groupId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalGroupId() {
+		return GetterUtil.getLong(this.<Long>getColumnOriginalValue("groupId"));
 	}
 
 	@Override
@@ -518,29 +514,6 @@ public class SiteFriendlyURLModelImpl
 		}
 
 		_modifiedDate = modifiedDate;
-	}
-
-	@Override
-	public long getGroupId() {
-		return _groupId;
-	}
-
-	@Override
-	public void setGroupId(long groupId) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_groupId = groupId;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public long getOriginalGroupId() {
-		return GetterUtil.getLong(this.<Long>getColumnOriginalValue("groupId"));
 	}
 
 	@Override
@@ -678,17 +651,49 @@ public class SiteFriendlyURLModelImpl
 		siteFriendlyURLImpl.setMvccVersion(getMvccVersion());
 		siteFriendlyURLImpl.setUuid(getUuid());
 		siteFriendlyURLImpl.setSiteFriendlyURLId(getSiteFriendlyURLId());
+		siteFriendlyURLImpl.setGroupId(getGroupId());
 		siteFriendlyURLImpl.setCompanyId(getCompanyId());
 		siteFriendlyURLImpl.setUserId(getUserId());
 		siteFriendlyURLImpl.setUserName(getUserName());
 		siteFriendlyURLImpl.setCreateDate(getCreateDate());
 		siteFriendlyURLImpl.setModifiedDate(getModifiedDate());
-		siteFriendlyURLImpl.setGroupId(getGroupId());
 		siteFriendlyURLImpl.setFriendlyURL(getFriendlyURL());
 		siteFriendlyURLImpl.setLanguageId(getLanguageId());
 		siteFriendlyURLImpl.setLastPublishDate(getLastPublishDate());
 
 		siteFriendlyURLImpl.resetOriginalValues();
+
+		return siteFriendlyURLImpl;
+	}
+
+	@Override
+	public SiteFriendlyURL cloneWithOriginalValues() {
+		SiteFriendlyURLImpl siteFriendlyURLImpl = new SiteFriendlyURLImpl();
+
+		siteFriendlyURLImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		siteFriendlyURLImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		siteFriendlyURLImpl.setSiteFriendlyURLId(
+			this.<Long>getColumnOriginalValue("siteFriendlyURLId"));
+		siteFriendlyURLImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		siteFriendlyURLImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		siteFriendlyURLImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		siteFriendlyURLImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		siteFriendlyURLImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		siteFriendlyURLImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		siteFriendlyURLImpl.setFriendlyURL(
+			this.<String>getColumnOriginalValue("friendlyURL"));
+		siteFriendlyURLImpl.setLanguageId(
+			this.<String>getColumnOriginalValue("languageId"));
+		siteFriendlyURLImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
 
 		return siteFriendlyURLImpl;
 	}
@@ -779,6 +784,8 @@ public class SiteFriendlyURLModelImpl
 
 		siteFriendlyURLCacheModel.siteFriendlyURLId = getSiteFriendlyURLId();
 
+		siteFriendlyURLCacheModel.groupId = getGroupId();
+
 		siteFriendlyURLCacheModel.companyId = getCompanyId();
 
 		siteFriendlyURLCacheModel.userId = getUserId();
@@ -808,8 +815,6 @@ public class SiteFriendlyURLModelImpl
 		else {
 			siteFriendlyURLCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
-
-		siteFriendlyURLCacheModel.groupId = getGroupId();
 
 		siteFriendlyURLCacheModel.friendlyURL = getFriendlyURL();
 
@@ -846,7 +851,7 @@ public class SiteFriendlyURLModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -857,9 +862,26 @@ public class SiteFriendlyURLModelImpl
 			Function<SiteFriendlyURL, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((SiteFriendlyURL)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((SiteFriendlyURL)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -906,20 +928,22 @@ public class SiteFriendlyURLModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, SiteFriendlyURL>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					SiteFriendlyURL.class, ModelWrapper.class);
 
 	}
 
 	private long _mvccVersion;
 	private String _uuid;
 	private long _siteFriendlyURLId;
+	private long _groupId;
 	private long _companyId;
 	private long _userId;
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
-	private long _groupId;
 	private String _friendlyURL;
 	private String _languageId;
 	private Date _lastPublishDate;
@@ -956,12 +980,12 @@ public class SiteFriendlyURLModelImpl
 		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put("uuid_", _uuid);
 		_columnOriginalValues.put("siteFriendlyURLId", _siteFriendlyURLId);
+		_columnOriginalValues.put("groupId", _groupId);
 		_columnOriginalValues.put("companyId", _companyId);
 		_columnOriginalValues.put("userId", _userId);
 		_columnOriginalValues.put("userName", _userName);
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
-		_columnOriginalValues.put("groupId", _groupId);
 		_columnOriginalValues.put("friendlyURL", _friendlyURL);
 		_columnOriginalValues.put("languageId", _languageId);
 		_columnOriginalValues.put("lastPublishDate", _lastPublishDate);
@@ -994,17 +1018,17 @@ public class SiteFriendlyURLModelImpl
 
 		columnBitmasks.put("siteFriendlyURLId", 4L);
 
-		columnBitmasks.put("companyId", 8L);
+		columnBitmasks.put("groupId", 8L);
 
-		columnBitmasks.put("userId", 16L);
+		columnBitmasks.put("companyId", 16L);
 
-		columnBitmasks.put("userName", 32L);
+		columnBitmasks.put("userId", 32L);
 
-		columnBitmasks.put("createDate", 64L);
+		columnBitmasks.put("userName", 64L);
 
-		columnBitmasks.put("modifiedDate", 128L);
+		columnBitmasks.put("createDate", 128L);
 
-		columnBitmasks.put("groupId", 256L);
+		columnBitmasks.put("modifiedDate", 256L);
 
 		columnBitmasks.put("friendlyURL", 512L);
 

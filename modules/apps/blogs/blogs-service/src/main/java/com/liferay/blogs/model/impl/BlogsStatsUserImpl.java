@@ -14,29 +14,70 @@
 
 package com.liferay.blogs.model.impl;
 
-/**
- * The extended model implementation for the BlogsStatsUser service. Represents
- * a row in the &quot;BlogsStatsUser&quot; database table, with each column
- * mapped to a property of this class.
- *
- * <p>
- * Helper methods and all application logic should be put in this class.
- * Whenever methods are added, rerun ServiceBuilder to copy their definitions
- * into the {@link com.liferay.blogs.model.BlogsStatsUser} interface.
- * </p>
- *
- * @author Brian Wing Shun Chan
- */
-public class BlogsStatsUserImpl extends BlogsStatsUserBaseImpl {
+import com.liferay.blogs.model.BlogsStatsUser;
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never reference this class directly. All methods that expect a blogs
-	 * stats user model instance should use the {@link
-	 * com.liferay.blogs.model.BlogsStatsUser} interface instead.
-	 */
-	public BlogsStatsUserImpl() {
+import java.util.Date;
+
+/**
+ * @author Cheryl Tang
+ */
+public class BlogsStatsUserImpl implements BlogsStatsUser {
+
+	public BlogsStatsUserImpl(
+		long entryCount, long groupId, Date lastPostDate,
+		long ratingsTotalEntries, double ratingsAverageScore,
+		double ratingsTotalScore, long statsUserId) {
+
+		_entryCount = entryCount;
+		_groupId = groupId;
+		_lastPostDate = lastPostDate;
+		_ratingsTotalEntries = ratingsTotalEntries;
+		_ratingsAverageScore = ratingsAverageScore;
+		_ratingsTotalScore = ratingsTotalScore;
+		_statsUserId = statsUserId;
 	}
+
+	@Override
+	public long getEntryCount() {
+		return _entryCount;
+	}
+
+	@Override
+	public long getGroupId() {
+		return _groupId;
+	}
+
+	@Override
+	public Date getLastPostDate() {
+		return _lastPostDate;
+	}
+
+	@Override
+	public double getRatingsAverageScore() {
+		return _ratingsAverageScore;
+	}
+
+	@Override
+	public long getRatingsTotalEntries() {
+		return _ratingsTotalEntries;
+	}
+
+	@Override
+	public double getRatingsTotalScore() {
+		return _ratingsTotalScore;
+	}
+
+	@Override
+	public long getStatsUserId() {
+		return _statsUserId;
+	}
+
+	private final long _entryCount;
+	private final long _groupId;
+	private final Date _lastPostDate;
+	private final double _ratingsAverageScore;
+	private final long _ratingsTotalEntries;
+	private final double _ratingsTotalScore;
+	private final long _statsUserId;
 
 }

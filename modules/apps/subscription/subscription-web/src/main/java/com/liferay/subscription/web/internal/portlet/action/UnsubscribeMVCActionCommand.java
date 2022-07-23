@@ -84,7 +84,7 @@ public class UnsubscribeMVCActionCommand extends BaseMVCActionCommand {
 			"userId", userId
 		).setWindowState(
 			WindowState.MAXIMIZED
-		).build();
+		).buildPortletURL();
 
 		try {
 			_checkUser(userId, actionRequest);
@@ -98,8 +98,7 @@ public class UnsubscribeMVCActionCommand extends BaseMVCActionCommand {
 			actionResponse.sendRedirect(portletURL.toString());
 		}
 		catch (NoSuchSubscriptionException noSuchSubscriptionException) {
-			_log.error(
-				noSuchSubscriptionException, noSuchSubscriptionException);
+			_log.error(noSuchSubscriptionException);
 
 			actionResponse.sendRedirect(portletURL.toString());
 		}

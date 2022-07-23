@@ -35,6 +35,7 @@
 		<requiredProperty key="className">
 		</requiredProperty>
 		<requiredProperty key="liferayVersion">
+			<validationRegex>^[0-7]\.\d+\.\d+.*</validationRegex>
 		</requiredProperty>
 		<requiredProperty key="reactTemplate">
 			<defaultValue>false</defaultValue>

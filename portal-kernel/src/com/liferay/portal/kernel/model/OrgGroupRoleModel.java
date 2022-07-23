@@ -129,4 +129,7 @@ public interface OrgGroupRoleModel
 	@Override
 	public void setCompanyId(long companyId);
 
+	@Override
+	public OrgGroupRole cloneWithOriginalValues();
+
 }

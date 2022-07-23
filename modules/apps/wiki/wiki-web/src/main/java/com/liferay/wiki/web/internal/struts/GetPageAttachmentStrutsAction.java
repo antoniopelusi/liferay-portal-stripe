@@ -73,7 +73,7 @@ public class GetPageAttachmentStrutsAction implements StrutsAction {
 				httpServletRequest, "status",
 				WorkflowConstants.STATUS_APPROVED);
 
-			getFile(
+			_getFile(
 				nodeId, title, fileName, status, httpServletRequest,
 				httpServletResponse);
 
@@ -84,7 +84,7 @@ public class GetPageAttachmentStrutsAction implements StrutsAction {
 				exception instanceof NoSuchPageException) {
 
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 			else {
@@ -96,7 +96,12 @@ public class GetPageAttachmentStrutsAction implements StrutsAction {
 		}
 	}
 
-	protected void getFile(
+	@Reference(unbind = "-")
+	protected void setWikiPageService(WikiPageService wikiPageService) {
+		_wikiPageService = wikiPageService;
+	}
+
+	private void _getFile(
 			long nodeId, String title, String fileName, int status,
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
@@ -121,11 +126,6 @@ public class GetPageAttachmentStrutsAction implements StrutsAction {
 			httpServletRequest, httpServletResponse, fileName,
 			fileEntry.getContentStream(), fileEntry.getSize(),
 			fileEntry.getMimeType());
-	}
-
-	@Reference(unbind = "-")
-	protected void setWikiPageService(WikiPageService wikiPageService) {
-		_wikiPageService = wikiPageService;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

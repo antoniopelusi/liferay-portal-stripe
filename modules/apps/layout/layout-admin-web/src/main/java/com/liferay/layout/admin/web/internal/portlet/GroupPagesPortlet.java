@@ -19,13 +19,13 @@ import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.dynamic.data.mapping.validator.DDMFormValuesValidationException;
 import com.liferay.friendly.url.exception.DuplicateFriendlyURLEntryException;
 import com.liferay.info.item.InfoItemServiceTracker;
-import com.liferay.info.list.provider.InfoListProviderTracker;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
-import com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration;
+import com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration;
 import com.liferay.layout.admin.web.internal.constants.LayoutAdminWebKeys;
 import com.liferay.layout.admin.web.internal.display.context.LayoutsAdminDisplayContext;
 import com.liferay.layout.admin.web.internal.display.context.MillerColumnsDisplayContext;
 import com.liferay.layout.admin.web.internal.display.context.SelectLayoutCollectionDisplayContext;
+import com.liferay.layout.admin.web.internal.servlet.taglib.util.LayoutActionDropdownItemsProvider;
 import com.liferay.layout.page.template.exception.DuplicateLayoutPageTemplateCollectionException;
 import com.liferay.layout.page.template.exception.LayoutPageTemplateCollectionNameException;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -64,6 +64,9 @@ import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.staging.StagingGroupHelper;
+import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporterTracker;
+import com.liferay.translation.security.permission.TranslationPermission;
+import com.liferay.translation.url.provider.TranslationURLProvider;
 
 import java.io.IOException;
 
@@ -87,7 +90,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Jorge Ferrer
  */
 @Component(
-	configurationPid = "com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration",
+	configurationPid = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration",
 	immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
@@ -107,7 +110,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + LayoutAdminPortletKeys.GROUP_PAGES,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.supported-public-render-parameter=layoutSetBranchId"
+		"javax.portlet.supported-public-render-parameter=layoutSetBranchId",
+		"javax.portlet.supported-public-render-parameter=selPlid"
 	},
 	service = Portlet.class
 )
@@ -131,8 +135,8 @@ public class GroupPagesPortlet extends MVCPortlet {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_layoutConverterConfiguration = ConfigurableUtil.createConfigurable(
-			LayoutConverterConfiguration.class, properties);
+		_ffBulkTranslationConfiguration = ConfigurableUtil.createConfigurable(
+			FFBulkTranslationConfiguration.class, properties);
 	}
 
 	@Override
@@ -181,17 +185,31 @@ public class GroupPagesPortlet extends MVCPortlet {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 
+			renderRequest.setAttribute(
+				FFBulkTranslationConfiguration.class.getName(),
+				_ffBulkTranslationConfiguration);
+
 			LayoutsAdminDisplayContext layoutsAdminDisplayContext =
 				new LayoutsAdminDisplayContext(
-					_layoutConverterConfiguration, _layoutConverterRegistry,
-					_layoutCopyHelper,
+					_layoutConverterRegistry, _layoutCopyHelper,
 					_portal.getLiferayPortletRequest(renderRequest),
 					_portal.getLiferayPortletResponse(renderResponse),
 					_stagingGroupHelper);
+
+			LayoutActionDropdownItemsProvider
+				layoutActionDropdownItemsProvider =
+					new LayoutActionDropdownItemsProvider(
+						_portal.getHttpServletRequest(renderRequest),
+						layoutsAdminDisplayContext, _translationPermission,
+						_translationURLProvider);
+
+			renderRequest.setAttribute(
+				LayoutAdminWebKeys.LAYOUT_ACTION_DROPDOWN_ITEMS_PROVIDER,
+				layoutActionDropdownItemsProvider);
 
 			renderRequest.setAttribute(
 				LayoutAdminWebKeys.LAYOUT_PAGE_LAYOUT_ADMIN_DISPLAY_CONTEXT,
@@ -199,16 +217,20 @@ public class GroupPagesPortlet extends MVCPortlet {
 			renderRequest.setAttribute(
 				LayoutAdminWebKeys.MILLER_COLUMNS_DISPLAY_CONTEXT,
 				new MillerColumnsDisplayContext(
+					layoutActionDropdownItemsProvider,
 					layoutsAdminDisplayContext,
 					_portal.getLiferayPortletRequest(renderRequest),
-					_portal.getLiferayPortletResponse(renderResponse)));
-
+					_portal.getLiferayPortletResponse(renderResponse),
+					_translationInfoItemFieldValuesExporterTracker));
 			renderRequest.setAttribute(
 				LayoutAdminWebKeys.SELECT_LAYOUT_COLLECTION_DISPLAY_CONTEXT,
 				new SelectLayoutCollectionDisplayContext(
-					_infoItemServiceTracker, _infoListProviderTracker,
+					_infoItemServiceTracker,
 					_portal.getLiferayPortletRequest(renderRequest),
 					_portal.getLiferayPortletResponse(renderResponse)));
+			renderRequest.setAttribute(
+				TranslationURLProvider.class.getName(),
+				_translationURLProvider);
 
 			super.doDispatch(renderRequest, renderResponse);
 		}
@@ -253,16 +275,14 @@ public class GroupPagesPortlet extends MVCPortlet {
 	private static final Log _log = LogFactoryUtil.getLog(
 		GroupPagesPortlet.class);
 
+	private volatile FFBulkTranslationConfiguration
+		_ffBulkTranslationConfiguration;
+
 	@Reference
 	private GroupProvider _groupProvider;
 
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
-
-	@Reference
-	private InfoListProviderTracker _infoListProviderTracker;
-
-	private volatile LayoutConverterConfiguration _layoutConverterConfiguration;
 
 	@Reference
 	private LayoutConverterRegistry _layoutConverterRegistry;
@@ -282,5 +302,15 @@ public class GroupPagesPortlet extends MVCPortlet {
 
 	@Reference
 	private StagingGroupHelper _stagingGroupHelper;
+
+	@Reference
+	private TranslationInfoItemFieldValuesExporterTracker
+		_translationInfoItemFieldValuesExporterTracker;
+
+	@Reference
+	private TranslationPermission _translationPermission;
+
+	@Reference
+	private TranslationURLProvider _translationURLProvider;
 
 }

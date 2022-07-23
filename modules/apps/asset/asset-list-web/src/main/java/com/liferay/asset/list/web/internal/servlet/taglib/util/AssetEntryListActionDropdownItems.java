@@ -61,36 +61,60 @@ public class AssetEntryListActionDropdownItems {
 	public List<DropdownItem> getActionDropdownItems() throws Exception {
 		boolean liveGroup = _isLiveGroup();
 
-		return DropdownItemListBuilder.add(
-			() ->
-				!liveGroup &&
-				AssetListEntryPermission.contains(
-					_themeDisplay.getPermissionChecker(), _assetListEntry,
-					ActionKeys.UPDATE),
-			_getEditAssetListEntryActionUnsafeConsumer()
-		).add(
-			() ->
-				!liveGroup &&
-				AssetListEntryPermission.contains(
-					_themeDisplay.getPermissionChecker(), _assetListEntry,
-					ActionKeys.UPDATE),
-			_getRenameAssetListEntryActionUnsafeConsumer()
-		).add(
-			() ->
-				!liveGroup &&
-				AssetListEntryPermission.contains(
-					_themeDisplay.getPermissionChecker(), _assetListEntry,
-					ActionKeys.PERMISSIONS),
-			_getPermissionsAssetListEntryActionUnsafeConsumer()
-		).add(
-			_getViewAssetListEntryUsagesActionUnsafeConsumer()
-		).add(
-			() ->
-				!liveGroup &&
-				AssetListEntryPermission.contains(
-					_themeDisplay.getPermissionChecker(), _assetListEntry,
-					ActionKeys.DELETE),
-			_getDeleteAssetListEntryActionUnsafeConsumer()
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							!liveGroup &&
+							AssetListEntryPermission.contains(
+								_themeDisplay.getPermissionChecker(),
+								_assetListEntry, ActionKeys.UPDATE),
+						_getEditAssetListEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							!liveGroup &&
+							AssetListEntryPermission.contains(
+								_themeDisplay.getPermissionChecker(),
+								_assetListEntry, ActionKeys.UPDATE),
+						_getRenameAssetListEntryActionUnsafeConsumer()
+					).add(
+						_getViewAssetListEntryUsagesActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							!liveGroup &&
+							AssetListEntryPermission.contains(
+								_themeDisplay.getPermissionChecker(),
+								_assetListEntry, ActionKeys.PERMISSIONS),
+						_getPermissionsAssetListEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() ->
+							!liveGroup &&
+							AssetListEntryPermission.contains(
+								_themeDisplay.getPermissionChecker(),
+								_assetListEntry, ActionKeys.DELETE),
+						_getDeleteAssetListEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
 		).build();
 	}
 
@@ -110,6 +134,7 @@ public class AssetEntryListActionDropdownItems {
 				).setParameter(
 					"assetListEntryId", _assetListEntry.getAssetListEntryId()
 				).buildString());
+			dropdownItem.setIcon("trash");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "delete"));
 		};
@@ -124,6 +149,7 @@ public class AssetEntryListActionDropdownItems {
 				"/edit_asset_list_entry.jsp", "redirect",
 				_themeDisplay.getURLCurrent(), "assetListEntryId",
 				_assetListEntry.getAssetListEntryId());
+			dropdownItem.setIcon("pencil");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "edit"));
 		};
@@ -143,6 +169,7 @@ public class AssetEntryListActionDropdownItems {
 			dropdownItem.putData("action", "permissionsAssetEntryList");
 			dropdownItem.putData(
 				"permissionsAssetEntryListURL", permissionsAssetEntryListURL);
+			dropdownItem.setIcon("password-policies");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "permissions"));
 		};
@@ -181,6 +208,7 @@ public class AssetEntryListActionDropdownItems {
 				"/view_asset_list_entry_usages.jsp", "redirect",
 				_themeDisplay.getURLCurrent(), "assetListEntryId",
 				_assetListEntry.getAssetListEntryId());
+			dropdownItem.setIcon("list-ul");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "view-usages"));
 		};

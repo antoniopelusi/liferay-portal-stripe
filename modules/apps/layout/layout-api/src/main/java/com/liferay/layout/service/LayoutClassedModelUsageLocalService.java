@@ -156,6 +156,9 @@ public interface LayoutClassedModelUsageLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -304,6 +307,10 @@ public interface LayoutClassedModelUsageLocalService
 	public List<LayoutClassedModelUsage> getLayoutClassedModelUsages(
 		long classNameId, long classPK, int start, int end,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<LayoutClassedModelUsage> getLayoutClassedModelUsages(
+		long companyId, long classNameId, long containerType);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<LayoutClassedModelUsage> getLayoutClassedModelUsagesByPlid(

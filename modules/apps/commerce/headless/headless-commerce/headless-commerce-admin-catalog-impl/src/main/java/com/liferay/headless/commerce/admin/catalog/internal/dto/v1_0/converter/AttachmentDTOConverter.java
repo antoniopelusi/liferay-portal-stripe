@@ -14,10 +14,12 @@
 
 package com.liferay.headless.commerce.admin.catalog.internal.dto.v1_0.converter;
 
+import com.liferay.commerce.account.constants.CommerceAccountConstants;
 import com.liferay.commerce.media.CommerceMediaResolver;
 import com.liferay.commerce.product.model.CPAttachmentFileEntry;
 import com.liferay.commerce.product.service.CPAttachmentFileEntryService;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Attachment;
+import com.liferay.headless.commerce.admin.catalog.internal.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -41,7 +43,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	enabled = false,
-	property = "model.class.name=com.liferay.commerce.product.model.CPAttachmentFileEntry",
+	property = "dto.class.name=com.liferay.commerce.product.model.CPAttachmentFileEntry",
 	service = {AttachmentDTOConverter.class, DTOConverter.class}
 )
 public class AttachmentDTOConverter
@@ -65,8 +67,20 @@ public class AttachmentDTOConverter
 
 		String portalURL = company.getPortalURL(0);
 
+		String downloadURL = _commerceMediaResolver.getDownloadURL(
+			CommerceAccountConstants.ACCOUNT_ID_ADMIN,
+			cpAttachmentFileEntry.getCPAttachmentFileEntryId());
+
 		return new Attachment() {
 			{
+				cdnEnabled = cpAttachmentFileEntry.isCDNEnabled();
+				cdnURL = cpAttachmentFileEntry.getCDNURL();
+				customFields = CustomFieldsUtil.toCustomFields(
+					dtoConverterContext.isAcceptAllLanguages(),
+					CPAttachmentFileEntry.class.getName(),
+					cpAttachmentFileEntry.getCPAttachmentFileEntryId(),
+					cpAttachmentFileEntry.getCompanyId(),
+					dtoConverterContext.getLocale());
 				displayDate = cpAttachmentFileEntry.getDisplayDate();
 				expirationDate = cpAttachmentFileEntry.getExpirationDate();
 				externalReferenceCode =
@@ -74,12 +88,7 @@ public class AttachmentDTOConverter
 				id = cpAttachmentFileEntry.getCPAttachmentFileEntryId();
 				options = _getAttachmentOptions(cpAttachmentFileEntry);
 				priority = cpAttachmentFileEntry.getPriority();
-
-				String downloadUrl = _commerceMediaResolver.getDownloadUrl(
-					cpAttachmentFileEntry.getCPAttachmentFileEntryId());
-
-				src = portalURL + downloadUrl;
-
+				src = portalURL + downloadURL;
 				title = LanguageUtils.getLanguageIdMap(
 					cpAttachmentFileEntry.getTitleMap());
 				type = cpAttachmentFileEntry.getType();

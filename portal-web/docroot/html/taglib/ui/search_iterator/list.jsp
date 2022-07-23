@@ -40,8 +40,8 @@ PortletURL iteratorURL = searchContainer.getIteratorURL();
 
 if (iteratorURL != null) {
 	url = iteratorURL.toString();
-	url = HttpUtil.removeParameter(url, namespace + searchContainer.getOrderByColParam());
-	url = HttpUtil.removeParameter(url, namespace + searchContainer.getOrderByTypeParam());
+	url = HttpComponentsUtil.removeParameter(url, namespace + searchContainer.getOrderByColParam());
+	url = HttpComponentsUtil.removeParameter(url, namespace + searchContainer.getOrderByTypeParam());
 }
 %>
 
@@ -53,7 +53,7 @@ if (iteratorURL != null) {
 
 <div class="lfr-search-container lfr-search-container-wrapper <%= resultRows.isEmpty() ? "hide" : StringPool.BLANK %> <%= searchContainer.getCssClass() %>">
 	<c:if test="<%= PropsValues.SEARCH_CONTAINER_SHOW_PAGINATION_TOP && (resultRows.size() > PropsValues.SEARCH_CONTAINER_SHOW_PAGINATION_TOP_DELTA) && paginate %>">
-		<div class="taglib-search-iterator-page-iterator-top">
+		<div class="mb-3 taglib-search-iterator-page-iterator-top">
 			<liferay-ui:search-paginator
 				id='<%= id + "PageIteratorTop" %>'
 				searchContainer="<%= searchContainer %>"
@@ -157,8 +157,8 @@ if (iteratorURL != null) {
 									<c:when test="<%= Validator.isNull(orderByJS) %>">
 
 										<%
-										url = HttpUtil.setParameter(url, namespace + searchContainer.getOrderByColParam(), orderKey);
-										url = HttpUtil.setParameter(url, namespace + searchContainer.getOrderByTypeParam(), orderByType);
+										url = HttpComponentsUtil.setParameter(url, namespace + searchContainer.getOrderByColParam(), orderKey);
+										url = HttpComponentsUtil.setParameter(url, namespace + searchContainer.getOrderByTypeParam(), orderByType);
 										%>
 
 										<a href="<%= url %>">
@@ -172,11 +172,11 @@ if (iteratorURL != null) {
 							<%
 							String headerNameValue = null;
 
-							if ((rowChecker == null) || (i > 0)) {
-								headerNameValue = LanguageUtil.get(resourceBundle, HtmlUtil.escape(headerName));
+							if ((rowChecker != null) && (i == 0)) {
+								headerNameValue = headerName;
 							}
 							else {
-								headerNameValue = headerName;
+								headerNameValue = LanguageUtil.get(resourceBundle, HtmlUtil.escape(headerName));
 							}
 							%>
 
@@ -243,7 +243,14 @@ if (iteratorURL != null) {
 			Map<String, Object> data = row.getData();
 		%>
 
-			<tr class="<%= GetterUtil.getString(row.getClassName()) %> <%= row.getCssClass() %> <%= row.getState() %> <%= rowIsChecked ? "info" : StringPool.BLANK %>" <%= AUIUtil.buildData(data) %>>
+			<c:choose>
+				<c:when test="<%= Validator.isNotNull(rowIdProperty) %>">
+					<tr class="<%= GetterUtil.getString(row.getClassName()) %> <%= row.getCssClass() %> <%= row.getState() %> <%= rowIsChecked ? "info" : StringPool.BLANK %>" id="<portlet:namespace /><%= id %>_<%= row.getRowId() %>" <%= AUIUtil.buildData(data) %>>
+				</c:when>
+				<c:otherwise>
+					<tr class="<%= GetterUtil.getString(row.getClassName()) %> <%= row.getCssClass() %> <%= row.getState() %> <%= rowIsChecked ? "info" : StringPool.BLANK %>" <%= AUIUtil.buildData(data) %>>
+				</c:otherwise>
+			</c:choose>
 
 			<%
 			for (int j = 0; j < entries.size(); j++) {
@@ -307,7 +314,7 @@ if (iteratorURL != null) {
 		%>
 
 		<c:if test="<%= headerNames != null %>">
-			<tr class="lfr-template">
+			<tr class="d-none <%= searchContainerRowCssClass %>">
 
 				<%
 				for (int i = 0; i < headerNames.size(); i++) {

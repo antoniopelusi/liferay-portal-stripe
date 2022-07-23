@@ -64,12 +64,9 @@ definition {
 				-u test@liferay.com:test \
 				-d groupId=${groupId}
 		''';
-
 		var folderId = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${folderName}')]['folderId']");
-		var folderId = StringUtil.replace("${folderId}", "[&quot;", "");
-		var folderId = StringUtil.replace("${folderId}", "&quot;]", "");
 
-		if ("${folderId}" == "[]") {
+		if ("${folderId}" == "") {
 			fail("FAIL. Cannot find folder.");
 		}
 		else {

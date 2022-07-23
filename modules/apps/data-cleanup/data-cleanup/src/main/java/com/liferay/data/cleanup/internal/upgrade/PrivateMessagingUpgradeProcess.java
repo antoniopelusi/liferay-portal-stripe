@@ -16,7 +16,6 @@ package com.liferay.data.cleanup.internal.upgrade;
 
 import com.liferay.message.boards.service.MBThreadLocalService;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
-import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,7 +23,7 @@ import java.sql.ResultSet;
 /**
  * @author Alejandro Tardín
  */
-public class PrivateMessagingUpgradeProcess extends UpgradeProcess {
+public class PrivateMessagingUpgradeProcess extends BaseUpgradeProcess {
 
 	public PrivateMessagingUpgradeProcess(
 		MBThreadLocalService mbThreadLocalService) {
@@ -34,47 +33,31 @@ public class PrivateMessagingUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL(
-			"delete from ClassName_ where value = " +
-				"'com.liferay.social.privatemessaging.model.UserThread'");
+		_deleteMBThreads();
 
-		runSQL(
-			"delete from Portlet where portletId = " +
-				"'com_liferay_social_privatemessaging_web_portlet_" +
-					"PrivateMessagingPortlet'");
+		removePortletData(
+			new String[] {"com.liferay.social.privatemessaging.web"}, null,
+			new String[] {
+				"com_liferay_social_privatemessaging_web_portlet_" +
+					"PrivateMessagingPortlet"
+			});
 
-		runSQL(
-			"delete from PortletPreferences where portletId =" +
-				"'com_liferay_social_privatemessaging_web_portlet_" +
-					"PrivateMessagingPortlet'");
-
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.social.privatemessaging.service'");
-		runSQL(
-			"delete from Release_ where servletContextName = " +
-				"'com.liferay.social.privatemessaging.web'");
-
-		runSQL("delete from ServiceComponent where buildNamespace = 'PM'");
-
-		_deleteThreads();
-
-		runSQL("drop table PM_UserThread");
-
-		LayoutTypeSettingsUtil.removePortletId(
-			connection,
-			"com_liferay_social_privatemessaging_web_portlet_" +
-				"PrivateMessagingPortlet");
+		removeServiceData(
+			"PM", new String[] {"com.liferay.social.privatemessaging.service"},
+			new String[] {
+				"com.liferay.social.privatemessaging.model.UserThread"
+			},
+			new String[] {"PM_UserThread"});
 	}
 
-	private void _deleteThreads() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private void _deleteMBThreads() throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				SQLTransformer.transform(
 					"select mbThreadId from PM_UserThread"));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				_mbThreadLocalService.deleteMBThread(rs.getLong(1));
+			while (resultSet.next()) {
+				_mbThreadLocalService.deleteMBThread(resultSet.getLong(1));
 			}
 		}
 	}

@@ -16,10 +16,11 @@ package com.liferay.dispatch.internal.executor;
 
 import com.liferay.dispatch.executor.DispatchTaskExecutor;
 import com.liferay.dispatch.executor.DispatchTaskExecutorRegistry;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.GetterUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,8 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Matija Petanjek
+ * @author Joe Duffy
+ * @author Igor Beslic
  */
 @Component(service = DispatchTaskExecutorRegistry.class)
 public class DispatchTaskExecutorRegistryImpl
@@ -54,7 +57,16 @@ public class DispatchTaskExecutorRegistryImpl
 
 	@Override
 	public Set<String> getDispatchTaskExecutorTypes() {
-		return _dispatchTaskExecutorNames.keySet();
+		return _dispatchTaskExecutors.keySet();
+	}
+
+	@Override
+	public boolean isHiddenInUI(String type) {
+		if (!_dispatchTaskExecutorNames.containsKey(type)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Reference(
@@ -72,9 +84,14 @@ public class DispatchTaskExecutorRegistryImpl
 		_validateDispatchTaskExecutorProperties(
 			dispatchTaskExecutor, dispatchTaskExecutorType);
 
-		_dispatchTaskExecutorNames.put(
-			dispatchTaskExecutorType,
-			(String)properties.get(_KEY_DISPATCH_TASK_EXECUTOR_NAME));
+		if (!GetterUtil.getBoolean(
+				properties.get(_KEY_DISPATCH_TASK_EXECUTOR_HIDDEN_IN_UI))) {
+
+			_dispatchTaskExecutorNames.put(
+				dispatchTaskExecutorType,
+				(String)properties.get(_KEY_DISPATCH_TASK_EXECUTOR_NAME));
+		}
+
 		_dispatchTaskExecutors.put(
 			dispatchTaskExecutorType, dispatchTaskExecutor);
 	}
@@ -111,6 +128,9 @@ public class DispatchTaskExecutorRegistryImpl
 				"value. The same value is found in ", clazz1.getName(), " and ",
 				clazz2.getName(), StringPool.PERIOD));
 	}
+
+	private static final String _KEY_DISPATCH_TASK_EXECUTOR_HIDDEN_IN_UI =
+		"dispatch.task.executor.hidden-in-ui";
 
 	private static final String _KEY_DISPATCH_TASK_EXECUTOR_NAME =
 		"dispatch.task.executor.name";

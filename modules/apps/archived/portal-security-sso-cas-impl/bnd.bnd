@@ -1,0 +1,10 @@
+Bundle-Name: Liferay Portal Security SSO CAS Implementation
+Bundle-SymbolicName: com.liferay.portal.security.sso.cas.impl
+Bundle-Version: 4.0.10
+Import-Package:\
+	!javax.microedition.*,\
+	\
+	!junit.*,\
+	\
+	*
+-fixupmessages: Classes found in the wrong directory: ...;is:=ignore

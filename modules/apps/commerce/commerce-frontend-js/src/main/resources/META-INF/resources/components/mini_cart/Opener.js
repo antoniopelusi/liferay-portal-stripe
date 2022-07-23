@@ -19,43 +19,38 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import MiniCartContext from './MiniCartContext';
 
-function Opener({openCart}) {
-	const {cartState, displayTotalItemsQuantity, spritemap} = useContext(
+function Opener() {
+	const {cartState, displayTotalItemsQuantity, openCart} = useContext(
 		MiniCartContext
 	);
 
-	const {cartItems, itemsQuantity: initialItemsQuantity, summary} = cartState,
-		[numberOfItems, setNumberOfItems] = useState(0);
+	const {cartItems = [], summary = {}} = cartState;
+	const {itemsQuantity: initialItemsQuantity} = summary;
+
+	const [numberOfItems, setNumberOfItems] = useState(0);
 
 	useEffect(() => {
 		setNumberOfItems(initialItemsQuantity);
-
-		return () => {};
 	}, [initialItemsQuantity, setNumberOfItems]);
 
 	useEffect(() => {
-		const itemsQuantityCountSource = displayTotalItemsQuantity
-			? summary
-			: cartItems;
-
-		if (itemsQuantityCountSource) {
-			setNumberOfItems(
-				itemsQuantityCountSource.itemsQuantity ||
-					itemsQuantityCountSource.length
-			);
-		}
+		setNumberOfItems(
+			displayTotalItemsQuantity && 'itemsQuantity' in summary
+				? summary.itemsQuantity
+				: cartItems.length
+		);
 	}, [cartItems, displayTotalItemsQuantity, summary, setNumberOfItems]);
 
 	return (
 		<button
-			className={classnames(
-				'mini-cart-opener',
-				!!numberOfItems && 'has-badge'
-			)}
+			className={classnames({
+				'has-badge': numberOfItems > 0,
+				'mini-cart-opener': true,
+			})}
 			data-badge-count={numberOfItems}
 			onClick={openCart}
 		>
-			<ClayIcon spritemap={spritemap} symbol="shopping-cart" />
+			<ClayIcon symbol="shopping-cart" />
 		</button>
 	);
 }

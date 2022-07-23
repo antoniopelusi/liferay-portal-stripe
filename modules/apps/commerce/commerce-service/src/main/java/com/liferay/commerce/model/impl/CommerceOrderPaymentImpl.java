@@ -18,8 +18,4 @@ package com.liferay.commerce.model.impl;
  * @author Alessio Antonio Rendina
  */
 public class CommerceOrderPaymentImpl extends CommerceOrderPaymentBaseImpl {
-
-	public CommerceOrderPaymentImpl() {
-	}
-
 }

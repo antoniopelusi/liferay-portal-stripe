@@ -1,0 +1,922 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Multiple Selection Field can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		Form.save();
+
+		Click(locator1 = "Icon#BACK");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_fieldLabel = "Multiple Selection",
+			locator1 = "FormFields#LABEL");
+	}
+
+	@description = "Verify that a Multiple Selection Field can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormViewBuilder.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormViewBuilder.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Multiple Selection");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Multiple Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Multiple Selection");
+	}
+
+	@description = "Verify that a Multiple Selection Field can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormViewBuilder.editText(
+			fieldName = "Help Text",
+			fieldValue = "Help Text Test");
+
+		FormFields.duplicateField();
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Multiple Selection");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Copy of Multiple Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option 1",
+			fieldName = "Multiple Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option 2",
+			fieldName = "Multiple Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option 1",
+			fieldName = "Copy of Multiple Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option 2",
+			fieldName = "Copy of Multiple Selection");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Multiple Selection",
+			fieldValue = "Help Text Test");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Copy of Multiple Selection",
+			fieldValue = "Help Text Test");
+	}
+
+	@description = "Verify that a Multiple Selection Field can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		Form.save();
+
+		Click(locator1 = "Icon#BACK");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		Click(
+			key_name = "Multiple Selection",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Multiple Selection");
+
+		Form.save();
+
+		Click(locator1 = "Icon#BACK");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_name = "Test Multiple Selection",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Multiple Selection");
+	}
+
+	@description = "Verify that a Multiple Selection Field can be required"
+	@priority = "5"
+	test CanBeRequired {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.enableSwitch(fieldName = "Required Field");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabelRequired(fieldLabel = "Multiple Selection");
+
+		FormPortlet.submit();
+
+		FormViewBuilder.validateObjectLabelOptionTextIsShown(text = "This field is required.");
+
+		FormFields.enableCheckbox(fieldName = "Option");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that a Multiple Selection Field can be set to repeatable"
+	@priority = "5"
+	test CanBeSetToRepeatable {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option A",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option B",
+			optionValue = "2");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.setFieldRepeatable();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.addRepeatableField(
+			fieldName = "Multiple",
+			repeatableFieldNumber = "1");
+
+		FormFields.viewRepeatableSingleSelectionRow(
+			fieldName = "Multiple",
+			rowNumber = "2");
+
+		FormFields.enableCheckbox(fieldName = "Option A");
+
+		FormFields.enableMultipleSelectionCheckbox(
+			fieldName = "Multiple",
+			optionValue = "Option B",
+			rowNumber = "2");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Form can be submitted with the Multiple Selection Field"
+	@priority = "5"
+	test CanBeSubmitted {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option 1",
+			fieldName = "Multiple Selection");
+
+		FormViewBuilder.validateFormMultipleSelectionField(
+			fieldLabel = "Option 2",
+			fieldName = "Multiple Selection");
+
+		FormFields.enableCheckbox(fieldName = "Option 1");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdminNavigator.gotoView();
+
+		FormViewBuilder.validatePredefinedMultipleSelection(
+			fieldName = "Multiple Selection",
+			selectOptionsList = "Option 1");
+	}
+
+	@description = "Verify that edits to the Field can be canceled"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ChangesCanBeCanceled {
+		property portal.acceptance = "false";
+
+		// TODO LPS-132268 ChangesCanBeCanceled pending implementation
+
+	}
+
+	@description = "Verify that an option's Field References can be edited"
+	@priority = "5"
+	test FieldReferencesOfOptionsCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Multiple Selection");
+
+		FormFields.editOptionsRowValueOrFieldReference(
+			fieldReference = "Option1234",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRowValueOrFieldReference(
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Multiple Selection");
+
+		FormFields.viewOptionsRowFieldValueOrFieldReference(
+			fieldReference = "Option1234",
+			fieldValue = "Option 1",
+			rowNumber = "1");
+	}
+
+	@description = "Verify that a help text can be added"
+	@priority = "5"
+	test HelpTextCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormViewBuilder.editText(
+			fieldName = "Help Text",
+			fieldValue = "Multiple Selection Help Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Multiple Selection Help Text",
+			fieldName = "Help Text");
+
+		FormFields.enableCheckbox(fieldName = "Option 1");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that the Field Label can be edited"
+	@priority = "5"
+	test LabelCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormViewBuilder.editText(
+			fieldName = "Label",
+			fieldValue = "Test Multiple Selection");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Multiple Selection");
+	}
+
+	@description = "LPS-85026 - Veriy that the Field Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsMultipleSelectionField#LabelCanBeHidden";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1");
+
+		FormFields.viewLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.disableSwitch(fieldName = "Show Label");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Multiple Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Multiple Selection");
+	}
+
+	@description = "LPS-66513 - Verify that the Field Label can be hidden when options are displayed as switches"
+	@priority = "3"
+	test LabelCanBeHiddenWithSwitchEnabled {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsMultipleSelectionField#LabelCanBeHiddenWithSwitchEnabled";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.enableSwitch(fieldName = "Show as a Switch");
+
+		FormFields.editOptionsRow(
+			optionName = "Switch1",
+			optionValue = "Switch 1",
+			rowNumber = "1");
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Switch 1");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.disableSwitch(fieldName = "Show Label");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Multiple Selection");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Multiple Selection");
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Switch 1");
+	}
+
+	@description = "Verify that options can be added"
+	@priority = "5"
+	test OptionsCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Multiple Selection");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 2",
+			rowNumber = "2");
+	}
+
+	@description = "Verify that option can be deleted"
+	@priority = "5"
+	test OptionsCanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.deleteOptionsRow(rowNumber = "2");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewDeletedSelectOptionsRowFieldValue(
+			fieldValue = "Option 2",
+			rowNumber = "2");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Multiple Selection");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewDeletedSelectOptionsRowFieldValue(
+			fieldValue = "Option 2",
+			rowNumber = "2");
+	}
+
+	@description = "Verify that options can be displayed as switches"
+	@priority = "5"
+	test OptionsCanBeDisplayedAsSwitches {
+		property test.name.skip.portal.instance = "FormsMultipleSelectionField#OptionsCanBeDisplayedAsSwitches";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.enableSwitch(fieldName = "Show as a Switch");
+
+		FormFields.editOptionsRow(
+			optionName = "Switch1",
+			optionValue = "Switch 1",
+			rowNumber = "1");
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Switch 1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Switch 1");
+	}
+
+	@description = "Verify that options can be displayed both inline and as a list"
+	@priority = "5"
+	test OptionsCanBeDisplayedInlineAndAsList {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.editOptionsRow(
+			optionName = "Option3",
+			optionValue = "Option 3",
+			rowNumber = "3");
+
+		FormViewBuilder.viewMultipleSelectionNotInline(selectOptionsList = "Option 1,Option 2,Option 3");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.enableSwitch(fieldName = "Inline");
+
+		FormFields.viewSwitchChecked(fieldName = "Inline");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormViewBuilder.viewMultipleSelectionInline(selectOptionsList = "Option 1,Option 2,Option 3");
+	}
+
+	@description = "Verify that options can be rearranged"
+	@priority = "5"
+	test OptionsCanBeRearranged {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.moveOptionsRow(
+			rowNumberEnd = "1",
+			rowNumberStart = "2");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 2",
+			rowNumber = "1");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Multiple Selection");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 2",
+			rowNumber = "1");
+	}
+
+	@description = "LPS-68381 - Verify that options can be rearranged after one is removed"
+	@priority = "3"
+	test OptionsCanBeReordered {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsMultipleSelectionField#OptionsCanBeReordered";
+
+		FormsAdmin.addForm();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		for (var number : list "1,2,3,4") {
+			FormFields.editOptionsRow(
+				optionName = "Checkbox${number}",
+				optionValue = "Checkbox ${number}",
+				rowNumber = "${number}");
+		}
+
+		FormFields.moveOptionsRow(
+			rowNumberEnd = "1",
+			rowNumberStart = "3");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Checkbox 3",
+			rowNumber = "1");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Checkbox 1",
+			rowNumber = "2");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Checkbox 2",
+			rowNumber = "3");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Checkbox 4",
+			rowNumber = "4");
+
+		FormFields.deleteOptionsRow(rowNumber = "2");
+
+		FormFields.moveOptionsRow(
+			rowNumberEnd = "2",
+			rowNumberStart = "3");
+
+		if (IsTextNotEqual(key_rowNumber = "2", locator1 = "FormFields#OPTIONS_OPTION_VALUE_FIELD", value1 = "Checkbox 4")) {
+			FormFields.moveOptionsRow(
+				rowNumberEnd = "2",
+				rowNumberStart = "3");
+		}
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Checkbox 3",
+			rowNumber = "1");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Checkbox 4",
+			rowNumber = "2");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Checkbox 2",
+			rowNumber = "3");
+	}
+
+	@description = "Verify that an option can be selected as a Predefined Value"
+	@priority = "5"
+	test PredefinedValueCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.selectSelectWithMultipleOptionsPredefined(
+			fieldName = "Multiple Selection",
+			selectOptionsList = "Option 1");
+
+		FormViewBuilder.validatePredefinedMultipleSelection(
+			fieldName = "Multiple Selection",
+			selectOptionsList = "Option 1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewSelectMultipleOptionsPredefined(
+			fieldName = "Multiple Selection",
+			selectOptionsList = "Option 1");
+
+		FormPortlet.submitSuccessfully();
+	}
+
+	@description = "Verify that after deleting an option that had been selected as the Predefined Value, the Predefined Value is reset to "Choose Options""
+	@priority = "4"
+	test PredefinedValueIsResetWhenSelectedOptionIsDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.selectSelectWithMultipleOptionsPredefined(
+			fieldName = "Multiple Selection",
+			selectOptionsList = "Option 1");
+
+		Form.gotoBasicTab();
+
+		FormFields.deleteSpecificOptionFromMultipleSelection(key_valueOption = "Option 1");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.viewPredefinedValueDropdownContent(key_textContent = "Choose Options");
+	}
+
+	@description = "Verify that the Field Reference can be edited"
+	@priority = "5"
+	test ReferenceCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Multiple Selection");
+
+		FormFields.editFieldReference(key_fieldReference = "MultipleSelection1234");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldReference(
+			fieldName = "Multiple Selection",
+			key_fieldReferenceValue = "MultipleSelection1234");
+	}
+
+	@description = "Verify that the Field Type can be changed"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test TypeCanBeChanged {
+		property portal.acceptance = "false";
+
+		// TODO LPS-132267 TypeCanBeChanged pending implementation
+
+	}
+
+}

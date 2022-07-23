@@ -265,4 +265,7 @@ public interface KBTemplateModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public KBTemplate cloneWithOriginalValues();
+
 }

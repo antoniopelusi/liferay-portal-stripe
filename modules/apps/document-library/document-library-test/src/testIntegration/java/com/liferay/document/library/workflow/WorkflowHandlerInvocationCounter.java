@@ -31,13 +31,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class WorkflowHandlerInvocationCounter<T> implements AutoCloseable {
 
 	public WorkflowHandlerInvocationCounter(String className) {
-		WorkflowHandler<T> workflowHandler =
-			WorkflowHandlerRegistryUtil.getWorkflowHandler(className);
-
-		_counts = new HashMap<>();
-
 		WorkflowHandler<T> delegateWorkflowHandler =
-			_createInvocationCounterWorkflowHandler(workflowHandler);
+			_createInvocationCounterWorkflowHandler(
+				WorkflowHandlerRegistryUtil.getWorkflowHandler(className));
 
 		_workflowHandlerReplacer = new WorkflowHandlerReplacer<>(
 			className, delegateWorkflowHandler);
@@ -51,10 +47,8 @@ public class WorkflowHandlerInvocationCounter<T> implements AutoCloseable {
 	public int getCount(String methodName, Class<?>... parameterTypes)
 		throws Exception {
 
-		Method method = WorkflowHandler.class.getMethod(
-			methodName, parameterTypes);
-
-		AtomicInteger count = _counts.get(method);
+		AtomicInteger count = _counts.get(
+			WorkflowHandler.class.getMethod(methodName, parameterTypes));
 
 		if (count == null) {
 			return 0;
@@ -94,7 +88,7 @@ public class WorkflowHandlerInvocationCounter<T> implements AutoCloseable {
 			});
 	}
 
-	private final Map<Method, AtomicInteger> _counts;
+	private final Map<Method, AtomicInteger> _counts = new HashMap<>();
 	private final WorkflowHandlerReplacer<T> _workflowHandlerReplacer;
 
 }

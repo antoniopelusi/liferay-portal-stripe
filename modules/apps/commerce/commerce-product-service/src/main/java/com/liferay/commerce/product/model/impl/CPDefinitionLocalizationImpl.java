@@ -19,8 +19,4 @@ package com.liferay.commerce.product.model.impl;
  */
 public class CPDefinitionLocalizationImpl
 	extends CPDefinitionLocalizationBaseImpl {
-
-	public CPDefinitionLocalizationImpl() {
-	}
-
 }

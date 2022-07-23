@@ -35,7 +35,7 @@ public class OptimizeImagesBackgroundTaskStatusMessageTranslator
 			AMOptimizeImagesBackgroundTaskConstants.PHASE);
 
 		if (Validator.isNotNull(phase)) {
-			setPhaseAttributes(backgroundTaskStatus, message);
+			_setPhaseAttributes(backgroundTaskStatus, message);
 
 			return;
 		}
@@ -73,7 +73,7 @@ public class OptimizeImagesBackgroundTaskStatusMessageTranslator
 		backgroundTaskStatus.setAttribute("percentage", percentage);
 	}
 
-	protected void setPhaseAttributes(
+	private void _setPhaseAttributes(
 		BackgroundTaskStatus backgroundTaskStatus, Message message) {
 
 		backgroundTaskStatus.setAttribute(

@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -43,6 +45,8 @@ public class CPDefinitionLinkWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("CPDefinitionLinkId", getCPDefinitionLinkId());
 		attributes.put("groupId", getGroupId());
@@ -61,6 +65,18 @@ public class CPDefinitionLinkWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -132,6 +148,11 @@ public class CPDefinitionLinkWrapper
 		if (type != null) {
 			setType(type);
 		}
+	}
+
+	@Override
+	public CPDefinitionLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -213,6 +234,16 @@ public class CPDefinitionLinkWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this cp definition link.
+	 *
+	 * @return the ct collection ID of this cp definition link
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the group ID of this cp definition link.
 	 *
 	 * @return the group ID of this cp definition link
@@ -230,6 +261,16 @@ public class CPDefinitionLinkWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this cp definition link.
+	 *
+	 * @return the mvcc version of this cp definition link
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -358,6 +399,16 @@ public class CPDefinitionLinkWrapper
 	}
 
 	/**
+	 * Sets the ct collection ID of this cp definition link.
+	 *
+	 * @param ctCollectionId the ct collection ID of this cp definition link
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
+	}
+
+	/**
 	 * Sets the group ID of this cp definition link.
 	 *
 	 * @param groupId the group ID of this cp definition link
@@ -375,6 +426,16 @@ public class CPDefinitionLinkWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this cp definition link.
+	 *
+	 * @param mvccVersion the mvcc version of this cp definition link
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -445,6 +506,20 @@ public class CPDefinitionLinkWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<CPDefinitionLink, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<CPDefinitionLink, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

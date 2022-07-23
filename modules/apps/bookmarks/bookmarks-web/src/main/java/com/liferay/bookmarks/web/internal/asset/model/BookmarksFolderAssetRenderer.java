@@ -153,7 +153,7 @@ public class BookmarksFolderAssetRenderer
 			"/bookmarks/edit_folder"
 		).setParameter(
 			"folderId", _folder.getFolderId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

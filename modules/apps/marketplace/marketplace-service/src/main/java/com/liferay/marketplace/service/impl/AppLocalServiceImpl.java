@@ -15,6 +15,7 @@
 package com.liferay.marketplace.service.impl;
 
 import com.liferay.document.library.kernel.exception.NoSuchFileException;
+import com.liferay.document.library.kernel.store.DLStoreRequest;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.marketplace.exception.AppPropertiesException;
 import com.liferay.marketplace.exception.AppTitleException;
@@ -28,13 +29,14 @@ import com.liferay.marketplace.util.comparator.AppTitleComparator;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
-import com.liferay.portal.kernel.deploy.DeployManagerUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.plugin.PluginPackage;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -44,10 +46,13 @@ import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.plugin.PluginPackageUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.nio.file.Files;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,6 +86,7 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public App deleteApp(App app) {
 
 		// App
@@ -105,7 +111,7 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -151,10 +157,9 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 
 		// Deployed apps
 
-		List<PluginPackage> pluginPackages =
-			DeployManagerUtil.getInstalledPluginPackages();
+		for (PluginPackage pluginPackage :
+				PluginPackageUtil.getInstalledPluginPackages()) {
 
-		for (PluginPackage pluginPackage : pluginPackages) {
 			List<Module> modules = modulePersistence.findByContextName(
 				pluginPackage.getContext());
 
@@ -268,15 +273,12 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 					"Unable to open file at " + app.getFilePath());
 			}
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
-			sb.append(StringPool.SLASH);
-			sb.append(encodeSafeFileName(app.getTitle()));
-			sb.append(StringPool.PERIOD);
-			sb.append(FileUtil.getExtension(app.getFileName()));
-
-			File file = new File(sb.toString());
+			File file = new File(
+				StringBundler.concat(
+					SystemProperties.get(SystemProperties.TMP_DIR),
+					StringPool.SLASH, encodeSafeFileName(app.getTitle()),
+					StringPool.PERIOD,
+					FileUtil.getExtension(app.getFileName())));
 
 			FileUtil.write(file, inputStream);
 
@@ -286,7 +288,7 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 			throw new PortalException(ioException);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 		finally {
 			clearInstalledAppsCache();
@@ -307,19 +309,6 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 			if (module.isBundle()) {
 				BundleManagerUtil.uninstallBundle(
 					module.getBundleSymbolicName(), module.getBundleVersion());
-
-				continue;
-			}
-
-			if (hasDependentApp(module)) {
-				continue;
-			}
-
-			try {
-				DeployManagerUtil.undeploy(module.getContextName());
-			}
-			catch (Exception exception) {
-				_log.error(exception, exception);
 			}
 		}
 	}
@@ -358,7 +347,7 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 		// App
 
 		User user = userLocalService.fetchUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		validate(title, version);
 
@@ -376,8 +365,8 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 			app.setUserName(user.getFullName());
 		}
 
-		app.setCreateDate(now);
-		app.setModifiedDate(now);
+		app.setCreateDate(date);
+		app.setModifiedDate(date);
 		app.setRemoteAppId(remoteAppId);
 		app.setTitle(title);
 		app.setDescription(description);
@@ -395,16 +384,23 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 				DLStoreUtil.deleteFile(
 					app.getCompanyId(), CompanyConstants.SYSTEM,
 					app.getFilePath());
+
+				DLStoreUtil.addFile(
+					DLStoreRequest.builder(
+						app.getCompanyId(), CompanyConstants.SYSTEM,
+						app.getFilePath()
+					).className(
+						this
+					).size(
+						Files.size(file.toPath())
+					).build(),
+					file);
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
-
-			DLStoreUtil.addFile(
-				app.getCompanyId(), CompanyConstants.SYSTEM, app.getFilePath(),
-				false, file);
 		}
 
 		clearInstalledAppsCache();
@@ -459,30 +455,11 @@ public class AppLocalServiceImpl extends AppLocalServiceBaseImpl {
 		}
 		catch (IOException ioException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(ioException, ioException);
+				_log.debug(ioException);
 			}
 
 			return null;
 		}
-	}
-
-	protected boolean hasDependentApp(Module module) throws PortalException {
-		List<Module> modules = modulePersistence.findByContextName(
-			module.getContextName());
-
-		for (Module curModule : modules) {
-			if (curModule.getAppId() == module.getAppId()) {
-				continue;
-			}
-
-			App app = appPersistence.findByPrimaryKey(curModule.getAppId());
-
-			if (app.isInstalled()) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	protected void validate(String title, String version)

@@ -63,6 +63,11 @@ public class LocalizedEntryWrapper
 	}
 
 	@Override
+	public LocalizedEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

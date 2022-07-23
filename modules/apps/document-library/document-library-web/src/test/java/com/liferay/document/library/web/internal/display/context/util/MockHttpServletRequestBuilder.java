@@ -25,9 +25,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
  */
 public class MockHttpServletRequestBuilder {
 
-	public MockHttpServletRequestBuilder() {
-	}
-
 	public MockHttpServletRequest build() {
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();

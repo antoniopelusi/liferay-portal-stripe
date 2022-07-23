@@ -14,11 +14,12 @@
 
 package com.liferay.portal.dao.db;
 
-import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
+import com.liferay.portal.db.partition.DBPartitionUtil;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -46,6 +48,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,6 +58,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.naming.NamingException;
 
@@ -68,79 +73,144 @@ public abstract class BaseDB implements DB {
 
 	@Override
 	public void addIndexes(
-			Connection con, String indexesSQL, Set<String> validIndexNames)
-		throws IOException {
+			Connection connection, List<IndexMetadata> indexMetadatas)
+		throws IOException, SQLException {
 
-		if (_log.isInfoEnabled()) {
-			_log.info("Adding indexes");
-		}
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
 
-		try (UnsyncBufferedReader unsyncBufferedReader =
-				new UnsyncBufferedReader(new UnsyncStringReader(indexesSQL))) {
+		DBInspector dbInspector = new DBInspector(connection);
 
-			String sql = null;
+		Map<String, Map<String, Integer>> columnTableSizes = new HashMap<>();
 
-			while ((sql = unsyncBufferedReader.readLine()) != null) {
-				if (Validator.isNull(sql)) {
-					continue;
-				}
+		for (IndexMetadata indexMetadata : indexMetadatas) {
+			String normalizedTabledName = dbInspector.normalizeName(
+				indexMetadata.getTableName(), databaseMetaData);
 
-				int y = sql.indexOf(" on ");
+			if (columnTableSizes.get(normalizedTabledName) == null) {
+				try (ResultSet resultSet = databaseMetaData.getColumns(
+						dbInspector.getCatalog(), dbInspector.getSchema(),
+						normalizedTabledName, null)) {
 
-				int x = sql.lastIndexOf(" ", y - 1);
+					Map<String, Integer> columnSizes = new HashMap<>();
 
-				String indexName = sql.substring(x + 1, y);
+					while (resultSet.next()) {
+						int columnType = resultSet.getInt("DATA_TYPE");
 
-				if (validIndexNames.contains(indexName)) {
-					continue;
-				}
+						if (!ArrayUtil.contains(
+								SQL_VARCHAR_TYPES, columnType)) {
 
-				if (_log.isInfoEnabled()) {
-					_log.info(sql);
-				}
+							continue;
+						}
 
-				try {
-					runSQL(con, sql);
-				}
-				catch (Exception exception) {
-					if (_log.isWarnEnabled()) {
-						_log.warn(exception.getMessage() + ": " + sql);
+						columnSizes.put(
+							dbInspector.normalizeName(
+								resultSet.getString("COLUMN_NAME"),
+								databaseMetaData),
+							resultSet.getInt("COLUMN_SIZE"));
 					}
+
+					columnTableSizes.put(normalizedTabledName, columnSizes);
 				}
 			}
+
+			String[] columnNames = indexMetadata.getColumnNames();
+
+			int[] columnSizes = new int[columnNames.length];
+
+			for (int i = 0; i < columnNames.length; i++) {
+				columnSizes[i] = MapUtil.getInteger(
+					columnTableSizes.get(normalizedTabledName), columnNames[i],
+					0);
+			}
+
+			runSQL(
+				_applyMaxStringIndexLengthLimitation(
+					indexMetadata.getCreateSQL(columnSizes)));
 		}
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void buildCreateFile(String sqlDir, String databaseName)
-		throws IOException {
+	public void alterColumnName(
+			Connection connection, String tableName, String oldColumnName,
+			String newColumnDefinition)
+		throws Exception {
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append("alter_column_name ");
+		sb.append(tableName);
+		sb.append(StringPool.SPACE);
+		sb.append(oldColumnName);
+		sb.append(StringPool.SPACE);
+		sb.append(newColumnDefinition);
+
+		runSQL(connection, sb.toString());
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void buildCreateFile(
-			String sqlDir, String databaseName, int population)
-		throws IOException {
+	public void alterColumnType(
+			Connection connection, String tableName, String columnName,
+			String newColumnType)
+		throws Exception {
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append("alter_column_type ");
+		sb.append(tableName);
+		sb.append(StringPool.SPACE);
+		sb.append(columnName);
+		sb.append(StringPool.SPACE);
+		sb.append(newColumnType);
+
+		runSQL(connection, sb.toString());
+	}
+
+	public void alterTableAddColumn(
+			Connection connection, String tableName, String columnName,
+			String columnType)
+		throws Exception {
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append("alter table ");
+		sb.append(tableName);
+		sb.append(" add ");
+		sb.append(columnName);
+		sb.append(StringPool.SPACE);
+		sb.append(columnType);
+
+		runSQL(connection, sb.toString());
+	}
+
+	public void alterTableDropColumn(
+			Connection connection, String tableName, String columnName)
+		throws Exception {
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append("alter table ");
+		sb.append(tableName);
+		sb.append(" drop column ");
+		sb.append(columnName);
+
+		runSQL(connection, sb.toString());
 	}
 
 	@Override
 	public abstract String buildSQL(String template)
 		throws IOException, SQLException;
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
 	@Override
-	public void buildSQLFile(String sqlDir, String fileName)
-		throws IOException {
+	public List<IndexMetadata> dropIndexes(
+			Connection connection, String tableName, String columnName)
+		throws IOException, SQLException {
+
+		List<IndexMetadata> indexMetadatas = getIndexes(
+			connection, tableName, columnName, false);
+
+		for (IndexMetadata indexMetadata : indexMetadatas) {
+			runSQL(connection, indexMetadata.getDropSQL());
+		}
+
+		return indexMetadatas;
 	}
 
 	@Override
@@ -149,53 +219,30 @@ public abstract class BaseDB implements DB {
 	}
 
 	@Override
-	public List<Index> getIndexes(Connection con) throws SQLException {
-		Set<Index> indexes = new HashSet<>();
+	public List<Index> getIndexes(Connection connection) throws SQLException {
+		List<IndexMetadata> indexes = getIndexes(connection, null, null, false);
 
-		DatabaseMetaData databaseMetaData = con.getMetaData();
+		Stream<IndexMetadata> stream = indexes.stream();
 
-		DBInspector dbInspector = new DBInspector(con);
+		return stream.map(
+			index -> new Index(
+				index.getIndexName(), index.getTableName(), index.isUnique())
+		).collect(
+			Collectors.toList()
+		);
+	}
 
-		String catalog = dbInspector.getCatalog();
-		String schema = dbInspector.getSchema();
+	@Override
+	public ResultSet getIndexResultSet(Connection connection, String tableName)
+		throws SQLException {
 
-		try (ResultSet tableResultSet = databaseMetaData.getTables(
-				catalog, schema, null, new String[] {"TABLE"})) {
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
 
-			while (tableResultSet.next()) {
-				String tableName = dbInspector.normalizeName(
-					tableResultSet.getString("TABLE_NAME"));
+		DBInspector dbInspector = new DBInspector(connection);
 
-				try (ResultSet indexResultSet = databaseMetaData.getIndexInfo(
-						catalog, schema, tableName, false, false)) {
-
-					while (indexResultSet.next()) {
-						String indexName = indexResultSet.getString(
-							"INDEX_NAME");
-
-						if (indexName == null) {
-							continue;
-						}
-
-						String lowerCaseIndexName = StringUtil.toLowerCase(
-							indexName);
-
-						if (!lowerCaseIndexName.startsWith("liferay_") &&
-							!lowerCaseIndexName.startsWith("ix_")) {
-
-							continue;
-						}
-
-						boolean unique = !indexResultSet.getBoolean(
-							"NON_UNIQUE");
-
-						indexes.add(new Index(indexName, tableName, unique));
-					}
-				}
-			}
-		}
-
-		return new ArrayList<>(indexes);
+		return databaseMetaData.getIndexInfo(
+			dbInspector.getCatalog(), dbInspector.getSchema(), tableName, false,
+			false);
 	}
 
 	@Override
@@ -209,8 +256,42 @@ public abstract class BaseDB implements DB {
 	}
 
 	@Override
+	public String[] getPrimaryKeyColumnNames(
+			Connection connection, String tableName)
+		throws SQLException {
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		String normalizedTableName = dbInspector.normalizeName(
+			tableName, databaseMetaData);
+
+		String[] columnNames = new String[0];
+
+		try (ResultSet resultSet = databaseMetaData.getPrimaryKeys(
+				dbInspector.getCatalog(), dbInspector.getSchema(),
+				normalizedTableName)) {
+
+			while (resultSet.next()) {
+				columnNames = ArrayUtil.append(
+					columnNames,
+					dbInspector.normalizeName(
+						resultSet.getString("COLUMN_NAME"), databaseMetaData));
+			}
+		}
+
+		return columnNames;
+	}
+
+	@Override
 	public Integer getSQLType(String templateType) {
 		return _sqlTypes.get(templateType);
+	}
+
+	@Override
+	public Integer getSQLVarcharSize(String templateType) {
+		return _sqlVarcharSizes.get(templateType);
 	}
 
 	@Override
@@ -231,36 +312,6 @@ public abstract class BaseDB implements DB {
 	@Override
 	public String getVersionString() {
 		return _majorVersion + StringPool.PERIOD + _minorVersion;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             CounterLocalServiceUtil#increment()}
-	 */
-	@Deprecated
-	@Override
-	public long increment() {
-		return CounterLocalServiceUtil.increment();
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             CounterLocalServiceUtil#increment(String)}
-	 */
-	@Deprecated
-	@Override
-	public long increment(String name) {
-		return CounterLocalServiceUtil.increment(name);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             CounterLocalServiceUtil#increment(String, int)}
-	 */
-	@Deprecated
-	@Override
-	public long increment(String name, int size) {
-		return CounterLocalServiceUtil.increment(name, size);
 	}
 
 	@Override
@@ -299,17 +350,40 @@ public abstract class BaseDB implements DB {
 	}
 
 	@Override
-	public void runSQL(Connection con, String sql)
-		throws IOException, SQLException {
+	public void process(UnsafeConsumer<Long, Exception> unsafeConsumer)
+		throws Exception {
 
-		runSQL(con, new String[] {sql});
+		DBPartitionUtil.forEachCompanyId(unsafeConsumer);
 	}
 
 	@Override
-	public void runSQL(Connection con, String[] sqls)
+	public void removePrimaryKey(Connection connection, String tableName)
+		throws Exception {
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		String normalizedTableName = dbInspector.normalizeName(
+			tableName, databaseMetaData);
+
+		runSQL(
+			StringBundler.concat(
+				"alter table ", normalizedTableName, " drop primary key"));
+	}
+
+	@Override
+	public void runSQL(Connection connection, String sql)
 		throws IOException, SQLException {
 
-		try (Statement s = con.createStatement()) {
+		runSQL(connection, new String[] {sql});
+	}
+
+	@Override
+	public void runSQL(Connection connection, String[] sqls)
+		throws IOException, SQLException {
+
+		try (Statement s = connection.createStatement()) {
 			for (String sql : sqls) {
 				sql = buildSQL(sql);
 
@@ -340,20 +414,14 @@ public abstract class BaseDB implements DB {
 				}
 				catch (SQLException sqlException) {
 					if (_log.isDebugEnabled()) {
-						StringBundler sb = new StringBundler(10);
-
-						sb.append("SQL: ");
-						sb.append(sql);
-						sb.append("\nSQL state: ");
-						sb.append(sqlException.getSQLState());
-						sb.append("\nVendor: ");
-						sb.append(getDBType());
-						sb.append("\nVendor error code: ");
-						sb.append(sqlException.getErrorCode());
-						sb.append("\nVendor error message: ");
-						sb.append(sqlException.getMessage());
-
-						_log.debug(sb.toString());
+						_log.debug(
+							StringBundler.concat(
+								"SQL: ", sql, "\nSQL state: ",
+								sqlException.getSQLState(), "\nVendor: ",
+								getDBType(), "\nVendor error code: ",
+								sqlException.getErrorCode(),
+								"\nVendor error message: ",
+								sqlException.getMessage()));
 					}
 
 					throw sqlException;
@@ -369,56 +437,9 @@ public abstract class BaseDB implements DB {
 
 	@Override
 	public void runSQL(String[] sqls) throws IOException, SQLException {
-		try (Connection con = DataAccess.getConnection()) {
-			runSQL(con, sqls);
+		try (Connection connection = DataAccess.getConnection()) {
+			runSQL(connection, sqls);
 		}
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             DBProcess#runSQLTemplate(String)}
-	 */
-	@Deprecated
-	@Override
-	public void runSQLTemplate(String path)
-		throws IOException, NamingException, SQLException {
-
-		runSQLTemplate(path, true);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             DBProcess#runSQLTemplate(String, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public void runSQLTemplate(String path, boolean failOnError)
-		throws IOException, NamingException, SQLException {
-
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader classLoader = currentThread.getContextClassLoader();
-
-		InputStream inputStream = classLoader.getResourceAsStream(
-			"com/liferay/portal/tools/sql/dependencies/" + path);
-
-		if (inputStream == null) {
-			inputStream = classLoader.getResourceAsStream(path);
-		}
-
-		if (inputStream == null) {
-			_log.error("Invalid path " + path);
-
-			if (failOnError) {
-				throw new IOException("Invalid path " + path);
-			}
-
-			return;
-		}
-
-		String template = StringUtil.read(inputStream);
-
-		runSQLTemplateString(template, failOnError);
 	}
 
 	@Override
@@ -502,7 +523,7 @@ public abstract class BaseDB implements DB {
 								throw ioException;
 							}
 							else if (_log.isWarnEnabled()) {
-								_log.warn(ioException.getMessage());
+								_log.warn(ioException);
 							}
 						}
 						catch (SecurityException securityException) {
@@ -510,7 +531,7 @@ public abstract class BaseDB implements DB {
 								throw securityException;
 							}
 							else if (_log.isWarnEnabled()) {
-								_log.warn(securityException.getMessage());
+								_log.warn(securityException);
 							}
 						}
 						catch (SQLException sqlException) {
@@ -540,20 +561,6 @@ public abstract class BaseDB implements DB {
 		}
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #runSQLTemplateString(Connection, String, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public void runSQLTemplateString(
-			Connection connection, String template, boolean evaluate,
-			boolean failOnError)
-		throws IOException, NamingException, SQLException {
-
-		runSQLTemplateString(connection, template, failOnError);
-	}
-
 	@Override
 	public void runSQLTemplateString(String template, boolean failOnError)
 		throws IOException, NamingException, SQLException {
@@ -561,19 +568,6 @@ public abstract class BaseDB implements DB {
 		try (Connection connection = DataAccess.getConnection()) {
 			runSQLTemplateString(connection, template, failOnError);
 		}
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #runSQLTemplateString(String, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public void runSQLTemplateString(
-			String template, boolean evaluate, boolean failOnError)
-		throws IOException, NamingException, SQLException {
-
-		runSQLTemplateString(template, failOnError);
 	}
 
 	@Override
@@ -596,30 +590,41 @@ public abstract class BaseDB implements DB {
 
 	@Override
 	public void updateIndexes(
-			Connection con, String tablesSQL, String indexesSQL,
+			Connection connection, String tablesSQL, String indexesSQL,
 			boolean dropIndexes)
-		throws IOException, SQLException {
+		throws Exception {
 
-		List<Index> indexes = getIndexes(con);
+		process(
+			companyId -> {
+				if (Validator.isNotNull(companyId) && _log.isInfoEnabled()) {
+					_log.info(
+						"Updating database indexes for company " + companyId);
+				}
 
-		Set<String> validIndexNames = null;
+				List<Index> indexes = getIndexes(connection);
 
-		if (dropIndexes) {
-			validIndexNames = dropIndexes(con, tablesSQL, indexesSQL, indexes);
-		}
-		else {
-			validIndexNames = new HashSet<>();
+				Set<String> validIndexNames = null;
 
-			for (Index index : indexes) {
-				String indexName = StringUtil.toUpperCase(index.getIndexName());
+				if (dropIndexes) {
+					validIndexNames = dropIndexes(
+						connection, tablesSQL, indexesSQL, indexes);
+				}
+				else {
+					validIndexNames = new HashSet<>();
 
-				validIndexNames.add(indexName);
-			}
-		}
+					for (Index index : indexes) {
+						String indexName = StringUtil.toUpperCase(
+							index.getIndexName());
 
-		indexesSQL = _applyMaxStringIndexLengthLimitation(indexesSQL);
+						validIndexNames.add(indexName);
+					}
+				}
 
-		addIndexes(con, indexesSQL, validIndexNames);
+				_addIndexes(
+					connection,
+					_applyMaxStringIndexLengthLimitation(indexesSQL),
+					validIndexNames);
+			});
 	}
 
 	protected BaseDB(DBType dbType, int majorVersion, int minorVersion) {
@@ -638,6 +643,40 @@ public abstract class BaseDB implements DB {
 		for (int i = 0; i < templateTypes.length; i++) {
 			_sqlTypes.put(StringUtil.trim(templateTypes[i]), getSQLTypes()[i]);
 		}
+
+		String[] sqlTypeStringAndText = ArrayUtil.clone(TEMPLATE, 12, 14);
+
+		for (int i = 0; i < sqlTypeStringAndText.length; i++) {
+			_sqlVarcharSizes.put(
+				StringUtil.trim(sqlTypeStringAndText[i]),
+				getSQLVarcharSizes()[i]);
+		}
+	}
+
+	protected void addPrimaryKey(
+			Connection connection, String tableName, String[] columnNames)
+		throws IOException, SQLException {
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		StringBundler sb = new StringBundler();
+
+		sb.append("alter table ");
+		sb.append(dbInspector.normalizeName(tableName, databaseMetaData));
+		sb.append(" add primary key (");
+
+		for (String columnName : columnNames) {
+			sb.append(columnName);
+			sb.append(", ");
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(")");
+
+		runSQL(sb.toString());
 	}
 
 	protected String[] buildColumnNameTokens(String line) {
@@ -679,7 +718,7 @@ public abstract class BaseDB implements DB {
 	}
 
 	protected Set<String> dropIndexes(
-			Connection con, String tablesSQL, String indexesSQL,
+			Connection connection, String tablesSQL, String indexesSQL,
 			List<Index> indexes)
 		throws IOException, SQLException {
 
@@ -757,15 +796,128 @@ public abstract class BaseDB implements DB {
 				_log.info(sql);
 			}
 
-			runSQL(con, sql);
+			runSQL(connection, sql);
 		}
 
 		return validIndexNames;
 	}
 
+	protected List<IndexMetadata> getIndexes(
+			Connection connection, String tableName, String columnName,
+			boolean onlyUnique)
+		throws SQLException {
+
+		List<IndexMetadata> indexMetadatas = new ArrayList<>();
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		DBInspector dbInspector = new DBInspector(connection);
+
+		String catalog = dbInspector.getCatalog();
+		String schema = dbInspector.getSchema();
+
+		String normalizedTableName = tableName;
+
+		if (normalizedTableName != null) {
+			normalizedTableName = dbInspector.normalizeName(
+				tableName, databaseMetaData);
+		}
+
+		String normalizedColumnName = columnName;
+
+		if (normalizedColumnName != null) {
+			normalizedColumnName = dbInspector.normalizeName(
+				columnName, databaseMetaData);
+		}
+
+		try (ResultSet tableResultSet = databaseMetaData.getTables(
+				catalog, schema, normalizedTableName, new String[] {"TABLE"})) {
+
+			while (tableResultSet.next()) {
+				normalizedTableName = dbInspector.normalizeName(
+					tableResultSet.getString("TABLE_NAME"), databaseMetaData);
+
+				try (ResultSet indexResultSet = databaseMetaData.getIndexInfo(
+						catalog, schema, normalizedTableName, onlyUnique,
+						false)) {
+
+					boolean unique = false;
+
+					String[] columnNames = new String[0];
+					String previousIndexName = null;
+
+					while (indexResultSet.next()) {
+						String indexName = indexResultSet.getString(
+							"INDEX_NAME");
+
+						if (indexName == null) {
+							continue;
+						}
+
+						String lowerCaseIndexName = StringUtil.toLowerCase(
+							indexName);
+
+						if (!lowerCaseIndexName.startsWith("liferay_") &&
+							!lowerCaseIndexName.startsWith("ix_")) {
+
+							continue;
+						}
+
+						if ((previousIndexName != null) &&
+							!previousIndexName.equals(indexName)) {
+
+							if ((normalizedColumnName == null) ||
+								ArrayUtil.contains(
+									columnNames, normalizedColumnName)) {
+
+								indexMetadatas.add(
+									new IndexMetadata(
+										previousIndexName, normalizedTableName,
+										unique, columnNames));
+							}
+
+							columnNames = new String[0];
+						}
+
+						previousIndexName = indexName;
+
+						unique = !indexResultSet.getBoolean("NON_UNIQUE");
+
+						columnNames = ArrayUtil.append(
+							columnNames,
+							dbInspector.normalizeName(
+								indexResultSet.getString("COLUMN_NAME"),
+								databaseMetaData));
+					}
+
+					if ((previousIndexName != null) &&
+						((normalizedColumnName == null) ||
+						 ArrayUtil.contains(
+							 columnNames, normalizedColumnName))) {
+
+						indexMetadatas.add(
+							new IndexMetadata(
+								previousIndexName, normalizedTableName, unique,
+								columnNames));
+					}
+				}
+			}
+		}
+
+		return new ArrayList<>(indexMetadatas);
+	}
+
 	protected abstract int[] getSQLTypes();
 
+	protected int[] getSQLVarcharSizes() {
+		return new int[] {-1, -1};
+	}
+
 	protected abstract String[] getTemplate();
+
+	protected String limitColumnLength(String column, int length) {
+		return StringBundler.concat(column, "\\(", length, "\\)");
+	}
 
 	protected String replaceTemplate(String template) {
 		if (Validator.isNull(template)) {
@@ -828,11 +980,63 @@ public abstract class BaseDB implements DB {
 		"@table@", "@old-column@", "@new-column@", "@type@", "@nullable@"
 	};
 
+	protected static final int[] SQL_VARCHAR_TYPES = {
+		Types.LONGNVARCHAR, Types.LONGVARCHAR, Types.NVARCHAR, Types.VARCHAR
+	};
+
 	protected static final String[] TEMPLATE = {
 		"##", "TRUE", "FALSE", "'01/01/1970'", "CURRENT_TIMESTAMP", " BLOB",
 		" SBLOB", " BOOLEAN", " DATE", " DOUBLE", " INTEGER", " LONG",
 		" STRING", " TEXT", " VARCHAR", " IDENTITY", "COMMIT_TRANSACTION"
 	};
+
+	protected static final Pattern columnTypePattern = Pattern.compile(
+		"(^\\w+)", Pattern.CASE_INSENSITIVE);
+
+	private void _addIndexes(
+			Connection connection, String indexesSQL,
+			Set<String> validIndexNames)
+		throws IOException {
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Adding indexes");
+		}
+
+		try (UnsyncBufferedReader unsyncBufferedReader =
+				new UnsyncBufferedReader(new UnsyncStringReader(indexesSQL))) {
+
+			String sql = null;
+
+			while ((sql = unsyncBufferedReader.readLine()) != null) {
+				if (Validator.isNull(sql)) {
+					continue;
+				}
+
+				int y = sql.indexOf(" on ");
+
+				int x = sql.lastIndexOf(" ", y - 1);
+
+				String indexName = sql.substring(x + 1, y);
+
+				if (validIndexNames.contains(indexName)) {
+					continue;
+				}
+
+				if (_log.isInfoEnabled()) {
+					_log.info(sql);
+				}
+
+				try {
+					runSQL(connection, sql);
+				}
+				catch (Exception exception) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(exception.getMessage() + ": " + sql);
+					}
+				}
+			}
+		}
+	}
 
 	private String _applyMaxStringIndexLengthLimitation(String template) {
 		if (!template.contains("[$COLUMN_LENGTH:")) {
@@ -850,21 +1054,21 @@ public abstract class BaseDB implements DB {
 		Matcher matcher = _columnLengthPattern.matcher(template);
 
 		if (stringIndexMaxLength < 0) {
-			return matcher.replaceAll(StringPool.BLANK);
+			return matcher.replaceAll("$1");
 		}
 
 		StringBuffer sb = new StringBuffer();
 
-		String replacement = "\\(" + stringIndexMaxLength + "\\)";
-
 		while (matcher.find()) {
-			int length = Integer.valueOf(matcher.group(1));
+			int length = Integer.valueOf(matcher.group(2));
 
 			if (length > stringIndexMaxLength) {
-				matcher.appendReplacement(sb, replacement);
+				matcher.appendReplacement(
+					sb,
+					limitColumnLength(matcher.group(1), stringIndexMaxLength));
 			}
 			else {
-				matcher.appendReplacement(sb, StringPool.BLANK);
+				matcher.appendReplacement(sb, matcher.group(1));
 			}
 		}
 
@@ -888,7 +1092,7 @@ public abstract class BaseDB implements DB {
 	private static final Log _log = LogFactoryUtil.getLog(BaseDB.class);
 
 	private static final Pattern _columnLengthPattern = Pattern.compile(
-		"\\[\\$COLUMN_LENGTH:(\\d+)\\$\\]");
+		"([^,(\\s]+)\\[\\$COLUMN_LENGTH:(\\d+)\\$\\]");
 	private static final Pattern _templatePattern;
 
 	static {
@@ -920,6 +1124,7 @@ public abstract class BaseDB implements DB {
 	private final int _majorVersion;
 	private final int _minorVersion;
 	private final Map<String, Integer> _sqlTypes = new HashMap<>();
+	private final Map<String, Integer> _sqlVarcharSizes = new HashMap<>();
 	private boolean _supportsStringCaseSensitiveQuery = true;
 	private final Map<String, String> _templates = new HashMap<>();
 

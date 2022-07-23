@@ -40,8 +40,6 @@ import com.liferay.portal.repository.capabilities.util.GroupServiceAdapter;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
 
-import java.util.concurrent.Callable;
-
 /**
  * @author Adolfo Pérez
  */
@@ -103,7 +101,7 @@ public class LiferaySyncCapability
 			_workflowUpdateFileEntryEventListener);
 	}
 
-	protected boolean isStagingGroup(long groupId) {
+	private boolean _isStagingGroup(long groupId) {
 		try {
 			Group group = _groupServiceAdapter.getGroup(groupId);
 
@@ -111,18 +109,18 @@ public class LiferaySyncCapability
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;
 		}
 	}
 
-	protected void registerDLSyncEventCallback(
+	private void _registerDLSyncEventCallback(
 		String event, FileEntry fileEntry) {
 
 		if (!CTCollectionThreadLocal.isProductionMode() ||
-			isStagingGroup(fileEntry.getGroupId()) ||
+			_isStagingGroup(fileEntry.getGroupId()) ||
 			!(fileEntry instanceof LiferayFileEntry)) {
 
 			return;
@@ -136,58 +134,53 @@ public class LiferaySyncCapability
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
-		registerDLSyncEventCallback(
+		_registerDLSyncEventCallback(
 			event, DLSyncConstants.TYPE_FILE, fileEntry.getFileEntryId());
 	}
 
-	protected void registerDLSyncEventCallback(String event, Folder folder) {
+	private void _registerDLSyncEventCallback(String event, Folder folder) {
 		if (!CTCollectionThreadLocal.isProductionMode() ||
-			isStagingGroup(folder.getGroupId()) ||
+			_isStagingGroup(folder.getGroupId()) ||
 			!(folder instanceof LiferayFolder)) {
 
 			return;
 		}
 
-		registerDLSyncEventCallback(
+		_registerDLSyncEventCallback(
 			event, DLSyncConstants.TYPE_FOLDER, folder.getFolderId());
 	}
 
-	protected void registerDLSyncEventCallback(
-		final String event, final String type, final long typePK) {
+	private void _registerDLSyncEventCallback(
+		String event, String type, long typePK) {
 
 		DLSyncEvent dlSyncEvent = _dlSyncEventLocalService.addDLSyncEvent(
 			event, type, typePK);
 
-		final long modifiedTime = dlSyncEvent.getModifiedTime();
+		long modifiedTime = dlSyncEvent.getModifiedTime();
 
 		TransactionCommitCallbackUtil.registerCallback(
-			new Callable<Void>() {
+			() -> {
+				Message message = new Message();
 
-				@Override
-				public Void call() throws Exception {
-					Message message = new Message();
+				message.setValues(
+					HashMapBuilder.<String, Object>put(
+						"event", event
+					).put(
+						"modifiedTime", modifiedTime
+					).put(
+						"type", type
+					).put(
+						"typePK", typePK
+					).build());
 
-					message.setValues(
-						HashMapBuilder.<String, Object>put(
-							"event", event
-						).put(
-							"modifiedTime", modifiedTime
-						).put(
-							"type", type
-						).put(
-							"typePK", typePK
-						).build());
+				_messageBus.sendMessage(
+					DestinationNames.DOCUMENT_LIBRARY_SYNC_EVENT_PROCESSOR,
+					message);
 
-					_messageBus.sendMessage(
-						DestinationNames.DOCUMENT_LIBRARY_SYNC_EVENT_PROCESSOR,
-						message);
-
-					return null;
-				}
-
+				return null;
 			});
 	}
 
@@ -261,7 +254,7 @@ public class LiferaySyncCapability
 
 		@Override
 		public void execute(FileEntry fileEntry) {
-			registerDLSyncEventCallback(_syncEvent, fileEntry);
+			_registerDLSyncEventCallback(_syncEvent, fileEntry);
 		}
 
 		private final String _syncEvent;
@@ -278,7 +271,7 @@ public class LiferaySyncCapability
 
 		@Override
 		public void execute(Folder folder) {
-			registerDLSyncEventCallback(_syncEvent, folder);
+			_registerDLSyncEventCallback(_syncEvent, folder);
 		}
 
 		private final String _syncEvent;

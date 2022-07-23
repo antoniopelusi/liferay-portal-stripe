@@ -59,12 +59,12 @@ public class UpdateFragmentEntryMVCActionCommand extends BaseMVCActionCommand {
 		String name = ParamUtil.getString(actionRequest, "name");
 
 		try {
-			FragmentEntry fragmentEntry =
-				_fragmentEntryService.updateFragmentEntry(
-					fragmentEntryId, name);
-
 			JSONObject jsonObject = JSONUtil.put(
-				"redirectURL", getRedirectURL(actionResponse, fragmentEntry));
+				"redirectURL",
+				getRedirectURL(
+					actionResponse,
+					_fragmentEntryService.updateFragmentEntry(
+						fragmentEntryId, name)));
 
 			if (SessionErrors.contains(actionRequest, "fragmentNameInvalid")) {
 				addSuccessMessage(actionRequest, actionResponse);

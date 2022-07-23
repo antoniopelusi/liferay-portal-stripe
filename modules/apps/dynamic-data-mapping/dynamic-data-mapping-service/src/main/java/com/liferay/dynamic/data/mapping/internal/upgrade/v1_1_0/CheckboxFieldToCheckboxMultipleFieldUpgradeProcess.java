@@ -65,68 +65,64 @@ public class CheckboxFieldToCheckboxMultipleFieldUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("select DDMStructure.definition, DDMStructure.version, ");
-		sb.append("DDMStructure.structureId, DDLRecordSet.recordSetId from ");
-		sb.append("DDLRecordSet inner join DDMStructure on ");
-		sb.append("DDLRecordSet.DDMStructureId = DDMStructure.structureId ");
-		sb.append("where DDLRecordSet.scope = ? and DDMStructure.definition ");
-		sb.append("like ?");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMStructure.definition, DDMStructure.version, ",
+					"DDMStructure.structureId, DDLRecordSet.recordSetId from ",
+					"DDLRecordSet inner join DDMStructure on ",
+					"DDLRecordSet.DDMStructureId = DDMStructure.structureId ",
+					"where DDLRecordSet.scope = ? and DDMStructure.definition ",
+					"like ?"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
 						"structureId = ?");
-			PreparedStatement ps3 =
+			PreparedStatement preparedStatement3 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureVersion set definition = ? where " +
 						"structureId = ? and version = ?")) {
 
-			ps1.setInt(1, _SCOPE_FORMS);
-			ps1.setString(2, "%checkbox%");
+			preparedStatement1.setInt(1, _SCOPE_FORMS);
+			preparedStatement1.setString(2, "%checkbox%");
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String definition = rs.getString(1);
-					String version = rs.getString(2);
-					long structureId = rs.getLong(3);
-					long recordSetId = rs.getLong(4);
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String definition = resultSet.getString(1);
+					String version = resultSet.getString(2);
+					long structureId = resultSet.getLong(3);
+					long recordSetId = resultSet.getLong(4);
 
-					String newDefinition = upgradeRecordSetStructureDefinition(
+					String newDefinition = _upgradeRecordSetStructureDefinition(
 						definition);
 
-					ps2.setString(1, newDefinition);
+					preparedStatement2.setString(1, newDefinition);
 
-					ps2.setLong(2, structureId);
+					preparedStatement2.setLong(2, structureId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 
-					ps3.setString(1, newDefinition);
-					ps3.setLong(2, structureId);
-					ps3.setString(3, version);
+					preparedStatement3.setString(1, newDefinition);
+					preparedStatement3.setLong(2, structureId);
+					preparedStatement3.setString(3, version);
 
-					ps3.addBatch();
+					preparedStatement3.addBatch();
 
-					updateRecords(
+					_updateRecords(
 						DDMFormDeserializeUtil.deserialize(
 							_ddmFormDeserializer, definition),
 						recordSetId);
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 
-				ps3.executeBatch();
+				preparedStatement3.executeBatch();
 			}
 		}
 	}
 
-	protected JSONArray getOptionsJSONArray(
-		JSONObject checkboxFieldJSONObject) {
-
+	private JSONArray _getOptionsJSONArray(JSONObject checkboxFieldJSONObject) {
 		return JSONUtil.putAll(
 			JSONUtil.put(
 				"label", checkboxFieldJSONObject.getJSONObject("label")
@@ -135,7 +131,7 @@ public class CheckboxFieldToCheckboxMultipleFieldUpgradeProcess
 			));
 	}
 
-	protected JSONObject getPredefinedValueJSONObject(
+	private JSONObject _getPredefinedValueJSONObject(
 		JSONObject checkboxFieldJSONObject) {
 
 		JSONObject oldPredefinedValueJSONObject =
@@ -165,22 +161,22 @@ public class CheckboxFieldToCheckboxMultipleFieldUpgradeProcess
 		return newPredefinedValueJSONObject;
 	}
 
-	protected void transformCheckboxDDMFormField(
+	private void _transformCheckboxDDMFormField(
 		JSONObject checkboxFieldJSONObject) {
 
 		checkboxFieldJSONObject.put(
 			"dataType", "string"
 		).put(
-			"options", getOptionsJSONArray(checkboxFieldJSONObject)
+			"options", _getOptionsJSONArray(checkboxFieldJSONObject)
 		).put(
 			"predefinedValue",
-			getPredefinedValueJSONObject(checkboxFieldJSONObject)
+			_getPredefinedValueJSONObject(checkboxFieldJSONObject)
 		).put(
 			"type", "checkbox_multiple"
 		);
 	}
 
-	protected void transformCheckboxDDMFormFieldValues(
+	private void _transformCheckboxDDMFormFieldValues(
 			DDMFormValues ddmFormValues)
 		throws Exception {
 
@@ -193,53 +189,51 @@ public class CheckboxFieldToCheckboxMultipleFieldUpgradeProcess
 		ddmFormValuesTransformer.transform();
 	}
 
-	protected void updateRecords(DDMForm ddmForm, long recordSetId)
+	private void _updateRecords(DDMForm ddmForm, long recordSetId)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("select DDLRecordVersion.DDMStorageId, DDMContent.data_ ");
-		sb.append("from DDLRecordVersion inner join DDLRecordSet on ");
-		sb.append("DDLRecordVersion.recordSetId = DDLRecordSet.recordSetId ");
-		sb.append("inner join DDMContent on DDLRecordVersion.DDMStorageId = ");
-		sb.append("DDMContent.contentId where DDLRecordSet.recordSetId = ? ");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDLRecordVersion.DDMStorageId, DDMContent.data_ ",
+					"from DDLRecordVersion inner join DDLRecordSet on ",
+					"DDLRecordVersion.recordSetId = DDLRecordSet.recordSetId ",
+					"inner join DDMContent on DDLRecordVersion.DDMStorageId = ",
+					"DDMContent.contentId where DDLRecordSet.recordSetId = ?"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMContent set data_ = ? where contentId = ? ")) {
 
-			ps1.setLong(1, recordSetId);
+			preparedStatement1.setLong(1, recordSetId);
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String data_ = rs.getString("data_");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String data_ = resultSet.getString("data_");
 
 					DDMFormValues ddmFormValues =
 						DDMFormValuesDeserializeUtil.deserialize(
 							data_, ddmForm, _ddmFormValuesDeserializer);
 
-					transformCheckboxDDMFormFieldValues(ddmFormValues);
+					_transformCheckboxDDMFormFieldValues(ddmFormValues);
 
-					ps2.setString(
+					preparedStatement2.setString(
 						1,
 						DDMFormValuesSerializeUtil.serialize(
 							ddmFormValues, _ddmFormValuesSerializer));
 
-					long contentId = rs.getLong("DDMStorageId");
+					long contentId = resultSet.getLong("DDMStorageId");
 
-					ps2.setLong(2, contentId);
+					preparedStatement2.setLong(2, contentId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}
 
-	protected String upgradeRecordSetStructureDefinition(String definition)
+	private String _upgradeRecordSetStructureDefinition(String definition)
 		throws JSONException {
 
 		JSONObject definitionJSONObject = _jsonFactory.createJSONObject(
@@ -247,26 +241,26 @@ public class CheckboxFieldToCheckboxMultipleFieldUpgradeProcess
 
 		JSONArray fieldsJSONArray = definitionJSONObject.getJSONArray("fields");
 
-		upgradeRecordSetStructureFields(fieldsJSONArray);
+		_upgradeRecordSetStructureFields(fieldsJSONArray);
 
 		return definitionJSONObject.toString();
 	}
 
-	protected void upgradeRecordSetStructureFields(JSONArray fieldsJSONArray) {
+	private void _upgradeRecordSetStructureFields(JSONArray fieldsJSONArray) {
 		for (int i = 0; i < fieldsJSONArray.length(); i++) {
 			JSONObject fieldJSONObject = fieldsJSONArray.getJSONObject(i);
 
 			String type = fieldJSONObject.getString("type");
 
 			if (type.equals("checkbox")) {
-				transformCheckboxDDMFormField(fieldJSONObject);
+				_transformCheckboxDDMFormField(fieldJSONObject);
 			}
 
 			JSONArray nestedFieldsJSONArray = fieldJSONObject.getJSONArray(
 				"nestedFields");
 
 			if (nestedFieldsJSONArray != null) {
-				upgradeRecordSetStructureFields(nestedFieldsJSONArray);
+				_upgradeRecordSetStructureFields(nestedFieldsJSONArray);
 			}
 		}
 	}

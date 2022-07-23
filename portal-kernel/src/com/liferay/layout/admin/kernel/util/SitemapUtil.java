@@ -35,21 +35,20 @@ public class SitemapUtil {
 		UnicodeProperties typeSettingsUnicodeProperties, Date modifiedDate,
 		String canonicalURL, Map<Locale, String> alternateURLs) {
 
-		getSitemap().addURLElement(
+		_sitemap.addURLElement(
 			element, url, typeSettingsUnicodeProperties, modifiedDate,
 			canonicalURL, alternateURLs);
 	}
 
 	public static String encodeXML(String input) {
-		return getSitemap().encodeXML(input);
+		return _sitemap.encodeXML(input);
 	}
 
 	public static Map<Locale, String> getAlternateURLs(
 			String canonicalURL, ThemeDisplay themeDisplay, Layout layout)
 		throws PortalException {
 
-		return getSitemap().getAlternateURLs(
-			canonicalURL, themeDisplay, layout);
+		return _sitemap.getAlternateURLs(canonicalURL, themeDisplay, layout);
 	}
 
 	public static Sitemap getSitemap() {
@@ -60,7 +59,7 @@ public class SitemapUtil {
 			long groupId, boolean privateLayout, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		return getSitemap().getSitemap(groupId, privateLayout, themeDisplay);
+		return _sitemap.getSitemap(groupId, privateLayout, themeDisplay);
 	}
 
 	public static String getSitemap(
@@ -68,7 +67,7 @@ public class SitemapUtil {
 			ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		return getSitemap().getSitemap(
+		return _sitemap.getSitemap(
 			layoutUuid, groupId, privateLayout, themeDisplay);
 	}
 

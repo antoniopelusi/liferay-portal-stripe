@@ -29,14 +29,8 @@ public class PortletDataHandlerControl {
 	public static String getNamespacedControlName(
 		String namespace, String controlName) {
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(StringPool.UNDERLINE);
-		sb.append(namespace);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(controlName);
-
-		return sb.toString();
+		return StringBundler.concat(
+			StringPool.UNDERLINE, namespace, StringPool.UNDERLINE, controlName);
 	}
 
 	public PortletDataHandlerControl(String namespace, String controlName) {

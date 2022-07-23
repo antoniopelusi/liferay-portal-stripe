@@ -99,15 +99,8 @@ public class CaptureHandler extends Handler implements Closeable {
 
 		@Override
 		public String toString() {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("{level=");
-			sb.append(getLevel());
-			sb.append(", message=");
-			sb.append(getMessage());
-			sb.append("}");
-
-			return sb.toString();
+			return StringBundler.concat(
+				"{level=", getLevel(), ", message=", getMessage(), "}");
 		}
 
 		private PrintableLogRecord(LogRecord logRecord) {

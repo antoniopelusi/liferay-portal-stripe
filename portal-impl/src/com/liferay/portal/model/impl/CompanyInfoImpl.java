@@ -36,7 +36,5 @@ public class CompanyInfoImpl extends CompanyInfoBaseImpl {
 	 * info model instance should use the {@link
 	 * com.liferay.portal.kernel.model.CompanyInfo} interface instead.
 	 */
-	public CompanyInfoImpl() {
-	}
 
 }

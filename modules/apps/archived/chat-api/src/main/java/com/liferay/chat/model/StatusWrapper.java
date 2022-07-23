@@ -103,6 +103,11 @@ public class StatusWrapper
 		}
 	}
 
+	@Override
+	public Status cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active panel IDs of this status.
 	 *

@@ -137,11 +137,9 @@ public class AnnotationFeature implements Feature {
 				throw new RuntimeException(sb.toString());
 			}
 
-			if (requiresNoScope != null) {
-				return true;
-			}
+			if ((requiresNoScope != null) ||
+				checkRequiresScope(requiresScope)) {
 
-			if (checkRequiresScope(requiresScope)) {
 				return true;
 			}
 
@@ -154,21 +152,16 @@ public class AnnotationFeature implements Feature {
 				resourceClass, RequiresScope.class);
 
 			if ((requiresNoScope != null) && (requiresScope != null)) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("Class ");
-				sb.append(resourceClass.getName());
-				sb.append("has both @RequiresNoScope and @RequiresScope ");
-				sb.append("annotations defined");
-
-				throw new RuntimeException(sb.toString());
+				throw new RuntimeException(
+					StringBundler.concat(
+						"Class ", resourceClass.getName(),
+						"has both @RequiresNoScope and @RequiresScope ",
+						"annotations defined"));
 			}
 
-			if (requiresNoScope != null) {
-				return true;
-			}
+			if ((requiresNoScope != null) ||
+				checkRequiresScope(requiresScope)) {
 
-			if (checkRequiresScope(requiresScope)) {
 				return true;
 			}
 

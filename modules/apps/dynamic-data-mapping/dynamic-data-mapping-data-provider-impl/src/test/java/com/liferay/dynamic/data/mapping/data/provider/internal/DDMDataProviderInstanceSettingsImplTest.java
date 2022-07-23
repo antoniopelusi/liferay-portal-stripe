@@ -99,7 +99,7 @@ public class DDMDataProviderInstanceSettingsImplTest extends PowerMockito {
 			"string value", testDataProviderInstanceSettings.prop1());
 		Assert.assertEquals(
 			Integer.valueOf(1), testDataProviderInstanceSettings.prop2());
-		Assert.assertEquals(true, testDataProviderInstanceSettings.prop3());
+		Assert.assertTrue(testDataProviderInstanceSettings.prop3());
 	}
 
 	@Test(expected = IllegalStateException.class)

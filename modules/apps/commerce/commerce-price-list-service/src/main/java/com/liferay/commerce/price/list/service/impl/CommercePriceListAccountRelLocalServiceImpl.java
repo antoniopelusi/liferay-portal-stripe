@@ -17,12 +17,16 @@ package com.liferay.commerce.price.list.service.impl;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.model.CommercePriceListAccountRel;
 import com.liferay.commerce.price.list.service.base.CommercePriceListAccountRelLocalServiceBaseImpl;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
 
@@ -35,11 +39,11 @@ public class CommercePriceListAccountRelLocalServiceImpl
 
 	@Override
 	public CommercePriceListAccountRel addCommercePriceListAccountRel(
-			long commercePriceListId, long commerceAccountId, int order,
-			ServiceContext serviceContext)
+			long userId, long commercePriceListId, long commerceAccountId,
+			int order, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = userLocalService.getUser(userId);
 
 		CommercePriceListAccountRel commercePriceListAccountRel =
 			commercePriceListAccountRelPersistence.create(
@@ -53,20 +57,20 @@ public class CommercePriceListAccountRelLocalServiceImpl
 		commercePriceListAccountRel.setOrder(order);
 		commercePriceListAccountRel.setExpandoBridgeAttributes(serviceContext);
 
-		// Commerce price list
+		commercePriceListAccountRel =
+			commercePriceListAccountRelPersistence.update(
+				commercePriceListAccountRel);
 
 		reindexCommercePriceList(commercePriceListId);
-
-		// Cache
 
 		commercePriceListLocalService.cleanPriceListCache(
 			serviceContext.getCompanyId());
 
-		return commercePriceListAccountRelPersistence.update(
-			commercePriceListAccountRel);
+		return commercePriceListAccountRel;
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceListAccountRel deleteCommercePriceListAccountRel(
 			CommercePriceListAccountRel commercePriceListAccountRel)
 		throws PortalException {
@@ -74,17 +78,11 @@ public class CommercePriceListAccountRelLocalServiceImpl
 		commercePriceListAccountRelPersistence.remove(
 			commercePriceListAccountRel);
 
-		// Expando
-
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			commercePriceListAccountRel.getCommercePriceListAccountRelId());
-
-		// Commerce price list
 
 		reindexCommercePriceList(
 			commercePriceListAccountRel.getCommercePriceListId());
-
-		// Cache
 
 		commercePriceListLocalService.cleanPriceListCache(
 			commercePriceListAccountRel.getCompanyId());
@@ -142,7 +140,7 @@ public class CommercePriceListAccountRelLocalServiceImpl
 	public CommercePriceListAccountRel fetchCommercePriceListAccountRel(
 		long commerceAccountId, long commercePriceListId) {
 
-		return commercePriceListAccountRelPersistence.fetchByC_C(
+		return commercePriceListAccountRelPersistence.fetchByCAI_CPI(
 			commerceAccountId, commercePriceListId);
 	}
 
@@ -193,5 +191,8 @@ public class CommercePriceListAccountRelLocalServiceImpl
 
 		indexer.reindex(CommercePriceList.class.getName(), commercePriceListId);
 	}
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
 
 }

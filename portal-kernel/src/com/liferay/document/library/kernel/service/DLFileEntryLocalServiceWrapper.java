@@ -30,6 +30,10 @@ public class DLFileEntryLocalServiceWrapper
 	implements DLFileEntryLocalService,
 			   ServiceWrapper<DLFileEntryLocalService> {
 
+	public DLFileEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLFileEntryLocalServiceWrapper(
 		DLFileEntryLocalService dlFileEntryLocalService) {
 
@@ -53,20 +57,23 @@ public class DLFileEntryLocalServiceWrapper
 
 	@Override
 	public DLFileEntry addFileEntry(
-			long userId, long groupId, long repositoryId, long folderId,
-			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, long fileEntryTypeId,
+			String externalReferenceCode, long userId, long groupId,
+			long repositoryId, long folderId, String sourceFileName,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, long fileEntryTypeId,
 			java.util.Map
 				<String, com.liferay.dynamic.data.mapping.kernel.DDMFormValues>
 					ddmFormValuesMap,
 			java.io.File file, java.io.InputStream inputStream, long size,
+			java.util.Date expirationDate, java.util.Date reviewDate,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryLocalService.addFileEntry(
-			userId, groupId, repositoryId, folderId, sourceFileName, mimeType,
-			title, description, changeLog, fileEntryTypeId, ddmFormValuesMap,
-			file, inputStream, size, serviceContext);
+			externalReferenceCode, userId, groupId, repositoryId, folderId,
+			sourceFileName, mimeType, title, urlTitle, description, changeLog,
+			fileEntryTypeId, ddmFormValuesMap, file, inputStream, size,
+			expirationDate, reviewDate, serviceContext);
 	}
 
 	@Override
@@ -75,6 +82,13 @@ public class DLFileEntryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryLocalService.cancelCheckOut(userId, fileEntryId);
+	}
+
+	@Override
+	public void checkFileEntries(long checkInterval)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_dlFileEntryLocalService.checkFileEntries(checkInterval);
 	}
 
 	@Override
@@ -316,6 +330,13 @@ public class DLFileEntryLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlFileEntryLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _dlFileEntryLocalService.dynamicQuery();
 	}
@@ -411,6 +432,33 @@ public class DLFileEntryLocalServiceWrapper
 	}
 
 	/**
+	 * Returns the document library file entry with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the document library file entry's external reference code
+	 * @return the matching document library file entry, or <code>null</code> if a matching document library file entry could not be found
+	 */
+	@Override
+	public DLFileEntry fetchDLFileEntryByExternalReferenceCode(
+		long groupId, String externalReferenceCode) {
+
+		return _dlFileEntryLocalService.fetchDLFileEntryByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchDLFileEntryByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Override
+	public DLFileEntry fetchDLFileEntryByReferenceCode(
+		long groupId, String externalReferenceCode) {
+
+		return _dlFileEntryLocalService.fetchDLFileEntryByReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
+	/**
 	 * Returns the document library file entry matching the UUID and group.
 	 *
 	 * @param uuid the document library file entry's UUID
@@ -441,6 +489,14 @@ public class DLFileEntryLocalServiceWrapper
 	@Override
 	public DLFileEntry fetchFileEntryByAnyImageId(long imageId) {
 		return _dlFileEntryLocalService.fetchFileEntryByAnyImageId(imageId);
+	}
+
+	@Override
+	public DLFileEntry fetchFileEntryByExternalReferenceCode(
+		long groupId, String externalReferenceCode) {
+
+		return _dlFileEntryLocalService.fetchFileEntryByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	@Override
@@ -555,6 +611,23 @@ public class DLFileEntryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryLocalService.getDLFileEntry(fileEntryId);
+	}
+
+	/**
+	 * Returns the document library file entry with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the document library file entry's external reference code
+	 * @return the matching document library file entry
+	 * @throws PortalException if a matching document library file entry could not be found
+	 */
+	@Override
+	public DLFileEntry getDLFileEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlFileEntryLocalService.getDLFileEntryByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	/**
@@ -734,6 +807,15 @@ public class DLFileEntryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryLocalService.getFileEntry(groupId, folderId, title);
+	}
+
+	@Override
+	public DLFileEntry getFileEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlFileEntryLocalService.getFileEntryByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	@Override
@@ -1004,7 +1086,8 @@ public class DLFileEntryLocalServiceWrapper
 	@Override
 	public DLFileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog,
 			com.liferay.document.library.kernel.model.DLVersionNumberIncrease
 				dlVersionNumberIncrease,
 			long fileEntryTypeId,
@@ -1012,13 +1095,15 @@ public class DLFileEntryLocalServiceWrapper
 				<String, com.liferay.dynamic.data.mapping.kernel.DDMFormValues>
 					ddmFormValuesMap,
 			java.io.File file, java.io.InputStream inputStream, long size,
+			java.util.Date expirationDate, java.util.Date reviewDate,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileEntryLocalService.updateFileEntry(
-			userId, fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, dlVersionNumberIncrease, fileEntryTypeId,
-			ddmFormValuesMap, file, inputStream, size, serviceContext);
+			userId, fileEntryId, sourceFileName, mimeType, title, urlTitle,
+			description, changeLog, dlVersionNumberIncrease, fileEntryTypeId,
+			ddmFormValuesMap, file, inputStream, size, expirationDate,
+			reviewDate, serviceContext);
 	}
 
 	@Override
@@ -1029,13 +1114,6 @@ public class DLFileEntryLocalServiceWrapper
 
 		return _dlFileEntryLocalService.updateFileEntryType(
 			userId, fileEntryId, fileEntryTypeId, serviceContext);
-	}
-
-	@Override
-	public void updateSmallImage(long smallImageId, long largeImageId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_dlFileEntryLocalService.updateSmallImage(smallImageId, largeImageId);
 	}
 
 	@Override

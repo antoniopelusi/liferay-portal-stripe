@@ -18,6 +18,7 @@ exports[`Field Checkbox Multiple has a helptext 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -44,6 +45,7 @@ exports[`Field Checkbox Multiple has a helptext 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -62,24 +64,29 @@ exports[`Field Checkbox Multiple has a helptext 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
       type="hidden"
       value="false"
     />
-    <span
+    <div
       aria-hidden="true"
-      class="form-text"
+      class="form-feedback-group lfr-de__field-feedback"
     >
-      Type something
-    </span>
+      <div>
+        Type something
+      </div>
+    </div>
     <span
       class="sr-only"
       id="undefined_fieldDetails"
     >
       Type something
-      <br />
     </span>
   </div>
 </div>
@@ -103,6 +110,7 @@ exports[`Field Checkbox Multiple has a key 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -129,6 +137,7 @@ exports[`Field Checkbox Multiple has a key 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -147,6 +156,10 @@ exports[`Field Checkbox Multiple has a key 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -164,7 +177,6 @@ exports[`Field Checkbox Multiple has a label 1`] = `
     class="form-group hide"
   >
     <label
-      aria-describedby="undefined_fieldDetails"
       class="ddm-label"
       tabindex="0"
     >
@@ -181,6 +193,7 @@ exports[`Field Checkbox Multiple has a label 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -207,6 +220,7 @@ exports[`Field Checkbox Multiple has a label 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -225,6 +239,10 @@ exports[`Field Checkbox Multiple has a label 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -254,6 +272,7 @@ exports[`Field Checkbox Multiple has a predefined Value 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -280,6 +299,7 @@ exports[`Field Checkbox Multiple has a predefined Value 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -298,6 +318,10 @@ exports[`Field Checkbox Multiple has a predefined Value 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -327,6 +351,7 @@ exports[`Field Checkbox Multiple has a spritemap 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -353,6 +378,7 @@ exports[`Field Checkbox Multiple has a spritemap 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -371,6 +397,10 @@ exports[`Field Checkbox Multiple has a spritemap 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -400,6 +430,7 @@ exports[`Field Checkbox Multiple has a value 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -426,6 +457,7 @@ exports[`Field Checkbox Multiple has a value 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -444,6 +476,10 @@ exports[`Field Checkbox Multiple has a value 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value="true"
+      />
     </div>
     <input
       name="undefined_edited"
@@ -458,7 +494,7 @@ exports[`Field Checkbox Multiple has a value 1`] = `
 exports[`Field Checkbox Multiple has an id 1`] = `
 <div>
   <div
-    aria-labelledby="undefined_fieldDetails"
+    aria-labelledby="ID_fieldDetails"
     class="form-group hide"
     tabindex="0"
   >
@@ -473,6 +509,7 @@ exports[`Field Checkbox Multiple has an id 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -499,6 +536,7 @@ exports[`Field Checkbox Multiple has an id 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -517,6 +555,10 @@ exports[`Field Checkbox Multiple has an id 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -547,6 +589,7 @@ exports[`Field Checkbox Multiple is not editable 1`] = `
           <input
             class="toggle-switch-check"
             disabled=""
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -574,6 +617,7 @@ exports[`Field Checkbox Multiple is not editable 1`] = `
           <input
             class="toggle-switch-check"
             disabled=""
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -592,6 +636,10 @@ exports[`Field Checkbox Multiple is not editable 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -621,6 +669,7 @@ exports[`Field Checkbox Multiple is not required 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -647,6 +696,7 @@ exports[`Field Checkbox Multiple is not required 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -665,6 +715,10 @@ exports[`Field Checkbox Multiple is not required 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -694,6 +748,7 @@ exports[`Field Checkbox Multiple is shown as a switcher 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -720,6 +775,7 @@ exports[`Field Checkbox Multiple is shown as a switcher 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -738,6 +794,10 @@ exports[`Field Checkbox Multiple is shown as a switcher 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -765,6 +825,7 @@ exports[`Field Checkbox Multiple is shown as checkbox 1`] = `
         <label>
           <input
             class="custom-control-input"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -785,6 +846,7 @@ exports[`Field Checkbox Multiple is shown as checkbox 1`] = `
         <label>
           <input
             class="custom-control-input"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -799,6 +861,10 @@ exports[`Field Checkbox Multiple is shown as checkbox 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"
@@ -816,7 +882,6 @@ exports[`Field Checkbox Multiple renders Label if showLabel is true 1`] = `
     class="form-group hide"
   >
     <label
-      aria-describedby="undefined_fieldDetails"
       class="ddm-label"
       tabindex="0"
     >
@@ -833,6 +898,7 @@ exports[`Field Checkbox Multiple renders Label if showLabel is true 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_0"
             type="checkbox"
             value="option1"
           />
@@ -859,6 +925,7 @@ exports[`Field Checkbox Multiple renders Label if showLabel is true 1`] = `
         >
           <input
             class="toggle-switch-check"
+            name="undefined_1"
             type="checkbox"
             value="option2"
           />
@@ -877,6 +944,10 @@ exports[`Field Checkbox Multiple renders Label if showLabel is true 1`] = `
           </span>
         </label>
       </div>
+      <input
+        type="hidden"
+        value=""
+      />
     </div>
     <input
       name="undefined_edited"

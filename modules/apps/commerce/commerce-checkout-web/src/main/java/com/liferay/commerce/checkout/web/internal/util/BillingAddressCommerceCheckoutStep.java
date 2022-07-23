@@ -14,26 +14,43 @@
 
 package com.liferay.commerce.checkout.web.internal.util;
 
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.service.AccountRoleLocalService;
+import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.account.service.CommerceAccountLocalService;
+import com.liferay.commerce.checkout.helper.CommerceCheckoutStepHttpHelper;
 import com.liferay.commerce.checkout.web.internal.display.context.BillingAddressCheckoutStepDisplayContext;
 import com.liferay.commerce.constants.CommerceAddressConstants;
 import com.liferay.commerce.constants.CommerceCheckoutWebKeys;
+import com.liferay.commerce.constants.CommerceOrderActionKeys;
+import com.liferay.commerce.constants.CommerceOrderConstants;
 import com.liferay.commerce.exception.CommerceAddressCityException;
 import com.liferay.commerce.exception.CommerceAddressCountryException;
 import com.liferay.commerce.exception.CommerceAddressNameException;
 import com.liferay.commerce.exception.CommerceAddressStreetException;
 import com.liferay.commerce.exception.CommerceAddressZipException;
 import com.liferay.commerce.exception.CommerceOrderBillingAddressException;
+import com.liferay.commerce.exception.CommerceOrderDefaultBillingAddressException;
 import com.liferay.commerce.exception.CommerceOrderShippingAddressException;
+import com.liferay.commerce.model.CommerceAddress;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.service.CommerceAddressService;
-import com.liferay.commerce.service.CommerceOrderLocalService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.util.BaseCommerceCheckoutStep;
 import com.liferay.commerce.util.CommerceCheckoutStep;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.WebKeys;
+
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -73,35 +90,72 @@ public class BillingAddressCommerceCheckoutStep
 			HttpServletResponse httpServletResponse)
 		throws Exception {
 
-		return _commerceCheckoutStepHelper.
-			isActiveBillingAddressCommerceCheckoutStep(httpServletRequest);
-	}
-
-	@Override
-	public boolean isVisible(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
-		throws Exception {
-
-		BillingAddressCheckoutStepDisplayContext
-			billingAddressCheckoutStepDisplayContext =
-				new BillingAddressCheckoutStepDisplayContext(
-					commerceAddressService, httpServletRequest);
-
 		CommerceOrder commerceOrder =
-			billingAddressCheckoutStepDisplayContext.getCommerceOrder();
+			(CommerceOrder)httpServletRequest.getAttribute(
+				CommerceCheckoutWebKeys.COMMERCE_ORDER);
 
-		if (commerceOrder == null) {
+		if (!commerceOrder.isOpen()) {
 			return false;
 		}
 
-		if (commerceOrder.getBillingAddressId() ==
-				commerceOrder.getShippingAddressId()) {
+		boolean activeBillingAddressCommerceCheckoutStep =
+			_commerceCheckoutStepHttpHelper.
+				isActiveBillingAddressCommerceCheckoutStep(
+					httpServletRequest, commerceOrder);
+
+		CommerceAccount commerceAccount = commerceOrder.getCommerceAccount();
+
+		if (!commerceOrder.isGuestOrder() &&
+			!commerceAccount.isPersonalAccount()) {
+
+			if ((commerceAccount.getDefaultBillingAddressId() <= 0) &&
+				(commerceOrder.getBillingAddressId() <= 0)) {
+
+				if (_hasViewBillingAddressPermission(
+						httpServletRequest, commerceAccount)) {
+
+					return true;
+				}
+
+				List<CommerceAddress> accountBillingCommerceAddresses =
+					commerceAddressService.getBillingCommerceAddresses(
+						commerceAccount.getCompanyId(),
+						AccountEntry.class.getName(),
+						commerceAccount.getCommerceAccountId());
+
+				if (accountBillingCommerceAddresses.isEmpty()) {
+					return true;
+				}
+
+				CommerceAddress commerceAddress =
+					accountBillingCommerceAddresses.get(0);
+
+				commerceOrderService.updateBillingAddress(
+					commerceOrder.getCommerceOrderId(),
+					commerceAddress.getCommerceAddressId());
+
+				return false;
+			}
+
+			if ((commerceAccount.getDefaultBillingAddressId() > 0) &&
+				(commerceAccount.getDefaultBillingAddressId() !=
+					commerceOrder.getBillingAddressId())) {
+
+				commerceOrderService.updateBillingAddress(
+					commerceOrder.getCommerceOrderId(),
+					commerceAccount.getDefaultBillingAddressId());
+			}
+
+			if (_hasViewBillingAddressPermission(
+					httpServletRequest, commerceAccount)) {
+
+				return activeBillingAddressCommerceCheckoutStep;
+			}
 
 			return false;
 		}
 
-		return true;
+		return activeBillingAddressCommerceCheckoutStep;
 	}
 
 	@Override
@@ -148,15 +202,47 @@ public class BillingAddressCommerceCheckoutStep
 		BillingAddressCheckoutStepDisplayContext
 			billingAddressCheckoutStepDisplayContext =
 				new BillingAddressCheckoutStepDisplayContext(
-					commerceAddressService, httpServletRequest);
+					accountRoleLocalService,
+					_accountEntryModelResourcePermission,
+					commerceAddressService, httpServletRequest,
+					_portletResourcePermission);
 
 		CommerceOrder commerceOrder =
 			billingAddressCheckoutStepDisplayContext.getCommerceOrder();
 
+		CommerceAccount commerceAccount = commerceOrder.getCommerceAccount();
+
+		List<CommerceAddress> accountBillingCommerceAddresses =
+			commerceAddressService.getBillingCommerceAddresses(
+				commerceAccount.getCompanyId(), AccountEntry.class.getName(),
+				commerceAccount.getCommerceAccountId());
+
+		if (!commerceOrder.isGuestOrder() &&
+			!commerceAccount.isPersonalAccount() &&
+			(commerceAccount.getDefaultBillingAddressId() <= 0) &&
+			(commerceOrder.getBillingAddressId() <= 0) &&
+			!_hasViewBillingAddressPermission(
+				httpServletRequest, commerceAccount) &&
+			accountBillingCommerceAddresses.isEmpty()) {
+
+			httpServletRequest.setAttribute(
+				CommerceCheckoutWebKeys.SHOW_ERROR_NO_BILLING_ADDRESS,
+				Boolean.TRUE);
+
+			SessionMessages.add(
+				httpServletRequest,
+				_portal.getPortletId(httpServletRequest) +
+					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_ERROR_MESSAGE);
+
+			SessionErrors.add(
+				httpServletRequest,
+				CommerceOrderDefaultBillingAddressException.class);
+		}
+
 		if (!commerceOrder.isOpen()) {
 			httpServletRequest.setAttribute(
 				CommerceCheckoutWebKeys.COMMERCE_CHECKOUT_STEP_ORDER_DETAIL_URL,
-				_commerceCheckoutStepHelper.getOrderDetailURL(
+				_commerceCheckoutStepHttpHelper.getOrderDetailURL(
 					httpServletRequest, commerceOrder));
 
 			jspRenderer.renderJSP(
@@ -182,6 +268,31 @@ public class BillingAddressCommerceCheckoutStep
 			(CommerceOrder)httpServletRequest.getAttribute(
 				CommerceCheckoutWebKeys.COMMERCE_ORDER);
 
+		try {
+			CommerceAccount commerceAccount =
+				commerceOrder.getCommerceAccount();
+
+			List<CommerceAddress> accountBillingCommerceAddresses =
+				commerceAddressService.getBillingCommerceAddresses(
+					commerceAccount.getCompanyId(),
+					AccountEntry.class.getName(),
+					commerceAccount.getCommerceAccountId());
+
+			if (!commerceOrder.isGuestOrder() &&
+				!commerceAccount.isPersonalAccount() &&
+				(commerceAccount.getDefaultBillingAddressId() <= 0) &&
+				(commerceOrder.getBillingAddressId() <= 0) &&
+				!_hasViewBillingAddressPermission(
+					httpServletRequest, commerceAccount) &&
+				accountBillingCommerceAddresses.isEmpty()) {
+
+				return false;
+			}
+		}
+		catch (Exception exception) {
+			return false;
+		}
+
 		if (!commerceOrder.isOpen()) {
 			return false;
 		}
@@ -190,13 +301,13 @@ public class BillingAddressCommerceCheckoutStep
 	}
 
 	@Reference
+	protected AccountRoleLocalService accountRoleLocalService;
+
+	@Reference
 	protected CommerceAccountLocalService commerceAccountLocalService;
 
 	@Reference
 	protected CommerceAddressService commerceAddressService;
-
-	@Reference
-	protected CommerceOrderLocalService commerceOrderLocalService;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.commerce.model.CommerceOrder)"
@@ -210,7 +321,42 @@ public class BillingAddressCommerceCheckoutStep
 	@Reference
 	protected JSPRenderer jspRenderer;
 
+	private PermissionChecker _getPermissionChecker(
+		HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return PermissionCheckerFactoryUtil.create(themeDisplay.getUser());
+	}
+
+	private boolean _hasViewBillingAddressPermission(
+			HttpServletRequest httpServletRequest,
+			CommerceAccount commerceAccount)
+		throws PortalException {
+
+		return _portletResourcePermission.contains(
+			_getPermissionChecker(httpServletRequest),
+			commerceAccount.getCommerceAccountGroup(),
+			CommerceOrderActionKeys.VIEW_BILLING_ADDRESS);
+	}
+
+	@Reference(
+		target = "(model.class.name=com.liferay.account.model.AccountEntry)"
+	)
+	private ModelResourcePermission<AccountEntry>
+		_accountEntryModelResourcePermission;
+
 	@Reference
-	private CommerceCheckoutStepHelper _commerceCheckoutStepHelper;
+	private CommerceCheckoutStepHttpHelper _commerceCheckoutStepHttpHelper;
+
+	@Reference
+	private Portal _portal;
+
+	@Reference(
+		target = "(resource.name=" + CommerceOrderConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission _portletResourcePermission;
 
 }

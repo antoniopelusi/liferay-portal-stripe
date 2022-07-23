@@ -1,0 +1,830 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Grid can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Form.save();
+
+		Click(locator1 = "Icon#BACK");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_fieldLabel = "Grid",
+			locator1 = "FormFields#LABEL");
+	}
+
+	@description = "Verify that a Grid can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid",
+			formPageNumber = "0");
+
+		FormViewBuilder.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		FormViewBuilder.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Grid");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Grid");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Grid");
+	}
+
+	@description = "Verify that a Grid can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Click(
+			key_name = "Grid",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option 2",
+			rowNumber = "1");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Help Text Test");
+
+		FormFields.duplicateField();
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Grid");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Copy of Grid");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionColumnsName(
+			fieldTitle = "Grid",
+			optionName = "Option 2",
+			rowNumber = "1");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Copy of Grid",
+			optionName = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionColumnsName(
+			fieldTitle = "Copy of Grid",
+			optionName = "Option 2",
+			rowNumber = "1");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Grid",
+			fieldValue = "Help Text Test");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Copy of Grid",
+			fieldValue = "Help Text Test");
+	}
+
+	@description = "Verify that a Grid can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormViewBuilder.clickFieldLabel(fieldLabel = "Grid");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Grid",
+			label = "Test Grid");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Grid");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Grid");
+
+		FormViewBuilder.validateNoFieldLabel(fieldLabel = "Grid");
+	}
+
+	@description = "LPS-78697 - Verify that a Grid that has been translated can be edited"
+	@priority = "4"
+	test CanBeEditedAfterTranslation {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormsGridField#CanBeEditedAfterTranslation";
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Form.editFieldLabelMetal(fieldValue = "Grid Field Translated");
+
+		for (var optionNumber : list "1,2,3,4") {
+			FormFields.editGridOptions(
+				gridField = "Rows",
+				optionValue = "Row ${optionNumber}",
+				rowNumber = "${optionNumber}");
+
+			FormFields.editGridOptions(
+				gridField = "Columns",
+				optionValue = "Column ${optionNumber}",
+				rowNumber = "${optionNumber}");
+		}
+
+		Form.closeSidebar();
+
+		Form.addTranslation(localizedLanguage = "Japanese (Japan)");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Grid Field Translated");
+
+		for (var optionNumber : list "1,2,3,4") {
+			FormFields.editGridOptions(
+				gridField = "Rows",
+				optionValue = "日本語 Row ${optionNumber}",
+				rowNumber = "${optionNumber}");
+
+			FormFields.editGridOptions(
+				gridField = "Columns",
+				optionValue = "日本語 Column ${optionNumber}",
+				rowNumber = "${optionNumber}");
+		}
+
+		Form.addTranslation(localizedLanguage = "Portuguese (Brazil)");
+
+		for (var optionNumber : list "1,2,3,4") {
+			FormFields.editGridOptions(
+				gridField = "Rows",
+				optionValue = "Português Row ${optionNumber}",
+				rowNumber = "${optionNumber}");
+
+			FormFields.editGridOptions(
+				gridField = "Columns",
+				optionValue = "Português Column ${optionNumber}",
+				rowNumber = "${optionNumber}");
+		}
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Grid Field Translated");
+
+		FormFields.deleteGridOptionsRow(
+			gridField = "Rows",
+			rowNumber = "2");
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Grid Field Translated");
+
+		FormFields.moveGridOptionsRow(
+			gridField = "Rows",
+			rowNumberEnd = "1",
+			rowNumberStart = "3");
+
+		FormFields.moveGridOptionsRow(
+			gridField = "Columns",
+			rowNumberEnd = "2",
+			rowNumberStart = "4");
+
+		FormFields.deleteGridOptionsRow(
+			gridField = "Columns",
+			rowNumber = "1");
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName();
+
+		Form.selectTranslation(localizedLanguage = "Japanese (Japan)");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Grid Field Translated");
+
+		for (var optionNumber : list "1:4,2:1,3:3") {
+			var fieldOptionNumber = StringUtil.extractLast("${optionNumber}", ":");
+			var rowNumber = StringUtil.extractFirst("${optionNumber}", ":");
+
+			FormFields.viewGridOptionsFieldValue(
+				fieldValue = "日本語 Row ${fieldOptionNumber}",
+				gridField = "Rows",
+				rowNumber = "${rowNumber}");
+		}
+
+		for (var optionNumber : list "1:4,2:2,3:3") {
+			var fieldOptionNumber = StringUtil.extractLast("${optionNumber}", ":");
+			var rowNumber = StringUtil.extractFirst("${optionNumber}", ":");
+
+			FormFields.viewGridOptionsFieldValue(
+				fieldValue = "日本語 Column ${fieldOptionNumber}",
+				gridField = "Columns",
+				rowNumber = "${rowNumber}");
+		}
+
+		Form.selectTranslation(localizedLanguage = "Portuguese (Brazil)");
+
+		for (var optionNumber : list "1:4,2:1,3:3") {
+			var fieldOptionNumber = StringUtil.extractLast("${optionNumber}", ":");
+			var rowNumber = StringUtil.extractFirst("${optionNumber}", ":");
+
+			FormFields.viewGridOptionsFieldValue(
+				fieldValue = "Português Row ${fieldOptionNumber}",
+				gridField = "Rows",
+				rowNumber = "${rowNumber}");
+		}
+
+		for (var optionNumber : list "1:4,2:2,3:3") {
+			var fieldOptionNumber = StringUtil.extractLast("${optionNumber}", ":");
+			var rowNumber = StringUtil.extractFirst("${optionNumber}", ":");
+
+			FormFields.viewGridOptionsFieldValue(
+				fieldValue = "Português Column ${fieldOptionNumber}",
+				gridField = "Columns",
+				rowNumber = "${rowNumber}");
+		}
+	}
+
+	@description = "Verify that a Grid can be required"
+	@priority = "5"
+	test CanBeRequired {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid",
+			formPageNumber = "0");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option 3",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option 4",
+			rowNumber = "2");
+
+		FormFields.enableSwitch(fieldName = "Required Field");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabelRequired(fieldLabel = "Grid");
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormPortlet.submitWithValidationError(validationErrorMessage = "This field is required.");
+
+		FormFields.selectGridRadioOptionWithoutCategory(
+			fieldName = "",
+			optionColumnNumber = "3",
+			optionRowNumber = "1");
+
+		FormFields.selectGridRadioOptionWithoutCategory(
+			fieldName = "",
+			optionColumnNumber = "4",
+			optionRowNumber = "2");
+
+		FormPortlet.submitSuccessfully();
+	}
+
+	@description = "Verify that a Form can be submitted with the Grid Field"
+	@priority = "5"
+	test CanBeSubmitted {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid",
+			formPageNumber = "0");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option 3",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option 4",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewTextLabel(fieldLabel = "Grid");
+
+		FormFields.selectGridRadioOptionWithoutCategory(
+			fieldName = "",
+			optionColumnNumber = "3",
+			optionRowNumber = "1");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdminNavigator.gotoView();
+
+		FormFields.viewTextLabel(fieldLabel = "Grid");
+
+		FormFields.assertGridOptionChecked(
+			columnValue = "Option 3",
+			rowValue = "Option 1");
+	}
+
+	@description = "Verify that edits to the Field can be canceled"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ChangesCanBeCanceled {
+		property portal.acceptance = "false";
+
+		// TODO LPS-132458 ChangesCanBeCanceled pending implementation
+
+	}
+
+	@description = "Verify that an option's Field References can be edited"
+	@priority = "5"
+	test FieldReferencesOfOptionsCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Grid");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option 2",
+			rowNumber = "1");
+
+		FormFields.editOptionsRowValueOrFieldReference(
+			fieldReference = "Option1234",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Grid");
+
+		FormFields.viewOptionsRowFieldValueOrFieldReference(
+			fieldReference = "Option1234",
+			fieldValue = "Option 1",
+			rowNumber = "1");
+	}
+
+	@description = "Verify that a help text can be added"
+	@priority = "5"
+	test HelpTextCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option 2",
+			rowNumber = "1");
+
+		FormFields.editHelpText(
+			fieldHelpText = "Grid Help Text",
+			fieldName = "tip",
+			key_fieldLabel = "");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Grid Help Text",
+			fieldName = "Grid");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Grid Help Text",
+			fieldName = "Grid");
+
+		FormFields.selectGridRadioOptionWithoutCategory(
+			fieldName = "",
+			optionColumnNumber = "2",
+			optionRowNumber = "1");
+
+		FormPortlet.submit();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Veriy that the Field Label can be edited"
+	@priority = "5"
+	test LabelCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid",
+			formPageNumber = "0");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Grid");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewRadioLabel(
+			fieldLabel = "Test Grid",
+			fieldName = "Test Grid");
+	}
+
+	@description = "Verify that the Field Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.clickShowLabel();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Grid");
+	}
+
+	@description = "Verify that options can be added"
+	@priority = "5"
+	test OptionsCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Form.save();
+
+		Click(
+			key_name = "Grid",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1 & Option 2",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option A & Option B",
+			rowNumber = "1");
+
+		Form.save();
+
+		Click(locator1 = "Icon#BACK");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		Click(
+			key_name = "Grid",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		FormFields.viewGridOptionsFieldValue(
+			fieldValue = "Option 1 & Option 2",
+			gridField = "Rows");
+
+		FormFields.viewGridOptionsFieldValue(
+			fieldValue = "Option A & Option B",
+			gridField = "Columns");
+	}
+
+	@description = "Verify that option can be deleted"
+	@priority = "5"
+	test OptionsCanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option A",
+			rowNumber = "1");
+
+		FormFields.deleteGridOptionsRow(
+			gridField = "Rows",
+			rowNumber = "1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewOptionRowNameNotPresent(
+			fieldName = "Grid",
+			optionName = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Option 2",
+			rowNumber = "1");
+
+		FormFields.viewOptionColumnsName(
+			fieldTitle = "Grid",
+			optionName = "Option A",
+			rowNumber = "1");
+	}
+
+	@description = "Verify that options can be rearranged"
+	@priority = "5"
+	test OptionsCanBeRearranged {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Option A",
+			rowNumber = "1");
+
+		FormFields.moveOptionsRow(
+			rowNumberEnd = "1",
+			rowNumberStart = "2");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Option 2",
+			rowNumber = "1");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Option 1",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Option 2",
+			rowNumber = "1");
+	}
+
+	@description = "Verify that the Field Reference can be edited"
+	@priority = "5"
+	test ReferenceCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Grid");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "Grid1234");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldReference(
+			fieldName = "Grid",
+			key_fieldReferenceValue = "Grid1234");
+	}
+
+	@description = "Verify that the Field Type can be changed"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test TypeCanBeChanged {
+		property portal.acceptance = "false";
+
+		// TODO LPS-132457 TypeCanBeChanged pending implementation
+
+	}
+
+}

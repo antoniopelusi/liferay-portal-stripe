@@ -18,6 +18,7 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.workflow.kaleo.definition.AddressRecipient;
@@ -28,14 +29,15 @@ import com.liferay.portal.workflow.kaleo.definition.RoleRecipient;
 import com.liferay.portal.workflow.kaleo.definition.ScriptLanguage;
 import com.liferay.portal.workflow.kaleo.definition.ScriptRecipient;
 import com.liferay.portal.workflow.kaleo.definition.UserRecipient;
+import com.liferay.portal.workflow.kaleo.internal.util.RoleUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoNotificationRecipient;
-import com.liferay.portal.workflow.kaleo.runtime.util.RoleUtil;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoNotificationRecipientLocalServiceBaseImpl;
 
 import java.util.Date;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Brian Wing Shun Chan
@@ -55,7 +57,7 @@ public class KaleoNotificationRecipientLocalServiceImpl
 		throws PortalException {
 
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoNotificationRecipientId = counterLocalService.increment();
 
@@ -66,8 +68,8 @@ public class KaleoNotificationRecipientLocalServiceImpl
 		kaleoNotificationRecipient.setCompanyId(user.getCompanyId());
 		kaleoNotificationRecipient.setUserId(user.getUserId());
 		kaleoNotificationRecipient.setUserName(user.getFullName());
-		kaleoNotificationRecipient.setCreateDate(now);
-		kaleoNotificationRecipient.setModifiedDate(now);
+		kaleoNotificationRecipient.setCreateDate(date);
+		kaleoNotificationRecipient.setModifiedDate(date);
 		kaleoNotificationRecipient.setKaleoDefinitionId(kaleoDefinitionId);
 		kaleoNotificationRecipient.setKaleoDefinitionVersionId(
 			kaleoDefinitionVersionId);
@@ -137,7 +139,7 @@ public class KaleoNotificationRecipientLocalServiceImpl
 					roleRecipient.isAutoCreate(), serviceContext);
 			}
 			else {
-				role = roleLocalService.getRole(roleRecipient.getRoleId());
+				role = _roleLocalService.getRole(roleRecipient.getRoleId());
 
 				roleType = role.getType();
 			}
@@ -184,5 +186,8 @@ public class KaleoNotificationRecipientLocalServiceImpl
 			}
 		}
 	}
+
+	@Reference
+	private RoleLocalService _roleLocalService;
 
 }

@@ -14,18 +14,16 @@
 
 package com.liferay.portal.search.elasticsearch7.internal.query;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.search.elasticsearch7.internal.geolocation.ElasticsearchShapeTranslator;
 import com.liferay.portal.search.geolocation.Shape;
 import com.liferay.portal.search.query.GeoShapeQuery;
 import com.liferay.portal.search.query.geolocation.ShapeRelation;
 import com.liferay.portal.search.query.geolocation.SpatialStrategy;
 
-import java.io.IOException;
-
 import org.elasticsearch.index.query.GeoShapeQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.legacygeo.builders.ShapeBuilder;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -37,7 +35,7 @@ public class GeoShapeQueryTranslatorImpl implements GeoShapeQueryTranslator {
 
 	@Override
 	public QueryBuilder translate(GeoShapeQuery geoShapeQuery) {
-		GeoShapeQueryBuilder geoShapeQueryBuilder = translateQuery(
+		GeoShapeQueryBuilder geoShapeQueryBuilder = _translateQuery(
 			geoShapeQuery);
 
 		if (geoShapeQuery.getIgnoreUnmapped() != null) {
@@ -96,7 +94,7 @@ public class GeoShapeQueryTranslatorImpl implements GeoShapeQueryTranslator {
 			"Invalid SpatialStrategy: " + spatialStrategy);
 	}
 
-	protected GeoShapeQueryBuilder translateQuery(GeoShapeQuery geoShapeQuery) {
+	private GeoShapeQueryBuilder _translateQuery(GeoShapeQuery geoShapeQuery) {
 		if (geoShapeQuery.getIndexedShapeId() != null) {
 			GeoShapeQueryBuilder geoShapeQueryBuilder =
 				QueryBuilders.geoShapeQuery(
@@ -121,16 +119,12 @@ public class GeoShapeQueryTranslatorImpl implements GeoShapeQueryTranslator {
 			return geoShapeQueryBuilder;
 		}
 
-		try {
-			Shape shape = geoShapeQuery.getShape();
+		Shape shape = geoShapeQuery.getShape();
 
-			return QueryBuilders.geoShapeQuery(
-				geoShapeQuery.getField(),
-				shape.accept(_elasticsearchShapeTranslator));
-		}
-		catch (IOException ioException) {
-			throw new SystemException(ioException);
-		}
+		ShapeBuilder shapeBuilder = shape.accept(_elasticsearchShapeTranslator);
+
+		return new GeoShapeQueryBuilder(
+			geoShapeQuery.getField(), shapeBuilder.buildGeometry());
 	}
 
 	private final ElasticsearchShapeTranslator _elasticsearchShapeTranslator =

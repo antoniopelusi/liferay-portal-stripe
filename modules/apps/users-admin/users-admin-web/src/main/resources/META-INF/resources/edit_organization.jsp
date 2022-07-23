@@ -31,7 +31,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	liferayPortletResponse
 ).setMVCRenderCommandName(
 	"/users_admin/edit_organization"
-).build();
+).buildPortletURL();
 
 if (Validator.isNotNull(redirect)) {
 	portletURL.setParameter("redirect", redirect);

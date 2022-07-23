@@ -16,7 +16,6 @@ package com.liferay.commerce.account.model.impl;
 
 import com.liferay.commerce.account.model.CommerceAccountGroup;
 import com.liferay.commerce.account.model.CommerceAccountGroupModel;
-import com.liferay.commerce.account.model.CommerceAccountGroupSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -31,20 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -165,62 +163,6 @@ public class CommerceAccountGroupModelImpl
 	@Deprecated
 	public static final long NAME_COLUMN_BITMASK = 16L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CommerceAccountGroup toModel(
-		CommerceAccountGroupSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		CommerceAccountGroup model = new CommerceAccountGroupImpl();
-
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setCommerceAccountGroupId(soapModel.getCommerceAccountGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setType(soapModel.getType());
-		model.setSystem(soapModel.isSystem());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CommerceAccountGroup> toModels(
-		CommerceAccountGroupSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CommerceAccountGroup> models = new ArrayList<CommerceAccountGroup>(
-			soapModels.length);
-
-		for (CommerceAccountGroupSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.account.service.util.ServiceProps.get(
 			"lock.expiration.time.com.liferay.commerce.account.model.CommerceAccountGroup"));
@@ -308,34 +250,6 @@ public class CommerceAccountGroupModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CommerceAccountGroup>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommerceAccountGroup.class.getClassLoader(),
-			CommerceAccountGroup.class, ModelWrapper.class);
-
-		try {
-			Constructor<CommerceAccountGroup> constructor =
-				(Constructor<CommerceAccountGroup>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CommerceAccountGroup, Object>>
@@ -727,6 +641,35 @@ public class CommerceAccountGroupModelImpl
 	}
 
 	@Override
+	public CommerceAccountGroup cloneWithOriginalValues() {
+		CommerceAccountGroupImpl commerceAccountGroupImpl =
+			new CommerceAccountGroupImpl();
+
+		commerceAccountGroupImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		commerceAccountGroupImpl.setCommerceAccountGroupId(
+			this.<Long>getColumnOriginalValue("commerceAccountGroupId"));
+		commerceAccountGroupImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commerceAccountGroupImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commerceAccountGroupImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commerceAccountGroupImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commerceAccountGroupImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commerceAccountGroupImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		commerceAccountGroupImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		commerceAccountGroupImpl.setSystem(
+			this.<Boolean>getColumnOriginalValue("system_"));
+
+		return commerceAccountGroupImpl;
+	}
+
+	@Override
 	public int compareTo(CommerceAccountGroup commerceAccountGroup) {
 		int value = 0;
 
@@ -866,7 +809,7 @@ public class CommerceAccountGroupModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -877,10 +820,27 @@ public class CommerceAccountGroupModelImpl
 			Function<CommerceAccountGroup, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((CommerceAccountGroup)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CommerceAccountGroup)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -928,7 +888,9 @@ public class CommerceAccountGroupModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CommerceAccountGroup>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CommerceAccountGroup.class, ModelWrapper.class);
 
 	}
 

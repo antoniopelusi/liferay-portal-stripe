@@ -14,7 +14,6 @@
 
 package com.liferay.portal.scheduler.quartz.internal;
 
-import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.cluster.ClusterExecutor;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -93,9 +92,9 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			groupName = fixMaxLength(
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			Set<JobKey> jobKeys = scheduler.getJobKeys(
@@ -117,10 +116,10 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			jobName = fixMaxLength(jobName, _jobNameMaxLength, storageType);
-			groupName = fixMaxLength(
+			jobName = _fixMaxLength(jobName, _jobNameMaxLength, storageType);
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			JobKey jobKey = new JobKey(jobName, groupName);
@@ -154,10 +153,10 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			jobName = fixMaxLength(jobName, _jobNameMaxLength, storageType);
-			groupName = fixMaxLength(
+			jobName = _fixMaxLength(jobName, _jobNameMaxLength, storageType);
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			JobKey jobKey = new JobKey(jobName, groupName);
@@ -206,7 +205,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
 			List<String> groupNames = scheduler.getJobGroupNames();
 
@@ -232,7 +231,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 
 		try {
 			return getScheduledJobs(
-				getScheduler(storageType), groupName, storageType);
+				_getScheduler(storageType), groupName, storageType);
 		}
 		catch (Exception exception) {
 			throw new SchedulerException(
@@ -245,9 +244,9 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			groupName = fixMaxLength(
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			Set<JobKey> jobKeys = scheduler.getJobKeys(
@@ -256,7 +255,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 			scheduler.pauseJobs(GroupMatcher.jobGroupEquals(groupName));
 
 			for (JobKey jobKey : jobKeys) {
-				updateJobState(scheduler, jobKey, TriggerState.PAUSED, false);
+				_updateJobState(scheduler, jobKey, TriggerState.PAUSED, false);
 			}
 		}
 		catch (Exception exception) {
@@ -270,17 +269,17 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			jobName = fixMaxLength(jobName, _jobNameMaxLength, storageType);
-			groupName = fixMaxLength(
+			jobName = _fixMaxLength(jobName, _jobNameMaxLength, storageType);
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			JobKey jobKey = new JobKey(jobName, groupName);
 
 			scheduler.pauseJob(jobKey);
 
-			updateJobState(scheduler, jobKey, TriggerState.PAUSED, false);
+			_updateJobState(scheduler, jobKey, TriggerState.PAUSED, false);
 		}
 		catch (Exception exception) {
 			throw new SchedulerException(
@@ -296,9 +295,9 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			groupName = fixMaxLength(
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			Set<JobKey> jobKeys = scheduler.getJobKeys(
@@ -307,7 +306,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 			scheduler.resumeJobs(GroupMatcher.jobGroupEquals(groupName));
 
 			for (JobKey jobKey : jobKeys) {
-				updateJobState(scheduler, jobKey, TriggerState.NORMAL, false);
+				_updateJobState(scheduler, jobKey, TriggerState.NORMAL, false);
 			}
 		}
 		catch (Exception exception) {
@@ -322,17 +321,17 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			jobName = fixMaxLength(jobName, _jobNameMaxLength, storageType);
-			groupName = fixMaxLength(
+			jobName = _fixMaxLength(jobName, _jobNameMaxLength, storageType);
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			JobKey jobKey = new JobKey(jobName, groupName);
 
 			scheduler.resumeJob(jobKey);
 
-			updateJobState(scheduler, jobKey, TriggerState.NORMAL, false);
+			_updateJobState(scheduler, jobKey, TriggerState.NORMAL, false);
 		}
 		catch (Exception exception) {
 			throw new SchedulerException(
@@ -357,9 +356,9 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 				return;
 			}
 
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			description = fixMaxLength(
+			description = _fixMaxLength(
 				description, _descriptionMaxLength, storageType);
 
 			message = message.clone();
@@ -381,7 +380,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 
 					if (className.contains(ServerDetector.class.getName())) {
 						if (_log.isInfoEnabled()) {
-							_log.info(runtimeException, runtimeException);
+							_log.info(runtimeException);
 						}
 
 						return;
@@ -439,15 +438,15 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			jobName = fixMaxLength(jobName, _jobNameMaxLength, storageType);
-			groupName = fixMaxLength(
+			jobName = _fixMaxLength(jobName, _jobNameMaxLength, storageType);
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			JobKey jobKey = new JobKey(jobName, groupName);
 
-			updateJobState(scheduler, jobKey, null, true);
+			_updateJobState(scheduler, jobKey, null, true);
 		}
 		catch (Exception exception) {
 			throw new SchedulerException(
@@ -463,9 +462,9 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			groupName = fixMaxLength(
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			Set<JobKey> jobKeys = scheduler.getJobKeys(
@@ -487,10 +486,10 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			Scheduler scheduler = getScheduler(storageType);
+			Scheduler scheduler = _getScheduler(storageType);
 
-			jobName = fixMaxLength(jobName, _jobNameMaxLength, storageType);
-			groupName = fixMaxLength(
+			jobName = _fixMaxLength(jobName, _jobNameMaxLength, storageType);
+			groupName = _fixMaxLength(
 				groupName, _groupNameMaxLength, storageType);
 
 			JobKey jobKey = new JobKey(jobName, groupName);
@@ -513,7 +512,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		throws SchedulerException {
 
 		try {
-			update(getScheduler(storageType), trigger, storageType);
+			update(_getScheduler(storageType), trigger, storageType);
 		}
 		catch (Exception exception) {
 			throw new SchedulerException("Unable to update trigger", exception);
@@ -532,7 +531,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 			return;
 		}
 
-		Scheduler scheduler = getScheduler(storageType);
+		Scheduler scheduler = _getScheduler(storageType);
 
 		Calendar calendar = null;
 
@@ -567,10 +566,10 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		}
 
 		try {
-			_persistedScheduler = initializeScheduler(
+			_persistedScheduler = _initializeScheduler(
 				"persisted.scheduler.", true);
 
-			_memoryScheduler = initializeScheduler("memory.scheduler.", false);
+			_memoryScheduler = _initializeScheduler("memory.scheduler.", false);
 		}
 		catch (Exception exception) {
 			_log.error("Unable to initialize engine", exception);
@@ -599,27 +598,6 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		}
 	}
 
-	protected String fixMaxLength(
-		String argument, int maxLength, StorageType storageType) {
-
-		if ((argument == null) || (storageType != StorageType.PERSISTED)) {
-			return argument;
-		}
-
-		if (argument.length() > maxLength) {
-			argument = argument.substring(0, maxLength);
-		}
-
-		return argument;
-	}
-
-	protected JobState getJobState(JobDataMap jobDataMap) {
-		Map<String, Object> jobStateMap = (Map<String, Object>)jobDataMap.get(
-			SchedulerEngine.JOB_STATE);
-
-		return JobStateSerializeUtil.deserialize(jobStateMap);
-	}
-
 	protected Message getMessage(JobDataMap jobDataMap) {
 		String messageJSON = (String)jobDataMap.get(SchedulerEngine.MESSAGE);
 
@@ -642,22 +620,18 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 
 		schedulerResponse.setDescription(
 			jobDataMap.getString(SchedulerEngine.DESCRIPTION));
-
-		String destinationName = jobDataMap.getString(
-			SchedulerEngine.DESTINATION_NAME);
-
-		schedulerResponse.setDestinationName(destinationName);
+		schedulerResponse.setDestinationName(
+			jobDataMap.getString(SchedulerEngine.DESTINATION_NAME));
 
 		Message message = getMessage(jobDataMap);
 
-		message.put(SchedulerEngine.JOB_STATE, getJobState(jobDataMap));
+		message.put(SchedulerEngine.JOB_STATE, _getJobState(jobDataMap));
 
 		schedulerResponse.setMessage(message);
 
-		StorageType storageType = StorageType.valueOf(
-			jobDataMap.getString(SchedulerEngine.STORAGE_TYPE));
-
-		schedulerResponse.setStorageType(storageType);
+		schedulerResponse.setStorageType(
+			StorageType.valueOf(
+				jobDataMap.getString(SchedulerEngine.STORAGE_TYPE)));
 
 		String jobName = jobKey.getName();
 		String groupName = jobKey.getGroup();
@@ -690,7 +664,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 			Scheduler scheduler, String groupName, StorageType storageType)
 		throws Exception {
 
-		groupName = fixMaxLength(groupName, _groupNameMaxLength, storageType);
+		groupName = _fixMaxLength(groupName, _groupNameMaxLength, storageType);
 
 		List<SchedulerResponse> schedulerResponses = new ArrayList<>();
 
@@ -710,74 +684,6 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 		}
 
 		return schedulerResponses;
-	}
-
-	protected Scheduler getScheduler(StorageType storageType) {
-		if (storageType == StorageType.PERSISTED) {
-			return _persistedScheduler;
-		}
-
-		return _memoryScheduler;
-	}
-
-	protected StorageType getStorageType(String groupName) {
-		int pos = groupName.indexOf(CharPool.POUND);
-
-		String storageTypeString = groupName.substring(0, pos);
-
-		return StorageType.valueOf(storageTypeString);
-	}
-
-	protected Scheduler initializeScheduler(
-			String propertiesPrefix, boolean useQuartzCluster)
-		throws Exception {
-
-		StdSchedulerFactory schedulerFactory = new StdSchedulerFactory();
-
-		Properties properties = _props.getProperties(propertiesPrefix, true);
-
-		if (useQuartzCluster) {
-			DB db = DBManagerUtil.getDB();
-
-			DBType dbType = db.getDBType();
-
-			if (dbType == DBType.SQLSERVER) {
-				String lockHandlerClassName = properties.getProperty(
-					"org.quartz.jobStore.lockHandler.class");
-
-				if (Validator.isNull(lockHandlerClassName)) {
-					properties.setProperty(
-						"org.quartz.jobStore.lockHandler.class",
-						UpdateLockRowSemaphore.class.getName());
-				}
-			}
-
-			if (GetterUtil.getBoolean(
-					_props.get(PropsKeys.CLUSTER_LINK_ENABLED))) {
-
-				if (dbType == DBType.HYPERSONIC) {
-					_log.error("Unable to cluster scheduler on Hypersonic");
-				}
-				else {
-					properties.put(
-						"org.quartz.jobStore.isClustered",
-						Boolean.TRUE.toString());
-				}
-			}
-		}
-
-		schedulerFactory.initialize(properties);
-
-		Scheduler scheduler = schedulerFactory.getScheduler();
-
-		SchedulerContext schedulerContext = scheduler.getContext();
-
-		schedulerContext.put("clusterExecutor", _clusterExecutor);
-		schedulerContext.put("jSONFactory", _jsonFactory);
-		schedulerContext.put("messageBus", _messageBus);
-		schedulerContext.put("props", _props);
-
-		return scheduler;
 	}
 
 	protected void initJobState() throws Exception {
@@ -902,7 +808,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 
 		JobDataMap jobDataMap = jobDetail.getJobDataMap();
 
-		JobState jobState = getJobState(jobDataMap);
+		JobState jobState = _getJobState(jobDataMap);
 
 		jobState.setTriggerDate(SchedulerEngine.END_TIME, new Date());
 		jobState.setTriggerDate(
@@ -957,11 +863,92 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 				scheduler.scheduleJob(jobDetail, quartzTrigger);
 			}
 
-			updateJobState(scheduler, jobKey, TriggerState.NORMAL, true);
+			_updateJobState(scheduler, jobKey, TriggerState.NORMAL, true);
 		}
 	}
 
-	protected void updateJobState(
+	private String _fixMaxLength(
+		String argument, int maxLength, StorageType storageType) {
+
+		if ((argument == null) || (storageType != StorageType.PERSISTED)) {
+			return argument;
+		}
+
+		if (argument.length() > maxLength) {
+			argument = argument.substring(0, maxLength);
+		}
+
+		return argument;
+	}
+
+	private JobState _getJobState(JobDataMap jobDataMap) {
+		Map<String, Object> jobStateMap = (Map<String, Object>)jobDataMap.get(
+			SchedulerEngine.JOB_STATE);
+
+		return JobStateSerializeUtil.deserialize(jobStateMap);
+	}
+
+	private Scheduler _getScheduler(StorageType storageType) {
+		if (storageType == StorageType.PERSISTED) {
+			return _persistedScheduler;
+		}
+
+		return _memoryScheduler;
+	}
+
+	private Scheduler _initializeScheduler(
+			String propertiesPrefix, boolean useQuartzCluster)
+		throws Exception {
+
+		StdSchedulerFactory schedulerFactory = new StdSchedulerFactory();
+
+		Properties properties = _props.getProperties(propertiesPrefix, true);
+
+		if (useQuartzCluster) {
+			DB db = DBManagerUtil.getDB();
+
+			DBType dbType = db.getDBType();
+
+			if (dbType == DBType.SQLSERVER) {
+				String lockHandlerClassName = properties.getProperty(
+					"org.quartz.jobStore.lockHandler.class");
+
+				if (Validator.isNull(lockHandlerClassName)) {
+					properties.setProperty(
+						"org.quartz.jobStore.lockHandler.class",
+						UpdateLockRowSemaphore.class.getName());
+				}
+			}
+
+			if (GetterUtil.getBoolean(
+					_props.get(PropsKeys.CLUSTER_LINK_ENABLED))) {
+
+				if (dbType == DBType.HYPERSONIC) {
+					_log.error("Unable to cluster scheduler on Hypersonic");
+				}
+				else {
+					properties.put(
+						"org.quartz.jobStore.isClustered",
+						Boolean.TRUE.toString());
+				}
+			}
+		}
+
+		schedulerFactory.initialize(properties);
+
+		Scheduler scheduler = schedulerFactory.getScheduler();
+
+		SchedulerContext schedulerContext = scheduler.getContext();
+
+		schedulerContext.put("clusterExecutor", _clusterExecutor);
+		schedulerContext.put("jSONFactory", _jsonFactory);
+		schedulerContext.put("messageBus", _messageBus);
+		schedulerContext.put("props", _props);
+
+		return scheduler;
+	}
+
+	private void _updateJobState(
 			Scheduler scheduler, JobKey jobKey, TriggerState triggerState,
 			boolean suppressError)
 		throws Exception {
@@ -974,7 +961,7 @@ public class QuartzSchedulerEngine implements SchedulerEngine {
 
 		JobDataMap jobDataMap = jobDetail.getJobDataMap();
 
-		JobState jobState = getJobState(jobDataMap);
+		JobState jobState = _getJobState(jobDataMap);
 
 		if (triggerState != null) {
 			jobState.setTriggerState(triggerState);

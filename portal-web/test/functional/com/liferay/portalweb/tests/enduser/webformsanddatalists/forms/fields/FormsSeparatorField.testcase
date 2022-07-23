@@ -1,0 +1,452 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Separator Field can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		Form.save();
+
+		Click(locator1 = "Icon#BACK");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_fieldLabel = "Separator",
+			locator1 = "FormFields#LABEL");
+	}
+
+	@description = "Verify that a Separator Field can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Separator");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Separator");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Separator");
+	}
+
+	@description = "Verify that a Separator Field can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Help Text Test");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Separator");
+
+		FormFields.duplicateField();
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Separator");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Copy of Test Separator");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Test Separator",
+			fieldValue = "Help Text Test");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Copy of Test Separator",
+			fieldValue = "Help Text Test");
+	}
+
+	@description = "Verify that a Separator Field can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		Click(
+			key_name = "Separator",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Separator");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_name = "Test Separator",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Separator");
+	}
+
+	@description = "Verify that a Separator Field can be set to repeatable"
+	@priority = "5"
+	test CanBeSetToRepeatable {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.setFieldRepeatable();
+
+		AssertElementPresent(
+			key_fieldName = "Separator",
+			key_repeatableFieldNumber = "1",
+			locator1 = "FormFields#FIELD_ADD_SPECIFIC");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.addRepeatableField(
+			fieldName = "Separator",
+			repeatableFieldNumber = "1");
+
+		FormFields.viewPublishedFormFieldSeparatorByIndex(index = "1");
+
+		FormFields.viewPublishedFormFieldSeparatorByIndex(index = "2");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Form can be submitted with the Separator Field"
+	@priority = "5"
+	test CanBeSubmitted {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries(formName = "Form1");
+
+		FormsAdminNavigator.gotoView(rowIndexNumber = "1");
+
+		FormViewBuilder.validateTranslatedField(fieldLabel = "Separator");
+	}
+
+	@description = "Verify that changes to the Field can be canceled"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ChangesCanBeCanceled {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133239 ChangesCanBeCanceled pending implementation
+
+	}
+
+	@description = "Verify that a help text can be added to a Separator Field"
+	@priority = "5"
+	test HelpTextCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		FormFields.editHelpTextField(fieldHelpText = "Separator Help Text");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Separator Help Text",
+			fieldName = "Separator");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Separator Help Text",
+			fieldValue = "Separator Help Text");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that the Field Label can be changed"
+	@priority = "5"
+	test LabelCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Separator",
+			fieldName = "Separator");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Separator");
+
+		FormFields.viewTextLabel(
+			fieldLabel = "Test Separator",
+			fieldName = "Separator");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Separator");
+	}
+
+	@description = "Verify that the Field Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		FormFields.viewTextLabel(fieldLabel = "Separator");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Separator");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.clickShowLabel();
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Separator");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabelIsNotShown(fieldLabel = "Separator");
+	}
+
+	@description = "Verify that the Field Reference can be changed"
+	@priority = "5"
+	test ReferenceCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Separator");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "Separator1234");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		Form.viewFieldReference(
+			fieldName = "Separator",
+			fieldReference = "Separator1234");
+	}
+
+	@description = "Verify if the rule actions are not allowed work correctly"
+	@priority = "4"
+	test RulesActionsNotAllowed {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		FormViewBuilder.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Separator");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "ABC",
+			conditionOperator = "Is Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.viewFieldNotPresentAtActions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Separator");
+
+		FormRules.viewFieldNotPresentAtActions(
+			action = "Calculate",
+			actionRowNumber = "1",
+			actionTarget = "Separator");
+
+		FormRules.viewFieldNotPresentAtActions(
+			action = "Autofill",
+			actionRowNumber = "1",
+			actionTarget = "Separator");
+
+		FormRules.viewFieldPresentAtActions(
+			action = "Enable",
+			actionRowNumber = "1",
+			actionTarget = "Separator");
+
+		FormRules.viewFieldPresentAtActions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Separator");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Separator");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Separator",
+			conditionField = "Text",
+			conditionFieldConstant = "ABC",
+			conditionOperator = "Is Equal To",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "testing");
+
+		FormFields.viewFieldNotVisible(fieldName = "Separator");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "ABC");
+
+		FormFields.viewSeparator(fieldLabel = "Separator");
+	}
+
+	@description = "Verify that the Field Type can be changed"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test TypeCanBeChanged {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133238 TypeCanBeChanged pending implementation
+
+	}
+
+}

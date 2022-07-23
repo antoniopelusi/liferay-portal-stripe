@@ -86,15 +86,9 @@ public class InfoItemReference {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{className=");
-		sb.append(_className);
-		sb.append(", _infoItemIdentifier=");
-		sb.append(_infoItemIdentifier);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{className=", _className, ", _infoItemIdentifier=",
+			_infoItemIdentifier, "}");
 	}
 
 	private final String _className;

@@ -158,6 +158,11 @@ public interface PortletLocalService
 	@Transactional(enabled = false)
 	public void deployPortlet(Portlet portlet) throws Exception;
 
+	public Portlet deployRemotePortlet(
+			long[] companyIds, Portlet portlet, String[] categoryNames,
+			boolean eagerDestroy, boolean clearCache)
+		throws PortalException;
+
 	public Portlet deployRemotePortlet(Portlet portlet, String categoryName)
 		throws PortalException;
 
@@ -176,6 +181,9 @@ public interface PortletLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();

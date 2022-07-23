@@ -235,4 +235,7 @@ public interface LayoutBranchModel
 	 */
 	public void setMaster(boolean master);
 
+	@Override
+	public LayoutBranch cloneWithOriginalValues();
+
 }

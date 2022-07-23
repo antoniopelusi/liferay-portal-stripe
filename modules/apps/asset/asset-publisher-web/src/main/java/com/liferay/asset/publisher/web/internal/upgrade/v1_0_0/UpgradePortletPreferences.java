@@ -72,229 +72,11 @@ public class UpgradePortletPreferences
 			"yyyyMMddHHmmss");
 	}
 
-	protected DDMForm getDDMForm(long structureId) throws Exception {
-		DDMForm ddmForm = _ddmSructureDDMForms.get(structureId);
-
-		if (ddmForm != null) {
-			return ddmForm;
-		}
-
-		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
-			structureId);
-
-		ddmForm = ddmStructure.getDDMForm();
-
-		_ddmSructureDDMForms.put(structureId, ddmForm);
-
-		return ddmForm;
-	}
-
-	protected DDMFormField getDDMFormField(DDMForm ddmForm, String fieldName) {
-		Map<String, DDMFormField> ddmFormFieldsMap =
-			ddmForm.getDDMFormFieldsMap(false);
-
-		return ddmFormFieldsMap.get(fieldName);
-	}
-
-	protected String getJournalArticleResourceUuid(String journalArticleUuid)
-		throws Exception {
-
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("select JournalArticleResource.uuid_ from ");
-		sb.append("JournalArticleResource inner join JournalArticle on ");
-		sb.append("JournalArticle.resourcePrimKey = ");
-		sb.append("JournalArticleResource.resourcePrimKey where ");
-		sb.append("JournalArticle.uuid_ = ?");
-
-		try (PreparedStatement ps = connection.prepareStatement(
-				sb.toString())) {
-
-			ps.setString(1, journalArticleUuid);
-
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getString("uuid_");
-				}
-
-				return null;
-			}
-		}
-	}
-
 	@Override
 	protected String[] getPortletIds() {
 		return new String[] {
 			AssetPublisherPortletKeys.ASSET_PUBLISHER + "_INSTANCE_%"
 		};
-	}
-
-	protected boolean isDateField(DDMForm ddmForm, String fieldName) {
-		DDMFormField ddmFormField = getDDMFormField(ddmForm, fieldName);
-
-		if (ddmFormField == null) {
-			return false;
-		}
-
-		if (Objects.equals("date", ddmFormField.getType()) ||
-			Objects.equals("ddm-date", ddmFormField.getType())) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	protected boolean isFilterByFieldEnable(
-		PortletPreferences portletPreferences, String key) {
-
-		return GetterUtil.getBoolean(
-			portletPreferences.getValue(key, Boolean.FALSE.toString()));
-	}
-
-	protected boolean isOldDDMPreferenceValueFormat(String value) {
-		if (value.startsWith(_DDM_FIELD_OLD_PREFIX)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	protected void transformDateFieldValue(
-			PortletPreferences portletPreferences)
-		throws Exception {
-
-		String value = GetterUtil.getString(
-			portletPreferences.getValue(_DDM_STRUCTURE_FIELD_VALUE, null));
-
-		if (Validator.isNotNull(value)) {
-			Date date = _oldDateFormat.parse(value);
-
-			portletPreferences.setValue(
-				_DDM_STRUCTURE_FIELD_VALUE, _newDateFormat.format(date));
-		}
-	}
-
-	protected void upgradeDLDateFieldsValues(
-			PortletPreferences portletPreferences)
-		throws Exception {
-
-		long fileEntryTypeId = GetterUtil.getLong(
-			portletPreferences.getValue(_DL_CLASS_TYPE, "0"));
-
-		if (fileEntryTypeId > 0) {
-			long fileEntryTypeClassNameId = PortalUtil.getClassNameId(
-				DLFileEntryType.class);
-
-			List<DDMStructureLink> ddmStructureLinks =
-				_ddmStructureLinkLocalService.getStructureLinks(
-					fileEntryTypeClassNameId, fileEntryTypeId);
-
-			String selectedFieldName = GetterUtil.getString(
-				portletPreferences.getValue(_DDM_STRUCTURE_FIELD_NAME, null));
-
-			for (DDMStructureLink ddmStructureLink : ddmStructureLinks) {
-				if (isDateField(
-						getDDMForm(ddmStructureLink.getStructureId()),
-						selectedFieldName)) {
-
-					transformDateFieldValue(portletPreferences);
-
-					break;
-				}
-			}
-		}
-	}
-
-	protected void upgradeJournalDateFieldValue(
-			PortletPreferences portletPreferences)
-		throws Exception {
-
-		long structureId = GetterUtil.getLong(
-			portletPreferences.getValue(_JOURNAL_CLASS_TYPE, "0"));
-
-		if (structureId > 0) {
-			String selectedFieldName = GetterUtil.getString(
-				portletPreferences.getValue(_DDM_STRUCTURE_FIELD_NAME, null));
-
-			if (isDateField(getDDMForm(structureId), selectedFieldName)) {
-				transformDateFieldValue(portletPreferences);
-			}
-		}
-	}
-
-	protected void upgradeOrderByColumn(
-			PortletPreferences portletPreferences, String column)
-		throws Exception {
-
-		String value = GetterUtil.getString(
-			portletPreferences.getValue(column, null));
-
-		if (Validator.isNull(value)) {
-			return;
-		}
-
-		if (value.startsWith(_DDM_FIELD_OLD_PREFIX) ||
-			value.startsWith(_DDM_FIELD_PREFIX)) {
-
-			String[] values = new String[0];
-
-			boolean oldDDMPreferenceValueFormat = isOldDDMPreferenceValueFormat(
-				value);
-
-			if (oldDDMPreferenceValueFormat) {
-				values = StringUtil.split(value, _DDM_FIELD_OLD_SEPARATOR);
-			}
-			else {
-				values = StringUtil.split(value, _DDM_FIELD_SEPARATOR);
-			}
-
-			if (values.length == 3) {
-				long structureId = GetterUtil.getLong(values[1]);
-
-				String fieldName = values[2];
-
-				Matcher matcher = _invalidFieldNameCharsPattern.matcher(
-					fieldName);
-
-				if (matcher.find()) {
-					fieldName = fieldName.replaceAll(
-						_INVALID_FIELD_NAME_CHARS_REGEX, StringPool.BLANK);
-				}
-
-				DDMFormField ddmFormField = getDDMFormField(
-					getDDMForm(structureId), fieldName);
-
-				if ((ddmFormField != null) &&
-					Validator.isNotNull(ddmFormField.getIndexType())) {
-
-					StringBundler sb = new StringBundler(7);
-
-					sb.append(values[0]);
-					sb.append(_DDM_FIELD_SEPARATOR);
-					sb.append(ddmFormField.getIndexType());
-					sb.append(_DDM_FIELD_SEPARATOR);
-					sb.append(values[1]);
-					sb.append(_DDM_FIELD_SEPARATOR);
-					sb.append(fieldName);
-
-					value = sb.toString();
-				}
-			}
-			else if ((values.length == 4) && oldDDMPreferenceValueFormat) {
-				value = StringUtil.replace(
-					value, _DDM_FIELD_OLD_SEPARATOR, _DDM_FIELD_SEPARATOR);
-			}
-
-			portletPreferences.setValue(column, value);
-		}
-	}
-
-	protected void upgradeOrderByColumns(PortletPreferences portletPreferences)
-		throws Exception {
-
-		upgradeOrderByColumn(portletPreferences, _ORDER_BY_COLUMN_1);
-		upgradeOrderByColumn(portletPreferences, _ORDER_BY_COLUMN_2);
 	}
 
 	@Override
@@ -320,7 +102,7 @@ public class UpgradePortletPreferences
 			"asset-entry-xml", new String[0]);
 
 		if (ArrayUtil.isNotEmpty(assetEntryXmls)) {
-			upgradeUuids(assetEntryXmls);
+			_upgradeUuids(assetEntryXmls);
 
 			portletPreferences.setValues("assetEntryXml", assetEntryXmls);
 		}
@@ -330,25 +112,232 @@ public class UpgradePortletPreferences
 				"subtypeFieldsFilterEnabled", Boolean.FALSE.toString()));
 
 		if (subtypeFieldsFilterEnabled) {
-			boolean dlFilterByFieldEnable = isFilterByFieldEnable(
+			boolean dlFilterByFieldEnable = _isFilterByFieldEnable(
 				portletPreferences, _DL_FILTER_BY_FIELD_ENABLED_KEY);
-			boolean journalFilterByFieldEnable = isFilterByFieldEnable(
+			boolean journalFilterByFieldEnable = _isFilterByFieldEnable(
 				portletPreferences, _JOURNAL_FILTER_BY_FIELD_ENABLED_KEY);
 
 			if (dlFilterByFieldEnable) {
-				upgradeDLDateFieldsValues(portletPreferences);
+				_upgradeDLDateFieldsValues(portletPreferences);
 			}
 			else if (journalFilterByFieldEnable) {
-				upgradeJournalDateFieldValue(portletPreferences);
+				_upgradeJournalDateFieldValue(portletPreferences);
 			}
 		}
 
-		upgradeOrderByColumns(portletPreferences);
+		_upgradeOrderByColumns(portletPreferences);
 
 		return portletPreferences;
 	}
 
-	protected void upgradeUuids(String[] assetEntryXmls) throws Exception {
+	private DDMForm _getDDMForm(long structureId) throws Exception {
+		DDMForm ddmForm = _ddmSructureDDMForms.get(structureId);
+
+		if (ddmForm != null) {
+			return ddmForm;
+		}
+
+		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
+			structureId);
+
+		ddmForm = ddmStructure.getDDMForm();
+
+		_ddmSructureDDMForms.put(structureId, ddmForm);
+
+		return ddmForm;
+	}
+
+	private DDMFormField _getDDMFormField(DDMForm ddmForm, String fieldName) {
+		Map<String, DDMFormField> ddmFormFieldsMap =
+			ddmForm.getDDMFormFieldsMap(false);
+
+		return ddmFormFieldsMap.get(fieldName);
+	}
+
+	private String _getJournalArticleResourceUuid(String journalArticleUuid)
+		throws Exception {
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select JournalArticleResource.uuid_ from ",
+					"JournalArticleResource inner join JournalArticle on ",
+					"JournalArticle.resourcePrimKey = ",
+					"JournalArticleResource.resourcePrimKey where ",
+					"JournalArticle.uuid_ = ?"))) {
+
+			preparedStatement.setString(1, journalArticleUuid);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getString("uuid_");
+				}
+
+				return null;
+			}
+		}
+	}
+
+	private boolean _isDateField(DDMForm ddmForm, String fieldName) {
+		DDMFormField ddmFormField = _getDDMFormField(ddmForm, fieldName);
+
+		if (ddmFormField == null) {
+			return false;
+		}
+
+		if (Objects.equals("date", ddmFormField.getType()) ||
+			Objects.equals("ddm-date", ddmFormField.getType())) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean _isFilterByFieldEnable(
+		PortletPreferences portletPreferences, String key) {
+
+		return GetterUtil.getBoolean(
+			portletPreferences.getValue(key, Boolean.FALSE.toString()));
+	}
+
+	private boolean _isOldDDMPreferenceValueFormat(String value) {
+		if (value.startsWith(_DDM_FIELD_OLD_PREFIX)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private void _transformDateFieldValue(PortletPreferences portletPreferences)
+		throws Exception {
+
+		String value = GetterUtil.getString(
+			portletPreferences.getValue(_DDM_STRUCTURE_FIELD_VALUE, null));
+
+		if (Validator.isNotNull(value)) {
+			Date date = _oldDateFormat.parse(value);
+
+			portletPreferences.setValue(
+				_DDM_STRUCTURE_FIELD_VALUE, _newDateFormat.format(date));
+		}
+	}
+
+	private void _upgradeDLDateFieldsValues(
+			PortletPreferences portletPreferences)
+		throws Exception {
+
+		long fileEntryTypeId = GetterUtil.getLong(
+			portletPreferences.getValue(_DL_CLASS_TYPE, "0"));
+
+		if (fileEntryTypeId > 0) {
+			long fileEntryTypeClassNameId = PortalUtil.getClassNameId(
+				DLFileEntryType.class);
+
+			List<DDMStructureLink> ddmStructureLinks =
+				_ddmStructureLinkLocalService.getStructureLinks(
+					fileEntryTypeClassNameId, fileEntryTypeId);
+
+			String selectedFieldName = GetterUtil.getString(
+				portletPreferences.getValue(_DDM_STRUCTURE_FIELD_NAME, null));
+
+			for (DDMStructureLink ddmStructureLink : ddmStructureLinks) {
+				if (_isDateField(
+						_getDDMForm(ddmStructureLink.getStructureId()),
+						selectedFieldName)) {
+
+					_transformDateFieldValue(portletPreferences);
+
+					break;
+				}
+			}
+		}
+	}
+
+	private void _upgradeJournalDateFieldValue(
+			PortletPreferences portletPreferences)
+		throws Exception {
+
+		long structureId = GetterUtil.getLong(
+			portletPreferences.getValue(_JOURNAL_CLASS_TYPE, "0"));
+
+		if (structureId > 0) {
+			String selectedFieldName = GetterUtil.getString(
+				portletPreferences.getValue(_DDM_STRUCTURE_FIELD_NAME, null));
+
+			if (_isDateField(_getDDMForm(structureId), selectedFieldName)) {
+				_transformDateFieldValue(portletPreferences);
+			}
+		}
+	}
+
+	private void _upgradeOrderByColumn(
+			PortletPreferences portletPreferences, String column)
+		throws Exception {
+
+		String value = GetterUtil.getString(
+			portletPreferences.getValue(column, null));
+
+		if (Validator.isNull(value)) {
+			return;
+		}
+
+		if (value.startsWith(_DDM_FIELD_OLD_PREFIX) ||
+			value.startsWith(_DDM_FIELD_PREFIX)) {
+
+			String[] values = new String[0];
+
+			boolean oldDDMPreferenceValueFormat =
+				_isOldDDMPreferenceValueFormat(value);
+
+			if (oldDDMPreferenceValueFormat) {
+				values = StringUtil.split(value, _DDM_FIELD_OLD_SEPARATOR);
+			}
+			else {
+				values = StringUtil.split(value, _DDM_FIELD_SEPARATOR);
+			}
+
+			if (values.length == 3) {
+				long structureId = GetterUtil.getLong(values[1]);
+
+				String fieldName = values[2];
+
+				Matcher matcher = _invalidFieldNameCharsPattern.matcher(
+					fieldName);
+
+				if (matcher.find()) {
+					fieldName = fieldName.replaceAll(
+						_INVALID_FIELD_NAME_CHARS_REGEX, StringPool.BLANK);
+				}
+
+				DDMFormField ddmFormField = _getDDMFormField(
+					_getDDMForm(structureId), fieldName);
+
+				if ((ddmFormField != null) &&
+					Validator.isNotNull(ddmFormField.getIndexType())) {
+
+					value = StringBundler.concat(
+						values[0], _DDM_FIELD_SEPARATOR,
+						ddmFormField.getIndexType(), _DDM_FIELD_SEPARATOR,
+						values[1], _DDM_FIELD_SEPARATOR, fieldName);
+				}
+			}
+			else if ((values.length == 4) && oldDDMPreferenceValueFormat) {
+				value = StringUtil.replace(
+					value, _DDM_FIELD_OLD_SEPARATOR, _DDM_FIELD_SEPARATOR);
+			}
+
+			portletPreferences.setValue(column, value);
+		}
+	}
+
+	private void _upgradeOrderByColumns(PortletPreferences portletPreferences)
+		throws Exception {
+
+		_upgradeOrderByColumn(portletPreferences, _ORDER_BY_COLUMN_1);
+		_upgradeOrderByColumn(portletPreferences, _ORDER_BY_COLUMN_2);
+	}
+
+	private void _upgradeUuids(String[] assetEntryXmls) throws Exception {
 		for (int i = 0; i < assetEntryXmls.length; i++) {
 			String assetEntry = assetEntryXmls[i];
 
@@ -363,7 +352,7 @@ public class UpgradePortletPreferences
 				continue;
 			}
 
-			String journalArticleResourceUuid = getJournalArticleResourceUuid(
+			String journalArticleResourceUuid = _getJournalArticleResourceUuid(
 				assetTypeElementUuid.getStringValue());
 
 			if (journalArticleResourceUuid == null) {

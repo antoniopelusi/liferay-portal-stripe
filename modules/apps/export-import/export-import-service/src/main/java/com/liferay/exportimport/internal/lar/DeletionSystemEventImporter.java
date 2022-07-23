@@ -73,7 +73,7 @@ public class DeletionSystemEventImporter {
 
 				@Override
 				public void processElement(Element element) {
-					doImportDeletionSystemEvents(portletDataContext, element);
+					_importDeletionSystemEvents(portletDataContext, element);
 				}
 
 			},
@@ -84,7 +84,10 @@ public class DeletionSystemEventImporter {
 		xmlReader.parse(new InputSource(new StringReader(xml)));
 	}
 
-	protected void doImportDeletionSystemEvents(
+	private DeletionSystemEventImporter() {
+	}
+
+	private void _importDeletionSystemEvents(
 		PortletDataContext portletDataContext, Element element) {
 
 		StagedModelType stagedModelType = new StagedModelType(
@@ -103,19 +106,13 @@ public class DeletionSystemEventImporter {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("Unable to process deletion for ");
-				sb.append(stagedModelType);
-				sb.append(" with UUID ");
-				sb.append(element.attributeValue("uuid"));
-
-				_log.warn(sb.toString(), exception);
+				_log.warn(
+					StringBundler.concat(
+						"Unable to process deletion for ", stagedModelType,
+						" with UUID ", element.attributeValue("uuid")),
+					exception);
 			}
 		}
-	}
-
-	private DeletionSystemEventImporter() {
 	}
 
 	private boolean _shouldImportDeletionSystemEvent(

@@ -17,6 +17,7 @@ package com.liferay.users.admin.indexer.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Role;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.search.highlight.HighlightUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -36,12 +38,15 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.searcher.SearchRequestBuilder;
 import com.liferay.portal.search.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.searcher.Searcher;
+import com.liferay.portal.search.spi.model.index.contributor.ModelDocumentContributor;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.search.test.util.SearchTestRule;
 import com.liferay.portal.test.rule.Inject;
@@ -57,6 +62,8 @@ import com.liferay.users.admin.test.util.search.UserSearchFixture;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -68,6 +75,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author André de Oliveira
@@ -121,6 +133,16 @@ public class UserIndexerTest {
 	}
 
 	@Test
+	public void testEmailAddressDomain() throws Exception {
+		String emailAddress = StringUtil.toLowerCase(
+			RandomTestUtil.randomString() + "@test.com");
+
+		addUserWithEmailAddress(emailAddress);
+
+		assertEmailAddressFieldValue(emailAddress, byQueryString("test.com"));
+	}
+
+	@Test
 	public void testEmailAddressField() throws Exception {
 		User user = addUser();
 
@@ -140,18 +162,6 @@ public class UserIndexerTest {
 			emailAddress,
 			byQueryString(
 				StringUtil.removeSubstring(emailAddress, "@liferay.com")));
-	}
-
-	@Test
-	public void testEmailAddressSubstring() throws Exception {
-		User user = addUser();
-
-		String emailAddress = user.getEmailAddress();
-
-		assertEmailAddressFieldValue(
-			emailAddress,
-			byQueryString(
-				emailAddress.substring(4, emailAddress.length() - 7)));
 	}
 
 	@Test
@@ -209,16 +219,47 @@ public class UserIndexerTest {
 
 	@Test
 	public void testLuceneQueryParserUnfriendlyCharacters() {
-		User user = addUser();
+		addUser();
 
-		assertUserId(user.getUserId(), byQueryString(StringPool.AT));
-
+		assertNoHits(byQueryString(StringPool.AT));
 		assertNoHits(
 			byQueryString(StringPool.AT + RandomTestUtil.randomString()));
 		assertNoHits(byQueryString(StringPool.EXCLAMATION));
 		assertNoHits(
 			byQueryString(
 				StringPool.EXCLAMATION + RandomTestUtil.randomString()));
+	}
+
+	@Test
+	public void testNameFieldsChinese() {
+		String firstName = "姓氏";
+		String lastName = "名字";
+
+		User user = addUserWithNameFields(firstName, null, lastName);
+
+		assertFieldValue(
+			"firstName", firstName, byAttribute("firstName", "姓氏"));
+		assertFieldValue("lastName", lastName, byAttribute("lastName", "名字"));
+
+		assertUserId(user.getUserId(), byQueryString("名字"));
+		assertUserId(user.getUserId(), byQueryString("名字姓氏"));
+		assertUserId(user.getUserId(), byQueryString(user.getFullName()));
+	}
+
+	@Test
+	public void testNameFieldsJapanese() {
+		String firstName = "宮崎";
+		String lastName = "駿";
+
+		User user = addUserWithNameFields(firstName, null, lastName);
+
+		assertFieldValue(
+			"firstName", firstName, byAttribute("firstName", "宮崎"));
+		assertFieldValue("lastName", lastName, byAttribute("lastName", "駿"));
+
+		assertUserId(user.getUserId(), byQueryString("宮崎"));
+		assertUserId(user.getUserId(), byQueryString("駿 宮崎"));
+		assertUserId(user.getUserId(), byQueryString(user.getFullName()));
 	}
 
 	@Test
@@ -237,6 +278,39 @@ public class UserIndexerTest {
 		String middleName = "alloy_4";
 
 		testNameFields(firstName, lastName, middleName);
+	}
+
+	@Test
+	public void testNameFieldsRandomString() throws Exception {
+		String firstName = RandomTestUtil.randomString();
+		String lastName = RandomTestUtil.randomString();
+		String middleName = "Middle";
+
+		User user = addUserWithNameFields(firstName, middleName, lastName);
+
+		assertUserId(user.getUserId(), byQueryString(firstName));
+		assertUserId(user.getUserId(), byQueryString(user.getFullName()));
+	}
+
+	@Test
+	public void testNameFieldsSpanish() {
+		String firstName = "José";
+		String lastName = "Sánchez";
+		String middleName = "Pedro";
+
+		User user = addUserWithNameFields(firstName, middleName, lastName);
+
+		assertFieldValue(
+			"firstName", firstName, byAttribute("firstName", "José"));
+		assertFieldValue(
+			"lastName", lastName, byAttribute("lastName", "Sánchez"));
+		assertFieldValue(
+			"middleName", middleName, byAttribute("middleName", "Pedro"));
+
+		assertUserId(user.getUserId(), byQueryString("Pedro"));
+		assertUserId(user.getUserId(), byQueryString("José Sánchez"));
+		assertUserId(user.getUserId(), byQueryString("Sánchez José"));
+		assertUserId(user.getUserId(), byQueryString(user.getFullName()));
 	}
 
 	@Test
@@ -260,9 +334,9 @@ public class UserIndexerTest {
 
 		addUserWithNameFields(firstName, middleName, lastName);
 
-		assertFieldValue("firstName", firstName, byQueryString("Fir"));
-		assertFieldValue("lastName", lastName, byQueryString("asT"));
-		assertFieldValue("middleName", middleName, byQueryString("idd"));
+		assertNoHits(byQueryString("irst"));
+		assertNoHits(byQueryString("asT"));
+		assertNoHits(byQueryString("idd"));
 	}
 
 	@Test
@@ -270,6 +344,46 @@ public class UserIndexerTest {
 		User user = userLocalService.getDefaultUser(_group.getCompanyId());
 
 		assertNoHits(byQueryString(user.getScreenName()));
+	}
+
+	@Test
+	public void testReindexOneContact() throws Exception {
+		Bundle bundle = FrameworkUtil.getBundle(UserIndexerTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		Dictionary<String, Object> properties = new Hashtable<>();
+
+		properties.put(
+			"indexer.class.name", "com.liferay.portal.kernel.model.Contact");
+
+		long userId = TestPropsValues.getUserId();
+
+		ServiceRegistration<ModelDocumentContributor<Contact>>
+			serviceRegistration = bundleContext.registerService(
+				(Class<ModelDocumentContributor<Contact>>)
+					(Class<?>)ModelDocumentContributor.class,
+				new ModelDocumentContributor<Contact>() {
+
+					@Override
+					public void contribute(Document document, Contact contact) {
+						Assert.assertEquals(userId, contact.getClassPK());
+					}
+
+				},
+				properties);
+
+		try {
+			UserTestUtil.addUser();
+
+			Indexer<User> userIndexer = IndexerRegistryUtil.getIndexer(
+				User.class.getName());
+
+			userIndexer.reindex(User.class.getName(), userId);
+		}
+		finally {
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Test
@@ -293,14 +407,15 @@ public class UserIndexerTest {
 	}
 
 	@Test
-	public void testScreenNameSubstring() throws Exception {
+	public void testScreenNamePrefix() throws Exception {
 		String screenName = "Open4Life" + RandomTestUtil.randomString();
 
 		addUserWithScreenName(screenName);
 
-		assertScreenNameFieldValue(screenName, byQueryString("open lite"));
+		assertNoHits(byQueryString("4lif"));
+		assertScreenNameFieldValue(screenName, byQueryString("open"));
+		assertScreenNameFieldValue(screenName, byQueryString("open4life"));
 		assertScreenNameFieldValue(screenName, byQueryString("OPE"));
-		assertScreenNameFieldValue(screenName, byQueryString("4lif"));
 	}
 
 	@Test
@@ -507,6 +622,14 @@ public class UserIndexerTest {
 	protected UserGroup addUserGroup() {
 		return _userGroupSearchFixture.addUserGroup(
 			UserGroupSearchFixture.getTestUserGroupBlueprintBuilder());
+	}
+
+	protected void addUserWithEmailAddress(String emailAddress) {
+		UserBlueprint.UserBlueprintBuilder userBlueprintBuilder =
+			getUserBlueprintBuilder();
+
+		_userSearchFixture.addUser(
+			userBlueprintBuilder.emailAddress(emailAddress));
 	}
 
 	protected User addUserWithNameFields(

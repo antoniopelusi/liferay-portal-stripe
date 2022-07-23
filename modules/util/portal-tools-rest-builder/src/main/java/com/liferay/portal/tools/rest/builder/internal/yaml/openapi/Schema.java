@@ -82,6 +82,10 @@ public class Schema {
 		return _minimum;
 	}
 
+	public String getName() {
+		return _name;
+	}
+
 	public List<Schema> getOneOfSchemas() {
 		return _oneOfSchemas;
 	}
@@ -102,8 +106,16 @@ public class Schema {
 		return _type;
 	}
 
+	public XML getXml() {
+		return _xml;
+	}
+
 	public boolean isDeprecated() {
 		return _deprecated;
+	}
+
+	public boolean isJsonMap() {
+		return _jsonMap;
 	}
 
 	public boolean isReadOnly() {
@@ -159,12 +171,20 @@ public class Schema {
 		_items = items;
 	}
 
+	public void setJsonMap(boolean jsonMap) {
+		_jsonMap = jsonMap;
+	}
+
 	public void setMaximum(Double maximum) {
 		_maximum = maximum;
 	}
 
 	public void setMinimum(Double minimum) {
 		_minimum = minimum;
+	}
+
+	public void setName(String name) {
+		_name = name;
 	}
 
 	public void setOneOfSchemas(List<Schema> oneOfSchemas) {
@@ -197,6 +217,10 @@ public class Schema {
 		_writeOnly = writeOnly;
 	}
 
+	public void setXML(XML xml) {
+		_xml = xml;
+	}
+
 	private Schema _additionalPropertySchema;
 	private List<Schema> _allOfSchemas;
 	private List<Schema> _anyOfSchemas;
@@ -207,8 +231,10 @@ public class Schema {
 	private String _example;
 	private String _format;
 	private Items _items;
+	private boolean _jsonMap;
 	private Double _maximum;
 	private Double _minimum;
+	private String _name;
 	private List<Schema> _oneOfSchemas;
 	private Map<String, Schema> _propertySchemas;
 	private boolean _readOnly;
@@ -216,5 +242,6 @@ public class Schema {
 	private List<String> _requiredPropertySchemaNames;
 	private String _type;
 	private boolean _writeOnly;
+	private XML _xml;
 
 }

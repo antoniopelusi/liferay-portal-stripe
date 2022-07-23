@@ -67,8 +67,7 @@ public interface CommerceShippingMethodService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.commerce.service.impl.CommerceShippingMethodServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the commerce shipping method remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CommerceShippingMethodServiceUtil} if injection and service tracking are not available.
 	 */
 	public CommerceAddressRestriction addCommerceAddressRestriction(
-			long userId, long groupId, long commerceShippingMethodId,
-			long countryId)
+			long groupId, long commerceShippingMethodId, long countryId)
 		throws PortalException;
 
 	/**
@@ -81,7 +80,7 @@ public interface CommerceShippingMethodService extends BaseService {
 		throws PortalException;
 
 	public CommerceShippingMethod addCommerceShippingMethod(
-			long userId, long groupId, Map<Locale, String> nameMap,
+			long groupId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, File imageFile,
 			String engineKey, double priority, boolean active)
 		throws PortalException;
@@ -122,12 +121,15 @@ public interface CommerceShippingMethodService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CommerceShippingMethod> getCommerceShippingMethods(long groupId)
+	public List<CommerceShippingMethod> getCommerceShippingMethods(
+			long groupId, boolean active, int start, int end,
+			OrderByComparator<CommerceShippingMethod> orderByComparator)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CommerceShippingMethod> getCommerceShippingMethods(
-			long groupId, boolean active)
+			long groupId, int start, int end,
+			OrderByComparator<CommerceShippingMethod> orderByComparator)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -136,7 +138,7 @@ public interface CommerceShippingMethodService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getCommerceShippingMethodsCount(long groupId, boolean active)
+	public int getCommerceShippingMethodsCount(long groupId)
 		throws PortalException;
 
 	/**

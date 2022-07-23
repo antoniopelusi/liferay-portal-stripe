@@ -24,8 +24,7 @@ public class SqlUpdateFactoryUtil {
 	public static SqlUpdate getSqlUpdate(
 		DataSource dataSource, String sql, ParamSetter... paramSetters) {
 
-		return getSqlUpdateFactory().getSqlUpdate(
-			dataSource, sql, paramSetters);
+		return _sqlUpdateFactory.getSqlUpdate(dataSource, sql, paramSetters);
 	}
 
 	public static SqlUpdateFactory getSqlUpdateFactory() {

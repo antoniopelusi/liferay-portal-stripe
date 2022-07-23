@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.service.permission.UserPermissionUtil;
+import com.liferay.portal.kernel.service.permission.UserPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.social.kernel.model.SocialRequest;
@@ -58,42 +58,11 @@ public class ViewMVCRenderCommand implements MVCRenderCommand {
 		throws PortletException {
 
 		try {
-			return doRender(renderRequest);
+			return _render(renderRequest);
 		}
 		catch (PortalException portalException) {
 			throw new PortletException(portalException);
 		}
-	}
-
-	protected String doRender(RenderRequest renderRequest)
-		throws PortalException {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		Group group = _groupLocalService.getGroup(
-			themeDisplay.getScopeGroupId());
-
-		User user = themeDisplay.getUser();
-
-		if (group.isUser()) {
-			user = _userLocalService.getUserById(group.getClassPK());
-		}
-
-		if (UserPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(), user.getUserId(),
-				ActionKeys.UPDATE)) {
-
-			List<SocialRequest> requests =
-				_socialRequestLocalService.getReceiverUserRequests(
-					user.getUserId(), SocialRequestConstants.STATUS_PENDING, 0,
-					100);
-
-			renderRequest.setAttribute(
-				SocialRequestsWebKeys.SOCIAL_REQUESTS, requests);
-		}
-
-		return "/view.jsp";
 	}
 
 	@Reference(unbind = "-")
@@ -113,8 +82,40 @@ public class ViewMVCRenderCommand implements MVCRenderCommand {
 		_userLocalService = userLocalService;
 	}
 
+	private String _render(RenderRequest renderRequest) throws PortalException {
+		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Group group = _groupLocalService.getGroup(
+			themeDisplay.getScopeGroupId());
+
+		User user = themeDisplay.getUser();
+
+		if (group.isUser()) {
+			user = _userLocalService.getUserById(group.getClassPK());
+		}
+
+		if (_userPermission.contains(
+				themeDisplay.getPermissionChecker(), user.getUserId(),
+				ActionKeys.UPDATE)) {
+
+			List<SocialRequest> requests =
+				_socialRequestLocalService.getReceiverUserRequests(
+					user.getUserId(), SocialRequestConstants.STATUS_PENDING, 0,
+					100);
+
+			renderRequest.setAttribute(
+				SocialRequestsWebKeys.SOCIAL_REQUESTS, requests);
+		}
+
+		return "/view.jsp";
+	}
+
 	private GroupLocalService _groupLocalService;
 	private SocialRequestLocalService _socialRequestLocalService;
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private UserPermission _userPermission;
 
 }

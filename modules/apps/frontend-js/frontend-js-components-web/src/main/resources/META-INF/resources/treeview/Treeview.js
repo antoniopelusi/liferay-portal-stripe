@@ -36,9 +36,12 @@ function addLinks(nodes, parentId = null) {
 		return {
 			...node,
 			children,
-			nextSiblingId: next != null ? next.id : null,
+			nextSiblingId: next !== null && next !== undefined ? next.id : null,
 			parentId,
-			previousSiblingId: previous != null ? previous.id : null,
+			previousSiblingId:
+				previous !== null && previous !== undefined
+					? previous.id
+					: null,
 		};
 	});
 }
@@ -240,8 +243,9 @@ function reducer(state, action) {
 
 	switch (action.type) {
 		case 'ACTIVATE': {
-			const focusedNodeId =
-				state.focusedNodeId || (nodes[0] && nodes[0].id);
+			const focusedNodeId = action.mouseNavigation
+				? state.focusedNodeId
+				: state.focusedNodeId || (nodes[0] && nodes[0].id);
 
 			return {
 				...state,
@@ -737,7 +741,7 @@ function Treeview({
 }) {
 	const delay = useTimeout();
 
-	const focusTimer = useRef();
+	const focusTimerRef = useRef();
 
 	const [, setHasFocus] = useState(false);
 
@@ -772,10 +776,25 @@ function Treeview({
 	}, [onSelectedNodesChange, selectedNodeIds]);
 
 	const cancelTimer = () => {
-		if (focusTimer.current) {
-			focusTimer.current();
-			focusTimer.current = null;
+		if (focusTimerRef.current) {
+			focusTimerRef.current();
+			focusTimerRef.current = null;
 		}
+	};
+
+	const handleMouseDown = () => {
+		cancelTimer();
+
+		setHasFocus((hadFocus) => {
+			if (!hadFocus) {
+				dispatch({
+					mouseNavigation: true,
+					type: 'ACTIVATE',
+				});
+			}
+
+			return true;
+		});
 	};
 
 	const handleFocus = () => {
@@ -798,7 +817,7 @@ function Treeview({
 		// the treeview); so, we defer this state update until the next
 		// tick, giving us a chance to cancel it if needed.
 
-		focusTimer.current = delay(() => {
+		focusTimerRef.current = delay(() => {
 			setHasFocus((hadFocus) => {
 				if (hadFocus) {
 					dispatch({type: 'DEACTIVATE'});
@@ -816,6 +835,7 @@ function Treeview({
 				nodes={filteredNodes || nodes}
 				onBlur={handleBlur}
 				onFocus={handleFocus}
+				onMouseDown={handleMouseDown}
 				role="tree"
 				tabIndex={0}
 			/>

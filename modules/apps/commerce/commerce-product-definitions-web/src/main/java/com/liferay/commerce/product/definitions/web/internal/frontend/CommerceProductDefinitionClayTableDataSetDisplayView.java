@@ -41,16 +41,16 @@ public class CommerceProductDefinitionClayTableDataSetDisplayView
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField imageclayTableSchemaField =
+		ClayTableSchemaField thumbnailClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("thumbnail", "");
 
-		imageclayTableSchemaField.setContentRenderer("image");
+		thumbnailClayTableSchemaField.setContentRenderer("image");
 
-		ClayTableSchemaField nameField =
+		ClayTableSchemaField nameLangClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("name.LANG", "name");
 
-		nameField.setSortable(true);
-		nameField.setContentRenderer("actionLink");
+		nameLangClayTableSchemaField.setSortable(true);
+		nameLangClayTableSchemaField.setContentRenderer("actionLink");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
 			"catalog.name", "catalog");
@@ -63,12 +63,12 @@ public class CommerceProductDefinitionClayTableDataSetDisplayView
 
 		clayTableSchemaField.setContentRenderer("status");
 
-		ClayTableSchemaField dateclayTableSchemaField =
+		ClayTableSchemaField modifiedDateClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField(
 				"modifiedDate", "modified-date");
 
-		dateclayTableSchemaField.setContentRenderer("date");
-		dateclayTableSchemaField.setSortable(true);
+		modifiedDateClayTableSchemaField.setContentRenderer("dateTime");
+		modifiedDateClayTableSchemaField.setSortable(true);
 
 		return clayTableSchemaBuilder.build();
 	}

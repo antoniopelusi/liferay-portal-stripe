@@ -21,12 +21,12 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Team;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.TeamLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -37,7 +37,6 @@ import com.liferay.site.teams.web.internal.constants.SiteTeamsPortletKeys;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -98,8 +97,9 @@ public class SelectUsersDisplayContext {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_httpServletRequest, "orderByCol", "first-name");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, SiteTeamsPortletKeys.SITE_TEAMS,
+			"users-order-by-col", "first-name");
 
 		return _orderByCol;
 	}
@@ -109,44 +109,57 @@ public class SelectUsersDisplayContext {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, SiteTeamsPortletKeys.SITE_TEAMS,
+			"users-order-by-type", "asc");
 
 		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/select_users.jsp"
 		).setRedirect(
 			getRedirect()
+		).setKeywords(
+			() -> {
+				String keywords = getKeywords();
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
 		).setParameter(
 			"eventName", getEventName()
 		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
+
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
+
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
+
+				return null;
+			}
+		).setParameter(
 			"teamId", getTeamId()
-		).build();
-
-		String keywords = getKeywords();
-
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		String orderByCol = getOrderByCol();
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+		).buildPortletURL();
 	}
 
 	public String getRedirect() {
@@ -191,18 +204,13 @@ public class SelectUsersDisplayContext {
 		SearchContainer<User> userSearchContainer = new UserSearch(
 			_renderRequest, getPortletURL());
 
-		OrderByComparator<User> orderByComparator =
-			UsersAdminUtil.getUserOrderByComparator(
-				getOrderByCol(), getOrderByType());
-
 		userSearchContainer.setOrderByCol(getOrderByCol());
-		userSearchContainer.setOrderByComparator(orderByComparator);
+		userSearchContainer.setOrderByComparator(
+			UsersAdminUtil.getUserOrderByComparator(
+				getOrderByCol(), getOrderByType()));
 		userSearchContainer.setOrderByType(getOrderByType());
 
 		Team team = getTeam();
-
-		userSearchContainer.setRowChecker(
-			new UserTeamChecker(_renderResponse, team));
 
 		UserSearchTerms searchTerms =
 			(UserSearchTerms)userSearchContainer.getSearchTerms();
@@ -224,19 +232,18 @@ public class SelectUsersDisplayContext {
 				}
 			).build();
 
-		int usersCount = UserLocalServiceUtil.searchCount(
-			themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-			searchTerms.getStatus(), userParams);
+		userSearchContainer.setResultsAndTotal(
+			() -> UserLocalServiceUtil.search(
+				themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+				searchTerms.getStatus(), userParams,
+				userSearchContainer.getStart(), userSearchContainer.getEnd(),
+				userSearchContainer.getOrderByComparator()),
+			UserLocalServiceUtil.searchCount(
+				themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+				searchTerms.getStatus(), userParams));
 
-		userSearchContainer.setTotal(usersCount);
-
-		List<User> users = UserLocalServiceUtil.search(
-			themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-			searchTerms.getStatus(), userParams, userSearchContainer.getStart(),
-			userSearchContainer.getEnd(),
-			userSearchContainer.getOrderByComparator());
-
-		userSearchContainer.setResults(users);
+		userSearchContainer.setRowChecker(
+			new UserTeamChecker(_renderResponse, getTeam()));
 
 		_userSearchContainer = userSearchContainer;
 

@@ -24,14 +24,14 @@
 	String portletNamespace = PortalUtil.getPortletNamespace(ProductNavigationControlMenuPortletKeys.PRODUCT_NAVIGATION_CONTROL_MENU);
 	%>
 
-	<div class="closed d-print-none lfr-add-panel lfr-admin-panel sidenav-fixed sidenav-menu-slider sidenav-right" id="<%= portletNamespace %>addPanelId">
-		<div class="light product-menu sidebar sidebar-inverse sidenav-menu">
-			<div class="sidebar-header">
+	<div class="cadmin closed d-print-none lfr-add-panel lfr-admin-panel sidenav-fixed sidenav-menu-slider sidenav-right" id="<%= portletNamespace %>addPanelId">
+		<div class="sidebar sidebar-inverse sidebar-light sidenav-menu">
+			<div class="d-flex justify-content-between p-3 sidebar-header">
 				<h1 class="sr-only"><liferay-ui:message key="widget-selection-panel" /></h1>
 
-				<span><liferay-ui:message key="add" /></span>
+				<span class="font-weight-bold"><liferay-ui:message key="add" /></span>
 
-				<a aria-label="<%= LanguageUtil.get(request, "close") %>" class="sidenav-close" href="javascript:;">
+				<a aria-label="<%= LanguageUtil.get(request, "close") %>" class="sidenav-close text-secondary" href="javascript:;">
 					<aui:icon cssClass="icon-monospaced" image="times" markupView="lexicon" />
 				</a>
 			</div>

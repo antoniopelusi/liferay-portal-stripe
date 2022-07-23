@@ -90,6 +90,11 @@ public class NestedSetsTreeEntryWrapper
 		}
 	}
 
+	@Override
+	public NestedSetsTreeEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the group ID of this nested sets tree entry.
 	 *

@@ -12,17 +12,17 @@
  * details.
  */
 
-import './RuleList.scss';
-
 import ClayButton from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import ClayLayout from '@clayui/layout';
 import ClayList from '@clayui/list';
-import {LangUtil} from 'data-engine-taglib';
-import {RulesSupport} from 'dynamic-data-mapping-form-builder';
+import {RulesSupport, capitalize} from 'data-engine-js-components-web';
+import {LangUtil, OPERATOR_OPTIONS_TYPES} from 'data-engine-taglib';
 import React, {useMemo} from 'react';
+
+import './RuleList.scss';
 
 const LOGICAL_OPERATOR = {
 	AND: Liferay.Language.get('and'),
@@ -31,7 +31,7 @@ const LOGICAL_OPERATOR = {
 
 const OPERATORS = {
 	'belongs-to': Liferay.Language.get('belongs-to'),
-	contains: Liferay.Language.get('contains'),
+	'contains': Liferay.Language.get('contains'),
 	'equals-to': Liferay.Language.get('is-equal-to'),
 	'greater-than': Liferay.Language.get('is-greater-than'),
 	'greater-than-equals': Liferay.Language.get('is-greater-than-or-equal-to'),
@@ -53,6 +53,7 @@ const OPERAND_TEXT = {
 const EmptyState = () => (
 	<ClayLayout.Sheet className="taglib-empty-result-message">
 		<div className="taglib-empty-result-message-header"></div>
+
 		<div className="sheet-text text-center text-muted">
 			<p className="text-default">
 				{Liferay.Language.get(
@@ -85,7 +86,7 @@ const getOperandTypeJson = (json, field) => {
 
 	const lastCommaPosition = label.lastIndexOf(', ');
 
-	if (lastCommaPosition != -1) {
+	if (lastCommaPosition !== -1) {
 		label = label.substr(0, lastCommaPosition);
 	}
 
@@ -107,6 +108,8 @@ const Operand = ({field, left, type, value}) => {
 				return value;
 			case 'json':
 				return getOperandTypeJson(JSON.parse(value), left.field);
+			case 'checkbox':
+				return capitalize(value);
 			default:
 				return value;
 		}
@@ -117,6 +120,7 @@ const Operand = ({field, left, type, value}) => {
 			<span className="inline-item-before">
 				{OPERAND_TEXT[type] ?? OPERAND_TEXT.value}
 			</span>
+
 			<ClayLabelCustom displayType="secondary" large>
 				{text}
 			</ClayLabelCustom>
@@ -124,15 +128,31 @@ const Operand = ({field, left, type, value}) => {
 	);
 };
 
-const Condition = ({operands: [left, right], operator}) => (
-	<>
-		<Operand {...left} />
-		<b className="inline-item inline-item-after inline-item-before text-lowercase">
-			<em>{OPERATORS[operator]}</em>
-		</b>
-		{right && <Operand {...right} left={left} />}
-	</>
-);
+const Condition = ({operands: [left, right], operator, operatorsByType}) => {
+	const operatorLabel = useMemo(() => {
+		if (!left.value) {
+			return '';
+		}
+
+		const dataType = left.field?.dataType ?? left.value;
+
+		const fieldType =
+			OPERATOR_OPTIONS_TYPES[dataType] ?? OPERATOR_OPTIONS_TYPES.text;
+
+		return operatorsByType[fieldType]?.find(({name}) => name === operator)
+			?.label;
+	}, [left, operator, operatorsByType]);
+
+	return (
+		<>
+			<Operand {...left} />
+			<b className="inline-item inline-item-after inline-item-before text-lowercase">
+				<em>{OPERATORS[operator] || operatorLabel}</em>
+			</b>
+			{right && <Operand {...right} left={left} />}
+		</>
+	);
+};
 
 const ActionAutoFill = ({
 	dataProvider,
@@ -174,6 +194,7 @@ const ActionJumpToPage = ({pages, target}) => (
 		<b className="inline-item-before">
 			{Liferay.Language.get('jump-to-page')}
 		</b>
+
 		<ClayLabelCustom displayType="secondary" large>
 			{pages[target]?.label}
 		</ClayLabelCustom>
@@ -208,6 +229,7 @@ const ACTIONS_LABELS = {
 const ActionDefault = ({action, fields, target}) => (
 	<span className="inline-item">
 		<b className="inline-item-before">{ACTIONS_LABELS[action]}</b>
+
 		<ClayLabelCustom displayType="secondary" large>
 			{fields.find(({value}) => value === target)?.label ?? target}
 		</ClayLabelCustom>
@@ -216,11 +238,11 @@ const ActionDefault = ({action, fields, target}) => (
 
 const ACTIONS = {
 	'auto-fill': ActionAutoFill,
-	calculate: ActionCalculate,
-	enable: ActionDefault,
+	'calculate': ActionCalculate,
+	'enable': ActionDefault,
 	'jump-to-page': ActionJumpToPage,
-	require: ActionDefault,
-	show: ActionDefault,
+	'require': ActionDefault,
+	'show': ActionDefault,
 };
 
 const LogicalOperator = ({children, logicalOperator}) => (
@@ -274,9 +296,10 @@ const ConditionWithLogicalOperator = ({
 	condition,
 	hasLogicalOperator,
 	logicalOperator,
+	operatorsByType,
 }) => (
 	<>
-		<Condition {...condition} />
+		<Condition {...condition} operatorsByType={operatorsByType} />
 		{hasLogicalOperator && (
 			<LogicalOperator
 				logicalOperator={LOGICAL_OPERATOR[logicalOperator]}
@@ -313,7 +336,15 @@ const ActionWithLogicalOperator = ({
 	);
 };
 
-const ListItem = ({dataProvider, fields, onDelete, onEdit, pages, rule}) => {
+const ListItem = ({
+	dataProvider,
+	fields,
+	onDelete,
+	onEdit,
+	operatorsByType,
+	pages,
+	rule,
+}) => {
 	const {actions} = rule;
 
 	const conditions = useMemo(
@@ -348,15 +379,19 @@ const ListItem = ({dataProvider, fields, onDelete, onEdit, pages, rule}) => {
 					<b className="inline-item inline-item-before">
 						{Liferay.Language.get('if')}
 					</b>
+
 					{conditions.map((condition, index) => (
 						<ConditionWithLogicalOperator
 							condition={condition}
 							hasLogicalOperator={conditions.length - 1 > index}
 							key={index}
 							logicalOperator={rule['logical-operator']}
+							operatorsByType={operatorsByType}
 						/>
 					))}
+
 					<br />
+
 					{actions.map(({action, ...otherProps}, index) => (
 						<ActionWithLogicalOperator
 							action={action}
@@ -370,6 +405,7 @@ const ListItem = ({dataProvider, fields, onDelete, onEdit, pages, rule}) => {
 					))}
 				</div>
 			</ClayLayout.ContentCol>
+
 			<ClayLayout.ContentCol>
 				<div className="form-rule-list-col px-2 py-2">
 					{invalidRule && (
@@ -384,6 +420,7 @@ const ListItem = ({dataProvider, fields, onDelete, onEdit, pages, rule}) => {
 							</ClayLabelCustom>
 						</div>
 					)}
+
 					<ClayDropDownWithItems
 						items={[
 							{
@@ -419,25 +456,37 @@ const ListItem = ({dataProvider, fields, onDelete, onEdit, pages, rule}) => {
 	);
 };
 
-export const RuleList = ({rules = [], onDelete, onEdit, ...otherProps}) => (
-	<div className="form-rule-list">
-		<h1 className="text-default">{Liferay.Language.get('rule-builder')}</h1>
+export function RuleList({
+	rules = [],
+	onDelete,
+	onEdit,
+	operatorsByType = [],
+	...otherProps
+}) {
+	return (
+		<div className="form-rule-list">
+			<h1 className="text-default">
+				{Liferay.Language.get('rule-builder')}
+			</h1>
 
-		{rules.length === 0 && <EmptyState />}
-		{rules.length > 0 && (
-			<ClayList className="mt-4" showQuickActionsOnHover={false}>
-				{rules.map((rule, index) => (
-					<ListItem
-						key={index}
-						onDelete={() => onDelete(index)}
-						onEdit={() => onEdit(index)}
-						rule={rule}
-						{...otherProps}
-					/>
-				))}
-			</ClayList>
-		)}
-	</div>
-);
+			{rules.length === 0 && <EmptyState />}
+
+			{rules.length > 0 && (
+				<ClayList className="mt-4" showQuickActionsOnHover={false}>
+					{rules.map((rule, index) => (
+						<ListItem
+							key={index}
+							onDelete={() => onDelete(index)}
+							onEdit={() => onEdit(index)}
+							operatorsByType={operatorsByType}
+							rule={rule}
+							{...otherProps}
+						/>
+					))}
+				</ClayList>
+			)}
+		</div>
+	);
+}
 
 RuleList.displayName = 'RuleList';

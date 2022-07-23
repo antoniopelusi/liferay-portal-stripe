@@ -205,6 +205,11 @@ public class CommerceInventoryWarehouseWrapper
 		}
 	}
 
+	@Override
+	public CommerceInventoryWarehouse cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this commerce inventory warehouse.
 	 *

@@ -64,6 +64,11 @@ public class DDMFormExportImportPortletPreferencesProcessor
 	}
 
 	@Override
+	public boolean isPublishDisplayedContent() {
+		return false;
+	}
+
+	@Override
 	public PortletPreferences processExportPortletPreferences(
 			PortletDataContext portletDataContext,
 			PortletPreferences portletPreferences)
@@ -127,7 +132,9 @@ public class DDMFormExportImportPortletPreferencesProcessor
 				return portletPreferences;
 			}
 
-			if (!group.isCompanyStagingGroup() && !group.isStagingGroup()) {
+			if (!group.isCompanyStagingGroup() && !group.isStaged() &&
+				!group.isStagingGroup()) {
+
 				return portletPreferences;
 			}
 		}
@@ -158,19 +165,30 @@ public class DDMFormExportImportPortletPreferencesProcessor
 				"Unable to export portlet permissions", portalException);
 		}
 
-		long importedFormInstanceId = GetterUtil.getLong(
-			portletPreferences.getValue("formInstanceId", null));
-
 		Map<Long, Long> formInstanceIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
 				DDMFormInstance.class);
 
+		long importedFormInstanceId = GetterUtil.getLong(
+			portletPreferences.getValue("formInstanceId", null));
+
 		long formInstanceId = MapUtil.getLong(
 			formInstanceIds, importedFormInstanceId, importedFormInstanceId);
+
+		Map<Long, Long> groupIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				Group.class);
+
+		long importedGroupId = GetterUtil.getLong(
+			portletPreferences.getValue("groupId", null));
+
+		long groupId = MapUtil.getLong(
+			groupIds, importedGroupId, importedGroupId);
 
 		try {
 			portletPreferences.setValue(
 				"formInstanceId", String.valueOf(formInstanceId));
+			portletPreferences.setValue("groupId", String.valueOf(groupId));
 		}
 		catch (ReadOnlyException readOnlyException) {
 			throw new PortletDataException(

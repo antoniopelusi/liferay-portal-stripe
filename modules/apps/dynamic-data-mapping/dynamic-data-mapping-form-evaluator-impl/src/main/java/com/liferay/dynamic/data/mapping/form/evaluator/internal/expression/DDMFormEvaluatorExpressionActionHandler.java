@@ -41,7 +41,7 @@ public class DDMFormEvaluatorExpressionActionHandler
 		String action = executeActionRequest.getAction();
 
 		if (action.equals("jumpPage")) {
-			return jumpPage(executeActionRequest);
+			return _jumpPage(executeActionRequest);
 		}
 
 		ExecuteActionResponse.Builder builder =
@@ -50,7 +50,26 @@ public class DDMFormEvaluatorExpressionActionHandler
 		return builder.build();
 	}
 
-	protected ExecuteActionResponse jumpPage(
+	private boolean _hasIntervalOnPageFlow(
+		Integer fromPageIndex, Integer toPageIndex) {
+
+		for (Map.Entry<Integer, Integer> entry : _pageFlow.entrySet()) {
+			int fromPageFlowIndex = entry.getKey();
+			int toPageFlowIndex = entry.getValue();
+
+			if ((toPageIndex < fromPageFlowIndex) ||
+				(fromPageIndex > toPageFlowIndex)) {
+
+				continue;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private ExecuteActionResponse _jumpPage(
 		ExecuteActionRequest executeActionRequest) {
 
 		Optional<Integer> fromOptional =
@@ -58,7 +77,9 @@ public class DDMFormEvaluatorExpressionActionHandler
 		Optional<Integer> toOptional =
 			executeActionRequest.getParameterOptional("to");
 
-		if (fromOptional.isPresent() && toOptional.isPresent()) {
+		if (fromOptional.isPresent() && toOptional.isPresent() &&
+			!_hasIntervalOnPageFlow(fromOptional.get(), toOptional.get())) {
+
 			_pageFlow.put(fromOptional.get(), toOptional.get());
 		}
 

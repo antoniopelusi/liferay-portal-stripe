@@ -21,7 +21,6 @@ import InfoItemService from '../services/InfoItemService';
 export default function updateFragmentConfiguration({
 	configurationValues,
 	fragmentEntryLink,
-	languageId,
 }) {
 	const {editableValues, fragmentEntryLinkId} = fragmentEntryLink;
 
@@ -30,11 +29,11 @@ export default function updateFragmentConfiguration({
 		[FREEMARKER_FRAGMENT_ENTRY_PROCESSOR]: configurationValues,
 	};
 
-	return (dispatch) => {
+	return (dispatch, getState) => {
 		return FragmentService.updateConfigurationValues({
-			configurationValues: nextEditableValues,
+			editableValues: nextEditableValues,
 			fragmentEntryLinkId,
-			languageId,
+			languageId: getState().languageId,
 			onNetworkStatus: dispatch,
 		})
 			.then(({fragmentEntryLink, layoutData}) => {
@@ -49,6 +48,7 @@ export default function updateFragmentConfiguration({
 			.then(() => {
 				InfoItemService.getPageContents({
 					onNetworkStatus: dispatch,
+					segmentsExperienceId: getState().segmentsExperienceId,
 				}).then((pageContents) => {
 					dispatch(
 						updatePageContents({

@@ -49,15 +49,17 @@ public class CheckboxMultipleDDMFormFieldValueRequestParameterRetriever
 		HttpServletRequest httpServletRequest, String ddmFormFieldParameterName,
 		String defaultDDMFormFieldParameterValue) {
 
-		String[] parameterValues = getParameterValues(
-			httpServletRequest, ddmFormFieldParameterName,
-			getDefaultDDMFormFieldParameterValues(
-				defaultDDMFormFieldParameterValue));
-
-		return jsonFactory.serialize(parameterValues);
+		return jsonFactory.serialize(
+			_getParameterValues(
+				httpServletRequest, ddmFormFieldParameterName,
+				_getDefaultDDMFormFieldParameterValues(
+					defaultDDMFormFieldParameterValue)));
 	}
 
-	protected String[] getDefaultDDMFormFieldParameterValues(
+	@Reference
+	protected JSONFactory jsonFactory;
+
+	private String[] _getDefaultDDMFormFieldParameterValues(
 		String defaultDDMFormFieldParameterValue) {
 
 		if (Validator.isNull(defaultDDMFormFieldParameterValue) ||
@@ -72,14 +74,14 @@ public class CheckboxMultipleDDMFormFieldValueRequestParameterRetriever
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringUtil.split(defaultDDMFormFieldParameterValue);
 		}
 	}
 
-	protected String[] getParameterValues(
+	private String[] _getParameterValues(
 		HttpServletRequest httpServletRequest, String ddmFormFieldParameterName,
 		String[] defaultDDMFormFieldParameterValues) {
 
@@ -96,9 +98,6 @@ public class CheckboxMultipleDDMFormFieldValueRequestParameterRetriever
 			httpServletRequest, ddmFormFieldParameterName,
 			defaultDDMFormFieldParameterValues);
 	}
-
-	@Reference
-	protected JSONFactory jsonFactory;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CheckboxMultipleDDMFormFieldValueRequestParameterRetriever.class);

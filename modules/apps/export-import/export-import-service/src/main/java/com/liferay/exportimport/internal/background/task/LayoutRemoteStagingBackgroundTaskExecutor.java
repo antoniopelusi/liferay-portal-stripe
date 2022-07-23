@@ -14,8 +14,10 @@
 
 package com.liferay.exportimport.internal.background.task;
 
+import com.liferay.exportimport.kernel.exception.MissingReferenceException;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.exportimport.kernel.lar.MissingReference;
 import com.liferay.exportimport.kernel.lar.MissingReferences;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleManagerUtil;
 import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycleConstants;
@@ -143,6 +145,13 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 			missingReferences = StagingServiceHttp.publishStagingRequest(
 				httpPrincipal, stagingRequestId, exportImportConfiguration);
 
+			Map<String, MissingReference> dependencyMissingReferences =
+				missingReferences.getDependencyMissingReferences();
+
+			if (!dependencyMissingReferences.isEmpty()) {
+				throw new MissingReferenceException(missingReferences);
+			}
+
 			deleteExportedChangesetEntries();
 
 			ExportImportThreadLocal.setLayoutStagingInProcess(false);
@@ -229,8 +238,7 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 					// See LPS-36174
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							noSuchLayoutException, noSuchLayoutException);
+						_log.debug(noSuchLayoutException);
 					}
 
 					entrySet.remove(plid);
@@ -246,7 +254,7 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 					continue;
 				}
 
-				List<Layout> parentLayouts = getMissingRemoteParentLayouts(
+				List<Layout> parentLayouts = _getMissingRemoteParentLayouts(
 					httpPrincipal, layout, remoteGroupId);
 
 				for (Layout parentLayout : parentLayouts) {
@@ -284,7 +292,7 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 	 * @see com.liferay.portal.lar.ExportImportHelperImpl#getMissingParentLayouts(
 	 *      Layout, long)
 	 */
-	protected List<Layout> getMissingRemoteParentLayouts(
+	private List<Layout> _getMissingRemoteParentLayouts(
 			HttpPrincipal httpPrincipal, Layout layout, long remoteGroupId)
 		throws PortalException {
 

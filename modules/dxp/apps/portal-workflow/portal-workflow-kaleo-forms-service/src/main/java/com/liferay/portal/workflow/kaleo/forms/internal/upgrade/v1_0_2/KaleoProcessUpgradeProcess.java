@@ -61,22 +61,22 @@ public class KaleoProcessUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from KaleoProcess");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			while (rs.next()) {
-				String uuid = rs.getString("uuid_");
-				long kaleoProcessId = rs.getLong("kaleoProcessId");
-				long groupId = rs.getLong("groupId");
-				long companyId = rs.getLong("companyId");
-				long userId = rs.getLong("userId");
-				Timestamp createDate = rs.getTimestamp("createDate");
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				long ddlRecordSetId = rs.getLong("DDLRecordSetId");
+			while (resultSet.next()) {
+				String uuid = resultSet.getString("uuid_");
+				long groupId = resultSet.getLong("groupId");
+				long companyId = resultSet.getLong("companyId");
+				long userId = resultSet.getLong("userId");
+				Timestamp createDate = resultSet.getTimestamp("createDate");
+				Timestamp modifiedDate = resultSet.getTimestamp("modifiedDate");
+				long ddlRecordSetId = resultSet.getLong("DDLRecordSetId");
 
 				if (Validator.isNull(uuid)) {
 					uuid = PortalUUIDUtil.generate();
+					long kaleoProcessId = resultSet.getLong("kaleoProcessId");
 
 					runSQL(
 						StringBundler.concat(
@@ -84,14 +84,14 @@ public class KaleoProcessUpgradeProcess extends UpgradeProcess {
 							"' where kaleoProcessId = ", kaleoProcessId));
 				}
 
-				updateAssetEntry(
-					groupId, companyId, userId, createDate, modifiedDate,
-					kaleoProcessId, uuid, ddlRecordSetId);
+				_updateAssetEntry(
+					groupId, companyId, userId, createDate, modifiedDate, uuid,
+					ddlRecordSetId);
 			}
 		}
 	}
 
-	protected String getAssetEntryTitle(long companyId, long ddlRecordSetId)
+	private String _getAssetEntryTitle(long companyId, long ddlRecordSetId)
 		throws PortalException {
 
 		DDLRecordSet ddlRecordSet = _ddlRecordSetLocalService.getDDLRecordSet(
@@ -99,7 +99,7 @@ public class KaleoProcessUpgradeProcess extends UpgradeProcess {
 
 		DDMStructure ddmStructure = ddlRecordSet.getDDMStructure();
 
-		Locale locale = getDefaultLocale(companyId);
+		Locale locale = _getDefaultLocale(companyId);
 
 		return LanguageUtil.format(
 			locale, "new-x-for-list-x",
@@ -109,7 +109,7 @@ public class KaleoProcessUpgradeProcess extends UpgradeProcess {
 			false);
 	}
 
-	protected Locale getDefaultLocale(long companyId) {
+	private Locale _getDefaultLocale(long companyId) {
 		String locale = null;
 
 		try {
@@ -126,13 +126,12 @@ public class KaleoProcessUpgradeProcess extends UpgradeProcess {
 		return LocaleUtil.fromLanguageId(locale);
 	}
 
-	protected void updateAssetEntry(
-			final long groupId, final long companyId, final long userId,
-			final Timestamp createDate, final Timestamp modifiedDate,
-			long kaleoProcessId, final String uuid, final long ddlRecordSetId)
+	private void _updateAssetEntry(
+			long groupId, long companyId, long userId, Timestamp createDate,
+			Timestamp modifiedDate, String uuid, long ddlRecordSetId)
 		throws PortalException {
 
-		final String title = getAssetEntryTitle(companyId, ddlRecordSetId);
+		String title = _getAssetEntryTitle(companyId, ddlRecordSetId);
 
 		ActionableDynamicQuery actionableDynamicQuery =
 			_ddlRecordLocalService.getActionableDynamicQuery();

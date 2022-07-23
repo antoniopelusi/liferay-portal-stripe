@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.servlet.taglib.aui;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 
 import java.util.Arrays;
@@ -33,7 +34,7 @@ public class VariableUtil {
 	public static String generateVariable(
 		String module, Set<String> usedVariables) {
 
-		StringBuilder sb = new StringBuilder(module.length());
+		StringBundler sb = new StringBundler(module.length());
 
 		char c = module.charAt(0);
 

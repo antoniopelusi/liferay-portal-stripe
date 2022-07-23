@@ -28,14 +28,13 @@ definition {
 			portlet = "Pages",
 			site = "${siteName}");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Sync Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Sync Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Sync Page");
@@ -62,7 +61,7 @@ definition {
 
 			DMDocumentType.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 

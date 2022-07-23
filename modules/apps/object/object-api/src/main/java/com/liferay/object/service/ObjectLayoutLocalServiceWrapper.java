@@ -27,10 +27,27 @@ public class ObjectLayoutLocalServiceWrapper
 	implements ObjectLayoutLocalService,
 			   ServiceWrapper<ObjectLayoutLocalService> {
 
+	public ObjectLayoutLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ObjectLayoutLocalServiceWrapper(
 		ObjectLayoutLocalService objectLayoutLocalService) {
 
 		_objectLayoutLocalService = objectLayoutLocalService;
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectLayout addObjectLayout(
+			long userId, long objectDefinitionId, boolean defaultObjectLayout,
+			java.util.Map<java.util.Locale, String> nameMap,
+			java.util.List<com.liferay.object.model.ObjectLayoutTab>
+				objectLayoutTabs)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectLayoutLocalService.addObjectLayout(
+			userId, objectDefinitionId, defaultObjectLayout, nameMap,
+			objectLayoutTabs);
 	}
 
 	/**
@@ -102,10 +119,12 @@ public class ObjectLayoutLocalServiceWrapper
 	 *
 	 * @param objectLayout the object layout
 	 * @return the object layout that was removed
+	 * @throws PortalException
 	 */
 	@Override
 	public com.liferay.object.model.ObjectLayout deleteObjectLayout(
-		com.liferay.object.model.ObjectLayout objectLayout) {
+			com.liferay.object.model.ObjectLayout objectLayout)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectLayoutLocalService.deleteObjectLayout(objectLayout);
 	}
@@ -124,6 +143,13 @@ public class ObjectLayoutLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _objectLayoutLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _objectLayoutLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -246,6 +272,15 @@ public class ObjectLayoutLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.object.model.ObjectLayout getDefaultObjectLayout(
+			long objectDefinitionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectLayoutLocalService.getDefaultObjectLayout(
+			objectDefinitionId);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
 		getExportActionableDynamicQuery(
 			com.liferay.exportimport.kernel.lar.PortletDataContext
@@ -312,6 +347,21 @@ public class ObjectLayoutLocalServiceWrapper
 		return _objectLayoutLocalService.getObjectLayouts(start, end);
 	}
 
+	@Override
+	public java.util.List<com.liferay.object.model.ObjectLayout>
+		getObjectLayouts(long objectDefinitionId) {
+
+		return _objectLayoutLocalService.getObjectLayouts(objectDefinitionId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.object.model.ObjectLayout>
+		getObjectLayouts(long objectDefinitionId, int start, int end) {
+
+		return _objectLayoutLocalService.getObjectLayouts(
+			objectDefinitionId, start, end);
+	}
+
 	/**
 	 * Returns the number of object layouts.
 	 *
@@ -320,6 +370,12 @@ public class ObjectLayoutLocalServiceWrapper
 	@Override
 	public int getObjectLayoutsCount() {
 		return _objectLayoutLocalService.getObjectLayoutsCount();
+	}
+
+	@Override
+	public int getObjectLayoutsCount(long objectDefinitionId) {
+		return _objectLayoutLocalService.getObjectLayoutsCount(
+			objectDefinitionId);
 	}
 
 	/**
@@ -341,6 +397,18 @@ public class ObjectLayoutLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectLayoutLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectLayout updateObjectLayout(
+			long objectLayoutId, boolean defaultObjectLayout,
+			java.util.Map<java.util.Locale, String> nameMap,
+			java.util.List<com.liferay.object.model.ObjectLayoutTab>
+				objectLayoutTabs)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectLayoutLocalService.updateObjectLayout(
+			objectLayoutId, defaultObjectLayout, nameMap, objectLayoutTabs);
 	}
 
 	/**

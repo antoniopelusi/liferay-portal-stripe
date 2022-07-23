@@ -388,4 +388,7 @@ public interface DDMContentModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public DDMContent cloneWithOriginalValues();
+
 }

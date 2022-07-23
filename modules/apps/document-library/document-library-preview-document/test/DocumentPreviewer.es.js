@@ -23,7 +23,7 @@ describe('document-library-preview-document', () => {
 	it('renders a document previewer with ten pages and the first page rendered', () => {
 		const {asFragment} = render(
 			<DocumentPreviewer
-				baseImageURL="/document-images/"
+				baseImageURL="http://localhost/document-images/"
 				initialPage={1}
 				spritemap="icons.svg"
 				totalPages={10}
@@ -36,7 +36,7 @@ describe('document-library-preview-document', () => {
 	it('renders a document previewer with nineteen pages and the fifth page rendered', () => {
 		const {asFragment} = render(
 			<DocumentPreviewer
-				baseImageURL="/document-images/"
+				baseImageURL="http://localhost/document-images/"
 				initialPage={5}
 				spritemap="icons.svg"
 				totalPages={19}

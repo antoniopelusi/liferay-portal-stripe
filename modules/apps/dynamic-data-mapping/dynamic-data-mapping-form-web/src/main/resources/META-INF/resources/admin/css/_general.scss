@@ -126,6 +126,12 @@ td.lfr-name-column {
 	}
 }
 
+.ddm-icon-check {
+	.sticker {
+		color: #287d3c;
+	}
+}
+
 .ddm-publish-modal {
 	.alert-info {
 		text-align: center;
@@ -214,16 +220,15 @@ td.lfr-name-column {
 	text-align: center;
 }
 
+div.lfr-de__partial-results--background {
+	.ddm-form-builder-app {
+		margin-top: 0;
+		padding-top: 28px;
+	}
+}
+
 .form-builder-sidebar,
 .portlet-forms {
-	.form-group
-		.alloy-editor-container.input-group
-		.alloy-editor-placeholder.ae-placeholder {
-		border-left: 0;
-		padding-left: 0;
-		width: inherit;
-	}
-
 	.forms-navigation-bar,
 	.navigation-bar-secondary,
 	.management-bar {
@@ -296,12 +301,6 @@ td.lfr-name-column {
 			margin: 0;
 		}
 
-		.ae-placeholder:empty:before {
-			content: attr(data-placeholder);
-		}
-
-		.alloy-editor-container
-			.alloy-editor.alloy-editor-placeholder.ae-placeholder:not(:focus):not(.form-control),
 		.ddm-form-name,
 		.ddm-form-description {
 			border-width: 0;
@@ -315,15 +314,6 @@ td.lfr-name-column {
 			p {
 				margin: 0;
 			}
-		}
-
-		.alloy-editor.alloy-editor-placeholder {
-			color: #000;
-			font-weight: 500;
-		}
-
-		.alloy-editor.alloy-editor-placeholder:empty:not(:focus) {
-			color: #c0ccd3;
 		}
 
 		.ddm-form-name {
@@ -389,13 +379,6 @@ td.lfr-name-column {
 		.toggle-switch-text {
 			word-break: break-word;
 		}
-	}
-
-	.form-builder-tabview,
-	.lfr-ddm-form-wizard {
-		border-bottom: 1px solid #dee4e9;
-		padding: 20px 34px 11px;
-		position: relative;
 	}
 
 	.form-instance-id,

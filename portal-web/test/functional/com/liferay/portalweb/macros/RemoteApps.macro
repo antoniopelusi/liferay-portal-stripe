@@ -1,5 +1,14 @@
 definition {
 
+	macro _deleteRemoteAppAPI {
+		var currentURL = Navigator.getCurrentURL();
+
+		var findWhereIdBegins = StringUtil.extractLast("${currentURL}", "remoteAppEntryId=");
+		var remoteAppEntryIdValue = StringUtil.extractFirst("${findWhereIdBegins}", "&_com_liferay_remote_app_admin_web_portlet_RemoteAppAdminPortlet_redirect");
+
+		JSONRemoteApp.deleteIFrameRemoteAppEntry(remoteAppEntryId = "${remoteAppEntryIdValue}");
+	}
+
 	macro addApp {
 		LexiconEntry.gotoAdd();
 
@@ -7,7 +16,148 @@ definition {
 			entryName = "${entryName}",
 			entryURL = "${entryURL}");
 
-		PortletEntry.save();
+		PortletEntry.publish();
+	}
+
+	macro addCustomElement {
+		LexiconEntry.gotoAdd();
+
+		Select(
+			locator1 = "Select#TYPE",
+			value1 = "Custom Element");
+
+		RemoteAppsEntry.addCustomElement(
+			entryHtmlName = "${entryHtmlName}",
+			entryName = "${entryName}",
+			entryURL = "${entryURL}");
+
+		PortletEntry.publish();
+	}
+
+	macro addCustomElementAllFields {
+		LexiconEntry.gotoAdd();
+
+		Select(
+			locator1 = "Select#TYPE",
+			value1 = "Custom Element");
+
+		RemoteAppsEntry.addCustomElementAllFields(
+			entryCssurl = "${entryCssurl}",
+			entryHtmlName = "${entryHtmlName}",
+			entryName = "${entryName}",
+			entryProperties = "${entryProperties}",
+			entryURL = "${entryURL}");
+
+		Click(locator1 = "RemoteAppsEntry#REMOTE_APPS_INSTANCEABLE");
+
+		PortletEntry.publish();
+	}
+
+	macro addCustomElementMultipleURLs {
+		LexiconEntry.gotoAdd();
+
+		Select(
+			locator1 = "Select#TYPE",
+			value1 = "Custom Element");
+
+		RemoteAppsEntry.addCustomElementMultipleURLs(
+			entryCssurl1 = "https://liferay.github.io/liferay-frontend-projects/index1.css",
+			entryCssurl2 = "https://liferay.github.io/liferay-frontend-projects/index2.css",
+			entryHtmlName = "vanilla-counter",
+			entryName = "Vanilla Counter",
+			entryUrl1 = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index1.js",
+			entryUrl2 = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index2.js");
+
+		PortletEntry.publish();
+	}
+
+	macro addEntryWithPortletCategory {
+		LexiconEntry.gotoAdd();
+
+		RemoteAppsEntry.addEntry(
+			entryName = "Test Remote App",
+			entryURL = "http://www.liferay.com");
+
+		RemoteAppsEntry.addPortletCategory(categoryName = "Collaboration");
+
+		PortletEntry.publish();
+	}
+
+	macro assertCustomElementFields {
+		AssertTextEquals(
+			custom_entryName = "${entryName}",
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryName}");
+
+		AssertTextEquals(
+			custom_entryHtmlName = "${entryHtmlName}",
+			key_text = "HTML Element Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryHtmlName}");
+
+		AssertTextEquals(
+			custom_entryURL = "${entryURL}",
+			key_id = "customElementURLs",
+			locator1 = "RemoteAppsEntry#URL",
+			value1 = "${entryURL}");
+
+		AssertTextEquals(
+			custom_entryCssurl = "${entryCssurl}",
+			key_text = "CSS URL",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryCssurl}");
+
+		AssertTextEquals(
+			custom_entryProperties = "${entryProperties}",
+			key_text = "Properties",
+			locator1 = "RemoteAppsEntry#REMOTE_APPS_PROPERTIES",
+			value1 = "${entryProperties}");
+	}
+
+	macro assertCustomElementMultipleURLFields {
+		AssertTextEquals(
+			custom_entryName = "Vanilla Counter",
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
+			value1 = "Vanilla Counter");
+
+		AssertTextEquals(
+			custom_entryHtmlName = "vanilla-counter",
+			key_text = "HTML Element Name",
+			locator1 = "TextInput#ANY",
+			value1 = "vanilla-counter");
+
+		AssertTextEquals(
+			key_id = "customElementURLs",
+			key_index = "1",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index1.js");
+
+		AssertTextEquals(
+			key_id = "customElementURLs",
+			key_index = "2",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index2.js");
+
+		AssertTextEquals(
+			key_id = "customElementCSSURLs",
+			key_index = "1",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "https://liferay.github.io/liferay-frontend-projects/index1.css");
+
+		AssertTextEquals(
+			key_id = "customElementCSSURLs",
+			key_index = "2",
+			locator1 = "RemoteAppsEntry#URL_ROW_INDEX",
+			value1 = "https://liferay.github.io/liferay-frontend-projects/index2.css");
+	}
+
+	macro assertTableEntryNameNotPresent {
+		AssertElementNotPresent(
+			key_tableEntryName = "${entryName}",
+			locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE",
+			value1 = "${entryName}");
 	}
 
 	macro deleteRemoteApp {
@@ -16,23 +166,100 @@ definition {
 		Click(locator1 = "RemoteApps#REMOTE_TABLE_DELETE");
 	}
 
-	macro tearDown {
-		ApplicationsMenu.gotoPortlet(
-			category = "Custom Apps",
-			panel = "Applications",
-			portlet = "Remote Apps");
+	macro deleteRemoteAppAPI {
+		Click(locator1 = "xPath=(//div[@class='table-list-title']//a)");
 
-		Search.searchCP(searchTerm = "App");
+		var remoteAppNameToBeRemoved = RemoteApps.getRemoteAppEntryName();
 
-		while (IsElementPresent.pauseIsElementPresent(locator1 = "Icon#SVG_ELLIPSIS")) {
-			Click(locator1 = "Icon#SVG_ELLIPSIS");
+		RemoteApps._deleteRemoteAppAPI();
 
-			MenuItem.clickNoError(menuItem = "Delete");
+		RemoteApps.goToRemoteAppsPortlet();
+
+		RemoteApps.assertTableEntryNameNotPresent(entryName = "${remoteAppNameToBeRemoved}");
+	}
+
+	macro editCustomElement {
+		Type(
+			key_text = "Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryName}");
+
+		Type(
+			key_text = "HTML Element Name",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryHtmlName}");
+
+		Type(
+			key_text = "CSS URL",
+			locator1 = "TextInput#ANY",
+			value1 = "${entryCssurl}");
+
+		Type(
+			key_text = "Properties",
+			locator1 = "RemoteAppsEntry#REMOTE_APPS_PROPERTIES",
+			value1 = "${entryProperties}");
+
+		PortletEntry.publish();
+	}
+
+	macro getRemoteAppEntryIdValue {
+		WaitForSPARefresh();
+
+		RemoteApps.goToRemoteAppsPortlet();
+
+		Click(
+			key_tableEntryName = "Vanilla Counter",
+			locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE");
+
+		var currentURL = Navigator.getCurrentURL();
+
+		var findWhereIdBegins = StringUtil.extractLast("${currentURL}", "remoteAppEntryId=");
+		var remoteAppEntryIdValue = StringUtil.extractFirst("${findWhereIdBegins}", "&_com_liferay_remote_app_admin_web_portlet_RemoteAppAdminPortlet_redirect");
+
+		return "${remoteAppEntryIdValue}";
+	}
+
+	macro getRemoteAppEntryName {
+		WaitForSPARefresh();
+
+		var remoteAppEntryValue = selenium.getAttribute("//input[contains(@id , '_com_liferay_remote_app_admin_web_portlet_RemoteAppAdminPortlet_name')]@value");
+
+		return "${remoteAppEntryValue}";
+	}
+
+	macro goToRemoteAppsPortlet {
+		if (IsElementNotPresent(locator1 = "RemoteApps#REMOTE_APPS_HEADER")) {
+			ApplicationsMenu.gotoPortlet(
+				category = "Custom Apps",
+				panel = "Applications",
+				portlet = "Remote Apps");
 		}
+	}
+
+	macro tearDown {
+		RemoteApps.goToRemoteAppsPortlet();
+
+		while (IsElementNotPresent(locator1 = "RemoteApps#EMPTY_REMOTE_TABLE_MESSAGE")) {
+			RemoteApps.deleteRemoteAppAPI();
+		}
+
+		RemoteApps.viewEmptyRemoteTable();
 	}
 
 	macro viewEmptyRemoteTable {
 		AssertElementPresent(locator1 = "RemoteApps#EMPTY_REMOTE_TABLE_MESSAGE");
+	}
+
+	macro viewTableEntries {
+		AssertTextEquals(
+			key_tableEntryName = "${entryName}",
+			locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE",
+			value1 = "${entryName}");
+
+		AssertTextEquals(
+			key_tableEntryType = "${entryType}",
+			locator1 = "RemoteApps#TABLE_ENTRY_TYPE_REMOTE_TABLE",
+			value1 = "${entryType}");
 	}
 
 	macro viewTableEntryName {
@@ -42,11 +269,11 @@ definition {
 			value1 = "${entryName}");
 	}
 
-	macro viewTableEntryNameNotPresent {
-		AssertElementNotPresent(
-			key_tableEntryName = "${entryName}",
-			locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE",
-			value1 = "${entryName}");
+	macro viewTableEntryType {
+		AssertTextEquals(
+			key_tableEntryType = "${entryType}",
+			locator1 = "RemoteApps#TABLE_ENTRY_TYPE_REMOTE_TABLE",
+			value1 = "${entryType}");
 	}
 
 	macro viewTableEntryURL {

@@ -1,43 +1,29 @@
-<definition default="copy">
-	<command name="ckEditorCopy">
-		<execute argument1="//a[contains(@class,'cke_button__unlink') and contains(@class,'cke_button_disabled')]" selenium="waitForVisible" />
+@default = "copy"
+definition {
 
-		<execute selenium="selectFrame" />
+	function copy {
+		if (contains("${locator1}", "/input")) {
+			Copy.valueCopy();
+		}
+		else {
+			Copy.textCopy();
+		}
+	}
 
-		<execute argument1="//html/body" selenium="waitForVisible" />
+	function textCopy {
+		selenium.waitForVisible();
 
-		<execute argument1="//html/body" selenium="mouseOver" />
+		selenium.mouseOver();
 
-		<execute argument1="//html/body" selenium="copyText" />
+		selenium.copyText();
+	}
 
-		<execute argument1="relative=parent" selenium="selectFrame" />
-	</command>
+	function valueCopy {
+		selenium.waitForVisible();
 
-	<command name="copy">
-		<if>
-			<contains string="${locator1}" substring="/input" />
-			<then>
-				<execute function="Copy#valueCopy" />
-			</then>
-			<else>
-				<execute function="Copy#textCopy" />
-			</else>
-		</if>
-	</command>
+		selenium.mouseOver();
 
-	<command name="textCopy">
-		<execute selenium="waitForVisible" />
+		selenium.copyValue();
+	}
 
-		<execute selenium="mouseOver" />
-
-		<execute selenium="copyText" />
-	</command>
-
-	<command name="valueCopy">
-		<execute selenium="waitForVisible" />
-
-		<execute selenium="mouseOver" />
-
-		<execute selenium="copyValue" />
-	</command>
-</definition>
+}

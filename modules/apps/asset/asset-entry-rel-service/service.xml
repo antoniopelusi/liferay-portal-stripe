@@ -31,6 +31,5 @@
 			<finder-column name="assetEntryId" />
 			<finder-column name="assetCategoryId" />
 		</finder>
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
 	</entity>
 </service-builder>

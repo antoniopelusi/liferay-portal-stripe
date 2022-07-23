@@ -181,7 +181,10 @@ public class SiteActionDropdownItemsProvider {
 		return dropdownItem -> {
 			dropdownItem.setHref(_group.getDisplayURL(_themeDisplay, true));
 			dropdownItem.setLabel(
-				LanguageUtil.get(_httpServletRequest, "go-to-private-pages"));
+				LanguageUtil.format(
+					_httpServletRequest, "go-to-x",
+					_group.getLayoutRootNodeName(
+						true, _themeDisplay.getLocale())));
 			dropdownItem.setTarget("_blank");
 		};
 	}
@@ -192,19 +195,18 @@ public class SiteActionDropdownItemsProvider {
 		return dropdownItem -> {
 			dropdownItem.setHref(_group.getDisplayURL(_themeDisplay, false));
 			dropdownItem.setLabel(
-				LanguageUtil.get(_httpServletRequest, "go-to-public-pages"));
+				LanguageUtil.format(
+					_httpServletRequest, "go-to-x",
+					_group.getLayoutRootNodeName(
+						false, _themeDisplay.getLocale())));
 			dropdownItem.setTarget("_blank");
 		};
 	}
 
 	private boolean _isShowLeaveAction() throws Exception {
-		if ((_group.getType() != GroupConstants.TYPE_SITE_OPEN) &&
-			(_group.getType() != GroupConstants.TYPE_SITE_RESTRICTED)) {
-
-			return false;
-		}
-
-		if (!GroupLocalServiceUtil.hasUserGroup(
+		if (((_group.getType() != GroupConstants.TYPE_SITE_OPEN) &&
+			 (_group.getType() != GroupConstants.TYPE_SITE_RESTRICTED)) ||
+			!GroupLocalServiceUtil.hasUserGroup(
 				_themeDisplay.getUserId(), _group.getGroupId(), false)) {
 
 			return false;
@@ -220,18 +222,11 @@ public class SiteActionDropdownItemsProvider {
 	}
 
 	private boolean _isShowMembershipRequestAction() throws Exception {
-		if (_group.getType() != GroupConstants.TYPE_SITE_RESTRICTED) {
-			return false;
-		}
-
-		if (MembershipRequestLocalServiceUtil.hasMembershipRequest(
+		if ((_group.getType() != GroupConstants.TYPE_SITE_RESTRICTED) ||
+			MembershipRequestLocalServiceUtil.hasMembershipRequest(
 				_themeDisplay.getUserId(), _group.getGroupId(),
-				MembershipRequestConstants.STATUS_PENDING)) {
-
-			return false;
-		}
-
-		if (!SiteMembershipPolicyUtil.isMembershipAllowed(
+				MembershipRequestConstants.STATUS_PENDING) ||
+			!SiteMembershipPolicyUtil.isMembershipAllowed(
 				_themeDisplay.getUserId(), _group.getGroupId())) {
 
 			return false;

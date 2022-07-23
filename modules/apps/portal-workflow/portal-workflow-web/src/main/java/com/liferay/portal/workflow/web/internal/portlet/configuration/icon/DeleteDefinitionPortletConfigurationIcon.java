@@ -60,14 +60,9 @@ public class DeleteDefinitionPortletConfigurationIcon
 
 		String deleteURL = getURL(portletRequest, portletResponse);
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(portletNamespace);
-		sb.append("confirmDeleteDefinition('");
-		sb.append(deleteURL);
-		sb.append("'); return false;");
-
-		return sb.toString();
+		return StringBundler.concat(
+			portletNamespace, "confirmDeleteDefinition('", deleteURL,
+			"'); return false;");
 	}
 
 	/**

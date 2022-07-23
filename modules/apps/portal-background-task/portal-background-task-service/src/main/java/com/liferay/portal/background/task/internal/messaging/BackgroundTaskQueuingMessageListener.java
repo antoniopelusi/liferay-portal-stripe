@@ -14,7 +14,7 @@
 
 package com.liferay.portal.background.task.internal.messaging;
 
-import com.liferay.portal.background.task.internal.lock.BackgroundTaskLockHelper;
+import com.liferay.portal.background.task.internal.lock.helper.BackgroundTaskLockHelper;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
@@ -65,11 +65,9 @@ public class BackgroundTaskQueuingMessageListener extends BaseMessageListener {
 			long backgroundTaskId = (Long)message.get(
 				BackgroundTaskConstants.BACKGROUND_TASK_ID);
 
-			BackgroundTask backgroundTask =
-				_backgroundTaskManager.fetchBackgroundTask(backgroundTaskId);
-
 			if (!_backgroundTaskLockHelper.isLockedBackgroundTask(
-					backgroundTask)) {
+					_backgroundTaskManager.fetchBackgroundTask(
+						backgroundTaskId))) {
 
 				_executeQueuedBackgroundTasks(taskExecutorClassName);
 			}

@@ -83,6 +83,9 @@ public interface LayoutTypePortlet extends LayoutType {
 
 	public List<Portlet> getExplicitlyAddedPortlets();
 
+	public List<Portlet> getExplicitlyAddedPortlets(
+		boolean includeCustomizableColumns);
+
 	public Layout getLayoutSetPrototypeLayout();
 
 	public String getLayoutSetPrototypeLayoutProperty(String key);
@@ -122,6 +125,8 @@ public interface LayoutTypePortlet extends LayoutType {
 	public String getStateMaxPortletId();
 
 	public String getStateMin();
+
+	public List<Portlet> getStaticPortlets(String position);
 
 	public boolean hasDefaultScopePortletId(long groupId, String portletId);
 

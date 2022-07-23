@@ -117,6 +117,11 @@ public class AssetAutoTaggerEntryWrapper
 		}
 	}
 
+	@Override
+	public AssetAutoTaggerEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the asset auto tagger entry ID of this asset auto tagger entry.
 	 *

@@ -38,7 +38,7 @@ public final class CheckInFileOperation extends BaseOperation {
 				listsSoap12Stub.checkInFile(
 					_getCheckInFileDocument(filePath, comment, checkInType));
 
-			return _getResponse(checkInFileResponseDocument);
+			return _isCheckInFile(checkInFileResponseDocument);
 		}
 		catch (RemoteException remoteException) {
 			throw RemoteExceptionSharepointExceptionMapper.map(
@@ -64,7 +64,7 @@ public final class CheckInFileOperation extends BaseOperation {
 		return checkInFileDocument;
 	}
 
-	private boolean _getResponse(
+	private boolean _isCheckInFile(
 		CheckInFileResponseDocument checkInFileResponseDocument) {
 
 		CheckInFileResponseDocument.CheckInFileResponse checkInFileResponse =

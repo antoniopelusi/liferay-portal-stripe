@@ -45,8 +45,8 @@ String sectionName = "password-changed-notification";
 </aui:fieldset>
 
 <%
-String adminEmailPasswordSentSubject = LocalizationUtil.getLocalizationXmlFromPreferences(companyPortletPreferences, renderRequest, "adminEmailPasswordSentSubject", "preferences", StringPool.BLANK);
 String adminEmailPasswordSentBody = LocalizationUtil.getLocalizationXmlFromPreferences(companyPortletPreferences, renderRequest, "adminEmailPasswordSentBody", "preferences", StringPool.BLANK);
+String adminEmailPasswordSentSubject = LocalizationUtil.getLocalizationXmlFromPreferences(companyPortletPreferences, renderRequest, "adminEmailPasswordSentSubject", "preferences", StringPool.BLANK);
 %>
 
 <c:if test="<%= Validator.isNotNull(adminEmailPasswordSentSubject) || Validator.isNotNull(adminEmailPasswordSentBody) %>">

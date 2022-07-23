@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -65,8 +66,8 @@ public class TalendDispatchTaskExecutorTest {
 	public void testExecute() throws Exception {
 		DispatchTrigger dispatchTrigger =
 			_dispatchTriggerLocalService.addDispatchTrigger(
-				TestPropsValues.getUserId(), "talend", new UnicodeProperties(),
-				"TalendDispatchTrigger", false);
+				null, TestPropsValues.getUserId(), "talend",
+				new UnicodeProperties(), "TalendDispatchTrigger", false);
 
 		_dispatchFileRepository.addFileEntry(
 			dispatchTrigger.getUserId(), dispatchTrigger.getDispatchTriggerId(),
@@ -99,18 +100,21 @@ public class TalendDispatchTaskExecutorTest {
 
 	@Test
 	public void testExecuteLiferayOutputBlog() throws Exception {
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.put("liferayUser", "test@liferay.com");
-		unicodeProperties.put("liferayUserPassword", "test");
-
-		Group testGroup = GroupTestUtil.addGroup();
-
-		unicodeProperties.put("siteId", String.valueOf(testGroup.getGroupId()));
-
 		DispatchTrigger dispatchTrigger =
 			_dispatchTriggerLocalService.addDispatchTrigger(
-				TestPropsValues.getUserId(), "talend", unicodeProperties,
+				null, TestPropsValues.getUserId(), "talend",
+				UnicodePropertiesBuilder.put(
+					"liferayUser", "test@liferay.com"
+				).put(
+					"liferayUserPassword", "test"
+				).put(
+					"siteId",
+					() -> {
+						Group testGroup = GroupTestUtil.addGroup();
+
+						return String.valueOf(testGroup.getGroupId());
+					}
+				).build(),
 				"TalendDispatchTrigger", false);
 
 		_dispatchFileRepository.addFileEntry(

@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.workflow.constants.WorkflowPortletKeys;
 import com.liferay.portal.workflow.portlet.tab.WorkflowPortletTab;
-import com.liferay.portal.workflow.web.internal.display.context.util.WorkflowNavigationRequestHelper;
+import com.liferay.portal.workflow.web.internal.display.context.helper.WorkflowNavigationRequestHelper;
 
 import java.util.Collections;
 import java.util.List;

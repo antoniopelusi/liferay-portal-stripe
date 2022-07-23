@@ -2,15 +2,22 @@
 <head>
 <title>Message</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Message</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ALERT_DISMISSIBLE</td>
 	<td>//div[contains(@class,'alert-dismissible')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_INFO</td>
+	<td>//*[contains(@class,'sheet-title')][.//*[normalize-space(text())='${assetTitle}']]/parent::div//*[contains(@class,'mb-2') or contains(@class,'mr-2')][normalize-space()='${info}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,7 +52,7 @@
 </tr>
 <tr>
 	<td>EMPTY_DEPOT_ROLE</td>
-	<td>//div[contains(@id,'depotRoles')]/p[contains(@class,'text-muted')]</td>
+	<td>//div[contains(@id,'depotRoles')]/p[contains(@class,'text-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,13 +66,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>EMPTY_INFO_DEPOT</td>
-	<td>//p[contains(@class,'text-muted')]</td>
+	<td>ROLE_EMPTY_MUTED_INFO</td>
+	<td>//div[h3[*[*[contains(text(),'${key_roleType}')]]]]//div[*[contains(@class,'text-muted')]or contains(@class,'text-muted')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBTITLE</td>
+	<td>//p[contains(@class,'text-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>EMPTY_INFO_DEPOT_HIDE</td>
-	<td>//div[not(contains(@class,'hide'))]//p[contains(@class,'text-muted')]</td>
+	<td>//div[not(contains(@class,'hide'))]//p[contains(@class,'text-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -85,7 +97,7 @@
 </tr>
 <tr>
 	<td>ERROR</td>
-	<td>//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))]</td>
+	<td>//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))][not(contains(@style,'display: none'))]</td>
 	<td></td>
 </tr>
 <tr>
@@ -180,7 +192,7 @@
 </tr>
 <tr>
 	<td>ERROR_FIELD_REQUIRED</td>
-	<td>//div[@role='alert' and contains(.,'This field is required')] | //span[contains(@id,'title')]//div[contains(.,'This field is required.')]</td>
+	<td>//label[contains(.,'${key_fieldFieldLabel}')]/..//div[@role='alert' and contains(.,'This field is required')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -191,6 +203,36 @@
 <tr>
 	<td>ERROR_FORM_VALIDATION</td>
 	<td>//div[contains(@class,'form-validator-stack')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_IMPORT_TRANSLATIONS</td>
+	<td>//div[contains(@class,'text-danger')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_IMPORT_TRANSLATIONS_ITEM_MESSAGE</td>
+	<td>//*[contains(@class,'list-group-item')]//div[contains(@class,'text-danger')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_IMPORT_TRANSLATIONS_ITEM_MESSAGE_N</td>
+	<td>//*[contains(@class,'list-group-item')][${key_indexNumber}]//div[contains(@class,'text-danger')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_IMPORT_TRANSLATIONS_ITEM</td>
+	<td>//div[contains(@class,'text-danger')]/preceding-sibling::div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_IMPORT_TRANSLATIONS_ITEM_N</td>
+	<td>//ul//li[contains(@class,'list-group-item')][${key_indexNumber}]//div[contains(@class,'text-danger')]/preceding-sibling::div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_IMPORT_TRANSLATIONS_ITEM_ZIP</td>
+	<td>//div[contains(@class,'text-danger')]/preceding-sibling::div//div[contains(@class,'text-right')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -231,6 +273,11 @@
 <tr>
 	<td>ERROR_MOVE_DUPLICATE_CONTENT</td>
 	<td>//div[contains(@class,'alert-danger') and contains(.,'The folder you selected already has an entry with this name. Please select a different folder')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MULTIPLE_UPLOAD_INVALID</td>
+	<td>//div[contains(@class,'card-horizontal') and contains(.,'${dmDocumentFile}')]//div[contains(@class,'text-danger')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -309,11 +356,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>MAX_FILESIZE_ALERT</td>
-	<td>//div[(@class='maxFileSize') and (@role='alert')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>NO_COMMENTS</td>
 	<td>//div[contains(.,'No comments yet')]</td>
 	<td></td>
@@ -374,8 +416,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SUCCESS_IMPORT_TRANSLATIONS</td>
+	<td>//div[contains(@class,'text-success')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUCCESS_IMPORT_TRANSLATIONS_ITEM</td>
+	<td>//div[contains(@class,'translation-import-body-form')]//div[contains(@class,'panel-body')]//ul//li/p</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUCCESS_IMPORT_TRANSLATIONS_ITEM_N</td>
+	<td>//div[contains(@class,'translation-import-body-form')]//div[contains(@class,'panel-body')]//ul//li[${key_indexNumber}]/p</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUCCESS_RESTORE_LOCATION</td>
 	<td>//div[@class='portlet-body']/div/em[2]/a[contains(.,'${key_assetRestoreLocation}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED</td>
+	<td>//div[@class='form-group' and contains(.,'${key_fieldName}')]//div[contains(@class,'form-feedback-item')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -421,6 +483,11 @@
 <tr>
 	<td>WORKFLOW_UNAPPROVED</td>
 	<td>//div[@class='portlet-body']/div[contains(@class,'alert-warning')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMPTY_STATE_INFO</td>
+	<td>//div[(@class='c-empty-state-title')]</td>
 	<td></td>
 </tr>
 </tbody>

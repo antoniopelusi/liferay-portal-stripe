@@ -18,6 +18,7 @@ import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -30,6 +31,7 @@ import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.membershippolicy.SiteMembershipPolicyUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
@@ -179,16 +181,9 @@ public class DepotAdminSelectRoleDisplayContext {
 
 			groupSearch.setEmptyResultsMessage("no-asset-libraries-were-found");
 
-			GroupSearchTerms groupSearchTerms =
-				(GroupSearchTerms)groupSearch.getSearchTerms();
-
-			List<Group> groups = _getDepotGroups(groupSearchTerms);
-
-			groupSearch.setTotal(groups.size());
-
-			groupSearch.setResults(
-				ListUtil.subList(
-					groups, groupSearch.getStart(), groupSearch.getEnd()));
+			groupSearch.setResultsAndTotal(
+				_getDepotGroups(
+					(GroupSearchTerms)groupSearch.getSearchTerms()));
 
 			_groupSearch = groupSearch;
 
@@ -199,10 +194,10 @@ public class DepotAdminSelectRoleDisplayContext {
 			return PortletURLBuilder.create(
 				_getPortletURL(_renderRequest, _renderResponse, _user)
 			).setParameter(
-				"resetCur", Boolean.TRUE.toString()
+				"resetCur", true
 			).setParameter(
 				"step", Step2.TYPE
-			).build();
+			).buildPortletURL();
 		}
 
 		public int getType() {
@@ -231,7 +226,12 @@ public class DepotAdminSelectRoleDisplayContext {
 			}
 
 			return GroupLocalServiceUtil.search(
-				_user.getCompanyId(), groupSearchTerms.getKeywords(),
+				_user.getCompanyId(),
+				new long[] {
+					ClassNameLocalServiceUtil.getClassNameId(DepotEntry.class)
+				},
+				GroupConstants.ANY_PARENT_GROUP_ID,
+				groupSearchTerms.getKeywords(),
 				LinkedHashMapBuilder.<String, Object>put(
 					"inherit", Boolean.FALSE
 				).put(
@@ -294,12 +294,11 @@ public class DepotAdminSelectRoleDisplayContext {
 
 		public Map<String, Object> getData(Role role) throws PortalException {
 			return HashMapBuilder.<String, Object>put(
-				"entityid", role.getRoleId()
+				"entityid",
+				_group.getGroupId() + StringPool.DASH + role.getRoleId()
 			).put(
 				"groupdescriptivename",
 				_group.getDescriptiveName(_themeDisplay.getLocale())
-			).put(
-				"groupid", _group.getGroupId()
 			).put(
 				"iconcssclass", RolesAdminUtil.getIconCssClass(role)
 			).put(
@@ -334,13 +333,7 @@ public class DepotAdminSelectRoleDisplayContext {
 				roles = _filterGroupRoles(roles);
 			}
 
-			int rolesCount = roles.size();
-
-			roleSearch.setTotal(rolesCount);
-
-			roleSearch.setResults(
-				ListUtil.subList(
-					roles, roleSearch.getStart(), roleSearch.getEnd()));
+			roleSearch.setResultsAndTotal(roles);
 
 			_roleSearch = roleSearch;
 

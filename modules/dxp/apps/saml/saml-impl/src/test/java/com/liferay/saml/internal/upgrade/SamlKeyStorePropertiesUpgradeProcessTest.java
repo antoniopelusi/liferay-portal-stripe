@@ -17,11 +17,14 @@ package com.liferay.saml.internal.upgrade;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.PrefsProps;
+import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.util.PropsImpl;
 import com.liferay.saml.internal.upgrade.v1_0_0.SamlKeyStorePropertiesUpgradeProcess;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -39,6 +42,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
  */
 @RunWith(PowerMockRunner.class)
 public class SamlKeyStorePropertiesUpgradeProcessTest extends PowerMockito {
+
+	@BeforeClass
+	public static void setUpClass() {
+		PropsUtil.setProps(new PropsImpl());
+	}
 
 	@Test
 	public void testUpgradeWithEmptyProperty() throws Exception {

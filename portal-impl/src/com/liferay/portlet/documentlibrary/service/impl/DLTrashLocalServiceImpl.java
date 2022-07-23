@@ -41,8 +41,6 @@ public class DLTrashLocalServiceImpl extends DLTrashLocalServiceBaseImpl {
 		TrashCapability trashCapability = localRepository.getCapability(
 			TrashCapability.class);
 
-		FileEntry fileEntry = localRepository.getFileEntry(fileEntryId);
-
 		Folder newFolder = null;
 
 		if (newFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
@@ -50,7 +48,8 @@ public class DLTrashLocalServiceImpl extends DLTrashLocalServiceBaseImpl {
 		}
 
 		return trashCapability.moveFileEntryFromTrash(
-			userId, fileEntry, newFolder, serviceContext);
+			userId, localRepository.getFileEntry(fileEntryId), newFolder,
+			serviceContext);
 	}
 
 	@Override

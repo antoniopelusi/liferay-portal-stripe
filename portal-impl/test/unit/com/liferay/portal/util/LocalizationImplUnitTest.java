@@ -49,26 +49,29 @@ public class LocalizationImplUnitTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
-	public void testGetDefaultImportLocaleUseCase1() {
-		verifyDefaultImportLocale("es_ES", "es_ES,en_US,de_DE", "es_ES", true);
+	public void testGetDefaultImportLocale1() {
+		_testGetDefaultImportLocale(
+			"es_ES", "es_ES,en_US,de_DE", "es_ES", true);
 	}
 
 	@Test
-	public void testGetDefaultImportLocaleUseCase2() {
-		verifyDefaultImportLocale("en_US", "bg_BG,en_US,de_DE", "en_US", true);
+	public void testGetDefaultImportLocale2() {
+		_testGetDefaultImportLocale(
+			"en_US", "bg_BG,en_US,de_DE", "en_US", true);
 	}
 
 	@Test
-	public void testGetDefaultImportLocaleUseCase3() {
-		verifyDefaultImportLocale("bg_BG", "bg_BG,en_US,de_DE", "en_US", true);
+	public void testGetDefaultImportLocale3() {
+		_testGetDefaultImportLocale(
+			"bg_BG", "bg_BG,en_US,de_DE", "en_US", true);
 	}
 
 	@Test
-	public void testGetDefaultImportLocaleUseCase4() {
+	public void testGetDefaultImportLocale4() {
 		try (LogCapture logCapture = LoggerTestUtil.configureJDKLogger(
 				LocalizationImpl.class.getName(), Level.WARNING)) {
 
-			verifyDefaultImportLocale("bg_BG", "bg_BG,fr_FR", "bg_BG", true);
+			_testGetDefaultImportLocale("bg_BG", "bg_BG,fr_FR", "bg_BG", true);
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -84,25 +87,26 @@ public class LocalizationImplUnitTest {
 	}
 
 	@Test
-	public void testGetDefaultImportLocaleWrongUseCase1() {
-		verifyDefaultImportLocale("es_ES", "es_ES,en_US,de_DE", "en_US", false);
+	public void testGetDefaultImportLocale5() {
+		_testGetDefaultImportLocale(
+			"es_ES", "es_ES,en_US,de_DE", "en_US", false);
 	}
 
-	protected Locale[] getContentAvailableLocales(String locales) {
-		String[] localeIds = StringUtil.split(locales);
+	private Locale[] _getContentAvailableLocales(String languageIdsString) {
+		String[] languageIds = StringUtil.split(languageIdsString);
 
-		Locale[] array = new Locale[localeIds.length];
+		Locale[] locale = new Locale[languageIds.length];
 
-		for (int i = 0; i < localeIds.length; i++) {
-			array[i] = LocaleUtil.fromLanguageId(localeIds[i], false);
+		for (int i = 0; i < languageIds.length; i++) {
+			locale[i] = LocaleUtil.fromLanguageId(languageIds[i], false);
 		}
 
-		return array;
+		return locale;
 	}
 
-	protected void verifyDefaultImportLocale(
-		String defaultContentLocale, final String portalAvailableLocales,
-		String expectedLocale, boolean expectedResult) {
+	private void _testGetDefaultImportLocale(
+		String defaultContentLanguageId, String portalAvailableLanguageIds,
+		String expectedLanguageId, boolean expectedResult) {
 
 		LanguageUtil languageUtil = new LanguageUtil();
 
@@ -119,15 +123,16 @@ public class LocalizationImplUnitTest {
 						String methodName = method.getName();
 
 						if (methodName.equals("getAvailableLocales")) {
-							return getContentAvailableLocales(
-								portalAvailableLocales);
+							return _getContentAvailableLocales(
+								portalAvailableLanguageIds);
 						}
 
 						if (methodName.equals("isAvailableLocale")) {
 							Locale locale = (Locale)args[0];
 
-							Locale[] portalLocales = getContentAvailableLocales(
-								portalAvailableLocales);
+							Locale[] portalLocales =
+								_getContentAvailableLocales(
+									portalAvailableLanguageIds);
 
 							return ArrayUtil.contains(portalLocales, locale);
 						}
@@ -137,7 +142,7 @@ public class LocalizationImplUnitTest {
 
 				}));
 
-		Locale locale = LocaleUtil.fromLanguageId(defaultContentLocale);
+		Locale locale = LocaleUtil.fromLanguageId(defaultContentLanguageId);
 
 		LocaleUtil.setDefault(
 			locale.getLanguage(), locale.getCountry(), locale.getVariant());
@@ -148,7 +153,7 @@ public class LocalizationImplUnitTest {
 
 		Locale contentDefaultLocale = LocaleUtil.fromLanguageId("es_ES");
 
-		Locale[] contentAvailableLocales = getContentAvailableLocales(
+		Locale[] contentAvailableLocales = _getContentAvailableLocales(
 			"es_ES,en_US,de_DE");
 
 		Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(
@@ -158,13 +163,13 @@ public class LocalizationImplUnitTest {
 		if (expectedResult) {
 			Assert.assertTrue(
 				LocaleUtil.equals(
-					LocaleUtil.fromLanguageId(expectedLocale),
+					LocaleUtil.fromLanguageId(expectedLanguageId),
 					defaultImportLocale));
 		}
 		else {
 			Assert.assertFalse(
 				LocaleUtil.equals(
-					LocaleUtil.fromLanguageId(expectedLocale),
+					LocaleUtil.fromLanguageId(expectedLanguageId),
 					defaultImportLocale));
 		}
 	}

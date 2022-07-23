@@ -197,6 +197,10 @@ public class FriendlyURLEntryLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -321,6 +325,12 @@ public class FriendlyURLEntryLocalServiceUtil {
 
 		return getService().fetchFriendlyURLEntryLocalization(
 			friendlyURLEntryId, languageId);
+	}
+
+	public static FriendlyURLEntry fetchMainFriendlyURLEntry(
+		long classNameId, long classPK) {
+
+		return getService().fetchMainFriendlyURLEntry(classNameId, classPK);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery

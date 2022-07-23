@@ -132,9 +132,6 @@ public class MockContextUtil {
 
 		public static class Builder {
 
-			public Builder() {
-			}
-
 			public MockContext build() {
 				return new MockContext(
 					_mockObjectAnalyticsReportsInfoItem,

@@ -441,6 +441,13 @@ public interface LayoutService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<Layout> getLayouts(
+			long groupId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses, int start, int end,
+			OrderByComparator<Layout> orderByComparator)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Layout> getLayouts(long groupId, String type);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -466,6 +473,12 @@ public interface LayoutService extends BaseService {
 	public int getLayoutsCount(
 			long groupId, boolean privateLayout, String keywords,
 			String[] types)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getLayoutsCount(
+			long groupId, boolean privateLayout, String keywords,
+			String[] types, int[] statuses)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -500,6 +513,8 @@ public interface LayoutService extends BaseService {
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean hasPortletId(long plid, String portletId)
 		throws PortalException;
+
+	public Layout publishLayout(long plid) throws Exception;
 
 	/**
 	 * Schedules a range of layouts to be published.

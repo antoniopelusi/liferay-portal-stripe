@@ -83,6 +83,7 @@ class CriteriaGroup extends Component {
 		onMove: PropTypes.func,
 		parentGroupId: PropTypes.string,
 		propertyKey: PropTypes.string.isRequired,
+		renderEmptyValuesErrors: PropTypes.bool,
 		root: PropTypes.bool,
 		supportedConjunctions: PropTypes.array,
 		supportedOperators: PropTypes.array,
@@ -91,6 +92,7 @@ class CriteriaGroup extends Component {
 	};
 
 	static defaultProps = {
+		renderEmptyValuesErrors: false,
 		root: false,
 	};
 
@@ -127,7 +129,7 @@ class CriteriaGroup extends Component {
 		} = this.props;
 
 		const {
-			defaultValue,
+			defaultValue = '',
 			operatorName,
 			propertyName,
 			type,
@@ -235,6 +237,7 @@ class CriteriaGroup extends Component {
 			modelLabel,
 			onMove,
 			propertyKey,
+			renderEmptyValuesErrors,
 			root,
 			supportedConjunctions,
 			supportedOperators,
@@ -260,6 +263,7 @@ class CriteriaGroup extends Component {
 						onMove={onMove}
 						parentGroupId={groupId}
 						propertyKey={propertyKey}
+						renderEmptyValuesErrors={renderEmptyValuesErrors}
 						supportedConjunctions={supportedConjunctions}
 						supportedOperators={supportedOperators}
 						supportedProperties={supportedProperties}
@@ -278,6 +282,7 @@ class CriteriaGroup extends Component {
 						onDelete={this._handleCriterionDelete}
 						onMove={onMove}
 						propertyKey={propertyKey}
+						renderEmptyValuesErrors={renderEmptyValuesErrors}
 						root={root}
 						supportedOperators={supportedOperators}
 						supportedProperties={supportedProperties}

@@ -19,8 +19,9 @@ import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.TestClassResult;
 import com.liferay.jenkins.results.parser.TestResult;
 import com.liferay.jenkins.results.parser.TopLevelBuild;
+import com.liferay.jenkins.results.parser.test.clazz.JUnitTestClass;
+import com.liferay.jenkins.results.parser.test.clazz.TestClass;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
-import com.liferay.jenkins.results.parser.test.clazz.group.TestClassGroup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,12 +35,22 @@ public class JUnitBatchTestrayCaseResult extends BatchTestrayCaseResult {
 
 	public JUnitBatchTestrayCaseResult(
 		TestrayBuild testrayBuild, TopLevelBuild topLevelBuild,
-		AxisTestClassGroup axisTestClassGroup,
-		TestClassGroup.TestClass testClass) {
+		AxisTestClassGroup axisTestClassGroup, TestClass testClass) {
 
 		super(testrayBuild, topLevelBuild, axisTestClassGroup);
 
-		_testClass = testClass;
+		_jUnitTestClass = (JUnitTestClass)testClass;
+	}
+
+	@Override
+	public String getComponentName() {
+		String componentName = _jUnitTestClass.getTestrayMainComponentName();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(componentName)) {
+			return super.getComponentName();
+		}
+
+		return componentName;
 	}
 
 	@Override
@@ -123,7 +134,7 @@ public class JUnitBatchTestrayCaseResult extends BatchTestrayCaseResult {
 	@Override
 	public String getName() {
 		String testClassName = JenkinsResultsParserUtil.getCanonicalPath(
-			_testClass.getTestClassFile());
+			_jUnitTestClass.getTestClassFile());
 
 		testClassName = testClassName.replaceAll(".*/(com/.*)\\.java", "$1");
 
@@ -205,7 +216,7 @@ public class JUnitBatchTestrayCaseResult extends BatchTestrayCaseResult {
 		return false;
 	}
 
-	private final TestClassGroup.TestClass _testClass;
+	private final JUnitTestClass _jUnitTestClass;
 	private List<TestClassResult> _testClassResults;
 
 }

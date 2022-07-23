@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {render} from '@testing-library/react';
+import {act, render} from '@testing-library/react';
 import React from 'react';
 
 import CompletionVelocityCard from '../../../../src/main/resources/META-INF/resources/js/components/process-metrics/completion-velocity/CompletionVelocityCard.es';
@@ -83,38 +83,43 @@ const timeRangeData = {
 };
 
 describe('The completion velocity card component should', () => {
-	let container, getAllByText, getByText;
+	let getAllByText;
+	let getByText;
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		jsonSessionStorage.set('timeRanges', timeRangeData);
 
-		const clientMock = {
-			get: jest.fn().mockResolvedValue({data}),
-		};
+		fetch.mockResolvedValueOnce({
+			json: () => Promise.resolve(data),
+			ok: true,
+		});
 
 		const renderResult = render(
-			<MockRouter client={clientMock} query={query}>
+			<MockRouter query={query}>
 				<CompletionVelocityCard routeParams={{processId}} />
 			</MockRouter>
 		);
 
-		container = renderResult.container;
 		getAllByText = renderResult.getAllByText;
 		getByText = renderResult.getByText;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Be rendered with time range filter', () => {
+	it('Be rendered with time range filter', () => {
 		const timeRangeFilter = getByText('Last 30 Days');
-		const activeItem = container.querySelector('.active');
+		const activeItem = document.querySelector('.active');
 
 		expect(timeRangeFilter).not.toBeNull();
 		expect(activeItem).toHaveTextContent('Last 7 Days');
 	});
 
-	test('Be rendered with velocity unit filter', () => {
+	it('Be rendered with velocity unit filter', () => {
 		const velocityUnitFilter = getAllByText('inst-day')[0];
 
-		const activeItem = container.querySelectorAll('.active')[1];
+		const activeItem = document.querySelectorAll('.active')[1];
 
 		expect(velocityUnitFilter).not.toBeNull();
 		expect(activeItem).toHaveTextContent('inst-day');

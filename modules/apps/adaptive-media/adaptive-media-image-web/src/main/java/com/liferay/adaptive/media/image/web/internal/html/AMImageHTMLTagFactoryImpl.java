@@ -78,15 +78,10 @@ public class AMImageHTMLTagFactoryImpl implements AMImageHTMLTagFactory {
 		for (int i = 0; i < conditionStrings.length; i++) {
 			Condition condition = conditions.get(i);
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(condition.getAttribute());
-			sb.append(StringPool.COLON);
-			sb.append(condition.getValue());
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			conditionStrings[i] = sb.toString();
+			conditionStrings[i] = StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS, condition.getAttribute(),
+				StringPool.COLON, condition.getValue(),
+				StringPool.CLOSE_PARENTHESIS);
 		}
 
 		return Optional.of(StringUtil.merge(conditionStrings, " and "));

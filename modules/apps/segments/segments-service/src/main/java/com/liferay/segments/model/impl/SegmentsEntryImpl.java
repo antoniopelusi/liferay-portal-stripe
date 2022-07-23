@@ -28,9 +28,6 @@ import java.util.List;
  */
 public class SegmentsEntryImpl extends SegmentsEntryBaseImpl {
 
-	public SegmentsEntryImpl() {
-	}
-
 	@Override
 	public Criteria getCriteriaObj() {
 		if ((_criteria == null) && Validator.isNotNull(getCriteria())) {

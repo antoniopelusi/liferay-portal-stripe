@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import javax.portlet.PortletRequest;
@@ -89,7 +90,9 @@ public class AssetCategoriesSelectorDisplayContext {
 				themeDisplay.getPermissionChecker(),
 				assetVocabulary.getGroupId(),
 				AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
-				ActionKeys.ADD_CATEGORY)) {
+				ActionKeys.ADD_CATEGORY) ||
+			!Objects.equals(
+				assetVocabulary.getGroupId(), themeDisplay.getScopeGroupId())) {
 
 			return null;
 		}
@@ -163,6 +166,8 @@ public class AssetCategoriesSelectorDisplayContext {
 			"namespace", _renderResponse.getNamespace()
 		).put(
 			"nodes", getCategoriesJSONArray()
+		).put(
+			"selectedCategoryIds", getSelectedCategoryIds()
 		).build();
 	}
 
@@ -315,32 +320,39 @@ public class AssetCategoriesSelectorDisplayContext {
 				null);
 
 		for (AssetCategory category : categories) {
-			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+			jsonArray.put(
+				JSONUtil.put(
+					"children",
+					() -> {
+						JSONArray childrenJSONArray = _getCategoriesJSONArray(
+							vocabularyId, category.getCategoryId());
 
-			JSONArray childrenJSONArray = _getCategoriesJSONArray(
-				vocabularyId, category.getCategoryId());
+						if (childrenJSONArray.length() > 0) {
+							return childrenJSONArray;
+						}
 
-			if (childrenJSONArray.length() > 0) {
-				jsonObject.put("children", childrenJSONArray);
-			}
+						return null;
+					}
+				).put(
+					"icon", "categories"
+				).put(
+					"id", category.getCategoryId()
+				).put(
+					"name", category.getTitle(themeDisplay.getLocale())
+				).put(
+					"nodePath", category.getPath(themeDisplay.getLocale(), true)
+				).put(
+					"selected",
+					() -> {
+						if (getSelectedCategoryIds().contains(
+								String.valueOf(category.getCategoryId()))) {
 
-			jsonObject.put(
-				"icon", "categories"
-			).put(
-				"id", category.getCategoryId()
-			).put(
-				"name", category.getTitle(themeDisplay.getLocale())
-			).put(
-				"nodePath", category.getPath(themeDisplay.getLocale(), true)
-			);
+							return true;
+						}
 
-			if (getSelectedCategoryIds().contains(
-					String.valueOf(category.getCategoryId()))) {
-
-				jsonObject.put("selected", true);
-			}
-
-			jsonArray.put(jsonObject);
+						return null;
+					}
+				));
 		}
 
 		return jsonArray;

@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.dao.jdbc.OutputBlob;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.io.ByteArrayInputStream;
@@ -119,7 +120,7 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 
 		DLContent dlContent = null;
 
-		try (InputStream is = inputStream) {
+		try (InputStream copyInputStream = inputStream) {
 			long contentId = counterLocalService.increment();
 
 			dlContent = dlContentPersistence.create(contentId);
@@ -129,7 +130,7 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 			dlContent.setPath(path);
 			dlContent.setVersion(version);
 
-			OutputBlob dataOutputBlob = new OutputBlob(is, size);
+			OutputBlob dataOutputBlob = new OutputBlob(copyInputStream, size);
 
 			dlContent.setData(dataOutputBlob);
 
@@ -139,7 +140,7 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 		}
 		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioException, ioException);
+				_log.warn(ioException);
 			}
 		}
 
@@ -202,7 +203,7 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 		List<DLContent> dlContents = dlContentPersistence.findByC_R_P(
 			companyId, repositoryId, path, 0, 1, orderByComparator);
 
-		if ((dlContents == null) || dlContents.isEmpty()) {
+		if (ListUtil.isEmpty(dlContents)) {
 			throw new NoSuchContentException(path);
 		}
 
@@ -221,7 +222,7 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 			List<DLContent> dlContents = dlContentPersistence.findByC_R_P(
 				companyId, repositoryId, path, 0, 1, orderByComparator);
 
-			if ((dlContents == null) || dlContents.isEmpty()) {
+			if (ListUtil.isEmpty(dlContents)) {
 				throw new NoSuchContentException(path);
 			}
 

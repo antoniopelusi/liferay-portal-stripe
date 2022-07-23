@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.message.boards.model.MBCategory;
 import com.liferay.message.boards.model.MBCategoryModel;
-import com.liferay.message.boards.model.MBCategorySoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
@@ -36,22 +35,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -191,66 +189,6 @@ public class MBCategoryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static MBCategory toModel(MBCategorySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		MBCategory model = new MBCategoryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setCategoryId(soapModel.getCategoryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentCategoryId(soapModel.getParentCategoryId());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setDisplayStyle(soapModel.getDisplayStyle());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<MBCategory> toModels(MBCategorySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<MBCategory> models = new ArrayList<MBCategory>(soapModels.length);
-
-		for (MBCategorySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public MBCategoryModelImpl() {
 	}
 
@@ -333,34 +271,6 @@ public class MBCategoryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, MBCategory>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			MBCategory.class.getClassLoader(), MBCategory.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<MBCategory> constructor =
-				(Constructor<MBCategory>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<MBCategory, Object>>
@@ -1208,6 +1118,48 @@ public class MBCategoryModelImpl
 	}
 
 	@Override
+	public MBCategory cloneWithOriginalValues() {
+		MBCategoryImpl mbCategoryImpl = new MBCategoryImpl();
+
+		mbCategoryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		mbCategoryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		mbCategoryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		mbCategoryImpl.setCategoryId(
+			this.<Long>getColumnOriginalValue("categoryId"));
+		mbCategoryImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		mbCategoryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		mbCategoryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		mbCategoryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		mbCategoryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		mbCategoryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		mbCategoryImpl.setParentCategoryId(
+			this.<Long>getColumnOriginalValue("parentCategoryId"));
+		mbCategoryImpl.setName(this.<String>getColumnOriginalValue("name"));
+		mbCategoryImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		mbCategoryImpl.setDisplayStyle(
+			this.<String>getColumnOriginalValue("displayStyle"));
+		mbCategoryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		mbCategoryImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		mbCategoryImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		mbCategoryImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		mbCategoryImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return mbCategoryImpl;
+	}
+
+	@Override
 	public int compareTo(MBCategory mbCategory) {
 		int value = 0;
 
@@ -1403,7 +1355,7 @@ public class MBCategoryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1414,9 +1366,26 @@ public class MBCategoryModelImpl
 			Function<MBCategory, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((MBCategory)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((MBCategory)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1463,7 +1432,9 @@ public class MBCategoryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, MBCategory>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					MBCategory.class, ModelWrapper.class);
 
 	}
 

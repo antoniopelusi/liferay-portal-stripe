@@ -148,6 +148,11 @@ public class SourceWrapper
 	}
 
 	@Override
+	public Source cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String getAttachmentsDir() {
 		return model.getAttachmentsDir();
 	}

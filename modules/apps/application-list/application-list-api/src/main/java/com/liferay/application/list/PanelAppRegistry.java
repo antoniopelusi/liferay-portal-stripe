@@ -23,10 +23,12 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListene
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
@@ -75,7 +77,7 @@ public class PanelAppRegistry {
 				}
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 
@@ -87,8 +89,8 @@ public class PanelAppRegistry {
 	}
 
 	public List<PanelApp> getPanelApps(
-		PanelCategory parentPanelCategory,
-		final PermissionChecker permissionChecker, final Group group) {
+		PanelCategory parentPanelCategory, PermissionChecker permissionChecker,
+		Group group) {
 
 		return getPanelApps(
 			parentPanelCategory.getKey(), permissionChecker, group);
@@ -102,12 +104,28 @@ public class PanelAppRegistry {
 			return Collections.emptyList();
 		}
 
-		return panelApps;
+		long companyId = CompanyThreadLocal.getCompanyId();
+
+		return ListUtil.filter(
+			panelApps,
+			panelApp -> {
+				Portlet portlet = panelApp.getPortlet();
+
+				long portletCompanyId = portlet.getCompanyId();
+
+				if ((portletCompanyId != CompanyConstants.SYSTEM) &&
+					(portletCompanyId != companyId)) {
+
+					return false;
+				}
+
+				return true;
+			});
 	}
 
 	public List<PanelApp> getPanelApps(
-		String parentPanelCategoryKey,
-		final PermissionChecker permissionChecker, final Group group) {
+		String parentPanelCategoryKey, PermissionChecker permissionChecker,
+		Group group) {
 
 		List<PanelApp> panelApps = getPanelApps(parentPanelCategoryKey);
 
@@ -122,7 +140,7 @@ public class PanelAppRegistry {
 					return panelApp.isShow(permissionChecker, group);
 				}
 				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+					_log.error(portalException);
 				}
 
 				return false;
@@ -146,7 +164,7 @@ public class PanelAppRegistry {
 				}
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 

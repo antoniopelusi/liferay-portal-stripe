@@ -23,19 +23,19 @@ import java.util.Map;
 public class WorkflowEngineManagerUtil {
 
 	public static String getKey() {
-		return getWorkflowEngineManager().getKey();
+		return _workflowEngineManager.getKey();
 	}
 
 	public static String getName() {
-		return getWorkflowEngineManager().getName();
+		return _workflowEngineManager.getName();
 	}
 
 	public static Map<String, Object> getOptionalAttributes() {
-		return getWorkflowEngineManager().getOptionalAttributes();
+		return _workflowEngineManager.getOptionalAttributes();
 	}
 
 	public static String getVersion() {
-		return getWorkflowEngineManager().getVersion();
+		return _workflowEngineManager.getVersion();
 	}
 
 	public static WorkflowEngineManager getWorkflowEngineManager() {
@@ -43,7 +43,7 @@ public class WorkflowEngineManagerUtil {
 	}
 
 	public static boolean isDeployed() {
-		return getWorkflowEngineManager().isDeployed();
+		return _workflowEngineManager.isDeployed();
 	}
 
 	public void setWorkflowEngineManager(

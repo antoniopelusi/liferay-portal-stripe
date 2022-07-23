@@ -71,7 +71,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.auth.EmailAddressGeneratorFactory;
 import com.liferay.portal.util.PrefsPropsUtil;
-import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.users.admin.kernel.util.UserInitialsGeneratorUtil;
 
@@ -187,8 +186,10 @@ public class UserImpl extends UserBaseImpl {
 	/**
 	 * Returns the user's digest.
 	 *
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 	 * @return the user's digest
 	 */
+	@Deprecated
 	@Override
 	public String getDigest() {
 		String digest = super.getDigest();
@@ -203,9 +204,11 @@ public class UserImpl extends UserBaseImpl {
 	/**
 	 * Returns a digest for the user, incorporating the password.
 	 *
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 	 * @param  password a password to incorporate with the digest
 	 * @return a digest for the user, incorporating the password
 	 */
+	@Deprecated
 	@Override
 	public String getDigest(String password) {
 		if (Validator.isNull(getScreenName())) {
@@ -335,12 +338,10 @@ public class UserImpl extends UserBaseImpl {
 		String profileFriendlyURL = getProfileFriendlyURL();
 
 		if (profileFriendlyURL != null) {
-			String portalURL = themeDisplay.getPortalURL();
-
 			return PortalUtil.addPreservedParameters(
 				themeDisplay,
 				StringBundler.concat(
-					portalURL, PortalUtil.getPathContext(),
+					themeDisplay.getPortalURL(), PortalUtil.getPathContext(),
 					profileFriendlyURL));
 		}
 
@@ -619,7 +620,9 @@ public class UserImpl extends UserBaseImpl {
 
 		if (questions.isEmpty()) {
 			Set<String> defaultQuestions = SetUtil.fromArray(
-				PropsUtil.getArray(PropsKeys.USERS_REMINDER_QUERIES_QUESTIONS));
+				PrefsPropsUtil.getStringArray(
+					getCompanyId(), PropsKeys.USERS_REMINDER_QUERIES_QUESTIONS,
+					StringPool.COMMA));
 
 			questions.addAll(defaultQuestions);
 		}
@@ -808,7 +811,7 @@ public class UserImpl extends UserBaseImpl {
 			emailAddressVerificationRequired = company.isStrangersVerify();
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		if (emailAddressVerificationRequired) {
@@ -839,7 +842,9 @@ public class UserImpl extends UserBaseImpl {
 			return true;
 		}
 
-		if (PropsValues.USERS_REMINDER_QUERIES_ENABLED &&
+		if (PrefsPropsUtil.getBoolean(
+				getCompanyId(), PropsKeys.USERS_REMINDER_QUERIES_ENABLED,
+				PropsValues.USERS_REMINDER_QUERIES_ENABLED) &&
 			(Validator.isNull(getReminderQueryQuestion()) ||
 			 Validator.isNull(getReminderQueryAnswer()))) {
 
@@ -880,6 +885,22 @@ public class UserImpl extends UserBaseImpl {
 		}
 
 		return true;
+	}
+
+	@Override
+	public void setContact(Contact contact) {
+		_contact = contact;
+	}
+
+	/**
+	 * Sets the user's digest.
+	 *
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
+	@Override
+	public void setDigest(String digest) {
+		super.setDigest(digest);
 	}
 
 	@Override

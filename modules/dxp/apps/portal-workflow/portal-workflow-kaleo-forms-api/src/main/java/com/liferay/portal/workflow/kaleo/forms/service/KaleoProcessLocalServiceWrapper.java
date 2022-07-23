@@ -27,6 +27,10 @@ public class KaleoProcessLocalServiceWrapper
 	implements KaleoProcessLocalService,
 			   ServiceWrapper<KaleoProcessLocalService> {
 
+	public KaleoProcessLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoProcessLocalServiceWrapper(
 		KaleoProcessLocalService kaleoProcessLocalService) {
 
@@ -172,6 +176,13 @@ public class KaleoProcessLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoProcessLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoProcessLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

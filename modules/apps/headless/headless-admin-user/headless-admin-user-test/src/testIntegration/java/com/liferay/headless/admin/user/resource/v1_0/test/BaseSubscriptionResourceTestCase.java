@@ -33,7 +33,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -42,6 +41,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -50,7 +50,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -198,9 +197,9 @@ public abstract class BaseSubscriptionResourceTestCase {
 	public void testGetMyUserAccountSubscriptionsPage() throws Exception {
 		Page<Subscription> page =
 			subscriptionResource.getMyUserAccountSubscriptionsPage(
-				RandomTestUtil.randomString(), Pagination.of(1, 2));
+				RandomTestUtil.randomString(), Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		Subscription subscription1 =
 			testGetMyUserAccountSubscriptionsPage_addSubscription(
@@ -211,19 +210,23 @@ public abstract class BaseSubscriptionResourceTestCase {
 				randomSubscription());
 
 		page = subscriptionResource.getMyUserAccountSubscriptionsPage(
-			null, Pagination.of(1, 2));
+			null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(subscription1, subscription2),
-			(List<Subscription>)page.getItems());
+		assertContains(subscription1, (List<Subscription>)page.getItems());
+		assertContains(subscription2, (List<Subscription>)page.getItems());
 		assertValid(page);
 	}
 
 	@Test
 	public void testGetMyUserAccountSubscriptionsPageWithPagination()
 		throws Exception {
+
+		Page<Subscription> totalPage =
+			subscriptionResource.getMyUserAccountSubscriptionsPage(null, null);
+
+		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
 
 		Subscription subscription1 =
 			testGetMyUserAccountSubscriptionsPage_addSubscription(
@@ -239,19 +242,19 @@ public abstract class BaseSubscriptionResourceTestCase {
 
 		Page<Subscription> page1 =
 			subscriptionResource.getMyUserAccountSubscriptionsPage(
-				null, Pagination.of(1, 2));
+				null, Pagination.of(1, totalCount + 2));
 
 		List<Subscription> subscriptions1 =
 			(List<Subscription>)page1.getItems();
 
 		Assert.assertEquals(
-			subscriptions1.toString(), 2, subscriptions1.size());
+			subscriptions1.toString(), totalCount + 2, subscriptions1.size());
 
 		Page<Subscription> page2 =
 			subscriptionResource.getMyUserAccountSubscriptionsPage(
-				null, Pagination.of(2, 2));
+				null, Pagination.of(2, totalCount + 2));
 
-		Assert.assertEquals(3, page2.getTotalCount());
+		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
 
 		List<Subscription> subscriptions2 =
 			(List<Subscription>)page2.getItems();
@@ -261,11 +264,11 @@ public abstract class BaseSubscriptionResourceTestCase {
 
 		Page<Subscription> page3 =
 			subscriptionResource.getMyUserAccountSubscriptionsPage(
-				null, Pagination.of(1, 3));
+				null, Pagination.of(1, totalCount + 3));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(subscription1, subscription2, subscription3),
-			(List<Subscription>)page3.getItems());
+		assertContains(subscription1, (List<Subscription>)page3.getItems());
+		assertContains(subscription2, (List<Subscription>)page3.getItems());
+		assertContains(subscription3, (List<Subscription>)page3.getItems());
 	}
 
 	protected Subscription
@@ -327,7 +330,8 @@ public abstract class BaseSubscriptionResourceTestCase {
 
 	@Test
 	public void testGraphQLGetMyUserAccountSubscription() throws Exception {
-		Subscription subscription = testGraphQLSubscription_addSubscription();
+		Subscription subscription =
+			testGraphQLGetMyUserAccountSubscription_addSubscription();
 
 		Assert.assertTrue(
 			equals(
@@ -371,11 +375,35 @@ public abstract class BaseSubscriptionResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Subscription
+			testGraphQLGetMyUserAccountSubscription_addSubscription()
+		throws Exception {
+
+		return testGraphQLSubscription_addSubscription();
+	}
+
 	protected Subscription testGraphQLSubscription_addSubscription()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		Subscription subscription, List<Subscription> subscriptions) {
+
+		boolean contains = false;
+
+		for (Subscription item : subscriptions) {
+			if (equals(subscription, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			subscriptions + " does not contain " + subscription, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -509,8 +537,8 @@ public abstract class BaseSubscriptionResourceTestCase {
 
 		graphQLFields.add(new GraphQLField("siteId"));
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.admin.user.dto.v1_0.Subscription.
 						class)) {
 
@@ -526,12 +554,13 @@ public abstract class BaseSubscriptionResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -545,7 +574,7 @@ public abstract class BaseSubscriptionResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -672,6 +701,19 @@ public abstract class BaseSubscriptionResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -965,8 +1007,8 @@ public abstract class BaseSubscriptionResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseSubscriptionResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseSubscriptionResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

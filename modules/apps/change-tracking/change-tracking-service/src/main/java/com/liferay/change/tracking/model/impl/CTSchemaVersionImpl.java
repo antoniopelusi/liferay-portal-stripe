@@ -18,8 +18,4 @@ package com.liferay.change.tracking.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class CTSchemaVersionImpl extends CTSchemaVersionBaseImpl {
-
-	public CTSchemaVersionImpl() {
-	}
-
 }

@@ -15,7 +15,7 @@
 package com.liferay.portal.upgrade.internal.registry;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 
 /**
  * @author Preston Crary
@@ -26,8 +26,8 @@ public class UpgradeStepRegistratorThreadLocal {
 		return _enabled.get();
 	}
 
-	public static SafeClosable setEnabled(boolean enabled) {
-		return _enabled.setWithSafeClosable(enabled);
+	public static SafeCloseable setEnabled(boolean enabled) {
+		return _enabled.setWithSafeCloseable(enabled);
 	}
 
 	private static final CentralizedThreadLocal<Boolean> _enabled =

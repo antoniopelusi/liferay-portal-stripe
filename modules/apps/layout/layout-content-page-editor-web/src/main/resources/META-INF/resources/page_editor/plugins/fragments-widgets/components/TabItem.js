@@ -12,27 +12,25 @@
  * details.
  */
 
-import ClayButton from '@clayui/button';
+import ClayCard from '@clayui/card';
 import ClayIcon from '@clayui/icon';
-import ClayPopover from '@clayui/popover';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React from 'react';
 
+import {FRAGMENTS_DISPLAY_STYLES} from '../../../app/config/constants/fragmentsDisplayStyles';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../app/config/constants/layoutDataItemTypes';
+import {useDispatch, useSelector} from '../../../app/contexts/StoreContext';
 import selectSegmentsExperienceId from '../../../app/selectors/selectSegmentsExperienceId';
-import {useDispatch, useSelector} from '../../../app/store/index';
 import addFragment from '../../../app/thunks/addFragment';
 import addItem from '../../../app/thunks/addItem';
 import addWidget from '../../../app/thunks/addWidget';
 import {useDragSymbol} from '../../../app/utils/drag-and-drop/useDragAndDrop';
-
-export default function TabItem({item}) {
+export default function TabItem({displayStyle, item}) {
 	const dispatch = useDispatch();
 	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
-	const [showPreview, setShowPreview] = useState(false);
 
-	const {sourceRef} = useDragSymbol(
+	const {isDraggingSource, sourceRef} = useDragSymbol(
 		{
 			icon: item.icon,
 			label: item.label,
@@ -64,46 +62,23 @@ export default function TabItem({item}) {
 		}
 	);
 
-	return (
-		<li
-			className={classNames('page-editor__fragments-widgets__tab-item', {
-				disabled: item.disabled,
-				'page-editor__fragments-widgets__tab-portlet-item':
-					item.data.portletItemId,
-			})}
+	return displayStyle === FRAGMENTS_DISPLAY_STYLES.CARDS ? (
+		<CardItem
+			disabled={item.disabled || isDraggingSource}
+			item={item}
+			ref={sourceRef}
+		/>
+	) : (
+		<ListItem
+			disabled={item.disabled || isDraggingSource}
+			item={item}
 			ref={item.disabled ? null : sourceRef}
-		>
-			<div className="page-editor__fragments-widgets__tab-item-body">
-				<ClayIcon className="mr-3" symbol={item.icon} />
-				<div className="text-truncate title">{item.label}</div>
-			</div>
-
-			{item.preview && (
-				<div className="page-editor__fragments-widgets__tab-item-preview">
-					<ClayButton
-						className="btn-monospaced preview-icon"
-						displayType="unstyled"
-						onBlur={() => setShowPreview(false)}
-						onFocus={() => setShowPreview(true)}
-						onMouseLeave={() => setShowPreview(false)}
-						onMouseOver={() => setShowPreview(true)}
-						small
-					>
-						<ClayIcon symbol="info-circle-open" />
-						<span className="sr-only">{name}</span>
-					</ClayButton>
-					{showPreview && (
-						<ClayPopover disableScroll>
-							<img alt="thumbnail" src={item.preview} />
-						</ClayPopover>
-					)}
-				</div>
-			)}
-		</li>
+		/>
 	);
 }
 
 TabItem.propTypes = {
+	displayStyle: PropTypes.oneOf(Object.values(FRAGMENTS_DISPLAY_STYLES)),
 	item: PropTypes.shape({
 		data: PropTypes.object.isRequired,
 		icon: PropTypes.string.isRequired,
@@ -112,3 +87,76 @@ TabItem.propTypes = {
 		type: PropTypes.string.isRequired,
 	}).isRequired,
 };
+
+const ListItem = React.forwardRef(({disabled, item}, ref) => {
+	return (
+		<li
+			className={classNames(
+				'mb-1 d-flex page-editor__fragments-widgets__tab-list-item rounded',
+				{
+					disabled,
+					'ml-3 page-editor__fragments-widgets__tab-portlet-item':
+						item.data.portletItemId,
+				}
+			)}
+			ref={ref}
+		>
+			<div className="align-items-center d-flex page-editor__fragments-widgets__tab-list-item-body">
+				<ClayIcon className="mr-3" symbol={item.icon} />
+
+				<div className="text-truncate title">{item.label}</div>
+			</div>
+		</li>
+	);
+});
+
+const CardItem = React.forwardRef(({disabled, item}, ref) => {
+	return (
+		<li
+			className={classNames(
+				'mb-2 page-editor__fragments-widgets__tab-card-item',
+				{
+					disabled,
+				}
+			)}
+			ref={ref}
+		>
+			<ClayCard
+				aria-label={item.label}
+				displayType={item.preview ? 'image' : 'file'}
+				selectable
+			>
+				<ClayCard.AspectRatio className="card-item-first">
+					{item.preview ? (
+						<img
+							alt="thumbnail"
+							className="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid"
+							src={item.preview}
+						/>
+					) : (
+						<div className="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon">
+							<ClayIcon symbol={item.icon} />
+						</div>
+					)}
+				</ClayCard.AspectRatio>
+
+				<ClayCard.Body className="align-items-center d-flex p-2 rounded-bottom">
+					<ClayCard.Row>
+						<div className="autofit-col autofit-col-expand">
+							<section className="autofit-section">
+								<ClayCard.Description
+									className="lfr-portal-tooltip"
+									data-tooltip-align="center"
+									displayType="title"
+									title={item.label}
+								>
+									{item.label}
+								</ClayCard.Description>
+							</section>
+						</div>
+					</ClayCard.Row>
+				</ClayCard.Body>
+			</ClayCard>
+		</li>
+	);
+});

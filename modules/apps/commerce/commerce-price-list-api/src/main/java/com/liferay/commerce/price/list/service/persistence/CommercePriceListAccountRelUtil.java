@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the commerce price list account rel service. This utility wraps <code>com.liferay.commerce.price.list.service.persistence.impl.CommercePriceListAccountRelPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -679,12 +675,12 @@ public class CommercePriceListAccountRelUtil {
 	 * @return the matching commerce price list account rel
 	 * @throws NoSuchPriceListAccountRelException if a matching commerce price list account rel could not be found
 	 */
-	public static CommercePriceListAccountRel findByC_C(
+	public static CommercePriceListAccountRel findByCAI_CPI(
 			long commerceAccountId, long commercePriceListId)
 		throws com.liferay.commerce.price.list.exception.
 			NoSuchPriceListAccountRelException {
 
-		return getPersistence().findByC_C(
+		return getPersistence().findByCAI_CPI(
 			commerceAccountId, commercePriceListId);
 	}
 
@@ -695,10 +691,10 @@ public class CommercePriceListAccountRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the matching commerce price list account rel, or <code>null</code> if a matching commerce price list account rel could not be found
 	 */
-	public static CommercePriceListAccountRel fetchByC_C(
+	public static CommercePriceListAccountRel fetchByCAI_CPI(
 		long commerceAccountId, long commercePriceListId) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCAI_CPI(
 			commerceAccountId, commercePriceListId);
 	}
 
@@ -710,11 +706,11 @@ public class CommercePriceListAccountRelUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching commerce price list account rel, or <code>null</code> if a matching commerce price list account rel could not be found
 	 */
-	public static CommercePriceListAccountRel fetchByC_C(
+	public static CommercePriceListAccountRel fetchByCAI_CPI(
 		long commerceAccountId, long commercePriceListId,
 		boolean useFinderCache) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCAI_CPI(
 			commerceAccountId, commercePriceListId, useFinderCache);
 	}
 
@@ -725,12 +721,12 @@ public class CommercePriceListAccountRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the commerce price list account rel that was removed
 	 */
-	public static CommercePriceListAccountRel removeByC_C(
+	public static CommercePriceListAccountRel removeByCAI_CPI(
 			long commerceAccountId, long commercePriceListId)
 		throws com.liferay.commerce.price.list.exception.
 			NoSuchPriceListAccountRelException {
 
-		return getPersistence().removeByC_C(
+		return getPersistence().removeByCAI_CPI(
 			commerceAccountId, commercePriceListId);
 	}
 
@@ -741,10 +737,10 @@ public class CommercePriceListAccountRelUtil {
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the number of matching commerce price list account rels
 	 */
-	public static int countByC_C(
+	public static int countByCAI_CPI(
 		long commerceAccountId, long commercePriceListId) {
 
-		return getPersistence().countByC_C(
+		return getPersistence().countByCAI_CPI(
 			commerceAccountId, commercePriceListId);
 	}
 
@@ -915,29 +911,9 @@ public class CommercePriceListAccountRelUtil {
 	}
 
 	public static CommercePriceListAccountRelPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CommercePriceListAccountRelPersistence,
-		 CommercePriceListAccountRelPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommercePriceListAccountRelPersistence.class);
-
-		ServiceTracker
-			<CommercePriceListAccountRelPersistence,
-			 CommercePriceListAccountRelPersistence> serviceTracker =
-				new ServiceTracker
-					<CommercePriceListAccountRelPersistence,
-					 CommercePriceListAccountRelPersistence>(
-						 bundle.getBundleContext(),
-						 CommercePriceListAccountRelPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CommercePriceListAccountRelPersistence _persistence;
 
 }

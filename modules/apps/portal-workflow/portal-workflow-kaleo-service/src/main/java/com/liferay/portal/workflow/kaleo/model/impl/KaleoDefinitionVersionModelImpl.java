@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
@@ -38,9 +39,9 @@ import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersionModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -256,34 +257,6 @@ public class KaleoDefinitionVersionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, KaleoDefinitionVersion>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KaleoDefinitionVersion.class.getClassLoader(),
-			KaleoDefinitionVersion.class, ModelWrapper.class);
-
-		try {
-			Constructor<KaleoDefinitionVersion> constructor =
-				(Constructor<KaleoDefinitionVersion>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<KaleoDefinitionVersion, Object>>
@@ -1108,6 +1081,53 @@ public class KaleoDefinitionVersionModelImpl
 	}
 
 	@Override
+	public KaleoDefinitionVersion cloneWithOriginalValues() {
+		KaleoDefinitionVersionImpl kaleoDefinitionVersionImpl =
+			new KaleoDefinitionVersionImpl();
+
+		kaleoDefinitionVersionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kaleoDefinitionVersionImpl.setKaleoDefinitionVersionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionVersionId"));
+		kaleoDefinitionVersionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		kaleoDefinitionVersionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kaleoDefinitionVersionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		kaleoDefinitionVersionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kaleoDefinitionVersionImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		kaleoDefinitionVersionImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		kaleoDefinitionVersionImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+		kaleoDefinitionVersionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kaleoDefinitionVersionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kaleoDefinitionVersionImpl.setKaleoDefinitionId(
+			this.<Long>getColumnOriginalValue("kaleoDefinitionId"));
+		kaleoDefinitionVersionImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		kaleoDefinitionVersionImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+		kaleoDefinitionVersionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		kaleoDefinitionVersionImpl.setContent(
+			this.<String>getColumnOriginalValue("content"));
+		kaleoDefinitionVersionImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		kaleoDefinitionVersionImpl.setStartKaleoNodeId(
+			this.<Long>getColumnOriginalValue("startKaleoNodeId"));
+		kaleoDefinitionVersionImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+
+		return kaleoDefinitionVersionImpl;
+	}
+
+	@Override
 	public int compareTo(KaleoDefinitionVersion kaleoDefinitionVersion) {
 		long primaryKey = kaleoDefinitionVersion.getPrimaryKey();
 
@@ -1298,7 +1318,7 @@ public class KaleoDefinitionVersionModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1309,10 +1329,27 @@ public class KaleoDefinitionVersionModelImpl
 			Function<KaleoDefinitionVersion, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((KaleoDefinitionVersion)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(KaleoDefinitionVersion)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1360,7 +1397,9 @@ public class KaleoDefinitionVersionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KaleoDefinitionVersion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KaleoDefinitionVersion.class, ModelWrapper.class);
 
 	}
 

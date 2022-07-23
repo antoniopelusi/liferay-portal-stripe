@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 
@@ -75,7 +76,7 @@ public class AssetListEntryUsageLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long assetListEntryUsageId = counterLocalService.increment();
 
@@ -316,7 +317,7 @@ public class AssetListEntryUsageLocalServiceImpl
 			return AssetListEntryUsageConstants.TYPE_DEFAULT;
 		}
 
-		if ((layout.getClassNameId() > 0) && (layout.getClassPK() > 0)) {
+		if (layout.isDraftLayout()) {
 			plid = layout.getClassPK();
 		}
 
@@ -371,5 +372,8 @@ public class AssetListEntryUsageLocalServiceImpl
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

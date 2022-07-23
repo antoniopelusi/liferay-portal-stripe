@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class PortletServiceWrapper
 	implements PortletService, ServiceWrapper<PortletService> {
 
+	public PortletServiceWrapper() {
+		this(null);
+	}
+
 	public PortletServiceWrapper(PortletService portletService) {
 		_portletService = portletService;
 	}
@@ -41,6 +45,11 @@ public class PortletServiceWrapper
 	@Override
 	public com.liferay.portal.kernel.json.JSONArray getWARPortlets() {
 		return _portletService.getWARPortlets();
+	}
+
+	@Override
+	public boolean hasPortlet(long companyId, java.lang.String portletId) {
+		return _portletService.hasPortlet(companyId, portletId);
 	}
 
 	@Override

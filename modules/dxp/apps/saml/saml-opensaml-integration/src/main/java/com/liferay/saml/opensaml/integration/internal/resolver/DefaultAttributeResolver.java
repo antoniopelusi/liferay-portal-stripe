@@ -17,7 +17,7 @@ package com.liferay.saml.opensaml.integration.internal.resolver;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
+import com.liferay.portal.kernel.bean.BeanProperties;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -81,65 +81,53 @@ public class DefaultAttributeResolver implements AttributeResolver {
 			if (attributeName.startsWith("expando:")) {
 				attributeName = attributeName.substring(8);
 
-				addExpandoAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addExpandoAttribute(
+					user, attributePublisher, attributeName, namespaceEnabled);
 			}
 			else if (attributeName.equals("groups")) {
-				addGroupsAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addGroupsAttribute(user, attributePublisher, namespaceEnabled);
 			}
 			else if (attributeName.startsWith("map:")) {
 				attributeName = attributeName.substring(4);
 
-				addMapAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addMapAttribute(
+					user, attributePublisher, attributeName, namespaceEnabled);
 			}
 			else if (attributeName.equals("organizations")) {
-				addOrganizationsAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addOrganizationsAttribute(
+					user, attributePublisher, namespaceEnabled);
 			}
 			else if (attributeName.equals("organizationRoles")) {
-				addOrganizationRolesAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addOrganizationRolesAttribute(
+					user, attributePublisher, namespaceEnabled);
 			}
 			else if (attributeName.equals("roles")) {
-				addRolesAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addRolesAttribute(user, attributePublisher, namespaceEnabled);
 			}
 			else if (attributeName.startsWith("static:")) {
 				attributeName = attributeName.substring(7);
 
-				addStaticAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addStaticAttribute(
+					attributePublisher, attributeName, namespaceEnabled);
 			}
 			else if (attributeName.equals("siteRoles") ||
 					 attributeName.equals("userGroupRoles")) {
 
-				addSiteRolesAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addSiteRolesAttribute(
+					user, attributePublisher, attributeName, namespaceEnabled);
 			}
 			else if (attributeName.equals("userGroups")) {
-				addUserGroupsAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addUserGroupsAttribute(
+					user, attributePublisher, namespaceEnabled);
 			}
 			else {
-				addUserAttribute(
-					user, attributeResolverSAMLContext, attributePublisher,
-					attributeName, namespaceEnabled);
+				_addUserAttribute(
+					user, attributePublisher, attributeName, namespaceEnabled);
 			}
 		}
 
-		if (isPeerSalesForce(entityId)) {
-			addSalesForceAttributes(
+		if (_isPeerSalesForce(entityId)) {
+			_addSalesForceAttributes(
 				attributeResolverSAMLContext, attributePublisher);
 		}
 	}
@@ -173,14 +161,21 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		_userGroupRoleLocalService = userGroupRoleLocalService;
 	}
 
-	protected void addExpandoAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	protected String[] getAttributeNames(String entityId) {
+		return _metadataManager.getAttributeNames(entityId);
+	}
+
+	private void _addExpandoAttribute(
+		User user, AttributePublisher attributePublisher, String attributeName,
 		boolean namespaceEnabled) {
 
 		ExpandoBridge expandoBridge = user.getExpandoBridge();
 
 		Serializable value = expandoBridge.getAttribute(attributeName, false);
+
+		if (value == null) {
+			value = StringPool.BLANK;
+		}
 
 		if (!namespaceEnabled) {
 			attributePublisher.publish(
@@ -195,9 +190,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addGroupsAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	private void _addGroupsAttribute(
+		User user, AttributePublisher attributePublisher,
 		boolean namespaceEnabled) {
 
 		try {
@@ -245,9 +239,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addMapAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	private void _addMapAttribute(
+		User user, AttributePublisher attributePublisher, String attributeName,
 		boolean namespaceEnabled) {
 
 		if (attributeName.indexOf(StringPool.EQUAL) <= 0) {
@@ -260,7 +253,7 @@ public class DefaultAttributeResolver implements AttributeResolver {
 			return;
 		}
 
-		String attributeValue = BeanPropertiesUtil.getString(user, values[1]);
+		String attributeValue = _beanProperties.getString(user, values[1]);
 
 		if (namespaceEnabled) {
 			attributePublisher.publish(
@@ -274,9 +267,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addOrganizationRolesAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	private void _addOrganizationRolesAttribute(
+		User user, AttributePublisher attributePublisher,
 		boolean namespaceEnabled) {
 
 		try {
@@ -344,10 +336,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addOrganizationsAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher publisher, String attributeName,
-		boolean namespaceEnabled) {
+	private void _addOrganizationsAttribute(
+		User user, AttributePublisher publisher, boolean namespaceEnabled) {
 
 		try {
 			List<Organization> organizations = user.getOrganizations();
@@ -394,9 +384,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addRolesAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	private void _addRolesAttribute(
+		User user, AttributePublisher attributePublisher,
 		boolean namespaceEnabled) {
 
 		try {
@@ -489,7 +478,7 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addSalesForceAttributes(
+	private void _addSalesForceAttributes(
 		AttributeResolverSAMLContext attributeResolverSAMLContext,
 		AttributePublisher attributePublisher) {
 
@@ -519,9 +508,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 				samlIdpMetadataSalesForceSsoStartPage));
 	}
 
-	protected void addSiteRolesAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	private void _addSiteRolesAttribute(
+		User user, AttributePublisher attributePublisher, String attributeName,
 		boolean namespaceEnabled) {
 
 		try {
@@ -617,8 +605,7 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addStaticAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
+	private void _addStaticAttribute(
 		AttributePublisher attributePublisher, String attributeName,
 		boolean namespaceEnabled) {
 
@@ -653,12 +640,11 @@ public class DefaultAttributeResolver implements AttributeResolver {
 			attributePublisher.buildString(attributeValue));
 	}
 
-	protected void addUserAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	private void _addUserAttribute(
+		User user, AttributePublisher attributePublisher, String attributeName,
 		boolean namespaceEnabled) {
 
-		Serializable value = (Serializable)BeanPropertiesUtil.getObject(
+		Serializable value = (Serializable)_beanProperties.getObject(
 			user, attributeName);
 
 		if (!namespaceEnabled) {
@@ -673,9 +659,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected void addUserGroupsAttribute(
-		User user, AttributeResolverSAMLContext attributeResolverSAMLContext,
-		AttributePublisher attributePublisher, String attributeName,
+	private void _addUserGroupsAttribute(
+		User user, AttributePublisher attributePublisher,
 		boolean namespaceEnabled) {
 
 		try {
@@ -723,11 +708,7 @@ public class DefaultAttributeResolver implements AttributeResolver {
 		}
 	}
 
-	protected String[] getAttributeNames(String entityId) {
-		return _metadataManager.getAttributeNames(entityId);
-	}
-
-	protected boolean isPeerSalesForce(String entityId) {
+	private boolean _isPeerSalesForce(String entityId) {
 		if (entityId.equals(_SALESFORCE_ENTITY_ID)) {
 			return true;
 		}
@@ -744,6 +725,9 @@ public class DefaultAttributeResolver implements AttributeResolver {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultAttributeResolver.class);
+
+	@Reference
+	private BeanProperties _beanProperties;
 
 	private GroupLocalService _groupLocalService;
 	private MetadataManager _metadataManager;

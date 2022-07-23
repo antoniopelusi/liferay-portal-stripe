@@ -1,0 +1,114 @@
+.base-node {
+	position: relative;
+}
+
+.node {
+	align-items: center;
+	background: #fff;
+	border: 1px solid #cdced9;
+	border-radius: 8px;
+	display: flex;
+	height: 74px;
+	left: 18px;
+	padding: 18px 16px;
+	top: 18px;
+	width: 254px;
+
+	.node-description {
+		size: 12px;
+	}
+
+	.node-icon {
+		align-items: center;
+		background: #f7f8f9;
+		border-radius: 4px;
+		display: flex;
+		height: 40px;
+		justify-content: center;
+		width: 40px;
+
+		svg {
+			height: 20px;
+			width: 20px;
+		}
+	}
+
+	.node-info {
+		display: inline-grid;
+	}
+
+	.node-label {
+		font-weight: 600;
+		size: 14px;
+	}
+
+	&.end-node,
+	&.start-node {
+		.node-icon svg {
+			fill: #4b9bff;
+		}
+	}
+
+	&.condition-node,
+	&.fork-node,
+	&.state-node {
+		.node-icon svg {
+			fill: #ffb46e;
+		}
+	}
+
+	&.join-node,
+	&.join-xor-node {
+		.node-icon svg {
+			fill: #7785ff;
+		}
+	}
+
+	&.task-node {
+		.node-icon svg {
+			fill: #50d2a0;
+		}
+	}
+}
+
+.node-border-area {
+	border-radius: 4px;
+	height: 110px;
+	opacity: 0.5;
+	width: 290px;
+
+	&.blue {
+		background: #f0f5ff;
+		border: 2px solid #0b5fff;
+	}
+
+	&.red {
+		background: #f48989;
+		border: 2px solid #da1414;
+	}
+}
+
+.node.selected {
+	border: 2px solid #80acff;
+}
+
+.node-handle-area {
+	height: 110px;
+	left: -18px;
+	position: absolute;
+	top: -18px;
+	width: 290px;
+	z-index: -1;
+
+	.handles {
+		height: 110px;
+		opacity: 0;
+		position: absolute;
+		width: 290px;
+		z-index: -2;
+
+		&-default {
+			z-index: -1;
+		}
+	}
+}

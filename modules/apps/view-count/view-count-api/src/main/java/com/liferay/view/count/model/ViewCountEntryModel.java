@@ -128,4 +128,7 @@ public interface ViewCountEntryModel
 	 */
 	public void setViewCount(long viewCount);
 
+	@Override
+	public ViewCountEntry cloneWithOriginalValues();
+
 }

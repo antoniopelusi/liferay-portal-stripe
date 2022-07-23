@@ -26,6 +26,7 @@ import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceOrderService;
+import com.liferay.commerce.util.AccountEntryAllowedTypesUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -39,7 +40,7 @@ import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 public class BaseCommerceContext implements CommerceContext {
 
 	public BaseCommerceContext(
-		long companyId, long channelGroupId, long orderId,
+		long companyId, long commerceChannelGroupId, long orderId,
 		long commerceAccountId, CommerceAccountHelper commerceAccountHelper,
 		CommerceAccountLocalService commerceAccountLocalService,
 		CommerceAccountService commerceAccountService,
@@ -49,7 +50,7 @@ public class BaseCommerceContext implements CommerceContext {
 		ConfigurationProvider configurationProvider) {
 
 		_companyId = companyId;
-		_channelGroupId = channelGroupId;
+		_commerceChannelGroupId = commerceChannelGroupId;
 		_orderId = orderId;
 		_commerceAccountId = commerceAccountId;
 		_commerceAccountHelper = commerceAccountHelper;
@@ -65,13 +66,25 @@ public class BaseCommerceContext implements CommerceContext {
 					configurationProvider.getConfiguration(
 						CommerceAccountGroupServiceConfiguration.class,
 						new GroupServiceSettingsLocator(
-							_channelGroupId,
+							_commerceChannelGroupId,
 							CommerceAccountConstants.SERVICE_NAME));
 			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
+	}
+
+	@Override
+	public String[] getAccountEntryAllowedTypes() throws PortalException {
+		if (_accountEntryAllowedTypes != null) {
+			return _accountEntryAllowedTypes;
+		}
+
+		_accountEntryAllowedTypes =
+			AccountEntryAllowedTypesUtil.getAllowedTypes(getCommerceSiteType());
+
+		return _accountEntryAllowedTypes;
 	}
 
 	@Override
@@ -112,14 +125,14 @@ public class BaseCommerceContext implements CommerceContext {
 
 	@Override
 	public long getCommerceChannelGroupId() throws PortalException {
-		return _channelGroupId;
+		return _commerceChannelGroupId;
 	}
 
 	@Override
 	public long getCommerceChannelId() throws PortalException {
 		CommerceChannel commerceChannel =
 			_commerceChannelLocalService.getCommerceChannelByGroupId(
-				_channelGroupId);
+				_commerceChannelGroupId);
 
 		if (commerceChannel == null) {
 			return 0;
@@ -136,7 +149,7 @@ public class BaseCommerceContext implements CommerceContext {
 
 		CommerceChannel commerceChannel =
 			_commerceChannelLocalService.getCommerceChannelByGroupId(
-				_channelGroupId);
+				_commerceChannelGroupId);
 
 		_commerceCurrency = _commerceCurrencyLocalService.getCommerceCurrency(
 			_companyId, commerceChannel.getCommerceCurrencyCode());
@@ -163,7 +176,7 @@ public class BaseCommerceContext implements CommerceContext {
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseCommerceContext.class);
 
-	private final long _channelGroupId;
+	private String[] _accountEntryAllowedTypes;
 	private CommerceAccount _commerceAccount;
 	private long[] _commerceAccountGroupIds;
 	private CommerceAccountGroupServiceConfiguration
@@ -172,6 +185,7 @@ public class BaseCommerceContext implements CommerceContext {
 	private final long _commerceAccountId;
 	private final CommerceAccountLocalService _commerceAccountLocalService;
 	private final CommerceAccountService _commerceAccountService;
+	private final long _commerceChannelGroupId;
 	private final CommerceChannelLocalService _commerceChannelLocalService;
 	private CommerceCurrency _commerceCurrency;
 	private final CommerceCurrencyLocalService _commerceCurrencyLocalService;

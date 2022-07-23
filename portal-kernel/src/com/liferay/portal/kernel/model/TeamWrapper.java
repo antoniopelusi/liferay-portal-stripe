@@ -141,6 +141,11 @@ public class TeamWrapper
 		}
 	}
 
+	@Override
+	public Team cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this team.
 	 *

@@ -1,0 +1,278 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Content Pages";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site via JSON") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Content Page Name",
+				type = "content");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-130964 and LPS-76741. Change display style in Fragments and Widgets panel."
+	@priority = "4"
+	test ChangeDisplayStyle {
+		task ("Navigate to the Pages admin in new site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+		}
+
+		task ("Access to content page at edit mode") {
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Edit",
+				pageName = "Test Content Page Name");
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("Open the Fragments and Widgets panel") {
+			PageEditor.gotoTab(tabName = "Fragments and Widgets");
+		}
+
+		task ("View the tooltip when hover on the display style button") {
+			MouseOver(
+				key_switchTo = "card",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+
+			AssertVisible(
+				key_content = "Switch to Card View",
+				locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+		}
+
+		task ("Change to card display style") {
+			Click(
+				key_switchTo = "card",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+
+			AssertVisible(
+				key_switchTo = "list",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+		}
+
+		task ("View the tooltip when hover on the display style button") {
+			MouseOver(
+				key_switchTo = "list",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+
+			AssertVisible(
+				key_content = "Switch to List View",
+				locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+		}
+
+		task ("Pubish the page") {
+			PageEditor.clickPublish();
+		}
+
+		task ("Access to content page at edit mode again") {
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Edit",
+				pageName = "Test Content Page Name");
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("View the display style is card in Fragments and Widgets panel") {
+			PageEditor.gotoTab(tabName = "Fragments and Widgets");
+
+			AssertVisible(
+				key_switchTo = "list",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+		}
+
+		task ("Navigate Back to Site Pages") {
+			Navigator.gotoBack();
+		}
+
+		task ("Access to content page can be edited at view mode") {
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "View",
+				pageName = "Test Content Page Name");
+
+			ContentPages.gotoPageEditor();
+		}
+	}
+
+	@description = "This is a test for LPS-130964. View visual feedback when drag items in Fragments and Widgets panel."
+	@priority = "4"
+	test ViewVisualFeedbackWhenDragItems {
+		task ("Navigate to content page at edit mode") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Open the Fragments and Widgets panel") {
+			PageEditor.gotoTab(tabName = "Fragments and Widgets");
+		}
+
+		task ("View the display style is list") {
+			AssertVisible(
+				key_switchTo = "card",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+		}
+
+		task ("View the visual feedback when drag items") {
+			DragOver(
+				key_collectionName = "Layout Elements",
+				key_fragmentName = "Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#FRAGMENT_DROP_TARGET");
+
+			AssertVisible(locator1 = "//li[contains(@class,'page-editor__fragments-widgets__tab-list-item')][normalize-space()='Container'][contains(@class,'disabled')]");
+
+			Refresh();
+
+			Navigator.gotoNavTab(navTab = "Widgets");
+
+			Type.sendKeysApplicationSearch(
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_SEARCH_FIELD",
+				value1 = "Blogs");
+
+			DragOver(
+				key_indexItem = "1",
+				key_portletName = "Blogs",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_WIDGET",
+				locator2 = "PageEditor#FRAGMENT_DROP_TARGET");
+
+			AssertVisible(locator1 = "//li[contains(@class,'page-editor__fragments-widgets__tab-list-item')][normalize-space()='Blogs'][contains(@class,'disabled')]");
+
+			Refresh();
+		}
+
+		task ("Change to card display style") {
+			Click(
+				key_switchTo = "card",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+
+			AssertVisible(
+				key_switchTo = "list",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+		}
+
+		task ("View the visual feedback when drag items") {
+			DragOver(
+				key_collectionName = "Layout Elements",
+				key_fragmentName = "Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT_CARD_ITEM",
+				locator2 = "PageEditor#FRAGMENT_DROP_TARGET");
+
+			AssertVisible(locator1 = "//li[contains(@class,'page-editor__fragments-widgets__tab-card-item')][normalize-space()='Container'][contains(@class,'disabled')]");
+		}
+	}
+
+	@description = "This is a test for LPS-130964 and LPS-132890. View visual feedback when hover on items in Fragments and Widgets panel."
+	@priority = "4"
+	test ViewVisualFeedbackWhenHoverOnItems {
+		task ("Navigate to content page at edit mode") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Open the Fragments and Widgets panel") {
+			PageEditor.gotoTab(tabName = "Fragments and Widgets");
+		}
+
+		task ("View the display style is list") {
+			AssertVisible(
+				key_switchTo = "card",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+		}
+
+		task ("View the visual feedback when hover on items") {
+			MouseOver(
+				key_collectionName = "Layout Elements",
+				key_fragmentName = "Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT");
+
+			AssertCssValue(
+				key_collectionName = "Layout Elements",
+				key_fragmentName = "Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "box-shadow",
+				value1 = "rgb(128, 172, 255) 0px 0px 0px 2px, rgba(39, 40, 51, 0.1) 0px 4px 8px 0px");
+
+			Navigator.gotoNavTab(navTab = "Widgets");
+
+			Type.sendKeysApplicationSearch(
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_SEARCH_FIELD",
+				value1 = "Blogs");
+
+			MouseOver(
+				key_indexItem = "1",
+				key_portletName = "Blogs",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_WIDGET");
+
+			AssertCssValue(
+				key_indexItem = "1",
+				key_portletName = "Blogs",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_WIDGET",
+				locator2 = "box-shadow",
+				value1 = "rgb(128, 172, 255) 0px 0px 0px 2px, rgba(39, 40, 51, 0.1) 0px 4px 8px 0px");
+
+			Click(locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_SEARCH_CLEAR_BUTTON");
+		}
+
+		task ("Change to card display style") {
+			Navigator.gotoNavTab(navTab = "Fragments");
+
+			Click(
+				key_switchTo = "card",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+
+			AssertVisible(
+				key_switchTo = "list",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_DISPLAY_STYLE_BUTTON");
+		}
+
+		task ("View the visual feedback when hover on items") {
+			MouseOver(
+				key_collectionName = "Layout Elements",
+				key_fragmentName = "Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT_CARD_ITEM");
+
+			AssertCssValue(
+				key_collectionName = "Layout Elements",
+				key_fragmentName = "Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT_CARD_ITEM",
+				locator2 = "box-shadow",
+				value1 = "rgba(39, 40, 51, 0.1) 0px 4px 8px 0px");
+		}
+
+		task ("View the tooltip when hover on the card title") {
+			MouseOver(
+				key_card = "Container",
+				locator1 = "Card#CARD_TITLE");
+
+			AssertVisible(
+				key_content = "Container",
+				locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+		}
+	}
+
+}

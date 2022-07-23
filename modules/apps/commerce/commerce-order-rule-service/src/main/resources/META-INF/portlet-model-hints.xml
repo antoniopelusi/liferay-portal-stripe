@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.commerce.order.rule.model.COREntry">
+		<field name="mvccVersion" type="long" />
+		<field name="externalReferenceCode" type="String" />
+		<field name="COREntryId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="active" type="boolean" />
+		<field name="description" type="String" />
+		<field name="displayDate" type="Date" />
+		<field name="expirationDate" type="Date" />
+		<field name="name" type="String" />
+		<field name="priority" type="int" />
+		<field name="type" type="String" />
+		<field name="typeSettings" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="lastPublishDate" type="Date" />
+		<field name="status" type="int" />
+		<field name="statusByUserId" type="long" />
+		<field name="statusByUserName" type="String" />
+		<field name="statusDate" type="Date" />
+	</model>
+	<model name="com.liferay.commerce.order.rule.model.COREntryRel">
+		<field name="mvccVersion" type="long" />
+		<field name="COREntryRelId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="classNameId" type="long" />
+		<field name="classPK" type="long" />
+		<field name="COREntryId" type="long" />
+	</model>
+</model-hints>

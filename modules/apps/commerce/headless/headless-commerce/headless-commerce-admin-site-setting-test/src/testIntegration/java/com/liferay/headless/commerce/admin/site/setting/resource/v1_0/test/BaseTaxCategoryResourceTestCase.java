@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -50,7 +49,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -191,17 +189,16 @@ public abstract class BaseTaxCategoryResourceTestCase {
 	public void testGetCommerceAdminSiteSettingGroupTaxCategoryPage()
 		throws Exception {
 
-		Page<TaxCategory> page =
-			taxCategoryResource.getCommerceAdminSiteSettingGroupTaxCategoryPage(
-				testGetCommerceAdminSiteSettingGroupTaxCategoryPage_getGroupId(),
-				Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long groupId =
 			testGetCommerceAdminSiteSettingGroupTaxCategoryPage_getGroupId();
 		Long irrelevantGroupId =
 			testGetCommerceAdminSiteSettingGroupTaxCategoryPage_getIrrelevantGroupId();
+
+		Page<TaxCategory> page =
+			taxCategoryResource.getCommerceAdminSiteSettingGroupTaxCategoryPage(
+				groupId, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantGroupId != null) {
 			TaxCategory irrelevantTaxCategory =
@@ -231,7 +228,7 @@ public abstract class BaseTaxCategoryResourceTestCase {
 
 		page =
 			taxCategoryResource.getCommerceAdminSiteSettingGroupTaxCategoryPage(
-				groupId, Pagination.of(1, 2));
+				groupId, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -370,7 +367,7 @@ public abstract class BaseTaxCategoryResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteTaxCategory() throws Exception {
-		TaxCategory taxCategory = testGraphQLTaxCategory_addTaxCategory();
+		TaxCategory taxCategory = testGraphQLDeleteTaxCategory_addTaxCategory();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -383,7 +380,6 @@ public abstract class BaseTaxCategoryResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteTaxCategory"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -397,6 +393,12 @@ public abstract class BaseTaxCategoryResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected TaxCategory testGraphQLDeleteTaxCategory_addTaxCategory()
+		throws Exception {
+
+		return testGraphQLTaxCategory_addTaxCategory();
 	}
 
 	@Test
@@ -417,7 +419,7 @@ public abstract class BaseTaxCategoryResourceTestCase {
 
 	@Test
 	public void testGraphQLGetTaxCategory() throws Exception {
-		TaxCategory taxCategory = testGraphQLTaxCategory_addTaxCategory();
+		TaxCategory taxCategory = testGraphQLGetTaxCategory_addTaxCategory();
 
 		Assert.assertTrue(
 			equals(
@@ -456,6 +458,12 @@ public abstract class BaseTaxCategoryResourceTestCase {
 				"Object/code"));
 	}
 
+	protected TaxCategory testGraphQLGetTaxCategory_addTaxCategory()
+		throws Exception {
+
+		return testGraphQLTaxCategory_addTaxCategory();
+	}
+
 	@Test
 	public void testPutTaxCategory() throws Exception {
 		Assert.assertTrue(false);
@@ -466,6 +474,23 @@ public abstract class BaseTaxCategoryResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		TaxCategory taxCategory, List<TaxCategory> taxCategories) {
+
+		boolean contains = false;
+
+		for (TaxCategory item : taxCategories) {
+			if (equals(taxCategory, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			taxCategories + " does not contain " + taxCategory, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -584,8 +609,8 @@ public abstract class BaseTaxCategoryResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.site.setting.dto.v1_0.
 						TaxCategory.class)) {
 
@@ -601,12 +626,13 @@ public abstract class BaseTaxCategoryResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -620,7 +646,7 @@ public abstract class BaseTaxCategoryResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -718,6 +744,19 @@ public abstract class BaseTaxCategoryResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -926,8 +965,8 @@ public abstract class BaseTaxCategoryResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseTaxCategoryResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseTaxCategoryResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

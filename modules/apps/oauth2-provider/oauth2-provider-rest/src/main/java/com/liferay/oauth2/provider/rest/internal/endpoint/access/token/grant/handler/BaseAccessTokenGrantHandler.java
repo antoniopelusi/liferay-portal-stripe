@@ -133,15 +133,11 @@ public abstract class BaseAccessTokenGrantHandler
 		}
 
 		if (_log.isDebugEnabled()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("User ");
-			sb.append(userId);
-			sb.append(" does not have permission to create access token for ");
-			sb.append("client ");
-			sb.append(oAuth2Application.getClientId());
-
-			_log.debug(sb.toString());
+			_log.debug(
+				StringBundler.concat(
+					"User ", userId,
+					" does not have permission to create access token for ",
+					"client ", oAuth2Application.getClientId()));
 		}
 
 		return false;

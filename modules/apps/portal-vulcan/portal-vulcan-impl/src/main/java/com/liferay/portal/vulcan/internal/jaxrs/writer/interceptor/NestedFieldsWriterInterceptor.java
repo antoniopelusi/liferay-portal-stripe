@@ -54,11 +54,13 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.WriterInterceptor;
 import javax.ws.rs.ext.WriterInterceptorContext;
 
 import org.apache.cxf.jaxrs.ext.ContextProvider;
+import org.apache.cxf.jaxrs.impl.UriInfoImpl;
 import org.apache.cxf.jaxrs.provider.ProviderFactory;
 import org.apache.cxf.message.Message;
 
@@ -97,7 +99,7 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 				nestedFieldsContext.getFieldNames(), nestedFieldsContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception.getMessage(), exception);
+			_log.error(exception);
 
 			throw new WebApplicationException(exception);
 		}
@@ -235,6 +237,10 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 		}
 
 		private <T> Object _getContext(Class<T> contextClass, Message message) {
+			if (contextClass.equals(UriInfo.class)) {
+				return new UriInfoImpl(message);
+			}
+
 			ContextProvider<?> contextProvider = _getContextProvider(
 				contextClass, message);
 
@@ -311,7 +317,7 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 				}
 				catch (NoSuchFieldException noSuchFieldException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(noSuchFieldException.getMessage());
+						_log.debug(noSuchFieldException);
 					}
 				}
 			}
@@ -416,7 +422,7 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 			}
 			catch (NoSuchMethodException noSuchMethodException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchMethodException.getMessage());
+					_log.debug(noSuchMethodException);
 				}
 			}
 

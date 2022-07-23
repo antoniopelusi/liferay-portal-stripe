@@ -30,6 +30,10 @@ public class DDMDataProviderInstanceLinkLocalServiceWrapper
 	implements DDMDataProviderInstanceLinkLocalService,
 			   ServiceWrapper<DDMDataProviderInstanceLinkLocalService> {
 
+	public DDMDataProviderInstanceLinkLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMDataProviderInstanceLinkLocalServiceWrapper(
 		DDMDataProviderInstanceLinkLocalService
 			ddmDataProviderInstanceLinkLocalService) {
@@ -174,6 +178,13 @@ public class DDMDataProviderInstanceLinkLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmDataProviderInstanceLinkLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmDataProviderInstanceLinkLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

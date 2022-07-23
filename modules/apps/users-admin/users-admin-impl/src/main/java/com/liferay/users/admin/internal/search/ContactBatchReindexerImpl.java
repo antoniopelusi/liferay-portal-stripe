@@ -17,6 +17,8 @@ package com.liferay.users.admin.internal.search;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.model.Contact;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.search.batch.BatchIndexingActionable;
 import com.liferay.portal.search.indexer.IndexerDocumentBuilder;
 import com.liferay.portal.search.indexer.IndexerWriter;
@@ -37,9 +39,18 @@ public class ContactBatchReindexerImpl implements ContactBatchReindexer {
 
 		batchIndexingActionable.setAddCriteriaMethod(
 			dynamicQuery -> {
-				Property userIdPropery = PropertyFactoryUtil.forName("userId");
+				Property classNameIdProperty = PropertyFactoryUtil.forName(
+					"classNameId");
 
-				dynamicQuery.add(userIdPropery.eq(userId));
+				long classNameId = _classNameLocalService.getClassNameId(
+					User.class);
+
+				dynamicQuery.add(classNameIdProperty.eq(classNameId));
+
+				Property classPKProperty = PropertyFactoryUtil.forName(
+					"classPK");
+
+				dynamicQuery.add(classPKProperty.eq(userId));
 			});
 		batchIndexingActionable.setCompanyId(companyId);
 		batchIndexingActionable.setPerformActionMethod(
@@ -58,5 +69,8 @@ public class ContactBatchReindexerImpl implements ContactBatchReindexer {
 		target = "(indexer.class.name=com.liferay.portal.kernel.model.Contact)"
 	)
 	protected IndexerWriter<Contact> indexerWriter;
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
 
 }

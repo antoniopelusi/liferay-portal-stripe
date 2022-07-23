@@ -61,48 +61,10 @@ definition {
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 	}
 
-	macro editPasswordInvalidCP {
-		UserNavigator.gotoPassword();
-
-		if (isSet(currentPassword)) {
-			Type(
-				locator1 = "TextInput#CURRENT_PASSWORD",
-				value1 = "${currentPassword}");
-		}
-		else {
-			Type(
-				locator1 = "TextInput#CURRENT_PASSWORD",
-				value1 = "test");
-		}
-
-		Type(
-			locator1 = "TextInput#NEW_PASSWORD",
-			value1 = "${newPassword}");
-
-		Type(
-			locator1 = "TextInput#ENTER_AGAIN",
-			value1 = "${newPassword}");
-
-		Button.clickSave();
-
-		if ("${changeable}" == "false") {
-			Alert.viewRequestFailedToComplete();
-
-			AssertTextEquals.assertPartialText(
-				locator1 = "Message#ERROR_1",
-				value1 = "Passwords may not be changed under the current password policy.");
-		}
-		else {
-			Alert.viewRequestFailedToComplete();
-
-			AssertTextEquals.assertPartialText(
-				locator1 = "Message#ERROR_1",
-				value1 = "That password is invalid. Please enter in a different password.");
-		}
-	}
-
 	macro openMyAccountAdmin {
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/control_panel/manage?p_p_id=com_liferay_my_account_web_portlet_MyAccountPortlet");
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/control_panel/manage?p_p_id=com_liferay_my_account_web_portlet_MyAccountPortlet");
 	}
 
 	macro view {

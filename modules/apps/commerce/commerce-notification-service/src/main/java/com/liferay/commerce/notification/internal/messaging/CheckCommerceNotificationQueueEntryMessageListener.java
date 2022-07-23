@@ -68,7 +68,7 @@ public class CheckCommerceNotificationQueueEntryMessageListener
 						CommerceNotificationQueueEntryConstants.SERVICE_NAME));
 		}
 		catch (ConfigurationException configurationException) {
-			_log.error(configurationException, configurationException);
+			_log.error(configurationException);
 		}
 
 		Trigger trigger = _triggerFactory.createTrigger(
@@ -101,11 +101,11 @@ public class CheckCommerceNotificationQueueEntryMessageListener
 		int deleteInterval =
 			_commerceNotificationQueueEntryConfiguration.deleteInterval();
 
-		Date now = new Date(
+		Date date = new Date(
 			System.currentTimeMillis() - (deleteInterval * Time.MINUTE));
 
 		_commerceNotificationQueueEntryLocalService.
-			deleteCommerceNotificationQueueEntries(now);
+			deleteCommerceNotificationQueueEntries(date);
 	}
 
 	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")

@@ -20,6 +20,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.spi.converter.serializer.SPIDDMFormRuleActionSerializer;
 import com.liferay.dynamic.data.mapping.spi.converter.serializer.SPIDDMFormRuleSerializerContext;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -53,14 +54,14 @@ public class CalculateDDMFormRuleActionSerializer
 		Map<String, DDMFormField> ddmFormFieldsMap =
 			ddmForm.getDDMFormFieldsMap(true);
 
-		String expression = removeBrackets(
+		String expression = _removeBrackets(
 			_calculateDDMFormRuleAction.getExpression());
 
 		Set<String> keySet = ddmFormFieldsMap.keySet();
 
-		Stream<String> ddmFormFieldStream = keySet.stream();
+		Stream<String> ddmFormFieldsStream = keySet.stream();
 
-		Set<String> ddmFormFieldNames = ddmFormFieldStream.filter(
+		Set<String> ddmFormFieldNames = ddmFormFieldsStream.filter(
 			ddmFormField -> expression.contains(ddmFormField)
 		).collect(
 			Collectors.toSet()
@@ -81,7 +82,7 @@ public class CalculateDDMFormRuleActionSerializer
 
 		StringBuilder newExpressionSB = new StringBuilder();
 
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		for (int i = 0; i < expression.length(); i++) {
 			char token = expression.charAt(i);
@@ -90,7 +91,7 @@ public class CalculateDDMFormRuleActionSerializer
 
 			String compareStr = sb.toString();
 
-			boolean match = matchAnyField(compareStr, ddmFormFieldNames);
+			boolean match = _matchAnyField(compareStr, ddmFormFieldNames);
 
 			if (match) {
 				newExpressionSB.append(token);
@@ -105,12 +106,12 @@ public class CalculateDDMFormRuleActionSerializer
 			}
 			else {
 				if (i > start) {
-					replace(expression, newExpressionSB, start, i);
+					_replace(expression, newExpressionSB, start, i);
 				}
 
 				newExpressionSB.append(token);
 
-				sb = new StringBuilder();
+				sb = new StringBundler();
 
 				start = Integer.MAX_VALUE;
 				end = Integer.MIN_VALUE;
@@ -118,13 +119,13 @@ public class CalculateDDMFormRuleActionSerializer
 		}
 
 		if (end > start) {
-			replace(expression, newExpressionSB, start, end);
+			_replace(expression, newExpressionSB, start, end);
 		}
 
 		return newExpressionSB.toString();
 	}
 
-	protected boolean matchAnyField(
+	private boolean _matchAnyField(
 		String compareStr, Set<String> ddmFormFields) {
 
 		for (String ddmFormField : ddmFormFields) {
@@ -136,12 +137,12 @@ public class CalculateDDMFormRuleActionSerializer
 		return false;
 	}
 
-	protected String removeBrackets(String expression) {
+	private String _removeBrackets(String expression) {
 		return StringUtil.removeChars(
 			expression, CharPool.OPEN_BRACKET, CharPool.CLOSE_BRACKET);
 	}
 
-	protected void replace(
+	private void _replace(
 		String expression, StringBuilder newExpressionSB, int start, int end) {
 
 		String fieldName = expression.substring(start, end);

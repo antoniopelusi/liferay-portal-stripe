@@ -38,6 +38,8 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
+import java.util.Collections;
+
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -67,7 +69,7 @@ public class WarehouseResourceImpl
 
 		if (commerceInventoryWarehouse == null) {
 			throw new NoSuchInventoryWarehouseException(
-				"Unable to find Warehouse with externalReferenceCode: " +
+				"Unable to find warehouse with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -106,7 +108,7 @@ public class WarehouseResourceImpl
 
 		if (commerceInventoryWarehouse == null) {
 			throw new NoSuchInventoryWarehouseException(
-				"Unable to find Warehouse with externalReferenceCode: " +
+				"Unable to find warehouse with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -122,8 +124,10 @@ public class WarehouseResourceImpl
 		throws Exception {
 
 		return SearchUtil.search(
+			Collections.emptyMap(),
 			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CommerceInventoryWarehouse.class, StringPool.BLANK, pagination,
+			CommerceInventoryWarehouse.class.getName(), StringPool.BLANK,
+			pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -135,12 +139,12 @@ public class WarehouseResourceImpl
 				}
 
 			},
+			sorts,
 			document -> _toWarehouse(
 				_commerceInventoryWarehouseService.
 					getCommerceInventoryWarehouse(
 						GetterUtil.getLong(
-							document.get(Field.ENTRY_CLASS_PK)))),
-			sorts);
+							document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	@Override
@@ -162,7 +166,7 @@ public class WarehouseResourceImpl
 
 		if (commerceInventoryWarehouse == null) {
 			throw new NoSuchInventoryWarehouseException(
-				"Unable to find Warehouse with externalReferenceCode: " +
+				"Unable to find warehouse with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -244,8 +248,7 @@ public class WarehouseResourceImpl
 		if (warehouseItems != null) {
 			for (WarehouseItem warehouseItem : warehouseItems) {
 				_commerceInventoryWarehouseItemService.
-					upsertCommerceInventoryWarehouseItem(
-						contextUser.getUserId(),
+					addOrUpdateCommerceInventoryWarehouseItem(
 						commerceInventoryWarehouse.
 							getCommerceInventoryWarehouseId(),
 						warehouseItem.getSku(), warehouseItem.getQuantity());

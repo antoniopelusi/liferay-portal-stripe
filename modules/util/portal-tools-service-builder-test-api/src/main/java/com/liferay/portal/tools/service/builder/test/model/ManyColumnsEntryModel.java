@@ -962,4 +962,7 @@ public interface ManyColumnsEntryModel extends BaseModel<ManyColumnsEntry> {
 	 */
 	public void setColumn64(int column64);
 
+	@Override
+	public ManyColumnsEntry cloneWithOriginalValues();
+
 }

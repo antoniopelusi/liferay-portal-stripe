@@ -1,0 +1,281 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-68679. This test verifies that is possible to delete the field."
+	@priority = "5"
+	test CanBeDeleted {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Geolocation");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Geolocation");
+	}
+
+	@description = "This is a test for LRQA-68679. This test verifies that is possible to duplicate the field."
+	@priority = "4"
+	test CanBeDuplicated {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.duplicate(fieldFieldLabel = "Geolocation");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Copy of Geolocation",
+			fieldName = "Geolocation");
+	}
+
+	@description = "This is a test for LRQA-68679. This test verifies that Label and Help text can be edited."
+	@priority = "5"
+	test CanEditLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Geolocation",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Geolocation",
+			fieldFieldLabelEdit = "Geolocation Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Geolocation Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Geolocation Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Geolocation");
+	}
+
+	@description = "This is a test for LRQA-70109. This test verifies that is possible to remove a duplicated field (repeatable)."
+	@priority = "4"
+	test CanRemoveDuplicatedField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Geolocation");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Geolocation");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.removeRepeatableField(fieldLabel = "Geolocation");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DEBuilder.assertFieldNotPresent(
+			fieldLabel = "Geolocation",
+			index = "2");
+	}
+
+	@description = "This is a test for LRQA-68679. This test verifies that Default Searchable property is 'Disable' when System Setting is left unchecked"
+	@priority = "3"
+	test CanSetDefaultSearchablePropertyToDisable {
+		property test.name.skip.portal.instance = "DEGeolocationField#CanSetDefaultSearchablePropertyToDisable";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Web Content",
+			configurationName = "Administration",
+			configurationScope = "System Scope");
+
+		FormFields.disableCheckbox(fieldName = "Structure Field Indexable Enable");
+
+		SystemSettings.saveConfiguration();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.viewFieldSearchable(
+			fieldFieldLabel = "Geolocation",
+			searchableType = "Disable");
+	}
+
+	@description = "This is a test for LRQA-68679. This test verifies that Default Searchable property is 'Keyword' when System Setting is checked"
+	@priority = "3"
+	test CanSetDefaultSearchablePropertyToKeyword {
+		property test.name.skip.portal.instance = "DEGeolocationField#CanSetDefaultSearchablePropertyToKeyword";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Web Content",
+			configurationName = "Administration",
+			configurationScope = "System Scope");
+
+		FormFields.enableCheckbox(fieldName = "Structure Field Indexable Enable");
+
+		SystemSettings.saveConfiguration();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.viewFieldSearchable(
+			fieldFieldLabel = "Geolocation",
+			searchableType = "Keyword");
+	}
+
+	@description = "This is a test for LRQA-68679. This test verifies that Label and Help text can be set."
+	@priority = "5"
+	test CanSetLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Geolocation",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Geolocation",
+			fieldHelp = "Help Text",
+			fieldName = "Geolocation");
+	}
+
+	@description = "This is a test for LRQA-68679. This test verifies that Label can be shown or hidden."
+	@priority = "3"
+	test CanSetLabelToShownOrHidden {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DataEngine.addField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+
+		DataEngine.toggleShowLabel(fieldLabel = "Geolocation");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.assertFieldNotPresent(fieldFieldLabel = "Geolocation");
+
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "Geolocation");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Geolocation",
+			fieldName = "Geolocation");
+	}
+
+}

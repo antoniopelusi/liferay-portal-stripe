@@ -80,20 +80,17 @@ request.setAttribute("view.jsp-eventName", eventName);
 					cssClass="table-cell-expand-smallest table-cell-minw-150"
 					name="source"
 				>
-					<c:choose>
-						<c:when test="<%= Objects.equals(segmentsEntry.getSource(), SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND) %>">
-							<liferay-ui:icon
-								message="source.analytics-cloud"
-								src='<%= PortalUtil.getPathContext(request) + "/assets/ac-icon.svg" %>'
-							/>
-						</c:when>
-						<c:otherwise>
-							<liferay-ui:icon
-								message="source.dxp"
-								src='<%= PortalUtil.getPathContext(request) + "/assets/dxp-icon.svg" %>'
-							/>
-						</c:otherwise>
-					</c:choose>
+
+					<%
+					SegmentsSourceDetailsProvider segmentsSourceDetailsProvider = SegmentsSourceDetailsProviderUtil.getSegmentsSourceDetailsProvider(segmentsEntry);
+					%>
+
+					<c:if test="<%= segmentsSourceDetailsProvider != null %>">
+						<liferay-ui:icon
+							message="<%= segmentsSourceDetailsProvider.getLabel(locale) %>"
+							src="<%= segmentsSourceDetailsProvider.getIconSrc() %>"
+						/>
+					</c:if>
 				</liferay-ui:search-container-column-text>
 			</c:if>
 
@@ -148,27 +145,40 @@ request.setAttribute("view.jsp-eventName", eventName);
 
 	var delegate = delegateModule.default;
 
-	delegate(document, 'click', '.assign-site-roles-link', (event) => {
-		var link = event.target.closest('.assign-site-roles-link');
+	var delegateHandler = delegate(
+		document,
+		'click',
+		'.assign-site-roles-link',
+		(event) => {
+			var link = event.target.closest('.assign-site-roles-link');
 
-		var itemSelectorURL = link.dataset.itemselectorurl;
-		var segmentsEntryId = link.dataset.segmentsentryid;
+			var itemSelectorURL = link.dataset.itemselectorurl;
+			var segmentsEntryId = link.dataset.segmentsentryid;
 
-		Liferay.Util.openSelectionModal({
-			eventName: '<%= eventName %>',
-			multiple: true,
-			onSelect: function (selectedItem) {
-				if (selectedItem) {
-					var data = {
-						segmentsEntryId: segmentsEntryId,
-						siteRoleIds: selectedItem.value,
-					};
+			Liferay.Util.openSelectionModal({
+				eventName: '<%= eventName %>',
+				multiple: true,
+				onSelect: function (selectedItems) {
+					if (selectedItems) {
+						var data = {
+							segmentsEntryId: segmentsEntryId,
+							siteRoleIds: selectedItems.map((item) => item.value),
+						};
 
-					Liferay.Util.postForm(form, {data: data});
-				}
-			},
-			title: '<liferay-ui:message key="assign-site-roles" />',
-			url: itemSelectorURL,
-		});
-	});
+						Liferay.Util.postForm(form, {data: data});
+					}
+				},
+				title: '<liferay-ui:message key="assign-site-roles" />',
+				url: itemSelectorURL,
+			});
+		}
+	);
+
+	var onDestroyPortlet = function () {
+		delegateHandler.dispose();
+
+		Liferay.detach('destroyPortlet', onDestroyPortlet);
+	};
+
+	Liferay.on('destroyPortlet', onDestroyPortlet);
 </aui:script>

@@ -31,7 +31,7 @@ if (Validator.isNull(url)) {
 	url = PortalUtil.getCurrentURL(request);
 }
 
-url = HttpUtil.decodeURL(themeDisplay.getPortalURL() + url);
+url = HttpComponentsUtil.decodeURL(themeDisplay.getPortalURL() + url);
 
 boolean noSuchResourceException = false;
 
@@ -96,7 +96,7 @@ else if (Validator.isNotNull(exception)) {
 		%>
 
 		<div>
-			<%= StringUtil.replace(te.getMessage(), new char[] {'<', '\n'}, new String[] {"&lt;", "<br />\n"}) %>
+			<%= StringUtil.replace(HtmlUtil.escape(te.getMessage()), new char[] {'<', '\n'}, new String[] {"&lt;", "<br />\n"}) %>
 		</div>
 	</c:when>
 	<c:when test="<%= noSuchResourceException %>">
@@ -131,7 +131,7 @@ else if (Validator.isNotNull(exception)) {
 				_log.error(e.getMessage());
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(e, e);
+					_log.debug(e);
 				}
 			}
 		}
@@ -140,7 +140,7 @@ else if (Validator.isNotNull(exception)) {
 	</c:otherwise>
 </c:choose>
 
-<div class="separator"><!-- --></div>
+<hr class="separator" />
 
 <a href="javascript:history.go(-1);">&laquo; <liferay-ui:message key="back" /></a>
 

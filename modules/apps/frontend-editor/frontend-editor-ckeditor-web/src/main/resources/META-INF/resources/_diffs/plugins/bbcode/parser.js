@@ -16,24 +16,24 @@
 	var hasOwnProperty = Object.prototype.hasOwnProperty;
 
 	var isString = function (val) {
-		return typeof val == 'string';
+		return typeof val === 'string';
 	};
 
 	var ELEMENTS_BLOCK = {
 		'*': 1,
-		center: 1,
-		code: 1,
-		justify: 1,
-		left: 1,
-		li: 1,
-		list: 1,
-		q: 1,
-		quote: 1,
-		right: 1,
-		table: 1,
-		td: 1,
-		th: 1,
-		tr: 1,
+		'center': 1,
+		'code': 1,
+		'justify': 1,
+		'left': 1,
+		'li': 1,
+		'list': 1,
+		'q': 1,
+		'quote': 1,
+		'right': 1,
+		'table': 1,
+		'td': 1,
+		'th': 1,
+		'tr': 1,
 	};
 
 	var ELEMENTS_CLOSE_SELF = {
@@ -45,6 +45,7 @@
 		color: 1,
 		font: 1,
 		i: 1,
+		// eslint-disable-next-line @liferay/no-abbreviations
 		img: 1,
 		s: 1,
 		size: 1,
@@ -116,7 +117,7 @@
 				tagName = tagName.toLowerCase();
 
 				for (pos = stack.length - 1; pos >= 0; pos--) {
-					if (stack[pos] == tagName) {
+					if (stack[pos] === tagName) {
 						break;
 					}
 				}
@@ -157,7 +158,7 @@
 
 				if (
 					hasOwnProperty.call(ELEMENTS_CLOSE_SELF, tagName) &&
-					stack.last() == tagName
+					stack.last() === tagName
 				) {
 					instance._handleTagEnd(tagName);
 				}
@@ -228,10 +229,10 @@
 				if (token[1]) {
 					instance._handleTagStart(token);
 
-					if (token[1].toLowerCase() == STR_TAG_CODE) {
+					if (token[1].toLowerCase() === STR_TAG_CODE) {
 						while (
 							(token = lexer.getNextToken()) &&
-							token[3] != STR_TAG_CODE
+							token[3] !== STR_TAG_CODE
 						) {
 
 							// Continue.

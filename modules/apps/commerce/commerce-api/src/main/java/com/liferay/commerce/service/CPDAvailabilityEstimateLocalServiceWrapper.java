@@ -27,6 +27,10 @@ public class CPDAvailabilityEstimateLocalServiceWrapper
 	implements CPDAvailabilityEstimateLocalService,
 			   ServiceWrapper<CPDAvailabilityEstimateLocalService> {
 
+	public CPDAvailabilityEstimateLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CPDAvailabilityEstimateLocalServiceWrapper(
 		CPDAvailabilityEstimateLocalService
 			cpdAvailabilityEstimateLocalService) {
@@ -162,6 +166,13 @@ public class CPDAvailabilityEstimateLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _cpdAvailabilityEstimateLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _cpdAvailabilityEstimateLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

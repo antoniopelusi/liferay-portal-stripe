@@ -15,6 +15,7 @@
 package com.liferay.sync.service.impl;
 
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -24,6 +25,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.sync.internal.configuration.SyncServiceConfigurationValues;
 import com.liferay.sync.model.SyncDLFileVersionDiff;
@@ -62,20 +64,19 @@ public class SyncDLFileVersionDiffLocalServiceImpl
 		syncDLFileVersionDiff.setSourceFileVersionId(sourceFileVersionId);
 		syncDLFileVersionDiff.setTargetFileVersionId(targetFileVersionId);
 
-		FileEntry fileEntry = dlAppLocalService.getFileEntry(fileEntryId);
+		FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
 
-		Company company = companyLocalService.getCompanyById(
+		Company company = _companyLocalService.getCompanyById(
 			fileEntry.getCompanyId());
-
-		String dataFileName = getDataFileName(
-			fileEntryId, sourceFileVersionId, targetFileVersionId);
 
 		FileEntry dataFileEntry = _portletFileRepository.addPortletFileEntry(
 			company.getGroupId(), fileEntry.getUserId(),
 			SyncDLFileVersionDiff.class.getName(),
 			syncDLFileVersionDiff.getSyncDLFileVersionDiffId(),
 			PortletKeys.DOCUMENT_LIBRARY,
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, file, dataFileName,
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, file,
+			getDataFileName(
+				fileEntryId, sourceFileVersionId, targetFileVersionId),
 			fileEntry.getMimeType(), false);
 
 		syncDLFileVersionDiff.setDataFileEntryId(
@@ -99,7 +100,7 @@ public class SyncDLFileVersionDiffLocalServiceImpl
 	@Override
 	public void deleteExpiredSyncDLFileVersionDiffs() throws PortalException {
 		List<SyncDLFileVersionDiff> syncDLFileVersionDiffs =
-			syncDLFileVersionDiffPersistence.findByExpirationDate(new Date());
+			syncDLFileVersionDiffPersistence.findByLtExpirationDate(new Date());
 
 		for (SyncDLFileVersionDiff syncDLFileVersionDiff :
 				syncDLFileVersionDiffs) {
@@ -175,19 +176,19 @@ public class SyncDLFileVersionDiffLocalServiceImpl
 	protected String getDataFileName(
 		long fileEntryId, long sourceFileVersionId, long targetFileVersionId) {
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(fileEntryId);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(sourceFileVersionId);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(targetFileVersionId);
-
-		return sb.toString();
+		return StringBundler.concat(
+			fileEntryId, StringPool.UNDERLINE, sourceFileVersionId,
+			StringPool.UNDERLINE, targetFileVersionId);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SyncDLFileVersionDiffLocalServiceImpl.class);
+
+	@Reference
+	private CompanyLocalService _companyLocalService;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
 	private PortletFileRepository _portletFileRepository;

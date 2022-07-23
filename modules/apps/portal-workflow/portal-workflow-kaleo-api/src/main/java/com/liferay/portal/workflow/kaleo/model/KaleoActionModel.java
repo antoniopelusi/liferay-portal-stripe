@@ -378,4 +378,7 @@ public interface KaleoActionModel
 	 */
 	public void setPriority(int priority);
 
+	@Override
+	public KaleoAction cloneWithOriginalValues();
+
 }

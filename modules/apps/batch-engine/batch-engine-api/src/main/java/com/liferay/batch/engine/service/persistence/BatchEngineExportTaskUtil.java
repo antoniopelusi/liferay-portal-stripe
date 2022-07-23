@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the batch engine export task service. This utility wraps <code>com.liferay.batch.engine.service.persistence.impl.BatchEngineExportTaskPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -481,6 +477,179 @@ public class BatchEngineExportTaskUtil {
 	}
 
 	/**
+	 * Returns all the batch engine export tasks where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @return the matching batch engine export tasks
+	 */
+	public static List<BatchEngineExportTask> findByCompanyId(long companyId) {
+		return getPersistence().findByCompanyId(companyId);
+	}
+
+	/**
+	 * Returns a range of all the batch engine export tasks where companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>BatchEngineExportTaskModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of batch engine export tasks
+	 * @param end the upper bound of the range of batch engine export tasks (not inclusive)
+	 * @return the range of matching batch engine export tasks
+	 */
+	public static List<BatchEngineExportTask> findByCompanyId(
+		long companyId, int start, int end) {
+
+		return getPersistence().findByCompanyId(companyId, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the batch engine export tasks where companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>BatchEngineExportTaskModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of batch engine export tasks
+	 * @param end the upper bound of the range of batch engine export tasks (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching batch engine export tasks
+	 */
+	public static List<BatchEngineExportTask> findByCompanyId(
+		long companyId, int start, int end,
+		OrderByComparator<BatchEngineExportTask> orderByComparator) {
+
+		return getPersistence().findByCompanyId(
+			companyId, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns an ordered range of all the batch engine export tasks where companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>BatchEngineExportTaskModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of batch engine export tasks
+	 * @param end the upper bound of the range of batch engine export tasks (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching batch engine export tasks
+	 */
+	public static List<BatchEngineExportTask> findByCompanyId(
+		long companyId, int start, int end,
+		OrderByComparator<BatchEngineExportTask> orderByComparator,
+		boolean useFinderCache) {
+
+		return getPersistence().findByCompanyId(
+			companyId, start, end, orderByComparator, useFinderCache);
+	}
+
+	/**
+	 * Returns the first batch engine export task in the ordered set where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching batch engine export task
+	 * @throws NoSuchExportTaskException if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask findByCompanyId_First(
+			long companyId,
+			OrderByComparator<BatchEngineExportTask> orderByComparator)
+		throws com.liferay.batch.engine.exception.NoSuchExportTaskException {
+
+		return getPersistence().findByCompanyId_First(
+			companyId, orderByComparator);
+	}
+
+	/**
+	 * Returns the first batch engine export task in the ordered set where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching batch engine export task, or <code>null</code> if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask fetchByCompanyId_First(
+		long companyId,
+		OrderByComparator<BatchEngineExportTask> orderByComparator) {
+
+		return getPersistence().fetchByCompanyId_First(
+			companyId, orderByComparator);
+	}
+
+	/**
+	 * Returns the last batch engine export task in the ordered set where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching batch engine export task
+	 * @throws NoSuchExportTaskException if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask findByCompanyId_Last(
+			long companyId,
+			OrderByComparator<BatchEngineExportTask> orderByComparator)
+		throws com.liferay.batch.engine.exception.NoSuchExportTaskException {
+
+		return getPersistence().findByCompanyId_Last(
+			companyId, orderByComparator);
+	}
+
+	/**
+	 * Returns the last batch engine export task in the ordered set where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching batch engine export task, or <code>null</code> if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask fetchByCompanyId_Last(
+		long companyId,
+		OrderByComparator<BatchEngineExportTask> orderByComparator) {
+
+		return getPersistence().fetchByCompanyId_Last(
+			companyId, orderByComparator);
+	}
+
+	/**
+	 * Returns the batch engine export tasks before and after the current batch engine export task in the ordered set where companyId = &#63;.
+	 *
+	 * @param batchEngineExportTaskId the primary key of the current batch engine export task
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next batch engine export task
+	 * @throws NoSuchExportTaskException if a batch engine export task with the primary key could not be found
+	 */
+	public static BatchEngineExportTask[] findByCompanyId_PrevAndNext(
+			long batchEngineExportTaskId, long companyId,
+			OrderByComparator<BatchEngineExportTask> orderByComparator)
+		throws com.liferay.batch.engine.exception.NoSuchExportTaskException {
+
+		return getPersistence().findByCompanyId_PrevAndNext(
+			batchEngineExportTaskId, companyId, orderByComparator);
+	}
+
+	/**
+	 * Removes all the batch engine export tasks where companyId = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 */
+	public static void removeByCompanyId(long companyId) {
+		getPersistence().removeByCompanyId(companyId);
+	}
+
+	/**
+	 * Returns the number of batch engine export tasks where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @return the number of matching batch engine export tasks
+	 */
+	public static int countByCompanyId(long companyId) {
+		return getPersistence().countByCompanyId(companyId);
+	}
+
+	/**
 	 * Returns all the batch engine export tasks where executeStatus = &#63;.
 	 *
 	 * @param executeStatus the execute status
@@ -656,6 +825,76 @@ public class BatchEngineExportTaskUtil {
 	}
 
 	/**
+	 * Returns the batch engine export task where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchExportTaskException</code> if it could not be found.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching batch engine export task
+	 * @throws NoSuchExportTaskException if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask findByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.batch.engine.exception.NoSuchExportTaskException {
+
+		return getPersistence().findByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the batch engine export task where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching batch engine export task, or <code>null</code> if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask fetchByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().fetchByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the batch engine export task where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching batch engine export task, or <code>null</code> if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask fetchByC_ERC(
+		long companyId, String externalReferenceCode, boolean useFinderCache) {
+
+		return getPersistence().fetchByC_ERC(
+			companyId, externalReferenceCode, useFinderCache);
+	}
+
+	/**
+	 * Removes the batch engine export task where companyId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the batch engine export task that was removed
+	 */
+	public static BatchEngineExportTask removeByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.batch.engine.exception.NoSuchExportTaskException {
+
+		return getPersistence().removeByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the number of batch engine export tasks where companyId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching batch engine export tasks
+	 */
+	public static int countByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().countByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
 	 * Caches the batch engine export task in the entity cache if it is enabled.
 	 *
 	 * @param batchEngineExportTask the batch engine export task
@@ -814,29 +1053,9 @@ public class BatchEngineExportTaskUtil {
 	}
 
 	public static BatchEngineExportTaskPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<BatchEngineExportTaskPersistence, BatchEngineExportTaskPersistence>
-			_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			BatchEngineExportTaskPersistence.class);
-
-		ServiceTracker
-			<BatchEngineExportTaskPersistence, BatchEngineExportTaskPersistence>
-				serviceTracker =
-					new ServiceTracker
-						<BatchEngineExportTaskPersistence,
-						 BatchEngineExportTaskPersistence>(
-							 bundle.getBundleContext(),
-							 BatchEngineExportTaskPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile BatchEngineExportTaskPersistence _persistence;
 
 }

@@ -76,7 +76,7 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 			ActionResponse actionResponse)
 		throws Exception {
 
-		validateFields(actionRequest);
+		_validateFields(actionRequest);
 
 		if (!SessionErrors.isEmpty(actionRequest)) {
 			return;
@@ -154,11 +154,11 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 						actionRequest, "validationDefinitionInvalid" + i);
 				}
 
-				updateModifiedLocales(
+				_updateModifiedLocales(
 					"fieldLabel" + i, fieldLabelMap, preferences);
-				updateModifiedLocales(
+				_updateModifiedLocales(
 					"fieldOptions" + i, fieldOptionsMap, preferences);
-				updateModifiedLocales(
+				_updateModifiedLocales(
 					"fieldParagraph" + i, fieldParagraphMap, preferences);
 
 				preferences.setValue(
@@ -227,7 +227,7 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
 
-	protected void updateModifiedLocales(
+	private void _updateModifiedLocales(
 			String parameter, Map<Locale, String> newLocalizationMap,
 			PortletPreferences preferences)
 		throws Exception {
@@ -247,7 +247,7 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 		}
 	}
 
-	protected void validateEmailFields(ActionRequest actionRequest) {
+	private void _validateEmailFields(ActionRequest actionRequest) {
 		String subject = getParameter(actionRequest, "subject");
 
 		if (Validator.isNull(subject)) {
@@ -281,7 +281,7 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 		}
 	}
 
-	protected void validateFieldNameLength(ActionRequest actionRequest) {
+	private void _validateFieldNameLength(ActionRequest actionRequest) {
 		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		int[] formFieldsIndexes = StringUtil.split(
@@ -319,9 +319,7 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 		}
 	}
 
-	protected void validateFields(ActionRequest actionRequest)
-		throws Exception {
-
+	private void _validateFields(ActionRequest actionRequest) throws Exception {
 		boolean saveToDatabase = GetterUtil.getBoolean(
 			getParameter(actionRequest, "saveToDatabase"));
 		boolean saveToFile = GetterUtil.getBoolean(
@@ -334,7 +332,7 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 		}
 
 		if (sendAsEmail) {
-			validateEmailFields(actionRequest);
+			_validateEmailFields(actionRequest);
 		}
 
 		String successURL = getParameter(actionRequest, "successURL");
@@ -343,11 +341,11 @@ public class WebFormConfigurationAction extends DefaultConfigurationAction {
 			SessionErrors.add(actionRequest, "successURLInvalid");
 		}
 
-		validateFieldNameLength(actionRequest);
-		validateUniqueFieldNames(actionRequest);
+		_validateFieldNameLength(actionRequest);
+		_validateUniqueFieldNames(actionRequest);
 	}
 
-	protected void validateUniqueFieldNames(ActionRequest actionRequest) {
+	private void _validateUniqueFieldNames(ActionRequest actionRequest) {
 		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		Set<String> localizedUniqueFieldNames = new HashSet<>();

@@ -25,6 +25,7 @@ import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Product;
 import com.liferay.headless.commerce.admin.catalog.internal.helper.v1_0.CategoryHelper;
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.CategoryResource;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -51,6 +52,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	scope = ServiceScope.PROTOTYPE,
 	service = {CategoryResource.class, NestedFieldSupport.class}
 )
+@CTAware
 public class CategoryResourceImpl
 	extends BaseCategoryResourceImpl implements NestedFieldSupport {
 
@@ -66,7 +68,7 @@ public class CategoryResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with externalReferenceCode: " +
+				"Unable to find product with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -109,7 +111,7 @@ public class CategoryResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with externalReferenceCode: " +
+				"Unable to find product with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -145,9 +147,6 @@ public class CategoryResourceImpl
 
 		long[] assetCategoryIds = new long[0];
 
-		ServiceContext serviceContext = _serviceContextHelper.getServiceContext(
-			cpDefinition.getGroupId());
-
 		for (Category category : categories) {
 			AssetCategory assetCategory = _assetCategoryService.fetchCategory(
 				category.getId());
@@ -160,6 +159,9 @@ public class CategoryResourceImpl
 			assetCategoryIds = ArrayUtil.append(
 				assetCategoryIds, assetCategory.getCategoryId());
 		}
+
+		ServiceContext serviceContext = _serviceContextHelper.getServiceContext(
+			cpDefinition.getGroupId());
 
 		serviceContext.setAssetCategoryIds(assetCategoryIds);
 

@@ -1,0 +1,1078 @@
+definition {
+
+	macro addLayoutBlockViaUI {
+		Click(locator1 = "ObjectAdmin#ADD_BLOCK_BUTTON");
+
+		Type(
+			locator1 = "ObjectAdmin#TAB_LABEL_NAME",
+			value1 = "${blockName}");
+
+		Click(
+			key_tab = "Save",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+	}
+
+	macro addNewObject {
+		Click(locator1 = "ObjectAdmin#ADD_CUSTOM_OBJECT");
+
+		Type(
+			locator1 = "ObjectAdmin#LABEL_CUSTOM_OBJECT",
+			value1 = "${fieldLabelName}");
+
+		Type(
+			locator1 = "ObjectAdmin#PLURAL_LABEL_CUSTOM_OBJECT",
+			value1 = "${pluralLabelName}");
+
+		if (isSet(fieldName)) {
+			Type(
+				locator1 = "ObjectAdmin#NAME_CUSTOM_OBJECT",
+				value1 = "${fieldName}");
+		}
+	}
+
+	macro addObjectActionViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectAdmin#ADD_ACTION_NAME_FIELD",
+			value1 = "${actionName}");
+
+		if (isSet(whenAction)) {
+			Click(locator1 = "ObjectAdmin#ACTION_WHEN_TYPE");
+
+			Click(
+				key_type = "${whenAction}",
+				locator1 = "ObjectAdmin#SELECT_RELATIONSHIPS_TYPE_OPTION");
+		}
+
+		if (isSet(thenAction)) {
+			Click(locator1 = "ObjectAdmin#ACTION_THEN_TYPE");
+
+			Click(
+				key_type = "${thenAction}",
+				locator1 = "ObjectAdmin#SELECT_RELATIONSHIPS_TYPE_OPTION");
+		}
+
+		if (isSet(urlAction)) {
+			Type(
+				locator1 = "ObjectAdmin#ADD_URL_ACTION_FIELD",
+				value1 = "${urlAction}");
+		}
+
+		if (isSet(secretAction)) {
+			Type(
+				locator1 = "ObjectAdmin#ADD_SECRET_ACTION_FIELD",
+				value1 = "${secretAction}");
+		}
+
+		Button.clickSave();
+
+		WaitForSPARefresh();
+	}
+
+	macro addObjectBoleanFieldEntryViaUI {
+		ObjectAdmin.goToCustomObject(objectName = "${objectName}");
+
+		LexiconEntry.gotoAdd();
+
+		WaitForPageLoad();
+
+		if ("${value}" == "true") {
+			Click.clickAtNotVisible(locator1 = "ObjectAdmin#ENTRY_BOOLEAN_CHECKBOX");
+		}
+
+		Button.clickSave();
+
+		WaitForSPARefresh();
+	}
+
+	macro addObjectDoubleFieldEntryViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectAdmin#ENTRY_DOUBLE_VALUE_FIELD",
+			value1 = "${entryValue}");
+
+		Button.clickSave();
+
+		WaitForSPARefresh();
+	}
+
+	macro addObjectFieldViaAPI {
+		JSONObject.addObjectField(
+			fieldBusinessType = "${fieldBusinessType}",
+			fieldLabelName = "${fieldLabelName}",
+			fieldName = "${fieldName}",
+			fieldType = "${fieldType}",
+			indexed = "${indexed}",
+			indexedAsKeyword = "${indexedAsKeyword}",
+			indexedLanguageId = "${indexedLanguageId}",
+			isRequired = "${isRequired}",
+			objectName = "${objectName}",
+			picklistName = "${picklistName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro addObjectFieldViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectField#LABEL_INPUT",
+			value1 = "${fieldLabel}");
+
+		if (isSet(fieldName)) {
+			Type(
+				locator1 = "ObjectField#NAME_FIELD",
+				value1 = "${fieldName}");
+		}
+
+		if (isSet(fieldType)) {
+			ObjectField.selectType(fieldType = "${fieldType}");
+		}
+
+		if ("${isMandatory}" == "true") {
+			ObjectField.checkToggleMandatory();
+		}
+
+		if (isSet(fieldPicklist)) {
+			Select(
+				locator1 = "ObjectAdmin#OBJECT_FIELDS_PICKLIST",
+				value1 = "${fieldPicklist}");
+		}
+
+		Button.clickSave();
+	}
+
+	macro addObjectLayoutViaAPI {
+		JSONObject.addObjectLayout(
+			layoutName = "${layoutName}",
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro addObjectLayoutViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectAdmin#ADD_LAYOUT_NAME_FIELD",
+			value1 = "${layoutName}");
+
+		Button.clickSave();
+
+		WaitForPageLoad();
+	}
+
+	macro addObjectLongFieldEntryViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectAdmin#ENTRY_LONG_VALUE_FIELD",
+			value1 = "${entryValue}");
+
+		Button.clickSave();
+
+		WaitForSPARefresh();
+	}
+
+	macro addObjectPicklistFieldEntryViaUI {
+		LexiconEntry.gotoAdd();
+
+		Click(locator1 = "ObjectAdmin#ENTRY_CHOOSE_OPTION");
+
+		Click(
+			key_picklistOption = "${picklistOption}",
+			locator1 = "ObjectAdmin#ENTRY_PICKLIST_OPTION");
+
+		if (IsElementPresent(key_text = "${saveName}", locator1 = "Button#ANY")) {
+			Click(
+				key_text = "${saveName}",
+				locator1 = "Button#ANY");
+		}
+		else {
+			Button.clickSave();
+		}
+
+		WaitForSPARefresh();
+	}
+
+	macro addObjectRelationshipViaAPI {
+		JSONObject.addObjectRelationship(
+			deletionType = "${deletionType}",
+			objectName_1 = "${objectName_1}",
+			objectName_2 = "${objectName_2}",
+			relationshipLabel = "${relationshipLabel}",
+			relationshipName = "${relationshipName}",
+			relationshipType = "${relationshipType}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro addObjectRelationshipViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectAdmin#LABEL_OBJECT_RELATIONSHIP",
+			value1 = "${label}");
+
+		if (isSet(type)) {
+			Click(locator1 = "ObjectAdmin#RELATIONSHIPS_TYPE_FORM");
+
+			Click(
+				key_type = "${type}",
+				locator1 = "ObjectAdmin#SELECT_RELATIONSHIPS_TYPE_OPTION");
+		}
+
+		if (isSet(object)) {
+			Select(
+				locator1 = "ObjectAdmin#SELECT_OBJECT_RELATIONSHIP",
+				value1 = "${object}");
+		}
+
+		if (isSet(name)) {
+			Type(
+				locator1 = "ObjectAdmin#NAME_OBJECT_RELATIONSHIP",
+				value1 = "${name}");
+		}
+
+		Button.clickSave();
+	}
+
+	macro addObjectSingleFieldEntryViaAPI {
+		JSONObject.addObjectSingleFieldEntry(
+			fieldName = "${fieldName}",
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}",
+			value = "${value}");
+	}
+
+	macro addObjectStringFieldEntryViaUI {
+		LexiconEntry.gotoAdd();
+
+		WaitForSPARefresh();
+
+		Type(
+			locator1 = "ObjectAdmin#ENTRY_STRING_VALUE_FIELD",
+			value1 = "${entryValue}");
+
+		if (isSet(entryOption)) {
+			Click(locator1 = "ObjectPortlet#SEARCH_RELATIONSHIP_ENTRY");
+
+			Click(
+				key_picklistOption = "${entryOption}",
+				locator1 = "ObjectAdmin#ENTRY_PICKLIST_OPTION");
+		}
+
+		Button.clickSave();
+
+		WaitForSPARefresh();
+	}
+
+	macro addObjectViaAPI {
+		JSONObject.addObject(
+			labelName = "${labelName}",
+			objectName = "${objectName}",
+			panelCategoryKey = "${panelCategoryKey}",
+			pluralLabelName = "${pluralLabelName}",
+			scope = "${scope}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro addTabFieldsOnLayout {
+		LexiconEntry.gotoAdd();
+
+		Click(
+			key_type = "Fields",
+			locator1 = "ObjectAdmin#TAB_TYPE");
+
+		Type(
+			locator1 = "ObjectAdmin#TAB_LABEL_NAME",
+			value1 = "${tabName}");
+
+		Click(
+			key_tab = "Save",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+
+		if (isSet(blockName)) {
+			Click(locator1 = "ObjectAdmin#ADD_BLOCK_BUTTON");
+
+			Type(
+				locator1 = "ObjectAdmin#TAB_LABEL_NAME",
+				value1 = "${blockName}");
+
+			Click(
+				key_tab = "Save",
+				locator1 = "Button#TAB_SUBMIT_BTN");
+
+			if ("${isCollapsible}" == "Yes") {
+				Check.checkToggleSwitch(locator1 = "CreateObject#TOGGLE_COLLAPSIBLE");
+			}
+
+			if (isSet(fieldList)) {
+				for (var fieldLabelName : list "${fieldList}") {
+					Click(locator1 = "ObjectAdmin#ADD_FIELD_ON_BLOCK");
+
+					Click(locator1 = "ObjectAdmin#LAYOUT_ENTRY_CHOOSE_OPTION");
+
+					Click(
+						key_optionName = "${fieldLabelName}",
+						locator1 = "ObjectAdmin#LAYOUT_ADD_FIELD_OPTION");
+
+					Click(
+						key_columnsNumber = "${columnsNumber}",
+						locator1 = "ObjectAdmin#LAYOUT_ADD_FIELD_COLUMN_NUMBER");
+
+					Click(
+						key_tab = "Save",
+						locator1 = "Button#TAB_SUBMIT_BTN");
+				}
+			}
+			else {
+				Click(locator1 = "ObjectAdmin#ADD_FIELD_ON_BLOCK");
+
+				Click(locator1 = "ObjectAdmin#LAYOUT_ENTRY_CHOOSE_OPTION");
+
+				Click(
+					key_optionName = "${fieldLabelName}",
+					locator1 = "ObjectAdmin#LAYOUT_ADD_FIELD_OPTION");
+
+				Click(
+					key_columnsNumber = "${columnsNumber}",
+					locator1 = "ObjectAdmin#LAYOUT_ADD_FIELD_COLUMN_NUMBER");
+
+				Click(
+					key_tab = "Save",
+					locator1 = "Button#TAB_SUBMIT_BTN");
+			}
+		}
+	}
+
+	macro addTabRelationshipsOnLayout {
+		LexiconEntry.gotoAdd();
+
+		Click(
+			key_type = "Relationships",
+			locator1 = "ObjectAdmin#TAB_TYPE");
+
+		Type(
+			locator1 = "ObjectAdmin#TAB_LABEL_NAME",
+			value1 = "${tabName}");
+
+		Click(locator1 = "ObjectAdmin#LAYOUT_ENTRY_CHOOSE_OPTION");
+
+		if (isSet(relationshipsLabelName)) {
+			Click(
+				key_optionName = "${relationshipsLabelName}",
+				locator1 = "ObjectAdmin#LAYOUT_ADD_FIELD_OPTION");
+		}
+
+		Click(
+			key_tab = "Save",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+	}
+
+	macro assertAddEntryModalIsNotPresent {
+		AssertElementNotPresent(locator1 = "ObjectAdmin#ENTRY_STRING_VALUE_FIELD");
+
+		AssertElementNotPresent(locator1 = "ObjectAdmin#ADD_ENTRY_SAVE_BUTTON");
+
+		AssertElementNotPresent(locator1 = "ObjectAdmin#ADD_ENTRY_CANCEL_BUTTON");
+	}
+
+	macro assertBlockIsPresent {
+		AssertElementPresent(
+			key_fieldBlockName = "${fieldBlockName}",
+			locator1 = "ObjectAdmin#FIELD_BLOCK_NAME");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#FIELD_BLOCK_ADD_FIELD_BUTTON");
+	}
+
+	macro assertClobTypeText {
+		AssertElementPresent(
+			key_clobType = "${clobType}",
+			locator1 = "ObjectAdmin#VIEW_CLOB_TYPE_TEXT_ENTRY");
+	}
+
+	macro assertEntryOnPageNotPresent {
+		AssertElementNotPresent(
+			key_entryName = "${entryName}",
+			locator1 = "ObjectAdmin#VIEW_ENTRY_NAME_ON_PAGE");
+	}
+
+	macro assertFieldsTableColumnsAreDisplayed {
+		AssertElementPresent(locator1 = "ObjectAdmin#FIELDS_LABEL_COLUMN");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#FIELDS_TYPE_COLUMN");
+	}
+
+	macro assertFieldTabIsPresent {
+		AssertElementPresent(
+			key_fieldTabName = "${fieldTabName}",
+			locator1 = "ObjectAdmin#FIELD_TAB_NAME");
+	}
+
+	macro assertKeywordAndText {
+		AssertElementPresent(locator1 = "ObjectAdmin#SEARCHABLE_SECTION_TITLE");
+
+		AssertElementNotPresent(locator1 = "ObjectAdmin#VIEW_SEARCHABLE_SECTION_DISABLED");
+
+		AssertElementPresent(
+			key_radioOption = "Keyword",
+			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
+
+		AssertElementPresent(
+			key_radioOption = "Text",
+			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
+	}
+
+	macro assertKeywordAndTextNotPresent {
+		AssertElementNotPresent(
+			key_radioOption = "Keyword",
+			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
+
+		AssertElementNotPresent(
+			key_radioOption = "Text",
+			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
+	}
+
+	macro assertLabelFieldRequired {
+		AssertElementPresent(locator1 = "ObjectField#LABEL_ERROR_REQUIRED");
+	}
+
+	macro assertNoItemsWereFound {
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "No items were found.");
+	}
+
+	macro assertNoResultsWereFound {
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_STATE_INFO",
+			value1 = "No Results Found");
+	}
+
+	macro assertNotPossibleAddFieldOnBlockWithoutChooseOptionField {
+		Click(locator1 = "ObjectAdmin#ADD_FIELD_ON_BLOCK");
+
+		Click(
+			key_tab = "Save",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_LAYOUTS_FIELD_INPUT_HAS_REQUIRED_ERROR");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#REQUIRED_ERROR_MESSAGE");
+	}
+
+	macro assertObjectActions {
+		AssertElementPresent(
+			key_actionActive = "${actionActive}",
+			key_actionName = "${actionName}",
+			locator1 = "ObjectAdmin#VIEW_ACTIONS_TAB");
+	}
+
+	macro assertObjectActionsNotPresent {
+		AssertElementNotPresent(
+			key_actionActive = "${actionActive}",
+			key_actionName = "${actionName}",
+			locator1 = "ObjectAdmin#VIEW_ACTIONS_TAB");
+	}
+
+	macro assertObjectColumnsAreDisplayed {
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_LABEL_COLUMN");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_SYSTEM_COLUMN");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_STATUS_COLUMN");
+	}
+
+	macro assertObjectColumnValue {
+		var key_label = "${label}";
+		var key_scope = "${scope}";
+		var key_system = "${system}";
+		var key_status = "${status}";
+
+		AssertTextEquals(
+			locator1 = "ObjectAdmin#OBJECT_LABEL",
+			value1 = "${label}");
+
+		AssertTextEquals(
+			locator1 = "ObjectAdmin#OBJECT_SCOPE",
+			value1 = "${scope}");
+
+		AssertTextEquals(
+			locator1 = "ObjectAdmin#OBJECT_SYSTEM",
+			value1 = "${system}");
+
+		AssertTextEquals(
+			locator1 = "ObjectAdmin#OBJECT_STATUS",
+			value1 = "${status}");
+	}
+
+	macro assertObjectDetailsPage {
+		Click(locator1 = "ObjectAdmin#OBJECT_DETAILS_TAB");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#DETAILS_PAGE_TITLE");
+	}
+
+	macro assertObjectField {
+		var key_fieldLabel = "${fieldLabel}";
+		var key_fieldType = "${fieldType}";
+
+		AssertElementPresent(locator1 = "ObjectAdmin#VIEW_OBJECT_FIELD_LABEL");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#VIEW_OBJECT_FIELD_TYPE");
+	}
+
+	macro assertObjectFieldNotPresent {
+		var key_fielLabel = "${fieldLabel}";
+
+		ObjectAdmin.goToFieldsTab();
+
+		AssertElementNotPresent(locator1 = "ObjectAdmin#VIEW_OBJECT_FIELD_LABEL");
+	}
+
+	macro assertObjectLabelFieldRequired {
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_LABEL_FIELD_REQUIRED");
+	}
+
+	macro assertObjectLayout {
+		var key_layoutLabel = "${layoutLabel}";
+
+		AssertElementPresent(locator1 = "ObjectAdmin#VIEW_OBJECT_LAYOUT_LABEL");
+	}
+
+	macro assertObjectLayoutNotPresent {
+		var key_layoutLabel = "${layoutLabel}";
+
+		AssertElementNotPresent(locator1 = "ObjectAdmin#VIEW_OBJECT_LAYOUT_LABEL");
+	}
+
+	macro assertObjectLayoutRelationshipFieldRequiredError {
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_LAYOUTS_RELATIONSHIP_FIELD_HAD_REQUIRED_ERROR");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#REQUIRED_ERROR_MESSAGE");
+	}
+
+	macro assertObjectNameFieldRequired {
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_NAME_FIELD_REQUIRED");
+	}
+
+	macro assertObjectStatus {
+		var key_status = "${status}";
+		var key_label = "${label}";
+
+		AssertElementPresent(locator1 = "ObjectAdmin#OBJECT_STATUS");
+	}
+
+	macro assertRelationshipsTypeDescription {
+		AssertTextEquals(
+			key_type = "${type}",
+			locator1 = "ObjectAdmin#RELATIONSHIPS_TYPE_DESCRIPTION",
+			value1 = "${description}");
+	}
+
+	macro assertRelationshipTabNotPresent {
+		AssertElementNotPresent(
+			key_tabName = "Relationship Tab",
+			locator1 = "ObjectAdmin#ENTRY_RELATIONSHIP_TAB");
+	}
+
+	macro assertRelationshipTabPresent {
+		AssertElementPresent(
+			key_tabName = "Relationship Tab",
+			locator1 = "ObjectAdmin#ENTRY_RELATIONSHIP_TAB");
+	}
+
+	macro assertTypeFieldRequired {
+		AssertElementPresent(locator1 = "ObjectField#TYPE_ERROR_REQUIRED");
+	}
+
+	macro assertUpdateEntryModalIsNotPresent {
+		AssertElementNotPresent(
+			locator1 = "ObjectAdmin#ENTRY_STRING_VALUE_FIELD",
+			value1 = "${value}");
+
+		AssertElementNotPresent(locator1 = "ObjectAdmin#ADD_ENTRY_SAVE_BUTTON");
+
+		AssertElementNotPresent(locator1 = "ObjectAdmin#ADD_ENTRY_CANCEL_BUTTON");
+	}
+
+	macro cancelAddingObjectStringFieldEntryViaUI {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "ObjectAdmin#ENTRY_STRING_VALUE_FIELD",
+			value1 = "${entryValue}");
+
+		Button.clickCancel();
+	}
+
+	macro cancelUpdatingObjectStringFieldEntryViaUI {
+		Type(
+			locator1 = "ObjectAdmin#ENTRY_STRING_VALUE_FIELD",
+			value1 = "${entryValue}");
+
+		Button.clickCancel();
+	}
+
+	macro changeLabelLanguage {
+		Click(locator1 = "ObjectAdmin#DROPDOWN_LANGUAGEM");
+
+		Click(
+			key_newLanguage = "${newLanguage}",
+			locator1 = "ObjectAdmin#SELECT_LANGUAGE");
+	}
+
+	macro changePicklistFieldEntry {
+		Click(
+			key_entrySelected = "${entrySelected}",
+			locator1 = "ObjectPortlet#OBJECT_FIELD_SELECTED");
+
+		Click(
+			key_picklistOption = "${newPicklistOption}",
+			locator1 = "ObjectAdmin#ENTRY_PICKLIST_OPTION");
+
+		Button.clickSave();
+
+		WaitForSPARefresh();
+	}
+
+	macro changePluralLabelLanguage {
+		Click(locator1 = "ObjectAdmin#DROPDOWN_LANGUAGEM_PLURAL_LABEL");
+
+		Click(
+			key_newLanguage = "${newLanguage}",
+			locator1 = "ObjectAdmin#SELECT_LANGUAGE");
+	}
+
+	macro changeScopeOnDefinePermissions {
+		ObjectAdmin.searchInDefinePermissions(search = "Custom Objects");
+
+		Click(
+			key_scopeActionName = "${scopeActionName}",
+			locator1 = "ObjectAdmin#CHANGE_SCOPE_ACTION_ON_REGULAR_ROLES",
+			value1 = "${scopeActionName}");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Click(locator1 = "ContentDashboard#MY_SITES_TAB");
+
+		Click(
+			key_siteCard = "${siteCard}",
+			locator1 = "ObjectAdmin#VIEW_SITE_CARD");
+
+		SelectFrame(locator1 = "ObjectAdmin#VIEW_SHEET_ON_DEFINE_PERMISSIONS");
+
+		Click(locator1 = "Button#SAVE");
+	}
+
+	macro chooseAnyLanguage {
+		Click(
+			key_symbolName = "",
+			locator1 = "FormViewBuilder#BUTTON_LOCALIZATION");
+
+		Click(
+			key_newLanguage = "${newLanguage}",
+			locator1 = "ObjectAdmin#CHOOSE_ANY_LANGUAGE");
+	}
+
+	macro clickFieldsSearchableSectionRadioOption {
+		Click.javaScriptClick(
+			key_radioOption = "${radioOption}",
+			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
+	}
+
+	macro createCustomObject {
+		Click(locator1 = "ObjectAdmin#ADD_CUSTOM_OBJECT");
+
+		Type(
+			locator1 = "ObjectAdmin#NAME_CUSTOM_OBJECT",
+			value1 = "${name}");
+
+		Click(locator1 = "ObjectAdmin#SAVE_CUSTOM_OBJECT");
+	}
+
+	macro deleteActionViaUI {
+		Click(
+			key_objectLabel = "${actionName}",
+			locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+	}
+
+	macro deleteAllCustomObjectsViaAPI {
+		JSONObject.deleteAllCustomObjects(
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro deleteObjectEntryViaAPI {
+		JSONObject.deleteObjectEntry(
+			fieldName = "${fieldName}",
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}",
+			value = "${value}");
+	}
+
+	macro deleteObjectField {
+		Click(
+			key_value = "${fieldName}",
+			locator1 = "ObjectAdmin#BODY_VERTICAL_ELLIPSIS");
+
+		ClickNoError(locator1 = "ObjectPortlet#DELETE_ENTRY_BUTTON");
+	}
+
+	macro deleteObjectViaAPI {
+		JSONObject.deleteObject(
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro editClobEntryName {
+		Type(
+			key_clobType = "",
+			locator1 = "ObjectAdmin#VIEW_CLOB_TYPE_TEXT_ENTRY",
+			value1 = "${clobEntry}");
+
+		Button.clickSave();
+	}
+
+	macro editCustomObject {
+		if (isSet(fieldName)) {
+			Type(
+				locator1 = "ObjectAdmin#DETAILS_NAME_CUSTOM_OBJECT",
+				value1 = "${fieldName}");
+		}
+
+		if (isSet(fieldLabelName)) {
+			Type(
+				locator1 = "ObjectAdmin#DETAILS_LABEL_CUSTOM_OBJECT",
+				value1 = "${fieldLabelName}");
+		}
+
+		if (isSet(pluralLabelName)) {
+			Type(
+				locator1 = "ObjectAdmin#DETAILS_PLURAL_LABEL_CUSTOM_OBJECT",
+				value1 = "${pluralLabelName}");
+		}
+
+		Button.clickSave();
+	}
+
+	macro editEntryName {
+		Type(
+			locator1 = "ObjectAdmin#ENTRY_STRING_VALUE_FIELD",
+			value1 = "${newEntryValue}");
+
+		Button.clickSave();
+	}
+
+	macro editObjectAction {
+		ObjectAdmin.goToActionDetails(viewEntry = "${viewEntry}");
+
+		ObjectAdmin.viewFieldDetails();
+
+		if (isSet(newActionName)) {
+			Type(
+				locator1 = "ObjectAdmin#VIEW_ACTION_NAME_ON_SIDE_PANEL",
+				value1 = "${newActionName}");
+
+			Button.clickSave();
+
+			Refresh();
+		}
+	}
+
+	macro goToActionDetails {
+		Click(
+			key_objectLabel = "${viewEntry}",
+			locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+		MenuItem.clickNoError(menuItem = "View");
+	}
+
+	macro goToActionsTab {
+		Click(locator1 = "ObjectAdmin#OBJECT_ACTIONS_TAB");
+	}
+
+	macro goToCustomObject {
+		var objectId = JSONObject.getObjectId(
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+
+		Navigator.openSpecificURL(url = "/group/guest/~/control_panel/manage?p_p_id=com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_${objectId}");
+	}
+
+	macro goToDetailsTab {
+		Click(locator1 = "ObjectAdmin#OBJECT_DETAILS_TAB");
+	}
+
+	macro goToFieldsDetails {
+		Click(
+			key_label = "${label}",
+			locator1 = "ObjectAdmin#SELECT_OBJECT_FIELD");
+
+		SelectFrame(locator1 = "IFrame#IFRAME");
+	}
+
+	macro goToFieldsTab {
+		Click(locator1 = "ObjectAdmin#OBJECT_FIELDS_TAB");
+	}
+
+	macro goToLayoutsTab {
+		Click(locator1 = "ObjectAdmin#OBJECT_LAYOUTS_TAB");
+	}
+
+	macro goToLayoutTabOnLayouts {
+		if (!(IsElementPresent(locator1 = "ObjectAdmin#LAYOUT_LAYOUT_TAB"))) {
+			SelectFrame(locator1 = "IFrame#IFRAME");
+		}
+
+		Click(locator1 = "ObjectAdmin#LAYOUT_LAYOUT_TAB");
+	}
+
+	macro goToRelationshipsDetails {
+		Click(
+			key_name = "${fieldName}",
+			locator1 = "CreateObject#SELECT_OBJECT_FIELD_IN_TABLE");
+	}
+
+	macro gotoRelationshipsTab {
+		Click(locator1 = "ObjectAdmin#OBJECT_RELATIONSHIPS_TAB");
+	}
+
+	macro gotoRolesAndSelectCustomObject {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Search.searchCP(searchTerm = "${roleName}");
+
+		AssertClick(
+			key_itemName = "${roleName}",
+			locator1 = "ListGroupItem#ITEM_NAME_LINK",
+			value1 = "${key_itemName}");
+
+		Navigator.gotoNavItem(navItem = "Define Permissions");
+
+		ObjectAdmin.searchInDefinePermissions(search = "Custom Objects");
+	}
+
+	macro markLayoutAsDefault {
+		SelectFrame(locator1 = "IFrame#IFRAME");
+
+		Click(locator1 = "ObjectAdmin#LAYOUT_INFO_TAB");
+
+		Click.clickAtNotVisible(locator1 = "ObjectAdmin#ENTRY_BOOLEAN_CHECKBOX");
+	}
+
+	macro openMySubmissions {
+		Navigator.openURL();
+
+		Navigator.openSpecificURL(url = "/group/control_panel/manage?p_p_id=com_liferay_portal_workflow_web_internal_portlet_UserWorkflowPortlet&p_p_lifecycle=0");
+	}
+
+	macro openMyWorkflowTasks {
+		Navigator.openURL();
+
+		Navigator.openSpecificURL(url = "/web/guest/manage?p_p_id=com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet&p_p_lifecycle=0");
+	}
+
+	macro openObjectAdmin {
+		Navigator.openSpecificURL(url = "/group/guest/~/control_panel/manage?p_p_id=com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet");
+	}
+
+	macro openSubmissions {
+		Navigator.openSpecificURL(url = "/group/control_panel/manage?p_p_id=com_liferay_portal_workflow_web_internal_portlet_ControlPanelWorkflowInstancePortlet&p_p_lifecycle=0&p_p_state=maximized");
+	}
+
+	macro openWorkflowProcessBuilderConfiguration {
+		Navigator.openSpecificURL(url = "/group/control_panel/manage?p_p_id=com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet_tab=configuration");
+	}
+
+	macro publishObjectViaAPI {
+		JSONObject.publishObject(
+			objectName = "${objectName}",
+			userEmailAddress = "${userEmailAddress}",
+			userPassword = "${userPassword}");
+	}
+
+	macro publishObjectViaUI {
+		Button.clickPublish();
+	}
+
+	macro saveCustomObject {
+		Click(locator1 = "ObjectAdmin#SAVE_CUSTOM_OBJECT");
+	}
+
+	macro searchInDefinePermissions {
+		Type(
+			locator1 = "RolesPermissionsNavigation#SEARCH_FIELD",
+			value1 = "${search}");
+
+		AssertClick(
+			key_navItem = "${search}",
+			locator1 = "RolesPermissionsNavigation#PERMISSIONS_NAVITEM",
+			value1 = "${search}");
+	}
+
+	macro selectActionsOnRoles {
+		for (var actions : list "${actionsList}") {
+			Click(
+				key_actionName = "${actions}",
+				locator1 = "ObjectAdmin#SELECT_ACTION_ON_REGULAR_ROLES");
+		}
+
+		Click(locator1 = "Button#SAVE");
+	}
+
+	macro selectKebabMenuOption {
+		Click(locator1 = "ObjectAdmin#KEBAB_MENU");
+
+		Click(
+			key_kebabOption = "${kebabOption}",
+			locator1 = "ObjectAdmin#KEBAB_MENU_OPTION");
+	}
+
+	macro selectMySite {
+		if (IsElementNotPresent(locator1 = "ProductMenu#TOGGLE")) {
+			ApplicationsMenu.gotoSite(site = "${site}");
+		}
+
+		ProductMenuHelper.openProductMenu();
+
+		ProductMenuHelper.openWorkspace();
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Pause(locator1 = "3000");
+
+		Navigator.gotoNavItem(navItem = "My Sites");
+
+		SiteSelector.selectSite(site = "${site}");
+	}
+
+	macro selectObjectScope {
+		Select(
+			locator1 = "ObjectAdmin#SELECT_OBJECT_SCOPE",
+			value1 = "${fieldOption}");
+	}
+
+	macro selectSpecificKebabMenuOption {
+		Click(
+			key_objectLabel = "${objectLabel}",
+			locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+		MenuItem.click(menuItem = "${kebabOption}");
+	}
+
+	macro viewCustomObject {
+		AssertElementPresent(
+			key_name = "${name}",
+			key_system = "No",
+			locator1 = "ObjectAdmin#VIEW_OBJECT");
+	}
+
+	macro viewDescriptionForEachFieldType {
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a long integer up to 16 digits.",
+			type = "Long Integer");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add text up to 280 characters.",
+			type = "Text");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Choose from a picklist.",
+			type = "Picklist");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a date.",
+			type = "Date");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add an integer up to nine digits.",
+			type = "Integer");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a high precision decimal number without rounding.",
+			type = "Precision Decimal");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a decimal number that supports fractional portions.",
+			type = "Decimal");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Select between true or false.",
+			type = "Boolean");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add text up to 65,000 characters.",
+			type = "Long Text");
+	}
+
+	macro viewFieldDetails {
+		SelectFrame(locator1 = "IFrame#IFRAME");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#FIELDS_DETAILS_IFRAME");
+
+		AssertElementPresent(locator1 = "ObjectAdmin#FIELDS_DETAILS_TITLE");
+	}
+
+	macro viewFieldValueDisabled {
+		AssertElementPresent(
+			key_fieldValue = "${fieldValue}",
+			locator1 = "ObjectAdmin#VIEW_FIELD_VALUE_DISABLED");
+	}
+
+	macro viewObjectPresentOnSite {
+		ProductMenuHelper.openProductMenu();
+
+		ProductMenuHelper.expandCategory(category = "${category}");
+
+		AssertElementPresent(
+			key_portlet = "${portlet}",
+			locator1 = "ProductMenu#PORTLET");
+	}
+
+	macro viewOptionTitleField {
+		if (isSet(optionNamePresent)) {
+			AssertElementPresent(
+				key_optionName = "${optionNamePresent}",
+				locator1 = "ObjectAdmin#VIEW_OPTION_TITLE_FIELD");
+		}
+
+		if (isSet(optionNameNotPresent)) {
+			AssertElementNotPresent(
+				key_optionName = "${optionNameNotPresent}",
+				locator1 = "ObjectAdmin#VIEW_OPTION_TITLE_FIELD");
+		}
+	}
+
+	macro viewPicklistOptionsOnFields {
+		AssertElementPresent(
+			key_optionName = "${optionName}",
+			locator1 = "ObjectAdmin#VIEW_PICKLIST_OPTIONS");
+	}
+
+	macro viewRequiredAlert {
+		AssertTextEquals.assertPartialText(
+			locator1 = "TextInput#REQUIRED_ALERT",
+			value1 = "${requiredAlert}");
+	}
+
+	macro viewSystemObject {
+		AssertElementPresent(
+			key_name = "${name}",
+			key_system = "Yes",
+			locator1 = "ObjectAdmin#VIEW_OBJECT");
+	}
+
+}

@@ -226,7 +226,7 @@ public class JournalContentImpl
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 
@@ -298,12 +298,11 @@ public class JournalContentImpl
 		PortletRequestModel portletRequestModel, ThemeDisplay themeDisplay) {
 
 		try {
-			JournalArticle article = _journalArticleLocalService.getArticle(
-				groupId, articleId, version);
-
 			return getDisplay(
-				article, ddmTemplateKey, viewMode, languageId, page,
-				portletRequestModel, themeDisplay);
+				_journalArticleLocalService.getArticle(
+					groupId, articleId, version),
+				ddmTemplateKey, viewMode, languageId, page, portletRequestModel,
+				themeDisplay);
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
@@ -417,13 +416,13 @@ public class JournalContentImpl
 			return null;
 		}
 
-		Date now = new Date();
+		Date date = new Date();
 
 		Date displayDate = article.getDisplayDate();
 		Date expirationDate = article.getExpirationDate();
 
-		if (((displayDate != null) && displayDate.after(now)) ||
-			((expirationDate != null) && expirationDate.before(now))) {
+		if (((displayDate != null) && displayDate.after(date)) ||
+			((expirationDate != null) && expirationDate.before(date))) {
 
 			return null;
 		}
@@ -534,15 +533,9 @@ public class JournalContentImpl
 		public static String encode(
 			long groupId, String articleId, String ddmTemplateKey) {
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(groupId);
-			sb.append(StringPool.UNDERLINE);
-			sb.append(articleId);
-			sb.append(StringPool.UNDERLINE);
-			sb.append(ddmTemplateKey);
-
-			return sb.toString();
+			return StringBundler.concat(
+				groupId, StringPool.UNDERLINE, articleId, StringPool.UNDERLINE,
+				ddmTemplateKey);
 		}
 
 		@Override

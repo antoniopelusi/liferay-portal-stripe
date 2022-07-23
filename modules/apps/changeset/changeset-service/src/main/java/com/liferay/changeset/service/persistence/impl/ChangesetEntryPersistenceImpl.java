@@ -20,10 +20,10 @@ import com.liferay.changeset.model.ChangesetEntryTable;
 import com.liferay.changeset.model.impl.ChangesetEntryImpl;
 import com.liferay.changeset.model.impl.ChangesetEntryModelImpl;
 import com.liferay.changeset.service.persistence.ChangesetEntryPersistence;
+import com.liferay.changeset.service.persistence.ChangesetEntryUtil;
 import com.liferay.changeset.service.persistence.impl.constants.ChangesetPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,30 +34,29 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2970,6 +2969,8 @@ public class ChangesetEntryPersistenceImpl
 			changesetEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the changeset entries in the entity cache if it is enabled.
 	 *
@@ -2977,6 +2978,14 @@ public class ChangesetEntryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<ChangesetEntry> changesetEntries) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (changesetEntries.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (ChangesetEntry changesetEntry : changesetEntries) {
 			if (entityCache.getResult(
 					ChangesetEntryImpl.class, changesetEntry.getPrimaryKey()) ==
@@ -3174,24 +3183,25 @@ public class ChangesetEntryPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (changesetEntry.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				changesetEntry.setCreateDate(now);
+				changesetEntry.setCreateDate(date);
 			}
 			else {
-				changesetEntry.setCreateDate(serviceContext.getCreateDate(now));
+				changesetEntry.setCreateDate(
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!changesetEntryModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				changesetEntry.setModifiedDate(now);
+				changesetEntry.setModifiedDate(date);
 			}
 			else {
 				changesetEntry.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -3482,12 +3492,9 @@ public class ChangesetEntryPersistenceImpl
 	 * Initializes the changeset entry persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new ChangesetEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -3611,13 +3618,31 @@ public class ChangesetEntryPersistenceImpl
 			},
 			new String[] {"changesetCollectionId", "classNameId", "classPK"},
 			false);
+
+		_setChangesetEntryUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(ChangesetEntryImpl.class.getName());
+		_setChangesetEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(ChangesetEntryImpl.class.getName());
+	}
+
+	private void _setChangesetEntryUtilPersistence(
+		ChangesetEntryPersistence changesetEntryPersistence) {
+
+		try {
+			Field field = ChangesetEntryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, changesetEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -3645,8 +3670,6 @@ public class ChangesetEntryPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -3682,96 +3705,8 @@ public class ChangesetEntryPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class ChangesetEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			ChangesetEntryModelImpl changesetEntryModelImpl =
-				(ChangesetEntryModelImpl)baseModel;
-
-			long columnBitmask = changesetEntryModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					changesetEntryModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						changesetEntryModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					changesetEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return ChangesetEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return ChangesetEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			ChangesetEntryModelImpl changesetEntryModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						changesetEntryModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = changesetEntryModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private ChangesetEntryModelArgumentsResolver
+		_changesetEntryModelArgumentsResolver;
 
 }

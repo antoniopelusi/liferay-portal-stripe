@@ -106,7 +106,7 @@ public class ExportPageMVCActionCommand extends BaseMVCActionCommand {
 				PortletMode.VIEW
 			).setWindowState(
 				WindowState.MAXIMIZED
-			).build();
+			).buildPortletURL();
 
 			PortletURL editPageURL = PortletURLBuilder.create(
 				PortletURLFactoryUtil.create(
@@ -122,9 +122,9 @@ public class ExportPageMVCActionCommand extends BaseMVCActionCommand {
 				PortletMode.VIEW
 			).setWindowState(
 				WindowState.MAXIMIZED
-			).build();
+			).buildPortletURL();
 
-			getFile(
+			_getFile(
 				nodeId, title, version, targetExtension, viewPageURL,
 				editPageURL, themeDisplay,
 				_portal.getHttpServletRequest(actionRequest),
@@ -133,13 +133,13 @@ public class ExportPageMVCActionCommand extends BaseMVCActionCommand {
 			actionResponse.setRenderParameter("mvcPath", "/null.jsp");
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			_portal.sendError(exception, actionRequest, actionResponse);
 		}
 	}
 
-	protected void getFile(
+	private void _getFile(
 			long nodeId, String title, double version, String targetExtension,
 			PortletURL viewPageURL, PortletURL editPageURL,
 			ThemeDisplay themeDisplay, HttpServletRequest httpServletRequest,

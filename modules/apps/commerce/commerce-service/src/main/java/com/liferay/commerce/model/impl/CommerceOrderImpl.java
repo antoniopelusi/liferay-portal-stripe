@@ -44,9 +44,6 @@ import java.util.List;
  */
 public class CommerceOrderImpl extends CommerceOrderBaseImpl {
 
-	public CommerceOrderImpl() {
-	}
-
 	@Override
 	public CommerceAddress getBillingAddress() throws PortalException {
 		long billingAddressId = getBillingAddressId();

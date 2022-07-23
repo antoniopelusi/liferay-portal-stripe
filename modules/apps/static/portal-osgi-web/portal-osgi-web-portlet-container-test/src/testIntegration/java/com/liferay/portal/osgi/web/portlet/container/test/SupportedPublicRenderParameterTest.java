@@ -20,10 +20,9 @@ import com.liferay.portal.kernel.model.PublicRenderParameter;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
-import java.util.Dictionary;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -46,14 +45,14 @@ public class SupportedPublicRenderParameterTest
 
 	@Test
 	public void testPortalProvidedPRP() throws Exception {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
 		String prpName = "categoryId";
 
-		properties.put(
-			"javax.portlet.supported-public-render-parameter", prpName);
-
-		setUpPortlet(testPortlet, properties, TEST_PORTLET_ID);
+		setUpPortlet(
+			testPortlet,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.supported-public-render-parameter", prpName
+			).build(),
+			TEST_PORTLET_ID);
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
 			TestPropsValues.getCompanyId(), TEST_PORTLET_ID);
@@ -80,15 +79,15 @@ public class SupportedPublicRenderParameterTest
 
 	@Test
 	public void testPortletProvidedPRP() throws Exception {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
 		String prpName = "myprp";
 
-		properties.put(
-			"javax.portlet.supported-public-render-parameter",
-			prpName + ";http://some.uri.tld/space");
-
-		setUpPortlet(testPortlet, properties, TEST_PORTLET_ID);
+		setUpPortlet(
+			testPortlet,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"javax.portlet.supported-public-render-parameter",
+				prpName + ";http://some.uri.tld/space"
+			).build(),
+			TEST_PORTLET_ID);
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
 			TestPropsValues.getCompanyId(), TEST_PORTLET_ID);

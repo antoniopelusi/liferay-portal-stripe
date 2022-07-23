@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import {Autocomplete} from '../../../../src/main/resources/META-INF/resources/js/shared/components/autocomplete/Autocomplete.es';
@@ -30,7 +30,7 @@ describe('The Autocomplete component should', () => {
 
 	afterEach(cleanup);
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		const autocomplete = render(
 			<Autocomplete
 				items={items}
@@ -40,9 +40,13 @@ describe('The Autocomplete component should', () => {
 		);
 
 		container = autocomplete.container;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Show the dropdown list on focus input', () => {
+	it('Show the dropdown list on focus input', async () => {
 		const autocompleteInput = container.querySelector('input.form-control');
 		const dropDownList = document.querySelector('#dropDownList');
 		const dropDownListItems = document.querySelectorAll('.dropdown-item');
@@ -53,29 +57,48 @@ describe('The Autocomplete component should', () => {
 
 		fireEvent.focus(autocompleteInput);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(dropDown).toHaveClass('show');
 
 		fireEvent.mouseDown(dropDownListItems[0]);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(autocompleteInput.value).toBe('0test test0');
 		expect(dropDown).not.toHaveClass('show');
 
 		fireEvent.focus(autocompleteInput);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(dropDown).toHaveClass('show');
 
 		fireEvent.change(autocompleteInput, {target: {value: 'test'}});
 		fireEvent.blur(autocompleteInput);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(autocompleteInput.value).toBe('');
 		expect(dropDown).not.toHaveClass('show');
 	});
 
-	test('Render its items list and select any option', () => {
+	it('Render its items list and select any option', async () => {
 		const autocompleteInput = container.querySelector('input.form-control');
 		const dropDownListItems = document.querySelectorAll('.dropdown-item');
 
 		fireEvent.focus(autocompleteInput);
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(dropDownListItems[0]).toHaveTextContent('0test test0');
 		expect(dropDownListItems[1]).toHaveTextContent('1test test1');
@@ -86,11 +109,19 @@ describe('The Autocomplete component should', () => {
 
 		fireEvent.mouseOver(dropDownListItems[2]);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(dropDownListItems[0]).not.toHaveClass('active');
 		expect(dropDownListItems[1]).not.toHaveClass('active');
 		expect(dropDownListItems[2]).toHaveClass('active');
 
 		fireEvent.mouseOver(dropDownListItems[0]);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(dropDownListItems[0]).toHaveClass('active');
 		expect(dropDownListItems[1]).not.toHaveClass('active');
@@ -98,11 +129,19 @@ describe('The Autocomplete component should', () => {
 
 		fireEvent.keyDown(autocompleteInput, {keyCode: 40});
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(dropDownListItems[0]).not.toHaveClass('active');
 		expect(dropDownListItems[1]).toHaveClass('active');
 		expect(dropDownListItems[2]).not.toHaveClass('active');
 
 		fireEvent.keyDown(autocompleteInput, {keyCode: 40});
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(dropDownListItems[0]).not.toHaveClass('active');
 		expect(dropDownListItems[1]).not.toHaveClass('active');
@@ -110,26 +149,46 @@ describe('The Autocomplete component should', () => {
 
 		fireEvent.keyDown(autocompleteInput, {keyCode: 38});
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(dropDownListItems[0]).not.toHaveClass('active');
 		expect(dropDownListItems[1]).toHaveClass('active');
 		expect(dropDownListItems[2]).not.toHaveClass('active');
 
 		fireEvent.keyDown(autocompleteInput, {keyCode: 13});
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(onSelect).toHaveBeenCalledWith(items[1]);
 		expect(autocompleteInput.value).toBe('1test test1');
 	});
 
-	test('Fire onChange handler function on change its text and clear input onBlur without select any option', () => {
+	it('Fire onChange handler function on change its text and clear input onBlur without select any option', async () => {
 		const autocompleteInput = container.querySelector('input.form-control');
 
 		fireEvent.focus(autocompleteInput);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		fireEvent.change(autocompleteInput, {target: {value: '0te'}});
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(onChange).toHaveBeenCalled();
 
 		fireEvent.blur(autocompleteInput);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(autocompleteInput.value).toBe('');
 	});
@@ -140,7 +199,7 @@ describe('The Autocomplete component with children should', () => {
 
 	afterEach(cleanup);
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		const autocomplete = render(
 			<Autocomplete items={items}>
 				<span>Mock child</span>
@@ -148,9 +207,13 @@ describe('The Autocomplete component with children should', () => {
 		);
 
 		getByText = autocomplete.getByText;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Render the children', () => {
+	it('Render the children', () => {
 		const mockChild = getByText('Mock child');
 
 		expect(mockChild).toBeTruthy();
@@ -162,13 +225,17 @@ describe('The Autocomplete component should be render with no items', () => {
 
 	afterEach(cleanup);
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		const autocomplete = render(<Autocomplete items={[]} />);
 
 		getByText = autocomplete.getByText;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Render with "no results were found" message', () => {
+	it('Render with "no results were found" message', () => {
 		const dropDownEmpty = getByText('no-results-were-found');
 
 		expect(dropDownEmpty).toBeTruthy();

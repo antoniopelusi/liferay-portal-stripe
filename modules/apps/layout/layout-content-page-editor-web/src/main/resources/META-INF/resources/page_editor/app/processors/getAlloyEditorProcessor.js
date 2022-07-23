@@ -15,6 +15,7 @@
 import {debounce, openSelectionModal} from 'frontend-js-web';
 
 import {config} from '../config/index';
+import isNullOrUndefined from '../utils/isNullOrUndefined';
 
 const KEY_ENTER = 13;
 const KEY_SPACE = 32;
@@ -31,7 +32,9 @@ const defaultGetEditorWrapper = (element) => {
 };
 
 const defaultRender = (element, value) => {
-	element.innerHTML = value;
+	if (!isNullOrUndefined(value)) {
+		element.innerHTML = value;
+	}
 };
 
 const keyupHandler = (event) => {
@@ -95,7 +98,7 @@ export default function getAlloyEditorProcessor(
 				) => {
 					openSelectionModal({
 						onSelect: changeLinkCallback,
-						selectEventName: editor.title + 'selectItem',
+						selectEventName: editorName + 'selectItem',
 						title: Liferay.Language.get('select-item'),
 						url,
 					});
@@ -116,7 +119,7 @@ export default function getAlloyEditorProcessor(
 					editorName
 				),
 
-				title: editorName,
+				title: '',
 			});
 
 			const nativeEditor = _editor.get('nativeEditor');

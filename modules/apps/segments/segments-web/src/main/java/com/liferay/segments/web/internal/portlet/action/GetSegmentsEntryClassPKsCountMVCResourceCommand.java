@@ -68,7 +68,7 @@ public class GetSegmentsEntryClassPKsCountMVCResourceCommand
 		try {
 			PrintWriter printWriter = resourceResponse.getWriter();
 
-			printWriter.write(getText(resourceRequest, resourceResponse));
+			printWriter.write(_getText(resourceRequest));
 
 			return false;
 		}
@@ -90,7 +90,7 @@ public class GetSegmentsEntryClassPKsCountMVCResourceCommand
 		_serviceTrackerMap.close();
 	}
 
-	protected int getSegmentsEntryClassPKsCount(
+	private int _getSegmentsEntryClassPKsCount(
 		long companyId, Criteria criteria, String type, Locale locale) {
 
 		ODataRetriever<?> oDataRetriever = _serviceTrackerMap.getService(type);
@@ -114,9 +114,7 @@ public class GetSegmentsEntryClassPKsCountMVCResourceCommand
 		}
 	}
 
-	protected String getText(
-		ResourceRequest resourceRequest, ResourceResponse resourceResponse) {
-
+	private String _getText(ResourceRequest resourceRequest) {
 		HttpServletRequest httpServletRequest =
 			_portal.getOriginalServletRequest(
 				_portal.getHttpServletRequest(resourceRequest));
@@ -130,15 +128,15 @@ public class GetSegmentsEntryClassPKsCountMVCResourceCommand
 			_segmentsCriteriaContributorRegistry.
 				getSegmentsCriteriaContributors(type));
 
-		saveCriteriaInSession(resourceRequest, criteria);
+		_saveCriteriaInSession(resourceRequest, criteria);
 
-		int count = getSegmentsEntryClassPKsCount(
+		int count = _getSegmentsEntryClassPKsCount(
 			companyId, criteria, type, _portal.getLocale(resourceRequest));
 
 		return String.valueOf(count);
 	}
 
-	protected void saveCriteriaInSession(
+	private void _saveCriteriaInSession(
 		ResourceRequest resourceRequest, Criteria criteria) {
 
 		PortletSession portletSession = resourceRequest.getPortletSession();

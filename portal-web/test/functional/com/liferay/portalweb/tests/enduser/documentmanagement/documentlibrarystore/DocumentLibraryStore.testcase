@@ -29,7 +29,7 @@ definition {
 
 			DMMetadataSet.tearDownCP();
 
-			Page.tearDownPG();
+			PagesAdmin.tearDownCP();
 
 			JSONUser.tearDownNonAdminUsers();
 
@@ -62,6 +62,99 @@ definition {
 			portlet = "Recycle Bin");
 
 		RecycleBin.emptyCP();
+	}
+
+	@description = "This is a use case for LPS-129271."
+	@priority = "4"
+	test AssertNoErrorMessageAfterExportAndImportSiteLAR {
+		property aws.store.enabled = "true";
+		property test.name.skip.portal.instance = "DocumentLibraryStore#AssertNoErrorMessageAfterExportAndImportSiteLAR";
+
+		JSONGroup.addGroup(groupName = "Site A");
+
+		var bucketID = PropsUtil.get("aws.bucket.id");
+
+		var companyId = JSONCompany.getCompanyId();
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "Site A",
+			site = "true");
+
+		AntCommand(
+			locator1 = "build-test-aws-s3.xml",
+			value1 = "assert-no-document-in-bucket -Daws.bucket.id=${bucketID} -DcompanyId=${companyId} -DgroupId=${groupId}");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Site A",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		AntCommand(
+			locator1 = "build-test-aws-s3.xml",
+			value1 = "assert-document-in-bucket -Daws.bucket.id=${bucketID} -DcompanyId=${companyId} -DgroupId=${groupId}");
+
+		LAR.exportSiteCP(siteScopeName = "Site A");
+
+		var larFileName = LAR.getLarFileName();
+
+		LAR.downloadLar();
+
+		JSONGroup.addGroup(groupName = "Site B");
+
+		LAR.importSiteCP(
+			larFileName = "${larFileName}",
+			siteName = "Site B");
+
+		AssertConsoleTextNotPresent(value1 = "java.io.IOException");
+	}
+
+	@priority = "5"
+	test AWSS3StoreSmoke {
+		property aws.store.enabled = "true";
+		property test.name.skip.portal.instance = "DocumentLibraryStore#AWSS3StoreSmoke";
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		var bucketId = PropsUtil.get("aws.bucket.id");
+
+		var companyId = JSONCompany.getCompanyId();
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "Test Site Name",
+			site = "true");
+
+		AntCommand(
+			locator1 = "build-test-aws-s3.xml",
+			value1 = "assert-no-document-in-bucket -Daws.bucket.id=${bucketId} -DcompanyId=${companyId} -DgroupId=${groupId}");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Test Site Name",
+			mimeType = "text/plain",
+			sourceFileName = "Document_1.txt");
+
+		AntCommand(
+			locator1 = "build-test-aws-s3.xml",
+			value1 = "assert-document-in-bucket -Daws.bucket.id=${bucketId} -DcompanyId=${companyId} -DgroupId=${groupId}");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+		DMDocument.deleteCP(dmDocumentTitle = "DM Document Title");
+
+		RecycleBin.openRecycleBinAdmin(siteURLKey = "test-site-name");
+
+		ProductMenu.gotoPortlet(
+			category = "Recycle Bin",
+			portlet = "Recycle Bin");
+
+		RecycleBin.emptyCP();
+
+		AntCommand(
+			locator1 = "build-test-aws-s3.xml",
+			value1 = "assert-no-document-in-bucket -Daws.bucket.id=${bucketId} -DcompanyId=${companyId} -DgroupId=${groupId}");
 	}
 
 	@priority = "5"
@@ -118,6 +211,38 @@ definition {
 			portlet = "Recycle Bin");
 
 		RecycleBin.emptyCP();
+	}
+
+	@priority = "3"
+	@refactorneeded
+	test ImportDocumentWithDBStore {
+		property custom.properties = "dl.store.impl=com.liferay.portal.store.db.DBStore";
+		property test.assert.warning.exceptions = "false";
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		LAR.exportPortlet(larFileName = "DM_Test_DB_Store.lar");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		LAR.importPortlet(larFileName = "DM_Test_DB_Store.lar");
+
+		Navigator.openURL();
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
 	}
 
 }

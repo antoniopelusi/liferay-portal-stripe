@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the ct process service. This utility wraps <code>com.liferay.change.tracking.service.persistence.impl.CTProcessPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -298,8 +294,8 @@ public class CTProcessUtil {
 	 * @param ctCollectionId the ct collection ID
 	 * @return the matching ct processes
 	 */
-	public static List<CTProcess> findByCollectionId(long ctCollectionId) {
-		return getPersistence().findByCollectionId(ctCollectionId);
+	public static List<CTProcess> findByCtCollectionId(long ctCollectionId) {
+		return getPersistence().findByCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -314,10 +310,11 @@ public class CTProcessUtil {
 	 * @param end the upper bound of the range of ct processes (not inclusive)
 	 * @return the range of matching ct processes
 	 */
-	public static List<CTProcess> findByCollectionId(
+	public static List<CTProcess> findByCtCollectionId(
 		long ctCollectionId, int start, int end) {
 
-		return getPersistence().findByCollectionId(ctCollectionId, start, end);
+		return getPersistence().findByCtCollectionId(
+			ctCollectionId, start, end);
 	}
 
 	/**
@@ -333,11 +330,11 @@ public class CTProcessUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching ct processes
 	 */
-	public static List<CTProcess> findByCollectionId(
+	public static List<CTProcess> findByCtCollectionId(
 		long ctCollectionId, int start, int end,
 		OrderByComparator<CTProcess> orderByComparator) {
 
-		return getPersistence().findByCollectionId(
+		return getPersistence().findByCtCollectionId(
 			ctCollectionId, start, end, orderByComparator);
 	}
 
@@ -355,12 +352,12 @@ public class CTProcessUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ct processes
 	 */
-	public static List<CTProcess> findByCollectionId(
+	public static List<CTProcess> findByCtCollectionId(
 		long ctCollectionId, int start, int end,
 		OrderByComparator<CTProcess> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByCollectionId(
+		return getPersistence().findByCtCollectionId(
 			ctCollectionId, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -372,11 +369,11 @@ public class CTProcessUtil {
 	 * @return the first matching ct process
 	 * @throws NoSuchProcessException if a matching ct process could not be found
 	 */
-	public static CTProcess findByCollectionId_First(
+	public static CTProcess findByCtCollectionId_First(
 			long ctCollectionId, OrderByComparator<CTProcess> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchProcessException {
 
-		return getPersistence().findByCollectionId_First(
+		return getPersistence().findByCtCollectionId_First(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -387,10 +384,10 @@ public class CTProcessUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching ct process, or <code>null</code> if a matching ct process could not be found
 	 */
-	public static CTProcess fetchByCollectionId_First(
+	public static CTProcess fetchByCtCollectionId_First(
 		long ctCollectionId, OrderByComparator<CTProcess> orderByComparator) {
 
-		return getPersistence().fetchByCollectionId_First(
+		return getPersistence().fetchByCtCollectionId_First(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -402,11 +399,11 @@ public class CTProcessUtil {
 	 * @return the last matching ct process
 	 * @throws NoSuchProcessException if a matching ct process could not be found
 	 */
-	public static CTProcess findByCollectionId_Last(
+	public static CTProcess findByCtCollectionId_Last(
 			long ctCollectionId, OrderByComparator<CTProcess> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchProcessException {
 
-		return getPersistence().findByCollectionId_Last(
+		return getPersistence().findByCtCollectionId_Last(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -417,10 +414,10 @@ public class CTProcessUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching ct process, or <code>null</code> if a matching ct process could not be found
 	 */
-	public static CTProcess fetchByCollectionId_Last(
+	public static CTProcess fetchByCtCollectionId_Last(
 		long ctCollectionId, OrderByComparator<CTProcess> orderByComparator) {
 
-		return getPersistence().fetchByCollectionId_Last(
+		return getPersistence().fetchByCtCollectionId_Last(
 			ctCollectionId, orderByComparator);
 	}
 
@@ -433,12 +430,12 @@ public class CTProcessUtil {
 	 * @return the previous, current, and next ct process
 	 * @throws NoSuchProcessException if a ct process with the primary key could not be found
 	 */
-	public static CTProcess[] findByCollectionId_PrevAndNext(
+	public static CTProcess[] findByCtCollectionId_PrevAndNext(
 			long ctProcessId, long ctCollectionId,
 			OrderByComparator<CTProcess> orderByComparator)
 		throws com.liferay.change.tracking.exception.NoSuchProcessException {
 
-		return getPersistence().findByCollectionId_PrevAndNext(
+		return getPersistence().findByCtCollectionId_PrevAndNext(
 			ctProcessId, ctCollectionId, orderByComparator);
 	}
 
@@ -447,8 +444,8 @@ public class CTProcessUtil {
 	 *
 	 * @param ctCollectionId the ct collection ID
 	 */
-	public static void removeByCollectionId(long ctCollectionId) {
-		getPersistence().removeByCollectionId(ctCollectionId);
+	public static void removeByCtCollectionId(long ctCollectionId) {
+		getPersistence().removeByCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -457,8 +454,8 @@ public class CTProcessUtil {
 	 * @param ctCollectionId the ct collection ID
 	 * @return the number of matching ct processes
 	 */
-	public static int countByCollectionId(long ctCollectionId) {
-		return getPersistence().countByCollectionId(ctCollectionId);
+	public static int countByCtCollectionId(long ctCollectionId) {
+		return getPersistence().countByCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -609,24 +606,9 @@ public class CTProcessUtil {
 	}
 
 	public static CTProcessPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker<CTProcessPersistence, CTProcessPersistence>
-		_serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(CTProcessPersistence.class);
-
-		ServiceTracker<CTProcessPersistence, CTProcessPersistence>
-			serviceTracker =
-				new ServiceTracker<CTProcessPersistence, CTProcessPersistence>(
-					bundle.getBundleContext(), CTProcessPersistence.class,
-					null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CTProcessPersistence _persistence;
 
 }

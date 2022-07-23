@@ -27,6 +27,10 @@ public class KaleoTransitionLocalServiceWrapper
 	implements KaleoTransitionLocalService,
 			   ServiceWrapper<KaleoTransitionLocalService> {
 
+	public KaleoTransitionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoTransitionLocalServiceWrapper(
 		KaleoTransitionLocalService kaleoTransitionLocalService) {
 
@@ -165,6 +169,13 @@ public class KaleoTransitionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoTransitionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoTransitionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

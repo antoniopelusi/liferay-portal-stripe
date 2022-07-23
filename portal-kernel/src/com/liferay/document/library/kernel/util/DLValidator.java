@@ -34,7 +34,7 @@ public interface DLValidator {
 
 	public String fixName(String name);
 
-	public long getMaxAllowableSize();
+	public long getMaxAllowableSize(long groupId, String mimeType);
 
 	public boolean isValidName(String name);
 
@@ -46,16 +46,21 @@ public interface DLValidator {
 
 	public void validateFileName(String fileName) throws FileNameException;
 
-	public void validateFileSize(String fileName, byte[] bytes)
+	public void validateFileSize(
+			long groupId, String fileName, String mimeType, byte[] bytes)
 		throws FileSizeException;
 
-	public void validateFileSize(String fileName, File file)
+	public void validateFileSize(
+			long groupId, String fileName, String mimeType, File file)
 		throws FileSizeException;
 
-	public void validateFileSize(String fileName, InputStream inputStream)
+	public void validateFileSize(
+			long groupId, String fileName, String mimeType,
+			InputStream inputStream)
 		throws FileSizeException;
 
-	public void validateFileSize(String fileName, long size)
+	public void validateFileSize(
+			long groupId, String fileName, String mimeType, long size)
 		throws FileSizeException;
 
 	public void validateSourceFileExtension(

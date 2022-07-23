@@ -14,14 +14,9 @@
 
 package com.liferay.portal.upgrade.step.util;
 
-import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
-
-import java.util.Arrays;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * @author Carlos Sierra Andrés
@@ -29,52 +24,56 @@ import java.util.stream.Stream;
 public class UpgradeStepFactory {
 
 	public static UpgradeStep addColumns(
-		Class<?> tableClass, String... columnDefinitions) {
+		String tableName, String... columnDefinitions) {
 
 		return new UpgradeProcess() {
 
 			@Override
 			protected void doUpgrade() throws Exception {
-				alter(
-					tableClass,
-					_getAddColumnAlterables(
-						AlterTableAddColumn::new, columnDefinitions));
+				for (String columnDefinition : columnDefinitions) {
+					alterTableAddColumn(
+						tableName,
+						columnDefinition.substring(
+							0, columnDefinition.indexOf(StringPool.SPACE)),
+						columnDefinition.substring(
+							columnDefinition.indexOf(StringPool.SPACE) + 1));
+				}
 			}
 
 		};
 	}
 
 	public static UpgradeStep alterColumnTypes(
-		Class<?> tableClass, String newType, String... columnNames) {
+		String tableName, String newType, String... columnNames) {
 
 		return new UpgradeProcess() {
 
 			@Override
 			protected void doUpgrade() throws Exception {
-				alter(
-					tableClass,
-					_getAlterables(AlterColumnType::new, newType, columnNames));
+				for (String columnName : columnNames) {
+					alterColumnType(tableName, columnName, newType);
+				}
 			}
 
 		};
 	}
 
 	public static UpgradeStep dropColumns(
-		Class<?> tableClass, String... tableNames) {
+		String tableName, String... columnNames) {
 
 		return new UpgradeProcess() {
 
 			@Override
 			protected void doUpgrade() throws Exception {
-				alter(
-					tableClass,
-					_getAlterables(AlterTableDropColumn::new, tableNames));
+				for (String columnName : columnNames) {
+					alterTableDropColumn(tableName, columnName);
+				}
 			}
 
 		};
 	}
 
-	public static UpgradeProcess runSql(String sql) {
+	public static UpgradeProcess runSQL(String sql) {
 		return new UpgradeProcess() {
 
 			@Override
@@ -83,53 +82,6 @@ public class UpgradeStepFactory {
 			}
 
 		};
-	}
-
-	private static UpgradeProcess.Alterable[] _getAddColumnAlterables(
-		BiFunction<String, String, UpgradeProcess.Alterable>
-			alterableBiFunction,
-		String... columnDefinitions) {
-
-		Stream<String> stream = Arrays.stream(columnDefinitions);
-
-		return stream.map(
-			columnDefinition -> {
-				int index = columnDefinition.indexOf(CharPool.SPACE);
-
-				return alterableBiFunction.apply(
-					columnDefinition.substring(0, index),
-					columnDefinition.substring(index + 1));
-			}
-		).toArray(
-			UpgradeProcess.Alterable[]::new
-		);
-	}
-
-	private static UpgradeProcess.Alterable[] _getAlterables(
-		BiFunction<String, String, UpgradeProcess.Alterable>
-			alterableBiFunction,
-		String newType, String... columnNames) {
-
-		Stream<String> stream = Arrays.stream(columnNames);
-
-		return stream.map(
-			columnName -> alterableBiFunction.apply(columnName, newType)
-		).toArray(
-			UpgradeProcess.Alterable[]::new
-		);
-	}
-
-	private static UpgradeProcess.Alterable[] _getAlterables(
-		Function<String, UpgradeProcess.Alterable> alterableFunction,
-		String... alterableStrings) {
-
-		Stream<String> stream = Arrays.stream(alterableStrings);
-
-		return stream.map(
-			alterableFunction
-		).toArray(
-			UpgradeProcess.Alterable[]::new
-		);
 	}
 
 }

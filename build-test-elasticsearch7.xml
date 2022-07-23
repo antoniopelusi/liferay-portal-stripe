@@ -18,7 +18,7 @@
 			</then>
 		</elseif>
 		<else>
-			<property name="elasticsearch.version" value="7.12.0" />
+			<property name="elasticsearch.version" value="7.17.0" />
 		</else>
 	</if>
 
@@ -44,12 +44,12 @@
 	<property name="elasticsearch.tar.url.linux" value="https://artifacts.elastic.co/downloads/elasticsearch/${elasticsearch.tar.name.linux}" />
 	<property name="elasticsearch.tar.url.mac" value="https://artifacts.elastic.co/downloads/elasticsearch/${elasticsearch.tar.name.mac}" />
 	<property name="elasticsearch.zip.url.windows" value="https://artifacts.elastic.co/downloads/elasticsearch/${elasticsearch.zip.name.windows}" />
-	<property name="elasticsearch.sidecar.version" value="7.9.0" />
+	<property name="elasticsearch.sidecar.version" value="7.17.0" />
 	<property name="elasticsearch.sidecar.analysis-icu.zip.url" value="https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-icu/analysis-icu-${elasticsearch.sidecar.version}.zip" />
 	<property name="elasticsearch.sidecar.analysis-kuromoji.zip.url" value="https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-kuromoji/analysis-kuromoji-${elasticsearch.sidecar.version}.zip" />
 	<property name="elasticsearch.sidecar.analysis-smartcn.zip.url" value="https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-smartcn/analysis-smartcn-${elasticsearch.sidecar.version}.zip" />
 	<property name="elasticsearch.sidecar.analysis-stempel.zip.url" value="https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-stempel/analysis-stempel-${elasticsearch.sidecar.version}.zip" />
-	<property name="elasticsearch.sidecar.no.jdk.tar.url" value="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-${elasticsearch.sidecar.version}-no-jdk-linux-x86_64.tar.gz" />
+	<property name="elasticsearch.sidecar.no.jdk.tar.url" value="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.sidecar.version}-no-jdk-linux-x86_64.tar.gz" />
 
 	<macrodef name="check-elasticsearch-security">
 		<attribute name="authentication.type" />
@@ -91,6 +91,12 @@
 		</sequential>
 	</macrodef>
 
+	<macrodef name="configure-elasticsearch-discovery-type-single-node">
+		<sequential>
+			<echo append="true" file="${elasticsearch.dir}/config/elasticsearch.yml">${line.separator}discovery.type: single-node</echo>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="configure-elasticsearch-jdk11">
 		<sequential>
 			<replace
@@ -118,7 +124,9 @@ path.repo: ${liferay.home}/data/elasticsearch7/repo</echo>
 	<macrodef name="configure-elasticsearch-properties">
 		<sequential>
 			<echo append="true" file="${elasticsearch.dir}/config/elasticsearch.yml">${line.separator}bootstrap.system_call_filter: false
-cluster.name: LiferayElasticsearchCluster</echo>
+cluster.name: LiferayElasticsearchCluster
+ingest.geoip.downloader.enabled: false
+xpack.license.self_generated.type: trial</echo>
 		</sequential>
 	</macrodef>
 
@@ -127,7 +135,9 @@ cluster.name: LiferayElasticsearchCluster</echo>
 			<echo file="${elasticsearch.dir}-2/config/elasticsearch.yml">${line.separator}bootstrap.system_call_filter: false
 cluster.name: LiferayElasticsearchClusterTwo
 http.port: 9202
-transport.port: 9500-9600</echo>
+ingest.geoip.downloader.enabled: false
+transport.port: 9500-9600
+xpack.license.self_generated.type: trial</echo>
 		</sequential>
 	</macrodef>
 
@@ -172,6 +182,11 @@ xpack.security.transport.ssl.certificate_authorities: [ "certs/ca.crt" ]
 xpack.security.transport.ssl.enabled: true
 xpack.security.transport.ssl.key: certs/elastic-certificates.key
 xpack.security.transport.ssl.verification_mode: certificate</echo>
+
+			<get-testcase-property if:set="env.JENKINS_HOME" property.name="elasticsearch.jdk11.enabled" />
+
+			<echo append="true" file="${elasticsearch.dir}/config/elasticsearch.yml" if:true="${elasticsearch.jdk11.enabled}">${line.separator}xpack.security.transport.ssl.supported_protocols: [ "TLSv1.1", "TLSv1.2" ]
+xpack.security.http.ssl.supported_protocols: [ "TLSv1.1", "TLSv1.2" ]</echo>
 		</sequential>
 	</macrodef>
 
@@ -239,7 +254,8 @@ elasticsearch.username: "elastic"</echo>
 
 	<macrodef name="configure-portal-remote-elasticsearch-osgi-properties">
 		<sequential>
-			<echo append="true" file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config">${line.separator}productionModeEnabled="true"</echo>
+			<echo append="true" file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config">${line.separator}minimumRequiredNodeVersion="${elasticsearch.version}"
+productionModeEnabled="true"</echo>
 		</sequential>
 	</macrodef>
 
@@ -247,7 +263,7 @@ elasticsearch.username: "elastic"</echo>
 		<attribute name="connection.name" />
 
 		<sequential>
-			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConnectionConfiguration-@{connection.name}.config">active=&quot;true&quot;
+			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConnectionConfiguration~@{connection.name}.config">active=&quot;true&quot;
 connectionId=&quot;@{connection.name}&quot;
 networkHostAddresses=[&quot;http://localhost:9202&quot;]</echo>
 		</sequential>
@@ -270,7 +286,7 @@ networkHostAddresses=[&quot;http://localhost:9202&quot;]</echo>
 kibanaURL="https://localhost:5601"
 proxyServletLogEnable="true"</echo>
 
-			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConnectionConfiguration-xpack.config">active="true"
+			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConnectionConfiguration~xpack.config">active="true"
 authenticationEnabled="true"
 connectionId="xpack"
 httpSSLEnabled="true"
@@ -300,7 +316,7 @@ username="elastic"</echo>
 kibanaURL="https://localhost:5601"
 proxyServletLogEnable="true"</echo>
 
-			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConnectionConfiguration-pki.config">active="true"
+			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConnectionConfiguration~pki.config">active="true"
 authenticationEnabled="false"
 connectionId="pki"
 httpSSLEnabled="true"
@@ -587,7 +603,9 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 		<sequential>
 			<lstopwatch action="start" name="prepare.elasticsearch.ltr" />
 
-			<property name="elasticsearch.ltr.zip.name" value="ltr-plugin-v1.5.0-es${elasticsearch.version}.zip" />
+			<property name="ltr.plugin.version" value="1.5.7" />
+
+			<property name="elasticsearch.ltr.zip.name" value="ltr-plugin-v${ltr.plugin.version}-es${elasticsearch.version}.zip" />
 
 			<if>
 				<not>
@@ -597,7 +615,7 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 					<mirrors-get
 						dest="${elasticsearch.dir}/${elasticsearch.ltr.zip.name}"
 						skipChecksum="true"
-						src="http://es-learn-to-rank.labs.o19s.com/${elasticsearch.ltr.zip.name}"
+						src="https://github.com/o19s/elasticsearch-learning-to-rank/releases/download/v${ltr.plugin.version}-es${elasticsearch.version}/${elasticsearch.ltr.zip.name}"
 					/>
 				</then>
 			</if>
@@ -650,58 +668,6 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 		</sequential>
 	</macrodef>
 
-	<macrodef name="start-elastic-trial">
-		<attribute default="" name="authentication.type" />
-		<attribute default="9200" name="elasticsearch.port" />
-
-		<sequential>
-			<if>
-				<equals arg1="@{authentication.type}" arg2="basic" />
-				<then>
-					<exec executable="curl" outputproperty="curl.elastic.trial.output">
-						<arg value="-X POST" />
-						<arg value="https://localhost:@{elasticsearch.port}/_license/start_trial?acknowledge=true" />
-						<arg value="-ku" />
-						<arg value="elastic:${elastic.xpack.elastic.user.password}" />
-					</exec>
-				</then>
-				<elseif>
-					<equals arg1="@{authentication.type}" arg2="PKI" />
-					<then>
-						<exec executable="curl" outputproperty="curl.elastic.trial.output">
-							<arg value="-X POST" />
-							<arg value="https://localhost:@{elasticsearch.port}/_license/start_trial?acknowledge=true" />
-							<arg value="--cert" />
-							<arg value="${elasticsearch.dir}/config/certs/elastic-certificates.crt" />
-							<arg value="--key" />
-							<arg value="${elasticsearch.dir}/config/certs/elastic-certificates.key" />
-							<arg value="-ku" />
-							<arg value="elastic:${elastic.xpack.elastic.user.password}" />
-						</exec>
-					</then>
-				</elseif>
-				<else>
-					<exec executable="curl" outputproperty="curl.elastic.trial.output">
-						<arg value="-X POST" />
-						<arg value="http://localhost:@{elasticsearch.port}/_license/start_trial?acknowledge=true" />
-					</exec>
-				</else>
-			</if>
-
-			<echo>${curl.elastic.trial.output}</echo>
-
-			<if>
-				<contains string="${curl.elastic.trial.output}" substring="&quot;trial_was_started&quot;:true" />
-				<then>
-					<echo>Trial license activated on Elasticsearch port @{elasticsearch.port}.</echo>
-				</then>
-				<else>
-					<fail>Trial license failed to activate on Elasticsearch port @{elasticsearch.port}.</fail>
-				</else>
-			</if>
-		</sequential>
-	</macrodef>
-
 	<macrodef name="start-elasticsearch-with-clustering">
 		<sequential>
 			<set-up-standard-elasticsearch />
@@ -740,6 +706,8 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 		<sequential>
 			<set-up-standard-elasticsearch />
 
+			<configure-elasticsearch-discovery-type-single-node />
+
 			<configure-elasticsearch-ltr-properties />
 
 			<prepare-elasticsearch-ltr />
@@ -771,6 +739,8 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 		<sequential>
 			<set-up-standard-elasticsearch />
 
+			<configure-elasticsearch-discovery-type-single-node />
+
 			<prepare-additional-elasticsearch-bundles total.bundles="2" />
 
 			<configure-elasticsearch-second-cluster-properties />
@@ -787,10 +757,6 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			<if>
 				<istrue value="${elasticsearch.ccr.enabled}" />
 				<then>
-					<start-elastic-trial />
-
-					<start-elastic-trial elasticsearch.port="9202" />
-
 					<configure-portal-ccr-osgi-properties />
 				</then>
 				<else>
@@ -803,6 +769,8 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 	<macrodef name="start-elasticsearch-with-xpack">
 		<sequential>
 			<set-up-standard-elasticsearch />
+
+			<configure-elasticsearch-discovery-type-single-node />
 
 			<generate-x-pack-security-certificates />
 
@@ -833,15 +801,11 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			<if>
 				<equals arg1="${elastic.pki.authentication.enabled}" arg2="true" />
 				<then>
-					<start-elastic-trial authentication.type="PKI" />
-
 					<check-elasticsearch-security authentication.type="PKI" />
 
 					<configure-portal-x-pack-pki-osgi-properties />
 				</then>
 				<else>
-					<start-elastic-trial authentication.type="basic" />
-
 					<check-elasticsearch-security authentication.type="basic" />
 
 					<configure-portal-x-pack-osgi-properties />
@@ -905,7 +869,12 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			</if>
 
 			<if>
-				<os family="unix" />
+				<and>
+					<not>
+						<os family="mac" />
+					</not>
+					<os family="unix" />
+				</and>
 				<then>
 					<if>
 						<not>
@@ -996,7 +965,12 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			</if>
 
 			<if>
-				<os family="unix" />
+				<and>
+					<not>
+						<os family="mac" />
+					</not>
+					<os family="unix" />
+				</and>
 				<then>
 					<if>
 						<not>
@@ -1313,7 +1287,9 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			<default>
 				<set-up-standard-elasticsearch />
 
-				<antcall target="start-elasticsearch-node" />
+				<configure-elasticsearch-discovery-type-single-node />
+
+				<antcall target="start-elasticsearch-node" unless:true="${skip.server.startup}" />
 			</default>
 		</switch>
 
@@ -1370,6 +1346,12 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 
 		<configure-kibana-x-pack-security-properties if:true="${elastic.xpack.enabled}" />
 
+		<antcall target="start-kibana-server" unless:true="${skip.server.startup}" />
+
+		<lstopwatch action="total" name="start.kibana" />
+	</target>
+
+	<target name="start-kibana-server">
 		<exec dir="${elastic.kibana.dir}/bin" executable="/bin/bash" osfamily="unix">
 			<arg value="-c" />
 			<arg value="./kibana --allow-root &gt; kibana.log 2&gt;&amp;1 &amp;" />
@@ -1384,9 +1366,14 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			<socket port="5601" server="localhost" />
 		</waitfor>
 
-		<lstopwatch action="total" name="start.kibana" />
+		<if>
+			<isset property="kibana.server.not.started" />
+			<then>
+				<lstopwatch action="total" name="start.kibana" />
 
-		<fail if="kibana.server.not.started" message="Kibana failed to start on port 5601." />
+				<fail message="Kibana failed to start on port 5601." />
+			</then>
+		</if>
 	</target>
 
 	<target name="stop-elasticsearch">
@@ -1416,11 +1403,22 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 	</target>
 
 	<target name="stop-kibana">
-		<exec dir="${elastic.kibana.dir}/bin" executable="/bin/bash" osfamily="unix">
-			<arg value="-c" />
-			<arg value="pkill -F pid-kibana" />
-		</exec>
+		<if>
+			<available file="${elastic.kibana.dir}/bin" type="dir" />
+			<then>
+				<exec dir="${elastic.kibana.dir}/bin" executable="/bin/bash" osfamily="unix">
+					<arg value="-c" />
+					<arg value="pkill -F pid-kibana" />
+				</exec>
 
-		<print-file file.name="${elastic.kibana.dir}/bin/kibana.log" />
+				<print-file file.name="${elastic.kibana.dir}/bin/kibana.log" />
+			</then>
+			<else>
+				<exec executable="/bin/bash" osfamily="unix">
+					<arg value="-c" />
+					<arg value="fuser -k 5601/tcp" />
+				</exec>
+			</else>
+		</if>
 	</target>
 </project>

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.workflow.metrics.internal.search.index.util;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
@@ -26,7 +27,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 public class WorkflowMetricsIndexerUtil {
 
 	public static String digest(String indexType, Serializable... parts) {
-		StringBuilder sb = new StringBuilder();
+		StringBundler sb = new StringBundler();
 
 		for (Serializable part : parts) {
 			sb.append(part);

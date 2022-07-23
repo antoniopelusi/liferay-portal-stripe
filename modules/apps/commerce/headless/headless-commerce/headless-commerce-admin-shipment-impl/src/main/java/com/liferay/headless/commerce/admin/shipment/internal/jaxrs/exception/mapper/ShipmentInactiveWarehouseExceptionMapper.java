@@ -15,8 +15,7 @@
 package com.liferay.headless.commerce.admin.shipment.internal.jaxrs.exception.mapper;
 
 import com.liferay.commerce.exception.CommerceShipmentInactiveWarehouseException;
-import com.liferay.portal.vulcan.jaxrs.exception.mapper.BaseExceptionMapper;
-import com.liferay.portal.vulcan.jaxrs.exception.mapper.Problem;
+import com.liferay.headless.commerce.core.exception.mapper.BaseExceptionMapper;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -25,13 +24,14 @@ import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Andrea Sbarra
+ * @author Alessio Antonio Rendina
  */
 @Component(
 	enabled = false,
 	property = {
 		"osgi.jaxrs.application.select=(osgi.jaxrs.name=Liferay.Headless.Commerce.Admin.Shipment)",
 		"osgi.jaxrs.extension=true",
-		"osgi.jaxrs.name=Liferay.Headless.Commerce.Admin.Shipment.ShipmentInactiveWarehouseException"
+		"osgi.jaxrs.name=Liferay.Headless.Commerce.Admin.Shipment.ShipmentInactiveWarehouseExceptionMapper"
 	},
 	service = ExceptionMapper.class
 )
@@ -39,13 +39,13 @@ public class ShipmentInactiveWarehouseExceptionMapper
 	extends BaseExceptionMapper<CommerceShipmentInactiveWarehouseException> {
 
 	@Override
-	protected Problem getProblem(
-		CommerceShipmentInactiveWarehouseException
-			commerceShipmentInactiveWarehouseException) {
+	public String getErrorDescription() {
+		return "Inactive warehouse";
+	}
 
-		return new Problem(
-			Response.Status.BAD_REQUEST,
-			commerceShipmentInactiveWarehouseException.getMessage());
+	@Override
+	public Response.Status getStatus() {
+		return Response.Status.BAD_REQUEST;
 	}
 
 }

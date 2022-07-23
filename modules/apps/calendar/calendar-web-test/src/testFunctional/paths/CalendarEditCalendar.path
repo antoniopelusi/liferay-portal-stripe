@@ -2,15 +2,22 @@
 <head>
 <title>CalendarEditCalendar</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">CalendarEditCalendar</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ENABLE_COMMENTS_CHECKBOX</td>
 	<td>//input[contains(@id,'_enableComments')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHOOSE_MY_CALENDAR_COLOR</td>
+	<td>//div[contains(@class,'simple-color-picker-item') and contains(@style,'${key_myCalendarColor}')]</td>
 	<td></td>
 </tr>
 <tr>

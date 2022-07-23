@@ -32,11 +32,16 @@ function AssigneeInput({setAssigneeId, taskId}) {
 		[setAssigneeId]
 	);
 
-	const promises = useMemo(() => [fetchData()], [fetchData]);
+	const promises = useMemo(
+		() => [fetchData()],
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[]
+	);
 
 	return (
 		<Autocomplete
-			items={data.items}
+			items={data?.items}
 			onSelect={handleSelect}
 			promises={promises}
 		/>
@@ -128,15 +133,18 @@ function Table({items, setAssigneeId}) {
 							width: '25%',
 						}}
 					>
-						{`${Liferay.Language.get('new-assignee')}`}{' '}
-						<ClayIcon
+						{`${Liferay.Language.get('new-assignee')}`}
+
+						<span
+							className="ml-1 workflow-tooltip"
 							data-tooltip-align="top"
-							style={{color: '#6B6C7E'}}
-							symbol="question-circle-full"
+							data-tooltip-delay="0"
 							title={Liferay.Language.get(
 								'possible-assignees-must-have-permissions-to-be-assigned-to-the-corresponding-step'
 							)}
-						/>
+						>
+							<ClayIcon symbol="question-circle-full" />
+						</span>
 					</ClayTable.Cell>
 				</ClayTable.Row>
 			</ClayTable.Head>

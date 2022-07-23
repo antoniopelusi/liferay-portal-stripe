@@ -23,9 +23,6 @@ import com.liferay.portal.workflow.kaleo.forms.service.KaleoProcessLocalServiceU
  */
 public class KaleoProcessLinkImpl extends KaleoProcessLinkBaseImpl {
 
-	public KaleoProcessLinkImpl() {
-	}
-
 	@Override
 	public KaleoProcess getKaleoProcess() throws PortalException {
 		return KaleoProcessLocalServiceUtil.getKaleoProcess(

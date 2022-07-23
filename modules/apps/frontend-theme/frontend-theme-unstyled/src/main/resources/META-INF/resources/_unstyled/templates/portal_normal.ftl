@@ -20,7 +20,7 @@
 
 <@liferay.control_menu />
 
-<div class="container-fluid" id="wrapper">
+<div class="container-fluid position-relative" id="wrapper">
 	<header id="banner" role="banner">
 		<div id="heading">
 			<div aria-level="1" class="site-title" role="heading">
@@ -46,7 +46,7 @@
 	</header>
 
 	<section id="content">
-		<h2 class="hide-accessible" role="heading" aria-level="1">${the_title}</h2>
+		<h2 class="hide-accessible sr-only" role="heading" aria-level="1">${the_title}</h2>
 
 		<#if selectable>
 			<@liferay_util["include"] page=content_include />
@@ -63,7 +63,10 @@
 
 	<footer id="footer" role="contentinfo">
 		<p class="powered-by">
-			<@liferay.language key="powered-by" /> <a href="http://www.liferay.com" rel="external">Liferay</a>
+			<@liferay.language_format
+				arguments='<a href="http://www.liferay.com" rel="external">Liferay</a>'
+				key="powered-by-x"
+			/>
 		</p>
 	</footer>
 </div>

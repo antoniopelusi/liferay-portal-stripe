@@ -14,6 +14,7 @@
 
 package com.liferay.journal.web.internal.portlet.action;
 
+import com.liferay.diff.exception.CompareVersionsException;
 import com.liferay.dynamic.data.mapping.exception.TemplateScriptException;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureServiceUtil;
@@ -32,7 +33,6 @@ import com.liferay.journal.web.internal.portlet.JournalPortlet;
 import com.liferay.journal.web.internal.security.permission.resource.JournalPermission;
 import com.liferay.journal.web.internal.util.JournalHelperUtil;
 import com.liferay.journal.web.internal.util.JournalUtil;
-import com.liferay.portal.kernel.diff.CompareVersionsException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -137,7 +137,7 @@ public class ActionUtil {
 			sourceVersion = tempVersion;
 		}
 
-		String languageId = getLanguageId(
+		String languageId = _getLanguageId(
 			renderRequest, groupId, articleId, sourceVersion, targetVersion);
 
 		String diffHtmlResults = null;
@@ -258,10 +258,6 @@ public class ActionUtil {
 		long classNameId = ParamUtil.getLong(httpServletRequest, "classNameId");
 		long classPK = ParamUtil.getLong(httpServletRequest, "classPK");
 		String articleId = ParamUtil.getString(httpServletRequest, "articleId");
-		long ddmStructureId = ParamUtil.getLong(
-			httpServletRequest, "ddmStructureId");
-		String ddmStructureKey = ParamUtil.getString(
-			httpServletRequest, "ddmStructureKey");
 		int status = ParamUtil.getInteger(
 			httpServletRequest, "status", WorkflowConstants.STATUS_ANY);
 
@@ -290,13 +286,18 @@ public class ActionUtil {
 			}
 			catch (NoSuchArticleException noSuchArticleException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchArticleException, noSuchArticleException);
+					_log.debug(noSuchArticleException);
 				}
 
 				return null;
 			}
 		}
 		else {
+			long ddmStructureId = ParamUtil.getLong(
+				httpServletRequest, "ddmStructureId");
+			String ddmStructureKey = ParamUtil.getString(
+				httpServletRequest, "ddmStructureKey");
+
 			DDMStructure ddmStructure = null;
 
 			if (Validator.isNotNull(ddmStructureKey)) {
@@ -311,7 +312,7 @@ public class ActionUtil {
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}
@@ -325,8 +326,8 @@ public class ActionUtil {
 					ddmStructure.getGroupId(), DDMStructure.class.getName(),
 					ddmStructure.getStructureId());
 
-				article.getTitleMap();
 				article.getDescriptionMap();
+				article.getTitleMap();
 
 				article.setNew(true);
 				article.setId(0);
@@ -339,7 +340,7 @@ public class ActionUtil {
 			}
 			catch (NoSuchArticleException noSuchArticleException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchArticleException, noSuchArticleException);
+					_log.debug(noSuchArticleException);
 				}
 
 				return null;
@@ -371,10 +372,8 @@ public class ActionUtil {
 		List<JournalArticle> articles = new ArrayList<>();
 
 		for (String articleId : articleIds) {
-			JournalArticle article = JournalArticleServiceUtil.getArticle(
-				groupId, articleId);
-
-			articles.add(article);
+			articles.add(
+				JournalArticleServiceUtil.getArticle(groupId, articleId));
 		}
 
 		return articles;
@@ -399,10 +398,6 @@ public class ActionUtil {
 	public static JournalFolder getFolder(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
 		long folderId = ParamUtil.getLong(httpServletRequest, "folderId");
 
 		JournalFolder folder = null;
@@ -413,6 +408,10 @@ public class ActionUtil {
 			folder = JournalFolderServiceUtil.fetchFolder(folderId);
 		}
 		else {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 			JournalPermission.check(
 				themeDisplay.getPermissionChecker(),
 				themeDisplay.getScopeGroup(), ActionKeys.VIEW);
@@ -489,7 +488,31 @@ public class ActionUtil {
 		return true;
 	}
 
-	protected static String getLanguageId(
+	private static String _getFileScriptContent(
+			UploadPortletRequest uploadPortletRequest)
+		throws Exception {
+
+		File file = uploadPortletRequest.getFile("script");
+
+		if (file == null) {
+			return null;
+		}
+
+		String fileScriptContent = FileUtil.read(file);
+
+		String contentType = MimeTypesUtil.getContentType(file);
+
+		if (Validator.isNotNull(fileScriptContent) &&
+			!_isValidContentType(contentType)) {
+
+			throw new TemplateScriptException(
+				"Invalid contentType " + contentType);
+		}
+
+		return fileScriptContent;
+	}
+
+	private static String _getLanguageId(
 			RenderRequest renderRequest, long groupId, String articleId,
 			double sourceVersion, double targetVersion)
 		throws Exception {
@@ -525,30 +548,6 @@ public class ActionUtil {
 		renderRequest.setAttribute(WebKeys.LANGUAGE_ID, languageId);
 
 		return languageId;
-	}
-
-	private static String _getFileScriptContent(
-			UploadPortletRequest uploadPortletRequest)
-		throws Exception {
-
-		File file = uploadPortletRequest.getFile("script");
-
-		if (file == null) {
-			return null;
-		}
-
-		String fileScriptContent = FileUtil.read(file);
-
-		String contentType = MimeTypesUtil.getContentType(file);
-
-		if (Validator.isNotNull(fileScriptContent) &&
-			!_isValidContentType(contentType)) {
-
-			throw new TemplateScriptException(
-				"Invalid contentType " + contentType);
-		}
-
-		return fileScriptContent;
 	}
 
 	private static boolean _isValidContentType(String contentType) {

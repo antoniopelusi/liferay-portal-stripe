@@ -18,7 +18,7 @@ import {useResource} from '@clayui/data-provider';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import {Context as ModalContext} from '@clayui/modal';
-import {FieldStateless} from 'dynamic-data-mapping-form-renderer';
+import {FieldStateless} from 'data-engine-js-components-web';
 import {fetch} from 'frontend-js-web';
 import React, {useContext, useMemo} from 'react';
 
@@ -107,6 +107,7 @@ const AutoFillParameter = ({fields, name, onChange, type, value}) => {
 			<ClayLayout.Col md={3}>
 				<span>{name}</span>
 			</ClayLayout.Col>
+
 			<ClayLayout.Col md={9}>
 				<FieldStateless
 					onChange={onChange}
@@ -137,17 +138,21 @@ const AutoFillPanel = ({
 				<p className="data-provider-parameter-required-field">
 					{Liferay.Language.get('required-field')}
 				</p>
+
 				<span className="reference-mark">
 					<ClayIcon symbol="asterisk" />
 				</span>
 			</div>
 		)}
+
 		<div className="data-provider-label-container">
 			<p className="data-provider-parameter">
 				<b>{title}</b>
 			</p>
+
 			<p className="data-provider-parameter-description">{description}</p>
 		</div>
+
 		{parameters.map(({id, ...otherProps}, index) => (
 			<AutoFillParameter
 				{...otherProps}
@@ -204,6 +209,7 @@ const ActionContentAutoFill = ({
 							{Liferay.Language.get('data-provider-error')}
 						</ClayAlert>
 					)}
+
 					{resourceInputs?.length > 0 && (
 						<AutoFillPanel
 							description={Liferay.Language.get(
@@ -220,6 +226,7 @@ const ActionContentAutoFill = ({
 							values={inputs}
 						/>
 					)}
+
 					{resourceOutputs?.length > 0 && (
 						<AutoFillPanel
 							description={Liferay.Language.get(
@@ -252,16 +259,16 @@ const ActionAutoFill = ({children}) => (
 
 const ACTIONS_TARGET_TYPE = {
 	'auto-fill': ActionAutoFill,
-	calculate: ActionCalculate,
-	enable: ActionDefault,
+	'calculate': ActionCalculate,
+	'enable': ActionDefault,
 	'jump-to-page': ActionDefault,
-	require: ActionDefault,
-	show: ActionDefault,
+	'require': ActionDefault,
+	'show': ActionDefault,
 };
 
 const ACTIONS_CONTENT_TYPE = {
 	'auto-fill': ActionContentAutoFill,
-	calculate: ActionContentCalculate,
+	'calculate': ActionContentCalculate,
 };
 
 function Target({
@@ -282,10 +289,9 @@ function Target({
 				return dataProvider;
 			case 'calculate':
 				return fields.filter(({type}) => type === 'numeric');
-			case 'show':
-			case 'require':
 			case 'enable':
-				return fields;
+			case 'show':
+				return fields.filter(({hideField}) => !hideField);
 			case 'jump-to-page': {
 				const startIndex = conditions.reduce(
 					(prev, {operands: [left]}) => {
@@ -296,6 +302,11 @@ function Target({
 
 				return pages.filter((page, index) => index > startIndex);
 			}
+			case 'require':
+				return fields.filter(
+					({dataType, hideField}) => dataType && !hideField
+				);
+
 			default:
 				return [];
 		}
@@ -380,6 +391,7 @@ export function Actions({
 	return (
 		<Timeline.List>
 			<Timeline.Header title={name} />
+
 			{actions.map(
 				({action, source, target, ...otherActionsProps}, index) => (
 					<Timeline.Item key={index}>
@@ -427,6 +439,7 @@ export function Actions({
 									value={[action]}
 								/>
 							</Timeline.FormGroupItem>
+
 							{action && (
 								<Target
 									action={action}
@@ -450,6 +463,7 @@ export function Actions({
 								/>
 							)}
 						</Timeline.Panel>
+
 						{actions.length > 1 && (
 							<Timeline.ActionTrash
 								onClick={() => {
@@ -477,6 +491,7 @@ export function Actions({
 															'dismiss'
 														)}
 													</ClayButton>
+
 													<ClayButton
 														onClick={() => {
 															dispatch({
@@ -508,6 +523,7 @@ export function Actions({
 					</Timeline.Item>
 				)
 			)}
+
 			<Timeline.ItemAction>
 				<Timeline.IncrementButton
 					onClick={() => dispatch({type: ACTIONS_TYPES.ADD_ACTION})}

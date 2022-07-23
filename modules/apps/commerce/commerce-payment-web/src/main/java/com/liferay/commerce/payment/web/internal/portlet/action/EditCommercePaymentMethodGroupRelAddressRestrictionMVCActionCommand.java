@@ -90,8 +90,7 @@ public class EditCommercePaymentMethodGroupRelAddressRestrictionMVCActionCommand
 		}
 	}
 
-	protected void updateCommerceAddressRestrictions(
-			ActionRequest actionRequest)
+	private void _updateCommerceAddressRestrictions(ActionRequest actionRequest)
 		throws Exception {
 
 		long commerceChannelId = ParamUtil.getLong(
@@ -134,7 +133,6 @@ public class EditCommercePaymentMethodGroupRelAddressRestrictionMVCActionCommand
 
 				_commercePaymentMethodGroupRelService.
 					addCommerceAddressRestriction(
-						_portal.getUserId(actionRequest),
 						commerceChannel.getGroupId(),
 						commercePaymentMethodGroupRelId,
 						country.getCountryId());
@@ -168,7 +166,7 @@ public class EditCommercePaymentMethodGroupRelAddressRestrictionMVCActionCommand
 
 		@Override
 		public Object call() throws Exception {
-			updateCommerceAddressRestrictions(_actionRequest);
+			_updateCommerceAddressRestrictions(_actionRequest);
 
 			return null;
 		}

@@ -46,7 +46,7 @@ public class MicrosoftTranslatorImpl implements MicrosoftTranslator {
 		throws MicrosoftTranslatorException {
 
 		try {
-			return doTranslate(fromLanguageId, toLanguageId, fromText);
+			return _translate(fromLanguageId, toLanguageId, fromText);
 		}
 		catch (MicrosoftTranslatorException microsoftTranslatorException) {
 			throw microsoftTranslatorException;
@@ -56,26 +56,46 @@ public class MicrosoftTranslatorImpl implements MicrosoftTranslator {
 		}
 	}
 
-	protected String doTranslate(
+	private String _getMicrosoftLanguageId(String languageId) {
+		if (languageId.equals("pt_BR") || languageId.equals("pt_PT")) {
+			return "pt";
+		}
+		else if (languageId.equals("hi_IN")) {
+			return "hi";
+		}
+		else if (languageId.equals("in")) {
+			return "id";
+		}
+		else if (languageId.equals("iw")) {
+			return "he";
+		}
+		else if (languageId.equals("nb")) {
+			return "no";
+		}
+		else if (languageId.equals("zh_CN")) {
+			return "zh-CHS";
+		}
+		else if (languageId.equals("zh_TW")) {
+			return "zh-CHT";
+		}
+
+		return languageId;
+	}
+
+	private String _translate(
 			String fromLanguageId, String toLanguageId, String fromText)
 		throws Exception {
 
-		fromLanguageId = getMicrosoftLanguageId(fromLanguageId);
-		toLanguageId = getMicrosoftLanguageId(toLanguageId);
+		fromLanguageId = _getMicrosoftLanguageId(fromLanguageId);
+		toLanguageId = _getMicrosoftLanguageId(toLanguageId);
 
 		Http.Options options = new Http.Options();
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("https://api.microsofttranslator.com/v2/http.svc/Translate?");
-		sb.append("text=");
-		sb.append(URLCodec.encodeURL(fromText));
-		sb.append("&from=");
-		sb.append(fromLanguageId);
-		sb.append("&to=");
-		sb.append(toLanguageId);
-
-		options.setLocation(sb.toString());
+		options.setLocation(
+			StringBundler.concat(
+				"https://api.microsofttranslator.com/v2/http.svc/Translate?",
+				"text=", URLCodec.encodeURL(fromText), "&from=", fromLanguageId,
+				"&to=", toLanguageId));
 
 		String accessToken = _microsoftTranslatorAuthenticator.getAccessToken();
 
@@ -109,32 +129,6 @@ public class MicrosoftTranslatorImpl implements MicrosoftTranslator {
 		toText = toText.trim();
 
 		return StringUtil.replace(toText, CharPool.NEW_LINE, CharPool.SPACE);
-	}
-
-	protected String getMicrosoftLanguageId(String languageId) {
-		if (languageId.equals("pt_BR") || languageId.equals("pt_PT")) {
-			return "pt";
-		}
-		else if (languageId.equals("hi_IN")) {
-			return "hi";
-		}
-		else if (languageId.equals("in")) {
-			return "id";
-		}
-		else if (languageId.equals("iw")) {
-			return "he";
-		}
-		else if (languageId.equals("nb")) {
-			return "no";
-		}
-		else if (languageId.equals("zh_CN")) {
-			return "zh-CHS";
-		}
-		else if (languageId.equals("zh_TW")) {
-			return "zh-CHT";
-		}
-
-		return languageId;
 	}
 
 	private final MicrosoftTranslatorAuthenticator

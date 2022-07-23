@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.product.display.context;
 
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.model.CommerceCatalog;
@@ -148,7 +148,7 @@ public abstract class BaseCPDefinitionsDisplayContext {
 			"/cp_definitions/edit_cp_definition"
 		).setParameter(
 			"cpDefinitionId", getCPDefinitionId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public PortletURL getPortletURL() throws PortalException {

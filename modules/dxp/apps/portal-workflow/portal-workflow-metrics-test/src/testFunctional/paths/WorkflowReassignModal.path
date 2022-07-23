@@ -2,12 +2,19 @@
 <head>
 <title>WorkflowReassignModal</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WorkflowReassignModal</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ASSIGNEE_DROPDOWN</td>
+	<td>//button[contains(@class, 'dropdown-toggle filter-dropdown-button btn btn-secondary') and contains(text(),'Assignee')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>BULK_REASSIGN_MODAL</td>
 	<td>//div[contains(@class,'fade modal')]</td>
@@ -19,15 +26,30 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CLEAR_SEARCH_MODAL_BUTTON</td>
+	<td>//div[contains(@class, 'modal-content')]//button[contains(text(),'Clear All')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>REASSIGN_MODAL</td>
 	<td>//div[contains(@class,'fade modal')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SELECT_ALL</td>
-	<td>xpath=(//div[contains(@class,'fade modal')]//label)</td>
+	<td>xpath=(//div[contains(@class,'fade modal')]//label//input[contains(@type,'checkbox')])</td>
 	<td></td>
-</tr>S
+</tr>
+<tr>
+	<td>PROCESS_STEP_DROPDOWN</td>
+	<td>//button[contains(@class, 'filter-dropdown-button')][contains(text(), 'Process Step')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROCESS_STEP_DROPDOWN_OPTION</td>
+	<td>//input/following-sibling::span//span[text()='${key_processName}']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>NEXT_BUTTON</td>
 	<td>//button[contains(@class, 'btn-primary') and contains(text(),'Next')] | //button[contains(@class, 'btn-primary') and contains(text(),'Reassign')]</td>
@@ -89,6 +111,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PERMISSION_TOOLTIP_MESSAGE</td>
+	<td>//span[contains(@title, '${key_tooltipMessage}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>NEXT_PAGINATION_BUTTON</td>
 	<td>//div[@class='modal-body']//button[contains(@aria-label,'Next')]</td>
 	<td></td>
@@ -98,10 +125,9 @@
 	<td>//button[contains(text(),'Select All')]</td>
 	<td></td>
 </tr>
-
 <tr>
 	<td>ITEM_CHECKBOX_CHECKED</td>
-	<td>//div[@class='modal-body']//td[contains(text(),"${key_itemName}")]//parent::tr//input[@type='checkbox' and @checked]</td>
+	<td>//div[@class='modal-body']//td[contains(text(),"${key_itemName}")]//parent::tr[contains(@class, 'table-active')]</td>
 	<td></td>
 </tr>
 <tr>

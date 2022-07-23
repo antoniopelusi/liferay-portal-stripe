@@ -1,0 +1,884 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Single Selection Field can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		var fieldName = FormFields.getFieldName();
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewRadioLabel(
+			fieldLabel = "Single Selection",
+			fieldName = "${fieldName}");
+	}
+
+	@description = "Verify that a Single Selection Field can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection",
+			formPageNumber = "0");
+
+		FormViewBuilder.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		FormViewBuilder.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Single Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Single Selection");
+	}
+
+	@description = "Verify that a Single Selection Field can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection",
+			formPageNumber = "0");
+
+		Type(
+			key_rowNumber = "1",
+			locator1 = "FormFields#OPTIONS_OPTION_VALUE_FIELD",
+			value1 = "Option 1");
+
+		Type(
+			key_rowNumber = "2",
+			locator1 = "FormFields#OPTIONS_OPTION_VALUE_FIELD",
+			value1 = "Option 2");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Help Text Test");
+
+		Click(locator1 = "Icon#VERTICAL_ELLIPSIS_BUTTON");
+
+		Click(
+			key_selectOption = "Duplicate",
+			locator1 = "FormViewBuilder#SELECT_FIELD_OPTIONS_LIST");
+
+		FormFields.viewOptionSingleSelection(
+			fieldName = "Single Selection",
+			optionName = "Option 1");
+
+		FormFields.viewOptionSingleSelection(
+			fieldName = "Single Selection",
+			optionName = "Option 2");
+
+		FormFields.viewOptionSingleSelection(
+			fieldName = "Copy of Single Selection",
+			optionName = "Option 1");
+
+		FormFields.viewOptionSingleSelection(
+			fieldName = "Copy of Single Selection",
+			optionName = "Option 2");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Single Selection",
+			fieldValue = "Help Text Test");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "Copy of Single Selection",
+			fieldValue = "Help Text Test");
+	}
+
+	@description = "Verify that a Single Selection Field can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		Click(
+			key_name = "Single Selection",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Single Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_name = "Test Single Selection",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+	}
+
+	@description = "Verify that a Single Selection Field can be required"
+	@priority = "5"
+	test CanBeRequired {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection",
+			formPageNumber = "0");
+
+		var fieldSingleSelectionField = FormFields.getFieldName();
+
+		FormFields.enableSwitch(fieldName = "Required Field");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabelRequired(fieldLabel = "Single Selection");
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormPortlet.submitWithValidationError(validationErrorMessage = "This field is required.");
+
+		FormFields.viewRadioLabel(
+			fieldLabel = "Single Selection",
+			fieldName = "${fieldSingleSelectionField}");
+
+		FormFields.selectRadioOption(
+			fieldName = "${fieldSingleSelectionField}",
+			radioOption = "Option");
+
+		FormPortlet.submitSuccessfully();
+	}
+
+	@description = "Verify that a Single Selection Field can be set to repeatable"
+	@priority = "5"
+	test CanBeSetToRepeatable {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		var singleSelectionFieldName = FormFields.getFieldName();
+
+		FormFields.editOptionsRow(
+			optionValue = "Option A",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionValue = "Option B",
+			rowNumber = "2");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.checkSwitch(propertyName = "repeatable");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.addRepeatableField(
+			key_fieldName = "${singleSelectionFieldName}",
+			key_repeatableFieldNumber = "1");
+
+		FormFields.editRepeatableSingleSelection(
+			key_fieldName = "${singleSelectionFieldName}",
+			optionValue = "Option A",
+			rowNumber = "1");
+
+		FormFields.editRepeatableSingleSelection(
+			key_fieldName = "${singleSelectionFieldName}",
+			optionValue = "Option B",
+			rowNumber = "2");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that a Form can be submitted with a Single Selection Field"
+	@priority = "5"
+	test CanBeSubmitted {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		var fieldSingleSelectionField = FormFields.getFieldName();
+
+		FormFields.editOptionsRow(
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Click(locator1 = "Button#SAVE");
+
+		Button.clickPublish();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		AssertElementPresent(
+			key_rowNumber = "1",
+			locator1 = "FormPortlet#SELECT_SINGLE_SELECTION_ROW");
+
+		AssertElementPresent(
+			key_optionValue = "Option 1",
+			key_rowNumber = "1",
+			locator1 = "FormPortlet#SELECT_SINGLE_SELECTION_ROW_OPTION");
+
+		AssertElementPresent(
+			key_optionValue = "Option 2",
+			key_rowNumber = "1",
+			locator1 = "FormPortlet#SELECT_SINGLE_SELECTION_ROW_OPTION");
+
+		Click(
+			key_optionValue = "Option 1",
+			key_rowNumber = "1",
+			locator1 = "FormPortlet#SELECT_SINGLE_SELECTION_ROW_OPTION");
+
+		Button.clickSubmitButton();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		FormsAdminNavigator.closePublishedFormWindow();
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdminNavigator.gotoView();
+
+		FormsAdmin.viewRadioEntry(
+			fieldLabel = "Single Selection",
+			fieldName = "${fieldSingleSelectionField}",
+			fieldValue = "Option 1");
+	}
+
+	@description = "Verify that changes to the Field can be canceled"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ChangesCanBeCanceled {
+		property portal.acceptance = "false";
+
+		// TODO LPS-132196 ChangesCanBeCanceled pending implementation
+
+	}
+
+	@description = "Verify that the Field References for the options can be edited"
+	@priority = "5"
+	test FieldReferencesOfOptionsCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Single Selection");
+
+		FormFields.editOptionsRowValueOrFieldReference(
+			fieldReference = "Option1234",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRowValueOrFieldReference(
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Single Selection");
+
+		FormFields.viewOptionsRowFieldValueOrFieldReference(
+			fieldReference = "Option1234",
+			fieldValue = "Option 1",
+			rowNumber = "1");
+	}
+
+	@description = "Verify that a Help Text can be added"
+	@priority = "5"
+	test HelpTextCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection",
+			formPageNumber = "0");
+
+		var fieldSingleSelectionField = FormFields.getFieldName();
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Single Selection Help Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewRadioLabel(
+			fieldLabel = "Single Selection",
+			fieldName = "${fieldSingleSelectionField}");
+
+		FormViewBuilder.assertHelpTextPresent(
+			fieldName = "${fieldSingleSelectionField}",
+			fieldValue = "Single Selection Help Text");
+
+		FormFields.selectRadioOption(
+			fieldName = "${fieldSingleSelectionField}",
+			radioOption = "Option 1");
+
+		FormPortlet.submitSuccessfully();
+	}
+
+	@description = "Verify that the Field Label can be edited"
+	@priority = "5"
+	test LabelCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection",
+			formPageNumber = "0");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Single Selection");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishCopyURLLink();
+
+		var publishedFormPublicURL = Form.getPublishedFormPublicURL(publishedFormPublicURL = "${publishedFormPublicURL}");
+
+		Navigator.openSpecificURL(url = "${publishedFormPublicURL}");
+
+		FormFields.viewRadioLabel(
+			fieldLabel = "Test Single Selection",
+			fieldName = "Test Single Selection");
+	}
+
+	@description = "Verify that the Field Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.clickShowLabel();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		AssertElementNotPresent(
+			key_fieldName = "Single Selection",
+			key_fieldValue = "",
+			locator1 = "FormViewBuilder#PREDEFINED_VALUE_AT_FORM_SINGLE_SELECTION");
+	}
+
+	@description = "Verify that options can be added"
+	@priority = "5"
+	test OptionsCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Single Selection");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 1",
+			key_position = "1");
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 2",
+			key_position = "2");
+	}
+
+	@description = "Verify that options can be deleted"
+	@priority = "5"
+	test OptionsCanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		Type(
+			key_rowNumber = "1",
+			locator1 = "FormFields#OPTIONS_OPTION_VALUE_FIELD",
+			value1 = "Option 1");
+
+		Type(
+			key_rowNumber = "2",
+			locator1 = "FormFields#OPTIONS_OPTION_VALUE_FIELD",
+			value1 = "Option 2");
+
+		Click(
+			key_rowNumber = "2",
+			locator1 = "FormFields#OPTIONS_DELETE_ROW_BUTTON");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_optionLabel = "Option 1",
+			key_position = "1",
+			locator1 = "FormFields#SELECT_ASSERT_RADIO_OPTION_ORDER");
+
+		AssertElementNotPresent(
+			key_optionLabel = "Option 2",
+			key_position = "2",
+			locator1 = "FormFields#SELECT_ASSERT_RADIO_OPTION_ORDER");
+	}
+
+	@description = "Verify that options can be displayed both Inline and as a list"
+	@priority = "5"
+	test OptionsCanBeDisplayedInlineAndAsList {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		FormViewBuilder.addFieldByDoubleClick(fieldType = "Single Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.editOptionsRow(
+			optionName = "Option3",
+			optionValue = "Option 3",
+			rowNumber = "3");
+
+		AssertElementPresent(locator1 = "FormFields#SELECT_OPTIONS_INLINE_IDENTIFIER");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.disableSwitch(fieldName = "Inline");
+
+		AssertElementNotPresent(locator1 = "FormFields#SELECT_OPTIONS_INLINE_IDENTIFIER");
+
+		for (var optionSelector : list "1,2,3") {
+			AssertElementPresent(
+				key_optionLabel = "${optionSelector}",
+				key_position = "${optionSelector}",
+				locator1 = "FormFields#SELECT_ASSERT_RADIO_OPTION_ORDER");
+		}
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementNotPresent(locator1 = "FormFields#SELECT_OPTIONS_INLINE_IDENTIFIER");
+
+		for (var optionSelector : list "1,2,3") {
+			AssertElementPresent(
+				key_optionLabel = "${optionSelector}",
+				key_position = "${optionSelector}",
+				locator1 = "FormFields#SELECT_ASSERT_RADIO_OPTION_ORDER");
+		}
+	}
+
+	@description = "Verify that options can be rearranged"
+	@priority = "5"
+	test OptionsCanBeRearranged {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		FormFields.moveGridOptionsRow(
+			key_gridField = "",
+			key_rowNumber1 = "2",
+			key_rowNumber2 = "1");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_optionLabel = "Option 2",
+			key_position = "1",
+			locator1 = "FormFields#SELECT_ASSERT_RADIO_OPTION_ORDER");
+	}
+
+	@description = "Verify that an option can be selected as a Predefined Value"
+	@priority = "5"
+	test PredefinedValueCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection",
+			formPageNumber = "0");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.selectSelectOptionPredefined(selectOption = "Option 1");
+
+		FormViewBuilder.validatePredefinedSelectFromList(
+			fieldName = "Predefined Value",
+			fieldValue = "Option 1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.viewSingleSelectionChecked(
+			fieldName = "Single Selection",
+			fieldValue = "Option 1");
+
+		FormPortlet.submitSuccessfully();
+	}
+
+	@description = "Verify that after deleting an option that had been selected as the Predefined Value, the Predefined Value is reset to "Choose Options""
+	@priority = "4"
+	test PredefinedValueIsResetWhenSelectedOptionIsDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		FormViewBuilder.addFieldByDoubleClick(fieldType = "Single Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.selectSelectOption(
+			fieldName = "Predefined Value",
+			selectOption = "Option 1");
+
+		Form.gotoBasicTab();
+
+		FormFields.deleteOptionsRow(rowNumber = "1");
+
+		Form.gotoAdvancedTab();
+
+		AssertTextEquals(
+			key_definedEntry = "Choose an Option",
+			locator1 = "FormFields#OPTIONS_PREDEFINED_SELECTOR",
+			value1 = "Choose an Option");
+	}
+
+	@description = "Verify that the Field Reference can be Edited"
+	@priority = "5"
+	test ReferenceCanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "SingleSelection1234");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldReference(
+			fieldName = "Single Selection",
+			key_fieldReferenceValue = "SingleSelection1234");
+	}
+
+	@description = "LPS-90435 This is a test verify that the Single Selection Form field added before default site language toggle can be loaded"
+	@priority = "4"
+	test SingleSelectionFormFieldAddedBeforeDefaultSiteLanguageToggleCanBeLoaded {
+		property test.name.skip.portal.instance = "FormsSingleSelectionField#SingleSelectionFormFieldAddedBeforeDefaultSiteLanguageToggleCanBeLoaded";
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		ApplicationsMenu.gotoSite(site = "Site Name");
+
+		FormsAdmin.addForm(groupName = "Site Name");
+
+		Form.editName(formName = "Form");
+
+		Form.editDescription(formDescription = "description");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		Form.save();
+
+		ProductMenu.changeDefaultLanguage(defaultPortalLanguage = "German (Germany)");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form");
+
+		Form.editName(formName = "New Form");
+	}
+
+	@description = "LPS-90435 This is a test verify that the Single Selection Form field name and options can be added to non-English default site language site"
+	test SingleSelectionFormFieldNameAndOptionsCanBeAddedToNonEnglishDefaultSiteLanguageSite {
+		property test.name.skip.portal.instance = "FormsSingleSelectionField#SingleSelectionFormFieldNameAndOptionsCanBeAddedToNonEnglishDefaultSiteLanguageSite";
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		ApplicationsMenu.gotoSite(site = "Site Name");
+
+		ProductMenu.changeDefaultLanguage(defaultPortalLanguage = "German (Germany)");
+
+		FormsAdmin.addForm(groupName = "Site Name");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Single Selection");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Unbenanntes Formular");
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 1",
+			key_position = "1");
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 2",
+			key_position = "2");
+	}
+
+	@description = "Verify that the Field Type can be changed"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test TypeCanBeChanged {
+		property portal.acceptance = "false";
+
+		// TODO LPS-132195 TypeCanBeChanged pending implementation
+
+	}
+
+}

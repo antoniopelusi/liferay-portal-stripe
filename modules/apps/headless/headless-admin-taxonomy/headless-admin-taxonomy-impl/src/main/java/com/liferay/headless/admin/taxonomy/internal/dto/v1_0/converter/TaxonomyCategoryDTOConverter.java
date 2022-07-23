@@ -14,6 +14,8 @@
 
 package com.liferay.headless.admin.taxonomy.internal.dto.v1_0.converter;
 
+import com.liferay.asset.category.property.model.AssetCategoryProperty;
+import com.liferay.asset.category.property.service.AssetCategoryPropertyLocalService;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
@@ -23,6 +25,7 @@ import com.liferay.asset.kernel.service.AssetVocabularyService;
 import com.liferay.headless.admin.taxonomy.dto.v1_0.ParentTaxonomyCategory;
 import com.liferay.headless.admin.taxonomy.dto.v1_0.ParentTaxonomyVocabulary;
 import com.liferay.headless.admin.taxonomy.dto.v1_0.TaxonomyCategory;
+import com.liferay.headless.admin.taxonomy.dto.v1_0.TaxonomyCategoryProperty;
 import com.liferay.headless.admin.taxonomy.internal.dto.v1_0.util.CreatorUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -31,6 +34,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
+import com.liferay.portal.vulcan.util.TransformUtil;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -133,6 +137,13 @@ public class TaxonomyCategoryDTOConverter
 							});
 					}
 				};
+				siteId = assetCategory.getGroupId();
+				taxonomyCategoryProperties = TransformUtil.transformToArray(
+					_assetCategoryPropertyLocalService.getCategoryProperties(
+						assetCategory.getCategoryId()),
+					assetCategoryProperties -> _toTaxonomyCategoryProperty(
+						assetCategoryProperties),
+					TaxonomyCategoryProperty.class);
 				taxonomyCategoryUsageCount =
 					(int)_assetEntryLocalService.searchCount(
 						assetCategory.getCompanyId(),
@@ -146,7 +157,7 @@ public class TaxonomyCategoryDTOConverter
 							WorkflowConstants.STATUS_SCHEDULED
 						},
 						false);
-
+				taxonomyVocabularyId = assetCategory.getVocabularyId();
 				setParentTaxonomyCategory(
 					() -> {
 						if (assetCategory.getParentCategory() == null) {
@@ -161,8 +172,23 @@ public class TaxonomyCategoryDTOConverter
 		};
 	}
 
+	private TaxonomyCategoryProperty _toTaxonomyCategoryProperty(
+		AssetCategoryProperty assetCategoryProperty) {
+
+		return new TaxonomyCategoryProperty() {
+			{
+				key = assetCategoryProperty.getKey();
+				value = assetCategoryProperty.getValue();
+			}
+		};
+	}
+
 	@Reference
 	private AssetCategoryLocalService _assetCategoryLocalService;
+
+	@Reference
+	private AssetCategoryPropertyLocalService
+		_assetCategoryPropertyLocalService;
 
 	@Reference
 	private AssetCategoryService _assetCategoryService;

@@ -24,63 +24,15 @@ definition {
 
 			DMDocument.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
-	}
-
-	test HotDeployLearningToRankApp {
-		property hot.deploy.osgi.app.includes = "portal-search-learning-to-rank";
-		property test.assert.warning.exceptions = "true";
-		property test.name.skip.portal.instance = "Elasticsearch7EE#HotDeployLearningToRankApp";
-
-		var appName = "Liferay Enterprise Search Learning to Rank";
-
-		AssertConsoleTextNotPresent(value1 = "The portal instance needs to be restarted");
-
-		AssertConsoleTextPresent(value1 = "STARTED ${appName}");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "Search",
-			configurationName = "Learning to Rank",
-			configurationScope = "System Scope");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
-			panel = "Control Panel",
-			portlet = "App Manager");
-
-		AppManager.viewApp(
-			appName = "${appName}",
-			appStatus = "Active",
-			searchTerm = "Learning");
-
-		AppManager.deactivateApp(appName = "${appName}");
-
-		AppManager.viewApp(
-			appName = "${appName}",
-			appStatus = "Resolved",
-			searchTerm = "Learning");
-
-		AssertConsoleTextPresent(value1 = "STOPPED com.liferay.portal.search.learning.to.rank");
-
-		AppManager.activateApp(appName = "${appName}");
-
-		AssertConsoleTextPresent(value1 = "STARTED com.liferay.portal.search.learning.to.rank");
-
-		AssertConsoleTextNotPresent(value1 = "The portal instance needs to be restarted");
 	}
 
 	@priority = "5"
 	test LearningToRankSmoke {
-		property elastic.override.version = "7.9.0";
+		property elastic.override.version = "7.13.4";
 		property elasticsearch.ltr.enabled = "true";
-		property osgi.app.includes = "portal-search-learning-to-rank";
-		property portal.upstream = "quarantine";
+		property environment.acceptance = "false";
 		property remote.elasticsearch.enabled = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#LearningToRankSmoke";
 
@@ -103,15 +55,13 @@ definition {
 
 		SearchPortlets.searchEmbedded(searchTerm = "alien");
 
-		var assetEntryTitleListNoLTR = "";
+		var assetEntryTitleListNoLtr = "";
 		var iterator = "1";
 
 		while ("${iterator}" != "21" && (maxIterations = "20")) {
 			var assetEntryTitle = selenium.getText("//div[contains(@id,'SearchResultsPortlet')]//li[${iterator}]/div//a");
-
-			var assetEntryTitleListNoLTR = StringUtil.add("${assetEntryTitleListNoLTR}", "${assetEntryTitle}");
-
-			var iterator = MathUtil.sum("${iterator}", "1");
+			var assetEntryTitleListNoLtr = StringUtil.add("${assetEntryTitleListNoLtr}", "${assetEntryTitle}");
+			var iterator = ${iterator} + 1;
 		}
 
 		ApplicationsMenu.gotoPortlet(
@@ -136,23 +86,21 @@ definition {
 
 		SearchPortlets.searchEmbedded(searchTerm = "alien");
 
-		var assetEntryTitleListLTR = "";
+		var assetEntryTitleListLtr = "";
 		var iterator = "1";
 
 		while ("${iterator}" != "21" && (maxIterations = "20")) {
 			var assetEntryTitle = selenium.getText("//div[contains(@id,'SearchResultsPortlet')]//li[${iterator}]/div//a");
-
-			var assetEntryTitleListLTR = StringUtil.add("${assetEntryTitleListLTR}", "${assetEntryTitle}");
-
-			var iterator = MathUtil.sum("${iterator}", "1");
+			var assetEntryTitleListLtr = StringUtil.add("${assetEntryTitleListLtr}", "${assetEntryTitle}");
+			var iterator = ${iterator} + 1;
 		}
 
-		if ("${assetEntryTitleListNoLTR}" != "${assetEntryTitleListLTR}") {
+		if ("${assetEntryTitleListNoLtr}" != "${assetEntryTitleListLtr}") {
 			echo("Assertion succeeded: Search result rankings were different with and without LTR");
 
-			echo("Rankings without LTR: ${assetEntryTitleListNoLTR}");
+			echo("Rankings without LTR: ${assetEntryTitleListNoLtr}");
 
-			echo("Rankings with LTR: ${assetEntryTitleListLTR}");
+			echo("Rankings with LTR: ${assetEntryTitleListLtr}");
 		}
 		else {
 			fail("Assertion failed: Search result rankings were the same with and without LTR");
@@ -163,7 +111,8 @@ definition {
 	test PortalClusterSmokeTest {
 		property app.server.bundles.size = "1";
 		property cluster.enabled = "true";
-		property portal.upstream = "quarantine";
+		property environment.acceptance = "false";
+		property minimum.slave.ram = "24";
 		property remote.elasticsearch.enabled = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#PortalClusterSmokeTest";
 
@@ -174,7 +123,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Message Boards");
 
 		MessageboardsThread.addCP(
@@ -184,7 +133,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Documents and Media");
 
 		DMDocument.addCP(
@@ -220,12 +169,12 @@ definition {
 			password = "test",
 			userEmailAddress = "test@liferay.com");
 
-		User.loginPG(
-			nodePort = "9080",
+		User.firstLoginUI(
 			password = "test",
+			specificURL = "http://localhost:9080",
 			userEmailAddress = "test@liferay.com");
 
-		Clustering.shutdownSpecificServer(nodePort = "8");
+		Clustering.shutdownSpecificServer(nodePort = "8080");
 
 		SearchPortlets.searchEmbedded(searchTerm = "Apple");
 
@@ -254,8 +203,7 @@ definition {
 	test XPackPkiAuthenticationSmokeTest {
 		property elastic.pki.authentication.enabled = "true";
 		property elastic.xpack.enabled = "true";
-		property osgi.app.includes = "portal-search-elasticsearch-monitoring";
-		property portal.upstream = "quarantine";
+		property environment.acceptance = "false";
 		property remote.elasticsearch.enabled = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackPkiAuthenticationSmokeTest";
 
@@ -280,9 +228,9 @@ definition {
 		property elastic.pki.authentication.enabled = "true";
 		property elastic.xpack.enabled = "true";
 		property elasticsearch.jdk11.enabled = "true";
-		property osgi.app.includes = "portal-search-elasticsearch-monitoring";
+		property environment.acceptance = "false";
 		property portal.suite.search.engine = "";
-		property portal.upstream = "quarantine";
+		property portal.upstream = "jdk11";
 		property remote.elasticsearch.enabled = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackPkiAuthenticationWithJDK11";
 
@@ -305,8 +253,7 @@ definition {
 	@priority = "5"
 	test XPackSmokeTest {
 		property elastic.xpack.enabled = "true";
-		property osgi.app.includes = "portal-search-elasticsearch-monitoring";
-		property portal.upstream = "quarantine";
+		property environment.acceptance = "false";
 		property remote.elasticsearch.enabled = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackSmokeTest";
 
@@ -325,14 +272,13 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Elasticsearch Monitoring Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Elasticsearch Monitoring Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Elasticsearch Monitoring Page");
@@ -352,10 +298,11 @@ definition {
 	test XPackWithJDK11 {
 		property elastic.xpack.enabled = "true";
 		property elasticsearch.jdk11.enabled = "true";
-		property osgi.app.includes = "portal-search-elasticsearch-monitoring";
+		property environment.acceptance = "false";
 		property portal.suite.search.engine = "";
-		property portal.upstream = "quarantine";
+		property portal.upstream = "jdk11";
 		property remote.elasticsearch.enabled = "true";
+		property test.assert.warning.exceptions = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackWithJDK11";
 
 		JSONWebcontent.addWebContent(
@@ -373,14 +320,13 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Elasticsearch Monitoring Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Elasticsearch Monitoring Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Elasticsearch Monitoring Page");

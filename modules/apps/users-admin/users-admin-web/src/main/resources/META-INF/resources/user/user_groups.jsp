@@ -79,7 +79,8 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 	total="<%= userGroups.size() %>"
 >
 	<liferay-ui:search-container-results
-		results="<%= userGroups.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
+		calculateStartAndEnd="<%= true %>"
+		results="<%= userGroups %>"
 	/>
 
 	<liferay-ui:search-container-row
@@ -198,7 +199,7 @@ currentURLObj.setParameter("historyKey", liferayPortletResponse.getNamespace() +
 					"p_u_i_d", (selUser == null) ? "0" : String.valueOf(selUser.getUserId())
 				).setWindowState(
 					LiferayWindowState.POP_UP
-				).build();
+				).buildPortletURL();
 				%>
 
 				url: '<%= selectUserGroupURL.toString() %>',

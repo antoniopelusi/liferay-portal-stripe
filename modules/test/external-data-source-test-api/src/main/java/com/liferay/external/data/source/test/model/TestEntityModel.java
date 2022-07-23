@@ -82,4 +82,7 @@ public interface TestEntityModel extends BaseModel<TestEntity> {
 	 */
 	public void setData(String data);
 
+	@Override
+	public TestEntity cloneWithOriginalValues();
+
 }

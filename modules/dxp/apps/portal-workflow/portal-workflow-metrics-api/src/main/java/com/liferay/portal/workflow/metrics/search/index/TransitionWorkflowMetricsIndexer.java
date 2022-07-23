@@ -15,20 +15,17 @@
 package com.liferay.portal.workflow.metrics.search.index;
 
 import com.liferay.portal.search.document.Document;
-
-import java.util.Date;
+import com.liferay.portal.workflow.metrics.model.AddTransitionRequest;
+import com.liferay.portal.workflow.metrics.model.DeleteTransitionRequest;
 
 /**
  * @author Rafael Praxedes
  */
 public interface TransitionWorkflowMetricsIndexer {
 
-	public Document addTransition(
-		long companyId, Date createDate, Date modifiedDate, String name,
-		long nodeId, long processId, String processVersion, long sourceNodeId,
-		String sourceNodeName, long targetNodeId, String targetNodeName,
-		long transitionId, long userId);
+	public Document addTransition(AddTransitionRequest addTransitionRequest);
 
-	public void deleteTransition(long companyId, long transitionId);
+	public void deleteTransition(
+		DeleteTransitionRequest deleteTransitionRequest);
 
 }

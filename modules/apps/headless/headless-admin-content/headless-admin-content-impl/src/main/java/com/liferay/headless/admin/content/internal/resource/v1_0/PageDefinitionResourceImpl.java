@@ -91,12 +91,6 @@ public class PageDefinitionResourceImpl extends BasePageDefinitionResourceImpl {
 			Long siteId, PageDefinition pageDefinition)
 		throws Exception {
 
-		Map<Locale, String> nameMap = Collections.singletonMap(
-			contextAcceptLanguage.getPreferredLocale(), StringUtil.randomId());
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			contextHttpServletRequest);
-
 		PermissionChecker permissionChecker =
 			PermissionCheckerFactoryUtil.create(contextUser);
 
@@ -115,6 +109,12 @@ public class PageDefinitionResourceImpl extends BasePageDefinitionResourceImpl {
 				Response.noContent(
 				).build());
 		}
+
+		Map<Locale, String> nameMap = Collections.singletonMap(
+			contextAcceptLanguage.getPreferredLocale(), StringUtil.randomId());
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			contextHttpServletRequest);
 
 		Layout layout = _layoutLocalService.addLayout(
 			contextUser.getUserId(), siteId, false,

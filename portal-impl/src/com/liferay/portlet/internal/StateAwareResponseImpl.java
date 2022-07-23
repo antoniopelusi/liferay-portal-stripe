@@ -94,11 +94,11 @@ public abstract class StateAwareResponseImpl
 	public Map<String, String[]> getRenderParameterMap() {
 		Map<String, String[]> renderParameterMap = new LinkedHashMap<>();
 
-		Map<String, String[]> mutableRenderParametersMap =
+		Map<String, String[]> mutableRenderParameterMap =
 			_mutableRenderParametersImpl.getParameterMap();
 
 		for (Map.Entry<String, String[]> entry :
-				mutableRenderParametersMap.entrySet()) {
+				mutableRenderParameterMap.entrySet()) {
 
 			String parameterName = entry.getKey();
 
@@ -168,11 +168,11 @@ public abstract class StateAwareResponseImpl
 			RenderParametersImpl renderParametersImpl =
 				(RenderParametersImpl)portletRequestImpl.getRenderParameters();
 
-			Map<String, String[]> liferayRenderParametersMap =
+			Map<String, String[]> liferayRenderParameterMap =
 				renderParametersImpl.getParameterMap();
 
 			for (Map.Entry<String, String[]> entry :
-					liferayRenderParametersMap.entrySet()) {
+					liferayRenderParameterMap.entrySet()) {
 
 				String renderParameterName = entry.getKey();
 
@@ -432,9 +432,6 @@ public abstract class StateAwareResponseImpl
 			return false;
 		}
 
-		com.liferay.portal.kernel.xml.QName qName =
-			publicRenderParameter.getQName();
-
 		String[] oldValues = _publicRenderParameters.get(name);
 
 		if (oldValues != null) {
@@ -442,7 +439,9 @@ public abstract class StateAwareResponseImpl
 		}
 
 		_publicRenderParameters.put(
-			PortletQNameUtil.getPublicRenderParameterName(qName), values);
+			PortletQNameUtil.getPublicRenderParameterName(
+				publicRenderParameter.getQName()),
+			values);
 
 		return true;
 	}

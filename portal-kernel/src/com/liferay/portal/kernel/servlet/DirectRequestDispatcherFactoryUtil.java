@@ -32,14 +32,14 @@ public class DirectRequestDispatcherFactoryUtil {
 	public static RequestDispatcher getRequestDispatcher(
 		ServletContext servletContext, String path) {
 
-		return getDirectRequestDispatcherFactory().getRequestDispatcher(
+		return _directRequestDispatcherFactory.getRequestDispatcher(
 			servletContext, path);
 	}
 
 	public static RequestDispatcher getRequestDispatcher(
 		ServletRequest servletRequest, String path) {
 
-		return getDirectRequestDispatcherFactory().getRequestDispatcher(
+		return _directRequestDispatcherFactory.getRequestDispatcher(
 			servletRequest, path);
 	}
 

@@ -95,25 +95,12 @@ public class HealthExpectations {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(15);
-
-		sb.append("{activePrimaryShards=");
-		sb.append(_activePrimaryShards);
-		sb.append(", activeShards=");
-		sb.append(_activeShards);
-		sb.append(", numberOfDataNodes=");
-		sb.append(_numberOfDataNodes);
-		sb.append(", numberOfNodes=");
-		sb.append(_numberOfNodes);
-		sb.append(", status=");
-		sb.append(_status);
-		sb.append(", timedOut=");
-		sb.append(_timedOut);
-		sb.append(", unassignedShards=");
-		sb.append(_unassignedShards);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{activePrimaryShards=", _activePrimaryShards, ", activeShards=",
+			_activeShards, ", numberOfDataNodes=", _numberOfDataNodes,
+			", numberOfNodes=", _numberOfNodes, ", status=", _status,
+			", timedOut=", _timedOut, ", unassignedShards=", _unassignedShards,
+			"}");
 	}
 
 	private int _activePrimaryShards;

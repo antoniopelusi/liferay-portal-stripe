@@ -25,7 +25,9 @@ long cpDefinitionLinkId = cpDefinitionLinkDisplayContext.getCPDefinitionLinkId()
 CPDefinition cpDefinition = cpDefinitionLink.getCPDefinition();
 %>
 
-<commerce-ui:modal-content>
+<commerce-ui:modal-content
+	title='<%= LanguageUtil.get(request, "priority") %>'
+>
 	<portlet:actionURL name="/cp_definitions/edit_cp_definition_link" var="editCPDefinitionLinkActionURL" />
 
 	<aui:form action="<%= editCPDefinitionLinkActionURL %>" method="post" name="fm">
@@ -37,17 +39,15 @@ CPDefinition cpDefinition = cpDefinitionLink.getCPDefinition();
 
 		<aui:model-context bean="<%= cpDefinitionLink %>" model="<%= CPDefinitionLink.class %>" />
 
-		<div class="lfr-form-content">
-			<aui:input name="priority" />
+		<aui:input name="priority" />
 
-			<c:if test="<%= cpDefinitionLinkDisplayContext.hasCustomAttributesAvailable() %>">
-				<liferay-expando:custom-attribute-list
-					className="<%= CPDefinitionLink.class.getName() %>"
-					classPK="<%= (cpDefinitionLink != null) ? cpDefinitionLink.getCPDefinitionLinkId() : 0 %>"
-					editable="<%= true %>"
-					label="<%= true %>"
-				/>
-			</c:if>
-		</div>
+		<c:if test="<%= cpDefinitionLinkDisplayContext.hasCustomAttributesAvailable() %>">
+			<liferay-expando:custom-attribute-list
+				className="<%= CPDefinitionLink.class.getName() %>"
+				classPK="<%= (cpDefinitionLink != null) ? cpDefinitionLink.getCPDefinitionLinkId() : 0 %>"
+				editable="<%= true %>"
+				label="<%= true %>"
+			/>
+		</c:if>
 	</aui:form>
 </commerce-ui:modal-content>

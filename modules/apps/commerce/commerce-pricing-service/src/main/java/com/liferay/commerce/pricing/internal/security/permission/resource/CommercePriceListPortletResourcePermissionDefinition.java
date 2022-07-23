@@ -35,7 +35,7 @@ public class CommercePriceListPortletResourcePermissionDefinition
 		getPortletResourcePermissionLogics() {
 
 		return new PortletResourcePermissionLogic[] {
-			new PricingPortletPermissionLogic()
+			new PricingPortletResourcePermissionLogic()
 		};
 	}
 

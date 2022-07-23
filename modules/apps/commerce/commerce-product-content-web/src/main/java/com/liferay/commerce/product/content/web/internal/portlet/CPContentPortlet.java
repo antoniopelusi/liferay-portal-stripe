@@ -55,7 +55,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/product_detail/view.jsp",
 		"javax.portlet.name=" + CPPortletKeys.CP_CONTENT_WEB,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CPContentPortlet.class, Portlet.class}
 )
@@ -77,7 +78,7 @@ public class CPContentPortlet extends MVCPortlet {
 				cpContentConfigurationDisplayContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		renderRequest.setAttribute(

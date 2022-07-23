@@ -18,7 +18,6 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
@@ -121,7 +120,7 @@ public class TokenAutoLogin extends BaseAutoLogin {
 			return null;
 		}
 
-		User user = getUser(companyId, login, tokenCompanyServiceSettings);
+		User user = _getUser(companyId, login, tokenCompanyServiceSettings);
 
 		addRedirect(httpServletRequest);
 
@@ -134,10 +133,27 @@ public class TokenAutoLogin extends BaseAutoLogin {
 		return credentials;
 	}
 
-	protected User getUser(
+	@Reference(unbind = "-")
+	protected void setConfigurationProvider(
+		ConfigurationProvider configurationProvider) {
+
+		_configurationProvider = configurationProvider;
+	}
+
+	@Reference(unbind = "-")
+	protected void setUserImporter(UserImporter userImporter) {
+		_userImporter = userImporter;
+	}
+
+	@Reference(unbind = "-")
+	protected void setUserLocalService(UserLocalService userLocalService) {
+		_userLocalService = userLocalService;
+	}
+
+	private User _getUser(
 			long companyId, String login,
 			TokenConfiguration tokenCompanyServiceSettings)
-		throws PortalException {
+		throws Exception {
 
 		User user = null;
 
@@ -157,17 +173,13 @@ public class TokenAutoLogin extends BaseAutoLogin {
 				}
 				else {
 					if (_log.isWarnEnabled()) {
-						StringBundler sb = new StringBundler(7);
-
-						sb.append("The property \"");
-						sb.append(PropsKeys.COMPANY_SECURITY_AUTH_TYPE);
-						sb.append("\" must be set to either \"");
-						sb.append(CompanyConstants.AUTH_TYPE_EA);
-						sb.append("\" or \"");
-						sb.append(CompanyConstants.AUTH_TYPE_SN);
-						sb.append("\"");
-
-						_log.warn(sb.toString());
+						_log.warn(
+							StringBundler.concat(
+								"The property \"",
+								PropsKeys.COMPANY_SECURITY_AUTH_TYPE,
+								"\" must be set to either \"",
+								CompanyConstants.AUTH_TYPE_EA, "\" or \"",
+								CompanyConstants.AUTH_TYPE_SN, "\""));
 					}
 				}
 			}
@@ -190,37 +202,17 @@ public class TokenAutoLogin extends BaseAutoLogin {
 		}
 		else {
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("Incompatible setting for: ");
-				sb.append(PropsKeys.COMPANY_SECURITY_AUTH_TYPE);
-				sb.append(". Please configure to either: ");
-				sb.append(CompanyConstants.AUTH_TYPE_EA);
-				sb.append(" or ");
-				sb.append(CompanyConstants.AUTH_TYPE_SN);
-
-				_log.warn(sb.toString());
+				_log.warn(
+					StringBundler.concat(
+						"Incompatible setting for: ",
+						PropsKeys.COMPANY_SECURITY_AUTH_TYPE,
+						". Please configure to either: ",
+						CompanyConstants.AUTH_TYPE_EA, " or ",
+						CompanyConstants.AUTH_TYPE_SN));
 			}
 		}
 
 		return user;
-	}
-
-	@Reference(unbind = "-")
-	protected void setConfigurationProvider(
-		ConfigurationProvider configurationProvider) {
-
-		_configurationProvider = configurationProvider;
-	}
-
-	@Reference(unbind = "-")
-	protected void setUserImporter(UserImporter userImporter) {
-		_userImporter = userImporter;
-	}
-
-	@Reference(unbind = "-")
-	protected void setUserLocalService(UserLocalService userLocalService) {
-		_userLocalService = userLocalService;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(TokenAutoLogin.class);

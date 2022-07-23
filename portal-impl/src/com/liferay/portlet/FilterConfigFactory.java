@@ -40,7 +40,6 @@ public class FilterConfigFactory {
 	}
 
 	private FilterConfigFactory() {
-		_pool = new ConcurrentHashMap<>();
 	}
 
 	private FilterConfig _create(
@@ -80,6 +79,7 @@ public class FilterConfigFactory {
 	private static final FilterConfigFactory _filterConfigFactory =
 		new FilterConfigFactory();
 
-	private final Map<String, Map<String, FilterConfig>> _pool;
+	private final Map<String, Map<String, FilterConfig>> _pool =
+		new ConcurrentHashMap<>();
 
 }

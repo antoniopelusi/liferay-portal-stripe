@@ -266,7 +266,7 @@ public class CommerceInventoryWarehouseServiceImpl
 	}
 
 	@Override
-	public List<CommerceInventoryWarehouse> searchCommerceInventoryWarehouses(
+	public List<CommerceInventoryWarehouse> search(
 			long companyId, Boolean active, String commerceCountryCode,
 			String keywords, int start, int end, Sort sort)
 		throws PortalException {
@@ -279,10 +279,8 @@ public class CommerceInventoryWarehouseServiceImpl
 			getPermissionChecker(), null,
 			CommerceInventoryActionKeys.MANAGE_INVENTORY);
 
-		return commerceInventoryWarehouseLocalService.
-			searchCommerceInventoryWarehouses(
-				companyId, active, commerceCountryCode, keywords, start, end,
-				sort);
+		return commerceInventoryWarehouseLocalService.search(
+			companyId, active, commerceCountryCode, keywords, start, end, sort);
 	}
 
 	@Override

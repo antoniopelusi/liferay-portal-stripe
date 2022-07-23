@@ -1,10 +1,12 @@
 Bundle-Name: Liferay Batch Engine Service
 Bundle-SymbolicName: com.liferay.batch.engine.service
-Bundle-Version: 4.0.2
+Bundle-Version: 4.0.35
 Import-Package:\
-	com.github.*;resolution:=optional,\
+	!com.graphbuilder.*,\
 	\
-	com.graphbuilder.*;resolution:=optional,\
+	!org.apache.tools.ant.*,\
+	\
+	com.github.*;resolution:=optional,\
 	\
 	com.microsoft.schemas.office.powerpoint.*;resolution:=optional,\
 	com.microsoft.schemas.office.word.*;resolution:=optional,\
@@ -28,6 +30,6 @@ Import-Package:\
 	org.tukaani.*;resolution:=optional,\
 	\
 	*
-Liferay-Require-SchemaVersion: 4.1.0
+Liferay-Require-SchemaVersion: 4.6.0
 Liferay-Service: true
 -dsannotations-options: inherit

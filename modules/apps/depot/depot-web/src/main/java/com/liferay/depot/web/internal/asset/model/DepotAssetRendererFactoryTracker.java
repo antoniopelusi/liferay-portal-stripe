@@ -18,8 +18,6 @@ import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.depot.web.internal.application.controller.DepotApplicationController;
 import com.liferay.osgi.util.ServiceTrackerFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 
@@ -60,19 +58,11 @@ public class DepotAssetRendererFactoryTracker {
 		for (ServiceRegistration<AssetRendererFactory<?>> serviceRegistration :
 				_serviceRegistrations.values()) {
 
-			try {
-				serviceRegistration.unregister();
-			}
-			catch (IllegalStateException illegalStateException) {
-				_log.error(illegalStateException, illegalStateException);
-			}
+			serviceRegistration.unregister();
 		}
 
 		_serviceRegistrations.clear();
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		DepotAssetRendererFactoryTracker.class);
 
 	@Reference
 	private DepotApplicationController _depotApplicationController;
@@ -102,7 +92,6 @@ public class DepotAssetRendererFactoryTracker {
 					serviceRegistrations) {
 
 			_bundleContext = bundleContext;
-
 			_serviceRegistrations = serviceRegistrations;
 		}
 
@@ -128,10 +117,20 @@ public class DepotAssetRendererFactoryTracker {
 					key, serviceReference.getProperty(key));
 			}
 
-			depotAssetRendererFactoryWrapperProperties.put(
-				"service.ranking", Integer.MAX_VALUE);
+			Integer serviceRanking = (Integer)serviceReference.getProperty(
+				"service.ranking:Integer");
 
-			AssetRendererFactory<?> depotAssetRendererFactoryWrapper =
+			long defaultRanking = Integer.MAX_VALUE - 1000;
+
+			if (serviceRanking != null) {
+				defaultRanking += serviceRanking;
+			}
+
+			depotAssetRendererFactoryWrapperProperties.put(
+				"service.ranking",
+				(int)Math.min(Integer.MAX_VALUE, defaultRanking));
+
+			AssetRendererFactory<?> depotAssetRendererFactory =
 				new DepotAssetRendererFactoryWrapper(
 					assetRendererFactory, _depotApplicationController,
 					_depotEntryLocalService, _groupLocalService);
@@ -140,12 +139,12 @@ public class DepotAssetRendererFactoryTracker {
 				_bundleContext.registerService(
 					(Class<AssetRendererFactory<?>>)
 						(Class<?>)AssetRendererFactory.class,
-					depotAssetRendererFactoryWrapper,
+					depotAssetRendererFactory,
 					depotAssetRendererFactoryWrapperProperties);
 
 			_serviceRegistrations.put(serviceReference, serviceRegistration);
 
-			return depotAssetRendererFactoryWrapper;
+			return depotAssetRendererFactory;
 		}
 
 		@Override

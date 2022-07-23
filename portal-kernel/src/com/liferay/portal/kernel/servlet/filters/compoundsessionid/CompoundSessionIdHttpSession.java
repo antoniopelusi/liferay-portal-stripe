@@ -23,8 +23,8 @@ import javax.servlet.http.HttpSession;
  */
 public class CompoundSessionIdHttpSession extends HttpSessionWrapper {
 
-	public CompoundSessionIdHttpSession(HttpSession session) {
-		super(session);
+	public CompoundSessionIdHttpSession(HttpSession httpSession) {
+		super(httpSession);
 	}
 
 	@Override

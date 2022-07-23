@@ -49,9 +49,7 @@ public class SamlIdpSpSessionWrapper
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("samlIdpSsoSessionId", getSamlIdpSsoSessionId());
-		attributes.put("samlSpEntityId", getSamlSpEntityId());
-		attributes.put("nameIdFormat", getNameIdFormat());
-		attributes.put("nameIdValue", getNameIdValue());
+		attributes.put("samlPeerBindingId", getSamlPeerBindingId());
 
 		return attributes;
 	}
@@ -100,23 +98,16 @@ public class SamlIdpSpSessionWrapper
 			setSamlIdpSsoSessionId(samlIdpSsoSessionId);
 		}
 
-		String samlSpEntityId = (String)attributes.get("samlSpEntityId");
+		Long samlPeerBindingId = (Long)attributes.get("samlPeerBindingId");
 
-		if (samlSpEntityId != null) {
-			setSamlSpEntityId(samlSpEntityId);
+		if (samlPeerBindingId != null) {
+			setSamlPeerBindingId(samlPeerBindingId);
 		}
+	}
 
-		String nameIdFormat = (String)attributes.get("nameIdFormat");
-
-		if (nameIdFormat != null) {
-			setNameIdFormat(nameIdFormat);
-		}
-
-		String nameIdValue = (String)attributes.get("nameIdValue");
-
-		if (nameIdValue != null) {
-			setNameIdValue(nameIdValue);
-		}
+	@Override
+	public SamlIdpSpSession cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -150,26 +141,6 @@ public class SamlIdpSpSessionWrapper
 	}
 
 	/**
-	 * Returns the name ID format of this saml idp sp session.
-	 *
-	 * @return the name ID format of this saml idp sp session
-	 */
-	@Override
-	public String getNameIdFormat() {
-		return model.getNameIdFormat();
-	}
-
-	/**
-	 * Returns the name ID value of this saml idp sp session.
-	 *
-	 * @return the name ID value of this saml idp sp session
-	 */
-	@Override
-	public String getNameIdValue() {
-		return model.getNameIdValue();
-	}
-
-	/**
 	 * Returns the primary key of this saml idp sp session.
 	 *
 	 * @return the primary key of this saml idp sp session
@@ -200,13 +171,13 @@ public class SamlIdpSpSessionWrapper
 	}
 
 	/**
-	 * Returns the saml sp entity ID of this saml idp sp session.
+	 * Returns the saml peer binding ID of this saml idp sp session.
 	 *
-	 * @return the saml sp entity ID of this saml idp sp session
+	 * @return the saml peer binding ID of this saml idp sp session
 	 */
 	@Override
-	public String getSamlSpEntityId() {
-		return model.getSamlSpEntityId();
+	public long getSamlPeerBindingId() {
+		return model.getSamlPeerBindingId();
 	}
 
 	/**
@@ -275,26 +246,6 @@ public class SamlIdpSpSessionWrapper
 	}
 
 	/**
-	 * Sets the name ID format of this saml idp sp session.
-	 *
-	 * @param nameIdFormat the name ID format of this saml idp sp session
-	 */
-	@Override
-	public void setNameIdFormat(String nameIdFormat) {
-		model.setNameIdFormat(nameIdFormat);
-	}
-
-	/**
-	 * Sets the name ID value of this saml idp sp session.
-	 *
-	 * @param nameIdValue the name ID value of this saml idp sp session
-	 */
-	@Override
-	public void setNameIdValue(String nameIdValue) {
-		model.setNameIdValue(nameIdValue);
-	}
-
-	/**
 	 * Sets the primary key of this saml idp sp session.
 	 *
 	 * @param primaryKey the primary key of this saml idp sp session
@@ -325,13 +276,13 @@ public class SamlIdpSpSessionWrapper
 	}
 
 	/**
-	 * Sets the saml sp entity ID of this saml idp sp session.
+	 * Sets the saml peer binding ID of this saml idp sp session.
 	 *
-	 * @param samlSpEntityId the saml sp entity ID of this saml idp sp session
+	 * @param samlPeerBindingId the saml peer binding ID of this saml idp sp session
 	 */
 	@Override
-	public void setSamlSpEntityId(String samlSpEntityId) {
-		model.setSamlSpEntityId(samlSpEntityId);
+	public void setSamlPeerBindingId(long samlPeerBindingId) {
+		model.setSamlPeerBindingId(samlPeerBindingId);
 	}
 
 	/**

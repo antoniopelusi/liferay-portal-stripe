@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -247,34 +249,6 @@ public class DLFileEntryMetadataModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DLFileEntryMetadata>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DLFileEntryMetadata.class.getClassLoader(),
-			DLFileEntryMetadata.class, ModelWrapper.class);
-
-		try {
-			Constructor<DLFileEntryMetadata> constructor =
-				(Constructor<DLFileEntryMetadata>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DLFileEntryMetadata, Object>>
@@ -606,6 +580,33 @@ public class DLFileEntryMetadataModelImpl
 	}
 
 	@Override
+	public DLFileEntryMetadata cloneWithOriginalValues() {
+		DLFileEntryMetadataImpl dlFileEntryMetadataImpl =
+			new DLFileEntryMetadataImpl();
+
+		dlFileEntryMetadataImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		dlFileEntryMetadataImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		dlFileEntryMetadataImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		dlFileEntryMetadataImpl.setFileEntryMetadataId(
+			this.<Long>getColumnOriginalValue("fileEntryMetadataId"));
+		dlFileEntryMetadataImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		dlFileEntryMetadataImpl.setDDMStorageId(
+			this.<Long>getColumnOriginalValue("DDMStorageId"));
+		dlFileEntryMetadataImpl.setDDMStructureId(
+			this.<Long>getColumnOriginalValue("DDMStructureId"));
+		dlFileEntryMetadataImpl.setFileEntryId(
+			this.<Long>getColumnOriginalValue("fileEntryId"));
+		dlFileEntryMetadataImpl.setFileVersionId(
+			this.<Long>getColumnOriginalValue("fileVersionId"));
+
+		return dlFileEntryMetadataImpl;
+	}
+
+	@Override
 	public int compareTo(DLFileEntryMetadata dlFileEntryMetadata) {
 		long primaryKey = dlFileEntryMetadata.getPrimaryKey();
 
@@ -711,7 +712,7 @@ public class DLFileEntryMetadataModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -722,9 +723,27 @@ public class DLFileEntryMetadataModelImpl
 			Function<DLFileEntryMetadata, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DLFileEntryMetadata)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DLFileEntryMetadata)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -771,7 +790,9 @@ public class DLFileEntryMetadataModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DLFileEntryMetadata>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DLFileEntryMetadata.class, ModelWrapper.class);
 
 	}
 

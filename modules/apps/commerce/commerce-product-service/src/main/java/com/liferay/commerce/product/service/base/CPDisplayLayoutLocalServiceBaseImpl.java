@@ -48,6 +48,7 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -71,10 +72,11 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
-import com.liferay.portal.kernel.service.persistence.LayoutPersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -101,7 +103,8 @@ import javax.sql.DataSource;
  */
 public abstract class CPDisplayLayoutLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
-	implements CPDisplayLayoutLocalService, IdentifiableOSGiService {
+	implements CPDisplayLayoutLocalService, CTService<CPDisplayLayout>,
+			   IdentifiableOSGiService {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -179,6 +182,13 @@ public abstract class CPDisplayLayoutLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return cpDisplayLayoutPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -1623,47 +1633,6 @@ public abstract class CPDisplayLayoutLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the layout local service.
-	 *
-	 * @return the layout local service
-	 */
-	public com.liferay.portal.kernel.service.LayoutLocalService
-		getLayoutLocalService() {
-
-		return layoutLocalService;
-	}
-
-	/**
-	 * Sets the layout local service.
-	 *
-	 * @param layoutLocalService the layout local service
-	 */
-	public void setLayoutLocalService(
-		com.liferay.portal.kernel.service.LayoutLocalService
-			layoutLocalService) {
-
-		this.layoutLocalService = layoutLocalService;
-	}
-
-	/**
-	 * Returns the layout persistence.
-	 *
-	 * @return the layout persistence
-	 */
-	public LayoutPersistence getLayoutPersistence() {
-		return layoutPersistence;
-	}
-
-	/**
-	 * Sets the layout persistence.
-	 *
-	 * @param layoutPersistence the layout persistence
-	 */
-	public void setLayoutPersistence(LayoutPersistence layoutPersistence) {
-		this.layoutPersistence = layoutPersistence;
-	}
-
-	/**
 	 * Returns the resource local service.
 	 *
 	 * @return the resource local service
@@ -1751,8 +1720,23 @@ public abstract class CPDisplayLayoutLocalServiceBaseImpl
 		return CPDisplayLayoutLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<CPDisplayLayout> getCTPersistence() {
+		return cpDisplayLayoutPersistence;
+	}
+
+	@Override
+	public Class<CPDisplayLayout> getModelClass() {
 		return CPDisplayLayout.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CPDisplayLayout>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(cpDisplayLayoutPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -2016,15 +2000,6 @@ public abstract class CPDisplayLayoutLocalServiceBaseImpl
 
 	@ServiceReference(type = ClassNamePersistence.class)
 	protected ClassNamePersistence classNamePersistence;
-
-	@ServiceReference(
-		type = com.liferay.portal.kernel.service.LayoutLocalService.class
-	)
-	protected com.liferay.portal.kernel.service.LayoutLocalService
-		layoutLocalService;
-
-	@ServiceReference(type = LayoutPersistence.class)
-	protected LayoutPersistence layoutPersistence;
 
 	@ServiceReference(
 		type = com.liferay.portal.kernel.service.ResourceLocalService.class

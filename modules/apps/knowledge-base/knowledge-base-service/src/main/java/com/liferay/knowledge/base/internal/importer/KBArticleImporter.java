@@ -75,16 +75,16 @@ public class KBArticleImporter {
 			ZipReader zipReader = ZipReaderFactoryUtil.getZipReader(
 				inputStream);
 
-			return processKBArticleFiles(
+			return _processKBArticleFiles(
 				userId, groupId, parentKBFolderId, prioritizeByNumericalPrefix,
-				zipReader, getMetadata(zipReader), serviceContext);
+				zipReader, _getMetadata(zipReader), serviceContext);
 		}
 		catch (IOException ioException) {
 			throw new KBArticleImportException(ioException);
 		}
 	}
 
-	protected KBArticle addKBArticleMarkdown(
+	private KBArticle _addKBArticleMarkdown(
 			long userId, long groupId, long parentKBFolderId,
 			long parentResourceClassNameId, long parentResourcePrimaryKey,
 			String markdown, String fileEntryName, ZipReader zipReader,
@@ -113,7 +113,8 @@ public class KBArticleImporter {
 					WorkflowConstants.ACTION_SAVE_DRAFT);
 
 				kbArticle = _kbArticleLocalService.addKBArticle(
-					userId, parentResourceClassNameId, parentResourcePrimaryKey,
+					null, userId, parentResourceClassNameId,
+					parentResourcePrimaryKey,
 					kbArticleMarkdownConverter.getTitle(), urlTitle, markdown,
 					null, kbArticleMarkdownConverter.getSourceURL(), null, null,
 					serviceContext);
@@ -126,14 +127,11 @@ public class KBArticleImporter {
 				assetCategoryException);
 		}
 		catch (Exception exception) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Unable to add basic KB article for file entry ");
-			sb.append(fileEntryName);
-			sb.append(": ");
-			sb.append(exception.getLocalizedMessage());
-
-			throw new KBArticleImportException(sb.toString(), exception);
+			throw new KBArticleImportException(
+				StringBundler.concat(
+					"Unable to add basic KB article for file entry ",
+					fileEntryName, ": ", exception.getLocalizedMessage()),
+				exception);
 		}
 
 		try {
@@ -149,18 +147,15 @@ public class KBArticleImporter {
 				serviceContext);
 		}
 		catch (Exception exception) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Unable to update KB article for file entry ");
-			sb.append(fileEntryName);
-			sb.append(": ");
-			sb.append(exception.getLocalizedMessage());
-
-			throw new KBArticleImportException(sb.toString(), exception);
+			throw new KBArticleImportException(
+				StringBundler.concat(
+					"Unable to update KB article for file entry ",
+					fileEntryName, ": ", exception.getLocalizedMessage()),
+				exception);
 		}
 	}
 
-	protected double getKBArchiveResourcePriority(
+	private double _getKBArchiveResourcePriority(
 			KBArchive.Resource kbArchiveResource)
 		throws KBArticleImportException {
 
@@ -198,7 +193,7 @@ public class KBArticleImporter {
 		return KBArticleConstants.DEFAULT_PRIORITY;
 	}
 
-	protected Map<String, String> getMetadata(ZipReader zipReader)
+	private Map<String, String> _getMetadata(ZipReader zipReader)
 		throws KBArticleImportException {
 
 		try (InputStream inputStream = zipReader.getEntryAsInputStream(
@@ -218,9 +213,8 @@ public class KBArticleImporter {
 				Object value = entry.getValue();
 
 				if (value != null) {
-					Object key = entry.getKey();
-
-					metadata.put(key.toString(), value.toString());
+					metadata.put(
+						String.valueOf(entry.getKey()), value.toString());
 				}
 			}
 
@@ -231,7 +225,7 @@ public class KBArticleImporter {
 		}
 	}
 
-	protected int processKBArticleFiles(
+	private int _processKBArticleFiles(
 			long userId, long groupId, long parentKBFolderId,
 			boolean prioritizeByNumericalPrefix, ZipReader zipReader,
 			Map<String, String> metadata, ServiceContext serviceContext)
@@ -265,7 +259,7 @@ public class KBArticleImporter {
 						parentIntroKBArticle.getResourcePrimKey();
 				}
 
-				introKBArticle = addKBArticleMarkdown(
+				introKBArticle = _addKBArticleMarkdown(
 					userId, groupId, parentKBFolderId,
 					sectionResourceClassNameId, sectionResourcePrimaryKey,
 					introFile.getContent(), introFile.getName(), zipReader,
@@ -276,7 +270,7 @@ public class KBArticleImporter {
 				introFileNameKBArticleMap.put(introFile, introKBArticle);
 
 				if (prioritizeByNumericalPrefix) {
-					double introFilePriority = getKBArchiveResourcePriority(
+					double introFilePriority = _getKBArchiveResourcePriority(
 						folder);
 
 					_kbArticleLocalService.moveKBArticle(
@@ -306,7 +300,7 @@ public class KBArticleImporter {
 					}
 				}
 
-				KBArticle kbArticle = addKBArticleMarkdown(
+				KBArticle kbArticle = _addKBArticleMarkdown(
 					userId, groupId, parentKBFolderId,
 					sectionResourceClassNameId, sectionResourcePrimaryKey,
 					markdown, file.getName(), zipReader, metadata,
@@ -315,7 +309,7 @@ public class KBArticleImporter {
 				importedKBArticlesCount++;
 
 				if (prioritizeByNumericalPrefix) {
-					double nonintroFilePriority = getKBArchiveResourcePriority(
+					double nonintroFilePriority = _getKBArchiveResourcePriority(
 						file);
 
 					int value = Double.compare(

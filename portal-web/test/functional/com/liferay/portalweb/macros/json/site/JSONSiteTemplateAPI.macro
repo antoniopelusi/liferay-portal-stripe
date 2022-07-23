@@ -1,0 +1,127 @@
+definition {
+
+	macro _addSiteTemplateByName {
+		Variables.assertDefined(parameterList = "${siteTemplateName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layoutsetprototype/add-layout-set-prototype \
+				-u test@liferay.com:test \
+				-d name=${name} \
+				-d description=${description} \
+				-d active=${active} \
+				-d layoutsUpdateable=${layoutsUpdateable} \
+				-d readyForPropagation=${readyForPropagation}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	macro _applyTemplateToSite {
+		Variables.assertDefined(parameterList = "${groupId},${privateLayout},${layoutSetPrototypeUuid}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layoutset/update-layout-set-prototype-link-enabled \
+                           -u test@liferay.com:test \
+                           -d groupId=${groupId}  \
+                           -d privateLayout=${privateLayout} \
+                           -d layoutSetPrototypeLinkEnabled=true \
+                           -d layoutSetPrototypeUuid=${layoutSetPrototypeUuid}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	macro _deleteNonDefaultSiteTemplates {
+		Variables.assertDefined(parameterList = "${companyId}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layoutsetprototype/delete-nondefault-layout-set-prototypes \
+				-u test@liferay.com:test \
+				-d companyId=${companyId}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	macro _deleteSiteTemplateById {
+		Variables.assertDefined(parameterList = "${layoutSetPrototypeId}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layoutsetprototype/delete-layout-set-prototype \
+				-u test@liferay.com:test \
+				-d layoutSetPrototypeId=${layoutSetPrototypeId}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	macro _getAllNonDefaultSiteTemplateId {
+		var companyId = JSONCompany.getCompanyId();
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layoutsetprototype/get-layout-set-prototypes \
+				-u test@liferay.com:test \
+				-d companyId=${companyId}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+
+		var siteTemplateIds = JSONCurlUtil.post("${curl}", "$..['layoutSetPrototypeId']");
+
+		return "${siteTemplateIds}";
+	}
+
+	macro _getSiteTemplateIdByName {
+		Variables.assertDefined(parameterList = "${siteTemplateName}");
+
+		var companyId = JSONCompany.getCompanyId();
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layoutsetprototype/get-layout-set-prototypes \
+                          -u test@liferay.com:test \
+                          -d companyId=${companyId}
+		''';
+		var layoutSetPrototypeId = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${siteTemplateName}')]['layoutSetPrototypeId']");
+
+		if ("${layoutSetPrototypeId}" == "") {
+			fail("FAIL. Cannot find layout.");
+		}
+
+		return "${layoutSetPrototypeId}";
+	}
+
+	macro _getSiteTemplateUuidByName {
+		Variables.assertDefined(parameterList = "${siteTemplateName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layoutsetprototype/get-layout-set-prototypes \
+				 -u test@liferay.com:test \
+				 -d companyId=${companyId}
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+
+		var uuid = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${siteTemplateName}')]['uuid']");
+
+		if ("${uuid}" == "") {
+			fail("FAIL. Cannot find layout.");
+		}
+
+		return "${uuid}";
+	}
+
+}

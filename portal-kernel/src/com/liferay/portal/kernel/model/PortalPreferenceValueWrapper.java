@@ -44,6 +44,7 @@ public class PortalPreferenceValueWrapper
 
 		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("portalPreferenceValueId", getPortalPreferenceValueId());
+		attributes.put("companyId", getCompanyId());
 		attributes.put("portalPreferencesId", getPortalPreferencesId());
 		attributes.put("index", getIndex());
 		attributes.put("key", getKey());
@@ -67,6 +68,12 @@ public class PortalPreferenceValueWrapper
 
 		if (portalPreferenceValueId != null) {
 			setPortalPreferenceValueId(portalPreferenceValueId);
+		}
+
+		Long companyId = (Long)attributes.get("companyId");
+
+		if (companyId != null) {
+			setCompanyId(companyId);
 		}
 
 		Long portalPreferencesId = (Long)attributes.get("portalPreferencesId");
@@ -104,6 +111,21 @@ public class PortalPreferenceValueWrapper
 		if (smallValue != null) {
 			setSmallValue(smallValue);
 		}
+	}
+
+	@Override
+	public PortalPreferenceValue cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	/**
+	 * Returns the company ID of this portal preference value.
+	 *
+	 * @return the company ID of this portal preference value
+	 */
+	@Override
+	public long getCompanyId() {
+		return model.getCompanyId();
 	}
 
 	/**
@@ -204,6 +226,16 @@ public class PortalPreferenceValueWrapper
 	@Override
 	public void persist() {
 		model.persist();
+	}
+
+	/**
+	 * Sets the company ID of this portal preference value.
+	 *
+	 * @param companyId the company ID of this portal preference value
+	 */
+	@Override
+	public void setCompanyId(long companyId) {
+		model.setCompanyId(companyId);
 	}
 
 	/**

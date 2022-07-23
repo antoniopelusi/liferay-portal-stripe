@@ -201,7 +201,7 @@ public class CommerceShipmentDataSetDataProvider
 		throws PortalException {
 
 		List<CommerceChannel> commerceChannels =
-			_commerceChannelLocalService.searchCommerceChannels(companyId);
+			_commerceChannelLocalService.search(companyId);
 
 		Stream<CommerceChannel> stream = commerceChannels.stream();
 
@@ -258,7 +258,7 @@ public class CommerceShipmentDataSetDataProvider
 	private Portal _portal;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_SHIPMENT + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_SHIPMENT + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

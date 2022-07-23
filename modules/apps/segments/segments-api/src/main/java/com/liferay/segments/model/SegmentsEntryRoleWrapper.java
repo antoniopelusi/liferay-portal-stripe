@@ -121,6 +121,11 @@ public class SegmentsEntryRoleWrapper
 		}
 	}
 
+	@Override
+	public SegmentsEntryRole cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this segments entry role.
 	 *

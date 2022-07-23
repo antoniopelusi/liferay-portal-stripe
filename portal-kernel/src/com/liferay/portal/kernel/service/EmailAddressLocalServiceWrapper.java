@@ -25,6 +25,10 @@ public class EmailAddressLocalServiceWrapper
 	implements EmailAddressLocalService,
 			   ServiceWrapper<EmailAddressLocalService> {
 
+	public EmailAddressLocalServiceWrapper() {
+		this(null);
+	}
+
 	public EmailAddressLocalServiceWrapper(
 		EmailAddressLocalService emailAddressLocalService) {
 
@@ -142,6 +146,13 @@ public class EmailAddressLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _emailAddressLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _emailAddressLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

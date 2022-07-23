@@ -364,4 +364,7 @@ public interface KaleoNotificationRecipientModel
 	 */
 	public void setNotificationReceptionType(String notificationReceptionType);
 
+	@Override
+	public KaleoNotificationRecipient cloneWithOriginalValues();
+
 }

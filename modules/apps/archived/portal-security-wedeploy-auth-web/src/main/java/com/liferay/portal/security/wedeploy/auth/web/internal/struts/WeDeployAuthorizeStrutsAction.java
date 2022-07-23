@@ -52,7 +52,7 @@ public class WeDeployAuthorizeStrutsAction implements StrutsAction {
 				WebKeys.THEME_DISPLAY);
 
 		if (!themeDisplay.isSignedIn()) {
-			sendLoginRedirect(
+			_sendLoginRedirect(
 				httpServletRequest, httpServletResponse,
 				themeDisplay.getPlid());
 
@@ -70,7 +70,7 @@ public class WeDeployAuthorizeStrutsAction implements StrutsAction {
 				"redirectURI",
 				ParamUtil.getString(httpServletRequest, "redirect_uri")
 			).setParameter(
-				"saveLastPath", Boolean.FALSE.toString()
+				"saveLastPath", false
 			).setPortletMode(
 				PortletMode.VIEW
 			).buildString());
@@ -78,7 +78,7 @@ public class WeDeployAuthorizeStrutsAction implements StrutsAction {
 		return null;
 	}
 
-	protected void sendLoginRedirect(
+	private void _sendLoginRedirect(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse, long plid)
 		throws Exception {
@@ -91,7 +91,7 @@ public class WeDeployAuthorizeStrutsAction implements StrutsAction {
 			).setMVCRenderCommandName(
 				"/login/login"
 			).setParameter(
-				"saveLastPath", Boolean.FALSE.toString()
+				"saveLastPath", false
 			).setPortletMode(
 				PortletMode.VIEW
 			).setWindowState(

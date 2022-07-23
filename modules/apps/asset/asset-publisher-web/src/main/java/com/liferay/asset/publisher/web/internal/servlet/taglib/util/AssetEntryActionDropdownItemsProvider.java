@@ -97,7 +97,7 @@ public class AssetEntryActionDropdownItemsProvider {
 						}
 						catch (Exception exception) {
 							if (_log.isDebugEnabled()) {
-								_log.debug(exception, exception);
+								_log.debug(exception);
 							}
 
 							continue;
@@ -152,19 +152,18 @@ public class AssetEntryActionDropdownItemsProvider {
 				_assetRenderer.getURLEdit(
 					_liferayPortletRequest, _liferayPortletResponse,
 					LiferayWindowState.NORMAL, redirect)
-			).setParameter(
-				"portletResource",
+			).setPortletResource(
 				() -> {
 					PortletDisplay portletDisplay =
 						_themeDisplay.getPortletDisplay();
 
 					return portletDisplay.getPortletName();
 				}
-			).build();
+			).buildPortletURL();
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

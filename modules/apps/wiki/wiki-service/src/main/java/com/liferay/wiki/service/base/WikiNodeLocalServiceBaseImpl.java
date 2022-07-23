@@ -57,8 +57,6 @@ import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.service.WikiNodeLocalService;
 import com.liferay.wiki.service.WikiNodeLocalServiceUtil;
 import com.liferay.wiki.service.persistence.WikiNodePersistence;
-import com.liferay.wiki.service.persistence.WikiPageFinder;
-import com.liferay.wiki.service.persistence.WikiPagePersistence;
 
 import java.io.Serializable;
 
@@ -158,6 +156,13 @@ public abstract class WikiNodeLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return wikiNodePersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -262,6 +267,48 @@ public abstract class WikiNodeLocalServiceBaseImpl
 	@Override
 	public WikiNode fetchWikiNodeByUuidAndGroupId(String uuid, long groupId) {
 		return wikiNodePersistence.fetchByUUID_G(uuid, groupId);
+	}
+
+	/**
+	 * Returns the wiki node with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki node's external reference code
+	 * @return the matching wiki node, or <code>null</code> if a matching wiki node could not be found
+	 */
+	@Override
+	public WikiNode fetchWikiNodeByExternalReferenceCode(
+		long groupId, String externalReferenceCode) {
+
+		return wikiNodePersistence.fetchByG_ERC(groupId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchWikiNodeByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Override
+	public WikiNode fetchWikiNodeByReferenceCode(
+		long groupId, String externalReferenceCode) {
+
+		return fetchWikiNodeByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the wiki node with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki node's external reference code
+	 * @return the matching wiki node
+	 * @throws PortalException if a matching wiki node could not be found
+	 */
+	@Override
+	public WikiNode getWikiNodeByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return wikiNodePersistence.findByG_ERC(groupId, externalReferenceCode);
 	}
 
 	/**
@@ -655,23 +702,5 @@ public abstract class WikiNodeLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected WikiPagePersistence wikiPagePersistence;
-
-	@Reference
-	protected WikiPageFinder wikiPageFinder;
 
 }

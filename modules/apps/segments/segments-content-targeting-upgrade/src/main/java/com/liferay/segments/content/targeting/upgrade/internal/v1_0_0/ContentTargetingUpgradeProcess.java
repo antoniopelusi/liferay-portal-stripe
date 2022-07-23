@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -54,11 +56,11 @@ public class ContentTargetingUpgradeProcess extends UpgradeProcess {
 			return;
 		}
 
-		upgradeContentTargetingUserSegments();
-		deleteContentTargetingData();
+		_upgradeContentTargetingUserSegments();
+		_deleteContentTargetingData();
 	}
 
-	protected void deleteContentTargetingData() throws Exception {
+	private void _deleteContentTargetingData() throws Exception {
 		runSQL(
 			"delete from ClassName_ where value like '" + _CT_PACKAGE_NAME +
 				"%'");
@@ -99,18 +101,24 @@ public class ContentTargetingUpgradeProcess extends UpgradeProcess {
 		_dropTable("CT_Visited_PageVisited");
 	}
 
-	protected String getCriteria(long userSegmentId) throws Exception {
+	private void _dropTable(String tableName) throws Exception {
+		if (hasTable(tableName)) {
+			runSQL("drop table " + tableName);
+		}
+	}
+
+	private String _getCriteria(long userSegmentId) throws Exception {
 		Criteria criteria = new Criteria();
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select companyId, ruleKey, typeSettings from " +
 					"CT_RuleInstance where userSegmentId = ?")) {
 
-			ps.setLong(1, userSegmentId);
+			preparedStatement.setLong(1, userSegmentId);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					String ruleKey = rs.getString("ruleKey");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					String ruleKey = resultSet.getString("ruleKey");
 
 					RuleConverter ruleConverter =
 						_ruleConverterRegistry.getRuleConverter(ruleKey);
@@ -125,8 +133,8 @@ public class ContentTargetingUpgradeProcess extends UpgradeProcess {
 						continue;
 					}
 
-					long companyId = rs.getLong("companyId");
-					String typeSettings = rs.getString("typeSettings");
+					long companyId = resultSet.getLong("companyId");
+					String typeSettings = resultSet.getString("typeSettings");
 
 					ruleConverter.convert(companyId, criteria, typeSettings);
 				}
@@ -136,16 +144,16 @@ public class ContentTargetingUpgradeProcess extends UpgradeProcess {
 		return CriteriaSerializer.serialize(criteria);
 	}
 
-	protected void upgradeContentTargetingUserSegments() throws Exception {
+	private void _upgradeContentTargetingUserSegments() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select * from CT_UserSegment");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
 			ServiceContext serviceContext = new ServiceContext();
 
-			while (rs.next()) {
-				long userSegmentId = rs.getLong("userSegmentId");
+			while (resultSet.next()) {
+				long userSegmentId = resultSet.getLong("userSegmentId");
 
 				if (_log.isInfoEnabled()) {
 					_log.info(
@@ -153,29 +161,41 @@ public class ContentTargetingUpgradeProcess extends UpgradeProcess {
 							userSegmentId);
 				}
 
+				String name = resultSet.getString("name");
+
 				Map<Locale, String> nameMap =
-					LocalizationUtil.getLocalizationMap(rs.getString("name"));
+					LocalizationUtil.getLocalizationMap(name);
+
 				Map<Locale, String> descriptionMap =
 					LocalizationUtil.getLocalizationMap(
-						rs.getString("description"));
+						resultSet.getString("description"));
 
-				serviceContext.setScopeGroupId(rs.getLong("groupId"));
+				serviceContext.setScopeGroupId(resultSet.getLong("groupId"));
 				serviceContext.setUserId(
 					PortalUtil.getValidUserId(
-						rs.getLong("companyId"), rs.getLong("userId")));
+						resultSet.getLong("companyId"),
+						resultSet.getLong("userId")));
 
-				_segmentsEntryLocalService.addSegmentsEntry(
-					"ct_" + userSegmentId, nameMap, descriptionMap, true,
-					getCriteria(userSegmentId),
-					SegmentsEntryConstants.SOURCE_DEFAULT, User.class.getName(),
-					serviceContext);
+				Locale defaultLocale = LocaleUtil.fromLanguageId(
+					LocalizationUtil.getDefaultLanguageId(name));
+
+				Locale currentDefaultLocale =
+					LocaleThreadLocal.getSiteDefaultLocale();
+
+				try {
+					LocaleThreadLocal.setSiteDefaultLocale(defaultLocale);
+
+					_segmentsEntryLocalService.addSegmentsEntry(
+						"ct_" + userSegmentId, nameMap, descriptionMap, true,
+						_getCriteria(userSegmentId),
+						SegmentsEntryConstants.SOURCE_DEFAULT,
+						User.class.getName(), serviceContext);
+				}
+				finally {
+					LocaleThreadLocal.setSiteDefaultLocale(
+						currentDefaultLocale);
+				}
 			}
-		}
-	}
-
-	private void _dropTable(String tableName) throws Exception {
-		if (hasTable(tableName)) {
-			runSQL("drop table " + tableName);
 		}
 	}
 

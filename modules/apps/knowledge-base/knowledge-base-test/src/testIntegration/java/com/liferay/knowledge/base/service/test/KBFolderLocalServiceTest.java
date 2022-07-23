@@ -17,6 +17,7 @@ package com.liferay.knowledge.base.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.knowledge.base.constants.KBArticleConstants;
 import com.liferay.knowledge.base.constants.KBFolderConstants;
+import com.liferay.knowledge.base.exception.DuplicateKBFolderExternalReferenceCodeException;
 import com.liferay.knowledge.base.exception.InvalidKBFolderNameException;
 import com.liferay.knowledge.base.exception.KBFolderParentException;
 import com.liferay.knowledge.base.exception.NoSuchFolderException;
@@ -72,6 +73,54 @@ public class KBFolderLocalServiceTest {
 		_user = TestPropsValues.getUser();
 
 		_kbFolder = addKBFolder(KBFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+	}
+
+	@Test(expected = DuplicateKBFolderExternalReferenceCodeException.class)
+	public void testAddKBFolderWithExistingExternalReferenceCode()
+		throws Exception {
+
+		KBFolder kbFolder = addKBFolder(
+			KBFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		KBFolderLocalServiceUtil.addKBFolder(
+			kbFolder.getExternalReferenceCode(), _user.getUserId(),
+			_group.getGroupId(),
+			PortalUtil.getClassNameId(KBFolderConstants.getClassName()),
+			KBFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
+	}
+
+	@Test
+	public void testAddKBFolderWithExternalReferenceCode() throws Exception {
+		String externalReferenceCode = RandomTestUtil.randomString();
+
+		KBFolder kbFolder = KBFolderLocalServiceUtil.addKBFolder(
+			externalReferenceCode, _user.getUserId(), _group.getGroupId(),
+			PortalUtil.getClassNameId(KBFolderConstants.getClassName()),
+			KBFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
+
+		Assert.assertEquals(
+			externalReferenceCode, kbFolder.getExternalReferenceCode());
+	}
+
+	@Test
+	public void testAddKBFolderWithoutExternalReferenceCode() throws Exception {
+		KBFolder kbFolder = KBFolderLocalServiceUtil.addKBFolder(
+			null, _user.getUserId(), _group.getGroupId(),
+			PortalUtil.getClassNameId(KBFolderConstants.getClassName()),
+			KBFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
+
+		Assert.assertEquals(
+			kbFolder.getExternalReferenceCode(),
+			String.valueOf(kbFolder.getKbFolderId()));
 	}
 
 	@Test
@@ -714,7 +763,7 @@ public class KBFolderLocalServiceTest {
 		throws Exception {
 
 		return KBArticleLocalServiceUtil.addKBArticle(
-			_user.getUserId(),
+			null, _user.getUserId(),
 			PortalUtil.getClassNameId(KBArticleConstants.getClassName()),
 			kbArticle.getResourcePrimKey(), title, title,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
@@ -735,7 +784,7 @@ public class KBFolderLocalServiceTest {
 		serviceContext.setModifiedDate(createDate);
 
 		return KBArticleLocalServiceUtil.addKBArticle(
-			_user.getUserId(),
+			null, _user.getUserId(),
 			PortalUtil.getClassNameId(KBFolderConstants.getClassName()),
 			parentKbFolderId, title, title, RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(), null, new String[0], new String[0],
@@ -746,7 +795,7 @@ public class KBFolderLocalServiceTest {
 		throws Exception {
 
 		return KBArticleLocalServiceUtil.addKBArticle(
-			_user.getUserId(),
+			null, _user.getUserId(),
 			PortalUtil.getClassNameId(KBFolderConstants.getClassName()),
 			parentKbFolderId, title, title, RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(), null, new String[0], new String[0],
@@ -758,7 +807,7 @@ public class KBFolderLocalServiceTest {
 		throws PortalException {
 
 		return KBFolderLocalServiceUtil.addKBFolder(
-			_user.getUserId(), _group.getGroupId(),
+			null, _user.getUserId(), _group.getGroupId(),
 			PortalUtil.getClassNameId(KBFolderConstants.getClassName()),
 			parentResourcePrimKey, RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(),

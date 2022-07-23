@@ -39,15 +39,8 @@ public class UserProfile {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{age=");
-		sb.append(_age);
-		sb.append(", _ageGroup=");
-		sb.append(_ageGroup);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{age=", _age, ", _ageGroup=", _ageGroup, "}");
 	}
 
 	private int _age;

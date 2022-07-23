@@ -23,7 +23,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCRenderCommandName(
 	"/portal_instances/view"
-).build();
+).buildPortletURL();
 %>
 
 <clay:management-toolbar
@@ -47,7 +47,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	<portlet:param name="cur" value="<%= String.valueOf(cur) %>" />
 </portlet:renderURL>
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= redirectURL %>" />
 	<aui:input name="className" type="hidden" />

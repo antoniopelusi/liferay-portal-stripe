@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -88,7 +89,7 @@ public class JournalArticleAssetRendererFactory
 		throws PortalException {
 
 		JournalArticleAssetRenderer journalArticleAssetRenderer =
-			getJournalArticleAssetRenderer(journalArticle);
+			_getJournalArticleAssetRenderer(journalArticle);
 
 		journalArticleAssetRenderer.setAssetRendererType(type);
 
@@ -133,7 +134,7 @@ public class JournalArticleAssetRendererFactory
 		}
 
 		JournalArticleAssetRenderer journalArticleAssetRenderer =
-			getJournalArticleAssetRenderer(article);
+			_getJournalArticleAssetRenderer(article);
 
 		journalArticleAssetRenderer.setAssetRendererType(type);
 
@@ -148,7 +149,7 @@ public class JournalArticleAssetRendererFactory
 		JournalArticle article =
 			_journalArticleLocalService.getArticleByUrlTitle(groupId, urlTitle);
 
-		return getJournalArticleAssetRenderer(article);
+		return _getJournalArticleAssetRenderer(article);
 	}
 
 	@Override
@@ -186,7 +187,7 @@ public class JournalArticleAssetRendererFactory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return super.getTypeName(locale, subtypeId);
@@ -204,7 +205,7 @@ public class JournalArticleAssetRendererFactory
 				JournalPortletKeys.JOURNAL, 0, 0, PortletRequest.RENDER_PHASE)
 		).setMVCPath(
 			"/edit_article.jsp"
-		).build();
+		).buildPortletURL();
 
 		if (classTypeId > 0) {
 			DDMStructure ddmStructure =
@@ -233,7 +234,7 @@ public class JournalArticleAssetRendererFactory
 		}
 		catch (WindowStateException windowStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(windowStateException, windowStateException);
+				_log.debug(windowStateException);
 			}
 		}
 
@@ -245,11 +246,8 @@ public class JournalArticleAssetRendererFactory
 			PermissionChecker permissionChecker, long groupId, long classTypeId)
 		throws Exception {
 
-		if (classTypeId == 0) {
-			return false;
-		}
-
-		if (!_ddmStructureModelResourcePermission.contains(
+		if ((classTypeId == 0) ||
+			!_ddmStructureModelResourcePermission.contains(
 				permissionChecker, classTypeId, ActionKeys.VIEW)) {
 
 			return false;
@@ -275,11 +273,11 @@ public class JournalArticleAssetRendererFactory
 		_servletContext = servletContext;
 	}
 
-	protected JournalArticleAssetRenderer getJournalArticleAssetRenderer(
+	private JournalArticleAssetRenderer _getJournalArticleAssetRenderer(
 		JournalArticle article) {
 
 		JournalArticleAssetRenderer journalArticleAssetRenderer =
-			new JournalArticleAssetRenderer(article);
+			new JournalArticleAssetRenderer(article, _htmlParser);
 
 		journalArticleAssetRenderer.setAssetDisplayPageFriendlyURLProvider(
 			_assetDisplayPageFriendlyURLProvider);
@@ -310,6 +308,9 @@ public class JournalArticleAssetRendererFactory
 
 	@Reference
 	private FieldsToDDMFormValuesConverter _fieldsToDDMFormValuesConverter;
+
+	@Reference
+	private HtmlParser _htmlParser;
 
 	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;

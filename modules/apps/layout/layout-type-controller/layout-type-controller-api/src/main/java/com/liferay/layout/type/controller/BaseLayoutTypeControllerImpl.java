@@ -170,17 +170,6 @@ public abstract class BaseLayoutTypeControllerImpl
 	protected void addAttributes(HttpServletRequest httpServletRequest) {
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #createServletResponse(HttpServletResponse,
-	 *             UnsyncStringWriter)}
-	 */
-	@Deprecated
-	protected abstract ServletResponse createServletResponse(
-		HttpServletResponse httpServletResponse,
-		com.liferay.portal.kernel.io.unsync.UnsyncStringWriter
-			unsyncStringWriter);
-
 	protected abstract ServletResponse createServletResponse(
 		HttpServletResponse httpServletResponse,
 		UnsyncStringWriter unsyncStringWriter);

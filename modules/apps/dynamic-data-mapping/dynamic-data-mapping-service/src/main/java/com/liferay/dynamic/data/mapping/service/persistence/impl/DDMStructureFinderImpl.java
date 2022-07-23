@@ -672,15 +672,11 @@ public class DDMStructureFinderImpl
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("AND EXISTS (SELECT 1 FROM DDMStructureVersion WHERE ");
-		sb.append("(DDMStructureVersion.structureId = ");
-		sb.append("DDMStructure.structureId) AND ");
-		sb.append("(DDMStructureVersion.version = DDMStructure.version) AND ");
-		sb.append("(DDMStructureVersion.status = ?))");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"AND EXISTS (SELECT 1 FROM DDMStructureVersion WHERE ",
+			"(DDMStructureVersion.structureId = DDMStructure.structureId) AND ",
+			"(DDMStructureVersion.version = DDMStructure.version) AND ",
+			"(DDMStructureVersion.status = ?))");
 	}
 
 	@Reference

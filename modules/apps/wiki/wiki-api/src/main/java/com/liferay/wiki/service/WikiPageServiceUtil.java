@@ -51,6 +51,12 @@ public class WikiPageServiceUtil {
 			nodeId, title, content, summary, minorEdit, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #addPage(String, long, String, String, String, boolean, String, String,
+	 String, ServiceContext)}
+	 */
+	@Deprecated
 	public static WikiPage addPage(
 			long nodeId, String title, String content, String summary,
 			boolean minorEdit, String format, String parentTitle,
@@ -61,6 +67,18 @@ public class WikiPageServiceUtil {
 		return getService().addPage(
 			nodeId, title, content, summary, minorEdit, format, parentTitle,
 			redirectTitle, serviceContext);
+	}
+
+	public static WikiPage addPage(
+			String externalReferenceCode, long nodeId, String title,
+			String content, String summary, boolean minorEdit, String format,
+			String parentTitle, String redirectTitle,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addPage(
+			externalReferenceCode, nodeId, title, content, summary, minorEdit,
+			format, parentTitle, redirectTitle, serviceContext);
 	}
 
 	public static com.liferay.portal.kernel.repository.model.FileEntry
@@ -160,6 +178,23 @@ public class WikiPageServiceUtil {
 		getService().discardDraft(nodeId, title, version);
 	}
 
+	/**
+	 * Returns the latest wiki page matching the group and the external
+	 * reference code
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki page external reference code
+	 * @return the latest matching wiki page, or <code>null</code> if no
+	 matching wiki page could be found
+	 */
+	public static WikiPage fetchLatestPageByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().fetchLatestPageByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
 	public static WikiPage fetchPage(long nodeId, String title, double version)
 		throws PortalException {
 
@@ -177,6 +212,23 @@ public class WikiPageServiceUtil {
 		throws PortalException {
 
 		return getService().getDraftPage(nodeId, title);
+	}
+
+	/**
+	 * Returns the latest wiki page matching the group and the external
+	 * reference code
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki page external reference code
+	 * @return the latest matching wiki page
+	 * @throws PortalException if a portal exception occurred
+	 */
+	public static WikiPage getLatestPageByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getLatestPageByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	public static List<WikiPage> getNodePages(long nodeId, int max)

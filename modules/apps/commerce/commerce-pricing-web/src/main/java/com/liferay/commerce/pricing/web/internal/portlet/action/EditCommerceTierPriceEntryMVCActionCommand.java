@@ -155,35 +155,46 @@ public class EditCommerceTierPriceEntryMVCActionCommand
 				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/commerce_price_list/edit_commerce_tier_price_entry"
-		).build();
+		).setParameter(
+			"commercePriceEntryId",
+			() -> {
+				long commercePriceEntryId = ParamUtil.getLong(
+					actionRequest, "commercePriceEntryId");
 
-		long commercePriceEntryId = ParamUtil.getLong(
-			actionRequest, "commercePriceEntryId");
+				if (commercePriceEntryId > 0) {
+					return commercePriceEntryId;
+				}
 
-		if (commercePriceEntryId > 0) {
-			portletURL.setParameter(
-				"commercePriceEntryId", String.valueOf(commercePriceEntryId));
-		}
+				return null;
+			}
+		).setParameter(
+			"commercePriceListId",
+			() -> {
+				long commercePriceListId = ParamUtil.getLong(
+					actionRequest, "commercePriceListId");
 
-		long commercePriceListId = ParamUtil.getLong(
-			actionRequest, "commercePriceListId");
+				if (commercePriceListId > 0) {
+					return commercePriceListId;
+				}
 
-		if (commercePriceListId > 0) {
-			portletURL.setParameter(
-				"commercePriceListId", String.valueOf(commercePriceListId));
-		}
+				return null;
+			}
+		).setParameter(
+			"commerceTierPriceEntryId",
+			() -> {
+				if (commerceTierPriceEntryId > 0) {
+					return commerceTierPriceEntryId;
+				}
 
-		if (commerceTierPriceEntryId > 0) {
-			portletURL.setParameter(
-				"commerceTierPriceEntryId",
-				String.valueOf(commerceTierPriceEntryId));
-		}
+				return null;
+			}
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL.toString();
@@ -214,9 +225,9 @@ public class EditCommerceTierPriceEntryMVCActionCommand
 		BigDecimal discountLevel4 = (BigDecimal)ParamUtil.getNumber(
 			actionRequest, "discountLevel4", BigDecimal.ZERO);
 
-		Date now = new Date();
+		Date date = new Date();
 
-		Calendar calendar = CalendarFactoryUtil.getCalendar(now.getTime());
+		Calendar calendar = CalendarFactoryUtil.getCalendar(date.getTime());
 
 		int displayDateMonth = ParamUtil.getInteger(
 			actionRequest, "displayDateMonth", calendar.get(Calendar.MONTH));

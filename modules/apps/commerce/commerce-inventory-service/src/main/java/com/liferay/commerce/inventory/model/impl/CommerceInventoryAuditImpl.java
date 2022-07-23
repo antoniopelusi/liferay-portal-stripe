@@ -18,8 +18,4 @@ package com.liferay.commerce.inventory.model.impl;
  * @author Luca Pellizzon
  */
 public class CommerceInventoryAuditImpl extends CommerceInventoryAuditBaseImpl {
-
-	public CommerceInventoryAuditImpl() {
-	}
-
 }

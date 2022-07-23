@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.TermsFilter;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.search.spi.model.query.contributor.ModelPreFilterContributor;
 import com.liferay.portal.search.spi.model.registrar.ModelSearchSettings;
@@ -47,11 +46,12 @@ public class AccountEntryModelPreFilterContributor
 
 		_filterByAccountGroupIds(booleanFilter, searchContext);
 		_filterByAccountUserIds(booleanFilter, searchContext);
+		_filterByAllowNewUserMembership(booleanFilter, searchContext);
 		_filterByDomains(booleanFilter, searchContext);
 		_filterByOrganizationIds(booleanFilter, searchContext);
 		_filterByParentAccountEntryId(booleanFilter, searchContext);
 		_filterByStatus(booleanFilter, searchContext);
-		_filterByType(booleanFilter, searchContext);
+		_filterByTypes(booleanFilter, searchContext);
 	}
 
 	private void _filterByAccountGroupIds(
@@ -81,6 +81,18 @@ public class AccountEntryModelPreFilterContributor
 			termsFilter.addValues(ArrayUtil.toStringArray(accountUserIds));
 
 			booleanFilter.add(termsFilter, BooleanClauseOccur.MUST);
+		}
+	}
+
+	private void _filterByAllowNewUserMembership(
+		BooleanFilter booleanFilter, SearchContext searchContext) {
+
+		Boolean allowNewUserMembership = (Boolean)searchContext.getAttribute(
+			"allowNewUserMembership");
+
+		if (allowNewUserMembership != null) {
+			booleanFilter.addRequiredTerm(
+				"allowNewUserMembership", allowNewUserMembership);
 		}
 	}
 
@@ -138,14 +150,17 @@ public class AccountEntryModelPreFilterContributor
 		}
 	}
 
-	private void _filterByType(
+	private void _filterByTypes(
 		BooleanFilter booleanFilter, SearchContext searchContext) {
 
-		String type = GetterUtil.getString(
-			searchContext.getAttribute(Field.TYPE));
+		String[] types = (String[])searchContext.getAttribute("types");
 
-		if (Validator.isNotNull(type)) {
-			booleanFilter.addRequiredTerm(Field.TYPE, type);
+		if (ArrayUtil.isNotEmpty(types)) {
+			TermsFilter termsFilter = new TermsFilter(Field.TYPE);
+
+			termsFilter.addValues(types);
+
+			booleanFilter.add(termsFilter, BooleanClauseOccur.MUST);
 		}
 	}
 

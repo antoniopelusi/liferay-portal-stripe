@@ -77,12 +77,16 @@ public class BlogsEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(61);
+		StringBundler sb = new StringBundler(65);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
+		sb.append(", ctCollectionId=");
+		sb.append(ctCollectionId);
 		sb.append(", uuid=");
 		sb.append(uuid);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
 		sb.append(", entryId=");
 		sb.append(entryId);
 		sb.append(", groupId=");
@@ -149,12 +153,20 @@ public class BlogsEntryCacheModel
 		BlogsEntryImpl blogsEntryImpl = new BlogsEntryImpl();
 
 		blogsEntryImpl.setMvccVersion(mvccVersion);
+		blogsEntryImpl.setCtCollectionId(ctCollectionId);
 
 		if (uuid == null) {
 			blogsEntryImpl.setUuid("");
 		}
 		else {
 			blogsEntryImpl.setUuid(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			blogsEntryImpl.setExternalReferenceCode("");
+		}
+		else {
+			blogsEntryImpl.setExternalReferenceCode(externalReferenceCode);
 		}
 
 		blogsEntryImpl.setEntryId(entryId);
@@ -296,7 +308,10 @@ public class BlogsEntryCacheModel
 		throws ClassNotFoundException, IOException {
 
 		mvccVersion = objectInput.readLong();
+
+		ctCollectionId = objectInput.readLong();
 		uuid = objectInput.readUTF();
+		externalReferenceCode = objectInput.readUTF();
 
 		entryId = objectInput.readLong();
 
@@ -343,11 +358,20 @@ public class BlogsEntryCacheModel
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
 		objectOutput.writeLong(mvccVersion);
 
+		objectOutput.writeLong(ctCollectionId);
+
 		if (uuid == null) {
 			objectOutput.writeUTF("");
 		}
 		else {
 			objectOutput.writeUTF(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
 		}
 
 		objectOutput.writeLong(entryId);
@@ -462,7 +486,9 @@ public class BlogsEntryCacheModel
 	}
 
 	public long mvccVersion;
+	public long ctCollectionId;
 	public String uuid;
+	public String externalReferenceCode;
 	public long entryId;
 	public long groupId;
 	public long companyId;

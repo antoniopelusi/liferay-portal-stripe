@@ -88,7 +88,7 @@ public class CommerceOrderCustomFieldsScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -103,7 +103,7 @@ public class CommerceOrderCustomFieldsScreenNavigationCategory
 
 		_jspRenderer.renderJSP(
 			httpServletRequest, httpServletResponse,
-			"/order/custom_fields.jsp");
+			"/commerce_order/custom_fields.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

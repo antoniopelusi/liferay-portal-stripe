@@ -1,0 +1,478 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Color Field can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		AssertElementPresent(
+			key_name = "Color",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+	}
+
+	@description = "Verify that a Color Field can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoDeleteField(fieldName = "Color");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Color");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewDeletedFieldLabel(fieldName = "Color");
+	}
+
+	@description = "Verify that a Color Field can be duplicated"
+	@priority = "5"
+	test CanBeDuplicated {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		FormFields.editHelpTextField(fieldHelpText = "Help Text Test");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.setFieldPredefinedDate(fieldValue = "ff0d0d");
+
+		FormViewBuilder.clickActionMenuFieldset();
+
+		FormViewBuilder.duplicateField(selectAction = "Duplicate");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Color");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Copy of Color");
+
+		FormFields.viewColorValue(
+			fieldName = "Color",
+			fieldValue = "ff0d0d");
+
+		FormFields.viewColorValue(
+			fieldName = "Field",
+			fieldValue = "ff0d0d");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Color");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Field");
+	}
+
+	@description = "Verify that a Color Field can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Color");
+
+		FormViewBuilder.editFieldLabel(
+			fieldLabel = "Color",
+			label = "Test Color");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Color");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Test Color");
+
+		FormViewBuilder.validateNoFieldLabel(fieldLabel = "Color");
+	}
+
+	@description = "Verify that a Color Field can be required"
+	@priority = "5"
+	test CanBeRequired {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color",
+			formPageNumber = "0");
+
+		FormFields.enableSwitch(fieldName = "Required Field");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabelRequired(fieldLabel = "Color");
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormPortlet.submitWithValidationError(validationErrorMessage = "This field is required.");
+
+		FormFields.editColor(
+			colorSwatchItem = "FF0D0D",
+			fieldLabel = "Color");
+
+		FormPortlet.submitSuccessfully();
+	}
+
+	@description = "Verify that a Color Field can be set to repeatable"
+	@priority = "5"
+	test CanBeSetToRepeatable {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		Form.gotoAdvancedTab();
+
+		FormViewBuilder.setFieldRepeatable();
+
+		AssertElementPresent(
+			key_fieldName = "Color",
+			key_repeatableFieldNumber = "1",
+			locator1 = "FormFields#FIELD_ADD_SPECIFIC");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.addRepeatableField(
+			fieldName = "Color",
+			repeatableFieldNumber = "1");
+
+		FormFields.viewColorField(
+			colorValue = "000000",
+			fieldLabel = "Color",
+			fieldName = "Color",
+			rowNumber = "2");
+
+		FormFields.editColorField(
+			colorValue = "FF0D0D",
+			fieldLabel = "Color",
+			fieldName = "Color",
+			rowNumber = "1");
+
+		FormFields.selectColorFromColorPicker(
+			colorValue = "FF0D0D",
+			fieldLabel = "Color",
+			fieldName = "Color",
+			rowNumber = "2");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Form can be submitted with the Color Field"
+	@priority = "5"
+	test CanBeSubmitted {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editColor(
+			colorSwatchItem = "CBCBCB",
+			fieldLabel = "Color");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries(formName = "Form1");
+
+		FormsAdminNavigator.gotoView(rowIndexNumber = "1");
+
+		FormFields.viewColorLabel(fieldLabel = "Color");
+
+		FormFields.viewColorValue(
+			fieldName = "Color",
+			fieldValue = "CBCBCB");
+	}
+
+	@description = "Verify that changes to the Field can be canceled"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ChangesCanBeCanceled {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133138 ChangesCanBeCanceled pending implementation
+
+	}
+
+	@description = "Verify that a help text can be added to a Color Field"
+	@priority = "5"
+	test HelpTextCanBeAdded {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		FormFields.editHelpText(
+			fieldHelpText = "Color Help Text",
+			fieldName = "tip");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Color Help Text",
+			fieldName = "Color");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Color Help Text",
+			fieldName = "Color");
+
+		FormFields.editColor(
+			colorSwatchItem = "FF0D0D",
+			fieldLabel = "Color");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that the Field Label can be changed"
+	@priority = "5"
+	test LabelCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		FormFields.viewTextLabel(fieldLabel = "Color");
+
+		Form.editFieldLabelMetal(fieldValue = "Test Color");
+
+		FormFields.viewTextLabel(fieldLabel = "Test Color");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewColorLabel(
+			fieldLabel = "Test Color",
+			fieldName = "Test Color");
+	}
+
+	@description = "Verify that the Field Label can be hidden"
+	@priority = "5"
+	test LabelCanBeHidden {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		FormFields.viewTextLabel(fieldLabel = "Color");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.disableSwitch(fieldName = "Show Label");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Color");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Color");
+	}
+
+	@description = "Verify that a Predefined Value can be set for the Color Field"
+	@priority = "5"
+	test PredefinedValueCanBeAdded {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		FormFields.editPredefinedValueInput(fieldValue = "7f26ff");
+
+		Form.save();
+
+		FormFields.viewColorValue(
+			fieldName = "Color",
+			fieldValue = "7f26ff");
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewColorValue(
+			fieldName = "Color",
+			fieldValue = "7f26ff");
+
+		FormPortlet.submitSuccessfully();
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",
+			successPageTitle = "Thank you.");
+	}
+
+	@description = "Verify that the Field Reference can be changed"
+	@priority = "5"
+	test ReferenceCanBeEdited {
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Color");
+
+		Form.gotoAdvancedTab();
+
+		Form.editFieldReferenceMetal(fieldValue = "Color1234");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldReference(
+			fieldName = "Color",
+			key_fieldReferenceValue = "Color1234");
+	}
+
+	@description = "Verify that the Field Type can be changed"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test TypeCanBeChanged {
+		property portal.acceptance = "false";
+
+		// TODO LPS-133137 TypeCanBeChanged pending implementation
+
+	}
+
+}

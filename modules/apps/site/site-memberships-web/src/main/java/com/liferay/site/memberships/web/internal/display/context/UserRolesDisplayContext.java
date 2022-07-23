@@ -23,10 +23,10 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -85,6 +85,32 @@ public class UserRolesDisplayContext {
 		return _eventName;
 	}
 
+	public String getOrderByCol() {
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
+		}
+
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-col-roles", "title");
+
+		return _orderByCol;
+	}
+
+	public String getOrderByType() {
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-type-roles", "asc");
+
+		return _orderByType;
+	}
+
 	public SearchContainer<Role> getRoleSearchSearchContainer()
 		throws PortalException {
 
@@ -100,11 +126,6 @@ public class UserRolesDisplayContext {
 			_renderRequest, _getPortletURL());
 
 		Group group = GroupLocalServiceUtil.fetchGroup(_getGroupId());
-
-		roleSearch.setRowChecker(
-			new UserGroupRoleRoleChecker(
-				_renderResponse,
-				PortalUtil.getSelectedUser(_httpServletRequest, false), group));
 
 		RoleSearchTerms searchTerms =
 			(RoleSearchTerms)roleSearch.getSearchTerms();
@@ -123,14 +144,11 @@ public class UserRolesDisplayContext {
 				themeDisplay.getPermissionChecker(), _getGroupId(), roles);
 		}
 
-		int rolesCount = roles.size();
-
-		roleSearch.setTotal(rolesCount);
-
-		roles = ListUtil.subList(
-			roles, roleSearch.getStart(), roleSearch.getEnd());
-
-		roleSearch.setResults(roles);
+		roleSearch.setResultsAndTotal(roles);
+		roleSearch.setRowChecker(
+			new UserGroupRoleRoleChecker(
+				_renderResponse,
+				PortalUtil.getSelectedUser(_httpServletRequest, false), group));
 
 		_roleSearch = roleSearch;
 
@@ -154,47 +172,68 @@ public class UserRolesDisplayContext {
 	}
 
 	private PortletURL _getPortletURL() throws PortalException {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/users_roles.jsp"
+		).setKeywords(
+			() -> {
+				String keywords = ParamUtil.getString(
+					_renderRequest, "keywords");
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"displayStyle",
+			() -> {
+				String displayStyle = getDisplayStyle();
+
+				if (Validator.isNotNull(displayStyle)) {
+					return displayStyle;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
+
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
+
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
+
+				return null;
+			}
 		).setParameter(
 			"p_u_i_d", _getUserId()
-		).build();
+		).setParameter(
+			"roleType",
+			() -> {
+				int roleType = _getRoleType();
 
-		String displayStyle = getDisplayStyle();
+				if (roleType > 0) {
+					return roleType;
+				}
 
-		if (Validator.isNotNull(displayStyle)) {
-			portletURL.setParameter("displayStyle", displayStyle);
-		}
-
-		String keywords = ParamUtil.getString(_renderRequest, "keywords");
-
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		String orderByCol = ParamUtil.getString(
-			_renderRequest, "orderByCol", "title");
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		int roleType = _getRoleType();
-
-		if (roleType > 0) {
-			portletURL.setParameter("roleType", String.valueOf(roleType));
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	private int _getRoleType() {
@@ -222,6 +261,8 @@ public class UserRolesDisplayContext {
 	private String _eventName;
 	private Long _groupId;
 	private final HttpServletRequest _httpServletRequest;
+	private String _orderByCol;
+	private String _orderByType;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;
 	private RoleSearch _roleSearch;

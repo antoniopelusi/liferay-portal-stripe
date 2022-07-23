@@ -14,6 +14,8 @@
 
 package com.liferay.portal.vulcan.resource;
 
+import com.liferay.portal.vulcan.openapi.OpenAPISchemaFilter;
+
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
@@ -35,6 +37,14 @@ public interface OpenAPIResource {
 		throws Exception {
 
 		return getOpenAPI(resourceClasses, type);
+	}
+
+	public default Response getOpenAPI(
+			OpenAPISchemaFilter openAPISchemaFilter,
+			Set<Class<?>> resourceClasses, String type, UriInfo uriInfo)
+		throws Exception {
+
+		return null;
 	}
 
 	public default Response getOpenAPI(

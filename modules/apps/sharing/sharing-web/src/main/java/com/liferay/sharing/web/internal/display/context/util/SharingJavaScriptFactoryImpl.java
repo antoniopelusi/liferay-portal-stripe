@@ -26,13 +26,11 @@ import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.sharing.display.context.util.SharingJavaScriptFactory;
 import com.liferay.sharing.web.internal.util.SharingJavaScriptThreadLocal;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -116,16 +114,13 @@ public class SharingJavaScriptFactoryImpl implements SharingJavaScriptFactory {
 
 		Locale locale = _portal.getLocale(httpServletRequest);
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, SharingJavaScriptFactoryImpl.class);
-
 		String title = _getAssetTitle(className, classPK, locale);
 
 		if (Validator.isNotNull(title)) {
-			return _language.format(resourceBundle, "share-x", title);
+			return _language.format(locale, "share-x", title);
 		}
 
-		return _language.get(resourceBundle, "share");
+		return _language.get(locale, "share");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

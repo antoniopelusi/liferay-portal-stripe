@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -49,10 +50,9 @@ public class AddSambaExpandoBridgePortalInstanceLifecycleListener
 			expandoBridge.addAttribute(_SAMBA_NT_PASSWORD, false);
 		}
 
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.put(
-			ExpandoColumnConstants.PROPERTY_HIDDEN, StringPool.TRUE);
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.put(
+			ExpandoColumnConstants.PROPERTY_HIDDEN, StringPool.TRUE
+		).build();
 
 		expandoBridge.setAttributeProperties(
 			_SAMBA_LM_PASSWORD, unicodeProperties, false);

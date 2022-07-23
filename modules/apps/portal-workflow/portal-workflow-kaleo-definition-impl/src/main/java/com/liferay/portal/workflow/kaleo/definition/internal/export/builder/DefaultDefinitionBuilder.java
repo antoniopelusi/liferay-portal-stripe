@@ -50,7 +50,7 @@ public class DefaultDefinitionBuilder implements DefinitionBuilder {
 		KaleoDefinition kaleoDefinition =
 			_kaleoDefinitionLocalService.getKaleoDefinition(kaleoDefinitionId);
 
-		return doBuildDefinition(
+		return _buildDefinition(
 			_kaleoDefinitionVersionLocalService.getKaleoDefinitionVersion(
 				kaleoDefinition.getCompanyId(), kaleoDefinition.getName(),
 				StringBundler.concat(
@@ -61,13 +61,13 @@ public class DefaultDefinitionBuilder implements DefinitionBuilder {
 	public Definition buildDefinition(long companyId, String name, int version)
 		throws PortalException {
 
-		return doBuildDefinition(
+		return _buildDefinition(
 			_kaleoDefinitionVersionLocalService.getKaleoDefinitionVersion(
 				companyId, name,
 				StringBundler.concat(version, CharPool.PERIOD, 0)));
 	}
 
-	protected Definition doBuildDefinition(
+	private Definition _buildDefinition(
 			KaleoDefinitionVersion kaleoDefinitionVersion)
 		throws PortalException {
 
@@ -105,8 +105,9 @@ public class DefaultDefinitionBuilder implements DefinitionBuilder {
 			Node targetNode = definition.getNode(targetNodeName);
 
 			Transition transition = new Transition(
-				kaleoTransition.getName(), sourceNode, targetNode,
-				kaleoTransition.isDefaultTransition());
+				kaleoTransition.isDefaultTransition(),
+				kaleoTransition.getLabelMap(), kaleoTransition.getName(),
+				sourceNode, targetNode);
 
 			sourceNode.addOutgoingTransition(transition);
 

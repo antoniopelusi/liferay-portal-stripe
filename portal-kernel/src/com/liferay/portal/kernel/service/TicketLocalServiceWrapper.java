@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class TicketLocalServiceWrapper
 	implements ServiceWrapper<TicketLocalService>, TicketLocalService {
 
+	public TicketLocalServiceWrapper() {
+		this(null);
+	}
+
 	public TicketLocalServiceWrapper(TicketLocalService ticketLocalService) {
 		_ticketLocalService = ticketLocalService;
 	}
@@ -136,8 +140,22 @@ public class TicketLocalServiceWrapper
 	}
 
 	@Override
+	public void deleteTickets(
+		long companyId, java.lang.String className, long classPK) {
+
+		_ticketLocalService.deleteTickets(companyId, className, classPK);
+	}
+
+	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ticketLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ticketLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -314,6 +332,13 @@ public class TicketLocalServiceWrapper
 		int start, int end) {
 
 		return _ticketLocalService.getTickets(start, end);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.kernel.model.Ticket> getTickets(
+		long companyId, java.lang.String className, long classPK) {
+
+		return _ticketLocalService.getTickets(companyId, className, classPK);
 	}
 
 	@Override

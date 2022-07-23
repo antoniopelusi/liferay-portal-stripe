@@ -33,21 +33,8 @@ import org.json.JSONObject;
 public abstract class BaseBuildDatabase implements BuildDatabase {
 
 	@Override
-	public File getBuildDatabaseJSFile() {
-		File buildDatabaseJSFile = new File(
-			_jsonObjectFile.getParent(), "build-database.js");
-
-		try {
-			JenkinsResultsParserUtil.write(
-				buildDatabaseJSFile,
-				JenkinsResultsParserUtil.combine(
-					"build_database=", _jsonObject.toString()));
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-
-		return buildDatabaseJSFile;
+	public File getBuildDatabaseFile() {
+		return _buildDatabaseFile;
 	}
 
 	@Override
@@ -81,6 +68,19 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 		}
 
 		return new JSONObject();
+	}
+
+	@Override
+	public Job getJob(String key) {
+		if (!hasJob(key)) {
+			return null;
+		}
+
+		JSONObject jobsJSONObject = _jsonObject.getJSONObject("jobs");
+
+		JSONObject jobJSONObject = jobsJSONObject.getJSONObject(key);
+
+		return JobFactory.newJob(jobJSONObject);
 	}
 
 	@Override
@@ -124,6 +124,35 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 	}
 
 	@Override
+	public PullRequest getPullRequest(String key) {
+		if (!hasPullRequest(key)) {
+			throw new RuntimeException(
+				"Unable to find pull request for " + key);
+		}
+
+		JSONObject pullRequestsJSONObject = _jsonObject.getJSONObject(
+			"pull_requests");
+
+		JSONObject pullRequestJSONObject = pullRequestsJSONObject.getJSONObject(
+			key);
+
+		return PullRequestFactory.newPullRequest(pullRequestJSONObject);
+	}
+
+	@Override
+	public Workspace getWorkspace(String key) {
+		if (!hasWorkspace(key)) {
+			throw new RuntimeException("Unable to find workspace");
+		}
+
+		JSONObject workspacesJSONObject = _jsonObject.getJSONObject(
+			"workspaces");
+
+		return WorkspaceFactory.newWorkspace(
+			workspacesJSONObject.getJSONObject(key));
+	}
+
+	@Override
 	public WorkspaceGitRepository getWorkspaceGitRepository(String key) {
 		if (!hasWorkspaceGitRepository(key)) {
 			throw new RuntimeException(
@@ -148,10 +177,33 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 	}
 
 	@Override
+	public boolean hasJob(String key) {
+		JSONObject jobsJSONObject = _jsonObject.getJSONObject("jobs");
+
+		return jobsJSONObject.has(key);
+	}
+
+	@Override
 	public boolean hasProperties(String key) {
 		JSONObject buildsJSONObject = _jsonObject.getJSONObject("properties");
 
 		return buildsJSONObject.has(key);
+	}
+
+	@Override
+	public boolean hasPullRequest(String key) {
+		JSONObject pullRequestsJSONObject = _jsonObject.getJSONObject(
+			"pull_requests");
+
+		return pullRequestsJSONObject.has(key);
+	}
+
+	@Override
+	public boolean hasWorkspace(String key) {
+		JSONObject workspacesJSONObject = _jsonObject.getJSONObject(
+			"workspaces");
+
+		return workspacesJSONObject.has(key);
 	}
 
 	@Override
@@ -164,13 +216,26 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 
 	@Override
 	public void putBuildData(String key, BuildData buildData) {
-		JSONObject buildsJSONObject = _jsonObject.getJSONObject("builds");
+		synchronized (_buildDatabaseFile) {
+			JSONObject buildsJSONObject = _jsonObject.getJSONObject("builds");
 
-		buildsJSONObject.put(key, buildData.getJSONObject());
+			buildsJSONObject.put(key, buildData.getJSONObject());
 
-		_jsonObject.put("builds", buildsJSONObject);
+			_writeJSONObjectFile();
+		}
+	}
 
-		_writeJSONObjectFile();
+	@Override
+	public void putJob(String key, Job job) {
+		JSONObject jobJSONObject = job.getJSONObject();
+
+		synchronized (_buildDatabaseFile) {
+			JSONObject jobsJSONObject = _jsonObject.getJSONObject("jobs");
+
+			jobsJSONObject.put(key, jobJSONObject);
+
+			_writeJSONObjectFile();
+		}
 	}
 
 	@Override
@@ -181,30 +246,101 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 
 	@Override
 	public void putProperties(String key, Properties properties) {
-		JSONObject propertiesJSONObject = _jsonObject.getJSONObject(
-			"properties");
+		synchronized (_buildDatabaseFile) {
+			JSONObject propertiesJSONObject = _jsonObject.getJSONObject(
+				"properties");
 
-		propertiesJSONObject.put(key, _toJSONArray(properties));
+			propertiesJSONObject.put(key, _toJSONArray(properties));
 
-		_jsonObject.put("properties", propertiesJSONObject);
+			_writeJSONObjectFile();
+		}
+	}
 
-		_writeJSONObjectFile();
+	@Override
+	public void putPullRequest(String key, PullRequest pullRequest) {
+		if (!JenkinsResultsParserUtil.isCINode()) {
+			return;
+		}
+
+		synchronized (_buildDatabaseFile) {
+			JSONObject pullRequestsJSONObject = _jsonObject.getJSONObject(
+				"pull_requests");
+
+			pullRequestsJSONObject.put(key, pullRequest.getJSONObject());
+
+			_writeJSONObjectFile();
+		}
+	}
+
+	@Override
+	public void putWorkspace(String key, Workspace workspace) {
+		synchronized (_buildDatabaseFile) {
+			JSONObject workspacesJSONObject = _jsonObject.getJSONObject(
+				"workspaces");
+
+			workspacesJSONObject.put(key, workspace.getJSONObject());
+
+			_writeJSONObjectFile();
+		}
 	}
 
 	@Override
 	public void putWorkspaceGitRepository(
 		String key, WorkspaceGitRepository workspaceGitRepository) {
 
-		JSONObject workspaceGitRepositoriesJSONObject =
-			_jsonObject.getJSONObject("workspace_git_repositories");
+		synchronized (_buildDatabaseFile) {
+			JSONObject workspaceGitRepositoriesJSONObject =
+				_jsonObject.getJSONObject("workspace_git_repositories");
 
-		workspaceGitRepositoriesJSONObject.put(
-			key, workspaceGitRepository.getJSONObject());
+			workspaceGitRepositoriesJSONObject.put(
+				key, workspaceGitRepository.getJSONObject());
 
-		_jsonObject.put(
-			"workspace_git_repositories", workspaceGitRepositoriesJSONObject);
+			_writeJSONObjectFile();
+		}
+	}
 
-		_writeJSONObjectFile();
+	@Override
+	public void readBuildDatabaseFile() {
+		synchronized (_buildDatabaseFile) {
+			if (_buildDatabaseFile.exists()) {
+				try {
+					_jsonObject = new JSONObject(
+						JenkinsResultsParserUtil.read(_buildDatabaseFile));
+				}
+				catch (IOException ioException) {
+					throw new RuntimeException(ioException);
+				}
+			}
+			else {
+				_jsonObject = new JSONObject();
+			}
+
+			if (!_jsonObject.has("builds")) {
+				_jsonObject.put("builds", new JSONObject());
+			}
+
+			if (!_jsonObject.has("jobs")) {
+				_jsonObject.put("jobs", new JSONObject());
+			}
+
+			if (!_jsonObject.has("properties")) {
+				_jsonObject.put("properties", new JSONObject());
+			}
+
+			if (!_jsonObject.has("pull_requests")) {
+				_jsonObject.put("pull_requests", new JSONObject());
+			}
+
+			if (!_jsonObject.has("workspace_git_repositories")) {
+				_jsonObject.put("workspace_git_repositories", new JSONObject());
+			}
+
+			if (!_jsonObject.has("workspaces")) {
+				_jsonObject.put("workspaces", new JSONObject());
+			}
+
+			_writeJSONObjectFile();
+		}
 	}
 
 	@Override
@@ -215,15 +351,75 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 
 		StringBuilder sb = new StringBuilder();
 
+		sb.append("## Autogenerated\n");
+
 		for (String propertyName : properties.stringPropertyNames()) {
+			String propertyValue = JenkinsResultsParserUtil.getProperty(
+				properties, propertyName);
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(propertyValue)) {
+				continue;
+			}
+
 			sb.append(propertyName);
 			sb.append("=");
-			sb.append(properties.getProperty(propertyName));
+
+			propertyValue = properties.getProperty(propertyName);
+
+			if (JenkinsResultsParserUtil.isWindows() &&
+				propertyValue.startsWith("/") &&
+				!propertyValue.startsWith("/c/")) {
+
+				sb.append("C:");
+			}
+
+			sb.append(propertyValue);
 			sb.append("\n");
 		}
 
 		try {
 			JenkinsResultsParserUtil.write(destFilePath, sb.toString());
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+
+		sb = new StringBuilder();
+
+		if (JenkinsResultsParserUtil.isWindows()) {
+			sb.append("#!C:/Program Files/Git/bin/sh.exe\n");
+		}
+		else {
+			sb.append("#!/bin/bash\n");
+		}
+
+		sb.append("## Autogenerated\n");
+
+		for (String propertyName : properties.stringPropertyNames()) {
+			String propertyValue = JenkinsResultsParserUtil.getProperty(
+				properties, propertyName);
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(propertyValue)) {
+				continue;
+			}
+
+			sb.append("export ");
+			sb.append(propertyName);
+			sb.append("=");
+
+			if (JenkinsResultsParserUtil.isWindows() &&
+				propertyValue.startsWith("/") &&
+				!propertyValue.startsWith("/c/")) {
+
+				sb.append("C:");
+			}
+
+			sb.append(JenkinsResultsParserUtil.escapeForBash(propertyValue));
+			sb.append("\n");
+		}
+
+		try {
+			JenkinsResultsParserUtil.write(destFilePath + ".sh", sb.toString());
 		}
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);
@@ -236,38 +432,10 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 	}
 
 	protected BaseBuildDatabase(File baseDir) {
-		_jsonObjectFile = new File(
+		_buildDatabaseFile = new File(
 			baseDir, BuildDatabase.FILE_NAME_BUILD_DATABASE);
 
-		_jsonObject = _getJSONObject();
-
-		if (!_jsonObject.has("builds")) {
-			_jsonObject.put("builds", new JSONObject());
-		}
-
-		if (!_jsonObject.has("properties")) {
-			_jsonObject.put("properties", new JSONObject());
-		}
-
-		if (!_jsonObject.has("workspace_git_repositories")) {
-			_jsonObject.put("workspace_git_repositories", new JSONObject());
-		}
-
-		_writeJSONObjectFile();
-	}
-
-	private JSONObject _getJSONObject() {
-		if (_jsonObjectFile.exists()) {
-			try {
-				return new JSONObject(
-					JenkinsResultsParserUtil.read(_jsonObjectFile));
-			}
-			catch (IOException ioException) {
-				throw new RuntimeException(ioException);
-			}
-		}
-
-		return new JSONObject();
+		readBuildDatabaseFile();
 	}
 
 	private JSONArray _toJSONArray(Properties properties) {
@@ -289,17 +457,19 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 		return jsonArray;
 	}
 
-	private void _writeJSONObjectFile() {
-		try {
-			JenkinsResultsParserUtil.write(
-				_jsonObjectFile, _jsonObject.toString());
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
+	private synchronized void _writeJSONObjectFile() {
+		synchronized (_buildDatabaseFile) {
+			try {
+				JenkinsResultsParserUtil.write(
+					_buildDatabaseFile, _jsonObject.toString());
+			}
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
+			}
 		}
 	}
 
-	private final JSONObject _jsonObject;
-	private final File _jsonObjectFile;
+	private final File _buildDatabaseFile;
+	private JSONObject _jsonObject;
 
 }

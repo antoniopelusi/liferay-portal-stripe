@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class PhoneLocalServiceWrapper
 	implements PhoneLocalService, ServiceWrapper<PhoneLocalService> {
 
+	public PhoneLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PhoneLocalServiceWrapper(PhoneLocalService phoneLocalService) {
 		_phoneLocalService = phoneLocalService;
 	}
@@ -135,6 +139,13 @@ public class PhoneLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _phoneLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _phoneLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

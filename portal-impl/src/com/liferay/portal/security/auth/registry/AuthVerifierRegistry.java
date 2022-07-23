@@ -14,25 +14,22 @@
 
 package com.liferay.portal.security.auth.registry;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifier;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifierConfiguration;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.auth.AuthVerifierPipeline;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceRegistration;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.ServiceTrackerCustomizer;
-import com.liferay.registry.collections.ServiceReferenceMapper;
-import com.liferay.registry.collections.ServiceReferenceMapperFactory;
-import com.liferay.registry.collections.ServiceTrackerMap;
-import com.liferay.registry.collections.ServiceTrackerMapFactory;
-import com.liferay.registry.collections.ServiceTrackerMapFactoryUtil;
 
-import java.util.HashMap;
 import java.util.Properties;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Carlos Sierra Andrés
@@ -119,21 +116,10 @@ public class AuthVerifierRegistry {
 	}
 
 	static {
-		ServiceTrackerMapFactory serviceTrackerMapFactory =
-			ServiceTrackerMapFactoryUtil.getServiceTrackerMapFactory();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
-		ServiceReferenceMapper<String, AuthVerifier>
-			authVerifierServiceReferenceMapper =
-				ServiceReferenceMapperFactory.create(
-					(authVerifier, emitter) -> {
-						Class<? extends AuthVerifier> clazz =
-							authVerifier.getClass();
-
-						emitter.emit(clazz.getSimpleName());
-					});
-
-		_serviceTrackerMap = serviceTrackerMapFactory.openSingleValueMap(
-			AuthVerifier.class, null,
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext, AuthVerifier.class, null,
 			(serviceReference, emitter) -> {
 				String authVerifierClassName = GetterUtil.getString(
 					serviceReference.getProperty("auth.verifier.class.name"));
@@ -142,25 +128,28 @@ public class AuthVerifierRegistry {
 					emitter.emit(authVerifierClassName);
 				}
 				else {
-					authVerifierServiceReferenceMapper.map(
-						serviceReference, emitter);
+					AuthVerifier authVerifier = bundleContext.getService(
+						serviceReference);
+
+					Class<? extends AuthVerifier> clazz =
+						authVerifier.getClass();
+
+					emitter.emit(clazz.getSimpleName());
+
+					bundleContext.ungetService(serviceReference);
 				}
 			});
 
-		Registry registry = RegistryUtil.getRegistry();
-
 		ServiceTracker<AuthVerifier, Tracked> serviceTracker =
-			registry.trackServices(
-				AuthVerifier.class,
+			new ServiceTracker<>(
+				bundleContext, AuthVerifier.class,
 				new ServiceTrackerCustomizer<AuthVerifier, Tracked>() {
 
 					@Override
 					public Tracked addingService(
 						ServiceReference<AuthVerifier> serviceReference) {
 
-						Registry registry = RegistryUtil.getRegistry();
-
-						AuthVerifier authVerifier = registry.getService(
+						AuthVerifier authVerifier = bundleContext.getService(
 							serviceReference);
 
 						AuthVerifierConfiguration authVerifierConfiguration =
@@ -171,9 +160,9 @@ public class AuthVerifierRegistry {
 							serviceRegistration = null;
 
 						if (authVerifierConfiguration != null) {
-							serviceRegistration = registry.registerService(
+							serviceRegistration = bundleContext.registerService(
 								AuthVerifierConfiguration.class,
-								authVerifierConfiguration, new HashMap<>());
+								authVerifierConfiguration, null);
 						}
 
 						return new Tracked(authVerifier, serviceRegistration);
@@ -197,9 +186,9 @@ public class AuthVerifierRegistry {
 								serviceReference, tracked.getAuthVerifier());
 
 						if (authVerifierConfiguration != null) {
-							registry.registerService(
+							bundleContext.registerService(
 								AuthVerifierConfiguration.class,
-								authVerifierConfiguration, new HashMap<>());
+								authVerifierConfiguration, null);
 						}
 
 						tracked.setServiceRegistration(serviceRegistration);
@@ -218,9 +207,7 @@ public class AuthVerifierRegistry {
 							serviceRegistration.unregister();
 						}
 
-						Registry registry = RegistryUtil.getRegistry();
-
-						registry.ungetService(serviceReference);
+						bundleContext.ungetService(serviceReference);
 					}
 
 				});

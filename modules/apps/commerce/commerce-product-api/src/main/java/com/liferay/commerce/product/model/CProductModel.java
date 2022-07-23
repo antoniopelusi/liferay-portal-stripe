@@ -17,8 +17,10 @@ package com.liferay.commerce.product.model;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedAuditedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 
@@ -37,8 +39,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CProductModel
-	extends BaseModel<CProduct>, GroupedModel, ShardedModel,
-			StagedAuditedModel {
+	extends BaseModel<CProduct>, CTModel<CProduct>, GroupedModel, MVCCModel,
+			ShardedModel, StagedAuditedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -51,6 +53,7 @@ public interface CProductModel
 	 *
 	 * @return the primary key of this c product
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -58,7 +61,40 @@ public interface CProductModel
 	 *
 	 * @param primaryKey the primary key of this c product
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this c product.
+	 *
+	 * @return the mvcc version of this c product
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this c product.
+	 *
+	 * @param mvccVersion the mvcc version of this c product
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this c product.
+	 *
+	 * @return the ct collection ID of this c product
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this c product.
+	 *
+	 * @param ctCollectionId the ct collection ID of this c product
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the uuid of this c product.
@@ -246,5 +282,8 @@ public interface CProductModel
 	 * @param latestVersion the latest version of this c product
 	 */
 	public void setLatestVersion(int latestVersion);
+
+	@Override
+	public CProduct cloneWithOriginalValues();
 
 }

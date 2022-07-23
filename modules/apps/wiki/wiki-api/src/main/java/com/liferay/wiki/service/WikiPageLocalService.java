@@ -81,6 +81,13 @@ public interface WikiPageLocalService
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiPageLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the wiki page local service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link WikiPageLocalServiceUtil} if injection and service tracking are not available.
 	 */
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #addPage(String, long, long, String, double, String, String, boolean,
+	 String, boolean, String, String, ServiceContext)}
+	 */
+	@Deprecated
 	public WikiPage addPage(
 			long userId, long nodeId, String title, double version,
 			String content, String summary, boolean minorEdit, String format,
@@ -91,6 +98,13 @@ public interface WikiPageLocalService
 	public WikiPage addPage(
 			long userId, long nodeId, String title, String content,
 			String summary, boolean minorEdit, ServiceContext serviceContext)
+		throws PortalException;
+
+	public WikiPage addPage(
+			String externalReferenceCode, long userId, long nodeId,
+			String title, double version, String content, String summary,
+			boolean minorEdit, String format, boolean head, String parentTitle,
+			String redirectTitle, ServiceContext serviceContext)
 		throws PortalException;
 
 	public FileEntry addPageAttachment(
@@ -229,6 +243,9 @@ public interface WikiPageLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -305,6 +322,19 @@ public interface WikiPageLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public WikiPage fetchLatestPage(
 		long nodeId, String title, int status, boolean preferApproved);
+
+	/**
+	 * Returns the latest wiki page matching the group and the external
+	 * reference code
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki page external reference code
+	 * @return the latest matching wiki page, or <code>null</code> if no
+	 matching wiki page could be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public WikiPage fetchLatestPageByExternalReferenceCode(
+		long groupId, String externalReferenceCode);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public WikiPage fetchPage(long resourcePrimKey);
@@ -395,6 +425,20 @@ public interface WikiPageLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public WikiPage getLatestPage(
 			long nodeId, String title, int status, boolean preferApproved)
+		throws PortalException;
+
+	/**
+	 * Returns the latest wiki page matching the group and the external
+	 * reference code
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki page external reference code
+	 * @return the latest matching wiki page
+	 * @throws PortalException if a portal exception occurred
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public WikiPage getLatestPageByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)

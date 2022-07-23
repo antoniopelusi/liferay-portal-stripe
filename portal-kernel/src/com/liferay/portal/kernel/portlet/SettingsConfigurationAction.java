@@ -16,7 +16,6 @@ package com.liferay.portal.kernel.portlet;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
@@ -109,14 +108,13 @@ public abstract class SettingsConfigurationAction
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		Layout layout = PortletConfigurationLayoutUtil.getLayout(themeDisplay);
-
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
 
 		PortletPermissionUtil.check(
 			themeDisplay.getPermissionChecker(), themeDisplay.getScopeGroupId(),
-			layout, portletResource, ActionKeys.CONFIGURATION);
+			PortletConfigurationLayoutUtil.getLayout(themeDisplay),
+			portletResource, ActionKeys.CONFIGURATION);
 
 		UnicodeProperties unicodeProperties = PropertiesParamUtil.getProperties(
 			actionRequest, _parameterNamePrefix);

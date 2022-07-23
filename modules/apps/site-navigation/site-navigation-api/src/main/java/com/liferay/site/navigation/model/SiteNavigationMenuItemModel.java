@@ -343,4 +343,7 @@ public interface SiteNavigationMenuItemModel
 	@Override
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public SiteNavigationMenuItem cloneWithOriginalValues();
+
 }

@@ -25,9 +25,6 @@ import java.util.List;
  */
 public class KaleoDefinitionImpl extends KaleoDefinitionBaseImpl {
 
-	public KaleoDefinitionImpl() {
-	}
-
 	@Override
 	public List<KaleoDefinitionVersion> getKaleoDefinitionVersions()
 		throws PortalException {

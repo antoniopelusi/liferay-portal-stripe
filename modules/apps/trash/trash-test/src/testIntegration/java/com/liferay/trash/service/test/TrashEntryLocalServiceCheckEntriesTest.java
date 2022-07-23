@@ -239,10 +239,10 @@ public class TrashEntryLocalServiceCheckEntriesTest {
 				group.getGroupId(), user.getUserId());
 
 		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
-			user.getUserId(), group.getGroupId(),
+			null, user.getUserId(), group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
-			TestDataConstants.TEST_BYTE_ARRAY, serviceContext);
+			TestDataConstants.TEST_BYTE_ARRAY, null, null, serviceContext);
 
 		DLTrashLocalServiceUtil.moveFileEntryToTrash(
 			user.getUserId(), fileEntry.getRepositoryId(),
@@ -279,7 +279,7 @@ public class TrashEntryLocalServiceCheckEntriesTest {
 	protected Group createLayoutGroup(Group group) throws Exception {
 		User user = UserTestUtil.getAdminUser(group.getCompanyId());
 
-		Layout layout = LayoutTestUtil.addLayout(group);
+		Layout layout = LayoutTestUtil.addTypePortletLayout(group);
 
 		return GroupLocalServiceUtil.addGroup(
 			user.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,

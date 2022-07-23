@@ -163,6 +163,9 @@ public interface TranslationEntryLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -323,6 +326,10 @@ public interface TranslationEntryLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getTranslationEntriesCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getTranslationEntriesCount(
+		String className, long classPK, int[] statuses, boolean exclude);
 
 	/**
 	 * Returns the translation entry with the primary key.

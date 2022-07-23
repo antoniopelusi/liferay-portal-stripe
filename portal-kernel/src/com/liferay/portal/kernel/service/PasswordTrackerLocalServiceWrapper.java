@@ -25,6 +25,10 @@ public class PasswordTrackerLocalServiceWrapper
 	implements PasswordTrackerLocalService,
 			   ServiceWrapper<PasswordTrackerLocalService> {
 
+	public PasswordTrackerLocalServiceWrapper() {
+		this(null);
+	}
+
 	public PasswordTrackerLocalServiceWrapper(
 		PasswordTrackerLocalService passwordTrackerLocalService) {
 
@@ -132,6 +136,13 @@ public class PasswordTrackerLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _passwordTrackerLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _passwordTrackerLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

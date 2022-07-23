@@ -39,8 +39,8 @@ public class TestHookUtil {
 		return new File(_startupActionFileName);
 	}
 
-	private static TestHookUtil _instance = new TestHookUtil();
+	private static final TestHookUtil _instance = new TestHookUtil();
 
-	private String _startupActionFileName;
+	private final String _startupActionFileName;
 
 }

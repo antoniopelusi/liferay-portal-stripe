@@ -112,7 +112,7 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 							</div>
 
 							<div class="text-secondary">
-								<span class="hide-accessible"><liferay-ui:message key="published-date" /></span><liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - entry.getStatusDate().getTime(), true) %>" key="x-ago" translateArguments="<%= false %>" />
+								<span class="hide-accessible sr-only"><liferay-ui:message key="published-date" /></span><liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - entry.getStatusDate().getTime(), true) %>" key="x-ago" translateArguments="<%= false %>" />
 
 								<c:if test="<%= blogsPortletInstanceConfiguration.enableReadingTime() %>">
 									- <liferay-reading-time:reading-time displayStyle="descriptive" model="<%= entry %>" />
@@ -138,11 +138,11 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 				String coverImageURL = entry.getCoverImageURL(themeDisplay);
 				%>
 
-				<c:if test="<%= Validator.isNotNull(coverImageURL) %>">
-					<a href="<%= viewEntryURL.toString() %>">
-						<div class="aspect-ratio aspect-ratio-8-to-3 aspect-ratio-bg-cover cover-image" style="background-image: url(<%= coverImageURL %>);"></div>
-					</a>
-				</c:if>
+				<liferay-util:include page="/blogs/entry_cover_image_caption.jsp" servletContext="<%= application %>">
+					<liferay-util:param name="coverImageCaption" value="<%= entry.getCoverImageCaption() %>" />
+					<liferay-util:param name="coverImageURL" value="<%= entry.getCoverImageURL(themeDisplay) %>" />
+					<liferay-util:param name="viewEntryURL" value="<%= viewEntryURL %>" />
+				</liferay-util:include>
 
 				<c:choose>
 					<c:when test="<%= blogsPortletInstanceConfiguration.displayStyle().equals(BlogsUtil.DISPLAY_STYLE_ABSTRACT) %>">
@@ -224,7 +224,7 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 
 		<%
 		if (searchContainer != null) {
-			searchContainer.setTotal(searchContainer.getTotal() - 1);
+			searchContainer.setResultsAndTotal(searchContainer::getResults, searchContainer.getTotal() - 1);
 		}
 		%>
 

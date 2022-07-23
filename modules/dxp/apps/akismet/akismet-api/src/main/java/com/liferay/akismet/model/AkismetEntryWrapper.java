@@ -119,6 +119,11 @@ public class AkismetEntryWrapper
 		}
 	}
 
+	@Override
+	public AkismetEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the akismet entry ID of this akismet entry.
 	 *

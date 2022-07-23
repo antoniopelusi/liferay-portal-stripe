@@ -47,7 +47,7 @@ public class IGDisplayPortletDataHandler extends BasePortletDataHandler {
 	@Activate
 	protected void activate() {
 		setDataLevel(DataLevel.PORTLET_INSTANCE);
-		setDataPortletPreferences("rootFolderId");
+		setDataPortletPreferences("rootFolderId", "selectedRepositoryId");
 		setExportControls(new PortletDataHandlerControl[0]);
 		setPublishToLiveByDefault(PropsValues.DL_PUBLISH_TO_LIVE_BY_DEFAULT);
 	}
@@ -66,7 +66,9 @@ public class IGDisplayPortletDataHandler extends BasePortletDataHandler {
 		portletPreferences.setValue("fileEntryColumns", StringPool.BLANK);
 		portletPreferences.setValue("folderColumns", StringPool.BLANK);
 		portletPreferences.setValue("foldersPerPage", StringPool.BLANK);
+		portletPreferences.setValue("repositoryId", StringPool.BLANK);
 		portletPreferences.setValue("rootFolderId", StringPool.BLANK);
+		portletPreferences.setValue("selectedRepositoryId", StringPool.BLANK);
 		portletPreferences.setValue("showSubfolders", StringPool.BLANK);
 
 		return portletPreferences;

@@ -147,13 +147,6 @@ public abstract class StyleBookEntryServiceBaseImpl
 		counterLocalService;
 
 	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
 	protected StyleBookEntryVersionPersistence styleBookEntryVersionPersistence;
 
 }

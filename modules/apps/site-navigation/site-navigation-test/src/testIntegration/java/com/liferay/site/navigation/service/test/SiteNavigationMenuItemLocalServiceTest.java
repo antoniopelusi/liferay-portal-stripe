@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PersistenceTestRule;
@@ -541,54 +541,43 @@ public class SiteNavigationMenuItemLocalServiceTest {
 
 	@Test(expected = SiteNavigationMenuItemNameException.class)
 	public void testInvalidSiteNavigationMenuItemName() throws PortalException {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
-		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		typeSettingsUnicodeProperties.put(
-			"name", StringUtil.randomString(1000));
-
 		_siteNavigationMenuItemLocalService.addSiteNavigationMenuItem(
 			TestPropsValues.getUserId(), _group.getGroupId(),
 			_siteNavigationMenu.getSiteNavigationMenuId(), 0,
 			SiteNavigationMenuItemTypeConstants.LAYOUT,
-			typeSettingsUnicodeProperties.toString(), serviceContext);
+			UnicodePropertiesBuilder.put(
+				"name", StringUtil.randomString(1000)
+			).buildString(),
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	@Test(expected = InvalidSiteNavigationMenuItemTypeException.class)
 	public void testInvalidSiteNavigationMenuItemType() throws PortalException {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
 		_siteNavigationMenuItemLocalService.addSiteNavigationMenuItem(
 			TestPropsValues.getUserId(), _group.getGroupId(),
 			_siteNavigationMenu.getSiteNavigationMenuId(), 0,
-			"invalidMenuItemType", StringPool.BLANK, serviceContext);
+			"invalidMenuItemType", StringPool.BLANK,
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void testSiteNavigationMenuItemInvalidCustomAttribute()
 		throws PortalException {
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
 
 		SiteNavigationMenuItem siteNavigationMenuItem =
 			_siteNavigationMenuItemLocalService.addSiteNavigationMenuItem(
 				TestPropsValues.getUserId(), _group.getGroupId(),
 				_siteNavigationMenu.getSiteNavigationMenuId(), 0,
 				SiteNavigationMenuItemTypeConstants.LAYOUT, StringPool.BLANK,
-				serviceContext);
+				ServiceContextTestUtil.getServiceContext(
+					_group.getGroupId(), TestPropsValues.getUserId()));
 
 		_expandoBridge.setClassPK(
 			siteNavigationMenuItem.getSiteNavigationMenuItemId());
 
-		_expandoBridge.getAttribute("invalid");
+		Assert.assertNull(_expandoBridge.getAttribute("invalid"));
 	}
 
 	@Test

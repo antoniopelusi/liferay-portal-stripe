@@ -31,7 +31,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Sort;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -41,7 +40,6 @@ import com.liferay.portal.kernel.util.Validator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -89,9 +87,8 @@ public class CommerceProductOptionDataSetDataProvider
 					_getDDMFormFieldTypeLabel(
 						cpDefinitionOptionRel.getDDMFormFieldTypeName(),
 						locale),
-					HtmlUtil.escape(
-						cpDefinitionOptionRel.getName(
-							LanguageUtil.getLanguageId(locale))),
+					cpDefinitionOptionRel.getName(
+						LanguageUtil.getLanguageId(locale)),
 					cpDefinitionOptionRel.getPriority(),
 					LanguageUtil.get(
 						locale,
@@ -155,12 +152,10 @@ public class CommerceProductOptionDataSetDataProvider
 			_ddmFormFieldTypeServicesTracker.getDDMFormFieldType(
 				ddmFormFieldTypeName);
 
-		Map<String, Object> ddmFormFieldTypeProperties =
-			_ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
-				ddmFormFieldType.getName());
-
 		String label = MapUtil.getString(
-			ddmFormFieldTypeProperties, "ddm.form.field.type.label");
+			_ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
+				ddmFormFieldType.getName()),
+			"ddm.form.field.type.label");
 
 		try {
 			if (Validator.isNotNull(label)) {
@@ -172,7 +167,7 @@ public class CommerceProductOptionDataSetDataProvider
 		}
 		catch (MissingResourceException missingResourceException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(missingResourceException, missingResourceException);
+				_log.warn(missingResourceException);
 			}
 		}
 

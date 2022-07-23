@@ -14,12 +14,13 @@
 
 package com.liferay.portal.security.permission;
 
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.exception.NoSuchResourceActionException;
 import com.liferay.portal.kernel.exception.ResourceActionsException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -30,6 +31,7 @@ import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -53,8 +55,6 @@ import com.liferay.portal.kernel.xml.DocumentType;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.registry.collections.ServiceTrackerCollections;
-import com.liferay.registry.collections.ServiceTrackerList;
 
 import java.io.InputStream;
 
@@ -84,36 +84,9 @@ import javax.servlet.http.HttpSession;
  */
 public class ResourceActionsImpl implements ResourceActions {
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #check(String)}
-	 */
-	@Deprecated
-	@Override
-	public void check(Portlet portlet) {
-		String portletName = portlet.getPortletId();
-
-		_check(portletName, _getPortletResourceActions(portletName, portlet));
-	}
-
 	@Override
 	public void check(String portletName) {
 		_check(portletName, getPortletResourceActions(portletName));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void checkAction(String name, String actionId)
-		throws NoSuchResourceActionException {
-
-		List<String> resourceActions = getResourceActions(name);
-
-		if (!resourceActions.contains(actionId)) {
-			throw new NoSuchResourceActionException(
-				StringBundler.concat(name, StringPool.POUND, actionId));
-		}
 	}
 
 	@Override
@@ -150,15 +123,6 @@ public class ResourceActionsImpl implements ResourceActions {
 		}
 
 		return value;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String getActionNamePrefix() {
-		return _ACTION_NAME_PREFIX;
 	}
 
 	@Override
@@ -300,41 +264,6 @@ public class ResourceActionsImpl implements ResourceActions {
 		return _modelResourceWeights.get(name);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String[] getOrganizationModelResources() {
-		return _organizationModelResources.toArray(new String[0]);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String[] getPortalModelResources() {
-		return _portalModelResources.toArray(new String[0]);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String getPortletBaseResource(String portletName) {
-		List<String> modelNames = getPortletModelResources(portletName);
-
-		for (String modelName : modelNames) {
-			if (!modelName.contains(".model.")) {
-				return modelName;
-			}
-		}
-
-		return null;
-	}
-
 	@Override
 	public List<String> getPortletModelResources(String portletName) {
 		portletName = PortletIdCodec.decodePortletName(portletName);
@@ -359,15 +288,6 @@ public class ResourceActionsImpl implements ResourceActions {
 		}
 
 		return portletNames;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public List<String> getPortletResourceActions(Portlet portlet) {
-		return getPortletResourceActions(portlet.getPortletId());
 	}
 
 	@Override
@@ -462,19 +382,6 @@ public class ResourceActionsImpl implements ResourceActions {
 		return actions;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public List<String> getResourceGroupDefaultActions(String name) {
-		if (name.contains(StringPool.PERIOD)) {
-			return getModelResourceGroupDefaultActions(name);
-		}
-
-		return getPortletResourceGroupDefaultActions(name);
-	}
-
 	@Override
 	public List<String> getResourceGuestUnsupportedActions(
 		String portletResource, String modelResource) {
@@ -506,49 +413,6 @@ public class ResourceActionsImpl implements ResourceActions {
 		return roleLocalService.getRoles(companyId, roleTypes);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String[] getRootModelResources() {
-		Collection<String> rootModelResources =
-			_portletRootModelResources.values();
-
-		return ArrayUtil.unique(rootModelResources.toArray(new String[0]));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public boolean hasModelResourceActions(String name) {
-		ResourceActionsBag modelResourceActionsBag = _getResourceActionsBag(
-			name);
-
-		Set<String> modelActions = modelResourceActionsBag.getSupportsActions();
-
-		if ((modelActions != null) && !modelActions.isEmpty()) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public boolean isOrganizationModelResource(String modelResource) {
-		if (_organizationModelResources.contains(modelResource)) {
-			return true;
-		}
-
-		return false;
-	}
-
 	@Override
 	public boolean isPortalModelResource(String modelResource) {
 		if (_portalModelResources.contains(modelResource)) {
@@ -570,6 +434,7 @@ public class ResourceActionsImpl implements ResourceActions {
 		return false;
 	}
 
+	@Override
 	public void populateModelResources(
 			ClassLoader classLoader, String... sources)
 		throws ResourceActionsException {
@@ -593,6 +458,7 @@ public class ResourceActionsImpl implements ResourceActions {
 		}
 	}
 
+	@Override
 	public void populateModelResources(Document document)
 		throws ResourceActionsException {
 
@@ -618,6 +484,7 @@ public class ResourceActionsImpl implements ResourceActions {
 		}
 	}
 
+	@Override
 	public void populatePortletResource(
 			Portlet portlet, ClassLoader classLoader, String... sources)
 		throws ResourceActionsException {
@@ -644,6 +511,7 @@ public class ResourceActionsImpl implements ResourceActions {
 			_getPortletResourceActions(portletResourceName, portlet));
 	}
 
+	@Override
 	public void populatePortletResources(
 			ClassLoader classLoader, String... sources)
 		throws ResourceActionsException {
@@ -670,165 +538,12 @@ public class ResourceActionsImpl implements ResourceActions {
 		}
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void read(ClassLoader classLoader, String source)
-		throws ResourceActionsException {
-
-		_read(
-			classLoader, source,
-			rootElement -> {
-				_readModelResources(rootElement, null);
-				_readPortletResources(rootElement, null);
-			});
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void read(ClassLoader classLoader, String... sources)
-		throws ResourceActionsException {
-
-		for (String source : sources) {
-			read(classLoader, source);
-		}
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void read(Document document, Set<String> resourceNames)
-		throws ResourceActionsException {
-
-		DocumentType documentType = document.getDocumentType();
-
-		String publicId = GetterUtil.getString(documentType.getPublicId());
-
-		if (publicId.equals(
-				"-//Liferay//DTD Resource Action Mapping 6.0.0//EN")) {
-
-			if (_log.isWarnEnabled()) {
-				_log.warn("Please update document to use the 6.1.0 format");
-			}
-		}
-
-		_readModelResources(document.getRootElement(), resourceNames);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void read(
-			String servletContextName, ClassLoader classLoader, String source)
-		throws ResourceActionsException {
-
-		read(classLoader, source);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void read(
-			String servletContextName, ClassLoader classLoader,
-			String... sources)
-		throws ResourceActionsException {
-
-		read(classLoader, sources);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void read(
-			String servletContextName, Document document,
-			Set<String> resourceNames)
-		throws ResourceActionsException {
-
-		read(document, resourceNames);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void readAndCheck(ClassLoader classLoader, String... sources)
-		throws ResourceActionsException {
-
-		Set<String> resourceNames = new HashSet<>();
-
-		for (String source : sources) {
-			_read(
-				classLoader, source,
-				rootElement -> {
-					_readModelResources(rootElement, resourceNames);
-					_readPortletResources(rootElement, resourceNames);
-				});
-		}
-
-		for (String resourceName : resourceNames) {
-			resourceActionLocalService.checkResourceActions(
-				resourceName, getResourceActions(resourceName));
-		}
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void readAndCheck(
-			String servletContextName, ClassLoader classLoader,
-			String... sources)
-		throws ResourceActionsException {
-
-		readAndCheck(classLoader, sources);
-	}
-
 	public void readModelResources(ClassLoader classLoader, String source)
 		throws ResourceActionsException {
 
 		_read(
 			classLoader, source,
 			rootElement -> _readModelResources(rootElement, null));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void removePortletResource(String portletName) {
-		ResourceActionsBag portletResourceActionsBag =
-			_resourceActionsBags.remove(portletName);
-
-		if (portletResourceActionsBag != null) {
-			Set<String> modelResources = _resourceReferences.get(portletName);
-
-			for (String modelResource : modelResources) {
-				Set<String> portletResources = _resourceReferences.get(
-					modelResource);
-
-				portletResources.remove(portletName);
-
-				if (portletResources.isEmpty()) {
-					_resourceActionsBags.remove(modelResource);
-				}
-			}
-		}
 	}
 
 	@BeanReference(type = PortletLocalService.class)
@@ -1040,10 +755,10 @@ public class ResourceActionsImpl implements ResourceActions {
 
 		Locale locale = null;
 
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
-		if (session != null) {
-			locale = (Locale)session.getAttribute(WebKeys.LOCALE);
+		if (httpSession != null) {
+			locale = (Locale)httpSession.getAttribute(WebKeys.LOCALE);
 		}
 
 		if (locale == null) {
@@ -1098,7 +813,7 @@ public class ResourceActionsImpl implements ResourceActions {
 					}
 					catch (Exception exception) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(exception, exception);
+							_log.debug(exception);
 						}
 					}
 				}
@@ -1255,7 +970,20 @@ public class ResourceActionsImpl implements ResourceActions {
 					modelResourceElement.elementText("root"));
 
 				if (root) {
-					_portletRootModelResources.put(portletName, modelName);
+					String existingModelName =
+						_portletRootModelResources.putIfAbsent(
+							portletName, modelName);
+
+					if (Validator.isNotNull(existingModelName) &&
+						!Objects.equals(existingModelName, modelName)) {
+
+						throw new ResourceActionsException(
+							StringBundler.concat(
+								"Portlet ", portletName,
+								" cannot be assigned to both ",
+								existingModelName, " and ", modelName,
+								" as root model resources. See LPS-135983."));
+					}
 				}
 			}
 
@@ -1493,7 +1221,8 @@ public class ResourceActionsImpl implements ResourceActions {
 	private static class ResourceBundleLoaderListHolder {
 
 		private static final ServiceTrackerList<ResourceBundleLoader>
-			_resourceBundleLoaders = ServiceTrackerCollections.openList(
+			_resourceBundleLoaders = ServiceTrackerListFactory.open(
+				SystemBundleUtil.getBundleContext(),
 				ResourceBundleLoader.class);
 
 	}

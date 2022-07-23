@@ -31,12 +31,11 @@ import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.wiki.configuration.WikiGroupServiceOverriddenConfiguration;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
-import com.liferay.wiki.web.internal.display.context.util.WikiRequestHelper;
+import com.liferay.wiki.web.internal.display.context.helper.WikiRequestHelper;
 import com.liferay.wiki.web.internal.portlet.action.ActionUtil;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
-import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -68,7 +67,7 @@ public class NodeSubscriptionPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -86,29 +85,29 @@ public class NodeSubscriptionPortletConfigurationIcon
 		try {
 			WikiNode node = ActionUtil.getNode(portletRequest);
 
-			PortletURL portletURL = PortletURLBuilder.create(
+			return PortletURLBuilder.create(
 				_portal.getControlPanelPortletURL(
 					portletRequest, WikiPortletKeys.WIKI_ADMIN,
 					PortletRequest.ACTION_PHASE)
 			).setActionName(
 				"/wiki/edit_node"
-			).build();
+			).setCMD(
+				() -> {
+					if (isSubscribed(portletRequest, node)) {
+						return Constants.UNSUBSCRIBE;
+					}
 
-			if (isSubscribed(portletRequest, node)) {
-				portletURL.setParameter(Constants.CMD, Constants.UNSUBSCRIBE);
-			}
-			else {
-				portletURL.setParameter(Constants.CMD, Constants.SUBSCRIBE);
-			}
-
-			portletURL.setParameter("redirect", themeDisplay.getURLCurrent());
-			portletURL.setParameter("nodeId", String.valueOf(node.getNodeId()));
-
-			return portletURL.toString();
+					return Constants.SUBSCRIBE;
+				}
+			).setRedirect(
+				themeDisplay.getURLCurrent()
+			).setParameter(
+				"nodeId", node.getNodeId()
+			).buildString();
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -146,7 +145,7 @@ public class NodeSubscriptionPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

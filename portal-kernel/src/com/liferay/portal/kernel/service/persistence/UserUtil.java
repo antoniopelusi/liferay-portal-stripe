@@ -14,7 +14,6 @@
 
 package com.liferay.portal.kernel.service.persistence;
 
-import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -919,8 +918,8 @@ public class UserUtil {
 	 * @param companyId the company ID
 	 * @return the matching users
 	 */
-	public static List<User> findByU_C(long userId, long companyId) {
-		return getPersistence().findByU_C(userId, companyId);
+	public static List<User> findByGtU_C(long userId, long companyId) {
+		return getPersistence().findByGtU_C(userId, companyId);
 	}
 
 	/**
@@ -936,10 +935,10 @@ public class UserUtil {
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @return the range of matching users
 	 */
-	public static List<User> findByU_C(
+	public static List<User> findByGtU_C(
 		long userId, long companyId, int start, int end) {
 
-		return getPersistence().findByU_C(userId, companyId, start, end);
+		return getPersistence().findByGtU_C(userId, companyId, start, end);
 	}
 
 	/**
@@ -956,11 +955,11 @@ public class UserUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching users
 	 */
-	public static List<User> findByU_C(
+	public static List<User> findByGtU_C(
 		long userId, long companyId, int start, int end,
 		OrderByComparator<User> orderByComparator) {
 
-		return getPersistence().findByU_C(
+		return getPersistence().findByGtU_C(
 			userId, companyId, start, end, orderByComparator);
 	}
 
@@ -979,11 +978,11 @@ public class UserUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
-	public static List<User> findByU_C(
+	public static List<User> findByGtU_C(
 		long userId, long companyId, int start, int end,
 		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
-		return getPersistence().findByU_C(
+		return getPersistence().findByGtU_C(
 			userId, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -996,12 +995,12 @@ public class UserUtil {
 	 * @return the first matching user
 	 * @throws NoSuchUserException if a matching user could not be found
 	 */
-	public static User findByU_C_First(
+	public static User findByGtU_C_First(
 			long userId, long companyId,
 			OrderByComparator<User> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchUserException {
 
-		return getPersistence().findByU_C_First(
+		return getPersistence().findByGtU_C_First(
 			userId, companyId, orderByComparator);
 	}
 
@@ -1013,11 +1012,11 @@ public class UserUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching user, or <code>null</code> if a matching user could not be found
 	 */
-	public static User fetchByU_C_First(
+	public static User fetchByGtU_C_First(
 		long userId, long companyId,
 		OrderByComparator<User> orderByComparator) {
 
-		return getPersistence().fetchByU_C_First(
+		return getPersistence().fetchByGtU_C_First(
 			userId, companyId, orderByComparator);
 	}
 
@@ -1030,12 +1029,12 @@ public class UserUtil {
 	 * @return the last matching user
 	 * @throws NoSuchUserException if a matching user could not be found
 	 */
-	public static User findByU_C_Last(
+	public static User findByGtU_C_Last(
 			long userId, long companyId,
 			OrderByComparator<User> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchUserException {
 
-		return getPersistence().findByU_C_Last(
+		return getPersistence().findByGtU_C_Last(
 			userId, companyId, orderByComparator);
 	}
 
@@ -1047,11 +1046,11 @@ public class UserUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching user, or <code>null</code> if a matching user could not be found
 	 */
-	public static User fetchByU_C_Last(
+	public static User fetchByGtU_C_Last(
 		long userId, long companyId,
 		OrderByComparator<User> orderByComparator) {
 
-		return getPersistence().fetchByU_C_Last(
+		return getPersistence().fetchByGtU_C_Last(
 			userId, companyId, orderByComparator);
 	}
 
@@ -1061,8 +1060,8 @@ public class UserUtil {
 	 * @param userId the user ID
 	 * @param companyId the company ID
 	 */
-	public static void removeByU_C(long userId, long companyId) {
-		getPersistence().removeByU_C(userId, companyId);
+	public static void removeByGtU_C(long userId, long companyId) {
+		getPersistence().removeByGtU_C(userId, companyId);
 	}
 
 	/**
@@ -1072,8 +1071,8 @@ public class UserUtil {
 	 * @param companyId the company ID
 	 * @return the number of matching users
 	 */
-	public static int countByU_C(long userId, long companyId) {
-		return getPersistence().countByU_C(userId, companyId);
+	public static int countByGtU_C(long userId, long companyId) {
+		return getPersistence().countByGtU_C(userId, companyId);
 	}
 
 	/**
@@ -3752,14 +3751,9 @@ public class UserUtil {
 	}
 
 	public static UserPersistence getPersistence() {
-		if (_persistence == null) {
-			_persistence = (UserPersistence)PortalBeanLocatorUtil.locate(
-				UserPersistence.class.getName());
-		}
-
 		return _persistence;
 	}
 
-	private static UserPersistence _persistence;
+	private static volatile UserPersistence _persistence;
 
 }

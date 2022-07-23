@@ -261,4 +261,7 @@ public interface KaleoProcessModel
 	 */
 	public void setWorkflowDefinitionVersion(int workflowDefinitionVersion);
 
+	@Override
+	public KaleoProcess cloneWithOriginalValues();
+
 }

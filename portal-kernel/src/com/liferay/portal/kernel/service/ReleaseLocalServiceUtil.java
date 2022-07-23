@@ -92,14 +92,6 @@ public class ReleaseLocalServiceUtil {
 	}
 
 	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static void createTablesAndPopulate() {
-		getService().createTablesAndPopulate();
-	}
-
-	/**
 	 * @throws PortalException
 	 */
 	public static PersistedModel deletePersistedModel(
@@ -140,6 +132,10 @@ public class ReleaseLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -231,14 +227,6 @@ public class ReleaseLocalServiceUtil {
 		getActionableDynamicQuery() {
 
 		return getService().getActionableDynamicQuery();
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static int getBuildNumberOrCreate() throws PortalException {
-		return getService().getBuildNumberOrCreate();
 	}
 
 	public static
@@ -334,23 +322,6 @@ public class ReleaseLocalServiceUtil {
 		getService().updateRelease(
 			servletContextName, upgradeProcesses, buildNumber,
 			previousBuildNumber);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateRelease(String, List, int, int)}
-	 */
-	@Deprecated
-	public static void updateRelease(
-			String servletContextName,
-			List<com.liferay.portal.kernel.upgrade.UpgradeProcess>
-				upgradeProcesses,
-			int buildNumber, int previousBuildNumber, boolean indexOnUpgrade)
-		throws PortalException {
-
-		getService().updateRelease(
-			servletContextName, upgradeProcesses, buildNumber,
-			previousBuildNumber, indexOnUpgrade);
 	}
 
 	public static void updateRelease(

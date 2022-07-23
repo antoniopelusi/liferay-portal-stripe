@@ -18,6 +18,7 @@ import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import java.util.Date;
  * @generated
  */
 public class CommerceOrderCacheModel
-	implements CacheModel<CommerceOrder>, Externalizable {
+	implements CacheModel<CommerceOrder>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object object) {
@@ -50,7 +51,9 @@ public class CommerceOrderCacheModel
 		CommerceOrderCacheModel commerceOrderCacheModel =
 			(CommerceOrderCacheModel)object;
 
-		if (commerceOrderId == commerceOrderCacheModel.commerceOrderId) {
+		if ((commerceOrderId == commerceOrderCacheModel.commerceOrderId) &&
+			(mvccVersion == commerceOrderCacheModel.mvccVersion)) {
+
 			return true;
 		}
 
@@ -59,14 +62,28 @@ public class CommerceOrderCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, commerceOrderId);
+		int hashCode = HashUtil.hash(0, commerceOrderId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(137);
+		StringBundler sb = new StringBundler(153);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", externalReferenceCode=");
 		sb.append(externalReferenceCode);
@@ -88,6 +105,8 @@ public class CommerceOrderCacheModel
 		sb.append(commerceAccountId);
 		sb.append(", commerceCurrencyId=");
 		sb.append(commerceCurrencyId);
+		sb.append(", commerceOrderTypeId=");
+		sb.append(commerceOrderTypeId);
 		sb.append(", billingAddressId=");
 		sb.append(billingAddressId);
 		sb.append(", shippingAddressId=");
@@ -106,6 +125,18 @@ public class CommerceOrderCacheModel
 		sb.append(couponCode);
 		sb.append(", lastPriceUpdateDate=");
 		sb.append(lastPriceUpdateDate);
+		sb.append(", deliveryCommerceTermEntryId=");
+		sb.append(deliveryCommerceTermEntryId);
+		sb.append(", deliveryCommerceTermEntryDescription=");
+		sb.append(deliveryCommerceTermEntryDescription);
+		sb.append(", deliveryCommerceTermEntryName=");
+		sb.append(deliveryCommerceTermEntryName);
+		sb.append(", paymentCommerceTermEntryId=");
+		sb.append(paymentCommerceTermEntryId);
+		sb.append(", paymentCommerceTermEntryDescription=");
+		sb.append(paymentCommerceTermEntryDescription);
+		sb.append(", paymentCommerceTermEntryName=");
+		sb.append(paymentCommerceTermEntryName);
 		sb.append(", subtotal=");
 		sb.append(subtotal);
 		sb.append(", subtotalDiscountAmount=");
@@ -211,6 +242,8 @@ public class CommerceOrderCacheModel
 	public CommerceOrder toEntityModel() {
 		CommerceOrderImpl commerceOrderImpl = new CommerceOrderImpl();
 
+		commerceOrderImpl.setMvccVersion(mvccVersion);
+
 		if (uuid == null) {
 			commerceOrderImpl.setUuid("");
 		}
@@ -253,6 +286,7 @@ public class CommerceOrderCacheModel
 
 		commerceOrderImpl.setCommerceAccountId(commerceAccountId);
 		commerceOrderImpl.setCommerceCurrencyId(commerceCurrencyId);
+		commerceOrderImpl.setCommerceOrderTypeId(commerceOrderTypeId);
 		commerceOrderImpl.setBillingAddressId(billingAddressId);
 		commerceOrderImpl.setShippingAddressId(shippingAddressId);
 
@@ -300,6 +334,44 @@ public class CommerceOrderCacheModel
 		else {
 			commerceOrderImpl.setLastPriceUpdateDate(
 				new Date(lastPriceUpdateDate));
+		}
+
+		commerceOrderImpl.setDeliveryCommerceTermEntryId(
+			deliveryCommerceTermEntryId);
+
+		if (deliveryCommerceTermEntryDescription == null) {
+			commerceOrderImpl.setDeliveryCommerceTermEntryDescription("");
+		}
+		else {
+			commerceOrderImpl.setDeliveryCommerceTermEntryDescription(
+				deliveryCommerceTermEntryDescription);
+		}
+
+		if (deliveryCommerceTermEntryName == null) {
+			commerceOrderImpl.setDeliveryCommerceTermEntryName("");
+		}
+		else {
+			commerceOrderImpl.setDeliveryCommerceTermEntryName(
+				deliveryCommerceTermEntryName);
+		}
+
+		commerceOrderImpl.setPaymentCommerceTermEntryId(
+			paymentCommerceTermEntryId);
+
+		if (paymentCommerceTermEntryDescription == null) {
+			commerceOrderImpl.setPaymentCommerceTermEntryDescription("");
+		}
+		else {
+			commerceOrderImpl.setPaymentCommerceTermEntryDescription(
+				paymentCommerceTermEntryDescription);
+		}
+
+		if (paymentCommerceTermEntryName == null) {
+			commerceOrderImpl.setPaymentCommerceTermEntryName("");
+		}
+		else {
+			commerceOrderImpl.setPaymentCommerceTermEntryName(
+				paymentCommerceTermEntryName);
 		}
 
 		commerceOrderImpl.setSubtotal(subtotal);
@@ -427,6 +499,7 @@ public class CommerceOrderCacheModel
 	public void readExternal(ObjectInput objectInput)
 		throws ClassNotFoundException, IOException {
 
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		externalReferenceCode = objectInput.readUTF();
 
@@ -445,6 +518,8 @@ public class CommerceOrderCacheModel
 
 		commerceCurrencyId = objectInput.readLong();
 
+		commerceOrderTypeId = objectInput.readLong();
+
 		billingAddressId = objectInput.readLong();
 
 		shippingAddressId = objectInput.readLong();
@@ -456,6 +531,14 @@ public class CommerceOrderCacheModel
 		purchaseOrderNumber = objectInput.readUTF();
 		couponCode = objectInput.readUTF();
 		lastPriceUpdateDate = objectInput.readLong();
+
+		deliveryCommerceTermEntryId = objectInput.readLong();
+		deliveryCommerceTermEntryDescription = (String)objectInput.readObject();
+		deliveryCommerceTermEntryName = objectInput.readUTF();
+
+		paymentCommerceTermEntryId = objectInput.readLong();
+		paymentCommerceTermEntryDescription = (String)objectInput.readObject();
+		paymentCommerceTermEntryName = objectInput.readUTF();
 		subtotal = (BigDecimal)objectInput.readObject();
 		subtotalDiscountAmount = (BigDecimal)objectInput.readObject();
 		subtotalDiscountPercentageLevel1 = (BigDecimal)objectInput.readObject();
@@ -525,6 +608,8 @@ public class CommerceOrderCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF("");
 		}
@@ -560,6 +645,8 @@ public class CommerceOrderCacheModel
 		objectOutput.writeLong(commerceAccountId);
 
 		objectOutput.writeLong(commerceCurrencyId);
+
+		objectOutput.writeLong(commerceOrderTypeId);
 
 		objectOutput.writeLong(billingAddressId);
 
@@ -603,6 +690,39 @@ public class CommerceOrderCacheModel
 		}
 
 		objectOutput.writeLong(lastPriceUpdateDate);
+
+		objectOutput.writeLong(deliveryCommerceTermEntryId);
+
+		if (deliveryCommerceTermEntryDescription == null) {
+			objectOutput.writeObject("");
+		}
+		else {
+			objectOutput.writeObject(deliveryCommerceTermEntryDescription);
+		}
+
+		if (deliveryCommerceTermEntryName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(deliveryCommerceTermEntryName);
+		}
+
+		objectOutput.writeLong(paymentCommerceTermEntryId);
+
+		if (paymentCommerceTermEntryDescription == null) {
+			objectOutput.writeObject("");
+		}
+		else {
+			objectOutput.writeObject(paymentCommerceTermEntryDescription);
+		}
+
+		if (paymentCommerceTermEntryName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(paymentCommerceTermEntryName);
+		}
+
 		objectOutput.writeObject(subtotal);
 		objectOutput.writeObject(subtotalDiscountAmount);
 		objectOutput.writeObject(subtotalDiscountPercentageLevel1);
@@ -678,6 +798,7 @@ public class CommerceOrderCacheModel
 		objectOutput.writeLong(statusDate);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public String externalReferenceCode;
 	public long commerceOrderId;
@@ -689,6 +810,7 @@ public class CommerceOrderCacheModel
 	public long modifiedDate;
 	public long commerceAccountId;
 	public long commerceCurrencyId;
+	public long commerceOrderTypeId;
 	public long billingAddressId;
 	public long shippingAddressId;
 	public String commercePaymentMethodKey;
@@ -698,6 +820,12 @@ public class CommerceOrderCacheModel
 	public String purchaseOrderNumber;
 	public String couponCode;
 	public long lastPriceUpdateDate;
+	public long deliveryCommerceTermEntryId;
+	public String deliveryCommerceTermEntryDescription;
+	public String deliveryCommerceTermEntryName;
+	public long paymentCommerceTermEntryId;
+	public String paymentCommerceTermEntryDescription;
+	public String paymentCommerceTermEntryName;
 	public BigDecimal subtotal;
 	public BigDecimal subtotalDiscountAmount;
 	public BigDecimal subtotalDiscountPercentageLevel1;

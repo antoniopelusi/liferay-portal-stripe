@@ -14,12 +14,45 @@
 
 package com.liferay.saml.persistence.model.impl;
 
+import com.liferay.petra.string.CharPool;
+import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.OrderedProperties;
+import com.liferay.portal.kernel.util.Validator;
+
+import java.io.IOException;
+
+import java.util.Properties;
+
 /**
  * @author Mika Koivisto
  */
 public class SamlSpIdpConnectionImpl extends SamlSpIdpConnectionBaseImpl {
 
-	public SamlSpIdpConnectionImpl() {
+	@Override
+	public Properties getNormalizedUserAttributeMappings() throws IOException {
+		Properties userAttributeMappingsProperties = new OrderedProperties();
+
+		String userAttributeMappings = getUserAttributeMappings();
+
+		if (Validator.isNotNull(userAttributeMappings)) {
+			userAttributeMappingsProperties.load(
+				new UnsyncStringReader(userAttributeMappings));
+
+			userAttributeMappingsProperties.replaceAll(
+				(key, value) -> _removeDefaultPrefix(
+					GetterUtil.getString(value)));
+		}
+
+		return userAttributeMappingsProperties;
+	}
+
+	private String _removeDefaultPrefix(String userFieldExpression) {
+		if (userFieldExpression.charAt(0) == CharPool.COLON) {
+			return userFieldExpression.substring(1);
+		}
+
+		return userFieldExpression;
 	}
 
 }

@@ -3,7 +3,6 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="INFO" name="com.liferay.portal.bundle.blacklist.internal" />
-
 		<Logger level="ERROR" name="osgi.logging.org_apache_felix_fileinstall" />
 	</Loggers>
 </Configuration>

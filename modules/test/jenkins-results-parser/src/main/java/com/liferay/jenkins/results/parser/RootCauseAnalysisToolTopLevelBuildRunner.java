@@ -29,8 +29,14 @@ import org.dom4j.Element;
  * @author Michael Hashimoto
  */
 public class RootCauseAnalysisToolTopLevelBuildRunner
-	extends PortalTopLevelBuildRunner
-		<PortalTopLevelBuildData, PortalWorkspace> {
+	extends PortalTopLevelBuildRunner<PortalTopLevelBuildData> {
+
+	@Override
+	public void tearDown() {
+		cleanUpHostServices();
+
+		tearDownWorkspace();
+	}
 
 	protected RootCauseAnalysisToolTopLevelBuildRunner(
 		PortalTopLevelBuildData portalTopLevelBuildData) {
@@ -41,9 +47,9 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 	@Override
 	protected Element getJenkinsReportElement() {
 		PortalTopLevelBuildData portalTopLevelBuildData = getBuildData();
-		PortalWorkspace portalWorkspace = getWorkspace();
+		Workspace workspace = getWorkspace();
 
-		if (portalWorkspace == null) {
+		if (workspace == null) {
 			return Dom4JUtil.getNewElement(
 				"html", null,
 				Dom4JUtil.getNewElement(
@@ -59,7 +65,7 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 		rootCauseAnalysisToolBuild.setDownstreamBuildDataList(
 			portalTopLevelBuildData.getDownstreamBuildDataList());
 		rootCauseAnalysisToolBuild.setWorkspaceGitRepository(
-			portalWorkspace.getPrimaryPortalWorkspaceGitRepository());
+			workspace.getPrimaryWorkspaceGitRepository());
 
 		return super.getJenkinsReportElement();
 	}
@@ -97,17 +103,22 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 	protected void setUpWorkspace() {
 		super.setUpWorkspace();
 
-		PortalWorkspace portalWorkspace = getWorkspace();
+		Workspace workspace = getWorkspace();
 
 		WorkspaceGitRepository workspaceGitRepository =
-			portalWorkspace.getPrimaryPortalWorkspaceGitRepository();
+			workspace.getPrimaryWorkspaceGitRepository();
 
-		try {
-			workspaceGitRepository.storeCommitHistory(_getPortalBranchSHAs());
-		}
-		catch (Exception exception) {
-			String portalGitHubURL = getBuildParameter(
-				_NAME_BUILD_PARAMETER_PORTAL_GITHUB_URL);
+		GitWorkingDirectory gitWorkingDirectory =
+			workspaceGitRepository.getGitWorkingDirectory();
+
+		List<String> portalBranchSHAs = _getPortalBranchSHAs();
+
+		for (String portalBranchSHA : portalBranchSHAs) {
+			if (gitWorkingDirectory.localSHAExists(portalBranchSHA)) {
+				continue;
+			}
+
+			String portalGitHubURL = _getPortalGitHubURL();
 
 			failBuildRunner(
 				JenkinsResultsParserUtil.combine(
@@ -116,8 +127,42 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 					String.valueOf(
 						WorkspaceGitRepository.COMMITS_HISTORY_SIZE_MAX),
 					" commits of <a href=\"", portalGitHubURL, "\">",
-					portalGitHubURL, "</a>"),
-				exception);
+					portalGitHubURL, "</a>"));
+
+			return;
+		}
+
+		List<String> portalCherryPickSHAs = _getPortalCherryPickSHAs();
+
+		for (String portalCherryPickSHA : portalCherryPickSHAs) {
+			if (gitWorkingDirectory.localSHAExists(portalCherryPickSHA)) {
+				continue;
+			}
+
+			String portalGitHubURL = _getPortalGitHubURL();
+
+			failBuildRunner(
+				JenkinsResultsParserUtil.combine(
+					_NAME_BUILD_PARAMETER_PORTAL_CHERRY_PICK_SHAS,
+					" has SHAs that are not be found within the latest ",
+					String.valueOf(
+						WorkspaceGitRepository.COMMITS_HISTORY_SIZE_MAX),
+					" commits of <a href=\"", portalGitHubURL, "\">",
+					portalGitHubURL, "</a>"));
+
+			return;
+		}
+
+		List<String> commitSHAs = new ArrayList<>();
+
+		commitSHAs.addAll(portalBranchSHAs);
+		commitSHAs.addAll(portalCherryPickSHAs);
+
+		try {
+			workspaceGitRepository.storeCommitHistory(commitSHAs);
+		}
+		catch (Exception exception) {
+			failBuildRunner("Failed to store the commit history", exception);
 		}
 	}
 
@@ -147,7 +192,7 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 	}
 
 	private Integer _getAllowedPortalBranchSHAs() {
-		String allowedPortalBranchSHAs = getJobProperty(
+		String allowedPortalBranchSHAs = getJobPropertyValue(
 			"allowed.portal.branch.shas");
 
 		if ((allowedPortalBranchSHAs == null) ||
@@ -205,12 +250,16 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 	}
 
 	private List<String> _getPortalBranchSHAs() {
-		String portalBranchSHAs = getBuildParameter(
+		String portalBranchSHAsString = getBuildParameter(
 			_NAME_BUILD_PARAMETER_PORTAL_BRANCH_SHAS);
 
-		if ((portalBranchSHAs == null) || portalBranchSHAs.isEmpty()) {
+		if ((portalBranchSHAsString == null) ||
+			portalBranchSHAsString.isEmpty()) {
+
+			Workspace workspace = getWorkspace();
+
 			WorkspaceGitRepository workspaceGitRepository =
-				_getWorkspaceGitRepository();
+				workspace.getPrimaryWorkspaceGitRepository();
 
 			GitWorkingDirectory gitWorkingDirectory =
 				workspaceGitRepository.getGitWorkingDirectory();
@@ -222,38 +271,74 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 			return Collections.singletonList(localGitCommit.getSHA());
 		}
 
-		Matcher matcher = _compareURLPattern.matcher(portalBranchSHAs);
+		Matcher matcher = _compareURLPattern.matcher(portalBranchSHAsString);
 
 		if (matcher.find()) {
-			WorkspaceGitRepository workspaceGitRepository =
-				_getWorkspaceGitRepository();
+			Workspace workspace = getWorkspace();
 
-			List<LocalGitCommit> rangeLocalGitCommits =
-				workspaceGitRepository.getRangeLocalGitCommits(
-					matcher.group("earliestSHA"), matcher.group("latestSHA"));
+			WorkspaceGitRepository workspaceGitRepository =
+				workspace.getPrimaryWorkspaceGitRepository();
+
+			List<LocalGitCommit> rangeLocalGitCommits = new ArrayList<>();
+
+			try {
+				rangeLocalGitCommits =
+					workspaceGitRepository.getRangeLocalGitCommits(
+						matcher.group("earliestSHA"),
+						matcher.group("latestSHA"));
+			}
+			catch (Exception exception) {
+				failBuildRunner(
+					"Unable to store the commit history", exception);
+			}
 
 			List<List<LocalGitCommit>> localGitCommitsLists =
 				workspaceGitRepository.partitionLocalGitCommits(
 					rangeLocalGitCommits, _getMaxCommitGroupCount());
 
-			List<String> portalBranchSHAList = new ArrayList<>();
+			List<String> portalBranchSHAs = new ArrayList<>();
 
 			for (List<LocalGitCommit> localGitCommits : localGitCommitsLists) {
 				LocalGitCommit localGitCommit = localGitCommits.get(0);
 
-				portalBranchSHAList.add(localGitCommit.getSHA());
+				portalBranchSHAs.add(localGitCommit.getSHA());
 			}
 
-			return portalBranchSHAList;
+			return portalBranchSHAs;
 		}
 
-		List<String> portalBranchSHAList = new ArrayList<>();
+		List<String> portalBranchSHAs = new ArrayList<>();
 
-		for (String portalBranchSHA : portalBranchSHAs.split(",")) {
-			portalBranchSHAList.add(portalBranchSHA.trim());
+		for (String portalBranchSHA : portalBranchSHAsString.split(",")) {
+			portalBranchSHAs.add(portalBranchSHA.trim());
 		}
 
-		return portalBranchSHAList;
+		return portalBranchSHAs;
+	}
+
+	private List<String> _getPortalCherryPickSHAs() {
+		List<String> portalCherryPickSHAList = new ArrayList<>();
+
+		String portalCherryPickSHAsString = getBuildParameter(
+			_NAME_BUILD_PARAMETER_PORTAL_CHERRY_PICK_SHAS);
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(
+				portalCherryPickSHAsString)) {
+
+			return portalCherryPickSHAList;
+		}
+
+		for (String portalCherryPickSHA :
+				portalCherryPickSHAsString.split(",")) {
+
+			portalCherryPickSHAList.add(portalCherryPickSHA.trim());
+		}
+
+		return portalCherryPickSHAList;
+	}
+
+	private String _getPortalGitHubURL() {
+		return getBuildParameter(_NAME_BUILD_PARAMETER_PORTAL_GITHUB_URL);
 	}
 
 	private List<String> _getTestList() {
@@ -262,17 +347,15 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 
 		List<String> list = new ArrayList<>();
 
+		if (portalBatchTestSelector.isEmpty()) {
+			return list;
+		}
+
 		for (String portalBatchTest : portalBatchTestSelector.split(",")) {
 			list.add(portalBatchTest.trim());
 		}
 
 		return list;
-	}
-
-	private WorkspaceGitRepository _getWorkspaceGitRepository() {
-		PortalWorkspace portalWorkspace = getWorkspace();
-
-		return portalWorkspace.getPrimaryPortalWorkspaceGitRepository();
 	}
 
 	private void _validateBuildParameterJenkinsGitHubURL() {
@@ -309,7 +392,7 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 			failBuildRunner(_NAME_BUILD_PARAMETER_PORTAL_BATCH + " is null");
 		}
 
-		String allowedPortalBatchNames = getJobProperty(
+		String allowedPortalBatchNames = getJobPropertyValue(
 			JenkinsResultsParserUtil.combine(
 				"allowed.portal.batch.names[",
 				getBuildParameter(
@@ -346,6 +429,18 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 	}
 
 	private void _validateBuildParameterPortalBatchTestSelector() {
+		String portalBatchName = getBuildParameter(
+			_NAME_BUILD_PARAMETER_PORTAL_BATCH);
+
+		if (!portalBatchName.startsWith("integration") &&
+			!portalBatchName.startsWith("functional") &&
+			!portalBatchName.startsWith("modules-integration") &&
+			!portalBatchName.startsWith("modules-unit") &&
+			!portalBatchName.startsWith("unit")) {
+
+			return;
+		}
+
 		String portalBatchTestSelector = getBuildParameter(
 			_NAME_BUILD_PARAMETER_PORTAL_BATCH_TEST_SELECTOR);
 
@@ -353,7 +448,9 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 			portalBatchTestSelector.isEmpty()) {
 
 			failBuildRunner(
-				_NAME_BUILD_PARAMETER_PORTAL_BATCH_TEST_SELECTOR + " is null");
+				JenkinsResultsParserUtil.combine(
+					_NAME_BUILD_PARAMETER_PORTAL_BATCH_TEST_SELECTOR,
+					" is required for ", portalBatchName));
 		}
 	}
 
@@ -403,8 +500,7 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 	}
 
 	private void _validateBuildParameterPortalGitHubURL() {
-		String portalGitHubURL = getBuildParameter(
-			_NAME_BUILD_PARAMETER_PORTAL_GITHUB_URL);
+		String portalGitHubURL = _getPortalGitHubURL();
 
 		if ((portalGitHubURL == null) || portalGitHubURL.isEmpty()) {
 			failBuildRunner(
@@ -455,7 +551,7 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 				_NAME_BUILD_PARAMETER_PORTAL_UPSTREAM_BRANCH_NAME + " is null");
 		}
 
-		String allowedPortalUpstreamBranchNames = getJobProperty(
+		String allowedPortalUpstreamBranchNames = getJobPropertyValue(
 			"allowed.portal.upstream.branch.names");
 
 		if ((allowedPortalUpstreamBranchNames == null) ||
@@ -505,6 +601,9 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 
 	private static final String _NAME_BUILD_PARAMETER_PORTAL_BRANCH_SHAS =
 		"PORTAL_BRANCH_SHAS";
+
+	private static final String _NAME_BUILD_PARAMETER_PORTAL_CHERRY_PICK_SHAS =
+		"PORTAL_CHERRY_PICK_SHAS";
 
 	private static final String _NAME_BUILD_PARAMETER_PORTAL_GITHUB_URL =
 		"PORTAL_GITHUB_URL";

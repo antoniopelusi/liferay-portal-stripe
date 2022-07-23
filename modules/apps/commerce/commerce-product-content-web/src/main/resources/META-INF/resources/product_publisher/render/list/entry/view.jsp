@@ -30,9 +30,12 @@ String productDetailURL = cpContentHelper.getFriendlyURL(cpCatalogEntry, themeDi
 	<liferay-util:dynamic-include key="com.liferay.commerce.product.content.web#/add_to_cart#pre" />
 
 	<div class="card d-flex flex-column product-card">
-		<div class="aspect-ratio aspect-ratio-4-to-3 card-item-first">
+		<div class="card-item-first position-relative">
 			<a href="<%= productDetailURL %>">
-				<div class="aspect-ratio-bg-cover aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon h-100 w-100" style="background-image: url('<%= cpCatalogEntry.getDefaultImageFileUrl() %>');"></div>
+				<liferay-adaptive-media:img
+					class="img-fluid product-card-picture"
+					fileVersion="<%= cpContentHelper.getCPDefinitionImageFileVersion(cpCatalogEntry.getCPDefinitionId(), request) %>"
+				/>
 
 				<div class="aspect-ratio-item-bottom-left">
 					<commerce-ui:availability-label
@@ -72,7 +75,7 @@ String productDetailURL = cpContentHelper.getFriendlyURL(cpCatalogEntry, themeDi
 
 			<div>
 				<c:choose>
-					<c:when test="<%= cpSku == null %>">
+					<c:when test="<%= (cpSku == null) || cpContentHelper.hasCPDefinitionOptionRels(cpCatalogEntry.getCPDefinitionId()) %>">
 						<div class="add-to-cart d-flex my-2 pt-5" id="<%= PortalUtil.generateRandomKey(request, "taglib") + StringPool.UNDERLINE + "add_to_cart" %>">
 							<a class="btn btn-block btn-secondary" href="<%= productDetailURL %>" role="button" style="margin-top: 0.35rem;">
 								<liferay-ui:message key="view-all-variants" />
@@ -80,10 +83,15 @@ String productDetailURL = cpContentHelper.getFriendlyURL(cpCatalogEntry, themeDi
 						</div>
 					</c:when>
 					<c:otherwise>
-						<commerce-ui:add-to-cart
-							block="<%= true %>"
-							CPCatalogEntry="<%= cpCatalogEntry %>"
-						/>
+						<div class="mt-2">
+							<commerce-ui:add-to-cart
+								alignment="full-width"
+								CPCatalogEntry="<%= cpCatalogEntry %>"
+								inline="<%= false %>"
+								size="md"
+								skuOptions="[]"
+							/>
+						</div>
 					</c:otherwise>
 				</c:choose>
 

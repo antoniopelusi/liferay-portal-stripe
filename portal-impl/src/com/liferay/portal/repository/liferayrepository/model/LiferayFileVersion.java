@@ -110,7 +110,7 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 				incrementCounter);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return inputStream;
@@ -129,6 +129,11 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return _dlFileVersion.getExpandoBridge();
+	}
+
+	@Override
+	public Date getExpirationDate() {
+		return _dlFileVersion.getExpirationDate();
 	}
 
 	@Override
@@ -214,6 +219,11 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 	@Override
 	public long getRepositoryId() {
 		return _dlFileVersion.getRepositoryId();
+	}
+
+	@Override
+	public Date getReviewDate() {
+		return _dlFileVersion.getReviewDate();
 	}
 
 	@Override

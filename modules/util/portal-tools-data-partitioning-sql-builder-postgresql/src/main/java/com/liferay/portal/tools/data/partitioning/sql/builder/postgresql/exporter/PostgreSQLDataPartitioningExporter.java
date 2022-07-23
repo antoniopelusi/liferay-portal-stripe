@@ -14,6 +14,7 @@
 
 package com.liferay.portal.tools.data.partitioning.sql.builder.postgresql.exporter;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.tools.data.partitioning.sql.builder.exporter.BaseDataPartitioningExporter;
 import com.liferay.portal.tools.data.partitioning.sql.builder.exporter.InsertSQLBuilder;
 import com.liferay.portal.tools.data.partitioning.sql.builder.exporter.context.ExportContext;
@@ -31,40 +32,25 @@ public class PostgreSQLDataPartitioningExporter
 
 	@Override
 	public String getControlTableNamesSQL(ExportContext exportContext) {
-		StringBuilder sb = new StringBuilder(11);
-
-		sb.append("select c1.");
-		sb.append(getTableNameFieldName());
-		sb.append(
-			" from information_schema.columns c1 where c1.table_catalog = '");
-		sb.append(exportContext.getSchemaName());
-		sb.append("' and c1.table_schema = 'public' and c1.");
-		sb.append(getTableNameFieldName());
-		sb.append(" not in (");
-		sb.append(getPartitionedTableNamesSQL(exportContext));
-		sb.append(") group by c1.");
-		sb.append(getTableNameFieldName());
-		sb.append(" order by c1.table_name");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"select c1.", getTableNameFieldName(),
+			" from information_schema.columns c1 where c1.table_catalog = '",
+			exportContext.getSchemaName(),
+			"' and c1.table_schema = 'public' and c1.", getTableNameFieldName(),
+			" not in (", getPartitionedTableNamesSQL(exportContext),
+			") group by c1.", getTableNameFieldName(),
+			" order by c1.table_name");
 	}
 
 	@Override
 	public String getPartitionedTableNamesSQL(ExportContext exportContext) {
-		StringBuilder sb = new StringBuilder(9);
-
-		sb.append("select c2.");
-		sb.append(getTableNameFieldName());
-		sb.append(
-			" from information_schema.columns c2 where c2.table_catalog = '");
-		sb.append(exportContext.getSchemaName());
-		sb.append("' and c2.table_schema = 'public' and c2.column_name = ");
-		sb.append("'companyid' group by c2.");
-		sb.append(getTableNameFieldName());
-		sb.append(" order by c2.");
-		sb.append(getTableNameFieldName());
-
-		return sb.toString();
+		return StringBundler.concat(
+			"select c2.", getTableNameFieldName(),
+			" from information_schema.columns c2 where c2.table_catalog = '",
+			exportContext.getSchemaName(),
+			"' and c2.table_schema = 'public' and c2.column_name = ",
+			"'companyid' group by c2.", getTableNameFieldName(),
+			" order by c2.", getTableNameFieldName());
 	}
 
 	@Override

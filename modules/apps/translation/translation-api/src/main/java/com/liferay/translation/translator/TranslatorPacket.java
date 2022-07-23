@@ -16,10 +16,15 @@ package com.liferay.translation.translator;
 
 import java.util.Map;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Adolfo Pérez
  */
+@ProviderType
 public interface TranslatorPacket {
+
+	public long getCompanyId();
 
 	public Map<String, String> getFieldsMap();
 

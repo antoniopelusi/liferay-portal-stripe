@@ -30,6 +30,10 @@ public class DDMTemplateLocalServiceWrapper
 	implements DDMTemplateLocalService,
 			   ServiceWrapper<DDMTemplateLocalService> {
 
+	public DDMTemplateLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMTemplateLocalServiceWrapper(
 		DDMTemplateLocalService ddmTemplateLocalService) {
 
@@ -361,6 +365,13 @@ public class DDMTemplateLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmTemplateLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmTemplateLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

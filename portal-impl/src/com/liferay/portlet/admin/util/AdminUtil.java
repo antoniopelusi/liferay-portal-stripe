@@ -49,35 +49,13 @@ public class AdminUtil {
 
 		String password = PortalUtil.getUserPassword(httpServletRequest);
 
-		if (userId != PortalUtil.getUserId(httpServletRequest)) {
-			password = StringPool.BLANK;
-		}
+		if ((userId != PortalUtil.getUserId(httpServletRequest)) ||
+			(password == null)) {
 
-		if (password == null) {
 			password = StringPool.BLANK;
 		}
 
 		return password;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #updateUser(
-	 *             ActionRequest, long, String, String, String, String, String,
-	 *             String, String, String, String, String, String)}
-	 */
-	@Deprecated
-	public static User updateUser(
-			ActionRequest actionRequest, long userId, String screenName,
-			String emailAddress, long facebookId, String openId,
-			String languageId, String timeZoneId, String greeting,
-			String comments, String smsSn, String facebookSn, String jabberSn,
-			String skypeSn, String twitterSn)
-		throws PortalException {
-
-		return updateUser(
-			PortalUtil.getHttpServletRequest(actionRequest), userId, screenName,
-			emailAddress, facebookId, openId, languageId, timeZoneId, greeting,
-			comments, smsSn, facebookSn, jabberSn, skypeSn, twitterSn);
 	}
 
 	public static User updateUser(
@@ -126,7 +104,6 @@ public class AdminUtil {
 		long[] roleIds = null;
 		List<UserGroupRole> userGroupRoles = null;
 		long[] userGroupIds = null;
-		ServiceContext serviceContext = new ServiceContext();
 
 		return UserServiceUtil.updateUser(
 			userId, password, StringPool.BLANK, StringPool.BLANK,
@@ -138,7 +115,7 @@ public class AdminUtil {
 			contact.isMale(), birthdayMonth, birthdayDay, birthdayYear, smsSn,
 			facebookSn, jabberSn, skypeSn, twitterSn, contact.getJobTitle(),
 			groupIds, organizationIds, roleIds, userGroupRoles, userGroupIds,
-			serviceContext);
+			new ServiceContext());
 	}
 
 	public static User updateUser(
@@ -168,7 +145,6 @@ public class AdminUtil {
 		long[] roleIds = null;
 		List<UserGroupRole> userGroupRoles = null;
 		long[] userGroupIds = null;
-		ServiceContext serviceContext = new ServiceContext();
 
 		return UserServiceUtil.updateUser(
 			userId, password, StringPool.BLANK, StringPool.BLANK,
@@ -180,7 +156,7 @@ public class AdminUtil {
 			birthdayMonth, birthdayDay, birthdayYear, smsSn, facebookSn,
 			jabberSn, skypeSn, twitterSn, contact.getJobTitle(), groupIds,
 			organizationIds, roleIds, userGroupRoles, userGroupIds,
-			serviceContext);
+			new ServiceContext());
 	}
 
 }

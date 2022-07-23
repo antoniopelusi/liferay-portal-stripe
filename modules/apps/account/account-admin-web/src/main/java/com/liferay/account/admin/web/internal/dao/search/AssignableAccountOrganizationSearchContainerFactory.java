@@ -14,6 +14,7 @@
 
 package com.liferay.account.admin.web.internal.dao.search;
 
+import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Organization;
@@ -21,8 +22,7 @@ import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
-import com.liferay.portal.kernel.search.BaseModelSearchResult;
-import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -46,20 +46,14 @@ public class AssignableAccountOrganizationSearchContainerFactory {
 			null, "no-organizations-were-found");
 
 		searchContainer.setId("organizations");
-
-		String orderByCol = ParamUtil.getString(
-			liferayPortletRequest, "orderByCol", "name");
-
-		searchContainer.setOrderByCol(orderByCol);
-
-		String orderByType = ParamUtil.getString(
-			liferayPortletRequest, "orderByType", "asc");
-
-		searchContainer.setOrderByType(orderByType);
-
-		searchContainer.setRowChecker(
-			new SelectAccountOrganizationRowChecker(
-				liferayPortletResponse, accountEntryId));
+		searchContainer.setOrderByCol(
+			SearchOrderByUtil.getOrderByCol(
+				liferayPortletRequest, AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+				"assignable-account-organization-order-by-col", "name"));
+		searchContainer.setOrderByType(
+			SearchOrderByUtil.getOrderByType(
+				liferayPortletRequest, AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+				"assignable-account-organization-order-by-type", "asc"));
 
 		String keywords = ParamUtil.getString(
 			liferayPortletRequest, "keywords", null);
@@ -68,19 +62,18 @@ public class AssignableAccountOrganizationSearchContainerFactory {
 			(ThemeDisplay)liferayPortletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		Sort sort = SortFactoryUtil.getSort(
-			Organization.class, searchContainer.getOrderByCol(),
-			searchContainer.getOrderByType());
-
-		BaseModelSearchResult<Organization> baseModelSearchResult =
+		searchContainer.setResultsAndTotal(
 			OrganizationLocalServiceUtil.searchOrganizations(
 				themeDisplay.getCompanyId(),
 				OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, keywords,
 				null, searchContainer.getStart(), searchContainer.getEnd(),
-				sort);
+				SortFactoryUtil.getSort(
+					Organization.class, searchContainer.getOrderByCol(),
+					searchContainer.getOrderByType())));
 
-		searchContainer.setResults(baseModelSearchResult.getBaseModels());
-		searchContainer.setTotal(baseModelSearchResult.getLength());
+		searchContainer.setRowChecker(
+			new SelectAccountOrganizationRowChecker(
+				liferayPortletResponse, accountEntryId));
 
 		return searchContainer;
 	}

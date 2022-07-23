@@ -33,8 +33,8 @@ public abstract class BaseUpgradeWebModuleRelease extends UpgradeProcess {
 
 	@Override
 	public void upgrade() throws UpgradeException {
-		try (Connection con = DataAccess.getConnection()) {
-			if (hasAnyPortletId(con, getPortletIds())) {
+		try (Connection connection = DataAccess.getConnection()) {
+			if (hasAnyPortletId(connection, getPortletIds())) {
 				super.upgrade();
 			}
 		}
@@ -72,16 +72,16 @@ public abstract class BaseUpgradeWebModuleRelease extends UpgradeProcess {
 
 		sb.append(CharPool.CLOSE_PARENTHESIS);
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select portletId from Portlet where portletId in " +
 					sb.toString())) {
 
 			for (int i = 0; i < portletIds.length; i++) {
-				ps.setString(i + 1, portletIds[i]);
+				preparedStatement.setString(i + 1, portletIds[i]);
 			}
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
 					return true;
 				}
 

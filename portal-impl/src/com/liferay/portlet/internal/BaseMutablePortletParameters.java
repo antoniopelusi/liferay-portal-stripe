@@ -48,11 +48,11 @@ public abstract class BaseMutablePortletParameters
 			BasePortletParametersImpl<?> basePortletParametersImpl =
 				(BasePortletParametersImpl<?>)portletParameters;
 
-			Map<String, String[]> liferayPortletParametersMap =
+			Map<String, String[]> liferayPortletParameterMap =
 				basePortletParametersImpl.getParameterMap();
 
 			for (Map.Entry<String, String[]> entry :
-					liferayPortletParametersMap.entrySet()) {
+					liferayPortletParameterMap.entrySet()) {
 
 				String[] values = entry.getValue();
 
@@ -119,11 +119,11 @@ public abstract class BaseMutablePortletParameters
 			BasePortletParametersImpl<?> basePortletParametersImpl =
 				(BasePortletParametersImpl<?>)portletParameters;
 
-			Map<String, String[]> liferayPortletParametersMap =
+			Map<String, String[]> liferayPortletParameterMap =
 				basePortletParametersImpl.getParameterMap();
 
 			if (oldParameterNames.isEmpty() &&
-				liferayPortletParametersMap.isEmpty()) {
+				liferayPortletParameterMap.isEmpty()) {
 
 				return oldMutablePortletParameters;
 			}
@@ -133,7 +133,7 @@ public abstract class BaseMutablePortletParameters
 			parameterMap.clear();
 
 			for (Map.Entry<String, String[]> entry :
-					liferayPortletParametersMap.entrySet()) {
+					liferayPortletParameterMap.entrySet()) {
 
 				String[] values = entry.getValue();
 

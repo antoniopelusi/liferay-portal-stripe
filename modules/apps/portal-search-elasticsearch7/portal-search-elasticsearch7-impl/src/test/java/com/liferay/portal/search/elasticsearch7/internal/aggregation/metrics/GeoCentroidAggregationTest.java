@@ -40,6 +40,7 @@ public class GeoCentroidAggregationTest
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
+	@Override
 	@Test
 	public void testGeoCentroidAggregation() throws Exception {
 		addDocument(

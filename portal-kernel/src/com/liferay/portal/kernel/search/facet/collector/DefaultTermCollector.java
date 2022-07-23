@@ -38,15 +38,8 @@ public class DefaultTermCollector implements TermCollector {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{frequency=");
-		sb.append(_frequency);
-		sb.append(", term=");
-		sb.append(_term);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{frequency=", _frequency, ", term=", _term, "}");
 	}
 
 	private final int _frequency;

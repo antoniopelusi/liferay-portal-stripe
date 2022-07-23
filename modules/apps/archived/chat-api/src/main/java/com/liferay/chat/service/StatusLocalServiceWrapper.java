@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class StatusLocalServiceWrapper
 	implements ServiceWrapper<StatusLocalService>, StatusLocalService {
 
+	public StatusLocalServiceWrapper() {
+		this(null);
+	}
+
 	public StatusLocalServiceWrapper(StatusLocalService statusLocalService) {
 		_statusLocalService = statusLocalService;
 	}
@@ -118,6 +122,13 @@ public class StatusLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _statusLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _statusLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

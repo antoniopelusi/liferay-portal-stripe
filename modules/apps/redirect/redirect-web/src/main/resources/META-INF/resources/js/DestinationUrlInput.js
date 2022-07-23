@@ -55,7 +55,7 @@ const DestinationUrlInput = ({
 				<span className="inline-item-after reference-mark">
 					<ClayIcon symbol="asterisk" />
 
-					<span className="hide-accessible">
+					<span className="hide-accessible sr-only">
 						{Liferay.Language.get('required')}
 					</span>
 				</span>
@@ -79,6 +79,7 @@ const DestinationUrlInput = ({
 						value={destinationUrl}
 					/>
 				</ClayInput.GroupItem>
+
 				<ClayInput.GroupItem append shrink>
 					<ClayButtonWithIcon
 						disabled={
@@ -105,8 +106,10 @@ const DestinationUrlInput = ({
 				<ClayForm.FeedbackGroup>
 					<ClayForm.FeedbackItem>
 						<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+
 						{Liferay.Language.get('this-url-is-not-supported')}
 					</ClayForm.FeedbackItem>
+
 					<div
 						className="small"
 						dangerouslySetInnerHTML={{

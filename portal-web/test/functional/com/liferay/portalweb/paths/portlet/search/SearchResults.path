@@ -2,11 +2,13 @@
 <head>
 <title>SearchResults</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">SearchResults</td></tr>
 </thead>
+
 <tbody>
 <!--ASSET_DETAILS-->
 <tr>
@@ -89,6 +91,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ASSET_ENTRY_TABLE_TITLE_SPECIFIC_HIGHLIGHT</td>
+	<td>//span[contains(@class,'highlight') and contains(.,'${key_searchAssetTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ASSET_ENTRY_TABLE_TITLE_SPECIFIC_ORDER</td>
 	<td>//div[contains(@id,'SearchResultsPortlet')]//li[${resultOrder}]/div//a</td>
 	<td></td>
@@ -132,32 +139,32 @@
 <!--CLASSIC_ASSET_ENTRY_TABLE-->
 <tr>
 	<td>CLASSIC_ASSET_ENTRY_TABLE_TITLE</td>
-	<td>//li[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//a</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CLASSIC_ASSET_ENTRY_TABLE_TITLE_SPECIFIC</td>
-	<td>//li[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//h6[contains(.,'${key_searchAssetType}')]/..//a</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//div[contains(.,'${key_searchAssetType}')]/..//a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CLASSIC_ASSET_ENTRY_TABLE_TYPE</td>
-	<td>//li[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//h6[1]</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//div[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CLASSIC_ASSET_ENTRY_TABLE_TYPE_SPECIFIC</td>
-	<td>//li[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//h6[contains(.,'${key_searchAssetType}')]</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//div[contains(.,'${key_searchAssetType}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CLASSIC_ASSET_ENTRY_TABLE_SUMMARY</td>
-	<td>xpath=(//li[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//h6)[2]</td>
+	<td>xpath=(//*[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//div)[2]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CLASSIC_ASSET_ENTRY_TABLE_SUMMARY_SPECIFIC</td>
-	<td>//li[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//h6[contains(.,'${key_searchAssetType}')]/../h6[2]</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_searchAssetTitle}')]//div[contains(.,'${key_searchAssetType}')]/../div[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -174,6 +181,11 @@
 <tr>
 	<td>RESULTS_PORTLET_SEARCH_QUERY</td>
 	<td>//div[contains(@class,'search-total-label')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RESULTS_PORTLET_WIDGET_ELLIPSIS_ICON_SPECIFIC</td>
+	<td>xpath=(//header[contains(@class,'portlet-topper') and contains(.,'Search Results')][not(ancestor::header[@id='banner'])]//div[contains(@class,'portlet-options')]/a)[${key_index}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -210,12 +222,12 @@
 <!--SEARCH_INSIGHTS_PORTLET-->
 <tr>
 	<td>SEARCH_INSIGHTS_PORTLET_RESPONSE_QUERY</td>
-	<td>//div[contains(@id,'insightsResponsePanel')]//code</td>
+	<td>//div[contains(@id,'insightsResponsePanelContent')]//div[contains(@class,'CodeMirror cm-s-default')]//span[contains(@class,'cm-string')][normalize-space()='${key_text}']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SEARCH_INSIGHTS_PORTLET_STRING_QUERY</td>
-	<td>//div[contains(@id,'insightsRequestPanel')]//code</td>
+	<td>SEARCH_INSIGHTS_PORTLET_REQUEST_QUERY</td>
+	<td>//div[contains(@id,'insightsRequestPanelContent')]//div[contains(@class,'CodeMirror cm-s-default')]//span[contains(@class,'cm-string')][normalize-space()='${key_text}']</td>
 	<td></td>
 </tr>
 <!--CUSTOM_FACET-->

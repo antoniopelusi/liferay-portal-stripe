@@ -57,6 +57,7 @@ public class BNDImportPackage extends ImportPackage {
 		return value;
 	}
 
+	@Override
 	public String getPackageLevel() {
 		int pos = _importString.indexOf(StringPool.SLASH);
 

@@ -51,7 +51,7 @@ Group group = themeDisplay.getScopeGroup();
 			"/status_update/view.jsp"
 		).setWindowState(
 			WindowState.NORMAL
-		).build();
+		).buildPortletURL();
 
 		request.setAttribute(WebKeys.MICROBLOGS_ENTRIES_URL, portletURL);
 		%>

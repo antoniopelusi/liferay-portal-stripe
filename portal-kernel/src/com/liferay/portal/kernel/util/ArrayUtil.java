@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -1164,6 +1165,14 @@ public class ArrayUtil {
 		return !isEmpty(array);
 	}
 
+	public static <T> void isNotEmptyForEach(T[] array, Consumer<T> consumer) {
+		if (isNotEmpty(array)) {
+			for (T t : array) {
+				consumer.accept(t);
+			}
+		}
+	}
+
 	public static boolean[] remove(boolean[] array, boolean value) {
 		if (isEmpty(array)) {
 			return array;
@@ -1865,14 +1874,6 @@ public class ArrayUtil {
 		return newArray;
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	public static String[] toArray(String[] array) {
-		return array.clone();
-	}
-
 	public static <T, A> A[] toArray(T[] list, Accessor<T, A> accessor) {
 		A[] aArray = (A[])Array.newInstance(
 			accessor.getAttributeClass(), list.length);
@@ -2184,14 +2185,14 @@ public class ArrayUtil {
 		return newArray;
 	}
 
-	public static String[] toStringArray(Collection<String> collection) {
+	public static String[] toStringArray(Collection<?> collection) {
 		String[] newArray = new String[collection.size()];
 
 		if (collection instanceof List) {
-			List<String> list = (List<String>)collection;
+			List<?> list = (List<?>)collection;
 
 			for (int i = 0; i < list.size(); i++) {
-				String value = list.get(i);
+				Object value = list.get(i);
 
 				newArray[i] = String.valueOf(value);
 			}
@@ -2199,10 +2200,10 @@ public class ArrayUtil {
 		else {
 			int i = 0;
 
-			Iterator<String> iterator = collection.iterator();
+			Iterator<?> iterator = collection.iterator();
 
 			while (iterator.hasNext()) {
-				String value = iterator.next();
+				Object value = iterator.next();
 
 				newArray[i++] = String.valueOf(value);
 			}

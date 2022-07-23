@@ -22,6 +22,7 @@ page import="com.liferay.portal.kernel.model.ModelHintsUtil" %><%@
 page import="com.liferay.portal.kernel.util.GetterUtil" %><%@
 page import="com.liferay.portal.kernel.util.LocaleUtil" %><%@
 page import="com.liferay.portal.kernel.util.UnicodeProperties" %><%@
+page import="com.liferay.portal.kernel.util.UnicodePropertiesBuilder" %><%@
 page import="com.liferay.site.navigation.constants.SiteNavigationWebKeys" %><%@
 page import="com.liferay.site.navigation.menu.item.util.SiteNavigationMenuItemUtil" %><%@
 page import="com.liferay.site.navigation.model.SiteNavigationMenuItem" %>

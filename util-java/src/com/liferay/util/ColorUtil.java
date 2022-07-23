@@ -49,32 +49,17 @@ public class ColorUtil {
 	}
 
 	public static String getHex(int[] rgb) {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("#");
-
-		sb.append(
+		return StringBundler.concat(
+			"#",
 			_KEY.substring(
-				(int)Math.floor(rgb[0] / 16),
-				(int)Math.floor(rgb[0] / 16) + 1));
-
-		sb.append(_KEY.substring(rgb[0] % 16, (rgb[0] % 16) + 1));
-
-		sb.append(
+				(int)Math.floor(rgb[0] / 16), (int)Math.floor(rgb[0] / 16) + 1),
+			_KEY.substring(rgb[0] % 16, (rgb[0] % 16) + 1),
 			_KEY.substring(
-				(int)Math.floor(rgb[1] / 16),
-				(int)Math.floor(rgb[1] / 16) + 1));
-
-		sb.append(_KEY.substring(rgb[1] % 16, (rgb[1] % 16) + 1));
-
-		sb.append(
+				(int)Math.floor(rgb[1] / 16), (int)Math.floor(rgb[1] / 16) + 1),
+			_KEY.substring(rgb[1] % 16, (rgb[1] % 16) + 1),
 			_KEY.substring(
-				(int)Math.floor(rgb[2] / 16),
-				(int)Math.floor(rgb[2] / 16) + 1));
-
-		sb.append(_KEY.substring(rgb[2] % 16, (rgb[2] % 16) + 1));
-
-		return sb.toString();
+				(int)Math.floor(rgb[2] / 16), (int)Math.floor(rgb[2] / 16) + 1),
+			_KEY.substring(rgb[2] % 16, (rgb[2] % 16) + 1));
 	}
 
 	public static int[] getRGB(String hex) {

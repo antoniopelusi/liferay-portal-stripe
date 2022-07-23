@@ -42,6 +42,7 @@ public class DDMFormInstanceRecordVersionModelListener
 
 	@Override
 	public void onAfterUpdate(
+			DDMFormInstanceRecordVersion originalDDMFormInstanceRecordVersion,
 			DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion)
 		throws ModelListenerException {
 
@@ -58,21 +59,19 @@ public class DDMFormInstanceRecordVersionModelListener
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("Unable to update dynamic data mapping form ");
-				sb.append("instance report for dynamic data mapping form ");
-				sb.append("instance record ");
-				sb.append(
-					ddmFormInstanceRecordVersion.getFormInstanceRecordId());
-
-				_log.warn(sb.toString(), exception);
+				_log.warn(
+					StringBundler.concat(
+						"Unable to update dynamic data mapping form instance ",
+						"report for dynamic data mapping form instance record ",
+						ddmFormInstanceRecordVersion.getFormInstanceRecordId()),
+					exception);
 			}
 		}
 	}
 
 	@Override
 	public void onBeforeUpdate(
+			DDMFormInstanceRecordVersion originalDDMFormInstanceRecordVersion,
 			DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion)
 		throws ModelListenerException {
 
@@ -95,15 +94,12 @@ public class DDMFormInstanceRecordVersionModelListener
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("Unable to update dynamic data mapping form ");
-				sb.append("instance report for dynamic data mapping form ");
-				sb.append("instance record ");
-				sb.append(
-					ddmFormInstanceRecordVersion.getFormInstanceRecordId());
-
-				_log.warn(sb.toString(), exception);
+				_log.warn(
+					StringBundler.concat(
+						"Unable to update dynamic data mapping form instance ",
+						"report for dynamic data mapping form instance record ",
+						ddmFormInstanceRecordVersion.getFormInstanceRecordId()),
+					exception);
 			}
 		}
 	}

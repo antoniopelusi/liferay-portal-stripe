@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.security.auth.session.AuthenticatedSessionManag
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.URLCodec;
@@ -144,40 +145,17 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 					actionRequest, exception.getClass(), exception);
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				_portal.sendError(exception, actionRequest, actionResponse);
 
 				return;
 			}
 
-			postProcessAuthFailure(actionRequest, actionResponse);
+			_postProcessAuthFailure(actionRequest, actionResponse);
 
 			hideDefaultErrorMessage(actionRequest);
 		}
-	}
-
-	protected String getCompleteRedirectURL(
-		HttpServletRequest httpServletRequest, String redirect) {
-
-		HttpSession session = httpServletRequest.getSession();
-
-		Boolean httpsInitial = (Boolean)session.getAttribute(
-			WebKeys.HTTPS_INITIAL);
-
-		String portalURL = null;
-
-		if (PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS &&
-			!PropsValues.SESSION_ENABLE_PHISHING_PROTECTION &&
-			(httpsInitial != null) && !httpsInitial.booleanValue()) {
-
-			portalURL = _portal.getPortalURL(httpServletRequest, false);
-		}
-		else {
-			portalURL = _portal.getPortalURL(httpServletRequest);
-		}
-
-		return portalURL.concat(redirect);
 	}
 
 	protected void login(
@@ -236,7 +214,7 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 			if (!themeDisplay.isSignedIn()) {
 				actionRequest.setAttribute(
 					WebKeys.REDIRECT,
-					_http.addParameter(
+					HttpComponentsUtil.addParameter(
 						_portal.getPathMain() + "/portal/login", "redirect",
 						redirect));
 
@@ -248,7 +226,8 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 			if (Validator.isNotNull(redirect) &&
 				!redirect.startsWith(Http.HTTP)) {
 
-				redirect = getCompleteRedirectURL(httpServletRequest, redirect);
+				redirect = _getCompleteRedirectURL(
+					httpServletRequest, redirect);
 			}
 		}
 
@@ -267,7 +246,30 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void postProcessAuthFailure(
+	private String _getCompleteRedirectURL(
+		HttpServletRequest httpServletRequest, String redirect) {
+
+		HttpSession httpSession = httpServletRequest.getSession();
+
+		Boolean httpsInitial = (Boolean)httpSession.getAttribute(
+			WebKeys.HTTPS_INITIAL);
+
+		String portalURL = null;
+
+		if (PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS &&
+			!PropsValues.SESSION_ENABLE_PHISHING_PROTECTION &&
+			(httpsInitial != null) && !httpsInitial.booleanValue()) {
+
+			portalURL = _portal.getPortalURL(httpServletRequest, false);
+		}
+		else {
+			portalURL = _portal.getPortalURL(httpServletRequest);
+		}
+
+		return portalURL.concat(redirect);
+	}
+
+	private void _postProcessAuthFailure(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
@@ -282,15 +284,20 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 			PortletURLFactoryUtil.create(
 				actionRequest, liferayPortletRequest.getPortlet(), layout,
 				PortletRequest.RENDER_PHASE)
+		).setRedirect(
+			() -> {
+				String redirect = ParamUtil.getString(
+					actionRequest, "redirect");
+
+				if (Validator.isNotNull(redirect)) {
+					return redirect;
+				}
+
+				return null;
+			}
 		).setParameter(
-			"saveLastPath", Boolean.FALSE.toString()
-		).build();
-
-		String redirect = ParamUtil.getString(actionRequest, "redirect");
-
-		if (Validator.isNotNull(redirect)) {
-			portletURL.setParameter("redirect", redirect);
-		}
+			"saveLastPath", false
+		).buildPortletURL();
 
 		String login = ParamUtil.getString(actionRequest, "login");
 
@@ -313,9 +320,6 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private AuthenticatedSessionManager _authenticatedSessionManager;
-
-	@Reference
-	private Http _http;
 
 	@Reference
 	private Portal _portal;

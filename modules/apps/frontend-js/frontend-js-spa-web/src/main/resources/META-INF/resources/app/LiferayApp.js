@@ -18,6 +18,8 @@ import LiferaySurface from '../surface/Surface';
 import {getPortletBoundaryId, getUid, resetAllPortlets} from '../util/utils';
 import App from './App';
 
+import '../css/lfr_spa_loading_bar.scss';
+
 const MAX_TIMEOUT = Math.pow(2, 31) - 1;
 const PROPAGATED_PARAMS = ['bodyCssClass'];
 
@@ -52,14 +54,12 @@ class LiferayApp extends App {
 		userNotification,
 		validStatusCodes,
 	}) {
-		super();
+		super({navigationExceptionSelectors});
 
 		this._cacheExpirationTime = cacheExpirationTime;
 		this._clearScreensCache = clearScreensCache;
 		this._debugEnabled = debugEnabled;
 
-		this.formSelector = `form${navigationExceptionSelectors}`;
-		this.linkSelector = `a${navigationExceptionSelectors}`;
 		this.portletsBlacklist = portletsBlacklist;
 		this.userNotification = userNotification;
 		this.validStatusCodes = validStatusCodes;

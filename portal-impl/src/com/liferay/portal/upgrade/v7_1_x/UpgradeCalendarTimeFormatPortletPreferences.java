@@ -28,15 +28,10 @@ public class UpgradeCalendarTimeFormatPortletPreferences
 
 	@Override
 	protected String getUpdatePortletPreferencesWhereClause() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("(preferences like '%isoTimeFormat%");
-		sb.append(Boolean.TRUE.toString());
-		sb.append("%') or (preferences like '%isoTimeFormat%");
-		sb.append(Boolean.FALSE.toString());
-		sb.append("%')");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"(preferences like '%isoTimeFormat%", Boolean.TRUE.toString(),
+			"%') or (preferences like '%isoTimeFormat%",
+			Boolean.FALSE.toString(), "%')");
 	}
 
 	@Override

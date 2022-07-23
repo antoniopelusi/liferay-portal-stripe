@@ -22,6 +22,9 @@ public class OpenIdConnectWebKeys {
 	public static final String OPEN_ID_CONNECT_ACTION_URL =
 		"OPEN_ID_CONNECT_ACTION_URL";
 
+	public static final String OPEN_ID_CONNECT_AUTHENTICATING_USER_ID =
+		"OPEN_ID_CONNECT_AUTHENTICATING_USER_ID";
+
 	public static final String OPEN_ID_CONNECT_PROVIDER_NAME =
 		"OPEN_ID_CONNECT_PROVIDER_NAME";
 
@@ -34,7 +37,14 @@ public class OpenIdConnectWebKeys {
 	public static final String OPEN_ID_CONNECT_RESPONSE_ACTION_NAME =
 		"/login/openid_connect_response";
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String OPEN_ID_CONNECT_SESSION =
 		"OPEN_ID_CONNECT_SESSION";
+
+	public static final String OPEN_ID_CONNECT_SESSION_ID =
+		"OPEN_ID_CONNECT_SESSION_ID";
 
 }

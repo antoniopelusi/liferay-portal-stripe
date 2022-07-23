@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.function.BiConsumer;
 
 /**
  * @author Brian Wing Shun Chan
@@ -42,84 +42,6 @@ public class MapUtil {
 		copy.clear();
 
 		merge(master, copy);
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	public static <K1, V1, K2 extends K1, V2 extends V1> void filter(
-		Map<? extends K2, ? extends V2> inputMap,
-		Map<? super K2, ? super V2> outputMap,
-		Predicate<? super Map.Entry<K1, V1>> predicate) {
-
-		for (Map.Entry<? extends K2, ? extends V2> entry :
-				inputMap.entrySet()) {
-
-			if (predicate.test((Map.Entry<K1, V1>)entry)) {
-				outputMap.put(entry.getKey(), entry.getValue());
-			}
-		}
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	public static <K1, V1, K2 extends K1, V2 extends V1> Map<K2, V2> filter(
-		Map<K2, V2> inputMap, Predicate<? super Map.Entry<K1, V1>> predicate) {
-
-		Map<K2, V2> outputMap = new HashMap<>();
-
-		filter(inputMap, outputMap, predicate);
-
-		return outputMap;
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	public static <K, V> void filterByKeys(
-		Map<? extends K, ? extends V> inputMap,
-		Map<? super K, ? super V> outputMap,
-		Predicate<? super K> keyPredicate) {
-
-		filter(inputMap, outputMap, entry -> keyPredicate.test(entry.getKey()));
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	public static <K, V> Map<K, V> filterByKeys(
-		Map<K, V> inputMap, Predicate<? super K> keyPredicate) {
-
-		return filter(inputMap, entry -> keyPredicate.test(entry.getKey()));
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	public static <K, V> void filterByValues(
-		Map<? extends K, ? extends V> inputMap,
-		Map<? super K, ? super V> outputMap,
-		Predicate<? super V> valuePredicate) {
-
-		filter(
-			inputMap, outputMap,
-			entry -> valuePredicate.test(entry.getValue()));
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 */
-	@Deprecated
-	public static <K, V> Map<K, V> filterByValues(
-		Map<K, V> inputMap, Predicate<? super V> valuePredicate) {
-
-		return filter(inputMap, entry -> valuePredicate.test(entry.getValue()));
 	}
 
 	public static <T> Map<T, T> fromArray(T... array) {
@@ -345,11 +267,13 @@ public class MapUtil {
 
 		V value = map.get(key);
 
-		if (value != null) {
-			return value;
+		if ((value == null) ||
+			((value instanceof String) && Validator.isBlank((String)value))) {
+
+			return map.get(fallbackKey);
 		}
 
-		return map.get(fallbackKey);
+		return value;
 	}
 
 	public static boolean isEmpty(Map<?, ?> map) {
@@ -362,6 +286,15 @@ public class MapUtil {
 
 	public static boolean isNotEmpty(Map<?, ?> map) {
 		return !isEmpty(map);
+	}
+
+	public static <K, V> void isNotEmptyForEach(
+		Map<? extends K, ? extends V> map,
+		BiConsumer<? super K, ? super V> biConsumer) {
+
+		if (!isEmpty(map)) {
+			map.forEach(biConsumer);
+		}
 	}
 
 	public static <K, V> void merge(
@@ -436,7 +369,7 @@ public class MapUtil {
 						map.put(kvp[0], constructor.newInstance(kvp[1]));
 					}
 					catch (Exception exception) {
-						_log.error(exception.getMessage(), exception);
+						_log.error(exception);
 					}
 				}
 			}

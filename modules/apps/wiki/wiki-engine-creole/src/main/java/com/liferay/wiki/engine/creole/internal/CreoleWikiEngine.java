@@ -17,8 +17,6 @@ package com.liferay.wiki.engine.creole.internal;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.wiki.configuration.WikiGroupServiceConfiguration;
 import com.liferay.wiki.engine.BaseWikiEngine;
@@ -64,7 +62,7 @@ public class CreoleWikiEngine extends BaseWikiEngine {
 
 		return xhtmlTranslator.translate(
 			page, viewPageURL, editPageURL, attachmentURLPrefix,
-			parse(page.getContent()));
+			_parse(page.getContent()));
 	}
 
 	@Override
@@ -92,7 +90,7 @@ public class CreoleWikiEngine extends BaseWikiEngine {
 			new LinkNodeCollectorVisitor();
 
 		List<ASTNode> astNodes = linkNodeCollectorVisitor.collect(
-			parse(page.getContent()));
+			_parse(page.getContent()));
 
 		try {
 			for (ASTNode astNode : astNodes) {
@@ -123,17 +121,6 @@ public class CreoleWikiEngine extends BaseWikiEngine {
 		return outgoingLinks;
 	}
 
-	protected Creole10Parser build(String creoleCode) {
-		ANTLRStringStream antlrStringStream = new ANTLRStringStream(creoleCode);
-
-		Creole10Lexer creole10Lexer = new Creole10Lexer(antlrStringStream);
-
-		CommonTokenStream commonTokenStream = new CommonTokenStream(
-			creole10Lexer);
-
-		return new Creole10Parser(commonTokenStream);
-	}
-
 	@Override
 	protected ServletContext getEditPageServletContext() {
 		return _wikiEngineInputEditorServletContext;
@@ -144,15 +131,19 @@ public class CreoleWikiEngine extends BaseWikiEngine {
 		return _servletContext;
 	}
 
-	@Override
-	protected ResourceBundleLoader getResourceBundleLoader() {
-		return ResourceBundleLoaderUtil.
-			getResourceBundleLoaderByBundleSymbolicName(
-				"com.liferay.wiki.engine.lang");
+	private Creole10Parser _build(String creoleCode) {
+		ANTLRStringStream antlrStringStream = new ANTLRStringStream(creoleCode);
+
+		Creole10Lexer creole10Lexer = new Creole10Lexer(antlrStringStream);
+
+		CommonTokenStream commonTokenStream = new CommonTokenStream(
+			creole10Lexer);
+
+		return new Creole10Parser(commonTokenStream);
 	}
 
-	protected WikiPageNode parse(String creoleCode) {
-		Creole10Parser creole10Parser = build(creoleCode);
+	private WikiPageNode _parse(String creoleCode) {
+		Creole10Parser creole10Parser = _build(creoleCode);
 
 		try {
 			creole10Parser.wikipage();

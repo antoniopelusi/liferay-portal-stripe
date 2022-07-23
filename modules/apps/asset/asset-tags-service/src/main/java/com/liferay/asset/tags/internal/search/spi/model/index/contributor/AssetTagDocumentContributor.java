@@ -60,43 +60,51 @@ public class AssetTagDocumentContributor
 			return;
 		}
 
-		contributeAssetTagIds(document, assetTags);
-		contributeAssetTagNamesLocalized(document, assetTags, baseModel);
-		contributeAssetTagNamesRaw(document, assetTags);
+		_contributeAssetTagIds(document, assetTags);
+		_contributeAssetTagNamesLocalized(document, assetTags, baseModel);
+		_contributeAssetTagNamesRaw(document, assetTags);
 	}
 
-	protected void contributeAssetTagIds(
+	@Reference
+	protected AssetTagLocalService assetTagLocalService;
+
+	protected Localization localization;
+
+	@Reference
+	protected Portal portal;
+
+	private void _contributeAssetTagIds(
 		Document document, List<AssetTag> assetTags) {
 
-		document.addKeyword(Field.ASSET_TAG_IDS, getTagIds(assetTags));
+		document.addKeyword(Field.ASSET_TAG_IDS, _getTagIds(assetTags));
 	}
 
-	protected void contributeAssetTagNamesLocalized(
+	private void _contributeAssetTagNamesLocalized(
 		Document document, List<AssetTag> assetTags,
 		BaseModel<AssetTag> baseModel) {
 
-		Long groupId = getGroupId(baseModel);
+		Long groupId = _getGroupId(baseModel);
 
 		if (groupId == null) {
 			return;
 		}
 
-		Localization localization = getLocalization();
+		Localization localization = _getLocalization();
 
 		document.addText(
 			localization.getLocalizedName(
 				Field.ASSET_TAG_NAMES,
-				LocaleUtil.toLanguageId(getSiteDefaultLocale(groupId))),
-			getNames(assetTags));
+				LocaleUtil.toLanguageId(_getSiteDefaultLocale(groupId))),
+			_getNames(assetTags));
 	}
 
-	protected void contributeAssetTagNamesRaw(
+	private void _contributeAssetTagNamesRaw(
 		Document document, List<AssetTag> assetTags) {
 
-		document.addText(Field.ASSET_TAG_NAMES, getNames(assetTags));
+		document.addText(Field.ASSET_TAG_NAMES, _getNames(assetTags));
 	}
 
-	protected Long getGroupId(BaseModel<?> baseModel) {
+	private Long _getGroupId(BaseModel<?> baseModel) {
 		if (baseModel instanceof GroupedModel) {
 			GroupedModel groupedModel = (GroupedModel)baseModel;
 
@@ -118,7 +126,7 @@ public class AssetTagDocumentContributor
 		return null;
 	}
 
-	protected Localization getLocalization() {
+	private Localization _getLocalization() {
 
 		// See LPS-72507 and LPS-76500
 
@@ -129,7 +137,7 @@ public class AssetTagDocumentContributor
 		return LocalizationUtil.getLocalization();
 	}
 
-	protected String[] getNames(List<AssetTag> assetTags) {
+	private String[] _getNames(List<AssetTag> assetTags) {
 		Stream<AssetTag> stream = assetTags.stream();
 
 		return stream.map(
@@ -139,7 +147,7 @@ public class AssetTagDocumentContributor
 		);
 	}
 
-	protected Locale getSiteDefaultLocale(long groupId) {
+	private Locale _getSiteDefaultLocale(long groupId) {
 		try {
 			return portal.getSiteDefaultLocale(groupId);
 		}
@@ -148,7 +156,7 @@ public class AssetTagDocumentContributor
 		}
 	}
 
-	protected Long[] getTagIds(List<AssetTag> assetTags) {
+	private Long[] _getTagIds(List<AssetTag> assetTags) {
 		Stream<AssetTag> stream = assetTags.stream();
 
 		return stream.map(
@@ -157,13 +165,5 @@ public class AssetTagDocumentContributor
 			Long[]::new
 		);
 	}
-
-	@Reference
-	protected AssetTagLocalService assetTagLocalService;
-
-	protected Localization localization;
-
-	@Reference
-	protected Portal portal;
 
 }

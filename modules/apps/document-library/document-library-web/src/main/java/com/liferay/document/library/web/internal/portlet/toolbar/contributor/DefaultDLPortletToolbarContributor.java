@@ -25,11 +25,13 @@ import com.liferay.portal.kernel.portlet.toolbar.contributor.BasePortletToolbarC
 import com.liferay.portal.kernel.portlet.toolbar.contributor.PortletToolbarContributor;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
+import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
@@ -77,6 +79,13 @@ public class DefaultDLPortletToolbarContributor
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+
+		if (_isDLPortlet(themeDisplay) &&
+			!_dlPortletToolbarContributorHelper.isShowActionsEnabled(
+				themeDisplay, portletRequest)) {
+
+			return null;
+		}
 
 		Folder folder = _dlPortletToolbarContributorHelper.getFolder(
 			themeDisplay, portletRequest);
@@ -154,9 +163,24 @@ public class DefaultDLPortletToolbarContributor
 		}
 	}
 
-	private ServiceTrackerList
-		<DLPortletToolbarContributorContext, DLPortletToolbarContributorContext>
-			_dlPortletToolbarContributorContexts;
+	private boolean _isDLPortlet(ThemeDisplay themeDisplay) {
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		if (Objects.equals(
+				portletDisplay.getRootPortletId(),
+				DLPortletKeys.DOCUMENT_LIBRARY) ||
+			Objects.equals(
+				portletDisplay.getRootPortletId(),
+				DLPortletKeys.MEDIA_GALLERY_DISPLAY)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private ServiceTrackerList<DLPortletToolbarContributorContext>
+		_dlPortletToolbarContributorContexts;
 
 	@Reference
 	private DLPortletToolbarContributorHelper

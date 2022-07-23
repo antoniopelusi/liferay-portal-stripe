@@ -78,6 +78,11 @@ public class EagerBlobEntryWrapper
 		}
 	}
 
+	@Override
+	public EagerBlobEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the blob of this eager blob entry.
 	 *

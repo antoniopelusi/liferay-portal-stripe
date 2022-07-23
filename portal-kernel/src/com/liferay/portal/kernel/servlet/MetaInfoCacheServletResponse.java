@@ -461,11 +461,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 
 	@Override
 	public void setContentType(String contentType) {
-		if (isCommitted()) {
-			return;
-		}
-
-		if (contentType == null) {
+		if (isCommitted() || (contentType == null)) {
 			return;
 		}
 
@@ -580,33 +576,14 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
-
-		sb.append("{bufferSize=");
-		sb.append(_metaData._bufferSize);
-		sb.append(", charsetName=");
-		sb.append(_metaData._charsetName);
-		sb.append(", committed=");
-		sb.append(_committed);
-		sb.append(", contentLength=");
-		sb.append(_metaData._contentLength);
-		sb.append(", contentType=");
-		sb.append(_metaData._contentType);
-		sb.append(", error=");
-		sb.append(_metaData._error);
-		sb.append(", errorMessage=");
-		sb.append(_metaData._errorMessage);
-		sb.append(", headers=");
-		sb.append(_metaData._headers);
-		sb.append(", location=");
-		sb.append(_metaData._location);
-		sb.append(", locale=");
-		sb.append(_metaData._locale);
-		sb.append(", status=");
-		sb.append(_metaData._status);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{bufferSize=", _metaData._bufferSize, ", charsetName=",
+			_metaData._charsetName, ", committed=", _committed,
+			", contentLength=", _metaData._contentLength, ", contentType=",
+			_metaData._contentType, ", error=", _metaData._error,
+			", errorMessage=", _metaData._errorMessage, ", headers=",
+			_metaData._headers, ", location=", _metaData._location, ", locale=",
+			_metaData._locale, ", status=", _metaData._status, "}");
 	}
 
 	public static class MetaData implements Serializable {
@@ -656,11 +633,7 @@ public class MetaInfoCacheServletResponse extends HttpServletResponseWrapper {
 	protected boolean calledGetWriter;
 
 	private void _setCharacterEncoding(String charsetName) {
-		if (calledGetWriter) {
-			return;
-		}
-
-		if (charsetName == null) {
+		if (calledGetWriter || (charsetName == null)) {
 			return;
 		}
 

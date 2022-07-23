@@ -41,7 +41,7 @@ public abstract class Base${entity.name}UADAnonymizer extends DynamicQueryUADAno
 							</#list>
 						</#if>
 
-						<#if hasAssetEntry && stringUtil.equals(uadUserIdEntityColumn.name, "userId")>
+						<#if stringUtil.equals(uadUserIdEntityColumn.name, "userId")>
 							autoAnonymizeAssetEntry(${entity.variableName}, anonymousUser);
 						</#if>
 					}
@@ -62,18 +62,16 @@ public abstract class Base${entity.name}UADAnonymizer extends DynamicQueryUADAno
 		return ${entity.name}.class;
 	}
 
-	<#if hasAssetEntry>
-		protected void autoAnonymizeAssetEntry(${entity.name} ${entity.variableName}, User anonymousUser) {
-			AssetEntry assetEntry = fetchAssetEntry(${entity.variableName});
+	protected void autoAnonymizeAssetEntry(${entity.name} ${entity.variableName}, User anonymousUser) {
+		AssetEntry assetEntry = fetchAssetEntry(${entity.variableName});
 
-			if (assetEntry != null) {
-				assetEntry.setUserId(anonymousUser.getUserId());
-				assetEntry.setUserName(anonymousUser.getFullName());
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
 
-				assetEntryLocalService.updateAssetEntry(assetEntry);
-			}
+			assetEntryLocalService.updateAssetEntry(assetEntry);
 		}
-	</#if>
+	}
 
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
@@ -85,14 +83,12 @@ public abstract class Base${entity.name}UADAnonymizer extends DynamicQueryUADAno
 		return ${entity.UADApplicationName}UADConstants.USER_ID_FIELD_NAMES_${entity.constantName};
 	}
 
-	<#if hasAssetEntry>
-		protected AssetEntry fetchAssetEntry(${entity.name} ${entity.variableName}) {
-			return assetEntryLocalService.fetchEntry(${entity.name}.class.getName(), ${entity.variableName}.get${entity.getPKMethodName()}());
-		}
+	protected AssetEntry fetchAssetEntry(${entity.name} ${entity.variableName}) {
+		return assetEntryLocalService.fetchEntry(${entity.name}.class.getName(), ${entity.variableName}.get${entity.getPKMethodName()}());
+	}
 
-		@Reference
-		protected AssetEntryLocalService assetEntryLocalService;
-	</#if>
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected ${entity.name}LocalService ${entity.variableName}LocalService;

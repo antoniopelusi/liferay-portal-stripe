@@ -33,7 +33,7 @@
 			<order-column name="timestamp" />
 		</order>
 
-		<!-- Finder -->
+		<!-- Finder methods -->
 
 		<finder name="C_C_T" return-type="CommerceMLForecastAlertEntry">
 			<finder-column name="companyId" />

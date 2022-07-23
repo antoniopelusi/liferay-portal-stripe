@@ -215,4 +215,7 @@ public interface ChangesetCollectionModel
 	 */
 	public void setDescription(String description);
 
+	@Override
+	public ChangesetCollection cloneWithOriginalValues();
+
 }

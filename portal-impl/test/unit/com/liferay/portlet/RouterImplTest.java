@@ -16,11 +16,9 @@ package com.liferay.portlet;
 
 import com.liferay.portal.kernel.portlet.Route;
 import com.liferay.portal.kernel.test.AssertUtils;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.util.HttpImpl;
-import com.liferay.portlet.internal.RouterImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,10 +42,6 @@ public class RouterImplTest {
 
 	@Before
 	public void setUp() throws Exception {
-		HttpUtil httpUtil = new HttpUtil();
-
-		httpUtil.setHttp(new HttpImpl());
-
 		_routerImpl = new RouterImpl();
 
 		Route route = _routerImpl.addRoute(
@@ -194,8 +188,8 @@ public class RouterImplTest {
 	protected void assertUrlGeneratesParameters(
 		String url, String queryString) {
 
-		Map<String, String[]> parameters = HttpUtil.parameterMapFromString(
-			queryString);
+		Map<String, String[]> parameters =
+			HttpComponentsUtil.parameterMapFromString(queryString);
 
 		Map<String, String> generatedParameters = new HashMap<>();
 

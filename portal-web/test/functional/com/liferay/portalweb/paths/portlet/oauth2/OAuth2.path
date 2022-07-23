@@ -2,11 +2,13 @@
 <head>
 <title>OAuth2</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">OAuth2</td></tr>
 </thead>
+
 <tbody>
 <!--ADMIN-->
 <tr>
@@ -111,7 +113,7 @@
 </tr>
 <tr>
 	<td>ADMIN_RESOURCE_SCOPE_CHECKBOX</td>
-	<td>//input[@value='${key_scopeName}']</td>
+	<td>//input[contains(@value,'${key_scopeName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -167,6 +169,11 @@
 </tr>
 <!--OAUTH2_TESTER-->
 <tr>
+	<td>OAUTH2_TESTER_PORTAL_URL</td>
+	<td>//input[contains(@id,'liferayUrl')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>OAUTH2_TESTER_CLIENT_ID</td>
 	<td>//input[contains(@id,'clientId')]</td>
 	<td></td>
@@ -174,6 +181,11 @@
 <tr>
 	<td>OAUTH2_TESTER_CLIENT_SECRET</td>
 	<td>//input[contains(@id,'clientSecret')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OAUTH2_TESTER_REQUEST_URL</td>
+	<td>//input[contains(@id,'url')]</td>
 	<td></td>
 </tr>
 <tr>

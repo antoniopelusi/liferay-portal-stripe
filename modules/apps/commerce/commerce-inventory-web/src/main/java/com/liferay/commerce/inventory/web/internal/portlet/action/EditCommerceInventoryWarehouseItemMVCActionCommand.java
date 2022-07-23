@@ -46,18 +46,6 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCommerceInventoryWarehouseItemMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void deleteCommerceInventoryWarehouseItem(
-			ActionRequest actionRequest)
-		throws PortalException {
-
-		long commerceInventoryWarehouseItemId = ParamUtil.getLong(
-			actionRequest, "commerceInventoryWarehouseItemId");
-
-		_commerceInventoryWarehouseItemService.
-			deleteCommerceInventoryWarehouseItem(
-				commerceInventoryWarehouseItemId);
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -67,10 +55,10 @@ public class EditCommerceInventoryWarehouseItemMVCActionCommand
 
 		try {
 			if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceInventoryWarehouseItem(actionRequest);
+				_deleteCommerceInventoryWarehouseItem(actionRequest);
 			}
 			else if (cmd.equals(Constants.UPDATE)) {
-				updateCommerceInventoryWarehouseItem(actionRequest);
+				_updateCommerceInventoryWarehouseItem(actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -83,12 +71,24 @@ public class EditCommerceInventoryWarehouseItemMVCActionCommand
 				sendRedirect(actionRequest, actionResponse);
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
 
-	protected void updateCommerceInventoryWarehouseItem(
+	private void _deleteCommerceInventoryWarehouseItem(
+			ActionRequest actionRequest)
+		throws PortalException {
+
+		long commerceInventoryWarehouseItemId = ParamUtil.getLong(
+			actionRequest, "commerceInventoryWarehouseItemId");
+
+		_commerceInventoryWarehouseItemService.
+			deleteCommerceInventoryWarehouseItem(
+				commerceInventoryWarehouseItemId);
+	}
+
+	private void _updateCommerceInventoryWarehouseItem(
 			ActionRequest actionRequest)
 		throws PortalException {
 

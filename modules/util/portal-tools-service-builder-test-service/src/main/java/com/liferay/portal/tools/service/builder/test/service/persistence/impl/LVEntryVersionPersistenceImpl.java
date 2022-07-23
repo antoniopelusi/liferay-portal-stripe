@@ -16,7 +16,6 @@ package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -26,15 +25,16 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.service.persistence.impl.TableMapper;
 import com.liferay.portal.kernel.service.persistence.impl.TableMapperFactory;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
@@ -44,10 +44,13 @@ import com.liferay.portal.tools.service.builder.test.model.LVEntryVersionTable;
 import com.liferay.portal.tools.service.builder.test.model.impl.LVEntryVersionImpl;
 import com.liferay.portal.tools.service.builder.test.model.impl.LVEntryVersionModelImpl;
 import com.liferay.portal.tools.service.builder.test.service.persistence.BigDecimalEntryPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.LVEntryLocalizationVersionPersistence;
 import com.liferay.portal.tools.service.builder.test.service.persistence.LVEntryVersionPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.LVEntryVersionUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
@@ -56,12 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the lv entry version service.
@@ -5937,6 +5934,8 @@ public class LVEntryVersionPersistenceImpl
 			lvEntryVersion);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the lv entry versions in the entity cache if it is enabled.
 	 *
@@ -5944,6 +5943,13 @@ public class LVEntryVersionPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<LVEntryVersion> lvEntryVersions) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (lvEntryVersions.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (LVEntryVersion lvEntryVersion : lvEntryVersions) {
 			if (entityCache.getResult(
 					LVEntryVersionImpl.class, lvEntryVersion.getPrimaryKey()) ==
@@ -6109,6 +6115,9 @@ public class LVEntryVersionPersistenceImpl
 	protected LVEntryVersion removeImpl(LVEntryVersion lvEntryVersion) {
 		lvEntryVersionToBigDecimalEntryTableMapper.
 			deleteLeftPrimaryKeyTableMappings(lvEntryVersion.getPrimaryKey());
+
+		lvEntryLocalizationVersionPersistence.removeByLvEntryId_Version(
+			lvEntryVersion.getVersionedModelId(), lvEntryVersion.getVersion());
 
 		Session session = null;
 
@@ -6803,14 +6812,8 @@ public class LVEntryVersionPersistenceImpl
 	 * Initializes the lv entry version persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			LVEntryVersionPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new LVEntryVersionModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		lvEntryVersionToBigDecimalEntryTableMapper =
 			TableMapperFactory.getTableMapper(
@@ -7045,17 +7048,33 @@ public class LVEntryVersionPersistenceImpl
 				Integer.class.getName()
 			},
 			new String[] {"groupId", "uniqueGroupKey", "version"}, false);
+
+		_setLVEntryVersionUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(LVEntryVersionImpl.class.getName());
+		_setLVEntryVersionUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(LVEntryVersionImpl.class.getName());
 
 		TableMapperFactory.removeTableMapper("BigDecimalEntries_LVEntries");
 	}
 
-	private BundleContext _bundleContext;
+	private void _setLVEntryVersionUtilPersistence(
+		LVEntryVersionPersistence lvEntryVersionPersistence) {
+
+		try {
+			Field field = LVEntryVersionUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, lvEntryVersionPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -7070,6 +7089,10 @@ public class LVEntryVersionPersistenceImpl
 		<LVEntryVersion,
 		 com.liferay.portal.tools.service.builder.test.model.BigDecimalEntry>
 			lvEntryVersionToBigDecimalEntryTableMapper;
+
+	@BeanReference(type = LVEntryLocalizationVersionPersistence.class)
+	protected LVEntryLocalizationVersionPersistence
+		lvEntryLocalizationVersionPersistence;
 
 	private static final String _SQL_SELECT_LVENTRYVERSION =
 		"SELECT lvEntryVersion FROM LVEntryVersion lvEntryVersion";
@@ -7100,116 +7123,6 @@ public class LVEntryVersionPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class LVEntryVersionModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			LVEntryVersionModelImpl lvEntryVersionModelImpl =
-				(LVEntryVersionModelImpl)baseModel;
-
-			long columnBitmask = lvEntryVersionModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					lvEntryVersionModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						lvEntryVersionModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					lvEntryVersionModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return LVEntryVersionImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return LVEntryVersionTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			LVEntryVersionModelImpl lvEntryVersionModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						lvEntryVersionModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = lvEntryVersionModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= LVEntryVersionModelImpl.getColumnBitmask(
-				"version");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
 	}
 
 }

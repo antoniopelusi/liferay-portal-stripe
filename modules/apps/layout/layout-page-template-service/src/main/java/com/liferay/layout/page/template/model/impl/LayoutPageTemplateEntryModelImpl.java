@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntryModel;
-import com.liferay.layout.page.template.model.LayoutPageTemplateEntrySoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,22 +32,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -236,80 +234,6 @@ public class LayoutPageTemplateEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static LayoutPageTemplateEntry toModel(
-		LayoutPageTemplateEntrySoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		LayoutPageTemplateEntry model = new LayoutPageTemplateEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setLayoutPageTemplateEntryId(
-			soapModel.getLayoutPageTemplateEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setLayoutPageTemplateCollectionId(
-			soapModel.getLayoutPageTemplateCollectionId());
-		model.setLayoutPageTemplateEntryKey(
-			soapModel.getLayoutPageTemplateEntryKey());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassTypeId(soapModel.getClassTypeId());
-		model.setName(soapModel.getName());
-		model.setType(soapModel.getType());
-		model.setPreviewFileEntryId(soapModel.getPreviewFileEntryId());
-		model.setDefaultTemplate(soapModel.isDefaultTemplate());
-		model.setLayoutPrototypeId(soapModel.getLayoutPrototypeId());
-		model.setPlid(soapModel.getPlid());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<LayoutPageTemplateEntry> toModels(
-		LayoutPageTemplateEntrySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<LayoutPageTemplateEntry> models =
-			new ArrayList<LayoutPageTemplateEntry>(soapModels.length);
-
-		for (LayoutPageTemplateEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public LayoutPageTemplateEntryModelImpl() {
 	}
 
@@ -394,34 +318,6 @@ public class LayoutPageTemplateEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutPageTemplateEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutPageTemplateEntry.class.getClassLoader(),
-			LayoutPageTemplateEntry.class, ModelWrapper.class);
-
-		try {
-			Constructor<LayoutPageTemplateEntry> constructor =
-				(Constructor<LayoutPageTemplateEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutPageTemplateEntry, Object>>
@@ -1373,6 +1269,66 @@ public class LayoutPageTemplateEntryModelImpl
 	}
 
 	@Override
+	public LayoutPageTemplateEntry cloneWithOriginalValues() {
+		LayoutPageTemplateEntryImpl layoutPageTemplateEntryImpl =
+			new LayoutPageTemplateEntryImpl();
+
+		layoutPageTemplateEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutPageTemplateEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		layoutPageTemplateEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		layoutPageTemplateEntryImpl.setLayoutPageTemplateEntryId(
+			this.<Long>getColumnOriginalValue("layoutPageTemplateEntryId"));
+		layoutPageTemplateEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		layoutPageTemplateEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutPageTemplateEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		layoutPageTemplateEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		layoutPageTemplateEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutPageTemplateEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutPageTemplateEntryImpl.setLayoutPageTemplateCollectionId(
+			this.<Long>getColumnOriginalValue(
+				"layoutPageTemplateCollectionId"));
+		layoutPageTemplateEntryImpl.setLayoutPageTemplateEntryKey(
+			this.<String>getColumnOriginalValue("layoutPageTemplateEntryKey"));
+		layoutPageTemplateEntryImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		layoutPageTemplateEntryImpl.setClassTypeId(
+			this.<Long>getColumnOriginalValue("classTypeId"));
+		layoutPageTemplateEntryImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		layoutPageTemplateEntryImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		layoutPageTemplateEntryImpl.setPreviewFileEntryId(
+			this.<Long>getColumnOriginalValue("previewFileEntryId"));
+		layoutPageTemplateEntryImpl.setDefaultTemplate(
+			this.<Boolean>getColumnOriginalValue("defaultTemplate"));
+		layoutPageTemplateEntryImpl.setLayoutPrototypeId(
+			this.<Long>getColumnOriginalValue("layoutPrototypeId"));
+		layoutPageTemplateEntryImpl.setPlid(
+			this.<Long>getColumnOriginalValue("plid"));
+		layoutPageTemplateEntryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		layoutPageTemplateEntryImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		layoutPageTemplateEntryImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		layoutPageTemplateEntryImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		layoutPageTemplateEntryImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return layoutPageTemplateEntryImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutPageTemplateEntry layoutPageTemplateEntry) {
 		int value = 0;
 
@@ -1574,7 +1530,7 @@ public class LayoutPageTemplateEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1585,10 +1541,27 @@ public class LayoutPageTemplateEntryModelImpl
 			Function<LayoutPageTemplateEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((LayoutPageTemplateEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(LayoutPageTemplateEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1638,7 +1611,8 @@ public class LayoutPageTemplateEntryModelImpl
 		private static final Function
 			<InvocationHandler, LayoutPageTemplateEntry>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						LayoutPageTemplateEntry.class, ModelWrapper.class);
 
 	}
 

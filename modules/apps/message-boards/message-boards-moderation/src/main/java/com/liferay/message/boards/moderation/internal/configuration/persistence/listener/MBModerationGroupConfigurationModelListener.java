@@ -15,12 +15,13 @@
 package com.liferay.message.boards.moderation.internal.configuration.persistence.listener;
 
 import com.liferay.message.boards.model.MBMessage;
-import com.liferay.message.boards.moderation.internal.configuration.MBModerationGroupConfiguration;
+import com.liferay.message.boards.moderation.configuration.MBModerationGroupConfiguration;
 import com.liferay.message.boards.moderation.internal.constants.MBModerationConstants;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListener;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListenerException;
 import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
@@ -37,7 +38,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	immediate = true,
-	property = "model.class.name=com.liferay.message.boards.moderation.internal.configuration.MBModerationGroupConfiguration",
+	property = "model.class.name=com.liferay.message.boards.moderation.configuration.MBModerationGroupConfiguration",
 	service = ConfigurationModelListener.class
 )
 public class MBModerationGroupConfigurationModelListener
@@ -52,13 +53,21 @@ public class MBModerationGroupConfigurationModelListener
 				MBModerationGroupConfiguration.class,
 				new HashMapDictionary<>());
 
+		long companyId = GetterUtil.getLong(properties.get("companyId"));
+		boolean enableMessageBoardsModeration = GetterUtil.getBoolean(
+			properties.get("enableMessageBoardsModeration"),
+			mbModerationGroupConfiguration.enableMessageBoardsModeration());
+
 		try {
-			_updateMBModerationWorkflow(
-				GetterUtil.getLong(properties.get("companyId")),
-				GetterUtil.getBoolean(
-					properties.get("enableMessageBoardsModeration"),
-					mbModerationGroupConfiguration.
-						enableMessageBoardsModeration()));
+			if (companyId == 0) {
+				_companyLocalService.forEachCompanyId(
+					curCompanyId -> _updateMBModerationWorkflow(
+						curCompanyId, enableMessageBoardsModeration));
+			}
+			else {
+				_updateMBModerationWorkflow(
+					companyId, enableMessageBoardsModeration);
+			}
 		}
 		catch (Exception exception) {
 			throw new ConfigurationModelListenerException(
@@ -94,6 +103,9 @@ public class MBModerationGroupConfigurationModelListener
 			MBModerationConstants.WORKFLOW_DEFINITION_NAME,
 			workflowDefinition.getVersion());
 	}
+
+	@Reference
+	private CompanyLocalService _companyLocalService;
 
 	@Reference
 	private WorkflowDefinitionLinkLocalService

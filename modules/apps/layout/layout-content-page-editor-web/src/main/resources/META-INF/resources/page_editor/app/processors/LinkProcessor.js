@@ -12,7 +12,8 @@
  * details.
  */
 
-import {config} from '../config/index';
+import {getEditableLinkValue} from '../utils/getEditableLinkValue';
+import isNullOrUndefined from '../utils/isNullOrUndefined';
 import getAlloyEditorProcessor from './getAlloyEditorProcessor';
 import {getLinkableEditableEditorWrapper} from './getLinkableEditableEditorWrapper';
 
@@ -25,15 +26,15 @@ export default getAlloyEditorProcessor(
 				? element
 				: element.querySelector('a');
 
-		const link =
-			editableConfig[languageId] ||
-			editableConfig[config.defaultLanguageId] ||
-			editableConfig;
+		const link = getEditableLinkValue(editableConfig, languageId);
 
 		if (anchor) {
 			anchor.href = link.href || '#';
-			anchor.innerHTML = value;
-			anchor.target = link.target || '';
+			anchor.target = link.target;
+
+			if (!isNullOrUndefined(value)) {
+				anchor.innerHTML = value;
+			}
 		}
 	}
 );

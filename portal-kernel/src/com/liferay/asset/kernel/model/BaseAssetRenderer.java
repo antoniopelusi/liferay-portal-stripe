@@ -48,8 +48,6 @@ import java.util.Locale;
 import javax.portlet.PortletMode;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
-import javax.portlet.RenderRequest;
-import javax.portlet.RenderResponse;
 import javax.portlet.WindowState;
 
 import javax.servlet.http.HttpServletRequest;
@@ -327,13 +325,6 @@ public abstract class BaseAssetRenderer<T> implements AssetRenderer<T> {
 		return true;
 	}
 
-	public String renderActions(
-			RenderRequest renderRequest, RenderResponse renderResponse)
-		throws Exception {
-
-		return null;
-	}
-
 	public void setAssetRendererType(int assetRendererType) {
 		_assetRendererType = assetRendererType;
 	}
@@ -368,21 +359,14 @@ public abstract class BaseAssetRenderer<T> implements AssetRenderer<T> {
 			(ThemeDisplay)liferayPortletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		StringBundler sb = new StringBundler(11);
-
-		sb.append(themeDisplay.getPortalURL());
-		sb.append(themeDisplay.getPathMain());
-		sb.append(path);
-		sb.append("?p_l_id=");
-		sb.append(themeDisplay.getPlid());
-		sb.append("&noSuchEntryRedirect=");
-		sb.append(URLCodec.encodeURL(noSuchEntryRedirect));
-		sb.append(StringPool.AMPERSAND);
-		sb.append(primaryKeyParameterName);
-		sb.append(StringPool.EQUAL);
-		sb.append(primaryKeyParameterValue);
-
-		return PortalUtil.addPreservedParameters(themeDisplay, sb.toString());
+		return PortalUtil.addPreservedParameters(
+			themeDisplay,
+			StringBundler.concat(
+				themeDisplay.getPortalURL(), themeDisplay.getPathMain(), path,
+				"?p_l_id=", themeDisplay.getPlid(), "&noSuchEntryRedirect=",
+				URLCodec.encodeURL(noSuchEntryRedirect), StringPool.AMPERSAND,
+				primaryKeyParameterName, StringPool.EQUAL,
+				primaryKeyParameterValue));
 	}
 
 	private PortletURL _getURLEdit(

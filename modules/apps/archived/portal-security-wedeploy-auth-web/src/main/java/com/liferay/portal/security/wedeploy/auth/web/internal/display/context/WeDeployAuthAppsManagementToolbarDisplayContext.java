@@ -60,7 +60,7 @@ public class WeDeployAuthAppsManagementToolbarDisplayContext
 			"/wedeploy_auth_admin/edit_wedeploy_auth_app"
 		).setRedirect(
 			_themeDisplay.getURLCurrent()
-		).build();
+		).buildPortletURL();
 
 		return CreationMenuBuilder.addPrimaryDropdownItem(
 			dropdownItem -> {

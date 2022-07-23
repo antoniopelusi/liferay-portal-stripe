@@ -28,31 +28,29 @@ public class RecordGroupUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("select DDLRecordSet.groupId, DDLRecord.recordId from ");
-		sb.append("DDLRecord inner join DDLRecordSet on ");
-		sb.append("DDLRecord.recordSetId = DDLRecordSet.recordSetId where ");
-		sb.append("DDLRecord.groupId != DDLRecordSet.groupId");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDLRecordSet.groupId, DDLRecord.recordId from ",
+					"DDLRecord inner join DDLRecordSet on ",
+					"DDLRecord.recordSetId = DDLRecordSet.recordSetId where ",
+					"DDLRecord.groupId != DDLRecordSet.groupId"));
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDLRecord set groupId = ? where recordId = ?")) {
 
-			while (rs.next()) {
-				long groupId = rs.getLong("groupId");
-				long recordId = rs.getLong("recordId");
+			while (resultSet.next()) {
+				long groupId = resultSet.getLong("groupId");
+				long recordId = resultSet.getLong("recordId");
 
-				ps2.setLong(1, groupId);
-				ps2.setLong(2, recordId);
+				preparedStatement2.setLong(1, groupId);
+				preparedStatement2.setLong(2, recordId);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

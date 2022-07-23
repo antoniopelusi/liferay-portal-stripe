@@ -59,8 +59,6 @@ public class LiferayWriter
 		_finalEndpointUrl = _getFinalEndpointUrl(_liferayOutputProperties);
 
 		_liferaySink = _liferayWriteOperation.getSink();
-		_result = new Result();
-		_successWrites = new ArrayList<>();
 
 		_indexedRecordJsonObjectConverter =
 			new IndexedRecordJsonObjectConverter(
@@ -104,6 +102,22 @@ public class LiferayWriter
 
 	public void doInsert(IndexedRecord indexedRecord) throws IOException {
 		Optional<JsonObject> jsonObjectOptional = _liferaySink.doPostRequest(
+			_getEndpointUrl(),
+			_indexedRecordJsonObjectConverter.toJsonValue(indexedRecord));
+
+		if (!jsonObjectOptional.isPresent()) {
+			_handleSuccessRecord(indexedRecord);
+
+			return;
+		}
+
+		_handleSuccessRecord(
+			_jsonObjectIndexedRecordConverter.toIndexedRecord(
+				jsonObjectOptional.get()));
+	}
+
+	public void doReplace(IndexedRecord indexedRecord) throws IOException {
+		Optional<JsonObject> jsonObjectOptional = _liferaySink.doPutRequest(
 			_getEndpointUrl(),
 			_indexedRecordJsonObjectConverter.toJsonValue(indexedRecord));
 
@@ -172,6 +186,9 @@ public class LiferayWriter
 			}
 			else if (Operation.Insert == operation) {
 				doInsert(indexedRecord);
+			}
+			else if (Operation.Replace == operation) {
+				doReplace(indexedRecord);
 			}
 			else if (Operation.Update == operation) {
 				doUpdate(indexedRecord);
@@ -258,7 +275,7 @@ public class LiferayWriter
 	private final LiferayOutputProperties _liferayOutputProperties;
 	private final LiferaySink _liferaySink;
 	private final LiferayWriteOperation _liferayWriteOperation;
-	private final Result _result;
-	private final List<IndexedRecord> _successWrites;
+	private final Result _result = new Result();
+	private final List<IndexedRecord> _successWrites = new ArrayList<>();
 
 }

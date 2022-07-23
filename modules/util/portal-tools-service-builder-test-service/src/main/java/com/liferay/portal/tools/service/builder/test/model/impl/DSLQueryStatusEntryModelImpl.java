@@ -24,14 +24,15 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.service.builder.test.model.DSLQueryStatusEntry;
 import com.liferay.portal.tools.service.builder.test.model.DSLQueryStatusEntryModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -214,34 +215,6 @@ public class DSLQueryStatusEntryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, DSLQueryStatusEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DSLQueryStatusEntry.class.getClassLoader(),
-			DSLQueryStatusEntry.class, ModelWrapper.class);
-
-		try {
-			Constructor<DSLQueryStatusEntry> constructor =
-				(Constructor<DSLQueryStatusEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<DSLQueryStatusEntry, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<DSLQueryStatusEntry, Object>>
@@ -417,6 +390,23 @@ public class DSLQueryStatusEntryModelImpl
 	}
 
 	@Override
+	public DSLQueryStatusEntry cloneWithOriginalValues() {
+		DSLQueryStatusEntryImpl dslQueryStatusEntryImpl =
+			new DSLQueryStatusEntryImpl();
+
+		dslQueryStatusEntryImpl.setDslQueryStatusEntryId(
+			this.<Long>getColumnOriginalValue("dslQueryStatusEntryId"));
+		dslQueryStatusEntryImpl.setDslQueryEntryId(
+			this.<Long>getColumnOriginalValue("dslQueryEntryId"));
+		dslQueryStatusEntryImpl.setStatus(
+			this.<String>getColumnOriginalValue("status"));
+		dslQueryStatusEntryImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return dslQueryStatusEntryImpl;
+	}
+
+	@Override
 	public int compareTo(DSLQueryStatusEntry dslQueryStatusEntry) {
 		long primaryKey = dslQueryStatusEntry.getPrimaryKey();
 
@@ -519,7 +509,7 @@ public class DSLQueryStatusEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -530,9 +520,27 @@ public class DSLQueryStatusEntryModelImpl
 			Function<DSLQueryStatusEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DSLQueryStatusEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DSLQueryStatusEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -579,7 +587,9 @@ public class DSLQueryStatusEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DSLQueryStatusEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DSLQueryStatusEntry.class, ModelWrapper.class);
 
 	}
 

@@ -26,71 +26,75 @@ import java.sql.ResultSet;
  */
 public class DDMFormInstanceRecordVersionUpgradeProcess extends UpgradeProcess {
 
-	protected void deleteDDLRecordVersion(long recordVersionId)
-		throws Exception {
+	@Override
+	protected void doUpgrade() throws Exception {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDLRecordVersion.* , DDMFormInstance.groupId as ",
+					"formInstanceGroupId, DDMFormInstance.version as ",
+					"formInstanceVersion from DDLRecordVersion inner join ",
+					"DDMFormInstance on DDLRecordVersion.recordSetId = ",
+					"DDMFormInstance.formInstanceId"));
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					StringBundler.concat(
+						"insert into DDMFormInstanceRecordVersion(",
+						"formInstanceRecordVersionId, groupId, companyId, ",
+						"userId, userName, createDate, formInstanceId, ",
+						"formInstanceVersion, formInstanceRecordId, version, ",
+						"status, statusByUserId, statusByUserName, ",
+						"statusDate, storageId) values(?, ?, ?, ?, ?, ?, ?, ",
+						"?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-		try (PreparedStatement ps = connection.prepareStatement(
-				"delete from DDLRecordVersion where recordVersionId = ?")) {
+			while (resultSet.next()) {
+				long recordVersionId = resultSet.getLong("recordVersionId");
 
-			ps.setLong(1, recordVersionId);
+				preparedStatement2.setLong(1, recordVersionId);
 
-			ps.executeUpdate();
+				preparedStatement2.setLong(
+					2, resultSet.getLong("formInstanceGroupId"));
+				preparedStatement2.setLong(3, resultSet.getLong("companyId"));
+				preparedStatement2.setLong(4, resultSet.getLong("userId"));
+				preparedStatement2.setString(
+					5, resultSet.getString("userName"));
+				preparedStatement2.setTimestamp(
+					6, resultSet.getTimestamp("createDate"));
+				preparedStatement2.setLong(7, resultSet.getLong("recordSetId"));
+				preparedStatement2.setString(
+					8, resultSet.getString("formInstanceVersion"));
+				preparedStatement2.setLong(9, resultSet.getLong("recordId"));
+				preparedStatement2.setString(
+					10, resultSet.getString("version"));
+				preparedStatement2.setInt(11, resultSet.getInt("status"));
+				preparedStatement2.setLong(
+					12, resultSet.getLong("statusByUserId"));
+				preparedStatement2.setString(
+					13, resultSet.getString("statusByUserName"));
+				preparedStatement2.setTimestamp(
+					14, resultSet.getTimestamp("statusDate"));
+				preparedStatement2.setLong(
+					15, resultSet.getLong("DDMStorageId"));
+
+				_deleteDDLRecordVersion(recordVersionId);
+
+				preparedStatement2.addBatch();
+			}
+
+			preparedStatement2.executeBatch();
 		}
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		StringBundler sb1 = new StringBundler(5);
+	private void _deleteDDLRecordVersion(long recordVersionId)
+		throws Exception {
 
-		sb1.append("select DDLRecordVersion.* , DDMFormInstance.groupId as ");
-		sb1.append("formInstanceGroupId, DDMFormInstance.version as ");
-		sb1.append("formInstanceVersion from DDLRecordVersion inner join ");
-		sb1.append("DDMFormInstance on DDLRecordVersion.recordSetId = ");
-		sb1.append("DDMFormInstance.formInstanceId");
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"delete from DDLRecordVersion where recordVersionId = ?")) {
 
-		StringBundler sb2 = new StringBundler(7);
+			preparedStatement.setLong(1, recordVersionId);
 
-		sb2.append("insert into DDMFormInstanceRecordVersion(");
-		sb2.append("formInstanceRecordVersionId, groupId, companyId, userId, ");
-		sb2.append("userName, createDate, formInstanceId, ");
-		sb2.append("formInstanceVersion, formInstanceRecordId, version, ");
-		sb2.append("status, statusByUserId, statusByUserName, statusDate, ");
-		sb2.append("storageId) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ");
-		sb2.append("?, ?)");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 =
-				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb2.toString())) {
-
-			while (rs.next()) {
-				long recordVersionId = rs.getLong("recordVersionId");
-
-				ps2.setLong(1, recordVersionId);
-
-				ps2.setLong(2, rs.getLong("formInstanceGroupId"));
-				ps2.setLong(3, rs.getLong("companyId"));
-				ps2.setLong(4, rs.getLong("userId"));
-				ps2.setString(5, rs.getString("userName"));
-				ps2.setTimestamp(6, rs.getTimestamp("createDate"));
-				ps2.setLong(7, rs.getLong("recordSetId"));
-				ps2.setString(8, rs.getString("formInstanceVersion"));
-				ps2.setLong(9, rs.getLong("recordId"));
-				ps2.setString(10, rs.getString("version"));
-				ps2.setInt(11, rs.getInt("status"));
-				ps2.setLong(12, rs.getLong("statusByUserId"));
-				ps2.setString(13, rs.getString("statusByUserName"));
-				ps2.setTimestamp(14, rs.getTimestamp("statusDate"));
-				ps2.setLong(15, rs.getLong("DDMStorageId"));
-
-				deleteDDLRecordVersion(recordVersionId);
-
-				ps2.addBatch();
-			}
-
-			ps2.executeBatch();
+			preparedStatement.executeUpdate();
 		}
 	}
 

@@ -44,20 +44,22 @@ public class TestPropertiesUtil {
 	}
 
 	private TestPropertiesUtil() {
-		try (InputStream is = TestPropertiesUtil.class.getResourceAsStream(
-				"/test-jenkins-results-parser-util.properties")) {
+		try (InputStream inputStream =
+				TestPropertiesUtil.class.getResourceAsStream(
+					"/test-jenkins-results-parser-util.properties")) {
 
-			_properties.load(is);
+			_properties.load(inputStream);
 		}
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);
 		}
 
-		try (InputStream is = TestPropertiesUtil.class.getResourceAsStream(
-				"/test-jenkins-results-parser-util-ext.properties")) {
+		try (InputStream inputStream =
+				TestPropertiesUtil.class.getResourceAsStream(
+					"/test-jenkins-results-parser-util-ext.properties")) {
 
-			if (is != null) {
-				_properties.load(is);
+			if (inputStream != null) {
+				_properties.load(inputStream);
 			}
 		}
 		catch (IOException ioException) {

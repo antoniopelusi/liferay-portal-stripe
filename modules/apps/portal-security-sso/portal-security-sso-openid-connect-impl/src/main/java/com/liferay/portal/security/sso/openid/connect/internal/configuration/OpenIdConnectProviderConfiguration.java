@@ -39,18 +39,6 @@ public interface OpenIdConnectProviderConfiguration {
 	public String providerName();
 
 	@Meta.AD(
-		deflt = "", description = "open-id-connect-client-id-help",
-		name = "open-id-connect-client-id"
-	)
-	public String openIdConnectClientId();
-
-	@Meta.AD(
-		deflt = "", description = "open-id-connect-client-secret-help",
-		name = "open-id-connect-client-secret"
-	)
-	public String openIdConnectClientSecret();
-
-	@Meta.AD(
 		deflt = "openid email profile", description = "scopes-help",
 		name = "scopes"
 	)
@@ -115,5 +103,36 @@ public interface OpenIdConnectProviderConfiguration {
 		name = "user-info-endpoint", required = false
 	)
 	public String userInfoEndPoint();
+
+	@Meta.AD(
+		deflt = "", description = "open-id-connect-client-id-help",
+		name = "open-id-connect-client-id"
+	)
+	public String openIdConnectClientId();
+
+	@Meta.AD(
+		deflt = "", description = "open-id-connect-client-secret-help",
+		name = "open-id-connect-client-secret"
+	)
+	public String openIdConnectClientSecret();
+
+	@Meta.AD(
+		deflt = "", description = "registered-id-token-signing-alg-help",
+		name = "registered-id-token-signing-alg", required = false
+	)
+	public String registeredIdTokenSigningAlg();
+
+	@Meta.AD(
+		deflt = "",
+		description = "custom-authorization-request-parameters-help",
+		name = "custom-authorization-request-parameters", required = false
+	)
+	public String[] customAuthorizationRequestParameters();
+
+	@Meta.AD(
+		deflt = "", description = "custom-token-request-parameters-help",
+		name = "custom-token-request-parameters", required = false
+	)
+	public String[] customTokenRequestParameters();
 
 }

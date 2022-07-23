@@ -173,82 +173,11 @@ public class JournalTestUtil {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		String content = DDMStructureTestUtil.getSampleStructuredContent(
-			contentMap, LocaleUtil.toLanguageId(defaultLocale));
-
-		DDMForm ddmForm = DDMStructureTestUtil.getSampleDDMForm(
-			_locales, defaultLocale);
-
-		long ddmGroupId = GetterUtil.getLong(
-			serviceContext.getAttribute("ddmGroupId"), groupId);
-
-		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
-			ddmGroupId, JournalArticle.class.getName(), ddmForm, defaultLocale);
-
-		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
-			ddmGroupId, ddmStructure.getStructureId(),
-			PortalUtil.getClassNameId(JournalArticle.class));
-
-		boolean neverExpire = true;
-
-		int expirationDateDay = 0;
-		int expirationDateMonth = 0;
-		int expirationDateYear = 0;
-		int expirationDateHour = 0;
-		int expirationDateMinute = 0;
-
-		User user = TestPropsValues.getUser();
-
-		if (expirationDate != null) {
-			neverExpire = false;
-
-			Calendar expirationCal = CalendarFactoryUtil.getCalendar(
-				user.getTimeZone());
-
-			expirationCal.setTime(expirationDate);
-
-			expirationDateMonth = expirationCal.get(Calendar.MONTH);
-			expirationDateDay = expirationCal.get(Calendar.DATE);
-			expirationDateYear = expirationCal.get(Calendar.YEAR);
-			expirationDateHour = expirationCal.get(Calendar.HOUR_OF_DAY);
-			expirationDateMinute = expirationCal.get(Calendar.MINUTE);
-		}
-
-		Calendar displayCal = CalendarFactoryUtil.getCalendar(
-			user.getTimeZone());
-
-		if (displayDate != null) {
-			displayCal.setTime(displayDate);
-		}
-
-		int displayDateDay = displayCal.get(Calendar.DATE);
-		int displayDateMonth = displayCal.get(Calendar.MONTH);
-		int displayDateYear = displayCal.get(Calendar.YEAR);
-		int displayDateHour = displayCal.get(Calendar.HOUR_OF_DAY);
-		int displayDateMinute = displayCal.get(Calendar.MINUTE);
-
-		if (workflowEnabled) {
-			serviceContext = (ServiceContext)serviceContext.clone();
-
-			if (approved) {
-				serviceContext.setWorkflowAction(
-					WorkflowConstants.ACTION_PUBLISH);
-			}
-			else {
-				serviceContext.setWorkflowAction(
-					WorkflowConstants.ACTION_SAVE_DRAFT);
-			}
-		}
-
-		return JournalArticleLocalServiceUtil.addArticle(
-			serviceContext.getUserId(), groupId, folderId, classNameId, 0,
-			articleId, autoArticleId, JournalArticleConstants.VERSION_DEFAULT,
-			titleMap, descriptionMap, content, ddmStructure.getStructureKey(),
-			ddmTemplate.getTemplateKey(), layoutUuid, displayDateMonth,
-			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire, 0, 0, 0, 0,
-			0, true, true, false, null, null, null, null, serviceContext);
+		return addArticle(
+			null, groupId, folderId, classNameId, articleId, autoArticleId,
+			titleMap, descriptionMap, contentMap, layoutUuid, defaultLocale,
+			displayDate, expirationDate, workflowEnabled, approved,
+			serviceContext);
 	}
 
 	public static JournalArticle addArticle(
@@ -357,6 +286,28 @@ public class JournalTestUtil {
 	}
 
 	public static JournalArticle addArticle(
+			long groupId, long folderId, String articleId, String title,
+			String description, String content, Double priority)
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(groupId);
+
+		if (priority != null) {
+			serviceContext.setAssetPriority(priority);
+		}
+
+		serviceContext.setCommand(Constants.ADD);
+		serviceContext.setLayoutFullURL("http://localhost");
+
+		return addArticle(
+			groupId, folderId, JournalArticleConstants.CLASS_NAME_ID_DEFAULT,
+			articleId, false, _getLocalizedMap(title),
+			_getLocalizedMap(description), _getLocalizedMap(content), null,
+			LocaleUtil.getSiteDefault(), null, false, false, serviceContext);
+	}
+
+	public static JournalArticle addArticle(
 			long groupId, String title, String content)
 		throws Exception {
 
@@ -395,6 +346,116 @@ public class JournalTestUtil {
 			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			JournalArticleConstants.CLASS_NAME_ID_DEFAULT, title, title,
 			content, LocaleUtil.getSiteDefault(), false, false, serviceContext);
+	}
+
+	public static JournalArticle addArticle(
+			String externalReferenceCode, long groupId, long folderId,
+			long classNameId, String articleId, boolean autoArticleId,
+			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
+			Map<Locale, String> contentMap, String layoutUuid,
+			Locale defaultLocale, Date displayDate, Date expirationDate,
+			boolean workflowEnabled, boolean approved,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		String content = DDMStructureTestUtil.getSampleStructuredContent(
+			contentMap, LocaleUtil.toLanguageId(defaultLocale));
+
+		DDMForm ddmForm = DDMStructureTestUtil.getSampleDDMForm(
+			_locales, defaultLocale);
+
+		long ddmGroupId = GetterUtil.getLong(
+			serviceContext.getAttribute("ddmGroupId"), groupId);
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			ddmGroupId, JournalArticle.class.getName(), ddmForm, defaultLocale);
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			ddmGroupId, ddmStructure.getStructureId(),
+			PortalUtil.getClassNameId(JournalArticle.class));
+
+		boolean neverExpire = true;
+
+		int expirationDateDay = 0;
+		int expirationDateMonth = 0;
+		int expirationDateYear = 0;
+		int expirationDateHour = 0;
+		int expirationDateMinute = 0;
+
+		User user = TestPropsValues.getUser();
+
+		if (expirationDate != null) {
+			neverExpire = false;
+
+			Calendar expirationCal = CalendarFactoryUtil.getCalendar(
+				user.getTimeZone());
+
+			expirationCal.setTime(expirationDate);
+
+			expirationDateMonth = expirationCal.get(Calendar.MONTH);
+			expirationDateDay = expirationCal.get(Calendar.DATE);
+			expirationDateYear = expirationCal.get(Calendar.YEAR);
+			expirationDateHour = expirationCal.get(Calendar.HOUR_OF_DAY);
+			expirationDateMinute = expirationCal.get(Calendar.MINUTE);
+		}
+
+		Calendar displayCal = CalendarFactoryUtil.getCalendar(
+			user.getTimeZone());
+
+		if (displayDate != null) {
+			displayCal.setTime(displayDate);
+		}
+
+		int displayDateDay = displayCal.get(Calendar.DATE);
+		int displayDateMonth = displayCal.get(Calendar.MONTH);
+		int displayDateYear = displayCal.get(Calendar.YEAR);
+		int displayDateHour = displayCal.get(Calendar.HOUR_OF_DAY);
+		int displayDateMinute = displayCal.get(Calendar.MINUTE);
+
+		if (workflowEnabled) {
+			serviceContext = (ServiceContext)serviceContext.clone();
+
+			if (approved) {
+				serviceContext.setWorkflowAction(
+					WorkflowConstants.ACTION_PUBLISH);
+			}
+			else {
+				serviceContext.setWorkflowAction(
+					WorkflowConstants.ACTION_SAVE_DRAFT);
+			}
+		}
+
+		return JournalArticleLocalServiceUtil.addArticle(
+			externalReferenceCode, serviceContext.getUserId(), groupId,
+			folderId, classNameId, 0, articleId, autoArticleId,
+			JournalArticleConstants.VERSION_DEFAULT, titleMap, descriptionMap,
+			titleMap, content, ddmStructure.getStructureKey(),
+			ddmTemplate.getTemplateKey(), layoutUuid, displayDateMonth,
+			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
+			expirationDateMonth, expirationDateDay, expirationDateYear,
+			expirationDateHour, expirationDateMinute, neverExpire, 0, 0, 0, 0,
+			0, true, true, false, null, null, null, null, serviceContext);
+	}
+
+	public static JournalArticle addArticle(
+			String externalReferenceCode, long groupId, long folderId,
+			String articleId, boolean autoArticleId)
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(groupId);
+
+		serviceContext.setCommand(Constants.ADD);
+		serviceContext.setLayoutFullURL("http://localhost");
+
+		return addArticle(
+			externalReferenceCode, groupId, folderId,
+			JournalArticleConstants.CLASS_NAME_ID_DEFAULT, articleId,
+			autoArticleId, _getLocalizedMap(RandomTestUtil.randomString()),
+			_getLocalizedMap(RandomTestUtil.randomString()),
+			_getLocalizedMap(RandomTestUtil.randomString()), null,
+			LocaleUtil.getSiteDefault(), null, null, false, false,
+			serviceContext);
 	}
 
 	public static JournalArticle addArticleWithWorkflow(
@@ -519,14 +580,18 @@ public class JournalTestUtil {
 		throws Exception {
 
 		return JournalArticleLocalServiceUtil.addArticle(
-			serviceContext.getUserId(), serviceContext.getScopeGroupId(),
+			null, serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 			folderId, classNameId, classPK, StringPool.BLANK, true, 0,
 			HashMapBuilder.put(
 				defaultLocale, "Test Article"
 			).build(),
-			null, xml, ddmStructureKey, ddmTemplateKey, null, 1, 1, 1965, 0, 0,
-			0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true, true, false, null, null,
-			images, null, serviceContext);
+			null,
+			HashMapBuilder.put(
+				defaultLocale, RandomTestUtil.randomString()
+			).build(),
+			xml, ddmStructureKey, ddmTemplateKey, null, 1, 1, 1965, 0, 0, 0, 0,
+			0, 0, 0, true, 0, 0, 0, 0, 0, true, true, false, null, null, images,
+			null, serviceContext);
 	}
 
 	public static JournalArticle addArticleWithXMLContent(
@@ -781,11 +846,14 @@ public class JournalTestUtil {
 		return ReflectionTestUtil.getMethod(
 			_JOURNAL_UTIL_CLASS, "transform", ThemeDisplay.class, Map.class,
 			String.class, String.class, Document.class,
-			PortletRequestModel.class, String.class, String.class,
-			boolean.class, Map.class);
+			PortletRequestModel.class, String.class, boolean.class, Map.class);
 	}
 
-	public static String getSampleTemplateXSL() {
+	public static String getSampleTemplateFTL() {
+		return "${name.getData()}";
+	}
+
+	public static String getSampleTemplateVM() {
 		return "$name.getData()";
 	}
 

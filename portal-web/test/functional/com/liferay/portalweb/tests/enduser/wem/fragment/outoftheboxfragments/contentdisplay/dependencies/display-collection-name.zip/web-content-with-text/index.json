@@ -1,0 +1,18 @@
+{
+	"fieldSets": [
+		{
+			"fields": [
+				{
+					"label": "Item",
+					"name": "itemSelectorName",
+					"type": "itemSelector",
+					"typeOptions": {
+						"enableSelectTemplate": true,
+						"itemSubtype": "STRUCTURE-TEXT",
+						"itemType": "com.liferay.journal.model.JournalArticle"
+					}
+				}
+			]
+		}
+	]
+}

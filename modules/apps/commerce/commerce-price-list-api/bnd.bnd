@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Commerce Price List API
 Bundle-SymbolicName: com.liferay.commerce.price.list.api
-Bundle-Version: 9.0.1
+Bundle-Version: 14.1.1
 Export-Package:\
 	com.liferay.commerce.price.list.configuration,\
 	com.liferay.commerce.price.list.constants,\
@@ -14,7 +14,3 @@ Export-Package:\
 	com.liferay.commerce.price.list.service.persistence,\
 	com.liferay.commerce.price.list.util.comparator
 Liferay-Enterprise-App: product.id=9a473157-06a6-44b6-b017-a360ffaf5f38
-Provide-Capability:\
-	liferay.resource.bundle;\
-		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.commerce.lang)";\
-		resource.bundle.base.name="content.Language"

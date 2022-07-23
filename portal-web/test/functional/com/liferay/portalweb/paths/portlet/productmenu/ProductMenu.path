@@ -2,11 +2,13 @@
 <head>
 <title>ProductMenu</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ProductMenu</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>PANEL_COLLAPSED</td>
@@ -59,8 +61,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>GO_TO_SITES_LINK</td>
+	<td>HOME_PAGE_LINK</td>
 	<td>//a[contains(@class,'navigation-link') and contains(.,'Home')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LIVE_LINK</td>
+	<td>//*[@data-qa-id='live']</td>
 	<td></td>
 </tr>
 <tr>
@@ -89,8 +96,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>LIVE_LINK</td>
-	<td>//*[@data-qa-id='live']</td>
+	<td>SITE_NAME</td>
+	<td>//*[contains(@class,'site-name') and contains(.,'${key_siteName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -142,6 +149,11 @@
 <tr>
 	<td>PRODUCT_MENU_PANEL_TIMES</td>
 	<td>//a[contains(@id,'ProductMenu')][*[name()='svg'][contains(@class,'icon-times')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>STICKER</td>
+	<td>//div[contains(@class,'product-menu-sidebar')]//div[contains(@class,'sticker')][contains(@style,'${key_imageName}')]</td>
 	<td></td>
 </tr>
 </tbody>

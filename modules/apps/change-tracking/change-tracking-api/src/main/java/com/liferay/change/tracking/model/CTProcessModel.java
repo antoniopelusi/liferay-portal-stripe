@@ -173,4 +173,7 @@ public interface CTProcessModel
 	 */
 	public void setBackgroundTaskId(long backgroundTaskId);
 
+	@Override
+	public CTProcess cloneWithOriginalValues();
+
 }

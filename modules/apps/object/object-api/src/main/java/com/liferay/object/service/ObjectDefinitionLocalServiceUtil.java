@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the local service utility for ObjectDefinition. This utility wraps
@@ -44,12 +45,16 @@ public class ObjectDefinitionLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectDefinitionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
-	public static ObjectDefinition addObjectDefinition(
-			long userId, String name,
+	public static ObjectDefinition addCustomObjectDefinition(
+			long userId, Map<java.util.Locale, String> labelMap, String name,
+			String panelAppOrder, String panelCategoryKey,
+			Map<java.util.Locale, String> pluralLabelMap, String scope,
 			List<com.liferay.object.model.ObjectField> objectFields)
 		throws PortalException {
 
-		return getService().addObjectDefinition(userId, name, objectFields);
+		return getService().addCustomObjectDefinition(
+			userId, labelMap, name, panelAppOrder, panelCategoryKey,
+			pluralLabelMap, scope, objectFields);
 	}
 
 	/**
@@ -66,6 +71,31 @@ public class ObjectDefinitionLocalServiceUtil {
 		ObjectDefinition objectDefinition) {
 
 		return getService().addObjectDefinition(objectDefinition);
+	}
+
+	public static ObjectDefinition addOrUpdateSystemObjectDefinition(
+			long companyId,
+			com.liferay.object.system.SystemObjectDefinitionMetadata
+				systemObjectDefinitionMetadata)
+		throws PortalException {
+
+		return getService().addOrUpdateSystemObjectDefinition(
+			companyId, systemObjectDefinitionMetadata);
+	}
+
+	public static ObjectDefinition addSystemObjectDefinition(
+			long userId, String className, String dbTableName,
+			Map<java.util.Locale, String> labelMap, String name,
+			String pkObjectFieldDBColumnName, String pkObjectFieldName,
+			Map<java.util.Locale, String> pluralLabelMap, String scope,
+			int version,
+			List<com.liferay.object.model.ObjectField> objectFields)
+		throws PortalException {
+
+		return getService().addSystemObjectDefinition(
+			userId, className, dbTableName, labelMap, name,
+			pkObjectFieldDBColumnName, pkObjectFieldName, pluralLabelMap, scope,
+			version, objectFields);
 	}
 
 	/**
@@ -88,6 +118,12 @@ public class ObjectDefinitionLocalServiceUtil {
 		throws PortalException {
 
 		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	public static void deleteCompanyObjectDefinitions(long companyId)
+		throws PortalException {
+
+		getService().deleteCompanyObjectDefinitions(companyId);
 	}
 
 	/**
@@ -136,8 +172,18 @@ public class ObjectDefinitionLocalServiceUtil {
 		return getService().deletePersistedModel(persistedModel);
 	}
 
+	public static void deployObjectDefinition(
+		ObjectDefinition objectDefinition) {
+
+		getService().deployObjectDefinition(objectDefinition);
+	}
+
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -223,6 +269,20 @@ public class ObjectDefinitionLocalServiceUtil {
 		return getService().fetchObjectDefinition(objectDefinitionId);
 	}
 
+	public static ObjectDefinition fetchObjectDefinition(
+		long companyId, String name) {
+
+		return getService().fetchObjectDefinition(companyId, name);
+	}
+
+	public static ObjectDefinition fetchObjectDefinitionByClassName(
+			long companyId, String className)
+		throws PortalException {
+
+		return getService().fetchObjectDefinitionByClassName(
+			companyId, className);
+	}
+
 	/**
 	 * Returns the object definition with the matching UUID and company.
 	 *
@@ -241,6 +301,12 @@ public class ObjectDefinitionLocalServiceUtil {
 		getActionableDynamicQuery() {
 
 		return getService().getActionableDynamicQuery();
+	}
+
+	public static List<ObjectDefinition> getCustomObjectDefinitions(
+		int status) {
+
+		return getService().getCustomObjectDefinitions(status);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
@@ -304,6 +370,19 @@ public class ObjectDefinitionLocalServiceUtil {
 		return getService().getObjectDefinitions(start, end);
 	}
 
+	public static List<ObjectDefinition> getObjectDefinitions(
+		long companyId, boolean active, boolean system, int status) {
+
+		return getService().getObjectDefinitions(
+			companyId, active, system, status);
+	}
+
+	public static List<ObjectDefinition> getObjectDefinitions(
+		long companyId, boolean active, int status) {
+
+		return getService().getObjectDefinitions(companyId, active, status);
+	}
+
 	/**
 	 * Returns the number of object definitions.
 	 *
@@ -337,18 +416,36 @@ public class ObjectDefinitionLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
-	public static void registerObjectDefinition(
+	public static List<ObjectDefinition> getSystemObjectDefinitions() {
+		return getService().getSystemObjectDefinitions();
+	}
+
+	public static ObjectDefinition publishCustomObjectDefinition(
+			long userId, long objectDefinitionId)
+		throws PortalException {
+
+		return getService().publishCustomObjectDefinition(
+			userId, objectDefinitionId);
+	}
+
+	public static void undeployObjectDefinition(
 		ObjectDefinition objectDefinition) {
 
-		getService().registerObjectDefinition(objectDefinition);
+		getService().undeployObjectDefinition(objectDefinition);
 	}
 
-	public static void unregisterObjectDefinition(long objectDefinitionId) {
-		getService().unregisterObjectDefinition(objectDefinitionId);
-	}
+	public static ObjectDefinition updateCustomObjectDefinition(
+			long objectDefinitionId, long descriptionObjectFieldId,
+			long titleObjectFieldId, boolean active,
+			Map<java.util.Locale, String> labelMap, String name,
+			String panelAppOrder, String panelCategoryKey, boolean portlet,
+			Map<java.util.Locale, String> pluralLabelMap, String scope)
+		throws PortalException {
 
-	public static void unregisterObjectDefinitions() {
-		getService().unregisterObjectDefinitions();
+		return getService().updateCustomObjectDefinition(
+			objectDefinitionId, descriptionObjectFieldId, titleObjectFieldId,
+			active, labelMap, name, panelAppOrder, panelCategoryKey, portlet,
+			pluralLabelMap, scope);
 	}
 
 	/**
@@ -365,6 +462,14 @@ public class ObjectDefinitionLocalServiceUtil {
 		ObjectDefinition objectDefinition) {
 
 		return getService().updateObjectDefinition(objectDefinition);
+	}
+
+	public static ObjectDefinition updateTitleObjectFieldId(
+			long objectDefinitionId, long titleObjectFieldId)
+		throws PortalException {
+
+		return getService().updateTitleObjectFieldId(
+			objectDefinitionId, titleObjectFieldId);
 	}
 
 	public static ObjectDefinitionLocalService getService() {

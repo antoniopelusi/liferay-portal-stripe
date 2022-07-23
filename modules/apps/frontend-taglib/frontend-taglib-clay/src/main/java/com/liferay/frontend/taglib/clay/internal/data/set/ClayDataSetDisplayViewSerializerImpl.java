@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -52,9 +51,6 @@ public class ClayDataSetDisplayViewSerializerImpl
 		for (ClayDataSetDisplayView clayDataSetDisplayView :
 				clayDataSetDisplayViews) {
 
-			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-				"content.Language", locale, getClass());
-
 			JSONObject jsonObject = JSONUtil.put(
 				"contentRenderer", clayDataSetDisplayView.getContentRenderer()
 			).put(
@@ -63,7 +59,9 @@ public class ClayDataSetDisplayViewSerializerImpl
 			).put(
 				"label",
 				LanguageUtil.get(
-					resourceBundle, clayDataSetDisplayView.getLabel())
+					ResourceBundleUtil.getBundle(
+						"content.Language", locale, getClass()),
+					clayDataSetDisplayView.getLabel())
 			).put(
 				"name", clayDataSetDisplayView.getName()
 			).put(

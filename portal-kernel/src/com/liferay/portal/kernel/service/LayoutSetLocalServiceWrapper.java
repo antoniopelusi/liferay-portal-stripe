@@ -28,6 +28,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class LayoutSetLocalServiceWrapper
 	implements LayoutSetLocalService, ServiceWrapper<LayoutSetLocalService> {
 
+	public LayoutSetLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutSetLocalServiceWrapper(
 		LayoutSetLocalService layoutSetLocalService) {
 
@@ -134,6 +138,13 @@ public class LayoutSetLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _layoutSetLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutSetLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

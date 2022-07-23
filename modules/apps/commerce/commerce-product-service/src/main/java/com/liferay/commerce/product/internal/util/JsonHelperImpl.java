@@ -35,9 +35,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(enabled = false, immediate = true, service = JsonHelper.class)
 public class JsonHelperImpl implements JsonHelper {
 
-	public JsonHelperImpl() {
-	}
-
 	@Override
 	public String getFirstElementStringValue(String jsonArrayString) {
 		if (!isArray(jsonArrayString)) {
@@ -110,11 +107,9 @@ public class JsonHelperImpl implements JsonHelper {
 
 	@Override
 	public boolean isEmpty(String json) {
-		if (Validator.isNull(json)) {
-			return true;
-		}
+		if (Validator.isNull(json) || Objects.equals(json, "[]") ||
+			Objects.equals(json, "{}")) {
 
-		if (Objects.equals(json, "[]") || Objects.equals(json, "{}")) {
 			return true;
 		}
 

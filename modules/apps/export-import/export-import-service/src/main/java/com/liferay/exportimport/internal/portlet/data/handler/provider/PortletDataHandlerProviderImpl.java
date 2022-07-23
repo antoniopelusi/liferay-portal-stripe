@@ -41,12 +41,12 @@ public class PortletDataHandlerProviderImpl
 		Portlet portlet = _portletLocalService.getPortletById(
 			companyId, portletId);
 
-		return doProvide(portlet);
+		return _provide(portlet);
 	}
 
 	@Override
 	public PortletDataHandler provide(Portlet portlet) {
-		return doProvide(portlet);
+		return _provide(portlet);
 	}
 
 	@Override
@@ -57,10 +57,10 @@ public class PortletDataHandlerProviderImpl
 
 		Portlet portlet = _portletLocalService.getPortletById(portletId);
 
-		return doProvide(portlet);
+		return _provide(portlet);
 	}
 
-	protected PortletDataHandler doProvide(Portlet portlet) {
+	private PortletDataHandler _provide(Portlet portlet) {
 		if ((portlet == null) || !portlet.isActive() ||
 			portlet.isUndeployedPortlet()) {
 
@@ -72,7 +72,7 @@ public class PortletDataHandlerProviderImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;

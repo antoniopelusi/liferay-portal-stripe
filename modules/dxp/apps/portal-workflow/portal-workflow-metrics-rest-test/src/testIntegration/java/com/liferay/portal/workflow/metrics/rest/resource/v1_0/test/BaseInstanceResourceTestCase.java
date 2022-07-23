@@ -22,12 +22,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import com.liferay.petra.function.UnsafeTriConsumer;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -50,13 +50,14 @@ import com.liferay.portal.workflow.metrics.rest.client.pagination.Pagination;
 import com.liferay.portal.workflow.metrics.rest.client.resource.v1_0.InstanceResource;
 import com.liferay.portal.workflow.metrics.rest.client.serdes.v1_0.InstanceSerDes;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,7 @@ import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.lang.time.DateUtils;
 
@@ -200,16 +202,16 @@ public abstract class BaseInstanceResourceTestCase {
 
 	@Test
 	public void testGetProcessInstancesPage() throws Exception {
-		Page<Instance> page = instanceResource.getProcessInstancesPage(
-			testGetProcessInstancesPage_getProcessId(), null, null, null,
-			RandomTestUtil.nextDate(), RandomTestUtil.nextDate(), null, null,
-			Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long processId = testGetProcessInstancesPage_getProcessId();
 		Long irrelevantProcessId =
 			testGetProcessInstancesPage_getIrrelevantProcessId();
+
+		Page<Instance> page = instanceResource.getProcessInstancesPage(
+			processId, null, null, RandomTestUtil.nextDate(),
+			RandomTestUtil.nextDate(), null, null, null, Pagination.of(1, 10),
+			null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantProcessId != null) {
 			Instance irrelevantInstance =
@@ -218,7 +220,7 @@ public abstract class BaseInstanceResourceTestCase {
 
 			page = instanceResource.getProcessInstancesPage(
 				irrelevantProcessId, null, null, null, null, null, null, null,
-				Pagination.of(1, 2));
+				Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -236,7 +238,7 @@ public abstract class BaseInstanceResourceTestCase {
 
 		page = instanceResource.getProcessInstancesPage(
 			processId, null, null, null, null, null, null, null,
-			Pagination.of(1, 2));
+			Pagination.of(1, 10), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -261,7 +263,7 @@ public abstract class BaseInstanceResourceTestCase {
 
 		Page<Instance> page1 = instanceResource.getProcessInstancesPage(
 			processId, null, null, null, null, null, null, null,
-			Pagination.of(1, 2));
+			Pagination.of(1, 2), null);
 
 		List<Instance> instances1 = (List<Instance>)page1.getItems();
 
@@ -269,7 +271,7 @@ public abstract class BaseInstanceResourceTestCase {
 
 		Page<Instance> page2 = instanceResource.getProcessInstancesPage(
 			processId, null, null, null, null, null, null, null,
-			Pagination.of(2, 2));
+			Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
 
@@ -279,11 +281,139 @@ public abstract class BaseInstanceResourceTestCase {
 
 		Page<Instance> page3 = instanceResource.getProcessInstancesPage(
 			processId, null, null, null, null, null, null, null,
-			Pagination.of(1, 3));
+			Pagination.of(1, 3), null);
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(instance1, instance2, instance3),
 			(List<Instance>)page3.getItems());
+	}
+
+	@Test
+	public void testGetProcessInstancesPageWithSortDateTime() throws Exception {
+		testGetProcessInstancesPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, instance1, instance2) -> {
+				BeanUtils.setProperty(
+					instance1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetProcessInstancesPageWithSortDouble() throws Exception {
+		testGetProcessInstancesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, instance1, instance2) -> {
+				BeanUtils.setProperty(instance1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(instance2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
+	public void testGetProcessInstancesPageWithSortInteger() throws Exception {
+		testGetProcessInstancesPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, instance1, instance2) -> {
+				BeanUtils.setProperty(instance1, entityField.getName(), 0);
+				BeanUtils.setProperty(instance2, entityField.getName(), 1);
+			});
+	}
+
+	@Test
+	public void testGetProcessInstancesPageWithSortString() throws Exception {
+		testGetProcessInstancesPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, instance1, instance2) -> {
+				Class<?> clazz = instance1.getClass();
+
+				String entityFieldName = entityField.getName();
+
+				java.lang.reflect.Method method = clazz.getMethod(
+					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						instance1, entityFieldName,
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						instance2, entityFieldName,
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else if (entityFieldName.contains("email")) {
+					BeanUtils.setProperty(
+						instance1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+					BeanUtils.setProperty(
+						instance2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+				}
+				else {
+					BeanUtils.setProperty(
+						instance1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+					BeanUtils.setProperty(
+						instance2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+				}
+			});
+	}
+
+	protected void testGetProcessInstancesPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer<EntityField, Instance, Instance, Exception>
+				unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long processId = testGetProcessInstancesPage_getProcessId();
+
+		Instance instance1 = randomInstance();
+		Instance instance2 = randomInstance();
+
+		for (EntityField entityField : entityFields) {
+			unsafeTriConsumer.accept(entityField, instance1, instance2);
+		}
+
+		instance1 = testGetProcessInstancesPage_addInstance(
+			processId, instance1);
+
+		instance2 = testGetProcessInstancesPage_addInstance(
+			processId, instance2);
+
+		for (EntityField entityField : entityFields) {
+			Page<Instance> ascPage = instanceResource.getProcessInstancesPage(
+				processId, null, null, null, null, null, null, null,
+				Pagination.of(1, 2), entityField.getName() + ":asc");
+
+			assertEquals(
+				Arrays.asList(instance1, instance2),
+				(List<Instance>)ascPage.getItems());
+
+			Page<Instance> descPage = instanceResource.getProcessInstancesPage(
+				processId, null, null, null, null, null, null, null,
+				Pagination.of(1, 2), entityField.getName() + ":desc");
+
+			assertEquals(
+				Arrays.asList(instance2, instance1),
+				(List<Instance>)descPage.getItems());
+		}
 	}
 
 	protected Instance testGetProcessInstancesPage_addInstance(
@@ -368,7 +498,7 @@ public abstract class BaseInstanceResourceTestCase {
 
 	@Test
 	public void testGraphQLGetProcessInstance() throws Exception {
-		Instance instance = testGraphQLInstance_addInstance();
+		Instance instance = testGraphQLGetProcessInstance_addInstance();
 
 		Assert.assertTrue(
 			equals(
@@ -410,6 +540,12 @@ public abstract class BaseInstanceResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Instance testGraphQLGetProcessInstance_addInstance()
+		throws Exception {
+
+		return testGraphQLInstance_addInstance();
 	}
 
 	@Test
@@ -459,6 +595,21 @@ public abstract class BaseInstanceResourceTestCase {
 	protected Instance testGraphQLInstance_addInstance() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Instance instance, List<Instance> instances) {
+		boolean contains = false;
+
+		for (Instance item : instances) {
+			if (equals(instance, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			instances + " does not contain " + instance, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -526,6 +677,14 @@ public abstract class BaseInstanceResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("active", additionalAssertFieldName)) {
+				if (instance.getActive() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
 
 			if (Objects.equals("assetTitle", additionalAssertFieldName)) {
 				if (instance.getAssetTitle() == null) {
@@ -695,8 +854,8 @@ public abstract class BaseInstanceResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.portal.workflow.metrics.rest.dto.v1_0.Instance.
 						class)) {
 
@@ -712,12 +871,13 @@ public abstract class BaseInstanceResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -731,7 +891,7 @@ public abstract class BaseInstanceResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -752,6 +912,16 @@ public abstract class BaseInstanceResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("active", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						instance1.getActive(), instance2.getActive())) {
+
+					return false;
+				}
+
+				continue;
+			}
 
 			if (Objects.equals("assetTitle", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
@@ -992,6 +1162,19 @@ public abstract class BaseInstanceResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -1041,6 +1224,11 @@ public abstract class BaseInstanceResourceTestCase {
 		sb.append(" ");
 		sb.append(operator);
 		sb.append(" ");
+
+		if (entityFieldName.equals("active")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
 
 		if (entityFieldName.equals("assetTitle")) {
 			sb.append("'");
@@ -1277,6 +1465,7 @@ public abstract class BaseInstanceResourceTestCase {
 	protected Instance randomInstance() throws Exception {
 		return new Instance() {
 			{
+				active = RandomTestUtil.randomBoolean();
 				assetTitle = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				assetType = StringUtil.toLowerCase(
@@ -1383,8 +1572,8 @@ public abstract class BaseInstanceResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseInstanceResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseInstanceResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

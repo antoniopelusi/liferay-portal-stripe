@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class DLFileRankLocalServiceWrapper
 	implements DLFileRankLocalService, ServiceWrapper<DLFileRankLocalService> {
 
+	public DLFileRankLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DLFileRankLocalServiceWrapper(
 		DLFileRankLocalService dlFileRankLocalService) {
 
@@ -177,6 +181,13 @@ public class DLFileRankLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dlFileRankLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dlFileRankLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

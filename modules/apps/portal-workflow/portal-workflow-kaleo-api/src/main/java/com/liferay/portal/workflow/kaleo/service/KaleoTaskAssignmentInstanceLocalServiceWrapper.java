@@ -27,6 +27,10 @@ public class KaleoTaskAssignmentInstanceLocalServiceWrapper
 	implements KaleoTaskAssignmentInstanceLocalService,
 			   ServiceWrapper<KaleoTaskAssignmentInstanceLocalService> {
 
+	public KaleoTaskAssignmentInstanceLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoTaskAssignmentInstanceLocalServiceWrapper(
 		KaleoTaskAssignmentInstanceLocalService
 			kaleoTaskAssignmentInstanceLocalService) {
@@ -252,6 +256,13 @@ public class KaleoTaskAssignmentInstanceLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoTaskAssignmentInstanceLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoTaskAssignmentInstanceLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

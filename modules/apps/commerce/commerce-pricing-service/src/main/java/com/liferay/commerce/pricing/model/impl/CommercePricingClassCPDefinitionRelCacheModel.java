@@ -18,6 +18,7 @@ import com.liferay.commerce.pricing.model.CommercePricingClassCPDefinitionRel;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,8 @@ import java.util.Date;
  * @generated
  */
 public class CommercePricingClassCPDefinitionRelCacheModel
-	implements CacheModel<CommercePricingClassCPDefinitionRel>, Externalizable {
+	implements CacheModel<CommercePricingClassCPDefinitionRel>, Externalizable,
+			   MVCCModel {
 
 	@Override
 	public boolean equals(Object object) {
@@ -51,9 +53,11 @@ public class CommercePricingClassCPDefinitionRelCacheModel
 			commercePricingClassCPDefinitionRelCacheModel =
 				(CommercePricingClassCPDefinitionRelCacheModel)object;
 
-		if (CommercePricingClassCPDefinitionRelId ==
+		if ((CommercePricingClassCPDefinitionRelId ==
 				commercePricingClassCPDefinitionRelCacheModel.
-					CommercePricingClassCPDefinitionRelId) {
+					CommercePricingClassCPDefinitionRelId) &&
+			(mvccVersion ==
+				commercePricingClassCPDefinitionRelCacheModel.mvccVersion)) {
 
 			return true;
 		}
@@ -63,14 +67,30 @@ public class CommercePricingClassCPDefinitionRelCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, CommercePricingClassCPDefinitionRelId);
+		int hashCode = HashUtil.hash(0, CommercePricingClassCPDefinitionRelId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(21);
 
-		sb.append("{CommercePricingClassCPDefinitionRelId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", ctCollectionId=");
+		sb.append(ctCollectionId);
+		sb.append(", CommercePricingClassCPDefinitionRelId=");
 		sb.append(CommercePricingClassCPDefinitionRelId);
 		sb.append(", companyId=");
 		sb.append(companyId);
@@ -97,6 +117,9 @@ public class CommercePricingClassCPDefinitionRelCacheModel
 			commercePricingClassCPDefinitionRelImpl =
 				new CommercePricingClassCPDefinitionRelImpl();
 
+		commercePricingClassCPDefinitionRelImpl.setMvccVersion(mvccVersion);
+		commercePricingClassCPDefinitionRelImpl.setCtCollectionId(
+			ctCollectionId);
 		commercePricingClassCPDefinitionRelImpl.
 			setCommercePricingClassCPDefinitionRelId(
 				CommercePricingClassCPDefinitionRelId);
@@ -138,6 +161,10 @@ public class CommercePricingClassCPDefinitionRelCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
+		ctCollectionId = objectInput.readLong();
+
 		CommercePricingClassCPDefinitionRelId = objectInput.readLong();
 
 		companyId = objectInput.readLong();
@@ -154,6 +181,10 @@ public class CommercePricingClassCPDefinitionRelCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		objectOutput.writeLong(ctCollectionId);
+
 		objectOutput.writeLong(CommercePricingClassCPDefinitionRelId);
 
 		objectOutput.writeLong(companyId);
@@ -175,6 +206,8 @@ public class CommercePricingClassCPDefinitionRelCacheModel
 		objectOutput.writeLong(CPDefinitionId);
 	}
 
+	public long mvccVersion;
+	public long ctCollectionId;
 	public long CommercePricingClassCPDefinitionRelId;
 	public long companyId;
 	public long userId;

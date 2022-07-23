@@ -1,0 +1,54 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Automation ID: LRAC-8129 | Test Summary: Show data source lists"
+	@priority = "5"
+	test DataSourceListShowsAllDataSources {
+		var dataSourceList = "";
+
+		for (var n : list "1,2,3") {
+			ACSettings.takeTokenFromAnalyticsCloud();
+
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+			var dataSource = StringUtil.replace("${propertyName}", " Combined Property", "");
+			var dataSourceList = StringUtil.add("${dataSourceList}", "${dataSource}");
+
+			ACDXPSettings.disconnectDXPFromAnalyticsCloud();
+
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACUtils.assertDataSourceName(dataSourceName = "${dataSource}");
+		}
+
+		for (var dataSourceName : list "${dataSourceList}") {
+			ACUtils.assertDataSourceName(dataSourceName = "${dataSourceName}");
+		}
+	}
+
+}

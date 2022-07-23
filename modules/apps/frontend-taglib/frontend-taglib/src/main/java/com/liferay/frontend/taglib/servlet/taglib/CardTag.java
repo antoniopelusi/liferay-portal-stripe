@@ -166,7 +166,7 @@ public class CardTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setResultRow(ResultRow resultRow) {
@@ -218,7 +218,7 @@ public class CardTag extends IncludeTag {
 			return _actionJspServletContext;
 		}
 
-		return servletContext;
+		return getServletContext();
 	}
 
 	@Override

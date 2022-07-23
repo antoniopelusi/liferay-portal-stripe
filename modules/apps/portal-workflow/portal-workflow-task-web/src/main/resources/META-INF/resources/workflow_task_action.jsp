@@ -29,7 +29,7 @@ PortletURL redirectURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setMVCPath(
 	"/view.jsp"
-).build();
+).buildPortletURL();
 %>
 
 <liferay-ui:icon-menu

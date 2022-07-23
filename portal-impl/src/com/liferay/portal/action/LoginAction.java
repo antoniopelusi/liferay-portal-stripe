@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.portlet.WindowStateFactory;
 import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
 import com.liferay.portal.kernel.security.auth.session.AuthenticatedSessionManagerUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
@@ -71,14 +71,11 @@ public class LoginAction implements Action {
 		if (PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS &&
 			!httpServletRequest.isSecure()) {
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(PortalUtil.getPortalURL(httpServletRequest, true));
-			sb.append(httpServletRequest.getRequestURI());
-			sb.append(StringPool.QUESTION);
-			sb.append(httpServletRequest.getQueryString());
-
-			httpServletResponse.sendRedirect(sb.toString());
+			httpServletResponse.sendRedirect(
+				StringBundler.concat(
+					PortalUtil.getPortalURL(httpServletRequest, true),
+					httpServletRequest.getRequestURI(), StringPool.QUESTION,
+					httpServletRequest.getQueryString()));
 
 			return null;
 		}
@@ -100,10 +97,10 @@ public class LoginAction implements Action {
 				rememberMe, authType);
 		}
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		if ((session.getAttribute("j_username") != null) &&
-			(session.getAttribute("j_password") != null)) {
+		if ((httpSession.getAttribute("j_username") != null) &&
+			(httpSession.getAttribute("j_password") != null)) {
 
 			if (PropsValues.PORTAL_JAAS_ENABLE) {
 				return actionMapping.getActionForward(
@@ -147,7 +144,7 @@ public class LoginAction implements Action {
 			).setMVCRenderCommandName(
 				"/login/login"
 			).setParameter(
-				"saveLastPath", Boolean.FALSE.toString()
+				"saveLastPath", false
 			).setPortletMode(
 				PortletMode.VIEW
 			).setWindowState(
@@ -182,11 +179,11 @@ public class LoginAction implements Action {
 				String loginRedirectParameter =
 					loginPortletNamespace + "redirect";
 
-				redirect = HttpUtil.setParameter(
+				redirect = HttpComponentsUtil.setParameter(
 					redirect, "p_p_id", PropsValues.AUTH_LOGIN_PORTLET_NAME);
-				redirect = HttpUtil.setParameter(
+				redirect = HttpComponentsUtil.setParameter(
 					redirect, "p_p_lifecycle", "0");
-				redirect = HttpUtil.setParameter(
+				redirect = HttpComponentsUtil.setParameter(
 					redirect, loginRedirectParameter, loginRedirect);
 			}
 		}

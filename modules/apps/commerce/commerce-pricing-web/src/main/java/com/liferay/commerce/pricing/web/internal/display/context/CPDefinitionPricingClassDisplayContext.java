@@ -74,7 +74,7 @@ public class CPDefinitionPricingClassDisplayContext
 			"cpDefinitionId", getCPDefinitionId()
 		).setParameter(
 			"screenNavigationCategoryKey", getScreenNavigationCategoryKey()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

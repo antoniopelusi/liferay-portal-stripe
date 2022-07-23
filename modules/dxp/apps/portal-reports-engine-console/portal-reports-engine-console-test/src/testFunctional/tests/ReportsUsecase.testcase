@@ -28,7 +28,7 @@ definition {
 
 			ServerAdministration.tearDownMailServerSettings();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -78,7 +78,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Reports Page");
+		PagesAdmin.addPage(pageName = "Reports Page");
 
 		Navigator.gotoPage(pageName = "Reports Page");
 
@@ -86,9 +86,7 @@ definition {
 
 		ReportsDisplayPortlet.viewReportEntry(reportsDefinitionName = "Reports Definition Name");
 
-		ReportsDisplayPortlet.downloadReportEntryFile(
-			reportFormat = "pdf",
-			reportsFileName = "reports_admin_template_source_sample_class_name.pdf");
+		ReportsDisplayPortlet.downloadReportEntryFile(reportsFileName = "reports_admin_template_source_sample_class_name.pdf");
 	}
 
 	@description = "This is a use case for LPS-50501."
@@ -251,14 +249,14 @@ definition {
 		ReportsAdmin.addReportEntry(
 			emailNotificationsAddress = "test@liferay.com",
 			emailRecipientAddress = "test@liferay.com",
-			reportFormat = "csv",
+			reportFormat = "CSV",
 			reportsDefinitionName = "Reports Definition Name");
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Reports Page");
+		PagesAdmin.addPage(pageName = "Reports Page");
 
 		Navigator.gotoPage(pageName = "Reports Page");
 

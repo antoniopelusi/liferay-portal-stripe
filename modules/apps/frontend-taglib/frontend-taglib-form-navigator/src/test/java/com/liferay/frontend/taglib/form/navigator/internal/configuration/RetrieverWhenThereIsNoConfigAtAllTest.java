@@ -37,11 +37,11 @@ public class RetrieverWhenThereIsNoConfigAtAllTest
 
 	@Test
 	public void testReturnsEmptyOptional() {
-		Optional<List<String>> formNavigatorEntryKeys =
+		Optional<List<String>> formNavigatorEntryKeysOptional =
 			formNavigatorEntryConfigurationRetriever.getFormNavigatorEntryKeys(
 				"form1", "general", "add");
 
-		Assert.assertFalse(formNavigatorEntryKeys.isPresent());
+		Assert.assertFalse(formNavigatorEntryKeysOptional.isPresent());
 	}
 
 }

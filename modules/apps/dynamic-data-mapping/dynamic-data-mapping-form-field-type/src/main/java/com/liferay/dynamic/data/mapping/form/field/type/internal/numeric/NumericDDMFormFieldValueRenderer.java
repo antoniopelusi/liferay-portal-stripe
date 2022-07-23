@@ -18,12 +18,13 @@ import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueRendere
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.dynamic.data.mapping.util.NumericDDMFormFieldUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 
 import java.util.Locale;
@@ -46,10 +47,10 @@ public class NumericDDMFormFieldValueRenderer
 		Number number = getNumber(ddmFormFieldValue);
 
 		if (number != null) {
-			NumberFormat numberFormat = NumericDDMFormFieldUtil.getNumberFormat(
-				locale);
+			DecimalFormat decimalFormat =
+				NumericDDMFormFieldUtil.getDecimalFormat(locale);
 
-			return numberFormat.format(number);
+			return decimalFormat.format(number);
 		}
 
 		return StringPool.BLANK;
@@ -64,14 +65,14 @@ public class NumericDDMFormFieldValueRenderer
 
 		if (Validator.isNotNull(valueString)) {
 			try {
-				NumberFormat formatter =
-					NumericDDMFormFieldUtil.getNumberFormat(locale);
+				DecimalFormat decimalFormat =
+					NumericDDMFormFieldUtil.getDecimalFormat(locale);
 
-				return formatter.parse(valueString);
+				return decimalFormat.parse(valueString);
 			}
 			catch (ParseException parseException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(parseException, parseException);
+					_log.debug(parseException);
 				}
 			}
 		}

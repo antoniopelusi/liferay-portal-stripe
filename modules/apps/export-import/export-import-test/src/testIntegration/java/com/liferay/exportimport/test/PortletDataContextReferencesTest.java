@@ -90,14 +90,13 @@ public class PortletDataContextReferencesTest {
 
 		Element element = rootElement.addElement("PortletDataRootElement");
 
+		element.addAttribute("self-path", "dummyPortletDataPath");
+
 		_portletDataContext.setExportDataRootElement(element);
 		_portletDataContext.setImportDataRootElement(element);
 
-		Element missingReferencesElement = rootElement.addElement(
-			"missing-references");
-
 		_portletDataContext.setMissingReferencesElement(
-			missingReferencesElement);
+			rootElement.addElement("missing-references"));
 
 		_bookmarksFolder = BookmarksTestUtil.addFolder(
 			_group.getGroupId(), RandomTestUtil.randomString());
@@ -413,6 +412,38 @@ public class PortletDataContextReferencesTest {
 				GetterUtil.getBoolean(
 					referenceElement.attributeValue("missing")));
 		}
+	}
+
+	@Test
+	public void testSetImportDataElementCacheEnabled() throws Exception {
+		_portletDataContext.setImportDataElementCacheEnabled(true);
+
+		_portletDataContext.addClassedModel(
+			_portletDataContext.getExportDataElement(_bookmarksEntry),
+			ExportImportPathUtil.getModelPath(_bookmarksEntry), _bookmarksEntry,
+			BookmarksEntry.class);
+
+		Assert.assertTrue(
+			_portletDataContext.getImportDataElement(_bookmarksEntry) ==
+				_portletDataContext.getImportDataElement(_bookmarksEntry));
+
+		_portletDataContext.addClassedModel(
+			_portletDataContext.getExportDataElement(_bookmarksFolder),
+			ExportImportPathUtil.getModelPath(_bookmarksFolder),
+			_bookmarksFolder, BookmarksFolder.class);
+
+		Assert.assertTrue(
+			_portletDataContext.getImportDataElement(_bookmarksFolder) ==
+				_portletDataContext.getImportDataElement(_bookmarksFolder));
+
+		_portletDataContext.setImportDataElementCacheEnabled(false);
+
+		Assert.assertFalse(
+			_portletDataContext.getImportDataElement(_bookmarksEntry) ==
+				_portletDataContext.getImportDataElement(_bookmarksEntry));
+		Assert.assertFalse(
+			_portletDataContext.getImportDataElement(_bookmarksFolder) ==
+				_portletDataContext.getImportDataElement(_bookmarksFolder));
 	}
 
 	private BookmarksEntry _bookmarksEntry;

@@ -20,7 +20,7 @@ import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Dictionary;
 import java.util.Map;
@@ -42,15 +42,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class AMMessagingConfigurator {
 
-	@Modified
-	public void modified(
-		BundleContext bundleContext, Map<String, Object> properties) {
-
-		deactivate();
-
-		activate(bundleContext, properties);
-	}
-
 	@Activate
 	protected void activate(
 		BundleContext bundleContext, Map<String, Object> properties) {
@@ -71,9 +62,10 @@ public class AMMessagingConfigurator {
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("destination.name", destination.getName());
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
 
 		_serviceRegistration = bundleContext.registerService(
 			Destination.class, destination, dictionary);
@@ -84,6 +76,15 @@ public class AMMessagingConfigurator {
 		if (_serviceRegistration != null) {
 			_serviceRegistration.unregister();
 		}
+	}
+
+	@Modified
+	protected void modified(
+		BundleContext bundleContext, Map<String, Object> properties) {
+
+		deactivate();
+
+		activate(bundleContext, properties);
 	}
 
 	private volatile AMConfiguration _amConfiguration;

@@ -27,6 +27,10 @@ public class CommerceDiscountRuleLocalServiceWrapper
 	implements CommerceDiscountRuleLocalService,
 			   ServiceWrapper<CommerceDiscountRuleLocalService> {
 
+	public CommerceDiscountRuleLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceDiscountRuleLocalServiceWrapper(
 		CommerceDiscountRuleLocalService commerceDiscountRuleLocalService) {
 
@@ -167,6 +171,13 @@ public class CommerceDiscountRuleLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceDiscountRuleLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceDiscountRuleLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

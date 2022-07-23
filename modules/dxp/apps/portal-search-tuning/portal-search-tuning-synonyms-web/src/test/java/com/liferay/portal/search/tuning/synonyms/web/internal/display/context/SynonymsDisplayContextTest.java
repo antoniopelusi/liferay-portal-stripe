@@ -14,160 +14,59 @@
 
 package com.liferay.portal.search.tuning.synonyms.web.internal.display.context;
 
-import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
-import com.liferay.portal.search.index.IndexNameBuilder;
-import com.liferay.portal.search.query.Queries;
-import com.liferay.portal.search.sort.Sorts;
-import com.liferay.portal.search.tuning.synonyms.index.name.SynonymSetIndexNameBuilder;
-import com.liferay.portal.search.tuning.synonyms.web.internal.filter.SynonymSetFilterReader;
-import com.liferay.portal.search.tuning.synonyms.web.internal.index.DocumentToSynonymSetTranslator;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
-import javax.portlet.ActionURL;
-import javax.portlet.RenderRequest;
-import javax.portlet.RenderResponse;
-import javax.portlet.RenderURL;
-
-import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import org.mockito.Matchers;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 /**
  * @author Adam Brandizzi
+ * @author Wade Cao
  */
-@Ignore
 public class SynonymsDisplayContextTest {
 
 	@ClassRule
 	public static LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
-	public void mockSynonymSets(String... synonymSets) {
-		Mockito.when(
-			_synonymSetFilterReader.getSynonymSets(
-				Matchers.anyString(), Matchers.anyString())
-		).thenReturn(
-			synonymSets
-		);
-	}
-
 	@Before
 	public void setUp() {
-		MockitoAnnotations.initMocks(this);
-
-		Mockito.when(
-			_httpServletRequest.getAttribute(WebKeys.THEME_DISPLAY)
-		).thenReturn(
-			_themeDisplay
-		);
-
-		Mockito.when(
-			_portal.getCurrentURL(_httpServletRequest)
-		).thenReturn(
-			"/"
-		);
-
-		Mockito.when(
-			_renderResponse.createActionURL()
-		).thenReturn(
-			_actionURL
-		);
-
-		Mockito.when(
-			_renderResponse.createRenderURL()
-		).thenReturn(
-			_renderURL
-		);
+		_synonymsDisplayContext = new SynonymsDisplayContext();
 	}
 
 	@Test
-	public void testGetItemsTotal() {
-		mockSynonymSets("car,automobile", "biscuit,cookie");
+	public void testGetterSetter() {
+		CreationMenu creationMenu = Mockito.mock(CreationMenu.class);
+		List<DropdownItem> dropdownItems = Arrays.asList(
+			Mockito.mock(DropdownItem.class));
 
-		SynonymsDisplayBuilder synonymsDisplayBuilder =
-			new SynonymsDisplayBuilder(
-				_documentToSynonymSetTranslator, _httpServletRequest, _language,
-				_portal, _queries, _renderRequest, _renderResponse,
-				_searchEngineAdapter, _sorts, _synonymSetIndexNameBuilder);
+		_synonymsDisplayContext.setCreationMenu(creationMenu);
+		_synonymsDisplayContext.setDisabledManagementBar(false);
+		_synonymsDisplayContext.setDropdownItems(dropdownItems);
+		_synonymsDisplayContext.setItemsTotal(1);
+		_synonymsDisplayContext.setSearchContainer(
+			Mockito.mock(SearchContainer.class));
 
-		SynonymsDisplayContext synonymsDisplayContext =
-			synonymsDisplayBuilder.build();
+		Assert.assertEquals(1, _synonymsDisplayContext.getItemsTotal());
+		Assert.assertEquals(
+			creationMenu, _synonymsDisplayContext.getCreationMenu());
+		Assert.assertEquals(
+			dropdownItems,
+			_synonymsDisplayContext.getActionDropdownMultipleItems());
 
-		Assert.assertEquals(2, synonymsDisplayContext.getItemsTotal());
+		Assert.assertNotNull(_synonymsDisplayContext.getSearchContainer());
 	}
 
-	@Test
-	public void testIsDisabled() {
-		mockSynonymSets("car,automobile", "biscuit,cookie");
-
-		SynonymsDisplayBuilder synonymsDisplayBuilder =
-			new SynonymsDisplayBuilder(
-				_documentToSynonymSetTranslator, _httpServletRequest, _language,
-				_portal, _queries, _renderRequest, _renderResponse,
-				_searchEngineAdapter, _sorts, _synonymSetIndexNameBuilder);
-
-		SynonymsDisplayContext synonymsDisplayContext =
-			synonymsDisplayBuilder.build();
-
-		Assert.assertEquals(2, synonymsDisplayContext.getItemsTotal());
-	}
-
-	@Mock
-	private ActionURL _actionURL;
-
-	@Mock
-	private DocumentToSynonymSetTranslator _documentToSynonymSetTranslator;
-
-	@Mock
-	private HttpServletRequest _httpServletRequest;
-
-	@Mock
-	private IndexNameBuilder _indexNameBuilder;
-
-	@Mock
-	private Language _language;
-
-	@Mock
-	private Portal _portal;
-
-	@Mock
-	private Queries _queries;
-
-	@Mock
-	private RenderRequest _renderRequest;
-
-	@Mock
-	private RenderResponse _renderResponse;
-
-	@Mock
-	private RenderURL _renderURL;
-
-	@Mock
-	private SearchEngineAdapter _searchEngineAdapter;
-
-	@Mock
-	private Sorts _sorts;
-
-	@Mock
-	private SynonymSetFilterReader _synonymSetFilterReader;
-
-	@Mock
-	private SynonymSetIndexNameBuilder _synonymSetIndexNameBuilder;
-
-	@Mock
-	private ThemeDisplay _themeDisplay;
+	private SynonymsDisplayContext _synonymsDisplayContext;
 
 }

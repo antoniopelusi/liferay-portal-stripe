@@ -48,9 +48,9 @@ public class KBArticleImporter {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(user.getCompanyId());
 		serviceContext.setScopeGroupId(scopeGroupId);
 		serviceContext.setUserId(userId);
-		serviceContext.setCompanyId(user.getCompanyId());
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			_addKBArticle(jsonArray.getJSONObject(i), userId, serviceContext);
@@ -108,7 +108,7 @@ public class KBArticleImporter {
 			KBFolderConstants.getClassName());
 
 		KBArticle kbArticle = _kbArticleLocalService.addKBArticle(
-			userId, folderClassNameId,
+			null, userId, folderClassNameId,
 			KBFolderConstants.DEFAULT_PARENT_FOLDER_ID, title, null, content,
 			StringPool.BLANK, null, sections, selectedFileNames,
 			serviceContext);

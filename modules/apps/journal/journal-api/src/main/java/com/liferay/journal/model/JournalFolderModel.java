@@ -567,4 +567,7 @@ public interface JournalFolderModel
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId);
 
+	@Override
+	public JournalFolder cloneWithOriginalValues();
+
 }

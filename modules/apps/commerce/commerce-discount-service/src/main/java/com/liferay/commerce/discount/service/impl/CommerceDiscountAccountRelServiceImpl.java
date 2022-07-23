@@ -44,7 +44,8 @@ public class CommerceDiscountAccountRelServiceImpl
 
 		return commerceDiscountAccountRelLocalService.
 			addCommerceDiscountAccountRel(
-				commerceDiscountId, commerceAccountId, serviceContext);
+				getUserId(), commerceDiscountId, commerceAccountId,
+				serviceContext);
 	}
 
 	@Override
@@ -80,13 +81,13 @@ public class CommerceDiscountAccountRelServiceImpl
 
 	@Override
 	public CommerceDiscountAccountRel fetchCommerceDiscountAccountRel(
-			long commerceDiscountId, long commerceAccountId)
+			long commerceAccountId, long commerceDiscountId)
 		throws PortalException {
 
 		CommerceDiscountAccountRel commerceDiscountAccountRel =
 			commerceDiscountAccountRelLocalService.
 				fetchCommerceDiscountAccountRel(
-					commerceDiscountId, commerceAccountId);
+					commerceAccountId, commerceDiscountId);
 
 		if (commerceDiscountAccountRel != null) {
 			_commerceDiscountResourcePermission.check(

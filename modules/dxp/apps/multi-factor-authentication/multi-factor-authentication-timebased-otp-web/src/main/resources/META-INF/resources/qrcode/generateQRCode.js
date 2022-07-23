@@ -15,15 +15,19 @@ export default function generateQRCode(
 	containerId,
 	{account, algorithm, counter, digits, issuer, secret}
 ) {
-	const url = new URL(
-		'otpauth://totp/' + issuer + ':' + encodeURIComponent(account)
-	);
+	const url = new URL('otpauth://totp/' + encodeURIComponent(account));
 
-	url.searchParams.append('secret', encodeURIComponent(secret));
-	url.searchParams.append('issuer', issuer);
-	url.searchParams.append('algorithm', encodeURIComponent(algorithm));
-	url.searchParams.append('digits', encodeURIComponent(digits));
-	url.searchParams.append('counter', encodeURIComponent(counter));
+	const params = {
+		algorithm,
+		counter,
+		digits,
+		issuer,
+		secret,
+	};
+
+	url.search = Object.entries(params)
+		.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+		.join('&');
 
 	QRCode.toDataURL(url.toString())
 		.then((dataUrl) => {
@@ -35,7 +39,7 @@ export default function generateQRCode(
 
 			container.appendChild(image);
 		})
-		.catch((err) => {
-			console.error(err);
+		.catch((error) => {
+			console.error(error);
 		});
 }

@@ -148,6 +148,11 @@ public class DEDataDefinitionFieldLinkWrapper
 		}
 	}
 
+	@Override
+	public DEDataDefinitionFieldLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this de data definition field link.
 	 *

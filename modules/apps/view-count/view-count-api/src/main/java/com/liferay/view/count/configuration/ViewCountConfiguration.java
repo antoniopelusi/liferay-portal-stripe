@@ -33,8 +33,8 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface ViewCountConfiguration {
 
 	@Meta.AD(
-		deflt = "true", description = "enabled-help", name = "enabled",
-		required = false
+		deflt = "true", description = "enabled-help[view-count]",
+		name = "enabled", required = false
 	)
 	public boolean enabled();
 

@@ -107,12 +107,11 @@ public class ChannelDisplayContext {
 						channelJSONObject.getString("name")));
 			}
 
-			channelSearch.setResults(channels);
-
 			JSONObject pageJSONObject = responseJSONObject.getJSONObject(
 				"page");
 
-			channelSearch.setTotal(pageJSONObject.getInt("totalElements"));
+			channelSearch.setResultsAndTotal(
+				() -> channels, pageJSONObject.getInt("totalElements"));
 
 			return channelSearch;
 		}
@@ -130,7 +129,7 @@ public class ChannelDisplayContext {
 			"/configuration_admin/view_configuration_screen"
 		).setParameter(
 			"configurationScreenKey", "1-synced-sites"
-		).build();
+		).buildPortletURL();
 	}
 
 	private long _getCompanyId() {

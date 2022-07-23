@@ -15,8 +15,11 @@
 package com.liferay.portal.kernel.json;
 
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collector;
 
 /**
@@ -110,14 +114,28 @@ public class JSONUtil {
 		String key = parts[1];
 
 		if (type.equals("JSONArray")) {
-			JSONObject jsonObject = (JSONObject)object;
+			if (object instanceof JSONArray) {
+				JSONArray jsonArray = (JSONArray)object;
 
-			value = jsonObject.getJSONArray(key);
+				value = jsonArray.getJSONArray(GetterUtil.getInteger(key));
+			}
+			else if (object instanceof JSONObject) {
+				JSONObject jsonObject = (JSONObject)object;
+
+				value = jsonObject.getJSONArray(key);
+			}
 		}
 		else if (type.equals("JSONObject")) {
-			JSONObject jsonObject = (JSONObject)object;
+			if (object instanceof JSONArray) {
+				JSONArray jsonArray = (JSONArray)object;
 
-			value = jsonObject.getJSONObject(key);
+				value = jsonArray.getJSONObject(GetterUtil.getInteger(key));
+			}
+			else if (object instanceof JSONObject) {
+				JSONObject jsonObject = (JSONObject)object;
+
+				value = jsonObject.getJSONObject(key);
+			}
 		}
 		else if (type.equals("Object")) {
 			if (object instanceof JSONArray) {
@@ -181,6 +199,14 @@ public class JSONUtil {
 		return false;
 	}
 
+	public static boolean isEmpty(JSONArray jsonArray) {
+		if ((jsonArray == null) || (jsonArray.length() == 0)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static boolean isValid(String json) {
 		try {
 			_createJSONObject(json);
@@ -188,6 +214,10 @@ public class JSONUtil {
 			return true;
 		}
 		catch (JSONException jsonException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(jsonException);
+			}
+
 			return false;
 		}
 	}
@@ -225,18 +255,48 @@ public class JSONUtil {
 		return jsonArray;
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link #putAll(Object...)}
-	 */
-	@Deprecated
-	public static JSONArray put(Object... values) {
-		return putAll(values);
-	}
-
 	public static JSONObject put(String key, Object value) {
 		JSONObject jsonObject = _createJSONObject();
 
 		return jsonObject.put(key, value);
+	}
+
+	public static JSONObject put(
+		String key, UnsafeSupplier<Object, Exception> valueUnsafeSupplier) {
+
+		JSONObject jsonObject = _createJSONObject();
+
+		try {
+			Object value = valueUnsafeSupplier.get();
+
+			if (value != null) {
+				jsonObject.put(key, value);
+			}
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
+
+		return jsonObject;
+	}
+
+	public static JSONArray put(
+		UnsafeSupplier<Object, Exception> valueUnsafeSupplier) {
+
+		JSONArray jsonArray = _createJSONArray();
+
+		try {
+			Object value = valueUnsafeSupplier.get();
+
+			if (value != null) {
+				jsonArray.put(value);
+			}
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
+
+		return jsonArray;
 	}
 
 	public static JSONArray putAll(Object... values) {
@@ -286,6 +346,320 @@ public class JSONUtil {
 		return list.toArray((T[])Array.newInstance(clazz, 0));
 	}
 
+	public static <T> T[] toArray(
+		JSONArray jsonArray,
+		UnsafeFunction<JSONObject, T, Exception> unsafeFunction,
+		Consumer<Exception> exceptionConsumer, Class<?> clazz) {
+
+		List<T> list = toList(jsonArray, unsafeFunction, exceptionConsumer);
+
+		return list.toArray((T[])Array.newInstance(clazz, 0));
+	}
+
+	public static <T> T[] toArray(
+		JSONArray jsonArray,
+		UnsafeFunction<JSONObject, T, Exception> unsafeFunction, Log log,
+		Class<?> clazz) {
+
+		List<T> list = toList(jsonArray, unsafeFunction, log);
+
+		return list.toArray((T[])Array.newInstance(clazz, 0));
+	}
+
+	public static double[] toDoubleArray(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new double[0];
+		}
+
+		double[] values = new double[jsonArray.length()];
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values[i] = jsonArray.getDouble(i);
+		}
+
+		return values;
+	}
+
+	public static double[] toDoubleArray(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new double[0];
+		}
+
+		List<Double> values = toDoubleList(jsonArray, jsonObjectKey);
+
+		return ArrayUtil.toArray(values.toArray(new Double[0]));
+	}
+
+	public static List<Double> toDoubleList(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new ArrayList<>();
+		}
+
+		List<Double> values = new ArrayList<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values.add(jsonArray.getDouble(i));
+		}
+
+		return values;
+	}
+
+	public static List<Double> toDoubleList(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new ArrayList<>();
+		}
+
+		List<Double> values = new ArrayList<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+			Object value = jsonObject.opt(jsonObjectKey);
+
+			if (value != null) {
+				values.add(jsonObject.getDouble(jsonObjectKey));
+			}
+		}
+
+		return values;
+	}
+
+	public static Set<Double> toDoubleSet(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new HashSet<>();
+		}
+
+		Set<Double> values = new HashSet<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values.add(jsonArray.getDouble(i));
+		}
+
+		return values;
+	}
+
+	public static Set<Double> toDoubleSet(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new HashSet<>();
+		}
+
+		Set<Double> values = new HashSet<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+			Object value = jsonObject.opt(jsonObjectKey);
+
+			if (value != null) {
+				values.add(jsonObject.getDouble(jsonObjectKey));
+			}
+		}
+
+		return values;
+	}
+
+	public static float[] toFloatArray(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new float[0];
+		}
+
+		float[] values = new float[jsonArray.length()];
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values[i] = GetterUtil.getFloat(jsonArray.get(i));
+		}
+
+		return values;
+	}
+
+	public static float[] toFloatArray(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new float[0];
+		}
+
+		List<Float> values = toFloatList(jsonArray, jsonObjectKey);
+
+		return ArrayUtil.toArray(values.toArray(new Float[0]));
+	}
+
+	public static List<Float> toFloatList(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new ArrayList<>();
+		}
+
+		List<Float> values = new ArrayList<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values.add(GetterUtil.getFloat(jsonArray.get(i)));
+		}
+
+		return values;
+	}
+
+	public static List<Float> toFloatList(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new ArrayList<>();
+		}
+
+		List<Float> values = new ArrayList<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+			Object value = jsonObject.opt(jsonObjectKey);
+
+			if (value != null) {
+				values.add(GetterUtil.getFloat(jsonObject.get(jsonObjectKey)));
+			}
+		}
+
+		return values;
+	}
+
+	public static Set<Float> toFloatSet(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new HashSet<>();
+		}
+
+		Set<Float> values = new HashSet<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values.add(GetterUtil.getFloat(jsonArray.get(i)));
+		}
+
+		return values;
+	}
+
+	public static Set<Float> toFloatSet(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new HashSet<>();
+		}
+
+		Set<Float> values = new HashSet<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+			Object value = jsonObject.opt(jsonObjectKey);
+
+			if (value != null) {
+				values.add(GetterUtil.getFloat(jsonObject.get(jsonObjectKey)));
+			}
+		}
+
+		return values;
+	}
+
+	public static int[] toIntegerArray(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new int[0];
+		}
+
+		int[] values = new int[jsonArray.length()];
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values[i] = jsonArray.getInt(i);
+		}
+
+		return values;
+	}
+
+	public static int[] toIntegerArray(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new int[0];
+		}
+
+		List<Integer> values = toIntegerList(jsonArray, jsonObjectKey);
+
+		return ArrayUtil.toArray(values.toArray(new Integer[0]));
+	}
+
+	public static List<Integer> toIntegerList(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new ArrayList<>();
+		}
+
+		List<Integer> values = new ArrayList<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values.add(jsonArray.getInt(i));
+		}
+
+		return values;
+	}
+
+	public static List<Integer> toIntegerList(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new ArrayList<>();
+		}
+
+		List<Integer> values = new ArrayList<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+			Object value = jsonObject.opt(jsonObjectKey);
+
+			if (value != null) {
+				values.add(jsonObject.getInt(jsonObjectKey));
+			}
+		}
+
+		return values;
+	}
+
+	public static Set<Integer> toIntegerSet(JSONArray jsonArray) {
+		if (jsonArray == null) {
+			return new HashSet<>();
+		}
+
+		Set<Integer> values = new HashSet<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			values.add(jsonArray.getInt(i));
+		}
+
+		return values;
+	}
+
+	public static Set<Integer> toIntegerSet(
+		JSONArray jsonArray, String jsonObjectKey) {
+
+		if (jsonArray == null) {
+			return new HashSet<>();
+		}
+
+		Set<Integer> values = new HashSet<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+			Object value = jsonObject.opt(jsonObjectKey);
+
+			if (value != null) {
+				values.add(jsonObject.getInt(jsonObjectKey));
+			}
+		}
+
+		return values;
+	}
+
 	public static <T> JSONArray toJSONArray(
 			List<T> list, UnsafeFunction<T, Object, Exception> unsafeFunction)
 		throws Exception {
@@ -297,10 +671,53 @@ public class JSONUtil {
 		}
 
 		for (T t : list) {
-			jsonArray.put(unsafeFunction.apply(t));
+			Object item = unsafeFunction.apply(t);
+
+			if (item != null) {
+				jsonArray.put(item);
+			}
 		}
 
 		return jsonArray;
+	}
+
+	public static <T> JSONArray toJSONArray(
+		List<T> list, UnsafeFunction<T, Object, Exception> unsafeFunction,
+		Consumer<Exception> exceptionConsumer) {
+
+		JSONArray jsonArray = _createJSONArray();
+
+		if (list == null) {
+			return jsonArray;
+		}
+
+		for (T t : list) {
+			try {
+				Object item = unsafeFunction.apply(t);
+
+				if (item != null) {
+					jsonArray.put(item);
+				}
+			}
+			catch (Exception exception) {
+				exceptionConsumer.accept(exception);
+			}
+		}
+
+		return jsonArray;
+	}
+
+	public static <T> JSONArray toJSONArray(
+		List<T> list, UnsafeFunction<T, Object, Exception> unsafeFunction,
+		Log log) {
+
+		return toJSONArray(
+			list, unsafeFunction,
+			exception -> {
+				if (log.isWarnEnabled()) {
+					log.warn(exception, exception);
+				}
+			});
 	}
 
 	public static <T> JSONArray toJSONArray(
@@ -314,10 +731,53 @@ public class JSONUtil {
 		}
 
 		for (T t : set) {
-			jsonArray.put(unsafeFunction.apply(t));
+			Object item = unsafeFunction.apply(t);
+
+			if (item != null) {
+				jsonArray.put(item);
+			}
 		}
 
 		return jsonArray;
+	}
+
+	public static <T> JSONArray toJSONArray(
+		Set<T> set, UnsafeFunction<T, Object, Exception> unsafeFunction,
+		Consumer<Exception> exceptionConsumer) {
+
+		JSONArray jsonArray = _createJSONArray();
+
+		if (set == null) {
+			return jsonArray;
+		}
+
+		for (T t : set) {
+			try {
+				Object item = unsafeFunction.apply(t);
+
+				if (item != null) {
+					jsonArray.put(item);
+				}
+			}
+			catch (Exception exception) {
+				exceptionConsumer.accept(exception);
+			}
+		}
+
+		return jsonArray;
+	}
+
+	public static <T> JSONArray toJSONArray(
+		Set<T> set, UnsafeFunction<T, Object, Exception> unsafeFunction,
+		Log log) {
+
+		return toJSONArray(
+			set, unsafeFunction,
+			exception -> {
+				if (log.isWarnEnabled()) {
+					log.warn(exception, exception);
+				}
+			});
 	}
 
 	public static <T> JSONArray toJSONArray(
@@ -331,10 +791,53 @@ public class JSONUtil {
 		}
 
 		for (T t : array) {
-			jsonArray.put(unsafeFunction.apply(t));
+			Object item = unsafeFunction.apply(t);
+
+			if (item != null) {
+				jsonArray.put(item);
+			}
 		}
 
 		return jsonArray;
+	}
+
+	public static <T> JSONArray toJSONArray(
+		T[] array, UnsafeFunction<T, Object, Exception> unsafeFunction,
+		Consumer<Exception> exceptionConsumer) {
+
+		JSONArray jsonArray = _createJSONArray();
+
+		if (array == null) {
+			return jsonArray;
+		}
+
+		for (T t : array) {
+			try {
+				Object item = unsafeFunction.apply(t);
+
+				if (item != null) {
+					jsonArray.put(item);
+				}
+			}
+			catch (Exception exception) {
+				exceptionConsumer.accept(exception);
+			}
+		}
+
+		return jsonArray;
+	}
+
+	public static <T> JSONArray toJSONArray(
+		T[] array, UnsafeFunction<T, Object, Exception> unsafeFunction,
+		Log log) {
+
+		return toJSONArray(
+			array, unsafeFunction,
+			exception -> {
+				if (log.isWarnEnabled()) {
+					log.warn(exception, exception);
+				}
+			});
 	}
 
 	public static Map<String, JSONObject> toJSONObjectMap(
@@ -363,10 +866,54 @@ public class JSONUtil {
 		List<T> values = new ArrayList<>(jsonArray.length());
 
 		for (int i = 0; i < jsonArray.length(); i++) {
-			values.add(unsafeFunction.apply(jsonArray.getJSONObject(i)));
+			T item = unsafeFunction.apply(jsonArray.getJSONObject(i));
+
+			if (item != null) {
+				values.add(item);
+			}
 		}
 
 		return values;
+	}
+
+	public static <T> List<T> toList(
+		JSONArray jsonArray,
+		UnsafeFunction<JSONObject, T, Exception> unsafeFunction,
+		Consumer<Exception> exceptionConsumer) {
+
+		if (jsonArray == null) {
+			return new ArrayList<>();
+		}
+
+		List<T> values = new ArrayList<>(jsonArray.length());
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			try {
+				T item = unsafeFunction.apply(jsonArray.getJSONObject(i));
+
+				if (item != null) {
+					values.add(item);
+				}
+			}
+			catch (Exception exception) {
+				exceptionConsumer.accept(exception);
+			}
+		}
+
+		return values;
+	}
+
+	public static <T> List<T> toList(
+		JSONArray jsonArray,
+		UnsafeFunction<JSONObject, T, Exception> unsafeFunction, Log log) {
+
+		return toList(
+			jsonArray, unsafeFunction,
+			exception -> {
+				if (log.isWarnEnabled()) {
+					log.warn(exception, exception);
+				}
+			});
 	}
 
 	public static long[] toLongArray(JSONArray jsonArray) {
@@ -635,6 +1182,16 @@ public class JSONUtil {
 		return values;
 	}
 
+	public static Map<String, String> toStringMap(JSONObject jsonObject) {
+		Map<String, String> values = new HashMap<>();
+
+		for (String key : jsonObject.keySet()) {
+			values.put(key, jsonObject.getString(key));
+		}
+
+		return values;
+	}
+
 	public static Set<String> toStringSet(JSONArray jsonArray) {
 		if (jsonArray == null) {
 			return new HashSet<>();
@@ -783,5 +1340,7 @@ public class JSONUtil {
 
 		return sb.toString();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(JSONUtil.class);
 
 }

@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -67,7 +68,12 @@ public class ContentTemplateResourceImpl
 	}
 
 	@Override
-	public ContentTemplate getContentTemplate(
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
+		return _entityModel;
+	}
+
+	@Override
+	public ContentTemplate getSiteContentTemplate(
 			Long siteId, String contentTemplateId)
 		throws Exception {
 
@@ -81,11 +87,6 @@ public class ContentTemplateResourceImpl
 	}
 
 	@Override
-	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
-		return _entityModel;
-	}
-
-	@Override
 	public Page<ContentTemplate> getSiteContentTemplatesPage(
 			Long siteId, String search, Aggregation aggregation, Filter filter,
 			Pagination pagination, Sort[] sorts)
@@ -95,11 +96,11 @@ public class ContentTemplateResourceImpl
 			Collections.singletonMap(
 				"get",
 				addAction(
-					"MANAGE_LAYOUTS", "getSiteContentTemplatesPage",
+					ActionKeys.MANAGE_LAYOUTS, "getSiteContentTemplatesPage",
 					Group.class.getName(), siteId)),
 			booleanQuery -> {
 			},
-			filter, DDMTemplate.class, search, pagination,
+			filter, DDMTemplate.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
@@ -132,8 +133,8 @@ public class ContentTemplateResourceImpl
 			Collections.singletonMap(
 				"get",
 				addAction(
-					"VIEW", ddmTemplate.getTemplateId(), "getContentTemplate",
-					ddmTemplate.getUserId(),
+					ActionKeys.VIEW, ddmTemplate.getTemplateId(),
+					"getSiteContentTemplate", ddmTemplate.getUserId(),
 					DDMTemplate.class.getName() + "-" +
 						JournalArticle.class.getName(),
 					ddmTemplate.getGroupId())),

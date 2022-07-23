@@ -21,7 +21,7 @@ import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.change.tracking.sql.CTSQLModeThreadLocal;
@@ -41,8 +41,12 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
+import java.io.Serializable;
+
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -69,10 +73,11 @@ public class CTDisplayRendererRegistry {
 			return null;
 		}
 
-		try (SafeClosable safeClosable1 =
-				CTCollectionThreadLocal.setCTCollectionId(ctCollectionId);
-			SafeClosable safeClosable2 = CTSQLModeThreadLocal.setCTSQLMode(
-				ctSQLMode)) {
+		try (SafeCloseable safeCloseable1 =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollectionId);
+			SafeCloseable safeCloseable2 =
+				CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(ctSQLMode)) {
 
 			return (T)ctService.updateWithUnsafeFunction(
 				ctPersistence -> ctPersistence.fetchByPrimaryKey(modelClassPK));
@@ -88,10 +93,61 @@ public class CTDisplayRendererRegistry {
 			modelClassPK);
 	}
 
+	public <T extends BaseModel<T>> Map<Serializable, T> fetchCTModelMap(
+		long ctCollectionId, CTSQLModeThreadLocal.CTSQLMode ctSQLMode,
+		long modelClassNameId, Set<Long> primaryKeys) {
+
+		CTService<?> ctService = _ctServiceServiceTrackerMap.getService(
+			modelClassNameId);
+
+		if (ctService == null) {
+			return null;
+		}
+
+		try (SafeCloseable safeCloseable1 =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollectionId);
+			SafeCloseable safeCloseable2 =
+				CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(ctSQLMode)) {
+
+			return (Map<Serializable, T>)ctService.updateWithUnsafeFunction(
+				ctPersistence -> ctPersistence.fetchByPrimaryKeys(
+					(Set)primaryKeys));
+		}
+	}
+
+	public <T extends BaseModel<T>> String[] getAvailableLanguageIds(
+		long ctCollectionId, CTSQLModeThreadLocal.CTSQLMode ctSQLMode, T model,
+		long modelClassNameId) {
+
+		CTDisplayRenderer<T> ctDisplayRenderer =
+			(CTDisplayRenderer<T>)_ctDisplayServiceTrackerMap.getService(
+				modelClassNameId);
+
+		if (ctDisplayRenderer == null) {
+			return null;
+		}
+
+		try (SafeCloseable safeCloseable1 =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollectionId);
+			SafeCloseable safeCloseable2 =
+				CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(ctSQLMode)) {
+
+			return ctDisplayRenderer.getAvailableLanguageIds(model);
+		}
+	}
+
 	public long getCtCollectionId(CTCollection ctCollection, CTEntry ctEntry)
 		throws PortalException {
 
 		if (ctCollection.getStatus() == WorkflowConstants.STATUS_APPROVED) {
+			if (ctEntry.getChangeType() ==
+					CTConstants.CT_CHANGE_TYPE_DELETION) {
+
+				return ctCollection.getCtCollectionId();
+			}
+
 			return _ctEntryLocalService.getCTRowCTCollectionId(ctEntry);
 		}
 		else if (ctEntry.getChangeType() ==
@@ -104,7 +160,7 @@ public class CTDisplayRendererRegistry {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends BaseModel<T>> CTDisplayRenderer<T> getCTDisplayRenderer(
+	public <T extends BaseModel<?>> CTDisplayRenderer<T> getCTDisplayRenderer(
 		long modelClassNameId) {
 
 		CTDisplayRenderer<T> ctDisplayRenderer =
@@ -147,8 +203,22 @@ public class CTDisplayRendererRegistry {
 		return CTSQLModeThreadLocal.CTSQLMode.DEFAULT;
 	}
 
+	public <T extends BaseModel<T>> String getDefaultLanguageId(
+		T model, long modelClassNameId) {
+
+		CTDisplayRenderer<T> ctDisplayRenderer =
+			(CTDisplayRenderer<T>)_ctDisplayServiceTrackerMap.getService(
+				modelClassNameId);
+
+		if (ctDisplayRenderer == null) {
+			return null;
+		}
+
+		return ctDisplayRenderer.getDefaultLanguageId(model);
+	}
+
 	@SuppressWarnings("unchecked")
-	public <T extends BaseModel<T>> CTDisplayRenderer<T> getDefaultRenderer() {
+	public <T extends BaseModel<?>> CTDisplayRenderer<T> getDefaultRenderer() {
 		return (CTDisplayRenderer<T>)_defaultCTDisplayRenderer;
 	}
 
@@ -164,10 +234,12 @@ public class CTDisplayRendererRegistry {
 		}
 
 		return getEditURL(
+			ctEntry.getCtCollectionId(), CTSQLModeThreadLocal.CTSQLMode.DEFAULT,
 			httpServletRequest, model, ctEntry.getModelClassNameId());
 	}
 
 	public <T extends BaseModel<T>> String getEditURL(
+		long ctCollectionId, CTSQLModeThreadLocal.CTSQLMode ctsqlMode,
 		HttpServletRequest httpServletRequest, T model, long modelClassNameId) {
 
 		CTDisplayRenderer<T> ctDisplayRenderer =
@@ -178,12 +250,17 @@ public class CTDisplayRendererRegistry {
 			return null;
 		}
 
-		try {
+		try (SafeCloseable safeCloseable1 =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollectionId);
+			SafeCloseable safeCloseable2 =
+				CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(ctsqlMode)) {
+
 			return ctDisplayRenderer.getEditURL(httpServletRequest, model);
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return null;
@@ -251,16 +328,18 @@ public class CTDisplayRendererRegistry {
 		String name = null;
 
 		if (ctDisplayRenderer != null) {
-			try (SafeClosable safeClosable1 =
-					CTCollectionThreadLocal.setCTCollectionId(ctCollectionId);
-				SafeClosable safeClosable2 = CTSQLModeThreadLocal.setCTSQLMode(
-					ctSQLMode)) {
+			try (SafeCloseable safeCloseable1 =
+					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+						ctCollectionId);
+				SafeCloseable safeCloseable2 =
+					CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(
+						ctSQLMode)) {
 
 				name = ctDisplayRenderer.getTitle(locale, model);
 			}
 			catch (PortalException portalException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(portalException, portalException);
+					_log.warn(portalException);
 				}
 
 				String typeName = ctDisplayRenderer.getTypeName(locale);

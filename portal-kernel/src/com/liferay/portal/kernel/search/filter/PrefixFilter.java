@@ -46,17 +46,8 @@ public class PrefixFilter extends BaseFilter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{(");
-		sb.append(_field);
-		sb.append("=");
-		sb.append(_prefix);
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(", _field, "=", _prefix, "), ", super.toString(), "}");
 	}
 
 	private final String _field;

@@ -33,7 +33,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Jonathan McCann
  */
 @Component(immediate = true, service = ModelListener.class)
-public class UserModelListener extends SyncBaseModelListener<User> {
+public class UserModelListener extends BaseSyncModelListener<User> {
 
 	@Override
 	public void onAfterRemove(User user) throws ModelListenerException {
@@ -87,10 +87,10 @@ public class UserModelListener extends SyncBaseModelListener<User> {
 	}
 
 	@Override
-	public void onBeforeUpdate(User user) throws ModelListenerException {
-		try {
-			User originalUser = _userLocalService.getUser(user.getUserId());
+	public void onBeforeUpdate(User originalUser, User user)
+		throws ModelListenerException {
 
+		try {
 			if (originalUser.isActive() && !user.isActive()) {
 				List<SyncDevice> syncDevices =
 					_syncDeviceLocalService.getSyncDevices(

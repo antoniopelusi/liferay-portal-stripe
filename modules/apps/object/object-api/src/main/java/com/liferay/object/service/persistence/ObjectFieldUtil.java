@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the object field service. This utility wraps <code>com.liferay.object.service.persistence.impl.ObjectFieldPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -200,11 +196,11 @@ public class ObjectFieldUtil {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public static ObjectField findByUuid_First(
 			String uuid, OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByUuid_First(uuid, orderByComparator);
 	}
@@ -228,11 +224,11 @@ public class ObjectFieldUtil {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public static ObjectField findByUuid_Last(
 			String uuid, OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByUuid_Last(uuid, orderByComparator);
 	}
@@ -257,12 +253,12 @@ public class ObjectFieldUtil {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public static ObjectField[] findByUuid_PrevAndNext(
 			long objectFieldId, String uuid,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByUuid_PrevAndNext(
 			objectFieldId, uuid, orderByComparator);
@@ -370,12 +366,12 @@ public class ObjectFieldUtil {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public static ObjectField findByUuid_C_First(
 			String uuid, long companyId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByUuid_C_First(
 			uuid, companyId, orderByComparator);
@@ -404,12 +400,12 @@ public class ObjectFieldUtil {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public static ObjectField findByUuid_C_Last(
 			String uuid, long companyId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByUuid_C_Last(
 			uuid, companyId, orderByComparator);
@@ -439,12 +435,12 @@ public class ObjectFieldUtil {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public static ObjectField[] findByUuid_C_PrevAndNext(
 			long objectFieldId, String uuid, long companyId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByUuid_C_PrevAndNext(
 			objectFieldId, uuid, companyId, orderByComparator);
@@ -469,6 +465,185 @@ public class ObjectFieldUtil {
 	 */
 	public static int countByUuid_C(String uuid, long companyId) {
 		return getPersistence().countByUuid_C(uuid, companyId);
+	}
+
+	/**
+	 * Returns all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @return the matching object fields
+	 */
+	public static List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId) {
+
+		return getPersistence().findByListTypeDefinitionId(
+			listTypeDefinitionId);
+	}
+
+	/**
+	 * Returns a range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @return the range of matching object fields
+	 */
+	public static List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end) {
+
+		return getPersistence().findByListTypeDefinitionId(
+			listTypeDefinitionId, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object fields
+	 */
+	public static List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return getPersistence().findByListTypeDefinitionId(
+			listTypeDefinitionId, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object fields
+	 */
+	public static List<ObjectField> findByListTypeDefinitionId(
+		long listTypeDefinitionId, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator,
+		boolean useFinderCache) {
+
+		return getPersistence().findByListTypeDefinitionId(
+			listTypeDefinitionId, start, end, orderByComparator,
+			useFinderCache);
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public static ObjectField findByListTypeDefinitionId_First(
+			long listTypeDefinitionId,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
+
+		return getPersistence().findByListTypeDefinitionId_First(
+			listTypeDefinitionId, orderByComparator);
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public static ObjectField fetchByListTypeDefinitionId_First(
+		long listTypeDefinitionId,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return getPersistence().fetchByListTypeDefinitionId_First(
+			listTypeDefinitionId, orderByComparator);
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public static ObjectField findByListTypeDefinitionId_Last(
+			long listTypeDefinitionId,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
+
+		return getPersistence().findByListTypeDefinitionId_Last(
+			listTypeDefinitionId, orderByComparator);
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public static ObjectField fetchByListTypeDefinitionId_Last(
+		long listTypeDefinitionId,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return getPersistence().fetchByListTypeDefinitionId_Last(
+			listTypeDefinitionId, orderByComparator);
+	}
+
+	/**
+	 * Returns the object fields before and after the current object field in the ordered set where listTypeDefinitionId = &#63;.
+	 *
+	 * @param objectFieldId the primary key of the current object field
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object field
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
+	 */
+	public static ObjectField[] findByListTypeDefinitionId_PrevAndNext(
+			long objectFieldId, long listTypeDefinitionId,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
+
+		return getPersistence().findByListTypeDefinitionId_PrevAndNext(
+			objectFieldId, listTypeDefinitionId, orderByComparator);
+	}
+
+	/**
+	 * Removes all the object fields where listTypeDefinitionId = &#63; from the database.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 */
+	public static void removeByListTypeDefinitionId(long listTypeDefinitionId) {
+		getPersistence().removeByListTypeDefinitionId(listTypeDefinitionId);
+	}
+
+	/**
+	 * Returns the number of object fields where listTypeDefinitionId = &#63;.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID
+	 * @return the number of matching object fields
+	 */
+	public static int countByListTypeDefinitionId(long listTypeDefinitionId) {
+		return getPersistence().countByListTypeDefinitionId(
+			listTypeDefinitionId);
 	}
 
 	/**
@@ -552,12 +727,12 @@ public class ObjectFieldUtil {
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public static ObjectField findByObjectDefinitionId_First(
 			long objectDefinitionId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByObjectDefinitionId_First(
 			objectDefinitionId, orderByComparator);
@@ -584,12 +759,12 @@ public class ObjectFieldUtil {
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public static ObjectField findByObjectDefinitionId_Last(
 			long objectDefinitionId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByObjectDefinitionId_Last(
 			objectDefinitionId, orderByComparator);
@@ -617,12 +792,12 @@ public class ObjectFieldUtil {
 	 * @param objectDefinitionId the object definition ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public static ObjectField[] findByObjectDefinitionId_PrevAndNext(
 			long objectFieldId, long objectDefinitionId,
 			OrderByComparator<ObjectField> orderByComparator)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByObjectDefinitionId_PrevAndNext(
 			objectFieldId, objectDefinitionId, orderByComparator);
@@ -648,15 +823,207 @@ public class ObjectFieldUtil {
 	}
 
 	/**
-	 * Returns the object field where objectDefinitionId = &#63; and name = &#63; or throws a <code>NoSuchFieldException</code> if it could not be found.
+	 * Returns all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @return the matching object fields
+	 */
+	public static List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName) {
+
+		return getPersistence().findByODI_DTN(objectDefinitionId, dbTableName);
+	}
+
+	/**
+	 * Returns a range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @return the range of matching object fields
+	 */
+	public static List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end) {
+
+		return getPersistence().findByODI_DTN(
+			objectDefinitionId, dbTableName, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching object fields
+	 */
+	public static List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return getPersistence().findByODI_DTN(
+			objectDefinitionId, dbTableName, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns an ordered range of all the object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>ObjectFieldModelImpl</code>.
+	 * </p>
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param start the lower bound of the range of object fields
+	 * @param end the upper bound of the range of object fields (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching object fields
+	 */
+	public static List<ObjectField> findByODI_DTN(
+		long objectDefinitionId, String dbTableName, int start, int end,
+		OrderByComparator<ObjectField> orderByComparator,
+		boolean useFinderCache) {
+
+		return getPersistence().findByODI_DTN(
+			objectDefinitionId, dbTableName, start, end, orderByComparator,
+			useFinderCache);
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public static ObjectField findByODI_DTN_First(
+			long objectDefinitionId, String dbTableName,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
+
+		return getPersistence().findByODI_DTN_First(
+			objectDefinitionId, dbTableName, orderByComparator);
+	}
+
+	/**
+	 * Returns the first object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public static ObjectField fetchByODI_DTN_First(
+		long objectDefinitionId, String dbTableName,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return getPersistence().fetchByODI_DTN_First(
+			objectDefinitionId, dbTableName, orderByComparator);
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
+	 */
+	public static ObjectField findByODI_DTN_Last(
+			long objectDefinitionId, String dbTableName,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
+
+		return getPersistence().findByODI_DTN_Last(
+			objectDefinitionId, dbTableName, orderByComparator);
+	}
+
+	/**
+	 * Returns the last object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching object field, or <code>null</code> if a matching object field could not be found
+	 */
+	public static ObjectField fetchByODI_DTN_Last(
+		long objectDefinitionId, String dbTableName,
+		OrderByComparator<ObjectField> orderByComparator) {
+
+		return getPersistence().fetchByODI_DTN_Last(
+			objectDefinitionId, dbTableName, orderByComparator);
+	}
+
+	/**
+	 * Returns the object fields before and after the current object field in the ordered set where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectFieldId the primary key of the current object field
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next object field
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
+	 */
+	public static ObjectField[] findByODI_DTN_PrevAndNext(
+			long objectFieldId, long objectDefinitionId, String dbTableName,
+			OrderByComparator<ObjectField> orderByComparator)
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
+
+		return getPersistence().findByODI_DTN_PrevAndNext(
+			objectFieldId, objectDefinitionId, dbTableName, orderByComparator);
+	}
+
+	/**
+	 * Removes all the object fields where objectDefinitionId = &#63; and dbTableName = &#63; from the database.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 */
+	public static void removeByODI_DTN(
+		long objectDefinitionId, String dbTableName) {
+
+		getPersistence().removeByODI_DTN(objectDefinitionId, dbTableName);
+	}
+
+	/**
+	 * Returns the number of object fields where objectDefinitionId = &#63; and dbTableName = &#63;.
+	 *
+	 * @param objectDefinitionId the object definition ID
+	 * @param dbTableName the db table name
+	 * @return the number of matching object fields
+	 */
+	public static int countByODI_DTN(
+		long objectDefinitionId, String dbTableName) {
+
+		return getPersistence().countByODI_DTN(objectDefinitionId, dbTableName);
+	}
+
+	/**
+	 * Returns the object field where objectDefinitionId = &#63; and name = &#63; or throws a <code>NoSuchObjectFieldException</code> if it could not be found.
 	 *
 	 * @param objectDefinitionId the object definition ID
 	 * @param name the name
 	 * @return the matching object field
-	 * @throws NoSuchFieldException if a matching object field could not be found
+	 * @throws NoSuchObjectFieldException if a matching object field could not be found
 	 */
 	public static ObjectField findByODI_N(long objectDefinitionId, String name)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByODI_N(objectDefinitionId, name);
 	}
@@ -698,7 +1065,7 @@ public class ObjectFieldUtil {
 	 */
 	public static ObjectField removeByODI_N(
 			long objectDefinitionId, String name)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().removeByODI_N(objectDefinitionId, name);
 	}
@@ -747,10 +1114,10 @@ public class ObjectFieldUtil {
 	 *
 	 * @param objectFieldId the primary key of the object field
 	 * @return the object field that was removed
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public static ObjectField remove(long objectFieldId)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().remove(objectFieldId);
 	}
@@ -760,14 +1127,14 @@ public class ObjectFieldUtil {
 	}
 
 	/**
-	 * Returns the object field with the primary key or throws a <code>NoSuchFieldException</code> if it could not be found.
+	 * Returns the object field with the primary key or throws a <code>NoSuchObjectFieldException</code> if it could not be found.
 	 *
 	 * @param objectFieldId the primary key of the object field
 	 * @return the object field
-	 * @throws NoSuchFieldException if a object field with the primary key could not be found
+	 * @throws NoSuchObjectFieldException if a object field with the primary key could not be found
 	 */
 	public static ObjectField findByPrimaryKey(long objectFieldId)
-		throws com.liferay.object.exception.NoSuchFieldException {
+		throws com.liferay.object.exception.NoSuchObjectFieldException {
 
 		return getPersistence().findByPrimaryKey(objectFieldId);
 	}
@@ -862,25 +1229,9 @@ public class ObjectFieldUtil {
 	}
 
 	public static ObjectFieldPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<ObjectFieldPersistence, ObjectFieldPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(ObjectFieldPersistence.class);
-
-		ServiceTracker<ObjectFieldPersistence, ObjectFieldPersistence>
-			serviceTracker =
-				new ServiceTracker
-					<ObjectFieldPersistence, ObjectFieldPersistence>(
-						bundle.getBundleContext(), ObjectFieldPersistence.class,
-						null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile ObjectFieldPersistence _persistence;
 
 }

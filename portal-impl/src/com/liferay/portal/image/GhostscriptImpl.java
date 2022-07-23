@@ -39,16 +39,14 @@ public class GhostscriptImpl implements Ghostscript {
 	@Override
 	public Future<?> execute(List<String> commandArguments) throws Exception {
 		if (!isEnabled()) {
-			StringBundler sb = new StringBundler(6);
-
-			sb.append("Cannot execute the Ghostscript command. Please ");
-			sb.append("install ImageMagick and Ghostscript and enable ");
-			sb.append("ImageMagick in portal-ext.properties or in the Server ");
-			sb.append("Administration section of the Control Panel at: ");
-			sb.append("http://<server>/group/control_panel/manage/-/server");
-			sb.append("/external-services");
-
-			throw new IllegalStateException(sb.toString());
+			throw new IllegalStateException(
+				StringBundler.concat(
+					"Cannot execute the Ghostscript command. Please install ",
+					"ImageMagick and Ghostscript and enable ImageMagick in ",
+					"portal-ext.properties or in the Server Administration ",
+					"section of the Control Panel at: ",
+					"http://<server>/group/control_panel/manage/-/server",
+					"/external-services."));
 		}
 
 		LinkedList<String> arguments = new LinkedList<>();
@@ -99,7 +97,7 @@ public class GhostscriptImpl implements Ghostscript {
 				_commandPath = getCommandPath();
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
@@ -115,14 +113,12 @@ public class GhostscriptImpl implements Ghostscript {
 		}
 
 		if (commandPath == null) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Unable to find the Ghostscript command. Please verify ");
-			sb.append("the path specified in the Server Administration ");
-			sb.append("control panel at: http://<server>/group/control_panel");
-			sb.append("/manage/-/server/external-services");
-
-			throw new FileNotFoundException(sb.toString());
+			throw new FileNotFoundException(
+				StringBundler.concat(
+					"Unable to find the Ghostscript command. Please verify ",
+					"the path specified in the Server Administration control ",
+					"panel at: http://<server>/group/control_panel/manage/-",
+					"/server/external-services."));
 		}
 
 		return commandPath;

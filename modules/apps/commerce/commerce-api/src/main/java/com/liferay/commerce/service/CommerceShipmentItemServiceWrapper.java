@@ -27,6 +27,10 @@ public class CommerceShipmentItemServiceWrapper
 	implements CommerceShipmentItemService,
 			   ServiceWrapper<CommerceShipmentItemService> {
 
+	public CommerceShipmentItemServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceShipmentItemServiceWrapper(
 		CommerceShipmentItemService commerceShipmentItemService) {
 
@@ -36,14 +40,31 @@ public class CommerceShipmentItemServiceWrapper
 	@Override
 	public com.liferay.commerce.model.CommerceShipmentItem
 			addCommerceShipmentItem(
-				long commerceShipmentId, long commerceOrderItemId,
-				long commerceInventoryWarehouseId, int quantity,
+				String externalReferenceCode, long commerceShipmentId,
+				long commerceOrderItemId, long commerceInventoryWarehouseId,
+				int quantity, boolean validateInventory,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceShipmentItemService.addCommerceShipmentItem(
-			commerceShipmentId, commerceOrderItemId,
-			commerceInventoryWarehouseId, quantity, serviceContext);
+			externalReferenceCode, commerceShipmentId, commerceOrderItemId,
+			commerceInventoryWarehouseId, quantity, validateInventory,
+			serviceContext);
+	}
+
+	@Override
+	public com.liferay.commerce.model.CommerceShipmentItem
+			addOrUpdateCommerceShipmentItem(
+				String externalReferenceCode, long commerceShipmentId,
+				long commerceOrderItemId, long commerceInventoryWarehouseId,
+				int quantity, boolean validateInventory,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentItemService.addOrUpdateCommerceShipmentItem(
+			externalReferenceCode, commerceShipmentId, commerceOrderItemId,
+			commerceInventoryWarehouseId, quantity, validateInventory,
+			serviceContext);
 	}
 
 	/**
@@ -68,6 +89,15 @@ public class CommerceShipmentItemServiceWrapper
 	}
 
 	@Override
+	public void deleteCommerceShipmentItems(
+			long commerceShipmentId, boolean restoreStockQuantity)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_commerceShipmentItemService.deleteCommerceShipmentItems(
+			commerceShipmentId, restoreStockQuantity);
+	}
+
+	@Override
 	public com.liferay.commerce.model.CommerceShipmentItem
 			fetchCommerceShipmentItem(
 				long commerceShipmentId, long commerceOrderItemId,
@@ -77,6 +107,17 @@ public class CommerceShipmentItemServiceWrapper
 		return _commerceShipmentItemService.fetchCommerceShipmentItem(
 			commerceShipmentId, commerceOrderItemId,
 			commerceInventoryWarehouseId);
+	}
+
+	@Override
+	public com.liferay.commerce.model.CommerceShipmentItem
+			fetchCommerceShipmentItemByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentItemService.
+			fetchCommerceShipmentItemByExternalReferenceCode(
+				companyId, externalReferenceCode);
 	}
 
 	@Override
@@ -165,22 +206,23 @@ public class CommerceShipmentItemServiceWrapper
 	@Override
 	public com.liferay.commerce.model.CommerceShipmentItem
 			updateCommerceShipmentItem(
-				long commerceShipmentItemId, int quantity)
+				long commerceShipmentItemId, long commerceInventoryWarehouseId,
+				int quantity, boolean validateInventory)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceShipmentItemService.updateCommerceShipmentItem(
-			commerceShipmentItemId, quantity);
+			commerceShipmentItemId, commerceInventoryWarehouseId, quantity,
+			validateInventory);
 	}
 
 	@Override
 	public com.liferay.commerce.model.CommerceShipmentItem
-			updateCommerceShipmentItem(
-				long commerceShipmentItemId, long commerceInventoryWarehouseId,
-				int quantity)
+			updateExternalReferenceCode(
+				long commerceShipmentItemId, String externalReferenceCode)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _commerceShipmentItemService.updateCommerceShipmentItem(
-			commerceShipmentItemId, commerceInventoryWarehouseId, quantity);
+		return _commerceShipmentItemService.updateExternalReferenceCode(
+			commerceShipmentItemId, externalReferenceCode);
 	}
 
 	@Override

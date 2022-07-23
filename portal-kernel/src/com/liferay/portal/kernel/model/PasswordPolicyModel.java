@@ -644,4 +644,7 @@ public interface PasswordPolicyModel
 	 */
 	public void setResetTicketMaxAge(long resetTicketMaxAge);
 
+	@Override
+	public PasswordPolicy cloneWithOriginalValues();
+
 }

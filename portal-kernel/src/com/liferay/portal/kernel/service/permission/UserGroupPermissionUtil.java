@@ -27,15 +27,14 @@ public class UserGroupPermissionUtil {
 			String actionId)
 		throws PrincipalException {
 
-		getUserGroupPermission().check(
-			permissionChecker, userGroupId, actionId);
+		_userGroupPermission.check(permissionChecker, userGroupId, actionId);
 	}
 
 	public static boolean contains(
 		PermissionChecker permissionChecker, long userGroupId,
 		String actionId) {
 
-		return getUserGroupPermission().contains(
+		return _userGroupPermission.contains(
 			permissionChecker, userGroupId, actionId);
 	}
 

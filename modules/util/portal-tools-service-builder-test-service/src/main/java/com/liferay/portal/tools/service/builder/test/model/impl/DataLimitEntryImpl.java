@@ -30,7 +30,5 @@ public class DataLimitEntryImpl extends DataLimitEntryBaseImpl {
 	 *
 	 * Never reference this class directly. All methods that expect a data limit entry model instance should use the {@link com.liferay.portal.tools.service.builder.test.model.DataLimitEntry} interface instead.
 	 */
-	public DataLimitEntryImpl() {
-	}
 
 }

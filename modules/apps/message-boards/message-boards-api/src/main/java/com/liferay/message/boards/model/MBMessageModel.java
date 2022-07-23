@@ -718,4 +718,7 @@ public interface MBMessageModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public MBMessage cloneWithOriginalValues();
+
 }

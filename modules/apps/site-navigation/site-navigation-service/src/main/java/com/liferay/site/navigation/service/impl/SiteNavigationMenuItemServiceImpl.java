@@ -63,11 +63,29 @@ public class SiteNavigationMenuItemServiceImpl
 	}
 
 	@Override
+	public SiteNavigationMenuItem deleteSiteNavigationMenuItem(
+			long siteNavigationMenuItemId, boolean deleteChildren)
+		throws PortalException {
+
+		return siteNavigationMenuItemLocalService.deleteSiteNavigationMenuItem(
+			siteNavigationMenuItemId, deleteChildren);
+	}
+
+	@Override
 	public void deleteSiteNavigationMenuItems(long siteNavigationMenuId)
 		throws PortalException {
 
 		siteNavigationMenuItemLocalService.deleteSiteNavigationMenuItems(
 			siteNavigationMenuId);
+	}
+
+	@Override
+	public List<Long> getParentSiteNavigationMenuItemIds(
+		long siteNavigationMenuId, String typeSettingsKeyword) {
+
+		return siteNavigationMenuItemLocalService.
+			getParentSiteNavigationMenuItemIds(
+				siteNavigationMenuId, typeSettingsKeyword);
 	}
 
 	@Override

@@ -1,0 +1,396 @@
+@component-name = "portal-workflow-ee"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.run.environment = "EE";
+	property testray.main.component.name = "Workflow Metrics";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		User.firstLoginPG();
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "LPS-94146 - Verify that users cannot select more than an option per time"
+	@priority = "4"
+	test CanNotSelectMoreThanOneFilter {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#METRICS_PERFORMANCE_TAB");
+
+		Click(
+			locator1 = "WorkflowMetrics#METRICS_COMPLETED_ITEMS_DATE_RANGE_DROPDOWN",
+			value1 = "Last 30 Days");
+
+		Click(
+			completedItemsDateRange = "Last 7 Days",
+			locator1 = "WorkflowMetricsCompletedItems#METRICS_COMPLETED_ITEMS_DATE_RANGE_DROPDOWN_OPTION");
+
+		AssertElementNotPresent(
+			completedItemsDateRange = "Last 30 Days",
+			locator1 = "WorkflowMetricsCompletedItems#METRICS_COMPLETED_ITEMS_DATE_RANGE_DROPDOWN_OPTION");
+	}
+
+	@description = "LPS-87571 - Verify that the users are able to click on the metric cards from the Completed Items card and be directed to the All Items page"
+	@priority = "5"
+	test ClickOnMetricCardsAndBeDirectedToAllItemsPage {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Navigator.gotoNavItem(navItem = "Performance");
+
+		Click(
+			key_index = "1",
+			locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_COMPLETED_ITEMS_BUTTON");
+
+		AssertElementPresent(
+			key_value = "Single Approver: All Items",
+			locator1 = "WorkflowAllItems#WORKFLOW_HEADER_TITLE");
+
+		AssertElementPresent(
+			key_value = "Completed",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		AssertElementPresent(
+			key_value = "Overdue",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		AssertElementPresent(
+			key_value = "Last 30 Days",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		Click(locator1 = "Icon#BACK");
+
+		Click(
+			key_index = "2",
+			locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_COMPLETED_ITEMS_BUTTON");
+
+		AssertElementPresent(
+			key_value = "Single Approver: All Items",
+			locator1 = "WorkflowAllItems#WORKFLOW_HEADER_TITLE");
+
+		AssertElementPresent(
+			key_value = "Completed",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		AssertElementPresent(
+			key_value = "On Time",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		AssertElementPresent(
+			key_value = "Last 30 Days",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		Click(locator1 = "Icon#BACK");
+
+		Click(
+			key_index = "3",
+			locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_COMPLETED_ITEMS_BUTTON");
+
+		AssertElementPresent(
+			key_value = "Single Approver: All Items",
+			locator1 = "WorkflowAllItems#WORKFLOW_HEADER_TITLE");
+
+		AssertElementPresent(
+			key_value = "Completed",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		AssertElementPresent(
+			key_value = "Untracked",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		AssertElementPresent(
+			key_value = "Last 30 Days",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		Click(locator1 = "Icon#BACK");
+
+		Click(
+			key_index = "4",
+			locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_COMPLETED_ITEMS_BUTTON");
+
+		AssertElementPresent(
+			key_value = "Single Approver: All Items",
+			locator1 = "WorkflowAllItems#WORKFLOW_HEADER_TITLE");
+
+		AssertElementPresent(
+			key_value = "Completed",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+
+		AssertElementPresent(
+			key_value = "Last 30 Days",
+			locator1 = "WorkflowAllItems#WORKFLOW_FILTER_TAB_NAME");
+	}
+
+	@description = "LPS-98233 - Verify that the default date format for en-US in Custom Range filter is MM/DD/YYYY"
+	@priority = "3"
+	test DefaultDateFormatIsMMDDYYYY {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#METRICS_PERFORMANCE_TAB");
+
+		Click(locator1 = "WorkflowMetrics#METRICS_COMPLETED_ITEMS_DATE_RANGE_DROPDOWN");
+
+		Click(
+			completedItemsDateRange = "Custom Range",
+			locator1 = "WorkflowMetricsCompletedItems#METRICS_COMPLETED_ITEMS_DATE_RANGE_DROPDOWN_OPTION");
+
+		AssertElementPresent(
+			key_dateFormat = "Default date format is MM/DD/YYYY.",
+			locator1 = "WorkflowMetricsCompletedItems#DEFAULT_DATE_FORMAT_MESSAGE");
+	}
+
+	@description = "LPS-98233 - Verify that the fields From and To are required"
+	@priority = "3"
+	test FromAndToAreRequiredFields {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Navigator.gotoNavItem(navItem = "Performance");
+
+		WorkflowMetrics.selectDateRange(
+			completionVelocityDateRange = "Custom Range",
+			dateRange = "Last 30 Days",
+			endDateRange = "06/14/2021",
+			startDateRange = " ",
+			title = "Completed Items");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "Please enter a valid date.");
+
+		Refresh();
+
+		WorkflowMetrics.selectDateRange(
+			completionVelocityDateRange = "Custom Range",
+			dateRange = "Last 30 Days",
+			endDateRange = " ",
+			startDateRange = "06/14/2021",
+			title = "Completed Items");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "Please enter a valid date.");
+	}
+
+	@description = "LPS-98233 - Verify that the user can not insert a future date"
+	@priority = "3"
+	test FutureDatesAreNotAllowed {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Navigator.gotoNavItem(navItem = "Performance");
+
+		WorkflowMetrics.selectDateRange(
+			completionVelocityDateRange = "Custom Range",
+			dateRange = "Last 30 Days",
+			endDateRange = "06/14/2021",
+			startDateRange = "06/14/2022",
+			title = "Completed Items");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "The start date cannot be later than the end date.");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "The end date cannot be earlier than the start date.");
+
+		Refresh();
+
+		WorkflowMetrics.selectDateRange(
+			completionVelocityDateRange = "Custom Range",
+			dateRange = "Last 30 Days",
+			endDateRange = "06/14/2022",
+			startDateRange = "06/14/2021",
+			title = "Completed Items");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "Please enter a valid date.");
+	}
+
+	@description = "LPS-86650 - Verify that info icon hover state and tooltip message"
+	@priority = "2"
+	test InfoIconDisplaysMessageOnHover {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Navigator.gotoNavItem(navItem = "Performance");
+
+		WorkflowMetricsProcessListView.assertTooltipMessage(
+			sectionName = "Completed Items",
+			tooltipMessage = "Completed workflow items are counted and categorized by their SLA status.");
+	}
+
+	@description = "LPS-86650 - Verify that when there is no SLA defined for the process, all items will be displayed as Untracked"
+	@priority = "4"
+	test ItemsWithNoSlaAreDisplayedUntracked {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#METRICS_PERFORMANCE_TAB");
+
+		WorkflowMetrics.checkCompletedWorkflowValues(
+			key_completed = "1",
+			key_ontime = "0",
+			key_overdue = "0",
+			key_untracked = "1");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "UNTRACKED",
+			workflowMetricsTab = "PERFORMANCE",
+			workflowProcess = "Single Approver");
+
+		AssertElementPresent(
+			key_workflowInstanceName = "Blogs Entry Title",
+			locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_NAME");
+	}
+
+	@description = "LPS-97665 - Verify the label from Yesterday dropdown timeframe option is read as <dd MM>, 12 AM - <dd MM>, 11:59 PM"
+	@priority = "3"
+	test LabelFromYesterdayFilter {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#METRICS_PERFORMANCE_TAB");
+
+		Click(locator1 = "WorkflowMetricsCompletedItems#DATE_RANGE_DROPDOWN_COMPLETED_ITEMS");
+
+		AssertTextEquals.assertPartialText(
+			key_dateRange = "Yesterday",
+			locator1 = "WorkflowMetricsCompletedItems#DESCRIPTION_DROPDOWN_COMPLETED_ITEMS",
+			value1 = "12:00 AM");
+
+		AssertTextEquals.assertPartialText(
+			key_dateRange = "Yesterday",
+			locator1 = "WorkflowMetricsCompletedItems#DESCRIPTION_DROPDOWN_COMPLETED_ITEMS",
+			value1 = "11:59 PM");
+	}
+
+	@description = "LPS-98233 - Verify that at the custom range modal, the oldest date accepted is 1970"
+	@priority = "2"
+	test OldestDataAcceptedIs1970 {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Navigator.gotoNavItem(navItem = "Performance");
+
+		WorkflowMetrics.selectDateRange(
+			completionVelocityDateRange = "Custom Range",
+			dateRange = "Last 30 Days",
+			endDateRange = "06/14/2021",
+			startDateRange = "01/01/1969",
+			title = "Completed Items");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "The date cannot be earlier than 1970.");
+
+		Refresh();
+
+		WorkflowMetrics.selectDateRange(
+			completionVelocityDateRange = "Custom Range",
+			dateRange = "Last 30 Days",
+			endDateRange = "06/14/2021",
+			startDateRange = "01/01/1970",
+			title = "Completed Items");
+
+		AssertElementPresent(
+			completionVelocityDateRange = "Jan 01, 1970 - Jun 14, 2021",
+			locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN_OPTION");
+	}
+
+	@description = "LPS-94146 - Verify that the percentage is displayed in Overdue, On Time and Untracked cards"
+	@priority = "4"
+	test PercentageIsDisplayedInCards {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Navigator.gotoNavItem(navItem = "Performance");
+
+		AssertElementPresent(
+			key_cardName = "Overdue",
+			locator1 = "WorkflowMetricsCompletedItems#PERCENTAGE_CARDS");
+
+		AssertElementPresent(
+			key_cardName = "On Time",
+			locator1 = "WorkflowMetricsCompletedItems#PERCENTAGE_CARDS");
+
+		AssertElementPresent(
+			key_cardName = "Untracked",
+			locator1 = "WorkflowMetricsCompletedItems#PERCENTAGE_CARDS");
+	}
+
+	@description = "LPS-94146 - Verify that when there are no results for a filter selection, the table should display the respective empty state"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test TableDisplaysEmptyStateWhenThereIsNoResult {
+
+		// TODO LRQA-67647 TableDisplaysEmptyStateWhenThereIsNoResult pending implementation
+
+	}
+
+	@description = "LPS-98233 - Verify that the To date is greater than the From date"
+	@priority = "3"
+	test ToDateMustBeGreaterThanFromDate {
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Navigator.gotoNavItem(navItem = "Performance");
+
+		WorkflowMetrics.selectDateRange(
+			completionVelocityDateRange = "Custom Range",
+			dateRange = "Last 30 Days",
+			endDateRange = "01/01/2021",
+			startDateRange = "02/01/2021",
+			title = "Completed Items");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "The start date cannot be later than the end date.");
+
+		WorkflowMetrics.viewDateRangeErrorMessage(errorMessage = "The end date cannot be earlier than the start date.");
+	}
+
+	@description = "LPS-86650 - Verify that the unexpected error state appear when unexpected error happen"
+	@ignore = "Test Stub"
+	@priority = "2"
+	test UnexpectedErrorState {
+
+		// TODO LRQA-67648 UnexpectedErrorState pending implementation
+
+	}
+
+	@description = "LPS-86650 - Verify that, for numbers greater than 3 digits, use abbreviation standards considering localization specifications (example for English: replace 1,220 for 1.2K)"
+	@ignore = "Test Stub"
+	@priority = "2"
+	test UseAbreviationForGreaterThan3DigitsNumber {
+
+		// TODO LRQA-67645 UseAbreviationForGreaterThan3DigitsNumber pending implementation
+
+	}
+
+}

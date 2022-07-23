@@ -17,23 +17,20 @@ package com.liferay.headless.portal.instances.internal.resource.v1_0;
 import com.liferay.headless.portal.instances.dto.v1_0.PortalInstance;
 import com.liferay.headless.portal.instances.resource.v1_0.PortalInstanceResource;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,18 +41,6 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.validation.constraints.NotNull;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -63,7 +48,7 @@ import javax.ws.rs.core.UriInfo;
  * @generated
  */
 @Generated("")
-@Path("/v1.0")
+@javax.ws.rs.Path("/v1.0")
 public abstract class BasePortalInstanceResourceImpl
 	implements PortalInstanceResource {
 
@@ -72,18 +57,30 @@ public abstract class BasePortalInstanceResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the portal instances")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "skipDefault")}
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the portal instances"
 	)
-	@Path("/portal-instances")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "PortalInstance")})
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "skipDefault"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "PortalInstance")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/portal-instances")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public Page<PortalInstance> getPortalInstancesPage(
-			@Parameter(hidden = true) @QueryParam("skipDefault") Boolean
-				skipDefault)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.ws.rs.QueryParam("skipDefault")
+			Boolean skipDefault)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -92,22 +89,22 @@ public abstract class BasePortalInstanceResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances' -d $'{"companyId": ___, "domain": ___, "portalInstanceId": ___, "virtualHost": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances' -d $'{"admin": ___, "companyId": ___, "domain": ___, "portalInstanceId": ___, "siteInitializerKey": ___, "virtualHost": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(description = "Adds a new portal instance")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.QUERY, name = "initializerKey")}
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Adds a new portal instance"
 	)
-	@Path("/portal-instances")
-	@POST
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "PortalInstance")})
-	public PortalInstance postPortalInstance(
-			@Parameter(hidden = true) @QueryParam("initializerKey") String
-				initializerKey,
-			PortalInstance portalInstance)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "PortalInstance")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.Path("/portal-instances")
+	@javax.ws.rs.POST
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
+	public PortalInstance postPortalInstance(PortalInstance portalInstance)
 		throws Exception {
 
 		return new PortalInstance();
@@ -118,18 +115,31 @@ public abstract class BasePortalInstanceResourceImpl
 	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}'  -u 'test@liferay.com:test'
 	 */
-	@DELETE
-	@Operation(description = "Removes the portal instance")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "portalInstanceId")}
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Removes the portal instance"
 	)
-	@Path("/portal-instances/{portalInstanceId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "PortalInstance")})
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "portalInstanceId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "PortalInstance")
+		}
+	)
+	@javax.ws.rs.DELETE
+	@javax.ws.rs.Path("/portal-instances/{portalInstanceId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public void deletePortalInstance(
-			@NotNull @Parameter(hidden = true) @PathParam("portalInstanceId")
-				String portalInstanceId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("portalInstanceId")
+			String portalInstanceId)
 		throws Exception {
 	}
 
@@ -138,18 +148,31 @@ public abstract class BasePortalInstanceResourceImpl
 	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}'  -u 'test@liferay.com:test'
 	 */
-	@GET
-	@Operation(description = "Retrieves the portal instance")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "portalInstanceId")}
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Retrieves the portal instance"
 	)
-	@Path("/portal-instances/{portalInstanceId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "PortalInstance")})
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "portalInstanceId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "PortalInstance")
+		}
+	)
+	@javax.ws.rs.GET
+	@javax.ws.rs.Path("/portal-instances/{portalInstanceId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public PortalInstance getPortalInstance(
-			@NotNull @Parameter(hidden = true) @PathParam("portalInstanceId")
-				String portalInstanceId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("portalInstanceId")
+			String portalInstanceId)
 		throws Exception {
 
 		return new PortalInstance();
@@ -158,23 +181,34 @@ public abstract class BasePortalInstanceResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}' -d $'{"companyId": ___, "domain": ___, "portalInstanceId": ___, "virtualHost": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}' -d $'{"admin": ___, "companyId": ___, "domain": ___, "portalInstanceId": ___, "siteInitializerKey": ___, "virtualHost": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
-	@Consumes({"application/json", "application/xml"})
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Updates the portal instance with information sent in the request body. Only the provided fields are updated."
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "portalInstanceId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "portalInstanceId"
+			)
+		}
 	)
-	@PATCH
-	@Path("/portal-instances/{portalInstanceId}")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "PortalInstance")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "PortalInstance")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.PATCH
+	@javax.ws.rs.Path("/portal-instances/{portalInstanceId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
 	public PortalInstance patchPortalInstance(
-			@NotNull @Parameter(hidden = true) @PathParam("portalInstanceId")
-				String portalInstanceId,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("portalInstanceId")
+			String portalInstanceId,
 			PortalInstance portalInstance)
 		throws Exception {
 
@@ -186,18 +220,31 @@ public abstract class BasePortalInstanceResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/activate'  -u 'test@liferay.com:test'
 	 */
-	@Operation(description = "Activates the portal instance")
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "portalInstanceId")}
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Activates the portal instance"
 	)
-	@Path("/portal-instances/{portalInstanceId}/activate")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "PortalInstance")})
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "portalInstanceId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "PortalInstance")
+		}
+	)
+	@javax.ws.rs.Path("/portal-instances/{portalInstanceId}/activate")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public void putPortalInstanceActivate(
-			@NotNull @Parameter(hidden = true) @PathParam("portalInstanceId")
-				String portalInstanceId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("portalInstanceId")
+			String portalInstanceId)
 		throws Exception {
 	}
 
@@ -206,20 +253,31 @@ public abstract class BasePortalInstanceResourceImpl
 	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/deactivate'  -u 'test@liferay.com:test'
 	 */
-	@Operation(
+	@io.swagger.v3.oas.annotations.Operation(
 		description = "Deactivates the portal instance. When a portal instance is deactivated, its virtual host will not longer respond requests."
 	)
-	@Override
-	@Parameters(
-		value = {@Parameter(in = ParameterIn.PATH, name = "portalInstanceId")}
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "portalInstanceId"
+			)
+		}
 	)
-	@Path("/portal-instances/{portalInstanceId}/deactivate")
-	@Produces({"application/json", "application/xml"})
-	@PUT
-	@Tags(value = {@Tag(name = "PortalInstance")})
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "PortalInstance")
+		}
+	)
+	@javax.ws.rs.Path("/portal-instances/{portalInstanceId}/deactivate")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@javax.ws.rs.PUT
+	@Override
 	public void putPortalInstanceDeactivate(
-			@NotNull @Parameter(hidden = true) @PathParam("portalInstanceId")
-				String portalInstanceId)
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("portalInstanceId")
+			String portalInstanceId)
 		throws Exception {
 	}
 
@@ -255,8 +313,32 @@ public abstract class BasePortalInstanceResourceImpl
 		this.contextUser = contextUser;
 	}
 
+	public void setExpressionConvert(
+		ExpressionConvert<Filter> expressionConvert) {
+
+		this.expressionConvert = expressionConvert;
+	}
+
+	public void setFilterParserProvider(
+		FilterParserProvider filterParserProvider) {
+
+		this.filterParserProvider = filterParserProvider;
+	}
+
 	public void setGroupLocalService(GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
+	}
+
+	public void setResourceActionLocalService(
+		ResourceActionLocalService resourceActionLocalService) {
+
+		this.resourceActionLocalService = resourceActionLocalService;
+	}
+
+	public void setResourcePermissionLocalService(
+		ResourcePermissionLocalService resourcePermissionLocalService) {
+
+		this.resourcePermissionLocalService = resourcePermissionLocalService;
 	}
 
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
@@ -332,9 +414,14 @@ public abstract class BasePortalInstanceResourceImpl
 	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
 	protected com.liferay.portal.kernel.model.User contextUser;
+	protected ExpressionConvert<Filter> expressionConvert;
+	protected FilterParserProvider filterParserProvider;
 	protected GroupLocalService groupLocalService;
 	protected ResourceActionLocalService resourceActionLocalService;
 	protected ResourcePermissionLocalService resourcePermissionLocalService;
 	protected RoleLocalService roleLocalService;
+
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BasePortalInstanceResourceImpl.class);
 
 }

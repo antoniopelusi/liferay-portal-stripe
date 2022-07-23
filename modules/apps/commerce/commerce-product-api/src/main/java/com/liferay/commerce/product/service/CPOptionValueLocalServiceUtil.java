@@ -81,6 +81,17 @@ public class CPOptionValueLocalServiceUtil {
 			serviceContext);
 	}
 
+	public static CPOptionValue addOrUpdateCPOptionValue(
+			String externalReferenceCode, long cpOptionId,
+			Map<java.util.Locale, String> nameMap, double priority, String key,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateCPOptionValue(
+			externalReferenceCode, cpOptionId, nameMap, priority, key,
+			serviceContext);
+	}
+
 	/**
 	 * Creates a new cp option value with the primary key. Does not add the cp option value to the database.
 	 *
@@ -153,6 +164,10 @@ public class CPOptionValueLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -485,17 +500,6 @@ public class CPOptionValueLocalServiceUtil {
 
 		return getService().updateCPOptionValue(
 			cpOptionValueId, nameMap, priority, key, serviceContext);
-	}
-
-	public static CPOptionValue upsertCPOptionValue(
-			String externalReferenceCode, long cpOptionId,
-			Map<java.util.Locale, String> nameMap, double priority, String key,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().upsertCPOptionValue(
-			externalReferenceCode, cpOptionId, nameMap, priority, key,
-			serviceContext);
 	}
 
 	public static CPOptionValueLocalService getService() {

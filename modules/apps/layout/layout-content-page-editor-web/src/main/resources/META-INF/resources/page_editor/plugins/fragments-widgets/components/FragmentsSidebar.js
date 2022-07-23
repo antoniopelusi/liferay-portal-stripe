@@ -12,17 +12,25 @@
  * details.
  */
 
+import {ClayButtonWithIcon} from '@clayui/button';
 import React, {useMemo, useState} from 'react';
 
+import {FRAGMENTS_DISPLAY_STYLES} from '../../../app/config/constants/fragmentsDisplayStyles';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../app/config/constants/layoutDataItemTypes';
-import {useSelector} from '../../../app/store/index';
+import {useSelector} from '../../../app/contexts/StoreContext';
+import {useWidgets} from '../../../app/contexts/WidgetsContext';
 import SearchForm from '../../../common/components/SearchForm';
 import SidebarPanelContent from '../../../common/components/SidebarPanelContent';
 import SidebarPanelHeader from '../../../common/components/SidebarPanelHeader';
 import SearchResultsPanel from './SearchResultsPanel';
 import TabsPanel from './TabsPanel';
 
-const BASIC_COMPONENT_COLLECTION = 'BASIC_COMPONENT';
+const FRAGMENTS_DISPLAY_STYLE_KEY = 'FRAGMENTS_DISPLAY_STYLE_KEY';
+
+export const COLLECTION_IDS = {
+	fragments: 'fragments',
+	widgets: 'widgets',
+};
 
 const collectionFilter = (collections, searchValue) => {
 	const searchValueLowerCase = searchValue.toLowerCase();
@@ -46,7 +54,11 @@ const collectionFilter = (collections, searchValue) => {
 			else {
 				const updateCollection = {
 					...collection,
-					children: collection.children.filter(itemFilter),
+					children: collection.children?.filter(
+						(item) =>
+							itemFilter(item) ||
+							item.portletItems?.some(itemFilter)
+					),
 					...(collection.collections?.length && {
 						collections: collectionFilter(
 							collection.collections,
@@ -70,7 +82,7 @@ const normalizeWidget = (widget) => {
 			used: widget.used,
 		},
 		disabled: !widget.instanceable && widget.used,
-		icon: widget.instanceable ? 'cards2' : 'square-hole',
+		icon: widget.instanceable ? 'square-hole-multi' : 'square-hole',
 		itemId: widget.portletId,
 		label: widget.title,
 		portletItems: widget.portletItems?.length
@@ -97,7 +109,7 @@ const normalizeCollections = (collection) => {
 	return normalizedElement;
 };
 
-const normalizeFragmentEntry = (fragmentEntry, collectionId) => {
+const normalizeFragmentEntry = (fragmentEntry) => {
 	if (!fragmentEntry.fragmentEntryKey) {
 		return fragmentEntry;
 	}
@@ -111,17 +123,20 @@ const normalizeFragmentEntry = (fragmentEntry, collectionId) => {
 		icon: fragmentEntry.icon,
 		itemId: fragmentEntry.fragmentEntryKey,
 		label: fragmentEntry.name,
-		preview:
-			collectionId !== BASIC_COMPONENT_COLLECTION
-				? fragmentEntry.imagePreviewURL
-				: null,
+		preview: fragmentEntry.imagePreviewURL,
 		type: LAYOUT_DATA_ITEM_TYPES.fragment,
 	};
 };
 
 export default function FragmentsSidebar() {
 	const fragments = useSelector((state) => state.fragments);
-	const widgets = useSelector((state) => state.widgets);
+	const widgets = useWidgets();
+
+	const [activeTabId, setActiveTabId] = useState(COLLECTION_IDS.fragments);
+	const [displayStyle, setDisplayStyle] = useState(
+		window.sessionStorage.getItem(FRAGMENTS_DISPLAY_STYLE_KEY) ||
+			FRAGMENTS_DISPLAY_STYLES.LIST
+	);
 
 	const [searchValue, setSearchValue] = useState('');
 
@@ -130,20 +145,19 @@ export default function FragmentsSidebar() {
 			{
 				collections: fragments.map((collection) => ({
 					children: collection.fragmentEntries.map((fragmentEntry) =>
-						normalizeFragmentEntry(
-							fragmentEntry,
-							collection.fragmentCollectionId
-						)
+						normalizeFragmentEntry(fragmentEntry)
 					),
 					collectionId: collection.fragmentCollectionId,
 					label: collection.name,
 				})),
+				id: COLLECTION_IDS.fragments,
 				label: Liferay.Language.get('fragments'),
 			},
 			{
 				collections: widgets.map((collection) =>
 					normalizeCollections(collection)
 				),
+				id: COLLECTION_IDS.widgets,
 				label: Liferay.Language.get('widgets'),
 			},
 		],
@@ -166,6 +180,9 @@ export default function FragmentsSidebar() {
 		[tabs, searchValue]
 	);
 
+	const displayStyleButtonDisabled =
+		searchValue || activeTabId === COLLECTION_IDS.widgets;
+
 	return (
 		<>
 			<SidebarPanelHeader>
@@ -173,11 +190,56 @@ export default function FragmentsSidebar() {
 			</SidebarPanelHeader>
 
 			<SidebarPanelContent className="page-editor__sidebar__fragments-widgets-panel">
-				<SearchForm className="mb-3" onChange={setSearchValue} />
+				<div className="align-items-center d-flex justify-content-between mb-3">
+					<SearchForm
+						className="flex-grow-1 mb-0"
+						onChange={setSearchValue}
+					/>
+
+					<ClayButtonWithIcon
+						borderless
+						className="lfr-portal-tooltip ml-2 mt-0"
+						data-tooltip-align="bottom-right"
+						disabled={displayStyleButtonDisabled}
+						displayType="secondary"
+						onClick={() => {
+							const nextDisplayStyle =
+								displayStyle === FRAGMENTS_DISPLAY_STYLES.LIST
+									? FRAGMENTS_DISPLAY_STYLES.CARDS
+									: FRAGMENTS_DISPLAY_STYLES.LIST;
+
+							setDisplayStyle(nextDisplayStyle);
+
+							window.sessionStorage.setItem(
+								FRAGMENTS_DISPLAY_STYLE_KEY,
+								nextDisplayStyle
+							);
+						}}
+						small
+						symbol={
+							displayStyleButtonDisabled ||
+							displayStyle === FRAGMENTS_DISPLAY_STYLES.LIST
+								? 'cards2'
+								: 'list'
+						}
+						title={Liferay.Util.sub(
+							Liferay.Language.get('switch-to-x-view'),
+							displayStyle === FRAGMENTS_DISPLAY_STYLES.LIST
+								? Liferay.Language.get('card')
+								: Liferay.Language.get('list')
+						)}
+					/>
+				</div>
+
 				{searchValue ? (
 					<SearchResultsPanel filteredTabs={filteredTabs} />
 				) : (
-					<TabsPanel tabs={tabs} />
+					<TabsPanel
+						activeTabId={activeTabId}
+						displayStyle={displayStyle}
+						setActiveTabId={setActiveTabId}
+						tabs={tabs}
+					/>
 				)}
 			</SidebarPanelContent>
 		</>

@@ -15,6 +15,7 @@
 package com.liferay.commerce.pricing.service;
 
 import com.liferay.commerce.pricing.model.CommercePriceModifier;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -45,6 +46,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -66,14 +68,26 @@ public interface CommercePriceModifierService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.commerce.pricing.service.impl.CommercePriceModifierServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the commerce price modifier remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CommercePriceModifierServiceUtil} if injection and service tracking are not available.
 	 */
 	public CommercePriceModifier addCommercePriceModifier(
-			long userId, long groupId, String title, String target,
-			long commercePriceListId, String modifierType,
-			BigDecimal modifierAmount, double priority, boolean active,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, ServiceContext serviceContext)
+			long groupId, String title, String target, long commercePriceListId,
+			String modifierType, BigDecimal modifierAmount, double priority,
+			boolean active, int displayDateMonth, int displayDateDay,
+			int displayDateYear, int displayDateHour, int displayDateMinute,
+			int expirationDateMonth, int expirationDateDay,
+			int expirationDateYear, int expirationDateHour,
+			int expirationDateMinute, boolean neverExpire,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommercePriceModifier addOrUpdateCommercePriceModifier(
+			String externalReferenceCode, long commercePriceModifierId,
+			long groupId, String title, String target, long commercePriceListId,
+			String modifierType, BigDecimal modifierAmount, double priority,
+			boolean active, int displayDateMonth, int displayDateDay,
+			int displayDateYear, int displayDateHour, int displayDateMinute,
+			int expirationDateMonth, int expirationDateDay,
+			int expirationDateYear, int expirationDateHour,
+			int expirationDateMinute, boolean neverExpire,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	public CommercePriceModifier deleteCommercePriceModifier(
@@ -140,18 +154,6 @@ public interface CommercePriceModifierService extends BaseService {
 		throws PortalException;
 
 	public CommercePriceModifier updateCommercePriceModifier(
-			long commercePriceModifierId, long groupId, String title,
-			String target, long commercePriceListId, String modifierType,
-			BigDecimal modifierAmount, double priority, boolean active,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, ServiceContext serviceContext)
-		throws PortalException;
-
-	public CommercePriceModifier upsertCommercePriceModifier(
-			String externalReferenceCode, long userId,
 			long commercePriceModifierId, long groupId, String title,
 			String target, long commercePriceListId, String modifierType,
 			BigDecimal modifierAmount, double priority, boolean active,

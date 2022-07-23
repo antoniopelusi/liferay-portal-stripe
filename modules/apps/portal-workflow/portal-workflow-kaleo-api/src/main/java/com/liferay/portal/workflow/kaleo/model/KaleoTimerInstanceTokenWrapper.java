@@ -212,6 +212,11 @@ public class KaleoTimerInstanceTokenWrapper
 		}
 	}
 
+	@Override
+	public KaleoTimerInstanceToken cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the blocking of this kaleo timer instance token.
 	 *

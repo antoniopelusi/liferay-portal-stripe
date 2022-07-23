@@ -285,6 +285,11 @@ public class MBMessageWrapper
 		return model.buildTreePath();
 	}
 
+	@Override
+	public MBMessage cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the allow pingbacks of this message-boards message.
 	 *

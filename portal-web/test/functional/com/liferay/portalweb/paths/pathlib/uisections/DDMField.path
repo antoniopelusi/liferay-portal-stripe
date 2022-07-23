@@ -2,50 +2,17 @@
 <head>
 <title>DDMField</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">DDMField</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>BOOLEAN</td>
 	<td>//div[@data-field-name='${key_fieldName}']//label[contains(.,'Boolean')]//input[@type='checkbox']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLOR_PICKER</td>
-	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLOR_PICKER_CUSTOM_COLOR_BUTTON</td>
-	<td>//div[contains(@class, 'clay-color-dropdown-menu')]//button[contains(@class, 'component-action')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLOR_PICKER_GENERAL_INPUT</td>
-	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div[contains(@class,'color-picker')]/div[contains(@class,'clay-color')]//input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLOR_PICKER_HEX_INPUT</td>
-	<td>//input[@data-testid='customHexInput']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLOR_PICKER_RGB_RED_INPUT</td>
-	<td>//input[@data-testId='rInput']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLOR_PICKER_RGB_GREEN_INPUT</td>
-	<td>//input[@data-testId='gInput']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>COLOR_PICKER_RGB_BLUE_INPUT</td>
-	<td>//input[@data-testId='bInput']</td>
 	<td></td>
 </tr>
 <tr>
@@ -54,13 +21,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>FIELD_DUPLICATE</td>
-	<td>//div[contains(@data-field-name,'${key_fieldName}')]/..//button[@*='Duplicate']</td>
+	<td>GEOLOCATION</td>
+	<td>//div[@data-fieldname='${key_fieldName}']//span[contains(.,'${key_fieldFieldLabel}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>GEOLOCATION</td>
-	<td>//div[@data-fieldname='${key_fieldName}']//span[contains(.,'${key_fieldFieldLabel}')]</td>
+	<td>GEOLOCATION_MAP</td>
+	<td>//div[contains(@class,'lfr-map')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GEOLOCATION_MAP_INPUT</td>
+	<td>//div[contains(@class,'field-group')]//div[contains(@id,'Container')]/following-sibling::input | //div[contains(@class,'lfr-map')]/following-sibling::input</td>
 	<td></td>
 </tr>
 <tr>
@@ -76,6 +48,11 @@
 <tr>
 	<td>MULTIPLE_LINES</td>
 	<td>//label[normalize-space(text())='${key_fieldFieldLabel}']//following-sibling::textarea</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MULTIPLE_LINES_2</td>
+	<td>xpath=(//label[normalize-space(text())='${key_fieldFieldLabel}']//following-sibling::textarea)[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -100,12 +77,17 @@
 </tr>
 <tr>
 	<td>SEPARATOR</td>
-	<td>//label[normalize-space(text())='${key_fieldFieldLabel}']/following-sibling::div[contains(@class,'separator')]</td>
+	<td>//label[normalize-space(text())='${key_fieldFieldLabel}']/following-sibling::hr[contains(@class,'separator')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TEXT_BOX</td>
 	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//textarea</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CUSTOM_TEXT_BOX</td>
+	<td>//div[contains(@class,'ddm-field')][${key_position}]//textarea</td>
 	<td></td>
 </tr>
 <tr>

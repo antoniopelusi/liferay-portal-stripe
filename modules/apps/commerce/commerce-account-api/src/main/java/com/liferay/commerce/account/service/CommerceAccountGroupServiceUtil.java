@@ -78,6 +78,23 @@ public class CommerceAccountGroupServiceUtil {
 			companyId, start, end, orderByComparator);
 	}
 
+	public static List<CommerceAccountGroup>
+			getCommerceAccountGroupsByCommerceAccountId(
+				long commerceAccountId, int start, int end)
+		throws PortalException {
+
+		return getService().getCommerceAccountGroupsByCommerceAccountId(
+			commerceAccountId, start, end);
+	}
+
+	public static int getCommerceAccountGroupsByCommerceAccountIdCount(
+			long commerceAccountId)
+		throws PortalException {
+
+		return getService().getCommerceAccountGroupsByCommerceAccountIdCount(
+			commerceAccountId);
+	}
+
 	public static int getCommerceAccountGroupsCount(long companyId)
 		throws PortalException {
 
@@ -93,13 +110,12 @@ public class CommerceAccountGroupServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
-	public static List<CommerceAccountGroup> searchCommerceAccountGroups(
+	public static List<CommerceAccountGroup> search(
 			long companyId, String keywords, int start, int end,
 			com.liferay.portal.kernel.search.Sort sort)
 		throws PortalException {
 
-		return getService().searchCommerceAccountGroups(
-			companyId, keywords, start, end, sort);
+		return getService().search(companyId, keywords, start, end, sort);
 	}
 
 	public static int searchCommerceAccountsGroupCount(

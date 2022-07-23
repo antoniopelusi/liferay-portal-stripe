@@ -15,7 +15,7 @@
 package com.liferay.portal.lpkg.deployer.internal;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 
 /**
  * @author Matthew Tambara
@@ -26,10 +26,10 @@ public class LPKGBatchInstallThreadLocal {
 		return _batchInstallInProcess.get();
 	}
 
-	public static SafeClosable setBatchInstallInProcess(
+	public static SafeCloseable setBatchInstallInProcess(
 		boolean batchInstallInProcess) {
 
-		return _batchInstallInProcess.setWithSafeClosable(
+		return _batchInstallInProcess.setWithSafeCloseable(
 			batchInstallInProcess);
 	}
 

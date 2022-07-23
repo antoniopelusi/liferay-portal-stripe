@@ -141,6 +141,11 @@ public class SyncDeviceWrapper
 		model.checkStatus();
 	}
 
+	@Override
+	public SyncDevice cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the build number of this sync device.
 	 *

@@ -29,15 +29,17 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -218,34 +220,6 @@ public class BrowserTrackerModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, BrowserTracker>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			BrowserTracker.class.getClassLoader(), BrowserTracker.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<BrowserTracker> constructor =
-				(Constructor<BrowserTracker>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<BrowserTracker, Object>>
@@ -453,6 +427,24 @@ public class BrowserTrackerModelImpl
 	}
 
 	@Override
+	public BrowserTracker cloneWithOriginalValues() {
+		BrowserTrackerImpl browserTrackerImpl = new BrowserTrackerImpl();
+
+		browserTrackerImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		browserTrackerImpl.setBrowserTrackerId(
+			this.<Long>getColumnOriginalValue("browserTrackerId"));
+		browserTrackerImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		browserTrackerImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		browserTrackerImpl.setBrowserKey(
+			this.<Long>getColumnOriginalValue("browserKey"));
+
+		return browserTrackerImpl;
+	}
+
+	@Override
 	public int compareTo(BrowserTracker browserTracker) {
 		long primaryKey = browserTracker.getPrimaryKey();
 
@@ -543,7 +535,7 @@ public class BrowserTrackerModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -554,9 +546,26 @@ public class BrowserTrackerModelImpl
 			Function<BrowserTracker, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((BrowserTracker)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((BrowserTracker)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -603,7 +612,9 @@ public class BrowserTrackerModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, BrowserTracker>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					BrowserTracker.class, ModelWrapper.class);
 
 	}
 

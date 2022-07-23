@@ -29,6 +29,7 @@ import com.liferay.commerce.product.type.virtual.service.CPDefinitionVirtualSett
 import com.liferay.commerce.service.CommerceOrderItemLocalService;
 import com.liferay.commerce.service.CommerceSubscriptionEntryLocalService;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
@@ -428,7 +429,7 @@ public class CommerceVirtualOrderItemLocalServiceImpl
 
 		if (fileEntryId > 0) {
 			try {
-				dlAppLocalService.getFileEntry(fileEntryId);
+				_dlAppLocalService.getFileEntry(fileEntryId);
 			}
 			catch (NoSuchFileEntryException noSuchFileEntryException) {
 				throw new CommerceVirtualOrderItemFileEntryIdException(
@@ -453,5 +454,8 @@ public class CommerceVirtualOrderItemLocalServiceImpl
 	@ServiceReference(type = CPDefinitionVirtualSettingLocalService.class)
 	private CPDefinitionVirtualSettingLocalService
 		_cpDefinitionVirtualSettingLocalService;
+
+	@ServiceReference(type = DLAppLocalService.class)
+	private DLAppLocalService _dlAppLocalService;
 
 }

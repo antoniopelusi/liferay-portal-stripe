@@ -1105,21 +1105,21 @@ public class CTSQLTransformerTest {
 		PrincipalThreadLocal.setName(userId);
 
 		try (Connection connection = DataAccess.getConnection();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				_getSQL(inputSQLFile, expectedOutputSQLFile, ctCollectionId))) {
 
-			preparedStatementUnsafeConsumer.accept(ps);
+			preparedStatementUnsafeConsumer.accept(preparedStatement);
 
-			try (ResultSet rs = ps.executeQuery()) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
 				for (UnsafeConsumer<ResultSet, Exception> unsafeConsumer :
 						resultSetUnsafeConsumers) {
 
-					Assert.assertTrue(rs.next());
+					Assert.assertTrue(resultSet.next());
 
-					unsafeConsumer.accept(rs);
+					unsafeConsumer.accept(resultSet);
 				}
 
-				Assert.assertFalse(rs.next());
+				Assert.assertFalse(resultSet.next());
 			}
 		}
 		finally {
@@ -1134,10 +1134,11 @@ public class CTSQLTransformerTest {
 		throws Exception {
 
 		try (Connection connection = DataAccess.getConnection();
-			PreparedStatement ps = connection.prepareStatement(sql);
-			ResultSet rs = ps.executeQuery()) {
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				sql);
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			unsafeConsumer.accept(rs);
+			unsafeConsumer.accept(resultSet);
 		}
 	}
 
@@ -1167,12 +1168,12 @@ public class CTSQLTransformerTest {
 		PrincipalThreadLocal.setName(userId);
 
 		try (Connection connection = DataAccess.getConnection();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				_getSQL(inputSQLFile, expectedOutputSQLFile, ctCollectionId))) {
 
-			preparedStatementUnsafeConsumer.accept(ps);
+			preparedStatementUnsafeConsumer.accept(preparedStatement);
 
-			Assert.assertEquals(1, ps.executeUpdate());
+			Assert.assertEquals(1, preparedStatement.executeUpdate());
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(originalCompanyId);

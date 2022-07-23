@@ -95,7 +95,7 @@ public class ManageLayoutProductNavigationControlMenuEntry
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.getClassNameId() == _portal.getClassNameId(Layout.class)) {
+		if (layout.isDraftLayout()) {
 			layout = _layoutLocalService.fetchLayout(layout.getClassPK());
 		}
 
@@ -108,7 +108,7 @@ public class ManageLayoutProductNavigationControlMenuEntry
 				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/layout_admin/edit_layout"
-		).build();
+		).buildPortletURL();
 
 		String currentURL = _portal.getCurrentURL(httpServletRequest);
 
@@ -151,7 +151,7 @@ public class ManageLayoutProductNavigationControlMenuEntry
 			successTag.setKey("layoutUpdated");
 			successTag.setMessage(
 				_language.get(
-					resourceBundle, "the-page-was-updated-succesfully"));
+					resourceBundle, "the-page-was-updated-successfully"));
 			successTag.setTargetNode("#controlMenuAlertsContainer");
 
 			values.put(
@@ -178,29 +178,19 @@ public class ManageLayoutProductNavigationControlMenuEntry
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
-
-		if (_isMasterLayout(layout)) {
-			return false;
-		}
-
-		if (isEmbeddedPersonalApplicationLayout(layout)) {
-			return false;
-		}
-
-		if (!(themeDisplay.isShowLayoutTemplatesIcon() ||
+		if (layout.isTypeControlPanel() || _isMasterLayout(layout) ||
+			isEmbeddedPersonalApplicationLayout(layout) ||
+			!(themeDisplay.isShowLayoutTemplatesIcon() ||
 			  themeDisplay.isShowPageSettingsIcon())) {
 
 			return false;
 		}
 
 		if (layout.isSystem() && layout.isTypeContent()) {
-			layout = _layoutLocalService.getLayout(layout.getClassPK());
-
 			return _layoutPermission.contains(
-				themeDisplay.getPermissionChecker(), layout, ActionKeys.UPDATE);
+				themeDisplay.getPermissionChecker(),
+				_layoutLocalService.getLayout(layout.getClassPK()),
+				ActionKeys.UPDATE);
 		}
 
 		return super.isShow(httpServletRequest);

@@ -18,12 +18,15 @@ import {
 	DELETE_ITEM,
 	DUPLICATE_ITEM,
 	MOVE_ITEM,
+	UPDATE_COLLECTION_DISPLAY_COLLECTION,
 	UPDATE_COL_SIZE,
 	UPDATE_FRAGMENT_ENTRY_LINK_CONFIGURATION,
 	UPDATE_ITEM_CONFIG,
 	UPDATE_LAYOUT_DATA,
+	UPDATE_PREVIEW_IMAGE,
 	UPDATE_ROW_COLUMNS,
 } from '../actions/types';
+import {setIn} from '../utils/setIn';
 
 export const INITIAL_STATE = {
 	items: {},
@@ -32,6 +35,7 @@ export const INITIAL_STATE = {
 export default function layoutDataReducer(layoutData = INITIAL_STATE, action) {
 	switch (action.type) {
 		case UPDATE_COL_SIZE:
+		case UPDATE_COLLECTION_DISPLAY_COLLECTION:
 		case UPDATE_LAYOUT_DATA:
 		case ADD_FRAGMENT_ENTRY_LINKS:
 		case ADD_ITEM:
@@ -42,6 +46,34 @@ export default function layoutDataReducer(layoutData = INITIAL_STATE, action) {
 		case UPDATE_ITEM_CONFIG:
 		case UPDATE_ROW_COLUMNS:
 			return action.layoutData;
+
+		case UPDATE_PREVIEW_IMAGE: {
+			const newItems = Object.fromEntries(
+				Object.entries(layoutData.items).map(([key, value]) => {
+					const newValue =
+						value.config?.styles?.backgroundImage?.classPK ===
+						action.fileEntryId
+							? setIn(
+									value,
+									[
+										'config',
+										'styles',
+										'backgroundImage',
+										'url',
+									],
+									action.previewURL
+							  )
+							: value;
+
+					return [key, newValue];
+				})
+			);
+
+			return {
+				...layoutData,
+				items: newItems,
+			};
+		}
 
 		default:
 			return layoutData;

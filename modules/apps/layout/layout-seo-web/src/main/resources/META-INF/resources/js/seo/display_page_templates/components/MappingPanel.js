@@ -12,13 +12,13 @@
  * details.
  */
 
-import ClayButton from '@clayui/button';
+import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import ClayForm, {ClayInput, ClaySelectWithOption} from '@clayui/form';
-import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
 import {PropTypes} from 'prop-types';
 import React, {useRef, useState} from 'react';
 
+import {FIELD_TYPES} from '../constants';
 import useOnClickOutside from '../hooks/useOnClickOutside';
 
 const noop = () => {};
@@ -32,21 +32,41 @@ function MappingPanel({
 	isActive = false,
 	name,
 	fields,
-	field,
+	field: initialField,
+	fieldType,
 	source,
-	onChange = noop,
+	onSelect = noop,
+	clearSelectionOnClose = false,
 }) {
 	const [isPanelOpen, setIsPanelOpen] = useState(false);
+	const [fieldValue, setFieldValue] = useState(
+		initialField?.key || fields[0].key
+	);
 	const wrapperRef = useRef(null);
 
-	useOnClickOutside([wrapperRef.current], () => setIsPanelOpen(false));
+	const handleOnClose = () => {
+		if (isPanelOpen) {
+			setIsPanelOpen(false);
+
+			if (clearSelectionOnClose) {
+				setFieldValue(fields[0].key);
+			}
+		}
+	};
+
+	useOnClickOutside([wrapperRef.current], handleOnClose);
 
 	const handleChangeField = (event) => {
 		const {value} = event.target;
-
 		const field = fields.find(({key}) => key === value);
 
-		onChange({
+		setFieldValue(field.key);
+	};
+
+	const handleOnSelect = () => {
+		const field = fields.find(({key}) => key === fieldValue);
+
+		onSelect({
 			field,
 			source,
 		});
@@ -54,8 +74,8 @@ function MappingPanel({
 
 	return (
 		<div className="dpt-mapping-panel-wrapper" ref={wrapperRef}>
-			<ClayButton
-				className={classNames('dpt-mapping-btn lfr-portal-tooltip', {
+			<ClayButtonWithIcon
+				className={classNames('dpt-mapping-btn', {
 					active: isActive,
 				})}
 				displayType="secondary"
@@ -63,10 +83,10 @@ function MappingPanel({
 				onClick={() => {
 					setIsPanelOpen((state) => !state);
 				}}
+				symbol="bolt"
 				title={Liferay.Language.get('map')}
-			>
-				<ClayIcon symbol="bolt" />
-			</ClayButton>
+			/>
+
 			{isPanelOpen && (
 				<div
 					className="dpt-mapping-panel popover popover-scrollable"
@@ -77,25 +97,39 @@ function MappingPanel({
 							<label htmlFor={`${name}_mappingSelectorSource`}>
 								{Liferay.Language.get('source')}
 							</label>
+
 							<ClayInput
 								id={`${name}_mappingSelectorSource`}
 								readOnly
 								value={source.initialValue}
 							/>
 						</ClayForm.Group>
+
 						<ClayForm.Group small>
 							<label
 								htmlFor={`${name}_mappingSelectorFieldSelect`}
 							>
 								{Liferay.Language.get('field')}
 							</label>
+
 							<ClaySelectWithOption
 								id={`${name}_mappingSelectorFieldSelect`}
 								onChange={handleChangeField}
 								options={fields.map(normalizeField)}
-								value={field.key}
+								value={fieldValue}
 							/>
 						</ClayForm.Group>
+
+						<ClayButton
+							block
+							disabled={initialField?.key === fieldValue}
+							displayType="primary"
+							onClick={handleOnSelect}
+						>
+							{fieldType === FIELD_TYPES.TEXT
+								? Liferay.Language.get('add-field')
+								: Liferay.Language.get('map-content')}
+						</ClayButton>
 					</div>
 				</div>
 			)}
@@ -104,10 +138,12 @@ function MappingPanel({
 }
 
 MappingPanel.propTypes = {
+	clearSelectionOnClose: PropTypes.bool,
 	field: PropTypes.shape({
 		key: PropTypes.string,
 		label: PropTypes.string,
-	}).isRequired,
+	}),
+	fieldType: PropTypes.string,
 	fields: PropTypes.arrayOf(
 		PropTypes.shape({
 			key: PropTypes.string,
@@ -116,6 +152,7 @@ MappingPanel.propTypes = {
 	).isRequired,
 	isActive: PropTypes.bool,
 	name: PropTypes.string.isRequired,
+	onSelect: PropTypes.func,
 	source: PropTypes.shape({
 		initialValue: PropTypes.string,
 	}).isRequired,

@@ -66,7 +66,7 @@ export default function SiteLanguageConfiguration({
 	);
 
 	const handleItemsChange = (items) => {
-		const [nextCurrentLanguages, nextAvailableLanguages] = items;
+		const [nextAvailableLanguages, nextCurrentLanguages] = items;
 
 		const removingDefaultLanguage = nextAvailableLanguages.some(
 			(language) => language.value === defaultLanguageId
@@ -108,8 +108,6 @@ export default function SiteLanguageConfiguration({
 
 	return (
 		<>
-			<h4>{Liferay.Language.get('language')}</h4>
-
 			<ClayRadioGroup
 				name={`${portletNamespace}TypeSettingsProperties--inheritLocales--`}
 				onSelectedValueChange={setInheritLocales}
@@ -131,10 +129,11 @@ export default function SiteLanguageConfiguration({
 			</ClayRadioGroup>
 
 			{inheritLocales === 'true' ? (
-				<div className="text-muted">
+				<div>
 					<h5 className="h4">
 						{Liferay.Language.get('default-language')}
 					</h5>
+
 					<p>{defaultLanguageLabel}</p>
 
 					<h5 className="h4">
@@ -176,7 +175,7 @@ export default function SiteLanguageConfiguration({
 						</ClayAlert>
 					)}
 
-					<h5 className="h4 mt-4">
+					<h5 className="h4 mt-4 sheet-subtitle">
 						{Liferay.Language.get('available-languages')}
 					</h5>
 
@@ -205,13 +204,13 @@ export default function SiteLanguageConfiguration({
 					/>
 
 					<ClayDualListBox
-						items={[currentLanguages, availableLanguages]}
+						items={[availableLanguages, currentLanguages]}
 						left={{
-							label: Liferay.Language.get('current'),
+							label: Liferay.Language.get('available'),
 						}}
 						onItemsChange={handleItemsChange}
 						right={{
-							label: Liferay.Language.get('available'),
+							label: Liferay.Language.get('current'),
 						}}
 					/>
 				</fieldset>

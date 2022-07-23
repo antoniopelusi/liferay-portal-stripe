@@ -35,12 +35,14 @@ import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.security.permission.DoAsUserThread;
 
+import java.util.Date;
 import java.util.Dictionary;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,18 +56,23 @@ public class DLAppServiceTestUtil {
 	protected static FileEntry addFileEntry(long groupId, long folderId)
 		throws Exception {
 
-		return addFileEntry(groupId, folderId, FILE_NAME);
+		return addFileEntry(
+			RandomTestUtil.randomString(), groupId, folderId, FILE_NAME,
+			FILE_NAME, null, null, null);
 	}
 
 	protected static FileEntry addFileEntry(
 			long groupId, long folderId, String fileName)
 		throws Exception {
 
-		return addFileEntry(groupId, folderId, fileName, fileName, null);
+		return addFileEntry(
+			RandomTestUtil.randomString(), groupId, folderId, fileName,
+			fileName, null, null, null);
 	}
 
 	protected static FileEntry addFileEntry(
-			long groupId, long folderId, String fileName, String title,
+			String externalReferenceCode, long groupId, long folderId,
+			String fileName, String title, Date expirationDate, Date reviewDate,
 			String[] assetTagNames)
 		throws Exception {
 
@@ -75,21 +82,24 @@ public class DLAppServiceTestUtil {
 		serviceContext.setAssetTagNames(assetTagNames);
 
 		return DLAppServiceUtil.addFileEntry(
-			groupId, folderId, fileName, ContentTypes.TEXT_PLAIN, title,
-			StringPool.BLANK, StringPool.BLANK,
-			BaseDLAppTestCase.CONTENT.getBytes(), serviceContext);
+			externalReferenceCode, groupId, folderId, fileName,
+			ContentTypes.TEXT_PLAIN, title, StringPool.BLANK, StringPool.BLANK,
+			StringPool.BLANK, BaseDLAppTestCase.CONTENT.getBytes(),
+			expirationDate, reviewDate, serviceContext);
 	}
 
 	protected static ConfigurationTemporarySwapper
 			getConfigurationTemporarySwapper(String key, Object value)
 		throws Exception {
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put(key, value);
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				key, value
+			).build();
 
 		return new ConfigurationTemporarySwapper(
-			DL_CONFIGURATION_PID, dictionary);
+			"com.liferay.document.library.configuration.DLConfiguration",
+			dictionary);
 	}
 
 	protected static AtomicInteger registerDLSyncEventProcessorMessageListener(
@@ -188,19 +198,16 @@ public class DLAppServiceTestUtil {
 
 	protected static FileEntry updateFileEntry(
 			long groupId, long fileEntryId, String fileName,
-			boolean majorVersion)
+			Date expirationDate, Date reviewDate, boolean majorVersion)
 		throws Exception {
 
 		return DLAppServiceUtil.updateFileEntry(
 			fileEntryId, fileName, ContentTypes.TEXT_PLAIN, fileName,
-			StringPool.BLANK, StringPool.BLANK,
+			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
 			DLVersionNumberIncrease.fromMajorVersion(majorVersion),
-			TestDataConstants.TEST_BYTE_ARRAY,
+			TestDataConstants.TEST_BYTE_ARRAY, expirationDate, reviewDate,
 			ServiceContextTestUtil.getServiceContext(groupId));
 	}
-
-	protected static final String DL_CONFIGURATION_PID =
-		"com.liferay.document.library.configuration.DLConfiguration";
 
 	protected static final String FILE_NAME = "Title.txt";
 

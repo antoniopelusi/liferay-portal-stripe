@@ -37,54 +37,62 @@ public class DDLRecordSetVersionUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBundler sb1 = new StringBundler(7);
-
-		sb1.append("select DDLRecordSet.*, TEMP_TABLE.structureVersionId ");
-		sb1.append("from DDLRecordSet inner join (select structureId, ");
-		sb1.append("max(structureVersionId) as structureVersionId from ");
-		sb1.append("DDMStructureVersion group by ");
-		sb1.append("DDMStructureVersion.structureId) TEMP_TABLE on ");
-		sb1.append("DDLRecordSet.DDMStructureId = TEMP_TABLE.structureId ");
-		sb1.append("where scope != 2");
-
-		StringBundler sb2 = new StringBundler(6);
-
-		sb2.append("insert into DDLRecordSetVersion (recordSetVersionId, ");
-		sb2.append("groupId, companyId, userId, userName, createDate, ");
-		sb2.append("recordSetId, DDMStructureVersionId, name, description, ");
-		sb2.append("settings_, version,  status, statusByUserId, ");
-		sb2.append("statusByUserName, statusDate) values (?, ?, ?, ?, ?, ?, ");
-		sb2.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDLRecordSet.*, TEMP_TABLE.structureVersionId ",
+					"from DDLRecordSet inner join (select structureId, ",
+					"max(structureVersionId) as structureVersionId from ",
+					"DDMStructureVersion group by ",
+					"DDMStructureVersion.structureId) TEMP_TABLE on ",
+					"DDLRecordSet.DDMStructureId = TEMP_TABLE.structureId ",
+					"where scope != 2"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb2.toString())) {
+					connection,
+					StringBundler.concat(
+						"insert into DDLRecordSetVersion (recordSetVersionId, ",
+						"groupId, companyId, userId, userName, createDate, ",
+						"recordSetId, DDMStructureVersionId, name, ",
+						"description, settings_, version,  status, ",
+						"statusByUserId, statusByUserName, statusDate) values ",
+						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))) {
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					ps2.setLong(1, _counterLocalService.increment());
-					ps2.setLong(2, rs.getLong("groupId"));
-					ps2.setLong(3, rs.getLong("companyId"));
-					ps2.setLong(4, rs.getLong("userId"));
-					ps2.setString(5, rs.getString("userName"));
-					ps2.setTimestamp(6, rs.getTimestamp("createDate"));
-					ps2.setLong(7, rs.getLong("recordSetId"));
-					ps2.setLong(8, rs.getLong("structureVersionId"));
-					ps2.setString(9, rs.getString("name"));
-					ps2.setString(10, rs.getString("description"));
-					ps2.setString(11, rs.getString("settings_"));
-					ps2.setString(12, DDLRecordSetConstants.VERSION_DEFAULT);
-					ps2.setInt(13, WorkflowConstants.STATUS_APPROVED);
-					ps2.setLong(14, rs.getLong("userId"));
-					ps2.setString(15, rs.getString("userName"));
-					ps2.setTimestamp(16, rs.getTimestamp("modifiedDate"));
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					preparedStatement2.setLong(
+						1, _counterLocalService.increment());
+					preparedStatement2.setLong(2, resultSet.getLong("groupId"));
+					preparedStatement2.setLong(
+						3, resultSet.getLong("companyId"));
+					preparedStatement2.setLong(4, resultSet.getLong("userId"));
+					preparedStatement2.setString(
+						5, resultSet.getString("userName"));
+					preparedStatement2.setTimestamp(
+						6, resultSet.getTimestamp("createDate"));
+					preparedStatement2.setLong(
+						7, resultSet.getLong("recordSetId"));
+					preparedStatement2.setLong(
+						8, resultSet.getLong("structureVersionId"));
+					preparedStatement2.setString(
+						9, resultSet.getString("name"));
+					preparedStatement2.setString(
+						10, resultSet.getString("description"));
+					preparedStatement2.setString(
+						11, resultSet.getString("settings_"));
+					preparedStatement2.setString(
+						12, DDLRecordSetConstants.VERSION_DEFAULT);
+					preparedStatement2.setInt(
+						13, WorkflowConstants.STATUS_APPROVED);
+					preparedStatement2.setLong(14, resultSet.getLong("userId"));
+					preparedStatement2.setString(
+						15, resultSet.getString("userName"));
+					preparedStatement2.setTimestamp(
+						16, resultSet.getTimestamp("modifiedDate"));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

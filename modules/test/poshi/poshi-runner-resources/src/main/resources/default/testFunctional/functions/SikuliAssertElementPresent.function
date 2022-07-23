@@ -1,5 +1,0 @@
-<definition default="sikuliAssertElementPresent">
-	<command name="sikuliAssertElementPresent">
-		<execute selenium="sikuliAssertElementPresent" />
-	</command>
-</definition>

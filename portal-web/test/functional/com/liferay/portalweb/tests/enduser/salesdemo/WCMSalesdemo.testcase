@@ -22,7 +22,7 @@ definition {
 
 			Site.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -34,12 +34,11 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "IFrame Page");
+		PagesAdmin.addPage(pageName = "IFrame Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "IFrame Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "IFrame Page");
@@ -54,9 +53,46 @@ definition {
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#IFRAME_PORTLET");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "Embedded#EMBEDDED_TEXT_UPDATED",
-			value1 = "updated");
+		AssertVisible(
+			key_title = "Yes",
+			locator1 = "Header#H1_TITLE");
+
+		SelectFrameTop();
+	}
+
+	@description = "This is a test for LPS-140253. View no private page in page administration."
+	@priority = "4"
+	test IFrameDemoFF {
+		property testray.component.names = "IFrame Portlet";
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(pageName = "IFrame Page");
+
+		PagesAdmin.configurePage(
+			columnName = "1 Column",
+			pageName = "IFrame Page",
+			sitePageType = "Widget Page");
+
+		Navigator.gotoPage(pageName = "IFrame Page");
+
+		Portlet.addPG(portletName = "IFrame");
+
+		Portlet.gotoPortletOptions(portletOption = "Configuration");
+
+		IFrame.addCP(sourceURL = "http://iscaliforniaonfire.com");
+
+		Navigator.gotoPage(pageName = "IFrame Page");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#IFRAME_PORTLET");
+
+		AssertVisible(
+			key_title = "Yes",
+			locator1 = "Header#H1_TITLE");
+
+		SelectFrameTop();
 	}
 
 	@priority = "4"
@@ -79,11 +115,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Test Page Name");
 
-		Content.addPG(
-			assetTitle = "DHS Title",
-			webContentContent = "DHS Content");
+		WidgetPages.addRecentContent(assetTitle = "DHS Title");
 
-		WebContent.viewPGViaWCD(
+		WebContentDisplayPortlet.viewContent(
 			webContentContent = "DHS Content",
 			webContentTitle = "DHS Title");
 
@@ -108,7 +142,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Test Page Name");
 
-		WebContent.viewNoEditWCViaWCD();
+		WebContentDisplayPortlet.viewCannotEditWC(webContentTitle = "DHS Title");
 
 		User.logoutAndLoginPG(
 			userLoginEmailAddress = "test@liferay.com",
@@ -116,7 +150,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Test Page Name");
 
-		WebContent.viewEditWCViaWCD(webContentTitle = "DHS Content");
+		WebContentDisplayPortlet.viewMenuItem(
+			menuItemList = "Edit Web Content",
+			webContentTitle = "DHS Content");
 
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",

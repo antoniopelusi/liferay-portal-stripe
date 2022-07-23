@@ -1,0 +1,16 @@
+{
+	"description": "Provide photography services",
+	"externalReferenceCode": "RAYCAT0015",
+	"name": "Photographers",
+	"taxonomyCategoryProperties": [
+		{
+			"key": "NAICS",
+			"value": "541922"
+		},
+		{
+			"key": "Segment",
+			"value": "Service"
+		}
+	],
+	"viewableBy": "Anyone"
+}

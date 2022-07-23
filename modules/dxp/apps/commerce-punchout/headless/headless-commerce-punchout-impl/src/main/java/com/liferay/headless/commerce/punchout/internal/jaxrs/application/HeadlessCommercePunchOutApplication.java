@@ -25,9 +25,10 @@ import org.osgi.service.component.annotations.Component;
  * @generated
  */
 @Component(
+	enabled = false,
 	property = {
 		"liferay.jackson=false",
-		"osgi.jaxrs.application.base=headless-commerce-punchout",
+		"osgi.jaxrs.application.base=/headless-commerce-punchout",
 		"osgi.jaxrs.extension.select=(osgi.jaxrs.name=Liferay.Vulcan)",
 		"osgi.jaxrs.name=Liferay.Headless.Commerce.PunchOut"
 	},

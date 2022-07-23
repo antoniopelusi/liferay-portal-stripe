@@ -44,7 +44,7 @@ import org.osgi.service.component.annotations.Modified;
 	service = MVCRenderCommand.class
 )
 public class EditOrganizationMVCRenderCommand
-	extends GetOrganizationMVCRenderCommand {
+	extends BaseOrganizationMVCRenderCommand {
 
 	@Override
 	public String render(

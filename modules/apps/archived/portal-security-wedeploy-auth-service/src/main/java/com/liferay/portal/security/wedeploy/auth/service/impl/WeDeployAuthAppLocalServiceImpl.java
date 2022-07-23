@@ -21,13 +21,14 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.Digester;
 import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.PwdGenerator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.security.wedeploy.auth.model.WeDeployAuthApp;
 import com.liferay.portal.security.wedeploy.auth.service.base.WeDeployAuthAppLocalServiceBaseImpl;
 
 import java.util.Date;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Supritha Sundaram
@@ -63,14 +64,12 @@ public class WeDeployAuthAppLocalServiceImpl
 		weDeployAuthApp.setName(name);
 		weDeployAuthApp.setRedirectURI(redirectURI);
 
-		String clientId = PortalUUIDUtil.generate();
+		String clientId = _portalUUID.generate();
 
 		weDeployAuthApp.setClientId(clientId);
-
-		String clientSecret = DigesterUtil.digestHex(
-			Digester.MD5, clientId, PwdGenerator.getPassword());
-
-		weDeployAuthApp.setClientSecret(clientSecret);
+		weDeployAuthApp.setClientSecret(
+			DigesterUtil.digestHex(
+				Digester.MD5, clientId, PwdGenerator.getPassword()));
 
 		weDeployAuthApp = weDeployAuthAppPersistence.update(weDeployAuthApp);
 
@@ -87,5 +86,8 @@ public class WeDeployAuthAppLocalServiceImpl
 
 		return weDeployAuthAppPersistence.fetchByRU_CI(redirectURI, clientId);
 	}
+
+	@Reference
+	private PortalUUID _portalUUID;
 
 }

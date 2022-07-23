@@ -129,13 +129,10 @@ public class InternetAddressUtil {
 
 		for (char c : addressString.toCharArray()) {
 			if ((c == CharPool.NEW_LINE) || (c == CharPool.RETURN)) {
-				StringBundler sb = new StringBundler(3);
-
-				sb.append("Email address ");
-				sb.append(addressString);
-				sb.append(" is invalid because it contains line breaks");
-
-				throw new AddressException(sb.toString());
+				throw new AddressException(
+					StringBundler.concat(
+						"Email address ", addressString,
+						" is invalid because it contains line breaks"));
 			}
 		}
 	}

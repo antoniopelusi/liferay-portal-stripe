@@ -34,7 +34,7 @@ public class InputAssetLinksTag extends AssetLinksTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class InputAssetLinksTag extends AssetLinksTag {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(systemException, systemException);
+					_log.debug(systemException);
 				}
 			}
 		}

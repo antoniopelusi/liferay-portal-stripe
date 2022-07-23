@@ -2,11 +2,13 @@
 <head>
 <title>ToggleSwitch</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">ToggleSwitch</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ACCOUNT_STATUS</td>
@@ -25,7 +27,12 @@
 </tr>
 <tr>
 	<td>ANY_TOGGLE_SWITCH</td>
-	<td>//label[contains(.,'${key_toggleSwitchLabel}')]//input</td>
+	<td>//label[(contains(.,'${key_toggleSwitchLabel}')) or (contains(@for,'${key_toggleSwitchLabel}'))]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_TOGGLE_SWITCH_IN_FIELDSET</td>
+	<td>//legend[normalize-space()='${key_fieldsetLabel}']//following-sibling::div//label[contains(.,'${key_fieldLabel}')]//input[contains(@type,'checkbox')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -39,13 +46,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>REQUIRED</td>
-	<td>xpath=(//div[contains(@class,'form-row')])[${key_rowNumber}]//input[@type='checkbox']</td>
+	<td>ENABLE_TOGGLE_SWITCH_VIA_SPAN</td>
+	<td>//*[contains(text(),"${key_toggleSwitch}")]//span[contains(@class,'toggle-switch')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>INHERIT_MOBILE_DEVICE_RULES_FROM_PAGE</td>
-	<td>//*[@id="mobileDeviceRulesContent"]/div/div[1]/label/span[1]/span/span</td>
+	<td>REQUIRED</td>
+	<td>xpath=(//div[contains(@class,'form-row')])[${key_rowNumber}]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,8 +66,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>USE_CUSTOM_TITLE</td>
-	<td>//label[contains(.,'Use Custom Title')]//input[@type='checkbox']</td>
+	<td>ENABLE_SPECIFIC_TOGGLE_SWITCH</td>
+	<td>//h4[contains(.,"${key_name}")]//span[contains(@id,'toggle-switch')]</td>
 	<td></td>
 </tr>
 </tbody>

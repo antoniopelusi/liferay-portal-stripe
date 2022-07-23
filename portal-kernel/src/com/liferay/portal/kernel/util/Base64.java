@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.util;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.io.ProtectedObjectInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
@@ -53,13 +54,13 @@ public class Base64 {
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream(32000);
 
-		try (ObjectOutputStream os = new ObjectOutputStream(
+		try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
 				unsyncByteArrayOutputStream)) {
 
-			os.writeObject(object);
+			objectOutputStream.writeObject(object);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return _encode(
@@ -120,7 +121,7 @@ public class Base64 {
 
 		int lastIndex = Math.min(raw.length, offset + length);
 
-		StringBuilder sb = new StringBuilder(
+		StringBundler sb = new StringBundler(
 			(((lastIndex - offset) / 3) + 1) * 4);
 
 		for (int i = offset; i < lastIndex; i += 3) {
@@ -280,7 +281,7 @@ public class Base64 {
 		}
 		catch (Exception exception) {
 			if (!silent) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 

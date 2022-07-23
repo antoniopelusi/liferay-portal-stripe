@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import InstanceListPage from '../../../src/main/resources/META-INF/resources/js/components/instance-list-page/InstanceListPage.es';
@@ -47,39 +47,45 @@ const routeParams = {
 	sort: 'overdueInstanceCount%3Adesc',
 };
 
-describe('The instance list card should', () => {
-	const clientMock = {
-		get: jest
-			.fn()
-			.mockResolvedValue({data: {items, totalCount: items.length + 1}}),
-		request: jest
-			.fn()
-			.mockResolvedValue({data: {items, totalCount: items.length + 1}}),
-	};
-	let container, getByText;
+fetch.mockImplementation(async () => ({
+	json: async () => ({items, totalCount: items.length + 1}),
+	ok: true,
+	text: async () => ({items, totalCount: items.length + 1}),
+}));
 
-	beforeAll(() => {
+describe('The instance list card should', () => {
+	let container;
+	let findByText;
+	let getByText;
+
+	beforeAll(async () => {
 		const renderResult = render(
-			<MockRouter client={clientMock}>
+			<MockRouter>
 				<InstanceListPage routeParams={routeParams} />
 			</MockRouter>,
 			{wrapper: ToasterProvider}
 		);
 
 		container = renderResult.container;
+		findByText = renderResult.findByText;
 		getByText = renderResult.getByText;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Be rendered with "sla-status", "process-status", "process-step" and "assignee" filters', () => {
+	it('Be rendered with "sla-status", "process-status", "completion-period", "process-step" and "assignee" filters', () => {
 		const filters = container.querySelectorAll('.dropdown-toggle');
 
 		expect(filters[0]).toHaveTextContent('sla-status');
 		expect(filters[1]).toHaveTextContent('process-status');
-		expect(filters[2]).toHaveTextContent('process-step');
-		expect(filters[3]).toHaveTextContent('assignee');
+		expect(filters[2]).toHaveTextContent('completion-period');
+		expect(filters[3]).toHaveTextContent('process-step');
+		expect(filters[4]).toHaveTextContent('assignee');
 	});
 
-	test('Select all page by clicking on check all button', () => {
+	it('Select all page by clicking on check all button', async () => {
 		const checkAllButton = container.querySelectorAll(
 			'input.custom-control-input'
 		)[0];
@@ -87,10 +93,10 @@ describe('The instance list card should', () => {
 			'.table-first-element-group'
 		);
 
-		const instanceCheckbox1 = firstTableElements[0].querySelector(
+		const instanceCheckbox1 = firstTableElements[0]?.querySelector(
 			'input.custom-control-input'
 		);
-		const instanceCheckbox2 = firstTableElements[1].querySelector(
+		const instanceCheckbox2 = firstTableElements[1]?.querySelector(
 			'input.custom-control-input'
 		);
 
@@ -99,6 +105,10 @@ describe('The instance list card should', () => {
 		expect(instanceCheckbox2.checked).toEqual(false);
 
 		fireEvent.click(checkAllButton);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		const label = getByText('x-of-x-selected');
 
@@ -109,12 +119,16 @@ describe('The instance list card should', () => {
 
 		fireEvent.click(checkAllButton);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(checkAllButton.checked).toEqual(false);
 		expect(instanceCheckbox1.checked).toEqual(false);
 		expect(instanceCheckbox2.checked).toEqual(false);
 	});
 
-	test('Select all instances by clicking on select all button', () => {
+	it('Select all instances by clicking on select all button', async () => {
 		const checkAllButton = container.querySelectorAll(
 			'input.custom-control-input'
 		)[0];
@@ -122,10 +136,10 @@ describe('The instance list card should', () => {
 			'.table-first-element-group'
 		);
 
-		const instanceCheckbox1 = firstTableElements[0].querySelector(
+		const instanceCheckbox1 = firstTableElements[0]?.querySelector(
 			'input.custom-control-input'
 		);
-		const instanceCheckbox2 = firstTableElements[1].querySelector(
+		const instanceCheckbox2 = firstTableElements[1]?.querySelector(
 			'input.custom-control-input'
 		);
 
@@ -135,6 +149,10 @@ describe('The instance list card should', () => {
 
 		fireEvent.click(instanceCheckbox1);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(checkAllButton.checked).toEqual(false);
 		expect(instanceCheckbox1.checked).toEqual(true);
 		expect(instanceCheckbox2.checked).toEqual(false);
@@ -142,6 +160,10 @@ describe('The instance list card should', () => {
 		const clearButton = getByText('clear');
 
 		fireEvent.click(clearButton);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(checkAllButton.checked).toEqual(false);
 		expect(instanceCheckbox1.checked).toEqual(false);
@@ -160,8 +182,18 @@ describe('The instance list card should', () => {
 
 		fireEvent.click(selectAllButton);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		label = getByText('all-selected');
 
 		expect(label).toBeTruthy();
+	});
+
+	xit('Show last metrics calculated info', async () => {
+		const metricsCalculated = await findByText('metrics-calculated');
+
+		expect(metricsCalculated).toBeTruthy();
 	});
 });

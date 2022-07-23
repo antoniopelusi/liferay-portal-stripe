@@ -42,6 +42,7 @@ definition {
 
 	@description = "Fragments are published automatically on any publishing process."
 	@priority = "5"
+	@uitest
 	test AssertFragmentsAlwaysPublished {
 		property portal.acceptance = "true";
 
@@ -89,6 +90,7 @@ definition {
 
 	@description = "Page Fragments administration is only be accessible in staging view."
 	@priority = "5"
+	@uitest
 	test AssertFragmentsAreOnlyEditableInStagingView {
 		property portal.acceptance = "true";
 
@@ -120,37 +122,170 @@ definition {
 	@description = "This is a test for LPS-114145. The changes are saved automatically in fragment editor before publish in Staging site."
 	@priority = "3"
 	test ViewAutoSavedBeforePublishingComponentInStaging {
-		JSONFragment.addFragmentCollection(
-			groupKey = "Test Site Name-staging",
-			name = "Collection Name",
-			site = "false");
+		task ("Add a fragment collection") {
+			JSONFragment.addFragmentCollection(
+				groupKey = "Test Site Name-staging",
+				name = "Collection Name",
+				site = "false");
+		}
 
-		JSONFragment.addSection(
-			collectionName = "Collection Name",
-			fragmentStatus = "Approved",
-			groupKey = "Test Site Name-staging",
-			name = "Fragment Name",
-			site = "false");
+		task ("Add a draft fragment") {
+			JSONFragment.addSection(
+				collectionName = "Collection Name",
+				fragmentStatus = "Draft",
+				groupKey = "Test Site Name-staging",
+				name = "Fragment Name",
+				site = "false");
 
-		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name-staging");
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name-staging");
 
-		FragmentsAdminNavigator.gotoEntryEllipsisItem(
-			entry = "Fragment Name",
-			item = "Edit");
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Fragment Name",
+				item = "Edit");
 
-		FragmentsEditor.typeHtmlEditor(content = '''<div class="fragment_1">Fragment Name</div>''');
+			FragmentsEditor.typeHtmlEditor(content = '''<div class="fragment_1">Fragment Name</div>''');
 
-		FragmentsEditor.waitForAutoSave();
+			FragmentsEditor.waitForAutoSave();
 
-		Navigator.gotoBack();
+			Navigator.gotoBack();
+		}
 
-		FragmentsAdminNavigator.gotoEntryEllipsisItem(
-			entry = "Fragment Name",
-			item = "Edit");
+		task ("View the draft is autosaved") {
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Fragment Name",
+				item = "Edit");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "FragmentEditor#HTML_EDITOR_CONTENT",
-			value1 = '''<div class="fragment_1">Fragment Name</div>''');
+			var htmlContent = '''<div class="fragment_1">Fragment Name</div>''';
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "FragmentEditor#HTML_EDITOR_CONTENT",
+				value1 = "${htmlContent}");
+		}
+	}
+
+	@description = "This is a test for LPS-129852. View the changes of fragment on content page still persist in staging and live site after overwrite the fragment."
+	@priority = "4"
+	test ViewChangesOfFragmentOnContentPagePersistInStagingAndLiveSiteAfterOverwriteTheFragment {
+		property test.name.skip.portal.instance = "FragmentsWithStaging#ViewChangesOfFragmentOnContentPagePersistInStagingAndLiveSiteAfterOverwriteTheFragment";
+
+		task ("Enable Propagate Fragment Changes Automatically in System Settings") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "System Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Page Fragments",
+				configurationName = "Page Fragments",
+				configurationScope = "Virtual Instance Scope");
+
+			FormFields.enableCheckbox(fieldName = "Propagate Fragment Changes Automatically");
+
+			SystemSettings.saveConfiguration();
+		}
+
+		task ("Add a fragment collection to the staging site via JSON") {
+			JSONFragment.addFragmentCollection(
+				groupKey = "Test Site Name-staging",
+				name = "Collection Name",
+				site = "false");
+		}
+
+		task ("Copy the Tabs fragment to new collection") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name-staging");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Basic Components");
+
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Tabs",
+				item = "Copy To");
+
+			FragmentsAdmin.selectCollection(collectionName = "Collection Name");
+		}
+
+		task ("Export the new collection") {
+			FragmentsAdmin.exportCollection(collectionName = "Collection Name");
+		}
+
+		task ("Add a content page to the staging site via JSON") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Navigate to the content page at edit mode") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Add a Tabs (Copy) to page") {
+			PageEditor.addFragment(
+				collectionName = "Collection Name",
+				fragmentName = "Tabs (Copy)");
+		}
+
+		task ("Edit inline text of each tab") {
+			for (var n : list "1,2,3,4") {
+				PageEditor.editFragmentText(
+					className = "tabs",
+					fragmentName = "Tabs (Copy)",
+					id = "title${n}",
+					text = "Test ${n}");
+			}
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Publish to Live via page") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			Staging.gotoPublishToLive();
+
+			Staging.publishToLive();
+		}
+
+		task ("View edited inline text of tabs at view mode in live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			for (var n : list "1,2,3,4") {
+				ContentPages.viewFragmentText(
+					fragmentName = "tabs",
+					id = "title${n}",
+					text = "Test ${n}");
+			}
+		}
+
+		task ("Import the fragment collection") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name-staging");
+
+			FragmentsAdmin.importCollectionFromTempFolder();
+		}
+
+		task ("Publish to Live via Staging admin") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("View edited inline text of tabs at view mode in live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			for (var n : list "1,2,3,4") {
+				ContentPages.viewFragmentText(
+					fragmentName = "tabs",
+					id = "title${n}",
+					text = "Test ${n}");
+			}
+		}
 	}
 
 }

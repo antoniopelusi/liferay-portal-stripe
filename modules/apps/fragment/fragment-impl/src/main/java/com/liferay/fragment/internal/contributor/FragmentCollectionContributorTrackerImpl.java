@@ -18,6 +18,7 @@ import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributor;
 import com.liferay.fragment.contributor.FragmentCollectionContributorRegistration;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
+import com.liferay.fragment.model.FragmentComposition;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
@@ -30,13 +31,12 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.resource.bundle.AggregateResourceBundleLoader;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -70,17 +70,6 @@ public class FragmentCollectionContributorTrackerImpl
 		return _serviceTrackerMap.getService(fragmentCollectionKey);
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by #getFragmentEntries
-	 */
-	@Deprecated
-	@Override
-	public Map<String, FragmentEntry>
-		getFragmentCollectionContributorEntries() {
-
-		return getFragmentEntries();
-	}
-
 	@Override
 	public List<FragmentCollectionContributor>
 		getFragmentCollectionContributors() {
@@ -99,6 +88,16 @@ public class FragmentCollectionContributorTrackerImpl
 
 				return false;
 			});
+	}
+
+	@Override
+	public FragmentComposition getFragmentComposition(
+		String fragmentCompositionKey) {
+
+		Map<String, FragmentComposition> fragmentCompositionsMap =
+			_getFragmentCompositions();
+
+		return fragmentCompositionsMap.get(fragmentCompositionKey);
 	}
 
 	@Override
@@ -194,6 +193,44 @@ public class FragmentCollectionContributorTrackerImpl
 
 	@Reference
 	protected FragmentEntryValidator fragmentEntryValidator;
+
+	private synchronized Map<String, FragmentComposition>
+		_getFragmentCompositions() {
+
+		Map<String, FragmentComposition> fragmentCompositions =
+			_fragmentCompositions;
+
+		if (fragmentCompositions == null) {
+			fragmentCompositions = new HashMap<>();
+
+			for (FragmentCollectionContributor fragmentCollectionContributor :
+					_serviceTrackerMap.values()) {
+
+				fragmentCompositions.putAll(
+					_getFragmentCompositions(fragmentCollectionContributor));
+			}
+
+			_fragmentCompositions = fragmentCompositions;
+		}
+
+		return new HashMap<>(fragmentCompositions);
+	}
+
+	private Map<String, FragmentComposition> _getFragmentCompositions(
+		FragmentCollectionContributor fragmentCollectionContributor) {
+
+		Map<String, FragmentComposition> fragmentCompositions = new HashMap<>();
+
+		for (FragmentComposition fragmentComposition :
+				fragmentCollectionContributor.getFragmentCompositions()) {
+
+			fragmentCompositions.put(
+				fragmentComposition.getFragmentCompositionKey(),
+				fragmentComposition);
+		}
+
+		return fragmentCompositions;
+	}
 
 	private synchronized Map<String, FragmentEntry> _getFragmentEntries() {
 		Map<String, FragmentEntry> fragmentEntries = _fragmentEntries;
@@ -310,6 +347,8 @@ public class FragmentCollectionContributorTrackerImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		FragmentCollectionContributorTrackerImpl.class);
 
+	private volatile Map<String, FragmentComposition> _fragmentCompositions =
+		new ConcurrentHashMap<>();
 	private volatile Map<String, FragmentEntry> _fragmentEntries =
 		new ConcurrentHashMap<>();
 
@@ -336,6 +375,13 @@ public class FragmentCollectionContributorTrackerImpl
 			FragmentCollectionContributor fragmentCollectionContributor =
 				_bundleContext.getService(serviceReference);
 
+			if (_fragmentCompositions == null) {
+				_fragmentCompositions = new ConcurrentHashMap<>();
+			}
+
+			_fragmentCompositions.putAll(
+				_getFragmentCompositions(fragmentCollectionContributor));
+
 			if (_fragmentEntries == null) {
 				_fragmentEntries = new ConcurrentHashMap<>();
 			}
@@ -343,17 +389,14 @@ public class FragmentCollectionContributorTrackerImpl
 			_fragmentEntries.putAll(
 				_getFragmentEntries(fragmentCollectionContributor));
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put(
-				"fragment.collection.key",
-				serviceReference.getProperty("fragment.collection.key"));
-
 			_bundleContext.registerService(
 				FragmentCollectionContributorRegistration.class,
 				new FragmentCollectionContributorRegistration() {
 				},
-				properties);
+				HashMapDictionaryBuilder.<String, Object>put(
+					"fragment.collection.key",
+					serviceReference.getProperty("fragment.collection.key")
+				).build());
 
 			return fragmentCollectionContributor;
 		}
@@ -369,7 +412,18 @@ public class FragmentCollectionContributorTrackerImpl
 			ServiceReference<FragmentCollectionContributor> serviceReference,
 			FragmentCollectionContributor fragmentCollectionContributor) {
 
-			_fragmentEntries = null;
+			for (FragmentComposition fragmentComposition :
+					fragmentCollectionContributor.getFragmentCompositions()) {
+
+				_fragmentCompositions.remove(
+					fragmentComposition.getFragmentCompositionKey());
+			}
+
+			for (FragmentEntry fragmentEntry :
+					fragmentCollectionContributor.getFragmentEntries()) {
+
+				_fragmentEntries.remove(fragmentEntry.getFragmentEntryKey());
+			}
 
 			_bundleContext.ungetService(serviceReference);
 		}

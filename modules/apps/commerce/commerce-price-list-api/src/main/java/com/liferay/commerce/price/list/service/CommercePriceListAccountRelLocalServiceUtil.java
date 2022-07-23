@@ -63,12 +63,14 @@ public class CommercePriceListAccountRelLocalServiceUtil {
 	}
 
 	public static CommercePriceListAccountRel addCommercePriceListAccountRel(
-			long commercePriceListId, long commerceAccountId, int order,
+			long userId, long commercePriceListId, long commerceAccountId,
+			int order,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addCommercePriceListAccountRel(
-			commercePriceListId, commerceAccountId, order, serviceContext);
+			userId, commercePriceListId, commerceAccountId, order,
+			serviceContext);
 	}
 
 	/**
@@ -159,6 +161,10 @@ public class CommercePriceListAccountRelLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {

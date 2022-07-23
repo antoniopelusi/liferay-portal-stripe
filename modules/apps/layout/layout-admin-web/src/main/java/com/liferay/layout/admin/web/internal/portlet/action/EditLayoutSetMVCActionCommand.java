@@ -71,20 +71,49 @@ public class EditLayoutSetMVCActionCommand extends BaseMVCActionCommand {
 
 		LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(layoutSetId);
 
-		updateLogo(actionRequest, liveGroupId, stagingGroupId, privateLayout);
+		_updateLogo(actionRequest, liveGroupId, stagingGroupId, privateLayout);
 
 		updateLookAndFeel(
 			actionRequest, themeDisplay.getCompanyId(), liveGroupId,
 			stagingGroupId, privateLayout, layoutSet.getSettingsProperties());
 
-		updateMergePages(actionRequest, liveGroupId);
+		_updateMergePages(actionRequest, liveGroupId);
 
-		updateSettings(
+		_updateSettings(
 			actionRequest, liveGroupId, stagingGroupId, privateLayout,
 			layoutSet.getSettingsProperties());
 	}
 
-	protected void updateLogo(
+	protected void updateLookAndFeel(
+			ActionRequest actionRequest, long companyId, long liveGroupId,
+			long stagingGroupId, boolean privateLayout,
+			UnicodeProperties typeSettingsUnicodeProperties)
+		throws Exception {
+
+		long groupId = liveGroupId;
+
+		if (stagingGroupId > 0) {
+			groupId = stagingGroupId;
+		}
+
+		_updateLookAndFeel(
+			actionRequest, companyId, groupId, privateLayout,
+			typeSettingsUnicodeProperties);
+
+		if (privateLayout) {
+			return;
+		}
+
+		Group group = _groupLocalService.getGroup(groupId);
+
+		if (!group.hasPrivateLayouts()) {
+			_updateLookAndFeel(
+				actionRequest, companyId, groupId, true,
+				typeSettingsUnicodeProperties);
+		}
+	}
+
+	private void _updateLogo(
 			ActionRequest actionRequest, long liveGroupId, long stagingGroupId,
 			boolean privateLayout)
 		throws Exception {
@@ -111,9 +140,9 @@ public class EditLayoutSetMVCActionCommand extends BaseMVCActionCommand {
 			groupId, privateLayout, !deleteLogo, logoBytes);
 	}
 
-	protected void updateLookAndFeel(
-			ActionRequest actionRequest, long companyId, long liveGroupId,
-			long stagingGroupId, boolean privateLayout,
+	private void _updateLookAndFeel(
+			ActionRequest actionRequest, long companyId, long groupId,
+			boolean privateLayout,
 			UnicodeProperties typeSettingsUnicodeProperties)
 		throws Exception {
 
@@ -137,19 +166,13 @@ public class EditLayoutSetMVCActionCommand extends BaseMVCActionCommand {
 					device, deviceThemeId, false);
 			}
 
-			long groupId = liveGroupId;
-
-			if (stagingGroupId > 0) {
-				groupId = stagingGroupId;
-			}
-
 			_layoutSetService.updateLookAndFeel(
 				groupId, privateLayout, deviceThemeId, deviceColorSchemeId,
 				deviceCss);
 		}
 	}
 
-	protected void updateMergePages(
+	private void _updateMergePages(
 			ActionRequest actionRequest, long liveGroupId)
 		throws Exception {
 
@@ -167,7 +190,7 @@ public class EditLayoutSetMVCActionCommand extends BaseMVCActionCommand {
 		_groupService.updateGroup(liveGroupId, liveGroup.getTypeSettings());
 	}
 
-	protected void updateSettings(
+	private void _updateSettings(
 			ActionRequest actionRequest, long liveGroupId, long stagingGroupId,
 			boolean privateLayout, UnicodeProperties settingsUnicodeProperties)
 		throws Exception {

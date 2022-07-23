@@ -30,6 +30,10 @@ public class SegmentsEntryRelLocalServiceWrapper
 	implements SegmentsEntryRelLocalService,
 			   ServiceWrapper<SegmentsEntryRelLocalService> {
 
+	public SegmentsEntryRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SegmentsEntryRelLocalServiceWrapper(
 		SegmentsEntryRelLocalService segmentsEntryRelLocalService) {
 
@@ -179,6 +183,13 @@ public class SegmentsEntryRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _segmentsEntryRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _segmentsEntryRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

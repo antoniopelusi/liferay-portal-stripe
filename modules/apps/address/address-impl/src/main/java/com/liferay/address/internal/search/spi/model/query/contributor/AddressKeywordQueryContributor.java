@@ -49,7 +49,13 @@ public class AddressKeywordQueryContributor implements KeywordQueryContributor {
 			"countryName", false);
 		queryHelper.addSearchTerm(
 			booleanQuery, keywordQueryContributorHelper.getSearchContext(),
+			"description", false);
+		queryHelper.addSearchTerm(
+			booleanQuery, keywordQueryContributorHelper.getSearchContext(),
 			"regionName", false);
+		queryHelper.addSearchTerm(
+			booleanQuery, keywordQueryContributorHelper.getSearchContext(),
+			"street1", false);
 		queryHelper.addSearchTerm(
 			booleanQuery, keywordQueryContributorHelper.getSearchContext(),
 			"zip", false);

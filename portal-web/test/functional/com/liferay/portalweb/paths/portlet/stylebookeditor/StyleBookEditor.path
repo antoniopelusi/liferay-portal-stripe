@@ -2,12 +2,20 @@
 <head>
 <title>StyleBookEditor</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">StyleBookEditor</td></tr>
 </thead>
+
 <tbody>
+<!--PAGE_DESIGN_OPTIONS-->
+<tr>
+	<td>STYLE_BOOK_CARD_SELECTED</td>
+	<td>//li[contains(@class,'active')]//div[contains(@class,'card')][contains(.,'${key_card}')] | //div[contains(@class,'card')][contains(@class,'active')][contains(.,'${key_styleBookName}')]</td>
+	<td></td>
+</tr>
 <!--PAGE_PREVIEW-->
 <tr>
 	<td>CONTRIBUTED_FRAGMENT_INLINE_CONTENT</td>
@@ -16,12 +24,12 @@
 </tr>
 <tr>
 	<td>CURSOR_NOT_ALLOWED</td>
-	<td>//div[contains(@style,'cursor: not-allowed')]</td>
+	<td>//body/div[contains(@style,'cursor: not-allowed')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>NO_PAGE_MESSAGE</td>
-	<td>//div[contains(@class,'no-page-message')][normalize-space(text())='You cannot preview the style book because there are no pages in this site.']</td>
+	<td>EMPTY_MESSAGE</td>
+	<td>//div[contains(@class,'empty-state-text')][normalize-space(text())='You cannot preview the style book because your site is empty.']</td>
 	<td></td>
 </tr>
 <tr>
@@ -30,19 +38,24 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PAGE_PREVIEW_INFO_BAR_TOGGLE</td>
-	<td>//div[contains(@class,'page-preview-info-bar')]//button[contains(@class,'dropdown-toggle')]</td>
+	<td>PREVIEW_SELECTOR</td>
+	<td>xpath=(//button[contains(@class,'style-book-editor__preview-selector')])[${index}]</td>
 	<td></td>
 </tr>
 <!--SIDEBAR-->
 <tr>
 	<td>DRAFT_SAVED_MESSAGE</td>
-	<td>//div[contains(@class,'editor__toolbar')]//span[contains(@class,'editor__status')][normalize-space(text())='Draft Saved']</td>
+	<td>//div[contains(@class,'toolbar')]//span[contains(@class,'editor__status')][normalize-space(text())='Saved']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FORM_CONTROL_SELECT_BUTTON</td>
-	<td>//button[contains(@class,'form-control-select')]</td>
+	<td>//div[contains(@class,'sidebar')]//button[contains(@class,'form-control-select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MANAGEMENT_BAR</td>
+	<td>//div[contains(@class,'style-book-editor')]//div[contains(@class,'management-bar')]</td>
 	<td></td>
 </tr>
 <tr>

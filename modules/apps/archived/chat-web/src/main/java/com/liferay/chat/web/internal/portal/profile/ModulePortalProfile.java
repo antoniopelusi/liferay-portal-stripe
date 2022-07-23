@@ -22,8 +22,6 @@ import com.liferay.portal.profile.BaseDSModulePortalProfile;
 import com.liferay.portal.profile.PortalProfile;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -37,13 +35,11 @@ public class ModulePortalProfile extends BaseDSModulePortalProfile {
 
 	@Activate
 	protected void activate(ComponentContext componentContext) {
-		Set<String> supportedPortalProfileNames = new HashSet<>(
+		init(
+			componentContext,
 			Arrays.asList(
 				PortalProfile.PORTAL_PROFILE_NAME_CE,
-				PortalProfile.PORTAL_PROFILE_NAME_DXP));
-
-		init(
-			componentContext, supportedPortalProfileNames,
+				PortalProfile.PORTAL_PROFILE_NAME_DXP),
 			BuddyFinderUtil.class.getName(),
 			ChatFriendlyURLMapper.class.getName(), ChatPortlet.class.getName(),
 			ChatWebUpgrade.class.getName());

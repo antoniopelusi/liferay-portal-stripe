@@ -57,19 +57,9 @@ public class MissingFilter extends BaseFilter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{(");
-		sb.append(_field);
-		sb.append(", _exists=");
-		sb.append(_exists);
-		sb.append(", _nullValue=");
-		sb.append(_nullValue);
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(", _field, ", _exists=", _exists, ", _nullValue=", _nullValue,
+			"), ", super.toString(), "}");
 	}
 
 	private Boolean _exists;

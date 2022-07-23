@@ -60,9 +60,18 @@ public class OpenAPIUtil {
 
 	public static String formatSingular(String s) {
 		if (s.endsWith("ases")) {
+
+			// bases to base
+
 			s = s.substring(0, s.length() - 1);
 		}
-		else if (s.endsWith("ses")) {
+		else if (s.endsWith("auses")) {
+
+			// clauses to clause
+
+			s = s.substring(0, s.length() - 1);
+		}
+		else if (s.endsWith("ses") || s.endsWith("xes")) {
 			s = s.substring(0, s.length() - 2);
 		}
 		else if (s.endsWith("ies")) {

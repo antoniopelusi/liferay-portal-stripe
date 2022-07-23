@@ -114,15 +114,9 @@
 		};
 
 		Liferay.Data.notices = [
-			<c:if test="<%= permissionChecker.isOmniadmin() && PortalUtil.isUpdateAvailable() %>">
-				{
-					message: '<a class="update-available" href="<%= themeDisplay.getURLUpdateManager() %>"><liferay-ui:message key="updates-are-available-for-liferay" /></a>'
-				},
-			</c:if>
-
 			<c:if test="<%= ShutdownUtil.isInProcess() %>">
 				{
-					title: '<liferay-ui:message key="maintenance-alert" /> <span class="notice-date"><%= FastDateFormatFactoryUtil.getTime(locale).format(Time.getDate(CalendarFactoryUtil.getCalendar(timeZone))) %> <%= timeZone.getDisplayName(false, TimeZone.SHORT, locale) %></span>',
+					title: '<liferay-ui:message key="maintenance-alert" /> <span class="mx-2"><%= FastDateFormatFactoryUtil.getTime(locale).format(Time.getDate(CalendarFactoryUtil.getCalendar(timeZone))) %> <%= timeZone.getDisplayName(false, TimeZone.SHORT, locale) %></span>',
 					message: '<liferay-ui:message arguments="<%= String.valueOf((ShutdownUtil.getInProcess() / Time.MINUTE) + 1) %>" key="the-portal-will-shutdown-for-maintenance-in-x-minutes" translateArguments="<%= false %>" />'
 						<c:if test="<%= Validator.isNotNull(ShutdownUtil.getMessage()) %>">
 							+ '<span class="custom-shutdown-message"><%= HtmlUtil.escape(ShutdownUtil.getMessage()) %></span>'
@@ -142,7 +136,7 @@
 				String selLanguageId = LocaleUtil.toLanguageId(curLocale);
 			%>
 
-				available['<%= selLanguageId %>'] = '<%= curLocale.getDisplayName(locale) %>';
+				available['<%= selLanguageId %>'] = '<%= HtmlUtil.escapeJS(curLocale.getDisplayName(locale)) %>';
 				direction['<%= selLanguageId %>'] = '<%= LanguageUtil.get(curLocale, "lang.dir") %>';
 
 			<%
@@ -166,7 +160,6 @@
 
 		Liferay.PropsValues = {
 			JAVASCRIPT_SINGLE_PAGE_APPLICATION_TIMEOUT: <%= PrefsPropsUtil.getInteger(themeDisplay.getCompanyId(), PropsKeys.JAVASCRIPT_SINGLE_PAGE_APPLICATION_TIMEOUT, PropsValues.JAVASCRIPT_SINGLE_PAGE_APPLICATION_TIMEOUT) %>,
-			NTLM_AUTH_ENABLED: <%= PrefsPropsUtil.getBoolean(themeDisplay.getCompanyId(), PropsKeys.NTLM_AUTH_ENABLED, PropsValues.NTLM_AUTH_ENABLED) %>,
 			UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE: <%= UploadServletRequestConfigurationHelperUtil.getMaxSize() %>
 		};
 
@@ -318,6 +311,18 @@
 			isSignedIn: function() {
 				return <%= themeDisplay.isSignedIn() %>;
 			},
+
+			isStagedPortlet: function() {
+				<c:choose>
+					<c:when test="<%= Validator.isNotNull(themeDisplay.getPpid()) %>">
+						return <%= liveGroup.isStagedPortlet(themeDisplay.getPpid()) %>;
+					</c:when>
+					<c:otherwise>
+						return false;
+					</c:otherwise>
+				</c:choose>
+			},
+
 			isStateExclusive: function() {
 				return <%= themeDisplay.isStateExclusive() %>;
 			},

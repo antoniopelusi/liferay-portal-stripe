@@ -124,10 +124,6 @@ public class CommerceProductOptionValueDataSetActionProvider
 		long cpDefinitionOptionValueRelId,
 		HttpServletRequest httpServletRequest) {
 
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				_portal.getOriginalServletRequest(httpServletRequest),
@@ -137,10 +133,12 @@ public class CommerceProductOptionValueDataSetActionProvider
 		).setCMD(
 			Constants.DELETE
 		).setRedirect(
-			redirect
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"cpDefinitionOptionValueRelId", cpDefinitionOptionValueRelId
-		).build();
+		).buildPortletURL();
 	}
 
 	private PortletURL _getProductOptionValueEditURL(
@@ -165,13 +163,13 @@ public class CommerceProductOptionValueDataSetActionProvider
 		).setParameter(
 			"cpDefinitionOptionValueRelId",
 			cpDefinitionOptionValueRel.getCPDefinitionOptionValueRelId()
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL;
@@ -180,10 +178,6 @@ public class CommerceProductOptionValueDataSetActionProvider
 	private PortletURL _getProductOptionValueUpdatePreselectedURL(
 		long cpDefinitionOptionValueRelId,
 		HttpServletRequest httpServletRequest) {
-
-		String redirect = ParamUtil.getString(
-			httpServletRequest, "currentUrl",
-			_portal.getCurrentURL(httpServletRequest));
 
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
@@ -194,10 +188,12 @@ public class CommerceProductOptionValueDataSetActionProvider
 		).setCMD(
 			"updatePreselected"
 		).setRedirect(
-			redirect
+			ParamUtil.getString(
+				httpServletRequest, "currentUrl",
+				_portal.getCurrentURL(httpServletRequest))
 		).setParameter(
 			"cpDefinitionOptionValueRelId", cpDefinitionOptionValueRelId
-		).build();
+		).buildPortletURL();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

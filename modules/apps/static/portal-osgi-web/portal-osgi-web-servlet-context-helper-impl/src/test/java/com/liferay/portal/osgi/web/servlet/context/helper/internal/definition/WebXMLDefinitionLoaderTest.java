@@ -24,6 +24,7 @@ import com.liferay.portal.osgi.web.servlet.context.helper.internal.order.OrderBe
 import com.liferay.portal.osgi.web.servlet.context.helper.internal.order.OrderCircularDependencyException;
 import com.liferay.portal.osgi.web.servlet.context.helper.internal.order.OrderUtil;
 import com.liferay.portal.osgi.web.servlet.context.helper.order.Order;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.net.URL;
 
@@ -35,26 +36,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletContextListener;
 
 import javax.xml.parsers.SAXParserFactory;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.mockito.Mock;
 
 import org.osgi.framework.Bundle;
-
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Miguel Pastor
  */
-@RunWith(PowerMockRunner.class)
 public class WebXMLDefinitionLoaderTest {
+
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Test
 	public void testLoadCustomWebAbsoluteOrdering1XML() throws Exception {
@@ -67,7 +68,7 @@ public class WebXMLDefinitionLoaderTest {
 		absoluteOrderingNames.add("fragment1");
 		absoluteOrderingNames.add(Order.OTHERS);
 
-		testWebXMLDefinition(
+		_testWebXMLDefinition(
 			webXMLDefinition, 1, 1, 1, null, null, absoluteOrderingNames);
 	}
 
@@ -86,7 +87,7 @@ public class WebXMLDefinitionLoaderTest {
 		WebXMLDefinition webXMLDefinition = loadWebXMLDefinition(
 			"dependencies/custom-web-fragment-1.xml");
 
-		testWebXMLDefinition(
+		_testWebXMLDefinition(
 			webXMLDefinition, 1, 1, 0, "fragment1", null, null);
 	}
 
@@ -101,7 +102,7 @@ public class WebXMLDefinitionLoaderTest {
 
 		routes.put(Order.Path.AFTER, new String[] {"fragment1"});
 
-		testWebXMLDefinition(
+		_testWebXMLDefinition(
 			webXMLDefinition, 0, 0, 0, "fragment2", order, null);
 	}
 
@@ -116,7 +117,7 @@ public class WebXMLDefinitionLoaderTest {
 
 		routes.put(Order.Path.BEFORE, new String[] {Order.OTHERS});
 
-		testWebXMLDefinition(
+		_testWebXMLDefinition(
 			webXMLDefinition, 0, 0, 0, "fragment4", order, null);
 	}
 
@@ -125,7 +126,7 @@ public class WebXMLDefinitionLoaderTest {
 		WebXMLDefinition webXMLDefinition = loadWebXMLDefinition(
 			"dependencies/custom-web.xml");
 
-		testWebXMLDefinition(webXMLDefinition, 1, 1, 1);
+		_testWebXMLDefinition(webXMLDefinition, 1, 1, 1);
 	}
 
 	@Test
@@ -149,7 +150,7 @@ public class WebXMLDefinitionLoaderTest {
 			webXMLDefinitionLoader.loadWebXMLDefinition(
 				bundle.getEntry("WEB-INF/web.xml"));
 
-		testWebXMLDefinition(webXMLDefinition, 0, 0, 0);
+		_testWebXMLDefinition(webXMLDefinition, 0, 0, 0);
 	}
 
 	@Test
@@ -411,17 +412,17 @@ public class WebXMLDefinitionLoaderTest {
 		return webXMLDefinitionLoader.loadWebXMLDefinition(testBundle.getURL());
 	}
 
-	protected void testWebXMLDefinition(
+	private void _testWebXMLDefinition(
 			WebXMLDefinition webXMLDefinition, int listenerDefinitionsCount,
 			int filterDefinitionsCount, int servletDefinitionsCount)
 		throws Exception {
 
-		testWebXMLDefinition(
+		_testWebXMLDefinition(
 			webXMLDefinition, listenerDefinitionsCount, filterDefinitionsCount,
 			servletDefinitionsCount, null, null, null);
 	}
 
-	protected void testWebXMLDefinition(
+	private void _testWebXMLDefinition(
 			WebXMLDefinition webXMLDefinition, int listenerDefinitionsCount,
 			int filterDefinitionsCount, int servletDefinitionsCount,
 			String fragmentName, Order order,
@@ -485,12 +486,6 @@ public class WebXMLDefinitionLoaderTest {
 			filterDefinitions.toString(), filterDefinitionsCount,
 			filterDefinitions.size());
 	}
-
-	@Mock
-	private Servlet _servlet;
-
-	@Mock
-	private ServletContextListener _servletContextListener;
 
 	private static class TestBundle extends MockBundle {
 

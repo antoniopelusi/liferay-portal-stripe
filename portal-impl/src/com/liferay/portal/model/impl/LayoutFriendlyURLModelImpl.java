@@ -31,12 +31,13 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -272,34 +273,6 @@ public class LayoutFriendlyURLModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutFriendlyURL>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutFriendlyURL.class.getClassLoader(), LayoutFriendlyURL.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<LayoutFriendlyURL> constructor =
-				(Constructor<LayoutFriendlyURL>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutFriendlyURL, Object>>
@@ -812,6 +785,45 @@ public class LayoutFriendlyURLModelImpl
 	}
 
 	@Override
+	public LayoutFriendlyURL cloneWithOriginalValues() {
+		LayoutFriendlyURLImpl layoutFriendlyURLImpl =
+			new LayoutFriendlyURLImpl();
+
+		layoutFriendlyURLImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutFriendlyURLImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		layoutFriendlyURLImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		layoutFriendlyURLImpl.setLayoutFriendlyURLId(
+			this.<Long>getColumnOriginalValue("layoutFriendlyURLId"));
+		layoutFriendlyURLImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		layoutFriendlyURLImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutFriendlyURLImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		layoutFriendlyURLImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		layoutFriendlyURLImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutFriendlyURLImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutFriendlyURLImpl.setPlid(
+			this.<Long>getColumnOriginalValue("plid"));
+		layoutFriendlyURLImpl.setPrivateLayout(
+			this.<Boolean>getColumnOriginalValue("privateLayout"));
+		layoutFriendlyURLImpl.setFriendlyURL(
+			this.<String>getColumnOriginalValue("friendlyURL"));
+		layoutFriendlyURLImpl.setLanguageId(
+			this.<String>getColumnOriginalValue("languageId"));
+		layoutFriendlyURLImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return layoutFriendlyURLImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutFriendlyURL layoutFriendlyURL) {
 		long primaryKey = layoutFriendlyURL.getPrimaryKey();
 
@@ -971,7 +983,7 @@ public class LayoutFriendlyURLModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -982,9 +994,27 @@ public class LayoutFriendlyURLModelImpl
 			Function<LayoutFriendlyURL, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((LayoutFriendlyURL)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(LayoutFriendlyURL)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1031,7 +1061,9 @@ public class LayoutFriendlyURLModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, LayoutFriendlyURL>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					LayoutFriendlyURL.class, ModelWrapper.class);
 
 	}
 

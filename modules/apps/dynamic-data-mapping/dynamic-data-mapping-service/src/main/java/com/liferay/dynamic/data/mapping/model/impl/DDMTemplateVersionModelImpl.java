@@ -16,7 +16,6 @@ package com.liferay.dynamic.data.mapping.model.impl;
 
 import com.liferay.dynamic.data.mapping.model.DDMTemplateVersion;
 import com.liferay.dynamic.data.mapping.model.DDMTemplateVersionModel;
-import com.liferay.dynamic.data.mapping.model.DDMTemplateVersionSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -35,22 +34,21 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -177,70 +175,6 @@ public class DDMTemplateVersionModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DDMTemplateVersion toModel(DDMTemplateVersionSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DDMTemplateVersion model = new DDMTemplateVersionImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setTemplateVersionId(soapModel.getTemplateVersionId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setTemplateId(soapModel.getTemplateId());
-		model.setVersion(soapModel.getVersion());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setLanguage(soapModel.getLanguage());
-		model.setScript(soapModel.getScript());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DDMTemplateVersion> toModels(
-		DDMTemplateVersionSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DDMTemplateVersion> models = new ArrayList<DDMTemplateVersion>(
-			soapModels.length);
-
-		for (DDMTemplateVersionSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DDMTemplateVersionModelImpl() {
 	}
 
@@ -324,34 +258,6 @@ public class DDMTemplateVersionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DDMTemplateVersion>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DDMTemplateVersion.class.getClassLoader(), DDMTemplateVersion.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DDMTemplateVersion> constructor =
-				(Constructor<DDMTemplateVersion>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DDMTemplateVersion, Object>>
@@ -1336,6 +1242,55 @@ public class DDMTemplateVersionModelImpl
 	}
 
 	@Override
+	public DDMTemplateVersion cloneWithOriginalValues() {
+		DDMTemplateVersionImpl ddmTemplateVersionImpl =
+			new DDMTemplateVersionImpl();
+
+		ddmTemplateVersionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ddmTemplateVersionImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ddmTemplateVersionImpl.setTemplateVersionId(
+			this.<Long>getColumnOriginalValue("templateVersionId"));
+		ddmTemplateVersionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		ddmTemplateVersionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ddmTemplateVersionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		ddmTemplateVersionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		ddmTemplateVersionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		ddmTemplateVersionImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		ddmTemplateVersionImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		ddmTemplateVersionImpl.setTemplateId(
+			this.<Long>getColumnOriginalValue("templateId"));
+		ddmTemplateVersionImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		ddmTemplateVersionImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		ddmTemplateVersionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		ddmTemplateVersionImpl.setLanguage(
+			this.<String>getColumnOriginalValue("language"));
+		ddmTemplateVersionImpl.setScript(
+			this.<String>getColumnOriginalValue("script"));
+		ddmTemplateVersionImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		ddmTemplateVersionImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		ddmTemplateVersionImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		ddmTemplateVersionImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return ddmTemplateVersionImpl;
+	}
+
+	@Override
 	public int compareTo(DDMTemplateVersion ddmTemplateVersion) {
 		long primaryKey = ddmTemplateVersion.getPrimaryKey();
 
@@ -1512,7 +1467,7 @@ public class DDMTemplateVersionModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1523,9 +1478,27 @@ public class DDMTemplateVersionModelImpl
 			Function<DDMTemplateVersion, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DDMTemplateVersion)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DDMTemplateVersion)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1572,7 +1545,9 @@ public class DDMTemplateVersionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DDMTemplateVersion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DDMTemplateVersion.class, ModelWrapper.class);
 
 	}
 

@@ -12,12 +12,12 @@
  * details.
  */
 
+import {Collapse} from '@liferay/layout-content-page-editor-web';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, {useContext} from 'react';
 
 import {AddPanelContext} from './AddPanel';
-import Collapse from './Collapse';
 import TabItem from './TabItem';
 
 const Collection = ({collection, isContentTab, isSearchResult, open}) => {
@@ -46,6 +46,7 @@ const Collection = ({collection, isContentTab, isSearchResult, open}) => {
 				{collection.children.map((item) => (
 					<React.Fragment key={item.itemId}>
 						<TabItem item={item} />
+
 						{item.portletItems?.length && (
 							<TabPortletItem items={item.portletItems} />
 						)}

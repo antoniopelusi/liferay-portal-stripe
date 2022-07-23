@@ -29,6 +29,10 @@ public class VirtualHostLocalServiceWrapper
 	implements ServiceWrapper<VirtualHostLocalService>,
 			   VirtualHostLocalService {
 
+	public VirtualHostLocalServiceWrapper() {
+		this(null);
+	}
+
 	public VirtualHostLocalServiceWrapper(
 		VirtualHostLocalService virtualHostLocalService) {
 
@@ -119,6 +123,13 @@ public class VirtualHostLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _virtualHostLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _virtualHostLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

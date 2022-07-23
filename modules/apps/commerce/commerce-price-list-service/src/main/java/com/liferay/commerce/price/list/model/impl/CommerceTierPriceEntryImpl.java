@@ -25,9 +25,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CommerceTierPriceEntryImpl extends CommerceTierPriceEntryBaseImpl {
 
-	public CommerceTierPriceEntryImpl() {
-	}
-
 	@Override
 	public CommercePriceEntry getCommercePriceEntry() throws PortalException {
 		return CommercePriceEntryLocalServiceUtil.getCommercePriceEntry(
@@ -35,14 +32,14 @@ public class CommerceTierPriceEntryImpl extends CommerceTierPriceEntryBaseImpl {
 	}
 
 	@Override
-	public CommerceMoney getPriceMoney(long commerceCurrencyId)
+	public CommerceMoney getPriceCommerceMoney(long commerceCurrencyId)
 		throws PortalException {
 
 		return CommerceMoneyFactoryUtil.create(commerceCurrencyId, getPrice());
 	}
 
 	@Override
-	public CommerceMoney getPromoPriceMoney(long commerceCurrencyId)
+	public CommerceMoney getPromoPriceCommerceMoney(long commerceCurrencyId)
 		throws PortalException {
 
 		return CommerceMoneyFactoryUtil.create(

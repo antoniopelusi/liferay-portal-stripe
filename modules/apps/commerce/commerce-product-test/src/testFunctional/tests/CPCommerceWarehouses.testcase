@@ -1,77 +1,736 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Order Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "This is a test for COMMERCE-6207. UI inventory items lifecycle"
-	@ignore = "true"
 	@priority = "3"
 	test AddEditAndRemoveItemToWarehouse {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6207 AddItemToWarehouse Pending Implementation
+		// TODO Review
 
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(locator1 = "Button#PLUS");
+
+		Type(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "TestWH");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Active",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		if (IsElementPresent(key_accordionTitle = "geolocation", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "geolocation",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		WaitForElementPresent(
+			key_specifiedCollapse = "Geolocation",
+			locator1 = "CommerceEntry#CHECK_WAREHOUSE_COLLAPSE_OPEN");
+
+		Type(
+			key_fieldLabel = "Latitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "12345");
+
+		Type(
+			key_fieldLabel = "Longitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "12345");
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Inventory");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			key_fieldLabel = "SKU",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "TestSKU");
+
+		Select(
+			key_fieldLabel = "Warehouse",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "TestWH");
+
+		Type(
+			key_fieldLabel = "Quantity",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "50");
+
+		Button.click(button = "Submit");
+
+		AppBuilderAdmin.searchByItem(itemName = "TestSKU");
+
+		CommerceNavigator.gotoEntry(entryName = "TestSKU");
+
+		AssertTextEquals(
+			locator1 = "CommerceEntry#INVENTORY_BY_WAREHOUSE_NAME",
+			value1 = "TestWH");
+
+		AssertTextEquals(
+			key_columnNumber = "4",
+			locator1 = "CommerceEntry#INVENTORY_COLUMN",
+			value1 = "50");
+
+		Click(
+			key_entryName = "TestWH",
+			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_fieldLabel = "Safety Stock Quantity",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "20");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Refresh();
+
+		AssertTextEquals(
+			key_columnNumber = "3",
+			locator1 = "CommerceEntry#INVENTORY_COLUMN",
+			value1 = "20");
+
+		AssertTextEquals(
+			key_columnNumber = "4",
+			locator1 = "CommerceEntry#INVENTORY_COLUMN",
+			value1 = "30");
+
+		Click(
+			key_currentLocale = "ellipsis-v",
+			locator1 = "Button#TRANSLATIONS_LOCALIZATION");
+
+		Click(
+			key_index = "Delete",
+			locator1 = "WorkflowMetrics#SEARCH_FIELD_MAPPINGS_METRICS_INDEXES");
+
+		Navigator.gotoBack();
+
+		AppBuilderAdmin.searchByItem(itemName = "TestSKU");
+
+		AssertElementNotPresent(
+			key_entryName = "TestSKU",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
 	}
 
 	@description = "This is a test for COMMERCE-6206. Add income items"
-	@ignore = "true"
 	@priority = "3"
 	test AddIncomeItems {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6206 AddIncomeItems Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Inventory");
+
+		CommerceNavigator.gotoEntry(entryName = "MIN00673");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Incoming");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			key_text = "Quantity",
+			locator1 = "TextInput#ANY",
+			value1 = "10");
+
+		Select(
+			key_fieldLabel = "Destination",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "Italy");
+
+		Type(
+			inputFieldId = "date",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "06/11/2021");
+
+		Button.click(button = "Submit");
+
+		SelectFrameTop();
+
+		AssertElementPresent(
+			key_entryName = "Italy",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
+
+		CommerceNavigator.gotoEntry(entryName = "Italy");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_text = "Quantity",
+			locator1 = "TextInput#ANY",
+			value1 = "15");
+
+		Type(
+			inputFieldId = "date",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "06/12/2021");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Refresh();
+
+		CommerceNavigator.gotoEntry(entryName = "Italy");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		AssertTextEquals(
+			key_text = "Quantity",
+			locator1 = "TextInput#ANY",
+			value1 = "15");
+
+		AssertTextEquals(
+			inputFieldId = "date",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "06/12/2021");
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrameTop();
+
+		ClickNoError(
+			key_entryName = "Italy",
+			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
+
+		CommerceEntry.clickNoError(menuItem = "Delete");
+
+		Alert.viewSuccessMessage();
+
+		AssertElementNotPresent(
+			key_entryName = "Italy",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
 	}
 
 	@description = "This is a test for COMMERCE-6200. Consume booked quantities of one item in multiple warehouses"
-	@ignore = "true"
 	@priority = "3"
 	test ConsumeBookedQuantitiesFromMultipleWarehouses {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6200 ConsumeBookedQuantitiesFromMultipleWarehouses Pending Implementation
+		// TODO Review
+
+		var previousTotal = "0";
+		var newTotal = "0";
+		var newTotalExpected = "0";
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceNavigator.gotoEntry(entryName = "ABS Sensor");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceNavigator.gotoEntry(entryName = "MIN93015");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		for (var option : list "0,1,2") {
+			var key_value1 = "${option}";
+
+			WaitForElementPresent(locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
+
+			var aux = selenium.getElementValue("CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
+			var previousTotal = ${previousTotal} + ${aux};
+		}
+
+		echo("${previousTotal}");
+
+		Refresh();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Commerce Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "ABS Sensor",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "ABS Sensor",
+			productQuantity = "1",
+			productUnitPrice = "50",
+			shippingMethod = "Standard");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_text = "Accept Order",
+			locator1 = "Link#ANY");
+
+		Click(
+			key_text = "Create Shipment",
+			locator1 = "Button#ANY");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Check.checkToggleSwitch(
+			key_productSku = "MIN93015",
+			locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+		Button.clickSubmitButton();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN93015");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Refresh();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceNavigator.gotoEntry(entryName = "ABS Sensor");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceNavigator.gotoEntry(entryName = "MIN93015");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		for (var option : list "0,1,2") {
+			var key_value1 = "${option}";
+
+			WaitForElementPresent(locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
+
+			var aux = selenium.getElementValue("CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
+			var newTotal = ${newTotal} + ${aux};
+		}
+
+		echo("${newTotal}");
+
+		var newTotalExpected = ${previousTotal} - 1;
+
+		echo("${newTotalExpected}");
+
+		if ("${newTotal}" == "${newTotalExpected}") {
+			AssertTextEquals(
+				key_value1 = "0",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "19");
+		}
+		else {
+			AssertTextNotEquals(
+				key_value1 = "0",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "19");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-6201. Consume quantities of one item in multiple warehouses"
-	@ignore = "true"
 	@priority = "3"
 	test ConsumeQuantitiesFromMultipleWarehouses {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6201 ConsumeQuantitiesFromMultipleWarehouses Pending Implementation
+		// TODO Review
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Commerce Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "2");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		CommerceCheckout.initializersCheckout(
+			newAddressAddress = "Test Address",
+			newAddressCity = "Test City",
+			newAddressCountry = "United States",
+			newAddressName = "Address Name",
+			newAddressZipCode = "Test Zip Code",
+			productName = "U-Joint",
+			productQuantity = "2",
+			productUnitPrice = "24",
+			shippingMethod = "Standard");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "test@liferay.com");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+
+		Click(
+			key_text = "Accept Order",
+			locator1 = "Link#ANY");
+
+		Click(
+			key_text = "Create Shipment",
+			locator1 = "Button#ANY");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Check.checkToggleSwitch(
+			key_productSku = "MIN55861",
+			locator1 = "Checkbox#ADD_SHIPMENT_ITEMS_CHECKBOX");
+
+		Button.clickSubmitButton();
+
+		CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_warehouseName = "Italy",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Type(
+			key_warehouseName = "United States - Southwest",
+			locator1 = "CommerceOrders#ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Refresh();
+
+		for (var warehouse : list "Italy,United States - Southwest") {
+			AssertTextEquals(
+				key_warehouseName = "${warehouse}",
+				locator1 = "CommerceEntry#QUANTITY_IN_SHIPMENT_BY_WAREHOUSE",
+				value1 = "1");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-5706. As a system admin i want to be able to create / update and delete a new warehouse"
-	@ignore = "true"
 	@priority = "3"
 	test CreateAndUpdateNewWarehouse {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5706 CreateAndUpdateNewWarehouse Pending Implementation
-		// NOTE: 1. Delete action is already handled by commerceAdminTearDown
-		// 2. Before any test related to warehouses, remember to create the countries via Health Check
+		// TODO Review
+
+		var fieldDescription = "Test Warehouse Description";
+		var fieldLatitudeNumber = "12345";
+		var fieldLongitudeNumber = "12345";
+		var fieldName = "Test Warehouse";
+		var fieldCity = "Test City";
+		var fieldPostalCode = "12345";
+		var fieldStreet1 = "Test Address";
+		var fieldStreet2 = "Test Street";
+		var fieldStreet3 = "";
+		var selectorCountry = "United States";
+		var selectorRegion = "California";
+		var fieldLatitudeNumber = "12345.0";
+		var fieldLongitudeNumber = "12345.0";
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(locator1 = "AnalyticsCloudConnection#ADD_NEW_PROPERTY_BUTTON");
+
+		Type(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldName}");
+
+		Type(
+			key_fieldLabel = "Description",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldDescription}");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Active",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		if (IsElementPresent(key_accordionTitle = "geolocation", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "geolocation",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		Type(
+			key_fieldLabel = "Latitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldLatitudeNumber}");
+
+		Type(
+			key_fieldLabel = "Longitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldLongitudeNumber}");
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoEntry(entryName = "Test Warehouse");
+
+		if (IsElementPresent(key_accordionTitle = "address", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "address",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		Type(
+			key_fieldLabel = "Street 1",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldStreet1}");
+
+		Type(
+			key_fieldLabel = "Street 2",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldStreet2}");
+
+		Type(
+			key_fieldLabel = "Street 3",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldStreet3}");
+
+		Select(
+			key_fieldLabel = "Country",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${selectorCountry}");
+
+		Select(
+			key_fieldLabel = "Region",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${selectorRegion}");
+
+		Type(
+			key_fieldLabel = "Postal Code",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldPostalCode}");
+
+		Type(
+			key_fieldLabel = "City",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldCity}");
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoEntry(entryName = "Test Warehouse");
+
+		AssertTextEquals(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldName}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Description",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldDescription}");
+
+		AssertChecked.assertCheckedNotVisible(
+			key_toggleSwitchLabel = "Active",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		if (IsElementPresent(key_accordionTitle = "address", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "address",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		AssertTextEquals(
+			key_fieldLabel = "Street 1",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldStreet1}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Street 2",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldStreet2}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Street 3",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldStreet3}");
+
+		AssertSelectedLabel(
+			key_fieldLabel = "Country",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${selectorCountry}");
+
+		AssertSelectedLabel(
+			key_fieldLabel = "Region",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${selectorRegion}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Postal Code",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldPostalCode}");
+
+		AssertTextEquals(
+			key_fieldLabel = "City",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldCity}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Latitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldLatitudeNumber}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Longitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldLongitudeNumber}");
+
+		Button.clickSave();
+
+		Click(
+			key_text = "Test Warehouse",
+			locator1 = "Icon#ANY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
 	}
 
 	@description = "This is a test for COMMERCE-5707. As a product specialist i want to be able to deactivate a warehouse"
@@ -81,69 +740,474 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-5707 DeactivateWarehouse Pending Implementation
+
 	}
 
 	@description = "This is a test for COMMERCE-6199. Get available quantities of one item in multiple warehouses"
-	@ignore = "true"
 	@priority = "3"
 	test GetAvailableQuantityFromMultipleWarehouses {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6199 GetAvailableQuantityFromMultipleWarehouses Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceNavigator.searchEntry(entryName = "ABS Sensor");
+
+		CommerceNavigator.gotoEntry(entryName = "ABS Sensor");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceNavigator.gotoEntry(entryName = "MIN93015");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		var quantity = "0";
+
+		for (var warehouse : list "Italy,United States - Northeast,United States - Southwest") {
+			var key_inventoryName = "${warehouse}";
+			var inventoryValue = selenium.getElementValue("CommerceEntry#INVENTORY_INPUT");
+			var quantity = ${quantity} + ${inventoryValue};
+		}
+
+		Refresh();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "ABS Sensor");
+
+		Button.clickSubmitButton();
+
+		Click(
+			key_productName = "ABS Sensor",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		AssertElementPresent(
+			key_inStockQuantity = "${quantity} in Stock",
+			locator1 = "CommerceFrontStore#PRODUCT_DETAILS_IN_STOCK_QUANTITY");
 	}
 
 	@description = "This is a test for COMMERCE-6204. Get stock quantity of a SKU for specific channel"
-	@ignore = "true"
 	@priority = "3"
 	test GetChannelSKUStockQuantity {
-		property portal.acceptance = "false";
+		property portal.acceptance = "Intern Test";
 
-		// TODO COMMERCE-6204 GetChannelSKUStockQuantity Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(
+			siteName = "Minium2",
+			siteTemplateName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		AppBuilderAdmin.searchByItem(itemName = "ABS Sensor");
+
+		Click(
+			key_entryName = "ABS Sensor",
+			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		Click(
+			key_entryName = "MIN93015",
+			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		var key_value1 = "0";
+
+		for (var value1 : list "20,60,60") {
+			AssertTextEquals(
+				key_value1 = "${key_value1}",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "${value1}");
+
+			var key_value1 = ${key_value1} + 1;
+		}
+
+		Refresh();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		var commerceChannelIds = CommerceJSONChannelsAPI._getCommerceChannelIds();
+
+		for (var commerceChannelId : list "${commerceChannelIds}") {
+			var commerceChannel1 = StringUtil.extractFirst("${commerceChannelIds}", ",");
+			var commerceChannel2 = StringUtil.extractLast("${commerceChannelIds}", ",");
+		}
+
+		Click(
+			key_metadataSetName = "Italy",
+			locator1 = "DocumentsAndMediaMetadataSets#METADATA_SETS_NAME");
+
+		if (IsElementPresent(key_accordionTitle = "channels", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "channels",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		Uncheck.uncheckToggleSwitch(
+			key_toggleSwitchLabel = "${channel2}",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickSave();
+
+		Click(
+			key_metadataSetName = "United States - Northeast",
+			locator1 = "DocumentsAndMediaMetadataSets#METADATA_SETS_NAME");
+
+		if (IsElementPresent(key_accordionTitle = "channels", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "channels",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		Uncheck.uncheckToggleSwitch(
+			key_toggleSwitchLabel = "${channel1}",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickSave();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		Click(
+			key_productName = "ABS Sensor",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		AssertElementPresent(
+			key_filterOption = "80 in Stock",
+			locator1 = "AppBuilder#CHOOSE_APP_SEARCH_FILTER_BY_OPTION");
+
+		ApplicationsMenu.gotoSite(site = "Minium2");
+
+		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+		Click(
+			key_productName = "ABS Sensor",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		AssertElementPresent(
+			key_filterOption = "120 in Stock",
+			locator1 = "AppBuilder#CHOOSE_APP_SEARCH_FILTER_BY_OPTION");
 	}
 
 	@description = "This is a test for COMMERCE-6203. Get stock quantity of a SKU"
-	@ignore = "true"
 	@priority = "3"
 	test GetSKUStockQuantity {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6203 GetSKUStockQuantity Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		AppBuilderAdmin.searchByItem(itemName = "ABS Sensor");
+
+		Click(
+			key_entryName = "ABS Sensor",
+			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		Click(
+			key_entryName = "MIN93015",
+			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		var count1 = "0";
+		var amount = "0";
+
+		while (IsElementPresent(key_value1 = "${count1}", locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY")) {
+			var temp1 = selenium.getAttribute("//input[contains(@id,'_com_liferay_commerce_product_definitions_web_internal_portlet_CPDefinitionsPortlet_commerceInventoryWarehouseItemQuantity${count1}')]@value");
+			var amount = ${temp1} + ${amount};
+			var count1 = ${count1} + 1;
+		}
+
+		Refresh();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Inventory");
+
+		AppBuilderAdmin.searchByItem(itemName = "MIN93015");
+
+		AssertTextEquals(
+			locator1 = "CommerceEntry#INVENTORY_BY_WAREHOUSE_AVAILABLE_LABEL",
+			value1 = "${amount}");
 	}
 
 	@description = "This is a test for COMMERCE-6205. Get warehouse names given a SKU"
-	@ignore = "true"
 	@priority = "3"
 	test GetWarehouseNameGivenChannel {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6205 GetWarehouseNameGivenChannel Pending Implementation
+		// TODO Review
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(locator1 = "Button#PLUS");
+
+		Type(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "TestWH");
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Master",
+			productName = "Product Test",
+			productType = "Simple");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			key_fieldLabel = "SKU",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "MIN00000");
+
+		Button.clickPublish();
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		Type(
+			key_value1 = "0",
+			locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+			value1 = "45");
+
+		Click(
+			key_value1 = "0",
+			locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_SAVE_BUTTON");
+
+		Refresh();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Inventory");
+
+		Click(
+			key_entryName = "MIN00000",
+			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+		AssertTextEquals(
+			locator1 = "CommerceEntry#INVENTORY_BY_WAREHOUSE_NAME",
+			value1 = "TestWH");
 	}
 
 	@description = "This is a test for COMMERCE-6202. It should be possible to limit the warehouse stock quantity by channel"
-	@ignore = "true"
 	@priority = "3"
 	test LimitWarehouseStockQuantityByChannel {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6202 LimitWarehouseStockQuantityByChannel Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(
+			key_itemName = "Italy",
+			locator1 = "AppBuilder#ITEM_ON_THE_TABLE_CLICK");
+
+		if (IsElementPresent(key_accordionTitle = "channels", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "channels",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		Button.clickSave();
+
+		Click(
+			key_itemName = "Italy",
+			locator1 = "AppBuilder#ITEM_ON_THE_TABLE_CLICK");
+
+		AssertChecked(
+			checkboxName = "Minium Portal",
+			locator1 = "Checkbox#ANY_CHECKBOX_CHECKED");
 	}
 
 	@description = "This is a test for COMMERCE-6208. Concurrency management for inventory entities"
-	@ignore = "true"
 	@priority = "3"
 	test ManageInventoryEntityConcurrency {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6208 ManageInventoryEntityConcurrency Pending Implementation
+		// TODO Review
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(
+			key_metadataSetName = "Italy",
+			locator1 = "DocumentsAndMediaMetadataSets#METADATA_SETS_NAME");
+
+		Open.openInTheNewTab(locator1 = "${portalURL}");
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		SelectWindow(locator1 = "title=Home - ${siteName}");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Inventory Management",
+			portlet = "Warehouses");
+
+		Click(
+			key_metadataSetName = "Italy",
+			locator1 = "DocumentsAndMediaMetadataSets#METADATA_SETS_NAME");
+
+		Type(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "Italy - 2");
+
+		Button.clickSave();
+
+		Close();
+
+		Type(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "Italy - 3");
+
+		Button.clickSave();
+
+		Alert.viewErrorMessage(errorMessage = "This item is no longer valid. Please try again.");
 	}
 
 	@description = "This is a test for COMMERCE-5708. As a product specialist i want to update the quantity of a product inside a warehouse"
-	@ignore = "true"
 	@priority = "3"
 	test UpdateInventorySKUQuantity {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-5708 UpdateInventorySKUQuantity Pending Implementation
+		// TODO Review
+
+		var key_inventoryName = "test new warehouse";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Inventory Management",
+			panel = "Commerce",
+			portlet = "Warehouses");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewAccountGroupsEntry(entryName = "test new warehouse");
+
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "Active",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		if (IsElementPresent(key_accordionTitle = "geolocation", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "geolocation",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		Type(
+			key_fieldLabel = "Latitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "50");
+
+		Type(
+			key_fieldLabel = "Longitude",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "50");
+
+		Button.clickSave();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			panel = "Commerce",
+			portlet = "Catalogs");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewCatalogsEntry(
+			catalogCurrency = "US Dollar",
+			catalogLanguage = "English (United States)",
+			catalogName = "Master");
+
+		Button.click(button = "Submit");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Product Management",
+			panel = "Commerce",
+			portlet = "Products");
+
+		CPCommerceCatalog.newProductsEntry(
+			productCatalog = "Master",
+			productName = "Simple T-Shirt",
+			productType = "Simple");
+
+		Button.clickPublish();
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceNavigator.gotoEntry(entryName = "default");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		Type(
+			locator1 = "CommerceEntry#INVENTORY_INPUT",
+			value1 = "50");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Inventory Management",
+			panel = "Commerce",
+			portlet = "Inventory");
+
+		Search.searchCP(searchTerm = "default");
+
+		AssertVisible(
+			key_productQuantity = "50",
+			locator1 = "CommerceOrders#ORDER_DETAILS_PRODUCT_QUANTITY");
 	}
 
 }

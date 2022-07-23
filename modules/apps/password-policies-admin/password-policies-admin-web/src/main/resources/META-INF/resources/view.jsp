@@ -63,7 +63,7 @@ PortletURL portletURL = viewPasswordPoliciesManagementToolbarDisplayContext.getP
 	viewTypeItems="<%= viewPasswordPoliciesManagementToolbarDisplayContext.getViewTypeItems() %>"
 />
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="get" name="fm">
+<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="get" name="fm">
 	<aui:input name="passwordPolicyIds" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
 
@@ -106,7 +106,7 @@ PortletURL portletURL = viewPasswordPoliciesManagementToolbarDisplayContext.getP
 					).setMVCPath(
 						"/edit_password_policy.jsp"
 					).setRedirect(
-						redirectURL.toString()
+						redirectURL
 					).setParameter(
 						"passwordPolicyId", passwordPolicy.getPasswordPolicyId()
 					).buildString();

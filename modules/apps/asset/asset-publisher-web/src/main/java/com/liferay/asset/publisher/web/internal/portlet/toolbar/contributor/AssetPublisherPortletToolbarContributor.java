@@ -72,7 +72,24 @@ import org.osgi.service.component.annotations.Reference;
 public class AssetPublisherPortletToolbarContributor
 	extends BasePortletToolbarContributor {
 
-	protected void addPortletTitleAddAssetEntryMenuItems(
+	@Override
+	protected List<MenuItem> getPortletTitleMenuItems(
+		PortletRequest portletRequest, PortletResponse portletResponse) {
+
+		List<MenuItem> menuItems = new ArrayList<>();
+
+		try {
+			_addPortletTitleAddAssetEntryMenuItems(
+				menuItems, portletRequest, portletResponse);
+		}
+		catch (Exception exception) {
+			_log.error("Unable to add folder menu item", exception);
+		}
+
+		return menuItems;
+	}
+
+	private void _addPortletTitleAddAssetEntryMenuItems(
 			List<MenuItem> menuItems, PortletRequest portletRequest,
 			PortletResponse portletResponse)
 		throws Exception {
@@ -162,23 +179,6 @@ public class AssetPublisherPortletToolbarContributor
 		menuItems.add(urlMenuItem);
 	}
 
-	@Override
-	protected List<MenuItem> getPortletTitleMenuItems(
-		PortletRequest portletRequest, PortletResponse portletResponse) {
-
-		List<MenuItem> menuItems = new ArrayList<>();
-
-		try {
-			addPortletTitleAddAssetEntryMenuItems(
-				menuItems, portletRequest, portletResponse);
-		}
-		catch (Exception exception) {
-			_log.error("Unable to add folder menu item", exception);
-		}
-
-		return menuItems;
-	}
-
 	private URLMenuItem _getPortletTitleAddAssetEntryMenuItem(
 		ThemeDisplay themeDisplay,
 		AssetPublisherDisplayContext assetPublisherDisplayContext, long groupId,
@@ -215,20 +215,19 @@ public class AssetPublisherPortletToolbarContributor
 
 		PortletURL portletURL = PortletURLBuilder.create(
 			assetPublisherAddItemHolder.getPortletURL()
-		).setParameter(
-			"portletResource", AssetPublisherPortletKeys.ASSET_PUBLISHER
-		).build();
+		).setPortletResource(
+			AssetPublisherPortletKeys.ASSET_PUBLISHER
+		).buildPortletURL();
 
 		boolean addDisplayPageParameter =
 			_assetPublisherWebHelper.isDefaultAssetPublisher(
 				themeDisplay.getLayout(), portletDisplay.getId(),
 				assetPublisherDisplayContext.getPortletResource());
 
-		String url = _assetHelper.getAddURLPopUp(
-			curGroupId, themeDisplay.getPlid(), portletURL,
-			addDisplayPageParameter, themeDisplay.getLayout());
-
-		urlMenuItem.setURL(url);
+		urlMenuItem.setURL(
+			_assetHelper.getAddURLPopUp(
+				curGroupId, themeDisplay.getPlid(), portletURL,
+				addDisplayPageParameter, themeDisplay.getLayout()));
 
 		return urlMenuItem;
 	}
@@ -266,16 +265,10 @@ public class AssetPublisherPortletToolbarContributor
 		String portletName = portletDisplay.getPortletName();
 
 		if (portletName.equals(
-				AssetPublisherPortletKeys.HIGHEST_RATED_ASSETS)) {
+				AssetPublisherPortletKeys.HIGHEST_RATED_ASSETS) ||
+			portletName.equals(AssetPublisherPortletKeys.MOST_VIEWED_ASSETS) ||
+			portletName.equals(AssetPublisherPortletKeys.RELATED_ASSETS)) {
 
-			return false;
-		}
-
-		if (portletName.equals(AssetPublisherPortletKeys.MOST_VIEWED_ASSETS)) {
-			return false;
-		}
-
-		if (portletName.equals(AssetPublisherPortletKeys.RELATED_ASSETS)) {
 			return false;
 		}
 

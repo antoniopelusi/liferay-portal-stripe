@@ -19,12 +19,14 @@ import com.liferay.data.engine.service.base.DEDataDefinitionFieldLinkLocalServic
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 
 import java.util.Date;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Brian Wing Shun Chan
@@ -60,16 +62,16 @@ public class DEDataDefinitionFieldLinkLocalServiceImpl
 		deDataDefinitionFieldLink.setUuid(serviceContext.getUuid());
 		deDataDefinitionFieldLink.setGroupId(groupId);
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		deDataDefinitionFieldLink.setCompanyId(group.getCompanyId());
 
-		Date now = new Date();
+		Date date = new Date();
 
 		deDataDefinitionFieldLink.setCreateDate(
-			serviceContext.getCreateDate(now));
+			serviceContext.getCreateDate(date));
 		deDataDefinitionFieldLink.setModifiedDate(
-			serviceContext.getModifiedDate(now));
+			serviceContext.getModifiedDate(date));
 
 		deDataDefinitionFieldLink.setClassNameId(classNameId);
 		deDataDefinitionFieldLink.setClassPK(classPK);
@@ -170,5 +172,8 @@ public class DEDataDefinitionFieldLinkLocalServiceImpl
 		return deDataDefinitionFieldLinkPersistence.findByDDMSI_F(
 			ddmStructureId, fieldNames);
 	}
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 }

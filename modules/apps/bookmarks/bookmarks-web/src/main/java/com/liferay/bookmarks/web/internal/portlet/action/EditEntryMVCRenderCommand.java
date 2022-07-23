@@ -38,7 +38,7 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = MVCRenderCommand.class
 )
-public class EditEntryMVCRenderCommand extends GetEntryMVCRenderCommand {
+public class EditEntryMVCRenderCommand extends BaseEntryMVCRenderCommand {
 
 	@Override
 	protected void checkPermissions(

@@ -22,6 +22,7 @@ import com.liferay.message.boards.model.MBThread;
 import com.liferay.message.boards.service.MBCategoryService;
 import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.message.boards.service.base.MBThreadServiceBaseImpl;
+import com.liferay.message.boards.service.persistence.MBMessageFinder;
 import com.liferay.message.boards.service.persistence.impl.constants.MBPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
@@ -67,14 +68,10 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 	@Override
 	public void deleteThread(long threadId) throws PortalException {
 		if (_lockManager.isLocked(MBThread.class.getName(), threadId)) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Thread is locked for class name ");
-			sb.append(MBThread.class.getName());
-			sb.append(" and class PK ");
-			sb.append(threadId);
-
-			throw new LockedThreadException(sb.toString());
+			throw new LockedThreadException(
+				StringBundler.concat(
+					"Thread is locked for class name ",
+					MBThread.class.getName(), " and class PK ", threadId));
 		}
 
 		List<MBMessage> messages = _mbMessageLocalService.getThreadMessages(
@@ -118,11 +115,11 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 		List<Long> threadIds = null;
 
 		if (includeAnonymous) {
-			threadIds = mbMessageFinder.filterFindByG_U_MD_C_S(
+			threadIds = _mbMessageFinder.filterFindByG_U_MD_C_S(
 				groupId, userId, modifiedDate, categoryIds, status, start, end);
 		}
 		else {
-			threadIds = mbMessageFinder.filterFindByG_U_MD_C_A_S(
+			threadIds = _mbMessageFinder.filterFindByG_U_MD_C_A_S(
 				groupId, userId, modifiedDate, categoryIds, false, status,
 				start, end);
 		}
@@ -170,7 +167,7 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 		List<Long> threadIds = null;
 
 		if (userId <= 0) {
-			threadIds = mbMessageFinder.filterFindByG_U_C_S(
+			threadIds = _mbMessageFinder.filterFindByG_U_C_S(
 				groupId, 0, categoryIds, status, start, end);
 		}
 		else {
@@ -183,11 +180,11 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 			}
 
 			if (includeAnonymous) {
-				threadIds = mbMessageFinder.filterFindByG_U_C_S(
+				threadIds = _mbMessageFinder.filterFindByG_U_C_S(
 					groupId, userId, categoryIds, status, start, end);
 			}
 			else {
-				threadIds = mbMessageFinder.filterFindByG_U_C_A_S(
+				threadIds = _mbMessageFinder.filterFindByG_U_C_A_S(
 					groupId, userId, categoryIds, false, status, start, end);
 			}
 		}
@@ -247,11 +244,11 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 		}
 
 		if (includeAnonymous) {
-			return mbMessageFinder.filterCountByG_U_MD_C_S(
+			return _mbMessageFinder.filterCountByG_U_MD_C_S(
 				groupId, userId, modifiedDate, categoryIds, status);
 		}
 
-		return mbMessageFinder.filterCountByG_U_MD_C_A_S(
+		return _mbMessageFinder.filterCountByG_U_MD_C_A_S(
 			groupId, userId, modifiedDate, categoryIds, false, status);
 	}
 
@@ -293,7 +290,7 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 		}
 
 		if (userId <= 0) {
-			return mbMessageFinder.filterCountByG_U_C_S(
+			return _mbMessageFinder.filterCountByG_U_C_S(
 				groupId, 0, categoryIds, status);
 		}
 
@@ -306,11 +303,11 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 		}
 
 		if (includeAnonymous) {
-			return mbMessageFinder.filterCountByG_U_C_S(
+			return _mbMessageFinder.filterCountByG_U_C_S(
 				groupId, userId, categoryIds, status);
 		}
 
-		return mbMessageFinder.filterCountByG_U_C_A_S(
+		return _mbMessageFinder.filterCountByG_U_C_A_S(
 			groupId, userId, categoryIds, false, status);
 	}
 
@@ -389,14 +386,10 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 		throws PortalException {
 
 		if (_lockManager.isLocked(MBThread.class.getName(), threadId)) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Thread is locked for class name ");
-			sb.append(MBThread.class.getName());
-			sb.append(" and class PK ");
-			sb.append(threadId);
-
-			throw new LockedThreadException(sb.toString());
+			throw new LockedThreadException(
+				StringBundler.concat(
+					"Thread is locked for class name ",
+					MBThread.class.getName(), " and class PK ", threadId));
 		}
 
 		MBThread thread = mbThreadLocalService.getThread(threadId);
@@ -431,14 +424,10 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 	@Override
 	public MBThread moveThreadToTrash(long threadId) throws PortalException {
 		if (_lockManager.isLocked(MBThread.class.getName(), threadId)) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Thread is locked for class name ");
-			sb.append(MBThread.class.getName());
-			sb.append(" and class PK ");
-			sb.append(threadId);
-
-			throw new LockedThreadException(sb.toString());
+			throw new LockedThreadException(
+				StringBundler.concat(
+					"Thread is locked for class name ",
+					MBThread.class.getName(), " and class PK ", threadId));
 		}
 
 		List<MBMessage> messages = _mbMessageLocalService.getThreadMessages(
@@ -598,6 +587,9 @@ public class MBThreadServiceImpl extends MBThreadServiceBaseImpl {
 
 	@Reference
 	private MBCategoryService _mbCategoryService;
+
+	@Reference
+	private MBMessageFinder _mbMessageFinder;
 
 	@Reference
 	private MBMessageLocalService _mbMessageLocalService;

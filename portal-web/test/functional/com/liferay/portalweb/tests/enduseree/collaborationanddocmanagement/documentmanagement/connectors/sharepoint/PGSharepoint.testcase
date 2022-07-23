@@ -3,7 +3,6 @@ definition {
 
 	property cmis.repository.type = "sharepoint2010";
 	property custom.properties = "session.store.password=true${line.separator}company.security.auth.type=screenName${line.separator}default.layout.template.id=1_column";
-	property dummy.socket.proxy.disabled = "true";
 	property osgi.app.includes = "sharepoint-soap";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -11,15 +10,15 @@ definition {
 	property testray.main.component.name = "Sharepoint";
 
 	setUp {
-		TestCase.setUpPortalInstance();
+		TestCase.setUpPortalInstance(authenticationMethod = "By Screen Name");
 
-		var sharepointVMHostName = PropsUtil.get("cmis.repository.vm.host.name");
+		var sharepointVmHostName = PropsUtil.get("cmis.repository.vm.host.name");
 
 		AntCommand(
 			locator1 = "build-test-sharepoint.xml",
-			value1 = "clean-sharepoint-repository -Dssh.host=${sharepointVMHostName}");
+			value1 = "clean-sharepoint-repository -Dssh.host=${sharepointVmHostName}");
 
-		User.loginPG(
+		User.firstLoginByScreenNamePG(
 			authenticationMethod = "By Screen Name",
 			userScreenName = "test");
 
@@ -33,13 +32,13 @@ definition {
 
 		Navigator.gotoAccountSettings();
 
-		User.editPasswordViaMyAccount(
+		User.editPassword(
 			currentPassword = "test",
 			newPassword = "password");
 
 		User.logoutPG();
 
-		User.loginPG(
+		User.firstLoginUI(
 			authenticationMethod = "By Screen Name",
 			password = "password",
 			userScreenName = "administrator");
@@ -48,19 +47,22 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			pageName = "Documents and Media Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "Documents and Media Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Documents and Media Page");
 
 		Portlet.addPG(portletName = "Documents and Media");
+
+		DMDocument.enableActionsMenuOnPortlet();
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
 
 		DMNavigator.gotoAddRepositoryPG();
 
@@ -69,7 +71,7 @@ definition {
 		DMRepository.addSharepoint(
 			dmRepositoryLibraryName = "Documents",
 			dmRepositoryName = "Sharepoint",
-			dmRepositorySiteURL = "http://${sharepointVMHostName}",
+			dmRepositorySiteURL = "http://${sharepointVmHostName}",
 			permissionDefinitionKey = "ACCESS",
 			roleTitle = "Guest");
 
@@ -86,7 +88,7 @@ definition {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
 		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
+			PortalInstances.tearDownCP(authenticationMethod = "By Screen Name");
 		}
 		else {
 			DMRepository.tearDownCP();
@@ -103,13 +105,13 @@ definition {
 
 			UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
 
-			User.editPasswordViaMyAccount(
+			User.editPassword(
 				currentPassword = "password",
 				newPassword = "test");
 
 			User.logoutPG();
 
-			User.loginPG(
+			User.loginByScreenNamePG(
 				authenticationMethod = "By Screen Name",
 				password = "test",
 				userScreenName = "test");
@@ -145,7 +147,7 @@ definition {
 			dmDocumentTitle = "Document_1.doc",
 			dmRepositoryName = "true");
 
-		User.loginPG(
+		User.loginByScreenNamePG(
 			authenticationMethod = "By Screen Name",
 			password = "password",
 			userScreenName = "administrator");

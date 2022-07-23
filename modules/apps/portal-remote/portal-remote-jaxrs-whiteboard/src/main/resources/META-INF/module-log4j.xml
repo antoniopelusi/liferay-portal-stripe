@@ -3,9 +3,7 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="WARN" name="org.apache.aries.jax.rs.whiteboard" />
-
 		<Logger level="INFO" name="org.apache.cxf" />
-
 		<Logger level="WARN" name="org.apache.cxf.endpoint.ServerImpl" />
 	</Loggers>
 </Configuration>

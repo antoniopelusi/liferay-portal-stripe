@@ -10,60 +10,114 @@
  */
 
 import ClayLayout from '@clayui/layout';
-import React, {useContext} from 'react';
+import {usePrevious} from '@liferay/frontend-js-react-web';
+import React, {useContext, useMemo} from 'react';
 import {Route, Switch} from 'react-router-dom';
 
 import HeaderKebab from '../../shared/components/header/HeaderKebab.es';
+import MetricsCalculatedInfo from '../../shared/components/last-updated-info/MetricsCalculatedInfo.es';
 import NavbarTabs from '../../shared/components/navbar-tabs/NavbarTabs.es';
+import PromisesResolver from '../../shared/components/promises-resolver/PromisesResolver.es';
 import {parse, stringify} from '../../shared/components/router/queryString.es';
 import {
 	getPathname,
 	withParams,
 } from '../../shared/components/router/routerUtil.es';
+import {useDateModified} from '../../shared/hooks/useDateModified.es';
 import {useProcessTitle} from '../../shared/hooks/useProcessTitle.es';
 import {AppContext} from '../AppContext.es';
 import {useTimeRangeFetch} from '../filter/hooks/useTimeRangeFetch.es';
+import CompletedItemsCard from '../process-metrics/process-items/CompletedItemsCard.es';
 import SLAInfo from './SLAInfo.es';
 import CompletionVelocityCard from './completion-velocity/CompletionVelocityCard.es';
 import PerformanceByAssigneeCard from './performance-by-assignee-card/PerformanceByAssigneeCard.es';
 import PerformanceByStepCard from './performance-by-step-card/PerformanceByStepCard.es';
-import CompletedItemsCard from './process-items/CompletedItemsCard.es';
 import PendingItemsCard from './process-items/PendingItemsCard.es';
 import WorkloadByAssigneeCard from './workload-by-assignee-card/WorkloadByAssigneeCard.es';
 import WorkloadByStepCard from './workload-by-step-card/WorkloadByStepCard.es';
 
-function DashboardTab(props) {
+const DashboardTab = ({processId, routeParams}) => {
+	const {fetchDateModified} = useContext(AppContext);
+
+	const {dateModified, fetchData} = useDateModified({
+		processId,
+	});
+
+	const previousFetchData = usePrevious(fetchData);
+
+	const promises = useMemo(() => {
+		if (previousFetchData !== fetchData && fetchDateModified) {
+			return [fetchData()];
+		}
+
+		return [];
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetchDateModified, routeParams]);
+
 	return (
-		<ClayLayout.ContainerFluid>
-			<ClayLayout.Row>
-				<ClayLayout.Col className="p-0" md="9">
-					<ClayLayout.ContainerFluid>
-						<PendingItemsCard {...props} />
+		<PromisesResolver promises={promises}>
+			<MetricsCalculatedInfo dateModified={dateModified} />
 
-						<WorkloadByStepCard {...props} />
-					</ClayLayout.ContainerFluid>
-				</ClayLayout.Col>
+			<ClayLayout.ContainerFluid>
+				<ClayLayout.Row>
+					<ClayLayout.Col className="p-0" md="9">
+						<ClayLayout.ContainerFluid>
+							<PendingItemsCard processId={processId} />
 
-				<ClayLayout.Col className="p-0" md="3">
-					<ClayLayout.ContainerFluid>
-						<WorkloadByAssigneeCard {...props} />
-					</ClayLayout.ContainerFluid>
-				</ClayLayout.Col>
-			</ClayLayout.Row>
-		</ClayLayout.ContainerFluid>
+							<WorkloadByStepCard
+								processId={processId}
+								routeParams={routeParams}
+							/>
+						</ClayLayout.ContainerFluid>
+					</ClayLayout.Col>
+
+					<ClayLayout.Col className="p-0" md="3">
+						<ClayLayout.ContainerFluid>
+							<WorkloadByAssigneeCard routeParams={routeParams} />
+						</ClayLayout.ContainerFluid>
+					</ClayLayout.Col>
+				</ClayLayout.Row>
+			</ClayLayout.ContainerFluid>
+		</PromisesResolver>
 	);
-}
+};
 
-function PerformanceTab(props) {
+function PerformanceTab({processId, routeParams}) {
+	const {fetchDateModified} = useContext(AppContext);
+
+	const {dateModified, fetchData} = useDateModified({
+		processId,
+	});
+
+	const previousFetchData = usePrevious(fetchData);
+
+	const promises = useMemo(() => {
+		if (previousFetchData !== fetchData && fetchDateModified) {
+			return [fetchData()];
+		}
+
+		return [];
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetchDateModified, routeParams]);
+
 	useTimeRangeFetch();
 
 	return (
-		<ClayLayout.ContainerFluid>
-			<CompletedItemsCard {...props} />
-			<CompletionVelocityCard {...props} />
-			<PerformanceByStepCard {...props} />
-			<PerformanceByAssigneeCard {...props} />
-		</ClayLayout.ContainerFluid>
+		<PromisesResolver promises={promises}>
+			<MetricsCalculatedInfo dateModified={dateModified} />
+
+			<ClayLayout.ContainerFluid>
+				<CompletedItemsCard routeParams={routeParams} />
+
+				<CompletionVelocityCard routeParams={routeParams} />
+
+				<PerformanceByStepCard routeParams={routeParams} />
+
+				<PerformanceByAssigneeCard routeParams={routeParams} />
+			</ClayLayout.ContainerFluid>
+		</PromisesResolver>
 	);
 }
 
@@ -107,7 +161,7 @@ export default function ProcessMetricsContainer({history, processId, query}) {
 	}
 
 	return (
-		<div className="workflow-process-dashboard">
+		<div className="workflow-process-tabs">
 			<HeaderKebab
 				kebabItems={[
 					{

@@ -1,39 +1,150 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Order Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "This is a test for COMMERCE-6231. Discount lifecycle"
-	@ignore = "true"
 	@priority = "3"
 	test AddEditAndDeleteDiscountEntry {
 		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "CPCommerceDiscounts#AddEditAndDeleteDiscountEntry";
 
-		// TODO COMMERCE-6231 AddEditAndDeleteDiscountEntry Pending Implementation
+		// TODO Review
 
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(
+			siteName = "Minium 2",
+			siteTemplateName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Store Management",
+			portlet = "Channels");
+
+		AssertElementPresent(
+			key_entryName = "Minium Portal",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
+
+		AssertElementPresent(
+			key_entryName = "Minium 2 Portal",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewDiscountsEntry(
+			channelsEligibility = "Minium Portal",
+			discountAmount = "25",
+			discountName = "Test Discount",
+			discountTarget = "Products",
+			discountType = "Percentage");
+
+		CommerceRelations.assignSingleRelationToProductsEntry(
+			entryName = "U-Joint",
+			title = "Add Products");
+
+		Button.clickPublish();
+
+		CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
+
+		CommerceEntry.setEntryEligibility(channelsEligibility = "Minium Portal");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "U-Joint");
+
+		CommerceAcceleratorsInitializer.viewDiscountedProductDetailsPage(
+			discountPercentage = "25",
+			productDiscountedPrice = "18.00",
+			productListPrice = "24.00");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium-2");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "U-Joint");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#PRODUCT_DETAILS_DISCOUNT");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#PRODUCT_DETAILS_NET_PRICE");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "CommerceAccelerators#PRODUCT_DETAILS_LIST_PRICE",
+			value1 = "24.00");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(
+			key_value = "",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Edit");
+
+		Type(
+			locator1 = "CommerceEntry#DISCOUNT_AMOUNT",
+			value1 = "10");
+
+		Button.clickPublish();
+
+		Alert.viewSuccessMessage();
+
+		Refresh();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "U-Joint");
+
+		CommerceAcceleratorsInitializer.viewDiscountedProductDetailsPage(
+			discountPercentage = "10",
+			productDiscountedPrice = "21.60",
+			productListPrice = "24.00");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium-2");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "U-Joint");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#PRODUCT_DETAILS_DISCOUNT");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#PRODUCT_DETAILS_NET_PRICE");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "CommerceAccelerators#PRODUCT_DETAILS_LIST_PRICE",
+			value1 = "24.00");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(
+			key_value = "",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Delete");
+
+		Alert.viewSuccessMessage();
 	}
 
 	@description = "This is a test for COMMERCE-6232. Discount Rules lifecycle"
@@ -43,10 +154,11 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6232 AddEditAndRemoveDiscountRule Pending Implementation
+
 	}
 
 	test AssertDiscountIsAppliedToChannel {
-		property portal.acceptance = "true";
+		property portal.acceptance = "false";
 		property portal.upstream = "true";
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
@@ -117,9 +229,8 @@ definition {
 	}
 
 	test CreateNewDiscount {
-		property portal.acceptance = "true";
+		property portal.acceptance = "false";
 		property portal.upstream = "true";
-		property test.name.skip.portal.instance = "CPCommerceDiscounts#CreateNewDiscount";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -168,30 +279,443 @@ definition {
 	}
 
 	@description = "This is a test for COMMERCE-6230. Discount coupon code limitations"
-	@ignore = "true"
 	@priority = "3"
 	test LimitCouponCodeUsability {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6230 LimitCouponCodeUsability Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "account1");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "account2");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "account3");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewDiscountsEntry(
+			discountAmount = "10",
+			discountName = "Test Discount",
+			discountTarget = "Products",
+			discountType = "Percentage");
+
+		CommerceRelations.assignSingleRelationToProductsEntry(
+			entryName = "U-Joint",
+			title = "Add Products");
+
+		Click(
+			key_name = "Coupon Code",
+			locator1 = "ToggleSwitch#ENABLE_SPECIFIC_TOGGLE_SWITCH");
+
+		Type(
+			key_fieldLabel = "Coupon Code",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "TEST");
+
+		Type(
+			key_fieldLabel = "Maximum Total Uses",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "2");
+
+		Type(
+			key_fieldLabel = "Maximum Uses Per Account",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "1");
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		Click(locator1 = "Icon#PLUS");
+
+		Type(
+			key_text = "Search",
+			locator1 = "TextInput#ANY",
+			value1 = "Coupon Code Entry");
+
+		MouseOver(
+			categoryName = "Coupon Code Entry",
+			locator1 = "ContentDashboard#CATEGORY_NAME_ELEMENT");
+
+		Click(locator1 = "Button#PLUS");
+
+		Type(
+			locator1 = "TextInput#DISCOUNT",
+			value1 = "TEST");
+
+		Button.click(button = "Apply");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Address Name");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "United States");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Zip Code");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Pause(locator1 = "2000");
+
+		AssertTextEquals.assertPartialText(
+			key_subtotalValue = "21.60",
+			locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_SUBTOTAL",
+			value1 = "21.60");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click.clickNoMouseOver(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN");
+
+		Click(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN_BACK_BUTTON");
+
+		Click(
+			key_accountName = "account2",
+			locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_ACCOUNT_LIST_ITEM");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		Type(
+			locator1 = "TextInput#DISCOUNT",
+			value1 = "TEST");
+
+		Button.click(button = "Apply");
+
+		Type(
+			key_fieldName = "Name",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Address Name");
+
+		Type(
+			key_fieldName = "Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Address");
+
+		Select(
+			key_fieldName = "Country",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+			value1 = "United States");
+
+		Type(
+			key_fieldName = "Zip",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test Zip Code");
+
+		Type(
+			key_fieldName = "City",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "Test City");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		Pause(locator1 = "2000");
+
+		AssertTextEquals.assertPartialText(
+			key_subtotalValue = "21.60",
+			locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_SUBTOTAL",
+			value1 = "21.60");
+
+		Click(locator1 = "Button#CONTINUE");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click.clickNoMouseOver(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN");
+
+		Click(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN_BACK_BUTTON");
+
+		Click(
+			key_accountName = "account3",
+			locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_ACCOUNT_LIST_ITEM");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		Type(
+			locator1 = "TextInput#DISCOUNT",
+			value1 = "TEST");
+
+		Button.click(button = "Apply");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#ERROR",
+			value1 = "The inserted coupon code has reached its usage limit.");
 	}
 
 	@description = "This is a test for COMMERCE-6229. Discount coupon code validators"
-	@ignore = "true"
 	@priority = "3"
 	test ViewCouponCodeNotAppliedToNotQualifiedAccount {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6229 ViewCouponCodeNotAppliedToNotQualifiedAccount Pending Implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "account1");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "account2");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewDiscountsEntry(
+			discountAmount = "10",
+			discountName = "Test Discount",
+			discountTarget = "Total",
+			discountType = "Percentage");
+
+		Click(
+			key_toggleSwitch = "Coupon Code",
+			locator1 = "ToggleSwitch#ENABLE_TOGGLE_SWITCH_VIA_SPAN");
+
+		Pause(locator1 = "1000");
+
+		Type(
+			key_fieldLabel = "Coupon Code",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "TEST");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
+
+		Click(
+			key_radioOption = "Specific Accounts",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		Type(
+			key_fieldLabel = "Add Accounts",
+			locator1 = "AppBuilder#SEARCH_BAR_INPUT",
+			value1 = "account1");
+
+		Button.clickSelect();
+
+		Button.clickPublish();
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click.clickNoMouseOver(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN");
+
+		Click(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_DROPDOWN_BACK_BUTTON");
+
+		Click(
+			key_accountName = "account2",
+			locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_ACCOUNT_LIST_ITEM");
+
+		FrontStore.addInitializerProductToCart(
+			productName = "U-Joint",
+			productQuantity = "1");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "Submit");
+
+		Click(locator1 = "Icon#PLUS");
+
+		Type(
+			key_text = "Search",
+			locator1 = "TextInput#ANY",
+			value1 = "Coupon Code Entry");
+
+		Click(
+			categoryName = "Coupon Code Entry",
+			locator1 = "ContentDashboard#CATEGORY_NAME_ELEMENT");
+
+		Click(locator1 = "Button#PLUS");
+
+		Type(
+			key_titleName = "Coupon Code",
+			locator1 = "TextInput#INPUT_CONTAINS_TITLE",
+			value1 = "TEST");
+
+		Button.click(button = "Apply");
+
+		Pause(locator1 = "1000");
+
+		AssertElementPresent(
+			key_titleName = "Coupon Code",
+			locator1 = "TextInput#INPUT_CONTAINS_TITLE",
+			value1 = "TEST");
 	}
 
 	@description = "This is a test for COMMERCE-6233. Discount expiration"
-	@ignore = "true"
 	@priority = "3"
 	test ViewExpiredDiscountEntry {
 		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "CPCommerceDiscounts#ViewExpiredDiscountEntry";
 
-		// TODO COMMERCE-6233 ViewExpiredDiscountEntry Pending Implementation
+		// TODO Review
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		Click(
+			key_text = "Pricing",
+			locator1 = "Link#ANY");
+
+		Click(
+			key_text = "Discounts",
+			locator1 = "Link#ANY");
+
+		Type(
+			key_text = "Check Interval",
+			locator1 = "TextInput#ANY",
+			value1 = "1");
+
+		Button.clickSave();
+
+		Pause(locator1 = "1000");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Pricing",
+			portlet = "Discounts");
+
+		Click(locator1 = "Button#PLUS");
+
+		CommerceEntry.addNewDiscountsEntry(
+			discountAmount = "0.00",
+			discountName = "discount1",
+			discountTarget = "Product Groups",
+			discountType = "Percentage");
+
+		var timeString = selenium.getElementValue("TextInput#EXPIRATION_DATE_TIME");
+		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
+		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
+		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
+
+		if ("${minutes}" == "58") {
+			var minutes = "00";
+
+			if ("${hours}" == "12") {
+				var hours = "01";
+
+				if ("${ampm}" == "PM") {
+					var ampm = "AM";
+				}
+				else {
+					var ampm = "PM";
+				}
+			}
+			else {
+				var hours = ${hours} + 1;
+			}
+		}
+		else if ("${minutes}" == "59") {
+			var minutes = "01";
+
+			if ("${hours}" == "12") {
+				var hours = "01";
+
+				if ("${ampm}" == "PM") {
+					var ampm = "AM";
+				}
+				else {
+					var ampm = "PM";
+				}
+			}
+			else {
+				var hours = ${hours} + 1;
+			}
+		}
+		else {
+			var minutes = ${minutes} + 2;
+		}
+
+		Uncheck.uncheckToggleSwitch(
+			checkboxName = "Never Expire",
+			locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Type(
+			inputFieldId = "expirationDateTime",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "${hours}:${minutes} ${ampm}");
+
+		Button.clickPublish();
+
+		Pause(locator1 = "180000");
+
+		Refresh();
+
+		AssertTextEquals(
+			locator1 = "AppBuilder#MESSAGE_EXCLAMATION_REQUIRED_FIELD",
+			value1 = "Expired");
 	}
 
 }

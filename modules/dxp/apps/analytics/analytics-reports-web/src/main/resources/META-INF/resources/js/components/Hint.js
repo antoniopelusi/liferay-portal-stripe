@@ -10,57 +10,41 @@
  */
 
 import ClayIcon from '@clayui/icon';
+import ClayPopover from '@clayui/popover';
 import className from 'classnames';
 import PropTypes from 'prop-types';
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 
-import Popover from './Popover';
-
-export default function Hint({align, message, position, secondary, title}) {
-	const iconRef = useRef();
-	const [showTooltip, setShowTooltip] = useState(false);
-
-	const handleMouseEnter = () => {
-		setShowTooltip(true);
-	};
-	const handleMouseLeave = () => {
-		setShowTooltip(false);
-	};
-
-	const hintClasses = className('p-1', 'small', {
-		'text-secondary': secondary,
-	});
+export default function Hint({message, position = 'top', secondary, title}) {
+	const [showPopover, setShowPopover] = useState(false);
 
 	return (
-		<>
-			<span
-				className={hintClasses}
-				onMouseEnter={handleMouseEnter}
-				onMouseLeave={handleMouseLeave}
-				ref={iconRef}
-			>
-				<ClayIcon
-					className="mr-1"
-					small="true"
-					symbol="question-circle"
-				/>
-			</span>
-
-			{showTooltip && (
-				<Popover
-					align={align}
-					anchor={iconRef.current}
-					header={title}
-					position={position}
+		<ClayPopover
+			alignPosition={position}
+			className="position-fixed"
+			header={title}
+			onShowChange={setShowPopover}
+			show={showPopover}
+			trigger={
+				<span
+					className={className('p-1', {
+						'text-secondary': secondary,
+					})}
+					onMouseEnter={() => setShowPopover(true)}
+					onMouseLeave={() => setShowPopover(false)}
 				>
-					{message}
-				</Popover>
-			)}
-		</>
+					<ClayIcon small="true" symbol="question-circle" />
+				</span>
+			}
+		>
+			{message}
+		</ClayPopover>
 	);
 }
 
-Hint.proptypes = {
+Hint.propTypes = {
 	message: PropTypes.string.isRequired,
+	position: PropTypes.string,
+	secondary: PropTypes.bool,
 	title: PropTypes.string.isRequired,
 };

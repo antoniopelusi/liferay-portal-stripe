@@ -232,19 +232,11 @@ public class BooleanFilter extends BaseFilter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("{MUST(");
-		sb.append(getBooleanClauseString(_mustBooleanClauses));
-		sb.append("), MUST_NOT(");
-		sb.append(getBooleanClauseString(_mustNotBooleanClauses));
-		sb.append("), SHOULD(");
-		sb.append(getBooleanClauseString(_shouldBooleanClauses));
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{MUST(", getBooleanClauseString(_mustBooleanClauses),
+			"), MUST_NOT(", getBooleanClauseString(_mustNotBooleanClauses),
+			"), SHOULD(", getBooleanClauseString(_shouldBooleanClauses), "), ",
+			super.toString(), "}");
 	}
 
 	protected String getBooleanClauseString(

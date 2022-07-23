@@ -54,11 +54,12 @@ public class UpgradePostgreSQL extends UpgradeProcess {
 				String tableName = entry.getKey();
 				String columnName = entry.getValue();
 
-				try (PreparedStatement ps = connection.prepareStatement(
-						PostgreSQLDB.getCreateRulesSQL(
-							tableName, columnName))) {
+				try (PreparedStatement preparedStatement =
+						connection.prepareStatement(
+							PostgreSQLDB.getCreateRulesSQL(
+								tableName, columnName))) {
 
-					ps.executeUpdate();
+					preparedStatement.executeUpdate();
 				}
 			}
 		}

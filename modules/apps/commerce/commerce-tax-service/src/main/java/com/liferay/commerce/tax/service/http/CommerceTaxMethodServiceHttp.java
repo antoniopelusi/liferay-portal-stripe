@@ -46,14 +46,13 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Marco Leo
- * @see CommerceTaxMethodServiceSoap
  * @generated
  */
 public class CommerceTaxMethodServiceHttp {
 
 	public static com.liferay.commerce.tax.model.CommerceTaxMethod
 			addCommerceTaxMethod(
-				HttpPrincipal httpPrincipal, long userId, long groupId,
+				HttpPrincipal httpPrincipal, long groupId,
 				java.util.Map<java.util.Locale, String> nameMap,
 				java.util.Map<java.util.Locale, String> descriptionMap,
 				String engineKey, boolean percentage, boolean active)
@@ -65,7 +64,7 @@ public class CommerceTaxMethodServiceHttp {
 				_addCommerceTaxMethodParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, userId, groupId, nameMap, descriptionMap, engineKey,
+				methodKey, groupId, nameMap, descriptionMap, engineKey,
 				percentage, active);
 
 			Object returnObj = null;
@@ -477,8 +476,8 @@ public class CommerceTaxMethodServiceHttp {
 
 	private static final Class<?>[] _addCommerceTaxMethodParameterTypes0 =
 		new Class[] {
-			long.class, long.class, java.util.Map.class, java.util.Map.class,
-			String.class, boolean.class, boolean.class
+			long.class, java.util.Map.class, java.util.Map.class, String.class,
+			boolean.class, boolean.class
 		};
 	private static final Class<?>[] _addCommerceTaxMethodParameterTypes1 =
 		new Class[] {

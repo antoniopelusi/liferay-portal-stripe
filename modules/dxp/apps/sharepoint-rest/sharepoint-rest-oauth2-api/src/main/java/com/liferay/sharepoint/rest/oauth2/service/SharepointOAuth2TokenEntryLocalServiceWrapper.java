@@ -27,6 +27,10 @@ public class SharepointOAuth2TokenEntryLocalServiceWrapper
 	implements ServiceWrapper<SharepointOAuth2TokenEntryLocalService>,
 			   SharepointOAuth2TokenEntryLocalService {
 
+	public SharepointOAuth2TokenEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public SharepointOAuth2TokenEntryLocalServiceWrapper(
 		SharepointOAuth2TokenEntryLocalService
 			sharepointOAuth2TokenEntryLocalService) {
@@ -164,6 +168,13 @@ public class SharepointOAuth2TokenEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _sharepointOAuth2TokenEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _sharepointOAuth2TokenEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

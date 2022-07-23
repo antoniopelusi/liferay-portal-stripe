@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the commerce discount account rel service. This utility wraps <code>com.liferay.commerce.discount.service.persistence.impl.CommerceDiscountAccountRelPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -858,12 +854,12 @@ public class CommerceDiscountAccountRelUtil {
 	 * @return the matching commerce discount account rel
 	 * @throws NoSuchDiscountAccountRelException if a matching commerce discount account rel could not be found
 	 */
-	public static CommerceDiscountAccountRel findByC_C(
+	public static CommerceDiscountAccountRel findByCAI_CDI(
 			long commerceAccountId, long commerceDiscountId)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountAccountRelException {
 
-		return getPersistence().findByC_C(
+		return getPersistence().findByCAI_CDI(
 			commerceAccountId, commerceDiscountId);
 	}
 
@@ -874,10 +870,10 @@ public class CommerceDiscountAccountRelUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the matching commerce discount account rel, or <code>null</code> if a matching commerce discount account rel could not be found
 	 */
-	public static CommerceDiscountAccountRel fetchByC_C(
+	public static CommerceDiscountAccountRel fetchByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCAI_CDI(
 			commerceAccountId, commerceDiscountId);
 	}
 
@@ -889,11 +885,11 @@ public class CommerceDiscountAccountRelUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching commerce discount account rel, or <code>null</code> if a matching commerce discount account rel could not be found
 	 */
-	public static CommerceDiscountAccountRel fetchByC_C(
+	public static CommerceDiscountAccountRel fetchByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId,
 		boolean useFinderCache) {
 
-		return getPersistence().fetchByC_C(
+		return getPersistence().fetchByCAI_CDI(
 			commerceAccountId, commerceDiscountId, useFinderCache);
 	}
 
@@ -904,12 +900,12 @@ public class CommerceDiscountAccountRelUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the commerce discount account rel that was removed
 	 */
-	public static CommerceDiscountAccountRel removeByC_C(
+	public static CommerceDiscountAccountRel removeByCAI_CDI(
 			long commerceAccountId, long commerceDiscountId)
 		throws com.liferay.commerce.discount.exception.
 			NoSuchDiscountAccountRelException {
 
-		return getPersistence().removeByC_C(
+		return getPersistence().removeByCAI_CDI(
 			commerceAccountId, commerceDiscountId);
 	}
 
@@ -920,10 +916,10 @@ public class CommerceDiscountAccountRelUtil {
 	 * @param commerceDiscountId the commerce discount ID
 	 * @return the number of matching commerce discount account rels
 	 */
-	public static int countByC_C(
+	public static int countByCAI_CDI(
 		long commerceAccountId, long commerceDiscountId) {
 
-		return getPersistence().countByC_C(
+		return getPersistence().countByCAI_CDI(
 			commerceAccountId, commerceDiscountId);
 	}
 
@@ -1091,29 +1087,9 @@ public class CommerceDiscountAccountRelUtil {
 	}
 
 	public static CommerceDiscountAccountRelPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<CommerceDiscountAccountRelPersistence,
-		 CommerceDiscountAccountRelPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommerceDiscountAccountRelPersistence.class);
-
-		ServiceTracker
-			<CommerceDiscountAccountRelPersistence,
-			 CommerceDiscountAccountRelPersistence> serviceTracker =
-				new ServiceTracker
-					<CommerceDiscountAccountRelPersistence,
-					 CommerceDiscountAccountRelPersistence>(
-						 bundle.getBundleContext(),
-						 CommerceDiscountAccountRelPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile CommerceDiscountAccountRelPersistence _persistence;
 
 }

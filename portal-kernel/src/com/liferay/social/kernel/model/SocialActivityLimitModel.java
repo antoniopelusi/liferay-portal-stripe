@@ -251,4 +251,7 @@ public interface SocialActivityLimitModel
 	 */
 	public void setValue(String value);
 
+	@Override
+	public SocialActivityLimit cloneWithOriginalValues();
+
 }

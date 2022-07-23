@@ -33,43 +33,43 @@ public class ResourcePermissionUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateResourcePermissions(DDMStructure.class.getName());
+		_updateResourcePermissions(DDMStructure.class.getName());
 
-		updateResourcePermissions(DDMTemplate.class.getName());
+		_updateResourcePermissions(DDMTemplate.class.getName());
 	}
 
-	protected String getNewCompositeModelName(String ddmModelClassName) {
+	private String _getNewCompositeModelName(String ddmModelClassName) {
 		return _resourceActions.getCompositeModelName(
 			ddmModelClassName, _CLASS_NAME);
 	}
 
-	protected String getOldCompositeModelName(String ddmModelClassName) {
+	private String _getOldCompositeModelName(String ddmModelClassName) {
 		return _CLASS_NAME + StringPool.DASH + ddmModelClassName;
 	}
 
-	protected void updateResourcePermissions(String ddmModelClassName)
+	private void _updateResourcePermissions(String ddmModelClassName)
 		throws Exception {
 
-		String newCompositeModelName = getNewCompositeModelName(
+		String newCompositeModelName = _getNewCompositeModelName(
 			ddmModelClassName);
-		String oldCompositeModelName = getOldCompositeModelName(
+		String oldCompositeModelName = _getOldCompositeModelName(
 			ddmModelClassName);
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"update ResourcePermission set name = ? where name = ?");
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement2 = connection.prepareStatement(
 				"update ResourcePermission set primKey = ? where primKey = " +
 					"?")) {
 
-			ps.setString(1, newCompositeModelName);
-			ps.setString(2, oldCompositeModelName);
+			preparedStatement1.setString(1, newCompositeModelName);
+			preparedStatement1.setString(2, oldCompositeModelName);
 
-			ps.executeUpdate();
+			preparedStatement1.executeUpdate();
 
-			ps1.setString(1, newCompositeModelName);
-			ps1.setString(2, oldCompositeModelName);
+			preparedStatement2.setString(1, newCompositeModelName);
+			preparedStatement2.setString(2, oldCompositeModelName);
 
-			ps1.executeUpdate();
+			preparedStatement2.executeUpdate();
 		}
 	}
 

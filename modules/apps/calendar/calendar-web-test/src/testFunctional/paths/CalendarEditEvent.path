@@ -2,15 +2,17 @@
 <head>
 <title>CalendarEditEvent</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">CalendarEditEvent</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>DATE_CONTAINER</td>
-	<td>//fieldset[@aria-labelledby='Title']//div[contains(@id,'DateContainer')]</td>
+	<td>//div[contains(@id,'DateContainer')]</td>
 	<td></td>
 </tr>
 <tr>

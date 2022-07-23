@@ -35,7 +35,7 @@ import com.liferay.portal.kernel.poller.PollerResponse;
 import com.liferay.portal.kernel.service.BrowserTrackerLocalServiceUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
@@ -94,7 +94,7 @@ public class PollerRequestHandlerImpl
 		}
 
 		boolean receiveRequest = isReceiveRequest(
-			HttpUtil.normalizePath(httpServletRequest.getPathInfo()));
+			HttpComponentsUtil.normalizePath(httpServletRequest.getPathInfo()));
 
 		String pollerSessionId = getPollerSessionId(pollerHeader);
 
@@ -214,7 +214,7 @@ public class PollerRequestHandlerImpl
 				}
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -233,7 +233,7 @@ public class PollerRequestHandlerImpl
 					pollerRequests.add(pollerRequest);
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 		}

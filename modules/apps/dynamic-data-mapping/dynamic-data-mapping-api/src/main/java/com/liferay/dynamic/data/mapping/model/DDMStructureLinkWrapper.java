@@ -99,6 +99,11 @@ public class DDMStructureLinkWrapper
 		}
 	}
 
+	@Override
+	public DDMStructureLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this ddm structure link.
 	 *

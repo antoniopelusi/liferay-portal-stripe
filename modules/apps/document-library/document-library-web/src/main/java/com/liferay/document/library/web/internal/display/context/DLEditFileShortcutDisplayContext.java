@@ -52,20 +52,19 @@ public class DLEditFileShortcutDisplayContext {
 	}
 
 	public String getEditFileShortcutURL() {
-		PortletURL portletURL = PortletURLBuilder.createActionURL(
+		return PortletURLBuilder.createActionURL(
 			_liferayPortletResponse
 		).setActionName(
 			"/document_library/edit_file_shortcut"
-		).build();
+		).setCMD(
+			() -> {
+				if (_getFileShortcut() == null) {
+					return Constants.ADD;
+				}
 
-		if (_getFileShortcut() == null) {
-			portletURL.setParameter(Constants.CMD, Constants.ADD);
-		}
-		else {
-			portletURL.setParameter(Constants.CMD, Constants.UPDATE);
-		}
-
-		return portletURL.toString();
+				return Constants.UPDATE;
+			}
+		).buildString();
 	}
 
 	public long getFileShortcutId() {
@@ -127,7 +126,7 @@ public class DLEditFileShortcutDisplayContext {
 				return fileEntry.getTitle();
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 

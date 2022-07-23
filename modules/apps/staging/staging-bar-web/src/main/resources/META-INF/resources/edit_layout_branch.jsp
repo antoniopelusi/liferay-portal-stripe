@@ -81,7 +81,7 @@ if (layoutBranch != null) {
 		<aui:input name="copyLayoutRevisionId" type="hidden" value="<%= String.valueOf(layoutRevisionId) %>" />
 		<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_SAVE_DRAFT) %>" />
 
-		<aui:input name="name" />
+		<aui:input ignoreRequestValue="<%= true %>" name="name" type="text" value="<%= (layoutBranch != null) ? HtmlUtil.escape(layoutBranchDisplayContext.getLayoutBranchDisplayName(layoutBranch)) : StringPool.BLANK %>" />
 
 		<aui:input name="description" />
 

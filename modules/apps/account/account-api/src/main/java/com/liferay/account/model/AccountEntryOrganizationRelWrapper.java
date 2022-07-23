@@ -89,6 +89,11 @@ public class AccountEntryOrganizationRelWrapper
 		}
 	}
 
+	@Override
+	public AccountEntryOrganizationRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the account entry ID of this account entry organization rel.
 	 *

@@ -16,7 +16,6 @@ package com.liferay.dynamic.data.mapping.data.provider.web.internal.portlet.acti
 
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceService;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseTransactionalMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -42,13 +41,6 @@ import org.osgi.service.component.annotations.Reference;
 public class DeleteDataProviderMVCActionCommand
 	extends BaseTransactionalMVCActionCommand {
 
-	protected void doDeleteDataProviderInstance(long dataProviderInstanceId)
-		throws PortalException {
-
-		_ddmDataProviderInstanceService.deleteDataProviderInstance(
-			dataProviderInstanceId);
-	}
-
 	@Override
 	protected void doTransactionalCommand(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -72,8 +64,15 @@ public class DeleteDataProviderMVCActionCommand
 		for (long deleteDataProviderInstanceId :
 				deleteDataProviderInstanceIds) {
 
-			doDeleteDataProviderInstance(deleteDataProviderInstanceId);
+			_deleteDataProviderInstance(deleteDataProviderInstanceId);
 		}
+	}
+
+	private void _deleteDataProviderInstance(long dataProviderInstanceId)
+		throws Exception {
+
+		_ddmDataProviderInstanceService.deleteDataProviderInstance(
+			dataProviderInstanceId);
 	}
 
 	@Reference

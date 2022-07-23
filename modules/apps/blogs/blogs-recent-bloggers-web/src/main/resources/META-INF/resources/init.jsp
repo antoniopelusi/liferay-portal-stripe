@@ -29,7 +29,6 @@ page import="com.liferay.blogs.model.BlogsStatsUser" %><%@
 page import="com.liferay.blogs.service.BlogsEntryServiceUtil" %><%@
 page import="com.liferay.blogs.service.BlogsStatsUserLocalServiceUtil" %><%@
 page import="com.liferay.blogs.util.comparator.EntryModifiedDateComparator" %><%@
-page import="com.liferay.blogs.util.comparator.StatsUserLastPostDateComparator" %><%@
 page import="com.liferay.petra.portlet.url.builder.PortletURLBuilder" %><%@
 page import="com.liferay.petra.string.StringBundler" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@

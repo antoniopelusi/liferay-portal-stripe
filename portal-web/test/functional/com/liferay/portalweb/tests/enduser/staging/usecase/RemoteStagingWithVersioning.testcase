@@ -1,6 +1,10 @@
 @component-name = "portal-staging"
 definition {
 
+	property app.server.bundles.size = "1";
+	property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
+	property databases.size = "1";
+	property minimum.slave.ram = "24";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Staging";
@@ -34,11 +38,58 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-128736."
+	@priority = "4"
+	test AssertContentNotBePublishedByDefault {
+		property test.name.skip.portal.instance = "RemoteStagingWithVersioning#AssertContentNotBePublishedByDefault";
+
+		APNavigator.openToConfigInSystemSettings(portlet = "Asset Publisher");
+
+		AssertNotChecked.assertNotCheckedNotVisible(
+			key_settingFieldName = "Enable Dynamic Export",
+			locator1 = "SystemSettings#SETTING_FIELD_NAME_CHECKBOX");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Asset Publisher");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.configurePublishToLive(uncheckContentNameList = "Web Content");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging Test Page",
+			siteName = "Remote Site");
+
+		AssetPublisherPortlet.configureDynamicAssetSelectionPG(portletName = "Asset Publisher");
+
+		Alert.viewInfoMessageSpecific(infoMessage = "There are no results.");
+	}
+
 	@priority = "3"
 	test PublishWCViaRemoteStaging {
-		property app.server.bundles.size = "1";
-		property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
-		property databases.size = "1";
 		property test.name.skip.portal.instance = "RemoteStagingWithVersioning#PublishWCViaRemoteStaging";
 
 		JSONLayout.addWidgetToPublicLayout(
@@ -50,23 +101,23 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		WebContent.addPGViaWCD(
+		WebContentDisplayPortlet.add(
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Staging.gotoPublishToLive();
 
 		Staging.publishToLive(remoteStaging = "true");
 
-		User.logoutPG(
-			password = "test",
-			userEmailAddress = "test@liferay.com");
+		User.logoutPG();
 
-		User.loginPG(
-			nodePort = "9080",
+		User.firstLoginUI(
 			password = "test",
+			specificURL = "http://localhost:9080",
 			userEmailAddress = "test@liferay.com");
 
 		Navigator.gotoSitePage(
@@ -74,9 +125,11 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Remote Site");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
-		WebContent.viewNoEditWCViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewCannotEditWC(webContentTitle = "Web Content Title");
 	}
 
 }

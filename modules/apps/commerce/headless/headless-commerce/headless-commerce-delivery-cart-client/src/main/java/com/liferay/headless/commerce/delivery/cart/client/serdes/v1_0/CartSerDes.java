@@ -60,7 +60,7 @@ public class CartSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (cart.getAccount() != null) {
 			if (sb.length() > 1) {
@@ -295,6 +295,30 @@ public class CartSerDes {
 			sb.append(String.valueOf(cart.getOrderStatusInfo()));
 		}
 
+		if (cart.getOrderTypeExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"orderTypeExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(cart.getOrderTypeExternalReferenceCode()));
+
+			sb.append("\"");
+		}
+
+		if (cart.getOrderTypeId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"orderTypeId\": ");
+
+			sb.append(cart.getOrderTypeId());
+		}
+
 		if (cart.getOrderUUID() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -520,7 +544,7 @@ public class CartSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (cart.getAccount() == null) {
 			map.put("account", null);
@@ -647,6 +671,22 @@ public class CartSerDes {
 		else {
 			map.put(
 				"orderStatusInfo", String.valueOf(cart.getOrderStatusInfo()));
+		}
+
+		if (cart.getOrderTypeExternalReferenceCode() == null) {
+			map.put("orderTypeExternalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"orderTypeExternalReferenceCode",
+				String.valueOf(cart.getOrderTypeExternalReferenceCode()));
+		}
+
+		if (cart.getOrderTypeId() == null) {
+			map.put("orderTypeId", null);
+		}
+		else {
+			map.put("orderTypeId", String.valueOf(cart.getOrderTypeId()));
 		}
 
 		if (cart.getOrderUUID() == null) {
@@ -908,6 +948,21 @@ public class CartSerDes {
 				if (jsonParserFieldValue != null) {
 					cart.setOrderStatusInfo(
 						StatusSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"orderTypeExternalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					cart.setOrderTypeExternalReferenceCode(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "orderTypeId")) {
+				if (jsonParserFieldValue != null) {
+					cart.setOrderTypeId(
+						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "orderUUID")) {

@@ -21,6 +21,32 @@ definition {
 			value1 = "Your request completed successfully.");
 	}
 
+	macro addOrRemoveAnyPermissionsFromSpecificRole {
+		var key_roleTitle = StringUtil.replace("${roleTitle}", " ", "-");
+		var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
+
+		SelectFrameTop(value1 = "relative=top");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		if ("${addOrRemoveViewPermission}" == "Add") {
+			for (var permissionDefinitionKey : list "${permissionsKeyList}") {
+				Check(locator1 = "Permissions#${permissionDefinitionKey}");
+			}
+		}
+		else if ("${addOrRemoveViewPermission}" == "Remove") {
+			for (var permissionDefinitionKey : list "${permissionsKeyList}") {
+				Uncheck(locator1 = "Permissions#${permissionDefinitionKey}");
+			}
+		}
+
+		Button.clickSave();
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#SUCCESS",
+			value1 = "Your request completed successfully.");
+	}
+
 	macro addOrRemoveEntryPermissionsFromAllRoles {
 		if (IsNotVisible(locator1 = "AssetPermissions#HIDE_OPTIONS_LINK")) {
 			AssertClick.assertPartialTextClickAt(
@@ -29,7 +55,7 @@ definition {
 		}
 
 		if ("${addOrRemoveViewPermission}" == "Remove") {
-			for (var permissionDefinitionKey : list "${permissionDefinitionKeyList}" ) {
+			for (var permissionDefinitionKey : list "${permissionDefinitionKeyList}") {
 				var key_permissionDefinitionKey = "${permissionDefinitionKey}";
 				var key_roleTitle = "${roleTitle}";
 
@@ -37,7 +63,7 @@ definition {
 			}
 		}
 		else {
-			for (var permissionDefinitionKey : list "${permissionDefinitionKeyList}" ) {
+			for (var permissionDefinitionKey : list "${permissionDefinitionKeyList}") {
 				var key_permissionDefinitionKey = "${permissionDefinitionKey}";
 				var key_roleTitle = "${roleTitle}";
 
@@ -57,6 +83,27 @@ definition {
 			}
 			else if ("${addOrRemoveViewPermission}" == "Remove") {
 				Uncheck(locator1 = "Permissions#CONTENT_PERMISSIONS_MANAGE_PAGES_CHECKBOX");
+			}
+		}
+
+		Button.clickSave();
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#SUCCESS",
+			value1 = "Your request completed successfully.");
+	}
+
+	macro addOrRemoveSubscribePermissionFromAllRoles {
+		for (var roleTitle : list "${roleList}") {
+			var roleTitle = "${roleTitle}";
+			var key_roleTitle = StringUtil.replace("${roleTitle}", " ", "-");
+			var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
+
+			if ("${addOrRemoveViewPermission}" == "Add") {
+				Check(locator1 = "Permissions#CONFIGURATION_PERMISSIONS_SUBSCRIBE_CHECKBOX");
+			}
+			else if ("${addOrRemoveViewPermission}" == "Remove") {
+				Uncheck(locator1 = "Permissions#CONFIGURATION_PERMISSIONS_SUBSCRIBE_CHECKBOX");
 			}
 		}
 
@@ -137,6 +184,14 @@ definition {
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 	}
 
+	macro gotoDepotEntry {
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Permissions",
+			rowEntry = "${depotName}");
+	}
+
 	macro gotoDocumentsAndMediaDocumentPG {
 		WaitForLiferayEvent.initializeLiferayEventLog();
 
@@ -144,7 +199,9 @@ definition {
 			menuItem = "Permissions",
 			rowEntry = "${dmDocumentTitle}");
 
-		IFrame.selectPermissionsFrame();
+		if (IsElementPresent(key_title = "Permissions", locator1 = "IFrame#MODAL_ANY")) {
+			IFrame.selectPermissionsFrame();
+		}
 	}
 
 	macro gotoDocumentsAndMediaHomeFolderPG {
@@ -188,6 +245,16 @@ definition {
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 	}
 
+	macro gotoMessageBoardsThreadPG {
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Permissions",
+			rowEntry = "${threadSubject}");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+	}
+
 	macro gotoMessageBoardsThreadReplyPG {
 		Navigator.gotoSitePage(
 			pageName = "${pageName}",
@@ -213,7 +280,7 @@ definition {
 			portlet = "Pages",
 			site = "${site}");
 
-		SitePages.gotoPageMenuItem(
+		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Permissions",
 			pageName = "${pageName}");
 
@@ -238,12 +305,14 @@ definition {
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 	}
 
-	macro gotoSitepageCP {
-		SitePages.togglePrivacy(privacy = "${privacy}");
+	macro gotoSitePageCP {
+		if (isSet(privacy)) {
+			PagesAdmin.togglePrivacy(privacy = "${privacy}");
+		}
 
 		WaitForLiferayEvent.initializeLiferayEventLog();
 
-		SitePages.gotoPageMenuItem(
+		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Permissions",
 			pageName = "${pageName}");
 
@@ -270,7 +339,7 @@ definition {
 			portlet = "Pages",
 			site = "${site}");
 
-		SitePages.gotoPageMenuItem(
+		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Permissions",
 			pageName = "${page}");
 	}

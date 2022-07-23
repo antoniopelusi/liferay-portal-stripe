@@ -18,6 +18,9 @@ import com.google.common.collect.Lists;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.RootCauseAnalysisToolJob;
+import com.liferay.jenkins.results.parser.test.clazz.TestClass;
+import com.liferay.jenkins.results.parser.test.clazz.TestClassFactory;
+import com.liferay.jenkins.results.parser.test.clazz.TestClassMethod;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,10 +36,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.json.JSONObject;
+
 /**
  * @author Michael Hashimoto
  */
 public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
+
+	protected JUnitRCABatchTestClassGroup(
+		JSONObject jsonObject,
+		RootCauseAnalysisToolJob rootCauseAnalysisToolJob) {
+
+		super(jsonObject, rootCauseAnalysisToolJob);
+	}
 
 	protected JUnitRCABatchTestClassGroup(
 		String batchName, RootCauseAnalysisToolJob rootCauseAnalysisToolJob) {
@@ -71,13 +83,13 @@ public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
 
 		int axisSize = (int)Math.ceil((double)testClassCount / axisCount);
 
-		for (List<TestClassGroup.TestClass> axisTestClasses :
+		for (List<TestClass> axisTestClasses :
 				Lists.partition(testClasses, axisSize)) {
 
 			AxisTestClassGroup axisTestClassGroup =
 				TestClassGroupFactory.newAxisTestClassGroup(this);
 
-			for (TestClassGroup.TestClass axisTestClass : axisTestClasses) {
+			for (TestClass axisTestClass : axisTestClasses) {
 				axisTestClassGroup.addTestClass(axisTestClass);
 			}
 
@@ -90,6 +102,11 @@ public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
 
 		String portalBatchTestSelector = System.getenv(
 			"PORTAL_BATCH_TEST_SELECTOR");
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(portalBatchTestSelector)) {
+			portalBatchTestSelector = getBuildStartProperty(
+				"PORTAL_BATCH_TEST_SELECTOR");
+		}
 
 		if (!JenkinsResultsParserUtil.isNullOrEmpty(portalBatchTestSelector)) {
 			Collections.addAll(
@@ -108,6 +125,8 @@ public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
 	}
 
 	private void _setTestClasses() {
+		final BatchTestClassGroup batchTestClassGroup = this;
+
 		File portalWorkingDirectory =
 			portalGitWorkingDirectory.getWorkingDirectory();
 
@@ -118,7 +137,8 @@ public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
 
 					@Override
 					public FileVisitResult preVisitDirectory(
-							Path filePath, BasicFileAttributes attrs)
+							Path filePath,
+							BasicFileAttributes basicFileAttributes)
 						throws IOException {
 
 						if (JenkinsResultsParserUtil.isFileExcluded(
@@ -133,7 +153,8 @@ public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
 
 					@Override
 					public FileVisitResult visitFile(
-							Path filePath, BasicFileAttributes attrs)
+							Path filePath,
+							BasicFileAttributes basicFileAttributes)
 						throws IOException {
 
 						if (JenkinsResultsParserUtil.isFileIncluded(
@@ -143,7 +164,7 @@ public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
 							TestClass testClass = _getPackagePathClassFile(
 								filePath);
 
-							List<TestClass.TestClassMethod> testClassMethods =
+							List<TestClassMethod> testClassMethods =
 								testClass.getTestClassMethods();
 
 							if (!testClassMethods.isEmpty()) {
@@ -154,11 +175,9 @@ public class JUnitRCABatchTestClassGroup extends RCABatchTestClassGroup {
 						return FileVisitResult.CONTINUE;
 					}
 
-					private BaseTestClass _getPackagePathClassFile(Path path) {
-						return JUnitBatchTestClassGroup.JunitBatchTestClass.
-							getInstance(
-								path.toFile(), portalGitWorkingDirectory,
-								path.toFile());
+					private TestClass _getPackagePathClassFile(Path path) {
+						return TestClassFactory.newTestClass(
+							batchTestClassGroup, path.toFile());
 					}
 
 				});

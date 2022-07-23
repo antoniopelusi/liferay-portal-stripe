@@ -51,9 +51,19 @@ public class ObjectFieldWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("listTypeDefinitionId", getListTypeDefinitionId());
 		attributes.put("objectDefinitionId", getObjectDefinitionId());
+		attributes.put("businessType", getBusinessType());
+		attributes.put("dbColumnName", getDBColumnName());
+		attributes.put("dbTableName", getDBTableName());
+		attributes.put("dbType", getDBType());
+		attributes.put("indexed", isIndexed());
+		attributes.put("indexedAsKeyword", isIndexedAsKeyword());
+		attributes.put("indexedLanguageId", getIndexedLanguageId());
+		attributes.put("label", getLabel());
 		attributes.put("name", getName());
-		attributes.put("type", getType());
+		attributes.put("relationshipType", getRelationshipType());
+		attributes.put("required", isRequired());
 
 		return attributes;
 	}
@@ -108,10 +118,65 @@ public class ObjectFieldWrapper
 			setModifiedDate(modifiedDate);
 		}
 
+		Long listTypeDefinitionId = (Long)attributes.get(
+			"listTypeDefinitionId");
+
+		if (listTypeDefinitionId != null) {
+			setListTypeDefinitionId(listTypeDefinitionId);
+		}
+
 		Long objectDefinitionId = (Long)attributes.get("objectDefinitionId");
 
 		if (objectDefinitionId != null) {
 			setObjectDefinitionId(objectDefinitionId);
+		}
+
+		String businessType = (String)attributes.get("businessType");
+
+		if (businessType != null) {
+			setBusinessType(businessType);
+		}
+
+		String dbColumnName = (String)attributes.get("dbColumnName");
+
+		if (dbColumnName != null) {
+			setDBColumnName(dbColumnName);
+		}
+
+		String dbTableName = (String)attributes.get("dbTableName");
+
+		if (dbTableName != null) {
+			setDBTableName(dbTableName);
+		}
+
+		String dbType = (String)attributes.get("dbType");
+
+		if (dbType != null) {
+			setDBType(dbType);
+		}
+
+		Boolean indexed = (Boolean)attributes.get("indexed");
+
+		if (indexed != null) {
+			setIndexed(indexed);
+		}
+
+		Boolean indexedAsKeyword = (Boolean)attributes.get("indexedAsKeyword");
+
+		if (indexedAsKeyword != null) {
+			setIndexedAsKeyword(indexedAsKeyword);
+		}
+
+		String indexedLanguageId = (String)attributes.get("indexedLanguageId");
+
+		if (indexedLanguageId != null) {
+			setIndexedLanguageId(indexedLanguageId);
+		}
+
+		String label = (String)attributes.get("label");
+
+		if (label != null) {
+			setLabel(label);
 		}
 
 		String name = (String)attributes.get("name");
@@ -120,11 +185,37 @@ public class ObjectFieldWrapper
 			setName(name);
 		}
 
-		String type = (String)attributes.get("type");
+		String relationshipType = (String)attributes.get("relationshipType");
 
-		if (type != null) {
-			setType(type);
+		if (relationshipType != null) {
+			setRelationshipType(relationshipType);
 		}
+
+		Boolean required = (Boolean)attributes.get("required");
+
+		if (required != null) {
+			setRequired(required);
+		}
+	}
+
+	@Override
+	public ObjectField cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
+	public String[] getAvailableLanguageIds() {
+		return model.getAvailableLanguageIds();
+	}
+
+	/**
+	 * Returns the business type of this object field.
+	 *
+	 * @return the business type of this object field
+	 */
+	@Override
+	public String getBusinessType() {
+		return model.getBusinessType();
 	}
 
 	/**
@@ -147,9 +238,155 @@ public class ObjectFieldWrapper
 		return model.getCreateDate();
 	}
 
+	/**
+	 * Returns the db column name of this object field.
+	 *
+	 * @return the db column name of this object field
+	 */
 	@Override
 	public String getDBColumnName() {
 		return model.getDBColumnName();
+	}
+
+	/**
+	 * Returns the db table name of this object field.
+	 *
+	 * @return the db table name of this object field
+	 */
+	@Override
+	public String getDBTableName() {
+		return model.getDBTableName();
+	}
+
+	/**
+	 * Returns the db type of this object field.
+	 *
+	 * @return the db type of this object field
+	 */
+	@Override
+	public String getDBType() {
+		return model.getDBType();
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		return model.getDefaultLanguageId();
+	}
+
+	/**
+	 * Returns the indexed of this object field.
+	 *
+	 * @return the indexed of this object field
+	 */
+	@Override
+	public boolean getIndexed() {
+		return model.getIndexed();
+	}
+
+	/**
+	 * Returns the indexed as keyword of this object field.
+	 *
+	 * @return the indexed as keyword of this object field
+	 */
+	@Override
+	public boolean getIndexedAsKeyword() {
+		return model.getIndexedAsKeyword();
+	}
+
+	/**
+	 * Returns the indexed language ID of this object field.
+	 *
+	 * @return the indexed language ID of this object field
+	 */
+	@Override
+	public String getIndexedLanguageId() {
+		return model.getIndexedLanguageId();
+	}
+
+	/**
+	 * Returns the label of this object field.
+	 *
+	 * @return the label of this object field
+	 */
+	@Override
+	public String getLabel() {
+		return model.getLabel();
+	}
+
+	/**
+	 * Returns the localized label of this object field in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the locale of the language
+	 * @return the localized label of this object field
+	 */
+	@Override
+	public String getLabel(java.util.Locale locale) {
+		return model.getLabel(locale);
+	}
+
+	/**
+	 * Returns the localized label of this object field in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the local of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this object field. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
+	 */
+	@Override
+	public String getLabel(java.util.Locale locale, boolean useDefault) {
+		return model.getLabel(locale, useDefault);
+	}
+
+	/**
+	 * Returns the localized label of this object field in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @return the localized label of this object field
+	 */
+	@Override
+	public String getLabel(String languageId) {
+		return model.getLabel(languageId);
+	}
+
+	/**
+	 * Returns the localized label of this object field in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this object field
+	 */
+	@Override
+	public String getLabel(String languageId, boolean useDefault) {
+		return model.getLabel(languageId, useDefault);
+	}
+
+	@Override
+	public String getLabelCurrentLanguageId() {
+		return model.getLabelCurrentLanguageId();
+	}
+
+	@Override
+	public String getLabelCurrentValue() {
+		return model.getLabelCurrentValue();
+	}
+
+	/**
+	 * Returns a map of the locales and localized labels of this object field.
+	 *
+	 * @return the locales and localized labels of this object field
+	 */
+	@Override
+	public Map<java.util.Locale, String> getLabelMap() {
+		return model.getLabelMap();
+	}
+
+	/**
+	 * Returns the list type definition ID of this object field.
+	 *
+	 * @return the list type definition ID of this object field
+	 */
+	@Override
+	public long getListTypeDefinitionId() {
+		return model.getListTypeDefinitionId();
 	}
 
 	/**
@@ -202,6 +439,11 @@ public class ObjectFieldWrapper
 		return model.getObjectFieldId();
 	}
 
+	@Override
+	public java.util.List<ObjectFieldSetting> getObjectFieldSettings() {
+		return model.getObjectFieldSettings();
+	}
+
 	/**
 	 * Returns the primary key of this object field.
 	 *
@@ -213,13 +455,23 @@ public class ObjectFieldWrapper
 	}
 
 	/**
-	 * Returns the type of this object field.
+	 * Returns the relationship type of this object field.
 	 *
-	 * @return the type of this object field
+	 * @return the relationship type of this object field
 	 */
 	@Override
-	public String getType() {
-		return model.getType();
+	public String getRelationshipType() {
+		return model.getRelationshipType();
+	}
+
+	/**
+	 * Returns the required of this object field.
+	 *
+	 * @return the required of this object field
+	 */
+	@Override
+	public boolean getRequired() {
+		return model.getRequired();
 	}
 
 	/**
@@ -262,9 +514,64 @@ public class ObjectFieldWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * Returns <code>true</code> if this object field is indexed.
+	 *
+	 * @return <code>true</code> if this object field is indexed; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIndexed() {
+		return model.isIndexed();
+	}
+
+	/**
+	 * Returns <code>true</code> if this object field is indexed as keyword.
+	 *
+	 * @return <code>true</code> if this object field is indexed as keyword; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIndexedAsKeyword() {
+		return model.isIndexedAsKeyword();
+	}
+
+	/**
+	 * Returns <code>true</code> if this object field is required.
+	 *
+	 * @return <code>true</code> if this object field is required; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isRequired() {
+		return model.isRequired();
+	}
+
 	@Override
 	public void persist() {
 		model.persist();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.kernel.exception.LocaleException {
+
+		model.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport(
+			java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.kernel.exception.LocaleException {
+
+		model.prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
+	/**
+	 * Sets the business type of this object field.
+	 *
+	 * @param businessType the business type of this object field
+	 */
+	@Override
+	public void setBusinessType(String businessType) {
+		model.setBusinessType(businessType);
 	}
 
 	/**
@@ -285,6 +592,140 @@ public class ObjectFieldWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the db column name of this object field.
+	 *
+	 * @param dbColumnName the db column name of this object field
+	 */
+	@Override
+	public void setDBColumnName(String dbColumnName) {
+		model.setDBColumnName(dbColumnName);
+	}
+
+	/**
+	 * Sets the db table name of this object field.
+	 *
+	 * @param dbTableName the db table name of this object field
+	 */
+	@Override
+	public void setDBTableName(String dbTableName) {
+		model.setDBTableName(dbTableName);
+	}
+
+	/**
+	 * Sets the db type of this object field.
+	 *
+	 * @param dbType the db type of this object field
+	 */
+	@Override
+	public void setDBType(String dbType) {
+		model.setDBType(dbType);
+	}
+
+	/**
+	 * Sets whether this object field is indexed.
+	 *
+	 * @param indexed the indexed of this object field
+	 */
+	@Override
+	public void setIndexed(boolean indexed) {
+		model.setIndexed(indexed);
+	}
+
+	/**
+	 * Sets whether this object field is indexed as keyword.
+	 *
+	 * @param indexedAsKeyword the indexed as keyword of this object field
+	 */
+	@Override
+	public void setIndexedAsKeyword(boolean indexedAsKeyword) {
+		model.setIndexedAsKeyword(indexedAsKeyword);
+	}
+
+	/**
+	 * Sets the indexed language ID of this object field.
+	 *
+	 * @param indexedLanguageId the indexed language ID of this object field
+	 */
+	@Override
+	public void setIndexedLanguageId(String indexedLanguageId) {
+		model.setIndexedLanguageId(indexedLanguageId);
+	}
+
+	/**
+	 * Sets the label of this object field.
+	 *
+	 * @param label the label of this object field
+	 */
+	@Override
+	public void setLabel(String label) {
+		model.setLabel(label);
+	}
+
+	/**
+	 * Sets the localized label of this object field in the language.
+	 *
+	 * @param label the localized label of this object field
+	 * @param locale the locale of the language
+	 */
+	@Override
+	public void setLabel(String label, java.util.Locale locale) {
+		model.setLabel(label, locale);
+	}
+
+	/**
+	 * Sets the localized label of this object field in the language, and sets the default locale.
+	 *
+	 * @param label the localized label of this object field
+	 * @param locale the locale of the language
+	 * @param defaultLocale the default locale
+	 */
+	@Override
+	public void setLabel(
+		String label, java.util.Locale locale, java.util.Locale defaultLocale) {
+
+		model.setLabel(label, locale, defaultLocale);
+	}
+
+	@Override
+	public void setLabelCurrentLanguageId(String languageId) {
+		model.setLabelCurrentLanguageId(languageId);
+	}
+
+	/**
+	 * Sets the localized labels of this object field from the map of locales and localized labels.
+	 *
+	 * @param labelMap the locales and localized labels of this object field
+	 */
+	@Override
+	public void setLabelMap(Map<java.util.Locale, String> labelMap) {
+		model.setLabelMap(labelMap);
+	}
+
+	/**
+	 * Sets the localized labels of this object field from the map of locales and localized labels, and sets the default locale.
+	 *
+	 * @param labelMap the locales and localized labels of this object field
+	 * @param defaultLocale the default locale
+	 */
+	@Override
+	public void setLabelMap(
+		Map<java.util.Locale, String> labelMap,
+		java.util.Locale defaultLocale) {
+
+		model.setLabelMap(labelMap, defaultLocale);
+	}
+
+	/**
+	 * Sets the list type definition ID of this object field.
+	 *
+	 * @param listTypeDefinitionId the list type definition ID of this object field
+	 */
+	@Override
+	public void setListTypeDefinitionId(long listTypeDefinitionId) {
+		model.setListTypeDefinitionId(listTypeDefinitionId);
 	}
 
 	/**
@@ -337,6 +778,13 @@ public class ObjectFieldWrapper
 		model.setObjectFieldId(objectFieldId);
 	}
 
+	@Override
+	public void setObjectFieldSettings(
+		java.util.List<ObjectFieldSetting> objectFieldSettings) {
+
+		model.setObjectFieldSettings(objectFieldSettings);
+	}
+
 	/**
 	 * Sets the primary key of this object field.
 	 *
@@ -348,13 +796,23 @@ public class ObjectFieldWrapper
 	}
 
 	/**
-	 * Sets the type of this object field.
+	 * Sets the relationship type of this object field.
 	 *
-	 * @param type the type of this object field
+	 * @param relationshipType the relationship type of this object field
 	 */
 	@Override
-	public void setType(String type) {
-		model.setType(type);
+	public void setRelationshipType(String relationshipType) {
+		model.setRelationshipType(relationshipType);
+	}
+
+	/**
+	 * Sets whether this object field is required.
+	 *
+	 * @param required the required of this object field
+	 */
+	@Override
+	public void setRequired(boolean required) {
+		model.setRequired(required);
 	}
 
 	/**

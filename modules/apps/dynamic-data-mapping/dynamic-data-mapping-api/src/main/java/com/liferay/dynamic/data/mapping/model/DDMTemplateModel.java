@@ -732,4 +732,7 @@ public interface DDMTemplateModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public DDMTemplate cloneWithOriginalValues();
+
 }

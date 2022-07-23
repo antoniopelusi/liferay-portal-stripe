@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.model.SegmentsExperiment;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
@@ -31,7 +30,6 @@ import com.liferay.segments.service.base.SegmentsExperimentServiceBaseImpl;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -231,7 +229,9 @@ public class SegmentsExperimentServiceImpl
 			segmentsExperienceKeySplitsStream.collect(
 				Collectors.toMap(
 					entry -> _getSegmentsExperienceId(
-						segmentsExperiment.getGroupId(), entry.getKey()),
+						segmentsExperiment.getGroupId(), entry.getKey(),
+						segmentsExperiment.getClassNameId(),
+						segmentsExperiment.getClassPK()),
 					Map.Entry::getValue));
 
 		return segmentsExperimentLocalService.runSegmentsExperiment(
@@ -317,7 +317,9 @@ public class SegmentsExperimentServiceImpl
 		return segmentsExperimentLocalService.updateSegmentsExperimentStatus(
 			segmentsExperiment.getSegmentsExperimentId(),
 			_getSegmentsExperienceId(
-				segmentsExperiment.getGroupId(), winnerSegmentsExperienceKey),
+				segmentsExperiment.getGroupId(), winnerSegmentsExperienceKey,
+				segmentsExperiment.getClassNameId(),
+				segmentsExperiment.getClassPK()),
 			status);
 	}
 
@@ -337,19 +339,13 @@ public class SegmentsExperimentServiceImpl
 	}
 
 	private long _getSegmentsExperienceId(
-		long groupId, String segmentsExperienceKey) {
-
-		if (Objects.equals(
-				segmentsExperienceKey,
-				SegmentsExperienceConstants.KEY_DEFAULT)) {
-
-			return SegmentsExperienceConstants.ID_DEFAULT;
-		}
+		long groupId, String segmentsExperienceKey, long classNameId,
+		long classPK) {
 
 		if (Validator.isNotNull(segmentsExperienceKey)) {
 			SegmentsExperience segmentsExperience =
 				_segmentsExperienceLocalService.fetchSegmentsExperience(
-					groupId, segmentsExperienceKey);
+					groupId, segmentsExperienceKey, classNameId, classPK);
 
 			if (segmentsExperience != null) {
 				return segmentsExperience.getSegmentsExperienceId();

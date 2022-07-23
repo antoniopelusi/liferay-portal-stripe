@@ -12,10 +12,10 @@
  * details.
  */
 
-import {useQuery} from '@apollo/client';
+import {useQuery} from 'graphql-hooks';
 
-/*eslint-disable no-unused-vars*/
-import React, {useContext} from 'react';
+/* eslint-disable no-unused-vars*/
+import React, {useContext, useEffect, useMemo} from 'react';
 import {withRouter} from 'react-router-dom';
 
 import {AppContext} from '../AppContext.es';
@@ -33,22 +33,32 @@ export default withRouter(
 
 		const historyPushParser = historyPushWithSlug(history.replace);
 
-		useQuery(getSectionByMessageQuery, {
-			onCompleted({messageBoardMessage}) {
+		const {data: {messageBoardMessage} = {}} = useQuery(
+			getSectionByMessageQuery,
+			{
+				variables: {
+					messageBoardMessageId: questionId,
+				},
+			}
+		);
+
+		useEffect(() => {
+			if (messageBoardMessage) {
+				const messageBoardSection =
+					messageBoardMessage.messageBoardThread.messageBoardSection;
 				historyPushParser(
 					`/questions/${
 						context.useTopicNamesInURL
-							? messageBoardMessage.messageBoardThread
-									.messageBoardSection.title
-							: messageBoardMessage.messageBoardThread
-									.messageBoardSection.id
+							? messageBoardSection.title
+							: messageBoardSection.id
 					}/${messageBoardMessage.friendlyUrlPath}`
 				);
-			},
-			variables: {
-				messageBoardMessageId: questionId,
-			},
-		});
+			}
+		}, [
+			context.useTopicNamesInURL,
+			messageBoardMessage,
+			historyPushParser,
+		]);
 
 		return null;
 	}

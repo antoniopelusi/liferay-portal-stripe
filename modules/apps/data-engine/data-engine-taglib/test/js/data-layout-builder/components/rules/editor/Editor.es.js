@@ -12,24 +12,16 @@
  * details.
  */
 
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	waitForElement,
-} from '@testing-library/react';
+import {act, fireEvent, render, waitFor} from '@testing-library/react';
 import Color from 'dynamic-data-mapping-form-field-type/ColorPicker/ColorPicker.es';
 import Date from 'dynamic-data-mapping-form-field-type/DatePicker/DatePicker.es';
 import DocumentLibrary from 'dynamic-data-mapping-form-field-type/DocumentLibrary/DocumentLibrary.es';
 import Grid from 'dynamic-data-mapping-form-field-type/Grid/Grid.es';
 import Image from 'dynamic-data-mapping-form-field-type/ImagePicker/ImagePicker.es';
-import Numeric from 'dynamic-data-mapping-form-field-type/Numeric/Numeric.es';
+import Numeric from 'dynamic-data-mapping-form-field-type/Numeric/Numeric';
 import RichText from 'dynamic-data-mapping-form-field-type/RichText/RichText.es';
 import Select from 'dynamic-data-mapping-form-field-type/Select/Select.es';
 import Text from 'dynamic-data-mapping-form-field-type/Text/Text.es';
-
-import 'frontend-editor-ckeditor-web';
 import React from 'react';
 
 import {Editor} from '../../../../../../src/main/resources/META-INF/resources/data_layout_builder/js/components/rules/editor/Editor.es';
@@ -114,6 +106,8 @@ const defaultProps = (fieldsList = FIELDS) => {
 				value: '39421',
 			},
 		],
+		dataProviderInstanceParameterSettingsURL:
+			'/o/dynamic-data-mapping-form-builder-provider-instance-parameter-settings/',
 		fields: fieldsList,
 		operatorsByType: OPERATORS_BY_TYPE,
 		pages,
@@ -124,9 +118,6 @@ const defaultProps = (fieldsList = FIELDS) => {
 
 describe('Editor', () => {
 	const originalLiferayLoader = window.Liferay.Loader;
-	afterEach(() => {
-		cleanup();
-	});
 
 	beforeEach(() => {
 		global.fetch.mockResponse(JSON.stringify(FIELDS_TYPES));
@@ -198,7 +189,7 @@ describe('Editor', () => {
 							/>
 						);
 
-						await waitForElement(() => {
+						await waitFor(() => {
 							return document.querySelector('.option-selected');
 						});
 
@@ -208,7 +199,7 @@ describe('Editor', () => {
 							.querySelector('.option-selected');
 						fireEvent.click(fieldLeft);
 
-						await waitForElement(() => {
+						await waitFor(() => {
 							return document.querySelector(
 								'.dropdown-menu.show'
 							);
@@ -234,7 +225,7 @@ describe('Editor', () => {
 							/>
 						);
 
-						await waitForElement(() => {
+						await waitFor(() => {
 							return document.querySelector('.option-selected');
 						});
 
@@ -247,7 +238,7 @@ describe('Editor', () => {
 							fireEvent.click(fieldLeft);
 						});
 
-						await waitForElement(() => {
+						await waitFor(() => {
 							return document.querySelector(
 								'.dropdown-menu.show'
 							);
@@ -273,7 +264,7 @@ describe('Editor', () => {
 						/>
 					);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.option-selected');
 					});
 
@@ -286,7 +277,7 @@ describe('Editor', () => {
 						fireEvent.click(fieldLeft);
 					});
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.dropdown-menu.show');
 					});
 
@@ -321,7 +312,7 @@ describe('Editor', () => {
 							/>
 						);
 
-						await waitForElement(() => {
+						await waitFor(() => {
 							return document.querySelector('.option-selected');
 						});
 
@@ -334,7 +325,7 @@ describe('Editor', () => {
 							fireEvent.click(fieldLeft);
 						});
 
-						await waitForElement(() => {
+						await waitFor(() => {
 							return document.querySelector(
 								'.dropdown-menu.show'
 							);
@@ -364,7 +355,7 @@ describe('Editor', () => {
 
 						fireEvent.click(getByText('value'));
 
-						await waitForElement(() => {
+						await waitFor(() => {
 							return document.querySelectorAll('.ddm-field')[3];
 						});
 
@@ -390,7 +381,7 @@ describe('Editor', () => {
 						/>
 					);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.option-selected');
 					});
 
@@ -401,7 +392,7 @@ describe('Editor', () => {
 
 					fireEvent.click(fieldLeft);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.dropdown-menu.show');
 					});
 
@@ -425,7 +416,7 @@ describe('Editor', () => {
 
 					fireEvent.click(getByText('other-field'));
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.ddm-field');
 					});
 
@@ -436,7 +427,7 @@ describe('Editor', () => {
 
 					fireEvent.click(fieldRight);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.dropdown-menu.show');
 					});
 
@@ -470,7 +461,7 @@ describe('Editor', () => {
 						/>
 					);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.option-selected');
 					});
 
@@ -492,7 +483,7 @@ describe('Editor', () => {
 						/>
 					);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.option-selected');
 					});
 
@@ -543,7 +534,7 @@ describe('Editor', () => {
 					/>
 				);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.option-selected');
 				});
 
@@ -554,7 +545,7 @@ describe('Editor', () => {
 
 				fireEvent.click(actionType);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.dropdown-menu.show');
 				});
 
@@ -607,7 +598,7 @@ describe('Editor', () => {
 						/>
 					);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.option-selected');
 					});
 
@@ -618,7 +609,7 @@ describe('Editor', () => {
 
 					fireEvent.click(actionType);
 
-					await waitForElement(() => {
+					await waitFor(() => {
 						return document.querySelector('.dropdown-menu.show');
 					});
 
@@ -647,7 +638,7 @@ describe('Editor', () => {
 					/>
 				);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.option-selected');
 				});
 
@@ -658,7 +649,7 @@ describe('Editor', () => {
 
 				fireEvent.click(actionType);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.dropdown-menu.show');
 				});
 
@@ -684,7 +675,7 @@ describe('Editor', () => {
 					/>
 				);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.option-selected');
 				});
 
@@ -695,7 +686,7 @@ describe('Editor', () => {
 
 				fireEvent.click(actionType);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.dropdown-menu.show');
 				});
 
@@ -713,7 +704,7 @@ describe('Editor', () => {
 
 				fireEvent.click(queryAllByText('integer')[1]);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.calculate-container');
 				});
 
@@ -732,7 +723,7 @@ describe('Editor', () => {
 					/>
 				);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.option-selected');
 				});
 
@@ -743,7 +734,7 @@ describe('Editor', () => {
 
 				fireEvent.click(actionType);
 
-				await waitForElement(() => {
+				await waitFor(() => {
 					return document.querySelector('.dropdown-menu.show');
 				});
 

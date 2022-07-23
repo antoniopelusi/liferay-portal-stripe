@@ -24,6 +24,7 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.responsive.ResponsiveLayoutStructureUtil;
 import com.liferay.layout.responsive.ViewportSize;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.layout.util.structure.CommonStylesUtil;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
@@ -36,7 +37,6 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
@@ -59,7 +59,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.util.List;
 
@@ -97,25 +97,24 @@ public class ResponsiveLayoutStructureUtilTest {
 
 		ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-		_layout = _layoutLocalService.addLayout(
-			TestPropsValues.getUserId(), _group.getGroupId(), false,
-			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			StringPool.BLANK, LayoutConstants.TYPE_CONTENT, false,
-			StringPool.BLANK, serviceContext);
+		_layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		FragmentEntry fragmentEntry =
 			_fragmentEntryLocalService.addFragmentEntry(
 				TestPropsValues.getUserId(), _group.getGroupId(), 0,
 				StringUtil.randomString(), StringUtil.randomString(),
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-				RandomTestUtil.randomString(), "{fieldSets: []}", 0,
-				FragmentConstants.TYPE_COMPONENT,
+				RandomTestUtil.randomString(), false, "{fieldSets: []}", null,
+				0, FragmentConstants.TYPE_COMPONENT,
 				WorkflowConstants.STATUS_APPROVED, serviceContext);
+
+		_defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				_layout.getPlid());
 
 		_fragmentEntryLink = _fragmentEntryLinkService.addFragmentEntryLink(
 			_group.getGroupId(), 0, fragmentEntry.getFragmentEntryId(),
-			SegmentsExperienceConstants.ID_DEFAULT, _layout.getPlid(),
+			_defaultSegmentsExperienceId, _layout.getPlid(),
 			fragmentEntry.getCss(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), fragmentEntry.getConfiguration(), null,
 			StringPool.BLANK, 0, null, serviceContext);
@@ -127,9 +126,9 @@ public class ResponsiveLayoutStructureUtilTest {
 		_themeDisplay.setLanguageId(
 			LanguageUtil.getLanguageId(LocaleUtil.getDefault()));
 		_themeDisplay.setLayout(_layout);
+		_themeDisplay.setLayoutSet(_group.getPublicLayoutSet());
 		_themeDisplay.setLayoutTypePortlet(
 			(LayoutTypePortlet)_layout.getLayoutType());
-		_themeDisplay.setLayoutSet(_group.getPublicLayoutSet());
 		_themeDisplay.setLocale(LocaleUtil.US);
 		_themeDisplay.setLookAndFeel(
 			_layout.getTheme(), _layout.getColorScheme());
@@ -147,11 +146,10 @@ public class ResponsiveLayoutStructureUtilTest {
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
 				fetchLayoutPageTemplateStructure(
-					_layout.getGroupId(), _layout.getPlid(), true);
+					_layout.getGroupId(), _layout.getPlid());
 
 		LayoutStructure layoutStructure = LayoutStructure.of(
-			layoutPageTemplateStructure.getData(
-				SegmentsExperienceConstants.ID_DEFAULT));
+			layoutPageTemplateStructure.getDefaultSegmentsExperienceData());
 
 		LayoutStructureItem rowStyledLayoutStructureItem =
 			layoutStructure.addRowStyledLayoutStructureItem(
@@ -168,8 +166,7 @@ public class ResponsiveLayoutStructureUtilTest {
 		_layoutPageTemplateStructureLocalService.
 			updateLayoutPageTemplateStructureData(
 				_layout.getGroupId(), _layout.getPlid(),
-				SegmentsExperienceConstants.ID_DEFAULT,
-				layoutStructure.toString());
+				_defaultSegmentsExperienceId, layoutStructure.toString());
 
 		MockHttpServletRequest httpServletRequest =
 			new MockHttpServletRequest();
@@ -178,10 +175,8 @@ public class ResponsiveLayoutStructureUtilTest {
 
 		httpServletRequest.setMethod(HttpMethods.GET);
 
-		MockHttpServletResponse httpServletResponse =
-			new MockHttpServletResponse();
-
-		_layout.includeLayoutContent(httpServletRequest, httpServletResponse);
+		_layout.includeLayoutContent(
+			httpServletRequest, new MockHttpServletResponse());
 
 		String content = String.valueOf(
 			(StringBundler)httpServletRequest.getAttribute(
@@ -191,12 +186,6 @@ public class ResponsiveLayoutStructureUtilTest {
 			if (viewportSize.equals(ViewportSize.DESKTOP)) {
 				continue;
 			}
-
-			String alignClassName =
-				"align-items" + viewportSize.getCssClassPrefix();
-
-			Assert.assertThat(
-				content, CoreMatchers.containsString(alignClassName));
 
 			String flexClassName =
 				"flex" + viewportSize.getCssClassPrefix() + "row";
@@ -219,11 +208,10 @@ public class ResponsiveLayoutStructureUtilTest {
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
 				fetchLayoutPageTemplateStructure(
-					_layout.getGroupId(), _layout.getPlid(), true);
+					_layout.getGroupId(), _layout.getPlid());
 
 		LayoutStructure layoutStructure = LayoutStructure.of(
-			layoutPageTemplateStructure.getData(
-				SegmentsExperienceConstants.ID_DEFAULT));
+			layoutPageTemplateStructure.getDefaultSegmentsExperienceData());
 
 		StyledLayoutStructureItem rowStyledLayoutStructureItem =
 			(StyledLayoutStructureItem)
@@ -296,6 +284,7 @@ public class ResponsiveLayoutStructureUtilTest {
 	@Inject
 	private CompanyLocalService _companyLocalService;
 
+	private long _defaultSegmentsExperienceId;
 	private FragmentEntryLink _fragmentEntryLink;
 
 	@Inject
@@ -315,6 +304,9 @@ public class ResponsiveLayoutStructureUtilTest {
 	@Inject
 	private LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService;
+
+	@Inject
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	private ThemeDisplay _themeDisplay;
 

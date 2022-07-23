@@ -17,7 +17,6 @@ package com.liferay.commerce.theme.minium.site.initializer.internal;
 import com.liferay.commerce.product.importer.CPFileImporter;
 import com.liferay.commerce.theme.minium.SiteInitializerDependencyResolver;
 import com.liferay.commerce.theme.minium.SiteInitializerDependencyResolverThreadLocal;
-import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.service.ServiceContext;
 
@@ -39,6 +38,10 @@ public class MiniumLayoutsInitializer {
 			_siteInitializerDependencyResolver =
 				siteInitializerDependencyResolver;
 		}
+		else {
+			_siteInitializerDependencyResolver =
+				_defaultSiteInitializerDependencyResolver;
+		}
 
 		_cpFileImporter.cleanLayouts(serviceContext);
 
@@ -48,13 +51,10 @@ public class MiniumLayoutsInitializer {
 	private void _createLayouts(ServiceContext serviceContext)
 		throws Exception {
 
-		String json = _siteInitializerDependencyResolver.getJSON(
-			"layouts.json");
-
-		JSONArray jsonArray = _jsonFactory.createJSONArray(json);
-
 		_cpFileImporter.createLayouts(
-			jsonArray, _siteInitializerDependencyResolver.getImageClassLoader(),
+			_jsonFactory.createJSONArray(
+				_siteInitializerDependencyResolver.getJSON("layouts.json")),
+			_siteInitializerDependencyResolver.getImageClassLoader(),
 			_siteInitializerDependencyResolver.getImageDependencyPath(),
 			serviceContext);
 	}
@@ -62,12 +62,15 @@ public class MiniumLayoutsInitializer {
 	@Reference
 	private CPFileImporter _cpFileImporter;
 
-	@Reference
-	private JSONFactory _jsonFactory;
-
 	@Reference(
 		target = "(site.initializer.key=" + MiniumSiteInitializer.KEY + ")"
 	)
+	private SiteInitializerDependencyResolver
+		_defaultSiteInitializerDependencyResolver;
+
+	@Reference
+	private JSONFactory _jsonFactory;
+
 	private SiteInitializerDependencyResolver
 		_siteInitializerDependencyResolver;
 

@@ -33,14 +33,9 @@ public class SequentialUUID {
 		long high = (count >> 48) & 0xffff;
 		long low = count & 0xffffffffffffL;
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(_UUID_PREFIX);
-		sb.append(_toHexString(high, 4));
-		sb.append(StringPool.MINUS);
-		sb.append(_toHexString(low, 8));
-
-		return sb.toString();
+		return StringBundler.concat(
+			_UUID_PREFIX, _toHexString(high, 4), StringPool.MINUS,
+			_toHexString(low, 8));
 	}
 
 	public static SequentialUUID getSequentialUUID() {

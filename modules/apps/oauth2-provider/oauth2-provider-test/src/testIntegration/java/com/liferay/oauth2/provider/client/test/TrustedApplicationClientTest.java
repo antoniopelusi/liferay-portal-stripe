@@ -58,11 +58,12 @@ public class TrustedApplicationClientTest extends BaseClientTestCase {
 					"redirect_uri", "http://redirecturi:8080"
 				).queryParam(
 					"response_type", "code"
-				)));
+				),
+				true));
 
 		URI locationURI = response.getLocation();
 
-		Assert.assertNotEquals(locationURI.toString(), _URL);
+		Assert.assertEquals(locationURI.getHost(), _HOST);
 
 		response = getCodeResponse(
 			"test@liferay.com", "test", null,
@@ -73,11 +74,12 @@ public class TrustedApplicationClientTest extends BaseClientTestCase {
 					"redirect_uri", "http://redirecturi:8080"
 				).queryParam(
 					"response_type", "code"
-				)));
+				),
+				true));
 
 		locationURI = response.getLocation();
 
-		Assert.assertNotEquals(locationURI.toString(), _URL);
+		Assert.assertNotEquals(locationURI.toString(), _HOST);
 	}
 
 	@Test
@@ -91,11 +93,12 @@ public class TrustedApplicationClientTest extends BaseClientTestCase {
 					"redirect_uri", "http://redirecturi:8080"
 				).queryParam(
 					"response_type", "code"
-				)));
+				),
+				true));
 
 		URI locationURI = response.getLocation();
 
-		Assert.assertEquals(locationURI.toString(), _URL);
+		Assert.assertNotEquals(locationURI.getHost(), _HOST);
 
 		response = getCodeResponse(
 			"test@liferay.com", "test", null,
@@ -106,11 +109,12 @@ public class TrustedApplicationClientTest extends BaseClientTestCase {
 					"redirect_uri", "http://redirecturi:8080"
 				).queryParam(
 					"response_type", "code"
-				)));
+				),
+				true));
 
 		locationURI = response.getLocation();
 
-		Assert.assertEquals(locationURI.toString(), _URL);
+		Assert.assertNotEquals(locationURI.getHost(), _HOST);
 	}
 
 	public static class TrustedApplicationClientTestPreparatorBundleActivator
@@ -126,8 +130,8 @@ public class TrustedApplicationClientTest extends BaseClientTestCase {
 				defaultCompanyId, user, "oauthTestApplicationCode",
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE), false,
 				Collections.singletonList("everything"), false);
-			createOAuth2Application(
-				defaultCompanyId, user, "oauthTestApplicationCodePKCE", null,
+			createOAuth2ApplicationWithNone(
+				defaultCompanyId, user, "oauthTestApplicationCodePKCE",
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE_PKCE),
 				Collections.singletonList("http://redirecturi:8080"), false,
 				Collections.singletonList("everything"), false);
@@ -135,9 +139,8 @@ public class TrustedApplicationClientTest extends BaseClientTestCase {
 				defaultCompanyId, user, "oauthTestTrustedApplicationCode",
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE), false,
 				Collections.singletonList("everything"), true);
-			createOAuth2Application(
+			createOAuth2ApplicationWithNone(
 				defaultCompanyId, user, "oauthTestTrustedApplicationCodePKCE",
-				null,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE_PKCE),
 				Collections.singletonList("http://redirecturi:8080"), false,
 				Collections.singletonList("everything"), true);
@@ -151,7 +154,6 @@ public class TrustedApplicationClientTest extends BaseClientTestCase {
 			TrustedApplicationClientTestPreparatorBundleActivator();
 	}
 
-	private static final String _URL =
-		"http://localhost:8080/o/oauth2/authorize/decision";
+	private static final String _HOST = "localhost";
 
 }

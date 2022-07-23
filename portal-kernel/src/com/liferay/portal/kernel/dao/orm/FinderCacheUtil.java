@@ -31,13 +31,8 @@ public class FinderCacheUtil {
 		_finderCache.clearCache(clazz);
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #clearCache(Class)}
-	 */
-	@Deprecated
-	public static void clearCache(String className) {
-		_finderCache.clearCache(className);
+	public static void clearDSLQueryCache(String tableName) {
+		_finderCache.clearDSLQueryCache(tableName);
 	}
 
 	public static void clearLocalCache() {
@@ -65,24 +60,13 @@ public class FinderCacheUtil {
 	}
 
 	public static void invalidate() {
-		getFinderCache().invalidate();
+		_finderCache.invalidate();
 	}
 
 	public static void putResult(
 		FinderPath finderPath, Object[] args, Object result) {
 
 		_finderCache.putResult(finderPath, args, result);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #putResult(FinderPath, Object[], Object)}
-	 */
-	@Deprecated
-	public static void putResult(
-		FinderPath finderPath, Object[] args, Object result, boolean quiet) {
-
-		_finderCache.putResult(finderPath, args, result, quiet);
 	}
 
 	public static void removeCache(String className) {

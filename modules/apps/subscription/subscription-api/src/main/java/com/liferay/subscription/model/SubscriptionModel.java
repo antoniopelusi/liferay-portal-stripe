@@ -280,4 +280,7 @@ public interface SubscriptionModel
 	 */
 	public void setFrequency(String frequency);
 
+	@Override
+	public Subscription cloneWithOriginalValues();
+
 }

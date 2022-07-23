@@ -68,7 +68,7 @@ if (request.getAttribute(OAuth2ProviderWebKeys.ASSIGN_SCOPES_TREE_DISPLAY_CONTEX
 								"credentials"
 							).setParameter(
 								"oAuth2ApplicationId", oAuth2ApplicationIdString
-							).build();
+							).buildPortletURL();
 
 							navigationItem.setHref(portletURL.toString());
 
@@ -89,7 +89,7 @@ if (request.getAttribute(OAuth2ProviderWebKeys.ASSIGN_SCOPES_TREE_DISPLAY_CONTEX
 								"assign_scopes"
 							).setParameter(
 								"oAuth2ApplicationId", oAuth2ApplicationIdString
-							).build();
+							).buildPortletURL();
 
 							navigationItem.setHref(portletURL.toString());
 
@@ -111,7 +111,7 @@ if (request.getAttribute(OAuth2ProviderWebKeys.ASSIGN_SCOPES_TREE_DISPLAY_CONTEX
 									"application_authorizations"
 								).setParameter(
 									"oAuth2ApplicationId", oAuth2ApplicationIdString
-								).build();
+								).buildPortletURL();
 
 								navigationItem.setHref(portletURL.toString());
 

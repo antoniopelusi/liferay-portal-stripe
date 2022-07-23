@@ -14,12 +14,24 @@
 
 package com.liferay.dynamic.data.mapping.expression;
 
+import com.liferay.petra.string.StringPool;
+
+import java.util.Locale;
+
 /**
  * @author Leonardo Barros
  */
 public interface DDMExpressionFunction {
 
+	public default String getLabel(Locale locale) {
+		return StringPool.BLANK;
+	}
+
 	public String getName();
+
+	public default boolean isCustomDDMExpressionFunction() {
+		return false;
+	}
 
 	public interface Function0<R> extends DDMExpressionFunction {
 

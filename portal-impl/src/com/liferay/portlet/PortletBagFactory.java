@@ -19,12 +19,12 @@ import com.liferay.expando.kernel.model.CustomAttributesDisplay;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
 import com.liferay.portal.kernel.notifications.UserNotificationDeliveryType;
 import com.liferay.portal.kernel.notifications.UserNotificationHandler;
@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapperTracker;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletBagPool;
+import com.liferay.portal.kernel.portlet.PortletConfigurationListener;
 import com.liferay.portal.kernel.portlet.PortletInstanceFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletLayoutListener;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
@@ -50,9 +51,10 @@ import com.liferay.portal.kernel.servlet.URLEncoder;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -70,21 +72,22 @@ import com.liferay.portal.util.JavaFieldsParser;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.internal.FriendlyURLMapperTrackerImpl;
 import com.liferay.portlet.internal.PortletBagImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 import com.liferay.social.kernel.model.SocialActivityInterpreter;
 import com.liferay.social.kernel.model.SocialRequestInterpreter;
 import com.liferay.social.kernel.model.impl.SocialActivityInterpreterImpl;
 import com.liferay.social.kernel.model.impl.SocialRequestInterpreterImpl;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 
 import javax.portlet.PreferencesValidator;
 
 import javax.servlet.ServletContext;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Brian Wing Shun Chan
@@ -115,89 +118,89 @@ public class PortletBagFactory {
 
 		_validate();
 
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			"javax.portlet.name", portlet.getPortletName()
-		).build();
+		Dictionary<String, Object> properties = MapUtil.singletonDictionary(
+			"javax.portlet.name", portlet.getPortletName());
 
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		List<ServiceRegistration<?>> serviceRegistrations = new ArrayList<>();
 
 		_registerConfigurationActions(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
-		_registerIndexers(registry, portlet, properties, serviceRegistrations);
+		_registerIndexers(
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerOpenSearches(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerSchedulerEventMessageListeners(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		FriendlyURLMapperTracker friendlyURLMapperTracker =
 			_registerFriendlyURLMappers(portlet);
 
 		_registerURLEncoders(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerPortletDataHandlers(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerStagedModelDataHandler(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerTemplateHandlers(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
+
+		_registerPortletConfigurationListeners(
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerPortletLayoutListeners(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerPollerProcessors(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerPOPMessageListeners(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerSocialActivityInterpreterInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerSocialRequestInterpreterInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerUserNotificationDefinitionInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerUserNotificationHandlerInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
-		_registerWebDAVStorageInstances(registry, portlet);
+		_registerWebDAVStorageInstances(bundleContext, portlet);
 
 		_registerXmlRpcMethodInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerControlPanelEntryInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerAssetRendererFactoryInstances(
-			registry, portlet, properties, serviceRegistrations);
-
-		_registerAtomCollectionAdapterInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerCustomAttributesDisplayInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerPermissionPropagators(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerTrashHandlerInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerWorkflowHandlerInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerPreferencesValidatorInstances(
-			registry, portlet, properties, serviceRegistrations);
+			bundleContext, portlet, properties, serviceRegistrations);
 
 		PortletBag portletBag = new PortletBagImpl(
 			portlet.getPortletName(), _servletContext, portletInstance,
@@ -211,7 +214,7 @@ public class PortletBagFactory {
 				portlet, _servletContext, destroyPrevious);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return portletBag;
@@ -233,7 +236,7 @@ public class PortletBagFactory {
 	 * @see FriendlyURLMapperTrackerImpl#getContent(ClassLoader, String)
 	 */
 	private String _getContent(String fileName) throws Exception {
-		String queryString = HttpUtil.getQueryString(fileName);
+		String queryString = HttpComponentsUtil.getQueryString(fileName);
 
 		if (Validator.isNull(queryString)) {
 			return StringUtil.read(_classLoader, fileName);
@@ -243,7 +246,7 @@ public class PortletBagFactory {
 
 		String xml = StringUtil.read(_classLoader, fileName.substring(0, pos));
 
-		Map<String, String[]> parameterMap = HttpUtil.getParameterMap(
+		Map<String, String[]> parameterMap = HttpComponentsUtil.getParameterMap(
 			queryString);
 
 		if (parameterMap == null) {
@@ -310,7 +313,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerAssetRendererFactoryInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -335,48 +339,26 @@ public class PortletBagFactory {
 				assetRendererEnabledPropertyValue, true);
 
 			if (assetRendererEnabledValue) {
-				AssetRendererFactory<?> assetRendererFactoryInstance =
-					_newInstance(
-						AssetRendererFactory.class, assetRendererFactoryClass);
+				AssetRendererFactory<?> assetRendererFactory = _newInstance(
+					AssetRendererFactory.class, assetRendererFactoryClass);
 
-				assetRendererFactoryInstance.setClassName(
-					assetRendererFactoryInstance.getClassName());
-				assetRendererFactoryInstance.setPortletId(
-					portlet.getPortletId());
+				assetRendererFactory.setClassName(
+					assetRendererFactory.getClassName());
+				assetRendererFactory.setPortletId(portlet.getPortletId());
 
 				ServiceRegistration<?> serviceRegistration =
-					registry.registerService(
-						AssetRendererFactory.class,
-						assetRendererFactoryInstance, properties);
+					bundleContext.registerService(
+						AssetRendererFactory.class, assetRendererFactory,
+						properties);
 
 				serviceRegistrations.add(serviceRegistration);
 			}
 		}
 	}
 
-	private void _registerAtomCollectionAdapterInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
-			List<ServiceRegistration<?>> serviceRegistrations)
-		throws Exception {
-
-		for (String atomCollectionAdapterClass :
-				portlet.getAtomCollectionAdapterClasses()) {
-
-			AtomCollectionAdapter<?> atomCollectionAdapterInstance =
-				_newInstance(
-					AtomCollectionAdapter.class, atomCollectionAdapterClass);
-
-			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
-					AtomCollectionAdapter.class, atomCollectionAdapterInstance,
-					properties);
-
-			serviceRegistrations.add(serviceRegistration);
-		}
-	}
-
 	private void _registerConfigurationActions(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -386,7 +368,7 @@ public class PortletBagFactory {
 				portlet.getConfigurationActionClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					ConfigurationAction.class, configurationAction, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -394,7 +376,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerControlPanelEntryInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -403,7 +386,7 @@ public class PortletBagFactory {
 				ControlPanelEntry.class, portlet.getControlPanelEntryClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					ControlPanelEntry.class, controlPanelEntryInstance,
 					properties);
 
@@ -412,7 +395,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerCustomAttributesDisplayInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -431,7 +415,7 @@ public class PortletBagFactory {
 				portlet.getPortletId());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					CustomAttributesDisplay.class,
 					customAttributesDisplayInstance, properties);
 
@@ -457,7 +441,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerIndexers(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -466,7 +451,7 @@ public class PortletBagFactory {
 				Indexer.class, indexerClass);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					Indexer.class, indexerInstance, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -474,7 +459,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerOpenSearches(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -483,7 +469,7 @@ public class PortletBagFactory {
 				OpenSearch.class, portlet.getOpenSearchClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					OpenSearch.class, openSearch, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -491,7 +477,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerPermissionPropagators(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -501,7 +488,7 @@ public class PortletBagFactory {
 				portlet.getPermissionPropagatorClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					PermissionPropagator.class, permissionPropagatorInstance,
 					properties);
 
@@ -510,7 +497,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerPollerProcessors(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -519,7 +507,7 @@ public class PortletBagFactory {
 				PollerProcessor.class, portlet.getPollerProcessorClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					PollerProcessor.class, pollerProcessorInstance, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -527,7 +515,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerPOPMessageListeners(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -536,7 +525,7 @@ public class PortletBagFactory {
 				MessageListener.class, portlet.getPopMessageListenerClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					MessageListener.class, popMessageListenerInstance,
 					properties);
 
@@ -544,8 +533,32 @@ public class PortletBagFactory {
 		}
 	}
 
+	private void _registerPortletConfigurationListeners(
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
+			List<ServiceRegistration<?>> serviceRegistrations)
+		throws Exception {
+
+		if (Validator.isNotNull(
+				portlet.getPortletConfigurationListenerClass())) {
+
+			PortletConfigurationListener portletConfigurationListener =
+				_newInstance(
+					PortletConfigurationListener.class,
+					portlet.getPortletConfigurationListenerClass());
+
+			ServiceRegistration<?> serviceRegistration =
+				bundleContext.registerService(
+					PortletConfigurationListener.class,
+					portletConfigurationListener, properties);
+
+			serviceRegistrations.add(serviceRegistration);
+		}
+	}
+
 	private void _registerPortletDataHandlers(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -556,7 +569,7 @@ public class PortletBagFactory {
 			portletDataHandlerInstance.setPortletId(portlet.getPortletId());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					PortletDataHandler.class, portletDataHandlerInstance,
 					properties);
 
@@ -565,7 +578,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerPortletLayoutListeners(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -575,7 +589,7 @@ public class PortletBagFactory {
 				portlet.getPortletLayoutListenerClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					PortletLayoutListener.class, portletLayoutListener,
 					properties);
 
@@ -584,7 +598,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerPreferencesValidatorInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -611,15 +626,17 @@ public class PortletBagFactory {
 			}
 		}
 
-		ServiceRegistration<?> serviceRegistration = registry.registerService(
-			PreferencesValidator.class, preferencesValidatorInstance,
-			properties);
+		ServiceRegistration<?> serviceRegistration =
+			bundleContext.registerService(
+				PreferencesValidator.class, preferencesValidatorInstance,
+				properties);
 
 		serviceRegistrations.add(serviceRegistration);
 	}
 
 	private void _registerSchedulerEventMessageListeners(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -642,7 +659,7 @@ public class PortletBagFactory {
 				schedulerEntry);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					SchedulerEventMessageListener.class,
 					schedulerEventMessageListenerWrapper, properties);
 
@@ -651,7 +668,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerSocialActivityInterpreterInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -668,7 +686,7 @@ public class PortletBagFactory {
 					portlet.getPortletId(), socialActivityInterpreterInstance);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					SocialActivityInterpreter.class,
 					socialActivityInterpreterInstance, properties);
 
@@ -677,7 +695,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerSocialRequestInterpreterInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -691,7 +710,7 @@ public class PortletBagFactory {
 				portlet.getPortletId(), socialRequestInterpreterInstance);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					SocialRequestInterpreter.class,
 					socialRequestInterpreterInstance, properties);
 
@@ -700,7 +719,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerStagedModelDataHandler(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -711,7 +731,7 @@ public class PortletBagFactory {
 				StagedModelDataHandler.class, stagedModelDataHandlerClass);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					StagedModelDataHandler.class, stagedModelDataHandler,
 					properties);
 
@@ -720,7 +740,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerTemplateHandlers(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -729,7 +750,7 @@ public class PortletBagFactory {
 				TemplateHandler.class, portlet.getTemplateHandlerClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					TemplateHandler.class, templateHandler, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -737,7 +758,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerTrashHandlerInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -746,7 +768,7 @@ public class PortletBagFactory {
 				TrashHandler.class, trashHandlerClass);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					TrashHandler.class, trashHandlerInstance, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -754,7 +776,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerURLEncoders(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -763,7 +786,7 @@ public class PortletBagFactory {
 				URLEncoder.class, portlet.getURLEncoderClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					URLEncoder.class, urlEncoder, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -771,7 +794,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerUserNotificationDefinitionInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -824,7 +848,7 @@ public class PortletBagFactory {
 			}
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					UserNotificationDefinition.class,
 					userNotificationDefinition, properties);
 
@@ -833,7 +857,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerUserNotificationHandlerInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -849,7 +874,7 @@ public class PortletBagFactory {
 				userNotificationHandlerInstance);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					UserNotificationHandler.class,
 					userNotificationHandlerInstance, properties);
 
@@ -858,16 +883,16 @@ public class PortletBagFactory {
 	}
 
 	private void _registerWebDAVStorageInstances(
-			Registry registry, Portlet portlet)
+			BundleContext bundleContext, Portlet portlet)
 		throws Exception {
 
 		if (Validator.isNotNull(portlet.getWebDAVStorageClass())) {
 			WebDAVStorage webDAVStorageInstance = _newInstance(
 				WebDAVStorage.class, portlet.getWebDAVStorageClass());
 
-			registry.registerService(
+			bundleContext.registerService(
 				WebDAVStorage.class, webDAVStorageInstance,
-				HashMapBuilder.<String, Object>put(
+				HashMapDictionaryBuilder.<String, Object>put(
 					"javax.portlet.name", portlet.getPortletId()
 				).put(
 					"webdav.storage.token", portlet.getWebDAVStorageToken()
@@ -876,7 +901,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerWorkflowHandlerInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -887,7 +913,7 @@ public class PortletBagFactory {
 				WorkflowHandler.class, workflowHandlerClass);
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					WorkflowHandler.class, workflowHandlerInstance, properties);
 
 			serviceRegistrations.add(serviceRegistration);
@@ -895,7 +921,8 @@ public class PortletBagFactory {
 	}
 
 	private void _registerXmlRpcMethodInstances(
-			Registry registry, Portlet portlet, Map<String, Object> properties,
+			BundleContext bundleContext, Portlet portlet,
+			Dictionary<String, Object> properties,
 			List<ServiceRegistration<?>> serviceRegistrations)
 		throws Exception {
 
@@ -904,7 +931,7 @@ public class PortletBagFactory {
 				Method.class, portlet.getXmlRpcMethodClass());
 
 			ServiceRegistration<?> serviceRegistration =
-				registry.registerService(
+				bundleContext.registerService(
 					Method.class, xmlRpcMethodInstance, properties);
 
 			serviceRegistrations.add(serviceRegistration);

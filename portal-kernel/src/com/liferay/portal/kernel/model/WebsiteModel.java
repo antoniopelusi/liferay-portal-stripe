@@ -306,4 +306,7 @@ public interface WebsiteModel
 	 */
 	public void setLastPublishDate(Date lastPublishDate);
 
+	@Override
+	public Website cloneWithOriginalValues();
+
 }

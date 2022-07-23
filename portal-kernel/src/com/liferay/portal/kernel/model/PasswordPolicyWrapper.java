@@ -295,6 +295,11 @@ public class PasswordPolicyWrapper
 		}
 	}
 
+	@Override
+	public PasswordPolicy cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the allow dictionary words of this password policy.
 	 *

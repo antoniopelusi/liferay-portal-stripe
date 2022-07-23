@@ -18,6 +18,7 @@ import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOpt
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionLocalService;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionLocalServiceUtil;
 import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionPersistence;
+import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionQualifierPersistence;
 import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionRelFinder;
 import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionRelPersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
@@ -157,6 +158,13 @@ public abstract class CommerceShippingFixedOptionLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return commerceShippingFixedOptionPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -454,6 +462,56 @@ public abstract class CommerceShippingFixedOptionLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the commerce shipping fixed option qualifier local service.
+	 *
+	 * @return the commerce shipping fixed option qualifier local service
+	 */
+	public com.liferay.commerce.shipping.engine.fixed.service.
+		CommerceShippingFixedOptionQualifierLocalService
+			getCommerceShippingFixedOptionQualifierLocalService() {
+
+		return commerceShippingFixedOptionQualifierLocalService;
+	}
+
+	/**
+	 * Sets the commerce shipping fixed option qualifier local service.
+	 *
+	 * @param commerceShippingFixedOptionQualifierLocalService the commerce shipping fixed option qualifier local service
+	 */
+	public void setCommerceShippingFixedOptionQualifierLocalService(
+		com.liferay.commerce.shipping.engine.fixed.service.
+			CommerceShippingFixedOptionQualifierLocalService
+				commerceShippingFixedOptionQualifierLocalService) {
+
+		this.commerceShippingFixedOptionQualifierLocalService =
+			commerceShippingFixedOptionQualifierLocalService;
+	}
+
+	/**
+	 * Returns the commerce shipping fixed option qualifier persistence.
+	 *
+	 * @return the commerce shipping fixed option qualifier persistence
+	 */
+	public CommerceShippingFixedOptionQualifierPersistence
+		getCommerceShippingFixedOptionQualifierPersistence() {
+
+		return commerceShippingFixedOptionQualifierPersistence;
+	}
+
+	/**
+	 * Sets the commerce shipping fixed option qualifier persistence.
+	 *
+	 * @param commerceShippingFixedOptionQualifierPersistence the commerce shipping fixed option qualifier persistence
+	 */
+	public void setCommerceShippingFixedOptionQualifierPersistence(
+		CommerceShippingFixedOptionQualifierPersistence
+			commerceShippingFixedOptionQualifierPersistence) {
+
+		this.commerceShippingFixedOptionQualifierPersistence =
+			commerceShippingFixedOptionQualifierPersistence;
+	}
+
+	/**
 	 * Returns the commerce shipping fixed option rel local service.
 	 *
 	 * @return the commerce shipping fixed option rel local service
@@ -739,6 +797,17 @@ public abstract class CommerceShippingFixedOptionLocalServiceBaseImpl
 	@BeanReference(type = CommerceShippingFixedOptionPersistence.class)
 	protected CommerceShippingFixedOptionPersistence
 		commerceShippingFixedOptionPersistence;
+
+	@BeanReference(
+		type = com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionQualifierLocalService.class
+	)
+	protected com.liferay.commerce.shipping.engine.fixed.service.
+		CommerceShippingFixedOptionQualifierLocalService
+			commerceShippingFixedOptionQualifierLocalService;
+
+	@BeanReference(type = CommerceShippingFixedOptionQualifierPersistence.class)
+	protected CommerceShippingFixedOptionQualifierPersistence
+		commerceShippingFixedOptionQualifierPersistence;
 
 	@BeanReference(
 		type = com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionRelLocalService.class

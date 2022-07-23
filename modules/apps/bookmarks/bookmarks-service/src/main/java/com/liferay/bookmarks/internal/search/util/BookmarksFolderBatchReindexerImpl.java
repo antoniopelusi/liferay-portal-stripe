@@ -38,10 +38,10 @@ public class BookmarksFolderBatchReindexerImpl
 
 		batchIndexingActionable.setAddCriteriaMethod(
 			dynamicQuery -> {
-				Property folderIdPropery = PropertyFactoryUtil.forName(
+				Property folderIdProperty = PropertyFactoryUtil.forName(
 					"folderId");
 
-				dynamicQuery.add(folderIdPropery.eq(folderId));
+				dynamicQuery.add(folderIdProperty.eq(folderId));
 			});
 		batchIndexingActionable.setCompanyId(companyId);
 		batchIndexingActionable.setPerformActionMethod(

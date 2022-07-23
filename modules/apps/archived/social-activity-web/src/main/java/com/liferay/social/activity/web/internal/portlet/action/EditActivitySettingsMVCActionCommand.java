@@ -62,7 +62,7 @@ public class EditActivitySettingsMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			if (cmd.equals(Constants.UPDATE)) {
-				updateActivitySettings(actionRequest);
+				_updateActivitySettings(actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -82,7 +82,7 @@ public class EditActivitySettingsMVCActionCommand extends BaseMVCActionCommand {
 		_socialActivitySettingService = socialActivitySettingService;
 	}
 
-	protected SocialActivityCounterDefinition updateActivityCounterDefinition(
+	private SocialActivityCounterDefinition _updateActivityCounterDefinition(
 		JSONObject actionJSONObject,
 		SocialActivityDefinition activityDefinition,
 		String activityCounterName) {
@@ -134,7 +134,7 @@ public class EditActivitySettingsMVCActionCommand extends BaseMVCActionCommand {
 		return activityCounterDefinition;
 	}
 
-	protected void updateActivitySettings(ActionRequest actionRequest)
+	private void _updateActivitySettings(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -168,17 +168,17 @@ public class EditActivitySettingsMVCActionCommand extends BaseMVCActionCommand {
 				new ArrayList<>();
 
 			activityCounterDefinitions.add(
-				updateActivityCounterDefinition(
+				_updateActivityCounterDefinition(
 					actionJSONObject, activityDefinition,
 					SocialActivityCounterConstants.NAME_CONTRIBUTION));
 
 			activityCounterDefinitions.add(
-				updateActivityCounterDefinition(
+				_updateActivityCounterDefinition(
 					actionJSONObject, activityDefinition,
 					SocialActivityCounterConstants.NAME_PARTICIPATION));
 
 			activityCounterDefinitions.add(
-				updateActivityCounterDefinition(
+				_updateActivityCounterDefinition(
 					actionJSONObject, activityDefinition,
 					SocialActivityCounterConstants.NAME_POPULARITY));
 

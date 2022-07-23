@@ -35,11 +35,9 @@ public class CompanyProviderClassTestRule extends ClassTestRule<Long> {
 
 	@Override
 	protected Long beforeClass(Description description) throws PortalException {
-		Long companyId = CompanyThreadLocal.getCompanyId();
-
 		CompanyThreadLocal.setCompanyId(TestPropsValues.getCompanyId());
 
-		return companyId;
+		return CompanyThreadLocal.getCompanyId();
 	}
 
 	private CompanyProviderClassTestRule() {

@@ -29,6 +29,10 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 	implements ServiceWrapper<WorkflowInstanceLinkLocalService>,
 			   WorkflowInstanceLinkLocalService {
 
+	public WorkflowInstanceLinkLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WorkflowInstanceLinkLocalServiceWrapper(
 		WorkflowInstanceLinkLocalService workflowInstanceLinkLocalService) {
 
@@ -162,6 +166,13 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _workflowInstanceLinkLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _workflowInstanceLinkLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -407,6 +418,19 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 
 		_workflowInstanceLinkLocalService.startWorkflowInstance(
 			companyId, groupId, userId, className, classPK, workflowContext);
+	}
+
+	@Override
+	public void startWorkflowInstance(
+			long companyId, long groupId, long userId, String className,
+			long classPK,
+			java.util.Map<String, java.io.Serializable> workflowContext,
+			boolean waitForCompletion)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_workflowInstanceLinkLocalService.startWorkflowInstance(
+			companyId, groupId, userId, className, classPK, workflowContext,
+			waitForCompletion);
 	}
 
 	@Override

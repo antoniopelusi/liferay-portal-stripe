@@ -38,11 +38,6 @@
 			<finder-column name="companyId" />
 			<finder-column case-sensitive="false" name="name" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ResourcePermission" package-path="com.liferay.portal" />
-		<reference entity="Role" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>DuplicateSAPEntryName</exception>

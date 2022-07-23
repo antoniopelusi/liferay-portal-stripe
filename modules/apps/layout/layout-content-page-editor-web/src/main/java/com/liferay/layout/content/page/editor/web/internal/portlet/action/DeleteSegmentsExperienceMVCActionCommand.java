@@ -18,7 +18,6 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.processor.PortletRegistry;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -27,7 +26,6 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.service.SegmentsExperienceService;
 
 import java.util.List;
@@ -53,20 +51,27 @@ import org.osgi.service.component.annotations.Reference;
 public class DeleteSegmentsExperienceMVCActionCommand
 	extends BaseContentPageEditorTransactionalMVCActionCommand {
 
-	protected void deleteSegmentsExperience(ActionRequest actionRequest)
-		throws PortalException {
+	@Override
+	protected JSONObject doTransactionalCommand(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		_deleteSegmentsExperience(actionRequest);
+
+		return JSONFactoryUtil.createJSONObject();
+	}
+
+	private void _deleteSegmentsExperience(ActionRequest actionRequest)
+		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId",
-			SegmentsExperienceConstants.ID_DEFAULT);
+			actionRequest, "segmentsExperienceId");
 
-		if (segmentsExperienceId != SegmentsExperienceConstants.ID_DEFAULT) {
-			_segmentsExperienceService.deleteSegmentsExperience(
-				segmentsExperienceId);
-		}
+		_segmentsExperienceService.deleteSegmentsExperience(
+			segmentsExperienceId);
 
 		List<FragmentEntryLink> fragmentEntryLinks =
 			_fragmentEntryLinkLocalService.
@@ -98,16 +103,6 @@ public class DeleteSegmentsExperienceMVCActionCommand
 			_fragmentEntryLinkLocalService.deleteFragmentEntryLink(
 				fragmentEntryLink);
 		}
-	}
-
-	@Override
-	protected JSONObject doTransactionalCommand(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		deleteSegmentsExperience(actionRequest);
-
-		return JSONFactoryUtil.createJSONObject();
 	}
 
 	@Reference

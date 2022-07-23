@@ -40,14 +40,15 @@ public class KBFolderServiceUtil {
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.knowledge.base.service.impl.KBFolderServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
 	public static KBFolder addKBFolder(
-			long groupId, long parentResourceClassNameId,
-			long parentResourcePrimKey, String name, String description,
+			String externalReferenceCode, long groupId,
+			long parentResourceClassNameId, long parentResourcePrimKey,
+			String name, String description,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addKBFolder(
-			groupId, parentResourceClassNameId, parentResourcePrimKey, name,
-			description, serviceContext);
+			externalReferenceCode, groupId, parentResourceClassNameId,
+			parentResourcePrimKey, name, description, serviceContext);
 	}
 
 	public static KBFolder deleteKBFolder(long kbFolderId)

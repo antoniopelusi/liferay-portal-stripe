@@ -18,6 +18,7 @@ import com.liferay.commerce.product.model.CPTaxCategory;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class CPTaxCategoryCacheModel
-	implements CacheModel<CPTaxCategory>, Externalizable {
+	implements CacheModel<CPTaxCategory>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object object) {
@@ -48,7 +49,9 @@ public class CPTaxCategoryCacheModel
 		CPTaxCategoryCacheModel cpTaxCategoryCacheModel =
 			(CPTaxCategoryCacheModel)object;
 
-		if (CPTaxCategoryId == cpTaxCategoryCacheModel.CPTaxCategoryId) {
+		if ((CPTaxCategoryId == cpTaxCategoryCacheModel.CPTaxCategoryId) &&
+			(mvccVersion == cpTaxCategoryCacheModel.mvccVersion)) {
+
 			return true;
 		}
 
@@ -57,14 +60,30 @@ public class CPTaxCategoryCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, CPTaxCategoryId);
+		int hashCode = HashUtil.hash(0, CPTaxCategoryId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(23);
 
-		sb.append("{externalReferenceCode=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", ctCollectionId=");
+		sb.append(ctCollectionId);
+		sb.append(", externalReferenceCode=");
 		sb.append(externalReferenceCode);
 		sb.append(", CPTaxCategoryId=");
 		sb.append(CPTaxCategoryId);
@@ -90,6 +109,9 @@ public class CPTaxCategoryCacheModel
 	@Override
 	public CPTaxCategory toEntityModel() {
 		CPTaxCategoryImpl cpTaxCategoryImpl = new CPTaxCategoryImpl();
+
+		cpTaxCategoryImpl.setMvccVersion(mvccVersion);
+		cpTaxCategoryImpl.setCtCollectionId(ctCollectionId);
 
 		if (externalReferenceCode == null) {
 			cpTaxCategoryImpl.setExternalReferenceCode("");
@@ -144,6 +166,9 @@ public class CPTaxCategoryCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
+		ctCollectionId = objectInput.readLong();
 		externalReferenceCode = objectInput.readUTF();
 
 		CPTaxCategoryId = objectInput.readLong();
@@ -160,6 +185,10 @@ public class CPTaxCategoryCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		objectOutput.writeLong(ctCollectionId);
+
 		if (externalReferenceCode == null) {
 			objectOutput.writeUTF("");
 		}
@@ -198,6 +227,8 @@ public class CPTaxCategoryCacheModel
 		}
 	}
 
+	public long mvccVersion;
+	public long ctCollectionId;
 	public String externalReferenceCode;
 	public long CPTaxCategoryId;
 	public long companyId;

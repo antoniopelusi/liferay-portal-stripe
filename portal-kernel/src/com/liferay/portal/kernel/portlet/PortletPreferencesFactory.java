@@ -71,7 +71,7 @@ public interface PortletPreferencesFactory {
 		HttpServletRequest httpServletRequest);
 
 	public PortalPreferences getPortalPreferences(
-		HttpSession session, long userId, boolean signedIn);
+		HttpSession httpSession, long userId, boolean signedIn);
 
 	public PortalPreferences getPortalPreferences(
 		long userId, boolean signedIn);

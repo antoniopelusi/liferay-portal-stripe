@@ -26,9 +26,6 @@ import java.math.RoundingMode;
  */
 public class CommerceCurrencyImpl extends CommerceCurrencyBaseImpl {
 
-	public CommerceCurrencyImpl() {
-	}
-
 	@Override
 	public CommerceMoney getZero() {
 		return CommerceMoneyFactoryUtil.create(this, BigDecimal.ZERO);

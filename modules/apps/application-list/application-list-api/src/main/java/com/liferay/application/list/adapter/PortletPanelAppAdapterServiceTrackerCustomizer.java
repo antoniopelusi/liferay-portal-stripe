@@ -17,11 +17,10 @@ package com.liferay.application.list.adapter;
 import com.liferay.application.list.PanelApp;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PortletCategoryUtil;
 
-import java.util.Dictionary;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
@@ -62,22 +61,16 @@ public class PortletPanelAppAdapterServiceTrackerCustomizer
 
 		PanelApp portletPanelAppAdapter = new PortletPanelAppAdapter(portletId);
 
-		Dictionary<String, Object> panelAppProperties =
-			new HashMapDictionary<>();
-
-		panelAppProperties.put(
-			"panel.category.key",
-			PortletCategoryUtil.getPortletCategoryKey(controlPanelCategory));
-
-		Integer serviceRanking = getServiceRanking(serviceReference);
-
-		if (serviceRanking != null) {
-			panelAppProperties.put("service.ranking", serviceRanking);
-		}
-
 		ServiceRegistration<PanelApp> serviceRegistration =
 			_bundleContext.registerService(
-				PanelApp.class, portletPanelAppAdapter, panelAppProperties);
+				PanelApp.class, portletPanelAppAdapter,
+				HashMapDictionaryBuilder.<String, Object>put(
+					"panel.category.key",
+					PortletCategoryUtil.getPortletCategoryKey(
+						controlPanelCategory)
+				).put(
+					"service.ranking", () -> getServiceRanking(serviceReference)
+				).build());
 
 		_serviceRegistrations.put(serviceReference, serviceRegistration);
 

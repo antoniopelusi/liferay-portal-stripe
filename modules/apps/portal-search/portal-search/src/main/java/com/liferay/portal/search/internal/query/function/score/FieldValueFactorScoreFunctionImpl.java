@@ -23,7 +23,7 @@ import com.liferay.portal.search.query.function.score.ScoreFunctionTranslator;
  * @author André de Oliveira
  */
 public class FieldValueFactorScoreFunctionImpl
-	extends ScoreFunctionImpl implements FieldValueFactorScoreFunction {
+	extends BaseScoreFunctionImpl implements FieldValueFactorScoreFunction {
 
 	public FieldValueFactorScoreFunctionImpl(String field) {
 		_field = field;

@@ -44,11 +44,10 @@ public class DnCorrectingGrammar<E extends LiferayLdapMessageContainer>
 
 	protected DnCorrectingGrammar() {
 		_abstractGrammar = (AbstractGrammar<E>)LdapMessageGrammar.getInstance();
-
-		_dnCorrectingStoreName = new DnCorrectingStoreName<>();
 	}
 
 	private final AbstractGrammar<E> _abstractGrammar;
-	private final DnCorrectingStoreName<E> _dnCorrectingStoreName;
+	private final DnCorrectingStoreName<E> _dnCorrectingStoreName =
+		new DnCorrectingStoreName<>();
 
 }

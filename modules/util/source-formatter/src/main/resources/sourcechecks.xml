@@ -10,6 +10,10 @@
 			<category name="Bug Prevention" />
 			<description name="Checks that `/src/*/java/` only contains `.java` files." />
 		</check>
+		<check name="IncorrectFilePahCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that file path conatins illegal characters." />
+		</check>
 		<check name="NonbreakingSpaceCheck">
 			<category name="Styling" />
 			<description name="Finds `no break space` (`\u00a0`) characters." />
@@ -247,13 +251,13 @@
 		</check>
 		<check name="GradleDependenciesCheck">
 			<category name="Performance" />
-			<description name="Checks that `petra` modules are not depending on other modules." />
+			<description name="Checks that modules are not depending on other modules." />
 			<property name="checkPetraDependencies" value="true" />
+			<property name="checkTestIntegrationCompileDependencies" value="false" />
 		</check>
 		<check name="GradleDependencyArtifactsCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks that value `default` is not used for attribute `version`." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="GradleDependencyConfigurationCheck">
 			<category name="Bug Prevention" />
@@ -290,7 +294,6 @@
 		<check name="GradleRequiredDependenciesCheck">
 			<category name="Bug Prevention" />
 			<description name="Validates the dependencies in `/required-dependencies/required-dependencies/build.gradle`." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="GradleStylingCheck">
 			<category name="Styling" />
@@ -351,6 +354,11 @@
 			<category name="Styling" />
 			<description name="Finds cases where the default value is passed to `GetterUtil.get*` or `ParamUtil.get*`." />
 		</check>
+		<check name="IfStatementCheck">
+			<category name="Styling" />
+			<description name="Finds empty if-statements and consecutive if-statements with identical bodies" />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="Java2HTMLCheck">
 			<category name="Miscellaneous" />
 			<description name="Finds incorrect use of `.java.html` in `.jsp` files." />
@@ -386,6 +394,10 @@
 		<check name="JavaClassNameCheck">
 			<category name="Naming Conventions" />
 			<description name="Checks if class names follow naming conventions." />
+		</check>
+		<check name="JavaCollapseImportsCheck">
+			<category name="Performance" />
+			<description name="Collapses imports that use wildcard" />
 		</check>
 		<check name="JavaCollatorUtilCheck">
 			<category name="Bug Prevention" />
@@ -436,6 +448,11 @@
 			<description name="Checks that variable names of exceptions in `catch` statements follow naming conventions." />
 			<property name="enabled" value="false" />
 		</check>
+		<check name="JavaFinalVariableCheck">
+			<category name="Styling" />
+			<description name="Finds cases of unneeded `final` modifiers for variables and parameters." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="JavaForLoopCheck">
 			<category name="Styling" />
 			<description name="Checks if a Enhanced For Loop can be used instead of a Simple For Loop." />
@@ -480,6 +497,7 @@
 		<check name="JavaMetaAnnotationsCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks for correct use of attributes `description` and `name` in annotation `@aQute.bnd.annotation.metatype.Meta`." />
+			<property name="checkConfigurationName" value="false" />
 		</check>
 		<check name="JavaModifiedServiceMethodCheck">
 			<category name="Bug Prevention" />
@@ -488,10 +506,7 @@
 		<check name="JavaPackagePathCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks that the package name matches the file location." />
-		</check>
-		<check name="JavaParameterAnnotationsCheck">
-			<category name="Bug Prevention" />
-			<description name="Performs several checks on parameters with annotations." />
+			<property name="checkServicePath" value="false" />
 		</check>
 		<check name="JavaProcessCallableCheck">
 			<category name="Bug Prevention" />
@@ -532,7 +547,6 @@
 		<check name="JavaStaticMethodCheck">
 			<category name="Bug Prevention" />
 			<description name="Finds cases where methods are unncessarily declared static." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaStaticVariableDependencyCheck">
 			<category name="Bug Prevention" />
@@ -593,13 +607,10 @@
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on anonymous classes." />
 		</check>
-		<check name="JavaAPISignatureCheck">
+		<check name="JavaBaseUpgradeCallableCheck">
 			<category name="Bug Prevention" />
-			<description name="Checks that types `HttpServletRequest`, `HttpServletResponse`, `ThemeDisplay`, and `ServiceContext` are not used in API method signatures." />
-			<property name="illegalAPIParameterTypes" value="HttpServletRequest" />
-			<property name="illegalAPIParameterTypes" value="HttpServletResponse" />
-			<property name="illegalAPIParameterTypes" value="ThemeDisplay" />
-			<property name="illegalAPIServiceParameterTypes" value="ServiceContext" />
+			<description name="Checks that BaseUpgradeCallable is used instead of Callable or Runnable in Upgrade and Verify classes." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaCleanUpMethodSuperCleanUpCheck">
 			<category name="Bug Prevention" />
@@ -612,7 +623,6 @@
 		<check name="JavaComponentActivateCheck">
 			<category name="Naming Conventions" />
 			<description name="Checks if methods with annotation `@Activate` or `@Deactivate` follow naming conventions." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaComponentAnnotationsCheck">
 			<category name="Bug Prevention" />
@@ -620,11 +630,6 @@
 			<property name="checkConfigurationPolicyAttribute" value="false" />
 			<property name="checkMismatchedServiceAttribute" value="false" />
 			<property name="checkSelfRegistration" value="false" />
-		</check>
-		<check name="JavaDataAccessConnectionCheck">
-			<category name="Performance" />
-			<description name="Finds calls to `DataAccess.getConnection` (use `DataAccess.getUpgradeOptimizedConnection` instead)." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaDeprecatedJavadocCheck">
 			<category name="Javadoc" />
@@ -645,7 +650,6 @@
 		<check name="JavaHelperUtilCheck">
 			<category name="Naming Conventions" />
 			<description name="Finds incorrect use of `*Helper` or `*Util` classes." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaIgnoreAnnotationCheck">
 			<category name="Bug Prevention" />
@@ -672,9 +676,10 @@
 			<category name="Bug Prevention" />
 			<description name="Checks that the correct log messages are printed." />
 		</check>
-		<check name="JavaLogParametersCheck">
+		<check name="JavaMissingOverrideCheck">
 			<category name="Bug Prevention" />
-			<description name="Validates the values of parameters passed to `_log.*` calls." />
+			<description name="Finds missing @Override annotations." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaMissingXMLPublicIdsCheck">
 			<category name="Bug Prevention" />
@@ -687,7 +692,6 @@
 		<check name="JavaProviderTypeAnnotationCheck">
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on classes with `@ProviderType` annotation." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaReleaseInfoCheck">
 			<category name="Bug Prevention" />
@@ -708,12 +712,10 @@
 		<check name="JavaSignatureParametersCheck">
 			<category name="Styling" />
 			<description name="Checks the order of parameters." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaSourceFormatterDocumentationCheck">
 			<category name="Documentation" />
 			<description name="Finds SourceFormatter checks that have no documentation." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaStagedModelDataHandlerCheck">
 			<category name="Bug Prevention" />
@@ -746,7 +748,6 @@
 		<check name="JavaTestMethodAnnotationsCheck">
 			<category name="Naming Conventions" />
 			<description name="Checks if methods with test annotations follow the naming conventions." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaTransactionBoundaryCheck">
 			<category name="Bug Prevention" />
@@ -760,6 +761,10 @@
 			<category name="Miscellaneous" />
 			<description name="Finds `*Check` classes that are not configured." />
 		</check>
+		<check name="JavaUpgradeAlterCheck">
+			<category name="Bug Prevention" />
+			<description name="Performs several checks on `alter` calls in Upgrade classes." />
+		</check>
 		<check name="JavaUpgradeClassCheck">
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on Upgrade classes." />
@@ -768,6 +773,11 @@
 			<category name="Bug Prevention" />
 			<description name="Finds cases where `DataAccess.getConnection` is used (instead of using the availabe global variable `connection`)." />
 		</check>
+		<check name="JavaUpgradeIndexCheck">
+			<category name="Bug Prevention" />
+			<description name="Finds cases where the service builder indexes are updated manually in Upgrade classes. This is not needed because Liferay takes care of it." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="JavaUpgradeVersionCheck">
 			<category name="Bug Prevention" />
 			<description name="Verifies that the correct upgrade versions are used in classes that implement `UpgradeStepRegistrator`." />
@@ -775,6 +785,7 @@
 		<check name="JavaVariableTypeCheck">
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on the modifiers on variables." />
+			<property name="checkVolatileFields" value="false" />
 			<property name="immutableFieldTypes" value="boolean,byte,char,double,float,int,long,short,Boolean,Byte,Character,Class,Double,Float,Int,Long,Number,Short,String" />
 		</check>
 		<check name="JavaVerifyUpgradeConnectionCheck">
@@ -793,9 +804,19 @@
 			<category name="Bug Prevention" />
 			<description name="Finds cases where `com.liferay.portal.kernel.util.LocaleUtil` should be used (instead of `java.util.Locale`)." />
 		</check>
+		<check name="LogParametersCheck">
+			<category name="Bug Prevention" />
+			<description name="Validates the values of parameters passed to `_log.*` calls." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="ResourceBundleCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks that there are no calls to `java.util.ResourceBundle.getBundle`." />
+		</check>
+		<check name="SetUtilMethodsCheck">
+			<category name="Performance" />
+			<description name="Finds cases of inefficient SetUtil operations." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="StringMethodsCheck">
 			<category name="Performance" />
@@ -815,7 +836,6 @@
 		<check name="JavaModuleExposureCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks for exposure of `SPI` types in `API`." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaModuleIllegalImportsCheck">
 			<category name="Bug Prevention" />
@@ -830,10 +850,6 @@
 			<category name="Bug Prevention" />
 			<description name="Validates the value of `javax.portlet.init-param.template-path`." />
 		</check>
-		<check name="JavaModuleServiceProxyFactoryCheck">
-			<category name="Bug Prevention" />
-			<description name="Finds cases of `ServiceProxyFactory.newServiceTrackedInstance`." />
-		</check>
 		<check name="JavaModuleServiceReferenceCheck">
 			<category name="Bug Prevention" />
 			<description name="Finds cases where `@BeanReference` annotation should be used instead of `@ServiceReference` annotation." />
@@ -845,16 +861,6 @@
 		<check name="JavaOSGiReferenceCheck">
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on classes with `@Component` annotation." />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.exportimport.kernel.lar.ExportImportHelperUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.exportimport.kernel.lar.ExportImportProcessCallbackRegistryUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.exportimport.kernel.lar.PortletDataContextFactoryUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.exportimport.kernel.lar.PortletDataHandlerStatusMessageSenderUtill" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.exportimport.kernel.staging.StagingUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.backgroundtask.BackgroundTaskManagerUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplayFactoryUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.comment.CommentManagerUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.util.HttpUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.util.PortalUtil" />
 		</check>
 
 		<!-- Plugin Source Checks -->
@@ -893,6 +899,11 @@
 			<category name="Bug Prevention" />
 			<description name="Checks the version for dependencies in `package.json` files." />
 		</check>
+		<check name="JSONPackageJSONRedundantDependenciesCheck">
+			<category name="Performance" />
+			<description name="Checks for preventing internal dependencies from being added to `package.json`." />
+			<property name="enabled" value="false" />
+		</check>
 	</source-processor>
 	<source-processor name="JSPSourceProcessor">
 		<check name="ArrayCheck">
@@ -912,10 +923,14 @@
 			<category name="Styling" />
 			<description name="Finds cases where the default value is passed to `GetterUtil.get*` or `ParamUtil.get*`." />
 		</check>
+		<check name="IfStatementCheck">
+			<category name="Styling" />
+			<description name="Finds empty if-statements and consecutive if-statements with identical bodies" />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="JSPArrowFunctionCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks that there are no array functions." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JSPDefineObjectsCheck">
 			<category name="Performance" />
@@ -956,7 +971,6 @@
 		<check name="JSPJavaParserCheck">
 			<category name="Styling" />
 			<description name="Performs JavaParser on `.java` files." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JSPLanguageUtilCheck">
 			<category name="Bug Prevention" />
@@ -973,7 +987,6 @@
 		<check name="JSPMethodCallsCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks that type `LiferayPortletResponse` is used to call `getNamespace()`." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="JSPParenthesesCheck">
 			<category name="Miscellaneous" />
@@ -1002,6 +1015,14 @@
 		<check name="JSPUnusedTermsCheck">
 			<category name="Performance" />
 			<description name="Finds taglibs, variables and imports that are unused." />
+		</check>
+		<check name="JSPUpgradeRemovedTagsCheck">
+			<category name="Upgrade" />
+			<description name="Finds removed tags when upgrading." />
+		</check>
+		<check name="JSPVariableOrderCheck">
+			<category name="Styling" />
+			<description name="Checks if variable names are in alphabetical order." />
 		</check>
 		<check name="JSPWhitespaceCheck">
 			<category name="Styling" />
@@ -1046,10 +1067,6 @@
 			<category name="Bug Prevention" />
 			<description name="Finds missing language keys in `Language.properties`." />
 		</check>
-		<check name="JSPLogParametersCheck">
-			<category name="Bug Prevention" />
-			<description name="Validates the values of parameters passed to `_log.*` calls." />
-		</check>
 		<check name="JSPMissingTaglibsCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks for missing taglibs." />
@@ -1058,21 +1075,35 @@
 			<category name="Bug Prevention" />
 			<description name="Checks that there are no calls to `HttpServletResponse.sendRedirect` from `jsp` files." />
 		</check>
-		<check name="JSPStringMethodsCheck">
-			<category name="Performance" />
-			<description name="Finds cases of inefficient String operations." />
-		</check>
 		<check name="JSPUnusedJSPFCheck">
 			<category name="Performance" />
 			<description name="Finds `.jspf` files that are not used." />
+		</check>
+		<check name="JSPVarNameCheck">
+			<category name="Styling" />
+			<description name="Checks that values of attribute `var` follow naming conventions." />
 		</check>
 		<check name="LocaleUtilCheck">
 			<category name="Bug Prevention" />
 			<description name="Finds cases where `com.liferay.portal.kernel.util.LocaleUtil` should be used (instead of `java.util.Locale`)." />
 		</check>
+		<check name="LogParametersCheck">
+			<category name="Bug Prevention" />
+			<description name="Validates the values of parameters passed to `_log.*` calls." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="ResourceBundleCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks that there are no calls to `java.util.ResourceBundle.getBundle`." />
+		</check>
+		<check name="SetUtilMethodsCheck">
+			<category name="Performance" />
+			<description name="Finds cases of inefficient SetUtil operations." />
+			<property name="enabled" value="false" />
+		</check>
+		<check name="StringMethodsCheck">
+			<category name="Performance" />
+			<description name="Finds cases of inefficient String operations." />
 		</check>
 		<check name="SubstringCheck">
 			<category name="Performance" />
@@ -1088,7 +1119,6 @@
 		<check name="JSPServiceUtilCheck">
 			<category name="Miscellaneous" />
 			<description name="Finds incorrect use of `*ServiceUtil` in `.jsp` files in modules." />
-			<property name="enabled" value="false" />
 		</check>
 
 		<!-- Plugin Source Checks -->
@@ -1146,7 +1176,6 @@
 		<check name="MarkdownSourceFormatterReadmeCheck">
 			<category name="Documentation" />
 			<description name="Generates Source Formatter documentation index files." />
-			<property name="enabled" value="false" />
 		</check>
 		<check name="MarkdownStylingCheck">
 			<category name="Styling" />
@@ -1170,33 +1199,19 @@
 		</check>
 	</source-processor>
 	<source-processor name="PoshiSourceProcessor">
-		<check name="PoshiAnnotationsOrderCheck">
-			<category name="Styling" />
-			<description name="Checks the order of annotations." />
-		</check>
-		<check name="PoshiCommandsOrderCheck">
-			<category name="Styling" />
-			<description name="Checks the order of poshi commands." />
-		</check>
-		<check name="PoshiEmptyLinesCheck">
-			<category name="Styling" />
-			<description name="Finds missing and unnecessary empty lines." />
-		</check>
-		<check name="PoshiIndentationCheck">
-			<category name="Styling" />
-			<description name="Finds incorrect indentation in poshi files." />
-		</check>
-		<check name="PoshiParametersOrderCheck">
-			<category name="Styling" />
-			<description name="Checks the order of parameters in `.function` and `.macro` files." />
+		<check name="PoshiDependenciesFileLocationCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that dependencies files are located in the correct directory." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="PoshiStylingCheck">
 			<category name="Styling" />
 			<description name="Applies rules to enforce consisteny in code style." />
 		</check>
-		<check name="PoshiWhitespaceCheck">
+		<check name="PoshiVariableNameCheck">
 			<category name="Styling" />
-			<description name="Finds missing and unnecessary whitespace in poshi files." />
+			<description name="Checks variable names for correct use of `camelCase`." />
+			<property name="enabled" value="false" />
 		</check>
 	</source-processor>
 	<source-processor name="PropertiesSourceProcessor">
@@ -1259,6 +1274,10 @@
 		<check name="PropertiesSourceFormatterFileCheck">
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on `source-formatter.properties` file." />
+		</check>
+		<check name="PropertiesSQLStylingCheck">
+			<category name="Styling" />
+			<description name="Applies rules to enforce consisteny in code style." />
 		</check>
 		<check name="PropertiesStylingCheck">
 			<category name="Styling" />
@@ -1387,6 +1406,12 @@
 			<description name="Applies rules to enforce consisteny in code style." />
 		</check>
 	</source-processor>
+	<source-processor name="UpgradeSourceProcessor">
+		<check name="UpgradeJavaCheck">
+			<category name="Upgrade" />
+			<description name="Performs upgrade checks for `java` files" />
+		</check>
+	</source-processor>
 	<source-processor name="XMLSourceProcessor">
 		<check name="XMLBuildFileCheck">
 			<category name="Bug Prevention" />
@@ -1411,6 +1436,10 @@
 		<check name="XMLDTDVersionCheck">
 			<category name="Styling" />
 			<description name="Checks the DTD version in `*.xml` file." />
+		</check>
+		<check name="XMLEchoMessageCheck">
+			<category name="Styling" />
+			<description name="Checks the echo message attributes in `*.xml` file." />
 		</check>
 		<check name="XMLFriendlyURLRoutesFileCheck">
 			<category name="Styling" />
@@ -1482,6 +1511,11 @@
 			<property name="allowedIncorrectLastPublishDateEntities" value="CommerceCountry,CPDefinition,CPInstance,PollsQuestion,PollsVote" />
 			<property name="checkMVCCEnabled" value="false" />
 		</check>
+		<check name="XMLServiceFinderNameCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that the `finder name` in `service.xml`." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="XMLStylingCheck">
 			<category name="Styling" />
 			<description name="Applies rules to enforce consisteny in code style." />
@@ -1498,9 +1532,18 @@
 			<category name="Styling" />
 			<description name="Checks the order of elements in `.toggle` file." />
 		</check>
+		<check name="XMLUpgradeRemovedDefinitionsCheck">
+			<category name="Upgrade" />
+			<description name="Finds removed XML definitions when upgrading." />
+		</check>
 		<check name="XMLWhitespaceCheck">
 			<category name="Styling" />
 			<description name="Finds missing and unnecessary whitespace in `.xml` files." />
+		</check>
+		<check name="XMLWorkflowDefinitionFileNameCheck">
+			<category name="Styling" />
+			<description name="Checks the file name of workflow definition files." />
+			<property name="enabled" value="false" />
 		</check>
 
 		<!-- Liferay Source Checks -->
@@ -1520,6 +1563,7 @@
 		<check name="XMLServiceReferenceCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks for unused references in `service.xml` file." />
+			<property name="avoidReferences" value="false" />
 		</check>
 		<check name="XMLSourcechecksFileCheck">
 			<category name="Bug Prevention" />

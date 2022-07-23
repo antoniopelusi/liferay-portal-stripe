@@ -135,6 +135,11 @@ public class CommerceInventoryReplenishmentItemWrapper
 		}
 	}
 
+	@Override
+	public CommerceInventoryReplenishmentItem cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the availability date of this commerce inventory replenishment item.
 	 *

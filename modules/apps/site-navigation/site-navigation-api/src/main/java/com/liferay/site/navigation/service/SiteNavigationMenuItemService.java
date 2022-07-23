@@ -64,6 +64,10 @@ public interface SiteNavigationMenuItemService extends BaseService {
 			long siteNavigationMenuItemId)
 		throws PortalException;
 
+	public SiteNavigationMenuItem deleteSiteNavigationMenuItem(
+			long siteNavigationMenuItemId, boolean deleteChildren)
+		throws PortalException;
+
 	public void deleteSiteNavigationMenuItems(long siteNavigationMenuId)
 		throws PortalException;
 
@@ -73,6 +77,10 @@ public interface SiteNavigationMenuItemService extends BaseService {
 	 * @return the OSGi service identifier
 	 */
 	public String getOSGiServiceIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<Long> getParentSiteNavigationMenuItemIds(
+		long siteNavigationMenuId, String typeSettingsKeyword);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<SiteNavigationMenuItem> getSiteNavigationMenuItems(

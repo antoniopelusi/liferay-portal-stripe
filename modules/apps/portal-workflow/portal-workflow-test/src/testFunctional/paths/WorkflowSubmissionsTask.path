@@ -2,13 +2,20 @@
 <head>
 <title>WorkflowSubmissionsTask</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">WorkflowSubmissionsTask</td></tr>
 </thead>
+
 <tbody>
 <!--MENU-->
+<tr>
+	<td>DROPDOWN_MENU_OPTION</td>
+	<td>//a[contains(@class,'dropdown-item') and contains(text(), '${key_selectOption}')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>MENU_WITHDRAW_SUBMISSION</td>
 	<td>//a[contains(@id,'_menu_withdraw-submission_1')]</td>
@@ -43,6 +50,12 @@
 <tr>
 	<td>PREVIEW_USER</td>
 	<td>//div[contains(@class,'contacts-container')]//div[@class='lfr-contact-extra']</td>
+	<td></td>
+</tr>
+<!--TABLE-->
+<tr>
+	<td>TABLE_ORDER_SUBMISSIONS</td>
+	<td>//tbody//tr[${key_order}]//td//a[text()='${key_title}']</td>
 	<td></td>
 </tr>
 </tbody>

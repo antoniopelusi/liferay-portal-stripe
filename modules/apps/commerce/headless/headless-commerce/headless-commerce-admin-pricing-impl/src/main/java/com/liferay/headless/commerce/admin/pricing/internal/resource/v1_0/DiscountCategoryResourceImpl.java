@@ -71,7 +71,7 @@ public class DiscountCategoryResourceImpl
 
 		if (commerceDiscount == null) {
 			throw new NoSuchDiscountException(
-				"Unable to find Discount with externalReferenceCode: " +
+				"Unable to find discount with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -122,14 +122,14 @@ public class DiscountCategoryResourceImpl
 
 		if (commerceDiscount == null) {
 			throw new NoSuchDiscountException(
-				"Unable to find Discount with externalReferenceCode: " +
+				"Unable to find discount with external reference code " +
 					externalReferenceCode);
 		}
 
 		CommerceDiscountRel commerceDiscountRel =
 			DiscountCategoryUtil.addCommerceDiscountRel(
-				_assetCategoryLocalService, _commerceDiscountRelService,
-				discountCategory, commerceDiscount,
+				contextCompany.getGroupId(), _assetCategoryLocalService,
+				_commerceDiscountRelService, discountCategory, commerceDiscount,
 				_serviceContextHelper.getServiceContext());
 
 		return _toDiscountCategory(
@@ -143,8 +143,8 @@ public class DiscountCategoryResourceImpl
 
 		CommerceDiscountRel commerceDiscountRel =
 			DiscountCategoryUtil.addCommerceDiscountRel(
-				_assetCategoryLocalService, _commerceDiscountRelService,
-				discountCategory,
+				contextCompany.getGroupId(), _assetCategoryLocalService,
+				_commerceDiscountRelService, discountCategory,
 				_commerceDiscountService.getCommerceDiscount(id),
 				_serviceContextHelper.getServiceContext());
 

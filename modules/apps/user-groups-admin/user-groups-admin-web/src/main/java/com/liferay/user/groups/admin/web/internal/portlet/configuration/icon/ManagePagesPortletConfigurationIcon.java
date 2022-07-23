@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.configuration.icon.BasePortletConfigurationIcon;
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.GroupPermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -76,7 +76,7 @@ public class ManagePagesPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -97,13 +97,13 @@ public class ManagePagesPortletConfigurationIcon
 
 			UserGroup userGroup = ActionUtil.getUserGroup(portletRequest);
 
-			return GroupPermissionUtil.contains(
+			return _groupPermission.contains(
 				themeDisplay.getPermissionChecker(), userGroup.getGroup(),
 				ActionKeys.PERMISSIONS);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -112,6 +112,9 @@ public class ManagePagesPortletConfigurationIcon
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ManagePagesPortletConfigurationIcon.class);
+
+	@Reference
+	private GroupPermission _groupPermission;
 
 	@Reference
 	private Portal _portal;

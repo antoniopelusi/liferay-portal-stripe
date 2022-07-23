@@ -1,0 +1,33 @@
+{
+	"description_i18n": {
+		"en_US": "Limit the search scope to the sites that the user is a member of."
+	},
+	"elementDefinition": {
+		"category": "filter",
+		"configuration": {
+			"queryConfiguration": {
+				"queryEntries": [
+					{
+						"clauses": [
+							{
+								"context": "query",
+								"occur": "filter",
+								"query": {
+									"terms": {
+										"scopeGroupId": "${user.group_ids}"
+									}
+								}
+							}
+						]
+					}
+				]
+			}
+		},
+		"icon": "filter",
+		"uiConfiguration": {
+		}
+	},
+	"title_i18n": {
+		"en_US": "Limit Search to My Sites"
+	}
+}

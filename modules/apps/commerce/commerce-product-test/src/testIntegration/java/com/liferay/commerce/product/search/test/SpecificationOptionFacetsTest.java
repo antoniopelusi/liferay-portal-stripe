@@ -26,7 +26,6 @@ import com.liferay.commerce.product.service.CPSpecificationOptionLocalService;
 import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.test.util.CPTestUtil;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
@@ -38,9 +37,7 @@ import com.liferay.portal.kernel.search.facet.collector.FacetCollector;
 import com.liferay.portal.kernel.search.facet.collector.TermCollector;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.SearchContextTestUtil;
@@ -66,7 +63,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Luca Pellizzon
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class SpecificationOptionFacetsTest {
 
@@ -79,12 +75,9 @@ public class SpecificationOptionFacetsTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceCatalog = _commerceCatalogLocalService.addCommerceCatalog(
 			null, RandomTestUtil.randomString(), RandomTestUtil.randomString(),
@@ -139,7 +132,7 @@ public class SpecificationOptionFacetsTest {
 		SearchContext searchContext = SearchContextTestUtil.getSearchContext(
 			_commerceCatalog.getGroupId());
 
-		searchContext.setCompanyId(_company.getCompanyId());
+		searchContext.setCompanyId(_group.getCompanyId());
 		searchContext.setUserId(_user.getUserId());
 
 		Facet facet = new SimpleFacet(searchContext);
@@ -163,7 +156,7 @@ public class SpecificationOptionFacetsTest {
 
 		long expectedTerm = cpSpecificationOption.getCPSpecificationOptionId();
 
-		Assert.assertEquals(true, terms.contains(expectedTerm));
+		Assert.assertTrue(terms.contains(expectedTerm));
 	}
 
 	@Test
@@ -216,7 +209,7 @@ public class SpecificationOptionFacetsTest {
 		SearchContext searchContext = SearchContextTestUtil.getSearchContext(
 			_commerceCatalog.getGroupId());
 
-		searchContext.setCompanyId(_company.getCompanyId());
+		searchContext.setCompanyId(_group.getCompanyId());
 		searchContext.setUserId(_user.getUserId());
 
 		Facet facet = new SimpleFacet(searchContext);
@@ -234,19 +227,18 @@ public class SpecificationOptionFacetsTest {
 
 		List<TermCollector> termCollector = facetCollector.getTermCollectors();
 
-		Assert.assertEquals(true, termCollector.isEmpty());
+		Assert.assertTrue(termCollector.isEmpty());
 	}
 
 	@Rule
 	public FrutillaRule frutillaRule = new FrutillaRule();
 
+	private static User _user;
+
 	private CommerceCatalog _commerceCatalog;
 
 	@Inject
 	private CommerceCatalogLocalService _commerceCatalogLocalService;
-
-	@DeleteAfterTestRun
-	private Company _company;
 
 	@Inject
 	private CPDefinitionHelper _cpDefinitionHelper;
@@ -267,8 +259,5 @@ public class SpecificationOptionFacetsTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
-
-	@DeleteAfterTestRun
-	private User _user;
 
 }

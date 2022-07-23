@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Luca Pellizzon
- * @see CommerceInventoryWarehouseServiceSoap
  * @generated
  */
 public class CommerceInventoryWarehouseServiceHttp {
@@ -663,7 +662,7 @@ public class CommerceInventoryWarehouseServiceHttp {
 
 	public static java.util.List
 		<com.liferay.commerce.inventory.model.CommerceInventoryWarehouse>
-				searchCommerceInventoryWarehouses(
+				search(
 					HttpPrincipal httpPrincipal, long companyId, Boolean active,
 					String commerceCountryCode, String keywords, int start,
 					int end, com.liferay.portal.kernel.search.Sort sort)
@@ -671,9 +670,8 @@ public class CommerceInventoryWarehouseServiceHttp {
 
 		try {
 			MethodKey methodKey = new MethodKey(
-				CommerceInventoryWarehouseServiceUtil.class,
-				"searchCommerceInventoryWarehouses",
-				_searchCommerceInventoryWarehousesParameterTypes13);
+				CommerceInventoryWarehouseServiceUtil.class, "search",
+				_searchParameterTypes13);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, companyId, active, commerceCountryCode, keywords,
@@ -913,11 +911,10 @@ public class CommerceInventoryWarehouseServiceHttp {
 		_getCommerceInventoryWarehousesCountParameterTypes12 = new Class[] {
 			long.class, boolean.class, String.class
 		};
-	private static final Class<?>[]
-		_searchCommerceInventoryWarehousesParameterTypes13 = new Class[] {
-			long.class, Boolean.class, String.class, String.class, int.class,
-			int.class, com.liferay.portal.kernel.search.Sort.class
-		};
+	private static final Class<?>[] _searchParameterTypes13 = new Class[] {
+		long.class, Boolean.class, String.class, String.class, int.class,
+		int.class, com.liferay.portal.kernel.search.Sort.class
+	};
 	private static final Class<?>[]
 		_searchCommerceInventoryWarehousesCountParameterTypes14 = new Class[] {
 			long.class, Boolean.class, String.class, String.class

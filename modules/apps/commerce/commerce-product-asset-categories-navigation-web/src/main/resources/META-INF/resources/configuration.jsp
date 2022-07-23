@@ -37,7 +37,7 @@ if (assetVocabulary != null) {
 			<aui:fieldset-group markupView="lexicon">
 				<aui:fieldset>
 					<div class="display-template">
-						<liferay-ddm:template-selector
+						<liferay-template:template-selector
 							className="<%= CPAssetCategoriesNavigationPortlet.class.getName() %>"
 							displayStyle="<%= cpAssetCategoriesNavigationDisplayContext.getDisplayStyle() %>"
 							displayStyleGroupId="<%= cpAssetCategoriesNavigationDisplayContext.getDisplayStyleGroupId() %>"
@@ -69,7 +69,7 @@ if (assetVocabulary != null) {
 							for (AssetVocabulary curAssetVocabulary : cpAssetCategoriesNavigationDisplayContext.getAssetVocabularies()) {
 							%>
 
-								<aui:option label="<%= curAssetVocabulary.getTitle(locale) %>" selected="<%= curAssetVocabulary.getVocabularyId() == assetVocabularyId %>" value="<%= curAssetVocabulary.getVocabularyId() %>" />
+								<aui:option label="<%= HtmlUtil.escape(curAssetVocabulary.getTitle(locale)) %>" selected="<%= curAssetVocabulary.getVocabularyId() == assetVocabularyId %>" value="<%= curAssetVocabulary.getVocabularyId() %>" />
 
 							<%
 							}
@@ -124,12 +124,15 @@ if (assetVocabulary != null) {
 			var preferencesRootAssetCategoryId = A.one(
 				'#<portlet:namespace />preferencesRootAssetCategoryId'
 			);
-			var assetCategoriesSelectorCategoryId = A.one(
-				'#<portlet:namespace />assetCategoriesSelectorCategoryId'
+
+			var form = window.document['<portlet:namespace />fm'];
+
+			var assetCategoryIdsKey = Object.keys(form.elements).filter((input) =>
+				input.includes('assetCategoryIds')
 			);
 
 			preferencesRootAssetCategoryId.val(
-				assetCategoriesSelectorCategoryId.val()
+				form.elements[assetCategoryIdsKey].value
 			);
 		}
 

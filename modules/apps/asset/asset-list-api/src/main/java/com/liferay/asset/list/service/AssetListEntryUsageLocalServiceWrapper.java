@@ -30,6 +30,10 @@ public class AssetListEntryUsageLocalServiceWrapper
 	implements AssetListEntryUsageLocalService,
 			   ServiceWrapper<AssetListEntryUsageLocalService> {
 
+	public AssetListEntryUsageLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AssetListEntryUsageLocalServiceWrapper(
 		AssetListEntryUsageLocalService assetListEntryUsageLocalService) {
 
@@ -171,6 +175,13 @@ public class AssetListEntryUsageLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _assetListEntryUsageLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _assetListEntryUsageLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

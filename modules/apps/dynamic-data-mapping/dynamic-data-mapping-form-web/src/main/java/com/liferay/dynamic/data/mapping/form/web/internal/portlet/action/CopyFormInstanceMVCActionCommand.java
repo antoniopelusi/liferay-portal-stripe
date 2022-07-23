@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.form.web.internal.portlet.action;
 
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
+import com.liferay.dynamic.data.mapping.form.web.internal.portlet.action.helper.SaveFormInstanceMVCCommandHelper;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.UnlocalizedValue;
@@ -65,7 +66,7 @@ public class CopyFormInstanceMVCActionCommand
 		DDMFormValues settingsDDMFormValuesCopy =
 			formInstance.getSettingsDDMFormValues();
 
-		setDefaultPublishedDDMFormFieldValue(settingsDDMFormValuesCopy);
+		_setDefaultPublishedDDMFormFieldValue(settingsDDMFormValuesCopy);
 
 		return settingsDDMFormValuesCopy;
 	}
@@ -123,18 +124,6 @@ public class CopyFormInstanceMVCActionCommand
 			moduleResourceBundle, portalResourceBundle);
 	}
 
-	protected void setDefaultPublishedDDMFormFieldValue(
-		DDMFormValues ddmFormValues) {
-
-		for (DDMFormFieldValue ddmFormFieldValue :
-				ddmFormValues.getDDMFormFieldValues()) {
-
-			if (Objects.equals(ddmFormFieldValue.getName(), "published")) {
-				ddmFormFieldValue.setValue(new UnlocalizedValue("false"));
-			}
-		}
-	}
-
 	@Reference
 	protected DDMFormInstanceService ddmFormInstanceService;
 
@@ -146,5 +135,17 @@ public class CopyFormInstanceMVCActionCommand
 
 	@Reference
 	protected SaveFormInstanceMVCCommandHelper saveFormInstanceMVCCommandHelper;
+
+	private void _setDefaultPublishedDDMFormFieldValue(
+		DDMFormValues ddmFormValues) {
+
+		for (DDMFormFieldValue ddmFormFieldValue :
+				ddmFormValues.getDDMFormFieldValues()) {
+
+			if (Objects.equals(ddmFormFieldValue.getName(), "published")) {
+				ddmFormFieldValue.setValue(new UnlocalizedValue("false"));
+			}
+		}
+	}
 
 }

@@ -35,7 +35,7 @@ PortletURL viewPageHistoryURL = PortletURLBuilder.createRenderURL(
 		"title", wikiPage.getTitle()
 	).buildString()
 ).setParameter(
-	"nodeId", String.valueOf(node.getNodeId())
+	"nodeId", node.getNodeId()
 ).setParameter(
 	"title", wikiPage.getTitle()
 ).build();
@@ -44,7 +44,7 @@ PortletURL viewPageActivitiesURL = PortletURLBuilder.create(
 	PortletURLUtil.clone(viewPageHistoryURL, renderResponse)
 ).setMVCRenderCommandName(
 	"/wiki/view_page_activities"
-).build();
+).buildPortletURL();
 %>
 
 <liferay-ui:tabs

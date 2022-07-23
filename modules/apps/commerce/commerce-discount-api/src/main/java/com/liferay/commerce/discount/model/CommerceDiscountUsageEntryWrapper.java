@@ -45,6 +45,7 @@ public class CommerceDiscountUsageEntryWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"commerceDiscountUsageEntryId", getCommerceDiscountUsageEntryId());
 		attributes.put("companyId", getCompanyId());
@@ -61,6 +62,12 @@ public class CommerceDiscountUsageEntryWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long commerceDiscountUsageEntryId = (Long)attributes.get(
 			"commerceDiscountUsageEntryId");
 
@@ -115,6 +122,11 @@ public class CommerceDiscountUsageEntryWrapper
 		if (commerceDiscountId != null) {
 			setCommerceDiscountId(commerceDiscountId);
 		}
+	}
+
+	@Override
+	public CommerceDiscountUsageEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -185,6 +197,16 @@ public class CommerceDiscountUsageEntryWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce discount usage entry.
+	 *
+	 * @return the mvcc version of this commerce discount usage entry
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -302,6 +324,16 @@ public class CommerceDiscountUsageEntryWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce discount usage entry.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce discount usage entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

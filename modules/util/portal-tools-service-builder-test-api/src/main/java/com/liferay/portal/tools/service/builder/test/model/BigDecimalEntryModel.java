@@ -100,4 +100,7 @@ public interface BigDecimalEntryModel
 	 */
 	public void setBigDecimalValue(BigDecimal bigDecimalValue);
 
+	@Override
+	public BigDecimalEntry cloneWithOriginalValues();
+
 }

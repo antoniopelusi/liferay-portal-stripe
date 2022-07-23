@@ -29,27 +29,27 @@ public class QuartzUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateJobDetails();
+		_updateJobDetails();
 	}
 
-	protected void updateJobDetails() {
+	private void _updateJobDetails() {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"update QUARTZ_JOB_DETAILS set job_class_name = ? where " +
 					"job_class_name = ?")) {
 
-			ps.setString(
+			preparedStatement.setString(
 				1,
 				"com.liferay.portal.scheduler.quartz.internal.job." +
 					"MessageSenderJob");
-			ps.setString(
+			preparedStatement.setString(
 				2, "com.liferay.portal.scheduler.job.MessageSenderJob");
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (SQLException sqlException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(sqlException, sqlException);
+				_log.warn(sqlException);
 			}
 		}
 	}

@@ -27,6 +27,10 @@ public class DataLimitEntryLocalServiceWrapper
 	implements DataLimitEntryLocalService,
 			   ServiceWrapper<DataLimitEntryLocalService> {
 
+	public DataLimitEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DataLimitEntryLocalServiceWrapper(
 		DataLimitEntryLocalService dataLimitEntryLocalService) {
 
@@ -130,6 +134,13 @@ public class DataLimitEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _dataLimitEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _dataLimitEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

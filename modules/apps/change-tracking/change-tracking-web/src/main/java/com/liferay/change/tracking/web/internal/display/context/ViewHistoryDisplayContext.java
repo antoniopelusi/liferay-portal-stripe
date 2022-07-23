@@ -14,6 +14,7 @@
 
 package com.liferay.change.tracking.web.internal.display.context;
 
+import com.liferay.change.tracking.constants.CTActionKeys;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTCollectionTable;
 import com.liferay.change.tracking.model.CTProcess;
@@ -22,6 +23,7 @@ import com.liferay.change.tracking.service.CTCollectionLocalService;
 import com.liferay.change.tracking.service.CTProcessService;
 import com.liferay.change.tracking.service.CTSchemaVersionLocalService;
 import com.liferay.change.tracking.web.internal.constants.CTWebConstants;
+import com.liferay.change.tracking.web.internal.security.permission.resource.CTPermission;
 import com.liferay.change.tracking.web.internal.util.PublicationsPortletURLUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemListBuilder;
@@ -31,12 +33,15 @@ import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.dao.search.DisplayTerms;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.UserTable;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -69,6 +74,8 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 	public ViewHistoryDisplayContext(
 		BackgroundTaskLocalService backgroundTaskLocalService,
 		CTCollectionLocalService ctCollectionLocalService,
+		ModelResourcePermission<CTCollection>
+			ctCollectionModelResourcePermission,
 		CTProcessService ctProcessService,
 		CTSchemaVersionLocalService ctSchemaVersionLocalService,
 		HttpServletRequest httpServletRequest, Language language,
@@ -79,6 +86,8 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 
 		_backgroundTaskLocalService = backgroundTaskLocalService;
 		_ctCollectionLocalService = ctCollectionLocalService;
+		_ctCollectionModelResourcePermission =
+			ctCollectionModelResourcePermission;
 		_ctProcessService = ctProcessService;
 		_ctSchemaVersionLocalService = ctSchemaVersionLocalService;
 		_httpServletRequest = httpServletRequest;
@@ -95,7 +104,7 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 		return ParamUtil.getString(_renderRequest, "status", "all");
 	}
 
-	public Map<String, Object> getReactProps() {
+	public Map<String, Object> getReactProps() throws PortalException {
 		Set<Long> ctCollectionIds = new HashSet<>();
 
 		SearchContainer<CTProcess> searchContainer = getSearchContainer();
@@ -160,10 +169,6 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 
 			Date publishedDate = ctProcess.getCreateDate();
 
-			String timeDescription = _language.getTimeDescription(
-				_themeDisplay.getLocale(),
-				System.currentTimeMillis() - publishedDate.getTime(), true);
-
 			ResourceURL statusURL = _renderResponse.createResourceURL();
 
 			statusURL.setResourceID("/change_tracking/get_publication_status");
@@ -180,6 +185,16 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 					"expired",
 					!_ctSchemaVersionLocalService.isLatestCTSchemaVersion(
 						ctCollection.getSchemaVersionId())
+				).put(
+					"hasRevertPermission",
+					CTPermission.contains(
+						_themeDisplay.getPermissionChecker(),
+						CTActionKeys.ADD_PUBLICATION)
+				).put(
+					"hasViewPermission",
+					_ctCollectionModelResourcePermission.contains(
+						_themeDisplay.getPermissionChecker(), ctCollection,
+						ActionKeys.VIEW)
 				).put(
 					"label", label
 				).put(
@@ -203,9 +218,17 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 					"statusURL", statusURL.toString()
 				).put(
 					"timeDescription",
-					_language.format(
-						_themeDisplay.getLocale(), "x-ago",
-						new String[] {timeDescription}, false)
+					() -> {
+						String timeDescription = _language.getTimeDescription(
+							_themeDisplay.getLocale(),
+							System.currentTimeMillis() -
+								publishedDate.getTime(),
+							true);
+
+						return _language.format(
+							_themeDisplay.getLocale(), "x-ago",
+							new String[] {timeDescription}, false);
+					}
 				).put(
 					"userId", ctProcess.getUserId()
 				).put(
@@ -218,29 +241,32 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 				));
 		}
 
-		Map<String, Object> props = HashMapBuilder.<String, Object>put(
+		return HashMapBuilder.<String, Object>put(
 			"displayStyle", getDisplayStyle()
 		).put(
 			"entries", entriesJSONArray
 		).put(
 			"spritemap", _themeDisplay.getPathThemeImages() + "/clay/icons.svg"
-		).build();
+		).put(
+			"userInfo",
+			() -> {
+				if (ctProcessIds.isEmpty()) {
+					return null;
+				}
 
-		if (!ctProcessIds.isEmpty()) {
-			props.put(
-				"userInfo",
-				DisplayContextUtil.getUserInfoJSONObject(
+				return DisplayContextUtil.getUserInfoJSONObject(
 					CTProcessTable.INSTANCE.userId.eq(
 						UserTable.INSTANCE.userId),
 					CTProcessTable.INSTANCE, _themeDisplay, _userLocalService,
 					CTProcessTable.INSTANCE.ctProcessId.in(
-						ctProcessIds.toArray(new Long[0]))));
-		}
-
-		return props;
+						ctProcessIds.toArray(new Long[0])));
+			}
+		).build();
 	}
 
-	public SearchContainer<CTProcess> getSearchContainer() {
+	public SearchContainer<CTProcess> getSearchContainer()
+		throws PortalException {
+
 		if (_searchContainer != null) {
 			return _searchContainer;
 		}
@@ -258,19 +284,15 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 
 		DisplayTerms displayTerms = searchContainer.getDisplayTerms();
 
-		List<CTProcess> results = _ctProcessService.getCTProcesses(
-			_themeDisplay.getCompanyId(), CTWebConstants.USER_FILTER_ALL,
-			displayTerms.getKeywords(), _getStatus(getFilterByStatus()),
-			searchContainer.getStart(), searchContainer.getEnd(),
-			_getOrderByComparator(getOrderByCol(), getOrderByType()));
-
-		searchContainer.setResults(results);
-
-		int count = _ctProcessService.getCTProcessesCount(
-			_themeDisplay.getCompanyId(), CTWebConstants.USER_FILTER_ALL,
-			displayTerms.getKeywords(), _getStatus(getFilterByStatus()));
-
-		searchContainer.setTotal(count);
+		searchContainer.setResultsAndTotal(
+			() -> _ctProcessService.getCTProcesses(
+				_themeDisplay.getCompanyId(), CTWebConstants.USER_FILTER_ALL,
+				displayTerms.getKeywords(), _getStatus(getFilterByStatus()),
+				searchContainer.getStart(), searchContainer.getEnd(),
+				_getOrderByComparator(getOrderByCol(), getOrderByType())),
+			_ctProcessService.getCTProcessesCount(
+				_themeDisplay.getCompanyId(), CTWebConstants.USER_FILTER_ALL,
+				displayTerms.getKeywords(), _getStatus(getFilterByStatus())));
 
 		_searchContainer = searchContainer;
 
@@ -307,7 +329,7 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 		).build();
 	}
 
-	public boolean isSearch() {
+	public boolean isSearch() throws PortalException {
 		SearchContainer<CTProcess> searchContainer = getSearchContainer();
 
 		DisplayTerms displayTerms = searchContainer.getDisplayTerms();
@@ -359,6 +381,8 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 
 	private final BackgroundTaskLocalService _backgroundTaskLocalService;
 	private final CTCollectionLocalService _ctCollectionLocalService;
+	private final ModelResourcePermission<CTCollection>
+		_ctCollectionModelResourcePermission;
 	private final CTProcessService _ctProcessService;
 	private final CTSchemaVersionLocalService _ctSchemaVersionLocalService;
 	private final HttpServletRequest _httpServletRequest;

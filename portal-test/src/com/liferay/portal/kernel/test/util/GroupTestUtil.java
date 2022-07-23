@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupServiceUtil;
+import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.randomizerbumpers.NumericStringRandomizerBumper;
 import com.liferay.portal.kernel.test.randomizerbumpers.UniqueStringRandomizerBumper;
@@ -32,8 +33,10 @@ import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.TreeMapBuilder;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 import java.io.Serializable;
 
@@ -97,10 +100,6 @@ public class GroupTestUtil {
 			LocaleUtil.getDefault(), name
 		).build();
 
-		Map<Locale, String> descriptionMap = HashMapBuilder.put(
-			LocaleUtil.getDefault(), RandomTestUtil.randomString()
-		).build();
-
 		int type = GroupConstants.TYPE_SITE_OPEN;
 		String friendlyURL =
 			StringPool.SLASH + FriendlyURLNormalizerUtil.normalize(name);
@@ -112,9 +111,45 @@ public class GroupTestUtil {
 
 		return GroupLocalServiceUtil.addGroup(
 			userId, parentGroupId, null, 0,
-			GroupConstants.DEFAULT_LIVE_GROUP_ID, nameMap, descriptionMap, type,
-			manualMembership, membershipRestriction, friendlyURL, site, active,
-			ServiceContextTestUtil.getServiceContext());
+			GroupConstants.DEFAULT_LIVE_GROUP_ID, nameMap,
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			type, manualMembership, membershipRestriction, friendlyURL, site,
+			active, ServiceContextTestUtil.getServiceContext());
+	}
+
+	public static Group addGroup(
+			long companyId, long userId, long parentGroupId, String groupKey)
+		throws Exception {
+
+		Group group = GroupLocalServiceUtil.fetchGroup(companyId, groupKey);
+
+		if (group != null) {
+			return group;
+		}
+
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getDefault(), groupKey
+		).build();
+
+		int type = GroupConstants.TYPE_SITE_OPEN;
+		String friendlyURL =
+			StringPool.SLASH + FriendlyURLNormalizerUtil.normalize(groupKey);
+		boolean site = true;
+		boolean active = true;
+		boolean manualMembership = true;
+		int membershipRestriction =
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION;
+
+		return GroupLocalServiceUtil.addGroup(
+			userId, parentGroupId, null, 0,
+			GroupConstants.DEFAULT_LIVE_GROUP_ID, nameMap,
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			type, manualMembership, membershipRestriction, friendlyURL, site,
+			active, ServiceContextTestUtil.getServiceContext());
 	}
 
 	public static Group addGroup(
@@ -143,10 +178,6 @@ public class GroupTestUtil {
 			LocaleUtil.getDefault(), name
 		).build();
 
-		Map<Locale, String> descriptionMap = HashMapBuilder.put(
-			LocaleUtil.getDefault(), RandomTestUtil.randomString()
-		).build();
-
 		int type = GroupConstants.TYPE_SITE_OPEN;
 		String friendlyURL =
 			StringPool.SLASH + FriendlyURLNormalizerUtil.normalize(name);
@@ -162,8 +193,40 @@ public class GroupTestUtil {
 
 		return GroupServiceUtil.addGroup(
 			parentGroupId, GroupConstants.DEFAULT_LIVE_GROUP_ID, nameMap,
-			descriptionMap, type, manualMembership, membershipRestriction,
-			friendlyURL, site, active, serviceContext);
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			type, manualMembership, membershipRestriction, friendlyURL, site,
+			active, serviceContext);
+	}
+
+	public static void addLayoutSetVirtualHost(
+			Group group, boolean privateLayout)
+		throws Exception {
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(group.getGroupKey());
+
+		if (privateLayout) {
+			sb.append("-private.");
+		}
+		else {
+			sb.append("-public.");
+		}
+
+		sb.append(RandomTestUtil.randomString(3));
+
+		LayoutSetLocalServiceUtil.updateVirtualHosts(
+			group.getGroupId(), privateLayout,
+			TreeMapBuilder.put(
+				sb.toString(), StringPool.BLANK
+			).build());
+	}
+
+	public static void addLayoutSetVirtualHosts(Group group) throws Exception {
+		addLayoutSetVirtualHost(group, true);
+		addLayoutSetVirtualHost(group, false);
 	}
 
 	public static Group deleteGroup(Group group) throws Exception {
@@ -206,32 +269,39 @@ public class GroupTestUtil {
 			Locale defaultLocale)
 		throws Exception {
 
-		UnicodeProperties typeSettingsUnicodeProperties =
-			new UnicodeProperties();
-
-		boolean inheritLocales = false;
-
-		if ((availableLocales == null) && (defaultLocale == null)) {
-			inheritLocales = true;
-		}
-
-		typeSettingsUnicodeProperties.put(
-			GroupConstants.TYPE_SETTINGS_KEY_INHERIT_LOCALES,
-			String.valueOf(inheritLocales));
-
-		if (availableLocales != null) {
-			typeSettingsUnicodeProperties.put(
-				PropsKeys.LOCALES,
-				StringUtil.merge(LocaleUtil.toLanguageIds(availableLocales)));
-		}
-
-		if (defaultLocale != null) {
-			typeSettingsUnicodeProperties.put(
-				"languageId", LocaleUtil.toLanguageId(defaultLocale));
-		}
-
 		Group group = GroupLocalServiceUtil.updateGroup(
-			groupId, typeSettingsUnicodeProperties.toString());
+			groupId,
+			UnicodePropertiesBuilder.put(
+				GroupConstants.TYPE_SETTINGS_KEY_INHERIT_LOCALES,
+				() -> {
+					boolean inheritLocales = false;
+
+					if ((availableLocales == null) && (defaultLocale == null)) {
+						inheritLocales = true;
+					}
+
+					return String.valueOf(inheritLocales);
+				}
+			).put(
+				PropsKeys.LOCALES,
+				() -> {
+					if (availableLocales != null) {
+						return StringUtil.merge(
+							LocaleUtil.toLanguageIds(availableLocales));
+					}
+
+					return null;
+				}
+			).put(
+				"languageId",
+				() -> {
+					if (defaultLocale != null) {
+						return LocaleUtil.toLanguageId(defaultLocale);
+					}
+
+					return null;
+				}
+			).buildString());
 
 		ThreadLocalCacheManager.clearAll(Lifecycle.REQUEST);
 

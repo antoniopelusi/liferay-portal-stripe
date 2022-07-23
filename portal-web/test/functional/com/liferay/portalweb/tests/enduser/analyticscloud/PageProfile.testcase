@@ -1,0 +1,90 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		ACUtils.launchAC();
+
+		ACSettings.takeTokenFromAnalyticsCloud();
+
+		TestCase.setUpPortalInstance();
+
+		ACUtils.launchDXP();
+
+		ACUtils.addSiteAndPage();
+
+		ACUtils.createBlogsAndAddToPage();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8112 | Test Summary: Assert clicking on a page in the pages lists navigates to the page profile"
+	@priority = "5"
+	test ClickOnPageInPagesListsNavigatesToPageProfile {
+		task ("Connect DXP to Analytics Cloud") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("View the blog") {
+			ACUtils.navigateToSitePage(
+				actionType = "View Blog",
+				documentTitleList = "Blogs AC Title",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Navigate to AC workspace") {
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Pages tab in Sites") {
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+
+			ACNavigation.goToSites();
+
+			ACNavigation.switchTab(tabName = "Pages");
+		}
+
+		task ("Set time filter use 24 hours") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("Navigate to page report entry") {
+			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", " ");
+
+			ACNavigation.openItem(itemName = "AC Page - Site Name - ${dataSourceName}");
+		}
+
+		task ("Assert Page Profile") {
+			ACUtils.assertPageTitle(pageTitle = "AC Page - Site Name - ${dataSourceName}");
+
+			for (var cardTitle : list "Visitors Behavior,Audience,Views by Location,Views by Technology,Displayed Assets") {
+				ACCards.viewCards(cardTitle = "${cardTitle}");
+			}
+		}
+	}
+
+}

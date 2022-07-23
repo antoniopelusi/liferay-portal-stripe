@@ -232,7 +232,7 @@ public class ViewFlatUsersManagementToolbarDisplayContext
 			"orderByCol", getOrderByCol()
 		).setParameter(
 			"orderByType", getOrderByType()
-		).build();
+		).buildPortletURL();
 	}
 
 	private final String _navigation;

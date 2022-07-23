@@ -17,8 +17,6 @@ package com.liferay.portal.events;
 import com.liferay.document.library.kernel.document.conversion.DocumentConversionUtil;
 import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.petra.lang.CentralizedThreadLocal;
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.fabric.server.FabricServerUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
@@ -27,7 +25,6 @@ import com.liferay.portal.kernel.deploy.auto.AutoDeployDir;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployUtil;
 import com.liferay.portal.kernel.deploy.hot.HotDeployUtil;
 import com.liferay.portal.kernel.events.SimpleAction;
-import com.liferay.portal.kernel.javadoc.JavadocManagerUtil;
 import com.liferay.portal.kernel.log.Jdk14LogFactoryImpl;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -42,9 +39,6 @@ import com.liferay.util.ThirdPartyThreadLocalRegistry;
 
 import java.sql.Connection;
 import java.sql.Statement;
-
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Brian Wing Shun Chan
@@ -97,10 +91,6 @@ public class GlobalShutdownAction extends SimpleAction {
 
 		AuthPublicPathRegistry.unregister(PropsValues.AUTH_PUBLIC_PATHS);
 
-		// Javadoc
-
-		JavadocManagerUtil.unload(StringPool.BLANK);
-
 		// OpenOffice
 
 		DocumentConversionUtil.disconnect();
@@ -122,21 +112,6 @@ public class GlobalShutdownAction extends SimpleAction {
 		// Messaging
 
 		MessageBusUtil.shutdown(true);
-
-		// Portal fabric
-
-		if (PropsValues.PORTAL_FABRIC_ENABLED) {
-			try {
-				Future<?> future = FabricServerUtil.stop();
-
-				future.get(
-					PropsValues.PORTAL_FABRIC_SHUTDOWN_TIMEOUT,
-					TimeUnit.MILLISECONDS);
-			}
-			catch (Exception exception) {
-				_log.error("Unable to stop fabric server", exception);
-			}
-		}
 	}
 
 	protected void shutdownLevel4() {
@@ -152,7 +127,7 @@ public class GlobalShutdownAction extends SimpleAction {
 				statement.executeUpdate("SHUTDOWN");
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 	}
@@ -175,7 +150,7 @@ public class GlobalShutdownAction extends SimpleAction {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -208,7 +183,7 @@ public class GlobalShutdownAction extends SimpleAction {
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}

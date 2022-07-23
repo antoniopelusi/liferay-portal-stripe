@@ -73,12 +73,12 @@ if (row == null) {
 					"/bookmarks/edit_folder"
 				).setRedirect(
 					currentURL
+				).setPortletResource(
+					portletDisplay.getId()
 				).setParameter(
 					"folderId", folder.getFolderId()
 				).setParameter(
 					"mergeWithParentFolderDisabled", row == null
-				).setParameter(
-					"portletResource", portletDisplay.getId()
 				).buildString()
 			%>'
 		/>

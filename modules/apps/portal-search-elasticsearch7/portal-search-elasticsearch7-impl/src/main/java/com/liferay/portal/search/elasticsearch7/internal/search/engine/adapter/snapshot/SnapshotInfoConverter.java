@@ -28,6 +28,26 @@ import org.elasticsearch.snapshots.SnapshotInfo;
  */
 public class SnapshotInfoConverter {
 
+	public static SnapshotDetails convert(SnapshotInfo snapshotInfo) {
+		SnapshotId snapshotId = snapshotInfo.snapshotId();
+
+		SnapshotDetails snapshotDetails = new SnapshotDetails(
+			snapshotId.getName(), snapshotId.getUUID());
+
+		List<String> indices = snapshotInfo.indices();
+
+		if (ListUtil.isNotEmpty(indices)) {
+			snapshotDetails.setIndexNames(indices.toArray(new String[0]));
+		}
+
+		snapshotDetails.setSnapshotState(convert(snapshotInfo.state()));
+
+		snapshotDetails.setSuccessfulShards(snapshotInfo.successfulShards());
+		snapshotDetails.setTotalShards(snapshotInfo.totalShards());
+
+		return snapshotDetails;
+	}
+
 	public static SnapshotState convert(
 		org.elasticsearch.snapshots.SnapshotState snapshotState) {
 
@@ -49,26 +69,6 @@ public class SnapshotInfoConverter {
 
 		throw new IllegalArgumentException(
 			"Invalid value for snapshot state: " + snapshotState);
-	}
-
-	public static SnapshotDetails convert(SnapshotInfo snapshotInfo) {
-		SnapshotId snapshotId = snapshotInfo.snapshotId();
-
-		SnapshotDetails snapshotDetails = new SnapshotDetails(
-			snapshotId.getName(), snapshotId.getUUID());
-
-		List<String> indices = snapshotInfo.indices();
-
-		if (ListUtil.isNotEmpty(indices)) {
-			snapshotDetails.setIndexNames(indices.toArray(new String[0]));
-		}
-
-		snapshotDetails.setSnapshotState(convert(snapshotInfo.state()));
-
-		snapshotDetails.setSuccessfulShards(snapshotInfo.successfulShards());
-		snapshotDetails.setTotalShards(snapshotInfo.totalShards());
-
-		return snapshotDetails;
 	}
 
 }

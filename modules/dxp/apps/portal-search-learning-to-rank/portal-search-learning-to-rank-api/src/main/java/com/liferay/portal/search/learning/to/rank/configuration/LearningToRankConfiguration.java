@@ -30,8 +30,8 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 public interface LearningToRankConfiguration {
 
 	@Meta.AD(
-		deflt = "false", description = "enabled-help", name = "enabled",
-		required = false
+		deflt = "false", description = "enabled-help[learning-to-rank]",
+		name = "enabled", required = false
 	)
 	public boolean enabled();
 

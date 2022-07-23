@@ -112,16 +112,9 @@ public class CalendarUtil {
 			pattern = "EEEE";
 		}
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("days_");
-		sb.append(pattern);
-		sb.append("_");
-		sb.append(locale.getLanguage());
-		sb.append("_");
-		sb.append(locale.getCountry());
-
-		String key = sb.toString();
+		String key = StringBundler.concat(
+			"days_", pattern, "_", locale.getLanguage(), "_",
+			locale.getCountry());
 
 		String[] days = _calendarPool.get(key);
 
@@ -247,16 +240,9 @@ public class CalendarUtil {
 			pattern = "MMMM";
 		}
 
-		StringBundler sb = new StringBundler(6);
-
-		sb.append("months_");
-		sb.append(pattern);
-		sb.append("_");
-		sb.append(locale.getLanguage());
-		sb.append("_");
-		sb.append(locale.getCountry());
-
-		String key = sb.toString();
+		String key = StringBundler.concat(
+			"months_", pattern, "_", locale.getLanguage(), "_",
+			locale.getCountry());
 
 		String[] months = _calendarPool.get(key);
 

@@ -36,7 +36,7 @@ import org.osgi.service.component.annotations.Reference;
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=link",
 		"ddm.form.field.type.label=link-to-layout-field-label",
 		"ddm.form.field.type.name=" + LayoutDDMFormFieldTypeConstants.LINK_TO_LAYOUT,
-		"ddm.form.field.type.scope=layout"
+		"ddm.form.field.type.scope=document-library,journal,layout"
 	},
 	service = DDMFormFieldType.class
 )

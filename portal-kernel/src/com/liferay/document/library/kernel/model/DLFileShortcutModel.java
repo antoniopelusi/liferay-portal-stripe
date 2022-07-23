@@ -530,4 +530,7 @@ public interface DLFileShortcutModel
 	@Override
 	public boolean isScheduled();
 
+	@Override
+	public DLFileShortcut cloneWithOriginalValues();
+
 }

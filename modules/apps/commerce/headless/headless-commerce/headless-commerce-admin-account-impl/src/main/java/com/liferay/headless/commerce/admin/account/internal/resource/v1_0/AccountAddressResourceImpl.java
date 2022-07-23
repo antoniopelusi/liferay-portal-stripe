@@ -14,6 +14,7 @@
 
 package com.liferay.headless.commerce.admin.account.internal.resource.v1_0;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.commerce.account.exception.NoSuchAccountException;
 import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.account.service.CommerceAccountService;
@@ -79,7 +80,7 @@ public class AccountAddressResourceImpl
 
 		if (commerceAddress == null) {
 			throw new NoSuchAddressException(
-				"Unable to find AccountAddress with externalReferenceCode: " +
+				"Unable to find account address with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -108,7 +109,7 @@ public class AccountAddressResourceImpl
 
 		if (commerceAddress == null) {
 			throw new NoSuchAddressException(
-				"Unable to find AccountAddress with externalReferenceCode: " +
+				"Unable to find account address with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -127,7 +128,7 @@ public class AccountAddressResourceImpl
 
 		if (commerceAccount == null) {
 			throw new NoSuchAccountException(
-				"Unable to find Account with externalReferenceCode: " +
+				"Unable to find account with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -152,6 +153,9 @@ public class AccountAddressResourceImpl
 		CommerceAddress commerceAddress =
 			_commerceAddressService.getCommerceAddress(id);
 
+		Country country = _countryService.getCountryByA2(
+			commerceAddress.getCompanyId(), accountAddress.getCountryISOCode());
+
 		commerceAddress = _commerceAddressService.updateCommerceAddress(
 			commerceAddress.getCommerceAddressId(),
 			GetterUtil.getString(
@@ -169,7 +173,11 @@ public class AccountAddressResourceImpl
 				accountAddress.getCity(), commerceAddress.getCity()),
 			GetterUtil.getString(
 				accountAddress.getZip(), commerceAddress.getZip()),
-			commerceAddress.getRegionId(), commerceAddress.getCountryId(),
+			GetterUtil.getLong(
+				_getRegionId(country, accountAddress),
+				commerceAddress.getRegionId()),
+			GetterUtil.getLong(
+				_getCountryId(country), commerceAddress.getCountryId()),
 			GetterUtil.getString(
 				accountAddress.getPhoneNumber(),
 				commerceAddress.getPhoneNumber()),
@@ -191,9 +199,12 @@ public class AccountAddressResourceImpl
 
 		if (commerceAddress == null) {
 			throw new NoSuchAddressException(
-				"Unable to find AccountAddress with externalReferenceCode: " +
+				"Unable to find account address with external reference code " +
 					externalReferenceCode);
 		}
+
+		Country country = _countryService.getCountryByA2(
+			commerceAddress.getCompanyId(), accountAddress.getCountryISOCode());
 
 		_commerceAddressService.updateCommerceAddress(
 			commerceAddress.getCommerceAddressId(),
@@ -212,7 +223,11 @@ public class AccountAddressResourceImpl
 				accountAddress.getCity(), commerceAddress.getCity()),
 			GetterUtil.getString(
 				accountAddress.getZip(), commerceAddress.getZip()),
-			commerceAddress.getRegionId(), commerceAddress.getCountryId(),
+			GetterUtil.getLong(
+				_getRegionId(country, accountAddress),
+				commerceAddress.getRegionId()),
+			GetterUtil.getLong(
+				_getCountryId(country), commerceAddress.getCountryId()),
 			GetterUtil.getString(
 				accountAddress.getPhoneNumber(),
 				commerceAddress.getPhoneNumber()),
@@ -236,7 +251,7 @@ public class AccountAddressResourceImpl
 
 		if (commerceAccount == null) {
 			throw new NoSuchAccountException(
-				"Unable to find Account with externalReferenceCode: " +
+				"Unable to find account with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -254,6 +269,10 @@ public class AccountAddressResourceImpl
 		}
 
 		if (commerceAddress != null) {
+			Country country = _countryService.getCountryByA2(
+				commerceAddress.getCompanyId(),
+				accountAddress.getCountryISOCode());
+
 			return _toAccountAddress(
 				_commerceAddressService.updateCommerceAddress(
 					commerceAddress.getCommerceAddressId(),
@@ -264,8 +283,11 @@ public class AccountAddressResourceImpl
 					GetterUtil.getString(accountAddress.getStreet3(), null),
 					GetterUtil.getString(accountAddress.getCity(), null),
 					GetterUtil.getString(accountAddress.getZip(), null),
-					commerceAddress.getRegionId(),
-					commerceAddress.getCountryId(),
+					GetterUtil.getLong(
+						_getRegionId(country, accountAddress),
+						commerceAddress.getRegionId()),
+					GetterUtil.getLong(
+						_getCountryId(country), commerceAddress.getCountryId()),
 					GetterUtil.getString(accountAddress.getPhoneNumber(), null),
 					GetterUtil.getInteger(
 						accountAddress.getType(), commerceAddress.getType()),
@@ -292,6 +314,9 @@ public class AccountAddressResourceImpl
 		CommerceAddress commerceAddress =
 			_commerceAddressService.getCommerceAddress(id);
 
+		Country country = _countryService.getCountryByA2(
+			commerceAddress.getCompanyId(), accountAddress.getCountryISOCode());
+
 		commerceAddress = _commerceAddressService.updateCommerceAddress(
 			commerceAddress.getCommerceAddressId(),
 			GetterUtil.getString(accountAddress.getName()),
@@ -301,7 +326,11 @@ public class AccountAddressResourceImpl
 			GetterUtil.getString(accountAddress.getStreet3()),
 			GetterUtil.getString(accountAddress.getCity()),
 			GetterUtil.getString(accountAddress.getZip()),
-			commerceAddress.getRegionId(), commerceAddress.getCountryId(),
+			GetterUtil.getLong(
+				_getRegionId(country, accountAddress),
+				commerceAddress.getRegionId()),
+			GetterUtil.getLong(
+				_getCountryId(country), commerceAddress.getCountryId()),
 			GetterUtil.getString(accountAddress.getPhoneNumber()),
 			GetterUtil.getInteger(accountAddress.getType()),
 			_serviceContextHelper.getServiceContext());
@@ -320,7 +349,7 @@ public class AccountAddressResourceImpl
 			_commerceAddressService.addCommerceAddress(
 				GetterUtil.getString(
 					accountAddress.getExternalReferenceCode(), null),
-				commerceAccount.getModelClassName(),
+				AccountEntry.class.getName(),
 				commerceAccount.getCommerceAccountId(),
 				accountAddress.getName(), accountAddress.getDescription(),
 				accountAddress.getStreet1(), accountAddress.getStreet2(),
@@ -344,17 +373,25 @@ public class AccountAddressResourceImpl
 
 		List<CommerceAddress> commerceAddresses =
 			_commerceAddressService.getCommerceAddresses(
-				commerceAccount.getModelClassName(),
+				AccountEntry.class.getName(),
 				commerceAccount.getCommerceAccountId(),
 				pagination.getStartPosition(), pagination.getEndPosition(),
 				null);
 
 		int totalItems = _commerceAddressService.getCommerceAddressesCount(
-			commerceAccount.getModelClassName(),
+			AccountEntry.class.getName(),
 			commerceAccount.getCommerceAccountId());
 
 		return Page.of(
 			_toAccountAddresses(commerceAddresses), pagination, totalItems);
+	}
+
+	private long _getCountryId(Country country) {
+		if (country == null) {
+			return 0;
+		}
+
+		return country.getCountryId();
 	}
 
 	private long _getRegionId(Country country, AccountAddress accountAddress)

@@ -1,0 +1,1910 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "Verify that a Form can be published after adding a Fieldset"
+	@priority = "5"
+	test AddedToAFormCanBePublished {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewFieldLabel(
+			fieldName = "Text",
+			fieldValue = "");
+
+		FormFields.viewFieldLabel(
+			fieldName = "Numeric",
+			fieldValue = "");
+
+		Form.save();
+
+		Form.publishForm();
+
+		Alert.viewSuccessMessage();
+	}
+
+	@description = "Verify that a Form can be saved after adding a Fieldset"
+	@priority = "5"
+	test AddedToAFormCanBeSaved {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.save();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoElementSetsTab();
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		Form.save();
+
+		Alert.viewSuccessMessage();
+	}
+
+	@description = "Verify that a Form can be submitted after adding a Fieldset"
+	@priority = "5"
+	test AddedToAFormCanBeSubmitted {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewFieldLabel(
+			fieldName = "Text",
+			fieldValue = "");
+
+		FormFields.viewFieldLabel(
+			fieldName = "Numeric",
+			fieldValue = "");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test Text");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "5");
+
+		FormPortlet.submitSuccessfullyAndViewSuccessPage();
+	}
+
+	@description = "Verify that a Color Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddAColorFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Color");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Color",
+			fieldName = "Color");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Color",
+			fieldName = "Color");
+	}
+
+	@description = "Verify that a Date Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddADateFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Date");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Date",
+			fieldName = "Date");
+	}
+
+	@description = "Verify that a Grid Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddAGridFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Grid");
+
+		FormFields.editGridOptions(
+			gridField = "Rows",
+			optionValue = "Row 1",
+			rowNumber = "1");
+
+		FormFields.editGridOptions(
+			gridField = "Columns",
+			optionValue = "Column 1",
+			rowNumber = "1");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Row 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionColumnsName(
+			fieldTitle = "Grid",
+			optionName = "Column 1",
+			rowNumber = "1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		FormFields.viewOptionRowName(
+			fieldTitle = "Grid",
+			optionName = "Row 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionColumnsName(
+			fieldTitle = "Grid",
+			optionName = "Column 1",
+			rowNumber = "1");
+	}
+
+	@description = "Verify that an Image Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddAImageFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Image");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Image",
+			fieldName = "Image");
+	}
+
+	@description = "Verify that a Multiple Selection Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddAMultipleSelectionFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Multiple Selection");
+
+		FormFields.editOptionsRow(
+			optionName = "Option 1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option 2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		Click(
+			key_name = "Multiple Selection",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 2",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		AssertElementPresent(
+			key_fieldType = "Option 1",
+			locator1 = "FormFields#SELECT_FIELD_MULTIPLE_OPTION_1");
+
+		AssertElementPresent(
+			key_fieldType = "Option 2",
+			locator1 = "FormFields#SELECT_FIELD_MULTIPLE_OPTION_1");
+	}
+
+	@description = "Verify that a Numeric Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddANumericFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+	}
+
+	@description = "Verify that a Paragraph Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddAParagraphFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Paragraph");
+
+		FormFields.editParagraphBody(content = "Test Body Text");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Paragraph");
+
+		FormFields.viewParagraphField(
+			fieldName = "Paragraph",
+			fieldTitle = "Paragraph",
+			fieldValue = "Test Body Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewParagraphField(
+			fieldName = "Paragraph",
+			fieldTitle = "Paragraph",
+			fieldValue = "Test Body Text");
+	}
+
+	@description = "Verify that a Rich Text Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddARichTextFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Rich Text");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Rich Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Rich Text");
+	}
+
+	@description = "Verify that a Select From List Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddASelectFromListFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Select from List");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Select from List",
+			fieldName = "Select from List");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validatePredefinedSelectFromList(
+			fieldName = "Select from List",
+			fieldValue = "Choose an Option");
+
+		FormFields.viewSelectFromListOption(optionValue = "Option 1");
+
+		FormFields.viewSelectFromListOption(optionValue = "Option 2");
+	}
+
+	@description = "Verify that a Separator Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddASeparatorFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Separator");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Separator",
+			fieldName = "Separator");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Separator",
+			fieldName = "Separator");
+	}
+
+	@description = "Verify that a Single Selection Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddASingleSelectionFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Single Selection");
+
+		FormFields.editOptionsRow(
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		AssertElementPresent(
+			key_name = "Text",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		AssertElementPresent(
+			key_name = "Single Selection",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Click(
+			key_name = "Single Selection",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 1",
+			rowNumber = "1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		AssertElementPresent(
+			key_rowNumber = "1",
+			locator1 = "FormPortlet#SELECT_SINGLE_SELECTION_ROW");
+
+		AssertElementPresent(
+			key_optionValue = "Option 1",
+			key_rowNumber = "1",
+			locator1 = "FormPortlet#SELECT_SINGLE_SELECTION_ROW_OPTION");
+	}
+
+	@description = "Verify that a Text Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddATextFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numeric");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewRadioLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+	}
+
+	@description = "Verify that an Upload Field can be added to a Form via Fieldset"
+	@priority = "5"
+	test CanAddAUploadFieldToAForm {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Upload");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Upload");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Upload");
+	}
+
+	@description = "Verify that a Fieldset can be added to a Fieldset"
+	@priority = "4"
+	test CanBeAddedToAFieldset {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Form.gotoElementSetsTab();
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.saveElementSet();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 2");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Rich Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		for (var label : list "Rich Text,Text,Numeric") {
+			FormViewBuilder.validateFieldLabel(fieldLabel = "${label}");
+		}
+
+		Form.saveElementSet();
+
+		Alert.viewSuccessMessage();
+
+		FormsAdminNavigator.gotoBack();
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "Element Set 2");
+
+		for (var label : list "Rich Text,Text,Numeric") {
+			FormViewBuilder.validateFieldLabel(fieldLabel = "${label}");
+		}
+	}
+
+	@description = "Verify that a Fieldset can be added multiple times to Form"
+	@priority = "3"
+	test CanBeAddedToAFormMultipleTimes {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Form.gotoElementSetsTab();
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		for (var element : list "Element Set 1,Element Set 1") {
+			Form.gotoAddElementSet(elementSetTitle = "${element}");
+		}
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
+
+		FormFields.viewFieldLabelByDataFieldName(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewFieldLabelByDataFieldName(
+			fieldLabel = "Text",
+			fieldName = "Field");
+
+		FormFields.viewFieldLabelByDataFieldName(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		FormFields.viewFieldLabelByDataFieldName(
+			fieldLabel = "Numeric",
+			fieldName = "Field");
+	}
+
+	@description = "Verify that a Fieldset can be created"
+	@priority = "5"
+	test CanBeCreated {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.saveElementSet();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Element Set 1");
+
+		AssertElementPresent(
+			key_name = "Text",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		AssertElementPresent(
+			key_name = "Numeric",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+	}
+
+	@description = "Verify that a Fieldset can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.saveElementSet();
+
+		FormsAdminNavigator.gotoBack();
+
+		AssertElementPresent(
+			key_formName = "Element Set 1",
+			locator1 = "FormsAdmin#FORMS_TABLE_NAME");
+
+		FormsAdmin.teardownElementSets();
+
+		AssertElementNotPresent(
+			key_formName = "Element Set 1",
+			locator1 = "FormsAdmin#FORMS_TABLE_NAME");
+	}
+
+	@description = "Verify that a Fieldset can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.save();
+
+		FormsAdminNavigator.gotoBack();
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Element Set 1");
+
+		Click(
+			key_name = "Text",
+			locator1 = "FormFields#FIELD_TARGET_LABEL");
+
+		Form.editFieldLabelMetal(fieldValue = "Text Test");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text Test");
+
+		Form.saveElementSet();
+
+		FormsAdminNavigator.gotoBack();
+
+		Click(
+			key_formName = "Element Set 1",
+			locator1 = "FormsAdmin#FORMS_TABLE_NAME");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text Test");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numeric");
+	}
+
+	@description = "Verify that Options persist after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveOptions {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Form.gotoElementSetsTab();
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		FormViewBuilder.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Single Selection",
+			formPageNumber = "0");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Single Selection");
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 1",
+			key_position = "1");
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 2",
+			key_position = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 1",
+			key_position = "1");
+
+		FormFields.viewSingleSelectionOption(
+			key_optionLabel = "Option 2",
+			key_position = "2");
+	}
+
+	@description = "Verify that a Field with the Autocomplete Property persists after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveTheAutoCompleteProperty {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		FormViewBuilder.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		Form.gotoAutocompleteTab();
+
+		Form.enableAutocompleteConfiguration();
+
+		FormFields.selectRadioOption(
+			fieldName = "",
+			radioOption = "Manually");
+
+		FormFields.editOptionsRow(
+			optionName = "Option1",
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionName = "Option2",
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormsAdminNavigator.gotoEditField(fieldName = "Text");
+
+		Form.gotoAutocompleteTab();
+
+		FormFields.viewSwitchChecked(fieldName = "Autocomplete");
+
+		FormFields.viewRadioValue(
+			fieldName = "dataSourceType",
+			fieldValue = "Manually");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.viewOptionsRowFieldValue(
+			fieldValue = "Option 2",
+			rowNumber = "2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Option",
+			key_fieldLabel = "Text");
+
+		FormFields.selectAutoCompleteOption(autocompleteOption = "Option 1");
+	}
+
+	@description = "Verify that the Help Text property persists after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveTheHelpText {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		FormViewBuilder.setFieldHelpText(fieldLabel = "Help Text Test");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numeric");
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldHelpText(
+			fieldHelpText = "Help Text Test",
+			fieldName = "Text");
+	}
+
+	@description = "Verify that a Hide Label Property persists after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveTheHideLabelProperty {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Text");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.disableSwitch(fieldName = "Show Label");
+
+		Form.closeSidebar();
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Text");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewField(fieldName = "Numeric");
+
+		AssertElementPresent(
+			key_fieldLabel = "Text",
+			key_fieldName = "Text",
+			locator1 = "FormFields#TEXT_FIELD");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Text");
+	}
+
+	@description = "Verify that an Inline Property persists after being added to a Form via Fieldset"
+	@priority = "4"
+	test PreserveTheInlineProperty {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Multiple Selection");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 1",
+			optionValue = "1");
+
+		FormFields.addSingleSelectionOption(
+			optionName = "Option 2",
+			optionValue = "2");
+
+		FormFields.viewOptionsPositionNotHorizontal(
+			key_text1 = "Option 1",
+			key_text2 = "Option 2");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.enableSwitch(fieldName = "Inline");
+
+		FormFields.viewOptionsPositionHorizontal(
+			key_text1 = "Option 1",
+			key_text2 = "Option 2");
+
+		Form.save();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form1");
+
+		Form.gotoElementSetsTab();
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		FormFields.viewOptionsPositionHorizontal(
+			key_text1 = "Option 1",
+			key_text2 = "Option 2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewOptionsPositionHorizontal(
+			key_text1 = "Option 1",
+			key_text2 = "Option 2");
+	}
+
+	@description = "Verify that an Allow Multiple Selections Property persists after being added to a Form via Fieldset"
+	@priority = "4"
+	test PreserveTheMultipleSelectionsProperty {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Select from List");
+
+		FormFields.editOptionsRow(
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.enableSwitch(fieldName = "Allow Multiple Selections");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		for (var label : list "Text,Select from List") {
+			FormFields.viewLabel(
+				fieldLabel = "${label}",
+				fieldName = "${label}");
+		}
+
+		FormsAdminNavigator.gotoEditField(
+			fieldName = "Select from List",
+			fieldPositionNumber = "1");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.viewSwitchChecked(fieldName = "Allow Multiple Selections");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.selectSelectOption(
+			fieldName = "Select from List",
+			selectOption = "Option 1");
+
+		FormFields.enableCheckbox(fieldName = "Option 2");
+
+		for (var option : list "Option 1,Option 2") {
+			FormFields.viewSelectFromListOption(optionValue = "${option}");
+		}
+	}
+
+	@description = "Verify that a Placeholder Text persists after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveThePlaceholderText {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "Text",
+			placeHolder = "");
+
+		FormViewBuilder.setPlaceholder(fieldValue = "Placeholder Text Test");
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "Text",
+			placeHolder = "Placeholder Text Test");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewAnyField(fieldName = "Numeric");
+
+		FormFields.viewAnyField(fieldName = "Text");
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "Text",
+			placeHolder = "Placeholder Text Test");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldPlaceholderText(
+			fieldName = "Text",
+			placeHolder = "Placeholder Text Test");
+	}
+
+	@description = "Verify that a Predefined Value persists after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveThePredefinedValue {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		FormFields.viewFieldPredefinedValue(
+			fieldName = "Text",
+			predefinedValue = "");
+
+		FormFields.editPredefinedValue(key_predefinedValue = "Predefined Value Test");
+
+		FormFields.viewFieldPredefinedValue(
+			fieldName = "Text",
+			predefinedValue = "Predefined Value Test");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewAnyField(fieldName = "Numeric");
+
+		FormFields.viewAnyField(fieldName = "Text");
+
+		FormFields.viewFieldPredefinedValue(
+			fieldName = "Text",
+			predefinedValue = "Predefined Value Test");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewFieldPredefinedValue(
+			fieldName = "Text",
+			predefinedValue = "Predefined Value Test");
+	}
+
+	@description = "Verify that a Repeatable Property persists after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveTheRepeatableProperty {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		Form.gotoAdvancedTab();
+
+		FormFields.enableSwitch(fieldName = "Repeatable");
+
+		FormFields.viewFieldRepeatableButton(
+			fieldName = "Text",
+			key_repeatableFieldsNumber = "1");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		FormFields.viewFieldRepeatableButton(
+			fieldName = "Text",
+			key_repeatableFieldsNumber = "1");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.addRepeatableField(
+			fieldName = "Text",
+			repeatableFieldNumber = "1");
+
+		FormFields.viewPublishedFormFieldByIndex(
+			fieldLabel = "Text",
+			index = "1");
+
+		FormFields.viewPublishedFormFieldByIndex(
+			fieldLabel = "Text",
+			index = "2");
+	}
+
+	@description = "Verify that a Required Field Property persists after being added to a Form via Fieldset"
+	@priority = "5"
+	test PreserveTheRequiredFieldProperty {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Text");
+
+		FormFields.enableSwitch(fieldName = "Required Field");
+
+		FormFields.viewRequiredAsteriskDataField(fieldFieldLabel = "Text");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(
+			elementSetTitle = "Element Set 1",
+			fieldPositionNumber = "0");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numeric");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+
+		FormFields.viewRequiredAsteriskDataField(fieldFieldLabel = "Text");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewRequiredAsteriskDataField(fieldFieldLabel = "Text");
+
+		FormPortlet.submitWithValidationError(validationErrorMessage = "This field is required.");
+	}
+
+	@description = "Verify that a Show as Switch Property persists after being added to a Form via Fieldset"
+	@priority = "4"
+	test PreserveTheShowAsSwitchProperty {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.gotoAddField(fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Multiple Selection");
+
+		FormFields.enableCheckbox(fieldName = "showAsSwitcher");
+
+		FormFields.editOptionsRow(
+			optionValue = "Option 1",
+			rowNumber = "1");
+
+		FormFields.editOptionsRow(
+			optionValue = "Option 2",
+			rowNumber = "2");
+
+		Form.closeSidebar();
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Option 1");
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Option 2");
+
+		Form.saveElementSet();
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddElementSet(elementSetTitle = "Element Set 1");
+
+		FormFields.viewField(fieldName = "Text");
+
+		FormFields.viewField(fieldName = "MultipleSelection");
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Option 1");
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Option 2");
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Option 1");
+
+		FormFields.viewSwitchOption(
+			fieldName = "MultipleSelection",
+			optionValue = "Option 2");
+	}
+
+	@description = "Verify that leaving a Fieldset without saving will prompt a notification warning the user that any unsaved changes wil be lost"
+	@priority = "5"
+	test WillWarnUsersWhenExitingWithoutSaving {
+		property portal.acceptance = "true";
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		Navigator.gotoNavItem(navItem = "Element Sets");
+
+		FormsAdminNavigator.gotoAddElementSet();
+
+		Form.editName(formName = "Element Set 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Navigator.gotoBack();
+
+		Click(locator1 = "Modal#BODY");
+
+		AssertElementPresent(locator1 = "Button#LEAVE");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Modal#BODY",
+			value1 = "Any unsaved changes will be lost, are you sure you want to leave?");
+	}
+
+}

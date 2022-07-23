@@ -14,7 +14,6 @@
 
 package com.liferay.message.boards.internal.upgrade.v5_2_0;
 
-import com.liferay.message.boards.internal.upgrade.v5_2_0.util.MBMessageTable;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
@@ -30,35 +29,34 @@ public class MBMessageExternalReferenceCodeUpgradeProcess
 	@Override
 	protected void doUpgrade() throws Exception {
 		if (!hasColumn("MBMessage", "externalReferenceCode")) {
-			alter(
-				MBMessageTable.class,
-				new AlterTableAddColumn(
-					"externalReferenceCode", "VARCHAR(75)"));
+			alterTableAddColumn(
+				"MBMessage", "externalReferenceCode", "VARCHAR(75)");
 		}
 
 		_populateExternalReferenceCode();
 	}
 
 	private void _populateExternalReferenceCode() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select messageId from MBMessage where externalReferenceCode " +
 					"is null or externalReferenceCode = ''");
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update MBMessage set externalReferenceCode = ? where " +
-						"messageId = ?"))) {
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update MBMessage set externalReferenceCode = ? " +
+							"where messageId = ?"))) {
 
-			while (rs.next()) {
-				long messageId = rs.getLong(1);
+			while (resultSet.next()) {
+				long messageId = resultSet.getLong(1);
 
-				ps2.setString(1, String.valueOf(messageId));
-				ps2.setLong(2, messageId);
+				preparedStatement2.setString(1, String.valueOf(messageId));
+				preparedStatement2.setLong(2, messageId);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

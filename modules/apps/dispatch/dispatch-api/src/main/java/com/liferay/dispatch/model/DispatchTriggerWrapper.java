@@ -43,6 +43,7 @@ public class DispatchTriggerWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("dispatchTriggerId", getDispatchTriggerId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -70,6 +71,13 @@ public class DispatchTriggerWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		String externalReferenceCode = (String)attributes.get(
+			"externalReferenceCode");
+
+		if (externalReferenceCode != null) {
+			setExternalReferenceCode(externalReferenceCode);
 		}
 
 		Long dispatchTriggerId = (Long)attributes.get("dispatchTriggerId");
@@ -170,6 +178,11 @@ public class DispatchTriggerWrapper
 		if (system != null) {
 			setSystem(system);
 		}
+	}
+
+	@Override
+	public DispatchTrigger cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -277,6 +290,16 @@ public class DispatchTriggerWrapper
 	}
 
 	/**
+	 * Returns the external reference code of this dispatch trigger.
+	 *
+	 * @return the external reference code of this dispatch trigger
+	 */
+	@Override
+	public String getExternalReferenceCode() {
+		return model.getExternalReferenceCode();
+	}
+
+	/**
 	 * Returns the modified date of this dispatch trigger.
 	 *
 	 * @return the modified date of this dispatch trigger
@@ -304,6 +327,11 @@ public class DispatchTriggerWrapper
 	@Override
 	public String getName() {
 		return model.getName();
+	}
+
+	@Override
+	public Date getNextFireDate() {
+		return model.getNextFireDate();
 	}
 
 	/**
@@ -508,6 +536,16 @@ public class DispatchTriggerWrapper
 	@Override
 	public void setEndDate(Date endDate) {
 		model.setEndDate(endDate);
+	}
+
+	/**
+	 * Sets the external reference code of this dispatch trigger.
+	 *
+	 * @param externalReferenceCode the external reference code of this dispatch trigger
+	 */
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		model.setExternalReferenceCode(externalReferenceCode);
 	}
 
 	/**

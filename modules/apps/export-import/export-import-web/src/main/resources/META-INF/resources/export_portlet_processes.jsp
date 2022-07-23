@@ -27,7 +27,7 @@ PortletURL portletURL = PortletURLBuilder.create(
 	"export"
 ).setParameter(
 	"tabs3", "current-and-previous"
-).build();
+).buildPortletURL();
 
 String orderByCol = ParamUtil.getString(request, "orderByCol");
 String orderByType = ParamUtil.getString(request, "orderByType");

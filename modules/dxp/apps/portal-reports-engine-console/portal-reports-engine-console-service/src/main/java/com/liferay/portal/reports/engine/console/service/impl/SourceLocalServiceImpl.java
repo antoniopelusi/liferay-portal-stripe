@@ -56,7 +56,7 @@ public class SourceLocalServiceImpl extends SourceLocalServiceBaseImpl {
 		// Source
 
 		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		Date date = new Date();
 
 		validate(driverClassName, driverUrl, driverUserName, driverPassword);
 
@@ -69,8 +69,8 @@ public class SourceLocalServiceImpl extends SourceLocalServiceBaseImpl {
 		source.setCompanyId(user.getCompanyId());
 		source.setUserId(user.getUserId());
 		source.setUserName(user.getFullName());
-		source.setCreateDate(serviceContext.getCreateDate(now));
-		source.setModifiedDate(serviceContext.getModifiedDate(now));
+		source.setCreateDate(serviceContext.getCreateDate(date));
+		source.setModifiedDate(serviceContext.getModifiedDate(date));
 		source.setNameMap(nameMap);
 		source.setDriverClassName(driverClassName);
 		source.setDriverUrl(driverUrl);

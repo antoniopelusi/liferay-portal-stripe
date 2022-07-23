@@ -143,4 +143,7 @@ public interface RegionLocalizationModel
 	 */
 	public void setTitle(String title);
 
+	@Override
+	public RegionLocalization cloneWithOriginalValues();
+
 }

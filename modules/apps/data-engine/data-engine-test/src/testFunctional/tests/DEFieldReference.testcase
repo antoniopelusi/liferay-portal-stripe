@@ -1,0 +1,216 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-68737. This test verifies that the field reference can be edited."
+	@priority = "5"
+	test CanBeEdited {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.editFieldReference(
+			fieldLabel = "Text",
+			fieldReference = "TextReference");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldReference(
+			fieldLabel = "Text",
+			fieldReference = "TextReference");
+	}
+
+	@description = "This is a test for LRQA-68737. This test verifies that the field reference can be edited for the Options of a field."
+	@priority = "5"
+	test CanEditReferenceForOptions {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Single Selection",
+			optionValueList = "Option 1,Option 2,Option 3");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.editOptionReferences(
+			fieldLabel = "Single Selection",
+			optionReferenceList = "OptionReference1,OptionReference2,OptionReference3");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertOptionReferences(
+			fieldLabel = "Single Selection",
+			optionReferenceList = "OptionReference1,OptionReference2,OptionReference3");
+	}
+
+	@description = "This is a test for LRQA-68737. This test verifies that the field reference can not be blank."
+	@priority = "5"
+	test CanNotBeBlank {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		var originalFieldReference = DEBuilder.getFieldReference(fieldLabel = "Text");
+
+		DEBuilder.editFieldReference(
+			fieldLabel = "Text",
+			fieldReference = "");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldReference(
+			fieldLabel = "Text",
+			fieldReference = "${originalFieldReference}");
+	}
+
+	@description = "This is a test for LRQA-68737. This test verifies that field reference can not be blank for the Options of a field."
+	@priority = "5"
+	test CanNotBeBlankForOptions {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Single Selection",
+			optionValueList = "Option 1");
+
+		var originalOptionReference = DEBuilder.getOptionReference(
+			fieldLabel = "Single Selection",
+			optionIndex = "1");
+
+		DEBuilder.editOptionReferences(
+			fieldLabel = "Single Selection",
+			optionReferenceList = "");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertOptionReferences(
+			fieldLabel = "Single Selection",
+			optionReferenceList = "${originalOptionReference}");
+	}
+
+	@description = "This is a test for LRQA-68737. This test verifies that the field reference can not be the same for two fields."
+	@priority = "5"
+	test CanNotBeTheSameForTwoFields {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "First Text",
+			fieldName = "Text");
+
+		DEBuilder.editFieldReference(
+			fieldLabel = "First Text",
+			fieldReference = "TextReference");
+
+		DEBuilder.addField(
+			fieldLabel = "Second Text",
+			fieldName = "Text");
+
+		var originalFieldReference = DEBuilder.getFieldReference(fieldLabel = "Second Text");
+
+		DEBuilder.editFieldReference(
+			assertErrorMessage = "This reference is already being used. Try a different one.",
+			fieldLabel = "Second Text",
+			fieldReference = "TextReference");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldReference(
+			fieldLabel = "Second Text",
+			fieldReference = "${originalFieldReference}");
+	}
+
+	@description = "This is a test for LRQA-68737. This test verifies that field reference can not be the same for two Options of fields."
+	@priority = "5"
+	test CanNotBeTheSameForTwoOptionsOfFields {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection");
+
+		DEBuilder.addFieldOptions(
+			fieldLabel = "Single Selection",
+			optionValueList = "Option 1,Option 2");
+
+		var originalOptionReference = DEBuilder.getOptionReference(
+			fieldLabel = "Single Selection",
+			optionIndex = "2");
+
+		DEBuilder.editOptionReferences(
+			assertErrorMessage = "This reference is already being used. Try a different one.",
+			assertOptionIndex = "2",
+			fieldLabel = "Single Selection",
+			optionReferenceList = "OptionReference,OptionReference");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertOptionReferences(
+			fieldLabel = "Single Selection",
+			optionReferenceList = "OptionReference,${originalOptionReference}");
+	}
+
+}

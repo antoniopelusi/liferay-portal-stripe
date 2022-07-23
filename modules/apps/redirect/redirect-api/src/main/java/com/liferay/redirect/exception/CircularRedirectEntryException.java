@@ -54,10 +54,6 @@ public class CircularRedirectEntryException extends PortalException {
 
 	public static class MustNotFormALoopWithAnotherRedirectEntry
 		extends CircularRedirectEntryException {
-
-		public MustNotFormALoopWithAnotherRedirectEntry() {
-		}
-
 	}
 
 }

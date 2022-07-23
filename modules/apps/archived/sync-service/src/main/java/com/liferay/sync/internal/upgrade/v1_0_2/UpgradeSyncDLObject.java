@@ -85,10 +85,10 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 					}
 
 					try {
-						verifyDLFileEntriesAndFolders(group.getGroupId());
+						_verifyDLFileEntriesAndFolders(group.getGroupId());
 
-						verifyLocks(group.getGroupId());
-						verifyMacPackages(group.getGroupId());
+						_verifyLocks(group.getGroupId());
+						_verifyMacPackages(group.getGroupId());
 					}
 					catch (Exception exception) {
 						throw new PortalException(exception);
@@ -101,82 +101,72 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 		}
 	}
 
-	protected void verifyDLFileEntriesAndFolders(long groupId)
-		throws Exception {
-
-		StringBundler sb1 = new StringBundler(50);
-
-		sb1.append("select DLFolder.companyId, DLFolder.userId, ");
-		sb1.append("DLFolder.userName, DLFolder.createDate, ");
-		sb1.append("DLFolder.modifiedDate, DLFolder.repositoryId, ");
-		sb1.append("DLFolder.parentFolderId as parentFolderId, ");
-		sb1.append("DLFolder.treePath, DLFolder.name, '' as extension, '' as ");
-		sb1.append("mimeType, DLFolder.description, '' as changeLog, '' as ");
-		sb1.append("version, 0 as versionId, 0 as size_, '");
-		sb1.append(SyncDLObjectConstants.TYPE_FOLDER);
-		sb1.append("' as type, DLFolder.folderId as typePK, DLFolder.uuid_ ");
-		sb1.append("as typeUuid, DLFolder.status from DLFolder where ");
-		sb1.append("DLFolder.repositoryId = ");
-		sb1.append(groupId);
-		sb1.append(" union all select DLFileVersion.companyId, ");
-		sb1.append("DLFileVersion.userId, DLFileVersion.userName, ");
-		sb1.append("DLFileVersion.createDate, DLFileVersion.modifiedDate, ");
-		sb1.append("DLFileVersion.repositoryId, DLFileVersion.folderId as ");
-		sb1.append("parentFolderId, DLFileVersion.treePath, ");
-		sb1.append("DLFileVersion.title as name, DLFileVersion.extension, ");
-		sb1.append("DLFileVersion.mimeType, DLFileVersion.description, ");
-		sb1.append("DLFileVersion.changeLog, DLFileVersion.version, ");
-		sb1.append("DLFileVersion.fileVersionId as versionId, ");
-		sb1.append("DLFileVersion.size_ as size_, '");
-		sb1.append(SyncDLObjectConstants.TYPE_FILE);
-		sb1.append("' as type, DLFileVersion.fileEntryId as typePK, ");
-		sb1.append("DLFileEntry.uuid_ as typeUuid, DLFileVersion.status from ");
-		sb1.append("DLFileEntry, DLFileVersion where ");
-		sb1.append("DLFileEntry.repositoryId = ");
-		sb1.append(groupId);
-		sb1.append(" and DLFileEntry.fileEntryId = DLFileVersion.fileEntryId ");
-		sb1.append("and DLFileEntry.version = DLFileVersion.version union ");
-		sb1.append("all select DLFileVersion.companyId, ");
-		sb1.append("DLFileVersion.userId, DLFileVersion.userName, ");
-		sb1.append("DLFileVersion.createDate, DLFileVersion.modifiedDate, ");
-		sb1.append("DLFileVersion.repositoryId, DLFileVersion.folderId as ");
-		sb1.append("parentFolderId, DLFileVersion.treePath, ");
-		sb1.append("DLFileVersion.title as name, DLFileVersion.extension, ");
-		sb1.append("DLFileVersion.mimeType, DLFileVersion.description, ");
-		sb1.append("DLFileVersion.changeLog, DLFileVersion.version, ");
-		sb1.append("DLFileVersion.fileVersionId as versionId, ");
-		sb1.append("DLFileVersion.size_ as size_, '");
-		sb1.append(SyncDLObjectConstants.TYPE_PRIVATE_WORKING_COPY);
-		sb1.append("' as type, DLFileVersion.fileEntryId as typePK, ");
-		sb1.append("DLFileEntry.uuid_ as typeUuid, DLFileVersion.status from ");
-		sb1.append("DLFileEntry, DLFileVersion where ");
-		sb1.append("DLFileEntry.repositoryId = ");
-		sb1.append(groupId);
-		sb1.append(" and DLFileEntry.fileEntryId = DLFileVersion.fileEntryId ");
-		sb1.append("and DLFileVersion.version = '");
-		sb1.append(DLFileEntryConstants.PRIVATE_WORKING_COPY_VERSION);
-		sb1.append("'");
-
-		StringBundler sb2 = new StringBundler(6);
-
-		sb2.append("insert into SyncDLObject (syncDLObjectId, companyId, ");
-		sb2.append("userId, userName, createTime, modifiedTime, ");
-		sb2.append("repositoryId, parentFolderId, treePath, name, extension, ");
-		sb2.append("mimeType, description, changeLog, version, versionId, ");
-		sb2.append("size_, event, type_, typePK, typeUuid) values (?, ?, ?, ");
-		sb2.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(
-				sb1.toString());
-			PreparedStatement ps2 =
+	private void _verifyDLFileEntriesAndFolders(long groupId) throws Exception {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DLFolder.companyId, DLFolder.userId, ",
+					"DLFolder.userName, DLFolder.createDate, ",
+					"DLFolder.modifiedDate, DLFolder.repositoryId, ",
+					"DLFolder.parentFolderId as parentFolderId, ",
+					"DLFolder.treePath, DLFolder.name, '' as extension, '' as ",
+					"mimeType, DLFolder.description, '' as changeLog, '' as ",
+					"version, 0 as versionId, 0 as size_, '",
+					SyncDLObjectConstants.TYPE_FOLDER,
+					"' as type, DLFolder.folderId as typePK, DLFolder.uuid_ ",
+					"as typeUuid, DLFolder.status from DLFolder where ",
+					"DLFolder.repositoryId = ", groupId,
+					" union all select DLFileVersion.companyId, ",
+					"DLFileVersion.userId, DLFileVersion.userName, ",
+					"DLFileVersion.createDate, DLFileVersion.modifiedDate, ",
+					"DLFileVersion.repositoryId, DLFileVersion.folderId as ",
+					"parentFolderId, DLFileVersion.treePath, ",
+					"DLFileVersion.title as name, DLFileVersion.extension, ",
+					"DLFileVersion.mimeType, DLFileVersion.description, ",
+					"DLFileVersion.changeLog, DLFileVersion.version, ",
+					"DLFileVersion.fileVersionId as versionId, ",
+					"DLFileVersion.size_ as size_, '",
+					SyncDLObjectConstants.TYPE_FILE,
+					"' as type, DLFileVersion.fileEntryId as typePK, ",
+					"DLFileEntry.uuid_ as typeUuid, DLFileVersion.status from ",
+					"DLFileEntry, DLFileVersion where ",
+					"DLFileEntry.repositoryId = ", groupId,
+					" and DLFileEntry.fileEntryId = DLFileVersion.fileEntryId ",
+					"and DLFileEntry.version = DLFileVersion.version union ",
+					"all select DLFileVersion.companyId, ",
+					"DLFileVersion.userId, DLFileVersion.userName, ",
+					"DLFileVersion.createDate, DLFileVersion.modifiedDate, ",
+					"DLFileVersion.repositoryId, DLFileVersion.folderId as ",
+					"parentFolderId, DLFileVersion.treePath, ",
+					"DLFileVersion.title as name, DLFileVersion.extension, ",
+					"DLFileVersion.mimeType, DLFileVersion.description, ",
+					"DLFileVersion.changeLog, DLFileVersion.version, ",
+					"DLFileVersion.fileVersionId as versionId, ",
+					"DLFileVersion.size_ as size_, '",
+					SyncDLObjectConstants.TYPE_PRIVATE_WORKING_COPY,
+					"' as type, DLFileVersion.fileEntryId as typePK, ",
+					"DLFileEntry.uuid_ as typeUuid, DLFileVersion.status from ",
+					"DLFileEntry, DLFileVersion where ",
+					"DLFileEntry.repositoryId = ", groupId,
+					" and DLFileEntry.fileEntryId = DLFileVersion.fileEntryId ",
+					"and DLFileVersion.version = '",
+					DLFileEntryConstants.PRIVATE_WORKING_COPY_VERSION, "'"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-					connection, sb2.toString());
-			ResultSet rs = ps1.executeQuery()) {
+					connection,
+					StringBundler.concat(
+						"insert into SyncDLObject (syncDLObjectId, companyId, ",
+						"userId, userName, createTime, modifiedTime, ",
+						"repositoryId, parentFolderId, treePath, name, ",
+						"extension, mimeType, description, changeLog, ",
+						"version, versionId, size_, event, type_, typePK, ",
+						"typeUuid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+						"?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				Timestamp createDate = rs.getTimestamp("createDate");
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				int status = rs.getInt("status");
+			while (resultSet.next()) {
+				Timestamp createDate = resultSet.getTimestamp("createDate");
+				Timestamp modifiedDate = resultSet.getTimestamp("modifiedDate");
+				int status = resultSet.getInt("status");
 
 				String event = StringPool.BLANK;
 
@@ -187,70 +177,79 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 					event = SyncDLObjectConstants.EVENT_ADD;
 				}
 
-				ps2.setLong(1, _counterLocalService.increment());
-				ps2.setLong(2, rs.getLong("companyId"));
-				ps2.setLong(3, rs.getLong("userId"));
-				ps2.setString(4, rs.getString("userName"));
-				ps2.setLong(5, createDate.getTime());
-				ps2.setLong(6, modifiedDate.getTime());
-				ps2.setLong(7, groupId);
-				ps2.setLong(8, rs.getLong("parentFolderId"));
-				ps2.setString(9, rs.getString("treePath"));
-				ps2.setString(10, rs.getString("name"));
-				ps2.setString(11, rs.getString("extension"));
-				ps2.setString(12, rs.getString("mimeType"));
-				ps2.setString(13, rs.getString("description"));
-				ps2.setString(14, rs.getString("changeLog"));
-				ps2.setString(15, rs.getString("version"));
-				ps2.setLong(16, rs.getLong("versionId"));
-				ps2.setLong(17, rs.getLong("size_"));
-				ps2.setString(18, event);
-				ps2.setString(19, rs.getString("type"));
-				ps2.setLong(20, rs.getLong("typePK"));
-				ps2.setString(21, rs.getString("typeUuid"));
+				preparedStatement2.setLong(1, _counterLocalService.increment());
+				preparedStatement2.setLong(2, resultSet.getLong("companyId"));
+				preparedStatement2.setLong(3, resultSet.getLong("userId"));
+				preparedStatement2.setString(
+					4, resultSet.getString("userName"));
+				preparedStatement2.setLong(5, createDate.getTime());
+				preparedStatement2.setLong(6, modifiedDate.getTime());
+				preparedStatement2.setLong(7, groupId);
+				preparedStatement2.setLong(
+					8, resultSet.getLong("parentFolderId"));
+				preparedStatement2.setString(
+					9, resultSet.getString("treePath"));
+				preparedStatement2.setString(10, resultSet.getString("name"));
+				preparedStatement2.setString(
+					11, resultSet.getString("extension"));
+				preparedStatement2.setString(
+					12, resultSet.getString("mimeType"));
+				preparedStatement2.setString(
+					13, resultSet.getString("description"));
+				preparedStatement2.setString(
+					14, resultSet.getString("changeLog"));
+				preparedStatement2.setString(
+					15, resultSet.getString("version"));
+				preparedStatement2.setLong(16, resultSet.getLong("versionId"));
+				preparedStatement2.setLong(17, resultSet.getLong("size_"));
+				preparedStatement2.setString(18, event);
+				preparedStatement2.setString(19, resultSet.getString("type"));
+				preparedStatement2.setLong(20, resultSet.getLong("typePK"));
+				preparedStatement2.setString(
+					21, resultSet.getString("typeUuid"));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 
-	protected void verifyLocks(long groupId) throws Exception {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("select Lock_.expirationDate, Lock_.userId, ");
-		sb.append("Lock_.userName, DLFileVersion.fileEntryId from ");
-		sb.append("DLFileVersion, Lock_ where DLFileVersion.version = '");
-		sb.append(DLFileEntryConstants.PRIVATE_WORKING_COPY_VERSION);
-		sb.append("' and CAST_TEXT(DLFileVersion.fileEntryId) = Lock_.key_");
-
-		String sql = SQLTransformer.transform(sb.toString());
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sql);
-			PreparedStatement ps2 =
+	private void _verifyLocks(long groupId) throws Exception {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				SQLTransformer.transform(
+					StringBundler.concat(
+						"select Lock_.expirationDate, Lock_.userId, ",
+						"Lock_.userName, DLFileVersion.fileEntryId from ",
+						"DLFileVersion, Lock_ where DLFileVersion.version = '",
+						DLFileEntryConstants.PRIVATE_WORKING_COPY_VERSION,
+						"' and CAST_TEXT(DLFileVersion.fileEntryId) = ",
+						"Lock_.key_")));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					StringBundler.concat(
 						"update SyncDLObject set lockExpirationDate = ?, ",
 						"lockUserId = ?, lockUserName = ? where typePK = ? ",
 						"and repositoryId = ", groupId));
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				ps2.setTimestamp(1, rs.getTimestamp("expirationDate"));
-				ps2.setLong(2, rs.getLong("userId"));
-				ps2.setString(3, rs.getString("userName"));
-				ps2.setLong(4, rs.getLong("fileEntryId"));
+			while (resultSet.next()) {
+				preparedStatement2.setTimestamp(
+					1, resultSet.getTimestamp("expirationDate"));
+				preparedStatement2.setLong(2, resultSet.getLong("userId"));
+				preparedStatement2.setString(
+					3, resultSet.getString("userName"));
+				preparedStatement2.setLong(4, resultSet.getLong("fileEntryId"));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 
-	protected void verifyMacPackages(long groupId) throws Exception {
+	private void _verifyMacPackages(long groupId) throws Exception {
 		String[] fileNames =
 			SyncServiceConfigurationValues.SYNC_MAC_PACKAGE_METADATA_FILE_NAMES;
 
@@ -274,16 +273,17 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 
 		sb.append(")");
 
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				sb.toString());
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update SyncDLObject set extraSettings = ? where typePK " +
 						"= ?");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				String name = rs.getString("name");
+			while (resultSet.next()) {
+				String name = resultSet.getString("name");
 
 				if (!ArrayUtil.contains(
 						SyncServiceConfigurationValues.
@@ -296,14 +296,15 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 				JSONObject extraSettingsJSONObject = JSONUtil.put(
 					"macPackage", true);
 
-				ps2.setString(1, extraSettingsJSONObject.toString());
+				preparedStatement2.setString(
+					1, extraSettingsJSONObject.toString());
 
-				ps2.setLong(2, rs.getLong("folderId"));
+				preparedStatement2.setLong(2, resultSet.getLong("folderId"));
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

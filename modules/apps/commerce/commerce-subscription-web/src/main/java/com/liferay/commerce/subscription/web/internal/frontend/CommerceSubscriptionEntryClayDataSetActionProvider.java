@@ -126,14 +126,14 @@ public class CommerceSubscriptionEntryClayDataSetActionProvider
 			_portal.getCurrentURL(httpServletRequest)
 		).setParameter(
 			"commerceSubscriptionEntryId", commerceSubscriptionEntryId
-		).build();
+		).buildPortletURL();
 	}
 
 	@Reference
 	private Portal _portal;
 
 	@Reference(
-		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_SUBSCRIPTION + ")"
+		target = "(resource.name=" + CommerceConstants.RESOURCE_NAME_COMMERCE_SUBSCRIPTION + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
 

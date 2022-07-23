@@ -15,22 +15,29 @@
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 
+import {COMMON_STYLES_ROLES} from '../../../../../../app/config/constants/commonStylesRoles';
 import {FRAGMENT_CONFIGURATION_ROLES} from '../../../../../../app/config/constants/fragmentConfigurationRoles';
-import {FREEMARKER_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../../app/config/constants/freemarkerFragmentEntryProcessor';
+import {VIEWPORT_SIZES} from '../../../../../../app/config/constants/viewportSizes';
 import {config} from '../../../../../../app/config/index';
-import selectLanguageId from '../../../../../../app/selectors/selectLanguageId';
-import selectSegmentsExperienceId from '../../../../../../app/selectors/selectSegmentsExperienceId';
 import {
 	useDispatch,
 	useSelector,
 	useSelectorCallback,
-} from '../../../../../../app/store/index';
-import updateFragmentConfiguration from '../../../../../../app/thunks/updateFragmentConfiguration';
+} from '../../../../../../app/contexts/StoreContext';
+import selectLanguageId from '../../../../../../app/selectors/selectLanguageId';
+import getFragmentConfigurationValues from '../../../../../../app/utils/getFragmentConfigurationValues';
+import {getResponsiveConfig} from '../../../../../../app/utils/getResponsiveConfig';
+import updateConfigurationValue from '../../../../../../app/utils/updateConfigurationValue';
 import {getLayoutDataItemPropTypes} from '../../../../../../prop-types/index';
+import {CommonStyles} from './CommonStyles';
 import {FieldSet} from './FieldSet';
 
-export const FragmentGeneralPanel = ({item}) => {
+export function FragmentGeneralPanel({item}) {
 	const dispatch = useDispatch();
+
+	const selectedViewportSize = useSelector(
+		(state) => state.selectedViewportSize
+	);
 
 	const fragmentEntryLink = useSelectorCallback(
 		(state) => state.fragmentEntryLinks[item.config.fragmentEntryLinkId],
@@ -38,83 +45,58 @@ export const FragmentGeneralPanel = ({item}) => {
 	);
 
 	const languageId = useSelector(selectLanguageId);
-	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
 
-	const fieldSets = fragmentEntryLink.configuration?.fieldSets.filter(
-		(fieldSet) =>
-			fieldSet.configurationRole !== FRAGMENT_CONFIGURATION_ROLES.style
-	);
+	const fieldSets =
+		fragmentEntryLink.configuration?.fieldSets?.filter((fieldSet) =>
+			config.fragmentAdvancedOptionsEnabled
+				? !fieldSet.configurationRole
+				: fieldSet.configurationRole !==
+				  FRAGMENT_CONFIGURATION_ROLES.style
+		) ?? [];
 
-	const defaultConfigurationValues =
-		fragmentEntryLink.defaultConfigurationValues;
+	const itemConfig = getResponsiveConfig(item.config, selectedViewportSize);
 
 	const onValueSelect = useCallback(
 		(name, value) => {
-			const configurationValues = getConfigurationValues(
-				defaultConfigurationValues,
-				fragmentEntryLink
-			);
-
-			const localizable =
-				fieldSets?.some((fieldSet) =>
-					fieldSet.fields.some(
-						(field) => field.name === name && field.localizable
-					)
-				) ?? false;
-
-			const currentValue = configurationValues[name];
-
-			const nextConfigurationValues = {
-				...configurationValues,
-				[name]: localizable
-					? {
-							...(typeof currentValue === 'object'
-								? currentValue
-								: {[config.defaultLanguageId]: currentValue}),
-							[languageId]: value,
-					  }
-					: value,
-			};
-
-			dispatch(
-				updateFragmentConfiguration({
-					configurationValues: nextConfigurationValues,
-					fragmentEntryLink,
-					languageId,
-					segmentsExperienceId,
-				})
-			);
+			updateConfigurationValue({
+				configuration: fragmentEntryLink.configuration,
+				dispatch,
+				fragmentEntryLink,
+				languageId,
+				name,
+				value,
+			});
 		},
-		[
-			defaultConfigurationValues,
-			dispatch,
-			fieldSets,
-			fragmentEntryLink,
-			languageId,
-			segmentsExperienceId,
-		]
+		[dispatch, fragmentEntryLink, languageId]
 	);
 
 	return (
 		<>
-			{fieldSets.map((fieldSet, index) => {
-				return (
-					<FieldSet
-						fields={fieldSet.fields}
-						key={index}
-						label={fieldSet.label}
-						languageId={languageId}
-						onValueSelect={onValueSelect}
-						values={getConfigurationValues(
-							defaultConfigurationValues,
-							fragmentEntryLink
-						)}
-					/>
-				);
-			})}
+			{selectedViewportSize === VIEWPORT_SIZES.desktop &&
+				fieldSets.map((fieldSet, index) => {
+					return (
+						<div className="mb-1" key={index}>
+							<FieldSet
+								fields={fieldSet.fields}
+								label={fieldSet.label}
+								languageId={languageId}
+								onValueSelect={onValueSelect}
+								values={getFragmentConfigurationValues(
+									fragmentEntryLink
+								)}
+							/>
+						</div>
+					);
+				})}
+
+			<CommonStyles
+				commonStylesValues={itemConfig.styles}
+				item={item}
+				role={COMMON_STYLES_ROLES.general}
+			/>
 		</>
 	);
-};
+}
 
 FragmentGeneralPanel.propTypes = {
 	item: getLayoutDataItemPropTypes({
@@ -123,12 +105,3 @@ FragmentGeneralPanel.propTypes = {
 		}).isRequired,
 	}),
 };
-
-function getConfigurationValues(defaultConfigurationValues, fragmentEntryLink) {
-	return {
-		...defaultConfigurationValues,
-		...fragmentEntryLink.editableValues[
-			FREEMARKER_FRAGMENT_ENTRY_PROCESSOR
-		],
-	};
-}

@@ -38,7 +38,9 @@ import org.osgi.service.component.annotations.Reference;
 public class UserModelListener extends BaseModelListener<User> {
 
 	@Override
-	public void onAfterUpdate(User user) throws ModelListenerException {
+	public void onAfterUpdate(User originalUser, User user)
+		throws ModelListenerException {
+
 		try {
 			CalendarResource calendarResource =
 				_calendarResourceLocalService.fetchCalendarResource(
@@ -50,11 +52,9 @@ public class UserModelListener extends BaseModelListener<User> {
 
 			String name = calendarResource.getName(LocaleUtil.getSiteDefault());
 
-			if (Objects.equals(name, user.getFullName())) {
-				return;
-			}
+			if (Objects.equals(name, user.getFullName()) ||
+				(user.isDefaultUser() && name.equals(GroupConstants.GUEST))) {
 
-			if (user.isDefaultUser() && name.equals(GroupConstants.GUEST)) {
 				return;
 			}
 

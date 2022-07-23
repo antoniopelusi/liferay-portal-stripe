@@ -62,34 +62,7 @@ JournalArticleItemSelectorViewDisplayContext journalArticleItemSelectorViewDispl
 					<%
 					row.setCssClass("articles selector-button" + row.getCssClass());
 
-					JSONObject articleJSONObject = JSONUtil.put(
-						"className", JournalArticle.class.getName()
-					).put(
-						"classNameId", PortalUtil.getClassNameId(JournalArticle.class.getName())
-					).put(
-						"classPK", curArticle.getResourcePrimKey()
-					);
-
-					String title = curArticle.getTitle(locale);
-
-					String defaultTitle = curArticle.getTitle(LocaleUtil.fromLanguageId(curArticle.getDefaultLanguageId()));
-
-					if (Validator.isNull(title)) {
-						title = defaultTitle;
-					}
-
-					articleJSONObject.put(
-						"title", defaultTitle
-					).put(
-						"titleMap", curArticle.getTitleMap()
-					);
-
-					row.setData(
-						HashMapBuilder.<String, Object>put(
-							"returnType", InfoItemItemSelectorReturnType.class.getName()
-						).put(
-							"value", articleJSONObject.toString()
-						).build());
+					row.setData(journalArticleItemSelectorViewDisplayContext.getJournalArticleContext(curArticle));
 					%>
 
 					<c:choose>
@@ -120,7 +93,7 @@ JournalArticleItemSelectorViewDisplayContext journalArticleItemSelectorViewDispl
 								</span>
 
 								<p class="font-weight-bold h5">
-									<%= HtmlUtil.escape(title) %>
+									<%= HtmlUtil.escape(curArticle.getTitle(locale, true)) %>
 								</p>
 
 								<c:if test="<%= journalArticleItemSelectorViewDisplayContext.isSearchEverywhere() %>">
@@ -165,7 +138,7 @@ JournalArticleItemSelectorViewDisplayContext journalArticleItemSelectorViewDispl
 							<liferay-ui:search-container-column-text
 								cssClass="table-cell-expand table-cell-minw-200 table-title"
 								name="title"
-								value="<%= title %>"
+								value="<%= curArticle.getTitle(locale, true) %>"
 							/>
 
 							<liferay-ui:search-container-column-text
@@ -227,7 +200,7 @@ JournalArticleItemSelectorViewDisplayContext journalArticleItemSelectorViewDispl
 						"folderId", curFolder.getFolderId()
 					).setParameter(
 						"groupId", curFolder.getGroupId()
-					).build();
+					).buildPortletURL();
 					%>
 
 					<c:choose>

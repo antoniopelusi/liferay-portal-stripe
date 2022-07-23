@@ -18,6 +18,7 @@ import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryService;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -89,7 +90,7 @@ public class EditAssetCategoryFriendlyURLMVCActionCommand
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			Group companyGroup = _groupLocalService.getCompanyGroup(
@@ -119,7 +120,9 @@ public class EditAssetCategoryFriendlyURLMVCActionCommand
 
 			String urlTitle = urlTitleMap.get(locale);
 
-			if (Validator.isNotNull(urlTitle)) {
+			if (Validator.isNotNull(urlTitle) ||
+				((urlTitle != null) && urlTitle.equals(StringPool.BLANK))) {
+
 				urlTitle = _friendlyURLEntryLocalService.getUniqueUrlTitle(
 					companyGroup.getGroupId(), classNameId,
 					assetCategory.getCategoryId(), urlTitle);

@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -207,34 +209,6 @@ public class DLSyncEventModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DLSyncEvent>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DLSyncEvent.class.getClassLoader(), DLSyncEvent.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DLSyncEvent> constructor =
-				(Constructor<DLSyncEvent>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DLSyncEvent, Object>>
@@ -460,6 +434,23 @@ public class DLSyncEventModelImpl
 	}
 
 	@Override
+	public DLSyncEvent cloneWithOriginalValues() {
+		DLSyncEventImpl dlSyncEventImpl = new DLSyncEventImpl();
+
+		dlSyncEventImpl.setSyncEventId(
+			this.<Long>getColumnOriginalValue("syncEventId"));
+		dlSyncEventImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		dlSyncEventImpl.setModifiedTime(
+			this.<Long>getColumnOriginalValue("modifiedTime"));
+		dlSyncEventImpl.setEvent(this.<String>getColumnOriginalValue("event"));
+		dlSyncEventImpl.setType(this.<String>getColumnOriginalValue("type_"));
+		dlSyncEventImpl.setTypePK(this.<Long>getColumnOriginalValue("typePK"));
+
+		return dlSyncEventImpl;
+	}
+
+	@Override
 	public int compareTo(DLSyncEvent dlSyncEvent) {
 		int value = 0;
 
@@ -570,7 +561,7 @@ public class DLSyncEventModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -581,9 +572,26 @@ public class DLSyncEventModelImpl
 			Function<DLSyncEvent, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DLSyncEvent)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DLSyncEvent)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -630,7 +638,9 @@ public class DLSyncEventModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DLSyncEvent>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DLSyncEvent.class, ModelWrapper.class);
 
 	}
 

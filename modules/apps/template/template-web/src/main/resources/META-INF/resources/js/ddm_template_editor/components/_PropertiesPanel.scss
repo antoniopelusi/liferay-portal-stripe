@@ -1,0 +1,32 @@
+@import 'atlas-variables';
+
+.template-properties {
+	.control-label {
+		font-size: 0.75rem;
+
+		.taglib-icon-help {
+			margin-left: 0.5rem;
+		}
+	}
+
+	.article-structure {
+		font-size: 0.75rem;
+	}
+
+	.panel-body {
+		margin-bottom: 0;
+	}
+
+	.form-group {
+		margin-bottom: 1rem;
+	}
+
+	.input-localized-trigger {
+		height: 2rem;
+		padding-bottom: 0.1875rem;
+		padding-left: 0;
+		padding-right: 0;
+		padding-top: 0.1875rem;
+		width: 2rem;
+	}
+}

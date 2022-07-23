@@ -68,21 +68,21 @@ public class DefaultMentionsUserFinder implements MentionsUserFinder {
 			socialInteractionsConfiguration.
 				isSocialInteractionsSitesEnabled()) {
 
-			return _userLocalService.searchSocial(
+			return _userLocalService.searchBySocial(
 				groupIds, userId, _TYPES, query, 0, _MAX_USERS);
 		}
 
 		if (socialInteractionsConfiguration.
 				isSocialInteractionsSitesEnabled()) {
 
-			return _userLocalService.searchSocial(
+			return _userLocalService.searchBySocial(
 				companyId, groupIds, query, 0, _MAX_USERS);
 		}
 
 		if (socialInteractionsConfiguration.
 				isSocialInteractionsFriendsEnabled()) {
 
-			return _userLocalService.searchSocial(
+			return _userLocalService.searchBySocial(
 				userId, _TYPES, query, 0, _MAX_USERS);
 		}
 

@@ -2,7 +2,7 @@
 definition {
 
 	property license.required = "true";
-	property portal.release = "true";
+	property portal.release = "false";
 	property portal.upstream = "false";
 	property test.run.environment = "EE";
 	property testray.main.component.name = "License";
@@ -19,6 +19,28 @@ definition {
 		if ("${testPortalInstance}" == "true") {
 			PortalInstances.tearDownCP();
 		}
+	}
+
+	@priority = "3"
+	test DeleteLiferayDXPLicense {
+		property commerce.enabled = "false";
+		property test.name.skip.portal.instance = "CommerceLicense#DeleteLiferayDXPLicense";
+
+		ApplicationsMenuHelper.openApplicationsMenu();
+
+		AssertElementPresent(
+			key_panel = "Applications",
+			locator1 = "ApplicationsMenu#PANEL");
+
+		Portlet.shutdownServer();
+
+		License.deleteLicenseFile(licenseFileName = "license.xml");
+
+		Portlet.startServer(noLicense = "true");
+
+		Navigator.openURL();
+
+		Alert.viewErrorMessage(errorMessage = "This instance is not registered.");
 	}
 
 	@priority = "4"

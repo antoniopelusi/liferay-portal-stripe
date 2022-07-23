@@ -1,0 +1,366 @@
+<html>
+<head>
+<title>Blueprints</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Blueprints</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>BLUEPRINTS_ADD_ELEMENTS_SIDEBAR_ELEMENT_ADD_BUTTON</td>
+	<td>//div[contains(@class,'autofit-col') and contains(.,'${element}')]/following-sibling::div/button[contains(.,'Add')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADD_ELEMENTS_SIDEBAR_ELEMENT_NAME</td>
+	<td>//div[contains(@class,'element-list')]//p[contains(.,'${element}') and contains(@class, 'list-group-title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADD_ELEMENTS_SIDEBAR_HEADER</td>
+	<td>//div[contains(@class,'sidebar-header')]//span[contains(.,'Add Query Elements')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADD_ELEMENTS_SIDEBAR_SEARCH_BAR</td>
+	<td>//div[contains(@class,'add-sxp-element-sidebar')]//input[contains(@placeholder,'Search')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADD_ELEMENTS_SIDEBAR_SEARCH_CLEAR</td>
+	<td>//div[contains(@class,'add-sxp-element-sidebar')]//button[contains(@title,'Clear')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT</td>
+	<td>//div[contains(@id,'querySXPElement')][./ul[contains(.,'${element}')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_ENABLE_DISABLE_TOGGLE</td>
+	<td>//div[contains(@id,'querySXPElement')][./ul[contains(.,'${elementName}')]]//input[contains(@class,"toggle-switch-check")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_FIELD_LABEL</td>
+	<td>//div[contains(@id,'querySXPElement')][./ul[contains(.,'${elementName}')]]//label[contains(.,'${fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_FIELD_MAPPING_ADD_BUTTON</td>
+	<td>//li[contains(@class,'fieldMappingList')]//button[@aria-label='Add Field']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_FIELD_MAPPING_DELETE_BUTTON</td>
+	<td>//li[contains(@class,'fieldMappingList')]//div[contains(@class,'input-group-sm')][.//input[@value='${field}']]//button[@aria-label='Delete']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_FIELD_MAPPING_FIELD</td>
+	<td>//input[contains(@aria-label, "Field")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_FIELD_MAPPING_GLOBAL_ICON_OPTION</td>
+	<td>//button[contains(.,'${optionName}')][//*[name()='svg'][contains(@class,'lexicon-icon-globe')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_FIELD_MAPPING_LOCALE_DROPDOWN</td>
+	<td>//select[contains(@aria-label, "Locale")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_GENERIC_DROPDOWN</td>
+	<td>//select[@aria-label="${dropdownName}"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_GENERIC_DROPDOWN_OPTION</td>
+	<td>//select[@aria-label="${dropdownName}"]/option[contains(.,"${option}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_INPUT_FIELD</td>
+	<td>//div[contains(@id,'querySXPElement')][./ul[contains(.,'${elementName}')]]//li[contains(@class,'list-group-item')][.//label[contains(.,'${fieldLabel}')]]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENT_VERTICAL_ELLIPSIS</td>
+	<td>//div[contains(@id,'querySXPElement')][.//*[contains(.,'${element}')]]//*[contains(@class,'icon-ellipsis')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADDED_ELEMENTS_EMPTY</td>
+	<td>//div[contains(@class,'selected-sxp-elements-empty-text')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_ENTRY_CELL</td>
+	<td>//div[contains(@class,'dnd-tr')][.//*[normalize-space(text())='${entryTitle}']]//div[contains(@class,'dnd-td')][${cellPosition}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_ENTRY_CHECKBOX</td>
+	<td>//div[contains(@class,'dnd-tr')][.//*[normalize-space(text())='${entryTitle}']]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_ENTRY_DESCRIPTION</td>
+	<td>//div[contains(@class,'dnd-tr')][.//*[normalize-space(text())='${entryTitle}']]//div[contains(@class,'dnd-td')][3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_ENTRY_DROPDOWN_MENU_OPEN</td>
+	<td>//div[contains(@class,'dropdown-menu') and contains(@class,'show')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_ENTRY_ROW_NUMBER</td>
+	<td>//div[contains(@class,'dnd-tbody')]//div[contains(@class,'dnd-tr')][${rowNumber}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_ENTRY_TITLE</td>
+	<td>//div[contains(@class,'table-list-title')]//*[normalize-space(text())='${entryTitle}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_ENTRY_VERTICAL_ELLIPSIS</td>
+	<td>//*[contains(@class,'dnd-tr') and contains(.,'${entryTitle}')]//*[*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_FIELD</td>
+	<td>//div[contains(@class,'dnd-tr')]//div[contains(@class,'dnd-th') and contains(.,'${fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_FIELDS_MENU</td>
+	<td>//button[contains(@class,'dropdown-toggle') and contains(.,'Open Fields Menu')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_FIELDS_MENU_ITEM</td>
+	<td>//button[contains(@class,'dropdown-item') and contains(.,'${fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_ADMIN_NTH_ENTRY</td>
+	<td>xpath=(//div[contains(@class,'table-list-title')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_CLEAR_FILTER_BUTTON</td>
+	<td>//span[contains(@class,'label-dismissible') and contains(.,'${filter}')]//button[contains(@class,'close')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_ITEM</td>
+	<td>//div[contains(@class,'clause-contributors-sidebar')]//li[contains(@class,'list-group-item') and contains(.,"${contributorClass}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_NTH_ITEM</td>
+	<td>xpath=(//div[contains(@class,'clause-contributors-sidebar')]//li[contains(@class,'list-group-item')])[${index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_ON_OFF_TOGGLE</td>
+	<td>//div[contains(@class,'clause-contributors-sidebar')]//li[contains(.,"${contributorClass}")]//input[contains(@class,"toggle-switch-check")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_OPEN_SIDEBAR</td>
+	<td>//div[contains(@class,'clause-contributors-sidebar') and contains(@class,'open')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_SEARCH_BAR</td>
+	<td>//div[contains(@class,'clause-contributors-sidebar')]//input[contains(@aria-label,'Search')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_SORT_BUTTON</td>
+	<td>//button[@title='Reverse Sort Direction']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_TOGGLE_DISABLED</td>
+	<td>//div[contains(@class,'clause-contributors-sidebar')]//span[contains(@class,"toggle-switch-label") and contains(.,"Off")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CLAUSE_CONTRIBUTOR_TOGGLE_ENABLED</td>
+	<td>//div[contains(@class,'clause-contributors-sidebar')]//span[contains(@class,"toggle-switch-label") and contains(.,"On")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CONFIGURATION_EDITOR</td>
+	<td>//div[contains(@class,'form-group')][./label[text()='${configurationField}']]//div[contains(@class,'CodeMirror cm-s-default')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_CONFIGURATION_INVALID_JSON_ERROR</td>
+	<td>//div[contains(@class,'form-group')][./label[text()='${configurationField}']]//div[contains(.,'Unable to apply changes due to invalid JSON')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_EDIT_PAGE_HEADER_DESCRIPTION</td>
+	<td>//ul[contains(@class,'tbar-nav')]//div[contains(@class,'entry-description')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_EDIT_PAGE_HEADER_TITLE</td>
+	<td>//ul[contains(@class,'tbar-nav')]//div[contains(@class,'entry-title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_EDIT_PAGE_SIDE_NAV_LINK</td>
+	<td>//button[contains(@class,'nav-link') and contains(.,'${linkName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_EDIT_PAGE_VIEW_ELEMENT_JSON_TEXT</td>
+	<td>//span[contains(@class,'cm-string') and contains(.,'${key_jsonText}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_OPTION_WIDGET_SELECT_BLUEPRINT</td>
+	<td>//tr[contains(.,'${blueprintTitle}')]//button[contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_BUTTON_PORTUGUESE</td>
+	<td>//button[contains(.,'Pré-visualizar')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_COLLAPSE_RESULT_BUTTON</td>
+	<td>//button[contains(@aria-label,'Collapse')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_EXPAND_RESULT_BUTTON</td>
+	<td>//button[contains(@aria-label,'Expand')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_RAW_RESPONSE_JSON</td>
+	<td>//span[contains(@class,'cm-string') and contains(.,'${responseString}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_RESULT_FIELD_VALUE</td>
+	<td>//div[contains(@class,'preview-results-list')]//*[contains(@class,'row')]//*[contains(.,'${fieldName}')]/following-sibling::div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_SEARCH_BAR</td>
+	<td>//div[contains(@class,'preview-sidebar')]//input[contains(@placeholder,'Search')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_SEARCH_BAR_PORTUGUESE</td>
+	<td>//div[contains(@class,'preview-sidebar')]//input[contains(@placeholder,'Buscar')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_SEARCH_RESULT_EMPTY</td>
+	<td>//div[contains(@class,'preview-sidebar')]//span[contains(.,'No results found')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_SEARCH_RESULT_SCORE</td>
+	<td>//div[contains(.,'${assetTitle}')]/preceding-sibling::div//button[contains(@class,'score')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_SEARCH_RESULT_SCORE_EXPLANATION</td>
+	<td>//span[contains(@class,'cm-variable') and contains(.,'${key_searchExplanation}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_SEARCH_RESULT_SPECIFIC_RANKING</td>
+	<td>//li[contains(@class,'result-list-item')][${resultRanking}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_PREVIEW_SEARCH_RESULT_TITLE</td>
+	<td>//li[contains(@class,'result-list-item')]//p[contains(.,'${resultTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCH_FRAMEWORK_INDEXER_CLAUSES_ON_OFF_TOGGLE</td>
+	<td>//div[contains(@class,'panel-unstyled')][.//*[contains(.,'Search Framework Indexer Clauses')]]//input[contains(@class,"toggle-switch-check")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCHABLE_ASSET_TYPE_CHECKBOX</td>
+	<td>//div[contains(@class,'searchable-types-modal')]//tr[contains(@class,'cursor-pointer')][.//*[contains(.,'${assetType}')]]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCHABLE_ASSET_TYPE_CHECKBOX_CHECKED</td>
+	<td>//div[contains(@class,'searchable-types-modal')]//tr[contains(@class,'table-active')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCHABLE_ASSET_TYPE_CHECKBOX_UNCHECKED</td>
+	<td>//div[contains(@class,'searchable-types-modal')]//tr[not(contains(@class,'table-active'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCHABLE_ASSET_TYPE_REMOVE_SELECTED</td>
+	<td>//div[contains(@class,'searchable-types')]//tr[.//p[contains(@class,'table-list-title') and contains(.,'${assetType}')]]//button[@aria-label='Delete']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCHABLE_ASSET_TYPE_SELECT_ALL_CHECKBOX</td>
+	<td>//div[contains(@class,'searchable-types-modal')]//ul[.//*[contains(.,'Select')]]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCHABLE_ASSET_TYPE_SELECT_REMAINING</td>
+	<td>//div[contains(@class,'searchable-types-modal')]//button[contains(.,'Select All')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLUEPRINTS_SEARCHABLE_ASSET_TYPE_SELECTED</td>
+	<td>//div[contains(@class,'searchable-types')]//p[contains(@class,'table-list-title') and contains(.,'${assetType}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CODE_MIRROR_EDITOR</td>
+	<td>//div[contains(@class,'CodeMirror cm-s-default')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ELEMENTS_EDIT_PAGE_PREDEFINED_VARIABLES_SHOW_HIDE_BUTTON</td>
+	<td>//button[@title='Predefined Variables']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ELEMENTS_EDIT_PAGE_PREDEFINED_VARIABLES_SIDEBAR</td>
+	<td>//div[contains(@class,'sidebar') and contains(.,'Predefined Variables')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ELEMENTS_EDIT_PAGE_PREDEFINED_VARIABLES_SIDEBAR_ITEM</td>
+	<td>//dl[contains(@class,'sidebar-dl')]//button[contains(.,'${item}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ELEMENTS_EDIT_PAGE_READ_ONLY_INDICATOR</td>
+	<td>//div[contains(@class,'alert') and contains(.,'Read Only')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

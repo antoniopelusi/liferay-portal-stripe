@@ -62,13 +62,8 @@ public class CommerceAvalaraConnectorImpl implements CommerceAvalaraConnector {
 			CommerceAvalaraConstants.APP_VERSION,
 			CommerceAvalaraConstants.MACHINE_NAME, serviceURL);
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(accountNumber);
-		sb.append(StringPool.COLON);
-		sb.append(licenseKey);
-
-		String securityHeader = sb.toString();
+		String securityHeader = StringBundler.concat(
+			accountNumber, StringPool.COLON, licenseKey);
 
 		byte[] securityHeaderBytes = securityHeader.getBytes();
 

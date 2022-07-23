@@ -189,4 +189,7 @@ public interface CTAutoResolutionInfoModel
 	 */
 	public void setConflictIdentifier(String conflictIdentifier);
 
+	@Override
+	public CTAutoResolutionInfo cloneWithOriginalValues();
+
 }

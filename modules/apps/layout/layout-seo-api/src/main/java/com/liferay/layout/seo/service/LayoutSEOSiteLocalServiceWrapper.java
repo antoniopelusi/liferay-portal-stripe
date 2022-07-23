@@ -30,6 +30,10 @@ public class LayoutSEOSiteLocalServiceWrapper
 	implements LayoutSEOSiteLocalService,
 			   ServiceWrapper<LayoutSEOSiteLocalService> {
 
+	public LayoutSEOSiteLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutSEOSiteLocalServiceWrapper(
 		LayoutSEOSiteLocalService layoutSEOSiteLocalService) {
 
@@ -106,6 +110,13 @@ public class LayoutSEOSiteLocalServiceWrapper
 		return _layoutSEOSiteLocalService.deleteLayoutSEOSite(layoutSEOSiteId);
 	}
 
+	@Override
+	public void deleteLayoutSEOSite(String uuid, long groupId)
+		throws com.liferay.layout.seo.exception.NoSuchSiteException {
+
+		_layoutSEOSiteLocalService.deleteLayoutSEOSite(uuid, groupId);
+	}
+
 	/**
 	 * @throws PortalException
 	 */
@@ -120,6 +131,13 @@ public class LayoutSEOSiteLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _layoutSEOSiteLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutSEOSiteLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

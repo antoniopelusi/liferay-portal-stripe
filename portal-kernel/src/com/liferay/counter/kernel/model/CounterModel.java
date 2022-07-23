@@ -82,4 +82,7 @@ public interface CounterModel extends BaseModel<Counter> {
 	 */
 	public void setCurrentId(long currentId);
 
+	@Override
+	public Counter cloneWithOriginalValues();
+
 }

@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.util.MethodKey;
  * </p>
  *
  * @author Marco Leo
- * @see CommerceCatalogServiceSoap
  * @generated
  */
 public class CommerceCatalogServiceHttp {
@@ -346,17 +345,15 @@ public class CommerceCatalogServiceHttp {
 	}
 
 	public static java.util.List
-		<com.liferay.commerce.product.model.CommerceCatalog>
-				searchCommerceCatalogs(
-					HttpPrincipal httpPrincipal, long companyId,
-					String keywords, int start, int end,
-					com.liferay.portal.kernel.search.Sort sort)
+		<com.liferay.commerce.product.model.CommerceCatalog> search(
+				HttpPrincipal httpPrincipal, long companyId, String keywords,
+				int start, int end, com.liferay.portal.kernel.search.Sort sort)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
-				CommerceCatalogServiceUtil.class, "searchCommerceCatalogs",
-				_searchCommerceCatalogsParameterTypes7);
+				CommerceCatalogServiceUtil.class, "search",
+				_searchParameterTypes7);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, companyId, keywords, start, end, sort);
@@ -543,11 +540,10 @@ public class CommerceCatalogServiceHttp {
 		new Class[] {long.class};
 	private static final Class<?>[] _getCommerceCatalogsParameterTypes6 =
 		new Class[] {long.class, int.class, int.class};
-	private static final Class<?>[] _searchCommerceCatalogsParameterTypes7 =
-		new Class[] {
-			long.class, String.class, int.class, int.class,
-			com.liferay.portal.kernel.search.Sort.class
-		};
+	private static final Class<?>[] _searchParameterTypes7 = new Class[] {
+		long.class, String.class, int.class, int.class,
+		com.liferay.portal.kernel.search.Sort.class
+	};
 	private static final Class<?>[]
 		_searchCommerceCatalogsCountParameterTypes8 = new Class[] {
 			long.class, String.class

@@ -32,7 +32,7 @@ try {
 }
 catch (Exception exception) {
 	if (_log.isDebugEnabled()) {
-		_log.debug(exception, exception);
+		_log.debug(exception);
 	}
 }
 %>
@@ -116,7 +116,7 @@ catch (Exception exception) {
 					"mbCategoryId", rootTopicId
 				).setWindowState(
 					LiferayWindowState.POP_UP
-				).build();
+				).buildPortletURL();
 				%>
 
 				url: '<%= selectMBCategoryURL.toString() %>',

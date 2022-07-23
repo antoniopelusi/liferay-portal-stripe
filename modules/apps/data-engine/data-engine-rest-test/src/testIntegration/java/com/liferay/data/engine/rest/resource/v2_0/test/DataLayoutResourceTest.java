@@ -125,7 +125,7 @@ public class DataLayoutResourceTest extends BaseDataLayoutResourceTestCase {
 				new GraphQLField(
 					"dataLayoutByContentTypeByDataLayoutKey",
 					HashMapBuilder.<String, Object>put(
-						"contentType", "\"app-builder\""
+						"contentType", "\"test\""
 					).put(
 						"dataLayoutKey",
 						StringBundler.concat(
@@ -162,7 +162,7 @@ public class DataLayoutResourceTest extends BaseDataLayoutResourceTestCase {
 					new GraphQLField(
 						"dataLayoutByContentTypeByDataLayoutKey",
 						HashMapBuilder.<String, Object>put(
-							"contentType", "\"native-object\""
+							"contentType", "\"test\""
 						).put(
 							"dataLayoutKey",
 							"\"" + RandomTestUtil.randomString() + "\""
@@ -217,7 +217,7 @@ public class DataLayoutResourceTest extends BaseDataLayoutResourceTestCase {
 
 		DataDefinition dataDefinition =
 			dataDefinitionResource.postSiteDataDefinitionByContentType(
-				testGroup.getGroupId(), "app-builder",
+				testGroup.getGroupId(), "test",
 				new DataDefinition() {
 					{
 						availableLanguageIds = new String[] {"en_US", "pt_BR"};
@@ -412,15 +412,15 @@ public class DataLayoutResourceTest extends BaseDataLayoutResourceTestCase {
 	}
 
 	@Override
-	protected DataLayout testDeleteDataLayout_addDataLayout() throws Exception {
+	protected DataLayout testDeleteDataDefinitionDataLayout_addDataLayout()
+		throws Exception {
+
 		return dataLayoutResource.postDataDefinitionDataLayout(
 			_dataDefinition.getId(), randomDataLayout());
 	}
 
 	@Override
-	protected DataLayout testDeleteDataLayoutsDataDefinition_addDataLayout()
-		throws Exception {
-
+	protected DataLayout testDeleteDataLayout_addDataLayout() throws Exception {
 		return dataLayoutResource.postDataDefinitionDataLayout(
 			_dataDefinition.getId(), randomDataLayout());
 	}
@@ -446,7 +446,7 @@ public class DataLayoutResourceTest extends BaseDataLayoutResourceTestCase {
 		DataLayout dataLayout = dataLayoutResource.postDataDefinitionDataLayout(
 			_dataDefinition.getId(), randomDataLayout());
 
-		dataLayout.setContentType("app-builder");
+		dataLayout.setContentType("test");
 
 		return dataLayout;
 	}
@@ -498,6 +498,12 @@ public class DataLayoutResourceTest extends BaseDataLayoutResourceTestCase {
 					).build()
 				).put(
 					"required", RandomTestUtil.randomBoolean()
+				).put(
+					"requiredErrorMessage",
+					HashMapBuilder.<String, Object>put(
+						_dataDefinition.getDefaultLanguageId(),
+						RandomTestUtil.randomString()
+					).build()
 				).put(
 					"showLabel", RandomTestUtil.randomBoolean()
 				).put(

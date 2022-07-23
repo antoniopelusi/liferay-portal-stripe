@@ -45,7 +45,7 @@ public class AssetListEntryExceptionRequestHandler {
 		throws Exception {
 
 		if (_log.isDebugEnabled()) {
-			_log.debug(portalException, portalException);
+			_log.debug(portalException);
 		}
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -62,7 +62,7 @@ public class AssetListEntryExceptionRequestHandler {
 			errorMessage = "a-collection-with-that-title-already-exists";
 		}
 		else {
-			_log.error(portalException.getMessage());
+			_log.error(portalException);
 		}
 
 		JSONObject jsonObject = JSONUtil.put(

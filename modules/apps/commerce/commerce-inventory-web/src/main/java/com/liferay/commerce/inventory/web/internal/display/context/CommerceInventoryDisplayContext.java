@@ -22,7 +22,7 @@ import com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem;
 import com.liferay.commerce.inventory.service.CommerceInventoryReplenishmentItemService;
 import com.liferay.commerce.inventory.service.CommerceInventoryWarehouseItemService;
 import com.liferay.commerce.inventory.service.CommerceInventoryWarehouseService;
-import com.liferay.commerce.product.display.context.util.CPRequestHelper;
+import com.liferay.commerce.product.display.context.helper.CPRequestHelper;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -281,7 +281,7 @@ public class CommerceInventoryDisplayContext {
 			_cpRequestHelper.getCurrentURL()
 		).setParameter(
 			"sku", _sku
-		).build();
+		).buildPortletURL();
 	}
 
 	public CreationMenu getWarehousesCreationMenu() throws Exception {

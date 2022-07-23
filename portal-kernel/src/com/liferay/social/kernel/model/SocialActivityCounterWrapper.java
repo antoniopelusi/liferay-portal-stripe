@@ -157,6 +157,11 @@ public class SocialActivityCounterWrapper
 		}
 	}
 
+	@Override
+	public SocialActivityCounter cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this social activity counter.
 	 *

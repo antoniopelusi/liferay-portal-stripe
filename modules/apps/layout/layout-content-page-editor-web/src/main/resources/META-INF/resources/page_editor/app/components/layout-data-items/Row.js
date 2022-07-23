@@ -19,12 +19,18 @@ import React, {useMemo} from 'react';
 
 import {getLayoutDataItemPropTypes} from '../../../prop-types/index';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../config/constants/layoutDataItemTypes';
-import {useSelector} from '../../store/index';
+import {config} from '../../config/index';
+import {useGetFieldValue} from '../../contexts/CollectionItemContext';
+import {useSelector} from '../../contexts/StoreContext';
+import checkStylesFF from '../../utils/checkStylesFF';
+import {getCommonStyleByName} from '../../utils/getCommonStyleByName';
 import {getFrontendTokenValue} from '../../utils/getFrontendTokenValue';
+import getLayoutDataItemClassName from '../../utils/getLayoutDataItemClassName';
+import getLayoutDataItemUniqueClassName from '../../utils/getLayoutDataItemUniqueClassName';
 import {getResponsiveConfig} from '../../utils/getResponsiveConfig';
+import {isValidSpacingOption} from '../../utils/isValidSpacingOption';
 import useBackgroundImageValue from '../../utils/useBackgroundImageValue';
 import {useId} from '../../utils/useId';
-import {useGetFieldValue} from '../CollectionItemContext';
 
 const Row = React.forwardRef(
 	({children, className, item, withinTopper = false}, ref) => {
@@ -44,14 +50,11 @@ const Row = React.forwardRef(
 			borderColor,
 			borderRadius,
 			borderWidth,
+			display,
 			fontFamily,
 			fontSize,
 			fontWeight,
 			height,
-			marginBottom,
-			marginLeft,
-			marginRight,
-			marginTop,
 			maxHeight,
 			maxWidth,
 			minHeight,
@@ -98,6 +101,7 @@ const Row = React.forwardRef(
 		}
 
 		if (!withinTopper) {
+			style.display = display;
 			style.maxWidth = maxWidth;
 			style.minWidth = minWidth;
 			style.width = width;
@@ -115,35 +119,39 @@ const Row = React.forwardRef(
 			}
 		}
 
+		const textAlignDefaultValue = getCommonStyleByName('textAlign')
+			.defaultValue;
+
 		const rowContent = (
 			<ClayLayout.Row
-				className={classNames(
-					className,
-					`mb-${marginBottom || 0}`,
-					`mt-${marginTop || 0}`,
-					`pb-${paddingBottom || 0}`,
-					`pl-${paddingLeft || 0}`,
-					`pr-${paddingRight || 0}`,
-					`pt-${paddingTop || 0}`,
-					{
-						'flex-column-reverse':
-							item.config.numberOfColumns === 2 &&
-							modulesPerRow === 1 &&
-							reverseOrder,
-						[`ml-${marginLeft}`]: marginLeft && marginLeft !== '0',
-						[`mr-${marginRight}`]:
-							marginRight && marginRight !== '0',
-						'no-gutters': !item.config.gutters,
-						[textAlign
-							? textAlign.startsWith('text-')
-								? textAlign
-								: `text-${textAlign}`
-							: '']: textAlign,
-					}
-				)}
+				className={classNames(className, {
+					[getLayoutDataItemClassName(
+						item.type
+					)]: config.featureFlagLps132571,
+					[getLayoutDataItemUniqueClassName(
+						item.itemId
+					)]: config.featureFlagLps132571,
+					'flex-column-reverse':
+						item.config.numberOfColumns === 2 &&
+						modulesPerRow === 1 &&
+						reverseOrder,
+					[`pb-${paddingBottom}`]: isValidSpacingOption(
+						paddingBottom
+					),
+					[`pl-${paddingLeft}`]: isValidSpacingOption(paddingLeft),
+					[`pr-${paddingRight}`]: isValidSpacingOption(paddingRight),
+					[`pt-${paddingTop}`]: isValidSpacingOption(paddingTop),
+					'no-gutters': !item.config.gutters,
+					[textAlign
+						? textAlign.startsWith('text-')
+							? textAlign
+							: `text-${textAlign}`
+						: `text-${textAlignDefaultValue}`]:
+						!config.featureFlagLps132571 && textAlignDefaultValue,
+				})}
 				id={elementId}
 				ref={ref}
-				style={style}
+				style={checkStylesFF(item.itemId, style)}
 			>
 				{backgroundImageValue.mediaQueries ? (
 					<style>{backgroundImageValue.mediaQueries}</style>

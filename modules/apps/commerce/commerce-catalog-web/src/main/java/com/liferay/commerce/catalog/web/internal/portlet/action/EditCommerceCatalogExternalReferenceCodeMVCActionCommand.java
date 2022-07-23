@@ -51,7 +51,7 @@ public class EditCommerceCatalogExternalReferenceCodeMVCActionCommand
 		throws Exception {
 
 		try {
-			updateCommerceCatalogExternalReferenceCode(actionRequest);
+			_updateCommerceCatalogExternalReferenceCode(actionRequest);
 		}
 		catch (Exception exception) {
 			if (exception instanceof NoSuchCatalogException ||
@@ -62,7 +62,7 @@ public class EditCommerceCatalogExternalReferenceCodeMVCActionCommand
 				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				String redirect = ParamUtil.getString(
 					actionRequest, "redirect");
@@ -72,7 +72,7 @@ public class EditCommerceCatalogExternalReferenceCodeMVCActionCommand
 		}
 	}
 
-	protected void updateCommerceCatalogExternalReferenceCode(
+	private void _updateCommerceCatalogExternalReferenceCode(
 			ActionRequest actionRequest)
 		throws Exception {
 

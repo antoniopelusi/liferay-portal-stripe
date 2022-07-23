@@ -14,6 +14,8 @@
 
 package com.liferay.portal.workflow.uad.anonymizer;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
@@ -48,6 +50,8 @@ public abstract class BaseWorkflowDefinitionLinkUADAnonymizer
 		if (workflowDefinitionLink.getUserId() == userId) {
 			workflowDefinitionLink.setUserId(anonymousUser.getUserId());
 			workflowDefinitionLink.setUserName(anonymousUser.getFullName());
+
+			autoAnonymizeAssetEntry(workflowDefinitionLink, anonymousUser);
 		}
 
 		workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
@@ -67,6 +71,19 @@ public abstract class BaseWorkflowDefinitionLinkUADAnonymizer
 		return WorkflowDefinitionLink.class;
 	}
 
+	protected void autoAnonymizeAssetEntry(
+		WorkflowDefinitionLink workflowDefinitionLink, User anonymousUser) {
+
+		AssetEntry assetEntry = fetchAssetEntry(workflowDefinitionLink);
+
+		if (assetEntry != null) {
+			assetEntry.setUserId(anonymousUser.getUserId());
+			assetEntry.setUserName(anonymousUser.getFullName());
+
+			assetEntryLocalService.updateAssetEntry(assetEntry);
+		}
+	}
+
 	@Override
 	protected ActionableDynamicQuery doGetActionableDynamicQuery() {
 		return workflowDefinitionLinkLocalService.getActionableDynamicQuery();
@@ -77,6 +94,17 @@ public abstract class BaseWorkflowDefinitionLinkUADAnonymizer
 		return PortalWorkflowUADConstants.
 			USER_ID_FIELD_NAMES_WORKFLOW_DEFINITION_LINK;
 	}
+
+	protected AssetEntry fetchAssetEntry(
+		WorkflowDefinitionLink workflowDefinitionLink) {
+
+		return assetEntryLocalService.fetchEntry(
+			WorkflowDefinitionLink.class.getName(),
+			workflowDefinitionLink.getWorkflowDefinitionLinkId());
+	}
+
+	@Reference
+	protected AssetEntryLocalService assetEntryLocalService;
 
 	@Reference
 	protected WorkflowDefinitionLinkLocalService

@@ -71,13 +71,6 @@
 			<finder-column name="assetEntrySubtype" />
 			<finder-column name="assetEntryType" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="AssetListEntryAssetEntryRel" package-path="com.liferay.asset.list" />
-		<reference entity="AssetListEntrySegmentsEntryRel" package-path="com.liferay.asset.list" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="AssetListEntryAssetEntryRel" remote-service="false" uuid="true">
 
@@ -130,10 +123,6 @@
 			<finder-column name="segmentsEntryId" />
 			<finder-column comparator="&gt;" name="position" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="AssetListEntrySegmentsEntryRel" remote-service="false" uuid="true">
 
@@ -156,6 +145,7 @@
 		<!-- Other fields -->
 
 		<column name="assetListEntryId" type="long" />
+		<column name="priority" type="int" />
 		<column name="segmentsEntryId" type="long" />
 		<column name="typeSettings" type="String" />
 		<column name="lastPublishDate" type="Date" />
@@ -172,10 +162,10 @@
 			<finder-column name="assetListEntryId" />
 			<finder-column name="segmentsEntryId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
+		<finder name="A_S_C" return-type="Collection">
+			<finder-column name="assetListEntryId" />
+			<finder-column arrayable-operator="OR" name="segmentsEntryId" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="AssetListEntryUsage" remote-service="false" uuid="true">
 
@@ -225,11 +215,6 @@
 			<finder-column name="classNameId" />
 			<finder-column name="key" />
 		</finder>
-		<finder name="C_C_P" return-type="AssetListEntryUsage" unique="true">
-			<finder-column name="classNameId" />
-			<finder-column name="classPK" />
-			<finder-column name="portletId" />
-		</finder>
 		<finder name="CK_CT_P" return-type="Collection">
 			<finder-column name="containerKey" />
 			<finder-column name="containerType" />
@@ -249,10 +234,6 @@
 			<finder-column name="key" />
 			<finder-column name="plid" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>AssetListEntryAssetEntryRelPostion</exception>

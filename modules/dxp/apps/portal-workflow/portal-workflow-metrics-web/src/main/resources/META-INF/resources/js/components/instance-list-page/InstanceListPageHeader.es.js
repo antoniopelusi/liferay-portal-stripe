@@ -12,12 +12,15 @@
 import ClayLayout from '@clayui/layout';
 import ClayManagementToolbar from '@clayui/management-toolbar';
 import {usePrevious} from '@liferay/frontend-js-react-web';
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 
 import filterConstants from '../../shared/components/filter/util/filterConstants.es';
+import MetricsCalculatedInfo from '../../shared/components/last-updated-info/MetricsCalculatedInfo.es';
+import PromisesResolver from '../../shared/components/promises-resolver/PromisesResolver.es';
 import QuickActionKebab from '../../shared/components/quick-action-kebab/QuickActionKebab.es';
 import ResultsBar from '../../shared/components/results-bar/ResultsBar.es';
 import ToolbarWithSelection from '../../shared/components/toolbar-with-selection/ToolbarWithSelection.es';
+import {useDateModified} from '../../shared/hooks/useDateModified.es';
 import {capitalize} from '../../shared/util/util.es';
 import {AppContext} from '../AppContext.es';
 import AssigneeFilter from '../filter/AssigneeFilter.es';
@@ -33,10 +36,15 @@ import {ModalContext} from './modal/ModalProvider.es';
 export default function Header({
 	filterKeys,
 	items = [],
+	processId,
 	routeParams,
 	selectedFilters,
 	totalCount,
 }) {
+	const {dateModified, fetchData} = useDateModified({
+		processId,
+	});
+
 	const {userId} = useContext(AppContext);
 	const {
 		selectAll,
@@ -46,6 +54,18 @@ export default function Header({
 	} = useContext(InstanceListContext);
 	const {openModal} = useContext(ModalContext);
 	const previousCount = usePrevious(totalCount);
+
+	const previousFetchData = usePrevious(fetchData);
+
+	const promises = useMemo(() => {
+		if (previousFetchData !== fetchData && items?.length) {
+			return [fetchData()];
+		}
+
+		return [];
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [items?.length, routeParams]);
 
 	const handleClick = useCallback(
 		(bulkModal, singleModal) => {
@@ -119,11 +139,13 @@ export default function Header({
 			]);
 			setSelectAll(items.length === remainingItems.length);
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [items]);
 
 	useEffect(() => {
 		setSelectAll(totalCount > 0 && totalCount === selectedItems.length);
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [totalCount]);
 
@@ -141,6 +163,7 @@ export default function Header({
 			setSelectAll(totalCount > 0 && totalCount === updatedItems.length);
 			setSelectedItems(updatedItems);
 		},
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[items, remainingItems, selectedItems]
 	);
@@ -158,7 +181,7 @@ export default function Header({
 	);
 
 	return (
-		<>
+		<PromisesResolver promises={promises}>
 			<ToolbarWithSelection
 				{...checkbox}
 				active={toolbarActive}
@@ -188,17 +211,20 @@ export default function Header({
 							</strong>
 						</ClayManagementToolbar.Item>
 
-						<SLAStatusFilter />
+						<SLAStatusFilter
+							options={{
+								withSelectionTitle: false,
+							}}
+						/>
 
 						<ProcessStatusFilter />
 
-						{completedSelected && (
-							<TimeRangeFilter
-								options={{
-									withSelectionTitle: false,
-								}}
-							/>
-						)}
+						<TimeRangeFilter
+							options={{
+								show: completedSelected,
+								withSelectionTitle: false,
+							}}
+						/>
 
 						<ProcessStepFilter processId={routeParams.processId} />
 
@@ -226,6 +252,8 @@ export default function Header({
 					/>
 				</ResultsBar>
 			)}
-		</>
+
+			<MetricsCalculatedInfo dateModified={dateModified} />
+		</PromisesResolver>
 	);
 }

@@ -14,14 +14,14 @@
 
 package com.liferay.petra.content;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.petra.string.StringUtil;
 
 import java.io.IOException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Brian Wing Shun Chan
@@ -42,7 +42,6 @@ public class ContentUtil {
 	}
 
 	private ContentUtil() {
-		_contentPool = new HashMap<>();
 	}
 
 	private String _get(ClassLoader classLoader, String location, boolean all) {
@@ -55,7 +54,8 @@ public class ContentUtil {
 				_put(location, content);
 			}
 			catch (IOException ioException) {
-				_log.error(ioException, ioException);
+				_logger.log(
+					Level.SEVERE, ioException.getMessage(), ioException);
 			}
 		}
 
@@ -66,10 +66,11 @@ public class ContentUtil {
 		_contentPool.put(location, content);
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(ContentUtil.class);
+	private static final Logger _logger = Logger.getLogger(
+		ContentUtil.class.getName());
 
 	private static final ContentUtil _contentUtil = new ContentUtil();
 
-	private final Map<String, String> _contentPool;
+	private final Map<String, String> _contentPool = new HashMap<>();
 
 }

@@ -137,9 +137,9 @@ public class HeaderFilter extends BasePortalFilter {
 	}
 
 	private boolean _isNewSession(HttpServletRequest httpServletRequest) {
-		HttpSession session = httpServletRequest.getSession(false);
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
-		if ((session == null) || session.isNew()) {
+		if ((httpSession == null) || httpSession.isNew()) {
 			return true;
 		}
 

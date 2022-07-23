@@ -35,12 +35,18 @@ public class ResourcePermissionModelListener
 	}
 
 	@Override
-	public void onAfterUpdate(ResourcePermission resourcePermission) {
+	public void onAfterUpdate(
+		ResourcePermission originalResourcePermission,
+		ResourcePermission resourcePermission) {
+
 		_clearCache(resourcePermission);
 	}
 
 	@Override
-	public void onBeforeUpdate(ResourcePermission resourcePermission) {
+	public void onBeforeUpdate(
+		ResourcePermission originalResourcePermission,
+		ResourcePermission resourcePermission) {
+
 		ResourcePermissionModelImpl resourcePermissionModelImpl =
 			(ResourcePermissionModelImpl)resourcePermission;
 

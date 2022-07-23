@@ -204,4 +204,7 @@ public interface SharepointOAuth2TokenEntryModel
 	 */
 	public void setRefreshToken(String refreshToken);
 
+	@Override
+	public SharepointOAuth2TokenEntry cloneWithOriginalValues();
+
 }

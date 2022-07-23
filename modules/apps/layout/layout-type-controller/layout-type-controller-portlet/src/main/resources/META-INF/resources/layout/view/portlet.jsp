@@ -16,14 +16,6 @@
 
 <%@ include file="/init.jsp" %>
 
-<%
-String portletResource = ParamUtil.getString(request, "portletResource");
-%>
-
-<c:if test="<%= Validator.isNotNull(portletResource) %>">
-	<liferay-ui:success key='<%= portletResource + "requestProcessed" %>' message="your-request-completed-successfully" />
-</c:if>
-
 <c:choose>
 	<c:when test="<%= themeDisplay.isStatePopUp() || themeDisplay.isWidget() || layoutTypePortlet.hasStateMax() %>">
 
@@ -63,7 +55,7 @@ String portletResource = ParamUtil.getString(request, "portletResource");
 		</style>
 
 		<%
-		PortletLayoutDisplayContext portletLayoutDisplayContext = new PortletLayoutDisplayContext();
+		PortletLayoutDisplayContext portletLayoutDisplayContext = (PortletLayoutDisplayContext)request.getAttribute(PortletLayoutTypeControllerWebKeys.PORTLET_LAYOUT_DISPLAY_CONTEXT);
 		%>
 
 		<liferay-layout:render-layout-structure

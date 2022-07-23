@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -50,7 +50,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class KBArticleAssetRenderer extends BaseJSPAssetRenderer<KBArticle> {
 
-	public KBArticleAssetRenderer(KBArticle kbArticle) {
+	public KBArticleAssetRenderer(HtmlParser htmlParser, KBArticle kbArticle) {
+		_htmlParser = htmlParser;
 		_kbArticle = kbArticle;
 	}
 
@@ -100,7 +101,7 @@ public class KBArticleAssetRenderer extends BaseJSPAssetRenderer<KBArticle> {
 
 		if (Validator.isNull(summary)) {
 			summary = StringUtil.shorten(
-				HtmlUtil.extractText(_kbArticle.getContent()), 200);
+				_htmlParser.extractText(_kbArticle.getContent()), 200);
 		}
 
 		return summary;
@@ -136,7 +137,7 @@ public class KBArticleAssetRenderer extends BaseJSPAssetRenderer<KBArticle> {
 			"/admin/edit_article.jsp"
 		).setParameter(
 			"resourcePrimKey", _kbArticle.getResourcePrimKey()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -212,6 +213,7 @@ public class KBArticleAssetRenderer extends BaseJSPAssetRenderer<KBArticle> {
 		return kbArticle.getResourcePrimKey();
 	}
 
+	private final HtmlParser _htmlParser;
 	private final KBArticle _kbArticle;
 
 }

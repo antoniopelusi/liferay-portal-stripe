@@ -87,20 +87,20 @@ public class DataDefinitionFieldLinkResourceTest
 
 	@Override
 	protected DataDefinitionFieldLink
-			testGetDataDefinitionDataDefinitionFieldLinkPage_addDataDefinitionFieldLink(
+			testGetDataDefinitionDataDefinitionFieldLinksPage_addDataDefinitionFieldLink(
 				Long dataDefinitionId,
 				DataDefinitionFieldLink dataDefinitionFieldLink)
 		throws Exception {
 
 		_dataDefinitionResource.postDataDefinitionByContentType(
-			"app-builder", dataDefinitionFieldLink.getDataDefinition());
+			"test", dataDefinitionFieldLink.getDataDefinition());
 
 		return dataDefinitionFieldLink;
 	}
 
 	@Override
 	protected Long
-			testGetDataDefinitionDataDefinitionFieldLinkPage_getDataDefinitionId()
+			testGetDataDefinitionDataDefinitionFieldLinksPage_getDataDefinitionId()
 		throws Exception {
 
 		return _dataDefinition.getId();

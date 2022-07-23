@@ -69,7 +69,7 @@ public class MoveCategoryPortletConfigurationIcon
 			"/message_boards/move_category"
 		).setRedirect(
 			_portal.getCurrentURL(portletRequest)
-		).build();
+		).buildPortletURL();
 
 		MBCategory category = null;
 
@@ -78,7 +78,7 @@ public class MoveCategoryPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -119,7 +119,7 @@ public class MoveCategoryPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

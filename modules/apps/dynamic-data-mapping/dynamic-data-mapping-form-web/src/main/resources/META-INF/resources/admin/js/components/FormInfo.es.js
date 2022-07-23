@@ -14,19 +14,12 @@
 
 import ClayForm from '@clayui/form';
 import ClayLayout from '@clayui/layout';
-import {
-	isKeyInSet,
-	isModifyingKey,
-} from 'dynamic-data-mapping-form-builder/js/util/dom.es';
-import {
-	useConfig,
-	useForm,
-	useFormState,
-} from 'dynamic-data-mapping-form-renderer';
+import {useConfig, useForm, useFormState} from 'data-engine-js-components-web';
 import {autoSize} from 'frontend-js-web';
 import React, {useEffect, useRef} from 'react';
 
 import {EVENT_TYPES} from '../eventTypes.es';
+import {isKeyInSet, isModifyingKey} from '../util/dom';
 
 const isForbiddenKey = (event, limit) => {
 	const charCode = event.which ? event.which : event.keyCode;
@@ -43,7 +36,7 @@ const isForbiddenKey = (event, limit) => {
 	return forbidden;
 };
 
-export const FormInfo = () => {
+export function FormInfo() {
 	const {portletNamespace} = useConfig();
 
 	const {
@@ -67,7 +60,7 @@ export const FormInfo = () => {
 	const onKeyDown = (event) => {
 		const charCode = event.which ? event.which : event.keyCode;
 
-		if (isForbiddenKey(event, 120) && charCode != 91) {
+		if (isForbiddenKey(event, 120) && Number(charCode) !== 91) {
 			event.preventDefault();
 		}
 	};
@@ -98,6 +91,7 @@ export const FormInfo = () => {
 						/>
 					</ClayForm.Group>
 				</h1>
+
 				<h5>
 					<ClayForm.Group>
 						<textarea
@@ -127,4 +121,4 @@ export const FormInfo = () => {
 			</ClayLayout.ContainerFluid>
 		</div>
 	);
-};
+}

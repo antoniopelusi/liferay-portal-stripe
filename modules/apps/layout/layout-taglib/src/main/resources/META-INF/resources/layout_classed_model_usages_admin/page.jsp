@@ -47,7 +47,7 @@ LayoutClassedModelUsagesDisplayContext layoutClassedModelUsagesDisplayContext = 
 										).setNavigation(
 											"all"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>
@@ -63,7 +63,7 @@ LayoutClassedModelUsagesDisplayContext layoutClassedModelUsagesDisplayContext = 
 										).setNavigation(
 											"pages"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>
@@ -79,7 +79,7 @@ LayoutClassedModelUsagesDisplayContext layoutClassedModelUsagesDisplayContext = 
 										).setNavigation(
 											"page-templates"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>
@@ -95,7 +95,7 @@ LayoutClassedModelUsagesDisplayContext layoutClassedModelUsagesDisplayContext = 
 										).setNavigation(
 											"display-page-templates"
 										).setParameter(
-											"resetCur", Boolean.TRUE.toString()
+											"resetCur", true
 										).buildString()
 									%>"
 								>

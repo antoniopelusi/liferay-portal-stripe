@@ -216,6 +216,7 @@ public class AssigneeMetricResourceImpl
 		}
 
 		return booleanQuery.addMustQueryClauses(
+			_queries.term("active", Boolean.TRUE),
 			_queries.term("assigneeType", User.class.getName()),
 			_queries.term("companyId", contextCompany.getCompanyId()),
 			_queries.term("deleted", Boolean.FALSE),
@@ -483,7 +484,7 @@ public class AssigneeMetricResourceImpl
 		return Stream.of(
 			_userLocalService.search(
 				contextCompany.getCompanyId(), keywords, keywords, keywords,
-				null, null, WorkflowConstants.STATUS_APPROVED, params, false,
+				null, null, WorkflowConstants.STATUS_ANY, params, false,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 				(OrderByComparator<User>)null)
 		).flatMap(

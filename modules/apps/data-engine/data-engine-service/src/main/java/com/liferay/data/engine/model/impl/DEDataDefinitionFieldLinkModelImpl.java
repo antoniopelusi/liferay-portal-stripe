@@ -28,13 +28,14 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -98,7 +99,7 @@ public class DEDataDefinitionFieldLinkModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DEDataDefinitionFieldLink (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,deDataDefinitionFieldLinkId LONG not null,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,ddmStructureId LONG,fieldName VARCHAR(75) null,lastPublishDate DATE null,primary key (deDataDefinitionFieldLinkId, ctCollectionId))";
+		"create table DEDataDefinitionFieldLink (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,deDataDefinitionFieldLinkId LONG not null,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,ddmStructureId LONG,fieldName VARCHAR(255) null,lastPublishDate DATE null,primary key (deDataDefinitionFieldLinkId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table DEDataDefinitionFieldLink";
@@ -262,34 +263,6 @@ public class DEDataDefinitionFieldLinkModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DEDataDefinitionFieldLink>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DEDataDefinitionFieldLink.class.getClassLoader(),
-			DEDataDefinitionFieldLink.class, ModelWrapper.class);
-
-		try {
-			Constructor<DEDataDefinitionFieldLink> constructor =
-				(Constructor<DEDataDefinitionFieldLink>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -768,6 +741,41 @@ public class DEDataDefinitionFieldLinkModelImpl
 	}
 
 	@Override
+	public DEDataDefinitionFieldLink cloneWithOriginalValues() {
+		DEDataDefinitionFieldLinkImpl deDataDefinitionFieldLinkImpl =
+			new DEDataDefinitionFieldLinkImpl();
+
+		deDataDefinitionFieldLinkImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		deDataDefinitionFieldLinkImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		deDataDefinitionFieldLinkImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		deDataDefinitionFieldLinkImpl.setDeDataDefinitionFieldLinkId(
+			this.<Long>getColumnOriginalValue("deDataDefinitionFieldLinkId"));
+		deDataDefinitionFieldLinkImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		deDataDefinitionFieldLinkImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		deDataDefinitionFieldLinkImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		deDataDefinitionFieldLinkImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		deDataDefinitionFieldLinkImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		deDataDefinitionFieldLinkImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		deDataDefinitionFieldLinkImpl.setDdmStructureId(
+			this.<Long>getColumnOriginalValue("ddmStructureId"));
+		deDataDefinitionFieldLinkImpl.setFieldName(
+			this.<String>getColumnOriginalValue("fieldName"));
+		deDataDefinitionFieldLinkImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return deDataDefinitionFieldLinkImpl;
+	}
+
+	@Override
 	public int compareTo(DEDataDefinitionFieldLink deDataDefinitionFieldLink) {
 		long primaryKey = deDataDefinitionFieldLink.getPrimaryKey();
 
@@ -918,7 +926,7 @@ public class DEDataDefinitionFieldLinkModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -929,10 +937,27 @@ public class DEDataDefinitionFieldLinkModelImpl
 			Function<DEDataDefinitionFieldLink, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((DEDataDefinitionFieldLink)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DEDataDefinitionFieldLink)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -982,7 +1007,8 @@ public class DEDataDefinitionFieldLinkModelImpl
 		private static final Function
 			<InvocationHandler, DEDataDefinitionFieldLink>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						DEDataDefinitionFieldLink.class, ModelWrapper.class);
 
 	}
 

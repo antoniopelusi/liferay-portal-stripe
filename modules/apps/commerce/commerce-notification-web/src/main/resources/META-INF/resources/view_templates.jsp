@@ -39,7 +39,7 @@ CommerceNotificationQueueEntriesDisplayContext commerceNotificationQueueEntriesD
 			commerceNotificationQueueEntriesDisplayContext.getPortletURL()
 		).setParameter(
 			"notificationNavigationItem", notificationNavigationItem
-		).build()
+		).buildPortletURL()
 	%>'
 	showSearch="<%= false %>"
 />

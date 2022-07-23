@@ -72,7 +72,7 @@ public class CustomUserAttributesFormNavigatorEntry
 
 	@Override
 	public boolean isVisible(User user, Object object) {
-		if (isDynamicAssetSelection()) {
+		if (_isDynamicAssetSelection()) {
 			return true;
 		}
 
@@ -93,7 +93,7 @@ public class CustomUserAttributesFormNavigatorEntry
 		return "/custom_user_attributes.jsp";
 	}
 
-	protected boolean isDynamicAssetSelection() {
+	private boolean _isDynamicAssetSelection() {
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
@@ -106,7 +106,7 @@ public class CustomUserAttributesFormNavigatorEntry
 				themeDisplay.getLayout(), portletDisplay.getPortletResource());
 
 		String selectionStyle = GetterUtil.getString(
-			portletSetup.getValue("selectionStyle", null), "dynamic");
+			portletSetup.getValue("selectionStyle", null));
 
 		if (Objects.equals(selectionStyle, "dynamic")) {
 			return true;

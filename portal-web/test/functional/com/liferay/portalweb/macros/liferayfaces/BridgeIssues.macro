@@ -9,7 +9,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "${portletName}",
 			privacy = "Public Pages",
@@ -25,7 +25,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "${key_urlAppend}");
 
-		var key_PageLink = "${pageLink}";
+		var key_pageLink = "${pageLink}";
 
 		Click(locator1 = "BridgeIssues#NAVIGATE_TO_VIEW");
 	}
@@ -44,12 +44,13 @@ definition {
 
 	macro upload3250File {
 		UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
-			locator1 = "TextInput#FILE",
+			key_mode = "${mode}",
+			locator1 = "BridgeIssues#CHOOSE_FILE_BUTTON",
 			value1 = "${fileName}");
 
 		if ("${instantAjax}" == "true") {
 			Click(
-				key_attribute = "${submit}",
+				key_mode = "${mode}",
 				locator1 = "BridgeIssues#SUBMIT_FILE_BUTTON");
 		}
 	}
@@ -94,7 +95,7 @@ definition {
 	macro verifyValue {
 		if ("${restoreState}" == "true") {
 			Click(
-				key_PageLink = "${link}",
+				key_pageLink = "${link}",
 				locator1 = "BridgeIssues#PAGE_LINK");
 
 			AssertElementPresent(
@@ -112,7 +113,7 @@ definition {
 
 		if (isSet(toPageLink)) {
 			Click(
-				key_PageLink = "${link}",
+				key_pageLink = "${link}",
 				locator1 = "BridgeIssues#PAGE_LINK");
 
 			Click(

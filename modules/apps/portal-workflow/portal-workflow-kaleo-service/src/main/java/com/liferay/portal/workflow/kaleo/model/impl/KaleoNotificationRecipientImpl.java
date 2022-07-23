@@ -19,8 +19,4 @@ package com.liferay.portal.workflow.kaleo.model.impl;
  */
 public class KaleoNotificationRecipientImpl
 	extends KaleoNotificationRecipientBaseImpl {
-
-	public KaleoNotificationRecipientImpl() {
-	}
-
 }

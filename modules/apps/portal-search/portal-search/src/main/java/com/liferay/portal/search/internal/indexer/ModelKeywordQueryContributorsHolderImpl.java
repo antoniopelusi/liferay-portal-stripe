@@ -16,6 +16,7 @@ package com.liferay.portal.search.internal.indexer;
 
 import com.liferay.portal.search.spi.model.query.contributor.KeywordQueryContributor;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -32,9 +33,19 @@ public class ModelKeywordQueryContributorsHolderImpl
 	}
 
 	@Override
-	public Stream<KeywordQueryContributor> getAll() {
-		return StreamSupport.stream(
-			_keywordQueryContributors.spliterator(), false);
+	public Stream<KeywordQueryContributor> stream(
+		Collection<String> excludes, Collection<String> includes) {
+
+		return IncludeExcludeUtil.stream(
+			StreamSupport.stream(
+				_keywordQueryContributors.spliterator(), false),
+			includes, excludes, object -> getClassName(object));
+	}
+
+	protected String getClassName(Object object) {
+		Class<?> clazz = object.getClass();
+
+		return clazz.getName();
 	}
 
 	private final Iterable<KeywordQueryContributor> _keywordQueryContributors;

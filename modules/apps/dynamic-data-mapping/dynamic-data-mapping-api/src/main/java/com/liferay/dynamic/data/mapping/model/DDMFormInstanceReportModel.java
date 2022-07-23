@@ -195,4 +195,7 @@ public interface DDMFormInstanceReportModel
 	 */
 	public void setData(String data);
 
+	@Override
+	public DDMFormInstanceReport cloneWithOriginalValues();
+
 }

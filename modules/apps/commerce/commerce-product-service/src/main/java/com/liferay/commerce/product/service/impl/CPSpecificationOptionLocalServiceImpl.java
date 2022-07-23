@@ -22,6 +22,8 @@ import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPDefinitionSpecificationOptionValue;
 import com.liferay.commerce.product.model.CPSpecificationOption;
 import com.liferay.commerce.product.service.base.CPSpecificationOptionLocalServiceBaseImpl;
+import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -45,12 +47,14 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
@@ -59,7 +63,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * @author Andrea Di Giorgi
@@ -78,7 +81,9 @@ public class CPSpecificationOptionLocalServiceImpl
 
 		User user = userLocalService.getUser(userId);
 
-		key = FriendlyURLNormalizerUtil.normalize(key);
+		key = StringUtil.replace(key, CharPool.UNDERLINE, CharPool.DASH);
+
+		key = _friendlyURLNormalizer.normalize(key);
 
 		validate(0, user.getCompanyId(), titleMap, key);
 
@@ -132,7 +137,7 @@ public class CPSpecificationOptionLocalServiceImpl
 
 		// Expando
 
-		expandoRowLocalService.deleteRows(
+		_expandoRowLocalService.deleteRows(
 			cpSpecificationOption.getCPSpecificationOptionId());
 
 		return cpSpecificationOption;
@@ -170,7 +175,8 @@ public class CPSpecificationOptionLocalServiceImpl
 	public CPSpecificationOption fetchCPSpecificationOption(
 		long companyId, String key) {
 
-		return cpSpecificationOptionPersistence.fetchByC_K(companyId, key);
+		return cpSpecificationOptionPersistence.fetchByC_K(
+			companyId, _friendlyURLNormalizer.normalize(key));
 	}
 
 	@Override
@@ -178,7 +184,8 @@ public class CPSpecificationOptionLocalServiceImpl
 			long companyId, String key)
 		throws PortalException {
 
-		return cpSpecificationOptionPersistence.findByC_K(companyId, key);
+		return cpSpecificationOptionPersistence.findByC_K(
+			companyId, _friendlyURLNormalizer.normalize(key));
 	}
 
 	@Override
@@ -220,7 +227,9 @@ public class CPSpecificationOptionLocalServiceImpl
 			cpSpecificationOptionPersistence.findByPrimaryKey(
 				cpSpecificationOptionId);
 
-		key = FriendlyURLNormalizerUtil.normalize(key);
+		key = StringUtil.replace(key, CharPool.UNDERLINE, CharPool.DASH);
+
+		key = _friendlyURLNormalizer.normalize(key);
 
 		validate(
 			cpSpecificationOption.getCPSpecificationOptionId(),
@@ -253,11 +262,15 @@ public class CPSpecificationOptionLocalServiceImpl
 				"keywords", keywords
 			).build();
 
-		Map<String, Serializable> attributes =
+		searchContext.setAttributes(
 			HashMapBuilder.<String, Serializable>put(
 				CPField.CP_OPTION_CATEGORY_ID, keywords
 			).put(
 				CPField.CP_OPTION_CATEGORY_TITLE, keywords
+			).put(
+				CPField.FACETABLE, () -> facetable
+			).put(
+				CPField.KEY, keywords
 			).put(
 				Field.CONTENT, keywords
 			).put(
@@ -266,16 +279,9 @@ public class CPSpecificationOptionLocalServiceImpl
 				Field.ENTRY_CLASS_PK, keywords
 			).put(
 				Field.TITLE, keywords
-			).build();
-
-		if (facetable != null) {
-			attributes.put(CPField.FACETABLE, facetable);
-		}
-
-		attributes.put(CPField.KEY, keywords);
-		attributes.put("params", params);
-
-		searchContext.setAttributes(attributes);
+			).put(
+				"params", params
+			).build());
 
 		searchContext.setCompanyId(companyId);
 		searchContext.setEnd(end);
@@ -336,15 +342,10 @@ public class CPSpecificationOptionLocalServiceImpl
 		long companyId, long cpSpecificationOptionId) {
 
 		TransactionCommitCallbackUtil.registerCallback(
-			new Callable<Void>() {
+			() -> {
+				_reindexCPDefinitions(companyId, cpSpecificationOptionId);
 
-				@Override
-				public Void call() throws Exception {
-					_reindexCPDefinitions(companyId, cpSpecificationOptionId);
-
-					return null;
-				}
-
+				return null;
 			});
 	}
 
@@ -403,10 +404,10 @@ public class CPSpecificationOptionLocalServiceImpl
 			long companyId, long cpSpecificationOptionId)
 		throws Exception {
 
-		final Indexer<CPDefinition> indexer =
-			IndexerRegistryUtil.nullSafeGetIndexer(CPDefinition.class);
+		Indexer<CPDefinition> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			CPDefinition.class);
 
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			cpDefinitionSpecificationOptionValueLocalService.
 				getIndexableActionableDynamicQuery();
 
@@ -452,5 +453,11 @@ public class CPSpecificationOptionLocalServiceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CPSpecificationOptionLocalServiceImpl.class);
+
+	@ServiceReference(type = ExpandoRowLocalService.class)
+	private ExpandoRowLocalService _expandoRowLocalService;
+
+	@ServiceReference(type = FriendlyURLNormalizer.class)
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 }

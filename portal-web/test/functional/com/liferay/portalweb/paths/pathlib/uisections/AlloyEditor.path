@@ -2,11 +2,13 @@
 <head>
 <title>AlloyEditor</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">AlloyEditor</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>EDITOR</td>
@@ -31,6 +33,11 @@
 <tr>
 	<td>CONTENT_FIELD_UNDERLINE</td>
 	<td>//div[contains(@class,'alloy-editor-container')]//div[(contains(@data-placeholder,'Write your content here...') or contains(@data-placeholder,'Content')) and contains(@title,'Rich Text Editor')]//u[contains(.,'${key_underlineContent}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMAGE_TOOLBAR</td>
+	<td>//div[contains(@class,'ae-toolbar') and contains(@class,'alloy-editor')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -73,6 +80,11 @@
 <tr>
 	<td>TEXT_FORMATTING_ITALIC</td>
 	<td>//button[contains(@data-type,'button-italic')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_FORMATTING_REMOVE_LINK_BUTTON</td>
+	<td>//button[contains(@aria-label,'Remove link')]</td>
 	<td></td>
 </tr>
 <tr>

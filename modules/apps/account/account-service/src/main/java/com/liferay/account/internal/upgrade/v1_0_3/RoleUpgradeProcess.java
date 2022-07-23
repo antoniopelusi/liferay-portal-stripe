@@ -36,24 +36,25 @@ public class RoleUpgradeProcess extends UpgradeProcess {
 				" where name = '",
 				AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_MANAGER, "'"));
 
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select distinct Role_.roleId from Role_ where name = '" +
 					AccountRoleConstants.REQUIRED_ROLE_NAME_ACCOUNT_MANAGER +
 						"'");
-			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"delete from ResourcePermission where roleId = ?"))) {
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"delete from ResourcePermission where roleId = ?"))) {
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					long roleId = rs.getLong("roleId");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					long roleId = resultSet.getLong("roleId");
 
-					ps2.setLong(1, roleId);
+					preparedStatement2.setLong(1, roleId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

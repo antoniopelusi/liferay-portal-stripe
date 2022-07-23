@@ -32,7 +32,7 @@ definition {
 			key_lastName = "${userLastName}",
 			locator1 = "ExportPersonalData#HEADER");
 
-		while (IsElementPresent(locator1 = "ExportPersonalData#EXPORT_PROCESS_IN_PROGRESS")) {
+		while (IsElementPresent(key_status = "In Progress", locator1 = "ExportPersonalData#EXPORT_PROCESS_STATUS")) {
 			Pause(locator1 = "3000");
 		}
 
@@ -40,19 +40,40 @@ definition {
 			for (var application : list "${applications}") {
 				AssertElementNotPresent(
 					key_application = "${application}",
-					locator1 = "ExportPersonalData#EXPORT_PROCESS_APPLICATION_IN_PROGRESS");
+					key_status = "In Progress",
+					locator1 = "ExportPersonalData#EXPORT_PROCESS_APPLICATION_STATUS");
 			}
 		}
 
-		AssertElementPresent(locator1 = "ExportPersonalData#EXPORT_PROCESS_SUCCESSFUL");
+		AssertElementPresent(
+			key_status = "Successful",
+			locator1 = "ExportPersonalData#EXPORT_PROCESS_STATUS");
 
 		if (isSet(applications)) {
 			for (var application : list "${applications}") {
 				AssertElementPresent(
 					key_application = "${application}",
-					locator1 = "ExportPersonalData#EXPORT_PROCESS_SPECIFIC_APPLICATION_SUCCESSFUL");
+					key_status = "Successful",
+					locator1 = "ExportPersonalData#EXPORT_PROCESS_APPLICATION_STATUS");
 			}
 		}
+	}
+
+	macro anonymizeAllEntriesinApplicationCP {
+		GDPR.filterByApplications(
+			applicationItemsCount = "${applicationItemsCount}",
+			applications = "${applications}",
+			totalItemsCount = "${totalItemsCount}");
+
+		PortletEntry.selectAll();
+
+		Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Anonymize");
+
+		AssertConfirm(value1 = "Are you sure you want to anonymize the selected items?");
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro anonymizeDataViaReviewData {
@@ -91,34 +112,149 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
-	macro deleteEntryCP {
-		if (isSet(rowEntry)) {
-			LexiconEntry.gotoEntryMenuItemNoError(
-				menuItem = "Delete",
-				rowEntry = "${rowEntry}");
-
-			AssertConfirm(value1 = "Are you sure you want to delete this entity?");
+	macro anonymizeMultipleEntriesCP {
+		for (var rowEntry : list "${rowEntry}") {
+			LexiconEntry.selectEntry(rowEntry = "${rowEntry}");
 		}
-		else {
-			PortletEntry.selectAll();
 
-			Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
+		Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Anonymize");
+
+		AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to anonymize the selected items?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro anonymizeSingleEntryCP {
+		LexiconEntry.gotoEntryMenuItemNoError(
+			menuItem = "Anonymize",
+			rowEntry = "${rowEntry}");
+
+		AssertConfirm(value1 = "Are you sure you want to anonymize this entity?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro anonymizeSingleEntryViaInfoPanel {
+		LexiconEntry.selectEntry(rowEntry = "${rowEntry}");
+
+		Click.clickAt(locator1 = "Icon#INFO");
+
+		Click(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Anonymize");
+
+		AssertConfirm(value1 = "Are you sure you want to anonymize this entity?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro anonymizeTheSpecificEntry {
+		for (var rowIndexNumber : list "${rowIndexNumber}") {
+			Click(
+				key_rowIndexNumber = "${rowIndexNumber}",
+				locator1 = "Icon#ROW_VERTICAL_ELLIPSIS_N");
+
+			MenuItem.clickNoError(menuItem = "Anonymize");
+
+			AssertConfirm(value1 = "Are you sure you want to anonymize this entity?");
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	macro deleteAllEntriesCP {
+		PortletEntry.selectAll();
+
+		Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to delete the selected items?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro deleteAndAnonymizeAllEntriesCP {
+		GDPR.filterByApplications(
+			applicationItemsCount = "${applicationItemsCount}",
+			applications = "All Applications",
+			totalItemsCount = "${totalItemsCount}");
+
+		GDPR.deleteAllEntriesCP();
+
+		GDPR.viewNoEntryInApplicationCP(applications = "All Applications");
+
+		Navigator.gotoNavTab(navTab = "Auto Anonymize Data");
+
+		var key_text = "Anonymize";
+
+		AssertClickNoError(
+			locator1 = "Button#ANY",
+			value1 = "Anonymize");
+
+		AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to anonymize the user's personal data?");
+
+		AssertConfirm.assertConfirmationNoError(value1 = "All personal data associated with this user's applications has been deleted or anonymized. The user can now be deleted. Click OK to delete the user.");
+
+		Alert.viewSuccessMessage();
+
+		User.openUsersAdmin();
+
+		LexiconEntry.viewNoEntry(rowEntry = "${userName}");
+	}
+
+	macro deleteExportedPersonalData {
+		for (var application : list "${applications}") {
+			var key_rowEntry = "${application}";
+
+			Click(locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_ELLIPSIS");
 
 			MenuItem.clickNoError(menuItem = "Delete");
 
-			AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to delete the selected items?");
+			AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
 
-			if (isSet(anonymizeData)) {
-				AssertElementPresent(
-					key_tab = "Auto Anonymize Data",
-					locator1 = "NavTab#ACTIVE_TAB_LINK");
-			}
-			else {
-				AssertConfirm.assertConfirmationNoError(value1 = "All personal data associated with this user's applications has been deleted or anonymized. The user can now be deleted. Click OK to delete the user.");
-			}
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	macro deleteMultipleEntriesCP {
+		for (var rowEntry : list "${rowEntry}") {
+			LexiconEntry.selectEntry(rowEntry = "${rowEntry}");
 		}
 
+		Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to delete the selected items?");
+
 		Alert.viewSuccessMessage();
+	}
+
+	macro deleteSingleEntryCP {
+		LexiconEntry.gotoEntryMenuItemNoError(
+			menuItem = "Delete",
+			rowEntry = "${rowEntry}");
+
+		AssertConfirm(value1 = "Are you sure you want to delete this entity?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro deleteTheSpecificEntry {
+		for (var rowIndexNumber : list "${rowIndexNumber}") {
+			Click(
+				key_rowIndexNumber = "${rowIndexNumber}",
+				locator1 = "Icon#ROW_VERTICAL_ELLIPSIS_N");
+
+			MenuItem.clickNoError(menuItem = "Delete");
+
+			AssertConfirm(value1 = "Are you sure you want to delete this entity?");
+
+			Alert.viewSuccessMessage();
+		}
 	}
 
 	macro downloadExportedPersonalData {
@@ -155,12 +291,12 @@ definition {
 		AssertTextEquals.assertPartialText(
 			key_applications = "${applications}",
 			locator1 = "DataErasure#APPLICATIONS_COUNT",
-			value1 = "${applications} (${itemsCount})");
+			value1 = "${applications} (${applicationItemsCount})");
 
 		AssertTextEquals.assertPartialText(
-			key_itemsCount = "${itemsCount}",
+			key_itemsCount = "${totalItemsCount}",
 			locator1 = "DataErasure#REMAINING_ITEMS_COUNT",
-			value1 = "Remaining Items: ${itemsCount}");
+			value1 = "Remaining Items: ${totalItemsCount}");
 	}
 
 	macro filterByScope {
@@ -182,7 +318,7 @@ definition {
 	}
 
 	macro viewNoEntryInApplicationCP {
-		if (IsElementNotPresent(locator1 = "NavTab#ACTIVE_TAB_LINK", key_tab = "Review Data")) {
+		if (IsElementNotPresent(key_tab = "Review Data", locator1 = "NavTab#ACTIVE_TAB_LINK")) {
 			Navigator.gotoNavTab(navTab = "Review Data");
 		}
 

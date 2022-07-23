@@ -14,6 +14,8 @@
 
 package com.liferay.source.formatter;
 
+import com.liferay.portal.tools.ToolsUtil;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -28,6 +30,8 @@ public class SourceFormatterArgs {
 	public static final boolean AUTO_FIX = true;
 
 	public static final String BASE_DIR_NAME = "./";
+
+	public static final int COMMIT_COUNT = 0;
 
 	public static final boolean FAIL_ON_AUTO_FIX = false;
 
@@ -45,6 +49,8 @@ public class SourceFormatterArgs {
 
 	public static final boolean INCLUDE_SUBREPOSITORIES = false;
 
+	public static final int MAX_DIR_LEVEL = ToolsUtil.PORTAL_MAX_DIR_LEVEL;
+
 	public static final int MAX_LINE_LENGTH = 80;
 
 	public static final String OUTPUT_FILE_NAME = null;
@@ -57,10 +63,6 @@ public class SourceFormatterArgs {
 	public static final int PROCESSOR_THREAD_COUNT = 5;
 
 	public static final boolean SHOW_DEBUG_INFORMATION = false;
-
-	public static final boolean SHOW_DOCUMENTATION = false;
-
-	public static final boolean SHOW_STATUS_UPDATES = false;
 
 	public static final boolean VALIDATE_COMMIT_MESSAGES = false;
 
@@ -89,6 +91,10 @@ public class SourceFormatterArgs {
 		return _checkNames;
 	}
 
+	public int getCommitCount() {
+		return _commitCount;
+	}
+
 	public List<String> getFileExtensions() {
 		return _fileExtensions;
 	}
@@ -99,6 +105,10 @@ public class SourceFormatterArgs {
 
 	public String getGitWorkingBranchName() {
 		return _gitWorkingBranchName;
+	}
+
+	public int getMaxDirLevel() {
+		return _maxDirLevel;
 	}
 
 	public int getMaxLineLength() {
@@ -119,6 +129,10 @@ public class SourceFormatterArgs {
 
 	public List<String> getSkipCheckNames() {
 		return _skipCheckNames;
+	}
+
+	public List<String> getSourceFormatterProperties() {
+		return _sourceFormatterProperties;
 	}
 
 	public boolean isAutoFix() {
@@ -161,14 +175,6 @@ public class SourceFormatterArgs {
 		return _showDebugInformation;
 	}
 
-	public boolean isShowDocumentation() {
-		return _showDocumentation;
-	}
-
-	public boolean isShowStatusUpdates() {
-		return _showStatusUpdates;
-	}
-
 	public boolean isValidateCommitMessages() {
 		return _validateCommitMessages;
 	}
@@ -195,6 +201,10 @@ public class SourceFormatterArgs {
 
 	public void setCheckNames(List<String> checkNames) {
 		_checkNames = checkNames;
+	}
+
+	public void setCommitCount(int commitCount) {
+		_commitCount = commitCount;
 	}
 
 	public void setFailOnAutoFix(boolean failOnAutoFix) {
@@ -246,6 +256,10 @@ public class SourceFormatterArgs {
 		_includeSubrepositories = includeSubrepositories;
 	}
 
+	public void setMaxDirLevel(int maxDirLevel) {
+		_maxDirLevel = maxDirLevel;
+	}
+
 	public void setMaxLineLength(int maxLineLength) {
 		_maxLineLength = maxLineLength;
 	}
@@ -266,16 +280,14 @@ public class SourceFormatterArgs {
 		_showDebugInformation = showDebugInformation;
 	}
 
-	public void setShowDocumentation(boolean showDocumentation) {
-		_showDocumentation = showDocumentation;
-	}
-
-	public void setShowStatusUpdates(boolean showStatusUpdates) {
-		_showStatusUpdates = showStatusUpdates;
-	}
-
 	public void setSkipCheckNames(List<String> skipCheckNames) {
 		_skipCheckNames = skipCheckNames;
+	}
+
+	public void setSourceFormatterProperties(
+		List<String> sourceFormatterProperties) {
+
+		_sourceFormatterProperties = sourceFormatterProperties;
 	}
 
 	public void setValidateCommitMessages(boolean validateCommitMessages) {
@@ -286,6 +298,7 @@ public class SourceFormatterArgs {
 	private String _baseDirName = BASE_DIR_NAME;
 	private List<String> _checkCategoryNames = new ArrayList<>();
 	private List<String> _checkNames = new ArrayList<>();
+	private int _commitCount = COMMIT_COUNT;
 	private boolean _failOnAutoFix = FAIL_ON_AUTO_FIX;
 	private boolean _failOnHasWarning = FAIL_ON_HAS_WARNING;
 	private List<String> _fileExtensions = new ArrayList<>();
@@ -296,15 +309,15 @@ public class SourceFormatterArgs {
 	private String _gitWorkingBranchName = GIT_WORKING_BRANCH_NAME;
 	private boolean _includeGeneratedFiles = INCLUDE_GENERATED_FILES;
 	private boolean _includeSubrepositories = INCLUDE_SUBREPOSITORIES;
+	private int _maxDirLevel = MAX_DIR_LEVEL;
 	private int _maxLineLength = MAX_LINE_LENGTH;
 	private String _outputFileName = OUTPUT_FILE_NAME;
 	private boolean _printErrors = PRINT_ERRORS;
 	private int _processorThreadCount = PROCESSOR_THREAD_COUNT;
 	private final Set<String> _recentChangesFileNames = new HashSet<>();
 	private boolean _showDebugInformation = SHOW_DEBUG_INFORMATION;
-	private boolean _showDocumentation = SHOW_DOCUMENTATION;
-	private boolean _showStatusUpdates = SHOW_STATUS_UPDATES;
 	private List<String> _skipCheckNames = new ArrayList<>();
+	private List<String> _sourceFormatterProperties = new ArrayList<>();
 	private boolean _validateCommitMessages = VALIDATE_COMMIT_MESSAGES;
 
 }

@@ -18,7 +18,7 @@ package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
  * @author Jeyvison Nascimento
  */
 public class SetValidationFieldNameFunction
-	extends SetPropertyFunction<String> {
+	extends BaseSetPropertyFunction<String> {
 
 	public static final String NAME = "setValidationFieldName";
 

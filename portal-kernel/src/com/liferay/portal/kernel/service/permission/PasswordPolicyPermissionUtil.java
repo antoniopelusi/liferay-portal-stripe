@@ -27,7 +27,7 @@ public class PasswordPolicyPermissionUtil {
 			String actionId)
 		throws PrincipalException {
 
-		getPasswordPolicyPermission().check(
+		_passwordPolicyPermission.check(
 			permissionChecker, passwordPolicyId, actionId);
 	}
 
@@ -35,7 +35,7 @@ public class PasswordPolicyPermissionUtil {
 		PermissionChecker permissionChecker, long passwordPolicyId,
 		String actionId) {
 
-		return getPasswordPolicyPermission().contains(
+		return _passwordPolicyPermission.contains(
 			permissionChecker, passwordPolicyId, actionId);
 	}
 

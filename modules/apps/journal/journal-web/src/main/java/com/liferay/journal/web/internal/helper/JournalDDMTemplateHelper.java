@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,8 +40,7 @@ import org.osgi.service.component.annotations.Component;
 public class JournalDDMTemplateHelper {
 
 	public String getDataContent(
-		TemplateVariableDefinition templateVariableDefinition,
-		String language) {
+		TemplateVariableDefinition templateVariableDefinition) {
 
 		String dataContent = StringPool.BLANK;
 
@@ -55,12 +53,12 @@ public class JournalDDMTemplateHelper {
 			dataContent = _getListCode(
 				templateVariableDefinition.getName(),
 				itemTemplateVariableDefinition.getName(),
-				itemTemplateVariableDefinition.getAccessor(), language);
+				itemTemplateVariableDefinition.getAccessor());
 		}
 		else if (Validator.isNull(dataType)) {
 			dataContent = _getVariableReferenceCode(
 				templateVariableDefinition.getName(),
-				templateVariableDefinition.getAccessor(), language);
+				templateVariableDefinition.getAccessor());
 		}
 		else if (dataType.equals("service-locator")) {
 			Class<?> templateVariableDefinitionClass =
@@ -69,28 +67,22 @@ public class JournalDDMTemplateHelper {
 			String variableName =
 				templateVariableDefinitionClass.getSimpleName();
 
-			StringBundler sb = new StringBundler(3);
-
-			sb.append(
+			dataContent = StringBundler.concat(
 				_getVariableAssignmentCode(
 					variableName,
 					"serviceLocator.findService(\"" +
-						templateVariableDefinition.getName() + "\")",
-					language));
-			sb.append("[$CURSOR$]");
-			sb.append(_getVariableReferenceCode(variableName, null, language));
-
-			dataContent = sb.toString();
+						templateVariableDefinition.getName() + "\")"),
+				"[$CURSOR$]", _getVariableReferenceCode(variableName, null));
 		}
 		else {
 			try {
 				String[] generateCode = templateVariableDefinition.generateCode(
-					language);
+					TemplateConstants.LANG_TYPE_FTL);
 
 				dataContent = generateCode[0];
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -156,72 +148,14 @@ public class JournalDDMTemplateHelper {
 		return sb.toString();
 	}
 
-	private String _getAccessor(String accessor, String language) {
-		if (StringUtil.equalsIgnoreCase(
-				language, TemplateConstants.LANG_TYPE_VM)) {
-
-			if (!accessor.contains(StringPool.OPEN_PARENTHESIS)) {
-				return accessor;
-			}
-
-			StringTokenizer st = new StringTokenizer(accessor, "(,");
-
-			StringBundler sb = new StringBundler(st.countTokens() * 2);
-
-			sb.append(st.nextToken());
-			sb.append(StringPool.OPEN_PARENTHESIS);
-
-			while (st.hasMoreTokens()) {
-				sb.append(StringPool.DOLLAR);
-				sb.append(st.nextToken());
-			}
-
-			accessor = sb.toString();
-		}
-
-		return accessor;
-	}
-
 	private String _getListCode(
-		String variableName, String itemName, String accessor,
-		String language) {
+		String variableName, String itemName, String accessor) {
 
-		if (StringUtil.equalsIgnoreCase(
-				language, TemplateConstants.LANG_TYPE_FTL)) {
-
-			StringBundler sb = new StringBundler(9);
-
-			sb.append("<#if ");
-			sb.append(variableName);
-			sb.append("?has_content>\n\t<#list ");
-			sb.append(variableName);
-			sb.append(" as ");
-			sb.append(itemName);
-			sb.append(">\n\t\t");
-			sb.append(_getVariableReferenceCode(itemName, accessor, language));
-			sb.append("[$CURSOR$]\n\t</#list>\n</#if>");
-
-			return sb.toString();
-		}
-		else if (StringUtil.equalsIgnoreCase(
-					language, TemplateConstants.LANG_TYPE_VM)) {
-
-			StringBundler sb = new StringBundler(9);
-
-			sb.append("#if (!$");
-			sb.append(variableName);
-			sb.append(".isEmpty())\n\t#foreach ($");
-			sb.append(itemName);
-			sb.append(" in $");
-			sb.append(variableName);
-			sb.append(")\n\t\t");
-			sb.append(_getVariableReferenceCode(itemName, accessor, language));
-			sb.append("[$CURSOR$]#end\n#end");
-
-			return sb.toString();
-		}
-
-		return StringPool.BLANK;
+		return StringBundler.concat(
+			"<#if ", variableName, "?has_content>\n\t<#list ", variableName,
+			" as ", itemName, ">\n\t\t",
+			_getVariableReferenceCode(itemName, accessor),
+			"[$CURSOR$]\n\t</#list>\n</#if>");
 	}
 
 	private String _getPaletteItemTitle(
@@ -265,56 +199,22 @@ public class JournalDDMTemplateHelper {
 	}
 
 	private String _getVariableAssignmentCode(
-		String variableName, String variableValue, String language) {
+		String variableName, String variableValue) {
 
-		if (StringUtil.equalsIgnoreCase(
-				language, TemplateConstants.LANG_TYPE_FTL)) {
-
-			return StringBundler.concat(
-				"<#assign ", variableName, " = ", variableValue, ">");
-		}
-		else if (StringUtil.equalsIgnoreCase(
-					language, TemplateConstants.LANG_TYPE_VM)) {
-
-			if (!variableValue.startsWith(StringPool.DOUBLE_QUOTE) &&
-				!variableValue.startsWith(StringPool.OPEN_BRACKET) &&
-				!variableValue.startsWith(StringPool.OPEN_CURLY_BRACE) &&
-				!variableValue.startsWith(StringPool.QUOTE) &&
-				!Validator.isNumber(variableValue)) {
-
-				variableValue = StringPool.DOLLAR + variableValue;
-			}
-
-			return StringBundler.concat(
-				"#set ($", variableName, " = ", variableValue, ")");
-		}
-
-		return variableName;
+		return StringBundler.concat(
+			"<#assign ", variableName, " = ", variableValue, ">");
 	}
 
 	private String _getVariableReferenceCode(
-		String variableName, String accessor, String language) {
+		String variableName, String accessor) {
 
 		String methodInvocation = StringPool.BLANK;
 
 		if (Validator.isNotNull(accessor)) {
-			methodInvocation =
-				StringPool.PERIOD + _getAccessor(accessor, language);
+			methodInvocation = StringPool.PERIOD + accessor;
 		}
 
-		if (StringUtil.equalsIgnoreCase(
-				language, TemplateConstants.LANG_TYPE_FTL)) {
-
-			return StringBundler.concat(
-				"${", variableName, methodInvocation, "}");
-		}
-		else if (StringUtil.equalsIgnoreCase(
-					language, TemplateConstants.LANG_TYPE_VM)) {
-
-			return StringPool.DOLLAR + variableName + methodInvocation;
-		}
-
-		return variableName;
+		return StringBundler.concat("${", variableName, methodInvocation, "}");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -70,12 +70,12 @@ public class DefaultLandingPageAction extends Action {
 			return;
 		}
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
 		if (path.contains("${liferay:screenName}") ||
 			path.contains("${liferay:userId}")) {
 
-			User user = (User)session.getAttribute(WebKeys.USER);
+			User user = (User)httpSession.getAttribute(WebKeys.USER);
 
 			if (user == null) {
 				return;
@@ -92,7 +92,7 @@ public class DefaultLandingPageAction extends Action {
 
 		LastPath lastPath = new LastPath(StringPool.BLANK, path);
 
-		session.setAttribute(WebKeys.LAST_PATH, lastPath);
+		httpSession.setAttribute(WebKeys.LAST_PATH, lastPath);
 
 		// The commented code shows how you can programmaticaly set the user's
 		// landing page. You can modify this class to utilize a custom algorithm
@@ -105,7 +105,7 @@ public class DefaultLandingPageAction extends Action {
 
 		LastPath lastPath = new LastPath("/c", "/portal/layout", params);
 
-		session.setAttribute(WebKeys.LAST_PATH, lastPath);*/
+		httpSession.setAttribute(WebKeys.LAST_PATH, lastPath);*/
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

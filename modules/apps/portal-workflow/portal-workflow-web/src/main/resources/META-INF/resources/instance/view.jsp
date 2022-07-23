@@ -20,11 +20,9 @@
 DateSearchEntry dateSearchEntry = new DateSearchEntry();
 
 String displayStyle = workflowInstanceViewDisplayContext.getDisplayStyle();
-
-PortletURL portletURL = workflowInstanceViewDisplayContext.getViewPortletURL();
 %>
 
-<aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
+<aui:form action="<%= workflowInstanceViewDisplayContext.getViewPortletURL() %>" method="post" name="fm">
 	<liferay-util:include page="/instance/toolbar.jsp" servletContext="<%= application %>" />
 </aui:form>
 

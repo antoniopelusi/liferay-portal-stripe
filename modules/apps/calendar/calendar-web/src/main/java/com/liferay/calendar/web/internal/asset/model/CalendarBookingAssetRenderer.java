@@ -156,7 +156,7 @@ public class CalendarBookingAssetRenderer
 			"/edit_calendar_booking.jsp"
 		).setParameter(
 			"calendarBookingId", _calendarBooking.getCalendarBookingId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

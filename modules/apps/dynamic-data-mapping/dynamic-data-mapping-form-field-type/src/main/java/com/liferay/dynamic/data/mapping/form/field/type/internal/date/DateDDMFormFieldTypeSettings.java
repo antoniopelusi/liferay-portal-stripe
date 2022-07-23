@@ -31,7 +31,16 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 @DDMForm(
 	rules = {
 		@DDMFormRule(
-			actions = "setVisible('dataType', false)", condition = "TRUE"
+			actions = "setValue('required', isRequiredObjectField(getValue('objectFieldName')))",
+			condition = "hasObjectField(getValue('objectFieldName'))"
+		),
+		@DDMFormRule(
+			actions = {
+				"setEnabled('required', not(hasObjectField(getValue('objectFieldName'))))",
+				"setVisible('dataType', false)",
+				"setVisible('requiredErrorMessage', getValue('required'))"
+			},
+			condition = "TRUE"
 		)
 	}
 )
@@ -44,7 +53,11 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 				@DDMFormLayoutRow(
 					{
 						@DDMFormLayoutColumn(
-							size = 12, value = {"label", "tip", "required"}
+							size = 12,
+							value = {
+								"label", "tip", "required",
+								"requiredErrorMessage"
+							}
 						)
 					}
 				)
@@ -59,11 +72,11 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 							size = 12,
 							value = {
 								"name", "fieldReference", "predefinedValue",
-								"visibilityExpression", "validation",
+								"objectFieldName", "visibilityExpression",
 								"fieldNamespace", "indexType",
 								"labelAtStructureLevel", "localizable",
 								"nativeField", "readOnly", "dataType", "type",
-								"showLabel", "repeatable"
+								"showLabel", "repeatable", "validation"
 							}
 						)
 					}
@@ -81,14 +94,16 @@ public interface DateDDMFormFieldTypeSettings
 
 	@DDMFormField(
 		dataType = "string", label = "%predefined-value",
-		properties = "visualProperty=true", type = "date"
+		properties = {
+			"tooltip=%enter-a-default-value-that-is-submitted-if-no-other-value-is-entered",
+			"visualProperty=true"
+		},
+		type = "date"
 	)
 	@Override
 	public LocalizedValue predefinedValue();
 
-	@DDMFormField(
-		dataType = "date", type = "validation", visibilityExpression = "FALSE"
-	)
+	@DDMFormField(dataType = "date", label = "%validation", type = "validation")
 	@Override
 	public DDMFormFieldValidation validation();
 

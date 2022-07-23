@@ -16,7 +16,6 @@ package com.liferay.portlet.asset.model.impl;
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryModel;
-import com.liferay.asset.kernel.model.AssetCategorySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -36,21 +35,20 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -89,7 +87,7 @@ public class AssetCategoryModelImpl
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
 		{"modifiedDate", Types.TIMESTAMP}, {"parentCategoryId", Types.BIGINT},
 		{"treePath", Types.VARCHAR}, {"name", Types.VARCHAR},
-		{"title", Types.VARCHAR}, {"description", Types.VARCHAR},
+		{"title", Types.CLOB}, {"description", Types.CLOB},
 		{"vocabularyId", Types.BIGINT}, {"lastPublishDate", Types.TIMESTAMP}
 	};
 
@@ -111,14 +109,14 @@ public class AssetCategoryModelImpl
 		TABLE_COLUMNS_MAP.put("parentCategoryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("treePath", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
-		TABLE_COLUMNS_MAP.put("title", Types.VARCHAR);
-		TABLE_COLUMNS_MAP.put("description", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("title", Types.CLOB);
+		TABLE_COLUMNS_MAP.put("description", Types.CLOB);
 		TABLE_COLUMNS_MAP.put("vocabularyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("lastPublishDate", Types.TIMESTAMP);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AssetCategory (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,categoryId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentCategoryId LONG,treePath STRING null,name VARCHAR(255) null,title STRING null,description STRING null,vocabularyId LONG,lastPublishDate DATE null,primary key (categoryId, ctCollectionId))";
+		"create table AssetCategory (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,categoryId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentCategoryId LONG,treePath STRING null,name VARCHAR(255) null,title TEXT null,description TEXT null,vocabularyId LONG,lastPublishDate DATE null,primary key (categoryId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table AssetCategory";
 
@@ -199,66 +197,6 @@ public class AssetCategoryModelImpl
 	 */
 	@Deprecated
 	public static final long VOCABULARYID_COLUMN_BITMASK = 128L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static AssetCategory toModel(AssetCategorySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		AssetCategory model = new AssetCategoryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setCategoryId(soapModel.getCategoryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentCategoryId(soapModel.getParentCategoryId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setName(soapModel.getName());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setVocabularyId(soapModel.getVocabularyId());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<AssetCategory> toModels(AssetCategorySoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<AssetCategory> models = new ArrayList<AssetCategory>(
-			soapModels.length);
-
-		for (AssetCategorySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
@@ -347,34 +285,6 @@ public class AssetCategoryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, AssetCategory>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			AssetCategory.class.getClassLoader(), AssetCategory.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<AssetCategory> constructor =
-				(Constructor<AssetCategory>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<AssetCategory, Object>>
@@ -1235,6 +1145,48 @@ public class AssetCategoryModelImpl
 	}
 
 	@Override
+	public AssetCategory cloneWithOriginalValues() {
+		AssetCategoryImpl assetCategoryImpl = new AssetCategoryImpl();
+
+		assetCategoryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		assetCategoryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		assetCategoryImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		assetCategoryImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		assetCategoryImpl.setCategoryId(
+			this.<Long>getColumnOriginalValue("categoryId"));
+		assetCategoryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		assetCategoryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		assetCategoryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		assetCategoryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		assetCategoryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		assetCategoryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		assetCategoryImpl.setParentCategoryId(
+			this.<Long>getColumnOriginalValue("parentCategoryId"));
+		assetCategoryImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		assetCategoryImpl.setName(this.<String>getColumnOriginalValue("name"));
+		assetCategoryImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+		assetCategoryImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		assetCategoryImpl.setVocabularyId(
+			this.<Long>getColumnOriginalValue("vocabularyId"));
+		assetCategoryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return assetCategoryImpl;
+	}
+
+	@Override
 	public int compareTo(AssetCategory assetCategory) {
 		int value = 0;
 
@@ -1418,7 +1370,7 @@ public class AssetCategoryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1429,9 +1381,26 @@ public class AssetCategoryModelImpl
 			Function<AssetCategory, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((AssetCategory)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((AssetCategory)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1478,7 +1447,9 @@ public class AssetCategoryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, AssetCategory>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					AssetCategory.class, ModelWrapper.class);
 
 	}
 

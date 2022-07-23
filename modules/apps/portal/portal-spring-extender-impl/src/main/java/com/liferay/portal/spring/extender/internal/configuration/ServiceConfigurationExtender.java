@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Release;
-import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.ServiceComponentLocalService;
 
 import java.util.Dictionary;
@@ -64,12 +63,10 @@ public class ServiceConfigurationExtender
 
 		ClassLoader classLoader = bundleWiring.getClassLoader();
 
-		Configuration portletConfiguration = ConfigurationUtil.getConfiguration(
-			classLoader, "portlet");
 		Configuration serviceConfiguration = ConfigurationUtil.getConfiguration(
 			classLoader, "service");
 
-		if ((portletConfiguration == null) && (serviceConfiguration == null)) {
+		if (serviceConfiguration == null) {
 			return null;
 		}
 
@@ -78,8 +75,8 @@ public class ServiceConfigurationExtender
 
 		ServiceConfigurationInitializer serviceConfigurationInitializer =
 			new ServiceConfigurationInitializer(
-				bundle, classLoader, portletConfiguration, serviceConfiguration,
-				_resourceActions, _serviceComponentLocalService);
+				bundle, classLoader, serviceConfiguration,
+				_serviceComponentLocalService);
 
 		ServiceConfigurationExtension serviceConfigurationExtension =
 			new ServiceConfigurationExtension(
@@ -179,17 +176,10 @@ public class ServiceConfigurationExtender
 		}
 
 		private String _getVersionRangerFilter(Version version) {
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("(&(release.schema.version>=");
-			sb.append(version.getMajor());
-			sb.append(".");
-			sb.append(version.getMinor());
-			sb.append(".0)(!(release.schema.version>=");
-			sb.append(version.getMajor() + 1);
-			sb.append(".0.0)))");
-
-			return sb.toString();
+			return StringBundler.concat(
+				"(&(release.schema.version>=", version.getMajor(), ".",
+				version.getMinor(), ".0)(!(release.schema.version>=",
+				version.getMajor() + 1, ".0.0)))");
 		}
 
 		private final org.apache.felix.dm.Component _component;
@@ -214,9 +204,6 @@ public class ServiceConfigurationExtender
 		ServiceConfigurationExtender.class);
 
 	private BundleTracker<?> _bundleTracker;
-
-	@Reference
-	private ResourceActions _resourceActions;
 
 	@Reference
 	private ServiceComponentLocalService _serviceComponentLocalService;

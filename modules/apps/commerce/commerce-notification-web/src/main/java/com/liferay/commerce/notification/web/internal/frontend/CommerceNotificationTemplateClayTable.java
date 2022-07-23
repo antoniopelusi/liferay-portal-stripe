@@ -87,17 +87,17 @@ public class CommerceNotificationTemplateClayTable
 		ClayTableSchemaBuilder clayTableSchemaBuilder =
 			_clayTableSchemaBuilderFactory.create();
 
-		ClayTableSchemaField nameField =
+		ClayTableSchemaField nameClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("name", "name");
 
-		nameField.setContentRenderer("actionLink");
+		nameClayTableSchemaField.setContentRenderer("actionLink");
 
 		clayTableSchemaBuilder.addClayTableSchemaField("type", "type");
 
-		ClayTableSchemaField enabledField =
+		ClayTableSchemaField enabledClayTableSchemaField =
 			clayTableSchemaBuilder.addClayTableSchemaField("enabled", "status");
 
-		enabledField.setContentRenderer("label");
+		enabledClayTableSchemaField.setContentRenderer("label");
 
 		return clayTableSchemaBuilder.build();
 	}
@@ -117,7 +117,7 @@ public class CommerceNotificationTemplateClayTable
 						PortletProvider.Action.MANAGE)
 				).setWindowState(
 					LiferayWindowState.POP_UP
-				).build();
+				).buildPortletURL();
 
 				long commerceChannelId = ParamUtil.getLong(
 					httpServletRequest, "commerceChannelId");
@@ -136,10 +136,6 @@ public class CommerceNotificationTemplateClayTable
 			}
 		).add(
 			dropdownItem -> {
-				String redirect = ParamUtil.getString(
-					httpServletRequest, "currentUrl",
-					_portal.getCurrentURL(httpServletRequest));
-
 				dropdownItem.setHref(
 					PortletURLBuilder.create(
 						_portal.getControlPanelPortletURL(
@@ -150,11 +146,13 @@ public class CommerceNotificationTemplateClayTable
 					).setCMD(
 						Constants.DELETE
 					).setRedirect(
-						redirect
+						ParamUtil.getString(
+							httpServletRequest, "currentUrl",
+							_portal.getCurrentURL(httpServletRequest))
 					).setParameter(
 						"commerceNotificationTemplateId",
 						notificationTemplate.getNotificationTemplateId()
-					).build());
+					).buildPortletURL());
 
 				dropdownItem.setLabel(
 					LanguageUtil.get(httpServletRequest, "delete"));

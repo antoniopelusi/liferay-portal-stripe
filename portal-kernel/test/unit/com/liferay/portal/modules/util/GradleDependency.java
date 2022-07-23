@@ -32,15 +32,9 @@ public class GradleDependency {
 		_moduleName = moduleName;
 
 		if (moduleVersion.equals(_VERSION_DEFAULT)) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(Integer.MAX_VALUE);
-			sb.append(StringPool.PERIOD);
-			sb.append(Integer.MAX_VALUE);
-			sb.append(StringPool.PERIOD);
-			sb.append(Integer.MAX_VALUE);
-
-			_moduleVersion = sb.toString();
+			_moduleVersion = StringBundler.concat(
+				Integer.MAX_VALUE, StringPool.PERIOD, Integer.MAX_VALUE,
+				StringPool.PERIOD, Integer.MAX_VALUE);
 
 			_projectDependency = true;
 		}

@@ -15,7 +15,6 @@
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -25,14 +24,15 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.tools.service.builder.test.exception.NoSuchLazyBlobEntryException;
 import com.liferay.portal.tools.service.builder.test.model.LazyBlobEntry;
@@ -40,9 +40,11 @@ import com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryTable;
 import com.liferay.portal.tools.service.builder.test.model.impl.LazyBlobEntryImpl;
 import com.liferay.portal.tools.service.builder.test.model.impl.LazyBlobEntryModelImpl;
 import com.liferay.portal.tools.service.builder.test.service.persistence.LazyBlobEntryPersistence;
+import com.liferay.portal.tools.service.builder.test.service.persistence.LazyBlobEntryUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
@@ -50,12 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the lazy blob entry service.
@@ -899,6 +895,8 @@ public class LazyBlobEntryPersistenceImpl
 			lazyBlobEntry);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the lazy blob entries in the entity cache if it is enabled.
 	 *
@@ -906,6 +904,13 @@ public class LazyBlobEntryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<LazyBlobEntry> lazyBlobEntries) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (lazyBlobEntries.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (LazyBlobEntry lazyBlobEntry : lazyBlobEntries) {
 			if (entityCache.getResult(
 					LazyBlobEntryImpl.class, lazyBlobEntry.getPrimaryKey()) ==
@@ -984,7 +989,7 @@ public class LazyBlobEntryPersistenceImpl
 		lazyBlobEntry.setNew(true);
 		lazyBlobEntry.setPrimaryKey(lazyBlobEntryId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		lazyBlobEntry.setUuid(uuid);
 
@@ -1101,7 +1106,7 @@ public class LazyBlobEntryPersistenceImpl
 			(LazyBlobEntryModelImpl)lazyBlobEntry;
 
 		if (Validator.isNull(lazyBlobEntry.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			lazyBlobEntry.setUuid(uuid);
 		}
@@ -1404,14 +1409,8 @@ public class LazyBlobEntryPersistenceImpl
 	 * Initializes the lazy blob entry persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			LazyBlobEntryPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new LazyBlobEntryModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1452,15 +1451,31 @@ public class LazyBlobEntryPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()},
 			new String[] {"uuid_", "groupId"}, false);
+
+		_setLazyBlobEntryUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(LazyBlobEntryImpl.class.getName());
+		_setLazyBlobEntryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(LazyBlobEntryImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setLazyBlobEntryUtilPersistence(
+		LazyBlobEntryPersistence lazyBlobEntryPersistence) {
+
+		try {
+			Field field = LazyBlobEntryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, lazyBlobEntryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -1499,94 +1514,7 @@ public class LazyBlobEntryPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class LazyBlobEntryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			LazyBlobEntryModelImpl lazyBlobEntryModelImpl =
-				(LazyBlobEntryModelImpl)baseModel;
-
-			long columnBitmask = lazyBlobEntryModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(lazyBlobEntryModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						lazyBlobEntryModelImpl.getColumnBitmask(columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(lazyBlobEntryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return LazyBlobEntryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return LazyBlobEntryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			LazyBlobEntryModelImpl lazyBlobEntryModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						lazyBlobEntryModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = lazyBlobEntryModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

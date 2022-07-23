@@ -23,15 +23,17 @@ import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -200,33 +202,6 @@ public class CounterModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, Counter>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Counter.class.getClassLoader(), Counter.class, ModelWrapper.class);
-
-		try {
-			Constructor<Counter> constructor =
-				(Constructor<Counter>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<Counter, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<Counter, Object>>
@@ -336,6 +311,17 @@ public class CounterModelImpl
 	}
 
 	@Override
+	public Counter cloneWithOriginalValues() {
+		CounterImpl counterImpl = new CounterImpl();
+
+		counterImpl.setName(this.<String>getColumnOriginalValue("name"));
+		counterImpl.setCurrentId(
+			this.<Long>getColumnOriginalValue("currentId"));
+
+		return counterImpl;
+	}
+
+	@Override
 	public int compareTo(Counter counter) {
 		String primaryKey = counter.getPrimaryKey();
 
@@ -417,7 +403,7 @@ public class CounterModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -428,9 +414,26 @@ public class CounterModelImpl
 			Function<Counter, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Counter)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Counter)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -477,7 +480,9 @@ public class CounterModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Counter>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Counter.class, ModelWrapper.class);
 
 	}
 

@@ -14,7 +14,6 @@
 
 package com.liferay.portal.kernel.service.persistence;
 
-import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -1486,10 +1485,10 @@ public class UserGroupUtil {
 	 * @param parentUserGroupId the parent user group ID
 	 * @return the matching user groups
 	 */
-	public static List<UserGroup> findByU_C_P(
+	public static List<UserGroup> findByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId) {
 
-		return getPersistence().findByU_C_P(
+		return getPersistence().findByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId);
 	}
 
@@ -1507,11 +1506,11 @@ public class UserGroupUtil {
 	 * @param end the upper bound of the range of user groups (not inclusive)
 	 * @return the range of matching user groups
 	 */
-	public static List<UserGroup> findByU_C_P(
+	public static List<UserGroup> findByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId, int start,
 		int end) {
 
-		return getPersistence().findByU_C_P(
+		return getPersistence().findByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId, start, end);
 	}
 
@@ -1530,11 +1529,11 @@ public class UserGroupUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching user groups
 	 */
-	public static List<UserGroup> findByU_C_P(
+	public static List<UserGroup> findByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId, int start,
 		int end, OrderByComparator<UserGroup> orderByComparator) {
 
-		return getPersistence().findByU_C_P(
+		return getPersistence().findByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId, start, end,
 			orderByComparator);
 	}
@@ -1555,12 +1554,12 @@ public class UserGroupUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching user groups
 	 */
-	public static List<UserGroup> findByU_C_P(
+	public static List<UserGroup> findByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId, int start,
 		int end, OrderByComparator<UserGroup> orderByComparator,
 		boolean useFinderCache) {
 
-		return getPersistence().findByU_C_P(
+		return getPersistence().findByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId, start, end,
 			orderByComparator, useFinderCache);
 	}
@@ -1575,12 +1574,12 @@ public class UserGroupUtil {
 	 * @return the first matching user group
 	 * @throws NoSuchUserGroupException if a matching user group could not be found
 	 */
-	public static UserGroup findByU_C_P_First(
+	public static UserGroup findByGtU_C_P_First(
 			long userGroupId, long companyId, long parentUserGroupId,
 			OrderByComparator<UserGroup> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchUserGroupException {
 
-		return getPersistence().findByU_C_P_First(
+		return getPersistence().findByGtU_C_P_First(
 			userGroupId, companyId, parentUserGroupId, orderByComparator);
 	}
 
@@ -1593,11 +1592,11 @@ public class UserGroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching user group, or <code>null</code> if a matching user group could not be found
 	 */
-	public static UserGroup fetchByU_C_P_First(
+	public static UserGroup fetchByGtU_C_P_First(
 		long userGroupId, long companyId, long parentUserGroupId,
 		OrderByComparator<UserGroup> orderByComparator) {
 
-		return getPersistence().fetchByU_C_P_First(
+		return getPersistence().fetchByGtU_C_P_First(
 			userGroupId, companyId, parentUserGroupId, orderByComparator);
 	}
 
@@ -1611,12 +1610,12 @@ public class UserGroupUtil {
 	 * @return the last matching user group
 	 * @throws NoSuchUserGroupException if a matching user group could not be found
 	 */
-	public static UserGroup findByU_C_P_Last(
+	public static UserGroup findByGtU_C_P_Last(
 			long userGroupId, long companyId, long parentUserGroupId,
 			OrderByComparator<UserGroup> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchUserGroupException {
 
-		return getPersistence().findByU_C_P_Last(
+		return getPersistence().findByGtU_C_P_Last(
 			userGroupId, companyId, parentUserGroupId, orderByComparator);
 	}
 
@@ -1629,11 +1628,11 @@ public class UserGroupUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching user group, or <code>null</code> if a matching user group could not be found
 	 */
-	public static UserGroup fetchByU_C_P_Last(
+	public static UserGroup fetchByGtU_C_P_Last(
 		long userGroupId, long companyId, long parentUserGroupId,
 		OrderByComparator<UserGroup> orderByComparator) {
 
-		return getPersistence().fetchByU_C_P_Last(
+		return getPersistence().fetchByGtU_C_P_Last(
 			userGroupId, companyId, parentUserGroupId, orderByComparator);
 	}
 
@@ -1645,10 +1644,10 @@ public class UserGroupUtil {
 	 * @param parentUserGroupId the parent user group ID
 	 * @return the matching user groups that the user has permission to view
 	 */
-	public static List<UserGroup> filterFindByU_C_P(
+	public static List<UserGroup> filterFindByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId) {
 
-		return getPersistence().filterFindByU_C_P(
+		return getPersistence().filterFindByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId);
 	}
 
@@ -1666,11 +1665,11 @@ public class UserGroupUtil {
 	 * @param end the upper bound of the range of user groups (not inclusive)
 	 * @return the range of matching user groups that the user has permission to view
 	 */
-	public static List<UserGroup> filterFindByU_C_P(
+	public static List<UserGroup> filterFindByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId, int start,
 		int end) {
 
-		return getPersistence().filterFindByU_C_P(
+		return getPersistence().filterFindByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId, start, end);
 	}
 
@@ -1689,11 +1688,11 @@ public class UserGroupUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching user groups that the user has permission to view
 	 */
-	public static List<UserGroup> filterFindByU_C_P(
+	public static List<UserGroup> filterFindByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId, int start,
 		int end, OrderByComparator<UserGroup> orderByComparator) {
 
-		return getPersistence().filterFindByU_C_P(
+		return getPersistence().filterFindByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId, start, end,
 			orderByComparator);
 	}
@@ -1705,10 +1704,10 @@ public class UserGroupUtil {
 	 * @param companyId the company ID
 	 * @param parentUserGroupId the parent user group ID
 	 */
-	public static void removeByU_C_P(
+	public static void removeByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId) {
 
-		getPersistence().removeByU_C_P(
+		getPersistence().removeByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId);
 	}
 
@@ -1720,10 +1719,10 @@ public class UserGroupUtil {
 	 * @param parentUserGroupId the parent user group ID
 	 * @return the number of matching user groups
 	 */
-	public static int countByU_C_P(
+	public static int countByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId) {
 
-		return getPersistence().countByU_C_P(
+		return getPersistence().countByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId);
 	}
 
@@ -1735,10 +1734,10 @@ public class UserGroupUtil {
 	 * @param parentUserGroupId the parent user group ID
 	 * @return the number of matching user groups that the user has permission to view
 	 */
-	public static int filterCountByU_C_P(
+	public static int filterCountByGtU_C_P(
 		long userGroupId, long companyId, long parentUserGroupId) {
 
-		return getPersistence().filterCountByU_C_P(
+		return getPersistence().filterCountByGtU_C_P(
 			userGroupId, companyId, parentUserGroupId);
 	}
 
@@ -2589,14 +2588,9 @@ public class UserGroupUtil {
 	}
 
 	public static UserGroupPersistence getPersistence() {
-		if (_persistence == null) {
-			_persistence = (UserGroupPersistence)PortalBeanLocatorUtil.locate(
-				UserGroupPersistence.class.getName());
-		}
-
 		return _persistence;
 	}
 
-	private static UserGroupPersistence _persistence;
+	private static volatile UserGroupPersistence _persistence;
 
 }

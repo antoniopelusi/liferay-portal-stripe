@@ -28,34 +28,14 @@ public class FragmentEntryLinkServiceWrapper
 	implements FragmentEntryLinkService,
 			   ServiceWrapper<FragmentEntryLinkService> {
 
+	public FragmentEntryLinkServiceWrapper() {
+		this(null);
+	}
+
 	public FragmentEntryLinkServiceWrapper(
 		FragmentEntryLinkService fragmentEntryLinkService) {
 
 		_fragmentEntryLinkService = fragmentEntryLinkService;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #addFragmentEntryLink(long, long, long, long, long, String,
-	 String, String, String, String, String, int, String,
-	 ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public FragmentEntryLink addFragmentEntryLink(
-			long groupId, long originalFragmentEntryLinkId,
-			long fragmentEntryId, long segmentsExperienceId, long classNameId,
-			long classPK, String css, String html, String js,
-			String configuration, String editableValues, String namespace,
-			int position, String rendererKey,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _fragmentEntryLinkService.addFragmentEntryLink(
-			groupId, originalFragmentEntryLinkId, fragmentEntryId,
-			segmentsExperienceId, classNameId, classPK, css, html, js,
-			configuration, editableValues, namespace, position, rendererKey,
-			serviceContext);
 	}
 
 	@Override
@@ -109,44 +89,6 @@ public class FragmentEntryLinkServiceWrapper
 
 		return _fragmentEntryLinkService.updateFragmentEntryLink(
 			fragmentEntryLinkId, editableValues, updateClassedModel);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateFragmentEntryLinks(long, long, long[], String,
-	 ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public void updateFragmentEntryLinks(
-			long groupId, long classNameId, long classPK,
-			long[] fragmentEntryIds, String editableValues,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_fragmentEntryLinkService.updateFragmentEntryLinks(
-			groupId, classNameId, classPK, fragmentEntryIds, editableValues,
-			serviceContext);
-	}
-
-	@Override
-	public void updateFragmentEntryLinks(
-			long groupId, long plid, long[] fragmentEntryIds,
-			String editableValues,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_fragmentEntryLinkService.updateFragmentEntryLinks(
-			groupId, plid, fragmentEntryIds, editableValues, serviceContext);
-	}
-
-	@Override
-	public void updateFragmentEntryLinks(
-			java.util.Map<Long, String> fragmentEntryLinksEditableValuesMap)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_fragmentEntryLinkService.updateFragmentEntryLinks(
-			fragmentEntryLinksEditableValuesMap);
 	}
 
 	@Override

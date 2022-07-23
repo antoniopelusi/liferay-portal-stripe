@@ -56,9 +56,9 @@ public class UnicodePropertiesTest {
 
 	@Test
 	public void testGetProperty() {
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.put(_TEST_KEY_1, _TEST_VALUE_1);
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.put(
+			_TEST_KEY_1, _TEST_VALUE_1
+		).build();
 
 		Assert.assertEquals(
 			_TEST_VALUE_1, unicodeProperties.getProperty(_TEST_KEY_1));
@@ -123,16 +123,15 @@ public class UnicodePropertiesTest {
 
 	@Test
 	public void testPutAll() {
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.putAll(
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.putAll(
 			HashMapBuilder.put(
 				_TEST_KEY_1, _TEST_VALUE_1
 			).put(
 				_TEST_KEY_2, _TEST_VALUE_2
 			).put(
 				_TEST_KEY_3, _TEST_VALUE_3
-			).build());
+			).build()
+		).build();
 
 		_assertUnicodeProperties(
 			new String[] {_TEST_VALUE_1, _TEST_VALUE_2, _TEST_VALUE_3},
@@ -148,9 +147,9 @@ public class UnicodePropertiesTest {
 
 	@Test
 	public void testRemove() {
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		unicodeProperties.put(_TEST_KEY_1, _TEST_VALUE_1);
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.put(
+			_TEST_KEY_1, _TEST_VALUE_1
+		).build();
 
 		String result = unicodeProperties.remove(null);
 

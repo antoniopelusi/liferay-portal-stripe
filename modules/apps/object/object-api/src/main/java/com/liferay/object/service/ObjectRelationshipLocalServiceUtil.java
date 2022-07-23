@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the local service utility for ObjectRelationship. This utility wraps
@@ -44,6 +45,16 @@ public class ObjectRelationshipLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectRelationshipLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static ObjectRelationship addObjectRelationship(
+			long userId, long objectDefinitionId1, long objectDefinitionId2,
+			String deletionType, Map<java.util.Locale, String> labelMap,
+			String name, String type)
+		throws PortalException {
+
+		return getService().addObjectRelationship(
+			userId, objectDefinitionId1, objectDefinitionId2, deletionType,
+			labelMap, name, type);
+	}
 
 	/**
 	 * Adds the object relationship to the database. Also notifies the appropriate model listeners.
@@ -59,6 +70,17 @@ public class ObjectRelationshipLocalServiceUtil {
 		ObjectRelationship objectRelationship) {
 
 		return getService().addObjectRelationship(objectRelationship);
+	}
+
+	public static void addObjectRelationshipMappingTableValues(
+			long userId, long objectRelationshipId, long primaryKey1,
+			long primaryKey2,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		getService().addObjectRelationshipMappingTableValues(
+			userId, objectRelationshipId, primaryKey1, primaryKey2,
+			serviceContext);
 	}
 
 	/**
@@ -110,11 +132,29 @@ public class ObjectRelationshipLocalServiceUtil {
 	 *
 	 * @param objectRelationship the object relationship
 	 * @return the object relationship that was removed
+	 * @throws PortalException
 	 */
 	public static ObjectRelationship deleteObjectRelationship(
-		ObjectRelationship objectRelationship) {
+			ObjectRelationship objectRelationship)
+		throws PortalException {
 
 		return getService().deleteObjectRelationship(objectRelationship);
+	}
+
+	public static void deleteObjectRelationshipMappingTableValues(
+			long objectRelationshipId, long primaryKey1)
+		throws PortalException {
+
+		getService().deleteObjectRelationshipMappingTableValues(
+			objectRelationshipId, primaryKey1);
+	}
+
+	public static void deleteObjectRelationshipMappingTableValues(
+			long objectRelationshipId, long primaryKey1, long primaryKey2)
+		throws PortalException {
+
+		getService().deleteObjectRelationshipMappingTableValues(
+			objectRelationshipId, primaryKey1, primaryKey2);
 	}
 
 	/**
@@ -129,6 +169,10 @@ public class ObjectRelationshipLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -214,6 +258,13 @@ public class ObjectRelationshipLocalServiceUtil {
 		return getService().fetchObjectRelationship(objectRelationshipId);
 	}
 
+	public static ObjectRelationship fetchObjectRelationshipByObjectFieldId2(
+		long objectFieldId2) {
+
+		return getService().fetchObjectRelationshipByObjectFieldId2(
+			objectFieldId2);
+	}
+
 	/**
 	 * Returns the object relationship with the matching UUID and company.
 	 *
@@ -226,6 +277,13 @@ public class ObjectRelationshipLocalServiceUtil {
 
 		return getService().fetchObjectRelationshipByUuidAndCompanyId(
 			uuid, companyId);
+	}
+
+	public static ObjectRelationship fetchReverseObjectRelationship(
+		ObjectRelationship objectRelationship, boolean reverse) {
+
+		return getService().fetchReverseObjectRelationship(
+			objectRelationship, reverse);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
@@ -296,6 +354,19 @@ public class ObjectRelationshipLocalServiceUtil {
 		return getService().getObjectRelationships(start, end);
 	}
 
+	public static List<ObjectRelationship> getObjectRelationships(
+		long objectDefinitionId1) {
+
+		return getService().getObjectRelationships(objectDefinitionId1);
+	}
+
+	public static List<ObjectRelationship> getObjectRelationships(
+		long objectDefinitionId1, int start, int end) {
+
+		return getService().getObjectRelationships(
+			objectDefinitionId1, start, end);
+	}
+
 	/**
 	 * Returns the number of object relationships.
 	 *
@@ -321,6 +392,15 @@ public class ObjectRelationshipLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static ObjectRelationship updateObjectRelationship(
+			long objectRelationshipId, String deletionType,
+			Map<java.util.Locale, String> labelMap)
+		throws PortalException {
+
+		return getService().updateObjectRelationship(
+			objectRelationshipId, deletionType, labelMap);
 	}
 
 	/**

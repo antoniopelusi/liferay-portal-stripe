@@ -14,7 +14,14 @@
 
 package com.liferay.jenkins.results.parser.test.clazz.group;
 
+import com.liferay.jenkins.results.parser.GitWorkingDirectory;
+import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+import com.liferay.jenkins.results.parser.Job;
+import com.liferay.jenkins.results.parser.QAWebsitesGitRepositoryJob;
+
 import java.io.File;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
@@ -36,16 +43,34 @@ public class QAWebsitesFunctionalSegmentTestClassGroup
 	}
 
 	protected QAWebsitesFunctionalSegmentTestClassGroup(
-		QAWebsitesFunctionalBatchTestClassGroup
-			parentQAWebsitesFunctionalBatchTestClassGroup) {
+		BatchTestClassGroup parentBatchTestClassGroup) {
 
-		super(parentQAWebsitesFunctionalBatchTestClassGroup);
+		super(parentBatchTestClassGroup);
+	}
+
+	protected QAWebsitesFunctionalSegmentTestClassGroup(
+		BatchTestClassGroup parentBatchTestClassGroup, JSONObject jsonObject) {
+
+		super(parentBatchTestClassGroup, jsonObject);
 	}
 
 	private String _getProjectName() {
 		File testBaseDir = getTestBaseDir();
 
-		return testBaseDir.getName();
+		Job job = getJob();
+
+		if (!(job instanceof QAWebsitesGitRepositoryJob)) {
+			return testBaseDir.getName();
+		}
+
+		QAWebsitesGitRepositoryJob qaWebsitesGitRepositoryJob =
+			(QAWebsitesGitRepositoryJob)job;
+
+		GitWorkingDirectory gitWorkingDirectory =
+			qaWebsitesGitRepositoryJob.getGitWorkingDirectory();
+
+		return JenkinsResultsParserUtil.getPathRelativeTo(
+			testBaseDir, gitWorkingDirectory.getWorkingDirectory());
 	}
 
 }

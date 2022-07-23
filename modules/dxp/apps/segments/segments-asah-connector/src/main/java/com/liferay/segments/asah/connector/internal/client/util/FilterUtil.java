@@ -49,13 +49,7 @@ public class FilterUtil {
 			value = StringUtil.quote(valueString, StringPool.APOSTROPHE);
 		}
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(fieldName);
-		sb.append(operator);
-		sb.append(value);
-
-		return sb.toString();
+		return StringBundler.concat(fieldName, operator, value);
 	}
 
 	public static String getNullFilter(String fieldName, String operator) {

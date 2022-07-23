@@ -19,8 +19,4 @@ package com.liferay.knowledge.base.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class KBTemplateImpl extends KBTemplateBaseImpl {
-
-	public KBTemplateImpl() {
-	}
-
 }

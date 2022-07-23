@@ -26,9 +26,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public class CommercePriceListCommerceAccountGroupRelImpl
 	extends CommercePriceListCommerceAccountGroupRelBaseImpl {
 
-	public CommercePriceListCommerceAccountGroupRelImpl() {
-	}
-
 	@Override
 	public CommerceAccountGroup getCommerceAccountGroup()
 		throws PortalException {

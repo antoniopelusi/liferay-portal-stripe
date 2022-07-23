@@ -102,7 +102,7 @@ public class CommercePriceModifierInfoScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -128,12 +128,12 @@ public class CommercePriceModifierInfoScreenNavigationCategory
 				commercePriceListDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		_jspRenderer.renderJSP(
 			_setServletContext, httpServletRequest, httpServletResponse,
-			"/price_lists/price_modifier/info.jsp");
+			"/commerce_price_lists/commerce_price_modifier/info.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

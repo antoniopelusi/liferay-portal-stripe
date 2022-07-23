@@ -49,6 +49,7 @@ public class CentralizedThreadLocalTest {
 				@Override
 				public void appendAssertClasses(List<Class<?>> assertClasses) {
 					assertClasses.add(SafeClosable.class);
+					assertClasses.add(SafeCloseable.class);
 				}
 
 			},
@@ -272,6 +273,40 @@ public class CentralizedThreadLocalTest {
 
 			try (SafeClosable safeClosable2 =
 					centralizedThreadLocal.setWithSafeClosable(value2)) {
+
+				Assert.assertSame(value2, centralizedThreadLocal.get());
+			}
+
+			Assert.assertSame(value1, centralizedThreadLocal.get());
+		}
+
+		Assert.assertSame(initialValue, centralizedThreadLocal.get());
+	}
+
+	@Test
+	public void testSetWithCloseable() {
+		String initialValue = "initialValue";
+
+		CentralizedThreadLocal<String> centralizedThreadLocal =
+			new CentralizedThreadLocal<>("test", () -> initialValue);
+
+		String value1 = "value1";
+
+		try (SafeCloseable safeCloseable =
+				centralizedThreadLocal.setWithSafeCloseable(value1)) {
+
+			Assert.assertSame(value1, centralizedThreadLocal.get());
+		}
+
+		Assert.assertSame(initialValue, centralizedThreadLocal.get());
+
+		String value2 = "value2";
+
+		try (SafeCloseable safeCloseable1 =
+				centralizedThreadLocal.setWithSafeCloseable(value1)) {
+
+			try (SafeCloseable safeCloseable2 =
+					centralizedThreadLocal.setWithSafeCloseable(value2)) {
 
 				Assert.assertSame(value2, centralizedThreadLocal.get());
 			}

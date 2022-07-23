@@ -2,11 +2,13 @@
 <head>
 <title>Segmentation</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Segmentation</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_FIELD_POSITION</td>
@@ -14,13 +16,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADD_FIELD_POSITION_EMPTY</td>
+	<td>//div[contains(@class, 'empty-drop-zone-dashed')] //*[contains(@class, 'drop-zone-target')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_FIELD_POSITION_EDIT</td>
+	<td>//*[contains(@class, 'edit-container')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_FIELD_TYPE</td>
-	<td>//*[contains(@class, 'criteria-sidebar-item-root') and contains(text(),'${key_propertyOption}')]</td>
+	<td>//*[contains(@class, 'criteria-sidebar-item-root') and (text()='${key_propertyOption}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ADD_TAG_BUTTON</td>
 	<td>//*[contains(@class,'btn btn-secondary') and contains(text(),'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSIGN_SITE_ROLES_DISABLED_WARNING</td>
+	<td>//*[contains(@class,'autofit-section') and contains(text(), '${textValue}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -40,7 +57,12 @@
 </tr>
 <tr>
 	<td>CRITERION_INPUT_FORM_CONTROL</td>
-	<td>//div[@class='criterion']//*[contains(@data-testid, '${key_criterion}')]</td>
+	<td>//div[@class='criterion']//*[contains(@data-testid, '${key_criterion}') and (contains(@class,'form-control'))] | //div[@class='criterion']//*[contains(@data-testid, '${key_criterion}')]/following-sibling::input[contains(@class,'form-control')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CLICKABLE_SEGMENT_NAME</td>
+	<td>//table[contains(@class, 'table-list')]//tr//a[contains(href,'') and contains(text(),'${key_segmentName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -54,6 +76,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CRITERION_CONJUNCTION</td>
+	<td>//div[contains(@class,'criteria')]//button[contains(@class,'dropdown-toggle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CRITERION_CONJUNCTION_ITEM</td>
+	<td>//button[contains(@class,'dropdown-item') and contains(.,'${key_criterionConjunctionItem}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CRITERION_VIEW_MODE</td>
+	<td>//span[contains(@class, 'criterion-string')] //b[contains(text(), '${propertyValue}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DELETE_SEGMENT</td>
 	<td>//*[contains(@class, 'lexicon-icon-times-circle')]</td>
 	<td></td>
@@ -64,13 +101,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDIT_TOGGLE</td>
+	<td>//label[contains(@class,'toggle-switch toggle-editing')]//input</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MEMBERS_MATCHED</td>
 	<td>//b[contains(@class,'ml-2 text-dark')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>MEMBER_NAME_LISTED</td>
-	<td>//*[contains(@class,'table-title') and contains(text(),'${key_memberName}')]</td>
+	<td>//*[contains(@class,'table-title') and contains(text(),"${key_memberName}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MESSAGE_NO_SEGMENTS</td>
+	<td>//div[contains(@class, 'taglib-empty-result-message')]/div[contains(.,'There are no segments')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -79,8 +126,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>ORGANIZATION_MENU</td>
-	<td>//a[contains(@class, 'sidebar-collapse-header') and contains(text(),'Organization')]</td>
+	<td>CONDITIONS_PROPERTY_NAME</td>
+	<td>//div[@class='criterion'] //span[contains(.,'${propertyName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -114,8 +161,23 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SESSION_MENU</td>
-	<td>//a[contains(@class, 'sidebar-collapse-header') and contains(text(),'Session')]</td>
+	<td>SESSION_PROPERTY_SESSION_LINK_PROPERTY</td>
+	<td>//label[text()='Session Property Name']/following-sibling::div[contains(@class, 'input-group-container')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SESSION_PROPERTY_SESSION_LINK_PROPERTY_OPTION</td>
+	<td>//div[contains(@class, 'dropdown-menu ddm-btn-full ddm-select-dropdown show')] //button[text()='${propertyName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SESSION_PROPERTY_SESSION_LINK_VOCABULARY</td>
+	<td>//label[text()='Vocabulary Name']/following-sibling::div[contains(@class, 'input-group-container')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SESSION_PROPERTY_SESSION_LINK_VOCABULARY_OPTION</td>
+	<td>//div[contains(@class, 'dropdown-menu ddm-btn-full ddm-select-dropdown show')] //button[text()='${vocabularyName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -126,6 +188,26 @@
 <tr>
 	<td>TITLE_FIELD</td>
 	<td>//input[@data-testid='localized-main-input']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TITLE_FIELD_READ_ONLY</td>
+	<td>//input[@data-testid='localized-main-input' and @readonly]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATION_BUTTON</td>
+	<td>//button[contains(@data-testid,'localized')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATION_STATUS_TITLE</td>
+	<td>//ul[contains(@class, 'dropdown-menu')]/li[contains(@role, 'presentation')]/descendant::span[contains(text(), '${key_locale}')]/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRANSLATION_TITLE</td>
+	<td>//ul[contains(@class, 'dropdown-menu')]/li[contains(@role, 'presentation')]/descendant::span[contains(text(), '${key_locale}')]</td>
 	<td></td>
 </tr>
 <tr>

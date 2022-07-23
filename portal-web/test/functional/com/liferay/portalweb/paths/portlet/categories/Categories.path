@@ -2,11 +2,13 @@
 <head>
 <title>Categories</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Categories</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_CATEGORY_BUTTON</td>
@@ -132,6 +134,27 @@
 <tr>
 	<td>VOCABULARY_CATEGORY</td>
 	<td>//div[contains(@id,'assetCategories')]//td[contains(.,'${key_categoryName}')]</td>
+	<td></td>
+</tr>
+<!--VOCABULARY-->
+<tr>
+	<td>VOCABULARY_EDIT_CHECKBOX</td>
+	<td>//span[contains(text(), '${label}')]/..//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VOCABULARY_ICON_INTERNAL_USE</td>
+	<td>//span[contains(text(), '${key_vocabularyName}')]/..//span[contains(@title, 'For Internal Use Only')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VOCABULARY_LINK_DOCUMENTATION</td>
+	<td>//a[contains(text(), 'Learn how')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VOCABULARY_VISIBILITY_DISABLED</td>
+	<td>//div[@class='radio']/label[@class=' disabled' and contains(., '${key_visibilityType}')]</td>
 	<td></td>
 </tr>
 </tbody>

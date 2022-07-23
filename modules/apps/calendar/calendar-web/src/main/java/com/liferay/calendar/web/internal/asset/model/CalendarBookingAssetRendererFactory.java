@@ -127,7 +127,7 @@ public class CalendarBookingAssetRendererFactory
 
 				return calendar.getCalendarId();
 			}
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override

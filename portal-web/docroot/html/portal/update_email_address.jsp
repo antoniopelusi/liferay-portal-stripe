@@ -81,6 +81,8 @@ if (referer.equals(themeDisplay.getPathMain() + "/portal/update_email_address"))
 
 			<aui:button-row>
 				<aui:button type="submit" />
+
+				<aui:button href="<%= themeDisplay.getPathMain() %>" type="cancel" />
 			</aui:button-row>
 		</aui:form>
 	</div>

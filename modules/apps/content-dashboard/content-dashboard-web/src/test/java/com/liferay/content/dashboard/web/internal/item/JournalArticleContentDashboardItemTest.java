@@ -19,12 +19,10 @@ import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.content.dashboard.item.action.ContentDashboardItemAction;
 import com.liferay.content.dashboard.item.action.provider.ContentDashboardItemActionProvider;
 import com.liferay.content.dashboard.web.internal.item.action.ContentDashboardItemActionProviderTracker;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemType;
+import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtype;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.json.JSONFactoryImpl;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -66,10 +64,6 @@ public class JournalArticleContentDashboardItemTest {
 
 	@BeforeClass
 	public static void setUpClass() {
-		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
-
-		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
-
 		LanguageResources languageResources = new LanguageResources();
 
 		languageResources.setConfig(StringPool.BLANK);
@@ -398,7 +392,7 @@ public class JournalArticleContentDashboardItemTest {
 		JournalArticleContentDashboardItem journalArticleContentDashboardItem =
 			new JournalArticleContentDashboardItem(
 				null, null, null,
-				new ContentDashboardItemType() {
+				new ContentDashboardItemSubtype() {
 
 					@Override
 					public String getFullLabel(Locale locale) {
@@ -416,16 +410,6 @@ public class JournalArticleContentDashboardItemTest {
 					}
 
 					@Override
-					public Date getModifiedDate() {
-						return null;
-					}
-
-					@Override
-					public long getUserId() {
-						return 0;
-					}
-
-					@Override
 					public String toJSONString(Locale locale) {
 						return StringPool.BLANK;
 					}
@@ -433,11 +417,11 @@ public class JournalArticleContentDashboardItemTest {
 				},
 				null, null, journalArticle, null, null, null);
 
-		ContentDashboardItemType contentDashboardItemType =
-			journalArticleContentDashboardItem.getContentDashboardItemType();
+		ContentDashboardItemSubtype contentDashboardItemSubtype =
+			journalArticleContentDashboardItem.getContentDashboardItemSubtype();
 
 		Assert.assertEquals(
-			"subtype", contentDashboardItemType.getLabel(LocaleUtil.US));
+			"subtype", contentDashboardItemSubtype.getLabel(LocaleUtil.US));
 	}
 
 	@Test

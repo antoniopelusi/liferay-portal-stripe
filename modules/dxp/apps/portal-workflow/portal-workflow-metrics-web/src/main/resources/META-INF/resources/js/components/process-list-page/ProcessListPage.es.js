@@ -70,7 +70,9 @@ function ProcessListPage({history, query, routeParams}) {
 		}
 
 		return [new Promise(() => {})];
-	}, [fetchData, page, pageSize, sort]);
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [page, pageSize, search, sort]);
 
 	return (
 		<PromisesResolver promises={promises}>
@@ -82,9 +84,10 @@ function ProcessListPage({history, query, routeParams}) {
 					},
 				]}
 			/>
+
 			<ProcessListPage.Header
 				search={search}
-				totalCount={data.totalCount}
+				totalCount={data?.totalCount}
 				{...routeParams}
 			/>
 

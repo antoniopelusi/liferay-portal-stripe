@@ -27,6 +27,10 @@ public class CommerceShippingFixedOptionLocalServiceWrapper
 	implements CommerceShippingFixedOptionLocalService,
 			   ServiceWrapper<CommerceShippingFixedOptionLocalService> {
 
+	public CommerceShippingFixedOptionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceShippingFixedOptionLocalServiceWrapper(
 		CommerceShippingFixedOptionLocalService
 			commerceShippingFixedOptionLocalService) {
@@ -61,37 +65,16 @@ public class CommerceShippingFixedOptionLocalServiceWrapper
 		com.liferay.commerce.shipping.engine.fixed.model.
 			CommerceShippingFixedOption addCommerceShippingFixedOption(
 					long userId, long groupId, long commerceShippingMethodId,
-					java.util.Map<java.util.Locale, String> nameMap,
+					java.math.BigDecimal amount,
 					java.util.Map<java.util.Locale, String> descriptionMap,
-					java.math.BigDecimal amount, double priority)
+					String key, java.util.Map<java.util.Locale, String> nameMap,
+					double priority)
 				throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceShippingFixedOptionLocalService.
 			addCommerceShippingFixedOption(
-				userId, groupId, commerceShippingMethodId, nameMap,
-				descriptionMap, amount, priority);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	@Override
-	public
-		com.liferay.commerce.shipping.engine.fixed.model.
-			CommerceShippingFixedOption addCommerceShippingFixedOption(
-					long commerceShippingMethodId,
-					java.util.Map<java.util.Locale, String> nameMap,
-					java.util.Map<java.util.Locale, String> descriptionMap,
-					java.math.BigDecimal amount, double priority,
-					com.liferay.portal.kernel.service.ServiceContext
-						serviceContext)
-				throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _commerceShippingFixedOptionLocalService.
-			addCommerceShippingFixedOption(
-				commerceShippingMethodId, nameMap, descriptionMap, amount,
-				priority, serviceContext);
+				userId, groupId, commerceShippingMethodId, amount,
+				descriptionMap, key, nameMap, priority);
 	}
 
 	/**
@@ -188,6 +171,13 @@ public class CommerceShippingFixedOptionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceShippingFixedOptionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceShippingFixedOptionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -294,11 +284,34 @@ public class CommerceShippingFixedOptionLocalServiceWrapper
 	}
 
 	@Override
+	public
+		com.liferay.commerce.shipping.engine.fixed.model.
+			CommerceShippingFixedOption fetchCommerceShippingFixedOption(
+				long companyId, String key) {
+
+		return _commerceShippingFixedOptionLocalService.
+			fetchCommerceShippingFixedOption(companyId, key);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
 		return _commerceShippingFixedOptionLocalService.
 			getActionableDynamicQuery();
+	}
+
+	@Override
+	public java.util.List
+		<com.liferay.commerce.shipping.engine.fixed.model.
+			CommerceShippingFixedOption>
+				getCommerceOrderTypeCommerceShippingFixedOptions(
+					long companyId, long commerceOrderTypeId,
+					long commerceShippingMethodId) {
+
+		return _commerceShippingFixedOptionLocalService.
+			getCommerceOrderTypeCommerceShippingFixedOptions(
+				companyId, commerceOrderTypeId, commerceShippingMethodId);
 	}
 
 	/**
@@ -478,15 +491,16 @@ public class CommerceShippingFixedOptionLocalServiceWrapper
 		com.liferay.commerce.shipping.engine.fixed.model.
 			CommerceShippingFixedOption updateCommerceShippingFixedOption(
 					long commerceShippingFixedOptionId,
-					java.util.Map<java.util.Locale, String> nameMap,
+					java.math.BigDecimal amount,
 					java.util.Map<java.util.Locale, String> descriptionMap,
-					java.math.BigDecimal amount, double priority)
+					String key, java.util.Map<java.util.Locale, String> nameMap,
+					double priority)
 				throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceShippingFixedOptionLocalService.
 			updateCommerceShippingFixedOption(
-				commerceShippingFixedOptionId, nameMap, descriptionMap, amount,
-				priority);
+				commerceShippingFixedOptionId, amount, descriptionMap, key,
+				nameMap, priority);
 	}
 
 	@Override

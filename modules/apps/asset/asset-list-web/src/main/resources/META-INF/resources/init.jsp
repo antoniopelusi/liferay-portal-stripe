@@ -23,7 +23,6 @@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/clay" prefix="clay" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
-taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
 taglib uri="http://liferay.com/tld/react" prefix="react" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
@@ -42,7 +41,6 @@ page import="com.liferay.asset.list.constants.AssetListEntryTypeConstants" %><%@
 page import="com.liferay.asset.list.constants.AssetListFormConstants" %><%@
 page import="com.liferay.asset.list.model.AssetListEntry" %><%@
 page import="com.liferay.asset.list.model.AssetListEntryAssetEntryRel" %><%@
-page import="com.liferay.asset.list.model.AssetListEntrySegmentsEntryRel" %><%@
 page import="com.liferay.asset.list.web.internal.constants.AssetListWebKeys" %><%@
 page import="com.liferay.asset.list.web.internal.display.context.AssetListDisplayContext" %><%@
 page import="com.liferay.asset.list.web.internal.display.context.AssetListEntryUsagesDisplayContext" %><%@
@@ -50,17 +48,17 @@ page import="com.liferay.asset.list.web.internal.display.context.AssetListEntryU
 page import="com.liferay.asset.list.web.internal.display.context.AssetListItemsDisplayContext" %><%@
 page import="com.liferay.asset.list.web.internal.display.context.AssetListManagementToolbarDisplayContext" %><%@
 page import="com.liferay.asset.list.web.internal.display.context.EditAssetListDisplayContext" %><%@
-page import="com.liferay.asset.list.web.internal.display.context.InfoListProviderDisplayContext" %><%@
-page import="com.liferay.asset.list.web.internal.display.context.InfoListProviderItemsDisplayContext" %><%@
+page import="com.liferay.asset.list.web.internal.display.context.InfoCollectionProviderDisplayContext" %><%@
+page import="com.liferay.asset.list.web.internal.display.context.InfoCollectionProviderItemsDisplayContext" %><%@
+page import="com.liferay.asset.list.web.internal.display.context.SelectStructureFieldDisplayContext" %><%@
 page import="com.liferay.asset.list.web.internal.security.permission.resource.AssetListEntryPermission" %><%@
 page import="com.liferay.asset.list.web.internal.servlet.taglib.util.AssetEntryListActionDropdownItems" %><%@
-page import="com.liferay.asset.list.web.internal.servlet.taglib.util.InfoListProviderActionDropdownItems" %><%@
+page import="com.liferay.asset.list.web.internal.servlet.taglib.util.InfoCollectionProviderActionDropdownItems" %><%@
 page import="com.liferay.asset.list.web.internal.servlet.taglib.util.ListItemsActionDropdownItems" %><%@
 page import="com.liferay.asset.list.web.internal.util.comparator.ClassTypeNameComparator" %><%@
 page import="com.liferay.asset.util.comparator.AssetRendererFactoryTypeNameComparator" %><%@
 page import="com.liferay.dynamic.data.mapping.model.DDMStructure" %><%@
 page import="com.liferay.dynamic.data.mapping.storage.Field" %><%@
-page import="com.liferay.frontend.taglib.servlet.taglib.util.EmptyResultMessageKeys" %><%@
 page import="com.liferay.info.field.InfoFieldValue" %><%@
 page import="com.liferay.info.item.InfoItemFieldValues" %><%@
 page import="com.liferay.info.item.provider.InfoItemFieldValuesProvider" %><%@
@@ -68,7 +66,6 @@ page import="com.liferay.petra.portlet.url.builder.PortletURLBuilder" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
 page import="com.liferay.portal.kernel.exception.NoSuchModelException" %><%@
-page import="com.liferay.portal.kernel.json.JSONUtil" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
 page import="com.liferay.portal.kernel.model.ClassName" %><%@
 page import="com.liferay.portal.kernel.model.Group" %><%@
@@ -91,7 +88,6 @@ page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
 page import="com.liferay.segments.constants.SegmentsEntryConstants" %><%@
-page import="com.liferay.segments.model.SegmentsEntry" %><%@
 page import="com.liferay.taglib.search.ResultRow" %>
 
 <%@ page import="java.io.Serializable" %>

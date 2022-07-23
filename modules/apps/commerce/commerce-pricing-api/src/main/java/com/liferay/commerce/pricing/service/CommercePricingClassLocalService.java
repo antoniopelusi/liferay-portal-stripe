@@ -16,7 +16,9 @@ package com.liferay.commerce.pricing.service;
 
 import com.liferay.commerce.pricing.model.CommercePricingClass;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
@@ -25,6 +27,7 @@ import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
@@ -32,6 +35,9 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -55,13 +61,15 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see CommercePricingClassLocalServiceUtil
  * @generated
  */
+@CTAware
 @ProviderType
 @Transactional(
 	isolation = Isolation.PORTAL,
 	rollbackFor = {PortalException.class, SystemException.class}
 )
 public interface CommercePricingClassLocalService
-	extends BaseLocalService, PersistedModelLocalService {
+	extends BaseLocalService, CTService<CommercePricingClass>,
+			PersistedModelLocalService {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -96,6 +104,12 @@ public interface CommercePricingClassLocalService
 			ServiceContext serviceContext)
 		throws PortalException;
 
+	public CommercePricingClass addOrUpdateCommercePricingClass(
+			String externalReferenceCode, long commercePricingClassId,
+			long userId, Map<Locale, String> titleMap,
+			Map<Locale, String> descriptionMap, ServiceContext serviceContext)
+		throws PortalException;
+
 	/**
 	 * Creates a new commerce pricing class with the primary key. Does not add the commerce pricing class to the database.
 	 *
@@ -124,6 +138,7 @@ public interface CommercePricingClassLocalService
 	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePricingClass deleteCommercePricingClass(
 			CommercePricingClass commercePricingClass)
 		throws PortalException;
@@ -156,6 +171,9 @@ public interface CommercePricingClassLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -368,15 +386,14 @@ public interface CommercePricingClassLocalService
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CommercePricingClass> searchByCPDefinitionId(
+		long cpDefinitionId, String title, int start, int end);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public BaseModelSearchResult<CommercePricingClass>
 			searchCommercePricingClasses(
 				long companyId, String keywords, int start, int end, Sort sort)
 		throws PortalException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CommercePricingClass>
-		searchCommercePricingClassesByCPDefinitionId(
-			long cpDefinitionId, String title, int start, int end);
 
 	/**
 	 * Updates the commerce pricing class in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
@@ -404,10 +421,19 @@ public interface CommercePricingClassLocalService
 			String externalReferenceCode, long commercePricingClassId)
 		throws PortalException;
 
-	public CommercePricingClass upsertCommercePricingClass(
-			String externalReferenceCode, long commercePricingClassId,
-			long userId, Map<Locale, String> titleMap,
-			Map<Locale, String> descriptionMap, ServiceContext serviceContext)
-		throws PortalException;
+	@Override
+	@Transactional(enabled = false)
+	public CTPersistence<CommercePricingClass> getCTPersistence();
+
+	@Override
+	@Transactional(enabled = false)
+	public Class<CommercePricingClass> getModelClass();
+
+	@Override
+	@Transactional(rollbackFor = Throwable.class)
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CommercePricingClass>, R, E>
+				updateUnsafeFunction)
+		throws E;
 
 }

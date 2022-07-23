@@ -1,0 +1,522 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		task ("Copy the token from AC") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Set up instance and sign in DXP") {
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+
+		JSONUser.tearDownNonAdminUsers();
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8147 | Test Summary: Anonymous individuals are not counted towards usage"
+	@priority = "5"
+	test AnonymousIndividualsDoNotCountAsIndividualsForUsage {
+		ACUtils.addSiteAndPage();
+
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToSettings();
+
+		ACSettings.goToUsage();
+
+		var currentIndividuals = ACSettings.getCurrentNumber(metricName = "Individuals");
+
+		ACUtils.launchDXP();
+
+		User.logoutPG();
+
+		ACUtils.navigateToSitePage(
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessions();
+
+		ACUtils.launchAC();
+
+		ACNavigation.goToSettings();
+
+		ACSettings.goToUsage();
+
+		ACSettings.assertOverviewUsage(
+			current = "${currentIndividuals}",
+			metricName = "Individuals");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9183 | Test Summary: Current AC plan is collapsible."
+	@priority = "3"
+	test CollapseCurrentPlan {
+		task ("Sign in AC") {
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Workspace Settings") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToWorkspace();
+		}
+
+		task ("Navigate to the Usage") {
+			ACSettings.goToUsage();
+		}
+
+		task ("View the current plan card is expanded") {
+			ACSettings.viewCurrentPlan(planName = "Enterprise");
+
+			ACSettings.assertPlanDetails(
+				individualsAddOnsLimit = "5,000",
+				individualsAddOnsPrice = "500 USD",
+				individualsLimit = "100,000",
+				pageViewsAddOnsLimit = "5,000,000",
+				pageViewsAddOnsPrice = "250 USD",
+				pageViewsLimit = "60,000,000",
+				planName = "Enterprise",
+				usersLimit = "Unlimited");
+		}
+
+		task ("Collapse the current plan") {
+			ACSettings.collapsePlan(planName = "Enterprise");
+		}
+
+		task ("View the current plan card is collapsed") {
+			ACSettings.viewCurrentPlan(planName = "Enterprise");
+
+			AssertElementNotPresent(
+				key_planName = "Enterprise",
+				locator1 = "ACUsage#USAGE_PLAN_BODY");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8156 | Test Summary: Current AC plan level is shown in a card"
+	@priority = "5"
+	test CurrentACPlanLevelShownInCard {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToSettings();
+
+		ACSettings.goToUsage();
+
+		ACSettings.assertPlanDetails(
+			individualsAddOnsLimit = "5,000",
+			individualsAddOnsPrice = "500 USD",
+			individualsLimit = "100,000",
+			pageViewsAddOnsLimit = "5,000,000",
+			pageViewsAddOnsPrice = "250 USD",
+			pageViewsLimit = "60,000,000",
+			planName = "Enterprise",
+			usersLimit = "Unlimited");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8157 | Test Summary: Current add-ons are displayed in a card"
+	@priority = "5"
+	test CurrentAddonsDisplayedInCard {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToSettings();
+
+		ACSettings.goToUsage();
+
+		ACSettings.assertAddonsDetails(
+			addOnItem = "Individuals",
+			annualPrice = "500 USD",
+			limit = "5,000",
+			time = "2X");
+
+		ACSettings.assertAddonsDetails(
+			addOnItem = "Page Views",
+			annualPrice = "250 USD",
+			limit = "5,000,000",
+			time = "3X");
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9180 | Test Summary: Individuals limit corresponds correctly with the plan and add-ons purchased."
+	@priority = "3"
+	test IndividualsCardShowCurrentPlanLimitAndAddOnInfo {
+		task ("Sign in AC") {
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Workspace Settings") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToWorkspace();
+		}
+
+		task ("Navigate to the Usage") {
+			ACSettings.goToUsage();
+		}
+
+		task ("View the individuals limit of current plan") {
+			ACSettings.viewCurrentPlan(planName = "Enterprise");
+
+			ACSettings.assertPlanDetails(
+				individualsLimit = "100,000",
+				planName = "Enterprise");
+		}
+
+		task ("View the individuals of purchased add-ons") {
+			ACSettings.assertAddonsDetails(
+				addOnItem = "Individuals",
+				limit = "5,000",
+				time = "2X");
+		}
+
+		task ("View the individuals limit of current plan and purchased add-ons on Individuals card") {
+			ACSettings.assertCurrentPlanLimitAndAddOn(
+				currentPlanLimitAndAddOn = "Enterprise Plan 100,000 + 5,000 Add-On (2x)",
+				metricName = "Individuals");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9179 | Test Summary: Bar graph and percentage of individuals displays percentage of plan used."
+	@priority = "3"
+	test IndividualsCardShowOverviewUsageOfPlan {
+		task ("Sign in AC") {
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Workspace Settings") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToWorkspace();
+		}
+
+		task ("Navigate to the Usage") {
+			ACSettings.goToUsage();
+		}
+
+		task ("View the current number on Individuals card not equals 0") {
+			var current = ACSettings.getCurrentNumber(metricName = "Individuals");
+
+			TestUtils.assertNotEquals(
+				actual = "${current}",
+				expected = "0");
+		}
+
+		task ("View the usage percentage on Individuals card") {
+			var percentage = ACSettings.getUsagePercentage(metricName = "Individuals");
+
+			var result = MathUtil.isGreaterThan("${current}", "550");
+
+			if ("${result}" == "true") {
+				TestUtils.assertNotEquals(
+					actual = "${percentage}",
+					expected = "0%");
+			}
+			else {
+				TestUtils.assertEquals(
+					actual = "${percentage}",
+					expected = "0%");
+			}
+		}
+
+		task ("View the oveview usage on Individuals card") {
+			ACSettings.assertOverviewUsage(
+				current = "${current}",
+				limit = "110,000",
+				metricName = "Individuals",
+				usageSince = "${percentage} since");
+
+			AssertAttributeValue(
+				attribute1 = "style",
+				key_metricName = "Individuals",
+				locator1 = "ACUsage#USAGE_BAR",
+				value1 = "width: ${percentage};");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8148 | Test Summary: Individuals usage update in real time"
+	@priority = "5"
+	test IndividualsUpdatesInRealTime {
+		property portal.acceptance = "true";
+
+		var usernameList = "user1,user2,user3";
+
+		task ("Add a new site and widget page") {
+			ACUtils.addSiteAndPage();
+		}
+
+		task ("Get site assigned property name") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+
+		task ("Go to settings and get the individuals number") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUsage();
+
+			var currentIndividuals = ACSettings.getCurrentNumber(metricName = "Individuals");
+		}
+
+		task ("Add 3 new users and sync the Contact Data") {
+			ACUtils.launchDXP();
+
+			for (var name : list "${usernameList}") {
+				JSONUser.addUser(
+					userEmailAddress = "${name}@liferay.com",
+					userFirstName = "${name}",
+					userLastName = "${name}",
+					userScreenName = "${name}");
+
+				ACDXPSettings.syncNewContactData();
+			}
+		}
+
+		task ("View the page as different users") {
+			for (var name : list "${usernameList}") {
+				ACUtils.navigateToSitePageWithUser(
+					emailList = "${name}@liferay.com",
+					pageName = "AC Page",
+					siteName = "Site Name");
+			}
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Go to AC and check that the number of individuals has changed") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUsage();
+
+			ACSettings.assertOverviewUsage(
+				metricName = "Individuals",
+				notEquals = "${currentIndividuals}");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9182 | Test Summary: Page views limit corresponds correctly with the plan and add-ons purchased."
+	@priority = "3"
+	test PageViewsCardShowCurrentPlanLimitAndAddOnInfo {
+		task ("Sign in AC") {
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Workspace Settings") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToWorkspace();
+		}
+
+		task ("Navigate to the Usage") {
+			ACSettings.goToUsage();
+		}
+
+		task ("View the page views limit of current plan") {
+			ACSettings.viewCurrentPlan(planName = "Enterprise");
+
+			ACSettings.assertPlanDetails(
+				pageViewsLimit = "60,000,000",
+				planName = "Enterprise");
+		}
+
+		task ("View the page views of purchased add-ons") {
+			ACSettings.assertAddonsDetails(
+				addOnItem = "Page Views",
+				limit = "5,000,000",
+				time = "3X");
+		}
+
+		task ("View the page views limit of current plan and purchased add-ons on Page Views card") {
+			ACSettings.assertCurrentPlanLimitAndAddOn(
+				currentPlanLimitAndAddOn = "Enterprise Plan 60,000,000 + 5,000,000 Add-On (3x)",
+				metricName = "Page Views");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-9181 | Test Summary: Bar graph and percentage of page views displays percentage of plan used."
+	@priority = "3"
+	test PageViewsCardShowOverviewUsageOfPlan {
+		task ("Sign in AC") {
+			ACUtils.launchAC();
+		}
+
+		task ("Navigate to Workspace Settings") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToWorkspace();
+		}
+
+		task ("Navigate to the Usage") {
+			ACSettings.goToUsage();
+		}
+
+		task ("View the current number on Page Views card not equals 0") {
+			var current = ACSettings.getCurrentNumber(metricName = "Page Views");
+
+			TestUtils.assertNotEquals(
+				actual = "${current}",
+				expected = "0");
+		}
+
+		task ("View the usage percentage on Page Views") {
+			var percentage = ACSettings.getUsagePercentage(metricName = "Page Views");
+
+			var result = MathUtil.isGreaterThan("${current}", "375,000");
+
+			if ("${result}" == "true") {
+				TestUtils.assertNotEquals(
+					actual = "${percentage}",
+					expected = "0%");
+			}
+			else {
+				TestUtils.assertEquals(
+					actual = "${percentage}",
+					expected = "0%");
+			}
+		}
+
+		task ("View the oveview usage on Page Views card") {
+			ACSettings.assertOverviewUsage(
+				current = "${current}",
+				limit = "75,000,000",
+				metricName = "Page Views",
+				usageSince = "${percentage} since");
+
+			AssertAttributeValue(
+				attribute1 = "style",
+				key_metricName = "Page Views",
+				locator1 = "ACUsage#USAGE_BAR",
+				value1 = "width: ${percentage};");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8150 | Test Summary: Page views update in real time"
+	@priority = "5"
+	test PageViewsUpdateInRealTime {
+		task ("Add a new site and page, connect ac to dxp") {
+			ACUtils.addSiteAndPage();
+
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("Go to Usage, save the value of Page Views") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUsage();
+
+			var currentPageViews = ACSettings.getCurrentNumber(metricName = "Page Views");
+
+			var pageViewsNumber = StringUtil.replace("${currentPageViews}", ",", "");
+			var sumPageViews = ${pageViewsNumber} + 1;
+		}
+
+		task ("Visit the site page and close sessions") {
+			ACUtils.launchDXP();
+
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page",
+				siteName = "Site Name");
+
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Go to AC > Usage again and get the new value of Page Views") {
+			ACUtils.launchAC();
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUsage();
+
+			var currentPageViews = ACSettings.getCurrentNumber(metricName = "Page Views");
+
+			var newPageViewsNumber = StringUtil.replace("${currentPageViews}", ",", "");
+		}
+
+		task ("Compare the values") {
+			TestUtils.assertEquals(
+				actual = "${sumPageViews}",
+				expected = "${newPageViewsNumber}");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8146 | Test Summary: Total number of individuals is shown"
+	@priority = "5"
+	test PlanLimitNumberOfIndividualsIsShown {
+		task ("Go to Usage and assert that the plan number of individuals is '110,000'") {
+			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${propertyName}");
+
+			ACNavigation.goToSettings();
+
+			ACSettings.goToUsage();
+
+			ACSettings.assertOverviewUsage(
+				limit = "110,000",
+				metricName = "Individuals");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8149 | Test Summary: Total number of pages is shown"
+	@priority = "5"
+	test PlanLimitNumberOfPageViewsIsShown {
+		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+
+		ACUtils.launchAC();
+
+		ACProperties.switchProperty(propertyName = "${propertyName}");
+
+		ACNavigation.goToSettings();
+
+		ACSettings.goToUsage();
+
+		ACSettings.assertOverviewUsage(
+			limit = "75,000,000",
+			metricName = "Page Views");
+	}
+
+}

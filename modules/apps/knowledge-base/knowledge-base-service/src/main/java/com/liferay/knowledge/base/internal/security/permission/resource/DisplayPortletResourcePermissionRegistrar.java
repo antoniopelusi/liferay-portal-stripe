@@ -20,9 +20,7 @@ import com.liferay.knowledge.base.constants.KBPortletKeys;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.StagedPortletPermissionLogic;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -39,17 +37,15 @@ public class DisplayPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.name", KBConstants.RESOURCE_NAME_DISPLAY);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
 				KBConstants.RESOURCE_NAME_DISPLAY,
 				new StagedPortletPermissionLogic(
 					_stagingPermission, KBPortletKeys.KNOWLEDGE_BASE_DISPLAY)),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", KBConstants.RESOURCE_NAME_DISPLAY
+			).build());
 	}
 
 	@Deactivate

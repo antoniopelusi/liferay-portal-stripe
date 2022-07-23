@@ -14,6 +14,7 @@
 
 package com.liferay.blogs.web.internal.display.context;
 
+import com.liferay.blogs.constants.BlogsPortletKeys;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.petra.string.StringBundler;
@@ -22,6 +23,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
@@ -57,6 +59,30 @@ public class BlogImagesDisplayContext {
 		_httpServletRequest = _liferayPortletRequest.getHttpServletRequest();
 	}
 
+	public String getOrderByCol() {
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
+		}
+
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest, BlogsPortletKeys.BLOGS_ADMIN,
+			"images-order-by-col", "title");
+
+		return _orderByCol;
+	}
+
+	public String getOrderByType() {
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest, BlogsPortletKeys.BLOGS_ADMIN,
+			"images-order-by-type", "asc");
+
+		return _orderByType;
+	}
+
 	public void populateResults(SearchContainer<FileEntry> searchContainer)
 		throws PortalException {
 
@@ -68,25 +94,19 @@ public class BlogImagesDisplayContext {
 			BlogsEntryLocalServiceUtil.addAttachmentsFolder(
 				themeDisplay.getUserId(), themeDisplay.getScopeGroupId());
 
-		int total = 0;
-		List<FileEntry> results = null;
-
 		String keywords = ParamUtil.getString(_httpServletRequest, "keywords");
 
 		if (Validator.isNull(keywords)) {
-			total = PortletFileRepositoryUtil.getPortletFileEntriesCount(
-				themeDisplay.getScopeGroupId(),
-				attachmentsFolder.getFolderId());
-
-			searchContainer.setTotal(total);
-
-			results = PortletFileRepositoryUtil.getPortletFileEntries(
-				themeDisplay.getScopeGroupId(), attachmentsFolder.getFolderId(),
-				WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(),
-				searchContainer.getEnd(),
-				searchContainer.getOrderByComparator());
-
-			searchContainer.setResults(results);
+			searchContainer.setResultsAndTotal(
+				() -> PortletFileRepositoryUtil.getPortletFileEntries(
+					themeDisplay.getScopeGroupId(),
+					attachmentsFolder.getFolderId(),
+					WorkflowConstants.STATUS_APPROVED,
+					searchContainer.getStart(), searchContainer.getEnd(),
+					searchContainer.getOrderByComparator()),
+				PortletFileRepositoryUtil.getPortletFileEntriesCount(
+					themeDisplay.getScopeGroupId(),
+					attachmentsFolder.getFolderId()));
 		}
 		else {
 			SearchContext searchContext = SearchContextFactory.getInstance(
@@ -95,17 +115,11 @@ public class BlogImagesDisplayContext {
 			searchContext.setEnd(searchContainer.getEnd());
 			searchContext.setFolderIds(
 				new long[] {attachmentsFolder.getFolderId()});
+			searchContext.setSorts(
+				new Sort(
+					getOrderByCol(),
+					!StringUtil.equalsIgnoreCase(getOrderByType(), "asc")));
 			searchContext.setStart(searchContainer.getStart());
-
-			String orderByCol = ParamUtil.getString(
-				_httpServletRequest, "orderByCol", "title");
-			String orderByType = ParamUtil.getString(
-				_httpServletRequest, "orderByType", "asc");
-
-			Sort sort = new Sort(
-				orderByCol, !StringUtil.equalsIgnoreCase(orderByType, "asc"));
-
-			searchContext.setSorts(sort);
 
 			Folder folder = DLAppLocalServiceUtil.getFolder(
 				attachmentsFolder.getFolderId());
@@ -113,22 +127,17 @@ public class BlogImagesDisplayContext {
 			Hits hits = PortletFileRepositoryUtil.searchPortletFileEntries(
 				folder.getRepositoryId(), searchContext);
 
-			total = hits.getLength();
-
 			Document[] docs = hits.getDocs();
 
-			results = new ArrayList<>();
+			List<FileEntry> results = new ArrayList<>();
 
 			for (Document doc : docs) {
 				long fileEntryId = GetterUtil.getLong(
 					doc.get(Field.ENTRY_CLASS_PK));
 
-				FileEntry fileEntry = null;
-
 				try {
-					fileEntry = DLAppLocalServiceUtil.getFileEntry(fileEntryId);
-
-					results.add(fileEntry);
+					results.add(
+						DLAppLocalServiceUtil.getFileEntry(fileEntryId));
 				}
 				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
@@ -141,8 +150,7 @@ public class BlogImagesDisplayContext {
 				}
 			}
 
-			searchContainer.setTotal(total);
-			searchContainer.setResults(results);
+			searchContainer.setResultsAndTotal(() -> results, hits.getLength());
 		}
 	}
 
@@ -151,5 +159,7 @@ public class BlogImagesDisplayContext {
 
 	private final HttpServletRequest _httpServletRequest;
 	private final LiferayPortletRequest _liferayPortletRequest;
+	private String _orderByCol;
+	private String _orderByType;
 
 }

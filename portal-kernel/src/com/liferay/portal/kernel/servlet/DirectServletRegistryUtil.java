@@ -22,7 +22,7 @@ import javax.servlet.Servlet;
 public class DirectServletRegistryUtil {
 
 	public static void clearServlets() {
-		getDirectServletRegistry().clearServlets();
+		_directServletRegistry.clearServlets();
 	}
 
 	public static DirectServletRegistry getDirectServletRegistry() {
@@ -30,11 +30,11 @@ public class DirectServletRegistryUtil {
 	}
 
 	public static Servlet getServlet(String path) {
-		return getDirectServletRegistry().getServlet(path);
+		return _directServletRegistry.getServlet(path);
 	}
 
 	public static void putServlet(String path, Servlet servlet) {
-		getDirectServletRegistry().putServlet(path, servlet);
+		_directServletRegistry.putServlet(path, servlet);
 	}
 
 	public void setDirectServletRegistry(

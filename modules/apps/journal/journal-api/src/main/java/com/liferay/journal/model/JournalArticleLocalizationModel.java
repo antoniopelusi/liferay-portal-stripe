@@ -181,4 +181,7 @@ public interface JournalArticleLocalizationModel
 	 */
 	public void setLanguageId(String languageId);
 
+	@Override
+	public JournalArticleLocalization cloneWithOriginalValues();
+
 }

@@ -2,11 +2,13 @@
 <head>
 <title>Mentions</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Mentions</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>MENTIONS_COMMENT_TAG_LINK</td>
@@ -16,6 +18,11 @@
 <tr>
 	<td>MENTIONS_USER_DISPLAY_OPTION</td>
 	<td>//li[@data-text='${key_mentionsUserScreenName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MENTION_POPUP_DISAPPEAR</td>
+	<td>//div[@style='display: none;']</td>
 	<td></td>
 </tr>
 <tr>

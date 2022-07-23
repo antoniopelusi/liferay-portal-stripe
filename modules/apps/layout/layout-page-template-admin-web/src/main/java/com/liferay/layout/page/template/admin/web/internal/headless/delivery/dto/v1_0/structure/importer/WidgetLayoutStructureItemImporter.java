@@ -18,13 +18,14 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.headless.delivery.dto.v1_0.PageElement;
-import com.liferay.layout.page.template.admin.web.internal.headless.delivery.dto.v1_0.structure.importer.util.PortletConfigurationImporterHelper;
-import com.liferay.layout.page.template.admin.web.internal.headless.delivery.dto.v1_0.structure.importer.util.PortletPermissionsImporterHelper;
+import com.liferay.layout.page.template.admin.web.internal.headless.delivery.dto.v1_0.structure.importer.helper.PortletConfigurationImporterHelper;
+import com.liferay.layout.page.template.admin.web.internal.headless.delivery.dto.v1_0.structure.importer.helper.PortletPermissionsImporterHelper;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortletIdException;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.util.List;
 import java.util.Map;
@@ -52,20 +54,59 @@ public class WidgetLayoutStructureItemImporter
 
 	@Override
 	public LayoutStructureItem addLayoutStructureItem(
-			Layout layout, LayoutStructure layoutStructure,
-			PageElement pageElement, String parentItemId, int position,
-			Set<String> warningMessages)
+			LayoutStructure layoutStructure,
+			LayoutStructureItemImporterContext
+				layoutStructureItemImporterContext,
+			PageElement pageElement, Set<String> warningMessages)
 		throws Exception {
 
 		FragmentEntryLink fragmentEntryLink = _addFragmentEntryLink(
-			layout, pageElement, warningMessages);
+			layoutStructureItemImporterContext.getLayout(), pageElement,
+			warningMessages);
 
 		if (fragmentEntryLink == null) {
 			return null;
 		}
 
-		return layoutStructure.addFragmentStyledLayoutStructureItem(
-			fragmentEntryLink.getFragmentEntryLinkId(), parentItemId, position);
+		LayoutStructureItem fragmentStyledLayoutStructureItem =
+			layoutStructure.addFragmentStyledLayoutStructureItem(
+				fragmentEntryLink.getFragmentEntryLinkId(),
+				layoutStructureItemImporterContext.getParentItemId(),
+				layoutStructureItemImporterContext.getPosition());
+
+		Map<String, Object> definitionMap = getDefinitionMap(
+			pageElement.getDefinition());
+
+		if (definitionMap != null) {
+			Map<String, Object> fragmentStyleMap =
+				(Map<String, Object>)definitionMap.get("fragmentStyle");
+
+			if (fragmentStyleMap != null) {
+				JSONObject jsonObject = JSONUtil.put(
+					"styles",
+					toStylesJSONObject(
+						layoutStructureItemImporterContext, fragmentStyleMap));
+
+				fragmentStyledLayoutStructureItem.updateItemConfig(jsonObject);
+			}
+
+			if (definitionMap.containsKey("fragmentViewports")) {
+				List<Map<String, Object>> fragmentViewports =
+					(List<Map<String, Object>>)definitionMap.get(
+						"fragmentViewports");
+
+				for (Map<String, Object> fragmentViewport : fragmentViewports) {
+					JSONObject jsonObject = JSONUtil.put(
+						(String)fragmentViewport.get("id"),
+						toFragmentViewportStylesJSONObject(fragmentViewport));
+
+					fragmentStyledLayoutStructureItem.updateItemConfig(
+						jsonObject);
+				}
+			}
+		}
+
+		return fragmentStyledLayoutStructureItem;
 	}
 
 	@Override
@@ -134,10 +175,12 @@ public class WidgetLayoutStructureItemImporter
 			warningMessages, widgetPermissionsMaps);
 
 		return _fragmentEntryLinkLocalService.addFragmentEntryLink(
-			layout.getUserId(), layout.getGroupId(), 0, 0, 0, layout.getPlid(),
-			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
-			StringPool.BLANK, editableValueJSONObject.toString(),
-			widgetInstanceId, 0, null,
+			layout.getUserId(), layout.getGroupId(), 0, 0,
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				layout.getPlid()),
+			layout.getPlid(), StringPool.BLANK, StringPool.BLANK,
+			StringPool.BLANK, StringPool.BLANK,
+			editableValueJSONObject.toString(), widgetInstanceId, 0, null,
 			ServiceContextThreadLocal.getServiceContext());
 	}
 
@@ -185,5 +228,8 @@ public class WidgetLayoutStructureItemImporter
 
 	@Reference
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 }

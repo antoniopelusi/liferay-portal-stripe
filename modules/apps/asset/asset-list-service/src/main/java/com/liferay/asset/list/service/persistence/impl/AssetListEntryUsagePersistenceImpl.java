@@ -20,11 +20,11 @@ import com.liferay.asset.list.model.AssetListEntryUsageTable;
 import com.liferay.asset.list.model.impl.AssetListEntryUsageImpl;
 import com.liferay.asset.list.model.impl.AssetListEntryUsageModelImpl;
 import com.liferay.asset.list.service.persistence.AssetListEntryUsagePersistence;
+import com.liferay.asset.list.service.persistence.AssetListEntryUsageUtil;
 import com.liferay.asset.list.service.persistence.impl.constants.AssetListPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,22 +35,24 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -64,12 +66,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -3759,297 +3758,6 @@ public class AssetListEntryUsagePersistenceImpl
 	private static final String _FINDER_COLUMN_G_C_K_KEY_3 =
 		"(assetListEntryUsage.key IS NULL OR assetListEntryUsage.key = '')";
 
-	private FinderPath _finderPathFetchByC_C_P;
-	private FinderPath _finderPathCountByC_C_P;
-
-	/**
-	 * Returns the asset list entry usage where classNameId = &#63; and classPK = &#63; and portletId = &#63; or throws a <code>NoSuchEntryUsageException</code> if it could not be found.
-	 *
-	 * @param classNameId the class name ID
-	 * @param classPK the class pk
-	 * @param portletId the portlet ID
-	 * @return the matching asset list entry usage
-	 * @throws NoSuchEntryUsageException if a matching asset list entry usage could not be found
-	 */
-	@Override
-	public AssetListEntryUsage findByC_C_P(
-			long classNameId, long classPK, String portletId)
-		throws NoSuchEntryUsageException {
-
-		AssetListEntryUsage assetListEntryUsage = fetchByC_C_P(
-			classNameId, classPK, portletId);
-
-		if (assetListEntryUsage == null) {
-			StringBundler sb = new StringBundler(8);
-
-			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			sb.append("classNameId=");
-			sb.append(classNameId);
-
-			sb.append(", classPK=");
-			sb.append(classPK);
-
-			sb.append(", portletId=");
-			sb.append(portletId);
-
-			sb.append("}");
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(sb.toString());
-			}
-
-			throw new NoSuchEntryUsageException(sb.toString());
-		}
-
-		return assetListEntryUsage;
-	}
-
-	/**
-	 * Returns the asset list entry usage where classNameId = &#63; and classPK = &#63; and portletId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
-	 *
-	 * @param classNameId the class name ID
-	 * @param classPK the class pk
-	 * @param portletId the portlet ID
-	 * @return the matching asset list entry usage, or <code>null</code> if a matching asset list entry usage could not be found
-	 */
-	@Override
-	public AssetListEntryUsage fetchByC_C_P(
-		long classNameId, long classPK, String portletId) {
-
-		return fetchByC_C_P(classNameId, classPK, portletId, true);
-	}
-
-	/**
-	 * Returns the asset list entry usage where classNameId = &#63; and classPK = &#63; and portletId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
-	 *
-	 * @param classNameId the class name ID
-	 * @param classPK the class pk
-	 * @param portletId the portlet ID
-	 * @param useFinderCache whether to use the finder cache
-	 * @return the matching asset list entry usage, or <code>null</code> if a matching asset list entry usage could not be found
-	 */
-	@Override
-	public AssetListEntryUsage fetchByC_C_P(
-		long classNameId, long classPK, String portletId,
-		boolean useFinderCache) {
-
-		portletId = Objects.toString(portletId, "");
-
-		boolean productionMode = ctPersistenceHelper.isProductionMode(
-			AssetListEntryUsage.class);
-
-		Object[] finderArgs = null;
-
-		if (useFinderCache && productionMode) {
-			finderArgs = new Object[] {classNameId, classPK, portletId};
-		}
-
-		Object result = null;
-
-		if (useFinderCache && productionMode) {
-			result = finderCache.getResult(_finderPathFetchByC_C_P, finderArgs);
-		}
-
-		if (result instanceof AssetListEntryUsage) {
-			AssetListEntryUsage assetListEntryUsage =
-				(AssetListEntryUsage)result;
-
-			if ((classNameId != assetListEntryUsage.getClassNameId()) ||
-				(classPK != assetListEntryUsage.getClassPK()) ||
-				!Objects.equals(
-					portletId, assetListEntryUsage.getPortletId())) {
-
-				result = null;
-			}
-		}
-
-		if (result == null) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(_SQL_SELECT_ASSETLISTENTRYUSAGE_WHERE);
-
-			sb.append(_FINDER_COLUMN_C_C_P_CLASSNAMEID_2);
-
-			sb.append(_FINDER_COLUMN_C_C_P_CLASSPK_2);
-
-			boolean bindPortletId = false;
-
-			if (portletId.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_C_P_PORTLETID_3);
-			}
-			else {
-				bindPortletId = true;
-
-				sb.append(_FINDER_COLUMN_C_C_P_PORTLETID_2);
-			}
-
-			String sql = sb.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query query = session.createQuery(sql);
-
-				QueryPos queryPos = QueryPos.getInstance(query);
-
-				queryPos.add(classNameId);
-
-				queryPos.add(classPK);
-
-				if (bindPortletId) {
-					queryPos.add(portletId);
-				}
-
-				List<AssetListEntryUsage> list = query.list();
-
-				if (list.isEmpty()) {
-					if (useFinderCache && productionMode) {
-						finderCache.putResult(
-							_finderPathFetchByC_C_P, finderArgs, list);
-					}
-				}
-				else {
-					AssetListEntryUsage assetListEntryUsage = list.get(0);
-
-					result = assetListEntryUsage;
-
-					cacheResult(assetListEntryUsage);
-				}
-			}
-			catch (Exception exception) {
-				throw processException(exception);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		if (result instanceof List<?>) {
-			return null;
-		}
-		else {
-			return (AssetListEntryUsage)result;
-		}
-	}
-
-	/**
-	 * Removes the asset list entry usage where classNameId = &#63; and classPK = &#63; and portletId = &#63; from the database.
-	 *
-	 * @param classNameId the class name ID
-	 * @param classPK the class pk
-	 * @param portletId the portlet ID
-	 * @return the asset list entry usage that was removed
-	 */
-	@Override
-	public AssetListEntryUsage removeByC_C_P(
-			long classNameId, long classPK, String portletId)
-		throws NoSuchEntryUsageException {
-
-		AssetListEntryUsage assetListEntryUsage = findByC_C_P(
-			classNameId, classPK, portletId);
-
-		return remove(assetListEntryUsage);
-	}
-
-	/**
-	 * Returns the number of asset list entry usages where classNameId = &#63; and classPK = &#63; and portletId = &#63;.
-	 *
-	 * @param classNameId the class name ID
-	 * @param classPK the class pk
-	 * @param portletId the portlet ID
-	 * @return the number of matching asset list entry usages
-	 */
-	@Override
-	public int countByC_C_P(long classNameId, long classPK, String portletId) {
-		portletId = Objects.toString(portletId, "");
-
-		boolean productionMode = ctPersistenceHelper.isProductionMode(
-			AssetListEntryUsage.class);
-
-		FinderPath finderPath = null;
-		Object[] finderArgs = null;
-
-		Long count = null;
-
-		if (productionMode) {
-			finderPath = _finderPathCountByC_C_P;
-
-			finderArgs = new Object[] {classNameId, classPK, portletId};
-
-			count = (Long)finderCache.getResult(finderPath, finderArgs);
-		}
-
-		if (count == null) {
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(_SQL_COUNT_ASSETLISTENTRYUSAGE_WHERE);
-
-			sb.append(_FINDER_COLUMN_C_C_P_CLASSNAMEID_2);
-
-			sb.append(_FINDER_COLUMN_C_C_P_CLASSPK_2);
-
-			boolean bindPortletId = false;
-
-			if (portletId.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_C_P_PORTLETID_3);
-			}
-			else {
-				bindPortletId = true;
-
-				sb.append(_FINDER_COLUMN_C_C_P_PORTLETID_2);
-			}
-
-			String sql = sb.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query query = session.createQuery(sql);
-
-				QueryPos queryPos = QueryPos.getInstance(query);
-
-				queryPos.add(classNameId);
-
-				queryPos.add(classPK);
-
-				if (bindPortletId) {
-					queryPos.add(portletId);
-				}
-
-				count = (Long)query.uniqueResult();
-
-				if (productionMode) {
-					finderCache.putResult(finderPath, finderArgs, count);
-				}
-			}
-			catch (Exception exception) {
-				throw processException(exception);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
-	}
-
-	private static final String _FINDER_COLUMN_C_C_P_CLASSNAMEID_2 =
-		"assetListEntryUsage.classNameId = ? AND ";
-
-	private static final String _FINDER_COLUMN_C_C_P_CLASSPK_2 =
-		"assetListEntryUsage.classPK = ? AND ";
-
-	private static final String _FINDER_COLUMN_C_C_P_PORTLETID_2 =
-		"assetListEntryUsage.portletId = ?";
-
-	private static final String _FINDER_COLUMN_C_C_P_PORTLETID_3 =
-		"(assetListEntryUsage.portletId IS NULL OR assetListEntryUsage.portletId = '')";
-
 	private FinderPath _finderPathWithPaginationFindByCK_CT_P;
 	private FinderPath _finderPathWithoutPaginationFindByCK_CT_P;
 	private FinderPath _finderPathCountByCK_CT_P;
@@ -5801,15 +5509,6 @@ public class AssetListEntryUsagePersistenceImpl
 			assetListEntryUsage);
 
 		finderCache.putResult(
-			_finderPathFetchByC_C_P,
-			new Object[] {
-				assetListEntryUsage.getClassNameId(),
-				assetListEntryUsage.getClassPK(),
-				assetListEntryUsage.getPortletId()
-			},
-			assetListEntryUsage);
-
-		finderCache.putResult(
 			_finderPathFetchByG_C_CK_CT_K_P,
 			new Object[] {
 				assetListEntryUsage.getGroupId(),
@@ -5821,6 +5520,8 @@ public class AssetListEntryUsagePersistenceImpl
 			assetListEntryUsage);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the asset list entry usages in the entity cache if it is enabled.
 	 *
@@ -5828,6 +5529,14 @@ public class AssetListEntryUsagePersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<AssetListEntryUsage> assetListEntryUsages) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (assetListEntryUsages.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (AssetListEntryUsage assetListEntryUsage : assetListEntryUsages) {
 			if (assetListEntryUsage.getCtCollectionId() != 0) {
 				continue;
@@ -5899,16 +5608,6 @@ public class AssetListEntryUsagePersistenceImpl
 			_finderPathFetchByUUID_G, args, assetListEntryUsageModelImpl);
 
 		args = new Object[] {
-			assetListEntryUsageModelImpl.getClassNameId(),
-			assetListEntryUsageModelImpl.getClassPK(),
-			assetListEntryUsageModelImpl.getPortletId()
-		};
-
-		finderCache.putResult(_finderPathCountByC_C_P, args, Long.valueOf(1));
-		finderCache.putResult(
-			_finderPathFetchByC_C_P, args, assetListEntryUsageModelImpl);
-
-		args = new Object[] {
 			assetListEntryUsageModelImpl.getGroupId(),
 			assetListEntryUsageModelImpl.getClassNameId(),
 			assetListEntryUsageModelImpl.getContainerKey(),
@@ -5937,7 +5636,7 @@ public class AssetListEntryUsagePersistenceImpl
 		assetListEntryUsage.setNew(true);
 		assetListEntryUsage.setPrimaryKey(assetListEntryUsageId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		assetListEntryUsage.setUuid(uuid);
 
@@ -6064,7 +5763,7 @@ public class AssetListEntryUsagePersistenceImpl
 			(AssetListEntryUsageModelImpl)assetListEntryUsage;
 
 		if (Validator.isNull(assetListEntryUsage.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			assetListEntryUsage.setUuid(uuid);
 		}
@@ -6072,25 +5771,25 @@ public class AssetListEntryUsagePersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (assetListEntryUsage.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				assetListEntryUsage.setCreateDate(now);
+				assetListEntryUsage.setCreateDate(date);
 			}
 			else {
 				assetListEntryUsage.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!assetListEntryUsageModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				assetListEntryUsage.setModifiedDate(now);
+				assetListEntryUsage.setModifiedDate(date);
 			}
 			else {
 				assetListEntryUsage.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -6256,6 +5955,26 @@ public class AssetListEntryUsagePersistenceImpl
 
 			if (assetListEntryUsage != null) {
 				map.put(primaryKey, assetListEntryUsage);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -6525,7 +6244,8 @@ public class AssetListEntryUsagePersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -6559,7 +6279,6 @@ public class AssetListEntryUsagePersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -6586,7 +6305,6 @@ public class AssetListEntryUsagePersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK,
 			Collections.singleton("assetListEntryUsageId"));
@@ -6594,9 +6312,6 @@ public class AssetListEntryUsagePersistenceImpl
 			CTColumnResolutionType.STRICT, ctStrictColumnNames);
 
 		_uniqueIndexColumnNames.add(new String[] {"uuid_", "groupId"});
-
-		_uniqueIndexColumnNames.add(
-			new String[] {"classNameId", "classPK", "portletId"});
 
 		_uniqueIndexColumnNames.add(
 			new String[] {
@@ -6609,13 +6324,9 @@ public class AssetListEntryUsagePersistenceImpl
 	 * Initializes the asset list entry usage persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new AssetListEntryUsageModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -6754,22 +6465,6 @@ public class AssetListEntryUsagePersistenceImpl
 			},
 			new String[] {"groupId", "classNameId", "key_"}, false);
 
-		_finderPathFetchByC_C_P = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByC_C_P",
-			new String[] {
-				Long.class.getName(), Long.class.getName(),
-				String.class.getName()
-			},
-			new String[] {"classNameId", "classPK", "portletId"}, true);
-
-		_finderPathCountByC_C_P = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_C_P",
-			new String[] {
-				Long.class.getName(), Long.class.getName(),
-				String.class.getName()
-			},
-			new String[] {"classNameId", "classPK", "portletId"}, false);
-
 		_finderPathWithPaginationFindByCK_CT_P = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCK_CT_P",
 			new String[] {
@@ -6846,13 +6541,31 @@ public class AssetListEntryUsagePersistenceImpl
 				"key_", "plid"
 			},
 			false);
+
+		_setAssetListEntryUsageUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(AssetListEntryUsageImpl.class.getName());
+		_setAssetListEntryUsageUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(AssetListEntryUsageImpl.class.getName());
+	}
+
+	private void _setAssetListEntryUsageUtilPersistence(
+		AssetListEntryUsagePersistence assetListEntryUsagePersistence) {
+
+		try {
+			Field field = AssetListEntryUsageUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, assetListEntryUsagePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -6880,8 +6593,6 @@ public class AssetListEntryUsagePersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -6923,98 +6634,11 @@ public class AssetListEntryUsagePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class AssetListEntryUsageModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AssetListEntryUsageModelImpl assetListEntryUsageModelImpl =
-				(AssetListEntryUsageModelImpl)baseModel;
-
-			long columnBitmask =
-				assetListEntryUsageModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					assetListEntryUsageModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						assetListEntryUsageModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					assetListEntryUsageModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AssetListEntryUsageImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AssetListEntryUsageTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AssetListEntryUsageModelImpl assetListEntryUsageModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						assetListEntryUsageModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = assetListEntryUsageModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private AssetListEntryUsageModelArgumentsResolver
+		_assetListEntryUsageModelArgumentsResolver;
 
 }

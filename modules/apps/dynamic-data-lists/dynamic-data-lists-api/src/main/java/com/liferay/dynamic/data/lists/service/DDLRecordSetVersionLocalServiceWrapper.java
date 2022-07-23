@@ -30,6 +30,10 @@ public class DDLRecordSetVersionLocalServiceWrapper
 	implements DDLRecordSetVersionLocalService,
 			   ServiceWrapper<DDLRecordSetVersionLocalService> {
 
+	public DDLRecordSetVersionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDLRecordSetVersionLocalServiceWrapper(
 		DDLRecordSetVersionLocalService ddlRecordSetVersionLocalService) {
 
@@ -138,6 +142,13 @@ public class DDLRecordSetVersionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddlRecordSetVersionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddlRecordSetVersionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

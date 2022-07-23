@@ -80,11 +80,8 @@ public class DeliveryPortletConfigurationIcon
 		sb.append("', title: '");
 		sb.append(LanguageUtil.get(themeDisplay.getLocale(), "configuration"));
 		sb.append("', url: '");
-
-		PortletURL deliveryURL = getDeliveryURL(portletRequest);
-
-		sb.append(HtmlUtil.escapeJS(deliveryURL.toString()));
-
+		sb.append(
+			HtmlUtil.escapeJS(String.valueOf(_getDeliveryURL(portletRequest))));
 		sb.append("'}); return false;");
 
 		return sb.toString();
@@ -94,9 +91,7 @@ public class DeliveryPortletConfigurationIcon
 	public String getURL(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		PortletURL deliveryURL = getDeliveryURL(portletRequest);
-
-		return deliveryURL.toString();
+		return String.valueOf(_getDeliveryURL(portletRequest));
 	}
 
 	@Override
@@ -114,21 +109,21 @@ public class DeliveryPortletConfigurationIcon
 		return false;
 	}
 
-	protected PortletURL getDeliveryURL(PortletRequest portletRequest) {
+	private PortletURL _getDeliveryURL(PortletRequest portletRequest) {
 		PortletURL portletURL = PortletURLBuilder.create(
 			PortletURLFactoryUtil.create(
 				portletRequest, NotificationsPortletKeys.NOTIFICATIONS,
 				PortletRequest.RENDER_PHASE)
 		).setMVCPath(
 			"/notifications/configuration.jsp"
-		).build();
+		).buildPortletURL();
 
 		try {
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(windowStateException, windowStateException);
+				_log.debug(windowStateException);
 			}
 		}
 

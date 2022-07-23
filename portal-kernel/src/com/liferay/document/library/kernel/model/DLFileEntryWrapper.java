@@ -49,6 +49,7 @@ public class DLFileEntryWrapper
 		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
+		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("fileEntryId", getFileEntryId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -76,6 +77,8 @@ public class DLFileEntryWrapper
 		attributes.put("custom1ImageId", getCustom1ImageId());
 		attributes.put("custom2ImageId", getCustom2ImageId());
 		attributes.put("manualCheckInRequired", isManualCheckInRequired());
+		attributes.put("expirationDate", getExpirationDate());
+		attributes.put("reviewDate", getReviewDate());
 		attributes.put("lastPublishDate", getLastPublishDate());
 
 		return attributes;
@@ -99,6 +102,13 @@ public class DLFileEntryWrapper
 
 		if (uuid != null) {
 			setUuid(uuid);
+		}
+
+		String externalReferenceCode = (String)attributes.get(
+			"externalReferenceCode");
+
+		if (externalReferenceCode != null) {
+			setExternalReferenceCode(externalReferenceCode);
 		}
 
 		Long fileEntryId = (Long)attributes.get("fileEntryId");
@@ -264,6 +274,18 @@ public class DLFileEntryWrapper
 			setManualCheckInRequired(manualCheckInRequired);
 		}
 
+		Date expirationDate = (Date)attributes.get("expirationDate");
+
+		if (expirationDate != null) {
+			setExpirationDate(expirationDate);
+		}
+
+		Date reviewDate = (Date)attributes.get("reviewDate");
+
+		if (reviewDate != null) {
+			setReviewDate(reviewDate);
+		}
+
 		Date lastPublishDate = (Date)attributes.get("lastPublishDate");
 
 		if (lastPublishDate != null) {
@@ -276,6 +298,11 @@ public class DLFileEntryWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return model.buildTreePath();
+	}
+
+	@Override
+	public DLFileEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -408,6 +435,16 @@ public class DLFileEntryWrapper
 	}
 
 	/**
+	 * Returns the expiration date of this document library file entry.
+	 *
+	 * @return the expiration date of this document library file entry
+	 */
+	@Override
+	public Date getExpirationDate() {
+		return model.getExpirationDate();
+	}
+
+	/**
 	 * Returns the extension of this document library file entry.
 	 *
 	 * @return the extension of this document library file entry
@@ -415,6 +452,16 @@ public class DLFileEntryWrapper
 	@Override
 	public String getExtension() {
 		return model.getExtension();
+	}
+
+	/**
+	 * Returns the external reference code of this document library file entry.
+	 *
+	 * @return the external reference code of this document library file entry
+	 */
+	@Override
+	public String getExternalReferenceCode() {
+		return model.getExternalReferenceCode();
 	}
 
 	/**
@@ -562,6 +609,10 @@ public class DLFileEntryWrapper
 		return model.getLock();
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Override
 	public String getLuceneProperties() {
 		return model.getLuceneProperties();
@@ -640,6 +691,16 @@ public class DLFileEntryWrapper
 	@Override
 	public long getRepositoryId() {
 		return model.getRepositoryId();
+	}
+
+	/**
+	 * Returns the review date of this document library file entry.
+	 *
+	 * @return the review date of this document library file entry
+	 */
+	@Override
+	public Date getReviewDate() {
+		return model.getReviewDate();
 	}
 
 	/**
@@ -922,6 +983,16 @@ public class DLFileEntryWrapper
 	}
 
 	/**
+	 * Sets the expiration date of this document library file entry.
+	 *
+	 * @param expirationDate the expiration date of this document library file entry
+	 */
+	@Override
+	public void setExpirationDate(Date expirationDate) {
+		model.setExpirationDate(expirationDate);
+	}
+
+	/**
 	 * Sets the extension of this document library file entry.
 	 *
 	 * @param extension the extension of this document library file entry
@@ -929,6 +1000,16 @@ public class DLFileEntryWrapper
 	@Override
 	public void setExtension(String extension) {
 		model.setExtension(extension);
+	}
+
+	/**
+	 * Sets the external reference code of this document library file entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this document library file entry
+	 */
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		model.setExternalReferenceCode(externalReferenceCode);
 	}
 
 	/**
@@ -1087,6 +1168,16 @@ public class DLFileEntryWrapper
 	@Override
 	public void setRepositoryId(long repositoryId) {
 		model.setRepositoryId(repositoryId);
+	}
+
+	/**
+	 * Sets the review date of this document library file entry.
+	 *
+	 * @param reviewDate the review date of this document library file entry
+	 */
+	@Override
+	public void setReviewDate(Date reviewDate) {
+		model.setReviewDate(reviewDate);
 	}
 
 	/**

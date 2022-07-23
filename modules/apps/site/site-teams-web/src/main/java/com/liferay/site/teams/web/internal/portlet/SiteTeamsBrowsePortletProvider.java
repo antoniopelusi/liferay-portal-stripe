@@ -50,7 +50,7 @@ public class SiteTeamsBrowsePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/select_team.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

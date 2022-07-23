@@ -71,7 +71,34 @@ renderResponse.setTitle((selCompany == null) ? LanguageUtil.get(request, "new-in
 
 			<aui:input name="maxUsers" />
 
-			<aui:input disabled="<%= (selCompany != null) && (selCompany.getCompanyId() == PortalInstancesLocalServiceUtil.getDefaultCompanyId()) %>" inlineLabel="right" labelCssClass="simple-toggle-switch" name="active" type="toggle-switch" value="<%= (selCompany != null) ? selCompany.isActive() : true %>" />
+			<c:if test="<%= (selCompany == null) || (selCompany.getCompanyId() != PortalInstancesLocalServiceUtil.getDefaultCompanyId()) %>">
+				<aui:input inlineLabel="right" labelCssClass="simple-toggle-switch" name="active" type="toggle-switch" value="<%= (selCompany != null) ? selCompany.isActive() : true %>" />
+			</c:if>
+
+			<c:if test="<%= selCompany == null %>">
+
+				<%
+				SiteInitializerRegistry siteInitializerRegistry = (SiteInitializerRegistry)request.getAttribute(PortalInstancesWebKeys.SITE_INITIALIZER_REGISTRY);
+
+				List<SiteInitializer> siteInitializers = siteInitializerRegistry.getSiteInitializers(company.getCompanyId(), true);
+				%>
+
+				<c:if test="<%= !siteInitializers.isEmpty() %>">
+					<aui:select label="virtual-instance-initializer" name="siteInitializerKey" showEmptyOption="<%= true %>">
+
+						<%
+						for (SiteInitializer siteInitializer : siteInitializers) {
+						%>
+
+							<aui:option label="<%= siteInitializer.getName(locale) %>" value="<%= siteInitializer.getKey() %>" />
+
+						<%
+						}
+						%>
+
+					</aui:select>
+				</c:if>
+			</c:if>
 		</aui:fieldset>
 	</aui:fieldset-group>
 

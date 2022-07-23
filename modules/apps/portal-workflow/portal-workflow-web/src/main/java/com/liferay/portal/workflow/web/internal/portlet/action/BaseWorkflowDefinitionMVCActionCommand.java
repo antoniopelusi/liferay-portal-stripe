@@ -64,17 +64,17 @@ public abstract class BaseWorkflowDefinitionMVCActionCommand
 
 			addSuccessMessage(actionRequest, actionResponse);
 
-			setCloseRedirect(actionRequest);
+			_setCloseRedirect(actionRequest);
 
 			sendRedirect(actionRequest, actionResponse);
 
 			return SessionErrors.isEmpty(actionRequest);
 		}
 		catch (WorkflowException workflowException) {
-			Throwable rootThrowable = getRootThrowable(workflowException);
+			Throwable rootThrowable = _getRootThrowable(workflowException);
 
 			if (_log.isWarnEnabled()) {
-				_log.warn(rootThrowable, rootThrowable);
+				_log.warn(workflowException);
 			}
 
 			hideDefaultErrorMessage(actionRequest);
@@ -85,12 +85,12 @@ public abstract class BaseWorkflowDefinitionMVCActionCommand
 			return false;
 		}
 		catch (PortletException portletException) {
-			_log.error(portletException, portletException);
+			_log.error(portletException);
 
 			throw portletException;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			throw new PortletException(exception);
 		}
@@ -111,22 +111,6 @@ public abstract class BaseWorkflowDefinitionMVCActionCommand
 
 		return ResourceBundleUtil.getModuleAndPortalResourceBundle(
 			themeDisplay.getLocale(), getClass());
-	}
-
-	protected Throwable getRootThrowable(Throwable throwable) {
-		if ((throwable.getCause() == null) ||
-			(!(throwable.getCause() instanceof IllegalArgumentException) &&
-			 !(throwable.getCause() instanceof NoSuchRoleException) &&
-			 !(throwable.getCause() instanceof
-				 PrincipalException.MustBeCompanyAdmin) &&
-			 !(throwable.getCause() instanceof
-				 PrincipalException.MustBeOmniadmin) &&
-			 !(throwable.getCause() instanceof WorkflowException))) {
-
-			return throwable;
-		}
-
-		return getRootThrowable(throwable.getCause());
 	}
 
 	protected String getSuccessMessage(ActionRequest actionRequest) {
@@ -158,21 +142,6 @@ public abstract class BaseWorkflowDefinitionMVCActionCommand
 		}
 
 		return value;
-	}
-
-	protected void setCloseRedirect(ActionRequest actionRequest) {
-		String closeRedirect = ParamUtil.getString(
-			actionRequest, "closeRedirect");
-
-		if (Validator.isNull(closeRedirect)) {
-			return;
-		}
-
-		SessionMessages.add(
-			actionRequest,
-			portal.getPortletId(actionRequest) +
-				SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
-			closeRedirect);
 	}
 
 	protected void setRedirectAttribute(
@@ -210,6 +179,35 @@ public abstract class BaseWorkflowDefinitionMVCActionCommand
 
 	@Reference
 	protected WorkflowDefinitionManager workflowDefinitionManager;
+
+	private Throwable _getRootThrowable(WorkflowException workflowException) {
+		if (workflowException.getCause() instanceof IllegalArgumentException ||
+			workflowException.getCause() instanceof NoSuchRoleException ||
+			workflowException.getCause() instanceof
+				PrincipalException.MustBeCompanyAdmin ||
+			workflowException.getCause() instanceof
+				PrincipalException.MustBeOmniadmin) {
+
+			return workflowException.getCause();
+		}
+
+		return workflowException;
+	}
+
+	private void _setCloseRedirect(ActionRequest actionRequest) {
+		String closeRedirect = ParamUtil.getString(
+			actionRequest, "closeRedirect");
+
+		if (Validator.isNull(closeRedirect)) {
+			return;
+		}
+
+		SessionMessages.add(
+			actionRequest,
+			portal.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
+			closeRedirect);
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseWorkflowDefinitionMVCActionCommand.class);

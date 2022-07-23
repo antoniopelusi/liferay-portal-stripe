@@ -136,9 +136,6 @@ public class SamlSpIdpConnectionPersistenceTest {
 
 		newSamlSpIdpConnection.setModifiedDate(RandomTestUtil.nextDate());
 
-		newSamlSpIdpConnection.setSamlIdpEntityId(
-			RandomTestUtil.randomString());
-
 		newSamlSpIdpConnection.setAssertionSignatureRequired(
 			RandomTestUtil.randomBoolean());
 
@@ -162,6 +159,9 @@ public class SamlSpIdpConnectionPersistenceTest {
 
 		newSamlSpIdpConnection.setNameIdFormat(RandomTestUtil.randomString());
 
+		newSamlSpIdpConnection.setSamlIdpEntityId(
+			RandomTestUtil.randomString());
+
 		newSamlSpIdpConnection.setSignAuthnRequest(
 			RandomTestUtil.randomBoolean());
 
@@ -169,6 +169,9 @@ public class SamlSpIdpConnectionPersistenceTest {
 			RandomTestUtil.randomBoolean());
 
 		newSamlSpIdpConnection.setUserAttributeMappings(
+			RandomTestUtil.randomString());
+
+		newSamlSpIdpConnection.setUserIdentifierExpression(
 			RandomTestUtil.randomString());
 
 		_samlSpIdpConnections.add(_persistence.update(newSamlSpIdpConnection));
@@ -196,9 +199,6 @@ public class SamlSpIdpConnectionPersistenceTest {
 			Time.getShortTimestamp(
 				existingSamlSpIdpConnection.getModifiedDate()),
 			Time.getShortTimestamp(newSamlSpIdpConnection.getModifiedDate()));
-		Assert.assertEquals(
-			existingSamlSpIdpConnection.getSamlIdpEntityId(),
-			newSamlSpIdpConnection.getSamlIdpEntityId());
 		Assert.assertEquals(
 			existingSamlSpIdpConnection.isAssertionSignatureRequired(),
 			newSamlSpIdpConnection.isAssertionSignatureRequired());
@@ -232,6 +232,9 @@ public class SamlSpIdpConnectionPersistenceTest {
 			existingSamlSpIdpConnection.getNameIdFormat(),
 			newSamlSpIdpConnection.getNameIdFormat());
 		Assert.assertEquals(
+			existingSamlSpIdpConnection.getSamlIdpEntityId(),
+			newSamlSpIdpConnection.getSamlIdpEntityId());
+		Assert.assertEquals(
 			existingSamlSpIdpConnection.isSignAuthnRequest(),
 			newSamlSpIdpConnection.isSignAuthnRequest());
 		Assert.assertEquals(
@@ -240,6 +243,9 @@ public class SamlSpIdpConnectionPersistenceTest {
 		Assert.assertEquals(
 			existingSamlSpIdpConnection.getUserAttributeMappings(),
 			newSamlSpIdpConnection.getUserAttributeMappings());
+		Assert.assertEquals(
+			existingSamlSpIdpConnection.getUserIdentifierExpression(),
+			newSamlSpIdpConnection.getUserIdentifierExpression());
 	}
 
 	@Test
@@ -287,12 +293,13 @@ public class SamlSpIdpConnectionPersistenceTest {
 		return OrderByComparatorFactoryUtil.create(
 			"SamlSpIdpConnection", "samlSpIdpConnectionId", true, "companyId",
 			true, "userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "samlIdpEntityId", true,
-			"assertionSignatureRequired", true, "clockSkew", true, "enabled",
-			true, "forceAuthn", true, "ldapImportEnabled", true,
-			"metadataUpdatedDate", true, "metadataUrl", true, "name", true,
-			"nameIdFormat", true, "signAuthnRequest", true,
-			"unknownUsersAreStrangers", true, "userAttributeMappings", true);
+			"modifiedDate", true, "assertionSignatureRequired", true,
+			"clockSkew", true, "enabled", true, "forceAuthn", true,
+			"ldapImportEnabled", true, "metadataUpdatedDate", true,
+			"metadataUrl", true, "name", true, "nameIdFormat", true,
+			"samlIdpEntityId", true, "signAuthnRequest", true,
+			"unknownUsersAreStrangers", true, "userAttributeMappings", true,
+			"userIdentifierExpression", true);
 	}
 
 	@Test
@@ -602,8 +609,6 @@ public class SamlSpIdpConnectionPersistenceTest {
 
 		samlSpIdpConnection.setModifiedDate(RandomTestUtil.nextDate());
 
-		samlSpIdpConnection.setSamlIdpEntityId(RandomTestUtil.randomString());
-
 		samlSpIdpConnection.setAssertionSignatureRequired(
 			RandomTestUtil.randomBoolean());
 
@@ -626,12 +631,17 @@ public class SamlSpIdpConnectionPersistenceTest {
 
 		samlSpIdpConnection.setNameIdFormat(RandomTestUtil.randomString());
 
+		samlSpIdpConnection.setSamlIdpEntityId(RandomTestUtil.randomString());
+
 		samlSpIdpConnection.setSignAuthnRequest(RandomTestUtil.randomBoolean());
 
 		samlSpIdpConnection.setUnknownUsersAreStrangers(
 			RandomTestUtil.randomBoolean());
 
 		samlSpIdpConnection.setUserAttributeMappings(
+			RandomTestUtil.randomString());
+
+		samlSpIdpConnection.setUserIdentifierExpression(
 			RandomTestUtil.randomString());
 
 		_samlSpIdpConnections.add(_persistence.update(samlSpIdpConnection));

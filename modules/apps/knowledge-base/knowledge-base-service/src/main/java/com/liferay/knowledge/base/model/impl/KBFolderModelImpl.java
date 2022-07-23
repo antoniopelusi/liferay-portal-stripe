@@ -19,7 +19,6 @@ import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.knowledge.base.model.KBFolder;
 import com.liferay.knowledge.base.model.KBFolderModel;
-import com.liferay.knowledge.base.model.KBFolderSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -76,12 +74,13 @@ public class KBFolderModelImpl
 
 	public static final Object[][] TABLE_COLUMNS = {
 		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
-		{"kbFolderId", Types.BIGINT}, {"groupId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
-		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
-		{"modifiedDate", Types.TIMESTAMP}, {"parentKBFolderId", Types.BIGINT},
-		{"name", Types.VARCHAR}, {"urlTitle", Types.VARCHAR},
-		{"description", Types.VARCHAR}, {"lastPublishDate", Types.TIMESTAMP}
+		{"externalReferenceCode", Types.VARCHAR}, {"kbFolderId", Types.BIGINT},
+		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
+		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"parentKBFolderId", Types.BIGINT}, {"name", Types.VARCHAR},
+		{"urlTitle", Types.VARCHAR}, {"description", Types.VARCHAR},
+		{"lastPublishDate", Types.TIMESTAMP}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -90,6 +89,7 @@ public class KBFolderModelImpl
 	static {
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("externalReferenceCode", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("kbFolderId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -105,7 +105,7 @@ public class KBFolderModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table KBFolder (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,kbFolderId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentKBFolderId LONG,name VARCHAR(75) null,urlTitle VARCHAR(75) null,description STRING null,lastPublishDate DATE null)";
+		"create table KBFolder (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,kbFolderId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentKBFolderId LONG,name VARCHAR(75) null,urlTitle VARCHAR(75) null,description STRING null,lastPublishDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table KBFolder";
 
@@ -131,38 +131,44 @@ public class KBFolderModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long GROUPID_COLUMN_BITMASK = 2L;
+	public static final long EXTERNALREFERENCECODE_COLUMN_BITMASK = 2L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long NAME_COLUMN_BITMASK = 4L;
+	public static final long GROUPID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long PARENTKBFOLDERID_COLUMN_BITMASK = 8L;
+	public static final long NAME_COLUMN_BITMASK = 8L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long URLTITLE_COLUMN_BITMASK = 16L;
+	public static final long PARENTKBFOLDERID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 32L;
+	public static final long URLTITLE_COLUMN_BITMASK = 32L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long KBFOLDERID_COLUMN_BITMASK = 64L;
+	public static final long KBFOLDERID_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -176,61 +182,6 @@ public class KBFolderModelImpl
 	 */
 	@Deprecated
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-	}
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static KBFolder toModel(KBFolderSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		KBFolder model = new KBFolderImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setKbFolderId(soapModel.getKbFolderId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setParentKBFolderId(soapModel.getParentKBFolderId());
-		model.setName(soapModel.getName());
-		model.setUrlTitle(soapModel.getUrlTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<KBFolder> toModels(KBFolderSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<KBFolder> models = new ArrayList<KBFolder>(soapModels.length);
-
-		for (KBFolderSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
 	}
 
 	public KBFolderModelImpl() {
@@ -317,34 +268,6 @@ public class KBFolderModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, KBFolder>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			KBFolder.class.getClassLoader(), KBFolder.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<KBFolder> constructor =
-				(Constructor<KBFolder>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<KBFolder, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<KBFolder, Object>>
@@ -363,6 +286,11 @@ public class KBFolderModelImpl
 		attributeGetterFunctions.put("uuid", KBFolder::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid", (BiConsumer<KBFolder, String>)KBFolder::setUuid);
+		attributeGetterFunctions.put(
+			"externalReferenceCode", KBFolder::getExternalReferenceCode);
+		attributeSetterBiConsumers.put(
+			"externalReferenceCode",
+			(BiConsumer<KBFolder, String>)KBFolder::setExternalReferenceCode);
 		attributeGetterFunctions.put("kbFolderId", KBFolder::getKbFolderId);
 		attributeSetterBiConsumers.put(
 			"kbFolderId", (BiConsumer<KBFolder, Long>)KBFolder::setKbFolderId);
@@ -454,6 +382,35 @@ public class KBFolderModelImpl
 	@Deprecated
 	public String getOriginalUuid() {
 		return getColumnOriginalValue("uuid_");
+	}
+
+	@JSON
+	@Override
+	public String getExternalReferenceCode() {
+		if (_externalReferenceCode == null) {
+			return "";
+		}
+		else {
+			return _externalReferenceCode;
+		}
+	}
+
+	@Override
+	public void setExternalReferenceCode(String externalReferenceCode) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_externalReferenceCode = externalReferenceCode;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public String getOriginalExternalReferenceCode() {
+		return getColumnOriginalValue("externalReferenceCode");
 	}
 
 	@JSON
@@ -789,6 +746,7 @@ public class KBFolderModelImpl
 
 		kbFolderImpl.setMvccVersion(getMvccVersion());
 		kbFolderImpl.setUuid(getUuid());
+		kbFolderImpl.setExternalReferenceCode(getExternalReferenceCode());
 		kbFolderImpl.setKbFolderId(getKbFolderId());
 		kbFolderImpl.setGroupId(getGroupId());
 		kbFolderImpl.setCompanyId(getCompanyId());
@@ -803,6 +761,40 @@ public class KBFolderModelImpl
 		kbFolderImpl.setLastPublishDate(getLastPublishDate());
 
 		kbFolderImpl.resetOriginalValues();
+
+		return kbFolderImpl;
+	}
+
+	@Override
+	public KBFolder cloneWithOriginalValues() {
+		KBFolderImpl kbFolderImpl = new KBFolderImpl();
+
+		kbFolderImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		kbFolderImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		kbFolderImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		kbFolderImpl.setKbFolderId(
+			this.<Long>getColumnOriginalValue("kbFolderId"));
+		kbFolderImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		kbFolderImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		kbFolderImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		kbFolderImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		kbFolderImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		kbFolderImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		kbFolderImpl.setParentKBFolderId(
+			this.<Long>getColumnOriginalValue("parentKBFolderId"));
+		kbFolderImpl.setName(this.<String>getColumnOriginalValue("name"));
+		kbFolderImpl.setUrlTitle(
+			this.<String>getColumnOriginalValue("urlTitle"));
+		kbFolderImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		kbFolderImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
 
 		return kbFolderImpl;
 	}
@@ -890,6 +882,16 @@ public class KBFolderModelImpl
 			kbFolderCacheModel.uuid = null;
 		}
 
+		kbFolderCacheModel.externalReferenceCode = getExternalReferenceCode();
+
+		String externalReferenceCode = kbFolderCacheModel.externalReferenceCode;
+
+		if ((externalReferenceCode != null) &&
+			(externalReferenceCode.length() == 0)) {
+
+			kbFolderCacheModel.externalReferenceCode = null;
+		}
+
 		kbFolderCacheModel.kbFolderId = getKbFolderId();
 
 		kbFolderCacheModel.groupId = getGroupId();
@@ -968,7 +970,7 @@ public class KBFolderModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -979,9 +981,26 @@ public class KBFolderModelImpl
 			Function<KBFolder, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((KBFolder)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((KBFolder)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1028,12 +1047,15 @@ public class KBFolderModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, KBFolder>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					KBFolder.class, ModelWrapper.class);
 
 	}
 
 	private long _mvccVersion;
 	private String _uuid;
+	private String _externalReferenceCode;
 	private long _kbFolderId;
 	private long _groupId;
 	private long _companyId;
@@ -1079,6 +1101,8 @@ public class KBFolderModelImpl
 
 		_columnOriginalValues.put("mvccVersion", _mvccVersion);
 		_columnOriginalValues.put("uuid_", _uuid);
+		_columnOriginalValues.put(
+			"externalReferenceCode", _externalReferenceCode);
 		_columnOriginalValues.put("kbFolderId", _kbFolderId);
 		_columnOriginalValues.put("groupId", _groupId);
 		_columnOriginalValues.put("companyId", _companyId);
@@ -1118,29 +1142,31 @@ public class KBFolderModelImpl
 
 		columnBitmasks.put("uuid_", 2L);
 
-		columnBitmasks.put("kbFolderId", 4L);
+		columnBitmasks.put("externalReferenceCode", 4L);
 
-		columnBitmasks.put("groupId", 8L);
+		columnBitmasks.put("kbFolderId", 8L);
 
-		columnBitmasks.put("companyId", 16L);
+		columnBitmasks.put("groupId", 16L);
 
-		columnBitmasks.put("userId", 32L);
+		columnBitmasks.put("companyId", 32L);
 
-		columnBitmasks.put("userName", 64L);
+		columnBitmasks.put("userId", 64L);
 
-		columnBitmasks.put("createDate", 128L);
+		columnBitmasks.put("userName", 128L);
 
-		columnBitmasks.put("modifiedDate", 256L);
+		columnBitmasks.put("createDate", 256L);
 
-		columnBitmasks.put("parentKBFolderId", 512L);
+		columnBitmasks.put("modifiedDate", 512L);
 
-		columnBitmasks.put("name", 1024L);
+		columnBitmasks.put("parentKBFolderId", 1024L);
 
-		columnBitmasks.put("urlTitle", 2048L);
+		columnBitmasks.put("name", 2048L);
 
-		columnBitmasks.put("description", 4096L);
+		columnBitmasks.put("urlTitle", 4096L);
 
-		columnBitmasks.put("lastPublishDate", 8192L);
+		columnBitmasks.put("description", 8192L);
+
+		columnBitmasks.put("lastPublishDate", 16384L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class KBTemplateLocalServiceWrapper
 	implements KBTemplateLocalService, ServiceWrapper<KBTemplateLocalService> {
 
+	public KBTemplateLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KBTemplateLocalServiceWrapper(
 		KBTemplateLocalService kbTemplateLocalService) {
 
@@ -149,6 +153,13 @@ public class KBTemplateLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kbTemplateLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kbTemplateLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

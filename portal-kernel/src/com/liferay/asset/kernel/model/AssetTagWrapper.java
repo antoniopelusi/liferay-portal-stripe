@@ -143,6 +143,11 @@ public class AssetTagWrapper
 		}
 	}
 
+	@Override
+	public AssetTag cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the asset count of this asset tag.
 	 *

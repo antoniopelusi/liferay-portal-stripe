@@ -264,6 +264,10 @@ public class AssetTagLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -830,6 +834,18 @@ public class AssetTagLocalServiceUtil {
 
 	public static void setAssetEntryAssetTags(long entryId, long[] tagIds) {
 		getService().setAssetEntryAssetTags(entryId, tagIds);
+	}
+
+	public static void subscribeTag(long userId, long groupId, long tagId)
+		throws PortalException {
+
+		getService().subscribeTag(userId, groupId, tagId);
+	}
+
+	public static void unsubscribeTag(long userId, long tagId)
+		throws PortalException {
+
+		getService().unsubscribeTag(userId, tagId);
 	}
 
 	/**

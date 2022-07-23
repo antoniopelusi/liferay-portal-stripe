@@ -20,6 +20,10 @@
 ContentDashboardAdminConfigurationDisplayContext contentDashboardAdminConfigurationDisplayContext = (ContentDashboardAdminConfigurationDisplayContext)request.getAttribute(ContentDashboardWebKeys.CONTENT_DASHBOARD_ADMIN_CONFIGURATION_DISPLAY_CONTEXT);
 %>
 
+<liferay-util:html-top>
+	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/css/vocabularies_selection.css") %>" rel="stylesheet" type="text/css" />
+</liferay-util:html-top>
+
 <liferay-frontend:edit-form
 	action="<%= contentDashboardAdminConfigurationDisplayContext.getActionURL() %>"
 	method="post"
@@ -27,10 +31,11 @@ ContentDashboardAdminConfigurationDisplayContext contentDashboardAdminConfigurat
 	onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "saveConfiguration();" %>'
 >
 	<aui:input name="redirect" type="hidden" value="<%= contentDashboardAdminConfigurationDisplayContext.getRedirect() %>" />
-	<aui:input name="assetVocabularyNames" type="hidden" />
+
+	<aui:input name="assetVocabularyIds" type="hidden" />
 
 	<liferay-frontend:edit-form-body>
-		<c:if test='<%= GetterUtil.getBoolean(SessionMessages.get(renderRequest, "emptyAssetVocabularyNames")) %>'>
+		<c:if test='<%= GetterUtil.getBoolean(SessionMessages.get(renderRequest, "emptyAssetVocabularyIds")) %>'>
 			<clay:alert
 				dismissible="<%= true %>"
 				displayType="warning"
@@ -45,16 +50,29 @@ ContentDashboardAdminConfigurationDisplayContext contentDashboardAdminConfigurat
 						<liferay-ui:message key="select-vocabularies-description" />
 					</p>
 
-					<liferay-ui:input-move-boxes
-						leftBoxName="availableAssetVocabularyNames"
-						leftList="<%= contentDashboardAdminConfigurationDisplayContext.getAvailableVocabularyNames() %>"
-						leftTitle="available"
-						rightBoxMaxItems="<%= 2 %>"
-						rightBoxName="currentAssetVocabularyNames"
-						rightList="<%= contentDashboardAdminConfigurationDisplayContext.getCurrentVocabularyNames() %>"
-						rightReorder="<%= Boolean.TRUE.toString() %>"
-						rightTitle="in-use"
-					/>
+					<div class="vocabularies-selection-wrapper">
+						<span
+							aria-hidden="true"
+							class="loading-animation
+							vocabularies-selection-loader"
+						>
+						</span>
+
+						<react:component
+							module="js/components/VocabulariesSelectionBox"
+							props='<%=
+								HashMapBuilder.<String, Object>put(
+									"leftBoxName", "availableAssetVocabularyIds"
+								).put(
+									"leftList", contentDashboardAdminConfigurationDisplayContext.getAvailableVocabularyJSONArray()
+								).put(
+									"rightBoxName", "currentAssetVocabularyIds"
+								).put(
+									"rightList", contentDashboardAdminConfigurationDisplayContext.getCurrentVocabularyJSONArray()
+								).build()
+							%>'
+						/>
+					</div>
 				</aui:field-wrapper>
 			</liferay-frontend:fieldset>
 		</liferay-frontend:fieldset-group>
@@ -70,11 +88,10 @@ ContentDashboardAdminConfigurationDisplayContext contentDashboardAdminConfigurat
 <aui:script>
 	function <portlet:namespace />saveConfiguration() {
 		var form = document.<portlet:namespace />fm;
-
 		Liferay.Util.postForm(form, {
 			data: {
-				assetVocabularyNames: Liferay.Util.listSelect(
-					Liferay.Util.getFormElement(form, 'currentAssetVocabularyNames')
+				assetVocabularyIds: Liferay.Util.listSelect(
+					Liferay.Util.getFormElement(form, 'currentAssetVocabularyIds')
 				),
 			},
 		});

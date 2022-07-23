@@ -17,6 +17,7 @@ package com.liferay.portal.vulcan.internal.batch.engine;
 import com.liferay.batch.engine.BatchEngineTaskItemDelegate;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 
 import org.osgi.framework.BundleContext;
@@ -87,7 +88,12 @@ public class VulcanBatchEngineTaskItemDelegateAdaptorFactory {
 
 			return _bundleContext.registerService(
 				BatchEngineTaskItemDelegate.class,
-				vulcanBatchEngineTaskItemDelegateAdaptor, null);
+				vulcanBatchEngineTaskItemDelegateAdaptor,
+				HashMapDictionaryBuilder.put(
+					"batch.engine.task.item.delegate.name",
+					serviceReference.getProperty(
+						"batch.engine.task.item.delegate.name")
+				).build());
 		}
 
 		@Override

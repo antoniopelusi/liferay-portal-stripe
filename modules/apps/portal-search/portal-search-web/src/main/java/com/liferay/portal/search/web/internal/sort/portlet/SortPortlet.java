@@ -22,8 +22,8 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.searcher.SearchRequest;
 import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.web.internal.sort.constants.SortPortletKeys;
-import com.liferay.portal.search.web.internal.sort.display.context.SortDisplayBuilder;
 import com.liferay.portal.search.web.internal.sort.display.context.SortDisplayContext;
+import com.liferay.portal.search.web.internal.sort.display.context.builder.SortDisplayContextBuilder;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchRequest;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchResponse;
 
@@ -62,7 +62,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/sort/view.jsp",
 		"javax.portlet.name=" + SortPortletKeys.SORT,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator,guest,power-user,user"
+		"javax.portlet.security-role-ref=administrator,guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -76,7 +77,7 @@ public class SortPortlet extends MVCPortlet {
 		PortletSharedSearchResponse portletSharedSearchResponse =
 			_portletSharedSearchRequest.search(renderRequest);
 
-		SortDisplayContext sortDisplayContext = buildDisplayContext(
+		SortDisplayContext sortDisplayContext = _buildDisplayContext(
 			portletSharedSearchResponse, renderRequest);
 
 		renderRequest.setAttribute(
@@ -90,7 +91,13 @@ public class SortPortlet extends MVCPortlet {
 		super.render(renderRequest, renderResponse);
 	}
 
-	protected SortDisplayContext buildDisplayContext(
+	@Reference
+	protected Language language;
+
+	@Reference
+	protected Portal portal;
+
+	private SortDisplayContext _buildDisplayContext(
 		PortletSharedSearchResponse portletSharedSearchResponse,
 		RenderRequest renderRequest) {
 
@@ -101,27 +108,27 @@ public class SortPortlet extends MVCPortlet {
 
 		String parameterName = sortPortletPreferences.getParameterName();
 
-		Optional<String[]> parameterValues =
+		Optional<String[]> parameterValuesOptional =
 			portletSharedSearchResponse.getParameterValues(
 				parameterName, renderRequest);
 
-		return createSortDisplayBuilder(
+		return _createSortDisplayContextBuilder(
 			renderRequest, sortPortletPreferences
 		).parameterName(
 			parameterName
 		).parameterValues(
-			parameterValues.orElse(null)
+			parameterValuesOptional.orElse(null)
 		).renderNothing(
-			isRenderNothing(portletSharedSearchResponse)
+			_isRenderNothing(portletSharedSearchResponse)
 		).build();
 	}
 
-	protected SortDisplayBuilder createSortDisplayBuilder(
+	private SortDisplayContextBuilder _createSortDisplayContextBuilder(
 		RenderRequest renderRequest,
 		SortPortletPreferences sortPortletPreferences) {
 
 		try {
-			return new SortDisplayBuilder(
+			return new SortDisplayContextBuilder(
 				language, portal, renderRequest, sortPortletPreferences);
 		}
 		catch (ConfigurationException configurationException) {
@@ -129,7 +136,7 @@ public class SortPortlet extends MVCPortlet {
 		}
 	}
 
-	protected boolean isRenderNothing(
+	private boolean _isRenderNothing(
 		PortletSharedSearchResponse portletSharedSearchResponse) {
 
 		Optional<String> keywordsOptional =
@@ -146,12 +153,6 @@ public class SortPortlet extends MVCPortlet {
 
 		return !searchRequest.isEmptySearchEnabled();
 	}
-
-	@Reference
-	protected Language language;
-
-	@Reference
-	protected Portal portal;
 
 	@Reference
 	private PortletSharedSearchRequest _portletSharedSearchRequest;

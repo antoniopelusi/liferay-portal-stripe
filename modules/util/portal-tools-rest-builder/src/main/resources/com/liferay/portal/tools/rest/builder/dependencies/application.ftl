@@ -11,6 +11,7 @@ import org.osgi.service.component.annotations.Component;
  * @generated
  */
 @Component(
+	<#if configYAML.liferayEnterpriseApp>enabled = false,</#if>
 	property = {
 		"liferay.jackson=false",
 		"osgi.jaxrs.application.base=${configYAML.application.baseURI}",

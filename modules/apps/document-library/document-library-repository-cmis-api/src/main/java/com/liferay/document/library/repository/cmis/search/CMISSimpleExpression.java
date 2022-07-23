@@ -33,17 +33,10 @@ public class CMISSimpleExpression implements CMISCriterion {
 
 	@Override
 	public String toQueryFragment() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append(_field);
-		sb.append(StringPool.SPACE);
-		sb.append(_cmisSimpleExpressionOperator);
-		sb.append(StringPool.SPACE);
-		sb.append(StringPool.APOSTROPHE);
-		sb.append(_value);
-		sb.append(StringPool.APOSTROPHE);
-
-		return sb.toString();
+		return StringBundler.concat(
+			_field, StringPool.SPACE, _cmisSimpleExpressionOperator,
+			StringPool.SPACE, StringPool.APOSTROPHE, _value,
+			StringPool.APOSTROPHE);
 	}
 
 	private final CMISSimpleExpressionOperator _cmisSimpleExpressionOperator;

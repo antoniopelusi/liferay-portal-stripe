@@ -85,8 +85,10 @@ if (wikiPage.getAttachmentsFolderId() != DLFolderConstants.DEFAULT_PARENT_FOLDER
 %>
 
 <liferay-item-selector:repository-entry-browser
+	allowedCreationMenuUIItemKeys="<%= wikiAttachmentItemSelectorViewDisplayContext.getAllowedCreationMenuUIItemKeys() %>"
+	editImageURL="<%= wikiAttachmentItemSelectorViewDisplayContext.getEditImageURL(liferayPortletResponse) %>"
 	emptyResultsMessage='<%= LanguageUtil.get(resourceBundle, "there-are-no-wiki-attachments") %>'
-	extensions="<%= ListUtil.toList(mimeTypes) %>"
+	extensions="<%= ListUtil.fromArray(mimeTypes) %>"
 	itemSelectedEventName="<%= wikiAttachmentItemSelectorViewDisplayContext.getItemSelectedEventName() %>"
 	itemSelectorReturnTypeResolver="<%= wikiAttachmentItemSelectorViewDisplayContext.getItemSelectorReturnTypeResolver() %>"
 	maxFileSize="<%= wikiAttachmentItemSelectorViewDisplayContext.getWikiAttachmentMaxSize() %>"

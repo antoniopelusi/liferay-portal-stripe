@@ -43,8 +43,8 @@ import org.osgi.service.component.annotations.Reference;
 public class SamlSpSessionDestroyAction extends SessionAction {
 
 	@Override
-	public void run(HttpSession session) throws ActionException {
-		Long userId = (Long)session.getAttribute(WebKeys.USER_ID);
+	public void run(HttpSession httpSession) throws ActionException {
+		Long userId = (Long)httpSession.getAttribute(WebKeys.USER_ID);
 
 		if (userId == null) {
 			return;
@@ -57,7 +57,7 @@ public class SamlSpSessionDestroyAction extends SessionAction {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -70,37 +70,41 @@ public class SamlSpSessionDestroyAction extends SessionAction {
 		CompanyThreadLocal.setCompanyId(userCompanyId);
 
 		try {
-			doRun(session);
+			_run(httpSession);
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(companyId);
 		}
 	}
 
-	protected void doRun(HttpSession session) throws ActionException {
+	private void _run(HttpSession httpSession) throws ActionException {
 		if (!_samlProviderConfigurationHelper.isEnabled() ||
 			!_samlProviderConfigurationHelper.isRoleSp()) {
 
 			return;
 		}
 
+		SamlSpSession samlSpSession =
+			_samlSpSessionLocalService.fetchSamlSpSessionByJSessionId(
+				httpSession.getId());
+
+		if (samlSpSession == null) {
+			return;
+		}
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				"HTTP session expiring SAML SP session " +
+					samlSpSession.getSamlSpSessionKey());
+		}
+
 		try {
-			SamlSpSession samlSpSession =
-				_samlSpSessionLocalService.getSamlSpSessionByJSessionId(
-					session.getId());
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"HTTP session expiring SAML SP session " +
-						samlSpSession.getSamlSpSessionKey());
-			}
-
 			_samlSpSessionLocalService.deleteSamlSpSession(
 				samlSpSession.getSamlSpSessionId());
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 	}

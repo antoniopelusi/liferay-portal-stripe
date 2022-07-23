@@ -158,6 +158,10 @@ public class WorkflowInstanceLinkLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -362,6 +366,17 @@ public class WorkflowInstanceLinkLocalServiceUtil {
 
 		getService().startWorkflowInstance(
 			companyId, groupId, userId, className, classPK, workflowContext);
+	}
+
+	public static void startWorkflowInstance(
+			long companyId, long groupId, long userId, String className,
+			long classPK, Map<String, Serializable> workflowContext,
+			boolean waitForCompletion)
+		throws PortalException {
+
+		getService().startWorkflowInstance(
+			companyId, groupId, userId, className, classPK, workflowContext,
+			waitForCompletion);
 	}
 
 	public static void updateClassPK(

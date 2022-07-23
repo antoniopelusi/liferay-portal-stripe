@@ -109,13 +109,9 @@ public class InheritableMap<K, V> extends HashMap<K, V> {
 			return parentString;
 		}
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(string.substring(0, string.length() - 1));
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append(parentString.substring(1));
-
-		return sb.toString();
+		return StringBundler.concat(
+			string.substring(0, string.length() - 1),
+			StringPool.COMMA_AND_SPACE, parentString.substring(1));
 	}
 
 	private Map<K, V> _parentMap;

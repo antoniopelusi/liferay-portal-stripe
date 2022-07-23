@@ -79,17 +79,9 @@ public class UserRecipient extends Recipient {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{emailAddress=");
-		sb.append(_emailAddress);
-		sb.append(", screenName=");
-		sb.append(_screenName);
-		sb.append(", userId=");
-		sb.append(_userId);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{emailAddress=", _emailAddress, ", screenName=", _screenName,
+			", userId=", _userId, "}");
 	}
 
 	private final String _emailAddress;

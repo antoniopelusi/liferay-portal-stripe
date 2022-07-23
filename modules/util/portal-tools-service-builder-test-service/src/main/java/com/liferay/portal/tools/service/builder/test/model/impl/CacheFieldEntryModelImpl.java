@@ -24,17 +24,19 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.service.builder.test.model.CacheFieldEntry;
 import com.liferay.portal.tools.service.builder.test.model.CacheFieldEntryModel;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -215,34 +217,6 @@ public class CacheFieldEntryModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, CacheFieldEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CacheFieldEntry.class.getClassLoader(), CacheFieldEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CacheFieldEntry> constructor =
-				(Constructor<CacheFieldEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<CacheFieldEntry, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<CacheFieldEntry, Object>>
@@ -405,6 +379,20 @@ public class CacheFieldEntryModelImpl
 	}
 
 	@Override
+	public CacheFieldEntry cloneWithOriginalValues() {
+		CacheFieldEntryImpl cacheFieldEntryImpl = new CacheFieldEntryImpl();
+
+		cacheFieldEntryImpl.setCacheFieldEntryId(
+			this.<Long>getColumnOriginalValue("cacheFieldEntryId"));
+		cacheFieldEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		cacheFieldEntryImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+
+		return cacheFieldEntryImpl;
+	}
+
+	@Override
 	public int compareTo(CacheFieldEntry cacheFieldEntry) {
 		long primaryKey = cacheFieldEntry.getPrimaryKey();
 
@@ -490,6 +478,8 @@ public class CacheFieldEntryModelImpl
 			cacheFieldEntryCacheModel.name = null;
 		}
 
+		setNickname(null);
+
 		cacheFieldEntryCacheModel._nickname = getNickname();
 
 		return cacheFieldEntryCacheModel;
@@ -501,7 +491,7 @@ public class CacheFieldEntryModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -512,9 +502,26 @@ public class CacheFieldEntryModelImpl
 			Function<CacheFieldEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CacheFieldEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CacheFieldEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -561,7 +568,9 @@ public class CacheFieldEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CacheFieldEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CacheFieldEntry.class, ModelWrapper.class);
 
 	}
 

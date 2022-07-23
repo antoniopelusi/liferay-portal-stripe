@@ -5,8 +5,8 @@ definition {
 			Click(locator1 = "GoogleLogin#ALLOW");
 		}
 
-		if (IsElementPresent.pauseIsElementPresent(locator1 = "Button#I_AGREE")) {
-			Click(locator1 = "Button#I_AGREE");
+		if (IsElementPresent(locator1 = "Button#I_AGREE")) {
+			SignIn.agreeToTermsOfUse();
 		}
 
 		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#ANSWER")) {
@@ -21,11 +21,11 @@ definition {
 	}
 
 	macro accountSignIn {
-		if (isSet(specificURL)) {
-			Navigator.openSpecificURL(url = "${specificURL}");
+		if (!(isSet(specificURL))) {
+			Navigator.openURL();
 		}
 		else {
-			Navigator.openURL();
+			Navigator.openSpecificURL(url = "${specificURL}");
 		}
 
 		AssertClick(
@@ -37,20 +37,30 @@ definition {
 		Click(locator1 = "Button#SIGN_IN");
 
 		Type(
-			locator1 = "GoogleLogin#LOGIN_EMAIL_FIELD",
+			locator1 = "OpenIDConnect#LOGIN_USERNAME_FIELD",
 			value1 = "${userEmailAddress}");
 
-		Click(locator1 = "GoogleLogin#LOGIN_NEXT_BUTTON");
+		if (IsElementPresent(locator1 = "MicrosoftLogin#LOGIN_NEXT_BUTTON")) {
+			Click(locator1 = "MicrosoftLogin#LOGIN_NEXT_BUTTON");
+		}
+
+		if (IsElementPresent(locator1 = "GoogleLogin#LOGIN_NEXT_BUTTON")) {
+			Click(locator1 = "GoogleLogin#LOGIN_NEXT_BUTTON");
+		}
 
 		Type(
-			locator1 = "GoogleLogin#LOGIN_PASSWORD_FIELD",
+			locator1 = "OpenIDConnect#LOGIN_PASSWORD_FIELD",
 			value1 = "${userPassword}");
 
-		if (IsElementPresent(locator1 = "GoogleLogin#LOGIN_SIGN_IN_BUTTON")) {
-			Click(locator1 = "GoogleLogin#LOGIN_SIGN_IN_BUTTON");
+		if (IsElementPresent(locator1 = "OpenIDConnect#LOGIN_SIGN_IN_BUTTON")) {
+			Click(locator1 = "OpenIDConnect#LOGIN_SIGN_IN_BUTTON");
 		}
 		else {
 			Click(locator1 = "GoogleLogin#LOGIN_NEXT_BUTTON");
+		}
+
+		if (IsElementPresent(locator1 = "MicrosoftLogin#LOGIN_YES_BUTTON")) {
+			Click(locator1 = "MicrosoftLogin#LOGIN_YES_BUTTON");
 		}
 	}
 
@@ -63,17 +73,106 @@ definition {
 
 		FormFields.editTextMultiline(
 			fieldName = "openIdConnectClientId",
-			fieldValue = "${openIDConnectClientID}");
+			fieldValue = "${openIdConnectClientId}");
 
 		FormFields.editTextMultiline(
 			fieldName = "openIdConnectClientSecret",
-			fieldValue = "${openIDConnectClientSecret}");
+			fieldValue = "${openIdConnectClientSecret}");
+
+		if (isSet(discoveryEndpoint)) {
+			FormFields.editTextMultiline(
+				fieldName = "discoveryEndPoint",
+				fieldValue = "${discoveryEndpoint}");
+		}
+		else {
+			FormFields.editTextMultiline(
+				fieldName = "discoveryEndPoint",
+				fieldValue = "https://accounts.google.com/.well-known/openid-configuration");
+		}
+
+		if (isSet(customAuthorizationRequestParameters)) {
+			FormFields.editTextMultiline(
+				fieldName = "customAuthorizationRequestParameters",
+				fieldValue = "${customAuthorizationRequestParameters}");
+		}
+
+		if (isSet(customTokenRequestParameters)) {
+			FormFields.editTextMultiline(
+				fieldName = "customTokenRequestParameters",
+				fieldValue = "${customTokenRequestParameters}");
+		}
 
 		FormFields.editTextMultiline(
-			fieldName = "discoveryEndPoint",
-			fieldValue = "https://accounts.google.com/.well-known/openid-configuration");
+			fieldName = "registeredIdTokenSigningAlg",
+			fieldValue = "RS256");
 
 		PortletEntry.save();
+	}
+
+	macro enableOpenIdConnect {
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect",
+			configurationScope = "System Scope");
+
+		FormFields.enableCheckbox(fieldName = "Enabled");
+
+		AssertClick(
+			locator1 = "Button#SAVE",
+			value1 = "Save");
+
+		WaitForElementPresent(locator1 = "Button#UPDATE");
+	}
+
+	macro enableOpenIDConnectCustomParametersDebugLogs {
+		ServerAdministration.addCategoryLogLevels(
+			categoryLevel = "DEBUG",
+			categoryName = "com.liferay.portal.security.sso.openid.connect.internal.OpenIdConnectAuthenticationHandlerImpl");
+
+		ServerAdministration.addCategoryLogLevels(
+			categoryLevel = "DEBUG",
+			categoryName = "com.liferay.portal.security.sso.openid.connect.internal.util.OpenIdConnectTokenRequestUtil");
+	}
+
+	macro enableOpenIDConnectDebugLogs {
+		ServerAdministration.openServerAdmin();
+
+		ServerAdministration.addCategoryLogLevels(
+			categoryLevel = "DEBUG",
+			categoryName = "com.liferay.login.authentication.openid.connect.web");
+	}
+
+	macro setTokenRefreshOffset {
+		AssertElementPresent(locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET");
+
+		AssertTextEquals(
+			locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET",
+			value1 = "30");
+
+		Type(
+			locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET",
+			value1 = "${expirationTime}");
+
+		AssertClick(
+			locator1 = "Button#SUBMIT",
+			value1 = "Update");
+
+		AssertTextEquals(
+			locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET",
+			value1 = "${expirationTime}");
+	}
+
+	macro viewNoProvider {
+		AssertClick(
+			locator1 = "UserBar#USER_SIGN_IN",
+			value1 = "Sign In");
+
+		AssertElementNotPresent(locator1 = "Icon#OPENID_CONNECT");
 	}
 
 	macro viewProvider {

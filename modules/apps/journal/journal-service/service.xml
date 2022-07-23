@@ -27,6 +27,7 @@
 
 		<!-- Other fields -->
 
+		<column name="externalReferenceCode" type="String" />
 		<column name="folderId" type="long" />
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
@@ -90,6 +91,10 @@
 			<finder-column name="groupId" />
 			<finder-column name="userId" />
 		</finder>
+		<finder name="G_ERC" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="externalReferenceCode" />
+		</finder>
 		<finder name="G_F" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column arrayable-operator="OR" name="folderId" />
@@ -148,6 +153,11 @@
 			<finder-column name="userId" />
 			<finder-column name="classNameId" />
 		</finder>
+		<finder name="G_ERC_V" return-type="WikiPage">
+			<finder-column name="groupId" />
+			<finder-column name="externalReferenceCode" />
+			<finder-column name="version" />
+		</finder>
 		<finder name="G_F_ST" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="folderId" />
@@ -204,27 +214,6 @@
 			<finder-column name="classNameId" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="JournalArticleLocalization" package-path="com.liferay.journal" />
-		<reference entity="JournalArticleResource" package-path="com.liferay.journal" />
-		<reference entity="JournalFolder" package-path="com.liferay.journal" />
-		<reference entity="ClassName" package-path="com.liferay.portal" />
-		<reference entity="Company" package-path="com.liferay.portal" />
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="Image" package-path="com.liferay.portal" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="SystemEvent" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="AssetCategory" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetLink" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetTag" package-path="com.liferay.portlet.asset" />
-		<reference entity="DLApp" package-path="com.liferay.portlet.documentlibrary" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
-		<reference entity="RatingsStats" package-path="com.liferay.portlet.ratings" />
 	</entity>
 	<entity local-service="false" name="JournalArticleLocalization" remote-service="false">
 
@@ -359,12 +348,6 @@
 			<finder-column name="portletId" />
 			<finder-column name="articleId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
-		<reference entity="Layout" package-path="com.liferay.portal" />
-		<reference entity="PortletPreferences" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="JournalFeed" remote-service="true" uuid="true">
 
@@ -417,13 +400,6 @@
 			<finder-column name="groupId" />
 			<finder-column name="feedId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ClassName" package-path="com.liferay.portal" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="ExpandoValue" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="JournalFolder" remote-service="true" trash-enabled="true" uuid="true">
 
@@ -498,25 +474,12 @@
 			<finder-column name="parentFolderId" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-		<finder db-index="false" name="F_C_P_NotS" return-type="Collection">
+		<finder db-index="false" name="GtF_C_P_NotS" return-type="Collection">
 			<finder-column comparator="&gt;" name="folderId" />
 			<finder-column name="companyId" />
 			<finder-column name="parentFolderId" />
 			<finder-column comparator="!=" name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="JournalArticle" package-path="com.liferay.journal" />
-		<reference entity="ClassName" package-path="com.liferay.portal" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
-		<reference entity="WorkflowDefinitionLink" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="AssetLink" package-path="com.liferay.portlet.asset" />
-		<reference entity="ExpandoValue" package-path="com.liferay.portlet.expando" />
-		<reference entity="RatingsStats" package-path="com.liferay.portlet.ratings" />
 	</entity>
 	<exceptions>
 		<exception>ArticleContent</exception>
@@ -529,6 +492,7 @@
 		<exception>ArticleSmallImageSize</exception>
 		<exception>ArticleTitle</exception>
 		<exception>ArticleVersion</exception>
+		<exception>DuplicateArticleExternalReferenceCode</exception>
 		<exception>DuplicateArticleId</exception>
 		<exception>DuplicateFeedId</exception>
 		<exception>DuplicateFolderName</exception>

@@ -17,73 +17,18 @@
 <%@ include file="/init.jsp" %>
 
 <%
-ContentDashboardItemTypeItemSelectorViewManagementToolbarDisplayContext contentDashboardItemTypeItemSelectorViewManagementToolbarDisplayContext = (ContentDashboardItemTypeItemSelectorViewManagementToolbarDisplayContext)request.getAttribute(ContentDashboardItemTypeItemSelectorViewManagementToolbarDisplayContext.class.getName());
-
-ContentDashboardItemTypeItemSelectorViewDisplayContext contentDashboardItemTypeItemSelectorViewDisplayContext = (ContentDashboardItemTypeItemSelectorViewDisplayContext)request.getAttribute(ContentDashboardItemTypeItemSelectorViewDisplayContext.class.getName());
+ContentDashboardItemSubtypeItemSelectorViewDisplayContext contentDashboardItemSubtypeItemSelectorViewDisplayContext = (ContentDashboardItemSubtypeItemSelectorViewDisplayContext)request.getAttribute(ContentDashboardItemSubtypeItemSelectorViewDisplayContext.class.getName());
 %>
 
-<clay:management-toolbar
-	managementToolbarDisplayContext="<%= contentDashboardItemTypeItemSelectorViewManagementToolbarDisplayContext %>"
-/>
+<liferay-util:html-top>
+	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/css/tree.css") %>" rel="stylesheet" type="text/css" />
+</liferay-util:html-top>
 
-<clay:container-fluid>
-	<liferay-ui:search-container
-		id="contentDashboardItemTypes"
-		searchContainer="<%= contentDashboardItemTypeItemSelectorViewDisplayContext.getSearchContainer() %>"
-	>
-		<liferay-ui:search-container-row
-			className="com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemType"
-			modelVar="contentDashboardItemType"
-		>
+<section class="h-100">
+	<span aria-hidden="true" class="loading-animation mt-0 tree-filter-loader"></span>
 
-			<%
-			InfoItemReference infoItemReference = contentDashboardItemType.getInfoItemReference();
-
-			row.setPrimaryKey(
-				HtmlUtil.toInputSafe(
-					JSONUtil.put(
-						"className", infoItemReference.getClassName()
-					).put(
-						"classPK", infoItemReference.getClassPK()
-					).toJSONString()));
-			%>
-
-			<liferay-ui:search-container-column-text
-				cssClass="table-cell-expand"
-				name="name"
-				value="<%= contentDashboardItemType.getFullLabel(locale) %>"
-			/>
-		</liferay-ui:search-container-row>
-
-		<liferay-ui:search-iterator
-			markupView="lexicon"
-		/>
-	</liferay-ui:search-container>
-</clay:container-fluid>
-
-<aui:script use="liferay-search-container">
-	var searchContainer = Liferay.SearchContainer.get(
-		'<portlet:namespace />contentDashboardItemTypes'
-	);
-
-	searchContainer.on('rowToggled', (event) => {
-		var allSelectedElements = event.elements.allSelectedElements;
-		var arr = [];
-
-		allSelectedElements.each(function () {
-			var payload = JSON.parse(Liferay.Util.unescape(this.getDOM().value));
-
-			arr.push({
-				classPK: payload.classPK,
-				className: payload.className,
-			});
-		});
-
-		Liferay.Util.getOpener().Liferay.fire(
-			'<%= HtmlUtil.escapeJS(contentDashboardItemTypeItemSelectorViewDisplayContext.getItemSelectedEventName()) %>',
-			{
-				data: arr,
-			}
-		);
-	});
-</aui:script>
+	<react:component
+		module="js/components/SelectTypeAndSubtype"
+		props="<%= contentDashboardItemSubtypeItemSelectorViewDisplayContext.getData() %>"
+	/>
+</section>

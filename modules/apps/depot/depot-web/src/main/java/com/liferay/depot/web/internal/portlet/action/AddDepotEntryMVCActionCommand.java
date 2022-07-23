@@ -46,7 +46,6 @@ import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
-import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -80,49 +79,55 @@ public class AddDepotEntryMVCActionCommand extends BaseMVCActionCommand {
 			LocalizationUtil.getLocalizationMap(actionRequest, "description");
 
 		try {
-			DepotEntry depotEntry = _depotEntryService.addDepotEntry(
-				nameMap, descriptionMap,
-				ServiceContextFactory.getInstance(
-					DepotEntry.class.getName(), actionRequest));
-
-			PortletURL editDepotURL =
-				DepotEntryURLUtil.getEditDepotEntryPortletURL(
-					depotEntry, ParamUtil.getString(actionRequest, "redirect"),
-					_portal.getLiferayPortletRequest(actionRequest));
-
 			MultiSessionMessages.add(
 				actionRequest,
 				DepotPortletKeys.DEPOT_ADMIN + "requestProcessed");
 
 			JSONPortletResponseUtil.writeJSON(
 				actionRequest, actionResponse,
-				JSONUtil.put("redirectURL", editDepotURL.toString()));
+				JSONUtil.put(
+					"redirectURL",
+					() -> {
+						DepotEntry depotEntry =
+							_depotEntryService.addDepotEntry(
+								nameMap, descriptionMap,
+								ServiceContextFactory.getInstance(
+									DepotEntry.class.getName(), actionRequest));
+
+						return String.valueOf(
+							DepotEntryURLUtil.getEditDepotEntryPortletURL(
+								depotEntry,
+								ParamUtil.getString(actionRequest, "redirect"),
+								_portal.getLiferayPortletRequest(
+									actionRequest)));
+					}));
 		}
 		catch (Exception exception) {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
-
 			JSONPortletResponseUtil.writeJSON(
 				actionRequest, actionResponse,
 				JSONUtil.put(
-					"error", _getErrorMessage(exception, themeDisplay)));
+					"error",
+					_getErrorMessage(
+						(ThemeDisplay)actionRequest.getAttribute(
+							WebKeys.THEME_DISPLAY),
+						exception.getCause())));
 		}
 	}
 
 	private String _getErrorMessage(
-		Exception exception, ThemeDisplay themeDisplay) {
+		ThemeDisplay themeDisplay, Throwable throwable) {
 
-		if (exception instanceof DepotEntryNameException) {
+		if (throwable instanceof DepotEntryNameException) {
 			return LanguageUtil.get(
 				themeDisplay.getRequest(), "please-enter-a-name");
 		}
 
-		if (exception instanceof DuplicateGroupException) {
+		if (throwable instanceof DuplicateGroupException) {
 			return LanguageUtil.get(
 				themeDisplay.getRequest(), "please-enter-a-unique-name");
 		}
 
-		if (exception instanceof GroupKeyException) {
+		if (throwable instanceof GroupKeyException) {
 			return _handleGroupKeyException(themeDisplay);
 		}
 

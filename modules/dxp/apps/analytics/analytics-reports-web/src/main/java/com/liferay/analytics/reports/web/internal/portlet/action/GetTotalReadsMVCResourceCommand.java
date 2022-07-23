@@ -31,8 +31,6 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.ResourceBundle;
-
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
@@ -73,22 +71,23 @@ public class GetTotalReadsMVCResourceCommand extends BaseMVCResourceCommand {
 		}
 		catch (Exception exception) {
 			if (_log.isInfoEnabled()) {
-				_log.info(exception, exception);
+				_log.info(exception);
 			}
-
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)resourceRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
-			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-				themeDisplay.getLocale(), getClass());
 
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse,
 				JSONUtil.put(
 					"error",
-					ResourceBundleUtil.getString(
-						resourceBundle, "an-unexpected-error-occurred")));
+					() -> {
+						ThemeDisplay themeDisplay =
+							(ThemeDisplay)resourceRequest.getAttribute(
+								WebKeys.THEME_DISPLAY);
+
+						return ResourceBundleUtil.getString(
+							ResourceBundleUtil.getBundle(
+								themeDisplay.getLocale(), getClass()),
+							"an-unexpected-error-occurred");
+					}));
 		}
 	}
 

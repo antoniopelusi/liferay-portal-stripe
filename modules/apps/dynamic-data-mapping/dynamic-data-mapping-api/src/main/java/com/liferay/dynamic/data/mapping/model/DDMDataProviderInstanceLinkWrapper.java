@@ -98,6 +98,11 @@ public class DDMDataProviderInstanceLinkWrapper
 		}
 	}
 
+	@Override
+	public DDMDataProviderInstanceLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ddm data provider instance link.
 	 *

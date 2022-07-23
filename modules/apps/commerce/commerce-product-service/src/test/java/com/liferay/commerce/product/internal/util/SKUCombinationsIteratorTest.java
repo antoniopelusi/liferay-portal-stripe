@@ -139,7 +139,7 @@ public class SKUCombinationsIteratorTest {
 		CPDefinitionOptionRel cpDefinitionOptionRel =
 			new CPDefinitionOptionRelImpl();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		cpDefinitionOptionRel.setCPDefinitionOptionRelId(
 			RandomTestUtil.randomLong());
@@ -147,8 +147,8 @@ public class SKUCombinationsIteratorTest {
 		cpDefinitionOptionRel.setCompanyId(cpDefinition.getCompanyId());
 		cpDefinitionOptionRel.setUserId(cpDefinition.getUserId());
 		cpDefinitionOptionRel.setUserName(cpDefinition.getUserName());
-		cpDefinitionOptionRel.setCreateDate(now);
-		cpDefinitionOptionRel.setModifiedDate(now);
+		cpDefinitionOptionRel.setCreateDate(date);
+		cpDefinitionOptionRel.setModifiedDate(date);
 		cpDefinitionOptionRel.setCPDefinitionId(
 			cpDefinition.getCPDefinitionId());
 		cpDefinitionOptionRel.setName(RandomTestUtil.randomString());
@@ -164,7 +164,7 @@ public class SKUCombinationsIteratorTest {
 		CPDefinitionOptionValueRel cpDefinitionOptionValueRel =
 			new CPDefinitionOptionValueRelImpl();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		cpDefinitionOptionValueRel.setCPDefinitionOptionValueRelId(
 			RandomTestUtil.randomLong());
@@ -175,8 +175,8 @@ public class SKUCombinationsIteratorTest {
 		cpDefinitionOptionValueRel.setUserId(cpDefinitionOptionRel.getUserId());
 		cpDefinitionOptionValueRel.setUserName(
 			cpDefinitionOptionRel.getUserName());
-		cpDefinitionOptionValueRel.setCreateDate(now);
-		cpDefinitionOptionValueRel.setModifiedDate(now);
+		cpDefinitionOptionValueRel.setCreateDate(date);
+		cpDefinitionOptionValueRel.setModifiedDate(date);
 		cpDefinitionOptionValueRel.setCPDefinitionOptionRelId(
 			cpDefinitionOptionRel.getCPDefinitionOptionRelId());
 		cpDefinitionOptionValueRel.setName(RandomTestUtil.randomString());

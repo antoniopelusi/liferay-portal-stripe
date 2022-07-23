@@ -255,37 +255,18 @@ public class CPQuery {
 			return _toString;
 		}
 
-		StringBundler sb = new StringBundler(27);
-
-		sb.append("{allCategoryIds=");
-		sb.append(StringUtil.merge(_allCategoryIds));
-		sb.append(", allTagIds=");
-		sb.append(StringUtil.merge(_allTagIds));
-		sb.append(", andOperator=");
-		sb.append(_andOperator);
-		sb.append(", anyCategoryIds=");
-		sb.append(StringUtil.merge(_anyCategoryIds));
-		sb.append(", anyTagIds=");
-		sb.append(StringUtil.merge(_anyTagIds));
-		sb.append(", notAllCategoryIds=");
-		sb.append(StringUtil.merge(_notAllCategoryIds));
-		sb.append(", notAllTagIds=");
-		sb.append(StringUtil.merge(_notAllTagIds));
-		sb.append(", notAnyCategoryIds=");
-		sb.append(StringUtil.merge(_notAnyCategoryIds));
-		sb.append(", notAnyTagIds=");
-		sb.append(StringUtil.merge(_notAnyTagIds));
-		sb.append(", orderByCol1=");
-		sb.append(_orderByCol1);
-		sb.append(", orderByCol2=");
-		sb.append(_orderByCol2);
-		sb.append(", orderByType1=");
-		sb.append(_orderByType1);
-		sb.append(", orderByType2=");
-		sb.append(_orderByType2);
-		sb.append("}");
-
-		_toString = sb.toString();
+		_toString = StringBundler.concat(
+			"{allCategoryIds=", StringUtil.merge(_allCategoryIds),
+			", allTagIds=", StringUtil.merge(_allTagIds), ", andOperator=",
+			_andOperator, ", anyCategoryIds=",
+			StringUtil.merge(_anyCategoryIds), ", anyTagIds=",
+			StringUtil.merge(_anyTagIds), ", notAllCategoryIds=",
+			StringUtil.merge(_notAllCategoryIds), ", notAllTagIds=",
+			StringUtil.merge(_notAllTagIds), ", notAnyCategoryIds=",
+			StringUtil.merge(_notAnyCategoryIds), ", notAnyTagIds=",
+			StringUtil.merge(_notAnyTagIds), ", orderByCol1=", _orderByCol1,
+			", orderByCol2=", _orderByCol2, ", orderByType1=", _orderByType1,
+			", orderByType2=", _orderByType2, "}");
 
 		return _toString;
 	}

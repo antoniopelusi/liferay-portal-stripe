@@ -61,17 +61,8 @@ public class TermsFilter extends BaseFilter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{(");
-		sb.append(_field);
-		sb.append("=");
-		sb.append(_values);
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(", _field, "=", _values, "), ", super.toString(), "}");
 	}
 
 	private final String _field;

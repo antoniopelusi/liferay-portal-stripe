@@ -27,9 +27,6 @@ import com.liferay.portal.kernel.exception.PortalException;
  */
 public class CommerceShipmentImpl extends CommerceShipmentBaseImpl {
 
-	public CommerceShipmentImpl() {
-	}
-
 	@Override
 	public CommerceAddress fetchCommerceAddress() {
 		return CommerceAddressLocalServiceUtil.fetchCommerceAddress(

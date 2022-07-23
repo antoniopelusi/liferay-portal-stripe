@@ -14,17 +14,16 @@
 
 package com.liferay.portal.kernel.internal.security.permission.resource;
 
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.definition.PortletResourcePermissionDefinition;
-import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceRegistration;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.ServiceTrackerCustomizer;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
-import java.util.Map;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Preston Crary
@@ -32,10 +31,8 @@ import java.util.Map;
 public class PortletResourcePermissionDefinitionTracker {
 
 	public void afterPropertiesSet() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_serviceTracker = registry.trackServices(
-			PortletResourcePermissionDefinition.class,
+		_serviceTracker = new ServiceTracker<>(
+			_bundleContext, PortletResourcePermissionDefinition.class,
 			new PortletResourcePermissionDefinitionServiceTrackerCustomizer());
 
 		_serviceTracker.open();
@@ -45,24 +42,23 @@ public class PortletResourcePermissionDefinitionTracker {
 		_serviceTracker.close();
 	}
 
+	private final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
 	private ServiceTracker
 		<PortletResourcePermissionDefinition, ServiceRegistration<?>>
 			_serviceTracker;
 
-	private static class
-		PortletResourcePermissionDefinitionServiceTrackerCustomizer
-			implements ServiceTrackerCustomizer
-				<PortletResourcePermissionDefinition, ServiceRegistration<?>> {
+	private class PortletResourcePermissionDefinitionServiceTrackerCustomizer
+		implements ServiceTrackerCustomizer
+			<PortletResourcePermissionDefinition, ServiceRegistration<?>> {
 
 		@Override
 		public ServiceRegistration<?> addingService(
 			ServiceReference<PortletResourcePermissionDefinition>
 				serviceReference) {
 
-			Registry registry = RegistryUtil.getRegistry();
-
 			PortletResourcePermissionDefinition
-				portletResourcePermissionDefinition = registry.getService(
+				portletResourcePermissionDefinition = _bundleContext.getService(
 					serviceReference);
 
 			PortletResourcePermission portletResourcePermission =
@@ -71,21 +67,15 @@ public class PortletResourcePermissionDefinitionTracker {
 					portletResourcePermissionDefinition.
 						getPortletResourcePermissionLogics());
 
-			Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-				"resource.name",
-				portletResourcePermissionDefinition.getResourceName()
-			).build();
-
-			Object serviceRanking = serviceReference.getProperty(
-				"service.ranking");
-
-			if (serviceRanking != null) {
-				properties.put("service.ranking", serviceRanking);
-			}
-
-			return registry.registerService(
+			return _bundleContext.registerService(
 				PortletResourcePermission.class, portletResourcePermission,
-				properties);
+				HashMapDictionaryBuilder.<String, Object>put(
+					"resource.name",
+					portletResourcePermissionDefinition.getResourceName()
+				).put(
+					"service.ranking",
+					() -> serviceReference.getProperty("service.ranking")
+				).build());
 		}
 
 		@Override
@@ -103,9 +93,7 @@ public class PortletResourcePermissionDefinitionTracker {
 
 			serviceRegistration.unregister();
 
-			Registry registry = RegistryUtil.getRegistry();
-
-			registry.ungetService(serviceReference);
+			_bundleContext.ungetService(serviceReference);
 		}
 
 	}

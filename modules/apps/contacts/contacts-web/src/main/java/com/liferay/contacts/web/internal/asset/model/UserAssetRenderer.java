@@ -110,17 +110,16 @@ public class UserAssetRenderer extends BaseJSPAssetRenderer<User> {
 			LiferayPortletResponse liferayPortletResponse)
 		throws Exception {
 
-		String portletId = PortletProviderUtil.getPortletId(
-			User.class.getName(), PortletProvider.Action.VIEW);
-
 		return PortletURLBuilder.createLiferayPortletURL(
 			liferayPortletResponse, getControlPanelPlid(liferayPortletRequest),
-			portletId, PortletRequest.RENDER_PHASE
+			PortletProviderUtil.getPortletId(
+				User.class.getName(), PortletProvider.Action.VIEW),
+			PortletRequest.RENDER_PHASE
 		).setMVCRenderCommandName(
 			"/users_admin/edit_user"
 		).setParameter(
 			"p_u_i_d", _user.getUserId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -143,7 +142,7 @@ public class UserAssetRenderer extends BaseJSPAssetRenderer<User> {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.test.rule.Inject;
@@ -143,12 +143,11 @@ public class GCloudNaturalLanguageDocumentAssetAutoTaggerTest {
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
 					_CLASS_NAME_G_CLOUD_NATURAL_LANGUAGE_ASSET_AUTO_TAGGER_COMPANY_CONFIGURATION,
-					new HashMapDictionary<String, Object>() {
-						{
-							put("entityEndpointEnabled", false);
-							put("classificationEndpointEnabled", false);
-						}
-					})) {
+					HashMapDictionaryBuilder.<String, Object>put(
+						"classificationEndpointEnabled", false
+					).put(
+						"entityEndpointEnabled", false
+					).build())) {
 
 			unsafeRunnable.run();
 		}
@@ -162,13 +161,13 @@ public class GCloudNaturalLanguageDocumentAssetAutoTaggerTest {
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
 					_CLASS_NAME_G_CLOUD_NATURAL_LANGUAGE_ASSET_AUTO_TAGGER_COMPANY_CONFIGURATION,
-					new HashMapDictionary<String, Object>() {
-						{
-							put("apiKey", apiKey);
-							put("classificationEndpointEnabled", true);
-							put("entityEndpointEnabled", true);
-						}
-					})) {
+					HashMapDictionaryBuilder.<String, Object>put(
+						"apiKey", apiKey
+					).put(
+						"classificationEndpointEnabled", true
+					).put(
+						"entityEndpointEnabled", true
+					).build())) {
 
 			unsafeRunnable.run();
 		}

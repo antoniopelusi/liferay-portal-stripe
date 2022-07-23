@@ -46,6 +46,11 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	}
 
 	@Override
+	public TrashEntry cloneWithOriginalValues() {
+		return new TrashEntryWrapper(_trashEntry.cloneWithOriginalValues());
+	}
+
+	@Override
 	public Class<?> getModelClass() {
 		return TrashEntry.class;
 	}

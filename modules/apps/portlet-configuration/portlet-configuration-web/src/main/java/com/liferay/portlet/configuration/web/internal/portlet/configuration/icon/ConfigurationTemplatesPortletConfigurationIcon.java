@@ -28,7 +28,7 @@ import com.liferay.portal.kernel.portlet.configuration.icon.BasePortletConfigura
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.GroupPermission;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -38,10 +38,10 @@ import com.liferay.portlet.configuration.kernel.util.PortletConfigurationApplica
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
-import javax.portlet.PortletURL;
 import javax.portlet.WindowState;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
@@ -64,11 +64,7 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		try {
-			String redirect = ParamUtil.getString(portletRequest, "redirect");
-			String returnToFullPageURL = ParamUtil.getString(
-				portletRequest, "returnToFullPageURL");
-
-			PortletURL portletURL = PortletURLBuilder.create(
+			return PortletURLBuilder.create(
 				PortletProviderUtil.getPortletURL(
 					portletRequest,
 					PortletConfigurationApplicationType.PortletConfiguration.
@@ -76,35 +72,49 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 					PortletProvider.Action.VIEW)
 			).setMVCPath(
 				"/edit_configuration_templates.jsp"
-			).build();
+			).setRedirect(
+				() -> {
+					String redirect = ParamUtil.getString(
+						portletRequest, "redirect");
 
-			if (Validator.isNotNull(redirect)) {
-				portletURL.setParameter("redirect", redirect);
-			}
+					if (Validator.isNotNull(redirect)) {
+						return redirect;
+					}
 
-			if (Validator.isNotNull(returnToFullPageURL)) {
-				portletURL.setParameter(
-					"returnToFullPageURL", returnToFullPageURL);
-			}
+					return null;
+				}
+			).setPortletResource(
+				() -> {
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)portletRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
 
-			portletURL.setParameter(
-				"portletConfiguration", Boolean.TRUE.toString());
+					PortletDisplay portletDisplay =
+						themeDisplay.getPortletDisplay();
 
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)portletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
+					return portletDisplay.getId();
+				}
+			).setParameter(
+				"portletConfiguration", true
+			).setParameter(
+				"returnToFullPageURL",
+				() -> {
+					String returnToFullPageURL = ParamUtil.getString(
+						portletRequest, "returnToFullPageURL");
 
-			PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+					if (Validator.isNotNull(returnToFullPageURL)) {
+						return returnToFullPageURL;
+					}
 
-			portletURL.setParameter("portletResource", portletDisplay.getId());
-
-			portletURL.setWindowState(LiferayWindowState.POP_UP);
-
-			return portletURL.toString();
+					return null;
+				}
+			).setWindowState(
+				LiferayWindowState.POP_UP
+			).buildString();
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -125,7 +135,7 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 			themeDisplay.getPermissionChecker();
 
 		try {
-			if (!GroupPermissionUtil.contains(
+			if (!_groupPermission.contains(
 					permissionChecker, themeDisplay.getScopeGroupId(),
 					ActionKeys.MANAGE_ARCHIVED_SETUPS)) {
 
@@ -137,7 +147,7 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;
@@ -151,11 +161,9 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
+		if (layout.isTypeControlPanel() ||
+			isEmbeddedPersonalApplicationLayout(layout)) {
 
-		if (isEmbeddedPersonalApplicationLayout(layout)) {
 			return false;
 		}
 
@@ -165,11 +173,19 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 	}
 
 	@Override
+	public boolean isShowInEditMode(PortletRequest portletRequest) {
+		return true;
+	}
+
+	@Override
 	public boolean isUseDialog() {
 		return true;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ConfigurationTemplatesPortletConfigurationIcon.class);
+
+	@Reference
+	private GroupPermission _groupPermission;
 
 }

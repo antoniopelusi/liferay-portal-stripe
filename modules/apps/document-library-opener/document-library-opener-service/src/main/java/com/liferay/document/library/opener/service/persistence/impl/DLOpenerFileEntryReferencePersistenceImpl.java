@@ -20,10 +20,10 @@ import com.liferay.document.library.opener.model.DLOpenerFileEntryReferenceTable
 import com.liferay.document.library.opener.model.impl.DLOpenerFileEntryReferenceImpl;
 import com.liferay.document.library.opener.model.impl.DLOpenerFileEntryReferenceModelImpl;
 import com.liferay.document.library.opener.service.persistence.DLOpenerFileEntryReferencePersistence;
+import com.liferay.document.library.opener.service.persistence.DLOpenerFileEntryReferenceUtil;
 import com.liferay.document.library.opener.service.persistence.impl.constants.DLOpenerPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,19 +34,21 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
@@ -55,12 +57,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -604,6 +603,8 @@ public class DLOpenerFileEntryReferencePersistenceImpl
 			dlOpenerFileEntryReference);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the dl opener file entry references in the entity cache if it is enabled.
 	 *
@@ -612,6 +613,14 @@ public class DLOpenerFileEntryReferencePersistenceImpl
 	@Override
 	public void cacheResult(
 		List<DLOpenerFileEntryReference> dlOpenerFileEntryReferences) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (dlOpenerFileEntryReferences.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (DLOpenerFileEntryReference dlOpenerFileEntryReference :
 				dlOpenerFileEntryReferences) {
@@ -845,25 +854,25 @@ public class DLOpenerFileEntryReferencePersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (dlOpenerFileEntryReference.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				dlOpenerFileEntryReference.setCreateDate(now);
+				dlOpenerFileEntryReference.setCreateDate(date);
 			}
 			else {
 				dlOpenerFileEntryReference.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!dlOpenerFileEntryReferenceModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				dlOpenerFileEntryReference.setModifiedDate(now);
+				dlOpenerFileEntryReference.setModifiedDate(date);
 			}
 			else {
 				dlOpenerFileEntryReference.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -1171,13 +1180,9 @@ public class DLOpenerFileEntryReferencePersistenceImpl
 	 * Initializes the dl opener file entry reference persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new DLOpenerFileEntryReferenceModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -1210,13 +1215,32 @@ public class DLOpenerFileEntryReferencePersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByR_F",
 			new String[] {String.class.getName(), Long.class.getName()},
 			new String[] {"referenceType", "fileEntryId"}, false);
+
+		_setDLOpenerFileEntryReferenceUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(DLOpenerFileEntryReferenceImpl.class.getName());
+		_setDLOpenerFileEntryReferenceUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(DLOpenerFileEntryReferenceImpl.class.getName());
+	}
+
+	private void _setDLOpenerFileEntryReferenceUtilPersistence(
+		DLOpenerFileEntryReferencePersistence
+			dlOpenerFileEntryReferencePersistence) {
+
+		try {
+			Field field = DLOpenerFileEntryReferenceUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, dlOpenerFileEntryReferencePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -1244,8 +1268,6 @@ public class DLOpenerFileEntryReferencePersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -1285,101 +1307,8 @@ public class DLOpenerFileEntryReferencePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class DLOpenerFileEntryReferenceModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			DLOpenerFileEntryReferenceModelImpl
-				dlOpenerFileEntryReferenceModelImpl =
-					(DLOpenerFileEntryReferenceModelImpl)baseModel;
-
-			long columnBitmask =
-				dlOpenerFileEntryReferenceModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					dlOpenerFileEntryReferenceModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						dlOpenerFileEntryReferenceModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					dlOpenerFileEntryReferenceModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return DLOpenerFileEntryReferenceImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return DLOpenerFileEntryReferenceTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			DLOpenerFileEntryReferenceModelImpl
-				dlOpenerFileEntryReferenceModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						dlOpenerFileEntryReferenceModelImpl.
-							getColumnOriginalValue(columnName);
-				}
-				else {
-					arguments[i] =
-						dlOpenerFileEntryReferenceModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private DLOpenerFileEntryReferenceModelArgumentsResolver
+		_dlOpenerFileEntryReferenceModelArgumentsResolver;
 
 }

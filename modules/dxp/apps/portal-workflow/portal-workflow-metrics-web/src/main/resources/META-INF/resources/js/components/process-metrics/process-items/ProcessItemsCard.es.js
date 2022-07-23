@@ -12,6 +12,7 @@
 
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
+import ClayList from '@clayui/list';
 import ClayPanel from '@clayui/panel';
 import React, {useMemo} from 'react';
 
@@ -44,7 +45,7 @@ const ProcessItemsCard = ({
 		}
 
 		return [new Promise((_, reject) => reject())];
-	}, [fetchData, timeRange.dateEnd, timeRange.dateStart]);
+	}, [completed, timeRange.dateEnd, timeRange.dateStart]);
 
 	return (
 		<PromisesResolver promises={promises}>
@@ -111,27 +112,23 @@ const Body = ({completed = false, data, processId, timeRange}) => {
 };
 
 const Header = ({children, data, description, title}) => (
-	<ClayPanel.Header
-		className={['dashboard-panel-header', children && 'pb-0']}
-	>
+	<ClayPanel.Header className={['tabs-panel-header', children && 'pb-0']}>
 		<ClayLayout.ContentRow>
 			<ClayLayout.ContentCol className="flex-row" expand>
 				<span className="mr-2">{title}</span>
 
-				<span>
-					<span
-						className="workflow-tooltip"
-						data-tooltip-align="right"
-						title={description}
-					>
-						<ClayIcon symbol="question-circle-full" />
-					</span>
+				<span
+					className="workflow-tooltip"
+					data-tooltip-align="right"
+					title={description}
+				>
+					<ClayIcon symbol="question-circle-full" />
 				</span>
 			</ClayLayout.ContentCol>
 
 			{children && data && (
 				<ClayLayout.ContentCol className="m-0 management-bar management-bar-light navbar">
-					<ul className="navbar-nav">{children}</ul>
+					<ClayList className="navbar-nav">{children}</ClayList>
 				</ClayLayout.ContentCol>
 			)}
 		</ClayLayout.ContentRow>

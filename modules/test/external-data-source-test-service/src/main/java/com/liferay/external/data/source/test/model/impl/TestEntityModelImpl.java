@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -203,34 +205,6 @@ public class TestEntityModelImpl
 		return _attributeSetterBiConsumers;
 	}
 
-	private static Function<InvocationHandler, TestEntity>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			TestEntity.class.getClassLoader(), TestEntity.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<TestEntity> constructor =
-				(Constructor<TestEntity>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
-	}
-
 	private static final Map<String, Function<TestEntity, Object>>
 		_attributeGetterFunctions;
 	private static final Map<String, BiConsumer<TestEntity, Object>>
@@ -353,6 +327,16 @@ public class TestEntityModelImpl
 	}
 
 	@Override
+	public TestEntity cloneWithOriginalValues() {
+		TestEntityImpl testEntityImpl = new TestEntityImpl();
+
+		testEntityImpl.setId(this.<Long>getColumnOriginalValue("id_"));
+		testEntityImpl.setData(this.<String>getColumnOriginalValue("data_"));
+
+		return testEntityImpl;
+	}
+
+	@Override
 	public int compareTo(TestEntity testEntity) {
 		long primaryKey = testEntity.getPrimaryKey();
 
@@ -442,7 +426,7 @@ public class TestEntityModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -453,9 +437,26 @@ public class TestEntityModelImpl
 			Function<TestEntity, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((TestEntity)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((TestEntity)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -502,7 +503,9 @@ public class TestEntityModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, TestEntity>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					TestEntity.class, ModelWrapper.class);
 
 	}
 

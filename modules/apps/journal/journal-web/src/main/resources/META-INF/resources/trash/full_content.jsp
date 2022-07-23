@@ -47,7 +47,7 @@ JournalArticleDisplay articleDisplay = (JournalArticleDisplay)request.getAttribu
 				"classPK", JournalArticleAssetRenderer.getClassPK(article)
 			).setWindowState(
 				LiferayWindowState.POP_UP
-			).build()
+			).buildPortletURL()
 		%>'
 		total="<%= articleDisplay.getNumberOfPages() %>"
 		type="article"

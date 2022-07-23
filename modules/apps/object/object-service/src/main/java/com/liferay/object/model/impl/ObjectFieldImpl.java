@@ -14,7 +14,9 @@
 
 package com.liferay.object.model.impl;
 
-import com.liferay.petra.string.StringPool;
+import com.liferay.object.model.ObjectFieldSetting;
+
+import java.util.List;
 
 /**
  * @author Marco Leo
@@ -22,12 +24,18 @@ import com.liferay.petra.string.StringPool;
  */
 public class ObjectFieldImpl extends ObjectFieldBaseImpl {
 
-	public ObjectFieldImpl() {
+	@Override
+	public List<ObjectFieldSetting> getObjectFieldSettings() {
+		return _objectFieldSettings;
 	}
 
 	@Override
-	public String getDBColumnName() {
-		return getName() + StringPool.UNDERLINE;
+	public void setObjectFieldSettings(
+		List<ObjectFieldSetting> objectFieldSettings) {
+
+		_objectFieldSettings = objectFieldSettings;
 	}
+
+	private List<ObjectFieldSetting> _objectFieldSettings;
 
 }

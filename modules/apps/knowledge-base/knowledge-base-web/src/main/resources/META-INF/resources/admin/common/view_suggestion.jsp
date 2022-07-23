@@ -83,8 +83,8 @@ renderResponse.setTitle(kbCommentTitle);
 </div>
 
 <%
-int previousStatus = KBUtil.getPreviousStatus(kbComment.getStatus());
 int nextStatus = KBUtil.getNextStatus(kbComment.getStatus());
+int previousStatus = KBUtil.getPreviousStatus(kbComment.getStatus());
 %>
 
 <c:if test="<%= KBArticlePermission.contains(permissionChecker, kbArticle, KBActionKeys.UPDATE) || KBCommentPermission.contains(permissionChecker, kbComment, KBActionKeys.DELETE) %>">

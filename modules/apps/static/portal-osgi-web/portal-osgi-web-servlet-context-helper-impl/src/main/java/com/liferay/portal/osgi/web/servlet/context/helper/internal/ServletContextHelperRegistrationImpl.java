@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.osgi.web.servlet.JSPServletFactory;
@@ -88,7 +89,7 @@ public class ServletContextHelperRegistrationImpl
 		_properties = properties;
 		_executorService = executorService;
 
-		String contextPath = getContextPath();
+		String contextPath = _getContextPath();
 
 		_servletContextName = getServletContextName(contextPath);
 
@@ -129,19 +130,19 @@ public class ServletContextHelperRegistrationImpl
 		_customServletContextHelper = new CustomServletContextHelper(
 			_bundle, _webXMLDefinition.getWebResourceCollectionDefinitions());
 
-		_servletContextHelperServiceRegistration = createServletContextHelper(
+		_servletContextHelperServiceRegistration = _createServletContextHelper(
 			contextPath);
 
 		_servletContextListenerServiceRegistration =
-			createServletContextListener();
+			_createServletContextListener();
 
-		registerServletContext();
+		_registerServletContext();
 
-		_defaultServletServiceRegistration = createDefaultServlet();
+		_defaultServletServiceRegistration = _createDefaultServlet();
 
-		_jspServletServiceRegistration = createJspServlet();
+		_jspServletServiceRegistration = _createJspServlet();
 
-		_portletServletServiceRegistration = createPortletServlet();
+		_portletServletServiceRegistration = _createPortletServlet();
 	}
 
 	@Override
@@ -151,7 +152,7 @@ public class ServletContextHelperRegistrationImpl
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			// Ignore since the service has been unregistered
@@ -163,7 +164,7 @@ public class ServletContextHelperRegistrationImpl
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			// Ignore since the service has been unregistered
@@ -175,7 +176,7 @@ public class ServletContextHelperRegistrationImpl
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			// Ignore since the service has been unregistered
@@ -187,7 +188,7 @@ public class ServletContextHelperRegistrationImpl
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			// Ignore since the service has been unregistered
@@ -199,7 +200,7 @@ public class ServletContextHelperRegistrationImpl
 		}
 		catch (IllegalStateException illegalStateException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException, illegalStateException);
+				_log.debug(illegalStateException);
 			}
 
 			// Ignore since the service has been unregistered
@@ -212,7 +213,7 @@ public class ServletContextHelperRegistrationImpl
 			}
 			catch (IllegalStateException illegalStateException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(illegalStateException, illegalStateException);
+					_log.debug(illegalStateException);
 				}
 
 				// Ignore since the service has been unregistered
@@ -222,7 +223,7 @@ public class ServletContextHelperRegistrationImpl
 
 		BundleWiring bundleWiring = _bundle.adapt(BundleWiring.class);
 
-		clearResidualMBeans(bundleWiring.getClassLoader());
+		_clearResidualMBeans(bundleWiring.getClassLoader());
 	}
 
 	@Override
@@ -277,7 +278,20 @@ public class ServletContextHelperRegistrationImpl
 		_servletContextHelperServiceRegistration.setProperties(properties);
 	}
 
-	protected void clearResidualMBeans(ClassLoader classLoader) {
+	protected String getServletContextName(String contextPath) {
+		Dictionary<String, String> headers = _bundle.getHeaders(
+			StringPool.BLANK);
+
+		String header = headers.get("Web-ContextName");
+
+		if (Validator.isNotNull(header)) {
+			return header;
+		}
+
+		return contextPath.substring(1);
+	}
+
+	private void _clearResidualMBeans(ClassLoader classLoader) {
 		MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
 		for (ObjectName objectName : mBeanServer.queryNames(null, null)) {
@@ -290,40 +304,49 @@ public class ServletContextHelperRegistrationImpl
 			}
 			catch (InstanceNotFoundException instanceNotFoundException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						instanceNotFoundException, instanceNotFoundException);
+					_log.debug(instanceNotFoundException);
 				}
 			}
 			catch (JMException jmException) {
-				_log.error(jmException, jmException);
+				_log.error(jmException);
 			}
 		}
 	}
 
-	protected ServiceRegistration<?> createDefaultServlet() {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
+	private boolean _contains(String[] array, String classResource) {
+		int index = Arrays.binarySearch(array, classResource);
 
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
-			_servletContextName);
+		if (index >= -1) {
+			return false;
+		}
 
+		if (classResource.startsWith(array[-index - 2])) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private ServiceRegistration<?> _createDefaultServlet() {
 		String prefix = "/META-INF/resources";
 
 		if (_wabShapedBundle) {
 			prefix = "/";
 		}
 
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_RESOURCE_PREFIX, prefix);
-
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_RESOURCE_PATTERN, "/*");
-
 		return _bundleContext.registerService(
-			Object.class, new Object(), properties);
+			Object.class, new Object(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
+				_servletContextName
+			).put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_RESOURCE_PATTERN, "/*"
+			).put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_RESOURCE_PREFIX, prefix
+			).build());
 	}
 
-	protected ServiceRegistration<Servlet> createJspServlet() {
+	private ServiceRegistration<Servlet> _createJspServlet() {
 		Dictionary<String, Object> properties = new HashMapDictionary<>();
 
 		for (Map.Entry<String, Object> entry : _properties.entrySet()) {
@@ -354,32 +377,29 @@ public class ServletContextHelperRegistrationImpl
 			Servlet.class, _jspServletFactory.createJSPServlet(), properties);
 	}
 
-	protected ServiceRegistration<Servlet> createPortletServlet() {
+	private ServiceRegistration<Servlet> _createPortletServlet() {
 		if (_wabShapedBundle) {
 			return null;
 		}
-
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
-			_servletContextName);
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
-			PortletServlet.class.getName());
-		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN,
-			"/portlet-servlet/*");
 
 		return _bundleContext.registerService(
 			Servlet.class,
 			new PortletServlet() {
 			},
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
+				_servletContextName
+			).put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
+				PortletServlet.class.getName()
+			).put(
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN,
+				"/portlet-servlet/*"
+			).build());
 	}
 
-	protected ServiceRegistration<ServletContextHelper>
-		createServletContextHelper(String contextPath) {
+	private ServiceRegistration<ServletContextHelper>
+		_createServletContextHelper(String contextPath) {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 
@@ -393,7 +413,7 @@ public class ServletContextHelperRegistrationImpl
 			_webXMLDefinition.getContextParameters();
 
 		properties.put(
-			"rtl.required", String.valueOf(isRTLRequired(contextParameters)));
+			"rtl.required", String.valueOf(_isRTLRequired(contextParameters)));
 
 		for (Map.Entry<String, String> entry : contextParameters.entrySet()) {
 			String key =
@@ -408,8 +428,8 @@ public class ServletContextHelperRegistrationImpl
 			properties);
 	}
 
-	protected ServiceRegistration<ServletContextListener>
-		createServletContextListener() {
+	private ServiceRegistration<ServletContextListener>
+		_createServletContextListener() {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 
@@ -425,7 +445,7 @@ public class ServletContextHelperRegistrationImpl
 			properties);
 	}
 
-	protected String getContextPath() {
+	private String _getContextPath() {
 		Dictionary<String, String> headers = _bundle.getHeaders(
 			StringPool.BLANK);
 
@@ -438,20 +458,7 @@ public class ServletContextHelperRegistrationImpl
 		return '/' + _bundle.getSymbolicName();
 	}
 
-	protected String getServletContextName(String contextPath) {
-		Dictionary<String, String> headers = _bundle.getHeaders(
-			StringPool.BLANK);
-
-		String header = headers.get("Web-ContextName");
-
-		if (Validator.isNotNull(header)) {
-			return header;
-		}
-
-		return contextPath.substring(1);
-	}
-
-	protected boolean isRTLRequired(Map<String, String> contextParameters) {
+	private boolean _isRTLRequired(Map<String, String> contextParameters) {
 		String rtlRequired = contextParameters.get("rtl.required");
 
 		if (Validator.isNotNull(rtlRequired)) {
@@ -468,36 +475,6 @@ public class ServletContextHelperRegistrationImpl
 		}
 
 		return true;
-	}
-
-	protected void registerServletContext() {
-		ServletContext servletContext =
-			_customServletContextHelper.getServletContext();
-
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"osgi.web.contextname", servletContext.getServletContextName());
-		properties.put("osgi.web.contextpath", servletContext.getContextPath());
-		properties.put("osgi.web.symbolicname", _bundle.getSymbolicName());
-		properties.put("osgi.web.version", _bundle.getVersion());
-
-		_servletContextRegistration = _bundleContext.registerService(
-			ServletContext.class, servletContext, properties);
-	}
-
-	private boolean _contains(String[] array, String classResource) {
-		int index = Arrays.binarySearch(array, classResource);
-
-		if (index >= -1) {
-			return false;
-		}
-
-		if (classResource.startsWith(array[-index - 2])) {
-			return true;
-		}
-
-		return false;
 	}
 
 	private Set<Class<?>> _loadClasses(Bundle bundle) {
@@ -519,7 +496,7 @@ public class ServletContextHelperRegistrationImpl
 			}
 			catch (IOException ioException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(ioException, ioException);
+					_log.debug(ioException);
 				}
 			}
 
@@ -537,8 +514,7 @@ public class ServletContextHelperRegistrationImpl
 					}
 					catch (ClassNotFoundException classNotFoundException) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(
-								classNotFoundException, classNotFoundException);
+							_log.debug(classNotFoundException);
 						}
 
 						failed = true;
@@ -596,12 +572,31 @@ public class ServletContextHelperRegistrationImpl
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
 
 		return classes;
+	}
+
+	private void _registerServletContext() {
+		ServletContext servletContext =
+			_customServletContextHelper.getServletContext();
+
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"osgi.web.contextname", servletContext.getServletContextName()
+			).put(
+				"osgi.web.contextpath", servletContext.getContextPath()
+			).put(
+				"osgi.web.symbolicname", _bundle.getSymbolicName()
+			).put(
+				"osgi.web.version", _bundle.getVersion()
+			).build();
+
+		_servletContextRegistration = _bundleContext.registerService(
+			ServletContext.class, servletContext, properties);
 	}
 
 	private static final String[] _BLACKLIST;

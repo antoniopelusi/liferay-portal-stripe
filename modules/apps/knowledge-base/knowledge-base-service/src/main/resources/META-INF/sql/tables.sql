@@ -9,6 +9,7 @@ create table KBArticle (
 	userName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
+	externalReferenceCode VARCHAR(75) null,
 	rootResourcePrimKey LONG,
 	parentResourceClassNameId LONG,
 	parentResourcePrimKey LONG,
@@ -51,6 +52,7 @@ create table KBComment (
 create table KBFolder (
 	mvccVersion LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
+	externalReferenceCode VARCHAR(75) null,
 	kbFolderId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,

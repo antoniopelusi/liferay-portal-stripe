@@ -19,7 +19,6 @@ import com.liferay.commerce.service.CommerceAddressService;
 import com.liferay.commerce.service.CommerceAddressServiceUtil;
 import com.liferay.commerce.service.persistence.CPDAvailabilityEstimatePersistence;
 import com.liferay.commerce.service.persistence.CPDefinitionInventoryPersistence;
-import com.liferay.commerce.service.persistence.CommerceAddressPersistence;
 import com.liferay.commerce.service.persistence.CommerceAddressRestrictionPersistence;
 import com.liferay.commerce.service.persistence.CommerceAvailabilityEstimatePersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderFinder;
@@ -28,29 +27,24 @@ import com.liferay.commerce.service.persistence.CommerceOrderItemPersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderNotePersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderPaymentPersistence;
 import com.liferay.commerce.service.persistence.CommerceOrderPersistence;
+import com.liferay.commerce.service.persistence.CommerceOrderTypePersistence;
+import com.liferay.commerce.service.persistence.CommerceOrderTypeRelPersistence;
 import com.liferay.commerce.service.persistence.CommerceShipmentFinder;
 import com.liferay.commerce.service.persistence.CommerceShipmentItemFinder;
 import com.liferay.commerce.service.persistence.CommerceShipmentItemPersistence;
 import com.liferay.commerce.service.persistence.CommerceShipmentPersistence;
 import com.liferay.commerce.service.persistence.CommerceShippingMethodPersistence;
+import com.liferay.commerce.service.persistence.CommerceShippingOptionAccountEntryRelPersistence;
 import com.liferay.commerce.service.persistence.CommerceSubscriptionEntryFinder;
 import com.liferay.commerce.service.persistence.CommerceSubscriptionEntryPersistence;
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
-import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
-import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.service.BaseServiceImpl;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
-import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.lang.reflect.Field;
-
-import javax.sql.DataSource;
 
 /**
  * Provides the base implementation for the commerce address remote service.
@@ -114,26 +108,6 @@ public abstract class CommerceAddressServiceBaseImpl
 		CommerceAddressService commerceAddressService) {
 
 		this.commerceAddressService = commerceAddressService;
-	}
-
-	/**
-	 * Returns the commerce address persistence.
-	 *
-	 * @return the commerce address persistence
-	 */
-	public CommerceAddressPersistence getCommerceAddressPersistence() {
-		return commerceAddressPersistence;
-	}
-
-	/**
-	 * Sets the commerce address persistence.
-	 *
-	 * @param commerceAddressPersistence the commerce address persistence
-	 */
-	public void setCommerceAddressPersistence(
-		CommerceAddressPersistence commerceAddressPersistence) {
-
-		this.commerceAddressPersistence = commerceAddressPersistence;
 	}
 
 	/**
@@ -565,6 +539,141 @@ public abstract class CommerceAddressServiceBaseImpl
 	}
 
 	/**
+	 * Returns the commerce order type local service.
+	 *
+	 * @return the commerce order type local service
+	 */
+	public com.liferay.commerce.service.CommerceOrderTypeLocalService
+		getCommerceOrderTypeLocalService() {
+
+		return commerceOrderTypeLocalService;
+	}
+
+	/**
+	 * Sets the commerce order type local service.
+	 *
+	 * @param commerceOrderTypeLocalService the commerce order type local service
+	 */
+	public void setCommerceOrderTypeLocalService(
+		com.liferay.commerce.service.CommerceOrderTypeLocalService
+			commerceOrderTypeLocalService) {
+
+		this.commerceOrderTypeLocalService = commerceOrderTypeLocalService;
+	}
+
+	/**
+	 * Returns the commerce order type remote service.
+	 *
+	 * @return the commerce order type remote service
+	 */
+	public com.liferay.commerce.service.CommerceOrderTypeService
+		getCommerceOrderTypeService() {
+
+		return commerceOrderTypeService;
+	}
+
+	/**
+	 * Sets the commerce order type remote service.
+	 *
+	 * @param commerceOrderTypeService the commerce order type remote service
+	 */
+	public void setCommerceOrderTypeService(
+		com.liferay.commerce.service.CommerceOrderTypeService
+			commerceOrderTypeService) {
+
+		this.commerceOrderTypeService = commerceOrderTypeService;
+	}
+
+	/**
+	 * Returns the commerce order type persistence.
+	 *
+	 * @return the commerce order type persistence
+	 */
+	public CommerceOrderTypePersistence getCommerceOrderTypePersistence() {
+		return commerceOrderTypePersistence;
+	}
+
+	/**
+	 * Sets the commerce order type persistence.
+	 *
+	 * @param commerceOrderTypePersistence the commerce order type persistence
+	 */
+	public void setCommerceOrderTypePersistence(
+		CommerceOrderTypePersistence commerceOrderTypePersistence) {
+
+		this.commerceOrderTypePersistence = commerceOrderTypePersistence;
+	}
+
+	/**
+	 * Returns the commerce order type rel local service.
+	 *
+	 * @return the commerce order type rel local service
+	 */
+	public com.liferay.commerce.service.CommerceOrderTypeRelLocalService
+		getCommerceOrderTypeRelLocalService() {
+
+		return commerceOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Sets the commerce order type rel local service.
+	 *
+	 * @param commerceOrderTypeRelLocalService the commerce order type rel local service
+	 */
+	public void setCommerceOrderTypeRelLocalService(
+		com.liferay.commerce.service.CommerceOrderTypeRelLocalService
+			commerceOrderTypeRelLocalService) {
+
+		this.commerceOrderTypeRelLocalService =
+			commerceOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Returns the commerce order type rel remote service.
+	 *
+	 * @return the commerce order type rel remote service
+	 */
+	public com.liferay.commerce.service.CommerceOrderTypeRelService
+		getCommerceOrderTypeRelService() {
+
+		return commerceOrderTypeRelService;
+	}
+
+	/**
+	 * Sets the commerce order type rel remote service.
+	 *
+	 * @param commerceOrderTypeRelService the commerce order type rel remote service
+	 */
+	public void setCommerceOrderTypeRelService(
+		com.liferay.commerce.service.CommerceOrderTypeRelService
+			commerceOrderTypeRelService) {
+
+		this.commerceOrderTypeRelService = commerceOrderTypeRelService;
+	}
+
+	/**
+	 * Returns the commerce order type rel persistence.
+	 *
+	 * @return the commerce order type rel persistence
+	 */
+	public CommerceOrderTypeRelPersistence
+		getCommerceOrderTypeRelPersistence() {
+
+		return commerceOrderTypeRelPersistence;
+	}
+
+	/**
+	 * Sets the commerce order type rel persistence.
+	 *
+	 * @param commerceOrderTypeRelPersistence the commerce order type rel persistence
+	 */
+	public void setCommerceOrderTypeRelPersistence(
+		CommerceOrderTypeRelPersistence commerceOrderTypeRelPersistence) {
+
+		this.commerceOrderTypeRelPersistence = commerceOrderTypeRelPersistence;
+	}
+
+	/**
 	 * Returns the commerce shipment local service.
 	 *
 	 * @return the commerce shipment local service
@@ -807,6 +916,83 @@ public abstract class CommerceAddressServiceBaseImpl
 
 		this.commerceShippingMethodPersistence =
 			commerceShippingMethodPersistence;
+	}
+
+	/**
+	 * Returns the commerce shipping option account entry rel local service.
+	 *
+	 * @return the commerce shipping option account entry rel local service
+	 */
+	public com.liferay.commerce.service.
+		CommerceShippingOptionAccountEntryRelLocalService
+			getCommerceShippingOptionAccountEntryRelLocalService() {
+
+		return commerceShippingOptionAccountEntryRelLocalService;
+	}
+
+	/**
+	 * Sets the commerce shipping option account entry rel local service.
+	 *
+	 * @param commerceShippingOptionAccountEntryRelLocalService the commerce shipping option account entry rel local service
+	 */
+	public void setCommerceShippingOptionAccountEntryRelLocalService(
+		com.liferay.commerce.service.
+			CommerceShippingOptionAccountEntryRelLocalService
+				commerceShippingOptionAccountEntryRelLocalService) {
+
+		this.commerceShippingOptionAccountEntryRelLocalService =
+			commerceShippingOptionAccountEntryRelLocalService;
+	}
+
+	/**
+	 * Returns the commerce shipping option account entry rel remote service.
+	 *
+	 * @return the commerce shipping option account entry rel remote service
+	 */
+	public
+		com.liferay.commerce.service.
+			CommerceShippingOptionAccountEntryRelService
+				getCommerceShippingOptionAccountEntryRelService() {
+
+		return commerceShippingOptionAccountEntryRelService;
+	}
+
+	/**
+	 * Sets the commerce shipping option account entry rel remote service.
+	 *
+	 * @param commerceShippingOptionAccountEntryRelService the commerce shipping option account entry rel remote service
+	 */
+	public void setCommerceShippingOptionAccountEntryRelService(
+		com.liferay.commerce.service.
+			CommerceShippingOptionAccountEntryRelService
+				commerceShippingOptionAccountEntryRelService) {
+
+		this.commerceShippingOptionAccountEntryRelService =
+			commerceShippingOptionAccountEntryRelService;
+	}
+
+	/**
+	 * Returns the commerce shipping option account entry rel persistence.
+	 *
+	 * @return the commerce shipping option account entry rel persistence
+	 */
+	public CommerceShippingOptionAccountEntryRelPersistence
+		getCommerceShippingOptionAccountEntryRelPersistence() {
+
+		return commerceShippingOptionAccountEntryRelPersistence;
+	}
+
+	/**
+	 * Sets the commerce shipping option account entry rel persistence.
+	 *
+	 * @param commerceShippingOptionAccountEntryRelPersistence the commerce shipping option account entry rel persistence
+	 */
+	public void setCommerceShippingOptionAccountEntryRelPersistence(
+		CommerceShippingOptionAccountEntryRelPersistence
+			commerceShippingOptionAccountEntryRelPersistence) {
+
+		this.commerceShippingOptionAccountEntryRelPersistence =
+			commerceShippingOptionAccountEntryRelPersistence;
 	}
 
 	/**
@@ -1240,30 +1426,6 @@ public abstract class CommerceAddressServiceBaseImpl
 		return CommerceAddress.class.getName();
 	}
 
-	/**
-	 * Performs a SQL query.
-	 *
-	 * @param sql the sql query
-	 */
-	protected void runSQL(String sql) {
-		try {
-			DataSource dataSource = commerceAddressPersistence.getDataSource();
-
-			DB db = DBManagerUtil.getDB();
-
-			sql = db.buildSQL(sql);
-			sql = PortalUtil.transformSQL(sql);
-
-			SqlUpdate sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(
-				dataSource, sql);
-
-			sqlUpdate.update();
-		}
-		catch (Exception exception) {
-			throw new SystemException(exception);
-		}
-	}
-
 	private void _setServiceUtilService(
 		CommerceAddressService commerceAddressService) {
 
@@ -1288,9 +1450,6 @@ public abstract class CommerceAddressServiceBaseImpl
 
 	@BeanReference(type = CommerceAddressService.class)
 	protected CommerceAddressService commerceAddressService;
-
-	@BeanReference(type = CommerceAddressPersistence.class)
-	protected CommerceAddressPersistence commerceAddressPersistence;
 
 	@BeanReference(
 		type = com.liferay.commerce.service.CommerceAddressRestrictionLocalService.class
@@ -1387,6 +1546,36 @@ public abstract class CommerceAddressServiceBaseImpl
 	protected CommerceOrderPaymentPersistence commerceOrderPaymentPersistence;
 
 	@BeanReference(
+		type = com.liferay.commerce.service.CommerceOrderTypeLocalService.class
+	)
+	protected com.liferay.commerce.service.CommerceOrderTypeLocalService
+		commerceOrderTypeLocalService;
+
+	@BeanReference(
+		type = com.liferay.commerce.service.CommerceOrderTypeService.class
+	)
+	protected com.liferay.commerce.service.CommerceOrderTypeService
+		commerceOrderTypeService;
+
+	@BeanReference(type = CommerceOrderTypePersistence.class)
+	protected CommerceOrderTypePersistence commerceOrderTypePersistence;
+
+	@BeanReference(
+		type = com.liferay.commerce.service.CommerceOrderTypeRelLocalService.class
+	)
+	protected com.liferay.commerce.service.CommerceOrderTypeRelLocalService
+		commerceOrderTypeRelLocalService;
+
+	@BeanReference(
+		type = com.liferay.commerce.service.CommerceOrderTypeRelService.class
+	)
+	protected com.liferay.commerce.service.CommerceOrderTypeRelService
+		commerceOrderTypeRelService;
+
+	@BeanReference(type = CommerceOrderTypeRelPersistence.class)
+	protected CommerceOrderTypeRelPersistence commerceOrderTypeRelPersistence;
+
+	@BeanReference(
 		type = com.liferay.commerce.service.CommerceShipmentLocalService.class
 	)
 	protected com.liferay.commerce.service.CommerceShipmentLocalService
@@ -1437,6 +1626,27 @@ public abstract class CommerceAddressServiceBaseImpl
 	@BeanReference(type = CommerceShippingMethodPersistence.class)
 	protected CommerceShippingMethodPersistence
 		commerceShippingMethodPersistence;
+
+	@BeanReference(
+		type = com.liferay.commerce.service.CommerceShippingOptionAccountEntryRelLocalService.class
+	)
+	protected com.liferay.commerce.service.
+		CommerceShippingOptionAccountEntryRelLocalService
+			commerceShippingOptionAccountEntryRelLocalService;
+
+	@BeanReference(
+		type = com.liferay.commerce.service.CommerceShippingOptionAccountEntryRelService.class
+	)
+	protected
+		com.liferay.commerce.service.
+			CommerceShippingOptionAccountEntryRelService
+				commerceShippingOptionAccountEntryRelService;
+
+	@BeanReference(
+		type = CommerceShippingOptionAccountEntryRelPersistence.class
+	)
+	protected CommerceShippingOptionAccountEntryRelPersistence
+		commerceShippingOptionAccountEntryRelPersistence;
 
 	@BeanReference(
 		type = com.liferay.commerce.service.CommerceSubscriptionEntryLocalService.class

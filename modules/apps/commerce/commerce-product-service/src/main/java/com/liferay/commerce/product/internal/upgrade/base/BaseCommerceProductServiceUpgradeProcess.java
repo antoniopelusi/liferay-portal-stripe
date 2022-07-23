@@ -36,8 +36,7 @@ public abstract class BaseCommerceProductServiceUpgradeProcess
 	extends UpgradeProcess {
 
 	protected void addColumn(
-			Class<?> entityClass, String tableName, String columnName,
-			String columnType)
+			String tableName, String columnName, String columnType)
 		throws Exception {
 
 		if (_log.isInfoEnabled()) {
@@ -47,10 +46,7 @@ public abstract class BaseCommerceProductServiceUpgradeProcess
 		}
 
 		if (!hasColumn(tableName, columnName)) {
-			alter(
-				entityClass,
-				new AlterTableAddColumn(
-					columnName + StringPool.SPACE + columnType));
+			alterTableAddColumn(tableName, columnName, columnType);
 		}
 		else {
 			if (_log.isInfoEnabled()) {
@@ -115,8 +111,7 @@ public abstract class BaseCommerceProductServiceUpgradeProcess
 	}
 
 	protected void renameColumn(
-			Class<?> tableClass, String tableName, String oldColumnName,
-			String newColumnName)
+			String tableName, String oldColumnName, String newColumnName)
 		throws Exception {
 
 		if (_log.isInfoEnabled()) {
@@ -130,8 +125,7 @@ public abstract class BaseCommerceProductServiceUpgradeProcess
 			newColumnName, StringPool.SPACE);
 
 		if (!hasColumn(tableName, newColumnSimpleName)) {
-			alter(
-				tableClass, new AlterColumnName(oldColumnName, newColumnName));
+			alterColumnName(tableName, oldColumnName, newColumnName);
 		}
 		else {
 			if (_log.isInfoEnabled()) {
@@ -148,11 +142,11 @@ public abstract class BaseCommerceProductServiceUpgradeProcess
 
 		DatabaseMetaData metadata = connection.getMetaData();
 
-		try (ResultSet rs = metadata.getIndexInfo(
+		try (ResultSet resultSet = metadata.getIndexInfo(
 				null, null, tableName, false, false)) {
 
-			while (rs.next()) {
-				String curIndexName = rs.getString("index_name");
+			while (resultSet.next()) {
+				String curIndexName = resultSet.getString("index_name");
 
 				if (Objects.equals(indexName, curIndexName)) {
 					return true;
@@ -161,7 +155,7 @@ public abstract class BaseCommerceProductServiceUpgradeProcess
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

@@ -84,7 +84,7 @@ public class LocalProcessExecutor implements ProcessExecutor {
 				currentEnvironment.putAll(environment);
 			}
 
-			final Process process = processBuilder.start();
+			Process process = processBuilder.start();
 
 			ObjectOutputStream bootstrapObjectOutputStream =
 				new ObjectOutputStream(process.getOutputStream());
@@ -220,9 +220,7 @@ public class LocalProcessExecutor implements ProcessExecutor {
 					}
 					catch (StreamCorruptedException streamCorruptedException) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(
-								streamCorruptedException,
-								streamCorruptedException);
+							_log.debug(streamCorruptedException);
 						}
 
 						// Collecting bad header as log information

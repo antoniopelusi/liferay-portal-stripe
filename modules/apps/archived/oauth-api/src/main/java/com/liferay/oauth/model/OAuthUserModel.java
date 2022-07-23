@@ -227,4 +227,7 @@ public interface OAuthUserModel
 	 */
 	public void setAccessSecret(String accessSecret);
 
+	@Override
+	public OAuthUser cloneWithOriginalValues();
+
 }

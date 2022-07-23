@@ -15,7 +15,6 @@
 package com.liferay.notifications.web.internal.portlet;
 
 import com.liferay.notifications.web.internal.constants.NotificationsPortletKeys;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.model.UserNotificationDelivery;
@@ -25,7 +24,6 @@ import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
 import com.liferay.portal.kernel.notifications.UserNotificationDeliveryType;
 import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.UserNotificationDeliveryLocalService;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
@@ -37,8 +35,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.subscription.model.Subscription;
 import com.liferay.subscription.service.SubscriptionLocalService;
-
-import java.util.ResourceBundle;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -142,7 +138,8 @@ public class NotificationsPortlet extends MVCPortlet {
 		long userNotificationEventId = ParamUtil.getLong(
 			actionRequest, "userNotificationEventId");
 
-		updateArchived(themeDisplay.getUserId(), userNotificationEventId, true);
+		_updateArchived(
+			themeDisplay.getUserId(), userNotificationEventId, true);
 
 		_addSuccessMessage(
 			actionRequest, "notification-was-marked-as-read-successfully");
@@ -160,7 +157,7 @@ public class NotificationsPortlet extends MVCPortlet {
 		long userNotificationEventId = ParamUtil.getLong(
 			actionRequest, "userNotificationEventId");
 
-		updateArchived(
+		_updateArchived(
 			themeDisplay.getUserId(), userNotificationEventId, false);
 
 		_addSuccessMessage(
@@ -180,7 +177,7 @@ public class NotificationsPortlet extends MVCPortlet {
 			actionRequest, "rowIds");
 
 		for (long userNotificationEventId : userNotificationEventIds) {
-			updateArchived(
+			_updateArchived(
 				themeDisplay.getUserId(), userNotificationEventId, true);
 		}
 
@@ -201,7 +198,7 @@ public class NotificationsPortlet extends MVCPortlet {
 			actionRequest, "rowIds");
 
 		for (long userNotificationEventId : userNotificationEventIds) {
-			updateArchived(
+			_updateArchived(
 				themeDisplay.getUserId(), userNotificationEventId, false);
 		}
 
@@ -281,7 +278,7 @@ public class NotificationsPortlet extends MVCPortlet {
 		if ((userNotificationEvent != null) &&
 			!userNotificationEvent.isArchived()) {
 
-			updateArchived(
+			_updateArchived(
 				themeDisplay.getUserId(), userNotificationEventId, true);
 		}
 
@@ -309,7 +306,7 @@ public class NotificationsPortlet extends MVCPortlet {
 		}
 
 		_addSuccessMessage(
-			actionRequest, "your-configuration-was-saved-sucessfully");
+			actionRequest, "your-configuration-was-saved-successfully");
 
 		_sendRedirect(actionRequest, actionResponse);
 	}
@@ -321,40 +318,15 @@ public class NotificationsPortlet extends MVCPortlet {
 	protected void setRelease(Release release) {
 	}
 
-	protected void updateArchived(
-			long userId, long userNotificationEventId, boolean archived)
-		throws PortalException {
-
-		UserNotificationEvent userNotificationEvent =
-			_userNotificationEventLocalService.fetchUserNotificationEvent(
-				userNotificationEventId);
-
-		if (userNotificationEvent == null) {
-			return;
-		}
-
-		if (userNotificationEvent.getUserId() != userId) {
-			throw new PrincipalException();
-		}
-
-		userNotificationEvent.setArchived(archived);
-
-		_userNotificationEventLocalService.updateUserNotificationEvent(
-			userNotificationEvent);
-	}
-
 	private void _addSuccessMessage(
 		ActionRequest actionRequest, String message) {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		ResourceBundle resourceBundle =
-			_resourceBundleLoader.loadResourceBundle(themeDisplay.getLocale());
-
 		SessionMessages.add(
 			actionRequest, "requestProcessed",
-			LanguageUtil.get(resourceBundle, message));
+			LanguageUtil.get(themeDisplay.getLocale(), message));
 	}
 
 	private void _deleteSubscription(long userId, long subscriptionId)
@@ -405,6 +377,28 @@ public class NotificationsPortlet extends MVCPortlet {
 		}
 	}
 
+	private void _updateArchived(
+			long userId, long userNotificationEventId, boolean archived)
+		throws Exception {
+
+		UserNotificationEvent userNotificationEvent =
+			_userNotificationEventLocalService.fetchUserNotificationEvent(
+				userNotificationEventId);
+
+		if (userNotificationEvent == null) {
+			return;
+		}
+
+		if (userNotificationEvent.getUserId() != userId) {
+			throw new PrincipalException();
+		}
+
+		userNotificationEvent.setArchived(archived);
+
+		_userNotificationEventLocalService.updateUserNotificationEvent(
+			userNotificationEvent);
+	}
+
 	private void _updateUserNotificationDelivery(
 			long userId, long userNotificationDeliveryId, boolean deliver)
 		throws Exception {
@@ -441,9 +435,6 @@ public class NotificationsPortlet extends MVCPortlet {
 
 	@Reference
 	private Portal _portal;
-
-	@Reference(target = "(bundle.symbolic.name=com.liferay.notifications.web)")
-	private ResourceBundleLoader _resourceBundleLoader;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

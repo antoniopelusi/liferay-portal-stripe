@@ -100,6 +100,11 @@ public class AnalyticsMessageWrapper
 		}
 	}
 
+	@Override
+	public AnalyticsMessage cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the analytics message ID of this analytics message.
 	 *

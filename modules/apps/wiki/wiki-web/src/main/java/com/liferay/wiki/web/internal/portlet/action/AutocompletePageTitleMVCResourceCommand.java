@@ -67,8 +67,7 @@ public class AutocompletePageTitleMVCResourceCommand
 		throws PortletException {
 
 		try {
-			JSONArray jsonArray = getJSONArray(
-				resourceRequest, resourceResponse);
+			JSONArray jsonArray = _getJSONArray(resourceRequest);
 
 			HttpServletResponse httpServletResponse =
 				_portal.getHttpServletResponse(resourceResponse);
@@ -79,12 +78,11 @@ public class AutocompletePageTitleMVCResourceCommand
 				httpServletResponse, jsonArray.toString());
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
-	protected JSONArray getJSONArray(
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+	private JSONArray _getJSONArray(ResourceRequest resourceRequest)
 		throws PortalException {
 
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();

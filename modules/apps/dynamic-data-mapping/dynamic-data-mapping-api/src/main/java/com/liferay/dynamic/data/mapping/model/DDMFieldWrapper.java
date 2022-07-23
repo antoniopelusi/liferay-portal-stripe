@@ -134,6 +134,11 @@ public class DDMFieldWrapper
 		}
 	}
 
+	@Override
+	public DDMField cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ddm field.
 	 *

@@ -1442,9 +1442,21 @@ public class AMImageFinderImplTest {
 		);
 
 		Mockito.when(
+			_fileVersion.getFileName()
+		).thenReturn(
+			RandomTestUtil.randomString()
+		);
+
+		Mockito.when(
 			_fileVersion.getMimeType()
 		).thenReturn(
 			ContentTypes.IMAGE_SVG_XML
+		);
+
+		Mockito.when(
+			_fileVersion.getSize()
+		).thenReturn(
+			RandomTestUtil.randomLong()
 		);
 
 		Mockito.when(
@@ -1469,6 +1481,12 @@ public class AMImageFinderImplTest {
 		AdaptiveMedia<AMImageProcessor> adaptiveMedia = adaptiveMedias.get(0);
 
 		Assert.assertSame(inputStream, adaptiveMedia.getInputStream());
+
+		Optional<Long> contentLengthOptional = adaptiveMedia.getValueOptional(
+			AMAttribute.getContentLengthAMAttribute());
+
+		Assert.assertEquals(
+			_fileVersion.getSize(), (long)contentLengthOptional.get());
 	}
 
 	@Test

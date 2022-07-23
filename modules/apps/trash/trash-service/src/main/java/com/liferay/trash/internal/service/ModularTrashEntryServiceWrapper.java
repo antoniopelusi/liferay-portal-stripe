@@ -14,13 +14,13 @@
 
 package com.liferay.trash.internal.service;
 
-import com.liferay.petra.model.adapter.util.ModelAdapterUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorAdapter;
+import com.liferay.portal.model.adapter.ModelAdapterUtil;
 import com.liferay.trash.kernel.model.TrashEntry;
 import com.liferay.trash.kernel.model.TrashEntryList;
 import com.liferay.trash.kernel.service.TrashEntryServiceWrapper;
@@ -71,8 +71,7 @@ public class ModularTrashEntryServiceWrapper extends TrashEntryServiceWrapper {
 
 	@Override
 	public TrashEntryList getEntries(long groupId) throws PrincipalException {
-		return ModelAdapterUtil.adapt(
-			TrashEntryList.class, _trashEntryService.getEntries(groupId));
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -81,11 +80,7 @@ public class ModularTrashEntryServiceWrapper extends TrashEntryServiceWrapper {
 			OrderByComparator<TrashEntry> orderByComparator)
 		throws PrincipalException {
 
-		return ModelAdapterUtil.adapt(
-			TrashEntryList.class,
-			_trashEntryService.getEntries(
-				groupId, start, end,
-				new TrashEntryOrderByComparatorAdapter(orderByComparator)));
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

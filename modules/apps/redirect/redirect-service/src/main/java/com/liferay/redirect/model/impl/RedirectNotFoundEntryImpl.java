@@ -23,9 +23,6 @@ import com.liferay.redirect.model.RedirectNotFoundEntry;
  */
 public class RedirectNotFoundEntryImpl extends RedirectNotFoundEntryBaseImpl {
 
-	public RedirectNotFoundEntryImpl() {
-	}
-
 	@Override
 	public long getHits() {
 		return getRequestCount();

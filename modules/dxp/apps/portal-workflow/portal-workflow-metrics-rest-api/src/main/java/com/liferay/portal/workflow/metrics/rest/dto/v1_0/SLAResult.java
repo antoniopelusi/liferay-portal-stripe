@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -58,6 +59,38 @@ public class SLAResult implements Serializable {
 	public static SLAResult toDTO(String json) {
 		return ObjectMapperUtil.readValue(SLAResult.class, json);
 	}
+
+	public static SLAResult unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(SLAResult.class, json);
+	}
+
+	@Schema
+	public Date getDateModified() {
+		return dateModified;
+	}
+
+	public void setDateModified(Date dateModified) {
+		this.dateModified = dateModified;
+	}
+
+	@JsonIgnore
+	public void setDateModified(
+		UnsafeSupplier<Date, Exception> dateModifiedUnsafeSupplier) {
+
+		try {
+			dateModified = dateModifiedUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Date dateModified;
 
 	@Schema
 	public Date getDateOverdue() {
@@ -263,6 +296,20 @@ public class SLAResult implements Serializable {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (dateModified != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dateModified\": ");
+
+			sb.append("\"");
+
+			sb.append(liferayToJSONDateFormat.format(dateModified));
+
+			sb.append("\"");
+		}
+
 		if (dateOverdue != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -350,17 +397,21 @@ public class SLAResult implements Serializable {
 	@GraphQLName("Status")
 	public static enum Status {
 
-		PAUSED("Paused"), RUNNING("Running"), STOPPED("Stopped");
+		NEW("NEW"), PAUSED("PAUSED"), RUNNING("RUNNING"), STOPPED("STOPPED");
 
 		@JsonCreator
 		public static Status create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (Status status : values()) {
 				if (Objects.equals(status.getValue(), value)) {
 					return status;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -382,9 +433,9 @@ public class SLAResult implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -410,7 +461,7 @@ public class SLAResult implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -442,7 +493,7 @@ public class SLAResult implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -458,5 +509,10 @@ public class SLAResult implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

@@ -58,7 +58,7 @@ public class StagingBarControlMenuJSPDynamicInclude
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -115,11 +115,7 @@ public class StagingBarControlMenuJSPDynamicInclude
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
-
-		if (!themeDisplay.isShowStagingIcon()) {
+		if (layout.isTypeControlPanel() || !themeDisplay.isShowStagingIcon()) {
 			return false;
 		}
 

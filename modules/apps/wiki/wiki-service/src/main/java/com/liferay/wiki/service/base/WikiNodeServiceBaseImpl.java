@@ -27,8 +27,6 @@ import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.service.WikiNodeService;
 import com.liferay.wiki.service.WikiNodeServiceUtil;
 import com.liferay.wiki.service.persistence.WikiNodePersistence;
-import com.liferay.wiki.service.persistence.WikiPageFinder;
-import com.liferay.wiki.service.persistence.WikiPagePersistence;
 
 import java.lang.reflect.Field;
 
@@ -144,29 +142,5 @@ public abstract class WikiNodeServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupLocalService
-		groupLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.GroupService groupService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserService userService;
-
-	@Reference
-	protected WikiPagePersistence wikiPagePersistence;
-
-	@Reference
-	protected WikiPageFinder wikiPageFinder;
 
 }

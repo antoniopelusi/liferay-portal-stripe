@@ -1,18 +1,33 @@
 definition {
 
-	@summary = "Activate local staging with or without page versioning with all content"
+	@summary = "Assign user to staging site"
+	macro assignUserToStagingGroup {
+		Variables.assertDefined(parameterList = "${groupKey},${userEmailAddress}");
+
+		var groupId = JSONStagingSetter.setGroupId(
+			groupKey = "${groupKey}",
+			site = "${site}");
+
+		var userId = JSONUserAPI._getUserIdByEmailAddress(userEmailAddress = "${userEmailAddress}");
+
+		JSONGroupAPI._assignUserToGroup(
+			groupId = "${groupId}",
+			userId = "${userId}");
+	}
+
+	@summary = "Activate local staging with or without page versioning with all content or unchecked content"
 	macro enableLocalStaging {
 		Variables.assertDefined(parameterList = "${groupName}");
 
-		if (!(isSet(globalSite))) {
-			var groupId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${groupName}");
+		if (!(isSet(site))) {
+			var site = "true";
 		}
 
-		if (isSet(globalSite)) {
-			var companyId = JSONCompany.getCompanyId();
-
-			var groupId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${companyId}");
-		}
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			grandParentGroupName = "${grandParentGroupName}",
+			groupName = "${groupName}",
+			parentGroupName = "${parentGroupName}",
+			site = "${site}");
 
 		if (!(isSet(branchingPrivate))) {
 			var branchingPrivate = "false";
@@ -25,7 +40,8 @@ definition {
 		JSONStagingAPI._enableLocalStaging(
 			branchingPrivate = "${branchingPrivate}",
 			branchingPublic = "${branchingPublic}",
-			groupId = "${groupId}");
+			groupId = "${groupId}",
+			unCheckedContent = "${unCheckedContent}");
 
 		Pause(locator1 = "3000");
 	}
@@ -34,7 +50,15 @@ definition {
 	macro enableRemoteStaging {
 		Variables.assertDefined(parameterList = "${groupName},${remoteGroupId}");
 
-		var groupId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${groupName}");
+		if (!(isSet(site))) {
+			var site = "true";
+		}
+
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			grandParentGroupName = "${grandParentGroupName}",
+			groupName = "${groupName}",
+			parentGroupName = "${parentGroupName}",
+			site = "${site}");
 
 		if (!(isSet(branchingPrivate))) {
 			var branchingPrivate = "false";

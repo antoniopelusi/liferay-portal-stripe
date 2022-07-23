@@ -2,15 +2,17 @@
 <head>
 <title>DocumentsAndMediaDocument</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">DocumentsAndMediaDocument</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>DOCUMENT_VIEW_VERSION_NUMBER</td>
-	<td>//section[contains(@id,'DLAdminPortlet')]//span[@class='workflow-version']/span[contains(@class,'workflow-value')]</td>
+	<td>//section[contains(@id,'DLAdminPortlet')]//span[contains(@class,'workflow-version')]/span[contains(@class,'workflow-value')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -35,13 +37,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CUSTOM_FIELD_LOCALIZATION_DROPDOWN_TOGGLE</td>
+	<td>//div[@class='dropdown']//button[contains(@class,'dropdown-toggle')]//*[name()='svg'][contains(@class,'lexicon-icon-${key_currentLocale}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CUSTOM_FIELD_NAME</td>
 	<td>//div[contains(@class,'ddm-field-group')]//span[contains(.,'${customFieldName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CUSTOM_FIELD_REQUIRED_ALERT</td>
-	<td>//label[normalize-space(text())='${key_fieldFieldLabel}']/following-sibling::span[contains(@class,'form-feedback-group')]//div[contains(@class,'form-feedback-item')]</td>
+	<td>//label[normalize-space(text())='${key_fieldFieldLabel}']/following-sibling::span[contains(@class,'form-feedback-group')]//div[contains(@class,'form-feedback-item')] | //div[text()='This field is required.']</td>
 	<td></td>
 </tr>
 <tr>
@@ -81,6 +88,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DOCUMENT_INFO_REVIEW_DATE</td>
+	<td>//dt[contains(@class,'sidebar-dt') and contains (.,'Review Date')]/following-sibling::dd[contains(.,'${key_reviewDateField}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DOCUMENT_INFO_TITLE</td>
 	<td>//div[contains(@class,'tbar-section')]/h2[contains(@title,'${key_dmDocumentTitle}')] | //h3[contains(@class,'header-title')]/span[contains(.,'${key_dmDocumentTitle}')]</td>
 	<td></td>
@@ -112,7 +124,7 @@
 </tr>
 <tr>
 	<td>DOCUMENT_INFO_RELATED_ASSETS_TITLE</td>
-	<td>//div[contains(@class,'sidebar-body')]//li[contains(@class,'list-group-item')]//a</td>
+	<td>//div[contains(@class,'sidebar-body')]//*[contains(@class,'list-group-item')]//a</td>
 	<td></td>
 </tr>
 <tr>
@@ -213,7 +225,7 @@
 </tr>
 <tr>
 	<td>DOCUMENT_DETAILS_WEBDAV_URL_LINK</td>
-	<td>//input[contains(@id,'webDavURLInput') and contains(@value,'${key_webDAVURL}')]</td>
+	<td>//input[contains(@id,'webDavURLInput') and contains(@value,'${key_webDavurl}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -303,11 +315,6 @@
 </tr>
 <!--METADATA_PANEL-->
 <tr>
-	<td>METADATA_PANEL_BOOLEAN</td>
-	<td>//div[@class='lfr-ddm-container']/div[contains(.,'${key_booleanValue}')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>METADATA_PANEL_DATE</td>
 	<td>//label[normalize-space(text())='${key_fieldFieldLabel}']//following-sibling::div[contains(@class,'date-picker')]//input[@type='text']</td>
 	<td></td>
@@ -342,7 +349,18 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--AUDIO_GENERATION-->
+<tr>
+	<td>AUDIO_PREVIEW</td>
+	<td>//audio[contains(@class,'preview-file-audio')]//source[contains(@src,'${key_audioName}')]</td>
+	<td></td>
+</tr>
 <!--VIDEO_GENERATION-->
+<tr>
+	<td>VIDEO_GENERATION_INFO</td>
+	<td>//div[contains(@class,'video-embed-placeholder-text') and contains(.,'${key_text}')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>VIDEO_GENERATION_THUMBNAIL_RESOLUTION</td>
 	<td>//head/title[contains(.,'${key_videoGenerationThumbnailResolution}')]</td>
@@ -361,7 +379,7 @@
 </tr>
 <tr>
 	<td>VIDEO_SHORTCUT_THUMBNAIL_LIST</td>
-	<td>//li[@data-qa-id='row'][contains(.,'${key_list}')]//div[contains(@class,'bg-cover')]</td>
+	<td>//*[@data-qa-id='row'][contains(.,'${key_list}')]//div[contains(@class,'bg-cover')]</td>
 	<td></td>
 </tr>
 <tr>

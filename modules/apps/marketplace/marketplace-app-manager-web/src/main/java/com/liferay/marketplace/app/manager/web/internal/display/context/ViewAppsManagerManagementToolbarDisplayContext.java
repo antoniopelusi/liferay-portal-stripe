@@ -19,7 +19,6 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuil
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder;
 import com.liferay.marketplace.app.manager.web.internal.constants.BundleStateConstants;
-import com.liferay.marketplace.app.manager.web.internal.util.AppDisplay;
 import com.liferay.marketplace.app.manager.web.internal.util.AppDisplayFactoryUtil;
 import com.liferay.marketplace.app.manager.web.internal.util.BundleManagerUtil;
 import com.liferay.marketplace.app.manager.web.internal.util.comparator.AppDisplayComparator;
@@ -106,12 +105,11 @@ public class ViewAppsManagerManagementToolbarDisplayContext
 					).buildString());
 
 				labelItem.setCloseable(true);
-
-				String label = String.format(
-					"%s: %s", LanguageUtil.get(httpServletRequest, "category"),
-					LanguageUtil.get(httpServletRequest, category));
-
-				labelItem.setLabel(label);
+				labelItem.setLabel(
+					String.format(
+						"%s: %s",
+						LanguageUtil.get(httpServletRequest, "category"),
+						LanguageUtil.get(httpServletRequest, category)));
 			}
 		).add(
 			() -> !state.equals("all-statuses"),
@@ -125,12 +123,10 @@ public class ViewAppsManagerManagementToolbarDisplayContext
 					).buildString());
 
 				labelItem.setCloseable(true);
-
-				String label = String.format(
-					"%s: %s", LanguageUtil.get(httpServletRequest, "state"),
-					LanguageUtil.get(httpServletRequest, state));
-
-				labelItem.setLabel(label);
+				labelItem.setLabel(
+					String.format(
+						"%s: %s", LanguageUtil.get(httpServletRequest, "state"),
+						LanguageUtil.get(httpServletRequest, state)));
 			}
 		).build();
 	}
@@ -150,7 +146,7 @@ public class ViewAppsManagerManagementToolbarDisplayContext
 			"orderByType", getOrderByType()
 		).setParameter(
 			"state", getState()
-		).build();
+		).buildPortletURL();
 
 		if (_searchContainer != null) {
 			portletURL.setParameter(
@@ -184,26 +180,14 @@ public class ViewAppsManagerManagementToolbarDisplayContext
 			category = StringPool.BLANK;
 		}
 
-		List<AppDisplay> appDisplays = AppDisplayFactoryUtil.getAppDisplays(
-			BundleManagerUtil.getBundles(), category,
-			BundleStateConstants.getState(getState()),
-			liferayPortletRequest.getLocale());
-
-		appDisplays = ListUtil.sort(
-			appDisplays, new AppDisplayComparator(getOrderByType()));
-
-		int end = searchContainer.getEnd();
-
-		if (end > appDisplays.size()) {
-			end = appDisplays.size();
-		}
-
-		List<Object> results = new ArrayList<>(appDisplays);
-
-		searchContainer.setResults(
-			results.subList(searchContainer.getStart(), end));
-
-		searchContainer.setTotal(appDisplays.size());
+		searchContainer.setResultsAndTotal(
+			new ArrayList<>(
+				ListUtil.sort(
+					AppDisplayFactoryUtil.getAppDisplays(
+						BundleManagerUtil.getBundles(), category,
+						BundleStateConstants.getState(getState()),
+						liferayPortletRequest.getLocale()),
+					new AppDisplayComparator(getOrderByType()))));
 
 		return searchContainer;
 	}

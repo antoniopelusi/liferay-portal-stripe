@@ -1,0 +1,728 @@
+@component-name = "portal-calendar"
+definition {
+
+	property custom.properties = "default.layout.template.id=1_column${line.separator}company.default.time.zone=America/Los_Angeles";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Calendar";
+
+	var pageName = "Calendar Page";
+	var portletName = "Calendar";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(
+			pageName = "Calendar Page",
+			sitePageType = "Widget Page");
+
+		PagesAdmin.configurePage(
+			columnName = "1 Column",
+			pageName = "Calendar Page",
+			sitePageType = "Widget Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Portlet.addPG(
+			pageName = "Calendar Page",
+			portletName = "Calendar");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.gotoPage(pageName = "Calendar Page");
+
+			if (IsElementPresent(locator1 = "Calendar#SCHEDULER_EVENT_GENERIC")) {
+				CalendarEvent.tearDown();
+			}
+
+			Calendar.tearDown();
+
+			CalendarConfiguration.tearDown();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "LRQA-71360 - Verify that the user can add a new calendar on the Manage Calendar Page"
+	@priority = "4"
+	test CanAddCalendarOnManageCalendarPage {
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		ManageCalendar.addCalendar(calendarName = "test");
+
+		ManageCalendar.viewCalendarNameByColumn(nameList = "test");
+	}
+
+	@description = "LRQA-71360 - Verify that the user can not delete a Default Calendar"
+	@priority = "3"
+	test CanNotDeleteDefaultCalendar {
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		ManageCalendar.viewMenuItemNotPresent(
+			calendarName = "Test Test",
+			menuItem = "Delete");
+
+		ManageCalendar.addCalendar(calendarName = "Test Calendar");
+
+		ManageCalendar.viewDefaultOptionOfCalendar(
+			calendarName = "Test Calendar",
+			defaultOption = "No");
+
+		ManageCalendar.viewMenuItemPresent(
+			calendarName = "Test Calendar",
+			menuItem = "Delete");
+
+		ManageCalendar.editCalendar(
+			calendarCurrentName = "Test Calendar",
+			defaultCalendarOption = "check");
+
+		ManageCalendar.viewDefaultOptionOfCalendar(
+			calendarName = "Test Test",
+			defaultOption = "No");
+
+		ManageCalendar.viewMenuItemNotPresent(
+			calendarName = "Test Calendar",
+			menuItem = "Delete");
+	}
+
+	@priority = "3"
+	test ChangeCalendarTypeForAllDayEvent {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.add(
+			eventTitle = "Calendar Event All Day Title",
+			eventType = "All Day",
+			pageName = "Calendar Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarScheduler.changeCalendar(
+			calendarDefaultName = "${siteName}",
+			calendarName = "Test Test",
+			eventTitle = "Calendar Event All Day Title",
+			eventType = "All Day");
+	}
+
+	@priority = "4"
+	test ChangeCalendarTypeForRegularEvent {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.add(
+			eventTitle = "Calendar Event Regular Title",
+			eventType = "Regular",
+			pageName = "Calendar Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarScheduler.changeCalendar(
+			calendarDefaultName = "${siteName}",
+			calendarName = "Test Test",
+			eventTitle = "Calendar Event Regular Title",
+			eventType = "Regular");
+	}
+
+	@priority = "4"
+	test ChangeCalendarTypeForRepeatingEvent {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.add(
+			eventTitle = "Calendar Event Repeating Title",
+			eventType = "Repeating",
+			frequency = "Daily",
+			numberOfOccurrences = "1",
+			pageName = "Calendar Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarScheduler.changeCalendar(
+			calendarDefaultName = "${siteName}",
+			calendarName = "Test Test",
+			eventTitle = "Calendar Event Repeating Title",
+			eventType = "Repeating");
+	}
+
+	@priority = "3"
+	test ChangeColorCalendarSiteCalendarsEventRegular {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.add(
+			eventTitle = "Calendar Event Regular Title",
+			eventType = "Regular",
+			pageName = "Calendar Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.changeColor(
+			calendarType = "Current Site Calendars",
+			site = "${siteName}",
+			siteCalendarColor = "668CD9");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.viewColor(
+			calendarType = "Current Site Calendars",
+			myCalendarColor = "668CD9");
+
+		CalendarScheduler.viewEventColor(
+			eventBackgroundColorRgb = "(208, 219, 240)",
+			eventFontColorRgb = "(104, 142, 217)",
+			eventTitle = "Calendar Event Regular Title");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			userEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.assignRegularRoleCP(
+			roleTitle = "Administrator",
+			userScreenName = "usersn");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "${userLoginFullName}");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.viewColor(
+			calendarType = "Current Site Calendars",
+			myCalendarColor = "668CD9");
+
+		CalendarScheduler.viewEventColor(
+			eventBackgroundColorRgb = "(208, 219, 240)",
+			eventFontColorRgb = "(104, 142, 217)",
+			eventTitle = "Calendar Event Regular Title");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+	}
+
+	@description = "LRQA-71360 - Verify that when the user change the calendar color it also changes the color column on the Manage Calendar page"
+	@priority = "3"
+	test CheckTheColorColumnIsChanged {
+		Calendar.tearDownColor();
+
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		ManageCalendar.viewColorByColumn(colorList = "D96666");
+
+		ManageCalendar.editCalendar(
+			calendarCurrentName = "Test Test",
+			newColor = "E67399");
+
+		ManageCalendar.viewColorByColumn(colorList = "E67399");
+	}
+
+	@priority = "4"
+	test DeactivateAndDeleteSiteCalendarAndViewSiteCalendarEvent {
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.addBlankCP(siteName = "Site Name");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.add(
+			calendarName = "Site Name",
+			calendarType = "Other Calendars");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.add(
+			calendarName = "Site Name",
+			eventTitle = "Site Name Calendar Event Regular",
+			eventType = "Regular",
+			pageName = "Calendar Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "Site Name",
+			calendarType = "Other Calandars");
+
+		CalendarEvent.view(eventTitle = "Site Name Calendar Event Regular");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.deactivateCP(
+			siteName = "Site Name",
+			successMessage = "true");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "Site Name",
+			calendarType = "Other Calandars");
+
+		CalendarEvent.view(eventTitle = "Site Name Calendar Event Regular");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.deleteCP(siteName = "Site Name");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar._viewCalendarHidden(calendarName = "Site Name");
+
+		CalendarScheduler.viewSpecificEventNotPresent(eventTitle = "Site Name Calendar Event Regular");
+	}
+
+	@priority = "4"
+	test DeleteCalendarMyCalendars {
+		Calendar.add(
+			calendarName = "Calendar Name",
+			calendarType = "My Calendars");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.delete(
+			calendarName = "Calendar Name",
+			calendarType = "My Calendars",
+			user = "Test Test");
+
+		Calendar.viewDefault();
+	}
+
+	@description = "LRQA-71360 - Verify  that the Manage Calendar page displays the  Name, Description, Color and Default columns"
+	@priority = "4"
+	test DisplayNameDescriptionColorsDefaultColumns {
+		CalendarNavigator.gotoMyCalendarsManage();
+
+		ManageCalendar.viewTableDisplaysColumns();
+	}
+
+	@priority = "3"
+	test EditCalendarMyCalendars {
+		Calendar.add(
+			calendarName = "My Calendar Name",
+			calendarType = "My Calendars",
+			user = "Test Test");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.edit(
+			calendarName = "My Calendar Name",
+			calendarNameEdit = "My Calendar Name Edit",
+			calendarType = "My Calendars",
+			user = "Test Test");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "My Calendar Name Edit",
+			calendarType = "My Calendars",
+			user = "Test Test");
+	}
+
+	@priority = "3"
+	test EditCalendarResource {
+		CalendarResource.add(calendarResourceName = "Calendar Resource Name");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarResource.edit(
+			calendarResourceName = "Calendar Resource Name",
+			calendarResourceNameEdit = "Calendar Resource Name Edit");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarResource.view(calendarResourceName = "Calendar Resource Name Edit");
+	}
+
+	@priority = "3"
+	test EditUserCalendarOtherCalendars {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.add(
+			calendarName = "userfn userln",
+			calendarType = "Other Calendars");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.edit(
+			calendarName = "userfn userln",
+			calendarNameEdit = "userfn userln Edit",
+			calendarType = "Other Calendars");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.view(
+			calendarName = "userfn userln - userfn userln Edit",
+			calendarType = "Other Calendars");
+	}
+
+	@description = "LRQA-71360 - Verify that the Manage Calendar Page displays a list of the created calendars"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test ManageCalendarsDisplaysAListOfCalendars {
+
+		// TODO LRQA-71554 ManageCalendarsDisplaysAListOfCalendars pending implementation
+
+	}
+
+	@priority = "5"
+	test SearchForOtherCalendars {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "Calendar#SearchForOtherCalendars";
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			userEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.assignRegularRoleCP(
+			roleTitle = "Administrator",
+			userScreenName = "usersn");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.add(
+			eventTitle = "User Calendar Event 1",
+			eventType = "Regular",
+			pageName = "Calendar Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarScheduler.changeCalendar(
+			calendarDefaultName = "${siteName}",
+			calendarName = "userfn userln",
+			eventTitle = "User Calendar Event 1",
+			eventType = "Regular");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.add(
+			eventTitle = "User Calendar Event 2",
+			eventType = "Regular",
+			pageName = "Calendar Page");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarScheduler.changeCalendar(
+			calendarDefaultName = "${siteName}",
+			calendarName = "userfn userln",
+			eventTitle = "User Calendar Event 2",
+			eventType = "Regular");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.searchOtherCalendars(searchValue = "u");
+
+		Calendar.viewOtherCalendarsSearchResult(calendarName = "userfn userln");
+	}
+
+	@description = "This is a use case for LPS-51572."
+	@priority = "3"
+	test SearchForOtherCalendarsAsNonPowerUser {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea1@liferay.com",
+			userFirstName = "userfn1",
+			userLastName = "userln1",
+			userScreenName = "usersn1");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			userEmailAddress = "userea1@liferay.com",
+			userScreenName = "usersn1");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea2@liferay.com",
+			userFirstName = "userfn2",
+			userLastName = "userln2",
+			userScreenName = "usersn2");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			userEmailAddress = "userea2@liferay.com",
+			userScreenName = "usersn2");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea2@liferay.com",
+			userLoginFullName = "userfn2 userln2");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea1@liferay.com",
+			userLoginFullName = "userfn1 userln1");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.searchOtherCalendars(searchValue = "u");
+
+		Calendar.viewOtherCalendarsSearchResult(calendarName = "userfn2 userln2");
+	}
+
+	@priority = "4"
+	test ViewAvailableCalendars {
+		property test.name.skip.portal.instance = "ManageCalendar#ViewAvailableCalendars";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.addCP(
+			siteName = "Site Name",
+			siteType = "Blank");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(
+			pageName = "Calendar Site Page",
+			sitePageType = "Widget Page");
+
+		PagesAdmin.configurePage(
+			columnName = "1 Column",
+			pageName = "Calendar Site Page",
+			sitePageType = "Widget Page");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Calendar");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			userEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.assignRegularRoleCP(
+			roleTitle = "Administrator",
+			userScreenName = "usersn");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Profile");
+
+		Portlet.addPG(portletName = "Calendar");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.viewAvailableCalendars(availableCalendarList = "Liferay,Test Test,Site Name");
+
+		CalendarEvent.viewUnavailableCalendarsNotPresent(unavailableCalendarList = "userfn userln");
+
+		Navigator.gotoPage(pageName = "Calendar Page");
+
+		Calendar.add(
+			calendarName = "userfn userln",
+			calendarType = "Other Calendars");
+
+		CalendarNavigator.gotoAddEvent();
+
+		CalendarEvent.viewAvailableCalendars(availableCalendarList = "Liferay,Test Test,Site Name,userfn userln");
+	}
+
+	@description = "This is a use case for LPS-69884."
+	@priority = "3"
+	test ViewCalendarsAfterCancellingEdit {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		CalendarResource.add(calendarResourceName = "Calendar Resource Name");
+
+		CalendarNavigator.gotoResourceCalendars(calendarResourceName = "Calendar Resource Name");
+
+		CalendarNavigator.gotoEditResourceCalendar(calendarResourceName = "Calendar Resource Name");
+
+		Button.clickCancel();
+
+		CalendarResource.viewResourceCalendars(calendarResourceName = "Calendar Resource Name");
+	}
+
+	@priority = "3"
+	test ViewSiteNameUpdate {
+		ApplicationsMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.addBlankCP(siteName = "Site Name");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(
+			pageName = "Site Page Name",
+			sitePageType = "Widget Page");
+
+		PagesAdmin.configurePage(
+			columnName = "1 Column",
+			pageName = "Site Page Name",
+			sitePageType = "Widget Page");
+
+		Navigator.gotoSitePage(
+			pageName = "Site Page Name",
+			siteName = "Site Name");
+
+		Portlet.addPG(
+			pageName = "Site Page Name",
+			portletName = "Calendar");
+
+		Navigator.gotoSitePage(
+			pageName = "Site Page Name",
+			siteName = "Site Name");
+
+		Calendar.viewCurrentSiteCalendarName(
+			calendarName = "Site Name",
+			siteName = "Site Name");
+
+		Site.openSiteSettingsAdmin(siteURLKey = "site-name");
+
+		Site.editCP(
+			siteName = "Site Name",
+			siteNameEdit = "Site Name Edit");
+
+		Navigator.gotoSitePage(
+			pageName = "Site Page Name",
+			siteName = "Site Name");
+
+		Calendar.viewCurrentSiteCalendarName(
+			calendarName = "Site Name",
+			siteName = "Site Name Edit");
+	}
+
+}

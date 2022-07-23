@@ -243,4 +243,7 @@ public interface DDMFieldModel
 	 */
 	public void setPriority(int priority);
 
+	@Override
+	public DDMField cloneWithOriginalValues();
+
 }

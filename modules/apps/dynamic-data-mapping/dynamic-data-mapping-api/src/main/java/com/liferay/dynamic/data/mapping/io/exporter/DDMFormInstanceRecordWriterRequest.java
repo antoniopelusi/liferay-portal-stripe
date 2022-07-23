@@ -90,15 +90,9 @@ public final class DDMFormInstanceRecordWriterRequest {
 		}
 
 		private String _formatLabelString(String fieldName, String label) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(label);
-			sb.append(StringPool.SPACE);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(fieldName);
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			return sb.toString();
+			return StringBundler.concat(
+				label, StringPool.SPACE, StringPool.OPEN_PARENTHESIS, fieldName,
+				StringPool.CLOSE_PARENTHESIS);
 		}
 
 		private final DDMFormInstanceRecordWriterRequest

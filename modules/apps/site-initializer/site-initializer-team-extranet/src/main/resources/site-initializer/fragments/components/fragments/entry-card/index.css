@@ -1,0 +1,15 @@
+.entry-card a {
+	color: var(--gray-900);
+	text-decoration: none;
+}
+
+.entry-card .entry-category {
+	color: var(--gray-600);
+}
+
+.entry-card:hover {
+	color: var(--gray-900);
+	text-decoration: none;
+	transform: translateY(-0.5rem);
+	transition: 0.1s ease-in-out;
+}

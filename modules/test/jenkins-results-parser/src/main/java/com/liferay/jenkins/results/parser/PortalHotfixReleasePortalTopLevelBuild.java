@@ -24,7 +24,8 @@ import java.util.regex.Pattern;
  * @author Michael Hashimoto
  */
 public class PortalHotfixReleasePortalTopLevelBuild
-	extends PortalTopLevelBuild implements PortalHotfixReleaseBuild {
+	extends PortalTopLevelBuild
+	implements PortalHotfixReleaseBuild, PortalWorkspaceBuild {
 
 	public PortalHotfixReleasePortalTopLevelBuild(
 		String url, TopLevelBuild topLevelBuild) {
@@ -34,6 +35,12 @@ public class PortalHotfixReleasePortalTopLevelBuild
 
 	@Override
 	public String getBaseGitRepositoryName() {
+		String branchName = getBranchName();
+
+		if (branchName.equals("master")) {
+			return "liferay-portal";
+		}
+
 		return "liferay-portal-ee";
 	}
 
@@ -54,9 +61,15 @@ public class PortalHotfixReleasePortalTopLevelBuild
 				"Please set a valid 'TEST_BUILD_HOTFIX_ZIP_URL'");
 		}
 
+		String majorVersion = matcher.group("majorVersion");
+		String minorVersion = matcher.group("minorVersion");
+
+		if (majorVersion.equals("7") && minorVersion.equals("4")) {
+			return "master";
+		}
+
 		String branchName = JenkinsResultsParserUtil.combine(
-			matcher.group("majorVersion"), ".", matcher.group("minorVersion"),
-			".x");
+			majorVersion, ".", minorVersion, ".x");
 
 		if (branchName.startsWith("6")) {
 			return "ee-" + branchName;
@@ -155,11 +168,35 @@ public class PortalHotfixReleasePortalTopLevelBuild
 				String servicePackVersion = patcherPortalVersion62Matcher.group(
 					"servicePackVersion");
 
-				if (JenkinsResultsParserUtil.isNullOrEmpty(
+				if (!JenkinsResultsParserUtil.isNullOrEmpty(
 						servicePackVersion)) {
 
 					sb.append(".");
 					sb.append(Integer.parseInt(servicePackVersion) + 1);
+				}
+
+				_portalRelease = new PortalRelease(sb.toString());
+
+				return _portalRelease;
+			}
+
+			Matcher patcherPortalVersion74Matcher =
+				_patcherPortalVersion74Pattern.matcher(patcherPortalVersion);
+
+			if (patcherPortalVersion74Matcher.find()) {
+				StringBuilder sb = new StringBuilder();
+
+				sb.append(patcherPortalVersion74Matcher.group("majorVersion"));
+				sb.append(".");
+				sb.append(patcherPortalVersion74Matcher.group("minorVersion"));
+				sb.append(".");
+				sb.append(patcherPortalVersion74Matcher.group("fixVersion"));
+
+				String updateVersion = patcherPortalVersion74Matcher.group(
+					"updateVersion");
+
+				if (!JenkinsResultsParserUtil.isNullOrEmpty(updateVersion)) {
+					sb.append(updateVersion);
 				}
 
 				_portalRelease = new PortalRelease(sb.toString());
@@ -184,13 +221,81 @@ public class PortalHotfixReleasePortalTopLevelBuild
 		return _portalRelease;
 	}
 
+	@Override
+	public PortalWorkspace getPortalWorkspace() {
+		Workspace workspace = getWorkspace();
+
+		if (!(workspace instanceof PortalWorkspace)) {
+			return null;
+		}
+
+		return (PortalWorkspace)workspace;
+	}
+
+	@Override
+	public Workspace getWorkspace() {
+		Workspace workspace = WorkspaceFactory.newWorkspace(
+			getBaseGitRepositoryName(), getBranchName(), getJobName());
+
+		if (workspace instanceof PortalWorkspace) {
+			PortalWorkspace portalWorkspace = (PortalWorkspace)workspace;
+
+			portalWorkspace.setBuildProfile(getBuildProfile());
+		}
+
+		String portalGitHubURL = _getPortalGitHubURL();
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(portalGitHubURL)) {
+			WorkspaceGitRepository workspaceGitRepository =
+				workspace.getPrimaryWorkspaceGitRepository();
+
+			workspaceGitRepository.setGitHubURL(portalGitHubURL);
+		}
+
+		return workspace;
+	}
+
+	private String _getPortalGitHubURL() {
+		String portalBranchName = getParameterValue(
+			"TEST_PORTAL_USER_BRANCH_NAME");
+		String portalBranchUsername = getParameterValue(
+			"TEST_PORTAL_USER_NAME");
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(portalBranchName) ||
+			JenkinsResultsParserUtil.isNullOrEmpty(portalBranchUsername)) {
+
+			return null;
+		}
+
+		String branchName = getBranchName();
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("https://github.com/");
+		sb.append(portalBranchUsername);
+		sb.append("/liferay-portal");
+
+		if (!branchName.equals("master")) {
+			sb.append("-ee");
+		}
+
+		sb.append("/tree/");
+		sb.append(portalBranchName);
+
+		return sb.toString();
+	}
+
 	private static final Pattern _hotfixZipURLPattern = Pattern.compile(
 		"https?://.*(?<majorVersion>\\d)(?<minorVersion>\\d)" +
 			"(?<fixVersion>\\d{2})\\.(lpkg|zip)");
 	private static final Pattern _patcherPortalVersion62Pattern =
 		Pattern.compile(
-			"(?<majorVersion>\\d)\\.(?<minorVersion>\\d)\\." +
+			"(?<majorVersion>6)\\.(?<minorVersion>2)\\." +
 				"(?<fixVersion>\\d{2})( SP(?<servicePackVersion>\\d+))?");
+	private static final Pattern _patcherPortalVersion74Pattern =
+		Pattern.compile(
+			"(?<majorVersion>7)\\.(?<minorVersion>4)\\." +
+				"(?<fixVersion>\\d{2})(?<updateVersion>-(ep|u)\\d+)?");
 	private static final Pattern _patcherPortalVersionDXPPattern =
 		Pattern.compile(
 			"fix-pack-(?<fixpackType>de|dxp)-(?<fixpackVersion>\\d+)-" +

@@ -17,7 +17,7 @@ package com.liferay.content.dashboard.web.internal.item;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.content.dashboard.item.action.ContentDashboardItemAction;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemType;
+import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtype;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -42,30 +42,36 @@ public interface ContentDashboardItem<T> {
 
 	public List<Locale> getAvailableLocales();
 
+	public Clipboard getClipboard();
+
 	public List<ContentDashboardItemAction> getContentDashboardItemActions(
 		HttpServletRequest httpServletRequest,
 		ContentDashboardItemAction.Type... types);
 
-	public ContentDashboardItemType getContentDashboardItemType();
+	public ContentDashboardItemSubtype getContentDashboardItemSubtype();
 
 	public Date getCreateDate();
-
-	public Map<String, Object> getData(Locale locale);
 
 	public ContentDashboardItemAction getDefaultContentDashboardItemAction(
 		HttpServletRequest httpServletRequest);
 
 	public Locale getDefaultLocale();
 
-	public Object getDisplayFieldValue(String fieldName, Locale locale);
+	public String getDescription(Locale locale);
 
 	public InfoItemReference getInfoItemReference();
 
 	public Date getModifiedDate();
 
+	public Preview getPreview();
+
 	public String getScopeName(Locale locale);
 
+	public Map<String, Object> getSpecificInformation(Locale locale);
+
 	public String getTitle(Locale locale);
+
+	public String getTypeLabel(Locale locale);
 
 	public long getUserId();
 
@@ -75,9 +81,77 @@ public interface ContentDashboardItem<T> {
 
 	public boolean isViewable(HttpServletRequest httpServletRequest);
 
+	public static class Clipboard {
+
+		public static final Clipboard EMPTY = new Clipboard(null, null);
+
+		public Clipboard(String name, String url) {
+			_name = name;
+			_url = url;
+		}
+
+		public String getName() {
+			return _name;
+		}
+
+		public String getUrl() {
+			return _url;
+		}
+
+		public JSONObject toJSONObject() {
+			return JSONUtil.put(
+				"name", getName()
+			).put(
+				"url", getUrl()
+			);
+		}
+
+		private final String _name;
+		private final String _url;
+
+	}
+
+	public static class Preview {
+
+		public static final Preview EMPTY = new Preview(null, null, null);
+
+		public Preview(String downloadURL, String imageURL, String url) {
+			_downloadURL = downloadURL;
+			_imageURL = imageURL;
+			_url = url;
+		}
+
+		public String getDownloadURL() {
+			return _downloadURL;
+		}
+
+		public String getImageURL() {
+			return _imageURL;
+		}
+
+		public String getUrl() {
+			return _url;
+		}
+
+		public JSONObject toJSONObject() {
+			return JSONUtil.put(
+				"downloadURL", getDownloadURL()
+			).put(
+				"imageURL", getImageURL()
+			).put(
+				"url", getUrl()
+			);
+		}
+
+		private final String _downloadURL;
+		private final String _imageURL;
+		private final String _url;
+
+	}
+
 	public static class Version {
 
-		public Version(String label, String style, double version) {
+		public Version(String label, String style, String version) {
 			_label = label;
 			_style = style;
 			_version = version;
@@ -91,7 +165,7 @@ public interface ContentDashboardItem<T> {
 			return _style;
 		}
 
-		public double getVersion() {
+		public String getVersion() {
 			return _version;
 		}
 
@@ -107,7 +181,7 @@ public interface ContentDashboardItem<T> {
 
 		private final String _label;
 		private final String _style;
-		private final double _version;
+		private final String _version;
 
 	}
 

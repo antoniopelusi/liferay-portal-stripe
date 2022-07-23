@@ -23,7 +23,7 @@ const AppContextProvider = ({children, ...context}) => {
 
 	useEffect(() => {
 		client
-			.query({
+			.request({
 				query: hasListPermissionsQuery,
 				variables: {
 					siteKey: context.siteKey,

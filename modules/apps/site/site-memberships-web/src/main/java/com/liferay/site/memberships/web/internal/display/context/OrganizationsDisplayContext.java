@@ -21,11 +21,11 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -35,7 +35,6 @@ import com.liferay.site.memberships.constants.SiteMembershipsPortletKeys;
 import com.liferay.site.memberships.web.internal.util.GroupUtil;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -97,22 +96,27 @@ public class OrganizationsDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		if (_orderByCol != null) {
+		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(_renderRequest, "orderByCol", "name");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-col-organizations", "name");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (_orderByType != null) {
+		if (Validator.isNotNull(_orderByType)) {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-type-organizations", "asc");
 
 		return _orderByType;
 	}
@@ -131,16 +135,12 @@ public class OrganizationsDisplayContext {
 
 		organizationSearch.setEmptyResultsMessage(
 			LanguageUtil.format(
-				ResourceBundleUtil.getBundle(
-					themeDisplay.getLocale(), getClass()),
+				themeDisplay.getLocale(),
 				"no-organization-was-found-that-is-a-member-of-this-x",
 				StringUtil.toLowerCase(
 					GroupUtil.getGroupTypeLabel(
 						_groupId, themeDisplay.getLocale())),
 				false));
-
-		organizationSearch.setRowChecker(
-			new EmptyOnClickRowChecker(_renderResponse));
 
 		OrganizationSearchTerms searchTerms =
 			(OrganizationSearchTerms)organizationSearch.getSearchTerms();
@@ -152,25 +152,24 @@ public class OrganizationsDisplayContext {
 				"organizationsGroups", Long.valueOf(getGroupId())
 			).build();
 
-		int organizationsCount = OrganizationLocalServiceUtil.searchCount(
-			themeDisplay.getCompanyId(),
-			OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
-			searchTerms.getKeywords(), searchTerms.getType(),
-			searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(),
-			organizationParams);
+		organizationSearch.setResultsAndTotal(
+			() -> OrganizationLocalServiceUtil.search(
+				themeDisplay.getCompanyId(),
+				OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
+				searchTerms.getKeywords(), searchTerms.getType(),
+				searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(),
+				organizationParams, organizationSearch.getStart(),
+				organizationSearch.getEnd(),
+				organizationSearch.getOrderByComparator()),
+			OrganizationLocalServiceUtil.searchCount(
+				themeDisplay.getCompanyId(),
+				OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
+				searchTerms.getKeywords(), searchTerms.getType(),
+				searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(),
+				organizationParams));
 
-		organizationSearch.setTotal(organizationsCount);
-
-		List<Organization> organizations = OrganizationLocalServiceUtil.search(
-			themeDisplay.getCompanyId(),
-			OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
-			searchTerms.getKeywords(), searchTerms.getType(),
-			searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(),
-			organizationParams, organizationSearch.getStart(),
-			organizationSearch.getEnd(),
-			organizationSearch.getOrderByComparator());
-
-		organizationSearch.setResults(organizations);
+		organizationSearch.setRowChecker(
+			new EmptyOnClickRowChecker(_renderResponse));
 
 		_organizationSearch = organizationSearch;
 
@@ -178,7 +177,7 @@ public class OrganizationsDisplayContext {
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/view.jsp"
@@ -190,37 +189,54 @@ public class OrganizationsDisplayContext {
 
 				return themeDisplay.getURLCurrent();
 			}
+		).setKeywords(
+			() -> {
+				String keywords = getKeywords();
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
 		).setTabs1(
 			"organizations"
 		).setParameter(
+			"displayStyle",
+			() -> {
+				String displayStyle = getDisplayStyle();
+
+				if (Validator.isNotNull(displayStyle)) {
+					return displayStyle;
+				}
+
+				return null;
+			}
+		).setParameter(
 			"groupId", getGroupId()
-		).build();
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
 
-		String displayStyle = getDisplayStyle();
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
 
-		if (Validator.isNotNull(displayStyle)) {
-			portletURL.setParameter("displayStyle", displayStyle);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
 
-		String keywords = getKeywords();
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
 
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		String orderByCol = getOrderByCol();
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	private String _displayStyle;

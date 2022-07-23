@@ -1,0 +1,607 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to add multiple options for Grid field on the Document Type builder."
+	@priority = "4"
+	test CanAddMultipleOptionsInGridField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Grid",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		for (var index : list "1,2,3") {
+			DataEngine.addFieldOption(
+				fieldFieldLabel = "Grid",
+				index = "${index}",
+				optionFieldLabel = "Rows",
+				optionValue = "Option ${index}");
+		}
+
+		for (var index : list "1,2,3") {
+			DataEngine.addFieldOption(
+				fieldFieldLabel = "Grid",
+				index = "${index}",
+				optionFieldLabel = "Columns",
+				optionValue = "Option ${index}");
+		}
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Grid",
+			optionFieldLabel = "Rows",
+			optionLabelList = "Option 1,Option 2,Option 3");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Grid",
+			optionFieldLabel = "Columns",
+			optionLabelList = "Option 1,Option 2,Option 3");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to add multiple options for Multiple Selection field on the Document Type builder."
+	@priority = "4"
+	test CanAddMultipleOptionsInMultipleSelectionField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Multiple Selection",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		for (var index : list "1,2,3") {
+			DataEngine.addFieldOption(
+				fieldFieldLabel = "Multiple Selection",
+				index = "${index}",
+				optionValue = "Option ${index}");
+		}
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Multiple Selection",
+			optionLabelList = "Option 1,Option 2,Option 3");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to add multiple options for Select From List field on the Document Type builder."
+	@priority = "4"
+	test CanAddMultipleOptionsInSelectFromListField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Select from List",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		for (var index : list "1,2,3") {
+			DataEngine.addFieldOption(
+				fieldFieldLabel = "Select from List",
+				index = "${index}",
+				optionValue = "Option ${index}");
+		}
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Select from List",
+			optionLabelList = "Option 1,Option 2,Option 3");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to add multiple options for Single Selection field on the Document Type builder."
+	@priority = "4"
+	test CanAddMultipleOptionsInSingleSelectionField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Single Selection",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		for (var index : list "1,2,3") {
+			DataEngine.addFieldOption(
+				fieldFieldLabel = "Single Selection",
+				index = "${index}",
+				optionValue = "Option ${index}");
+		}
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DEBuilder.assertFieldOptionLabels(
+			fieldFieldLabel = "Single Selection",
+			optionLabelList = "Option 1,Option 2,Option 3");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to create a Fields Group on the Document Type builder."
+	@priority = "4"
+	test CanCreateFieldsGroup {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DEBuilder.assertFieldsGroup(
+			fieldGroupDepth = "1",
+			fieldGroupLabel = "Fields Group",
+			fieldsLabelList = "Text,Numeric");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to delete a Fields Group on the Document Type builder."
+	@priority = "4"
+	test CanDeleteFieldsGroup {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.addFieldNested(
+			fieldFieldLabel = "Numeric",
+			fieldName = "Numeric",
+			targetFieldLabel = "Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.delete(fieldsGroupLabel = "Fields Group");
+
+		DEBuilder.addField(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.assertFieldNotPresent(fieldsGroupLabel = "Fields Group");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label and Help text of Color Field on the Document Type builder."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextInColorField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Color",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Color",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Color",
+			fieldHelp = "Help Text",
+			fieldName = "Color");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Color",
+			fieldFieldLabelEdit = "Color Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Color Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Color Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Color");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that that is possible to edit Label and Help text of Date Field on the Document Type builder."
+	@priority = "5"
+	test CanEditLabelPlaceholderAndHelpTextInDateField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Date",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Date",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Date",
+			fieldHelp = "Help Text",
+			fieldName = "Date");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Date",
+			fieldFieldLabelEdit = "Date Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Date Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Date Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Date");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label and Help text of Geolocation Field on the Document Type builder."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextInGeolocationField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Geolocation",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Geolocation",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Geolocation",
+			fieldHelp = "Help Text",
+			fieldName = "Geolocation");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Geolocation",
+			fieldFieldLabelEdit = "Geolocation Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Geolocation Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Geolocation Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Geolocation");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label and Help text of Image Field on the Document Type builder."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextInImageField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Image",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Image",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Image",
+			fieldHelp = "Help Text",
+			fieldName = "Image");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Image",
+			fieldFieldLabelEdit = "Image Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Image Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Image Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Image");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label and Help text of Link to Page Field on the Document Type builder."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextInLinkToPageField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Link to Page",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Link to Page",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Link to Page",
+			fieldHelp = "Help Text",
+			fieldName = "Link to Page");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Link to Page",
+			fieldFieldLabelEdit = "Link to Page Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Link to Page Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Link to Page Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Link to Page");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label, Placeholder and Help text of Numeric Field on the Document Type builder."
+	@priority = "5"
+	test CanEditLabelPlaceholderAndHelpTextInNumericField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Numeric",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Numeric",
+			fieldHelp = "Help Text",
+			fieldPlaceholder = "Placeholder Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Numeric",
+			fieldHelp = "Help Text",
+			fieldName = "Numeric",
+			fieldPlaceholder = "Placeholder Text");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Numeric",
+			fieldFieldLabelEdit = "Numeric Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Numeric Edited",
+			fieldHelp = "Help Text Edited",
+			fieldPlaceholder = "Placeholder Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Numeric Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Numeric",
+			fieldPlaceholder = "Placeholder Text Edited");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label and Help text of Rich Text Field on the Document Type builder."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextInRichTextField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Rich Text",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Rich Text",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Rich Text",
+			fieldHelp = "Help Text",
+			fieldName = "Rich Text");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Rich Text",
+			fieldFieldLabelEdit = "Rich Text Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Rich Text Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Rich Text Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Rich Text");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label and Help text of Separator Field on the Document Type builder."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextInSeparatorField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Separator",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Separator",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Separator",
+			fieldHelp = "Help Text",
+			fieldName = "Separator");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Separator",
+			fieldFieldLabelEdit = "Separator Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Separator Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Separator Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Separator");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label, Placeholder and Help text of Text Field on the Document Type builder."
+	@priority = "5"
+	test CanEditLabelPlaceholderAndHelpTextInTextField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Text",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Text",
+			fieldHelp = "Help Text",
+			fieldPlaceholder = "Placeholder Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Text",
+			fieldHelp = "Help Text",
+			fieldName = "Text",
+			fieldPlaceholder = "Placeholder Text");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Text",
+			fieldFieldLabelEdit = "Text Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Text Edited",
+			fieldHelp = "Help Text Edited",
+			fieldPlaceholder = "Placeholder Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Text Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Text",
+			fieldPlaceholder = "Placeholder Text Edited");
+	}
+
+	@description = "This is a test for LRQA-69030. This test verifies that is possible to edit Label and Help text of Upload Field on the Document Type builder."
+	@priority = "4"
+	test CanEditLabelPlaceholderAndHelpTextInUploadField {
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.addWithoutSave(
+			dmDocumentTypeFieldNames = "Upload",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Upload",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Upload",
+			fieldHelp = "Help Text",
+			fieldName = "Upload");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Upload",
+			fieldFieldLabelEdit = "Upload Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Upload Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		DMNavigator.gotoEditDocumentType(dmDocumentTypeName = "DM Document Type Name");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Upload Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Upload");
+	}
+
+}

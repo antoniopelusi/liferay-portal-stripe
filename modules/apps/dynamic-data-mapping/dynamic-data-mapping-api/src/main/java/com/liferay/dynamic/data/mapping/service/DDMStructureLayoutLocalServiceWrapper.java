@@ -30,6 +30,10 @@ public class DDMStructureLayoutLocalServiceWrapper
 	implements DDMStructureLayoutLocalService,
 			   ServiceWrapper<DDMStructureLayoutLocalService> {
 
+	public DDMStructureLayoutLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DDMStructureLayoutLocalServiceWrapper(
 		DDMStructureLayoutLocalService ddmStructureLayoutLocalService) {
 
@@ -199,6 +203,13 @@ public class DDMStructureLayoutLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ddmStructureLayoutLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ddmStructureLayoutLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

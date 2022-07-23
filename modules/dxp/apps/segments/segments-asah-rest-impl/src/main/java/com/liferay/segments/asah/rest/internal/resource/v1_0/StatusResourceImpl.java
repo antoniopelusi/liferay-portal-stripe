@@ -56,14 +56,14 @@ public class StatusResourceImpl extends BaseStatusResourceImpl {
 
 		ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-		Optional<SegmentsExperimentConstants.Status> optionalStatus =
+		Optional<SegmentsExperimentConstants.Status> statusOptional =
 			SegmentsExperimentConstants.Status.parse(status.getStatus());
 
 		return _toExperiment(
 			_segmentsExperimentService.updateSegmentsExperimentStatus(
 				String.valueOf(segmentsExperimentKey),
 				status.getWinnerVariantId(),
-				optionalStatus.map(
+				statusOptional.map(
 					SegmentsExperimentConstants.Status::getValue
 				).orElseThrow(
 					() -> new ClientErrorException(

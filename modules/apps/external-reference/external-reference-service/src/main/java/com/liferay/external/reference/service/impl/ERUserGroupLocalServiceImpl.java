@@ -19,8 +19,10 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserGroupLocalService;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Dylan Rebelak
@@ -39,24 +41,27 @@ public class ERUserGroupLocalServiceImpl
 		throws PortalException {
 
 		UserGroup userGroup =
-			userGroupLocalService.fetchUserGroupByReferenceCode(
+			_userGroupLocalService.fetchUserGroupByReferenceCode(
 				companyId, externalReferenceCode);
 
 		if (userGroup == null) {
-			userGroup = userGroupLocalService.addUserGroup(
+			userGroup = _userGroupLocalService.addUserGroup(
 				userId, companyId, name, description, serviceContext);
 
 			userGroup.setExternalReferenceCode(externalReferenceCode);
 
-			userGroup = userGroupLocalService.updateUserGroup(userGroup);
+			userGroup = _userGroupLocalService.updateUserGroup(userGroup);
 		}
 		else {
-			userGroupLocalService.updateUserGroup(
+			_userGroupLocalService.updateUserGroup(
 				companyId, userGroup.getUserGroupId(), name, description,
 				serviceContext);
 		}
 
 		return userGroup;
 	}
+
+	@Reference
+	private UserGroupLocalService _userGroupLocalService;
 
 }

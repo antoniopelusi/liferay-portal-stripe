@@ -1,14 +1,5 @@
 {
 	"dependencies": {
-		"@clayui/button": "3.6.0",
-		"@clayui/data-provider": "3.3.10",
-		"@clayui/form": "3.14.4",
-		"@clayui/icon": "3.1.0",
-		"@clayui/multi-select": "3.25.3",
-		"@liferay/frontend-js-react-web": "*",
-		"classnames": "2.2.6",
-		"prop-types": "15.7.2",
-		"react": "16.12.0"
 	},
 	"main": "index.es.js",
 	"name": "asset-taglib",
@@ -17,5 +8,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "6.0.6"
+	"version": "6.2.15"
 }

@@ -177,4 +177,7 @@ public interface AnalyticsMessageModel
 	 */
 	public void setBody(Blob body);
 
+	@Override
+	public AnalyticsMessage cloneWithOriginalValues();
+
 }

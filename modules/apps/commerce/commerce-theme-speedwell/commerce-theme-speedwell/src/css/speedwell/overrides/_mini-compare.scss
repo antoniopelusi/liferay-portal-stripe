@@ -1,0 +1,41 @@
+.speedwell-frame .mini-compare {
+	border-radius: $gutter $gutter 0 0;
+	box-shadow: 0 17px 84px 0 rgba(52, 55, 62, 0.2);
+	display: flex;
+	padding: $gutter;
+	z-index: 9999;
+
+	@media screen and (hover: none) {
+		border-radius: $sm-gutter $sm-gutter 0 0;
+		padding: $sm-gutter;
+	}
+
+	&-item {
+		border-radius: $sm-gutter;
+		height: 54px;
+		margin-right: $gutter;
+		width: 54px;
+
+		@media screen and (hover: none) {
+			margin-right: $sm-gutter;
+		}
+
+		&::after {
+			border-radius: $sm-gutter;
+		}
+	}
+
+	&-delete {
+		background: $color-mood-bad;
+		border-radius: 50%;
+		color: white;
+		top: 16px;
+	}
+
+	&-thumbnail-container {
+		border-radius: $sm-gutter;
+		height: 54px;
+		overflow: hidden;
+		width: 54px;
+	}
+}

@@ -18,9 +18,11 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.portlet.RenderRequest;
 
@@ -34,6 +36,7 @@ public class SelectMasterLayoutVerticalCard implements VerticalCard {
 		RenderRequest renderRequest) {
 
 		_layoutPageTemplateEntry = layoutPageTemplateEntry;
+		_renderRequest = renderRequest;
 
 		_themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -41,8 +44,20 @@ public class SelectMasterLayoutVerticalCard implements VerticalCard {
 
 	@Override
 	public String getCssClass() {
-		return "select-master-layout-option card-interactive " +
-			"card-interactive-secondary";
+		String cssClass =
+			"select-master-layout-option card-interactive " +
+				"card-interactive-secondary";
+
+		long masterLayoutPlid = ParamUtil.getLong(
+			_renderRequest, "masterLayoutPlid");
+
+		if (Objects.equals(
+				_layoutPageTemplateEntry.getPlid(), masterLayoutPlid)) {
+
+			cssClass += " active";
+		}
+
+		return cssClass;
 	}
 
 	@Override
@@ -69,6 +84,16 @@ public class SelectMasterLayoutVerticalCard implements VerticalCard {
 	}
 
 	@Override
+	public String getStickerCssClass() {
+		return "select-master-layout-option-sticker sticker-primary";
+	}
+
+	@Override
+	public String getStickerIcon() {
+		return "check-circle";
+	}
+
+	@Override
 	public String getTitle() {
 		return _layoutPageTemplateEntry.getName();
 	}
@@ -79,6 +104,7 @@ public class SelectMasterLayoutVerticalCard implements VerticalCard {
 	}
 
 	private final LayoutPageTemplateEntry _layoutPageTemplateEntry;
+	private final RenderRequest _renderRequest;
 	private final ThemeDisplay _themeDisplay;
 
 }

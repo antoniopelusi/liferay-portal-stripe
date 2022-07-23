@@ -180,11 +180,11 @@ public class BookmarksManagementToolbarDisplayContext {
 
 				User user = _themeDisplay.getUser();
 
-				String label = String.format(
-					"%s: %s", LanguageUtil.get(_httpServletRequest, "owner"),
-					user.getFullName());
-
-				labelItem.setLabel(label);
+				labelItem.setLabel(
+					String.format(
+						"%s: %s",
+						LanguageUtil.get(_httpServletRequest, "owner"),
+						user.getFullName()));
 			}
 		).add(
 			() -> navigation.equals("recent"),
@@ -318,7 +318,7 @@ public class BookmarksManagementToolbarDisplayContext {
 				).setParameter(
 					"folderId",
 					BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID
-				).build();
+				).buildPortletURL();
 
 				for (String navigationKey : navigationKeys) {
 					add(
@@ -346,23 +346,27 @@ public class BookmarksManagementToolbarDisplayContext {
 	}
 
 	private PortletURL _getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_liferayPortletResponse
 		).setParameter(
 			"categoryId", StringPool.BLANK
-		).build();
+		).setParameter(
+			"deltaEntry",
+			() -> {
+				int deltaEntry = ParamUtil.getInteger(
+					_httpServletRequest, "deltaEntry");
 
-		int deltaEntry = ParamUtil.getInteger(
-			_httpServletRequest, "deltaEntry");
+				if (deltaEntry > 0) {
+					return deltaEntry;
+				}
 
-		if (deltaEntry > 0) {
-			portletURL.setParameter("deltaEntry", String.valueOf(deltaEntry));
-		}
-
-		portletURL.setParameter("folderId", String.valueOf(_folderId));
-		portletURL.setParameter("tag", StringPool.BLANK);
-
-		return portletURL;
+				return null;
+			}
+		).setParameter(
+			"folderId", _folderId
+		).setParameter(
+			"tag", StringPool.BLANK
+		).buildPortletURL();
 	}
 
 	private String _removeNavigartionParameter(PortletURL portletURL)

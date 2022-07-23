@@ -76,7 +76,7 @@ public class RestoreRootTrashPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -106,17 +106,15 @@ public class RestoreRootTrashPortletConfigurationIcon
 		}
 
 		try {
-			if (!trashHandler.isRestorable(trashEntry.getClassPK())) {
-				return false;
-			}
+			if (!trashHandler.isRestorable(trashEntry.getClassPK()) ||
+				trashHandler.isInTrashContainer(trashEntry.getClassPK())) {
 
-			if (trashHandler.isInTrashContainer(trashEntry.getClassPK())) {
 				return false;
 			}
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;

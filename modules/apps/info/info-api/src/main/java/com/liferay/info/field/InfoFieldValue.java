@@ -66,15 +66,8 @@ public class InfoFieldValue<T> {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{");
-		sb.append(_infoField.getName());
-		sb.append(": ");
-		sb.append(_value);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{", _infoField.getName(), ": ", _value, "}");
 	}
 
 	private final InfoField _infoField;

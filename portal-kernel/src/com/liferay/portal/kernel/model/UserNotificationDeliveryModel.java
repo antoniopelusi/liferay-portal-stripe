@@ -218,4 +218,7 @@ public interface UserNotificationDeliveryModel
 	 */
 	public void setDeliver(boolean deliver);
 
+	@Override
+	public UserNotificationDelivery cloneWithOriginalValues();
+
 }

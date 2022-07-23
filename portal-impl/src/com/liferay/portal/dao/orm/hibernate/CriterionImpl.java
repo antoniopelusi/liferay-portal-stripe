@@ -32,13 +32,7 @@ public class CriterionImpl implements Criterion {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("{_criterion=");
-		sb.append(String.valueOf(_criterion));
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat("{_criterion=", _criterion, "}");
 	}
 
 	private final org.hibernate.criterion.Criterion _criterion;

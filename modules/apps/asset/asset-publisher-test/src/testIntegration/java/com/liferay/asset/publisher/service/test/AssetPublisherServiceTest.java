@@ -95,11 +95,12 @@ public class AssetPublisherServiceTest {
 		PortletPreferences portletPreferences =
 			getAssetPublisherPortletPreferences();
 
-		List<AssetEntry> assetEntries = _assetPublisherHelper.getAssetEntries(
-			new MockPortletRequest(), portletPreferences, _permissionChecker,
-			new long[] {_group.getGroupId()}, false, false);
-
-		Assert.assertEquals(_assetEntries, assetEntries);
+		Assert.assertEquals(
+			_assetEntries,
+			_assetPublisherHelper.getAssetEntries(
+				new MockPortletRequest(), portletPreferences,
+				_permissionChecker, new long[] {_group.getGroupId()}, false,
+				false));
 	}
 
 	@Test
@@ -127,13 +128,13 @@ public class AssetPublisherServiceTest {
 			_assetEntries.size() + expectedAssetEntries.size(),
 			assetEntries.size());
 
-		List<AssetEntry> filteredAsssetEntries =
+		List<AssetEntry> filteredAssetEntries =
 			_assetPublisherHelper.getAssetEntries(
 				new MockPortletRequest(), portletPreferences,
 				_permissionChecker, new long[] {_group.getGroupId()},
 				allAssetCategoryIds, _NO_ASSET_TAG_NAMES, false, false);
 
-		Assert.assertEquals(expectedAssetEntries, filteredAsssetEntries);
+		Assert.assertEquals(expectedAssetEntries, filteredAssetEntries);
 	}
 
 	@Test

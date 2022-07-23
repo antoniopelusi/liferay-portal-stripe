@@ -195,6 +195,11 @@ public class KaleoNotificationRecipientWrapper
 		}
 	}
 
+	@Override
+	public KaleoNotificationRecipient cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the address of this kaleo notification recipient.
 	 *

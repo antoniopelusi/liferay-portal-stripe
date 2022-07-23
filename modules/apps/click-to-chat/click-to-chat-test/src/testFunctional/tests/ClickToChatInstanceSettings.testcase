@@ -1,0 +1,1048 @@
+@component-name = "portal-solutions"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Click to Chat";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Click to Chat",
+			configurationName = "Click to Chat Configuration",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.enableCheckbox(fieldName = "enabled");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.logoutPG();
+		}
+	}
+
+	@description = "This is a test for LPS-145280. Verify if the widget's chat is hidden in the control panel if the user enable this option"
+	@priority = "4"
+	test CanHideChatWidgetInControlPanel {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "JivoChat");
+
+		var clickToChatJivochatPassword = PropsUtil.get("click.to.chat.jivochat.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatJivochatPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+
+		FormFields.enableCheckbox(fieldName = "hideInControlPanel");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+	}
+
+	@description = "This is a test for LPS-137169. Verify if Hubspot can access required scopes"
+	@priority = "4"
+	test CanHubspotAccessRequiredScopes {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Hubspot");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "nonexistent/66b6b4b2-d096-45a1-b25d-7dab3f332167");
+
+		SystemSettings.saveConfiguration();
+
+		Alert.viewErrorMessage(errorMessage = "This app hasn't been granted all required scopes to make this call");
+	}
+
+	@description = "This is a test for LPS-129049. Verify Chatwoot provider can be enabled and disabled."
+	@priority = "5"
+	test ChatwootCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Chatwoot");
+
+		var clickToChatChatwootPassword = PropsUtil.get("click.to.chat.chatwoot.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatChatwootPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CHATWOOT");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_CHATWOOT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if Chatwoot Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test ChatwootProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Chatwoot");
+
+		var clickToChatChatwootPassword = PropsUtil.get("click.to.chat.chatwoot.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatChatwootPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CHATWOOT");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CHATWOOT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify Chatwoot provider persistence after logout and login"
+	@priority = "5"
+	test ChatwootProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Chatwoot");
+
+		var clickToChatChatwootPassword = PropsUtil.get("click.to.chat.chatwoot.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatChatwootPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CHATWOOT");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CHATWOOT");
+	}
+
+	@description = "This is a test for LPS-129049. Verify Crisp provider can be enabled and disabled."
+	@priority = "5"
+	test CrispCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Crisp");
+
+		var clickToChatCrispPassword = PropsUtil.get("click.to.chat.crisp.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatCrispPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CRISP");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_CRISP");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if Crisp Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test CrispProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Crisp");
+
+		var clickToChatCrispPassword = PropsUtil.get("click.to.chat.crisp.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatCrispPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CRISP");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CRISP");
+	}
+
+	@description = "This is a test for LPS-133453. Verify Crisp provider persistence after logout and login"
+	@priority = "5"
+	test CrispProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Crisp");
+
+		var clickToChatCrispPassword = PropsUtil.get("click.to.chat.crisp.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatCrispPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CRISP");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_CRISP");
+	}
+
+	@description = "This is a test for LPS-129049. Verify if it is possible to hide the chat provider"
+	@priority = "4"
+	test HideChatProvider {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Override");
+
+		AssertNotVisible(locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID");
+
+		AssertNotVisible(locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID");
+	}
+
+	@description = "This is a test for LPS-129049. Verify Hubspot provider can be enabled and disabled."
+	@priority = "5"
+	test HubspotCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Hubspot");
+
+		var clickToChatHubspotPassword = PropsUtil.get("click.to.chat.hubspot.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatHubspotPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_HUBSPOT");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_HUBSPOT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if Hubspot Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test HubspotProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Hubspot");
+
+		var clickToChatHubspotPassword = PropsUtil.get("click.to.chat.hubspot.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatHubspotPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_HUBSPOT");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_HUBSPOT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify Hubspot provider persistence after logout and login"
+	@priority = "5"
+	test HubspotProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Hubspot");
+
+		var clickToChatHubspotPassword = PropsUtil.get("click.to.chat.hubspot.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatHubspotPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_HUBSPOT");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_HUBSPOT");
+	}
+
+	@description = "This is a test for LPS-137169. Verify if API key is invalid for hubspot"
+	@priority = "4"
+	test IsApiKeyInvalidForHubspot {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Hubspot");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "19907868/1-d096-45a1-b25d-7dab3f332167");
+
+		SystemSettings.saveConfiguration();
+
+		Alert.viewErrorMessage(errorMessage = "The API key provided is invalid");
+	}
+
+	@description = "This is a test for LPS-129049. Verify JivoChat provider can be enabled and disabled."
+	@priority = "5"
+	test JivoChatCanBeEnabledAndDisabled {
+		property portal.acceptance = "true";
+
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "JivoChat");
+
+		var clickToChatJivochatPassword = PropsUtil.get("click.to.chat.jivochat.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatJivochatPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if JivoChat Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test JivoChatProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "JivoChat");
+
+		var clickToChatJivochatPassword = PropsUtil.get("click.to.chat.jivochat.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatJivochatPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify JivoChat provider persistence after logout and login"
+	@priority = "5"
+	test JivoChatProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "JivoChat");
+
+		var clickToChatJivochatPassword = PropsUtil.get("click.to.chat.jivochat.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatJivochatPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_JIVOCHAT");
+	}
+
+	@description = "This is a test for LPS-129049. Verify LiveChat provider can be enabled and disabled."
+	@priority = "5"
+	test LiveChatCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "LiveChat");
+
+		var clickToChatLivechatPassword = PropsUtil.get("click.to.chat.livechat.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatLivechatPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVECHAT");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_LIVECHAT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if LiveChat Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test LiveChatProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "LiveChat");
+
+		var clickToChatLivechatPassword = PropsUtil.get("click.to.chat.livechat.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatLivechatPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVECHAT");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVECHAT");
+	}
+
+	@description = "This is a test for LPS-133453. Verify LiveChat provider persistence after logout and login"
+	@priority = "5"
+	test LiveChatProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "LiveChat");
+
+		var clickToChatLivechatPassword = PropsUtil.get("click.to.chat.livechat.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatLivechatPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVECHAT");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVECHAT");
+	}
+
+	@description = "This is a test for LPS-129049. Verify LivePerson provider can be enabled and disabled."
+	@priority = "5"
+	test LivePersonCanBeEnabledAndDisabled {
+		property portal.acceptance = "true";
+
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "LivePerson");
+
+		var clickToChatLivepersonPassword = PropsUtil.get("click.to.chat.liveperson.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatLivepersonPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVEPERSON");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_LIVEPERSON");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if LivePerson Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test LivePersonProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "LivePerson");
+
+		var clickToChatLivepersonPassword = PropsUtil.get("click.to.chat.liveperson.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatLivepersonPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVEPERSON");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVEPERSON");
+	}
+
+	@description = "This is a test for LPS-133453. Verify LivePerson provider persistence after logout and login"
+	@priority = "5"
+	test LivePersonProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "LivePerson");
+
+		var clickToChatLivepersonPassword = PropsUtil.get("click.to.chat.liveperson.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatLivepersonPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVEPERSON");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_LIVEPERSON");
+	}
+
+	@description = "This is a test for LPS-129049. Verify Smartsupp provider can be enabled and disabled."
+	@priority = "5"
+	test SmartsuppCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Smartsupp");
+
+		var clickToChatSmartsuppPassword = PropsUtil.get("click.to.chat.smartsupp.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatSmartsuppPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_SMARTSUPP");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_SMARTSUPP");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if Smartsupp Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test SmartsuppProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Smartsupp");
+
+		var clickToChatSmartsuppPassword = PropsUtil.get("click.to.chat.smartsupp.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatSmartsuppPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_SMARTSUPP");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_SMARTSUPP");
+	}
+
+	@description = "This is a test for LPS-133453. Verify Smartsupp provider persistence after logout and login"
+	@priority = "5"
+	test SmartsuppProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Smartsupp");
+
+		var clickToChatSmartsuppPassword = PropsUtil.get("click.to.chat.smartsupp.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatSmartsuppPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_SMARTSUPP");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_SMARTSUPP");
+	}
+
+	@description = "This is a test for LPS-129049. Verify TawkTo provider can be enabled and disabled."
+	@priority = "5"
+	test TawkToCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "TawkTo");
+
+		var clickToChatTawktoPassword = PropsUtil.get("click.to.chat.tawkto.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTawktoPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TAWKTO");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_TAWKTO");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if TawkTo Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test TawkToProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "TawkTo");
+
+		var clickToChatTawktoPassword = PropsUtil.get("click.to.chat.tawkto.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTawktoPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TAWKTO");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TAWKTO");
+	}
+
+	@description = "This is a test for LPS-133453. Verify TawkTo provider persistence after logout and login"
+	@priority = "5"
+	test TawkToProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "TawkTo");
+
+		var clickToChatTawktoPassword = PropsUtil.get("click.to.chat.tawkto.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTawktoPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TAWKTO");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TAWKTO");
+	}
+
+	@description = "This is a test for LPS-129049. Verify Tidio provider can be enabled and disabled."
+	@priority = "5"
+	test TidioCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Tidio");
+
+		var clickToChatTidioPassword = PropsUtil.get("click.to.chat.tidio.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTidioPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TIDIO");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_TIDIO");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if Tidio Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test TidioProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Tidio");
+
+		var clickToChatTidioPassword = PropsUtil.get("click.to.chat.tidio.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTidioPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TIDIO");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TIDIO");
+	}
+
+	@description = "This is a test for LPS-133453. Verify Tidio provider persistence after logout and login"
+	@priority = "5"
+	test TidioProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Tidio");
+
+		var clickToChatTidioPassword = PropsUtil.get("click.to.chat.tidio.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTidioPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TIDIO");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TIDIO");
+	}
+
+	@description = "This is a test for LPS-129049. Verify Tolvnow provider can be enabled and disabled."
+	@ignore = "true"
+	@priority = "5"
+	test TolvnowCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Tolvnow");
+
+		var clickToChatTolvnowPassword = PropsUtil.get("click.to.chat.tolvnow.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTolvnowPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TOLVNOW");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_TOLVNOW");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if Tolvnow Provider Keeps Enabled After Logout"
+	@ignore = "true"
+	@priority = "5"
+	test TolvnowProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Tolvnow");
+
+		var clickToChatTolvnowPassword = PropsUtil.get("click.to.chat.tolvnow.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTolvnowPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TOLVNOW");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TOLVNOW");
+	}
+
+	@description = "This is a test for LPS-133453. Verify Tolvnow provider persistence after logout and login"
+	@ignore = "true"
+	@priority = "5"
+	test TolvnowProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Tolvnow");
+
+		var clickToChatTolvnowPassword = PropsUtil.get("click.to.chat.tolvnow.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatTolvnowPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TOLVNOW");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_TOLVNOW");
+	}
+
+	@description = "This is a test for LPS-129049. Verify Zendesk provider can be enabled and disabled."
+	@priority = "5"
+	test ZendeskCanBeEnabledAndDisabled {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Zendesk");
+
+		var clickToChatZendeskPassword = PropsUtil.get("click.to.chat.zendesk.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatZendeskPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_ZENDESK");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementNotPresent(locator1 = "Providers#CHAT_ZENDESK");
+	}
+
+	@description = "This is a test for LPS-133453. Verify if Zendesk Provider Keeps Enabled After Logout"
+	@priority = "5"
+	test ZendeskProviderKeepsEnabledAfterLogout {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Zendesk");
+
+		var clickToChatZendeskPassword = PropsUtil.get("click.to.chat.zendesk.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatZendeskPassword}");
+
+		FormFields.enableCheckbox(fieldName = "guestUsersAllowed");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_ZENDESK");
+
+		User.logoutPG();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_ZENDESK");
+	}
+
+	@description = "This is a test for LPS-133453. Verify Zendesk provider persistence after logout and login"
+	@priority = "5"
+	test ZendeskProviderKeepsEnabledAfterLogoutAndLogin {
+		Select(
+			locator1 = "ClickToChatConfiguration#SITE_SETTINGS_STRATEGY",
+			value1 = "Always Inherit");
+
+		Select(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ID",
+			value1 = "Zendesk");
+
+		var clickToChatZendeskPassword = PropsUtil.get("click.to.chat.zendesk.password");
+
+		Type(
+			locator1 = "ClickToChatConfiguration#CHAT_PROVIDER_ACCOUNT_ID",
+			value1 = "${clickToChatZendeskPassword}");
+
+		SystemSettings.saveConfiguration();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_ZENDESK");
+
+		User.logoutPG();
+
+		User.firstLoginUI();
+
+		AssertElementPresent(locator1 = "Providers#CHAT_ZENDESK");
+	}
+
+}

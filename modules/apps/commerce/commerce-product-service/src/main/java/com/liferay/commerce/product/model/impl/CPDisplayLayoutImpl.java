@@ -27,9 +27,6 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
  */
 public class CPDisplayLayoutImpl extends CPDisplayLayoutBaseImpl {
 
-	public CPDisplayLayoutImpl() {
-	}
-
 	@Override
 	public AssetCategory fetchAssetCategory() {
 		String className = getClassName();

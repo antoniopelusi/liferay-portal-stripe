@@ -1,20 +1,10 @@
 {
 	"dependencies": {
-		"@clayui/alert": "3.26.0",
-		"@clayui/button": "3.6.0",
-		"@clayui/empty-state": "3.2.0",
-		"@clayui/form": "3.14.4",
-		"@clayui/icon": "3.1.0",
-		"@clayui/label": "3.4.1",
-		"@clayui/layout": "3.3.0",
-		"@clayui/loading-indicator": "3.2.0",
-		"@clayui/sticker": "3.3.0",
-		"@clayui/tabs": "3.3.5",
-		"classnames": "2.2.6",
-		"frontend-js-web": "*",
-		"prop-types": "15.7.2",
-		"react": "16.12.0",
-		"recharts": "1.8.5"
+	},
+	"jest": {
+		"modulePathIgnorePatterns": [
+			"test/js/mocks/*"
+		]
 	},
 	"name": "content-dashboard-web",
 	"private": true,
@@ -24,5 +14,5 @@
 		"format": "liferay-npm-scripts fix",
 		"test": "liferay-npm-scripts test"
 	},
-	"version": "2.0.7"
+	"version": "2.0.49"
 }

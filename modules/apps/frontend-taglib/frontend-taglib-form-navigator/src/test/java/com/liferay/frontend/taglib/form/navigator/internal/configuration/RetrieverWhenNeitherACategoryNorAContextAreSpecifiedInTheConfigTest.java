@@ -83,11 +83,11 @@ public class RetrieverWhenNeitherACategoryNorAContextAreSpecifiedInTheConfigTest
 
 	@Test
 	public void testDoesNotContainValuesForANonemptyCategory() {
-		Optional<List<String>> formNavigatorEntryKeys =
+		Optional<List<String>> formNavigatorEntryKeysOptional =
 			formNavigatorEntryConfigurationRetriever.getFormNavigatorEntryKeys(
 				"form1", "general", null);
 
-		Assert.assertFalse(formNavigatorEntryKeys.isPresent());
+		Assert.assertFalse(formNavigatorEntryKeysOptional.isPresent());
 	}
 
 }

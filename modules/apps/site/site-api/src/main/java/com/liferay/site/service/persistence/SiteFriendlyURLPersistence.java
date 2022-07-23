@@ -390,159 +390,159 @@ public interface SiteFriendlyURLPersistence
 	public int countByUuid_C(String uuid, long companyId);
 
 	/**
-	 * Returns all the site friendly urls where companyId = &#63; and groupId = &#63;.
+	 * Returns all the site friendly urls where groupId = &#63; and companyId = &#63;.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @return the matching site friendly urls
 	 */
-	public java.util.List<SiteFriendlyURL> findByC_G(
-		long companyId, long groupId);
+	public java.util.List<SiteFriendlyURL> findByG_C(
+		long groupId, long companyId);
 
 	/**
-	 * Returns a range of all the site friendly urls where companyId = &#63; and groupId = &#63;.
+	 * Returns a range of all the site friendly urls where groupId = &#63; and companyId = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>SiteFriendlyURLModelImpl</code>.
 	 * </p>
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param start the lower bound of the range of site friendly urls
 	 * @param end the upper bound of the range of site friendly urls (not inclusive)
 	 * @return the range of matching site friendly urls
 	 */
-	public java.util.List<SiteFriendlyURL> findByC_G(
-		long companyId, long groupId, int start, int end);
+	public java.util.List<SiteFriendlyURL> findByG_C(
+		long groupId, long companyId, int start, int end);
 
 	/**
-	 * Returns an ordered range of all the site friendly urls where companyId = &#63; and groupId = &#63;.
+	 * Returns an ordered range of all the site friendly urls where groupId = &#63; and companyId = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>SiteFriendlyURLModelImpl</code>.
 	 * </p>
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param start the lower bound of the range of site friendly urls
 	 * @param end the upper bound of the range of site friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching site friendly urls
 	 */
-	public java.util.List<SiteFriendlyURL> findByC_G(
-		long companyId, long groupId, int start, int end,
+	public java.util.List<SiteFriendlyURL> findByG_C(
+		long groupId, long companyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<SiteFriendlyURL>
 			orderByComparator);
 
 	/**
-	 * Returns an ordered range of all the site friendly urls where companyId = &#63; and groupId = &#63;.
+	 * Returns an ordered range of all the site friendly urls where groupId = &#63; and companyId = &#63;.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>SiteFriendlyURLModelImpl</code>.
 	 * </p>
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param start the lower bound of the range of site friendly urls
 	 * @param end the upper bound of the range of site friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching site friendly urls
 	 */
-	public java.util.List<SiteFriendlyURL> findByC_G(
-		long companyId, long groupId, int start, int end,
+	public java.util.List<SiteFriendlyURL> findByG_C(
+		long groupId, long companyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<SiteFriendlyURL>
 			orderByComparator,
 		boolean useFinderCache);
 
 	/**
-	 * Returns the first site friendly url in the ordered set where companyId = &#63; and groupId = &#63;.
+	 * Returns the first site friendly url in the ordered set where groupId = &#63; and companyId = &#63;.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching site friendly url
 	 * @throws NoSuchFriendlyURLException if a matching site friendly url could not be found
 	 */
-	public SiteFriendlyURL findByC_G_First(
-			long companyId, long groupId,
+	public SiteFriendlyURL findByG_C_First(
+			long groupId, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<SiteFriendlyURL>
 				orderByComparator)
 		throws NoSuchFriendlyURLException;
 
 	/**
-	 * Returns the first site friendly url in the ordered set where companyId = &#63; and groupId = &#63;.
+	 * Returns the first site friendly url in the ordered set where groupId = &#63; and companyId = &#63;.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching site friendly url, or <code>null</code> if a matching site friendly url could not be found
 	 */
-	public SiteFriendlyURL fetchByC_G_First(
-		long companyId, long groupId,
+	public SiteFriendlyURL fetchByG_C_First(
+		long groupId, long companyId,
 		com.liferay.portal.kernel.util.OrderByComparator<SiteFriendlyURL>
 			orderByComparator);
 
 	/**
-	 * Returns the last site friendly url in the ordered set where companyId = &#63; and groupId = &#63;.
+	 * Returns the last site friendly url in the ordered set where groupId = &#63; and companyId = &#63;.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching site friendly url
 	 * @throws NoSuchFriendlyURLException if a matching site friendly url could not be found
 	 */
-	public SiteFriendlyURL findByC_G_Last(
-			long companyId, long groupId,
+	public SiteFriendlyURL findByG_C_Last(
+			long groupId, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<SiteFriendlyURL>
 				orderByComparator)
 		throws NoSuchFriendlyURLException;
 
 	/**
-	 * Returns the last site friendly url in the ordered set where companyId = &#63; and groupId = &#63;.
+	 * Returns the last site friendly url in the ordered set where groupId = &#63; and companyId = &#63;.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching site friendly url, or <code>null</code> if a matching site friendly url could not be found
 	 */
-	public SiteFriendlyURL fetchByC_G_Last(
-		long companyId, long groupId,
+	public SiteFriendlyURL fetchByG_C_Last(
+		long groupId, long companyId,
 		com.liferay.portal.kernel.util.OrderByComparator<SiteFriendlyURL>
 			orderByComparator);
 
 	/**
-	 * Returns the site friendly urls before and after the current site friendly url in the ordered set where companyId = &#63; and groupId = &#63;.
+	 * Returns the site friendly urls before and after the current site friendly url in the ordered set where groupId = &#63; and companyId = &#63;.
 	 *
 	 * @param siteFriendlyURLId the primary key of the current site friendly url
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next site friendly url
 	 * @throws NoSuchFriendlyURLException if a site friendly url with the primary key could not be found
 	 */
-	public SiteFriendlyURL[] findByC_G_PrevAndNext(
-			long siteFriendlyURLId, long companyId, long groupId,
+	public SiteFriendlyURL[] findByG_C_PrevAndNext(
+			long siteFriendlyURLId, long groupId, long companyId,
 			com.liferay.portal.kernel.util.OrderByComparator<SiteFriendlyURL>
 				orderByComparator)
 		throws NoSuchFriendlyURLException;
 
 	/**
-	 * Removes all the site friendly urls where companyId = &#63; and groupId = &#63; from the database.
+	 * Removes all the site friendly urls where groupId = &#63; and companyId = &#63; from the database.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 */
-	public void removeByC_G(long companyId, long groupId);
+	public void removeByG_C(long groupId, long companyId);
 
 	/**
-	 * Returns the number of site friendly urls where companyId = &#63; and groupId = &#63;.
+	 * Returns the number of site friendly urls where groupId = &#63; and companyId = &#63;.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @return the number of matching site friendly urls
 	 */
-	public int countByC_G(long companyId, long groupId);
+	public int countByG_C(long groupId, long companyId);
 
 	/**
 	 * Returns the site friendly url where companyId = &#63; and friendlyURL = &#63; or throws a <code>NoSuchFriendlyURLException</code> if it could not be found.
@@ -595,63 +595,63 @@ public interface SiteFriendlyURLPersistence
 	public int countByC_F(long companyId, String friendlyURL);
 
 	/**
-	 * Returns the site friendly url where companyId = &#63; and groupId = &#63; and languageId = &#63; or throws a <code>NoSuchFriendlyURLException</code> if it could not be found.
+	 * Returns the site friendly url where groupId = &#63; and companyId = &#63; and languageId = &#63; or throws a <code>NoSuchFriendlyURLException</code> if it could not be found.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param languageId the language ID
 	 * @return the matching site friendly url
 	 * @throws NoSuchFriendlyURLException if a matching site friendly url could not be found
 	 */
-	public SiteFriendlyURL findByC_G_L(
-			long companyId, long groupId, String languageId)
+	public SiteFriendlyURL findByG_C_L(
+			long groupId, long companyId, String languageId)
 		throws NoSuchFriendlyURLException;
 
 	/**
-	 * Returns the site friendly url where companyId = &#63; and groupId = &#63; and languageId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 * Returns the site friendly url where groupId = &#63; and companyId = &#63; and languageId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param languageId the language ID
 	 * @return the matching site friendly url, or <code>null</code> if a matching site friendly url could not be found
 	 */
-	public SiteFriendlyURL fetchByC_G_L(
-		long companyId, long groupId, String languageId);
+	public SiteFriendlyURL fetchByG_C_L(
+		long groupId, long companyId, String languageId);
 
 	/**
-	 * Returns the site friendly url where companyId = &#63; and groupId = &#63; and languageId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns the site friendly url where groupId = &#63; and companyId = &#63; and languageId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param languageId the language ID
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching site friendly url, or <code>null</code> if a matching site friendly url could not be found
 	 */
-	public SiteFriendlyURL fetchByC_G_L(
-		long companyId, long groupId, String languageId,
+	public SiteFriendlyURL fetchByG_C_L(
+		long groupId, long companyId, String languageId,
 		boolean useFinderCache);
 
 	/**
-	 * Removes the site friendly url where companyId = &#63; and groupId = &#63; and languageId = &#63; from the database.
+	 * Removes the site friendly url where groupId = &#63; and companyId = &#63; and languageId = &#63; from the database.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param languageId the language ID
 	 * @return the site friendly url that was removed
 	 */
-	public SiteFriendlyURL removeByC_G_L(
-			long companyId, long groupId, String languageId)
+	public SiteFriendlyURL removeByG_C_L(
+			long groupId, long companyId, String languageId)
 		throws NoSuchFriendlyURLException;
 
 	/**
-	 * Returns the number of site friendly urls where companyId = &#63; and groupId = &#63; and languageId = &#63;.
+	 * Returns the number of site friendly urls where groupId = &#63; and companyId = &#63; and languageId = &#63;.
 	 *
-	 * @param companyId the company ID
 	 * @param groupId the group ID
+	 * @param companyId the company ID
 	 * @param languageId the language ID
 	 * @return the number of matching site friendly urls
 	 */
-	public int countByC_G_L(long companyId, long groupId, String languageId);
+	public int countByG_C_L(long groupId, long companyId, String languageId);
 
 	/**
 	 * Returns the site friendly url where companyId = &#63; and friendlyURL = &#63; and languageId = &#63; or throws a <code>NoSuchFriendlyURLException</code> if it could not be found.

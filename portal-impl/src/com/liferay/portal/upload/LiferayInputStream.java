@@ -55,7 +55,7 @@ public class LiferayInputStream extends ServletInputStreamAdapter {
 
 		super(httpServletRequest.getInputStream());
 
-		_session = httpServletRequest.getSession();
+		_httpSession = httpServletRequest.getSession();
 
 		long totalSize = httpServletRequest.getContentLength();
 
@@ -89,7 +89,7 @@ public class LiferayInputStream extends ServletInputStreamAdapter {
 				}
 				catch (IOException ioException) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(ioException, ioException);
+						_log.warn(ioException);
 					}
 				}
 			}
@@ -150,7 +150,7 @@ public class LiferayInputStream extends ServletInputStreamAdapter {
 		}
 
 		ProgressTracker progressTracker =
-			(ProgressTracker)_session.getAttribute(ProgressTracker.PERCENT);
+			(ProgressTracker)_httpSession.getAttribute(ProgressTracker.PERCENT);
 
 		Integer curPercent = null;
 
@@ -162,7 +162,7 @@ public class LiferayInputStream extends ServletInputStreamAdapter {
 			if (progressTracker == null) {
 				progressTracker = new ProgressTracker(StringPool.BLANK);
 
-				progressTracker.initialize(_session);
+				progressTracker.initialize(_httpSession);
 			}
 
 			progressTracker.setPercent(percent);
@@ -186,7 +186,7 @@ public class LiferayInputStream extends ServletInputStreamAdapter {
 	private static final Log _log = LogFactoryUtil.getLog(
 		LiferayInputStream.class);
 
-	private final HttpSession _session;
+	private final HttpSession _httpSession;
 	private final File _tempFile;
 	private OutputStream _tempFileOutputStream;
 	private long _totalRead;

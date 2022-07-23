@@ -1,0 +1,171 @@
+<html>
+<head>
+<title>Picklist</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Picklist</td></tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td>CANCEL_PICKLIST</td>
+		<td>//button[@class='btn btn-secondary']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_PICKLIST_BUTTON</td>
+		<td>//button[@title='Add Picklist']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_PICKLIST_NAME</td>
+		<td>//input[@id='listTypeDefinitionName']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_PICKLIST</td>
+		<td>//div[(@class='dnd-td')]//a[text()='${key_picklistName}']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PICKLIST_KEBAB_MENU</td>
+		<td>//div[(@class='dnd-td') and contains(.,'${key_picklistName}')]/..//button</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PICKLIST_KEBAB_MENU_OPTION</td>
+		<td>//button[(@class='dropdown-item') and contains(.,'${key_picklistOption}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>UPDATE_PICKLIST_NAME</td>
+		<td>//input[@aria-describedby]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>CANCEL_UPDATE_PICKLIST</td>
+		<td>//button[@id='_com_liferay_object_web_internal_list_type_portlet_portlet_ListTypeDefinitionsPortlet_cancel']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>IFRAME_PICKLIST_MODAL</td>
+		<td>//iframe[contains(@src,'ListTypeDefinitions')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_PICKLIST_VIEW</td>
+		<td>//a[contains(.,'${key_picklistName}')]/../../..//button</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>GOTO_PICKLIST_VIEW</td>
+		<td>//button[(@class='dropdown-item') and contains(.,'View')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_ITEM_BUTTON</td>
+		<td>//button[@title='Add Item']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_PICKLIST_ITEM_NAME</td>
+		<td>//input[@id='locale']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ADD_PICKLIST_ITEM_KEY</td>
+		<td>//input[@id='listTypeEntryKey']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_PICKLIST_ITEM</td>
+		<td>//a[contains(.,'${key_picklistItemName}')]/../../..//div[contains(.,'${key_picklistItemKey}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SAVE_BUTTON</td>
+		<td>//button[@type = "submit" and text() = "Save"]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PICKLIST_DETAILS</td>
+		<td>//div[(@class='sheet') and contains (.,'${key_title}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PICKLIST_ITEM_KEBAB_MENU</td>
+		<td>//div[text()='${key_itemKey}']/following-sibling::div//button</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>IFRAME_PICKLIST_ITEM_MODAL</td>
+		<td>xpath=(//iframe[contains(@src,'ListTypeDefinitions')])[2]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PICKLIST_ITEM_KEBAB_MENU_OPTION</td>
+		<td>//div[contains(.,'${key_itemKey}')]/..//button[contains(.,'${key_picklistItemOption}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PICKLIST_ITEM_DETAILS</td>
+		<td>//div[@class='modal-title']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>REQUIRED_KEY_ITEM</td>
+		<td>//input[@id='listTypeEntryKey']/..//div[contains(@class, 'form-feedback-group') and contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>PICKLIST_MESSAGE</td>
+		<td>//div[(@class='autofit-section') and contains(.,'${key_picklistMessage}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DISABLE_PICKLIST_KEY</td>
+		<td>//input[@class='field disabled form-control lfr-input-text']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>EDIT_ITEM_NAME</td>
+		<td>//input[@class='form-control language-value field form-control lfr-input-text']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_FIELD_RELATIONSHIP_OBJECT</td>
+		<td>//div[(@class='form-builder-select-field input-group-container')and contains(.,'${key_selectField}')]/div[@class='form-control results-chosen select-field-trigger']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_PICKLIST_ITEM_NAME</td>
+		<td>//input[@id=('locale') and @value=('${key_itemName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_PICKLIST_ITEM_KEY</td>
+		<td>//input[@id=('listTypeEntryKey') and @value=('${key_itemKey}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DISABLED_PICKLIST_NAME</td>
+		<td>//input[(@id='_com_liferay_object_web_internal_list_type_portlet_portlet_ListTypeDefinitionsPortlet_name') and (@disabled)]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_PICKLIST_EDIT_ITEM_NAME</td>
+		<td>//input[@id=('_com_liferay_object_web_internal_list_type_portlet_portlet_ListTypeDefinitionsPortlet_name') and @value=('${key_itemName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_PICKLIST_EDIT_ITEM_KEY</td>
+		<td>//input[@id=('_com_liferay_object_web_internal_list_type_portlet_portlet_ListTypeDefinitionsPortlet_key') and @value=('${key_itemKey}')]</td>
+		<td></td>
+	</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -41,17 +41,8 @@ public class Dimensions {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{width=");
-		sb.append(_width);
-		sb.append(", height=");
-		sb.append(_height);
-		sb.append(", depth=");
-		sb.append(_depth);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{width=", _width, ", height=", _height, ", depth=", _depth, "}");
 	}
 
 	private final double _depth;

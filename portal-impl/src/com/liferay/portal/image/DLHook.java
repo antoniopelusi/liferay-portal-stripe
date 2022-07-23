@@ -15,6 +15,7 @@
 package com.liferay.portal.image;
 
 import com.liferay.document.library.kernel.exception.NoSuchFileException;
+import com.liferay.document.library.kernel.store.DLStoreRequest;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.document.library.kernel.util.DLValidatorUtil;
 import com.liferay.petra.string.StringPool;
@@ -23,6 +24,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.Image;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GroupThreadLocal;
+import com.liferay.portal.kernel.util.MimeTypesUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +40,8 @@ public class DLHook extends BaseHook {
 		String fileName = getFileName(image.getImageId(), image.getType());
 
 		try {
-			DLStoreUtil.deleteFile(_COMPANY_ID, _REPOSITORY_ID, fileName);
+			DLStoreUtil.deleteFile(
+				image.getCompanyId(), _REPOSITORY_ID, fileName);
 		}
 		catch (NoSuchFileException noSuchFileException) {
 			throw new NoSuchImageException(noSuchFileException);
@@ -47,7 +51,7 @@ public class DLHook extends BaseHook {
 	@Override
 	public byte[] getImageAsBytes(Image image) throws PortalException {
 		InputStream inputStream = DLStoreUtil.getFileAsStream(
-			_COMPANY_ID, _REPOSITORY_ID,
+			image.getCompanyId(), _REPOSITORY_ID,
 			getFileName(image.getImageId(), image.getType()));
 
 		byte[] bytes = null;
@@ -65,7 +69,7 @@ public class DLHook extends BaseHook {
 	@Override
 	public InputStream getImageAsStream(Image image) throws PortalException {
 		return DLStoreUtil.getFileAsStream(
-			_COMPANY_ID, _REPOSITORY_ID,
+			image.getCompanyId(), _REPOSITORY_ID,
 			getFileName(image.getImageId(), image.getType()));
 	}
 
@@ -75,20 +79,35 @@ public class DLHook extends BaseHook {
 
 		String fileName = getFileName(image.getImageId(), image.getType());
 
-		DLValidatorUtil.validateFileSize(fileName, bytes);
+		DLValidatorUtil.validateFileSize(
+			GroupThreadLocal.getGroupId(), fileName,
+			MimeTypesUtil.getContentType(fileName), bytes);
 
-		if (DLStoreUtil.hasFile(_COMPANY_ID, _REPOSITORY_ID, fileName)) {
-			DLStoreUtil.deleteFile(_COMPANY_ID, _REPOSITORY_ID, fileName);
+		if (DLStoreUtil.hasFile(
+				image.getCompanyId(), _REPOSITORY_ID, fileName)) {
+
+			DLStoreUtil.deleteFile(
+				image.getCompanyId(), _REPOSITORY_ID, fileName);
 		}
 
-		DLStoreUtil.addFile(_COMPANY_ID, _REPOSITORY_ID, fileName, true, bytes);
+		DLStoreUtil.addFile(
+			DLStoreRequest.builder(
+				image.getCompanyId(), _REPOSITORY_ID, fileName
+			).className(
+				image.getModelClassName()
+			).classPK(
+				image.getImageId()
+			).size(
+				image.getSize()
+			).validateFileExtension(
+				true
+			).build(),
+			bytes);
 	}
 
 	protected String getFileName(long imageId, String type) {
 		return imageId + StringPool.PERIOD + type;
 	}
-
-	private static final long _COMPANY_ID = 0;
 
 	private static final long _REPOSITORY_ID = 0;
 

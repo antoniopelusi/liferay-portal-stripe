@@ -14,9 +14,9 @@
 
 package com.liferay.frontend.taglib.dynamic.section;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.taglib.servlet.PipingServletResponse;
+import com.liferay.portal.kernel.servlet.PipingServletResponse;
 
 import java.io.IOException;
 

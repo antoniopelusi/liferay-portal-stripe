@@ -409,4 +409,7 @@ public interface KaleoTaskInstanceTokenModel
 	 */
 	public void setWorkflowContext(String workflowContext);
 
+	@Override
+	public KaleoTaskInstanceToken cloneWithOriginalValues();
+
 }

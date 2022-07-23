@@ -1,0 +1,1774 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Content Pages";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site via JSON") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Activate local live staging") {
+			JSONStaging.enableLocalStaging(
+				branchingPrivate = "false",
+				branchingPublic = "false",
+				groupName = "Test Site Name");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-140136. As a page viewer with only page view permission, the draft actions are invisible in staging and live site."
+	@priority = "4"
+	test CannotPreviewAndDiscardDraftAsUserWithoutUpdatePermission {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		task ("Add a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "Userfn",
+				userLastName = "Userln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Assign the user to site") {
+			JSONUser.addUserToSite(
+				groupName = "Test Site Name",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Add a new site role") {
+			JSONRole.addSiteRole(
+				roleKey = "Roles Siterole Name",
+				roleTitle = "Roles Siterole Name");
+		}
+
+		task ("Define the permissions of new role") {
+			for (var resourceActionIndex : list "ACCESS_IN_CONTROL_PANEL,VIEW") {
+				Permissions.definePermissionViaJSONAPI(
+					resourceAction = "${resourceActionIndex}",
+					resourceName = "com_liferay_layout_admin_web_portlet_GroupPagesPortlet",
+					roleTitle = "Roles Siterole Name",
+					roleType = "site");
+			}
+
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW_SITE_ADMINISTRATION",
+				resourceName = "com.liferay.depot.model.DepotEntry",
+				roleTitle = "Roles Siterole Name",
+				roleType = "site");
+
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.layout.seocom.liferay.layout.seo",
+				roleTitle = "Roles Siterole Name",
+				roleType = "site");
+
+			for (var resourceActionIndex : list "ADD_LAYOUT,VIEW_SITE_ADMINISTRATION,VIEW_STAGING") {
+				Permissions.definePermissionViaJSONAPI(
+					resourceAction = "${resourceActionIndex}",
+					resourceName = "com.liferay.portal.kernel.model.Group",
+					roleTitle = "Roles Siterole Name",
+					roleType = "site");
+			}
+
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.portal.kernel.model.Layout",
+				roleTitle = "Roles Siterole Name",
+				roleType = "site");
+		}
+
+		task ("Assign the site role to new user") {
+			JSONRole.assignSiteRoleToUser(
+				groupName = "Test Site Name",
+				roleTitle = "Roles Siterole Name",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Heading fragment below the Button") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading",
+				targetFragmentName = "Button");
+		}
+
+		task ("Publish to Live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Sign in as new user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+		}
+
+		task ("Navigate to the Pages admin in live site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+		}
+
+		task ("View the Preview and Discard Draft actions are invisible") {
+			PagesAdmin.openPageEllipsisMenu(pageName = "Test Page Name");
+
+			for (var itemName : list "Preview Draft,Discard Draft") {
+				MenuItem.viewNotPresent(menuItem = "${itemName}");
+			}
+		}
+
+		task ("View only the Button fragment shown in page") {
+			MenuItem.click(menuItem = "View");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+
+			AssertElementNotPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+
+		task ("View the ellipsis button not shown in Page Tree") {
+			PagesFinder.goToPagesFinder();
+
+			AssertElementNotPresent(
+				key_pageName = "Test Page Name",
+				locator1 = "PagesFinder#PAGE_ELLIPSIS_ICON");
+		}
+
+		task ("Navigate to the Pages admin in staging site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-staging");
+		}
+
+		task ("View the Preview and Discard Draft actions are invisible") {
+			PagesAdmin.openPageEllipsisMenu(pageName = "Test Page Name");
+
+			for (var itemName : list "Preview Draft,Discard Draft") {
+				MenuItem.viewNotPresent(menuItem = "${itemName}");
+			}
+		}
+
+		task ("View only the Button fragment shown in page") {
+			MenuItem.click(menuItem = "View");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+
+			AssertElementNotPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+
+		task ("View the Preview Draft action is invisible in Page Tree") {
+			PagesFinder.goToPagesFinder();
+
+			Click.mouseOverClick(
+				key_pageName = "Test Page Name",
+				locator1 = "PagesFinder#PAGE_ELLIPSIS_ICON");
+
+			MenuItem.viewNotVisible(menuItem = "Preview Draft");
+		}
+	}
+
+	@description = "This is a test for LPS-109854. Cannot view the sitemap of staging site as Guest."
+	@priority = "4"
+	test CannotViewSiteMapOfStagingSiteAsGuest {
+		property test.name.skip.portal.instance = "ContentPagesWithStaging#CannotViewSiteMapOfStagingSiteAsGuest";
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+
+			JSONLayout.publishLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false");
+		}
+
+		task ("Configure the Staging Public Pages in site configuration") {
+			Site.openSiteSettingsAdmin(siteURLKey = "test-site-name-staging");
+
+			Site.addVirtualHostsURLCP(stagingPages = "www.able.com");
+		}
+
+		task ("Sign out") {
+			User.logoutPG();
+		}
+
+		task ("Cannot view sitemap of staging site as Guest") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080/sitemap.xml");
+
+			AssertTextPresent(value1 = "You do not have permission to access the requested resource.");
+		}
+	}
+
+	@description = "This is a test for LPS-140483. The site admin could create page template from a content page with elements in staging site."
+	@priority = "4"
+	test CreatePageTemplateFromContentPageInStagingSite {
+		task ("Add a page template collection") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name-staging",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				site = "false");
+		}
+
+		task ("Add a Heading fragment and an Asset Publisher widget to content page then publish") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.addWidget(
+				portletName = "Asset Publisher",
+				targetFragmentName = "Heading");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Create a content page template from the content page under page template collection") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.createPageTemplate(
+				collectionName = "Page Template Collection",
+				pageTemplateName = "Content Page Template Name");
+		}
+
+		task ("View the content page template shown in Page Templates admin") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name-staging");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.viewPageTemplatePresent(pageTemplateName = "Content Page Template Name");
+
+			PageTemplatesAdmin.viewEntryWorkflowStatus(
+				entry = "Content Page Template Name",
+				workflowStatus = "Draft");
+		}
+
+		task ("View the Heading and Asset Publisher are shown in content page template") {
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template Name");
+
+			for (var elementName : list "Heading,Asset Publisher") {
+				PageEditor.viewFragment(fragmentName = "${elementName}");
+			}
+		}
+	}
+
+	@description = "Published content pages should remain if staging is deactivated."
+	@priority = "4"
+	test DeactivateStagingAfterPublish {
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Content Page Name",
+				site = "false",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Add a Heading fragment to the content page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Paragraph fragment below the Heading") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Publish the content page") {
+			PageEditor.clickPublish();
+		}
+
+		task ("Publish the site to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Deactivate staging") {
+			Staging.deactivateStagingCP(siteName = "Test Site Name");
+		}
+
+		task ("Navigate to the content page") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Assert the Heading fragment still present after deactivating staging") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("Assert the Paragraph fragment still present after deactivating staging") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.");
+		}
+	}
+
+	@description = "This is a test for LPS-97189. Editing a web content in the contents panel in a content page editor survives staging."
+	@priority = "2"
+	test EditWebContentViaContentsPanel {
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name (Staging)",
+				site = "false",
+				title = "Web Content Title");
+		}
+
+		task ("Add a content page based on Blank") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Web Content Display to content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addWidget(portletName = "Web Content Display");
+		}
+
+		task ("Select the web content in Web Content Display") {
+			WebContentDisplayPortlet.selectWebContent(webContentTitle = "Web Content Title");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Assert the web content is shown in Web Content Display") {
+			AssertVisible(
+				key_portletName = "Web Content Content",
+				locator1 = "Portlet#BODY");
+		}
+
+		task ("Edit the web content via Contents panel") {
+			Refresh();
+
+			WebContent.editViaContentPanel(
+				webContentContentEdit = "Web Content Content Edit",
+				webContentTitle = "Web Content Title",
+				webContentTitleEdit = "Web Content Title Edit");
+		}
+
+		task ("Assert the edited web content is shown in Web Content Display") {
+			AssertVisible(
+				key_portletName = "Web Content Content Edit",
+				locator1 = "Portlet#BODY");
+		}
+	}
+
+	@description = "This is a test for LPS-120198. Link page to fragment works on Staging and Live site."
+	@priority = "4"
+	test MapPageToTextFragment {
+		task ("Add a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Widget Page Name",
+				site = "false");
+		}
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Heading fragment to content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the widget page to editable field of Heading") {
+			PageEditorEditableLink.mapEditableFieldToPage(
+				fragmentName = "Heading",
+				id = "element-text",
+				pageName = "Test Widget Page Name");
+		}
+
+		task ("View the selected page is shown in Page field") {
+			AssertTextEquals(
+				key_fieldLabel = "Page",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Test Widget Page Name");
+		}
+
+		task ("View selected page is linked to Heading fragment") {
+			AssertVisible(
+				key_append = "[normalize-space(text())='Heading Example']",
+				key_url = "/web/test-site-name-staging/test-widget-page-name",
+				locator1 = "Fragment#FRAGMENT_LINK");
+		}
+
+		task ("Publish the content page") {
+			PortletEntry.publish();
+		}
+
+		task ("Publish to Live") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			Staging.gotoPublishToLive();
+
+			Staging.publishToLive();
+		}
+
+		task ("Navigate to content page in staging site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			Click(
+				key_append = "[normalize-space(text())='Heading Example']",
+				key_url = "/web/test-site-name-staging/test-widget-page-name",
+				locator1 = "Fragment#FRAGMENT_LINK");
+		}
+
+		task ("Assert redirect to widget page in staging site") {
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Widget Page Name");
+
+			AssertLocation.assertPartialLocation(value1 = "web/test-site-name-staging/test-widget-page-name");
+		}
+
+		task ("Navigate to content page in live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Click(
+				key_append = "[normalize-space(text())='Heading Example']",
+				key_url = "/web/test-site-name/test-widget-page-name",
+				locator1 = "Fragment#FRAGMENT_LINK");
+		}
+
+		task ("Assert redirect to widget page in live site") {
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Widget Page Name");
+
+			AssertLocation.assertPartialLocation(value1 = "web/test-site-name/test-widget-page-name");
+		}
+	}
+
+	@description = "This is a test for LPS-98030. A mapped editable background image of a fragment survives local staging."
+	@priority = "2"
+	test MapWebContentImageToBackgroundImageOfBannerCenter {
+		task ("Add a web content structure with an Image field") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name-staging");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(structureName = "WC Structure Name");
+
+			DataEngine.addField(
+				fieldFieldLabel = "Image",
+				fieldName = "Image");
+
+			WebContentStructures.saveCP(structureName = "WC Structure Name");
+		}
+
+		task ("Add a web content based on new structure") {
+			NavItem.click(navItem = "Web Content");
+
+			WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+		}
+
+		task ("Upload an image from Image field") {
+			WebContent.addWithStructureCP(
+				navTab = "Web Content Images",
+				structureName = "WC Structure Name",
+				webContentImage = "Document_2.jpeg",
+				webContentTitle = "Web Content Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add a content page based on Blank") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Banner Center to content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map web content image to background image field of Banner Center") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "Web Content Title",
+				fieldName = "Image",
+				navItem = "Web Content",
+				panel = "Styles");
+		}
+
+		task ("Assert the mapped image is shown in background image field") {
+			PageEditor.viewContainerStyle(backgroundImage = "Document_2.jpeg");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Assert the mapped image is shown in view mode in staging site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
+		}
+
+		task ("Publish to Live") {
+			Staging.gotoPublishToLive();
+
+			Staging.publishToLive();
+		}
+
+		task ("Assert the mapped image is shown in view mode in live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
+		}
+	}
+
+	@description = "This is a test for LPS-112030. Can return to a specific interaction state via Undo History list in Staging site."
+	@priority = "3"
+	test NavigateToSpecificInteractionStateViaUndoHistoryInStagingSite {
+		task ("Add a content page in staging site") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Content Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Container to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+		}
+
+		task ("Add a Heading fragment inside Container") {
+			PageEditor.addElementToContainer(
+				collectionName = "Basic Components",
+				fragmentName = "Heading",
+				navTab = "Fragments");
+		}
+
+		task ("Edit the inline content of Heading") {
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "New editable fragment text");
+		}
+
+		task ("Change the background color of Container") {
+			PageEditor.editLayoutContainer(
+				backgroundColor = "Success",
+				panel = "Styles");
+		}
+
+		task ("Remove the Container") {
+			PageEditor.removeFragment(fragmentName = "Container");
+		}
+
+		task ("Navigate to a specific interaction state via undo history") {
+			Click(locator1 = "PageEditor#UNDO_HISTORY");
+
+			for (var menuItem : list "Add Container,Add Heading,Update Heading Editable Values,Update Container Configuration") {
+				MenuItem.viewVisible(menuItem = "${menuItem}");
+			}
+
+			MenuItem.click(menuItem = "Add Container");
+
+			PageEditor.viewFragment(fragmentName = "Container");
+
+			for (var menuItem : list "Add Container,Add Heading,Update Heading Editable Values,Update Container Configuration") {
+				MenuItem.viewVisible(menuItem = "${menuItem}");
+			}
+
+			MenuItem.click(menuItem = "Add Heading");
+
+			AssertElementPresent(
+				key_elementHeader = "//div[@aria-label='Heading']",
+				key_position = "1",
+				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+
+			MenuItem.click(menuItem = "Update Heading Editable Values");
+
+			PageEditor.viewFragmentEditableText(
+				editableText = "New editable fragment text",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			for (var menuItem : list "Add Container,Add Heading,Update Heading Editable Values,Update Container Configuration") {
+				MenuItem.viewVisible(menuItem = "${menuItem}");
+			}
+
+			MenuItem.click(menuItem = "Update Container Configuration");
+
+			PageEditor.viewContainerStyle(
+				backgroundColor = "success",
+				position = "1");
+
+			for (var menuItem : list "Add Container,Add Heading,Update Heading Editable Values,Update Container Configuration") {
+				MenuItem.viewVisible(menuItem = "${menuItem}");
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-140136. As a page creator with page update permissions, the draft actions are only visible in staging site."
+	@priority = "4"
+	test PreviewAndDiscardDraftInStagingSite {
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a Heading fragment below the Button") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading",
+				targetFragmentName = "Button");
+		}
+
+		task ("Publish to Live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the Pages admin in live site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+		}
+
+		task ("View the Preview and Discard Draft actions are invisible") {
+			PagesAdmin.openPageEllipsisMenu(pageName = "Test Page Name");
+
+			for (var itemName : list "Preview Draft,Discard Draft") {
+				MenuItem.viewNotPresent(menuItem = "${itemName}");
+			}
+		}
+
+		task ("View only the Button fragment shown in page") {
+			MenuItem.click(menuItem = "View");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+
+			AssertElementNotPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+
+		task ("View the ellipsis button not shown in Page Tree") {
+			PagesFinder.goToPagesFinder();
+
+			AssertElementNotPresent(
+				key_pageName = "Test Page Name*",
+				locator1 = "PagesFinder#PAGE_ELLIPSIS_ICON");
+		}
+
+		task ("Preview the draft content page via Pages admin in staging site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Preview Draft",
+				pageName = "Test Page Name");
+
+			SelectWindow.selectPopUp(locator1 = "null");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Page Name *");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+
+			Navigator.closeWindow();
+		}
+
+		task ("Preview the draft content page via Page Tree in staging site") {
+			ProductMenu.gotoHomePage();
+
+			PagesFinder.gotoPageEllipsisItem(
+				item = "Preview Draft",
+				pageName = "Test Page Name*");
+
+			SelectWindow.selectPopUp(locator1 = "null");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Page Name *");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+
+			Navigator.closeWindow();
+		}
+
+		task ("Discard the draft content page via Pages admin in staging site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			PagesAdmin.openPageEllipsisMenu(pageName = "Test Page Name");
+
+			MenuItem.clickNoError(menuItem = "Discard Draft");
+
+			AssertConfirm(value1 = "Are you sure you want to discard current draft and apply latest published changes?");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("View the Preview Draft action is not shown") {
+			PagesAdmin.openPageEllipsisMenu(pageName = "Test Page Name");
+
+			MenuItem.viewNotPresent(menuItem = "Preview Draft");
+		}
+
+		task ("View only the Button fragment shown in page editor") {
+			MenuItem.click(menuItem = "Edit");
+
+			PageEditor.viewFragment(fragmentName = "Button");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+		}
+	}
+
+	@description = "Content pages only appear in live view after being published and should appear properly."
+	@priority = "5"
+	test PublishContentPageToLive {
+		property portal.acceptance = "true";
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Content Page Name",
+				site = "false",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Add a Heading fragment to the content page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Paragraph fragment below the Heading") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Publish the content page") {
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the content page in the staging site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("View the Heading fragment in view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("View the Paragraph fragment in view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.");
+		}
+
+		task ("View the no resource shown in the live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			AssertTextPresent(value1 = "The requested resource could not be found.");
+		}
+
+		task ("Publish the site to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the content page in the live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("View the Heading fragment") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("View the Paragraph fragment") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.");
+		}
+	}
+
+	@description = "This is a use case for LPS-125564. Publish the draft content page to live site."
+	@priority = "4"
+	test PublishDraftContentPageToLive {
+		task ("Add a draft content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Content Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("View draft page is shown in pages admin in live site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.viewPageStatus(
+				pageName = "Test Content Page Name",
+				status = "Draft");
+		}
+
+		task ("Assert View action is disabled for draft page in live site") {
+			PagesAdmin.openPageEllipsisMenu(pageName = "Test Content Page Name");
+
+			MenuItem.viewDisabled(menuItem = "View");
+		}
+
+		task ("Navigate to staging site via Product Menu") {
+			ProductMenu.gotoStagingSite();
+		}
+
+		task ("Add a Heading fragment to page in the staging site") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("View draft page is shown in pages admin in live site after republish with an edition") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.viewPageStatus(
+				pageName = "Test Content Page Name",
+				status = "Draft");
+		}
+
+		task ("Assert View action is disabled for draft page in live site after republish with an edition") {
+			PagesAdmin.openPageEllipsisMenu(pageName = "Test Content Page Name");
+
+			MenuItem.viewDisabled(menuItem = "View");
+		}
+	}
+
+	@description = "Changes of content pages should not appear in the live site until after published."
+	@priority = "5"
+	test PublishEditedContentPageToLive {
+		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
+		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property environment.acceptance = "true";
+		property portal.acceptance = "true";
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Content Page Name",
+				site = "false",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Add a Heading fragment to the content page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Paragraph fragment below the Heading") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Publish the content page") {
+			PageEditor.clickPublish();
+		}
+
+		task ("Publish the site to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the content page at edit mode in the staging site") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Add a Button fragment below the Paragraph") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button",
+				targetFragmentName = "Paragraph");
+		}
+
+		task ("Edit the inline content of Paragraph") {
+			PageEditor.editFragmentText(
+				fragmentName = "Paragraph",
+				id = "element-text",
+				text = "New editable fragment text");
+		}
+
+		task ("Publish the content page") {
+			PageEditor.clickPublish();
+		}
+
+		task ("View the Heading fragment in view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("View the edited inline content shown in Paragraph") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "New editable fragment text");
+		}
+
+		task ("View the Button fragment shown in view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+		}
+
+		task ("Navigate to the content page in the live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("View the Heading fragment") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("View the Paragraph fragment keeps default inline content") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.");
+		}
+
+		task ("View the Button fragment not shown") {
+			AssertElementNotPresent(
+				fragmentName = "button",
+				id = "link",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+
+		task ("Publish the site to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the content page in the live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("View the Heading fragment") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("View the edited inline content shown in Paragraph") {
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "New editable fragment text");
+		}
+
+		task ("View the Button fragment shown") {
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+		}
+	}
+
+	@description = "This is a test for LPS-133933. The user can resize the displayed image via image editor on Page Content panel in staging site."
+	@priority = "4"
+	test ResizeDisplayedImageViaImageEditorOnPageContentPanelInStagingSite {
+		task ("Add a content page based on Blank") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add an Image fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Image");
+		}
+
+		task ("Directly select an image in editable field") {
+			PageEditor.editFragmentImage(
+				fileName = "analytics-cloud-hero-image.png",
+				fragmentName = "Image",
+				id = "image-square");
+		}
+
+		task ("View the selected image is shown in Image fragment") {
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "analytics-cloud-hero-image.png");
+		}
+
+		task ("Take down the naturalWidth and naturalHeight of image") {
+			var naturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
+			var naturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+		}
+
+		task ("Edit the image via the image editor on Page Content panel") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "analytics-cloud-hero-image.png",
+				menuItem = "Edit Image");
+
+			ImageEditor.resizeImage(dimension = "16:9");
+
+			ImageEditor.saveChanges();
+		}
+
+		task ("Take down the new naturalWidth and naturalHeight of image") {
+			Navigator.gotoNavTab(navTab = "Page Elements");
+
+			WaitForElementPresent(
+				key_resolutionLabel = "Width",
+				locator1 = "PageEditor#IMAGE_RESOLUTION_LABEL");
+
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+		}
+
+		task ("View the naturalWidth doesn't change") {
+			TestUtils.assertEquals(
+				actual = "${editedNaturalWidth}",
+				expected = "${naturalWidth}");
+		}
+
+		task ("View the naturalHeight becomes smaller") {
+			TestUtils.isGreaterThan(
+				actual = "${naturalHeight}",
+				expected = "${editedNaturalHeight}");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Take down the new naturalWidth and naturalHeight of image at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "analytics-cloud-hero-image.png");
+
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+		}
+
+		task ("View the naturalWidth doesn't change") {
+			TestUtils.assertEquals(
+				actual = "${editedNaturalWidth}",
+				expected = "${naturalWidth}");
+		}
+
+		task ("View the naturalHeight becomes smaller") {
+			TestUtils.isGreaterThan(
+				actual = "${naturalHeight}",
+				expected = "${editedNaturalHeight}");
+		}
+
+		task ("Publish to Live via page") {
+			Staging.gotoPublishToLive();
+
+			Staging.publishToLive();
+		}
+
+		task ("Take down the new naturalWidth and naturalHeight of image at view mode in live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.viewFragmentEditableImage(
+				id = "image-square",
+				imageDescription = "",
+				imageFileName = "analytics-cloud-hero-image.png");
+
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+		}
+
+		task ("View the naturalWidth doesn't change") {
+			TestUtils.assertEquals(
+				actual = "${editedNaturalWidth}",
+				expected = "${naturalWidth}");
+		}
+
+		task ("View the naturalHeight becomes smaller") {
+			TestUtils.isGreaterThan(
+				actual = "${naturalHeight}",
+				expected = "${editedNaturalHeight}");
+		}
+	}
+
+	@description = "This is a test for LPS-133933. The user can rotate the displayed image via image editor on Page Content panel in staging site."
+	@priority = "4"
+	test RotateDisplayedImageViaImageEditorOnPageContentPanelInStagingSite {
+		task ("Add a content page based on Blank") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Banner Center fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map the Preview Image of an image to background image editable field") {
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
+				entryTitle = "analytics-cloud-hero-image.png",
+				fieldName = "Preview Image",
+				navItem = "Documents and Media",
+				panel = "Styles",
+				uploadFileName = "analytics-cloud-hero-image.png");
+		}
+
+		task ("View the mapped image is shown in Banner Center fragment") {
+			PageEditor.viewContainerStyle(backgroundImage = "analytics-cloud-hero-image.png");
+		}
+
+		task ("View the version of mapped image") {
+			AssertVisible(
+				backgroundImageStyle = "version=1.0",
+				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
+				position = "1");
+		}
+
+		task ("Edit the image via the image editor on Page Content panel") {
+			Navigator.gotoNavTab(navTab = "Page Content");
+
+			PageEditor.gotoEllipsisMenuItemInPageContentPanel(
+				itemName = "analytics-cloud-hero-image.png",
+				menuItem = "Edit Image");
+
+			ImageEditor.rotateImage();
+
+			ImageEditor.saveChanges();
+		}
+
+		task ("View the version of mapped image") {
+			Navigator.gotoNavTab(navTab = "Page Elements");
+
+			WaitForElementPresent(
+				key_resolutionLabel = "Width",
+				locator1 = "PageEditor#IMAGE_RESOLUTION_LABEL");
+
+			AssertVisible(
+				backgroundImageStyle = "version=2.0",
+				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
+				position = "1");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("View the version of mapped image at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Banner Title Example");
+
+			AssertVisible(
+				backgroundImageStyle = "version=2.0",
+				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
+				position = "1");
+		}
+
+		task ("Publish to Live via page") {
+			Staging.gotoPublishToLive();
+
+			Staging.publishToLive();
+		}
+
+		task ("View the version of mapped image at view mode in live site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Banner Title Example");
+
+			AssertVisible(
+				backgroundImageStyle = "version=2.0",
+				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
+				position = "1");
+		}
+	}
+
+	@description = "This is a test for LPS-111946. Undo can bring deleted fragments back in Staging site."
+	@priority = "3"
+	test UndoDeletedFragmentInStagingSite {
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Content Page Name",
+				site = "false",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Add a Heading fragment to the content page") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Add a Paragraph fragment below the Heading") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph",
+				targetFragmentName = "Heading");
+		}
+
+		task ("Publish the content page") {
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the content page at edit mode in the staging site") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Remove Heading frgament in staging site") {
+			PageEditor.removeFragment(fragmentName = "Heading");
+		}
+
+		task ("Assert the Heading fragment is removed") {
+			PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+		}
+
+		task ("Click Undo to revert change") {
+			Click(
+				key_text = "undo",
+				locator1 = "Icon#ANY");
+		}
+
+		task ("View the Heading fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "Heading Example",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("View the Paragraph fragment") {
+			PageEditor.viewFragmentEditableText(
+				editableText = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.",
+				fragmentName = "Paragraph",
+				id = "element-text");
+		}
+	}
+
+	@description = "This is a test for LPS-130482. View the custom CSS of content page in staging site."
+	@priority = "4"
+	test ViewCustomCSSOfContentPageInStagingSite {
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Content Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Navigate to the content page at edit mode in staging site") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Navigate to the Look and Feel settings") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+		}
+
+		task ("Define the custom CSS") {
+			Theme.configureLookAndFeelSpecificLook();
+
+			Theme.configureLookAndFeelCustomCSS(cssText = '''div.component-paragraph {background-color: red; color:white;}''');
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+		}
+
+		task ("Add a Paragraph fragment to the content page and publish") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the content page at view mode in staging site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("View the Text Color of Paragraph") {
+			AssertCssValue(
+				fragmentName = "paragraph",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(255, 255, 255, 1)");
+		}
+
+		task ("View the Background Color of Paragraph") {
+			AssertCssValue(
+				fragmentName = "paragraph",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "background-color",
+				value1 = "rgba(255, 0, 0, 1)");
+		}
+
+		task ("Navigate to the content page at edit mode in staging site") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("Navigate to the Look and Feel settings") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+		}
+
+		task ("Change the custom CSS") {
+			Theme.configureLookAndFeelCustomCSS(cssText = '''div.component-paragraph {background-color: blue; color:black;}''');
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the content page at view mode in staging site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name Staging");
+		}
+
+		task ("View the Text Color of Paragraph") {
+			AssertCssValue(
+				fragmentName = "paragraph",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "color",
+				value1 = "rgba(0, 0, 0, 1)");
+		}
+
+		task ("View the Background Color of Paragraph") {
+			AssertCssValue(
+				fragmentName = "paragraph",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT",
+				locator2 = "background-color",
+				value1 = "rgba(0, 0, 255, 1)");
+		}
+	}
+
+	@description = "This is a test for LPS-141773 and LPS-142348. Able to land in the experience selected at view mode in page editor in staging site."
+	@priority = "4"
+	test ViewExperienceInViewMode {
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Add a new experience") {
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+		}
+
+		task ("Add a Heading fragment below the Button then publish") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading",
+				targetFragmentName = "Button");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Change to new experience at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			ContentPages.changeExperience(experienceName = "New Experience");
+		}
+
+		task ("View the new experience shown in experience selector") {
+			ContentPages.viewCurrentExperience(experienceName = "New Experience");
+		}
+
+		task ("Open the preview modal and View the new experience selected in experience selector") {
+			ContentPages.gotoPageEditor();
+
+			PageEditor.openPreviewMode();
+
+			ContentPages.viewCurrentExperience(experienceName = "New Experience");
+		}
+
+		task ("View the Heading and Button fragments are shown in preview modal") {
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
+		}
+
+		task ("Back to view page mode and view the new experience still selected in experience selector") {
+			IFrame.closeFrame();
+
+			PageEditor.clickBack();
+
+			ContentPages.viewCurrentExperience(experienceName = "New Experience");
+		}
+	}
+
+	@description = "This is a test for LPS-141773. Able to land in the experience selected at preview draft page in page editor."
+	@priority = "4"
+	test ViewExperienceSelectedInPreviewDraftPage {
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				type = "content");
+		}
+
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Add a new experience") {
+			PageEditor.addExperience(
+				experienceName = "New Experience",
+				segmentName = "Anyone");
+		}
+
+		task ("Add a Heading fragment below the Button then publish") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading",
+				targetFragmentName = "Button");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Edit the inline text of Button in Default experience") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name Staging");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Button",
+				id = "link",
+				text = "Edited Text");
+		}
+
+		task ("Edit the inline text of Heading in new experience") {
+			PageEditor.changeExperience(newExperience = "New Experience");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Edited Heading Example");
+		}
+
+		task ("Navigate to preview draft page via Page Tree") {
+			PagesFinder.goToPagesFinder();
+
+			PagesFinder.gotoPageEllipsisItem(
+				item = "Preview Draft",
+				pageName = "Test Page Name");
+		}
+
+		task ("Change to new experience and view the new experience shown in experience selector") {
+			SelectWindow.selectPopUp(locator1 = "null");
+
+			ContentPages.changeExperience(experienceName = "New Experience");
+
+			ContentPages.viewCurrentExperience(experienceName = "New Experience");
+		}
+
+		task ("Open the preview modal and View the new experience selected in experience selector") {
+			ContentPages.gotoPageEditor();
+
+			PageEditor.openPreviewMode();
+
+			ContentPages.viewCurrentExperience(experienceName = "New Experience");
+		}
+
+		task ("Back to view page mode and view the new experience still selected in experience selector") {
+			Click.mouseDownMouseUp(locator1 = "Modal#CLOSE_BUTTON");
+
+			PageEditor.clickBack();
+
+			ContentPages.viewCurrentExperience(experienceName = "New Experience");
+		}
+	}
+
+}

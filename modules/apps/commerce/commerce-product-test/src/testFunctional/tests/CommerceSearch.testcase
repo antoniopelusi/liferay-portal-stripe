@@ -1,29 +1,50 @@
 @component-name = "portal-commerce"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
+	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Commerce";
+	property testray.main.component.name = "Shopping Experience";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
+		CommerceConfiguration.commerceTearDown();
+	}
 
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
+	@description = "COMMERCE-6664. I want to be able to disable Search Results widget pagination"
+	@priority = "3"
+	test DisableSearchResultsWidgetPagination {
+		property portal.acceptance = "false";
 
-			CommerceConfiguration.commerceAdminTearDown();
+		// TODO Review
 
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		MouseOver(locator1 = "CommerceEntry#PAGINATION_BAR");
+
+		Click.clickNoWaitForVisible(locator1 = "CommerceAccelerators#SEARCH_RESULT_OPTIONS");
+
+		MenuItem.click(menuItem = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		Navigator.gotoNavTab(navTab = "Pagination");
+
+		Uncheck.uncheckToggleSwitch(
+			key_toggleSwitchLabel = "Paginate",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		Button.clickSave();
+
+		IFrame.closeFrame();
+
+		AssertElementNotPresent(locator1 = "CommerceEntry#PAGINATION_BAR");
 	}
 
 	@description = "COMMERCE-6323. As a buyer, I want to be able to search an entry in Accounts using Global Search and I want the results to be visible in Account Management page"
@@ -37,21 +58,75 @@ definition {
 	}
 
 	@description = "COMMERCE-6326. As a buyer, I want to be able to search an entry in All Content using Global Search and the results should be visible on Search page"
-	@ignore = "true"
 	@priority = "3"
 	test GlobalSearchSearchEntryInAllContent {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6326 GlobalSearchSearchEntryInAllContent pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+
+		SelectFrameTop();
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "U-Joint");
+
+		Click(
+			key_suggestionName = "All Content",
+			locator1 = "Search#GLOBAL_SEARCH_SUGGESTIONS");
+
+		AssertElementPresent(
+			key_contentName = "U-Joint",
+			locator1 = "Search#SEARCH_BAR_WIDGET_CONTENT");
+
+		AssertElementPresent(
+			key_contentName = "U-Joint",
+			key_contentType = "Commerce Product",
+			locator1 = "Search#SEARCH_RESULT_WIDGET");
+
+		AssertElementPresent(
+			key_contentName = "Ball Joint",
+			key_contentType = "Commerce Product",
+			locator1 = "Search#SEARCH_RESULT_WIDGET");
 	}
 
 	@description = "COMMERCE-6322. As a buyer, I want to be able to search an entry in Catalog using Global Search and I want the results to be visible in Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test GlobalSearchSearchEntryInCatalog {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6322 GlobalSearchSearchEntryInCatalog pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "U-Joint");
+
+		Click(
+			key_entryName = "Search ",
+			locator1 = "Search#GLOBAL_SEARCH_SUGGESTION");
+
+		AssertElementPresent(
+			key_entryName = "U-Joint",
+			locator1 = "AppBuilder#SEARCH_BAR_INPUT");
+
+		AssertElementPresent(
+			key_productName = "U-Joint",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		AssertElementPresent(
+			key_productName = "Ball Joints",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
 	}
 
 	@description = "COMMERCE-6325. As a buyer, I want to be able to search an entry in Orders using Global Search and I want the results to be visible in Orders page"
@@ -61,33 +136,147 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6325 GlobalSearchSearchEntryInOrders pending implementation
+
 	}
 
 	@description = "COMMERCE-6329. As a buyer, I want to search for products in Catalog by typing different Categories in Global Search and I want to see the products with that categories in the suggestions(single category, multiple categories)"
-	@ignore = "true"
 	@priority = "3"
 	test GlobalSearchSearchProductsByCategories {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6329 GlobalSearchSearchProductsByCategories pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "Exhaust System");
+
+		AssertElementPresent(
+			key_errorMessage = "Lift Support",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		AssertElementPresent(
+			key_errorMessage = "Muffler/Resonators",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		AssertElementPresent(
+			key_errorMessage = "Exhaust Clamps",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		AssertElementPresent(
+			key_errorMessage = "Catalytic Converters",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		Click(locator1 = "Search#GLOBAL_SEARCH_CLEAN_BUTTON");
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "Exhaust System, Engine");
+
+		AssertElementPresent(
+			key_errorMessage = "Lift Support",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		AssertElementPresent(
+			key_errorMessage = "Muffler/Resonators",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		AssertElementPresent(
+			key_errorMessage = "Exhaust Clamps",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		AssertElementPresent(
+			key_errorMessage = "Catalytic Converters",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
+
+		AssertElementPresent(
+			key_errorMessage = "Valve Cover Grommets",
+			locator1 = "WorkflowMetricsSLA#SLA_ERROR_MESSAGE");
 	}
 
 	@description = "COMMERCE-6327. As a buyer, I want to search for different products by typing their SKUs in the Global Search and I want to see the products with that SKUs in the suggestions(single SKU, multiple SKUs)"
-	@ignore = "true"
 	@priority = "3"
 	test GlobalSearchSearchProductsBySKUs {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6327 GlobalSearchSearchProductsBySKUs pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+
+		SelectFrameTop();
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "MIN93015");
+
+		AssertElementPresent(
+			key_entryName = "ABS Sensor",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		Click(locator1 = "Search#GLOBAL_SEARCH_CLEAN_BUTTON");
+
+		SelectFrameTop();
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "MIN93015 MIN55861");
+
+		AssertElementPresent(
+			key_entryName = "ABS Sensor",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		AssertElementPresent(
+			key_entryName = "U-Joint",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
 	}
 
 	@description = "COMMERCE-6328. As a buyer, I want to search for products by typing different Specification Values in Global Search and I want to see the products with that specification values in the suggestions(single specification, multiple specifications)"
-	@ignore = "true"
 	@priority = "3"
 	test GlobalSearchSearchProductsBySpecificationValues {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6328 GlobalSearchSearchProductsBySpecificationValues pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+
+		SelectFrameTop();
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "Plastic");
+
+		AssertElementPresent(
+			key_entryName = "Timing Chain Tensioner",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		Click(locator1 = "Search#GLOBAL_SEARCH_CLEAN_BUTTON");
+
+		SelectFrameTop();
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "Plastic, Ceramic");
+
+		AssertElementPresent(
+			key_entryName = "Timing Chain Tensioner",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		AssertElementPresent(
+			key_entryName = "Premium Brake Pads",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
 	}
 
 	@description = "COMMERCE-6320. As a buyer, I want to be able to search an Accounts entry using Global Search and I want to be able to click on a suggested entry and get redirected to that account page"
@@ -96,133 +285,639 @@ definition {
 	test GlobalSearchSuggestedAccountsEntry {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6320 GlobalSearchSuggestedAccountsEntry pending implementation
+		// TODO Review
+
 	}
 
 	@description = "COMMERCE-6319. As a buyer, I want to be able to search a Catalog entry using Global Search(Product Name, Product Name with single quotes, Product Name with double quotes) and I want to be able to click on a suggested entry and get redirected to that product Details page"
-	@ignore = "true"
 	@priority = "3"
 	test GlobalSearchSuggestedCatalogEntries {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6319 GlobalSearchSuggestedCatalogEntries pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "ABS Sensor");
+
+		AssertElementPresent(
+			key_entryName = "ABS Sensor",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		AssertElementPresent(
+			key_entryName = "Wear Sensors",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		Click(locator1 = "Button#SEARCH_CLOSE");
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "'ABS Sensor'");
+
+		AssertElementPresent(
+			key_entryName = "ABS Sensor",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		AssertElementPresent(
+			key_entryName = "Wear Sensors",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		Click(locator1 = "Button#SEARCH_CLOSE");
+
+		var product = '''"ABS Sensor"''';
+
+		Type(
+			locator1 = "Search#GLOBAL_SEARCH_BAR",
+			value1 = "${product}");
+
+		AssertElementPresent(
+			key_entryName = "ABS Sensor",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		AssertElementNotPresent(
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION",
+			value1 = "Shock Absorber");
+
+		AssertElementNotPresent(
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION",
+			value1 = "Wear Sensors");
+
+		Click(
+			key_entryName = "ABS Sensor",
+			locator1 = "Search#ACCOUNT_SEARCH_SUGGESTION");
+
+		AssertTextEquals(
+			locator1 = "CommerceFrontStore#FS_PRODUCT_NAME",
+			value1 = "ABS Sensor");
 	}
 
 	@description = "COMMERCE-6321. As a buyer, I want to be able to search an Orders entry using Global Search and I want to be able to click on a suggested entry and get redirected to that order details page"
-	@ignore = "true"
 	@priority = "3"
 	test GlobalSearchSuggestedOrdersEntries {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6321 GlobalSearchSuggestedOrdersEntries pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+
+		CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+			accountName = "Commerce Account",
+			emailAddress = "buyer@liferay.com",
+			role = "Buyer",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userScreenName = "buyeruser");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		Click(locator1 = "Dropdown#FILTER_AND_ORDER");
+
+		MenuItem.click(menuItem = "Account Users");
+
+		CommerceLogin.editPasswordCP(
+			newPassword = "ttest",
+			requirePasswordReset = "true",
+			userScreenName = "buyeruser");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			newPassword = "test",
+			password = "ttest",
+			urlAppend = "web/minium",
+			userEmailAddress = "buyer@liferay.com");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
+
+		Click(
+			key_text = "Add Order",
+			locator1 = "Button#ANY");
+
+		SelectFrameTop();
+
+		var orderId = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+
+		Type(
+			key_text = "Search",
+			locator1 = "TextInput#CUSTOM_CANONICAL_URL_ENABLED",
+			value1 = "${orderId}");
+
+		AssertElementPresent(
+			key_value = "${orderId}",
+			locator1 = "CommerceEntry#SUGGESTION_ACTIVE_ORDER_KEY");
+
+		Click(locator1 = "Button#SEARCH_CLOSE");
+
+		Type(
+			key_text = "Search",
+			locator1 = "TextInput#CUSTOM_CANONICAL_URL_ENABLED",
+			value1 = "buyer@liferay.com");
+
+		AssertElementPresent(
+			key_value = "${orderId}",
+			locator1 = "CommerceEntry#SUGGESTION_ACTIVE_ORDER_KEY");
+
+		Click(
+			key_value = "${orderId}",
+			locator1 = "CommerceEntry#SUGGESTION_ACTIVE_ORDER_KEY");
+
+		AssertElementPresent(
+			key_value = "${orderId}",
+			locator1 = "CommerceEntry#ORDER_BY_KEY");
 	}
 
 	@description = "COMMERCE-6148. As a buyer, I want to search a product by its name using the Search Bar widget and I want the results to be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductByName {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6148 SearchBarWidgetSearchProductByName pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "ABS Sensor");
+
+		Button.clickSubmitButton();
+
+		for (var i : list "ABS Sensor,Wear Sensors,3") {
+			if ("${i}" == "3") {
+				AssertElementNotPresent(
+					key_value = "${i}",
+					locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+			}
+			else {
+				AssertElementPresent(
+					key_productName = "${i}",
+					locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+			}
+		}
 	}
 
 	@description = "COMMERCE-6149.As a buyer, I want to search a product by its name using double quotes in the Search Bar widget and that product should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductByNameDoubleQuotes {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6149 SearchBarWidgetSearchProductByNameDoubleQuotes pending implementation
+		var product = '''"ABS Sensor"''';
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "${product}");
+
+		Button.clickSubmitButton();
+
+		AssertElementPresent(
+			key_value = "1",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+
+		AssertElementPresent(
+			key_productName = "ABS Sensor",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		AssertElementNotPresent(
+			key_value = "2",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
 	}
 
 	@description = "COMMERCE-6150. As a buyer, I want to search a product by its name using single quotes in the Search Bar widget and the results should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductByNameSingleQuotes {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6150 SearchBarWidgetSearchProductByNameSingleQuotes pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "'ABS Sensor'");
+
+		Button.clickSubmitButton();
+
+		for (var i : list "ABS Sensor,Wear Sensors,3") {
+			if ("${i}" == "3") {
+				AssertElementNotPresent(
+					key_value = "${i}",
+					locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+			}
+			else {
+				AssertElementPresent(
+					key_productName = "${i}",
+					locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+			}
+		}
 	}
 
 	@description = "COMMERCE-6151. As a buyer, I want to search a product by typing its SKU in the Search Bar widget and the results should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductBySKU {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6151 SearchBarWidgetSearchProductBySKU pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "MIN93015");
+
+		Button.clickSubmitButton();
+
+		AssertElementPresent(
+			key_value = "1",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+
+		AssertElementNotPresent(
+			key_value = "2",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
 	}
 
 	@description = "COMMERCE-6155. As a buyer, I want to search for products by typing a Category in Search Bar widget and the results should be visible on Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductsByCategory {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		// TODO COMMERCE-6155 SearchBarWidgetSearchProductsByCategory pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "Transmission");
+
+		Button.clickSubmitButton();
+
+		for (var i : list "Transmission Fluid,Transmission Cooler Line Assembly,U-Joint,Torque Converters,Wheel Seal - Front,Mount,Drive Shafts,Universal CV Boot,CV Axles") {
+			AssertElementPresent(
+				key_productName = "${i}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		AssertElementNotPresent(
+			key_value = "10",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
 	}
 
 	@description = "COMMERCE-6156. As a buyer, I want to search for products by typing different Categories in Search Bar widget and the results should be visible on Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductsByDifferentCategories {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6156 SearchBarWidgetSearchProductsByDifferentCategories pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "Transmission Engine");
+
+		Button.clickSubmitButton();
+
+		var products = "Engine Mount,Transmission Fluid,Transmission Cooler Line Assembly,U-Joint,Torque Converters,Wheel Seal - Front,Mount,Drive Shafts,Universal CV Boot,CV Axles,Valve Cover Grommets,Timing Chain,Timing Chain Tensioner,Seal,Pulley Kit,Piston,Oil Pump,Oil Filter,Cams,Bearings";
+
+		for (var i : list "${products}") {
+			AssertElementPresent(
+				key_productName = "${i}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		AssertElementNotPresent(
+			key_value = "21",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
 	}
 
 	@description = "COMMERCE-6152. As a buyer, I want to search for different products by typing their SKUs in the Search Bar widget and the results should be visible on the Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductsByDifferentSKUs {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6152 SearchBarWidgetSearchProductsByDifferentSKUs pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "MIN93015 MIN55861");
+
+		Button.clickSubmitButton();
+
+		for (var i : list "U-Joint,ABS Sensor,3") {
+			if ("${i}" == "3") {
+				AssertElementNotPresent(
+					key_value = "${i}",
+					locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+			}
+			else {
+				AssertElementPresent(
+					key_productName = "${i}",
+					locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+			}
+		}
 	}
 
 	@description = "COMMERCE-6154. As a buyer, I want to search for products by typing different Specification Values in Search Bar widget and the results should be visible on Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductsByDifferentSpecificationValues {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6154 SearchBarWidgetSearchProductsByDifferentSpecificationValues pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "Plastic Ceramic");
+
+		Button.clickSubmitButton();
+
+		for (var i : list "1,Timing Chain Tensioner,2,Premium Brake Pads,3") {
+			if ("${i}" == "1") {
+				AssertElementPresent(
+					key_value = "${i}",
+					locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+			}
+			else if ("${i}" == "Timing Chain Tensioner") {
+				AssertElementPresent(
+					key_productName = "${i}",
+					locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+			}
+			else if ("${i}" == "2") {
+				AssertElementPresent(
+					key_value = "${i}",
+					locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+			}
+			else if ("${i}" == "Premium Brake Pads") {
+				AssertElementPresent(
+					key_productName = "${i}",
+					locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+			}
+			else {
+				AssertElementNotPresent(
+					key_value = "${i}",
+					locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+			}
+		}
 	}
 
 	@description = "COMMERCE-6153. As a buyer, I want to search for products by typing a Specifications Value in Search Bar widget and the results should be visible on Search Results widget"
-	@ignore = "true"
 	@priority = "3"
 	test SearchBarWidgetSearchProductsBySpecificationValue {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6153 SearchBarWidgetSearchProductsBySpecificationValue pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Type(
+			locator1 = "Search#EMBEDDED_SEARCH_BAR",
+			value1 = "Plastic");
+
+		Button.clickSubmitButton();
+
+		AssertElementPresent(
+			key_value = "1",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
+
+		AssertElementPresent(
+			key_productName = "Timing Chain Tensioner",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+		AssertElementNotPresent(
+			key_value = "2",
+			locator1 = "CommerceAccelerators#ASSERT_PRODUCT_CARD");
 	}
 
 	@description = "COMMERCE-6145. As a buyer, I want to change the number of items to display for every page from Search Results widget pagination bar"
-	@ignore = "true"
 	@priority = "3"
 	test SearchResultsWidgetChangeNumberOfItemsToDisplayFromPaginationBar {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6145 SearchResultsWidgetChangeNumberOfItemsToDisplayFromPaginationBar pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		AnnouncementsPortlet.configurePaginationCP(itemsPerPage = "8");
+
+		AssertElementPresent(
+			key_numberEntries = "8 Entries",
+			locator1 = "Dropdown#ENTRIES_NUMBER");
 	}
 
 	@description = "COMMERCE-6147. As a buyer, I want to switch from one results page to another in Search Results"
-	@ignore = "true"
 	@priority = "3"
 	test SearchResultsWidgetChangeResultsPage {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6147 SearchResultsWidgetChangeResultsPage pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		var productsNamePage1 = "";
+		var curr_productNamePage1 = "";
+
+		for (var iterator : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20") {
+			Click(
+				key_index = "${iterator}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME_BY_INDEX");
+
+			WaitForElementPresent(locator1 = "CommerceFrontStore#FS_PRODUCT_NAME");
+
+			var curr_productNamePage1 = selenium.getText("CommerceFrontStore#FS_PRODUCT_NAME");
+
+			if ("${iterator}" == "1") {
+				var productsNamePage1 = "${curr_productNamePage1}";
+			}
+			else {
+				var productsNamePage1 = "${productsNamePage1},${curr_productNamePage1}";
+			}
+
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+		}
+
+		Click(
+			key_pageNumber = "2",
+			locator1 = "CommerceNavigation#PAGINATION_ANY_PAGE");
+
+		var iterator = "1";
+
+		for (var curr_productNamePage1 : list "${productsNamePage1}") {
+			AssertTextNotEquals(
+				key_index = "${iterator}",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME_BY_INDEX",
+				value1 = "${curr_productNamePage1}");
+
+			var iterator = ${iterator} + 1;
+		}
 	}
 
 	@description = "COMMERCE-6146. As a buyer, I want to change the number of items to display for every page from Search Results widget configuration"
-	@ignore = "true"
 	@priority = "3"
 	test SearchResultsWidgetEditNumberOfItemsToDisplayFromConfiguration {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-6146 SearchResultsWidgetEditNumberOfItemsToDisplayFromConfiguration pending implementation
+		// TODO Review
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		MouseOver(locator1 = "CommerceEntry#PAGINATION_BAR");
+
+		Click.clickNoWaitForVisible(locator1 = "CommerceAccelerators#SEARCH_RESULT_OPTIONS");
+
+		MenuItem.click(menuItem = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		Navigator.gotoNavTab(navTab = "Pagination");
+
+		Type(
+			key_fieldLabel = "Number of Items to Display",
+			locator1 = "TextInput#GENERIC_NUMBER_INPUT",
+			value1 = "4");
+
+		Button.clickSave();
+
+		IFrame.closeFrame();
+
+		AssertElementPresent(
+			key_numberEntries = "4 Entries",
+			locator1 = "Dropdown#ENTRIES_NUMBER");
+	}
+
+	@description = "COMMERCE-6663. I want to be able to use ADT to render Search Results widget and I want to be able to select a Display Template and see it applied to the widget"
+	@priority = "3"
+	test UseADTInSearchResultsWidget {
+		property portal.acceptance = "false";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		CommerceProducts.searchProduct(search = "U-Joint");
+
+		CommerceNavigator.gotoEntry(entryName = "U-Joint");
+
+		var productId = selenium.getText("CommerceEntry#HEADER_ID");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		ProductMenu.gotoPortlet(
+			category = "Design",
+			portlet = "Templates");
+
+		Navigator.gotoNavTab(navTab = "Widget Templates");
+
+		CommerceAcceleratorsInitializer.addADT(
+			adtType = "Search Results",
+			fieldNameList = "Commerce Product Catalog Entries*");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		MouseOver(locator1 = "CommerceEntry#PAGINATION_BAR");
+
+		Click.clickNoWaitForVisible(locator1 = "CommerceAccelerators#SEARCH_RESULT_OPTIONS");
+
+		MenuItem.click(menuItem = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		Navigator.gotoNavTab(navTab = "Render Selection");
+
+		if (IsElementNotPresent(key_selectFieldLabel = "Product List Renderer", locator1 = "Select#ANY")) {
+			Click(
+				key_text = "Product List Renderer",
+				locator1 = "Link#ANY");
+		}
+
+		AssertTextEquals(
+			key_selectFieldLabel = "Product List Renderer",
+			locator1 = "Select#ANY",
+			value1 = "Default");
+
+		Click(
+			key_radioOption = "Use Application Display Template",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		if (IsElementNotPresent(key_text = "Display Template", locator1 = "Select#ANY")) {
+			Click(
+				key_text = "Display Template",
+				locator1 = "Link#ANY");
+		}
+
+		Select(
+			key_selectFieldLabel = "Display Template",
+			locator1 = "Select#ANY",
+			value1 = "Search Results Test ADT");
+
+		Navigator.gotoNavTab(navTab = "Pagination");
+
+		Type(
+			key_fieldLabel = "Number of Items to Display",
+			locator1 = "TextInput#GENERIC_NUMBER_INPUT",
+			value1 = "1");
+
+		Button.clickSave();
+
+		IFrame.closeFrame();
+
+		SelectFrameTop();
+
+		AssertTextEquals(
+			locator1 = "CommerceAccelerators#SORT_BY_DROPDOWN",
+			value1 = "Sort By: Relevance");
+
+		AssertTextEquals.assertPartialText(
+			key_portletName = "Search Results",
+			locator1 = "Portlet#BODY",
+			value1 = "${productId}");
 	}
 
 }

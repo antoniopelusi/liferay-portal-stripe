@@ -25,10 +25,10 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 	renderResponse
 ).setTabs1(
 	tabs1
-).build();
+).buildPortletURL();
 %>
 
-<aui:form action="<%= portletURL.toString() %>">
+<aui:form action="<%= portletURL %>">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.SEARCH %>" />
 	<aui:input name="tabs1" type="hidden" value="<%= HtmlUtil.escapeAttribute(tabs1) %>" />
 

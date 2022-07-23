@@ -16,8 +16,8 @@ package com.liferay.layout.admin.web.internal.portlet.action;
 
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
-import com.liferay.info.list.provider.InfoListProvider;
-import com.liferay.info.list.provider.InfoListProviderTracker;
+import com.liferay.info.collection.provider.InfoCollectionProvider;
+import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType;
 import com.liferay.item.selector.criteria.InfoListItemSelectorReturnType;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
@@ -49,7 +49,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -201,10 +200,11 @@ public class AddCollectionLayoutMVCActionCommand
 	}
 
 	private String _getCollectionProviderPageElementJSON(String className) {
-		InfoListProvider<?> infoListProvider =
-			_infoListProviderTracker.getInfoListProvider(className);
+		InfoCollectionProvider<?> infoCollectionProvider =
+			_infoItemServiceTracker.getInfoItemService(
+				InfoCollectionProvider.class, className);
 
-		if (infoListProvider == null) {
+		if (infoCollectionProvider == null) {
 			return null;
 		}
 
@@ -212,7 +212,7 @@ public class AddCollectionLayoutMVCActionCommand
 			"CLASS_NAME", className
 		).put(
 			"COLLECTION_PROVIDER_NAME",
-			infoListProvider.getLabel(LocaleUtil.getDefault())
+			infoCollectionProvider.getLabel(LocaleUtil.getDefault())
 		).build();
 
 		String collectionProviderPageElementJSON = StringUtil.read(
@@ -251,8 +251,7 @@ public class AddCollectionLayoutMVCActionCommand
 						layout.getGroupId(), layout.getPlid(), true);
 
 			LayoutStructure layoutStructure = LayoutStructure.of(
-				layoutPageTemplateStructure.getData(
-					SegmentsExperienceConstants.ID_DEFAULT));
+				layoutPageTemplateStructure.getDefaultSegmentsExperienceData());
 
 			_layoutPageTemplatesImporter.importPageElement(
 				layout, layoutStructure, layoutStructure.getMainItemId(),
@@ -264,7 +263,7 @@ public class AddCollectionLayoutMVCActionCommand
 	private AssetListEntryLocalService _assetListEntryLocalService;
 
 	@Reference
-	private InfoListProviderTracker _infoListProviderTracker;
+	private InfoItemServiceTracker _infoItemServiceTracker;
 
 	@Reference
 	private LayoutExceptionRequestHandler _layoutExceptionRequestHandler;

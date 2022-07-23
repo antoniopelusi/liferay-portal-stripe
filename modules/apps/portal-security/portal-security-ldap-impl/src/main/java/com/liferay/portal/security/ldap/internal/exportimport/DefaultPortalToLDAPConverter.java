@@ -18,7 +18,7 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoConverterUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
+import com.liferay.portal.kernel.bean.BeanProperties;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.PwdEncryptorException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -32,14 +32,13 @@ import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.security.auth.PasswordModificationThreadLocal;
 import com.liferay.portal.kernel.security.ldap.LDAPSettings;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
-import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.ListTypeService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Props;
-import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.exportimport.UserOperation;
+import com.liferay.portal.security.ldap.ContactConverterKeys;
 import com.liferay.portal.security.ldap.GroupConverterKeys;
 import com.liferay.portal.security.ldap.SafeLdapName;
 import com.liferay.portal.security.ldap.SafeLdapNameFactory;
@@ -110,20 +109,14 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 			return groupBinding.getNameInNamespace();
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(
+		return StringBundler.concat(
 			GetterUtil.getString(
 				groupMappings.getProperty(GroupConverterKeys.GROUP_NAME),
-				_DEFAULT_DN));
-		sb.append(StringPool.EQUAL);
-		sb.append(Rdn.escapeValue(userGroup.getName()));
-		sb.append(StringPool.COMMA);
-		sb.append(
+				_DEFAULT_DN),
+			StringPool.EQUAL, Rdn.escapeValue(userGroup.getName()),
+			StringPool.COMMA,
 			_safePortalLDAP.getGroupsDNSafeLdapName(
 				ldapServerId, userGroup.getCompanyId()));
-
-		return sb.toString();
 	}
 
 	@Override
@@ -141,12 +134,11 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		String rdnType = GetterUtil.getString(
 			groupMappings.getProperty(GroupConverterKeys.GROUP_NAME),
 			_DEFAULT_DN);
-		SafeLdapName groupsDNSafeLdapName =
-			_safePortalLDAP.getGroupsDNSafeLdapName(
-				ldapServerId, userGroup.getCompanyId());
 
 		return SafeLdapNameFactory.from(
-			rdnType, userGroup.getName(), groupsDNSafeLdapName);
+			rdnType, userGroup.getName(),
+			_safePortalLDAP.getGroupsDNSafeLdapName(
+				ldapServerId, userGroup.getCompanyId()));
 	}
 
 	@Override
@@ -159,10 +151,24 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 			return null;
 		}
 
-		Modifications modifications = getModifications(
+		if (contactExpandoMappings.containsKey(ContactConverterKeys.PREFIX)) {
+			String prefix = contactExpandoMappings.getProperty(
+				ContactConverterKeys.PREFIX);
+
+			contactMappings.put(ContactConverterKeys.PREFIX, prefix);
+		}
+
+		if (contactExpandoMappings.containsKey(ContactConverterKeys.SUFFIX)) {
+			String suffix = contactExpandoMappings.getProperty(
+				ContactConverterKeys.SUFFIX);
+
+			contactMappings.put(ContactConverterKeys.SUFFIX, suffix);
+		}
+
+		Modifications modifications = _getModifications(
 			contact, contactMappings, _reservedContactFieldNames);
 
-		populateCustomAttributeModifications(
+		_populateCustomAttributeModifications(
 			contact, contact.getExpandoBridge(), contactExpandoAttributes,
 			contactExpandoMappings, modifications);
 
@@ -205,13 +211,13 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 
 		attributes.put(objectClassAttribute);
 
-		addAttributeMapping(
+		_addAttributeMapping(
 			groupMappings.getProperty(GroupConverterKeys.GROUP_NAME),
 			userGroup.getName(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			groupMappings.getProperty(GroupConverterKeys.DESCRIPTION),
 			userGroup.getDescription(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			groupMappings.getProperty(GroupConverterKeys.USER),
 			getUserDNName(ldapServerId, user, userMappings), attributes);
 
@@ -225,7 +231,7 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 			UserOperation userOperation)
 		throws Exception {
 
-		Modifications modifications = getModifications(
+		Modifications modifications = _getModifications(
 			userGroup, groupMappings, new HashMap<String, String>());
 
 		SafeLdapName userGroupSafeLdapName = getGroupSafeLdapName(
@@ -290,37 +296,37 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 
 		attributes.put(objectClassAttribute);
 
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.UUID), user.getUuid(),
 			attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.SCREEN_NAME),
 			user.getScreenName(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.PASSWORD),
-			getEncryptedPasswordForLDAP(user, userMappings), attributes);
-		addAttributeMapping(
+			_getEncryptedPasswordForLDAP(user, userMappings), attributes);
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.EMAIL_ADDRESS),
 			user.getEmailAddress(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.FULL_NAME),
 			user.getFullName(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.FIRST_NAME),
 			user.getFirstName(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.MIDDLE_NAME),
 			user.getMiddleName(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.LAST_NAME),
 			user.getLastName(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.JOB_TITLE),
 			user.getJobTitle(), attributes);
-		addAttributeMapping(
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.PORTRAIT),
-			getUserPortrait(user), attributes);
-		addAttributeMapping(
+			_getUserPortrait(user), attributes);
+		_addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.STATUS),
 			String.valueOf(user.getStatus()), attributes);
 
@@ -373,32 +379,32 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 			Properties userMappings, Properties userExpandoMappings)
 		throws Exception {
 
-		Modifications modifications = getModifications(
+		Modifications modifications = _getModifications(
 			user, userMappings, _reservedUserFieldNames);
 
 		if (PasswordModificationThreadLocal.isPasswordModified() &&
 			Validator.isNotNull(
 				PasswordModificationThreadLocal.getPasswordUnencrypted())) {
 
-			String newPassword = getEncryptedPasswordForLDAP(
+			String newPassword = _getEncryptedPasswordForLDAP(
 				user, userMappings);
 
 			String passwordKey = userMappings.getProperty(
 				UserConverterKeys.PASSWORD);
 
-			addModificationItem(passwordKey, newPassword, modifications);
+			_addModificationItem(passwordKey, newPassword, modifications);
 		}
 
 		String portraitKey = userMappings.getProperty(
 			UserConverterKeys.PORTRAIT);
 
 		if (Validator.isNotNull(portraitKey)) {
-			addModificationItem(
-				new BasicAttribute(portraitKey, getUserPortrait(user)),
+			_addModificationItem(
+				new BasicAttribute(portraitKey, _getUserPortrait(user)),
 				modifications);
 		}
 
-		populateCustomAttributeModifications(
+		_populateCustomAttributeModifications(
 			user, user.getExpandoBridge(), userExpandoAttributes,
 			userExpandoMappings, modifications);
 
@@ -424,19 +430,14 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 			return userBinding.getNameInNamespace();
 		}
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(
+		return StringBundler.concat(
 			GetterUtil.getString(
-				userMappings.getProperty(_userDNFieldName), _DEFAULT_DN));
-		sb.append(StringPool.EQUAL);
-		sb.append(BeanPropertiesUtil.getStringSilent(user, _userDNFieldName));
-		sb.append(StringPool.COMMA);
-		sb.append(
+				userMappings.getProperty(_userDNFieldName), _DEFAULT_DN),
+			StringPool.EQUAL,
+			_beanProperties.getStringSilent(user, _userDNFieldName),
+			StringPool.COMMA,
 			_safePortalLDAP.getUsersDNSafeLdapName(
 				ldapServerId, user.getCompanyId()));
-
-		return sb.toString();
 	}
 
 	@Override
@@ -454,13 +455,13 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 
 		String rdnType = GetterUtil.getString(
 			userMappings.getProperty(_userDNFieldName), _DEFAULT_DN);
-		String rdnValue = BeanPropertiesUtil.getStringSilent(
+		String rdnValue = _beanProperties.getStringSilent(
 			user, _userDNFieldName);
-		SafeLdapName usersDNSafeLdapName =
-			_safePortalLDAP.getUsersDNSafeLdapName(
-				ldapServerId, user.getCompanyId());
 
-		return SafeLdapNameFactory.from(rdnType, rdnValue, usersDNSafeLdapName);
+		return SafeLdapNameFactory.from(
+			rdnType, rdnValue,
+			_safePortalLDAP.getUsersDNSafeLdapName(
+				ldapServerId, user.getCompanyId()));
 	}
 
 	public void setContactReservedFieldNames(
@@ -480,214 +481,6 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		for (String reservedUserFieldName : reservedUserFieldNames) {
 			_reservedUserFieldNames.put(
 				reservedUserFieldName, reservedUserFieldName);
-		}
-	}
-
-	protected void addAttributeMapping(
-		String attributeName, Object attributeValue, Attributes attributes) {
-
-		if (Validator.isNotNull(attributeName) && (attributeValue != null)) {
-			attributes.put(attributeName, attributeValue);
-		}
-	}
-
-	protected void addAttributeMapping(
-		String attributeName, String attributeValue, Attributes attributes) {
-
-		if (Validator.isNotNull(attributeName) &&
-			Validator.isNotNull(attributeValue)) {
-
-			attributes.put(attributeName, attributeValue);
-		}
-	}
-
-	protected void addModificationItem(
-		BasicAttribute basicAttribute, Modifications modifications) {
-
-		if (basicAttribute != null) {
-			modifications.addItem(basicAttribute);
-		}
-	}
-
-	protected void addModificationItem(
-		String attributeName, String attributeValue,
-		Modifications modifications) {
-
-		if (Validator.isNotNull(attributeName)) {
-			modifications.addItem(attributeName, attributeValue);
-		}
-	}
-
-	protected String getEncryptedPasswordForLDAP(
-		User user, Properties userMappings) {
-
-		String password =
-			PasswordModificationThreadLocal.getPasswordUnencrypted();
-
-		if (Validator.isNull(password)) {
-			return password;
-		}
-
-		LDAPAuthConfiguration ldapAuthConfiguration =
-			_ldapAuthConfigurationProvider.getConfiguration(
-				user.getCompanyId());
-
-		String algorithm = ldapAuthConfiguration.passwordEncryptionAlgorithm();
-
-		if (Validator.isNotNull(algorithm) &&
-			!algorithm.equals(PasswordEncryptorUtil.TYPE_NONE)) {
-
-			try {
-				StringBundler sb = new StringBundler(4);
-
-				if (!hasLegacyPasswordEncryptionAlgorithm()) {
-					sb.append(StringPool.OPEN_CURLY_BRACE);
-					sb.append(algorithm);
-					sb.append(StringPool.CLOSE_CURLY_BRACE);
-				}
-
-				sb.append(
-					_passwordEncryptor.encrypt(algorithm, password, null));
-
-				password = sb.toString();
-			}
-			catch (PwdEncryptorException pwdEncryptorException) {
-				throw new SystemException(pwdEncryptorException);
-			}
-		}
-
-		String passwordKey = userMappings.getProperty(
-			UserConverterKeys.PASSWORD);
-
-		if (passwordKey.equals("unicodePwd")) {
-			String quotedPassword = StringBundler.concat(
-				StringPool.QUOTE, password, StringPool.QUOTE);
-
-			try {
-				byte[] unicodePassword = quotedPassword.getBytes("UTF-16LE");
-
-				return new String(unicodePassword);
-			}
-			catch (UnsupportedEncodingException unsupportedEncodingException) {
-				throw new SystemException(unsupportedEncodingException);
-			}
-		}
-
-		return password;
-	}
-
-	protected Modifications getModifications(
-		Object object, Properties objectMappings,
-		Map<String, String> reservedFieldNames) {
-
-		Modifications modifications = Modifications.getInstance();
-
-		for (Map.Entry<Object, Object> entry : objectMappings.entrySet()) {
-			String fieldName = (String)entry.getKey();
-
-			if (reservedFieldNames.containsKey(fieldName)) {
-				continue;
-			}
-
-			String ldapAttributeName = (String)entry.getValue();
-
-			try {
-				Object attributeValue = _getAttributeValue(object, fieldName);
-
-				addModificationItem(
-					ldapAttributeName, attributeValue.toString(),
-					modifications);
-			}
-			catch (Exception exception) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						StringBundler.concat(
-							"Unable to map field ", fieldName, " to class ",
-							object.getClass()),
-						exception);
-				}
-			}
-		}
-
-		return modifications;
-	}
-
-	protected byte[] getUserPortrait(User user) {
-		byte[] bytes = null;
-
-		if (user.getPortraitId() == 0) {
-			return bytes;
-		}
-
-		Image image = null;
-
-		try {
-			image = _imageLocalService.getImage(user.getPortraitId());
-
-			if (image != null) {
-				bytes = image.getTextObj();
-			}
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to get the portrait for user " + user.getUserId(),
-					exception);
-			}
-		}
-
-		return bytes;
-	}
-
-	protected boolean hasLegacyPasswordEncryptionAlgorithm() {
-		if (Validator.isNotNull(
-				GetterUtil.getString(
-					_props.get(
-						PropsKeys.PASSWORDS_ENCRYPTION_ALGORITHM_LEGACY)))) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	protected void populateCustomAttributeModifications(
-		Object object, ExpandoBridge expandoBridge,
-		Map<String, Serializable> expandoAttributes, Properties expandoMappings,
-		Modifications modifications) {
-
-		if ((expandoAttributes == null) || expandoAttributes.isEmpty()) {
-			return;
-		}
-
-		for (Map.Entry<Object, Object> entry : expandoMappings.entrySet()) {
-			String fieldName = (String)entry.getKey();
-
-			Serializable fieldValue = expandoAttributes.get(fieldName);
-
-			if (fieldValue == null) {
-				continue;
-			}
-
-			String ldapAttributeName = (String)entry.getValue();
-
-			try {
-				int type = expandoBridge.getAttributeType(fieldName);
-
-				String value = ExpandoConverterUtil.getStringFromAttribute(
-					type, fieldValue);
-
-				addModificationItem(ldapAttributeName, value, modifications);
-			}
-			catch (Exception exception) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						StringBundler.concat(
-							"Unable to map field ", fieldName, " to class ",
-							object.getClass()),
-						exception);
-				}
-			}
 		}
 	}
 
@@ -728,21 +521,56 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		_passwordEncryptor = passwordEncryptor;
 	}
 
+	private void _addAttributeMapping(
+		String attributeName, Object attributeValue, Attributes attributes) {
+
+		if (Validator.isNotNull(attributeName) && (attributeValue != null)) {
+			attributes.put(attributeName, attributeValue);
+		}
+	}
+
+	private void _addAttributeMapping(
+		String attributeName, String attributeValue, Attributes attributes) {
+
+		if (Validator.isNotNull(attributeName) &&
+			Validator.isNotNull(attributeValue)) {
+
+			attributes.put(attributeName, attributeValue);
+		}
+	}
+
+	private void _addModificationItem(
+		BasicAttribute basicAttribute, Modifications modifications) {
+
+		if (basicAttribute != null) {
+			modifications.addItem(basicAttribute);
+		}
+	}
+
+	private void _addModificationItem(
+		String attributeName, String attributeValue,
+		Modifications modifications) {
+
+		if (Validator.isNotNull(attributeName)) {
+			modifications.addItem(attributeName, attributeValue);
+		}
+	}
+
 	private Object _getAttributeValue(Object object, String fieldName)
 		throws PortalException {
 
 		boolean listTypeFieldName = false;
 
-		if (fieldName.equals("prefix")) {
+		if (fieldName.equals(ContactConverterKeys.PREFIX)) {
 			fieldName = "prefixId";
 			listTypeFieldName = true;
 		}
-		else if (fieldName.equals("suffix")) {
+		else if (fieldName.equals(ContactConverterKeys.SUFFIX)) {
 			fieldName = "suffixId";
 			listTypeFieldName = true;
 		}
 
-		Object attributeValue = BeanPropertiesUtil.getObjectSilent(
+		Object attributeValue = _beanProperties.getObjectSilent(
 			object, fieldName);
 
 		if ((attributeValue != null) && listTypeFieldName) {
@@ -755,12 +583,168 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		return attributeValue;
 	}
 
+	private String _getEncryptedPasswordForLDAP(
+		User user, Properties userMappings) {
+
+		String password =
+			PasswordModificationThreadLocal.getPasswordUnencrypted();
+
+		if (Validator.isNull(password)) {
+			return password;
+		}
+
+		LDAPAuthConfiguration ldapAuthConfiguration =
+			_ldapAuthConfigurationProvider.getConfiguration(
+				user.getCompanyId());
+
+		String algorithm = ldapAuthConfiguration.passwordEncryptionAlgorithm();
+
+		if (Validator.isNotNull(algorithm) &&
+			!algorithm.equals(PasswordEncryptor.TYPE_NONE)) {
+
+			try {
+				password = _passwordEncryptor.encrypt(
+					algorithm, password, null);
+			}
+			catch (PwdEncryptorException pwdEncryptorException) {
+				throw new SystemException(pwdEncryptorException);
+			}
+		}
+
+		String passwordKey = userMappings.getProperty(
+			UserConverterKeys.PASSWORD);
+
+		if (passwordKey.equals("unicodePwd")) {
+			String quotedPassword = StringBundler.concat(
+				StringPool.QUOTE, password, StringPool.QUOTE);
+
+			try {
+				byte[] unicodePassword = quotedPassword.getBytes("UTF-16LE");
+
+				return new String(unicodePassword);
+			}
+			catch (UnsupportedEncodingException unsupportedEncodingException) {
+				throw new SystemException(unsupportedEncodingException);
+			}
+		}
+
+		return password;
+	}
+
+	private Modifications _getModifications(
+		Object object, Properties objectMappings,
+		Map<String, String> reservedFieldNames) {
+
+		Modifications modifications = Modifications.getInstance();
+
+		for (Map.Entry<Object, Object> entry : objectMappings.entrySet()) {
+			String fieldName = (String)entry.getKey();
+
+			if (reservedFieldNames.containsKey(fieldName)) {
+				continue;
+			}
+
+			String ldapAttributeName = (String)entry.getValue();
+
+			try {
+				Object attributeValue = _getAttributeValue(object, fieldName);
+
+				if (attributeValue != null) {
+					_addModificationItem(
+						ldapAttributeName, attributeValue.toString(),
+						modifications);
+				}
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Unable to map field ", fieldName, " to class ",
+							object.getClass()),
+						exception);
+				}
+			}
+		}
+
+		return modifications;
+	}
+
+	private byte[] _getUserPortrait(User user) {
+		byte[] bytes = null;
+
+		if (user.getPortraitId() == 0) {
+			return bytes;
+		}
+
+		Image image = null;
+
+		try {
+			image = _imageLocalService.getImage(user.getPortraitId());
+
+			if (image != null) {
+				bytes = image.getTextObj();
+			}
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to get the portrait for user " + user.getUserId(),
+					exception);
+			}
+		}
+
+		return bytes;
+	}
+
+	private void _populateCustomAttributeModifications(
+		Object object, ExpandoBridge expandoBridge,
+		Map<String, Serializable> expandoAttributes, Properties expandoMappings,
+		Modifications modifications) {
+
+		if ((expandoAttributes == null) || expandoAttributes.isEmpty()) {
+			return;
+		}
+
+		for (Map.Entry<Object, Object> entry : expandoMappings.entrySet()) {
+			String fieldName = (String)entry.getKey();
+
+			Serializable fieldValue = expandoAttributes.get(fieldName);
+
+			if (fieldValue == null) {
+				continue;
+			}
+
+			String ldapAttributeName = (String)entry.getValue();
+
+			try {
+				int type = expandoBridge.getAttributeType(fieldName);
+
+				String value = ExpandoConverterUtil.getStringFromAttribute(
+					type, fieldValue);
+
+				_addModificationItem(ldapAttributeName, value, modifications);
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Unable to map field ", fieldName, " to class ",
+							object.getClass()),
+						exception);
+				}
+			}
+		}
+	}
+
 	private static final String _DEFAULT_DN = "cn";
 
 	private static final String _OBJECT_CLASS = "objectclass";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultPortalToLDAPConverter.class);
+
+	@Reference
+	private BeanProperties _beanProperties;
 
 	private ImageLocalService _imageLocalService;
 	private ConfigurationProvider<LDAPAuthConfiguration>

@@ -18,20 +18,13 @@ import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.ServiceComponentLocalService;
 import com.liferay.portal.kernel.service.configuration.ServiceComponentConfiguration;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.spring.extender.internal.loader.ModuleResourceLoader;
-import com.liferay.portal.util.PropsValues;
 
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.List;
 import java.util.Properties;
 
 import org.osgi.framework.Bundle;
@@ -45,15 +38,12 @@ public class ServiceConfigurationInitializer {
 
 	public ServiceConfigurationInitializer(
 		Bundle bundle, ClassLoader classLoader,
-		Configuration portletConfiguration, Configuration serviceConfiguration,
-		ResourceActions resourceActions,
+		Configuration serviceConfiguration,
 		ServiceComponentLocalService serviceComponentLocalService) {
 
 		_bundle = bundle;
 		_classLoader = classLoader;
-		_portletConfiguration = portletConfiguration;
 		_serviceConfiguration = serviceConfiguration;
-		_resourceActions = resourceActions;
 		_serviceComponentLocalService = serviceComponentLocalService;
 
 		_serviceComponentConfiguration = new ModuleResourceLoader(bundle);
@@ -63,31 +53,25 @@ public class ServiceConfigurationInitializer {
 		_serviceComponentLocalService.destroyServiceComponent(
 			_serviceComponentConfiguration, _classLoader);
 
-		for (ServiceRegistration<?> serviceRegistration :
-				_serviceRegistrations) {
+		if (_configurationServiceRegistration != null) {
+			_configurationServiceRegistration.unregister();
 
-			serviceRegistration.unregister();
+			_configurationServiceRegistration = null;
 		}
-
-		_serviceRegistrations.clear();
 	}
 
 	protected void start() {
+		_initServiceComponent();
+
 		BundleContext bundleContext = _bundle.getBundleContext();
 
-		if (_portletConfiguration != null) {
-			_readResourceActions();
-
-			_registerConfiguration(
-				bundleContext, _portletConfiguration, "portlet");
-		}
-
-		if (_serviceConfiguration != null) {
-			_initServiceComponent();
-
-			_registerConfiguration(
-				bundleContext, _serviceConfiguration, "service");
-		}
+		_configurationServiceRegistration = bundleContext.registerService(
+			Configuration.class, _serviceConfiguration,
+			HashMapDictionaryBuilder.<String, Object>put(
+				"name", "service"
+			).put(
+				"origin.bundle.symbolic.name", _bundle.getSymbolicName()
+			).build());
 	}
 
 	private void _initServiceComponent() {
@@ -125,55 +109,15 @@ public class ServiceConfigurationInitializer {
 		}
 	}
 
-	private void _readResourceActions() {
-		try {
-			_resourceActions.populateModelResources(
-				_classLoader,
-				StringUtil.split(
-					_portletConfiguration.get(
-						PropsKeys.RESOURCE_ACTIONS_CONFIGS)));
-
-			if (!PropsValues.RESOURCE_ACTIONS_STRICT_MODE_ENABLED) {
-				_resourceActions.populatePortletResources(
-					_classLoader,
-					StringUtil.split(
-						_portletConfiguration.get(
-							PropsKeys.RESOURCE_ACTIONS_CONFIGS)));
-			}
-		}
-		catch (Exception exception) {
-			_log.error(
-				"Unable to read resource actions config in " +
-					PropsKeys.RESOURCE_ACTIONS_CONFIGS,
-				exception);
-		}
-	}
-
-	private void _registerConfiguration(
-		BundleContext bundleContext, Configuration configuration, String name) {
-
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("name", name);
-		properties.put(
-			"origin.bundle.symbolic.name", _bundle.getSymbolicName());
-
-		_serviceRegistrations.add(
-			bundleContext.registerService(
-				Configuration.class, configuration, properties));
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		ServiceConfigurationInitializer.class);
 
 	private final Bundle _bundle;
 	private final ClassLoader _classLoader;
-	private final Configuration _portletConfiguration;
-	private final ResourceActions _resourceActions;
+	private ServiceRegistration<Configuration>
+		_configurationServiceRegistration;
 	private final ServiceComponentConfiguration _serviceComponentConfiguration;
 	private final ServiceComponentLocalService _serviceComponentLocalService;
 	private final Configuration _serviceConfiguration;
-	private final List<ServiceRegistration<?>> _serviceRegistrations =
-		new ArrayList<>();
 
 }

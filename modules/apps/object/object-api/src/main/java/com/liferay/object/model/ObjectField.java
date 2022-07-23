@@ -56,6 +56,9 @@ public interface ObjectField extends ObjectFieldModel, PersistedModel {
 
 		};
 
-	public String getDBColumnName();
+	public java.util.List<ObjectFieldSetting> getObjectFieldSettings();
+
+	public void setObjectFieldSettings(
+		java.util.List<ObjectFieldSetting> objectFieldSettings);
 
 }

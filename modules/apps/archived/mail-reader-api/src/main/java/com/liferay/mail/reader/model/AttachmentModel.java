@@ -198,4 +198,7 @@ public interface AttachmentModel extends BaseModel<Attachment>, ShardedModel {
 	 */
 	public void setSize(long size);
 
+	@Override
+	public Attachment cloneWithOriginalValues();
+
 }

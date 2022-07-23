@@ -15,6 +15,7 @@
 package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
+import com.liferay.fragment.exception.FragmentEntryContentException;
 import com.liferay.fragment.exception.NoSuchEntryException;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
@@ -46,7 +47,6 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.util.List;
 
@@ -93,8 +93,7 @@ public class AddFragmentEntryLinkMVCActionCommand
 		}
 
 		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId",
-			SegmentsExperienceConstants.ID_DEFAULT);
+			actionRequest, "segmentsExperienceId");
 
 		if (fragmentEntry != null) {
 			String contributedRendererKey = null;
@@ -143,7 +142,10 @@ public class AddFragmentEntryLinkMVCActionCommand
 
 		String errorMessage = "an-unexpected-error-occurred";
 
-		if (exception instanceof NoSuchEntryException) {
+		if (exception instanceof FragmentEntryContentException) {
+			errorMessage = exception.getMessage();
+		}
+		else if (exception instanceof NoSuchEntryException) {
 			errorMessage =
 				"the-fragment-can-no-longer-be-added-because-it-has-been-" +
 					"deleted";
@@ -163,8 +165,7 @@ public class AddFragmentEntryLinkMVCActionCommand
 			WebKeys.THEME_DISPLAY);
 
 		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId",
-			SegmentsExperienceConstants.ID_DEFAULT);
+			actionRequest, "segmentsExperienceId");
 		String parentItemId = ParamUtil.getString(
 			actionRequest, "parentItemId");
 		int position = ParamUtil.getInteger(actionRequest, "position");

@@ -160,4 +160,7 @@ public interface OAuth2ScopeGrantModel
 	 */
 	public void setScopeAliases(String scopeAliases);
 
+	@Override
+	public OAuth2ScopeGrant cloneWithOriginalValues();
+
 }

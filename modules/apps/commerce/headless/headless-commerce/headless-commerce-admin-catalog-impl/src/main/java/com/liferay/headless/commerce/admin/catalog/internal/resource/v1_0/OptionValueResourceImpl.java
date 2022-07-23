@@ -26,6 +26,7 @@ import com.liferay.headless.commerce.admin.catalog.internal.dto.v1_0.converter.O
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.OptionValueResource;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -65,6 +66,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	scope = ServiceScope.PROTOTYPE,
 	service = {NestedFieldSupport.class, OptionValueResource.class}
 )
+@CTAware
 public class OptionValueResourceImpl
 	extends BaseOptionValueResourceImpl implements NestedFieldSupport {
 
@@ -88,7 +90,7 @@ public class OptionValueResourceImpl
 
 		if (cpOptionValue == null) {
 			throw new NoSuchCPOptionValueException(
-				"Unable to find Option Value with externalReferenceCode: " +
+				"Unable to find option value with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -111,7 +113,7 @@ public class OptionValueResourceImpl
 
 		if (cpOption == null) {
 			throw new NoSuchCPOptionException(
-				"Unable to find Option with externalReferenceCode: " +
+				"Unable to find option with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -169,7 +171,7 @@ public class OptionValueResourceImpl
 
 		if (cpOptionValue == null) {
 			throw new NoSuchCPOptionValueException(
-				"Unable to find Option Value with externalReferenceCode: " +
+				"Unable to find option value with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -201,7 +203,7 @@ public class OptionValueResourceImpl
 
 		if (cpOptionValue == null) {
 			throw new NoSuchCPOptionValueException(
-				"Unable to find Option Value with externalReferenceCode: " +
+				"Unable to find option value with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -222,7 +224,7 @@ public class OptionValueResourceImpl
 
 		if (cpOption == null) {
 			throw new NoSuchCPOptionException(
-				"Unable to find Option with externalReferenceCode: " +
+				"Unable to find option with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -272,11 +274,14 @@ public class OptionValueResourceImpl
 			CPOption cpOption, OptionValue optionValue)
 		throws Exception {
 
-		CPOptionValue cpOptionValue = _cpOptionValueService.upsertCPOptionValue(
-			optionValue.getExternalReferenceCode(), cpOption.getCPOptionId(),
-			LanguageUtils.getLocalizedMap(optionValue.getName()),
-			GetterUtil.get(optionValue.getPriority(), 0D), optionValue.getKey(),
-			_serviceContextHelper.getServiceContext());
+		CPOptionValue cpOptionValue =
+			_cpOptionValueService.addOrUpdateCPOptionValue(
+				optionValue.getExternalReferenceCode(),
+				cpOption.getCPOptionId(),
+				LanguageUtils.getLocalizedMap(optionValue.getName()),
+				GetterUtil.get(optionValue.getPriority(), 0D),
+				optionValue.getKey(),
+				_serviceContextHelper.getServiceContext());
 
 		return _toOptionValue(cpOptionValue.getCPOptionValueId());
 	}

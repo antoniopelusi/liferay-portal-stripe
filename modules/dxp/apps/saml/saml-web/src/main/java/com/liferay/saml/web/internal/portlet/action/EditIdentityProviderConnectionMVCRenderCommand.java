@@ -14,16 +14,19 @@
 
 package com.liferay.saml.web.internal.portlet.action;
 
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.saml.constants.SamlPortletKeys;
 import com.liferay.saml.constants.SamlWebKeys;
+import com.liferay.saml.opensaml.integration.field.expression.handler.registry.UserFieldExpressionHandlerRegistry;
+import com.liferay.saml.opensaml.integration.field.expression.resolver.registry.UserFieldExpressionResolverRegistry;
 import com.liferay.saml.persistence.model.SamlSpIdpConnection;
 import com.liferay.saml.persistence.service.SamlSpIdpConnectionLocalService;
 import com.liferay.saml.runtime.configuration.SamlProviderConfiguration;
 import com.liferay.saml.runtime.configuration.SamlProviderConfigurationHelper;
+import com.liferay.saml.web.internal.display.context.AttributeMappingDisplayContext;
 
 import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
@@ -51,53 +54,74 @@ public class EditIdentityProviderConnectionMVCRenderCommand
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws PortletException {
 
-		long samlSpIdpConnectionId = ParamUtil.getLong(
-			renderRequest, "samlSpIdpConnectionId");
+		try {
+			return _render(renderRequest);
+		}
+		catch (Exception exception) {
+			throw new PortletException(exception);
+		}
+	}
 
-		renderRequest.setAttribute(
-			SamlProviderConfigurationHelper.class.getName(),
-			_samlProviderConfigurationHelper);
+	private long _getClockSkew(
+		RenderRequest renderRequest, SamlSpIdpConnection samlSpIdpConnection) {
+
+		if (samlSpIdpConnection != null) {
+			return ParamUtil.getLong(
+				renderRequest, "clockSkew", samlSpIdpConnection.getClockSkew());
+		}
 
 		SamlProviderConfiguration samlProviderConfiguration =
 			_samlProviderConfigurationHelper.getSamlProviderConfiguration();
 
-		long clockSkew;
+		return ParamUtil.getLong(
+			renderRequest, "clockSkew", samlProviderConfiguration.clockSkew());
+	}
+
+	private String _render(RenderRequest renderRequest) throws Exception {
+		long samlSpIdpConnectionId = ParamUtil.getLong(
+			renderRequest, "samlSpIdpConnectionId");
+
+		SamlSpIdpConnection samlSpIdpConnection = null;
 
 		if (samlSpIdpConnectionId > 0) {
-			try {
-				SamlSpIdpConnection samlSpIdpConnection =
-					_samlSpIdpConnectionLocalService.getSamlSpIdpConnection(
-						samlSpIdpConnectionId);
-
-				clockSkew = ParamUtil.getLong(
-					renderRequest, "clockSkew",
-					samlSpIdpConnection.getClockSkew());
-
-				renderRequest.setAttribute(
-					SamlWebKeys.SAML_SP_IDP_CONNECTION, samlSpIdpConnection);
-			}
-			catch (PortalException portalException) {
-				throw new PortletException(portalException);
-			}
-		}
-		else {
-			clockSkew = ParamUtil.getLong(
-				renderRequest, "clockSkew",
-				samlProviderConfiguration.clockSkew());
+			samlSpIdpConnection =
+				_samlSpIdpConnectionLocalService.getSamlSpIdpConnection(
+					samlSpIdpConnectionId);
 		}
 
-		renderRequest.setAttribute(SamlWebKeys.SAML_CLOCK_SKEW, clockSkew);
+		renderRequest.setAttribute(
+			AttributeMappingDisplayContext.class.getName(),
+			new AttributeMappingDisplayContext(
+				renderRequest, samlSpIdpConnection,
+				(ThemeDisplay)renderRequest.getAttribute(WebKeys.THEME_DISPLAY),
+				_userFieldExpressionHandlerRegistry));
+		renderRequest.setAttribute(
+			SamlProviderConfigurationHelper.class.getName(),
+			_samlProviderConfigurationHelper);
+		renderRequest.setAttribute(
+			SamlWebKeys.SAML_CLOCK_SKEW,
+			_getClockSkew(renderRequest, samlSpIdpConnection));
+		renderRequest.setAttribute(
+			SamlWebKeys.SAML_SP_IDP_CONNECTION, samlSpIdpConnection);
+		renderRequest.setAttribute(
+			UserFieldExpressionResolverRegistry.class.getName(),
+			_userFieldExpressionResolverRegistry);
 
 		return "/admin/edit_identity_provider_connection.jsp";
 	}
-
-	@Reference
-	private Portal _portal;
 
 	@Reference
 	private SamlProviderConfigurationHelper _samlProviderConfigurationHelper;
 
 	@Reference
 	private SamlSpIdpConnectionLocalService _samlSpIdpConnectionLocalService;
+
+	@Reference
+	private UserFieldExpressionHandlerRegistry
+		_userFieldExpressionHandlerRegistry;
+
+	@Reference
+	private UserFieldExpressionResolverRegistry
+		_userFieldExpressionResolverRegistry;
 
 }

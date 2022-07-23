@@ -15,9 +15,13 @@
 package com.liferay.portal.kernel.deploy.auto;
 
 import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
+import com.liferay.portal.kernel.plugin.PluginPackage;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
+
+import java.util.Map;
 
 /**
  * @author Ivica Cardic
@@ -34,10 +38,28 @@ public interface AutoDeployer extends Closeable {
 	public int autoDeploy(AutoDeploymentContext autoDeploymentContext)
 		throws AutoDeployException;
 
-	public AutoDeployer cloneAutoDeployer() throws AutoDeployException;
-
 	@Override
 	public default void close() throws IOException {
 	}
+
+	public void copyDependencyXml(String fileName, String targetDir)
+		throws Exception;
+
+	public void copyDependencyXml(
+			String fileName, String targetDir, Map<String, String> filterMap)
+		throws Exception;
+
+	public void copyDependencyXml(
+			String fileName, String targetDir, Map<String, String> filterMap,
+			boolean overwrite)
+		throws Exception;
+
+	public void copyXmls(
+			File srcFile, String displayName, PluginPackage pluginPackage)
+		throws Exception;
+
+	public Map<String, String> processPluginPackageProperties(
+			File srcFile, String displayName, PluginPackage pluginPackage)
+		throws Exception;
 
 }

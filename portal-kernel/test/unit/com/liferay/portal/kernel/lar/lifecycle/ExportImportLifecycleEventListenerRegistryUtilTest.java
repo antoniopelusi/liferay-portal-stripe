@@ -17,27 +17,21 @@ package com.liferay.portal.kernel.lar.lifecycle;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleEvent;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleEventListenerRegistryUtil;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleListener;
-import com.liferay.registry.BasicRegistryImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 
 import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Leon Chi
  */
 public class ExportImportLifecycleEventListenerRegistryUtilTest {
-
-	@BeforeClass
-	public static void setUpClass() {
-		RegistryUtil.setRegistry(new BasicRegistryImpl());
-	}
 
 	@After
 	public void tearDown() {
@@ -46,7 +40,7 @@ public class ExportImportLifecycleEventListenerRegistryUtilTest {
 
 	@Test
 	public void testGetAsyncExportImportLifecycleListeners() {
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		ExportImportLifecycleListener asyncExportImportLifecycleListener =
 			new ExportImportLifecycleListener() {
@@ -63,9 +57,9 @@ public class ExportImportLifecycleEventListenerRegistryUtilTest {
 
 			};
 
-		_serviceRegistration = registry.registerService(
+		_serviceRegistration = bundleContext.registerService(
 			ExportImportLifecycleListener.class,
-			asyncExportImportLifecycleListener);
+			asyncExportImportLifecycleListener, null);
 
 		Set<ExportImportLifecycleListener> exportImportLifecycleListeners =
 			ExportImportLifecycleEventListenerRegistryUtil.
@@ -82,7 +76,7 @@ public class ExportImportLifecycleEventListenerRegistryUtilTest {
 
 	@Test
 	public void testGetSyncExportImportLifecycleListeners() {
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		ExportImportLifecycleListener syncExportImportLifecycleListener =
 			new ExportImportLifecycleListener() {
@@ -99,9 +93,9 @@ public class ExportImportLifecycleEventListenerRegistryUtilTest {
 
 			};
 
-		_serviceRegistration = registry.registerService(
+		_serviceRegistration = bundleContext.registerService(
 			ExportImportLifecycleListener.class,
-			syncExportImportLifecycleListener);
+			syncExportImportLifecycleListener, null);
 
 		Set<ExportImportLifecycleListener> exportImportLifecycleListeners =
 			ExportImportLifecycleEventListenerRegistryUtil.

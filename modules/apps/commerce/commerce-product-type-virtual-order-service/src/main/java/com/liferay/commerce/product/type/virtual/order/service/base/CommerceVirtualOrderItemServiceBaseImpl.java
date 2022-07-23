@@ -320,51 +320,6 @@ public abstract class CommerceVirtualOrderItemServiceBaseImpl
 		this.userPersistence = userPersistence;
 	}
 
-	/**
-	 * Returns the dl app local service.
-	 *
-	 * @return the dl app local service
-	 */
-	public com.liferay.document.library.kernel.service.DLAppLocalService
-		getDLAppLocalService() {
-
-		return dlAppLocalService;
-	}
-
-	/**
-	 * Sets the dl app local service.
-	 *
-	 * @param dlAppLocalService the dl app local service
-	 */
-	public void setDLAppLocalService(
-		com.liferay.document.library.kernel.service.DLAppLocalService
-			dlAppLocalService) {
-
-		this.dlAppLocalService = dlAppLocalService;
-	}
-
-	/**
-	 * Returns the dl app remote service.
-	 *
-	 * @return the dl app remote service
-	 */
-	public com.liferay.document.library.kernel.service.DLAppService
-		getDLAppService() {
-
-		return dlAppService;
-	}
-
-	/**
-	 * Sets the dl app remote service.
-	 *
-	 * @param dlAppService the dl app remote service
-	 */
-	public void setDLAppService(
-		com.liferay.document.library.kernel.service.DLAppService dlAppService) {
-
-		this.dlAppService = dlAppService;
-	}
-
 	public void afterPropertiesSet() {
 		_setServiceUtilService(commerceVirtualOrderItemService);
 	}
@@ -490,17 +445,5 @@ public abstract class CommerceVirtualOrderItemServiceBaseImpl
 
 	@ServiceReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
-
-	@ServiceReference(
-		type = com.liferay.document.library.kernel.service.DLAppLocalService.class
-	)
-	protected com.liferay.document.library.kernel.service.DLAppLocalService
-		dlAppLocalService;
-
-	@ServiceReference(
-		type = com.liferay.document.library.kernel.service.DLAppService.class
-	)
-	protected com.liferay.document.library.kernel.service.DLAppService
-		dlAppService;
 
 }

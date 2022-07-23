@@ -18,8 +18,4 @@ package com.liferay.document.library.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class DLStorageQuotaImpl extends DLStorageQuotaBaseImpl {
-
-	public DLStorageQuotaImpl() {
-	}
-
 }

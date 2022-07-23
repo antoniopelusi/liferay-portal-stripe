@@ -2,15 +2,22 @@
 <head>
 <title>DDLEditList</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">DDLEditList</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>DATA_DEFINITION_SELECT</td>
 	<td>//a[contains(@class,'btn') and contains(@class,'taglib-icon')]/span[contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PORTLET_ADD_DATA_DEFINITION</td>
+	<td>//a[@aria-label='Add Data Definition']</td>
 	<td></td>
 </tr>
 <tr>

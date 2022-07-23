@@ -25,6 +25,10 @@ public class BrowserTrackerLocalServiceWrapper
 	implements BrowserTrackerLocalService,
 			   ServiceWrapper<BrowserTrackerLocalService> {
 
+	public BrowserTrackerLocalServiceWrapper() {
+		this(null);
+	}
+
 	public BrowserTrackerLocalServiceWrapper(
 		BrowserTrackerLocalService browserTrackerLocalService) {
 
@@ -129,6 +133,13 @@ public class BrowserTrackerLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _browserTrackerLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _browserTrackerLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

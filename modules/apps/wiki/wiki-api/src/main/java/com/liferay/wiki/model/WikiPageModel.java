@@ -245,6 +245,21 @@ public interface WikiPageModel
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
+	 * Returns the external reference code of this wiki page.
+	 *
+	 * @return the external reference code of this wiki page
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this wiki page.
+	 *
+	 * @param externalReferenceCode the external reference code of this wiki page
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
+
+	/**
 	 * Returns the node ID of this wiki page.
 	 *
 	 * @return the node ID of this wiki page
@@ -653,5 +668,8 @@ public interface WikiPageModel
 	 */
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId);
+
+	@Override
+	public WikiPage cloneWithOriginalValues();
 
 }

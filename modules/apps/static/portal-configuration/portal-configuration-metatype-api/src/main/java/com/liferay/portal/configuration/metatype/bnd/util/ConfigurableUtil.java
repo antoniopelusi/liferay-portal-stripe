@@ -19,6 +19,7 @@ import aQute.bnd.annotation.metatype.Configurable;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.portal.configuration.persistence.ConfigurationOverridePropertiesUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.StringUtil;
 
@@ -26,9 +27,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.ClassWriter;
@@ -114,11 +116,17 @@ public class ConfigurableUtil {
 			snapshotClassBinaryName, null, objectClassBinaryName,
 			new String[] {_getClassBinaryName(interfaceClass.getName())});
 
-		Method[] declaredMethods = interfaceClass.getDeclaredMethods();
+		List<Method> nonsyntheticDeclaredMethods = new ArrayList<>();
+
+		for (Method method : interfaceClass.getDeclaredMethods()) {
+			if (!method.isSynthetic()) {
+				nonsyntheticDeclaredMethods.add(method);
+			}
+		}
 
 		// Fields
 
-		for (Method method : declaredMethods) {
+		for (Method method : nonsyntheticDeclaredMethods) {
 			FieldVisitor fieldVisitor = classWriter.visitField(
 				Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, method.getName(),
 				Type.getDescriptor(method.getReturnType()), null, null);
@@ -141,7 +149,7 @@ public class ConfigurableUtil {
 			Opcodes.INVOKESPECIAL, objectClassBinaryName, "<init>", "()V",
 			false);
 
-		for (Method method : declaredMethods) {
+		for (Method method : nonsyntheticDeclaredMethods) {
 			Class<?> returnType = method.getReturnType();
 
 			constructorMethodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -167,7 +175,7 @@ public class ConfigurableUtil {
 
 		// Methods
 
-		for (Method method : declaredMethods) {
+		for (Method method : nonsyntheticDeclaredMethods) {
 			String methodName = method.getName();
 			Class<?> returnType = method.getReturnType();
 
@@ -249,11 +257,11 @@ public class ConfigurableUtil {
 			return properties;
 		}
 
-		Map<Object, Object> overrideMap = new HashMap<>(properties);
-
-		overrideMap.putAll(overrideProperties);
-
-		return overrideMap;
+		return HashMapBuilder.create(
+			(Map)properties
+		).putAll(
+			overrideProperties
+		).build();
 	}
 
 	private static final Method _defineClassMethod;

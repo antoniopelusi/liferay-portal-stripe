@@ -15,6 +15,7 @@
 package com.liferay.segments.security.permission.contributor.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -33,15 +34,17 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
-import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.segments.criteria.Criteria;
@@ -75,24 +78,39 @@ public class SegmentsEntryRoleContributorTest {
 
 	@Before
 	public void setUp() throws Exception {
+		_companyConfigurationTemporarySwapper =
+			new CompanyConfigurationTemporarySwapper(
+				TestPropsValues.getCompanyId(),
+				"com.liferay.segments.configuration." +
+					"SegmentsCompanyConfiguration",
+				HashMapDictionaryBuilder.<String, Object>put(
+					"roleSegmentationEnabled", true
+				).build(),
+				SettingsFactoryUtil.getSettingsFactory());
 		_configurationTemporarySwapper = new ConfigurationTemporarySwapper(
 			"com.liferay.segments.configuration.SegmentsConfiguration",
-			new HashMapDictionary<String, Object>() {
-				{
-					put("roleSegmentationEnabled", true);
-				}
-			});
+			HashMapDictionaryBuilder.<String, Object>put(
+				"roleSegmentationEnabled", true
+			).build());
 
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext();
 
-		serviceContext.setRequest(new MockHttpServletRequest());
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		_user = UserTestUtil.addUser();
+
+		mockHttpServletRequest.setAttribute(WebKeys.USER, _user);
+
+		serviceContext.setRequest(mockHttpServletRequest);
 
 		ServiceContextThreadLocal.pushServiceContext(serviceContext);
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		_companyConfigurationTemporarySwapper.close();
 		_configurationTemporarySwapper.close();
 
 		ServiceContextThreadLocal.popServiceContext();
@@ -164,13 +182,7 @@ public class SegmentsEntryRoleContributorTest {
 			String.valueOf(TestPropsValues.getCompanyId()), _role.getRoleId(),
 			actionKey);
 
-		_user = UserTestUtil.addUser();
-
-		_user.setLastName(RandomTestUtil.randomString());
-
-		_user = _userLocalService.updateUser(_user);
-
-		_segmentsEntry = _addSegmentsEntry(_user.getLastName());
+		_segmentsEntry = _addSegmentsEntry(_user);
 
 		PermissionChecker permissionChecker =
 			PermissionCheckerFactoryUtil.create(_user);
@@ -212,8 +224,9 @@ public class SegmentsEntryRoleContributorTest {
 				String.valueOf(TestPropsValues.getCompanyId()),
 				_role.getRoleId(), actionKey);
 
-			_user = UserTestUtil.addOrganizationUser(
-				_organization, RoleConstants.ORGANIZATION_USER);
+			UserTestUtil.addUserGroupRole(
+				_user.getUserId(), _organization.getGroupId(),
+				RoleConstants.ORGANIZATION_USER);
 
 			_userLocalService.addOrganizationUsers(
 				_organization.getOrganizationId(),
@@ -247,11 +260,9 @@ public class SegmentsEntryRoleContributorTest {
 	@Test
 	public void testHasPermissionWithDisabledConfiguration() throws Exception {
 		HashMapDictionary<String, Object> properties =
-			new HashMapDictionary<String, Object>() {
-				{
-					put("roleSegmentationEnabled", false);
-				}
-			};
+			HashMapDictionaryBuilder.<String, Object>put(
+				"roleSegmentationEnabled", false
+			).build();
 
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
@@ -270,13 +281,7 @@ public class SegmentsEntryRoleContributorTest {
 				String.valueOf(TestPropsValues.getCompanyId()),
 				_role.getRoleId(), actionKey);
 
-			_user = UserTestUtil.addUser();
-
-			_user.setLastName(RandomTestUtil.randomString());
-
-			_user = _userLocalService.updateUser(_user);
-
-			_segmentsEntry = _addSegmentsEntry(_user.getLastName());
+			_segmentsEntry = _addSegmentsEntry(_user);
 
 			_segmentsEntryRoleLocalService.addSegmentsEntryRole(
 				_segmentsEntry.getSegmentsEntryId(), _role.getRoleId(),
@@ -308,9 +313,7 @@ public class SegmentsEntryRoleContributorTest {
 			CriteriaSerializer.serialize(criteria), User.class.getName());
 	}
 
-	private SegmentsEntry _addSegmentsEntry(String userLastName)
-		throws Exception {
-
+	private SegmentsEntry _addSegmentsEntry(User user) throws Exception {
 		return SegmentsTestUtil.addSegmentsEntry(
 			TestPropsValues.getGroupId(),
 			JSONUtil.put(
@@ -321,7 +324,7 @@ public class SegmentsEntryRoleContributorTest {
 						"conjunction", "and"
 					).put(
 						"filterString",
-						String.format("(lastName eq '%s')", userLastName)
+						String.format("(lastName eq '%s')", user.getLastName())
 					).put(
 						"typeValue", "model"
 					))
@@ -338,13 +341,7 @@ public class SegmentsEntryRoleContributorTest {
 			String.valueOf(TestPropsValues.getGroupId()), _role.getRoleId(),
 			_ACTION_KEY);
 
-		_user = UserTestUtil.addUser(TestPropsValues.getGroupId());
-
-		_user.setLastName(RandomTestUtil.randomString());
-
-		_user = _userLocalService.updateUser(_user);
-
-		_segmentsEntry = _addSegmentsEntry(_user.getLastName());
+		_segmentsEntry = _addSegmentsEntry(_user);
 
 		PermissionChecker permissionChecker =
 			PermissionCheckerFactoryUtil.create(_user);
@@ -368,6 +365,8 @@ public class SegmentsEntryRoleContributorTest {
 
 	private static final String _ACTION_KEY = ActionKeys.UPDATE;
 
+	private CompanyConfigurationTemporarySwapper
+		_companyConfigurationTemporarySwapper;
 	private ConfigurationTemporarySwapper _configurationTemporarySwapper;
 
 	@Inject

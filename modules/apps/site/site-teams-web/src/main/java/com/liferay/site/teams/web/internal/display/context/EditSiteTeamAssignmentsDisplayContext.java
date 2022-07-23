@@ -54,7 +54,7 @@ public class EditSiteTeamAssignmentsDisplayContext {
 			getTabs1()
 		).setParameter(
 			"teamId", getTeamId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public List<NavigationItem> getNavigationItems() {

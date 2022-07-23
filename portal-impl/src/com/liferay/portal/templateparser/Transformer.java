@@ -221,17 +221,9 @@ public class Transformer {
 	protected String getTemplatesPath(
 		long companyId, long groupId, long classNameId) {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append(TemplateConstants.TEMPLATE_SEPARATOR);
-		sb.append(StringPool.SLASH);
-		sb.append(companyId);
-		sb.append(StringPool.SLASH);
-		sb.append(groupId);
-		sb.append(StringPool.SLASH);
-		sb.append(classNameId);
-
-		return sb.toString();
+		return StringBundler.concat(
+			TemplateConstants.TEMPLATE_SEPARATOR, StringPool.SLASH, companyId,
+			StringPool.SLASH, groupId, StringPool.SLASH, classNameId);
 	}
 
 	protected void prepareTemplate(ThemeDisplay themeDisplay, Template template)

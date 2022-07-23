@@ -22,6 +22,8 @@ import javax.portlet.MutablePortletParameters;
 public interface LiferayMutablePortletParameters
 	extends MutablePortletParameters {
 
+	public static final String NULL_PARAM_VALUE = "_!null!_";
+
 	/**
 	 * Returns <code>true</code> if the state of the portlet parameters has
 	 * changed.

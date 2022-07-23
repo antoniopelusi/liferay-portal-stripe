@@ -24,6 +24,7 @@ import com.liferay.analytics.reports.web.internal.portlet.action.test.util.MockT
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.layout.test.util.LayoutTestUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -47,7 +48,6 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PrefsProps;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -88,7 +88,7 @@ public class GetDataMVCResourceCommandTest {
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		_layout = LayoutTestUtil.addLayout(_group);
+		_layout = LayoutTestUtil.addTypePortletLayout(_group);
 	}
 
 	@Test
@@ -220,8 +220,9 @@ public class GetDataMVCResourceCommandTest {
 					viewURLJSONObject.getString("languageId"));
 				Assert.assertEquals(
 					StringBundler.concat(
-						locale.getDisplayLanguage(), StringPool.SPACE,
-						StringPool.OPEN_PARENTHESIS, locale.getDisplayCountry(),
+						locale.getDisplayLanguage(_locale), StringPool.SPACE,
+						StringPool.OPEN_PARENTHESIS,
+						locale.getDisplayCountry(_locale),
 						StringPool.CLOSE_PARENTHESIS),
 					viewURLJSONObject.getString("languageLabel"));
 

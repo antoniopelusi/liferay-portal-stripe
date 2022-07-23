@@ -34,7 +34,7 @@ MasterLayoutManagementToolbarDisplayContext masterLayoutManagementToolbarDisplay
 	propsTransformer="js/propsTransformers/MasterLayoutManagementToolbarPropsTransformer"
 />
 
-<liferay-ui:success key="masterPagePublished" message="the-master-page-was-published-succesfully" />
+<liferay-ui:success key="masterPagePublished" message="the-master-page-was-published-successfully" />
 
 <portlet:actionURL name="/layout_page_template_admin/delete_master_layout" var="deleteMasterLayoutURL">
 	<portlet:param name="redirect" value="<%= currentURL %>" />

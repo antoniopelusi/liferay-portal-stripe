@@ -66,7 +66,7 @@ public class GoogleGadgetServlet extends HttpServlet {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			PortalUtil.sendError(
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception,
@@ -89,13 +89,11 @@ public class GoogleGadgetServlet extends HttpServlet {
 			return null;
 		}
 
-		long companyId = PortalUtil.getCompanyId(httpServletRequest);
-
 		String portletId = path.substring(
 			pos + Portal.FRIENDLY_URL_SEPARATOR.length());
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
-			companyId, portletId);
+			PortalUtil.getCompanyId(httpServletRequest), portletId);
 
 		String title = portlet.getDisplayName();
 

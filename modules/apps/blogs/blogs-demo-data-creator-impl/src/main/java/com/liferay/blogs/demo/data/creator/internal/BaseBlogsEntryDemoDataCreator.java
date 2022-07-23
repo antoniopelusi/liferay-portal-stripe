@@ -82,7 +82,7 @@ public abstract class BaseBlogsEntryDemoDataCreator
 			}
 			catch (NoSuchEntryException noSuchEntryException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(noSuchEntryException, noSuchEntryException);
+					_log.warn(noSuchEntryException);
 				}
 			}
 
@@ -111,9 +111,9 @@ public abstract class BaseBlogsEntryDemoDataCreator
 
 		long start = calendar.getTimeInMillis();
 
-		Date now = new Date();
+		Date date = new Date();
 
-		long end = now.getTime();
+		long end = date.getTime();
 
 		ThreadLocalRandom current = ThreadLocalRandom.current();
 

@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -194,15 +192,15 @@ public abstract class BaseWebUrlResourceTestCase {
 
 	@Test
 	public void testGetOrganizationWebUrlsPage() throws Exception {
-		Page<WebUrl> page = webUrlResource.getOrganizationWebUrlsPage(
-			testGetOrganizationWebUrlsPage_getOrganizationId());
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		String organizationId =
 			testGetOrganizationWebUrlsPage_getOrganizationId();
 		String irrelevantOrganizationId =
 			testGetOrganizationWebUrlsPage_getIrrelevantOrganizationId();
+
+		Page<WebUrl> page = webUrlResource.getOrganizationWebUrlsPage(
+			organizationId);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantOrganizationId != null) {
 			WebUrl irrelevantWebUrl = testGetOrganizationWebUrlsPage_addWebUrl(
@@ -257,14 +255,14 @@ public abstract class BaseWebUrlResourceTestCase {
 
 	@Test
 	public void testGetUserAccountWebUrlsPage() throws Exception {
-		Page<WebUrl> page = webUrlResource.getUserAccountWebUrlsPage(
-			testGetUserAccountWebUrlsPage_getUserAccountId());
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long userAccountId = testGetUserAccountWebUrlsPage_getUserAccountId();
 		Long irrelevantUserAccountId =
 			testGetUserAccountWebUrlsPage_getIrrelevantUserAccountId();
+
+		Page<WebUrl> page = webUrlResource.getUserAccountWebUrlsPage(
+			userAccountId);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantUserAccountId != null) {
 			WebUrl irrelevantWebUrl = testGetUserAccountWebUrlsPage_addWebUrl(
@@ -333,7 +331,7 @@ public abstract class BaseWebUrlResourceTestCase {
 
 	@Test
 	public void testGraphQLGetWebUrl() throws Exception {
-		WebUrl webUrl = testGraphQLWebUrl_addWebUrl();
+		WebUrl webUrl = testGraphQLGetWebUrl_addWebUrl();
 
 		Assert.assertTrue(
 			equals(
@@ -372,9 +370,27 @@ public abstract class BaseWebUrlResourceTestCase {
 				"Object/code"));
 	}
 
+	protected WebUrl testGraphQLGetWebUrl_addWebUrl() throws Exception {
+		return testGraphQLWebUrl_addWebUrl();
+	}
+
 	protected WebUrl testGraphQLWebUrl_addWebUrl() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(WebUrl webUrl, List<WebUrl> webUrls) {
+		boolean contains = false;
+
+		for (WebUrl item : webUrls) {
+			if (equals(webUrl, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(webUrls + " does not contain " + webUrl, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -488,8 +504,8 @@ public abstract class BaseWebUrlResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.admin.user.dto.v1_0.WebUrl.class)) {
 
 			if (!ArrayUtil.contains(
@@ -504,12 +520,13 @@ public abstract class BaseWebUrlResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -523,7 +540,7 @@ public abstract class BaseWebUrlResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -613,6 +630,19 @@ public abstract class BaseWebUrlResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -829,8 +859,8 @@ public abstract class BaseWebUrlResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseWebUrlResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseWebUrlResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

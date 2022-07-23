@@ -13,18 +13,6 @@
  */
 
 import {VIEWPORT_SIZES} from '../config/constants/viewportSizes';
-import {config} from '../config/index';
-
-export const CONTENT_CHANGE_PANELS = [
-	'comments',
-	'contents',
-	config.contentBrowsingEnabled ? 'browser ' : 'page-structure',
-];
-export const RESPONSIVE_PANELS = [
-	'comments',
-	'contents',
-	config.contentBrowsingEnabled ? 'browser ' : 'page-structure',
-];
 
 /**
  * @param {Array<Array<string>>} panels
@@ -35,21 +23,19 @@ export default function selectAvailablePanels(panels) {
 	 * @param {{ permissions: import("../../types/ActionKeys").ActionKeysMap, selectedViewportSize: string }} state
 	 */
 	return function ({permissions, selectedViewportSize}) {
+		const availablePanels = ['comments', 'browser'];
+
 		if (permissions.LOCKED_SEGMENTS_EXPERIMENT || !permissions.UPDATE) {
 			return panels
 				.map((group) =>
-					group.filter((panelId) =>
-						CONTENT_CHANGE_PANELS.includes(panelId)
-					)
+					group.filter((panelId) => availablePanels.includes(panelId))
 				)
 				.filter((group) => group.length);
 		}
 		else if (selectedViewportSize !== VIEWPORT_SIZES.desktop) {
 			return panels
 				.map((group) =>
-					group.filter((panelId) =>
-						RESPONSIVE_PANELS.includes(panelId)
-					)
+					group.filter((panelId) => availablePanels.includes(panelId))
 				)
 				.filter((group) => group.length);
 		}

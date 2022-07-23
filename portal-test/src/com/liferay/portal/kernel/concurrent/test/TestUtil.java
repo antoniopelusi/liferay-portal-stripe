@@ -49,18 +49,15 @@ public class TestUtil {
 			}
 
 			if (!threadPoolExecutor.awaitTermination(
-					LONG_WAIT, TimeUnit.MILLISECONDS)) {
+					LONG_WAIT, TimeUnit.MILLISECONDS) ||
+				!threadPoolExecutor.isTerminated()) {
 
-				throw new IllegalStateException();
-			}
-
-			if (!threadPoolExecutor.isTerminated()) {
 				throw new IllegalStateException();
 			}
 		}
 		catch (InterruptedException interruptedException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(interruptedException, interruptedException);
+				_log.debug(interruptedException);
 			}
 
 			throw new RuntimeException();

@@ -57,10 +57,11 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.scopeable=true",
 		"javax.portlet.display-name=Discounts",
 		"javax.portlet.expiration-cache=0",
-		"javax.portlet.init-param.view-template=/discount/view.jsp",
+		"javax.portlet.init-param.view-template=/commerce_discounts/view.jsp",
 		"javax.portlet.name=" + CommercePricingPortletKeys.COMMERCE_DISCOUNT,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CommerceDiscountPortlet.class, Portlet.class}
 )

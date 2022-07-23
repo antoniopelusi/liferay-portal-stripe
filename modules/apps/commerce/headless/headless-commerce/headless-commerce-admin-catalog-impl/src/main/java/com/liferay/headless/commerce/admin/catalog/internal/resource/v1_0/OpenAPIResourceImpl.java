@@ -42,12 +42,13 @@ import org.osgi.service.component.annotations.Reference;
  * @generated
  */
 @Component(
+	enabled = false,
 	properties = "OSGI-INF/liferay/rest/v1_0/openapi.properties",
 	service = OpenAPIResourceImpl.class
 )
 @Generated("")
 @OpenAPIDefinition(
-	info = @Info(description = "Liferay Commerce Admin Catalog API. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.commerce.admin.catalog.client', and version '4.0.2'.", license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0.html"), title = "Liferay Commerce Admin Catalog API", version = "v1.0")
+	info = @Info(description = "Liferay Commerce Admin Catalog API. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.commerce.admin.catalog.client', and version '4.0.17'.", license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0.html"), title = "Liferay Commerce Admin Catalog API", version = "v1.0")
 )
 @Path("/v1.0")
 public class OpenAPIResourceImpl {
@@ -86,13 +87,21 @@ public class OpenAPIResourceImpl {
 
 			add(CategoryResourceImpl.class);
 
+			add(DiagramResourceImpl.class);
+
+			add(MappedProductResourceImpl.class);
+
 			add(OptionResourceImpl.class);
 
 			add(OptionCategoryResourceImpl.class);
 
 			add(OptionValueResourceImpl.class);
 
+			add(PinResourceImpl.class);
+
 			add(ProductResourceImpl.class);
+
+			add(ProductAccountGroupResourceImpl.class);
 
 			add(ProductChannelResourceImpl.class);
 

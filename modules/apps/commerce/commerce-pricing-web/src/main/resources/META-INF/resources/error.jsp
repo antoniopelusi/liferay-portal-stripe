@@ -18,6 +18,6 @@
 
 <liferay-ui:error-header />
 
-<liferay-ui:error exception="<%= NoSuchPricingClassException.class %>" message="that-product-group-could-not-be-found" />
+<liferay-ui:error exception="<%= NoSuchPricingClassException.class %>" message="the-product-group-could-not-be-found" />
 
 <liferay-ui:error-principal />

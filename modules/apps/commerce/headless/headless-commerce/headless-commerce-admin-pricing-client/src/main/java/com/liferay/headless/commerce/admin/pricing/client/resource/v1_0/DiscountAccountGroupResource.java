@@ -284,6 +284,8 @@ public interface DiscountAccountGroupResource {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
+			httpInvoker.body(object.toString(), "application/json");
+
 			if (_builder._locale != null) {
 				httpInvoker.header(
 					"Accept-Language", _builder._locale.toLanguageTag());
@@ -311,7 +313,7 @@ public interface DiscountAccountGroupResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-pricing/v1.0/discountAccountGroups/{id}/batch");
+						"/o/headless-commerce-admin-pricing/v1.0/discountAccountGroups/batch");
 
 			httpInvoker.path("id", id);
 
@@ -752,7 +754,7 @@ public interface DiscountAccountGroupResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-commerce-admin-pricing/v1.0/discounts/{id}/discountAccountGroups/batch");
+						"/o/headless-commerce-admin-pricing/v1.0/discounts/discountAccountGroups/batch");
 
 			httpInvoker.path("id", id);
 

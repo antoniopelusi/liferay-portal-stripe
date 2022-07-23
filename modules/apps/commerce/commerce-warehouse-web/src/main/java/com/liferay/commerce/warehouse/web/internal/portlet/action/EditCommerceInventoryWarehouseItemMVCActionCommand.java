@@ -57,7 +57,7 @@ public class EditCommerceInventoryWarehouseItemMVCActionCommand
 
 		try {
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateCommerceInventoryWarehouseItem(actionRequest);
+				_updateCommerceInventoryWarehouseItem(actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -74,15 +74,12 @@ public class EditCommerceInventoryWarehouseItemMVCActionCommand
 		}
 	}
 
-	protected CommerceInventoryWarehouseItem
-			updateCommerceInventoryWarehouseItem(ActionRequest actionRequest)
+	private CommerceInventoryWarehouseItem
+			_updateCommerceInventoryWarehouseItem(ActionRequest actionRequest)
 		throws PortalException {
 
-		long commerceInventoryWarehouseId = ParamUtil.getLong(
-			actionRequest, "commerceInventoryWarehouseId");
 		long commerceInventoryWarehouseItemId = ParamUtil.getLong(
 			actionRequest, "commerceInventoryWarehouseItemId");
-		String sku = ParamUtil.getString(actionRequest, "sku");
 		int quantity = ParamUtil.getInteger(actionRequest, "quantity");
 
 		CommerceInventoryWarehouseItem commerceInventoryWarehouseItem = null;
@@ -97,10 +94,13 @@ public class EditCommerceInventoryWarehouseItemMVCActionCommand
 						mvccVersion);
 		}
 		else {
+			long commerceInventoryWarehouseId = ParamUtil.getLong(
+				actionRequest, "commerceInventoryWarehouseId");
+			String sku = ParamUtil.getString(actionRequest, "sku");
+
 			commerceInventoryWarehouseItem =
 				_commerceInventoryWarehouseItemService.
 					addCommerceInventoryWarehouseItem(
-						_portal.getUserId(actionRequest),
 						commerceInventoryWarehouseId, sku, quantity);
 		}
 

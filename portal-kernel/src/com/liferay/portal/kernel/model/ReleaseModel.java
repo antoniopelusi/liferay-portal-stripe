@@ -220,4 +220,7 @@ public interface ReleaseModel extends BaseModel<Release>, MVCCModel {
 	 */
 	public void setTestString(String testString);
 
+	@Override
+	public Release cloneWithOriginalValues();
+
 }

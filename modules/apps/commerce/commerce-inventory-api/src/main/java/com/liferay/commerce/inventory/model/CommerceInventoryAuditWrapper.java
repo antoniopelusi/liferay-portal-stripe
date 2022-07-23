@@ -44,6 +44,7 @@ public class CommerceInventoryAuditWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"commerceInventoryAuditId", getCommerceInventoryAuditId());
 		attributes.put("companyId", getCompanyId());
@@ -61,6 +62,12 @@ public class CommerceInventoryAuditWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long commerceInventoryAuditId = (Long)attributes.get(
 			"commerceInventoryAuditId");
 
@@ -123,6 +130,11 @@ public class CommerceInventoryAuditWrapper
 		}
 	}
 
+	@Override
+	public CommerceInventoryAudit cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the commerce inventory audit ID of this commerce inventory audit.
 	 *
@@ -181,6 +193,16 @@ public class CommerceInventoryAuditWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce inventory audit.
+	 *
+	 * @return the mvcc version of this commerce inventory audit
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -306,6 +328,16 @@ public class CommerceInventoryAuditWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce inventory audit.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce inventory audit
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

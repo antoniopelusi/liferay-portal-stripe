@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.account.internal.upgrade.v5_0_0;
 
-import com.liferay.account.service.AccountEntryUserRelLocalServiceUtil;
+import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
@@ -26,6 +26,12 @@ import java.sql.Statement;
  */
 public class CommerceAccountUserRelUpgradeProcess extends UpgradeProcess {
 
+	public CommerceAccountUserRelUpgradeProcess(
+		AccountEntryUserRelLocalService accountEntryUserRelLocalService) {
+
+		_accountEntryUserRelLocalService = accountEntryUserRelLocalService;
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
 		long oldCompanyId = CompanyThreadLocal.getCompanyId();
@@ -35,24 +41,25 @@ public class CommerceAccountUserRelUpgradeProcess extends UpgradeProcess {
 				"asc, commerceAccountUserId asc";
 
 		try (Statement selectStatement = connection.createStatement()) {
-			ResultSet rs = selectStatement.executeQuery(
+			ResultSet resultSet = selectStatement.executeQuery(
 				selectCommerceAccountUserRel);
 
-			while (rs.next()) {
-				long accountEntryId = rs.getLong("commerceAccountId");
-				long accountUserId = rs.getLong("commerceAccountUserId");
+			while (resultSet.next()) {
+				long accountEntryId = resultSet.getLong("commerceAccountId");
+				long accountUserId = resultSet.getLong("commerceAccountUserId");
 
-				CompanyThreadLocal.setCompanyId(rs.getLong("companyId"));
+				CompanyThreadLocal.setCompanyId(resultSet.getLong("companyId"));
 
-				AccountEntryUserRelLocalServiceUtil.addAccountEntryUserRel(
+				_accountEntryUserRelLocalService.addAccountEntryUserRel(
 					accountEntryId, accountUserId);
 			}
-
-			runSQL("truncate table CommerceAccountUserRel");
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(oldCompanyId);
 		}
 	}
+
+	private final AccountEntryUserRelLocalService
+		_accountEntryUserRelLocalService;
 
 }

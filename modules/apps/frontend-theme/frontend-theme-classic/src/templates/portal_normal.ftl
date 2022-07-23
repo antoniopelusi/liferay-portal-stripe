@@ -21,7 +21,7 @@
 <div class="d-flex flex-column min-vh-100">
 	<@liferay.control_menu />
 
-	<div class="d-flex flex-column flex-fill" id="wrapper">
+	<div class="d-flex flex-column flex-fill position-relative" id="wrapper">
 		<#if show_header>
 			<header id="banner">
 				<div class="navbar navbar-classic navbar-top py-3">
@@ -89,9 +89,10 @@
 				<div class="container">
 					<div class="row">
 						<div class="col-md-12 text-center text-md-left">
-							<@liferay.language key="powered-by" />
-
-							<a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>
+							<@liferay.language_format
+								arguments='<a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>'
+								key="powered-by-x"
+							/>
 						</div>
 					</div>
 				</div>

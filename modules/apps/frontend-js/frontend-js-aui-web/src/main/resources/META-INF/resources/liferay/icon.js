@@ -75,10 +75,10 @@ AUI.add(
 			},
 
 			_onMouseHover(event, src) {
-				var img = event.currentTarget.one('img');
+				var image = event.currentTarget.one('img');
 
-				if (img) {
-					img.attr('src', src);
+				if (image) {
+					image.attr('src', src);
 				}
 			},
 
@@ -88,7 +88,7 @@ AUI.add(
 						destroyOnHide: true,
 					},
 					dialogIframe: {
-						bodyCssClass: 'dialog-with-footer',
+						bodyCssClass: 'cadmin dialog-with-footer',
 					},
 				});
 			},

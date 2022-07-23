@@ -12,104 +12,135 @@
  * details.
  */
 
-import React, {useCallback, useContext, useEffect, useRef} from 'react';
+import ClayEmptyState from '@clayui/empty-state';
+import ClayLoadingIndicator from '@clayui/loading-indicator';
+import classNames from 'classnames';
+import React, {
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 
-import PreviewInfoBar from './PreviewInfoBar';
 import {StyleBookContext} from './StyleBookContext';
+import {LAYOUT_TYPES} from './constants/layoutTypes';
 
 export default function LayoutPreview() {
 	const iframeRef = useRef();
+	const [iframeLoaded, setIframeLoaded] = useState(false);
 
-	const {frontendTokensValues = {}, previewLayout} = useContext(
-		StyleBookContext
-	);
+	const {
+		frontendTokensValues = {},
+		previewLayout,
+		previewLayoutType,
+		loading,
+		setLoading,
+	} = useContext(StyleBookContext);
 
 	const loadFrontendTokenValues = useCallback(() => {
-		if (iframeRef.current) {
-			const wrapper = iframeRef.current.contentDocument.querySelector(
-				'#wrapper'
-			);
+		if (iframeLoaded) {
+			const root = iframeRef.current.contentDocument.documentElement;
 
-			if (wrapper) {
+			if (root) {
 				Object.values(frontendTokensValues).forEach(
 					({cssVariableMapping, value}) => {
-						wrapper.style.setProperty(
+						root.style.setProperty(
 							`--${cssVariableMapping}`,
 							value
 						);
 					}
 				);
+
+				setLoading(false);
 			}
 		}
-	}, [frontendTokensValues]);
+	}, [frontendTokensValues, setLoading, iframeLoaded]);
 
 	useEffect(() => {
 		loadFrontendTokenValues();
 	}, [loadFrontendTokenValues, frontendTokensValues]);
 
 	useEffect(() => {
-		if (iframeRef.current) {
+		if (
+			iframeRef.current &&
+			previewLayoutType !== LAYOUT_TYPES.fragmentCollection
+		) {
 			iframeRef.current.style['pointer-events'] = 'none';
 		}
-	}, [previewLayout]);
+	}, [previewLayout, previewLayoutType]);
 
 	return (
 		<>
 			<div className="style-book-editor__page-preview">
-				{previewLayout?.layoutURL ? (
+				{loading && previewLayout?.url && (
+					<div className="align-items-center d-flex h-100 justify-content-center">
+						<ClayLoadingIndicator />
+					</div>
+				)}
+
+				{previewLayout?.url ? (
 					<>
-						<PreviewInfoBar />
 						<iframe
-							className="style-book-editor__page-preview-frame"
+							className={classNames(
+								'style-book-editor__page-preview-frame',
+								{'d-none': loading}
+							)}
 							onLoad={() => {
-								loadOverlay(iframeRef);
+								loadOverlay(iframeRef, previewLayoutType);
+								setIframeLoaded(true);
 								loadFrontendTokenValues();
 							}}
 							ref={iframeRef}
-							src={urlWithPreviewParameter(
-								previewLayout?.layoutURL
-							)}
+							src={previewLayout?.url}
 						/>
 					</>
 				) : (
-					<div className="style-book-editor__page-preview-no-page-message">
-						{Liferay.Language.get(
-							'you-cannot-preview-the-style-book-because-there-are-no-pages-in-this-site'
+					<ClayEmptyState
+						className="h-100 justify-content-center mt-0 style-book-editor__page-preview-empty-site-message"
+						description={Liferay.Language.get(
+							'you-cannot-preview-the-style-book-because-your-site-is-empty'
 						)}
-					</div>
+						imgSrc={`${themeDisplay.getPathThemeImages()}/states/empty_state.gif`}
+					/>
 				)}
 			</div>
 		</>
 	);
 }
 
-function urlWithPreviewParameter(url) {
-	const nextURL = new URL(url);
+function loadOverlay(iframeRef, previewLayoutType) {
+	if (previewLayoutType === LAYOUT_TYPES.fragmentCollection) {
+		iframeRef.current.contentDocument.body.addEventListener(
+			'click',
+			(event) => {
+				event.preventDefault();
+			},
+			{
+				capture: true,
+			}
+		);
+	}
+	else {
+		const style = {
+			cursor: 'not-allowed',
+			height: '100%',
+			left: 0,
+			position: 'fixed',
+			top: 0,
+			width: '100%',
+			zIndex: 100000,
+		};
 
-	nextURL.searchParams.set('p_l_mode', 'preview');
-	nextURL.searchParams.set('styleBookEntryPreview', true);
+		if (iframeRef.current) {
+			const overlay = document.createElement('div');
 
-	return nextURL.href;
-}
+			Object.keys(style).forEach((key) => {
+				overlay.style[key] = style[key];
+			});
 
-function loadOverlay(iframeRef) {
-	const style = {
-		cursor: 'not-allowed',
-		height: '100%',
-		left: 0,
-		position: 'fixed',
-		top: 0,
-		width: '100%',
-	};
-
-	if (iframeRef.current) {
-		const overlay = document.createElement('div');
-
-		Object.keys(style).forEach((key) => {
-			overlay.style[key] = style[key];
-		});
-
-		iframeRef.current.removeAttribute('style');
-		iframeRef.current.contentDocument.body.append(overlay);
+			iframeRef.current.removeAttribute('style');
+			iframeRef.current.contentDocument.body.append(overlay);
+		}
 	}
 }

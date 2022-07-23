@@ -14,14 +14,11 @@
 
 package com.liferay.portal.plugin;
 
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.plugin.PluginPackageNameAndContextComparator;
-import com.liferay.portal.kernel.plugin.Version;
 import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.ArrayList;
@@ -34,9 +31,6 @@ import java.util.Map;
  */
 public class LocalPluginPackageRepository {
 
-	public LocalPluginPackageRepository() {
-	}
-
 	public void addPluginPackage(PluginPackage pluginPackage) {
 		if (pluginPackage.getContext() == null) {
 			if (_log.isDebugEnabled()) {
@@ -48,63 +42,12 @@ public class LocalPluginPackageRepository {
 			return;
 		}
 
-		_pendingPackages.remove(pluginPackage.getContext());
-		_pendingPackages.remove(pluginPackage.getModuleId());
-
 		_pluginPackages.remove(pluginPackage.getContext());
 		_pluginPackages.put(pluginPackage.getContext(), pluginPackage);
 	}
 
-	public PluginPackage getInstallingPluginPackage(String context) {
-		return _pendingPackages.get(context);
-	}
-
-	public PluginPackage getLatestPluginPackage(
-		String groupId, String artifactId) {
-
-		PluginPackage latestPluginPackage = null;
-
-		for (PluginPackage pluginPackage : _pluginPackages.values()) {
-			String pluginPackageGroupId = pluginPackage.getGroupId();
-			String pluginPackageArtifactId = pluginPackage.getArtifactId();
-
-			if (pluginPackageGroupId.equals(groupId) &&
-				pluginPackageArtifactId.equals(artifactId) &&
-				((latestPluginPackage == null) ||
-				 pluginPackage.isLaterVersionThan(latestPluginPackage))) {
-
-				latestPluginPackage = pluginPackage;
-			}
-		}
-
-		return latestPluginPackage;
-	}
-
 	public PluginPackage getPluginPackage(String context) {
 		return _pluginPackages.get(context);
-	}
-
-	public List<PluginPackage> getPluginPackages() {
-		return new ArrayList<>(_pluginPackages.values());
-	}
-
-	public List<PluginPackage> getPluginPackages(
-		String groupId, String artifactId) {
-
-		List<PluginPackage> pluginPackages = new ArrayList<>();
-
-		for (PluginPackage pluginPackage : _pluginPackages.values()) {
-			String pluginPackageGroupId = pluginPackage.getGroupId();
-			String pluginPackageArtifactId = pluginPackage.getArtifactId();
-
-			if (pluginPackageGroupId.equals(groupId) &&
-				pluginPackageArtifactId.equals(artifactId)) {
-
-				pluginPackages.add(pluginPackage);
-			}
-		}
-
-		return pluginPackages;
 	}
 
 	public List<PluginPackage> getSortedPluginPackages() {
@@ -125,31 +68,6 @@ public class LocalPluginPackageRepository {
 				addPluginPackage(pluginPackage);
 			}
 		}
-
-		String key = pluginPackage.getContext();
-
-		if (key == null) {
-			key = pluginPackage.getModuleId();
-		}
-
-		_pendingPackages.put(key, pluginPackage);
-	}
-
-	public void registerPluginPackageInstallation(String deploymentContext) {
-		PluginPackage pluginPackage = getPluginPackage(deploymentContext);
-
-		if (pluginPackage == null) {
-			String moduleId = StringBundler.concat(
-				deploymentContext, StringPool.SLASH, deploymentContext,
-				StringPool.SLASH, Version.UNKNOWN, "/war");
-
-			pluginPackage = new PluginPackageImpl(moduleId);
-
-			pluginPackage.setName(deploymentContext);
-			pluginPackage.setContext(deploymentContext);
-		}
-
-		registerPluginPackageInstallation(pluginPackage);
 	}
 
 	public void removePluginPackage(PluginPackage pluginPackage)
@@ -158,19 +76,13 @@ public class LocalPluginPackageRepository {
 		_pluginPackages.remove(pluginPackage.getContext());
 	}
 
-	public void removePluginPackage(String context) {
-		_pluginPackages.remove(context);
-	}
-
 	public void unregisterPluginPackageInstallation(String context) {
 		_pluginPackages.remove(context);
-		_pendingPackages.remove(context);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		LocalPluginPackageRepository.class);
 
-	private final Map<String, PluginPackage> _pendingPackages = new HashMap<>();
 	private final Map<String, PluginPackage> _pluginPackages = new HashMap<>();
 
 }

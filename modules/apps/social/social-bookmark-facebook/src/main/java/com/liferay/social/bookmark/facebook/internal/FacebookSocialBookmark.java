@@ -15,14 +15,12 @@
 package com.liferay.social.bookmark.facebook.internal;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.social.bookmarks.SocialBookmark;
 
 import java.io.IOException;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -47,10 +45,7 @@ public class FacebookSocialBookmark implements SocialBookmark {
 
 	@Override
 	public String getName(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			locale, FacebookSocialBookmark.class);
-
-		return LanguageUtil.get(resourceBundle, "facebook");
+		return LanguageUtil.get(locale, "facebook");
 	}
 
 	@Override

@@ -1,0 +1,167 @@
+definition {
+
+	macro addTermsAndCondition {
+		LexiconEntry.gotoAdd();
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			locator1 = "TextInput#NAME",
+			value1 = "${termsAndConditionName}");
+
+		Select(
+			locator1 = "Select#TYPE",
+			value1 = "${termsAndConditionType}");
+
+		Type(
+			locator1 = "CommerceEntry#PRIORITY_FIELD",
+			value1 = "${valuePosition}");
+
+		Button.clickSubmitButton();
+
+		if ("${active}" == "true") {
+			ClickNoError(locator1 = "ToggleSwitch#ACTIVE");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	macro assertTermsAndConditionEntry {
+		AssertTextEquals(
+			locator1 = "CommerceEntry#NAME_FIELD_SPECIAL",
+			value1 = "${termsAndConditionName}");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+
+		AssertTextEquals(
+			locator1 = "CKEditor#BODY",
+			value1 = "${termsAndConditionDescription}");
+
+		if (isSet(valuePosition)) {
+			AssertTextEquals(
+				locator1 = "CommerceEntry#PRIORITY_FIELD",
+				value1 = "${valuePosition}");
+		}
+	}
+
+	macro cancelAddTermsAndCondition {
+		LexiconEntry.gotoAdd();
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			locator1 = "TextInput#NAME",
+			value1 = "${termsAndConditionName}");
+
+		Select(
+			locator1 = "Select#TYPE",
+			value1 = "${termsAndConditionType}");
+
+		Type(
+			locator1 = "CommerceEntry#PRIORITY_FIELD",
+			value1 = "${valuePosition}");
+
+		Click(locator1 = "Button#CANCEL_SPECIAL");
+	}
+
+	macro deleteTermsAndCondition {
+		CommerceNavigator.searchEntry(entryName = "${termsAndConditionName}");
+
+		Click(
+			key_value = "${termsAndConditionName}",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro editTermsAndCondition {
+		if (isSet(termsAndConditionName)) {
+			Type(
+				locator1 = "CommerceEntry#NAME_FIELD_SPECIAL",
+				value1 = "${termsAndConditionName}");
+		}
+
+		if (isSet(termsAndConditionDescription)) {
+			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+
+			Type(
+				locator1 = "CKEditor#BODY",
+				value1 = "${termsAndConditionDescription}");
+
+			SelectFrame(value1 = "relative=top");
+		}
+
+		if (isSet(valuePosition)) {
+			Type(
+				locator1 = "CommerceEntry#PRIORITY_FIELD",
+				value1 = "${valuePosition}");
+		}
+
+		Button.clickPublish();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro gotoEntryMenuItem {
+		Click(
+			key_value = "${termsAndConditionName}",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "${menuItem}");
+	}
+
+	macro openTermsAndConditionAdmin {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/control_panel/manage?p_p_id=com_liferay_commerce_term_web_internal_portlet_CommerceTermEntryPortlet");
+	}
+
+	macro viewDeleteTermsAndConditionEntry {
+		AssertElementNotPresent(
+			key_termsAndConditionName = "${termsAndConditionName}",
+			locator1 = "CommercePaymentTerms#ORDER_DETAILS_TERMS_AND_CONDITIONS_NAME",
+			value1 = "${termsAndConditionName}");
+	}
+
+	macro viewNoPG {
+		AssertTextEquals(
+			locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER",
+			value1 = "Sorry, no results were found.");
+	}
+
+	macro viewTermsAndConditionEntry {
+		AssertTextEquals.assertPartialText(
+			key_termsAndConditionName = "${termsAndConditionName}",
+			locator1 = "CommercePaymentTerms#ORDER_DETAILS_TERMS_AND_CONDITIONS_NAME",
+			value1 = "${termsAndConditionName}");
+
+		AssertTextEquals.assertPartialText(
+			key_termsAndConditionType = "${termsAndConditionType}",
+			locator1 = "CommercePaymentTerms#ORDER_DETAILS_TERMS_AND_CONDITIONS_TYPE",
+			value1 = "${termsAndConditionType}");
+
+		AssertTextEquals.assertPartialText(
+			key_valuePosition = "${valuePosition}",
+			locator1 = "CommercePaymentTerms#ORDER_DETAILS_TERMS_AND_CONDITIONS_PRIORITY",
+			value1 = "${valuePosition}");
+
+		AssertTextEquals.assertPartialText(
+			key_termsAndConditionActiveStatus = "${termsAndConditionActiveStatus}",
+			locator1 = "CommercePaymentTerms#ORDER_DETAILS_TERMS_AND_CONDITIONS_ACTIVE_STATUS",
+			value1 = "${termsAndConditionActiveStatus}");
+	}
+
+	macro viewTermsAndConditionEntrySortByPriority {
+		AssertTextPresent(
+			key_rowNumber = "${rowNumber}",
+			key_termsAndConditionName = "${termsAndConditionName}",
+			key_valuePosition = "${valuePosition}",
+			locator1 = "CommercePaymentTerms#ENTRY_LIST_BY_SORT",
+			value1 = "${valuePosition}");
+	}
+
+}

@@ -57,14 +57,18 @@ public interface ObjectDefinition
 
 		};
 
-	public String getClassName();
+	public String getDestinationName();
 
-	public String getDBPrimaryKeyColumnName();
-
-	public String getDBTableName();
+	public String getExtensionDBTableName();
 
 	public String getPortletId();
 
-	public String getPrimaryKeyColumnName();
+	public String getResourceName();
+
+	public String getRESTContextPath();
+
+	public String getShortName();
+
+	public boolean isApproved();
 
 }

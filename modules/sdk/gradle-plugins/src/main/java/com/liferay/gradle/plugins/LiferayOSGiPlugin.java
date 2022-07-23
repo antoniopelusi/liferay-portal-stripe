@@ -183,7 +183,7 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 
 		BasePluginConvention basePluginConvention = convention.getPlugin(
 			BasePluginConvention.class);
-		final JavaPluginConvention javaPluginConvention = convention.getPlugin(
+		JavaPluginConvention javaPluginConvention = convention.getPlugin(
 			JavaPluginConvention.class);
 
 		SourceSetContainer javaSourceSetContainer =
@@ -1546,7 +1546,7 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 				public void execute(Test test) {
 					test.jvmArgs(
 						"-Djava.net.preferIPv4Stack=true",
-						"-Dliferay.mode=test", "-Duser.timezone=GMT");
+						"-Duser.timezone=GMT");
 
 					test.setForkEvery(1L);
 				}

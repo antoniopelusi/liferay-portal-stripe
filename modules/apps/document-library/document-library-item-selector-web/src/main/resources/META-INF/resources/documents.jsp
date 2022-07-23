@@ -22,11 +22,13 @@ DLItemSelectorViewDisplayContext dlItemSelectorViewDisplayContext = (DLItemSelec
 
 <liferay-item-selector:repository-entry-browser
 	allowedCreationMenuUIItemKeys="<%= dlItemSelectorViewDisplayContext.getAllowedCreationMenuUIItemKeys() %>"
+	editImageURL="<%= dlItemSelectorViewDisplayContext.getEditImageURL(liferayPortletResponse) %>"
 	emptyResultsMessage='<%= LanguageUtil.get(request, "there-are-no-documents-or-media-files-in-this-folder") %>'
-	extensions="<%= ListUtil.toList(dlItemSelectorViewDisplayContext.getExtensions()) %>"
+	extensions="<%= ListUtil.fromArray(dlItemSelectorViewDisplayContext.getExtensions()) %>"
 	itemSelectedEventName="<%= dlItemSelectorViewDisplayContext.getItemSelectedEventName() %>"
 	itemSelectorReturnTypeResolver="<%= dlItemSelectorViewDisplayContext.getItemSelectorReturnTypeResolver() %>"
-	maxFileSize="<%= DLValidatorUtil.getMaxAllowableSize() %>"
+	maxFileSize="<%= DLValidatorUtil.getMaxAllowableSize(themeDisplay.getScopeGroupId(), null) %>"
+	mimeTypeRestriction="<%= dlItemSelectorViewDisplayContext.getMimeTypeRestriction() %>"
 	portletURL="<%= dlItemSelectorViewDisplayContext.getPortletURL(liferayPortletResponse) %>"
 	repositoryEntries="<%= dlItemSelectorViewDisplayContext.getRepositoryEntries() %>"
 	repositoryEntriesCount="<%= dlItemSelectorViewDisplayContext.getRepositoryEntriesCount() %>"

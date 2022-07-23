@@ -42,15 +42,8 @@ public class QueryFilter extends BaseFilter {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{(query=");
-		sb.append(_query);
-		sb.append("), ");
-		sb.append(super.toString());
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{(query=", _query, "), ", super.toString(), "}");
 	}
 
 	private final Query _query;

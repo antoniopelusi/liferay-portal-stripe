@@ -650,4 +650,7 @@ public interface DLFolderModel
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId);
 
+	@Override
+	public DLFolder cloneWithOriginalValues();
+
 }

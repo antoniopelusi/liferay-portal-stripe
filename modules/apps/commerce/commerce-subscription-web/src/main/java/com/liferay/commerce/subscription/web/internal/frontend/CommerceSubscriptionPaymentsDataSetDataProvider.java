@@ -107,12 +107,6 @@ public class CommerceSubscriptionPaymentsDataSetDataProvider
 
 			BigDecimal finalPrice = commerceOrderItem.getFinalPrice();
 
-			StringBundler priceSB = new StringBundler(3);
-
-			priceSB.append(commerceCurrency.round(finalPrice));
-			priceSB.append(CharPool.SPACE);
-			priceSB.append(commerceCurrency.getCode());
-
 			orderPayments.add(
 				new Payment(
 					new LabelField(
@@ -125,7 +119,9 @@ public class CommerceSubscriptionPaymentsDataSetDataProvider
 									commerceOrderPayment.getStatus()))),
 					dateTimeFormat.format(commerceOrderPayment.getCreateDate()),
 					commerceOrderPayment.getCommerceOrderPaymentId(),
-					priceSB.toString()));
+					StringBundler.concat(
+						commerceCurrency.round(finalPrice), CharPool.SPACE,
+						commerceCurrency.getCode())));
 		}
 
 		return orderPayments;

@@ -17,7 +17,7 @@ package com.liferay.frontend.taglib.dynamic.section.servlet.taglib;
 import com.liferay.frontend.taglib.dynamic.section.DynamicSection;
 import com.liferay.frontend.taglib.dynamic.section.DynamicSectionReplace;
 import com.liferay.frontend.taglib.dynamic.section.internal.util.DynamicSectionUtil;
-import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.taglib.BaseBodyTagSupport;
 
 import java.util.List;

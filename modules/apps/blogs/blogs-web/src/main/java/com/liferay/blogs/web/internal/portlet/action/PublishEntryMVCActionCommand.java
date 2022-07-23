@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.ParamUtil;
 
 import javax.portlet.ActionRequest;
@@ -38,6 +39,7 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true,
 	property = {
+		"javax.portlet.name=" + BlogsPortletKeys.BLOGS,
 		"javax.portlet.name=" + BlogsPortletKeys.BLOGS_ADMIN,
 		"mvc.command.name=/blogs/publish_entry"
 	},
@@ -60,6 +62,8 @@ public class PublishEntryMVCActionCommand extends BaseMVCActionCommand {
 
 		_exportImportChangesetMVCActionCommand.processPublishAction(
 			actionRequest, actionResponse, changeset);
+
+		SessionMessages.add(actionRequest, "blogsEntryPublished");
 	}
 
 	private BlogsEntry _fetchEntry(long entryId) {

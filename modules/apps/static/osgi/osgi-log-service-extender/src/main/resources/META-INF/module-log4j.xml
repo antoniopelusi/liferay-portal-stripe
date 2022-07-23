@@ -2,6 +2,6 @@
 
 <Configuration strict="true">
 	<Loggers>
-		<Logger level="WARN" name="com.liferay.osgi.log.service.extender.internal.OSGiLogServiceExtenderBundleActivator" />
+		<Logger level="WARN" name="com.liferay.osgi.log.service.extender.internal.activator.OSGiLogServiceExtenderBundleActivator" />
 	</Loggers>
 </Configuration>

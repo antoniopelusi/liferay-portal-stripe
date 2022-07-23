@@ -23,18 +23,12 @@ import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.ResourceConstants;
-import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
-import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
-import com.liferay.portal.kernel.service.ResourcePermissionServiceUtil;
-import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -121,23 +115,9 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 			_classNameId, StringUtil.randomString());
 		DDMStructure structure2 = addStructure(
 			_classNameId, StringUtil.randomString());
-		String modelName = ResourceActionsUtil.getCompositeModelName(
-			PortalUtil.getClassName(_classNameId),
-			DDMStructure.class.getName());
 
 		_ddmStructures.add(structure1);
 		_ddmStructures.add(structure2);
-
-		List<Role> roles = RoleLocalServiceUtil.getRoles(
-			TestPropsValues.getCompanyId());
-
-		for (Role role : roles) {
-			ResourcePermissionServiceUtil.removeResourcePermission(
-				structure2.getGroupId(), structure2.getCompanyId(), modelName,
-				ResourceConstants.SCOPE_INDIVIDUAL,
-				String.valueOf(structure2.getPrimaryKey()), role.getRoleId(),
-				ActionKeys.VIEW);
-		}
 
 		long[] groupIds = {group.getGroupId(), _group.getGroupId()};
 
@@ -328,21 +308,6 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 
 		_ddmStructures.add(structure);
 
-		String modelName = ResourceActionsUtil.getCompositeModelName(
-			PortalUtil.getClassName(_classNameId),
-			DDMStructure.class.getName());
-
-		List<Role> roles = RoleLocalServiceUtil.getRoles(
-			TestPropsValues.getCompanyId());
-
-		for (Role role : roles) {
-			ResourcePermissionServiceUtil.removeResourcePermission(
-				structure.getGroupId(), structure.getCompanyId(), modelName,
-				ResourceConstants.SCOPE_INDIVIDUAL,
-				String.valueOf(structure.getPrimaryKey()), role.getRoleId(),
-				ActionKeys.VIEW);
-		}
-
 		List<DDMStructure> structures = DDMStructureServiceUtil.search(
 			TestPropsValues.getCompanyId(),
 			new long[] {group.getGroupId(), group.getGroupId()}, _classNameId,
@@ -362,21 +327,6 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 
 		_ddmStructures.add(structure);
 
-		String modelName = ResourceActionsUtil.getCompositeModelName(
-			PortalUtil.getClassName(_classNameId),
-			DDMStructure.class.getName());
-
-		List<Role> roles = RoleLocalServiceUtil.getRoles(
-			TestPropsValues.getCompanyId());
-
-		for (Role role : roles) {
-			ResourcePermissionServiceUtil.removeResourcePermission(
-				structure.getGroupId(), structure.getCompanyId(), modelName,
-				ResourceConstants.SCOPE_INDIVIDUAL,
-				String.valueOf(structure.getPrimaryKey()), role.getRoleId(),
-				ActionKeys.VIEW);
-		}
-
 		long[] groupIds = {group.getGroupId(), group.getGroupId()};
 
 		User siteMemberUser = UserTestUtil.addGroupUser(
@@ -390,7 +340,7 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 			StringPool.BLANK, WorkflowConstants.STATUS_ANY, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 
-		Assert.assertEquals(structures.toString(), 1, structures.size());
+		Assert.assertEquals(structures.toString(), 0, structures.size());
 	}
 
 	@Rule

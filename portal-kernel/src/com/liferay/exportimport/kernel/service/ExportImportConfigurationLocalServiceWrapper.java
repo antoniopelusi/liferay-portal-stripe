@@ -27,6 +27,10 @@ public class ExportImportConfigurationLocalServiceWrapper
 	implements ExportImportConfigurationLocalService,
 			   ServiceWrapper<ExportImportConfigurationLocalService> {
 
+	public ExportImportConfigurationLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ExportImportConfigurationLocalServiceWrapper(
 		ExportImportConfigurationLocalService
 			exportImportConfigurationLocalService) {
@@ -195,6 +199,13 @@ public class ExportImportConfigurationLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _exportImportConfigurationLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _exportImportConfigurationLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

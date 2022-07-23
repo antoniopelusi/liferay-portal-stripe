@@ -154,6 +154,13 @@ public abstract class OAuthApplicationLocalServiceBaseImpl
 	}
 
 	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
+	@Override
 	public DynamicQuery dynamicQuery() {
 		Class<?> clazz = getClass();
 
@@ -479,10 +486,6 @@ public abstract class OAuthApplicationLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.portal.kernel.service.ClassNameLocalService
 		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ImageLocalService
-		imageLocalService;
 
 	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService

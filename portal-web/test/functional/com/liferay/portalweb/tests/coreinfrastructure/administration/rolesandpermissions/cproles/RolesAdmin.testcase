@@ -1,0 +1,967 @@
+@component-name = "portal-user-management-and-portal-configuration"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Roles";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.firstLoginPG();
+
+			Role.tearDownCP();
+		}
+	}
+
+	@priority = "3"
+	test CanAddRoleWithSameNameDifferentKey {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.add(roleTitle = "Role Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		LexiconEntry.gotoAdd();
+
+		PortletEntry.inputTitle(title = "Role Name");
+
+		Type(
+			locator1 = "TextInput#KEY",
+			value1 = "Role Name-2");
+
+		AssertClick(
+			locator1 = "Button#SUBMIT",
+			value1 = "Save");
+
+		Alert.viewSuccessMessage();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Search.searchCP(searchTerm = "Name-2");
+
+		LexiconEntry.gotoEntry(rowEntry = "Role Name");
+
+		AssertTextEquals(
+			locator1 = "TextInput#KEY",
+			value1 = "Role Name-2");
+	}
+
+	@priority = "4"
+	test CannotAddRoleIfSimilarKeyExists {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.add(roleTitle = "Role Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		LexiconEntry.gotoAdd();
+
+		PortletEntry.inputTitle(title = "Role Name2");
+
+		Type(
+			locator1 = "TextInput#KEY",
+			value1 = "Role Name");
+
+		AssertClick(
+			locator1 = "Button#SUBMIT",
+			value1 = "Save");
+
+		Alert.viewRequestFailedToComplete();
+
+		Alert.viewDuplicateErrorMessage();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Search.searchCP(searchTerm = "Name2");
+
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "No roles were found.");
+	}
+
+	@description = "This test automates LPS-141903 and asserts that a deactivated user is not counted in Site Roles"
+	@priority = "3"
+	test DeactivatedUserIsNotCountedInSiteRoles {
+		task ("Given two users are assigned to corresponding sites as a Site Content Reviewer") {
+			for (var userNum : list "1,2") {
+				JSONUser.addUser(
+					userEmailAddress = "user${userNum}@liferay.com",
+					userFirstName = "user${userNum}",
+					userLastName = "user${userNum}",
+					userScreenName = "user${userNum}");
+
+				JSONGroup.addGroup(groupName = "Site${userNum}");
+
+				JSONGroup.assignUserToGroup(
+					groupName = "Site${userNum}",
+					userEmailAddress = "user${userNum}@liferay.com");
+
+				JSONGroup.assignGroupRoleToUser(
+					groupName = "Site${userNum}",
+					roleTitle = "Site Content Reviewer",
+					userEmailAddress = "user${userNum}@liferay.com");
+			}
+
+			Role.openRolesAdmin();
+
+			Navigator.gotoNavTab(navTab = "Site Roles");
+
+			LexiconList.viewListEntrySubtitle(
+				listEntry = "Site Content Reviewer",
+				listEntrySubtitle = "2 Assignees");
+		}
+
+		task ("When the first user is deactivated") {
+			User.openUsersAdmin();
+
+			User.singleDeactivateCP(userFirstName = "user1");
+		}
+
+		task ("Then that user should no longer be counted in Site Roles and no longer be listed as a member of the site") {
+			Role.openRolesAdmin();
+
+			Navigator.gotoNavTab(navTab = "Site Roles");
+
+			LexiconList.viewListEntrySubtitle(
+				listEntry = "Site Content Reviewer",
+				listEntrySubtitle = "1 Assignee");
+
+			ProductMenu.gotoPortlet(
+				category = "People",
+				portlet = "Memberships",
+				site = "Site1");
+
+			LexiconEntry.viewNoEntry(rowEntry = "user1 user1");
+		}
+	}
+
+	@priority = "4"
+	test ExistingSegmentCanBeAssignedToARegularRole {
+		ProductMenu.gotoSite(site = "Global");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			portlet = "Segments");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Email Address");
+
+		Segmentation.fillTitle(titleField = "RoleSegment Test");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "liferay");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		JSONRole.addRegularRole(
+			roleKey = "Roles Regrole Name",
+			roleTitle = "Roles Regrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.addAssignee(
+			assigneeName = "RoleSegment Test",
+			assigneeType = "Segments",
+			roleTitle = "Roles Regrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewAssignee(
+			assigneeName = "RoleSegment Test",
+			assigneeType = "Segments",
+			roleTitle = "Roles Regrole Name");
+	}
+
+	@priority = "4"
+	test NewSegmentCanBeAssignedToARegularRole {
+		JSONRole.addRegularRole(
+			roleKey = "Roles Regrole Name",
+			roleTitle = "Roles Regrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		LexiconEntry.gotoEntry(rowEntry = "Roles Regrole Name");
+
+		Navigator.gotoNavItem(navItem = "Assignees");
+
+		Navigator.gotoNavItem(navItem = "Segments");
+
+		LexiconEntry.gotoAdd();
+
+		SelectFrame(locator1 = "IFrame#SELECT_ASSIGNEES");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Email Address");
+
+		Segmentation.fillTitle(titleField = "New RoleSegment Test");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "liferay");
+
+		Button.clickSave();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.addAssignee(
+			assigneeName = "New RoleSegment Test",
+			assigneeType = "Segments",
+			roleTitle = "Roles Regrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewAssignee(
+			assigneeName = "New RoleSegment Test",
+			assigneeType = "Segments",
+			roleTitle = "Roles Regrole Name");
+	}
+
+	@description = "This test assigns and unassigns an organization to a regular role via UI."
+	@priority = "5"
+	test OrganizationCanBeRemovedFromRegularRole {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONOrganization.addOrganization(
+			organizationName = "Organization Name",
+			organizationSite = "true");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "Organization Name",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONRole.addRegularRole(
+			roleKey = "Remove Org Assignee",
+			roleTitle = "Remove Org Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW_CONTROL_PANEL",
+			resourceName = "90",
+			roleTitle = "Remove Org Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.portal.kernel.model.UserGroup",
+			roleTitle = "Remove Org Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_user_groups_admin_web_portlet_UserGroupsAdminPortlet",
+			roleTitle = "Remove Org Assignee");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.addAssignee(
+			assigneeName = "Organization Name",
+			assigneeType = "Organizations",
+			roleTitle = "Remove Org Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementNotPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "test test");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.removeAssignee(
+			assigneeName = "Organization Name",
+			assigneeType = "Organizations",
+			roleTitle = "Remove Org Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+	}
+
+	@priority = "5"
+	test OrganizationRoleCanBeDeleted {
+		property portal.acceptance = "true";
+		property testray.component.names = "Training";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoRoleType(roleType = "Organization");
+
+		Role.add(roleTitle = "Roles Orgrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewCP(
+			roleTitle = "Roles Orgrole Name",
+			roleType = "Organization");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoRoleType(roleType = "Organization");
+
+		Role.deleteCP(roleTitle = "Roles Orgrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoRoleType(roleType = "Organization");
+
+		Role.viewDefaultCP(roleTitle = "Roles Orgrole Name");
+	}
+
+	@priority = "5"
+	test RegularRoleCanBeDeleted {
+		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
+		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property environment.acceptance = "true";
+		property portal.acceptance = "true";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.add(roleTitle = "Roles Regrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewCP(
+			roleTitle = "Roles Regrole Name",
+			roleType = "Regular");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.deleteCP(roleTitle = "Roles Regrole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewDefaultCP(roleTitle = "Roles Regrole Name");
+	}
+
+	@priority = "4"
+	test RolesCanBeOrderedByTitle {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Pagination.changePagination(itemsPerPage = "4");
+
+		AssertElementPresent(
+			key_itemName = "Administrator",
+			locator1 = "ListGroupItem#ITEM_NAME_LINK",
+			value1 = "Administrator");
+
+		AssertElementNotPresent(
+			key_itemName = "User",
+			locator1 = "ListGroupItem#ITEM_NAME_LINK",
+			value1 = "User");
+
+		ManagementBar.setFilterAndOrder(orderBy = "Title");
+
+		Click(locator1 = "ManagementBar#ORDER_ICON_GENERIC");
+
+		AssertElementPresent(
+			key_itemName = "User",
+			locator1 = "ListGroupItem#ITEM_NAME_LINK",
+			value1 = "User");
+
+		AssertElementNotPresent(
+			key_itemName = "Administrator",
+			locator1 = "ListGroupItem#ITEM_NAME_LINK",
+			value1 = "Administrator");
+	}
+
+	@priority = "3"
+	test RolesCanBeViewedInTableView {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "table");
+
+		AssertTextEquals(
+			key_tableEntry = "Administrator",
+			locator1 = "LexiconTable#TABLE_ENTRY_TITLE_LINK",
+			value1 = "Administrator");
+
+		AssertTextEquals(
+			key_columnName = "description",
+			key_tableEntry = "Administrators",
+			locator1 = "LexiconTable#TABLE_ENTRY_COLUMN_LINK",
+			value1 = "Administrators are super users who can do anything.");
+
+		AssertTextEquals(
+			key_columnName = "assignees",
+			key_tableEntry = "Administrators",
+			locator1 = "LexiconTable#TABLE_ENTRY_COLUMN_LINK",
+			value1 = "1");
+	}
+
+	@priority = "4"
+	test SegmentCanBeRemovedFromRegularRole {
+		ProductMenu.gotoSite(site = "Global");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			portlet = "Segments");
+
+		LexiconEntry.gotoAdd();
+
+		Segmentation.addProperties(propertyOption = "Email Address");
+
+		Segmentation.fillTitle(titleField = "Role Assignee Test");
+
+		Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+		Segmentation.fillProperty(propertyField = "liferay");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		JSONRole.addRegularRole(
+			roleKey = "Remove Regrole Assignee",
+			roleTitle = "Remove Regrole Assignee");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.addAssignee(
+			assigneeName = "Role Assignee Test",
+			assigneeType = "Segments",
+			roleTitle = "Remove Regrole Assignee");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.removeAssignee(
+			assigneeName = "Role Assignee Test",
+			assigneeType = "Segments",
+			roleTitle = "Remove Regrole Assignee");
+	}
+
+	@description = "This test assigns and unassigns a site to a regular role via UI."
+	@priority = "5"
+	test SiteCanBeRemovedFromRegularRole {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		User.openUsersAdmin();
+
+		User.editUserSiteCP(
+			siteName = "Site Name",
+			userScreenName = "usersn");
+
+		JSONRole.addRegularRole(
+			roleKey = "Remove Site Assignee",
+			roleTitle = "Remove Site Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW_CONTROL_PANEL",
+			resourceName = "90",
+			roleTitle = "Remove Site Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.portal.kernel.model.UserGroup",
+			roleTitle = "Remove Site Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_user_groups_admin_web_portlet_UserGroupsAdminPortlet",
+			roleTitle = "Remove Site Assignee");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.addAssignee(
+			assigneeName = "Site Name",
+			assigneeType = "Sites",
+			roleTitle = "Remove Site Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementNotPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "test test");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.removeAssignee(
+			assigneeName = "Site Name",
+			assigneeType = "Sites",
+			roleTitle = "Remove Site Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+	}
+
+	@priority = "5"
+	test SiteRoleCanBeDeleted {
+		property portal.acceptance = "true";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoRoleType(roleType = "Site");
+
+		Role.add(roleTitle = "Roles Siterole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewCP(
+			roleTitle = "Roles Siterole Name",
+			roleType = "Site");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoRoleType(roleType = "Site");
+
+		Role.deleteCP(roleTitle = "Roles Siterole Name");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		RoleNavigator.gotoRoleType(roleType = "Site");
+
+		Role.viewDefaultCP(roleTitle = "Roles Siterole Name");
+	}
+
+	@description = "This is a use case for LPS-105001 and LPS-104999."
+	@priority = "3"
+	test UserCanAddARoleWithoutATitle {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewCP(
+			roleKey = "Administrator",
+			toolTip = "A title is a localizable human-readable name for a role. If not provided, the key will be displayed by default.");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.add(roleKey = "Role Key Value");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewCP(roleKey = "Role Key Value");
+	}
+
+	@description = "This is a use case for LPS-109572."
+	@priority = "5"
+	test UserCanBeAssignedToARegularRole {
+		property portal.acceptance = "true";
+
+		JSONRole.addRegularRole(
+			roleKey = "Regular Role",
+			roleTitle = "Regular Role");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Regular Role",
+			userEmailAddress = "userea@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.viewAssignee(
+			assigneeName = "userfn userln",
+			assigneeType = "Users",
+			roleTitle = "Regular Role");
+	}
+
+	@description = "This test assigns and unassigns a user to a regular role via UI."
+	@priority = "5"
+	test UserCanBeRemovedFromRegularRole {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONRole.addRegularRole(
+			roleKey = "Remove User Assignee",
+			roleTitle = "Remove User Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW_CONTROL_PANEL",
+			resourceName = "90",
+			roleTitle = "Remove User Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.portal.kernel.model.UserGroup",
+			roleTitle = "Remove User Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_user_groups_admin_web_portlet_UserGroupsAdminPortlet",
+			roleTitle = "Remove User Assignee");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.addAssignee(
+			assigneeName = "userfn userln",
+			assigneeType = "Users",
+			roleTitle = "Remove User Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementNotPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "test test");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.removeAssignee(
+			assigneeName = "userfn userln",
+			assigneeType = "Users",
+			roleTitle = "Remove User Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+	}
+
+	@description = "This test asserts that Organization Role table is empty and select button does not display if user is not a member of an organization."
+	@priority = "3"
+	test UserCanNotSelectOrgRoleIfUserIsNotAnOrgMember {
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONOrganization.addOrganization(organizationName = "Organization Name");
+
+		User.openUsersAdmin();
+
+		UserNavigator.gotoUser(userScreenName = "usersn");
+
+		UserNavigator.gotoRoles();
+
+		User.viewUnableToAssignRoleToUserCP(roleType = "Organization");
+
+		AssertElementNotPresent(
+			key_roleType = StringUtil.replace("Organization Role", " ", ""),
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_LINK",
+			value1 = "Select");
+	}
+
+	@description = "This test asserts that Site Role table is empty and select button does not display if user is not a member of a site."
+	@priority = "3"
+	test UserCanNotSelectSiteRoleIfUserIsNotASiteMember {
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		User.openUsersAdmin();
+
+		UserNavigator.gotoUser(userScreenName = "usersn");
+
+		UserNavigator.gotoRoles();
+
+		User.viewUnableToAssignRoleToUserCP(roleType = "Site");
+
+		AssertElementNotPresent(
+			key_roleType = StringUtil.replace("Site Role", " ", ""),
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_LINK",
+			value1 = "Select");
+	}
+
+	@description = "This test assigns and unassigns a user group to a regular role via UI."
+	@priority = "5"
+	test UserGroupCanBeRemovedFromRegularRole {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUserGroup.addUserGroup(userGroupName = "UG UserGroup Name");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONUser.addUserToUserGroup(
+			userEmailAddress = "userea@liferay.com",
+			userGroupName = "UG UserGroup Name");
+
+		JSONRole.addRegularRole(
+			roleKey = "Remove User Group Assignee",
+			roleTitle = "Remove User Group Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW_CONTROL_PANEL",
+			resourceName = "90",
+			roleTitle = "Remove User Group Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "VIEW",
+			resourceName = "com.liferay.portal.kernel.model.UserGroup",
+			roleTitle = "Remove User Group Assignee");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_user_groups_admin_web_portlet_UserGroupsAdminPortlet",
+			roleTitle = "Remove User Group Assignee");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.addAssignee(
+			assigneeName = "UG UserGroup Name",
+			assigneeType = "User Groups",
+			roleTitle = "Remove User Group Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementNotPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "test test");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role.removeAssignee(
+			assigneeName = "UG UserGroup Name",
+			assigneeType = "User Groups",
+			roleTitle = "Remove User Group Assignee");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		UserGroup.openUserGroupsAdmin();
+
+		AssertElementPresent(
+			locator1 = "Message#ERROR",
+			value1 = "You do not have the roles required to access this portlet.");
+	}
+
+}

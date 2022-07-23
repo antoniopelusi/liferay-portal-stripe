@@ -23,11 +23,11 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentCollectionLocalService;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
@@ -49,6 +49,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.util.List;
 
@@ -81,7 +82,7 @@ public class AddFragmentEntryLinkMVCActionCommandTest {
 
 		_company = _companyLocalService.getCompany(_group.getCompanyId());
 
-		_layout = _addLayout();
+		_layout = LayoutTestUtil.addTypeContentLayout(_group);
 	}
 
 	@Test
@@ -196,19 +197,6 @@ public class AddFragmentEntryLinkMVCActionCommandTest {
 			new Class<?>[] {ActionRequest.class}, actionRequest);
 	}
 
-	private Layout _addLayout() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				TestPropsValues.getGroupId(), TestPropsValues.getUserId());
-
-		return _layoutLocalService.addLayout(
-			TestPropsValues.getUserId(), _group.getGroupId(), false,
-			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			StringPool.BLANK, LayoutConstants.TYPE_CONTENT, false,
-			StringPool.BLANK, serviceContext);
-	}
-
 	private FragmentEntry _getFragmentEntry(long groupId) throws Exception {
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext();
@@ -223,7 +211,7 @@ public class AddFragmentEntryLinkMVCActionCommandTest {
 			fragmentCollection.getFragmentCollectionId(),
 			StringUtil.randomString(), StringUtil.randomString(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), "{fieldSets: []}", 0,
+			RandomTestUtil.randomString(), false, "{fieldSets: []}", null, 0,
 			FragmentConstants.TYPE_COMPONENT, WorkflowConstants.STATUS_APPROVED,
 			serviceContext);
 	}
@@ -240,6 +228,11 @@ public class AddFragmentEntryLinkMVCActionCommandTest {
 
 		mockLiferayPortletActionRequest.addParameter(
 			"groupId", String.valueOf(groupId));
+		mockLiferayPortletActionRequest.addParameter(
+			"segmentsExperienceId",
+			String.valueOf(
+				_segmentsExperienceLocalService.
+					fetchDefaultSegmentsExperienceId(_layout.getPlid())));
 
 		return mockLiferayPortletActionRequest;
 	}
@@ -286,5 +279,8 @@ public class AddFragmentEntryLinkMVCActionCommandTest {
 		filter = "mvc.command.name=/layout_content_page_editor/add_fragment_entry_link"
 	)
 	private MVCActionCommand _mvcActionCommand;
+
+	@Inject
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 }

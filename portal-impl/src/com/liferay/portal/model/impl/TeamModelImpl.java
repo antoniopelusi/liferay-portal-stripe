@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.Team;
 import com.liferay.portal.kernel.model.TeamModel;
-import com.liferay.portal.kernel.model.TeamSoap;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -33,20 +32,19 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -158,60 +156,6 @@ public class TeamModelImpl extends BaseModelImpl<Team> implements TeamModel {
 	 */
 	@Deprecated
 	public static final long UUID_COLUMN_BITMASK = 8L;
-
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Team toModel(TeamSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Team model = new TeamImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setTeamId(soapModel.getTeamId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setGroupId(soapModel.getGroupId());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Team> toModels(TeamSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Team> models = new ArrayList<Team>(soapModels.length);
-
-		for (TeamSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
 
 	public static final String MAPPING_TABLE_USERS_TEAMS_NAME = "Users_Teams";
 
@@ -328,33 +272,6 @@ public class TeamModelImpl extends BaseModelImpl<Team> implements TeamModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Team>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Team.class.getClassLoader(), Team.class, ModelWrapper.class);
-
-		try {
-			Constructor<Team> constructor =
-				(Constructor<Team>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Team, Object>>
@@ -772,6 +689,32 @@ public class TeamModelImpl extends BaseModelImpl<Team> implements TeamModel {
 	}
 
 	@Override
+	public Team cloneWithOriginalValues() {
+		TeamImpl teamImpl = new TeamImpl();
+
+		teamImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		teamImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		teamImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		teamImpl.setTeamId(this.<Long>getColumnOriginalValue("teamId"));
+		teamImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		teamImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		teamImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		teamImpl.setCreateDate(this.<Date>getColumnOriginalValue("createDate"));
+		teamImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		teamImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		teamImpl.setName(this.<String>getColumnOriginalValue("name"));
+		teamImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		teamImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return teamImpl;
+	}
+
+	@Override
 	public int compareTo(Team team) {
 		int value = 0;
 
@@ -922,7 +865,7 @@ public class TeamModelImpl extends BaseModelImpl<Team> implements TeamModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -932,9 +875,26 @@ public class TeamModelImpl extends BaseModelImpl<Team> implements TeamModel {
 			String attributeName = entry.getKey();
 			Function<Team, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Team)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Team)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -980,7 +940,9 @@ public class TeamModelImpl extends BaseModelImpl<Team> implements TeamModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Team>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Team.class, ModelWrapper.class);
 
 	}
 

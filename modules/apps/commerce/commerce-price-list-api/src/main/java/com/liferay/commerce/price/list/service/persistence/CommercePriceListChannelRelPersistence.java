@@ -17,6 +17,7 @@ package com.liferay.commerce.price.list.service.persistence;
 import com.liferay.commerce.price.list.exception.NoSuchPriceListChannelRelException;
 import com.liferay.commerce.price.list.model.CommercePriceListChannelRel;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,7 +34,8 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface CommercePriceListChannelRelPersistence
-	extends BasePersistence<CommercePriceListChannelRel> {
+	extends BasePersistence<CommercePriceListChannelRel>,
+			CTPersistence<CommercePriceListChannelRel> {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -493,7 +495,7 @@ public interface CommercePriceListChannelRelPersistence
 	 * @return the matching commerce price list channel rel
 	 * @throws NoSuchPriceListChannelRelException if a matching commerce price list channel rel could not be found
 	 */
-	public CommercePriceListChannelRel findByC_C(
+	public CommercePriceListChannelRel findByCCI_CPI(
 			long commerceChannelId, long commercePriceListId)
 		throws NoSuchPriceListChannelRelException;
 
@@ -504,7 +506,7 @@ public interface CommercePriceListChannelRelPersistence
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the matching commerce price list channel rel, or <code>null</code> if a matching commerce price list channel rel could not be found
 	 */
-	public CommercePriceListChannelRel fetchByC_C(
+	public CommercePriceListChannelRel fetchByCCI_CPI(
 		long commerceChannelId, long commercePriceListId);
 
 	/**
@@ -515,7 +517,7 @@ public interface CommercePriceListChannelRelPersistence
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching commerce price list channel rel, or <code>null</code> if a matching commerce price list channel rel could not be found
 	 */
-	public CommercePriceListChannelRel fetchByC_C(
+	public CommercePriceListChannelRel fetchByCCI_CPI(
 		long commerceChannelId, long commercePriceListId,
 		boolean useFinderCache);
 
@@ -526,7 +528,7 @@ public interface CommercePriceListChannelRelPersistence
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the commerce price list channel rel that was removed
 	 */
-	public CommercePriceListChannelRel removeByC_C(
+	public CommercePriceListChannelRel removeByCCI_CPI(
 			long commerceChannelId, long commercePriceListId)
 		throws NoSuchPriceListChannelRelException;
 
@@ -537,7 +539,7 @@ public interface CommercePriceListChannelRelPersistence
 	 * @param commercePriceListId the commerce price list ID
 	 * @return the number of matching commerce price list channel rels
 	 */
-	public int countByC_C(long commerceChannelId, long commercePriceListId);
+	public int countByCCI_CPI(long commerceChannelId, long commercePriceListId);
 
 	/**
 	 * Caches the commerce price list channel rel in the entity cache if it is enabled.

@@ -27,6 +27,7 @@
 	}
 
 	.image-icon {
+		border-radius: 5px;
 		display: block;
 		float: left;
 		height: 170px;
@@ -55,8 +56,18 @@
 	}
 
 	.image-link {
-		text-align: center;
-		text-decoration: none;
+		border-radius: $card-border-radius;
+		margin-bottom: $card-margin-bottom;
+
+		&:focus {
+			border-color: transparent;
+			box-shadow: 0 0 0 2px #719aff;
+			outline: 0;
+		}
+
+		.card {
+			margin-bottom: 0;
+		}
 	}
 
 	.image-thumbnail {
@@ -66,6 +77,7 @@
 		img {
 			background: #eaeaea;
 			border: 1px solid #ccc;
+			border-radius: 4px;
 			margin: 0;
 			padding: 5px;
 		}

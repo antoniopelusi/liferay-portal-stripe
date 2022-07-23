@@ -96,7 +96,7 @@ public class SiteMembershipsDisplayContext {
 			getTabs1()
 		).setParameter(
 			"groupId", getGroupId()
-		).build();
+		).buildPortletURL();
 	}
 
 	public String getRedirect() {

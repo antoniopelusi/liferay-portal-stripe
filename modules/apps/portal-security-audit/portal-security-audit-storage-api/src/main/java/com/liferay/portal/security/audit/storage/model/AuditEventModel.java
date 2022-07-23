@@ -292,4 +292,7 @@ public interface AuditEventModel extends BaseModel<AuditEvent>, ShardedModel {
 	 */
 	public void setAdditionalInfo(String additionalInfo);
 
+	@Override
+	public AuditEvent cloneWithOriginalValues();
+
 }

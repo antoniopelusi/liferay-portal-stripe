@@ -253,15 +253,10 @@ public class DDMStructureLinkLocalServiceImpl
 			ddmStructureLinkPersistence.findByC_C(classNameId, classPK);
 
 		if (structureLinks.isEmpty()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("No DDMStructureLink found for {classNameId=");
-			sb.append(classNameId);
-			sb.append(", classPK=");
-			sb.append(classPK);
-			sb.append(StringPool.CLOSE_CURLY_BRACE);
-
-			throw new NoSuchStructureLinkException(sb.toString());
+			throw new NoSuchStructureLinkException(
+				StringBundler.concat(
+					"No DDMStructureLink found for {classNameId=", classNameId,
+					", classPK=", classPK, StringPool.CLOSE_CURLY_BRACE));
 		}
 
 		return structureLinks.get(0);

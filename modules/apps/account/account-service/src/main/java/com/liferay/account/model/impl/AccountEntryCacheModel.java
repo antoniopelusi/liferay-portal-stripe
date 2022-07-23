@@ -77,7 +77,7 @@ public class AccountEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(41);
+		StringBundler sb = new StringBundler(47);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -97,6 +97,12 @@ public class AccountEntryCacheModel
 		sb.append(modifiedDate);
 		sb.append(", defaultBillingAddressId=");
 		sb.append(defaultBillingAddressId);
+		sb.append(", defaultCPaymentMethodKey=");
+		sb.append(defaultCPaymentMethodKey);
+		sb.append(", defaultDeliveryCTermEntryId=");
+		sb.append(defaultDeliveryCTermEntryId);
+		sb.append(", defaultPaymentCTermEntryId=");
+		sb.append(defaultPaymentCTermEntryId);
 		sb.append(", defaultShippingAddressId=");
 		sb.append(defaultShippingAddressId);
 		sb.append(", parentAccountEntryId=");
@@ -163,6 +169,19 @@ public class AccountEntryCacheModel
 		}
 
 		accountEntryImpl.setDefaultBillingAddressId(defaultBillingAddressId);
+
+		if (defaultCPaymentMethodKey == null) {
+			accountEntryImpl.setDefaultCPaymentMethodKey("");
+		}
+		else {
+			accountEntryImpl.setDefaultCPaymentMethodKey(
+				defaultCPaymentMethodKey);
+		}
+
+		accountEntryImpl.setDefaultDeliveryCTermEntryId(
+			defaultDeliveryCTermEntryId);
+		accountEntryImpl.setDefaultPaymentCTermEntryId(
+			defaultPaymentCTermEntryId);
 		accountEntryImpl.setDefaultShippingAddressId(defaultShippingAddressId);
 		accountEntryImpl.setParentAccountEntryId(parentAccountEntryId);
 
@@ -239,6 +258,11 @@ public class AccountEntryCacheModel
 		modifiedDate = objectInput.readLong();
 
 		defaultBillingAddressId = objectInput.readLong();
+		defaultCPaymentMethodKey = objectInput.readUTF();
+
+		defaultDeliveryCTermEntryId = objectInput.readLong();
+
+		defaultPaymentCTermEntryId = objectInput.readLong();
 
 		defaultShippingAddressId = objectInput.readLong();
 
@@ -284,6 +308,17 @@ public class AccountEntryCacheModel
 		objectOutput.writeLong(modifiedDate);
 
 		objectOutput.writeLong(defaultBillingAddressId);
+
+		if (defaultCPaymentMethodKey == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(defaultCPaymentMethodKey);
+		}
+
+		objectOutput.writeLong(defaultDeliveryCTermEntryId);
+
+		objectOutput.writeLong(defaultPaymentCTermEntryId);
 
 		objectOutput.writeLong(defaultShippingAddressId);
 
@@ -352,6 +387,9 @@ public class AccountEntryCacheModel
 	public long createDate;
 	public long modifiedDate;
 	public long defaultBillingAddressId;
+	public String defaultCPaymentMethodKey;
+	public long defaultDeliveryCTermEntryId;
+	public long defaultPaymentCTermEntryId;
 	public long defaultShippingAddressId;
 	public long parentAccountEntryId;
 	public String description;

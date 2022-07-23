@@ -136,6 +136,11 @@ public class SAPEntryWrapper
 		}
 	}
 
+	@Override
+	public SAPEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the allowed service signatures of this sap entry.
 	 *

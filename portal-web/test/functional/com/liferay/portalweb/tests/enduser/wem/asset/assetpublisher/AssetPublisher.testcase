@@ -1,16 +1,14 @@
 @component-name = "portal-wcm"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.token.configuration.TokenConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenLocation=&quot;REQUEST&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Asset Publisher";
 
 	setUp {
-		TestCase.setUpPortalInstance(freeLogin = "true");
+		TestCase.setUpPortalInstance();
 
-		User.firstLoginPG(freeLogin = "true");
+		User.firstLoginPG();
 
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
@@ -228,6 +226,24 @@ definition {
 		}
 	}
 
+	@description = "LPS-96038 - Global Categories do not appear as filters in Asset Publisher Configuration."
+	@priority = "4"
+	test ConfigureAPPortletDisplaysGlobalCategoriesAsFilters {
+		Category.openCategoriesAdmin(siteURLKey = "global");
+
+		Category.addCP(
+			categoryName = "Category Name",
+			vocabularyName = "Topic");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page Name",
+			siteName = "Test Site Name");
+
+		AssetPublisherPortlet.configureCategoriesFilterPG(
+			categoryName = "Category Name",
+			portletName = "Asset Publisher");
+	}
+
 	@description = "Configure scope of Asset Publisher with multiple sites."
 	@priority = "5"
 	@uitest
@@ -260,45 +276,43 @@ definition {
 	@description = "Configure the Select More Than One asset types."
 	@priority = "4"
 	test ConfigureSelectMoreThanOneAssetTypes {
-		property portal.release = "false";
-		property testray.component.names = "Asset Publisher,Bookmarks";
+		property testray.component.names = "Asset Publisher";
 
-		task ("Add a bookmarks entry") {
-			JSONBookmarks.addBookmarks(
-				description = "Test Bookmark Description",
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
 				groupName = "Test Site Name",
-				name = "Test Bookmark Name",
-				url = "https://www.liferay.com");
+				title = "Web Content Title");
 		}
 
-		task ("Remove Bookmarks Entry from Asset Type") {
+		task ("Remove Web Content Article from Asset Type") {
 			Navigator.gotoSitePage(
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			AssetPublisherPortlet.configureAPSelectMoreThanOnePG(selectContent = "Bookmarks Entry");
+			AssetPublisherPortlet.configureAPSelectMoreThanOnePG(selectContent = "Web Content Article");
 		}
 
-		task ("View the bookmarks entry not shown in Asset Publisher") {
+		task ("View the web content not shown in Asset Publisher") {
 			Navigator.gotoSitePage(
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			AssetPublisherPortlet.viewConfigureAPMoveToAvailablePG(assetTitle = "Test Bookmark Name");
+			AssetPublisherPortlet.viewConfigureAPMoveToAvailablePG(assetTitle = "Web Content Title");
 		}
 
-		task ("Add Bookmarks Entry back to Asset Type") {
+		task ("Add Web Content Article back to Asset Type") {
 			AssetPublisherPortlet.configureAPSelectMoreThanOnePG(
 				moveSelected = "true",
-				selectContent = "Bookmarks Entry");
+				selectContent = "Web Content Article");
 		}
 
-		task ("View the bookmarks entry shown in Asset Publisher") {
+		task ("View the web content shown in Asset Publisher") {
 			Navigator.gotoSitePage(
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			AssetPublisherPortlet.viewConfigureAPMoveToSelectedPG(assetTitle = "Test Bookmark Name");
+			AssetPublisherPortlet.viewConfigureAPMoveToSelectedPG(assetTitle = "Web Content Title");
 		}
 	}
 
@@ -388,7 +402,7 @@ definition {
 			JSONLayout.addWidgetToPublicLayout(
 				groupName = "Test Site Name",
 				layoutName = "Test Page Name",
-				widgetName = "Tags Navigation");
+				widgetName = "Tag Filter");
 		}
 
 		task ("Change the display template to Number in Tags Navigation") {
@@ -835,13 +849,13 @@ definition {
 		}
 
 		task ("Configure application decorators to barebone") {
-			Portlet.gotoPortletOptions(portletOption = "Look and Feel Configuration");
+			Portlet.gotoPortletOptions(
+				portletName = "Asset Publisher",
+				portletOption = "Look and Feel Configuration");
 
 			IFrame.selectConfigurationFrame();
 
-			Portlet.selectApplicationDecorator(decorator = "Barebone");
-
-			PortletEntry.save();
+			Portlet.configureGeneralViaLookAndFeelPG(applicationDecorators = "Barebone");
 		}
 
 		task ("View Asset Publisher title is hidden") {
@@ -941,9 +955,7 @@ definition {
 
 			IFrame.selectConfigurationFrame();
 
-			Portlet.configureCustomTitleViaLookandfeelPG(portletName = "Asset Publisher");
-
-			PortletEntry.save();
+			Portlet.configureGeneralViaLookAndFeelPG(customTitle = "Asset Publisher Custom");
 		}
 
 		task ("View the custom title of Asset Publisher") {
@@ -968,13 +980,13 @@ definition {
 		}
 
 		task ("Configure application decorators to barebone") {
-			Portlet.gotoPortletOptions(portletOption = "Look and Feel Configuration");
+			Portlet.gotoPortletOptions(
+				portletName = "Asset Publisher",
+				portletOption = "Look and Feel Configuration");
 
 			IFrame.selectConfigurationFrame();
 
-			Portlet.selectApplicationDecorator(decorator = "Decorate");
-
-			PortletEntry.save();
+			Portlet.configureGeneralViaLookAndFeelPG(applicationDecorators = "Barebone");
 		}
 
 		task ("View the Asset Publisher title") {
@@ -982,7 +994,7 @@ definition {
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			Portlet.viewSpecificPG(portletName = "Asset Publisher");
+			Portlet.viewDefaultTitle(portletName = "Asset Publisher");
 		}
 	}
 
@@ -1004,6 +1016,79 @@ definition {
 			AssertSelectedLabel(
 				locator1 = "APConfigurationDisplaysettings#ASSET_LINK_BEHAVIOR_SELECT",
 				value1 = "View in Context");
+		}
+	}
+
+	@description = "This is a test for LPS-135881. View the order of fieldsets in Asset Selection settings when selection style is dynamic."
+	@priority = "4"
+	@uitest
+	test ViewOrderOfFieldsetsInAssetSelectionWhenSelectionStyleIsDynamic {
+		property asset.publisher.selection.style = "asset-list";
+
+		task ("Navigate to Asset Selection panel of Asset Publisher") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.gotoConfigurationPG();
+		}
+
+		task ("Change the selection style to Dynamic") {
+			Click(locator1 = "APConfiguration#ASSET_SELECTION_DYNAMIC");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("View the order of fieldsets") {
+			var i = "1";
+
+			for (var fieldset : list "Asset Selection,Scope,Source,Filter,Custom User Attributes,Ordering") {
+				AssertVisible(
+					index = "${i}",
+					key_panel = "${fieldset}",
+					locator1 = "Panel#PANEL_BY_INDEX");
+
+				var i = ${i} + 1;
+			}
+		}
+	}
+
+	@description = "LPS-135554 This test asserts that the Web Content Article Structures should appear after uncheck Search With Index configuration."
+	@priority = "4"
+	test WebContentArticleStructuresCanAppearAfterUncheckingSearchWithIndexConfiguration {
+		property test.name.skip.portal.instance = "AssetPublisher#WebContentArticleStructuresCanAppearAfterUncheckingSearchWithIndexConfiguration";
+
+		task ("Uncheck Search with Index Configuration") {
+			APNavigator.openToConfigInSystemSettings(portlet = "Asset Publisher");
+
+			FormFields.disableCheckbox(fieldName = "searchWithIndex");
+
+			SystemSettings.saveConfiguration();
+		}
+
+		task ("Assert the Web Content Article Structures selector appear.") {
+			ApplicationsMenu.gotoSite(site = "Test Site Name");
+
+			PagesAdmin.addPage(pageName = "Test AP Page");
+
+			Navigator.gotoSitePage(
+				pageName = "Test AP Page",
+				siteName = "Test Site Name");
+
+			Portlet.addPG(portletName = "Asset Publisher");
+
+			AssetPublisherPortlet.configureAssetTypePG(
+				assetSubtype = "Any",
+				selectedAsset = "Web Content Article");
+
+			Navigator.gotoSitePage(
+				pageName = "Test AP Page",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.viewSelectedPG(
+				assetSubtypeConfiguration = "Any",
+				selectedAsset = "Basic Web Content",
+				selectedAssetConfiguration = "Web Content Article");
 		}
 	}
 

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.upgrade.v7_0_0;
 
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -24,7 +25,6 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
-import com.liferay.portal.upgrade.v7_0_0.util.ResourcePermissionTable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,9 +39,11 @@ public class UpgradeResourcePermission extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updateIndexes(ResourcePermissionTable.class);
+		try (SafeCloseable safeCloseable = addTempIndex(
+				"ResourcePermission", false, "name")) {
 
-		upgradeResourcePermissions();
+			upgradeResourcePermissions();
+		}
 	}
 
 	protected void upgradeResourcePermissions() throws Exception {
@@ -53,23 +55,27 @@ public class UpgradeResourcePermission extends UpgradeProcess {
 				"update ResourcePermission set viewActionId = [$TRUE$] where " +
 					"MOD(actionIds, 2) = 1");
 
-			try (PreparedStatement ps1 = connection.prepareStatement(
-					"select distinct name from ResourcePermission");
-				ResultSet rs1 = ps1.executeQuery();
-				PreparedStatement ps2 = connection.prepareStatement(
-					"select distinct primKey from ResourcePermission where " +
-						"name = ?")) {
+			try (PreparedStatement preparedStatement1 =
+					connection.prepareStatement(
+						"select distinct name from ResourcePermission");
+				ResultSet resultSet1 = preparedStatement1.executeQuery();
+				PreparedStatement preparedStatement2 =
+					connection.prepareStatement(
+						"select distinct primKey from ResourcePermission " +
+							"where name = ?")) {
 
-				while (rs1.next()) {
+				while (resultSet1.next()) {
 					List<String> primKeys = new ArrayList<>();
 
-					String name = rs1.getString("name");
+					String name = resultSet1.getString("name");
 
-					ps2.setString(1, name);
+					preparedStatement2.setString(1, name);
 
-					try (ResultSet rs2 = ps2.executeQuery()) {
-						while (rs2.next()) {
-							String primKey = rs2.getString("primKey");
+					try (ResultSet resultSet2 =
+							preparedStatement2.executeQuery()) {
+
+						while (resultSet2.next()) {
+							String primKey = resultSet2.getString("primKey");
 
 							if ((GetterUtil.getLong(primKey) <= 0) &&
 								!primKey.contains(
@@ -121,18 +127,18 @@ public class UpgradeResourcePermission extends UpgradeProcess {
 	private void _updatePrimKeyIds(String sql, String name, String[] primKeys)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				SQLTransformer.transform(sql))) {
 
-			ps.setString(1, name);
+			preparedStatement.setString(1, name);
 
 			for (int i = 0; i < primKeys.length; i++) {
 				String primKey = primKeys[i];
 
-				ps.setString(i + 2, primKey);
+				preparedStatement.setString(i + 2, primKey);
 			}
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
@@ -168,7 +174,8 @@ public class UpgradeResourcePermission extends UpgradeProcess {
 			StringBundler.concat(
 				"update ResourcePermission set primKeyId = CAST_LONG(primKey",
 				") where name = '", name,
-				"' and (primKey not like '%_LAYOUT_%' and primKeyId != 0)"));
+				"' and (primKey not like '%_LAYOUT_%' and (primKeyId IS NULL ",
+				"or primKeyId != 0))"));
 	}
 
 }

@@ -35,15 +35,12 @@ public class LogAssertionUncaughtExceptionHandler
 			_uncaughtExceptionHandler.uncaughtException(thread, throwable);
 		}
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("Uncaught exception in ");
-		sb.append(thread);
-		sb.append(StringPool.COMMA_AND_SPACE);
-		sb.append(throwable);
-
 		LogAssertionTestRule.caughtFailure(
-			new AssertionError(sb.toString(), throwable));
+			new AssertionError(
+				StringBundler.concat(
+					"Uncaught exception in ", thread,
+					StringPool.COMMA_AND_SPACE, throwable),
+				throwable));
 	}
 
 	private final Thread.UncaughtExceptionHandler _uncaughtExceptionHandler;

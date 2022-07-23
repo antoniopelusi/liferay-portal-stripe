@@ -12,8 +12,6 @@
  * details.
  */
 
-'use strict';
-
 import Component from 'metal-component';
 import Soy, {Config} from 'metal-soy';
 
@@ -34,8 +32,8 @@ class OrganizationListItem extends Component {
 		return this._selected;
 	}
 
-	_handleToggleItem(e) {
-		e.preventDefault();
+	_handleToggleItem(event) {
+		event.preventDefault();
 
 		return this.emit('toggleItem', {
 			id: this.id,

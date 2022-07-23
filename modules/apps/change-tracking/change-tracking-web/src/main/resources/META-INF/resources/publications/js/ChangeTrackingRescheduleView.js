@@ -40,7 +40,7 @@ class ChangeTrackingRescheduleView extends ChangeTrackingBaseScheduleView {
 		this.unscheduleURL = unscheduleURL;
 
 		this.state = {
-			date: new Date(scheduledDate + ' 12:00:00'),
+			date: scheduledDate,
 			dateError: '',
 			formError: null,
 			time: scheduledTime,
@@ -60,6 +60,7 @@ class ChangeTrackingRescheduleView extends ChangeTrackingBaseScheduleView {
 
 				<div className="sheet-section">
 					<label>{Liferay.Language.get('date-and-time')}</label>
+
 					<div className="input-group">
 						<div className={this.getDateClassName()}>
 							<div>
@@ -68,7 +69,20 @@ class ChangeTrackingRescheduleView extends ChangeTrackingBaseScheduleView {
 									placeholder="YYYY-MM-DD"
 									spritemap={this.spritemap}
 									timezone={this.timeZone}
-									value={this.state.date}
+									value={
+										typeof this.state.date === 'string'
+											? this.state.date
+											: this.state.date.getFullYear() +
+											  '-' +
+											  this.pad(
+													this.state.date.getMonth() +
+														1
+											  ) +
+											  '-' +
+											  this.pad(
+													this.state.date.getDate()
+											  )
+									}
 									years={{
 										end: new Date().getFullYear() + 1,
 										start: new Date().getFullYear() - 1,
@@ -78,6 +92,7 @@ class ChangeTrackingRescheduleView extends ChangeTrackingBaseScheduleView {
 								{this.getDateHelpText()}
 							</div>
 						</div>
+
 						<div className={this.getTimeClassName()}>
 							<div>
 								<ClayTimePicker
@@ -114,6 +129,7 @@ class ChangeTrackingRescheduleView extends ChangeTrackingBaseScheduleView {
 								{Liferay.Language.get('reschedule')}
 							</button>
 						</div>
+
 						<div className="btn-group-item">
 							<button
 								className="btn btn-secondary"
@@ -128,6 +144,7 @@ class ChangeTrackingRescheduleView extends ChangeTrackingBaseScheduleView {
 								{Liferay.Language.get('unschedule')}
 							</button>
 						</div>
+
 						<div className="btn-group-item">
 							<button
 								className="btn btn-outline-borderless btn-secondary"

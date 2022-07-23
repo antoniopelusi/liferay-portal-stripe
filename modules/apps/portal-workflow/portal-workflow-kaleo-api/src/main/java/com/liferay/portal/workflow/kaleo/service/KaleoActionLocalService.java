@@ -142,6 +142,9 @@ public interface KaleoActionLocalService
 	public <T> T dslQuery(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
 
 	/**
@@ -249,24 +252,6 @@ public interface KaleoActionLocalService
 	public List<KaleoAction> getKaleoActions(
 		long companyId, String kaleoClassName, long kaleoClassPK,
 		String executionType);
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoActions(long, String, long)}
-	 */
-	@Deprecated
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<KaleoAction> getKaleoActions(
-		String kaleoClassName, long kaleoClassPK);
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoActions(long, String, long, String)}
-	 */
-	@Deprecated
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<KaleoAction> getKaleoActions(
-		String kaleoClassName, long kaleoClassPK, String executionType);
 
 	/**
 	 * Returns the number of kaleo actions.

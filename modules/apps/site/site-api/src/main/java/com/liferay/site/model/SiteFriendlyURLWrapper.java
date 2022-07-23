@@ -46,12 +46,12 @@ public class SiteFriendlyURLWrapper
 		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("siteFriendlyURLId", getSiteFriendlyURLId());
+		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
-		attributes.put("groupId", getGroupId());
 		attributes.put("friendlyURL", getFriendlyURL());
 		attributes.put("languageId", getLanguageId());
 		attributes.put("lastPublishDate", getLastPublishDate());
@@ -77,6 +77,12 @@ public class SiteFriendlyURLWrapper
 
 		if (siteFriendlyURLId != null) {
 			setSiteFriendlyURLId(siteFriendlyURLId);
+		}
+
+		Long groupId = (Long)attributes.get("groupId");
+
+		if (groupId != null) {
+			setGroupId(groupId);
 		}
 
 		Long companyId = (Long)attributes.get("companyId");
@@ -109,12 +115,6 @@ public class SiteFriendlyURLWrapper
 			setModifiedDate(modifiedDate);
 		}
 
-		Long groupId = (Long)attributes.get("groupId");
-
-		if (groupId != null) {
-			setGroupId(groupId);
-		}
-
 		String friendlyURL = (String)attributes.get("friendlyURL");
 
 		if (friendlyURL != null) {
@@ -132,6 +132,11 @@ public class SiteFriendlyURLWrapper
 		if (lastPublishDate != null) {
 			setLastPublishDate(lastPublishDate);
 		}
+	}
+
+	@Override
+	public SiteFriendlyURL cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**

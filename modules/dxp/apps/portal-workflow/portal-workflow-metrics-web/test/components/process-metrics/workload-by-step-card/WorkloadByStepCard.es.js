@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {act, cleanup, render} from '@testing-library/react';
 import React from 'react';
 
 import WorkloadByStepCard from '../../../../src/main/resources/META-INF/resources/js/components/process-metrics/workload-by-step-card/WorkloadByStepCard.es';
@@ -43,21 +43,26 @@ describe('The WorkloadByStepCard component should', () => {
 		totalCount: 1,
 	};
 
-	const clientMock = {
-		get: jest.fn().mockResolvedValue({data}),
-	};
+	beforeAll(async () => {
+		fetch.mockResolvedValueOnce({
+			json: () => Promise.resolve(data),
+			ok: true,
+		});
 
-	beforeAll(() => {
 		const renderResult = render(
-			<MockRouter client={clientMock} withoutRouterProps>
+			<MockRouter withoutRouterProps>
 				<WorkloadByStepCard {...mockProps} routeParams={mockProps} />
 			</MockRouter>
 		);
 
 		container = renderResult.container;
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Load table component with request data and navigation links', () => {
+	it('Load table component with request data and navigation links', () => {
 		const workloadByStepTable = container.querySelector('.table');
 		const tableItems = workloadByStepTable.children[1].children[0].children;
 
@@ -67,13 +72,13 @@ describe('The WorkloadByStepCard component should', () => {
 		expect(tableItems[3]).toHaveTextContent(1);
 
 		expect(tableItems[1].innerHTML).toContain(
-			'/instance/12345/20/1?backPath=%2F1%2F20%2Ftitle%253Aasc%3FbackPath%3D%252F&amp;filters.statuses%5B0%5D=Pending&amp;filters.slaStatuses%5B0%5D=Overdue'
+			'/instance/12345/20/1/dateOverdue:asc?backPath=%2F1%2F20%2Ftitle%253Aasc%3FbackPath%3D%252F&amp;filters.statuses%5B0%5D=Pending&amp;filters.slaStatuses%5B0%5D=Overdue'
 		);
 		expect(tableItems[2].innerHTML).toContain(
-			'/instance/12345/20/1?backPath=%2F1%2F20%2Ftitle%253Aasc%3FbackPath%3D%252F&amp;filters.statuses%5B0%5D=Pending&amp;filters.slaStatuses%5B0%5D=OnTime'
+			'/instance/12345/20/1/dateOverdue:asc?backPath=%2F1%2F20%2Ftitle%253Aasc%3FbackPath%3D%252F&amp;filters.statuses%5B0%5D=Pending&amp;filters.slaStatuses%5B0%5D=OnTime'
 		);
 		expect(tableItems[3].innerHTML).toContain(
-			'/instance/12345/20/1?backPath=%2F1%2F20%2Ftitle%253Aasc%3FbackPath%3D%252F&amp;filters.statuses%5B0%5D=Pending'
+			'/instance/12345/20/1/dateOverdue:asc?backPath=%2F1%2F20%2Ftitle%253Aasc%3FbackPath%3D%252F&amp;filters.statuses%5B0%5D=Pending'
 		);
 	});
 });

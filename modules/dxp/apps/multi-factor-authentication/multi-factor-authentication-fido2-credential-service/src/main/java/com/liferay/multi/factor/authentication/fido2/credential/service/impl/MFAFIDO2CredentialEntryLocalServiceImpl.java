@@ -22,11 +22,13 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserLocalService;
 
 import java.util.Date;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Arthur Chan
@@ -58,7 +60,7 @@ public class MFAFIDO2CredentialEntryLocalServiceImpl
 		mfaFIDO2CredentialEntry = mfaFIDO2CredentialEntryPersistence.create(
 			counterLocalService.increment());
 
-		User user = userLocalService.getUserById(userId);
+		User user = _userLocalService.getUserById(userId);
 
 		mfaFIDO2CredentialEntry.setCompanyId(user.getCompanyId());
 
@@ -128,5 +130,8 @@ public class MFAFIDO2CredentialEntryLocalServiceImpl
 		return mfaFIDO2CredentialEntryPersistence.update(
 			mfaFIDO2CredentialEntry);
 	}
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

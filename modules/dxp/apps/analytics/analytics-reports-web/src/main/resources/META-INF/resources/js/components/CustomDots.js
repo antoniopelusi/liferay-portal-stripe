@@ -53,13 +53,17 @@ export function ActiveDot(props) {
 	}
 }
 
-ActiveDot.proptypes = {
-	cx: PropTypes.number.required,
-	cy: PropTypes.number.required,
-	fill: PropTypes.string.required,
-	r: PropTypes.number.required,
-	shape: PropTypes.oneOf(['square', 'circle']),
-	strokeWidth: PropTypes.number.required,
+ActiveDot.propTypes = {
+	props: PropTypes.objectOf(
+		PropTypes.shape({
+			cx: PropTypes.number.required,
+			cy: PropTypes.number.required,
+			fill: PropTypes.string.required,
+			r: PropTypes.number.required,
+			shape: PropTypes.oneOf(['square', 'circle']),
+			strokeWidth: PropTypes.number.required,
+		})
+	),
 };
 
 /**
@@ -89,10 +93,14 @@ export function Dot(props) {
 	}
 }
 
-Dot.proptypes = {
-	cx: PropTypes.number.required,
-	cy: PropTypes.number.required,
-	fill: PropTypes.string.required,
-	r: PropTypes.number.required,
-	shape: PropTypes.oneOf(['circle', 'square']),
+Dot.propTypes = {
+	props: PropTypes.objectOf(
+		PropTypes.shape({
+			cx: PropTypes.number.required,
+			cy: PropTypes.number.required,
+			fill: PropTypes.string.required,
+			r: PropTypes.number.required,
+			shape: PropTypes.oneOf(['circle', 'square']),
+		})
+	),
 };

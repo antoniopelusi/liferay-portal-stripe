@@ -62,7 +62,7 @@ PortletURL navigationURL = PortletURLBuilder.createRenderURL(
 	"calendarId", calendarId
 ).setParameter(
 	"calendarResourceId", calendarResourceId
-).build();
+).buildPortletURL();
 %>
 
 <aui:nav-bar cssClass="navbar-collapse-absolute navbar-expand-md navbar-underline navigation-bar navigation-bar-light" markupView="lexicon">

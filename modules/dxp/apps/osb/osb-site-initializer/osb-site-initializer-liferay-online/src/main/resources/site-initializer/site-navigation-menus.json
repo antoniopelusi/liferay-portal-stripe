@@ -1,0 +1,44 @@
+[
+	{
+		"menuItems": [
+			{
+				"friendlyURL": "/my-site",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/my-subscription",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"friendlyURL": "/contact-us",
+				"privateLayout": false,
+				"type": "layout"
+			}
+		],
+		"name": "Main Navigation"
+	},
+	{
+		"menuItems": [
+			{
+				"friendlyURL": "/contact-us",
+				"privateLayout": false,
+				"type": "layout"
+			},
+			{
+				"name": "Privacy Policy",
+				"type": "url",
+				"url": "https://www.liferay.com/privacy-policy",
+				"useNewTab": true
+			},
+			{
+				"name": "Manage Account",
+				"type": "url",
+				"url": "https://login.liferay.com/",
+				"useNewTab": true
+			}
+		],
+		"name": "Footer Navigation"
+	}
+]

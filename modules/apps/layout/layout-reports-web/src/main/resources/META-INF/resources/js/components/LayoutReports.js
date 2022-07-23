@@ -12,59 +12,35 @@
  * details.
  */
 
-import ClayAlert from '@clayui/alert';
-import ClayLoadingIndicator from '@clayui/loading-indicator';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
 import {fetch} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useReducer} from 'react';
+import React, {useCallback, useContext, useEffect} from 'react';
 
+import {LOAD_DATA, SET_DATA, SET_ERROR} from '../constants/actionTypes';
+import {ConstantsContext} from '../context/ConstantsContext';
+import {StoreDispatchContext, StoreStateContext} from '../context/StoreContext';
+import loadIssues from '../utils/loadIssues';
 import BasicInformation from './BasicInformation';
-import EmptyLayoutReports from './EmptyLayoutReports';
+import IssueDetail from './IssueDetail';
+import IssuesList from './IssuesList';
+import NotConfigured from './NotConfigured';
+import ErrorAlert from './error-alert/ErrorAlert';
 
-const initialState = {
-	data: null,
-	error: null,
-	loading: false,
-};
-
-const dataReducer = (state, action) => {
-	switch (action.type) {
-		case 'LOAD_DATA':
-			return {
-				...state,
-				loading: true,
-			};
-
-		case 'SET_ERROR':
-			return {
-				...state,
-				error: action.error,
-				loading: false,
-			};
-
-		case 'SET_DATA':
-			return {
-				data: {
-					...action.data,
-				},
-				error: action.data?.error,
-				loading: false,
-			};
-
-		default:
-			return initialState;
-	}
-};
-
-export default function LayoutReports({
-	eventTriggered,
-	isPanelStateOpen,
-	layoutReportsDataURL,
-}) {
+export default function LayoutReports({eventTriggered}) {
 	const isMounted = useIsMounted();
 
-	const [state, dispatch] = useReducer(dataReducer, initialState);
+	const {data, error, languageId, loading, selectedIssue} = useContext(
+		StoreStateContext
+	);
+
+	const {
+		isPanelStateOpen,
+		layoutReportsDataURL,
+		portletNamespace,
+	} = useContext(ConstantsContext);
+
+	const dispatch = useContext(StoreDispatchContext);
 
 	const safeDispatch = useCallback(
 		(action) => {
@@ -72,77 +48,96 @@ export default function LayoutReports({
 				dispatch(action);
 			}
 		},
-		[isMounted]
+		[dispatch, isMounted]
 	);
 
 	const getData = useCallback(
 		(fetchURL) => {
-			safeDispatch({type: 'LOAD_DATA'});
+			safeDispatch({type: LOAD_DATA});
 
-			fetch(fetchURL, {
-				method: 'GET',
-			})
+			fetch(fetchURL, {method: 'GET'})
 				.then((response) =>
-					response.json().then((data) =>
+					response.json().then((data) => {
 						safeDispatch({
 							data,
-							type: 'SET_DATA',
-						})
-					)
+							loading: data.validConnection,
+							type: SET_DATA,
+						});
+
+						if (data.validConnection) {
+							const url = data.pageURLs.find(
+								(pageURL) =>
+									pageURL.languageId ===
+									(languageId || data.defaultLanguageId)
+							);
+
+							loadIssues({
+								dispatch: safeDispatch,
+								languageId:
+									languageId || data.defaultLanguageId,
+								portletNamespace,
+								refreshCache: false,
+								url,
+							});
+						}
+					})
 				)
 				.catch(() => {
 					safeDispatch({
 						error: Liferay.Language.get(
 							'an-unexpected-error-occurred'
 						),
-						type: 'SET_ERROR',
+						type: SET_ERROR,
 					});
 				});
 		},
-		[safeDispatch]
+		[languageId, portletNamespace, safeDispatch]
 	);
 
 	useEffect(() => {
-		if (isPanelStateOpen) {
+		if (isPanelStateOpen && !data && !loading) {
 			getData(layoutReportsDataURL);
 		}
-	}, [isPanelStateOpen, layoutReportsDataURL, getData]);
+	}, [data, isPanelStateOpen, layoutReportsDataURL, loading, getData]);
 
 	useEffect(() => {
-		if (eventTriggered) {
+		if (eventTriggered && !data) {
 			getData(layoutReportsDataURL);
 		}
-	}, [eventTriggered, layoutReportsDataURL, getData]);
+	}, [eventTriggered, data, layoutReportsDataURL, getData]);
 
-	return state.loading ? (
-		<ClayLoadingIndicator small />
-	) : state.error ? (
-		<ClayAlert displayType="danger" variant="stripe">
-			{state.error}
-		</ClayAlert>
-	) : (
-		state.data && (
-			<>
-				<BasicInformation
-					canonicalURLs={state.data.canonicalURLs}
-					defaultLanguageId={state.data.defaultLanguageId}
-				/>
+	if (!data) {
+		return null;
+	}
 
-				{state.data.validConnection || (
-					<EmptyLayoutReports
-						assetsPath={state.data.assetsPath}
-						configureGooglePageSpeedURL={
-							state.data.configureGooglePageSpeedURL
-						}
+	const hasError = (data.validConnection && error) || data.privateLayout;
+	const notConfigured = !loading && !data.validConnection;
+	const hasApiKey = !notConfigured;
+
+	return (
+		<>
+			{hasApiKey && (
+				<div className="pb-3 px-3">
+					<BasicInformation
+						defaultLanguageId={data.defaultLanguageId}
+						pageURLs={data.pageURLs}
+						selectedLanguageId={languageId}
 					/>
-				)}
-			</>
-		)
+				</div>
+			)}
+			{hasError ? (
+				<ErrorAlert />
+			) : notConfigured ? (
+				<NotConfigured />
+			) : selectedIssue ? (
+				<IssueDetail />
+			) : (
+				<IssuesList />
+			)}
+		</>
 	);
 }
 
 LayoutReports.propTypes = {
 	eventTriggered: PropTypes.bool.isRequired,
-	isPanelStateOpen: PropTypes.bool.isRequired,
-	layoutReportsDataURL: PropTypes.string.isRequired,
 };

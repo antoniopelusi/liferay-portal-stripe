@@ -25,6 +25,10 @@ public class CompanyInfoLocalServiceWrapper
 	implements CompanyInfoLocalService,
 			   ServiceWrapper<CompanyInfoLocalService> {
 
+	public CompanyInfoLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CompanyInfoLocalServiceWrapper(
 		CompanyInfoLocalService companyInfoLocalService) {
 
@@ -122,6 +126,13 @@ public class CompanyInfoLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _companyInfoLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _companyInfoLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

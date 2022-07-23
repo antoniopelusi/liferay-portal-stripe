@@ -19,8 +19,11 @@ import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetLink;
 import com.liferay.asset.kernel.model.AssetLinkConstants;
 import com.liferay.asset.kernel.model.adapter.StagedAssetLink;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.kernel.service.persistence.AssetEntryPersistence;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -28,6 +31,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.adapter.ModelAdapterUtil;
+import com.liferay.portal.kernel.service.SystemEventLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portlet.asset.service.base.AssetLinkLocalServiceBaseImpl;
 
@@ -68,8 +73,8 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 			long userId, long entryId1, long entryId2, int type, int weight)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
-		Date now = new Date();
+		User user = _userLocalService.getUser(userId);
+		Date date = new Date();
 
 		long linkId1 = counterLocalService.increment();
 
@@ -78,7 +83,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 		link1.setCompanyId(user.getCompanyId());
 		link1.setUserId(user.getUserId());
 		link1.setUserName(user.getFullName());
-		link1.setCreateDate(now);
+		link1.setCreateDate(date);
 		link1.setEntryId1(entryId1);
 		link1.setEntryId2(entryId2);
 		link1.setType(type);
@@ -94,7 +99,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 			link2.setCompanyId(user.getCompanyId());
 			link2.setUserId(user.getUserId());
 			link2.setUserName(user.getFullName());
-			link2.setCreateDate(now);
+			link2.setCreateDate(date);
 			link2.setEntryId1(entryId2);
 			link2.setEntryId2(entryId1);
 			link2.setType(type);
@@ -180,11 +185,11 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 */
 	@Override
 	public void deleteLinks(long entryId) {
-		for (AssetLink link : assetLinkPersistence.findByE1(entryId)) {
+		for (AssetLink link : assetLinkPersistence.findByEntryId1(entryId)) {
 			deleteLink(link);
 		}
 
-		for (AssetLink link : assetLinkPersistence.findByE2(entryId)) {
+		for (AssetLink link : assetLinkPersistence.findByEntryId2(entryId)) {
 			deleteLink(link);
 		}
 	}
@@ -220,7 +225,8 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	public List<AssetLink> getDirectLinks(
 		long entryId, boolean excludeInvisibleLinks) {
 
-		List<AssetLink> assetLinks = assetLinkPersistence.findByE1(entryId);
+		List<AssetLink> assetLinks = assetLinkPersistence.findByEntryId1(
+			entryId);
 
 		return filterAssetLinks(assetLinks, excludeInvisibleLinks);
 	}
@@ -263,8 +269,8 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 */
 	@Override
 	public List<AssetLink> getLinks(long entryId) {
-		List<AssetLink> e1Links = assetLinkPersistence.findByE1(entryId);
-		List<AssetLink> e2Links = assetLinkPersistence.findByE2(entryId);
+		List<AssetLink> e1Links = assetLinkPersistence.findByEntryId1(entryId);
+		List<AssetLink> e2Links = assetLinkPersistence.findByEntryId2(entryId);
 
 		List<AssetLink> links = new ArrayList<>(
 			e1Links.size() + e2Links.size());
@@ -415,7 +421,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	}
 
 	protected void addDeletionSystemEvent(AssetLink assetLink) {
-		AssetEntry assetEntry = assetEntryLocalService.fetchEntry(
+		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
 			assetLink.getEntryId1());
 
 		if (assetEntry == null) {
@@ -428,7 +434,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 		StagedModelType stagedModelType = stagedAssetLink.getStagedModelType();
 
 		try {
-			systemEventLocalService.addSystemEvent(
+			_systemEventLocalService.addSystemEvent(
 				0, assetEntry.getGroupId(), stagedModelType.getClassName(),
 				stagedAssetLink.getPrimaryKey(), stagedAssetLink.getUuid(),
 				null, SystemEventConstants.TYPE_DELETE, StringPool.BLANK);
@@ -448,7 +454,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 		List<AssetLink> filteredAssetLinks = new ArrayList<>(assetLinks.size());
 
 		for (AssetLink assetLink : assetLinks) {
-			AssetEntry assetEntry = assetEntryPersistence.fetchByPrimaryKey(
+			AssetEntry assetEntry = _assetEntryPersistence.fetchByPrimaryKey(
 				assetLink.getEntryId2());
 
 			if ((assetEntry != null) && assetEntry.isVisible()) {
@@ -461,5 +467,17 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AssetLinkLocalServiceImpl.class);
+
+	@BeanReference(type = AssetEntryLocalService.class)
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@BeanReference(type = AssetEntryPersistence.class)
+	private AssetEntryPersistence _assetEntryPersistence;
+
+	@BeanReference(type = SystemEventLocalService.class)
+	private SystemEventLocalService _systemEventLocalService;
+
+	@BeanReference(type = UserLocalService.class)
+	private UserLocalService _userLocalService;
 
 }

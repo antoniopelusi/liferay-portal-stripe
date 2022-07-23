@@ -16,16 +16,26 @@ package com.liferay.jenkins.results.parser.test.clazz.group;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.RootCauseAnalysisToolJob;
+import com.liferay.jenkins.results.parser.test.clazz.TestClassFactory;
 
 import java.io.File;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
+
 /**
  * @author Michael Hashimoto
  */
 public class FunctionalRCABatchTestClassGroup extends RCABatchTestClassGroup {
+
+	protected FunctionalRCABatchTestClassGroup(
+		JSONObject jsonObject,
+		RootCauseAnalysisToolJob rootCauseAnalysisToolJob) {
+
+		super(jsonObject, rootCauseAnalysisToolJob);
+	}
 
 	protected FunctionalRCABatchTestClassGroup(
 		String batchName, RootCauseAnalysisToolJob rootCauseAnalysisToolJob) {
@@ -45,6 +55,11 @@ public class FunctionalRCABatchTestClassGroup extends RCABatchTestClassGroup {
 
 		String portalBatchTestSelector = System.getenv(
 			"PORTAL_BATCH_TEST_SELECTOR");
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(portalBatchTestSelector)) {
+			portalBatchTestSelector = getBuildStartProperty(
+				"PORTAL_BATCH_TEST_SELECTOR");
+		}
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(portalBatchTestSelector)) {
 			return;
@@ -69,7 +84,8 @@ public class FunctionalRCABatchTestClassGroup extends RCABatchTestClassGroup {
 				this, _getTestBaseDir());
 
 		axisTestClassGroup.addTestClass(
-			FunctionalBatchTestClassGroup.FunctionalTestClass.getInstance(
+			TestClassFactory.newTestClass(
+				this,
 				JenkinsResultsParserUtil.combine(
 					namespace, ".", classMethodName)));
 

@@ -29,19 +29,16 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
-import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.List;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 
@@ -49,8 +46,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Pavel Savinov
@@ -83,10 +78,6 @@ public class JournalArticleLayoutClassedModelUsageActionMenuContributor
 					(ThemeDisplay)httpServletRequest.getAttribute(
 						WebKeys.THEME_DISPLAY);
 
-				ResourceBundle resourceBundle =
-					_resourceBundleLoader.loadResourceBundle(
-						themeDisplay.getLocale());
-
 				if (approvedArticle != null) {
 					add(
 						dropdownItem -> {
@@ -98,7 +89,7 @@ public class JournalArticleLayoutClassedModelUsageActionMenuContributor
 									httpServletRequest));
 							dropdownItem.setLabel(
 								LanguageUtil.get(
-									resourceBundle, "view-in-page"));
+									themeDisplay.getLocale(), "view-in-page"));
 						});
 				}
 
@@ -120,7 +111,7 @@ public class JournalArticleLayoutClassedModelUsageActionMenuContributor
 							}
 
 							String label = LanguageUtil.get(
-								resourceBundle, key);
+								themeDisplay.getLocale(), key);
 
 							add(
 								dropdownItem -> {
@@ -158,20 +149,20 @@ public class JournalArticleLayoutClassedModelUsageActionMenuContributor
 		if (layoutClassedModelUsage.getContainerType() ==
 				_portal.getClassNameId(FragmentEntryLink.class)) {
 
-			Layout layout = _layoutLocalService.fetchLayout(
-				layoutClassedModelUsage.getPlid());
+			layoutURL = _portal.getLayoutFriendlyURL(
+				_layoutLocalService.fetchLayout(
+					layoutClassedModelUsage.getPlid()),
+				themeDisplay);
 
-			layoutURL = _portal.getLayoutFriendlyURL(layout, themeDisplay);
-
-			layoutURL = _http.setParameter(
+			layoutURL = HttpComponentsUtil.setParameter(
 				layoutURL, "previewClassNameId",
 				String.valueOf(layoutClassedModelUsage.getClassNameId()));
-			layoutURL = _http.setParameter(
+			layoutURL = HttpComponentsUtil.setParameter(
 				layoutURL, "previewClassPK",
 				String.valueOf(layoutClassedModelUsage.getClassPK()));
-			layoutURL = _http.setParameter(
+			layoutURL = HttpComponentsUtil.setParameter(
 				layoutURL, "previewType", String.valueOf(previewType));
-			layoutURL = _http.setParameter(
+			layoutURL = HttpComponentsUtil.setParameter(
 				layoutURL, "previewVersion", previewVersion);
 		}
 		else {
@@ -192,7 +183,7 @@ public class JournalArticleLayoutClassedModelUsageActionMenuContributor
 			).buildString();
 		}
 
-		String portletURLString = _http.setParameter(
+		String portletURLString = HttpComponentsUtil.setParameter(
 			layoutURL, "p_l_back_url", themeDisplay.getURLCurrent());
 
 		return portletURLString + "#portlet_" +
@@ -203,9 +194,6 @@ public class JournalArticleLayoutClassedModelUsageActionMenuContributor
 		JournalArticleLayoutClassedModelUsageActionMenuContributor.class);
 
 	@Reference
-	private Http _http;
-
-	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;
 
 	@Reference
@@ -213,12 +201,5 @@ public class JournalArticleLayoutClassedModelUsageActionMenuContributor
 
 	@Reference
 	private Portal _portal;
-
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(bundle.symbolic.name=com.liferay.journal.web)"
-	)
-	private volatile ResourceBundleLoader _resourceBundleLoader;
 
 }

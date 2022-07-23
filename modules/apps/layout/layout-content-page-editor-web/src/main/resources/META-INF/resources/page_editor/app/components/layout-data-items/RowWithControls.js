@@ -18,19 +18,23 @@ import React, {useState} from 'react';
 
 import useSetRef from '../../../core/hooks/useSetRef';
 import {getLayoutDataItemPropTypes} from '../../../prop-types/index';
+import {config} from '../../config/index';
+import {ResizeContextProvider} from '../../contexts/ResizeContext';
+import {useSelector} from '../../contexts/StoreContext';
 import selectCanUpdateItemConfiguration from '../../selectors/selectCanUpdateItemConfiguration';
-import {useSelector} from '../../store/index';
+import getLayoutDataItemTopperUniqueClassName from '../../utils/getLayoutDataItemTopperUniqueClassName';
 import {getResponsiveColumnSize} from '../../utils/getResponsiveColumnSize';
 import {getResponsiveConfig} from '../../utils/getResponsiveConfig';
-import {ResizeContextProvider} from '../ResizeContext';
-import Topper from '../Topper';
+import isItemEmpty from '../../utils/isItemEmpty';
+import {isValidSpacingOption} from '../../utils/isValidSpacingOption';
+import Topper from '../topper/Topper';
 import Row from './Row';
 
 const ROW_SIZE = 12;
 
 const RowWithControls = React.forwardRef(({children, item}, ref) => {
 	const [resizing, setResizing] = useState(false);
-	const [updatedLayoutData, setUpdatedLayoutData] = useState(null);
+	const [nextColumnSizes, setNextColumnSizes] = useState(null);
 
 	const canUpdateItemConfiguration = useSelector(
 		selectCanUpdateItemConfiguration
@@ -50,13 +54,33 @@ const RowWithControls = React.forwardRef(({children, item}, ref) => {
 	const [setRef, itemElement] = useSetRef(ref);
 	const {verticalAlignment} = rowResponsiveConfig;
 
-	const {height, maxWidth, minWidth, width} = item.config.styles;
+	const {
+		display,
+		height,
+		marginBottom,
+		marginLeft,
+		marginRight,
+		marginTop,
+		maxWidth,
+		minWidth,
+		width,
+	} = rowResponsiveConfig.styles;
 
 	return (
 		<Topper
+			className={classNames({
+				[getLayoutDataItemTopperUniqueClassName(
+					item.itemId
+				)]: config.featureFlagLps132571,
+				[`mb-${marginBottom}`]: isValidSpacingOption(marginBottom),
+				[`ml-${marginLeft}`]: isValidSpacingOption(marginLeft),
+				[`mr-${marginRight}`]: isValidSpacingOption(marginRight),
+				[`mt-${marginTop}`]: isValidSpacingOption(marginTop),
+			})}
 			item={item}
 			itemElement={itemElement}
 			style={{
+				display,
 				maxWidth,
 				minWidth,
 				width,
@@ -66,7 +90,7 @@ const RowWithControls = React.forwardRef(({children, item}, ref) => {
 				className={classNames({
 					'align-bottom': verticalAlignment === 'bottom',
 					'align-middle': verticalAlignment === 'middle',
-					empty:
+					'empty':
 						isSomeRowEmpty(
 							item,
 							layoutData,
@@ -80,10 +104,10 @@ const RowWithControls = React.forwardRef(({children, item}, ref) => {
 			>
 				<ResizeContextProvider
 					value={{
+						nextColumnSizes,
 						resizing,
+						setNextColumnSizes,
 						setResizing,
-						setUpdatedLayoutData,
-						updatedLayoutData,
 					}}
 				>
 					{children}
@@ -99,7 +123,11 @@ const RowWithControls = React.forwardRef(({children, item}, ref) => {
 function isSomeRowEmpty(item, layoutData, selectedViewportSize) {
 	const rows = groupItemsByRow(item, layoutData, selectedViewportSize);
 
-	return rows.some((row) => row.every((item) => item.children.length === 0));
+	return rows.some((row) =>
+		row.every((column) =>
+			isItemEmpty(column, layoutData, selectedViewportSize)
+		)
+	);
 }
 
 function groupItemsByRow(item, layoutData, selectedViewportSize) {

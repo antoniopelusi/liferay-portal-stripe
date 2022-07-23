@@ -34,24 +34,22 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.reports.engine.console.model.Definition;
 import com.liferay.portal.reports.engine.console.model.DefinitionModel;
-import com.liferay.portal.reports.engine.console.model.DefinitionSoap;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -168,61 +166,6 @@ public class DefinitionModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static Definition toModel(DefinitionSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		Definition model = new DefinitionImpl();
-
-		model.setUuid(soapModel.getUuid());
-		model.setDefinitionId(soapModel.getDefinitionId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setSourceId(soapModel.getSourceId());
-		model.setReportName(soapModel.getReportName());
-		model.setReportParameters(soapModel.getReportParameters());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<Definition> toModels(DefinitionSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<Definition> models = new ArrayList<Definition>(soapModels.length);
-
-		for (DefinitionSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public DefinitionModelImpl() {
 	}
 
@@ -305,34 +248,6 @@ public class DefinitionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Definition>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Definition.class.getClassLoader(), Definition.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<Definition> constructor =
-				(Constructor<Definition>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Definition, Object>>
@@ -1048,6 +963,38 @@ public class DefinitionModelImpl
 	}
 
 	@Override
+	public Definition cloneWithOriginalValues() {
+		DefinitionImpl definitionImpl = new DefinitionImpl();
+
+		definitionImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		definitionImpl.setDefinitionId(
+			this.<Long>getColumnOriginalValue("definitionId"));
+		definitionImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		definitionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		definitionImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		definitionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		definitionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		definitionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		definitionImpl.setName(this.<String>getColumnOriginalValue("name"));
+		definitionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		definitionImpl.setSourceId(
+			this.<Long>getColumnOriginalValue("sourceId"));
+		definitionImpl.setReportName(
+			this.<String>getColumnOriginalValue("reportName"));
+		definitionImpl.setReportParameters(
+			this.<String>getColumnOriginalValue("reportParameters"));
+		definitionImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return definitionImpl;
+	}
+
+	@Override
 	public int compareTo(Definition definition) {
 		int value = 0;
 
@@ -1213,7 +1160,7 @@ public class DefinitionModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1224,9 +1171,26 @@ public class DefinitionModelImpl
 			Function<Definition, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Definition)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Definition)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1273,7 +1237,9 @@ public class DefinitionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Definition>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Definition.class, ModelWrapper.class);
 
 	}
 

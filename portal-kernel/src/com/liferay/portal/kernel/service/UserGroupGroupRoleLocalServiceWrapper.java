@@ -29,6 +29,10 @@ public class UserGroupGroupRoleLocalServiceWrapper
 	implements ServiceWrapper<UserGroupGroupRoleLocalService>,
 			   UserGroupGroupRoleLocalService {
 
+	public UserGroupGroupRoleLocalServiceWrapper() {
+		this(null);
+	}
+
 	public UserGroupGroupRoleLocalServiceWrapper(
 		UserGroupGroupRoleLocalService userGroupGroupRoleLocalService) {
 
@@ -200,6 +204,13 @@ public class UserGroupGroupRoleLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _userGroupGroupRoleLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _userGroupGroupRoleLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

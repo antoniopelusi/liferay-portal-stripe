@@ -15,6 +15,7 @@
 package com.liferay.commerce.product.service;
 
 import com.liferay.commerce.product.model.CommerceChannelRel;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -41,6 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -93,12 +95,14 @@ public interface CommerceChannelRelService extends BaseService {
 	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CommerceChannelRel> getCommerceChannelRels(
-		String className, long classPK, int start, int end,
-		OrderByComparator<CommerceChannelRel> orderByComparator);
+			String className, long classPK, int start, int end,
+			OrderByComparator<CommerceChannelRel> orderByComparator)
+		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CommerceChannelRel> getCommerceChannelRels(
-		String className, long classPK, String name, int start, int end);
+			String className, long classPK, String name, int start, int end)
+		throws PortalException;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x)
@@ -114,11 +118,13 @@ public interface CommerceChannelRelService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getCommerceChannelRelsCount(String className, long classPK);
+	public int getCommerceChannelRelsCount(String className, long classPK)
+		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getCommerceChannelRelsCount(
-		String className, long classPK, String name);
+			String className, long classPK, String name)
+		throws PortalException;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x)

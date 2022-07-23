@@ -19,7 +19,7 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -29,14 +29,13 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(
+		PagesAdmin.addPage(
 			columnName = "1 Column",
 			pageName = "Web Proxy Page");
 
-		SitePages.configurePage(
+		PagesAdmin.configurePage(
 			columnName = "1 Column",
-			pageName = "Web Proxy Page",
-			privacy = "Public Pages");
+			pageName = "Web Proxy Page");
 
 		Navigator.gotoPage(pageName = "Web Proxy Page");
 

@@ -36,29 +36,29 @@ public class JournalArticleContentUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select id_, content from JournalArticle")) {
 
-			ResultSet rs1 = ps1.executeQuery();
+			ResultSet resultSet1 = preparedStatement1.executeQuery();
 
-			while (rs1.next()) {
-				long id = rs1.getLong("id_");
+			while (resultSet1.next()) {
+				long id = resultSet1.getLong("id_");
 
-				String content = rs1.getString("content");
+				String content = resultSet1.getString("content");
 
 				content = _journalContentCompatibilityConverter.convert(
 					content);
 
-				try (PreparedStatement ps2 =
+				try (PreparedStatement preparedStatement2 =
 						AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 							connection,
 							"update JournalArticle set content = ? where id_ " +
 								"= ?")) {
 
-					ps2.setString(1, content);
-					ps2.setLong(2, id);
+					preparedStatement2.setString(1, content);
+					preparedStatement2.setLong(2, id);
 
-					ps2.executeUpdate();
+					preparedStatement2.executeUpdate();
 				}
 			}
 		}

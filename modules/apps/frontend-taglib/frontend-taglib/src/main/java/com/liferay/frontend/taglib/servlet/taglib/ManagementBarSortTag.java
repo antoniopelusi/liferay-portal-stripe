@@ -92,7 +92,7 @@ public class ManagementBarSortTag extends IncludeTag implements BodyTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setPortletURL(PortletURL portletURL) {
@@ -111,8 +111,11 @@ public class ManagementBarSortTag extends IncludeTag implements BodyTag {
 	}
 
 	protected List<ManagementBarFilterItem> getManagementBarFilterItems() {
-		PortletResponse portletResponse = (PortletResponse)request.getAttribute(
-			JavaConstants.JAVAX_PORTLET_RESPONSE);
+		HttpServletRequest httpServletRequest = getRequest();
+
+		PortletResponse portletResponse =
+			(PortletResponse)httpServletRequest.getAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE);
 
 		LiferayPortletResponse liferayPortletResponse =
 			PortalUtil.getLiferayPortletResponse(portletResponse);
@@ -125,7 +128,7 @@ public class ManagementBarSortTag extends IncludeTag implements BodyTag {
 				PortletURLUtil.clone(_portletURL, liferayPortletResponse)
 			).setParameter(
 				"orderByType", _orderByType
-			).build();
+			).buildPortletURL();
 
 			for (Map.Entry<String, String> entry : _orderColumns.entrySet()) {
 				String orderColumn = entry.getKey();
@@ -140,7 +143,7 @@ public class ManagementBarSortTag extends IncludeTag implements BodyTag {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

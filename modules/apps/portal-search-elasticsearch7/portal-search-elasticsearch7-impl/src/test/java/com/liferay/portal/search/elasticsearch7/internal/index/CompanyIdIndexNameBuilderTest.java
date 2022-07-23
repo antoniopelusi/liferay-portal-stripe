@@ -95,48 +95,31 @@ public class CompanyIdIndexNameBuilderTest {
 
 	@Test
 	public void testIndexNamePrefixBlank() throws Exception {
-		assertIndexNamePrefix(StringPool.BLANK, StringPool.BLANK);
+		_assertIndexNamePrefix(StringPool.BLANK, StringPool.BLANK);
 	}
 
 	@Test(expected = ElasticsearchStatusException.class)
 	public void testIndexNamePrefixInvalidIndexName() throws Exception {
-		createIndices(StringPool.STAR, 0);
+		createIndices(StringPool.SLASH, 0);
 	}
 
 	@Test
 	public void testIndexNamePrefixNull() throws Exception {
-		assertIndexNamePrefix(null, StringPool.BLANK);
+		_assertIndexNamePrefix(null, StringPool.BLANK);
 	}
 
 	@Test
 	public void testIndexNamePrefixTrim() throws Exception {
 		String string = RandomTestUtil.randomString();
 
-		assertIndexNamePrefix(
+		_assertIndexNamePrefix(
 			StringPool.TAB + string + StringPool.SPACE,
 			StringUtil.toLowerCase(string));
 	}
 
 	@Test
 	public void testIndexNamePrefixUppercase() throws Exception {
-		assertIndexNamePrefix("UPPERCASE", "uppercase");
-	}
-
-	protected void assertIndexNamePrefix(
-			String indexNamePrefix, String expectedIndexNamePrefix)
-		throws Exception {
-
-		long companyId = RandomTestUtil.randomLong();
-
-		createIndices(indexNamePrefix, companyId);
-
-		String expectedIndexName = expectedIndexNamePrefix + companyId;
-
-		GetIndexResponse getIndexResponse = _elasticsearchFixture.getIndex(
-			expectedIndexName);
-
-		Assert.assertArrayEquals(
-			new String[] {expectedIndexName}, getIndexResponse.getIndices());
+		_assertIndexNamePrefix("UPPERCASE", "uppercase");
 	}
 
 	protected ElasticsearchConfigurationWrapper
@@ -174,6 +157,23 @@ public class CompanyIdIndexNameBuilderTest {
 
 		companyIndexFactory.createIndices(
 			restHighLevelClient.indices(), companyId);
+	}
+
+	private void _assertIndexNamePrefix(
+			String indexNamePrefix, String expectedIndexNamePrefix)
+		throws Exception {
+
+		long companyId = RandomTestUtil.randomLong();
+
+		createIndices(indexNamePrefix, companyId);
+
+		String expectedIndexName = expectedIndexNamePrefix + companyId;
+
+		GetIndexResponse getIndexResponse = _elasticsearchFixture.getIndex(
+			expectedIndexName);
+
+		Assert.assertArrayEquals(
+			new String[] {expectedIndexName}, getIndexResponse.getIndices());
 	}
 
 	private ElasticsearchFixture _elasticsearchFixture;

@@ -118,17 +118,10 @@ public class CommerceCatalogPermissionImpl
 		throws PortalException {
 
 		if (permissionChecker.isCompanyAdmin(commerceCatalog.getCompanyId()) ||
-			permissionChecker.isOmniadmin()) {
-
-			return true;
-		}
-
-		if (permissionChecker.hasOwnerPermission(
-				permissionChecker.getCompanyId(),
-				CommerceCatalog.class.getName(),
+			permissionChecker.hasOwnerPermission(
+				commerceCatalog.getCompanyId(), CommerceCatalog.class.getName(),
 				commerceCatalog.getCommerceCatalogId(),
-				permissionChecker.getUserId(), actionId) &&
-			(commerceCatalog.getUserId() == permissionChecker.getUserId())) {
+				commerceCatalog.getUserId(), actionId)) {
 
 			return true;
 		}

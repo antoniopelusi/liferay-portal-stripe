@@ -43,6 +43,7 @@ export default function updateEditableValues({
 			.then(() => {
 				InfoItemService.getPageContents({
 					onNetworkStatus: dispatch,
+					segmentsExperienceId,
 				}).then((pageContents) => {
 					dispatch(
 						updatePageContents({

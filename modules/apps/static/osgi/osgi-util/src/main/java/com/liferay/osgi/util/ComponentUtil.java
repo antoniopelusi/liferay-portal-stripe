@@ -45,16 +45,12 @@ public class ComponentUtil {
 				awaitReferenceServiceTrackerCustomizer);
 		}
 		else {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("(&(objectClass=");
-			sb.append(referenceClass.getName());
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-			sb.append(filterString);
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
 			serviceTracker = ServiceTrackerFactory.create(
-				componentContext.getBundleContext(), sb.toString(),
+				componentContext.getBundleContext(),
+				StringBundler.concat(
+					"(&(objectClass=", referenceClass.getName(),
+					StringPool.CLOSE_PARENTHESIS, filterString,
+					StringPool.CLOSE_PARENTHESIS),
 				awaitReferenceServiceTrackerCustomizer);
 		}
 

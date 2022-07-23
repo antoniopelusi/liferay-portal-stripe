@@ -64,10 +64,6 @@
 			<contains>No theme found for specified theme id userdashboard_WAR_userdashboardtheme</contains>
 			<matches></matches>
 		</ignore-error>
-		<ignore-error description="COMMERCE-5588 - temporarily ignore until fixed">
-			<contains>IX_1B108A04</contains>
-			<matches></matches>
-		</ignore-error>
 		<ignore-error description="LPS-22821">
 			<contains>Exception sending context destroyed event to listener instance of class com.liferay.portal.spring.context.PortalContextLoaderListener</contains>
 			<matches></matches>
@@ -180,14 +176,6 @@
 			<contains>There are no actions associated with the resource com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion</contains>
 			<matches></matches>
 		</ignore-error>
-		<ignore-error description="LPS-88391, LPS-88417">
-			<contains></contains>
-			<matches>Attempting to upgrade table .* by recreating the table [\s\S]*</matches>
-		</ignore-error>
-		<ignore-error description="LPS-88391, LPS-88417">
-			<contains></contains>
-			<matches>Successfully recreated and upgraded table .*</matches>
-		</ignore-error>
 		<ignore-error description="LPS-88412 - temporarily ignore until fixed">
 			<contains>drop table if exists Kaleo</contains>
 			<matches></matches>
@@ -208,7 +196,7 @@
 			<contains></contains>
 			<matches>.*Unable to find class loader for com.liferay.portal.scheduler.quartz_.* class loader com.liferay.portal.scheduler.quartz_.*</matches>
 		</ignore-error>
-		<ignore-error description="LPS-88522 - temporarily ignore until fixed">
+		<ignore-error description="LPS-88522">
 			<contains>already has the column lastPublishDate</contains>
 			<matches></matches>
 		</ignore-error>
@@ -224,6 +212,10 @@
 			<contains>Returning the default theme</contains>
 			<matches></matches>
 		</ignore-error>
+		<ignore-error description="LPS-100651">
+			<contains>Unable to connect to a valid mail server. Please make sure one is properly configured: Couldn't connect to host, port: localhost, 25; timeout -1</contains>
+			<matches></matches>
+		</ignore-error>
 		<ignore-error description="LPS-105385 - temporarily ignore until fixed">
 			<contains>Unable to deserialize com.liferay.portal.kernel.util.EscapableLocalizableFunction due to security restrictions</contains>
 			<matches></matches>
@@ -232,16 +224,44 @@
 			<contains>IX_EE41CBEB</contains>
 			<matches></matches>
 		</ignore-error>
+		<ignore-error description="LPS-119128">
+			<contains>already is datetime</contains>
+			<matches></matches>
+		</ignore-error>
+		<ignore-error description="LPS-122481 - temporarily ignore until fixed">
+			<contains></contains>
+			<matches>Portlet com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet from com.liferay.configuration.admin.web.*failed to initialize</matches>
+		</ignore-error>
 		<ignore-error description="LPS-123610">
 			<contains>No default user was found for company</contains>
 			<matches></matches>
 		</ignore-error>
-		<ignore-error description="LPS-127275 - temporarily ignore until fixed">
-			<contains>com.liferay.analytics.message.sender.impl</contains>
+		<ignore-error description="LPS-134196">
+			<contains></contains>
+			<matches>Attempting to upgrade table .* by adding a temporary column [\s\S]*</matches>
+		</ignore-error>
+		<ignore-error description="LPS-140679 - temporarily ignore until fixed">
+			<contains>Illegal 'domain' attribute "lax.liferay.com". Domain of origin: "localhost"</contains>
 			<matches></matches>
 		</ignore-error>
-		<ignore-error description="LPS-127285 - temporarily ignore until fixed">
-			<contains>StyleBookEntryVersion</contains>
+		<ignore-error description="LPS-141256 - temporarily ignore until fixed">
+			<contains>The following session is not valid</contains>
+			<matches></matches>
+		</ignore-error>
+		<ignore-error description="LPS-141846 - temporarily ignore until fixed">
+			<contains>/o/frontend-editor-ckeditor-web/ckeditor/skins/moono-lexicon/skin.js</contains>
+			<matches></matches>
+		</ignore-error>
+		<ignore-error description="LPS-143849 - temporarily ignore until fixed">
+			<contains>DB2 SQL Error: SQLCODE=-204, SQLSTATE=42704, SQLERRMC=ROOT.LAYOUT</contains>
+			<matches></matches>
+		</ignore-error>
+		<ignore-error description="LPS-145695 - temporarily ignore until fixed">
+			<contains>java.lang.NoClassDefFoundError: com.liferay.portal.kernel.upgrade.UpgradeProcess</contains>
+			<matches></matches>
+		</ignore-error>
+		<ignore-error description="LPS-145925 - temporarily ignore until fixed">
+			<contains>com.liferay.portal.kernel.repository.UndeployedExternalRepositoryException: Unable to load external repository class com.liferay.portal.repository.liferayrepository.LiferayRepository because its plugin is not deployed</contains>
 			<matches></matches>
 		</ignore-error>
 		<ignore-error description="LRQA-24859">

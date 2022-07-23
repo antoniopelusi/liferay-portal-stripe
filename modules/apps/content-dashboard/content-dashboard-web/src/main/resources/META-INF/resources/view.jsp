@@ -20,7 +20,7 @@
 ContentDashboardAdminDisplayContext contentDashboardAdminDisplayContext = (ContentDashboardAdminDisplayContext)request.getAttribute(ContentDashboardWebKeys.CONTENT_DASHBOARD_ADMIN_DISPLAY_CONTEXT);
 %>
 
-<div class="sidebar-wrapper">
+<div class="cadmin sidebar-wrapper">
 	<clay:container-fluid
 		cssClass="container-form-lg"
 	>
@@ -73,12 +73,12 @@ ContentDashboardAdminDisplayContext contentDashboardAdminDisplayContext = (Conte
 			</h2>
 
 			<div class="audit-graph">
-				<div class="c-my-5 c-p-5 inline-item w-100">
+				<div class="audit-graph-loading c-my-5 c-p-5 inline-item w-100">
 					<span aria-hidden="true" class="loading-animation"></span>
 				</div>
 
 				<react:component
-					module="js/AuditGraphApp"
+					module="js/components/AuditGraphApp/AuditGraphApp"
 					props="<%= contentDashboardAdminDisplayContext.getData() %>"
 				/>
 			</div>
@@ -88,11 +88,20 @@ ContentDashboardAdminDisplayContext contentDashboardAdminDisplayContext = (Conte
 			cssClass="c-mt-5"
 			size="<%= StringPool.BLANK %>"
 		>
-			<h2 class="sheet-title">
-				<span class="component-title">
-					<%= LanguageUtil.format(request, "content-x", contentDashboardAdminDisplayContext.getSearchContainer().getTotal(), false) %>
-				</span>
-			</h2>
+			<div class="align-items-center d-flex justify-content-between mb-4">
+				<h2 class="mb-0 sheet-title">
+					<span class="component-title">
+						<%= LanguageUtil.format(request, "content-x", contentDashboardAdminDisplayContext.getSearchContainer().getTotal(), false) %>
+					</span>
+				</h2>
+
+				<div>
+					<react:component
+						module="js/components/DownloadSpreadsheetButton/DownloadSpreadsheetButton"
+						props="<%= contentDashboardAdminDisplayContext.getXlsProps() %>"
+					/>
+				</div>
+			</div>
 
 			<clay:management-toolbar
 				cssClass="content-dashboard-management-toolbar"
@@ -167,20 +176,90 @@ ContentDashboardAdminDisplayContext contentDashboardAdminDisplayContext = (Conte
 						</span>
 					</liferay-ui:search-container-column-text>
 
+					<liferay-ui:search-container-column-text
+						cssClass="lfr-small-column table-cell-expand-smaller"
+						name="type"
+					>
+						<span class="lfr-portal-tooltip text-truncate" title="<%= HtmlUtil.escape(contentDashboardItem.getTypeLabel(locale)) %>">
+							<%= HtmlUtil.escape(contentDashboardItem.getTypeLabel(locale)) %>
+						</span>
+					</liferay-ui:search-container-column-text>
+
 					<%
-					ContentDashboardItemType contentDashboardItemType = contentDashboardItem.getContentDashboardItemType();
+					ContentDashboardItemSubtype contentDashboardItemSubtype = contentDashboardItem.getContentDashboardItemSubtype();
 					%>
 
 					<liferay-ui:search-container-column-text
-						cssClass="table-cell-expand-smaller"
+						cssClass="lfr-small-column table-cell-expand-smaller"
 						name="subtype"
-						value="<%= HtmlUtil.escape(contentDashboardItemType.getLabel(locale)) %>"
-					/>
+					>
+						<c:choose>
+							<c:when test="<%= contentDashboardItemSubtype != null %>">
+								<span class="lfr-portal-tooltip text-truncate" title="<%= HtmlUtil.escape(contentDashboardItemSubtype.getLabel(locale)) %>">
+									<%= HtmlUtil.escape(contentDashboardItemSubtype.getLabel(locale)) %>
+								</span>
+							</c:when>
+							<c:otherwise>
+								<span class="lfr-portal-tooltip text-truncate" />
+							</c:otherwise>
+						</c:choose>
+					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
+						cssClass="text-truncate"
 						name="site-or-asset-library"
 						value="<%= HtmlUtil.escape(contentDashboardItem.getScopeName(locale)) %>"
 					/>
+
+					<%
+					for (AssetVocabulary assetVocabulary : contentDashboardAdminDisplayContext.getAssetVocabularies()) {
+					%>
+
+						<liferay-ui:search-container-column-text
+							cssClass="table-cell-expand-smaller"
+							name="<%= assetVocabulary.getTitle(locale) %>"
+						>
+
+							<%
+							List<String> assetCategories = contentDashboardAdminDisplayContext.getAssetCategoryTitles(contentDashboardItem, assetVocabulary.getVocabularyId());
+							%>
+
+							<div class="d-flex">
+								<c:if test="<%= !assetCategories.isEmpty() %>">
+									<clay:label
+										cssClass="category-label text-truncate-inline"
+										displayType="secondary"
+										large="<%= true %>"
+									>
+										<clay:label-item-expand cssClass="text-truncate"><%= assetCategories.get(0) %></clay:label-item-expand>
+									</clay:label>
+								</c:if>
+
+								<c:if test="<%= assetCategories.size() > 1 %>">
+
+									<%
+									List<String> restOfAssetCategories = assetCategories.subList(1, assetCategories.size());
+									%>
+
+									<div>
+										<react:component
+											module="js/components/CategoriesPopover"
+											props='<%=
+												HashMapBuilder.<String, Object>put(
+													"categories", restOfAssetCategories
+												).put(
+													"vocabulary", assetVocabulary.getTitle(locale)
+												).build()
+											%>'
+										/>
+									</div>
+								</c:if>
+							</div>
+						</liferay-ui:search-container-column-text>
+
+					<%
+					}
+					%>
 
 					<liferay-ui:search-container-column-text
 						cssClass="text-nowrap"
@@ -203,50 +282,6 @@ ContentDashboardAdminDisplayContext contentDashboardAdminDisplayContext = (Conte
 						%>
 
 					</liferay-ui:search-container-column-text>
-
-					<%
-					for (AssetVocabulary assetVocabulary : contentDashboardAdminDisplayContext.getAssetVocabularies()) {
-					%>
-
-						<liferay-ui:search-container-column-text
-							cssClass="table-cell-expand-smaller"
-							name="<%= assetVocabulary.getTitle(locale) %>"
-						>
-
-							<%
-							List<String> assetCategories = contentDashboardAdminDisplayContext.getAssetCategoryTitles(contentDashboardItem, assetVocabulary.getVocabularyId());
-							%>
-
-							<c:if test="<%= !assetCategories.isEmpty() %>">
-								<clay:label
-									displayType="secondary"
-									large="<%= true %>"
-								>
-									<clay:label-item-expand><%= assetCategories.get(0) %></clay:label-item-expand>
-								</clay:label>
-							</c:if>
-
-							<c:if test="<%= assetCategories.size() > 1 %>">
-
-								<%
-								String assetCategoriesSummary = StringUtil.merge(assetCategories.subList(1, assetCategories.size()), "\n");
-								%>
-
-								<span class="lfr-portal-tooltip" title="<%= assetCategoriesSummary %>">
-									<clay:label
-										aria-title="<%= assetCategoriesSummary %>"
-										displayType="secondary"
-										large="<%= true %>"
-									>
-										<span>...</span>
-									</clay:label>
-								</span>
-							</c:if>
-						</liferay-ui:search-container-column-text>
-
-					<%
-					}
-					%>
 
 					<liferay-ui:search-container-column-date
 						name="modified-date"

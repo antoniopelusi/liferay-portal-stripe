@@ -201,8 +201,8 @@ public class ActionUtil {
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(
 				WikiPage.class.getName(), portletRequest);
 
-			serviceContext.setAddGuestPermissions(true);
 			serviceContext.setAddGroupPermissions(true);
+			serviceContext.setAddGuestPermissions(true);
 
 			boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
 
@@ -242,15 +242,18 @@ public class ActionUtil {
 		LiferayPortletResponse liferayPortletResponse =
 			PortalUtil.getLiferayPortletResponse(portletResponse);
 
-		WikiNode sourceNode = sourcePage.getNode();
-
 		PortletURL viewPageURL = PortletURLBuilder.createRenderURL(
 			liferayPortletResponse
 		).setMVCRenderCommandName(
 			"wiki/view"
 		).setParameter(
-			"nodeName", sourceNode.getName()
-		).build();
+			"nodeName",
+			() -> {
+				WikiNode sourceNode = sourcePage.getNode();
+
+				return sourceNode.getName();
+			}
+		).buildPortletURL();
 
 		PortletURL editPageURL = PortletURLBuilder.createRenderURL(
 			liferayPortletResponse
@@ -260,7 +263,7 @@ public class ActionUtil {
 			"nodeId", nodeId
 		).setParameter(
 			"title", title
-		).build();
+		).buildPortletURL();
 
 		String attachmentURLPrefix = WikiUtil.getAttachmentURLPrefix(
 			themeDisplay.getPathMain(), themeDisplay.getPlid(), nodeId, title);
@@ -299,7 +302,7 @@ public class ActionUtil {
 		}
 		catch (NoSuchNodeException noSuchNodeException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchNodeException, noSuchNodeException);
+				_log.debug(noSuchNodeException);
 			}
 
 			node = getFirstVisibleNode(portletRequest);
@@ -348,7 +351,7 @@ public class ActionUtil {
 		}
 		catch (NoSuchNodeException noSuchNodeException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchNodeException, noSuchNodeException);
+				_log.debug(noSuchNodeException);
 			}
 		}
 

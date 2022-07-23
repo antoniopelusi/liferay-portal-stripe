@@ -42,17 +42,13 @@ public class UpgradeMessageBoards extends UpgradeProcess {
 					"create table ", tempTableName, " (threadId LONG NOT NULL ",
 					"PRIMARY KEY)"));
 
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("insert into ");
-			sb.append(tempTableName);
-			sb.append(" select MBMessage.threadId from MBMessage inner join ");
-			sb.append("MBThread on MBMessage.threadId = MBThread.threadId ");
-			sb.append("where MBThread.categoryId = -1 group by ");
-			sb.append("MBMessage.threadId having count(MBMessage.messageId) ");
-			sb.append("= 1");
-
-			runSQL(sb.toString());
+			runSQL(
+				StringBundler.concat(
+					"insert into ", tempTableName,
+					" select MBMessage.threadId from MBMessage inner join ",
+					"MBThread on MBMessage.threadId = MBThread.threadId where ",
+					"MBThread.categoryId = -1 group by MBMessage.threadId ",
+					"having count(MBMessage.messageId) = 1"));
 
 			_deleteAssetEntry(tempTableName);
 			_deleteTable("MBDiscussion", tempTableName);
@@ -74,32 +70,30 @@ public class UpgradeMessageBoards extends UpgradeProcess {
 	}
 
 	protected void populateMBDiscussionGroupId() throws Exception {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("select MBThread.groupId, MBDiscussion.discussionId from ");
-		sb.append("MBDiscussion inner join MBThread on MBDiscussion.threadId ");
-		sb.append("= MBThread.threadId where MBDiscussion.groupId = 0");
-
-		try (PreparedStatement ps1 =
+		try (PreparedStatement preparedStatement1 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update MBDiscussion set groupId = ? where discussionId " +
 						"= ?");
-			PreparedStatement ps2 = connection.prepareStatement(
-				sb.toString())) {
+			PreparedStatement preparedStatement2 = connection.prepareStatement(
+				StringBundler.concat(
+					"select MBThread.groupId, MBDiscussion.discussionId from ",
+					"MBDiscussion inner join MBThread on ",
+					"MBDiscussion.threadId = MBThread.threadId where ",
+					"MBDiscussion.groupId = 0"))) {
 
-			try (ResultSet rs = ps2.executeQuery()) {
-				while (rs.next()) {
-					long groupId = rs.getLong(1);
-					long discussionId = rs.getLong(2);
+			try (ResultSet resultSet = preparedStatement2.executeQuery()) {
+				while (resultSet.next()) {
+					long groupId = resultSet.getLong(1);
+					long discussionId = resultSet.getLong(2);
 
-					ps1.setLong(1, groupId);
-					ps1.setLong(2, discussionId);
+					preparedStatement1.setLong(1, groupId);
+					preparedStatement1.setLong(2, discussionId);
 
-					ps1.addBatch();
+					preparedStatement1.addBatch();
 				}
 
-				ps1.executeBatch();
+				preparedStatement1.executeBatch();
 			}
 		}
 	}
@@ -108,31 +102,19 @@ public class UpgradeMessageBoards extends UpgradeProcess {
 		long classNameId = PortalUtil.getClassNameId(
 			"com.liferay.message.boards.kernel.model.MBDiscussion");
 
-		StringBundler sb = new StringBundler(7);
+		DBTypeToSQLMap dbTypeToSQLMap = new DBTypeToSQLMap(
+			StringBundler.concat(
+				"delete from AssetEntry where classPK in (",
+				"select MBMessage.messageId from MBMessage inner join ",
+				tempTableName, " on MBMessage.threadId = ", tempTableName,
+				".threadId) and classNameId = ", classNameId));
 
-		sb.append("delete from AssetEntry where classPK in (");
-		sb.append("select MBMessage.messageId from MBMessage inner join ");
-		sb.append(tempTableName);
-		sb.append(" on MBMessage.threadId = ");
-		sb.append(tempTableName);
-		sb.append(".threadId) and classNameId = ");
-		sb.append(classNameId);
-
-		DBTypeToSQLMap dbTypeToSQLMap = new DBTypeToSQLMap(sb.toString());
-
-		sb = new StringBundler(9);
-
-		sb.append("delete AssetEntry from AssetEntry inner join MBMessage on ");
-		sb.append("AssetEntry.classPK = MBMessage.messageId and ");
-		sb.append("AssetEntry.classNameId = ");
-		sb.append(classNameId);
-		sb.append(" inner join ");
-		sb.append(tempTableName);
-		sb.append(" on MBMessage.threadId = ");
-		sb.append(tempTableName);
-		sb.append(".threadId");
-
-		String sql = sb.toString();
+		String sql = StringBundler.concat(
+			"delete AssetEntry from AssetEntry inner join MBMessage on ",
+			"AssetEntry.classPK = MBMessage.messageId and ",
+			"AssetEntry.classNameId = ", classNameId, " inner join ",
+			tempTableName, " on MBMessage.threadId = ", tempTableName,
+			".threadId");
 
 		dbTypeToSQLMap.add(DBType.MARIADB, sql);
 		dbTypeToSQLMap.add(DBType.MYSQL, sql);
@@ -143,31 +125,16 @@ public class UpgradeMessageBoards extends UpgradeProcess {
 	private void _deleteTable(String tableName, String tempTableName)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(5);
+		DBTypeToSQLMap dbTypeToSQLMap = new DBTypeToSQLMap(
+			StringBundler.concat(
+				"delete from ", tableName,
+				" where threadId in (select threadId from ", tempTableName,
+				StringPool.CLOSE_PARENTHESIS));
 
-		sb.append("delete from ");
-		sb.append(tableName);
-		sb.append(" where threadId in (select threadId from ");
-		sb.append(tempTableName);
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-
-		DBTypeToSQLMap dbTypeToSQLMap = new DBTypeToSQLMap(sb.toString());
-
-		sb = new StringBundler(11);
-
-		sb.append("delete ");
-		sb.append(tableName);
-		sb.append(" from ");
-		sb.append(tableName);
-		sb.append(" inner join ");
-		sb.append(tempTableName);
-		sb.append(" on ");
-		sb.append(tableName);
-		sb.append(".threadId = ");
-		sb.append(tempTableName);
-		sb.append(".threadId");
-
-		String sql = sb.toString();
+		String sql = StringBundler.concat(
+			"delete ", tableName, " from ", tableName, " inner join ",
+			tempTableName, " on ", tableName, ".threadId = ", tempTableName,
+			".threadId");
 
 		dbTypeToSQLMap.add(DBType.MARIADB, sql);
 		dbTypeToSQLMap.add(DBType.MYSQL, sql);

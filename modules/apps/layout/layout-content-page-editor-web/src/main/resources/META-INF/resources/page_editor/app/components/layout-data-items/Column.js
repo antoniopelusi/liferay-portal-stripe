@@ -13,16 +13,15 @@
  */
 
 import ClayLayout from '@clayui/layout';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import {getLayoutDataItemPropTypes} from '../../../prop-types/index';
+import {useNextColumnSizes} from '../../contexts/ResizeContext';
+import {useSelector} from '../../contexts/StoreContext';
 import selectCanUpdateItemConfiguration from '../../selectors/selectCanUpdateItemConfiguration';
 import selectCanUpdatePageStructure from '../../selectors/selectCanUpdatePageStructure';
-import {useSelector} from '../../store/index';
 import {getResponsiveColumnSize} from '../../utils/getResponsiveColumnSize';
-import {useUpdatedLayoutDataContext} from '../ResizeContext';
 
 const Column = React.forwardRef(({children, className, item}, ref) => {
 	const canUpdateItemConfiguration = useSelector(
@@ -32,16 +31,11 @@ const Column = React.forwardRef(({children, className, item}, ref) => {
 	const selectedViewportSize = useSelector(
 		(state) => state.selectedViewportSize
 	);
-	const updatedLayoutData = useUpdatedLayoutDataContext();
+	const nextColumnSizes = useNextColumnSizes();
 
-	const itemConfig = updatedLayoutData
-		? updatedLayoutData.items[item.itemId].config
-		: item.config;
-
-	const columnSize = getResponsiveColumnSize(
-		itemConfig,
-		selectedViewportSize
-	);
+	const columnSize =
+		nextColumnSizes?.[item.itemId] ||
+		getResponsiveColumnSize(item.config, selectedViewportSize);
 
 	const columnContent =
 		canUpdatePageStructure || canUpdateItemConfiguration ? (
@@ -51,13 +45,7 @@ const Column = React.forwardRef(({children, className, item}, ref) => {
 		);
 
 	return (
-		<ClayLayout.Col
-			className={classNames(className, {
-				empty: !item.children.length,
-			})}
-			ref={ref}
-			size={columnSize}
-		>
+		<ClayLayout.Col className={className} ref={ref} size={columnSize}>
 			{columnContent}
 		</ClayLayout.Col>
 	);

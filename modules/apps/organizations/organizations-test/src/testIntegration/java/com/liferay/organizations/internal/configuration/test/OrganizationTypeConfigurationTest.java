@@ -19,7 +19,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListenerException;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -75,9 +75,10 @@ public class OrganizationTypeConfigurationTest {
 	}
 
 	private Configuration _addOrganizationTypeConfiguration() throws Exception {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("name", RandomTestUtil.randomString());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"name", RandomTestUtil.randomString()
+			).build();
 
 		Configuration configuration =
 			_configurationAdmin.createFactoryConfiguration(

@@ -15,6 +15,7 @@
 package com.liferay.blogs.service;
 
 import com.liferay.blogs.model.BlogsEntry;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -44,6 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @ProviderType
 @Transactional(
@@ -70,17 +72,22 @@ public interface BlogsEntryService extends BaseService {
 		throws PortalException;
 
 	public BlogsEntry addEntry(
-			String title, String subtitle, String urlTitle, String description,
-			String content, int displayDateMonth, int displayDateDay,
-			int displayDateYear, int displayDateHour, int displayDateMinute,
-			boolean allowPingbacks, boolean allowTrackbacks,
-			String[] trackbacks, String coverImageCaption,
-			ImageSelector coverImageImageSelector,
+			String externalReferenceCode, String title, String subtitle,
+			String urlTitle, String description, String content,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, boolean allowPingbacks,
+			boolean allowTrackbacks, String[] trackbacks,
+			String coverImageCaption, ImageSelector coverImageImageSelector,
 			ImageSelector smallImageImageSelector,
 			ServiceContext serviceContext)
 		throws PortalException;
 
 	public void deleteEntry(long entryId) throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public BlogsEntry fetchBlogsEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<BlogsEntry> getCompanyEntries(

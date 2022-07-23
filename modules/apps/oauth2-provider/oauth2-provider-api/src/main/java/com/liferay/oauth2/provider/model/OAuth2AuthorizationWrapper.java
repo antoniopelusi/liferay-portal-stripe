@@ -190,6 +190,11 @@ public class OAuth2AuthorizationWrapper
 		}
 	}
 
+	@Override
+	public OAuth2Authorization cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the access token content of this o auth2 authorization.
 	 *

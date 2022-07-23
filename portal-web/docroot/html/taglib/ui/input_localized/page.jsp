@@ -74,7 +74,7 @@
 		</c:choose>
 	</div>
 
-	<div class="hide-accessible" id="<%= namespace + HtmlUtil.escapeAttribute(id + fieldSuffix) %>_desc"><%= defaultLocale.getDisplayName(LocaleUtil.fromLanguageId(LanguageUtil.getLanguageId(request))) %> <liferay-ui:message key="translation" /></div>
+	<div class="hide-accessible sr-only" id="<%= namespace + HtmlUtil.escapeAttribute(id + fieldSuffix) %>_desc"><%= defaultLocale.getDisplayName(LocaleUtil.fromLanguageId(LanguageUtil.getLanguageId(request))) %> <liferay-ui:message key="translation" /></div>
 
 	<c:if test="<%= !availableLocales.isEmpty() && Validator.isNull(languageId) %>">
 
@@ -127,14 +127,14 @@
 		}
 		%>
 
-		<div class="input-group-item input-group-item-shrink input-localized-content" role="menu">
+		<div class="input-group-item input-group-item-shrink input-localized-content">
 
 			<%
 			String normalizedSelectedLanguageId = StringUtil.replace(selectedLanguageId, '_', '-');
 			%>
 
 			<liferay-ui:icon-menu
-				direction="left-side"
+				direction="<%= languagesDropdownDirection %>"
 				icon="<%= StringUtil.toLowerCase(normalizedSelectedLanguageId) %>"
 				id='<%= namespace + id + "Menu" %>'
 				markupView="lexicon"
@@ -179,7 +179,7 @@
 								"value", curLanguageId
 							).build();
 
-							String translationStatus = LanguageUtil.get(request, "untranslated");
+							String translationStatus = LanguageUtil.get(request, "not-translated");
 							String translationStatusCssClass = "warning";
 
 							if (languageIds.contains(curLanguageId)) {
@@ -198,7 +198,9 @@
 							>
 								<%= StringUtil.replace(curLanguageId, '_', '-') %>
 
-								<span class="label label-<%= translationStatusCssClass %>"><%= translationStatus %></span>
+								<span class="dropdown-item-indicator-end w-auto">
+									<span class="label label-<%= translationStatusCssClass %>"><%= translationStatus %></span>
+								</span>
 							</liferay-util:buffer>
 
 							<liferay-ui:icon
@@ -217,6 +219,19 @@
 						}
 						%>
 
+						<c:if test="<%= Validator.isNotNull(activeLanguageIds) && !activeLanguageIds.isEmpty() && adminMode %>">
+							<li aria-hidden="true" class="dropdown-divider" role="presentation"></li>
+							<li>
+								<button class="dropdown-item" id="manage-translations">
+									<span class="inline-item inline-item-before">
+										<svg class="lexicon-icon lexicon-icon-automatic-translate" role="presentation">
+											<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg#automatic-translate" />
+										</svg>
+									</span>
+									<span><liferay-ui:message key="manage-translations" /></span>
+								</button>
+							</li>
+						</c:if>
 					</div>
 				</div>
 			</liferay-ui:icon-menu>
@@ -259,10 +274,9 @@
 
 			<%
 			for (Locale availableLocale : availableLocales) {
-				String availableLanguageId = LocaleUtil.toLanguageId(availableLocale);
 			%>
 
-				available['<%= availableLanguageId %>'] = '<%= availableLocale.getDisplayName(locale) %>';
+				available['<%= LocaleUtil.toLanguageId(availableLocale) %>'] = '<%= HtmlUtil.escapeJS(availableLocale.getDisplayName(locale)) %>';
 
 			<%
 			}
@@ -274,10 +288,9 @@
 
 			<%
 			for (Locale errorLocale : errorLocales) {
-				String errorLocaleId = LocaleUtil.toLanguageId(errorLocale);
 			%>
 
-				errors['<%= errorLocaleId %>'] = '<%= errorLocale.getDisplayName(locale) %>';
+				errors['<%= LocaleUtil.toLanguageId(errorLocale) %>'] = '<%= errorLocale.getDisplayName(locale) %>';
 
 			<%
 			}
@@ -290,34 +303,75 @@
 				placeholder = placeholder + 'Editor';
 			</c:if>
 
-			Liferay.InputLocalized.register(
-				'<%= namespace + id + HtmlUtil.getAUICompatibleId(fieldSuffix) %>',
-				{
-					boundingBox: '#<%= namespace + id %>PaletteBoundingBox',
-					columns: 20,
-					contentBox: '#<%= namespace + id %>PaletteContentBox',
-					defaultLanguageId: defaultLanguageId,
+			var inputLocalizedProps = {
+				adminMode: <%= adminMode %>,
+				availableLocales: available,
+				boundingBox: '#<%= namespace + id %>PaletteBoundingBox',
+				columns: 20,
+				contentBox: '#<%= namespace + id %>PaletteContentBox',
+				defaultLanguageId: defaultLanguageId,
 
-					<c:if test='<%= type.equals("editor") %>'>
-						editor: window['<%= namespace + HtmlUtil.escapeJS(fieldName) + "Editor" %>'],
-					</c:if>
+				<c:if test='<%= type.equals("editor") %>'>
+					editor: window['<%= namespace + HtmlUtil.escapeJS(fieldName) + "Editor" %>'],
+				</c:if>
 
-					fieldPrefix: '<%= fieldPrefix %>',
-					fieldPrefixSeparator: '<%= fieldPrefixSeparator %>',
-					helpMessage: '<%= HtmlUtil.escapeJS(helpMessage) %>',
-					id: '<%= id %>',
-					inputPlaceholder: placeholder,
-					inputBox: '#<%= namespace + id %>BoundingBox',
-					items: availableLanguageIds,
-					itemsError: errorLanguageIds,
-					lazy: <%= !type.equals("editor") %>,
-					name: '<%= HtmlUtil.escapeJS(name) %>',
-					namespace: '<%= namespace %>',
-					selectedLanguageId: '<%= selectedLanguageId %>',
-					toggleSelection: false,
-					translatedLanguages: '<%= StringUtil.merge(languageIds) %>'
-				}
-			);
+				fieldPrefix: '<%= fieldPrefix %>',
+				fieldPrefixSeparator: '<%= fieldPrefixSeparator %>',
+				helpMessage: '<%= HtmlUtil.escapeJS(helpMessage) %>',
+				id: '<%= id %>',
+				inputPlaceholder: placeholder,
+				inputBox: '#<%= namespace + id %>BoundingBox',
+				items: availableLanguageIds,
+				itemsError: errorLanguageIds,
+				lazy: <%= !type.equals("editor") %>,
+				name: '<%= HtmlUtil.escapeJS(name) %>',
+				namespace: '<%= namespace %>',
+				selectedLanguageId: '<%= selectedLanguageId %>',
+				toggleSelection: false,
+				translatedLanguages: '<%= StringUtil.merge(languageIds) %>'
+			};
+
+			<c:choose>
+				<c:when test="<%= Validator.isNotNull(activeLanguageIds) && !activeLanguageIds.isEmpty() %>">
+					Liferay.Loader.require(
+					[
+						A.config.groups.components.mainModule,
+						A.config.groups.react.mainModule,
+						A.config.groups.state.mainModule,
+					],
+					(frontendJsComponentsWebModule, frontendJsReactWebModule, frontendJsStateWebModule) => {
+
+						Liferay.InputLocalized.register(
+							'<%= namespace + id + HtmlUtil.getAUICompatibleId(fieldSuffix) %>',
+							{
+								activeLanguageIds: <%= JSONFactoryUtil.createJSONArray(activeLanguageIds) %>,
+								frontendJsComponentsWebModule,
+								frontendJsReactWebModule,
+								frontendJsStateWebModule,
+								...inputLocalizedProps
+							}
+						);
+					});
+				</c:when>
+				<c:otherwise>
+					Liferay.Loader.require(
+					[
+						A.config.groups.components.mainModule,
+						A.config.groups.state.mainModule,
+					],
+					(frontendJsComponentsWebModule, frontendJsStateWebModule) => {
+
+						Liferay.InputLocalized.register(
+							'<%= namespace + id + HtmlUtil.getAUICompatibleId(fieldSuffix) %>',
+							{
+								frontendJsComponentsWebModule,
+								frontendJsStateWebModule,
+								...inputLocalizedProps
+							}
+						);
+					});
+				</c:otherwise>
+			</c:choose>
 
 			<c:if test="<%= autoFocus %>">
 				Liferay.Util.focusFormField('#<%= namespace + HtmlUtil.escapeJS(id + HtmlUtil.getAUICompatibleId(fieldSuffix)) %>');

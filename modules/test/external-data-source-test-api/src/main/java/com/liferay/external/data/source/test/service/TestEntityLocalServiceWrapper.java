@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class TestEntityLocalServiceWrapper
 	implements ServiceWrapper<TestEntityLocalService>, TestEntityLocalService {
 
+	public TestEntityLocalServiceWrapper() {
+		this(null);
+	}
+
 	public TestEntityLocalServiceWrapper(
 		TestEntityLocalService testEntityLocalService) {
 
@@ -124,6 +128,13 @@ public class TestEntityLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _testEntityLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _testEntityLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

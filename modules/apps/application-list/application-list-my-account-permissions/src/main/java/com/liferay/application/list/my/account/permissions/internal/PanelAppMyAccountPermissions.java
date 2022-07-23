@@ -184,8 +184,10 @@ public class PanelAppMyAccountPermissions {
 		implements ServiceTrackerCustomizer<PanelApp, PanelApp> {
 
 		@Override
-		public PanelApp addingService(ServiceReference<PanelApp> reference) {
-			PanelApp panelApp = _bundleContext.getService(reference);
+		public PanelApp addingService(
+			ServiceReference<PanelApp> serviceReference) {
+
+			PanelApp panelApp = _bundleContext.getService(serviceReference);
 
 			try {
 				Portlet portlet = panelApp.getPortlet();
@@ -211,7 +213,7 @@ public class PanelAppMyAccountPermissions {
 				return panelApp;
 			}
 			catch (Throwable throwable) {
-				_bundleContext.ungetService(reference);
+				_bundleContext.ungetService(serviceReference);
 
 				throw throwable;
 			}

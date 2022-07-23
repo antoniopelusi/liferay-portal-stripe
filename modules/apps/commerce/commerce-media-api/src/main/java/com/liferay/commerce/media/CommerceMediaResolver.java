@@ -18,11 +18,6 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * @author Alec Sloan
  * @author Alessio Antonio Rendina
@@ -30,36 +25,27 @@ import javax.servlet.http.HttpServletResponse;
 @ProviderType
 public interface CommerceMediaResolver {
 
-	public String getDefaultUrl(long groupId);
+	public String getDefaultURL(long groupId);
 
-	public String getDownloadUrl(long cpAttachmentFileEntryId)
+	public String getDownloadURL(
+			long commerceAccountId, long cpAttachmentFileEntryId)
 		throws PortalException;
 
-	public byte[] getMediaBytes(HttpServletRequest httpServletRequest)
-		throws IOException, PortalException;
-
-	public String getThumbnailUrl(long cpAttachmentFileEntryId)
+	public String getThumbnailURL(
+			long commerceAccountId, long cpAttachmentFileEntryId)
 		throws PortalException;
 
-	public String getUrl(long cpAttachmentFileEntryId) throws PortalException;
-
-	public String getUrl(
-			long cpAttachmentFileEntryId, boolean download, boolean thumbnail)
+	public String getURL(long commerceAccountId, long cpAttachmentFileEntryId)
 		throws PortalException;
 
-	public String getUrl(
-			long cpAttachmentFileEntryId, boolean download, boolean thumbnail,
-			boolean secure)
+	public String getURL(
+			long commerceAccountId, long cpAttachmentFileEntryId,
+			boolean download, boolean thumbnail)
 		throws PortalException;
 
-	public void sendMediaBytes(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
-		throws IOException;
-
-	public void sendMediaBytes(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, String download)
-		throws IOException;
+	public String getURL(
+			long commerceAccountId, long cpAttachmentFileEntryId,
+			boolean download, boolean thumbnail, boolean secure)
+		throws PortalException;
 
 }

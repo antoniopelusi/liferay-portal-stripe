@@ -20,20 +20,24 @@
 CommerceTaxFixedRatesDisplayContext commerceTaxFixedRatesDisplayContext = (CommerceTaxFixedRatesDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 %>
 
-<clay:data-set-display
-	contextParams='<%=
-		HashMapBuilder.<String, String>put(
-			"commerceChannelId", String.valueOf(commerceTaxFixedRatesDisplayContext.getCommerceChannelId())
-		).put(
-			"commerceTaxMethodId", String.valueOf(commerceTaxFixedRatesDisplayContext.getCommerceTaxMethodId())
-		).build()
-	%>'
-	creationMenu="<%= commerceTaxFixedRatesDisplayContext.getCreationMenu() %>"
-	dataProviderKey="<%= CommerceTaxRateClayTable.NAME %>"
-	id="<%= CommerceTaxRateClayTable.NAME %>"
-	itemsPerPage="<%= 10 %>"
-	namespace="<%= liferayPortletResponse.getNamespace() %>"
-	pageNumber="<%= 1 %>"
-	portletURL="<%= commerceTaxFixedRatesDisplayContext.getPortletURL() %>"
-	showSearch="<%= false %>"
-/>
+<commerce-ui:panel
+	bodyClasses="p-0"
+>
+	<clay:data-set-display
+		contextParams='<%=
+			HashMapBuilder.<String, String>put(
+				"commerceChannelId", String.valueOf(commerceTaxFixedRatesDisplayContext.getCommerceChannelId())
+			).put(
+				"commerceTaxMethodId", String.valueOf(commerceTaxFixedRatesDisplayContext.getCommerceTaxMethodId())
+			).build()
+		%>'
+		creationMenu="<%= commerceTaxFixedRatesDisplayContext.getCreationMenu() %>"
+		dataProviderKey="<%= CommerceTaxRateClayTable.NAME %>"
+		id="<%= CommerceTaxRateClayTable.NAME %>"
+		itemsPerPage="<%= 10 %>"
+		namespace="<%= liferayPortletResponse.getNamespace() %>"
+		pageNumber="<%= 1 %>"
+		portletURL="<%= commerceTaxFixedRatesDisplayContext.getPortletURL() %>"
+		showSearch="<%= false %>"
+	/>
+</commerce-ui:panel>

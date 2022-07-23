@@ -33,10 +33,8 @@ import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.version.Version;
-import com.liferay.portal.tools.DBUpgrader;
 import com.liferay.portal.upgrade.PortalUpgradeProcess;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.verify.VerifyException;
 
 import java.sql.Connection;
 
@@ -70,28 +68,12 @@ public class StartupHelperUtil {
 		return _startupFinished;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static boolean isUpgraded() {
-		return _upgraded;
-	}
-
 	public static boolean isUpgrading() {
 		return _upgrading;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static boolean isVerified() {
-		return true;
-	}
-
 	public static void printPatchLevel() {
-		if (_log.isInfoEnabled() && !PatcherUtil.hasInconsistentPatchLevels()) {
+		if (_log.isInfoEnabled()) {
 			String installedPatches = StringUtil.merge(
 				PatcherUtil.getInstalledPatches(), StringPool.COMMA_AND_SPACE);
 
@@ -133,7 +115,7 @@ public class StartupHelperUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 	}
@@ -158,7 +140,7 @@ public class StartupHelperUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 	}
@@ -173,21 +155,15 @@ public class StartupHelperUtil {
 			buildNumber, upgradeProcesses);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static void verifyProcess(boolean verified) throws VerifyException {
-		DBUpgrader.verify();
-	}
-
 	public static void verifyRequiredSchemaVersion() throws Exception {
 		if (_log.isDebugEnabled()) {
 			_log.debug("Check the portal's required schema version");
 		}
 
-		if (!PortalUpgradeProcess.isInRequiredSchemaVersion(
-				DataAccess.getConnection())) {
+		try (Connection connection = DataAccess.getConnection()) {
+			if (PortalUpgradeProcess.isInRequiredSchemaVersion(connection)) {
+				return;
+			}
 
 			Version currentSchemaVersion =
 				PortalUpgradeProcess.getCurrentSchemaVersion(

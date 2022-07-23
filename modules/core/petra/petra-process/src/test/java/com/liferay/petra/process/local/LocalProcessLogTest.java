@@ -122,17 +122,11 @@ public class LocalProcessLogTest {
 		LocalProcessLog localProcessLog = new LocalProcessLog(
 			ProcessLog.Level.DEBUG, message, throwable);
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{level=");
-		sb.append(ProcessLog.Level.DEBUG);
-		sb.append(", message=");
-		sb.append(message);
-		sb.append(", throwable=");
-		sb.append(throwable);
-		sb.append("}");
-
-		Assert.assertEquals(localProcessLog.toString(), sb.toString());
+		Assert.assertEquals(
+			localProcessLog.toString(),
+			StringBundler.concat(
+				"{level=", ProcessLog.Level.DEBUG, ", message=", message,
+				", throwable=", throwable, "}"));
 	}
 
 }

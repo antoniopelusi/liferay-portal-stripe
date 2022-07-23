@@ -14,11 +14,14 @@
 
 package com.liferay.commerce.internal.messaging;
 
-import com.liferay.commerce.constants.CommerceDestinationNames;
+import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.model.CommerceShipment;
+import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationConfiguration;
 import com.liferay.portal.kernel.messaging.DestinationFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.messaging.DestinationNames;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import java.util.Dictionary;
 
@@ -42,17 +45,20 @@ public class CommerceMessagingConfigurator {
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_basePriceListServiceRegistration = _registerDestination(
-			bundleContext, CommerceDestinationNames.BASE_PRICE_LIST);
+			bundleContext, DestinationNames.COMMERCE_BASE_PRICE_LIST,
+			CommercePriceList.class.getName());
 		_orderStatusServiceRegistration = _registerDestination(
-			bundleContext, CommerceDestinationNames.ORDER_STATUS);
+			bundleContext, DestinationNames.COMMERCE_ORDER_STATUS,
+			CommerceOrder.class.getName());
 		_paymentStatusServiceRegistration = _registerDestination(
-			bundleContext, CommerceDestinationNames.PAYMENT_STATUS);
+			bundleContext, DestinationNames.COMMERCE_PAYMENT_STATUS,
+			CommerceOrder.class.getName());
 		_shipmentStatusServiceRegistration = _registerDestination(
-			bundleContext, CommerceDestinationNames.SHIPMENT_STATUS);
-		_stockQuantityServiceRegistration = _registerDestination(
-			bundleContext, CommerceDestinationNames.STOCK_QUANTITY);
+			bundleContext, DestinationNames.COMMERCE_SHIPMENT_STATUS,
+			CommerceShipment.class.getName());
 		_subscriptionStatusServiceRegistration = _registerDestination(
-			bundleContext, CommerceDestinationNames.SUBSCRIPTION_STATUS);
+			bundleContext, DestinationNames.COMMERCE_SUBSCRIPTION_STATUS,
+			CommerceOrder.class.getName());
 	}
 
 	@Deactivate
@@ -73,17 +79,13 @@ public class CommerceMessagingConfigurator {
 			_shipmentStatusServiceRegistration.unregister();
 		}
 
-		if (_stockQuantityServiceRegistration != null) {
-			_stockQuantityServiceRegistration.unregister();
-		}
-
 		if (_subscriptionStatusServiceRegistration != null) {
 			_subscriptionStatusServiceRegistration.unregister();
 		}
 	}
 
 	private ServiceRegistration<Destination> _registerDestination(
-		BundleContext bundleContext, String destinationName) {
+		BundleContext bundleContext, String destinationName, String className) {
 
 		DestinationConfiguration destinationConfiguration =
 			DestinationConfiguration.createParallelDestinationConfiguration(
@@ -92,9 +94,12 @@ public class CommerceMessagingConfigurator {
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("destination.name", destination.getName());
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).put(
+				"object.action.trigger.class.name", className
+			).build();
 
 		return bundleContext.registerService(
 			Destination.class, destination, dictionary);
@@ -112,8 +117,6 @@ public class CommerceMessagingConfigurator {
 		_paymentStatusServiceRegistration;
 	private volatile ServiceRegistration<Destination>
 		_shipmentStatusServiceRegistration;
-	private volatile ServiceRegistration<Destination>
-		_stockQuantityServiceRegistration;
 	private volatile ServiceRegistration<Destination>
 		_subscriptionStatusServiceRegistration;
 

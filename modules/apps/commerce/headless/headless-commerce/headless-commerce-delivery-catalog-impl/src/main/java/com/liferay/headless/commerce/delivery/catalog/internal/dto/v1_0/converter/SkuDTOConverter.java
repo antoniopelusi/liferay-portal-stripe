@@ -20,6 +20,7 @@ import com.liferay.commerce.currency.model.CommerceMoney;
 import com.liferay.commerce.currency.util.CommercePriceFormatter;
 import com.liferay.commerce.discount.CommerceDiscountValue;
 import com.liferay.commerce.inventory.CPDefinitionInventoryEngine;
+import com.liferay.commerce.inventory.constants.CommerceInventoryAvailabilityConstants;
 import com.liferay.commerce.inventory.engine.CommerceInventoryEngine;
 import com.liferay.commerce.price.CommerceProductPrice;
 import com.liferay.commerce.price.CommerceProductPriceCalculation;
@@ -34,20 +35,19 @@ import com.liferay.headless.commerce.delivery.catalog.dto.v1_0.Availability;
 import com.liferay.headless.commerce.delivery.catalog.dto.v1_0.Price;
 import com.liferay.headless.commerce.delivery.catalog.dto.v1_0.Product;
 import com.liferay.headless.commerce.delivery.catalog.dto.v1_0.Sku;
+import com.liferay.headless.commerce.delivery.catalog.dto.v1_0.SkuOption;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -56,7 +56,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Andrea Sbarra
  */
 @Component(
-	enabled = false, property = "model.class.name=CPSku",
+	enabled = false, property = "dto.class.name=CPSku",
 	service = {DTOConverter.class, SkuDTOConverter.class}
 )
 public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
@@ -80,8 +80,8 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 		return new Sku() {
 			{
 				availability = _getAvailability(
-					cpSkuDTOConverterConvertContext.getCompanyId(),
 					commerceContext.getCommerceChannelGroupId(),
+					cpSkuDTOConverterConvertContext.getCompanyId(),
 					cpInstance.getSku(), cpInstance,
 					cpSkuDTOConverterConvertContext.getLocale());
 				depth = cpInstance.getDepth();
@@ -91,7 +91,6 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 				height = cpInstance.getHeight();
 				id = cpInstance.getCPInstanceId();
 				manufacturerPartNumber = cpInstance.getManufacturerPartNumber();
-				options = _getOptions(cpInstance);
 				price = _getPrice(
 					cpInstance, 1,
 					cpSkuDTOConverterConvertContext.getCommerceContext(),
@@ -99,6 +98,7 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 				published = cpInstance.isPublished();
 				purchasable = cpInstance.isPurchasable();
 				sku = cpInstance.getSku();
+				skuOptions = _getSkuOptions(cpInstance);
 				weight = cpInstance.getWeight();
 				width = cpInstance.getWidth();
 			}
@@ -106,27 +106,36 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 	}
 
 	private Availability _getAvailability(
-			long companyId, long channelGroupId, String sku,
+			long commerceChannelGroupId, long companyId, String sku,
 			CPInstance cpInstance, Locale locale)
 		throws Exception {
 
 		Availability availability = new Availability();
-		int stockQuantity = _commerceInventoryEngine.getStockQuantity(
-			companyId, channelGroupId, sku);
 
 		if (_cpDefinitionInventoryEngine.isDisplayAvailability(cpInstance)) {
-			if (stockQuantity > 0) {
-				availability.setLabel(
-					_getLocalizedMessage(locale, "available"));
+			if (Objects.equals(
+					_commerceInventoryEngine.getAvailabilityStatus(
+						cpInstance.getCompanyId(), commerceChannelGroupId,
+						_cpDefinitionInventoryEngine.getMinStockQuantity(
+							cpInstance),
+						cpInstance.getSku()),
+					CommerceInventoryAvailabilityConstants.AVAILABLE)) {
+
+				availability.setLabel_i18n(
+					LanguageUtil.get(locale, "available"));
+				availability.setLabel("available");
 			}
 			else {
-				availability.setLabel(
-					_getLocalizedMessage(locale, "unavailable"));
+				availability.setLabel_i18n(
+					LanguageUtil.get(locale, "unavailable"));
+				availability.setLabel("unavailable");
 			}
 		}
 
 		if (_cpDefinitionInventoryEngine.isDisplayStockQuantity(cpInstance)) {
-			availability.setStockQuantity(stockQuantity);
+			availability.setStockQuantity(
+				_commerceInventoryEngine.getStockQuantity(
+					companyId, commerceChannelGroupId, sku));
 		}
 
 		return availability;
@@ -144,56 +153,6 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 		}
 
 		return formattedDiscountPercentages.toArray(new String[0]);
-	}
-
-	private String _getLocalizedMessage(Locale locale, String key) {
-		ResourceBundle resourceBundle = LanguageResources.getResourceBundle(
-			locale);
-
-		return LanguageUtil.get(resourceBundle, key);
-	}
-
-	private Map<String, String> _getOptions(CPInstance cpInstance)
-		throws Exception {
-
-		Map<String, String> options = new HashMap<>();
-
-		Map<String, List<String>>
-			cpDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys =
-				_cpDefinitionOptionRelLocalService.
-					getCPDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys(
-						cpInstance.getCPInstanceId());
-
-		JSONArray keyValuesJSONArray = _jsonHelper.toJSONArray(
-			cpDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys);
-
-		Map<CPDefinitionOptionRel, List<CPDefinitionOptionValueRel>>
-			cpDefinitionOptionRelsMap =
-				_cpInstanceHelper.getCPDefinitionOptionRelsMap(
-					cpInstance.getCPDefinitionId(),
-					keyValuesJSONArray.toString());
-
-		for (Map.Entry<CPDefinitionOptionRel, List<CPDefinitionOptionValueRel>>
-				entry : cpDefinitionOptionRelsMap.entrySet()) {
-
-			CPDefinitionOptionRel cpDefinitionOptionRel = entry.getKey();
-
-			List<CPDefinitionOptionValueRel> cpDefinitionOptionValueRels =
-				entry.getValue();
-
-			for (CPDefinitionOptionValueRel cpDefinitionOptionValueRel :
-					cpDefinitionOptionValueRels) {
-
-				options.put(
-					String.valueOf(
-						cpDefinitionOptionRel.getCPDefinitionOptionRelId()),
-					String.valueOf(
-						cpDefinitionOptionValueRel.
-							getCPDefinitionOptionValueRelId()));
-			}
-		}
-
-		return options;
 	}
 
 	private Price _getPrice(
@@ -260,6 +219,52 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 		}
 
 		return price;
+	}
+
+	private SkuOption[] _getSkuOptions(CPInstance cpInstance) throws Exception {
+		List<SkuOption> skuOptions = new ArrayList<>();
+
+		Map<String, List<String>>
+			cpDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys =
+				_cpDefinitionOptionRelLocalService.
+					getCPDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys(
+						cpInstance.getCPInstanceId());
+
+		JSONArray keyValuesJSONArray = _jsonHelper.toJSONArray(
+			cpDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys);
+
+		Map<CPDefinitionOptionRel, List<CPDefinitionOptionValueRel>>
+			cpDefinitionOptionRelsMap =
+				_cpInstanceHelper.getCPDefinitionOptionValueRelsMap(
+					cpInstance.getCPDefinitionId(),
+					keyValuesJSONArray.toString());
+
+		for (Map.Entry<CPDefinitionOptionRel, List<CPDefinitionOptionValueRel>>
+				entry : cpDefinitionOptionRelsMap.entrySet()) {
+
+			CPDefinitionOptionRel cpDefinitionOptionRel = entry.getKey();
+
+			List<CPDefinitionOptionValueRel> cpDefinitionOptionValueRels =
+				entry.getValue();
+
+			for (CPDefinitionOptionValueRel cpDefinitionOptionValueRel :
+					cpDefinitionOptionValueRels) {
+
+				SkuOption skuOption = new SkuOption() {
+					{
+						key =
+							cpDefinitionOptionRel.getCPDefinitionOptionRelId();
+						value =
+							cpDefinitionOptionValueRel.
+								getCPDefinitionOptionValueRelId();
+					}
+				};
+
+				skuOptions.add(skuOption);
+			}
+		}
+
+		return skuOptions.toArray(new SkuOption[0]);
 	}
 
 	@Reference

@@ -54,7 +54,7 @@ public class DDLRecordStagingModelListener
 	}
 
 	@Override
-	public void onAfterUpdate(DDLRecord ddlRecord)
+	public void onAfterUpdate(DDLRecord originalDDLRecord, DDLRecord ddlRecord)
 		throws ModelListenerException {
 
 		if (_isSkipEvent(ddlRecord)) {
@@ -76,7 +76,7 @@ public class DDLRecordStagingModelListener
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 

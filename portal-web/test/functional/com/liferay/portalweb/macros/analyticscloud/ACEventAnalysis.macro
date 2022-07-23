@@ -1,0 +1,306 @@
+definition {
+
+	macro addBreakdown {
+		for (var attributeName : list "${attributeNameList}") {
+			ACEventAnalysis.clickToAddBreakdownButton();
+
+			ACEventAnalysis.searchEventAnalysis(searchItem = "${attributeName}");
+
+			Click(
+				key_buttonName = "${attributeName}",
+				locator1 = "ACUtils#GENERIC_BUTTON");
+		}
+	}
+
+	macro addEvent {
+		var key_buttonName = "${customEventName}";
+
+		if (!(isSet(tabName))) {
+			var tabName = "All";
+		}
+
+		ACEventAnalysis.clickToAddEventButton();
+
+		ACNavigation.switchTabInCard(tabName = "${tabName}");
+
+		ACEventAnalysis.searchEventAnalysis(searchItem = "${customEventName}");
+
+		while (IsElementNotPresent(locator1 = "ACUtils#GENERIC_BUTTON") && (maxIterations = "50")) {
+			TestUtils.hardRefresh();
+
+			ACEventAnalysis.clickToAddEventButton();
+
+			ACEventAnalysis.searchEventAnalysis(searchItem = "${customEventName}");
+		}
+
+		Click(locator1 = "ACUtils#GENERIC_BUTTON");
+	}
+
+	macro addFilter {
+		ACEventAnalysis.clickToAddFilterButton();
+
+		ACEventAnalysis.searchEventAnalysis(searchItem = "${filterName}");
+
+		Click(
+			key_filterName = "${filterName}",
+			locator1 = "ACEventAnalysis#CHOOSE_FILTER");
+
+		Select(
+			locator1 = "Select#SELECT",
+			value1 = "${optionValue}");
+
+		if ((IsElementNotPresent(key_text = "calendar", locator1 = "Icon#ANY")) && ("${optionValue}" != "True") && ("${optionValue}" != "False")) {
+			Type(
+				locator1 = "ACEventAnalysis#INPUT_CONDITION",
+				value1 = "${inputValue}");
+
+			if ("${optionValue}" == "between") {
+				Type(
+					locator1 = "ACEventAnalysis#INPUT_CONDITION_END_VALUE",
+					value1 = "${inputEndValue}");
+			}
+		}
+
+		if (IsElementPresent(key_text = "calendar", locator1 = "Icon#ANY")) {
+			Click(
+				key_text = "calendar",
+				locator1 = "Icon#ANY");
+
+			Select(
+				key_indexCalendar = "1",
+				locator1 = "ACSegments#MONTH_AND_YEAR_CALENDAR",
+				value1 = "${month}");
+
+			Select(
+				key_indexCalendar = "2",
+				locator1 = "ACSegments#MONTH_AND_YEAR_CALENDAR",
+				value1 = "${year}");
+
+			Click(
+				key_day = "${inputValue}",
+				locator1 = "ACSegments#DAY_CALENDAR_OPTION");
+
+			if ("${optionValue}" == "is between") {
+				Click(
+					key_day = "${inputEndValue}",
+					locator1 = "ACSegments#DAY_CALENDAR_OPTION");
+			}
+
+			Click(
+				key_text = "calendar",
+				locator1 = "Icon#ANY");
+		}
+
+		Click(locator1 = "ACEventAnalysis#FILTER_DONE_BUTTON");
+	}
+
+	macro changeAttributeDataType {
+		var key_buttonName = "${attributeName}";
+		var key_attributeName = "${attributeName}";
+
+		MouseOver(locator1 = "ACUtils#GENERIC_BUTTON");
+
+		if ("${editOption}" == "Description") {
+			Click(locator1 = "ACEventAnalysis#EDIT_PENCIL");
+
+			ACCustomEvents.changeAttributeDataType(newDataType = "${newDataType}");
+		}
+
+		if ("${editOption}" == "Filter") {
+			Click(locator1 = "ACEventAnalysis#FILTER_BUTTON");
+
+			Click(locator1 = "ACEventAnalysis#EDIT_PENCIL");
+
+			ACCustomEvents.changeAttributeDataType(newDataType = "${newDataType}");
+		}
+	}
+
+	macro changeBreakdownPosition {
+		DragAndDrop.javaScriptDragAndDropToObject(
+			indexEnd = "${indexEnd}",
+			indexStart = "${indexStart}",
+			locator1 = "ACEventAnalysis#BREAKDOWN_ORIGINAL_POSITION",
+			locator2 = "ACEventAnalysis#BREAKDOWN_NEW_POSITION");
+	}
+
+	macro changeCustomEventDisplayName {
+		var key_buttonName = "${elementName}";
+
+		MouseOver(locator1 = "ACUtils#GENERIC_BUTTON");
+
+		if ("${editOption}" == "Description") {
+			Click(locator1 = "ACEventAnalysis#EDIT_PENCIL");
+
+			ACCustomEvents.changeCustomEventDisplayNameOrDescription(newDisplayName = "${newDisplayName}");
+		}
+
+		if ("${editOption}" == "Filter") {
+			Click(locator1 = "ACEventAnalysis#FILTER_BUTTON");
+
+			Click(locator1 = "ACEventAnalysis#EDIT_PENCIL");
+
+			ACCustomEvents.changeCustomEventDisplayNameOrDescription(newDisplayName = "${newDisplayName}");
+		}
+	}
+
+	macro clickToAddBreakdownButton {
+		var key_sectionType = "breakdown";
+
+		Click(locator1 = "ACEventAnalysis#ADD_ATTRIBUTE_BUTTON");
+	}
+
+	macro clickToAddEventButton {
+		var key_definitionsOptions = "event-analysis/create";
+
+		if (IsElementPresent(locator1 = "ACSettings#DEFINITIONS_OPTIONS")) {
+			Click(locator1 = "ACSettings#DEFINITIONS_OPTIONS");
+		}
+
+		Click(locator1 = "ACEventAnalysis#ADD_EVENT_BUTTON");
+	}
+
+	macro clickToAddFilterButton {
+		var key_sectionType = "filter";
+
+		Click(locator1 = "ACEventAnalysis#ADD_ATTRIBUTE_BUTTON");
+	}
+
+	macro deleteAllEventAnalysis {
+		var key_actionButton = "Delete";
+
+		KeyPress(
+			locator1 = "ACSettings#SELECT_ALL_CHECKBOX",
+			value1 = "\SPACE");
+
+		Click(locator1 = "ACSettings#DELETE_USER");
+
+		ACUtils.clickAnyButton(button = "${key_actionButton}");
+	}
+
+	macro removeFromAnalysis {
+		var key_removeValue = "${removeValue}";
+
+		Click(locator1 = "ACEventAnalysis#REMOVE_BUTTON");
+	}
+
+	macro searchEventAnalysis {
+		Type(
+			locator1 = "ACEventAnalysis#SEARCH_BAR_EVENT_ANALYSE",
+			value1 = "${searchItem}");
+	}
+
+	macro sortAnalysis {
+		var key_attributeName = "${attributeName}";
+
+		Click(locator1 = "ACEventAnalysis#SORT_ANALYSIS");
+	}
+
+	macro viewAnalysisColumnInOrder {
+		var index = "${index}";
+
+		AssertTextEquals(
+			locator1 = "ACEventAnalysis#VIEW_ORDER_ANALYSIS_COLUMN",
+			value1 = "${columnName}");
+	}
+
+	macro viewAnalysisDashboard {
+		if (isSet(eventName)) {
+			AssertElementPresent(
+				key_buttonName = "${eventName}",
+				locator1 = "ACUtils#GENERIC_BUTTON");
+		}
+
+		if (isSet(attributeNameList)) {
+			for (var attributeName : list "${attributeNameList}") {
+				AssertElementPresent(
+					key_attributeName = "${attributeName}",
+					locator1 = "ACEventAnalysis#VIEW_DASHBOARD_INFORMATION");
+			}
+		}
+
+		if (isSet(filterNameList)) {
+			for (var filterName : list "${filterNameList}") {
+				AssertElementPresent(
+					key_attributeName = "${filterName}",
+					locator1 = "ACEventAnalysis#VIEW_DASHBOARD_INFORMATION");
+			}
+		}
+	}
+
+	macro viewAnalysisInformation {
+		for (var informationValue : list "${informationValueList}") {
+			var key_informationValue = "${informationValue}";
+
+			AssertElementPresent(locator1 = "ACEventAnalysis#VIEW_ANALYSIS_INFORMATION");
+		}
+	}
+
+	macro viewAnalysisInformationInOrder {
+		var key_commonInformation = "${commonInformation}";
+		var index = "${index}";
+
+		AssertVisible(
+			locator1 = "ACEventAnalysis#VIEW_ANALYSIS_INFORMATION_SPECIFIC_ORDER",
+			value1 = "${informationValue}");
+	}
+
+	macro viewAnalysisInformationNotPresent {
+		for (var informationValue : list "${informationValueList}") {
+			var key_informationValue = "${informationValue}";
+
+			AssertElementNotPresent(locator1 = "ACEventAnalysis#VIEW_ANALYSIS_INFORMATION");
+		}
+	}
+
+	macro viewChangedAttributeDataType {
+		var key_buttonName = "${attributeName}";
+		var key_attributeName = "${attributeName}";
+		var newDataType = StringUtil.upperCase("${newDataType}");
+
+		MouseOver(locator1 = "ACUtils#GENERIC_BUTTON");
+
+		ACCustomEvents.viewDataType(typeValue = "${newDataType}");
+
+		if (("${newDataType}" != "STRING") && ("${newDataType}" != "BOOLEAN")) {
+			Click(locator1 = "ACEventAnalysis#FILTER_BUTTON");
+		}
+
+		if (("${newDataType}" == "NUMBER") || ("${newDataType}" == "DURATION")) {
+			AssertElementPresent(locator1 = "ACEventAnalysis#INPUT_CONDITION");
+		}
+
+		if ("${newDataType}" == "DATE") {
+			AssertElementPresent(locator1 = "Select#SELECT");
+		}
+	}
+
+	macro viewEventAnalysisList {
+		for (var name : list "${eventList}") {
+			var key_buttonName = "${name}";
+
+			while (IsElementNotPresent(locator1 = "ACUtils#GENERIC_BUTTON") && (maxIterations = "100")) {
+				ACEventAnalysis.searchEventAnalysis(searchItem = "${name}");
+			}
+
+			AssertTextEquals(
+				locator1 = "ACUtils#GENERIC_BUTTON",
+				value1 = "${name}");
+		}
+	}
+
+	macro viewEventAnalysisListNotPresent {
+		for (var name : list "${eventList}") {
+			var key_buttonName = "${name}";
+
+			AssertElementNotPresent(locator1 = "ACUtils#GENERIC_BUTTON");
+		}
+	}
+
+	macro viewTotalNumberRelatedToColumnInformation {
+		var key_columnInformationValue = "${columnInformationValue}";
+		var key_totalEventsValue = "${totalEventsValue}";
+
+		AssertElementPresent(locator1 = "ACEventAnalysis#VIEW_TOTAL_NUMBER_RELATED_COLUMN_INFORMATION");
+	}
+
+}

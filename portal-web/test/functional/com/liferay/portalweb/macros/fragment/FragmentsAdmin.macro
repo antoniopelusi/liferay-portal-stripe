@@ -77,9 +77,7 @@ definition {
 	macro importCollectionFromDependenciesFolder {
 		FragmentsAdminNavigator.gotoImportCollection();
 
-		UploadCommonFile(
-			locator1 = "TextInput#FILE",
-			value1 = "${collectionZipFile}");
+		UploadDependencyFile.uploadArchiveFile(fileName = "${collectionZipFile}");
 
 		SelectFrameTop();
 
@@ -146,6 +144,25 @@ definition {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage/-/fragments");
 	}
 
+	macro propagateChanges {
+		if (isSet(itemNameList)) {
+			for (var itemName : list "${itemNameList}") {
+				Check(
+					key_tableEntry = "${itemName}",
+					locator1 = "LexiconTable#TABLE_ENTRY_CHECKBOX");
+			}
+		}
+		else {
+			PortletEntry.selectAll();
+		}
+
+		Click(
+			key_text = "propagation",
+			locator1 = "Icon#ANY");
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro selectCollection {
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
@@ -164,6 +181,13 @@ definition {
 		LexiconCard.viewCardLabel(
 			card = "${entry}",
 			cardLabel = "${workflowStatus}");
+	}
+
+	macro viewSiteUsages {
+		LexiconTable.viewTableEntryInfo(
+			columnName = "usages",
+			tableEntry = "${siteName}",
+			tableEntryInfo = "${usages}");
 	}
 
 }

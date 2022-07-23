@@ -139,7 +139,7 @@ public class PricingCommerceHealthHttpStatus
 				CommercePricingConstants.VERSION_2_0)) {
 
 			List<CommerceCatalog> commerceCatalogs =
-				_commerceCatalogLocalService.searchCommerceCatalogs(companyId);
+				_commerceCatalogLocalService.search(companyId);
 
 			for (CommerceCatalog commerceCatalog : commerceCatalogs) {
 				CommercePriceList commercePriceList =
@@ -271,7 +271,7 @@ public class PricingCommerceHealthHttpStatus
 					CommercePricingConstants.VERSION_2_0)) {
 
 				List<CommerceCatalog> commerceCatalogs =
-					_commerceCatalogLocalService.searchCommerceCatalogs(
+					_commerceCatalogLocalService.search(
 						_serviceContext.getCompanyId());
 
 				for (CommerceCatalog commerceCatalog : commerceCatalogs) {

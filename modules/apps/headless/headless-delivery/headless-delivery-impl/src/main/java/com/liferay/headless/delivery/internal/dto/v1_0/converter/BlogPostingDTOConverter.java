@@ -26,10 +26,10 @@ import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.headless.delivery.dto.v1_0.BlogPosting;
 import com.liferay.headless.delivery.dto.v1_0.Image;
 import com.liferay.headless.delivery.dto.v1_0.TaxonomyCategoryBrief;
+import com.liferay.headless.delivery.dto.v1_0.util.ContentValueUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.CreatorUtil;
+import com.liferay.headless.delivery.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.AggregateRatingUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.ContentValueUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CreatorUtil;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.DisplayPageRendererUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.RelatedContentUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.TaxonomyCategoryBriefUtil;
@@ -96,6 +96,7 @@ public class BlogPostingDTOConverter
 				dateModified = blogsEntry.getModifiedDate();
 				datePublished = blogsEntry.getDisplayDate();
 				encodingFormat = "text/html";
+				externalReferenceCode = blogsEntry.getExternalReferenceCode();
 				friendlyUrlPath = blogsEntry.getUrlTitle();
 				headline = blogsEntry.getTitle();
 				id = blogsEntry.getEntryId();
@@ -143,6 +144,7 @@ public class BlogPostingDTOConverter
 						_layoutPageTemplateEntryService,
 						"getBlogPostingRenderedContentByDisplayPageDisplay" +
 							"PageKey"));
+				viewableBy = ViewableBy.ANYONE;
 			}
 		};
 	}

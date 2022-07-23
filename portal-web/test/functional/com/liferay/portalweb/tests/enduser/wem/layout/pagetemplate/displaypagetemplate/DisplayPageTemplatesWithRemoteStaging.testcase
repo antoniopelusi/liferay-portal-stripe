@@ -1,0 +1,114 @@
+@component-name = "portal-wcm"
+definition {
+
+	property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Display Pages";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site via JSON") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Activate remote staging") {
+			Staging.remoteStagingSetUpViaJson(
+				groupName = "Test Site Name",
+				remotePort = "9080");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+
+			JSONGroup.deleteGroupByName(groupName = "Remote Site");
+		}
+	}
+
+	@description = "This is a use case for LPS-91192. Publish associated display page template with Asset Publisher to live."
+	@priority = "4"
+	test PublishDisplayPageTemplateWithAssetPublisherToLive {
+		property app.server.bundles.size = "1";
+		property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=${line.separator}configuration.override.com.liferay.asset.publisher.web.internal.configuration.AssetPublisherSelectionStyleConfiguration_defaultSelectionStyle=&quot;dynamic&quot;";
+		property databases.size = "1";
+		property test.name.skip.portal.instance = "DisplayPageTemplatesWithRemoteStaging#PublishDisplayPageTemplateWithAssetPublisherToLive";
+
+		task ("Add a web content and select the display page template") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "Webcontent Content",
+				webContentTitle = "Webcontent Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name");
+
+			Staging.publishCustomPublication(remoteStaging = "true");
+		}
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.addDisplayPage(
+				contentType = "Web Content Article",
+				displayPageName = "Display Page Name",
+				subType = "Basic Web Content");
+
+			WaitForVisible(locator1 = "Sidebar#PANEL_OPEN");
+
+			PageEditor.addWidget(portletName = "Asset Publisher");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Select the display page template in web content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Webcontent Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Display Page Name",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name");
+
+			Staging.publishCustomPublication(remoteStaging = "true");
+		}
+
+		task ("View the following exception not shown in console") {
+			AssertConsoleTextNotPresent(value1 = "com.liferay.exportimport.kernel.lar.PortletDataException");
+		}
+
+		task ("Navigate to the display page template at view mode in live site") {
+			Navigator.openSpecificURL(url = "http://localhost:9080/web/remote-site/w/webcontent-title");
+		}
+
+		task ("View the web content shown in Asset Publisher") {
+			AssetPublisherPortlet.viewAssetPG(
+				assetContent = "Webcontent Content",
+				assetTitle = "Webcontent Title");
+		}
+	}
+
+}

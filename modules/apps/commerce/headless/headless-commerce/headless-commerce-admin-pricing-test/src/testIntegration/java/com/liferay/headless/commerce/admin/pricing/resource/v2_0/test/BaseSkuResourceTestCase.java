@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -195,13 +193,94 @@ public abstract class BaseSkuResourceTestCase {
 	}
 
 	@Test
-	public void testGetPriceEntryIdSku() throws Exception {
-		Sku postSku = testGetPriceEntryIdSku_addSku();
+	public void testGetDiscountSkuSku() throws Exception {
+		Sku postSku = testGetDiscountSkuSku_addSku();
 
-		Sku getSku = skuResource.getPriceEntryIdSku(null);
+		Sku getSku = skuResource.getDiscountSkuSku(
+			testGetDiscountSkuSku_getDiscountSkuId());
 
 		assertEquals(postSku, getSku);
 		assertValid(getSku);
+	}
+
+	protected Long testGetDiscountSkuSku_getDiscountSkuId() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected Sku testGetDiscountSkuSku_addSku() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetDiscountSkuSku() throws Exception {
+		Sku sku = testGraphQLGetDiscountSkuSku_addSku();
+
+		Assert.assertTrue(
+			equals(
+				sku,
+				SkuSerDes.toDTO(
+					JSONUtil.getValueAsString(
+						invokeGraphQLQuery(
+							new GraphQLField(
+								"discountSkuSku",
+								new HashMap<String, Object>() {
+									{
+										put(
+											"discountSkuId",
+											testGraphQLGetDiscountSkuSku_getDiscountSkuId());
+									}
+								},
+								getGraphQLFields())),
+						"JSONObject/data", "Object/discountSkuSku"))));
+	}
+
+	protected Long testGraphQLGetDiscountSkuSku_getDiscountSkuId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetDiscountSkuSkuNotFound() throws Exception {
+		Long irrelevantDiscountSkuId = RandomTestUtil.randomLong();
+
+		Assert.assertEquals(
+			"Not Found",
+			JSONUtil.getValueAsString(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"discountSkuSku",
+						new HashMap<String, Object>() {
+							{
+								put("discountSkuId", irrelevantDiscountSkuId);
+							}
+						},
+						getGraphQLFields())),
+				"JSONArray/errors", "Object/0", "JSONObject/extensions",
+				"Object/code"));
+	}
+
+	protected Sku testGraphQLGetDiscountSkuSku_addSku() throws Exception {
+		return testGraphQLSku_addSku();
+	}
+
+	@Test
+	public void testGetPriceEntryIdSku() throws Exception {
+		Sku postSku = testGetPriceEntryIdSku_addSku();
+
+		Sku getSku = skuResource.getPriceEntryIdSku(
+			testGetPriceEntryIdSku_getPriceEntryId());
+
+		assertEquals(postSku, getSku);
+		assertValid(getSku);
+	}
+
+	protected Long testGetPriceEntryIdSku_getPriceEntryId() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Sku testGetPriceEntryIdSku_addSku() throws Exception {
@@ -211,7 +290,7 @@ public abstract class BaseSkuResourceTestCase {
 
 	@Test
 	public void testGraphQLGetPriceEntryIdSku() throws Exception {
-		Sku sku = testGraphQLSku_addSku();
+		Sku sku = testGraphQLGetPriceEntryIdSku_addSku();
 
 		Assert.assertTrue(
 			equals(
@@ -223,11 +302,20 @@ public abstract class BaseSkuResourceTestCase {
 								"priceEntryIdSku",
 								new HashMap<String, Object>() {
 									{
-										put("priceEntryId", null);
+										put(
+											"priceEntryId",
+											testGraphQLGetPriceEntryIdSku_getPriceEntryId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data", "Object/priceEntryIdSku"))));
+	}
+
+	protected Long testGraphQLGetPriceEntryIdSku_getPriceEntryId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -250,9 +338,27 @@ public abstract class BaseSkuResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Sku testGraphQLGetPriceEntryIdSku_addSku() throws Exception {
+		return testGraphQLSku_addSku();
+	}
+
 	protected Sku testGraphQLSku_addSku() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Sku sku, List<Sku> skus) {
+		boolean contains = false;
+
+		for (Sku item : skus) {
+			if (equals(sku, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(skus + " does not contain " + sku, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -382,8 +488,8 @@ public abstract class BaseSkuResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v2_0.Sku.
 						class)) {
 
@@ -399,12 +505,13 @@ public abstract class BaseSkuResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -418,7 +525,7 @@ public abstract class BaseSkuResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -536,6 +643,19 @@ public abstract class BaseSkuResourceTestCase {
 		return false;
 	}
 
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
+	}
+
 	protected java.util.Collection<EntityField> getEntityFields()
 		throws Exception {
 
@@ -587,8 +707,9 @@ public abstract class BaseSkuResourceTestCase {
 		sb.append(" ");
 
 		if (entityFieldName.equals("basePrice")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sku.getBasePrice()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("basePriceFormatted")) {
@@ -600,8 +721,9 @@ public abstract class BaseSkuResourceTestCase {
 		}
 
 		if (entityFieldName.equals("basePromoPrice")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sku.getBasePromoPrice()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("basePromoPriceFormatted")) {
@@ -767,8 +889,8 @@ public abstract class BaseSkuResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseSkuResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseSkuResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

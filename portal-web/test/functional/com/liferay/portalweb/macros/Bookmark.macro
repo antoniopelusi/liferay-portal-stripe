@@ -290,13 +290,7 @@ definition {
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Recycle Bin",
-			portlet = "Recycle Bin");
-
-		RecycleBin.emptyCP();
+		JSONRecycleBin.emptyRecycleBin();
 	}
 
 	macro editCP {
@@ -445,7 +439,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Bookmarks");
 
 		var key_assetName = "${bookmarkName}";
@@ -459,7 +453,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Bookmarks");
 
 		var key_assetName = "${bookmarkName}";
@@ -487,6 +481,12 @@ definition {
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 	}
 
+	macro openBookmarksAdmin {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_bookmarks_web_portlet_BookmarksAdminPortlet");
+	}
+
 	macro searchNullCP {
 		Search.searchCP(searchTerm = "${nullBookmarkName}");
 
@@ -505,7 +505,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Bookmarks");
 
 		if (IsElementNotPresent(locator1 = "Message#EMPTY_INFO")) {
@@ -518,13 +518,7 @@ definition {
 			AssertElementPresent(locator1 = "Message#EMPTY_INFO");
 		}
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Recycle Bin",
-			portlet = "Recycle Bin");
-
-		RecycleBin.emptyCP();
+		JSONRecycleBin.emptyRecycleBin();
 	}
 
 	macro viewBookmark {
@@ -555,7 +549,7 @@ definition {
 
 		SelectWindow(locator1 = "title=Digital Experience Software Tailored to Your Needs | Liferay");
 
-		AssertElementPresent.assertElementPresent(locator1 = "AP#ASSET_ABSTRACT_BOOKMARK_LIFERAY_LOGO");
+		AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
 
 		Close(locator1 = "title=Digital Experience Software Tailored to Your Needs | Liferay");
 	}

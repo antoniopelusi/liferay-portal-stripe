@@ -32,118 +32,118 @@ public class FileUtil {
 	public static String appendParentheticalSuffix(
 		String fileName, String suffix) {
 
-		return getFile().appendParentheticalSuffix(fileName, suffix);
+		return _file.appendParentheticalSuffix(fileName, suffix);
 	}
 
 	public static String appendSuffix(String fileName, String suffix) {
-		return getFile().appendSuffix(fileName, suffix);
+		return _file.appendSuffix(fileName, suffix);
 	}
 
 	public static void copyDirectory(File source, File destination)
 		throws IOException {
 
-		getFile().copyDirectory(source, destination);
+		_file.copyDirectory(source, destination);
 	}
 
 	public static void copyDirectory(
 			String sourceDirName, String destinationDirName)
 		throws IOException {
 
-		getFile().copyDirectory(sourceDirName, destinationDirName);
+		_file.copyDirectory(sourceDirName, destinationDirName);
 	}
 
 	public static void copyFile(File source, File destination)
 		throws IOException {
 
-		getFile().copyFile(source, destination);
+		_file.copyFile(source, destination);
 	}
 
 	public static void copyFile(File source, File destination, boolean lazy)
 		throws IOException {
 
-		getFile().copyFile(source, destination, lazy);
+		_file.copyFile(source, destination, lazy);
 	}
 
 	public static void copyFile(String source, String destination)
 		throws IOException {
 
-		getFile().copyFile(source, destination);
+		_file.copyFile(source, destination);
 	}
 
 	public static void copyFile(String source, String destination, boolean lazy)
 		throws IOException {
 
-		getFile().copyFile(source, destination, lazy);
+		_file.copyFile(source, destination, lazy);
 	}
 
 	public static File createTempFile() {
-		return getFile().createTempFile();
+		return _file.createTempFile();
 	}
 
 	public static File createTempFile(byte[] bytes) throws IOException {
-		return getFile().createTempFile(bytes);
+		return _file.createTempFile(bytes);
 	}
 
 	public static File createTempFile(InputStream inputStream)
 		throws IOException {
 
-		return getFile().createTempFile(inputStream);
+		return _file.createTempFile(inputStream);
 	}
 
 	public static File createTempFile(String extension) {
-		return getFile().createTempFile(extension);
+		return _file.createTempFile(extension);
 	}
 
 	public static File createTempFile(String prefix, String extension) {
-		return getFile().createTempFile(prefix, extension);
+		return _file.createTempFile(prefix, extension);
 	}
 
 	public static String createTempFileName() {
-		return getFile().createTempFileName();
+		return _file.createTempFileName();
 	}
 
 	public static String createTempFileName(String extension) {
-		return getFile().createTempFileName(extension);
+		return _file.createTempFileName(extension);
 	}
 
 	public static String createTempFileName(String prefix, String extension) {
-		return getFile().createTempFileName(prefix, extension);
+		return _file.createTempFileName(prefix, extension);
 	}
 
 	public static File createTempFolder() throws IOException {
-		return getFile().createTempFolder();
+		return _file.createTempFolder();
 	}
 
 	public static String decodeSafeFileName(String fileName) {
-		return getFile().decodeSafeFileName(fileName);
+		return _file.decodeSafeFileName(fileName);
 	}
 
 	public static boolean delete(File file) {
-		return getFile().delete(file);
+		return _file.delete(file);
 	}
 
 	public static boolean delete(String file) {
-		return getFile().delete(file);
+		return _file.delete(file);
 	}
 
 	public static void deltree(File directory) {
-		getFile().deltree(directory);
+		_file.deltree(directory);
 	}
 
 	public static void deltree(String directory) {
-		getFile().deltree(directory);
+		_file.deltree(directory);
 	}
 
 	public static String encodeSafeFileName(String fileName) {
-		return getFile().encodeSafeFileName(fileName);
+		return _file.encodeSafeFileName(fileName);
 	}
 
 	public static boolean exists(File file) {
-		return getFile().exists(file);
+		return _file.exists(file);
 	}
 
 	public static boolean exists(String fileName) {
-		return getFile().exists(fileName);
+		return _file.exists(fileName);
 	}
 
 	/**
@@ -155,55 +155,49 @@ public class FileUtil {
 	 * @return the extracted text if it is a supported format or an empty string
 	 *         if it is an unsupported format
 	 */
-	public static String extractText(InputStream inputStream, String fileName) {
-		return getFile().extractText(inputStream, fileName);
+	public static String extractText(InputStream inputStream) {
+		return _file.extractText(inputStream);
 	}
 
 	public static String extractText(
-		InputStream inputStream, String fileName, int maxStringLength) {
+		InputStream inputStream, int maxStringLength) {
 
-		return getFile().extractText(inputStream, fileName, maxStringLength);
-	}
-
-	public static String[] find(
-		String directory, String includes, String excludes) {
-
-		return getFile().find(directory, includes, excludes);
+		return _file.extractText(inputStream, maxStringLength);
 	}
 
 	public static String getAbsolutePath(File file) {
-		return getFile().getAbsolutePath(file);
+		return _file.getAbsolutePath(file);
 	}
 
 	public static byte[] getBytes(Class<?> clazz, String fileName)
 		throws Exception {
 
-		return getFile().getBytes(clazz, fileName);
+		return _file.getBytes(clazz, fileName);
 	}
 
 	public static byte[] getBytes(File file) throws IOException {
-		return getFile().getBytes(file);
+		return _file.getBytes(file);
 	}
 
 	public static byte[] getBytes(InputStream inputStream) throws IOException {
-		return getFile().getBytes(inputStream);
+		return _file.getBytes(inputStream);
 	}
 
 	public static byte[] getBytes(InputStream inputStream, int bufferSize)
 		throws IOException {
 
-		return getFile().getBytes(inputStream);
+		return _file.getBytes(inputStream);
 	}
 
 	public static byte[] getBytes(
 			InputStream inputStream, int bufferSize, boolean cleanUpStream)
 		throws IOException {
 
-		return getFile().getBytes(inputStream, bufferSize, cleanUpStream);
+		return _file.getBytes(inputStream, bufferSize, cleanUpStream);
 	}
 
 	public static String getExtension(String fileName) {
-		return getFile().getExtension(fileName);
+		return _file.getExtension(fileName);
 	}
 
 	public static com.liferay.portal.kernel.util.File getFile() {
@@ -211,117 +205,113 @@ public class FileUtil {
 	}
 
 	public static String getMD5Checksum(File file) throws IOException {
-		return getFile().getMD5Checksum(file);
+		return _file.getMD5Checksum(file);
 	}
 
 	public static String getPath(String fullFileName) {
-		return getFile().getPath(fullFileName);
+		return _file.getPath(fullFileName);
 	}
 
 	public static String getShortFileName(String fullFileName) {
-		return getFile().getShortFileName(fullFileName);
-	}
-
-	public static boolean isAscii(File file) throws IOException {
-		return getFile().isAscii(file);
+		return _file.getShortFileName(fullFileName);
 	}
 
 	public static boolean isSameContent(File file, byte[] bytes, int length) {
-		return getFile().isSameContent(file, bytes, length);
+		return _file.isSameContent(file, bytes, length);
 	}
 
 	public static boolean isSameContent(File file, String s) {
-		return getFile().isSameContent(file, s);
+		return _file.isSameContent(file, s);
 	}
 
 	public static String[] listDirs(File file) {
-		return getFile().listDirs(file);
+		return _file.listDirs(file);
 	}
 
 	public static String[] listDirs(String fileName) {
-		return getFile().listDirs(fileName);
+		return _file.listDirs(fileName);
 	}
 
 	public static String[] listFiles(File file) {
-		return getFile().listFiles(file);
+		return _file.listFiles(file);
 	}
 
 	public static String[] listFiles(String fileName) {
-		return getFile().listFiles(fileName);
+		return _file.listFiles(fileName);
 	}
 
 	public static void mkdirs(File file) throws IOException {
-		getFile().mkdirs(file);
+		_file.mkdirs(file);
 	}
 
 	public static void mkdirs(String pathName) {
-		getFile().mkdirs(pathName);
+		_file.mkdirs(pathName);
 	}
 
 	public static boolean move(File source, File destination) {
-		return getFile().move(source, destination);
+		return _file.move(source, destination);
 	}
 
 	public static boolean move(
 		String sourceFileName, String destinationFileName) {
 
-		return getFile().move(sourceFileName, destinationFileName);
+		return _file.move(sourceFileName, destinationFileName);
 	}
 
 	public static String read(File file) throws IOException {
-		return getFile().read(file);
+		return _file.read(file);
 	}
 
 	public static String read(File file, boolean raw) throws IOException {
-		return getFile().read(file, raw);
+		return _file.read(file, raw);
 	}
 
 	public static String read(String fileName) throws IOException {
-		return getFile().read(fileName);
+		return _file.read(fileName);
 	}
 
 	public static String replaceSeparator(String fileName) {
-		return getFile().replaceSeparator(fileName);
+		return _file.replaceSeparator(fileName);
 	}
 
 	public static File[] sortFiles(File[] files) {
-		return getFile().sortFiles(files);
+		return _file.sortFiles(files);
 	}
 
 	public static String stripExtension(String fileName) {
-		return getFile().stripExtension(fileName);
+		return _file.stripExtension(fileName);
 	}
 
 	public static String stripParentheticalSuffix(String fileName) {
-		return getFile().stripParentheticalSuffix(fileName);
+		return _file.stripParentheticalSuffix(fileName);
 	}
 
 	public static List<String> toList(Reader reader) {
-		return getFile().toList(reader);
+		return _file.toList(reader);
 	}
 
 	public static List<String> toList(String fileName) {
-		return getFile().toList(fileName);
+		return _file.toList(fileName);
 	}
 
 	public static Properties toProperties(FileInputStream fileInputStream) {
-		return getFile().toProperties(fileInputStream);
+		return _file.toProperties(fileInputStream);
 	}
 
 	public static Properties toProperties(String fileName) {
-		return getFile().toProperties(fileName);
+		return _file.toProperties(fileName);
 	}
 
 	public static void touch(File file) throws IOException {
-		getFile().touch(file);
+		_file.touch(file);
 	}
 
 	public static void touch(String fileName) throws IOException {
-		getFile().touch(fileName);
+		_file.touch(fileName);
 	}
 
 	public static void unzip(File source, File destination) {
-		getFile().unzip(source, destination);
+		_file.unzip(source, destination);
 	}
 
 	public static void write(File file, byte[] bytes) throws IOException {
@@ -331,7 +321,7 @@ public class FileUtil {
 	public static void write(File file, byte[] bytes, boolean append)
 		throws IOException {
 
-		getFile().write(file, bytes, append);
+		_file.write(file, bytes, append);
 	}
 
 	public static void write(File file, byte[] bytes, int offset, int length)
@@ -344,69 +334,69 @@ public class FileUtil {
 			File file, byte[] bytes, int offset, int length, boolean append)
 		throws IOException {
 
-		getFile().write(file, bytes, offset, length, append);
+		_file.write(file, bytes, offset, length, append);
 	}
 
 	public static void write(File file, InputStream inputStream)
 		throws IOException {
 
-		getFile().write(file, inputStream);
+		_file.write(file, inputStream);
 	}
 
 	public static void write(File file, String s) throws IOException {
-		getFile().write(file, s);
+		_file.write(file, s);
 	}
 
 	public static void write(File file, String s, boolean lazy)
 		throws IOException {
 
-		getFile().write(file, s, lazy);
+		_file.write(file, s, lazy);
 	}
 
 	public static void write(File file, String s, boolean lazy, boolean append)
 		throws IOException {
 
-		getFile().write(file, s, lazy, append);
+		_file.write(file, s, lazy, append);
 	}
 
 	public static void write(String fileName, byte[] bytes) throws IOException {
-		getFile().write(fileName, bytes);
+		_file.write(fileName, bytes);
 	}
 
 	public static void write(String fileName, InputStream inputStream)
 		throws IOException {
 
-		getFile().write(fileName, inputStream);
+		_file.write(fileName, inputStream);
 	}
 
 	public static void write(String fileName, String s) throws IOException {
-		getFile().write(fileName, s);
+		_file.write(fileName, s);
 	}
 
 	public static void write(String fileName, String s, boolean lazy)
 		throws IOException {
 
-		getFile().write(fileName, s, lazy);
+		_file.write(fileName, s, lazy);
 	}
 
 	public static void write(
 			String fileName, String s, boolean lazy, boolean append)
 		throws IOException {
 
-		getFile().write(fileName, s, lazy, append);
+		_file.write(fileName, s, lazy, append);
 	}
 
 	public static void write(String pathName, String fileName, String s)
 		throws IOException {
 
-		getFile().write(pathName, fileName, s);
+		_file.write(pathName, fileName, s);
 	}
 
 	public static void write(
 			String pathName, String fileName, String s, boolean lazy)
 		throws IOException {
 
-		getFile().write(pathName, fileName, s, lazy);
+		_file.write(pathName, fileName, s, lazy);
 	}
 
 	public static void write(
@@ -414,7 +404,7 @@ public class FileUtil {
 			boolean append)
 		throws IOException {
 
-		getFile().write(pathName, fileName, s, lazy, append);
+		_file.write(pathName, fileName, s, lazy, append);
 	}
 
 	public void setFile(com.liferay.portal.kernel.util.File file) {

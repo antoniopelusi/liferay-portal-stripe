@@ -2,12 +2,24 @@
 <head>
 <title>Pagination</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Pagination</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ICON</td>
+	<td>//button[contains(@class, 'page-link')][*[name()='svg'][contains(@class,'lexicon-icon-${type}')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ICON_DISABLED</td>
+	<td>//button[contains(@class, 'page-link')][*[name()='svg'][contains(@class,'lexicon-icon-${type}')]][@disabled]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>PAGES</td>
 	<td>//div[@class='search-results' and contains(.,'Pages')]</td>
@@ -20,7 +32,7 @@
 </tr>
 <tr>
 	<td>PREVIOUS_LINK</td>
-	<td>//ul[contains(@class,'pagination')]/li/a[contains(.,'2')] | //ul[contains(@class,'pagination')]/li/a[contains(.,'Previous')] | //ul[contains(@class,'pagination')]/li/a/span[contains(@class,'icon-caret-left')]</td>
+	<td>//ul[contains(@class,'pagination')]/li/a[contains(.,'2')] | //ul[contains(@class,'pagination')]/li/a[contains(.,'Previous')] | //ul[contains(@class,'pagination')]/li/a/span[contains(@class,'icon-caret-left')] | //button[contains(@class, 'page-link')]//*[contains(@class,'left')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -44,13 +56,38 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAGE_ITERATOR</td>
+	<td>//div[@class='clearfix lfr-pagination']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGINATION_BAR</td>
 	<td>//div[@data-qa-id='paginator']</td>
 	<td></td>
 </tr>
 <tr>
+	<td>PAGINATION_ITEMS_PER_PAGE</td>
+	<td>//div[@class='dropdown pagination-items-per-page']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PARTICULAR_PAGE</td>
 	<td>//div[@class='lfr-pagination-page-selector']/div/a[contains(.,'Page ${key_pageNumber}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_PAGE</td>
+	<td>//ul[contains(@class,'pagination')]//li[contains(@class,'page-item')]//*[contains(@class,'page-link')][normalize-space(text())='${key_pageNumber}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CURRENT_PAGE_MENU</td>
+	<td>//div[contains(@class,'current-page-menu')]/a[contains(@class,'toggle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CURRENT_PAGE_MENU_INDEX</td>
+	<td>xpath=(//div[contains(@class,'current-page-menu')]/a[contains(@class,'toggle')])[${key_index}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -60,7 +97,7 @@
 </tr>
 <tr>
 	<td>ITEMS_PER_PAGE_SELECT</td>
-	<td>//div[contains(@class,'pagination-items-per-page')]/a[contains(@class,'toggle')]</td>
+	<td>//div[contains(@class,'pagination-items-per-page')]/*[self::a or self::button][contains(@class,'toggle')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -70,7 +107,7 @@
 </tr>
 <tr>
 	<td>RESULTS</td>
-	<td>//p[@class='pagination-results']</td>
+	<td>xpath=(//div|//p)[@class='pagination-results']</td>
 	<td></td>
 </tr>
 <tr>

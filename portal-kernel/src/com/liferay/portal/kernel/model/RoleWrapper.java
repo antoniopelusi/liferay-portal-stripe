@@ -163,6 +163,11 @@ public class RoleWrapper
 	}
 
 	@Override
+	public Role cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

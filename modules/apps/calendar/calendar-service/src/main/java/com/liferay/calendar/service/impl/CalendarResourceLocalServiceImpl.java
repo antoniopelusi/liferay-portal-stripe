@@ -14,6 +14,7 @@
 
 package com.liferay.calendar.service.impl;
 
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.calendar.configuration.CalendarServiceConfigurationValues;
 import com.liferay.calendar.exception.CalendarResourceCodeException;
 import com.liferay.calendar.exception.CalendarResourceNameException;
@@ -92,7 +93,7 @@ public class CalendarResourceLocalServiceImpl
 			code = StringUtil.toUpperCase(StringUtil.trim(code));
 		}
 
-		Date now = new Date();
+		Date date = new Date();
 
 		validate(groupId, classNameId, classPK, code, nameMap);
 
@@ -104,8 +105,8 @@ public class CalendarResourceLocalServiceImpl
 		calendarResource.setCompanyId(user.getCompanyId());
 		calendarResource.setUserId(user.getUserId());
 		calendarResource.setUserName(user.getFullName());
-		calendarResource.setCreateDate(serviceContext.getCreateDate(now));
-		calendarResource.setModifiedDate(serviceContext.getModifiedDate(now));
+		calendarResource.setCreateDate(serviceContext.getCreateDate(date));
+		calendarResource.setModifiedDate(serviceContext.getModifiedDate(date));
 		calendarResource.setClassNameId(classNameId);
 		calendarResource.setClassPK(classPK);
 		calendarResource.setClassUuid(classUuid);
@@ -275,7 +276,7 @@ public class CalendarResourceLocalServiceImpl
 			long[] assetCategoryIds, String[] assetTagNames, Double priority)
 		throws PortalException {
 
-		assetEntryLocalService.updateEntry(
+		_assetEntryLocalService.updateEntry(
 			userId, calendarResource.getGroupId(),
 			calendarResource.getCreateDate(),
 			calendarResource.getModifiedDate(),
@@ -365,6 +366,9 @@ public class CalendarResourceLocalServiceImpl
 			throw new CalendarResourceNameException();
 		}
 	}
+
+	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
 
 	@Reference
 	private CalendarLocalService _calendarLocalService;

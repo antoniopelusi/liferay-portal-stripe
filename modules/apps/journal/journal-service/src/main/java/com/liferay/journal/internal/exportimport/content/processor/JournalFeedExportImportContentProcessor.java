@@ -133,14 +133,11 @@ public class JournalFeedExportImportContentProcessor
 
 		if (targetLayout == null) {
 			if (_log.isDebugEnabled()) {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append("Unable to get target page friendly URL ");
-				sb.append(targetLayoutFriendlyURL);
-				sb.append(" for feed: ");
-				sb.append(feed.getFeedId());
-
-				_log.debug(sb.toString());
+				_log.debug(
+					StringBundler.concat(
+						"Unable to get target page friendly URL ",
+						targetLayoutFriendlyURL, " for feed: ",
+						feed.getFeedId()));
 			}
 
 			throw new NoSuchLayoutException();

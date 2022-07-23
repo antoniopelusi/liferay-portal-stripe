@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -137,11 +137,9 @@ public abstract class BaseOpenNLPDocumentAssetAutoTaggerTestCase {
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
 					_OPEN_NLP_AUTO_TAG_CONFIGURATION_PID,
-					new HashMapDictionary<String, Object>() {
-						{
-							put("enabledClassNames", new String[0]);
-						}
-					})) {
+					HashMapDictionaryBuilder.<String, Object>put(
+						"enabledClassNames", new String[0]
+					).build())) {
 
 			unsafeRunnable.run();
 		}
@@ -154,11 +152,9 @@ public abstract class BaseOpenNLPDocumentAssetAutoTaggerTestCase {
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
 				new ConfigurationTemporarySwapper(
 					_OPEN_NLP_AUTO_TAG_CONFIGURATION_PID,
-					new HashMapDictionary<String, Object>() {
-						{
-							put("enabledClassNames", new String[] {className});
-						}
-					})) {
+					HashMapDictionaryBuilder.<String, Object>put(
+						"enabledClassNames", new String[] {className}
+					).build())) {
 
 			unsafeRunnable.run();
 		}

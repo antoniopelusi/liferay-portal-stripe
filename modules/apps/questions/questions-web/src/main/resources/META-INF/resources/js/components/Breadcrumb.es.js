@@ -14,15 +14,12 @@
 
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
+import {useManualQuery} from 'graphql-hooks';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {withRouter} from 'react-router-dom';
 
 import {AppContext} from '../AppContext.es';
-import {
-	client,
-	getSectionByRootSection,
-	getSectionQuery,
-} from '../utils/client.es';
+import {getSectionQuery, getSectionsQuery} from '../utils/client.es';
 import {historyPushWithSlug, stringToSlug} from '../utils/utils.es';
 import Alert from './Alert.es';
 import BreadcrumbNode from './BreadcrumbNode.es';
@@ -55,13 +52,8 @@ export default withRouter(({allowCreateTopicInRootTopic, history, section}) => {
 		return {subSections: sections, title: ''};
 	};
 
-	const findParent = (messageBoardSectionId) =>
-		client
-			.query({
-				query: getSectionQuery,
-				variables: {messageBoardSectionId},
-			})
-			.then(({data}) => data.messageBoardSection);
+	const [findParent] = useManualQuery(getSectionQuery);
+	const [getSectionByRootSection] = useManualQuery(getSectionsQuery);
 
 	const buildBreadcrumbNodesData = useCallback(
 		(rootSection, section, acc = []) => {
@@ -82,32 +74,49 @@ export default withRouter(({allowCreateTopicInRootTopic, history, section}) => {
 						);
 					}
 
-					return findParent(
-						section.parentMessageBoardSectionId
-					).then((section) =>
-						buildBreadcrumbNodesData(rootSection, section, acc)
+					return findParent({
+						variables: {
+							messageBoardSectionId:
+								section.parentMessageBoardSectionId,
+						},
+					}).then(({data}) =>
+						buildBreadcrumbNodesData(
+							rootSection,
+							data.messageBoardSection,
+							acc
+						)
 					);
 				}
 			}
 
 			return +rootSection === 0
 				? Promise.resolve(
-						getSectionByRootSection(
-							context.siteKey,
-							rootSection
-						).then((data) => {
-							acc.push({
-								id: data.id,
-								subSections: data.messageBoardSections.items,
-								title: rootSection,
-							});
-
-							return acc.reverse();
+						getSectionByRootSection({
+							variables: {siteKey: context.siteKey},
 						})
+							.then(({data: {messageBoardSections}}) => ({
+								actions: messageBoardSections.actions,
+								id: 0,
+								messageBoardSections,
+								numberOfMessageBoardSections:
+									messageBoardSections &&
+									messageBoardSections.items &&
+									messageBoardSections.items.length,
+							}))
+							.then((data) => {
+								acc.push({
+									id: data.id,
+									subSections:
+										data.messageBoardSections.items,
+									title: rootSection,
+								});
+
+								return acc.reverse();
+							})
 				  ).then(acc)
 				: Promise.resolve(acc.reverse());
 		},
-		[context.siteKey]
+		[context.siteKey, findParent, getSectionByRootSection]
 	);
 
 	useEffect(() => {
@@ -130,6 +139,7 @@ export default withRouter(({allowCreateTopicInRootTopic, history, section}) => {
 						<AllBreadcrumb />
 					)}
 				</ol>
+
 				{((section &&
 					section.actions &&
 					section.actions['add-subcategory']) ||
@@ -152,6 +162,7 @@ export default withRouter(({allowCreateTopicInRootTopic, history, section}) => {
 							onClick={() => setVisible(true)}
 						>
 							<ClayIcon className="c-mr-2" symbol="plus" />
+
 							{Liferay.Language.get('new-topic')}
 						</ClayButton>
 					</>

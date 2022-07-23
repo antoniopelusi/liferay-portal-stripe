@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -54,6 +56,10 @@ public class FragmentFieldText implements Serializable {
 
 	public static FragmentFieldText toDTO(String json) {
 		return ObjectMapperUtil.readValue(FragmentFieldText.class, json);
+	}
+
+	public static FragmentFieldText unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(FragmentFieldText.class, json);
 	}
 
 	@Schema(description = "A link to a fragment.")
@@ -156,7 +162,17 @@ public class FragmentFieldText implements Serializable {
 
 			sb.append("\"text\": ");
 
-			sb.append(String.valueOf(text));
+			if (text instanceof Map) {
+				sb.append(JSONFactoryUtil.createJSONObject((Map<?, ?>)text));
+			}
+			else if (text instanceof String) {
+				sb.append("\"");
+				sb.append(_escape((String)text));
+				sb.append("\"");
+			}
+			else {
+				sb.append(text);
+			}
 		}
 
 		sb.append("}");
@@ -172,9 +188,9 @@ public class FragmentFieldText implements Serializable {
 	public String xClassName;
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -200,7 +216,7 @@ public class FragmentFieldText implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -232,7 +248,7 @@ public class FragmentFieldText implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -248,5 +264,10 @@ public class FragmentFieldText implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

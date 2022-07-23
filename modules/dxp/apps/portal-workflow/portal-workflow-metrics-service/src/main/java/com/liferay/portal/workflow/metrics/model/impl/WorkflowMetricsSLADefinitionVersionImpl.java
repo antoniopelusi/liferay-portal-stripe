@@ -19,8 +19,4 @@ package com.liferay.portal.workflow.metrics.model.impl;
  */
 public class WorkflowMetricsSLADefinitionVersionImpl
 	extends WorkflowMetricsSLADefinitionVersionBaseImpl {
-
-	public WorkflowMetricsSLADefinitionVersionImpl() {
-	}
-
 }

@@ -113,6 +113,12 @@ public interface BasePersistence<T extends BaseModel<T>> {
 
 	public <R> R dslQuery(DSLQuery dslQuery);
 
+	public default int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
+	}
+
 	/**
 	 * Returns the model instance with the primary key or returns
 	 * <code>null</code> if it could not be found.
@@ -236,7 +242,7 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 *
 	 * @param listener the model listener to register
 	 */
-	public void registerListener(ModelListener<T> listener);
+	public void registerListener(ModelListener<T> modelListener);
 
 	/**
 	 * Removes the model instance with the primary key from the database. Also
@@ -269,7 +275,7 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @param listener the model listener to unregister
 	 * @see   #registerListener(ModelListener)
 	 */
-	public void unregisterListener(ModelListener<T> listener);
+	public void unregisterListener(ModelListener<T> modelListener);
 
 	/**
 	 * Updates the model instance in the database or adds it if it does not yet

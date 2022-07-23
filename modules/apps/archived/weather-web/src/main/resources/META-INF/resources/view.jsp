@@ -65,7 +65,13 @@
 
 		<br />
 
-		<liferay-ui:message key="powered-by" /> <a href="http://www.openweathermap.org" target="_blank">Open Weather Map</a>
+		<liferay-util:buffer
+			var="messageArgument"
+		>
+			<a class="text-white" href="http://www.openweathermap.org" target="_blank">Open Weather Map</a>
+		</liferay-util:buffer>
+
+		<liferay-ui:message arguments="<%= messageArgument %>" key="powered-by-x" />
 
 		<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
 			<aui:script>

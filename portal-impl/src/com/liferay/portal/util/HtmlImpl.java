@@ -27,13 +27,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.htmlparser.jericho.Renderer;
-import net.htmlparser.jericho.Source;
-import net.htmlparser.jericho.TextExtractor;
-
 /**
  * Provides the implementation of the HTML utility interface for escaping,
- * rendering, replacing, and stripping HTML text. This class uses XSS
+ * replacing, and stripping HTML text. This class uses XSS
  * recommendations from <a
  * href="http://www.owasp.org/index.php/Cross_Site_Scripting#How_to_Protect_Yourself">http://www.owasp.org/index.php/Cross_Site_Scripting#How_to_Protect_Yourself</a>
  * when escaping HTML text.
@@ -46,37 +42,6 @@ import net.htmlparser.jericho.TextExtractor;
  * @author Shuyang Zhou
  */
 public class HtmlImpl implements Html {
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #escapeAttribute(String)}
-	 */
-	@Deprecated
-	public static final int ESCAPE_MODE_ATTRIBUTE = 1;
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link #escapeCSS(String)}
-	 */
-	@Deprecated
-	public static final int ESCAPE_MODE_CSS = 2;
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link #escapeJS(String)}
-	 */
-	@Deprecated
-	public static final int ESCAPE_MODE_JS = 3;
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link #escape(String)}
-	 */
-	@Deprecated
-	public static final int ESCAPE_MODE_TEXT = 4;
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link #escapeURL(String)}
-	 */
-	@Deprecated
-	public static final int ESCAPE_MODE_URL = 5;
 
 	/**
 	 * Generates a string with the data-* attributes generated from the keys and
@@ -199,56 +164,6 @@ public class HtmlImpl implements Html {
 		}
 
 		return sb.toString();
-	}
-
-	/**
-	 * Escapes the input text as a hexadecimal value, based on the mode (type).
-	 * The encoding types include: {@link #ESCAPE_MODE_ATTRIBUTE}, {@link
-	 * #ESCAPE_MODE_CSS}, {@link #ESCAPE_MODE_JS}, {@link #ESCAPE_MODE_TEXT},
-	 * and {@link #ESCAPE_MODE_URL}.
-	 *
-	 * <p>
-	 * Note that <code>escape(text, ESCAPE_MODE_TEXT)</code> returns the same as
-	 * <code>escape(text)</code>.
-	 * </p>
-	 *
-	 * @param      text the text to escape
-	 * @param      mode the encoding type
-	 * @return     the escaped hexadecimal value of the input text, based on the
-	 *             mode, or <code>null</code> if the text is <code>null</code>
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #escapeAttribute(String)}, {@link #escapeCSS(String)}, {@link
-	 *             #escapeJS(String)}, {@link #escape(String)}, {@link
-	 *             #escapeURL(String)}
-	 */
-	@Deprecated
-	@Override
-	public String escape(String text, int mode) {
-		if (text == null) {
-			return null;
-		}
-
-		if (text.length() == 0) {
-			return StringPool.BLANK;
-		}
-
-		if (mode == ESCAPE_MODE_ATTRIBUTE) {
-			return escapeAttribute(text);
-		}
-
-		if (mode == ESCAPE_MODE_JS) {
-			return escapeJS(text);
-		}
-
-		if (mode == ESCAPE_MODE_CSS) {
-			return escapeCSS(text);
-		}
-
-		if (mode == ESCAPE_MODE_URL) {
-			return escapeURL(text);
-		}
-
-		return escape(text);
 	}
 
 	/**
@@ -506,6 +421,8 @@ public class HtmlImpl implements Html {
 			return StringPool.BLANK;
 		}
 
+		link = StringUtil.trim(link);
+
 		if (link.indexOf(StringPool.COLON) == 10) {
 			String protocol = StringUtil.toLowerCase(link.substring(0, 10));
 
@@ -535,7 +452,7 @@ public class HtmlImpl implements Html {
 			return xPath;
 		}
 
-		StringBuilder sb = new StringBuilder(xPath.length());
+		StringBundler sb = new StringBundler(xPath.length());
 
 		for (int i = 0; i < xPath.length(); i++) {
 			char c = xPath.charAt(i);
@@ -580,32 +497,6 @@ public class HtmlImpl implements Html {
 
 		return StringBundler.concat(
 			StringPool.QUOTE, xPathAttribute, StringPool.QUOTE);
-	}
-
-	/**
-	 * Extracts the raw text from the HTML input, compressing its whitespace and
-	 * removing all attributes, scripts, and styles.
-	 *
-	 * <p>
-	 * For example, raw text returned by this method can be stored in a search
-	 * index.
-	 * </p>
-	 *
-	 * @param  html the HTML text
-	 * @return the raw text from the HTML input, or <code>null</code> if the
-	 *         HTML input is <code>null</code>
-	 */
-	@Override
-	public String extractText(String html) {
-		if (html == null) {
-			return null;
-		}
-
-		Source source = new Source(html);
-
-		TextExtractor textExtractor = source.getTextExtractor();
-
-		return textExtractor.toString();
 	}
 
 	@Override
@@ -663,35 +554,6 @@ public class HtmlImpl implements Html {
 		}
 
 		return sb.toString();
-	}
-
-	/**
-	 * Renders the HTML content into text. This provides a human readable
-	 * version of the content that is modeled on the way Mozilla
-	 * Thunderbird&reg; and other email clients provide an automatic conversion
-	 * of HTML content to text in their alternative MIME encoding of emails.
-	 *
-	 * <p>
-	 * Using the default settings, the output complies with the
-	 * <code>Text/Plain; Format=Flowed (DelSp=No)</code> protocol described in
-	 * <a href="http://tools.ietf.org/html/rfc3676">RFC-3676</a>.
-	 * </p>
-	 *
-	 * @param  html the HTML text
-	 * @return the rendered HTML text, or <code>null</code> if the HTML text is
-	 *         <code>null</code>
-	 */
-	@Override
-	public String render(String html) {
-		if (html == null) {
-			return null;
-		}
-
-		Source source = new Source(html);
-
-		Renderer renderer = source.getRenderer();
-
-		return renderer.toString();
 	}
 
 	/**
@@ -754,7 +616,7 @@ public class HtmlImpl implements Html {
 
 		text = stripComments(text);
 
-		StringBuilder sb = new StringBuilder(text.length());
+		StringBundler sb = new StringBundler(text.length());
 
 		int x = 0;
 		int y = text.indexOf("<");
@@ -764,7 +626,10 @@ public class HtmlImpl implements Html {
 
 			// Look for text enclosed by <abc></abc>
 
-			if (isTag(_TAG_SCRIPT, text, y + 1)) {
+			if (isTag(_TAG_NOSCRIPT, text, y + 1)) {
+				y = stripTag(_TAG_NOSCRIPT, text, y);
+			}
+			else if (isTag(_TAG_SCRIPT, text, y + 1)) {
 				y = stripTag(_TAG_SCRIPT, text, y);
 			}
 			else if (isTag(_TAG_STYLE, text, y + 1)) {
@@ -1009,6 +874,10 @@ public class HtmlImpl implements Html {
 	private static final char[] _HEX_DIGITS = {
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
 		'e', 'f'
+	};
+
+	private static final char[] _TAG_NOSCRIPT = {
+		'n', 'o', 's', 'c', 'r', 'i', 'p', 't'
 	};
 
 	private static final char[] _TAG_SCRIPT = {'s', 'c', 'r', 'i', 'p', 't'};

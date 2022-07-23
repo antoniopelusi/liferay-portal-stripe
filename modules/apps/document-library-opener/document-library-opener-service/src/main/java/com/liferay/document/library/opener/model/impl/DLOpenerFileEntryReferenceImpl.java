@@ -19,8 +19,4 @@ package com.liferay.document.library.opener.model.impl;
  */
 public class DLOpenerFileEntryReferenceImpl
 	extends DLOpenerFileEntryReferenceBaseImpl {
-
-	public DLOpenerFileEntryReferenceImpl() {
-	}
-
 }

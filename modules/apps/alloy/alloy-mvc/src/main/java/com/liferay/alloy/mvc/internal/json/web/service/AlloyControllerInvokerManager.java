@@ -114,7 +114,7 @@ public class AlloyControllerInvokerManager {
 		AlloyControllerInvoker alloyControllerInvoker = null;
 
 		try {
-			alloyControllerInvokerClass = createAlloyControllerInvokerClass(
+			alloyControllerInvokerClass = _createAlloyControllerInvokerClass(
 				controllerClass);
 
 			Constructor<? extends AlloyControllerInvoker> constructor =
@@ -130,8 +130,7 @@ public class AlloyControllerInvokerManager {
 		}
 		catch (NoClassNecessaryException noClassNecessaryException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					noClassNecessaryException, noClassNecessaryException);
+				_log.debug(noClassNecessaryException);
 			}
 
 			return;
@@ -144,7 +143,7 @@ public class AlloyControllerInvokerManager {
 			JSONWebServiceActionsManagerUtil.registerJSONWebServiceAction(
 				_contextName, _contextPath, alloyControllerInvoker,
 				alloyControllerInvokerClass, method,
-				getAPIPath(controller, method), "GET");
+				_getAPIPath(controller, method), "GET");
 		}
 	}
 
@@ -168,15 +167,26 @@ public class AlloyControllerInvokerManager {
 		_alloyControllerInvokers.clear();
 	}
 
-	protected Class<? extends AlloyControllerInvoker>
-			createAlloyControllerInvokerClass(
+	protected class NoClassNecessaryException extends Exception {
+
+		public NoClassNecessaryException() {
+		}
+
+		public NoClassNecessaryException(String message) {
+			super(message);
+		}
+
+	}
+
+	private Class<? extends AlloyControllerInvoker>
+			_createAlloyControllerInvokerClass(
 				Class<? extends AlloyController> controllerClass)
 		throws NoClassNecessaryException {
 
 		ClassLoader classLoader = controllerClass.getClassLoader();
 
 		String alloyControllerInvokerClassName =
-			getAlloyControllerInvokerClassName(controllerClass);
+			_getAlloyControllerInvokerClassName(controllerClass);
 
 		synchronized (classLoader) {
 			try {
@@ -185,12 +195,12 @@ public class AlloyControllerInvokerManager {
 					byte[].class, int.class, int.class);
 
 				final byte[] classData =
-					generateAlloyControllerInvokerClassData(
+					_generateAlloyControllerInvokerClassData(
 						controllerClass, alloyControllerInvokerClassName);
 
 				final String fileName = StringBundler.concat(
 					PropsUtil.get(PropsKeys.LIFERAY_HOME), "/data/alloy/",
-					getClassBinaryName(alloyControllerInvokerClassName),
+					_getClassBinaryName(alloyControllerInvokerClassName),
 					".class");
 
 				ClassLoader customClassLoader = new ClassLoader(classLoader) {
@@ -231,7 +241,7 @@ public class AlloyControllerInvokerManager {
 		}
 	}
 
-	protected byte[] generateAlloyControllerInvokerClassData(
+	private byte[] _generateAlloyControllerInvokerClassData(
 			Class<?> controllerClass, String alloyControllerInvokerClassName)
 		throws NoClassNecessaryException {
 
@@ -239,10 +249,10 @@ public class AlloyControllerInvokerManager {
 
 		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-		String alloyControllerInvokerClassBinaryName = getClassBinaryName(
+		String alloyControllerInvokerClassBinaryName = _getClassBinaryName(
 			alloyControllerInvokerClassName);
 
-		String baseAlloyControllerInvokerClassBinaryName = getClassBinaryName(
+		String baseAlloyControllerInvokerClassBinaryName = _getClassBinaryName(
 			BaseAlloyControllerInvokerImpl.class.getName());
 
 		classWriter.visit(
@@ -301,7 +311,7 @@ public class AlloyControllerInvokerManager {
 
 			methodVisitor = classWriter.visitMethod(
 				Opcodes.ACC_PUBLIC, methodName, methodDescriptor, null,
-				new String[] {getClassBinaryName(Exception.class.getName())});
+				new String[] {_getClassBinaryName(Exception.class.getName())});
 
 			methodVisitor.visitCode();
 
@@ -320,7 +330,7 @@ public class AlloyControllerInvokerManager {
 			methodVisitor.visitIntInsn(
 				Opcodes.BIPUSH, (parameterTypes.length * 2) + 2);
 			methodVisitor.visitTypeInsn(
-				Opcodes.ANEWARRAY, getClassBinaryName(Object.class.getName()));
+				Opcodes.ANEWARRAY, _getClassBinaryName(Object.class.getName()));
 
 			methodVisitor.visitInsn(Opcodes.DUP);
 			methodVisitor.visitInsn(Opcodes.ICONST_0);
@@ -346,17 +356,15 @@ public class AlloyControllerInvokerManager {
 				methodVisitor.visitInsn(Opcodes.AASTORE);
 			}
 
-			sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(Type.getDescriptor(String.class));
-			sb.append(Type.getDescriptor(Object[].class));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-			sb.append(Type.getDescriptor(JSONSerializable.class));
-
 			methodVisitor.visitMethodInsn(
 				Opcodes.INVOKEVIRTUAL, alloyControllerInvokerClassBinaryName,
-				"invokeAlloyController", sb.toString());
+				"invokeAlloyController",
+				StringBundler.concat(
+					StringPool.OPEN_PARENTHESIS,
+					Type.getDescriptor(String.class),
+					Type.getDescriptor(Object[].class),
+					StringPool.CLOSE_PARENTHESIS,
+					Type.getDescriptor(JSONSerializable.class)));
 
 			methodVisitor.visitInsn(Opcodes.ARETURN);
 
@@ -373,7 +381,7 @@ public class AlloyControllerInvokerManager {
 		return classWriter.toByteArray();
 	}
 
-	protected String getAlloyControllerInvokerClassName(
+	private String _getAlloyControllerInvokerClassName(
 		Class<? extends AlloyController> controllerClass) {
 
 		String prefix = StringPool.BLANK;
@@ -419,30 +427,13 @@ public class AlloyControllerInvokerManager {
 		return prefix + StringPool.PERIOD + simpleName;
 	}
 
-	protected String getAPIPath(String controller, Method method) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(StringPool.SLASH);
-		sb.append(controller);
-		sb.append(StringPool.SLASH);
-		sb.append(method.getName());
-
-		return sb.toString();
+	private String _getAPIPath(String controller, Method method) {
+		return StringBundler.concat(
+			StringPool.SLASH, controller, StringPool.SLASH, method.getName());
 	}
 
-	protected String getClassBinaryName(String className) {
+	private String _getClassBinaryName(String className) {
 		return StringUtil.replace(className, '.', '/');
-	}
-
-	protected class NoClassNecessaryException extends Exception {
-
-		public NoClassNecessaryException() {
-		}
-
-		public NoClassNecessaryException(String message) {
-			super(message);
-		}
-
 	}
 
 	private static final String _BASE_CLASS_NAME = "AlloyControllerInvokerImpl";

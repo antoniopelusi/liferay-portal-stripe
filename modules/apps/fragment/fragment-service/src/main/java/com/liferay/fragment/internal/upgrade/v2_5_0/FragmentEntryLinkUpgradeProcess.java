@@ -14,7 +14,6 @@
 
 package com.liferay.fragment.internal.upgrade.v2_5_0;
 
-import com.liferay.fragment.internal.upgrade.v2_5_0.util.FragmentEntryLinkTable;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -33,45 +32,45 @@ public class FragmentEntryLinkUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeRendererKey();
-		upgratePlid();
+		_upgradeRendererKey();
+		_upgratePlid();
 	}
 
-	protected void upgradeRendererKey() throws Exception {
-		try (PreparedStatement ps1 = connection.prepareStatement(
+	private void _upgradeRendererKey() throws Exception {
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select fragmentEntryLinkId, rendererKey from " +
 					"FragmentEntryLink where rendererKey like " +
 						"'BASIC_SECTION%'");
-			ResultSet rs = ps1.executeQuery();
-			PreparedStatement ps2 = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(
-					"update FragmentEntryLink set rendererKey = ? where " +
-						"fragmentEntryLinkId = ?"))) {
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						"update FragmentEntryLink set rendererKey = ? where " +
+							"fragmentEntryLinkId = ?"))) {
 
-			while (rs.next()) {
-				long fragmentEntryLinkId = rs.getLong("fragmentEntryLinkId");
+			while (resultSet.next()) {
+				long fragmentEntryLinkId = resultSet.getLong(
+					"fragmentEntryLinkId");
 
-				String rendererKey = rs.getString("rendererKey");
+				String rendererKey = resultSet.getString("rendererKey");
 
-				ps2.setString(
+				preparedStatement2.setString(
 					1,
 					_contributedFragmentKeys.getOrDefault(
 						rendererKey, rendererKey));
 
-				ps2.setLong(2, fragmentEntryLinkId);
+				preparedStatement2.setLong(2, fragmentEntryLinkId);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 
-	protected void upgratePlid() throws Exception {
+	private void _upgratePlid() throws Exception {
 		if (!hasColumn("FragmentEntryLink", "plid")) {
-			alter(
-				FragmentEntryLinkTable.class,
-				new AlterTableAddColumn("plid", "LONG"));
+			alterTableAddColumn("FragmentEntryLink", "plid", "LONG");
 		}
 
 		runSQL(

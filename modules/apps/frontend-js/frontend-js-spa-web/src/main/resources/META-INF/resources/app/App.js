@@ -39,7 +39,7 @@ class App extends EventEmitter {
 	/**
 	 * App class that handle routes and screens lifecycle.
 	 */
-	constructor() {
+	constructor(config) {
 		super();
 
 		/**
@@ -102,8 +102,9 @@ class App extends EventEmitter {
 		 * @default form[enctype="multipart/form-data"]:not([data-senna-off])
 		 * @protected
 		 */
-		this.formSelector =
-			'form[enctype="multipart/form-data"]:not([data-senna-off])';
+		this.formSelector = config?.navigationExceptionSelectors
+			? `form${config.navigationExceptionSelectors}`
+			: 'form[enctype="multipart/form-data"]:not([data-senna-off])';
 
 		/**
 		 * When enabled, the route matching ignores query string from the path.
@@ -119,7 +120,9 @@ class App extends EventEmitter {
 		 * @default a:not([data-senna-off])
 		 * @protected
 		 */
-		this.linkSelector = 'a:not([data-senna-off]):not([target="_blank"])';
+		this.linkSelector = config?.navigationExceptionSelectors
+			? `a${config.navigationExceptionSelectors}`
+			: 'a:not([data-senna-off]):not([target="_blank"])';
 
 		/**
 		 * Holds the loading css class.
@@ -808,7 +811,7 @@ class App extends EventEmitter {
 		try {
 			this.navigate(getUrlPath(href), false, event);
 		}
-		catch (err) {
+		catch (error) {
 
 			// Do not prevent link navigation in case some synchronous error occurs
 
@@ -1439,7 +1442,7 @@ class App extends EventEmitter {
 	stopPendingNavigate_() {
 		if (this.pendingNavigate) {
 
-			//this.pendingNavigate.cancel('Cancel pending navigation');
+			// this.pendingNavigate.cancel('Cancel pending navigation');
 
 		}
 		this.pendingNavigate = null;

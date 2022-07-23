@@ -69,6 +69,11 @@ public class CacheFieldEntryWrapper
 		}
 	}
 
+	@Override
+	public CacheFieldEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the cache field entry ID of this cache field entry.
 	 *
@@ -97,6 +102,11 @@ public class CacheFieldEntryWrapper
 	@Override
 	public String getName() {
 		return model.getName();
+	}
+
+	@Override
+	public String getNickname() {
+		return model.getNickname();
 	}
 
 	/**
@@ -142,6 +152,11 @@ public class CacheFieldEntryWrapper
 	@Override
 	public void setName(String name) {
 		model.setName(name);
+	}
+
+	@Override
+	public void setNickname(String nickname) {
+		model.setNickname(nickname);
 	}
 
 	/**

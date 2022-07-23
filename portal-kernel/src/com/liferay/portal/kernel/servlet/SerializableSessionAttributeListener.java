@@ -49,9 +49,9 @@ public class SerializableSessionAttributeListener
 					"being replicated");
 
 		if (_requiresSerializable == null) {
-			HttpSession session = httpSessionBindingEvent.getSession();
+			HttpSession httpSession = httpSessionBindingEvent.getSession();
 
-			ServletContext servletContext = session.getServletContext();
+			ServletContext servletContext = httpSession.getServletContext();
 
 			_requiresSerializable = Boolean.valueOf(
 				GetterUtil.getBoolean(
@@ -60,9 +60,9 @@ public class SerializableSessionAttributeListener
 		}
 
 		if (_requiresSerializable) {
-			HttpSession session = httpSessionBindingEvent.getSession();
+			HttpSession httpSession = httpSessionBindingEvent.getSession();
 
-			session.removeAttribute(httpSessionBindingEvent.getName());
+			httpSession.removeAttribute(httpSessionBindingEvent.getName());
 		}
 	}
 

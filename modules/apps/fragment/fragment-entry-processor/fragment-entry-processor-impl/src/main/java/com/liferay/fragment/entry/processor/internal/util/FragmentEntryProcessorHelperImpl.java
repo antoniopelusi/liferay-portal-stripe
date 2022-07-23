@@ -54,7 +54,6 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -144,20 +143,9 @@ public class FragmentEntryProcessorHelperImpl
 		return _getEditableValueByLocale(jsonObject, locale);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getEditableValue(JSONObject, Locale)}
-	 */
-	@Deprecated
 	@Override
-	public String getEditableValue(
-		JSONObject jsonObject, Locale locale, long[] segmentsExperienceIds) {
-
-		return _getEditableValueByLocale(jsonObject, locale);
-	}
-
 	public long getFileEntryId(
-			long classNameId, long classPK, String fieldId, Locale locale)
+			long classNameId, long classPK, String fieldName, Locale locale)
 		throws PortalException {
 
 		if (classNameId == 0) {
@@ -183,26 +171,26 @@ public class FragmentEntryProcessorHelperImpl
 		}
 
 		return _getFileEntryId(
-			_portal.getClassName(classNameId), object, fieldId, locale);
+			_portal.getClassName(classNameId), object, fieldName, locale);
 	}
 
+	@Override
 	public long getFileEntryId(
-		Object displayObject, String fieldId, Locale locale) {
+		Object displayObject, String fieldName, Locale locale) {
 
-		if (Validator.isNull(fieldId)) {
-			return 0;
-		}
+		if (Validator.isNull(fieldName) ||
+			!(displayObject instanceof ClassedModel)) {
 
-		if (!(displayObject instanceof ClassedModel)) {
 			return 0;
 		}
 
 		ClassedModel classedModel = (ClassedModel)displayObject;
 
 		return _getFileEntryId(
-			classedModel.getModelClassName(), displayObject, fieldId, locale);
+			classedModel.getModelClassName(), displayObject, fieldName, locale);
 	}
 
+	@Override
 	public long getFileEntryId(String className, long classPK) {
 		if (!Objects.equals(className, FileEntry.class.getName())) {
 			return 0;
@@ -211,6 +199,7 @@ public class FragmentEntryProcessorHelperImpl
 		return classPK;
 	}
 
+	@Override
 	public long getFileEntryId(WebImage webImage) {
 		InfoItemReference infoItemReference = webImage.getInfoItemReference();
 
@@ -282,31 +271,11 @@ public class FragmentEntryProcessorHelperImpl
 			return null;
 		}
 
-		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValuesProvider.getInfoItemFieldValue(
-				displayObjectOptional.get(),
-				jsonObject.getString("collectionFieldId"));
-
-		if (infoFieldValue == null) {
-			return null;
-		}
-
-		Object value = infoFieldValue.getValue(
-			fragmentEntryProcessorContext.getLocale());
-
-		if (value instanceof ContentAccessor) {
-			ContentAccessor contentAccessor = (ContentAccessor)infoFieldValue;
-
-			value = contentAccessor.getContent();
-		}
-		else if (value instanceof WebImage) {
-			WebImage webImage = (WebImage)value;
-
-			return webImage.toJSONObject();
-		}
-
-		return formatMappedValue(
-			value, fragmentEntryProcessorContext.getLocale());
+		return getMappedInfoItemFieldValue(
+			jsonObject.getString("collectionFieldId"),
+			infoItemFieldValuesProvider,
+			fragmentEntryProcessorContext.getLocale(),
+			displayObjectOptional.get());
 	}
 
 	@Override
@@ -390,39 +359,9 @@ public class FragmentEntryProcessorHelperImpl
 			infoItemFieldValuesMap.put(classPK, infoItemFieldValues);
 		}
 
-		String fieldId = jsonObject.getString("fieldId");
-
-		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValues.getInfoFieldValue(fieldId);
-
-		if (infoFieldValue == null) {
-			return null;
-		}
-
-		Object fieldValue = infoFieldValue.getValue(
-			fragmentEntryProcessorContext.getLocale());
-
-		if (fieldValue == null) {
-			return null;
-		}
-
-		if (fieldValue instanceof ContentAccessor) {
-			ContentAccessor contentAccessor = (ContentAccessor)fieldValue;
-
-			fieldValue = contentAccessor.getContent();
-		}
-
-		if (fieldValue instanceof WebImage) {
-			WebImage webImage = (WebImage)fieldValue;
-
-			fieldValue = webImage.toJSONObject();
-		}
-		else {
-			fieldValue = formatMappedValue(
-				fieldValue, fragmentEntryProcessorContext.getLocale());
-		}
-
-		return fieldValue;
+		return getMappedInfoItemFieldValue(
+			jsonObject.getString("fieldId"), infoItemFieldValuesProvider,
+			fragmentEntryProcessorContext.getLocale(), object);
 	}
 
 	@Override
@@ -446,6 +385,39 @@ public class FragmentEntryProcessorHelperImpl
 		return getMappedInfoItemFieldValue(
 			jsonObject, infoDisplaysFieldValues,
 			defaultFragmentEntryProcessorContext);
+	}
+
+	@Override
+	public Object getMappedInfoItemFieldValue(
+		String fieldName,
+		InfoItemFieldValuesProvider infoItemFieldValuesProvider, Locale locale,
+		Object object) {
+
+		if (infoItemFieldValuesProvider == null) {
+			return null;
+		}
+
+		InfoFieldValue<Object> infoFieldValue =
+			infoItemFieldValuesProvider.getInfoFieldValue(object, fieldName);
+
+		if (infoFieldValue == null) {
+			return null;
+		}
+
+		Object value = infoFieldValue.getValue(locale);
+
+		if (value instanceof ContentAccessor) {
+			ContentAccessor contentAccessor = (ContentAccessor)infoFieldValue;
+
+			value = contentAccessor.getContent();
+		}
+		else if (value instanceof WebImage) {
+			WebImage webImage = (WebImage)value;
+
+			return webImage.toJSONObject();
+		}
+
+		return formatMappedValue(value, locale);
 	}
 
 	@Override
@@ -491,40 +463,7 @@ public class FragmentEntryProcessorHelperImpl
 			return StringPool.POUND;
 		}
 
-		return _portal.getLayoutFullURL(layout, themeDisplay);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #getMappedInfoItemFieldValue(JSONObject, Map, FragmentEntryProcessorContext)}
-	 */
-	@Deprecated
-	@Override
-	public Object getMappedValue(
-		JSONObject jsonObject,
-		Map<Long, Map<String, Object>> infoDisplaysFieldValues,
-		FragmentEntryProcessorContext fragmentEntryProcessorContext) {
-
-		throw new UnsupportedOperationException(
-			"This method is deprecated and replaced by " +
-				"com.liferay.fragment.entry.processor.helper." +
-					"FragmentEntryProcessorHelper.getMappedInfoItemFieldValue");
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #getMappedInfoItemFieldValue(JSONObject, Map, String, Locale, long, long, int)}
-	 */
-	@Deprecated
-	@Override
-	public Object getMappedValue(
-		JSONObject jsonObject,
-		Map<Long, Map<String, Object>> infoDisplaysFieldValues, String mode,
-		Locale locale, long previewClassPK, long previewClassNameId,
-		int previewType) {
-
-		throw new UnsupportedOperationException(
-			"This method is deprecated and replaced by " +
-				"com.liferay.fragment.entry.processor.helper." +
-					"FragmentEntryProcessorHelper.getMappedInfoItemFieldValue");
+		return _portal.getLayoutRelativeURL(layout, themeDisplay);
 	}
 
 	@Override
@@ -590,15 +529,6 @@ public class FragmentEntryProcessorHelperImpl
 		template.put(TemplateConstants.WRITER, unsyncStringWriter);
 		template.put("contentAccessorUtil", ContentAccessorUtil.getInstance());
 
-		Optional<Map<String, Object>> fieldValuesOptional =
-			fragmentEntryProcessorContext.getFieldValuesOptional();
-
-		if (fieldValuesOptional.isPresent() &&
-			MapUtil.isNotEmpty(fieldValuesOptional.get())) {
-
-			template.putAll(fieldValuesOptional.get());
-		}
-
 		template.prepare(fragmentEntryProcessorContext.getHttpServletRequest());
 
 		template.processTemplate(unsyncStringWriter);
@@ -627,7 +557,8 @@ public class FragmentEntryProcessorHelperImpl
 	}
 
 	private long _getFileEntryId(
-		String className, Object displayObject, String fieldId, Locale locale) {
+		String className, Object displayObject, String fieldName,
+		Locale locale) {
 
 		InfoItemFieldValuesProvider<Object> infoItemFieldValuesProvider =
 			_infoItemServiceTracker.getFirstInfoItemService(
@@ -638,8 +569,8 @@ public class FragmentEntryProcessorHelperImpl
 		}
 
 		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValuesProvider.getInfoItemFieldValue(
-				displayObject, fieldId);
+			infoItemFieldValuesProvider.getInfoFieldValue(
+				displayObject, fieldName);
 
 		Object value = StringPool.BLANK;
 

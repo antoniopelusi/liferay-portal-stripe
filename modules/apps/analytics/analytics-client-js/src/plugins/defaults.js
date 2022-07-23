@@ -18,35 +18,25 @@ import documents from './documents';
 import dxp from './dxp';
 import forms from './forms';
 import read from './read';
-import resolution from './resolution';
 import scrolling from './scrolling';
 import timing from './timing';
+import visibility from './visibility';
 import webContents from './web-contents';
 
-export {
-	blogs,
-	documents,
-	dxp,
-	forms,
-	read,
-	resolution,
-	scrolling,
-	timing,
-	webContents,
-};
+export {blogs, documents, dxp, forms, read, scrolling, timing, webContents};
 export default [
 
-	// Resolution should come first, because it chages the context
+	// Dxp should be before other events plugins, because it can dispose analytics
 
-	resolution,
+	dxp,
 
 	blogs,
 	custom,
 	documents,
-	dxp,
 	forms,
 	read,
 	scrolling,
 	timing,
+	visibility,
 	webContents,
 ];

@@ -254,20 +254,20 @@ public class LiveUsers {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception.getMessage());
+				_log.warn(exception);
 			}
 		}
 
 		try {
-			HttpSession session = PortalSessionContext.get(sessionId);
+			HttpSession httpSession = PortalSessionContext.get(sessionId);
 
-			if (session != null) {
-				session.invalidate();
+			if (httpSession != null) {
+				httpSession.invalidate();
 			}
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

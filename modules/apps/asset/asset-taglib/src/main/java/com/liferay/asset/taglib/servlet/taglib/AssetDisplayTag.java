@@ -147,7 +147,7 @@ public class AssetDisplayTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setRenderer(Renderer renderer) {
@@ -204,7 +204,7 @@ public class AssetDisplayTag extends IncludeTag {
 
 		try {
 			boolean include = _renderer.include(
-				request, httpServletResponse, _template);
+				getRequest(), httpServletResponse, _template);
 
 			if (include) {
 				return;

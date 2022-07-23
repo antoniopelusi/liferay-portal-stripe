@@ -134,21 +134,14 @@ public class EditableValuesItemSelectorExportImportContentProcessor
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					StringBundler messageSB = new StringBundler(11);
-
-					messageSB.append("Staged model with class name ");
-					messageSB.append(stagedModel.getModelClassName());
-					messageSB.append(" and primary key ");
-					messageSB.append(stagedModel.getPrimaryKeyObj());
-					messageSB.append(" references asset entry with class ");
-					messageSB.append("primary key ");
-					messageSB.append(classPK);
-					messageSB.append(" and class name ");
-					messageSB.append(_portal.getClassName(classNameId));
-					messageSB.append(" that could not be exported due to ");
-					messageSB.append(exception);
-
-					String errorMessage = messageSB.toString();
+					String errorMessage = StringBundler.concat(
+						"Staged model with class name ",
+						stagedModel.getModelClassName(), " and primary key ",
+						stagedModel.getPrimaryKeyObj(),
+						" references asset entry with class primary key ",
+						classPK, " and class name ",
+						_portal.getClassName(classNameId),
+						" that could not be exported due to ", exception);
 
 					if (Validator.isNotNull(exception.getMessage())) {
 						errorMessage = StringBundler.concat(

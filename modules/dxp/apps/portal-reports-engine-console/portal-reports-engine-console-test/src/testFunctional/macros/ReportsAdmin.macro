@@ -11,9 +11,7 @@ definition {
 			locator1 = "ReportsAdminEditReportDefinition#DATA_SOURCE_NAME_SELECT",
 			value1 = "${dataSource}");
 
-		UploadCommonFile(
-			locator1 = "ReportsAdminEditReportDefinition#TEMPLATE_FILE_UPLOAD",
-			value1 = "${templateFile}");
+		UploadDependencyFile.uploadFile(fileName = "${templateFile}");
 
 		PortletEntry.save();
 	}
@@ -261,15 +259,6 @@ definition {
 		Pause(locator1 = "2000");
 
 		takeScreenshot();
-
-		if ("${reportFormat}" == "pdf") {
-			if ("${reportsFileName}" == "reports_admin_template_source_sample_list_type.pdf") {
-				SikuliAssertElementPresent(locator1 = "ReportsAdmin#REPORT_PDF_LIST_TYPE_PNG");
-			}
-			else {
-				SikuliAssertElementPresent(locator1 = "ReportsAdmin#REPORT_PDF_CLASS_NAME_PNG");
-			}
-		}
 	}
 
 	macro gotoConfiguration {
@@ -392,7 +381,7 @@ Sincerely,<br />
 		}
 
 		AssertTextEquals(
-			locator1 = "Message#INFO",
+			locator1 = "ReportsAdmin#EMPTY_TABLE",
 			value1 = "There are no definitions.");
 	}
 
@@ -417,8 +406,8 @@ Sincerely,<br />
 		}
 
 		AssertTextEquals(
-			locator1 = "Message#INFO",
-			value1 = "There are no entries.");
+			locator1 = "ReportsAdmin#EMPTY_TABLE",
+			value1 = "There are no reports.");
 	}
 
 	macro tearDownSources {
@@ -441,7 +430,7 @@ Sincerely,<br />
 		}
 
 		AssertTextEquals(
-			locator1 = "Message#INFO",
+			locator1 = "ReportsAdmin#EMPTY_TABLE",
 			value1 = "There are no sources.");
 	}
 

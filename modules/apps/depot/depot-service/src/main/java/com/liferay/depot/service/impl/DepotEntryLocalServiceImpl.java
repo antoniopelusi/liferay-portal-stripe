@@ -17,6 +17,7 @@ package com.liferay.depot.service.impl;
 import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.exception.DepotEntryGroupException;
 import com.liferay.depot.exception.DepotEntryNameException;
+import com.liferay.depot.exception.DepotEntryStagedException;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.service.DepotAppCustomizationLocalService;
@@ -32,9 +33,11 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
@@ -44,17 +47,16 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.vulcan.util.TransformUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -92,7 +94,7 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 
 		depotEntry = depotEntryPersistence.update(depotEntry);
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			serviceContext.getCompanyId(), 0, serviceContext.getUserId(),
 			DepotEntry.class.getName(), depotEntry.getDepotEntryId(), false,
 			false, false);
@@ -146,12 +148,30 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 
 		depotEntry = depotEntryPersistence.update(depotEntry);
 
-		resourceLocalService.addResources(
+		_resourceLocalService.addResources(
 			serviceContext.getCompanyId(), 0, serviceContext.getUserId(),
 			DepotEntry.class.getName(), depotEntry.getDepotEntryId(), false,
 			false, false);
 
 		return depotEntry;
+	}
+
+	@Override
+	public DepotEntry deleteDepotEntry(long depotEntryId)
+		throws PortalException {
+
+		DepotEntry depotEntry = depotEntryPersistence.fetchByPrimaryKey(
+			depotEntryId);
+
+		if (_isStaged(depotEntry)) {
+			throw new DepotEntryStagedException(
+				"Unstage depot entry " + depotEntryId + " before deleting it");
+		}
+
+		_resourceLocalService.deleteResource(
+			depotEntry, ResourceConstants.SCOPE_INDIVIDUAL);
+
+		return super.deleteDepotEntry(depotEntryId);
 	}
 
 	@Override
@@ -182,10 +202,9 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 				ddmStructuresAvailable, groupId, start, end);
 
 		for (DepotEntryGroupRel depotEntryGroupRel : depotEntryGroupRels) {
-			DepotEntry depotEntry = depotEntryLocalService.getDepotEntry(
-				depotEntryGroupRel.getDepotEntryId());
-
-			depotEntries.add(depotEntry);
+			depotEntries.add(
+				depotEntryLocalService.getDepotEntry(
+					depotEntryGroupRel.getDepotEntryId()));
 		}
 
 		return depotEntries;
@@ -196,19 +215,10 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 			long groupId, int start, int end)
 		throws PortalException {
 
-		List<DepotEntry> depotEntries = new ArrayList<>();
-
-		List<DepotEntryGroupRel> depotEntryGroupRels =
-			_depotEntryGroupRelPersistence.findByToGroupId(groupId, start, end);
-
-		for (DepotEntryGroupRel depotEntryGroupRel : depotEntryGroupRels) {
-			DepotEntry depotEntry = depotEntryLocalService.getDepotEntry(
-				depotEntryGroupRel.getDepotEntryId());
-
-			depotEntries.add(depotEntry);
-		}
-
-		return depotEntries;
+		return TransformUtil.transform(
+			_depotEntryGroupRelPersistence.findByToGroupId(groupId, start, end),
+			depotEntryGroupRel -> depotEntryLocalService.getDepotEntry(
+				depotEntryGroupRel.getDepotEntryId()));
 	}
 
 	@Override
@@ -303,11 +313,26 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 			return Optional.empty();
 		}
 
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			defaultLocale, DepotEntryLocalServiceImpl.class);
-
 		return Optional.of(
-			_language.get(resourceBundle, "unnamed-asset-library"));
+			_language.get(defaultLocale, "unnamed-asset-library"));
+	}
+
+	private boolean _isStaged(DepotEntry depotEntry) throws PortalException {
+		if (depotEntry == null) {
+			return false;
+		}
+
+		Group group = _groupLocalService.fetchGroup(depotEntry.getGroupId());
+
+		if (group == null) {
+			return false;
+		}
+
+		if (group.isStaged()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private void _validateName(String name) throws PortalException {
@@ -380,6 +405,9 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 
 	@Reference
 	private Language _language;
+
+	@Reference
+	private ResourceLocalService _resourceLocalService;
 
 	@Reference
 	private RoleLocalService _roleLocalService;

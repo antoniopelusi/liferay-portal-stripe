@@ -18,12 +18,15 @@ import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.Job;
 import com.liferay.jenkins.results.parser.PortalFixpackEnvironmentJob;
 import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.json.JSONObject;
 
 /**
  * @author Michael Hashimoto
@@ -67,27 +70,31 @@ public class EnvironmentFunctionalSegmentTestClassGroup
 	}
 
 	protected EnvironmentFunctionalSegmentTestClassGroup(
-		EnvironmentFunctionalBatchTestClassGroup
-			parentEnvironmentFunctionalBatchTestClassGroup) {
+		BatchTestClassGroup parentBatchTestClassGroup) {
 
-		super(parentEnvironmentFunctionalBatchTestClassGroup);
+		super(parentBatchTestClassGroup);
+	}
+
+	protected EnvironmentFunctionalSegmentTestClassGroup(
+		BatchTestClassGroup parentBatchTestClassGroup, JSONObject jsonObject) {
+
+		super(parentBatchTestClassGroup, jsonObject);
 	}
 
 	private String _getAppServerType() {
-		BatchTestClassGroup parentBatchTestClassGroup =
-			getParentBatchTestClassGroup();
+		BatchTestClassGroup batchTestClassGroup = getBatchTestClassGroup();
 
-		String appServerType = JenkinsResultsParserUtil.getProperty(
-			parentBatchTestClassGroup.getJobProperties(),
-			"environment.app.server.type",
-			parentBatchTestClassGroup.getBatchName());
+		JobProperty jobProperty = batchTestClassGroup.getJobProperty(
+			"environment.app.server.type");
 
-		if (!JenkinsResultsParserUtil.isNullOrEmpty(appServerType)) {
-			return appServerType;
+		String jobPropertyValue = jobProperty.getValue();
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(jobPropertyValue)) {
+			return jobPropertyValue;
 		}
 
 		PortalGitWorkingDirectory portalGitWorkingDirectory =
-			parentBatchTestClassGroup.getPortalGitWorkingDirectory();
+			batchTestClassGroup.getPortalGitWorkingDirectory();
 
 		if (portalGitWorkingDirectory == null) {
 			return null;
@@ -109,20 +116,19 @@ public class EnvironmentFunctionalSegmentTestClassGroup
 	}
 
 	private String _getAppServerVersion() {
-		BatchTestClassGroup parentBatchTestClassGroup =
-			getParentBatchTestClassGroup();
+		BatchTestClassGroup batchTestClassGroup = getBatchTestClassGroup();
 
-		String appServerVersion = JenkinsResultsParserUtil.getProperty(
-			parentBatchTestClassGroup.getJobProperties(),
-			"environment.app.server.version",
-			parentBatchTestClassGroup.getBatchName());
+		JobProperty jobProperty = batchTestClassGroup.getJobProperty(
+			"environment.app.server.version");
 
-		if (!JenkinsResultsParserUtil.isNullOrEmpty(appServerVersion)) {
-			return appServerVersion;
+		String jobPropertyValue = jobProperty.getValue();
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(jobPropertyValue)) {
+			return jobPropertyValue;
 		}
 
 		PortalGitWorkingDirectory portalGitWorkingDirectory =
-			parentBatchTestClassGroup.getPortalGitWorkingDirectory();
+			batchTestClassGroup.getPortalGitWorkingDirectory();
 		String appServerType = _getAppServerType();
 
 		if ((portalGitWorkingDirectory == null) ||
@@ -177,6 +183,11 @@ public class EnvironmentFunctionalSegmentTestClassGroup
 		String fixPackZipURL = System.getenv("TEST_BUILD_FIX_PACK_ZIP_URL");
 
 		if ((fixPackZipURL == null) || !fixPackZipURL.matches("https?://.*")) {
+			fixPackZipURL = getBuildStartProperty(
+				"TEST_BUILD_FIX_PACK_ZIP_URL");
+		}
+
+		if ((fixPackZipURL == null) || !fixPackZipURL.matches("https?://.*")) {
 			return null;
 		}
 
@@ -218,7 +229,11 @@ public class EnvironmentFunctionalSegmentTestClassGroup
 
 		String testrayBuildName = System.getenv("TESTRAY_BUILD_NAME");
 
-		if ((testrayBuildName == null) || testrayBuildName.isEmpty()) {
+		if (JenkinsResultsParserUtil.isNullOrEmpty(testrayBuildName)) {
+			testrayBuildName = getBuildStartProperty("TESTRAY_BUILD_NAME");
+		}
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(testrayBuildName)) {
 			return null;
 		}
 

@@ -14,7 +14,7 @@
 
 package com.liferay.portal.kernel.servlet.taglib.ui;
 
-import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 
 /**
@@ -56,6 +56,17 @@ public class QuickAccessEntry {
 
 	public void setBody(StringBundler bodySB) {
 		_bodySB = bodySB;
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 *             #setBody(StringBundler)}
+	 */
+	@Deprecated
+	public void setBody(com.liferay.portal.kernel.util.StringBundler bodySB) {
+		for (int i = 0; i < bodySB.index(); i++) {
+			_bodySB.append(bodySB.stringAt(0));
+		}
 	}
 
 	public void setData(String data) {

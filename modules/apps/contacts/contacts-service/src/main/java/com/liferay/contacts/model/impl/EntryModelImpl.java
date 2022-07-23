@@ -29,12 +29,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -217,33 +218,6 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, Entry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			Entry.class.getClassLoader(), Entry.class, ModelWrapper.class);
-
-		try {
-			Constructor<Entry> constructor =
-				(Constructor<Entry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<Entry, Object>>
@@ -567,6 +541,27 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 	}
 
 	@Override
+	public Entry cloneWithOriginalValues() {
+		EntryImpl entryImpl = new EntryImpl();
+
+		entryImpl.setEntryId(this.<Long>getColumnOriginalValue("entryId"));
+		entryImpl.setGroupId(this.<Long>getColumnOriginalValue("groupId"));
+		entryImpl.setCompanyId(this.<Long>getColumnOriginalValue("companyId"));
+		entryImpl.setUserId(this.<Long>getColumnOriginalValue("userId"));
+		entryImpl.setUserName(this.<String>getColumnOriginalValue("userName"));
+		entryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		entryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		entryImpl.setFullName(this.<String>getColumnOriginalValue("fullName"));
+		entryImpl.setEmailAddress(
+			this.<String>getColumnOriginalValue("emailAddress"));
+		entryImpl.setComments(this.<String>getColumnOriginalValue("comments"));
+
+		return entryImpl;
+	}
+
+	@Override
 	public int compareTo(Entry entry) {
 		int value = 0;
 
@@ -704,7 +699,7 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -714,9 +709,26 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 			String attributeName = entry.getKey();
 			Function<Entry, Object> attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((Entry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((Entry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -762,7 +774,9 @@ public class EntryModelImpl extends BaseModelImpl<Entry> implements EntryModel {
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, Entry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					Entry.class, ModelWrapper.class);
 
 	}
 

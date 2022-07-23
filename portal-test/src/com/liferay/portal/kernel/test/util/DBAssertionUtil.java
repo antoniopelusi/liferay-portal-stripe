@@ -47,13 +47,13 @@ public class DBAssertionUtil {
 
 			DatabaseMetaData databaseMetaData = connection.getMetaData();
 
-			try (ResultSet rs = databaseMetaData.getColumns(
+			try (ResultSet resultSet = databaseMetaData.getColumns(
 					dbInspector.getCatalog(), dbInspector.getSchema(),
 					dbInspector.normalizeName(tableName), null)) {
 
-				while (rs.next()) {
+				while (resultSet.next()) {
 					String columnName = StringUtil.toLowerCase(
-						rs.getString("COLUMN_NAME"));
+						resultSet.getString("COLUMN_NAME"));
 
 					Assert.assertTrue(
 						columnName + " should not exist",

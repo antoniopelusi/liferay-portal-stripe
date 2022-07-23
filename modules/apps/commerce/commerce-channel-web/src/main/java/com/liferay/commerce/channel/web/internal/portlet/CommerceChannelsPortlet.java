@@ -16,13 +16,14 @@ package com.liferay.commerce.channel.web.internal.portlet;
 
 import com.liferay.commerce.channel.web.internal.display.context.CommerceChannelDisplayContext;
 import com.liferay.commerce.currency.service.CommerceCurrencyService;
-import com.liferay.commerce.payment.method.CommercePaymentMethodRegistry;
 import com.liferay.commerce.product.channel.CommerceChannelHealthStatusRegistry;
 import com.liferay.commerce.product.channel.CommerceChannelTypeRegistry;
 import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CPTaxCategoryLocalService;
 import com.liferay.commerce.product.service.CommerceChannelService;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.item.selector.ItemSelector;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocalCloseable;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
@@ -65,7 +66,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CPPortletKeys.COMMERCE_CHANNELS,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CommerceChannelsPortlet.class, Portlet.class}
 )
@@ -92,13 +94,14 @@ public class CommerceChannelsPortlet extends MVCPortlet {
 
 		CommerceChannelDisplayContext commerceChannelDisplayContext =
 			new CommerceChannelDisplayContext(
+				_commerceChannelHealthStatusRegistry,
 				_commerceChannelModelResourcePermission,
-				_commerceChannelHealthStatusRegistry, _commerceChannelService,
-				_commerceChannelTypeRegistry, _commerceCurrencyService,
-				_commercePaymentMethodRegistry, _configurationProvider,
-				_portal.getHttpServletRequest(renderRequest), _portal,
-				_workflowDefinitionLinkLocalService, _workflowDefinitionManager,
-				_cpTaxCategoryLocalService);
+				_commerceChannelService, _commerceChannelTypeRegistry,
+				_commerceCurrencyService, _configurationProvider,
+				_cpTaxCategoryLocalService, _dlAppLocalService,
+				_portal.getHttpServletRequest(renderRequest), _itemSelector,
+				_portal, _workflowDefinitionLinkLocalService,
+				_workflowDefinitionManager);
 
 		renderRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT, commerceChannelDisplayContext);
@@ -126,13 +129,16 @@ public class CommerceChannelsPortlet extends MVCPortlet {
 	private CommerceCurrencyService _commerceCurrencyService;
 
 	@Reference
-	private CommercePaymentMethodRegistry _commercePaymentMethodRegistry;
-
-	@Reference
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private CPTaxCategoryLocalService _cpTaxCategoryLocalService;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private ItemSelector _itemSelector;
 
 	@Reference
 	private Portal _portal;

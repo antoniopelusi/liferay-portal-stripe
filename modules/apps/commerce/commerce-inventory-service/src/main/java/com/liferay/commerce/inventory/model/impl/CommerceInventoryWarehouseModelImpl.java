@@ -16,7 +16,6 @@ package com.liferay.commerce.inventory.model.impl;
 
 import com.liferay.commerce.inventory.model.CommerceInventoryWarehouse;
 import com.liferay.commerce.inventory.model.CommerceInventoryWarehouseModel;
-import com.liferay.commerce.inventory.model.CommerceInventoryWarehouseSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.petra.string.StringBundler;
@@ -31,20 +30,19 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -179,75 +177,6 @@ public class CommerceInventoryWarehouseModelImpl
 	@Deprecated
 	public static final long NAME_COLUMN_BITMASK = 16L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static CommerceInventoryWarehouse toModel(
-		CommerceInventoryWarehouseSoap soapModel) {
-
-		if (soapModel == null) {
-			return null;
-		}
-
-		CommerceInventoryWarehouse model = new CommerceInventoryWarehouseImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
-		model.setCommerceInventoryWarehouseId(
-			soapModel.getCommerceInventoryWarehouseId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setName(soapModel.getName());
-		model.setDescription(soapModel.getDescription());
-		model.setActive(soapModel.isActive());
-		model.setStreet1(soapModel.getStreet1());
-		model.setStreet2(soapModel.getStreet2());
-		model.setStreet3(soapModel.getStreet3());
-		model.setCity(soapModel.getCity());
-		model.setZip(soapModel.getZip());
-		model.setCommerceRegionCode(soapModel.getCommerceRegionCode());
-		model.setCountryTwoLettersISOCode(
-			soapModel.getCountryTwoLettersISOCode());
-		model.setLatitude(soapModel.getLatitude());
-		model.setLongitude(soapModel.getLongitude());
-		model.setType(soapModel.getType());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<CommerceInventoryWarehouse> toModels(
-		CommerceInventoryWarehouseSoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<CommerceInventoryWarehouse> models =
-			new ArrayList<CommerceInventoryWarehouse>(soapModels.length);
-
-		for (CommerceInventoryWarehouseSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.commerce.inventory.service.util.ServiceProps.get(
 			"lock.expiration.time.com.liferay.commerce.inventory.model.CommerceInventoryWarehouse"));
@@ -337,34 +266,6 @@ public class CommerceInventoryWarehouseModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CommerceInventoryWarehouse>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CommerceInventoryWarehouse.class.getClassLoader(),
-			CommerceInventoryWarehouse.class, ModelWrapper.class);
-
-		try {
-			Constructor<CommerceInventoryWarehouse> constructor =
-				(Constructor<CommerceInventoryWarehouse>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -1053,6 +954,57 @@ public class CommerceInventoryWarehouseModelImpl
 	}
 
 	@Override
+	public CommerceInventoryWarehouse cloneWithOriginalValues() {
+		CommerceInventoryWarehouseImpl commerceInventoryWarehouseImpl =
+			new CommerceInventoryWarehouseImpl();
+
+		commerceInventoryWarehouseImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		commerceInventoryWarehouseImpl.setExternalReferenceCode(
+			this.<String>getColumnOriginalValue("externalReferenceCode"));
+		commerceInventoryWarehouseImpl.setCommerceInventoryWarehouseId(
+			this.<Long>getColumnOriginalValue("CIWarehouseId"));
+		commerceInventoryWarehouseImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		commerceInventoryWarehouseImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		commerceInventoryWarehouseImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		commerceInventoryWarehouseImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		commerceInventoryWarehouseImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		commerceInventoryWarehouseImpl.setName(
+			this.<String>getColumnOriginalValue("name"));
+		commerceInventoryWarehouseImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		commerceInventoryWarehouseImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+		commerceInventoryWarehouseImpl.setStreet1(
+			this.<String>getColumnOriginalValue("street1"));
+		commerceInventoryWarehouseImpl.setStreet2(
+			this.<String>getColumnOriginalValue("street2"));
+		commerceInventoryWarehouseImpl.setStreet3(
+			this.<String>getColumnOriginalValue("street3"));
+		commerceInventoryWarehouseImpl.setCity(
+			this.<String>getColumnOriginalValue("city"));
+		commerceInventoryWarehouseImpl.setZip(
+			this.<String>getColumnOriginalValue("zip"));
+		commerceInventoryWarehouseImpl.setCommerceRegionCode(
+			this.<String>getColumnOriginalValue("commerceRegionCode"));
+		commerceInventoryWarehouseImpl.setCountryTwoLettersISOCode(
+			this.<String>getColumnOriginalValue("countryTwoLettersISOCode"));
+		commerceInventoryWarehouseImpl.setLatitude(
+			this.<Double>getColumnOriginalValue("latitude"));
+		commerceInventoryWarehouseImpl.setLongitude(
+			this.<Double>getColumnOriginalValue("longitude"));
+		commerceInventoryWarehouseImpl.setType(
+			this.<String>getColumnOriginalValue("type_"));
+
+		return commerceInventoryWarehouseImpl;
+	}
+
+	@Override
 	public int compareTo(
 		CommerceInventoryWarehouse commerceInventoryWarehouse) {
 
@@ -1281,7 +1233,7 @@ public class CommerceInventoryWarehouseModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1292,11 +1244,27 @@ public class CommerceInventoryWarehouseModelImpl
 			Function<CommerceInventoryWarehouse, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply(
-					(CommerceInventoryWarehouse)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(CommerceInventoryWarehouse)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1347,7 +1315,8 @@ public class CommerceInventoryWarehouseModelImpl
 		private static final Function
 			<InvocationHandler, CommerceInventoryWarehouse>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						CommerceInventoryWarehouse.class, ModelWrapper.class);
 
 	}
 

@@ -17,6 +17,7 @@ package com.liferay.commerce.shipping.engine.fixed.web.internal.portlet.action;
 import com.liferay.commerce.constants.CommercePortletKeys;
 import com.liferay.commerce.model.CommerceShippingMethod;
 import com.liferay.commerce.service.CommerceShippingMethodService;
+import com.liferay.commerce.shipping.engine.fixed.exception.CommerceShippingFixedOptionKeyException;
 import com.liferay.commerce.shipping.engine.fixed.exception.NoSuchShippingFixedOptionException;
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOption;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionService;
@@ -61,7 +62,48 @@ import org.osgi.service.component.annotations.Reference;
 public class EditCommerceShippingFixedOptionMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void deleteCommerceShippingFixedOptions(
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
+		try {
+			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
+				_updateCommerceShippingFixedOption(actionRequest);
+
+				String redirect = _getSaveAndContinueRedirect(actionRequest);
+
+				sendRedirect(actionRequest, actionResponse, redirect);
+			}
+			else if (cmd.equals(Constants.DELETE)) {
+				_deleteCommerceShippingFixedOptions(actionRequest);
+			}
+		}
+		catch (Exception exception) {
+			if (exception instanceof CommerceShippingFixedOptionKeyException) {
+				SessionErrors.add(actionRequest, exception.getClass());
+
+				hideDefaultErrorMessage(actionRequest);
+				hideDefaultSuccessMessage(actionRequest);
+
+				String redirect = _getSaveAndContinueRedirect(actionRequest);
+
+				sendRedirect(actionRequest, actionResponse, redirect);
+			}
+			else if (exception instanceof NoSuchShippingFixedOptionException ||
+					 exception instanceof PrincipalException) {
+
+				SessionErrors.add(actionRequest, exception.getClass());
+			}
+			else {
+				throw exception;
+			}
+		}
+	}
+
+	private void _deleteCommerceShippingFixedOptions(
 			ActionRequest actionRequest)
 		throws PortalException {
 
@@ -91,42 +133,7 @@ public class EditCommerceShippingFixedOptionMVCActionCommand
 		}
 	}
 
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
-		try {
-			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				CommerceShippingFixedOption commerceShippingFixedOption =
-					updateCommerceShippingFixedOption(actionRequest);
-
-				String redirect = getSaveAndContinueRedirect(
-					actionRequest, commerceShippingFixedOption);
-
-				sendRedirect(actionRequest, actionResponse, redirect);
-			}
-			else if (cmd.equals(Constants.DELETE)) {
-				deleteCommerceShippingFixedOptions(actionRequest);
-			}
-		}
-		catch (Exception exception) {
-			if (exception instanceof NoSuchShippingFixedOptionException ||
-				exception instanceof PrincipalException) {
-
-				SessionErrors.add(actionRequest, exception.getClass());
-			}
-			else {
-				throw exception;
-			}
-		}
-	}
-
-	protected String getSaveAndContinueRedirect(
-			ActionRequest actionRequest,
-			CommerceShippingFixedOption commerceShippingFixedOption)
+	private String _getSaveAndContinueRedirect(ActionRequest actionRequest)
 		throws Exception {
 
 		PortletConfig portletConfig = (PortletConfig)actionRequest.getAttribute(
@@ -142,30 +149,32 @@ public class EditCommerceShippingFixedOptionMVCActionCommand
 		portletURL.setParameter(
 			"commerceShippingFixedOptionId",
 			String.valueOf(
-				commerceShippingFixedOption.
-					getCommerceShippingFixedOptionId()));
+				ParamUtil.getLong(
+					actionRequest, "commerceShippingFixedOptionId")));
+		portletURL.setParameter(
+			"commerceShippingMethodId",
+			String.valueOf(
+				ParamUtil.getLong(actionRequest, "commerceShippingMethodId")));
 
 		portletURL.setWindowState(actionRequest.getWindowState());
 
 		return portletURL.toString();
 	}
 
-	protected CommerceShippingFixedOption updateCommerceShippingFixedOption(
+	private CommerceShippingFixedOption _updateCommerceShippingFixedOption(
 			ActionRequest actionRequest)
 		throws PortalException {
 
 		long commerceShippingFixedOptionId = ParamUtil.getLong(
 			actionRequest, "commerceShippingFixedOptionId");
 
-		long commerceShippingMethodId = ParamUtil.getLong(
-			actionRequest, "commerceShippingMethodId");
-
-		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
-			actionRequest, "name");
-		Map<Locale, String> descriptionMap =
-			LocalizationUtil.getLocalizationMap(actionRequest, "description");
 		BigDecimal amount = (BigDecimal)ParamUtil.getNumber(
 			actionRequest, "amount", BigDecimal.ZERO);
+		Map<Locale, String> descriptionMap =
+			LocalizationUtil.getLocalizationMap(actionRequest, "description");
+		String key = ParamUtil.getString(actionRequest, "key");
+		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
+			actionRequest, "name");
 		double priority = ParamUtil.getDouble(actionRequest, "priority");
 
 		CommerceShippingFixedOption commerceShippingFixedOption = null;
@@ -174,10 +183,13 @@ public class EditCommerceShippingFixedOptionMVCActionCommand
 			commerceShippingFixedOption =
 				_commerceShippingFixedOptionService.
 					updateCommerceShippingFixedOption(
-						commerceShippingFixedOptionId, nameMap, descriptionMap,
-						amount, priority);
+						commerceShippingFixedOptionId, amount, descriptionMap,
+						key, nameMap, priority);
 		}
 		else {
+			long commerceShippingMethodId = ParamUtil.getLong(
+				actionRequest, "commerceShippingMethodId");
+
 			CommerceShippingMethod commerceShippingMethod =
 				_commerceShippingMethodService.getCommerceShippingMethod(
 					commerceShippingMethodId);
@@ -185,10 +197,9 @@ public class EditCommerceShippingFixedOptionMVCActionCommand
 			commerceShippingFixedOption =
 				_commerceShippingFixedOptionService.
 					addCommerceShippingFixedOption(
-						_portal.getUserId(actionRequest),
 						commerceShippingMethod.getGroupId(),
 						commerceShippingMethod.getCommerceShippingMethodId(),
-						nameMap, descriptionMap, amount, priority);
+						amount, descriptionMap, key, nameMap, priority);
 		}
 
 		return commerceShippingFixedOption;

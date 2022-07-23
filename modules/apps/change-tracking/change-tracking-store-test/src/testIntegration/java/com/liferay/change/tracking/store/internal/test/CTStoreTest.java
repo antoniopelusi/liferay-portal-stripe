@@ -26,7 +26,7 @@ import com.liferay.document.library.kernel.store.Store;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.io.unsync.UnsyncByteArrayInputStream;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -88,11 +87,6 @@ public class CTStoreTest {
 		_companyId = TestPropsValues.getCompanyId();
 	}
 
-	@AfterClass
-	public static void tearDownClass() {
-		_methods.clear();
-	}
-
 	@Before
 	public void setUp() throws PortalException {
 		for (int i = 0; i < 4; i++) {
@@ -102,6 +96,8 @@ public class CTStoreTest {
 
 	@After
 	public void tearDown() {
+		_methods.clear();
+
 		_fileSystemStore.deleteDirectory(
 			_companyId, _REPOSITORY_ID, StringPool.BLANK);
 	}
@@ -1055,8 +1051,8 @@ public class CTStoreTest {
 			CTCollection ctCollection, UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					ctCollection.getCtCollectionId())) {
 
 			unsafeRunnable.run();
@@ -1079,7 +1075,7 @@ public class CTStoreTest {
 		}
 		catch (NoSuchFileException noSuchFileException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileException, noSuchFileException);
+				_log.debug(noSuchFileException);
 			}
 		}
 
@@ -1111,7 +1107,7 @@ public class CTStoreTest {
 				}
 				catch (NoSuchFileException noSuchFileException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(noSuchFileException, noSuchFileException);
+						_log.debug(noSuchFileException);
 					}
 				}
 
@@ -1210,7 +1206,7 @@ public class CTStoreTest {
 		}
 		catch (NoSuchFileException noSuchFileException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileException, noSuchFileException);
+				_log.debug(noSuchFileException);
 			}
 		}
 
@@ -1223,7 +1219,7 @@ public class CTStoreTest {
 		}
 		catch (NoSuchFileException noSuchFileException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileException, noSuchFileException);
+				_log.debug(noSuchFileException);
 			}
 		}
 	}

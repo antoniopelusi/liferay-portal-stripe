@@ -78,7 +78,7 @@ public class WarehouseItemResourceImpl
 
 		if (commerceInventoryWarehouseItem == null) {
 			throw new NoSuchInventoryWarehouseItemException(
-				"Unable to find WarehouseItem with externalReferenceCode: " +
+				"Unable to find warehouse item with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -104,7 +104,7 @@ public class WarehouseItemResourceImpl
 
 		if (commerceInventoryWarehouse == null) {
 			throw new NoSuchInventoryWarehouseException(
-				"Unable to find Warehouse with externalReferenceCode: " +
+				"Unable to find warehouse with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -146,7 +146,7 @@ public class WarehouseItemResourceImpl
 
 		if (commerceInventoryWarehouseItem == null) {
 			throw new NoSuchInventoryWarehouseItemException(
-				"Unable to find WarehouseItem with externalReferenceCode: " +
+				"Unable to find warehouse item with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -243,7 +243,7 @@ public class WarehouseItemResourceImpl
 
 		if (commerceInventoryWarehouseItem == null) {
 			throw new NoSuchInventoryWarehouseItemException(
-				"Unable to find WarehouseItem with externalReferenceCode: " +
+				"Unable to find warehouse item with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -270,7 +270,7 @@ public class WarehouseItemResourceImpl
 
 		if (commerceInventoryWarehouse == null) {
 			throw new NoSuchInventoryWarehouseException(
-				"Unable to find Warehouse with externalReferenceCode: " +
+				"Unable to find warehouse with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -279,9 +279,9 @@ public class WarehouseItemResourceImpl
 		if (warehouseItem.getExternalReferenceCode() != null) {
 			commerceInventoryWarehouseItem =
 				_commerceInventoryWarehouseItemService.
-					upsertCommerceInventoryWarehouseItem(
+					addOrUpdateCommerceInventoryWarehouseItem(
 						warehouseItem.getExternalReferenceCode(),
-						contextUser.getCompanyId(), contextUser.getUserId(),
+						contextUser.getCompanyId(),
 						commerceInventoryWarehouse.
 							getCommerceInventoryWarehouseId(),
 						warehouseItem.getSku(), warehouseItem.getQuantity());
@@ -289,8 +289,7 @@ public class WarehouseItemResourceImpl
 		else {
 			commerceInventoryWarehouseItem =
 				_commerceInventoryWarehouseItemService.
-					upsertCommerceInventoryWarehouseItem(
-						contextUser.getUserId(),
+					addOrUpdateCommerceInventoryWarehouseItem(
 						commerceInventoryWarehouse.
 							getCommerceInventoryWarehouseId(),
 						warehouseItem.getSku(), warehouseItem.getQuantity());
@@ -342,7 +341,7 @@ public class WarehouseItemResourceImpl
 		commerceInventoryWarehouseItem =
 			_commerceInventoryWarehouseItemService.
 				addCommerceInventoryWarehouseItem(
-					externalReferenceCode, contextUser.getUserId(),
+					externalReferenceCode,
 					commerceInventoryWarehouse.
 						getCommerceInventoryWarehouseId(),
 					warehouseItem.getSku(), warehouseItem.getQuantity());
@@ -367,7 +366,6 @@ public class WarehouseItemResourceImpl
 			_commerceInventoryWarehouseItemService.
 				addCommerceInventoryWarehouseItem(
 					warehouseItem.getExternalReferenceCode(),
-					contextUser.getUserId(),
 					commerceInventoryWarehouse.
 						getCommerceInventoryWarehouseId(),
 					warehouseItem.getSku(), warehouseItem.getQuantity());

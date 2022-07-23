@@ -47,13 +47,6 @@
 			<finder-column arrayable-operator="OR" name="groupId" />
 			<finder-column comparator="LIKE" name="name" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="FragmentComposition" package-path="com.liferay.fragment" />
-		<reference entity="FragmentEntry" package-path="com.liferay.fragment" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="FragmentComposition" remote-service="true" uuid="true">
 
@@ -125,11 +118,6 @@
 			<finder-column comparator="LIKE" name="name" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="FragmentEntry" remote-service="true" uuid="true" versioned="true">
 
@@ -159,6 +147,7 @@
 		<column name="js" type="String" />
 		<column name="cacheable" type="boolean" />
 		<column name="configuration" type="String" />
+		<column name="icon" type="String" />
 		<column name="previewFileEntryId" type="long" />
 		<column name="readOnly" type="boolean" />
 		<column name="type" type="int" />
@@ -217,13 +206,6 @@
 			<finder-column name="type" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="FragmentCollection" package-path="com.liferay.fragment" />
-		<reference entity="FragmentEntryLink" package-path="com.liferay.fragment" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="FragmentEntryLink" remote-service="true" uuid="true">
 
@@ -289,6 +271,11 @@
 			<finder-column name="groupId" />
 			<finder-column name="plid" />
 		</finder>
+		<finder name="G_OFELI_P" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="originalFragmentEntryLinkId" />
+			<finder-column name="plid" />
+		</finder>
 		<finder name="G_F_C" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="fragmentEntryId" />
@@ -301,7 +288,7 @@
 		</finder>
 		<finder name="G_S_P" return-type="Collection">
 			<finder-column name="groupId" />
-			<finder-column name="segmentsExperienceId" />
+			<finder-column arrayable-operator="OR" name="segmentsExperienceId" />
 			<finder-column name="plid" />
 		</finder>
 		<finder name="G_C_C" return-type="Collection">
@@ -321,12 +308,12 @@
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="FragmentCollection" package-path="com.liferay.fragment" />
-		<reference entity="FragmentEntry" package-path="com.liferay.fragment" />
-		<reference entity="User" package-path="com.liferay.portal" />
+		<finder name="G_S_P_R" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="segmentsExperienceId" />
+			<finder-column name="plid" />
+			<finder-column name="rendererKey" />
+		</finder>
 	</entity>
 	<exceptions>
 		<exception>DuplicateFragmentCollection</exception>
@@ -340,6 +327,7 @@
 		<exception>FragmentEntryContent</exception>
 		<exception>FragmentEntryName</exception>
 		<exception>InvalidFile</exception>
+		<exception>InvalidFragmentCompositionKey</exception>
 		<exception>RequiredFragmentEntry</exception>
 	</exceptions>
 </service-builder>

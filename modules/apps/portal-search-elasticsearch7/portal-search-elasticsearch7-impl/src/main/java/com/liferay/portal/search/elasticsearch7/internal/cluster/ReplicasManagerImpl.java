@@ -16,7 +16,7 @@ package com.liferay.portal.search.elasticsearch7.internal.cluster;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.search.elasticsearch7.internal.util.SearchLogHelperUtil;
+import com.liferay.portal.search.elasticsearch7.internal.helper.SearchLogHelperUtil;
 
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;

@@ -29,7 +29,7 @@ import java.util.List;
  * @author André de Oliveira
  */
 public class MultiLineStringShapeImpl
-	extends ShapeImpl implements MultiLineStringShape {
+	extends BaseShapeImpl implements MultiLineStringShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

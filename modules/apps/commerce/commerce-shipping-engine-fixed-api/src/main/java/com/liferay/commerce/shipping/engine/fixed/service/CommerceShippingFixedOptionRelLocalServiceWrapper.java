@@ -27,6 +27,10 @@ public class CommerceShippingFixedOptionRelLocalServiceWrapper
 	implements CommerceShippingFixedOptionRelLocalService,
 			   ServiceWrapper<CommerceShippingFixedOptionRelLocalService> {
 
+	public CommerceShippingFixedOptionRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceShippingFixedOptionRelLocalServiceWrapper(
 		CommerceShippingFixedOptionRelLocalService
 			commerceShippingFixedOptionRelLocalService) {
@@ -193,6 +197,14 @@ public class CommerceShippingFixedOptionRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceShippingFixedOptionRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceShippingFixedOptionRelLocalService.dslQueryCount(
+			dslQuery);
 	}
 
 	@Override

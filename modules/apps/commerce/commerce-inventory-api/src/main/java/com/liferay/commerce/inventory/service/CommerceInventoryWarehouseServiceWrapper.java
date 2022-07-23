@@ -27,6 +27,10 @@ public class CommerceInventoryWarehouseServiceWrapper
 	implements CommerceInventoryWarehouseService,
 			   ServiceWrapper<CommerceInventoryWarehouseService> {
 
+	public CommerceInventoryWarehouseServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceInventoryWarehouseServiceWrapper(
 		CommerceInventoryWarehouseService commerceInventoryWarehouseService) {
 
@@ -216,16 +220,14 @@ public class CommerceInventoryWarehouseServiceWrapper
 	@Override
 	public java.util.List
 		<com.liferay.commerce.inventory.model.CommerceInventoryWarehouse>
-				searchCommerceInventoryWarehouses(
+				search(
 					long companyId, Boolean active, String commerceCountryCode,
 					String keywords, int start, int end,
 					com.liferay.portal.kernel.search.Sort sort)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _commerceInventoryWarehouseService.
-			searchCommerceInventoryWarehouses(
-				companyId, active, commerceCountryCode, keywords, start, end,
-				sort);
+		return _commerceInventoryWarehouseService.search(
+			companyId, active, commerceCountryCode, keywords, start, end, sort);
 	}
 
 	@Override

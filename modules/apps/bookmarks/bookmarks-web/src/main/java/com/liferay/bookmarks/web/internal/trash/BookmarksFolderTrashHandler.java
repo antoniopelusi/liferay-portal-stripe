@@ -46,7 +46,7 @@ import org.osgi.service.component.annotations.Reference;
 	property = "model.class.name=com.liferay.bookmarks.model.BookmarksFolder",
 	service = TrashHandler.class
 )
-public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
+public class BookmarksFolderTrashHandler extends BaseBookmarksTrashHandler {
 
 	@Override
 	public void deleteTrashEntry(long classPK) throws PortalException {
@@ -67,7 +67,7 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 	public ContainerModel getParentContainerModel(long classPK)
 		throws PortalException {
 
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		long parentFolderId = folder.getParentFolderId();
 
@@ -83,7 +83,7 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 			PortletRequest portletRequest, long classPK)
 		throws PortalException {
 
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		return BookmarksUtil.getControlPanelLink(
 			portletRequest, folder.getFolderId());
@@ -94,7 +94,7 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 			PortletRequest portletRequest, long classPK)
 		throws PortalException {
 
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		return BookmarksUtil.getControlPanelLink(
 			portletRequest, folder.getParentFolderId());
@@ -104,7 +104,7 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 	public String getRestoreMessage(PortletRequest portletRequest, long classPK)
 		throws PortalException {
 
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		return BookmarksUtil.getAbsolutePath(
 			portletRequest, folder.getParentFolderId());
@@ -117,7 +117,7 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 
 	@Override
 	public TrashRenderer getTrashRenderer(long classPK) throws PortalException {
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		return new BookmarksFolderAssetRenderer(
 			folder, _trashHelper, _bookmarksFolderModelResourcePermission);
@@ -146,7 +146,7 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 
 	@Override
 	public boolean isMovable(long classPK) throws PortalException {
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		if (folder.getParentFolderId() > 0) {
 			BookmarksFolder parentFolder =
@@ -163,7 +163,7 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 
 	@Override
 	public boolean isRestorable(long classPK) throws PortalException {
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		if (folder.getParentFolderId() > 0) {
 			BookmarksFolder parentFolder =
@@ -211,15 +211,9 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 		_bookmarksFolderLocalService.restoreFolderFromTrash(userId, classPK);
 	}
 
-	protected BookmarksFolder getBookmarksFolder(long classPK)
-		throws PortalException {
-
-		return _bookmarksFolderLocalService.getFolder(classPK);
-	}
-
 	@Override
 	protected long getGroupId(long classPK) throws PortalException {
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		return folder.getGroupId();
 	}
@@ -229,10 +223,16 @@ public class BookmarksFolderTrashHandler extends BookmarksBaseTrashHandler {
 			PermissionChecker permissionChecker, long classPK, String actionId)
 		throws PortalException {
 
-		BookmarksFolder folder = getBookmarksFolder(classPK);
+		BookmarksFolder folder = _getBookmarksFolder(classPK);
 
 		return _bookmarksFolderModelResourcePermission.contains(
 			permissionChecker, folder, actionId);
+	}
+
+	private BookmarksFolder _getBookmarksFolder(long classPK)
+		throws PortalException {
+
+		return _bookmarksFolderLocalService.getFolder(classPK);
 	}
 
 	@Reference

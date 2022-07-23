@@ -48,18 +48,19 @@ exports[`KeyValue has a helptext 1`] = `
       type="hidden"
       value="false"
     />
-    <span
+    <div
       aria-hidden="true"
-      class="form-text"
+      class="form-feedback-group lfr-de__field-feedback"
     >
-      Type something
-    </span>
+      <div>
+        Type something
+      </div>
+    </div>
     <span
       class="sr-only"
       id="keyValue_fieldDetails"
     >
       Type something
-      <br />
     </span>
   </div>
 </div>
@@ -72,8 +73,8 @@ exports[`KeyValue has a label 1`] = `
     data-field-name="keyValue"
   >
     <label
-      aria-describedby="keyValue_fieldDetails"
       class="ddm-label"
+      for="keyValue"
       tabindex="0"
     >
       label
@@ -233,7 +234,7 @@ exports[`KeyValue has a value 1`] = `
 exports[`KeyValue has an id 1`] = `
 <div>
   <div
-    aria-labelledby="keyValue_fieldDetails"
+    aria-labelledby="Id_fieldDetails"
     class="form-group hide"
     data-field-name="keyValue"
     tabindex="0"
@@ -397,8 +398,8 @@ exports[`KeyValue renders Label if showLabel is true 1`] = `
     data-field-name="keyValue"
   >
     <label
-      aria-describedby="keyValue_fieldDetails"
       class="ddm-label"
+      for="keyValue"
       tabindex="0"
     >
       text

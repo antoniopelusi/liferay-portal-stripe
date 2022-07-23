@@ -42,14 +42,14 @@ public class ResourceActionUpgradeProcess extends UpgradeProcess {
 	}
 
 	private boolean _hasViewFeedbackResourceAction() throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select count(*) from ResourceAction where actionId = ?")) {
 
-			ps.setString(1, _ACTION_ID_VIEW_KB_FEEDBACK);
+			preparedStatement.setString(1, _ACTION_ID_VIEW_KB_FEEDBACK);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					if (rs.getInt(1) > 0) {
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					if (resultSet.getInt(1) > 0) {
 						return true;
 					}
 

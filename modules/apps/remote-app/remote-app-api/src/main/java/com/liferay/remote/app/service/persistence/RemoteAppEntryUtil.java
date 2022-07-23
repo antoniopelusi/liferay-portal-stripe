@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.util.tracker.ServiceTracker;
-
 /**
  * The persistence utility for the remote app entry service. This utility wraps <code>com.liferay.remote.app.service.persistence.impl.RemoteAppEntryPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -200,11 +196,11 @@ public class RemoteAppEntryUtil {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching remote app entry
-	 * @throws NoSuchEntryException if a matching remote app entry could not be found
+	 * @throws NoSuchRemoteAppEntryException if a matching remote app entry could not be found
 	 */
 	public static RemoteAppEntry findByUuid_First(
 			String uuid, OrderByComparator<RemoteAppEntry> orderByComparator)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().findByUuid_First(uuid, orderByComparator);
 	}
@@ -228,11 +224,11 @@ public class RemoteAppEntryUtil {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching remote app entry
-	 * @throws NoSuchEntryException if a matching remote app entry could not be found
+	 * @throws NoSuchRemoteAppEntryException if a matching remote app entry could not be found
 	 */
 	public static RemoteAppEntry findByUuid_Last(
 			String uuid, OrderByComparator<RemoteAppEntry> orderByComparator)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().findByUuid_Last(uuid, orderByComparator);
 	}
@@ -257,14 +253,81 @@ public class RemoteAppEntryUtil {
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next remote app entry
-	 * @throws NoSuchEntryException if a remote app entry with the primary key could not be found
+	 * @throws NoSuchRemoteAppEntryException if a remote app entry with the primary key could not be found
 	 */
 	public static RemoteAppEntry[] findByUuid_PrevAndNext(
 			long remoteAppEntryId, String uuid,
 			OrderByComparator<RemoteAppEntry> orderByComparator)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().findByUuid_PrevAndNext(
+			remoteAppEntryId, uuid, orderByComparator);
+	}
+
+	/**
+	 * Returns all the remote app entries that the user has permission to view where uuid = &#63;.
+	 *
+	 * @param uuid the uuid
+	 * @return the matching remote app entries that the user has permission to view
+	 */
+	public static List<RemoteAppEntry> filterFindByUuid(String uuid) {
+		return getPersistence().filterFindByUuid(uuid);
+	}
+
+	/**
+	 * Returns a range of all the remote app entries that the user has permission to view where uuid = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>RemoteAppEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param uuid the uuid
+	 * @param start the lower bound of the range of remote app entries
+	 * @param end the upper bound of the range of remote app entries (not inclusive)
+	 * @return the range of matching remote app entries that the user has permission to view
+	 */
+	public static List<RemoteAppEntry> filterFindByUuid(
+		String uuid, int start, int end) {
+
+		return getPersistence().filterFindByUuid(uuid, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the remote app entries that the user has permissions to view where uuid = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>RemoteAppEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param uuid the uuid
+	 * @param start the lower bound of the range of remote app entries
+	 * @param end the upper bound of the range of remote app entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching remote app entries that the user has permission to view
+	 */
+	public static List<RemoteAppEntry> filterFindByUuid(
+		String uuid, int start, int end,
+		OrderByComparator<RemoteAppEntry> orderByComparator) {
+
+		return getPersistence().filterFindByUuid(
+			uuid, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns the remote app entries before and after the current remote app entry in the ordered set of remote app entries that the user has permission to view where uuid = &#63;.
+	 *
+	 * @param remoteAppEntryId the primary key of the current remote app entry
+	 * @param uuid the uuid
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next remote app entry
+	 * @throws NoSuchRemoteAppEntryException if a remote app entry with the primary key could not be found
+	 */
+	public static RemoteAppEntry[] filterFindByUuid_PrevAndNext(
+			long remoteAppEntryId, String uuid,
+			OrderByComparator<RemoteAppEntry> orderByComparator)
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
+
+		return getPersistence().filterFindByUuid_PrevAndNext(
 			remoteAppEntryId, uuid, orderByComparator);
 	}
 
@@ -285,6 +348,16 @@ public class RemoteAppEntryUtil {
 	 */
 	public static int countByUuid(String uuid) {
 		return getPersistence().countByUuid(uuid);
+	}
+
+	/**
+	 * Returns the number of remote app entries that the user has permission to view where uuid = &#63;.
+	 *
+	 * @param uuid the uuid
+	 * @return the number of matching remote app entries that the user has permission to view
+	 */
+	public static int filterCountByUuid(String uuid) {
+		return getPersistence().filterCountByUuid(uuid);
 	}
 
 	/**
@@ -372,12 +445,12 @@ public class RemoteAppEntryUtil {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching remote app entry
-	 * @throws NoSuchEntryException if a matching remote app entry could not be found
+	 * @throws NoSuchRemoteAppEntryException if a matching remote app entry could not be found
 	 */
 	public static RemoteAppEntry findByUuid_C_First(
 			String uuid, long companyId,
 			OrderByComparator<RemoteAppEntry> orderByComparator)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().findByUuid_C_First(
 			uuid, companyId, orderByComparator);
@@ -406,12 +479,12 @@ public class RemoteAppEntryUtil {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching remote app entry
-	 * @throws NoSuchEntryException if a matching remote app entry could not be found
+	 * @throws NoSuchRemoteAppEntryException if a matching remote app entry could not be found
 	 */
 	public static RemoteAppEntry findByUuid_C_Last(
 			String uuid, long companyId,
 			OrderByComparator<RemoteAppEntry> orderByComparator)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().findByUuid_C_Last(
 			uuid, companyId, orderByComparator);
@@ -441,14 +514,87 @@ public class RemoteAppEntryUtil {
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next remote app entry
-	 * @throws NoSuchEntryException if a remote app entry with the primary key could not be found
+	 * @throws NoSuchRemoteAppEntryException if a remote app entry with the primary key could not be found
 	 */
 	public static RemoteAppEntry[] findByUuid_C_PrevAndNext(
 			long remoteAppEntryId, String uuid, long companyId,
 			OrderByComparator<RemoteAppEntry> orderByComparator)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().findByUuid_C_PrevAndNext(
+			remoteAppEntryId, uuid, companyId, orderByComparator);
+	}
+
+	/**
+	 * Returns all the remote app entries that the user has permission to view where uuid = &#63; and companyId = &#63;.
+	 *
+	 * @param uuid the uuid
+	 * @param companyId the company ID
+	 * @return the matching remote app entries that the user has permission to view
+	 */
+	public static List<RemoteAppEntry> filterFindByUuid_C(
+		String uuid, long companyId) {
+
+		return getPersistence().filterFindByUuid_C(uuid, companyId);
+	}
+
+	/**
+	 * Returns a range of all the remote app entries that the user has permission to view where uuid = &#63; and companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>RemoteAppEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param uuid the uuid
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of remote app entries
+	 * @param end the upper bound of the range of remote app entries (not inclusive)
+	 * @return the range of matching remote app entries that the user has permission to view
+	 */
+	public static List<RemoteAppEntry> filterFindByUuid_C(
+		String uuid, long companyId, int start, int end) {
+
+		return getPersistence().filterFindByUuid_C(uuid, companyId, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the remote app entries that the user has permissions to view where uuid = &#63; and companyId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>RemoteAppEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param uuid the uuid
+	 * @param companyId the company ID
+	 * @param start the lower bound of the range of remote app entries
+	 * @param end the upper bound of the range of remote app entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching remote app entries that the user has permission to view
+	 */
+	public static List<RemoteAppEntry> filterFindByUuid_C(
+		String uuid, long companyId, int start, int end,
+		OrderByComparator<RemoteAppEntry> orderByComparator) {
+
+		return getPersistence().filterFindByUuid_C(
+			uuid, companyId, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns the remote app entries before and after the current remote app entry in the ordered set of remote app entries that the user has permission to view where uuid = &#63; and companyId = &#63;.
+	 *
+	 * @param remoteAppEntryId the primary key of the current remote app entry
+	 * @param uuid the uuid
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next remote app entry
+	 * @throws NoSuchRemoteAppEntryException if a remote app entry with the primary key could not be found
+	 */
+	public static RemoteAppEntry[] filterFindByUuid_C_PrevAndNext(
+			long remoteAppEntryId, String uuid, long companyId,
+			OrderByComparator<RemoteAppEntry> orderByComparator)
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
+
+		return getPersistence().filterFindByUuid_C_PrevAndNext(
 			remoteAppEntryId, uuid, companyId, orderByComparator);
 	}
 
@@ -474,66 +620,84 @@ public class RemoteAppEntryUtil {
 	}
 
 	/**
-	 * Returns the remote app entry where companyId = &#63; and url = &#63; or throws a <code>NoSuchEntryException</code> if it could not be found.
+	 * Returns the number of remote app entries that the user has permission to view where uuid = &#63; and companyId = &#63;.
 	 *
+	 * @param uuid the uuid
 	 * @param companyId the company ID
-	 * @param url the url
-	 * @return the matching remote app entry
-	 * @throws NoSuchEntryException if a matching remote app entry could not be found
+	 * @return the number of matching remote app entries that the user has permission to view
 	 */
-	public static RemoteAppEntry findByC_U(long companyId, String url)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
-
-		return getPersistence().findByC_U(companyId, url);
+	public static int filterCountByUuid_C(String uuid, long companyId) {
+		return getPersistence().filterCountByUuid_C(uuid, companyId);
 	}
 
 	/**
-	 * Returns the remote app entry where companyId = &#63; and url = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 * Returns the remote app entry where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchRemoteAppEntryException</code> if it could not be found.
 	 *
 	 * @param companyId the company ID
-	 * @param url the url
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching remote app entry
+	 * @throws NoSuchRemoteAppEntryException if a matching remote app entry could not be found
+	 */
+	public static RemoteAppEntry findByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
+
+		return getPersistence().findByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the remote app entry where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
 	 * @return the matching remote app entry, or <code>null</code> if a matching remote app entry could not be found
 	 */
-	public static RemoteAppEntry fetchByC_U(long companyId, String url) {
-		return getPersistence().fetchByC_U(companyId, url);
+	public static RemoteAppEntry fetchByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().fetchByC_ERC(companyId, externalReferenceCode);
 	}
 
 	/**
-	 * Returns the remote app entry where companyId = &#63; and url = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns the remote app entry where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param companyId the company ID
-	 * @param url the url
+	 * @param externalReferenceCode the external reference code
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching remote app entry, or <code>null</code> if a matching remote app entry could not be found
 	 */
-	public static RemoteAppEntry fetchByC_U(
-		long companyId, String url, boolean useFinderCache) {
+	public static RemoteAppEntry fetchByC_ERC(
+		long companyId, String externalReferenceCode, boolean useFinderCache) {
 
-		return getPersistence().fetchByC_U(companyId, url, useFinderCache);
+		return getPersistence().fetchByC_ERC(
+			companyId, externalReferenceCode, useFinderCache);
 	}
 
 	/**
-	 * Removes the remote app entry where companyId = &#63; and url = &#63; from the database.
+	 * Removes the remote app entry where companyId = &#63; and externalReferenceCode = &#63; from the database.
 	 *
 	 * @param companyId the company ID
-	 * @param url the url
+	 * @param externalReferenceCode the external reference code
 	 * @return the remote app entry that was removed
 	 */
-	public static RemoteAppEntry removeByC_U(long companyId, String url)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+	public static RemoteAppEntry removeByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
-		return getPersistence().removeByC_U(companyId, url);
+		return getPersistence().removeByC_ERC(companyId, externalReferenceCode);
 	}
 
 	/**
-	 * Returns the number of remote app entries where companyId = &#63; and url = &#63;.
+	 * Returns the number of remote app entries where companyId = &#63; and externalReferenceCode = &#63;.
 	 *
 	 * @param companyId the company ID
-	 * @param url the url
+	 * @param externalReferenceCode the external reference code
 	 * @return the number of matching remote app entries
 	 */
-	public static int countByC_U(long companyId, String url) {
-		return getPersistence().countByC_U(companyId, url);
+	public static int countByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().countByC_ERC(companyId, externalReferenceCode);
 	}
 
 	/**
@@ -569,10 +733,10 @@ public class RemoteAppEntryUtil {
 	 *
 	 * @param remoteAppEntryId the primary key of the remote app entry
 	 * @return the remote app entry that was removed
-	 * @throws NoSuchEntryException if a remote app entry with the primary key could not be found
+	 * @throws NoSuchRemoteAppEntryException if a remote app entry with the primary key could not be found
 	 */
 	public static RemoteAppEntry remove(long remoteAppEntryId)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().remove(remoteAppEntryId);
 	}
@@ -582,14 +746,14 @@ public class RemoteAppEntryUtil {
 	}
 
 	/**
-	 * Returns the remote app entry with the primary key or throws a <code>NoSuchEntryException</code> if it could not be found.
+	 * Returns the remote app entry with the primary key or throws a <code>NoSuchRemoteAppEntryException</code> if it could not be found.
 	 *
 	 * @param remoteAppEntryId the primary key of the remote app entry
 	 * @return the remote app entry
-	 * @throws NoSuchEntryException if a remote app entry with the primary key could not be found
+	 * @throws NoSuchRemoteAppEntryException if a remote app entry with the primary key could not be found
 	 */
 	public static RemoteAppEntry findByPrimaryKey(long remoteAppEntryId)
-		throws com.liferay.remote.app.exception.NoSuchEntryException {
+		throws com.liferay.remote.app.exception.NoSuchRemoteAppEntryException {
 
 		return getPersistence().findByPrimaryKey(remoteAppEntryId);
 	}
@@ -685,26 +849,9 @@ public class RemoteAppEntryUtil {
 	}
 
 	public static RemoteAppEntryPersistence getPersistence() {
-		return _serviceTracker.getService();
+		return _persistence;
 	}
 
-	private static ServiceTracker
-		<RemoteAppEntryPersistence, RemoteAppEntryPersistence> _serviceTracker;
-
-	static {
-		Bundle bundle = FrameworkUtil.getBundle(
-			RemoteAppEntryPersistence.class);
-
-		ServiceTracker<RemoteAppEntryPersistence, RemoteAppEntryPersistence>
-			serviceTracker =
-				new ServiceTracker
-					<RemoteAppEntryPersistence, RemoteAppEntryPersistence>(
-						bundle.getBundleContext(),
-						RemoteAppEntryPersistence.class, null);
-
-		serviceTracker.open();
-
-		_serviceTracker = serviceTracker;
-	}
+	private static volatile RemoteAppEntryPersistence _persistence;
 
 }

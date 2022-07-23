@@ -18,7 +18,7 @@ definition {
 
 	macro clickSubmit {
 		AssertClick(
-			locator1 = "Button#MAIN_CONTENT_SUBMIT",
+			locator1 = "FormPortlet#SUBMIT_BUTTON",
 			value1 = "Submit");
 	}
 
@@ -48,13 +48,8 @@ definition {
 		if (IsElementPresent(locator1 = "FormPortlet#PORTLET_CONTENT")) {
 			Click(locator1 = "FormPortlet#PORTLET_CONTENT");
 		}
-		else {
-			Click(locator1 = "Form#PUBLISH_URL_FORM_PAGE");
 
-			Click(locator1 = "Form#PUBLISH_URL_FORM_PAGE");
-		}
-
-		Pause(locator1 = "5000");
+		WaitForElementPresent(locator1 = "FormPortlet#SUBMIT_BUTTON");
 
 		FormPortlet.clickSubmit();
 	}
@@ -75,6 +70,22 @@ definition {
 		WaitForElementPresent(locator1 = "Message#SUCCESS_DISMISSIBLE");
 
 		Alert.viewSuccessMessage();
+	}
+
+	macro submitSuccessfullyAndViewSuccessPage {
+		FormPortlet.submitSuccessfully();
+
+		if (!(isSet(successPageDescription))) {
+			var successPageDescription = "Your information was successfully received. Thank you for filling out the form.";
+		}
+
+		if (!(isSet(successPageTitle))) {
+			var successPageTitle = "Thank you.";
+		}
+
+		FormPortlet.viewSuccessPage(
+			successPageDescription = "${successPageDescription}",
+			successPageTitle = "${successPageTitle}");
 	}
 
 	macro submitWithError {

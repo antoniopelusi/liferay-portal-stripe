@@ -1,0 +1,785 @@
+@component-name = "portal-workflow-ee"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.run.environment = "EE";
+	property testray.main.component.name = "Workflow Metrics";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		User.firstLoginPG();
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Metrics");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "LPS-102664 - Verify that the user can reassign several tasks to a different users and All Items page is updated accordingly"
+	@priority = "4"
+	test AllItemsPageIsUpdatedAfterReassignTasksToDifferentUser {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "usertest@liferay.com",
+			userFirstName = "User",
+			userLastName = "Test",
+			userScreenName = "usertest");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.assignRegularRoleCP(
+			roleTitle = "Administrator",
+			userScreenName = "usertest");
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ProductMenu.gotoPortlet(
+			category = "Configuration",
+			portlet = "Workflow",
+			site = "${siteName}");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content 1",
+			entryTitle = "Blogs Entry Title 1");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetrics.selectAllTransitionTasks();
+
+		WorkflowMetrics.selectNewAssignee(
+			nameOfAssignee = "Test Test",
+			taskList = "Blogs Entry: Blogs Entry Title,Blogs Entry: Blogs Entry Title 1");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.assertAllItemsCurrentAssignee(
+			workflowInstanceAssignee = "Test Test",
+			workflowInstanceName = "Blogs Entry: Blogs Entry Title");
+
+		WorkflowMetrics.assertAllItemsCurrentAssignee(
+			workflowInstanceAssignee = "Test Test",
+			workflowInstanceName = "Blogs Entry: Blogs Entry Title");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetrics.selectAllTransitionTasks();
+
+		WorkflowMetrics.selectNewAssignee(
+			nameOfAssignee = "User Test",
+			taskList = "Blogs Entry: Blogs Entry Title,Blogs Entry: Blogs Entry Title 1");
+
+		Refresh();
+
+		WorkflowMetrics.assertAllItemsCurrentAssignee(
+			workflowInstanceAssignee = "User Test",
+			workflowInstanceName = "Blogs Entry: Blogs Entry Title");
+
+		WorkflowMetrics.assertAllItemsCurrentAssignee(
+			workflowInstanceAssignee = "User Test",
+			workflowInstanceName = "Blogs Entry: Blogs Entry Title 1");
+	}
+
+	@description = "LPS-106219 - Verify that, in the modal Select Tasks to Reassign, the Assignee filter contains only the options that are displayed in the modal"
+	@priority = "3"
+	test AssigneeFilterContainsOnlyOptionDisplayedInModal {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Blogs");
+
+		Blogs.addWithWorkflow(
+			entryContent = "Content 1",
+			entrySubtitle = "Subtitle 1",
+			entryTitle = "Blogs Entry 1");
+
+		Blogs.addWithWorkflow(
+			entryContent = "Content 2",
+			entrySubtitle = "Subtitle 2",
+			entryTitle = "Blogs Entry 2");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.goToReassignSelectTask();
+
+		WorkflowMetrics.selectNewAssignee(taskList = "1");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		Click(locator1 = "WorkflowReassignModal#ASSIGNEE_DROPDOWN");
+
+		AssertElementPresent(
+			key_processName = "Test Test",
+			locator1 = "WorkflowReassignModal#PROCESS_STEP_DROPDOWN_OPTION");
+
+		AssertElementPresent(
+			key_processName = "Unassigned",
+			locator1 = "WorkflowReassignModal#PROCESS_STEP_DROPDOWN_OPTION");
+	}
+
+	@description = "LPS-106219 - Verify that when all items are selected to be reassigned in a filtered All Items page, the bulk modal is considering the filter results"
+	@priority = "4"
+	test BulkReassignConsiderFilteredResultsFromAllItemsPage {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		var count = "0";
+		var blogTitle = "1";
+
+		while ("${count}" != "3") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry",
+				entryTitle = "Blogs Entry ${blogTitle}");
+
+			var count = ${count} + 1;
+			var blogTitle = ${blogTitle} + 1;
+		}
+
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_PENDING_ITEMS_VALUE");
+
+		WorkflowMetrics.goToReassignSelectTask();
+
+		WorkflowMetrics.selectNewAssignee(taskList = "Blogs Entry: Blogs Entry 1");
+
+		Pause(locator1 = "1000");
+
+		Refresh();
+
+		Click(locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSIGNEE_HEADER");
+
+		Click(
+			locator1 = "WorkflowAllItems#KEBAB_DROPDOWN",
+			task = "1");
+
+		Click(locator1 = "WorkflowAllItems#REJECT_DROPDOWN");
+
+		Button.clickDone();
+
+		WorkflowMetrics.allItemPageFilterCheck(
+			allItemsFilterName = "Process Step",
+			assigneeName = "Review");
+
+		PortletEntry.selectAll();
+
+		Click(
+			locator1 = "WorkflowAllItems#REASSIGN_ICON",
+			task = "1");
+
+		AssertElementNotPresent(
+			key_workflowInstanceName = "Blogs Entry 1",
+			locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_NAME");
+	}
+
+	@description = "LPS-106219 - Verify that the user is able to select multiple filter options and combine filter queries"
+	@priority = "3"
+	test CanSelectMultipleFilterOption {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 1");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 2");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetricsAllItemsListReassignTasks.selectReassignTasksCardFilterValueProcessStep(workflowStep = "Review");
+
+		WorkflowMetricsAllItemsListReassignTasks.selectReassignTasksCardFilterValueAssignee(workflowAssignee = "Test Test");
+
+		AssertTextEquals(
+			key_workflowFilter = "Review",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Review");
+
+		AssertTextEquals(
+			key_workflowFilter = "Test Test",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Test Test");
+	}
+
+	@description = "LPS-106219 - Verify that, in the modal Select Tasks to Reassign, the filters options are ordered alphabetically"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test FilterOptionsAreAlphabeticallyOrdered {
+		property test.name.skip.portal.instance = "WorkflowMetricsAllItemsListReassignTasks#FilterOptionsAreAlphabeticallyOrdered";
+
+		WorkflowMetrics.createUsersGroovy(numberOfUsers = "1");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		var count = "0";
+		var blogTitle = "1";
+
+		while ("${count}" != "2") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry",
+				entryTitle = "Blogs Entry ${blogTitle}");
+
+			var count = ${count} + 1;
+			var blogTitle = ${blogTitle} + 1;
+		}
+
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_PENDING_ITEMS_VALUE");
+
+		WorkflowMetrics.goToReassignSelectTask();
+
+		WorkflowMetrics.selectNewAssignee(taskList = "Blogs Entry: Blogs Entry 1");
+
+		Pause(locator1 = "1000");
+
+		Refresh();
+
+		Click(locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_ASSIGNEE_HEADER");
+
+		Click(
+			locator1 = "WorkflowAllItems#KEBAB_DROPDOWN",
+			task = "1");
+
+		Click(locator1 = "WorkflowAllItems#REJECT_DROPDOWN");
+
+		Button.clickDone();
+
+		Pause(locator1 = "1000");
+
+		Refresh();
+
+		PortletEntry.selectAll();
+
+		Click(locator1 = "WorkflowAllItems#REASSIGN_ICON_2");
+
+		Click(
+			key_allItemsFilterName = "Process Step",
+			locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_FILTER_BY");
+
+		AssertTextEquals(
+			key_processFilter = "Review",
+			locator1 = "WorkflowAllItems#PROCESS_STEP_FILTER",
+			value1 = "Review");
+
+		AssertTextEquals(
+			key_processFilter = "Update",
+			locator1 = "WorkflowAllItems#PROCESS_STEP_FILTER",
+			value1 = "Update");
+	}
+
+	@description = "LPS-106219 - Verify that, in the modal Select Tasks to Reassign, the filter query should only be applied after the user moves the cursor out of the dropdown card"
+	@priority = "3"
+	test FilterQueryIsAppliedAfterMouseMovesOutTheCard {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 1");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 2");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title 1",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title 2",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		AssertElementNotPresent(
+			key_workflowFilter = "Review",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Review");
+
+		AssertElementNotPresent(
+			key_workflowFilter = "Test Test",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Test Test");
+
+		WorkflowMetricsAllItemsListReassignTasks.selectReassignTasksCardFilterValueProcessStep(workflowStep = "Review");
+
+		WorkflowMetricsAllItemsListReassignTasks.selectReassignTasksCardFilterValueAssignee(workflowAssignee = "Test Test");
+
+		AssertElementPresent(
+			key_workflowFilter = "Review",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Review");
+
+		AssertElementPresent(
+			key_workflowFilter = "Test Test",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Test Test");
+	}
+
+	@description = "LPS-102664 - Verify that, in Select New Assignee table, there is a tooltip next to New Assignee title that says Possible assignees must have permissions to be assigned to the corresponding step"
+	@priority = "3"
+	test InfoIconDisplaysMessageOnHover {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry A",
+			entryTitle = "First Blogs Entry Title");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry B",
+			entryTitle = "Second Blogs Entry Title");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "First Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Second Blogs Entry Title",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetrics.goToBulkReassignSelectNewAssignee();
+
+		AssertElementPresent(
+			key_tooltipMessage = "Possible assignees must have permissions to be assigned to the corresponding step.",
+			locator1 = "WorkflowReassignModal#PERMISSION_TOOLTIP_MESSAGE");
+	}
+
+	@description = "LPS-102664 - Verify that tasks within a single instance with concurrent pending tasks can be reassigned using the bulk reassign task modal"
+	@priority = "5"
+	test InstanceWithPendingTasksCanBeReassignedUsingBulkReassignModal {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WaitForElementPresent(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
+
+		var getInstanceId = selenium.getText("WorkflowAllItems#WORKFLOW_INSTANCE_ID");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetrics.selectNewAssignee(taskList = "Blogs Entry: Blogs Entry Title");
+
+		AssertElementPresent(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
+
+		Alert.viewSuccessMessage();
+
+		WorkflowMetrics.assertAllItemsCurrentAssignee(
+			workflowInstanceAssignee = "Test Test",
+			workflowInstanceName = "Blogs Entry: Blogs Entry Title");
+	}
+
+	@description = "LPS-102664 - Verify that in Select Tasks to Reassign, the tasks are displayed in the same order rule displayed in All Items page"
+	@priority = "3"
+	test TasksAreDisplayedInSameOrderRuleInAllItemsPage {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 1");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 2");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "PENDING",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		for (var orderNumber : list "1,2") {
+			var key_order = "${orderNumber}";
+			var key_title = "Blogs Entry: Blogs Entry Title ${orderNumber}";
+
+			AssertElementPresent(locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_ALL_ITEMS_LIST_ORDER");
+		}
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		for (var orderNumber : list "1,2") {
+			var key_order = "${orderNumber}";
+			var key_title = "Blogs Entry: Blogs Entry Title ${orderNumber}";
+
+			AssertElementPresent(locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_LIST_ORDER");
+		}
+	}
+
+	@description = "LPS-102664 - Verify that the user is able to filter the info inside Select Tasks to Reassign by Step and Assignee, search for any of the available field values and the table is updated accordingly"
+	@priority = "4"
+	test UserCanFilterbyStepAndAssignee {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 1");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title 2");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title 1",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "Blogs Entry Title 2",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		WorkflowMetrics.goToDashboardAllItemsWithFilter(
+			workflowFilterOption = "UNTRACKED",
+			workflowMetricsTab = "DASHBOARD",
+			workflowProcess = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetricsAllItemsListReassignTasks.selectReassignTasksCardFilterValueProcessStep(workflowStep = "Review");
+
+		AssertElementPresent(
+			key_workflowFilter = "Review",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Review");
+
+		Click(locator1 = "WorkflowMetricsAllItemsListReassignTasks#FILTER_CLEAR_ALL");
+
+		WorkflowMetricsAllItemsListReassignTasks.selectReassignTasksCardFilterValueAssignee(workflowAssignee = "Test Test");
+
+		AssertElementPresent(
+			key_workflowFilter = "Test Test",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Test Test");
+
+		Click(locator1 = "WorkflowMetricsAllItemsListReassignTasks#FILTER_CLEAR_ALL");
+
+		AssertElementNotPresent(
+			key_workflowFilter = "Review",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Review");
+
+		AssertElementNotPresent(
+			key_workflowFilter = "Test Test",
+			locator1 = "WorkflowMetricsAllItemsListReassignTasks#METRICS_REASSIGN_TASKS_CARD_FILTER_ASSERT_FILTER",
+			value1 = "Test Test");
+	}
+
+	@description = "LPS-106219 - Verify that the user can filter, by Process Step, instances with pending tasks in parallel"
+	@ignore = "true"
+	@priority = "3"
+	test UserCanFilterInstanceWithPendingTasksInParallelByStep {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "WorkflowMetricsAllItemsListReassignTasks#UserCanFilterInstanceWithPendingTasksInParallelByStep";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Workflow.uploadDefinition(
+			workflowDefinitionFile = "multi-task-process-workflow-definition.xml",
+			workflowDefinitionTitle = "Multi Task Process");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Multi Task Process",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Multi Task Process");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetrics.viewTaskFilterOnReassignTasks(processStep = "task1");
+
+		Click(locator1 = "WorkflowReassignModal#CLEAR_SEARCH_MODAL_BUTTON");
+
+		WorkflowMetrics.viewTaskFilterOnReassignTasks(processStep = "task1,task2");
+
+		Click(locator1 = "WorkflowReassignModal#CLEAR_SEARCH_MODAL_BUTTON");
+
+		WorkflowMetrics.viewTaskFilterOnReassignTasks(processStep = "task1,task2,task3");
+	}
+
+	@description = "LPS-102664 - Verify that the Bulk Reassign is letting the user reassign only pending tasks"
+	@priority = "5"
+	test UserCanReassignOnlyPendingTasks {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry 1",
+			entryTitle = "Blogs Entry 1");
+
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		Click(locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_PENDING_ITEMS_VALUE");
+
+		WorkflowMetrics.goToReassignSelectTask();
+
+		WorkflowMetrics.selectNewAssignee(taskList = "Blogs Entry: Blogs Entry 1");
+
+		Pause(locator1 = "1000");
+
+		Refresh();
+
+		Click(
+			locator1 = "WorkflowAllItems#KEBAB_DROPDOWN",
+			task = "1");
+
+		Click(locator1 = "WorkflowAllItems#APPROVE_DROPDOWN");
+
+		Button.clickDone();
+
+		WorkflowMetrics.clearAllFilter();
+
+		AssertElementPresent(locator1 = "WorkflowAllItems#KEBAB_DROPDOWN_DISABLED");
+	}
+
+	@description = "LPS-102664 - Verify that the Bulk Reassign is letting the user reassign only pending tasks assigned to the user's role"
+	@priority = "5"
+	test UserCanReassignOnlyTasksAssignedToHisRole {
+		property portal.upstream = "quarantine";
+
+		JSONUser.addUser(
+			userEmailAddress = "user1@liferay.com",
+			userFirstName = "user1",
+			userLastName = "user1",
+			userScreenName = "user1");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "user1@liferay.com");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Administrator",
+			userEmailAddress = "user1@liferay.com");
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			panel = "Site Administration",
+			portlet = "Memberships");
+
+		Site.assignUserAsMemberCP(
+			userFirstName = "user1",
+			userLastName = "user1",
+			userScreenName = "user1");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetrics.selectNewAssignee(taskList = "Blogs Entry: Blogs Entry Title");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "user1@liferay.com",
+			userLoginFullName = "user1 user1");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		AssertElementPresent(locator1 = "WorkflowAllItems#REASSIGN_CHECKBOX_DISABLED");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.goToBulkReassignSelectTasks();
+
+		WorkflowMetrics.selectNewAssignee(
+			nameOfAssignee = "user1 user1",
+			taskList = "Blogs Entry: Blogs Entry Title");
+	}
+
+}

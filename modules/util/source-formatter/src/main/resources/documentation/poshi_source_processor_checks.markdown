@@ -1,11 +1,7 @@
-# Checks for .function, .macro or .testcase
+# Checks for .function, .jar, .lar, .macro, .path, .testcase, .war or .zip
 
 Check | Category | Description
 ----- | -------- | -----------
-PoshiAnnotationsOrderCheck | [Styling](styling_checks.markdown#styling-checks) | Checks the order of annotations. |
-PoshiCommandsOrderCheck | [Styling](styling_checks.markdown#styling-checks) | Checks the order of poshi commands. |
-PoshiEmptyLinesCheck | [Styling](styling_checks.markdown#styling-checks) | Finds missing and unnecessary empty lines. |
-PoshiIndentationCheck | [Styling](styling_checks.markdown#styling-checks) | Finds incorrect indentation in poshi files. |
-PoshiParametersOrderCheck | [Styling](styling_checks.markdown#styling-checks) | Checks the order of parameters in `.function` and `.macro` files. |
+PoshiDependenciesFileLocationCheck | [Bug Prevention](bug_prevention_checks.markdown#bug-prevention-checks) | Checks that dependencies files are located in the correct directory. |
 PoshiStylingCheck | [Styling](styling_checks.markdown#styling-checks) | Applies rules to enforce consisteny in code style. |
-PoshiWhitespaceCheck | [Styling](styling_checks.markdown#styling-checks) | Finds missing and unnecessary whitespace in poshi files. |
+PoshiVariableNameCheck | [Styling](styling_checks.markdown#styling-checks) | Checks variable names for correct use of `camelCase`. |

@@ -16,10 +16,8 @@ package com.liferay.redirect.internal.security.permission.resource;
 
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.redirect.constants.RedirectConstants;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -35,15 +33,13 @@ public class RedirectPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.name", RedirectConstants.RESOURCE_NAME);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
 				RedirectConstants.RESOURCE_NAME),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", RedirectConstants.RESOURCE_NAME
+			).build());
 	}
 
 	@Deactivate

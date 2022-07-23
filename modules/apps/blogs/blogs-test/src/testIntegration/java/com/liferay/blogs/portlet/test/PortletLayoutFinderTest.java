@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.impl.VirtualLayout;
 import com.liferay.portal.kernel.portlet.BasePortletLayoutFinder;
-import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletLayoutFinder;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
@@ -35,12 +34,9 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.struts.FindStrutsAction;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -108,10 +104,10 @@ public class PortletLayoutFinderTest {
 
 		Assert.assertEquals(_blogLayout.getPlid(), result.getPlid());
 
-		String portletId = PortletProviderUtil.getPortletId(
-			BlogsEntry.class.getName(), PortletProvider.Action.VIEW);
-
-		Assert.assertEquals(portletId, result.getPortletId());
+		Assert.assertEquals(
+			PortletProviderUtil.getPortletId(
+				BlogsEntry.class.getName(), PortletProvider.Action.VIEW),
+			result.getPortletId());
 	}
 
 	@Test(expected = NoSuchLayoutException.class)
@@ -162,26 +158,15 @@ public class PortletLayoutFinderTest {
 
 		_group = GroupTestUtil.addGroup();
 
-		_blogLayout = LayoutTestUtil.addLayout(_group);
-		_assetLayout = LayoutTestUtil.addLayout(_group);
+		_blogLayout = LayoutTestUtil.addTypePortletLayout(_group);
+		_assetLayout = LayoutTestUtil.addTypePortletLayout(_group);
 
 		if (portletExists) {
-			String portletId = PortletProviderUtil.getPortletId(
-				BlogsEntry.class.getName(), PortletProvider.Action.VIEW);
-
-			LayoutTestUtil.addPortletToLayout(_blogLayout, portletId);
+			LayoutTestUtil.addPortletToLayout(
+				_blogLayout,
+				PortletProviderUtil.getPortletId(
+					BlogsEntry.class.getName(), PortletProvider.Action.VIEW));
 		}
-
-		Map<String, String[]> preferenceMap = HashMapBuilder.put(
-			"assetLinkBehavior", new String[] {"viewInPortlet"}
-		).build();
-
-		_testPortletId = PortletIdCodec.encode(
-			"com_liferay_hello_world_web_portlet_HelloWorldPortlet");
-
-		LayoutTestUtil.addPortletToLayout(
-			TestPropsValues.getUserId(), _assetLayout, _testPortletId,
-			"column-1", preferenceMap);
 
 		Group group = _group;
 
@@ -225,6 +210,5 @@ public class PortletLayoutFinderTest {
 
 	private PermissionChecker _originalPermissionChecker;
 	private PortletLayoutFinder _portletLayoutFinder;
-	private String _testPortletId;
 
 }

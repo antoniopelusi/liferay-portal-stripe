@@ -41,7 +41,7 @@ public class DDMFormInstanceRecordWriterTrackerImplTest {
 			ddmFormInstanceRecordWriterTrackerImpl =
 				new DDMFormInstanceRecordWriterTrackerImpl();
 
-		addDDMFormInstanceRecordCSVWriter(
+		_addDDMFormInstanceRecordCSVWriter(
 			ddmFormInstanceRecordWriterTrackerImpl);
 
 		ddmFormInstanceRecordWriterTrackerImpl.deactivate();
@@ -59,7 +59,7 @@ public class DDMFormInstanceRecordWriterTrackerImplTest {
 			ddmFormInstanceRecordWriterTrackerImpl =
 				new DDMFormInstanceRecordWriterTrackerImpl();
 
-		addDDMFormInstanceRecordCSVWriter(
+		_addDDMFormInstanceRecordCSVWriter(
 			ddmFormInstanceRecordWriterTrackerImpl);
 
 		DDMFormInstanceRecordWriter ddmFormInstanceRecordWriter =
@@ -77,7 +77,7 @@ public class DDMFormInstanceRecordWriterTrackerImplTest {
 			ddmFormInstanceRecordWriterTrackerImpl =
 				new DDMFormInstanceRecordWriterTrackerImpl();
 
-		addDDMFormInstanceRecordXMLWriter(
+		_addDDMFormInstanceRecordXMLWriter(
 			ddmFormInstanceRecordWriterTrackerImpl);
 
 		Map<String, String> ddmFormInstanceRecordWriterExtensions =
@@ -94,9 +94,9 @@ public class DDMFormInstanceRecordWriterTrackerImplTest {
 			ddmFormInstanceRecordWriterTrackerImpl =
 				new DDMFormInstanceRecordWriterTrackerImpl();
 
-		addDDMFormInstanceRecordCSVWriter(
+		_addDDMFormInstanceRecordCSVWriter(
 			ddmFormInstanceRecordWriterTrackerImpl);
-		addDDMFormInstanceRecordJSONWriter(
+		_addDDMFormInstanceRecordJSONWriter(
 			ddmFormInstanceRecordWriterTrackerImpl);
 
 		Map<String, String> ddmFormInstanceRecordWriterExtensions =
@@ -115,39 +115,31 @@ public class DDMFormInstanceRecordWriterTrackerImplTest {
 			ddmFormInstanceRecordWriterTrackerImpl =
 				new DDMFormInstanceRecordWriterTrackerImpl();
 
-		addDDMFormInstanceRecordCSVWriter(
+		_addDDMFormInstanceRecordCSVWriter(
 			ddmFormInstanceRecordWriterTrackerImpl);
-		addDDMFormInstanceRecordJSONWriter(
+		_addDDMFormInstanceRecordJSONWriter(
 			ddmFormInstanceRecordWriterTrackerImpl);
-
-		DDMFormInstanceRecordWriter ddmFormInstanceRecordWriter =
-			new DDMFormInstanceRecordCSVWriter();
 
 		ddmFormInstanceRecordWriterTrackerImpl.
 			removeDDMFormInstanceRecordWriter(
-				ddmFormInstanceRecordWriter,
+				new DDMFormInstanceRecordCSVWriter(),
 				HashMapBuilder.<String, Object>put(
 					"ddm.form.instance.record.writer.extension", "csv"
 				).put(
 					"ddm.form.instance.record.writer.type", "csv"
 				).build());
 
-		ddmFormInstanceRecordWriter =
+		Assert.assertNull(
 			ddmFormInstanceRecordWriterTrackerImpl.
-				getDDMFormInstanceRecordWriter("csv");
-
-		Assert.assertNull(ddmFormInstanceRecordWriter);
+				getDDMFormInstanceRecordWriter("csv"));
 	}
 
-	protected void addDDMFormInstanceRecordCSVWriter(
+	private void _addDDMFormInstanceRecordCSVWriter(
 		DDMFormInstanceRecordWriterTrackerImpl
 			ddmFormInstanceRecordWriterTrackerImpl) {
 
-		DDMFormInstanceRecordWriter ddmFormInstanceRecordWriter =
-			new DDMFormInstanceRecordCSVWriter();
-
 		ddmFormInstanceRecordWriterTrackerImpl.addDDMFormInstanceRecordWriter(
-			ddmFormInstanceRecordWriter,
+			new DDMFormInstanceRecordCSVWriter(),
 			HashMapBuilder.<String, Object>put(
 				"ddm.form.instance.record.writer.extension", "csv"
 			).put(
@@ -155,15 +147,12 @@ public class DDMFormInstanceRecordWriterTrackerImplTest {
 			).build());
 	}
 
-	protected void addDDMFormInstanceRecordJSONWriter(
+	private void _addDDMFormInstanceRecordJSONWriter(
 		DDMFormInstanceRecordWriterTrackerImpl
 			ddmFormInstanceRecordWriterTrackerImpl) {
 
-		DDMFormInstanceRecordWriter ddmFormInstanceRecordWriter =
-			new DDMFormInstanceRecordJSONWriter();
-
 		ddmFormInstanceRecordWriterTrackerImpl.addDDMFormInstanceRecordWriter(
-			ddmFormInstanceRecordWriter,
+			new DDMFormInstanceRecordJSONWriter(),
 			HashMapBuilder.<String, Object>put(
 				"ddm.form.instance.record.writer.extension", "json"
 			).put(
@@ -171,15 +160,12 @@ public class DDMFormInstanceRecordWriterTrackerImplTest {
 			).build());
 	}
 
-	protected void addDDMFormInstanceRecordXMLWriter(
+	private void _addDDMFormInstanceRecordXMLWriter(
 		DDMFormInstanceRecordWriterTrackerImpl
 			ddmFormInstanceRecordWriterTrackerImpl) {
 
-		DDMFormInstanceRecordWriter ddmFormInstanceRecordWriter =
-			new DDMFormInstanceRecordXMLWriter();
-
 		ddmFormInstanceRecordWriterTrackerImpl.addDDMFormInstanceRecordWriter(
-			ddmFormInstanceRecordWriter,
+			new DDMFormInstanceRecordXMLWriter(),
 			HashMapBuilder.<String, Object>put(
 				"ddm.form.instance.record.writer.type", "xml"
 			).build());

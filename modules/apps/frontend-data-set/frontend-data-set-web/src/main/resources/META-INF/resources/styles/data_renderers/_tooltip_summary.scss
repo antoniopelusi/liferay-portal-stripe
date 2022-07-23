@@ -1,0 +1,9 @@
+.fds-tooltip-summary {
+	color: $info-primary;
+	cursor: help;
+	margin-left: map-get($spacers, 1);
+
+	& > * {
+		pointer-events: none;
+	}
+}

@@ -15,14 +15,12 @@
 package com.liferay.portal.minifier;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ProxyFactory;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.PropsUtil;
-import com.liferay.registry.BasicRegistryImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -30,6 +28,9 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Iván Zaera Avellón
@@ -48,17 +49,17 @@ public class MinifierUtilTest {
 
 		PropsUtil.set(PropsKeys.MINIFIER_ENABLED, "true");
 
-		Registry registry = new BasicRegistryImpl();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
-		RegistryUtil.setRegistry(registry);
-
-		registry.registerService(
+		_serviceRegistration = bundleContext.registerService(
 			JavaScriptMinifier.class,
-			ProxyFactory.newDummyInstance(JavaScriptMinifier.class));
+			ProxyFactory.newDummyInstance(JavaScriptMinifier.class), null);
 	}
 
 	@After
 	public void tearDown() {
+		_serviceRegistration.unregister();
+
 		PropsUtil.set(
 			PropsKeys.MINIFIER_ENABLED, String.valueOf(_minifierEnabled));
 	}
@@ -117,5 +118,7 @@ public class MinifierUtilTest {
 	}
 
 	private static boolean _minifierEnabled;
+
+	private ServiceRegistration<?> _serviceRegistration;
 
 }

@@ -15,7 +15,7 @@
 package com.liferay.change.tracking.web.internal.portlet.configuration.icon;
 
 import com.liferay.change.tracking.constants.CTConstants;
-import com.liferay.change.tracking.web.internal.constants.CTPortletKeys;
+import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
@@ -27,42 +27,29 @@ import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfiguration
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.security.PermissionsURLTag;
-
-import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Preston Crary
  */
-@Component(immediate = true, service = {})
+@Component(
+	immediate = true,
+	property = "javax.portlet.name=" + CTPortletKeys.PUBLICATIONS,
+	service = PortletConfigurationIcon.class
+)
 public class PermissionsPortletConfigurationIcon
 	extends BasePortletConfigurationIcon {
 
 	@Override
 	public String getMessage(PortletRequest portletRequest) {
-		return LanguageUtil.get(
-			getResourceBundle(getLocale(portletRequest)),
-			"publication-permissions");
-	}
-
-	@Override
-	public ResourceBundle getResourceBundle(Locale locale) {
-		return ResourceBundleUtil.getBundle(
-			locale, PermissionsPortletConfigurationIcon.class);
+		return LanguageUtil.get(getLocale(portletRequest), "permissions");
 	}
 
 	@Override
@@ -102,33 +89,7 @@ public class PermissionsPortletConfigurationIcon
 		return true;
 	}
 
-	@Activate
-	protected void activate(BundleContext bundleContext) {
-		_publicationsServiceRegistration = bundleContext.registerService(
-			PortletConfigurationIcon.class, this,
-			MapUtil.singletonDictionary(
-				"javax.portlet.name", CTPortletKeys.PUBLICATIONS));
-
-		_publicationsConfigurationServiceRegistration =
-			bundleContext.registerService(
-				PortletConfigurationIcon.class, this,
-				MapUtil.singletonDictionary(
-					"javax.portlet.name",
-					CTPortletKeys.PUBLICATIONS_CONFIGURATION));
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		_publicationsServiceRegistration.unregister();
-
-		_publicationsConfigurationServiceRegistration.unregister();
-	}
-
 	@Reference(target = "(resource.name=" + CTConstants.RESOURCE_NAME + ")")
 	private PortletResourcePermission _portletResourcePermission;
-
-	private ServiceRegistration<?>
-		_publicationsConfigurationServiceRegistration;
-	private ServiceRegistration<?> _publicationsServiceRegistration;
 
 }

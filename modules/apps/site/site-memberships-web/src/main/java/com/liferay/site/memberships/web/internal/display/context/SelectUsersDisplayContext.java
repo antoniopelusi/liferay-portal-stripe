@@ -19,7 +19,9 @@ import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
-import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -32,7 +34,6 @@ import com.liferay.portlet.usersadmin.search.UserSearchTerms;
 import com.liferay.site.memberships.constants.SiteMembershipsPortletKeys;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -106,63 +107,84 @@ public class SelectUsersDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		if (_orderByCol != null) {
+		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_renderRequest, "orderByCol", "first-name");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-col-select-users", "first-name");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (_orderByType != null) {
+		if (Validator.isNotNull(_orderByType)) {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-type-select-users", "asc");
 
 		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/select_users.jsp"
+		).setKeywords(
+			() -> {
+				String keywords = getKeywords();
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"displayStyle",
+			() -> {
+				String displayStyle = getDisplayStyle();
+
+				if (Validator.isNotNull(displayStyle)) {
+					return displayStyle;
+				}
+
+				return null;
+			}
 		).setParameter(
 			"eventName", getEventName()
 		).setParameter(
 			"groupId", getGroupId()
-		).build();
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
 
-		String displayStyle = getDisplayStyle();
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
 
-		if (Validator.isNotNull(displayStyle)) {
-			portletURL.setParameter("displayStyle", displayStyle);
-		}
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
 
-		String keywords = getKeywords();
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
 
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		String orderByCol = getOrderByCol();
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+				return null;
+			}
+		).buildPortletURL();
 	}
 
 	public SearchContainer<User> getUserSearchContainer() {
@@ -178,9 +200,6 @@ public class SelectUsersDisplayContext {
 
 		Group group = GroupLocalServiceUtil.fetchGroup(getGroupId());
 
-		userSearch.setRowChecker(
-			new UserSiteMembershipChecker(_renderResponse, group));
-
 		UserSearchTerms searchTerms =
 			(UserSearchTerms)userSearch.getSearchTerms();
 
@@ -191,24 +210,33 @@ public class SelectUsersDisplayContext {
 			userParams.put(
 				"usersGroups", Long.valueOf(group.getParentGroupId()));
 		}
-		else {
-			userParams.put(Field.GROUP_ID, Long.valueOf(getGroupId()));
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		try {
+			if (permissionChecker.isGroupAdmin(getGroupId())) {
+				PermissionThreadLocal.setPermissionChecker(null);
+			}
+
+			userSearch.setResultsAndTotal(
+				() -> UserLocalServiceUtil.search(
+					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+					searchTerms.getStatus(), userParams, userSearch.getStart(),
+					userSearch.getEnd(), userSearch.getOrderByComparator()),
+				UserLocalServiceUtil.searchCount(
+					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+					searchTerms.getStatus(), userParams));
+			userSearch.setRowChecker(
+				new UserSiteMembershipChecker(
+					_renderResponse,
+					GroupLocalServiceUtil.fetchGroup(getGroupId())));
+
+			_userSearch = userSearch;
 		}
-
-		int usersCount = UserLocalServiceUtil.searchCount(
-			themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-			searchTerms.getStatus(), userParams);
-
-		userSearch.setTotal(usersCount);
-
-		List<User> users = UserLocalServiceUtil.search(
-			themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-			searchTerms.getStatus(), userParams, userSearch.getStart(),
-			userSearch.getEnd(), userSearch.getOrderByComparator());
-
-		userSearch.setResults(users);
-
-		_userSearch = userSearch;
+		finally {
+			PermissionThreadLocal.setPermissionChecker(permissionChecker);
+		}
 
 		return _userSearch;
 	}

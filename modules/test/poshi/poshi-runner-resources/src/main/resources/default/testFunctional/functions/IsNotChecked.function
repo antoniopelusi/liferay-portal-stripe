@@ -1,5 +1,18 @@
-<definition default="isNotChecked">
-	<command name="isNotChecked">
-		<execute selenium="isNotChecked" />
-	</command>
-</definition>
+@default = "isNotChecked"
+definition {
+
+	function isNotChecked {
+		selenium.waitForElementPresent();
+
+		selenium.waitForVisible();
+
+		selenium.isNotChecked();
+	}
+
+	function isNotCheckedNotVisible {
+		selenium.waitForElementPresent();
+
+		selenium.isNotChecked();
+	}
+
+}

@@ -252,7 +252,6 @@ set DEFAULT_JVM_OPTS=%DEFAULT_JVM_OPTS% "-Dgradle.user.home=%APP_HOME%\\.gradle"
 tasks.withType(FormatSourceTask) {
 	baseDirName = "../"
 	group = "formatting"
-	showStatusUpdates = true
 }
 
 _createSetUpLibTasks(libDependenciesMap)

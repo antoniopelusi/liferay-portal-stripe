@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -50,14 +50,14 @@ public class KBServicePreAction extends Action {
 		HttpServletResponse httpServletResponse) {
 
 		try {
-			doRun(httpServletRequest, httpServletResponse);
+			_run(httpServletRequest, httpServletResponse);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
-	protected void doRun(
+	private void _run(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws Exception {
@@ -76,11 +76,8 @@ public class KBServicePreAction extends Action {
 
 		String portletId = ParamUtil.getString(httpServletRequest, "p_p_id");
 
-		if (Validator.isNull(portletId)) {
-			return;
-		}
-
-		if (!portletId.equals(
+		if (Validator.isNull(portletId) ||
+			!portletId.equals(
 				KBPortletKeys.KNOWLEDGE_BASE_ARTICLE_DEFAULT_INSTANCE)) {
 
 			return;
@@ -109,7 +106,8 @@ public class KBServicePreAction extends Action {
 			return;
 		}
 
-		redirect = _http.setParameter(redirect, "p_p_auth", actual_p_p_auth);
+		redirect = HttpComponentsUtil.setParameter(
+			redirect, "p_p_auth", actual_p_p_auth);
 
 		httpServletResponse.sendRedirect(redirect);
 	}
@@ -121,9 +119,6 @@ public class KBServicePreAction extends Action {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		KBServicePreAction.class);
-
-	@Reference
-	private Http _http;
 
 	@Reference
 	private Portal _portal;

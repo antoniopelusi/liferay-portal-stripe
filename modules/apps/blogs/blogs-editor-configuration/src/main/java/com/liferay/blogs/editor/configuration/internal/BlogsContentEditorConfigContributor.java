@@ -27,14 +27,20 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.editor.configuration.BaseEditorConfigContributor;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigContributor;
 import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.portlet.PortletURL;
 
@@ -62,18 +68,16 @@ public class BlogsContentEditorConfigContributor
 		ThemeDisplay themeDisplay,
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory) {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("a[*](*); ");
-		sb.append(_getAllowedContentText());
-		sb.append(
-			" div[*](*); figcaption; figure; iframe[*](*); img[*](*){*}; ");
-		sb.append(_getAllowedContentLists());
-		sb.append(" p[*](*){text-align}; ");
-		sb.append(_getAllowedContentTable());
-		sb.append(" video[*](*);");
-
-		jsonObject.put("allowedContent", sb.toString());
+		jsonObject.put(
+			"allowedContent",
+			StringBundler.concat(
+				"a[*](*); ", _getAllowedContentText(),
+				" div[*](*); figcaption; figure; iframe[*](*); img[*](*){*}; ",
+				_getAllowedContentLists(), " p[*](*){text-align}; ",
+				_getAllowedContentTable(), " source[*](*); video[*](*);")
+		).put(
+			"stylesSet", _getStyleFormatsJSONArray(themeDisplay.getLocale())
+		);
 
 		String namespace = GetterUtil.getString(
 			inputEditorTaglibAttributes.get(
@@ -99,6 +103,22 @@ public class BlogsContentEditorConfigContributor
 					"/blogs/upload_temp_image"
 				).buildString());
 		}
+
+		String editorName = GetterUtil.getString(
+			inputEditorTaglibAttributes.get(
+				"liferay-ui:input-editor:editorName"));
+
+		if (editorName.equals("ballooneditor")) {
+			jsonObject.put(
+				"extraPlugins",
+				"itemselector,stylescombo,ballooneditor," +
+					"videoembed,insertbutton,codemirror"
+			).put(
+				"toolbarText",
+				"Styles,Bold,Italic,Underline,BulletedList" +
+					",NumberedList,TextLink,SourceEditor"
+			);
+		}
 	}
 
 	private String _getAllowedContentLists() {
@@ -106,13 +126,73 @@ public class BlogsContentEditorConfigContributor
 	}
 
 	private String _getAllowedContentTable() {
-		return "table[border, cellpadding, cellspacing] {width}; tbody td " +
-			"th[scope]; thead tr[scope];";
+		return StringBundler.concat(
+			"col[span]; colgroup[span]; table[border, cellpadding, ",
+			"cellspacing]{width}; tbody td[colspan, headers, rowspan]{*}; ",
+			"th[abbr, colspan, headers, rowspan, scope, sorted]{*}; thead tr;");
 	}
 
 	private String _getAllowedContentText() {
 		return "b blockquote cite code em h1 h2 h3 h4 h5 h6 hr i pre s " +
 			"strike strong u;";
+	}
+
+	private JSONObject _getStyleFormatJSONObject(
+		String styleFormatName, String element, String cssClass) {
+
+		JSONObject styleJSONObject = JSONFactoryUtil.createJSONObject();
+
+		if (Validator.isNotNull(cssClass)) {
+			JSONObject attributesJSONObject = JSONUtil.put("class", cssClass);
+
+			styleJSONObject.put("attributes", attributesJSONObject);
+		}
+
+		styleJSONObject.put(
+			"element", element
+		).put(
+			"name", styleFormatName
+		);
+
+		return styleJSONObject;
+	}
+
+	private JSONArray _getStyleFormatsJSONArray(Locale locale) {
+		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
+			locale, "com.liferay.frontend.editor.lang");
+
+		return JSONUtil.putAll(
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "normal"), "p", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "1"), "h1",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "2"), "h2",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "3"), "h3",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "4"), "h4",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "preformatted-text"), "pre",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "cited-work"), "cite", null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "computer-code"), "code",
+				null),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "info-message"), "div",
+				"overflow-auto portlet-msg-info"),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "alert-message"), "div",
+				"overflow-auto portlet-msg-alert"),
+			_getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "error-message"), "div",
+				"overflow-auto portlet-msg-error"));
 	}
 
 	private void _populateFileBrowserURL(

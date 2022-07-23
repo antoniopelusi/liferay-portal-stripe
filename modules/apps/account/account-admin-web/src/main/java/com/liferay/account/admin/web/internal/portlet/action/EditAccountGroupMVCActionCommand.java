@@ -16,12 +16,12 @@ package com.liferay.account.admin.web.internal.portlet.action;
 
 import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.model.AccountGroup;
-import com.liferay.account.service.AccountGroupLocalService;
+import com.liferay.account.service.AccountGroupService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -45,19 +45,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditAccountGroupMVCActionCommand extends BaseMVCActionCommand {
 
-	protected AccountGroup addAccountGroup(ActionRequest actionRequest)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		String description = ParamUtil.getString(actionRequest, "description");
-		String name = ParamUtil.getString(actionRequest, "name");
-
-		return _accountGroupLocalService.addAccountGroup(
-			themeDisplay.getUserId(), description, name);
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -68,14 +55,14 @@ public class EditAccountGroupMVCActionCommand extends BaseMVCActionCommand {
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
 
 		if (cmd.equals(Constants.ADD)) {
-			AccountGroup accountGroup = addAccountGroup(actionRequest);
+			AccountGroup accountGroup = _addAccountGroup(actionRequest);
 
-			redirect = _http.setParameter(
+			redirect = HttpComponentsUtil.setParameter(
 				redirect, actionResponse.getNamespace() + "accountGroupId",
 				accountGroup.getAccountGroupId());
 		}
 		else if (cmd.equals(Constants.UPDATE)) {
-			updateAccountGroup(actionRequest);
+			_updateAccountGroup(actionRequest);
 		}
 
 		if (Validator.isNotNull(redirect)) {
@@ -83,7 +70,20 @@ public class EditAccountGroupMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void updateAccountGroup(ActionRequest actionRequest)
+	private AccountGroup _addAccountGroup(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String description = ParamUtil.getString(actionRequest, "description");
+		String name = ParamUtil.getString(actionRequest, "name");
+
+		return _accountGroupService.addAccountGroup(
+			themeDisplay.getUserId(), description, name);
+	}
+
+	private void _updateAccountGroup(ActionRequest actionRequest)
 		throws Exception {
 
 		long accountGroupId = ParamUtil.getLong(
@@ -92,14 +92,11 @@ public class EditAccountGroupMVCActionCommand extends BaseMVCActionCommand {
 		String description = ParamUtil.getString(actionRequest, "description");
 		String name = ParamUtil.getString(actionRequest, "name");
 
-		_accountGroupLocalService.updateAccountGroup(
+		_accountGroupService.updateAccountGroup(
 			accountGroupId, description, name);
 	}
 
 	@Reference
-	private AccountGroupLocalService _accountGroupLocalService;
-
-	@Reference
-	private Http _http;
+	private AccountGroupService _accountGroupService;
 
 }

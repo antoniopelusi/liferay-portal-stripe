@@ -24,13 +24,13 @@ import java.io.InputStream;
 public class ZipReaderFactoryUtil {
 
 	public static ZipReader getZipReader(File file) {
-		return getZipReaderFactory().getZipReader(file);
+		return _zipReaderFactory.getZipReader(file);
 	}
 
 	public static ZipReader getZipReader(InputStream inputStream)
 		throws IOException {
 
-		return getZipReaderFactory().getZipReader(inputStream);
+		return _zipReaderFactory.getZipReader(inputStream);
 	}
 
 	public static ZipReaderFactory getZipReaderFactory() {

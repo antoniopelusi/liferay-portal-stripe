@@ -24,6 +24,10 @@ import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.IOException;
 
+import java.lang.reflect.InvocationHandler;
+
+import java.util.function.Function;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -59,8 +63,7 @@ public class PortalClassLoaderFilter
 				PortalClassLoaderUtil.getClassLoader());
 
 			FilterChain contextClassLoaderFilterChain =
-				(FilterChain)ProxyUtil.newProxyInstance(
-					contextClassLoader, new Class<?>[] {FilterChain.class},
+				_filterChainProxyProviderFunction.apply(
 					new ClassLoaderBeanHandler(
 						filterChain, contextClassLoader));
 
@@ -133,8 +136,6 @@ public class PortalClassLoaderFilter
 
 	@Override
 	protected void doPortalInit() throws Exception {
-		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
-
 		String filterClass = _filterConfig.getInitParameter("filter-class");
 
 		if (filterClass.startsWith("com.liferay.filters.")) {
@@ -143,7 +144,8 @@ public class PortalClassLoaderFilter
 				"com.liferay.portal.servlet.filters.");
 		}
 
-		_filter = (Filter)InstanceFactory.newInstance(classLoader, filterClass);
+		_filter = (Filter)InstanceFactory.newInstance(
+			PortalClassLoaderUtil.getClassLoader(), filterClass);
 
 		_filter.init(_filterConfig);
 
@@ -151,6 +153,10 @@ public class PortalClassLoaderFilter
 			_liferayFilter = (LiferayFilter)_filter;
 		}
 	}
+
+	private static final Function<InvocationHandler, FilterChain>
+		_filterChainProxyProviderFunction = ProxyUtil.getProxyProviderFunction(
+			FilterChain.class);
 
 	private Filter _filter;
 	private FilterConfig _filterConfig;

@@ -31,19 +31,14 @@ public class UpgradeCalendarClassNameIdsPortletPreferences
 
 	@Override
 	protected String getUpdatePortletPreferencesWhereClause() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("(preferences like '%classNameIds%");
-		sb.append(
+		return StringBundler.concat(
+			"(preferences like '%classNameIds%",
 			PortalUtil.getClassNameId(
-				"com.liferay.portlet.calendar.model.CalEvent"));
-		sb.append("%') or (preferences like '%anyAssetType%");
-		sb.append(
+				"com.liferay.portlet.calendar.model.CalEvent"),
+			"%') or (preferences like '%anyAssetType%",
 			PortalUtil.getClassNameId(
-				"com.liferay.portlet.calendar.model.CalEvent"));
-		sb.append("%')");
-
-		return sb.toString();
+				"com.liferay.portlet.calendar.model.CalEvent"),
+			"%')");
 	}
 
 	@Override

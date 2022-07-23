@@ -20,6 +20,8 @@ import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.portlet.action.ActionHelper;
 import com.liferay.commerce.product.servlet.taglib.ui.constants.CPDefinitionScreenNavigationConstants;
+import com.liferay.commerce.product.type.CPType;
+import com.liferay.commerce.product.type.CPTypeServicesTracker;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
@@ -98,13 +100,20 @@ public class CPDefinitionPricingClassesRelationsScreenNavigationCategory
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
+		CPType cpType = _cpTypeServicesTracker.getCPType(
+			cpDefinition.getProductTypeName());
+
 		try {
-			return _commerceCatalogModelResourcePermission.contains(
-				permissionChecker, cpDefinition.getCommerceCatalog(),
-				ActionKeys.VIEW);
+			if (_commerceCatalogModelResourcePermission.contains(
+					permissionChecker, cpDefinition.getCommerceCatalog(),
+					ActionKeys.VIEW) &&
+				cpType.isProductGroupsEnabled()) {
+
+				return true;
+			}
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		return false;
@@ -129,7 +138,7 @@ public class CPDefinitionPricingClassesRelationsScreenNavigationCategory
 
 		_jspRenderer.renderJSP(
 			_servletContext, httpServletRequest, httpServletResponse,
-			"/definition_pricing_class/definition_pricing_classes.jsp");
+			"/cp_definitions/cp_definition_pricing_classes.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -146,6 +155,9 @@ public class CPDefinitionPricingClassesRelationsScreenNavigationCategory
 
 	@Reference
 	private CommercePricingClassService _commercePricingClassService;
+
+	@Reference
+	private CPTypeServicesTracker _cpTypeServicesTracker;
 
 	@Reference
 	private JSPRenderer _jspRenderer;

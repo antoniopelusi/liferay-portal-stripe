@@ -26,8 +26,10 @@ import {
 	Z_KEYCODE,
 } from '../config/constants/keycodes';
 import {MOVE_ITEM_DIRECTIONS} from '../config/constants/moveItemDirections';
+import {useActiveItemId, useSelectItem} from '../contexts/ControlsContext';
+import {useDispatch, useSelector} from '../contexts/StoreContext';
+import {useWidgets} from '../contexts/WidgetsContext';
 import selectCanUpdatePageStructure from '../selectors/selectCanUpdatePageStructure';
-import {useDispatch, useSelector} from '../store/index';
 import deleteItem from '../thunks/deleteItem';
 import duplicateItem from '../thunks/duplicateItem';
 import moveItem from '../thunks/moveItem';
@@ -36,7 +38,6 @@ import undoThunk from '../thunks/undo';
 import canBeDuplicated from '../utils/canBeDuplicated';
 import canBeRemoved from '../utils/canBeRemoved';
 import canBeSaved from '../utils/canBeSaved';
-import {useActiveItemId, useSelectItem} from './Controls';
 import SaveFragmentCompositionModal from './SaveFragmentCompositionModal';
 
 const ctrlOrMeta = (event) =>
@@ -51,8 +52,10 @@ const isEditingEditableField = () =>
 const isInteractiveElement = (element) => {
 	return (
 		['INPUT', 'OPTION', 'SELECT', 'TEXTAREA'].includes(element.tagName) ||
+		!!element.closest('.alloy-editor-container') ||
 		!!element.closest('.cke_editable') ||
-		!!element.closest('.alloy-editor-container')
+		!!element.closest('.dropdown-menu') ||
+		!!element.closest('.page-editor__page-structure__item-configuration')
 	);
 };
 
@@ -63,20 +66,13 @@ const isWithinIframe = () => {
 export default function ShortcutManager() {
 	const activeItemId = useActiveItemId();
 	const dispatch = useDispatch();
-	const selectItem = useSelectItem();
-
 	const canUpdatePageStructure = useSelector(selectCanUpdatePageStructure);
-
 	const [openSaveModal, setOpenSaveModal] = useState(false);
-
+	const selectItem = useSelectItem();
 	const state = useSelector((state) => state);
+	const widgets = useWidgets();
 
-	const {
-		fragmentEntryLinks,
-		layoutData,
-		segmentsExperienceId,
-		widgets,
-	} = state;
+	const {fragmentEntryLinks, layoutData, segmentsExperienceId} = state;
 
 	const activeItem = layoutData.items[activeItemId];
 
@@ -95,7 +91,6 @@ export default function ShortcutManager() {
 			deleteItem({
 				itemId: activeItemId,
 				selectItem,
-				store: state,
 			})
 		);
 	};
@@ -210,7 +205,6 @@ export default function ShortcutManager() {
 				canUpdatePageStructure &&
 				!!layoutData.items[activeItemId] &&
 				canBeRemoved(layoutData.items[activeItemId], layoutData) &&
-				!isEditableField(event.target) &&
 				!isInteractiveElement(event.target),
 			isKeyCombination: (event) => event.keyCode === BACKSPACE_KEYCODE,
 		},

@@ -31,7 +31,7 @@ import org.osgi.service.component.annotations.Component;
 	},
 	service = MVCRenderCommand.class
 )
-public class SelectFolderMVCRenderCommand extends GetFolderMVCRenderCommand {
+public class SelectFolderMVCRenderCommand extends BaseFolderMVCRenderCommand {
 
 	@Override
 	protected String getPath() {

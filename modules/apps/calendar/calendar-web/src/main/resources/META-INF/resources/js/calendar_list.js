@@ -92,11 +92,15 @@ AUI.add(
 			'<span class="',
 			CSS_CALENDAR_LIST_ITEM_LABEL,
 			'">{[Liferay.Util.escapeHTML(parent.calendars[$i].getDisplayName())]}</span>',
-			'<div class="',
+			'<tpl if="parent.calendars[$i].get(\'hasMenuItems\')">',
+			'<div aria-label="' +
+				Liferay.Language.get('show-calendar-actions') +
+				'" class="',
 			CSS_CALENDAR_LIST_ITEM_ARROW,
-			'">',
+			'" role="button" tabindex="0">',
 			CSS_ICON_CARET_DOWN,
 			'</div>',
+			'</tpl>',
 			'</div>',
 			'</tpl>'
 		);
@@ -317,25 +321,23 @@ AUI.add(
 					var result = val;
 
 					if (val) {
-						result = A.merge(
-							{
-								align: {
-									points: [
-										A.WidgetPositionAlign.TL,
-										A.WidgetPositionAlign.BL,
-									],
-								},
-								bubbleTargets: [instance],
-								constrain: true,
-								host: instance,
-								items: [],
-								plugins: [A.Plugin.OverlayAutohide],
-								visible: false,
-								width: 290,
-								zIndex: Liferay.zIndex.MENU,
+						result = {
+							align: {
+								points: [
+									A.WidgetPositionAlign.TL,
+									A.WidgetPositionAlign.BL,
+								],
 							},
-							val || {}
-						);
+							bubbleTargets: [instance],
+							constrain: true,
+							host: instance,
+							items: [],
+							plugins: [A.Plugin.OverlayAutohide],
+							visible: false,
+							width: 290,
+							zIndex: Liferay.zIndex.MENU,
+							...(val || {}),
+						};
 					}
 
 					return result;

@@ -12,124 +12,95 @@
  * details.
  */
 
-/**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- */
+import {
+	getDataEngineStructure,
+	getInputLocalizedValues,
+} from '../saveDDMStructure.es';
 
-import {DataConverter} from 'data-engine-taglib';
+const isElementInnerSelector = (element, ...selectors) =>
+	!selectors.some((selector) => element.closest(selector));
 
-export default function ({defaultLanguageId, namespace}) {
+export default function DataEngineLayoutBuilderHandler({namespace}) {
 	const form = document.getElementById(`${namespace}fm`);
 
 	const getDataLayoutBuilder = () => {
 		return Liferay.componentReady(`${namespace}dataLayoutBuilder`);
 	};
 
-	const getInputLocalizedValues = (fieldName) => {
-		const inputLocalized = Liferay.component(`${namespace}${fieldName}`);
-		const localizedValues = {};
+	// Deselect field when clicking outside the form builder
 
-		if (inputLocalized) {
-			const translatedLanguages = inputLocalized
-				.get('translatedLanguages')
-				.values();
+	const detectClickOutside = async ({target}) => {
+		if (
+			isElementInnerSelector(
+				target,
+				'.ddm-form-builder-wrapper',
+				'.multi-panel-sidebar',
+				'.lfr-icon-menu-open',
+				'.input-localized-content'
+			)
+		) {
+			const dataLayoutBuilder = await getDataLayoutBuilder();
 
-			translatedLanguages.forEach((languageId) => {
-				localizedValues[languageId] = inputLocalized.getValue(
-					languageId
-				);
+			dataLayoutBuilder.current.dispatch({
+				submitButtonId: `${namespace}submitButton`,
+				type: 'sidebar_field_blur',
 			});
 		}
-
-		return localizedValues;
 	};
 
-	const saveDataEngineStructure = () => {
-		getDataLayoutBuilder().then((dataLayoutBuilder) => {
-			const nameInput = document.getElementById(`${namespace}name`);
+	window.addEventListener('click', detectClickOutside, true);
 
-			const name = getInputLocalizedValues('name');
+	const saveDataEngineStructure = async () => {
+		const dataLayoutBuilder = await getDataLayoutBuilder();
+		const nameInput = document.getElementById(`${namespace}name`);
+		const name = getInputLocalizedValues(namespace, 'name');
 
-			if (!nameInput.value || !name[defaultLanguageId]) {
-				Liferay.Util.openToast({
-					message: Liferay.Util.sub(
-						Liferay.Language.get(
-							'please-enter-a-valid-title-for-the-default-language-x'
-						),
-						defaultLanguageId.replace('_', '-')
+		const {
+			defaultLanguageId,
+		} = dataLayoutBuilder.current.state.dataDefinition;
+
+		if (!nameInput.value || !name[defaultLanguageId]) {
+			Liferay.Util.openToast({
+				message: Liferay.Util.sub(
+					Liferay.Language.get(
+						'please-enter-a-valid-title-for-the-default-language-x'
 					),
-					title: Liferay.Language.get('error'),
-					type: 'danger',
-				});
-
-				nameInput.focus();
-
-				return;
-			}
-
-			const {availableLanguageIds} = dataLayoutBuilder.props;
-			const {
-				availableLanguageIds: availableLanguageIdsState,
-			} = dataLayoutBuilder.state;
-
-			const layoutProvider =
-				dataLayoutBuilder.formBuilderWithLayoutProvider.refs
-					.layoutProvider;
-
-			const formData = DataConverter.getFormData({
-				availableLanguageIds,
-				availableLanguageIdsState,
-				defaultLanguageId,
-				layoutProvider,
+					defaultLanguageId.replace('_', '-')
+				),
+				title: Liferay.Language.get('error'),
+				type: 'danger',
 			});
 
-			const dataDefinition = formData.definition;
+			nameInput.focus();
 
-			const description = getInputLocalizedValues('description');
+			return;
+		}
 
-			dataDefinition.description = description;
-			dataDefinition.name = name;
-
-			const dataLayout = formData.layout;
-
-			dataLayout.description = description;
-			dataLayout.name = name;
-
-			Liferay.Util.postForm(form, {
-				data: {
-					dataDefinition: JSON.stringify(dataDefinition),
-					dataLayout: JSON.stringify(dataLayout),
-				},
-			});
+		Liferay.Util.postForm(form, {
+			data: getDataEngineStructure({dataLayoutBuilder, namespace}),
 		});
 	};
 
 	form.addEventListener('submit', saveDataEngineStructure);
 
-	const detectClickOutside = async (event) => {
-		if (
-			!event.target.closest(
-				'.ddm-form-builder-wrapper, .multi-panel-sidebar, .dropdown-menu'
-			)
-		) {
-			const dataLayoutBuilder = await getDataLayoutBuilder();
-			dataLayoutBuilder.formBuilderWithLayoutProvider.refs.layoutProvider?.dispatch?.(
-				'sidebarFieldBlurred'
-			);
-		}
+	// Update editing language id in the data engine side
+
+	const updateEditingLanguageId = async (event) => {
+		const editingLanguageId = event.item.getAttribute('data-value');
+		const dataLayoutBuilder = await getDataLayoutBuilder();
+
+		dataLayoutBuilder.current.dispatch({
+			payload: {languageId: editingLanguageId},
+			type: 'language_add',
+		});
+
+		dataLayoutBuilder.current.dispatch({
+			payload: {editingLanguageId},
+			type: 'language_change',
+		});
 	};
 
-	window.addEventListener('click', detectClickOutside, true);
+	Liferay.after('inputLocalized:localeChanged', updateEditingLanguageId);
 
 	return {
 		dispose() {

@@ -100,13 +100,13 @@ public class CommerceCartResource {
 			coupon = new Coupon(couponCode);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			coupon = new Coupon(
 				StringUtil.split(exception.getLocalizedMessage()));
 		}
 
-		return getResponse(coupon);
+		return _getResponse(coupon);
 	}
 
 	@Path("/order/{orderId}/coupon-code")
@@ -138,13 +138,13 @@ public class CommerceCartResource {
 			coupon = new Coupon(StringPool.BLANK);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			coupon = new Coupon(
 				StringUtil.split(exception.getLocalizedMessage()));
 		}
 
-		return getResponse(coupon);
+		return _getResponse(coupon);
 	}
 
 	@Path("/cart-item")
@@ -200,7 +200,7 @@ public class CommerceCartResource {
 				CommerceOrderItem.class.getName(), httpServletRequest);
 
 			CommerceOrderItem commerceOrderItem =
-				_commerceOrderItemService.upsertCommerceOrderItem(
+				_commerceOrderItemService.addOrUpdateCommerceOrderItem(
 					commerceOrder.getCommerceOrderId(), cpInstanceId, options,
 					quantity, 0, commerceContext, serviceContext);
 
@@ -221,30 +221,7 @@ public class CommerceCartResource {
 			}
 		}
 
-		return getResponse(cart);
-	}
-
-	protected Response getResponse(Object object) {
-		if (object == null) {
-			return Response.status(
-				Response.Status.NOT_FOUND
-			).build();
-		}
-
-		try {
-			String json = _OBJECT_MAPPER.writeValueAsString(object);
-
-			return Response.ok(
-				json, MediaType.APPLICATION_JSON
-			).build();
-		}
-		catch (JsonProcessingException jsonProcessingException) {
-			_log.error(jsonProcessingException, jsonProcessingException);
-		}
-
-		return Response.status(
-			Response.Status.NOT_FOUND
-		).build();
+		return _getResponse(cart);
 	}
 
 	private String[] _getCommerceOrderValidatorResultsMessages(
@@ -282,6 +259,29 @@ public class CommerceCartResource {
 		}
 
 		return _portal.getHomeURL(httpServletRequest);
+	}
+
+	private Response _getResponse(Object object) {
+		if (object == null) {
+			return Response.status(
+				Response.Status.NOT_FOUND
+			).build();
+		}
+
+		try {
+			String json = _OBJECT_MAPPER.writeValueAsString(object);
+
+			return Response.ok(
+				json, MediaType.APPLICATION_JSON
+			).build();
+		}
+		catch (JsonProcessingException jsonProcessingException) {
+			_log.error(jsonProcessingException);
+		}
+
+		return Response.status(
+			Response.Status.NOT_FOUND
+		).build();
 	}
 
 	private static final ObjectMapper _OBJECT_MAPPER = new ObjectMapper() {

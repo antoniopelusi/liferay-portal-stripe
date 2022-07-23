@@ -2,20 +2,82 @@
 <head>
 <title>FormFields</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">FormFields</td></tr>
 </thead>
+
 <tbody>
+<tr>
+	<td>ANY_CHECKBOX_CHECKED</td>
+	<td>//label[contains(.,'${checkboxName}')]/input[@type='checkbox' and @checked]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_DISABLED_SELECT_OPTION</td>
+	<td>//*[contains(@class, 'dropdown')]//*[contains(@class, 'disabled') and contains(text(), '${key_text}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_FIELD</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_SOURCE_ELEMENT</td>
+	<td>//${key_elementName}[contains(.,'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_ANY_LABEL</td>
+	<td>//p[contains(@title,'${key_type}')]//span[contains(text(),'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_GROUP</td>
+	<td>//div[@class='ddm-field-types-fieldset__nested']//label[text()='Fields Group']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>FIELD_ADD</td>
 	<td>//div[contains(@class,'form-field-repeatable-toolbar')]//a[contains(@class,'add-button')]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>FIELD_HIDDEN</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}') and contains(@class,'hide')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FIELD_ADD_DUPLICATE</td>
 	<td>//div[contains(@class,'ddm-field')]//button[contains(@class,'ddm-form-field-repeatable-add-button')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_REPEATABLE_FIELD_GROUP</td>
+	<td>//div[@class='ddm-field' and contains(@data-field-name,'FieldsGroup')][${key_repeatableFieldNumber}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_REPEATABLE_FIELD_IN_FIELD_GROUP</td>
+	<td>//div[@class='ddm-field' and contains(@data-field-name,'FieldsGroup')][${key_repeatableFieldNumber}]//div[@class='ddm-field' and contains(@data-field-name,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_LABEL_BY_INDEX</td>
+	<td>//div[@data-ddm-page='${key_formPageNumber}']/div[${key_index}]//label[contains(text(),'${key_fieldLabel}')] | //div[@data-ddm-page='${key_formPageNumber}']/div[${key_index}]//legend[contains(text(),'${key_fieldLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_REPEATABLE_BUTTON_BY_INDEX</td>
+	<td>//div[${key_duplicatedIndex}][contains(@class,'ddm-field')]//div[contains(@data-field-name,'${key_fieldName}')]//button[contains(@class,'ddm-form-field-repeatable-add-button')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -34,8 +96,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FIELD_HANDLE_RIGHT</td>
+	<td>//div[contains(@class,'resize-handle-right')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_GROUP_HANDLE_RIGHT</td>
+	<td>//div[contains(@class,'resize-handle-right') and not(contains(@class,'hide'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_ON_ROW</td>
+	<td>//div[(@data-ddm-field-row = '${key_fieldRowNumber}')]/div[contains(@data-field-name,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FIELD_REMOVE</td>
 	<td>xpath=(//div[contains(@class,'ddm-field')][contains(@data-field-name,'${key_fieldName}')][not(contains(@class,'container'))])[${key_index}]//button[contains(@class,'ddm-form-field-repeatable-delete-button')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_SIZE</td>
+	<td>//div[contains(@class,'col-md-${key_size}')]/div[contains(@data-field-name,'${key_fieldName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -49,6 +131,46 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FIELD_REQUIRED</td>
+	<td>//label[text()='${key_fieldFieldLabel}']/span[contains(@class,'required')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_DISABLED</td>
+	<td>//label[text()='${key_fieldLabel}']//..//input[@disabled]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_SUBTITLE</td>
+	<td>//div[contains(@class,'form-group')][label[normalize-space(text())='${key_fieldLabel}']]/following-sibling::p[contains(@class,'text-secondary')][normalize-space(text())='${key_subtitle}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_VISIBLE</td>
+	<td>//div[@class='form-group' and contains(@data-field-name,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GO_TO_FORM_FIELD</td>
+	<td>//label[contains(.,'${key_formFieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_VALUE_FIELD</td>
+	<td>//div[contains(@data-field-name,'validation')]//label[contains(text(),'${key_fieldLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREDEFINED_VALUE_INPUT</td>
+	<td>//input[contains(@name,'predefinedValue')]/..//input[@type!="hidden"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREDEFINED_VALUE_AT_FORM_SELECT</td>
+	<td>//label[contains(text(),'${key_fieldName}')]/..//div[contains(@class,'option-selected') and contains(text(),'${key_fieldValue}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PROPERTIES</td>
 	<td>//div[contains(@class,'nav-item')]</td>
 	<td></td>
@@ -59,13 +181,64 @@
 	<td></td>
 </tr>
 <tr>
+	<td>LABEL_BY_DATA_FIELD_NAME</td>
+	<td>//div[@class='ddm-field' and contains(@data-field-name,'${key_fieldName}')]//label[text()='${key_fieldLabel}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_DROPDOWN_ITEM</td>
+	<td>//button[@class='dropdown-item' and contains(text(),'${key_itemName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>OPEN_GRAPH_LABEL</td>
 	<td>//div[contains(@class,'form-group')]/label[normalize-space(text())='${key_fieldLabel}']</td>
 	<td></td>
 </tr>
 <tr>
+	<td>FIELD_TARGET_LABEL</td>
+	<td>//div[contains(@class,'ddm-drag')]//div[contains(*,'${key_name}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_TARGET_LABEL_AND_BODY_TEXT</td>
+	<td>//div[contains(@class,'ddm-drag')]//div[contains(*,'${key_fieldName}')]/*/*[contains(text(),'${key_bodyText}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FIELD_TARGET_LABEL_AND_BODY_OPTION</td>
+	<td>//div[contains(@class,'ddm-drag')]//div[contains(*,'${key_fieldName}')]/*/*/*/*/*/*[contains(text(),'${key_optionName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLISHED_FORM_FIELD_BY_INDEX</td>
+	<td>//div[contains(concat(' ',normalize-space(@class),' '),'ddm-field-container')]/div[${key_index}]//label[contains(text(),'${key_fieldLabel}')]/..//input[@type!="hidden"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLISHED_FORM_FIELD_SEPARATOR_BY_INDEX</td>
+	<td>//div[contains(concat(' ',normalize-space(@class),' '),'ddm-field-container')]/div[${key_index}]//label[contains(text(),'Separator')]//.//../hr[contains(@class, 'separator')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
+	<td></td>
+</tr>
+<!--BOOLEAN-->
+<tr>
+	<td>BOOLEAN_NAME</td>
+	<td>//span[text()='${fieldValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BOOLEAN_PREDEFINED_VALUE</td>
+	<td>//div[contains(@class,'form-builder-select-field input-group-container')]//div[contains(@class,'form-control results-chosen select-field-trigger')]//div[contains(@class,'option-selected')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECK_BOOLEAN_FIELD</td>
+	<td>//div[contains(@class,'custom-control custom-checkbox')]//span[text()='${fieldName}']</td>
 	<td></td>
 </tr>
 <!--CHECKBOX-->
@@ -77,6 +250,11 @@
 <tr>
 	<td>CHECKBOX_LABEL</td>
 	<td>//div[contains(@data-field-name,'${key_fieldName}')]//label | //div[contains(@data-field-name,'${key_fieldName}')]//legend | //div[contains(@class,'custom-control-input')]//div[contains(@data-field-name,'${key_fieldName}')]//label | //li[contains(.,'${key_fieldName}')]//label | //label[.//input[@type='checkbox' and contains(@id,'${key_fieldName}') or contains(@name,'${key_fieldName}')]] | //input[contains(@type,'checkbox')]//following-sibling::span[contains(.,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECKBOX_TEXT_LABEL</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//span[contains(.,'${key_fieldLabel}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -101,8 +279,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>COLOR_FIELD_BY_ROW</td>
+	<td>//div[contains(@class,'ddm-field-container')]//div[@class='ddm-field'][${key_rowNumber}]//div[contains(@data-field-name,'${key_fieldName}')]//div[contains(@class,'color-picker')]//div[contains(@class,'color')]//input[@type='text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>COLOR_FROM_COLOR_PICKER_BY_ROW</td>
+	<td>//div[contains(@class,'ddm-field-container')]//div[@class='ddm-field'][${key_rowNumber}]//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn') and @title='${key_colorValue}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>COLOR_PICKER</td>
 	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>COLOR_PICKER_BY_ROW</td>
+	<td>//div[contains(@class,'ddm-field-container')]//div[@class='ddm-field'][${key_rowNumber}]//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -116,6 +309,21 @@
 	<td></td>
 </tr>
 <!--DATE-->
+<tr>
+	<td>DATE_CALENDAR</td>
+	<td>//button[contains(@class,'date-picker-dropdown-toggle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DATE_CALENDAR_DAY</td>
+	<td>//div[@class='date-picker-calendar-body']//div[@class='date-picker-col']/button[text()='${key_valueDay}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DATE_CALENDAR_FIELD</td>
+	<td>//select[@name='${key_valueName}']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>DATE_FIELD</td>
 	<td>//div[contains(@data-field-name,'${key_fieldName}')]//input[@type='text']</td>
@@ -138,9 +346,9 @@
 </tr>
 <!--DOCUMENT_LIBRARY-->
 <tr>
-    <td>UPLOAD_FIELD_CLEAR_BUTTON</td>
-    <td>//button[text()='Clear']</td>
-    <td></td>
+	<td>UPLOAD_FIELD_CLEAR_BUTTON</td>
+	<td>//button[text()='Clear']</td>
+	<td></td>
 </tr>
 <tr>
 	<td></td>
@@ -150,7 +358,7 @@
 <!--HELP TEXT-->
 <tr>
 	<td>HELP_TEXT</td>
-	<td>//div[contains(@class,'form-group')]//span[contains(@class,'form-text') and contains(text(),'${value1}')] | //div[contains(@data-field-name,'${key_fieldName}')]//p[@class='liferay-ddm-form-field-tip'] | //div[contains(@data-field-name,'${key_fieldName}')]//span[contains(@class, 'form-text')]</td>
+	<td>//div[contains(@class,'form-group')]//div[contains(@class,'form-feedback-group') and contains(.,'${value1}')] | //div[contains(@data-field-name,'${key_fieldName}')]//p[@class='liferay-ddm-form-field-tip'] | //div[contains(@data-field-name,'${key_fieldName}')]//div[contains(@class,'form-feedback-group')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -175,8 +383,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>OPTION_FROM_SELECTED_LIST</td>
+	<td>//li[contains(@aria-selected,'false')]//button[contains(@label,'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONS_PREDEFINED_SELECTOR</td>
+	<td>//label[contains(text(),'Predefined')]/..//div[contains(@class,'input-group-container') and //div[contains(text(),'${key_definedEntry}')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>OPTIONS_OPTION_VALUE_FIELD</td>
 	<td>//div[contains(@class,'ddm-field-options-container')]//div[contains(@class,'ddm-field-options')][${key_rowNumber}]//input | //div[@class='options']//div[contains(@class,'form-field-container')][${key_rowNumber}]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONS_OPTION_VALUE_FIELD_REFERENCE</td>
+	<td>//div[contains(@class,'ddm-field-options-container')]//div[contains(@class,'ddm-field-options')][${key_rowNumber}]//input[@class='key-value-reference-input'] | //div[@class='options']//div[contains(@class,'form-field-container')][${key_rowNumber}]//input[@class='key-value-reference-input']</td>
 	<td></td>
 </tr>
 <tr>
@@ -192,6 +415,27 @@
 <tr>
 	<td>OPTIONS_OPTION_NAME_FIELD_EDIT</td>
 	<td>//div[contains(@class,'ddm-field-options-container')]//div[contains(@class,'ddm-field-options')][${key_rowNumber}]//input[contains(@class,'key-value-input')] | //div[@class='options']//div[contains(@class,'form-field-container')][${key_rowNumber}]//div[contains(@class,'key-value-editor')]/input[contains(@class, 'input')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPTIONS_HORIZONTALY_POSITIONED</td>
+	<td>//div[@class='custom-control custom-checkbox custom-control-inline']//span[contains(text(), '${key_text}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--IMAGE-->
+<tr>
+	<td>IMAGE_FIELD_DESCRIPTION</td>
+	<td>//div[contains(@class,'form-group')]//input[@type='text' and @value='${key_description}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMAGE_PREDEFINED_VALUE</td>
+	<td>//div[contains(@data-field-name,'Image')]//div[contains(@class,'input-group')]//input[@type='text' and (@value='${key_imageName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -241,6 +485,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>GRID_OPTIONS_OPTION_ROW_NAME</td>
+	<td>//legend[text()='${key_fieldName}']/following-sibling::div[1]//..//tr[${key_rowNumber}]/td[contains(.,'${key_optionName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GRID_OPTIONS_OPTION_COL_NAME</td>
+	<td>//legend[text()='${key_fieldName}']/following-sibling::div[1]//..//tr[${key_rowNumber}]/th[contains(.,'${key_optionName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -261,10 +515,62 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--RICH TEXT-->
+<tr>
+	<td>RICH_TEXT_CONTENT</td>
+	<td>//label[contains(.,'${key_fieldLabel}')]//following-sibling::div//div[contains(@id,'cke')]/iframe</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREDEFINED_VALUE_IFRAME</td>
+	<td>//label[contains(.,'Predefined Value')]//following-sibling::div//div[contains(@id,'cke')]/iframe</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREDEFINED_VALUE_BODY</td>
+	<td>//body[contains(@class,'cke_editable')]</td>
+	<td></td>
+</tr>
 <!--NUMBER-->
+<tr>
+	<td>CHARACTER_OPTIONS_SHOW_LESS_BUTTON</td>
+	<td>//label[contains(text(),'Character Options')]//following-sibling::button[contains(.,'Show Less')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHARACTER_OPTIONS_SHOW_MORE_BUTTON</td>
+	<td>//label[contains(text(),'Character Options')]//following-sibling::button[contains(.,'Show More')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INPUT_MASK_FORMAT_VALUE</td>
+	<td>//label[contains(text(),'Format')]//..//input[(@type='text')]</td>
+	<td></td>
+</tr>
+<tr>
+		<td>INPUT_MASK_PREFIX_OR_SUFFIX</td>
+		<td>//label[contains(text(),'Prefix or Suffix')]//..//input[(@type='text')]</td>
+		<td></td>
+</tr>
+<tr>
+		<td>INPUT_MASK_PREFIX_OR_SUFFIX_VALUE</td>
+		<td>//div[contains(concat(' ',normalize-space(@class),' '),'ddm-field-container')]//div[contains(@class,'input-group-text') and contains(text(),'${key_affixValue}')]</td>
+		<td></td>
+</tr>
+<tr>
+	<td>INPUT_MASK_VALUE</td>
+	<td>//div[contains(concat(' ',normalize-space(@class),' '),'ddm-field-container')]//div[@class='form-group']//input[@placeholder='${key_inputMaskValue}']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>NUMBER_FIELD</td>
 	<td>//div[contains(@class,'form-group') and contains(.,'${key_fieldLabel}')]/input[@type='number']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NUMBER_FIELD_VALUE_ROW</td>
+	<td>//div[${key_rowNumber}]//div[contains(concat(' ',normalize-space(@class),' '),'ddm-field-container')]//label[contains(text(),'${key_fieldName}')]/..//input[@value='${key_fieldValue}']
+</td>
 	<td></td>
 </tr>
 <tr>
@@ -289,13 +595,33 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TEXT_CONFIRMATION_FIELD_DIRECTION</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//div[@class='${key_direction}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TEXT_FIELD</td>
 	<td>//input[@type='text' and contains(@id,'${key_fieldName}')] | //input[@type='text' and contains(@name,'${key_fieldName}')] | //div[contains(@class,'form-group')]//p[text()='${key_fieldLabel}'] | //div[contains(@data-field-name,'${key_fieldName}')]//div[contains(@class,'form-group')]//input</td>
 	<td></td>
 </tr>
 <tr>
+	<td>TEXT_FIELD_PRICE_RANGE</td>
+	<td>//input[@type='number' and contains(@title,'${key_name}')] | //div[contains(@class,'form-group')]//p[text()='']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TEXT_FIELD_NULL</td>
 	<td>//input[@type='text' and (@value='') and contains (@class,'form-control bg-light field')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_FIELD_PLACEHOLDER</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//input[@placeholder='${key_placeHolder}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_FIELD_PREDEFINED_VALUE</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//input[@value='${key_predefinedValue}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -309,8 +635,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TEXT_FIELD_LABEL_REPORT_CARD</td>
+	<td>//div[@class='report-cards-shortcut']//div[@class='field-label'][contains(text(),'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TEXT_FIELD_2</td>
 	<td>//div[contains(@class,'lfr-ddm-form-container')]//div[contains(@data-field-name,'${key_fieldName}')][2]//input[@type='text' and contains(@name,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_FIELD_3</td>
+	<td>//input[@type='text' and contains(@value,'${key_fieldValue}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -324,19 +660,89 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TEXT_MULTILINE_FIELD_2</td>
+	<td>//div[contains(@data-field-name,'Text')]//textarea</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
 </tr>
 <!--PARAGRAPH-->
 <tr>
+	<td>PARAGRAPH_ASSERT_BODY_TEXT_CONTENT_BOLD</td>
+	<td>//div[(@class='liferay-ddm-form-field-paragraph-text')]//p//strong[contains(text(),'${key_textName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_ASSERT_BODY_TEXT_CONTENT_ITALIC</td>
+	<td>//div[(@class='liferay-ddm-form-field-paragraph-text')]//p//em[contains(text(),'${key_textName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_ASSERT_BODY_TEXT_CONTENT_UNDERLINE</td>
+	<td>//div[(@class='liferay-ddm-form-field-paragraph-text')]//p//u[contains(text(),'${key_textName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PARAGRAPH_BODY_TEXT_CONTENT</td>
 	<td>//div[(@class='form-group') and contains(@data-field-name,'${key_fieldName}')]//div</td>
 	<td></td>
 </tr>
 <tr>
+	<td>PARAGRAPH_BODY_TEXT_PAGES</td>
+	<td>//div[contains(@class,'liferay-ddm-form-field-paragraph-text')]//p[text()='${fieldValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_BODY_CONTENT_TABLE</td>
+	<td>//div[contains(@class,'${key_fieldName}')]//table</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PARAGRAPH_BODY_TEXT_FIELD</td>
 	<td>//div[contains(@id,'text') and contains(@aria-label,'Rich Text Editor')]//p | //div[contains(@id,'text') and contains(@aria-label,'Rich Text Editor')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_FORMATTING_STYLES</td>
+	<td>//iframe[@class='cke_panel_frame']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_CONTENT_UNORDERED_LIST</td>
+	<td>//legend[contains(text(),'${key_labelName}')]//..//ul//li[contains(.,'${key_itemName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_CONTENT_ORDERED_LIST</td>
+	<td>//legend[contains(text(),'${key_labelName}')]//..//ol//li[contains(.,'${key_itemName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_LINK_MODAL</td>
+	<td>//*[contains(@class,'cke_dialog_contents')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_LINK_TEXT_BODY</td>
+	<td>//p//a[@href='${key_url}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_LINK_TEXT_INPUT</td>
+	<td>//div[@class='cke_dialog_body']//label[text()='${fieldLabel}']//..//input[@type='text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_SPECIFIC_FIELD_BY_BODY</td>
+	<td>//div[@class='liferay-ddm-form-field-paragraph-text']/p[contains(.,'${key_bodyName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PARAGRAPH_TEXT_VALUE_STYLE</td>
+	<td>//div[(@class='liferay-ddm-form-field-paragraph-text')]//${key_formattingStyle}[contains(text(),'${value}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -362,6 +768,11 @@
 </tr>
 <!--SELECT-->
 <tr>
+	<td>SELECT_ASSERT_RADIO_OPTION_ORDER</td>
+	<td>//div[${key_position}]//span[contains(text(),'${key_optionLabel}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECT_FIELD</td>
 	<td>//label[contains(text(),'${key_fieldName}') or contains(@for,'${key_fieldName}')]/following-sibling::div[contains(@class,'ddm-select-dropdown') or contains(@class,'input-group-container')] | //div[contains(@data-field-name,'${key_fieldName}') or contains(@for,'${key_fieldName}')]//following-sibling::div[contains(@class,'ddm-select-dropdown') or contains(@class,'input-group-container')]</td>
 	<td></td>
@@ -373,7 +784,7 @@
 </tr>
 <tr>
 	<td>SELECT_FIELD_OPTIONS_LIST</td>
-	<td>//div[contains(@class, 'dropdown-menu') and contains(@class, 'show')]//li[contains(.,'${key_selectOption}')]</td>
+	<td>//div[@class='dropdown-menu ddm-btn-full ddm-select-dropdown show']//button[@label='${key_selectOption}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -382,8 +793,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_FIELD_MULTIPLE_OPTION_1</td>
+	<td>//span[@class='custom-control-label-text' and contains(text(), '${key_fieldType}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECT_FIELD_MULTIPLE_OPTION_REMOVE</td>
 	<td>//div[contains(@data-field-name,'${key_fieldName}')]//span[contains(.,'${key_selectOption}')]//button[contains(@class,'close')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_OPTIONS_FIELD_BY_ROW_PREVIEW</td>
+	<td>//button[contains(text(),'${key_optionValue}') and contains(@data-testid, '${key_rowPosition}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_OPTIONS_INLINE_IDENTIFIER</td>
+	<td>//div[@class='custom-control custom-radio custom-control-inline']</td>
 	<td></td>
 </tr>
 <tr>
@@ -392,45 +818,102 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_SELECT_LIST_INDEX</td>
+	<td>xpath=//label[contains(text(),'${key_fieldLabel}')]/../../..//div[contains(@class,'ddm-field') and contains(@data-field-name,'SelectFromList')][${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_SINGLE_SELECTION_ROW</td>
+	<td>//div[@class='ddm-field' and contains(@data-field-name,'${key_fieldName}')][${key_rowNumber}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_SINGLE_SELECTION_ROW_OPTION</td>
+	<td>//div[@class='ddm-field' and contains(@data-field-name,'${key_fieldName}')][${key_rowNumber}]//span[text()='${key_optionValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_SINGLE_SELECTION_ROW_OPTION_INPUT</td>
+	<td>//div[@class='ddm-field' and contains(@data-field-name,'${key_fieldName}')][${key_rowNumber}]//span[text()='${key_optionValue}']/../..//input</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECTOR</td>
 	<td>//div[contains(@class,'dropdown-menu') and contains(@class,'show')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<!--SWITCHER-->
-<tr>
-	<td>SWITCHER</td>
-	<td>//div[contains(@data-field-name,'${key_fieldName}')]//span[@class='toggle-switch-bar'] | //span[contains(text(),'${key_fieldName}')]/preceding-sibling::span[@class='toggle-switch-handle'] | //span[contains(text(),'${key_fieldName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SWITCHER_OPTION</td>
-	<td>//input[contains(@value,'${key_switcherOption}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SWITCHER_TEXTFIELD</td>
-	<td>//span[contains(text(),'Autocomplete')]/preceding-sibling::span[@class='toggle-switch-handle']</td>
+	<td>OPTION_SELECTED</td>
+	<td>//input[contains(@class,'custom-control-input') and contains(@value,'${key_optionSelected}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td></td>
 	<td></td>
+	<td></td>
+</tr>
+<!--SEPARATOR-->
+<tr>
+	<td>SEPARATOR_LINE</td>
+	<td>//label[text()='${key_fieldLabel}']/following-sibling::hr[contains(@class,'separator')]</td>
+	<td></td>
+</tr>
+<!--SWITCH-->
+<tr>
+	<td>SWITCH</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//span[@class='toggle-switch-bar'] | //label[contains(.,'${key_fieldName}')]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SWITCH_NOT_VISIBLE</td>
+	<td>//div[contains(@class,'form-group hide')]//label[contains(text(),'${key_switchOption}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SWITCH_OPTION</td>
+	<td>//input[contains(@value,'${key_switchOption}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SWITCH_OPTION_IN_FIELD</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//span[@class='toggle-switch-bar']//..//span[text()='${key_optionValue}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--TOOLBAR-->
+<tr>
+	<td>TOOLBAR_ANY_ITEM_BUTTON</td>
+	<td>//a[contains(@href,"${key_titleName}")]</td>
 	<td></td>
 </tr>
 <!--VALIDATION-->
+<tr>
+	<td>VALIDATION_ACCEPTED_DATE</td>
+	<td>//div[contains(@class,'ddm-form-field-type__validation-date-accepted-date')]//div[contains(@class,"form-control results-chosen select-field-trigger")]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>VALIDATION_ARGUMENT</td>
 	<td>//div[contains(@data-field-name,'selectedValidation')]//div[contains(@class,'select-field-trigger')]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>VALIDATION_ARGUMENT_2</td>
+	<td>//div[contains(@class,'form-control')]//div[contains(@class,'option-selected') and text()='Contains']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>VALIDATION_ARGUMENT_OPTION</td>
-	<td>//div[contains(@data-field-name,'validation')]//ul[contains(@class,'results-chosen')]//li[contains(.,'${key_validationArgument}')] | //div[contains(@class,'dropdown-menu') and contains(@class,'show')]//ul[contains(@class,'list-unstyled')]//button[contains(text(),'${key_validationArgument}')]</td>
+	<td>//div[contains(@class,'dropdown-menu ddm-btn-full ddm-select-dropdown show')]//ul//li//button[text()='${key_validationArgument}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ARGUMENT_OPTION_TARGET_INPUT</td>
+	<td>//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//ul[contains(@class,'list-unstyled')]//button[text()='${key_validationArgument}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -439,8 +922,68 @@
 	<td></td>
 </tr>
 <tr>
+	<td>VALIDATION_ERROR_ENTRIES</td>
+	<td>//div[contains(@class,'sheet')]/h1[contains(.,'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>VALIDATION_ERROR_MESSAGE</td>
 	<td>//input[contains(@class,'message-input')] | //input[contains(@name,'errorMessage')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_STARTS_FROM</td>
+	<td>//div[contains(@class,'ddm__validation-date-start-end')][1]//div[contains(@class,"form-control results-chosen select-field-trigger")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_STARTS_FROM_OPERATION</td>
+	<td>//div[contains(@class,'ddm__custom-date')][1]//div/div[text()='Plus']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_STARTS_FROM_QUANTITY</td>
+	<td>//input[@name='inputedQuantity_startsFrom']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_STARTS_FROM_QUANTITY_VALUE</td>
+	<td>//input[@name='inputedQuantity_startsFrom' and @value='${key_startsFromQuantity}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_STARTS_FROM_UNIT</td>
+	<td>//div[contains(@class,'ddm__custom-date')][1]//div[contains(@class,'option-selected') and text()='Days']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ENDS_ON</td>
+	<td>//div[contains(@class,'ddm__validation-date-start-end')][3]//div[contains(@class,"form-control results-chosen select-field-trigger")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ENDS_ON_OPERATION</td>
+	<td>//div[contains(@class,'ddm__custom-date')][2]//div/div[text()='Plus']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ENDS_ON_QUANTITY</td>
+	<td>//input[@name='inputedQuantity_endsOn' and @value='1']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ENDS_ON_QUANTITY_VALUE</td>
+	<td>//input[@name='inputedQuantity_endsOn' and @value='${key_endsOnQuantity}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ENDS_ON_UNIT</td>
+	<td>//div[contains(@class,'ddm__custom-date')][2]//div[contains(@class,'option-selected') and text()='Days']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ENDS_ON_UNIT_VALUE</td>
+	<td>//div[contains(@class,'ddm__custom-date')][2]//div[contains(@class,'option-selected') and text()='${key_endsOnUnit}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -451,22 +994,22 @@
 <!--CAPTCHA-->
 <tr>
 	<td>CAPTCHA_FIELD</td>
-	<td>//div[@class='taglib-captcha']/img[contains(@id, 'captcha')]</td>
+	<td>//div[contains(@class, 'taglib-captcha')]/img[contains(@id, 'captcha')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CAPTCHA_FIELD_REFRESH</td>
-	<td>//div[@class='taglib-captcha']//a[contains(@id, 'refreshCaptcha')]</td>
+	<td>//div[contains(@class, 'taglib-captcha')]//a[contains(@id, 'refreshCaptcha')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CAPTCHA_LABEL</td>
-	<td>//div[@class='taglib-captcha']//label[contains(@class,'control-label')]</td>
+	<td>//div[contains(@class, 'taglib-captcha')]//label[contains(@class,'control-label')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CAPTCHA_TEXT_VERIFICATION</td>
-	<td>//div[@class='taglib-captcha']//input[@type='text' and contains(@id, 'captchaText')]</td>
+	<td>//div[contains(@class, 'taglib-captcha')]//input[@type='text' and contains(@id, 'captchaText')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -492,13 +1035,33 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_UPLOAD_FIELD_DISABLE</td>
+	<td>//button[contains(@class,'btn-secondary')][@disabled='']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_UPLOAD_FIELD_BY_INDEX</td>
+	<td>//div[contains(concat(' ',normalize-space(@class),' '),' ddm-field-container')]/div[${key_index}]//span[contains(text(),'Select')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>UPLOAD_FIELD</td>
 	<td>//div[contains(@data-field-name,'${key_fieldName}')]//input[contains(@id,'inputFile')]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>UPLOAD_FIELD_BY_VALUE</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//input[contains(@id,'inputFile')][@value='${key_value}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>UPLOAD_FIELD_GUEST</td>
 	<td>//div[contains(@data-field-name,'${key_fieldName}')]//input[@type='file']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>UPLOAD_FIELD_GUEST_1</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')]//label[contains(text(),'Select')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -512,8 +1075,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>UPLOAD_ON_WIDGET_ON_ANY_ROW</td>
+	<td>//div[@class='ddm-field'][${key_rowNumber}]//button[contains(text(),'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>UPLOAD_ON_WIDGET_ON_ANY_FIELD</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')][${key_rowNumber}]//button[contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>UPLOAD_ON_WIDGET_SINGLE_ROW</td>
+	<td>//div[contains(@data-field-name,'${key_fieldName}')][1]//button[contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>UPLOAD_ON_DUPLICATE_FIELD</td>
 	<td>//div[@class='ddm-field'][2]//button[contains(text(),'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_BASIC_PLACEHOLDER</td>
+	<td>//input[contains(@name,'placeholder')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -556,6 +1139,39 @@
 <tr>
 	<td>IMAGE_TABLE_ENTRY</td>
 	<td>//td[contains(@class,'lfr-image-column')]</td>
+	<td></td>
+</tr>
+<!--TRANSLATION-->
+<tr>
+	<td>TRANSLATION_LIST</td>
+	<td>xpath=//ul[@class='nav nav-underline lfr-translationmanager']//li[@class='nav-item'][${key_position}]/..//span[contains(text(),'${key_language}')]</td>
+	<td></td>
+</tr>
+<!--MULTIPLE_SELECTION-->
+<tr>
+	<td>DELETE_OPTION_FROM_MULTIPLE_SELECTION</td>
+	<td>//input[contains(@value,'${key_valueOption}')]//..//..//..//..//button[contains(@class,'close')]</td>
+	<td></td>
+</tr>
+<!--SIDE_BAR-->
+<tr>
+	<td>SIDEBAR_ADVANCED_PREDEFINED_SELECT_FROM_LIST_DROPDOWN_CONTENT</td>
+	<td>//div[contains(@data-field-name,'predefinedValue')]//div[contains(@class,'form-builder-select-field')]//div[contains(text(),'${key_textContent}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_BASIC_DEFAULT_ERROR_MESSAGE</td>
+	<td>//div[contains(@data-field-name,'requiredErrorMessage')]//input[@placeholder='This field is required.']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_BASIC_ERROR_MESSAGE</td>
+	<td>//div[contains(@data-field-name,'requiredErrorMessage')]//input[@value='${key_errorMessage}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_BASIC_HELP_TEXT</td>
+	<td>//input[contains(@name,'tip')]</td>
 	<td></td>
 </tr>
 </tbody>

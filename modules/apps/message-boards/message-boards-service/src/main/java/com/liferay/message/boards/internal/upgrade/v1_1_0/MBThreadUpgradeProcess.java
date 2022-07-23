@@ -32,31 +32,31 @@ public class MBThreadUpgradeProcess extends UpgradeProcess {
 			runSQL("alter table MBThread add title STRING null");
 		}
 
-		try (PreparedStatement ps1 = connection.prepareStatement(
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				StringBundler.concat(
 					"select MBThread.threadId, MBMessage.subject from ",
 					"MBThread inner join MBMessage on MBThread.rootMessageId ",
 					"= MBMessage.messageId and MBThread.threadId = ",
 					"MBMessage.threadId"));
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update MBThread set title = ? where threadId = ?");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				String title = rs.getString(2);
+			while (resultSet.next()) {
+				String title = resultSet.getString(2);
 
-				ps2.setString(1, title);
+				preparedStatement2.setString(1, title);
 
-				long threadId = rs.getLong(1);
+				long threadId = resultSet.getLong(1);
 
-				ps2.setLong(2, threadId);
+				preparedStatement2.setLong(2, threadId);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 

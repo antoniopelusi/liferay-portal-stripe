@@ -18,6 +18,7 @@ import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
 import {useSyncValue} from '../hooks/useSyncValue.es';
+import {normalizeOptions, normalizeValue} from '../util/options';
 import HiddenSelectInput from './HiddenSelectInput.es';
 import VisibleSelectInput from './VisibleSelectInput.es';
 
@@ -77,76 +78,18 @@ function removeValue({value, valueToBeRemoved}) {
 function toArray(value = '') {
 	let newValue = value;
 
+	if (newValue && typeof newValue === 'string') {
+		try {
+			newValue = JSON.parse(newValue);
+		}
+		catch (error) {}
+	}
+
 	if (!Array.isArray(newValue)) {
 		newValue = [newValue];
 	}
 
 	return newValue;
-}
-
-function normalizeValue({
-	multiple,
-	normalizedOptions,
-	predefinedValueArray,
-	valueArray,
-}) {
-	const assertValue = valueArray.length ? valueArray : predefinedValueArray;
-
-	const valueWithoutMultiple = assertValue.filter((_, index) => {
-		return multiple ? true : index === 0;
-	});
-
-	return valueWithoutMultiple.filter((value) =>
-		normalizedOptions.some((option) => value === option.value)
-	);
-}
-
-/**
- * Some parameters on each option
- * needs to be prepared in case of
- * multiple selected values(when the value state is an array).
- */
-function assertOptionParameters({multiple, option, valueArray}) {
-	const included = valueArray.includes(option.value);
-
-	return {
-		...option,
-		active: !multiple && included,
-		checked: multiple && included,
-		type: multiple ? 'checkbox' : 'item',
-	};
-}
-
-function normalizeOptions({
-	fixedOptions,
-	multiple,
-	options,
-	showEmptyOption,
-	valueArray,
-}) {
-	const newOptions = [
-		...options.map((option, index) => ({
-			...assertOptionParameters({multiple, option, valueArray}),
-			separator:
-				Array.isArray(fixedOptions) &&
-				fixedOptions.length > 0 &&
-				index === options.length - 1,
-		})),
-		...fixedOptions.map((option) =>
-			assertOptionParameters({multiple, option, valueArray})
-		),
-	].filter(({value}) => value !== '');
-
-	if (!multiple && showEmptyOption) {
-		const emptyOption = {
-			label: Liferay.Language.get('choose-an-option'),
-			value: null,
-		};
-
-		return [emptyOption, ...newOptions];
-	}
-
-	return newOptions;
 }
 
 function handleDropdownItemClick({currentValue, multiple, option}) {
@@ -191,6 +134,7 @@ const DropdownItem = ({
 		<ClayDropDown.Item
 			active={expand && currentValue === option.label}
 			data-testid={`dropdownItem-${index}`}
+			disabled={option.disabled}
 			label={option.label}
 			onClick={(event) => {
 				event.preventDefault();
@@ -270,7 +214,7 @@ const DropdownListWithSearch = ({
 				option.label.toLowerCase().includes(query.toLowerCase())
 		);
 
-		if (showEmptyOption) {
+		if (showEmptyOption && !multiple) {
 			const emptyOption = {
 				label: Liferay.Language.get('choose-an-option'),
 				value: null,
@@ -289,7 +233,7 @@ const DropdownListWithSearch = ({
 				onChange={(event) => setQuery(event.target.value)}
 				value={query}
 			/>
-			{filteredOptions.length > 1 ? (
+			{filteredOptions.length > 0 ? (
 				<DropdownList
 					currentValue={currentValue}
 					expand={expand}
@@ -354,53 +298,6 @@ const Select = ({
 
 	const [currentValue, setCurrentValue] = useSyncValue(value, false);
 	const [expand, setExpand] = useState(false);
-
-	useEffect(() => {
-		const newValue = currentValue?.filter((item) => {
-			return options.some(({value}) => value === item);
-		});
-
-		if (currentValue?.length !== newValue?.length) {
-			setCurrentValue(newValue);
-
-			onDropdownItemClicked({event: {}, value: newValue});
-		}
-	}, [currentValue, onDropdownItemClicked, options, setCurrentValue]);
-
-	useEffect(() => {
-		const getDocumentHeight = () => {
-			const heights = [
-				document.body.clientHeight,
-				document.documentElement.clientHeight,
-				window.innerHeight,
-			];
-
-			return Math.max(...heights);
-		};
-
-		const onScroll = () => {
-			const {
-				height,
-				top,
-			} = triggerElementRef.current.getBoundingClientRect();
-
-			const scrollTop =
-				window.pageYOffset || document.documentElement.scrollTop;
-
-			const menuElementTop = height + scrollTop + top;
-
-			if (menuElementTop <= getDocumentHeight()) {
-				menuElementRef.current.style.setProperty(
-					'top',
-					`${menuElementTop}px`
-				);
-			}
-		};
-
-		document.addEventListener('scroll', onScroll, true);
-
-		return () => document.removeEventListener('scroll', onScroll, true);
-	}, []);
 
 	const handleFocus = (event, direction) => {
 		const target = event.target;
@@ -564,9 +461,11 @@ const Select = ({
 };
 
 const Main = ({
+	editingLanguageId,
 	fixedOptions = [],
 	label,
 	localizedValue = {},
+	localizedValueEdited,
 	multiple,
 	name,
 	onBlur = () => {},
@@ -585,24 +484,33 @@ const Main = ({
 	const normalizedOptions = useMemo(
 		() =>
 			normalizeOptions({
+				editingLanguageId,
 				fixedOptions,
 				multiple,
 				options,
 				showEmptyOption,
 				valueArray,
 			}),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[fixedOptions, multiple, options, showEmptyOption, valueArray]
 	);
 
 	value = useMemo(
 		() =>
 			normalizeValue({
+				localizedValueEdited,
 				multiple,
 				normalizedOptions,
 				predefinedValueArray,
 				valueArray,
 			}),
-		[multiple, normalizedOptions, predefinedValueArray, valueArray]
+		[
+			localizedValueEdited,
+			multiple,
+			normalizedOptions,
+			predefinedValueArray,
+			valueArray,
+		]
 	);
 
 	return (
@@ -615,7 +523,7 @@ const Main = ({
 		>
 			<Select
 				multiple={multiple}
-				name={name}
+				name={`${name}_field`}
 				onCloseButtonClicked={({event, value}) =>
 					onChange(event, value)
 				}
@@ -637,6 +545,8 @@ const Main = ({
 				value={value}
 				{...otherProps}
 			/>
+
+			<input name={name} type="hidden" value={value} />
 		</FieldBase>
 	);
 };

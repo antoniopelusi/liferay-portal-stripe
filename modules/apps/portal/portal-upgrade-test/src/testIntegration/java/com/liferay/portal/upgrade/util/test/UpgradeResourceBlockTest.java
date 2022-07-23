@@ -29,7 +29,6 @@ import com.liferay.portal.upgrade.util.BaseUpgradeResourceBlock;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Types;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -152,7 +151,7 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 			"delete from ResourcePermission where name = '" +
 				UpgradeResourceBlockTest.class.getName() + "'");
 
-		runSQL(TableClass.TABLE_SQL_DROP);
+		runSQL("drop table " + getTableName());
 
 		connection.close();
 	}
@@ -167,25 +166,6 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 		_testUpgrade(true);
 	}
 
-	public static class TableClass {
-
-		public static final Object[][] TABLE_COLUMNS = {
-			{"id_", Types.BIGINT}, {"userId", Types.BIGINT}
-		};
-
-		public static final String TABLE_NAME = "UpgradeResourceBlockTest";
-
-		public static final String[] TABLE_SQL_ADD_INDEXES = {};
-
-		public static final String TABLE_SQL_CREATE =
-			"create table UpgradeResourceBlockTest(id_ LONG not null primary " +
-				"key, userId LONG, resourceBlockId LONG)";
-
-		public static final String TABLE_SQL_DROP =
-			"drop table UpgradeResourceBlockTest";
-
-	}
-
 	@Override
 	protected String getClassName() {
 		return UpgradeResourceBlockTest.class.getName();
@@ -197,8 +177,8 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 	}
 
 	@Override
-	protected Class<?> getTableClass() {
-		return TableClass.class;
+	protected String getTableName() {
+		return "UpgradeResourceBlockTest";
 	}
 
 	@Override
@@ -207,34 +187,36 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 	}
 
 	private void _assertResourcePermission(
-			ResultSet rs, int scope, long primKeyId, long roleId, long ownerId,
-			long actionIds, boolean viewActionId)
+			ResultSet resultSet, int scope, long primKeyId, long roleId,
+			long ownerId, long actionIds, boolean viewActionId)
 		throws Exception {
 
-		Assert.assertTrue(rs.next());
+		Assert.assertTrue(resultSet.next());
 
-		Assert.assertEquals(_COMPANY_ID, rs.getLong("companyId"));
+		Assert.assertEquals(_COMPANY_ID, resultSet.getLong("companyId"));
 		Assert.assertEquals(
-			UpgradeResourceBlockTest.class.getName(), rs.getString("name"));
-		Assert.assertEquals(scope, rs.getLong("scope"));
-		Assert.assertEquals(String.valueOf(primKeyId), rs.getString("primKey"));
-		Assert.assertEquals(primKeyId, rs.getLong("primKeyId"));
-		Assert.assertEquals(roleId, rs.getLong("roleId"));
-		Assert.assertEquals(ownerId, rs.getLong("ownerId"));
-		Assert.assertEquals(actionIds, rs.getLong("actionIds"));
-		Assert.assertEquals(viewActionId, rs.getBoolean("viewActionId"));
+			UpgradeResourceBlockTest.class.getName(),
+			resultSet.getString("name"));
+		Assert.assertEquals(scope, resultSet.getLong("scope"));
+		Assert.assertEquals(
+			String.valueOf(primKeyId), resultSet.getString("primKey"));
+		Assert.assertEquals(primKeyId, resultSet.getLong("primKeyId"));
+		Assert.assertEquals(roleId, resultSet.getLong("roleId"));
+		Assert.assertEquals(ownerId, resultSet.getLong("ownerId"));
+		Assert.assertEquals(actionIds, resultSet.getLong("actionIds"));
+		Assert.assertEquals(viewActionId, resultSet.getBoolean("viewActionId"));
 	}
 
 	private void _assertRowsRemoved(String tableName, String primaryKeyName)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select * from ", tableName, " where ", primaryKeyName,
 					" < 0"));
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			Assert.assertFalse(rs.next());
+			Assert.assertFalse(resultSet.next());
 		}
 	}
 
@@ -243,51 +225,40 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 			long actionIds)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(15);
-
-		sb.append("insert into ResourceTypePermission(mvccVersion, ");
-		sb.append("resourceTypePermissionId, companyId, groupId, name, ");
-		sb.append("roleId, actionIds) values (1, ");
-		sb.append(resourceTypePermissionId);
-		sb.append(", ");
-		sb.append(_COMPANY_ID);
-		sb.append(", ");
-		sb.append(groupId);
-		sb.append(", '");
-		sb.append(UpgradeResourceBlockTest.class.getName());
-		sb.append("', ");
-		sb.append(roleId);
-		sb.append(", ");
-		sb.append(actionIds);
-		sb.append(")");
-
-		runSQL(sb.toString());
+		runSQL(
+			StringBundler.concat(
+				"insert into ResourceTypePermission(mvccVersion, ",
+				"resourceTypePermissionId, companyId, groupId, name, roleId, ",
+				"actionIds) values (1, ", resourceTypePermissionId, ", ",
+				_COMPANY_ID, ", ", groupId, ", '",
+				UpgradeResourceBlockTest.class.getName(), "', ", roleId, ", ",
+				actionIds, ")"));
 	}
 
 	private void _testUpgrade(boolean hasUserId) throws Exception {
 		_hasUserId = hasUserId;
 
 		DBAssertionUtil.assertColumns(
-			TableClass.TABLE_NAME, "id_", "userId", "resourceBlockId");
+			getTableName(), "id_", "userId", "resourceBlockId");
 
 		doUpgrade();
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from ResourcePermission where name = '" +
 					UpgradeResourceBlockTest.class.getName() +
 						"' order by scope");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
 			_assertResourcePermission(
-				rs, ResourceConstants.SCOPE_COMPANY, _COMPANY_ID,
+				resultSet, ResourceConstants.SCOPE_COMPANY, _COMPANY_ID,
 				_regularRole.getRoleId(), 0, _COMPANY_SCOPE_ACTION_IDS, true);
 
 			_assertResourcePermission(
-				rs, ResourceConstants.SCOPE_GROUP, _GROUP_ID,
+				resultSet, ResourceConstants.SCOPE_GROUP, _GROUP_ID,
 				_siteRole.getRoleId(), 0, _GROUP_SCOPE_ACTION_IDS, false);
 
 			_assertResourcePermission(
-				rs, ResourceConstants.SCOPE_GROUP_TEMPLATE, 0,
+				resultSet, ResourceConstants.SCOPE_GROUP_TEMPLATE, 0,
 				_siteRole.getRoleId(), 0, _GROUP_TEMPLATE_SCOPE_ACTION_IDS,
 				true);
 
@@ -298,14 +269,14 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 			}
 
 			_assertResourcePermission(
-				rs, ResourceConstants.SCOPE_INDIVIDUAL, _RESOURCE_PRIMARY_KEY,
-				_regularRole.getRoleId(), userId, _INDIVIDUAL_SCOPE_ACTION_IDS,
-				false);
+				resultSet, ResourceConstants.SCOPE_INDIVIDUAL,
+				_RESOURCE_PRIMARY_KEY, _regularRole.getRoleId(), userId,
+				_INDIVIDUAL_SCOPE_ACTION_IDS, false);
 
-			Assert.assertFalse(rs.next());
+			Assert.assertFalse(resultSet.next());
 		}
 
-		DBAssertionUtil.assertColumns(TableClass.TABLE_NAME, "id_", "userId");
+		DBAssertionUtil.assertColumns(getTableName(), "id_", "userId");
 
 		_assertRowsRemoved("ResourceBlock", "resourceBlockId");
 		_assertRowsRemoved(

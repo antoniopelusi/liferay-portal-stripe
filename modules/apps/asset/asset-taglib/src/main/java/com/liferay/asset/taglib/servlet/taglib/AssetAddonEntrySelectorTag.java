@@ -68,7 +68,7 @@ public class AssetAddonEntrySelectorTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setSelectedAssetAddonEntries(
@@ -98,7 +98,7 @@ public class AssetAddonEntrySelectorTag extends IncludeTag {
 		}
 
 		String id = PortalUtil.generateRandomKey(
-			request, "taglib_ui_asset_addon_entry_selector_page");
+			getRequest(), "taglib_ui_asset_addon_entry_selector_page");
 
 		return id + StringPool.UNDERLINE;
 	}

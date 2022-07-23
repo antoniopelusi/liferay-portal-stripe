@@ -32,102 +32,125 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LPS-96391."
+	@description = "This is a use case for LPS-96391, export and import site with web content display in fragment."
 	@priority = "5"
 	test ExportImportSiteWithEmbeddedWCDInFragment {
 		property portal.acceptance = "true";
 		property testray.component.names = "Content Pages,Site Administration";
 
-		JSONFragment.addFragmentCollection(
-			groupName = "Test Site Name",
-			name = "Collection Name");
+		task ("Add a fragment collection in site") {
+			JSONFragment.addFragmentCollection(
+				groupName = "Test Site Name",
+				name = "Collection Name");
+		}
 
-		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+		task ("Add a fragment with a Web Content Display in it") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
 
-		FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
 
-		FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
+			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
-		var fragmentHTML = '''<lfr-widget-web-content>''';
-		var htmlSnippet = '''<lfr-''';
+			var fragmentHtml = '''<lfr-widget-web-content>''';
 
-		FragmentsEditor.autocompleteFragmentHTML(
-			autocompleteField = "lfr-widget-web-content",
-			fragmentHTML = "${fragmentHTML}",
-			htmlSnippet = "${htmlSnippet}");
+			var htmlSnippet = '''<lfr-''';
 
-		PortletEntry.publish();
+			FragmentsEditor.autocompleteFragmentHTML(
+				autocompleteField = "lfr-widget-web-content",
+				fragmentHtml = "${fragmentHtml}",
+				htmlSnippet = "${htmlSnippet}");
 
-		JSONLayout.addPublicLayout(
-			groupName = "Test Site Name",
-			layoutName = "Test Content Page Name",
-			type = "content");
+			PortletEntry.publish();
+		}
 
-		JSONWebcontent.addWebContent(
-			content = "WC WebContent Content",
-			groupName = "Test Site Name",
-			title = "WC WebContent Title");
+		task ("Add a Content page and add a web content") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Content Page Name",
+				type = "content");
 
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Test Content Page Name",
-			siteName = "Test Site Name");
+			JSONWebcontent.addWebContent(
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
 
-		PageEditor.addFragment(
-			collectionName = "Collection Name",
-			fragmentName = "Fragment Name");
+		task ("Edit the Content page and add fragment with WCD to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
 
-		WebContentDisplayPortlet.selectWebContent(
-			contentPage = "true",
-			webContentTitle = "WC WebContent Title");
+			PageEditor.addFragment(
+				collectionName = "Collection Name",
+				fragmentName = "Fragment Name");
+		}
 
-		PageEditor.clickPublish();
+		task ("Set the created Web Content to be displayed in the Web Content Display and publish the page") {
+			WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
 
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Test Content Page Name",
-			siteName = "Test Site Name");
+			IFrame.closeFrame();
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+			PageEditor.clickPublish();
+		}
 
-		LAR.exportSiteCP(siteScopeName = "Test Site Name");
+		task ("View the created Web Content displayed in the Web Content Display") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
 
-		var key_larFileName = "${larFileName}";
+			WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content");
+		}
 
-		var larFileName = LAR.getLarFileName();
+		task ("Expoet site and download site lar") {
+			LAR.exportSiteCP(siteScopeName = "Test Site Name");
 
-		LAR.downloadLar();
+			var key_larFileName = "${larFileName}";
 
-		JSONGroup.addGroup(groupName = "Site Name");
+			var larFileName = LAR.getLarFileName();
 
-		LAR.importSiteCP(
-			larFileName = "${larFileName}",
-			siteName = "Site Name");
+			LAR.downloadLar();
+		}
 
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+		task ("Add another site and import the site lar") {
+			JSONGroup.addGroup(groupName = "Site Name");
 
-		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+			LAR.importSiteCP(
+				larFileName = "${larFileName}",
+				siteName = "Site Name");
+		}
 
-		WebContent.editCP(
-			webContentContentEdit = "WC WebContent New Content",
-			webContentTitle = "WC WebContent Title",
-			webContentTitleEdit = "WC WebContent New Title");
+		task (" Edit the Web Content on the Original Site") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Test Content Page Name",
-			siteName = "Test Site Name");
+			WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent New Content");
+			WebContent.editCP(
+				webContentContentEdit = "WC WebContent New Content",
+				webContentTitle = "WC WebContent Title",
+				webContentTitleEdit = "WC WebContent New Title");
+		}
 
-		ContentPagesNavigator.openViewContentPage(
-			pageName = "Test Content Page Name",
-			siteName = "Site Name");
+		task (" View the Web Content on the Original Site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+			WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent New Content");
+		}
+
+		task (" View the Web Content doesn't change on the new site") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Site Name");
+
+			WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content");
+		}
 	}
 
 	@description = "This is a test for LPS-98501. Export and import the whole site where a content page with a global fragment."
 	@priority = "4"
 	test ExportImportSiteWithGlobalFragmentInContentPage {
-		property testray.main.component.name = "Fragments,Site Administration";
+		property testray.main.component.name = "Content Pages";
 
 		task ("Add a fragment collection in Global site") {
 			JSONFragment.addFragmentCollection(
@@ -140,7 +163,7 @@ definition {
 ''';
 
 			var htmlSnippet = '''
-<${configuration.headingLevel} class="component-heading mb-0 text-break" data-lfr-editable-id="element-text" data-lfr-editable-type="text">
+<${configuration.headingLevel} class="component-global-fragment-name mb-0 text-break" data-lfr-editable-id="element-text" data-lfr-editable-type="text">
 	Heading Example
 </${configuration.headingLevel}>
 			''';
@@ -243,10 +266,10 @@ definition {
 				pageName = "Test Page Name",
 				siteName = "Site Name");
 
-			AssertTextEquals(
-				key_fragmentName = "heading",
-				locator1 = "Fragment#FRAGMENT_BASIC_COMPONENT",
-				value1 = "Heading Example");
+			ContentPages.viewFragmentText(
+				fragmentName = "global-fragment-name",
+				id = "element-text",
+				text = "Heading Example");
 		}
 	}
 
@@ -373,17 +396,16 @@ definition {
 		}
 
 		task ("View the selected page is shown in Page field") {
-			AssertVisible(
-				key_contentName = "Test Content Page Name",
-				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT");
+			AssertTextEquals(
+				key_fieldLabel = "Page",
+				locator1 = "PageEditor#ITEM_SELECTOR_CONTENT_INPUT",
+				value1 = "Test Content Page Name");
 		}
 
 		task ("View selected page is linked to Button fragment") {
-			var baseURL = PropsUtil.get("portal.url");
-
 			AssertVisible(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "${baseURL}/web/test-site-name/test-content-page-name",
+				key_url = "/web/test-site-name/test-content-page-name",
 				locator1 = "Fragment#FRAGMENT_LINK");
 		}
 
@@ -416,7 +438,7 @@ definition {
 
 			Click(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "${baseURL}/web/site-name/test-content-page-name",
+				key_url = "/web/site-name/test-content-page-name",
 				locator1 = "Fragment#FRAGMENT_LINK");
 		}
 
@@ -426,6 +448,113 @@ definition {
 				value1 = "Test Content Page Name");
 
 			AssertLocation.assertPartialLocation(value1 = "web/site-name/test-content-page-name");
+		}
+	}
+
+	@description = "This is a test for LPS-133032. Can export and import a site containing a style book."
+	@priority = "4"
+	test ExportImportSiteWithStyleBook {
+		task ("Add a style book") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.addStyleBooks(styleBookName = "Test Style Book Name");
+		}
+
+		task ("Export the site") {
+			LAR.openExportAdmin(siteScopeName = "test-site-name");
+
+			LexiconEntry.gotoAdd();
+
+			LAR.exportWithAssertionOnSuccess();
+
+			LAR.downloadLar();
+		}
+
+		task ("Add a new site based on Blank Site") {
+			JSONGroup.addGroup(groupName = "Site Name");
+		}
+
+		task ("Import the lar into the new site") {
+			var larFileName = LAR.getLarFileName();
+
+			LAR.importSiteCP(
+				larFileName = "${larFileName}",
+				siteName = "Site Name");
+		}
+
+		task ("Assert no error and the style book persists") {
+			AssertConsoleTextNotPresent(value1 = "com.liferay.style.book.exception.DuplicateStyleBookEntryKeyException");
+
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "site-name");
+
+			StyleBooksAdmin.viewStyleBooksPresent(styleBookName = "Test Style Book Name");
+		}
+	}
+
+	@description = "This is a test for LPS-128151. The user can import a site with Home page into the default site."
+	@priority = "4"
+	test ImportSiteWithHomePageToDefaultSite {
+		task ("Add a content page named Home") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Home",
+				type = "content");
+		}
+
+		task ("Add a Button fragment to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+
+			PortletEntry.publish();
+		}
+
+		task ("View the friendly URL of content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Home",
+				siteName = "Test Site Name");
+
+			AssertLocation.assertPartialLocation(value1 = "/home");
+		}
+
+		task ("View the Button fragment shown on content page at view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
+		}
+
+		task ("Export the new site") {
+			LAR.exportSiteCP(siteScopeName = "Test Site Name");
+
+			var larFileName = LAR.getLarFileName();
+
+			LAR.downloadLar();
+		}
+
+		task ("Import the new site into the default site") {
+			LAR.importSiteCP(
+				larFileName = "${larFileName}",
+				siteName = "Guest");
+		}
+
+		task ("View the friendly URL of content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Home",
+				siteName = "Guest");
+
+			AssertLocation.assertPartialLocation(value1 = "/home");
+		}
+
+		task ("View the Button fragment shown on content page at view mode") {
+			ContentPages.viewFragmentText(
+				fragmentName = "button",
+				id = "link",
+				text = "Go Somewhere");
 		}
 	}
 

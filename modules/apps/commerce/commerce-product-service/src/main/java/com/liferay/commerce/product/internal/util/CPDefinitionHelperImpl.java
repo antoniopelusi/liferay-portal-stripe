@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.product.internal.util;
 
+import com.liferay.commerce.media.CommerceMediaResolverUtil;
 import com.liferay.commerce.product.catalog.CPCatalogEntry;
 import com.liferay.commerce.product.catalog.CPQuery;
 import com.liferay.commerce.product.constants.CPField;
@@ -22,6 +23,7 @@ import com.liferay.commerce.product.data.source.CPDataSourceResult;
 import com.liferay.commerce.product.internal.catalog.DatabaseCPCatalogEntryImpl;
 import com.liferay.commerce.product.internal.catalog.IndexCPCatalogEntryImpl;
 import com.liferay.commerce.product.internal.search.CPDefinitionSearcher;
+import com.liferay.commerce.product.model.CPAttachmentFileEntry;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CProduct;
 import com.liferay.commerce.product.model.CommerceChannel;
@@ -64,6 +66,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Marco Leo
  * @author Andrea Di Giorgi
+ * @author Alessio Antonio Rendina
  */
 @Component(
 	enabled = false, immediate = true, service = CPDefinitionHelper.class
@@ -96,6 +99,28 @@ public class CPDefinitionHelperImpl implements CPDefinitionHelper {
 
 		return new DatabaseCPCatalogEntryImpl(
 			cpDefinition, _cpInstanceLocalService, locale);
+	}
+
+	@Override
+	public String getDefaultImageFileURL(
+			long commerceAccountId, long cpDefinitionId)
+		throws PortalException {
+
+		CPAttachmentFileEntry cpAttachmentFileEntry =
+			_cpDefinitionLocalService.getDefaultImageCPAttachmentFileEntry(
+				cpDefinitionId);
+
+		if (cpAttachmentFileEntry == null) {
+			CPDefinition cpDefinition =
+				_cpDefinitionLocalService.getCPDefinition(cpDefinitionId);
+
+			return CommerceMediaResolverUtil.getDefaultURL(
+				cpDefinition.getGroupId());
+		}
+
+		return CommerceMediaResolverUtil.getURL(
+			commerceAccountId,
+			cpAttachmentFileEntry.getCPAttachmentFileEntryId());
 	}
 
 	@Override
@@ -197,7 +222,8 @@ public class CPDefinitionHelperImpl implements CPDefinitionHelper {
 		}
 		catch (Exception exception) {
 			if (_log.isInfoEnabled()) {
-				_log.info("No friendly URL found for " + cProductId, exception);
+				_log.info(
+					"No friendly URL entry found for " + cProductId, exception);
 			}
 
 			return StringPool.BLANK;
@@ -219,7 +245,7 @@ public class CPDefinitionHelperImpl implements CPDefinitionHelper {
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException, portalException);
+					_log.debug(portalException);
 				}
 			}
 
@@ -230,7 +256,7 @@ public class CPDefinitionHelperImpl implements CPDefinitionHelper {
 				}
 				catch (PortalException portalException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(portalException, portalException);
+						_log.debug(portalException);
 					}
 				}
 			}
@@ -250,7 +276,7 @@ public class CPDefinitionHelperImpl implements CPDefinitionHelper {
 		}
 
 		String currentSiteURL = _portal.getGroupFriendlyURL(
-			layout.getLayoutSet(), themeDisplay);
+			layout.getLayoutSet(), themeDisplay, false, false);
 
 		String urlSeparator = _cpFriendlyURL.getProductURLSeparator(
 			themeDisplay.getCompanyId());

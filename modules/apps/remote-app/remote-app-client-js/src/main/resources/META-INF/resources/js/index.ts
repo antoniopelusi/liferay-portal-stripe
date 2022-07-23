@@ -370,8 +370,8 @@ function serializeRequestInfo(resource: RequestInfo): StructuredClonable {
 	serialized.credentials = resource.credentials;
 	serialized.destination = resource.destination;
 	serialized.integrity = resource.integrity;
-	serialized.isHistoryNavigation = resource.isHistoryNavigation;
-	serialized.isReloadNavigation = resource.isReloadNavigation;
+	serialized.isHistoryNavigation = (resource as any).isHistoryNavigation;
+	serialized.isReloadNavigation = (resource as any).isReloadNavigation;
 	serialized.keepalive = resource.keepalive;
 	serialized.method = resource.method;
 	serialized.mode = resource.mode;
@@ -386,47 +386,47 @@ function serializeRequestInfo(resource: RequestInfo): StructuredClonable {
 function serializeRequestInit(init: RequestInit): StructuredClonable {
 	const serialized: StructuredClonable = {};
 
-	if (init.body !== undefined) {
+	if (init.body !== undefined && init.body !== null) {
 		serialized.body = serializeBody(init.body);
 	}
 
-	if (init.cache != null) {
+	if (init.cache !== null && init.cache !== undefined) {
 		serialized.cache = init.cache;
 	}
 
-	if (init.credentials != null) {
+	if (init.credentials !== null && init.credentials !== undefined) {
 		serialized.credentials = init.credentials;
 	}
 
-	if (init.headers != null) {
+	if (init.headers !== null && init.headers !== undefined) {
 		serialized.headers = serializeHeaders(init.headers);
 	}
 
-	if (init.integrity != null) {
+	if (init.integrity !== null && init.integrity !== undefined) {
 		serialized.integrity = init.integrity;
 	}
 
-	if (init.keepalive != null) {
+	if (init.keepalive !== null && init.keepalive !== undefined) {
 		serialized.keepalive = init.keepalive;
 	}
 
-	if (init.method != null) {
+	if (init.method !== null && init.method !== undefined) {
 		serialized.method = init.method;
 	}
 
-	if (init.redirect != null) {
+	if (init.redirect !== null && init.redirect !== undefined) {
 		serialized.redirect = init.redirect;
 	}
 
-	if (init.referrer != null) {
+	if (init.referrer !== null && init.referrer !== undefined) {
 		serialized.referrer = init.referrer;
 	}
 
-	if (init.referrerPolicy != null) {
+	if (init.referrerPolicy !== null && init.referrerPolicy !== undefined) {
 		serialized.referrerPolicy = init.referrerPolicy;
 	}
 
-	if (init.window === null) {
+	if (init.window === null || init.window === undefined) {
 		serialized.window = null;
 	}
 
@@ -466,11 +466,11 @@ function Client({debug}: ClientOptions = {debug: false}) {
 	const messageQueue: Array<Payload> = [];
 
 	const promises = {
-		fetch: {} as PromiseMap<BasicResponse>,
+		'fetch': {} as PromiseMap<BasicResponse>,
 		'fetch:response:blob': {} as PromiseMap<Blob>,
 		'fetch:response:json': {} as PromiseMap<JSONValue>,
 		'fetch:response:text': {} as PromiseMap<string>,
-		get: {} as PromiseMap<string>,
+		'get': {} as PromiseMap<string>,
 	} as const;
 
 	let state: State = 'unregistered';

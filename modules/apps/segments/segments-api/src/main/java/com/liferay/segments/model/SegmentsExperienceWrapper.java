@@ -187,6 +187,11 @@ public class SegmentsExperienceWrapper
 		}
 	}
 
+	@Override
+	public SegmentsExperience cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this segments experience.
 	 *

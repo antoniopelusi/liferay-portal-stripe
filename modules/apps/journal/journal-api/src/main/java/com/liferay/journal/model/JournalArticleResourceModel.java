@@ -166,4 +166,7 @@ public interface JournalArticleResourceModel
 	 */
 	public void setArticleId(String articleId);
 
+	@Override
+	public JournalArticleResource cloneWithOriginalValues();
+
 }

@@ -17,7 +17,6 @@ package com.liferay.commerce.internal.order.engine;
 import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.configuration.CommerceOrderCheckoutConfiguration;
 import com.liferay.commerce.constants.CommerceConstants;
-import com.liferay.commerce.constants.CommerceDestinationNames;
 import com.liferay.commerce.constants.CommerceOrderActionKeys;
 import com.liferay.commerce.constants.CommerceOrderConstants;
 import com.liferay.commerce.constants.CommercePaymentConstants;
@@ -36,13 +35,9 @@ import com.liferay.commerce.exception.CommerceOrderStatusException;
 import com.liferay.commerce.exception.CommerceOrderValidatorException;
 import com.liferay.commerce.internal.order.status.CompletedCommerceOrderStatusImpl;
 import com.liferay.commerce.internal.order.status.ShippedCommerceOrderStatusImpl;
-import com.liferay.commerce.inventory.CPDefinitionInventoryEngine;
-import com.liferay.commerce.inventory.CPDefinitionInventoryEngineRegistry;
-import com.liferay.commerce.inventory.engine.CommerceInventoryEngine;
 import com.liferay.commerce.inventory.model.CommerceInventoryBookedQuantity;
 import com.liferay.commerce.inventory.service.CommerceInventoryBookedQuantityLocalService;
 import com.liferay.commerce.inventory.type.constants.CommerceInventoryAuditTypeConstants;
-import com.liferay.commerce.model.CPDefinitionInventory;
 import com.liferay.commerce.model.CommerceAddress;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderItem;
@@ -54,19 +49,19 @@ import com.liferay.commerce.order.status.CommerceOrderStatus;
 import com.liferay.commerce.order.status.CommerceOrderStatusRegistry;
 import com.liferay.commerce.payment.method.CommercePaymentMethod;
 import com.liferay.commerce.payment.method.CommercePaymentMethodRegistry;
-import com.liferay.commerce.product.model.CPInstance;
-import com.liferay.commerce.product.service.CPInstanceLocalService;
-import com.liferay.commerce.service.CPDefinitionInventoryLocalService;
 import com.liferay.commerce.service.CommerceAddressLocalService;
 import com.liferay.commerce.service.CommerceOrderItemLocalService;
 import com.liferay.commerce.service.CommerceOrderLocalService;
 import com.liferay.commerce.service.CommerceShipmentLocalService;
 import com.liferay.commerce.service.CommerceShippingMethodLocalService;
-import com.liferay.commerce.stock.activity.CommerceLowStockActivity;
-import com.liferay.commerce.stock.activity.CommerceLowStockActivityRegistry;
 import com.liferay.commerce.subscription.CommerceSubscriptionEntryHelperUtil;
 import com.liferay.commerce.util.CommerceShippingHelper;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.model.User;
@@ -81,7 +76,11 @@ import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.transaction.TransactionConfig;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.vulcan.dto.converter.DTOConverter;
+import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
+import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -170,8 +169,20 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 			currentCommerceOrderStatus);
 
 		if (currentOrderStatusIndex != (commerceOrderStatuses.size() - 1)) {
-			CommerceOrderStatus nextCommerceOrderStatus =
-				commerceOrderStatuses.get(currentOrderStatusIndex + 1);
+			CommerceOrderStatus nextCommerceOrderStatus = null;
+
+			for (int i = currentOrderStatusIndex + 1;
+				 i < commerceOrderStatuses.size(); i++) {
+
+				if ((nextCommerceOrderStatus != null) &&
+					(nextCommerceOrderStatus.getPriority() >
+						currentCommerceOrderStatus.getPriority())) {
+
+					break;
+				}
+
+				nextCommerceOrderStatus = commerceOrderStatuses.get(i);
+			}
 
 			for (CommerceOrderStatus commerceOrderStatus :
 					commerceOrderStatuses) {
@@ -247,44 +258,6 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 				commerceOrderItem.getCommerceOrderItemId(),
 				commerceInventoryBookedQuantity.
 					getCommerceInventoryBookedQuantityId());
-		}
-
-		// Low stock action
-
-		long companyId = commerceOrder.getCompanyId();
-
-		for (CommerceOrderItem commerceOrderItem :
-				commerceOrder.getCommerceOrderItems()) {
-
-			CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(
-				commerceOrderItem.getCPInstanceId());
-
-			CPDefinitionInventory cpDefinitionInventory =
-				_cpDefinitionInventoryLocalService.
-					fetchCPDefinitionInventoryByCPDefinitionId(
-						cpInstance.getCPDefinitionId());
-
-			CommerceLowStockActivity commerceLowStockActivity =
-				_commerceLowStockActivityRegistry.getCommerceLowStockActivity(
-					cpDefinitionInventory);
-
-			if (commerceLowStockActivity == null) {
-				return;
-			}
-
-			int stockQuantity = _commerceInventoryEngine.getStockQuantity(
-				companyId, commerceOrderItem.getSku());
-
-			CPDefinitionInventoryEngine cpDefinitionInventoryEngine =
-				_cpDefinitionInventoryEngineRegistry.
-					getCPDefinitionInventoryEngine(cpDefinitionInventory);
-
-			if (stockQuantity <=
-					cpDefinitionInventoryEngine.getMinStockQuantity(
-						cpInstance)) {
-
-				commerceLowStockActivity.execute(cpInstance);
-			}
 		}
 	}
 
@@ -377,15 +350,10 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 			commerceOrderId, commerceOrder.getCommerceAccountId());
 
 		TransactionCommitCallbackUtil.registerCallback(
-			new Callable<Void>() {
+			() -> {
+				_bookQuantities(commerceOrderId);
 
-				@Override
-				public Void call() throws Exception {
-					_bookQuantities(commerceOrderId);
-
-					return null;
-				}
-
+				return null;
 			});
 
 		commerceOrder = _commerceOrderLocalService.recalculatePrice(
@@ -457,12 +425,57 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 		}
 	}
 
+	private JSONObject _getCommerceOrderJSONObject(CommerceOrder commerceOrder)
+		throws Exception {
+
+		DTOConverter<?, ?> commerceOrderDTOConverter =
+			_dtoConverterRegistry.getDTOConverter(
+				CommerceOrder.class.getName());
+
+		Object commerceOrderObject = commerceOrderDTOConverter.toDTO(
+			new DefaultDTOConverterContext(
+				_dtoConverterRegistry, commerceOrder.getCommerceOrderId(),
+				LocaleUtil.getSiteDefault(), null, null));
+
+		JSONObject commerceOrderJSONObject = JSONFactoryUtil.createJSONObject(
+			commerceOrderObject.toString());
+
+		JSONArray commerceOrderItemsJSONArray =
+			JSONFactoryUtil.createJSONArray();
+
+		DTOConverter<?, ?> commerceOrderItemDTOConverter =
+			_dtoConverterRegistry.getDTOConverter(
+				CommerceOrderItem.class.getName());
+
+		List<CommerceOrderItem> commerceOrderItems =
+			commerceOrder.getCommerceOrderItems();
+
+		for (CommerceOrderItem commerceOrderItem : commerceOrderItems) {
+			Object commerceOrderItemObject =
+				commerceOrderItemDTOConverter.toDTO(
+					new DefaultDTOConverterContext(
+						_dtoConverterRegistry,
+						commerceOrderItem.getCommerceOrderItemId(),
+						LocaleUtil.getSiteDefault(), null, null));
+
+			JSONObject commerceOrderItemJSONObject =
+				JSONFactoryUtil.createJSONObject(
+					commerceOrderItemObject.toString());
+
+			commerceOrderItemsJSONArray.put(commerceOrderItemJSONObject);
+		}
+
+		commerceOrderJSONObject.put("orderItems", commerceOrderItemsJSONArray);
+
+		return commerceOrderJSONObject;
+	}
+
 	private boolean _isGuestCheckoutEnabled(long groupId) throws Exception {
 		CommerceOrderCheckoutConfiguration commerceOrderCheckoutConfiguration =
 			_configurationProvider.getConfiguration(
 				CommerceOrderCheckoutConfiguration.class,
 				new GroupServiceSettingsLocator(
-					groupId, CommerceConstants.SERVICE_NAME_ORDER));
+					groupId, CommerceConstants.SERVICE_NAME_COMMERCE_ORDER));
 
 		return commerceOrderCheckoutConfiguration.guestCheckoutEnabled();
 	}
@@ -471,42 +484,37 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 		CommerceOrder commerceOrder, int orderStatus) {
 
 		TransactionCommitCallbackUtil.registerCallback(
-			new Callable<Void>() {
+			() -> {
+				if ((orderStatus ==
+						CommerceOrderConstants.ORDER_STATUS_PENDING) &&
+					(commerceOrder.getPaymentStatus() ==
+						CommerceOrderConstants.PAYMENT_STATUS_PAID)) {
 
-				@Override
-				public Void call() throws Exception {
-
-					//Commerce Subscription
-
-					if ((orderStatus ==
-							CommerceOrderConstants.ORDER_STATUS_PENDING) &&
-						(commerceOrder.getPaymentStatus() ==
-							CommerceOrderConstants.PAYMENT_STATUS_PAID)) {
-
-						CommerceSubscriptionEntryHelperUtil.
-							checkCommerceSubscriptions(commerceOrder);
-					}
-
-					//Commerce Notification
-
-					_commerceNotificationHelper.sendNotifications(
-						commerceOrder.getGroupId(), commerceOrder.getUserId(),
-						CommerceOrderConstants.getNotificationKey(orderStatus),
-						commerceOrder);
-
-					//Commerce Order Status Message
-
-					Message message = new Message();
-
-					message.put(
-						"commerceOrderId", commerceOrder.getCommerceOrderId());
-
-					MessageBusUtil.sendMessage(
-						CommerceDestinationNames.ORDER_STATUS, message);
-
-					return null;
+					CommerceSubscriptionEntryHelperUtil.
+						checkCommerceSubscriptions(commerceOrder);
 				}
 
+				_commerceNotificationHelper.sendNotifications(
+					commerceOrder.getGroupId(), commerceOrder.getUserId(),
+					CommerceOrderConstants.getNotificationKey(orderStatus),
+					commerceOrder);
+
+				Message message = new Message();
+
+				message.setPayload(
+					JSONUtil.put(
+						"commerceOrder",
+						_getCommerceOrderJSONObject(commerceOrder)
+					).put(
+						"commerceOrderId", commerceOrder.getCommerceOrderId()
+					).put(
+						"orderStatus", commerceOrder.getOrderStatus()
+					));
+
+				MessageBusUtil.sendMessage(
+					DestinationNames.COMMERCE_ORDER_STATUS, message);
+
+				return null;
 			});
 	}
 
@@ -519,6 +527,16 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 
 		if (commerceOrderStatus == null) {
 			throw new CommerceOrderStatusException();
+		}
+
+		if ((commerceOrderStatus.getKey() ==
+				CommerceOrderConstants.ORDER_STATUS_CANCELLED) &&
+			commerceOrderStatus.isTransitionCriteriaMet(commerceOrder)) {
+
+			_sendOrderStatusMessage(
+				commerceOrder, commerceOrderStatus.getKey());
+
+			return commerceOrderStatus.doTransition(commerceOrder, userId);
 		}
 
 		CommerceOrderStatus currentCommerceOrderStatus =
@@ -570,7 +588,9 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 	private void _validateCheckout(CommerceOrder commerceOrder)
 		throws Exception {
 
-		if (!_commerceOrderValidatorRegistry.isValid(null, commerceOrder)) {
+		if (!_commerceOrderValidatorRegistry.isValid(
+				LocaleUtil.getSiteDefault(), commerceOrder)) {
+
 			throw new CommerceOrderValidatorException();
 		}
 
@@ -632,12 +652,6 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 		_commerceInventoryBookedQuantityLocalService;
 
 	@Reference
-	private CommerceInventoryEngine _commerceInventoryEngine;
-
-	@Reference
-	private CommerceLowStockActivityRegistry _commerceLowStockActivityRegistry;
-
-	@Reference
 	private CommerceNotificationHelper _commerceNotificationHelper;
 
 	@Reference
@@ -675,15 +689,7 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
-	private CPDefinitionInventoryEngineRegistry
-		_cpDefinitionInventoryEngineRegistry;
-
-	@Reference
-	private CPDefinitionInventoryLocalService
-		_cpDefinitionInventoryLocalService;
-
-	@Reference
-	private CPInstanceLocalService _cpInstanceLocalService;
+	private DTOConverterRegistry _dtoConverterRegistry;
 
 	@Reference
 	private UserLocalService _userLocalService;

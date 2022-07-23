@@ -20,10 +20,16 @@ import com.liferay.portal.workflow.kaleo.definition.Definition;
 import com.liferay.portal.workflow.kaleo.definition.Task;
 import com.liferay.portal.workflow.kaleo.definition.TaskForm;
 import com.liferay.portal.workflow.kaleo.definition.TaskFormReference;
+import com.liferay.portal.workflow.kaleo.definition.Transition;
 import com.liferay.portal.workflow.kaleo.definition.exception.KaleoDefinitionValidationException;
 import com.liferay.portal.workflow.kaleo.definition.parser.NodeValidator;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -71,6 +77,26 @@ public class TaskNodeValidator extends BaseNodeValidator<Task> {
 				throw new KaleoDefinitionValidationException.
 					MustSetTaskFormDefinitionOrReference(
 						task.getName(), taskForm.getName());
+			}
+		}
+
+		Map<String, Transition> outgoingTransitions =
+			task.getOutgoingTransitions();
+
+		if (outgoingTransitions.size() > 1) {
+			List<Transition> defaultTransitions = Stream.of(
+				outgoingTransitions.values()
+			).flatMap(
+				Collection::stream
+			).filter(
+				Transition::isDefault
+			).collect(
+				Collectors.toList()
+			);
+
+			if (defaultTransitions.size() > 1) {
+				throw new KaleoDefinitionValidationException.
+					MustNotSetMoreThanOneDefaultTransition(task.getName());
 			}
 		}
 	}

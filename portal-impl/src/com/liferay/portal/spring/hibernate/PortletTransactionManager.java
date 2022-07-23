@@ -19,15 +19,20 @@ import java.sql.Connection;
 import java.util.Date;
 
 import org.hibernate.Session;
+import org.hibernate.SessionBuilder;
 import org.hibernate.SessionFactory;
+import org.hibernate.internal.SessionCreationOptions;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.internal.SessionImpl;
 import org.hibernate.jdbc.Work;
 
-import org.springframework.orm.hibernate3.HibernateTransactionManager;
-import org.springframework.orm.hibernate3.SessionHolder;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Shuyang Zhou
@@ -114,8 +119,26 @@ public class PortletTransactionManager implements PlatformTransactionManager {
 			portalSession.flush();
 		}
 
-		Session portletSession = _portletSessionFactory.openSession(
-			portalConnection);
+		SessionBuilder<?> sessionBuilder = _portletSessionFactory.withOptions();
+
+		sessionBuilder = sessionBuilder.connection(portalConnection);
+
+		Session portletSession = new SessionImpl(
+			(SessionFactoryImpl)_portletSessionFactory,
+			(SessionCreationOptions)sessionBuilder) {
+
+			@Override
+			public boolean isTransactionInProgress() {
+				if (TransactionSynchronizationManager.
+						isActualTransactionActive()) {
+
+					return true;
+				}
+
+				return super.isTransactionInProgress();
+			}
+
+		};
 
 		SpringHibernateThreadLocalUtil.setResource(
 			_portletSessionFactory,

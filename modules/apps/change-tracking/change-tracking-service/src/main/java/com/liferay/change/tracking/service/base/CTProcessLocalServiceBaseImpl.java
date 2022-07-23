@@ -17,7 +17,6 @@ package com.liferay.change.tracking.service.base;
 import com.liferay.change.tracking.model.CTProcess;
 import com.liferay.change.tracking.service.CTProcessLocalService;
 import com.liferay.change.tracking.service.CTProcessLocalServiceUtil;
-import com.liferay.change.tracking.service.persistence.CTCollectionPersistence;
 import com.liferay.change.tracking.service.persistence.CTProcessPersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
@@ -142,6 +141,13 @@ public abstract class CTProcessLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return ctProcessPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -451,14 +457,7 @@ public abstract class CTProcessLocalServiceBaseImpl
 	protected CTProcessPersistence ctProcessPersistence;
 
 	@Reference
-	protected CTCollectionPersistence ctCollectionPersistence;
-
-	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.CompanyLocalService
-		companyLocalService;
 
 }

@@ -162,6 +162,11 @@ public class SocialActivityWrapper
 		}
 	}
 
+	@Override
+	public SocialActivity cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the activity ID of this social activity.
 	 *

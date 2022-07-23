@@ -27,6 +27,10 @@ public class WikiPageResourceLocalServiceWrapper
 	implements ServiceWrapper<WikiPageResourceLocalService>,
 			   WikiPageResourceLocalService {
 
+	public WikiPageResourceLocalServiceWrapper() {
+		this(null);
+	}
+
 	public WikiPageResourceLocalServiceWrapper(
 		WikiPageResourceLocalService wikiPageResourceLocalService) {
 
@@ -145,6 +149,13 @@ public class WikiPageResourceLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _wikiPageResourceLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _wikiPageResourceLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

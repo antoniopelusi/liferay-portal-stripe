@@ -165,6 +165,16 @@ definition {
 			rowEntry = "${userGroupName}");
 	}
 
+	macro gotoProfilePages {
+		Search.searchCP(searchTerm = "${userGroupName}");
+
+		LexiconEntry.gotoEllipsisMenuItem(
+			menuItem = "Go to Profile Pages",
+			rowEntry = "${userGroupName}");
+
+		SelectWindow(locator1 = "Home - ${userGroupName} - ${siteName}");
+	}
+
 	macro openUserGroupsAdmin {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/control_panel/manage?p_p_id=com_liferay_user_groups_admin_web_portlet_UserGroupsAdminPortlet");
 	}

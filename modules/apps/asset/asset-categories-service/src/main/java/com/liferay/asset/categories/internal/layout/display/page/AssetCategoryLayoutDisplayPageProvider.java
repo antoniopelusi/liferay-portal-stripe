@@ -20,6 +20,7 @@ import com.liferay.info.item.InfoItemReference;
 import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 
@@ -82,8 +83,41 @@ public class AssetCategoryLayoutDisplayPageProvider
 	}
 
 	@Override
+	public LayoutDisplayPageObjectProvider<AssetCategory>
+		getParentLayoutDisplayPageObjectProvider(
+			InfoItemReference infoItemReference) {
+
+		AssetCategory assetCategory =
+			_assetCategoryLocalService.fetchAssetCategory(
+				infoItemReference.getClassPK());
+
+		if (assetCategory == null) {
+			return null;
+		}
+
+		AssetCategory parentCategory = assetCategory.getParentCategory();
+
+		if (parentCategory == null) {
+			return null;
+		}
+
+		try {
+			return new AssetCategoryLayoutDisplayPageObjectProvider(
+				parentCategory, _portal);
+		}
+		catch (PortalException portalException) {
+			throw new RuntimeException(portalException);
+		}
+	}
+
+	@Override
 	public String getURLSeparator() {
-		return "/v/";
+		return FriendlyURLResolverConstants.URL_SEPARATOR_ASSET_CATEGORY;
+	}
+
+	@Override
+	public boolean inheritable() {
+		return true;
 	}
 
 	@Reference

@@ -192,7 +192,7 @@ public class DLFileEntryIndexerLocalizedContentTest {
 	protected void assertLocalization(
 		List<String> contentStrings, Document document) {
 
-		List<String> fields = _getFieldValues("content", document);
+		List<String> fields = _getFieldValues("content_", document);
 
 		Assert.assertEquals(contentStrings.toString(), fields.toString());
 	}

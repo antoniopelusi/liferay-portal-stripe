@@ -94,7 +94,7 @@ public class ThreadPermissionsPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -125,11 +125,8 @@ public class ThreadPermissionsPortletConfigurationIcon
 
 			MBThread thread = message.getThread();
 
-			if (thread.isLocked()) {
-				return false;
-			}
-
-			if (!_messageModelResourcePermission.contains(
+			if (thread.isLocked() ||
+				!_messageModelResourcePermission.contains(
 					permissionChecker, message, ActionKeys.PERMISSIONS)) {
 
 				return false;
@@ -137,7 +134,7 @@ public class ThreadPermissionsPortletConfigurationIcon
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;

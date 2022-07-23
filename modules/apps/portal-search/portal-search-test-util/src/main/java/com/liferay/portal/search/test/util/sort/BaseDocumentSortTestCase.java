@@ -14,13 +14,9 @@
 
 package com.liferay.portal.search.test.util.sort;
 
-import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactory;
-import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
-import com.liferay.portal.kernel.search.generic.MatchQuery;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.internal.SortFactoryImpl;
@@ -40,6 +36,11 @@ public abstract class BaseDocumentSortTestCase extends BaseDocumentTestCase {
 
 	@Test
 	public void testDoubleSort() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_DOUBLE, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		assertSort(
 			"Smith", FIELD_DOUBLE, Sort.DOUBLE_TYPE,
 			_SCREEN_NAMES_DOUBLE_ORDER);
@@ -47,6 +48,11 @@ public abstract class BaseDocumentSortTestCase extends BaseDocumentTestCase {
 
 	@Test
 	public void testDoubleSortIgnoresScores() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_DOUBLE, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		for (String keywords : _KEYWORDS) {
 			assertSort(
 				keywords, FIELD_DOUBLE, Sort.DOUBLE_TYPE,
@@ -62,12 +68,22 @@ public abstract class BaseDocumentSortTestCase extends BaseDocumentTestCase {
 
 	@Test
 	public void testFloatSort() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_FLOAT, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		assertSort(
 			"Smith", FIELD_FLOAT, Sort.FLOAT_TYPE, _SCREEN_NAMES_FLOAT_ORDER);
 	}
 
 	@Test
 	public void testFloatSortIgnoresScores() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_FLOAT, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		for (String keywords : _KEYWORDS) {
 			assertSort(
 				keywords, FIELD_FLOAT, Sort.FLOAT_TYPE,
@@ -83,12 +99,22 @@ public abstract class BaseDocumentSortTestCase extends BaseDocumentTestCase {
 
 	@Test
 	public void testIntegerSort() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_INTEGER, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		assertSort(
 			"Smith", FIELD_INTEGER, Sort.INT_TYPE, _SCREEN_NAMES_INTEGER_ORDER);
 	}
 
 	@Test
 	public void testIntegerSortIgnoresScores() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_INTEGER, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		for (String keywords : _KEYWORDS) {
 			assertSort(
 				keywords, FIELD_INTEGER, Sort.INT_TYPE,
@@ -104,12 +130,22 @@ public abstract class BaseDocumentSortTestCase extends BaseDocumentTestCase {
 
 	@Test
 	public void testLongSort() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_LONG, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		assertSort(
 			"Smith", FIELD_LONG, Sort.LONG_TYPE, _SCREEN_NAMES_LONG_ORDER);
 	}
 
 	@Test
 	public void testLongSortIgnoresScores() throws Exception {
+		addDocuments(
+			screenName -> document -> populate(
+				document, FIELD_LONG, screenName),
+			Arrays.asList(SCREEN_NAMES));
+
 		for (String keywords : _KEYWORDS) {
 			assertSort(
 				keywords, FIELD_LONG, Sort.LONG_TYPE, _SCREEN_NAMES_LONG_ORDER);
@@ -177,17 +213,6 @@ public abstract class BaseDocumentSortTestCase extends BaseDocumentTestCase {
 		assertSort(
 			keywords, sortFactory.create(field, type, true),
 			descendingScreenNames);
-	}
-
-	protected Query getQuery(String keywords) {
-		BooleanQueryImpl booleanQueryImpl = new BooleanQueryImpl();
-
-		booleanQueryImpl.add(
-			new MatchQuery("firstName", keywords), BooleanClauseOccur.SHOULD);
-		booleanQueryImpl.add(
-			new MatchQuery("lastName", keywords), BooleanClauseOccur.SHOULD);
-
-		return booleanQueryImpl;
 	}
 
 	private static final String[] _KEYWORDS = {

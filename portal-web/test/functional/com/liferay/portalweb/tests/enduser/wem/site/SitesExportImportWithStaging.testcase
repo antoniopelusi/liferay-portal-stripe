@@ -12,24 +12,19 @@ definition {
 			User.firstLoginPG();
 		}
 
-		task ("Add a site via JSON") {
-			JSONGroup.addGroup(groupName = "Test Site Name 1");
+		task ("Add two sites via JSON") {
+			for (var n : list "1,2") {
+				JSONGroup.addGroup(groupName = "Test Site Name ${n}");
+			}
 		}
 
-		task ("Activate local live staging for the first site") {
-			Staging.openStagingAdmin(siteURLKey = "test-site-name-1");
-
-			Staging.activateStagingCP(siteName = "Test Site Name 1");
-		}
-
-		task ("Add a second site via JSON") {
-			JSONGroup.addGroup(groupName = "Test Site Name 2");
-		}
-
-		task ("Activate local live staging for the second site") {
-			Staging.openStagingAdmin(siteURLKey = "test-site-name-2");
-
-			Staging.activateStagingCP(siteName = "Test Site Name 2");
+		task ("Activate local live staging for two sites") {
+			for (var n : list "1,2") {
+				JSONStaging.enableLocalStaging(
+					branchingPrivate = "false",
+					branchingPublic = "false",
+					groupName = "Test Site Name ${n}");
+			}
 		}
 
 		task ("Import test fragments from dependencies folder to the first site") {
@@ -55,7 +50,7 @@ definition {
 		}
 
 		task ("Add a content page from the page template to the first site") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name-1-staging");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-1-staging");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -68,7 +63,7 @@ definition {
 		}
 
 		task ("Add a content page with a Title fragment to the first site") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name-1-staging");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name-1-staging");
 
 			ContentPages.addPage(pageName = "Test Regular Content Page");
 
@@ -139,7 +134,6 @@ definition {
 				contributed = "false",
 				field = "Title",
 				fragmentName = "Title",
-				id = "title",
 				source = "Basic Web Content (Default)");
 		}
 
@@ -148,7 +142,6 @@ definition {
 				contributed = "false",
 				field = "Content",
 				fragmentName = "Rich Text",
-				id = "rich-text",
 				source = "Basic Web Content (Default)");
 		}
 
@@ -255,14 +248,16 @@ definition {
 
 			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
 
-			AssertVisible(
-				key_content = "Submit",
-				key_fragmentClass = "footer",
-				key_position = "1",
-				locator1 = "Fragment#PAGE_EDITOR_FRAGMENT");
+			var n = "1";
 
-			for (var button : list "Submit,Cancel") {
-				Button.viewPresent(button = "${button}");
+			for (var text : list "Submit,Cancel") {
+				PageEditor.viewFragmentEditableText(
+					contributed = "false",
+					editableText = "${text}",
+					fragmentName = "Button",
+					position = "${n}");
+
+				var n = ${n} + 1;
 			}
 		}
 
@@ -273,23 +268,26 @@ definition {
 				key_pageName = "Test Template Content Page",
 				locator1 = "Home#PAGE");
 
-			AssertVisible(
-				key_content = "Submit",
-				key_fragmentClass = "footer",
-				locator1 = "Fragment#FRAGMENT");
+			var n = "1";
 
-			for (var button : list "Submit,Cancel") {
-				Button.viewPresent(button = "${button}");
+			for (var text : list "Submit,Cancel") {
+				ContentPages.viewFragmentText(
+					contributed = "false",
+					fragmentName = "button",
+					position = "${n}",
+					text = "${text}");
+
+				var n = ${n} + 1;
 			}
 
 			Click(
 				key_pageName = "Test Regular Content Page",
 				locator1 = "Home#PAGE");
 
-			AssertVisible(
-				key_content = "Lorem ipsum dolor sit amet",
-				key_fragmentClass = "header",
-				locator1 = "Fragment#FRAGMENT");
+			ContentPages.viewFragmentText(
+				contributed = "false",
+				fragmentName = "title",
+				text = "Lorem ipsum dolor sit amet");
 
 			AssertVisible(
 				key_href = "https://www.liferay.com/",
@@ -314,15 +312,15 @@ definition {
 		task ("Assert the web content article and its reference to its display page survived the import") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name-2-staging/w/webcontent-title");
 
-			AssertVisible(
-				key_content = "Webcontent Title",
-				key_fragmentClass = "header",
-				locator1 = "Fragment#FRAGMENT");
+			ContentPages.viewFragmentText(
+				contributed = "false",
+				fragmentName = "title",
+				text = "Webcontent Title");
 
-			AssertVisible(
-				key_content = "Webcontent Content",
-				key_fragmentClass = "rich-text",
-				locator1 = "Fragment#FRAGMENT");
+			ContentPages.viewFragmentText(
+				contributed = "false",
+				fragmentName = "rich-text",
+				text = "Webcontent Content");
 		}
 	}
 

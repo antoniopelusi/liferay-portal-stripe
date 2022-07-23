@@ -67,7 +67,7 @@ public class RelatedAssetsRenderParametersPortletFilter
 		if (httpServletRequest.getAttribute(WebKeys.LAYOUT_ASSET_ENTRY) ==
 				null) {
 
-			clearDynamicServletRequestParameters(httpServletRequest);
+			_clearDynamicServletRequestParameters(httpServletRequest);
 
 			clearRenderRequestParameters(httpServletRequest, renderRequest);
 		}
@@ -79,7 +79,18 @@ public class RelatedAssetsRenderParametersPortletFilter
 	public void init(FilterConfig filterConfig) {
 	}
 
-	protected void clearDynamicServletRequestParameters(
+	protected void clearRenderRequestParameters(
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		RenderParametersPool.clear(
+			httpServletRequest, themeDisplay.getPlid(),
+			_portal.getPortletId(renderRequest));
+	}
+
+	private void _clearDynamicServletRequestParameters(
 		HttpServletRequest httpServletRequest) {
 
 		DynamicServletRequest dynamicServletRequest = null;
@@ -105,17 +116,6 @@ public class RelatedAssetsRenderParametersPortletFilter
 
 			dynamicParameterMap.clear();
 		}
-	}
-
-	protected void clearRenderRequestParameters(
-		HttpServletRequest httpServletRequest, RenderRequest renderRequest) {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		RenderParametersPool.clear(
-			httpServletRequest, themeDisplay.getPlid(),
-			_portal.getPortletId(renderRequest));
 	}
 
 	@Reference

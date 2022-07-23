@@ -19,6 +19,7 @@ AUI.add(
 
 		var LString = Lang.String;
 
+		// eslint-disable-next-line @liferay/aui/no-object
 		var AObject = A.Object;
 
 		var BOUNDING_BOX = 'boundingBox';
@@ -42,12 +43,12 @@ AUI.add(
 		var TPL_CHECKED = ' checked="checked" ';
 
 		var TPL_INPUT =
-			'<label title="{titleCurrentValue}">' +
-			'<span class="lfr-categories-selector-category-name" title="{titleCurrentValue}">' +
+			'<label class="d-flex" title="{titleCurrentValue}">' +
+			'<span class="flex-fill lfr-categories-selector-category-name text-truncate" title="{titleCurrentValue}">' +
 			'<input data-categoryId="{categoryId}" data-vocabularyid="{vocabularyId}" name="{inputName}" type="{type}" value="{titleCurrentValue}" {checked} />' +
 			'{titleCurrentValue}' +
 			'</span>' +
-			'<span class="lfr-categories-selector-search-results-path" title="{path}">{path}</span>' +
+			'<span class="flex-fill lfr-categories-selector-search-results-path small text-right text-secondary text-truncate" title="{path}">{path}</span>' +
 			'</label>';
 
 		var TPL_MESSAGE = '<div class="lfr-categories-message">{0}</div>';
@@ -241,7 +242,7 @@ AUI.add(
 					var assetType = instance._getTreeNodeAssetType(treeNode);
 
 					if (Lang.isValue(assetId)) {
-						if (assetType == 'category') {
+						if (assetType === 'category') {
 							data.categoryId = assetId;
 
 							if (parentVocabularyId) {
@@ -288,7 +289,7 @@ AUI.add(
 					else {
 						if (
 							!portalModelResource &&
-							themeDisplay.getSiteGroupId() !=
+							themeDisplay.getSiteGroupId() !==
 								themeDisplay.getCompanyGroupId()
 						) {
 							groupIds.push(themeDisplay.getSiteGroupId());
@@ -302,7 +303,7 @@ AUI.add(
 									'$childrenCount = /assetcategory/get-vocabulary-root-categories-count': {
 										'@vocabularyId':
 											'$vocabularies.vocabularyId',
-										groupId: '$vocabularies.groupId',
+										'groupId': '$vocabularies.groupId',
 									},
 									'$group[descriptiveName] = /group/get-group': {
 										'@groupId': '$vocabularies.groupId',
@@ -599,10 +600,10 @@ AUI.add(
 										'@categoryId':
 											'$display.categories.categoryId',
 									},
-									end: -1,
-									groupIds: vocabularyGroupIds,
-									start: -1,
-									title: searchValue,
+									'end': -1,
+									'groupIds': vocabularyGroupIds,
+									'start': -1,
+									'title': searchValue,
 									vocabularyIds,
 								},
 							},
@@ -689,7 +690,7 @@ AUI.add(
 						item.titleCurrentValue
 					);
 
-					if (item.groupId == themeDisplay.getCompanyGroupId()) {
+					if (item.groupId === themeDisplay.getCompanyGroupId()) {
 						vocabularyTitle +=
 							' (' + Liferay.Language.get('global') + ')';
 					}
@@ -769,7 +770,7 @@ AUI.add(
 
 					instance._renderIcons();
 
-					instance.inputContainer.addClass('hide-accessible');
+					instance.inputContainer.addClass('hide-accessible sr-only');
 
 					instance._applyARIARoles();
 				},
@@ -784,8 +785,8 @@ AUI.add(
 
 					var matchKey = instance.get('matchKey');
 
-					instance.entries.getKey = function (obj) {
-						return obj.categoryId;
+					instance.entries.getKey = function (object) {
+						return object.categoryId;
 					};
 
 					var curEntries = instance.get('curEntries');

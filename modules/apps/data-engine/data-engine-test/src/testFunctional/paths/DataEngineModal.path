@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>DataEngineModal</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">DataEngineModal</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td>MODAL_IFRAME</td>
+	<td>xpath=(//div[contains(@class,'modal-dialog')]//iframe)[last()]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MODAL_TITLE</td>
+	<td>xpath=(//div[contains(@class,'modal-dialog')]//div[@class='modal-title'])[last()]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -41,8 +41,6 @@ public class PortalCacheManagerConfiguration {
 
 		_defaultPortalCacheConfiguration = defaultPortalCacheConfiguration;
 
-		_portalCacheConfigurations = new ConcurrentHashMap<>();
-
 		if (portalCacheConfigurations != null) {
 			for (PortalCacheConfiguration portalCacheConfiguration :
 					portalCacheConfigurations) {
@@ -83,7 +81,7 @@ public class PortalCacheManagerConfiguration {
 
 	private final PortalCacheConfiguration _defaultPortalCacheConfiguration;
 	private final Map<String, PortalCacheConfiguration>
-		_portalCacheConfigurations;
+		_portalCacheConfigurations = new ConcurrentHashMap<>();
 	private final Set<Properties> _portalCacheManagerListenerPropertiesSet;
 
 }

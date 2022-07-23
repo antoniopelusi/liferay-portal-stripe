@@ -64,13 +64,15 @@ public class BatchEngineExportTaskLocalServiceUtil {
 	}
 
 	public static BatchEngineExportTask addBatchEngineExportTask(
-		long companyId, long userId, String callbackURL, String className,
-		String contentType, String executeStatus, List<String> fieldNamesList,
+		String externalReferenceCode, long companyId, long userId,
+		String callbackURL, String className, String contentType,
+		String executeStatus, List<String> fieldNamesList,
 		Map<String, Serializable> parameters, String taskItemDelegateName) {
 
 		return getService().addBatchEngineExportTask(
-			companyId, userId, callbackURL, className, contentType,
-			executeStatus, fieldNamesList, parameters, taskItemDelegateName);
+			externalReferenceCode, companyId, userId, callbackURL, className,
+			contentType, executeStatus, fieldNamesList, parameters,
+			taskItemDelegateName);
 	}
 
 	/**
@@ -143,6 +145,10 @@ public class BatchEngineExportTaskLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -229,6 +235,33 @@ public class BatchEngineExportTaskLocalServiceUtil {
 	}
 
 	/**
+	 * Returns the batch engine export task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine export task's external reference code
+	 * @return the matching batch engine export task, or <code>null</code> if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask
+		fetchBatchEngineExportTaskByExternalReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return getService().fetchBatchEngineExportTaskByExternalReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchBatchEngineExportTaskByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	public static BatchEngineExportTask
+		fetchBatchEngineExportTaskByReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return getService().fetchBatchEngineExportTaskByReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	/**
 	 * Returns the batch engine export task with the matching UUID and company.
 	 *
 	 * @param uuid the batch engine export task's UUID
@@ -261,6 +294,23 @@ public class BatchEngineExportTaskLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getBatchEngineExportTask(batchEngineExportTaskId);
+	}
+
+	/**
+	 * Returns the batch engine export task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine export task's external reference code
+	 * @return the matching batch engine export task
+	 * @throws PortalException if a matching batch engine export task could not be found
+	 */
+	public static BatchEngineExportTask
+			getBatchEngineExportTaskByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getBatchEngineExportTaskByExternalReferenceCode(
+			companyId, externalReferenceCode);
 	}
 
 	/**
@@ -298,6 +348,20 @@ public class BatchEngineExportTaskLocalServiceUtil {
 	}
 
 	public static List<BatchEngineExportTask> getBatchEngineExportTasks(
+		long companyId, int start, int end) {
+
+		return getService().getBatchEngineExportTasks(companyId, start, end);
+	}
+
+	public static List<BatchEngineExportTask> getBatchEngineExportTasks(
+		long companyId, int start, int end,
+		OrderByComparator<BatchEngineExportTask> orderByComparator) {
+
+		return getService().getBatchEngineExportTasks(
+			companyId, start, end, orderByComparator);
+	}
+
+	public static List<BatchEngineExportTask> getBatchEngineExportTasks(
 		String executeStatus) {
 
 		return getService().getBatchEngineExportTasks(executeStatus);
@@ -310,6 +374,10 @@ public class BatchEngineExportTaskLocalServiceUtil {
 	 */
 	public static int getBatchEngineExportTasksCount() {
 		return getService().getBatchEngineExportTasksCount();
+	}
+
+	public static int getBatchEngineExportTasksCount(long companyId) {
+		return getService().getBatchEngineExportTasksCount(companyId);
 	}
 
 	public static

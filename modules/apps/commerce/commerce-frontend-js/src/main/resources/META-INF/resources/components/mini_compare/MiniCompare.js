@@ -12,8 +12,7 @@
  * details.
  */
 
-import {ClayButtonWithIcon} from '@clayui/button';
-import {ClayIconSpriteContext} from '@clayui/icon';
+import ClayIcon from '@clayui/icon';
 import ClaySticker from '@clayui/sticker';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
@@ -21,11 +20,9 @@ import React, {useEffect, useState} from 'react';
 
 import CommerceCookie from '../../utilities/cookies';
 import {
-	ADD_ITEM_TO_COMPARE,
-	COMPARE_IS_AVAILABLE,
-	COMPARE_IS_UNAVAILABLE,
 	ITEM_REMOVED_FROM_COMPARE,
-	REMOVE_ITEM_FROM_COMPARE,
+	PRODUCT_COMPARISON_TOGGLED,
+	TOGGLE_ITEM_IN_PRODUCT_COMPARISON,
 } from '../../utilities/eventsDefinitions';
 
 const compareCookie = new CommerceCookie('COMMERCE_COMPARE_cpDefinitionIds_');
@@ -64,19 +61,16 @@ function Item(props) {
 					}
 				/>
 			</ClaySticker>
-			<ClayButtonWithIcon
-				className="mini-compare-delete"
-				displayType="unstyled"
-				onClick={props.onDelete}
-				small
-				symbol="times"
-			/>
+
+			<button className="mini-compare-delete" onClick={props.onDelete}>
+				<ClayIcon symbol="times" />
+			</button>
 		</div>
 	);
 }
 
 function MiniCompare(props) {
-	const [items, updateItems] = useState(props.items);
+	const [items, setItems] = useState(props.items);
 
 	compareCookie.setValue(
 		props.commerceChannelGroupId,
@@ -90,8 +84,8 @@ function MiniCompare(props) {
 				thumbnail,
 			};
 
-			updateItems((items) => {
-				const included = items.find((el) => el.id === id);
+			setItems((items) => {
+				const included = items.find((element) => element.id === id);
 
 				toggleStatus(props.commerceChannelGroupId, id, !included);
 
@@ -101,12 +95,10 @@ function MiniCompare(props) {
 			});
 		}
 
-		Liferay.on(ADD_ITEM_TO_COMPARE, toggleItem);
-		Liferay.on(REMOVE_ITEM_FROM_COMPARE, toggleItem);
+		Liferay.on(TOGGLE_ITEM_IN_PRODUCT_COMPARISON, toggleItem);
 
 		return () => {
-			Liferay.detach(ADD_ITEM_TO_COMPARE, toggleItem);
-			Liferay.detach(REMOVE_ITEM_FROM_COMPARE, toggleItem);
+			Liferay.detach(TOGGLE_ITEM_IN_PRODUCT_COMPARISON, toggleItem);
 		};
 	}, [
 		props.commerceChannelGroupId,
@@ -115,53 +107,45 @@ function MiniCompare(props) {
 	]);
 
 	useEffect(() => {
-		if (items.length < props.itemsLimit) {
-			Liferay.fire(COMPARE_IS_AVAILABLE);
-		}
-		else {
-			Liferay.fire(COMPARE_IS_UNAVAILABLE);
-		}
+		Liferay.fire(PRODUCT_COMPARISON_TOGGLED, {
+			disabled: items.length >= props.itemsLimit,
+		});
 	}, [items, props.itemsLimit]);
 
 	return (
-		<ClayIconSpriteContext.Provider value={props.spritemap}>
-			<div
-				className={classnames('mini-compare', items.length && 'active')}
-			>
-				{Array(props.itemsLimit)
-					.fill(null)
-					.map((_el, i) => {
-						const currentItem = items[i] || {};
+		<div className={classnames('mini-compare', !!items.length && 'active')}>
+			{Array(props.itemsLimit)
+				.fill(null)
+				.map((_el, i) => {
+					const currentItem = items[i] || {};
 
-						return (
-							<Item
-								{...currentItem}
-								key={i}
-								onDelete={(e) => {
-									e.preventDefault();
-									updateItems(
-										items.filter(
-											(v) => v.id !== currentItem.id
-										)
-									);
-									toggleStatus(
-										props.commerceChannelGroupId,
-										currentItem.id,
-										false
-									);
-									Liferay.fire(
-										ITEM_REMOVED_FROM_COMPARE,
-										currentItem
-									);
-								}}
-							/>
-						);
-					})}
-				<a className="btn btn-primary" href={props.compareProductsURL}>
-					{Liferay.Language.get('compare')}
-				</a>
-			</div>
-		</ClayIconSpriteContext.Provider>
+					return (
+						<Item
+							{...currentItem}
+							key={i}
+							onDelete={(event) => {
+								event.preventDefault();
+								setItems(
+									items.filter((v) => v.id !== currentItem.id)
+								);
+								toggleStatus(
+									props.commerceChannelGroupId,
+									currentItem.id,
+									false
+								);
+								Liferay.fire(
+									ITEM_REMOVED_FROM_COMPARE,
+									currentItem
+								);
+							}}
+						/>
+					);
+				})}
+
+			<a className="btn btn-primary" href={props.compareProductsURL}>
+				{Liferay.Language.get('compare')}
+			</a>
+		</div>
 	);
 }
 
@@ -177,7 +161,6 @@ MiniCompare.propTypes = {
 	),
 	itemsLimit: PropTypes.number,
 	portletNamespace: PropTypes.string.isRequired,
-	spritemap: PropTypes.string,
 };
 
 MiniCompare.defaultProps = {

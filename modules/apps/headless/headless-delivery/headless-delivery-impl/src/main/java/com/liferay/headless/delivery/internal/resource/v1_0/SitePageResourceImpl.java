@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.search.filter.TermFilter;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -57,7 +58,6 @@ import com.liferay.portal.vulcan.util.JaxRsLinkUtil;
 import com.liferay.portal.vulcan.util.SearchUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 import com.liferay.segments.SegmentsEntryRetriever;
-import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.constants.SegmentsWebKeys;
 import com.liferay.segments.context.RequestContextMapper;
 import com.liferay.segments.model.SegmentsExperience;
@@ -66,11 +66,9 @@ import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.segments.service.SegmentsExperienceService;
 import com.liferay.taglib.util.ThemeUtil;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
@@ -124,7 +122,15 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 	}
 
 	@Override
-	public Page<SitePage> getSiteSitePageFriendlyUrlPathExperiencesPage(
+	public String getSiteSitePageRenderedPage(
+			Long siteId, String friendlyUrlPath)
+		throws Exception {
+
+		return _toHTML(friendlyUrlPath, siteId, null);
+	}
+
+	@Override
+	public Page<SitePage> getSiteSitePagesExperiencesPage(
 			Long siteId, String friendlyUrlPath)
 		throws Exception {
 
@@ -136,14 +142,6 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 				segmentsExperience -> _toSitePage(
 					_isEmbeddedPageDefinition(), layout,
 					segmentsExperience.getSegmentsExperienceKey())));
-	}
-
-	@Override
-	public String getSiteSitePageRenderedPage(
-			Long siteId, String friendlyUrlPath)
-		throws Exception {
-
-		return _toHTML(friendlyUrlPath, siteId, null);
 	}
 
 	@Override
@@ -172,7 +170,7 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 					new TermFilter(Field.GROUP_ID, String.valueOf(siteId)),
 					BooleanClauseOccur.MUST);
 			},
-			filter, Layout.class, search, pagination,
+			filter, Layout.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
@@ -210,7 +208,7 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 		return HashMapBuilder.<String, Map<String, String>>put(
 			"get",
 			addAction(
-				"VIEW", layout.getPlid(), "getSiteSitePage", null,
+				ActionKeys.VIEW, layout.getPlid(), "getSiteSitePage", null,
 				Layout.class.getName(), layout.getGroupId())
 		).put(
 			"get-experiences",
@@ -220,30 +218,16 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 				}
 
 				return addAction(
-					"VIEW", "getSiteSitePageFriendlyUrlPathExperiencesPage",
+					ActionKeys.VIEW, "getSiteSitePagesExperiencesPage",
 					Group.class.getName(), layout.getGroupId());
 			}
 		).put(
 			"get-rendered-page",
 			addAction(
-				"VIEW", layout.getPlid(), "getSiteSitePageRenderedPage", null,
-				Layout.class.getName(), layout.getGroupId())
+				ActionKeys.VIEW, layout.getPlid(),
+				"getSiteSitePageRenderedPage", null, Layout.class.getName(),
+				layout.getGroupId())
 		).build();
-	}
-
-	private SegmentsExperience _getDefaultSegmentsExperience(long groupId) {
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceLocalService.createSegmentsExperience(
-				SegmentsEntryConstants.ID_DEFAULT);
-
-		segmentsExperience.setGroupId(groupId);
-		segmentsExperience.setSegmentsExperienceKey(
-			String.valueOf(SegmentsEntryConstants.ID_DEFAULT));
-		segmentsExperience.setName(
-			SegmentsEntryConstants.getDefaultSegmentsEntryName(
-				contextUser.getLocale()));
-
-		return segmentsExperience;
 	}
 
 	private Map<String, Map<String, String>> _getExperienceActions(
@@ -252,12 +236,13 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 		return HashMapBuilder.<String, Map<String, String>>put(
 			"get",
 			addAction(
-				"VIEW", "getSiteSitePageExperienceExperienceKey",
+				ActionKeys.VIEW, "getSiteSitePageExperienceExperienceKey",
 				Group.class.getName(), layout.getGroupId())
 		).put(
 			"get-rendered-page",
 			addAction(
-				"VIEW", "getSiteSitePageExperienceExperienceKeyRenderedPage",
+				ActionKeys.VIEW,
+				"getSiteSitePageExperienceExperienceKeyRenderedPage",
 				Group.class.getName(), layout.getGroupId())
 		).build();
 	}
@@ -285,15 +270,9 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 			return _getUserSegmentsExperience(layout);
 		}
 
-		if (Objects.equals(
-				String.valueOf(SegmentsEntryConstants.ID_DEFAULT),
-				segmentsExperienceKey)) {
-
-			return _getDefaultSegmentsExperience(layout.getGroupId());
-		}
-
 		return _segmentsExperienceService.fetchSegmentsExperience(
-			layout.getGroupId(), segmentsExperienceKey);
+			layout.getGroupId(), segmentsExperienceKey,
+			_portal.getClassNameId(Layout.class), layout.getPlid());
 	}
 
 	private List<SegmentsExperience> _getSegmentsExperiences(Layout layout)
@@ -303,16 +282,9 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 			return Collections.emptyList();
 		}
 
-		List<SegmentsExperience> segmentsExperiences = new ArrayList<>(
-			_segmentsExperienceLocalService.getSegmentsExperiences(
-				layout.getGroupId(),
-				_portal.getClassNameId(Layout.class.getName()),
-				layout.getPlid(), true));
-
-		segmentsExperiences.add(
-			_getDefaultSegmentsExperience(layout.getGroupId()));
-
-		return segmentsExperiences;
+		return _segmentsExperienceLocalService.getSegmentsExperiences(
+			layout.getGroupId(), _portal.getClassNameId(Layout.class.getName()),
+			layout.getPlid(), true);
 	}
 
 	private ThemeDisplay _getThemeDisplay(Layout layout) throws Exception {
@@ -358,12 +330,8 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 					_portal.getClassNameId(Layout.class.getName()),
 					layout.getPlid(), segmentsEntryIds);
 
-		if (segmentsExperienceIds.length > 0) {
-			return _segmentsExperienceLocalService.getSegmentsExperience(
-				segmentsExperienceIds[0]);
-		}
-
-		return _getDefaultSegmentsExperience(layout.getGroupId());
+		return _segmentsExperienceLocalService.getSegmentsExperience(
+			segmentsExperienceIds[0]);
 	}
 
 	private boolean _isEmbeddedPageDefinition() {

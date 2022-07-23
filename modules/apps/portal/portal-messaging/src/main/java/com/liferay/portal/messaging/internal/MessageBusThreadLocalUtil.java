@@ -106,8 +106,8 @@ public class MessageBusThreadLocalUtil {
 			GroupThreadLocal.setGroupId(groupId);
 		}
 
-		PermissionChecker permissionChecker = (PermissionChecker)message.get(
-			"permissionChecker");
+		PermissionChecker permissionChecker = _getPermissionChecker(
+			message.get("permissionChecker"));
 
 		String principalName = message.getString("principalName");
 
@@ -148,6 +148,17 @@ public class MessageBusThreadLocalUtil {
 		if (themeDisplayLocale != null) {
 			LocaleThreadLocal.setThemeDisplayLocale(themeDisplayLocale);
 		}
+	}
+
+	private static PermissionChecker _getPermissionChecker(Object object) {
+
+		// LPS-139811
+
+		if (object instanceof PermissionChecker) {
+			return (PermissionChecker)object;
+		}
+
+		return null;
 	}
 
 }

@@ -104,6 +104,11 @@ public class AssetEntryAssetCategoryRelWrapper
 		}
 	}
 
+	@Override
+	public AssetEntryAssetCategoryRel cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the asset category ID of this asset entry asset category rel.
 	 *

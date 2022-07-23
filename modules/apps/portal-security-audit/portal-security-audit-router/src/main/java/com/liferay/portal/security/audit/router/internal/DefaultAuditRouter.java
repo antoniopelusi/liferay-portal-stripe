@@ -24,14 +24,13 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.proxy.ProxyMessageListener;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.audit.AuditMessageProcessor;
 import com.liferay.portal.security.audit.configuration.AuditConfiguration;
 import com.liferay.portal.security.audit.router.internal.constants.AuditConstants;
 
-import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -117,15 +116,11 @@ public class DefaultAuditRouter implements AuditRouter {
 		proxyMessageListener.setManager(this);
 		proxyMessageListener.setMessageBus(_messageBus);
 
-		Dictionary<String, Object> proxyMessageListenerProperties =
-			new HashMapDictionary<>();
-
-		proxyMessageListenerProperties.put(
-			"destination.name", DestinationNames.AUDIT);
-
 		_serviceRegistration = bundleContext.registerService(
 			ProxyMessageListener.class, proxyMessageListener,
-			proxyMessageListenerProperties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", DestinationNames.AUDIT
+			).build());
 	}
 
 	@Deactivate
@@ -133,20 +128,6 @@ public class DefaultAuditRouter implements AuditRouter {
 		if (_serviceRegistration != null) {
 			_serviceRegistration.unregister();
 		}
-	}
-
-	protected String[] getEventTypes(
-		AuditMessageProcessor auditMessageProcessor,
-		Map<String, Object> properties) {
-
-		String eventTypes = (String)properties.get(AuditConstants.EVENT_TYPES);
-
-		if (Validator.isNull(eventTypes)) {
-			throw new IllegalArgumentException(
-				"The property \"" + AuditConstants.EVENT_TYPES + "\" is null");
-		}
-
-		return StringUtil.split(eventTypes);
 	}
 
 	@Modified
@@ -167,7 +148,7 @@ public class DefaultAuditRouter implements AuditRouter {
 		AuditMessageProcessor auditMessageProcessor,
 		Map<String, Object> properties) {
 
-		String[] eventTypes = getEventTypes(auditMessageProcessor, properties);
+		String[] eventTypes = _getEventTypes(properties);
 
 		if ((eventTypes.length == 1) && eventTypes[0].equals(StringPool.STAR)) {
 			_globalAuditMessageProcessors.add(auditMessageProcessor);
@@ -194,7 +175,7 @@ public class DefaultAuditRouter implements AuditRouter {
 		AuditMessageProcessor auditMessageProcessor,
 		Map<String, Object> properties) {
 
-		String[] eventTypes = getEventTypes(auditMessageProcessor, properties);
+		String[] eventTypes = _getEventTypes(properties);
 
 		if ((eventTypes.length == 1) && eventTypes[0].equals(StringPool.STAR)) {
 			_globalAuditMessageProcessors.remove(auditMessageProcessor);
@@ -212,6 +193,17 @@ public class DefaultAuditRouter implements AuditRouter {
 
 			auditMessageProcessorsSet.remove(auditMessageProcessor);
 		}
+	}
+
+	private String[] _getEventTypes(Map<String, Object> properties) {
+		String eventTypes = (String)properties.get(AuditConstants.EVENT_TYPES);
+
+		if (Validator.isNull(eventTypes)) {
+			throw new IllegalArgumentException(
+				"The property \"" + AuditConstants.EVENT_TYPES + "\" is null");
+		}
+
+		return StringUtil.split(eventTypes);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.model.UserGroup;
 public class UserGroupServiceWrapper
 	implements ServiceWrapper<UserGroupService>, UserGroupService {
 
+	public UserGroupServiceWrapper() {
+		this(null);
+	}
+
 	public UserGroupServiceWrapper(UserGroupService userGroupService) {
 		_userGroupService = userGroupService;
 	}
@@ -41,6 +45,16 @@ public class UserGroupServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_userGroupService.addGroupUserGroups(groupId, userGroupIds);
+	}
+
+	@Override
+	public UserGroup addOrUpdateUserGroup(
+			String externalReferenceCode, String name, String description,
+			ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userGroupService.addOrUpdateUserGroup(
+			externalReferenceCode, name, description, serviceContext);
 	}
 
 	/**
@@ -103,6 +117,15 @@ public class UserGroupServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _userGroupService.fetchUserGroup(userGroupId);
+	}
+
+	@Override
+	public UserGroup fetchUserGroupByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userGroupService.fetchUserGroupByExternalReferenceCode(
+			companyId, externalReferenceCode);
 	}
 
 	@Override
@@ -331,6 +354,15 @@ public class UserGroupServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_userGroupService.unsetTeamUserGroups(teamId, userGroupIds);
+	}
+
+	@Override
+	public UserGroup updateExternalReferenceCode(
+			UserGroup userGroup, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userGroupService.updateExternalReferenceCode(
+			userGroup, externalReferenceCode);
 	}
 
 	/**

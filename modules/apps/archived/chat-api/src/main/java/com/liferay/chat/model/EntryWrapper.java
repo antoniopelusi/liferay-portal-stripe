@@ -89,6 +89,11 @@ public class EntryWrapper
 		}
 	}
 
+	@Override
+	public Entry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the content of this entry.
 	 *

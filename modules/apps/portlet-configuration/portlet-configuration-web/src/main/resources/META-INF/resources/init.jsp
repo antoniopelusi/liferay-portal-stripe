@@ -56,7 +56,6 @@ page import="com.liferay.portal.kernel.util.ContentTypes" %><%@
 page import="com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil" %><%@
 page import="com.liferay.portal.kernel.util.GetterUtil" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
-page import="com.liferay.portal.kernel.util.ListUtil" %><%@
 page import="com.liferay.portal.kernel.util.LocaleUtil" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
@@ -75,7 +74,7 @@ page import="com.liferay.portlet.portletconfiguration.util.PublicRenderParameter
 page import="com.liferay.roles.admin.constants.RolesAdminWebKeys" %><%@
 page import="com.liferay.roles.admin.role.type.contributor.RoleTypeContributor" %><%@
 page import="com.liferay.roles.admin.role.type.contributor.provider.RoleTypeContributorProvider" %><%@
-page import="com.liferay.taglib.servlet.PipingServletResponse" %>
+page import="com.liferay.taglib.servlet.PipingServletResponseFactory" %>
 
 <%@ page import="java.util.ArrayList" %><%@
 page import="java.util.LinkedHashSet" %><%@
@@ -96,3 +95,19 @@ Portlet selPortlet = PortletLocalServiceUtil.getPortletById(company.getCompanyId
 %>
 
 <%@ include file="/init-ext.jsp" %>
+
+<%!
+private String _getActionLabel(HttpServletRequest request, String resourceName, String actionId) {
+	String actionLabel = null;
+
+	if (actionId.equals("ADD_STRUCTURE") && resourceName.equals("com.liferay.document.library")) {
+		actionLabel = LanguageUtil.get(request, "add-metadata-set");
+	}
+
+	if (actionLabel == null) {
+		actionLabel = ResourceActionsUtil.getAction(request, actionId);
+	}
+
+	return actionLabel;
+}
+%>

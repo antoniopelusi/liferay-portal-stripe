@@ -20,12 +20,9 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portlet.usersadmin.search.GroupSearch;
 import com.liferay.site.item.selector.display.context.SitesItemSelectorViewDisplayContext;
 import com.liferay.site.util.RecentGroupManager;
-
-import java.util.List;
 
 import javax.portlet.PortletURL;
 
@@ -56,15 +53,10 @@ public class RecentSitesItemSelectorViewDisplayContext
 		String groupName = super.getGroupName(group);
 
 		if (group.isStaged() && group.isStagingGroup()) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(groupName);
-			sb.append(StringPool.SPACE);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(LanguageUtil.get(httpServletRequest, "staging"));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			groupName = sb.toString();
+			groupName = StringBundler.concat(
+				groupName, StringPool.SPACE, StringPool.OPEN_PARENTHESIS,
+				LanguageUtil.get(httpServletRequest, "staging"),
+				StringPool.CLOSE_PARENTHESIS);
 		}
 
 		return groupName;
@@ -77,16 +69,8 @@ public class RecentSitesItemSelectorViewDisplayContext
 
 		groupSearch.setEmptyResultsMessage(
 			"you-have-not-visited-any-sites-recently");
-
-		List<Group> results = _recentGroupManager.getRecentGroups(
-			httpServletRequest);
-
-		groupSearch.setTotal(results.size());
-
-		results = ListUtil.subList(
-			results, groupSearch.getStart(), groupSearch.getEnd());
-
-		groupSearch.setResults(results);
+		groupSearch.setResultsAndTotal(
+			_recentGroupManager.getRecentGroups(httpServletRequest));
 
 		return groupSearch;
 	}

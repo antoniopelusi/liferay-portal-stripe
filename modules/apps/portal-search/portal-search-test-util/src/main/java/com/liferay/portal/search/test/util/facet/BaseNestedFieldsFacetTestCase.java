@@ -37,6 +37,7 @@ public abstract class BaseNestedFieldsFacetTestCase
 				getField(), getNestedDocumentValueFieldName(), values));
 	}
 
+	@Override
 	protected Facet createFacet(SearchContext searchContext) {
 		NestedFacetImpl nestedFacetImpl =
 			(NestedFacetImpl)nestedFacetFactory.newInstance(searchContext);
@@ -93,6 +94,7 @@ public abstract class BaseNestedFieldsFacetTestCase
 		return "ddmFieldArray.ddmFieldValueKeyword_en_US";
 	}
 
+	@Override
 	protected void select(
 		Facet facet, String value, FacetTestHelper facetTestHelper) {
 

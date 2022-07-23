@@ -17,17 +17,17 @@
 <%@ include file="/facets/init.jsp" %>
 
 <%
-AssetTagsSearchFacetDisplayBuilder assetTagsSearchFacetDisplayBuilder = new AssetTagsSearchFacetDisplayBuilder(renderRequest);
+AssetTagsSearchFacetDisplayContextBuilder assetTagsSearchFacetDisplayContextBuilder = new AssetTagsSearchFacetDisplayContextBuilder(renderRequest);
 
-assetTagsSearchFacetDisplayBuilder.setDisplayStyle(dataJSONObject.getString("displayStyle", "cloud"));
-assetTagsSearchFacetDisplayBuilder.setFacet(facet);
-assetTagsSearchFacetDisplayBuilder.setFrequenciesVisible(dataJSONObject.getBoolean("showAssetCount", true));
-assetTagsSearchFacetDisplayBuilder.setFrequencyThreshold(dataJSONObject.getInt("frequencyThreshold"));
-assetTagsSearchFacetDisplayBuilder.setMaxTerms(dataJSONObject.getInt("maxTerms", 10));
-assetTagsSearchFacetDisplayBuilder.setParameterName(facet.getFieldId());
-assetTagsSearchFacetDisplayBuilder.setParameterValue(fieldParam);
+assetTagsSearchFacetDisplayContextBuilder.setDisplayStyle(dataJSONObject.getString("displayStyle", "cloud"));
+assetTagsSearchFacetDisplayContextBuilder.setFacet(facet);
+assetTagsSearchFacetDisplayContextBuilder.setFrequenciesVisible(dataJSONObject.getBoolean("showAssetCount", true));
+assetTagsSearchFacetDisplayContextBuilder.setFrequencyThreshold(dataJSONObject.getInt("frequencyThreshold"));
+assetTagsSearchFacetDisplayContextBuilder.setMaxTerms(dataJSONObject.getInt("maxTerms", 10));
+assetTagsSearchFacetDisplayContextBuilder.setParameterName(facet.getFieldId());
+assetTagsSearchFacetDisplayContextBuilder.setParameterValue(fieldParam);
 
-AssetTagsSearchFacetDisplayContext assetTagsSearchFacetDisplayContext = assetTagsSearchFacetDisplayBuilder.build();
+AssetTagsSearchFacetDisplayContext assetTagsSearchFacetDisplayContext = assetTagsSearchFacetDisplayContextBuilder.build();
 %>
 
 <c:choose>

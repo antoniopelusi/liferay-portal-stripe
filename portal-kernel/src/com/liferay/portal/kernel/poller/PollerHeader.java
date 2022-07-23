@@ -64,23 +64,11 @@ public class PollerHeader implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(13);
-
-		sb.append("{_browserKey=");
-		sb.append(_browserKey);
-		sb.append(", companyId=");
-		sb.append(_companyId);
-		sb.append(", portletIdsMap=");
-		sb.append(_portletIdsMap);
-		sb.append(", startPolling=");
-		sb.append(_startPolling);
-		sb.append(", timestamp=");
-		sb.append(_timestamp);
-		sb.append(", userId=");
-		sb.append(_userId);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{_browserKey=", _browserKey, ", companyId=", _companyId,
+			", portletIdsMap=", _portletIdsMap, ", startPolling=",
+			_startPolling, ", timestamp=", _timestamp, ", userId=", _userId,
+			"}");
 	}
 
 	private static final long serialVersionUID = 1L;

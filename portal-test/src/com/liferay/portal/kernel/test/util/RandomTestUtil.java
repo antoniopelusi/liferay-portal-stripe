@@ -53,6 +53,12 @@ public class RandomTestUtil {
 		return _random.nextBoolean();
 	}
 
+	public static byte[] randomBytes() {
+		String string = randomString();
+
+		return string.getBytes();
+	}
+
 	public static double randomDouble() {
 		double value = _random.nextDouble();
 

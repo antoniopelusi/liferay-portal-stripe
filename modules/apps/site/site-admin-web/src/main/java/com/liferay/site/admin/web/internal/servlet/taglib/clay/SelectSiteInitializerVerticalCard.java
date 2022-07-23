@@ -16,16 +16,14 @@ package com.liferay.site.admin.web.internal.servlet.taglib.clay;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.site.admin.web.internal.constants.SiteAdminConstants;
 import com.liferay.site.admin.web.internal.util.SiteInitializerItem;
 
 import java.util.Map;
-import java.util.Objects;
 
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -56,33 +54,26 @@ public class SelectSiteInitializerVerticalCard implements VerticalCard {
 	public Map<String, String> getDynamicAttributes() {
 		return HashMapBuilder.put(
 			"data-add-site-url",
-			() -> PortletURLBuilder.createActionURL(
+			() -> PortletURLBuilder.createRenderURL(
 				_renderResponse
-			).setActionName(
+			).setMVCRenderCommandName(
 				"/site_admin/add_group"
-			).setMVCPath(
-				"/select_layout_set_prototype_entry.jsp"
+			).setBackURL(
+				ParamUtil.getString(_httpServletRequest, "redirect")
 			).setParameter(
 				"creationType", _siteInitializerItem.getType()
+			).setParameter(
+				"layoutSetPrototypeId",
+				_siteInitializerItem.getLayoutSetPrototypeId()
 			).setParameter(
 				"parentGroupId",
 				ParamUtil.getLong(_httpServletRequest, "parentGroupId")
 			).setParameter(
 				"siteInitializerKey",
 				_siteInitializerItem.getSiteInitializerKey()
+			).setWindowState(
+				LiferayWindowState.POP_UP
 			).buildString()
-		).put(
-			"data-checkbox-field-name",
-			() -> {
-				if (Objects.equals(
-						_siteInitializerItem.getType(),
-						SiteAdminConstants.CREATION_TYPE_SITE_TEMPLATE)) {
-
-					return "layoutSetVisibilityPrivate";
-				}
-
-				return StringPool.BLANK;
-			}
 		).put(
 			"data-layout-set-prototype-id",
 			String.valueOf(_siteInitializerItem.getLayoutSetPrototypeId())
@@ -96,11 +87,9 @@ public class SelectSiteInitializerVerticalCard implements VerticalCard {
 
 	@Override
 	public String getImageSrc() {
-		if (_siteInitializerItem.isCreationTypeSiteTemplate()) {
-			return null;
-		}
+		if (_siteInitializerItem.isCreationTypeSiteTemplate() ||
+			Validator.isNull(_siteInitializerItem.getIcon())) {
 
-		if (Validator.isNull(_siteInitializerItem.getIcon())) {
 			return null;
 		}
 

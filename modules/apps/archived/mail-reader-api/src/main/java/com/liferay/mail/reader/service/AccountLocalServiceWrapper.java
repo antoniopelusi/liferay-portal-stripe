@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class AccountLocalServiceWrapper
 	implements AccountLocalService, ServiceWrapper<AccountLocalService> {
 
+	public AccountLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AccountLocalServiceWrapper(AccountLocalService accountLocalService) {
 		_accountLocalService = accountLocalService;
 	}
@@ -146,6 +150,13 @@ public class AccountLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _accountLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _accountLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import com.liferay.knowledge.base.constants.KBConstants;
 import com.liferay.knowledge.base.constants.KBPortletKeys;
 import com.liferay.knowledge.base.exception.KBArticleImportException;
 import com.liferay.knowledge.base.model.KBArticle;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -70,7 +71,7 @@ public class KBArticleImporterUtil {
 		}
 
 		try {
-			String zipReaderFileName = getZipReaderFileName(
+			String zipReaderFileName = _getZipReaderFileName(
 				kbGroupServiceConfiguration.markdownImporterImageFolder(),
 				imageFileName);
 
@@ -80,14 +81,10 @@ public class KBArticleImporterUtil {
 				fileEntriesMap);
 		}
 		catch (Exception exception) {
-			StringBuilder sb = new StringBuilder(4);
-
-			sb.append("Unable to import image file ");
-			sb.append(imageFileName);
-			sb.append(": ");
-			sb.append(exception.getLocalizedMessage());
-
-			throw new KBArticleImportException(sb.toString());
+			throw new KBArticleImportException(
+				StringBundler.concat(
+					"Unable to import image file ", imageFileName, ": ",
+					exception.getLocalizedMessage()));
 		}
 	}
 
@@ -176,7 +173,7 @@ public class KBArticleImporterUtil {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileEntryException, noSuchFileEntryException);
+				_log.debug(noSuchFileEntryException);
 			}
 		}
 
@@ -191,7 +188,7 @@ public class KBArticleImporterUtil {
 		return fileEntry;
 	}
 
-	protected static String getZipReaderFileName(
+	private static String _getZipReaderFileName(
 		String dirName, String fileName) {
 
 		if (dirName.endsWith(StringPool.SLASH)) {

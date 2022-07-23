@@ -31,6 +31,8 @@ import com.liferay.portal.kernel.security.permission.resource.PortletResourcePer
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.upload.UploadFileEntryHandler;
 
@@ -69,20 +71,20 @@ public class ImageBlogsUploadFileEntryHandler
 			themeDisplay.getPermissionChecker(), themeDisplay.getScopeGroup(),
 			ActionKeys.ADD_ENTRY);
 
-		String fileName = uploadPortletRequest.getFileName(_PARAMETER_NAME);
-		String contentType = uploadPortletRequest.getContentType(
-			_PARAMETER_NAME);
+		String fileName = uploadPortletRequest.getFileName(
+			"imageSelectorFileName");
 
-		_validateFile(
-			fileName, contentType,
-			uploadPortletRequest.getSize(_PARAMETER_NAME));
+		if (Validator.isNotNull(fileName)) {
+			try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
+					"imageSelectorFileName")) {
 
-		try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
-				_PARAMETER_NAME)) {
-
-			return addFileEntry(
-				fileName, contentType, inputStream, themeDisplay);
+				return _addFileEntry(
+					fileName, inputStream, "imageSelectorFileName",
+					uploadPortletRequest, themeDisplay);
+			}
 		}
+
+		return _editImageFileEntry(uploadPortletRequest, themeDisplay);
 	}
 
 	@Activate
@@ -119,6 +121,40 @@ public class ImageBlogsUploadFileEntryHandler
 	@Reference(target = "(resource.name=" + BlogsConstants.RESOURCE_NAME + ")")
 	protected PortletResourcePermission portletResourcePermission;
 
+	private FileEntry _addFileEntry(
+			String fileName, InputStream inputStream, String parameterName,
+			UploadPortletRequest uploadPortletRequest,
+			ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		String contentType = uploadPortletRequest.getContentType(parameterName);
+
+		_validateFile(
+			fileName, contentType, uploadPortletRequest.getSize(parameterName));
+
+		return addFileEntry(fileName, contentType, inputStream, themeDisplay);
+	}
+
+	private FileEntry _editImageFileEntry(
+			UploadPortletRequest uploadPortletRequest,
+			ThemeDisplay themeDisplay)
+		throws IOException, PortalException {
+
+		long fileEntryId = ParamUtil.getLong(
+			uploadPortletRequest, "fileEntryId");
+
+		FileEntry fileEntry = portletFileRepository.getPortletFileEntry(
+			fileEntryId);
+
+		try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
+				"imageBlob")) {
+
+			return _addFileEntry(
+				fileEntry.getFileName(), inputStream, "imageBlob",
+				uploadPortletRequest, themeDisplay);
+		}
+	}
+
 	private void _validateFile(String fileName, String contentType, long size)
 		throws PortalException {
 
@@ -143,8 +179,6 @@ public class ImageBlogsUploadFileEntryHandler
 				"Invalid image for file name " + fileName);
 		}
 	}
-
-	private static final String _PARAMETER_NAME = "imageSelectorFileName";
 
 	private volatile BlogsFileUploadsConfiguration
 		_blogsFileUploadsConfiguration;

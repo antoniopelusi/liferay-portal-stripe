@@ -15,6 +15,7 @@
 package com.liferay.commerce.price.list.service;
 
 import com.liferay.commerce.price.list.model.CommerceTierPriceEntry;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -45,6 +46,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @AccessControlled
+@CTAware
 @JSONWebService
 @OSGiBeanProperties(
 	property = {
@@ -86,6 +88,27 @@ public interface CommerceTierPriceEntryService extends BaseService {
 			int expirationDateMonth, int expirationDateDay,
 			int expirationDateYear, int expirationDateHour,
 			int expirationDateMinute, boolean neverExpire,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommerceTierPriceEntry addOrUpdateCommerceTierPriceEntry(
+			String externalReferenceCode, long commerceTierPriceEntryId,
+			long commercePriceEntryId, BigDecimal price, BigDecimal promoPrice,
+			int minQuantity, String priceEntryExternalReferenceCode,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommerceTierPriceEntry addOrUpdateCommerceTierPriceEntry(
+			String externalReferenceCode, long commerceTierPriceEntryId,
+			long commercePriceEntryId, BigDecimal price, int minQuantity,
+			boolean bulkPricing, boolean discountDiscovery,
+			BigDecimal discountLevel1, BigDecimal discountLevel2,
+			BigDecimal discountLevel3, BigDecimal discountLevel4,
+			int displayDateMonth, int displayDateDay, int displayDateYear,
+			int displayDateHour, int displayDateMinute, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute,
+			boolean neverExpire, String priceEntryExternalReferenceCode,
 			ServiceContext serviceContext)
 		throws PortalException;
 
@@ -179,27 +202,6 @@ public interface CommerceTierPriceEntryService extends BaseService {
 	public CommerceTierPriceEntry updateExternalReferenceCode(
 			CommerceTierPriceEntry commerceTierPriceEntry,
 			String externalReferenceCode)
-		throws PortalException;
-
-	public CommerceTierPriceEntry upsertCommerceTierPriceEntry(
-			String externalReferenceCode, long commerceTierPriceEntryId,
-			long commercePriceEntryId, BigDecimal price, BigDecimal promoPrice,
-			int minQuantity, String priceEntryExternalReferenceCode,
-			ServiceContext serviceContext)
-		throws PortalException;
-
-	public CommerceTierPriceEntry upsertCommerceTierPriceEntry(
-			String externalReferenceCode, long commerceTierPriceEntryId,
-			long commercePriceEntryId, BigDecimal price, int minQuantity,
-			boolean bulkPricing, boolean discountDiscovery,
-			BigDecimal discountLevel1, BigDecimal discountLevel2,
-			BigDecimal discountLevel3, BigDecimal discountLevel4,
-			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
-			int expirationDateDay, int expirationDateYear,
-			int expirationDateHour, int expirationDateMinute,
-			boolean neverExpire, String priceEntryExternalReferenceCode,
-			ServiceContext serviceContext)
 		throws PortalException;
 
 }

@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class AuditEventLocalServiceWrapper
 	implements AuditEventLocalService, ServiceWrapper<AuditEventLocalService> {
 
+	public AuditEventLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AuditEventLocalServiceWrapper(
 		AuditEventLocalService auditEventLocalService) {
 
@@ -135,6 +139,13 @@ public class AuditEventLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _auditEventLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _auditEventLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

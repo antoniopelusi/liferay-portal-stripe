@@ -37,59 +37,56 @@ public class ResourcePermissionUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _insertResourcePermissions() {
-		StringBundler sb1 = new StringBundler(5);
-
-		sb1.append("select mvccVersion, resourcePermissionId, companyId, ");
-		sb1.append("scope, primKey, primKeyId, roleId, ownerId, actionIds, ");
-		sb1.append("viewActionId from ResourcePermission where name = '");
-		sb1.append(LayoutAdminPortletKeys.GROUP_PAGES);
-		sb1.append("'");
-
-		StringBundler sb2 = new StringBundler(4);
-
-		sb2.append("insert into ResourcePermission (mvccVersion, ");
-		sb2.append("resourcePermissionId, companyId, name, scope, primKey, ");
-		sb2.append("primKeyId, roleId, ownerId, actionIds, viewActionId) ");
-		sb2.append("values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
 		try (Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(sb1.toString());
-			PreparedStatement ps = AutoBatchPreparedStatementUtil.autoBatch(
-				connection.prepareStatement(sb2.toString()))) {
+			ResultSet resultSet = s.executeQuery(
+				StringBundler.concat(
+					"select mvccVersion, resourcePermissionId, companyId, ",
+					"scope, primKey, primKeyId, roleId, ownerId, actionIds, ",
+					"viewActionId from ResourcePermission where name = '",
+					LayoutAdminPortletKeys.GROUP_PAGES, "'"));
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection.prepareStatement(
+						StringBundler.concat(
+							"insert into ResourcePermission (mvccVersion, ",
+							"resourcePermissionId, companyId, name, scope, ",
+							"primKey, primKeyId, roleId, ownerId, actionIds, ",
+							"viewActionId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ",
+							"?, ?)")))) {
 
-			while (rs.next()) {
-				long mvccVersion = rs.getLong("mvccVersion");
-				long companyId = rs.getLong("companyId");
-				long scope = rs.getLong("scope");
-				String primKey = rs.getString("primKey");
-				String primKeyId = rs.getString("primKeyId");
-				long roleId = rs.getLong("roleId");
-				long ownerId = rs.getLong("ownerId");
-				long actionIds = rs.getLong("actionIds");
-				long viewActionId = rs.getLong("viewActionId");
+			while (resultSet.next()) {
+				long mvccVersion = resultSet.getLong("mvccVersion");
+				long companyId = resultSet.getLong("companyId");
+				long scope = resultSet.getLong("scope");
+				String primKey = resultSet.getString("primKey");
+				String primKeyId = resultSet.getString("primKeyId");
+				long roleId = resultSet.getLong("roleId");
+				long ownerId = resultSet.getLong("ownerId");
+				long actionIds = resultSet.getLong("actionIds");
+				long viewActionId = resultSet.getLong("viewActionId");
 
-				ps.setLong(1, mvccVersion);
-				ps.setLong(2, increment());
-				ps.setLong(3, companyId);
-				ps.setString(
+				preparedStatement.setLong(1, mvccVersion);
+				preparedStatement.setLong(2, increment());
+				preparedStatement.setLong(3, companyId);
+				preparedStatement.setString(
 					4,
 					LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES);
-				ps.setLong(5, scope);
-				ps.setString(6, primKey);
-				ps.setString(7, primKeyId);
-				ps.setLong(8, roleId);
-				ps.setLong(9, ownerId);
-				ps.setLong(10, actionIds);
-				ps.setLong(11, viewActionId);
+				preparedStatement.setLong(5, scope);
+				preparedStatement.setString(6, primKey);
+				preparedStatement.setString(7, primKeyId);
+				preparedStatement.setLong(8, roleId);
+				preparedStatement.setLong(9, ownerId);
+				preparedStatement.setLong(10, actionIds);
+				preparedStatement.setLong(11, viewActionId);
 
-				ps.addBatch();
+				preparedStatement.addBatch();
 			}
 
-			ps.executeBatch();
+			preparedStatement.executeBatch();
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 	}

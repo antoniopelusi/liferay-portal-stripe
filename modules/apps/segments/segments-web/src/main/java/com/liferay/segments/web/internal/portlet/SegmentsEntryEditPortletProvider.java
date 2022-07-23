@@ -66,7 +66,7 @@ public class SegmentsEntryEditPortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCRenderCommandName(
 			"/segments/edit_segments_entry"
-		).build();
+		).buildPortletURL();
 	}
 
 }

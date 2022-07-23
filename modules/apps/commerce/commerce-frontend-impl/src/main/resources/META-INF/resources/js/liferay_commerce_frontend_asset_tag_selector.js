@@ -245,7 +245,7 @@ AUI.add(
 
 								var key = term;
 
-								if (term == '*') {
+								if (term === '*') {
 									term = '';
 								}
 
@@ -288,7 +288,7 @@ AUI.add(
 					var charCode = event.charCode;
 
 					if (!A.UA.gecko || event._event.charCode) {
-						if (charCode == '44') {
+						if (charCode === '44') {
 							event.preventDefault();
 
 							instance._addEntries();
@@ -393,32 +393,25 @@ AUI.add(
 						}
 					);
 
-					var itemSelectorDialog = new A.LiferayItemSelectorDialog({
-						eventName: instance.get('eventName'),
-						on: {
-							selectedItemChange(event) {
-								var selectedItem = event.newVal;
+					const openerWindow = Liferay.Util.getOpener();
 
-								if (selectedItem) {
-									instance.entries.each((item) => {
-										instance.entries.remove(item);
-									});
+					openerWindow.Liferay.Util.openSelectionModal({
+						buttonAddLabel: Liferay.Language.get('done'),
+						multiple: true,
+						onSelect: (selectedItems) => {
+							if (selectedItems?.length) {
+								instance.entries.each((item) => {
+									instance.entries.remove(item);
+								});
 
-									AArray.each(
-										selectedItem.items.split(','),
-										(value) => {
-											instance.add(value);
-										}
-									);
-								}
-							},
+								selectedItems.map((item) => {
+									instance.add(item.value);
+								});
+							}
 						},
-						'strings.add': Liferay.Language.get('done'),
 						title: Liferay.Language.get('tags'),
 						url: uri,
 					});
-
-					itemSelectorDialog.open();
 				},
 
 				_updateHiddenInput(_event) {
@@ -508,7 +501,6 @@ AUI.add(
 			'aui-template-deprecated',
 			'aui-textboxlist-deprecated',
 			'datasource-cache',
-			'liferay-item-selector-dialog',
 			'liferay-service-datasource',
 		],
 	}

@@ -98,17 +98,9 @@ public class BlogsTestUtil {
 	public static String getTempBlogsEntryAttachmentFileEntryImgTag(
 		long dataImageId, String url) {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("<img ");
-		sb.append(EditorConstants.ATTRIBUTE_DATA_IMAGE_ID);
-		sb.append("=\"");
-		sb.append(dataImageId);
-		sb.append("\" src=\"");
-		sb.append(url);
-		sb.append("\"/>");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"<img ", EditorConstants.ATTRIBUTE_DATA_IMAGE_ID, "=\"",
+			dataImageId, "\" src=\"", url, "\"/>");
 	}
 
 	public static void populateNotificationsServiceContext(

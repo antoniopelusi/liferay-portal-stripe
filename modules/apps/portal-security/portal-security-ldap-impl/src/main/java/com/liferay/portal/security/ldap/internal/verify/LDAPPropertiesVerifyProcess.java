@@ -21,13 +21,13 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.ldap.LDAPSettings;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PrefsProps;
 import com.liferay.portal.kernel.util.Props;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.security.ldap.authenticator.configuration.LDAPAuthConfiguration;
 import com.liferay.portal.security.ldap.configuration.ConfigurationProvider;
 import com.liferay.portal.security.ldap.configuration.LDAPServerConfiguration;
@@ -58,7 +58,7 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 
 	@Override
 	protected void doVerify() throws Exception {
-		verifyLDAPProperties();
+		_verifyLDAPProperties();
 	}
 
 	@Reference(unbind = "-")
@@ -138,32 +138,32 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 		_systemLDAPConfigurationProvider = systemLDAPConfigurationProvider;
 	}
 
-	protected void verifyLDAPAuthProperties(long companyId) {
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put(
-			LDAPConstants.AUTH_ENABLED,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_AUTH_ENABLED, false));
-		dictionary.put(
-			LDAPConstants.AUTH_METHOD,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_AUTH_METHOD, "bind"));
-		dictionary.put(
-			LDAPConstants.AUTH_REQUIRED,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_AUTH_REQUIRED, false));
-		dictionary.put(
-			LDAPConstants.PASSWORD_ENCRYPTION_ALGORITHM,
-			_prefsProps.getString(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_AUTH_PASSWORD_ENCRYPTION_ALGORITHM,
-				"NONE"));
-		dictionary.put(
-			LDAPConstants.PASSWORD_POLICY_ENABLED,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_PASSWORD_POLICY_ENABLED,
-				false));
+	private void _verifyLDAPAuthProperties(long companyId) {
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				LDAPConstants.AUTH_ENABLED,
+				_prefsProps.getBoolean(
+					companyId, LegacyLDAPPropsKeys.LDAP_AUTH_ENABLED, false)
+			).put(
+				LDAPConstants.AUTH_METHOD,
+				_prefsProps.getString(
+					companyId, LegacyLDAPPropsKeys.LDAP_AUTH_METHOD, "bind")
+			).put(
+				LDAPConstants.AUTH_REQUIRED,
+				_prefsProps.getBoolean(
+					companyId, LegacyLDAPPropsKeys.LDAP_AUTH_REQUIRED, false)
+			).put(
+				LDAPConstants.PASSWORD_ENCRYPTION_ALGORITHM,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_AUTH_PASSWORD_ENCRYPTION_ALGORITHM,
+					"NONE")
+			).put(
+				LDAPConstants.PASSWORD_POLICY_ENABLED,
+				_prefsProps.getBoolean(
+					companyId, LegacyLDAPPropsKeys.LDAP_PASSWORD_POLICY_ENABLED,
+					false)
+			).build();
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -175,18 +175,18 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 		_ldapAuthConfigurationProvider.updateProperties(companyId, dictionary);
 	}
 
-	protected void verifyLDAPExportProperties(long companyId) {
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put(
-			LDAPConstants.EXPORT_ENABLED,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_EXPORT_ENABLED, false));
-		dictionary.put(
-			LDAPConstants.EXPORT_GROUP_ENABLED,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_EXPORT_GROUP_ENABLED,
-				false));
+	private void _verifyLDAPExportProperties(long companyId) {
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				LDAPConstants.EXPORT_ENABLED,
+				_prefsProps.getBoolean(
+					companyId, LegacyLDAPPropsKeys.LDAP_EXPORT_ENABLED, false)
+			).put(
+				LDAPConstants.EXPORT_GROUP_ENABLED,
+				_prefsProps.getBoolean(
+					companyId, LegacyLDAPPropsKeys.LDAP_EXPORT_GROUP_ENABLED,
+					false)
+			).build();
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -199,61 +199,66 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 			companyId, dictionary);
 	}
 
-	protected void verifyLDAPImportProperties(long companyId) {
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put(
-			LDAPConstants.IMPORT_CREATE_ROLE_PER_GROUP,
-			_prefsProps.getBoolean(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_IMPORT_CREATE_ROLE_PER_GROUP, false));
-		dictionary.put(
-			LDAPConstants.IMPORT_ENABLED,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_ENABLED, false));
-		dictionary.put(
-			LDAPConstants.IMPORT_GROUP_CACHE_ENABLED,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_GROUP_CACHE_ENABLED,
-				false));
-		dictionary.put(
-			LDAPConstants.IMPORT_INTERVAL,
-			_prefsProps.getInteger(
-				companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_INTERVAL, 10));
-		dictionary.put(
-			LDAPConstants.IMPORT_LOCK_EXPIRATION_TIME,
-			_prefsProps.getLong(
-				companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_LOCK_EXPIRATION_TIME,
-				86400000));
-		dictionary.put(
-			LDAPConstants.IMPORT_METHOD,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_METHOD, "user"));
-		dictionary.put(
-			LDAPConstants.IMPORT_ON_STARTUP,
-			_prefsProps.getBoolean(
-				companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_ON_STARTUP, false));
-		dictionary.put(
-			LDAPConstants.IMPORT_USER_PASSWORD_AUTOGENERATED,
-			_prefsProps.getBoolean(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_IMPORT_USER_PASSWORD_AUTOGENERATED,
-				false));
-		dictionary.put(
-			LDAPConstants.IMPORT_USER_PASSWORD_DEFAULT,
-			_prefsProps.getString(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_IMPORT_USER_PASSWORD_DEFAULT, "test"));
-		dictionary.put(
-			LDAPConstants.IMPORT_USER_PASSWORD_ENABLED,
-			_prefsProps.getBoolean(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_IMPORT_USER_PASSWORD_ENABLED, true));
-		dictionary.put(
-			LDAPConstants.IMPORT_USER_SYNC_STRATEGY,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_USER_SYNC_STRATEGY,
-				"auth-type"));
+	private void _verifyLDAPImportProperties(long companyId) {
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				LDAPConstants.IMPORT_CREATE_ROLE_PER_GROUP,
+				_prefsProps.getBoolean(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_CREATE_ROLE_PER_GROUP,
+					false)
+			).put(
+				LDAPConstants.IMPORT_ENABLED,
+				_prefsProps.getBoolean(
+					companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_ENABLED, false)
+			).put(
+				LDAPConstants.IMPORT_GROUP_CACHE_ENABLED,
+				_prefsProps.getBoolean(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_GROUP_CACHE_ENABLED, false)
+			).put(
+				LDAPConstants.IMPORT_INTERVAL,
+				_prefsProps.getInteger(
+					companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_INTERVAL, 10)
+			).put(
+				LDAPConstants.IMPORT_LOCK_EXPIRATION_TIME,
+				_prefsProps.getLong(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_LOCK_EXPIRATION_TIME,
+					86400000)
+			).put(
+				LDAPConstants.IMPORT_METHOD,
+				_prefsProps.getString(
+					companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_METHOD, "user")
+			).put(
+				LDAPConstants.IMPORT_ON_STARTUP,
+				_prefsProps.getBoolean(
+					companyId, LegacyLDAPPropsKeys.LDAP_IMPORT_ON_STARTUP,
+					false)
+			).put(
+				LDAPConstants.IMPORT_USER_PASSWORD_AUTOGENERATED,
+				_prefsProps.getBoolean(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_USER_PASSWORD_AUTOGENERATED,
+					false)
+			).put(
+				LDAPConstants.IMPORT_USER_PASSWORD_DEFAULT,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_USER_PASSWORD_DEFAULT,
+					"test")
+			).put(
+				LDAPConstants.IMPORT_USER_PASSWORD_ENABLED,
+				_prefsProps.getBoolean(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_USER_PASSWORD_ENABLED, true)
+			).put(
+				LDAPConstants.IMPORT_USER_SYNC_STRATEGY,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_USER_SYNC_STRATEGY,
+					"auth-type")
+			).build();
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -266,7 +271,7 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 			companyId, dictionary);
 	}
 
-	protected void verifyLDAPProperties() throws Exception {
+	private void _verifyLDAPProperties() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			_companyLocalService.forEachCompanyId(
 				companyId -> {
@@ -278,10 +283,10 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 						return;
 					}
 
-					verifyLDAPAuthProperties(companyId);
-					verifyLDAPExportProperties(companyId);
-					verifyLDAPImportProperties(companyId);
-					verifySystemLDAPConfiguration(companyId);
+					_verifyLDAPAuthProperties(companyId);
+					_verifyLDAPExportProperties(companyId);
+					_verifyLDAPImportProperties(companyId);
+					_verifySystemLDAPConfiguration(companyId);
 
 					Set<String> keys = new HashSet<>();
 
@@ -292,7 +297,7 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 						String postfix = _ldapSettings.getPropertyPostfix(
 							ldapServerId);
 
-						verifyLDAPServerConfiguration(
+						_verifyLDAPServerConfiguration(
 							companyId, ldapServerId, postfix);
 
 						for (int i = 0;
@@ -315,11 +320,6 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 					_companyLocalService.removePreferences(
 						companyId, keys.toArray(new String[0]));
 
-					UnicodeProperties unicodeProperties =
-						new UnicodeProperties();
-
-					unicodeProperties.put("ldap.server.ids", StringPool.BLANK);
-
 					if (_log.isInfoEnabled()) {
 						_log.info(
 							StringBundler.concat(
@@ -329,122 +329,132 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 					}
 
 					_companyLocalService.updatePreferences(
-						companyId, unicodeProperties);
+						companyId,
+						UnicodePropertiesBuilder.put(
+							"ldap.server.ids", StringPool.BLANK
+						).build());
 				});
 		}
 	}
 
-	protected void verifyLDAPServerConfiguration(
+	private void _verifyLDAPServerConfiguration(
 		long companyId, long ldapServerId, String postfix) {
 
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put(
-			LDAPConstants.AUTH_SEARCH_FILTER,
-			_prefsProps.getString(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_AUTH_SEARCH_FILTER + postfix,
-				"(mail=@email_address@)"));
-		dictionary.put(
-			LDAPConstants.BASE_DN,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_BASE_DN + postfix,
-				"dc=example,dc=com"));
-		dictionary.put(
-			LDAPConstants.BASE_PROVIDER_URL,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_BASE_PROVIDER_URL + postfix,
-				"ldap://localhost:10389"));
-		dictionary.put(
-			LDAPConstants.CONTACT_CUSTOM_MAPPINGS,
-			_prefsProps.getStringArray(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_CONTACT_CUSTOM_MAPPINGS + postfix,
-				StringPool.NEW_LINE));
-		dictionary.put(
-			LDAPConstants.CONTACT_MAPPINGS,
-			_prefsProps.getStringArray(
-				companyId, LegacyLDAPPropsKeys.LDAP_CONTACT_MAPPINGS + postfix,
-				StringPool.NEW_LINE));
-		dictionary.put(
-			LDAPConstants.GROUP_DEFAULT_OBJECT_CLASSES,
-			_prefsProps.getStringArray(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_GROUP_DEFAULT_OBJECT_CLASSES + postfix,
-				StringPool.COMMA));
-		dictionary.put(
-			LDAPConstants.GROUP_MAPPINGS,
-			_prefsProps.getStringArray(
-				companyId, LegacyLDAPPropsKeys.LDAP_GROUP_MAPPINGS + postfix,
-				StringPool.NEW_LINE));
-		dictionary.put(
-			LDAPConstants.GROUP_SEARCH_FILTER,
-			_prefsProps.getString(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_IMPORT_GROUP_SEARCH_FILTER + postfix,
-				"(objectClass=groupOfUniqueNames)"));
-		dictionary.put(
-			LDAPConstants.GROUP_SEARCH_FILTER_ENABLED,
-			_prefsProps.getBoolean(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_IMPORT_GROUP_SEARCH_FILTER_ENABLED +
-					postfix,
-				true));
-		dictionary.put(
-			LDAPConstants.GROUPS_DN,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_GROUPS_DN + postfix,
-				"ou=groups,dc=example,dc=com"));
-		dictionary.put(
-			LDAPConstants.SECURITY_CREDENTIAL,
-			_prefsProps.getString(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_SECURITY_CREDENTIALS + postfix,
-				"secret"));
-		dictionary.put(
-			LDAPConstants.SECURITY_PRINCIPAL,
-			_prefsProps.getString(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_SECURITY_PRINCIPAL + postfix,
-				"uid=admin,ou=system"));
-		dictionary.put(
-			LDAPConstants.SERVER_NAME,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_SERVER_NAME + postfix));
-		dictionary.put(
-			LDAPConstants.USER_CUSTOM_MAPPINGS,
-			_prefsProps.getStringArray(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_USER_CUSTOM_MAPPINGS + postfix,
-				StringPool.NEW_LINE));
-		dictionary.put(
-			LDAPConstants.USER_DEFAULT_OBJECT_CLASSES,
-			_prefsProps.getStringArray(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_USER_DEFAULT_OBJECT_CLASSES + postfix,
-				StringPool.COMMA));
-		dictionary.put(
-			LDAPConstants.USER_IGNORE_ATTRIBUTES,
-			_prefsProps.getStringArray(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_USER_IGNORE_ATTRIBUTES + postfix,
-				StringPool.COMMA));
-		dictionary.put(
-			LDAPConstants.USER_MAPPINGS,
-			_prefsProps.getStringArray(
-				companyId, LegacyLDAPPropsKeys.LDAP_USER_MAPPINGS + postfix,
-				StringPool.NEW_LINE));
-		dictionary.put(
-			LDAPConstants.USER_SEARCH_FILTER,
-			_prefsProps.getString(
-				companyId,
-				LegacyLDAPPropsKeys.LDAP_IMPORT_USER_SEARCH_FILTER + postfix,
-				"(objectClass=inetOrgPerson)"));
-		dictionary.put(
-			LDAPConstants.USERS_DN,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_USERS_DN + postfix,
-				"users,dc=example,dc=com"));
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				LDAPConstants.AUTH_SEARCH_FILTER,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_AUTH_SEARCH_FILTER + postfix,
+					"(mail=@email_address@)")
+			).put(
+				LDAPConstants.BASE_DN,
+				_prefsProps.getString(
+					companyId, LegacyLDAPPropsKeys.LDAP_BASE_DN + postfix,
+					"dc=example,dc=com")
+			).put(
+				LDAPConstants.BASE_PROVIDER_URL,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_BASE_PROVIDER_URL + postfix,
+					"ldap://localhost:10389")
+			).put(
+				LDAPConstants.CONTACT_CUSTOM_MAPPINGS,
+				_prefsProps.getStringArray(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_CONTACT_CUSTOM_MAPPINGS + postfix,
+					StringPool.NEW_LINE)
+			).put(
+				LDAPConstants.CONTACT_MAPPINGS,
+				_prefsProps.getStringArray(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_CONTACT_MAPPINGS + postfix,
+					StringPool.NEW_LINE)
+			).put(
+				LDAPConstants.GROUP_DEFAULT_OBJECT_CLASSES,
+				_prefsProps.getStringArray(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_GROUP_DEFAULT_OBJECT_CLASSES +
+						postfix,
+					StringPool.COMMA)
+			).put(
+				LDAPConstants.GROUP_MAPPINGS,
+				_prefsProps.getStringArray(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_GROUP_MAPPINGS + postfix,
+					StringPool.NEW_LINE)
+			).put(
+				LDAPConstants.GROUP_SEARCH_FILTER,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_GROUP_SEARCH_FILTER +
+						postfix,
+					"(objectClass=groupOfUniqueNames)")
+			).put(
+				LDAPConstants.GROUP_SEARCH_FILTER_ENABLED,
+				_prefsProps.getBoolean(
+					companyId,
+					LegacyLDAPPropsKeys.
+						LDAP_IMPORT_GROUP_SEARCH_FILTER_ENABLED + postfix,
+					true)
+			).put(
+				LDAPConstants.GROUPS_DN,
+				_prefsProps.getString(
+					companyId, LegacyLDAPPropsKeys.LDAP_GROUPS_DN + postfix,
+					"ou=groups,dc=example,dc=com")
+			).put(
+				LDAPConstants.SECURITY_CREDENTIAL,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_SECURITY_CREDENTIALS + postfix,
+					"secret")
+			).put(
+				LDAPConstants.SECURITY_PRINCIPAL,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_SECURITY_PRINCIPAL + postfix,
+					"uid=admin,ou=system")
+			).put(
+				LDAPConstants.SERVER_NAME,
+				_prefsProps.getString(
+					companyId, LegacyLDAPPropsKeys.LDAP_SERVER_NAME + postfix)
+			).put(
+				LDAPConstants.USER_CUSTOM_MAPPINGS,
+				_prefsProps.getStringArray(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_USER_CUSTOM_MAPPINGS + postfix,
+					StringPool.NEW_LINE)
+			).put(
+				LDAPConstants.USER_DEFAULT_OBJECT_CLASSES,
+				_prefsProps.getStringArray(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_USER_DEFAULT_OBJECT_CLASSES +
+						postfix,
+					StringPool.COMMA)
+			).put(
+				LDAPConstants.USER_IGNORE_ATTRIBUTES,
+				_prefsProps.getStringArray(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_USER_IGNORE_ATTRIBUTES + postfix,
+					StringPool.COMMA)
+			).put(
+				LDAPConstants.USER_MAPPINGS,
+				_prefsProps.getStringArray(
+					companyId, LegacyLDAPPropsKeys.LDAP_USER_MAPPINGS + postfix,
+					StringPool.NEW_LINE)
+			).put(
+				LDAPConstants.USER_SEARCH_FILTER,
+				_prefsProps.getString(
+					companyId,
+					LegacyLDAPPropsKeys.LDAP_IMPORT_USER_SEARCH_FILTER +
+						postfix,
+					"(objectClass=inetOrgPerson)")
+			).put(
+				LDAPConstants.USERS_DN,
+				_prefsProps.getString(
+					companyId, LegacyLDAPPropsKeys.LDAP_USERS_DN + postfix,
+					"users,dc=example,dc=com")
+			).build();
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -458,76 +468,80 @@ public class LDAPPropertiesVerifyProcess extends VerifyProcess {
 			companyId, ldapServerId, dictionary);
 	}
 
-	protected void verifySystemLDAPConfiguration(long companyId) {
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put(
-			LDAPConstants.ERROR_PASSWORD_AGE_KEYWORDS,
-			new String[] {
+	private void _verifySystemLDAPConfiguration(long companyId) {
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				LDAPConstants.ERROR_PASSWORD_AGE_KEYWORDS,
+				new String[] {
+					_prefsProps.getString(
+						companyId, LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_AGE,
+						"age")
+				}
+			).put(
+				LDAPConstants.ERROR_PASSWORD_EXPIRED_KEYWORDS,
+				new String[] {
+					_prefsProps.getString(
+						companyId,
+						LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_EXPIRED,
+						"expired")
+				}
+			).put(
+				LDAPConstants.ERROR_PASSWORD_HISTORY_KEYWORDS,
+				new String[] {
+					_prefsProps.getString(
+						companyId,
+						LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_HISTORY,
+						"history")
+				}
+			).put(
+				LDAPConstants.ERROR_PASSWORD_NOT_CHANGEABLE_KEYWORDS,
+				new String[] {
+					_prefsProps.getString(
+						companyId,
+						LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_NOT_CHANGEABLE,
+						"not allowed to change")
+				}
+			).put(
+				LDAPConstants.ERROR_PASSWORD_SYNTAX_KEYWORDS,
+				new String[] {
+					_prefsProps.getString(
+						companyId,
+						LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_SYNTAX,
+						"syntax")
+				}
+			).put(
+				LDAPConstants.ERROR_PASSWORD_TRIVIAL_KEYWORDS,
+				new String[] {
+					_prefsProps.getString(
+						companyId,
+						LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_TRIVIAL,
+						"trivial")
+				}
+			).put(
+				LDAPConstants.ERROR_USER_LOCKOUT_KEYWORDS,
+				new String[] {
+					_prefsProps.getString(
+						companyId, LegacyLDAPPropsKeys.LDAP_ERROR_USER_LOCKOUT,
+						"retry limit")
+				}
+			).put(
+				LDAPConstants.FACTORY_INITIAL,
 				_prefsProps.getString(
-					companyId, LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_AGE,
-					"age")
-			});
-		dictionary.put(
-			LDAPConstants.ERROR_PASSWORD_EXPIRED_KEYWORDS,
-			new String[] {
+					companyId, LegacyLDAPPropsKeys.LDAP_FACTORY_INITIAL,
+					"com.sun.jndi.ldap.LdapCtxFactory")
+			).put(
+				LDAPConstants.PAGE_SIZE,
+				_prefsProps.getInteger(
+					companyId, LegacyLDAPPropsKeys.LDAP_PAGE_SIZE, 1000)
+			).put(
+				LDAPConstants.RANGE_SIZE,
+				_prefsProps.getInteger(
+					companyId, LegacyLDAPPropsKeys.LDAP_RANGE_SIZE, 1000)
+			).put(
+				LDAPConstants.REFERRAL,
 				_prefsProps.getString(
-					companyId, LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_EXPIRED,
-					"expired")
-			});
-		dictionary.put(
-			LDAPConstants.ERROR_PASSWORD_HISTORY_KEYWORDS,
-			new String[] {
-				_prefsProps.getString(
-					companyId, LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_HISTORY,
-					"history")
-			});
-		dictionary.put(
-			LDAPConstants.ERROR_PASSWORD_NOT_CHANGEABLE_KEYWORDS,
-			new String[] {
-				_prefsProps.getString(
-					companyId,
-					LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_NOT_CHANGEABLE,
-					"not allowed to change")
-			});
-		dictionary.put(
-			LDAPConstants.ERROR_PASSWORD_SYNTAX_KEYWORDS,
-			new String[] {
-				_prefsProps.getString(
-					companyId, LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_SYNTAX,
-					"syntax")
-			});
-		dictionary.put(
-			LDAPConstants.ERROR_PASSWORD_TRIVIAL_KEYWORDS,
-			new String[] {
-				_prefsProps.getString(
-					companyId, LegacyLDAPPropsKeys.LDAP_ERROR_PASSWORD_TRIVIAL,
-					"trivial")
-			});
-		dictionary.put(
-			LDAPConstants.ERROR_USER_LOCKOUT_KEYWORDS,
-			new String[] {
-				_prefsProps.getString(
-					companyId, LegacyLDAPPropsKeys.LDAP_ERROR_USER_LOCKOUT,
-					"retry limit")
-			});
-		dictionary.put(
-			LDAPConstants.FACTORY_INITIAL,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_FACTORY_INITIAL,
-				"com.sun.jndi.ldap.LdapCtxFactory"));
-		dictionary.put(
-			LDAPConstants.PAGE_SIZE,
-			_prefsProps.getInteger(
-				companyId, LegacyLDAPPropsKeys.LDAP_PAGE_SIZE, 1000));
-		dictionary.put(
-			LDAPConstants.RANGE_SIZE,
-			_prefsProps.getInteger(
-				companyId, LegacyLDAPPropsKeys.LDAP_RANGE_SIZE, 1000));
-		dictionary.put(
-			LDAPConstants.REFERRAL,
-			_prefsProps.getString(
-				companyId, LegacyLDAPPropsKeys.LDAP_REFERRAL, "follow"));
+					companyId, LegacyLDAPPropsKeys.LDAP_REFERRAL, "follow")
+			).build();
 
 		if (_log.isInfoEnabled()) {
 			_log.info(

@@ -70,10 +70,6 @@ definition {
 		Select(
 			locator1 = "KnowledgeBase#FOLDER_SELECT_DROPDOWN",
 			value1 = "${kbFolderName}");
-
-		AssertClick(
-			locator1 = "KnowledgeBase#FOLDER_SELECT_OPTION",
-			value1 = "${kbFolderName}");
 	}
 
 	macro selectParentCP {
@@ -109,7 +105,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			portlet = "Knowledge Base");
 
 		while (IsElementPresent(locator1 = "KnowledgeBase#FOLDER_TABLE_HEADER")) {

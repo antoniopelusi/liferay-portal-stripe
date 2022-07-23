@@ -16,7 +16,7 @@ package com.liferay.account.admin.web.internal.portlet.action;
 
 import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.model.AccountEntry;
-import com.liferay.account.service.AccountEntryLocalService;
+import com.liferay.account.service.AccountEntryService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -37,6 +37,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_MANAGEMENT,
 		"mvc.command.name=/account_admin/update_account_entry_default_address"
 	},
 	service = MVCActionCommand.class
@@ -55,7 +56,7 @@ public class UpdateAccountEntryDefaultAddressMVCActionCommand
 		long addressId = ParamUtil.getLong(actionRequest, "addressId");
 		String type = ParamUtil.getString(actionRequest, "type");
 
-		AccountEntry accountEntry = _accountEntryLocalService.getAccountEntry(
+		AccountEntry accountEntry = _accountEntryService.getAccountEntry(
 			accountEntryId);
 
 		if (Objects.equals("billing", type)) {
@@ -65,7 +66,7 @@ public class UpdateAccountEntryDefaultAddressMVCActionCommand
 			accountEntry.setDefaultShippingAddressId(addressId);
 		}
 
-		_accountEntryLocalService.updateAccountEntry(accountEntry);
+		_accountEntryService.updateAccountEntry(accountEntry);
 
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
 
@@ -75,6 +76,6 @@ public class UpdateAccountEntryDefaultAddressMVCActionCommand
 	}
 
 	@Reference
-	private AccountEntryLocalService _accountEntryLocalService;
+	private AccountEntryService _accountEntryService;
 
 }

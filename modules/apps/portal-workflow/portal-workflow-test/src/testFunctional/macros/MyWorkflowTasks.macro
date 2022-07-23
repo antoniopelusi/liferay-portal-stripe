@@ -1,0 +1,154 @@
+definition {
+
+	macro clearSearchResultMyWorkflowTasks {
+		Click(locator1 = "Link#CLEAR");
+	}
+
+	macro searchMyWorkflowTasks {
+		Type(
+			locator1 = "MyWorkflowTasks#MY_WORKFLOW_TASKS_SEARCH_INPUT_FIELD",
+			value1 = "${searchTerm}");
+
+		Click(locator1 = "MyWorkflowTasks#MY_WORKFLOW_TASKS_SEARCH_ICON");
+	}
+
+	macro updateDueDateAtMyWorkflowTasks {
+		Workflow.viewTaskAssignedToMyRoles(
+			ddlDataDefinitionName = "Data Definition Name",
+			workflowAssetTitle = "Blogs Entry Title 1",
+			workflowAssetType = "Blogs Entry",
+			workflowTask = "Review");
+
+		Workflow.gotoTaskAssignedToMyRolesActionsCmd(
+			workflowAssetTitle = "Blogs Entry Title 1",
+			workflowTask = "Review");
+
+		var key_workflowAssetTitle = "${workflowAssetTitle}";
+		var key_workflowTask = "${workflowTask}";
+
+		MenuItem.click(menuItem = "Update Due Date");
+
+		SelectFrame(locator1 = "MyWorkflowTasks#IFRAME_UPDATE_DUE_DATE");
+
+		SelectFrame(locator1 = "WorkflowDefinition#DIALOG_BOX_BODY");
+
+		SelectFrame(locator1 = "IFrame#IFRAME");
+
+		Type(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
+			value1 = "${dueDate}");
+
+		Type(
+			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE_TIME",
+			value1 = "${dueDateTime}");
+
+		Workflow.confirmWorkflowAction();
+	}
+
+	macro updateDueDateMyWorkflowTasksFutureDate {
+		var key_workflowAssetTitle = "${key_workflowAssetTitle}";
+		var key_workflowTask = "${key_workflowTask}";
+		var displayDateDay = DateUtil.getCurrentDate();
+		var displayDateMonth = DateUtil.getCurrentMonth();
+		var currentYear = DateUtil.getCurrentYear();
+		var futureDay = ${displayDateDay} + 1;
+		var futureMonth = ${displayDateMonth} + 1;
+		var futureYear = ${currentYear} + 1;
+		var timePeriod = "${key_timePeriod}";
+
+		Workflow.viewTaskAssignedToMyRoles(
+			ddlDataDefinitionName = "${ddlDataDefinitionName}",
+			workflowAssetTitle = "${key_workflowAssetTitle}",
+			workflowAssetType = "${workflowAssetType}",
+			workflowTask = "${key_workflowTask}");
+
+		Workflow.gotoTaskAssignedToMyRolesActionsCmd(
+			workflowAssetTitle = "${key_workflowAssetTitle}",
+			workflowTask = "${key_workflowTask}");
+
+		MenuItem.click(menuItem = "Update Due Date");
+
+		SelectFrame(locator1 = "MyWorkflowTasks#IFRAME_UPDATE_DUE_DATE");
+
+		SelectFrame(locator1 = "WorkflowDefinition#DIALOG_BOX_BODY");
+
+		SelectFrame(locator1 = "IFrame#IFRAME");
+
+		if ("${key_timePeriod}" == "day") {
+			Type(
+				locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
+				value1 = "${displayDateMonth}/${futureDay}/${displayDateYear}");
+
+			Type(
+				locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE_TIME",
+				value1 = "07:30 PM");
+		}
+
+		if ("${key_timePeriod}" == "month") {
+			Type(
+				locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
+				value1 = "${futureMonth}/${displayDateDay}/${displayDateYear}");
+		}
+
+		if ("${key_timePeriod}" == "year") {
+			Type(
+				locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
+				value1 = "${displayDateMonth}/${displayDateDay}/${futureYear}");
+		}
+
+		Workflow.confirmWorkflowAction();
+	}
+
+	macro viewDueDateValue {
+		AssertTextEquals.assertPartialText(
+			key_workflowAssetTitle = "${workflowAssetTitle}",
+			key_workflowTask = "${workflowTask}",
+			locator1 = "MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_DUE_DATE",
+			value1 = "${dueDateValue}");
+	}
+
+	macro viewErrorRequestFailed {
+		AssertTextPresent(
+			locator1 = "Message#ERROR",
+			value1 = "Your request failed to complete.");
+	}
+
+	macro viewErrorValidDueDate {
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#ERROR_DISMISSIBLE",
+			value1 = "Please enter a valid due date.");
+	}
+
+	macro viewMyWorkflowTaskItemPosition {
+		var key_rowPosition = "${rowPosition}";
+		var key_title = "${title}";
+
+		AssertElementPresent(
+			key_rowPosition = "${rowPosition}",
+			key_title = "${title}",
+			locator1 = "MyWorkflowTasks#MY_WORKFLOW_TASK_ITEM_POSITION");
+	}
+
+	macro viewTaskAssignedAndAssertTextsPresent {
+		var elements = "Assigned to,State,Create Date,Due Date";
+
+		for (var list : list "${elements}") {
+			AssertElementPresent(
+				key_resultBarMessage = "${list}",
+				locator1 = "MyWorkflowTasks#MY_WORKFLOW_TASKS_SEARCH_RESULT_BAR");
+		}
+
+		AssertElementPresent(
+			key_resultBarMessage = "${titleMessageBoard}",
+			locator1 = "MyWorkflowTasks#MY_WORKFLOW_TASKS_SEARCH_RESULT_BAR");
+
+		AssertElementPresent(locator1 = "MyWorkflowTasks#SUMMARY_TEXT_CONTENT");
+
+		AssertElementPresent(
+			key_resultBarMessage = "${nameAuthor}",
+			locator1 = "MyWorkflowTasks#MY_WORKFLOW_TASKS_SEARCH_RESULT_BAR");
+
+		AssertElementPresent(locator1 = "IFrame#IFRAME");
+	}
+
+}

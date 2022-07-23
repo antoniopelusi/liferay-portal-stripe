@@ -84,7 +84,7 @@ public class SetupWizardUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return PropsValues.COMPANY_DEFAULT_TIME_ZONE;
@@ -149,20 +149,8 @@ public class SetupWizardUtil {
 		CompanyLocalServiceUtil.updateDisplay(
 			PortalInstances.getDefaultCompanyId(), languageId, timeZoneId);
 
-		HttpSession session = httpServletRequest.getSession();
-
-		session.setAttribute(WebKeys.LOCALE, locale);
-		session.setAttribute(WebKeys.SETUP_WIZARD_DEFAULT_LOCALE, languageId);
-
-		LanguageUtil.updateCookie(
-			httpServletRequest, httpServletResponse, locale);
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		themeDisplay.setLanguageId(languageId);
-		themeDisplay.setLocale(locale);
+		_updateLanguage(
+			httpServletRequest, httpServletResponse, languageId, locale);
 	}
 
 	public static void updateSetup(
@@ -184,23 +172,22 @@ public class SetupWizardUtil {
 
 		_processOtherProperties(httpServletRequest, unicodeProperties);
 
-		updateLanguage(httpServletRequest, httpServletResponse);
-
 		unicodeProperties.put(
 			PropsKeys.SETUP_WIZARD_ENABLED, Boolean.FALSE.toString());
 
-		_updateCompany(httpServletRequest, unicodeProperties);
+		_updateCompany(
+			httpServletRequest, httpServletResponse, unicodeProperties);
 
 		_updateAdminUser(
 			httpServletRequest, httpServletResponse, unicodeProperties);
 
 		_updateCompanyWebId(httpServletRequest, unicodeProperties);
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		session.setAttribute(
+		httpSession.setAttribute(
 			WebKeys.SETUP_WIZARD_PROPERTIES, unicodeProperties);
-		session.setAttribute(
+		httpSession.setAttribute(
 			WebKeys.SETUP_WIZARD_PROPERTIES_FILE_CREATED,
 			_writePropertiesFile(unicodeProperties));
 	}
@@ -353,12 +340,21 @@ public class SetupWizardUtil {
 
 		boolean passwordReset = false;
 
-		PasswordPolicy passwordPolicy =
-			PasswordPolicyLocalServiceUtil.getDefaultPasswordPolicy(
-				company.getCompanyId());
+		try {
+			PasswordPolicy passwordPolicy =
+				PasswordPolicyLocalServiceUtil.getDefaultPasswordPolicy(
+					company.getCompanyId());
 
-		if ((passwordPolicy != null) && passwordPolicy.isChangeable()) {
-			passwordReset = true;
+			if ((passwordPolicy != null) && passwordPolicy.isChangeable() &&
+				passwordPolicy.isChangeRequired()) {
+
+				passwordReset = true;
+			}
+		}
+		catch (PortalException portalException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(portalException);
+			}
 		}
 
 		User user = SetupWizardSampleDataUtil.updateAdminUser(
@@ -383,13 +379,13 @@ public class SetupWizardUtil {
 			PropsKeys.DEFAULT_ADMIN_EMAIL_ADDRESS_PREFIX,
 			emailAddress.substring(0, index));
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		session.setAttribute(WebKeys.EMAIL_ADDRESS, emailAddress);
-		session.setAttribute(
+		httpSession.setAttribute(WebKeys.EMAIL_ADDRESS, emailAddress);
+		httpSession.setAttribute(
 			WebKeys.SETUP_WIZARD_PASSWORD_UPDATED, Boolean.TRUE);
-		session.setAttribute(WebKeys.USER, user);
-		session.setAttribute(WebKeys.USER_ID, user.getUserId());
+		httpSession.setAttribute(WebKeys.USER, user);
+		httpSession.setAttribute(WebKeys.USER_ID, user.getUserId());
 
 		EventsProcessorUtil.process(
 			PropsKeys.LOGIN_EVENTS_POST, PropsValues.LOGIN_EVENTS_POST,
@@ -398,6 +394,7 @@ public class SetupWizardUtil {
 
 	private static void _updateCompany(
 			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse,
 			UnicodeProperties unicodeProperties)
 		throws Exception {
 
@@ -406,6 +403,10 @@ public class SetupWizardUtil {
 
 		String languageId = ParamUtil.getString(
 			httpServletRequest, "companyLocale", getDefaultLanguageId());
+
+		_updateLanguage(
+			httpServletRequest, httpServletResponse, languageId,
+			LocaleUtil.fromLanguageId(languageId));
 
 		PropsValues.COMPANY_DEFAULT_LOCALE = languageId;
 
@@ -452,13 +453,33 @@ public class SetupWizardUtil {
 		company.setWebId(companyDefaultWebId);
 		company.setMx(companyDefaultWebId);
 
-		company = CompanyLocalServiceUtil.updateCompany(company);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		themeDisplay.setCompany(CompanyLocalServiceUtil.updateCompany(company));
+	}
+
+	private static void _updateLanguage(
+		HttpServletRequest httpServletRequest,
+		HttpServletResponse httpServletResponse, String languageId,
+		Locale locale) {
+
+		HttpSession httpSession = httpServletRequest.getSession();
+
+		httpSession.setAttribute(WebKeys.LOCALE, locale);
+		httpSession.setAttribute(
+			WebKeys.SETUP_WIZARD_DEFAULT_LOCALE, languageId);
+
+		LanguageUtil.updateCookie(
+			httpServletRequest, httpServletResponse, locale);
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		themeDisplay.setCompany(company);
+		themeDisplay.setLanguageId(languageId);
+		themeDisplay.setLocale(locale);
 	}
 
 	private static boolean _writePropertiesFile(
@@ -477,7 +498,7 @@ public class SetupWizardUtil {
 			}
 		}
 		catch (IOException ioException) {
-			_log.error(ioException, ioException);
+			_log.error(ioException);
 		}
 
 		return false;

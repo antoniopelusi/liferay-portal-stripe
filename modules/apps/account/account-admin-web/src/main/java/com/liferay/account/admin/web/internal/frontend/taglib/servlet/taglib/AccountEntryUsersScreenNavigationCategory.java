@@ -15,16 +15,13 @@
 package com.liferay.account.admin.web.internal.frontend.taglib.servlet.taglib;
 
 import com.liferay.account.admin.web.internal.constants.AccountScreenNavigationEntryConstants;
-import com.liferay.account.admin.web.internal.display.AccountEntryDisplay;
 import com.liferay.account.admin.web.internal.security.permission.resource.AccountEntryPermission;
 import com.liferay.account.constants.AccountActionKeys;
 import com.liferay.account.constants.AccountConstants;
+import com.liferay.account.model.AccountEntry;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 
@@ -35,6 +32,7 @@ import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Albert Lee
+ * @author Alessio Antonio Rendina
  */
 @Component(
 	property = {
@@ -68,39 +66,18 @@ public class AccountEntryUsersScreenNavigationCategory
 	}
 
 	@Override
-	public boolean isVisible(
-		User user, AccountEntryDisplay accountEntryDisplay) {
-
-		if (accountEntryDisplay.getAccountEntryId() == 0) {
-			return false;
-		}
-
-		if (!Objects.equals(
-				accountEntryDisplay.getType(),
+	public boolean isVisible(User user, AccountEntry accountEntry) {
+		if ((accountEntry == null) ||
+			!Objects.equals(
+				accountEntry.getType(),
 				AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS)) {
 
 			return false;
 		}
 
-		try {
-			if (AccountEntryPermission.contains(
-					PermissionCheckerFactoryUtil.create(user),
-					accountEntryDisplay.getAccountEntryId(),
-					AccountActionKeys.VIEW_USERS)) {
-
-				return true;
-			}
-		}
-		catch (PortalException portalException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
-			}
-		}
-
-		return false;
+		return AccountEntryPermission.contains(
+			PermissionCheckerFactoryUtil.create(user),
+			accountEntry.getAccountEntryId(), AccountActionKeys.VIEW_USERS);
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		AccountEntryUsersScreenNavigationCategory.class);
 
 }

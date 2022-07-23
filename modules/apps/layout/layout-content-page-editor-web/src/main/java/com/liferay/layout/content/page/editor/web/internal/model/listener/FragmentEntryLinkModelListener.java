@@ -54,6 +54,15 @@ public class FragmentEntryLinkModelListener
 	extends BaseModelListener<FragmentEntryLink> {
 
 	@Override
+	public void onAfterCreate(FragmentEntryLink fragmentEntryLink)
+		throws ModelListenerException {
+
+		_updateLayoutClassedModelUsage(fragmentEntryLink);
+
+		_updateDDMTemplateLink(fragmentEntryLink);
+	}
+
+	@Override
 	public void onAfterRemove(FragmentEntryLink fragmentEntryLink)
 		throws ModelListenerException {
 
@@ -75,7 +84,9 @@ public class FragmentEntryLinkModelListener
 	}
 
 	@Override
-	public void onAfterUpdate(FragmentEntryLink fragmentEntryLink)
+	public void onAfterUpdate(
+			FragmentEntryLink originalFragmentEntryLink,
+			FragmentEntryLink fragmentEntryLink)
 		throws ModelListenerException {
 
 		_updateLayoutClassedModelUsage(fragmentEntryLink);

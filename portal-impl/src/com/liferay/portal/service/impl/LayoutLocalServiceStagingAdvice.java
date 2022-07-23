@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutStagingHandler;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.SystemEventConstants;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.BaseLocalService;
@@ -47,7 +46,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -66,6 +64,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -499,9 +498,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					proxiedLayouts.remove(layout);
 				}
 
-				proxiedLayout = ProxyUtil.newProxyInstance(
-					PortalClassLoaderUtil.getClassLoader(),
-					new Class<?>[] {Layout.class, ModelWrapper.class},
+				proxiedLayout = _proxyProviderFunction.apply(
 					new LayoutStagingHandler(layout));
 
 				proxiedLayouts.put(layout, proxiedLayout);
@@ -510,9 +507,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			}
 		}
 
-		Object proxiedLayout = ProxyUtil.newProxyInstance(
-			PortalClassLoaderUtil.getClassLoader(),
-			new Class<?>[] {Layout.class, ModelWrapper.class},
+		Object proxiedLayout = _proxyProviderFunction.apply(
 			new LayoutStagingHandler(layout));
 
 		ProxiedLayoutsThreadLocal.setProxiedLayouts(
@@ -540,11 +535,9 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		LayoutStagingHandler layoutStagingHandler =
 			LayoutStagingUtil.getLayoutStagingHandler(layout);
 
-		if (layoutStagingHandler != null) {
-			return layout;
-		}
+		if ((layoutStagingHandler != null) ||
+			!LayoutStagingUtil.isBranchingLayout(layout)) {
 
-		if (!LayoutStagingUtil.isBranchingLayout(layout)) {
 			return layout;
 		}
 
@@ -575,12 +568,11 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 				userId = GetterUtil.getLong(PrincipalThreadLocal.getName());
 
 				if (userId > 0) {
-					User user = UserLocalServiceUtil.getUser(userId);
-
 					LayoutSet layoutSet = firstLayout.getLayoutSet();
 
 					layoutSetBranchId = StagingUtil.getRecentLayoutSetBranchId(
-						user, layoutSet.getLayoutSetId());
+						UserLocalServiceUtil.getUser(userId),
+						layoutSet.getLayoutSetId());
 				}
 			}
 			catch (Exception exception) {
@@ -659,6 +651,9 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			Arrays.asList(
 				"create", "createLayout", "deleteLayout", "getLayouts",
 				"updateLayout", "updateLookAndFeel", "updateName"));
+	private static final Function<InvocationHandler, Layout>
+		_proxyProviderFunction = ProxyUtil.getProxyProviderFunction(
+			Layout.class, ModelWrapper.class);
 
 	private BeanFactory _beanFactory;
 
@@ -804,8 +799,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 				}
 				catch (NoSuchMethodException noSuchMethodException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							noSuchMethodException, noSuchMethodException);
+						_log.debug(noSuchMethodException);
 					}
 
 					returnValue = _invoke(method, arguments);

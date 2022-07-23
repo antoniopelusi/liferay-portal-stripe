@@ -58,7 +58,31 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteEntry(ActionRequest actionRequest) throws Exception {
+	@Override
+	protected void doProcessAction(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
+		try {
+			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
+				_updateEntry(actionRequest);
+			}
+			else if (cmd.equals(Constants.DELETE)) {
+				_deleteEntry(actionRequest);
+			}
+		}
+		catch (EntryContentException | EntryDisplayDateException |
+			   EntryExpirationDateException | EntryTitleException |
+			   EntryURLException | NoSuchEntryException | PrincipalException
+				   exception) {
+
+			SessionErrors.add(actionRequest, exception.getClass());
+		}
+	}
+
+	private void _deleteEntry(ActionRequest actionRequest) throws Exception {
 		long entryId = ParamUtil.getLong(actionRequest, "entryId");
 
 		long[] deleteEntryIds = null;
@@ -76,31 +100,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
-		try {
-			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateEntry(actionRequest);
-			}
-			else if (cmd.equals(Constants.DELETE)) {
-				deleteEntry(actionRequest);
-			}
-		}
-		catch (EntryContentException | EntryDisplayDateException |
-			   EntryExpirationDateException | EntryTitleException |
-			   EntryURLException | NoSuchEntryException | PrincipalException
-				   exception) {
-
-			SessionErrors.add(actionRequest, exception.getClass());
-		}
-	}
-
-	protected void updateEntry(ActionRequest actionRequest) throws Exception {
+	private void _updateEntry(ActionRequest actionRequest) throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 

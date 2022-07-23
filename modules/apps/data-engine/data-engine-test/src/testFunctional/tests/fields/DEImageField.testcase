@@ -1,0 +1,520 @@
+@component-name = "data-engine"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Data Engine";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LRQA-68645. This test verifies that is possible to delete the field."
+	@priority = "5"
+	test CanBeDeleted {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DEBuilder.addField(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.delete(fieldFieldLabel = "Image");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldNotPresent(fieldLabel = "Image");
+	}
+
+	@description = "This is a test for LRQA-68645. This test verifies that is possible to duplicate the field."
+	@priority = "4"
+	test CanBeDuplicated {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.duplicate(fieldFieldLabel = "Image");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Copy of Image",
+			fieldName = "Image");
+	}
+
+	@description = "This is a test for LRQA-69272. This test verifies that is possible to clear the uploaded image."
+	@priority = "5"
+	test CanClearImage {
+		NavItem.gotoStructures();
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentTitle = "Document Title",
+			groupName = "Test Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInImageField(
+			fieldLabel = "Image",
+			imageFileName = "Document Title",
+			navTab = "Documents and Media",
+			webContentImage = "Document Title");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.clearDataOnField(fieldLabel = "Image");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertImageNotPresent(
+			fieldLabel = "Image",
+			imageField = "Document_1.jpg");
+	}
+
+	@description = "This is a test for LRQA-69272. This test verifies that upon uploading a new image, preview is updated."
+	@priority = "4"
+	test CanEditImage {
+		NavItem.gotoStructures();
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentTitle = "Document Title 1",
+			groupName = "Test Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentTitle = "Document Title 2",
+			groupName = "Test Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInImageField(
+			fieldLabel = "Image",
+			imageFileName = "Document Title 1",
+			navTab = "Documents and Media",
+			webContentImage = "Document Title 1");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.inputDataInImageField(
+			fieldLabel = "Image",
+			imageFileName = "Document Title 2",
+			navTab = "Documents and Media",
+			webContentImage = "Document Title 2");
+
+		DERenderer.assertDataInImageField(
+			fieldLabel = "Image",
+			imageFile = "Document_2.jpg",
+			imageTitle = "Document Title 2");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInImageField(
+			fieldLabel = "Image",
+			imageFile = "Document_2.jpg",
+			imageTitle = "Document Title 2");
+	}
+
+	@description = "This is a test for LRQA-68645. This test verifies that Label and Help text can be edited."
+	@priority = "5"
+	test CanEditLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Image",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Image",
+			fieldFieldLabelEdit = "Image Edited");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Image Edited",
+			fieldHelp = "Help Text Edited");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Image Edited",
+			fieldHelp = "Help Text Edited",
+			fieldName = "Image");
+	}
+
+	@description = "This is a test for LRQA-69272. This test verifies that is not possible to publish the Web Content with a required field blank."
+	@priority = "4"
+	test CanNotPublishBlankRequiredField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.editFieldRequired(fieldFieldLabel = "Image");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		Button.clickPublish();
+
+		FormViewBuilder.validateObjectLabelOptionTextIsShown(text = "This field is required.");
+	}
+
+	@description = "This is a test for LRQA-69272. This test verifies is possible to remove a duplicated field (repeatable)."
+	@priority = "4"
+	test CanRemoveDuplicatedField {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Image");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Image");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.removeRepeatableField(fieldLabel = "Image");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DEBuilder.assertFieldNotPresent(
+			fieldLabel = "Image",
+			index = "2");
+	}
+
+	@description = "This is a test for LRQA-68645. This test verifies that Default Searchable property is Disable when System Setting is left unchecked."
+	@priority = "3"
+	test CanSetDefaultSearchablePropertyToDisable {
+		property test.name.skip.portal.instance = "DEImageField#CanSetDefaultSearchablePropertyToDisable";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Web Content",
+			configurationName = "Administration",
+			configurationScope = "System Scope");
+
+		FormFields.disableCheckbox(fieldName = "Structure Field Indexable Enable");
+
+		SystemSettings.saveConfiguration();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.viewFieldSearchable(
+			fieldFieldLabel = "Image",
+			searchableType = "Disable");
+	}
+
+	@description = "This is a test for LRQA-68645. This test verifies that Default Searchable property is Text when System Setting is checked."
+	@priority = "3"
+	test CanSetDefaultSearchablePropertyToText {
+		property test.name.skip.portal.instance = "DEImageField#CanSetDefaultSearchablePropertyToText";
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Web Content",
+			configurationName = "Administration",
+			configurationScope = "System Scope");
+
+		FormFields.enableCheckbox(fieldName = "Structure Field Indexable Enable");
+
+		SystemSettings.saveConfiguration();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.viewFieldSearchable(
+			fieldFieldLabel = "Image",
+			searchableType = "Text");
+	}
+
+	@description = "This is a test for LRQA-68645. This test verifies that Label and Help text can be set."
+	@priority = "5"
+	test CanSetLabelAndHelpText {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.editFieldTip(
+			fieldFieldLabel = "Image",
+			fieldHelp = "Help Text");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Image",
+			fieldHelp = "Help Text",
+			fieldName = "Image");
+	}
+
+	@description = "This is a test for LRQA-68645. This test verifies that Label can be shown or hidden."
+	@priority = "3"
+	test CanSetLabelToShownOrHidden {
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.toggleShowLabel(fieldLabel = "Image");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DEBuilder.assertFieldNotPresent(fieldLabel = "Image");
+
+		DataEngine.toggleShowLabel(hiddenFieldLabel = "Image");
+
+		WebContentStructures.saveCP();
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
+
+		DataEngine.viewField(
+			fieldFieldLabel = "Image",
+			fieldName = "Image");
+	}
+
+	@description = "This is a test for LRQA-69272. This test verifies that is possible to upload an image."
+	@priority = "5"
+	test CanUploadImage {
+		NavItem.gotoStructures();
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentTitle = "Document Title",
+			groupName = "Test Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DERenderer.inputDataInImageField(
+			fieldLabel = "Image",
+			imageFileName = "Document Title",
+			navTab = "Documents and Media",
+			webContentImage = "Document Title");
+
+		DERenderer.assertDataInImageField(
+			fieldLabel = "Image",
+			imageFile = "Document_1.jpg",
+			imageTitle = "Document Title");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInImageField(
+			fieldLabel = "Image",
+			imageFile = "Document_1.jpg",
+			imageTitle = "Document Title");
+	}
+
+	@description = "This is a test for LRQA-69272. This test verifies that upon duplicating a repeatable field, inputted data on both fields persists."
+	@priority = "5"
+	test CanUploadImageOnDuplicatedField {
+		NavItem.gotoStructures();
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentTitle = "Document Title 1",
+			groupName = "Test Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		WebContentStructures.addCP(structureName = "WC Structure Title");
+
+		DEBuilder.addField(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		DataEngine.toggleFieldRepeatable(fieldFieldLabel = "Image");
+
+		WebContentStructures.saveCP();
+
+		NavItem.gotoWebContent();
+
+		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Title");
+
+		PortletEntry.inputTitle(title = "Web Content Title");
+
+		DataEngine.addRepeatableField(fieldLabel = "Image");
+
+		DERenderer.inputDataInImageField(
+			fieldLabel = "Image",
+			imageFileName = "Document Title 1",
+			navTab = "Documents and Media",
+			webContentImage = "Document Title 1");
+
+		DERenderer.inputDataInImageField(
+			fieldLabel = "Image",
+			imageFileName = "Document Title 1",
+			index = "2",
+			navTab = "Documents and Media",
+			webContentImage = "Document Title 1");
+
+		Button.clickPublish();
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+		DERenderer.assertDataInImageField(
+			fieldLabel = "Image",
+			imageFile = "Document_1.jpg",
+			imageTitle = "Document Title 1",
+			index = "1");
+
+		DERenderer.assertDataInImageField(
+			fieldLabel = "Image",
+			imageFile = "Document_1.jpg",
+			imageTitle = "Document Title 1",
+			index = "2");
+	}
+
+}

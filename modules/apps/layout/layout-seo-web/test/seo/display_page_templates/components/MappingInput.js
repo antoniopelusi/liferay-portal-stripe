@@ -13,27 +13,32 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {cleanup, fireEvent, getByRole, render} from '@testing-library/react';
 import React from 'react';
 
 import MappingInput from '../../../../src/main/resources/META-INF/resources/js/seo/display_page_templates/components/MappingInput';
 
 const baseProps = {
 	fieldType: 'text',
-	helpMessage: 'Map a text field, it will be used as Title.',
-	initialFields: [
+	fields: [
 		{key: 'field-1', label: 'Field 1', type: 'text'},
 		{key: 'field-2', label: 'Field 2', type: 'text'},
-		{key: 'field-3', label: 'Field 3', type: 'image'},
+		{
+			key: 'field-3',
+			label:
+				'Field 3: with }right curly brackets}}}}, line breaks by \r\nwin\r\n\r\n\r\n, \nlinux\n and \rold mac\r',
+			type: 'image',
+		},
 		{key: 'field-4', label: 'Field 4', type: 'text'},
 		{key: 'field-5', label: 'Field 5', type: 'text'},
 	],
+	helpMessage: 'Map a text field, it will be used as Title.',
 	label: 'Label test mapping field',
 	name: 'testMappingInput',
-	selectedFieldKey: 'field-2',
 	selectedSource: {
 		classTypeLabel: 'Label source type',
 	},
+	value: '${field-2}',
 };
 
 const renderComponent = (props) =>
@@ -47,27 +52,22 @@ describe('MappingInput', () => {
 		let mappingButton;
 		let result;
 		let mappingPanel;
-		let inputFeedback;
+		let mappingPanelButton;
 
 		beforeEach(() => {
 			result = renderComponent();
-			inputFeedback = result.getAllByRole('textbox')[0];
-			inputValue = result.getByDisplayValue(baseProps.selectedFieldKey);
+
+			inputValue = result.getByDisplayValue(baseProps.value);
 			mappingButton = result.getByTitle('map');
 			mappingPanel = result.baseElement.querySelector(
 				'.dpt-mapping-panel'
 			);
 		});
 
-		it('has a hidden input with the selected field key', () => {
-			expect(inputValue.type).toBe('hidden');
+		it('has an input with the initial value', () => {
+			expect(inputValue.type).toBe('text');
 			expect(inputValue.name).toBe('testMappingInput');
-		});
-
-		it('has a read only input for user feedback with the selected field name', () => {
-			expect(inputFeedback).toBeInTheDocument();
-			expect(inputFeedback.readOnly).toBeTruthy();
-			expect(inputFeedback.value).toBe('Label source type: Field 2');
+			expect(inputValue.value).toBe(baseProps.value);
 		});
 
 		it('has a mapping button', () => {
@@ -92,135 +92,54 @@ describe('MappingInput', () => {
 					'.dpt-mapping-panel'
 				);
 				fieldSelect = result.getByLabelText('field');
+				mappingPanelButton = getByRole(mappingPanel, 'button');
 			});
 
 			it('opens the mapping panel', () => {
 				expect(mappingPanel).toBeInTheDocument();
 			});
 
-			it('shows the selected field', () => {
-				expect(fieldSelect.value).toBe(baseProps.selectedFieldKey);
-			});
-
 			describe('and the user selects another field', () => {
-				beforeEach(() => {
+				it('adds the new field ${key:label} to the input', () => {
 					fireEvent.change(fieldSelect, {
-						target: {value: baseProps.initialFields[0].key},
+						target: {value: baseProps.fields[0].key},
 					});
-				});
+					fireEvent.click(mappingPanelButton);
 
-				it('sets the new field key in the hidden input', () => {
 					expect(inputValue.value).toBe(
-						baseProps.initialFields[0].key
+						`$\{${baseProps.fields[0].key}:${baseProps.fields[0].label}} ${baseProps.value}`
 					);
 				});
 
-				it('sets the new field name in the user feedback input', () => {
-					expect(inputFeedback.value).toBe(
-						'Label source type: Field 1'
-					);
-				});
-			});
-
-			describe('and the user clicks again in the mapping button', () => {
-				beforeEach(() => {
-					fireEvent.click(mappingButton);
-				});
-
-				it('closes the mapping panel', () => {
-					expect(mappingPanel).not.toBeInTheDocument();
-				});
-			});
-
-			describe('and the user clicks outside the panel', () => {
-				beforeEach(() => {
-					fireEvent.mouseDown(document);
-				});
-
-				it('closes the mapping panel', () => {
-					expect(mappingPanel).not.toBeInTheDocument();
-				});
-			});
-
-			describe('and the user unmap the field', () => {
-				beforeEach(() => {
+				it('adds the new field ${key:label} sanitized to the input', () => {
 					fireEvent.change(fieldSelect, {
-						target: {value: ''},
+						target: {value: baseProps.fields[2].key},
 					});
-				});
+					fireEvent.click(mappingPanelButton);
 
-				it('sets the new field key in the hidden input', () => {
-					expect(inputValue.value).toBe('unmapped');
-				});
+					const sanitizedLabel =
+						'Field 3: with right curly brackets, line breaks by win, linux and old mac';
 
-				it('sets the new field name in the user feedback input', () => {
-					expect(inputFeedback.value).toBe('-- unmapped --');
+					expect(inputValue.value).toBe(
+						`$\{${baseProps.fields[2].key}:${sanitizedLabel}} ${baseProps.value}`
+					);
 				});
 			});
 		});
 	});
 
-	describe('when rendered without selected key', () => {
-		let inputValue;
-		let result;
-		let inputFeedback;
-
-		beforeEach(() => {
-			result = renderComponent({
+	describe('when rendered without initial value', () => {
+		it('has a input with empty value', () => {
+			const {getByRole} = renderComponent({
 				...baseProps,
-				selectedFieldKey: undefined,
+				value: undefined,
 			});
-			inputFeedback = result.getAllByRole('textbox')[0];
-			inputValue = result.getAllByRole('textbox')[1];
-		});
 
-		it('has a hidden input with unmapped key', () => {
-			expect(inputValue.type).toBe('hidden');
+			const inputValue = getByRole('textbox');
+
+			expect(inputValue.type).toBe('text');
 			expect(inputValue.name).toBe('testMappingInput');
-			expect(inputValue.value).toBe('unmapped');
-		});
-
-		it('has a read only input for user feedback with the selected field name', () => {
-			expect(inputFeedback).toBeInTheDocument();
-			expect(inputFeedback.readOnly).toBeTruthy();
-			expect(inputFeedback.value).toBe('-- unmapped --');
-		});
-	});
-
-	describe('when rendered filtred with fieldType image', () => {
-		let result;
-		let fieldSelect;
-		let options;
-
-		beforeEach(() => {
-			result = renderComponent({
-				...baseProps,
-				fieldType: 'image',
-				selectedFieldKey: undefined,
-			});
-
-			fireEvent.click(result.getByTitle('map'));
-
-			fieldSelect = result.getByLabelText('field');
-			options = fieldSelect.querySelectorAll('option');
-		});
-
-		it('only has two filtered options', () => {
-			expect(options.length).toBe(2);
-		});
-
-		it('has the first option unmapped', () => {
-			expect(options[0].value).toBe('unmapped');
-			expect(fieldSelect.value).toBe('unmapped');
-		});
-
-		it('has the selected field unmapped', () => {
-			expect(options[0].value).toBe('unmapped');
-			expect(fieldSelect.value).toBe('unmapped');
-		});
-
-		it('has the image field in the second position', () => {
-			expect(options[1].value).toBe(baseProps.initialFields[2].key);
+			expect(inputValue.value).toBe('');
 		});
 	});
 });

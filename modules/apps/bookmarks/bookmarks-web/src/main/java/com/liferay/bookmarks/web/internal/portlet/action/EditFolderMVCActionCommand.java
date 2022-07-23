@@ -59,45 +59,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 
-	protected void deleteFolders(
-			ActionRequest actionRequest, boolean moveToTrash)
-		throws Exception {
-
-		long[] deleteFolderIds = null;
-
-		long folderId = ParamUtil.getLong(actionRequest, "folderId");
-
-		if (folderId > 0) {
-			deleteFolderIds = new long[] {folderId};
-		}
-		else {
-			deleteFolderIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "folderIds"), 0L);
-		}
-
-		List<TrashedModel> trashedModels = new ArrayList<>();
-
-		for (long deleteFolderId : deleteFolderIds) {
-			if (moveToTrash) {
-				BookmarksFolder folder =
-					_bookmarksFolderService.moveFolderToTrash(deleteFolderId);
-
-				trashedModels.add(folder);
-			}
-			else {
-				_bookmarksFolderService.deleteFolder(deleteFolderId);
-			}
-		}
-
-		if (moveToTrash && !trashedModels.isEmpty()) {
-			addDeleteSuccessData(
-				actionRequest,
-				HashMapBuilder.<String, Object>put(
-					"trashedModels", trashedModels
-				).build());
-		}
-	}
-
 	@Override
 	protected void doProcessAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -107,22 +68,22 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateFolder(actionRequest);
+				_updateFolder(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteFolders(actionRequest, false);
+				_deleteFolders(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteFolders(actionRequest, true);
+				_deleteFolders(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.RESTORE)) {
 				restoreTrashEntries(actionRequest);
 			}
 			else if (cmd.equals(Constants.SUBSCRIBE)) {
-				subscribeFolder(actionRequest);
+				_subscribeFolder(actionRequest);
 			}
 			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
-				unsubscribeFolder(actionRequest);
+				_unsubscribeFolder(actionRequest);
 			}
 
 			String portletResource = ParamUtil.getString(
@@ -164,7 +125,46 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void subscribeFolder(ActionRequest actionRequest)
+	private void _deleteFolders(
+			ActionRequest actionRequest, boolean moveToTrash)
+		throws Exception {
+
+		long[] deleteFolderIds = null;
+
+		long folderId = ParamUtil.getLong(actionRequest, "folderId");
+
+		if (folderId > 0) {
+			deleteFolderIds = new long[] {folderId};
+		}
+		else {
+			deleteFolderIds = StringUtil.split(
+				ParamUtil.getString(actionRequest, "folderIds"), 0L);
+		}
+
+		List<TrashedModel> trashedModels = new ArrayList<>();
+
+		for (long deleteFolderId : deleteFolderIds) {
+			if (moveToTrash) {
+				BookmarksFolder folder =
+					_bookmarksFolderService.moveFolderToTrash(deleteFolderId);
+
+				trashedModels.add(folder);
+			}
+			else {
+				_bookmarksFolderService.deleteFolder(deleteFolderId);
+			}
+		}
+
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			addDeleteSuccessData(
+				actionRequest,
+				HashMapBuilder.<String, Object>put(
+					"trashedModels", trashedModels
+				).build());
+		}
+	}
+
+	private void _subscribeFolder(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -176,7 +176,7 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 			themeDisplay.getScopeGroupId(), folderId);
 	}
 
-	protected void unsubscribeFolder(ActionRequest actionRequest)
+	private void _unsubscribeFolder(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -188,7 +188,7 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 			themeDisplay.getScopeGroupId(), folderId);
 	}
 
-	protected void updateFolder(ActionRequest actionRequest) throws Exception {
+	private void _updateFolder(ActionRequest actionRequest) throws Exception {
 		long folderId = ParamUtil.getLong(actionRequest, "folderId");
 
 		long parentFolderId = ParamUtil.getLong(

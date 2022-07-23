@@ -31,24 +31,22 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.model.StyleBookEntryModel;
-import com.liferay.style.book.model.StyleBookEntrySoap;
 import com.liferay.style.book.model.StyleBookEntryVersion;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -198,66 +196,6 @@ public class StyleBookEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static StyleBookEntry toModel(StyleBookEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		StyleBookEntry model = new StyleBookEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setHeadId(soapModel.getHeadId());
-		model.setStyleBookEntryId(soapModel.getStyleBookEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setDefaultStyleBookEntry(soapModel.isDefaultStyleBookEntry());
-		model.setFrontendTokensValues(soapModel.getFrontendTokensValues());
-		model.setName(soapModel.getName());
-		model.setPreviewFileEntryId(soapModel.getPreviewFileEntryId());
-		model.setStyleBookEntryKey(soapModel.getStyleBookEntryKey());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<StyleBookEntry> toModels(
-		StyleBookEntrySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<StyleBookEntry> models = new ArrayList<StyleBookEntry>(
-			soapModels.length);
-
-		for (StyleBookEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public StyleBookEntryModelImpl() {
 	}
 
@@ -341,34 +279,6 @@ public class StyleBookEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, StyleBookEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			StyleBookEntry.class.getClassLoader(), StyleBookEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<StyleBookEntry> constructor =
-				(Constructor<StyleBookEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<StyleBookEntry, Object>>
@@ -967,6 +877,45 @@ public class StyleBookEntryModelImpl
 	}
 
 	@Override
+	public StyleBookEntry cloneWithOriginalValues() {
+		StyleBookEntryImpl styleBookEntryImpl = new StyleBookEntryImpl();
+
+		styleBookEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		styleBookEntryImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		styleBookEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		styleBookEntryImpl.setHeadId(
+			this.<Long>getColumnOriginalValue("headId"));
+		styleBookEntryImpl.setStyleBookEntryId(
+			this.<Long>getColumnOriginalValue("styleBookEntryId"));
+		styleBookEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		styleBookEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		styleBookEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		styleBookEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		styleBookEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		styleBookEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		styleBookEntryImpl.setDefaultStyleBookEntry(
+			this.<Boolean>getColumnOriginalValue("defaultStyleBookEntry"));
+		styleBookEntryImpl.setFrontendTokensValues(
+			this.<String>getColumnOriginalValue("frontendTokensValues"));
+		styleBookEntryImpl.setName(this.<String>getColumnOriginalValue("name"));
+		styleBookEntryImpl.setPreviewFileEntryId(
+			this.<Long>getColumnOriginalValue("previewFileEntryId"));
+		styleBookEntryImpl.setStyleBookEntryKey(
+			this.<String>getColumnOriginalValue("styleBookEntryKey"));
+
+		return styleBookEntryImpl;
+	}
+
+	@Override
 	public int compareTo(StyleBookEntry styleBookEntry) {
 		int value = 0;
 
@@ -1133,7 +1082,7 @@ public class StyleBookEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1144,9 +1093,26 @@ public class StyleBookEntryModelImpl
 			Function<StyleBookEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((StyleBookEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((StyleBookEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1193,7 +1159,9 @@ public class StyleBookEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, StyleBookEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					StyleBookEntry.class, ModelWrapper.class);
 
 	}
 

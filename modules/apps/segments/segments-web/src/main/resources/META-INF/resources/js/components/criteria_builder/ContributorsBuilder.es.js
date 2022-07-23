@@ -12,6 +12,7 @@
  * details.
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayLayout from '@clayui/layout';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
@@ -41,11 +42,13 @@ class ContributorBuilder extends React.Component {
 		emptyContributors: PropTypes.bool.isRequired,
 		membersCount: PropTypes.number,
 		membersCountLoading: PropTypes.bool,
+		onAlertClose: PropTypes.func,
 		onConjunctionChange: PropTypes.func,
 		onPreviewMembers: PropTypes.func,
 		onQueryChange: PropTypes.func,
 		previewMembersURL: PropTypes.string,
 		propertyGroups: PropTypes.arrayOf(propertyGroupShape),
+		renderEmptyValuesErrors: PropTypes.bool,
 		supportedConjunctions: PropTypes.arrayOf(conjunctionShape).isRequired,
 		supportedOperators: PropTypes.arrayOf(operatorShape).isRequired,
 		supportedPropertyTypes: propertyTypesShape.isRequired,
@@ -55,9 +58,11 @@ class ContributorBuilder extends React.Component {
 		contributors: [],
 		membersCount: 0,
 		membersCountLoading: false,
+		onAlertClose: () => {},
 		onConjunctionChange: () => {},
 		onPreviewMembers: () => {},
 		onQueryChange: () => {},
+		renderEmptyValuesErrors: false,
 	};
 
 	constructor(props) {
@@ -97,9 +102,11 @@ class ContributorBuilder extends React.Component {
 			emptyContributors,
 			membersCount,
 			membersCountLoading,
+			onAlertClose,
 			onConjunctionChange,
 			onPreviewMembers,
 			propertyGroups,
+			renderEmptyValuesErrors,
 			supportedConjunctions,
 			supportedOperators,
 			supportedPropertyTypes,
@@ -124,6 +131,23 @@ class ContributorBuilder extends React.Component {
 
 					<div className="criteria-builder-section-main">
 						<div className="contributor-container">
+							{renderEmptyValuesErrors && (
+								<section className="alert-danger criteria-builder-empty-errors-alert">
+									<div className="criteria-builder-empty-errors-alert__inner">
+										<ClayAlert
+											className="border-bottom-0"
+											displayType="danger"
+											onClose={onAlertClose}
+											variant="stripe"
+										>
+											{Liferay.Language.get(
+												'values-need-to-be-added-to-properties-for-the-segment-to-be-saved'
+											)}
+										</ClayAlert>
+									</div>
+								</section>
+							)}
+
 							<ClayLayout.ContainerFluid>
 								<div className="content-wrapper">
 									<ClayLayout.Sheet>
@@ -149,6 +173,7 @@ class ContributorBuilder extends React.Component {
 																{Liferay.Language.get(
 																	'conditions-match'
 																)}
+
 																<b className="ml-2 text-dark">
 																	{getPluralMessage(
 																		Liferay.Language.get(
@@ -243,6 +268,9 @@ class ContributorBuilder extends React.Component {
 															}
 															propertyKey={
 																criteria.propertyKey
+															}
+															renderEmptyValuesErrors={
+																renderEmptyValuesErrors
 															}
 															supportedConjunctions={
 																supportedConjunctions

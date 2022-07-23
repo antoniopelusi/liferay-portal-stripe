@@ -12,56 +12,13 @@
  * details.
  */
 
-import App from './App.es';
-import DataLayoutBuilderContext from './AppContext.es';
-import DataLayoutBuilderContextProvider from './AppContextProvider.es';
-import * as DataLayoutBuilderActions from './actions.es';
-import EmptyState from './components/empty-state/EmptyState.es';
-import FieldType from './components/field-types/FieldType.es';
-import FieldTypeList from './components/field-types/FieldTypeList.es';
-import {Editor as RuleEditor} from './components/rules/editor/Editor.es';
-import SearchInput, {
-	SearchInputWithForm,
-} from './components/search-input/SearchInput.es';
-import MultiPanelSidebar from './components/sidebar/MultiPanelSidebar.es';
-import Sidebar from './components/sidebar/Sidebar.es';
-import TranslationManager from './components/translation-manager/TranslationManager.es';
-import * as DataLayoutBuilder from './data-layout-builder/DataLayoutBuilder.es';
-import DragLayer from './drag-and-drop/DragLayer.es';
-import * as DragTypes from './drag-and-drop/dragTypes.es';
-import withDragAndDropContext from './drag-and-drop/withDragAndDropContext.es';
-import {Component as PluginComponent} from './plugins/PluginContext.es';
-import {FieldsSidebar} from './plugins/fields-sidebar/components/FieldsSidebar.es';
-import * as DataConverter from './utils/dataConverter.es';
-import * as DataDefinitionUtils from './utils/dataDefinition.es';
-import * as DataLayoutVisitor from './utils/dataLayoutVisitor.es';
-import * as LangUtil from './utils/lang.es';
-import * as SearchUtils from './utils/search.es';
-
-export {
-	DataConverter,
-	DataDefinitionUtils,
-	DataLayoutBuilder,
-	DataLayoutBuilderActions,
-	DataLayoutBuilderContext,
-	DataLayoutBuilderContextProvider,
-	DataLayoutVisitor,
-	DragLayer,
-	DragTypes,
-	EmptyState,
-	FieldsSidebar,
-	FieldType,
-	FieldTypeList,
-	LangUtil,
-	MultiPanelSidebar,
-	PluginComponent,
-	RuleEditor,
-	SearchInput,
-	SearchInputWithForm,
-	SearchUtils,
-	Sidebar,
-	TranslationManager,
-	withDragAndDropContext,
-};
-
-export default App;
+export {default as EmptyState} from './components/empty-state/EmptyState.es';
+export {default as FieldType} from './components/field-types/FieldType.es';
+export {OPERATOR_OPTIONS_TYPES} from './components/rules/editor/config.es';
+export {Editor as RuleEditor} from './components/rules/editor/Editor.es';
+export {default as MultiPanelSidebar} from './components/sidebar/MultiPanelSidebar.es';
+export {default as DragLayer} from './drag-and-drop/DragLayer.es';
+export {EVENT_TYPES} from './eventTypes';
+export * as DataConverter from './utils/dataConverter.es';
+export * as LangUtil from './utils/lang.es';
+export * as SearchUtils from './utils/search.es';

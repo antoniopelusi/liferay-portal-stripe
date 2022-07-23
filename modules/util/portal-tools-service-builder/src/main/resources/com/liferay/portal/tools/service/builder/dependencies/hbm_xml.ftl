@@ -101,7 +101,7 @@
 
 				name="${entityColumn.name}"
 
-				<#if (serviceBuilder.getSqlType(entity.getName(), entityColumn.getName(), entityColumn.getType()) == "CLOB") && !stringUtil.equals(entityColumn.type, "Map")>
+				<#if (serviceBuilder.getSqlType(entity.getName(), entityColumn) == "CLOB") && !stringUtil.equals(entityColumn.type, "Map")>
 					type="com.liferay.portal.dao.orm.hibernate.StringClobType"
 				<#elseif entityColumn.isPrimitiveType() || stringUtil.equals(entityColumn.type, "Map") || stringUtil.equals(entityColumn.type, "String")>
 					type="com.liferay.portal.dao.orm.hibernate.${serviceBuilder.getPrimitiveObj("${entityColumn.type}")}Type"
@@ -117,7 +117,13 @@
 			</#if>
 
 			<#if stringUtil.equals(entityColumn.type, "Blob") && entityColumn.lazy>
-				<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="${apiPackagePath}.model.${entity.name}${entityColumn.methodName}BlobModel" constrained="true" name="${entityColumn.name}BlobModel" outer-join="false" />
+				<#if serviceBuilder.isVersionGTE_7_4_0()>
+					<#assign constrained = "false" />
+				<#else>
+					<#assign constrained = "true" />
+				</#if>
+
+				<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" cascade="save-update" class="${apiPackagePath}.model.${entity.name}${entityColumn.methodName}BlobModel" constrained="${constrained}" name="${entityColumn.name}BlobModel" outer-join="false" />
 			</#if>
 		</#list>
 	</class>

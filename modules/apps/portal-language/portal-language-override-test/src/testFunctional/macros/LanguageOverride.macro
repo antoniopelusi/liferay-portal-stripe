@@ -1,0 +1,109 @@
+definition {
+
+	macro addLanguageKey {
+		LexiconEntry.gotoAdd();
+
+		PortletEntry.inputText(
+			fieldLabel = "Key",
+			text = "${languageKey}");
+
+		var j = "0";
+
+		for (var translationOverride : list "${translationOverrideList}") {
+			var k = "0";
+
+			for (var translationOverrideValue : list "${translationOverrideValueList}") {
+				if ("${j}" == "${k}") {
+					PortletEntry.inputText(
+						fieldLabel = "${translationOverride}",
+						text = "${translationOverrideValue}");
+				}
+
+				var k = ${k} + 1;
+			}
+
+			var j = ${j} + 1;
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro clearAllOverridesViaEditPage {
+		ClickNoError(
+			key_text = "Clear All Overrides",
+			locator1 = "Link#ANY");
+
+		AssertConfirm(value1 = "Are you sure you want to reset all translation overrides?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro goToLanguageKey {
+		var key_languageKey = "${languageKey}";
+
+		AssertClick(
+			locator1 = "LanguageOverride#VIEW_PAGE_LANGUAGE_KEY",
+			value1 = "${languageKey}");
+	}
+
+	macro openLanguageOverridePortlet {
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/control_panel/manage?p_p_id=com_liferay_portal_language_override_web_internal_portlet_PLOPortlet");
+	}
+
+	macro removeAllTranslationOverrides {
+		LexiconEntry.gotoEntryMenuItemNoError(
+			menuItem = "Remove all translation overrides",
+			rowEntry = "${languageKey}");
+
+		AssertConfirm(value1 = "Do you want to reset all translation overrides?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro removeTranslationOverrideForSelectedLanguage {
+		PageEditor.changeLocale(
+			currentLocale = "${currentLanguage}",
+			locale = "${newLanguage}");
+
+		var newLanguage = StringUtil.replace("${newLanguage}", "-", "_");
+
+		LexiconEntry.gotoEntryMenuItemNoError(
+			menuItem = "Remove translation override for ${newLanguage}",
+			rowEntry = "${languageKey}");
+
+		AssertConfirm(value1 = "Do you want to reset the translation override for ${newLanguage}?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro updateTranslationOverrideValues {
+		LexiconEntry.gotoEntryMenuItemNoError(
+			menuItem = "Edit",
+			rowEntry = "${languageKey}");
+
+		var j = "0";
+
+		for (var translationOverride : list "${translationOverrideList}") {
+			var k = "0";
+
+			for (var translationOverrideValue : list "${translationOverrideValueList}") {
+				if ("${j}" == "${k}") {
+					PortletEntry.inputText(
+						fieldLabel = "${translationOverride}",
+						text = "${translationOverrideValue}");
+				}
+
+				var k = ${k} + 1;
+			}
+
+			var j = ${j} + 1;
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+}

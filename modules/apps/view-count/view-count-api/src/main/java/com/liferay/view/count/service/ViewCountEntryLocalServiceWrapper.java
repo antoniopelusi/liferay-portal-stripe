@@ -27,6 +27,10 @@ public class ViewCountEntryLocalServiceWrapper
 	implements ServiceWrapper<ViewCountEntryLocalService>,
 			   ViewCountEntryLocalService {
 
+	public ViewCountEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ViewCountEntryLocalServiceWrapper(
 		ViewCountEntryLocalService viewCountEntryLocalService) {
 
@@ -136,6 +140,13 @@ public class ViewCountEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _viewCountEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _viewCountEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -321,6 +332,11 @@ public class ViewCountEntryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _viewCountEntryLocalService.getViewCountEntry(viewCountEntryPK);
+	}
+
+	@Override
+	public com.liferay.petra.sql.dsl.Table<?> getViewCountEntryTable() {
+		return _viewCountEntryLocalService.getViewCountEntryTable();
 	}
 
 	@Override

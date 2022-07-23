@@ -30,6 +30,10 @@ public class StyleBookEntryLocalServiceWrapper
 	implements ServiceWrapper<StyleBookEntryLocalService>,
 			   StyleBookEntryLocalService {
 
+	public StyleBookEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public StyleBookEntryLocalServiceWrapper(
 		StyleBookEntryLocalService styleBookEntryLocalService) {
 
@@ -187,6 +191,13 @@ public class StyleBookEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _styleBookEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _styleBookEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

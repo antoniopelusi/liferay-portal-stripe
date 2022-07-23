@@ -2,15 +2,17 @@
 <head>
 <title>BreadcrumbPortlet</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">BreadcrumbPortlet</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>BREADCRUMB_FOLDER</td>
-	<td>//div[contains(@class,'portlet-body')]//form//ol[contains(@class,'breadcrumb')]//a[contains(.,'${key_breadcrumbName}')]</td>
+	<td>//div[contains(@class,'portlet-layout')]//form//ol[contains(@class,'breadcrumb')]//a[contains(.,'${key_breadcrumbName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -20,7 +22,7 @@
 </tr>
 <tr>
 	<td>BREADCRUMB_PAGE_LINK</td>
-	<td>//ol[contains(@class,'breadcrumb')]/li/a[@href='${key_URL}']</td>
+	<td>//ol[contains(@class,'breadcrumb')]/li/a[@href='${key_url}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -30,7 +32,7 @@
 </tr>
 <tr>
 	<td>BREADCRUMB_ADT</td>
-	<td>//div/ul[contains(@class,'breadcrumb-${key_breadcrumbADTType}')] | //div[contains(@class,'breadcrumb-${key_breadcrumbADTType}')]</td>
+	<td>//div/ul[contains(@class,'breadcrumb-${key_breadcrumbAdtType}')] | //div[contains(@class,'breadcrumb-${key_breadcrumbAdtType}')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -14,6 +14,8 @@
 
 import {openModal, openToast} from 'frontend-js-web';
 
+import isNullOrUndefined from '../utils/isNullOrUndefined';
+
 /**
  * @param {HTMLElement} element HTMLElement where the editor
  *  should be applied to.
@@ -64,6 +66,11 @@ function createEditor(element, changeCallback, destroyCallback) {
 				},
 			},
 		],
+		containerProps: {
+			className: '',
+		},
+		footerCssClass: 'cadmin',
+		headerCssClass: 'cadmin',
 		onClose: () => destroyCallback(),
 		onOpen: () => {
 			Liferay.Util.getTop()
@@ -76,8 +83,7 @@ function createEditor(element, changeCallback, destroyCallback) {
 					if (editorContainer) {
 						editor = new A.LiferayFullScreenSourceEditor({
 							boundingBox: editorContainer,
-							previewCssClass:
-								'alloy-editor alloy-editor-placeholder',
+							previewCssClass: 'alloy-editor',
 							value: element.innerHTML,
 						}).render();
 					}
@@ -98,7 +104,9 @@ function destroyEditor() {}
  * @param {string} value Element content
  */
 function render(element, value) {
-	element.innerHTML = value;
+	if (!isNullOrUndefined(value)) {
+		element.innerHTML = value;
+	}
 }
 
 export default {

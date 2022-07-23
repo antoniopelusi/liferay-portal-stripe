@@ -30,6 +30,7 @@ import java.util.List;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Luis Ortiz
  */
 public class UpgradeCompanyId extends BaseCompanyIdUpgradeProcess {
 
@@ -37,19 +38,23 @@ public class UpgradeCompanyId extends BaseCompanyIdUpgradeProcess {
 	protected TableUpdater[] getTableUpdaters() {
 		return new TableUpdater[] {
 			new TableUpdater("AnnouncementsFlag", "User_", "userId"),
-			new TableUpdater(
+			new CompanyIdNotNullTableUpdater(
 				"AssetEntries_AssetCategories", "AssetCategory", "categoryId"),
-			new TableUpdater("AssetEntries_AssetTags", "AssetTag", "tagId"),
+			new CompanyIdNotNullTableUpdater(
+				"AssetEntries_AssetTags", "AssetTag", "tagId"),
 			new TableUpdater("AssetTagStats", "AssetTag", "tagId"),
 			new TableUpdater("BrowserTracker", "User_", "userId"),
 			new TableUpdater(
 				"DLFileEntryMetadata", "DLFileEntry", "fileEntryId"),
-			new TableUpdater(
+			new CompanyIdNotNullTableUpdater(
 				"DLFileEntryTypes_DLFolders", "DLFolder", "folderId"),
 			new DLSyncEventTableUpdater("DLSyncEvent"),
-			new TableUpdater("Groups_Orgs", "Group_", "groupId"),
-			new TableUpdater("Groups_Roles", "Group_", "groupId"),
-			new TableUpdater("Groups_UserGroups", "Group_", "groupId"),
+			new CompanyIdNotNullTableUpdater(
+				"Groups_Orgs", "Group_", "groupId"),
+			new CompanyIdNotNullTableUpdater(
+				"Groups_Roles", "Group_", "groupId"),
+			new CompanyIdNotNullTableUpdater(
+				"Groups_UserGroups", "Group_", "groupId"),
 			new TableUpdater(
 				"Image", "imageId",
 				new String[][] {
@@ -86,15 +91,36 @@ public class UpgradeCompanyId extends BaseCompanyIdUpgradeProcess {
 			new TableUpdater("TrashVersion", "TrashEntry", "entryId"),
 			new TableUpdater("UserGroupGroupRole", "UserGroup", "userGroupId"),
 			new TableUpdater("UserGroupRole", "User_", "userId"),
-			new TableUpdater("UserGroups_Teams", "UserGroup", "userGroupId"),
+			new CompanyIdNotNullTableUpdater(
+				"UserGroups_Teams", "UserGroup", "userGroupId"),
 			new TableUpdater("UserIdMapper", "User_", "userId"),
-			new TableUpdater("Users_Groups", "User_", "userId"),
-			new TableUpdater("Users_Orgs", "User_", "userId"),
-			new TableUpdater("Users_Roles", "User_", "userId"),
-			new TableUpdater("Users_Teams", "User_", "userId"),
-			new TableUpdater("Users_UserGroups", "User_", "userId"),
+			new CompanyIdNotNullTableUpdater("Users_Groups", "User_", "userId"),
+			new CompanyIdNotNullTableUpdater("Users_Orgs", "User_", "userId"),
+			new CompanyIdNotNullTableUpdater("Users_Roles", "User_", "userId"),
+			new CompanyIdNotNullTableUpdater("Users_Teams", "User_", "userId"),
+			new CompanyIdNotNullTableUpdater(
+				"Users_UserGroups", "User_", "userId"),
 			new TableUpdater("UserTrackerPath", "UserTracker", "userTrackerId")
 		};
+	}
+
+	protected class CompanyIdNotNullTableUpdater extends TableUpdater {
+
+		public CompanyIdNotNullTableUpdater(
+			String tableName, String foreignTableName, String columnName) {
+
+			super(tableName, foreignTableName, columnName);
+		}
+
+		@Override
+		public void update(Connection connection) throws Exception {
+			super.update(connection);
+
+			if (!hasColumnType(getTableName(), "companyId", "LONG NOT NULL")) {
+				alterColumnType(getTableName(), "companyId", "LONG NOT NULL");
+			}
+		}
+
 	}
 
 	protected class DLSyncEventTableUpdater extends TableUpdater {
@@ -209,12 +235,13 @@ public class UpgradeCompanyId extends BaseCompanyIdUpgradeProcess {
 
 			List<Long> companyIds = new ArrayList<>();
 
-			try (PreparedStatement ps = connection.prepareStatement(
-					"select distinct companyId from " + foreignTableName);
-				ResultSet rs = ps.executeQuery()) {
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select distinct companyId from " + foreignTableName);
+				ResultSet resultSet = preparedStatement.executeQuery()) {
 
-				while (rs.next()) {
-					long companyId = rs.getLong(1);
+				while (resultSet.next()) {
+					long companyId = resultSet.getLong(1);
 
 					companyIds.add(companyId);
 				}
@@ -224,20 +251,10 @@ public class UpgradeCompanyId extends BaseCompanyIdUpgradeProcess {
 				return String.valueOf(companyIds.get(0));
 			}
 
-			StringBundler sb = new StringBundler(10);
-
-			sb.append("select companyId from ");
-			sb.append(foreignTableName);
-			sb.append(" where ");
-			sb.append(foreignTableName);
-			sb.append(".");
-			sb.append(foreignColumnName);
-			sb.append(" = ");
-			sb.append(getTableName());
-			sb.append(".");
-			sb.append(columnName);
-
-			return sb.toString();
+			return StringBundler.concat(
+				"select companyId from ", foreignTableName, " where ",
+				foreignTableName, ".", foreignColumnName, " = ", getTableName(),
+				".", columnName);
 		}
 
 		private String _getUpdateSQL(
@@ -248,14 +265,9 @@ public class UpgradeCompanyId extends BaseCompanyIdUpgradeProcess {
 			String selectSQL = _getSelectSQL(
 				foreignTableName, foreignColumnName, columnName);
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append(getUpdateSQL(selectSQL));
-			sb.append(" where ownerType = ");
-			sb.append(ownerType);
-			sb.append(" and (companyId is null or companyId = 0)");
-
-			return sb.toString();
+			return StringBundler.concat(
+				getUpdateSQL(selectSQL), " where ownerType = ", ownerType,
+				" and (companyId is null or companyId = 0)");
 		}
 
 	}

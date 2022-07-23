@@ -16,49 +16,36 @@ package com.liferay.portal.kernel.metadata;
 
 import com.liferay.dynamic.data.mapping.kernel.DDMFormValues;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 
-import java.io.File;
 import java.io.InputStream;
 
-import java.lang.reflect.Field;
-
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Miguel Pastor
  */
 public class RawMetadataProcessorUtil {
 
-	public static Map<String, Field[]> getFields() {
-		return getRawMetadataProcessor().getFields();
+	public static Map<String, Set<String>> getFieldNames() {
+		return _rawMetadataProcessor.getFieldNames();
 	}
 
 	public static Map<String, DDMFormValues> getRawMetadataMap(
-			String extension, String mimeType, File file)
+			String mimeType, InputStream inputStream)
 		throws PortalException {
 
-		return getRawMetadataProcessor().getRawMetadataMap(
-			extension, mimeType, file);
-	}
-
-	public static Map<String, DDMFormValues> getRawMetadataMap(
-			String extension, String mimeType, InputStream inputStream)
-		throws PortalException {
-
-		return getRawMetadataProcessor().getRawMetadataMap(
-			extension, mimeType, inputStream);
+		return _rawMetadataProcessor.getRawMetadataMap(mimeType, inputStream);
 	}
 
 	public static RawMetadataProcessor getRawMetadataProcessor() {
 		return _rawMetadataProcessor;
 	}
 
-	public void setRawMetadataProcessor(
-		RawMetadataProcessor rawMetadataProcessor) {
-
-		_rawMetadataProcessor = rawMetadataProcessor;
-	}
-
-	private static RawMetadataProcessor _rawMetadataProcessor;
+	private static volatile RawMetadataProcessor _rawMetadataProcessor =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			RawMetadataProcessor.class, RawMetadataProcessorUtil.class,
+			"_rawMetadataProcessor", true);
 
 }

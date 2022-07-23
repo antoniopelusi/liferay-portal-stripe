@@ -51,7 +51,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 /**
  * @author Alexander Chow
  */
-public class CMISFileVersion extends CMISModel implements FileVersion {
+public class CMISFileVersion extends BaseCMISModel implements FileVersion {
 
 	public CMISFileVersion(
 		CMISRepository cmisRepository, FileEntry fileEntry, String uuid,
@@ -78,7 +78,7 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -138,6 +138,11 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 	}
 
 	@Override
+	public Date getExpirationDate() {
+		return null;
+	}
+
+	@Override
 	public String getExtension() {
 		return FileUtil.getExtension(getTitle());
 	}
@@ -181,11 +186,11 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 		}
 		catch (NoSuchFileEntryException noSuchFileEntryException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFileEntryException, noSuchFileEntryException);
+				_log.debug(noSuchFileEntryException);
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return 0;
@@ -265,6 +270,11 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 	}
 
 	@Override
+	public Date getReviewDate() {
+		return null;
+	}
+
+	@Override
 	public long getSize() {
 		return _document.getContentStreamLength();
 	}
@@ -311,7 +321,7 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return 0;
@@ -332,7 +342,7 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;

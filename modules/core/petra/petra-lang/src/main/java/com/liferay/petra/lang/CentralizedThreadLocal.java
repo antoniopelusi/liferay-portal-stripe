@@ -168,7 +168,30 @@ public class CentralizedThreadLocal<T> extends ThreadLocal<T> {
 		threadLocalMap.putEntry(this, value);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 *             #setWithSafeCloseable(T)}
+	 */
+	@Deprecated
 	public SafeClosable setWithSafeClosable(T value) {
+		ThreadLocalMap threadLocalMap = _getThreadLocalMap();
+
+		Entry entry = threadLocalMap.getEntry(this);
+
+		if (entry == null) {
+			threadLocalMap.putEntry(this, value);
+
+			return () -> threadLocalMap.removeEntry(this);
+		}
+
+		Object originalValue = entry._value;
+
+		entry._value = value;
+
+		return () -> entry._value = originalValue;
+	}
+
+	public SafeCloseable setWithSafeCloseable(T value) {
 		ThreadLocalMap threadLocalMap = _getThreadLocalMap();
 
 		Entry entry = threadLocalMap.getEntry(this);

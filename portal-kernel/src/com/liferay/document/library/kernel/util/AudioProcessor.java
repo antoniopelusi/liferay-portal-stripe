@@ -23,9 +23,12 @@ import java.io.InputStream;
 
 import java.util.Set;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Sergio González
  */
+@ProviderType
 public interface AudioProcessor {
 
 	public static final String PREVIEW_TYPE = "mp3";
@@ -57,6 +60,10 @@ public interface AudioProcessor {
 	public boolean isAudioSupported(FileVersion fileVersion);
 
 	public boolean isAudioSupported(String mimeType);
+
+	public default boolean isEnabled() {
+		return false;
+	}
 
 	public boolean isSupported(String mimeType);
 

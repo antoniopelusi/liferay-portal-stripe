@@ -1,0 +1,191 @@
+components:
+    schemas:
+        Mapping:
+            properties:
+                externalFieldName:
+                    type: string
+                externalFieldType:
+                    type: string
+                id:
+                    format: int64
+                    type: integer
+                internalFieldName:
+                    type: string
+                internalFieldType:
+                    type: string
+                planId:
+                    format: int64
+                    type: integer
+                script:
+                    type: string
+            type: object
+        Plan:
+            properties:
+                active:
+                    type: boolean
+                export:
+                    type: boolean
+                externalType:
+                    type: string
+                externalURL:
+                    type: string
+                id:
+                    format: int64
+                    type: integer
+                internalClassName:
+                    type: string
+                mappings:
+                    items:
+                        $ref: "#/components/schemas/Mapping"
+                    type: array
+                name:
+                    type: string
+                policies:
+                    items:
+                        $ref: "#/components/schemas/Policy"
+                    type: array
+                size:
+                    format: int32
+                    type: integer
+                status:
+                    format: int32
+                    type: integer
+                taskItemDelegateName:
+                    type: string
+                template:
+                    type: boolean
+                total:
+                    format: int32
+                    type: integer
+            type: object
+        Policy:
+            properties:
+                id:
+                    format: int64
+                    type: integer
+                name:
+                    type: string
+                planId:
+                    format: int64
+                    type: integer
+                value:
+                    type: string
+            type: object
+info:
+    license:
+        name: Apache 2.0
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+    title: Headless Admin Batch Planner
+    version: v1.0
+openapi: 3.0.1
+paths:
+    /plans:
+        get:
+            operationId: getPlansPage
+            parameters:
+                - in: query
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Plan"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Plan"
+                                type: array
+            tags: ["Plan"]
+        post:
+            operationId: postPlan
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Plan"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Plan"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+            tags: ["Plan"]
+    /plans/{planId}:
+        delete:
+            operationId: deletePlan
+            parameters:
+                - in: path
+                  name: planId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["Plan"]
+        get:
+            operationId: getPlan
+            parameters:
+                - in: path
+                  name: planId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+            tags: ["Plan"]
+        patch:
+            operationId: patchPlan
+            parameters:
+                - in: path
+                  name: planId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Plan"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Plan"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+            tags: ["Plan"]

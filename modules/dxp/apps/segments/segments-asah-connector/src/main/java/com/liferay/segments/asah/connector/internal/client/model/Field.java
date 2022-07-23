@@ -23,9 +23,6 @@ import java.util.Date;
  */
 public class Field {
 
-	public Field() {
-	}
-
 	public String getContext() {
 		return _context;
 	}
@@ -124,35 +121,12 @@ public class Field {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(25);
-
-		sb.append("{context=");
-		sb.append(_context);
-		sb.append(", dataSourceId=");
-		sb.append(_dataSourceId);
-		sb.append(", dataSourceName=");
-		sb.append(_dataSourceName);
-		sb.append(", dateModified=");
-		sb.append(_dateModified);
-		sb.append(", fieldType=");
-		sb.append(_fieldType);
-		sb.append(", id=");
-		sb.append(_id);
-		sb.append(", label=");
-		sb.append(_label);
-		sb.append(", name=");
-		sb.append(_name);
-		sb.append(", ownerId=");
-		sb.append(_ownerId);
-		sb.append(", ownerType=");
-		sb.append(_ownerType);
-		sb.append(", sourceName=");
-		sb.append(_sourceName);
-		sb.append(", value=");
-		sb.append(_value);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{context=", _context, ", dataSourceId=", _dataSourceId,
+			", dataSourceName=", _dataSourceName, ", dateModified=",
+			_dateModified, ", fieldType=", _fieldType, ", id=", _id, ", label=",
+			_label, ", name=", _name, ", ownerId=", _ownerId, ", ownerType=",
+			_ownerType, ", sourceName=", _sourceName, ", value=", _value, "}");
 	}
 
 	private String _context;

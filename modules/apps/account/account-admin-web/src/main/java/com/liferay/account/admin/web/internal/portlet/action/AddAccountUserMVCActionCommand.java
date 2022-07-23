@@ -18,18 +18,24 @@ import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountEntryUserRel;
-import com.liferay.account.service.AccountEntryLocalService;
-import com.liferay.account.service.AccountEntryUserRelLocalService;
+import com.liferay.account.service.AccountEntryService;
+import com.liferay.account.service.AccountEntryUserRelService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.UserEmailAddressException;
 import com.liferay.portal.kernel.exception.UserScreenNameException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
+import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortletKeys;
+import com.liferay.portal.kernel.util.PrefsParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -48,6 +54,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
+		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_MANAGEMENT,
 		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_USERS_ADMIN,
 		"mvc.command.name=/account_admin/add_account_user"
 	},
@@ -74,12 +81,13 @@ public class AddAccountUserMVCActionCommand extends BaseMVCActionCommand {
 		String lastName = ParamUtil.getString(actionRequest, "lastName");
 		long prefixId = ParamUtil.getLong(actionRequest, "prefixId");
 		long suffixId = ParamUtil.getLong(actionRequest, "suffixId");
+		String jobTitle = ParamUtil.getString(actionRequest, "jobTitle");
 
 		try {
-			AccountEntryUserRel accountEntryUserRel;
+			AccountEntryUserRel accountEntryUserRel = null;
 
-			AccountEntry accountEntry =
-				_accountEntryLocalService.fetchAccountEntry(accountEntryId);
+			AccountEntry accountEntry = _accountEntryService.fetchAccountEntry(
+				accountEntryId);
 
 			if ((accountEntry != null) &&
 				Objects.equals(
@@ -87,25 +95,53 @@ public class AddAccountUserMVCActionCommand extends BaseMVCActionCommand {
 					accountEntry.getType())) {
 
 				accountEntryUserRel =
-					_accountEntryUserRelLocalService.
+					_accountEntryUserRelService.
 						addPersonTypeAccountEntryUserRel(
 							accountEntryId, themeDisplay.getUserId(),
 							screenName, emailAddress,
 							LocaleUtil.fromLanguageId(languageId), firstName,
-							middleName, lastName, prefixId, suffixId);
+							middleName, lastName, prefixId, suffixId, jobTitle,
+							ServiceContextFactory.getInstance(
+								AccountEntryUserRel.class.getName(),
+								actionRequest));
 			}
 			else {
 				accountEntryUserRel =
-					_accountEntryUserRelLocalService.addAccountEntryUserRel(
+					_accountEntryUserRelService.addAccountEntryUserRel(
 						accountEntryId, themeDisplay.getUserId(), screenName,
 						emailAddress, LocaleUtil.fromLanguageId(languageId),
-						firstName, middleName, lastName, prefixId, suffixId);
+						firstName, middleName, lastName, prefixId, suffixId,
+						jobTitle,
+						ServiceContextFactory.getInstance(
+							AccountEntryUserRel.class.getName(),
+							actionRequest));
+			}
+
+			String portletId = _portal.getPortletId(actionRequest);
+
+			if (portletId.equals(
+					AccountPortletKeys.ACCOUNT_ENTRIES_MANAGEMENT)) {
+
+				boolean enableAutomaticSiteMembership =
+					PrefsParamUtil.getBoolean(
+						_portletPreferencesLocalService.getPreferences(
+							themeDisplay.getCompanyId(),
+							PortletKeys.PREFS_OWNER_ID_DEFAULT,
+							PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
+							themeDisplay.getPlid(), portletId),
+						actionRequest, "enableAutomaticSiteMembership", true);
+
+				if (enableAutomaticSiteMembership) {
+					_userLocalService.addGroupUser(
+						themeDisplay.getSiteGroupId(),
+						accountEntryUserRel.getAccountUserId());
+				}
 			}
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 
 			if (Validator.isNotNull(redirect)) {
-				redirect = _http.setParameter(
+				redirect = HttpComponentsUtil.setParameter(
 					redirect, actionResponse.getNamespace() + "p_u_i_d",
 					accountEntryUserRel.getAccountUserId());
 
@@ -129,12 +165,18 @@ public class AddAccountUserMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	@Reference
-	private AccountEntryLocalService _accountEntryLocalService;
+	private AccountEntryService _accountEntryService;
 
 	@Reference
-	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
+	private AccountEntryUserRelService _accountEntryUserRelService;
 
 	@Reference
-	private Http _http;
+	private Portal _portal;
+
+	@Reference
+	private PortletPreferencesLocalService _portletPreferencesLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

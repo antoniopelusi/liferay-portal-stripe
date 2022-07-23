@@ -81,7 +81,6 @@ public class FragmentCollectionResourcesManagementToolbarDisplayContext
 			dropdownItem -> {
 				dropdownItem.putData(
 					"action", "deleteSelectedFragmentCollectionResources");
-
 				dropdownItem.putData(
 					"deleteFragmentCollectionResourcesURL",
 					PortletURLBuilder.createActionURL(
@@ -91,8 +90,7 @@ public class FragmentCollectionResourcesManagementToolbarDisplayContext
 					).setRedirect(
 						_themeDisplay.getURLCurrent()
 					).buildString());
-
-				dropdownItem.setIcon("times-circle");
+				dropdownItem.setIcon("trash");
 				dropdownItem.setLabel(
 					LanguageUtil.get(httpServletRequest, "delete"));
 				dropdownItem.setQuickAction(true);
@@ -115,12 +113,6 @@ public class FragmentCollectionResourcesManagementToolbarDisplayContext
 					LanguageUtil.get(httpServletRequest, "add"));
 			}
 		).build();
-	}
-
-	@Override
-	public String getDefaultEventHandler() {
-		return "FRAGMENT_COLLECTION_RESOURCES_MANAGEMENT_TOOLBAR_DEFAULT_" +
-			"EVENT_HANDLER";
 	}
 
 	@Override

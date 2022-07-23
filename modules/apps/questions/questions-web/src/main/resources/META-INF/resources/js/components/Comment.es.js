@@ -12,9 +12,10 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
+import ClayLabel from '@clayui/label';
+import {useMutation} from 'graphql-hooks';
 import React, {useEffect, useState} from 'react';
 
 import {deleteMessageQuery} from '../utils/client.es';
@@ -22,21 +23,11 @@ import lang from '../utils/lang.es';
 import ArticleBodyRenderer from './ArticleBodyRenderer.es';
 import Modal from './Modal.es';
 
-export default ({comment, commentChange, editable = true}) => {
+export default function Comment({comment, commentChange, editable = true}) {
 	const [dateModified, setDateModified] = useState('');
 	const [showDeleteCommentModal, setShowDeleteCommentModal] = useState(false);
 
-	const [deleteMessage] = useMutation(deleteMessageQuery, {
-		onCompleted() {
-			if (commentChange) {
-				commentChange(comment);
-			}
-		},
-		update(proxy) {
-			proxy.evict(`MessageBoardMessage:${comment.id}`);
-			proxy.gc();
-		},
-	});
+	const [deleteMessage] = useMutation(deleteMessageQuery);
 
 	useEffect(() => {
 		setDateModified(new Date(comment.dateModified).toLocaleDateString());
@@ -57,10 +48,19 @@ export default ({comment, commentChange, editable = true}) => {
 						dateModified,
 					])}
 				</span>
+
+				{comment.status && comment.status !== 'approved' && (
+					<span className="c-ml-2 text-secondary">
+						<ClayLabel displayType="info">
+							{comment.status}
+						</ClayLabel>
+					</span>
+				)}
+
 				<div className="c-mb-0">
 					<ArticleBodyRenderer
 						{...comment}
-						signature={comment.creator.name}
+						signature={comment.creator && comment.creator.name}
 					/>
 				</div>
 
@@ -84,6 +84,10 @@ export default ({comment, commentChange, editable = true}) => {
 									variables: {
 										messageBoardMessageId: comment.id,
 									},
+								}).then(() => {
+									if (commentChange) {
+										commentChange(comment);
+									}
 								});
 							}}
 							onClose={() => {
@@ -99,4 +103,4 @@ export default ({comment, commentChange, editable = true}) => {
 			</div>
 		</div>
 	);
-};
+}

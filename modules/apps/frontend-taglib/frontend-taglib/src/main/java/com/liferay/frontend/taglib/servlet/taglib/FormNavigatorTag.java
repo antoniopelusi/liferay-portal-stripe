@@ -15,7 +15,6 @@
 package com.liferay.frontend.taglib.servlet.taglib;
 
 import com.liferay.frontend.taglib.form.navigator.FormNavigatorCategoryProvider;
-import com.liferay.frontend.taglib.form.navigator.FormNavigatorEntry;
 import com.liferay.frontend.taglib.form.navigator.FormNavigatorEntryProvider;
 import com.liferay.frontend.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -87,7 +86,7 @@ public class FormNavigatorTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setShowButtons(boolean showButtons) {
@@ -131,13 +130,15 @@ public class FormNavigatorTag extends IncludeTag {
 	private String _getBackURL() {
 		String backURL = _backURL;
 
+		HttpServletRequest httpServletRequest = getRequest();
+
 		if (Validator.isNull(backURL)) {
-			backURL = ParamUtil.getString(request, "redirect");
+			backURL = ParamUtil.getString(httpServletRequest, "redirect");
 		}
 
 		if (Validator.isNull(backURL)) {
 			PortletResponse portletResponse =
-				(PortletResponse)request.getAttribute(
+				(PortletResponse)httpServletRequest.getAttribute(
 					JavaConstants.JAVAX_PORTLET_RESPONSE);
 
 			LiferayPortletResponse liferayPortletResponse =
@@ -156,15 +157,19 @@ public class FormNavigatorTag extends IncludeTag {
 			ServletContextUtil.getFormNavigatorCategoryProvider();
 		FormNavigatorEntryProvider formNavigatorEntryProvider =
 			ServletContextUtil.getFormNavigatorEntryProvider();
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+
+		HttpServletRequest httpServletRequest = getRequest();
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		for (String categoryKey : formNavigatorCategoryProvider.getKeys(_id)) {
-			List<FormNavigatorEntry<Object>> formNavigatorEntries =
-				formNavigatorEntryProvider.getFormNavigatorEntries(
-					_id, categoryKey, themeDisplay.getUser(), _formModelBean);
+			if (ListUtil.isNotEmpty(
+					formNavigatorEntryProvider.getFormNavigatorEntries(
+						_id, categoryKey, themeDisplay.getUser(),
+						_formModelBean))) {
 
-			if (ListUtil.isNotEmpty(formNavigatorEntries)) {
 				categoryKeys.add(categoryKey);
 			}
 		}

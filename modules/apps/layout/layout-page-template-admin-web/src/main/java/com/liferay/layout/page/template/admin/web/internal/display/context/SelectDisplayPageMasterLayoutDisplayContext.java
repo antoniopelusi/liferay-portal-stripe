@@ -128,15 +128,18 @@ public class SelectDisplayPageMasterLayoutDisplayContext {
 		for (InfoItemFormVariation infoItemFormVariation :
 				infoItemFormVariations) {
 
-			InfoLocalizedValue<String> labelInfoLocalizedValue =
-				infoItemFormVariation.getLabelInfoLocalizedValue();
-
 			jsonArray.put(
 				JSONUtil.put(
 					"id", String.valueOf(infoItemFormVariation.getKey())
 				).put(
 					"label",
-					labelInfoLocalizedValue.getValue(_themeDisplay.getLocale())
+					() -> {
+						InfoLocalizedValue<String> labelInfoLocalizedValue =
+							infoItemFormVariation.getLabelInfoLocalizedValue();
+
+						return labelInfoLocalizedValue.getValue(
+							_themeDisplay.getLocale());
+					}
 				));
 		}
 

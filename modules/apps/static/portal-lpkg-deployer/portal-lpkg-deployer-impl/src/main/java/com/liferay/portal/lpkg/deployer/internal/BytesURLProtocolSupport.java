@@ -16,7 +16,7 @@ package com.liferay.portal.lpkg.deployer.internal;
 
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.URLCodec;
 
 import java.io.IOException;
@@ -26,7 +26,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import java.util.Dictionary;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,14 +62,12 @@ public class BytesURLProtocolSupport {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			URLConstants.URL_HANDLER_PROTOCOL, new String[] {"bytes"});
-
 		bundleContext.registerService(
 			URLStreamHandlerService.class.getName(),
-			new BytesURLStreamHandlerService(), properties);
+			new BytesURLStreamHandlerService(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				URLConstants.URL_HANDLER_PROTOCOL, new String[] {"bytes"}
+			).build());
 	}
 
 	private final Map<URL, byte[]> _bytesMap = new ConcurrentHashMap<>();

@@ -25,9 +25,7 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 %>
 
 <c:if test="<%= blogsEntry != null %>">
-	<clay:col
-		lg="6"
-	>
+	<div class="card-page-item">
 		<div class="card">
 
 			<%
@@ -49,9 +47,7 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 			</div>
 
 			<div class="card-body widget-topbar">
-				<clay:content-row
-					cssClass=" card-title"
-				>
+				<div class="card-title">
 					<clay:content-col
 						expand="<%= true %>"
 					>
@@ -71,15 +67,14 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 							<%= HtmlUtil.escape(BlogsEntryUtil.getDisplayTitle(resourceBundle, blogsEntry)) %></a>
 						</h3>
 					</clay:content-col>
-				</clay:content-row>
+				</div>
 
 				<clay:content-row
-					cssClass="widget-metadata"
+					cssClass="autofit-padded-no-gutters widget-metadata"
 				>
 
 					<%
 					User blogsEntryUser = UserLocalServiceUtil.fetchUser(blogsEntry.getUserId());
-
 					String blogsEntryUserURL = StringPool.BLANK;
 
 					if ((blogsEntryUser != null) && !blogsEntryUser.isDefaultUser() && !user.isDefaultUser()) {
@@ -87,34 +82,27 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 					}
 					%>
 
-					<clay:content-col
-						cssClass="inline-item-before"
-					>
+					<clay:content-col>
 						<liferay-ui:user-portrait
 							user="<%= blogsEntryUser %>"
 						/>
 					</clay:content-col>
 
 					<clay:content-col
-						cssClass="inline-item-before"
+						expand="<%= true %>"
 					>
-						<clay:content-row>
-							<clay:content-col
-								cssClass="inline-item-before"
-							>
-								<div class="text-truncate-inline">
-									<a class="text-truncate username" href="<%= blogsEntryUserURL %>"><%= HtmlUtil.escape(blogsEntry.getUserName()) %></a>
-								</div>
+						<clay:content-section>
+							<div class="text-truncate-inline">
+								<a class="text-truncate username" href="<%= blogsEntryUserURL %>"><%= HtmlUtil.escape(blogsEntry.getUserName()) %></a>
+							</div>
 
-								<div class="text-secondary">
-									<%= DateUtil.getDate(blogsEntry.getStatusDate(), "dd MMM", locale) %>
-
-									<c:if test="<%= blogsPortletInstanceConfiguration.enableReadingTime() %>">
-										- <liferay-reading-time:reading-time displayStyle="descriptive" model="<%= blogsEntry %>" />
-									</c:if>
-								</div>
-							</clay:content-col>
-						</clay:content-row>
+							<div class="text-secondary">
+								<%= DateUtil.getDate(blogsEntry.getStatusDate(), "dd MMM", locale) %>
+								<c:if test="<%= blogsPortletInstanceConfiguration.enableReadingTime() %>">
+									- <liferay-reading-time:reading-time displayStyle="descriptive" model="<%= blogsEntry %>" />
+								</c:if>
+							</div>
+						</clay:content-section>
 					</clay:content-col>
 				</clay:content-row>
 			</div>
@@ -130,5 +118,5 @@ BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortl
 				</liferay-util:include>
 			</div>
 		</div>
-	</clay:col>
+	</div>
 </c:if>

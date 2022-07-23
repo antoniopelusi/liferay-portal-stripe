@@ -21,7 +21,7 @@ import com.liferay.change.tracking.service.CTCollectionLocalService;
 import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.change.tracking.web.internal.display.CTDisplayRendererRegistry;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -44,7 +44,7 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.URLCodec;
@@ -108,14 +108,21 @@ public class CTDocumentServlet extends HttpServlet {
 
 		long ctCollectionId = ctCollection.getCtCollectionId();
 
-		if (ctCollection.getStatus() == WorkflowConstants.STATUS_APPROVED) {
-			if (CTConstants.TYPE_BEFORE.equals(type)) {
-				ctCollectionId = CTConstants.CT_COLLECTION_ID_PRODUCTION;
-			}
-			else {
-				ctCollectionId = _ctEntryLocalService.getCTRowCTCollectionId(
-					ctEntry);
-			}
+		if (CTConstants.TYPE_AFTER.equals(type) &&
+			(ctCollection.getStatus() == WorkflowConstants.STATUS_APPROVED)) {
+
+			ctCollectionId = _ctEntryLocalService.getCTRowCTCollectionId(
+				ctEntry);
+		}
+		else if (CTConstants.TYPE_BEFORE.equals(type) &&
+				 (ctCollection.getStatus() !=
+					 WorkflowConstants.STATUS_APPROVED)) {
+
+			ctCollectionId = CTConstants.CT_COLLECTION_ID_PRODUCTION;
+		}
+		else if (CTConstants.TYPE_LATEST.equals(type)) {
+			ctCollectionId = _ctDisplayRendererRegistry.getCtCollectionId(
+				ctCollection, ctEntry);
 		}
 
 		CTSQLModeThreadLocal.CTSQLMode ctSQLMode =
@@ -130,10 +137,52 @@ public class CTDocumentServlet extends HttpServlet {
 				"ctEntryId = " + ctEntry.getCtEntryId());
 		}
 
-		try (SafeClosable safeClosable1 = CTSQLModeThreadLocal.setCTSQLMode(
-				ctSQLMode);
-			SafeClosable safeClosable2 =
-				CTCollectionThreadLocal.setCTCollectionId(ctCollectionId)) {
+		if (CTConstants.TYPE_LATEST.equals(type)) {
+			if (ctEntry.getChangeType() ==
+					CTConstants.CT_CHANGE_TYPE_DELETION) {
+
+				ctCollectionId = ctCollection.getCtCollectionId();
+
+				if (ctCollection.getStatus() ==
+						WorkflowConstants.STATUS_APPROVED) {
+
+					ctCollectionId =
+						_ctEntryLocalService.getCTRowCTCollectionId(ctEntry);
+				}
+
+				ctSQLMode = CTSQLModeThreadLocal.CTSQLMode.DEFAULT;
+			}
+			else {
+				ctCollectionId = CTConstants.CT_COLLECTION_ID_PRODUCTION;
+
+				if (ctCollection.getStatus() ==
+						WorkflowConstants.STATUS_APPROVED) {
+
+					ctCollectionId = ctEntry.getCtCollectionId();
+				}
+
+				ctSQLMode = _ctDisplayRendererRegistry.getCTSQLMode(
+					ctCollectionId, ctEntry);
+			}
+
+			try (SafeCloseable safeCloseable1 =
+					CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(
+						ctSQLMode);
+				SafeCloseable safeCloseable2 =
+					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+						ctCollectionId)) {
+
+				ctModel = ctDisplayRenderer.fetchLatestVersionedModel(ctModel);
+
+				return ctDisplayRenderer.getDownloadInputStream(ctModel, key);
+			}
+		}
+
+		try (SafeCloseable safeCloseable1 =
+				CTSQLModeThreadLocal.setCTSQLModeWithSafeCloseable(ctSQLMode);
+			SafeCloseable safeCloseable2 =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollectionId)) {
 
 			return ctDisplayRenderer.getDownloadInputStream(ctModel, key);
 		}
@@ -145,18 +194,19 @@ public class CTDocumentServlet extends HttpServlet {
 		throws IOException, ServletException {
 
 		try {
-			HttpSession session = httpServletRequest.getSession();
+			HttpSession httpSession = httpServletRequest.getSession();
 
 			if (PortalSessionThreadLocal.getHttpSession() == null) {
-				PortalSessionThreadLocal.setHttpSession(session);
+				PortalSessionThreadLocal.setHttpSession(httpSession);
 			}
 
 			User user = _portal.getUser(httpServletRequest);
 
 			if (user == null) {
-				String userIdString = (String)session.getAttribute(
+				String userIdString = (String)httpSession.getAttribute(
 					"j_username");
-				String password = (String)session.getAttribute("j_password");
+				String password = (String)httpSession.getAttribute(
+					"j_password");
 
 				if ((userIdString != null) && (password != null)) {
 					long userId = GetterUtil.getLong(userIdString);
@@ -186,7 +236,8 @@ public class CTDocumentServlet extends HttpServlet {
 			PermissionThreadLocal.setPermissionChecker(permissionChecker);
 
 			List<String> pathInfos = StringUtil.split(
-				_http.fixPath(httpServletRequest.getPathInfo(), true, true),
+				HttpComponentsUtil.fixPath(
+					httpServletRequest.getPathInfo(), true, true),
 				CharPool.SLASH);
 
 			long ctEntryId = GetterUtil.getLong(pathInfos.get(0));
@@ -200,12 +251,12 @@ public class CTDocumentServlet extends HttpServlet {
 			_modelResourcePermission.check(
 				permissionChecker, ctCollection, ActionKeys.VIEW);
 
-			String key = _http.decodeURL(pathInfos.get(2));
+			String key = HttpComponentsUtil.decodeURL(pathInfos.get(2));
 
 			String fileTitle = ParamUtil.getString(
 				httpServletRequest, "title", key);
 
-			String type = _http.decodeURL(pathInfos.get(1));
+			String type = HttpComponentsUtil.decodeURL(pathInfos.get(1));
 			long fileSize = ParamUtil.getLong(httpServletRequest, "size");
 
 			ServletResponseUtil.sendFile(
@@ -237,9 +288,6 @@ public class CTDocumentServlet extends HttpServlet {
 
 	@Reference
 	private CTEntryLocalService _ctEntryLocalService;
-
-	@Reference
-	private Http _http;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.change.tracking.model.CTCollection)"

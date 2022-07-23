@@ -1,0 +1,108 @@
+definition {
+
+	macro _addCatalog {
+		Variables.assertDefined(parameterList = "${catalogName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(catalogCurrency))) {
+			var catalogCurrency = "USD";
+		}
+
+		if (!(isSet(catalogLanguage))) {
+			var catalogLanguage = "en_US";
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/commerce.commercecatalog/add-commerce-catalog \
+				-u test@liferay.com:test \
+				-d externalReferenceCode='' \
+				-d name=${catalogName} \
+				-d commerceCurrencyCode=${catalogCurrency} \
+				-d catalogDefaultLanguageId=${catalogLanguage}
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	macro _deleteAllNoSystemCommerceCatalogs {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var catalogIds = CommerceJSONCatalogsAPI._getCommerceNoSystemCatalogIds();
+
+		if ("${catalogIds}" != "") {
+			for (var catalogId : list "${catalogIds}") {
+				var curl = '''
+					${baseURL}/o/headless-commerce-admin-catalog/v1.0/catalog/${catalogId} \
+					-u test@liferay.com:test \
+					-H 'accept: application/json' \
+				''';
+
+				JSONCurlUtil.delete("${curl}");
+			}
+		}
+		else {
+			echo("No Commerce Catalogs to be deleted");
+		}
+	}
+
+	macro _getCommerceCatalogIdByName {
+		Variables.assertDefined(parameterList = "${catalogName}");
+
+		var baseURL = "${baseURL}";
+		var masterCatalogName = "Master";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (isSet(catalogCount)) {
+			var catalogsCount = "${catalogCount}";
+		}
+		else {
+			var catalogsCount = "100";
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/catalogs?pageSize=${catalogsCount} \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		if (isSet(catalogName)) {
+			var catalogIds = JSONCurlUtil.get("${curl}", "$.items[?(@['name'] == '${catalogName}')].['id']");
+		}
+
+		return "${catalogIds}";
+	}
+
+	macro _getCommerceNoSystemCatalogIds {
+		var baseURL = "${baseURL}";
+		var masterCatalogName = "Master";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (isSet(catalogCount)) {
+			var catalogsCount = "${catalogCount}";
+		}
+		else {
+			var catalogsCount = "100";
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/catalogs?pageSize=${catalogsCount} \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+		var catalogIds = JSONCurlUtil.get("${curl}", "$.items[?(@['system'] == false)].['id']");
+
+		return "${catalogIds}";
+	}
+
+}

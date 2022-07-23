@@ -19,12 +19,13 @@ import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.rule.type.CommerceDiscountRuleTypeRegistry;
 import com.liferay.commerce.discount.service.CommerceDiscountAccountRelService;
 import com.liferay.commerce.discount.service.CommerceDiscountCommerceAccountGroupRelService;
+import com.liferay.commerce.discount.service.CommerceDiscountOrderTypeRelService;
 import com.liferay.commerce.discount.service.CommerceDiscountRuleService;
 import com.liferay.commerce.discount.service.CommerceDiscountService;
 import com.liferay.commerce.discount.target.CommerceDiscountTargetRegistry;
 import com.liferay.commerce.percentage.PercentageFormatter;
-import com.liferay.commerce.pricing.web.internal.constants.CommerceDiscountScreenNavigationConstants;
 import com.liferay.commerce.pricing.web.internal.display.context.CommerceDiscountQualifiersDisplayContext;
+import com.liferay.commerce.pricing.web.internal.servlet.taglib.ui.constants.CommerceDiscountScreenNavigationConstants;
 import com.liferay.commerce.product.service.CommerceChannelRelService;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
@@ -107,7 +108,7 @@ public class CommerceDiscountQualifiersScreenNavigationCategory
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -127,6 +128,7 @@ public class CommerceDiscountQualifiersScreenNavigationCategory
 					_commerceDiscountModelResourcePermission,
 					_commerceDiscountAccountRelService,
 					_commerceDiscountCommerceAccountGroupRelService,
+					_commerceDiscountOrderTypeRelService,
 					_commerceDiscountService, _commerceDiscountRuleService,
 					_commerceDiscountRuleTypeRegistry,
 					_commerceDiscountTargetRegistry, _percentageFormatter,
@@ -138,7 +140,7 @@ public class CommerceDiscountQualifiersScreenNavigationCategory
 
 		_jspRenderer.renderJSP(
 			httpServletRequest, httpServletResponse,
-			"/discount/qualifiers.jsp");
+			"/commerce_discounts/qualifiers.jsp");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -163,6 +165,10 @@ public class CommerceDiscountQualifiersScreenNavigationCategory
 	)
 	private ModelResourcePermission<CommerceDiscount>
 		_commerceDiscountModelResourcePermission;
+
+	@Reference
+	private CommerceDiscountOrderTypeRelService
+		_commerceDiscountOrderTypeRelService;
 
 	@Reference
 	private CommerceDiscountRuleService _commerceDiscountRuleService;

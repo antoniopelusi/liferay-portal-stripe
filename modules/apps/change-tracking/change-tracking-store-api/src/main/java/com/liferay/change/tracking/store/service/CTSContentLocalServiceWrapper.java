@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class CTSContentLocalServiceWrapper
 	implements CTSContentLocalService, ServiceWrapper<CTSContentLocalService> {
 
+	public CTSContentLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CTSContentLocalServiceWrapper(
 		CTSContentLocalService ctsContentLocalService) {
 
@@ -145,6 +149,13 @@ public class CTSContentLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _ctsContentLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _ctsContentLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

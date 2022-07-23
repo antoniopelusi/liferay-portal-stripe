@@ -32,7 +32,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -49,7 +48,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -196,10 +194,18 @@ public abstract class BaseProductResourceTestCase {
 	public void testGetDiscountProductProduct() throws Exception {
 		Product postProduct = testGetDiscountProductProduct_addProduct();
 
-		Product getProduct = productResource.getDiscountProductProduct(null);
+		Product getProduct = productResource.getDiscountProductProduct(
+			testGetDiscountProductProduct_getDiscountProductId());
 
 		assertEquals(postProduct, getProduct);
 		assertValid(getProduct);
+	}
+
+	protected Long testGetDiscountProductProduct_getDiscountProductId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Product testGetDiscountProductProduct_addProduct()
@@ -211,7 +217,7 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGraphQLGetDiscountProductProduct() throws Exception {
-		Product product = testGraphQLProduct_addProduct();
+		Product product = testGraphQLGetDiscountProductProduct_addProduct();
 
 		Assert.assertTrue(
 			equals(
@@ -223,11 +229,20 @@ public abstract class BaseProductResourceTestCase {
 								"discountProductProduct",
 								new HashMap<String, Object>() {
 									{
-										put("discountProductId", null);
+										put(
+											"discountProductId",
+											testGraphQLGetDiscountProductProduct_getDiscountProductId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data", "Object/discountProductProduct"))));
+	}
+
+	protected Long testGraphQLGetDiscountProductProduct_getDiscountProductId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -254,14 +269,28 @@ public abstract class BaseProductResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Product testGraphQLGetDiscountProductProduct_addProduct()
+		throws Exception {
+
+		return testGraphQLProduct_addProduct();
+	}
+
 	@Test
 	public void testGetPriceEntryIdProduct() throws Exception {
 		Product postProduct = testGetPriceEntryIdProduct_addProduct();
 
-		Product getProduct = productResource.getPriceEntryIdProduct(null);
+		Product getProduct = productResource.getPriceEntryIdProduct(
+			testGetPriceEntryIdProduct_getPriceEntryId());
 
 		assertEquals(postProduct, getProduct);
 		assertValid(getProduct);
+	}
+
+	protected Long testGetPriceEntryIdProduct_getPriceEntryId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Product testGetPriceEntryIdProduct_addProduct() throws Exception {
@@ -271,7 +300,7 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGraphQLGetPriceEntryIdProduct() throws Exception {
-		Product product = testGraphQLProduct_addProduct();
+		Product product = testGraphQLGetPriceEntryIdProduct_addProduct();
 
 		Assert.assertTrue(
 			equals(
@@ -283,11 +312,20 @@ public abstract class BaseProductResourceTestCase {
 								"priceEntryIdProduct",
 								new HashMap<String, Object>() {
 									{
-										put("priceEntryId", null);
+										put(
+											"priceEntryId",
+											testGraphQLGetPriceEntryIdProduct_getPriceEntryId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data", "Object/priceEntryIdProduct"))));
+	}
+
+	protected Long testGraphQLGetPriceEntryIdProduct_getPriceEntryId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -310,15 +348,29 @@ public abstract class BaseProductResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Product testGraphQLGetPriceEntryIdProduct_addProduct()
+		throws Exception {
+
+		return testGraphQLProduct_addProduct();
+	}
+
 	@Test
 	public void testGetPriceModifierProductProduct() throws Exception {
 		Product postProduct = testGetPriceModifierProductProduct_addProduct();
 
 		Product getProduct = productResource.getPriceModifierProductProduct(
-			null);
+			testGetPriceModifierProductProduct_getPriceModifierProductId());
 
 		assertEquals(postProduct, getProduct);
 		assertValid(getProduct);
+	}
+
+	protected Long
+			testGetPriceModifierProductProduct_getPriceModifierProductId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Product testGetPriceModifierProductProduct_addProduct()
@@ -330,7 +382,8 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGraphQLGetPriceModifierProductProduct() throws Exception {
-		Product product = testGraphQLProduct_addProduct();
+		Product product =
+			testGraphQLGetPriceModifierProductProduct_addProduct();
 
 		Assert.assertTrue(
 			equals(
@@ -342,12 +395,22 @@ public abstract class BaseProductResourceTestCase {
 								"priceModifierProductProduct",
 								new HashMap<String, Object>() {
 									{
-										put("priceModifierProductId", null);
+										put(
+											"priceModifierProductId",
+											testGraphQLGetPriceModifierProductProduct_getPriceModifierProductId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data",
 						"Object/priceModifierProductProduct"))));
+	}
+
+	protected Long
+			testGraphQLGetPriceModifierProductProduct_getPriceModifierProductId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -374,9 +437,29 @@ public abstract class BaseProductResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Product testGraphQLGetPriceModifierProductProduct_addProduct()
+		throws Exception {
+
+		return testGraphQLProduct_addProduct();
+	}
+
 	protected Product testGraphQLProduct_addProduct() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(Product product, List<Product> products) {
+		boolean contains = false;
+
+		for (Product item : products) {
+			if (equals(product, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(products + " does not contain " + product, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -493,8 +576,8 @@ public abstract class BaseProductResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.pricing.dto.v2_0.
 						Product.class)) {
 
@@ -510,12 +593,13 @@ public abstract class BaseProductResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -529,7 +613,7 @@ public abstract class BaseProductResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -617,6 +701,19 @@ public abstract class BaseProductResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -833,8 +930,8 @@ public abstract class BaseProductResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProductResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseProductResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

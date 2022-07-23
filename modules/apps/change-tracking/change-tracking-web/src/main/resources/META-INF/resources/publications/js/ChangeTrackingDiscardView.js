@@ -12,14 +12,21 @@
  * details.
  */
 
+import ClayIcon from '@clayui/icon';
 import ClayModal, {useModal} from '@clayui/modal';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
+import ClaySticker from '@clayui/sticker';
 import ClayTable from '@clayui/table';
 import React, {useState} from 'react';
 
 import ChangeTrackingRenderView from './ChangeTrackingRenderView';
 
-export default ({ctEntriesJSONArray, spritemap, typeNames, userInfo}) => {
+export default function ChangeTrackingDiscardView({
+	ctEntriesJSONArray,
+	spritemap,
+	typeNames,
+	userInfo,
+}) {
 	const [delta, setDelta] = useState(20);
 	const [page, setPage] = useState(1);
 	const [viewEntry, setViewEntry] = useState(null);
@@ -36,10 +43,8 @@ export default ({ctEntriesJSONArray, spritemap, typeNames, userInfo}) => {
 
 		const entryUserInfo = userInfo[entry.userId.toString()];
 
+		entry.portraitURL = entryUserInfo.portraitURL;
 		entry.userName = entryUserInfo.userName;
-		entry.userPortraitHTML = {
-			__html: entryUserInfo.userPortraitHTML,
-		};
 
 		entry.typeName = typeNames[entry.modelClassNameId.toString()];
 	}
@@ -105,14 +110,31 @@ export default ({ctEntriesJSONArray, spritemap, typeNames, userInfo}) => {
 					onClick={() => setViewEntry(entry)}
 				>
 					<ClayTable.Cell>
-						<div
-							dangerouslySetInnerHTML={entry.userPortraitHTML}
+						<ClaySticker
+							className={`sticker-user-icon ${
+								entry.portraitURL
+									? ''
+									: 'user-icon-color-' + (entry.userId % 10)
+							}`}
 							data-tooltip-align="top"
 							title={entry.userName}
-						/>
+						>
+							{entry.portraitURL ? (
+								<div className="sticker-overlay">
+									<img
+										className="sticker-img"
+										src={entry.portraitURL}
+									/>
+								</div>
+							) : (
+								<ClayIcon symbol="user" />
+							)}
+						</ClaySticker>
 					</ClayTable.Cell>
+
 					<ClayTable.Cell>
 						<div className="publication-name">{entry.title}</div>
+
 						<div className="publication-description">
 							{entry.description}
 						</div>
@@ -162,25 +184,43 @@ export default ({ctEntriesJSONArray, spritemap, typeNames, userInfo}) => {
 				<ClayModal.Header>
 					<div className="autofit-row">
 						<div className="autofit-col publications-discard-user-portrait">
-							<div
-								dangerouslySetInnerHTML={
-									viewEntry.userPortraitHTML
-								}
+							<ClaySticker
+								className={`sticker-user-icon ${
+									viewEntry.portraitURL
+										? ''
+										: 'user-icon-color-' +
+										  (viewEntry.userId % 10)
+								}`}
 								data-tooltip-align="top"
 								title={viewEntry.userName}
-							/>
+							>
+								{viewEntry.portraitURL ? (
+									<div className="sticker-overlay">
+										<img
+											className="sticker-img"
+											src={viewEntry.portraitURL}
+										/>
+									</div>
+								) : (
+									<ClayIcon symbol="user" />
+								)}
+							</ClaySticker>
 						</div>
+
 						<div className="autofit-col">
 							<div className="modal-title">{viewEntry.title}</div>
+
 							<div className="modal-description">
 								{viewEntry.description}
 							</div>
 						</div>
 					</div>
 				</ClayModal.Header>
+
 				<div className="publications-modal-body">
 					<ChangeTrackingRenderView
 						dataURL={viewEntry.dataURL}
+						showHeader={false}
 						spritemap={spritemap}
 					/>
 				</div>
@@ -204,10 +244,11 @@ export default ({ctEntriesJSONArray, spritemap, typeNames, userInfo}) => {
 						</ClayTable.Cell>
 					</ClayTable.Row>
 				</ClayTable.Head>
+
 				<ClayTable.Body>{getTableRows()}</ClayTable.Body>
 			</ClayTable>
 
 			{renderPagination()}
 		</>
 	);
-};
+}

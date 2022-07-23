@@ -30,7 +30,7 @@ public class EditorConfigurationFactoryUtil {
 		ThemeDisplay themeDisplay,
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory) {
 
-		return getEditorConfigurationFactory().getEditorConfiguration(
+		return _editorConfigurationFactory.getEditorConfiguration(
 			portletName, editorConfigKey, editorName,
 			inputEditorTaglibAttributes, themeDisplay,
 			requestBackedPortletURLFactory);

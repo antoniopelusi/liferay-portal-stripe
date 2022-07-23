@@ -16,16 +16,16 @@ package com.liferay.content.dashboard.web.internal.provider;
 
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.service.GroupLocalService;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.LongStream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -37,21 +37,24 @@ import org.osgi.service.component.annotations.Reference;
 public class AssetVocabulariesProvider {
 
 	public List<AssetVocabulary> getAssetVocabularies(
-		String[] assetVocabularyNames, long companyId) {
-
-		Group group = _groupLocalService.fetchCompanyGroup(companyId);
-
-		if (group == null) {
-			return Collections.emptyList();
-		}
+		long[] assetVocabularyIds) {
 
 		try {
-			return Stream.of(
-				assetVocabularyNames
+			LongStream longStream = Arrays.stream(assetVocabularyIds);
+
+			return longStream.boxed(
 			).map(
-				assetVocabularyName ->
-					_assetVocabularyLocalService.fetchGroupVocabulary(
-						group.getGroupId(), assetVocabularyName)
+				assetVocabularyId -> {
+					try {
+						return _assetVocabularyLocalService.getAssetVocabulary(
+							assetVocabularyId);
+					}
+					catch (PortalException portalException) {
+						_log.error(portalException);
+
+						return null;
+					}
+				}
 			).filter(
 				Objects::nonNull
 			).filter(
@@ -66,9 +69,9 @@ public class AssetVocabulariesProvider {
 					"Unable to get content dashboard admin configuration",
 					exception);
 			}
-		}
 
-		return Collections.emptyList();
+			return Collections.emptyList();
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -76,8 +79,5 @@ public class AssetVocabulariesProvider {
 
 	@Reference
 	private AssetVocabularyLocalService _assetVocabularyLocalService;
-
-	@Reference
-	private GroupLocalService _groupLocalService;
 
 }

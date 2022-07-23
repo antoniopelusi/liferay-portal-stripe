@@ -13,7 +13,7 @@ definition {
 	macro clickCard {
 		WaitForLiferayEvent.initializeLiferayEventLog();
 
-		Click.waitForMenuToggleJSClick(
+		Click.mouseDownMouseUp(
 			key_card = "${card}",
 			locator1 = "Card#CARD");
 	}
@@ -115,6 +115,12 @@ definition {
 		AssertElementNotPresent(
 			key_menuItem = "${item}",
 			locator1 = "MenuItem#ANY_MENU_ITEM");
+	}
+
+	macro viewNoCardThumbnail {
+		AssertElementNotPresent(
+			key_card = "${card}",
+			locator1 = "Card#CARD_THUMBNAIL");
 	}
 
 }

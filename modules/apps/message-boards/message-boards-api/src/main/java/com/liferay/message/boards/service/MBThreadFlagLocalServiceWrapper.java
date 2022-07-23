@@ -30,6 +30,10 @@ public class MBThreadFlagLocalServiceWrapper
 	implements MBThreadFlagLocalService,
 			   ServiceWrapper<MBThreadFlagLocalService> {
 
+	public MBThreadFlagLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MBThreadFlagLocalServiceWrapper(
 		MBThreadFlagLocalService mbThreadFlagLocalService) {
 
@@ -152,6 +156,13 @@ public class MBThreadFlagLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mbThreadFlagLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mbThreadFlagLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

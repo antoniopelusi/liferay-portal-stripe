@@ -50,7 +50,7 @@ public class UserGroupsAdminBrowsePortletProvider
 			super.getPortletURL(httpServletRequest)
 		).setMVCPath(
 			"/select_user_group.jsp"
-		).build();
+		).buildPortletURL();
 	}
 
 }

@@ -19,8 +19,9 @@ import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
-import org.hibernate.event.PostUpdateEvent;
-import org.hibernate.event.PostUpdateEventListener;
+import org.hibernate.event.spi.PostUpdateEvent;
+import org.hibernate.event.spi.PostUpdateEventListener;
+import org.hibernate.persister.entity.EntityPersister;
 
 /**
  * @author Shuyang Zhou
@@ -46,9 +47,26 @@ public class MVCCSynchronizerPostUpdateEventListener
 
 			BaseModel<?> baseModel = (BaseModel<?>)entity;
 
-			EntityCacheUtil.putResult(
-				entity.getClass(), baseModel, false, false);
+			MVCCModel cachedMVCCModel = (MVCCModel)EntityCacheUtil.getResult(
+				baseModel.getClass(), baseModel.getPrimaryKeyObj());
+
+			if (cachedMVCCModel != null) {
+				MVCCModel mvccModel = (MVCCModel)entity;
+
+				cachedMVCCModel.setMvccVersion(mvccModel.getMvccVersion());
+
+				EntityCacheUtil.putResult(
+					entity.getClass(), (BaseModel<?>)cachedMVCCModel, false,
+					false);
+			}
 		}
+	}
+
+	/** @deprecated */
+	@Deprecated
+	@Override
+	public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
+		throw new UnsupportedOperationException();
 	}
 
 }

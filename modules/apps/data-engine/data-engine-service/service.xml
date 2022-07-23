@@ -55,10 +55,6 @@
 			<finder-column name="ddmStructureId" />
 			<finder-column arrayable-operator="OR" name="fieldName" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Group" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="DEDataListView" remote-service="false" uuid="true">
 

@@ -17,7 +17,6 @@ package com.liferay.account.service.base;
 import com.liferay.account.model.AccountRole;
 import com.liferay.account.service.AccountRoleService;
 import com.liferay.account.service.AccountRoleServiceUtil;
-import com.liferay.account.service.persistence.AccountEntryPersistence;
 import com.liferay.account.service.persistence.AccountRolePersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -141,32 +140,7 @@ public abstract class AccountRoleServiceBaseImpl
 	protected AccountRolePersistence accountRolePersistence;
 
 	@Reference
-	protected AccountEntryPersistence accountEntryPersistence;
-
-	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.CompanyLocalService
-		companyLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.CompanyService companyService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.RoleLocalService
-		roleLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.RoleService roleService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserGroupRoleLocalService
-		userGroupRoleLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserGroupRoleService
-		userGroupRoleService;
 
 }

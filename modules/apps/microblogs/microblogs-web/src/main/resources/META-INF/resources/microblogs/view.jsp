@@ -17,158 +17,29 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String tabs1 = ParamUtil.getString(request, "tabs1", "timeline");
-
-int cur = ParamUtil.getInteger(request, SearchContainer.DEFAULT_CUR_PARAM);
-
-long receiverUserId = ParamUtil.getLong(request, "receiverUserId");
-long parentMicroblogsEntryId = ParamUtil.getLong(request, "parentMicroblogsEntryId");
-
-String assetTagName = ParamUtil.getString(request, "assetTagName");
-
-boolean userPublicPage = false;
-
-Group group = themeDisplay.getScopeGroup();
-
-if (group.isUser() && layout.isPublicLayout()) {
-	userPublicPage = true;
-}
-
-String tabs1Names = "timeline,mentions";
-
-if (!tabs1.equals("mentions") && !tabs1.equals("timeline")) {
-	tabs1Names += "," + tabs1;
-
-	assetTagName = StringUtil.toLowerCase(tabs1);
-}
-
-PortletURL portletURL = PortletURLBuilder.createRenderURL(
-	renderResponse
-).setMVCPath(
-	"/microblogs/view.jsp"
-).setTabs1(
-	tabs1
-).setWindowState(
-	WindowState.NORMAL
-).build();
+MicroblogsDisplayContext microblogsDisplayContext = new MicroblogsDisplayContext(request, renderRequest, renderResponse);
 %>
 
 <div class="microblogs-container">
-	<c:if test="<%= MicroblogsPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_ENTRY) && !userPublicPage %>">
+	<c:if test="<%= MicroblogsPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_ENTRY) && !microblogsDisplayContext.isUserPublicPage() %>">
 		<liferay-util:include page="/microblogs/edit_microblogs_entry.jsp" servletContext="<%= application %>" />
 	</c:if>
 
 	<liferay-ui:tabs
-		names="<%= tabs1Names %>"
+		names="<%= microblogsDisplayContext.getTabs1Names() %>"
 		param="tabs1"
-		url="<%= portletURL.toString() %>"
+		url="<%= String.valueOf(microblogsDisplayContext.getPortletURL()) %>"
 	/>
 
 	<%
-	SearchContainer<MicroblogsEntry> searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, 10, portletURL, null, null);
-
-	searchContainer.setDeltaConfigurable(false);
-
-	List<MicroblogsEntry> results = new ArrayList<MicroblogsEntry>();
-	int total = 0;
-
-	if (tabs1.equals("mentions")) {
-		receiverUserId = themeDisplay.getUserId();
-
-		if (userPublicPage) {
-			receiverUserId = group.getClassPK();
-		}
-
-		try {
-			User taggedUser = UserLocalServiceUtil.getUserById(receiverUserId);
-
-			assetTagName = taggedUser.getScreenName();
-		}
-		catch (NoSuchUserException nsue) {
-		}
-
-		total = MicroblogsEntryServiceUtil.getMicroblogsEntriesCount(assetTagName);
-
-		searchContainer.setTotal(total);
-
-		results = MicroblogsEntryServiceUtil.getMicroblogsEntries(assetTagName, searchContainer.getStart(), searchContainer.getEnd());
-	}
-	else if (parentMicroblogsEntryId > 0) {
-		MicroblogsEntry microblogsEntry = MicroblogsEntryLocalServiceUtil.fetchMicroblogsEntry(parentMicroblogsEntryId);
-
-		if (microblogsEntry != null) {
-			results.add(microblogsEntry);
-			total = 1;
-		}
-
-		portletURL.setParameter("parentMicroblogsEntryId", String.valueOf(parentMicroblogsEntryId));
-	}
-	else if ((receiverUserId > 0) && (receiverUserId == themeDisplay.getUserId())) {
-		total = MicroblogsEntryLocalServiceUtil.getUserMicroblogsEntriesCount(receiverUserId);
-
-		searchContainer.setTotal(total);
-
-		results = MicroblogsEntryLocalServiceUtil.getUserMicroblogsEntries(receiverUserId, searchContainer.getStart(), searchContainer.getEnd());
-
-		portletURL.setParameter("receiverUserId", String.valueOf(receiverUserId));
-	}
-	else if (receiverUserId > 0) {
-		total = MicroblogsEntryServiceUtil.getUserMicroblogsEntriesCount(receiverUserId);
-
-		searchContainer.setTotal(total);
-
-		results = MicroblogsEntryServiceUtil.getUserMicroblogsEntries(receiverUserId, searchContainer.getStart(), searchContainer.getEnd());
-
-		portletURL.setParameter("receiverUserId", String.valueOf(receiverUserId));
-	}
-	else if (Validator.isNotNull(assetTagName)) {
-		total = MicroblogsEntryServiceUtil.getMicroblogsEntriesCount(assetTagName);
-
-		searchContainer.setTotal(total);
-
-		results = MicroblogsEntryServiceUtil.getMicroblogsEntries(assetTagName, searchContainer.getStart(), searchContainer.getEnd());
-
-		portletURL.setParameter("assetTagName", String.valueOf(assetTagName));
-	}
-	else if (tabs1.equals("timeline")) {
-		if (userPublicPage) {
-			total = MicroblogsEntryServiceUtil.getUserMicroblogsEntriesCount(group.getClassPK());
-
-			searchContainer.setTotal(total);
-
-			results = MicroblogsEntryServiceUtil.getUserMicroblogsEntries(group.getClassPK(), searchContainer.getStart(), searchContainer.getEnd());
-		}
-		else {
-			total = MicroblogsEntryServiceUtil.getMicroblogsEntriesCount();
-
-			searchContainer.setTotal(total);
-
-			results = MicroblogsEntryServiceUtil.getMicroblogsEntries(searchContainer.getStart(), searchContainer.getEnd());
-		}
-	}
-
-	searchContainer.setResults(results);
-
-	PortletURL microblogsEntriesURL = PortletURLBuilder.createRenderURL(
-		renderResponse
-	).setMVCPath(
-		"/microblogs/view.jsp"
-	).setTabs1(
-		tabs1
-	).setParameter(
-		"cur", cur
-	).setWindowState(
-		LiferayWindowState.EXCLUSIVE
-	).build();
-
-	request.setAttribute(WebKeys.MICROBLOGS_ENTRIES, results);
-	request.setAttribute(WebKeys.MICROBLOGS_ENTRIES_URL, microblogsEntriesURL);
+	request.setAttribute(WebKeys.MICROBLOGS_ENTRIES, microblogsDisplayContext.getSearchContainerResults());
+	request.setAttribute(WebKeys.MICROBLOGS_ENTRIES_URL, microblogsDisplayContext.getMicroblogsEntriesURL());
 	%>
 
 	<liferay-util:include page="/microblogs/view_microblogs_entries.jsp" servletContext="<%= application %>" />
 
 	<liferay-ui:search-paginator
-		searchContainer="<%= searchContainer %>"
+		searchContainer="<%= microblogsDisplayContext.getSearchContainer() %>"
 		type="article"
 	/>
 </div>
@@ -182,7 +53,9 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 				'<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="mvcPath" value="/microblogs/view.jsp" /><portlet:param name="tabs1" value="timeline" /></portlet:renderURL>',
 		});
 
-		Liferay.Microblogs.updateViewCount(<%= parentMicroblogsEntryId %>);
+		Liferay.Microblogs.updateViewCount(
+			<%= microblogsDisplayContext.getParentMicroblogsEntryId() %>
+		);
 	});
 
 	var microblogsContainer = A.one(
@@ -296,7 +169,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 					);
 
 					Liferay.Microblogs.updateMicroblogsList(
-						'<%= microblogsEntriesURL %>',
+						'<%= microblogsDisplayContext.getMicroblogsEntriesURL() %>',
 						updateContainer
 					);
 				});
@@ -305,7 +178,7 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 		'.microblogs-entry .delete a'
 	);
 
-	<c:if test="<%= parentMicroblogsEntryId > 0 %>">
-		showComments('<%= parentMicroblogsEntryId %>');
+	<c:if test="<%= microblogsDisplayContext.getParentMicroblogsEntryId() > 0 %>">
+		showComments('<%= microblogsDisplayContext.getParentMicroblogsEntryId() %>');
 	</c:if>
 </aui:script>

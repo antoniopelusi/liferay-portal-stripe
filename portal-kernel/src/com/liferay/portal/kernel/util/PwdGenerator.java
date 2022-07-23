@@ -53,7 +53,7 @@ public class PwdGenerator {
 
 		long secureLong = 0;
 
-		StringBuilder sb = new StringBuilder(length);
+		StringBundler sb = new StringBundler(length);
 
 		for (int i = 0; i < length; i++) {
 			if ((i % refreshPeriod) == 0) {

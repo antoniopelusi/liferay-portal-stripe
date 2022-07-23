@@ -1,0 +1,1317 @@
+@component-name = "portal-web-forms-and-data-lists"
+definition {
+
+	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Forms";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Forms");
+
+			FormsAdmin.teardownForms();
+
+			Navigator.gotoNavItem(navItem = "Data Providers");
+
+			FormsAdmin.teardownDataProviders();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "LPS-69733 - Verify that a Rule Condition cannot be added until the Condition Field is selected"
+	@priority = "2"
+	test AreDisabledUntilAConditionFieldIsSelected {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormRulesConditions#AreDisabledUntilAConditionFieldIsSelected";
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.viewConditionOperatorOptionsNotPresent(conditionRowNumber = "1");
+
+		FormRules.selectConditionField(
+			conditionField = "Text Field",
+			conditionRowNumber = "1");
+
+		FormRules.viewConditionOperatorOptionsIsPresent(conditionRowNumber = "1");
+	}
+
+	@description = "Verify that a Rule Condition can be deleted"
+	@priority = "5"
+	test CanBeDeleted {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionOperator = "Is Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Text");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Text",
+			conditionField = "Text",
+			conditionOperator = "Is Empty",
+			ruleNumber = "1");
+
+		FormRules.gotoEdit(ruleNumber = "1");
+
+		FormRules.addCondition();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "2",
+			conditionValueType = "Value");
+
+		FormRules.deleteCondition(conditionRowNumber = "1");
+
+		FormRules.viewConditionNotPresent(
+			conditionField = "Text",
+			conditionOperator = "Is Empty",
+			conditionRowNumber = "1");
+
+		FormRules.viewConditionPresent(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Text",
+			conditionField = "Text",
+			conditionFieldConstant = "Test",
+			conditionOperator = "Contains",
+			ruleNumber = "1");
+
+		FormRules.viewConditionSummaryNotPresent(
+			conditionField = "Text",
+			conditionOperator = "Is Empty",
+			ruleNumber = "1");
+	}
+
+	@description = "Verify that a Rule Condition can be edited"
+	@priority = "5"
+	test CanBeEdited {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionOperator = "Is Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Text");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Text",
+			conditionField = "Text",
+			conditionOperator = "Is Empty",
+			ruleNumber = "1");
+
+		FormRules.gotoEdit(ruleNumber = "1");
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Does Not Contain",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Text");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Text",
+			conditionField = "Text",
+			conditionFieldConstant = "Test",
+			conditionOperator = "Does Not Contain",
+			ruleNumber = "1");
+	}
+
+	@description = "Verify that a Rule with 'Contains' condition can be created"
+	@priority = "4"
+	test CanCreateAContainsRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Contains",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Numeric",
+			conditionField = "Text",
+			conditionOperator = "Contains",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		Form.validateNoFieldLabel(fieldLabel = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+	}
+
+	@description = "Verify that a Rule with 'Does Not Contain' condition can be created"
+	@priority = "4"
+	test CanCreateADoesNotContainRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		for (var fieldAndPosition : list "Text-0,Numeric-1") {
+			var field = StringUtil.extractFirst("${fieldAndPosition}", "-");
+			var position = StringUtil.extractLast("${fieldAndPosition}", "-");
+
+			Form.gotoAddField(
+				fieldPositionNumber = "${position}",
+				fieldType = "${field}",
+				formPageNumber = "0");
+
+			Form.closeSidebar();
+		}
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Does Not Contain",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Numeric",
+			conditionField = "Text",
+			conditionFieldConstant = "Test",
+			conditionOperator = "Does Not Contain",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		FormFields.viewRequiredAsteriskDataField(fieldFieldLabel = "Numeric");
+
+		for (var value : list "Test,Text") {
+			FormFields.editText(
+				fieldName = "Text",
+				fieldValue = "${value}");
+
+			if ("${value}" == "Test") {
+				FormFields.viewRequiredAsteriskDataFieldNotPresent(fieldFieldLabel = "Numeric");
+			}
+			else {
+				FormFields.viewRequiredAsteriskDataField(fieldFieldLabel = "Numeric");
+			}
+		}
+	}
+
+	@description = "Verify that a Rule with 'Is Empty' condition can be created"
+	@priority = "4"
+	test CanCreateAnIsEmptyRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionOperator = "Is Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Numeric",
+			conditionField = "Text",
+			conditionFieldConstant = "Numeric",
+			conditionOperator = "Is Empty",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		FormFields.viewRequiredAsteriskDataField(fieldFieldLabel = "Numeric");
+
+		FormFields.viewTextLabel(fieldLabel = "Indicates Required Fields");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewRequiredAsteriskDataFieldNotPresent(fieldFieldLabel = "Numeric");
+
+		FormFields.viewFieldLabelNotPresent(fieldLabel = "Indicates Required Fields");
+	}
+
+	@description = "Verify that a Rule with 'Is Equal To' condition can be created"
+	@priority = "4"
+	test CanCreateAnIsEqualToRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Text");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Is Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Numeric");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Numeric",
+			conditionField = "Text",
+			conditionOperator = "Is Equal To",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		Form.validateNoFieldLabel(fieldLabel = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Text");
+
+		Form.validateNoFieldLabel(fieldLabel = "Numeric");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewFieldLabel(
+			fieldName = "Numeric",
+			fieldValue = "");
+	}
+
+	@description = "Verify that a Rule with 'Is greater than or Equal To' condition is working fine on the numeric field"
+	@priority = "4"
+	test CanCreateAnIsGreaterThanOrEqualToRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Paragraph",
+			formPageNumber = "0");
+
+		FormFields.editParagraphBody(content = "Test.");
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Numeric",
+			conditionFieldValue = "5",
+			conditionOperator = "Is Greater Than Or Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Paragraph");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Paragraph",
+			conditionField = "Numeric",
+			conditionFieldConstant = "5",
+			conditionOperator = "Is Greater Than Or Equal To",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		for (var value : list "2,5,6") {
+			FormFields.editText(
+				fieldName = "Numeric",
+				fieldValue = "${value}");
+
+			if ("${value}" == "2") {
+				FormFields.viewParagraphFieldNotPresent(fieldTitle = "Paragraph");
+			}
+			else {
+				FormFields.viewParagraphField(
+					fieldTitle = "Paragraph",
+					fieldValue = "Test.");
+			}
+
+			if ("${value}" != "6") {
+				FormFields.editTextWithBackspace(fieldName = "Numeric");
+			}
+		}
+	}
+
+	@description = "Verify that a Rule with 'Is greater than' condition is working fine on the numeric field"
+	@priority = "4"
+	test CanCreateAnIsGreaterThanRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Numeric",
+			conditionFieldValue = "5",
+			conditionOperator = "Is Greater Than",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Enable",
+			actionRowNumber = "1",
+			actionTarget = "Text");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Enable",
+			actionTarget = "Text",
+			conditionField = "Numeric",
+			conditionOperator = "Is Greater Than",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		FormFields.viewFieldDisabled(fieldName = "Text");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "2");
+
+		FormFields.viewFieldDisabled(fieldName = "Text");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "8");
+
+		FormFields.viewFieldEnabled(fieldName = "Text");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+	}
+
+	@description = "Verify that a Rule with 'Is less than or Equal To' condition is working fine on the numeric field"
+	@priority = "4"
+	test CanCreateAnIsLessThanOrEqualToRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Text",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Numeric",
+			conditionFieldValue = "5",
+			conditionOperator = "Is Less Than Or Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Text");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Text",
+			conditionField = "Numeric",
+			conditionOperator = "Is Less Than Or Equal To",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "5");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "4");
+
+		FormFields.viewLabel(
+			fieldLabel = "Text",
+			fieldName = "Text");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "6");
+
+		Form.validateNoFieldLabel(fieldLabel = "Text");
+	}
+
+	@description = "Verify that a Rule with 'Is less than' condition is working fine on the numeric field"
+	@priority = "4"
+	test CanCreateAnIsLessThanRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.gotoAddField(
+			fieldPositionNumber = "0",
+			fieldType = "Numeric",
+			formPageNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Paragraph",
+			formPageNumber = "0");
+
+		FormFields.editParagraphBody(content = "Test");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Numeric",
+			conditionFieldValue = "5",
+			conditionOperator = "Is Less Than",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Paragraph");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Paragraph",
+			conditionField = "Numeric",
+			conditionOperator = "Is Less Than",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		FormFields.viewLabel(
+			fieldLabel = "Paragraph",
+			fieldName = "Paragraph");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "5");
+
+		Form.validateNoFieldLabel(fieldLabel = "Paragraph");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "4");
+
+		FormFields.viewLabel(
+			fieldLabel = "Paragraph",
+			fieldName = "Paragraph");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "6");
+
+		Form.validateNoFieldLabel(fieldLabel = "Paragraph");
+	}
+
+	@description = "LPS-71399 - Verify that a Rule with 'Is Not Empty' condition can be created"
+	@priority = "4"
+	test CanCreateAnIsNotEmptyRule {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormRulesConditions#CanCreateAnIsNotEmptyRule";
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldNameTextField = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Date");
+
+		var fieldNameDateField = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Date Field");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text Field",
+			conditionOperator = "Is Not Empty",
+			conditionRowNumber = "1");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Date Field");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewDateFieldNotPresent(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField}",
+			fieldValue = "1");
+
+		FormFields.viewDateField(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField}",
+			fieldValue = "Test");
+
+		FormFields.viewDateField(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField}",
+			fieldValue = "%");
+
+		FormFields.viewDateField(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+
+		FormFields.editTextWithBackspace(fieldName = "${fieldNameTextField}");
+
+		FormFields.viewDateFieldNotPresent(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+	}
+
+	@description = "Verify that a Rule with 'Is Not Equal To' condition can be created"
+	@priority = "4"
+	test CanCreateAnIsNotEqualToRule {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text",
+			conditionFieldValue = "Test",
+			conditionOperator = "Is Not Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "1",
+			actionTarget = "Text");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Text",
+			conditionField = "Text",
+			conditionOperator = "Is Not Equal To",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		FormFields.viewRequiredAsteriskDataField(fieldFieldLabel = "Text");
+
+		FormFields.editText(
+			fieldName = "Text",
+			fieldValue = "Test");
+
+		FormFields.viewRequiredAsteriskDataFieldNotPresent(fieldFieldLabel = "Text");
+	}
+
+	@description = "Verify that a Rule of User with condition 'Belongs To' can be created"
+	@priority = "4"
+	test CanCreateAnUserBelongsToRule {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormsRulesConditions#CanCreateAnUserBelongsToRule";
+
+		Navigator.openURL();
+
+		SearchAdministration.executeReindex();
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldNamePublic = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Public");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldNameManager = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Manager");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.configureConditionOptions(
+			conditionField = "User",
+			conditionOperator = "Belongs To",
+			conditionRowNumber = "1",
+			conditionValueType = "Site Administrator");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Manager");
+
+		FormRules.addAction();
+
+		FormRules.configureActionOptions(
+			action = "Require",
+			actionRowNumber = "2",
+			actionTarget = "Manager");
+
+		FormRules.save();
+
+		FormRules.viewSummary(
+			action = "Require",
+			actionTarget = "Manager",
+			conditionField = "User",
+			conditionFieldConstant = "Site Administrator",
+			conditionOperator = "Belongs To",
+			ruleNumber = "1");
+
+		FormRules.viewSummary(
+			action = "Show",
+			actionTarget = "Manager",
+			conditionField = "User",
+			conditionFieldConstant = "Site Administrator",
+			conditionOperator = "Belongs To",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		PagesAdmin.addPage(pageName = "Form Page");
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		Portlet.addPG(
+			pageName = "Form Page",
+			portletName = "Form");
+
+		FormPortletNavigator.gotoSelectForm();
+
+		FormPortletConfiguration.selectForm();
+
+		PortletEntry.save();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewTextField(
+			fieldLabel = "Public",
+			fieldName = "${fieldNamePublic}");
+
+		FormFields.viewTextFieldNotVisible(
+			fieldLabel = "Manager",
+			fieldName = "${fieldNameManager}");
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.assignSiteRoleCP(
+			siteRoleName = "Site Administrator",
+			userScreenName = "test");
+
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewTextField(
+			fieldLabel = "Public",
+			fieldName = "${fieldNamePublic}");
+
+		FormFields.viewTextField(
+			fieldLabel = "Manager",
+			fieldName = "${fieldNameManager}");
+
+		FormFields.editText(
+			fieldName = "${fieldNamePublic}",
+			fieldValue = "Message");
+
+		FormFields.editText(
+			fieldName = "${fieldNameManager}",
+			fieldValue = "Admin Comments");
+
+		FormFields.viewTextField(
+			fieldLabel = "Manager",
+			fieldName = "${fieldNameManager}");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Public",
+			fieldValue = "Message");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Manager",
+			fieldValue = "Admin Comments");
+	}
+
+	@description = "Verify that the AND operator on Condition is working as expected"
+	@priority = "5"
+	test CanCreateMultipleConditionsUsingAND {
+		property portal.acceptance = "true";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "FormRulesConditions#CanCreateMultipleConditionsUsingAND";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		FormsAdmin.addForm();
+
+		Form.editName();
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		var fieldNameTextField1 = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field 1");
+
+		Form.closeSidebar();
+
+		Form.addTextField(fieldPositionNumber = "1");
+
+		var fieldNameTextField2 = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Text Field 2");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "2",
+			fieldType = "Date");
+
+		var fieldNameDateField = FormFields.getFieldName();
+
+		Form.editFieldLabelMetal(fieldValue = "Date Field");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.viewRuleConditionDropdownDisabled();
+
+		FormRules.addCondition();
+
+		FormRules.viewRuleConditionDropdownEnabled();
+
+		FormRules.selectRuleCondition(condition = "AND");
+
+		FormRules.viewRuleCondition(
+			condition = "AND",
+			conditonRowNumber = "1");
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text Field 1",
+			conditionFieldValue = "test",
+			conditionOperator = "Is Equal To",
+			conditionRowNumber = "1",
+			conditionValueType = "Value");
+
+		FormRules.configureConditionOptions(
+			conditionField = "Text Field 2",
+			conditionFieldValue = "test",
+			conditionOperator = "Is Equal To",
+			conditionRowNumber = "2",
+			conditionValueType = "Value");
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Date Field");
+
+		FormRules.save();
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		Form.save();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField1}",
+			fieldValue = "test");
+
+		FormFields.viewDateFieldNotPresent(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+
+		FormFields.editText(
+			fieldName = "${fieldNameTextField2}",
+			fieldValue = "test");
+
+		FormFields.viewDateField(
+			fieldLabel = "Date Field",
+			fieldName = "${fieldNameDateField}");
+	}
+
+	@description = "Verify that the OR operator on Condition is working as expected"
+	@priority = "5"
+	test CanCreateMultipleConditionsUsingOR {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		for (var fieldAndNumber : list "Text-0,Numeric-1,Paragraph-2") {
+			var field = StringUtil.extractFirst("${fieldAndNumber}", "-");
+			var rowNumber = StringUtil.extractLast("${fieldAndNumber}", "-");
+
+			Form.gotoAddField(
+				fieldPositionNumber = "${rowNumber}",
+				fieldType = "${field}",
+				formPageNumber = "0");
+
+			if ("${field}" == "Paragraph") {
+				FormFields.editParagraphBody(content = "Test.");
+			}
+
+			Form.closeSidebar();
+		}
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		for (var fieldAndNumber : list "Text-1,Numeric-2") {
+			var field = StringUtil.extractFirst("${fieldAndNumber}", "-");
+			var rowNumber = StringUtil.extractLast("${fieldAndNumber}", "-");
+
+			FormRules.configureConditionOptions(
+				conditionField = "${field}",
+				conditionOperator = "Is Not Empty",
+				conditionRowNumber = "${rowNumber}");
+
+			if ("${field}" == "Text") {
+				FormRules.addCondition();
+			}
+		}
+
+		FormRules.configureActionOptions(
+			action = "Show",
+			actionRowNumber = "1",
+			actionTarget = "Paragraph");
+
+		FormRules.save();
+
+		for (var field : list "Text,Numeric") {
+			FormRules.viewConditionFieldSummary(
+				conditionField = "${field}",
+				ruleNumber = "1");
+
+			FormRules.viewConditionOperatorSummary(
+				conditionOperator = "Is Not Empty",
+				ruleNumber = "1");
+		}
+
+		FormRules.viewActionSummary(
+			action = "Show",
+			ruleNumber = "1");
+
+		FormRules.viewActionTargetSummary(
+			action = "Show",
+			actionTarget = "Paragraph",
+			ruleNumber = "1");
+
+		FormsAdminNavigator.gotoFormBuilder();
+
+		FormsAdminNavigator.gotoPreviewForm();
+
+		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
+
+		FormFields.viewParagraphFieldNotPresent(fieldTitle = "Paragraph");
+
+		var count = "0";
+
+		while ("${count}" != "3") {
+			if (("${count}" == "0") || ("${count}" == "2")) {
+				FormFields.editText(
+					fieldName = "Text",
+					fieldValue = "Test");
+			}
+			else {
+				FormFields.editText(
+					fieldName = "Numeric",
+					fieldValue = "1");
+			}
+
+			FormFields.viewParagraphField(
+				fieldTitle = "Paragraph",
+				fieldValue = "Test.");
+
+			if ("${count}" == "0") {
+				FormFields.editTextWithBackspace(fieldName = "Text");
+			}
+
+			var count = ${count} + 1;
+		}
+	}
+
+	@description = "Verify that the OR operator on Condition is disabled by default"
+	@priority = "5"
+	test OrOperatorisDisabledByDefault {
+		property portal.acceptance = "true";
+
+		FormsAdmin.addForm();
+
+		Form.editName(formName = "Form 1");
+
+		Form.addTextField(fieldPositionNumber = "0");
+
+		Form.closeSidebar();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Numeric");
+
+		Form.closeSidebar();
+
+		FormsAdminNavigator.gotoRules();
+
+		FormRules.addRule();
+
+		FormRules.viewRuleConditionDropdownDisabled();
+	}
+
+}

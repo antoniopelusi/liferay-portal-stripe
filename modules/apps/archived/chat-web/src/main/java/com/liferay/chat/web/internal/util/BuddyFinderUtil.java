@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.Reference;
 public class BuddyFinderUtil {
 
 	public static List<Object[]> getBuddies(long companyId, long userId) {
-		return getBuddyFinder().getBuddies(companyId, userId);
+		return _buddyFinder.getBuddies(companyId, userId);
 	}
 
 	public static BuddyFinder getBuddyFinder() {

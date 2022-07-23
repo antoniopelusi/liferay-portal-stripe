@@ -299,4 +299,7 @@ public interface SocialActivityCounterModel
 	 */
 	public void setActive(boolean active);
 
+	@Override
+	public SocialActivityCounter cloneWithOriginalValues();
+
 }

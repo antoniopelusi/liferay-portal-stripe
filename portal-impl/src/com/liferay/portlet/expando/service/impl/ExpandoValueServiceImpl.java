@@ -38,7 +38,6 @@ import java.util.Map;
  */
 public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 
-	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
 	@Override
 	public ExpandoValue addValue(
 			long companyId, String className, String tableName,
@@ -55,6 +54,7 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 			companyId, className, tableName, columnName, classPK, data);
 	}
 
+	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
 	@Override
 	public ExpandoValue addValue(
 			long companyId, String className, String tableName,
@@ -119,7 +119,8 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 		ExpandoColumn column = expandoColumnLocalService.getColumn(
 			companyId, className, tableName, columnName);
 
-		if (ExpandoColumnPermissionUtil.contains(
+		if ((column != null) &&
+			ExpandoColumnPermissionUtil.contains(
 				getPermissionChecker(), column, ActionKeys.VIEW)) {
 
 			return expandoValueLocalService.getData(
@@ -138,7 +139,8 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 		ExpandoColumn column = expandoColumnLocalService.getColumn(
 			companyId, className, tableName, columnName);
 
-		if (!ExpandoColumnPermissionUtil.contains(
+		if ((column == null) ||
+			!ExpandoColumnPermissionUtil.contains(
 				getPermissionChecker(), column, ActionKeys.VIEW)) {
 
 			return null;

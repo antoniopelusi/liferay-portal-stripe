@@ -185,6 +185,11 @@ public class TranslationEntryWrapper
 		}
 	}
 
+	@Override
+	public TranslationEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this translation entry.
 	 *

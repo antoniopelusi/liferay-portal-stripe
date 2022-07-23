@@ -14,7 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.service.impl;
 
-import com.liferay.dynamic.data.mapping.internal.search.util.DDMSearchHelper;
+import com.liferay.dynamic.data.mapping.internal.search.helper.DDMSearchHelper;
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutDeserializerDeserializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutDeserializerDeserializeResponse;
@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -84,7 +85,7 @@ public class DDMStructureLayoutLocalServiceImpl
 			DDMFormLayout ddmFormLayout, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		validate(ddmFormLayout);
 
@@ -120,7 +121,7 @@ public class DDMStructureLayoutLocalServiceImpl
 			String definition, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long structureLayoutId = counterLocalService.increment();
 
@@ -383,5 +384,8 @@ public class DDMStructureLayoutLocalServiceImpl
 
 	@Reference(target = "(ddm.form.layout.serializer.type=json)")
 	private DDMFormLayoutSerializer _jsonDDMFormLayoutSerializer;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

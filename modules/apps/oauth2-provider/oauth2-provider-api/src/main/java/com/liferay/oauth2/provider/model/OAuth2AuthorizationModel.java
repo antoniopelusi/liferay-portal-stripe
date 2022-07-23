@@ -332,4 +332,7 @@ public interface OAuth2AuthorizationModel
 	 */
 	public void setRememberDeviceContent(String rememberDeviceContent);
 
+	@Override
+	public OAuth2Authorization cloneWithOriginalValues();
+
 }

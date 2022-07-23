@@ -80,7 +80,7 @@ if (Validator.isNotNull(backURL)) {
 							int curIndex = commerceInventoryWarehouses.indexOf(commerceInventoryWarehouse);
 						%>
 
-							<tr>
+							<tr data-commerce-inventory-warehouse-id="<%= commerceInventoryWarehouse.getCommerceInventoryWarehouseId() %>" data-commerce-inventory-warehouse-item-id="<%= commerceInventoryWarehouseItemId %>" data-index="<%= curIndex %>" data-mvcc-version="<%= mvccVersion %>">
 								<td>
 									<%= HtmlUtil.escape(commerceInventoryWarehouse.getName()) %>
 								</td>
@@ -88,7 +88,7 @@ if (Validator.isNotNull(backURL)) {
 									<aui:input id='<%= "commerceInventoryWarehouseItemQuantity" + curIndex %>' label="" name="commerceInventoryWarehouseItemQuantity" value="<%= quantity %>" wrapperCssClass="m-0" />
 								</td>
 								<td class="text-center">
-									<aui:button cssClass="btn-primary" name='<%= "saveButton" + curIndex %>' onClick="<%= commerceInventoryWarehouseItemsDisplayContext.getUpdateCommerceInventoryWarehouseItemTaglibOnClick(commerceInventoryWarehouse.getCommerceInventoryWarehouseId(), commerceInventoryWarehouseItemId, mvccVersion, curIndex) %>" primary="<%= true %>" value="save" />
+									<aui:button cssClass="btn-primary warehouse-save-btn" name='<%= "saveButton" + curIndex %>' primary="<%= true %>" value="save" />
 								</td>
 							</tr>
 
@@ -102,67 +102,16 @@ if (Validator.isNotNull(backURL)) {
 		</c:otherwise>
 	</c:choose>
 
-	<aui:script>
-		function <portlet:namespace />updateCommerceInventoryWarehouseItem(
-			commerceInventoryWarehouseId,
-			commerceInventoryWarehouseItemId,
-			mvccVersion,
-			index
-		) {
-			var form = window.document['<portlet:namespace />fm'];
-
-			if (commerceInventoryWarehouseItemId > 0) {
-				form['<portlet:namespace /><%= Constants.CMD %>'].value =
-					'<%= Constants.UPDATE %>';
-			}
-			else {
-				form['<portlet:namespace /><%= Constants.CMD %>'].value =
-					'<%= Constants.ADD %>';
-			}
-
-			form[
-				'<portlet:namespace />commerceInventoryWarehouseId'
-			].value = commerceInventoryWarehouseId;
-			form[
-				'<portlet:namespace />commerceInventoryWarehouseItemId'
-			].value = commerceInventoryWarehouseItemId;
-
-			var quantityInputId =
-				'#<portlet:namespace />commerceInventoryWarehouseItemQuantity' + index;
-
-			var quantityInput = window.document.querySelector(quantityInputId);
-
-			form['<portlet:namespace />quantity'].value = quantityInput.value;
-
-			form['<portlet:namespace />mvccVersion'].value = mvccVersion;
-
-			submitForm(form);
-		}
-	</aui:script>
-
-	<aui:script>
-		var quantityPrefix =
-			'<portlet:namespace />commerceInventoryWarehouseItemQuantity';
-		var enterKeyCode = 13;
-
-		var quantityInputElements = window.document.querySelectorAll(
-			'input[id^=' + quantityPrefix + ']'
-		);
-
-		Array.from(quantityInputElements).forEach((quantityInputElement) => {
-			quantityInputElement.addEventListener('keypress', (event) => {
-				if (event.keyCode == enterKeyCode) {
-					event.preventDefault();
-
-					var curIndex = event.currentTarget
-						.getAttribute('id')
-						.split(quantityPrefix)[1];
-
-					window.document
-						.querySelector('#<portlet:namespace />saveButton' + curIndex)
-						.click();
-				}
-			});
-		});
-	</aui:script>
+	<liferay-frontend:component
+		context='<%=
+			HashMapBuilder.<String, Object>put(
+				"ADD", Constants.ADD
+			).put(
+				"CMD", Constants.CMD
+			).put(
+				"UPDATE", Constants.UPDATE
+			).build()
+		%>'
+		module="js/viewWarehouseItems"
+	/>
 </c:if>

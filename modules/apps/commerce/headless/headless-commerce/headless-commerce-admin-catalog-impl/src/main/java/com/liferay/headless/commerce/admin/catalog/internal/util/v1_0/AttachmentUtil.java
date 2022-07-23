@@ -17,13 +17,15 @@ package com.liferay.headless.commerce.admin.catalog.internal.util.v1_0;
 import com.liferay.commerce.product.exception.CPAttachmentFileEntryProtocolException;
 import com.liferay.commerce.product.model.CPAttachmentFileEntry;
 import com.liferay.commerce.product.service.CPAttachmentFileEntryService;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppServiceUtil;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Attachment;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.AttachmentBase64;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.AttachmentUrl;
-import com.liferay.headless.commerce.admin.catalog.internal.jaxrs.exception.MethodRequiredParameterMissingException;
 import com.liferay.headless.commerce.admin.catalog.internal.util.DateConfigUtil;
 import com.liferay.headless.commerce.core.util.DateConfig;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -55,14 +57,14 @@ import java.util.Objects;
 public class AttachmentUtil {
 
 	public static FileEntry addFileEntry(
-			Attachment attachment, long groupId, long userId,
-			UniqueFileNameProvider uniqueFileNameProvider)
+			Attachment attachment,
+			UniqueFileNameProvider uniqueFileNameProvider,
+			ServiceContext serviceContext)
 		throws Exception {
 
 		if (Validator.isNotNull(attachment.getAttachment())) {
 			return addFileEntry(
-				attachment.getAttachment(), groupId, userId,
-				uniqueFileNameProvider);
+				attachment, uniqueFileNameProvider, serviceContext);
 		}
 
 		if (Validator.isNotNull(attachment.getSrc())) {
@@ -80,16 +82,37 @@ public class AttachmentUtil {
 			File file = FileUtil.createTempFile(urlConnection.getInputStream());
 
 			return _addFileEntry(
-				groupId, userId, file, MimeTypesUtil.getContentType(file),
-				uniqueFileNameProvider);
+				file, attachment.getContentType(), uniqueFileNameProvider,
+				serviceContext);
 		}
 
 		return null;
 	}
 
 	public static FileEntry addFileEntry(
-			AttachmentUrl attachmentUrl, long groupId, long userId,
-			UniqueFileNameProvider uniqueFileNameProvider)
+			AttachmentBase64 attachmentBase64,
+			UniqueFileNameProvider uniqueFileNameProvider,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		String base64EncodedContent = attachmentBase64.getAttachment();
+
+		if (Validator.isNull(base64EncodedContent)) {
+			return null;
+		}
+
+		File file = FileUtil.createTempFile(
+			Base64.decode(base64EncodedContent));
+
+		return _addFileEntry(
+			file, attachmentBase64.getContentType(), uniqueFileNameProvider,
+			serviceContext);
+	}
+
+	public static FileEntry addFileEntry(
+			AttachmentUrl attachmentUrl,
+			UniqueFileNameProvider uniqueFileNameProvider,
+			ServiceContext serviceContext)
 		throws Exception {
 
 		if (Validator.isNull(attachmentUrl.getSrc())) {
@@ -100,54 +123,16 @@ public class AttachmentUtil {
 			HttpUtil.URLtoInputStream(attachmentUrl.getSrc()));
 
 		return _addFileEntry(
-			groupId, userId, file, MimeTypesUtil.getContentType(file),
-			uniqueFileNameProvider);
+			file, attachmentUrl.getContentType(), uniqueFileNameProvider,
+			serviceContext);
 	}
 
-	public static FileEntry addFileEntry(
-			String base64EncodedContent, long groupId, long userId,
-			UniqueFileNameProvider uniqueFileNameProvider)
-		throws Exception {
-
-		if (Validator.isNull(base64EncodedContent)) {
-			return null;
-		}
-
-		byte[] attachmentBytes = Base64.decode(base64EncodedContent);
-
-		File file = FileUtil.createTempFile(attachmentBytes);
-
-		return _addFileEntry(
-			groupId, userId, file, MimeTypesUtil.getContentType(file),
-			uniqueFileNameProvider);
-	}
-
-	public static Map<Locale, String> getTitleMap(
-			CPAttachmentFileEntry cpAttachmentFileEntry,
-			Map<String, String> titleMap)
-		throws PortalException {
-
-		if (titleMap != null) {
-			return LanguageUtils.getLocalizedMap(titleMap);
-		}
-
-		if (cpAttachmentFileEntry == null) {
-			return null;
-		}
-
-		return cpAttachmentFileEntry.getTitleMap();
-	}
-
-	public static CPAttachmentFileEntry upsertCPAttachmentFileEntry(
+	public static CPAttachmentFileEntry addOrUpdateCPAttachmentFileEntry(
 			CPAttachmentFileEntryService cpAttachmentFileEntryService,
 			UniqueFileNameProvider uniqueFileNameProvider,
 			AttachmentBase64 attachmentBase64, long classNameId, long classPK,
 			int type, ServiceContext serviceContext)
 		throws Exception {
-
-		_validateMethodRequiredParams(
-			attachmentBase64.getId(),
-			attachmentBase64.getExternalReferenceCode());
 
 		Calendar displayCalendar = CalendarFactoryUtil.getCalendar(
 			serviceContext.getTimeZone());
@@ -174,18 +159,17 @@ public class AttachmentUtil {
 		long fileEntryId = 0;
 
 		FileEntry fileEntry = addFileEntry(
-			attachmentBase64.getAttachment(), serviceContext.getScopeGroupId(),
-			serviceContext.getUserId(), uniqueFileNameProvider);
+			attachmentBase64, uniqueFileNameProvider, serviceContext);
 
 		if (fileEntry != null) {
 			fileEntryId = fileEntry.getFileEntryId();
 		}
 
-		return cpAttachmentFileEntryService.upsertCPAttachmentFileEntry(
+		return cpAttachmentFileEntryService.addOrUpdateCPAttachmentFileEntry(
 			attachmentBase64.getExternalReferenceCode(),
 			serviceContext.getScopeGroupId(), classNameId, classPK,
-			GetterUtil.getLong(attachmentBase64.getId()), fileEntryId,
-			displayDateConfig.getMonth(), displayDateConfig.getDay(),
+			GetterUtil.getLong(attachmentBase64.getId()), fileEntryId, false,
+			null, displayDateConfig.getMonth(), displayDateConfig.getDay(),
 			displayDateConfig.getYear(), displayDateConfig.getHour(),
 			displayDateConfig.getMinute(), expirationDateConfig.getMonth(),
 			expirationDateConfig.getDay(), expirationDateConfig.getYear(),
@@ -197,15 +181,12 @@ public class AttachmentUtil {
 			serviceContext);
 	}
 
-	public static CPAttachmentFileEntry upsertCPAttachmentFileEntry(
+	public static CPAttachmentFileEntry addOrUpdateCPAttachmentFileEntry(
 			CPAttachmentFileEntryService cpAttachmentFileEntryService,
 			UniqueFileNameProvider uniqueFileNameProvider,
 			AttachmentUrl attachmentUrl, long classNameId, long classPK,
 			int type, ServiceContext serviceContext)
 		throws Exception {
-
-		_validateMethodRequiredParams(
-			attachmentUrl.getId(), attachmentUrl.getExternalReferenceCode());
 
 		Calendar displayCalendar = CalendarFactoryUtil.getCalendar(
 			serviceContext.getTimeZone());
@@ -232,17 +213,16 @@ public class AttachmentUtil {
 		long fileEntryId = 0;
 
 		FileEntry fileEntry = addFileEntry(
-			attachmentUrl, serviceContext.getScopeGroupId(),
-			serviceContext.getUserId(), uniqueFileNameProvider);
+			attachmentUrl, uniqueFileNameProvider, serviceContext);
 
 		if (fileEntry != null) {
 			fileEntryId = fileEntry.getFileEntryId();
 		}
 
-		return cpAttachmentFileEntryService.upsertCPAttachmentFileEntry(
+		return cpAttachmentFileEntryService.addOrUpdateCPAttachmentFileEntry(
 			attachmentUrl.getExternalReferenceCode(),
 			serviceContext.getScopeGroupId(), classNameId, classPK,
-			GetterUtil.getLong(attachmentUrl.getId()), fileEntryId,
+			GetterUtil.getLong(attachmentUrl.getId()), fileEntryId, false, null,
 			displayDateConfig.getMonth(), displayDateConfig.getDay(),
 			displayDateConfig.getYear(), displayDateConfig.getHour(),
 			displayDateConfig.getMinute(), expirationDateConfig.getMonth(),
@@ -255,16 +235,13 @@ public class AttachmentUtil {
 			serviceContext);
 	}
 
-	public static CPAttachmentFileEntry upsertCPAttachmentFileEntry(
+	public static CPAttachmentFileEntry addOrUpdateCPAttachmentFileEntry(
 			long groupId,
 			CPAttachmentFileEntryService cpAttachmentFileEntryService,
 			UniqueFileNameProvider uniqueFileNameProvider,
 			Attachment attachment, long classNameId, long classPK, int type,
 			ServiceContext serviceContext)
 		throws Exception {
-
-		_validateMethodRequiredParams(
-			attachment.getId(), attachment.getExternalReferenceCode());
 
 		Calendar displayCalendar = CalendarFactoryUtil.getCalendar(
 			serviceContext.getTimeZone());
@@ -291,16 +268,17 @@ public class AttachmentUtil {
 		long fileEntryId = 0;
 
 		FileEntry fileEntry = addFileEntry(
-			attachment, serviceContext.getScopeGroupId(),
-			serviceContext.getUserId(), uniqueFileNameProvider);
+			attachment, uniqueFileNameProvider, serviceContext);
 
 		if (fileEntry != null) {
 			fileEntryId = fileEntry.getFileEntryId();
 		}
 
-		return cpAttachmentFileEntryService.upsertCPAttachmentFileEntry(
+		return cpAttachmentFileEntryService.addOrUpdateCPAttachmentFileEntry(
 			attachment.getExternalReferenceCode(), groupId, classNameId,
 			classPK, GetterUtil.getLong(attachment.getId()), fileEntryId,
+			GetterUtil.get(attachment.getCdnEnabled(), false),
+			GetterUtil.getString(attachment.getCdnURL()),
 			displayDateConfig.getMonth(), displayDateConfig.getDay(),
 			displayDateConfig.getYear(), displayDateConfig.getHour(),
 			displayDateConfig.getMinute(), expirationDateConfig.getMonth(),
@@ -313,18 +291,43 @@ public class AttachmentUtil {
 			serviceContext);
 	}
 
+	public static Map<Locale, String> getTitleMap(
+			CPAttachmentFileEntry cpAttachmentFileEntry,
+			Map<String, String> titleMap)
+		throws PortalException {
+
+		if (titleMap != null) {
+			return LanguageUtils.getLocalizedMap(titleMap);
+		}
+
+		if (cpAttachmentFileEntry == null) {
+			return null;
+		}
+
+		return cpAttachmentFileEntry.getTitleMap();
+	}
+
 	private static FileEntry _addFileEntry(
-			long groupId, long userId, File file, String contentType,
-			UniqueFileNameProvider uniqueFileNameProvider)
+			File file, String contentType,
+			UniqueFileNameProvider uniqueFileNameProvider,
+			ServiceContext serviceContext)
 		throws Exception {
 
 		String uniqueFileName = uniqueFileNameProvider.provide(
 			file.getName(),
-			curFileName -> _exists(groupId, userId, curFileName));
+			curFileName -> _exists(
+				serviceContext.getScopeGroupId(), serviceContext.getUserId(),
+				curFileName));
 
-		FileEntry fileEntry = TempFileEntryUtil.addTempFileEntry(
-			groupId, userId, _TEMP_FILE_NAME, uniqueFileName, file,
-			contentType);
+		if (Validator.isNull(contentType)) {
+			contentType = MimeTypesUtil.getContentType(file);
+		}
+
+		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
+			null, serviceContext.getScopeGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, uniqueFileName,
+			contentType, uniqueFileName, StringPool.BLANK, null,
+			StringPool.BLANK, file, null, null, serviceContext);
 
 		FileUtil.delete(file);
 
@@ -346,21 +349,10 @@ public class AttachmentUtil {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;
-		}
-	}
-
-	private static void _validateMethodRequiredParams(
-			Long id, String externalReferenceCode)
-		throws Exception {
-
-		if (Validator.isNull(id) && Validator.isNull(externalReferenceCode)) {
-			throw new MethodRequiredParameterMissingException(
-				"Unable to complete operation if attachment misses both ID " +
-					"and externalReferenceCode");
 		}
 	}
 

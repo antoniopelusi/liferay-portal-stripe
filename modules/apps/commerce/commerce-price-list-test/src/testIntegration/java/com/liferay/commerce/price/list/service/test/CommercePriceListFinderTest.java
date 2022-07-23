@@ -26,9 +26,6 @@ import com.liferay.commerce.currency.model.CommerceCurrency;
 import com.liferay.commerce.currency.test.util.CommerceCurrencyTestUtil;
 import com.liferay.commerce.price.list.constants.CommercePriceListConstants;
 import com.liferay.commerce.price.list.model.CommercePriceList;
-import com.liferay.commerce.price.list.model.CommercePriceListAccountRel;
-import com.liferay.commerce.price.list.model.CommercePriceListChannelRel;
-import com.liferay.commerce.price.list.model.CommercePriceListCommerceAccountGroupRel;
 import com.liferay.commerce.price.list.service.CommercePriceListAccountRelLocalService;
 import com.liferay.commerce.price.list.service.CommercePriceListChannelRelLocalService;
 import com.liferay.commerce.price.list.service.CommercePriceListCommerceAccountGroupRelLocalService;
@@ -38,15 +35,11 @@ import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.test.util.CommerceTestUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -68,7 +61,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Riccardo Alberti
  */
-@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class CommercePriceListFinderTest {
 
@@ -82,18 +74,15 @@ public class CommercePriceListFinderTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
+		_group = GroupTestUtil.addGroup();
 
-		_user = UserTestUtil.addUser(_company);
-
-		_group = GroupTestUtil.addGroup(
-			_company.getCompanyId(), _user.getUserId(), 0);
+		_user = UserTestUtil.addUser();
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
-			_company.getCompanyId());
+			_group.getCompanyId());
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
-			_company.getCompanyId(), _group.getGroupId(), _user.getUserId());
+			_group.getCompanyId(), _group.getGroupId(), _user.getUserId());
 
 		_commerceAccount =
 			_commerceAccountLocalService.getPersonalCommerceAccount(
@@ -101,8 +90,8 @@ public class CommercePriceListFinderTest {
 
 		_commerceAccountGroup =
 			_commerceAccountGroupLocalService.addCommerceAccountGroup(
-				_company.getCompanyId(), RandomTestUtil.randomString(), 0,
-				false, null, _serviceContext);
+				_group.getCompanyId(), RandomTestUtil.randomString(), 0, false,
+				null, _serviceContext);
 
 		CommerceAccountGroupCommerceAccountRelLocalServiceUtil.
 			addCommerceAccountGroupCommerceAccountRel(
@@ -120,7 +109,7 @@ public class CommercePriceListFinderTest {
 	@After
 	public void tearDown() throws Exception {
 		_commercePriceListLocalService.deleteCommercePriceLists(
-			_company.getCompanyId());
+			_group.getCompanyId());
 	}
 
 	@Test
@@ -145,29 +134,23 @@ public class CommercePriceListFinderTest {
 		CommercePriceList retrievedPriceList =
 			_commercePriceListLocalService.
 				getCommercePriceListByAccountAndChannelId(
-					_commerceCatalog.getGroupId(), _TYPE,
+					_commerceCatalog.getGroupId(),
 					_commerceAccount.getCommerceAccountId(),
-					_commerceChannel.getCommerceChannelId());
+					_commerceChannel.getCommerceChannelId(), _TYPE);
 
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		CommercePriceListAccountRel commercePriceListAccountRel =
+		Assert.assertNotNull(
 			_commercePriceListAccountRelLocalService.
 				fetchCommercePriceListAccountRel(
 					_commerceAccount.getCommerceAccountId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListAccountRel);
-
-		CommercePriceListChannelRel commercePriceListChannelRel =
+					retrievedPriceList.getCommercePriceListId()));
+		Assert.assertNotNull(
 			_commercePriceListChannelRelLocalService.
 				fetchCommercePriceListChannelRel(
 					_commerceChannel.getCommerceChannelId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListChannelRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Test
@@ -198,32 +181,26 @@ public class CommercePriceListFinderTest {
 		CommercePriceList retrievedPriceList =
 			_commercePriceListLocalService.
 				getCommercePriceListByAccountGroupsAndChannelId(
-					_commerceCatalog.getGroupId(), _TYPE,
-					commerceAccountGroupIds,
-					_commerceChannel.getCommerceChannelId());
+					_commerceCatalog.getGroupId(), commerceAccountGroupIds,
+					_commerceChannel.getCommerceChannelId(), _TYPE);
 
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
 
 		for (long commerceAccountGroupId : commerceAccountGroupIds) {
-			CommercePriceListCommerceAccountGroupRel
-				commercePriceListCommerceAccountGroupRel =
-					_commercePriceListCommerceAccountGroupRelLocalService.
-						fetchCommercePriceListCommerceAccountGroupRel(
-							retrievedPriceList.getCommercePriceListId(),
-							commerceAccountGroupId);
-
-			Assert.assertNotNull(commercePriceListCommerceAccountGroupRel);
+			Assert.assertNotNull(
+				_commercePriceListCommerceAccountGroupRelLocalService.
+					fetchCommercePriceListCommerceAccountGroupRel(
+						retrievedPriceList.getCommercePriceListId(),
+						commerceAccountGroupId));
 		}
 
-		CommercePriceListChannelRel commercePriceListChannelRel =
+		Assert.assertNotNull(
 			_commercePriceListChannelRelLocalService.
 				fetchCommercePriceListChannelRel(
 					_commerceChannel.getCommerceChannelId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListChannelRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Test
@@ -250,21 +227,17 @@ public class CommercePriceListFinderTest {
 		CommercePriceList retrievedPriceList =
 			_commercePriceListLocalService.
 				getCommercePriceListByAccountGroupIds(
-					_commerceCatalog.getGroupId(), _TYPE,
-					commerceAccountGroupIds);
+					_commerceCatalog.getGroupId(), commerceAccountGroupIds,
+					_TYPE);
 
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		CommercePriceListCommerceAccountGroupRel
-			commercePriceListCommerceAccountGroupRel =
-				_commercePriceListCommerceAccountGroupRelLocalService.
-					fetchCommercePriceListCommerceAccountGroupRel(
-						retrievedPriceList.getCommercePriceListId(),
-						_commerceAccountGroup.getCommerceAccountGroupId());
-
-		Assert.assertNotNull(commercePriceListCommerceAccountGroupRel);
+		Assert.assertNotNull(
+			_commercePriceListCommerceAccountGroupRelLocalService.
+				fetchCommercePriceListCommerceAccountGroupRel(
+					retrievedPriceList.getCommercePriceListId(),
+					_commerceAccountGroup.getCommerceAccountGroupId()));
 	}
 
 	@Test
@@ -287,20 +260,17 @@ public class CommercePriceListFinderTest {
 
 		CommercePriceList retrievedPriceList =
 			_commercePriceListLocalService.getCommercePriceListByAccountId(
-				_commerceCatalog.getGroupId(), _TYPE,
-				_commerceAccount.getCommerceAccountId());
+				_commerceCatalog.getGroupId(),
+				_commerceAccount.getCommerceAccountId(), _TYPE);
 
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		CommercePriceListAccountRel commercePriceListAccountRel =
+		Assert.assertNotNull(
 			_commercePriceListAccountRelLocalService.
 				fetchCommercePriceListAccountRel(
 					_commerceAccount.getCommerceAccountId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListAccountRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Test
@@ -323,20 +293,17 @@ public class CommercePriceListFinderTest {
 
 		CommercePriceList retrievedPriceList =
 			_commercePriceListLocalService.getCommercePriceListByChannelId(
-				_commerceCatalog.getGroupId(), _TYPE,
-				_commerceChannel.getCommerceChannelId());
+				_commerceCatalog.getGroupId(),
+				_commerceChannel.getCommerceChannelId(), _TYPE);
 
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		CommercePriceListChannelRel commercePriceListChannelRel =
+		Assert.assertNotNull(
 			_commercePriceListChannelRelLocalService.
 				fetchCommercePriceListChannelRel(
 					_commerceChannel.getCommerceChannelId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListChannelRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Test
@@ -362,29 +329,23 @@ public class CommercePriceListFinderTest {
 		CommercePriceList retrievedPriceList =
 			_commercePriceListLocalService.
 				getCommercePriceListByAccountAndChannelId(
-					_commerceCatalog.getGroupId(), _TYPE,
+					_commerceCatalog.getGroupId(),
 					CommerceAccountConstants.ACCOUNT_ID_GUEST,
-					_commerceChannel.getCommerceChannelId());
+					_commerceChannel.getCommerceChannelId(), _TYPE);
 
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		CommercePriceListAccountRel commercePriceListAccountRel =
+		Assert.assertNotNull(
 			_commercePriceListAccountRelLocalService.
 				fetchCommercePriceListAccountRel(
 					CommerceAccountConstants.ACCOUNT_ID_GUEST,
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListAccountRel);
-
-		CommercePriceListChannelRel commercePriceListChannelRel =
+					retrievedPriceList.getCommercePriceListId()));
+		Assert.assertNotNull(
 			_commercePriceListChannelRelLocalService.
 				fetchCommercePriceListChannelRel(
 					_commerceChannel.getCommerceChannelId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListChannelRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Test
@@ -407,20 +368,17 @@ public class CommercePriceListFinderTest {
 
 		CommercePriceList retrievedPriceList =
 			_commercePriceListLocalService.getCommercePriceListByAccountId(
-				_commerceCatalog.getGroupId(), _TYPE,
-				CommerceAccountConstants.ACCOUNT_ID_GUEST);
+				_commerceCatalog.getGroupId(),
+				CommerceAccountConstants.ACCOUNT_ID_GUEST, _TYPE);
 
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		CommercePriceListAccountRel commercePriceListAccountRel =
+		Assert.assertNotNull(
 			_commercePriceListAccountRelLocalService.
 				fetchCommercePriceListAccountRel(
 					CommerceAccountConstants.ACCOUNT_ID_GUEST,
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNotNull(commercePriceListAccountRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Test
@@ -446,37 +404,29 @@ public class CommercePriceListFinderTest {
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		CommercePriceListAccountRel commercePriceListAccountRel =
+		Assert.assertNull(
 			_commercePriceListAccountRelLocalService.
 				fetchCommercePriceListAccountRel(
 					_commerceAccount.getCommerceAccountId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNull(commercePriceListAccountRel);
+					retrievedPriceList.getCommercePriceListId()));
 
 		long[] commerceAccountGroupIds =
 			_commerceAccountHelper.getCommerceAccountGroupIds(
 				_commerceAccount.getCommerceAccountId());
 
 		for (long commerceAccountGroupId : commerceAccountGroupIds) {
-			CommercePriceListCommerceAccountGroupRel
-				commercePriceListCommerceAccountGroupRel =
-					_commercePriceListCommerceAccountGroupRelLocalService.
-						fetchCommercePriceListCommerceAccountGroupRel(
-							retrievedPriceList.getCommercePriceListId(),
-							commerceAccountGroupId);
-
-			Assert.assertNull(commercePriceListCommerceAccountGroupRel);
+			Assert.assertNull(
+				_commercePriceListCommerceAccountGroupRelLocalService.
+					fetchCommercePriceListCommerceAccountGroupRel(
+						retrievedPriceList.getCommercePriceListId(),
+						commerceAccountGroupId));
 		}
 
-		CommercePriceListChannelRel commercePriceListChannelRel =
+		Assert.assertNull(
 			_commercePriceListChannelRelLocalService.
 				fetchCommercePriceListChannelRel(
 					_commerceChannel.getCommerceChannelId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNull(commercePriceListChannelRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Test
@@ -501,8 +451,7 @@ public class CommercePriceListFinderTest {
 
 		Assert.assertEquals(
 			_commerceCatalog.getGroupId(), baseCommercePriceList.getGroupId());
-		Assert.assertEquals(
-			true, baseCommercePriceList.isCatalogBasePriceList());
+		Assert.assertTrue(baseCommercePriceList.isCatalogBasePriceList());
 
 		CommercePriceList commercePriceList =
 			CommercePriceListTestUtil.addCommercePriceList(
@@ -515,39 +464,30 @@ public class CommercePriceListFinderTest {
 		Assert.assertEquals(
 			commercePriceList.getCommercePriceListId(),
 			retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertEquals(false, retrievedPriceList.isCatalogBasePriceList());
-
-		CommercePriceListAccountRel commercePriceListAccountRel =
+		Assert.assertFalse(retrievedPriceList.isCatalogBasePriceList());
+		Assert.assertNull(
 			_commercePriceListAccountRelLocalService.
 				fetchCommercePriceListAccountRel(
 					_commerceAccount.getCommerceAccountId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNull(commercePriceListAccountRel);
+					retrievedPriceList.getCommercePriceListId()));
 
 		long[] commerceAccountGroupIds =
 			_commerceAccountHelper.getCommerceAccountGroupIds(
 				_commerceAccount.getCommerceAccountId());
 
 		for (long commerceAccountGroupId : commerceAccountGroupIds) {
-			CommercePriceListCommerceAccountGroupRel
-				commercePriceListCommerceAccountGroupRel =
-					_commercePriceListCommerceAccountGroupRelLocalService.
-						fetchCommercePriceListCommerceAccountGroupRel(
-							retrievedPriceList.getCommercePriceListId(),
-							commerceAccountGroupId);
-
-			Assert.assertNull(commercePriceListCommerceAccountGroupRel);
+			Assert.assertNull(
+				_commercePriceListCommerceAccountGroupRelLocalService.
+					fetchCommercePriceListCommerceAccountGroupRel(
+						retrievedPriceList.getCommercePriceListId(),
+						commerceAccountGroupId));
 		}
 
-		CommercePriceListChannelRel commercePriceListChannelRel =
+		Assert.assertNull(
 			_commercePriceListChannelRelLocalService.
 				fetchCommercePriceListChannelRel(
 					_commerceChannel.getCommerceChannelId(),
-					retrievedPriceList.getCommercePriceListId());
-
-		Assert.assertNull(commercePriceListChannelRel);
+					retrievedPriceList.getCommercePriceListId()));
 	}
 
 	@Rule
@@ -556,10 +496,9 @@ public class CommercePriceListFinderTest {
 	private static final String _TYPE =
 		CommercePriceListConstants.TYPE_PRICE_LIST;
 
-	@DeleteAfterTestRun
-	private CommerceAccount _commerceAccount;
+	private static User _user;
 
-	@DeleteAfterTestRun
+	private CommerceAccount _commerceAccount;
 	private CommerceAccountGroup _commerceAccountGroup;
 
 	@Inject
@@ -573,8 +512,6 @@ public class CommercePriceListFinderTest {
 
 	private CommerceCatalog _commerceCatalog;
 	private CommerceChannel _commerceChannel;
-
-	@DeleteAfterTestRun
 	private CommerceCurrency _commerceCurrency;
 
 	@Inject
@@ -592,14 +529,10 @@ public class CommercePriceListFinderTest {
 	@Inject
 	private CommercePriceListLocalService _commercePriceListLocalService;
 
-	@DeleteAfterTestRun
-	private Company _company;
-
 	@Inject
 	private CPDefinitionLocalService _cpDefinitionLocalService;
 
 	private Group _group;
 	private ServiceContext _serviceContext;
-	private User _user;
 
 }

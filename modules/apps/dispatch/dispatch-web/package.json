@@ -1,0 +1,11 @@
+{
+	"dependencies": {
+	},
+	"name": "@liferay/dispatch-web",
+	"scripts": {
+		"build": "liferay-npm-scripts build",
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix"
+	},
+	"version": "3.0.34"
+}

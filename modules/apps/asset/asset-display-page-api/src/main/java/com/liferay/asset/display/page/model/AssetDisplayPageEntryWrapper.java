@@ -162,6 +162,11 @@ public class AssetDisplayPageEntryWrapper
 		}
 	}
 
+	@Override
+	public AssetDisplayPageEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the asset display page entry ID of this asset display page entry.
 	 *

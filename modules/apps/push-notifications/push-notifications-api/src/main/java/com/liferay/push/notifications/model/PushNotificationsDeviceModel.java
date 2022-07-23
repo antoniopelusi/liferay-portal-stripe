@@ -159,4 +159,7 @@ public interface PushNotificationsDeviceModel
 	 */
 	public void setToken(String token);
 
+	@Override
+	public PushNotificationsDevice cloneWithOriginalValues();
+
 }

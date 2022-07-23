@@ -31,7 +31,7 @@ import org.osgi.service.component.annotations.Component;
 	service = MVCRenderCommand.class
 )
 public class ViewPublishLayoutsMVCRenderCommand
-	extends GetGroupMVCRenderCommand {
+	extends BaseGroupMVCRenderCommand {
 
 	@Override
 	protected String getPath() {

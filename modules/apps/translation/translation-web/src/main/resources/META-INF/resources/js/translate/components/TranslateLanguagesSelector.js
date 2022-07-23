@@ -12,53 +12,35 @@
  * details.
  */
 
+import ClayLayout from '@clayui/layout';
 import React from 'react';
 
 import LanguageSelector from './LanguageSelector';
 
 const TranslateLanguagesSelector = ({
-	currentUrl,
-	formHasChanges,
-	portletNamespace,
+	confirmChangesBeforeReload,
 	sourceAvailableLanguages,
 	sourceLanguageId,
 	targetAvailableLanguages,
 	targetLanguageId,
 }) => {
-	const refreshPage = (sourceId, targetId) => {
-		const url = new URL(currentUrl);
-		const search_params = url.searchParams;
-
-		search_params.set(`${portletNamespace}sourceLanguageId`, sourceId);
-		search_params.set(`${portletNamespace}targetLanguageId`, targetId);
-
-		url.search = search_params.toString();
-
-		location.href = url.toString();
-	};
-
 	const changePage = (sourceId, targetId) => {
-		if (!formHasChanges) {
-			refreshPage(sourceId, targetId);
-		}
-		else if (
-			confirm(
-				Liferay.Language.get(
-					'are-you-sure-you-want-to-leave-the-page-you-may-lose-your-changes'
-				)
-			)
-		) {
-			refreshPage(sourceId, targetId);
-		}
+		confirmChangesBeforeReload({
+			sourceLanguageId: sourceId,
+			targetLanguageId: targetId,
+		});
 	};
 
 	return (
-		<div className="autofit-row autofit-row-center languages-selector">
-			<span className="autofit-col">
+		<ClayLayout.ContentRow
+			className="languages-selector"
+			verticalAlign="center"
+		>
+			<ClayLayout.ContentCol>
 				{Liferay.Language.get('translate-from')}
-			</span>
+			</ClayLayout.ContentCol>
 
-			<span className="autofit-col">
+			<ClayLayout.ContentCol>
 				<LanguageSelector
 					languageIds={sourceAvailableLanguages}
 					onChange={(value) => {
@@ -66,13 +48,13 @@ const TranslateLanguagesSelector = ({
 					}}
 					selectedLanguageId={sourceLanguageId}
 				/>
-			</span>
+			</ClayLayout.ContentCol>
 
-			<span className="autofit-col">
+			<ClayLayout.ContentCol>
 				{Liferay.Language.get('to').toLowerCase()}
-			</span>
+			</ClayLayout.ContentCol>
 
-			<span className="autofit-col">
+			<ClayLayout.ContentCol>
 				<LanguageSelector
 					languageIds={targetAvailableLanguages}
 					onChange={(value) => {
@@ -80,8 +62,8 @@ const TranslateLanguagesSelector = ({
 					}}
 					selectedLanguageId={targetLanguageId}
 				/>
-			</span>
-		</div>
+			</ClayLayout.ContentCol>
+		</ClayLayout.ContentRow>
 	);
 };
 

@@ -19,7 +19,6 @@ import com.liferay.commerce.constants.CommercePortletKeys;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.order.CommerceOrderValidatorRegistry;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
-import com.liferay.commerce.price.CommerceProductPriceCalculation;
 import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
@@ -65,7 +64,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/cart/view.jsp",
 		"javax.portlet.name=" + CommercePortletKeys.COMMERCE_CART_CONTENT,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CommerceCartContentPortlet.class, Portlet.class}
 )
@@ -80,21 +80,20 @@ public class CommerceCartContentPortlet extends MVCPortlet {
 			CommerceCartContentDisplayContext
 				commerceCartContentDisplayContext =
 					new CommerceCartContentDisplayContext(
-						_portal.getHttpServletRequest(renderRequest),
 						_commerceChannelLocalService, _commerceOrderItemService,
+						_commerceOrderModelResourcePermission,
 						_commerceOrderPriceCalculation,
 						_commerceOrderValidatorRegistry,
-						_commerceProductPriceCalculation, _cpDefinitionHelper,
-						_cpInstanceHelper,
-						_commerceOrderModelResourcePermission,
-						_commerceProductPortletResourcePermission);
+						_commerceProductPortletResourcePermission,
+						_cpDefinitionHelper, _cpInstanceHelper,
+						_portal.getHttpServletRequest(renderRequest), _portal);
 
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
 				commerceCartContentDisplayContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		super.render(renderRequest, renderResponse);
@@ -125,9 +124,6 @@ public class CommerceCartContentPortlet extends MVCPortlet {
 		target = "(resource.name=" + CPConstants.RESOURCE_NAME_PRODUCT + ")"
 	)
 	private PortletResourcePermission _commerceProductPortletResourcePermission;
-
-	@Reference
-	private CommerceProductPriceCalculation _commerceProductPriceCalculation;
 
 	@Reference
 	private CPDefinitionHelper _cpDefinitionHelper;

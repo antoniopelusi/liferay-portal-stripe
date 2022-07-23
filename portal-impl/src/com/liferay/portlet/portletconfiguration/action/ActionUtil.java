@@ -212,14 +212,11 @@ public class ActionUtil {
 			portletSetup = renderRequest.getPreferences();
 		}
 		else {
-			HttpServletRequest httpServletRequest =
-				PortalUtil.getHttpServletRequest(renderRequest);
-
 			portletSetup = getLayoutPortletSetup(renderRequest, portlet);
 
 			portletSetup = getPortletSetup(
-				httpServletRequest, renderRequest.getPreferences(),
-				portletSetup);
+				PortalUtil.getHttpServletRequest(renderRequest),
+				renderRequest.getPreferences(), portletSetup);
 		}
 
 		String title = PortletConfigurationUtil.getPortletTitle(

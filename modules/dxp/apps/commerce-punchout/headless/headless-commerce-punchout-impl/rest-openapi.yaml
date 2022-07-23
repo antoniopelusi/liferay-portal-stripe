@@ -396,8 +396,6 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/PunchOutSession"
-                    description:
-                        ""
                 400:
                     description:
                         Invalid input

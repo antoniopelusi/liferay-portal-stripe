@@ -14,6 +14,9 @@
 
 package com.liferay.portal.osgi.web.servlet.context.helper.definition;
 
+import com.liferay.portal.kernel.util.ProxyFactory;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,24 +25,19 @@ import java.util.Map;
 import javax.servlet.Filter;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.mockito.Mock;
-
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Miguel Pastor
  */
-@RunWith(PowerMockRunner.class)
 public class FilterDefinitionTest {
 
-	@Before
-	public void setUp() {
-		_filterDefinition = new FilterDefinition();
-	}
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Test
 	public void testAddMultipleURLPatterns() {
@@ -76,9 +74,11 @@ public class FilterDefinitionTest {
 
 	@Test
 	public void testSetFilter() {
-		_filterDefinition.setFilter(_filter);
+		Filter filter = ProxyFactory.newDummyInstance(Filter.class);
 
-		Assert.assertEquals(_filter, _filterDefinition.getFilter());
+		_filterDefinition.setFilter(filter);
+
+		Assert.assertSame(filter, _filterDefinition.getFilter());
 	}
 
 	@Test
@@ -128,9 +128,6 @@ public class FilterDefinitionTest {
 		Assert.assertEquals(value, initParameters.get(key));
 	}
 
-	@Mock
-	private Filter _filter;
-
-	private FilterDefinition _filterDefinition;
+	private final FilterDefinition _filterDefinition = new FilterDefinition();
 
 }

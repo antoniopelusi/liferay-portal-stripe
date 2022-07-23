@@ -1,0 +1,23 @@
+.job-highlight {
+	display: inline-block;
+	padding: 30px;
+	width: 100%;
+}
+
+.job-highlight > .jobname {
+	clear: left;
+	float: left;
+	font-size: 1.5em;
+	font-weight: 600;
+}
+
+.job-highlight > .btn {
+	clear: right;
+	float: right;
+}
+
+.job-highlight > .location {
+	clear: both;
+	float: left;
+	font-style: italic;
+}

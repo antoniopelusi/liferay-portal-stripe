@@ -155,6 +155,10 @@ public class CommerceDiscountRelLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -361,6 +365,20 @@ public class CommerceDiscountRelLocalServiceUtil {
 
 		return getService().getCPDefinitionsByCommerceDiscountIdCount(
 			commerceDiscountId, name, languageId);
+	}
+
+	public static List<CommerceDiscountRel> getCPInstancesByCommerceDiscountId(
+		long commerceDiscountId, String sku, int start, int end) {
+
+		return getService().getCPInstancesByCommerceDiscountId(
+			commerceDiscountId, sku, start, end);
+	}
+
+	public static int getCPInstancesByCommerceDiscountIdCount(
+		long commerceDiscountId, String sku) {
+
+		return getService().getCPInstancesByCommerceDiscountIdCount(
+			commerceDiscountId, sku);
 	}
 
 	public static

@@ -79,21 +79,16 @@ public class FragmentEntryFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
+			String sql = StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS,
 				_customSQL.get(
 					getClass(), COUNT_FC_BY_G_FCI, queryDefinition,
-					FragmentCompositionImpl.TABLE_NAME));
-			sb.append(") UNION ALL (");
-			sb.append(
+					FragmentCompositionImpl.TABLE_NAME),
+				") UNION ALL (",
 				_customSQL.get(
 					getClass(), COUNT_FE_BY_G_FCI, queryDefinition,
-					FragmentEntryImpl.TABLE_NAME));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			String sql = sb.toString();
+					FragmentEntryImpl.TABLE_NAME),
+				StringPool.CLOSE_PARENTHESIS);
 
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
@@ -141,21 +136,16 @@ public class FragmentEntryFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
+			String sql = StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS,
 				_customSQL.get(
 					getClass(), COUNT_FC_BY_G_FCI_N, queryDefinition,
-					FragmentCompositionImpl.TABLE_NAME));
-			sb.append(") UNION ALL (");
-			sb.append(
+					FragmentCompositionImpl.TABLE_NAME),
+				") UNION ALL (",
 				_customSQL.get(
 					getClass(), COUNT_FE_BY_G_FCI_N, queryDefinition,
-					FragmentEntryImpl.TABLE_NAME));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			String sql = sb.toString();
+					FragmentEntryImpl.TABLE_NAME),
+				StringPool.CLOSE_PARENTHESIS);
 
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
@@ -163,7 +153,7 @@ public class FragmentEntryFinderImpl
 
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			name = _customSQL.keywords(name, false, WildcardMode.SURROUND)[0];
+			name = _customSQL.keywords(name, true, WildcardMode.SURROUND)[0];
 
 			queryPos.add(groupId);
 			queryPos.add(fragmentCollectionId);
@@ -207,21 +197,16 @@ public class FragmentEntryFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
+			String sql = StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS,
 				_customSQL.get(
 					getClass(), FIND_FC_BY_G_FCI, queryDefinition,
-					FragmentCompositionImpl.TABLE_NAME));
-			sb.append(") UNION ALL (");
-			sb.append(
+					FragmentCompositionImpl.TABLE_NAME),
+				") UNION ALL (",
 				_customSQL.get(
 					getClass(), FIND_FE_BY_G_FCI, queryDefinition,
-					FragmentEntryImpl.TABLE_NAME));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			String sql = sb.toString();
+					FragmentEntryImpl.TABLE_NAME),
+				StringPool.CLOSE_PARENTHESIS);
 
 			sql = _customSQL.replaceOrderBy(
 				sql, queryDefinition.getOrderByComparator());
@@ -251,7 +236,6 @@ public class FragmentEntryFinderImpl
 				Object[] array = iterator.next();
 
 				long fragmentCompositionId = (Long)array[0];
-				long fragmentEntryId = (Long)array[1];
 
 				Object object = null;
 
@@ -260,6 +244,8 @@ public class FragmentEntryFinderImpl
 						fragmentCompositionId);
 				}
 				else {
+					long fragmentEntryId = (Long)array[1];
+
 					object = FragmentEntryUtil.findByPrimaryKey(
 						fragmentEntryId);
 				}
@@ -287,21 +273,16 @@ public class FragmentEntryFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler(5);
-
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(
+			String sql = StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS,
 				_customSQL.get(
 					getClass(), FIND_FC_BY_G_FCI_N, queryDefinition,
-					FragmentCompositionImpl.TABLE_NAME));
-			sb.append(") UNION ALL (");
-			sb.append(
+					FragmentCompositionImpl.TABLE_NAME),
+				") UNION ALL (",
 				_customSQL.get(
 					getClass(), FIND_FE_BY_G_FCI_N, queryDefinition,
-					FragmentEntryImpl.TABLE_NAME));
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			String sql = sb.toString();
+					FragmentEntryImpl.TABLE_NAME),
+				StringPool.CLOSE_PARENTHESIS);
 
 			sql = _customSQL.replaceOrderBy(
 				sql, queryDefinition.getOrderByComparator());
@@ -313,7 +294,7 @@ public class FragmentEntryFinderImpl
 
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			name = _customSQL.keywords(name, false, WildcardMode.SURROUND)[0];
+			name = _customSQL.keywords(name, true, WildcardMode.SURROUND)[0];
 
 			queryPos.add(groupId);
 			queryPos.add(fragmentCollectionId);
@@ -335,7 +316,6 @@ public class FragmentEntryFinderImpl
 				Object[] array = iterator.next();
 
 				long fragmentCompositionId = (Long)array[0];
-				long fragmentEntryId = (Long)array[1];
 
 				Object object = null;
 
@@ -344,6 +324,8 @@ public class FragmentEntryFinderImpl
 						fragmentCompositionId);
 				}
 				else {
+					long fragmentEntryId = (Long)array[1];
+
 					object = FragmentEntryUtil.findByPrimaryKey(
 						fragmentEntryId);
 				}

@@ -26,8 +26,35 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class AccountGroupServiceWrapper
 	implements AccountGroupService, ServiceWrapper<AccountGroupService> {
 
+	public AccountGroupServiceWrapper() {
+		this(null);
+	}
+
 	public AccountGroupServiceWrapper(AccountGroupService accountGroupService) {
 		_accountGroupService = accountGroupService;
+	}
+
+	@Override
+	public com.liferay.account.model.AccountGroup addAccountGroup(
+			long userId, String description, String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountGroupService.addAccountGroup(userId, description, name);
+	}
+
+	@Override
+	public com.liferay.account.model.AccountGroup deleteAccountGroup(
+			long accountGroupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountGroupService.deleteAccountGroup(accountGroupId);
+	}
+
+	@Override
+	public void deleteAccountGroups(long[] accountGroupIds)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountGroupService.deleteAccountGroups(accountGroupIds);
 	}
 
 	/**
@@ -38,6 +65,27 @@ public class AccountGroupServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _accountGroupService.getOSGiServiceIdentifier();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult
+		<com.liferay.account.model.AccountGroup> searchAccountGroups(
+				long companyId, String keywords, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.account.model.AccountGroup> orderByComparator)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountGroupService.searchAccountGroups(
+			companyId, keywords, start, end, orderByComparator);
+	}
+
+	@Override
+	public com.liferay.account.model.AccountGroup updateAccountGroup(
+			long accountGroupId, String description, String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountGroupService.updateAccountGroup(
+			accountGroupId, description, name);
 	}
 
 	@Override

@@ -16,7 +16,6 @@ package com.liferay.bookmarks.model.impl;
 
 import com.liferay.bookmarks.model.BookmarksEntry;
 import com.liferay.bookmarks.model.BookmarksEntryModel;
-import com.liferay.bookmarks.model.BookmarksEntrySoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -36,22 +35,21 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -192,70 +190,6 @@ public class BookmarksEntryModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 	}
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static BookmarksEntry toModel(BookmarksEntrySoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		BookmarksEntry model = new BookmarksEntryImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setUuid(soapModel.getUuid());
-		model.setEntryId(soapModel.getEntryId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setFolderId(soapModel.getFolderId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setName(soapModel.getName());
-		model.setUrl(soapModel.getUrl());
-		model.setDescription(soapModel.getDescription());
-		model.setPriority(soapModel.getPriority());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<BookmarksEntry> toModels(
-		BookmarksEntrySoap[] soapModels) {
-
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<BookmarksEntry> models = new ArrayList<BookmarksEntry>(
-			soapModels.length);
-
-		for (BookmarksEntrySoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public BookmarksEntryModelImpl() {
 	}
 
@@ -339,34 +273,6 @@ public class BookmarksEntryModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, BookmarksEntry>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			BookmarksEntry.class.getClassLoader(), BookmarksEntry.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<BookmarksEntry> constructor =
-				(Constructor<BookmarksEntry>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<BookmarksEntry, Object>>
@@ -1221,6 +1127,52 @@ public class BookmarksEntryModelImpl
 	}
 
 	@Override
+	public BookmarksEntry cloneWithOriginalValues() {
+		BookmarksEntryImpl bookmarksEntryImpl = new BookmarksEntryImpl();
+
+		bookmarksEntryImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		bookmarksEntryImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		bookmarksEntryImpl.setEntryId(
+			this.<Long>getColumnOriginalValue("entryId"));
+		bookmarksEntryImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		bookmarksEntryImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		bookmarksEntryImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		bookmarksEntryImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		bookmarksEntryImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		bookmarksEntryImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		bookmarksEntryImpl.setFolderId(
+			this.<Long>getColumnOriginalValue("folderId"));
+		bookmarksEntryImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		bookmarksEntryImpl.setName(this.<String>getColumnOriginalValue("name"));
+		bookmarksEntryImpl.setUrl(this.<String>getColumnOriginalValue("url"));
+		bookmarksEntryImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		bookmarksEntryImpl.setPriority(
+			this.<Integer>getColumnOriginalValue("priority"));
+		bookmarksEntryImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		bookmarksEntryImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		bookmarksEntryImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		bookmarksEntryImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		bookmarksEntryImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
+
+		return bookmarksEntryImpl;
+	}
+
+	@Override
 	public int compareTo(BookmarksEntry bookmarksEntry) {
 		int value = 0;
 
@@ -1426,7 +1378,7 @@ public class BookmarksEntryModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1437,9 +1389,26 @@ public class BookmarksEntryModelImpl
 			Function<BookmarksEntry, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((BookmarksEntry)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((BookmarksEntry)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1486,7 +1455,9 @@ public class BookmarksEntryModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, BookmarksEntry>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					BookmarksEntry.class, ModelWrapper.class);
 
 	}
 

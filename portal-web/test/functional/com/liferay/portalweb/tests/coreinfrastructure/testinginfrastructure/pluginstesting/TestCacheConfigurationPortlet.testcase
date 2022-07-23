@@ -11,7 +11,7 @@ definition {
 	}
 
 	tearDown {
-		Page.tearDownCP();
+		PagesAdmin.tearDownCP();
 	}
 
 	@ignore = "true"
@@ -21,7 +21,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Test Cache Configuration Page");
+		PagesAdmin.addPage(pageName = "Test Cache Configuration Page");
 
 		Navigator.gotoPage(pageName = "Test Cache Configuration Page");
 

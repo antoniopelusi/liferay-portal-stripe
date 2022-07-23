@@ -23,7 +23,6 @@ definition {
 
 		if (isSet(databaseName)) {
 			var originalDatabaseName = PropsUtil.get("database.mysql.schema");
-
 			var jdbcURL = StringUtil.replace("${jdbcURL}", "${originalDatabaseName}", "${databaseName}");
 		}
 
@@ -84,14 +83,13 @@ definition {
 
 		User.acceptEndUserLicenseAgreement();
 
-		User.resetPassword(
-			resetPassword = "${resetPassword}",
-			setupWizardEnabled = "${setupWizardEnabled}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
+		User.resetPassword(newPassword = "${newPassword}");
 
 		User.answerPasswordReminder();
 
 		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
+
+		Click(locator1 = "Button#DONE");
 
 		User.viewLoggedInPG();
 	}
@@ -141,14 +139,17 @@ definition {
 
 		User.acceptEndUserLicenseAgreement();
 
-		User.resetPassword(
-			resetPassword = "${resetPassword}",
-			setupWizardEnabled = "${setupWizardEnabled}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
+		User.resetPassword(newPassword = "${newPassword}");
 
 		User.answerPasswordReminder();
 
 		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
+
+		var testRunEnvironment = PropsUtil.get("test.run.environment");
+
+		if ("${testRunEnvironment}" == "EE") {
+			Click(locator1 = "Button#DONE");
+		}
 
 		User.viewLoggedInPG();
 	}
@@ -182,7 +183,7 @@ definition {
 	}
 
 	macro viewConfigurationSavedPG {
-		if ((isSet(localization)) && ("${localization}" == "ES")) {
+		if (isSet(localization) && ("${localization}" == "ES")) {
 			Alert.viewSuccessMessageText(successMessage = "La configuración fue guardada con éxito.");
 
 			AssertTextEquals.assertPartialText(
@@ -218,7 +219,7 @@ definition {
 			AssertConsoleTextPresent(value1 = "Using dialect com.liferay.portal.dao.orm.hibernate.HSQLDialect for HSQL Database Engine");
 		}
 		else if ("${databaseType}" == "MariaDB") {
-			AssertConsoleTextPresent(value1 = "Using dialect com.liferay.portal.dao.orm.hibernate.MariaDBDialect for MySQL");
+			AssertConsoleTextPresent(value1 = "Using dialect com.liferay.portal.dao.orm.hibernate.MariaDBDialect for MariaDB");
 		}
 		else if ("${databaseType}" == "MySQL") {
 			AssertConsoleTextPresent(value1 = "Using dialect org.hibernate.dialect.MySQLDialect for MySQL");
@@ -317,12 +318,7 @@ definition {
 
 		AssertConsoleTextPresent(value1 = "Finished adding data");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
+		SearchAdministration.executeReindex();
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Users",

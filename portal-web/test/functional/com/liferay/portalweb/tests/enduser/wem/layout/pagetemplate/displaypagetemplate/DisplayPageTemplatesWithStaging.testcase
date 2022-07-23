@@ -1,0 +1,920 @@
+@component-name = "portal-wcm"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Display Pages";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site via JSON") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Activate local live staging") {
+			JSONStaging.enableLocalStaging(
+				branchingPrivate = "false",
+				branchingPublic = "false",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name-staging",
+				site = "false",
+				subType = "Basic Web Content");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-134847. The user can access to an associated display page template via Asset Publisher widget in live site."
+	@priority = "4"
+	test AccessToAssociatedDisplayPageTemplateInLiveSite {
+		task ("Add a display page template for Document and Basic Document") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Document",
+				displayPageTemplateEntryName = "Document DPT",
+				groupName = "Test Site Name-staging",
+				site = "false",
+				subType = "Basic Document");
+		}
+
+		task ("Add a Display Page Content fragment to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Document DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Display Page Content");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a document with an image") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Document Title",
+				groupName = "Test Site Name-staging",
+				mimeType = "image/jpeg",
+				site = "false",
+				sourceFileName = "Document_1.jpg");
+		}
+
+		task ("Select the display page template as Specific") {
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name-staging");
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "Document Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Document DPT",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Add an Asset Publisher to widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name (Staging)",
+				layoutName = "Test Page Name",
+				site = "false",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("View document is shown in Asset Publisher in staging site") {
+			Navigator.gotoStagedSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.viewAssetPG(assetTitle = "Document Title");
+		}
+
+		task ("Publish to live") {
+			Staging.gotoPublishToLive();
+
+			Staging.publishToLive();
+		}
+
+		task ("Access to associated display page template via Asset Publisher in live site") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "Document Title");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Document DPT");
+
+			AssertVisible(
+				key_imageFileName = "Document_1.jpg",
+				locator1 = "PageEditor#ENTRY_COVER_IMAGE");
+		}
+	}
+
+	@description = "This is a test for LPS-133767. The user can bulk assign categories to display page template in staging site but cannot in live site."
+	@priority = "4"
+	@uitest
+	test BulkAssignCategoriesToDisplayPageTemplateInStagingSite {
+		task ("Add a vocabulary") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name (Staging)",
+				site = "false",
+				title = "Vocabulary Name");
+		}
+
+		task ("Add three categories in vocabulary") {
+			for (var n : list "1,2,3") {
+				JSONCategory.addCategory(
+					groupName = "Test Site Name (Staging)",
+					site = "false",
+					title = "Category Name ${n}",
+					vocabularyName = "Vocabulary Name");
+			}
+		}
+
+		task ("Add a display page template for Category") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Category",
+				displayPageTemplateEntryName = "Category DPT",
+				groupName = "Test Site Name-staging",
+				site = "false");
+		}
+
+		task ("Add a Heading fragment to display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Category DPT");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Map the Name field to editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Name",
+				fragmentName = "Heading",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the new vocabulary in Categories admin") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name-staging");
+
+			Vocabulary.goToVocabulary(vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Bulk assign all categories to the display page template via page icon") {
+			PortletEntry.selectAll();
+
+			Click(
+				key_text = "page",
+				locator1 = "ManagementBar#ANY_ICON");
+
+			Category.selectDisplayPageTemplate(
+				displayPageName = "Category DPT",
+				displayPageTemplateType = "Specific");
+
+			PortletEntry.save();
+		}
+
+		task ("View mapped content shown on associated display page template at view mode in staging site") {
+			for (var n : list "1,2,3") {
+				LexiconEntry.gotoEntryMenuItem(
+					menuItem = "View Display Page",
+					rowEntry = "Category Name ${n}");
+
+				ControlMenu.viewHeaderTitle(headerTitle = "Category DPT");
+
+				AssertVisible(
+					key_tab = "Staging",
+					locator1 = "NavTab#ACTIVE_TAB_LINK");
+
+				ContentPages.viewFragmentText(
+					fragmentName = "heading",
+					id = "element-text",
+					text = "Category Name ${n}");
+
+				Category.openCategoriesAdmin(siteURLKey = "test-site-name-staging");
+			}
+		}
+
+		task ("Publish to Live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the new vocabulary in Categories admin of live site") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.goToVocabulary(vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View mapped content shown on associated display page template at view mode in live site") {
+			for (var n : list "1,2,3") {
+				LexiconEntry.gotoEntryMenuItem(
+					menuItem = "View Display Page",
+					rowEntry = "Category Name ${n}");
+
+				ControlMenu.viewHeaderTitle(headerTitle = "Category DPT");
+
+				AssertVisible(
+					key_tab = "Live",
+					locator1 = "NavTab#ACTIVE_TAB_LINK");
+
+				ContentPages.viewFragmentText(
+					fragmentName = "heading",
+					id = "element-text",
+					text = "Category Name ${n}");
+
+				Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+			}
+		}
+
+		task ("View cannot bulk assign categories to associated display page template in live site") {
+			PortletEntry.selectAll();
+
+			AssertVisible(
+				key_title = "Assign Display Page Template",
+				locator1 = "Button#ANY_TITLE_DISABLED");
+
+			Click(
+				key_text = "ellipsis",
+				locator1 = "ManagementBar#ANY_ICON");
+
+			AssertVisible(
+				key_menuItem = "Assign Display Page Template",
+				locator1 = "MenuItem#DISABLED_MENU_ITEM");
+		}
+
+		task ("Navigate to the new vocabulary in Categories admin of staging site") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name-staging");
+
+			Vocabulary.goToVocabulary(vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Select the first and second categories") {
+			for (var n : list "1,2") {
+				Check(
+					key_tableEntry = "Category Name ${n}",
+					locator1 = "LexiconTable#TABLE_ENTRY_CHECKBOX");
+			}
+		}
+
+		task ("Bulk assign all categories to the Default via action") {
+			Click(
+				key_text = "ellipsis",
+				locator1 = "ManagementBar#ANY_ICON");
+
+			MenuItem.click(menuItem = "Assign Display Page Template");
+
+			Category.selectDisplayPageTemplate(
+				displayPageName = "No Default Display Page Template",
+				displayPageTemplateType = "Default");
+
+			PortletEntry.save();
+		}
+
+		task ("View the View Display Page action not shown in the first and second categories") {
+			for (var n : list "1,2") {
+				LexiconEntry.viewNoEntryMenuItem(
+					menuItem = "View Display Page",
+					rowEntry = "Category Name ${n}");
+			}
+		}
+
+		task ("View mapped content of the third category shown on associated display page template at view mode in staging site") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name 3");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Category DPT");
+
+			AssertVisible(
+				key_tab = "Staging",
+				locator1 = "NavTab#ACTIVE_TAB_LINK");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Category Name 3");
+		}
+
+		task ("Publish to Live") {
+			Staging.gotoPublishToLive();
+
+			Staging.publishToLive();
+		}
+
+		task ("Navigate to the new vocabulary in Categories admin of live site") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.goToVocabulary(vocabularyName = "Vocabulary Name");
+		}
+
+		task ("View the View Display Page action not shown in the first and second categories") {
+			for (var n : list "1,2") {
+				LexiconEntry.viewNoEntryMenuItem(
+					menuItem = "View Display Page",
+					rowEntry = "Category Name ${n}");
+			}
+		}
+
+		task ("View mapped content of the third category shown on associated display page template at view mode in live site") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "View Display Page",
+				rowEntry = "Category Name 3");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Category DPT");
+
+			AssertVisible(
+				key_tab = "Live",
+				locator1 = "NavTab#ACTIVE_TAB_LINK");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Category Name 3");
+		}
+	}
+
+	@description = "User can only edit display page template in the staging site."
+	@priority = "5"
+	@uitest
+	test CanOnlyEditDisplayPageTemplateInStagingSite {
+		property portal.acceptance = "true";
+
+		task ("View can edit display page template in the staging site") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			AssertVisible(
+				key_card = "Display Page Name",
+				locator1 = "Card#CARD_TITLE_LINK");
+
+			Click.waitForMenuToggleJSClick(
+				key_card = "Display Page Name",
+				locator1 = "Card#CARD_ELLIPSIS");
+
+			MenuItem.viewPresent(menuItem = "Edit");
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("View the Page Templates portlet is not shown in Live site") {
+			ProductMenu.gotoLiveSite();
+
+			ProductMenuHelper.expandCategory(category = "Design");
+
+			AssertElementNotPresent(
+				key_portlet = "Page Templates",
+				locator1 = "ProductMenu#PORTLET");
+		}
+	}
+
+	@description = "This is a test for LPS-139493. View changes are propagated in the display page template content via web content admin in live site."
+	@priority = "4"
+	test PropagateChangesOfFragmentToLive {
+		task ("Add a fragment set") {
+			JSONFragment.addFragmentCollection(
+				groupKey = "Test Site Name-staging",
+				name = "Fragment Set Name",
+				site = "false");
+		}
+
+		task ("Add a fragment") {
+			var htmlSnippet = '''
+<div class="fragment-example">
+	New Fragment Test
+</div>		''';
+
+			JSONFragment.addSection(
+				collectionName = "Fragment Set Name",
+				fragmentStatus = "Approved",
+				groupKey = "Test Site Name-staging",
+				html = "${htmlSnippet}",
+				name = "Test Fragment Name",
+				site = "false");
+		}
+
+		task ("Add the new fragment to Display Page Template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Fragment Set Name",
+				fragmentName = "Test Fragment Name");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a web content based on Basic Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name (Staging)",
+				site = "false",
+				title = "Web Content Title");
+		}
+
+		task ("Select Display Page Name as Specific Display Page Template") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name-staging");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Display Page Name",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Publish to Live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("View associated display page template content via web content admin in live site") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEntryMenuItem(
+				entry = "Web Content Title",
+				menuItem = "View Content");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			ContentPages.viewFragmentText(
+				contributed = "false",
+				fragmentName = "example",
+				text = "New Fragment Test");
+		}
+
+		task ("Edit the new fragment") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name-staging");
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Fragment Set Name");
+
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Test Fragment Name",
+				item = "Edit");
+
+			var htmlSnippet = '''
+<div class="fragment-example">
+	New Fragment Test Edit
+</div>		''';
+
+			FragmentsEditor.typeHtmlEditor(content = "${htmlSnippet}");
+
+			FragmentsEditor.waitForAutoSave();
+
+			FragmentsEditor.publish();
+		}
+
+		task ("Propagate the changes") {
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Test Fragment Name",
+				item = "View Usages");
+
+			FragmentsAdmin.propagateChanges();
+		}
+
+		task ("Publish to Live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("View propagate changes in associated display page template content via web content admin in live site") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEntryMenuItem(
+				entry = "Web Content Title",
+				menuItem = "View Content");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			ContentPages.viewFragmentText(
+				contributed = "false",
+				fragmentName = "example",
+				text = "New Fragment Test Edit");
+		}
+	}
+
+	@description = "The changes of display page templates should not reflect in the live site until published."
+	@priority = "5"
+	test PublishChangesOfDisplayPageTemplateToLive {
+		property portal.acceptance = "true";
+
+		task ("Add a Banner Center to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map the Title to title editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Map the Content to subtitle editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Content",
+				fragmentName = "Paragraph",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a web content and select the display page template") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name-staging");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "Webcontent Content",
+				webContentTitle = "Webcontent Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Display Page Name",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Map the Author Name field to subtitle editable field") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPageEllipsisItem(
+				displayPageName = "Display Page Name",
+				item = "Edit");
+
+			PageEditorMapping.mapEditableTextToField(
+				field = "Author Name",
+				fragmentName = "Paragraph",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Navigate to the display page template at view mode in staging site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name-staging/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Test Test");
+		}
+
+		task ("Navigate to the display page template at view mode in live site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Webcontent Content");
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the display page template at view mode in live site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Test Test");
+		}
+	}
+
+	@description = "This is a test for LPS-86373 and LPS-118841. Publish the display page template marked as default to live site"
+	@priority = "5"
+	test PublishDisplayPageTemplateMarkedAsDefaultToLive {
+		property portal.acceptance = "true";
+
+		task ("Add a Banner Center to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map the Title to title editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Map the Content to subtitle editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Content",
+				fragmentName = "Paragraph",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Mark the display page as default") {
+			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+		}
+
+		task ("Add a web content article") {
+			JSONWebcontent.addWebContent(
+				content = "Webcontent Content",
+				groupName = "Test Site Name (Staging)",
+				site = "false",
+				title = "Webcontent Title");
+		}
+
+		task ("Navigate to the display page template at view mode in staging site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name-staging/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Webcontent Content");
+		}
+
+		task ("Navigate to the display page template at view mode in live site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/webcontent-title");
+		}
+
+		task ("View requested resource could not be found") {
+			AssertTextPresent(value1 = "The requested resource could not be found.");
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the display page template at view mode in live site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Webcontent Content");
+		}
+	}
+
+	@description = "This is a test for LPS-86373 and LPS-92522. Publish the display page template with fragments to live."
+	@priority = "5"
+	test PublishDisplayPageTemplateToLive {
+		property portal.acceptance = "true";
+
+		task ("Add a Banner Center to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map the Title to title editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Map the Content to subtitle editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Content",
+				fragmentName = "Paragraph",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a web content and select the display page template") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name-staging");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "Webcontent Content",
+				webContentTitle = "Webcontent Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Display Page Name",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Navigate to the display page template at view mode in staging site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name-staging/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Webcontent Content");
+		}
+
+		task ("Navigate to the display page template at view mode in live site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/webcontent-title");
+		}
+
+		task ("View requested resource could not be found") {
+			AssertTextPresent(value1 = "The requested resource could not be found.");
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Navigate to the display page template at view mode in live site") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Webcontent Content");
+		}
+	}
+
+	@description = "View mapped content in display page template after deactivate the staging."
+	@priority = "4"
+	test ViewMappedContentInDisplayPageTemplateAfterDeactivateStaging {
+		task ("Add a Banner Center to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name-staging");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
+
+		task ("Map the Title to title editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Title",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+
+		task ("Map the Content to subtitle editable field") {
+			PageEditorMapping.mapEditableTextToField(
+				field = "Content",
+				fragmentName = "Paragraph",
+				id = "element-text");
+
+			PageEditor.clickPublish();
+		}
+
+		task ("Add a web content and select the display page template") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name-staging");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "Webcontent Content",
+				webContentTitle = "Webcontent Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Display Page Name",
+				pageType = "Display Page Templates");
+
+			PortletEntry.publish();
+		}
+
+		task ("Publish to live") {
+			Staging.openStagingAdmin(siteURLKey = "test-site-name-staging");
+
+			Staging.publishCustomPublication();
+		}
+
+		task ("Deactivate staging") {
+			Staging.deactivateStagingCP(siteName = "Test Site Name");
+		}
+
+		task ("Navigate to the display page template at view mode") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/w/webcontent-title");
+		}
+
+		task ("View mapped content in display page template") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Webcontent Title");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "paragraph",
+				id = "element-text",
+				text = "Webcontent Content");
+		}
+
+		task ("View the display page template is shown in Display Page Template admin") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.viewDisplayPagePresent(displayPageName = "Display Page Name");
+		}
+	}
+
+}

@@ -260,11 +260,12 @@ AUI.add(
 					] = JSON.stringify(ddmFormValues);
 					data.groupId = themeDisplay.getScopeGroupId();
 
+					// eslint-disable-next-line @liferay/aui/no-io
 					A.io.request(instance.get('viewAttachmentURL'), {
 						data,
 						on: {
-							success(event, id, obj) {
-								var response = JSON.parse(obj.response);
+							success(event, id, object) {
+								var response = JSON.parse(object.response);
 
 								instance._renderThumbsImages(response);
 							},

@@ -2,11 +2,13 @@
 <head>
 <title>FragmentEditor</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">FragmentEditor</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>AUTOCOMPLETE_FIELD</td>
@@ -61,16 +63,6 @@
 <tr>
 	<td>FRAGMENTS_EDITOR_FLOATING_TOOLBAR</td>
 	<td>//div[contains(@class,'floating-toolbar')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENTS_EDITOR_FLOATING_TOOLBAR_FIELD_SELECT</td>
-	<td>//div[contains(@role,'tabpanel') and contains(@class,'active')]//select[contains(@class,'form-control')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENTS_EDITOR_FLOATING_TOOLBAR_INPUT</td>
-	<td>//div[contains(@role,'tabpanel') and contains(@class,'active')]//div[contains(@class,'floating-toolbar')]//input[contains(@value,'${key_contentName}')]</td>
 	<td></td>
 </tr>
 <tr>

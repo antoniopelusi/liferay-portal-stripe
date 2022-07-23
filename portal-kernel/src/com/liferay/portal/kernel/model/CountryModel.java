@@ -456,4 +456,7 @@ public interface CountryModel
 
 	public Map<String, String> getLanguageIdToTitleMap();
 
+	@Override
+	public Country cloneWithOriginalValues();
+
 }

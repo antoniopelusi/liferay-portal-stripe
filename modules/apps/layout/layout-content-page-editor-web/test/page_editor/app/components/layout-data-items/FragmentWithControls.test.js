@@ -18,31 +18,55 @@ import React from 'react';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 
+import FragmentWithControls from '../../../../../src/main/resources/META-INF/resources/page_editor/app/components/layout-data-items/FragmentWithControls';
+import {config} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config';
+import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/layoutDataItemTypes';
+import {VIEWPORT_SIZES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/viewportSizes';
 import {
 	ControlsProvider,
 	useSelectItem,
-} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/components/Controls';
-import {EditableProcessorContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/components/fragment-content/EditableProcessorContext';
-import FragmentWithControls from '../../../../../src/main/resources/META-INF/resources/page_editor/app/components/layout-data-items/FragmentWithControls';
-import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/layoutDataItemTypes';
-import {VIEWPORT_SIZES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/viewportSizes';
-import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/store';
+} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/ControlsContext';
+import {EditableProcessorContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/EditableProcessorContext';
+import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
+import getLayoutDataItemTopperUniqueClassName from '../../../../../src/main/resources/META-INF/resources/page_editor/app/utils/getLayoutDataItemTopperUniqueClassName';
+import getLayoutDataItemUniqueClassName from '../../../../../src/main/resources/META-INF/resources/page_editor/app/utils/getLayoutDataItemUniqueClassName';
 
 jest.mock(
 	'../../../../../src/main/resources/META-INF/resources/page_editor/app/config',
 	() => ({
 		config: {
+			commonStyles: [
+				{
+					styles: [
+						{
+							defaultValue: 'left',
+							name: 'textAlign',
+						},
+					],
+				},
+			],
 			frontendTokens: {},
 		},
 	})
 );
 
+jest.mock(
+	'../../../../../src/main/resources/META-INF/resources/page_editor/app/services/serviceFetch',
+	() => jest.fn(() => Promise.resolve({}))
+);
+
+const FRAGMENT_ID = 'FRAGMENT_ID';
+
+const FRAGMENT_CLASS_NAME = 'FRAGMENT_CLASS_NAME';
+
 const renderFragment = ({
 	activeItemId = 'fragment',
+	fragmentConfig = {styles: {}},
 	hasUpdatePermissions = true,
 	lockedExperience = false,
 } = {}) => {
 	const fragmentEntryLink = {
+		cssClass: FRAGMENT_CLASS_NAME,
 		editableValues: {},
 		fragmentEntryLinkId: 'fragmentEntryLink',
 	};
@@ -50,10 +74,10 @@ const renderFragment = ({
 	const fragment = {
 		children: [],
 		config: {
+			...fragmentConfig,
 			fragmentEntryLinkId: fragmentEntryLink.fragmentEntryLinkId,
-			styles: {},
 		},
-		itemId: 'fragment',
+		itemId: FRAGMENT_ID,
 		parentId: null,
 		type: LAYOUT_DATA_ITEM_TYPES.fragment,
 	};
@@ -85,6 +109,7 @@ const renderFragment = ({
 				>
 					<EditableProcessorContextProvider>
 						<AutoSelect />
+
 						<FragmentWithControls
 							item={fragment}
 							layoutData={layoutData}
@@ -106,5 +131,55 @@ describe('FragmentWithControls', () => {
 
 		expect(queryByText(document.body, 'delete')).not.toBeInTheDocument();
 		expect(queryByText(document.body, 'duplicate')).not.toBeInTheDocument();
+	});
+
+	it('does not show the fragment if it has been hidden by the user', async () => {
+		await act(async () => {
+			renderFragment({
+				fragmentConfig: {
+					styles: {
+						display: 'none',
+					},
+				},
+			});
+		});
+
+		expect(
+			document.body.querySelector('.page-editor__fragment-content')
+		).not.toBeVisible();
+	});
+
+	it('shows the fragment if it has not been hidden by the user', async () => {
+		await act(async () => {
+			renderFragment({
+				fragmentConfig: {
+					styles: {
+						display: 'block',
+					},
+				},
+			});
+		});
+
+		expect(
+			document.body.querySelector('.page-editor__fragment-content')
+		).toBeVisible();
+	});
+
+	it('set classes for referencing the item', () => {
+		config.featureFlagLps132571 = true;
+
+		const {baseElement} = renderFragment();
+
+		const classes = [
+			FRAGMENT_CLASS_NAME,
+			getLayoutDataItemTopperUniqueClassName(FRAGMENT_ID),
+			getLayoutDataItemUniqueClassName(FRAGMENT_ID),
+		];
+
+		classes.forEach((className) => {
+			const item = baseElement.querySelector(`.${className}`);
+
+			expect(item).toBeVisible();
+		});
 	});
 });

@@ -41,32 +41,15 @@ public class CommerceShippingFixedOptionServiceUtil {
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.commerce.shipping.engine.fixed.service.impl.CommerceShippingFixedOptionServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
 	public static CommerceShippingFixedOption addCommerceShippingFixedOption(
-			long userId, long groupId, long commerceShippingMethodId,
-			Map<java.util.Locale, String> nameMap,
-			Map<java.util.Locale, String> descriptionMap,
-			java.math.BigDecimal amount, double priority)
+			long groupId, long commerceShippingMethodId,
+			java.math.BigDecimal amount,
+			Map<java.util.Locale, String> descriptionMap, String key,
+			Map<java.util.Locale, String> nameMap, double priority)
 		throws PortalException {
 
 		return getService().addCommerceShippingFixedOption(
-			userId, groupId, commerceShippingMethodId, nameMap, descriptionMap,
-			amount, priority);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public static CommerceShippingFixedOption addCommerceShippingFixedOption(
-			long commerceShippingMethodId,
-			Map<java.util.Locale, String> nameMap,
-			Map<java.util.Locale, String> descriptionMap,
-			java.math.BigDecimal amount, double priority,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().addCommerceShippingFixedOption(
-			commerceShippingMethodId, nameMap, descriptionMap, amount, priority,
-			serviceContext);
+			groupId, commerceShippingMethodId, amount, descriptionMap, key,
+			nameMap, priority);
 	}
 
 	public static void deleteCommerceShippingFixedOption(
@@ -83,6 +66,13 @@ public class CommerceShippingFixedOptionServiceUtil {
 
 		return getService().fetchCommerceShippingFixedOption(
 			commerceShippingFixedOptionId);
+	}
+
+	public static CommerceShippingFixedOption fetchCommerceShippingFixedOption(
+			long companyId, String key)
+		throws PortalException {
+
+		return getService().fetchCommerceShippingFixedOption(companyId, key);
 	}
 
 	public static List<CommerceShippingFixedOption>
@@ -142,14 +132,13 @@ public class CommerceShippingFixedOptionServiceUtil {
 	}
 
 	public static CommerceShippingFixedOption updateCommerceShippingFixedOption(
-			long commerceShippingFixedOptionId,
-			Map<java.util.Locale, String> nameMap,
-			Map<java.util.Locale, String> descriptionMap,
-			java.math.BigDecimal amount, double priority)
+			long commerceShippingFixedOptionId, java.math.BigDecimal amount,
+			Map<java.util.Locale, String> descriptionMap, String key,
+			Map<java.util.Locale, String> nameMap, double priority)
 		throws PortalException {
 
 		return getService().updateCommerceShippingFixedOption(
-			commerceShippingFixedOptionId, nameMap, descriptionMap, amount,
+			commerceShippingFixedOptionId, amount, descriptionMap, key, nameMap,
 			priority);
 	}
 

@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class ContactLocalServiceWrapper
 	implements ContactLocalService, ServiceWrapper<ContactLocalService> {
 
+	public ContactLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ContactLocalServiceWrapper(ContactLocalService contactLocalService) {
 		_contactLocalService = contactLocalService;
 	}
@@ -137,6 +141,13 @@ public class ContactLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _contactLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _contactLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

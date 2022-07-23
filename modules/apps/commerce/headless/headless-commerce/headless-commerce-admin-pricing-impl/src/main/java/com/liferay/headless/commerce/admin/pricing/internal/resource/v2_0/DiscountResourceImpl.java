@@ -22,10 +22,12 @@ import com.liferay.commerce.discount.exception.NoSuchDiscountException;
 import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.model.CommerceDiscountAccountRel;
 import com.liferay.commerce.discount.model.CommerceDiscountCommerceAccountGroupRel;
+import com.liferay.commerce.discount.model.CommerceDiscountOrderTypeRel;
 import com.liferay.commerce.discount.model.CommerceDiscountRel;
 import com.liferay.commerce.discount.model.CommerceDiscountRule;
 import com.liferay.commerce.discount.service.CommerceDiscountAccountRelService;
 import com.liferay.commerce.discount.service.CommerceDiscountCommerceAccountGroupRelService;
+import com.liferay.commerce.discount.service.CommerceDiscountOrderTypeRelService;
 import com.liferay.commerce.discount.service.CommerceDiscountRelService;
 import com.liferay.commerce.discount.service.CommerceDiscountRuleService;
 import com.liferay.commerce.discount.service.CommerceDiscountService;
@@ -37,11 +39,13 @@ import com.liferay.commerce.product.model.CommerceChannelRel;
 import com.liferay.commerce.product.service.CProductLocalService;
 import com.liferay.commerce.product.service.CommerceChannelRelService;
 import com.liferay.commerce.product.service.CommerceChannelService;
+import com.liferay.commerce.service.CommerceOrderTypeService;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.Discount;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountAccount;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountAccountGroup;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountCategory;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountChannel;
+import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountOrderType;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountProduct;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountProductGroup;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountRule;
@@ -51,6 +55,7 @@ import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountAc
 import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountAccountUtil;
 import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountCategoryUtil;
 import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountChannelUtil;
+import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountOrderTypeUtil;
 import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountProductGroupUtil;
 import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountProductUtil;
 import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountRuleUtil;
@@ -64,7 +69,6 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -77,10 +81,7 @@ import com.liferay.portal.vulcan.util.SearchUtil;
 
 import java.math.BigDecimal;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Map;
-import java.util.TimeZone;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -114,7 +115,7 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 
 		if (commerceDiscount == null) {
 			throw new NoSuchDiscountException(
-				"Unable to find Discount with externalReferenceCode: " +
+				"Unable to find discount with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -138,7 +139,7 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 
 		if (commerceDiscount == null) {
 			throw new NoSuchDiscountException(
-				"Unable to find Discount with externalReferenceCode: " +
+				"Unable to find discount with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -152,7 +153,7 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 
 		return SearchUtil.search(
 			null, booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CommerceDiscount.class, search, pagination,
+			CommerceDiscount.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			new UnsafeConsumer() {
@@ -198,7 +199,7 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 
 		if (commerceDiscount == null) {
 			throw new NoSuchDiscountException(
-				"Unable to find Discount with externalReferenceCode: " +
+				"Unable to find discount with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -219,15 +220,14 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 		ServiceContext serviceContext =
 			_serviceContextHelper.getServiceContext();
 
-		DateConfig displayDateConfig = _getDisplayDateConfig(
+		DateConfig displayDateConfig = DateConfig.toDisplayDateConfig(
 			discount.getDisplayDate(), serviceContext.getTimeZone());
-
-		DateConfig expirationDateConfig = _getExpirationDateConfig(
+		DateConfig expirationDateConfig = DateConfig.toExpirationDateConfig(
 			discount.getExpirationDate(), serviceContext.getTimeZone());
 
 		CommerceDiscount commerceDiscount =
-			_commerceDiscountService.upsertCommerceDiscount(
-				discount.getExternalReferenceCode(), contextUser.getUserId(),
+			_commerceDiscountService.addOrUpdateCommerceDiscount(
+				discount.getExternalReferenceCode(),
 				GetterUtil.getLong(discount.getId()), discount.getTitle(),
 				discount.getTarget(),
 				GetterUtil.getBoolean(discount.getUseCouponCode()),
@@ -303,33 +303,6 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 		).build();
 	}
 
-	private DateConfig _getDisplayDateConfig(Date date, TimeZone timeZone) {
-		if (date == null) {
-			return new DateConfig(CalendarFactoryUtil.getCalendar(timeZone));
-		}
-
-		Calendar calendar = CalendarFactoryUtil.getCalendar(
-			date.getTime(), timeZone);
-
-		return new DateConfig(calendar);
-	}
-
-	private DateConfig _getExpirationDateConfig(Date date, TimeZone timeZone) {
-		if (date == null) {
-			Calendar expirationCalendar = CalendarFactoryUtil.getCalendar(
-				timeZone);
-
-			expirationCalendar.add(Calendar.MONTH, 1);
-
-			return new DateConfig(expirationCalendar);
-		}
-
-		Calendar calendar = CalendarFactoryUtil.getCalendar(
-			date.getTime(), timeZone);
-
-		return new DateConfig(calendar);
-	}
-
 	private Discount _toDiscount(CommerceDiscount commerceDiscount)
 		throws Exception {
 
@@ -355,10 +328,9 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 		ServiceContext serviceContext =
 			_serviceContextHelper.getServiceContext();
 
-		DateConfig displayDateConfig = _getDisplayDateConfig(
+		DateConfig displayDateConfig = DateConfig.toDisplayDateConfig(
 			discount.getDisplayDate(), serviceContext.getTimeZone());
-
-		DateConfig expirationDateConfig = _getExpirationDateConfig(
+		DateConfig expirationDateConfig = DateConfig.toExpirationDateConfig(
 			discount.getExpirationDate(), serviceContext.getTimeZone());
 
 		commerceDiscount = _commerceDiscountService.updateCommerceDiscount(
@@ -460,8 +432,8 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 				CommerceDiscountAccountRel commerceDiscountAccountRel =
 					_commerceDiscountAccountRelService.
 						fetchCommerceDiscountAccountRel(
-							commerceDiscount.getCommerceDiscountId(),
-							discountAccount.getAccountId());
+							discountAccount.getAccountId(),
+							commerceDiscount.getCommerceDiscountId());
 
 				if (commerceDiscountAccountRel != null) {
 					continue;
@@ -490,8 +462,9 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 				}
 
 				DiscountCategoryUtil.addCommerceDiscountRel(
-					_assetCategoryLocalService, _commerceDiscountRelService,
-					discountCategory, commerceDiscount, _serviceContextHelper);
+					contextCompany.getGroupId(), _assetCategoryLocalService,
+					_commerceDiscountRelService, discountCategory,
+					commerceDiscount, _serviceContextHelper);
 			}
 		}
 
@@ -514,6 +487,30 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 				DiscountChannelUtil.addCommerceDiscountChannelRel(
 					_commerceChannelService, _commerceChannelRelService,
 					discountChannel, commerceDiscount, _serviceContextHelper);
+			}
+		}
+
+		// Discount order types
+
+		DiscountOrderType[] discountOrderTypes =
+			discount.getDiscountOrderTypes();
+
+		if (discountOrderTypes != null) {
+			for (DiscountOrderType discountOrderType : discountOrderTypes) {
+				CommerceDiscountOrderTypeRel commerceDiscountOrderTypeRel =
+					_commerceDiscountOrderTypeRelService.
+						fetchCommerceDiscountOrderTypeRel(
+							commerceDiscount.getCommerceDiscountId(),
+							discountOrderType.getOrderTypeId());
+
+				if (commerceDiscountOrderTypeRel != null) {
+					continue;
+				}
+
+				DiscountOrderTypeUtil.addCommerceDiscountOrderTypeRel(
+					commerceDiscount, _commerceDiscountOrderTypeRelService,
+					_commerceOrderTypeService, discountOrderType,
+					_serviceContextHelper);
 			}
 		}
 
@@ -562,7 +559,7 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 
 				if (cProduct == null) {
 					throw new NoSuchCProductException(
-						"Unable to find Product with externalReferenceCode: " +
+						"Unable to find product with external reference code " +
 							discountProduct.getProductExternalReferenceCode());
 				}
 
@@ -630,6 +627,10 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 		_commerceDiscountCommerceAccountGroupRelService;
 
 	@Reference
+	private CommerceDiscountOrderTypeRelService
+		_commerceDiscountOrderTypeRelService;
+
+	@Reference
 	private CommerceDiscountRelService _commerceDiscountRelService;
 
 	@Reference
@@ -637,6 +638,9 @@ public class DiscountResourceImpl extends BaseDiscountResourceImpl {
 
 	@Reference
 	private CommerceDiscountService _commerceDiscountService;
+
+	@Reference
+	private CommerceOrderTypeService _commerceOrderTypeService;
 
 	@Reference
 	private CommercePricingClassService _commercePricingClassService;

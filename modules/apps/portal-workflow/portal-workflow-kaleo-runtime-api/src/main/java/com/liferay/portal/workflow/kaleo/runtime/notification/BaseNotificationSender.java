@@ -14,6 +14,10 @@
 
 package com.liferay.portal.workflow.kaleo.runtime.notification;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
+import com.liferay.portal.kernel.util.PortletKeys;
+import com.liferay.portal.workflow.constants.MyWorkflowTasksConstants;
 import com.liferay.portal.workflow.kaleo.definition.NotificationReceptionType;
 import com.liferay.portal.workflow.kaleo.definition.RecipientType;
 import com.liferay.portal.workflow.kaleo.model.KaleoNotificationRecipient;
@@ -66,6 +70,38 @@ public abstract class BaseNotificationSender implements NotificationSender {
 			String defaultSubject, String notificationMessage,
 			ExecutionContext executionContext)
 		throws Exception;
+
+	protected Set<NotificationRecipient> getDeliverableNotificationRecipients(
+			Set<NotificationRecipient> notificationRecipients,
+			int notificationDeliveryType)
+		throws PortalException {
+
+		Set<NotificationRecipient> newNotificationRecipients = new HashSet<>();
+
+		if (notificationRecipients == null) {
+			return newNotificationRecipients;
+		}
+
+		for (NotificationRecipient notificationRecipient :
+				notificationRecipients) {
+
+			if (notificationRecipient.getUserId() <= 0) {
+				continue;
+			}
+
+			if (UserNotificationManagerUtil.isDeliver(
+					notificationRecipient.getUserId(),
+					PortletKeys.MY_WORKFLOW_TASK, 0,
+					MyWorkflowTasksConstants.
+						NOTIFICATION_TYPE_MY_WORKFLOW_TASKS,
+					notificationDeliveryType)) {
+
+				newNotificationRecipients.add(notificationRecipient);
+			}
+		}
+
+		return newNotificationRecipients;
+	}
 
 	protected Map<NotificationReceptionType, Set<NotificationRecipient>>
 			getNotificationRecipientsMap(

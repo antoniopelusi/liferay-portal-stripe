@@ -18,10 +18,9 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
-import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionMapping;
-import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceNaming;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
@@ -31,11 +30,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MethodParameter;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.util.PropsUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
-import com.liferay.registry.ServiceTracker;
-import com.liferay.registry.util.StringPlus;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,9 +37,17 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.TemporalAccessor;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -55,11 +57,17 @@ import java.util.Objects;
 import jodd.bean.BeanCopy;
 import jodd.bean.BeanUtil;
 
+import jodd.time.TimeUtil;
+
 import jodd.typeconverter.TypeConversionException;
 import jodd.typeconverter.TypeConverter;
 import jodd.typeconverter.TypeConverterManager;
 
 import jodd.util.ClassUtil;
+import jodd.util.StringUtil;
+
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * @author Igor Spasic
@@ -68,17 +76,10 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 
 	public JSONWebServiceActionImpl(
 		JSONWebServiceActionConfig jsonWebServiceActionConfig,
-		JSONWebServiceActionParameters jsonWebServiceActionParameters,
-		JSONWebServiceNaming jsonWebServiceNaming) {
+		JSONWebServiceActionParameters jsonWebServiceActionParameters) {
 
 		_jsonWebServiceActionConfig = jsonWebServiceActionConfig;
 		_jsonWebServiceActionParameters = jsonWebServiceActionParameters;
-		_jsonWebServiceNaming = jsonWebServiceNaming;
-	}
-
-	@Override
-	public JSONWebServiceActionMapping getJSONWebServiceActionMapping() {
-		return _jsonWebServiceActionConfig;
 	}
 
 	@Override
@@ -99,10 +100,26 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 		catch (Exception exception2) {
 			exception1 = exception2;
 
-			_log.error(exception2, exception2);
+			_log.error(exception2);
 		}
 
 		return new JSONRPCResponse(jsonRPCRequest, result, exception1);
+	}
+
+	private static ServiceTracker<Object, Object> _getServiceTracker() {
+		ServiceTracker<Object, Object> serviceTracker = new ServiceTracker<>(
+			SystemBundleUtil.getBundleContext(),
+			SystemBundleUtil.createFilter(
+				StringBundler.concat(
+					"(",
+					PropsKeys.
+						JSONWS_WEB_SERVICE_PARAMETER_TYPE_WHITELIST_CLASS_NAMES,
+					"=*)")),
+			null);
+
+		serviceTracker.open();
+
+		return serviceTracker;
 	}
 
 	private void _checkTypeIsAssignable(
@@ -128,18 +145,11 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 					" for method argument ", argumentPos));
 		}
 
-		if (parameterType.isPrimitive()) {
-			return;
-		}
-
-		if (parameterTypeName.equals(
-				_jsonWebServiceNaming.convertModelClassToImplClassName(
-					targetClass))) {
-
-			return;
-		}
-
-		if (ArrayUtil.contains(
+		if (parameterType.isPrimitive() ||
+			parameterTypeName.equals(
+				JSONWebServiceNamingUtil.convertModelClassToImplClassName(
+					targetClass)) ||
+			ArrayUtil.contains(
 				_JSONWS_WEB_SERVICE_PARAMETER_TYPE_WHITELIST_CLASS_NAMES,
 				parameterTypeName)) {
 
@@ -157,8 +167,9 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 			for (ServiceReference<Object> serviceReference :
 					serviceReferences) {
 
-				List<String> whitelistedClassNames = StringPlus.asList(
-					serviceReference.getProperty(key));
+				List<String> whitelistedClassNames =
+					com.liferay.portal.kernel.util.StringUtil.asList(
+						serviceReference.getProperty(key));
 
 				if (whitelistedClassNames.contains(parameterTypeName)) {
 					return;
@@ -208,7 +219,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 						ClassLoader classLoader = clazz.getClassLoader();
 
 						String modelClassName =
-							_jsonWebServiceNaming.
+							JSONWebServiceNamingUtil.
 								convertModelClassToImplClassName(targetType);
 
 						try {
@@ -216,9 +227,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 						}
 						catch (ClassNotFoundException classNotFoundException) {
 							if (_log.isDebugEnabled()) {
-								_log.debug(
-									classNotFoundException,
-									classNotFoundException);
+								_log.debug(classNotFoundException);
 							}
 
 							Class<?> actionClass =
@@ -263,7 +272,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 					return FileUtil.getBytes((File)value);
 				}
 				catch (IOException ioException) {
-					_log.error(ioException, ioException);
+					_log.error(ioException);
 
 					return null;
 				}
@@ -418,11 +427,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 	}
 
 	private List<?> _generifyList(List<?> list, Class<?>[] types) {
-		if (types == null) {
-			return list;
-		}
-
-		if (types.length != 1) {
+		if ((types == null) || (types.length != 1)) {
 			return list;
 		}
 
@@ -440,11 +445,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 	}
 
 	private Map<?, ?> _generifyMap(Map<?, ?> map, Class<?>[] types) {
-		if (types == null) {
-			return map;
-		}
-
-		if (types.length != 2) {
+		if ((types == null) || (types.length != 2)) {
 			return map;
 		}
 
@@ -498,8 +499,6 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 	}
 
 	private Object _invokeActionMethod() throws Exception {
-		Object actionObject = _jsonWebServiceActionConfig.getActionObject();
-
 		Method actionMethod = _jsonWebServiceActionConfig.getActionMethod();
 
 		Object[] parameters = _prepareParameters(
@@ -511,7 +510,8 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 			_log.warn("Invoking deprecated method " + actionMethod.getName());
 		}
 
-		return actionMethod.invoke(actionObject, parameters);
+		return actionMethod.invoke(
+			_jsonWebServiceActionConfig.getActionObject(), parameters);
 	}
 
 	private Object[] _prepareParameters(Class<?> actionClass) throws Exception {
@@ -591,12 +591,103 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 	private static final Log _log = LogFactoryUtil.getLog(
 		JSONWebServiceActionImpl.class);
 
-	private static final ServiceTracker<Object, Object> _serviceTracker;
+	private static final ServiceTracker<Object, Object> _serviceTracker =
+		_getServiceTracker();
 
 	private final JSONWebServiceActionConfig _jsonWebServiceActionConfig;
 	private final JSONWebServiceActionParameters
 		_jsonWebServiceActionParameters;
-	private final JSONWebServiceNaming _jsonWebServiceNaming;
+
+	private static class DateTypeConverter implements TypeConverter<Date> {
+
+		@Override
+		public Date convert(Object object) {
+			if (object == null) {
+				return null;
+			}
+
+			if (object instanceof Calendar) {
+				Calendar calendar = (Calendar)object;
+
+				return new Date(calendar.getTimeInMillis());
+			}
+
+			if (object instanceof Date) {
+				return (Date)object;
+			}
+
+			if (object instanceof LocalDate) {
+				return TimeUtil.toDate((LocalDate)object);
+			}
+
+			if (object instanceof LocalDateTime) {
+				return TimeUtil.toDate((LocalDateTime)object);
+			}
+
+			if (object instanceof Number) {
+				Number number = (Number)object;
+
+				return new Date(number.longValue());
+			}
+
+			String stringValue = object.toString();
+
+			stringValue = stringValue.trim();
+
+			if (!StringUtil.containsOnlyDigits(stringValue)) {
+				TemporalAccessor temporalAccessor =
+					_dateTimeFormatter.parseBest(
+						stringValue, ZonedDateTime::from, LocalDateTime::from,
+						LocalDate::from);
+
+				if (temporalAccessor instanceof LocalDate) {
+					return TimeUtil.toDate((LocalDate)temporalAccessor);
+				}
+
+				if (temporalAccessor instanceof LocalDateTime) {
+					return TimeUtil.toDate((LocalDateTime)temporalAccessor);
+				}
+
+				if (temporalAccessor instanceof ZonedDateTime) {
+					ZonedDateTime zonedDateTime =
+						(ZonedDateTime)temporalAccessor;
+
+					return Date.from(zonedDateTime.toInstant());
+				}
+
+				throw new TypeConversionException(object);
+			}
+
+			try {
+				return new Date(Long.parseLong(stringValue));
+			}
+			catch (NumberFormatException numberFormatException) {
+				throw new TypeConversionException(
+					object, numberFormatException);
+			}
+		}
+
+		// May 1 is "5-1" with "M-d" while "05-01" with "MM-dd". See
+		// java.time.format.DateTimeFormatterBuilder#appendPattern(String).
+
+		private static final DateTimeFormatter _dateTimeFormatter =
+			new DateTimeFormatterBuilder().parseCaseInsensitive(
+			).appendPattern(
+				"yyyy-[MM][M]-[dd][d]"
+			).optionalStart(
+			).optionalStart(
+			).appendLiteral(
+				' '
+			).optionalEnd(
+			).optionalStart(
+			).appendLiteral(
+				'T'
+			).optionalEnd(
+			).appendOptional(
+				DateTimeFormatter.ISO_TIME
+			).toFormatter();
+
+	}
 
 	private static class LocaleTypeConverter implements TypeConverter<Locale> {
 
@@ -616,20 +707,9 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 	}
 
 	static {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_serviceTracker = registry.trackServices(
-			registry.getFilter(
-				StringBundler.concat(
-					"(",
-					PropsKeys.
-						JSONWS_WEB_SERVICE_PARAMETER_TYPE_WHITELIST_CLASS_NAMES,
-					"=*)")));
-
-		_serviceTracker.open();
-
 		TypeConverterManager typeConverterManager = TypeConverterManager.get();
 
+		typeConverterManager.register(Date.class, new DateTypeConverter());
 		typeConverterManager.register(Locale.class, new LocaleTypeConverter());
 	}
 

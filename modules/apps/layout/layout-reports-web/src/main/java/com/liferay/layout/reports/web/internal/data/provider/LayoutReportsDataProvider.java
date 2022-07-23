@@ -14,37 +14,39 @@
 
 package com.liferay.layout.reports.web.internal.data.provider;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.pagespeedonline.v5.PagespeedInsights;
-import com.google.api.services.pagespeedonline.v5.model.LighthouseAuditResultV5;
-import com.google.api.services.pagespeedonline.v5.model.LighthouseResultV5;
-import com.google.api.services.pagespeedonline.v5.model.PagespeedApiPagespeedResponseV5;
-
 import com.liferay.layout.reports.web.internal.model.LayoutReportsIssue;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.net.HttpURLConnection;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
+import java.util.Locale;
 
 /**
  * @author Cristina González
  */
 public class LayoutReportsDataProvider {
 
-	public LayoutReportsDataProvider(String apiKey) {
+	public LayoutReportsDataProvider(String apiKey, String strategy) {
 		_apiKey = apiKey;
+		_strategy = strategy;
 	}
 
-	public List<LayoutReportsIssue> getLayoutReportsIssues(String url)
+	public List<LayoutReportsIssue> getLayoutReportsIssues(
+			Locale locale, String url)
 		throws LayoutReportsDataProviderException {
 
 		try {
-			return _getLayoutReportsIssues(url);
+			return _getLayoutReportsIssues(locale, url);
 		}
 		catch (LayoutReportsDataProviderException
 					layoutReportsDataProviderException) {
@@ -67,95 +69,141 @@ public class LayoutReportsDataProvider {
 			super(exception);
 		}
 
+		public LayoutReportsDataProviderException(
+			JSONObject googlePageSpeedErrorJSONObject, String message) {
+
+			super(message);
+
+			_googlePageSpeedErrorJSONObject = googlePageSpeedErrorJSONObject;
+		}
+
 		public LayoutReportsDataProviderException(String message) {
 			super(message);
 		}
 
-	}
-
-	private int _getCount(LighthouseAuditResultV5 lighthouseAuditResultV5) {
-		Map<String, Object> details = lighthouseAuditResultV5.getDetails();
-
-		if (details != null) {
-			Object items = details.get("items");
-
-			if (items instanceof List) {
-				List<?> itemsList = (List)items;
-
-				return itemsList.size();
-			}
+		public JSONObject getGooglePageSpeedErrorJSONObject() {
+			return _googlePageSpeedErrorJSONObject;
 		}
 
-		float score = GetterUtil.getFloat(lighthouseAuditResultV5.getScore());
+		private JSONObject _googlePageSpeedErrorJSONObject;
 
-		if (score == 0) {
-			return 1;
-		}
-
-		return 0;
 	}
 
-	private List<LayoutReportsIssue> _getLayoutReportsIssues(String url)
+	private LayoutReportsIssue.Detail _getDetail(
+		LayoutReportsIssue.Detail.Key key,
+		JSONObject lighthouseAuditJSONObject) {
+
+		return new LayoutReportsIssue.Detail(key, lighthouseAuditJSONObject);
+	}
+
+	private List<LayoutReportsIssue> _getLayoutReportsIssues(
+			Locale locale, String url)
 		throws Exception {
 
 		if (!isValidConnection()) {
 			throw new LayoutReportsDataProviderException("Invalid Connection");
 		}
 
-		PagespeedInsights pagespeedInsights = new PagespeedInsights.Builder(
-			GoogleNetHttpTransport.newTrustedTransport(),
-			JacksonFactory.getDefaultInstance(),
-			request -> request.setConnectTimeout(_TIMEOUT)
-		).build();
+		Http.Options options = new Http.Options();
 
-		PagespeedInsights.Pagespeedapi pagespeedapi =
-			pagespeedInsights.pagespeedapi();
+		String googlePageSpeedURL =
+			"https://content-pagespeedonline.googleapis.com/pagespeedonline" +
+				"/v5/runPagespeed";
 
-		PagespeedInsights.Pagespeedapi.Runpagespeed runpagespeed =
-			pagespeedapi.runpagespeed(url);
+		googlePageSpeedURL = HttpComponentsUtil.addParameter(
+			googlePageSpeedURL, "category", "ACCESSIBILITY");
+		googlePageSpeedURL = HttpComponentsUtil.addParameter(
+			googlePageSpeedURL, "category", "BEST_PRACTICES");
+		googlePageSpeedURL = HttpComponentsUtil.addParameter(
+			googlePageSpeedURL, "category", "SEO");
+		googlePageSpeedURL = HttpComponentsUtil.addParameter(
+			googlePageSpeedURL, "key", _apiKey);
+		googlePageSpeedURL = HttpComponentsUtil.addParameter(
+			googlePageSpeedURL, "locale", LanguageUtil.getLanguageId(locale));
+		googlePageSpeedURL = HttpComponentsUtil.addParameter(
+			googlePageSpeedURL, "strategy", _strategy);
+		googlePageSpeedURL = HttpComponentsUtil.addParameter(
+			googlePageSpeedURL, "url", url);
 
-		runpagespeed.setCategory(
-			Arrays.asList("accessibility", "best-practices", "seo"));
-		runpagespeed.setKey(_apiKey);
+		options.setLocation(googlePageSpeedURL);
 
-		PagespeedApiPagespeedResponseV5 pagespeedApiPagespeedResponseV5 =
-			runpagespeed.execute();
+		options.setTimeout(120000);
 
-		LighthouseResultV5 lighthouseResultV5 =
-			pagespeedApiPagespeedResponseV5.getLighthouseResult();
+		String responseJSON = HttpUtil.URLtoString(options);
 
-		Map<String, LighthouseAuditResultV5> lighthouseAuditResultV5s =
-			lighthouseResultV5.getAudits();
+		Http.Response response = options.getResponse();
+
+		if (response.getResponseCode() != HttpURLConnection.HTTP_OK) {
+			throw new LayoutReportsDataProviderException(
+				JSONFactoryUtil.createJSONObject(responseJSON),
+				StringBundler.concat(
+					"Response code ", response.getResponseCode(), ": ",
+					responseJSON));
+		}
+
+		JSONObject auditResultJSONObject = JSONFactoryUtil.createJSONObject(
+			responseJSON);
+
+		JSONObject lighthouseResultJSONObject =
+			auditResultJSONObject.getJSONObject("lighthouseResult");
+
+		JSONObject auditsJSONObject = lighthouseResultJSONObject.getJSONObject(
+			"audits");
 
 		return Arrays.asList(
 			new LayoutReportsIssue(
-				"accessibility",
-				IntStream.of(
-					_getCount(lighthouseAuditResultV5s.get("color-contrast")),
-					_getCount(lighthouseAuditResultV5s.get("image-alt")),
-					_getCount(lighthouseAuditResultV5s.get("input-image-alt")),
-					_getCount(lighthouseAuditResultV5s.get("video-caption"))
-				).sum()),
+				Arrays.asList(
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.LOW_CONTRAST_RATIO,
+						auditsJSONObject.getJSONObject("color-contrast")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.
+							MISSING_IMG_ALT_ATTRIBUTES,
+						auditsJSONObject.getJSONObject("image-alt")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.
+							MISSING_INPUT_ALT_ATTRIBUTES,
+						auditsJSONObject.getJSONObject("input-image-alt"))),
+				LayoutReportsIssue.Key.ACCESSIBILITY),
 			new LayoutReportsIssue(
-				"seo",
-				IntStream.of(
-					_getCount(lighthouseAuditResultV5s.get("canonical")),
-					_getCount(
-						lighthouseAuditResultV5s.get("crawlable-anchors")),
-					_getCount(lighthouseAuditResultV5s.get("document-title")),
-					_getCount(lighthouseAuditResultV5s.get("font-size")),
-					_getCount(lighthouseAuditResultV5s.get("hreflang")),
-					_getCount(
-						lighthouseAuditResultV5s.get("image-aspect-ratio")),
-					_getCount(lighthouseAuditResultV5s.get("is-crawlable")),
-					_getCount(lighthouseAuditResultV5s.get("link-text")),
-					_getCount(lighthouseAuditResultV5s.get("meta-description")),
-					_getCount(lighthouseAuditResultV5s.get("tap-targets"))
-				).sum()));
+				Arrays.asList(
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.INVALID_CANONICAL_URL,
+						auditsJSONObject.getJSONObject("canonical")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.
+							NOT_ALL_LINKS_ARE_CRAWLABLE,
+						auditsJSONObject.getJSONObject("crawlable-anchors")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.
+							PAGE_BLOCKED_FROM_INDEXING,
+						auditsJSONObject.getJSONObject("is-crawlable")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.ILLEGIBLE_FONT_SIZES,
+						auditsJSONObject.getJSONObject("font-size")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.INVALID_HREFLANG,
+						auditsJSONObject.getJSONObject("hreflang")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.
+							INCORRECT_IMAGE_ASPECT_RATIOS,
+						auditsJSONObject.getJSONObject("image-aspect-ratio")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.LINK_TEXTS,
+						auditsJSONObject.getJSONObject("link-text")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.MISSING_META_DESCRIPTION,
+						auditsJSONObject.getJSONObject("meta-description")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.SMALL_TAP_TARGETS,
+						auditsJSONObject.getJSONObject("tap-targets")),
+					_getDetail(
+						LayoutReportsIssue.Detail.Key.MISSING_TITLE_ELEMENT,
+						auditsJSONObject.getJSONObject("document-title"))),
+				LayoutReportsIssue.Key.SEO));
 	}
 
-	private static final int _TIMEOUT = 30000;
-
 	private final String _apiKey;
+	private final String _strategy;
 
 }

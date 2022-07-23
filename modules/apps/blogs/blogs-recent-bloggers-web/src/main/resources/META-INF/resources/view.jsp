@@ -21,7 +21,7 @@ List<BlogsStatsUser> statsUsers = null;
 
 if (selectionMethod.equals("users")) {
 	if (organizationId > 0) {
-		statsUsers = BlogsStatsUserLocalServiceUtil.getOrganizationStatsUsers(organizationId, 0, max, new StatsUserLastPostDateComparator());
+		statsUsers = BlogsStatsUserLocalServiceUtil.getOrganizationStatsUsers(organizationId, 0, max);
 	}
 	else {
 		statsUsers = BlogsStatsUserLocalServiceUtil.getGroupsStatsUsers(company.getCompanyId(), scopeGroupId, 0, max);
@@ -60,7 +60,7 @@ else {
 
 			try {
 				Group group = GroupLocalServiceUtil.getGroup(statsUser.getGroupId());
-				User user2 = UserLocalServiceUtil.getUserById(statsUser.getUserId());
+				User user2 = UserLocalServiceUtil.getUserById(statsUser.getStatsUserId());
 
 				int entriesCount = BlogsEntryServiceUtil.getGroupUserEntriesCount(group.getGroupId(), user2.getUserId(), WorkflowConstants.STATUS_APPROVED);
 

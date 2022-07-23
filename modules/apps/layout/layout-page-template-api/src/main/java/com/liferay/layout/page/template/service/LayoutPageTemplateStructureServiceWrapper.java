@@ -28,6 +28,10 @@ public class LayoutPageTemplateStructureServiceWrapper
 	implements LayoutPageTemplateStructureService,
 			   ServiceWrapper<LayoutPageTemplateStructureService> {
 
+	public LayoutPageTemplateStructureServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutPageTemplateStructureServiceWrapper(
 		LayoutPageTemplateStructureService layoutPageTemplateStructureService) {
 
@@ -43,23 +47,6 @@ public class LayoutPageTemplateStructureServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _layoutPageTemplateStructureService.getOSGiServiceIdentifier();
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #updateLayoutPageTemplateStructureData(long, long, long,
-	 String)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK,
-			long segmentsExperienceId, String data)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _layoutPageTemplateStructureService.
-			updateLayoutPageTemplateStructure(
-				groupId, classNameId, classPK, segmentsExperienceId, data);
 	}
 
 	@Override

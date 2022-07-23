@@ -27,6 +27,7 @@ import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.message.boards.service.MBThreadLocalService;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.DynamicInheritancePermissionLogic;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
@@ -34,7 +35,7 @@ import com.liferay.portal.kernel.security.permission.resource.PortletResourcePer
 import com.liferay.portal.kernel.security.permission.resource.StagedModelPermissionLogic;
 import com.liferay.portal.kernel.security.permission.resource.WorkflowedModelPermissionLogic;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermission;
 import com.liferay.portal.util.PropsValues;
 
@@ -55,9 +56,10 @@ public class MBMessagePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("model.class.name", MBMessage.class.getName());
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"model.class.name", MBMessage.class.getName()
+			).build();
 
 		_serviceRegistration = bundleContext.registerService(
 			(Class<ModelResourcePermission<MBMessage>>)
@@ -83,6 +85,17 @@ public class MBMessagePermissionRegistrar {
 							if (_mbBanLocalService.hasBan(
 									message.getGroupId(),
 									permissionChecker.getUserId())) {
+
+								return false;
+							}
+
+							MBThread thread = message.getThread();
+
+							if (!message.isRoot() &&
+								!modelResourcePermission.contains(
+									permissionChecker,
+									thread.getRootMessageId(),
+									ActionKeys.VIEW)) {
 
 								return false;
 							}

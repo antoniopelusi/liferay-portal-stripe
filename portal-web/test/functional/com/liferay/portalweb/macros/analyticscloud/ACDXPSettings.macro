@@ -1,0 +1,262 @@
+definition {
+
+	macro assertSuccessfulConnection {
+		AssertElementPresent(locator1 = "ACDXPSettings#ANALYTICS_CLOUD_CONNECTED_CONFIRMATION_MESSAGE");
+	}
+
+	macro assignSiteToExistingProperty {
+		Search.searchCP(searchTerm = "${assignedPropertyName}");
+
+		LexiconTable.clickTableEntryColumnLink(
+			columnName = "properties",
+			tableEntry = "${assignedPropertyName}");
+
+		var siteName = "${siteName}";
+
+		if (isSet(siteName)) {
+			ACDXPSettings.searchACItem(searchItem = "${siteName}");
+		}
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_CHECKBOX");
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro connectAnalyticsCloud {
+		Click(locator1 = "ACDXPSettings#TOKEN_INPUT_FIELD");
+
+		Paste(locator1 = "ACDXPSettings#TOKEN_INPUT_FIELD");
+
+		Click(locator1 = "ACDXPSettings#CONNECT_DISCONNECT_BUTTON");
+	}
+
+	macro connectDXPtoAnalyticsCloud {
+		ACDXPSettings.goToInstanceSettingsAC();
+
+		ACDXPSettings.connectAnalyticsCloud();
+
+		ACDXPSettings.assertSuccessfulConnection();
+
+		ACDXPSettings.navToSyncedSitesMenu();
+
+		if (!(isSet(siteName))) {
+			LexiconEntry.gotoAdd();
+
+			WaitForElementPresent(locator1 = "ACDXPSettings#SITE_NAME");
+
+			var siteName = selenium.getText("ACDXPSettings#SITE_NAME");
+
+			Navigator.gotoBack();
+		}
+
+		ACDXPSettings.createCombinedProperties(siteName = "${siteName}");
+
+		var assignedPropertyName = ACDXPSettings.getAssignedPropertyName(siteName = "${siteName}");
+
+		ACDXPSettings.navToSyncedContactDataMenu();
+
+		if (isSet(userGroup)) {
+			ACDXPSettings.syncContactSingleUserGroupData(userGroup = "${userGroup}");
+		}
+		else if (isSet(orgName)) {
+			ACDXPSettings.syncByOrganizations(orgName = "${orgName}");
+		}
+		else {
+			ACDXPSettings.syncContactData();
+		}
+
+		return "${assignedPropertyName}";
+	}
+
+	macro createCombinedProperties {
+		var siteName = "${siteName}";
+
+		LexiconEntry.gotoAdd();
+
+		Click(locator1 = "ACDXPSettings#COMBINATED_PROPERTY_OPTION");
+
+		if (isSet(siteName)) {
+			ACDXPSettings.searchACItem(searchItem = "${siteName}");
+		}
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_CHECKBOX");
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro createMultipleProperties {
+		LexiconEntry.gotoAdd();
+
+		Click(locator1 = "ACDXPSettings#MULTIPLE_PROPERTY_OPTION");
+
+		for (var siteName : list "${siteNameList}") {
+			Check(
+				key_tableEntry = "${siteName}",
+				locator1 = "LexiconTable#TABLE_ENTRY_CHECKBOX");
+		}
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro disconnectDXPFromAnalyticsCloud {
+		ACDXPSettings.goToInstanceSettingsAC();
+
+		if (IsElementPresent(locator1 = "ACDXPSettings#AC_GENERIC_CANCEL_BUTTON")) {
+			ClickNoError(locator1 = "ACDXPSettings#CONNECT_DISCONNECT_BUTTON");
+
+			AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to disconnect your Analytics Cloud workspace from this DXP instance?");
+		}
+	}
+
+	macro getAssignedPropertyName {
+		if (IsElementNotPresent(locator1 = "//*[@data-qa-id='headerTitle'][normalize-space(text())='Analytics Cloud']")) {
+			ACDXPSettings.goToInstanceSettingsAC();
+		}
+
+		ACDXPSettings.navToSyncedSitesMenu();
+
+		LexiconEntry.gotoAdd();
+
+		WaitForVisible(
+			key_tableEntry = "${siteName}",
+			locator1 = "LexiconTable#TABLE_ENTRY");
+
+		static var assignedPropertyName = selenium.getText("//tr[@data-qa-id='row'][contains(.,'${siteName}')]//td[contains(@class,'assigned-property-column')]");
+
+		ACNavigation.clickCancelButton();
+
+		return "${assignedPropertyName}";
+	}
+
+	macro goToInstanceSettingsAC {
+		PortalSettings.openInstanceSettingsAdmin();
+
+		Click(locator1 = "ACDXPSettings#ANALYTICS_CLOUD_DXP_OPTION");
+	}
+
+	macro navToAnalyticsCloudConnectionMenu {
+		Click(locator1 = "ACDXPSettings#AC_CONNECTION_NAV_SIDEBAR");
+	}
+
+	macro navToSyncedContactDataMenu {
+		Click(locator1 = "ACDXPSettings#SYNCED_CONTACT_DATA_NAV_SIDEBAR");
+	}
+
+	macro navToSyncedSitesMenu {
+		Click(locator1 = "ACDXPSettings#SYNCED_SITES_NAV_SIDEBAR");
+	}
+
+	macro searchACItem {
+		Click(locator1 = "ACDXPSettings#SYNCED_SITES_SEARCH_FIELD");
+
+		Type(
+			locator1 = "ACDXPSettings#SYNCED_SITES_SEARCH_FIELD",
+			value1 = "${searchItem}");
+
+		KeyPress(
+			locator1 = "ACDXPSettings#SYNCED_SITES_SEARCH_FIELD",
+			value1 = "\ENTER");
+	}
+
+	macro selectAvailableProperties {
+		var key_availablePropertyName = "${availablePropertyName}";
+
+		Click(locator1 = "ACDXPSettings#AVAILABLE_PROPERTY_NAME");
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_CHECKBOX");
+	}
+
+	macro syncByOrganizations {
+		Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+		Click(locator1 = "ACDXPSettings#SYNC_BY_ORGANIZATIONS_BUTTON");
+
+		ACDXPSettings.searchACItem(searchItem = "${orgName}");
+
+		if (isSet(index)) {
+			Click(
+				key_index = "${index}",
+				locator1 = "ACDXPSettings#AC_CHECKBOX_INDEX");
+		}
+		else {
+			Click(locator1 = "ACDXPSettings#AC_GENERIC_CHECKBOX");
+		}
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro syncContactData {
+		Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+		Check.checkToggleSwitch(locator1 = "ACDXPSettings#SYNC_ALL_CONTACTS_TOGGLE");
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro syncContactSingleUserGroupData {
+		Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+		Click(
+			key_option = "Sync by User Groups",
+			locator1 = "ACDXPSettings#CONTACT_SYNC_OPTIONS");
+
+		Click(
+			key_entry = "${userGroup}",
+			locator1 = "ACDXPSettings#USER_GROUP_OPTION_CHECKBOX");
+
+		Click(
+			key_text = "Save and Next",
+			locator1 = "Button#ANY");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro syncNewContactData {
+		ACDXPSettings.goToInstanceSettingsAC();
+
+		ACDXPSettings.navToSyncedContactDataMenu();
+
+		ACDXPSettings.syncContactData();
+	}
+
+	macro syncNewUserData {
+		ACDXPSettings.goToInstanceSettingsAC();
+
+		ACDXPSettings.navToSyncedContactDataMenu();
+
+		Click(locator1 = "ACDXPSettings#SYNC_CONTACTS_OPTION");
+
+		Check.checkToggleSwitch(locator1 = "ACDXPSettings#SYNC_ALL_CONTACTS_TOGGLE");
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Click(locator1 = "ACDXPSettings#SYNCED_CONTACT_DATA_USER_TAB");
+
+		for (var fieldName : list "${fieldNameList}") {
+			Check(
+				key_fieldName = "${fieldName}",
+				locator1 = "ACDXPSettings#FIELD_NAME_CHECKBOX");
+		}
+
+		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+}

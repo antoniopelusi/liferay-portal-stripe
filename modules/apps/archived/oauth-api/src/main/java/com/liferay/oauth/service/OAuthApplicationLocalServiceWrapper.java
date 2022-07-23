@@ -27,6 +27,10 @@ public class OAuthApplicationLocalServiceWrapper
 	implements OAuthApplicationLocalService,
 			   ServiceWrapper<OAuthApplicationLocalService> {
 
+	public OAuthApplicationLocalServiceWrapper() {
+		this(null);
+	}
+
 	public OAuthApplicationLocalServiceWrapper(
 		OAuthApplicationLocalService oAuthApplicationLocalService) {
 
@@ -170,6 +174,13 @@ public class OAuthApplicationLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _oAuthApplicationLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _oAuthApplicationLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

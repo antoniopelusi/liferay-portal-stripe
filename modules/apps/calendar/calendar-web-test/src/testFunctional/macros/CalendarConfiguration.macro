@@ -101,8 +101,58 @@ definition {
 		CalendarConfiguration.save();
 	}
 
+	macro viewDefaultViewConfiguration {
+		if ("${defaultView}" == "Day") {
+			AssertSelectedLabel(
+				locator1 = "CalendarConfiguration#USER_SETTINGS_DEFAULT_VIEW_SELECT",
+				value1 = "Day");
+		}
+
+		if ("${defaultView}" == "Month") {
+			AssertSelectedLabel(
+				locator1 = "CalendarConfiguration#USER_SETTINGS_DEFAULT_VIEW_SELECT",
+				value1 = "Month");
+		}
+
+		if ("${defaultView}" == "Week") {
+			AssertSelectedLabel(
+				locator1 = "CalendarConfiguration#USER_SETTINGS_DEFAULT_VIEW_SELECT",
+				value1 = "Week");
+		}
+
+		if ("${defaultView}" == "Agenda") {
+			AssertSelectedLabel(
+				locator1 = "CalendarConfiguration#USER_SETTINGS_DEFAULT_VIEW_SELECT",
+				value1 = "Agenda");
+		}
+	}
+
 	macro viewRSSOptionsDisabled {
 		AssertElementNotPresent(locator1 = "CalendarConfiguration#RSS_SETTING_OPTIONS");
+	}
+
+	macro viewSelectDefaultDuration {
+		AssertSelectedLabel(
+			locator1 = "CalendarConfiguration#USER_SETTINGS_DEFAULT_DURATION_SELECT",
+			value1 = "${defaultDuration}");
+	}
+
+	macro viewSelectDefaultView {
+		AssertSelectedLabel(
+			locator1 = "CalendarConfiguration#USER_SETTINGS_DEFAULT_VIEW_SELECT",
+			value1 = "${defaultView}");
+	}
+
+	macro viewSelectTimeFormat {
+		AssertSelectedLabel(
+			locator1 = "CalendarConfiguration#USER_SETTINGS_TIME_FORMAT_SELECT",
+			value1 = "${timeFormat}");
+	}
+
+	macro viewSelectWeekStartsOn {
+		AssertSelectedLabel(
+			locator1 = "CalendarConfiguration#USER_SETTINGS_WEEK_STARTS_ON_SELECT",
+			value1 = "${weekStartDay}");
 	}
 
 }

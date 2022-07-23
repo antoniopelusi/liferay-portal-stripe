@@ -57,7 +57,7 @@ public class WikiNodeSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (wikiNode.getActions() != null) {
 			if (sb.length() > 1) {
@@ -119,6 +119,20 @@ public class WikiNodeSerDes {
 			sb.append("\"");
 
 			sb.append(_escape(wikiNode.getDescription()));
+
+			sb.append("\"");
+		}
+
+		if (wikiNode.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(wikiNode.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -210,7 +224,7 @@ public class WikiNodeSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (wikiNode.getActions() == null) {
 			map.put("actions", null);
@@ -249,6 +263,15 @@ public class WikiNodeSerDes {
 		}
 		else {
 			map.put("description", String.valueOf(wikiNode.getDescription()));
+		}
+
+		if (wikiNode.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(wikiNode.getExternalReferenceCode()));
 		}
 
 		if (wikiNode.getId() == null) {
@@ -343,6 +366,14 @@ public class WikiNodeSerDes {
 			else if (Objects.equals(jsonParserFieldName, "description")) {
 				if (jsonParserFieldValue != null) {
 					wikiNode.setDescription((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					wikiNode.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {

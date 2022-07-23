@@ -26,15 +26,17 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -206,34 +208,6 @@ public class CTMessageModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, CTMessage>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			CTMessage.class.getClassLoader(), CTMessage.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<CTMessage> constructor =
-				(Constructor<CTMessage>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<CTMessage, Object>>
@@ -428,6 +402,24 @@ public class CTMessageModelImpl
 	}
 
 	@Override
+	public CTMessage cloneWithOriginalValues() {
+		CTMessageImpl ctMessageImpl = new CTMessageImpl();
+
+		ctMessageImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		ctMessageImpl.setCtMessageId(
+			this.<Long>getColumnOriginalValue("ctMessageId"));
+		ctMessageImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		ctMessageImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		ctMessageImpl.setMessageContent(
+			this.<String>getColumnOriginalValue("messageContent"));
+
+		return ctMessageImpl;
+	}
+
+	@Override
 	public int compareTo(CTMessage ctMessage) {
 		long primaryKey = ctMessage.getPrimaryKey();
 
@@ -523,7 +515,7 @@ public class CTMessageModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -534,9 +526,26 @@ public class CTMessageModelImpl
 			Function<CTMessage, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((CTMessage)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((CTMessage)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -583,7 +592,9 @@ public class CTMessageModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, CTMessage>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					CTMessage.class, ModelWrapper.class);
 
 	}
 

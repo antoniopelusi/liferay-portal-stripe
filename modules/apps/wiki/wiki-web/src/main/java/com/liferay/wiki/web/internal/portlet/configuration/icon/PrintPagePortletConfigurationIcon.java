@@ -60,11 +60,8 @@ public class PrintPagePortletConfigurationIcon
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		try {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("window.open('");
-
-			sb.append(
+			return StringBundler.concat(
+				"window.open('",
 				PortletURLBuilder.create(
 					_portal.getControlPanelPortletURL(
 						portletRequest, WikiPortletKeys.WIKI_ADMIN,
@@ -89,17 +86,14 @@ public class PrintPagePortletConfigurationIcon
 					"viewMode", Constants.PRINT
 				).setWindowState(
 					LiferayWindowState.POP_UP
-				).buildString());
-
-			sb.append("', '', 'directories=0,height=480,left=80,location=1,");
-			sb.append("menubar=1,resizable=1,scrollbars=yes,status=0,");
-			sb.append("toolbar=0,top=180,width=640');");
-
-			return sb.toString();
+				).buildString(),
+				"', '', 'directories=0,height=480,left=80,location=1,",
+				"menubar=1,resizable=1,scrollbars=yes,status=0,",
+				"toolbar=0,top=180,width=640');");
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

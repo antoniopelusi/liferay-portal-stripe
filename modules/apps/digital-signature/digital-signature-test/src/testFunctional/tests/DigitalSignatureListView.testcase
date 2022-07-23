@@ -1,0 +1,207 @@
+@component-name = "portal-solutions"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Digital Signature";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginUI();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Digital Signature",
+			configurationName = "Digital Signature Configuration",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.enableCheckbox(fieldName = "enabled");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			User.logoutPG();
+		}
+	}
+
+	@description = "This is a test for LPS-131206. Verify if its possible download envelopes by Envelope Description "
+	@priority = "3"
+	test CanDownloadEnvelopeByEnvelopeDescription {
+		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Digital Signature");
+
+		var envelopeName = "Test";
+
+		Click(
+			envelopeName = "${envelopeName}",
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME");
+
+		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_DOWNLOAD_BUTTON");
+	}
+
+	@description = "This is a test for LPS-131206. Verify if its possible download envelopes by Envelope List"
+	@priority = "3"
+	test CanDownloadEnvelopeByEnvelopeList {
+		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Digital Signature");
+
+		var envelopeName = "test";
+
+		Click(
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ELLIPSIS_BUTTON",
+			value1 = "${envelopeName}");
+
+		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_DOWNLOAD_BY_LIST");
+	}
+
+	@description = "This is a test for LPS-131206. Verify if is possible navigate between pages"
+	@priority = "3"
+	test CanNavigateBetweenPages {
+		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Digital Signature");
+
+		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_NAVIGATE_NEXT");
+	}
+
+	@description = "This is a test for LPS-133595. Verify if the Create Date column shows the date correctly after created one envelope in local Timezone "
+	@priority = "4"
+	test CanViewCorrectDate {
+		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+
+		DigitalSignature.createEnvelope(
+			dmDocumentFile = "Alice's Adventures in Wonderland.pdf",
+			emailMessage = "Email Message",
+			emailSubject = "Email Subject",
+			envelopeName = "Poshi Test CanViewCorrectDate",
+			recipientEmail = "test@liferay.com",
+			recipientFullName = "Recipient Full Name");
+
+		Button.click(button = "Send");
+
+		Alert.viewSuccessMessageText(successMessage = "Your envelope was created successfully.");
+
+		Refresh();
+
+		WaitForElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECENT_CREATE_DATE");
+
+		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECENT_CREATE_DATE");
+
+		DigitalSignature.deleteEnvelope(envelopeName = "Poshi Test CanViewCorrectDate");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.deleteCP(dmDocumentTitle = "DM Document Title");
+
+		RecycleBin.openRecycleBinAdmin(siteURLKey = "guest");
+
+		RecycleBin.emptyCP();
+	}
+
+	@description = "This is a test for LPS-131206. Verify if its possible view envelope details"
+	@priority = "4"
+	test CanViewEnvelopeDetails {
+		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Digital Signature");
+
+		var envelopeName = "Test";
+
+		Click(
+			envelopeName = "${envelopeName}",
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME");
+
+		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_ID");
+	}
+
+	@description = "This is a test for LPS-131206. Verify if Digital Signature can be enabled"
+	@priority = "5"
+	test DigitalSignatureCanBeEnabled {
+		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Digital Signature");
+
+		var dsStatus = "Sent";
+
+		AssertElementPresent(
+			dsStatus = "${dsStatus}",
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_STATUS");
+	}
+
+	@description = "This is a test for LPS-137169. Verify if have more recipients than one"
+	@priority = "4"
+	test HaveMoreRecipientsThanOne {
+		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+
+		DigitalSignature.createEnvelope(
+			dmDocumentFile = "Alice's Adventures in Wonderland.pdf",
+			emailMessage = "Email Message",
+			emailSubject = "Email Subject",
+			envelopeName = "Poshi Test HaveMoreRecipientsThanOne",
+			recipientEmail = "test@liferay.com",
+			recipientFullName = "Recipient Full Name");
+
+		Click(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ADD_RECIPIENT");
+
+		Type(
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_EXTRA_RECIPIENT_NAME",
+			value1 = "Recipient Full Name 2");
+
+		Type(
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_EXTRA_RECIPIENT_EMAIL",
+			value1 = "test2@liferay.com");
+
+		Button.click(button = "Send");
+
+		Alert.viewSuccessMessageText(successMessage = "Your envelope was created successfully.");
+
+		WaitForElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECIPIENTS_BADGE");
+
+		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECIPIENTS_BADGE");
+
+		DigitalSignature.deleteEnvelope(envelopeName = "Poshi Test HaveMoreRecipientsThanOne");
+
+		AssertElementNotPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECIPIENTS_BADGE");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.deleteCP(dmDocumentTitle = "DM Document Title");
+
+		RecycleBin.openRecycleBinAdmin(siteURLKey = "guest");
+
+		RecycleBin.emptyCP();
+	}
+
+}

@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.style.book.internal.upgrade.v1_1_0.util.StyleBookEntryTable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,33 +29,32 @@ public class StyleBookEntryUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		upgradeSchema();
+		_upgradeSchema();
 	}
 
-	protected void upgradeSchema() throws Exception {
-		alter(
-			StyleBookEntryTable.class,
-			new AlterTableAddColumn("uuid_", "VARCHAR(75) null"),
-			new AlterTableAddColumn("modifiedDate", "DATE null"));
+	private void _upgradeSchema() throws Exception {
+		alterTableAddColumn("StyleBookEntry", "uuid_", "VARCHAR(75) null");
+		alterTableAddColumn("StyleBookEntry", "modifiedDate", "DATE null");
 
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			try (PreparedStatement ps1 = connection.prepareStatement(
-					"select styleBookEntryId from StyleBookEntry");
-				PreparedStatement ps2 =
+			try (PreparedStatement preparedStatement1 =
+					connection.prepareStatement(
+						"select styleBookEntryId from StyleBookEntry");
+				PreparedStatement preparedStatement2 =
 					AutoBatchPreparedStatementUtil.autoBatch(
 						connection.prepareStatement(
 							"update StyleBookEntry set uuid_ = ? where " +
 								"styleBookEntryId = ?"));
-				ResultSet rs = ps1.executeQuery()) {
+				ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-				while (rs.next()) {
-					ps2.setString(1, PortalUUIDUtil.generate());
-					ps2.setLong(2, rs.getLong(1));
+				while (resultSet.next()) {
+					preparedStatement2.setString(1, PortalUUIDUtil.generate());
+					preparedStatement2.setLong(2, resultSet.getLong(1));
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

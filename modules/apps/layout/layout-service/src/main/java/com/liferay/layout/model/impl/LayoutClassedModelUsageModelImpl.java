@@ -28,13 +28,14 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -277,34 +278,6 @@ public class LayoutClassedModelUsageModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, LayoutClassedModelUsage>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			LayoutClassedModelUsage.class.getClassLoader(),
-			LayoutClassedModelUsage.class, ModelWrapper.class);
-
-		try {
-			Constructor<LayoutClassedModelUsage> constructor =
-				(Constructor<LayoutClassedModelUsage>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<LayoutClassedModelUsage, Object>>
@@ -837,6 +810,45 @@ public class LayoutClassedModelUsageModelImpl
 	}
 
 	@Override
+	public LayoutClassedModelUsage cloneWithOriginalValues() {
+		LayoutClassedModelUsageImpl layoutClassedModelUsageImpl =
+			new LayoutClassedModelUsageImpl();
+
+		layoutClassedModelUsageImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		layoutClassedModelUsageImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		layoutClassedModelUsageImpl.setUuid(
+			this.<String>getColumnOriginalValue("uuid_"));
+		layoutClassedModelUsageImpl.setLayoutClassedModelUsageId(
+			this.<Long>getColumnOriginalValue("layoutClassedModelUsageId"));
+		layoutClassedModelUsageImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		layoutClassedModelUsageImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		layoutClassedModelUsageImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		layoutClassedModelUsageImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		layoutClassedModelUsageImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		layoutClassedModelUsageImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		layoutClassedModelUsageImpl.setContainerKey(
+			this.<String>getColumnOriginalValue("containerKey"));
+		layoutClassedModelUsageImpl.setContainerType(
+			this.<Long>getColumnOriginalValue("containerType"));
+		layoutClassedModelUsageImpl.setPlid(
+			this.<Long>getColumnOriginalValue("plid"));
+		layoutClassedModelUsageImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+		layoutClassedModelUsageImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+
+		return layoutClassedModelUsageImpl;
+	}
+
+	@Override
 	public int compareTo(LayoutClassedModelUsage layoutClassedModelUsage) {
 		long primaryKey = layoutClassedModelUsage.getPrimaryKey();
 
@@ -986,7 +998,7 @@ public class LayoutClassedModelUsageModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -997,10 +1009,27 @@ public class LayoutClassedModelUsageModelImpl
 			Function<LayoutClassedModelUsage, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply((LayoutClassedModelUsage)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(LayoutClassedModelUsage)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1050,7 +1079,8 @@ public class LayoutClassedModelUsageModelImpl
 		private static final Function
 			<InvocationHandler, LayoutClassedModelUsage>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						LayoutClassedModelUsage.class, ModelWrapper.class);
 
 	}
 

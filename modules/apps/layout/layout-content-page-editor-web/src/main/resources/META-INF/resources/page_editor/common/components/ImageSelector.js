@@ -18,11 +18,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import {VIEWPORT_SIZES} from '../../app/config/constants/viewportSizes';
-import {useSelector} from '../../app/store/index';
+import {useSelector} from '../../app/contexts/StoreContext';
+import {selectPageContents} from '../../app/selectors/selectPageContents';
 import {useId} from '../../app/utils/useId';
 import {openImageSelector} from '../../core/openImageSelector';
 
 export function ImageSelector({
+	fileEntryId,
 	imageTitle = '',
 	label,
 	onClearButtonPressed,
@@ -34,53 +36,68 @@ export function ImageSelector({
 		(state) => state.selectedViewportSize
 	);
 
+	const pageContents = useSelector(selectPageContents);
+
+	const selectedImageTitle =
+		pageContents.find((pageContent) => pageContent.classPK === fileEntryId)
+			?.title ?? imageTitle;
+
 	const hasImageTitle = !!imageTitle.length;
 
 	return selectedViewportSize === VIEWPORT_SIZES.desktop ? (
 		<>
-			<ClayForm.Group small>
+			<ClayForm.Group>
 				<label htmlFor={imageTitleId}>{label}</label>
-				<ClayInput.Group>
-					<ClayInput
-						className="page-editor__item-selector__content-input"
-						id={imageTitleId}
-						onClick={() =>
-							openImageSelector((image) => {
-								onImageSelected(image);
-							})
-						}
-						placeholder={Liferay.Language.get('select-image')}
-						readOnly
-						sizing="sm"
-						value={imageTitle}
-					/>
-					<ClayButtonWithIcon
-						className="ml-2 page-editor__item-selector__content-button"
-						displayType="secondary"
-						onClick={() =>
-							openImageSelector((image) => {
-								onImageSelected(image);
-							})
-						}
-						small
-						symbol={hasImageTitle ? 'change' : 'plus'}
-						title={Liferay.Util.sub(
-							hasImageTitle
-								? Liferay.Language.get('change-x')
-								: Liferay.Language.get('select-x'),
-							Liferay.Language.get('image')
-						)}
-					/>
+
+				<ClayInput.Group small>
+					<ClayInput.GroupItem>
+						<ClayInput
+							className="page-editor__item-selector__content-input"
+							id={imageTitleId}
+							onClick={() =>
+								openImageSelector((image) => {
+									onImageSelected(image);
+								})
+							}
+							placeholder={Liferay.Language.get('select-image')}
+							readOnly
+							sizing="sm"
+							value={selectedImageTitle}
+						/>
+					</ClayInput.GroupItem>
+
+					<ClayInput.GroupItem shrink>
+						<ClayButtonWithIcon
+							displayType="secondary"
+							onClick={() =>
+								openImageSelector((image) => {
+									onImageSelected(image);
+								})
+							}
+							small
+							symbol={hasImageTitle ? 'change' : 'plus'}
+							title={Liferay.Util.sub(
+								hasImageTitle
+									? Liferay.Language.get('change-x')
+									: Liferay.Language.get('select-x'),
+								Liferay.Language.get('image')
+							)}
+						/>
+					</ClayInput.GroupItem>
+
 					{hasImageTitle && (
 						<>
-							<ClayButtonWithIcon
-								className="ml-2 page-editor__item-selector__content-button"
-								displayType="secondary"
-								onClick={onClearButtonPressed}
-								small
-								symbol="times-circle"
-								title={Liferay.Language.get('clear-selection')}
-							/>
+							<ClayInput.GroupItem shrink>
+								<ClayButtonWithIcon
+									displayType="secondary"
+									onClick={onClearButtonPressed}
+									small
+									symbol="times-circle"
+									title={Liferay.Language.get(
+										'clear-selection'
+									)}
+								/>
+							</ClayInput.GroupItem>
 						</>
 					)}
 				</ClayInput.Group>
@@ -92,6 +109,7 @@ export function ImageSelector({
 }
 
 ImageSelector.propTypes = {
+	fileEntryId: PropTypes.string,
 	imageTitle: PropTypes.string,
 	label: PropTypes.string.isRequired,
 	onClearButtonPressed: PropTypes.func.isRequired,

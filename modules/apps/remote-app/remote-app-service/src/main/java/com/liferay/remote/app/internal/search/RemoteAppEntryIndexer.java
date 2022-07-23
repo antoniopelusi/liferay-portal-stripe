@@ -62,7 +62,6 @@ public class RemoteAppEntryIndexer extends BaseIndexer<RemoteAppEntry> {
 
 		addSearchTerm(searchQuery, searchContext, Field.ENTRY_CLASS_PK, false);
 		addSearchTerm(searchQuery, searchContext, Field.NAME, true);
-		addSearchTerm(searchQuery, searchContext, Field.URL, true);
 	}
 
 	@Override
@@ -82,7 +81,7 @@ public class RemoteAppEntryIndexer extends BaseIndexer<RemoteAppEntry> {
 
 		Document document = getBaseModelDocument(CLASS_NAME, remoteAppEntry);
 
-		Localization localization = getLocalization();
+		Localization localization = _getLocalization();
 
 		String[] nameAvailableLanguageIds =
 			localization.getAvailableLanguageIds(remoteAppEntry.getName());
@@ -103,8 +102,6 @@ public class RemoteAppEntryIndexer extends BaseIndexer<RemoteAppEntry> {
 				name);
 		}
 
-		document.addText(Field.URL, remoteAppEntry.getUrl());
-
 		if (_log.isDebugEnabled()) {
 			_log.debug("Document " + remoteAppEntry + " indexed successfully");
 		}
@@ -117,7 +114,7 @@ public class RemoteAppEntryIndexer extends BaseIndexer<RemoteAppEntry> {
 		Document document, Locale locale, String snippet,
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		Summary summary = createSummary(document, Field.NAME, Field.URL);
+		Summary summary = createSummary(document);
 
 		summary.setMaxContentLength(200);
 
@@ -140,10 +137,10 @@ public class RemoteAppEntryIndexer extends BaseIndexer<RemoteAppEntry> {
 	protected void doReindex(String[] ids) throws Exception {
 		long companyId = GetterUtil.getLong(ids[0]);
 
-		reindexRemoteAppEntries(companyId);
+		_reindexRemoteAppEntries(companyId);
 	}
 
-	protected Localization getLocalization() {
+	private Localization _getLocalization() {
 
 		// See LPS-72507
 
@@ -154,9 +151,7 @@ public class RemoteAppEntryIndexer extends BaseIndexer<RemoteAppEntry> {
 		return LocalizationUtil.getLocalization();
 	}
 
-	protected void reindexRemoteAppEntries(long companyId)
-		throws PortalException {
-
+	private void _reindexRemoteAppEntries(long companyId) throws Exception {
 		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
 			_remoteAppEntryLocalService.getIndexableActionableDynamicQuery();
 

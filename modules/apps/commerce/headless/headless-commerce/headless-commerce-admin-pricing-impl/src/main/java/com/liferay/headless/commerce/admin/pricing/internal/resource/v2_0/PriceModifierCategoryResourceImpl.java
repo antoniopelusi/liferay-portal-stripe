@@ -76,7 +76,7 @@ public class PriceModifierCategoryResourceImpl
 
 		if (commercePriceModifier == null) {
 			throw new NoSuchPriceModifierException(
-				"Unable to find Price Modifier with externalReferenceCode: " +
+				"Unable to find price modifier with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -134,15 +134,15 @@ public class PriceModifierCategoryResourceImpl
 
 		if (commercePriceModifier == null) {
 			throw new NoSuchPriceModifierException(
-				"Unable to find Price Modifier with externalReferenceCode: " +
+				"Unable to find price modifier with external reference code " +
 					externalReferenceCode);
 		}
 
 		CommercePriceModifierRel commercePriceModifierRel =
 			PriceModifierCategoryUtil.addCommercePriceModifierRel(
-				_assetCategoryLocalService, _commercePriceModifierRelService,
-				priceModifierCategory, commercePriceModifier,
-				_serviceContextHelper);
+				contextCompany.getGroupId(), _assetCategoryLocalService,
+				_commercePriceModifierRelService, priceModifierCategory,
+				commercePriceModifier, _serviceContextHelper);
 
 		return _toPriceModifierCategory(
 			commercePriceModifierRel.getCommercePriceModifierRelId());
@@ -155,8 +155,8 @@ public class PriceModifierCategoryResourceImpl
 
 		CommercePriceModifierRel commercePriceModifierRel =
 			PriceModifierCategoryUtil.addCommercePriceModifierRel(
-				_assetCategoryLocalService, _commercePriceModifierRelService,
-				priceModifierCategory,
+				contextCompany.getGroupId(), _assetCategoryLocalService,
+				_commercePriceModifierRelService, priceModifierCategory,
 				_commercePriceModifierService.getCommercePriceModifier(id),
 				_serviceContextHelper);
 

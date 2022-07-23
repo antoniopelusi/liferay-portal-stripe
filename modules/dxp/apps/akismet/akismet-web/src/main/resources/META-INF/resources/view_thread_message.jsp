@@ -94,10 +94,7 @@ if (messageId > 0) {
 					<c:if test="<%= (messageUser != null) && !messageUser.isDefaultUser() %>">
 
 						<%
-						MBStatsUser statsUser = MBStatsUserLocalServiceUtil.getStatsUser(scopeGroupId, message.getUserId());
-
-						int posts = statsUser.getMessageCount();
-						String[] ranks = MBUserRankUtil.getUserRank(mbGroupServiceSettings, themeDisplay.getLanguageId(), statsUser);
+						String[] ranks = MBStatsUserLocalServiceUtil.getUserRank(themeDisplay.getSiteGroupId(), themeDisplay.getLanguageId(), message.getUserId());
 						%>
 
 						<c:if test="<%= Validator.isNotNull(ranks[1]) %>">
@@ -113,7 +110,7 @@ if (messageId > 0) {
 						</c:if>
 
 						<span class="h5 text-default">
-							<span><liferay-ui:message key="posts" />:</span> <%= posts %>
+							<span><liferay-ui:message key="posts" />:</span> <%= MBStatsUserLocalServiceUtil.getMessageCount(scopeGroupId, message.getUserId()) %>
 						</span>
 						<span class="h5 text-default">
 							<span><liferay-ui:message key="join-date" />:</span> <%= dateFormatDate.format(messageUser.getCreateDate()) %>

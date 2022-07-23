@@ -24,13 +24,14 @@ import com.liferay.change.tracking.exception.CTLocalizedException;
 import com.liferay.change.tracking.internal.CTEnclosureUtil;
 import com.liferay.change.tracking.internal.CTServiceCopier;
 import com.liferay.change.tracking.internal.CTServiceRegistry;
-import com.liferay.change.tracking.internal.CTTableMapperHelper;
 import com.liferay.change.tracking.internal.closure.Node;
 import com.liferay.change.tracking.internal.conflict.CTConflictChecker;
 import com.liferay.change.tracking.internal.conflict.ConstraintResolverConflictInfo;
 import com.liferay.change.tracking.internal.conflict.ModificationConflictInfo;
+import com.liferay.change.tracking.internal.helper.CTTableMapperHelper;
 import com.liferay.change.tracking.internal.reference.TableReferenceDefinitionManager;
 import com.liferay.change.tracking.internal.resolver.ConstraintResolverKey;
+import com.liferay.change.tracking.mapping.CTMappingTableInfo;
 import com.liferay.change.tracking.model.CTAutoResolutionInfo;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTEntry;
@@ -43,26 +44,33 @@ import com.liferay.change.tracking.service.CTProcessLocalService;
 import com.liferay.change.tracking.service.CTSchemaVersionLocalService;
 import com.liferay.change.tracking.service.base.CTCollectionLocalServiceBaseImpl;
 import com.liferay.change.tracking.service.persistence.CTAutoResolutionInfoPersistence;
+import com.liferay.change.tracking.service.persistence.CTCommentPersistence;
+import com.liferay.change.tracking.service.persistence.CTEntryPersistence;
+import com.liferay.change.tracking.service.persistence.CTMessagePersistence;
+import com.liferay.change.tracking.service.persistence.CTPreferencesPersistence;
+import com.liferay.change.tracking.service.persistence.CTProcessPersistence;
 import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.change.tracking.spi.resolver.ConstraintResolver;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
-import com.liferay.petra.lang.SafeClosable;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
-import com.liferay.portal.kernel.dao.jdbc.CurrentConnectionUtil;
+import com.liferay.portal.kernel.dao.jdbc.CurrentConnection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ClassName;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -147,7 +155,7 @@ public class CTCollectionLocalServiceImpl
 
 		Map<Long, List<ConflictInfo>> conflictInfoMap = new HashMap<>();
 
-		List<CTEntry> ctEntries = ctEntryPersistence.findByCTCollectionId(
+		List<CTEntry> ctEntries = _ctEntryPersistence.findByCtCollectionId(
 			ctCollection.getCtCollectionId());
 
 		Map<Long, CTConflictChecker<?>> ctConflictCheckers = new HashMap<>();
@@ -182,8 +190,8 @@ public class CTCollectionLocalServiceImpl
 			ctConflictChecker.addCTEntry(ctEntry);
 		}
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
 					ctCollection.getCtCollectionId())) {
 
 			for (Map.Entry<Long, CTConflictChecker<?>> entry :
@@ -202,7 +210,7 @@ public class CTCollectionLocalServiceImpl
 		// Exclude created CTAutoResolutionInfos
 
 		List<CTAutoResolutionInfo> ctAutoResolutionInfos =
-			_ctAutoResolutionInfoPersistence.findByCTCollectionId(
+			_ctAutoResolutionInfoPersistence.findByCtCollectionId(
 				ctCollection.getCtCollectionId());
 
 		for (Map.Entry<Long, List<ConflictInfo>> entry :
@@ -266,9 +274,6 @@ public class CTCollectionLocalServiceImpl
 				ctAutoResolutionInfo.getModelClassNameId(),
 				key -> new ArrayList<>());
 
-			ClassName className = _classNameLocalService.getClassName(
-				ctAutoResolutionInfo.getModelClassNameId());
-
 			if (Objects.equals(
 					ctAutoResolutionInfo.getConflictIdentifier(),
 					ModificationConflictInfo.class.getName())) {
@@ -286,6 +291,9 @@ public class CTCollectionLocalServiceImpl
 				List<String> uniqueIndexes = StringUtil.split(
 					ctAutoResolutionInfo.getConflictIdentifier(),
 					CharPool.COMMA);
+
+				ClassName className = _classNameLocalService.getClassName(
+					ctAutoResolutionInfo.getModelClassNameId());
 
 				ConstraintResolver<?> constraintResolver =
 					_constraintResolverServiceTrackerMap.getService(
@@ -352,7 +360,7 @@ public class CTCollectionLocalServiceImpl
 			throw new SystemException(exception);
 		}
 
-		List<CTEntry> ctEntries = ctEntryPersistence.findByCTCollectionId(
+		List<CTEntry> ctEntries = _ctEntryPersistence.findByCtCollectionId(
 			ctCollection.getCtCollectionId());
 
 		Set<Long> modelClassNameIds = new HashSet<>();
@@ -377,7 +385,7 @@ public class CTCollectionLocalServiceImpl
 
 			ctService.updateWithUnsafeFunction(
 				ctPersistence -> {
-					Connection connection = CurrentConnectionUtil.getConnection(
+					Connection connection = _currentConnection.getConnection(
 						ctPersistence.getDataSource());
 
 					try (PreparedStatement preparedStatement =
@@ -396,27 +404,37 @@ public class CTCollectionLocalServiceImpl
 				});
 		}
 
-		_ctAutoResolutionInfoPersistence.removeByCTCollectionId(
+		_ctAutoResolutionInfoPersistence.removeByCtCollectionId(
 			ctCollection.getCtCollectionId());
 
-		ctCommentPersistence.removeByCTCollectionId(
+		_ctCommentPersistence.removeByCtCollectionId(
 			ctCollection.getCtCollectionId());
 
 		for (CTEntry ctEntry : ctEntries) {
-			ctEntryPersistence.remove(ctEntry);
+			_ctEntryPersistence.remove(ctEntry);
 		}
 
-		ctMessagePersistence.removeByCTCollectionId(
+		_ctMessagePersistence.removeByCtCollectionId(
 			ctCollection.getCtCollectionId());
 
 		_ctPreferencesLocalService.resetCTPreferences(
 			ctCollection.getCtCollectionId());
 
-		List<CTProcess> ctProcesses = ctProcessPersistence.findByCollectionId(
-			ctCollection.getCtCollectionId());
+		List<CTProcess> ctProcesses =
+			_ctProcessPersistence.findByCtCollectionId(
+				ctCollection.getCtCollectionId());
 
 		for (CTProcess ctProcess : ctProcesses) {
 			_ctProcessLocalService.deleteCTProcess(ctProcess);
+		}
+
+		Group group = _groupLocalService.fetchGroup(
+			ctCollection.getCompanyId(),
+			_classNameLocalService.getClassNameId(CTCollection.class),
+			ctCollection.getCtCollectionId());
+
+		if (group != null) {
+			_groupLocalService.deleteGroup(group);
 		}
 
 		_resourceLocalService.deleteResource(
@@ -459,6 +477,26 @@ public class CTCollectionLocalServiceImpl
 	}
 
 	@Override
+	public List<CTMappingTableInfo> getCTMappingTableInfos(
+		long ctCollectionId) {
+
+		List<CTMappingTableInfo> ctMappingTableInfos = new ArrayList<>();
+
+		for (CTTableMapperHelper ctTableMapperHelper :
+				_ctServiceRegistry.getCTTableMapperHelpers()) {
+
+			CTMappingTableInfo ctMappingTableInfo =
+				ctTableMapperHelper.getCTMappingTableInfo(ctCollectionId);
+
+			if (ctMappingTableInfo != null) {
+				ctMappingTableInfos.add(ctMappingTableInfo);
+			}
+		}
+
+		return ctMappingTableInfos;
+	}
+
+	@Override
 	public List<CTEntry> getDiscardCTEntries(
 		long ctCollectionId, long modelClassNameId, long modelClassPK) {
 
@@ -466,7 +504,7 @@ public class CTCollectionLocalServiceImpl
 
 		Set<Node> nodes = new HashSet<>();
 
-		int rootCount = ctEntryPersistence.countByC_MCNI_MCPK(
+		int rootCount = _ctEntryPersistence.countByC_MCNI_MCPK(
 			ctCollectionId, modelClassNameId, modelClassPK);
 
 		if (rootCount == 0) {
@@ -482,7 +520,7 @@ public class CTCollectionLocalServiceImpl
 				long classNameId = entry.getKey();
 
 				for (long classPK : entry.getValue()) {
-					int count = ctEntryPersistence.countByC_MCNI_MCPK(
+					int count = _ctEntryPersistence.countByC_MCNI_MCPK(
 						ctCollectionId, classNameId, classPK);
 
 					if (count == 0) {
@@ -534,17 +572,14 @@ public class CTCollectionLocalServiceImpl
 						break;
 					}
 
-					CTEntry ctEntry = ctEntryPersistence.fetchByC_MCNI_MCPK(
+					CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
 						ctCollectionId, backtraceClassNameId, backtraceClassPK);
 
-					if (ctEntry == null) {
-						break;
-					}
-
-					if ((ctEntry.getChangeType() !=
+					if ((ctEntry == null) ||
+						((ctEntry.getChangeType() !=
 							CTConstants.CT_CHANGE_TYPE_DELETION) &&
-						_tableReferenceDefinitionManager.isChildModelOptional(
-							previousModelClassNameId, backtraceClassNameId)) {
+						 _tableReferenceDefinitionManager.isChildModelOptional(
+							 previousModelClassNameId, backtraceClassNameId))) {
 
 						break;
 					}
@@ -580,7 +615,7 @@ public class CTCollectionLocalServiceImpl
 				discardEnclosureMap.entrySet()) {
 
 			for (long classPK : entry.getValue()) {
-				CTEntry ctEntry = ctEntryPersistence.fetchByC_MCNI_MCPK(
+				CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
 					ctCollectionId, entry.getKey(), classPK);
 
 				if (ctEntry != null) {
@@ -605,7 +640,7 @@ public class CTCollectionLocalServiceImpl
 				CTEnclosureUtil.getEnclosureParentEntries(
 					ctClosure, enclosureMap)) {
 
-			int count = ctEntryPersistence.countByC_MCNI_MCPK(
+			int count = _ctEntryPersistence.countByC_MCNI_MCPK(
 				ctCollectionId, parentEntry.getKey(), parentEntry.getValue());
 
 			if (count > 0) {
@@ -656,10 +691,10 @@ public class CTCollectionLocalServiceImpl
 		ctPreferences.setPreviousCtCollectionId(
 			CTConstants.CT_COLLECTION_ID_PRODUCTION);
 
-		ctPreferencesPersistence.update(ctPreferences);
+		_ctPreferencesPersistence.update(ctPreferences);
 
 		List<CTEntry> publishedCTEntries =
-			ctEntryPersistence.findByCTCollectionId(
+			_ctEntryPersistence.findByCtCollectionId(
 				undoCTCollection.getCtCollectionId());
 
 		Map<Long, CTServiceCopier<?>> ctServiceCopiers = new HashMap<>();
@@ -694,7 +729,7 @@ public class CTCollectionLocalServiceImpl
 						newCTCollection.getCtCollectionId()));
 			}
 
-			CTEntry ctEntry = ctEntryPersistence.create(++batchCounter);
+			CTEntry ctEntry = _ctEntryPersistence.create(++batchCounter);
 
 			ctEntry.setCompanyId(newCTCollection.getCompanyId());
 			ctEntry.setUserId(newCTCollection.getUserId());
@@ -714,7 +749,7 @@ public class CTCollectionLocalServiceImpl
 
 			ctEntry.setChangeType(changeType);
 
-			ctEntryPersistence.update(ctEntry);
+			_ctEntryPersistence.update(ctEntry);
 		}
 
 		try {
@@ -846,6 +881,9 @@ public class CTCollectionLocalServiceImpl
 	@Reference
 	private CTClosureFactory _ctClosureFactory;
 
+	@Reference
+	private CTCommentPersistence _ctCommentPersistence;
+
 	private ServiceTrackerMap<String, CTDisplayRenderer<?>>
 		_ctDisplayRendererServiceTrackerMap;
 
@@ -853,16 +891,34 @@ public class CTCollectionLocalServiceImpl
 	private CTEntryLocalService _ctEntryLocalService;
 
 	@Reference
+	private CTEntryPersistence _ctEntryPersistence;
+
+	@Reference
+	private CTMessagePersistence _ctMessagePersistence;
+
+	@Reference
 	private CTPreferencesLocalService _ctPreferencesLocalService;
 
 	@Reference
+	private CTPreferencesPersistence _ctPreferencesPersistence;
+
+	@Reference
 	private CTProcessLocalService _ctProcessLocalService;
+
+	@Reference
+	private CTProcessPersistence _ctProcessPersistence;
 
 	@Reference
 	private CTSchemaVersionLocalService _ctSchemaVersionLocalService;
 
 	@Reference
 	private CTServiceRegistry _ctServiceRegistry;
+
+	@Reference
+	private CurrentConnection _currentConnection;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;

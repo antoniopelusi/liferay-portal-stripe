@@ -18,9 +18,9 @@ import com.liferay.asset.kernel.exception.NoSuchCategoryException;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryTable;
 import com.liferay.asset.kernel.service.persistence.AssetCategoryPersistence;
+import com.liferay.asset.kernel.service.persistence.AssetCategoryUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
@@ -33,7 +33,6 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -41,7 +40,10 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelperUtil;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -49,12 +51,10 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portlet.asset.model.impl.AssetCategoryImpl;
 import com.liferay.portlet.asset.model.impl.AssetCategoryModelImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -68,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the asset category service.
@@ -11864,32 +11863,31 @@ public class AssetCategoryPersistenceImpl
 	private static final String _FINDER_COLUMN_P_N_V_VOCABULARYID_2 =
 		"assetCategory.vocabularyId = ?";
 
-	private FinderPath _finderPathFetchByC_ERC;
-	private FinderPath _finderPathCountByC_ERC;
+	private FinderPath _finderPathFetchByG_ERC;
+	private FinderPath _finderPathCountByG_ERC;
 
 	/**
-	 * Returns the asset category where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchCategoryException</code> if it could not be found.
+	 * Returns the asset category where groupId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchCategoryException</code> if it could not be found.
 	 *
-	 * @param companyId the company ID
+	 * @param groupId the group ID
 	 * @param externalReferenceCode the external reference code
 	 * @return the matching asset category
 	 * @throws NoSuchCategoryException if a matching asset category could not be found
 	 */
 	@Override
-	public AssetCategory findByC_ERC(
-			long companyId, String externalReferenceCode)
+	public AssetCategory findByG_ERC(long groupId, String externalReferenceCode)
 		throws NoSuchCategoryException {
 
-		AssetCategory assetCategory = fetchByC_ERC(
-			companyId, externalReferenceCode);
+		AssetCategory assetCategory = fetchByG_ERC(
+			groupId, externalReferenceCode);
 
 		if (assetCategory == null) {
 			StringBundler sb = new StringBundler(6);
 
 			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			sb.append("companyId=");
-			sb.append(companyId);
+			sb.append("groupId=");
+			sb.append(groupId);
 
 			sb.append(", externalReferenceCode=");
 			sb.append(externalReferenceCode);
@@ -11907,30 +11905,30 @@ public class AssetCategoryPersistenceImpl
 	}
 
 	/**
-	 * Returns the asset category where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 * Returns the asset category where groupId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
 	 *
-	 * @param companyId the company ID
+	 * @param groupId the group ID
 	 * @param externalReferenceCode the external reference code
 	 * @return the matching asset category, or <code>null</code> if a matching asset category could not be found
 	 */
 	@Override
-	public AssetCategory fetchByC_ERC(
-		long companyId, String externalReferenceCode) {
+	public AssetCategory fetchByG_ERC(
+		long groupId, String externalReferenceCode) {
 
-		return fetchByC_ERC(companyId, externalReferenceCode, true);
+		return fetchByG_ERC(groupId, externalReferenceCode, true);
 	}
 
 	/**
-	 * Returns the asset category where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns the asset category where groupId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
-	 * @param companyId the company ID
+	 * @param groupId the group ID
 	 * @param externalReferenceCode the external reference code
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset category, or <code>null</code> if a matching asset category could not be found
 	 */
 	@Override
-	public AssetCategory fetchByC_ERC(
-		long companyId, String externalReferenceCode, boolean useFinderCache) {
+	public AssetCategory fetchByG_ERC(
+		long groupId, String externalReferenceCode, boolean useFinderCache) {
 
 		externalReferenceCode = Objects.toString(externalReferenceCode, "");
 
@@ -11940,20 +11938,20 @@ public class AssetCategoryPersistenceImpl
 		Object[] finderArgs = null;
 
 		if (useFinderCache && productionMode) {
-			finderArgs = new Object[] {companyId, externalReferenceCode};
+			finderArgs = new Object[] {groupId, externalReferenceCode};
 		}
 
 		Object result = null;
 
 		if (useFinderCache && productionMode) {
 			result = FinderCacheUtil.getResult(
-				_finderPathFetchByC_ERC, finderArgs);
+				_finderPathFetchByG_ERC, finderArgs);
 		}
 
 		if (result instanceof AssetCategory) {
 			AssetCategory assetCategory = (AssetCategory)result;
 
-			if ((companyId != assetCategory.getCompanyId()) ||
+			if ((groupId != assetCategory.getGroupId()) ||
 				!Objects.equals(
 					externalReferenceCode,
 					assetCategory.getExternalReferenceCode())) {
@@ -11967,17 +11965,17 @@ public class AssetCategoryPersistenceImpl
 
 			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_G_ERC_GROUPID_2);
 
 			boolean bindExternalReferenceCode = false;
 
 			if (externalReferenceCode.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_3);
 			}
 			else {
 				bindExternalReferenceCode = true;
 
-				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_2);
 			}
 
 			String sql = sb.toString();
@@ -11991,7 +11989,7 @@ public class AssetCategoryPersistenceImpl
 
 				QueryPos queryPos = QueryPos.getInstance(query);
 
-				queryPos.add(companyId);
+				queryPos.add(groupId);
 
 				if (bindExternalReferenceCode) {
 					queryPos.add(externalReferenceCode);
@@ -12002,7 +12000,7 @@ public class AssetCategoryPersistenceImpl
 				if (list.isEmpty()) {
 					if (useFinderCache && productionMode) {
 						FinderCacheUtil.putResult(
-							_finderPathFetchByC_ERC, finderArgs, list);
+							_finderPathFetchByG_ERC, finderArgs, list);
 					}
 				}
 				else {
@@ -12012,12 +12010,12 @@ public class AssetCategoryPersistenceImpl
 						if (_log.isWarnEnabled()) {
 							if (!productionMode || !useFinderCache) {
 								finderArgs = new Object[] {
-									companyId, externalReferenceCode
+									groupId, externalReferenceCode
 								};
 							}
 
 							_log.warn(
-								"AssetCategoryPersistenceImpl.fetchByC_ERC(long, String, boolean) with parameters (" +
+								"AssetCategoryPersistenceImpl.fetchByG_ERC(long, String, boolean) with parameters (" +
 									StringUtil.merge(finderArgs) +
 										") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
 						}
@@ -12047,32 +12045,32 @@ public class AssetCategoryPersistenceImpl
 	}
 
 	/**
-	 * Removes the asset category where companyId = &#63; and externalReferenceCode = &#63; from the database.
+	 * Removes the asset category where groupId = &#63; and externalReferenceCode = &#63; from the database.
 	 *
-	 * @param companyId the company ID
+	 * @param groupId the group ID
 	 * @param externalReferenceCode the external reference code
 	 * @return the asset category that was removed
 	 */
 	@Override
-	public AssetCategory removeByC_ERC(
-			long companyId, String externalReferenceCode)
+	public AssetCategory removeByG_ERC(
+			long groupId, String externalReferenceCode)
 		throws NoSuchCategoryException {
 
-		AssetCategory assetCategory = findByC_ERC(
-			companyId, externalReferenceCode);
+		AssetCategory assetCategory = findByG_ERC(
+			groupId, externalReferenceCode);
 
 		return remove(assetCategory);
 	}
 
 	/**
-	 * Returns the number of asset categories where companyId = &#63; and externalReferenceCode = &#63;.
+	 * Returns the number of asset categories where groupId = &#63; and externalReferenceCode = &#63;.
 	 *
-	 * @param companyId the company ID
+	 * @param groupId the group ID
 	 * @param externalReferenceCode the external reference code
 	 * @return the number of matching asset categories
 	 */
 	@Override
-	public int countByC_ERC(long companyId, String externalReferenceCode) {
+	public int countByG_ERC(long groupId, String externalReferenceCode) {
 		externalReferenceCode = Objects.toString(externalReferenceCode, "");
 
 		boolean productionMode = CTPersistenceHelperUtil.isProductionMode(
@@ -12084,9 +12082,9 @@ public class AssetCategoryPersistenceImpl
 		Long count = null;
 
 		if (productionMode) {
-			finderPath = _finderPathCountByC_ERC;
+			finderPath = _finderPathCountByG_ERC;
 
-			finderArgs = new Object[] {companyId, externalReferenceCode};
+			finderArgs = new Object[] {groupId, externalReferenceCode};
 
 			count = (Long)FinderCacheUtil.getResult(finderPath, finderArgs);
 		}
@@ -12096,17 +12094,17 @@ public class AssetCategoryPersistenceImpl
 
 			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_G_ERC_GROUPID_2);
 
 			boolean bindExternalReferenceCode = false;
 
 			if (externalReferenceCode.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_3);
 			}
 			else {
 				bindExternalReferenceCode = true;
 
-				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
+				sb.append(_FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_2);
 			}
 
 			String sql = sb.toString();
@@ -12120,7 +12118,7 @@ public class AssetCategoryPersistenceImpl
 
 				QueryPos queryPos = QueryPos.getInstance(query);
 
-				queryPos.add(companyId);
+				queryPos.add(groupId);
 
 				if (bindExternalReferenceCode) {
 					queryPos.add(externalReferenceCode);
@@ -12143,13 +12141,13 @@ public class AssetCategoryPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_C_ERC_COMPANYID_2 =
-		"assetCategory.companyId = ? AND ";
+	private static final String _FINDER_COLUMN_G_ERC_GROUPID_2 =
+		"assetCategory.groupId = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2 =
+	private static final String _FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_2 =
 		"assetCategory.externalReferenceCode = ?";
 
-	private static final String _FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3 =
+	private static final String _FINDER_COLUMN_G_ERC_EXTERNALREFERENCECODE_3 =
 		"(assetCategory.externalReferenceCode IS NULL OR assetCategory.externalReferenceCode = '')";
 
 	public AssetCategoryPersistenceImpl() {
@@ -12196,13 +12194,15 @@ public class AssetCategoryPersistenceImpl
 			assetCategory);
 
 		FinderCacheUtil.putResult(
-			_finderPathFetchByC_ERC,
+			_finderPathFetchByG_ERC,
 			new Object[] {
-				assetCategory.getCompanyId(),
+				assetCategory.getGroupId(),
 				assetCategory.getExternalReferenceCode()
 			},
 			assetCategory);
 	}
+
+	private int _valueObjectFinderCacheListThreshold;
 
 	/**
 	 * Caches the asset categories in the entity cache if it is enabled.
@@ -12211,6 +12211,13 @@ public class AssetCategoryPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<AssetCategory> assetCategories) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (assetCategories.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (AssetCategory assetCategory : assetCategories) {
 			if (assetCategory.getCtCollectionId() != 0) {
 				continue;
@@ -12293,14 +12300,14 @@ public class AssetCategoryPersistenceImpl
 			_finderPathFetchByP_N_V, args, assetCategoryModelImpl);
 
 		args = new Object[] {
-			assetCategoryModelImpl.getCompanyId(),
+			assetCategoryModelImpl.getGroupId(),
 			assetCategoryModelImpl.getExternalReferenceCode()
 		};
 
 		FinderCacheUtil.putResult(
-			_finderPathCountByC_ERC, args, Long.valueOf(1));
+			_finderPathCountByG_ERC, args, Long.valueOf(1));
 		FinderCacheUtil.putResult(
-			_finderPathFetchByC_ERC, args, assetCategoryModelImpl);
+			_finderPathFetchByG_ERC, args, assetCategoryModelImpl);
 	}
 
 	/**
@@ -12445,24 +12452,24 @@ public class AssetCategoryPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (assetCategory.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				assetCategory.setCreateDate(now);
+				assetCategory.setCreateDate(date);
 			}
 			else {
-				assetCategory.setCreateDate(serviceContext.getCreateDate(now));
+				assetCategory.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!assetCategoryModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				assetCategory.setModifiedDate(now);
+				assetCategory.setModifiedDate(date);
 			}
 			else {
 				assetCategory.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -12625,6 +12632,26 @@ public class AssetCategoryPersistenceImpl
 
 			if (assetCategory != null) {
 				map.put(primaryKey, assetCategory);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -12890,7 +12917,8 @@ public class AssetCategoryPersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -12924,7 +12952,6 @@ public class AssetCategoryPersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -12949,7 +12976,6 @@ public class AssetCategoryPersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK, Collections.singleton("categoryId"));
 		_ctColumnNamesMap.put(
@@ -12965,10 +12991,8 @@ public class AssetCategoryPersistenceImpl
 	 * Initializes the asset category persistence.
 	 */
 	public void afterPropertiesSet() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_argumentsResolverServiceRegistration = registry.registerService(
-			ArgumentsResolver.class, new AssetCategoryModelArgumentsResolver());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -13257,21 +13281,39 @@ public class AssetCategoryPersistenceImpl
 			},
 			new String[] {"parentCategoryId", "name", "vocabularyId"}, false);
 
-		_finderPathFetchByC_ERC = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByC_ERC",
+		_finderPathFetchByG_ERC = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByG_ERC",
 			new String[] {Long.class.getName(), String.class.getName()},
-			new String[] {"companyId", "externalReferenceCode"}, true);
+			new String[] {"groupId", "externalReferenceCode"}, true);
 
-		_finderPathCountByC_ERC = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_ERC",
+		_finderPathCountByG_ERC = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_ERC",
 			new String[] {Long.class.getName(), String.class.getName()},
-			new String[] {"companyId", "externalReferenceCode"}, false);
+			new String[] {"groupId", "externalReferenceCode"}, false);
+
+		_setAssetCategoryUtilPersistence(this);
 	}
 
 	public void destroy() {
-		EntityCacheUtil.removeCache(AssetCategoryImpl.class.getName());
+		_setAssetCategoryUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		EntityCacheUtil.removeCache(AssetCategoryImpl.class.getName());
+	}
+
+	private void _setAssetCategoryUtilPersistence(
+		AssetCategoryPersistence assetCategoryPersistence) {
+
+		try {
+			Field field = AssetCategoryUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, assetCategoryPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	private static final String _SQL_SELECT_ASSETCATEGORY =
@@ -13326,114 +13368,6 @@ public class AssetCategoryPersistenceImpl
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
-	}
-
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class AssetCategoryModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AssetCategoryModelImpl assetCategoryModelImpl =
-				(AssetCategoryModelImpl)baseModel;
-
-			long columnBitmask = assetCategoryModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(assetCategoryModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						assetCategoryModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(assetCategoryModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AssetCategoryImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AssetCategoryTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AssetCategoryModelImpl assetCategoryModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						assetCategoryModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = assetCategoryModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= AssetCategoryModelImpl.getColumnBitmask(
-				"name");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
 	}
 
 }

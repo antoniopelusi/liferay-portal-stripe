@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -345,6 +346,28 @@ public class UpstreamFailureUtil {
 			TopLevelBuild topLevelBuild)
 		throws IllegalStateException {
 
+		Properties buildProperties = null;
+
+		try {
+			buildProperties = JenkinsResultsParserUtil.getBuildProperties();
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(
+				"Unable to get build properties", ioException);
+		}
+
+		String portalDirName = buildProperties.getProperty(
+			JenkinsResultsParserUtil.combine(
+				"portal.dir[", topLevelBuild.getBranchName(), "]"));
+
+		String baseGitRepositoryName = portalDirName.replaceAll(
+			"(?:.*)(liferay-portal.*)", "$1");
+
+		GitWorkingDirectory gitWorkingDirectory =
+			GitWorkingDirectoryFactory.newGitWorkingDirectory(
+				topLevelBuild.getBranchName(), (File)null,
+				baseGitRepositoryName);
+
 		List<String> buildResultJSONURLs =
 			JenkinsResultsParserUtil.getBuildResultJsonURLs(
 				topLevelBuild.getAcceptanceUpstreamJobURL(), 20);
@@ -365,12 +388,14 @@ public class UpstreamFailureUtil {
 
 				String sha = jsonObject.getString("SHA");
 
-				GitWorkingDirectory gitWorkingDirectory =
-					GitWorkingDirectoryFactory.newGitWorkingDirectory(
-						topLevelBuild.getBranchName(), (File)null,
-						topLevelBuild.getBaseGitRepositoryName());
+				if (!gitWorkingDirectory.refContainsSHA("HEAD", sha)) {
+					continue;
+				}
 
-				if (gitWorkingDirectory.refContainsSHA("HEAD", sha)) {
+				JSONArray failureBatchesJSONArray = jsonObject.getJSONArray(
+					"failedBatches");
+
+				if (failureBatchesJSONArray.length() > 0) {
 					System.out.println(
 						"Downloading upstream test results from " +
 							buildResultJSONURL);

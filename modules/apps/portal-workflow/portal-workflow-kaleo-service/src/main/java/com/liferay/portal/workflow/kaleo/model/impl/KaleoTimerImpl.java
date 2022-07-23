@@ -26,9 +26,6 @@ import java.util.List;
  */
 public class KaleoTimerImpl extends KaleoTimerBaseImpl {
 
-	public KaleoTimerImpl() {
-	}
-
 	@Override
 	public List<KaleoTaskAssignment> getKaleoTaskReassignments() {
 		return KaleoTaskAssignmentLocalServiceUtil.getKaleoTaskAssignments(

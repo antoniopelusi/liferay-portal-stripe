@@ -17,9 +17,9 @@ package com.liferay.asset.category.property.internal.service;
 import com.liferay.asset.category.property.service.AssetCategoryPropertyLocalService;
 import com.liferay.asset.kernel.model.AssetCategoryProperty;
 import com.liferay.asset.kernel.service.AssetCategoryPropertyLocalServiceWrapper;
-import com.liferay.petra.model.adapter.util.ModelAdapterUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.model.adapter.ModelAdapterUtil;
 
 import java.util.List;
 
@@ -32,17 +32,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = ServiceWrapper.class)
 public class ModularAssetCategoryPropertyLocalServiceWrapper
 	extends AssetCategoryPropertyLocalServiceWrapper {
-
-	public ModularAssetCategoryPropertyLocalServiceWrapper() {
-		super(null);
-	}
-
-	public ModularAssetCategoryPropertyLocalServiceWrapper(
-		com.liferay.asset.kernel.service.AssetCategoryPropertyLocalService
-			assetCategoryPropertyLocalService) {
-
-		super(assetCategoryPropertyLocalService);
-	}
 
 	@Override
 	public AssetCategoryProperty addCategoryProperty(

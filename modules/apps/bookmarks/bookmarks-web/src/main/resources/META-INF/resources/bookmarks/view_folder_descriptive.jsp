@@ -34,7 +34,7 @@ folder = folder.toEscapedModel();
 			).setRedirect(
 				currentURL
 			).setParameter(
-				"folderId", String.valueOf(folder.getFolderId())
+				"folderId", folder.getFolderId()
 			).buildString()
 		%>'
 	>
@@ -47,8 +47,8 @@ folder = folder.toEscapedModel();
 </h5>
 
 <%
-int foldersCount = BookmarksFolderServiceUtil.getFoldersCount(scopeGroupId, folder.getFolderId());
 int entriesCount = BookmarksEntryServiceUtil.getEntriesCount(scopeGroupId, folder.getFolderId());
+int foldersCount = BookmarksFolderServiceUtil.getFoldersCount(scopeGroupId, folder.getFolderId());
 %>
 
 <span class="h6">

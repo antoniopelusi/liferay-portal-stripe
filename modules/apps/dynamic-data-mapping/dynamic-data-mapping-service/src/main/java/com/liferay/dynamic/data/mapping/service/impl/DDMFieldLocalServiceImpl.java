@@ -234,7 +234,7 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 
 	@Override
 	public int getDDMFormValuesCount(long structureId) {
-		Long count = ddmFieldPersistence.dslQuery(
+		return ddmFieldPersistence.dslQueryCount(
 			DSLQueryFactoryUtil.count(
 			).from(
 				DDMFieldTable.INSTANCE
@@ -247,8 +247,6 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 						structureId)
 				)
 			));
-
-		return count.intValue();
 	}
 
 	@Override
@@ -319,15 +317,13 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 			languageIdColumn = aliasDDMFieldAttributeTable.languageId;
 		}
 
-		Long count = ddmFieldPersistence.dslQuery(
+		return ddmFieldPersistence.dslQueryCount(
 			joinStep.where(
 				DDMFieldTable.INSTANCE.companyId.eq(
 					companyId
 				).and(
 					DDMFieldTable.INSTANCE.fieldType.eq(fieldType)
 				)));
-
-		return count.intValue();
 	}
 
 	@Override
@@ -486,11 +482,9 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 					++batchCounter);
 			}
 
-			long fieldId = instanceToFieldIdMap.get(
-				ddmFieldAttributeInfo._ddmFieldInfo._instanceId);
-
-			ddmFieldAttribute.setFieldId(fieldId);
-
+			ddmFieldAttribute.setFieldId(
+				instanceToFieldIdMap.get(
+					ddmFieldAttributeInfo._ddmFieldInfo._instanceId));
 			ddmFieldAttribute.setStorageId(storageId);
 			ddmFieldAttribute.setAttributeName(
 				ddmFieldAttributeInfo._attributeName);
@@ -510,6 +504,10 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 		for (DDMFormFieldValue ddmFormFieldValue : ddmFormValues) {
 			DDMFormField ddmFormField = ddmFormFieldMap.get(
 				ddmFormFieldValue.getName());
+
+			if (ddmFormField == null) {
+				continue;
+			}
 
 			String instanceId = ddmFormFieldValue.getInstanceId();
 

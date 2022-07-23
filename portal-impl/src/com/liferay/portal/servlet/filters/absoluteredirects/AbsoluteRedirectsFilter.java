@@ -70,15 +70,15 @@ public class AbsoluteRedirectsFilter
 		PortalUtil.getCurrentCompleteURL(httpServletRequest);
 		PortalUtil.getCurrentURL(httpServletRequest);
 
-		HttpSession session = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
-		Boolean httpsInitial = (Boolean)session.getAttribute(
+		Boolean httpsInitial = (Boolean)httpSession.getAttribute(
 			WebKeys.HTTPS_INITIAL);
 
 		if (httpsInitial == null) {
 			httpsInitial = Boolean.valueOf(httpServletRequest.isSecure());
 
-			session.setAttribute(WebKeys.HTTPS_INITIAL, httpsInitial);
+			httpSession.setAttribute(WebKeys.HTTPS_INITIAL, httpsInitial);
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Setting httpsInitial to " + httpsInitial);

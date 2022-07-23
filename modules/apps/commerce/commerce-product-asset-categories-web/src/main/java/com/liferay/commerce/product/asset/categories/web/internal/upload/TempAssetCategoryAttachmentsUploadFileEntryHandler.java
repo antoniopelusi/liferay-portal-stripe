@@ -14,7 +14,6 @@
 
 package com.liferay.commerce.product.asset.categories.web.internal.upload;
 
-import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryService;
 import com.liferay.commerce.product.configuration.AttachmentsConfiguration;
 import com.liferay.commerce.product.exception.CPAttachmentFileEntryNameException;
@@ -28,7 +27,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.upload.UniqueFileNameProvider;
@@ -63,11 +61,6 @@ public class TempAssetCategoryAttachmentsUploadFileEntryHandler
 			(ThemeDisplay)uploadPortletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		long categoryId = ParamUtil.getLong(uploadPortletRequest, "categoryId");
-
-		AssetCategory assetCategory = assetCategoryService.fetchCategory(
-			categoryId);
-
 		String fileName = uploadPortletRequest.getFileName(_PARAMETER_NAME);
 
 		_validateFile(fileName, uploadPortletRequest.getSize(_PARAMETER_NAME));
@@ -78,9 +71,8 @@ public class TempAssetCategoryAttachmentsUploadFileEntryHandler
 		try (InputStream inputStream = uploadPortletRequest.getFileAsStream(
 				_PARAMETER_NAME)) {
 
-			return addFileEntry(
-				assetCategory.getCategoryId(), fileName, contentType,
-				inputStream, themeDisplay);
+			return _addFileEntry(
+				fileName, contentType, inputStream, themeDisplay);
 		}
 	}
 
@@ -90,9 +82,12 @@ public class TempAssetCategoryAttachmentsUploadFileEntryHandler
 			AttachmentsConfiguration.class, properties);
 	}
 
-	protected FileEntry addFileEntry(
-			long categoryId, String fileName, String contentType,
-			InputStream inputStream, ThemeDisplay themeDisplay)
+	@Reference
+	protected AssetCategoryService assetCategoryService;
+
+	private FileEntry _addFileEntry(
+			String fileName, String contentType, InputStream inputStream,
+			ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		String uniqueFileName = _uniqueFileNameProvider.provide(
@@ -102,9 +97,6 @@ public class TempAssetCategoryAttachmentsUploadFileEntryHandler
 			themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
 			_TEMP_FOLDER_NAME, uniqueFileName, inputStream, contentType);
 	}
-
-	@Reference
-	protected AssetCategoryService assetCategoryService;
 
 	private boolean _exists(ThemeDisplay themeDisplay, String curFileName) {
 		try {
@@ -120,7 +112,7 @@ public class TempAssetCategoryAttachmentsUploadFileEntryHandler
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

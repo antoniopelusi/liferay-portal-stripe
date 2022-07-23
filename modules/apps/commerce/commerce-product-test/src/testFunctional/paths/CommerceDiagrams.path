@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>CommerceDiagrams</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">CommerceDiagrams</td></tr>
+</thead>
+
+<tbody>
+<!--DIAGRAM_ADMIN_TOOLTIP-->
+<tr>
+	<td>DIAGRAM_ADMIN_TOOLTIP</td>
+	<td>//form[contains(@class,'diagram-admin-tooltip')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_ADMIN_TOOLTIP_POSITION</td>
+	<td>//form[contains(@class,'diagram-admin-tooltip')]//input[contains(@id,'sequenceInput') and contains (@value,'${key_positionValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_ADMIN_TOOLTIP_LINKED_TYPE</td>
+	<td>//form[contains(@class,'diagram-admin-tooltip')]//label[contains(@for,'linkedProductInput') and text()='${key_linkedType}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_ADMIN_TOOLTIP_QUANTITY</td>
+	<td>//form[contains(@class,'diagram-admin-tooltip')]//input[contains(@id,'quantityInput') and contains (@value,'${key_quantity}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_ADMIN_TOOLTIP_INPUT_GROUP_ITEM</td>
+	<td>//form[contains(@class,'diagram-admin-tooltip')]//div[contains(@class,'input-group-item')]//input[contains(@value,'${key_inputItem}')]</td>
+	<td></td>
+</tr>
+<!--DIAGRAM_MAPPING-->
+<tr>
+	<td>DIAGRAM_FILE</td>
+	<td>//div[contains(@class,'image-wrapper cropper')]/img[contains(@src,'${key_image}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_IMAGE</td>
+	<td>//div[contains(@class,'view-wrapper')]//*[name()='g']//*[name()='image']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_IMAGE_SPECIFIC</td>
+	<td>//div[contains(@class,'view-wrapper')]//*[name()='g']//*[name()='image' and contains(@href,'${key_image}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_MAPPED_PRODUCTS</td>
+	<td>//div[contains(@class,'card')][contains(.,'Mapped Products')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_MAPPED_PRODUCTS_CONTENT</td>
+	<td>//div[contains(@class,'card')][contains(.,'Mapped Products')]//tr[@class]//td[contains(.,'${key_productName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_IMAGE_SVG_SPECIFIC</td>
+	<td>//div[contains(@class,'view-wrapper')]//*[name()='g']//*[name()='${key_imageItem}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_PIN</td>
+	<td>//div[contains(@class,'view-wrapper')]//*[contains(@class,'pin') and text()='${key_pinNumber}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_PIN_INPUT_FIELD</td>
+	<td>//label[contains(.,'${key_inputField}')]//..//input[contains(@class,'form-control')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_PIN_TYPE_SELECT</td>
+	<td>//label[contains(.,'Type')]/../select[contains(@id,'typeInput')]</td>
+	<td></td>
+</tr>
+<!--DIAGRAM_SETTINGS-->
+<tr>
+	<td>DIAGRAM_SETTINGS_TYPE_OPTION</td>
+	<td>//select[contains(@id,'type')]//option[contains(text(),'${key_settingOption}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DIAGRAM_SETTINGS_SELECTED_TYPE</td>
+	<td>//select[contains(@id,'type')]//option[@selected and contains(.,'${key_selectedType}')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

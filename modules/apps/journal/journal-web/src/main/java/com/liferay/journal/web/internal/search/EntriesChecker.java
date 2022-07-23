@@ -107,7 +107,7 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -123,7 +123,7 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -132,19 +132,11 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("['");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(JournalFolder.class.getSimpleName());
-		sb.append("', '");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append(RowChecker.ROW_IDS);
-		sb.append(JournalArticle.class.getSimpleName());
-		sb.append("']");
-
-		String checkBoxRowIds = sb.toString();
+		String checkBoxRowIds = StringBundler.concat(
+			"['", _liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			JournalFolder.class.getSimpleName(), "', '",
+			_liferayPortletResponse.getNamespace(), RowChecker.ROW_IDS,
+			JournalArticle.class.getSimpleName(), "']");
 
 		return getRowCheckBox(
 			httpServletRequest, checked, disabled,

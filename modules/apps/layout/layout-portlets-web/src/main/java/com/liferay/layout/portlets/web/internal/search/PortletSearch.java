@@ -14,11 +14,12 @@
 
 package com.liferay.layout.portlets.web.internal.search;
 
+import com.liferay.layout.portlets.web.internal.constants.LayoutsPortletsPortletKeys;
 import com.liferay.layout.portlets.web.internal.util.comparator.PortletDisplayNameComparator;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.ParamUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,29 +57,28 @@ public class PortletSearch extends SearchContainer<Portlet> {
 		iteratorURL.setParameter(
 			PortletDisplayTerms.NAME, displayTerms.getName());
 
-		String orderByCol = ParamUtil.getString(
-			portletRequest, "orderByCol", "name");
-		String orderByType = ParamUtil.getString(
-			portletRequest, "orderByType", "asc");
-
-		OrderByComparator<Portlet> orderByComparator = getOrderByComparator(
-			orderByCol, orderByType);
+		String orderByCol = SearchOrderByUtil.getOrderByCol(
+			portletRequest, LayoutsPortletsPortletKeys.LAYOUT_PORTLETS, "name");
 
 		setOrderByCol(orderByCol);
+
+		String orderByType = SearchOrderByUtil.getOrderByType(
+			portletRequest, LayoutsPortletsPortletKeys.LAYOUT_PORTLETS, "asc");
+
+		setOrderByComparator(_getOrderByComparator(orderByCol, orderByType));
 		setOrderByType(orderByType);
-		setOrderByComparator(orderByComparator);
 	}
 
-	protected static OrderByComparator<Portlet> getOrderByComparator(
+	private OrderByComparator<Portlet> _getOrderByComparator(
 		String orderByCol, String orderByType) {
-
-		OrderByComparator<Portlet> orderByComparator = null;
 
 		boolean orderByAsc = false;
 
 		if (orderByType.equals("asc")) {
 			orderByAsc = true;
 		}
+
+		OrderByComparator<Portlet> orderByComparator = null;
 
 		if (orderByCol.equals("name")) {
 			orderByComparator = new PortletDisplayNameComparator(orderByAsc);

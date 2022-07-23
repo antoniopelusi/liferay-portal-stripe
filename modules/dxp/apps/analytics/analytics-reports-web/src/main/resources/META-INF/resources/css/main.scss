@@ -1,59 +1,68 @@
-.lfr-analytics-reports-panel {
-	&.open-admin-panel.sidenav-menu-slider {
-		visibility: visible;
-		width: 330px;
-	}
+@import 'cadmin-variables';
 
-	.sidebar-header,
-	.sidebar-header .sidenav-close {
-		color: #d5d6e1;
-	}
+html#{$cadmin-selector} {
+	.cadmin {
+		&.lfr-analytics-reports-panel {
+			&.open-admin-panel.sidenav-menu-slider {
+				visibility: visible;
+				width: 320px;
+			}
 
-	.sidebar-header {
-		background-color: #272833;
-		line-height: 32px;
-		padding-bottom: 8px;
-		padding-right: 9px;
-		padding-top: 8px;
-	}
+			.sidebar {
+				border-left: 1px solid $cadmin-gray-300;
+				box-shadow: none;
+			}
 
-	@media only screen and (min-width: 576px) {
-		.sidebar-header {
-			padding-bottom: 12px;
-			padding-top: 12px;
+			.sidebar-header {
+				height: 64px;
+				line-height: 32px;
+
+				.lexicon-icon {
+					font-size: 14px;
+				}
+			}
+
+			@include media-breakpoint-up(sm, $cadmin-grid-breakpoints) {
+				@include media-breakpoint-down(md, $cadmin-grid-breakpoints) {
+					&.lfr-admin-panel.sidenav-menu-slider {
+						top: 56px;
+					}
+				}
+			}
+
+			.sidebar-body {
+				bottom: 0;
+				left: 0;
+				padding: 0;
+				position: absolute;
+				right: 0;
+				top: 56px;
+
+				.chart-loading-indicator {
+					position: absolute;
+					transform: translate(80%, 100%);
+					z-index: 1;
+				}
+
+				.loading-animation {
+					left: 0;
+					position: absolute;
+					right: 0;
+					top: 40%;
+				}
+			}
+
+			.text-truncate-reverse {
+				direction: rtl;
+			}
+
+			.list-group {
+				margin-bottom: 8px;
+			}
+		}
+
+		.dropdown-menu__translation {
+			max-height: 295px;
 		}
 	}
-
-	.sidebar-body {
-		bottom: 0;
-		left: 0;
-		position: absolute;
-		right: 0;
-		top: 56px;
-
-		.chart-loading-indicator {
-			position: absolute;
-			transform: translate(80%, 100%);
-			z-index: 1;
-		}
-
-		.loading-animation {
-			left: 0;
-			position: absolute;
-			right: 0;
-			top: 40%;
-		}
-	}
-
-	.text-truncate-reverse {
-		direction: rtl;
-	}
-
-	.list-group {
-		margin-bottom: 0.5rem;
-	}
-}
-
-.dropdown-menu__translation {
-	max-height: 295px;
 }

@@ -1,0 +1,195 @@
+$borderWidth: 2px;
+$color: $white;
+$dragOverWidth: 6px;
+$showDuration: 0.2s;
+
+html#{$cadmin-selector} {
+	.cadmin {
+		&.page-editor__topper__bar {
+			background-color: $cadmin-primary;
+			border-radius: 2px 2px 0 0;
+			bottom: calc(100% + #{$borderWidth});
+			box-shadow: 0 0 0 $borderWidth $cadmin-primary;
+			color: $color;
+			font-size: 12px;
+			height: 22px;
+			line-height: 22px;
+			max-width: calc(100% - #{$borderWidth * 2});
+			min-width: 120px;
+			padding: 0 8px 0 4px;
+			position: absolute;
+			z-index: $portletTopperZIndex + 1;
+
+			.btn {
+				color: inherit;
+			}
+
+			.page-editor__topper__drag-icon {
+				cursor: grab;
+				height: 16px;
+				width: 16px;
+			}
+
+			.page-editor__topper__icon {
+				fill: $color;
+				padding: 0;
+				position: relative;
+				top: 1px;
+			}
+
+			.page-editor__topper__item {
+				margin: 0;
+			}
+
+			.page-editor__topper__title {
+				cursor: default;
+				font-family: $cadmin-font-family-base;
+				font-weight: 600;
+				margin-right: 8px;
+				min-width: 4ch;
+				overflow: hidden;
+				text-align: left;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			&--inset {
+				border-radius: 0 0 2px;
+				top: $borderWidth;
+				transform: translateY(0);
+			}
+		}
+	}
+
+	.page-editor__topper {
+		position: relative;
+
+		&:after {
+			box-shadow: inset 0 0 0 $borderWidth fade_out($cadmin-primary-l2, 1);
+			content: '';
+			display: block;
+			height: 100%;
+			left: 0;
+			pointer-events: none;
+			position: absolute;
+			top: 0;
+			transition: box-shadow ease $showDuration;
+			width: 100%;
+		}
+
+		.page-editor__row:not(.no-gutters) > .page-editor__col:before {
+			$spacingUnit: 12px;
+
+			left: $spacingUnit;
+			width: calc(100% - #{$spacingUnit * 2});
+		}
+
+		&:focus {
+			outline: none;
+		}
+
+		&.dragged {
+			opacity: 0.5;
+		}
+
+		&__content .alert {
+			font-family: $cadmin-font-family-base;
+		}
+
+		&.hovered:after {
+			box-shadow: inset 0 0 0 $borderWidth $cadmin-primary-l1;
+		}
+
+		&.active:after,
+		&.highlighted:after {
+			box-shadow: inset 0 0 0 $borderWidth $cadmin-primary;
+			z-index: 1;
+		}
+
+		&.drag-over-bottom:after {
+			border-bottom: $dragOverWidth solid $cadmin-primary-l1;
+		}
+
+		// For left and right, we use box-shadow instead of border because border is
+		// automatically inverted in rtl, and we don't want that behavior here
+
+		&.drag-over-left:after {
+			box-shadow: inset $dragOverWidth 0 0 0 $cadmin-primary-l1;
+			transition: none;
+		}
+
+		&.drag-over-right:after {
+			box-shadow: inset (-$dragOverWidth) 0 0 0 $cadmin-primary-l1;
+			transition: none;
+		}
+
+		&.drag-over-top:after {
+			border-top: $dragOverWidth solid $cadmin-primary-l1;
+		}
+
+		&.drag-over-bottom.page-editor__col {
+			&:after {
+				border: none;
+			}
+
+			&:before {
+				border-bottom: $dragOverWidth solid $cadmin-primary-l1;
+			}
+		}
+
+		&.drag-over-top.page-editor__col {
+			&:after {
+				border: none;
+			}
+
+			&:before {
+				border-top: $dragOverWidth solid $cadmin-primary-l1;
+			}
+		}
+
+		&.drag-over-middle
+			> .page-editor__topper__content
+			> .page-editor__container.empty,
+		&.drag-over-middle.page-editor__col.empty:before,
+		&.drag-over-middle.page-editor__collection-item:before {
+			box-shadow: inset 0 0 0 $dragOverWidth $cadmin-primary-l1;
+		}
+
+		&.drag-over-middle
+			> .page-editor__topper__content
+			> .page-editor__container
+			> :last-child:after {
+			box-shadow: inset (-$dragOverWidth) 0 0 0 $cadmin-primary-l1;
+			transition: none;
+		}
+
+		&.drag-over-middle.page-editor__col
+			> .page-editor__col__border
+			> :last-child:after {
+			border-bottom: $dragOverWidth solid $cadmin-primary-l1;
+		}
+
+		&.drag-over-middle .page-editor__no-fragments-message {
+			border: 2px solid $cadmin-primary-l1;
+
+			.page-editor__no-fragments-message__title {
+				color: $cadmin-gray-400;
+			}
+		}
+
+		&.highlighted:after {
+			z-index: $portletTopperZIndex;
+		}
+
+		&--hovered:after {
+			box-shadow: none;
+			outline: $borderWidth dashed fade_out($cadmin-purple, 0.5);
+			outline-offset: -$borderWidth;
+		}
+
+		& > .page-editor__topper__content {
+			height: 100%;
+			min-height: 5px;
+		}
+	}
+}

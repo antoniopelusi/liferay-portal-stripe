@@ -1,14 +1,10 @@
-<#assign mbCategoryModels = dataFactory.newMBCategoryModels(groupId) />
-
-<#list mbCategoryModels as mbCategoryModel>
+<#list dataFactory.newMBCategoryModels(groupId) as mbCategoryModel>
 	${dataFactory.toInsertSQL(mbCategoryModel)}
 	${dataFactory.toInsertSQL(dataFactory.newMBMailingListModel(mbCategoryModel, sampleUserModel))}
 
-	${csvFileWriter.write("mbCategory", mbCategoryModel.categoryId + "," + mbCategoryModel.name + "\n")}
+	${csvFileWriter.write("mbCategory", virtualHostModel.hostname + "," + mbCategoryModel.categoryId + "," + mbCategoryModel.name + "\n")}
 
-	<#assign mbThreadModels = dataFactory.newMBThreadModels(mbCategoryModel) />
-
-	<#list mbThreadModels as mbThreadModel>
+	<#list dataFactory.newMBThreadModels(mbCategoryModel) as mbThreadModel>
 		${dataFactory.toInsertSQL(mbThreadModel)}
 
 		${dataFactory.toInsertSQL(dataFactory.newSubscriptionModel(mbThreadModel))}
@@ -17,14 +13,12 @@
 
 		${dataFactory.toInsertSQL(dataFactory.newMBThreadFlagModel(mbThreadModel))}
 
-		<#assign mbMessageModels = dataFactory.newMBMessageModels(mbThreadModel) />
-
-		<#list mbMessageModels as mbMessageModel>
+		<#list dataFactory.newMBMessageModels(mbThreadModel) as mbMessageModel>
 			<@insertMBMessage _mbMessageModel=mbMessageModel />
 
 			${dataFactory.toInsertSQL(dataFactory.newSocialActivityModel(mbMessageModel))}
 		</#list>
 
-		${csvFileWriter.write("mbThread", mbCategoryModel.categoryId + "," + mbThreadModel.threadId + "," + mbThreadModel.rootMessageId + "\n")}
+		${csvFileWriter.write("mbThread", virtualHostModel.hostname + "," + mbCategoryModel.categoryId + "," + mbThreadModel.threadId + "," + mbThreadModel.rootMessageId + "\n")}
 	</#list>
 </#list>

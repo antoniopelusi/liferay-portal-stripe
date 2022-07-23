@@ -33,7 +33,7 @@ definition {
 
 			WebContent.tearDownCP();
 
-			Page.tearDownCP();
+			PagesAdmin.tearDownCP();
 		}
 	}
 
@@ -41,7 +41,6 @@ definition {
 	@priority = "4"
 	test AssertEmailVerificationIsRequiredByDefault {
 		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=true${line.separator}mail.send.blacklist=noreply@liferay.com,noreply@domain.invalid,test@domain.invalid";
-		property test.name.skip.portal.instance = "CPPortalSettings#AssertEmailVerificationIsRequiredByDefault";
 		property test.smtp.server.enabled = "true";
 
 		var portalURL = PropsUtil.get("portal.url");
@@ -67,11 +66,6 @@ definition {
 			emailAddress = "test@liferay.com",
 			emailSenderName = "Joe Bloggs");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
 		for (var userNum : list "1,2") {
 			JSONUser.addUser(
 				userEmailAddress = "userea${userNum}@liferay.com",
@@ -87,7 +81,7 @@ definition {
 
 		SignOut.signOut();
 
-		SignIn.signIn(userEmailAddress = "userea2@liferay.com");
+		Navigator.openSpecificURL(url = "${portalURL}/web/guest?SM_USER=userea2@liferay.com");
 
 		User.verifyEmail(
 			portalURL = "${portalURL}",
@@ -123,10 +117,569 @@ definition {
 			userScreenName = "test");
 	}
 
+	@description = "This test asserts that a user can add additional mail host name."
+	@priority = "3"
+	test CanAddAdditionalMailHostName {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Email",
+			configurationName = "Mail Host Names",
+			configurationScope = "Virtual Instance Scope");
+
+		AssertElementPresent(
+			key_fieldLabel = "Enter one mail host name",
+			locator1 = "FormFields#LABEL");
+
+		FormFields.editTextArea(
+			fieldName = "admin.mail.host.names",
+			fieldValue = "newhostname.com");
+
+		PortletEntry.save();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Email",
+			configurationName = "Mail Host Names",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.viewTextAreaValue(
+			fieldName = "admin.mail.host.names",
+			fieldValue = "newhostname.com");
+	}
+
+	@description = "This test add the contact information via appearance in Instance Configuration."
+	@priority = "3"
+	test CanAddContactInformationInInstanceConfiguration {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "Contact Information",
+			configurationScope = "Virtual Instance Scope");
+
+		for (var text : list "Street 1,Street 2,Street 3,City") {
+			var value1 = StringUtil.replace("${text}", " ", "");
+
+			Type(
+				key_text = "${text}",
+				locator1 = "TextInput#ANY",
+				value1 = "${value1}");
+		}
+
+		Type(
+			key_text = "Postal Code",
+			locator1 = "TextInput#ANY",
+			value1 = "116023");
+
+		Type(
+			key_text = "Number",
+			locator1 = "TextInput#ANY",
+			value1 = "041188120855");
+
+		Type(
+			key_text = "Extension",
+			locator1 = "TextInput#ANY",
+			value1 = "86");
+
+		Type(
+			key_text = "Email Address",
+			locator1 = "TextInput#ANY",
+			value1 = "testsample@liferay.com");
+
+		Type(
+			key_text = "URL",
+			locator1 = "TextInput#ANY",
+			value1 = "http://liferay.com");
+
+		Select(
+			locator1 = "Select#COUNTRY",
+			value1 = "China");
+
+		Select(
+			locator1 = "Select#REGION",
+			value1 = "Liaoning Sheng");
+
+		Select(
+			locator1 = "Select#ADDRESS_TYPE",
+			value1 = "Shipping");
+
+		PortletEntry.save();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "Contact Information",
+			configurationScope = "Virtual Instance Scope");
+
+		for (var text : list "Street 1,Street 2,Street 3,City") {
+			var value1 = StringUtil.replace("${text}", " ", "");
+
+			AssertTextEquals(
+				key_text = "${text}",
+				locator1 = "TextInput#ANY",
+				value1 = "${value1}");
+		}
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Select#COUNTRY",
+			value1 = "China");
+
+		AssertTextEquals(
+			key_text = "Email Address",
+			locator1 = "TextInput#ANY",
+			value1 = "testsample@liferay.com");
+
+		AssertTextEquals(
+			key_text = "URL",
+			locator1 = "TextInput#ANY",
+			value1 = "http://liferay.com");
+	}
+
+	@description = "This test disable the Terms of Use via UI and assert the Terms of Use not required when a new user login."
+	@priority = "3"
+	test CanChangeTheTermsOfUseNotRequired {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "Terms of Use",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.viewCheckboxChecked(fieldName = "terms-of-use-required");
+
+		FormFields.disableCheckbox(fieldName = "terms-of-use-required");
+
+		PortletEntry.save();
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		User.logoutPG();
+
+		Navigator.openURL();
+
+		Navigator.gotoLoginPage();
+
+		Type(
+			locator1 = "TextInput#EMAIL_ADDRESS",
+			value1 = "userea@liferay.com");
+
+		Type(
+			locator1 = "TextInput#PASSWORD",
+			value1 = "test");
+
+		AssertClick(
+			locator1 = "Button#SIGN_IN",
+			value1 = "Sign In");
+
+		AssertElementNotPresent(locator1 = "Button#SIGN_IN");
+
+		AssertElementNotPresent(locator1 = "Button#I_AGREE");
+
+		User.answerPasswordReminder();
+
+		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
+	}
+
+	@description = "This test asserts that a user can change the general authentication. Like user can change the authentication way to user ID and so."
+	@priority = "4"
+	test CanChangeUserGeneralAuthentication {
+		var userId = JSONUserSetter.setUserId(userEmailAddress = "test@liferay.com");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.editConfigurationAuthenticationGeneral(authenticationMethod = "By User ID");
+
+		Uncheck(
+			checkboxName = "Allow strangers to create accounts with a company email address?",
+			locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Button.clickSave();
+
+		User.logoutPG();
+
+		Navigator.openURL();
+
+		AssertClick(
+			locator1 = "UserBar#USER_SIGN_IN",
+			value1 = "Sign In");
+
+		AssertElementPresent(
+			key_text = "ID",
+			locator1 = "TextInput#ANY");
+
+		SignInNavigator.gotoCreateAccount();
+
+		for (var text : list "Screen Name,First Name,Last Name,Password,Enter Again") {
+			var value1 = StringUtil.replace("${text}", " ", "");
+
+			Type(
+				key_text = "${text}",
+				locator1 = "TextInput#ANY",
+				value1 = "${value1}");
+		}
+
+		Type(
+			key_text = "Enter Again",
+			locator1 = "TextInput#ANY",
+			value1 = "Password");
+
+		Type(
+			key_text = "Email Address",
+			locator1 = "TextInput#ANY",
+			value1 = "userEmailAddress@liferay.com");
+
+		Button.clickSave();
+
+		Alert.viewErrorMessage(errorMessage = "Error:The email address you requested is not valid because its domain is reserved.");
+
+		Navigator.openURL();
+
+		User.firstLoginUI(
+			authenticationMethod = "By User ID",
+			password = "test",
+			userId = "${userId}");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.editConfigurationAuthenticationGeneral(authenticationMethod = "By Email Address");
+
+		Uncheck(
+			checkboxName = "Allow users to automatically log in?",
+			locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Uncheck(
+			checkboxName = "Allow users to request password reset links?",
+			locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Uncheck(
+			checkboxName = "Allow strangers to create accounts?",
+			locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Button.clickSave();
+
+		User.logoutPG();
+
+		Navigator.openURL();
+
+		AssertClick(
+			locator1 = "UserBar#USER_SIGN_IN",
+			value1 = "Sign In");
+
+		AssertElementPresent(
+			key_text = "Email Address",
+			locator1 = "TextInput#ANY");
+
+		AssertElementNotPresent(locator1 = "Checkbox#REMEMBER_ME");
+
+		AssertElementNotPresent(locator1 = "Link#FORGOT_PASSWORD");
+
+		AssertElementNotPresent(locator1 = "Link#CREATE_ACCOUNT");
+	}
+
+	@description = "This test asserts that a user can create multi factory configurations."
+	@priority = "4"
+	test CanCreateTwoFactoryConfigurations {
+		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
+		var openIdConnectClientId1 = PropsUtil.get("google.client.id.2");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
+		var openIdConnectClientSecret1 = PropsUtil.get("google.client.secret.2");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		OpenIDConnect.addProvider(
+			openIdConnectClientId = "${openIdConnectClientId}",
+			openIdConnectClientSecret = "${openIdConnectClientSecret}",
+			providerName = "Google");
+
+		LexiconEntry.viewEntryName(rowEntry = "Google");
+
+		OpenIDConnect.addProvider(
+			openIdConnectClientId = "${openIdConnectClientId1}",
+			openIdConnectClientSecret = "${openIdConnectClientSecret1}",
+			providerName = "New Entry 1");
+
+		LexiconEntry.viewEntryName(rowEntry = "New Entry 1");
+	}
+
+	@description = "This test asserts that a user can delete site logo via portal setting."
+	@priority = "3"
+	test CanDeleteSiteLogoViaAppearance {
+		Page.viewDefaultLogoPG();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "Appearance",
+			configurationScope = "Virtual Instance Scope");
+
+		AssertElementPresent(
+			key_text = "Delete",
+			locator1 = "Button#ANY_DISABLED");
+
+		PagesAdmin.uploadLogo(logoFile = "Document_2.png");
+
+		AssertElementPresent(
+			key_text = "Delete",
+			locator1 = "Button#ANY");
+
+		AssertElementNotPresent(
+			key_text = "Delete",
+			locator1 = "Button#ANY_DISABLED");
+
+		Navigator.openURL();
+
+		Page.viewCustomLogoPG();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "Appearance",
+			configurationScope = "Virtual Instance Scope");
+
+		AssertClick(
+			key_text = "Delete",
+			locator1 = "Button#ANY",
+			value1 = "Delete");
+
+		PortletEntry.save();
+
+		AssertElementPresent(
+			key_text = "Delete",
+			locator1 = "Button#ANY_DISABLED");
+
+		Navigator.openURL();
+
+		Page.viewDefaultLogoPG();
+	}
+
+	@description = "This test asserts that a user can disable the account created notification. No email would send to user when the account created notification is disabled."
+	@priority = "3"
+	test CanDisabledAccountCreatedNotification {
+		property custom.properties = "mail.send.blacklist=noreply@liferay.com,noreply@domain.invalid,test@domain.invalid";
+		property test.smtp.server.enabled = "true";
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Email",
+			configurationName = "Email Sender",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureEmailSender(
+			emailAddress = "test@liferay.com",
+			emailSenderName = "Joe Bloggs");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Email",
+			configurationName = "Account Created Notification",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		PortletEntry.save();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		MockMock.viewNoMail();
+	}
+
+	@description = "This test asserts that a user can disable site admin to use their own logo."
+	@priority = "3"
+	test CanDisableSiteAdminToUseTheirOwnLogo {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "Appearance",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.disableCheckbox(fieldName = "logo");
+
+		PortletEntry.save();
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Test Page");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			portlet = "Pages");
+
+		Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Configuration");
+
+		AssertElementNotPresent(
+			key_panel = "Logo",
+			locator1 = "Panel#PANEL");
+	}
+
+	@description = "This test specify the Terms of Use content by web content posted in a new site and assert the Terms of Use content updated when a new user login."
+	@priority = "3"
+	test CanSpecifyTheTermsofUseWebContent {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONGroup.addGroup(groupName = "Terms of Use Site");
+
+		JSONWebcontent.addWebContent(
+			content = "This is a new terms of use items posted in Terms of Use Site.",
+			groupName = "Terms of Use Site",
+			title = "Terms of Use WC Title");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "Terms of Use",
+			configurationScope = "Virtual Instance Scope");
+
+		var articleId = JSONWebcontentSetter.setArticleId(
+			groupName = "Terms of Use Site",
+			title = "Terms of Use WC Title");
+
+		var groupId = JSONGroupSetter.setGroupId(groupName = "Terms of Use Site");
+
+		FormFields.viewCheckboxChecked(fieldName = "terms-of-use-required");
+
+		FormFields.editText(
+			fieldName = "group-id",
+			fieldValue = "${groupId}");
+
+		FormFields.editText(
+			fieldName = "article-id",
+			fieldValue = "${articleId}");
+
+		PortletEntry.save();
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		User.logoutPG();
+
+		Navigator.openURL();
+
+		Navigator.gotoLoginPage();
+
+		Type(
+			locator1 = "TextInput#EMAIL_ADDRESS",
+			value1 = "userea@liferay.com");
+
+		Type(
+			locator1 = "TextInput#PASSWORD",
+			value1 = "test");
+
+		AssertClick(
+			locator1 = "Button#SIGN_IN",
+			value1 = "Sign In");
+
+		AssertElementNotPresent(locator1 = "Button#SIGN_IN");
+
+		Portlet.viewPortletPresentPG(portletContent = "This is a new terms of use items posted in Terms of Use Site.");
+
+		User.acceptEndUserLicenseAgreement();
+
+		User.answerPasswordReminder();
+
+		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
+	}
+
+	@description = "This test asserts that a user can update the general informations. Including update the default site name, default mail domain and so."
+	@priority = "4"
+	test CanUpdateGeneralInfos {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.editText(
+			fieldName = "name",
+			fieldValue = "EditedLiferay");
+
+		FormFields.editText(
+			fieldName = "mx",
+			fieldValue = "newliferay.com");
+
+		PortletEntry.save();
+
+		ApplicationsMenu.gotoSite(site = "EditedLiferay");
+
+		User.logoutPG();
+
+		Navigator.gotoLoginPage();
+
+		AssertTextEquals(
+			locator1 = "TextInput#EMAIL_ADDRESS",
+			value1 = "@newliferay.com");
+
+		User.loginUserPG();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.editText(
+			fieldName = "cdn-host-http",
+			fieldValue = "http://localhost:8080");
+
+		FormFields.editText(
+			fieldName = "cdn-host-https",
+			fieldValue = "https://localhost:8080");
+
+		for (var fieldName : list "legalName,tickerSymbol,legalId,industry,legalType,type,sicCode") {
+			FormFields.editText(
+				fieldName = "${fieldName}",
+				fieldValue = "${fieldName}");
+		}
+
+		Button.clickSave();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Instance Configuration",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.viewTextValue(
+			fieldName = "cdn-host-http",
+			fieldValue = "http://localhost:8080");
+
+		FormFields.viewTextValue(
+			fieldName = "cdn-host-https",
+			fieldValue = "https://localhost:8080");
+
+		for (var fieldName : list "legalName,tickerSymbol,legalId,industry,legalType,type,sicCode") {
+			FormFields.viewTextValue(
+				fieldName = "${fieldName}",
+				fieldValue = "${fieldName}");
+		}
+	}
+
 	@priority = "5"
 	test EditDefaultUserAssociationsOrganizationSites {
-		property test.name.skip.portal.instance = "CPPortalSettings#EditDefaultUserAssociationsOrganizationSites";
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
@@ -145,9 +698,7 @@ definition {
 
 		Organization.addSiteCP(orgName = "Organization Name");
 
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsOrganizationSitesCP(orgName = "Organization Name");
-
-		PortalSettings.viewConfigurationUsersDefaultUserAssociationsOrganizationSitesCP(orgName = "Organization Name");
+		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(orgName = "Organization Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -169,8 +720,6 @@ definition {
 
 	@priority = "4"
 	test EditDefaultUserAssociationsRoles {
-		property test.name.skip.portal.instance = "CPPortalSettings#EditDefaultUserAssociationsRoles";
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
@@ -178,9 +727,7 @@ definition {
 
 		Role.add(roleTitle = "Roles Regrole Name");
 
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsRolesCP(roleTitle = "Roles Regrole Name");
-
-		PortalSettings.viewConfigurationUsersDefaultUserAssociationsRolesCP(roleTitle = "Roles Regrole Name");
+		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(roleTitle = "Roles Regrole Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -200,8 +747,6 @@ definition {
 
 	@priority = "4"
 	test EditDefaultUserAssociationsSites {
-		property test.name.skip.portal.instance = "CPPortalSettings#EditDefaultUserAssociationsSites";
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Sites",
 			panel = "Control Panel",
@@ -209,9 +754,7 @@ definition {
 
 		Site.addBlankCP(siteName = "Site Name");
 
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsSitesCP(siteName = "Site Name");
-
-		PortalSettings.viewConfigurationUsersDefaultUserAssociationsSitesCP(siteName = "Site Name");
+		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(siteName = "Site Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -231,8 +774,6 @@ definition {
 
 	@priority = "4"
 	test EditDefaultUserAssociationsUserGroups {
-		property test.name.skip.portal.instance = "CPPortalSettings#EditDefaultUserAssociationsUserGroups";
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
@@ -240,9 +781,7 @@ definition {
 
 		UserGroup.addCP(userGroupName = "UG UserGroup Name");
 
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsUserGroupsCP(userGroupName = "UG UserGroup Name");
-
-		PortalSettings.viewConfigurationUsersDefaultUserAssociationsUserGroupsCP(userGroupName = "UG UserGroup Name");
+		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(userGroupName = "UG UserGroup Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -263,7 +802,6 @@ definition {
 	@priority = "5"
 	test EnterReservedEmailAddress {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CPPortalSettings#EnterReservedEmailAddress";
 
 		PortalSettings.enterReservedEmailAddressCP(userEmailAddress = "userea@liferay.com");
 
@@ -282,7 +820,6 @@ definition {
 	@priority = "5"
 	test EnterReservedScreenName {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "CPPortalSettings#EnterReservedScreenName";
 
 		PortalSettings.viewReservedCredentialsScreenNamesCP();
 
@@ -301,9 +838,349 @@ definition {
 	}
 
 	@priority = "4"
-	test ViewContentSharingDisabledAcrossSitesViaAP {
-		property test.name.skip.portal.instance = "CPPortalSettings#ViewContentSharingDisabledAcrossSitesViaAP";
+	test ExportedFactoryConfigurationCanBeImported {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "InstanceSettings#ExportedFactoryConfigurationCanBeImported";
 
+		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
+		var portalURL = PropsUtil.get("portal.url");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		OpenIDConnect.addProvider(
+			openIdConnectClientId = "${openIdConnectClientId}",
+			openIdConnectClientSecret = "${openIdConnectClientSecret}",
+			providerName = "Google");
+
+		LexiconEntry.gotoEntry(rowEntry = "Google");
+
+		SystemSettings.exportConfiguration();
+
+		SystemSettings.deleteConfiguration();
+
+		var tempFileDirectory = selenium.getOutputDirName();
+		var exportConfigFile = FileUtil.exists("${tempFileDirectory}");
+
+		if ("${exportConfigFile}" == "true") {
+			echo("The Configuration file for single factory is exported from edit page Successfully.");
+		}
+		else {
+			fail("FAIL! Cannot find the configuration file exported from edit page for single factory.");
+		}
+
+		var tempFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration_*.config");
+
+		OSGiConfig.copyOSGiConfigFile(
+			osgiConfigFileBaseDir = "${tempFileDirectory}",
+			osgiConfigFileName = "${tempFileName}");
+
+		Pause(locator = "60000");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		while (IsElementNotPresent(key_rowEntry = "Google", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
+			Pause(locator1 = "1000");
+
+			Refresh();
+
+			echo("Refreshed Page");
+		}
+
+		LexiconEntry.viewEntryName(rowEntry = "Google");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Google");
+
+		AssertElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB");
+	}
+
+	@priority = "4"
+	test FactoryConfigurationAreInTheirProperScope {
+		property test.name.skip.portal.instance = "InstanceSettings#FactoryConfigurationAreInTheirProperScope";
+
+		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		OpenIDConnect.addProvider(
+			openIdConnectClientId = "${openIdConnectClientId}",
+			openIdConnectClientSecret = "${openIdConnectClientSecret}",
+			providerName = "Google");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.addCP(
+			mailDomain = "www.able.com",
+			virtualHost = "www.able.com",
+			webId = "www.able.com");
+
+		PortalInstances.viewCP(virtualHost = "www.able.com");
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
+
+		PortalSettings.gotoConfiguration(
+			baseURL = "http://www.able.com:8080",
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Google");
+
+		AssertElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB");
+	}
+
+	@priority = "4"
+	test FactoryConfigurationCanBeDeleted {
+		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		OpenIDConnect.addProvider(
+			openIdConnectClientId = "${openIdConnectClientId}",
+			openIdConnectClientSecret = "${openIdConnectClientSecret}",
+			providerName = "Google");
+
+		LexiconEntry.viewEntryName(rowEntry = "Google");
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Delete",
+			rowEntry = "Google");
+
+		Alert.viewSuccessMessage();
+
+		LexiconEntry.viewNoEntry(rowEntry = "Google");
+
+		AssertElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Google");
+
+		AssertElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB");
+	}
+
+	@priority = "4"
+	test FactoryConfigurationCanBeEdited {
+		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		OpenIDConnect.addProvider(
+			openIdConnectClientId = "${openIdConnectClientId}",
+			openIdConnectClientSecret = "${openIdConnectClientSecret}",
+			providerName = "Google");
+
+		LexiconEntry.viewEntryName(rowEntry = "Google");
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "Google");
+
+		FormFields.editTextMultiline(
+			fieldName = "providerName",
+			fieldValue = "Edit Google");
+
+		PortletEntry.update();
+
+		LexiconEntry.viewNoEntry(rowEntry = "Google");
+
+		LexiconEntry.viewEntryName(rowEntry = "Edit Google");
+	}
+
+	@description = "This test asserts that a user can reset the value of a single configuration."
+	@priority = "4"
+	test SingleConfigurationCanBeDeleted {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Accounts",
+			configurationName = "Email Domains",
+			configurationScope = "Virtual Instance Scope");
+
+		AssertElementNotPresent(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+		PortalSettings.editConfigurationUsersPersonalMenuShowInControlMenu(toggleSwitchLabel = "Enable Email Domain Validation");
+
+		AssertElementPresent(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Reset Default Values");
+
+		PortalSettings.viewToggleSwitchNotChecked(portalSetting = "Enable Email Domain Validation");
+
+		AssertElementPresent(locator1 = "Button#SAVE");
+	}
+
+	@description = "This test asserts that a user can export the configure of the single configuration."
+	@priority = "4"
+	test SingleConfigurationCanBeExported {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Accounts",
+			configurationName = "Email Domains",
+			configurationScope = "Virtual Instance Scope");
+
+		AssertElementNotPresent(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+		PortalSettings.editConfigurationUsersPersonalMenuShowInControlMenu(toggleSwitchLabel = "Enable Email Domain Validation");
+
+		AssertElementPresent(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Export");
+
+		AssertElementPresent(locator1 = "Button#UPDATE");
+
+		var tempFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "com.liferay.account.configuration.AccountEntryEmailDomainsConfiguration.scoped-*.config");
+
+		var tempFileDirectory = selenium.getOutputDirName();
+		var exportedConfigFile = FileUtil.exists("${tempFileDirectory}/${tempFileName}");
+
+		if ("${exportedConfigFile}" == "true") {
+			echo("The Configuration file for single factory is exported Successfully.");
+		}
+		else {
+			fail("FAIL! Cannot find the exported configuration file for single factory.");
+		}
+	}
+
+	@priority = "4"
+	test SingleFactoryConfigurationCanBeExported {
+		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "OpenID Connect Provider Connection",
+			configurationScope = "Virtual Instance Scope");
+
+		OpenIDConnect.addProvider(
+			openIdConnectClientId = "${openIdConnectClientId}",
+			openIdConnectClientSecret = "${openIdConnectClientSecret}",
+			providerName = "Google");
+
+		LexiconEntry.viewEntryName(rowEntry = "Google");
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Export",
+			rowEntry = "Google");
+
+		LexiconEntry.viewEntryName(rowEntry = "Google");
+
+		var tempFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration-*.config");
+
+		var tempFileDirectory = selenium.getOutputDirName();
+		var exportedConfigFile = FileUtil.exists("${tempFileDirectory}/${tempFileName}");
+
+		if ("${exportedConfigFile}" == "true") {
+			echo("The Configuration file for single factory is exported Successfully.");
+		}
+		else {
+			fail("FAIL! Cannot find the exported configuration file for single factory.");
+		}
+	}
+
+	@description = "This test asserts that some of the fields in user creation can be diasabled."
+	@priority = "4"
+	test UserFieldsCanBeDisabled {
+		User.openUsersAdmin();
+
+		LexiconEntry.gotoAdd();
+
+		AssertElementPresent(locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD");
+
+		AssertElementNotPresent(locator1 = "UsersAndOrganizationsEditUser#DETAILS_GENDER_SELECT");
+
+		AssertElementPresent(locator1 = "UsersAndOrganizationsEditUser#DETAILS_BIRTHDAY_FIELD");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Users",
+			configurationName = "Fields",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.enableCheckbox(fieldName = "autogenerate");
+
+		FormFields.disableCheckbox(fieldName = "birthday");
+
+		FormFields.enableCheckbox(fieldName = "male");
+
+		PortletEntry.save();
+
+		User.openUsersAdmin();
+
+		LexiconEntry.gotoAdd();
+
+		AssertElementNotPresent(locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD");
+
+		AssertNotVisible(locator1 = "UsersAndOrganizationsEditUser#DETAILS_BIRTHDAY_FIELD");
+
+		AssertElementPresent(locator1 = "UsersAndOrganizationsEditUser#DETAILS_GENDER_SELECT");
+
+		User.openUsersAdmin();
+
+		LexiconEntry.gotoAdd();
+
+		for (var text : list "First Name,Last Name") {
+			var value1 = StringUtil.replace("${text}", " ", "");
+
+			Type(
+				key_text = "${text}",
+				locator1 = "TextInput#ANY",
+				value1 = "${value1}");
+		}
+
+		Type(
+			key_text = "Email Address",
+			locator1 = "TextInput#ANY",
+			value1 = "userEmailAddress@liferay.com");
+
+		PortletEntry.save();
+
+		User.openUsersAdmin();
+
+		LexiconEntry.gotoEntry(rowEntry = "FirstName LastName");
+
+		AssertNotEditable(locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD");
+
+		AssertNotVisible(locator1 = "UsersAndOrganizationsEditUser#DETAILS_BIRTHDAY_FIELD");
+
+		AssertElementPresent(locator1 = "UsersAndOrganizationsEditUser#DETAILS_GENDER_SELECT");
+	}
+
+	@priority = "4"
+	test ViewContentSharingDisabledAcrossSitesViaAP {
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		PortalSettings.gotoConfiguration(
@@ -321,7 +1198,7 @@ definition {
 			groupName = "Site Name",
 			layoutName = "AP Test Page");
 
-		JSONGroup.addChildSite(
+		JSONGroup.addChildGroup(
 			groupName = "Child SiteName",
 			parentGroupName = "Site Name");
 
@@ -343,11 +1220,13 @@ definition {
 
 		Navigator.openSiteURL(siteName = "Child SiteName");
 
-		WebContent.addPGViaWCD(
+		WebContentDisplayPortlet.add(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		Navigator.openSiteURL(siteName = "Site Name");
 
@@ -405,8 +1284,6 @@ definition {
 
 	@priority = "4"
 	test ViewContentSharingEnabledAcrossSitesViaAP {
-		property test.name.skip.portal.instance = "CPPortalSettings#ViewContentSharingEnabledAcrossSitesViaAP";
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		PortalSettings.gotoConfiguration(
@@ -429,7 +1306,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "AP Test Page");
+		PagesAdmin.addPage(pageName = "AP Test Page");
 
 		Navigator.openSiteURL(siteName = "Site Name");
 
@@ -454,7 +1331,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "AP Test Page");
+		PagesAdmin.addPage(pageName = "AP Test Page");
 
 		Navigator.gotoPage(pageName = "AP Test Page");
 
@@ -483,8 +1360,6 @@ definition {
 
 	@priority = "3"
 	test ViewDefaultUserAssociations {
-		property test.name.skip.portal.instance = "CPPortalSettings#ViewDefaultUserAssociations";
-
 		Navigator.openURL();
 
 		PortalSettings.viewDefaultUserAssociationsCP();
@@ -492,35 +1367,177 @@ definition {
 
 	@priority = "3"
 	test ViewEmailNotificationsAccountCreatedNotification {
-		property test.name.skip.portal.instance = "CPPortalSettings#ViewEmailNotificationsAccountCreatedNotification";
-
 		Navigator.openURL();
 
 		PortalSettings.viewEmailNotificationsAccountCreatedNotificationCP();
 	}
 
 	@priority = "3"
-	test ViewEmailNotificationsPasswordChangedNotification {
-		property test.name.skip.portal.instance = "CPPortalSettings#ViewEmailNotificationsPasswordChangedNotification";
-
-		Navigator.openURL();
-
-		PortalSettings.viewEmailNotificationsPasswordChangedNotificationCP();
-	}
-
-	@priority = "3"
 	test ViewEmailNotificationsSender {
-		property test.name.skip.portal.instance = "CPPortalSettings#ViewEmailNotificationsSender";
-
 		Navigator.openURL();
 
 		PortalSettings.viewEmailNotificationsSenderCP();
 	}
 
+	@description = "This is a use case for LPS-135132. This test asserts that enabling check in site settings works when it's unchecked in Instance settings > Site scope."
+	@priority = "4"
+	test ViewEnableInSiteSettingWorksWhenDisableInPortalSetting {
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Pages",
+			configurationName = "Google PageSpeed Insights",
+			configurationScope = "Site Scope");
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		PortletEntry.save();
+
+		Navigator.openURL();
+
+		AssertElementNotPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
+
+		Site.openSiteSettingsAdmin(siteURLKey = "guest");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Pages",
+			configurationName = "Google PageSpeed Insights",
+			configurationScope = "Site Scope");
+
+		FormFields.viewCheckboxNotChecked(fieldName = "enabled");
+
+		FormFields.enableCheckbox(fieldName = "enabled");
+
+		PortletEntry.save();
+
+		Navigator.openURL();
+
+		AssertElementPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
+	}
+
+	@description = "This test asserts that a user can update the password changed notification subject and body. The notification also send when set password via json."
+	@priority = "3"
+	test ViewPasswordChangedNotificationTemplateUpdated {
+		property custom.properties = "mail.send.blacklist=noreply@liferay.com,noreply@domain.invalid,test@domain.invalid";
+		property test.name.skip.portal.instance = "InstanceSettings#ViewPasswordChangedNotificationTemplateUpdated";
+		property test.smtp.server.enabled = "true";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Navigator.openURL();
+
+		PortalSettings.viewEmailNotificationsPasswordChangedNotificationCP();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Email",
+			configurationName = "Email Sender",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureEmailSender(
+			emailAddress = "test@liferay.com",
+			emailSenderName = "Joe Bloggs");
+
+		PortalSettings.editConfigurationUsersEmailNotificationsCP(
+			configurationName = "Password Changed Notification",
+			notificationsBody = '''
+				Dear [$TO_NAME$],<br /><br />
+
+				This is a new template for user password change test.<br /><br />
+
+				Your password for [$PORTAL_URL$] has been changed.<br /><br />
+
+				The request for a new password was made from [$REMOTE_ADDRESS$] / [$REMOTE_HOST$].<br /><br />
+
+				Sincerely,<br />
+				[$FROM_NAME$]<br />
+				[$FROM_ADDRESS$]<br />
+				[$PORTAL_URL$]
+			''',
+			notificationsSubject = "[$PORTAL_URL$]: Dear user, your Password Has Been Changed");
+
+		User.openUsersAdmin();
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		User.openUsersAdmin();
+
+		User.editPasswordCP(
+			userEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		MockMock.viewMail(
+			asset = "${portalURL}: Dear user, your Password Has Been Changed",
+			content = "This is a new template for user password change test.",
+			recipient = "userfn userln",
+			sender = "Joe Bloggs",
+			subject = "${portalURL}: Dear user, your Password Has Been Changed");
+	}
+
+	@description = "This test asserts that a user can update the password reset notification subject and body. The notification also send when set password via json."
+	@priority = "3"
+	test ViewPasswordResetNotificationTemplateUpdated {
+		property custom.properties = "mail.send.blacklist=noreply@liferay.com,noreply@domain.invalid,test@domain.invalid";
+		property test.name.skip.portal.instance = "InstanceSettings#ViewPasswordResetNotificationTemplateUpdated";
+		property test.smtp.server.enabled = "true";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Email",
+			configurationName = "Email Sender",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureEmailSender(
+			emailAddress = "test@liferay.com",
+			emailSenderName = "Joe Bloggs");
+
+		PortalSettings.editConfigurationUsersEmailNotificationsCP(
+			configurationName = "Password Reset Notification",
+			notificationsBody = '''
+				Dear [$TO_NAME$],<br /><br />
+
+				This is a new template for user password reset test.<br /><br />
+
+				You can reset your password for [$PORTAL_URL$] at [$PASSWORD_RESET_URL$].<br /><br />
+
+				The request for a new password was made from [$REMOTE_ADDRESS$] / [$REMOTE_HOST$].<br /><br />
+
+				Sincerely,<br />
+				[$FROM_NAME$]<br />
+				[$FROM_ADDRESS$]<br />
+				[$PORTAL_URL$]<br />
+			''',
+			notificationsSubject = "[$PORTAL_URL$]: Dear user, please reset Your Password");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		User.logoutPG();
+
+		User.forgotPasswordSendResetLink(userEmailAddress = "userea@liferay.com");
+
+		MockMock.viewMail(
+			asset = "${portalURL}: Dear user, please reset Your Password",
+			content = "This is a new template for user password reset test.",
+			recipient = "userfn userln",
+			sender = "Joe Bloggs",
+			subject = "${portalURL}: Dear user, please reset Your Password");
+	}
+
 	@description = "This is a use case for LPS-97907."
 	@priority = "5"
 	test ViewSystemSettingsSavedByKeyboard {
-		property test.name.skip.portal.instance = "CPPortalSettings#ViewSystemSettingsSavedByKeyboard";
+		property test.name.skip.portal.instance = "InstanceSettings#ViewSystemSettingsSavedByKeyboard";
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",

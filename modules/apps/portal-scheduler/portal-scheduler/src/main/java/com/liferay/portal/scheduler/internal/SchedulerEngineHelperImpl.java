@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.cal.Duration;
 import com.liferay.portal.kernel.cal.Recurrence;
 import com.liferay.portal.kernel.cal.RecurrenceSerializer;
 import com.liferay.portal.kernel.cluster.ClusterableContextThreadLocal;
+import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.scheduler.JobState;
 import com.liferay.portal.kernel.scheduler.SchedulerEngine;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
@@ -47,7 +49,7 @@ import com.liferay.portal.kernel.scheduler.messaging.SchedulerEventMessageListen
 import com.liferay.portal.kernel.scheduler.messaging.SchedulerEventMessageListenerWrapper;
 import com.liferay.portal.kernel.scheduler.messaging.SchedulerResponse;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -215,13 +217,13 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 			List<DayAndPosition> dayPos = new ArrayList<>();
 
-			addWeeklyDayPos(portletRequest, dayPos, Calendar.SUNDAY);
-			addWeeklyDayPos(portletRequest, dayPos, Calendar.MONDAY);
-			addWeeklyDayPos(portletRequest, dayPos, Calendar.TUESDAY);
-			addWeeklyDayPos(portletRequest, dayPos, Calendar.WEDNESDAY);
-			addWeeklyDayPos(portletRequest, dayPos, Calendar.THURSDAY);
-			addWeeklyDayPos(portletRequest, dayPos, Calendar.FRIDAY);
-			addWeeklyDayPos(portletRequest, dayPos, Calendar.SATURDAY);
+			_addWeeklyDayPos(portletRequest, dayPos, Calendar.SUNDAY);
+			_addWeeklyDayPos(portletRequest, dayPos, Calendar.MONDAY);
+			_addWeeklyDayPos(portletRequest, dayPos, Calendar.TUESDAY);
+			_addWeeklyDayPos(portletRequest, dayPos, Calendar.WEDNESDAY);
+			_addWeeklyDayPos(portletRequest, dayPos, Calendar.THURSDAY);
+			_addWeeklyDayPos(portletRequest, dayPos, Calendar.FRIDAY);
+			_addWeeklyDayPos(portletRequest, dayPos, Calendar.SATURDAY);
 
 			if (dayPos.isEmpty()) {
 				dayPos.add(new DayAndPosition(Calendar.MONDAY, 0));
@@ -563,9 +565,10 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 		MessageListener messageListener, SchedulerEntry schedulerEntry,
 		String destinationName) {
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("destination.name", destinationName);
+		Dictionary<String, Object> properties =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destinationName
+			).build();
 
 		Class<?> messageListenerClass = messageListener.getClass();
 
@@ -757,11 +760,11 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 		_bundleContext = componentContext.getBundleContext();
 
-		registerDestination(
+		_registerDestination(
 			_bundleContext, DestinationConfiguration.DESTINATION_TYPE_PARALLEL,
 			DestinationNames.SCHEDULER_DISPATCH);
 
-		Destination scriptingDestination = registerDestination(
+		Destination scriptingDestination = _registerDestination(
 			_bundleContext, DestinationConfiguration.DESTINATION_TYPE_PARALLEL,
 			DestinationNames.SCHEDULER_SCRIPTING);
 
@@ -779,14 +782,13 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 			"(objectClass=" + SchedulerEventMessageListener.class.getName() +
 				")",
 			new SchedulerEventMessageListenerServiceTrackerCustomizer());
-	}
 
-	protected void addWeeklyDayPos(
-		PortletRequest portletRequest, List<DayAndPosition> list, int day) {
+		DependencyManagerSyncUtil.registerSyncCallable(
+			() -> {
+				start();
 
-		if (ParamUtil.getBoolean(portletRequest, "weeklyDayPos" + day)) {
-			list.add(new DayAndPosition(day, 0));
-		}
+				return null;
+			});
 	}
 
 	@Deactivate
@@ -828,38 +830,11 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 		_bundleContext = null;
 	}
 
-	protected SchedulerEngine getSchedulerEngine() {
-		return _schedulerEngine;
-	}
-
 	@Modified
 	protected void modified(Map<String, Object> properties) throws Exception {
 		_schedulerEngineHelperConfiguration =
 			ConfigurableUtil.createConfigurable(
 				SchedulerEngineHelperConfiguration.class, properties);
-	}
-
-	protected Destination registerDestination(
-		BundleContext bundleContext, String destinationType,
-		String destinationName) {
-
-		DestinationConfiguration destinationConfiguration =
-			new DestinationConfiguration(destinationType, destinationName);
-
-		Destination destination = _destinationFactory.createDestination(
-			destinationConfiguration);
-
-		Dictionary<String, Object> dictionary = new HashMapDictionary<>();
-
-		dictionary.put("destination.name", destination.getName());
-
-		ServiceRegistration<Destination> serviceRegistration =
-			bundleContext.registerService(
-				Destination.class, destination, dictionary);
-
-		_destinationServiceRegistrations.add(serviceRegistration);
-
-		return destination;
 	}
 
 	@Reference(unbind = "-")
@@ -886,6 +861,38 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 		_schedulerEngine = schedulerEngine;
 	}
 
+	private void _addWeeklyDayPos(
+		PortletRequest portletRequest, List<DayAndPosition> list, int day) {
+
+		if (ParamUtil.getBoolean(portletRequest, "weeklyDayPos" + day)) {
+			list.add(new DayAndPosition(day, 0));
+		}
+	}
+
+	private Destination _registerDestination(
+		BundleContext bundleContext, String destinationType,
+		String destinationName) {
+
+		DestinationConfiguration destinationConfiguration =
+			new DestinationConfiguration(destinationType, destinationName);
+
+		Destination destination = _destinationFactory.createDestination(
+			destinationConfiguration);
+
+		Dictionary<String, Object> dictionary =
+			HashMapDictionaryBuilder.<String, Object>put(
+				"destination.name", destination.getName()
+			).build();
+
+		ServiceRegistration<Destination> serviceRegistration =
+			bundleContext.registerService(
+				Destination.class, destination, dictionary);
+
+		_destinationServiceRegistrations.add(serviceRegistration);
+
+		return destination;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		SchedulerEngineHelperImpl.class);
 
@@ -903,6 +910,9 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 	private JSONFactory _jsonFactory;
 	private final Map<String, ServiceRegistration<MessageListener>>
 		_messageListenerServiceRegistrations = new ConcurrentHashMap<>();
+
+	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED)
+	private ModuleServiceLifecycle _moduleServiceLifecycle;
 
 	@Reference
 	private Portal _portal;
@@ -987,14 +997,11 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 					return null;
 				}
 
-				Dictionary<String, Object> properties =
-					new HashMapDictionary<>();
-
-				properties.put("destination.name", destinationName);
-
 				serviceRegistration = bundleContext.registerService(
 					MessageListener.class, schedulerEventMessageListener,
-					properties);
+					HashMapDictionaryBuilder.<String, Object>put(
+						"destination.name", destinationName
+					).build());
 
 				_messageListenerServiceRegistrations.put(
 					schedulerEntry.getEventListenerClass(),
@@ -1003,7 +1010,7 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				return schedulerEventMessageListener;
 			}
 			catch (SchedulerException schedulerException) {
-				_log.error(schedulerException, schedulerException);
+				_log.error(schedulerException);
 			}
 			finally {
 				ClusterableContextThreadLocal.putThreadLocalContext(
@@ -1043,7 +1050,7 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				update(schedulerEntry.getTrigger(), storageType);
 			}
 			catch (SchedulerException schedulerException) {
-				_log.error(schedulerException, schedulerException);
+				_log.error(schedulerException);
 			}
 			finally {
 				ClusterableContextThreadLocal.putThreadLocalContext(
@@ -1085,7 +1092,7 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				delete(schedulerEntry, storageType);
 			}
 			catch (SchedulerException schedulerException) {
-				_log.error(schedulerException, schedulerException);
+				_log.error(schedulerException);
 			}
 			finally {
 				ClusterableContextThreadLocal.putThreadLocalContext(

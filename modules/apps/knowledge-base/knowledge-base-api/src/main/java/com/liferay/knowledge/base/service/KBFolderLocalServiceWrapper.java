@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class KBFolderLocalServiceWrapper
 	implements KBFolderLocalService, ServiceWrapper<KBFolderLocalService> {
 
+	public KBFolderLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KBFolderLocalServiceWrapper(
 		KBFolderLocalService kbFolderLocalService) {
 
@@ -51,14 +55,15 @@ public class KBFolderLocalServiceWrapper
 
 	@Override
 	public com.liferay.knowledge.base.model.KBFolder addKBFolder(
-			long userId, long groupId, long parentResourceClassNameId,
-			long parentResourcePrimKey, String name, String description,
+			String externalReferenceCode, long userId, long groupId,
+			long parentResourceClassNameId, long parentResourcePrimKey,
+			String name, String description,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _kbFolderLocalService.addKBFolder(
-			userId, groupId, parentResourceClassNameId, parentResourcePrimKey,
-			name, description, serviceContext);
+			externalReferenceCode, userId, groupId, parentResourceClassNameId,
+			parentResourcePrimKey, name, description, serviceContext);
 	}
 
 	/**
@@ -142,6 +147,13 @@ public class KBFolderLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kbFolderLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kbFolderLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -268,6 +280,35 @@ public class KBFolderLocalServiceWrapper
 		return _kbFolderLocalService.fetchKBFolder(uuid, groupId);
 	}
 
+	/**
+	 * Returns the kb folder with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the kb folder's external reference code
+	 * @return the matching kb folder, or <code>null</code> if a matching kb folder could not be found
+	 */
+	@Override
+	public com.liferay.knowledge.base.model.KBFolder
+		fetchKBFolderByExternalReferenceCode(
+			long groupId, String externalReferenceCode) {
+
+		return _kbFolderLocalService.fetchKBFolderByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchKBFolderByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Override
+	public com.liferay.knowledge.base.model.KBFolder
+		fetchKBFolderByReferenceCode(
+			long groupId, String externalReferenceCode) {
+
+		return _kbFolderLocalService.fetchKBFolderByReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
 	@Override
 	public com.liferay.knowledge.base.model.KBFolder fetchKBFolderByUrlTitle(
 			long groupId, long parentKbFolderId, String urlTitle)
@@ -329,6 +370,24 @@ public class KBFolderLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _kbFolderLocalService.getKBFolder(kbFolderId);
+	}
+
+	/**
+	 * Returns the kb folder with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the kb folder's external reference code
+	 * @return the matching kb folder
+	 * @throws PortalException if a matching kb folder could not be found
+	 */
+	@Override
+	public com.liferay.knowledge.base.model.KBFolder
+			getKBFolderByExternalReferenceCode(
+				long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _kbFolderLocalService.getKBFolderByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	@Override

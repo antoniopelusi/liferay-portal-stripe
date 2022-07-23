@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -110,6 +111,16 @@ public class DefaultWorkflowDefinition
 	}
 
 	@Override
+	public List<WorkflowNode> getWorkflowNodes() {
+		return _workflowNodes;
+	}
+
+	@Override
+	public List<WorkflowTransition> getWorkflowTransitions() {
+		return _workflowTransitions;
+	}
+
+	@Override
 	public boolean isActive() {
 		return _active;
 	}
@@ -170,6 +181,16 @@ public class DefaultWorkflowDefinition
 		_workflowDefinitionId = workflowDefinitionId;
 	}
 
+	public void setWorkflowNodes(List<WorkflowNode> workflowNodes) {
+		_workflowNodes = workflowNodes;
+	}
+
+	public void setWorkflowTransitions(
+		List<WorkflowTransition> workflowTransitions) {
+
+		_workflowTransitions = workflowTransitions;
+	}
+
 	private boolean _active;
 	private long _companyId;
 	private String _content;
@@ -184,5 +205,7 @@ public class DefaultWorkflowDefinition
 	private long _userId;
 	private int _version;
 	private long _workflowDefinitionId;
+	private List<WorkflowNode> _workflowNodes;
+	private List<WorkflowTransition> _workflowTransitions;
 
 }

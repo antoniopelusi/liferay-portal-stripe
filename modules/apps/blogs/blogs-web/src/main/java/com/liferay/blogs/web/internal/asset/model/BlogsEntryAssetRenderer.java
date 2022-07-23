@@ -183,7 +183,7 @@ public class BlogsEntryAssetRenderer
 			"/blogs/edit_entry"
 		).setParameter(
 			"entryId", _entry.getEntryId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -328,7 +328,7 @@ public class BlogsEntryAssetRenderer
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

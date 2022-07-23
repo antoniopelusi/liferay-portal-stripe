@@ -33,11 +33,13 @@ import javax.servlet.http.HttpSession;
 public class InvokerPortletUtil {
 
 	public static void clearResponse(
-		HttpSession session, long plid, String portletId, String languageId) {
+		HttpSession httpSession, long plid, String portletId,
+		String languageId) {
 
 		String sesResponseId = encodeResponseKey(plid, portletId, languageId);
 
-		Map<String, InvokerPortletResponse> responses = getResponses(session);
+		Map<String, InvokerPortletResponse> responses = getResponses(
+			httpSession);
 
 		responses.remove(sesResponseId);
 	}
@@ -51,28 +53,23 @@ public class InvokerPortletUtil {
 	public static String encodeResponseKey(
 		long plid, String portletId, String languageId) {
 
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(StringUtil.toHexString(plid));
-		sb.append(StringPool.UNDERLINE);
-		sb.append(portletId);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(languageId);
-
-		return sb.toString();
+		return StringBundler.concat(
+			StringUtil.toHexString(plid), StringPool.UNDERLINE, portletId,
+			StringPool.UNDERLINE, languageId);
 	}
 
 	public static Map<String, InvokerPortletResponse> getResponses(
-		HttpSession session) {
+		HttpSession httpSession) {
 
 		Map<String, InvokerPortletResponse> responses =
-			(Map<String, InvokerPortletResponse>)session.getAttribute(
+			(Map<String, InvokerPortletResponse>)httpSession.getAttribute(
 				WebKeys.CACHE_PORTLET_RESPONSES);
 
 		if (responses == null) {
 			responses = new ConcurrentHashMap<>();
 
-			session.setAttribute(WebKeys.CACHE_PORTLET_RESPONSES, responses);
+			httpSession.setAttribute(
+				WebKeys.CACHE_PORTLET_RESPONSES, responses);
 		}
 
 		return responses;

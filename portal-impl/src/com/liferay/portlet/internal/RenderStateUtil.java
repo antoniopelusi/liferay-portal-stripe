@@ -212,14 +212,13 @@ public class RenderStateUtil {
 		LayoutTypePortlet layoutTypePortlet,
 		Map<String, RenderData> renderDataMap) {
 
-		JSONObject jsonObject = JSONUtil.put(
-			"encodedCurrentURL",
-			URLCodec.encodeURL(
-				PortalUtil.getCurrentCompleteURL(httpServletRequest)));
-
 		List<Portlet> portlets = layoutTypePortlet.getAllPortlets();
 
-		jsonObject.put(
+		return JSONUtil.put(
+			"encodedCurrentURL",
+			URLCodec.encodeURL(
+				PortalUtil.getCurrentCompleteURL(httpServletRequest))
+		).put(
 			"portlets",
 			_getPortletsJSONObject(
 				httpServletRequest, themeDisplay, layoutTypePortlet, portlets,
@@ -227,8 +226,6 @@ public class RenderStateUtil {
 		).put(
 			"prpMap", _getPRPGroupsJSONObject(portlets)
 		);
-
-		return jsonObject;
 	}
 
 	private static JSONObject _getPortletJSONObject(

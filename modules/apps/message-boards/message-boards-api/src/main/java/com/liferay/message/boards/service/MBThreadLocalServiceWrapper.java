@@ -29,6 +29,10 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 public class MBThreadLocalServiceWrapper
 	implements MBThreadLocalService, ServiceWrapper<MBThreadLocalService> {
 
+	public MBThreadLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MBThreadLocalServiceWrapper(
 		MBThreadLocalService mbThreadLocalService) {
 
@@ -159,6 +163,13 @@ public class MBThreadLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mbThreadLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mbThreadLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

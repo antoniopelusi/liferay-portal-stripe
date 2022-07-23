@@ -129,6 +129,8 @@ public class CommerceDiscountAccountRelPersistenceTest {
 		CommerceDiscountAccountRel newCommerceDiscountAccountRel =
 			_persistence.create(pk);
 
+		newCommerceDiscountAccountRel.setMvccVersion(RandomTestUtil.nextLong());
+
 		newCommerceDiscountAccountRel.setUuid(RandomTestUtil.randomString());
 
 		newCommerceDiscountAccountRel.setCompanyId(RandomTestUtil.nextLong());
@@ -161,6 +163,9 @@ public class CommerceDiscountAccountRelPersistenceTest {
 			_persistence.findByPrimaryKey(
 				newCommerceDiscountAccountRel.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCommerceDiscountAccountRel.getMvccVersion(),
+			newCommerceDiscountAccountRel.getMvccVersion());
 		Assert.assertEquals(
 			existingCommerceDiscountAccountRel.getUuid(),
 			newCommerceDiscountAccountRel.getUuid());
@@ -236,11 +241,11 @@ public class CommerceDiscountAccountRelPersistenceTest {
 	}
 
 	@Test
-	public void testCountByC_C() throws Exception {
-		_persistence.countByC_C(
+	public void testCountByCAI_CDI() throws Exception {
+		_persistence.countByCAI_CDI(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
-		_persistence.countByC_C(0L, 0L);
+		_persistence.countByCAI_CDI(0L, 0L);
 	}
 
 	@Test
@@ -273,7 +278,7 @@ public class CommerceDiscountAccountRelPersistenceTest {
 		getOrderByComparator() {
 
 		return OrderByComparatorFactoryUtil.create(
-			"CommerceDiscountAccountRel", "uuid", true,
+			"CommerceDiscountAccountRel", "mvccVersion", true, "uuid", true,
 			"commerceDiscountAccountRelId", true, "companyId", true, "userId",
 			true, "userName", true, "createDate", true, "modifiedDate", true,
 			"commerceAccountId", true, "commerceDiscountId", true, "order",
@@ -602,6 +607,8 @@ public class CommerceDiscountAccountRelPersistenceTest {
 
 		CommerceDiscountAccountRel commerceDiscountAccountRel =
 			_persistence.create(pk);
+
+		commerceDiscountAccountRel.setMvccVersion(RandomTestUtil.nextLong());
 
 		commerceDiscountAccountRel.setUuid(RandomTestUtil.randomString());
 

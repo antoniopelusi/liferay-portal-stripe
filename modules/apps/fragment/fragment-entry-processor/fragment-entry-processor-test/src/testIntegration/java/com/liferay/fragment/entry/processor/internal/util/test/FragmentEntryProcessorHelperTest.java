@@ -98,10 +98,10 @@ public class FragmentEntryProcessorHelperTest {
 	public void testGetFileEntryIdClassNameClassPKDLImage() throws Exception {
 		FileEntry fileEntry = _addImageFileEntry();
 
-		long fileEntryId = _fragmentEntryProcessorHelper.getFileEntryId(
-			FileEntry.class.getName(), fileEntry.getFileEntryId());
-
-		Assert.assertEquals(fileEntry.getFileEntryId(), fileEntryId);
+		Assert.assertEquals(
+			fileEntry.getFileEntryId(),
+			_fragmentEntryProcessorHelper.getFileEntryId(
+				FileEntry.class.getName(), fileEntry.getFileEntryId()));
 	}
 
 	@Test
@@ -111,22 +111,23 @@ public class FragmentEntryProcessorHelperTest {
 		JournalArticle journalArticle = _addJournalArticle(
 			_addImageFileEntry(), "ImageFieldName");
 
-		long fileEntryId = _fragmentEntryProcessorHelper.getFileEntryId(
-			JournalArticle.class.getName(),
-			journalArticle.getResourcePrimKey());
-
-		Assert.assertEquals(0L, fileEntryId);
+		Assert.assertEquals(
+			0L,
+			_fragmentEntryProcessorHelper.getFileEntryId(
+				JournalArticle.class.getName(),
+				journalArticle.getResourcePrimKey()));
 	}
 
 	@Test
 	public void testGetFileEntryIdClassPKDLImage() throws Exception {
 		FileEntry fileEntry = _addImageFileEntry();
 
-		long fileEntryId = _fragmentEntryProcessorHelper.getFileEntryId(
-			_portal.getClassNameId(FileEntry.class.getName()),
-			fileEntry.getFileEntryId(), "fileURL", LocaleUtil.getSiteDefault());
-
-		Assert.assertEquals(fileEntry.getFileEntryId(), fileEntryId);
+		Assert.assertEquals(
+			fileEntry.getFileEntryId(),
+			_fragmentEntryProcessorHelper.getFileEntryId(
+				_portal.getClassNameId(FileEntry.class.getName()),
+				fileEntry.getFileEntryId(), "fileURL",
+				LocaleUtil.getSiteDefault()));
 	}
 
 	@Test
@@ -137,12 +138,12 @@ public class FragmentEntryProcessorHelperTest {
 
 		JournalArticle journalArticle = _addJournalArticle(fileEntry, fieldId);
 
-		long fileEntryId = _fragmentEntryProcessorHelper.getFileEntryId(
-			_portal.getClassNameId(JournalArticle.class.getName()),
-			journalArticle.getResourcePrimKey(), fieldId,
-			LocaleUtil.getSiteDefault());
-
-		Assert.assertEquals(fileEntry.getFileEntryId(), fileEntryId);
+		Assert.assertEquals(
+			fileEntry.getFileEntryId(),
+			_fragmentEntryProcessorHelper.getFileEntryId(
+				_portal.getClassNameId(JournalArticle.class.getName()),
+				journalArticle.getResourcePrimKey(), fieldId,
+				LocaleUtil.getSiteDefault()));
 	}
 
 	@Test
@@ -155,10 +156,10 @@ public class FragmentEntryProcessorHelperTest {
 
 		JournalArticle journalArticle = _addJournalArticle(fileEntry, fieldId);
 
-		long fileEntryId = _fragmentEntryProcessorHelper.getFileEntryId(
-			journalArticle, fieldId, LocaleUtil.getSiteDefault());
-
-		Assert.assertEquals(fileEntry.getFileEntryId(), fileEntryId);
+		Assert.assertEquals(
+			fileEntry.getFileEntryId(),
+			_fragmentEntryProcessorHelper.getFileEntryId(
+				journalArticle, fieldId, LocaleUtil.getSiteDefault()));
 	}
 
 	private DDMStructure _addDDMStructure(Group group, String content)
@@ -190,11 +191,12 @@ public class FragmentEntryProcessorHelperTest {
 			RepositoryProviderUtil.getLocalRepository(_group.getGroupId());
 
 		return localRepository.addFileEntry(
-			TestPropsValues.getUserId(),
+			null, TestPropsValues.getUserId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), ContentTypes.IMAGE_JPEG,
-			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
-			inputStream, bytes.length, serviceContext);
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			StringPool.BLANK, StringPool.BLANK, inputStream, bytes.length, null,
+			null, serviceContext);
 	}
 
 	private JournalArticle _addJournalArticle(
@@ -227,7 +229,7 @@ public class FragmentEntryProcessorHelperTest {
 			user.getTimeZone());
 
 		return _journalArticleLocalService.addArticle(
-			user.getUserId(), _group.getGroupId(), 0,
+			null, user.getUserId(), _group.getGroupId(), 0,
 			JournalArticleConstants.CLASS_NAME_ID_DEFAULT, 0, StringPool.BLANK,
 			true, JournalArticleConstants.VERSION_DEFAULT,
 			HashMapBuilder.put(
@@ -235,6 +237,9 @@ public class FragmentEntryProcessorHelperTest {
 			).build(),
 			HashMapBuilder.put(
 				defaultLocale, defaultLocale.toString()
+			).build(),
+			HashMapBuilder.put(
+				defaultLocale, RandomTestUtil.randomString()
 			).build(),
 			_getJournalArticleStructuredContent(
 				fieldId,

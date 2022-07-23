@@ -189,6 +189,11 @@ public class KaleoTaskAssignmentWrapper
 		}
 	}
 
+	@Override
+	public KaleoTaskAssignment cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the assignee action ID of this kaleo task assignment.
 	 *

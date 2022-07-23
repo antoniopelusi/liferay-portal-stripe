@@ -1096,14 +1096,11 @@ public class DDMTemplateFinderImpl
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("AND EXISTS (SELECT 1 FROM DDMTemplateVersion WHERE ");
-		sb.append("(DDMTemplateVersion.templateId = DDMTemplate.templateId) ");
-		sb.append("AND (DDMTemplateVersion.version = DDMTemplate.version) ");
-		sb.append("AND (DDMTemplateVersion.status = ?))");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"AND EXISTS (SELECT 1 FROM DDMTemplateVersion WHERE ",
+			"(DDMTemplateVersion.templateId = DDMTemplate.templateId) AND ",
+			"(DDMTemplateVersion.version = DDMTemplate.version) AND ",
+			"(DDMTemplateVersion.status = ?))");
 	}
 
 	@Reference

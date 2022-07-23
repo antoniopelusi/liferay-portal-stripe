@@ -80,12 +80,14 @@ public class BatchEngineExportTaskCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(35);
+		StringBundler sb = new StringBundler(41);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
 		sb.append(", uuid=");
 		sb.append(uuid);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
 		sb.append(", batchEngineExportTaskId=");
 		sb.append(batchEngineExportTaskId);
 		sb.append(", companyId=");
@@ -112,10 +114,14 @@ public class BatchEngineExportTaskCacheModel
 		sb.append(executeStatus);
 		sb.append(", parameters=");
 		sb.append(parameters);
+		sb.append(", processedItemsCount=");
+		sb.append(processedItemsCount);
 		sb.append(", startTime=");
 		sb.append(startTime);
 		sb.append(", taskItemDelegateName=");
 		sb.append(taskItemDelegateName);
+		sb.append(", totalItemsCount=");
+		sb.append(totalItemsCount);
 		sb.append("}");
 
 		return sb.toString();
@@ -133,6 +139,14 @@ public class BatchEngineExportTaskCacheModel
 		}
 		else {
 			batchEngineExportTaskImpl.setUuid(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			batchEngineExportTaskImpl.setExternalReferenceCode("");
+		}
+		else {
+			batchEngineExportTaskImpl.setExternalReferenceCode(
+				externalReferenceCode);
 		}
 
 		batchEngineExportTaskImpl.setBatchEngineExportTaskId(
@@ -204,6 +218,7 @@ public class BatchEngineExportTaskCacheModel
 		}
 
 		batchEngineExportTaskImpl.setParameters(parameters);
+		batchEngineExportTaskImpl.setProcessedItemsCount(processedItemsCount);
 
 		if (startTime == Long.MIN_VALUE) {
 			batchEngineExportTaskImpl.setStartTime(null);
@@ -220,6 +235,8 @@ public class BatchEngineExportTaskCacheModel
 				taskItemDelegateName);
 		}
 
+		batchEngineExportTaskImpl.setTotalItemsCount(totalItemsCount);
+
 		batchEngineExportTaskImpl.resetOriginalValues();
 
 		return batchEngineExportTaskImpl;
@@ -231,6 +248,7 @@ public class BatchEngineExportTaskCacheModel
 
 		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
+		externalReferenceCode = objectInput.readUTF();
 
 		batchEngineExportTaskId = objectInput.readLong();
 
@@ -243,12 +261,16 @@ public class BatchEngineExportTaskCacheModel
 		className = objectInput.readUTF();
 		contentType = objectInput.readUTF();
 		endTime = objectInput.readLong();
-		errorMessage = objectInput.readUTF();
+		errorMessage = (String)objectInput.readObject();
 		fieldNames = objectInput.readUTF();
 		executeStatus = objectInput.readUTF();
 		parameters = (Map<String, Serializable>)objectInput.readObject();
+
+		processedItemsCount = objectInput.readInt();
 		startTime = objectInput.readLong();
 		taskItemDelegateName = objectInput.readUTF();
+
+		totalItemsCount = objectInput.readInt();
 	}
 
 	@Override
@@ -260,6 +282,13 @@ public class BatchEngineExportTaskCacheModel
 		}
 		else {
 			objectOutput.writeUTF(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
 		}
 
 		objectOutput.writeLong(batchEngineExportTaskId);
@@ -294,10 +323,10 @@ public class BatchEngineExportTaskCacheModel
 		objectOutput.writeLong(endTime);
 
 		if (errorMessage == null) {
-			objectOutput.writeUTF("");
+			objectOutput.writeObject("");
 		}
 		else {
-			objectOutput.writeUTF(errorMessage);
+			objectOutput.writeObject(errorMessage);
 		}
 
 		if (fieldNames == null) {
@@ -315,6 +344,8 @@ public class BatchEngineExportTaskCacheModel
 		}
 
 		objectOutput.writeObject(parameters);
+
+		objectOutput.writeInt(processedItemsCount);
 		objectOutput.writeLong(startTime);
 
 		if (taskItemDelegateName == null) {
@@ -323,10 +354,13 @@ public class BatchEngineExportTaskCacheModel
 		else {
 			objectOutput.writeUTF(taskItemDelegateName);
 		}
+
+		objectOutput.writeInt(totalItemsCount);
 	}
 
 	public long mvccVersion;
 	public String uuid;
+	public String externalReferenceCode;
 	public long batchEngineExportTaskId;
 	public long companyId;
 	public long userId;
@@ -340,7 +374,9 @@ public class BatchEngineExportTaskCacheModel
 	public String fieldNames;
 	public String executeStatus;
 	public Map<String, Serializable> parameters;
+	public int processedItemsCount;
 	public long startTime;
 	public String taskItemDelegateName;
+	public int totalItemsCount;
 
 }

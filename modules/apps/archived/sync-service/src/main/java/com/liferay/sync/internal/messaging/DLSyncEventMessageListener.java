@@ -72,12 +72,12 @@ public class DLSyncEventMessageListener extends BaseMessageListener {
 		actionableDynamicQuery.setPerformActionMethod(
 			(DLSyncEvent dlSyncEvent) -> {
 				try {
-					processDLSyncEvent(
+					_processDLSyncEvent(
 						dlSyncEvent.getModifiedTime(), dlSyncEvent.getEvent(),
 						dlSyncEvent.getType(), dlSyncEvent.getTypePK(), false);
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			});
 
@@ -85,7 +85,7 @@ public class DLSyncEventMessageListener extends BaseMessageListener {
 			actionableDynamicQuery.performActions();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -97,14 +97,47 @@ public class DLSyncEventMessageListener extends BaseMessageListener {
 		long typePK = message.getLong("typePK");
 
 		try {
-			processDLSyncEvent(modifiedTime, event, type, typePK, true);
+			_processDLSyncEvent(modifiedTime, event, type, typePK, true);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
-	protected void processDLSyncEvent(
+	@Reference(unbind = "-")
+	protected void setDLFileEntryLocalService(
+		DLFileEntryLocalService dlFileEntryLocalService) {
+
+		_dlFileEntryLocalService = dlFileEntryLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLFolderLocalService(
+		DLFolderLocalService dlFolderLocalService) {
+
+		_dlFolderLocalService = dlFolderLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLSyncEventLocalService(
+		DLSyncEventLocalService dlSyncEventLocalService) {
+
+		_dlSyncEventLocalService = dlSyncEventLocalService;
+	}
+
+	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
+	protected void setModuleServiceLifecycle(
+		ModuleServiceLifecycle moduleServiceLifecycle) {
+	}
+
+	@Reference(unbind = "-")
+	protected void setSyncDLObjectLocalService(
+		SyncDLObjectLocalService syncDLObjectLocalService) {
+
+		_syncDLObjectLocalService = syncDLObjectLocalService;
+	}
+
+	private void _processDLSyncEvent(
 			long modifiedTime, String event, String type, long typePK,
 			boolean calculateChecksum)
 		throws Exception {
@@ -114,7 +147,7 @@ public class DLSyncEventMessageListener extends BaseMessageListener {
 		if (event.equals(SyncDLObjectConstants.EVENT_DELETE)) {
 			syncDLObject = new SyncDLObjectImpl();
 
-			setUser(syncDLObject);
+			_setUser(syncDLObject);
 
 			syncDLObject.setModifiedTime(System.currentTimeMillis());
 			syncDLObject.setEvent(event);
@@ -153,7 +186,7 @@ public class DLSyncEventMessageListener extends BaseMessageListener {
 			}
 
 			if (event.equals(SyncDLObjectConstants.EVENT_TRASH)) {
-				setUser(syncDLObject);
+				_setUser(syncDLObject);
 			}
 
 			syncDLObject.setLanTokenKey(
@@ -176,40 +209,7 @@ public class DLSyncEventMessageListener extends BaseMessageListener {
 		_syncHelper.addSyncDLObject(syncDLObject, _syncDLObjectLocalService);
 	}
 
-	@Reference(unbind = "-")
-	protected void setDLFileEntryLocalService(
-		DLFileEntryLocalService dlFileEntryLocalService) {
-
-		_dlFileEntryLocalService = dlFileEntryLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLFolderLocalService(
-		DLFolderLocalService dlFolderLocalService) {
-
-		_dlFolderLocalService = dlFolderLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLSyncEventLocalService(
-		DLSyncEventLocalService dlSyncEventLocalService) {
-
-		_dlSyncEventLocalService = dlSyncEventLocalService;
-	}
-
-	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
-	protected void setModuleServiceLifecycle(
-		ModuleServiceLifecycle moduleServiceLifecycle) {
-	}
-
-	@Reference(unbind = "-")
-	protected void setSyncDLObjectLocalService(
-		SyncDLObjectLocalService syncDLObjectLocalService) {
-
-		_syncDLObjectLocalService = syncDLObjectLocalService;
-	}
-
-	protected void setUser(SyncDLObject syncDLObject) {
+	private void _setUser(SyncDLObject syncDLObject) {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 

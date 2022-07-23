@@ -27,6 +27,10 @@ public class CommerceOrderPaymentLocalServiceWrapper
 	implements CommerceOrderPaymentLocalService,
 			   ServiceWrapper<CommerceOrderPaymentLocalService> {
 
+	public CommerceOrderPaymentLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceOrderPaymentLocalServiceWrapper(
 		CommerceOrderPaymentLocalService commerceOrderPaymentLocalService) {
 
@@ -161,6 +165,13 @@ public class CommerceOrderPaymentLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceOrderPaymentLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceOrderPaymentLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

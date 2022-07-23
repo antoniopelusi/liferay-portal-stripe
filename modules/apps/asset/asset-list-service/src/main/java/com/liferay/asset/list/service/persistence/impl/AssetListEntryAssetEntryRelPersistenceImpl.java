@@ -20,11 +20,11 @@ import com.liferay.asset.list.model.AssetListEntryAssetEntryRelTable;
 import com.liferay.asset.list.model.impl.AssetListEntryAssetEntryRelImpl;
 import com.liferay.asset.list.model.impl.AssetListEntryAssetEntryRelModelImpl;
 import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelPersistence;
+import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelUtil;
 import com.liferay.asset.list.service.persistence.impl.constants.AssetListPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,7 +35,6 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -43,16 +42,19 @@ import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -66,12 +68,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -3879,6 +3878,8 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 			assetListEntryAssetEntryRel);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the asset list entry asset entry rels in the entity cache if it is enabled.
 	 *
@@ -3887,6 +3888,14 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 	@Override
 	public void cacheResult(
 		List<AssetListEntryAssetEntryRel> assetListEntryAssetEntryRels) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (assetListEntryAssetEntryRels.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (AssetListEntryAssetEntryRel assetListEntryAssetEntryRel :
 				assetListEntryAssetEntryRels) {
@@ -3999,7 +4008,7 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 		assetListEntryAssetEntryRel.setPrimaryKey(
 			assetListEntryAssetEntryRelId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		assetListEntryAssetEntryRel.setUuid(uuid);
 
@@ -4135,7 +4144,7 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 					assetListEntryAssetEntryRel;
 
 		if (Validator.isNull(assetListEntryAssetEntryRel.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			assetListEntryAssetEntryRel.setUuid(uuid);
 		}
@@ -4143,25 +4152,25 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (assetListEntryAssetEntryRel.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				assetListEntryAssetEntryRel.setCreateDate(now);
+				assetListEntryAssetEntryRel.setCreateDate(date);
 			}
 			else {
 				assetListEntryAssetEntryRel.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!assetListEntryAssetEntryRelModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				assetListEntryAssetEntryRel.setModifiedDate(now);
+				assetListEntryAssetEntryRel.setModifiedDate(date);
 			}
 			else {
 				assetListEntryAssetEntryRel.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4339,6 +4348,26 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 
 			if (assetListEntryAssetEntryRel != null) {
 				map.put(primaryKey, assetListEntryAssetEntryRel);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -4611,7 +4640,8 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -4645,7 +4675,6 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -4667,7 +4696,6 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK,
 			Collections.singleton("assetListEntryAssetEntryRelId"));
@@ -4684,13 +4712,9 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 	 * Initializes the asset list entry asset entry rel persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new AssetListEntryAssetEntryRelModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -4829,14 +4853,34 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 			},
 			new String[] {"assetListEntryId", "segmentsEntryId", "position"},
 			false);
+
+		_setAssetListEntryAssetEntryRelUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
+		_setAssetListEntryAssetEntryRelUtilPersistence(null);
+
 		entityCache.removeCache(
 			AssetListEntryAssetEntryRelImpl.class.getName());
+	}
 
-		_argumentsResolverServiceRegistration.unregister();
+	private void _setAssetListEntryAssetEntryRelUtilPersistence(
+		AssetListEntryAssetEntryRelPersistence
+			assetListEntryAssetEntryRelPersistence) {
+
+		try {
+			Field field =
+				AssetListEntryAssetEntryRelUtil.class.getDeclaredField(
+					"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, assetListEntryAssetEntryRelPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -4864,8 +4908,6 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -4908,122 +4950,11 @@ public class AssetListEntryAssetEntryRelPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class AssetListEntryAssetEntryRelModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			AssetListEntryAssetEntryRelModelImpl
-				assetListEntryAssetEntryRelModelImpl =
-					(AssetListEntryAssetEntryRelModelImpl)baseModel;
-
-			long columnBitmask =
-				assetListEntryAssetEntryRelModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					assetListEntryAssetEntryRelModelImpl, columnNames,
-					original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						assetListEntryAssetEntryRelModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					assetListEntryAssetEntryRelModelImpl, columnNames,
-					original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return AssetListEntryAssetEntryRelImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return AssetListEntryAssetEntryRelTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			AssetListEntryAssetEntryRelModelImpl
-				assetListEntryAssetEntryRelModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						assetListEntryAssetEntryRelModelImpl.
-							getColumnOriginalValue(columnName);
-				}
-				else {
-					arguments[i] =
-						assetListEntryAssetEntryRelModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |=
-				AssetListEntryAssetEntryRelModelImpl.getColumnBitmask(
-					"position");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private AssetListEntryAssetEntryRelModelArgumentsResolver
+		_assetListEntryAssetEntryRelModelArgumentsResolver;
 
 }

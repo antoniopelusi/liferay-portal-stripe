@@ -182,6 +182,11 @@ public class KaleoInstanceTokenWrapper
 	}
 
 	@Override
+	public KaleoInstanceToken cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public java.util.List<KaleoInstanceToken> getChildrenKaleoInstanceTokens() {
 		return model.getChildrenKaleoInstanceTokens();
 	}

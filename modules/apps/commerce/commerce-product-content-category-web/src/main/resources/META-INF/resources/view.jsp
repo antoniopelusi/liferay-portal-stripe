@@ -43,19 +43,19 @@ assetCategoryList.add(assetCategory);
 		<div class="category-detail">
 
 			<%
-			String imgURL = cpCategoryContentDisplayContext.getDefaultImageSrc(themeDisplay);
+			String imgURL = cpCategoryContentDisplayContext.getDefaultImageSrc();
 			%>
 
 			<c:if test="<%= Validator.isNotNull(imgURL) %>">
 				<div class="category-image">
-					<img class="img-fluid" src="<%= imgURL %>" />
+					<img class="img-fluid" src="<%= HtmlUtil.escapeAttribute(imgURL) %>" />
 				</div>
 			</c:if>
 
 			<div class="container-fluid">
-				<h1 class="category-title"><%= assetCategory.getTitle(languageId) %></h1>
+				<h1 class="category-title"><%= HtmlUtil.escape(assetCategory.getTitle(languageId)) %></h1>
 
-				<p class="category-description"><%= assetCategory.getDescription(languageId) %></p>
+				<p class="category-description"><%= HtmlUtil.escape(assetCategory.getDescription(languageId)) %></p>
 			</div>
 		</div>
 	</c:if>

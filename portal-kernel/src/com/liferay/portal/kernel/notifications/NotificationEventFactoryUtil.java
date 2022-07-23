@@ -25,7 +25,7 @@ public class NotificationEventFactoryUtil {
 	public static NotificationEvent createNotificationEvent(
 		long timestamp, String type, JSONObject payloadJSONObject) {
 
-		return getNotificationEventFactory().createNotificationEvent(
+		return _notificationEventFactory.createNotificationEvent(
 			timestamp, type, payloadJSONObject);
 	}
 

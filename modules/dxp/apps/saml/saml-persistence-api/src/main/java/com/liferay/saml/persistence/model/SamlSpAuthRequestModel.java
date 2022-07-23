@@ -131,4 +131,7 @@ public interface SamlSpAuthRequestModel
 	 */
 	public void setSamlSpAuthRequestKey(String samlSpAuthRequestKey);
 
+	@Override
+	public SamlSpAuthRequest cloneWithOriginalValues();
+
 }

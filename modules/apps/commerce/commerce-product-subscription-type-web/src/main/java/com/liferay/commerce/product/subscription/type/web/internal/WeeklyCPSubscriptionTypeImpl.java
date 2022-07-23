@@ -76,28 +76,28 @@ public class WeeklyCPSubscriptionTypeImpl implements CPSubscriptionType {
 		TimeZone timeZone,
 		UnicodeProperties subscriptionTypeSettingsUnicodeProperties) {
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if ((subscriptionTypeSettingsUnicodeProperties == null) ||
 			subscriptionTypeSettingsUnicodeProperties.isEmpty()) {
 
-			return now;
+			return date;
 		}
 
 		int weekDay = GetterUtil.getInteger(
 			subscriptionTypeSettingsUnicodeProperties.get("weekDay"));
 
 		if ((weekDay < Calendar.SUNDAY) || (weekDay > Calendar.SATURDAY)) {
-			return now;
+			return date;
 		}
 
 		Calendar calendar = CalendarFactoryUtil.getCalendar(
-			now.getTime(), timeZone);
+			date.getTime(), timeZone);
 
 		int today = calendar.get(Calendar.DAY_OF_WEEK);
 
 		if (today == weekDay) {
-			return now;
+			return date;
 		}
 
 		if (weekDay < today) {

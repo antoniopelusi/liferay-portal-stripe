@@ -14,13 +14,26 @@
 
 package com.liferay.object.model.impl;
 
+import com.liferay.object.model.ObjectLayoutBox;
+
+import java.util.List;
+
 /**
  * @author Marco Leo
  * @author Brian Wing Shun Chan
  */
 public class ObjectLayoutTabImpl extends ObjectLayoutTabBaseImpl {
 
-	public ObjectLayoutTabImpl() {
+	@Override
+	public List<ObjectLayoutBox> getObjectLayoutBoxes() {
+		return _objectLayoutBoxes;
 	}
+
+	@Override
+	public void setObjectLayoutBoxes(List<ObjectLayoutBox> objectLayoutBoxes) {
+		_objectLayoutBoxes = objectLayoutBoxes;
+	}
+
+	private List<ObjectLayoutBox> _objectLayoutBoxes;
 
 }

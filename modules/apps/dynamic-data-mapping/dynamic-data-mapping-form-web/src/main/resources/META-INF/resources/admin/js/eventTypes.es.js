@@ -19,12 +19,6 @@ const RULE = {
 	EDIT: 'rule_edit',
 };
 
-const SIDEBAR = {
-	BLUR: 'sidebar_blur',
-	CHANGE_FIELD_TYPE: 'sidebar_change_field_type',
-	CHANGES_CANCEL: 'sidebar_changes_cancel',
-};
-
 const FORM_INFO = {
 	DESCRIPTION_CHANGE: 'form_info_description_change',
 	LANGUAGE_DELETE: 'form_info_language_delete',
@@ -35,5 +29,4 @@ export const EVENT_TYPES = {
 	ELEMENT_SET_ADD: 'element_set_add',
 	FORM_INFO,
 	RULE,
-	SIDEBAR,
 };

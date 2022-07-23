@@ -25,6 +25,7 @@ import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetService;
 import com.liferay.dynamic.data.lists.web.internal.configuration.DDLWebConfigurationKeys;
 import com.liferay.dynamic.data.lists.web.internal.configuration.DDLWebConfigurationUtil;
+import com.liferay.dynamic.data.lists.web.internal.template.helper.DDLDisplayTemplateHelper;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
@@ -111,9 +112,9 @@ public class DDLDisplayTemplateHandler extends BaseDDMTemplateHandler {
 
 		addTemplateVariableGroup(
 			templateVariableGroups,
-			getDDLUtilVariablesTemplateVariableGroups());
+			_getDDLUtilVariablesTemplateVariableGroups());
 		addTemplateVariableGroup(
-			templateVariableGroups, getDDLVariablesTemplateVariableGroups());
+			templateVariableGroups, _getDDLVariablesTemplateVariableGroups());
 		addTemplateVariableGroup(
 			templateVariableGroups, getGeneralVariablesTemplateVariableGroup());
 
@@ -148,9 +149,17 @@ public class DDLDisplayTemplateHandler extends BaseDDMTemplateHandler {
 		return templateVariableGroups;
 	}
 
-	protected TemplateVariableGroup
-		getDDLUtilVariablesTemplateVariableGroups() {
+	@Override
+	protected Class<?> getFieldVariableClass() {
+		return DDMFormFieldValue.class;
+	}
 
+	@Override
+	protected TemplateVariableCodeHandler getTemplateVariableCodeHandler() {
+		return _templateVariableCodeHandler;
+	}
+
+	private TemplateVariableGroup _getDDLUtilVariablesTemplateVariableGroups() {
 		TemplateVariableGroup ddlUtilTemplateVariableGroup =
 			new TemplateVariableGroup("data-list-util");
 
@@ -161,7 +170,7 @@ public class DDLDisplayTemplateHandler extends BaseDDMTemplateHandler {
 		return ddlUtilTemplateVariableGroup;
 	}
 
-	protected TemplateVariableGroup getDDLVariablesTemplateVariableGroups() {
+	private TemplateVariableGroup _getDDLVariablesTemplateVariableGroups() {
 		TemplateVariableGroup templateVariableGroup = new TemplateVariableGroup(
 			"data-list-variables");
 
@@ -184,16 +193,6 @@ public class DDLDisplayTemplateHandler extends BaseDDMTemplateHandler {
 		return templateVariableGroup;
 	}
 
-	@Override
-	protected Class<?> getFieldVariableClass() {
-		return DDMFormFieldValue.class;
-	}
-
-	@Override
-	protected TemplateVariableCodeHandler getTemplateVariableCodeHandler() {
-		return _templateVariableCodeHandler;
-	}
-
 	@Reference
 	private DLURLHelper _dlURLHelper;
 
@@ -210,7 +209,6 @@ public class DDLDisplayTemplateHandler extends BaseDDMTemplateHandler {
 			DDLDisplayTemplateHandler.class.getClassLoader(),
 			"com/liferay/dynamic/data/lists/web/internal/template" +
 				"/dependencies/",
-			SetUtil.fromArray(
-				new String[] {"document-library", "html", "link-to-page"}));
+			SetUtil.fromArray("document-library", "html", "link-to-page"));
 
 }

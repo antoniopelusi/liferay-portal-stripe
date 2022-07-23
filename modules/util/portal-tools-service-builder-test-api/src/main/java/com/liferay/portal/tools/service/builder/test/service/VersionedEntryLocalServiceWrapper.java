@@ -27,6 +27,10 @@ public class VersionedEntryLocalServiceWrapper
 	implements ServiceWrapper<VersionedEntryLocalService>,
 			   VersionedEntryLocalService {
 
+	public VersionedEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public VersionedEntryLocalServiceWrapper(
 		VersionedEntryLocalService versionedEntryLocalService) {
 
@@ -171,6 +175,13 @@ public class VersionedEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _versionedEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _versionedEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

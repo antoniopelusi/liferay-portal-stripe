@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -61,6 +62,10 @@ public class PriceList implements Serializable {
 
 	public static PriceList toDTO(String json) {
 		return ObjectMapperUtil.readValue(PriceList.class, json);
+	}
+
+	public static PriceList unsafeToDTO(String json) {
+		return ObjectMapperUtil.unsafeReadValue(PriceList.class, json);
 	}
 
 	@Schema
@@ -697,6 +702,38 @@ public class PriceList implements Serializable {
 
 	@Schema
 	@Valid
+	public PriceListOrderType[] getPriceListOrderTypes() {
+		return priceListOrderTypes;
+	}
+
+	public void setPriceListOrderTypes(
+		PriceListOrderType[] priceListOrderTypes) {
+
+		this.priceListOrderTypes = priceListOrderTypes;
+	}
+
+	@JsonIgnore
+	public void setPriceListOrderTypes(
+		UnsafeSupplier<PriceListOrderType[], Exception>
+			priceListOrderTypesUnsafeSupplier) {
+
+		try {
+			priceListOrderTypes = priceListOrderTypesUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected PriceListOrderType[] priceListOrderTypes;
+
+	@Schema
+	@Valid
 	public PriceModifier[] getPriceModifiers() {
 		return priceModifiers;
 	}
@@ -1151,6 +1188,26 @@ public class PriceList implements Serializable {
 			sb.append("]");
 		}
 
+		if (priceListOrderTypes != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"priceListOrderTypes\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < priceListOrderTypes.length; i++) {
+				sb.append(String.valueOf(priceListOrderTypes[i]));
+
+				if ((i + 1) < priceListOrderTypes.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (priceModifiers != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1224,13 +1281,17 @@ public class PriceList implements Serializable {
 
 		@JsonCreator
 		public static Type create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
 			for (Type type : values()) {
 				if (Objects.equals(type.getValue(), value)) {
 					return type;
 				}
 			}
 
-			return null;
+			throw new IllegalArgumentException("Invalid enum value: " + value);
 		}
 
 		@JsonValue
@@ -1252,9 +1313,9 @@ public class PriceList implements Serializable {
 	}
 
 	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		return string.replaceAll("\"", "\\\\\"");
+		return StringUtil.replace(
+			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
+			_JSON_ESCAPE_STRINGS[1]);
 	}
 
 	private static boolean _isArray(Object value) {
@@ -1280,7 +1341,7 @@ public class PriceList implements Serializable {
 			Map.Entry<String, ?> entry = iterator.next();
 
 			sb.append("\"");
-			sb.append(entry.getKey());
+			sb.append(_escape(entry.getKey()));
 			sb.append("\": ");
 
 			Object value = entry.getValue();
@@ -1312,7 +1373,7 @@ public class PriceList implements Serializable {
 			}
 			else if (value instanceof String) {
 				sb.append("\"");
-				sb.append(value);
+				sb.append(_escape(value));
 				sb.append("\"");
 			}
 			else {
@@ -1328,5 +1389,10 @@ public class PriceList implements Serializable {
 
 		return sb.toString();
 	}
+
+	private static final String[][] _JSON_ESCAPE_STRINGS = {
+		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
+		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
+	};
 
 }

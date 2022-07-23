@@ -34,6 +34,12 @@ public class CommercePricingClassTable
 	public static final CommercePricingClassTable INSTANCE =
 		new CommercePricingClassTable();
 
+	public final Column<CommercePricingClassTable, Long> mvccVersion =
+		createColumn(
+			"mvccVersion", Long.class, Types.BIGINT, Column.FLAG_NULLITY);
+	public final Column<CommercePricingClassTable, Long> ctCollectionId =
+		createColumn(
+			"ctCollectionId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
 	public final Column<CommercePricingClassTable, String> uuid = createColumn(
 		"uuid_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<CommercePricingClassTable, String>

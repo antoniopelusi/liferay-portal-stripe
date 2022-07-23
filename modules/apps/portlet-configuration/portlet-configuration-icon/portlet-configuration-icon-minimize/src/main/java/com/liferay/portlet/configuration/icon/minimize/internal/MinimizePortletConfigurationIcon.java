@@ -142,7 +142,7 @@ public class MinimizePortletConfigurationIcon
 
 		if ((!themeDisplay.isSignedIn() ||
 			 (group.hasStagingGroup() && !group.isStagingGroup()) ||
-			 !hasUpdateLayoutPermission(themeDisplay)) &&
+			 !_hasUpdateLayoutPermission(themeDisplay)) &&
 			!PropsValues.LAYOUT_GUEST_SHOW_MIN_ICON) {
 
 			return false;
@@ -156,14 +156,14 @@ public class MinimizePortletConfigurationIcon
 		return false;
 	}
 
-	protected boolean hasUpdateLayoutPermission(ThemeDisplay themeDisplay) {
+	private boolean _hasUpdateLayoutPermission(ThemeDisplay themeDisplay) {
 		try {
 			return LayoutPermissionUtil.contains(
 				themeDisplay.getPermissionChecker(), themeDisplay.getLayout(),
 				ActionKeys.UPDATE);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return false;
 		}

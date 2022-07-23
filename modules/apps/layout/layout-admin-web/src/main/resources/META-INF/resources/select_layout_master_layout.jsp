@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-SelectLayoutPageTemplateEntryDisplayContext selectLayoutPageTemplateEntryDisplayContext = new SelectLayoutPageTemplateEntryDisplayContext(request);
+SelectLayoutPageTemplateEntryDisplayContext selectLayoutPageTemplateEntryDisplayContext = new SelectLayoutPageTemplateEntryDisplayContext(request, liferayPortletResponse);
 
 String backURL = selectLayoutPageTemplateEntryDisplayContext.getBackURL();
 
@@ -75,6 +75,7 @@ renderResponse.setTitle(LanguageUtil.get(request, "select-master-page"));
 		'.add-layout-action-option',
 		(event) => {
 			Liferay.Util.openModal({
+				disableAutoClose: true,
 				height: '60vh',
 				id: '<portlet:namespace />addLayoutDialog',
 				size: 'md',

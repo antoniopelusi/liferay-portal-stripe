@@ -164,12 +164,9 @@ public class DLOpenerGoogleDriveManager
 
 		Credential credential = _oAuth2Manager.getCredential(companyId, userId);
 
-		if (credential == null) {
-			return false;
-		}
-
-		if ((credential.getExpiresInSeconds() <= 0) &&
-			!credential.refreshToken()) {
+		if ((credential == null) ||
+			((credential.getExpiresInSeconds() <= 0) &&
+			 !credential.refreshToken())) {
 
 			return false;
 		}
@@ -313,8 +310,8 @@ public class DLOpenerGoogleDriveManager
 			urlConnection.setRequestProperty(
 				"Authorization", "Bearer " + credential.getAccessToken());
 
-			try (InputStream is = urlConnection.getInputStream()) {
-				return FileUtil.createTempFile(is);
+			try (InputStream inputStream = urlConnection.getInputStream()) {
+				return FileUtil.createTempFile(inputStream);
 			}
 		}
 		catch (IOException | PortalException exception) {

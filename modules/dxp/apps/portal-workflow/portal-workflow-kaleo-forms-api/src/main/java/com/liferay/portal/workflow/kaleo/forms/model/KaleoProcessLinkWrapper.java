@@ -83,6 +83,11 @@ public class KaleoProcessLinkWrapper
 		}
 	}
 
+	@Override
+	public KaleoProcessLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this kaleo process link.
 	 *

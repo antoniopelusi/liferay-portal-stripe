@@ -66,21 +66,16 @@ public class LayoutExportBackgroundTaskExecutor
 		long userId = MapUtil.getLong(
 			exportImportConfiguration.getSettingsMap(), "userId");
 
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(
-			StringUtil.replace(
-				exportImportConfiguration.getName(), CharPool.SPACE,
-				CharPool.UNDERLINE));
-		sb.append(StringPool.DASH);
-		sb.append(Time.getTimestamp());
-		sb.append(".lar");
-
 		File larFile = ExportImportLocalServiceUtil.exportLayoutsAsFile(
 			exportImportConfiguration);
 
 		BackgroundTaskManagerUtil.addBackgroundTaskAttachment(
-			userId, backgroundTask.getBackgroundTaskId(), sb.toString(),
+			userId, backgroundTask.getBackgroundTaskId(),
+			StringBundler.concat(
+				StringUtil.replace(
+					exportImportConfiguration.getName(), CharPool.SPACE,
+					CharPool.UNDERLINE),
+				StringPool.DASH, Time.getTimestamp(), ".lar"),
 			larFile);
 
 		return BackgroundTaskResult.SUCCESS;

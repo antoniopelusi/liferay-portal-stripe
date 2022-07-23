@@ -38,7 +38,9 @@ public class CommerceOrderModelListener
 	extends BaseModelListener<CommerceOrder> {
 
 	@Override
-	public void onAfterUpdate(CommerceOrder commerceOrder) {
+	public void onAfterUpdate(
+		CommerceOrder originalCommerceOrder, CommerceOrder commerceOrder) {
+
 		try {
 			if ((commerceOrder.getStatus() != WorkflowConstants.STATUS_DRAFT) ||
 				!_punchOutAccountRoleHelper.hasPunchOutRole(
@@ -48,11 +50,9 @@ public class CommerceOrderModelListener
 				return;
 			}
 
-			ServiceContext serviceContext = new ServiceContext();
-
 			_commerceOrderLocalService.updateStatus(
 				commerceOrder.getUserId(), commerceOrder.getCommerceOrderId(),
-				WorkflowConstants.STATUS_APPROVED, serviceContext,
+				WorkflowConstants.STATUS_APPROVED, new ServiceContext(),
 				Collections.emptyMap());
 		}
 		catch (PortalException portalException) {

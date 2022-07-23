@@ -76,30 +76,6 @@ definition {
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
 	}
 
-	@description = "This test ensures that a user can duplicate the Color field on builder."
-	@priority = "4"
-	test DuplicateColorFieldOnBuilder {
-		property portal.acceptance = "false";
-
-		WebContentStructures.saveCP();
-
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
-
-		DataEngine.duplicate(fieldFieldLabel = "Color");
-
-		WebContentStructures.saveCP();
-
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
-
-		DataEngine.viewField(
-			fieldFieldLabel = "Color",
-			fieldName = "Color");
-
-		DataEngine.viewField(
-			fieldFieldLabel = "Copy of Color",
-			fieldName = "Color");
-	}
-
 	@description = "This test validates the input of valid and invalid characters on Field Reference."
 	@priority = "4"
 	test EditColorFieldNameWithValidAndInvalidCharacters {
@@ -122,33 +98,6 @@ definition {
 			fieldReference = "Color_Test");
 	}
 
-	@description = "This test ensures that a user can add a Color field on a form using drag and drop, edit it's label and help text."
-	@priority = "5"
-	test EditLabelAndHelpTextOfColorField {
-		property portal.acceptance = "false";
-
-		WebContentStructures.saveCP();
-
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
-
-		DataEngine.editFieldLabel(
-			fieldFieldLabel = "Color",
-			fieldFieldLabelEdit = "Edited Color");
-
-		DataEngine.editFieldTip(
-			fieldFieldLabel = "Edited Color",
-			fieldHelp = "Help");
-
-		WebContentStructures.saveCP();
-
-		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Title");
-
-		DataEngine.viewField(
-			fieldFieldLabel = "Edited Color",
-			fieldHelp = "Help",
-			fieldName = "Color");
-	}
-
 	@description = "This test ensures that a user can set Color field as required."
 	@priority = "4"
 	test SetColorFieldAsRequired {
@@ -166,10 +115,7 @@ definition {
 
 		Button.clickPublish();
 
-		AssertTextEquals(
-			key_fieldFieldLabel = "Color",
-			locator1 = "WCEditWebContent#FIELD_REQUIRED_ALERT",
-			value1 = "This field is required.");
+		AssertElementPresent(locator1 = "WCEditWebContent#FIELD_REQUIRED_ALERT");
 	}
 
 	@description = "This test ensures that a user can set the Searchable property of color field."

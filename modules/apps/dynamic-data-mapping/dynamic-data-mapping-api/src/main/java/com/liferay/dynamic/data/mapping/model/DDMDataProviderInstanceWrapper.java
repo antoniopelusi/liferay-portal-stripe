@@ -161,6 +161,11 @@ public class DDMDataProviderInstanceWrapper
 	}
 
 	@Override
+	public DDMDataProviderInstance cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}

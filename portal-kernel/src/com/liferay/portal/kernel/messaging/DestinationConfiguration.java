@@ -135,23 +135,12 @@ public class DestinationConfiguration implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(13);
-
-		sb.append("{_destinationName=");
-		sb.append(_destinationName);
-		sb.append(", _destinationType=");
-		sb.append(_destinationType);
-		sb.append(", _maximumQueueSize=");
-		sb.append(_maximumQueueSize);
-		sb.append(", _rejectedExecutionHandler=");
-		sb.append(_rejectedExecutionHandler);
-		sb.append(", _workersCoreSize=");
-		sb.append(_workersCoreSize);
-		sb.append(", _workersMaxSize=");
-		sb.append(_workersMaxSize);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{_destinationName=", _destinationName, ", _destinationType=",
+			_destinationType, ", _maximumQueueSize=", _maximumQueueSize,
+			", _rejectedExecutionHandler=", _rejectedExecutionHandler,
+			", _workersCoreSize=", _workersCoreSize, ", _workersMaxSize=",
+			_workersMaxSize, "}");
 	}
 
 	private static final int _WORKERS_CORE_SIZE = 2;

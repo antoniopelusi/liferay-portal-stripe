@@ -26,13 +26,15 @@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
 taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
-<%@ page import="com.liferay.commerce.model.CommerceOrder" %><%@
+<%@ page import="com.liferay.commerce.constants.CommerceWebKeys" %><%@
+page import="com.liferay.commerce.context.CommerceContext" %><%@
+page import="com.liferay.commerce.model.CommerceOrder" %><%@
 page import="com.liferay.commerce.product.catalog.CPCatalogEntry" %><%@
-page import="com.liferay.commerce.product.catalog.CPMedia" %><%@
 page import="com.liferay.commerce.product.catalog.CPSku" %><%@
 page import="com.liferay.commerce.product.constants.CPPortletKeys" %><%@
 page import="com.liferay.commerce.product.content.constants.CPContentWebKeys" %><%@
 page import="com.liferay.commerce.product.content.util.CPContentHelper" %><%@
+page import="com.liferay.commerce.product.content.util.CPMedia" %><%@
 page import="com.liferay.commerce.product.model.CPDefinition" %><%@
 page import="com.liferay.commerce.product.model.CPDefinitionSpecificationOptionValue" %><%@
 page import="com.liferay.commerce.product.model.CPInstance" %><%@
@@ -57,6 +59,7 @@ page import="com.liferay.commerce.product.type.virtual.util.VirtualCPTypeHelper"
 page import="com.liferay.commerce.product.type.virtual.web.internal.display.context.CPDefinitionVirtualSettingDisplayContext" %><%@
 page import="com.liferay.commerce.product.type.virtual.web.internal.display.context.CommerceVirtualOrderItemEditDisplayContext" %><%@
 page import="com.liferay.commerce.product.type.virtual.web.internal.servlet.taglib.ui.constants.CPDefinitionVirtualSettingFormNavigatorConstants" %><%@
+page import="com.liferay.commerce.util.CommerceUtil" %><%@
 page import="com.liferay.journal.model.JournalArticle" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@

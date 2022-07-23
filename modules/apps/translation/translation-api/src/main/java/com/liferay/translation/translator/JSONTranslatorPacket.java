@@ -14,10 +14,9 @@
 
 package com.liferay.translation.translator;
 
-import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -26,23 +25,31 @@ import java.util.Map;
  */
 public class JSONTranslatorPacket implements TranslatorPacket {
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 *             #JSONTranslatorPacket(long, JSONObject)}
+	 */
+	@Deprecated
 	public JSONTranslatorPacket(JSONObject jsonObject) {
+		this(CompanyThreadLocal.getCompanyId(), jsonObject);
+	}
+
+	public JSONTranslatorPacket(long companyId, JSONObject jsonObject) {
+		_companyId = companyId;
+
 		_sourceLanguageId = jsonObject.getString("sourceLanguageId");
 		_targetLanguageId = jsonObject.getString("targetLanguageId");
 
-		_fieldsMap = new LinkedHashMap<>();
+		JSONObject fieldsJSONObject = jsonObject.getJSONObject("fields");
 
-		JSONArray fieldsJSONArray = jsonObject.getJSONArray("fields");
-
-		for (Object object : fieldsJSONArray) {
-			JSONObject fieldJSONObject = (JSONObject)object;
-
-			Iterator<String> iterator = fieldJSONObject.keys();
-
-			String key = iterator.next();
-
-			_fieldsMap.put(key, fieldJSONObject.getString(key));
+		for (String key : fieldsJSONObject.keySet()) {
+			_fieldsMap.put(key, fieldsJSONObject.getString(key));
 		}
+	}
+
+	@Override
+	public long getCompanyId() {
+		return _companyId;
 	}
 
 	@Override
@@ -60,7 +67,8 @@ public class JSONTranslatorPacket implements TranslatorPacket {
 		return _targetLanguageId;
 	}
 
-	private final Map<String, String> _fieldsMap;
+	private final long _companyId;
+	private final Map<String, String> _fieldsMap = new LinkedHashMap<>();
 	private final String _sourceLanguageId;
 	private final String _targetLanguageId;
 

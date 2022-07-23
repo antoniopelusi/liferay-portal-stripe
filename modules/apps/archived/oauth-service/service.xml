@@ -41,18 +41,14 @@
 		<finder name="ConsumerKey" return-type="OAuthApplication" unique="true">
 			<finder-column name="consumerKey" />
 		</finder>
-		<finder name="C_N" return-type="Collection">
+		<finder name="C_LikeN" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column case-sensitive="false" comparator="LIKE" name="name" />
 		</finder>
-		<finder name="U_N" return-type="Collection">
+		<finder name="U_LikeN" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column case-sensitive="false" comparator="LIKE" name="name" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Image" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="OAuthUser" remote-service="true">
 

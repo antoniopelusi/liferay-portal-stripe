@@ -181,18 +181,13 @@ public class CustomSQLImpl implements CustomSQL {
 
 		if (queryDefinition.getOwnerUserId() > 0) {
 			if (queryDefinition.isIncludeOwner()) {
-				StringBundler sb = new StringBundler(7);
-
-				sb.append(StringPool.OPEN_PARENTHESIS);
-				sb.append(tableName);
-				sb.append(_OWNER_USER_ID_CONDITION_DEFAULT);
-				sb.append(" AND ");
-				sb.append(tableName);
-				sb.append(_STATUS_CONDITION_INVERSE);
-				sb.append(StringPool.CLOSE_PARENTHESIS);
-
 				sql = StringUtil.replace(
-					sql, _OWNER_USER_ID_KEYWORD, sb.toString());
+					sql, _OWNER_USER_ID_KEYWORD,
+					StringBundler.concat(
+						StringPool.OPEN_PARENTHESIS, tableName,
+						_OWNER_USER_ID_CONDITION_DEFAULT, " AND ", tableName,
+						_STATUS_CONDITION_INVERSE,
+						StringPool.CLOSE_PARENTHESIS));
 
 				sql = StringUtil.replace(
 					sql, _OWNER_USER_ID_AND_OR_CONNECTOR, " OR ");
@@ -374,7 +369,7 @@ public class CustomSQLImpl implements CustomSQL {
 				if (i > pos) {
 					String keyword = keywords.substring(pos, i);
 
-					keywordsList.add(insertWildcard(keyword, wildcardMode));
+					keywordsList.add(_insertWildcard(keyword, wildcardMode));
 				}
 			}
 			else {
@@ -398,7 +393,7 @@ public class CustomSQLImpl implements CustomSQL {
 
 				String keyword = keywords.substring(pos, i);
 
-				keywordsList.add(insertWildcard(keyword, wildcardMode));
+				keywordsList.add(_insertWildcard(keyword, wildcardMode));
 			}
 		}
 
@@ -521,14 +516,9 @@ public class CustomSQLImpl implements CustomSQL {
 				sql = StringBundler.concat(sql, _GROUP_BY_CLAUSE, groupBy);
 			}
 			else {
-				StringBundler sb = new StringBundler(4);
-
-				sb.append(sql.substring(0, y));
-				sb.append(_GROUP_BY_CLAUSE);
-				sb.append(groupBy);
-				sb.append(sql.substring(y));
-
-				sql = sb.toString();
+				sql = StringBundler.concat(
+					sql.substring(0, y), _GROUP_BY_CLAUSE, groupBy,
+					sql.substring(y));
 			}
 		}
 
@@ -718,7 +708,7 @@ public class CustomSQLImpl implements CustomSQL {
 		String functionIsNull = _portal.getCustomSQLFunctionIsNull();
 		String functionIsNotNull = _portal.getCustomSQLFunctionIsNotNull();
 
-		try (Connection con = DataAccess.getConnection()) {
+		try (Connection connection = DataAccess.getConnection()) {
 			if (Validator.isNotNull(functionIsNull) &&
 				Validator.isNotNull(functionIsNotNull)) {
 
@@ -733,8 +723,8 @@ public class CustomSQLImpl implements CustomSQL {
 							functionIsNotNull);
 				}
 			}
-			else if (con != null) {
-				DatabaseMetaData metaData = con.getMetaData();
+			else if (connection != null) {
+				DatabaseMetaData metaData = connection.getMetaData();
 
 				String dbName = GetterUtil.getString(
 					metaData.getDatabaseProductName());
@@ -814,7 +804,7 @@ public class CustomSQLImpl implements CustomSQL {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		_bundleContext.addBundleListener(_synchronousBundleListener);
@@ -823,57 +813,6 @@ public class CustomSQLImpl implements CustomSQL {
 	@Deactivate
 	protected void deactivate() {
 		_bundleContext.removeBundleListener(_synchronousBundleListener);
-	}
-
-	protected String insertWildcard(String keyword, WildcardMode wildcardMode) {
-		if (wildcardMode == WildcardMode.LEADING) {
-			return StringPool.PERCENT.concat(keyword);
-		}
-		else if (wildcardMode == WildcardMode.SURROUND) {
-			return StringUtil.quote(keyword, StringPool.PERCENT);
-		}
-		else if (wildcardMode == WildcardMode.TRAILING) {
-			return keyword.concat(StringPool.PERCENT);
-		}
-		else {
-			throw new IllegalArgumentException(
-				"Invalid wildcard mode " + wildcardMode);
-		}
-	}
-
-	protected String transform(String sql) {
-		sql = _portal.transformCustomSQL(sql);
-
-		StringBundler sb = new StringBundler();
-
-		try (UnsyncBufferedReader unsyncBufferedReader =
-				new UnsyncBufferedReader(new UnsyncStringReader(sql))) {
-
-			String line = null;
-
-			while ((line = unsyncBufferedReader.readLine()) != null) {
-				line = line.trim();
-
-				if (line.startsWith(StringPool.CLOSE_PARENTHESIS)) {
-					sb.setIndex(sb.index() - 1);
-				}
-
-				sb.append(line);
-
-				if (!line.endsWith(StringPool.OPEN_PARENTHESIS)) {
-					sb.append(StringPool.SPACE);
-				}
-			}
-		}
-		catch (IOException ioException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(ioException, ioException);
-			}
-
-			return sql;
-		}
-
-		return sb.toString();
 	}
 
 	private String _escapeWildCards(String keywords) {
@@ -917,16 +856,32 @@ public class CustomSQLImpl implements CustomSQL {
 		return new CustomSQLContainer(classLoader, sourceURL);
 	}
 
+	private String _insertWildcard(String keyword, WildcardMode wildcardMode) {
+		if (wildcardMode == WildcardMode.LEADING) {
+			return StringPool.PERCENT.concat(keyword);
+		}
+		else if (wildcardMode == WildcardMode.SURROUND) {
+			return StringUtil.quote(keyword, StringPool.PERCENT);
+		}
+		else if (wildcardMode == WildcardMode.TRAILING) {
+			return keyword.concat(StringPool.PERCENT);
+		}
+		else {
+			throw new IllegalArgumentException(
+				"Invalid wildcard mode " + wildcardMode);
+		}
+	}
+
 	private void _read(
 			ClassLoader classLoader, URL sourceURL, Map<String, String> sqls)
 		throws Exception {
 
-		try (InputStream is = sourceURL.openStream()) {
+		try (InputStream inputStream = sourceURL.openStream()) {
 			if (_log.isDebugEnabled()) {
 				_log.debug("Loading " + sourceURL);
 			}
 
-			Document document = UnsecureSAXReaderUtil.read(is);
+			Document document = UnsecureSAXReaderUtil.read(inputStream);
 
 			Element rootElement = document.getRootElement();
 
@@ -941,7 +896,7 @@ public class CustomSQLImpl implements CustomSQL {
 				else {
 					String id = sqlElement.attributeValue("id");
 
-					String content = transform(sqlElement.getText());
+					String content = _transform(sqlElement.getText());
 
 					content = replaceIsNull(content);
 
@@ -949,6 +904,41 @@ public class CustomSQLImpl implements CustomSQL {
 				}
 			}
 		}
+	}
+
+	private String _transform(String sql) {
+		sql = _portal.transformCustomSQL(sql);
+
+		StringBundler sb = new StringBundler();
+
+		try (UnsyncBufferedReader unsyncBufferedReader =
+				new UnsyncBufferedReader(new UnsyncStringReader(sql))) {
+
+			String line = null;
+
+			while ((line = unsyncBufferedReader.readLine()) != null) {
+				line = line.trim();
+
+				if (line.startsWith(StringPool.CLOSE_PARENTHESIS)) {
+					sb.setIndex(sb.index() - 1);
+				}
+
+				sb.append(line);
+
+				if (!line.endsWith(StringPool.OPEN_PARENTHESIS)) {
+					sb.append(StringPool.SPACE);
+				}
+			}
+		}
+		catch (IOException ioException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(ioException);
+			}
+
+			return sql;
+		}
+
+		return sb.toString();
 	}
 
 	private static final boolean _CUSTOM_SQL_AUTO_ESCAPE_WILDCARDS_ENABLED =
@@ -1021,7 +1011,7 @@ public class CustomSQLImpl implements CustomSQL {
 				catch (Exception exception2) {
 					exception1 = exception2;
 
-					_log.error(exception2, exception2);
+					_log.error(exception2);
 				}
 
 				objectValuePair = new ObjectValuePair<>(sqlPool, exception1);
@@ -1032,7 +1022,7 @@ public class CustomSQLImpl implements CustomSQL {
 			Exception exception = objectValuePair.getValue();
 
 			if (exception != null) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 
 			Map<String, String> sqlPool = objectValuePair.getKey();

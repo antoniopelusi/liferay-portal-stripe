@@ -48,11 +48,11 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 
 							<%
 							for (CPMedia imageCPMedia : cpContentHelper.getImages(cpDefinitionId, themeDisplay)) {
-								String url = imageCPMedia.getUrl();
+								String url = imageCPMedia.getURL();
 							%>
 
-								<div class="card thumb" data-url="<%= url %>">
-									<img class="center-block img-fluid" src="<%= url %>" />
+								<div class="card thumb" data-url="<%= HtmlUtil.escapeAttribute(url) %>">
+									<img class="center-block img-fluid" src="<%= HtmlUtil.escapeAttribute(url) %>" />
 								</div>
 
 							<%
@@ -63,8 +63,13 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 					</div>
 
 					<div class="col-10 col-lg-10 col-md-9 full-image">
-						<c:if test="<%= Validator.isNotNull(cpCatalogEntry.getDefaultImageFileUrl()) %>">
-							<img class="center-block img-fluid" id="<portlet:namespace />full-image" src="<%= cpCatalogEntry.getDefaultImageFileUrl() %>" />
+
+						<%
+						String defaultImageFileURL = cpContentHelper.getDefaultImageFileURL(CommerceUtil.getCommerceAccountId((CommerceContext)request.getAttribute(CommerceWebKeys.COMMERCE_CONTEXT)), cpCatalogEntry.getCPDefinitionId());
+						%>
+
+						<c:if test="<%= Validator.isNotNull(defaultImageFileURL) %>">
+							<img class="center-block img-fluid" id="<portlet:namespace />full-image" src="<%= HtmlUtil.escapeAttribute(defaultImageFileURL) %>" />
 						</c:if>
 					</div>
 				</div>
@@ -81,11 +86,11 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 
 						<div class="subscription-info"><commerce-ui:product-subscription-info CPInstanceId="<%= cpSku.getCPInstanceId() %>" /></div>
 
-						<div class="availability"><%= cpContentHelper.getAvailabilityLabel(request) %></div>
+						<div class="availability"><%= HtmlUtil.escape(cpContentHelper.getAvailabilityLabel(request)) %></div>
 
-						<div class="availabilityEstimate"><%= cpContentHelper.getAvailabilityEstimateLabel(request) %></div>
+						<div class="availabilityEstimate"><%= HtmlUtil.escape(cpContentHelper.getAvailabilityEstimateLabel(request)) %></div>
 
-						<div class="stockQuantity"><%= cpContentHelper.getStockQuantityLabel(request) %></div>
+						<div class="stockQuantity"><%= HtmlUtil.escape(cpContentHelper.getStockQuantityLabel(request)) %></div>
 					</c:when>
 					<c:otherwise>
 						<h4 class="sku" data-text-cp-instance-sku=""></h4>
@@ -108,7 +113,7 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 					<div class="col-md-12">
 						<c:choose>
 							<c:when test="<%= Validator.isNotNull(sampleURL) %>">
-								<a class="btn btn-primary" href="<%= sampleURL %>">
+								<a class="btn btn-primary" href="<%= HtmlUtil.escapeHREF(sampleURL) %>">
 									<liferay-ui:message key="download-sample-file" />
 								</a>
 							</c:when>
@@ -146,8 +151,8 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 
 	<%
 	List<CPDefinitionSpecificationOptionValue> cpDefinitionSpecificationOptionValues = cpContentHelper.getCPDefinitionSpecificationOptionValues(cpDefinitionId);
+	List<CPMedia> cpMedias = cpContentHelper.getCPMedias(cpDefinitionId, themeDisplay);
 	List<CPOptionCategory> cpOptionCategories = cpContentHelper.getCPOptionCategories(company.getCompanyId());
-	List<CPMedia> attachmentCPMedias = cpContentHelper.getCPAttachmentFileEntries(cpDefinitionId, themeDisplay);
 	%>
 
 	<div class="row">
@@ -168,7 +173,7 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 						</li>
 					</c:if>
 
-					<c:if test="<%= !attachmentCPMedias.isEmpty() %>">
+					<c:if test="<%= !cpMedias.isEmpty() %>">
 						<li class="nav-item" role="presentation">
 							<a aria-controls="<portlet:namespace />attachments" aria-expanded="false" class="nav-link" data-toggle="tab" href="#<portlet:namespace />attachments" role="tab">
 								<%= LanguageUtil.get(resourceBundle, "attachments") %>
@@ -213,7 +218,7 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 									<div class="table-responsive">
 										<table class="table table-bordered table-striped">
 											<tr>
-												<th><%= cpOptionCategory.getTitle(languageId) %></th>
+												<th><%= HtmlUtil.escape(cpOptionCategory.getTitle(languageId)) %></th>
 												<th></th>
 											</tr>
 
@@ -223,8 +228,8 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 											%>
 
 												<tr>
-													<td><%= cpSpecificationOption.getTitle(languageId) %></td>
-													<td><%= cpDefinitionSpecificationOptionValue.getValue(languageId) %></td>
+													<td><%= HtmlUtil.escape(cpSpecificationOption.getTitle(languageId)) %></td>
+													<td><%= HtmlUtil.escape(cpDefinitionSpecificationOptionValue.getValue(languageId)) %></td>
 												</tr>
 
 											<%
@@ -242,21 +247,21 @@ String sampleURL = virtualCPTypeHelper.getSampleURL(cpDefinitionId, cpInstanceId
 						</div>
 					</c:if>
 
-					<c:if test="<%= !attachmentCPMedias.isEmpty() %>">
+					<c:if test="<%= !cpMedias.isEmpty() %>">
 						<div class="tab-pane" id="<portlet:namespace />attachments">
 							<div class="table-responsive">
 								<table class="table table-bordered table-striped">
 
 									<%
-									for (CPMedia attachmentCPMedia : attachmentCPMedias) {
+									for (CPMedia cpMedia : cpMedias) {
 									%>
 
 										<tr>
 											<td>
-												<span><%= attachmentCPMedia.getTitle() %></span>
+												<span><%= HtmlUtil.escape(cpMedia.getTitle()) %></span>
 
 												<span>
-													<aui:icon cssClass="icon-monospaced" image="download" markupView="lexicon" target="_blank" url="<%= attachmentCPMedia.getDownloadUrl() %>" />
+													<aui:icon cssClass="icon-monospaced" image="download" markupView="lexicon" target="_blank" url="<%= cpMedia.getDownloadURL() %>" />
 												</span>
 											</td>
 										</tr>

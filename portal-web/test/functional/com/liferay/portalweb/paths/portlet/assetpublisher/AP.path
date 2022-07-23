@@ -2,11 +2,13 @@
 <head>
 <title>AP</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">AP</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>ADD_ASSET_PLUS_ICON</td>
@@ -19,8 +21,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ASSET_DETAILS_LINK</td>
+	<td>//div[contains(@class,'items')][.//span[contains(@class,'asset-title')][normalize-space(text())='${key_assetTitle}']]//following-sibling::div[contains(@class,'asset-details')]//a</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ASSET_ELLIPSIS_ICON</td>
-	<td>//div[contains(@class,'asset-abstract')]//div[contains(.,'${key_assetTitle}')]//a[contains(@class,'dropdown-toggle')]</td>
+	<td>//div[contains(@class,'asset')]//div[contains(.,'${key_assetTitle}')]//a[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -18,8 +18,4 @@ package com.liferay.redirect.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class RedirectEntryImpl extends RedirectEntryBaseImpl {
-
-	public RedirectEntryImpl() {
-	}
-
 }

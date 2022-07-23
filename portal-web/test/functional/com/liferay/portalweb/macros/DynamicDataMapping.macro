@@ -122,10 +122,9 @@ definition {
 
 		var key_field = "${field}";
 
-		DragAndDrop(
+		DragAndDrop.dragAndDropWithMouseMove(
 			locator1 = "DDMEditStructure#FIELDS_FIELD",
-			locator2 = "DDMEditStructure#FORM_BUILDER_FIELD",
-			value1 = "${field}");
+			locator2 = "DDMEditStructure#FORM_BUILDER_FIELD");
 
 		DynamicDataMapping._editFieldLabel(
 			field = "${field}",
@@ -157,11 +156,11 @@ definition {
 	macro addFieldViaJSON {
 		Navigator.gotoNavTab(navTab = "Source");
 
-		var sourceJSON = JSONUtil.formatJSONString("${sourceJSON}");
+		var sourceJson = JSONUtil.formatJSONString("${sourceJson}");
 
 		Type.typeNotVisibleNoMouseOver(
 			locator1 = "DDMEditStructure#SOURCE_EDITOR_CONTENT",
-			value1 = "${sourceJSON} ");
+			value1 = "${sourceJson} ");
 	}
 
 	macro addFieldWithoutRename {
@@ -204,7 +203,7 @@ definition {
 
 		MouseOver(locator1 = "DDMEditStructure#FORM_FIELD");
 
-		SikuliClick(locator1 = "DDMEditStructure#FORM_FIELD_DELETE_BUTTON");
+		Click(locator1 = "DDMEditStructure#FORM_FIELD_DELETE_BUTTON");
 
 		AssertTextEquals(
 			locator1 = "IFrame#DIALOG_BOX",
@@ -601,7 +600,6 @@ definition {
 
 	macro editFieldSettings {
 		var key_fieldFieldLabel = "${fieldFieldLabel}";
-
 		var browserType = PropsUtil.get("browser.type");
 
 		if ("${browserType}" == "safari") {
@@ -716,8 +714,8 @@ definition {
 		if (IsElementPresent(locator1 = "DDMEditStructure#IFRAME")) {
 			SelectFrame(locator1 = "DDMEditStructure#IFRAME");
 		}
-		else if (IsElementPresent(locator1 = "IFrame#MODAL_BODY")) {
-			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+		else if (IsElementPresent(locator1 = "DataEngineModal#MODAL_IFRAME")) {
+			SelectFrame(locator1 = "DataEngineModal#MODAL_IFRAME");
 		}
 	}
 

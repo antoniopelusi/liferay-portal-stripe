@@ -35,6 +35,12 @@ public class CPAttachmentFileEntryTable
 	public static final CPAttachmentFileEntryTable INSTANCE =
 		new CPAttachmentFileEntryTable();
 
+	public final Column<CPAttachmentFileEntryTable, Long> mvccVersion =
+		createColumn(
+			"mvccVersion", Long.class, Types.BIGINT, Column.FLAG_NULLITY);
+	public final Column<CPAttachmentFileEntryTable, Long> ctCollectionId =
+		createColumn(
+			"ctCollectionId", Long.class, Types.BIGINT, Column.FLAG_PRIMARY);
 	public final Column<CPAttachmentFileEntryTable, String> uuid = createColumn(
 		"uuid_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<CPAttachmentFileEntryTable, String>
@@ -69,6 +75,12 @@ public class CPAttachmentFileEntryTable
 	public final Column<CPAttachmentFileEntryTable, Long> fileEntryId =
 		createColumn(
 			"fileEntryId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+	public final Column<CPAttachmentFileEntryTable, Boolean> cdnEnabled =
+		createColumn(
+			"cdnEnabled", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column<CPAttachmentFileEntryTable, String> cdnURL =
+		createColumn(
+			"cdnURL", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<CPAttachmentFileEntryTable, Date> displayDate =
 		createColumn(
 			"displayDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);

@@ -1,0 +1,53 @@
+@component-name = "portal-analytics-cloud"
+definition {
+
+	property portal.release = "false";
+	property portal.upstream = "true";
+	property property.group = "analytics.cloud.profile";
+	property testray.main.component.name = "Analytics Cloud";
+
+	setUp {
+		task ("Copy the token from AC") {
+			ACUtils.launchAC();
+
+			TestCase.setUpPortalInstance();
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+
+		ACUtils.tearDownAC();
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8155 | Test Summary: Delete a CSV data source and assert that the details from that data source are removed"
+	@priority = "5"
+	test DeleteCSVDataSourceAndAssertDetailsFromDataSourceRemoved {
+		task ("Add a CSV Data Source") {
+			ACSettings.addCSVDataSource(
+				dataSourceName = "CSV Data Source",
+				sourceFileName = "jobTitle.csv");
+		}
+
+		task ("Exit Settings") {
+			ACNavigation.exitSettings();
+		}
+
+		task ("Remove the CSV Data Source") {
+			ACSettings.deleteDataSource(dataSourceName = "CSV Data Source");
+		}
+
+		task ("View the CSV Data Source is deleted") {
+			ACUtils.searchBar(searchItem = "CSV Data Source");
+
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no Data Sources found.");
+		}
+	}
+
+}

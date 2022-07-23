@@ -3,11 +3,8 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="ERROR" name="com.liferay.message.boards.internal.pop.MessageListenerImpl" />
-
 		<Logger level="ERROR" name="com.liferay.message.boards.service.impl.MBCategoryLocalServiceImpl" />
-
 		<Logger level="ERROR" name="com.liferay.message.boards.service.impl.MBMessageLocalServiceImpl" />
-
 		<Logger level="ERROR" name="com.liferay.message.boards.util.MBUtil" />
 	</Loggers>
 </Configuration>

@@ -19,8 +19,4 @@ package com.liferay.commerce.machine.learning.forecast.alert.model.impl;
  */
 public class CommerceMLForecastAlertEntryImpl
 	extends CommerceMLForecastAlertEntryBaseImpl {
-
-	public CommerceMLForecastAlertEntryImpl() {
-	}
-
 }

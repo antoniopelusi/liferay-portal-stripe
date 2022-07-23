@@ -61,7 +61,7 @@ public class AccountSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (account.getAccountAddresses() != null) {
 			if (sb.length() > 1) {
@@ -121,6 +121,16 @@ public class AccountSerDes {
 			}
 
 			sb.append("]");
+		}
+
+		if (account.getActive() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"active\": ");
+
+			sb.append(account.getActive());
 		}
 
 		if (account.getCustomFields() != null) {
@@ -321,7 +331,7 @@ public class AccountSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (account.getAccountAddresses() == null) {
 			map.put("accountAddresses", null);
@@ -347,6 +357,13 @@ public class AccountSerDes {
 			map.put(
 				"accountOrganizations",
 				String.valueOf(account.getAccountOrganizations()));
+		}
+
+		if (account.getActive() == null) {
+			map.put("active", null);
+		}
+		else {
+			map.put("active", String.valueOf(account.getActive()));
 		}
 
 		if (account.getCustomFields() == null) {
@@ -515,6 +532,11 @@ public class AccountSerDes {
 						).toArray(
 							size -> new AccountOrganization[size]
 						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "active")) {
+				if (jsonParserFieldValue != null) {
+					account.setActive((Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "customFields")) {

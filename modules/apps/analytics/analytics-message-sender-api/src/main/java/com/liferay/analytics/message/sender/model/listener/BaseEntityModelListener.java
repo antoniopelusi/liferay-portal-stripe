@@ -55,7 +55,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -209,7 +209,9 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 	}
 
 	@Override
-	public void onBeforeUpdate(T model) throws ModelListenerException {
+	public void onBeforeUpdate(T originalModel, T model)
+		throws ModelListenerException {
+
 		if (!analyticsConfigurationTracker.isActive()) {
 			return;
 		}
@@ -359,7 +361,7 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return true;
@@ -416,7 +418,7 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 					}
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 
 				try {
@@ -428,7 +430,7 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 					}
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 
 				long[] membershipIds = user.getRoleIds();
@@ -454,29 +456,30 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 				continue;
 			}
 			else if (includeAttributeName.equals("expando")) {
-				if (StringUtil.equals(
-						baseModel.getModelClassName(), User.class.getName())) {
+				jsonObject.put(
+					"expando",
+					() -> {
+						if (StringUtil.equals(
+								baseModel.getModelClassName(),
+								User.class.getName())) {
 
-					ShardedModel shardedModel = (ShardedModel)baseModel;
+							ShardedModel shardedModel = (ShardedModel)baseModel;
 
-					AnalyticsConfiguration analyticsConfiguration =
-						analyticsConfigurationTracker.getAnalyticsConfiguration(
-							shardedModel.getCompanyId());
+							AnalyticsConfiguration analyticsConfiguration =
+								analyticsConfigurationTracker.
+									getAnalyticsConfiguration(
+										shardedModel.getCompanyId());
 
-					jsonObject.put(
-						"expando",
-						AnalyticsExpandoBridgeUtil.getAttributes(
-							baseModel.getExpandoBridge(),
-							ListUtil.fromArray(
-								analyticsConfiguration.
-									syncedUserFieldNames())));
-				}
-				else {
-					jsonObject.put(
-						"expando",
-						AnalyticsExpandoBridgeUtil.getAttributes(
-							baseModel.getExpandoBridge(), null));
-				}
+							return AnalyticsExpandoBridgeUtil.getAttributes(
+								baseModel.getExpandoBridge(),
+								ListUtil.fromArray(
+									analyticsConfiguration.
+										syncedUserFieldNames()));
+						}
+
+						return AnalyticsExpandoBridgeUtil.getAttributes(
+							baseModel.getExpandoBridge(), null);
+					});
 
 				continue;
 			}
@@ -490,13 +493,19 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 				String[] ids = StringUtil.split(
 					treePath.substring(1), StringPool.SLASH);
 
-				jsonObject.put("nameTreePath", _buildNameTreePath(ids));
+				jsonObject.put(
+					"nameTreePath", _buildNameTreePath(ids)
+				).put(
+					"parentName",
+					() -> {
+						if (ids.length > 1) {
+							return _getName(
+								GetterUtil.getLong(ids[ids.length - 2]));
+						}
 
-				if (ids.length > 1) {
-					jsonObject.put(
-						"parentName",
-						_getName(GetterUtil.getLong(ids[ids.length - 2])));
-				}
+						return null;
+					}
+				);
 
 				continue;
 			}
@@ -517,11 +526,15 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 			}
 		}
 
-		if (modelAttributes.containsKey(getPrimaryKeyName())) {
-			jsonObject.put(getPrimaryKeyName(), baseModel.getPrimaryKeyObj());
-		}
+		return jsonObject.put(
+			getPrimaryKeyName(),
+			() -> {
+				if (modelAttributes.containsKey(getPrimaryKeyName())) {
+					return baseModel.getPrimaryKeyObj();
+				}
 
-		return jsonObject;
+				return null;
+			});
 	}
 
 	protected void updateConfigurationProperties(
@@ -546,14 +559,15 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 		modelIds = ArrayUtil.remove(modelIds, modelId);
 
 		if (Validator.isNotNull(preferencePropertyName)) {
-			UnicodeProperties unicodeProperties = new UnicodeProperties(true);
-
-			unicodeProperties.setProperty(
-				preferencePropertyName,
-				StringUtil.merge(modelIds, StringPool.COMMA));
-
 			try {
-				companyService.updatePreferences(companyId, unicodeProperties);
+				companyService.updatePreferences(
+					companyId,
+					UnicodePropertiesBuilder.create(
+						true
+					).put(
+						preferencePropertyName,
+						StringUtil.merge(modelIds, StringPool.COMMA)
+					).build());
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
@@ -656,7 +670,7 @@ public abstract class BaseEntityModelListener<T extends BaseModel<T>>
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return null;

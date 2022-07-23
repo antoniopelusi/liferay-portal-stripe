@@ -108,6 +108,11 @@ public class SyncDLFileVersionDiffWrapper
 		}
 	}
 
+	@Override
+	public SyncDLFileVersionDiff cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this sync dl file version diff.
 	 *

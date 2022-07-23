@@ -68,7 +68,6 @@ public class BlogEntriesManagementToolbarDisplayContext
 			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
 			searchContainer);
 
-		_httpServletRequest = httpServletRequest;
 		_trashHelper = trashHelper;
 		_displayStyle = displayStyle;
 
@@ -101,6 +100,7 @@ public class BlogEntriesManagementToolbarDisplayContext
 		).build();
 	}
 
+	@Override
 	public Map<String, Object> getAdditionalProps() {
 		return HashMapBuilder.<String, Object>put(
 			"deleteEntriesCmd",
@@ -169,30 +169,46 @@ public class BlogEntriesManagementToolbarDisplayContext
 
 				User user = _themeDisplay.getUser();
 
-				String label = String.format(
-					"%s: %s", LanguageUtil.get(httpServletRequest, "owner"),
-					user.getFullName());
-
-				labelItem.setLabel(label);
+				labelItem.setLabel(
+					String.format(
+						"%s: %s", LanguageUtil.get(httpServletRequest, "owner"),
+						user.getFullName()));
 			}
 		).build();
 	}
 
 	@Override
 	public String getSearchActionURL() {
-		String navigation = ParamUtil.getString(
-			httpServletRequest, "navigation", "entries");
-
 		return PortletURLBuilder.createRenderURL(
 			liferayPortletResponse
 		).setMVCRenderCommandName(
-			"/blogs/view"
+			"/blogs/search"
 		).setNavigation(
-			navigation
+			ParamUtil.getString(httpServletRequest, "navigation", "entries")
 		).setParameter(
-			"orderByCol", getOrderByCol()
+			"orderByCol",
+			() -> {
+				String mvcRenderCommandName = ParamUtil.getString(
+					httpServletRequest, "mvcRenderCommandName");
+
+				if (mvcRenderCommandName.equals("/blogs/search")) {
+					return getOrderByCol();
+				}
+
+				return null;
+			}
 		).setParameter(
-			"orderByType", getOrderByType()
+			"orderByType",
+			() -> {
+				String mvcRenderCommandName = ParamUtil.getString(
+					httpServletRequest, "mvcRenderCommandName");
+
+				if (mvcRenderCommandName.equals("/blogs/search")) {
+					return getOrderByType();
+				}
+
+				return null;
+			}
 		).buildString();
 	}
 
@@ -202,7 +218,7 @@ public class BlogEntriesManagementToolbarDisplayContext
 			liferayPortletResponse
 		).setMVCRenderCommandName(
 			"/blogs/view"
-		).build();
+		).buildPortletURL();
 
 		if (searchContainer.getDelta() > 0) {
 			portletURL.setParameter(
@@ -261,31 +277,59 @@ public class BlogEntriesManagementToolbarDisplayContext
 				dropdownItem.setLabel(
 					LanguageUtil.get(httpServletRequest, "display-date"));
 			}
+		).add(
+			this::_isSearch,
+			dropdownItem -> {
+				dropdownItem.setActive(
+					Objects.equals(getOrderByCol(), "relevance"));
+				dropdownItem.setHref(
+					_getCurrentSortingURL(), "orderByCol", "relevance");
+				dropdownItem.setLabel(
+					LanguageUtil.get(httpServletRequest, "relevance"));
+			}
 		).build();
 	}
 
 	private PortletURL _getCurrentSortingURL() {
-		PortletURL sortingURL = PortletURLBuilder.create(
+		return PortletURLBuilder.create(
 			getPortletURL()
 		).setMVCRenderCommandName(
 			"/blogs/view"
+		).setKeywords(
+			() -> {
+				if (_isSearch()) {
+					return _getKeywords();
+				}
+
+				return null;
+			}
 		).setParameter(
 			SearchContainer.DEFAULT_CUR_PARAM, "0"
-		).build();
+		).buildPortletURL();
+	}
 
-		String keywords = ParamUtil.getString(httpServletRequest, "keywords");
-
-		if (Validator.isNotNull(keywords)) {
-			sortingURL.setParameter("keywords", keywords);
+	private String _getKeywords() {
+		if (Validator.isNotNull(_keywords)) {
+			return _keywords;
 		}
 
-		return sortingURL;
+		_keywords = ParamUtil.getString(httpServletRequest, "keywords");
+
+		return _keywords;
+	}
+
+	private boolean _isSearch() {
+		if (Validator.isNull(_getKeywords())) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private boolean _isTrashEnabled() {
 		try {
 			return _trashHelper.isTrashEnabled(
-				PortalUtil.getScopeGroupId(_httpServletRequest));
+				PortalUtil.getScopeGroupId(httpServletRequest));
 		}
 		catch (PortalException portalException) {
 			return ReflectionUtil.throwException(portalException);
@@ -293,7 +337,7 @@ public class BlogEntriesManagementToolbarDisplayContext
 	}
 
 	private final String _displayStyle;
-	private final HttpServletRequest _httpServletRequest;
+	private String _keywords;
 	private final ThemeDisplay _themeDisplay;
 	private final TrashHelper _trashHelper;
 

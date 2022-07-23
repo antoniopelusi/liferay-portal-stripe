@@ -15,7 +15,7 @@
 import {PropTypes} from 'prop-types';
 import React from 'react';
 
-import MappingInputs from './components/MappingInputs';
+import MappingFields from './components/MappingFields';
 import lang from './utils/lang';
 
 export default function OpenGraphMapping({
@@ -28,7 +28,7 @@ export default function OpenGraphMapping({
 	selectedSource,
 }) {
 	return (
-		<MappingInputs
+		<MappingFields
 			fields={fields}
 			inputs={[
 				{
@@ -42,9 +42,10 @@ export default function OpenGraphMapping({
 					),
 					label: Liferay.Language.get('title'),
 					name: `${portletNamespace}TypeSettingsProperties--mapped-openGraphTitle--`,
-					selectedFieldKey: openGraphTitle,
+					value: openGraphTitle,
 				},
 				{
+					component: 'textarea',
 					fieldType: 'text',
 					helpMessage: lang.sub(
 						Liferay.Language.get(
@@ -55,7 +56,7 @@ export default function OpenGraphMapping({
 					),
 					label: Liferay.Language.get('description'),
 					name: `${portletNamespace}TypeSettingsProperties--mapped-openGraphDescription--`,
-					selectedFieldKey: openGraphDescription,
+					value: openGraphDescription,
 				},
 				{
 					fieldType: 'image',
@@ -71,6 +72,7 @@ export default function OpenGraphMapping({
 					selectedFieldKey: openGraphImage,
 				},
 				{
+					component: 'textarea',
 					fieldType: 'text',
 					helpMessage: lang.sub(
 						Liferay.Language.get(
@@ -83,7 +85,7 @@ export default function OpenGraphMapping({
 						'open-graph-image-alt-description'
 					),
 					name: `${portletNamespace}TypeSettingsProperties--mapped-openGraphImageAlt--`,
-					selectedFieldKey: openGraphImageAlt,
+					value: openGraphImageAlt,
 				},
 			]}
 			selectedSource={selectedSource}

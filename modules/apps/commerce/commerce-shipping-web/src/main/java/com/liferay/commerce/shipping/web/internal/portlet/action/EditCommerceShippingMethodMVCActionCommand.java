@@ -67,7 +67,7 @@ public class EditCommerceShippingMethodMVCActionCommand
 
 		try {
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateCommerceShippingMethod(actionRequest);
+				_updateCommerceShippingMethod(actionRequest);
 			}
 		}
 		catch (Exception exception) {
@@ -94,7 +94,7 @@ public class EditCommerceShippingMethodMVCActionCommand
 		}
 	}
 
-	protected CommerceShippingMethod updateCommerceShippingMethod(
+	private CommerceShippingMethod _updateCommerceShippingMethod(
 			ActionRequest actionRequest)
 		throws PortalException {
 
@@ -127,7 +127,6 @@ public class EditCommerceShippingMethodMVCActionCommand
 
 			commerceShippingMethod =
 				_commerceShippingMethodService.addCommerceShippingMethod(
-					_portal.getUserId(actionRequest),
 					commerceChannel.getGroupId(), nameMap, descriptionMap,
 					imageFile, commerceShippingMethodEngineKey, priority,
 					active);

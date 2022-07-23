@@ -12,37 +12,34 @@
  * details.
  */
 
-/**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- */
-
+import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import ClayList from '@clayui/list';
 import ClayProgressBar from '@clayui/progress-bar';
+import ClaySticker from '@clayui/sticker';
 import ClayTable from '@clayui/table';
 import {fetch} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 const renderUserPortrait = (entry, userInfo) => {
+	const user = userInfo[entry.userId];
+
 	return (
-		<div
-			className="text-center"
-			dangerouslySetInnerHTML={{
-				__html: userInfo[entry.userId].userPortraitHTML,
-			}}
+		<ClaySticker
+			className={`sticker-user-icon ${
+				user.portraitURL ? '' : 'user-icon-color-' + (entry.userId % 10)
+			}`}
 			data-tooltip-align="top"
-			title={userInfo[entry.userId].userName}
-		/>
+			title={user.userName}
+		>
+			{user.portraitURL ? (
+				<div className="sticker-overlay">
+					<img className="sticker-img" src={user.portraitURL} />
+				</div>
+			) : (
+				<ClayIcon symbol="user" />
+			)}
+		</ClaySticker>
 	);
 };
 
@@ -160,10 +157,23 @@ const PublicationStatus = ({
 const renderPublicationInfo = (entry, published) => {
 	return (
 		<a
-			className={!published ? 'btn btn-unstyled disabled' : ''}
+			className={
+				!entry.hasViewPermission || !published
+					? 'btn btn-unstyled disabled'
+					: ''
+			}
+			data-tooltip-align="top"
 			href={entry.viewURL}
+			title={
+				!entry.hasViewPermission
+					? Liferay.Language.get(
+							'you-do-not-have-permission-to-view-this-publication'
+					  )
+					: ''
+			}
 		>
 			<div className="publication-name">{entry.name}</div>
+
 			{entry.description && (
 				<div className="publication-description">
 					{entry.description}
@@ -182,15 +192,30 @@ const PublicationsHistoryListItem = ({entry, spritemap, userInfo}) => {
 		}
 	}, [entry, publishedValue]);
 
+	let title = '';
+
+	if (!entry.hasRevertPermission || !entry.hasViewPermission) {
+		title = Liferay.Language.get(
+			'you-do-not-have-permission-to-revert-this-publication'
+		);
+	}
+	else if (entry.expired && publishedValue) {
+		title = Liferay.Language.get(
+			'this-publication-was-created-on-a-previous-liferay-version.-you-cannot-revert-it'
+		);
+	}
+
 	return (
 		<ClayList.Item flex>
 			<ClayList.ItemField>
 				{renderUserPortrait(entry, userInfo)}
 			</ClayList.ItemField>
+
 			<ClayList.ItemField expand>
 				<ClayList.ItemText>
 					{renderPublicationInfo(entry, publishedValue)}
 				</ClayList.ItemText>
+
 				<ClayList.ItemText>
 					<PublicationStatus
 						dataURL={entry.statusURL}
@@ -206,20 +231,17 @@ const PublicationsHistoryListItem = ({entry, spritemap, userInfo}) => {
 					/>
 				</ClayList.ItemText>
 			</ClayList.ItemField>
+
 			<ClayList.ItemField>
-				<div
-					data-tooltip-align="top"
-					title={
-						entry.expired && publishedValue
-							? Liferay.Language.get(
-									'this-publication-was-created-on-a-previous-liferay-version.-you-cannot-revert-it'
-							  )
-							: ''
-					}
-				>
+				<div data-tooltip-align="top" title={title}>
 					<a
 						className={`${
-							entry.expired || !publishedValue ? 'disabled' : ''
+							entry.expired ||
+							!entry.hasRevertPermission ||
+							!entry.hasViewPermission ||
+							!publishedValue
+								? 'disabled'
+								: ''
 						} btn btn-secondary btn-sm`}
 						href={entry.revertURL}
 					>
@@ -240,17 +262,33 @@ const PublicationsHistoryTableRow = ({entry, spritemap, userInfo}) => {
 		}
 	}, [entry, publishedValue]);
 
+	let title = '';
+
+	if (!entry.hasRevertPermission || !entry.hasViewPermission) {
+		title = Liferay.Language.get(
+			'you-do-not-have-permission-to-revert-this-publication'
+		);
+	}
+	else if (entry.expired && publishedValue) {
+		title = Liferay.Language.get(
+			'this-publication-was-created-on-a-previous-liferay-version.-you-cannot-revert-it'
+		);
+	}
+
 	return (
 		<ClayTable.Row>
 			<ClayTable.Cell className="table-cell-expand">
 				{renderPublicationInfo(entry, publishedValue)}
 			</ClayTable.Cell>
+
 			<ClayTable.Cell className="table-cell-expand-smaller">
 				{entry.timeDescription}
 			</ClayTable.Cell>
+
 			<ClayTable.Cell className="table-cell-expand-smallest">
 				{renderUserPortrait(entry, userInfo)}
 			</ClayTable.Cell>
+
 			<ClayTable.Cell className="table-cell-expand-smaller">
 				<PublicationStatus
 					dataURL={entry.statusURL}
@@ -265,20 +303,17 @@ const PublicationsHistoryTableRow = ({entry, spritemap, userInfo}) => {
 					}}
 				/>
 			</ClayTable.Cell>
+
 			<ClayTable.Cell className="table-cell-expand-smallest">
-				<div
-					data-tooltip-align="top"
-					title={
-						entry.expired && publishedValue
-							? Liferay.Language.get(
-									'this-publication-was-created-on-a-previous-liferay-version.-you-cannot-revert-it'
-							  )
-							: ''
-					}
-				>
+				<div data-tooltip-align="top" title={title}>
 					<a
 						className={`${
-							entry.expired || !publishedValue ? 'disabled' : ''
+							entry.expired ||
+							!entry.hasRevertPermission ||
+							!entry.hasViewPermission ||
+							!publishedValue
+								? 'disabled'
+								: ''
 						} btn btn-secondary btn-sm`}
 						href={entry.revertURL}
 					>
@@ -290,7 +325,12 @@ const PublicationsHistoryTableRow = ({entry, spritemap, userInfo}) => {
 	);
 };
 
-export default ({displayStyle, entries, spritemap, userInfo}) => {
+export default function PublicationsHistoryView({
+	displayStyle,
+	entries,
+	spritemap,
+	userInfo,
+}) {
 	if (displayStyle === 'list') {
 		const rows = [];
 
@@ -318,30 +358,35 @@ export default ({displayStyle, entries, spritemap, userInfo}) => {
 						>
 							{Liferay.Language.get('publication')}
 						</ClayTable.Cell>
+
 						<ClayTable.Cell
 							className="table-cell-expand-smaller"
 							headingCell
 						>
 							{Liferay.Language.get('published-date')}
 						</ClayTable.Cell>
+
 						<ClayTable.Cell
 							className="table-cell-expand-smallest text-center"
 							headingCell
 						>
 							{Liferay.Language.get('published-by')}
 						</ClayTable.Cell>
+
 						<ClayTable.Cell
 							className="table-cell-expand-smaller"
 							headingCell
 						>
 							{Liferay.Language.get('status')}
 						</ClayTable.Cell>
+
 						<ClayTable.Cell
 							className="table-cell-expand-smallest"
 							headingCell
 						/>
 					</ClayTable.Row>
 				</ClayTable.Head>
+
 				<ClayTable.Body>{rows}</ClayTable.Body>
 			</ClayTable>
 		);
@@ -360,4 +405,4 @@ export default ({displayStyle, entries, spritemap, userInfo}) => {
 	}
 
 	return <ClayList className="publications-table">{items}</ClayList>;
-};
+}

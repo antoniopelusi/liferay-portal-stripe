@@ -23,9 +23,6 @@ import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
  */
 public class AccountRoleImpl extends AccountRoleBaseImpl {
 
-	public AccountRoleImpl() {
-	}
-
 	@Override
 	public Role getRole() throws PortalException {
 		return RoleLocalServiceUtil.getRole(getRoleId());

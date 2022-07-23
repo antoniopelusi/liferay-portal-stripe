@@ -26,6 +26,10 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
 public class KaleoLogLocalServiceWrapper
 	implements KaleoLogLocalService, ServiceWrapper<KaleoLogLocalService> {
 
+	public KaleoLogLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoLogLocalServiceWrapper(
 		KaleoLogLocalService kaleoLogLocalService) {
 
@@ -306,6 +310,13 @@ public class KaleoLogLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoLogLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _kaleoLogLocalService.dynamicQuery();
 	}
@@ -416,25 +427,6 @@ public class KaleoLogLocalServiceWrapper
 		return _kaleoLogLocalService.getIndexableActionableDynamicQuery();
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoInstanceKaleoLogs(long, long, List, int, int,
-	 OrderByComparator)}
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<com.liferay.portal.workflow.kaleo.model.KaleoLog>
-		getKaleoInstanceKaleoLogs(
-			long kaleoInstanceId, java.util.List<Integer> logTypes, int start,
-			int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.workflow.kaleo.model.KaleoLog>
-					orderByComparator) {
-
-		return _kaleoLogLocalService.getKaleoInstanceKaleoLogs(
-			kaleoInstanceId, logTypes, start, end, orderByComparator);
-	}
-
 	@Override
 	public java.util.List<com.liferay.portal.workflow.kaleo.model.KaleoLog>
 		getKaleoInstanceKaleoLogs(
@@ -447,19 +439,6 @@ public class KaleoLogLocalServiceWrapper
 		return _kaleoLogLocalService.getKaleoInstanceKaleoLogs(
 			companyId, kaleoInstanceId, logTypes, start, end,
 			orderByComparator);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoInstanceKaleoLogsCount(long, long, List)}
-	 */
-	@Deprecated
-	@Override
-	public int getKaleoInstanceKaleoLogsCount(
-		long kaleoInstanceId, java.util.List<Integer> logTypes) {
-
-		return _kaleoLogLocalService.getKaleoInstanceKaleoLogsCount(
-			kaleoInstanceId, logTypes);
 	}
 
 	@Override
@@ -514,25 +493,6 @@ public class KaleoLogLocalServiceWrapper
 		return _kaleoLogLocalService.getKaleoLogsCount();
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoTaskInstanceTokenKaleoLogs(long, long, List, int,
-	 int, OrderByComparator)}
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<com.liferay.portal.workflow.kaleo.model.KaleoLog>
-		getKaleoTaskInstanceTokenKaleoLogs(
-			long kaleoTaskInstanceTokenId, java.util.List<Integer> logTypes,
-			int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.workflow.kaleo.model.KaleoLog>
-					orderByComparator) {
-
-		return _kaleoLogLocalService.getKaleoTaskInstanceTokenKaleoLogs(
-			kaleoTaskInstanceTokenId, logTypes, start, end, orderByComparator);
-	}
-
 	@Override
 	public java.util.List<com.liferay.portal.workflow.kaleo.model.KaleoLog>
 		getKaleoTaskInstanceTokenKaleoLogs(
@@ -545,19 +505,6 @@ public class KaleoLogLocalServiceWrapper
 		return _kaleoLogLocalService.getKaleoTaskInstanceTokenKaleoLogs(
 			companyId, kaleoTaskInstanceTokenId, logTypes, start, end,
 			orderByComparator);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getKaleoTaskInstanceTokenKaleoLogsCount(long, long, List)}
-	 */
-	@Deprecated
-	@Override
-	public int getKaleoTaskInstanceTokenKaleoLogsCount(
-		long kaleoTaskInstanceTokenId, java.util.List<Integer> logTypes) {
-
-		return _kaleoLogLocalService.getKaleoTaskInstanceTokenKaleoLogsCount(
-			kaleoTaskInstanceTokenId, logTypes);
 	}
 
 	@Override

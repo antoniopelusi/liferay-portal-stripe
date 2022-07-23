@@ -29,12 +29,13 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
 import java.util.Collections;
@@ -230,34 +231,6 @@ public class DLOpenerFileEntryReferenceModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DLOpenerFileEntryReference>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DLOpenerFileEntryReference.class.getClassLoader(),
-			DLOpenerFileEntryReference.class, ModelWrapper.class);
-
-		try {
-			Constructor<DLOpenerFileEntryReference> constructor =
-				(Constructor<DLOpenerFileEntryReference>)
-					proxyClass.getConstructor(InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map
@@ -640,6 +613,37 @@ public class DLOpenerFileEntryReferenceModelImpl
 	}
 
 	@Override
+	public DLOpenerFileEntryReference cloneWithOriginalValues() {
+		DLOpenerFileEntryReferenceImpl dlOpenerFileEntryReferenceImpl =
+			new DLOpenerFileEntryReferenceImpl();
+
+		dlOpenerFileEntryReferenceImpl.setDlOpenerFileEntryReferenceId(
+			this.<Long>getColumnOriginalValue("dlOpenerFileEntryReferenceId"));
+		dlOpenerFileEntryReferenceImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		dlOpenerFileEntryReferenceImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		dlOpenerFileEntryReferenceImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		dlOpenerFileEntryReferenceImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		dlOpenerFileEntryReferenceImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		dlOpenerFileEntryReferenceImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		dlOpenerFileEntryReferenceImpl.setReferenceKey(
+			this.<String>getColumnOriginalValue("referenceKey"));
+		dlOpenerFileEntryReferenceImpl.setReferenceType(
+			this.<String>getColumnOriginalValue("referenceType"));
+		dlOpenerFileEntryReferenceImpl.setFileEntryId(
+			this.<Long>getColumnOriginalValue("fileEntryId"));
+		dlOpenerFileEntryReferenceImpl.setType(
+			this.<Integer>getColumnOriginalValue("type_"));
+
+		return dlOpenerFileEntryReferenceImpl;
+	}
+
+	@Override
 	public int compareTo(
 		DLOpenerFileEntryReference dlOpenerFileEntryReference) {
 
@@ -784,7 +788,7 @@ public class DLOpenerFileEntryReferenceModelImpl
 			attributeGetterFunctions = getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -795,11 +799,27 @@ public class DLOpenerFileEntryReferenceModelImpl
 			Function<DLOpenerFileEntryReference, Object>
 				attributeGetterFunction = entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(
-				attributeGetterFunction.apply(
-					(DLOpenerFileEntryReference)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply(
+				(DLOpenerFileEntryReference)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -850,7 +870,8 @@ public class DLOpenerFileEntryReferenceModelImpl
 		private static final Function
 			<InvocationHandler, DLOpenerFileEntryReference>
 				_escapedModelProxyProviderFunction =
-					_getProxyProviderFunction();
+					ProxyUtil.getProxyProviderFunction(
+						DLOpenerFileEntryReference.class, ModelWrapper.class);
 
 	}
 

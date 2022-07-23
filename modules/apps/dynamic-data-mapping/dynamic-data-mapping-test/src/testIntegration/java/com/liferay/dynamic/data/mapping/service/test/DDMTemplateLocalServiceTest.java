@@ -31,7 +31,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -43,7 +43,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -110,11 +109,9 @@ public class DDMTemplateLocalServiceTest extends BaseDDMServiceTestCase {
 				new ConfigurationTemporarySwapper(
 					"com.liferay.dynamic.data.mapping.configuration." +
 						"DDMWebConfiguration",
-					new HashMapDictionary<String, Object>() {
-						{
-							put("enableTemplateCreation", false);
-						}
-					})) {
+					HashMapDictionaryBuilder.<String, Object>put(
+						"enableTemplateCreation", false
+					).build())) {
 
 			addTemplate(
 				_classNameId, 0, null, "Test Template",
@@ -285,7 +282,6 @@ public class DDMTemplateLocalServiceTest extends BaseDDMServiceTestCase {
 		Assert.assertEquals(templates.toString(), 2, templates.size());
 	}
 
-	@Ignore
 	@Test
 	public void testSearchByNameAndDescription2() throws Exception {
 		addDisplayTemplate(
@@ -517,7 +513,7 @@ public class DDMTemplateLocalServiceTest extends BaseDDMServiceTestCase {
 			getTestTemplateScript(TemplateConstants.LANG_TYPE_VM),
 			WorkflowConstants.STATUS_APPROVED, true, "foo");
 
-		Assert.assertEquals(false, template.isSmallImage());
+		Assert.assertFalse(template.isSmallImage());
 	}
 
 	@Test
@@ -532,7 +528,7 @@ public class DDMTemplateLocalServiceTest extends BaseDDMServiceTestCase {
 			WorkflowConstants.STATUS_APPROVED, true,
 			"http://foo.com/example.png");
 
-		Assert.assertEquals(true, template.isSmallImage());
+		Assert.assertTrue(template.isSmallImage());
 	}
 
 	@Rule

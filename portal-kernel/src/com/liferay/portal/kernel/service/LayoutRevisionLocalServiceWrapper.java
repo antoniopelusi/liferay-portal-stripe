@@ -25,6 +25,10 @@ public class LayoutRevisionLocalServiceWrapper
 	implements LayoutRevisionLocalService,
 			   ServiceWrapper<LayoutRevisionLocalService> {
 
+	public LayoutRevisionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public LayoutRevisionLocalServiceWrapper(
 		LayoutRevisionLocalService layoutRevisionLocalService) {
 
@@ -181,6 +185,13 @@ public class LayoutRevisionLocalServiceWrapper
 	}
 
 	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _layoutRevisionLocalService.dslQueryCount(dslQuery);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _layoutRevisionLocalService.dynamicQuery();
 	}
@@ -284,6 +295,15 @@ public class LayoutRevisionLocalServiceWrapper
 
 		return _layoutRevisionLocalService.fetchLatestLayoutRevision(
 			layoutSetBranchId, plid);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.model.LayoutRevision
+		fetchLatestLayoutRevision(
+			long layoutSetBranchId, long layoutBranchId, long plid) {
+
+		return _layoutRevisionLocalService.fetchLatestLayoutRevision(
+			layoutSetBranchId, layoutBranchId, plid);
 	}
 
 	@Override
@@ -485,6 +505,11 @@ public class LayoutRevisionLocalServiceWrapper
 	@Override
 	public int getLayoutRevisionsCount() {
 		return _layoutRevisionLocalService.getLayoutRevisionsCount();
+	}
+
+	@Override
+	public int getLayoutRevisionsCount(long plid) {
+		return _layoutRevisionLocalService.getLayoutRevisionsCount(plid);
 	}
 
 	@Override

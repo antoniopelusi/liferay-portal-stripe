@@ -76,6 +76,11 @@ public class ViewCountEntryWrapper
 		}
 	}
 
+	@Override
+	public ViewCountEntry cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this view count entry.
 	 *

@@ -79,6 +79,11 @@ public class CTSchemaVersionWrapper
 		}
 	}
 
+	@Override
+	public CTSchemaVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this ct schema version.
 	 *

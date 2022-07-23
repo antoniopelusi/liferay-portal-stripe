@@ -1,11 +1,7 @@
 Bundle-Name: Liferay Portal Workflow Kaleo Designer Web
 Bundle-SymbolicName: com.liferay.portal.workflow.kaleo.designer.web
-Bundle-Version: 5.0.4
+Bundle-Version: 5.0.56
 Export-Package: com.liferay.portal.workflow.kaleo.designer.web.constants
-Liferay-JS-Config: /META-INF/resources/designer/js/config.js
-Provide-Capability:\
-	liferay.resource.bundle;\
-		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.dynamic.data.lists.lang),(bundle.symbolic.name=com.liferay.dynamic.data.mapping.lang),(bundle.symbolic.name=com.liferay.portal.workflow.kaleo.designer.lang),(bundle.symbolic.name=com.liferay.portal.workflow.lang)";\
-		resource.bundle.base.name="content.Language"
+Liferay-JS-Config: /META-INF/resources/designer/js/legacy/config.js
 Web-ContextPath: /portal-workflow-kaleo-designer-web
 -dsannotations-options: inherit

@@ -38,7 +38,5 @@ public class TestEntityImpl extends TestEntityBaseImpl {
 	 * com.liferay.external.data.source.test.model.TestEntity} interface
 	 * instead.
 	 */
-	public TestEntityImpl() {
-	}
 
 }

@@ -44,6 +44,7 @@ import com.liferay.saml.persistence.service.SamlIdpSpSessionLocalServiceUtil;
 import com.liferay.saml.persistence.service.persistence.SamlIdpSpConnectionPersistence;
 import com.liferay.saml.persistence.service.persistence.SamlIdpSpSessionPersistence;
 import com.liferay.saml.persistence.service.persistence.SamlIdpSsoSessionPersistence;
+import com.liferay.saml.persistence.service.persistence.SamlPeerBindingPersistence;
 import com.liferay.saml.persistence.service.persistence.SamlSpAuthRequestPersistence;
 import com.liferay.saml.persistence.service.persistence.SamlSpIdpConnectionPersistence;
 import com.liferay.saml.persistence.service.persistence.SamlSpMessagePersistence;
@@ -154,6 +155,13 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 	@Override
 	public <T> T dslQuery(DSLQuery dslQuery) {
 		return samlIdpSpSessionPersistence.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(DSLQuery dslQuery) {
+		Long count = dslQuery(dslQuery);
+
+		return count.intValue();
 	}
 
 	@Override
@@ -477,6 +485,9 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 
 	@Reference
 	protected SamlIdpSsoSessionPersistence samlIdpSsoSessionPersistence;
+
+	@Reference
+	protected SamlPeerBindingPersistence samlPeerBindingPersistence;
 
 	@Reference
 	protected SamlSpAuthRequestPersistence samlSpAuthRequestPersistence;

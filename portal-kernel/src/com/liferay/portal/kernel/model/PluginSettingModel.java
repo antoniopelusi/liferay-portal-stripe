@@ -165,4 +165,7 @@ public interface PluginSettingModel
 	 */
 	public void setActive(boolean active);
 
+	@Override
+	public PluginSetting cloneWithOriginalValues();
+
 }

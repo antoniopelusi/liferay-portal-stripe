@@ -17,10 +17,8 @@ package com.liferay.portal.workflow.kaleo.designer.web.internal.security.permiss
 import com.liferay.exportimport.kernel.staging.permission.StagingPermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.workflow.kaleo.designer.web.internal.permission.KaleoDesignerPermission;
-
-import java.util.Dictionary;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -37,15 +35,13 @@ public class KaleoDesignerPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("resource.name", KaleoDesignerPermission.RESOURCE_NAME);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
 				KaleoDesignerPermission.RESOURCE_NAME),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name", KaleoDesignerPermission.RESOURCE_NAME
+			).build());
 	}
 
 	@Deactivate

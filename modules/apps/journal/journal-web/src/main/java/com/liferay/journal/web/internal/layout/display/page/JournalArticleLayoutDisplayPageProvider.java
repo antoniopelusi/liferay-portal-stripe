@@ -14,12 +14,14 @@
 
 package com.liferay.journal.web.internal.layout.display.page;
 
+import com.liferay.depot.group.provider.SiteConnectedGroupGroupProvider;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -63,15 +65,13 @@ public class JournalArticleLayoutDisplayPageProvider
 	public LayoutDisplayPageObjectProvider<JournalArticle>
 		getLayoutDisplayPageObjectProvider(long groupId, String urlTitle) {
 
-		JournalArticle article =
-			journalArticleLocalService.fetchArticleByUrlTitle(
-				groupId, urlTitle);
-
-		if ((article == null) || article.isInTrash()) {
-			return null;
-		}
-
 		try {
+			JournalArticle article = _getArticle(groupId, urlTitle);
+
+			if ((article == null) || article.isInTrash()) {
+				return null;
+			}
+
 			return new JournalArticleLayoutDisplayPageObjectProvider(article);
 		}
 		catch (PortalException portalException) {
@@ -81,10 +81,32 @@ public class JournalArticleLayoutDisplayPageProvider
 
 	@Override
 	public String getURLSeparator() {
-		return "/w/";
+		return FriendlyURLResolverConstants.URL_SEPARATOR_JOURNAL_ARTICLE;
 	}
 
 	@Reference
 	protected JournalArticleLocalService journalArticleLocalService;
+
+	@Reference
+	protected SiteConnectedGroupGroupProvider siteConnectedGroupGroupProvider;
+
+	private JournalArticle _getArticle(long groupId, String urlTitle)
+		throws PortalException {
+
+		for (long connectedGroupId :
+				siteConnectedGroupGroupProvider.
+					getCurrentAndAncestorSiteAndDepotGroupIds(groupId)) {
+
+			JournalArticle article =
+				journalArticleLocalService.fetchArticleByUrlTitle(
+					connectedGroupId, urlTitle);
+
+			if (article != null) {
+				return article;
+			}
+		}
+
+		return null;
+	}
 
 }

@@ -259,4 +259,7 @@ public interface FriendlyURLEntryModel
 
 	public Map<String, String> getLanguageIdToUrlTitleMap();
 
+	@Override
+	public FriendlyURLEntry cloneWithOriginalValues();
+
 }

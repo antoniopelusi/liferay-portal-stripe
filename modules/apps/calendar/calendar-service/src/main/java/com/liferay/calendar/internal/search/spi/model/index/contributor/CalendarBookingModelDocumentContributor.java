@@ -52,7 +52,7 @@ public class CalendarBookingModelDocumentContributor
 
 		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
 
-		String[] descriptionLanguageIds = getLanguageIds(
+		String[] descriptionLanguageIds = _getLanguageIds(
 			defaultLanguageId, calendarBooking.getDescription());
 
 		for (String descriptionLanguageId : descriptionLanguageIds) {
@@ -67,7 +67,7 @@ public class CalendarBookingModelDocumentContributor
 
 		document.addKeyword(Field.RELATED_ENTRY, true);
 
-		String[] titleLanguageIds = getLanguageIds(
+		String[] titleLanguageIds = _getLanguageIds(
 			defaultLanguageId, calendarBooking.getTitle());
 
 		for (String titleLanguageId : titleLanguageIds) {
@@ -96,9 +96,13 @@ public class CalendarBookingModelDocumentContributor
 		document.addNumber("startTime", calendarBooking.getStartTime());
 	}
 
-	protected String[] getLanguageIds(
-		String defaultLanguageId, String content) {
+	@Reference
+	protected ClassNameLocalService classNameLocalService;
 
+	@Reference
+	protected TrashHelper trashHelper;
+
+	private String[] _getLanguageIds(String defaultLanguageId, String content) {
 		String[] languageIds = LocalizationUtil.getAvailableLanguageIds(
 			content);
 
@@ -108,11 +112,5 @@ public class CalendarBookingModelDocumentContributor
 
 		return languageIds;
 	}
-
-	@Reference
-	protected ClassNameLocalService classNameLocalService;
-
-	@Reference
-	protected TrashHelper trashHelper;
 
 }

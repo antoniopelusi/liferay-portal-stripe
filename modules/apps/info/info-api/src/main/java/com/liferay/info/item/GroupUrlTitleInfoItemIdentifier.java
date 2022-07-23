@@ -76,17 +76,9 @@ public class GroupUrlTitleInfoItemIdentifier extends BaseInfoItemIdentifier {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("{className=");
-		sb.append(GroupKeyInfoItemIdentifier.class.getName());
-		sb.append(", _groupId=");
-		sb.append(_groupId);
-		sb.append(", _urlTitle=");
-		sb.append(_urlTitle);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat(
+			"{className=", GroupKeyInfoItemIdentifier.class.getName(),
+			", _groupId=", _groupId, ", _urlTitle=", _urlTitle, "}");
 	}
 
 	private final long _groupId;

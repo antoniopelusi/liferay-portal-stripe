@@ -17,9 +17,7 @@ package com.liferay.commerce.internal.security.permission.resource;
 import com.liferay.commerce.constants.CommerceConstants;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermissionFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
-
-import java.util.Dictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -38,17 +36,15 @@ public class CommerceSubscriptionPortletResourcePermissionRegistrar {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(
-			"resource.name", CommerceConstants.RESOURCE_NAME_SUBSCRIPTION);
-
 		_serviceRegistration = bundleContext.registerService(
 			PortletResourcePermission.class,
 			PortletResourcePermissionFactory.create(
-				CommerceConstants.RESOURCE_NAME_SUBSCRIPTION,
+				CommerceConstants.RESOURCE_NAME_COMMERCE_SUBSCRIPTION,
 				new CommerceServicePortletResourcePermissionLogic()),
-			properties);
+			HashMapDictionaryBuilder.<String, Object>put(
+				"resource.name",
+				CommerceConstants.RESOURCE_NAME_COMMERCE_SUBSCRIPTION
+			).build());
 	}
 
 	@Deactivate

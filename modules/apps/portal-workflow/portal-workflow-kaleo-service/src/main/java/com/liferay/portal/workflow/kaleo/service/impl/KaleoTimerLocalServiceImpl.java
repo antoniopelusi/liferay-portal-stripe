@@ -56,7 +56,7 @@ public class KaleoTimerLocalServiceImpl extends KaleoTimerLocalServiceBaseImpl {
 		// Kaleo timer
 
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
-		Date now = new Date();
+		Date date = new Date();
 
 		long kaleoTimerId = counterLocalService.increment();
 
@@ -65,8 +65,8 @@ public class KaleoTimerLocalServiceImpl extends KaleoTimerLocalServiceBaseImpl {
 		kaleoTimer.setCompanyId(user.getCompanyId());
 		kaleoTimer.setUserId(user.getUserId());
 		kaleoTimer.setUserName(user.getFullName());
-		kaleoTimer.setCreateDate(now);
-		kaleoTimer.setModifiedDate(now);
+		kaleoTimer.setCreateDate(date);
+		kaleoTimer.setModifiedDate(date);
 		kaleoTimer.setKaleoClassName(kaleoClassName);
 		kaleoTimer.setKaleoClassPK(kaleoClassPK);
 		kaleoTimer.setKaleoDefinitionId(kaleoDefinitionId);

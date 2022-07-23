@@ -227,4 +227,7 @@ public interface FolderModel
 	 */
 	public void setRemoteMessageCount(int remoteMessageCount);
 
+	@Override
+	public Folder cloneWithOriginalValues();
+
 }

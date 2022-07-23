@@ -394,4 +394,7 @@ public interface LayoutSEOSiteModel
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 
+	@Override
+	public LayoutSEOSite cloneWithOriginalValues();
+
 }

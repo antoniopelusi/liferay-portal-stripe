@@ -1,0 +1,240 @@
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.component.names = "Remote Apps";
+	property testray.main.component.name = "Remote Apps";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "LPS-147201. Verify approved remote app portlet can be added to page"
+	@priority = "4"
+	test AdminCanApproveRemotePortlet {
+		property portal.acceptance = "true";
+
+		task ("Apply workflow approval process to remote apps") {
+			RemoteAppsWorkflow.applyWorkflow();
+		}
+
+		task ("Add user with permissions to create remote app") {
+			Permissions.setUpRegRoleLoginUserCP(
+				roleTitle = "New Regular Role",
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			RemoteAppsWorkflow.addUserPermissions();
+		}
+
+		task ("Create remote app as user with permissions") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			RemoteApps.goToRemoteAppsPortlet();
+
+			RemoteAppsWorkflow.addApp(
+				entryName = "Test Remote App",
+				entryURL = "http://www.liferay.com");
+		}
+
+		task ("Approve remote app as admin") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			Notifications.gotoNotifications();
+
+			AssertClick(
+				locator1 = "Notifications#NOTIFICATIONS_WORKFLOW_TITLE",
+				value1 = "userfn userln sent you a Remote App Entry for review in the workflow.");
+
+			LexiconEntry.gotoEllipsisMenuItem(menuItem = "Assign to Me");
+
+			Workflow.confirmWorkflowAction();
+
+			LexiconEntry.gotoEllipsisMenuItem(menuItem = "Approve");
+
+			Workflow.confirmWorkflowAction();
+		}
+
+		task ("Assert remote app approved status") {
+			RemoteApps.goToRemoteAppsPortlet();
+
+			RemoteAppsWorkflow.assertTableStatus(
+				entryName = "Test Remote App",
+				entryStatus = "Approved");
+		}
+
+		task ("Create widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page");
+
+			Navigator.gotoPage(pageName = "Test Page");
+		}
+
+		task ("Assert remote app portlet can be added to page") {
+			Portlet.addPGCmd(portletName = "Test Remote App");
+
+			AssertElementPresent(
+				key_portletName = "Test Remote App",
+				locator1 = "Portlet#TITLE");
+		}
+	}
+
+	@description = "LPS-147198. Verify remote app entry workflow can be configured at instance level"
+	@priority = "5"
+	test CanConfigureWorkflowInstanceLevel {
+		property portal.acceptance = "true";
+
+		task ("Navigate to workflow configuration") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Workflow",
+				panel = "Applications",
+				portlet = "Process Builder");
+
+			Navigator.gotoNavItem(navItem = "Configuration");
+		}
+
+		task ("Search for Remote App Entry") {
+			Search.searchCP(searchTerm = "Remote App Entry");
+		}
+
+		task ("Assert Remote App Entry is listed") {
+			AssertElementPresent(
+				key_fieldName = "Remote App Entry",
+				key_order = "1",
+				locator1 = "WorkflowConfiguration#PROCESS_BUILDER_TABLE_FIELD_NAME");
+
+			AssertElementPresent(
+				key_workflowResourceValue = "No Workflow",
+				locator1 = "WorkflowConfiguration#RESOURCE_TABLE_SELECT");
+		}
+	}
+
+	@description = "LPS-147202. Verify admin can receive notification request to approve remote app"
+	@priority = "4"
+	test CanSendWorkflowNotification {
+		property portal.acceptance = "true";
+
+		task ("Apply workflow approval process to remote apps") {
+			RemoteAppsWorkflow.applyWorkflow();
+		}
+
+		task ("Add user with permissions to create remote app") {
+			Permissions.setUpRegRoleLoginUserCP(
+				roleTitle = "New Regular Role",
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			RemoteAppsWorkflow.addUserPermissions();
+		}
+
+		task ("Create remote app as user with permissions") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			RemoteApps.goToRemoteAppsPortlet();
+
+			RemoteAppsWorkflow.addApp(
+				entryName = "Test Remote App",
+				entryURL = "http://www.liferay.com");
+		}
+
+		task ("Assert admin received notification to approve remote app") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			Notifications.gotoNotifications();
+
+			AssertElementPresent(
+				locator1 = "Notifications#NOTIFICATIONS_WORKFLOW_TITLE",
+				value1 = "userfn userln sent you a Remote App Entry for review in the workflow.");
+		}
+	}
+
+	@description = "LPS-147200. Verify pending remote app portlet cannot be added to page"
+	@priority = "4"
+	test PendingRemoteAppCannotBeAddedToPage {
+		property portal.acceptance = "true";
+
+		task ("Apply workflow approval process to remote apps") {
+			RemoteAppsWorkflow.applyWorkflow();
+		}
+
+		task ("Add user with permissions to create remote app") {
+			Permissions.setUpRegRoleLoginUserCP(
+				roleTitle = "New Regular Role",
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			RemoteAppsWorkflow.addUserPermissions();
+		}
+
+		task ("Create remote app as user with permissions") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			RemoteApps.goToRemoteAppsPortlet();
+
+			RemoteAppsWorkflow.addApp(
+				entryName = "Test Remote App",
+				entryURL = "http://www.liferay.com");
+		}
+
+		task ("Verify remote app pending status as admin") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			RemoteApps.goToRemoteAppsPortlet();
+
+			RemoteAppsWorkflow.assertTableStatus(
+				entryName = "Test Remote App",
+				entryStatus = "Pending");
+		}
+
+		task ("Create content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page",
+				siteName = "Guest");
+		}
+
+		task ("Assert remote app portlet cannot be added to page") {
+			Type.sendKeysApplicationSearch(
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_SEARCH_FIELD",
+				value1 = "Test Remote App");
+
+			AssertElementNotPresent(
+				key_fragmentName = "Test Remote App",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_SEARCH_RESULTS");
+		}
+	}
+
+}

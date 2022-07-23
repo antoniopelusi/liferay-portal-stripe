@@ -27,6 +27,296 @@ definition {
 		}
 	}
 
+	@description = "Verify that the user can Approve a DDL Entry"
+	@priority = "5"
+	test CanApproveDDLEntry {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.submitForPublication();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "New Contacts for List: DDL List",
+			workflowAssetType = "Dynamic Data Lists Record",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "New Contacts for List: DDL List",
+			workflowAssetType = "Dynamic Data Lists Record",
+			workflowTask = "Review");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Approved");
+	}
+
+	@description = "This is a test for LRQA-69474. Verify that if it is possible to create a Dynamic Data List."
+	@priority = "5"
+	test CanCreateDDL {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.submitForPublication();
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Pending");
+	}
+
+	@description = "Verify that the user can Publish a Entry after Save as Draft"
+	@ignore = "true"
+	@priority = "4"
+	test CanPublishAfterSaveAsDraft {
+
+		// TODO LRQA-69476 CanPublishAfterSaveAsDraft pending implementation
+
+	}
+
+	@description = "Verify that, when the user Save as Draft, the DDL status is Draft"
+	@priority = "3"
+	test CanSaveAsDraft {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.saveAsDraftCP();
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Draft");
+	}
+
+	@description = "Verify that the Entry is not displayed on My Workflow Tasks when the user Delete a DDL with Pending entry"
+	@priority = "4"
+	test DeletedEntryIsNotDisplayedOnMyWorkflowTasks {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.submitForPublication();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.viewTaskAssignedToMyRoles(
+			workflowAssetTitle = "New Contacts for List: DDL List",
+			workflowAssetType = "Dynamic Data Lists Record",
+			workflowTask = "Review");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.deleteCP(ddlListName = "DDL List");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.viewDefaultMyWorkflowTasksCP();
+	}
+
+	@description = "Verify that, when the user Save as Draft, the task is not displayed on My Workflow Tasks"
+	@priority = "3"
+	test DraftEntryIsNotDisplayedOnMyWorkflowTasks {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.saveAsDraftCP();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.viewDefaultMyWorkflowTasksCP();
+	}
+
+	@description = "Verify that, editing an Approved entry, the DDL Entry status returns to Pending"
+	@priority = "4"
+	test EditApprovedEntryReturnsToPending {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.submitForPublication();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.assignToMeTaskByActions(
+			workflowAssetTitle = "New Contacts for List: DDL List",
+			workflowAssetType = "Dynamic Data Lists Record",
+			workflowTask = "Review");
+
+		Workflow.approveTaskByActions(
+			workflowAssetTitle = "New Contacts for List: DDL List",
+			workflowAssetType = "Dynamic Data Lists Record",
+			workflowTask = "Review");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Approved");
+
+		KaleoFormsNewSubmissions.editDLLRecordContacts(
+			ddlCompanyEdit = "Liferay Edit",
+			ddlFirstNameEdit = "Test Edit",
+			ddlListName = "DDL List");
+
+		DDLRecord.submitForPublication();
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Pending");
+	}
+
 	@description = "This is a use case for LPS-61212."
 	@priority = "5"
 	test EditDDLRecordViaMyWorkflowTasks {
@@ -35,7 +325,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -51,7 +341,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -66,7 +356,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -83,7 +373,7 @@ definition {
 		DDLRecord.submitForPublication();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -141,6 +431,46 @@ definition {
 			workflowTask = "Review");
 	}
 
+	@description = "Verify that, editing a Pending entry, a message is displayed"
+	@priority = "2"
+	test MessageIsDisplayedOnEditingPendingEntry {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.submitForPublication();
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Pending");
+
+		DDLRecord.editPG(ddlListName = "${ddlListName}");
+
+		KaleoFormsNewSubmissions.viewWorkflowInProcessMessage(errorMessage = "There is a publication workflow in process. Some actions may be disabled depending on the status and your role through this process.");
+	}
+
 	@priority = "4"
 	test RejectDynamicdatalistCP {
 		var ddlDataDefinitionName = "DDL Definition";
@@ -153,7 +483,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -171,7 +501,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -187,7 +517,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -214,7 +544,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -245,7 +575,7 @@ definition {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
+			category = "Content & Data",
 			panel = "Site Administration",
 			portlet = "Dynamic Data Lists");
 
@@ -257,6 +587,51 @@ definition {
 			fieldFieldLabel = "Text Label",
 			fieldName = "TextName",
 			workflowStatus = "Update");
+	}
+
+	@description = "Verify that, editing a Pending entry, the DDL Entry status remains on Pending"
+	@priority = "3"
+	test StatusIsPendingWhenPendingEntryIsEdited {
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Dynamic Data Lists");
+
+		DDLList.addCP(
+			ddlListDescription = "DDL List Description",
+			ddlListName = "DDL List",
+			workflowDefinition = "Single Approver");
+
+		DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
+
+		DDLDataDefinition.save();
+
+		DDLList.viewCP(ddlListName = "DDL List");
+
+		LexiconEntry.gotoAdd();
+
+		KaleoFormsNewSubmissions.addNewContacts(
+			ddlCompany = "Liferay",
+			ddlEmail = "qa@liferay.com",
+			ddlFirstName = "Test",
+			ddlInstantMesseger = "Liferay",
+			ddlJobTitle = "QA",
+			ddlLastName = "Test",
+			ddlPhoneMobile = "12345678",
+			ddlPhoneOffice = "12345678");
+
+		DDLRecord.submitForPublication();
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Pending");
+
+		KaleoFormsNewSubmissions.editDLLRecordContacts(
+			ddlCompanyEdit = "Liferay Edit",
+			ddlFirstNameEdit = "Test Edit",
+			ddlListName = "DDL List");
+
+		PortletEntry.save();
+
+		KaleoFormsNewSubmissions.viewStatusDDL(status = "Pending");
 	}
 
 }

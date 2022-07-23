@@ -258,4 +258,7 @@ public interface SyncDeviceModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public SyncDevice cloneWithOriginalValues();
+
 }

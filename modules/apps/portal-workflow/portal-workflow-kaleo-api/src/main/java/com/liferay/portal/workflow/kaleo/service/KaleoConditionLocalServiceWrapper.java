@@ -27,6 +27,10 @@ public class KaleoConditionLocalServiceWrapper
 	implements KaleoConditionLocalService,
 			   ServiceWrapper<KaleoConditionLocalService> {
 
+	public KaleoConditionLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoConditionLocalServiceWrapper(
 		KaleoConditionLocalService kaleoConditionLocalService) {
 
@@ -158,6 +162,13 @@ public class KaleoConditionLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoConditionLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoConditionLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

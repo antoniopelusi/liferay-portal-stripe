@@ -17,20 +17,16 @@ package com.liferay.layout.page.template.model.impl;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
-
-import java.util.Arrays;
-import java.util.stream.LongStream;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.segments.model.SegmentsExperience;
+import com.liferay.segments.service.SegmentsExperienceLocalServiceUtil;
 
 /**
  * @author Eduardo García
  */
 public class LayoutPageTemplateStructureImpl
 	extends LayoutPageTemplateStructureBaseImpl {
-
-	public LayoutPageTemplateStructureImpl() {
-	}
 
 	@Override
 	public String getData(long segmentsExperienceId) {
@@ -47,39 +43,44 @@ public class LayoutPageTemplateStructureImpl
 	}
 
 	@Override
-	public String getData(long[] segmentsExperienceIds) throws PortalException {
-		long segmentsExperienceId = _getFirstSegmentsExperienceId(
-			segmentsExperienceIds);
+	public String getData(String segmentsExperienceKey) {
+		SegmentsExperience segmentsExperience =
+			SegmentsExperienceLocalServiceUtil.fetchSegmentsExperience(
+				getGroupId(), segmentsExperienceKey,
+				PortalUtil.getClassNameId(Layout.class), getPlid());
 
-		return getData(segmentsExperienceId);
+		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel =
+			LayoutPageTemplateStructureRelLocalServiceUtil.
+				fetchLayoutPageTemplateStructureRel(
+					getLayoutPageTemplateStructureId(),
+					segmentsExperience.getSegmentsExperienceId());
+
+		if (layoutPageTemplateStructureRel != null) {
+			return layoutPageTemplateStructureRel.getData();
+		}
+
+		return StringPool.BLANK;
+	}
+
+	@Override
+	public String getDefaultSegmentsExperienceData() {
+		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel =
+			LayoutPageTemplateStructureRelLocalServiceUtil.
+				fetchLayoutPageTemplateStructureRel(
+					getLayoutPageTemplateStructureId(),
+					SegmentsExperienceLocalServiceUtil.
+						fetchDefaultSegmentsExperienceId(getPlid()));
+
+		if (layoutPageTemplateStructureRel != null) {
+			return layoutPageTemplateStructureRel.getData();
+		}
+
+		return StringPool.BLANK;
 	}
 
 	@Override
 	public long getPlid() {
 		return getClassPK();
-	}
-
-	private long _getFirstSegmentsExperienceId(long[] segmentsExperienceIds) {
-		if (segmentsExperienceIds.length == 1) {
-			return segmentsExperienceIds[0];
-		}
-
-		LongStream longStream = Arrays.stream(segmentsExperienceIds);
-
-		return longStream.filter(
-			segmentsExperienceId -> {
-				LayoutPageTemplateStructureRel layoutPageTemplateStructureRel =
-					LayoutPageTemplateStructureRelLocalServiceUtil.
-						fetchLayoutPageTemplateStructureRel(
-							getLayoutPageTemplateStructureId(),
-							segmentsExperienceId);
-
-				return layoutPageTemplateStructureRel != null;
-			}
-		).findFirst(
-		).orElse(
-			SegmentsExperienceConstants.ID_DEFAULT
-		);
 	}
 
 }

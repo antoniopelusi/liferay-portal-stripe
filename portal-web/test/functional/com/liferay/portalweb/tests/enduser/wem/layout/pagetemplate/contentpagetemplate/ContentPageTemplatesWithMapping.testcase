@@ -3,7 +3,7 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Layout Page Templates";
+	property testray.main.component.name = "Content Page Templates";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -66,14 +66,14 @@ definition {
 
 			AssertVisible(
 				key_append = "//img[contains(@src,'Document_1.jpg')]",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
 		}
 
 		task ("Add a content page based on content page template") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -84,7 +84,7 @@ definition {
 		task ("Assert the mapped URL is shown in edit mode") {
 			AssertVisible(
 				key_append = "//img[contains(@src,'Document_1.jpg')]",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -97,48 +97,57 @@ definition {
 
 			AssertVisible(
 				key_append = "//img[contains(@src,'Document_1.jpg')]",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "//img[contains(@src,'Document_1.jpg')]",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
 		}
 	}
 
-	@description = "This is a test for LPS-98031."
+	@description = "This is a test for LPS-98031. Map manual URL to link fragment."
 	@priority = "5"
 	test MapManualURLToLinkFragment {
 		property portal.acceptance = "true";
 
-		PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+		task ("Add a Banner Center fragment to content page template") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
 
-		Navigator.gotoNavNested(navNested = "Page Template Collection");
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
 
-		PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
 
-		PageEditor.assertFragmentSidebarLoaded();
+			PageEditor.assertFragmentSidebarLoaded();
 
-		PageEditor.addFragment(
-			collectionName = "Featured Content",
-			fragmentName = "Banner Center");
+			PageEditor.addFragment(
+				collectionName = "Featured Content",
+				composition = "true",
+				fragmentName = "Banner Center");
+		}
 
-		PageEditorEditableLink.gotoEditableFieldLink(
-			fragmentName = "Banner Center",
-			id = "link");
+		task ("Map manual URL to editable field of Banner Center") {
+			PageEditorEditableLink.gotoEditableFieldLink(
+				fragmentName = "Button",
+				id = "link");
 
-		PageEditorEditableLink.updateURL(url = "https://liferay.com");
+			PageEditorEditableLink.updateURL(url = "https://liferay.com");
+		}
 
-		PageEditor.clickPublish();
+		task ("Publish page template") {
+			PageEditor.clickPublish();
+		}
 
-		PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+		task ("Go to view page template") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
 
-		Navigator.gotoNavNested(navNested = "Page Template Collection");
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
 
-		PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+		}
 
 		task ("Assert editable has the specified URL mapped correctly") {
 			AssertVisible(locator1 = "//a[contains(@class,'btn')][contains(@href,'https://liferay.com')]");
@@ -171,14 +180,14 @@ definition {
 
 			AssertVisible(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
 		}
 
 		task ("Add a content page based on content page template") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -189,7 +198,7 @@ definition {
 		task ("Assert the mapped URL is shown in edit mode") {
 			AssertVisible(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -202,12 +211,12 @@ definition {
 
 			AssertVisible(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
@@ -269,14 +278,14 @@ definition {
 
 			AssertVisible(
 				key_append = "//img[contains(@src,'data:image/png')]",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
 		}
 
 		task ("Add a content page based on content page template") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -287,7 +296,7 @@ definition {
 		task ("Assert the mapped URL is shown in edit mode") {
 			AssertVisible(
 				key_append = "//img[contains(@src,'data:image/png')]",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -300,12 +309,12 @@ definition {
 
 			AssertVisible(
 				key_append = "//img[contains(@src,'data:image/png')]",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "//img[contains(@src,'data:image/png')]",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
@@ -367,14 +376,14 @@ definition {
 
 			AssertVisible(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
 		}
 
 		task ("Add a content page based on content page template") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -385,7 +394,7 @@ definition {
 		task ("Assert the mapped URL is shown in edit mode") {
 			AssertVisible(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -398,12 +407,12 @@ definition {
 
 			AssertVisible(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
@@ -465,14 +474,14 @@ definition {
 
 			AssertVisible(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
 		}
 
 		task ("Add a content page based on content page template") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -483,7 +492,7 @@ definition {
 		task ("Assert the mapped URL is shown in edit mode") {
 			AssertVisible(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -496,12 +505,12 @@ definition {
 
 			AssertVisible(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "[normalize-space(text())='Heading Example']",
-				key_URL = "https://www.liferay.com",
+				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
@@ -552,35 +561,27 @@ definition {
 
 			PageEditor.addFragment(
 				collectionName = "Featured Content",
+				composition = "true",
 				fragmentName = "Banner Center");
 		}
 
 		task ("Map web content image to background image field of Banner Center") {
-			PageEditorMapping.gotoEditableFieldMapping(
-				fragmentName = "Banner Center",
-				id = "banner-center");
-
-			PageEditorMapping.mapEditableFieldToAsset(
+			PageEditor.editLayoutContainer(
+				backgroundImage = "Mapping",
 				entryTitle = "WC WebContent Title",
-				navItem = "Web Content");
-
-			Select(
-				locator1 = "PageEditorEditableLink#FIELD",
-				value1 = "Image");
-
-			PageEditor.waitForAutoSave();
+				fieldName = "Image",
+				navItem = "Web Content",
+				panel = "Styles");
 		}
 
 		task ("Assert the mapped image is shown in background image field") {
-			AssertVisible(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			PageEditor.viewContainerStyle(backgroundImage = "Document_2.jpeg");
 
 			PageEditor.clickPublish();
 		}
 
 		task ("Add a content page based on content page template") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			ContentPages.addPage(
 				collectionName = "Page Template Collection",
@@ -589,9 +590,7 @@ definition {
 		}
 
 		task ("Assert the mapped image is shown in background image field in edit mode") {
-			AssertVisible(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
 
 			PageEditor.clickPublish();
 		}
@@ -601,9 +600,7 @@ definition {
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			AssertVisible(
-				key_imageName = "Document_2.jpeg",
-				locator1 = "Fragment#FRAGMENT_SECTION_BACKGROUND_IMAGE");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
 		}
 	}
 

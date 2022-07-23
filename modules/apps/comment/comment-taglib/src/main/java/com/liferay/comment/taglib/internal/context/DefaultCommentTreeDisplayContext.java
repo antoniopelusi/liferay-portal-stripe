@@ -15,8 +15,8 @@
 package com.liferay.comment.taglib.internal.context;
 
 import com.liferay.comment.constants.CommentConstants;
-import com.liferay.comment.taglib.internal.context.util.DiscussionRequestHelper;
-import com.liferay.comment.taglib.internal.context.util.DiscussionTaglibHelper;
+import com.liferay.comment.taglib.internal.context.helper.DiscussionRequestHelper;
+import com.liferay.comment.taglib.internal.context.helper.DiscussionTaglibHelper;
 import com.liferay.portal.kernel.comment.DiscussionComment;
 import com.liferay.portal.kernel.comment.DiscussionPermission;
 import com.liferay.portal.kernel.comment.WorkflowableComment;
@@ -60,7 +60,7 @@ public class DefaultCommentTreeDisplayContext
 				_discussionRequestHelper.getCompanyId(),
 				_discussionRequestHelper.getScopeGroupId(),
 				CommentConstants.getDiscussionClassName()) &&
-			!isCommentPending()) {
+			!_isCommentPending()) {
 
 			publishButtonLabel = LanguageUtil.get(
 				_discussionRequestHelper.getRequest(),
@@ -93,8 +93,8 @@ public class DefaultCommentTreeDisplayContext
 
 	@Override
 	public boolean isDiscussionVisible() throws PortalException {
-		if (!isCommentApproved() && !isCommentAuthor() &&
-			!isContentReviewer() && !isGroupAdmin()) {
+		if (!_isCommentApproved() && !_isCommentAuthor() &&
+			!_isContentReviewer() && !_isGroupAdmin()) {
 
 			return false;
 		}
@@ -104,7 +104,7 @@ public class DefaultCommentTreeDisplayContext
 
 	@Override
 	public boolean isEditActionControlVisible() throws PortalException {
-		if (!hasUpdatePermission() || _isStagingGroup()) {
+		if (!_hasUpdatePermission() || _isStagingGroup()) {
 			return false;
 		}
 
@@ -117,7 +117,7 @@ public class DefaultCommentTreeDisplayContext
 			return false;
 		}
 
-		return hasUpdatePermission();
+		return _hasUpdatePermission();
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public class DefaultCommentTreeDisplayContext
 
 	@Override
 	public boolean isWorkflowStatusVisible() {
-		if ((_discussionComment != null) && !isCommentApproved()) {
+		if ((_discussionComment != null) && !_isCommentApproved()) {
 			return true;
 		}
 
@@ -156,25 +156,6 @@ public class DefaultCommentTreeDisplayContext
 	@Override
 	protected ThemeDisplay getThemeDisplay() {
 		return _discussionRequestHelper.getThemeDisplay();
-	}
-
-	protected User getUser() {
-		ThemeDisplay themeDisplay = _discussionRequestHelper.getThemeDisplay();
-
-		return themeDisplay.getUser();
-	}
-
-	protected boolean hasUpdatePermission() throws PortalException {
-		if (_discussionPermission == null) {
-			return false;
-		}
-
-		if (_hasUpdatePermission == null) {
-			_hasUpdatePermission = _discussionPermission.hasPermission(
-				_discussionComment, ActionKeys.UPDATE_DISCUSSION);
-		}
-
-		return _hasUpdatePermission;
 	}
 
 	protected boolean hasViewPermission() throws PortalException {
@@ -189,7 +170,26 @@ public class DefaultCommentTreeDisplayContext
 			_discussionTaglibHelper.getClassPK());
 	}
 
-	protected boolean isCommentApproved() {
+	private User _getUser() {
+		ThemeDisplay themeDisplay = _discussionRequestHelper.getThemeDisplay();
+
+		return themeDisplay.getUser();
+	}
+
+	private boolean _hasUpdatePermission() throws PortalException {
+		if (_discussionPermission == null) {
+			return false;
+		}
+
+		if (_hasUpdatePermission == null) {
+			_hasUpdatePermission = _discussionPermission.hasPermission(
+				_discussionComment, ActionKeys.UPDATE_DISCUSSION);
+		}
+
+		return _hasUpdatePermission;
+	}
+
+	private boolean _isCommentApproved() {
 		boolean approved = true;
 
 		if (_discussionComment instanceof WorkflowableComment) {
@@ -209,8 +209,8 @@ public class DefaultCommentTreeDisplayContext
 		return approved;
 	}
 
-	protected boolean isCommentAuthor() {
-		User user = getUser();
+	private boolean _isCommentAuthor() {
+		User user = _getUser();
 
 		if ((_discussionComment != null) &&
 			(_discussionComment.getUserId() == user.getUserId()) &&
@@ -222,7 +222,7 @@ public class DefaultCommentTreeDisplayContext
 		return false;
 	}
 
-	protected boolean isCommentPending() {
+	private boolean _isCommentPending() {
 		boolean pending = false;
 
 		if (_discussionComment instanceof WorkflowableComment) {
@@ -242,7 +242,7 @@ public class DefaultCommentTreeDisplayContext
 		return pending;
 	}
 
-	protected boolean isContentReviewer() {
+	private boolean _isContentReviewer() {
 		PermissionChecker permissionChecker =
 			_discussionRequestHelper.getPermissionChecker();
 
@@ -251,7 +251,7 @@ public class DefaultCommentTreeDisplayContext
 			_discussionRequestHelper.getScopeGroupId());
 	}
 
-	protected boolean isGroupAdmin() {
+	private boolean _isGroupAdmin() {
 		PermissionChecker permissionChecker =
 			_discussionRequestHelper.getPermissionChecker();
 

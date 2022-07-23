@@ -80,13 +80,14 @@ public class WrongPreferenceWithDataLevelExportImportTest
 
 		try {
 			exportLayouts(
-				new long[] {layout.getLayoutId()}, getExportParameterMap());
+				new long[] {layout.getLayoutId()}, getExportParameterMap(),
+				true);
 
 			Assert.fail();
 		}
 		catch (PortletDataException portletDataException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portletDataException, portletDataException);
+				_log.debug(portletDataException);
 			}
 		}
 		finally {

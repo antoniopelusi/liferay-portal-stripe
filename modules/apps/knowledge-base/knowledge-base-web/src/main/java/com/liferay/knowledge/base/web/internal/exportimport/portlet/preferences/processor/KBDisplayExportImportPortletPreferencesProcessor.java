@@ -28,6 +28,8 @@ import com.liferay.knowledge.base.service.KBArticleLocalService;
 import com.liferay.knowledge.base.service.KBFolderLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -78,7 +80,7 @@ public class KBDisplayExportImportPortletPreferencesProcessor
 			portletPreferences.getValue(
 				"resourceClassNameId", StringPool.BLANK));
 
-		final String resourceClassName;
+		String resourceClassName;
 
 		if ((resourcePrimKey ==
 				KBArticleConstants.DEFAULT_PARENT_RESOURCE_PRIM_KEY) &&
@@ -95,17 +97,14 @@ public class KBDisplayExportImportPortletPreferencesProcessor
 				"resourceClassNameId", resourceClassName);
 		}
 		catch (ReadOnlyException readOnlyException) {
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("Unable to save converted portlet preference ");
-			sb.append("\"resourceClassNameId\" from ");
-			sb.append(resourceClassNameId);
-			sb.append(" to ");
-			sb.append(resourceClassName);
-			sb.append(" while exporting KB Display portlet ");
-			sb.append(portletDataContext.getPortletId());
-
-			throw new PortletDataException(sb.toString(), readOnlyException);
+			throw new PortletDataException(
+				StringBundler.concat(
+					"Unable to save converted portlet preference ",
+					"\"resourceClassNameId\" from ", resourceClassNameId,
+					" to ", resourceClassName,
+					" while exporting KB Display portlet ",
+					portletDataContext.getPortletId()),
+				readOnlyException);
 		}
 
 		if (resourceClassName.equals(KBArticleConstants.getClassName())) {
@@ -131,19 +130,19 @@ public class KBDisplayExportImportPortletPreferencesProcessor
 					resourcePrimKey);
 
 				if (rootFolder == null) {
-					StringBundler sb = new StringBundler(4);
-
-					sb.append("KB Display portlet with ID ");
-					sb.append(portletDataContext.getPortletId());
-					sb.append(" refers to an inexistent root folder: ");
-					sb.append(resourcePrimKey);
-
-					throw new PortletDataException(sb.toString());
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							StringBundler.concat(
+								"Portlet ", portletDataContext.getPortletId(),
+								" refers to an invalid root folder ID ",
+								resourcePrimKey));
+					}
 				}
-
-				StagedModelDataHandlerUtil.exportReferenceStagedModel(
-					portletDataContext, portletDataContext.getPortletId(),
-					rootFolder);
+				else {
+					StagedModelDataHandlerUtil.exportReferenceStagedModel(
+						portletDataContext, portletDataContext.getPortletId(),
+						rootFolder);
+				}
 			}
 		}
 
@@ -166,17 +165,14 @@ public class KBDisplayExportImportPortletPreferencesProcessor
 				String.valueOf(_portal.getClassNameId(resourceClassName)));
 		}
 		catch (ReadOnlyException readOnlyException) {
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("Unable to save reconverted portlet preference ");
-			sb.append("\"resourceClassNameId\" from ");
-			sb.append(resourceClassName);
-			sb.append(" to ");
-			sb.append(_portal.getClassNameId(resourceClassName));
-			sb.append(" while importing KB Display portlet ");
-			sb.append(portletDataContext.getPortletId());
-
-			throw new PortletDataException(sb.toString(), readOnlyException);
+			throw new PortletDataException(
+				StringBundler.concat(
+					"Unable to save reconverted portlet preference ",
+					"\"resourceClassNameId\" from ", resourceClassName, " to ",
+					_portal.getClassNameId(resourceClassName),
+					" while importing KB Display portlet ",
+					portletDataContext.getPortletId()),
+				readOnlyException);
 		}
 
 		long resourcePrimKey = GetterUtil.getLong(
@@ -203,15 +199,13 @@ public class KBDisplayExportImportPortletPreferencesProcessor
 				"resourcePrimKey", String.valueOf(resourcePrimKey));
 		}
 		catch (ReadOnlyException readOnlyException) {
-			StringBundler sb = new StringBundler(5);
-
-			sb.append("Unable to save converted portlet preference ");
-			sb.append("\"resourcePrimKey\" ");
-			sb.append(resourcePrimKey);
-			sb.append(" while importing KB Display portlet ");
-			sb.append(portletDataContext.getPortletId());
-
-			throw new PortletDataException(sb.toString(), readOnlyException);
+			throw new PortletDataException(
+				StringBundler.concat(
+					"Unable to save converted portlet preference ",
+					"\"resourcePrimKey\" ", resourcePrimKey,
+					" while importing KB Display portlet ",
+					portletDataContext.getPortletId()),
+				readOnlyException);
 		}
 
 		return portletPreferences;
@@ -230,6 +224,9 @@ public class KBDisplayExportImportPortletPreferencesProcessor
 
 		_kbFolderLocalService = kbFolderLocalService;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		KBDisplayExportImportPortletPreferencesProcessor.class);
 
 	@Reference(target = "(name=ReferencedStagedModelImporter)")
 	private Capability _capability;

@@ -20,6 +20,9 @@ import com.liferay.portal.security.sso.openid.connect.OpenIdConnectServiceExcept
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
 import com.nimbusds.openid.connect.sdk.rp.OIDCClientMetadata;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Thuong Dinh
  * @author Edward C. Han
@@ -28,14 +31,23 @@ public class OpenIdConnectProviderImpl
 	implements OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata> {
 
 	public OpenIdConnectProviderImpl(
-		String name, String clientId, String clientSecret, String scopes,
+		String name, String clientId, String clientSecret,
+		String configurationPid, String scopes,
+		Map<String, List<String>> customAuthorizationRequestParameters,
+		Map<String, List<String>> customTokenRequestParameters,
 		OpenIdConnectMetadataFactory openIdConnectMetadataFactory,
 		int tokenConnectionTimeout) {
+
+		// TODO LPS-139642
 
 		_name = name;
 		_clientId = clientId;
 		_clientSecret = clientSecret;
+		_configurationPid = configurationPid;
 		_scopes = scopes;
+		_customAuthorizationRequestParameters =
+			customAuthorizationRequestParameters;
+		_customTokenRequestParameters = customTokenRequestParameters;
 		_openIdConnectMetadataFactory = openIdConnectMetadataFactory;
 		_tokenConnectionTimeout = tokenConnectionTimeout;
 	}
@@ -48,6 +60,18 @@ public class OpenIdConnectProviderImpl
 	@Override
 	public String getClientSecret() {
 		return _clientSecret;
+	}
+
+	public String getConfigurationPid() {
+		return _configurationPid;
+	}
+
+	public Map<String, List<String>> getCustomAuthorizationRequestParameters() {
+		return _customAuthorizationRequestParameters;
+	}
+
+	public Map<String, List<String>> getCustomTokenRequestParameters() {
+		return _customTokenRequestParameters;
 	}
 
 	@Override
@@ -68,17 +92,21 @@ public class OpenIdConnectProviderImpl
 	}
 
 	@Override
-	public int geTokenConnectionTimeout() {
-		return _tokenConnectionTimeout;
-	}
-
-	@Override
 	public String getScopes() {
 		return _scopes;
 	}
 
+	@Override
+	public int getTokenConnectionTimeout() {
+		return _tokenConnectionTimeout;
+	}
+
 	private final String _clientId;
 	private final String _clientSecret;
+	private final String _configurationPid;
+	private final Map<String, List<String>>
+		_customAuthorizationRequestParameters;
+	private final Map<String, List<String>> _customTokenRequestParameters;
 	private final String _name;
 	private final OpenIdConnectMetadataFactory _openIdConnectMetadataFactory;
 	private final String _scopes;

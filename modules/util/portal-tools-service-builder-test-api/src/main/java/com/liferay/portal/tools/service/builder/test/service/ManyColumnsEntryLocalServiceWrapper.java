@@ -27,6 +27,10 @@ public class ManyColumnsEntryLocalServiceWrapper
 	implements ManyColumnsEntryLocalService,
 			   ServiceWrapper<ManyColumnsEntryLocalService> {
 
+	public ManyColumnsEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public ManyColumnsEntryLocalServiceWrapper(
 		ManyColumnsEntryLocalService manyColumnsEntryLocalService) {
 
@@ -134,6 +138,13 @@ public class ManyColumnsEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _manyColumnsEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _manyColumnsEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

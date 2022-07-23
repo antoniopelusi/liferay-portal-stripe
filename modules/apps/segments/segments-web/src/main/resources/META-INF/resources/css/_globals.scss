@@ -1,12 +1,36 @@
 // ---------- Product menu open size adjustments ----------
+@media (max-width: $pageContentMaxWidth) {
+	body:not(.open) .segments-root {
+		.contributor-builder-root.editing
+			.criteria-builder-empty-errors-alert__inner {
+			padding-right: $sidebarWidth;
+		}
+	}
+}
 
 @media (max-width: $pageContentMaxWidth + $productMenuWidth) {
 	body.open .segments-root {
 		.contributor-builder-root.editing
 			.criteria-builder-section-main
 			.contributor-container
-			.container-fluid {
+			.container-fluid,
+		.contributor-builder-root.editing
+			.criteria-builder-empty-errors-alert__inner {
 			padding-right: $sidebarWidth;
+		}
+	}
+}
+
+// on alert height adjustments
+.segments-root {
+	.segment-edit-page-root {
+		&--has-alert {
+			.contributor-builder-root
+				.criteria-builder-section-main
+				.contributor-container
+				.container-fluid {
+				height: auto;
+			}
 		}
 	}
 }

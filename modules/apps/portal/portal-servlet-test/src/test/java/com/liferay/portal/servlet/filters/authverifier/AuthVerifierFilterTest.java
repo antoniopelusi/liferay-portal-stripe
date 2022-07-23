@@ -14,6 +14,7 @@
 
 package com.liferay.portal.servlet.filters.authverifier;
 
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.security.access.control.AccessControl;
 import com.liferay.portal.kernel.security.access.control.AccessControlUtil;
 import com.liferay.portal.kernel.security.auth.AccessControlContext;
@@ -25,9 +26,6 @@ import com.liferay.portal.security.access.control.AccessControlImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.registry.BasicRegistryImpl;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
 
 import java.util.Map;
 
@@ -36,11 +34,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockFilterConfig;
@@ -61,12 +63,15 @@ public class AuthVerifierFilterTest {
 	public static void setUpClass() {
 		_portalUtil.setPortal(_portalImpl);
 
-		Registry registry = new BasicRegistryImpl();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
-		RegistryUtil.setRegistry(registry);
+		_serviceRegistration = bundleContext.registerService(
+			AccessControl.class, new TestAccessControlImpl(), null);
+	}
 
-		registry.registerService(
-			AccessControl.class, new TestAccessControlImpl());
+	@AfterClass
+	public static void tearDownClass() {
+		_serviceRegistration.unregister();
 	}
 
 	@After
@@ -113,6 +118,7 @@ public class AuthVerifierFilterTest {
 		}
 		finally {
 			_portalUtil.setPortal(_portalImpl);
+
 			_setPortalProperty("PORTAL_PROXY_PATH", portalProxyPath);
 		}
 
@@ -141,6 +147,7 @@ public class AuthVerifierFilterTest {
 		}
 		finally {
 			_portalUtil.setPortal(_portalImpl);
+
 			_setPortalProperty("PORTAL_PROXY_PATH", portalProxyPath);
 		}
 
@@ -248,6 +255,7 @@ public class AuthVerifierFilterTest {
 
 	private static final PortalImpl _portalImpl = new PortalImpl();
 	private static final PortalUtil _portalUtil = new PortalUtil();
+	private static ServiceRegistration<?> _serviceRegistration;
 
 	private final AuthVerifierFilter _authVerifierFilter =
 		new AuthVerifierFilter();

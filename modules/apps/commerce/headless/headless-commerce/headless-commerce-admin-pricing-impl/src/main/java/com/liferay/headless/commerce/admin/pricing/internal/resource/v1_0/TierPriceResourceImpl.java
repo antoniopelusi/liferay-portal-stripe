@@ -70,7 +70,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commerceTierPriceEntry == null) {
 			throw new NoSuchTierPriceEntryException(
-				"Unable to find Tier Price with externalReferenceCode: " +
+				"Unable to find tier price with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -93,7 +93,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commercePriceEntry == null) {
 			throw new NoSuchPriceEntryException(
-				"Unable to find Price Entry with externalReferenceCode: " +
+				"Unable to find price entry with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -150,7 +150,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commerceTierPriceEntry == null) {
 			throw new NoSuchTierPriceEntryException(
-				"Unable to find Tier Price with externalReferenceCode: " +
+				"Unable to find tier price with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -182,7 +182,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commerceTierPriceEntry == null) {
 			throw new NoSuchTierPriceEntryException(
-				"Unable to find Tier Price with externalReferenceCode: " +
+				"Unable to find tier price with external reference code " +
 					externalReferenceCode);
 		}
 
@@ -204,12 +204,12 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 
 		if (commercePriceEntry == null) {
 			throw new NoSuchPriceEntryException(
-				"Unable to find Price Entry with externalReferenceCode: " +
+				"Unable to find price entry with external reference code " +
 					externalReferenceCode);
 		}
 
 		CommerceTierPriceEntry commerceTierPriceEntry =
-			TierPriceUtil.upsertCommerceTierPriceEntry(
+			TierPriceUtil.addOrUpdateCommerceTierPriceEntry(
 				_commerceTierPriceEntryService, tierPrice, commercePriceEntry,
 				_serviceContextHelper.getServiceContext());
 
@@ -222,7 +222,7 @@ public class TierPriceResourceImpl extends BaseTierPriceResourceImpl {
 		throws Exception {
 
 		CommerceTierPriceEntry commerceTierPriceEntry =
-			TierPriceUtil.upsertCommerceTierPriceEntry(
+			TierPriceUtil.addOrUpdateCommerceTierPriceEntry(
 				_commerceTierPriceEntryService, tierPrice,
 				_commercePriceEntryService.getCommercePriceEntry(id),
 				_serviceContextHelper.getServiceContext());

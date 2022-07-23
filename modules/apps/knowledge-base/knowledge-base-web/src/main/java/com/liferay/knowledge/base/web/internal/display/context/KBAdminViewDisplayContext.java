@@ -65,7 +65,7 @@ public class KBAdminViewDisplayContext {
 			"parentResourceClassNameId", parentResourceClassNameId
 		).setParameter(
 			"parentResourcePrimKey", parentResourcePrimKey
-		).build();
+		).buildPortletURL();
 
 		long kbFolderClassNameId = PortalUtil.getClassNameId(
 			KBFolderConstants.getClassName());

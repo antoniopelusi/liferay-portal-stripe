@@ -14,20 +14,23 @@
 
 package com.liferay.site.navigation.internal.type;
 
-import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
+import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceComparator;
+import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceMapper;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.site.navigation.model.SiteNavigationMenuItem;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemType;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemTypeRegistry;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.Deactivate;
 
 /**
  * @author Pavel Savinov
@@ -47,40 +50,55 @@ public class SiteNavigationMenuItemTypeRegistryImpl
 	public SiteNavigationMenuItemType getSiteNavigationMenuItemType(
 		String type) {
 
-		return _siteNavigationMenuItemTypes.get(type);
+		return _serviceTrackerMap.getService(type);
 	}
 
 	@Override
 	public List<SiteNavigationMenuItemType> getSiteNavigationMenuItemTypes() {
-		return ListUtil.fromMapValues(_siteNavigationMenuItemTypes);
+		List<SiteNavigationMenuItemType> siteNavigationMenuItemTypes =
+			new ArrayList<>();
+
+		for (SiteNavigationMenuItemType siteNavigationMenuItemType :
+				_serviceTrackerList) {
+
+			siteNavigationMenuItemTypes.add(siteNavigationMenuItemType);
+		}
+
+		return siteNavigationMenuItemTypes;
 	}
 
 	@Override
 	public String[] getTypes() {
-		Set<String> types = _siteNavigationMenuItemTypes.keySet();
+		List<String> types = new ArrayList<>();
+
+		for (SiteNavigationMenuItemType siteNavigationMenuItemType :
+				_serviceTrackerList) {
+
+			types.add(siteNavigationMenuItemType.getType());
+		}
 
 		return types.toArray(new String[0]);
 	}
 
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	public void registerSiteNavigationMenuItemType(
-		SiteNavigationMenuItemType siteNavigationMenuItemType) {
-
-		_siteNavigationMenuItemTypes.put(
-			siteNavigationMenuItemType.getType(), siteNavigationMenuItemType);
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_serviceTrackerList = ServiceTrackerListFactory.open(
+			bundleContext, SiteNavigationMenuItemType.class,
+			new PropertyServiceReferenceComparator<>("service.ranking"));
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext, SiteNavigationMenuItemType.class, null,
+			new PropertyServiceReferenceMapper<>(
+				"site.navigation.menu.item.type"));
 	}
 
-	public void unregisterSiteNavigationMenuItemType(
-		SiteNavigationMenuItemType siteNavigationMenuItemType) {
-
-		_siteNavigationMenuItemTypes.remove(
-			siteNavigationMenuItemType.getType());
+	@Deactivate
+	protected void deactivate() {
+		_serviceTrackerList.close();
+		_serviceTrackerMap.close();
 	}
 
-	private final Map<String, SiteNavigationMenuItemType>
-		_siteNavigationMenuItemTypes = new ConcurrentHashMap<>();
+	private ServiceTrackerList<SiteNavigationMenuItemType> _serviceTrackerList;
+	private volatile ServiceTrackerMap<String, SiteNavigationMenuItemType>
+		_serviceTrackerMap;
 
 }

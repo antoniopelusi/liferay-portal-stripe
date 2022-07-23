@@ -27,7 +27,7 @@ import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.upgrade.v7_0_0.util.AssetEntryTable;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portlet.asset.util.AssetVocabularySettingsHelper;
 
 import java.sql.PreparedStatement;
@@ -45,26 +45,21 @@ public class UpgradeAsset extends UpgradeProcess {
 			long classNameId = PortalUtil.getClassNameId(
 				DLFileEntryConstants.getClassName());
 
-			StringBundler sb = new StringBundler(5);
+			DBTypeToSQLMap dbTypeToSQLMap = new DBTypeToSQLMap(
+				StringBundler.concat(
+					"delete from AssetEntry where classNameId = ", classNameId,
+					" and classPK not in (select fileVersionId from ",
+					"DLFileVersion) and classPK not in (select fileEntryId ",
+					"from DLFileEntry)"));
 
-			sb.append("delete from AssetEntry where classNameId = ");
-			sb.append(classNameId);
-			sb.append(" and classPK not in (select fileVersionId from ");
-			sb.append("DLFileVersion) and classPK not in (select fileEntryId ");
-			sb.append("from DLFileEntry)");
-
-			DBTypeToSQLMap dbTypeToSQLMap = new DBTypeToSQLMap(sb.toString());
-
-			sb = new StringBundler(6);
-
-			sb.append("delete from AssetEntry where classNameId = ");
-			sb.append(classNameId);
-			sb.append(" and not exists (select null from DLFileVersion where ");
-			sb.append("fileVersionId = AssetEntry.classPK) and not exists ");
-			sb.append("(select null from DLFileEntry where fileEntryId = ");
-			sb.append("AssetEntry.classPK)");
-
-			dbTypeToSQLMap.add(DBType.POSTGRESQL, sb.toString());
+			dbTypeToSQLMap.add(
+				DBType.POSTGRESQL,
+				StringBundler.concat(
+					"delete from AssetEntry where classNameId = ", classNameId,
+					" and not exists (select null from DLFileVersion where ",
+					"fileVersionId = AssetEntry.classPK) and not exists ",
+					"(select null from DLFileEntry where fileEntryId = ",
+					"AssetEntry.classPK)"));
 
 			runSQL(dbTypeToSQLMap);
 		}
@@ -72,10 +67,8 @@ public class UpgradeAsset extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		alter(
-			AssetEntryTable.class,
-			new AlterColumnType("description", "TEXT null"),
-			new AlterColumnType("summary", "TEXT null"));
+		alterColumnType("AssetEntry", "description", "TEXT null");
+		alterColumnType("AssetEntry", "summary", "TEXT null");
 
 		deleteOrphanedAssetEntries();
 		updateAssetEntries();
@@ -83,15 +76,15 @@ public class UpgradeAsset extends UpgradeProcess {
 	}
 
 	protected long getDDMStructureId(String structureKey) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select structureId from DDMStructure where structureKey = " +
 					"?")) {
 
-			ps.setString(1, structureKey);
+			preparedStatement.setString(1, structureKey);
 
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getLong("structureId");
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getLong("structureId");
 				}
 
 				return 0;
@@ -100,65 +93,66 @@ public class UpgradeAsset extends UpgradeProcess {
 	}
 
 	protected void updateAssetEntries() throws Exception {
-		StringBundler sb = new StringBundler(10);
-
-		sb.append("update AssetEntry set listable = ? where classNameId = ? ");
-		sb.append("and classPK in (select JournalArticle.resourcePrimKey as ");
-		sb.append("resourcePrimKey from (select ");
-		sb.append("JournalArticle.resourcePrimKey as primKey, ");
-		sb.append("max(JournalArticle.version) as maxVersion from ");
-		sb.append("JournalArticle group by JournalArticle.resourcePrimKey) ");
-		sb.append("TEMP_TABLE inner join JournalArticle on ");
-		sb.append("(JournalArticle.resourcePrimKey = TEMP_TABLE.primKey and ");
-		sb.append("JournalArticle.indexable = ? and JournalArticle.status = ");
-		sb.append("0 and JournalArticle.version = TEMP_TABLE.maxVersion))");
-
 		long classNameId = PortalUtil.getClassNameId(
 			"com.liferay.journal.model.JournalArticle");
 
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
-				sb.toString())) {
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"update AssetEntry set listable = ? where classNameId = ? ",
+					"and classPK in (select JournalArticle.resourcePrimKey as ",
+					"resourcePrimKey from (select ",
+					"JournalArticle.resourcePrimKey as primKey, ",
+					"max(JournalArticle.version) as maxVersion from ",
+					"JournalArticle group by JournalArticle.resourcePrimKey) ",
+					"TEMP_TABLE inner join JournalArticle on ",
+					"(JournalArticle.resourcePrimKey = TEMP_TABLE.primKey and ",
+					"JournalArticle.indexable = ? and JournalArticle.status = ",
+					"0 and JournalArticle.version = ",
+					"TEMP_TABLE.maxVersion))"))) {
 
-			ps1.setBoolean(1, false);
-			ps1.setLong(2, classNameId);
-			ps1.setBoolean(3, false);
+			preparedStatement1.setBoolean(1, false);
+			preparedStatement1.setLong(2, classNameId);
+			preparedStatement1.setBoolean(3, false);
 
-			ps1.execute();
+			preparedStatement1.execute();
 		}
 	}
 
 	protected void updateAssetVocabularies() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select vocabularyId, settings_ from AssetVocabulary");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update AssetVocabulary set settings_ = ? where " +
 						"vocabularyId = ?");
-			ResultSet rs = ps1.executeQuery()) {
+			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			while (rs.next()) {
-				long vocabularyId = rs.getLong("vocabularyId");
+			while (resultSet.next()) {
+				long vocabularyId = resultSet.getLong("vocabularyId");
 
-				String settings = rs.getString("settings_");
+				String settings = resultSet.getString("settings_");
 
-				ps2.setString(1, upgradeVocabularySettings(settings));
+				preparedStatement2.setString(
+					1, upgradeVocabularySettings(settings));
 
-				ps2.setLong(2, vocabularyId);
+				preparedStatement2.setLong(2, vocabularyId);
 
-				ps2.addBatch();
+				preparedStatement2.addBatch();
 			}
 
-			ps2.executeBatch();
+			preparedStatement2.executeBatch();
 		}
 	}
 
 	protected String upgradeVocabularySettings(String settings) {
-		UnicodeProperties unicodeProperties = new UnicodeProperties(true);
-
-		unicodeProperties.fastLoad(settings);
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.create(
+			true
+		).fastLoad(
+			settings
+		).build();
 
 		AssetVocabularySettingsHelper vocabularySettingsHelper =
 			new AssetVocabularySettingsHelper();

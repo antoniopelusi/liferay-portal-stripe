@@ -123,7 +123,7 @@ public class CommerceOrderItemVirtualSettingsScreenNavigationCategory
 				commerceVirtualOrderItemEditDisplayContext =
 					new CommerceVirtualOrderItemEditDisplayContext(
 						_commerceOrderService, _commerceOrderItemService,
-						getCommerceVirtualOrderItem(httpServletRequest),
+						_getCommerceVirtualOrderItem(httpServletRequest),
 						_dlAppService, _itemSelector, renderRequest);
 
 			httpServletRequest.setAttribute(
@@ -131,15 +131,15 @@ public class CommerceOrderItemVirtualSettingsScreenNavigationCategory
 				commerceVirtualOrderItemEditDisplayContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 
 		_jspRenderer.renderJSP(
 			_servletContext, httpServletRequest, httpServletResponse,
-			"/order_item/virtual_settings.jsp");
+			"/commerce_order_item/virtual_settings.jsp");
 	}
 
-	protected CommerceVirtualOrderItem getCommerceVirtualOrderItem(
+	private CommerceVirtualOrderItem _getCommerceVirtualOrderItem(
 		HttpServletRequest httpServletRequest) {
 
 		CommerceVirtualOrderItem commerceVirtualOrderItem = null;

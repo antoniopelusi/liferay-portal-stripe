@@ -96,6 +96,11 @@ public class UserIdMapperWrapper
 		}
 	}
 
+	@Override
+	public UserIdMapper cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this user ID mapper.
 	 *

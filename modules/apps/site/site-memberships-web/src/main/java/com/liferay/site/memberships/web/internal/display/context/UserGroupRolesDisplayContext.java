@@ -24,12 +24,11 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.UserGroupGroupRole;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserGroupGroupRoleLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -117,63 +116,84 @@ public class UserGroupRolesDisplayContext {
 	}
 
 	public String getOrderByCol() {
-		if (_orderByCol != null) {
+		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
 		}
 
-		_orderByCol = ParamUtil.getString(
-			_renderRequest, "orderByCol", "title");
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-col-roles", "title");
 
 		return _orderByCol;
 	}
 
 	public String getOrderByType() {
-		if (_orderByType != null) {
+		if (Validator.isNotNull(_orderByType)) {
 			return _orderByType;
 		}
 
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			_httpServletRequest,
+			SiteMembershipsPortletKeys.SITE_MEMBERSHIPS_ADMIN,
+			"order-by-type-roles", "asc");
 
 		return _orderByType;
 	}
 
 	public PortletURL getPortletURL() {
-		PortletURL portletURL = PortletURLBuilder.createRenderURL(
+		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
 			"/user_groups_roles.jsp"
+		).setKeywords(
+			() -> {
+				String keywords = getKeywords();
+
+				if (Validator.isNotNull(keywords)) {
+					return keywords;
+				}
+
+				return null;
+			}
 		).setParameter(
 			"assignRoles", _isAssignRoles()
 		).setParameter(
+			"displayStyle",
+			() -> {
+				String displayStyle = getDisplayStyle();
+
+				if (Validator.isNotNull(displayStyle)) {
+					return displayStyle;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"orderByCol",
+			() -> {
+				String orderByCol = getOrderByCol();
+
+				if (Validator.isNotNull(orderByCol)) {
+					return orderByCol;
+				}
+
+				return null;
+			}
+		).setParameter(
+			"orderByType",
+			() -> {
+				String orderByType = getOrderByType();
+
+				if (Validator.isNotNull(orderByType)) {
+					return orderByType;
+				}
+
+				return null;
+			}
+		).setParameter(
 			"userGroupId", getUserGroupId()
-		).build();
-
-		String displayStyle = getDisplayStyle();
-
-		if (Validator.isNotNull(displayStyle)) {
-			portletURL.setParameter("displayStyle", displayStyle);
-		}
-
-		String keywords = getKeywords();
-
-		if (Validator.isNotNull(keywords)) {
-			portletURL.setParameter("keywords", keywords);
-		}
-
-		String orderByCol = getOrderByCol();
-
-		if (Validator.isNotNull(orderByCol)) {
-			portletURL.setParameter("orderByCol", orderByCol);
-		}
-
-		String orderByType = getOrderByType();
-
-		if (Validator.isNotNull(orderByType)) {
-			portletURL.setParameter("orderByType", orderByType);
-		}
-
-		return portletURL;
+		).buildPortletURL();
 	}
 
 	public SearchContainer<Role> getRoleSearchSearchContainer()
@@ -192,20 +212,15 @@ public class UserGroupRolesDisplayContext {
 		RoleSearchTerms searchTerms =
 			(RoleSearchTerms)roleSearch.getSearchTerms();
 
-		roleSearch.setRowChecker(new EmptyOnClickRowChecker(_renderResponse));
-		roleSearch.setOrderByCol(_getOrderByCol());
+		roleSearch.setOrderByCol(getOrderByCol());
 
 		boolean orderByAsc = false;
 
-		if (Objects.equals(_getOrderByType(), "asc")) {
+		if (Objects.equals(getOrderByType(), "asc")) {
 			orderByAsc = true;
 		}
 
-		OrderByComparator<Role> orderByComparator = new RoleNameComparator(
-			orderByAsc);
-
-		roleSearch.setOrderByComparator(orderByComparator);
-
+		roleSearch.setOrderByComparator(new RoleNameComparator(orderByAsc));
 		roleSearch.setOrderByType(getOrderByType());
 
 		int roleType = RoleConstants.TYPE_SITE;
@@ -219,7 +234,7 @@ public class UserGroupRolesDisplayContext {
 		List<Role> roles = RoleLocalServiceUtil.search(
 			themeDisplay.getCompanyId(), searchTerms.getKeywords(),
 			new Integer[] {roleType}, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			orderByComparator);
+			roleSearch.getOrderByComparator());
 
 		List<Role> selectedRoles = _getSelectedRoles();
 
@@ -248,14 +263,8 @@ public class UserGroupRolesDisplayContext {
 				themeDisplay.getPermissionChecker(), getGroupId(), roles);
 		}
 
-		int rolesCount = roles.size();
-
-		roleSearch.setTotal(rolesCount);
-
-		roles = ListUtil.subList(
-			roles, roleSearch.getStart(), roleSearch.getEnd());
-
-		roleSearch.setResults(roles);
+		roleSearch.setResultsAndTotal(roles);
+		roleSearch.setRowChecker(new EmptyOnClickRowChecker(_renderResponse));
 
 		_roleSearch = roleSearch;
 
@@ -270,28 +279,6 @@ public class UserGroupRolesDisplayContext {
 		_userGroupId = ParamUtil.getLong(_httpServletRequest, "userGroupId");
 
 		return _userGroupId;
-	}
-
-	private String _getOrderByCol() {
-		if (Validator.isNotNull(_orderByCol)) {
-			return _orderByCol;
-		}
-
-		_orderByCol = ParamUtil.getString(
-			_httpServletRequest, "orderByCol", "title");
-
-		return _orderByCol;
-	}
-
-	private String _getOrderByType() {
-		if (Validator.isNotNull(_orderByType)) {
-			return _orderByType;
-		}
-
-		_orderByType = ParamUtil.getString(
-			_renderRequest, "orderByType", "asc");
-
-		return _orderByType;
 	}
 
 	private List<Role> _getSelectedRoles() {

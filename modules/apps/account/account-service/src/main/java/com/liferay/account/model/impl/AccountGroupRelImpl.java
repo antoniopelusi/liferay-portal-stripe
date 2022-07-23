@@ -18,8 +18,4 @@ package com.liferay.account.model.impl;
  * @author Brian Wing Shun Chan
  */
 public class AccountGroupRelImpl extends AccountGroupRelBaseImpl {
-
-	public AccountGroupRelImpl() {
-	}
-
 }

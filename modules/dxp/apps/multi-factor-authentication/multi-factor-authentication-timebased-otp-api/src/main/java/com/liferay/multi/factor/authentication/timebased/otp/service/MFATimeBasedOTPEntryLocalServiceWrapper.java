@@ -27,6 +27,10 @@ public class MFATimeBasedOTPEntryLocalServiceWrapper
 	implements MFATimeBasedOTPEntryLocalService,
 			   ServiceWrapper<MFATimeBasedOTPEntryLocalService> {
 
+	public MFATimeBasedOTPEntryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public MFATimeBasedOTPEntryLocalServiceWrapper(
 		MFATimeBasedOTPEntryLocalService mfaTimeBasedOTPEntryLocalService) {
 
@@ -146,6 +150,13 @@ public class MFATimeBasedOTPEntryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _mfaTimeBasedOTPEntryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _mfaTimeBasedOTPEntryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

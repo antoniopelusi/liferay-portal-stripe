@@ -16,7 +16,6 @@ package com.liferay.data.engine.field.type.util;
 
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -30,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -117,6 +117,12 @@ public class LocalizedValueUtil {
 					String.valueOf(
 						JSONFactoryUtil.createJSONObject((Map)value)));
 			}
+			else if (value instanceof Object[]) {
+				localizedValue.addString(
+					LocaleUtil.fromLanguageId(entry.getKey()),
+					String.valueOf(
+						JSONFactoryUtil.createJSONArray((Object[])value)));
+			}
 			else if (value != null) {
 				localizedValue.addString(
 					LocaleUtil.fromLanguageId(entry.getKey()),
@@ -179,11 +185,19 @@ public class LocalizedValueUtil {
 
 					if (Validator.isNotNull(value)) {
 						try {
-							return JSONFactoryUtil.createJSONArray(value);
+							Object deserializedObject =
+								JSONFactoryUtil.looseDeserialize(value);
+
+							if (deserializedObject instanceof List) {
+								return JSONFactoryUtil.createJSONArray(value);
+							}
+							else if (deserializedObject instanceof Map) {
+								return JSONFactoryUtil.createJSONObject(value);
+							}
 						}
-						catch (JSONException jsonException) {
+						catch (Exception exception) {
 							if (_log.isDebugEnabled()) {
-								_log.debug(jsonException, jsonException);
+								_log.debug(exception);
 							}
 						}
 					}

@@ -53,7 +53,7 @@ if (folder != null) {
 					"eventName", eventName
 				).setParameter(
 					"folderId", folderId
-				).build()
+				).buildPortletURL()
 			%>'
 			total="<%= BookmarksFolderServiceUtil.getFoldersCount(scopeGroupId, folderId) %>"
 		>

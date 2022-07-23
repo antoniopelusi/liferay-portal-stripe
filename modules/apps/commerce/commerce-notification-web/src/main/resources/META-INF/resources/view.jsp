@@ -38,7 +38,7 @@ CommerceNotificationQueueEntriesDisplayContext commerceNotificationQueueEntriesD
 			commerceNotificationQueueEntriesDisplayContext.getPortletURL()
 		).setParameter(
 			"notificationNavigationItem", notificationNavigationItem
-		).build()
+		).buildPortletURL()
 	%>'
 	showManagementBar="<%= false %>"
 />

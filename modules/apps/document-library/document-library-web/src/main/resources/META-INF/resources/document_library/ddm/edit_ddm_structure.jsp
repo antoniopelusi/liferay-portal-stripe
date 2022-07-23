@@ -14,7 +14,7 @@
  */
 --%>
 
-<%@ include file="/init.jsp" %>
+<%@ include file="/document_library/init.jsp" %>
 
 <%
 String redirect = ParamUtil.getString(request, "redirect");
@@ -69,7 +69,7 @@ renderResponse.setTitle(title);
 						<div class="metadata-type-button-row tbar-section text-right">
 							<aui:button cssClass="btn-sm mr-3" href="<%= redirect %>" type="cancel" />
 
-							<aui:button cssClass="btn-sm mr-3" primary="<%= true %>" type="submit" value='<%= LanguageUtil.get(request, "save") %>' />
+							<aui:button cssClass="btn-sm mr-3" id="submitButton" primary="<%= true %>" type="submit" value='<%= LanguageUtil.get(request, "save") %>' />
 						</div>
 					</li>
 				</ul>
@@ -101,6 +101,8 @@ renderResponse.setTitle(title);
 					groupId="<%= groupId %>"
 					localizable="<%= true %>"
 					namespace="<%= liferayPortletResponse.getNamespace() %>"
+					scopes='<%= SetUtil.fromCollection(Arrays.asList("document-library")) %>'
+					submitButtonId='<%= liferayPortletResponse.getNamespace() + "submitButton" %>'
 				/>
 			</clay:container-fluid>
 		</div>
@@ -110,7 +112,7 @@ renderResponse.setTitle(title);
 <liferay-frontend:component
 	componentId='<%= liferayPortletResponse.getNamespace() + "LocaleChangedHandlerComponent" %>'
 	context="<%= dlEditDDMStructureDisplayContext.getComponentContext() %>"
-	module="document_library/js/LocaleChangedHandler.es"
+	module="document_library/js/data-engine/DataEngineLayoutBuilderHandler.es"
 	servletContext="<%= application %>"
 />
 

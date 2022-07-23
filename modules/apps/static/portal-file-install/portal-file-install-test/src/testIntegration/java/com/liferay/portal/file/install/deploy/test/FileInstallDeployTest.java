@@ -19,7 +19,7 @@ import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.PropsValues;
@@ -92,15 +92,9 @@ public class FileInstallDeployTest {
 		try {
 			_updateConfiguration(
 				() -> {
-					StringBundler sb = new StringBundler(5);
-
-					sb.append(_TEST_KEY);
-					sb.append(StringPool.EQUAL);
-					sb.append(StringPool.QUOTE);
-					sb.append(_TEST_VALUE_1);
-					sb.append(StringPool.QUOTE);
-
-					String content = sb.toString();
+					String content = StringBundler.concat(
+						_TEST_KEY, StringPool.EQUAL, StringPool.QUOTE,
+						_TEST_VALUE_1, StringPool.QUOTE);
 
 					Files.write(path, content.getBytes());
 				});
@@ -115,15 +109,9 @@ public class FileInstallDeployTest {
 
 			_updateConfiguration(
 				() -> {
-					StringBundler sb = new StringBundler(5);
-
-					sb.append(_TEST_KEY);
-					sb.append(StringPool.EQUAL);
-					sb.append(StringPool.QUOTE);
-					sb.append(_TEST_VALUE_2);
-					sb.append(StringPool.QUOTE);
-
-					String content = sb.toString();
+					String content = StringBundler.concat(
+						_TEST_KEY, StringPool.EQUAL, StringPool.QUOTE,
+						_TEST_VALUE_2, StringPool.QUOTE);
 
 					Files.write(path, content.getBytes());
 
@@ -345,6 +333,8 @@ public class FileInstallDeployTest {
 
 			jarBuilder.setFragmentHost(
 				_TEST_JAR_SYMBOLIC_NAME
+			).setImport(
+				"javax.servlet"
 			).build();
 
 			fragmentInstallCountDownLatch.await();
@@ -543,14 +533,12 @@ public class FileInstallDeployTest {
 
 		CountDownLatch countDownLatch = new CountDownLatch(2);
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(Constants.SERVICE_PID, _CONFIGURATION_PID);
-
 		ServiceRegistration<ManagedService> serviceRegistration =
 			_bundleContext.registerService(
 				ManagedService.class, props -> countDownLatch.countDown(),
-				properties);
+				HashMapDictionaryBuilder.<String, Object>put(
+					Constants.SERVICE_PID, _CONFIGURATION_PID
+				).build());
 
 		try {
 			runnable.run();

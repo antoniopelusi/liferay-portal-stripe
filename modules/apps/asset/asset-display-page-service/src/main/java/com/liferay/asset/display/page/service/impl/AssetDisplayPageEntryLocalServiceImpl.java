@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
@@ -71,7 +72,7 @@ public class AssetDisplayPageEntryLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long assetDisplayPageEntryId = counterLocalService.increment();
 
@@ -92,11 +93,8 @@ public class AssetDisplayPageEntryLocalServiceImpl
 		assetDisplayPageEntry.setLayoutPageTemplateEntryId(
 			layoutPageTemplateEntryId);
 		assetDisplayPageEntry.setType(type);
-
-		long plid = _getPlid(
-			groupId, classNameId, classPK, layoutPageTemplateEntryId);
-
-		assetDisplayPageEntry.setPlid(plid);
+		assetDisplayPageEntry.setPlid(
+			_getPlid(groupId, classNameId, classPK, layoutPageTemplateEntryId));
 
 		assetDisplayPageEntry = assetDisplayPageEntryPersistence.update(
 			assetDisplayPageEntry);
@@ -208,9 +206,7 @@ public class AssetDisplayPageEntryLocalServiceImpl
 				defaultTemplate)
 		);
 
-		Long count = assetDisplayPageEntryPersistence.dslQuery(dslQuery);
-
-		return count.intValue();
+		return assetDisplayPageEntryPersistence.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -311,7 +307,7 @@ public class AssetDisplayPageEntryLocalServiceImpl
 			}
 			catch (PortalException portalException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(portalException, portalException);
+					_log.warn(portalException);
 				}
 			}
 		}
@@ -345,45 +341,47 @@ public class AssetDisplayPageEntryLocalServiceImpl
 		long classNameId, long classTypeId, long layoutPageTemplateEntryId,
 		boolean defaultTemplate) {
 
-		Predicate predicate =
-			AssetDisplayPageEntryTable.INSTANCE.classNameId.eq(classNameId);
+		return AssetDisplayPageEntryTable.INSTANCE.classNameId.eq(
+			classNameId
+		).and(
+			() -> {
+				if (classNameId == _portal.getClassNameId(
+						FileEntry.class.getName())) {
 
-		if (classNameId == _portal.getClassNameId(FileEntry.class.getName())) {
-			predicate = predicate.and(
-				AssetEntryTable.INSTANCE.classNameId.eq(
-					_portal.getClassNameId(
-						"com.liferay.document.library.kernel.model." +
-							"DLFileEntry")));
-		}
-		else {
-			predicate = predicate.and(
-				AssetEntryTable.INSTANCE.classNameId.eq(classNameId));
-		}
+					return AssetEntryTable.INSTANCE.classNameId.eq(
+						_portal.getClassNameId(
+							"com.liferay.document.library.kernel.model." +
+								"DLFileEntry"));
+				}
 
-		Predicate layoutPageTemplateTypePredicate =
+				return AssetEntryTable.INSTANCE.classNameId.eq(classNameId);
+			}
+		).and(
 			AssetDisplayPageEntryTable.INSTANCE.layoutPageTemplateEntryId.eq(
 				layoutPageTemplateEntryId
 			).and(
 				AssetDisplayPageEntryTable.INSTANCE.type.eq(
 					AssetDisplayPageConstants.TYPE_SPECIFIC)
-			).withParentheses();
+			).withParentheses(
+			).or(
+				() -> {
+					if (defaultTemplate) {
+						return AssetDisplayPageEntryTable.INSTANCE.type.eq(
+							AssetDisplayPageConstants.TYPE_DEFAULT);
+					}
 
-		if (defaultTemplate) {
-			layoutPageTemplateTypePredicate =
-				layoutPageTemplateTypePredicate.or(
-					AssetDisplayPageEntryTable.INSTANCE.type.eq(
-						AssetDisplayPageConstants.TYPE_DEFAULT));
-		}
+					return null;
+				}
+			).withParentheses()
+		).and(
+			() -> {
+				if (classTypeId > 0) {
+					return AssetEntryTable.INSTANCE.classTypeId.eq(classTypeId);
+				}
 
-		predicate = predicate.and(
-			layoutPageTemplateTypePredicate.withParentheses());
-
-		if (classTypeId > 0) {
-			predicate = predicate.and(
-				AssetEntryTable.INSTANCE.classTypeId.eq(classTypeId));
-		}
-
-		return predicate;
+				return null;
+			}
+		);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -404,5 +402,8 @@ public class AssetDisplayPageEntryLocalServiceImpl
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

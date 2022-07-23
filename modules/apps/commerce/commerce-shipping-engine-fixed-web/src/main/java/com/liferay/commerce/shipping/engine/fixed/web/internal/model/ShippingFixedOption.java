@@ -20,10 +20,12 @@ package com.liferay.commerce.shipping.engine.fixed.web.internal.model;
 public class ShippingFixedOption {
 
 	public ShippingFixedOption(
-		String description, String name, long shippingFixedOptionId) {
+		String description, String name, double priority,
+		long shippingFixedOptionId) {
 
 		_description = description;
 		_name = name;
+		_priority = priority;
 		_shippingFixedOptionId = shippingFixedOptionId;
 	}
 
@@ -35,12 +37,17 @@ public class ShippingFixedOption {
 		return _name;
 	}
 
+	public double getPriority() {
+		return _priority;
+	}
+
 	public long getShippingFixedOptionId() {
 		return _shippingFixedOptionId;
 	}
 
 	private final String _description;
 	private final String _name;
+	private final double _priority;
 	private final long _shippingFixedOptionId;
 
 }

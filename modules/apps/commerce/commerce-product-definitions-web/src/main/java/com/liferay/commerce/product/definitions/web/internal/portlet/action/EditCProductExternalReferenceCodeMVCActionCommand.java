@@ -52,7 +52,7 @@ public class EditCProductExternalReferenceCodeMVCActionCommand
 		throws Exception {
 
 		try {
-			updateCProductExternalReferenceCode(actionRequest);
+			_updateCProductExternalReferenceCode(actionRequest);
 		}
 		catch (Exception exception) {
 			if (exception instanceof NoSuchCProductException ||
@@ -63,7 +63,7 @@ public class EditCProductExternalReferenceCodeMVCActionCommand
 				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
 			}
 			else {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				String redirect = ParamUtil.getString(
 					actionRequest, "redirect");
@@ -73,7 +73,7 @@ public class EditCProductExternalReferenceCodeMVCActionCommand
 		}
 	}
 
-	protected void updateCProductExternalReferenceCode(
+	private void _updateCProductExternalReferenceCode(
 			ActionRequest actionRequest)
 		throws Exception {
 

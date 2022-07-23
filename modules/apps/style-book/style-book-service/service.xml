@@ -52,10 +52,6 @@
 			<finder-column name="groupId" />
 			<finder-column name="styleBookEntryKey" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>DuplicateStyleBookEntryKey</exception>

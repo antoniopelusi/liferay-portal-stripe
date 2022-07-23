@@ -130,6 +130,12 @@ public class CommercePriceListDiscountRelPersistenceTest {
 		CommercePriceListDiscountRel newCommercePriceListDiscountRel =
 			_persistence.create(pk);
 
+		newCommercePriceListDiscountRel.setMvccVersion(
+			RandomTestUtil.nextLong());
+
+		newCommercePriceListDiscountRel.setCtCollectionId(
+			RandomTestUtil.nextLong());
+
 		newCommercePriceListDiscountRel.setUuid(RandomTestUtil.randomString());
 
 		newCommercePriceListDiscountRel.setCompanyId(RandomTestUtil.nextLong());
@@ -163,6 +169,12 @@ public class CommercePriceListDiscountRelPersistenceTest {
 			_persistence.findByPrimaryKey(
 				newCommercePriceListDiscountRel.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCommercePriceListDiscountRel.getMvccVersion(),
+			newCommercePriceListDiscountRel.getMvccVersion());
+		Assert.assertEquals(
+			existingCommercePriceListDiscountRel.getCtCollectionId(),
+			newCommercePriceListDiscountRel.getCtCollectionId());
 		Assert.assertEquals(
 			existingCommercePriceListDiscountRel.getUuid(),
 			newCommercePriceListDiscountRel.getUuid());
@@ -232,11 +244,11 @@ public class CommercePriceListDiscountRelPersistenceTest {
 	}
 
 	@Test
-	public void testCountByC_C() throws Exception {
-		_persistence.countByC_C(
+	public void testCountByCDI_CPI() throws Exception {
+		_persistence.countByCDI_CPI(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
-		_persistence.countByC_C(0L, 0L);
+		_persistence.countByCDI_CPI(0L, 0L);
 	}
 
 	@Test
@@ -270,7 +282,8 @@ public class CommercePriceListDiscountRelPersistenceTest {
 		getOrderByComparator() {
 
 		return OrderByComparatorFactoryUtil.create(
-			"CommercePriceListDiscountRel", "uuid", true,
+			"CommercePriceListDiscountRel", "mvccVersion", true,
+			"ctCollectionId", true, "uuid", true,
 			"commercePriceListDiscountRelId", true, "companyId", true, "userId",
 			true, "userName", true, "createDate", true, "modifiedDate", true,
 			"commerceDiscountId", true, "commercePriceListId", true, "order",
@@ -601,6 +614,11 @@ public class CommercePriceListDiscountRelPersistenceTest {
 
 		CommercePriceListDiscountRel commercePriceListDiscountRel =
 			_persistence.create(pk);
+
+		commercePriceListDiscountRel.setMvccVersion(RandomTestUtil.nextLong());
+
+		commercePriceListDiscountRel.setCtCollectionId(
+			RandomTestUtil.nextLong());
 
 		commercePriceListDiscountRel.setUuid(RandomTestUtil.randomString());
 

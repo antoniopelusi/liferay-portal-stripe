@@ -136,6 +136,10 @@ public class DDMFormInstanceRecordVersionLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -299,6 +303,13 @@ public class DDMFormInstanceRecordVersionLocalServiceUtil {
 
 		return getService().getFormInstanceRecordVersions(
 			ddmFormInstanceRecordId, start, end, orderByComparator);
+	}
+
+	public static List<DDMFormInstanceRecordVersion>
+		getFormInstanceRecordVersions(long userId, long formInstanceId) {
+
+		return getService().getFormInstanceRecordVersions(
+			userId, formInstanceId);
 	}
 
 	public static int getFormInstanceRecordVersionsCount(

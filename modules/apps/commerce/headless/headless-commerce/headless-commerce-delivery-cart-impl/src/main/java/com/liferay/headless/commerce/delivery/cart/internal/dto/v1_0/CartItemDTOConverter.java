@@ -24,11 +24,13 @@ import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.commerce.price.CommerceOrderItemPrice;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
 import com.liferay.commerce.product.model.CPInstance;
+import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.product.util.CPInstanceHelper;
 import com.liferay.commerce.service.CPDefinitionInventoryLocalService;
 import com.liferay.commerce.service.CommerceOrderItemService;
 import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.CartItem;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Price;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Settings;
@@ -48,10 +50,11 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Andrea Sbarra
+ * @author Alessio Antonio Rendina
  */
 @Component(
 	enabled = false,
-	property = "model.class.name=com.liferay.headless.commerce.delivery.cart.dto.v1_0.CartItem",
+	property = "dto.class.name=com.liferay.headless.commerce.delivery.cart.dto.v1_0.CartItem",
 	service = {CartItemDTOConverter.class, DTOConverter.class}
 )
 public class CartItemDTOConverter
@@ -66,33 +69,44 @@ public class CartItemDTOConverter
 	public CartItem toDTO(DTOConverterContext dtoConverterContext)
 		throws Exception {
 
+		CartItemDTOConverterContext cartItemDTOConverterContext =
+			(CartItemDTOConverterContext)dtoConverterContext;
+
 		CommerceOrderItem commerceOrderItem =
 			_commerceOrderItemService.getCommerceOrderItem(
-				(Long)dtoConverterContext.getId());
+				(Long)cartItemDTOConverterContext.getId());
 
-		Locale locale = dtoConverterContext.getLocale();
+		Locale locale = cartItemDTOConverterContext.getLocale();
 
 		ExpandoBridge expandoBridge = commerceOrderItem.getExpandoBridge();
 
-		String languageId = LanguageUtil.getLanguageId(locale);
-
 		return new CartItem() {
 			{
+				adaptiveMediaImageHTMLTag =
+					_cpInstanceHelper.getCPInstanceAdaptiveMediaImageHTMLTag(
+						cartItemDTOConverterContext.getAccountId(),
+						commerceOrderItem.getCompanyId(),
+						commerceOrderItem.getCPInstanceId());
 				customFields = expandoBridge.getAttributes();
 				errorMessages = _getErrorMessages(commerceOrderItem, locale);
 				id = commerceOrderItem.getCommerceOrderItemId();
-				name = commerceOrderItem.getName(languageId);
+				name = commerceOrderItem.getName(
+					LanguageUtil.getLanguageId(locale));
 				options = commerceOrderItem.getJson();
 				parentCartItemId =
 					commerceOrderItem.getParentCommerceOrderItemId();
 				price = _getPrice(commerceOrderItem, locale);
 				productId = commerceOrderItem.getCProductId();
+				productURLs = LanguageUtils.getLanguageIdMap(
+					_cpDefinitionLocalService.getUrlTitleMap(
+						commerceOrderItem.getCPDefinitionId()));
 				quantity = commerceOrderItem.getQuantity();
 				settings = _getSettings(commerceOrderItem.getCPInstanceId());
 				sku = commerceOrderItem.getSku();
 				skuId = commerceOrderItem.getCPInstanceId();
 				subscription = commerceOrderItem.isSubscription();
 				thumbnail = _cpInstanceHelper.getCPInstanceThumbnailSrc(
+					cartItemDTOConverterContext.getAccountId(),
 					commerceOrderItem.getCPInstanceId());
 			}
 		};
@@ -259,6 +273,9 @@ public class CartItemDTOConverter
 	@Reference
 	private CPDefinitionInventoryLocalService
 		_cpDefinitionInventoryLocalService;
+
+	@Reference
+	private CPDefinitionLocalService _cpDefinitionLocalService;
 
 	@Reference
 	private CPInstanceHelper _cpInstanceHelper;

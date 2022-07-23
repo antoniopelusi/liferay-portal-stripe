@@ -2,11 +2,13 @@
 <head>
 <title>RolesPermissionsNavigation</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">RolesPermissionsNavigation</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>PERMISSIONS_NAVITEM</td>
@@ -15,7 +17,7 @@
 </tr>
 <tr>
 	<td>PERMISSIONS_NAVITEM_COLLAPSED</td>
-	<td>//div[contains(@class,'lfr-permission-navigation')]//li[contains(@class,'permission-navigation-section')]/a[contains(.,'${key_navItem}') and contains(@class,'collapsed')]</td>
+	<td>//div[contains(@class,'lfr-permission-navigation')]//*[contains(@class,'permission-navigation-section')]/a[contains(.,'${key_navItem}') and contains(@class,'collapsed')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -42,6 +44,28 @@
 <tr>
 	<td>CONTROL_PANEL_GENERAL_PERMISSIONS</td>
 	<td>//a[contains(.,'Control Panel') and contains(@class,'permission-navigation-item-header')]/following-sibling::div//li[contains(@class,'permission-navigation-item')]/a[contains(.,'General Permissions')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CONTROL_PANEL_CUSTOM_OBJECT-->
+<tr>
+	<td>CONTROL_PANEL_CUSTOM_OBJECTS_PERMISSIONS</td>
+	<td>//a[contains(.,'Control Panel') and contains(@class,'permission-navigation-item-header')]/following-sibling::div//li[contains(@class,'permission-navigation-item')]/a[contains(.,'Custom Objects')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CONTROL_PANEL_OBJECTS-->
+<tr>
+	<td>CONTROL_PANEL_OBJECTS_PERMISSIONS</td>
+	<td>//a[contains(.,'Control Panel') and contains(@class,'permission-navigation-item-header')]/following-sibling::div//li[contains(@class,'permission-navigation-item')]/a[contains(.,'Objects')]</td>
 	<td></td>
 </tr>
 <tr>

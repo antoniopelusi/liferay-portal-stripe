@@ -17,7 +17,7 @@ package com.liferay.journal.web.internal.portlet.action;
 import com.liferay.journal.configuration.JournalGroupServiceConfiguration;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.web.internal.configuration.JournalWebConfiguration;
-import com.liferay.journal.web.internal.display.context.util.JournalWebRequestHelper;
+import com.liferay.journal.web.internal.display.context.helper.JournalWebRequestHelper;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.BaseJSPSettingsConfigurationAction;

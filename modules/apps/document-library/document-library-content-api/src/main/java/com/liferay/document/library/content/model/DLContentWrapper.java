@@ -122,6 +122,11 @@ public class DLContentWrapper
 		}
 	}
 
+	@Override
+	public DLContent cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the company ID of this document library content.
 	 *

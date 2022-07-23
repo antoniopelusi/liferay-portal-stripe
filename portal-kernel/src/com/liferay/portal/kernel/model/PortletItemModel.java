@@ -255,4 +255,7 @@ public interface PortletItemModel
 	@Override
 	public void setClassNameId(long classNameId);
 
+	@Override
+	public PortletItem cloneWithOriginalValues();
+
 }

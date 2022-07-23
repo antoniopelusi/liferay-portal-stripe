@@ -27,6 +27,10 @@ public class KaleoNotificationLocalServiceWrapper
 	implements KaleoNotificationLocalService,
 			   ServiceWrapper<KaleoNotificationLocalService> {
 
+	public KaleoNotificationLocalServiceWrapper() {
+		this(null);
+	}
+
 	public KaleoNotificationLocalServiceWrapper(
 		KaleoNotificationLocalService kaleoNotificationLocalService) {
 
@@ -166,6 +170,13 @@ public class KaleoNotificationLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _kaleoNotificationLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _kaleoNotificationLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

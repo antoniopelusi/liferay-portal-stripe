@@ -25,9 +25,6 @@ import java.util.List;
  */
 public class CPOptionImpl extends CPOptionBaseImpl {
 
-	public CPOptionImpl() {
-	}
-
 	@Override
 	public List<CPOptionValue> getCPOptionValues() {
 		return CPOptionValueLocalServiceUtil.getCPOptionValues(

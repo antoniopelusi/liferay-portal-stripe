@@ -1,13 +1,12 @@
 {
 	"dependencies": {
-		"metal-state": "2.16.8"
 	},
-	"name": "map-google-maps",
+	"name": "@liferay/map-google-maps",
 	"private": true,
 	"scripts": {
 		"build": "liferay-npm-scripts build",
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "5.0.3"
+	"version": "5.0.17"
 }

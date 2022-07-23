@@ -72,6 +72,12 @@ public interface CommerceOrderItemService extends BaseService {
 			ServiceContext serviceContext)
 		throws PortalException;
 
+	public CommerceOrderItem addOrUpdateCommerceOrderItem(
+			long commerceOrderId, long cpInstanceId, String json, int quantity,
+			int shippedQuantity, CommerceContext commerceContext,
+			ServiceContext serviceContext)
+		throws PortalException;
+
 	public int countSubscriptionCommerceOrderItems(long commerceOrderId)
 		throws PortalException;
 
@@ -83,6 +89,11 @@ public interface CommerceOrderItemService extends BaseService {
 		throws PortalException;
 
 	public void deleteCommerceOrderItems(long commerceOrderId)
+		throws PortalException;
+
+	public void deleteMissingCommerceOrderItems(
+			long commerceOrderId, Long[] commerceOrderItemIds,
+			String[] externalReferenceCodes)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -149,6 +160,13 @@ public interface CommerceOrderItemService extends BaseService {
 	 */
 	public String getOSGiServiceIdentifier();
 
+	public CommerceOrderItem importCommerceOrderItem(
+			String externalReferenceCode, long commerceOrderItemId,
+			long commerceOrderId, long cpInstanceId,
+			String cpMeasurementUnitKey, BigDecimal decimalQuantity,
+			int quantity, int shippedQuantity, ServiceContext serviceContext)
+		throws PortalException;
+
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public BaseModelSearchResult<CommerceOrderItem> searchCommerceOrderItems(
 			long commerceOrderId, long parentCommerceOrderItemId,
@@ -169,6 +187,11 @@ public interface CommerceOrderItemService extends BaseService {
 
 	public CommerceOrderItem updateCommerceOrderItem(
 			long commerceOrderItemId, int quantity,
+			CommerceContext commerceContext, ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommerceOrderItem updateCommerceOrderItem(
+			long commerceOrderItemId, long cpMeasurementUnitId, int quantity,
 			CommerceContext commerceContext, ServiceContext serviceContext)
 		throws PortalException;
 
@@ -239,6 +262,11 @@ public interface CommerceOrderItemService extends BaseService {
 		throws PortalException;
 
 	public CommerceOrderItem updateCommerceOrderItemUnitPrice(
+			long commerceOrderItemId, BigDecimal decimalQuantity,
+			BigDecimal unitPrice)
+		throws PortalException;
+
+	public CommerceOrderItem updateCommerceOrderItemUnitPrice(
 			long commerceOrderItemId, int quantity, BigDecimal unitPrice)
 		throws PortalException;
 
@@ -246,10 +274,8 @@ public interface CommerceOrderItemService extends BaseService {
 			long commerceOrderItemId, ServiceContext serviceContext)
 		throws PortalException;
 
-	public CommerceOrderItem upsertCommerceOrderItem(
-			long commerceOrderId, long cpInstanceId, String json, int quantity,
-			int shippedQuantity, CommerceContext commerceContext,
-			ServiceContext serviceContext)
+	public CommerceOrderItem updateExternalReferenceCode(
+			long commerceOrderItemId, String externalReferenceCode)
 		throws PortalException;
 
 }

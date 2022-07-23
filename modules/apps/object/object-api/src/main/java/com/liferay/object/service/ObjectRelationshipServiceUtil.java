@@ -14,6 +14,12 @@
 
 package com.liferay.object.service;
 
+import com.liferay.object.model.ObjectRelationship;
+import com.liferay.portal.kernel.exception.PortalException;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * Provides the remote service utility for ObjectRelationship. This utility wraps
  * <code>com.liferay.object.service.impl.ObjectRelationshipServiceImpl</code> and is an
@@ -33,14 +39,55 @@ public class ObjectRelationshipServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectRelationshipServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static ObjectRelationship addObjectRelationship(
+			long objectDefinitionId1, long objectDefinitionId2,
+			String deletionType, Map<java.util.Locale, String> labelMap,
+			String name, String type)
+		throws PortalException {
+
+		return getService().addObjectRelationship(
+			objectDefinitionId1, objectDefinitionId2, deletionType, labelMap,
+			name, type);
+	}
+
+	public static ObjectRelationship deleteObjectRelationship(
+			long objectRelationshipId)
+		throws PortalException {
+
+		return getService().deleteObjectRelationship(objectRelationshipId);
+	}
+
+	public static ObjectRelationship getObjectRelationship(
+			long objectRelationshipId)
+		throws PortalException {
+
+		return getService().getObjectRelationship(objectRelationshipId);
+	}
+
+	public static List<ObjectRelationship> getObjectRelationships(
+			long objectDefinitionId1, int start, int end)
+		throws PortalException {
+
+		return getService().getObjectRelationships(
+			objectDefinitionId1, start, end);
+	}
 
 	/**
 	 * Returns the OSGi service identifier.
 	 *
 	 * @return the OSGi service identifier
 	 */
-	public static java.lang.String getOSGiServiceIdentifier() {
+	public static String getOSGiServiceIdentifier() {
 		return getService().getOSGiServiceIdentifier();
+	}
+
+	public static ObjectRelationship updateObjectRelationship(
+			long objectRelationshipId, String deletionType,
+			Map<java.util.Locale, String> labelMap)
+		throws PortalException {
+
+		return getService().updateObjectRelationship(
+			objectRelationshipId, deletionType, labelMap);
 	}
 
 	public static ObjectRelationshipService getService() {

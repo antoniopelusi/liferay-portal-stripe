@@ -1,0 +1,271 @@
+@import 'atlas-variables';
+
+$text: $gray-600;
+$btn-size: 28px;
+
+.org-chart-container {
+	background-color: $light;
+	height: 700px;
+	position: relative;
+
+	&.expanded {
+		bottom: 0;
+		height: auto;
+		left: 0;
+		position: fixed;
+		right: 0;
+		top: 0;
+		z-index: 100;
+	}
+
+	.zoom-controls {
+		bottom: $spacer;
+		position: absolute;
+		right: $spacer;
+	}
+
+	.svg-chart {
+		height: 100%;
+		width: 100%;
+
+		&.dragging {
+			cursor: grabbing;
+		}
+	}
+
+	.chart-link {
+		fill: none;
+		stroke: $secondary-l2;
+		stroke-width: 1.5;
+
+		&.highlighted {
+			stroke: rgba($primary, 0.4);
+		}
+	}
+
+	.chart-rect {
+		fill: white;
+		stroke: $secondary-l2;
+		stroke-width: 1.5;
+		transition: fill 0.2s ease-in, stroke 0.2s ease-in;
+	}
+
+	.dnd-handle-content {
+		opacity: 0;
+		pointer-events: none;
+		transition: transform 0.2s linear;
+
+		.chart-rect {
+			stroke: rgba($primary, 0.6);
+		}
+	}
+
+	.dnd-handle.dragging .dnd-handle-content {
+		opacity: 1;
+		transform: scale(0.8);
+	}
+
+	.highlighted .chart-rect {
+		stroke: rgba($primary, 0.6);
+	}
+
+	.selected .chart-rect {
+		stroke: $primary;
+	}
+
+	.chart-data-wrapper {
+		opacity: 1;
+		transition: opacity 0.5s ease-in;
+
+		&.hidden {
+			opacity: 0;
+			pointer-events: none;
+		}
+	}
+
+	.chart-item {
+		cursor: pointer;
+		transition: opacity 0.1s ease-in;
+	}
+
+	.unselectable {
+		cursor: no-drop;
+	}
+
+	.disabled {
+		opacity: 0.4;
+	}
+
+	.drop-allowed {
+		cursor: copy;
+
+		&:hover .chart-rect {
+			fill: $success-l2;
+			stroke: $success-l1;
+		}
+	}
+
+	.drop-not-allowed {
+		cursor: no-drop;
+		opacity: 0.4;
+
+		&:hover .chart-rect {
+			fill: $danger-l2;
+			stroke: $danger;
+		}
+	}
+
+	.node-type-icon {
+		transform: translate(24px, -8px);
+	}
+
+	.icon-circle {
+		fill: var(--icon-color);
+		r: 16px;
+		transform: translate(16px * 2, 0);
+	}
+
+	.chart-item-organization {
+		--icon-color: #5fc8ff;
+	}
+
+	.chart-item-account {
+		--icon-color: #50d2a0;
+	}
+
+	.chart-item-user {
+		--icon-color: #ffd76e;
+	}
+
+	.node-description {
+		.entity-description {
+			fill: $text;
+			font-size: 14px;
+			text-anchor: start;
+			user-select: none;
+		}
+
+		.entity-divider {
+			stroke: $text;
+			stroke-width: 1;
+		}
+
+		.entity-icon {
+			fill: $text;
+		}
+
+		.node-description-content {
+			fill: $text;
+			font-size: 14px;
+			text-anchor: start;
+			transform: translate(#{16px * 4}, 15px);
+			transition: fill 0.2s ease-in;
+			user-select: none;
+		}
+	}
+
+	.node-title {
+		font-size: 14px;
+		font-weight: bold;
+		text-anchor: start;
+		transform: translate(#{16px * 4}, -3px);
+		transition: fill 0.2s ease-in;
+		user-select: none;
+	}
+
+	.actions-wrapper {
+		fill: $text;
+		transform: translate(36px, 0);
+	}
+
+	.action-circle {
+		fill: white;
+		stroke: $secondary-l2;
+		stroke-width: 1.5px;
+		transition: stroke 0.1s ease-in-out;
+	}
+
+	.open-actions-wrapper,
+	.add-action-wrapper {
+		&:hover .action-circle {
+			stroke: $secondary;
+		}
+	}
+
+	.open-actions-wrapper {
+		transform: rotate(0);
+		transition: transform 0.5s ease-in-out;
+
+		.action-icon {
+			transform: translate(-9px, -9px);
+		}
+	}
+
+	.add-action-wrapper {
+		transition: transform 0.2s ease-in;
+
+		.action-icon {
+			transform: translate(-8px, -8px);
+		}
+
+		&.account {
+			transform: translate(35px, -35px) scale(0);
+			transition-delay: 0.1s;
+		}
+
+		&.organization {
+			transform: translate(0, -50px) scale(0);
+		}
+
+		&.user {
+			transform: translate(50px, 0) scale(0);
+			transition-delay: 0.2s;
+		}
+	}
+
+	.menu-open {
+		.account {
+			transform: translate(43px, -43px) scale(1);
+		}
+
+		.organization {
+			transform: translate(0, -60px) scale(1);
+		}
+
+		.user {
+			transform: translate(60px, 0) scale(1);
+		}
+
+		.open-actions-wrapper {
+			transform: rotate(45deg * 5);
+		}
+	}
+
+	.node-menu-wrapper {
+		&:hover {
+			.node-menu-btn {
+				fill: #f7f8f9;
+			}
+
+			.node-menu-icon {
+				fill: #272833;
+			}
+		}
+
+		.node-menu-btn {
+			fill: transparent;
+			height: $btn-size;
+			rx: 5;
+			transition: fill 0.2s ease-in;
+			width: $btn-size;
+		}
+
+		.node-menu-icon {
+			fill: #6b6c7e;
+			pointer-events: none;
+			transition: fill 0.2s ease-in;
+			x: 6;
+			y: 6;
+		}
+	}
+}

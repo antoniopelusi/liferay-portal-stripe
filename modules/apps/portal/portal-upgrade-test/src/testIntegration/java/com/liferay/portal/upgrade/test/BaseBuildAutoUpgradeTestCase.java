@@ -89,11 +89,11 @@ public abstract class BaseBuildAutoUpgradeTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"drop table BuildAutoUpgradeTestEntity")) {
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (SQLException sqlException) {
 		}
@@ -110,11 +110,11 @@ public abstract class BaseBuildAutoUpgradeTestCase {
 			_bundle.uninstall();
 		}
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"drop table BuildAutoUpgradeTestEntity")) {
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 		catch (SQLException sqlException) {
 		}
@@ -166,11 +166,11 @@ public abstract class BaseBuildAutoUpgradeTestCase {
 
 		_bundle.start();
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"insert into BuildAutoUpgradeTestEntity values (1, 'data')")) {
 
-			Assert.assertEquals(1, ps.executeUpdate());
+			Assert.assertEquals(1, preparedStatement.executeUpdate());
 		}
 
 		// Initial columns
@@ -185,29 +185,29 @@ public abstract class BaseBuildAutoUpgradeTestCase {
 		DBAssertionUtil.assertColumns(
 			"BuildAutoUpgradeTestEntity", "id_", "data_", "data2");
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select id_, data_, data2 from BuildAutoUpgradeTestEntity");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			Assert.assertTrue(rs.next());
+			Assert.assertTrue(resultSet.next());
 
-			Assert.assertEquals(1, rs.getLong("id_"));
-			Assert.assertEquals("data", rs.getString("data_"));
+			Assert.assertEquals(1, resultSet.getLong("id_"));
+			Assert.assertEquals("data", resultSet.getString("data_"));
 
-			String data2 = rs.getString("data2");
+			String data2 = resultSet.getString("data2");
 
 			Assert.assertTrue(data2, Validator.isNull(data2));
 
-			Assert.assertFalse(rs.next());
+			Assert.assertFalse(resultSet.next());
 		}
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"update BuildAutoUpgradeTestEntity set data2 = 'data2' where " +
 					"id_ = 1")) {
 
-			Assert.assertEquals(1, ps.executeUpdate());
+			Assert.assertEquals(1, preparedStatement.executeUpdate());
 		}
 
 		// Remove "data_" column
@@ -217,17 +217,17 @@ public abstract class BaseBuildAutoUpgradeTestCase {
 		DBAssertionUtil.assertColumns(
 			"BuildAutoUpgradeTestEntity", "id_", "data2");
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select id_, data2 from BuildAutoUpgradeTestEntity");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			Assert.assertTrue(rs.next());
+			Assert.assertTrue(resultSet.next());
 
-			Assert.assertEquals(1, rs.getLong("id_"));
-			Assert.assertEquals("data2", rs.getString("data2"));
+			Assert.assertEquals(1, resultSet.getLong("id_"));
+			Assert.assertEquals("data2", resultSet.getString("data2"));
 
-			Assert.assertFalse(rs.next());
+			Assert.assertFalse(resultSet.next());
 		}
 
 		// Remove "data2" column and add "data_" column
@@ -237,20 +237,20 @@ public abstract class BaseBuildAutoUpgradeTestCase {
 		DBAssertionUtil.assertColumns(
 			"BuildAutoUpgradeTestEntity", "id_", "data_");
 
-		try (Connection con = DataAccess.getConnection();
-			PreparedStatement ps = con.prepareStatement(
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select id_, data_ from BuildAutoUpgradeTestEntity");
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			Assert.assertTrue(rs.next());
+			Assert.assertTrue(resultSet.next());
 
-			Assert.assertEquals(1, rs.getLong("id_"));
+			Assert.assertEquals(1, resultSet.getLong("id_"));
 
-			String data = rs.getString("data_");
+			String data = resultSet.getString("data_");
 
 			Assert.assertTrue(data, Validator.isNull(data));
 
-			Assert.assertFalse(rs.next());
+			Assert.assertFalse(resultSet.next());
 		}
 	}
 

@@ -92,7 +92,7 @@ public class DDMFormFactoryTest {
 		Assert.assertNotNull(labelDDMFormField);
 		Assert.assertEquals("string", labelDDMFormField.getDataType());
 		Assert.assertEquals("text", labelDDMFormField.getType());
-		Assert.assertEquals(true, labelDDMFormField.isLocalizable());
+		Assert.assertTrue(labelDDMFormField.isLocalizable());
 
 		DDMFormField localizableDDMFormField = ddmFormFieldsMap.get(
 			"localizable");
@@ -108,7 +108,7 @@ public class DDMFormFactoryTest {
 		Assert.assertEquals(
 			"string", predefinedValueDDMFormField.getDataType());
 		Assert.assertEquals("text", predefinedValueDDMFormField.getType());
-		Assert.assertEquals(true, predefinedValueDDMFormField.isLocalizable());
+		Assert.assertTrue(predefinedValueDDMFormField.isLocalizable());
 
 		DDMFormField readOnlyDDMFormField = ddmFormFieldsMap.get("readOnly");
 
@@ -140,7 +140,7 @@ public class DDMFormFactoryTest {
 		Assert.assertNotNull(tipDDMFormField);
 		Assert.assertEquals("string", tipDDMFormField.getDataType());
 		Assert.assertEquals("text", tipDDMFormField.getType());
-		Assert.assertEquals(true, tipDDMFormField.isLocalizable());
+		Assert.assertTrue(tipDDMFormField.isLocalizable());
 	}
 
 	@Test
@@ -224,24 +224,24 @@ public class DDMFormFactoryTest {
 		Assert.assertNotNull(dataTypeDDMFormField);
 		Assert.assertEquals("string", dataTypeDDMFormField.getDataType());
 		Assert.assertEquals("text", dataTypeDDMFormField.getType());
-		Assert.assertEquals(true, dataTypeDDMFormField.isRequired());
-		Assert.assertEquals(false, dataTypeDDMFormField.isLocalizable());
+		Assert.assertTrue(dataTypeDDMFormField.isRequired());
+		Assert.assertFalse(dataTypeDDMFormField.isLocalizable());
 
 		DDMFormField nameDDMFormField = ddmFormFieldsMap.get("name");
 
 		Assert.assertNotNull(nameDDMFormField);
 		Assert.assertEquals("string", nameDDMFormField.getDataType());
 		Assert.assertEquals("text", nameDDMFormField.getType());
-		Assert.assertEquals(true, nameDDMFormField.isRequired());
-		Assert.assertEquals(false, nameDDMFormField.isLocalizable());
+		Assert.assertTrue(nameDDMFormField.isRequired());
+		Assert.assertFalse(nameDDMFormField.isLocalizable());
 
 		DDMFormField typeDDMFormField = ddmFormFieldsMap.get("type");
 
 		Assert.assertNotNull(typeDDMFormField);
 		Assert.assertEquals("string", typeDDMFormField.getDataType());
 		Assert.assertEquals("text", typeDDMFormField.getType());
-		Assert.assertEquals(true, typeDDMFormField.isRequired());
-		Assert.assertEquals(false, typeDDMFormField.isLocalizable());
+		Assert.assertTrue(typeDDMFormField.isRequired());
+		Assert.assertFalse(typeDDMFormField.isLocalizable());
 	}
 
 	protected void setUpLanguageUtil() {

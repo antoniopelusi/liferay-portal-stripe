@@ -32,7 +32,7 @@ public class UnsyncFilterOutputStream extends OutputStream {
 
 	@Override
 	public void close() throws IOException {
-		try (OutputStream os = outputStream) {
+		try (OutputStream outputStream1 = outputStream) {
 			flush();
 		}
 	}

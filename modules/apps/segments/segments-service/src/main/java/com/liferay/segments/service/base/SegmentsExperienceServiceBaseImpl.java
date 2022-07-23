@@ -179,13 +179,6 @@ public abstract class SegmentsExperienceServiceBaseImpl
 		classNameService;
 
 	@Reference
-	protected com.liferay.portal.kernel.service.LayoutLocalService
-		layoutLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.LayoutService layoutService;
-
-	@Reference
 	protected com.liferay.portal.kernel.service.ResourceLocalService
 		resourceLocalService;
 

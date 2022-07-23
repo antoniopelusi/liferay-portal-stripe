@@ -29,15 +29,15 @@ public class SecureXMLFactoryProviderUtil {
 	}
 
 	public static DocumentBuilderFactory newDocumentBuilderFactory() {
-		return getSecureXMLFactoryProvider().newDocumentBuilderFactory();
+		return _secureXMLFactoryProvider.newDocumentBuilderFactory();
 	}
 
 	public static XMLInputFactory newXMLInputFactory() {
-		return getSecureXMLFactoryProvider().newXMLInputFactory();
+		return _secureXMLFactoryProvider.newXMLInputFactory();
 	}
 
 	public static XMLReader newXMLReader() {
-		return getSecureXMLFactoryProvider().newXMLReader();
+		return _secureXMLFactoryProvider.newXMLReader();
 	}
 
 	public void setSecureXMLFactoryProvider(

@@ -57,9 +57,9 @@ public class FunctionScoreQueryTranslatorImpl
 			QueryBuilders.functionScoreQuery(
 				queryBuilder,
 				stream.map(
-					filterQueryScoreFunctionHolder -> translateFilterFunction(
+					filterQueryScoreFunctionHolder -> _translateFilterFunction(
 						filterQueryScoreFunctionHolder, queryTranslator,
-						translateScoreFunction(
+						_translateScoreFunction(
 							filterQueryScoreFunctionHolder.getScoreFunction()))
 				).toArray(
 					FilterFunctionBuilder[]::new
@@ -68,11 +68,6 @@ public class FunctionScoreQueryTranslatorImpl
 		if (functionScoreQuery.getMinScore() != null) {
 			functionScoreQueryBuilder.setMinScore(
 				functionScoreQuery.getMinScore());
-		}
-
-		if (functionScoreQuery.getMaxBoost() != null) {
-			functionScoreQueryBuilder.maxBoost(
-				functionScoreQuery.getMaxBoost());
 		}
 
 		if (functionScoreQuery.getMaxBoost() != null) {
@@ -128,7 +123,7 @@ public class FunctionScoreQueryTranslatorImpl
 		}
 	}
 
-	protected FilterFunctionBuilder translateFilterFunction(
+	private FilterFunctionBuilder _translateFilterFunction(
 		FilterQueryScoreFunctionHolder filterQueryScoreFunctionHolder,
 		QueryTranslator<QueryBuilder> queryTranslator,
 		ScoreFunctionBuilder<?> scoreFunctionBuilder) {
@@ -143,7 +138,7 @@ public class FunctionScoreQueryTranslatorImpl
 			scoreFunctionBuilder);
 	}
 
-	protected ScoreFunctionBuilder<?> translateScoreFunction(
+	private ScoreFunctionBuilder<?> _translateScoreFunction(
 		ScoreFunction scoreFunction) {
 
 		ScoreFunctionBuilder<?> scoreFunctionBuilder = scoreFunction.accept(

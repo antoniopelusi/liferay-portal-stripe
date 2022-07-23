@@ -76,6 +76,21 @@ public class CommerceChannelLocalServiceUtil {
 			serviceContext);
 	}
 
+	public static CommerceChannel addOrUpdateCommerceChannel(
+			long userId, String externalReferenceCode, long siteGroupId,
+			String name, String type,
+			com.liferay.portal.kernel.util.UnicodeProperties
+				typeSettingsUnicodeProperties,
+			String commerceCurrencyCode,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateCommerceChannel(
+			userId, externalReferenceCode, siteGroupId, name, type,
+			typeSettingsUnicodeProperties, commerceCurrencyCode,
+			serviceContext);
+	}
+
 	/**
 	 * Creates a new commerce channel with the primary key. Does not add the commerce channel to the database.
 	 *
@@ -151,6 +166,10 @@ public class CommerceChannelLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -272,6 +291,13 @@ public class CommerceChannelLocalServiceUtil {
 		return getService().fetchCommerceChannelBySiteGroupId(siteGroupId);
 	}
 
+	public static com.liferay.portal.kernel.model.Group
+			fetchCommerceChannelGroup(long commerceChannelId)
+		throws PortalException {
+
+		return getService().fetchCommerceChannelGroup(commerceChannelId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
@@ -354,6 +380,14 @@ public class CommerceChannelLocalServiceUtil {
 		return getService().getCommerceChannels(companyId);
 	}
 
+	public static List<CommerceChannel> getCommerceChannels(
+			long companyId, String keywords, int start, int end)
+		throws PortalException {
+
+		return getService().getCommerceChannels(
+			companyId, keywords, start, end);
+	}
+
 	/**
 	 * Returns the number of commerce channels.
 	 *
@@ -361,6 +395,12 @@ public class CommerceChannelLocalServiceUtil {
 	 */
 	public static int getCommerceChannelsCount() {
 		return getService().getCommerceChannelsCount();
+	}
+
+	public static int getCommerceChannelsCount(long companyId, String keywords)
+		throws PortalException {
+
+		return getService().getCommerceChannelsCount(companyId, keywords);
 	}
 
 	public static
@@ -388,19 +428,18 @@ public class CommerceChannelLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
-	public static List<CommerceChannel> searchCommerceChannels(long companyId)
+	public static List<CommerceChannel> search(long companyId)
 		throws PortalException {
 
-		return getService().searchCommerceChannels(companyId);
+		return getService().search(companyId);
 	}
 
-	public static List<CommerceChannel> searchCommerceChannels(
+	public static List<CommerceChannel> search(
 			long companyId, String keywords, int start, int end,
 			com.liferay.portal.kernel.search.Sort sort)
 		throws PortalException {
 
-		return getService().searchCommerceChannels(
-			companyId, keywords, start, end, sort);
+		return getService().search(companyId, keywords, start, end, sort);
 	}
 
 	public static int searchCommerceChannelsCount(

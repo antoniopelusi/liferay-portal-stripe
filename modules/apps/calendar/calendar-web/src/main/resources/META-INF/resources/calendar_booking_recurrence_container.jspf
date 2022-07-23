@@ -169,7 +169,7 @@ if (recurrence != null) {
 						Weekday weekday = positionalWeekday.getWeekday();
 						%>
 
-						<aui:input checked="<%= positionalWeekday.getPosition() == -1 %>" label="repeat-on-month-last-day-of-the-week" name="lastPosition" type="checkbox" />
+						<aui:input checked="<%= positionalWeekday.getPosition() == -1 %>" label="repeat-on-months-last-day-of-the-week" name="lastPosition" type="checkbox" />
 
 						<aui:input name="position" type="hidden" value="<%= positionalWeekday.getPosition() %>" />
 
@@ -210,7 +210,7 @@ if (recurrence != null) {
 							<liferay-ui:input-date
 								dayParam="untilDateDay"
 								dayValue="<%= untilJCalendar.get(java.util.Calendar.DATE) %>"
-								disabled="<%= !onChecked %>"
+								disabled="<%= onChecked %>"
 								monthParam="untilDateMonth"
 								monthValue="<%= untilJCalendar.get(java.util.Calendar.MONTH) %>"
 								name="untilDate"
@@ -245,8 +245,23 @@ if (recurrence != null) {
 	var recurrenceContainerNode = A.one(
 		'#<portlet:namespace />recurrenceContainer'
 	);
-	var repeatCheckboxNode = A.one('#<portlet:namespace />repeat');
+
+	var repeatCheckboxNode = document.getElementById('<portlet:namespace />repeat');
 	var summaryNode = A.one('#<portlet:namespace />summary');
+
+	var afterInput = A.one('#<portlet:namespace />ends_3');
+	var neverInput = A.one('#<portlet:namespace />ends_1');
+
+	let onRadioChange = (radioButton) => {
+		radioButton.on('change', (event) => {
+			document
+				.querySelector('span.has-success')
+				.classList.remove('has-success');
+		});
+	};
+
+	onRadioChange(afterInput);
+	onRadioChange(neverInput);
 
 	var recurrenceDialogController = new Liferay.RecurrenceDialogController({
 		container: '#<portlet:namespace />recurrenceContainer',
@@ -367,8 +382,8 @@ if (recurrence != null) {
 		Liferay.on('destroyPortlet', destroyRecurrenceDialog);
 	};
 
-	repeatCheckboxNode.on('change', (event) => {
-		var checked = event.currentTarget.get('checked');
+	repeatCheckboxNode.addEventListener('change', (event) => {
+		var checked = event.currentTarget.checked;
 
 		if (!checked) {
 			summaryNode.empty();

@@ -33,7 +33,7 @@ public class
 		return "user-authentication";
 	}
 
-	@Override/**/
+	@Override
 	public String getJspPath() {
 		return "/authentication/general.jsp";
 	}

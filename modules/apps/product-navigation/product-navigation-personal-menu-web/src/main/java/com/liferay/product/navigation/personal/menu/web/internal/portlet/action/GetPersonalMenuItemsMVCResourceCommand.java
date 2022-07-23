@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.Html;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -84,7 +84,7 @@ public class GetPersonalMenuItemsMVCResourceCommand
 				httpServletResponse, jsonArray.toString());
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -95,29 +95,31 @@ public class GetPersonalMenuItemsMVCResourceCommand
 		User realUser = themeDisplay.getRealUser();
 		User user = themeDisplay.getUser();
 
-		String realUserURL = _http.removeParameter(
+		String realUserURL = HttpComponentsUtil.removeParameter(
 			ParamUtil.getString(portletRequest, "currentURL"), "doAsUserId");
 
-		String userProfileURL = _http.getPath(
+		String userProfileURL = HttpComponentsUtil.getPath(
 			user.getDisplayURL(themeDisplay, false));
 
 		if (realUserURL.startsWith(userProfileURL)) {
 			realUserURL = StringUtil.replace(
 				realUserURL, userProfileURL,
-				_http.getPath(realUser.getDisplayURL(themeDisplay, false)));
+				HttpComponentsUtil.getPath(
+					realUser.getDisplayURL(themeDisplay, false)));
 
 			PersonalApplicationURLUtil.
 				getOrAddEmbeddedPersonalApplicationLayout(
 					realUser, realUser.getGroup(), false);
 		}
 
-		String userDashboardURL = _http.getPath(
+		String userDashboardURL = HttpComponentsUtil.getPath(
 			user.getDisplayURL(themeDisplay, true));
 
 		if (realUserURL.startsWith(userDashboardURL)) {
 			realUserURL = StringUtil.replace(
 				realUserURL, userDashboardURL,
-				_http.getPath(realUser.getDisplayURL(themeDisplay, true)));
+				HttpComponentsUtil.getPath(
+					realUser.getDisplayURL(themeDisplay, true)));
 
 			PersonalApplicationURLUtil.
 				getOrAddEmbeddedPersonalApplicationLayout(
@@ -172,7 +174,7 @@ public class GetPersonalMenuItemsMVCResourceCommand
 			jsonArray.put(
 				JSONUtil.put(
 					"href",
-					_http.setParameter(
+					HttpComponentsUtil.setParameter(
 						ParamUtil.getString(portletRequest, "currentURL"),
 						"doAsUserLanguageId", doAsUserLanguageId)
 				).put(
@@ -202,11 +204,11 @@ public class GetPersonalMenuItemsMVCResourceCommand
 				continue;
 			}
 
-			String portletId = ParamUtil.getString(portletRequest, "portletId");
-
 			JSONObject jsonObject = JSONUtil.put(
 				"active",
-				personalMenuEntry.isActive(portletRequest, portletId));
+				personalMenuEntry.isActive(
+					portletRequest,
+					ParamUtil.getString(portletRequest, "portletId")));
 
 			try {
 				jsonObject.put(
@@ -215,7 +217,7 @@ public class GetPersonalMenuItemsMVCResourceCommand
 						_portal.getHttpServletRequest(portletRequest)));
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 
 			jsonObject.put(
@@ -243,22 +245,24 @@ public class GetPersonalMenuItemsMVCResourceCommand
 			WebKeys.THEME_DISPLAY);
 
 		if (themeDisplay.isImpersonated()) {
-			JSONObject impersonationJSONObject = JSONUtil.put(
-				"items",
-				_getImpersonationItemsJSONArray(portletRequest, themeDisplay));
+			jsonArray.put(
+				JSONUtil.put(
+					"items",
+					_getImpersonationItemsJSONArray(
+						portletRequest, themeDisplay)
+				).put(
+					"label",
+					() -> {
+						User user = themeDisplay.getUser();
 
-			User user = themeDisplay.getUser();
-
-			impersonationJSONObject.put(
-				"label",
-				StringUtil.appendParentheticalSuffix(
-					user.getFullName(),
-					LanguageUtil.get(themeDisplay.getLocale(), "impersonated"))
-			).put(
-				"type", "group"
-			);
-
-			jsonArray.put(impersonationJSONObject);
+						return StringUtil.appendParentheticalSuffix(
+							user.getFullName(),
+							LanguageUtil.get(
+								themeDisplay.getLocale(), "impersonated"));
+					}
+				).put(
+					"type", "group"
+				));
 		}
 
 		JSONObject dividerJSONObject = JSONUtil.put("type", "divider");
@@ -302,9 +306,6 @@ public class GetPersonalMenuItemsMVCResourceCommand
 
 	@Reference
 	private Html _html;
-
-	@Reference
-	private Http _http;
 
 	@Reference
 	private PersonalMenuEntryRegistry _personalMenuEntryRegistry;

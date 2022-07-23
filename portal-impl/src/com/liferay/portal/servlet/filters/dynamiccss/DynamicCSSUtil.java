@@ -93,7 +93,7 @@ public class DynamicCSSUtil {
 	protected static String propagateQueryString(
 		String content, String queryString) {
 
-		StringBuilder sb = new StringBuilder(content.length());
+		StringBundler sb = new StringBundler(content.length());
 
 		int pos = 0;
 
@@ -164,7 +164,7 @@ public class DynamicCSSUtil {
 				return ThemeLocalServiceUtil.getTheme(companyId, themeId);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 		}
 
@@ -191,14 +191,9 @@ public class DynamicCSSUtil {
 				themePathId = StringUtil.replace(
 					themePathId, CharPool.UNDERLINE, StringPool.BLANK);
 
-				StringBundler sb = new StringBundler(4);
-
-				sb.append(themePathId);
-				sb.append(PortletConstants.WAR_SEPARATOR);
-				sb.append(themePathId);
-				sb.append("theme");
-
-				themePathId = sb.toString();
+				themePathId = StringBundler.concat(
+					themePathId, PortletConstants.WAR_SEPARATOR, themePathId,
+					"theme");
 
 				themeId = PortalUtil.getJsSafePortletId(themePathId);
 			}
@@ -212,7 +207,7 @@ public class DynamicCSSUtil {
 			return ThemeLocalServiceUtil.getTheme(companyId, themeId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return null;

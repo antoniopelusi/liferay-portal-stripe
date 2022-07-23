@@ -18,7 +18,7 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.background.task.internal.BackgroundTaskImpl;
-import com.liferay.portal.background.task.internal.lock.BackgroundTaskLockHelper;
+import com.liferay.portal.background.task.internal.lock.helper.BackgroundTaskLockHelper;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.base.BackgroundTaskLocalServiceBaseImpl;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
@@ -34,11 +34,14 @@ import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -55,7 +58,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -87,19 +89,14 @@ public class BackgroundTaskLocalServiceImpl
 
 		backgroundTask = super.addBackgroundTask(backgroundTask);
 
-		final long backgroundTaskId = backgroundTask.getBackgroundTaskId();
+		long backgroundTaskId = backgroundTask.getBackgroundTaskId();
 
 		TransactionCommitCallbackUtil.registerCallback(
-			new Callable<Void>() {
+			() -> {
+				backgroundTaskLocalService.triggerBackgroundTask(
+					backgroundTaskId);
 
-				@Override
-				public Void call() throws Exception {
-					backgroundTaskLocalService.triggerBackgroundTask(
-						backgroundTaskId);
-
-					return null;
-				}
-
+				return null;
 			});
 
 		return backgroundTask;
@@ -210,9 +207,8 @@ public class BackgroundTaskLocalServiceImpl
 
 	@Clusterable(onMaster = true)
 	@Override
-	public void cleanUpBackgroundTask(long backgroundTaskId, final int status) {
-		final BackgroundTask backgroundTask = fetchBackgroundTask(
-			backgroundTaskId);
+	public void cleanUpBackgroundTask(long backgroundTaskId, int status) {
+		BackgroundTask backgroundTask = fetchBackgroundTask(backgroundTaskId);
 
 		try {
 			_backgroundTaskLockHelper.unlockBackgroundTask(
@@ -220,32 +216,27 @@ public class BackgroundTaskLocalServiceImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
 		TransactionCommitCallbackUtil.registerCallback(
-			new Callable<Void>() {
+			() -> {
+				Message message = new Message();
 
-				@Override
-				public Void call() throws Exception {
-					Message message = new Message();
+				message.put(
+					BackgroundTaskConstants.BACKGROUND_TASK_ID,
+					backgroundTask.getBackgroundTaskId());
+				message.put("name", backgroundTask.getName());
+				message.put("status", status);
+				message.put(
+					"taskExecutorClassName",
+					backgroundTask.getTaskExecutorClassName());
 
-					message.put(
-						BackgroundTaskConstants.BACKGROUND_TASK_ID,
-						backgroundTask.getBackgroundTaskId());
-					message.put("name", backgroundTask.getName());
-					message.put("status", status);
-					message.put(
-						"taskExecutorClassName",
-						backgroundTask.getTaskExecutorClassName());
+				_messageBus.sendMessage(
+					DestinationNames.BACKGROUND_TASK_STATUS, message);
 
-					_messageBus.sendMessage(
-						DestinationNames.BACKGROUND_TASK_STATUS, message);
-
-					return null;
-				}
-
+				return null;
 			});
 	}
 
@@ -273,6 +264,7 @@ public class BackgroundTaskLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public BackgroundTask deleteBackgroundTask(BackgroundTask backgroundTask)
 		throws PortalException {
 
@@ -698,10 +690,10 @@ public class BackgroundTaskLocalServiceImpl
 		User user = null;
 
 		if (userId != UserConstants.USER_ID_DEFAULT) {
-			user = userLocalService.fetchUser(userId);
+			user = _userLocalService.fetchUser(userId);
 		}
 
-		final long backgroundTaskId = counterLocalService.increment();
+		long backgroundTaskId = counterLocalService.increment();
 
 		BackgroundTask backgroundTask = backgroundTaskPersistence.create(
 			backgroundTaskId);
@@ -739,16 +731,11 @@ public class BackgroundTaskLocalServiceImpl
 		backgroundTask = backgroundTaskPersistence.update(backgroundTask);
 
 		TransactionCommitCallbackUtil.registerCallback(
-			new Callable<Void>() {
+			() -> {
+				backgroundTaskLocalService.triggerBackgroundTask(
+					backgroundTaskId);
 
-				@Override
-				public Void call() throws Exception {
-					backgroundTaskLocalService.triggerBackgroundTask(
-						backgroundTaskId);
-
-					return null;
-				}
-
+				return null;
 			});
 
 		return backgroundTask;
@@ -770,5 +757,8 @@ public class BackgroundTaskLocalServiceImpl
 
 	@Reference
 	private MessageBus _messageBus;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

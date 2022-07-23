@@ -14,18 +14,20 @@
 
 package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
-import com.liferay.fragment.processor.PortletRegistry;
+import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
 import com.liferay.layout.content.page.editor.listener.ContentPageEditorListenerTracker;
 import com.liferay.layout.content.page.editor.web.internal.util.layout.structure.LayoutStructureUtil;
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
@@ -84,10 +86,7 @@ public class PublishLayoutMVCActionCommand
 		Layout draftLayout = _layoutLocalService.getLayout(
 			themeDisplay.getPlid());
 
-		if ((draftLayout.getClassPK() == 0) ||
-			(_portal.getClassNameId(Layout.class) !=
-				draftLayout.getClassNameId())) {
-
+		if (!draftLayout.isDraftLayout()) {
 			sendRedirect(actionRequest, actionResponse);
 
 			return;
@@ -139,8 +138,8 @@ public class PublishLayoutMVCActionCommand
 		throws Exception {
 
 		LayoutStructureUtil.deleteMarkedForDeletionItems(
-			draftLayout.getCompanyId(), _contentPageEditorListenerTracker,
-			draftLayout.getGroupId(), draftLayout.getPlid(), _portletRegistry);
+			_contentPageEditorListenerTracker, draftLayout.getGroupId(),
+			draftLayout.getPlid());
 
 		if (_workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
 				layout.getCompanyId(), layout.getGroupId(),
@@ -152,31 +151,59 @@ public class PublishLayoutMVCActionCommand
 				serviceContext, Collections.emptyMap());
 		}
 		else {
-			layout = _layoutCopyHelper.copyLayout(draftLayout, layout);
+			_layoutCopyHelper.copyLayout(draftLayout, layout);
 
-			layout.setType(draftLayout.getType());
-			layout.setStatus(WorkflowConstants.STATUS_APPROVED);
-
-			String layoutPrototypeUuid = layout.getLayoutPrototypeUuid();
-
-			layout.setLayoutPrototypeUuid(null);
-
-			_layoutLocalService.updateLayout(layout);
+			layout = _layoutLocalService.getLayout(layout.getPlid());
 
 			draftLayout = _layoutLocalService.getLayout(draftLayout.getPlid());
 
 			UnicodeProperties typeSettingsUnicodeProperties =
 				draftLayout.getTypeSettingsProperties();
 
+			String layoutPrototypeUuid = layout.getLayoutPrototypeUuid();
+
 			if (Validator.isNotNull(layoutPrototypeUuid)) {
 				typeSettingsUnicodeProperties.setProperty(
 					"layoutPrototypeUuid", layoutPrototypeUuid);
 			}
 
+			typeSettingsUnicodeProperties.put(
+				"published", Boolean.TRUE.toString());
+
 			draftLayout.setStatus(WorkflowConstants.STATUS_APPROVED);
 
 			_layoutLocalService.updateLayout(draftLayout);
+
+			layout.setType(draftLayout.getType());
+			layout.setLayoutPrototypeUuid(null);
+			layout.setStatus(WorkflowConstants.STATUS_APPROVED);
+
+			_layoutLocalService.updateLayout(layout);
+
+			_updateLayoutRevision(layout, serviceContext);
 		}
+	}
+
+	private void _updateLayoutRevision(
+			Layout layout, ServiceContext serviceContext)
+		throws Exception {
+
+		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
+			layout);
+
+		if (layoutRevision == null) {
+			return;
+		}
+
+		_layoutRevisionLocalService.updateLayoutRevision(
+			serviceContext.getUserId(), layoutRevision.getLayoutRevisionId(),
+			layoutRevision.getLayoutBranchId(), layoutRevision.getName(),
+			layoutRevision.getTitle(), layoutRevision.getDescription(),
+			layoutRevision.getKeywords(), layoutRevision.getRobots(),
+			layoutRevision.getTypeSettings(), layoutRevision.getIconImage(),
+			layoutRevision.getIconImageId(), layoutRevision.getThemeId(),
+			layoutRevision.getColorSchemeId(), layoutRevision.getCss(),
+			serviceContext);
 	}
 
 	@Reference
@@ -189,10 +216,10 @@ public class PublishLayoutMVCActionCommand
 	private LayoutLocalService _layoutLocalService;
 
 	@Reference
-	private Portal _portal;
+	private LayoutRevisionLocalService _layoutRevisionLocalService;
 
 	@Reference
-	private PortletRegistry _portletRegistry;
+	private Portal _portal;
 
 	@Reference
 	private WorkflowDefinitionLinkLocalService

@@ -99,11 +99,11 @@ public class AddDataDefinitionMVCActionCommand
 
 		long groupId = ParamUtil.getLong(actionRequest, "groupId");
 
-		String dataDefinitionSring = ParamUtil.getString(
+		String dataDefinitionString = ParamUtil.getString(
 			actionRequest, "dataDefinition");
 
 		DataDefinition dataDefinition = DataDefinition.toDTO(
-			dataDefinitionSring);
+			dataDefinitionString);
 
 		String structureKey = ParamUtil.getString(
 			actionRequest, "structureKey");

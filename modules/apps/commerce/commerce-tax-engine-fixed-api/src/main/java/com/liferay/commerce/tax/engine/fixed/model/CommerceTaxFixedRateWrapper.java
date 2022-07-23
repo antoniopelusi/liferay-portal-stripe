@@ -44,6 +44,7 @@ public class CommerceTaxFixedRateWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("commerceTaxFixedRateId", getCommerceTaxFixedRateId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -60,6 +61,12 @@ public class CommerceTaxFixedRateWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long commerceTaxFixedRateId = (Long)attributes.get(
 			"commerceTaxFixedRateId");
 
@@ -120,6 +127,11 @@ public class CommerceTaxFixedRateWrapper
 		if (rate != null) {
 			setRate(rate);
 		}
+	}
+
+	@Override
+	public CommerceTaxFixedRate cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
 	}
 
 	/**
@@ -197,6 +209,16 @@ public class CommerceTaxFixedRateWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this commerce tax fixed rate.
+	 *
+	 * @return the mvcc version of this commerce tax fixed rate
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -322,6 +344,16 @@ public class CommerceTaxFixedRateWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this commerce tax fixed rate.
+	 *
+	 * @param mvccVersion the mvcc version of this commerce tax fixed rate
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

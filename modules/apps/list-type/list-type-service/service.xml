@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.list.type" short-no-such-exception-enabled="false">
+	<author>Gabriel Albuquerque</author>
+	<namespace>ListType</namespace>
+	<entity local-service="true" name="ListTypeDefinition" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="listTypeDefinitionId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column localized="true" name="name" type="String" />
+	</entity>
+	<entity local-service="true" name="ListTypeEntry" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="listTypeEntryId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="listTypeDefinitionId" type="long" />
+		<column name="key" type="String" />
+		<column localized="true" name="name" type="String" />
+		<column name="type" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="ListTypeDefinitionId" return-type="Collection">
+			<finder-column name="listTypeDefinitionId" />
+		</finder>
+		<finder name="LTDI_K" return-type="ListTypeEntry">
+			<finder-column name="listTypeDefinitionId" />
+			<finder-column name="key" />
+		</finder>
+	</entity>
+	<exceptions>
+		<exception>DuplicateListTypeEntry</exception>
+		<exception>ListTypeDefinitionName</exception>
+		<exception>ListTypeEntryKey</exception>
+		<exception>ListTypeEntryName</exception>
+		<exception>RequiredListTypeDefinition</exception>
+	</exceptions>
+</service-builder>

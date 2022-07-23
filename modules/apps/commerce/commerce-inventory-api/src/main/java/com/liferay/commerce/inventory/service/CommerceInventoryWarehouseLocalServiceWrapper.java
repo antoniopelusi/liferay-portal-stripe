@@ -27,6 +27,10 @@ public class CommerceInventoryWarehouseLocalServiceWrapper
 	implements CommerceInventoryWarehouseLocalService,
 			   ServiceWrapper<CommerceInventoryWarehouseLocalService> {
 
+	public CommerceInventoryWarehouseLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceInventoryWarehouseLocalServiceWrapper(
 		CommerceInventoryWarehouseLocalService
 			commerceInventoryWarehouseLocalService) {
@@ -180,6 +184,13 @@ public class CommerceInventoryWarehouseLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceInventoryWarehouseLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceInventoryWarehouseLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override
@@ -539,16 +550,14 @@ public class CommerceInventoryWarehouseLocalServiceWrapper
 	@Override
 	public java.util.List
 		<com.liferay.commerce.inventory.model.CommerceInventoryWarehouse>
-				searchCommerceInventoryWarehouses(
+				search(
 					long companyId, Boolean active, String commerceCountryCode,
 					String keywords, int start, int end,
 					com.liferay.portal.kernel.search.Sort sort)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _commerceInventoryWarehouseLocalService.
-			searchCommerceInventoryWarehouses(
-				companyId, active, commerceCountryCode, keywords, start, end,
-				sort);
+		return _commerceInventoryWarehouseLocalService.search(
+			companyId, active, commerceCountryCode, keywords, start, end, sort);
 	}
 
 	@Override

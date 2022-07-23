@@ -184,6 +184,11 @@ public class BookmarksFolderWrapper
 	}
 
 	@Override
+	public BookmarksFolder cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
+	@Override
 	public java.util.List<Long> getAncestorFolderIds()
 		throws com.liferay.portal.kernel.exception.PortalException {
 

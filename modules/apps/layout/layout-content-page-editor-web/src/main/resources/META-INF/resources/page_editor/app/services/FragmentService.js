@@ -242,17 +242,19 @@ export default {
 	/**
 	 * Render the content of a fragmentEntryLink
 	 * @param {object} options
-	 * @param {string} options.collectionItemClassName Class name id of the collection item
-	 * @param {string} options.collectionItemClassPK Class PK of the collection item
+	 * @param {string} options.collectionItemIndex Index of the collection item
+	 * @param {string} options.itemClassName Class name id of the collection item
+	 * @param {string} options.itemClassPK Class PK of the collection item
 	 * @param {string} options.fragmentEntryLinkId Id of the fragmentEntryLink
 	 * @param {string} options.languageId Language id
 	 * @param {function} options.onNetworkStatus
 	 * @param {string} options.segmentsExperienceId Experience id
 	 */
 	renderFragmentEntryLinkContent({
-		collectionItemClassName,
-		collectionItemClassPK,
+		collectionItemIndex,
 		fragmentEntryLinkId,
+		itemClassName,
+		itemClassPK,
 		languageId,
 		onNetworkStatus,
 		segmentsExperienceId,
@@ -261,9 +263,10 @@ export default {
 			config.renderFragmentEntryURL,
 			{
 				body: {
-					collectionItemClassName,
-					collectionItemClassPK,
+					collectionItemIndex,
 					fragmentEntryLinkId,
+					itemClassName,
+					itemClassPK,
 					languageId,
 					segmentsExperienceId,
 				},
@@ -275,13 +278,13 @@ export default {
 	/**
 	 * Update configurationValues of the fragmentEntryLink with the given fragmentEntryLinkId
 	 * @param {object} options
-	 * @param {string} options.configurationValues New configurationValues
+	 * @param {string} options.editableValues
 	 * @param {string} options.fragmentEntryLinkId Id of the fragmentEntryLink
 	 * @param {string} options.languageId Language id
 	 * @param {function} options.onNetworkStatus
 	 */
 	updateConfigurationValues({
-		configurationValues,
+		editableValues,
 		fragmentEntryLinkId,
 		languageId,
 		onNetworkStatus,
@@ -290,7 +293,7 @@ export default {
 			config.updateConfigurationValuesURL,
 			{
 				body: {
-					editableValues: JSON.stringify(configurationValues),
+					editableValues: JSON.stringify(editableValues),
 					fragmentEntryLinkId,
 					languageId,
 				},

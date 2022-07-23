@@ -64,16 +64,18 @@ public class BatchEngineImportTaskLocalServiceUtil {
 	}
 
 	public static BatchEngineImportTask addBatchEngineImportTask(
-		long companyId, long userId, long batchSize, String callbackURL,
-		String className, byte[] content, String contentType,
-		String executeStatus, Map<String, String> fieldNameMappingMap,
-		String operation, Map<String, Serializable> parameters,
-		String taskItemDelegateName) {
+			String externalReferenceCode, long companyId, long userId,
+			long batchSize, String callbackURL, String className,
+			byte[] content, String contentType, String executeStatus,
+			Map<String, String> fieldNameMappingMap, int importStrategy,
+			String operation, Map<String, Serializable> parameters,
+			String taskItemDelegateName)
+		throws PortalException {
 
 		return getService().addBatchEngineImportTask(
-			companyId, userId, batchSize, callbackURL, className, content,
-			contentType, executeStatus, fieldNameMappingMap, operation,
-			parameters, taskItemDelegateName);
+			externalReferenceCode, companyId, userId, batchSize, callbackURL,
+			className, content, contentType, executeStatus, fieldNameMappingMap,
+			importStrategy, operation, parameters, taskItemDelegateName);
 	}
 
 	/**
@@ -146,6 +148,10 @@ public class BatchEngineImportTaskLocalServiceUtil {
 
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -232,6 +238,33 @@ public class BatchEngineImportTaskLocalServiceUtil {
 	}
 
 	/**
+	 * Returns the batch engine import task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine import task's external reference code
+	 * @return the matching batch engine import task, or <code>null</code> if a matching batch engine import task could not be found
+	 */
+	public static BatchEngineImportTask
+		fetchBatchEngineImportTaskByExternalReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return getService().fetchBatchEngineImportTaskByExternalReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchBatchEngineImportTaskByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	public static BatchEngineImportTask
+		fetchBatchEngineImportTaskByReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return getService().fetchBatchEngineImportTaskByReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	/**
 	 * Returns the batch engine import task with the matching UUID and company.
 	 *
 	 * @param uuid the batch engine import task's UUID
@@ -264,6 +297,23 @@ public class BatchEngineImportTaskLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getBatchEngineImportTask(batchEngineImportTaskId);
+	}
+
+	/**
+	 * Returns the batch engine import task with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the batch engine import task's external reference code
+	 * @return the matching batch engine import task
+	 * @throws PortalException if a matching batch engine import task could not be found
+	 */
+	public static BatchEngineImportTask
+			getBatchEngineImportTaskByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getBatchEngineImportTaskByExternalReferenceCode(
+			companyId, externalReferenceCode);
 	}
 
 	/**
@@ -301,6 +351,20 @@ public class BatchEngineImportTaskLocalServiceUtil {
 	}
 
 	public static List<BatchEngineImportTask> getBatchEngineImportTasks(
+		long companyId, int start, int end) {
+
+		return getService().getBatchEngineImportTasks(companyId, start, end);
+	}
+
+	public static List<BatchEngineImportTask> getBatchEngineImportTasks(
+		long companyId, int start, int end,
+		OrderByComparator<BatchEngineImportTask> orderByComparator) {
+
+		return getService().getBatchEngineImportTasks(
+			companyId, start, end, orderByComparator);
+	}
+
+	public static List<BatchEngineImportTask> getBatchEngineImportTasks(
 		String executeStatus) {
 
 		return getService().getBatchEngineImportTasks(executeStatus);
@@ -313,6 +377,10 @@ public class BatchEngineImportTaskLocalServiceUtil {
 	 */
 	public static int getBatchEngineImportTasksCount() {
 		return getService().getBatchEngineImportTasksCount();
+	}
+
+	public static int getBatchEngineImportTasksCount(long companyId) {
+		return getService().getBatchEngineImportTasksCount(companyId);
 	}
 
 	public static

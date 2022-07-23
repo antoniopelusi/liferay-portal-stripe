@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.util;
 
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 
 import java.io.IOException;
@@ -26,8 +27,11 @@ import java.net.URL;
 import java.text.Normalizer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -203,15 +207,33 @@ public class StringUtil {
 	 *         space, followed by the suffix enclosed in parentheses
 	 */
 	public static String appendParentheticalSuffix(String s, String suffix) {
-		StringBundler sb = new StringBundler(5);
+		return StringBundler.concat(
+			s, StringPool.SPACE, StringPool.OPEN_PARENTHESIS, suffix,
+			StringPool.CLOSE_PARENTHESIS);
+	}
 
-		sb.append(s);
-		sb.append(StringPool.SPACE);
-		sb.append(StringPool.OPEN_PARENTHESIS);
-		sb.append(suffix);
-		sb.append(StringPool.CLOSE_PARENTHESIS);
+	public static List<String> asList(Object object) {
+		if (object instanceof String) {
+			return new ArrayList<>(Collections.singletonList((String)object));
+		}
+		else if (object instanceof String[]) {
+			return new ArrayList<>(Arrays.asList((String[])object));
+		}
+		else if (object instanceof Collection) {
+			Collection<?> collection = (Collection<?>)object;
 
-		return sb.toString();
+			if (!collection.isEmpty()) {
+				Iterator<?> iterator = collection.iterator();
+
+				Object element = iterator.next();
+
+				if (element instanceof String) {
+					return new ArrayList<>((Collection<String>)object);
+				}
+			}
+		}
+
+		return new ArrayList<>();
 	}
 
 	/**
@@ -452,11 +474,7 @@ public class StringUtil {
 	 *         <code>end</code>, ignoring case; <code>false</code> otherwise
 	 */
 	public static boolean endsWith(String s, String end) {
-		if ((s == null) || (end == null)) {
-			return false;
-		}
-
-		if (end.length() > s.length()) {
+		if ((s == null) || (end == null) || (end.length() > s.length())) {
 			return false;
 		}
 
@@ -567,11 +585,7 @@ public class StringUtil {
 			return true;
 		}
 
-		if ((s1 == null) || (s2 == null)) {
-			return false;
-		}
-
-		if (s1.length() != s2.length()) {
+		if ((s1 == null) || (s2 == null) || (s1.length() != s2.length())) {
 			return false;
 		}
 
@@ -881,15 +895,9 @@ public class StringUtil {
 	public static int indexOfAny(
 		String s, char[] chars, int fromIndex, int toIndex) {
 
-		if ((s == null) || (toIndex < fromIndex)) {
-			return -1;
-		}
+		if ((s == null) || (toIndex < fromIndex) || ArrayUtil.isEmpty(chars) ||
+			(fromIndex >= s.length())) {
 
-		if (ArrayUtil.isEmpty(chars)) {
-			return -1;
-		}
-
-		if (fromIndex >= s.length()) {
 			return -1;
 		}
 
@@ -1048,15 +1056,9 @@ public class StringUtil {
 	public static int indexOfAny(
 		String s, String[] texts, int fromIndex, int toIndex) {
 
-		if ((s == null) || (toIndex < fromIndex)) {
-			return -1;
-		}
+		if ((s == null) || (toIndex < fromIndex) || ArrayUtil.isEmpty(texts) ||
+			(fromIndex >= s.length())) {
 
-		if (ArrayUtil.isEmpty(texts)) {
-			return -1;
-		}
-
-		if (fromIndex >= s.length()) {
 			return -1;
 		}
 
@@ -1308,15 +1310,9 @@ public class StringUtil {
 	public static int lastIndexOfAny(
 		String s, char[] chars, int fromIndex, int toIndex) {
 
-		if ((s == null) || (toIndex < fromIndex)) {
-			return -1;
-		}
+		if ((s == null) || (toIndex < fromIndex) || ArrayUtil.isEmpty(chars) ||
+			(fromIndex >= s.length())) {
 
-		if (ArrayUtil.isEmpty(chars)) {
-			return -1;
-		}
-
-		if (fromIndex >= s.length()) {
 			return -1;
 		}
 
@@ -1474,15 +1470,9 @@ public class StringUtil {
 	public static int lastIndexOfAny(
 		String s, String[] texts, int fromIndex, int toIndex) {
 
-		if ((s == null) || (toIndex < fromIndex)) {
-			return -1;
-		}
+		if ((s == null) || (toIndex < fromIndex) || ArrayUtil.isEmpty(texts) ||
+			(fromIndex >= s.length())) {
 
-		if (ArrayUtil.isEmpty(texts)) {
-			return -1;
-		}
-
-		if (fromIndex >= s.length()) {
 			return -1;
 		}
 
@@ -2199,8 +2189,8 @@ public class StringUtil {
 			while (enumeration.hasMoreElements()) {
 				URL url = enumeration.nextElement();
 
-				try (InputStream is = url.openStream()) {
-					String s = read(is);
+				try (InputStream inputStream = url.openStream()) {
+					String s = read(inputStream);
 
 					if (s != null) {
 						sb.append(s);
@@ -2214,15 +2204,15 @@ public class StringUtil {
 			return s.trim();
 		}
 
-		try (InputStream is = classLoader.getResourceAsStream(name)) {
-			if (is == null) {
+		try (InputStream inputStream = classLoader.getResourceAsStream(name)) {
+			if (inputStream == null) {
 				throw new IOException(
 					StringBundler.concat(
 						"Unable to open resource ", name, " in class loader ",
-						String.valueOf(classLoader)));
+						classLoader));
 			}
 
-			return read(is);
+			return read(inputStream);
 		}
 	}
 
@@ -2280,7 +2270,7 @@ public class StringUtil {
 			return s;
 		}
 
-		StringBuilder sb = new StringBuilder(s.length());
+		StringBundler sb = new StringBundler(s.length());
 
 		iterate:
 		for (int i = 0; i < s.length(); i++) {
@@ -2300,6 +2290,24 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	public static String removeFirst(String s, String oldSub) {
+		if (s == null) {
+			return null;
+		}
+
+		if (oldSub == null) {
+			return s;
+		}
+
+		int index = s.indexOf(oldSub);
+
+		if (index == -1) {
+			return s;
+		}
+
+		return s.substring(0, index) + s.substring(index + oldSub.length());
 	}
 
 	/**
@@ -2402,6 +2410,24 @@ public class StringUtil {
 		}
 
 		return s;
+	}
+
+	public static String removeLast(String s, String oldSub) {
+		if (s == null) {
+			return null;
+		}
+
+		if (oldSub == null) {
+			return s;
+		}
+
+		int index = s.lastIndexOf(oldSub);
+
+		if (index == -1) {
+			return s;
+		}
+
+		return s.substring(0, index) + s.substring(index + oldSub.length());
 	}
 
 	public static String removeSubstring(String s, String oldSub) {
@@ -3117,7 +3143,7 @@ public class StringUtil {
 			String newValue = values.get(oldValue);
 
 			if (newValue == null) {
-				newValue = oldValue;
+				newValue = StringBundler.concat(begin, oldValue, end);
 			}
 
 			sb.append(newValue);
@@ -3835,11 +3861,7 @@ public class StringUtil {
 	 *         specified start string; <code>false</code> otherwise
 	 */
 	public static boolean startsWith(String s, String start) {
-		if ((s == null) || (start == null)) {
-			return false;
-		}
-
-		if (start.length() > s.length()) {
+		if ((s == null) || (start == null) || (start.length() > s.length())) {
 			return false;
 		}
 
@@ -4001,15 +4023,10 @@ public class StringUtil {
 		int x = s.lastIndexOf(StringPool.OPEN_PARENTHESIS);
 		int y = s.lastIndexOf(StringPool.CLOSE_PARENTHESIS);
 
-		if ((x == -1) || (y == -1)) {
-			return s;
-		}
+		if ((x == -1) || (y == -1) || (x > y) ||
+			!s.endsWith(StringPool.CLOSE_PARENTHESIS) ||
+			(s.charAt(x - 1) != CharPool.SPACE)) {
 
-		if ((x > y) || !s.endsWith(StringPool.CLOSE_PARENTHESIS)) {
-			return s;
-		}
-
-		if (s.charAt(x - 1) != CharPool.SPACE) {
 			return s;
 		}
 
@@ -4654,6 +4671,10 @@ public class StringUtil {
 	 * @return the string, with its first character converted to upper-case
 	 */
 	public static String upperCaseFirstLetter(String s) {
+		if ((s == null) || s.isEmpty()) {
+			return s;
+		}
+
 		char[] chars = s.toCharArray();
 
 		if ((chars[0] >= 97) && (chars[0] <= 122)) {

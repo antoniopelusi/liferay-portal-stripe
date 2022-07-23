@@ -27,7 +27,6 @@ import com.liferay.exportimport.resources.importer.internal.constants.ResourcesI
 import com.liferay.exportimport.resources.importer.portlet.preferences.PortletPreferencesTranslator;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalFolderLocalService;
-import com.liferay.portal.kernel.deploy.DeployManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -48,6 +47,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.SAXReader;
+import com.liferay.portal.plugin.PluginPackageUtil;
 import com.liferay.portal.search.index.IndexStatusManager;
 
 import java.net.URL;
@@ -104,7 +104,7 @@ public class ImporterFactory {
 		Importer importer = null;
 
 		if ((privateLARURL != null) || (publicLARURL != null)) {
-			LARImporter larImporter = getLARImporter();
+			LARImporter larImporter = _getLARImporter();
 
 			if (privateLARURL != null) {
 				URLConnection privateLARURLConnection =
@@ -125,12 +125,12 @@ public class ImporterFactory {
 			importer = larImporter;
 		}
 		else if ((resourcePaths != null) && !resourcePaths.isEmpty()) {
-			importer = getResourceImporter();
+			importer = _getResourceImporter();
 
 			importer.setResourcesDir(RESOURCES_DIR);
 		}
 		else if ((templatePaths != null) && !templatePaths.isEmpty()) {
-			importer = getResourceImporter();
+			importer = _getResourceImporter();
 
 			Group group = _groupLocalService.getCompanyGroup(companyId);
 
@@ -139,7 +139,7 @@ public class ImporterFactory {
 			importer.setResourcesDir(TEMPLATES_DIR);
 		}
 		else if (Validator.isNotNull(resourcesDir)) {
-			importer = getFileSystemImporter();
+			importer = _getFileSystemImporter();
 
 			importer.setResourcesDir(resourcesDir);
 		}
@@ -148,91 +148,10 @@ public class ImporterFactory {
 			throw new ImporterException("No valid importer found");
 		}
 
-		configureImporter(
+		_configureImporter(
 			companyId, importer, servletContext, pluginPackageProperties);
 
 		return importer;
-	}
-
-	protected void configureImporter(
-			long companyId, Importer importer, ServletContext servletContext,
-			PluginPackageProperties pluginPackageProperties)
-		throws Exception {
-
-		importer.setAppendVersion(pluginPackageProperties.isAppendVersion());
-		importer.setCompanyId(companyId);
-		importer.setDeveloperModeEnabled(
-			pluginPackageProperties.isDeveloperModeEnabled());
-		importer.setIndexAfterImport(
-			pluginPackageProperties.indexAfterImport());
-		importer.setServletContext(servletContext);
-		importer.setServletContextName(servletContext.getServletContextName());
-		importer.setTargetClassName(
-			pluginPackageProperties.getTargetClassName());
-
-		String targetValue = pluginPackageProperties.getTargetValue();
-
-		if (Validator.isNull(targetValue)) {
-			targetValue = TextFormatter.format(
-				servletContext.getServletContextName(), TextFormatter.J);
-		}
-
-		importer.setTargetValue(targetValue);
-
-		importer.setUpdateModeEnabled(
-			pluginPackageProperties.isUpdateModeEnabled());
-
-		PluginPackage pluginPackage =
-			DeployManagerUtil.getInstalledPluginPackage(
-				servletContext.getServletContextName());
-
-		importer.setVersion(pluginPackage.getVersion());
-
-		importer.afterPropertiesSet();
-	}
-
-	protected DDMFormDeserializer getDDMFormJSONDeserializer() {
-		return _jsonDDMFormDeserializer;
-	}
-
-	protected DDMFormDeserializer getDDMFormXSDDeserializer() {
-		return _xsdDDMFormDeserializer;
-	}
-
-	protected FileSystemImporter getFileSystemImporter() {
-		return new FileSystemImporter(
-			_assetTagLocalService, getDDMFormJSONDeserializer(),
-			getDDMFormXSDDeserializer(), _ddmStructureLocalService,
-			_ddmTemplateLocalService, _ddmxml, _dlAppLocalService,
-			_dlFileEntryLocalService, _dlFolderLocalService,
-			_indexStatusManager, _indexerRegistry, _journalArticleLocalService,
-			_journalFolderLocalService, _layoutLocalService,
-			_layoutPrototypeLocalService, _layoutSetLocalService,
-			_layoutSetPrototypeLocalService, _mimeTypes, _portal,
-			_portletPreferencesFactory, _portletPreferencesLocalService,
-			_portletPreferencesTranslator, _portletPreferencesTranslators,
-			_repositoryLocalService, _saxReader, _themeLocalService,
-			_dlURLHelper);
-	}
-
-	protected LARImporter getLARImporter() {
-		return new LARImporter();
-	}
-
-	protected ResourceImporter getResourceImporter() {
-		return new ResourceImporter(
-			_assetTagLocalService, getDDMFormJSONDeserializer(),
-			getDDMFormXSDDeserializer(), _ddmStructureLocalService,
-			_ddmTemplateLocalService, _ddmxml, _dlAppLocalService,
-			_dlFileEntryLocalService, _dlFolderLocalService,
-			_indexStatusManager, _indexerRegistry, _journalArticleLocalService,
-			_journalFolderLocalService, _layoutLocalService,
-			_layoutPrototypeLocalService, _layoutSetLocalService,
-			_layoutSetPrototypeLocalService, _mimeTypes, _portal,
-			_portletPreferencesFactory, _portletPreferencesLocalService,
-			_portletPreferencesTranslator, _portletPreferencesTranslators,
-			_repositoryLocalService, _saxReader, _themeLocalService,
-			_dlURLHelper);
 	}
 
 	@Reference(
@@ -278,6 +197,79 @@ public class ImporterFactory {
 		}
 
 		_portletPreferencesTranslators.remove(rootPortletId);
+	}
+
+	private void _configureImporter(
+			long companyId, Importer importer, ServletContext servletContext,
+			PluginPackageProperties pluginPackageProperties)
+		throws Exception {
+
+		importer.setAppendVersion(pluginPackageProperties.isAppendVersion());
+		importer.setCompanyId(companyId);
+		importer.setDeveloperModeEnabled(
+			pluginPackageProperties.isDeveloperModeEnabled());
+		importer.setIndexAfterImport(
+			pluginPackageProperties.indexAfterImport());
+		importer.setServletContext(servletContext);
+		importer.setServletContextName(servletContext.getServletContextName());
+		importer.setTargetClassName(
+			pluginPackageProperties.getTargetClassName());
+
+		String targetValue = pluginPackageProperties.getTargetValue();
+
+		if (Validator.isNull(targetValue)) {
+			targetValue = TextFormatter.format(
+				servletContext.getServletContextName(), TextFormatter.J);
+		}
+
+		importer.setTargetValue(targetValue);
+
+		importer.setUpdateModeEnabled(
+			pluginPackageProperties.isUpdateModeEnabled());
+
+		PluginPackage pluginPackage =
+			PluginPackageUtil.getInstalledPluginPackage(
+				servletContext.getServletContextName());
+
+		importer.setVersion(pluginPackage.getVersion());
+
+		importer.afterPropertiesSet();
+	}
+
+	private FileSystemImporter _getFileSystemImporter() {
+		return new FileSystemImporter(
+			_assetTagLocalService, _jsonDDMFormDeserializer,
+			_xsdDDMFormDeserializer, _ddmStructureLocalService,
+			_ddmTemplateLocalService, _ddmxml, _dlAppLocalService,
+			_dlFileEntryLocalService, _dlFolderLocalService,
+			_indexStatusManager, _indexerRegistry, _journalArticleLocalService,
+			_journalFolderLocalService, _layoutLocalService,
+			_layoutPrototypeLocalService, _layoutSetLocalService,
+			_layoutSetPrototypeLocalService, _mimeTypes, _portal,
+			_portletPreferencesFactory, _portletPreferencesLocalService,
+			_portletPreferencesTranslator, _portletPreferencesTranslators,
+			_repositoryLocalService, _saxReader, _themeLocalService,
+			_dlURLHelper);
+	}
+
+	private LARImporter _getLARImporter() {
+		return new LARImporter();
+	}
+
+	private ResourceImporter _getResourceImporter() {
+		return new ResourceImporter(
+			_assetTagLocalService, _jsonDDMFormDeserializer,
+			_xsdDDMFormDeserializer, _ddmStructureLocalService,
+			_ddmTemplateLocalService, _ddmxml, _dlAppLocalService,
+			_dlFileEntryLocalService, _dlFolderLocalService,
+			_indexStatusManager, _indexerRegistry, _journalArticleLocalService,
+			_journalFolderLocalService, _layoutLocalService,
+			_layoutPrototypeLocalService, _layoutSetLocalService,
+			_layoutSetPrototypeLocalService, _mimeTypes, _portal,
+			_portletPreferencesFactory, _portletPreferencesLocalService,
+			_portletPreferencesTranslator, _portletPreferencesTranslators,
+			_repositoryLocalService, _saxReader, _themeLocalService,
+			_dlURLHelper);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

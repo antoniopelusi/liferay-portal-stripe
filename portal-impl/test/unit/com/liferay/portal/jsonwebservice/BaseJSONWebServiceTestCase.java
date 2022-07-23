@@ -24,16 +24,12 @@ import com.liferay.portal.kernel.json.JSONSerializable;
 import com.liferay.portal.kernel.json.JSONSerializer;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
-import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceMappingResolver;
-import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceNaming;
 import com.liferay.portal.kernel.jsonwebservice.NoSuchJSONWebServiceException;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.MethodParametersResolverUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.util.MethodParametersResolverImpl;
 import com.liferay.portal.util.PropsImpl;
-import com.liferay.registry.BasicRegistryImpl;
-import com.liferay.registry.RegistryUtil;
 
 import java.lang.reflect.Method;
 
@@ -73,8 +69,6 @@ public abstract class BaseJSONWebServiceTestCase extends PowerMockito {
 
 		methodParametersResolverUtil.setMethodParametersResolver(
 			new MethodParametersResolverImpl());
-
-		RegistryUtil.setRegistry(new BasicRegistryImpl());
 	}
 
 	protected static void registerAction(Object action) {
@@ -100,9 +94,6 @@ public abstract class BaseJSONWebServiceTestCase extends PowerMockito {
 	protected static void registerActionClass(
 		Object action, Class<?> actionClass, String servletContextName) {
 
-		JSONWebServiceMappingResolver jsonWebServiceMappingResolver =
-			new JSONWebServiceMappingResolver(new JSONWebServiceNaming());
-
 		Method[] methods = actionClass.getMethods();
 
 		for (Method actionMethod : methods) {
@@ -110,21 +101,14 @@ public abstract class BaseJSONWebServiceTestCase extends PowerMockito {
 				continue;
 			}
 
-			String path = jsonWebServiceMappingResolver.resolvePath(
+			String path = JSONWebServiceMappingResolverUtil.resolvePath(
 				actionClass, actionMethod);
-			String method = jsonWebServiceMappingResolver.resolveHttpMethod(
+			String method = JSONWebServiceMappingResolverUtil.resolveHttpMethod(
 				actionMethod);
 
-			if (action != null) {
-				JSONWebServiceActionsManagerUtil.registerJSONWebServiceAction(
-					servletContextName, StringPool.BLANK, action, actionClass,
-					actionMethod, path, method);
-			}
-			else {
-				JSONWebServiceActionsManagerUtil.registerJSONWebServiceAction(
-					servletContextName, StringPool.BLANK, actionClass,
-					actionMethod, path, method);
-			}
+			JSONWebServiceActionsManagerUtil.registerJSONWebServiceAction(
+				servletContextName, StringPool.BLANK, action, actionClass,
+				actionMethod, path, method);
 		}
 	}
 

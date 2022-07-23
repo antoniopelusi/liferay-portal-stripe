@@ -134,6 +134,11 @@ public class LayoutSetPrototypeWrapper
 		}
 	}
 
+	@Override
+	public LayoutSetPrototype cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this layout set prototype.
 	 *

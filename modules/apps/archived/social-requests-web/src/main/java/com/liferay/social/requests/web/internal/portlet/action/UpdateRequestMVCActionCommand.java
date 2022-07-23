@@ -52,7 +52,7 @@ public class UpdateRequestMVCActionCommand extends BaseMVCActionCommand {
 		throws Exception {
 
 		try {
-			updateRequest(actionRequest);
+			_updateRequest(actionRequest);
 
 			String redirect = _portal.escapeRedirect(
 				ParamUtil.getString(actionRequest, "redirect"));
@@ -75,7 +75,7 @@ public class UpdateRequestMVCActionCommand extends BaseMVCActionCommand {
 		_socialRequestService = socialRequestService;
 	}
 
-	protected void updateRequest(ActionRequest actionRequest) throws Exception {
+	private void _updateRequest(ActionRequest actionRequest) throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 

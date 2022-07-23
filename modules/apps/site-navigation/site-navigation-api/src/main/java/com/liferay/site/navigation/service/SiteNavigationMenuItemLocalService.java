@@ -137,6 +137,10 @@ public interface SiteNavigationMenuItemLocalService
 			long siteNavigationMenuItemId)
 		throws PortalException;
 
+	public SiteNavigationMenuItem deleteSiteNavigationMenuItem(
+			long siteNavigationMenuItemId, boolean deleteChildren)
+		throws PortalException;
+
 	/**
 	 * Deletes the site navigation menu item from the database. Also notifies the appropriate model listeners.
 	 *
@@ -158,6 +162,9 @@ public interface SiteNavigationMenuItemLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -256,6 +263,10 @@ public interface SiteNavigationMenuItemLocalService
 	 * @return the OSGi service identifier
 	 */
 	public String getOSGiServiceIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<Long> getParentSiteNavigationMenuItemIds(
+		long siteNavigationMenuId, String typeSettingsKeyword);
 
 	/**
 	 * @throws PortalException

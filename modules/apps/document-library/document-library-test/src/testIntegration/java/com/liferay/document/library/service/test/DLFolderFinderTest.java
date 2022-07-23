@@ -77,11 +77,9 @@ public class DLFolderFinderTest {
 			ServiceContextTestUtil.getServiceContext(
 				_group.getGroupId(), TestPropsValues.getUserId());
 
-		long classNameId = PortalUtil.getClassNameId(
-			PortletRepository.class.getName());
-
 		RepositoryLocalServiceUtil.addRepository(
-			TestPropsValues.getUserId(), _group.getGroupId(), classNameId,
+			TestPropsValues.getUserId(), _group.getGroupId(),
+			PortalUtil.getClassNameId(PortletRepository.class.getName()),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, "Test Repository",
 			StringUtil.randomString(), StringUtil.randomString(),
 			new UnicodeProperties(), false, serviceContext);
@@ -380,8 +378,9 @@ public class DLFolderFinderTest {
 				groupId, TestPropsValues.getUserId());
 
 		return DLAppLocalServiceUtil.addFileEntry(
-			TestPropsValues.getUserId(), groupId, folderId, sourceFileName,
-			mimeType, TestDataConstants.TEST_BYTE_ARRAY, serviceContext);
+			null, TestPropsValues.getUserId(), groupId, folderId,
+			sourceFileName, mimeType, TestDataConstants.TEST_BYTE_ARRAY, null,
+			null, serviceContext);
 	}
 
 	private FileShortcut _fileShortcut;

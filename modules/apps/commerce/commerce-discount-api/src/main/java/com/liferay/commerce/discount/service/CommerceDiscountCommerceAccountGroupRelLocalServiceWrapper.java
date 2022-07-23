@@ -28,6 +28,10 @@ public class CommerceDiscountCommerceAccountGroupRelLocalServiceWrapper
 			   ServiceWrapper
 				   <CommerceDiscountCommerceAccountGroupRelLocalService> {
 
+	public CommerceDiscountCommerceAccountGroupRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CommerceDiscountCommerceAccountGroupRelLocalServiceWrapper(
 		CommerceDiscountCommerceAccountGroupRelLocalService
 			commerceDiscountCommerceAccountGroupRelLocalService) {
@@ -65,14 +69,16 @@ public class CommerceDiscountCommerceAccountGroupRelLocalServiceWrapper
 		com.liferay.commerce.discount.model.
 			CommerceDiscountCommerceAccountGroupRel
 					addCommerceDiscountCommerceAccountGroupRel(
-						long commerceDiscountId, long commerceAccountGroupId,
+						long userId, long commerceDiscountId,
+						long commerceAccountGroupId,
 						com.liferay.portal.kernel.service.ServiceContext
 							serviceContext)
 				throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceDiscountCommerceAccountGroupRelLocalService.
 			addCommerceDiscountCommerceAccountGroupRel(
-				commerceDiscountId, commerceAccountGroupId, serviceContext);
+				userId, commerceDiscountId, commerceAccountGroupId,
+				serviceContext);
 	}
 
 	/**
@@ -196,6 +202,14 @@ public class CommerceDiscountCommerceAccountGroupRelLocalServiceWrapper
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _commerceDiscountCommerceAccountGroupRelLocalService.dslQuery(
 			dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _commerceDiscountCommerceAccountGroupRelLocalService.
+			dslQueryCount(dslQuery);
 	}
 
 	@Override

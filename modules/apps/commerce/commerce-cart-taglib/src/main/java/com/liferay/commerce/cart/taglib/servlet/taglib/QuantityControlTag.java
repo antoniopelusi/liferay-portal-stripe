@@ -43,7 +43,7 @@ public class QuantityControlTag extends IncludeTag {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return SKIP_BODY;
@@ -78,7 +78,7 @@ public class QuantityControlTag extends IncludeTag {
 
 		commerceOrderItemService =
 			ServletContextUtil.getCommerceOrderItemService();
-		servletContext = ServletContextUtil.getServletContext();
+		setServletContext(ServletContextUtil.getServletContext());
 	}
 
 	public void setShowInputLabel(boolean showInputLabel) {
@@ -111,16 +111,18 @@ public class QuantityControlTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest httpServletRequest) {
-		request.setAttribute(
+		httpServletRequest = getRequest();
+
+		httpServletRequest.setAttribute(
 			"liferay-commerce-cart:quantity-control:commerceOrderItem",
 			_commerceOrderItem);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"liferay-commerce-cart:quantity-control:showInputLabel",
 			_showInputLabel);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"liferay-commerce-cart:quantity-control:updateOnChange",
 			_updateOnChange);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"liferay-commerce-cart:quantity-control:useSelect", _useSelect);
 	}
 

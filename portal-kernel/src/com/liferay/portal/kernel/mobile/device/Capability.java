@@ -70,15 +70,7 @@ public class Capability implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append("{name=");
-		sb.append(_name);
-		sb.append(", value=");
-		sb.append(_value);
-		sb.append("}");
-
-		return sb.toString();
+		return StringBundler.concat("{name=", _name, ", value=", _value, "}");
 	}
 
 	private final String _name;

@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.site.navigation.breadcrumb.web.internal.constants.SiteNavigationBreadcrumbPortletKeys;
 
 import javax.portlet.PortletPreferences;
-import javax.portlet.ReadOnlyException;
 
 /**
  * @author Julio Camarero
@@ -43,8 +42,23 @@ public class UpgradePortletPreferences
 		};
 	}
 
-	protected void upgradeDisplayStyle(PortletPreferences portletPreferences)
-		throws ReadOnlyException {
+	@Override
+	protected String upgradePreferences(
+			long companyId, long ownerId, int ownerType, long plid,
+			String portletId, String xml)
+		throws Exception {
+
+		PortletPreferences portletPreferences =
+			PortletPreferencesFactoryUtil.fromXML(
+				companyId, ownerId, ownerType, plid, portletId, xml);
+
+		_upgradeDisplayStyle(portletPreferences);
+
+		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
+	}
+
+	private void _upgradeDisplayStyle(PortletPreferences portletPreferences)
+		throws Exception {
 
 		String displayStyle = GetterUtil.getString(
 			portletPreferences.getValue("displayStyle", null));
@@ -77,21 +91,6 @@ public class UpgradePortletPreferences
 						"of widget templates");
 			}
 		}
-	}
-
-	@Override
-	protected String upgradePreferences(
-			long companyId, long ownerId, int ownerType, long plid,
-			String portletId, String xml)
-		throws Exception {
-
-		PortletPreferences portletPreferences =
-			PortletPreferencesFactoryUtil.fromXML(
-				companyId, ownerId, ownerType, plid, portletId, xml);
-
-		upgradeDisplayStyle(portletPreferences);
-
-		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

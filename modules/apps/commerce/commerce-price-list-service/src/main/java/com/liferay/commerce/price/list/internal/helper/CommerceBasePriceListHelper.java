@@ -58,9 +58,9 @@ public class CommerceBasePriceListHelper {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		serviceContext.setCompanyId(commerceCatalog.getCompanyId());
 		serviceContext.setScopeGroupId(commerceCatalog.getGroupId());
 		serviceContext.setUserId(commerceCatalog.getUserId());
-		serviceContext.setCompanyId(commerceCatalog.getCompanyId());
 
 		_addCatalogBaseCommercePriceList(
 			commerceCatalog, CommercePriceListConstants.TYPE_PRICE_LIST,
@@ -122,7 +122,7 @@ public class CommerceBasePriceListHelper {
 					commerceCatalog.getGroupId(), type);
 
 		if (catalogBaseCommercePriceList != null) {
-			_commercePriceListLocalService.deleteCommercePriceList(
+			_commercePriceListLocalService.forceDeleteCommercePriceList(
 				catalogBaseCommercePriceList);
 		}
 	}

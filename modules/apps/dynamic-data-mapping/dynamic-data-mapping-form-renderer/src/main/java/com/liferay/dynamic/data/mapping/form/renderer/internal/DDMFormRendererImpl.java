@@ -81,7 +81,7 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 		throws DDMFormRenderingException {
 
 		try {
-			return doRender(ddmForm, ddmFormLayout, ddmFormRenderingContext);
+			return _render(ddmForm, ddmFormLayout, ddmFormRenderingContext);
 		}
 		catch (DDMFormRenderingException ddmFormRenderingException) {
 			throw ddmFormRenderingException;
@@ -97,7 +97,7 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 		throws DDMFormRenderingException {
 
 		try {
-			return doRender(
+			return _render(
 				ddmForm, _ddm.getDefaultDDMFormLayout(ddmForm),
 				ddmFormRenderingContext);
 		}
@@ -109,7 +109,7 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 		}
 	}
 
-	protected String doRender(
+	private String _render(
 			DDMForm ddmForm, DDMFormLayout ddmFormLayout,
 			DDMFormRenderingContext ddmFormRenderingContext)
 		throws Exception {
@@ -133,7 +133,7 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 	}
 
 	private static final String _MODULE_NAME =
-		"dynamic-data-mapping-form-renderer/js/custom/form/FormView.es";
+		"data-engine-js-components-web/js/custom/form/FormView.es";
 
 	@Reference
 	private DDM _ddm;

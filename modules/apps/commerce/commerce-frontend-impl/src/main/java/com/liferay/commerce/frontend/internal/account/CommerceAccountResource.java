@@ -57,7 +57,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.webserver.WebServerServletTokenUtil;
+import com.liferay.portal.kernel.webserver.WebServerServletToken;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.ArrayList;
@@ -95,13 +95,13 @@ public class CommerceAccountResource {
 			String keywords, int page, int pageSize, String imagePath)
 		throws PortalException {
 
-		List<Account> accounts = getAccounts(
+		List<Account> accounts = _getAccounts(
 			userId, parentAccountId, commerceSiteType, keywords, page, pageSize,
 			imagePath);
 
 		return new AccountList(
 			accounts,
-			getAccountsCount(
+			_getAccountsCount(
 				userId, parentAccountId, commerceSiteType, keywords));
 	}
 
@@ -155,12 +155,12 @@ public class CommerceAccountResource {
 				pageSize, themeDisplay.getPathImage());
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 			accountList = new AccountList(
 				StringUtil.split(exception.getLocalizedMessage()));
 		}
 
-		return getResponse(accountList);
+		return _getResponse(accountList);
 	}
 
 	@GET
@@ -187,7 +187,7 @@ public class CommerceAccountResource {
 				StringUtil.split(exception.getLocalizedMessage()));
 		}
 
-		return getResponse(orderList);
+		return _getResponse(orderList);
 	}
 
 	public OrderList getOrderList(
@@ -195,7 +195,7 @@ public class CommerceAccountResource {
 			HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		List<Order> orders = getOrders(
+		List<Order> orders = _getOrders(
 			groupId, accountId, page, pageSize, httpServletRequest);
 
 		return new OrderList(orders, orders.size());
@@ -220,7 +220,7 @@ public class CommerceAccountResource {
 				StringUtil.split(exception.getLocalizedMessage()));
 		}
 
-		return getResponse(accountOrganizationList);
+		return _getResponse(accountOrganizationList);
 	}
 
 	@GET
@@ -242,7 +242,7 @@ public class CommerceAccountResource {
 				StringUtil.split(exception.getLocalizedMessage()));
 		}
 
-		return getResponse(accountUserList);
+		return _getResponse(accountUserList);
 	}
 
 	@Path("/set-current-account")
@@ -261,7 +261,7 @@ public class CommerceAccountResource {
 				accountId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			Response.ResponseBuilder responseBuilder = Response.serverError();
 
@@ -272,7 +272,7 @@ public class CommerceAccountResource {
 		).build();
 	}
 
-	protected List<Account> getAccounts(
+	private List<Account> _getAccounts(
 			long userId, long parentAccountId, int commerceSiteType,
 			String keywords, int page, int pageSize, String imagePath)
 		throws PortalException {
@@ -292,14 +292,14 @@ public class CommerceAccountResource {
 				new Account(
 					String.valueOf(commerceAccount.getCommerceAccountId()),
 					commerceAccount.getName(),
-					getLogoThumbnailSrc(
+					_getLogoThumbnailSrc(
 						commerceAccount.getLogoId(), imagePath)));
 		}
 
 		return accounts;
 	}
 
-	protected int getAccountsCount(
+	private int _getAccountsCount(
 			long userId, Long parentAccountId, int commerceSiteType,
 			String keywords)
 		throws PortalException {
@@ -308,19 +308,36 @@ public class CommerceAccountResource {
 			userId, parentAccountId, commerceSiteType, keywords);
 	}
 
-	protected String getLogoThumbnailSrc(long logoId, String imagePath) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(imagePath);
-		sb.append("/organization_logo?img_id=");
-		sb.append(logoId);
-		sb.append("&t=");
-		sb.append(WebServerServletTokenUtil.getToken(logoId));
-
-		return sb.toString();
+	private String _getLogoThumbnailSrc(long logoId, String imagePath) {
+		return StringBundler.concat(
+			imagePath, "/organization_logo?img_id=", logoId, "&t=",
+			_webServerServletToken.getToken(logoId));
 	}
 
-	protected List<Order> getOrders(
+	private String _getOrderLinkURL(
+			long groupId, long commerceOrderId,
+			HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		long plid = _portal.getPlidFromPortletId(
+			groupId, CommercePortletKeys.COMMERCE_OPEN_ORDER_CONTENT);
+
+		LiferayPortletURL editURL = PortletURLFactoryUtil.create(
+			_portal.getOriginalServletRequest(httpServletRequest),
+			CommercePortletKeys.COMMERCE_OPEN_ORDER_CONTENT, plid,
+			PortletRequest.ACTION_PHASE);
+
+		editURL.setParameter(
+			ActionRequest.ACTION_NAME,
+			"/commerce_open_order_content/edit_commerce_order");
+		editURL.setParameter(Constants.CMD, "setCurrent");
+		editURL.setParameter(
+			"commerceOrderId", String.valueOf(commerceOrderId));
+
+		return editURL.toString();
+	}
+
+	private List<Order> _getOrders(
 			long groupId, long commerceAccountId, int page, int pageSize,
 			HttpServletRequest httpServletRequest)
 		throws PortalException {
@@ -365,7 +382,7 @@ public class CommerceAccountResource {
 		return orders;
 	}
 
-	protected Response getResponse(Object object) {
+	private Response _getResponse(Object object) {
 		if (object == null) {
 			return Response.status(
 				Response.Status.NOT_FOUND
@@ -380,7 +397,7 @@ public class CommerceAccountResource {
 			).build();
 		}
 		catch (JsonProcessingException jsonProcessingException) {
-			_log.error(jsonProcessingException, jsonProcessingException);
+			_log.error(jsonProcessingException);
 		}
 
 		return Response.status(
@@ -388,39 +405,10 @@ public class CommerceAccountResource {
 		).build();
 	}
 
-	protected String getUserPortraitSrc(User user, String imagePath) {
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(imagePath);
-		sb.append("/user_portrait?screenName=");
-		sb.append(user.getScreenName());
-		sb.append("&amp;companyId=");
-		sb.append(user.getCompanyId());
-
-		return sb.toString();
-	}
-
-	private String _getOrderLinkURL(
-			long groupId, long commerceOrderId,
-			HttpServletRequest httpServletRequest)
-		throws PortalException {
-
-		long plid = _portal.getPlidFromPortletId(
-			groupId, CommercePortletKeys.COMMERCE_OPEN_ORDER_CONTENT);
-
-		LiferayPortletURL editURL = PortletURLFactoryUtil.create(
-			_portal.getOriginalServletRequest(httpServletRequest),
-			CommercePortletKeys.COMMERCE_OPEN_ORDER_CONTENT, plid,
-			PortletRequest.ACTION_PHASE);
-
-		editURL.setParameter(
-			ActionRequest.ACTION_NAME,
-			"/commerce_open_order_content/edit_commerce_order");
-		editURL.setParameter(Constants.CMD, "setCurrent");
-		editURL.setParameter(
-			"commerceOrderId", String.valueOf(commerceOrderId));
-
-		return editURL.toString();
+	private String _getUserPortraitSrc(User user, String imagePath) {
+		return StringBundler.concat(
+			imagePath, "/user_portrait?screenName=", user.getScreenName(),
+			"&amp;companyId=", user.getCompanyId());
 	}
 
 	private List<AccountOrganization> _searchOrganizations(
@@ -441,7 +429,7 @@ public class CommerceAccountResource {
 				new AccountOrganization(
 					organization.getOrganizationId(), organization.getName(),
 					StringPool.BLANK,
-					getLogoThumbnailSrc(organization.getLogoId(), imagePath)));
+					_getLogoThumbnailSrc(organization.getLogoId(), imagePath)));
 		}
 
 		return accountOrganizations;
@@ -461,7 +449,7 @@ public class CommerceAccountResource {
 				new AccountUser(
 					user.getUserId(), user.getFullName(),
 					user.getEmailAddress(),
-					getUserPortraitSrc(user, imagePath)));
+					_getUserPortraitSrc(user, imagePath)));
 		}
 
 		return accountUsers;
@@ -500,5 +488,8 @@ public class CommerceAccountResource {
 
 	@Reference
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private WebServerServletToken _webServerServletToken;
 
 }

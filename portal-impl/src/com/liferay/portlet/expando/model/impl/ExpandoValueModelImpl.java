@@ -16,7 +16,6 @@ package com.liferay.portlet.expando.model.impl;
 
 import com.liferay.expando.kernel.model.ExpandoValue;
 import com.liferay.expando.kernel.model.ExpandoValueModel;
-import com.liferay.expando.kernel.model.ExpandoValueSoap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.json.JSON;
@@ -26,20 +25,20 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -162,58 +161,6 @@ public class ExpandoValueModelImpl
 	@Deprecated
 	public static final long TABLEID_COLUMN_BITMASK = 32L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static ExpandoValue toModel(ExpandoValueSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		ExpandoValue model = new ExpandoValueImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setValueId(soapModel.getValueId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setTableId(soapModel.getTableId());
-		model.setColumnId(soapModel.getColumnId());
-		model.setRowId(soapModel.getRowId());
-		model.setClassNameId(soapModel.getClassNameId());
-		model.setClassPK(soapModel.getClassPK());
-		model.setData(soapModel.getData());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<ExpandoValue> toModels(ExpandoValueSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<ExpandoValue> models = new ArrayList<ExpandoValue>(
-			soapModels.length);
-
-		for (ExpandoValueSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.expando.kernel.model.ExpandoValue"));
@@ -301,34 +248,6 @@ public class ExpandoValueModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, ExpandoValue>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			ExpandoValue.class.getClassLoader(), ExpandoValue.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<ExpandoValue> constructor =
-				(Constructor<ExpandoValue>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<ExpandoValue, Object>>
@@ -681,6 +600,32 @@ public class ExpandoValueModelImpl
 	}
 
 	@Override
+	public ExpandoValue cloneWithOriginalValues() {
+		ExpandoValueImpl expandoValueImpl = new ExpandoValueImpl();
+
+		expandoValueImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		expandoValueImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		expandoValueImpl.setValueId(
+			this.<Long>getColumnOriginalValue("valueId"));
+		expandoValueImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		expandoValueImpl.setTableId(
+			this.<Long>getColumnOriginalValue("tableId"));
+		expandoValueImpl.setColumnId(
+			this.<Long>getColumnOriginalValue("columnId"));
+		expandoValueImpl.setRowId(this.<Long>getColumnOriginalValue("rowId_"));
+		expandoValueImpl.setClassNameId(
+			this.<Long>getColumnOriginalValue("classNameId"));
+		expandoValueImpl.setClassPK(
+			this.<Long>getColumnOriginalValue("classPK"));
+		expandoValueImpl.setData(this.<String>getColumnOriginalValue("data_"));
+
+		return expandoValueImpl;
+	}
+
+	@Override
 	public int compareTo(ExpandoValue expandoValue) {
 		int value = 0;
 
@@ -821,7 +766,7 @@ public class ExpandoValueModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -832,9 +777,26 @@ public class ExpandoValueModelImpl
 			Function<ExpandoValue, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((ExpandoValue)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((ExpandoValue)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -881,7 +843,9 @@ public class ExpandoValueModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, ExpandoValue>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					ExpandoValue.class, ModelWrapper.class);
 
 	}
 

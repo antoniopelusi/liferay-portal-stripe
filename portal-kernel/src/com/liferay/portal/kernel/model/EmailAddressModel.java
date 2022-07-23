@@ -292,4 +292,7 @@ public interface EmailAddressModel
 	 */
 	public void setPrimary(boolean primary);
 
+	@Override
+	public EmailAddress cloneWithOriginalValues();
+
 }

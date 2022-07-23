@@ -46,7 +46,7 @@
 			</c:if>
 		</span>
 	</c:when>
-	<c:otherwise>
+	<c:when test="<%= themeDisplay.isShowSignInIcon() %>">
 		<span class="sign-in text-default" role="presentation">
 			<aui:icon
 				cssClass="sign-in text-default"
@@ -141,6 +141,9 @@
 
 					Liferay.Util.openModal({
 						bodyHTML: html ? html : '<span class="loading-animation">',
+						containerProps: {
+							className: '',
+						},
 						height: '400px',
 						onClose: function () {
 							loading = false;
@@ -161,5 +164,5 @@
 				});
 			}
 		</aui:script>
-	</c:otherwise>
+	</c:when>
 </c:choose>

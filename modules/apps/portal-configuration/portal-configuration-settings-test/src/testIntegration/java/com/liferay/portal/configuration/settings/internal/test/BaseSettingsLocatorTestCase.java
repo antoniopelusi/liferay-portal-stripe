@@ -29,7 +29,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.test.rule.Inject;
@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,52 +94,12 @@ public abstract class BaseSettingsLocatorTestCase {
 			Serializable propertyValue)
 		throws Exception {
 
-		Configuration configuration = getFactoryConfiguration(
+		Configuration configuration = _getFactoryConfiguration(
 			factoryPid, scope, scopePK, propertyKey, propertyValue);
 
 		if (configuration != null) {
 			ConfigurationTestUtil.deleteConfiguration(configuration);
 		}
-	}
-
-	protected Configuration getFactoryConfiguration(
-			String factoryPid, ExtendedObjectClassDefinition.Scope scope,
-			Serializable scopePK, String propertyKey,
-			Serializable propertyValue)
-		throws ConfigurationException {
-
-		try {
-			String filterString = StringBundler.concat(
-				"(&",
-				getPropertyFilterString(
-					"service.factoryPid", factoryPid + ".scoped"),
-				getPropertyFilterString(scope.getPropertyKey(), scopePK),
-				getPropertyFilterString(propertyKey, propertyValue), ")");
-
-			Configuration[] configurations =
-				_configurationAdmin.listConfigurations(filterString);
-
-			if (configurations != null) {
-				return configurations[0];
-			}
-
-			return null;
-		}
-		catch (InvalidSyntaxException | IOException exception) {
-			throw new ConfigurationException(
-				"Unable to retrieve factory configuration " + factoryPid,
-				exception);
-		}
-	}
-
-	protected String getPropertyFilterString(String key, Serializable value) {
-		if (Validator.isNull(key) || Validator.isNull(value)) {
-			return StringPool.BLANK;
-		}
-
-		return StringBundler.concat(
-			StringPool.OPEN_PARENTHESIS, key, StringPool.EQUAL, value,
-			StringPool.CLOSE_PARENTHESIS);
 	}
 
 	protected String getSettingsValue() throws Exception {
@@ -161,13 +120,13 @@ public abstract class BaseSettingsLocatorTestCase {
 	protected String saveConfiguration(String configurationPid)
 		throws Exception {
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
 		String value = RandomTestUtil.randomString();
 
-		properties.put(SettingsLocatorTestConstants.TEST_KEY, value);
-
-		ConfigurationTestUtil.saveConfiguration(configurationPid, properties);
+		ConfigurationTestUtil.saveConfiguration(
+			configurationPid,
+			HashMapDictionaryBuilder.<String, Object>put(
+				SettingsLocatorTestConstants.TEST_KEY, value
+			).build());
 
 		_configurationPids.add(configurationPid);
 
@@ -188,22 +147,26 @@ public abstract class BaseSettingsLocatorTestCase {
 			Serializable propertyValue)
 		throws Exception {
 
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put(scope.getPropertyKey(), scopePK);
-
-		if (Validator.isNotNull(propertyKey) &&
-			Validator.isNotNull(propertyValue)) {
-
-			properties.put(propertyKey, propertyValue);
-		}
-
 		String value = RandomTestUtil.randomString();
 
-		properties.put(SettingsLocatorTestConstants.TEST_KEY, value);
-
 		String pid = ConfigurationTestUtil.createFactoryConfiguration(
-			factoryPid + ".scoped", properties);
+			factoryPid + ".scoped",
+			HashMapDictionaryBuilder.<String, Object>put(
+				scope.getPropertyKey(), scopePK
+			).put(
+				propertyKey,
+				() -> {
+					if (Validator.isNotNull(propertyKey) &&
+						Validator.isNotNull(propertyValue)) {
+
+						return propertyValue;
+					}
+
+					return null;
+				}
+			).put(
+				SettingsLocatorTestConstants.TEST_KEY, value
+			).build());
 
 		_factoryConfigurationPids.add(pid);
 
@@ -247,6 +210,46 @@ public abstract class BaseSettingsLocatorTestCase {
 
 	protected final String portletId = RandomTestUtil.randomString();
 	protected SettingsLocator settingsLocator;
+
+	private Configuration _getFactoryConfiguration(
+			String factoryPid, ExtendedObjectClassDefinition.Scope scope,
+			Serializable scopePK, String propertyKey,
+			Serializable propertyValue)
+		throws Exception {
+
+		try {
+			String filterString = StringBundler.concat(
+				"(&",
+				_getPropertyFilterString(
+					"service.factoryPid", factoryPid + ".scoped"),
+				_getPropertyFilterString(scope.getPropertyKey(), scopePK),
+				_getPropertyFilterString(propertyKey, propertyValue), ")");
+
+			Configuration[] configurations =
+				_configurationAdmin.listConfigurations(filterString);
+
+			if (configurations != null) {
+				return configurations[0];
+			}
+
+			return null;
+		}
+		catch (InvalidSyntaxException | IOException exception) {
+			throw new ConfigurationException(
+				"Unable to retrieve factory configuration " + factoryPid,
+				exception);
+		}
+	}
+
+	private String _getPropertyFilterString(String key, Serializable value) {
+		if (Validator.isNull(key) || Validator.isNull(value)) {
+			return StringPool.BLANK;
+		}
+
+		return StringBundler.concat(
+			StringPool.OPEN_PARENTHESIS, key, StringPool.EQUAL, value,
+			StringPool.CLOSE_PARENTHESIS);
+	}
 
 	private static final Set<String> _configurationPids = new HashSet<>();
 	private static final Set<String> _factoryConfigurationPids =

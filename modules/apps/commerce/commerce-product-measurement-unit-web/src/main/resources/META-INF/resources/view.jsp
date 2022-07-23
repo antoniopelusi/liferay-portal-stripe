@@ -94,7 +94,7 @@ CPMeasurementUnitsDisplayContext cpMeasurementUnitsDisplayContext = (CPMeasureme
 					modelVar="cpMeasurementUnit"
 				>
 					<liferay-ui:search-container-column-text
-						cssClass="important table-cell-expand"
+						cssClass="font-weight-bold important table-cell-expand"
 						href='<%=
 							PortletURLBuilder.createRenderURL(
 								renderResponse
@@ -106,7 +106,7 @@ CPMeasurementUnitsDisplayContext cpMeasurementUnitsDisplayContext = (CPMeasureme
 								"cpMeasurementUnitId", cpMeasurementUnit.getCPMeasurementUnitId()
 							).setParameter(
 								"type", cpMeasurementUnitsDisplayContext.getType()
-							).build()
+							).buildPortletURL()
 						%>'
 						name="name"
 						value="<%= HtmlUtil.escape(cpMeasurementUnit.getName(locale)) %>"

@@ -9,7 +9,7 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import React, {useState} from 'react';
 
 import {InstanceListContext} from '../../../../../../src/main/resources/META-INF/resources/js/components/instance-list-page/InstanceListPageProvider.es';
@@ -17,6 +17,7 @@ import {ModalContext} from '../../../../../../src/main/resources/META-INF/resour
 import BulkTransitionModal from '../../../../../../src/main/resources/META-INF/resources/js/components/instance-list-page/modal/transition/bulk/BulkTransitionModal.es';
 import ToasterProvider from '../../../../../../src/main/resources/META-INF/resources/js/shared/components/toaster/ToasterProvider.es';
 import {MockRouter} from '../../../../../mock/MockRouter.es';
+import FetchMock, {fetchMockResponse} from '../../../../../mock/fetch.es';
 
 import '@testing-library/jest-dom/extend-expect';
 
@@ -43,7 +44,10 @@ const tasks = (range) =>
 		label: 'Review',
 		name: 'review',
 		processId: id + 1,
+		processVersion: '1.0',
 	}));
+
+const updateTaskItem = {...tasks(1)[0], label: 'Update', name: 'update'};
 
 const {data, items, processSteps} = {
 	data: {
@@ -75,57 +79,12 @@ const {data, items, processSteps} = {
 					},
 				],
 				workflowDefinitionVersion: '1',
-				workflowTaskLabel: 'Review',
-				workflowTaskName: 'review',
-			},
-			{
-				transitions: [
-					{
-						label: 'Approve',
-						name: 'approve',
-					},
-					{
-						label: 'Reject',
-						name: 'reject',
-					},
-				],
-				workflowDefinitionVersion: '1',
-				workflowTaskLabel: 'Review',
-				workflowTaskName: 'review',
-			},
-			{
-				transitions: [
-					{
-						label: 'Approve',
-						name: 'approve',
-					},
-					{
-						label: 'Reject',
-						name: 'reject',
-					},
-				],
-				workflowDefinitionVersion: '1',
-				workflowTaskLabel: 'Review',
-				workflowTaskName: 'review',
-			},
-			{
-				transitions: [
-					{
-						label: 'Approve',
-						name: 'approve',
-					},
-					{
-						label: 'Reject',
-						name: 'reject',
-					},
-				],
-				workflowDefinitionVersion: '1',
-				workflowTaskLabel: 'Review',
-				workflowTaskName: 'review',
+				workflowTaskLabel: 'Update',
+				workflowTaskName: 'update',
 			},
 		],
 	},
-	items: tasks(13),
+	items: [...tasks(13), updateTaskItem],
 	lastPage: 9,
 	page: 1,
 	pageSize: 5,
@@ -136,17 +95,40 @@ const {data, items, processSteps} = {
 	totalCount: 45,
 };
 
-const mockTasks = {
-	data: {items, totalCount: items.length + 1},
-};
+const mockTasks = {items, totalCount: items.length + 1};
 
-const ContainerMockPrimary = ({children}) => {
+const fetchMock = new FetchMock({
+	GET: {
+		default: fetchMockResponse({items: processSteps}),
+	},
+	PATCH: {
+		default: [fetchMockResponse({}, false), fetchMockResponse()],
+	},
+	POST: {
+		default: [
+			fetchMockResponse(new Error('Request failed 1'), false),
+			fetchMockResponse(new Error('Request failed 1'), false),
+			fetchMockResponse(new Error('Request failed 1'), false),
+			fetchMockResponse(mockTasks),
+			fetchMockResponse(mockTasks),
+			fetchMockResponse(new Error('Request failed 2'), false),
+			fetchMockResponse(new Error('Request failed 2'), false),
+			fetchMockResponse(mockTasks),
+			fetchMockResponse(data),
+		],
+	},
+});
+
+const ContainerMock = ({children}) => {
 	const processId = '12345';
 
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const [bulkTransition, setBulkTransition] = useState({
 		transition: {errors: {}, onGoing: false},
 		transitionTasks: [],
 	});
+
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const [selectedItems, setSelectedItems] = useState([
 		{
 			assetTitle: 'Blog1',
@@ -165,32 +147,15 @@ const ContainerMockPrimary = ({children}) => {
 			taskNames: ['Review'],
 		},
 	]);
+
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const [selectTasks, setSelectTasks] = useState({
 		selectAll: false,
 		tasks: [],
 	});
 
-	const clientMock = {
-		patch: jest
-			.fn()
-			.mockRejectedValueOnce(new Error('request-failure'))
-			.mockResolvedValue({data: {}}),
-		post: jest
-			.fn()
-			.mockRejectedValueOnce(new Error('request-failure'))
-			.mockResolvedValueOnce(mockTasks)
-			.mockResolvedValueOnce(mockTasks)
-			.mockRejectedValueOnce(new Error('request-failure'))
-			.mockResolvedValue({data}),
-		request: jest
-			.fn()
-			.mockResolvedValueOnce({data: {items: processSteps}})
-			.mockResolvedValueOnce({data: {items: processSteps}})
-			.mockResolvedValueOnce({data: {items: processSteps}}),
-	};
-
 	return (
-		<MockRouter client={clientMock}>
+		<MockRouter>
 			<InstanceListContext.Provider
 				value={{
 					selectedItems,
@@ -214,88 +179,32 @@ const ContainerMockPrimary = ({children}) => {
 	);
 };
 
-const ContainerMockSecondary = ({children}) => {
-	const processId = '12345';
-
-	const [bulkTransition, setBulkTransition] = useState({
-		transition: {errors: {}, onGoing: false},
-		transitionTasks: [],
-	});
-	const selectAll = true;
-	const [selectedItems, setSelectedItems] = useState([
-		{
-			assetTitle: 'Blog1',
-			assetType: 'Blogs Entry',
-			assignees: [{id: 2, name: 'Test Test'}],
-			id: 1,
-			status: 'In Progress',
-			taskNames: ['Review'],
-		},
-		{
-			assetTitle: 'Blog2',
-			assetType: 'Blogs Entry',
-			assignees: [{id: 2, name: 'Test Test'}],
-			id: 2,
-			status: 'In Progress',
-			taskNames: ['Review'],
-		},
-	]);
-	const [selectTasks, setSelectTasks] = useState({
-		selectAll: false,
-		tasks: [],
-	});
-	const [visibleModal] = useState('bulkTransition');
-
-	const clientMock = {
-		get: jest.fn().mockResolvedValueOnce({data}),
-		post: jest.fn().mockResolvedValue({
-			data: {items, totalCount: items.length + 1},
-		}),
-		request: jest.fn().mockResolvedValueOnce({data: {items: processSteps}}),
-	};
-
-	return (
-		<MockRouter client={clientMock}>
-			<InstanceListContext.Provider
-				value={{
-					selectAll,
-					selectedItems,
-					setSelectedItems,
-				}}
-			>
-				<ModalContext.Provider
-					value={{
-						bulkTransition,
-						processId,
-						selectTasks,
-						setBulkTransition,
-						setSelectTasks,
-						visibleModal,
-					}}
-				>
-					<ToasterProvider>{children}</ToasterProvider>
-				</ModalContext.Provider>
-			</InstanceListContext.Provider>
-		</MockRouter>
-	);
-};
-
 describe('The BulkTransitionModal component should', () => {
-	let getAllByRole, getAllByText, getByText;
+	let getAllByText;
+	let getByText;
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		const component = render(<BulkTransitionModal />, {
-			wrapper: ContainerMockPrimary,
+			wrapper: ContainerMock,
 		});
 
-		getAllByRole = component.getAllByRole;
 		getAllByText = component.getAllByText;
 		getByText = component.getByText;
 
-		jest.runAllTimers();
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Render "Select tasks" step with fetch error and retrying', () => {
+	beforeEach(() => {
+		fetchMock.mock();
+	});
+
+	afterEach(() => {
+		fetchMock.reset();
+	});
+
+	it('Render "Select tasks" step with fetch error and retrying', async () => {
 		const alertError = getByText('your-request-has-failed');
 		const emptyStateMessage = getByText('unable-to-retrieve-data');
 		const retryButton = getByText('retry');
@@ -304,22 +213,28 @@ describe('The BulkTransitionModal component should', () => {
 		expect(emptyStateMessage).toBeTruthy();
 
 		fireEvent.click(retryButton);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Render "Select tasks" step with items', () => {
+	xit('Render "Select tasks" step with items', async () => {
 		const cancelBtn = getByText('cancel');
 		const checkAllButton = document.querySelectorAll(
 			'.custom-control-input'
 		)[0];
 		const modal = document.querySelector('.modal');
 		const nextBtn = getByText('next');
-		const rows = getAllByRole('row');
+		const checkboxes = document.querySelectorAll(
+			'input.custom-control-input'
+		);
 		const stepBar = document.querySelector('.step-of-bar');
 		const table = document.querySelector('.table');
 
 		const content = modal.children[0].children[0];
-		const checkbox1 = rows[1].querySelector('input.custom-control-input');
-		const checkbox2 = rows[2].querySelector('input.custom-control-input');
+		const checkbox1 = checkboxes[1];
+		const checkbox2 = checkboxes[2];
 
 		const header = content.children[0];
 
@@ -348,6 +263,10 @@ describe('The BulkTransitionModal component should', () => {
 
 		fireEvent.click(checkAllButton);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		let label = getByText('x-of-x-selected');
 
 		expect(checkbox1.checked).toBe(true);
@@ -359,11 +278,19 @@ describe('The BulkTransitionModal component should', () => {
 
 		fireEvent.click(clearButton);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(checkbox1.checked).toBe(false);
 		expect(checkbox2.checked).toBe(false);
 		expect(checkAllButton.checked).toBe(false);
 
 		fireEvent.click(checkbox1);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		label = getByText('x-of-x-selected');
 
@@ -374,11 +301,19 @@ describe('The BulkTransitionModal component should', () => {
 
 		fireEvent.click(checkbox1);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(checkbox1.checked).toBe(false);
 		expect(checkbox2.checked).toBe(false);
 		expect(checkAllButton.checked).toBe(false);
 
 		fireEvent.click(checkAllButton);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(checkbox1.checked).toBe(true);
 		expect(checkbox2.checked).toBe(true);
@@ -396,20 +331,27 @@ describe('The BulkTransitionModal component should', () => {
 		expect(nextBtn).not.toBeDisabled();
 
 		fireEvent.click(nextBtn);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Render "Select transitions" step failing the fetch and retry then', () => {
+	xit('Render "Select transitions" step failing the fetch and retry then', async () => {
 		const alertError = getByText('your-request-has-failed');
-		const nextButton = getByText('done');
+		const nextButton = getByText('next');
 
 		expect(alertError).toBeTruthy();
 
 		fireEvent.click(nextButton);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Load the second step and all transitions successfully', () => {
+	xit('Load the second step and all transitions successfully', async () => {
 		const modal = document.querySelector('.modal');
-		const nextBtn = getByText('done');
 		const stepBar = document.querySelector('.step-of-bar');
 
 		const content = modal.children[0].children[0];
@@ -419,31 +361,24 @@ describe('The BulkTransitionModal component should', () => {
 		expect(header).toHaveTextContent('choose-transition-per-step');
 		expect(stepBar.children[0]).toHaveTextContent('choose-transition');
 		expect(stepBar.children[1]).toHaveTextContent('step-x-of-x');
-
-		fireEvent.click(nextBtn);
 	});
 
-	test('Load transitions and show alert message when select "done" and fail the patch request and retry the request', () => {
-		const alertError = getByText(
-			'your-request-has-failed select-done-to-retry'
-		);
+	xit('Show alert message when attempt to transition without selecting any transition go to previous step and forward', async () => {
 		const nextBtn = getByText('done');
 
-		expect(alertError).toBeTruthy();
-
 		fireEvent.click(nextBtn);
-	});
 
-	test('Show alert message when attempt to transition without selecting any transition go to previous step and forward', () => {
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		const alertError = getByText(
-			'your-request-has-failed select-done-to-retry'
+			'all-steps-require-a-transition-to-be-selected-to-complete-this-action'
 		);
 
 		expect(alertError).toBeTruthy();
 
 		const modal = document.querySelector('.modal');
-		const nextBtn = getByText('done');
-
 		const content = modal.children[0].children[0];
 
 		const header = content.children[0];
@@ -451,26 +386,75 @@ describe('The BulkTransitionModal component should', () => {
 
 		fireEvent.click(previousButton);
 
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
 		expect(header).toHaveTextContent('select-steps-to-transition');
 
 		fireEvent.click(nextBtn);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 	});
 
-	test('Select a transition to "approve", click "Show All" button, add a comment and retry patch request successfully', async () => {
-		const addCommentButton = getByText('add-comment');
+	xit('render a panel for each task names', () => {
+		const taskNamesPanel = document.querySelectorAll('.panel-header > h4');
+
+		expect(taskNamesPanel[0]).toHaveTextContent('Review');
+		expect(taskNamesPanel[1]).toHaveTextContent('Update');
+	});
+
+	xit('Select a transition to "approve" and fail the patch request and retry then', async () => {
+		const nextBtn = getByText('done');
+		const reviewTransitionSelect = document.querySelector(
+			'#transitionSelect0_0'
+		);
+		const updateTransitionSelect = document.querySelector(
+			'#transitionSelect0_1'
+		);
+
+		fireEvent.change(reviewTransitionSelect, {target: {value: 'approve'}});
+		fireEvent.change(updateTransitionSelect, {target: {value: 'approve'}});
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
+		expect(reviewTransitionSelect.value).toEqual('approve');
+
+		fireEvent.click(nextBtn);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
+		const alertError = getByText(
+			'your-request-has-failed select-done-to-retry'
+		);
+
+		expect(alertError).toBeTruthy();
+	});
+
+	xit('Click "Show All" button, add a comment and retry patch request successfully', async () => {
+		const addCommentButton = getAllByText('add-comment')[0];
 		const nextBtn = getByText('done');
 		const showAllButton = getByText('show-all');
-		const transitionSelect = document.querySelector('#transitionSelect0_0');
-
-		fireEvent.change(transitionSelect, {target: {value: 'approve'}});
-
-		expect(transitionSelect.value).toEqual('approve');
 
 		fireEvent.click(showAllButton);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(showAllButton).toHaveTextContent('show-less');
 
 		fireEvent.click(addCommentButton);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
 		expect(document.querySelector('.panel-footer')).toHaveTextContent(
 			'comment (optional)'
@@ -482,41 +466,22 @@ describe('The BulkTransitionModal component should', () => {
 			target: {value: 'Transition comment text'},
 		});
 
-		expect(commentField.value).toEqual('Transition comment text');
-
-		await fireEvent.click(nextBtn);
-
-		const alertToast = await document.querySelectorAll(
-			'.alert-dismissible'
-		);
-
-		expect(alertToast[0]).toHaveTextContent(
-			'the-selected-step-has-transitioned-successfully'
-		);
-	});
-
-	test('Check all tasks and step forward to "Select Transition" step and show loading view', async () => {
-		cleanup();
-		const {getByText} = render(<BulkTransitionModal />, {
-			wrapper: ContainerMockSecondary,
+		await act(async () => {
+			jest.runAllTimers();
 		});
 
-		await jest.runAllTimers();
-		const checkAllButton = document.querySelectorAll(
-			'.custom-control-input'
-		)[0];
-		const nextBtn = getByText('next');
+		expect(commentField.value).toEqual('Transition comment text');
 
-		await fireEvent.click(checkAllButton);
+		fireEvent.click(nextBtn);
 
-		const selectAll = getByText('select-all');
+		await act(async () => {
+			jest.runAllTimers();
+		});
 
-		fireEvent.click(selectAll);
+		const alertToast = document.querySelectorAll('.alert-dismissible');
 
-		await fireEvent.click(nextBtn);
-
-		const loadingState = document.querySelector('span.loading-animation');
-
-		expect(loadingState).toBeTruthy();
+		expect(alertToast[0]).toHaveTextContent(
+			'success:the-selected-steps-have-transitioned-successfully'
+		);
 	});
 });

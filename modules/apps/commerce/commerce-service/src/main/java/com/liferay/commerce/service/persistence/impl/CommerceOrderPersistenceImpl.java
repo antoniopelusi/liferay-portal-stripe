@@ -20,8 +20,8 @@ import com.liferay.commerce.model.CommerceOrderTable;
 import com.liferay.commerce.model.impl.CommerceOrderImpl;
 import com.liferay.commerce.model.impl.CommerceOrderModelImpl;
 import com.liferay.commerce.service.persistence.CommerceOrderPersistence;
+import com.liferay.commerce.service.persistence.CommerceOrderUtil;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -29,29 +29,36 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.sanitizer.Sanitizer;
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
+import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.sql.Timestamp;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,11 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * The persistence implementation for the commerce order service.
@@ -7766,6 +7768,12 @@ public class CommerceOrderPersistenceImpl
 
 		dbColumnNames.put("uuid", "uuid_");
 		dbColumnNames.put(
+			"deliveryCommerceTermEntryDescription",
+			"deliveryCTermEntryDescription");
+		dbColumnNames.put(
+			"paymentCommerceTermEntryDescription",
+			"paymentCTermEntryDescription");
+		dbColumnNames.put(
 			"subtotalDiscountPercentageLevel1",
 			"subtotalDiscountPercentLevel1");
 		dbColumnNames.put(
@@ -7861,6 +7869,8 @@ public class CommerceOrderPersistenceImpl
 			commerceOrder);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the commerce orders in the entity cache if it is enabled.
 	 *
@@ -7868,6 +7878,13 @@ public class CommerceOrderPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<CommerceOrder> commerceOrders) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (commerceOrders.size() > _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (CommerceOrder commerceOrder : commerceOrders) {
 			if (entityCache.getResult(
 					CommerceOrderImpl.class, commerceOrder.getPrimaryKey()) ==
@@ -7955,7 +7972,7 @@ public class CommerceOrderPersistenceImpl
 		commerceOrder.setNew(true);
 		commerceOrder.setPrimaryKey(commerceOrderId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		commerceOrder.setUuid(uuid);
 
@@ -8074,7 +8091,7 @@ public class CommerceOrderPersistenceImpl
 			(CommerceOrderModelImpl)commerceOrder;
 
 		if (Validator.isNull(commerceOrder.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			commerceOrder.setUuid(uuid);
 		}
@@ -8082,24 +8099,59 @@ public class CommerceOrderPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (commerceOrder.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				commerceOrder.setCreateDate(now);
+				commerceOrder.setCreateDate(date);
 			}
 			else {
-				commerceOrder.setCreateDate(serviceContext.getCreateDate(now));
+				commerceOrder.setCreateDate(serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!commerceOrderModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				commerceOrder.setModifiedDate(now);
+				commerceOrder.setModifiedDate(date);
 			}
 			else {
 				commerceOrder.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
+			}
+		}
+
+		long userId = GetterUtil.getLong(PrincipalThreadLocal.getName());
+
+		if (userId > 0) {
+			long companyId = commerceOrder.getCompanyId();
+
+			long groupId = commerceOrder.getGroupId();
+
+			long commerceOrderId = 0;
+
+			if (!isNew) {
+				commerceOrderId = commerceOrder.getPrimaryKey();
+			}
+
+			try {
+				commerceOrder.setDeliveryCommerceTermEntryDescription(
+					SanitizerUtil.sanitize(
+						companyId, groupId, userId,
+						CommerceOrder.class.getName(), commerceOrderId,
+						ContentTypes.TEXT_PLAIN, Sanitizer.MODE_ALL,
+						commerceOrder.getDeliveryCommerceTermEntryDescription(),
+						null));
+
+				commerceOrder.setPaymentCommerceTermEntryDescription(
+					SanitizerUtil.sanitize(
+						companyId, groupId, userId,
+						CommerceOrder.class.getName(), commerceOrderId,
+						ContentTypes.TEXT_PLAIN, Sanitizer.MODE_ALL,
+						commerceOrder.getPaymentCommerceTermEntryDescription(),
+						null));
+			}
+			catch (SanitizerException sanitizerException) {
+				throw new SystemException(sanitizerException);
 			}
 		}
 
@@ -8395,14 +8447,8 @@ public class CommerceOrderPersistenceImpl
 	 * Initializes the commerce order persistence.
 	 */
 	public void afterPropertiesSet() {
-		Bundle bundle = FrameworkUtil.getBundle(
-			CommerceOrderPersistenceImpl.class);
-
-		_bundleContext = bundle.getBundleContext();
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class, new CommerceOrderModelArgumentsResolver(),
-			new HashMapDictionary<>());
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -8686,15 +8732,31 @@ public class CommerceOrderPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_ERC",
 			new String[] {Long.class.getName(), String.class.getName()},
 			new String[] {"companyId", "externalReferenceCode"}, false);
+
+		_setCommerceOrderUtilPersistence(this);
 	}
 
 	public void destroy() {
-		entityCache.removeCache(CommerceOrderImpl.class.getName());
+		_setCommerceOrderUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(CommerceOrderImpl.class.getName());
 	}
 
-	private BundleContext _bundleContext;
+	private void _setCommerceOrderUtilPersistence(
+		CommerceOrderPersistence commerceOrderPersistence) {
+
+		try {
+			Field field = CommerceOrderUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, commerceOrderPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
+	}
 
 	@ServiceReference(type = EntityCache.class)
 	protected EntityCache entityCache;
@@ -8735,7 +8797,9 @@ public class CommerceOrderPersistenceImpl
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {
-			"uuid", "subtotalDiscountPercentageLevel1",
+			"uuid", "deliveryCommerceTermEntryDescription",
+			"paymentCommerceTermEntryDescription",
+			"subtotalDiscountPercentageLevel1",
 			"subtotalDiscountPercentageLevel2",
 			"subtotalDiscountPercentageLevel3",
 			"subtotalDiscountPercentageLevel4",
@@ -8762,105 +8826,7 @@ public class CommerceOrderPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
-
-	private static class CommerceOrderModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			CommerceOrderModelImpl commerceOrderModelImpl =
-				(CommerceOrderModelImpl)baseModel;
-
-			if (!checkColumn ||
-				_hasModifiedColumns(commerceOrderModelImpl, columnNames) ||
-				_hasModifiedColumns(
-					commerceOrderModelImpl, _ORDER_BY_COLUMNS)) {
-
-				return _getValue(commerceOrderModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return CommerceOrderImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return CommerceOrderTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			CommerceOrderModelImpl commerceOrderModelImpl, String[] columnNames,
-			boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						commerceOrderModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = commerceOrderModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static boolean _hasModifiedColumns(
-			CommerceOrderModelImpl commerceOrderModelImpl,
-			String[] columnNames) {
-
-			if (columnNames.length == 0) {
-				return false;
-			}
-
-			for (String columnName : columnNames) {
-				if (!Objects.equals(
-						commerceOrderModelImpl.getColumnOriginalValue(
-							columnName),
-						commerceOrderModelImpl.getColumnValue(columnName))) {
-
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private static final String[] _ORDER_BY_COLUMNS;
-
-		static {
-			List<String> orderByColumns = new ArrayList<String>();
-
-			orderByColumns.add("createDate");
-
-			_ORDER_BY_COLUMNS = orderByColumns.toArray(new String[0]);
-		}
-
-	}
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

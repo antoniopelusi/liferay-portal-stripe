@@ -27,6 +27,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.BasePlugin;
@@ -114,6 +116,22 @@ public class WSDDBuilderPlugin implements Plugin<Project> {
 						sourceSet.getCompileClasspath());
 					fileCollection = fileCollection.plus(
 						sourceSet.getRuntimeClasspath());
+
+					Project dependencyProject = project.findProject(
+						":core:registry-api");
+
+					if (dependencyProject != null) {
+						ConfigurationContainer configurationContainer =
+							project.getConfigurations();
+						DependencyHandler dependencyHandler =
+							project.getDependencies();
+
+						Configuration configuration =
+							configurationContainer.detachedConfiguration(
+								dependencyHandler.create(dependencyProject));
+
+						fileCollection = fileCollection.plus(configuration);
+					}
 
 					return fileCollection.getAsPath();
 				}

@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -37,8 +38,6 @@ public class DLStorageQuotaDLFileVersionModelListener
 	public void onAfterCreate(DLFileVersion dlFileVersion)
 		throws ModelListenerException {
 
-		super.onAfterCreate(dlFileVersion);
-
 		_dlStorageQuotaLocalService.incrementStorageSize(
 			dlFileVersion.getCompanyId(), dlFileVersion.getSize());
 	}
@@ -47,7 +46,9 @@ public class DLStorageQuotaDLFileVersionModelListener
 	public void onAfterRemove(DLFileVersion dlFileVersion)
 		throws ModelListenerException {
 
-		super.onAfterRemove(dlFileVersion);
+		if (CompanyThreadLocal.isDeleteInProcess()) {
+			return;
+		}
 
 		_dlStorageQuotaLocalService.incrementStorageSize(
 			dlFileVersion.getCompanyId(), -dlFileVersion.getSize());
@@ -58,8 +59,6 @@ public class DLStorageQuotaDLFileVersionModelListener
 		throws ModelListenerException {
 
 		try {
-			super.onBeforeCreate(dlFileVersion);
-
 			_dlStorageQuotaLocalService.validateStorageQuota(
 				dlFileVersion.getCompanyId(), dlFileVersion.getSize());
 		}

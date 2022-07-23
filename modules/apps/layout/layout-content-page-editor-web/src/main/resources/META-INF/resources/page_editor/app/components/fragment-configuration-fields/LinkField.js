@@ -23,16 +23,17 @@ import React, {useEffect, useState} from 'react';
 import CurrentLanguageFlag from '../../../common/components/CurrentLanguageFlag';
 import {LayoutSelector} from '../../../common/components/LayoutSelector';
 import MappingSelector from '../../../common/components/MappingSelector';
+import useControlledState from '../../../core/hooks/useControlledState';
 import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
 import {EDITABLE_TYPES} from '../../config/constants/editableTypes';
+import {useGetFieldValue} from '../../contexts/CollectionItemContext';
+import {useSelector} from '../../contexts/StoreContext';
 import selectLanguageId from '../../selectors/selectLanguageId';
-import {useSelector} from '../../store/index';
 import isMapped from '../../utils/editable-value/isMapped';
 import isMappedToLayout from '../../utils/editable-value/isMappedToLayout';
 import isMappedToStructure from '../../utils/editable-value/isMappedToStructure';
 import resolveEditableValue from '../../utils/editable-value/resolveEditableValue';
 import {useId} from '../../utils/useId';
-import {useGetFieldValue} from '../CollectionItemContext';
 
 const SOURCE_OPTION_FROM_CONTENT_FIELD = 'fromContentField';
 const SOURCE_OPTION_FROM_LAYOUT = 'fromLayout';
@@ -62,9 +63,11 @@ export const TARGET_OPTIONS = {
 
 export default function LinkField({field, onValueSelect, value}) {
 	const getFieldValue = useGetFieldValue();
-	const [nextValue, setNextValue] = useState({});
-	const [nextHref, setNextHref] = useState('');
-	const [openNewTab, setOpenNewTab] = useState('');
+	const [nextHref, setNextHref] = useControlledState(value.href || '');
+	const [nextValue, setNextValue] = useControlledState(value || {});
+	const [openNewTab, setOpenNewTab] = useControlledState(
+		value.target === '_blank' || ''
+	);
 
 	const [mappedHrefPreview, setMappedHrefPreview] = useState(null);
 	const languageId = useSelector(selectLanguageId);
@@ -72,10 +75,6 @@ export default function LinkField({field, onValueSelect, value}) {
 	const [source, setSource] = useState(SOURCE_OPTION_MANUAL);
 
 	useEffect(() => {
-		setNextValue(value);
-		setNextHref(value.href);
-		setOpenNewTab(value.target === '_blank');
-
 		if (isMappedToLayout(value)) {
 			setSource(SOURCE_OPTION_FROM_LAYOUT);
 		}
@@ -139,13 +138,13 @@ export default function LinkField({field, onValueSelect, value}) {
 			</ClayForm.Group>
 
 			{source === SOURCE_OPTION_MANUAL && (
-				<div className="autofit-row mb-3">
-					<div className="autofit-col autofit-col-expand">
-						<ClayForm.Group small>
-							<label htmlFor={hrefInputId}>
-								{Liferay.Language.get('url')}
-							</label>
+				<ClayForm.Group>
+					<label htmlFor={hrefInputId}>
+						{Liferay.Language.get('url')}
+					</label>
 
+					<ClayInput.Group small>
+						<ClayInput.GroupItem>
 							<ClayInput
 								id={hrefInputId}
 								onBlur={() => handleChange({href: nextHref})}
@@ -155,17 +154,20 @@ export default function LinkField({field, onValueSelect, value}) {
 								type="text"
 								value={nextHref || ''}
 							/>
-						</ClayForm.Group>
-					</div>
-					<CurrentLanguageFlag />
-				</div>
+						</ClayInput.GroupItem>
+
+						<ClayInput.GroupItem shrink>
+							<CurrentLanguageFlag />
+						</ClayInput.GroupItem>
+					</ClayInput.Group>
+				</ClayForm.Group>
 			)}
 
 			{source === SOURCE_OPTION_FROM_LAYOUT && (
 				<LayoutSelector
 					mappedLayout={nextValue?.layout}
 					onLayoutSelect={(layout) => {
-						if (layout && Object.keys(layout).length) {
+						if (layout && !!Object.keys(layout).length) {
 							handleChange({layout});
 						}
 						else {

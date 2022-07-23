@@ -23,24 +23,23 @@ import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.PluginSetting;
 import com.liferay.portal.kernel.model.PluginSettingModel;
-import com.liferay.portal.kernel.model.PluginSettingSoap;
 import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -148,55 +147,6 @@ public class PluginSettingModelImpl
 	@Deprecated
 	public static final long PLUGINSETTINGID_COLUMN_BITMASK = 8L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static PluginSetting toModel(PluginSettingSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		PluginSetting model = new PluginSettingImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setPluginSettingId(soapModel.getPluginSettingId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setPluginId(soapModel.getPluginId());
-		model.setPluginType(soapModel.getPluginType());
-		model.setRoles(soapModel.getRoles());
-		model.setActive(soapModel.isActive());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<PluginSetting> toModels(PluginSettingSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<PluginSetting> models = new ArrayList<PluginSetting>(
-			soapModels.length);
-
-		for (PluginSettingSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.portal.kernel.model.PluginSetting"));
@@ -284,34 +234,6 @@ public class PluginSettingModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, PluginSetting>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			PluginSetting.class.getClassLoader(), PluginSetting.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<PluginSetting> constructor =
-				(Constructor<PluginSetting>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<PluginSetting, Object>>
@@ -587,6 +509,28 @@ public class PluginSettingModelImpl
 	}
 
 	@Override
+	public PluginSetting cloneWithOriginalValues() {
+		PluginSettingImpl pluginSettingImpl = new PluginSettingImpl();
+
+		pluginSettingImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		pluginSettingImpl.setPluginSettingId(
+			this.<Long>getColumnOriginalValue("pluginSettingId"));
+		pluginSettingImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		pluginSettingImpl.setPluginId(
+			this.<String>getColumnOriginalValue("pluginId"));
+		pluginSettingImpl.setPluginType(
+			this.<String>getColumnOriginalValue("pluginType"));
+		pluginSettingImpl.setRoles(
+			this.<String>getColumnOriginalValue("roles"));
+		pluginSettingImpl.setActive(
+			this.<Boolean>getColumnOriginalValue("active_"));
+
+		return pluginSettingImpl;
+	}
+
+	@Override
 	public int compareTo(PluginSetting pluginSetting) {
 		long primaryKey = pluginSetting.getPrimaryKey();
 
@@ -699,7 +643,7 @@ public class PluginSettingModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -710,9 +654,26 @@ public class PluginSettingModelImpl
 			Function<PluginSetting, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((PluginSetting)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((PluginSetting)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -759,7 +720,9 @@ public class PluginSettingModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, PluginSetting>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					PluginSetting.class, ModelWrapper.class);
 
 	}
 

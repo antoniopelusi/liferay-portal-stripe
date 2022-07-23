@@ -1,0 +1,74 @@
+@component-name = "portal-object"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Object";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			ObjectAdmin.deleteAllCustomObjectsViaAPI();
+		}
+	}
+
+	@description = "LPS-139005 - Verify that pending and completed Object entries with workflow are not displayed on the Workflow Metrics page when inactivated"
+	@priority = "4"
+	test ObjectEntriesDisappearsWorkflowMetricsWhenInactivated {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object 147750",
+			objectName = "CustomObject147750",
+			pluralLabelName = "Custom Objects 147750");
+
+		ObjectAdmin.addObjectFieldViaAPI(
+			fieldBusinessType = "Text",
+			fieldLabelName = "Custom Field",
+			fieldName = "customObjectField",
+			fieldType = "String",
+			isRequired = "false",
+			objectName = "CustomObject147750");
+
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject147750");
+
+		ObjectAdmin.openWorkflowProcessBuilderConfiguration();
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Custom Object 147750");
+
+		ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+			fieldName = "customObjectField",
+			objectName = "CustomObject147750",
+			value = "Entry 1");
+
+		ObjectAdmin.openObjectAdmin();
+
+		ObjectPortlet.selectCustomObject(label = "Custom Object 147750");
+
+		CreateObject.checkToggleInactive();
+
+		CreateObject.saveObject();
+
+		Navigator.openURL();
+
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.checkPendingWorkflowValues(
+			key_ontime = "0",
+			key_overdue = "0",
+			key_pending = "0",
+			key_untracked = "0");
+	}
+
+}

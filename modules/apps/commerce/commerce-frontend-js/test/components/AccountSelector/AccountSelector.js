@@ -16,6 +16,7 @@ import '../../utils/polyfills';
 
 import '@testing-library/jest-dom/extend-expect';
 import {
+	act,
 	cleanup,
 	fireEvent,
 	render,
@@ -31,15 +32,17 @@ import {getOrders} from '../../utils/fake_data/orders';
 
 const ACCOUNTS_HEADLESS_API_ENDPOINT = ServiceProvider.AdminAccountAPI('v1')
 	.baseURL;
-const ORDERS_HEADLESS_API_ENDPOINT = ServiceProvider.AdminOrderAPI('v1')
-	.baseURL;
 
 describe('AccountSelector', () => {
 	beforeEach(() => {
 		const accountsEndpointRegexp = new RegExp(
 			ACCOUNTS_HEADLESS_API_ENDPOINT
 		);
-		const ordersEndpointRegexp = new RegExp(ORDERS_HEADLESS_API_ENDPOINT);
+		const ordersEndpointRegexp = new RegExp(
+			`${ServiceProvider.DeliveryCartAPI(
+				'v1'
+			).cartsByAccountIdAndChannelIdURL(42332, 24324)}`
+		);
 
 		fetchMock.mock(accountsEndpointRegexp, (url) => getAccounts(url));
 		fetchMock.mock(ordersEndpointRegexp, (url) => getOrders(url));
@@ -56,10 +59,11 @@ describe('AccountSelector', () => {
 		beforeEach(() => {
 			renderedComponent = render(
 				<AccountSelector
+					accountEntryAllowedTypes='["business", "person"]'
+					commerceChannelId={24324}
 					createNewOrderURL="/order-link"
 					selectOrderURL="/test-url/{id}"
 					setCurrentAccountURL="/account-selector/setCurrentAccounts"
-					spritemap="./assets/icons.svg"
 				/>
 			);
 		});
@@ -81,11 +85,13 @@ describe('AccountSelector', () => {
 		});
 
 		it('displays an account list', async () => {
-			fireEvent.click(
-				renderedComponent.baseElement.querySelector(
-					'.btn-account-selector'
-				)
-			);
+			await act(async () => {
+				fireEvent.click(
+					renderedComponent.baseElement.querySelector(
+						'.btn-account-selector'
+					)
+				);
+			});
 
 			await waitForElementToBeRemoved(() =>
 				renderedComponent.queryByText(/loading/i)
@@ -104,11 +110,13 @@ describe('AccountSelector', () => {
 		});
 
 		it('must update the remote selected account when an account item is clicked', async () => {
-			fireEvent.click(
-				renderedComponent.baseElement.querySelector(
-					'.btn-account-selector'
-				)
-			);
+			await act(async () => {
+				fireEvent.click(
+					renderedComponent.baseElement.querySelector(
+						'.btn-account-selector'
+					)
+				);
+			});
 
 			await waitForElementToBeRemoved(() =>
 				renderedComponent.queryByText(/loading/i)
@@ -124,13 +132,16 @@ describe('AccountSelector', () => {
 					expect(params.body.get('accountId')).toEqual(
 						accountTemplate.id.toString()
 					);
+
 					expect(url.searchParams.get('groupId')).toBeTruthy();
 
 					return 200;
 				}
 			);
 
-			fireEvent.click(accountsListItem.querySelector('button'));
+			await act(async () => {
+				fireEvent.click(accountsListItem.querySelector('button'));
+			});
 		});
 	});
 
@@ -140,14 +151,15 @@ describe('AccountSelector', () => {
 		beforeEach(() => {
 			renderedComponent = render(
 				<AccountSelector
+					accountEntryAllowedTypes='["business", "person"]'
+					commerceChannelId={24324}
 					createNewOrderURL="/order-link"
-					currentAccount={{
+					currentCommerceAccount={{
 						id: 42332,
 						name: 'My Account Name',
 					}}
 					selectOrderURL="/test-url/{id}"
 					setCurrentAccountURL="/account-selector/setCurrentAccounts"
-					spritemap="./assets/icons.svg"
 				/>
 			);
 		});
@@ -177,11 +189,13 @@ describe('AccountSelector', () => {
 		});
 
 		it('displays an order list', async () => {
-			fireEvent.click(
-				renderedComponent.baseElement.querySelector(
-					'.btn-account-selector'
-				)
-			);
+			await act(async () => {
+				fireEvent.click(
+					renderedComponent.baseElement.querySelector(
+						'.btn-account-selector'
+					)
+				);
+			});
 
 			await waitForElementToBeRemoved(() =>
 				renderedComponent.queryByText(/loading/i)
@@ -206,12 +220,14 @@ describe('AccountSelector', () => {
 		beforeEach(() => {
 			renderedComponent = render(
 				<AccountSelector
+					accountEntryAllowedTypes='["business", "person"]'
+					commerceChannelId={24324}
 					createNewOrderURL="/order-link"
-					currentAccount={{
+					currentCommerceAccount={{
 						id: 42332,
 						name: 'My Account Name',
 					}}
-					currentOrder={{
+					currentCommerceOrder={{
 						orderId: 34234,
 						workflowStatusInfo: {
 							label_i18n: 'Completed',
@@ -219,7 +235,6 @@ describe('AccountSelector', () => {
 					}}
 					selectOrderURL="/test-url/{id}"
 					setCurrentAccountURL="/account-selector/setCurrentAccounts"
-					spritemap="./assets/icons.svg"
 				/>
 			);
 		});

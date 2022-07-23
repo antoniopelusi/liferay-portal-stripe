@@ -18,6 +18,7 @@ import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.StatementWrapper;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -25,9 +26,6 @@ import com.liferay.portal.kernel.transaction.TransactionConfig;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
 
 import java.io.Closeable;
 
@@ -38,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.junit.Assert;
 import org.junit.internal.runners.statements.RunAfters;
@@ -48,6 +45,9 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  * @author Shuyang Zhou
@@ -120,21 +120,15 @@ public class TransactionalTestRule implements TestRule {
 						TransactionInvokerUtil.invoke(
 							getTransactionConfig(
 								description.getAnnotation(Transactional.class)),
-							new Callable<Void>() {
-
-								@Override
-								public Void call() throws Exception {
-									try {
-										statement.evaluate();
-									}
-									catch (Throwable throwable) {
-										ReflectionUtil.throwException(
-											throwable);
-									}
-
-									return null;
+							() -> {
+								try {
+									statement.evaluate();
+								}
+								catch (Throwable throwable) {
+									ReflectionUtil.throwException(throwable);
 								}
 
+								return null;
 							});
 					}
 				}
@@ -186,8 +180,7 @@ public class TransactionalTestRule implements TestRule {
 		extends FrameworkMethod {
 
 		@Override
-		public Object invokeExplosively(
-				final Object target, final Object... params)
+		public Object invokeExplosively(Object target, Object... params)
 			throws Throwable {
 
 			try (Closeable closeable = _installTransactionExecutor(
@@ -195,21 +188,16 @@ public class TransactionalTestRule implements TestRule {
 
 				return TransactionInvokerUtil.invoke(
 					_transactionConfig,
-					new Callable<Object>() {
-
-						@Override
-						public Object call() throws Exception {
-							try {
-								return TransactionalFrameworkMethod.super.
-									invokeExplosively(target, params);
-							}
-							catch (Throwable throwable) {
-								ReflectionUtil.throwException(throwable);
-							}
-
-							return null;
+					() -> {
+						try {
+							return TransactionalFrameworkMethod.super.
+								invokeExplosively(target, params);
+						}
+						catch (Throwable throwable) {
+							ReflectionUtil.throwException(throwable);
 						}
 
+						return null;
 					});
 			}
 		}
@@ -254,10 +242,10 @@ public class TransactionalTestRule implements TestRule {
 		Deque<Object> transactionExecutors =
 			transactionExecutorsThreadLocal.get();
 
-		Registry registry = RegistryUtil.getRegistry();
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
 
 		ServiceReference<?>[] serviceReferences =
-			registry.getAllServiceReferences(
+			bundleContext.getAllServiceReferences(
 				"com.liferay.portal.spring.transaction.TransactionExecutor",
 				"(origin.bundle.symbolic.name=" + originBundleSymbolicName +
 					")");
@@ -270,7 +258,7 @@ public class TransactionalTestRule implements TestRule {
 
 		ServiceReference<?> serviceReference = serviceReferences[0];
 
-		Object portletTransactionExecutor = registry.getService(
+		Object portletTransactionExecutor = bundleContext.getService(
 			serviceReference);
 
 		if (portletTransactionExecutor == transactionExecutors.peek()) {
@@ -283,7 +271,7 @@ public class TransactionalTestRule implements TestRule {
 		return () -> {
 			transactionExecutors.pop();
 
-			registry.ungetService(serviceReference);
+			bundleContext.ungetService(serviceReference);
 		};
 	}
 

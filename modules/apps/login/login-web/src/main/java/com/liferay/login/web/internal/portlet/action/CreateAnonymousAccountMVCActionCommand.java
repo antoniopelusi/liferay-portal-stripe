@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.exception.GroupFriendlyURLException;
 import com.liferay.portal.kernel.exception.UserEmailAddressException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -80,74 +81,6 @@ import org.osgi.service.component.annotations.Reference;
 public class CreateAnonymousAccountMVCActionCommand
 	extends BaseMVCActionCommand {
 
-	protected void addAnonymousUser(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
-			actionRequest);
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		boolean autoPassword = true;
-		String password1 = null;
-		String password2 = null;
-		boolean autoScreenName = true;
-		String screenName = null;
-		String emailAddress = ParamUtil.getString(
-			actionRequest, "emailAddress");
-		long facebookId = 0;
-		String openId = StringPool.BLANK;
-		String firstName = ParamUtil.getString(actionRequest, "firstName");
-		String lastName = ParamUtil.getString(actionRequest, "lastName");
-		long prefixId = 0;
-		long suffixId = 0;
-		boolean male = true;
-		int birthdayMonth = 0;
-		int birthdayDay = 1;
-		int birthdayYear = 1970;
-		String jobTitle = null;
-		long[] groupIds = null;
-		long[] organizationIds = null;
-		long[] roleIds = null;
-		long[] userGroupIds = null;
-		boolean sendEmail = false;
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			User.class.getName(), actionRequest);
-
-		serviceContext.setAttribute("anonymousUser", Boolean.TRUE);
-
-		CaptchaConfiguration captchaConfiguration = getCaptchaConfiguration();
-
-		if (captchaConfiguration.createAccountCaptchaEnabled()) {
-			CaptchaUtil.check(actionRequest);
-		}
-
-		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
-
-		User user = _userService.addUser(
-			themeDisplay.getCompanyId(), autoPassword, password1, password2,
-			autoScreenName, screenName, emailAddress, facebookId, openId,
-			themeDisplay.getLocale(), firstName, null, lastName, prefixId,
-			suffixId, male, birthdayMonth, birthdayDay, birthdayYear, jobTitle,
-			groupIds, organizationIds, roleIds, userGroupIds, sendEmail,
-			serviceContext);
-
-		_userLocalService.updateStatus(
-			user.getUserId(), WorkflowConstants.STATUS_INCOMPLETE,
-			new ServiceContext());
-
-		// Session messages
-
-		SessionMessages.add(
-			httpServletRequest, "userAdded", user.getEmailAddress());
-		SessionMessages.add(
-			httpServletRequest, "userAddedPassword",
-			user.getPasswordUnencrypted());
-	}
-
 	@Override
 	protected void addSuccessMessage(
 		ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -165,9 +98,6 @@ public class CreateAnonymousAccountMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		PortletConfig portletConfig = (PortletConfig)actionRequest.getAttribute(
 			JavaConstants.JAVAX_PORTLET_CONFIG);
 
@@ -176,6 +106,9 @@ public class CreateAnonymousAccountMVCActionCommand
 		if (!portletName.equals(LoginPortletKeys.FAST_LOGIN)) {
 			throw new PrincipalException("Unable to create anonymous account");
 		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		if (actionRequest.getRemoteUser() != null) {
 			actionResponse.sendRedirect(themeDisplay.getPathMain());
@@ -195,18 +128,18 @@ public class CreateAnonymousAccountMVCActionCommand
 		).setMVCRenderCommandName(
 			"/login/login_redirect"
 		).setParameter(
-			"anonymousUser", Boolean.TRUE.toString()
+			"anonymousUser", true
 		).setParameter(
 			"emailAddress", emailAddress
 		).setWindowState(
 			LiferayWindowState.POP_UP
-		).build();
+		).buildPortletURL();
 
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 		try {
 			if (cmd.equals(Constants.ADD)) {
-				addAnonymousUser(actionRequest, actionResponse);
+				_addAnonymousUser(actionRequest);
 
 				sendRedirect(
 					actionRequest, actionResponse, portletURL.toString());
@@ -327,16 +260,82 @@ public class CreateAnonymousAccountMVCActionCommand
 			suffixId, male, birthdayMonth, birthdayDay, birthdayYear, jobTitle,
 			updateUserInformation, sendEmail, serviceContext);
 
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+		return JSONUtil.put(
+			"userStatus",
+			() -> {
+				if (user.getStatus() == WorkflowConstants.STATUS_APPROVED) {
+					return "user_added";
+				}
 
-		if (user.getStatus() == WorkflowConstants.STATUS_APPROVED) {
-			jsonObject.put("userStatus", "user_added");
-		}
-		else {
-			jsonObject.put("userStatus", "user_pending");
+				return "user_pending";
+			});
+	}
+
+	private void _addAnonymousUser(ActionRequest actionRequest)
+		throws Exception {
+
+		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
+			actionRequest);
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		boolean autoPassword = true;
+		String password1 = null;
+		String password2 = null;
+		boolean autoScreenName = true;
+		String screenName = null;
+		String emailAddress = ParamUtil.getString(
+			actionRequest, "emailAddress");
+		long facebookId = 0;
+		String openId = StringPool.BLANK;
+		String firstName = ParamUtil.getString(actionRequest, "firstName");
+		String lastName = ParamUtil.getString(actionRequest, "lastName");
+		long prefixId = 0;
+		long suffixId = 0;
+		boolean male = true;
+		int birthdayMonth = 0;
+		int birthdayDay = 1;
+		int birthdayYear = 1970;
+		String jobTitle = null;
+		long[] groupIds = null;
+		long[] organizationIds = null;
+		long[] roleIds = null;
+		long[] userGroupIds = null;
+		boolean sendEmail = false;
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			User.class.getName(), actionRequest);
+
+		serviceContext.setAttribute("anonymousUser", Boolean.TRUE);
+
+		CaptchaConfiguration captchaConfiguration = getCaptchaConfiguration();
+
+		if (captchaConfiguration.createAccountCaptchaEnabled()) {
+			CaptchaUtil.check(actionRequest);
 		}
 
-		return jsonObject;
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		User user = _userService.addUser(
+			themeDisplay.getCompanyId(), autoPassword, password1, password2,
+			autoScreenName, screenName, emailAddress, facebookId, openId,
+			themeDisplay.getLocale(), firstName, null, lastName, prefixId,
+			suffixId, male, birthdayMonth, birthdayDay, birthdayYear, jobTitle,
+			groupIds, organizationIds, roleIds, userGroupIds, sendEmail,
+			serviceContext);
+
+		_userLocalService.updateStatus(
+			user.getUserId(), WorkflowConstants.STATUS_INCOMPLETE,
+			new ServiceContext());
+
+		// Session messages
+
+		SessionMessages.add(
+			httpServletRequest, "userAdded", user.getEmailAddress());
+		SessionMessages.add(
+			httpServletRequest, "userAddedPassword",
+			user.getPasswordUnencrypted());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

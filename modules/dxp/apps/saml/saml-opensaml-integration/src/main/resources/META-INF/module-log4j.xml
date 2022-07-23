@@ -3,7 +3,6 @@
 <Configuration strict="true">
 	<Loggers>
 		<Logger level="INFO" name="com.liferay.saml.opensaml.integration" />
-
 		<Logger level="WARN" name="org.opensaml" />
 	</Loggers>
 </Configuration>

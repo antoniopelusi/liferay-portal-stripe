@@ -15,12 +15,10 @@
 package com.liferay.object.service.persistence.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.object.exception.NoSuchLayoutTabException;
+import com.liferay.object.exception.NoSuchObjectLayoutTabException;
 import com.liferay.object.model.ObjectLayoutTab;
-import com.liferay.object.service.ObjectLayoutTabLocalServiceUtil;
 import com.liferay.object.service.persistence.ObjectLayoutTabPersistence;
 import com.liferay.object.service.persistence.ObjectLayoutTabUtil;
-import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
@@ -29,7 +27,6 @@ import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
-import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
@@ -136,6 +133,14 @@ public class ObjectLayoutTabPersistenceTest {
 
 		newObjectLayoutTab.setModifiedDate(RandomTestUtil.nextDate());
 
+		newObjectLayoutTab.setObjectLayoutId(RandomTestUtil.nextLong());
+
+		newObjectLayoutTab.setObjectRelationshipId(RandomTestUtil.nextLong());
+
+		newObjectLayoutTab.setName(RandomTestUtil.randomString());
+
+		newObjectLayoutTab.setPriority(RandomTestUtil.nextInt());
+
 		_objectLayoutTabs.add(_persistence.update(newObjectLayoutTab));
 
 		ObjectLayoutTab existingObjectLayoutTab = _persistence.findByPrimaryKey(
@@ -164,6 +169,17 @@ public class ObjectLayoutTabPersistenceTest {
 		Assert.assertEquals(
 			Time.getShortTimestamp(existingObjectLayoutTab.getModifiedDate()),
 			Time.getShortTimestamp(newObjectLayoutTab.getModifiedDate()));
+		Assert.assertEquals(
+			existingObjectLayoutTab.getObjectLayoutId(),
+			newObjectLayoutTab.getObjectLayoutId());
+		Assert.assertEquals(
+			existingObjectLayoutTab.getObjectRelationshipId(),
+			newObjectLayoutTab.getObjectRelationshipId());
+		Assert.assertEquals(
+			existingObjectLayoutTab.getName(), newObjectLayoutTab.getName());
+		Assert.assertEquals(
+			existingObjectLayoutTab.getPriority(),
+			newObjectLayoutTab.getPriority());
 	}
 
 	@Test
@@ -185,6 +201,20 @@ public class ObjectLayoutTabPersistenceTest {
 	}
 
 	@Test
+	public void testCountByObjectLayoutId() throws Exception {
+		_persistence.countByObjectLayoutId(RandomTestUtil.nextLong());
+
+		_persistence.countByObjectLayoutId(0L);
+	}
+
+	@Test
+	public void testCountByObjectRelationshipId() throws Exception {
+		_persistence.countByObjectRelationshipId(RandomTestUtil.nextLong());
+
+		_persistence.countByObjectRelationshipId(0L);
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		ObjectLayoutTab newObjectLayoutTab = addObjectLayoutTab();
 
@@ -194,7 +224,7 @@ public class ObjectLayoutTabPersistenceTest {
 		Assert.assertEquals(existingObjectLayoutTab, newObjectLayoutTab);
 	}
 
-	@Test(expected = NoSuchLayoutTabException.class)
+	@Test(expected = NoSuchObjectLayoutTabException.class)
 	public void testFindByPrimaryKeyMissing() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
@@ -211,7 +241,9 @@ public class ObjectLayoutTabPersistenceTest {
 		return OrderByComparatorFactoryUtil.create(
 			"ObjectLayoutTab", "mvccVersion", true, "uuid", true,
 			"objectLayoutTabId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "modifiedDate", true);
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"objectLayoutId", true, "objectRelationshipId", true, "name", true,
+			"priority", true);
 	}
 
 	@Test
@@ -327,30 +359,6 @@ public class ObjectLayoutTabPersistenceTest {
 	}
 
 	@Test
-	public void testActionableDynamicQuery() throws Exception {
-		final IntegerWrapper count = new IntegerWrapper();
-
-		ActionableDynamicQuery actionableDynamicQuery =
-			ObjectLayoutTabLocalServiceUtil.getActionableDynamicQuery();
-
-		actionableDynamicQuery.setPerformActionMethod(
-			new ActionableDynamicQuery.PerformActionMethod<ObjectLayoutTab>() {
-
-				@Override
-				public void performAction(ObjectLayoutTab objectLayoutTab) {
-					Assert.assertNotNull(objectLayoutTab);
-
-					count.increment();
-				}
-
-			});
-
-		actionableDynamicQuery.performActions();
-
-		Assert.assertEquals(count.getValue(), _persistence.countAll());
-	}
-
-	@Test
 	public void testDynamicQueryByPrimaryKeyExisting() throws Exception {
 		ObjectLayoutTab newObjectLayoutTab = addObjectLayoutTab();
 
@@ -447,6 +455,14 @@ public class ObjectLayoutTabPersistenceTest {
 		objectLayoutTab.setCreateDate(RandomTestUtil.nextDate());
 
 		objectLayoutTab.setModifiedDate(RandomTestUtil.nextDate());
+
+		objectLayoutTab.setObjectLayoutId(RandomTestUtil.nextLong());
+
+		objectLayoutTab.setObjectRelationshipId(RandomTestUtil.nextLong());
+
+		objectLayoutTab.setName(RandomTestUtil.randomString());
+
+		objectLayoutTab.setPriority(RandomTestUtil.nextInt());
 
 		_objectLayoutTabs.add(_persistence.update(objectLayoutTab));
 

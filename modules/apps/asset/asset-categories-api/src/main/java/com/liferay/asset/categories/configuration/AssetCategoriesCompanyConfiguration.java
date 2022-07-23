@@ -18,6 +18,8 @@ import aQute.bnd.annotation.metatype.Meta;
 
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Eudaldo Alonso
  */
@@ -26,8 +28,10 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 )
 @Meta.OCD(
 	id = "com.liferay.asset.categories.configuration.AssetCategoriesCompanyConfiguration",
-	localization = "content/Language", name = "categorization"
+	localization = "content/Language",
+	name = "categorization-configuration-name"
 )
+@ProviderType
 public interface AssetCategoriesCompanyConfiguration {
 
 	@Meta.AD(
@@ -36,5 +40,12 @@ public interface AssetCategoriesCompanyConfiguration {
 		name = "link-to-documentation-url", required = false
 	)
 	public String linkToDocumentationURL();
+
+	@Meta.AD(
+		deflt = "150",
+		description = "maximum-number-of-categories-per-vocabulary-description",
+		name = "maximum-number-of-categories-per-vocabulary", required = false
+	)
+	public int maximumNumberOfCategoriesPerVocabulary();
 
 }

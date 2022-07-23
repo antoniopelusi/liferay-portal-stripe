@@ -60,19 +60,20 @@ function Dropdown(props) {
 					className="component-action dropdown-toggle"
 					displayType="unstyled"
 				>
-					<ClayIcon spritemap={props.spritemap} symbol="ellipsis-v" />
+					<ClayIcon symbol="ellipsis-v" />
 				</ClayButton>
 			}
 		>
 			<Modal id={dropdownSupportModalId} />
+
 			<ClayDropDown.ItemList>
 				<ClayDropDown.Group>
 					{sortedItems.map((item, i) => {
 						const dropdownProps =
 							item.target === 'modal' || item.onClick
 								? {
-										onClick: (e) => {
-											e.preventDefault();
+										onClick: (event) => {
+											event.preventDefault();
 											setActive(false);
 
 											return handleAction({
@@ -85,19 +86,17 @@ function Dropdown(props) {
 								  }
 								: {
 										'data-senna-off': true,
-										href: item.href,
+										'href': item.href,
 								  };
 
 						return (
 							<ClayDropDown.Item key={i} {...dropdownProps}>
 								{item.icon && (
 									<span className="pr-2">
-										<ClayIcon
-											spritemap={props.spritemap}
-											symbol={item.icon}
-										/>
+										<ClayIcon symbol={item.icon} />
 									</span>
 								)}
+
 								{item.label}
 							</ClayDropDown.Item>
 						);
@@ -118,7 +117,6 @@ Dropdown.propTypes = {
 			target: PropTypes.oneOf(['link', 'modal']),
 		})
 	),
-	spritemap: PropTypes.string.isRequired,
 };
 
 export default Dropdown;

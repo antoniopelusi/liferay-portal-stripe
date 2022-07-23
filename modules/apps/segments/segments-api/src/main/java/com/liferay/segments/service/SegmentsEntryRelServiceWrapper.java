@@ -28,54 +28,14 @@ public class SegmentsEntryRelServiceWrapper
 	implements SegmentsEntryRelService,
 			   ServiceWrapper<SegmentsEntryRelService> {
 
+	public SegmentsEntryRelServiceWrapper() {
+		this(null);
+	}
+
 	public SegmentsEntryRelServiceWrapper(
 		SegmentsEntryRelService segmentsEntryRelService) {
 
 		_segmentsEntryRelService = segmentsEntryRelService;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 SegmentsEntryService#addSegmentsEntryClassPKs(
-	 long, long[], ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public SegmentsEntryRel addSegmentsEntryRel(
-			long segmentsEntryId, long classNameId, long classPK,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _segmentsEntryRelService.addSegmentsEntryRel(
-			segmentsEntryId, classNameId, classPK, serviceContext);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 SegmentsEntryService#deleteSegmentsEntryClassPKs(
-	 long, long[])}
-	 */
-	@Deprecated
-	@Override
-	public void deleteSegmentsEntryRel(long segmentsEntryRelId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_segmentsEntryRelService.deleteSegmentsEntryRel(segmentsEntryRelId);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 SegmentsEntryService#deleteSegmentsEntryClassPKs(
-	 long, long[])}
-	 */
-	@Deprecated
-	@Override
-	public void deleteSegmentsEntryRel(
-			long segmentsEntryId, long classNameId, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_segmentsEntryRelService.deleteSegmentsEntryRel(
-			segmentsEntryId, classNameId, classPK);
 	}
 
 	/**

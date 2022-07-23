@@ -23,9 +23,12 @@ import com.liferay.analytics.reports.web.internal.data.provider.AnalyticsReports
 import com.liferay.analytics.reports.web.internal.info.item.provider.AnalyticsReportsInfoItemObjectProviderTracker;
 import com.liferay.analytics.reports.web.internal.model.TimeRange;
 import com.liferay.analytics.reports.web.internal.model.TimeSpan;
+import com.liferay.analytics.reports.web.internal.util.AnalyticsReportsUtil;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.InfoItemServiceTracker;
+import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -44,12 +47,13 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -134,16 +138,18 @@ public class GetDataMVCResourceCommand extends BaseMVCResourceCommand {
 				JSONUtil.put(
 					"context",
 					_getJSONObject(
-						analyticsReportsInfoItem, themeDisplay.getCompanyId(),
-						infoItemReference, themeDisplay.getLayout(),
+						analyticsReportsInfoItem, infoItemReference,
+						themeDisplay.getLayout(),
+						themeDisplay.getLayoutFriendlyURL(
+							themeDisplay.getLayout()),
 						themeDisplay.getLocale(),
 						_getLocale(
 							httpServletRequest, themeDisplay.getLanguageId()),
-						analyticsReportsInfoItemObject, resourceResponse,
-						_getTimeRange(resourceRequest))));
+						analyticsReportsInfoItemObject, resourceRequest,
+						resourceResponse, _getTimeRange(resourceRequest))));
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			JSONPortletResponseUtil.writeJSON(
 				resourceRequest, resourceResponse,
@@ -152,6 +158,29 @@ public class GetDataMVCResourceCommand extends BaseMVCResourceCommand {
 					_language.get(
 						httpServletRequest, "an-unexpected-error-occurred")));
 		}
+	}
+
+	private JSONObject _getAnalyticsDataJSONObject(Layout layout) {
+		return JSONUtil.put(
+			"cloudTrialURL", AnalyticsReportsUtil.ANALYTICS_CLOUD_TRIAL_URL
+		).put(
+			"hasValidConnection",
+			() -> {
+				AnalyticsReportsDataProvider analyticsReportsDataProvider =
+					new AnalyticsReportsDataProvider(_http);
+
+				return analyticsReportsDataProvider.isValidAnalyticsConnection(
+					layout.getCompanyId());
+			}
+		).put(
+			"isSynced",
+			() -> AnalyticsReportsUtil.isAnalyticsSynced(
+				layout.getCompanyId(), layout.getGroupId())
+		).put(
+			"url",
+			() -> PrefsPropsUtil.getString(
+				layout.getCompanyId(), "liferayAnalyticsURL")
+		);
 	}
 
 	private JSONObject _getAuthorJSONObject(
@@ -165,7 +194,7 @@ public class GetDataMVCResourceCommand extends BaseMVCResourceCommand {
 		).map(
 			webImage -> {
 				long portraitId = GetterUtil.getLong(
-					_http.getParameter(
+					HttpComponentsUtil.getParameter(
 						HtmlUtil.escape(webImage.getUrl()), "img_id"));
 
 				if (portraitId > 0) {
@@ -263,18 +292,19 @@ public class GetDataMVCResourceCommand extends BaseMVCResourceCommand {
 
 	private JSONObject _getJSONObject(
 		AnalyticsReportsInfoItem<Object> analyticsReportsInfoItem,
-		long companyId, InfoItemReference infoItemReference, Layout layout,
-		Locale locale, Locale urlLocale, Object object,
+		InfoItemReference infoItemReference, Layout layout,
+		String layoutFriendlyURL, Locale locale, Locale urlLocale,
+		Object object, ResourceRequest resourceRequest,
 		ResourceResponse resourceResponse, TimeRange timeRange) {
 
-		AnalyticsReportsDataProvider analyticsReportsDataProvider =
-			new AnalyticsReportsDataProvider(_http);
 		String canonicalURL = analyticsReportsInfoItem.getCanonicalURL(
 			object, urlLocale);
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			locale, getClass());
 
 		return JSONUtil.put(
+			"analyticsData", _getAnalyticsDataJSONObject(layout)
+		).put(
 			"author",
 			_getAuthorJSONObject(analyticsReportsInfoItem, locale, object)
 		).put(
@@ -285,6 +315,24 @@ public class GetDataMVCResourceCommand extends BaseMVCResourceCommand {
 				analyticsReportsInfoItem, canonicalURL, urlLocale,
 				resourceResponse)
 		).put(
+			"hideAnalyticsReportsPanelURL",
+			PortletURLBuilder.createActionURL(
+				resourceResponse
+			).setActionName(
+				"/analytics_reports/hide_panel"
+			).setRedirect(
+				() -> {
+					String redirect = ParamUtil.getString(
+						resourceRequest, "redirect");
+
+					if (Validator.isNotNull(redirect)) {
+						return redirect;
+					}
+
+					return layoutFriendlyURL;
+				}
+			).buildString()
+		).put(
 			"languageTag", locale.toLanguageTag()
 		).put(
 			"namespace",
@@ -292,6 +340,8 @@ public class GetDataMVCResourceCommand extends BaseMVCResourceCommand {
 				AnalyticsReportsPortletKeys.ANALYTICS_REPORTS)
 		).put(
 			"page", JSONUtil.put("plid", layout.getPlid())
+		).put(
+			"pathToAssets", _portal.getPathContext(resourceRequest)
 		).put(
 			"publishDate",
 			DateTimeFormatter.ISO_DATE.format(
@@ -311,9 +361,6 @@ public class GetDataMVCResourceCommand extends BaseMVCResourceCommand {
 			"timeSpans", _getTimeSpansJSONArray(resourceBundle)
 		).put(
 			"title", analyticsReportsInfoItem.getTitle(object, urlLocale)
-		).put(
-			"validAnalyticsConnection",
-			analyticsReportsDataProvider.isValidAnalyticsConnection(companyId)
 		).put(
 			"viewURLs",
 			_getViewURLsJSONArray(

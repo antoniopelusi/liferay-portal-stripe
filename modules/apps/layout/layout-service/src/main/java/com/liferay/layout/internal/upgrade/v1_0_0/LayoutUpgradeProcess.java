@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.sql.PreparedStatement;
@@ -35,44 +36,48 @@ public class LayoutUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement ps1 = connection.prepareStatement(
+			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select plid, typeSettings from Layout where classNameId = ? " +
 					"and classPK > 0 and type_ = ? and system_ = ?");
-			PreparedStatement ps2 =
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update Layout set status = ? where plid = ?")) {
 
-			ps1.setLong(1, PortalUtil.getClassNameId(Layout.class));
-			ps1.setString(2, LayoutConstants.TYPE_CONTENT);
-			ps1.setBoolean(3, true);
+			preparedStatement1.setLong(
+				1, PortalUtil.getClassNameId(Layout.class));
+			preparedStatement1.setString(2, LayoutConstants.TYPE_CONTENT);
+			preparedStatement1.setBoolean(3, true);
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					long plid = rs.getLong("plid");
-					String typeSettings = rs.getString("typeSettings");
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					long plid = resultSet.getLong("plid");
+
+					String typeSettings = resultSet.getString("typeSettings");
 
 					UnicodeProperties unicodeProperties =
-						new UnicodeProperties();
-
-					unicodeProperties.load(typeSettings);
+						UnicodePropertiesBuilder.load(
+							typeSettings
+						).build();
 
 					boolean published = GetterUtil.getBoolean(
 						unicodeProperties.getProperty("published"));
 
 					if (published) {
-						ps2.setInt(1, WorkflowConstants.STATUS_APPROVED);
+						preparedStatement2.setInt(
+							1, WorkflowConstants.STATUS_APPROVED);
 					}
 					else {
-						ps2.setInt(1, WorkflowConstants.STATUS_DRAFT);
+						preparedStatement2.setInt(
+							1, WorkflowConstants.STATUS_DRAFT);
 					}
 
-					ps2.setLong(2, plid);
+					preparedStatement2.setLong(2, plid);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 			}
 		}
 	}

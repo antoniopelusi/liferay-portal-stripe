@@ -1,11 +1,13 @@
 Bundle-Name: Liferay Sharepoint SOAP Repository
 Bundle-SymbolicName: com.liferay.sharepoint.soap.repository
-Bundle-Version: 2.0.2
+Bundle-Version: 5.0.7
 Import-Package:\
 	!com.ibm.wsdl.util.xml.*,\
 	\
 	!com.sun.javadoc.*,\
 	!com.sun.tools.javadoc.*,\
+	\
+	!javax.rmi,\
 	\
 	!net.sf.saxon.*,\
 	\
@@ -18,6 +20,7 @@ Import-Package:\
 	!org.apache.http.*,\
 	!org.apache.james.mime4j.*,\
 	!org.apache.neethi.*,\
+	!org.apache.tools.ant.*,\
 	\
 	*
 -fixupmessages: Classes found in the wrong directory: ...;is:=ignore

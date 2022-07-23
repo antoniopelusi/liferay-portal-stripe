@@ -1,0 +1,21 @@
+definition {
+
+	macro resizeImage {
+		Select(
+			locator1 = "Select#IMAGE_RATIO",
+			value1 = "${dimension}");
+	}
+
+	macro rotateImage {
+		Click(
+			key_text = "rotate",
+			locator1 = "Icon#ANY");
+	}
+
+	macro saveChanges {
+		Button.clickSave();
+
+		SelectFrameTop();
+	}
+
+}

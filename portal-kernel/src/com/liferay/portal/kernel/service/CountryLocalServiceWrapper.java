@@ -24,6 +24,10 @@ package com.liferay.portal.kernel.service;
 public class CountryLocalServiceWrapper
 	implements CountryLocalService, ServiceWrapper<CountryLocalService> {
 
+	public CountryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public CountryLocalServiceWrapper(CountryLocalService countryLocalService) {
 		_countryLocalService = countryLocalService;
 	}
@@ -141,6 +145,13 @@ public class CountryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _countryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _countryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

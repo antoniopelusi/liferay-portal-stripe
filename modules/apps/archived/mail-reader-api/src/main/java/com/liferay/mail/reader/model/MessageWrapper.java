@@ -189,6 +189,11 @@ public class MessageWrapper
 		}
 	}
 
+	@Override
+	public Message cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the account ID of this message.
 	 *

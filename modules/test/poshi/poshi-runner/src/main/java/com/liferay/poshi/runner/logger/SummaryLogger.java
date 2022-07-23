@@ -19,6 +19,7 @@ import com.liferay.poshi.core.PoshiGetterUtil;
 import com.liferay.poshi.core.PoshiStackTraceUtil;
 import com.liferay.poshi.core.PoshiVariablesUtil;
 import com.liferay.poshi.core.util.FileUtil;
+import com.liferay.poshi.core.util.PropsValues;
 import com.liferay.poshi.core.util.StringUtil;
 import com.liferay.poshi.core.util.Validator;
 import com.liferay.poshi.runner.exception.PoshiRunnerLoggerException;
@@ -52,23 +53,22 @@ public final class SummaryLogger {
 			summaryHTMLContent, "<div id=\"summaryContentContainer\" />",
 			_summaryContentContainerLoggerElement.toString());
 
-		LoggerElement summaryTestDescriptionLoggerElement =
-			_getSummaryTestDescriptionLoggerElement();
-
 		summaryHTMLContent = StringUtil.replace(
 			summaryHTMLContent, "<p id=\"summaryTestDescription\" />",
-			summaryTestDescriptionLoggerElement.toString());
-
-		LoggerElement summaryTestNameLoggerElement =
-			_getSummaryTestNameLoggerElement();
+			String.valueOf(_getSummaryTestDescriptionLoggerElement()));
 
 		summaryHTMLContent = StringUtil.replace(
 			summaryHTMLContent, "<h3 id=\"summaryTestName\" />",
-			summaryTestNameLoggerElement.toString());
+			String.valueOf(_getSummaryTestNameLoggerElement()));
 
 		summaryHTMLContent = StringUtil.replace(
 			summaryHTMLContent, "<ul id=\"summaryTitleContainer\" />",
 			_summaryTitleContainerLoggerElement.toString());
+
+		summaryHTMLContent = StringUtil.replace(
+			summaryHTMLContent, "<script defer src=\"../js/update_images.js\"",
+			"<script defer src=\"" + PropsValues.LOGGER_RESOURCES_URL +
+				"/js/update_images.js\"");
 
 		StringBuilder sb = new StringBuilder();
 
@@ -762,23 +762,12 @@ public final class SummaryLogger {
 	private static boolean _isMinorStep(Element element) throws Exception {
 		String summary = _getSummary(element);
 
-		if (summary == null) {
-			return false;
-		}
+		if ((summary == null) ||
+			!Objects.equals(element.getName(), "execute") ||
+			Validator.isNull(element.attributeValue("function")) ||
+			(_minorStepElement != null) ||
+			Validator.isNotNull(_majorStepElement.attributeValue("function"))) {
 
-		if (!Objects.equals(element.getName(), "execute")) {
-			return false;
-		}
-
-		if (Validator.isNull(element.attributeValue("function"))) {
-			return false;
-		}
-
-		if (_minorStepElement != null) {
-			return false;
-		}
-
-		if (Validator.isNotNull(_majorStepElement.attributeValue("function"))) {
 			return false;
 		}
 

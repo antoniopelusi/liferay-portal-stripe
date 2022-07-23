@@ -22,7 +22,6 @@ import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
 import com.liferay.item.selector.criteria.upload.criterion.UploadItemSelectorCriterion;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -63,35 +62,68 @@ public class StyleBookEntryActionDropdownItemsProvider {
 	}
 
 	public List<DropdownItem> getActionDropdownItems() {
-		return DropdownItemListBuilder.add(
-			_getEditStyleBookEntryActionUnsafeConsumer()
-		).add(
-			_getRenameStyleBookEntrytActionUnsafeConsumer()
-		).add(
-			_getCopyStyleBookEntryActionUnsafeConsumer()
-		).add(
-			_getUpdateStyleBookEntryPreviewActionUnsafeConsumer()
-		).add(
-			() -> _styleBookEntry.getPreviewFileEntryId() > 0,
-			_getDeleteStyleBookEntryPreviewActionUnsafeConsumer()
-		).add(
-			_getExportStyleBookEntryActionUnsafeConsumer()
-		).add(
-			_getMarkAsDefaultStyleBookEntryActionUnsafeConsumer()
-		).add(
-			() -> {
-				StyleBookEntry draftStyleBookEntry =
-					StyleBookEntryLocalServiceUtil.fetchDraft(_styleBookEntry);
+		if (_styleBookEntry.getStyleBookEntryId() <= 0) {
+			return DropdownItemListBuilder.add(
+				() -> !_styleBookEntry.isDefaultStyleBookEntry(),
+				_getMarkAsDefaultStyleBookEntryActionUnsafeConsumer()
+			).build();
+		}
 
-				if (draftStyleBookEntry != null) {
-					return true;
-				}
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_getEditStyleBookEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_getUpdateStyleBookEntryPreviewActionUnsafeConsumer()
+					).add(
+						() -> _styleBookEntry.getPreviewFileEntryId() > 0,
+						_getDeleteStyleBookEntryPreviewActionUnsafeConsumer()
+					).add(
+						() -> {
+							StyleBookEntry draftStyleBookEntry =
+								StyleBookEntryLocalServiceUtil.fetchDraft(
+									_styleBookEntry);
 
-				return false;
-			},
-			_getDiscardDraftStyleBookEntryActionUnsafeConsumer()
-		).add(
-			_getDeleteStyleBookEntryActionUnsafeConsumer()
+							if (draftStyleBookEntry != null) {
+								return true;
+							}
+
+							return false;
+						},
+						_getDiscardDraftStyleBookEntryActionUnsafeConsumer()
+					).add(
+						() -> !_styleBookEntry.isDefaultStyleBookEntry(),
+						_getMarkAsDefaultStyleBookEntryActionUnsafeConsumer()
+					).add(
+						_getRenameStyleBookEntrytActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_getExportStyleBookEntryActionUnsafeConsumer()
+					).add(
+						_getCopyStyleBookEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_getDeleteStyleBookEntryActionUnsafeConsumer()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
 		).build();
 	}
 
@@ -111,6 +143,7 @@ public class StyleBookEntryActionDropdownItemsProvider {
 				).setParameter(
 					"styleBookEntryIds", _styleBookEntry.getStyleBookEntryId()
 				).buildString());
+			dropdownItem.setIcon("copy");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "make-a-copy"));
 		};
@@ -132,6 +165,7 @@ public class StyleBookEntryActionDropdownItemsProvider {
 				).setParameter(
 					"styleBookEntryId", _styleBookEntry.getStyleBookEntryId()
 				).buildString());
+			dropdownItem.setIcon("trash");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "delete"));
 		};
@@ -188,9 +222,9 @@ public class StyleBookEntryActionDropdownItemsProvider {
 		return dropdownItem -> {
 			dropdownItem.setHref(
 				_renderResponse.createRenderURL(), "mvcRenderCommandName",
-				"/style_book/edit_style_book_entry", "redirect",
-				_themeDisplay.getURLCurrent(), "styleBookEntryId",
+				"/style_book/edit_style_book_entry", "styleBookEntryId",
 				_styleBookEntry.getStyleBookEntryId());
+			dropdownItem.setIcon("pencil");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "edit"));
 		};
@@ -210,6 +244,7 @@ public class StyleBookEntryActionDropdownItemsProvider {
 
 		return dropdownItem -> {
 			dropdownItem.setHref(exportStyleBookEntryURL);
+			dropdownItem.setIcon("upload");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "export"));
 		};
@@ -260,38 +295,28 @@ public class StyleBookEntryActionDropdownItemsProvider {
 					"styleBookEntryId", _styleBookEntry.getStyleBookEntryId()
 				).buildString());
 
-			String message = StringPool.BLANK;
-
-			StyleBookEntry defaultLStyleBookEntry =
+			StyleBookEntry defaultStyleBookEntry =
 				StyleBookEntryLocalServiceUtil.fetchDefaultStyleBookEntry(
 					_styleBookEntry.getGroupId());
 
-			if (defaultLStyleBookEntry != null) {
-				long defaultLStyleBookEntryId =
-					defaultLStyleBookEntry.getStyleBookEntryId();
-				long styleBookEntryId = _styleBookEntry.getStyleBookEntryId();
+			String defaultStyleBookEntryName = LanguageUtil.get(
+				_httpServletRequest, "styles-from-theme");
 
-				if (defaultLStyleBookEntryId != styleBookEntryId) {
-					message = LanguageUtil.format(
-						_httpServletRequest,
-						"do-you-want-to-replace-x-for-x-as-the-default-style-" +
-							"book",
-						new String[] {
-							_styleBookEntry.getName(),
-							defaultLStyleBookEntry.getName()
-						});
-				}
+			if (defaultStyleBookEntry != null) {
+				defaultStyleBookEntryName = defaultStyleBookEntry.getName();
 			}
 
-			dropdownItem.putData("message", message);
+			dropdownItem.putData(
+				"message",
+				LanguageUtil.format(
+					_httpServletRequest,
+					"do-you-want-to-replace-x-for-x-as-the-default-style-book",
+					new String[] {
+						defaultStyleBookEntryName, _styleBookEntry.getName()
+					}));
 
-			String label = "mark-as-default";
-
-			if (_styleBookEntry.isDefaultStyleBookEntry()) {
-				label = "unmark-as-default";
-			}
-
-			dropdownItem.setLabel(LanguageUtil.get(_httpServletRequest, label));
+			dropdownItem.setLabel(
+				LanguageUtil.get(_httpServletRequest, "mark-as-default"));
 		};
 	}
 
@@ -330,6 +355,7 @@ public class StyleBookEntryActionDropdownItemsProvider {
 			dropdownItem.putData(
 				"styleBookEntryId",
 				String.valueOf(_styleBookEntry.getStyleBookEntryId()));
+			dropdownItem.setIcon("change");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "change-thumbnail"));
 		};

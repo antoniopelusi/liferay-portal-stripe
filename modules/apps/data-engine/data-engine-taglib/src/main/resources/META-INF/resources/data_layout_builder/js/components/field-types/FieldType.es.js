@@ -17,15 +17,15 @@ import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClaySticker from '@clayui/sticker';
-import {ClayTooltipProvider} from '@clayui/tooltip';
 import classnames from 'classnames';
+import {DRAG_TYPES} from 'data-engine-js-components-web';
 import React, {useEffect, useState} from 'react';
 import {useDrag} from 'react-dnd';
 import {getEmptyImage} from 'react-dnd-html5-backend';
 
-import './FieldType.scss';
-import {DRAG_FIELD_TYPE_ADD} from '../../drag-and-drop/dragTypes.es';
 import DropDown from '../drop-down/DropDown.es';
+
+import './FieldType.scss';
 import FieldTypeDragPreview from './FieldTypeDragPreview.es';
 
 const ICONS = {
@@ -46,7 +46,7 @@ const FieldType = (props) => {
 		disabled,
 		dragAlignment = 'left',
 		draggable = true,
-		dragType = DRAG_FIELD_TYPE_ADD,
+		dragType = DRAG_TYPES.DRAG_FIELD_TYPE_ADD,
 		icon,
 		label,
 		name,
@@ -89,97 +89,98 @@ const FieldType = (props) => {
 	const fieldIcon = ICONS[icon] ? ICONS[icon] : icon;
 
 	return (
-		<ClayTooltipProvider>
-			<ClayLayout.ContentRow
-				className={classnames(className, 'field-type', {
-					active,
-					disabled,
-					dragging,
-					loading,
+		<ClayLayout.ContentRow
+			className={classnames(className, 'field-type', {
+				active,
+				disabled,
+				dragging,
+				loading,
+			})}
+			data-field-type-name={name}
+			onClick={onClick && handleOnClick}
+			onDoubleClick={handleOnDoubleClick}
+			ref={drag}
+			title={label}
+			verticalAlign="center"
+		>
+			{draggable && dragAlignment === 'left' && (
+				<ClayLayout.ContentCol className="pl-2 pr-2">
+					<ClayIcon symbol="drag" />
+				</ClayLayout.ContentCol>
+			)}
+
+			<ClayLayout.ContentCol
+				className={classnames('pr-2', {
+					'pl-2': dragAlignment === 'right',
 				})}
-				data-field-type-name={name}
-				onClick={onClick && handleOnClick}
-				onDoubleClick={handleOnDoubleClick}
-				ref={drag}
-				title={label}
-				verticalAlign="center"
 			>
-				{draggable && dragAlignment === 'left' && (
-					<ClayLayout.ContentCol className="pl-2 pr-2">
-						<ClayIcon symbol="drag" />
-					</ClayLayout.ContentCol>
-				)}
-
-				<ClayLayout.ContentCol
-					className={classnames('pr-2', {
-						'pl-2': dragAlignment === 'right',
-					})}
+				<ClaySticker
+					className="data-layout-builder-field-sticker"
+					displayType="dark"
+					size="md"
 				>
-					<ClaySticker
-						className="data-layout-builder-field-sticker"
-						displayType="light"
-						size="md"
-					>
-						<ClayIcon symbol={fieldIcon} />
-					</ClaySticker>
-				</ClayLayout.ContentCol>
-				<ClayLayout.ContentCol className="pr-2" expand>
-					<div className="d-flex list-group-title">
-						<span className="text-truncate">{label}</span>
-						{required && (
-							<span className="reference-mark">
-								<ClayIcon symbol="asterisk" />
-							</span>
-						)}
-					</div>
-					{description && (
-						<p className="list-group-subtitle text-truncate">
-							<small>{description}</small>
-						</p>
-					)}
-				</ClayLayout.ContentCol>
+					<ClayIcon symbol={fieldIcon} />
+				</ClaySticker>
+			</ClayLayout.ContentCol>
 
-				<div className="autofit-col pr-2">
-					{actions && <DropDown actions={actions} />}
+			<ClayLayout.ContentCol className="pr-2" expand>
+				<div className="d-flex list-group-title">
+					<span className="text-truncate">{label}</span>
+
+					{required && (
+						<span className="reference-mark">
+							<ClayIcon symbol="asterisk" />
+						</span>
+					)}
 				</div>
 
-				{draggable && dragAlignment === 'right' && (
-					<ClayLayout.ContentCol className="pr-2">
-						<ClayIcon symbol="drag" />
-					</ClayLayout.ContentCol>
+				{description && (
+					<p className="list-group-subtitle text-truncate">
+						<small>{description}</small>
+					</p>
 				)}
+			</ClayLayout.ContentCol>
 
-				{onDelete && (
-					<div className="field-type-remove-icon">
-						{loading ? (
-							<ClayLoadingIndicator />
-						) : (
-							<ClayButtonWithIcon
-								borderless
-								data-tooltip-align="right"
-								data-tooltip-delay="200"
-								displayType="secondary"
-								onClick={(event) => {
-									event.stopPropagation();
+			<div className="autofit-col pr-2">
+				{actions && <DropDown actions={actions} />}
+			</div>
 
-									setLoading(true);
+			{draggable && dragAlignment === 'right' && (
+				<ClayLayout.ContentCol className="pr-2">
+					<ClayIcon symbol="drag" />
+				</ClayLayout.ContentCol>
+			)}
 
-									onDelete(name)
-										.then(() => setLoading(false))
-										.catch((error) => {
-											setLoading(false);
+			{onDelete && (
+				<div className="field-type-remove-icon">
+					{loading ? (
+						<ClayLoadingIndicator />
+					) : (
+						<ClayButtonWithIcon
+							borderless
+							data-tooltip-align="right"
+							data-tooltip-delay="200"
+							displayType="secondary"
+							onClick={(event) => {
+								event.stopPropagation();
 
-											throw error;
-										});
-								}}
-								symbol="times-circle"
-								title={deleteLabel}
-							/>
-						)}
-					</div>
-				)}
-			</ClayLayout.ContentRow>
-		</ClayTooltipProvider>
+								setLoading(true);
+
+								onDelete(name)
+									.then(() => setLoading(false))
+									.catch((error) => {
+										setLoading(false);
+
+										throw error;
+									});
+							}}
+							symbol="times-circle"
+							title={deleteLabel}
+						/>
+					)}
+				</div>
+			)}
+		</ClayLayout.ContentRow>
 	);
 };
 

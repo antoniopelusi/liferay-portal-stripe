@@ -1,0 +1,157 @@
+@component-name = "portal-upgrades"
+definition {
+
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.assert.warning.exceptions = "true";
+	property testray.component.names = "Depot";
+	property testray.main.component.name = "Upgrades Lima";
+
+	setUp {
+		SignIn.signIn();
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		AssertLocation.assertPartialLocation(value1 = "${portalURL}/web/guest");
+
+		SearchAdministration.executeReindex();
+	}
+
+	@priority = "5"
+	@refactorneeded
+	test ViewDepotArchive73101 {
+		property data.archive.type = "data-archive-depot";
+		property portal.version = "7.3.10.1";
+		property test.name.skip.portal.instance = "DepotUpgrade#ViewDepotArchive73101";
+
+		Upgrade.validateDepotWCAndStructure();
+
+		Upgrade.validateDepotDMAndType();
+
+		Upgrade.validateCollections();
+
+		Upgrade.validateDepotSettings();
+
+		Upgrade.validateDepotEntries();
+	}
+
+	@priority = "5"
+	@refactorneeded
+	test ViewDepotAutotaggingAndSharingArchive73101 {
+		property data.archive.type = "data-archive-depot";
+		property portal.version = "7.3.10.1";
+		property test.name.skip.portal.instance = "DepotUpgrade#ViewDepotAutotaggingAndSharingArchive73101";
+
+		Upgrade.viewSharedDocument(dmDocumentTitle = "DM Document Title Sharing");
+
+		Upgrade.revokeAndUpdateSharedEntry(
+			dmDocumentTitleUpdate = "DM Document Title Can Update",
+			dmDocumentTitleView = "DM Document Title Sharing");
+
+		Upgrade.editTagsAndDeleteAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "DM Document Image AutoTagging",
+			tagName = "carton");
+
+		Upgrade.editTagsAndDeleteAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "DM Document DOCX AutoTagging",
+			tagName = "alice");
+
+		Upgrade.editTagsAndDeleteAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "Document Google Image AutoTagging",
+			tagName = "t-shirt");
+
+		Upgrade.editTagsAndDeleteAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "Document Google Text AutoTagging",
+			tagName = "computers");
+
+		Upgrade.addAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentFile = "Commerce_Blue.jpg",
+			dmDocumentTitle = "DM New Document JPG",
+			tagName = "jersey");
+
+		Upgrade.addAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentFile = "Alice's Adventures in Wonderland.pdf",
+			dmDocumentTitle = "DM New Document PDF",
+			tagName = "alice");
+
+		Upgrade.addAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentFile = "Commerce_White.jpg",
+			dmDocumentTitle = "Document New Google Image AutoTagging",
+			tagName = "pattern");
+
+		Upgrade.addAutoTaggedDM(
+			depotName = "Test Depot Name",
+			dmDocumentFile = "Document_3.docx",
+			dmDocumentTitle = "Document New Google Text AutoTagging",
+			tagName = "computers");
+
+		Upgrade.editTagsAndDeleteAutoTaggedWebContent(
+			depotName = "Test Depot Name",
+			tagName = "dxp",
+			webContentTitle = "Digital Transformation or Digital Experience?");
+
+		Upgrade.editTagsAndDeleteAutoTaggedWebContent(
+			depotName = "Test Depot Name",
+			tagName = "computers",
+			webContentTitle = "WC Google Text AutoTagging");
+
+		Upgrade.addAutoTaggedWebContent(
+			depotName = "Test Depot Name",
+			tagName = "adventures",
+			webContentContent = "Alice's Adventures in Wonderland",
+			webContentTitle = "WC New OpenNLP AutoTagging");
+
+		Upgrade.addAutoTaggedWebContent(
+			depotName = "Test Depot Name",
+			tagName = "value people",
+			webContentContent = "Serving a wide range of enterprises, we strive to stay true to our core values: Produce Excellence, Lead by Serving, Value People, Grow and Get Better.",
+			webContentTitle = "WC New Google AutoTagging");
+
+		Upgrade.addAutoTagViaGogoShell(
+			depotName = "Test Depot Name",
+			dmDocumentTitle = "DM Without Autotagging",
+			dmTagName = "jersey,t-shirt",
+			dmTagNum = "11",
+			wcTagName = "herbert,industrial",
+			wcTagNum = "5",
+			webContentTitle = "WC Without Autotagging",
+			webContentTitleXml = '''<?xml version='1.0' encoding='UTF-8'?><root available-locales="en_US" default-locale="en_US"><Title language-id="en_US">WC Without Autotagging</Title></root>''');
+	}
+
+	@priority = "5"
+	@refactordone
+	test ViewDepotRemoteStagingArchive73101 {
+		property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
+		property data.archive.type = "data-archive-depot-remote-staging";
+		property portal.version = "7.3.10.1";
+		property test.name.skip.portal.instance = "DepotUpgrade#ViewDepotRemoteStagingArchive73101";
+
+		Upgrade.publishDMsInRemoteStagingDepot();
+
+		Upgrade.publishWCsInRemoteStagingDepot();
+
+		Upgrade.publishCollectionsInRemoteStagingDepot();
+	}
+
+	@priority = "5"
+	@refactorneeded
+	test ViewDepotStagingArchive73101 {
+		property data.archive.type = "data-archive-depot-staging";
+		property portal.version = "7.3.10.1";
+
+		Upgrade.publishDMsInStagingDepot();
+
+		Upgrade.publishWCsInStagingDepot();
+
+		Upgrade.publishCollectionsInStagingDepot();
+	}
+
+}

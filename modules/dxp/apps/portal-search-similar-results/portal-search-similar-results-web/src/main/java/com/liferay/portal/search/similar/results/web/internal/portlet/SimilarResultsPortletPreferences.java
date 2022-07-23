@@ -30,6 +30,8 @@ public interface SimilarResultsPortletPreferences {
 
 	public static final String PREFERENCE_KEY_INDEX_NAME = "indexName";
 
+	public static final String PREFERENCE_KEY_LINK_BEHAVIOR = "linkBehavior";
+
 	public static final String PREFERENCE_KEY_MAX_DOC_FREQUENCY =
 		"maxDocFrequency";
 
@@ -51,6 +53,8 @@ public interface SimilarResultsPortletPreferences {
 
 	public static final String PREFERENCE_KEY_MIN_WORD_LENGTH = "minWordLength";
 
+	public static final String PREFERENCE_KEY_SEARCH_SCOPE = "searchScope";
+
 	public static final String PREFERENCE_KEY_STOP_WORDS = "stopWords";
 
 	public static final String PREFERENCE_KEY_TERM_BOOST = "termBoost";
@@ -64,6 +68,8 @@ public interface SimilarResultsPortletPreferences {
 	public String getFields();
 
 	public String getIndexName();
+
+	public String getLinkBehavior();
 
 	public Integer getMaxDocFrequency();
 
@@ -80,6 +86,8 @@ public interface SimilarResultsPortletPreferences {
 	public Integer getMinTermFrequency();
 
 	public Integer getMinWordLength();
+
+	public String getSearchScope();
 
 	public String getStopWords();
 

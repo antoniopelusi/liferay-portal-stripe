@@ -30,7 +30,7 @@ import java.util.List;
  * @author André de Oliveira
  */
 public class MultiPolygonShapeImpl
-	extends ShapeImpl implements MultiPolygonShape {
+	extends BaseShapeImpl implements MultiPolygonShape {
 
 	@Override
 	public <T> T accept(ShapeTranslator<T> shapeTranslator) {

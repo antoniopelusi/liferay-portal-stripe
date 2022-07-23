@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the local service utility for ObjectField. This utility wraps
@@ -44,12 +45,20 @@ public class ObjectFieldLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectFieldLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
-	public static ObjectField addObjectField(
-			long userId, long objectDefinitionId, String name, String type)
+	public static ObjectField addCustomObjectField(
+			long userId, long listTypeDefinitionId, long objectDefinitionId,
+			String businessType, String dbType, boolean indexed,
+			boolean indexedAsKeyword, String indexedLanguageId,
+			Map<java.util.Locale, String> labelMap, String name,
+			boolean required,
+			List<com.liferay.object.model.ObjectFieldSetting>
+				objectFieldSettings)
 		throws PortalException {
 
-		return getService().addObjectField(
-			userId, objectDefinitionId, name, type);
+		return getService().addCustomObjectField(
+			userId, listTypeDefinitionId, objectDefinitionId, businessType,
+			dbType, indexed, indexedAsKeyword, indexedLanguageId, labelMap,
+			name, required, objectFieldSettings);
 	}
 
 	/**
@@ -64,6 +73,20 @@ public class ObjectFieldLocalServiceUtil {
 	 */
 	public static ObjectField addObjectField(ObjectField objectField) {
 		return getService().addObjectField(objectField);
+	}
+
+	public static ObjectField addSystemObjectField(
+			long userId, long objectDefinitionId, String businessType,
+			String dbColumnName, String dbType, boolean indexed,
+			boolean indexedAsKeyword, String indexedLanguageId,
+			Map<java.util.Locale, String> labelMap, String name,
+			boolean required)
+		throws PortalException {
+
+		return getService().addSystemObjectField(
+			userId, objectDefinitionId, businessType, dbColumnName, dbType,
+			indexed, indexedAsKeyword, indexedLanguageId, labelMap, name,
+			required);
 	}
 
 	/**
@@ -112,9 +135,19 @@ public class ObjectFieldLocalServiceUtil {
 	 *
 	 * @param objectField the object field
 	 * @return the object field that was removed
+	 * @throws PortalException
 	 */
-	public static ObjectField deleteObjectField(ObjectField objectField) {
+	public static ObjectField deleteObjectField(ObjectField objectField)
+		throws PortalException {
+
 		return getService().deleteObjectField(objectField);
+	}
+
+	public static void deleteObjectFieldByObjectDefinitionId(
+			Long objectDefinitionId)
+		throws PortalException {
+
+		getService().deleteObjectFieldByObjectDefinitionId(objectDefinitionId);
 	}
 
 	/**
@@ -127,8 +160,19 @@ public class ObjectFieldLocalServiceUtil {
 		return getService().deletePersistedModel(persistedModel);
 	}
 
+	public static ObjectField deleteRelationshipTypeObjectField(
+			long objectFieldId)
+		throws PortalException {
+
+		return getService().deleteRelationshipTypeObjectField(objectFieldId);
+	}
+
 	public static <T> T dslQuery(DSLQuery dslQuery) {
 		return getService().dslQuery(dslQuery);
+	}
+
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
 	}
 
 	public static DynamicQuery dynamicQuery() {
@@ -212,6 +256,12 @@ public class ObjectFieldLocalServiceUtil {
 		return getService().fetchObjectField(objectFieldId);
 	}
 
+	public static ObjectField fetchObjectField(
+		long objectDefinitionId, String name) {
+
+		return getService().fetchObjectField(objectDefinitionId, name);
+	}
+
 	/**
 	 * Returns the object field with the matching UUID and company.
 	 *
@@ -229,6 +279,13 @@ public class ObjectFieldLocalServiceUtil {
 		getActionableDynamicQuery() {
 
 		return getService().getActionableDynamicQuery();
+	}
+
+	public static List<ObjectField> getActiveObjectFields(
+			List<ObjectField> objectFields)
+		throws PortalException {
+
+		return getService().getActiveObjectFields(objectFields);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
@@ -257,6 +314,13 @@ public class ObjectFieldLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getObjectField(objectFieldId);
+	}
+
+	public static ObjectField getObjectField(
+			long objectDefinitionId, String name)
+		throws PortalException {
+
+		return getService().getObjectField(objectDefinitionId, name);
 	}
 
 	/**
@@ -293,6 +357,12 @@ public class ObjectFieldLocalServiceUtil {
 		return getService().getObjectFields(objectDefinitionId);
 	}
 
+	public static List<ObjectField> getObjectFields(
+		long objectDefinitionId, String dbTableName) {
+
+		return getService().getObjectFields(objectDefinitionId, dbTableName);
+	}
+
 	/**
 	 * Returns the number of object fields.
 	 *
@@ -300,6 +370,17 @@ public class ObjectFieldLocalServiceUtil {
 	 */
 	public static int getObjectFieldsCount() {
 		return getService().getObjectFieldsCount();
+	}
+
+	public static int getObjectFieldsCount(long objectDefinitionId) {
+		return getService().getObjectFieldsCount(objectDefinitionId);
+	}
+
+	public static int getObjectFieldsCountByListTypeDefinitionId(
+		long listTypeDefinitionId) {
+
+		return getService().getObjectFieldsCountByListTypeDefinitionId(
+			listTypeDefinitionId);
 	}
 
 	/**
@@ -318,6 +399,21 @@ public class ObjectFieldLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static ObjectField updateCustomObjectField(
+			long objectFieldId, long listTypeDefinitionId, String businessType,
+			String dbType, boolean indexed, boolean indexedAsKeyword,
+			String indexedLanguageId, Map<java.util.Locale, String> labelMap,
+			String name, boolean required,
+			List<com.liferay.object.model.ObjectFieldSetting>
+				objectFieldSettings)
+		throws PortalException {
+
+		return getService().updateCustomObjectField(
+			objectFieldId, listTypeDefinitionId, businessType, dbType, indexed,
+			indexedAsKeyword, indexedLanguageId, labelMap, name, required,
+			objectFieldSettings);
 	}
 
 	/**

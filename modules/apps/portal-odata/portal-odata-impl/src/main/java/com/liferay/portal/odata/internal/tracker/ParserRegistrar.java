@@ -15,7 +15,7 @@
 package com.liferay.portal.odata.internal.tracker;
 
 import com.liferay.osgi.util.ServiceTrackerFactory;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.filter.FilterParser;
 import com.liferay.portal.odata.filter.FilterParserProvider;
@@ -151,11 +151,9 @@ public class ParserRegistrar {
 			ServiceRegistration<?> serviceRegistration =
 				bundleContext.registerService(
 					clazz, parser,
-					new HashMapDictionary<String, Object>() {
-						{
-							put("entity.model.name", _entityModelName);
-						}
-					});
+					HashMapDictionaryBuilder.<String, Object>put(
+						"entity.model.name", _entityModelName
+					).build());
 
 			_serviceRegistrations.add(serviceRegistration);
 		}

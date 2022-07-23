@@ -16,8 +16,12 @@ import React from 'react';
 
 import {DEFAULT_LABELS} from './util/labels';
 
-const MiniCartContext = React.createContext({
-	CartResource: {},
+/**
+ * MiniCartContext Default Shape and Values
+ *
+ * (exported for test purposes)
+ */
+export const DEFAULT_MINI_CART_CONTEXT_VALUE = {
 	CartViews: {},
 	actionURLs: {},
 	cartState: {},
@@ -27,12 +31,12 @@ const MiniCartContext = React.createContext({
 	isOpen: false,
 	isUpdating: false,
 	labels: DEFAULT_LABELS,
+	openCart: () => {},
 	setIsUpdating: () => {},
-	spritemap: '',
 	summaryDataMapper: () => {},
 	toggleable: true,
 	updateCartModel: () => {},
 	updateCartState: () => {},
-});
+};
 
-export default MiniCartContext;
+export default React.createContext(DEFAULT_MINI_CART_CONTEXT_VALUE);

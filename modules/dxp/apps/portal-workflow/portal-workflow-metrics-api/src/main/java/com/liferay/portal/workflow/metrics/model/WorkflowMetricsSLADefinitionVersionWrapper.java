@@ -236,6 +236,11 @@ public class WorkflowMetricsSLADefinitionVersionWrapper
 		}
 	}
 
+	@Override
+	public WorkflowMetricsSLADefinitionVersion cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the active of this workflow metrics sla definition version.
 	 *

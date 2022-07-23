@@ -136,7 +136,7 @@ public class DDMTemplateStagedModelDataHandler
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return referenceAttributes;
@@ -144,7 +144,7 @@ public class DDMTemplateStagedModelDataHandler
 
 		referenceAttributes.put(
 			"preloaded",
-			String.valueOf(isPreloadedTemplate(defaultUserId, template)));
+			String.valueOf(_isPreloadedTemplate(defaultUserId, template)));
 
 		return referenceAttributes;
 	}
@@ -177,7 +177,7 @@ public class DDMTemplateStagedModelDataHandler
 			referenceElement.attributeValue("referenced-class-name"));
 		String templateKey = referenceElement.attributeValue("template-key");
 
-		DDMTemplate existingTemplate = fetchExistingTemplateWithParentGroups(
+		DDMTemplate existingTemplate = _fetchExistingTemplateWithParentGroups(
 			uuid, groupId, classNameId, templateKey, preloaded);
 
 		if (existingTemplate == null) {
@@ -234,14 +234,11 @@ public class DDMTemplateStagedModelDataHandler
 				}
 				else {
 					if (_log.isWarnEnabled()) {
-						StringBundler sb = new StringBundler(4);
-
-						sb.append("Unable to export small image ");
-						sb.append(template.getSmallImageId());
-						sb.append(" to template ");
-						sb.append(template.getTemplateKey());
-
-						_log.warn(sb.toString());
+						_log.warn(
+							StringBundler.concat(
+								"Unable to export small image ",
+								template.getSmallImageId(), " to template ",
+								template.getTemplateKey()));
 					}
 
 					template.setSmallImage(false);
@@ -255,15 +252,16 @@ public class DDMTemplateStagedModelDataHandler
 				replaceExportContentReferences(
 					portletDataContext, template, template.getScript(),
 					portletDataContext.getBooleanParameter(
-						DDMPortletDataHandler.NAMESPACE, "referenced-content"),
+						BaseDDMPortletDataHandler.NAMESPACE,
+						"referenced-content"),
 					false);
 
 		template.setScript(script);
 
-		long defaultUserId = _userLocalService.getDefaultUserId(
-			template.getCompanyId());
+		if (_isPreloadedTemplate(
+				_userLocalService.getDefaultUserId(template.getCompanyId()),
+				template)) {
 
-		if (isPreloadedTemplate(defaultUserId, template)) {
 			templateElement.addAttribute("preloaded", "true");
 		}
 
@@ -283,7 +281,7 @@ public class DDMTemplateStagedModelDataHandler
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 	}
@@ -318,7 +316,7 @@ public class DDMTemplateStagedModelDataHandler
 			existingTemplate = fetchMissingReference(uuid, groupId);
 		}
 		else {
-			existingTemplate = fetchExistingTemplateWithParentGroups(
+			existingTemplate = _fetchExistingTemplateWithParentGroups(
 				uuid, groupId, classNameId, templateKey, preloaded);
 		}
 
@@ -419,7 +417,7 @@ public class DDMTemplateStagedModelDataHandler
 				boolean preloaded = GetterUtil.getBoolean(
 					element.attributeValue("preloaded"));
 
-				DDMTemplate existingTemplate = fetchExistingTemplate(
+				DDMTemplate existingTemplate = _fetchExistingTemplate(
 					template.getUuid(), portletDataContext.getScopeGroupId(),
 					template.getClassNameId(), template.getTemplateKey(),
 					preloaded);
@@ -477,7 +475,7 @@ public class DDMTemplateStagedModelDataHandler
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 
@@ -495,90 +493,11 @@ public class DDMTemplateStagedModelDataHandler
 		}
 	}
 
-	protected DDMTemplate fetchExistingTemplate(
-		String uuid, long groupId, long classNameId, String templateKey,
-		boolean preloaded) {
-
-		DDMTemplate existingTemplate = null;
-
-		if (!preloaded) {
-			existingTemplate = fetchStagedModelByUuidAndGroupId(uuid, groupId);
-		}
-		else {
-			existingTemplate = _ddmTemplateLocalService.fetchTemplate(
-				groupId, classNameId, templateKey);
-		}
-
-		return existingTemplate;
-	}
-
-	protected DDMTemplate fetchExistingTemplateWithParentGroups(
-		String uuid, long groupId, long classNameId, String templateKey,
-		boolean preloaded) {
-
-		Group group = _groupLocalService.fetchGroup(groupId);
-
-		if (group == null) {
-			return null;
-		}
-
-		long companyId = group.getCompanyId();
-
-		while (group != null) {
-			DDMTemplate existingTemplate = fetchExistingTemplate(
-				uuid, group.getGroupId(), classNameId, templateKey, preloaded);
-
-			if (existingTemplate != null) {
-				return existingTemplate;
-			}
-
-			group = group.getParentGroup();
-		}
-
-		Group companyGroup = _groupLocalService.fetchCompanyGroup(companyId);
-
-		if (companyGroup == null) {
-			return null;
-		}
-
-		return fetchExistingTemplate(
-			uuid, companyGroup.getGroupId(), classNameId, templateKey,
-			preloaded);
-	}
-
 	protected String getResourceName(DDMTemplate template)
 		throws PortalException {
 
 		return ddmPermissionSupport.getTemplateModelResourceName(
 			template.getResourceClassName());
-	}
-
-	protected boolean isPreloadedTemplate(
-		long defaultUserId, DDMTemplate template) {
-
-		if (defaultUserId == template.getUserId()) {
-			return true;
-		}
-
-		DDMTemplateVersion ddmTemplateVersion = null;
-
-		try {
-			ddmTemplateVersion =
-				_ddmTemplateVersionLocalService.getTemplateVersion(
-					template.getTemplateId(),
-					DDMTemplateConstants.VERSION_DEFAULT);
-		}
-		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
-		}
-
-		if ((ddmTemplateVersion != null) &&
-			(defaultUserId == ddmTemplateVersion.getUserId())) {
-
-			return true;
-		}
-
-		return false;
 	}
 
 	@Reference(unbind = "-")
@@ -623,6 +542,85 @@ public class DDMTemplateStagedModelDataHandler
 
 	@Reference
 	protected DDMPermissionSupport ddmPermissionSupport;
+
+	private DDMTemplate _fetchExistingTemplate(
+		String uuid, long groupId, long classNameId, String templateKey,
+		boolean preloaded) {
+
+		DDMTemplate existingTemplate = null;
+
+		if (!preloaded) {
+			existingTemplate = fetchStagedModelByUuidAndGroupId(uuid, groupId);
+		}
+		else {
+			existingTemplate = _ddmTemplateLocalService.fetchTemplate(
+				groupId, classNameId, templateKey);
+		}
+
+		return existingTemplate;
+	}
+
+	private DDMTemplate _fetchExistingTemplateWithParentGroups(
+		String uuid, long groupId, long classNameId, String templateKey,
+		boolean preloaded) {
+
+		Group group = _groupLocalService.fetchGroup(groupId);
+
+		if (group == null) {
+			return null;
+		}
+
+		long companyId = group.getCompanyId();
+
+		while (group != null) {
+			DDMTemplate existingTemplate = _fetchExistingTemplate(
+				uuid, group.getGroupId(), classNameId, templateKey, preloaded);
+
+			if (existingTemplate != null) {
+				return existingTemplate;
+			}
+
+			group = group.getParentGroup();
+		}
+
+		Group companyGroup = _groupLocalService.fetchCompanyGroup(companyId);
+
+		if (companyGroup == null) {
+			return null;
+		}
+
+		return _fetchExistingTemplate(
+			uuid, companyGroup.getGroupId(), classNameId, templateKey,
+			preloaded);
+	}
+
+	private boolean _isPreloadedTemplate(
+		long defaultUserId, DDMTemplate template) {
+
+		if (defaultUserId == template.getUserId()) {
+			return true;
+		}
+
+		DDMTemplateVersion ddmTemplateVersion = null;
+
+		try {
+			ddmTemplateVersion =
+				_ddmTemplateVersionLocalService.getTemplateVersion(
+					template.getTemplateId(),
+					DDMTemplateConstants.VERSION_DEFAULT);
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
+		}
+
+		if ((ddmTemplateVersion != null) &&
+			(defaultUserId == ddmTemplateVersion.getUserId())) {
+
+			return true;
+		}
+
+		return false;
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMTemplateStagedModelDataHandler.class);

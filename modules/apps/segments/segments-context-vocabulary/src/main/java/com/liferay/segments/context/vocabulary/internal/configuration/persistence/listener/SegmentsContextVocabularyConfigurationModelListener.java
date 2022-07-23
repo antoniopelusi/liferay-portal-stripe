@@ -49,28 +49,32 @@ public class SegmentsContextVocabularyConfigurationModelListener
 	public void onBeforeSave(String pid, Dictionary<String, Object> properties)
 		throws ConfigurationModelListenerException {
 
-		String entityField = String.valueOf(properties.get("entityField"));
+		String entityFieldName = String.valueOf(
+			properties.get("entityFieldName"));
 
-		if (Validator.isNull(entityField)) {
+		if (Validator.isNull(entityFieldName)) {
 			throw new ConfigurationModelListenerException(
 				ResourceBundleUtil.getString(
-					getResourceBundle(),
-					"please-enter-a-vaid-session-property-name"),
+					_getResourceBundle(),
+					"please-enter-a-valid-session-property-name"),
 				SegmentsContextVocabularyConfiguration.class, getClass(),
 				properties);
 		}
 
-		if (_isDefined(pid, entityField)) {
+		if (_isDefined(
+				String.valueOf(properties.get("assetVocabularyName")),
+				String.valueOf(properties.get("companyId")), entityFieldName)) {
+
 			throw new DuplicatedSegmentsContextVocabularyConfigurationModelListenerException(
 				ResourceBundleUtil.getString(
-					getResourceBundle(),
+					_getResourceBundle(),
 					"this-field-is-already-linked-to-one-vocabulary"),
 				SegmentsContextVocabularyConfiguration.class, getClass(),
 				properties);
 		}
 	}
 
-	protected ResourceBundle getResourceBundle() {
+	private ResourceBundle _getResourceBundle() {
 		if (_resourceBundle == null) {
 			Locale locale = LocaleThreadLocal.getThemeDisplayLocale();
 
@@ -82,12 +86,19 @@ public class SegmentsContextVocabularyConfigurationModelListener
 	}
 
 	private boolean _isDefined(
-		Configuration configuration, String entityField, String pid) {
+		String assetVocabularyName, String companyId,
+		Configuration configuration, String entityFieldName) {
 
 		Dictionary<String, Object> properties = configuration.getProperties();
 
-		if (Objects.equals(entityField, properties.get("entityField")) &&
-			!Objects.equals(pid, configuration.getPid())) {
+		if ((Objects.equals(
+				assetVocabularyName, properties.get("assetVocabularyName")) &&
+			 Objects.equals(
+				 entityFieldName, properties.get("entityFieldName"))) ||
+			(Objects.equals(
+				companyId, String.valueOf(properties.get("companyId"))) &&
+			 Objects.equals(
+				 entityFieldName, properties.get("entityFieldName")))) {
 
 			return true;
 		}
@@ -95,11 +106,13 @@ public class SegmentsContextVocabularyConfigurationModelListener
 		return false;
 	}
 
-	private boolean _isDefined(String pid, String entityField)
+	private boolean _isDefined(
+			String assetVocabularyName, String companyId,
+			String entityFieldName)
 		throws ConfigurationModelListenerException {
 
 		try {
-			return Stream.of(
+			Stream<Configuration> companyConfigurationsStream = Stream.of(
 				Optional.ofNullable(
 					_configurationAdmin.listConfigurations(
 						StringBundler.concat(
@@ -109,9 +122,25 @@ public class SegmentsContextVocabularyConfigurationModelListener
 							")"))
 				).orElse(
 					new Configuration[0]
-				)
+				));
+			Stream<Configuration> configurationsStream = Stream.of(
+				Optional.ofNullable(
+					_configurationAdmin.listConfigurations(
+						StringBundler.concat(
+							"(", ConfigurationAdmin.SERVICE_FACTORYPID, "=",
+							SegmentsContextVocabularyConfiguration.class.
+								getCanonicalName(),
+							")"))
+				).orElse(
+					new Configuration[0]
+				));
+
+			return Stream.concat(
+				companyConfigurationsStream, configurationsStream
 			).filter(
-				configuration -> _isDefined(configuration, entityField, pid)
+				configuration -> _isDefined(
+					assetVocabularyName, companyId, configuration,
+					entityFieldName)
 			).findFirst(
 			).isPresent();
 		}

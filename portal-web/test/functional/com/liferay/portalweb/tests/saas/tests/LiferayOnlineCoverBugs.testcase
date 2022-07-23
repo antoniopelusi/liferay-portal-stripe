@@ -1,0 +1,163 @@
+@component-name = "portal-liferay-online"
+definition {
+
+	property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
+	property database.types = "mysql";
+	property liferay.online.properties = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Liferay Online";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginUI();
+
+		HeadlessPortalInstanceAPI.addPortalInstanceWithVirtualInstanceInitializer(
+			domain = "www.able.com",
+			portalInstanceId = "www.able.com",
+			siteInitializerKey = "com.liferay.site.initializer.masterclass",
+			virtualHost = "www.able.com");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "LPS-142122: Clicking on Masterclass logo opens a page with an error"
+	@priority = "3"
+	test ClickMasterclassLogoGoesHomePage {
+		property test.name.skip.portal.instance = "LiferayOnlineCoverBugs#ClickMasterclassLogoGoesHomePage";
+
+		task ("Assert the Virtual Instance created by Json is present") {
+			ApplicationsMenu.gotoPortlet(
+				category = "System",
+				panel = "Control Panel",
+				portlet = "Virtual Instances");
+
+			PortalInstances.viewCP(virtualHost = "www.able.com");
+
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+			AssertElementPresent(
+				key_title = "Welcome to Masterclass",
+				locator1 = "Masterclass#FRAGMENT_HERO_PRE");
+		}
+
+		task ("Go to Sign In Page") {
+			Click(locator1 = "Masterclass#NAV_TAB");
+		}
+
+		task ("Click Mastercard logo") {
+			Click(locator1 = "Masterclass#MASTERCLASS_LOGO");
+		}
+
+		task ("Assert the default Masterclass Moderns is applied to Home page") {
+			AssertCssValue(
+				key_content = "Read More",
+				key_element = "a",
+				key_id = "hero-button",
+				key_type = "link",
+				locator1 = "StyleBookEditor#CONTRIBUTED_FRAGMENT_INLINE_CONTENT",
+				locator2 = "color",
+				value1 = "rgba(255, 255, 255, 1)");
+		}
+	}
+
+	@description = "Verify if a virtual instance is created using the initializer, showing a different site comparing with the default Liferay bundle"
+	@priority = "4"
+	test CreateVirtualInstanceUsingInitializerWithSuccess {
+		property test.name.skip.portal.instance = "LiferayOnlineCoverBugs#CreateVirtualInstanceUsingInitializerWithSuccess";
+
+		task ("Go to the Virtual Instance created") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+		}
+
+		task ("Assert the Default Home Page is not present") {
+			AssertElementNotPresent(
+				key_title = "Welcome to Liferay",
+				locator1 = "Masterclass#FRAGMENT_HEADING");
+		}
+
+		task ("Assert the Masterclass Welcome Page") {
+			AssertElementPresent(
+				key_title = "Welcome to Masterclass",
+				locator1 = "Masterclass#FRAGMENT_HERO_PRE");
+		}
+	}
+
+	@description = "Delete Virtual Instance in Liferay Online"
+	@priority = "4"
+	test DeleteVirtualInstance {
+		property test.name.skip.portal.instance = "LiferayOnlineCoverBugs#DeleteVirtualInstance";
+
+		task ("Go to Virtual Instances") {
+			ApplicationsMenu.gotoPortlet(
+				category = "System",
+				panel = "Control Panel",
+				portlet = "Virtual Instances");
+		}
+
+		task ("Delete the Virtual Instance created") {
+			PortalInstances.deleteCP(virtualHost = "www.able.com");
+		}
+
+		task ("Assert that the Virtual Instance deleted is not present") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+			AssertElementNotPresent(
+				key_title = "Welcome to Masterclass",
+				locator1 = "Masterclass#FRAGMENT_HERO_PRE");
+		}
+	}
+
+	@description = "Verify if a friendly error appears when the user is not able to create the virtual host"
+	@priority = "3"
+	test FriendlyErrorAppearsWhenTheUserCantCreateVirtualHost {
+		property test.name.skip.portal.instance = "LiferayOnlineCoverBugs#FriendlyErrorAppearsWhenTheUserCantCreateVirtualHost";
+
+		task ("Go to Virtual Instances") {
+			ApplicationsMenu.gotoPortlet(
+				category = "System",
+				panel = "Control Panel",
+				portlet = "Virtual Instances");
+		}
+
+		task ("Create a new Virtual instance using localhost") {
+			PortalInstances.addCP(
+				mailDomain = "www.baker.com",
+				virtualHost = "localhost",
+				webId = "www.baker.com");
+		}
+
+		task ("Assert the error message") {
+			AssertElementPresent(locator1 = "Message#ERROR_DISMISSIBLE");
+		}
+	}
+
+	@description = "Create Virtual instance using the Virtual Instance Initializer not works with the curl command."
+	@priority = "4"
+	test UserCanCreateVirtualInstance {
+		property test.name.skip.portal.instance = "LiferayOnlineCoverBugs#UserCanCreateVirtualInstance";
+
+		task ("Assert the Virtual Instance created by Json is present") {
+			ApplicationsMenu.gotoPortlet(
+				category = "System",
+				panel = "Control Panel",
+				portlet = "Virtual Instances");
+
+			PortalInstances.viewCP(virtualHost = "www.able.com");
+
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+			AssertElementPresent(
+				key_title = "Welcome to Masterclass",
+				locator1 = "Masterclass#FRAGMENT_HERO_PRE");
+		}
+	}
+
+}

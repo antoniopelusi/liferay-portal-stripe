@@ -11,7 +11,7 @@ definition {
 	}
 
 	tearDown {
-		Page.tearDownCP();
+		PagesAdmin.tearDownCP();
 	}
 
 	@priority = "4"
@@ -20,7 +20,7 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		SitePages.addPublicPage(pageName = "Test User Attributes Page");
+		PagesAdmin.addPage(pageName = "Test User Attributes Page");
 
 		Navigator.gotoPage(pageName = "Test User Attributes Page");
 

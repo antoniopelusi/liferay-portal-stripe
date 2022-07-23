@@ -246,4 +246,7 @@ public interface CommerceInventoryBookedQuantityModel
 	 */
 	public void setBookedNote(String bookedNote);
 
+	@Override
+	public CommerceInventoryBookedQuantity cloneWithOriginalValues();
+
 }

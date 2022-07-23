@@ -137,6 +137,11 @@ public class WorkflowInstanceLinkWrapper
 		}
 	}
 
+	@Override
+	public WorkflowInstanceLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this workflow instance link.
 	 *

@@ -15,21 +15,30 @@
 package com.liferay.account.admin.web.internal.display.context;
 
 import com.liferay.account.admin.web.internal.display.AccountGroupDisplay;
+import com.liferay.account.admin.web.internal.security.permission.resource.AccountGroupPermission;
+import com.liferay.account.constants.AccountActionKeys;
 import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.WebKeys;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.portlet.PortletURL;
@@ -56,26 +65,42 @@ public class ViewAccountGroupsManagementToolbarDisplayContext
 	@Override
 	public List<DropdownItem> getActionDropdownItems() {
 		return DropdownItemList.of(
-			() -> {
-				DropdownItem dropdownItem = new DropdownItem();
+			DropdownItemBuilder.putData(
+				"action", "deleteAccountGroups"
+			).putData(
+				"deleteAccountGroupsURL",
+				PortletURLBuilder.createActionURL(
+					liferayPortletResponse
+				).setActionName(
+					"/account_admin/delete_account_groups"
+				).buildString()
+			).setIcon(
+				"times-circle"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "delete")
+			).setQuickAction(
+				true
+			).build());
+	}
 
-				dropdownItem.putData("action", "deleteAccountGroups");
+	public List<String> getAvailableActions(
+			AccountGroupDisplay accountGroupDisplay)
+		throws PortalException {
 
-				dropdownItem.putData(
-					"deleteAccountGroupsURL",
-					PortletURLBuilder.createActionURL(
-						liferayPortletResponse
-					).setActionName(
-						"/account_admin/delete_account_groups"
-					).buildString());
+		List<String> availableActions = new ArrayList<>();
 
-				dropdownItem.setIcon("times-circle");
-				dropdownItem.setLabel(
-					LanguageUtil.get(httpServletRequest, "delete"));
-				dropdownItem.setQuickAction(true);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
-				return dropdownItem;
-			});
+		if (AccountGroupPermission.contains(
+				themeDisplay.getPermissionChecker(),
+				accountGroupDisplay.getAccountGroupId(), ActionKeys.DELETE)) {
+
+			availableActions.add("deleteAccountGroups");
+		}
+
+		return availableActions;
 	}
 
 	@Override
@@ -108,7 +133,7 @@ public class ViewAccountGroupsManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return liferayPortletResponse.createRenderURL();
@@ -120,6 +145,17 @@ public class ViewAccountGroupsManagementToolbarDisplayContext
 		PortletURL searchActionURL = getPortletURL();
 
 		return searchActionURL.toString();
+	}
+
+	@Override
+	public Boolean isShowCreationMenu() {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return PortalPermissionUtil.contains(
+			themeDisplay.getPermissionChecker(),
+			AccountActionKeys.ADD_ACCOUNT_GROUP);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

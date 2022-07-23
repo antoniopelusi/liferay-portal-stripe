@@ -35,9 +35,6 @@ import java.util.Objects;
  */
 public class CPDefinitionOptionRelImpl extends CPDefinitionOptionRelBaseImpl {
 
-	public CPDefinitionOptionRelImpl() {
-	}
-
 	@Override
 	public CPDefinitionOptionValueRel
 		fetchPreselectedCPDefinitionOptionValueRel() {

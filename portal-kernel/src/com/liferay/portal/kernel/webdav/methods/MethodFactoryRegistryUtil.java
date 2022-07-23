@@ -22,15 +22,15 @@ import java.util.List;
 public class MethodFactoryRegistryUtil {
 
 	public static MethodFactory getDefaultMethodFactory() {
-		return getMethodFactoryRegistry().getDefaultMethodFactory();
+		return _methodFactoryRegistry.getDefaultMethodFactory();
 	}
 
 	public static MethodFactory getMethodFactory(String className) {
-		return getMethodFactoryRegistry().getMethodFactory(className);
+		return _methodFactoryRegistry.getMethodFactory(className);
 	}
 
 	public static List<MethodFactory> getMethodFactoryFactories() {
-		return getMethodFactoryRegistry().getMethodFactories();
+		return _methodFactoryRegistry.getMethodFactories();
 	}
 
 	public static MethodFactoryRegistry getMethodFactoryRegistry() {
@@ -38,11 +38,11 @@ public class MethodFactoryRegistryUtil {
 	}
 
 	public static void registerMethodFactory(MethodFactory methodFactory) {
-		getMethodFactoryRegistry().registerMethodFactory(methodFactory);
+		_methodFactoryRegistry.registerMethodFactory(methodFactory);
 	}
 
 	public static void unregisterMethodFactory(MethodFactory methodFactory) {
-		getMethodFactoryRegistry().unregisterMethodFactory(methodFactory);
+		_methodFactoryRegistry.unregisterMethodFactory(methodFactory);
 	}
 
 	public void setMethodFactoryRegistry(

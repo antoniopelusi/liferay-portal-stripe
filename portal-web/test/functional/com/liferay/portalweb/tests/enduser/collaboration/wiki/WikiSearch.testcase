@@ -1,0 +1,106 @@
+@component-name = "portal-lima"
+definition {
+
+	property portal.acceptance = "true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Wiki";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Wiki Test Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Wiki Test Page",
+			widgetName = "Wiki");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			WikiPage.tearDownCP();
+
+			WikiNode.tearDownCP();
+
+			PagesAdmin.tearDownCP();
+		}
+	}
+
+	@description = "This ensures that the front page can be searched out by attachment name."
+	@priority = "4"
+	@refactordone
+	test CanSearchOutPageByAttachmentName {
+		WikiNavigator.openWikiAdmin(siteURLKey = "guest");
+
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageName = "FrontPage");
+
+		JSONWiki.addAttachmentToWikiPage(
+			fileName = "Document_1.txt",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			wikiNodeName = "Main",
+			wikiPageName = "FrontPage");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiPage.searchPG(searchTerm = "document");
+
+		WikiPage.viewSearchResultsPG(
+			wikiAttachment = "true",
+			wikiAttachmentBody = "Document_1.txt",
+			wikiPageTitle = "FrontPage");
+	}
+
+	@description = "This ensures that a wiki page can be searched out by comment."
+	@priority = "4"
+	@refactordone
+	test CanSearchOutPageByComment {
+		WikiNavigator.openWikiAdmin(siteURLKey = "guest");
+
+		JSONWiki.updateWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "Wiki FrontPage Content",
+			wikiPageName = "FrontPage");
+
+		JSONWiki.addWikiChildPage(
+			groupName = "Guest",
+			wikiChildPageContent = "Wiki FrontPage Child Page Content",
+			wikiChildPageName = "Wiki FrontPage Child Page Title",
+			wikiNodeName = "Main",
+			wikiParentPageName = "FrontPage");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki FrontPage Child Page Title");
+
+		WikiPage.addComment(entryComment = "Wiki FrontPage Child Page Comment Body document");
+
+		Navigator.gotoPage(pageName = "Wiki Test Page");
+
+		WikiPage.searchPG(searchTerm = "document");
+
+		WikiPage.viewSearchResultsPG(
+			commentBody = "Wiki FrontPage Child Page Comment Body document",
+			wikiComment = "true",
+			wikiPageTitle = "Wiki FrontPage Child Page Title");
+	}
+
+}

@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.model.EmailAddress;
 import com.liferay.portal.kernel.model.OrgLabor;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Phone;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.Website;
 import com.liferay.portal.kernel.security.access.control.AccessControlled;
 import com.liferay.portal.kernel.transaction.Isolation;
@@ -132,6 +133,21 @@ public interface OrganizationService extends BaseService {
 			ServiceContext serviceContext)
 		throws PortalException;
 
+	public User addOrganizationUserByEmailAddress(
+			String emailAddress, long organizationId,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public Organization addOrUpdateOrganization(
+			String externalReferenceCode, long parentOrganizationId,
+			String name, String type, long regionId, long countryId,
+			long statusId, String comments, boolean hasLogo, byte[] logoBytes,
+			boolean site, List<Address> addresses,
+			List<EmailAddress> emailAddresses, List<OrgLabor> orgLabors,
+			List<Phone> phones, List<Website> websites,
+			ServiceContext serviceContext)
+		throws PortalException;
+
 	/**
 	 * Assigns the password policy to the organizations, removing any other
 	 * currently assigned password policies.
@@ -141,6 +157,10 @@ public interface OrganizationService extends BaseService {
 	 */
 	public void addPasswordPolicyOrganizations(
 			long passwordPolicyId, long[] organizationIds)
+		throws PortalException;
+
+	public void addUserOrganizationByEmailAddress(
+			String emailAddress, long organizationId)
 		throws PortalException;
 
 	/**
@@ -157,6 +177,10 @@ public interface OrganizationService extends BaseService {
 	 * @param organizationId the primary key of the organization
 	 */
 	public void deleteOrganization(long organizationId) throws PortalException;
+
+	public void deleteUserOrganizationByEmailAddress(
+			String emailAddress, long organizationId)
+		throws PortalException;
 
 	/**
 	 * Returns the organization with the primary key.
@@ -183,6 +207,11 @@ public interface OrganizationService extends BaseService {
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Organization getOrganization(long organizationId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Organization getOrganizationByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
 		throws PortalException;
 
 	/**

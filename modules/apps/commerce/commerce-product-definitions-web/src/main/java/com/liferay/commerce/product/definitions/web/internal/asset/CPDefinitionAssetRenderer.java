@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -140,18 +139,16 @@ public class CPDefinitionAssetRenderer
 			LiferayPortletResponse liferayPortletResponse)
 		throws Exception {
 
-		Group group = GroupLocalServiceUtil.fetchGroup(
-			_cpDefinition.getGroupId());
-
 		return PortletURLBuilder.create(
 			PortalUtil.getControlPanelPortletURL(
-				liferayPortletRequest, group, CPPortletKeys.CP_DEFINITIONS, 0,
-				0, PortletRequest.RENDER_PHASE)
+				liferayPortletRequest,
+				GroupLocalServiceUtil.fetchGroup(_cpDefinition.getGroupId()),
+				CPPortletKeys.CP_DEFINITIONS, 0, 0, PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/cp_definitions/edit_cp_definition"
 		).setParameter(
 			"cpDefinitionId", _cpDefinition.getCPDefinitionId()
-		).build();
+		).buildPortletURL();
 	}
 
 	@Override
@@ -190,7 +187,7 @@ public class CPDefinitionAssetRenderer
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return noSuchEntryRedirect;

@@ -71,14 +71,11 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 				return getLocalRepository(repositoryId);
 			}
 			catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-				StringBundler sb = new StringBundler(3);
-
-				sb.append("No FileEntry exists with the key {fileEntryId=");
-				sb.append(fileEntryId);
-				sb.append("}");
-
 				throw new NoSuchFileEntryException(
-					sb.toString(), invalidRepositoryIdException);
+					StringBundler.concat(
+						"No FileEntry exists with the key {fileEntryId=",
+						fileEntryId, "}"),
+					invalidRepositoryIdException);
 			}
 		}
 
@@ -93,14 +90,11 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 			return getLocalRepository(getFileEntryRepositoryId(fileEntryId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No FileEntry exists with the key {fileEntryId=");
-			sb.append(fileEntryId);
-			sb.append("}");
-
 			throw new NoSuchFileEntryException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No FileEntry exists with the key {fileEntryId=",
+					fileEntryId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -114,14 +108,11 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 			return getRepository(getFileEntryRepositoryId(fileEntryId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No FileEntry exists with the key {fileEntryId=");
-			sb.append(fileEntryId);
-			sb.append("}");
-
 			throw new NoSuchFileEntryException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No FileEntry exists with the key {fileEntryId=",
+					fileEntryId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -134,14 +125,11 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 				getFileShortcutRepositoryId(fileShortcutId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No FileShortcut exists with the key {fileShortcutId=");
-			sb.append(fileShortcutId);
-			sb.append("}");
-
 			throw new NoSuchFileShortcutException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No FileShortcut exists with the key {fileShortcutId=",
+					fileShortcutId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -155,14 +143,11 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 			return getRepository(getFileShortcutRepositoryId(fileShortcutId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No FileShortcut exists with the key {fileShortcutId=");
-			sb.append(fileShortcutId);
-			sb.append("}");
-
 			throw new NoSuchFileShortcutException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No FileShortcut exists with the key {fileShortcutId=",
+					fileShortcutId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -175,14 +160,11 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 				getFileVersionRepositoryId(fileVersionId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No FileVersion exists with the key {fileVersionId=");
-			sb.append(fileVersionId);
-			sb.append("}");
-
 			throw new NoSuchFileVersionException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No FileVersion exists with the key {fileVersionId=",
+					fileVersionId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -196,14 +178,11 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 			return getRepository(getFileVersionRepositoryId(fileVersionId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No FileVersion exists with the key {fileVersionId=");
-			sb.append(fileVersionId);
-			sb.append("}");
-
 			throw new NoSuchFileVersionException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No FileVersion exists with the key {fileVersionId=",
+					fileVersionId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -215,14 +194,10 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 			return getLocalRepository(getFolderRepositoryId(folderId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No Folder exists with the key {folderId=");
-			sb.append(folderId);
-			sb.append("}");
-
 			throw new NoSuchFolderException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No Folder exists with the key {folderId=", folderId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -236,14 +211,10 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 			return getRepository(getFolderRepositoryId(folderId));
 		}
 		catch (InvalidRepositoryIdException invalidRepositoryIdException) {
-			StringBundler sb = new StringBundler(3);
-
-			sb.append("No Folder exists with the key {folderId=");
-			sb.append(folderId);
-			sb.append("}");
-
 			throw new NoSuchFolderException(
-				sb.toString(), invalidRepositoryIdException);
+				StringBundler.concat(
+					"No Folder exists with the key {folderId=", folderId, "}"),
+				invalidRepositoryIdException);
 		}
 	}
 
@@ -418,8 +389,7 @@ public class RepositoryProviderImpl implements RepositoryProvider {
 					// LPS-52675
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							noSuchFolderException, noSuchFolderException);
+						_log.debug(noSuchFolderException);
 					}
 				}
 			}

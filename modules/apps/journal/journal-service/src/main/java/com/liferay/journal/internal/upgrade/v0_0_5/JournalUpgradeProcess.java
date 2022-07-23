@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
@@ -46,7 +47,6 @@ import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
-import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 
@@ -98,10 +98,18 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		_userLocalService = userLocalService;
 	}
 
-	protected String addBasicWebContentStructureAndTemplate(long companyId)
+	@Override
+	protected void doUpgrade() throws Exception {
+		_updateJournalArticles();
+
+		_addDDMStorageLinks();
+		_addDDMTemplateLinks();
+	}
+
+	private String _addBasicWebContentStructureAndTemplate(long companyId)
 		throws Exception {
 
-		initJournalDDMCompositeModelsResourceActions();
+		_initJournalDDMCompositeModelsResourceActions();
 
 		Group group = _groupLocalService.getCompanyGroup(companyId);
 
@@ -129,16 +137,16 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 			LocaleThreadLocal.setSiteDefaultLocale(oldSiteDefaultLocale);
 		}
 
-		addDefaultResourcePermissions(group.getGroupId());
+		_addDefaultResourcePermissions(group.getGroupId());
 
-		List<Element> structureElements = getDDMStructures(siteDefaultLocale);
+		List<Element> structureElements = _getDDMStructures(siteDefaultLocale);
 
 		Element structureElement = structureElements.get(0);
 
 		return StringUtil.toUpperCase(structureElement.elementText("name"));
 	}
 
-	protected void addDDMStorageLink(Map<Long, List<Long>> ddmStructureIdsMap)
+	private void _addDDMStorageLink(Map<Long, List<Long>> ddmStructureIdsMap)
 		throws Exception {
 
 		long journalArticleClassNameId = PortalUtil.getClassNameId(
@@ -147,11 +155,8 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		for (Map.Entry<Long, List<Long>> entry :
 				ddmStructureIdsMap.entrySet()) {
 
-			long ddmStructureId = getDDMStructureId(
-				entry.getKey(), entry.getValue());
-
 			DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
-				ddmStructureId);
+				_getDDMStructureId(entry.getKey(), entry.getValue()));
 
 			DDMStructureVersion ddmStructureVersion =
 				ddmStructure.getStructureVersion();
@@ -163,33 +168,34 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void addDDMStorageLinks() throws Exception {
+	private void _addDDMStorageLinks() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			StringBundler sb = new StringBundler(8);
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select DDMStructure.structureId, ",
+							"JournalArticle.id_ from JournalArticle inner ",
+							"join DDMStructure on (DDMStructure.groupId in ",
+							"(select distinct Group_.groupId from Group_ ",
+							"where (Group_.groupId = JournalArticle.groupId) ",
+							"or (Group_.companyId = JournalArticle.companyId ",
+							"and Group_.friendlyURL = ?)) and ",
+							"DDMStructure.structureKey = ",
+							"JournalArticle.DDMStructureKey and ",
+							"JournalArticle.classNameId != ?)"))) {
 
-			sb.append("select DDMStructure.structureId, JournalArticle.id_ ");
-			sb.append("from JournalArticle inner join DDMStructure on (");
-			sb.append("DDMStructure.groupId in (select distinct Group_.");
-			sb.append("groupId from Group_ where (Group_.groupId = ");
-			sb.append("JournalArticle.groupId) or (Group_.companyId = ");
-			sb.append("JournalArticle.companyId and Group_.friendlyURL = ?)) ");
-			sb.append("and DDMStructure.structureKey = JournalArticle.");
-			sb.append("DDMStructureKey and JournalArticle.classNameId != ?)");
-
-			try (PreparedStatement ps = connection.prepareStatement(
-					sb.toString())) {
-
-				ps.setString(1, GroupConstants.GLOBAL_FRIENDLY_URL);
-				ps.setLong(
+				preparedStatement.setString(
+					1, GroupConstants.GLOBAL_FRIENDLY_URL);
+				preparedStatement.setLong(
 					2, PortalUtil.getClassNameId(DDMStructure.class.getName()));
 
-				try (ResultSet rs = ps.executeQuery()) {
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
 					Map<Long, List<Long>> ddmStructureIdsMap = new HashMap<>();
 
-					while (rs.next()) {
-						long structureId = rs.getLong("structureId");
+					while (resultSet.next()) {
+						long structureId = resultSet.getLong("structureId");
 
-						long id = rs.getLong("id_");
+						long id = resultSet.getLong("id_");
 
 						List<Long> ddmStructureIds = ddmStructureIdsMap.get(id);
 
@@ -202,13 +208,13 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 						ddmStructureIdsMap.put(id, ddmStructureIds);
 					}
 
-					addDDMStorageLink(ddmStructureIdsMap);
+					_addDDMStorageLink(ddmStructureIdsMap);
 				}
 			}
 		}
 	}
 
-	protected void addDDMTemplateLinks() throws Exception {
+	private void _addDDMTemplateLinks() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			long ddmStructureClassNameId = PortalUtil.getClassNameId(
 				DDMStructure.class.getName());
@@ -216,24 +222,25 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 			long journalArticleClassNameId = PortalUtil.getClassNameId(
 				JournalArticle.class.getName());
 
-			StringBundler sb = new StringBundler(6);
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						StringBundler.concat(
+							"select DDMTemplate.templateId, ",
+							"JournalArticle.id_ from JournalArticle inner ",
+							"join DDMTemplate on (DDMTemplate.groupId = ",
+							"JournalArticle.groupId and ",
+							"DDMTemplate.templateKey = ",
+							"JournalArticle.DDMTemplateKey and ",
+							"JournalArticle.classNameId != ? and ",
+							"DDMTemplate.classNameId = ?)"))) {
 
-			sb.append("select DDMTemplate.templateId, JournalArticle.id_ ");
-			sb.append("from JournalArticle inner join DDMTemplate on (");
-			sb.append("DDMTemplate.groupId = JournalArticle.groupId and ");
-			sb.append("DDMTemplate.templateKey = ");
-			sb.append("JournalArticle.DDMTemplateKey and ");
-			sb.append("JournalArticle.classNameId != ?)");
+				preparedStatement.setLong(1, ddmStructureClassNameId);
+				preparedStatement.setLong(2, ddmStructureClassNameId);
 
-			try (PreparedStatement ps = connection.prepareStatement(
-					sb.toString())) {
-
-				ps.setLong(1, ddmStructureClassNameId);
-
-				try (ResultSet rs = ps.executeQuery()) {
-					while (rs.next()) {
-						long templateId = rs.getLong("templateId");
-						long id = rs.getLong("id_");
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					while (resultSet.next()) {
+						long templateId = resultSet.getLong("templateId");
+						long id = resultSet.getLong("id_");
 
 						_ddmTemplateLinkLocalService.addTemplateLink(
 							journalArticleClassNameId, id, templateId);
@@ -243,9 +250,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	protected void addDefaultResourcePermissions(long groupId)
-		throws Exception {
-
+	private void _addDefaultResourcePermissions(long groupId) throws Exception {
 		String modelResource = _resourceActions.getCompositeModelName(
 			DDMStructure.class.getName(), JournalArticle.class.getName());
 
@@ -258,7 +263,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 			ddmStructure.getStructureId(), false, false, true);
 	}
 
-	protected boolean containsDateFieldType(String content) {
+	private boolean _containsDateFieldType(String content) {
 		if (content.indexOf(_TYPE_ATTRIBUTE_DDM_DATE) != -1) {
 			return true;
 		}
@@ -266,7 +271,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return false;
 	}
 
-	protected String convertStaticContentToDynamic(long groupId, String content)
+	private String _convertStaticContentToDynamic(long groupId, String content)
 		throws Exception {
 
 		Document document = SAXReaderUtil.read(content);
@@ -320,15 +325,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return XMLUtil.formatXML(newDocument);
 	}
 
-	@Override
-	protected void doUpgrade() throws Exception {
-		updateJournalArticles();
-
-		addDDMStorageLinks();
-		addDDMTemplateLinks();
-	}
-
-	protected Set<String> getArticleDynamicElements(Element rootElement) {
+	private Set<String> _getArticleDynamicElements(Element rootElement) {
 		List<String> dynamicElementNames = new ArrayList<>();
 
 		List<Element> dynamicElementElements = rootElement.elements(
@@ -337,15 +334,13 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		for (Element element : dynamicElementElements) {
 			dynamicElementNames.add(element.attributeValue("name"));
 
-			dynamicElementNames.addAll(getArticleDynamicElements(element));
+			dynamicElementNames.addAll(_getArticleDynamicElements(element));
 		}
 
 		return SetUtil.fromList(dynamicElementNames);
 	}
 
-	protected Set<String> getArticleFieldNames(long articleId)
-		throws Exception {
-
+	private Set<String> _getArticleFieldNames(long articleId) throws Exception {
 		Set<String> articleFieldNames = new HashSet<>();
 
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
@@ -353,16 +348,18 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 				"select JournalArticle.content from JournalArticle where " +
 					"JournalArticle.id_ = ?";
 
-			try (PreparedStatement ps = connection.prepareStatement(sql)) {
-				ps.setLong(1, articleId);
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(sql)) {
 
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						String content = rs.getString("content");
+				preparedStatement.setLong(1, articleId);
+
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					if (resultSet.next()) {
+						String content = resultSet.getString("content");
 
 						Document document = SAXReaderUtil.read(content);
 
-						articleFieldNames = getArticleDynamicElements(
+						articleFieldNames = _getArticleDynamicElements(
 							document.getRootElement());
 					}
 				}
@@ -372,7 +369,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return articleFieldNames;
 	}
 
-	protected long getBestDDMStructureIdMatch(
+	private long _getBestDDMStructureIdMatch(
 			long id, long ddmStructureId1, long ddmStructureId2)
 		throws Exception {
 
@@ -381,7 +378,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 
 		Set<String> fieldNames1 = ddmStructure1.getFieldNames();
 
-		Set<String> articleFieldNames = getArticleFieldNames(id);
+		Set<String> articleFieldNames = _getArticleFieldNames(id);
 
 		fieldNames1.removeAll(articleFieldNames);
 
@@ -399,20 +396,18 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return ddmStructure2.getStructureId();
 	}
 
-	protected long getDDMStructureId(long id, List<Long> ddmStructureIds)
+	private long _getDDMStructureId(long id, List<Long> ddmStructureIds)
 		throws Exception {
 
 		if (ddmStructureIds.size() == 1) {
 			return ddmStructureIds.get(0);
 		}
 
-		return getBestDDMStructureIdMatch(
+		return _getBestDDMStructureIdMatch(
 			id, ddmStructureIds.get(0), ddmStructureIds.get(1));
 	}
 
-	protected List<Element> getDDMStructures(Locale locale)
-		throws DocumentException {
-
+	private List<Element> _getDDMStructures(Locale locale) throws Exception {
 		String xml = StringUtil.replace(
 			_BASIC_WEB_CONTENT_STRUCTURE, "[$LOCALE_DEFAULT$]",
 			locale.toString());
@@ -424,7 +419,21 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return rootElement.elements("structure");
 	}
 
-	protected Map<String, String> getInvalidDDMFormFieldNamesMap(
+	private String _getDefaultLanguageId(long groupId) throws Exception {
+		String defaultLanguageId = _defaultLanguageIds.get(groupId);
+
+		if (defaultLanguageId == null) {
+			Locale defaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
+
+			defaultLanguageId = LanguageUtil.getLanguageId(defaultLocale);
+
+			_defaultLanguageIds.put(groupId, defaultLanguageId);
+		}
+
+		return defaultLanguageId;
+	}
+
+	private Map<String, String> _getInvalidDDMFormFieldNamesMap(
 		String content) {
 
 		Map<String, String> invalidDDMFormFieldNamesMap = new HashMap<>();
@@ -445,7 +454,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return invalidDDMFormFieldNamesMap;
 	}
 
-	protected void initJournalDDMCompositeModelsResourceActions()
+	private void _initJournalDDMCompositeModelsResourceActions()
 		throws Exception {
 
 		_resourceActions.populateModelResources(
@@ -453,7 +462,7 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 			"/resource-actions/journal_ddm_composite_models.xml");
 	}
 
-	protected void transformDateFieldValue(Element dynamicContentElement) {
+	private void _transformDateFieldValue(Element dynamicContentElement) {
 		String value = dynamicContentElement.getText();
 
 		if (!Validator.isNumber(value)) {
@@ -467,12 +476,10 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		dynamicContentElement.addCDATA(_dateFormat.format(date));
 	}
 
-	protected void transformDateFieldValues(
+	private void _transformDateFieldValues(
 		List<Element> dynamicElementElements) {
 
-		if ((dynamicElementElements == null) ||
-			dynamicElementElements.isEmpty()) {
-
+		if (ListUtil.isEmpty(dynamicElementElements)) {
 			return;
 		}
 
@@ -485,19 +492,19 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 					dynamicElementElement.elements("dynamic-content");
 
 				for (Element dynamicContentElement : dynamicContentElements) {
-					transformDateFieldValue(dynamicContentElement);
+					_transformDateFieldValue(dynamicContentElement);
 				}
 			}
 
 			List<Element> childDynamicElementElements =
 				dynamicElementElement.elements("dynamic-element");
 
-			transformDateFieldValues(childDynamicElementElements);
+			_transformDateFieldValues(childDynamicElementElements);
 		}
 	}
 
-	protected String transformDateFieldValues(String content) throws Exception {
-		if (!containsDateFieldType(content)) {
+	private String _transformDateFieldValues(String content) throws Exception {
+		if (!_containsDateFieldType(content)) {
 			return content;
 		}
 
@@ -508,14 +515,14 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		List<Element> dynamicElementElements = rootElement.elements(
 			"dynamic-element");
 
-		transformDateFieldValues(dynamicElementElements);
+		_transformDateFieldValues(dynamicElementElements);
 
 		return XMLUtil.formatXML(document);
 	}
 
-	protected String transformFieldNames(String content) {
+	private String _transformFieldNames(String content) {
 		Map<String, String> invalidDDMFormFieldNamesMap =
-			getInvalidDDMFormFieldNamesMap(content);
+			_getInvalidDDMFormFieldNamesMap(content);
 
 		for (Map.Entry<String, String> entry :
 				invalidDDMFormFieldNamesMap.entrySet()) {
@@ -528,91 +535,77 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return content;
 	}
 
-	protected void updateJournalArticle(
+	private void _updateJournalArticle(
 			long id, String ddmStructureKey, String ddmTemplateKey,
 			String content)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update JournalArticle set DDMStructureKey = ?, " +
 					"DDMTemplateKey = ?, content = ? where id_ = ?")) {
 
-			ps.setString(1, ddmStructureKey);
-			ps.setString(2, ddmTemplateKey);
-			ps.setString(3, content);
-			ps.setLong(4, id);
+			preparedStatement.setString(1, ddmStructureKey);
+			preparedStatement.setString(2, ddmTemplateKey);
+			preparedStatement.setString(3, content);
+			preparedStatement.setLong(4, id);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void updateJournalArticleContent(long id, String content)
+	private void _updateJournalArticleContent(long id, String content)
 		throws Exception {
 
-		try (PreparedStatement ps = connection.prepareStatement(
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"update JournalArticle set content = ? where id_ = ?")) {
 
-			ps.setString(1, content);
-			ps.setLong(2, id);
+			preparedStatement.setString(1, content);
+			preparedStatement.setLong(2, id);
 
-			ps.executeUpdate();
+			preparedStatement.executeUpdate();
 		}
 	}
 
-	protected void updateJournalArticles() throws Exception {
+	private void _updateJournalArticles() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			_companyLocalService.forEachCompanyId(
-				companyId -> updateJournalArticles(companyId));
+				companyId -> _updateJournalArticles(companyId));
 		}
 	}
 
-	protected void updateJournalArticles(long companyId) throws Exception {
-		try (PreparedStatement ps = connection.prepareStatement(
+	private void _updateJournalArticles(long companyId) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select id_, groupId, content, DDMStructureKey from " +
 					"JournalArticle where companyId = " + companyId);
-			ResultSet rs = ps.executeQuery()) {
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			String name = addBasicWebContentStructureAndTemplate(companyId);
+			String name = _addBasicWebContentStructureAndTemplate(companyId);
 
-			while (rs.next()) {
-				long id = rs.getLong("id_");
-				String content = rs.getString("content");
+			while (resultSet.next()) {
+				long id = resultSet.getLong("id_");
+				String content = resultSet.getString("content");
 
-				String ddmStructureKey = rs.getString("DDMStructureKey");
+				String ddmStructureKey = resultSet.getString("DDMStructureKey");
 
 				if (Validator.isNull(ddmStructureKey)) {
-					long groupId = rs.getLong("groupId");
+					long groupId = resultSet.getLong("groupId");
 
-					content = convertStaticContentToDynamic(groupId, content);
+					content = _convertStaticContentToDynamic(groupId, content);
 
-					updateJournalArticle(id, name, name, content);
+					_updateJournalArticle(id, name, name, content);
 
 					continue;
 				}
 
-				String updatedContent = transformDateFieldValues(content);
+				String updatedContent = _transformDateFieldValues(content);
 
-				updatedContent = transformFieldNames(updatedContent);
+				updatedContent = _transformFieldNames(updatedContent);
 
 				if (!content.equals(updatedContent)) {
-					updateJournalArticleContent(id, updatedContent);
+					_updateJournalArticleContent(id, updatedContent);
 				}
 			}
 		}
-	}
-
-	private String _getDefaultLanguageId(long groupId) throws Exception {
-		String defaultLanguageId = _defaultLanguageIds.get(groupId);
-
-		if (defaultLanguageId == null) {
-			Locale defaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
-
-			defaultLanguageId = LanguageUtil.getLanguageId(defaultLocale);
-
-			_defaultLanguageIds.put(groupId, defaultLanguageId);
-		}
-
-		return defaultLanguageId;
 	}
 
 	private static final String _BASIC_WEB_CONTENT_STRUCTURE;

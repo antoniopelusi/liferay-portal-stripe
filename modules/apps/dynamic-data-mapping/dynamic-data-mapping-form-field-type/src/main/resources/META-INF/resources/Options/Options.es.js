@@ -15,8 +15,7 @@
 import ClayIcon from '@clayui/icon';
 import {usePrevious} from '@liferay/frontend-js-react-web';
 import classNames from 'classnames';
-import {RulesSupport} from 'dynamic-data-mapping-form-builder';
-import {useFormState} from 'dynamic-data-mapping-form-renderer';
+import {RulesSupport, useFormState} from 'data-engine-js-components-web';
 import {openModal} from 'frontend-js-web';
 import React, {useEffect, useRef, useState} from 'react';
 import {DndProvider} from 'react-dnd';
@@ -222,7 +221,7 @@ const Options = ({
 							};
 						}
 
-						const {label} = value[defaultLanguageId].find(
+						const {label} = value[languageId].find(
 							(defaultOption) =>
 								defaultOption.value === option.value
 						);
@@ -358,7 +357,7 @@ const Options = ({
 				generateOptionValueUsingOptionLabel
 			);
 		}
-		else if (property == 'reference') {
+		else if (property === 'reference') {
 			setFieldError(
 				checkValidReference(fields, value, fields[index].value)
 			);
@@ -368,9 +367,26 @@ const Options = ({
 	};
 
 	const set = (fields) => {
+		const set = new Set();
+		const normalizedField = fields.map((option) => {
+			if (set.has(option.reference)) {
+				return {
+					...option,
+					reference: option.value,
+				};
+			}
+			else {
+				set.add(option.reference);
+
+				return option;
+			}
+		});
+
 		setFields(fields);
 
-		const synchronizedNormalizedValue = getSynchronizedValue(fields);
+		const synchronizedNormalizedValue = getSynchronizedValue(
+			normalizedField
+		);
 
 		onChange(synchronizedNormalizedValue);
 	};
@@ -489,6 +505,7 @@ const Options = ({
 	return (
 		<div className="ddm-field-options-container">
 			<DragPreview component={Option}>{children}</DragPreview>
+
 			{fields.map((option, index) => (
 				<DnD
 					index={index}

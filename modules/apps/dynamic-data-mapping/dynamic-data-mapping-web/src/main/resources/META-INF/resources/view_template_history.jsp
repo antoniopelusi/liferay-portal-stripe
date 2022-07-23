@@ -32,8 +32,8 @@ PortletURL portletURL = PortletURLBuilder.createRenderURL(
 ).setRedirect(
 	redirect
 ).setParameter(
-	"templateId", String.valueOf(templateId)
-).build();
+	"templateId", templateId
+).buildPortletURL();
 
 PortletURL backURL = PortletURLBuilder.createRenderURL(
 	renderResponse
@@ -42,8 +42,8 @@ PortletURL backURL = PortletURLBuilder.createRenderURL(
 ).setRedirect(
 	redirect
 ).setParameter(
-	"templateId", String.valueOf(templateId)
-).build();
+	"templateId", templateId
+).buildPortletURL();
 %>
 
 <c:choose>
@@ -66,7 +66,7 @@ PortletURL backURL = PortletURLBuilder.createRenderURL(
 	</c:otherwise>
 </c:choose>
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+<aui:form action="<%= portletURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
 	<liferay-ui:search-container
 		searchContainer="<%= new TemplateSearch(renderRequest, portletURL) %>"
 		total="<%= DDMTemplateVersionServiceUtil.getTemplateVersionsCount(templateId) %>"

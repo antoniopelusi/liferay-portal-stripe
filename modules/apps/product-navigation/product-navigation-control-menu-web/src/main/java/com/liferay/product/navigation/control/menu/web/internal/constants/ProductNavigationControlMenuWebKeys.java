@@ -19,6 +19,10 @@ package com.liferay.product.navigation.control.menu.web.internal.constants;
  */
 public class ProductNavigationControlMenuWebKeys {
 
+	public static final String
+		FF_PRODUCT_NAVIGATION_CONTROL_MENU_CONFIGURATION =
+			"FF_PRODUCT_NAVIGATION_CONTROL_MENU_CONFIGURATION";
+
 	public static final String PORTLET_TITLE = "PORTLET_TITLE";
 
 }

@@ -121,16 +121,13 @@ public class DeleteAfterTestRunMethodTestRule extends MethodTestRule<Void> {
 					continue;
 				}
 
-				StringBundler sb = new StringBundler(6);
-
-				sb.append("Unable to annotate field ");
-				sb.append(field);
-				sb.append(" because it is not type of ");
-				sb.append(PersistedModel.class.getName());
-				sb.append(" nor an array or collection of ");
-				sb.append(PersistedModel.class.getName());
-
-				throw new IllegalArgumentException(sb.toString());
+				throw new IllegalArgumentException(
+					StringBundler.concat(
+						"Unable to annotate field ", field,
+						" because it is not type of ",
+						PersistedModel.class.getName(),
+						" nor an array or collection of ",
+						PersistedModel.class.getName()));
 			}
 
 			testClass = testClass.getSuperclass();

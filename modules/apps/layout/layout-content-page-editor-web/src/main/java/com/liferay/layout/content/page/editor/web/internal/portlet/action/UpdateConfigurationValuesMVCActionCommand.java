@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -134,7 +135,7 @@ public class UpdateConfigurationValuesMVCActionCommand
 
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkService.updateFragmentEntryLink(
-				fragmentEntryLinkId, editableValues, true);
+				fragmentEntryLinkId, editableValues);
 
 		FragmentEntryProcessorContext fragmentEntryProcessorContext =
 			new DefaultFragmentEntryProcessorContext(
@@ -147,12 +148,10 @@ public class UpdateConfigurationValuesMVCActionCommand
 			_fragmentEntryProcessorRegistry.processFragmentEntryLinkHTML(
 				fragmentEntryLink, fragmentEntryProcessorContext);
 
-		JSONObject defaultEditableValuesJSONObject =
-			_fragmentEntryProcessorRegistry.getDefaultEditableValuesJSONObject(
-				processedHTML, fragmentEntryLink.getConfiguration());
-
 		JSONObject newEditableValuesJSONObject = _mergeEditableValuesJSONObject(
-			defaultEditableValuesJSONObject, editableValues);
+			_fragmentEntryProcessorRegistry.getDefaultEditableValuesJSONObject(
+				processedHTML, fragmentEntryLink.getConfiguration()),
+			editableValues);
 
 		fragmentEntryLink = _fragmentEntryLinkService.updateFragmentEntryLink(
 			fragmentEntryLinkId, newEditableValuesJSONObject.toString());
@@ -215,6 +214,9 @@ public class UpdateConfigurationValuesMVCActionCommand
 
 	@Reference
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private Portal _portal;

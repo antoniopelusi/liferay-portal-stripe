@@ -23,6 +23,7 @@ import ClayManagementToolbar, {
 } from '@clayui/management-toolbar';
 import ClayModal, {useModal} from '@clayui/modal';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
+import ClaySticker from '@clayui/sticker';
 import ClayTable from '@clayui/table';
 import {fetch} from 'frontend-js-web';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -375,6 +376,7 @@ const PublicationsSearchContainer = ({
 											symbol="caret-bottom"
 										/>
 									</span>
+
 									<span className="navbar-breakpoint-d-none">
 										<ClayIcon
 											spritemap={spritemap}
@@ -385,28 +387,29 @@ const PublicationsSearchContainer = ({
 							}
 						/>
 					</ClayManagementToolbar.Item>
+
 					<ClayManagementToolbar.Item
 						data-tooltip-align="top"
 						title={Liferay.Language.get('reverse-sort-direction')}
 					>
 						<ClayButton
-							className={
-								'nav-link nav-link-monospaced ' +
-								(ascending
-									? 'order-arrow-down-active'
-									: 'order-arrow-up-active')
-							}
+							className="nav-link nav-link-monospaced"
 							disabled={filterDisabled}
 							displayType="unstyled"
 							onClick={() => setAscending(!ascending)}
 						>
 							<ClayIcon
 								spritemap={spritemap}
-								symbol="order-arrow"
+								symbol={
+									ascending
+										? 'order-list-down'
+										: 'order-list-up'
+								}
 							/>
 						</ClayButton>
 					</ClayManagementToolbar.Item>
 				</ClayManagementToolbar.ItemList>
+
 				<ClayManagementToolbar.Search
 					onSubmit={(event) => {
 						event.preventDefault();
@@ -430,6 +433,7 @@ const PublicationsSearchContainer = ({
 								type="text"
 								value={searchTerms}
 							/>
+
 							<ClayInput.GroupInsetItem after tag="span">
 								<ClayButtonWithIcon
 									className="navbar-breakpoint-d-none"
@@ -437,6 +441,7 @@ const PublicationsSearchContainer = ({
 									onClick={() => setShowMobile(false)}
 									symbol="times"
 								/>
+
 								<ClayButtonWithIcon
 									disabled={searchDisabled}
 									displayType="unstyled"
@@ -447,6 +452,7 @@ const PublicationsSearchContainer = ({
 						</ClayInput.GroupItem>
 					</ClayInput.Group>
 				</ClayManagementToolbar.Search>
+
 				<ClayManagementToolbar.ItemList>
 					<ClayManagementToolbar.Item className="navbar-breakpoint-d-none">
 						<ClayButton
@@ -540,6 +546,7 @@ const PublicationsSearchContainer = ({
 							</span>
 						</span>
 					</ClayResultsBar.Item>
+
 					<ClayResultsBar.Item>
 						<ClayButton
 							className="component-link tbar-link"
@@ -600,6 +607,7 @@ const PublicationsSearchContainer = ({
 										: 'taglib-empty-result-message-header'
 								}
 							/>
+
 							<div className="sheet-text text-center">
 								{Liferay.Language.get(
 									'no-publications-were-found'
@@ -676,6 +684,7 @@ const PublicationsSearchContainer = ({
 							hover={false}
 						>
 							{getTableHead ? getTableHead() : ''}
+
 							<ClayTable.Body>{rows}</ClayTable.Body>
 						</ClayTable>
 
@@ -697,7 +706,7 @@ const PublicationsSearchContainer = ({
 	);
 };
 
-export default ({
+export default function ChangeTrackingIndicator({
 	checkoutDropdownItem,
 	createDropdownItem,
 	getSelectPublicationsURL,
@@ -706,13 +715,11 @@ export default ({
 	orderByAscending,
 	orderByColumn,
 	preferencesPrefix,
-	publishDropdownItem,
 	reviewDropdownItem,
 	saveDisplayPreferenceURL,
-	scheduleDropdownItem,
 	spritemap,
 	title,
-}) => {
+}) {
 	const COLUMN_MODIFIED_DATE = 'modifiedDate';
 	const COLUMN_NAME = 'name';
 
@@ -738,10 +745,33 @@ export default ({
 
 	const [showModal, setShowModal] = useState(false);
 
+	const navigate = (url, action) => {
+		AUI().use('liferay-portlet-url', () => {
+			const portletURL = Liferay.PortletURL.createURL(url);
+
+			portletURL.setParameter(
+				'redirect',
+				window.location.pathname + window.location.search
+			);
+
+			if (action) {
+				submitForm(document.hrefFm, portletURL.toString());
+
+				return;
+			}
+
+			Liferay.Util.navigate(portletURL.toString());
+		});
+	};
+
 	const dropdownItems = [];
 
 	if (checkoutDropdownItem) {
-		dropdownItems.push(checkoutDropdownItem);
+		dropdownItems.push({
+			label: checkoutDropdownItem.label,
+			onClick: () => navigate(checkoutDropdownItem.href, true),
+			symbolLeft: checkoutDropdownItem.symbolLeft,
+		});
 	}
 
 	dropdownItems.push({
@@ -757,15 +787,6 @@ export default ({
 	if (reviewDropdownItem) {
 		dropdownItems.push({type: 'divider'});
 		dropdownItems.push(reviewDropdownItem);
-	}
-
-	if (publishDropdownItem) {
-		dropdownItems.push({type: 'divider'});
-		dropdownItems.push(publishDropdownItem);
-	}
-
-	if (scheduleDropdownItem) {
-		dropdownItems.push(scheduleDropdownItem);
 	}
 
 	/* eslint-disable no-unused-vars */
@@ -849,75 +870,148 @@ export default ({
 	};
 
 	const renderUserPortrait = (entry, userInfo) => {
+		const user = userInfo[entry.userId];
+
 		return (
-			<div
-				className="text-center"
-				dangerouslySetInnerHTML={{
-					__html: userInfo[entry.userId].userPortraitHTML,
-				}}
+			<ClaySticker
+				className={`sticker-user-icon ${
+					user.portraitURL
+						? ''
+						: 'user-icon-color-' + (entry.userId % 10)
+				}`}
 				data-tooltip-align="top"
-				title={userInfo[entry.userId].userNam}
-			/>
+				title={user.userName}
+			>
+				{user.portraitURL ? (
+					<div className="sticker-overlay">
+						<img className="sticker-img" src={user.portraitURL} />
+					</div>
+				) : (
+					<ClayIcon symbol="user" />
+				)}
+			</ClaySticker>
 		);
 	};
 
 	const getListItem = (entry, fetchData) => {
+		const dropdownItems = [];
+
+		let itemField = (
+			<ClayList.ItemField
+				className="font-italic"
+				data-tooltip-align="top"
+				expand
+				title={Liferay.Language.get(
+					'already-working-on-this-publication'
+				)}
+			>
+				<ClayList.ItemTitle>{entry.name}</ClayList.ItemTitle>
+
+				<ClayList.ItemText subtext>
+					{entry.description}
+				</ClayList.ItemText>
+			</ClayList.ItemField>
+		);
+
 		if (entry.checkoutURL) {
-			return (
-				<ClayList.Item flex>
-					<ClayList.ItemField>
-						{renderUserPortrait(entry, fetchData.userInfo)}
-					</ClayList.ItemField>
-					<ClayList.ItemField>
-						<a
-							onClick={() => {
-								AUI().use('liferay-portlet-url', () => {
-									const portletURL = Liferay.PortletURL.createURL(
-										entry.checkoutURL
-									);
+			dropdownItems.push({
+				label: Liferay.Language.get('work-on-publication'),
+				onClick: () => navigate(entry.checkoutURL, true),
+				symbolLeft: 'radio-button',
+			});
 
-									portletURL.setParameter(
-										'redirect',
-										window.location.pathname +
-											window.location.search
-									);
+			itemField = (
+				<ClayList.ItemField expand>
+					<a onClick={() => navigate(entry.checkoutURL, true)}>
+						<ClayList.ItemTitle>{entry.name}</ClayList.ItemTitle>
 
-									submitForm(
-										document.hrefFm,
-										portletURL.toString()
-									);
-								});
-							}}
-						>
-							<ClayList.ItemTitle>
-								{entry.name}
-							</ClayList.ItemTitle>
-							<ClayList.ItemText subtext>
-								{entry.description}
-							</ClayList.ItemText>
-						</a>
-					</ClayList.ItemField>
-				</ClayList.Item>
+						<ClayList.ItemText subtext>
+							{entry.description}
+						</ClayList.ItemText>
+					</a>
+				</ClayList.ItemField>
 			);
 		}
+		else if (entry.readOnly) {
+			itemField = (
+				<ClayList.ItemField expand>
+					<ClayButton
+						data-tooltip-align="top"
+						disabled
+						displayType="unstyled"
+						title={Liferay.Language.get(
+							'you-do-not-have-permission-to-update-this-publication'
+						)}
+					>
+						<ClayList.ItemTitle>{entry.name}</ClayList.ItemTitle>
+
+						<ClayList.ItemText subtext>
+							{entry.description}
+						</ClayList.ItemText>
+					</ClayButton>
+				</ClayList.ItemField>
+			);
+		}
+
+		dropdownItems.push({
+			label: Liferay.Language.get('review-changes'),
+			onClick: () => navigate(entry.viewURL),
+			symbolLeft: 'list-ul',
+		});
 
 		return (
 			<ClayList.Item flex>
 				<ClayList.ItemField>
 					{renderUserPortrait(entry, fetchData.userInfo)}
 				</ClayList.ItemField>
-				<ClayList.ItemField
-					className="font-italic"
-					data-tooltip-align="top"
-					title={Liferay.Language.get(
-						'already-working-on-this-publication'
-					)}
-				>
-					<ClayList.ItemTitle>{entry.name}</ClayList.ItemTitle>
-					<ClayList.ItemText subtext>
-						{entry.description}
-					</ClayList.ItemText>
-				</ClayList.ItemField>
+
+				{itemField}
+
+				{entry.viewURL && (
+					<>
+						<ClayList.ItemField>
+							<ClayList.QuickActionMenu>
+								{entry.checkoutURL && (
+									<ClayList.QuickActionMenu.Item
+										data-tooltip-align="top"
+										onClick={() =>
+											navigate(entry.checkoutURL, true)
+										}
+										spritemap={spritemap}
+										symbol="radio-button"
+										title={Liferay.Language.get(
+											'work-on-publication'
+										)}
+									/>
+								)}
+
+								<ClayList.QuickActionMenu.Item
+									data-tooltip-align="top"
+									onClick={() => navigate(entry.viewURL)}
+									spritemap={spritemap}
+									symbol="list-ul"
+									title={Liferay.Language.get(
+										'review-changes'
+									)}
+								/>
+							</ClayList.QuickActionMenu>
+						</ClayList.ItemField>
+						<ClayList.ItemField>
+							<ClayDropDownWithItems
+								alignmentPosition={Align.BottomLeft}
+								items={dropdownItems}
+								trigger={
+									<ClayButtonWithIcon
+										displayType="unstyled"
+										small
+										spritemap={spritemap}
+										symbol="ellipsis-v"
+									/>
+								}
+							/>
+						</ClayList.ItemField>
+					</>
+				)}
 			</ClayList.Item>
 		);
 	};
@@ -937,6 +1031,7 @@ export default ({
 				<ClayModal.Header withTitle>
 					{Liferay.Language.get('select-a-publication')}
 				</ClayModal.Header>
+
 				<ClayModal.Body scrollable>
 					<PublicationsSearchContainer
 						ascending={ascending}
@@ -986,4 +1081,4 @@ export default ({
 			/>
 		</>
 	);
-};
+}

@@ -16,7 +16,6 @@ package com.liferay.portlet.documentlibrary.model.impl;
 
 import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLFileVersionModel;
-import com.liferay.document.library.kernel.model.DLFileVersionSoap;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
@@ -34,21 +33,20 @@ import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 
+import java.sql.Blob;
 import java.sql.Types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -89,7 +87,8 @@ public class DLFileVersionModelImpl
 		{"description", Types.VARCHAR}, {"changeLog", Types.VARCHAR},
 		{"extraSettings", Types.CLOB}, {"fileEntryTypeId", Types.BIGINT},
 		{"version", Types.VARCHAR}, {"size_", Types.BIGINT},
-		{"checksum", Types.VARCHAR}, {"lastPublishDate", Types.TIMESTAMP},
+		{"checksum", Types.VARCHAR}, {"expirationDate", Types.TIMESTAMP},
+		{"reviewDate", Types.TIMESTAMP}, {"lastPublishDate", Types.TIMESTAMP},
 		{"status", Types.INTEGER}, {"statusByUserId", Types.BIGINT},
 		{"statusByUserName", Types.VARCHAR}, {"statusDate", Types.TIMESTAMP}
 	};
@@ -123,6 +122,8 @@ public class DLFileVersionModelImpl
 		TABLE_COLUMNS_MAP.put("version", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("size_", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("checksum", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("expirationDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("reviewDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("lastPublishDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("status", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("statusByUserId", Types.BIGINT);
@@ -131,7 +132,7 @@ public class DLFileVersionModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DLFileVersion (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,fileVersionId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,folderId LONG,fileEntryId LONG,treePath STRING null,fileName VARCHAR(255) null,extension VARCHAR(75) null,mimeType VARCHAR(75) null,title VARCHAR(255) null,description STRING null,changeLog VARCHAR(75) null,extraSettings TEXT null,fileEntryTypeId LONG,version VARCHAR(75) null,size_ LONG,checksum VARCHAR(75) null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (fileVersionId, ctCollectionId))";
+		"create table DLFileVersion (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,fileVersionId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,folderId LONG,fileEntryId LONG,treePath STRING null,fileName VARCHAR(255) null,extension VARCHAR(75) null,mimeType VARCHAR(75) null,title VARCHAR(255) null,description STRING null,changeLog VARCHAR(75) null,extraSettings TEXT null,fileEntryTypeId LONG,version VARCHAR(75) null,size_ LONG,checksum VARCHAR(75) null,expirationDate DATE null,reviewDate DATE null,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (fileVersionId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table DLFileVersion";
 
@@ -226,78 +227,6 @@ public class DLFileVersionModelImpl
 	@Deprecated
 	public static final long CREATEDATE_COLUMN_BITMASK = 512L;
 
-	/**
-	 * Converts the soap model instance into a normal model instance.
-	 *
-	 * @param soapModel the soap model instance to convert
-	 * @return the normal model instance
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static DLFileVersion toModel(DLFileVersionSoap soapModel) {
-		if (soapModel == null) {
-			return null;
-		}
-
-		DLFileVersion model = new DLFileVersionImpl();
-
-		model.setMvccVersion(soapModel.getMvccVersion());
-		model.setCtCollectionId(soapModel.getCtCollectionId());
-		model.setUuid(soapModel.getUuid());
-		model.setFileVersionId(soapModel.getFileVersionId());
-		model.setGroupId(soapModel.getGroupId());
-		model.setCompanyId(soapModel.getCompanyId());
-		model.setUserId(soapModel.getUserId());
-		model.setUserName(soapModel.getUserName());
-		model.setCreateDate(soapModel.getCreateDate());
-		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setRepositoryId(soapModel.getRepositoryId());
-		model.setFolderId(soapModel.getFolderId());
-		model.setFileEntryId(soapModel.getFileEntryId());
-		model.setTreePath(soapModel.getTreePath());
-		model.setFileName(soapModel.getFileName());
-		model.setExtension(soapModel.getExtension());
-		model.setMimeType(soapModel.getMimeType());
-		model.setTitle(soapModel.getTitle());
-		model.setDescription(soapModel.getDescription());
-		model.setChangeLog(soapModel.getChangeLog());
-		model.setExtraSettings(soapModel.getExtraSettings());
-		model.setFileEntryTypeId(soapModel.getFileEntryTypeId());
-		model.setVersion(soapModel.getVersion());
-		model.setSize(soapModel.getSize());
-		model.setChecksum(soapModel.getChecksum());
-		model.setLastPublishDate(soapModel.getLastPublishDate());
-		model.setStatus(soapModel.getStatus());
-		model.setStatusByUserId(soapModel.getStatusByUserId());
-		model.setStatusByUserName(soapModel.getStatusByUserName());
-		model.setStatusDate(soapModel.getStatusDate());
-
-		return model;
-	}
-
-	/**
-	 * Converts the soap model instances into normal model instances.
-	 *
-	 * @param soapModels the soap model instances to convert
-	 * @return the normal model instances
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<DLFileVersion> toModels(DLFileVersionSoap[] soapModels) {
-		if (soapModels == null) {
-			return null;
-		}
-
-		List<DLFileVersion> models = new ArrayList<DLFileVersion>(
-			soapModels.length);
-
-		for (DLFileVersionSoap soapModel : soapModels) {
-			models.add(toModel(soapModel));
-		}
-
-		return models;
-	}
-
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.util.PropsUtil.get(
 			"lock.expiration.time.com.liferay.document.library.kernel.model.DLFileVersion"));
@@ -385,34 +314,6 @@ public class DLFileVersionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
-	}
-
-	private static Function<InvocationHandler, DLFileVersion>
-		_getProxyProviderFunction() {
-
-		Class<?> proxyClass = ProxyUtil.getProxyClass(
-			DLFileVersion.class.getClassLoader(), DLFileVersion.class,
-			ModelWrapper.class);
-
-		try {
-			Constructor<DLFileVersion> constructor =
-				(Constructor<DLFileVersion>)proxyClass.getConstructor(
-					InvocationHandler.class);
-
-			return invocationHandler -> {
-				try {
-					return constructor.newInstance(invocationHandler);
-				}
-				catch (ReflectiveOperationException
-							reflectiveOperationException) {
-
-					throw new InternalError(reflectiveOperationException);
-				}
-			};
-		}
-		catch (NoSuchMethodException noSuchMethodException) {
-			throw new InternalError(noSuchMethodException);
-		}
 	}
 
 	private static final Map<String, Function<DLFileVersion, Object>>
@@ -534,6 +435,16 @@ public class DLFileVersionModelImpl
 		attributeSetterBiConsumers.put(
 			"checksum",
 			(BiConsumer<DLFileVersion, String>)DLFileVersion::setChecksum);
+		attributeGetterFunctions.put(
+			"expirationDate", DLFileVersion::getExpirationDate);
+		attributeSetterBiConsumers.put(
+			"expirationDate",
+			(BiConsumer<DLFileVersion, Date>)DLFileVersion::setExpirationDate);
+		attributeGetterFunctions.put(
+			"reviewDate", DLFileVersion::getReviewDate);
+		attributeSetterBiConsumers.put(
+			"reviewDate",
+			(BiConsumer<DLFileVersion, Date>)DLFileVersion::setReviewDate);
 		attributeGetterFunctions.put(
 			"lastPublishDate", DLFileVersion::getLastPublishDate);
 		attributeSetterBiConsumers.put(
@@ -1100,6 +1011,36 @@ public class DLFileVersionModelImpl
 
 	@JSON
 	@Override
+	public Date getExpirationDate() {
+		return _expirationDate;
+	}
+
+	@Override
+	public void setExpirationDate(Date expirationDate) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_expirationDate = expirationDate;
+	}
+
+	@JSON
+	@Override
+	public Date getReviewDate() {
+		return _reviewDate;
+	}
+
+	@Override
+	public void setReviewDate(Date reviewDate) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_reviewDate = reviewDate;
+	}
+
+	@JSON
+	@Override
 	public Date getLastPublishDate() {
 		return _lastPublishDate;
 	}
@@ -1371,6 +1312,8 @@ public class DLFileVersionModelImpl
 		dlFileVersionImpl.setVersion(getVersion());
 		dlFileVersionImpl.setSize(getSize());
 		dlFileVersionImpl.setChecksum(getChecksum());
+		dlFileVersionImpl.setExpirationDate(getExpirationDate());
+		dlFileVersionImpl.setReviewDate(getReviewDate());
 		dlFileVersionImpl.setLastPublishDate(getLastPublishDate());
 		dlFileVersionImpl.setStatus(getStatus());
 		dlFileVersionImpl.setStatusByUserId(getStatusByUserId());
@@ -1378,6 +1321,76 @@ public class DLFileVersionModelImpl
 		dlFileVersionImpl.setStatusDate(getStatusDate());
 
 		dlFileVersionImpl.resetOriginalValues();
+
+		return dlFileVersionImpl;
+	}
+
+	@Override
+	public DLFileVersion cloneWithOriginalValues() {
+		DLFileVersionImpl dlFileVersionImpl = new DLFileVersionImpl();
+
+		dlFileVersionImpl.setMvccVersion(
+			this.<Long>getColumnOriginalValue("mvccVersion"));
+		dlFileVersionImpl.setCtCollectionId(
+			this.<Long>getColumnOriginalValue("ctCollectionId"));
+		dlFileVersionImpl.setUuid(this.<String>getColumnOriginalValue("uuid_"));
+		dlFileVersionImpl.setFileVersionId(
+			this.<Long>getColumnOriginalValue("fileVersionId"));
+		dlFileVersionImpl.setGroupId(
+			this.<Long>getColumnOriginalValue("groupId"));
+		dlFileVersionImpl.setCompanyId(
+			this.<Long>getColumnOriginalValue("companyId"));
+		dlFileVersionImpl.setUserId(
+			this.<Long>getColumnOriginalValue("userId"));
+		dlFileVersionImpl.setUserName(
+			this.<String>getColumnOriginalValue("userName"));
+		dlFileVersionImpl.setCreateDate(
+			this.<Date>getColumnOriginalValue("createDate"));
+		dlFileVersionImpl.setModifiedDate(
+			this.<Date>getColumnOriginalValue("modifiedDate"));
+		dlFileVersionImpl.setRepositoryId(
+			this.<Long>getColumnOriginalValue("repositoryId"));
+		dlFileVersionImpl.setFolderId(
+			this.<Long>getColumnOriginalValue("folderId"));
+		dlFileVersionImpl.setFileEntryId(
+			this.<Long>getColumnOriginalValue("fileEntryId"));
+		dlFileVersionImpl.setTreePath(
+			this.<String>getColumnOriginalValue("treePath"));
+		dlFileVersionImpl.setFileName(
+			this.<String>getColumnOriginalValue("fileName"));
+		dlFileVersionImpl.setExtension(
+			this.<String>getColumnOriginalValue("extension"));
+		dlFileVersionImpl.setMimeType(
+			this.<String>getColumnOriginalValue("mimeType"));
+		dlFileVersionImpl.setTitle(
+			this.<String>getColumnOriginalValue("title"));
+		dlFileVersionImpl.setDescription(
+			this.<String>getColumnOriginalValue("description"));
+		dlFileVersionImpl.setChangeLog(
+			this.<String>getColumnOriginalValue("changeLog"));
+		dlFileVersionImpl.setExtraSettings(
+			this.<String>getColumnOriginalValue("extraSettings"));
+		dlFileVersionImpl.setFileEntryTypeId(
+			this.<Long>getColumnOriginalValue("fileEntryTypeId"));
+		dlFileVersionImpl.setVersion(
+			this.<String>getColumnOriginalValue("version"));
+		dlFileVersionImpl.setSize(this.<Long>getColumnOriginalValue("size_"));
+		dlFileVersionImpl.setChecksum(
+			this.<String>getColumnOriginalValue("checksum"));
+		dlFileVersionImpl.setExpirationDate(
+			this.<Date>getColumnOriginalValue("expirationDate"));
+		dlFileVersionImpl.setReviewDate(
+			this.<Date>getColumnOriginalValue("reviewDate"));
+		dlFileVersionImpl.setLastPublishDate(
+			this.<Date>getColumnOriginalValue("lastPublishDate"));
+		dlFileVersionImpl.setStatus(
+			this.<Integer>getColumnOriginalValue("status"));
+		dlFileVersionImpl.setStatusByUserId(
+			this.<Long>getColumnOriginalValue("statusByUserId"));
+		dlFileVersionImpl.setStatusByUserName(
+			this.<String>getColumnOriginalValue("statusByUserName"));
+		dlFileVersionImpl.setStatusDate(
+			this.<Date>getColumnOriginalValue("statusDate"));
 
 		return dlFileVersionImpl;
 	}
@@ -1609,6 +1622,24 @@ public class DLFileVersionModelImpl
 			dlFileVersionCacheModel.checksum = null;
 		}
 
+		Date expirationDate = getExpirationDate();
+
+		if (expirationDate != null) {
+			dlFileVersionCacheModel.expirationDate = expirationDate.getTime();
+		}
+		else {
+			dlFileVersionCacheModel.expirationDate = Long.MIN_VALUE;
+		}
+
+		Date reviewDate = getReviewDate();
+
+		if (reviewDate != null) {
+			dlFileVersionCacheModel.reviewDate = reviewDate.getTime();
+		}
+		else {
+			dlFileVersionCacheModel.reviewDate = Long.MIN_VALUE;
+		}
+
 		Date lastPublishDate = getLastPublishDate();
 
 		if (lastPublishDate != null) {
@@ -1648,7 +1679,7 @@ public class DLFileVersionModelImpl
 			getAttributeGetterFunctions();
 
 		StringBundler sb = new StringBundler(
-			(4 * attributeGetterFunctions.size()) + 2);
+			(5 * attributeGetterFunctions.size()) + 2);
 
 		sb.append("{");
 
@@ -1659,9 +1690,26 @@ public class DLFileVersionModelImpl
 			Function<DLFileVersion, Object> attributeGetterFunction =
 				entry.getValue();
 
+			sb.append("\"");
 			sb.append(attributeName);
-			sb.append("=");
-			sb.append(attributeGetterFunction.apply((DLFileVersion)this));
+			sb.append("\": ");
+
+			Object value = attributeGetterFunction.apply((DLFileVersion)this);
+
+			if (value == null) {
+				sb.append("null");
+			}
+			else if (value instanceof Blob || value instanceof Date ||
+					 value instanceof Map || value instanceof String) {
+
+				sb.append(
+					"\"" + StringUtil.replace(value.toString(), "\"", "'") +
+						"\"");
+			}
+			else {
+				sb.append(value);
+			}
+
 			sb.append(", ");
 		}
 
@@ -1708,7 +1756,9 @@ public class DLFileVersionModelImpl
 	private static class EscapedModelProxyProviderFunctionHolder {
 
 		private static final Function<InvocationHandler, DLFileVersion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+			_escapedModelProxyProviderFunction =
+				ProxyUtil.getProxyProviderFunction(
+					DLFileVersion.class, ModelWrapper.class);
 
 	}
 
@@ -1738,6 +1788,8 @@ public class DLFileVersionModelImpl
 	private String _version;
 	private long _size;
 	private String _checksum;
+	private Date _expirationDate;
+	private Date _reviewDate;
 	private Date _lastPublishDate;
 	private int _status;
 	private long _statusByUserId;
@@ -1798,6 +1850,8 @@ public class DLFileVersionModelImpl
 		_columnOriginalValues.put("version", _version);
 		_columnOriginalValues.put("size_", _size);
 		_columnOriginalValues.put("checksum", _checksum);
+		_columnOriginalValues.put("expirationDate", _expirationDate);
+		_columnOriginalValues.put("reviewDate", _reviewDate);
 		_columnOriginalValues.put("lastPublishDate", _lastPublishDate);
 		_columnOriginalValues.put("status", _status);
 		_columnOriginalValues.put("statusByUserId", _statusByUserId);
@@ -1877,15 +1931,19 @@ public class DLFileVersionModelImpl
 
 		columnBitmasks.put("checksum", 16777216L);
 
-		columnBitmasks.put("lastPublishDate", 33554432L);
+		columnBitmasks.put("expirationDate", 33554432L);
 
-		columnBitmasks.put("status", 67108864L);
+		columnBitmasks.put("reviewDate", 67108864L);
 
-		columnBitmasks.put("statusByUserId", 134217728L);
+		columnBitmasks.put("lastPublishDate", 134217728L);
 
-		columnBitmasks.put("statusByUserName", 268435456L);
+		columnBitmasks.put("status", 268435456L);
 
-		columnBitmasks.put("statusDate", 536870912L);
+		columnBitmasks.put("statusByUserId", 536870912L);
+
+		columnBitmasks.put("statusByUserName", 1073741824L);
+
+		columnBitmasks.put("statusDate", 2147483648L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

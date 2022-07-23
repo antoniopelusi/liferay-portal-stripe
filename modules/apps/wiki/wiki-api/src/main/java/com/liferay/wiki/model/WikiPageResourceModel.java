@@ -160,4 +160,7 @@ public interface WikiPageResourceModel
 	 */
 	public void setTitle(String title);
 
+	@Override
+	public WikiPageResource cloneWithOriginalValues();
+
 }

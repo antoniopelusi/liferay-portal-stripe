@@ -53,6 +53,21 @@ public class CommerceChannelServiceUtil {
 			serviceContext);
 	}
 
+	public static CommerceChannel addOrUpdateCommerceChannel(
+			String externalReferenceCode, long siteGroupId, String name,
+			String type,
+			com.liferay.portal.kernel.util.UnicodeProperties
+				typeSettingsUnicodeProperties,
+			String commerceCurrencyCode,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addOrUpdateCommerceChannel(
+			externalReferenceCode, siteGroupId, name, type,
+			typeSettingsUnicodeProperties, commerceCurrencyCode,
+			serviceContext);
+	}
+
 	public static CommerceChannel deleteCommerceChannel(long commerceChannelId)
 		throws PortalException {
 
@@ -97,6 +112,20 @@ public class CommerceChannelServiceUtil {
 		return getService().getCommerceChannels(companyId);
 	}
 
+	public static List<CommerceChannel> getCommerceChannels(
+			long companyId, String keywords, int start, int end)
+		throws PortalException {
+
+		return getService().getCommerceChannels(
+			companyId, keywords, start, end);
+	}
+
+	public static int getCommerceChannelsCount(long companyId, String keywords)
+		throws PortalException {
+
+		return getService().getCommerceChannelsCount(companyId, keywords);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -106,19 +135,18 @@ public class CommerceChannelServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
-	public static List<CommerceChannel> searchCommerceChannels(long companyId)
+	public static List<CommerceChannel> search(long companyId)
 		throws PortalException {
 
-		return getService().searchCommerceChannels(companyId);
+		return getService().search(companyId);
 	}
 
-	public static List<CommerceChannel> searchCommerceChannels(
+	public static List<CommerceChannel> search(
 			long companyId, String keywords, int start, int end,
 			com.liferay.portal.kernel.search.Sort sort)
 		throws PortalException {
 
-		return getService().searchCommerceChannels(
-			companyId, keywords, start, end, sort);
+		return getService().search(companyId, keywords, start, end, sort);
 	}
 
 	public static int searchCommerceChannelsCount(

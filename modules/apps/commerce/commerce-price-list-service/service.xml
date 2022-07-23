@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="false" package-path="com.liferay.commerce.price.list">
+<service-builder auto-namespace-tables="false" change-tracking-enabled="true" mvcc-enabled="true" package-path="com.liferay.commerce.price.list">
 	<author>Alessio Antonio Rendina</author>
 	<namespace>Commerce</namespace>
 	<entity external-reference-code="true" local-service="true" name="CommercePriceEntry" remote-service="true" uuid="true">
@@ -57,7 +57,7 @@
 		<finder name="CPInstanceUuid" return-type="Collection">
 			<finder-column name="CPInstanceUuid" />
 		</finder>
-		<finder name="C_C" return-type="CommercePriceEntry" unique="true">
+		<finder name="C_C" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 			<finder-column name="CPInstanceUuid" />
 		</finder>
@@ -69,15 +69,11 @@
 			<finder-column comparator="&lt;" name="expirationDate" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="C_C_S" return-type="CommercePriceEntry" unique="true">
+		<finder name="C_C_S" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 			<finder-column name="CPInstanceUuid" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CommercePriceList" remote-service="true" uuid="true">
 
@@ -137,7 +133,7 @@
 			<finder-column arrayable-operator="OR" name="groupId" />
 			<finder-column name="companyId" />
 		</finder>
-		<finder name="CatalogBasePriceList" return-type="CommercePriceList">
+		<finder name="G_CatalogBasePriceList" return-type="CommercePriceList">
 			<finder-column name="groupId" />
 			<finder-column name="catalogBasePriceList" />
 		</finder>
@@ -160,12 +156,6 @@
 			<finder-column name="catalogBasePriceList" />
 			<finder-column name="type" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="Company" package-path="com.liferay.portal" />
-		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CommercePriceListAccountRel" remote-service="true" uuid="true">
 
@@ -199,14 +189,10 @@
 		<finder name="CommercePriceListId" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 		</finder>
-		<finder name="C_C" return-type="CommercePriceListAccountRel" unique="true">
+		<finder name="CAI_CPI" return-type="CommercePriceListAccountRel" unique="true">
 			<finder-column name="commerceAccountId" />
 			<finder-column name="commercePriceListId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CommercePriceListChannelRel" remote-service="true" uuid="true">
 
@@ -240,7 +226,7 @@
 		<finder name="CommercePriceListId" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 		</finder>
-		<finder name="C_C" return-type="CommercePriceListAccountRel" unique="true">
+		<finder name="CCI_CPI" return-type="CommercePriceListChannelRel" unique="true">
 			<finder-column name="commerceChannelId" />
 			<finder-column name="commercePriceListId" />
 		</finder>
@@ -277,14 +263,10 @@
 		<finder name="CommercePriceListId" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 		</finder>
-		<finder name="C_C" return-type="CommercePriceListCommerceAccountGroupRel" unique="true">
+		<finder name="CAGI_CPI" return-type="CommercePriceListCommerceAccountGroupRel" unique="true">
 			<finder-column name="commercePriceListId" />
 			<finder-column name="commerceAccountGroupId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<entity local-service="true" name="CommercePriceListDiscountRel" remote-service="true" uuid="true">
 
@@ -318,9 +300,46 @@
 		<finder name="CommercePriceListId" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 		</finder>
-		<finder name="C_C" return-type="CommercePriceListDiscountRel" unique="true">
+		<finder name="CDI_CPI" return-type="CommercePriceListDiscountRel" unique="true">
 			<finder-column name="commerceDiscountId" />
 			<finder-column name="commercePriceListId" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="CommercePriceListOrderTypeRel" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column db-name="CPriceListOrderTypeRelId" name="commercePriceListOrderTypeRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="commercePriceListId" type="long" />
+		<column name="commerceOrderTypeId" type="long" />
+		<column name="priority" type="int" />
+		<column name="lastPublishDate" type="Date" />
+
+		<!-- Order -->
+
+		<order by="asc">
+			<order-column name="priority" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CommercePriceListId" return-type="Collection">
+			<finder-column name="commercePriceListId" />
+		</finder>
+		<finder name="CPI_COTI" return-type="CommercePriceListOrderTypeRel" unique="true">
+			<finder-column name="commercePriceListId" />
+			<finder-column name="commerceOrderTypeId" />
 		</finder>
 	</entity>
 	<entity external-reference-code="true" local-service="true" name="CommerceTierPriceEntry" remote-service="true" uuid="true">
@@ -374,7 +393,7 @@
 			<finder-column name="commercePriceEntryId" />
 			<finder-column name="minQuantity" />
 		</finder>
-		<finder name="C_LtM" return-type="Collection">
+		<finder name="C_LteM" return-type="Collection">
 			<finder-column name="commercePriceEntryId" />
 			<finder-column comparator="&lt;=" name="minQuantity" />
 		</finder>
@@ -386,17 +405,14 @@
 			<finder-column comparator="&lt;" name="expirationDate" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="C_LtM_S" return-type="Collection">
+		<finder name="C_LteM_S" return-type="Collection">
 			<finder-column name="commercePriceEntryId" />
 			<finder-column comparator="&lt;=" name="minQuantity" />
 			<finder-column name="status" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />
 	</entity>
 	<exceptions>
+		<exception>CommerceBasePriceListCannotDelete</exception>
 		<exception>CommercePriceEntryDisplayDate</exception>
 		<exception>CommercePriceEntryExpirationDate</exception>
 		<exception>CommercePriceListCurrency</exception>

@@ -1,0 +1,16 @@
+{
+	"description": "Provide dental services",
+	"externalReferenceCode": "RAYCAT0013",
+	"name": "Medical Offices - Dentists",
+	"taxonomyCategoryProperties": [
+		{
+			"key": "NAICS",
+			"value": "621210"
+		},
+		{
+			"key": "Segment",
+			"value": "Office"
+		}
+	],
+	"viewableBy": "Anyone"
+}

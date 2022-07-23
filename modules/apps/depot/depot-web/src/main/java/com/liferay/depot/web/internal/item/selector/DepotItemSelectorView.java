@@ -111,13 +111,13 @@ public class DepotItemSelectorView
 		throws IOException, ServletException {
 
 		SitesItemSelectorViewDisplayContext
-			depotSiteItemSelectorViewDisplayContext =
-				new DepotSiteItemSelectorViewDisplayContext(
+			depotSitesItemSelectorViewDisplayContext =
+				new DepotSitesItemSelectorViewDisplayContext(
 					(HttpServletRequest)servletRequest, itemSelectedEventName,
 					portletURL, groupItemSelectorCriterion);
 
 		_siteItemSelectorViewRenderer.renderHTML(
-			depotSiteItemSelectorViewDisplayContext);
+			depotSitesItemSelectorViewDisplayContext);
 	}
 
 	private static final List<ItemSelectorReturnType>
@@ -142,10 +142,10 @@ public class DepotItemSelectorView
 	@Reference
 	private SiteItemSelectorViewRenderer _siteItemSelectorViewRenderer;
 
-	private class DepotSiteItemSelectorViewDisplayContext
+	private class DepotSitesItemSelectorViewDisplayContext
 		implements SitesItemSelectorViewDisplayContext {
 
-		public DepotSiteItemSelectorViewDisplayContext(
+		public DepotSitesItemSelectorViewDisplayContext(
 			HttpServletRequest httpServletRequest, String itemSelectedEventName,
 			PortletURL portletURL,
 			GroupItemSelectorCriterion groupItemSelectorCriterion) {

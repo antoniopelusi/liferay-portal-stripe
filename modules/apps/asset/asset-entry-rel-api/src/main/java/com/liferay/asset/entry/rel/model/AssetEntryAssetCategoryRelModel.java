@@ -164,4 +164,7 @@ public interface AssetEntryAssetCategoryRelModel
 	 */
 	public void setPriority(int priority);
 
+	@Override
+	public AssetEntryAssetCategoryRel cloneWithOriginalValues();
+
 }

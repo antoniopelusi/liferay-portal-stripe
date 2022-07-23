@@ -80,10 +80,10 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateLDAPServer(actionRequest);
+				_updateLDAPServer(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteLDAPServer(actionRequest);
+				_deleteLDAPServer(actionRequest);
 			}
 
 			sendRedirect(actionRequest, actionResponse);
@@ -103,7 +103,7 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 				).setMVCRenderCommandName(
 					"/portal_settings_authentication_ldap" +
 						"/portal_settings_edit_ldap_server"
-				).build();
+				).buildPortletURL();
 
 				String redirect = ParamUtil.getString(
 					actionRequest, "redirect");
@@ -131,18 +131,6 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 	protected void activate() {
 		_portletContext = _portletContextFactory.createUntrackedInstance(
 			_portlet, _servletContext);
-	}
-
-	protected void deleteLDAPServer(ActionRequest actionRequest)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long ldapServerId = ParamUtil.getLong(actionRequest, "ldapServerId");
-
-		_ldapServerConfigurationProvider.delete(
-			themeDisplay.getCompanyId(), ldapServerId);
 	}
 
 	@Reference(unbind = "-")
@@ -191,7 +179,35 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 		_servletContext = servletContext;
 	}
 
-	protected void updateLDAPServer(ActionRequest actionRequest)
+	private void _deleteLDAPServer(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long ldapServerId = ParamUtil.getLong(actionRequest, "ldapServerId");
+
+		_ldapServerConfigurationProvider.delete(
+			themeDisplay.getCompanyId(), ldapServerId);
+	}
+
+	private void _splitStringArrays(
+		Dictionary<String, Object> dictionary, String property) {
+
+		Object propertyValue = dictionary.get(property);
+
+		if (propertyValue == null) {
+			return;
+		}
+
+		if (propertyValue instanceof String) {
+			String[] propertyValues = StringUtil.split((String)propertyValue);
+
+			dictionary.put(property, propertyValues);
+		}
+	}
+
+	private void _updateLDAPServer(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -203,10 +219,10 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 		UnicodeProperties unicodeProperties = PropertiesParamUtil.getProperties(
 			actionRequest, "ldap--");
 
-		validateLDAPServerName(
+		_validateLDAPServerName(
 			ldapServerId, themeDisplay.getCompanyId(), unicodeProperties);
 
-		validateSearchFilters(actionRequest);
+		_validateSearchFilters(actionRequest);
 
 		Dictionary<String, Object> dictionary = null;
 
@@ -244,7 +260,7 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 			themeDisplay.getCompanyId(), ldapServerId, dictionary);
 	}
 
-	protected void validateLDAPServerName(
+	private void _validateLDAPServerName(
 			long ldapServerId, long companyId,
 			UnicodeProperties unicodeProperties)
 		throws Exception {
@@ -272,7 +288,7 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void validateSearchFilters(ActionRequest actionRequest)
+	private void _validateSearchFilters(ActionRequest actionRequest)
 		throws Exception {
 
 		String userFilter = ParamUtil.getString(
@@ -284,22 +300,6 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest, "importGroupSearchFilter");
 
 		_ldapFilterValidator.validate(groupFilter, "importGroupSearchFilter");
-	}
-
-	private void _splitStringArrays(
-		Dictionary<String, Object> dictionary, String property) {
-
-		Object propertyValue = dictionary.get(property);
-
-		if (propertyValue == null) {
-			return;
-		}
-
-		if (propertyValue instanceof String) {
-			String[] propertyValues = StringUtil.split((String)propertyValue);
-
-			dictionary.put(property, propertyValues);
-		}
 	}
 
 	private static ConfigurationProvider<LDAPServerConfiguration>

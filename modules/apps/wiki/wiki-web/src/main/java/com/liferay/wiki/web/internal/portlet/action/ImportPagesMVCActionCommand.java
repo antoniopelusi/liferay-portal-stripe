@@ -59,7 +59,7 @@ public class ImportPagesMVCActionCommand extends BaseMVCActionCommand {
 		throws Exception {
 
 		try {
-			importPages(actionRequest, actionResponse);
+			_importPages(actionRequest);
 		}
 		catch (Exception exception) {
 			if (exception instanceof NoSuchNodeException ||
@@ -76,10 +76,7 @@ public class ImportPagesMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	protected void importPages(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
+	private void _importPages(ActionRequest actionRequest) throws Exception {
 		UploadPortletRequest uploadPortletRequest =
 			_portal.getUploadPortletRequest(actionRequest);
 
@@ -118,7 +115,7 @@ public class ImportPagesMVCActionCommand extends BaseMVCActionCommand {
 					}
 					catch (IOException ioException) {
 						if (_log.isWarnEnabled()) {
-							_log.warn(ioException, ioException);
+							_log.warn(ioException);
 						}
 					}
 				}

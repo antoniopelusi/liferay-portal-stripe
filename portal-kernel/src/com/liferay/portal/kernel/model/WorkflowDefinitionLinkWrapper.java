@@ -155,6 +155,11 @@ public class WorkflowDefinitionLinkWrapper
 		}
 	}
 
+	@Override
+	public WorkflowDefinitionLink cloneWithOriginalValues() {
+		return wrap(model.cloneWithOriginalValues());
+	}
+
 	/**
 	 * Returns the fully qualified class name of this workflow definition link.
 	 *

@@ -31,6 +31,7 @@ import com.liferay.message.boards.util.comparator.MessageCreateDateComparator;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.lock.LockManager;
@@ -44,9 +45,11 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -104,7 +107,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 			ActionKeys.ADD_DISCUSSION);
 
 		return mbMessageLocalService.addDiscussionMessage(
-			user.getUserId(), null, groupId, className, classPK, threadId,
+			null, user.getUserId(), null, groupId, className, classPK, threadId,
 			parentMessageId, subject, body, serviceContext);
 	}
 
@@ -248,14 +251,11 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 		if (_lockManager.isLocked(
 				MBThread.class.getName(), parentMessage.getThreadId())) {
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Thread is locked for class name ");
-			sb.append(MBThread.class.getName());
-			sb.append(" and class PK ");
-			sb.append(parentMessage.getThreadId());
-
-			throw new LockedThreadException(sb.toString());
+			throw new LockedThreadException(
+				StringBundler.concat(
+					"Thread is locked for class name ",
+					MBThread.class.getName(), " and class PK ",
+					parentMessage.getThreadId()));
 		}
 
 		if (!ModelResourcePermissionUtil.contains(
@@ -292,14 +292,11 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 		if (_lockManager.isLocked(
 				MBThread.class.getName(), message.getThreadId())) {
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Thread is locked for class name ");
-			sb.append(MBThread.class.getName());
-			sb.append(" and class PK ");
-			sb.append(message.getThreadId());
-
-			throw new LockedThreadException(sb.toString());
+			throw new LockedThreadException(
+				StringBundler.concat(
+					"Thread is locked for class name ",
+					MBThread.class.getName(), " and class PK ",
+					message.getThreadId()));
 		}
 
 		ModelResourcePermissionUtil.check(
@@ -442,7 +439,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 			categoryId);
 
 		if (category == null) {
-			Group group = groupLocalService.getGroup(categoryId);
+			Group group = _groupLocalService.getGroup(categoryId);
 
 			groupId = group.getGroupId();
 
@@ -492,13 +489,45 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 	}
 
 	@Override
+	public List<MBMessage> getChildMessages(
+			long parentMessageId, boolean flatten,
+			QueryDefinition<MBMessage> queryDefinition)
+		throws PortalException {
+
+		if (queryDefinition.isIncludeOwner() &&
+			(queryDefinition.getOwnerUserId() != 0)) {
+
+			queryDefinition.setOwnerUserId(getUserId());
+		}
+
+		return mbMessageFinder.findByParentMessageId(
+			parentMessageId, flatten, queryDefinition);
+	}
+
+	@Override
+	public int getChildMessagesCount(
+			long parentMessageId, boolean flatten,
+			QueryDefinition<MBMessage> queryDefinition)
+		throws PortalException {
+
+		if (queryDefinition.isIncludeOwner() &&
+			(queryDefinition.getOwnerUserId() != 0)) {
+
+			queryDefinition.setOwnerUserId(getUserId());
+		}
+
+		return mbMessageFinder.countByParentMessageId(
+			parentMessageId, flatten, queryDefinition);
+	}
+
+	@Override
 	public String getCompanyMessagesRSS(
 			long companyId, int status, int max, String type, double version,
 			String displayStyle, String feedURL, String entryURL,
 			ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		Company company = companyLocalService.getCompany(companyId);
+		Company company = _companyLocalService.getCompany(companyId);
 
 		String name = company.getName();
 		String description = company.getName();
@@ -553,7 +582,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 			ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		String name = group.getDescriptiveName();
 		String description = group.getDescription(
@@ -600,7 +629,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 			String entryURL, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		Group group = groupLocalService.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		String name = group.getDescriptiveName();
 		String description = group.getDescription(
@@ -849,14 +878,11 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 		if (_lockManager.isLocked(
 				MBThread.class.getName(), message.getThreadId())) {
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("Thread is locked for class name ");
-			sb.append(MBThread.class.getName());
-			sb.append(" and class PK ");
-			sb.append(message.getThreadId());
-
-			throw new LockedThreadException(sb.toString());
+			throw new LockedThreadException(
+				StringBundler.concat(
+					"Thread is locked for class name ",
+					MBThread.class.getName(), " and class PK ",
+					message.getThreadId()));
 		}
 
 		if (!ModelResourcePermissionUtil.contains(
@@ -945,7 +971,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 
 			if (displayStyle.equals(RSSUtil.DISPLAY_STYLE_ABSTRACT)) {
 				value = StringUtil.shorten(
-					HtmlUtil.extractText(message.getBody()),
+					_htmlParser.extractText(message.getBody()),
 					PropsValues.MESSAGE_BOARDS_RSS_ABSTRACT_LENGTH,
 					StringPool.BLANK);
 			}
@@ -1002,6 +1028,15 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 	)
 	private ModelResourcePermission<MBCategory>
 		_categoryModelResourcePermission;
+
+	@Reference
+	private CompanyLocalService _companyLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private HtmlParser _htmlParser;
 
 	@Reference
 	private Language _language;

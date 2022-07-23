@@ -73,10 +73,11 @@ public class ProductListRendererTag extends IncludeTag {
 	public void setPageContext(PageContext pageContext) {
 		super.setPageContext(pageContext);
 
+		setServletContext(ServletContextUtil.getServletContext());
+
 		cpContentHelper = ServletContextUtil.getCPContentHelper();
 		cpContentListRendererRegistry =
 			ServletContextUtil.getCPContentListRendererRegistry();
-		servletContext = ServletContextUtil.getServletContext();
 	}
 
 	@Override
@@ -96,17 +97,19 @@ public class ProductListRendererTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest httpServletRequest) {
-		request.setAttribute(
+		httpServletRequest = getRequest();
+
+		httpServletRequest.setAttribute(
 			"liferay-commerce-product:product-list-renderer:cpContentHelper",
 			cpContentHelper);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"liferay-commerce-product:product-list-renderer:" +
 				"cpContentListRenderer",
 			_cpContentListRenderer);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"liferay-commerce-product:product-list-renderer:cpDataSourceResult",
 			_cpDataSourceResult);
-		request.setAttribute(
+		httpServletRequest.setAttribute(
 			"liferay-commerce-product:product-list-renderer:entryKeys",
 			_entryKeys);
 	}

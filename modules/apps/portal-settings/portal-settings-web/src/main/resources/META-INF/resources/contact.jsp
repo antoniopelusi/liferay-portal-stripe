@@ -17,15 +17,15 @@
 <%@ include file="/init.jsp" %>
 
 <%
-request.setAttribute("addresses.className", Account.class.getName());
-request.setAttribute("emailAddresses.className", Account.class.getName());
-request.setAttribute("phones.className", Account.class.getName());
-request.setAttribute("websites.className", Account.class.getName());
+request.setAttribute("addresses.className", Company.class.getName());
+request.setAttribute("emailAddresses.className", Company.class.getName());
+request.setAttribute("phones.className", Company.class.getName());
+request.setAttribute("websites.className", Company.class.getName());
 
-request.setAttribute("addresses.classPK", company.getAccountId());
-request.setAttribute("emailAddresses.classPK", company.getAccountId());
-request.setAttribute("phones.classPK", company.getAccountId());
-request.setAttribute("websites.classPK", company.getAccountId());
+request.setAttribute("addresses.classPK", company.getCompanyId());
+request.setAttribute("emailAddresses.classPK", company.getCompanyId());
+request.setAttribute("phones.classPK", company.getCompanyId());
+request.setAttribute("websites.classPK", company.getCompanyId());
 %>
 
 <aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />

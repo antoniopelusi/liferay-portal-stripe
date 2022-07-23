@@ -28,9 +28,6 @@ import com.liferay.portal.workflow.kaleo.service.KaleoTimerLocalServiceUtil;
 public class KaleoTimerInstanceTokenImpl
 	extends KaleoTimerInstanceTokenBaseImpl {
 
-	public KaleoTimerInstanceTokenImpl() {
-	}
-
 	@Override
 	public KaleoInstanceToken getKaleoInstanceToken() throws PortalException {
 		return KaleoInstanceTokenLocalServiceUtil.getKaleoInstanceToken(

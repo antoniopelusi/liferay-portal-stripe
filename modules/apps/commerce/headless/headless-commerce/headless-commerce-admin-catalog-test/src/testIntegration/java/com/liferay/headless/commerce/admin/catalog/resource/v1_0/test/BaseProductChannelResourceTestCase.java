@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -51,7 +50,6 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
@@ -231,7 +229,7 @@ public abstract class BaseProductChannelResourceTestCase {
 	@Test
 	public void testGraphQLDeleteProductChannel() throws Exception {
 		ProductChannel productChannel =
-			testGraphQLProductChannel_addProductChannel();
+			testGraphQLDeleteProductChannel_addProductChannel();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -244,7 +242,6 @@ public abstract class BaseProductChannelResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteProductChannel"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -258,6 +255,12 @@ public abstract class BaseProductChannelResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected ProductChannel testGraphQLDeleteProductChannel_addProductChannel()
+		throws Exception {
+
+		return testGraphQLProductChannel_addProductChannel();
 	}
 
 	@Test
@@ -283,7 +286,7 @@ public abstract class BaseProductChannelResourceTestCase {
 	@Test
 	public void testGraphQLGetProductChannel() throws Exception {
 		ProductChannel productChannel =
-			testGraphQLProductChannel_addProductChannel();
+			testGraphQLGetProductChannel_addProductChannel();
 
 		Assert.assertTrue(
 			equals(
@@ -322,22 +325,27 @@ public abstract class BaseProductChannelResourceTestCase {
 				"Object/code"));
 	}
 
+	protected ProductChannel testGraphQLGetProductChannel_addProductChannel()
+		throws Exception {
+
+		return testGraphQLProductChannel_addProductChannel();
+	}
+
 	@Test
 	public void testGetProductByExternalReferenceCodeProductChannelsPage()
 		throws Exception {
-
-		Page<ProductChannel> page =
-			productChannelResource.
-				getProductByExternalReferenceCodeProductChannelsPage(
-					testGetProductByExternalReferenceCodeProductChannelsPage_getExternalReferenceCode(),
-					Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
 
 		String externalReferenceCode =
 			testGetProductByExternalReferenceCodeProductChannelsPage_getExternalReferenceCode();
 		String irrelevantExternalReferenceCode =
 			testGetProductByExternalReferenceCodeProductChannelsPage_getIrrelevantExternalReferenceCode();
+
+		Page<ProductChannel> page =
+			productChannelResource.
+				getProductByExternalReferenceCodeProductChannelsPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantExternalReferenceCode != null) {
 			ProductChannel irrelevantProductChannel =
@@ -369,7 +377,7 @@ public abstract class BaseProductChannelResourceTestCase {
 		page =
 			productChannelResource.
 				getProductByExternalReferenceCodeProductChannelsPage(
-					externalReferenceCode, Pagination.of(1, 2));
+					externalReferenceCode, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -462,16 +470,15 @@ public abstract class BaseProductChannelResourceTestCase {
 
 	@Test
 	public void testGetProductIdProductChannelsPage() throws Exception {
-		Page<ProductChannel> page =
-			productChannelResource.getProductIdProductChannelsPage(
-				testGetProductIdProductChannelsPage_getId(),
-				Pagination.of(1, 2));
-
-		Assert.assertEquals(0, page.getTotalCount());
-
 		Long id = testGetProductIdProductChannelsPage_getId();
 		Long irrelevantId =
 			testGetProductIdProductChannelsPage_getIrrelevantId();
+
+		Page<ProductChannel> page =
+			productChannelResource.getProductIdProductChannelsPage(
+				id, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		if (irrelevantId != null) {
 			ProductChannel irrelevantProductChannel =
@@ -498,7 +505,7 @@ public abstract class BaseProductChannelResourceTestCase {
 				id, randomProductChannel());
 
 		page = productChannelResource.getProductIdProductChannelsPage(
-			id, Pagination.of(1, 2));
+			id, Pagination.of(1, 10));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -588,6 +595,23 @@ public abstract class BaseProductChannelResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	protected void assertContains(
+		ProductChannel productChannel, List<ProductChannel> productChannels) {
+
+		boolean contains = false;
+
+		for (ProductChannel item : productChannels) {
+			if (equals(productChannel, item)) {
+				contains = true;
+
+				break;
+			}
+		}
+
+		Assert.assertTrue(
+			productChannels + " does not contain " + productChannel, contains);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -727,8 +751,8 @@ public abstract class BaseProductChannelResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field :
-				ReflectionUtil.getDeclaredFields(
+		for (java.lang.reflect.Field field :
+				getDeclaredFields(
 					com.liferay.headless.commerce.admin.catalog.dto.v1_0.
 						ProductChannel.class)) {
 
@@ -744,12 +768,13 @@ public abstract class BaseProductChannelResourceTestCase {
 		return graphQLFields;
 	}
 
-	protected List<GraphQLField> getGraphQLFields(Field... fields)
+	protected List<GraphQLField> getGraphQLFields(
+			java.lang.reflect.Field... fields)
 		throws Exception {
 
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (java.lang.reflect.Field field : fields) {
 			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
 				vulcanGraphQLField = field.getAnnotation(
 					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
@@ -763,7 +788,7 @@ public abstract class BaseProductChannelResourceTestCase {
 				}
 
 				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
-					ReflectionUtil.getDeclaredFields(clazz));
+					getDeclaredFields(clazz));
 
 				graphQLFields.add(
 					new GraphQLField(field.getName(), childrenGraphQLFields));
@@ -884,6 +909,19 @@ public abstract class BaseProductChannelResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
+		throws Exception {
+
+		Stream<java.lang.reflect.Field> stream = Stream.of(
+			ReflectionUtil.getDeclaredFields(clazz));
+
+		return stream.filter(
+			field -> !field.isSynthetic()
+		).toArray(
+			java.lang.reflect.Field[]::new
+		);
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1122,8 +1160,8 @@ public abstract class BaseProductChannelResourceTestCase {
 
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		BaseProductChannelResourceTestCase.class);
+	private static final com.liferay.portal.kernel.log.Log _log =
+		LogFactoryUtil.getLog(BaseProductChannelResourceTestCase.class);
 
 	private static BeanUtilsBean _beanUtilsBean = new BeanUtilsBean() {
 

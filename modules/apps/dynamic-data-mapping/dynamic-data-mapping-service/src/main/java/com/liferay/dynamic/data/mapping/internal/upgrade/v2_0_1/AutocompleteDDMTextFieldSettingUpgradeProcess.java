@@ -47,80 +47,81 @@ public class AutocompleteDDMTextFieldSettingUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append("select DDMStructure.structureId, DDMStructure.definition ");
-		sb.append("from DDMFormInstance inner join DDMStructure on ");
-		sb.append("DDMFormInstance.structureId = DDMStructure.structureId ");
-		sb.append("where DDMStructure.definition like '%\"type\":\"text\"%'");
-
-		try (PreparedStatement ps1 = connection.prepareStatement(sb.toString());
-			PreparedStatement ps2 =
+		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
+				StringBundler.concat(
+					"select DDMStructure.structureId, DDMStructure.definition ",
+					"from DDMFormInstance inner join DDMStructure on ",
+					"DDMFormInstance.structureId = DDMStructure.structureId ",
+					"where DDMStructure.definition like ",
+					"'%\"type\":\"text\"%'"));
+			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructure set definition = ? where " +
 						"structureId = ?");
-			PreparedStatement ps3 = connection.prepareStatement(
+			PreparedStatement preparedStatement3 = connection.prepareStatement(
 				"select structureVersionId, definition from " +
 					"DDMStructureVersion where structureId = ?");
-			PreparedStatement ps4 =
+			PreparedStatement preparedStatement4 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update DDMStructureVersion set definition = ? where " +
 						"structureVersionId = ?")) {
 
-			try (ResultSet rs = ps1.executeQuery()) {
-				while (rs.next()) {
-					String definition = rs.getString(2);
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				while (resultSet.next()) {
+					String definition = resultSet.getString(2);
 
-					String newDefinition = upgradeDDMFormInstanceStructure(
+					String newDefinition = _upgradeDDMFormInstanceStructure(
 						definition);
 
 					if (Objects.equals(definition, newDefinition)) {
 						continue;
 					}
 
-					ps2.setString(1, newDefinition);
+					preparedStatement2.setString(1, newDefinition);
 
-					long structureId = rs.getLong(1);
+					long structureId = resultSet.getLong(1);
 
-					ps2.setLong(2, structureId);
+					preparedStatement2.setLong(2, structureId);
 
-					ps2.addBatch();
+					preparedStatement2.addBatch();
 
-					ps3.setLong(1, structureId);
+					preparedStatement3.setLong(1, structureId);
 
-					try (ResultSet rs2 = ps3.executeQuery()) {
-						while (rs2.next()) {
-							definition = rs2.getString("definition");
+					try (ResultSet resultSet2 =
+							preparedStatement3.executeQuery()) {
 
-							newDefinition = upgradeDDMFormInstanceStructure(
+						while (resultSet2.next()) {
+							definition = resultSet2.getString("definition");
+
+							newDefinition = _upgradeDDMFormInstanceStructure(
 								definition);
 
 							if (Objects.equals(definition, newDefinition)) {
 								continue;
 							}
 
-							ps4.setString(1, newDefinition);
+							preparedStatement4.setString(1, newDefinition);
 
-							long structureVersionId = rs2.getLong(
+							long structureVersionId = resultSet2.getLong(
 								"structureVersionId");
 
-							ps4.setLong(2, structureVersionId);
+							preparedStatement4.setLong(2, structureVersionId);
 
-							ps4.addBatch();
+							preparedStatement4.addBatch();
 						}
 					}
 				}
 
-				ps2.executeBatch();
+				preparedStatement2.executeBatch();
 
-				ps4.executeBatch();
+				preparedStatement4.executeBatch();
 			}
 		}
 	}
 
-	protected boolean isAutocompleteEnabled(Map<String, Object> properties) {
+	private boolean _isAutocompleteEnabled(Map<String, Object> properties) {
 		String dataSourceType = (String)properties.get("dataSourceType");
 
 		if (Validator.isNotNull(dataSourceType)) {
@@ -130,7 +131,7 @@ public class AutocompleteDDMTextFieldSettingUpgradeProcess
 		return false;
 	}
 
-	protected String upgradeDDMFormInstanceStructure(String definition)
+	private String _upgradeDDMFormInstanceStructure(String definition)
 		throws Exception {
 
 		DDMForm ddmForm = DDMFormDeserializeUtil.deserialize(
@@ -142,7 +143,7 @@ public class AutocompleteDDMTextFieldSettingUpgradeProcess
 
 				if (!properties.containsKey("autocomplete")) {
 					properties.put(
-						"autocomplete", isAutocompleteEnabled(properties));
+						"autocomplete", _isAutocompleteEnabled(properties));
 				}
 			}
 		}

@@ -112,13 +112,11 @@ public class AssetCategoryPropertyFinderImpl
 				sqlQuery, getDialect(), start, end);
 
 			while (iterator.hasNext()) {
-				String value = iterator.next();
-
 				AssetCategoryProperty categoryProperty =
 					new AssetCategoryPropertyImpl();
 
 				categoryProperty.setKey(key);
-				categoryProperty.setValue(value);
+				categoryProperty.setValue(iterator.next());
 
 				categoryProperties.add(categoryProperty);
 			}

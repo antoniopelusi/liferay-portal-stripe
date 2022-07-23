@@ -25,23 +25,14 @@
 		<!-- Portal -->
 
 		<action forward="portal.api.jsonws" path="/portal/api/jsonws" />
-
 		<action path="/portal/edit_layout" type="com.liferay.portal.action.EditLayoutAction" />
-
 		<action forward="/portal/emoticons.jsp" path="/portal/emoticons" />
-
 		<action forward="portal.error" path="/portal/error" />
-
 		<action forward="/portal/expire_session.jsp" path="/portal/expire_session" />
-
 		<action forward="/portal/extend_session.jsp" path="/portal/extend_session" />
-
 		<action path="/portal/get_layouts" type="com.liferay.portal.action.GetLayoutsAction" />
-
 		<action forward="/portal/j_login.jsp" path="/portal/j_login" />
-
 		<action forward="portal.j_login_error" path="/portal/j_login_error" />
-
 		<action path="/portal/json_service" type="com.liferay.portal.action.JSONServiceAction" />
 
 		<action path="/portal/layout" type="com.liferay.portal.action.LayoutAction">
@@ -53,15 +44,10 @@
 		</action>
 
 		<action path="/portal/login" type="com.liferay.portal.action.LoginAction" />
-
 		<action forward="portal.login_disabled" path="/portal/login_disabled" />
-
 		<action path="/portal/logout" type="com.liferay.portal.action.LogoutAction" />
-
 		<action forward="portal.progress_poller" path="/portal/progress_poller" />
-
 		<action forward="/portal/protected.jsp" path="/portal/protected" />
-
 		<action path="/portal/rate_entry" type="com.liferay.portal.action.RateEntryAction" />
 
 		<action path="/portal/render_portlet" type="com.liferay.portal.action.RenderPortletAction">
@@ -69,11 +55,8 @@
 		</action>
 
 		<action path="/portal/rest_proxy" type="com.liferay.portal.action.RESTProxyAction" />
-
 		<action path="/portal/robots" type="com.liferay.portal.action.RobotsAction" />
-
 		<action path="/portal/session_click" type="com.liferay.portal.action.SessionClickAction" />
-
 		<action path="/portal/session_tree_js_click" type="com.liferay.portal.action.SessionTreeJSClickAction" />
 
 		<action path="/portal/setup_wizard" type="com.liferay.portal.action.SetupWizardAction">
@@ -81,9 +64,7 @@
 		</action>
 
 		<action path="/portal/sitemap" type="com.liferay.portal.action.SitemapAction" />
-
 		<action forward="portal.status" path="/portal/status" />
-
 		<action forward="portal.terms_of_use" path="/portal/terms_of_use" />
 
 		<!--<action path="/portal/test" type="com.liferay.portal.action.TestAction">
@@ -101,7 +82,6 @@
 		</action>
 
 		<action path="/portal/update_language" type="com.liferay.portal.action.UpdateLanguageAction" />
-
 		<action path="/portal/update_layout" type="com.liferay.portal.action.UpdateLayoutAction" />
 
 		<action path="/portal/update_password" type="com.liferay.portal.action.UpdatePasswordAction">

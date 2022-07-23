@@ -113,6 +113,42 @@ String languageId = LanguageUtil.getLanguageId(request);
 
 		<liferay-ui:message key="ends" />: <%= dateFormatLongDate.format(endTimeJCalendar.getTime()) + ", " + dateFormatTime.format(endTimeJCalendar.getTime()) %>
 
+		<%
+		java.util.Calendar nowJCalendar = CalendarFactoryUtil.getCalendar(timeZone);
+
+		CalendarBooking nextCalendarBooking = RecurrenceUtil.getCalendarBookingInstance(calendarBooking, RecurrenceUtil.getIndexOfInstance(calendarBooking.getRecurrence(), startTimeJCalendar.getTimeInMillis(), nowJCalendar.getTimeInMillis()));
+		%>
+
+		<c:if test="<%= nextCalendarBooking != null %>">
+			<br /><br />
+
+			<liferay-ui:icon
+				icon="calendar"
+				markupView="lexicon"
+				message="next-event-starts"
+			/>
+
+			<%
+			java.util.Calendar nextEventStartTimeJCalendar = JCalendarUtil.getJCalendar(nextCalendarBooking.getStartTime(), user.getTimeZone());
+			%>
+
+			<liferay-ui:message key="next-event-starts" />: <%= dateFormatLongDate.format(nextEventStartTimeJCalendar.getTime()) + ", " + dateFormatTime.format(nextEventStartTimeJCalendar.getTime()) %>
+
+			<br />
+
+			<liferay-ui:icon
+				icon="calendar"
+				markupView="lexicon"
+				message="next-event-ends"
+			/>
+
+			<%
+			java.util.Calendar nextEventEndTimeJCalendar = JCalendarUtil.getJCalendar(nextCalendarBooking.getEndTime(), user.getTimeZone());
+			%>
+
+			<liferay-ui:message key="next-event-ends" />: <%= dateFormatLongDate.format(nextEventEndTimeJCalendar.getTime()) + ", " + dateFormatTime.format(nextEventEndTimeJCalendar.getTime()) %>
+		</c:if>
+
 		<c:if test="<%= Validator.isNotNull(calendarBooking.getLocation()) %>">
 			<br /><br />
 

@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.product.item.selector.web.internal.display.context;
 
+import com.liferay.commerce.product.constants.CPField;
 import com.liferay.commerce.product.item.selector.web.internal.CPDefinitionItemSelectorView;
 import com.liferay.commerce.product.item.selector.web.internal.search.CPDefinitionItemSelectorChecker;
 import com.liferay.commerce.product.item.selector.web.internal.util.CPItemSelectorViewUtil;
@@ -22,13 +23,12 @@ import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.service.CPDefinitionService;
 import com.liferay.commerce.product.type.CPType;
 import com.liferay.commerce.product.type.CPTypeServicesTracker;
-import com.liferay.portal.kernel.dao.search.RowChecker;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Sort;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -98,38 +98,46 @@ public class CPDefinitionItemSelectorViewDisplayContext
 		}
 
 		searchContainer = new SearchContainer<>(
-			liferayPortletRequest, getPortletURL(), null, null);
-
-		searchContainer.setEmptyResultsMessage("no-products-were-found");
-
-		OrderByComparator<CPDefinition> orderByComparator =
-			CPItemSelectorViewUtil.getCPDefinitionOrderByComparator(
-				getOrderByCol(), getOrderByType());
+			liferayPortletRequest, getPortletURL(), null,
+			"no-products-were-found");
 
 		searchContainer.setOrderByCol(getOrderByCol());
-		searchContainer.setOrderByComparator(orderByComparator);
+		searchContainer.setOrderByComparator(
+			CPItemSelectorViewUtil.getCPDefinitionOrderByComparator(
+				getOrderByCol(), getOrderByType()));
 		searchContainer.setOrderByType(getOrderByType());
-
-		if (!isSingleSelection()) {
-			RowChecker rowChecker = new CPDefinitionItemSelectorChecker(
-				cpRequestHelper.getRenderResponse(),
-				getCheckedCPDefinitionIds(), getCPDefinitionId());
-
-			searchContainer.setRowChecker(rowChecker);
-		}
 
 		Sort sort = CPItemSelectorViewUtil.getCPDefinitionSort(
 			getOrderByCol(), getOrderByType());
 
-		BaseModelSearchResult<CPDefinition> cpDefinitionBaseModelSearchResult =
-			_cpDefinitionService.searchCPDefinitions(
-				cpRequestHelper.getCompanyId(), getKeywords(),
-				WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(),
-				searchContainer.getEnd(), sort);
+		BaseModelSearchResult<CPDefinition> cpDefinitionBaseModelSearchResult;
 
-		searchContainer.setTotal(cpDefinitionBaseModelSearchResult.getLength());
-		searchContainer.setResults(
-			cpDefinitionBaseModelSearchResult.getBaseModels());
+		long commerceChannelGroupId = ParamUtil.getLong(
+			httpServletRequest, CPField.COMMERCE_CHANNEL_GROUP_ID);
+
+		if (commerceChannelGroupId != 0) {
+			cpDefinitionBaseModelSearchResult =
+				_cpDefinitionService.searchCPDefinitionsByChannelGroupId(
+					cpRequestHelper.getCompanyId(), commerceChannelGroupId,
+					getKeywords(), WorkflowConstants.STATUS_APPROVED,
+					searchContainer.getStart(), searchContainer.getEnd(), sort);
+		}
+		else {
+			cpDefinitionBaseModelSearchResult =
+				_cpDefinitionService.searchCPDefinitions(
+					cpRequestHelper.getCompanyId(), getKeywords(),
+					WorkflowConstants.STATUS_APPROVED,
+					searchContainer.getStart(), searchContainer.getEnd(), sort);
+		}
+
+		searchContainer.setResultsAndTotal(cpDefinitionBaseModelSearchResult);
+
+		if (!isSingleSelection()) {
+			searchContainer.setRowChecker(
+				new CPDefinitionItemSelectorChecker(
+					cpRequestHelper.getRenderResponse(),
+					_getCheckedCPDefinitionIds(), getCPDefinitionId()));
+		}
 
 		return searchContainer;
 	}
@@ -141,6 +149,10 @@ public class CPDefinitionItemSelectorViewDisplayContext
 			return LanguageUtil.get(locale, "multiple-skus");
 		}
 
+		if (cpInstances.isEmpty()) {
+			return StringPool.BLANK;
+		}
+
 		CPInstance cpInstance = cpInstances.get(0);
 
 		return cpInstance.getSku();
@@ -150,14 +162,9 @@ public class CPDefinitionItemSelectorViewDisplayContext
 		return ParamUtil.getBoolean(httpServletRequest, "singleSelection");
 	}
 
-	protected long[] getCheckedCPDefinitionIds() {
+	private long[] _getCheckedCPDefinitionIds() {
 		return ParamUtil.getLongValues(
 			httpServletRequest, "checkedCPDefinitionIds");
-	}
-
-	protected long[] getDisabledCPDefinitionIds() {
-		return ParamUtil.getLongValues(
-			httpServletRequest, "disabledCPDefinitionIds");
 	}
 
 	private final CPDefinitionService _cpDefinitionService;

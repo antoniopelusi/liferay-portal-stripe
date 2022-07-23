@@ -23,6 +23,7 @@ import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.OpenAPIYAML;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Parameter;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.PathItem;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Schema;
+import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.XML;
 
 import java.util.List;
 import java.util.Map;
@@ -175,6 +176,15 @@ public class YAMLUtil {
 			"setRequiredPropertySchemaNames");
 
 		schemaTypeDescription.addPropertyParameters("required", String.class);
+
+		schemaTypeDescription.substituteProperty(
+			"x-json-map", boolean.class, "getJsonMap", "setJsonMap");
+
+		schemaTypeDescription.substituteProperty(
+			"xml", XML.class, "getXML", "setXML");
+
+		schemaTypeDescription.addPropertyParameters(
+			"xml", String.class, XML.class);
 
 		openAPIYAMLConstructor.addTypeDescription(schemaTypeDescription);
 

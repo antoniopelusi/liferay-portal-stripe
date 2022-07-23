@@ -2,30 +2,27 @@
 <head>
 <title>Card</title>
 </head>
+
 <body>
-<table cellpadding="1" cellspacing="1" border="1">
+<table border="1" cellpadding="1" cellspacing="1">
 <thead>
 <tr><td rowspan="1" colspan="3">Card</td></tr>
 </thead>
+
 <tbody>
 <tr>
 	<td>CARD</td>
-	<td>//div[contains(@class,'card')][contains(.,'${key_card}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CARD_LINK</td>
-	<td>//div[contains(@data-analytics-asset-title,'${key_card}')]//a[contains(@class,'card-link')]</td>
+	<td>//*[contains(@class,'card-body')][contains(.,'${key_card}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CARD_PAGE_ITEM</td>
-	<td>xpath=(//li[contains(@class,'card-page-item')])[${key_index}]//*[contains(@class,'card-title')][contains(.,'${key_card}')]</td>
+	<td>xpath=(//dd[contains(@class,'card-page-item')])[${key_index}]//*[contains(@class,'card-title')][contains(.,'${key_card}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CARD_TITLE</td>
-	<td>//*[contains(@class,'card-title')][contains(.,'${key_card}')]</td>
+	<td>//*[contains(@class,'card-title')][.//*[normalize-space(text())='${key_card}']] | //*[contains(@class,'card-title')][normalize-space(text())='${key_card}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -35,7 +32,7 @@
 </tr>
 <tr>
 	<td>CARD_SUBTITLE</td>
-	<td>//div[contains(@class,'card')][contains(.,'${key_card}')]//*[contains(@class,'card-subtitle')]</td>
+	<td>//div[contains(@class,'card')][contains(.,'${key_card}')]//*[contains(@class,'card-subtitle')] | //div[contains(@class,'card')][contains(.,'${key_card}')]//*[contains(@class,'card-detail')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -55,17 +52,12 @@
 </tr>
 <tr>
 	<td>CARD_SELECTED</td>
-	<td>//li[contains(@class,'active')]//div[contains(@class,'card')][contains(.,'${key_card}')] | //div[contains(@class,'card')][contains(@class,'active')][contains(.,'${key_card}')]</td>
+	<td>//li[contains(@class,'active')]//div[contains(@class,'card')][contains(.,'${key_card}')] | //div[contains(@class,'card')][contains(@class,'active')][.//*[starts-with(.,'${key_card}')]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CARD_STICKER</td>
-	<td>//div[contains(@class,'card')][contains(.,'${key_card}')]//span[contains(@class,'sticker-overlay')]//*[name()='svg'][contains(@class,'lexicon-icon-${key_icon}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CARD_STYLE</td>
-	<td>//div[contains(@data-analytics-asset-title,'${key_card}')]/parent::div[contains(@class,'${key_cardStyle}') or contains(@style,'${key_cardStyle}')]</td>
+	<td>//div[contains(@class,'card')][contains(.,'${key_card}')]//span[contains(@class,'sticker-overlay')]//*[name()='svg'][contains(@class,'lexicon-icon-${key_icon}')] | //div[contains(@class,'card')][contains(.,'${key_card}')]//span[contains(@class,'text')]//*[name()='svg'][contains(@class,'lexicon-icon-${key_icon}')]</td>
 	<td></td>
 </tr>
 <tr>

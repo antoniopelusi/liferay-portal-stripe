@@ -17,7 +17,6 @@ import React from 'react';
 import Questions from '../../../../src/main/resources/META-INF/resources/js/pages/questions/Questions.es';
 
 import '@testing-library/jest-dom/extend-expect';
-import {HttpLink} from '@apollo/client';
 import {cleanup} from '@testing-library/react';
 import {Route} from 'react-router-dom';
 
@@ -39,23 +38,23 @@ const mockMessageBoardSections = {
 								'createMessageBoardSectionMessageBoardThread',
 							type: 'mutation',
 						},
-						delete: {
+						'delete': {
 							operation: 'deleteMessageBoardSection',
 							type: 'mutation',
 						},
-						get: {
+						'get': {
 							operation: 'messageBoardSection',
 							type: 'query',
 						},
-						replace: {
+						'replace': {
 							operation: 'updateMessageBoardSection',
 							type: 'mutation',
 						},
-						subscribe: {
+						'subscribe': {
 							operation: 'updateMessageBoardSectionSubscribe',
 							type: 'mutation',
 						},
-						unsubscribe: {
+						'unsubscribe': {
 							operation: 'updateMessageBoardSectionUnsubscribe',
 							type: 'mutation',
 						},
@@ -155,16 +154,11 @@ describe('Questions', () => {
 		const path = '/questions/:sectionTitle';
 		const route = '/questions/portal';
 
-		const link = new HttpLink({
-			credentials: 'include',
-			fetch: global.fetch,
-			uri: '/o/graphql',
-		});
-
 		global.fetch
 			.mockImplementationOnce(() =>
 				Promise.resolve({
 					json: () => Promise.resolve(mockMessageBoardSections),
+					ok: true,
 					text: () =>
 						Promise.resolve(
 							JSON.stringify(mockMessageBoardSections)
@@ -174,13 +168,14 @@ describe('Questions', () => {
 			.mockImplementation(() =>
 				Promise.resolve({
 					json: () => Promise.resolve(mockThreads),
+					ok: true,
 					text: () => Promise.resolve(JSON.stringify(mockThreads)),
 				})
 			);
 
 		const {container, findByText} = renderComponent({
 			contextValue: {siteKey: '20020'},
-			link,
+			fetch,
 			route,
 			ui: <Route component={Questions} path={path} />,
 		});
@@ -198,16 +193,11 @@ describe('Questions', () => {
 		const path = '/questions/:sectionTitle';
 		const route = '/questions/portal';
 
-		const link = new HttpLink({
-			credentials: 'include',
-			fetch: global.fetch,
-			uri: '/o/graphql',
-		});
-
 		global.fetch
 			.mockImplementationOnce(() =>
 				Promise.resolve({
 					json: () => Promise.resolve(mockMessageBoardSections),
+					ok: true,
 					text: () =>
 						Promise.resolve(
 							JSON.stringify(mockMessageBoardSections)
@@ -217,13 +207,13 @@ describe('Questions', () => {
 			.mockImplementation(() =>
 				Promise.resolve({
 					json: () => Promise.resolve(mockThreads),
+					ok: true,
 					text: () => Promise.resolve(JSON.stringify(mockThreads)),
 				})
 			);
 
 		const {findByText} = renderComponent({
 			contextValue: {siteKey: '20020'},
-			link,
 			route,
 			ui: <Route component={Questions} path={path} />,
 		});

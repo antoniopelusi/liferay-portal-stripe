@@ -20,15 +20,15 @@ import com.liferay.info.field.type.ImageInfoFieldType;
 import com.liferay.info.field.type.TextInfoFieldType;
 import com.liferay.info.field.type.URLInfoFieldType;
 import com.liferay.info.localized.InfoLocalizedValue;
+import com.liferay.journal.model.JournalArticle;
 
 /**
  * @author Jorge Ferrer
  */
-public interface JournalArticleInfoItemFields {
+public class JournalArticleInfoItemFields {
 
 	public static final InfoField<TextInfoFieldType> authorNameInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			TextInfoFieldType.INSTANCE
 		).name(
 			"authorName"
@@ -37,18 +37,16 @@ public interface JournalArticleInfoItemFields {
 				JournalArticleInfoItemFields.class, "author-name")
 		).build();
 	public static final InfoField<ImageInfoFieldType>
-		authorProfileImageInfoField = InfoField.builder(
-		).infoFieldType(
+		authorProfileImageInfoField = BuilderHolder._builder.infoFieldType(
 			ImageInfoFieldType.INSTANCE
 		).name(
 			"authorProfileImage"
 		).labelInfoLocalizedValue(
 			InfoLocalizedValue.localize(
-				"com.liferay.journal.lang", "author-profile-image")
+				JournalArticleInfoItemFields.class, "author-profile-image")
 		).build();
 	public static final InfoField<DateInfoFieldType> createDateInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			DateInfoFieldType.INSTANCE
 		).name(
 			"createDate"
@@ -57,8 +55,7 @@ public interface JournalArticleInfoItemFields {
 				JournalArticleInfoItemFields.class, "create-date")
 		).build();
 	public static final InfoField<TextInfoFieldType> descriptionInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			TextInfoFieldType.INSTANCE
 		).name(
 			"description"
@@ -71,8 +68,7 @@ public interface JournalArticleInfoItemFields {
 			true
 		).build();
 	public static final InfoField<DateInfoFieldType> displayDateInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			DateInfoFieldType.INSTANCE
 		).name(
 			"displayDate"
@@ -81,8 +77,7 @@ public interface JournalArticleInfoItemFields {
 				JournalArticleInfoItemFields.class, "display-date")
 		).build();
 	public static final InfoField<URLInfoFieldType> displayPageURLInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			URLInfoFieldType.INSTANCE
 		).name(
 			"displayPageURL"
@@ -91,8 +86,7 @@ public interface JournalArticleInfoItemFields {
 				"com.liferay.asset.info.display.impl", "display-page-url")
 		).build();
 	public static final InfoField<DateInfoFieldType> expirationDateInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			DateInfoFieldType.INSTANCE
 		).name(
 			"expirationDate"
@@ -101,18 +95,16 @@ public interface JournalArticleInfoItemFields {
 				JournalArticleInfoItemFields.class, "expiration-date")
 		).build();
 	public static final InfoField<TextInfoFieldType> lastEditorNameInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			TextInfoFieldType.INSTANCE
 		).name(
 			"lastEditorName"
 		).labelInfoLocalizedValue(
 			InfoLocalizedValue.localize(
-				"com.liferay.journal.lang", "last-editor-name")
+				JournalArticleInfoItemFields.class, "last-editor-name")
 		).build();
 	public static final InfoField<ImageInfoFieldType>
-		lastEditorProfileImageInfoField = InfoField.builder(
-		).infoFieldType(
+		lastEditorProfileImageInfoField = BuilderHolder._builder.infoFieldType(
 			ImageInfoFieldType.INSTANCE
 		).name(
 			"lastEditorProfileImage"
@@ -121,8 +113,7 @@ public interface JournalArticleInfoItemFields {
 				JournalArticleInfoItemFields.class, "last-editor-profile-image")
 		).build();
 	public static final InfoField<DateInfoFieldType> modifiedDateInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			DateInfoFieldType.INSTANCE
 		).name(
 			"modifiedDate"
@@ -131,8 +122,7 @@ public interface JournalArticleInfoItemFields {
 				JournalArticleInfoItemFields.class, "modified-date")
 		).build();
 	public static final InfoField<DateInfoFieldType> publishDateInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			DateInfoFieldType.INSTANCE
 		).name(
 			"publishDate"
@@ -141,18 +131,16 @@ public interface JournalArticleInfoItemFields {
 				JournalArticleInfoItemFields.class, "publish-date")
 		).build();
 	public static final InfoField<ImageInfoFieldType> smallImageInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			ImageInfoFieldType.INSTANCE
 		).name(
 			"smallImage"
 		).labelInfoLocalizedValue(
 			InfoLocalizedValue.localize(
-				"com.liferay.journal.lang", "small-image")
+				JournalArticleInfoItemFields.class, "small-image")
 		).build();
 	public static final InfoField<TextInfoFieldType> titleInfoField =
-		InfoField.builder(
-		).infoFieldType(
+		BuilderHolder._builder.infoFieldType(
 			TextInfoFieldType.INSTANCE
 		).name(
 			"title"
@@ -162,5 +150,12 @@ public interface JournalArticleInfoItemFields {
 		).localizable(
 			true
 		).build();
+
+	private static class BuilderHolder {
+
+		private static final InfoField.NamespacedBuilder _builder =
+			InfoField.builder(JournalArticle.class.getSimpleName());
+
+	}
 
 }

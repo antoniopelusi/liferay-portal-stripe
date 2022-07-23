@@ -53,7 +53,7 @@ public class ElasticsearchConnectionConfigurationModelListener
 
 		try {
 			elasticsearchConnectionManager.removeElasticsearchConnection(
-				getConnectionId(pid));
+				_getConnectionId(pid));
 		}
 		catch (Exception exception) {
 			throw new ConfigurationModelListenerException(
@@ -82,7 +82,13 @@ public class ElasticsearchConnectionConfigurationModelListener
 		}
 	}
 
-	protected String getConnectionId(String pid) throws Exception {
+	@Reference
+	protected ConfigurationAdmin configurationAdmin;
+
+	@Reference
+	protected ElasticsearchConnectionManager elasticsearchConnectionManager;
+
+	private String _getConnectionId(String pid) throws Exception {
 		Configuration configuration = configurationAdmin.getConfiguration(
 			pid, StringPool.QUESTION);
 
@@ -98,12 +104,6 @@ public class ElasticsearchConnectionConfigurationModelListener
 		return connectionId;
 	}
 
-	@Reference
-	protected ConfigurationAdmin configurationAdmin;
-
-	@Reference
-	protected ElasticsearchConnectionManager elasticsearchConnectionManager;
-
 	private String _getMessage(String key, Object... arguments) {
 		try {
 			return ResourceBundleUtil.getString(
@@ -111,7 +111,7 @@ public class ElasticsearchConnectionConfigurationModelListener
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -169,7 +169,7 @@ public class ElasticsearchConnectionConfigurationModelListener
 			filterString);
 
 		if (configurations == null) {
-			String previousConnectionId = getConnectionId(pid);
+			String previousConnectionId = _getConnectionId(pid);
 
 			if ((previousConnectionId != null) &&
 				!previousConnectionId.equals(connectionId)) {

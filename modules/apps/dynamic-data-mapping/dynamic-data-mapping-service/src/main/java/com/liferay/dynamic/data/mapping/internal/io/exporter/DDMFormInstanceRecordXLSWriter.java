@@ -17,6 +17,9 @@ package com.liferay.dynamic.data.mapping.internal.io.exporter;
 import com.liferay.dynamic.data.mapping.io.exporter.DDMFormInstanceRecordWriter;
 import com.liferay.dynamic.data.mapping.io.exporter.DDMFormInstanceRecordWriterRequest;
 import com.liferay.dynamic.data.mapping.io.exporter.DDMFormInstanceRecordWriterResponse;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.io.ByteArrayOutputStream;
 
@@ -65,9 +68,18 @@ public class DDMFormInstanceRecordXLSWriter
 			CellStyle headerCellStyle = createCellStyle(
 				workbook, true, "Courier New", (short)14);
 
-			createRow(
-				rowIndex++, headerCellStyle, ddmFormFieldsLabel.values(),
-				sheet);
+			Collection<String> values = ddmFormFieldsLabel.values();
+
+			if ((values.size() > _COLUMNS_MAX_COUNT) && _log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Form has ", values.size(),
+						" fields. Due to XLS file format limitations, the ",
+						"first ", _COLUMNS_MAX_COUNT,
+						" will be included in the exported file."));
+			}
+
+			createRow(rowIndex++, headerCellStyle, values, sheet);
 
 			CellStyle rowCellStyle = createCellStyle(
 				workbook, false, "Courier New", (short)12);
@@ -123,15 +135,38 @@ public class DDMFormInstanceRecordXLSWriter
 		int cellIndex = 0;
 
 		for (String value : values) {
+			if (value.length() > _CELL_MAX_LENGTH) {
+				value = value.substring(0, _CELL_MAX_LENGTH - 1);
+
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Cell ", rowIndex, ",", cellIndex,
+							" value trimmed to ", _CELL_MAX_LENGTH,
+							" characters"));
+				}
+			}
+
 			Cell cell = row.createCell(cellIndex++, CellType.STRING);
 
 			cell.setCellStyle(cellStyle);
 			cell.setCellValue(value);
+
+			if (cellIndex == _COLUMNS_MAX_COUNT) {
+				break;
+			}
 		}
 	}
 
 	protected Workbook createWorkbook() {
 		return new HSSFWorkbook();
 	}
+
+	private static final int _CELL_MAX_LENGTH = 32767;
+
+	private static final int _COLUMNS_MAX_COUNT = 256;
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		DDMFormInstanceRecordXLSWriter.class);
 
 }

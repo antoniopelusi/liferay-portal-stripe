@@ -20,10 +20,11 @@ import com.liferay.calendar.model.CalendarBookingTable;
 import com.liferay.calendar.model.impl.CalendarBookingImpl;
 import com.liferay.calendar.model.impl.CalendarBookingModelImpl;
 import com.liferay.calendar.service.persistence.CalendarBookingPersistence;
+import com.liferay.calendar.service.persistence.CalendarBookingUtil;
 import com.liferay.calendar.service.persistence.impl.constants.CalendarPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -34,37 +35,42 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -177,25 +183,28 @@ public class CalendarBookingPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid;
 				finderArgs = new Object[] {uuid};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid;
 			finderArgs = new Object[] {uuid, start, end, orderByComparator};
 		}
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -262,7 +271,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -577,11 +586,21 @@ public class CalendarBookingPersistenceImpl
 	public int countByUuid(String uuid) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {uuid};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid;
+
+			finderArgs = new Object[] {uuid};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -616,7 +635,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -701,15 +722,18 @@ public class CalendarBookingPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {uuid, groupId};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(
 				_finderPathFetchByUUID_G, finderArgs);
 		}
@@ -762,7 +786,7 @@ public class CalendarBookingPersistenceImpl
 				List<CalendarBooking> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
 							_finderPathFetchByUUID_G, finderArgs, list);
 					}
@@ -818,11 +842,21 @@ public class CalendarBookingPersistenceImpl
 	public int countByUUID_G(String uuid, long groupId) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUUID_G;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {uuid, groupId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUUID_G;
+
+			finderArgs = new Object[] {uuid, groupId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -861,7 +895,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -966,18 +1002,21 @@ public class CalendarBookingPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid_C;
 				finderArgs = new Object[] {uuid, companyId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid_C;
 			finderArgs = new Object[] {
 				uuid, companyId, start, end, orderByComparator
@@ -986,7 +1025,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -1059,7 +1098,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -1400,11 +1439,21 @@ public class CalendarBookingPersistenceImpl
 	public int countByUuid_C(String uuid, long companyId) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid_C;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {uuid, companyId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid_C;
+
+			finderArgs = new Object[] {uuid, companyId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -1443,7 +1492,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -1542,18 +1593,21 @@ public class CalendarBookingPersistenceImpl
 		OrderByComparator<CalendarBooking> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByCalendarId;
 				finderArgs = new Object[] {calendarId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByCalendarId;
 			finderArgs = new Object[] {
 				calendarId, start, end, orderByComparator
@@ -1562,7 +1616,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -1618,7 +1672,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -1922,11 +1976,21 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public int countByCalendarId(long calendarId) {
-		FinderPath finderPath = _finderPathCountByCalendarId;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {calendarId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByCalendarId;
+
+			finderArgs = new Object[] {calendarId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -1950,7 +2014,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -2045,19 +2111,22 @@ public class CalendarBookingPersistenceImpl
 		OrderByComparator<CalendarBooking> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath =
 					_finderPathWithoutPaginationFindByCalendarResourceId;
 				finderArgs = new Object[] {calendarResourceId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByCalendarResourceId;
 			finderArgs = new Object[] {
 				calendarResourceId, start, end, orderByComparator
@@ -2066,7 +2135,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -2124,7 +2193,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -2434,11 +2503,21 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public int countByCalendarResourceId(long calendarResourceId) {
-		FinderPath finderPath = _finderPathCountByCalendarResourceId;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {calendarResourceId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByCalendarResourceId;
+
+			finderArgs = new Object[] {calendarResourceId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -2462,7 +2541,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -2561,19 +2642,22 @@ public class CalendarBookingPersistenceImpl
 		OrderByComparator<CalendarBooking> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath =
 					_finderPathWithoutPaginationFindByParentCalendarBookingId;
 				finderArgs = new Object[] {parentCalendarBookingId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByParentCalendarBookingId;
 			finderArgs = new Object[] {
 				parentCalendarBookingId, start, end, orderByComparator
@@ -2582,7 +2666,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -2641,7 +2725,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -2952,11 +3036,21 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public int countByParentCalendarBookingId(long parentCalendarBookingId) {
-		FinderPath finderPath = _finderPathCountByParentCalendarBookingId;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {parentCalendarBookingId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByParentCalendarBookingId;
+
+			finderArgs = new Object[] {parentCalendarBookingId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -2981,7 +3075,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -3081,19 +3177,22 @@ public class CalendarBookingPersistenceImpl
 		OrderByComparator<CalendarBooking> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath =
 					_finderPathWithoutPaginationFindByRecurringCalendarBookingId;
 				finderArgs = new Object[] {recurringCalendarBookingId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath =
 				_finderPathWithPaginationFindByRecurringCalendarBookingId;
 			finderArgs = new Object[] {
@@ -3103,7 +3202,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -3162,7 +3261,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -3480,11 +3579,21 @@ public class CalendarBookingPersistenceImpl
 	public int countByRecurringCalendarBookingId(
 		long recurringCalendarBookingId) {
 
-		FinderPath finderPath = _finderPathCountByRecurringCalendarBookingId;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {recurringCalendarBookingId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByRecurringCalendarBookingId;
+
+			finderArgs = new Object[] {recurringCalendarBookingId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(2);
@@ -3509,7 +3618,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -3594,15 +3705,18 @@ public class CalendarBookingPersistenceImpl
 	public CalendarBooking fetchByC_P(
 		long calendarId, long parentCalendarBookingId, boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {calendarId, parentCalendarBookingId};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(_finderPathFetchByC_P, finderArgs);
 		}
 
@@ -3644,7 +3758,7 @@ public class CalendarBookingPersistenceImpl
 				List<CalendarBooking> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
 							_finderPathFetchByC_P, finderArgs, list);
 					}
@@ -3700,13 +3814,21 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public int countByC_P(long calendarId, long parentCalendarBookingId) {
-		FinderPath finderPath = _finderPathCountByC_P;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {
-			calendarId, parentCalendarBookingId
-		};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByC_P;
+
+			finderArgs = new Object[] {calendarId, parentCalendarBookingId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -3734,7 +3856,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -3819,15 +3943,18 @@ public class CalendarBookingPersistenceImpl
 
 		vEventUid = Objects.toString(vEventUid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {calendarId, vEventUid};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(_finderPathFetchByC_V, finderArgs);
 		}
 
@@ -3879,7 +4006,7 @@ public class CalendarBookingPersistenceImpl
 				List<CalendarBooking> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
 							_finderPathFetchByC_V, finderArgs, list);
 					}
@@ -3935,11 +4062,21 @@ public class CalendarBookingPersistenceImpl
 	public int countByC_V(long calendarId, String vEventUid) {
 		vEventUid = Objects.toString(vEventUid, "");
 
-		FinderPath finderPath = _finderPathCountByC_V;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {calendarId, vEventUid};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByC_V;
+
+			finderArgs = new Object[] {calendarId, vEventUid};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -3978,7 +4115,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -4082,18 +4221,21 @@ public class CalendarBookingPersistenceImpl
 		OrderByComparator<CalendarBooking> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByC_S;
 				finderArgs = new Object[] {calendarId, status};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByC_S;
 			finderArgs = new Object[] {
 				calendarId, status, start, end, orderByComparator
@@ -4102,7 +4244,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -4164,7 +4306,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -4557,18 +4699,21 @@ public class CalendarBookingPersistenceImpl
 				calendarId, statuses[0], start, end, orderByComparator);
 		}
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderArgs = new Object[] {
 					calendarId, StringUtil.merge(statuses)
 				};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {
 				calendarId, StringUtil.merge(statuses), start, end,
 				orderByComparator
@@ -4577,7 +4722,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				_finderPathWithPaginationFindByC_S, finderArgs);
 
@@ -4643,7 +4788,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(
 						_finderPathWithPaginationFindByC_S, finderArgs, list);
 				}
@@ -4685,11 +4830,21 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public int countByC_S(long calendarId, int status) {
-		FinderPath finderPath = _finderPathCountByC_S;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {calendarId, status};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByC_S;
+
+			finderArgs = new Object[] {calendarId, status};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -4717,7 +4872,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -4746,12 +4903,19 @@ public class CalendarBookingPersistenceImpl
 			statuses = ArrayUtil.sortedUnique(statuses);
 		}
 
-		Object[] finderArgs = new Object[] {
-			calendarId, StringUtil.merge(statuses)
-		};
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Long count = (Long)finderCache.getResult(
-			_finderPathWithPaginationCountByC_S, finderArgs);
+		Object[] finderArgs = null;
+
+		Long count = null;
+
+		if (productionMode) {
+			finderArgs = new Object[] {calendarId, StringUtil.merge(statuses)};
+
+			count = (Long)finderCache.getResult(
+				_finderPathWithPaginationCountByC_S, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler();
@@ -4790,8 +4954,10 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(
-					_finderPathWithPaginationCountByC_S, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(
+						_finderPathWithPaginationCountByC_S, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -4898,18 +5064,21 @@ public class CalendarBookingPersistenceImpl
 		OrderByComparator<CalendarBooking> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByP_S;
 				finderArgs = new Object[] {parentCalendarBookingId, status};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByP_S;
 			finderArgs = new Object[] {
 				parentCalendarBookingId, status, start, end, orderByComparator
@@ -4918,7 +5087,7 @@ public class CalendarBookingPersistenceImpl
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 
@@ -4981,7 +5150,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -5309,11 +5478,21 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public int countByP_S(long parentCalendarBookingId, int status) {
-		FinderPath finderPath = _finderPathCountByP_S;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
 
-		Object[] finderArgs = new Object[] {parentCalendarBookingId, status};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByP_S;
+
+			finderArgs = new Object[] {parentCalendarBookingId, status};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
 
 		if (count == null) {
 			StringBundler sb = new StringBundler(3);
@@ -5341,7 +5520,9 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -5382,6 +5563,10 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(CalendarBooking calendarBooking) {
+		if (calendarBooking.getCtCollectionId() != 0) {
+			return;
+		}
+
 		entityCache.putResult(
 			CalendarBookingImpl.class, calendarBooking.getPrimaryKey(),
 			calendarBooking);
@@ -5409,6 +5594,8 @@ public class CalendarBookingPersistenceImpl
 			calendarBooking);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the calendar bookings in the entity cache if it is enabled.
 	 *
@@ -5416,7 +5603,19 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(List<CalendarBooking> calendarBookings) {
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (calendarBookings.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
+
 		for (CalendarBooking calendarBooking : calendarBookings) {
+			if (calendarBooking.getCtCollectionId() != 0) {
+				continue;
+			}
+
 			if (entityCache.getResult(
 					CalendarBookingImpl.class,
 					calendarBooking.getPrimaryKey()) == null) {
@@ -5513,7 +5712,7 @@ public class CalendarBookingPersistenceImpl
 		calendarBooking.setNew(true);
 		calendarBooking.setPrimaryKey(calendarBookingId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		calendarBooking.setUuid(uuid);
 
@@ -5590,7 +5789,9 @@ public class CalendarBookingPersistenceImpl
 					calendarBooking.getPrimaryKeyObj());
 			}
 
-			if (calendarBooking != null) {
+			if ((calendarBooking != null) &&
+				ctPersistenceHelper.isRemove(calendarBooking)) {
+
 				session.delete(calendarBooking);
 			}
 		}
@@ -5633,7 +5834,7 @@ public class CalendarBookingPersistenceImpl
 			(CalendarBookingModelImpl)calendarBooking;
 
 		if (Validator.isNull(calendarBooking.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			calendarBooking.setUuid(uuid);
 		}
@@ -5641,25 +5842,25 @@ public class CalendarBookingPersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (calendarBooking.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				calendarBooking.setCreateDate(now);
+				calendarBooking.setCreateDate(date);
 			}
 			else {
 				calendarBooking.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!calendarBookingModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				calendarBooking.setModifiedDate(now);
+				calendarBooking.setModifiedDate(date);
 			}
 			else {
 				calendarBooking.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -5668,7 +5869,13 @@ public class CalendarBookingPersistenceImpl
 		try {
 			session = openSession();
 
-			if (isNew) {
+			if (ctPersistenceHelper.isInsert(calendarBooking)) {
+				if (!isNew) {
+					session.evict(
+						CalendarBookingImpl.class,
+						calendarBooking.getPrimaryKeyObj());
+				}
+
 				session.save(calendarBooking);
 			}
 			else {
@@ -5681,6 +5888,16 @@ public class CalendarBookingPersistenceImpl
 		}
 		finally {
 			closeSession(session);
+		}
+
+		if (calendarBooking.getCtCollectionId() != 0) {
+			if (isNew) {
+				calendarBooking.setNew(false);
+			}
+
+			calendarBooking.resetOriginalValues();
+
+			return calendarBooking;
 		}
 
 		entityCache.putResult(
@@ -5739,12 +5956,141 @@ public class CalendarBookingPersistenceImpl
 	/**
 	 * Returns the calendar booking with the primary key or returns <code>null</code> if it could not be found.
 	 *
+	 * @param primaryKey the primary key of the calendar booking
+	 * @return the calendar booking, or <code>null</code> if a calendar booking with the primary key could not be found
+	 */
+	@Override
+	public CalendarBooking fetchByPrimaryKey(Serializable primaryKey) {
+		if (ctPersistenceHelper.isProductionMode(CalendarBooking.class)) {
+			return super.fetchByPrimaryKey(primaryKey);
+		}
+
+		CalendarBooking calendarBooking = null;
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			calendarBooking = (CalendarBooking)session.get(
+				CalendarBookingImpl.class, primaryKey);
+
+			if (calendarBooking != null) {
+				cacheResult(calendarBooking);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return calendarBooking;
+	}
+
+	/**
+	 * Returns the calendar booking with the primary key or returns <code>null</code> if it could not be found.
+	 *
 	 * @param calendarBookingId the primary key of the calendar booking
 	 * @return the calendar booking, or <code>null</code> if a calendar booking with the primary key could not be found
 	 */
 	@Override
 	public CalendarBooking fetchByPrimaryKey(long calendarBookingId) {
 		return fetchByPrimaryKey((Serializable)calendarBookingId);
+	}
+
+	@Override
+	public Map<Serializable, CalendarBooking> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+
+		if (ctPersistenceHelper.isProductionMode(CalendarBooking.class)) {
+			return super.fetchByPrimaryKeys(primaryKeys);
+		}
+
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, CalendarBooking> map =
+			new HashMap<Serializable, CalendarBooking>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			CalendarBooking calendarBooking = fetchByPrimaryKey(primaryKey);
+
+			if (calendarBooking != null) {
+				map.put(primaryKey, calendarBooking);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
+			}
+
+			return map;
+		}
+
+		StringBundler sb = new StringBundler((primaryKeys.size() * 2) + 1);
+
+		sb.append(getSelectSQL());
+		sb.append(" WHERE ");
+		sb.append(getPKDBName());
+		sb.append(" IN (");
+
+		for (Serializable primaryKey : primaryKeys) {
+			sb.append((long)primaryKey);
+
+			sb.append(",");
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(")");
+
+		String sql = sb.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query query = session.createQuery(sql);
+
+			for (CalendarBooking calendarBooking :
+					(List<CalendarBooking>)query.list()) {
+
+				map.put(calendarBooking.getPrimaryKeyObj(), calendarBooking);
+
+				cacheResult(calendarBooking);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
@@ -5812,25 +6158,28 @@ public class CalendarBookingPersistenceImpl
 		OrderByComparator<CalendarBooking> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindAll;
 				finderArgs = FINDER_ARGS_EMPTY;
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<CalendarBooking> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<CalendarBooking>)finderCache.getResult(
 				finderPath, finderArgs);
 		}
@@ -5868,7 +6217,7 @@ public class CalendarBookingPersistenceImpl
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
@@ -5901,8 +6250,15 @@ public class CalendarBookingPersistenceImpl
 	 */
 	@Override
 	public int countAll() {
-		Long count = (Long)finderCache.getResult(
-			_finderPathCountAll, FINDER_ARGS_EMPTY);
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			CalendarBooking.class);
+
+		Long count = null;
+
+		if (productionMode) {
+			count = (Long)finderCache.getResult(
+				_finderPathCountAll, FINDER_ARGS_EMPTY);
+		}
 
 		if (count == null) {
 			Session session = null;
@@ -5914,8 +6270,10 @@ public class CalendarBookingPersistenceImpl
 
 				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				if (productionMode) {
+					finderCache.putResult(
+						_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				}
 			}
 			catch (Exception exception) {
 				throw processException(exception);
@@ -5949,21 +6307,102 @@ public class CalendarBookingPersistenceImpl
 	}
 
 	@Override
-	protected Map<String, Integer> getTableColumnsMap() {
+	public Set<String> getCTColumnNames(
+		CTColumnResolutionType ctColumnResolutionType) {
+
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
+	}
+
+	@Override
+	public List<String> getMappingTableNames() {
+		return _mappingTableNames;
+	}
+
+	@Override
+	public Map<String, Integer> getTableColumnsMap() {
 		return CalendarBookingModelImpl.TABLE_COLUMNS_MAP;
+	}
+
+	@Override
+	public String getTableName() {
+		return "CalendarBooking";
+	}
+
+	@Override
+	public List<String[]> getUniqueIndexColumnNames() {
+		return _uniqueIndexColumnNames;
+	}
+
+	private static final Map<CTColumnResolutionType, Set<String>>
+		_ctColumnNamesMap = new EnumMap<CTColumnResolutionType, Set<String>>(
+			CTColumnResolutionType.class);
+	private static final List<String> _mappingTableNames =
+		new ArrayList<String>();
+	private static final List<String[]> _uniqueIndexColumnNames =
+		new ArrayList<String[]>();
+
+	static {
+		Set<String> ctControlColumnNames = new HashSet<String>();
+		Set<String> ctIgnoreColumnNames = new HashSet<String>();
+		Set<String> ctStrictColumnNames = new HashSet<String>();
+
+		ctControlColumnNames.add("mvccVersion");
+		ctControlColumnNames.add("ctCollectionId");
+		ctStrictColumnNames.add("uuid_");
+		ctStrictColumnNames.add("groupId");
+		ctStrictColumnNames.add("companyId");
+		ctStrictColumnNames.add("userId");
+		ctStrictColumnNames.add("userName");
+		ctStrictColumnNames.add("createDate");
+		ctIgnoreColumnNames.add("modifiedDate");
+		ctStrictColumnNames.add("calendarId");
+		ctStrictColumnNames.add("calendarResourceId");
+		ctStrictColumnNames.add("parentCalendarBookingId");
+		ctStrictColumnNames.add("recurringCalendarBookingId");
+		ctStrictColumnNames.add("vEventUid");
+		ctStrictColumnNames.add("title");
+		ctStrictColumnNames.add("description");
+		ctStrictColumnNames.add("location");
+		ctStrictColumnNames.add("startTime");
+		ctStrictColumnNames.add("endTime");
+		ctStrictColumnNames.add("allDay");
+		ctStrictColumnNames.add("recurrence");
+		ctStrictColumnNames.add("firstReminder");
+		ctStrictColumnNames.add("firstReminderType");
+		ctStrictColumnNames.add("secondReminder");
+		ctStrictColumnNames.add("secondReminderType");
+		ctStrictColumnNames.add("lastPublishDate");
+		ctStrictColumnNames.add("status");
+		ctStrictColumnNames.add("statusByUserId");
+		ctStrictColumnNames.add("statusByUserName");
+		ctStrictColumnNames.add("statusDate");
+
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.CONTROL, ctControlColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.PK,
+			Collections.singleton("calendarBookingId"));
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.STRICT, ctStrictColumnNames);
+
+		_uniqueIndexColumnNames.add(new String[] {"uuid_", "groupId"});
+
+		_uniqueIndexColumnNames.add(
+			new String[] {"calendarId", "parentCalendarBookingId"});
+
+		_uniqueIndexColumnNames.add(new String[] {"calendarId", "vEventUid"});
 	}
 
 	/**
 	 * Initializes the calendar booking persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new CalendarBookingModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -6167,13 +6606,31 @@ public class CalendarBookingPersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByP_S",
 			new String[] {Long.class.getName(), Integer.class.getName()},
 			new String[] {"parentCalendarBookingId", "status"}, false);
+
+		_setCalendarBookingUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(CalendarBookingImpl.class.getName());
+		_setCalendarBookingUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(CalendarBookingImpl.class.getName());
+	}
+
+	private void _setCalendarBookingUtilPersistence(
+		CalendarBookingPersistence calendarBookingPersistence) {
+
+		try {
+			Field field = CalendarBookingUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, calendarBookingPersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -6202,7 +6659,8 @@ public class CalendarBookingPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private BundleContext _bundleContext;
+	@Reference
+	protected CTPersistenceHelper ctPersistenceHelper;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -6241,116 +6699,11 @@ public class CalendarBookingPersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class CalendarBookingModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			CalendarBookingModelImpl calendarBookingModelImpl =
-				(CalendarBookingModelImpl)baseModel;
-
-			long columnBitmask = calendarBookingModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					calendarBookingModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						calendarBookingModelImpl.getColumnBitmask(columnName);
-				}
-
-				if (finderPath.isBaseModelResult() &&
-					(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION ==
-						finderPath.getCacheName())) {
-
-					finderPathColumnBitmask |= _ORDER_BY_COLUMNS_BITMASK;
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					calendarBookingModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return CalendarBookingImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return CalendarBookingTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			CalendarBookingModelImpl calendarBookingModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						calendarBookingModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] = calendarBookingModelImpl.getColumnValue(
-						columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-		private static final long _ORDER_BY_COLUMNS_BITMASK;
-
-		static {
-			long orderByColumnsBitmask = 0;
-
-			orderByColumnsBitmask |= CalendarBookingModelImpl.getColumnBitmask(
-				"startTime");
-			orderByColumnsBitmask |= CalendarBookingModelImpl.getColumnBitmask(
-				"title");
-
-			_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
-		}
-
-	}
+	@Reference
+	private CalendarBookingModelArgumentsResolver
+		_calendarBookingModelArgumentsResolver;
 
 }

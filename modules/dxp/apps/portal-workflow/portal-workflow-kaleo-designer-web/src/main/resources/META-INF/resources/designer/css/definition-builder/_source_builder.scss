@@ -1,0 +1,55 @@
+.cke_contents,
+.CodeMirror {
+	height: calc(100vh - 90px - 64px - 56px) !important;
+}
+
+.cke_top {
+	display: none !important;
+}
+
+.source-toolbar {
+	background-color: white;
+
+	.error {
+		span {
+			color: red;
+			font-size: 16px;
+			font-weight: normal;
+		}
+	}
+
+	.import-file {
+		align-items: center;
+		display: flex;
+
+		a {
+			cursor: pointer;
+		}
+
+		a,
+		span {
+			font-size: 14px;
+			font-weight: 400;
+		}
+
+		svg {
+			height: 16px;
+			margin-right: 16px;
+			width: 16px;
+		}
+	}
+
+	span {
+		color: #272833;
+		font-size: 20px;
+		font-weight: 700;
+	}
+
+	.tbar-nav {
+		justify-content: space-between;
+	}
+
+	#fileInput {
+		display: none;
+	}
+}

@@ -27,6 +27,10 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	implements AnnouncementsDeliveryLocalService,
 			   ServiceWrapper<AnnouncementsDeliveryLocalService> {
 
+	public AnnouncementsDeliveryLocalServiceWrapper() {
+		this(null);
+	}
+
 	public AnnouncementsDeliveryLocalServiceWrapper(
 		AnnouncementsDeliveryLocalService announcementsDeliveryLocalService) {
 
@@ -166,6 +170,13 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _announcementsDeliveryLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _announcementsDeliveryLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

@@ -505,11 +505,11 @@ public class ProjectTemplates {
 			throw new IllegalArgumentException("Author is required");
 		}
 
-		String template = projectTemplatesArgs.getTemplate();
-
 		if (Validator.isNull(projectTemplatesArgs.getTemplate())) {
 			throw new IllegalArgumentException("Template is required");
 		}
+
+		String template = projectTemplatesArgs.getTemplate();
 
 		String name = projectTemplatesArgs.getName();
 

@@ -16,6 +16,8 @@ package com.liferay.commerce.product.catalog;
 
 import java.math.BigDecimal;
 
+import java.util.Date;
+
 /**
  * @author Alessio Antonio Rendina
  */
@@ -24,6 +26,8 @@ public interface CPSku {
 	public long getCPInstanceId();
 
 	public String getCPInstanceUuid();
+
+	public Date getDiscontinuedDate();
 
 	public String getExternalReferenceCode();
 
@@ -35,7 +39,13 @@ public interface CPSku {
 
 	public BigDecimal getPromoPrice();
 
+	public String getReplacementCPInstanceUuid();
+
+	public long getReplacementCProductId();
+
 	public String getSku();
+
+	public boolean isDiscontinued();
 
 	public boolean isPublished();
 

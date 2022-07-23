@@ -20,13 +20,12 @@ import com.liferay.oauth2.provider.internal.test.TestAnnotatedApplication;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Collections;
-import java.util.Dictionary;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -79,18 +78,17 @@ public class GrantAuthorizationCodePKCEKillSwitchTest
 
 			User user = UserTestUtil.getAdminUser(defaultCompanyId);
 
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-			properties.put("oauth2.scope.checker.type", "annotations");
-
 			registerJaxRsApplication(
-				new TestAnnotatedApplication(), "annotated", properties);
+				new TestAnnotatedApplication(), "annotated",
+				HashMapDictionaryBuilder.<String, Object>put(
+					"oauth2.scope.checker.type", "annotations"
+				).build());
 
-			createOAuth2Application(
-				defaultCompanyId, user, "oauthTestApplicationCodePKCE", null,
+			createOAuth2ApplicationWithNone(
+				defaultCompanyId, user, "oauthTestApplicationCodePKCE",
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE_PKCE),
-				Collections.singletonList("http://redirecturi:8080"),
-				Collections.singletonList("everything"));
+				Collections.singletonList("http://redirecturi:8080"), false,
+				Collections.singletonList("everything"), false);
 		}
 
 	}

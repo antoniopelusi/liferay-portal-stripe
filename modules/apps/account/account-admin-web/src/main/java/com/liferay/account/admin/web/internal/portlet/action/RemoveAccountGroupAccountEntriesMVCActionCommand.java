@@ -17,9 +17,7 @@ package com.liferay.account.admin.web.internal.portlet.action;
 import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.exception.NoSuchGroupAccountEntryRelException;
 import com.liferay.account.model.AccountEntry;
-import com.liferay.account.service.AccountGroupRelLocalService;
-import com.liferay.petra.lang.SafeClosable;
-import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
+import com.liferay.account.service.AccountGroupRelService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -51,15 +49,13 @@ public class RemoveAccountGroupAccountEntriesMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		try (SafeClosable safeClosable =
-				ProxyModeThreadLocal.setWithSafeClosable(true)) {
-
+		try {
 			long accountGroupId = ParamUtil.getLong(
 				actionRequest, "accountGroupId");
 			long[] accountEntryIds = ParamUtil.getLongValues(
 				actionRequest, "accountEntryIds");
 
-			_accountGroupRelLocalService.deleteAccountGroupRels(
+			_accountGroupRelService.deleteAccountGroupRels(
 				accountGroupId, AccountEntry.class.getName(), accountEntryIds);
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
@@ -82,6 +78,6 @@ public class RemoveAccountGroupAccountEntriesMVCActionCommand
 	}
 
 	@Reference
-	private AccountGroupRelLocalService _accountGroupRelLocalService;
+	private AccountGroupRelService _accountGroupRelService;
 
 }

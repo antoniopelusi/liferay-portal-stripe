@@ -64,36 +64,37 @@ public class CTRowUtil {
 
 			sb.append(")");
 
-			try (PreparedStatement selectPS = connection.prepareStatement(
-					selectSQL);
-				PreparedStatement insertPS = connection.prepareStatement(
-					sb.toString());
-				ResultSet rs = selectPS.executeQuery()) {
+			try (PreparedStatement selectPreparedStatement =
+					connection.prepareStatement(selectSQL);
+				PreparedStatement insertPreparedStatement =
+					connection.prepareStatement(sb.toString());
+				ResultSet resultSet = selectPreparedStatement.executeQuery()) {
 
-				while (rs.next()) {
+				while (resultSet.next()) {
 					int parameterIndex = 1;
 
 					for (int type : tableColumnsMap.values()) {
 						if (type == Types.BLOB) {
-							Blob blob = rs.getBlob(parameterIndex);
+							Blob blob = resultSet.getBlob(parameterIndex);
 
-							insertPS.setBlob(
+							insertPreparedStatement.setBlob(
 								parameterIndex, blob.getBinaryStream());
 						}
 						else {
-							insertPS.setObject(
-								parameterIndex, rs.getObject(parameterIndex));
+							insertPreparedStatement.setObject(
+								parameterIndex,
+								resultSet.getObject(parameterIndex));
 						}
 
 						parameterIndex++;
 					}
 
-					insertPS.addBatch();
+					insertPreparedStatement.addBatch();
 				}
 
 				int result = 0;
 
-				for (int count : insertPS.executeBatch()) {
+				for (int count : insertPreparedStatement.executeBatch()) {
 					result += count;
 				}
 

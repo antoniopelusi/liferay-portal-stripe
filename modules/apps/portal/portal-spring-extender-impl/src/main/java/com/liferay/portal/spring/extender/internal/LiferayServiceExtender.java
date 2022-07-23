@@ -17,6 +17,7 @@ package com.liferay.portal.spring.extender.internal;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.dao.orm.hibernate.SessionFactoryImpl;
 import com.liferay.portal.dao.orm.hibernate.VerifySessionFactoryWrapper;
+import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -39,7 +40,7 @@ import java.util.concurrent.FutureTask;
 
 import javax.sql.DataSource;
 
-import org.hibernate.engine.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -52,7 +53,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.util.tracker.BundleTracker;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
 
-import org.springframework.orm.hibernate3.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -85,7 +86,7 @@ public class LiferayServiceExtender
 			return liferayServiceExtension;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return null;
@@ -115,6 +116,17 @@ public class LiferayServiceExtender
 			}
 
 			_sessionFactoryImplementor.close();
+
+			if (InfrastructureUtil.getDataSource() != _dataSource) {
+				try {
+					DataSourceFactoryUtil.destroyDataSource(_dataSource);
+				}
+				catch (Exception exception) {
+					_log.error(
+						"Unable to destroy external data source " + _dataSource,
+						exception);
+				}
+			}
 		}
 
 		public void start() throws Exception {
@@ -124,15 +136,14 @@ public class LiferayServiceExtender
 			ClassLoader extendeeClassLoader =
 				extendeeBundleWiring.getClassLoader();
 
-			DataSource dataSource = DataSourceUtil.getDataSource(
-				extendeeClassLoader);
+			_dataSource = DataSourceUtil.getDataSource(extendeeClassLoader);
 
 			BundleContext extendeeBundleContext =
 				_extendeeBundle.getBundleContext();
 
 			_serviceRegistrations.add(
 				extendeeBundleContext.registerService(
-					DataSource.class, dataSource,
+					DataSource.class, _dataSource,
 					MapUtil.singletonDictionary(
 						"origin.bundle.symbolic.name",
 						_extendeeBundle.getSymbolicName())));
@@ -141,11 +152,13 @@ public class LiferayServiceExtender
 				extendeeClassLoader, _extendeeBundle.getSymbolicName());
 
 			PortletHibernateConfiguration portletHibernateConfiguration =
-				new PortletHibernateConfiguration(classLoader, dataSource);
+				new PortletHibernateConfiguration(classLoader, _dataSource);
+
+			portletHibernateConfiguration.afterPropertiesSet();
 
 			_sessionFactoryImplementor =
 				(SessionFactoryImplementor)
-					portletHibernateConfiguration.buildSessionFactory();
+					portletHibernateConfiguration.getObject();
 
 			SessionFactoryImpl sessionFactoryImpl = new SessionFactoryImpl();
 
@@ -165,7 +178,8 @@ public class LiferayServiceExtender
 						_extendeeBundle.getSymbolicName())));
 
 			DefaultTransactionExecutor defaultTransactionExecutor =
-				_getTransactionExecutor(dataSource, _sessionFactoryImplementor);
+				_getTransactionExecutor(
+					_dataSource, _sessionFactoryImplementor);
 
 			_serviceRegistrations.add(
 				extendeeBundleContext.registerService(
@@ -204,6 +218,7 @@ public class LiferayServiceExtender
 			return new DefaultTransactionExecutor(platformTransactionManager);
 		}
 
+		private DataSource _dataSource;
 		private final Bundle _extendeeBundle;
 		private final List<ServiceRegistration<?>> _serviceRegistrations =
 			new ArrayList<>();

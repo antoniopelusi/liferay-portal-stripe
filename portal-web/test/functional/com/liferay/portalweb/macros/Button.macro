@@ -44,6 +44,10 @@ definition {
 		Click(locator1 = "Button#CONFIRM");
 	}
 
+	macro clickCreate {
+		Button.click(button = "Create");
+	}
+
 	macro clickDelete {
 		Button.click(button = "Delete");
 	}
@@ -105,7 +109,9 @@ definition {
 	}
 
 	macro clickSelect {
-		Button.click(button = "Select");
+		Click.javaScriptClick(
+			key_text = "Select",
+			locator1 = "Button#ANY");
 	}
 
 	macro clickShare {
@@ -118,6 +124,12 @@ definition {
 
 	macro clickSubmitForPublication {
 		Button.click(button = "Submit for Publication");
+	}
+
+	macro clickTrash {
+		ScrollWebElementIntoView(locator1 = "Button#TRASH_ENABLED");
+
+		Click(locator1 = "Button#TRASH_ENABLED");
 	}
 
 	macro clickUpdate {

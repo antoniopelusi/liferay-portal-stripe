@@ -20,11 +20,11 @@ import com.liferay.layout.model.LayoutClassedModelUsageTable;
 import com.liferay.layout.model.impl.LayoutClassedModelUsageImpl;
 import com.liferay.layout.model.impl.LayoutClassedModelUsageModelImpl;
 import com.liferay.layout.service.persistence.LayoutClassedModelUsagePersistence;
+import com.liferay.layout.service.persistence.LayoutClassedModelUsageUtil;
 import com.liferay.layout.service.persistence.impl.constants.LayoutPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -35,22 +35,24 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
@@ -64,12 +66,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -2055,9 +2054,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 	private static final String _FINDER_COLUMN_PLID_PLID_2 =
 		"layoutClassedModelUsage.plid = ? AND layoutClassedModelUsage.containerKey IS NOT NULL";
 
-	private FinderPath _finderPathWithPaginationFindByC_C;
-	private FinderPath _finderPathWithoutPaginationFindByC_C;
-	private FinderPath _finderPathCountByC_C;
+	private FinderPath _finderPathWithPaginationFindByCN_CPK;
+	private FinderPath _finderPathWithoutPaginationFindByCN_CPK;
+	private FinderPath _finderPathCountByCN_CPK;
 
 	/**
 	 * Returns all the layout classed model usages where classNameId = &#63; and classPK = &#63;.
@@ -2067,10 +2066,10 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C(
+	public List<LayoutClassedModelUsage> findByCN_CPK(
 		long classNameId, long classPK) {
 
-		return findByC_C(
+		return findByCN_CPK(
 			classNameId, classPK, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2088,10 +2087,10 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the range of matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C(
+	public List<LayoutClassedModelUsage> findByCN_CPK(
 		long classNameId, long classPK, int start, int end) {
 
-		return findByC_C(classNameId, classPK, start, end, null);
+		return findByCN_CPK(classNameId, classPK, start, end, null);
 	}
 
 	/**
@@ -2109,11 +2108,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the ordered range of matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C(
+	public List<LayoutClassedModelUsage> findByCN_CPK(
 		long classNameId, long classPK, int start, int end,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		return findByC_C(
+		return findByCN_CPK(
 			classNameId, classPK, start, end, orderByComparator, true);
 	}
 
@@ -2133,7 +2132,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the ordered range of matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C(
+	public List<LayoutClassedModelUsage> findByCN_CPK(
 		long classNameId, long classPK, int start, int end,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator,
 		boolean useFinderCache) {
@@ -2148,12 +2147,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache && productionMode) {
-				finderPath = _finderPathWithoutPaginationFindByC_C;
+				finderPath = _finderPathWithoutPaginationFindByCN_CPK;
 				finderArgs = new Object[] {classNameId, classPK};
 			}
 		}
 		else if (useFinderCache && productionMode) {
-			finderPath = _finderPathWithPaginationFindByC_C;
+			finderPath = _finderPathWithPaginationFindByCN_CPK;
 			finderArgs = new Object[] {
 				classNameId, classPK, start, end, orderByComparator
 			};
@@ -2192,9 +2191,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 			sb.append(_SQL_SELECT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_CLASSNAMEID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CLASSNAMEID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_CLASSPK_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CLASSPK_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -2249,12 +2248,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @throws NoSuchClassedModelUsageException if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage findByC_C_First(
+	public LayoutClassedModelUsage findByCN_CPK_First(
 			long classNameId, long classPK,
 			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
 		throws NoSuchClassedModelUsageException {
 
-		LayoutClassedModelUsage layoutClassedModelUsage = fetchByC_C_First(
+		LayoutClassedModelUsage layoutClassedModelUsage = fetchByCN_CPK_First(
 			classNameId, classPK, orderByComparator);
 
 		if (layoutClassedModelUsage != null) {
@@ -2285,11 +2284,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the first matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage fetchByC_C_First(
+	public LayoutClassedModelUsage fetchByCN_CPK_First(
 		long classNameId, long classPK,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		List<LayoutClassedModelUsage> list = findByC_C(
+		List<LayoutClassedModelUsage> list = findByCN_CPK(
 			classNameId, classPK, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -2309,12 +2308,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @throws NoSuchClassedModelUsageException if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage findByC_C_Last(
+	public LayoutClassedModelUsage findByCN_CPK_Last(
 			long classNameId, long classPK,
 			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
 		throws NoSuchClassedModelUsageException {
 
-		LayoutClassedModelUsage layoutClassedModelUsage = fetchByC_C_Last(
+		LayoutClassedModelUsage layoutClassedModelUsage = fetchByCN_CPK_Last(
 			classNameId, classPK, orderByComparator);
 
 		if (layoutClassedModelUsage != null) {
@@ -2345,17 +2344,17 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the last matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage fetchByC_C_Last(
+	public LayoutClassedModelUsage fetchByCN_CPK_Last(
 		long classNameId, long classPK,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		int count = countByC_C(classNameId, classPK);
+		int count = countByCN_CPK(classNameId, classPK);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<LayoutClassedModelUsage> list = findByC_C(
+		List<LayoutClassedModelUsage> list = findByCN_CPK(
 			classNameId, classPK, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -2376,7 +2375,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @throws NoSuchClassedModelUsageException if a layout classed model usage with the primary key could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage[] findByC_C_PrevAndNext(
+	public LayoutClassedModelUsage[] findByCN_CPK_PrevAndNext(
 			long layoutClassedModelUsageId, long classNameId, long classPK,
 			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
 		throws NoSuchClassedModelUsageException {
@@ -2392,13 +2391,13 @@ public class LayoutClassedModelUsagePersistenceImpl
 			LayoutClassedModelUsage[] array =
 				new LayoutClassedModelUsageImpl[3];
 
-			array[0] = getByC_C_PrevAndNext(
+			array[0] = getByCN_CPK_PrevAndNext(
 				session, layoutClassedModelUsage, classNameId, classPK,
 				orderByComparator, true);
 
 			array[1] = layoutClassedModelUsage;
 
-			array[2] = getByC_C_PrevAndNext(
+			array[2] = getByCN_CPK_PrevAndNext(
 				session, layoutClassedModelUsage, classNameId, classPK,
 				orderByComparator, false);
 
@@ -2412,7 +2411,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 		}
 	}
 
-	protected LayoutClassedModelUsage getByC_C_PrevAndNext(
+	protected LayoutClassedModelUsage getByCN_CPK_PrevAndNext(
 		Session session, LayoutClassedModelUsage layoutClassedModelUsage,
 		long classNameId, long classPK,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator,
@@ -2431,9 +2430,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 		sb.append(_SQL_SELECT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-		sb.append(_FINDER_COLUMN_C_C_CLASSNAMEID_2);
+		sb.append(_FINDER_COLUMN_CN_CPK_CLASSNAMEID_2);
 
-		sb.append(_FINDER_COLUMN_C_C_CLASSPK_2);
+		sb.append(_FINDER_COLUMN_CN_CPK_CLASSPK_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -2534,9 +2533,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @param classPK the class pk
 	 */
 	@Override
-	public void removeByC_C(long classNameId, long classPK) {
+	public void removeByCN_CPK(long classNameId, long classPK) {
 		for (LayoutClassedModelUsage layoutClassedModelUsage :
-				findByC_C(
+				findByCN_CPK(
 					classNameId, classPK, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null)) {
 
@@ -2552,7 +2551,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the number of matching layout classed model usages
 	 */
 	@Override
-	public int countByC_C(long classNameId, long classPK) {
+	public int countByCN_CPK(long classNameId, long classPK) {
 		boolean productionMode = ctPersistenceHelper.isProductionMode(
 			LayoutClassedModelUsage.class);
 
@@ -2562,7 +2561,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 		Long count = null;
 
 		if (productionMode) {
-			finderPath = _finderPathCountByC_C;
+			finderPath = _finderPathCountByCN_CPK;
 
 			finderArgs = new Object[] {classNameId, classPK};
 
@@ -2574,9 +2573,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 			sb.append(_SQL_COUNT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_CLASSNAMEID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CLASSNAMEID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_CLASSPK_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CLASSPK_2);
 
 			String sql = sb.toString();
 
@@ -2610,15 +2609,623 @@ public class LayoutClassedModelUsagePersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_C_C_CLASSNAMEID_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_CLASSNAMEID_2 =
 		"layoutClassedModelUsage.classNameId = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_CLASSPK_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_CLASSPK_2 =
 		"layoutClassedModelUsage.classPK = ? AND layoutClassedModelUsage.containerKey IS NOT NULL";
 
-	private FinderPath _finderPathWithPaginationFindByC_C_T;
-	private FinderPath _finderPathWithoutPaginationFindByC_C_T;
-	private FinderPath _finderPathCountByC_C_T;
+	private FinderPath _finderPathWithPaginationFindByC_CN_CT;
+	private FinderPath _finderPathWithoutPaginationFindByC_CN_CT;
+	private FinderPath _finderPathCountByC_CN_CT;
+
+	/**
+	 * Returns all the layout classed model usages where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @return the matching layout classed model usages
+	 */
+	@Override
+	public List<LayoutClassedModelUsage> findByC_CN_CT(
+		long companyId, long classNameId, long containerType) {
+
+		return findByC_CN_CT(
+			companyId, classNameId, containerType, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the layout classed model usages where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutClassedModelUsageModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param start the lower bound of the range of layout classed model usages
+	 * @param end the upper bound of the range of layout classed model usages (not inclusive)
+	 * @return the range of matching layout classed model usages
+	 */
+	@Override
+	public List<LayoutClassedModelUsage> findByC_CN_CT(
+		long companyId, long classNameId, long containerType, int start,
+		int end) {
+
+		return findByC_CN_CT(
+			companyId, classNameId, containerType, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the layout classed model usages where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutClassedModelUsageModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param start the lower bound of the range of layout classed model usages
+	 * @param end the upper bound of the range of layout classed model usages (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching layout classed model usages
+	 */
+	@Override
+	public List<LayoutClassedModelUsage> findByC_CN_CT(
+		long companyId, long classNameId, long containerType, int start,
+		int end, OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
+
+		return findByC_CN_CT(
+			companyId, classNameId, containerType, start, end,
+			orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the layout classed model usages where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutClassedModelUsageModelImpl</code>.
+	 * </p>
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param start the lower bound of the range of layout classed model usages
+	 * @param end the upper bound of the range of layout classed model usages (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching layout classed model usages
+	 */
+	@Override
+	public List<LayoutClassedModelUsage> findByC_CN_CT(
+		long companyId, long classNameId, long containerType, int start,
+		int end, OrderByComparator<LayoutClassedModelUsage> orderByComparator,
+		boolean useFinderCache) {
+
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			LayoutClassedModelUsage.class);
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+			(orderByComparator == null)) {
+
+			if (useFinderCache && productionMode) {
+				finderPath = _finderPathWithoutPaginationFindByC_CN_CT;
+				finderArgs = new Object[] {
+					companyId, classNameId, containerType
+				};
+			}
+		}
+		else if (useFinderCache && productionMode) {
+			finderPath = _finderPathWithPaginationFindByC_CN_CT;
+			finderArgs = new Object[] {
+				companyId, classNameId, containerType, start, end,
+				orderByComparator
+			};
+		}
+
+		List<LayoutClassedModelUsage> list = null;
+
+		if (useFinderCache && productionMode) {
+			list = (List<LayoutClassedModelUsage>)finderCache.getResult(
+				finderPath, finderArgs);
+
+			if ((list != null) && !list.isEmpty()) {
+				for (LayoutClassedModelUsage layoutClassedModelUsage : list) {
+					if ((companyId != layoutClassedModelUsage.getCompanyId()) ||
+						(classNameId !=
+							layoutClassedModelUsage.getClassNameId()) ||
+						(containerType !=
+							layoutClassedModelUsage.getContainerType())) {
+
+						list = null;
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (list == null) {
+			StringBundler sb = null;
+
+			if (orderByComparator != null) {
+				sb = new StringBundler(
+					5 + (orderByComparator.getOrderByFields().length * 2));
+			}
+			else {
+				sb = new StringBundler(5);
+			}
+
+			sb.append(_SQL_SELECT_LAYOUTCLASSEDMODELUSAGE_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_CN_CT_COMPANYID_2);
+
+			sb.append(_FINDER_COLUMN_C_CN_CT_CLASSNAMEID_2);
+
+			sb.append(_FINDER_COLUMN_C_CN_CT_CONTAINERTYPE_2);
+
+			if (orderByComparator != null) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+			}
+			else {
+				sb.append(LayoutClassedModelUsageModelImpl.ORDER_BY_JPQL);
+			}
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				queryPos.add(classNameId);
+
+				queryPos.add(containerType);
+
+				list = (List<LayoutClassedModelUsage>)QueryUtil.list(
+					query, getDialect(), start, end);
+
+				cacheResult(list);
+
+				if (useFinderCache && productionMode) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * Returns the first layout classed model usage in the ordered set where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching layout classed model usage
+	 * @throws NoSuchClassedModelUsageException if a matching layout classed model usage could not be found
+	 */
+	@Override
+	public LayoutClassedModelUsage findByC_CN_CT_First(
+			long companyId, long classNameId, long containerType,
+			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
+		throws NoSuchClassedModelUsageException {
+
+		LayoutClassedModelUsage layoutClassedModelUsage = fetchByC_CN_CT_First(
+			companyId, classNameId, containerType, orderByComparator);
+
+		if (layoutClassedModelUsage != null) {
+			return layoutClassedModelUsage;
+		}
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", classNameId=");
+		sb.append(classNameId);
+
+		sb.append(", containerType=");
+		sb.append(containerType);
+
+		sb.append("}");
+
+		throw new NoSuchClassedModelUsageException(sb.toString());
+	}
+
+	/**
+	 * Returns the first layout classed model usage in the ordered set where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
+	 */
+	@Override
+	public LayoutClassedModelUsage fetchByC_CN_CT_First(
+		long companyId, long classNameId, long containerType,
+		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
+
+		List<LayoutClassedModelUsage> list = findByC_CN_CT(
+			companyId, classNameId, containerType, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last layout classed model usage in the ordered set where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching layout classed model usage
+	 * @throws NoSuchClassedModelUsageException if a matching layout classed model usage could not be found
+	 */
+	@Override
+	public LayoutClassedModelUsage findByC_CN_CT_Last(
+			long companyId, long classNameId, long containerType,
+			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
+		throws NoSuchClassedModelUsageException {
+
+		LayoutClassedModelUsage layoutClassedModelUsage = fetchByC_CN_CT_Last(
+			companyId, classNameId, containerType, orderByComparator);
+
+		if (layoutClassedModelUsage != null) {
+			return layoutClassedModelUsage;
+		}
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("companyId=");
+		sb.append(companyId);
+
+		sb.append(", classNameId=");
+		sb.append(classNameId);
+
+		sb.append(", containerType=");
+		sb.append(containerType);
+
+		sb.append("}");
+
+		throw new NoSuchClassedModelUsageException(sb.toString());
+	}
+
+	/**
+	 * Returns the last layout classed model usage in the ordered set where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
+	 */
+	@Override
+	public LayoutClassedModelUsage fetchByC_CN_CT_Last(
+		long companyId, long classNameId, long containerType,
+		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
+
+		int count = countByC_CN_CT(companyId, classNameId, containerType);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<LayoutClassedModelUsage> list = findByC_CN_CT(
+			companyId, classNameId, containerType, count - 1, count,
+			orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the layout classed model usages before and after the current layout classed model usage in the ordered set where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * @param layoutClassedModelUsageId the primary key of the current layout classed model usage
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next layout classed model usage
+	 * @throws NoSuchClassedModelUsageException if a layout classed model usage with the primary key could not be found
+	 */
+	@Override
+	public LayoutClassedModelUsage[] findByC_CN_CT_PrevAndNext(
+			long layoutClassedModelUsageId, long companyId, long classNameId,
+			long containerType,
+			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
+		throws NoSuchClassedModelUsageException {
+
+		LayoutClassedModelUsage layoutClassedModelUsage = findByPrimaryKey(
+			layoutClassedModelUsageId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			LayoutClassedModelUsage[] array =
+				new LayoutClassedModelUsageImpl[3];
+
+			array[0] = getByC_CN_CT_PrevAndNext(
+				session, layoutClassedModelUsage, companyId, classNameId,
+				containerType, orderByComparator, true);
+
+			array[1] = layoutClassedModelUsage;
+
+			array[2] = getByC_CN_CT_PrevAndNext(
+				session, layoutClassedModelUsage, companyId, classNameId,
+				containerType, orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected LayoutClassedModelUsage getByC_CN_CT_PrevAndNext(
+		Session session, LayoutClassedModelUsage layoutClassedModelUsage,
+		long companyId, long classNameId, long containerType,
+		OrderByComparator<LayoutClassedModelUsage> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		sb.append(_SQL_SELECT_LAYOUTCLASSEDMODELUSAGE_WHERE);
+
+		sb.append(_FINDER_COLUMN_C_CN_CT_COMPANYID_2);
+
+		sb.append(_FINDER_COLUMN_C_CN_CT_CLASSNAMEID_2);
+
+		sb.append(_FINDER_COLUMN_C_CN_CT_CONTAINERTYPE_2);
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(LayoutClassedModelUsageModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(companyId);
+
+		queryPos.add(classNameId);
+
+		queryPos.add(containerType);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(
+						layoutClassedModelUsage)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<LayoutClassedModelUsage> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the layout classed model usages where companyId = &#63; and classNameId = &#63; and containerType = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 */
+	@Override
+	public void removeByC_CN_CT(
+		long companyId, long classNameId, long containerType) {
+
+		for (LayoutClassedModelUsage layoutClassedModelUsage :
+				findByC_CN_CT(
+					companyId, classNameId, containerType, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, null)) {
+
+			remove(layoutClassedModelUsage);
+		}
+	}
+
+	/**
+	 * Returns the number of layout classed model usages where companyId = &#63; and classNameId = &#63; and containerType = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param classNameId the class name ID
+	 * @param containerType the container type
+	 * @return the number of matching layout classed model usages
+	 */
+	@Override
+	public int countByC_CN_CT(
+		long companyId, long classNameId, long containerType) {
+
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			LayoutClassedModelUsage.class);
+
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
+
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByC_CN_CT;
+
+			finderArgs = new Object[] {companyId, classNameId, containerType};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs);
+		}
+
+		if (count == null) {
+			StringBundler sb = new StringBundler(4);
+
+			sb.append(_SQL_COUNT_LAYOUTCLASSEDMODELUSAGE_WHERE);
+
+			sb.append(_FINDER_COLUMN_C_CN_CT_COMPANYID_2);
+
+			sb.append(_FINDER_COLUMN_C_CN_CT_CLASSNAMEID_2);
+
+			sb.append(_FINDER_COLUMN_C_CN_CT_CONTAINERTYPE_2);
+
+			String sql = sb.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query query = session.createQuery(sql);
+
+				QueryPos queryPos = QueryPos.getInstance(query);
+
+				queryPos.add(companyId);
+
+				queryPos.add(classNameId);
+
+				queryPos.add(containerType);
+
+				count = (Long)query.uniqueResult();
+
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
+			}
+			catch (Exception exception) {
+				throw processException(exception);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_C_CN_CT_COMPANYID_2 =
+		"layoutClassedModelUsage.companyId = ? AND ";
+
+	private static final String _FINDER_COLUMN_C_CN_CT_CLASSNAMEID_2 =
+		"layoutClassedModelUsage.classNameId = ? AND ";
+
+	private static final String _FINDER_COLUMN_C_CN_CT_CONTAINERTYPE_2 =
+		"layoutClassedModelUsage.containerType = ? AND layoutClassedModelUsage.containerKey IS NOT NULL";
+
+	private FinderPath _finderPathWithPaginationFindByCN_CPK_T;
+	private FinderPath _finderPathWithoutPaginationFindByCN_CPK_T;
+	private FinderPath _finderPathCountByCN_CPK_T;
 
 	/**
 	 * Returns all the layout classed model usages where classNameId = &#63; and classPK = &#63; and type = &#63;.
@@ -2629,10 +3236,10 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C_T(
+	public List<LayoutClassedModelUsage> findByCN_CPK_T(
 		long classNameId, long classPK, int type) {
 
-		return findByC_C_T(
+		return findByCN_CPK_T(
 			classNameId, classPK, type, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -2652,10 +3259,10 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the range of matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C_T(
+	public List<LayoutClassedModelUsage> findByCN_CPK_T(
 		long classNameId, long classPK, int type, int start, int end) {
 
-		return findByC_C_T(classNameId, classPK, type, start, end, null);
+		return findByCN_CPK_T(classNameId, classPK, type, start, end, null);
 	}
 
 	/**
@@ -2674,11 +3281,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the ordered range of matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C_T(
+	public List<LayoutClassedModelUsage> findByCN_CPK_T(
 		long classNameId, long classPK, int type, int start, int end,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		return findByC_C_T(
+		return findByCN_CPK_T(
 			classNameId, classPK, type, start, end, orderByComparator, true);
 	}
 
@@ -2699,7 +3306,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the ordered range of matching layout classed model usages
 	 */
 	@Override
-	public List<LayoutClassedModelUsage> findByC_C_T(
+	public List<LayoutClassedModelUsage> findByCN_CPK_T(
 		long classNameId, long classPK, int type, int start, int end,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator,
 		boolean useFinderCache) {
@@ -2714,12 +3321,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache && productionMode) {
-				finderPath = _finderPathWithoutPaginationFindByC_C_T;
+				finderPath = _finderPathWithoutPaginationFindByCN_CPK_T;
 				finderArgs = new Object[] {classNameId, classPK, type};
 			}
 		}
 		else if (useFinderCache && productionMode) {
-			finderPath = _finderPathWithPaginationFindByC_C_T;
+			finderPath = _finderPathWithPaginationFindByCN_CPK_T;
 			finderArgs = new Object[] {
 				classNameId, classPK, type, start, end, orderByComparator
 			};
@@ -2759,11 +3366,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 			sb.append(_SQL_SELECT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_T_CLASSNAMEID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_T_CLASSNAMEID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_T_CLASSPK_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_T_CLASSPK_2);
 
-			sb.append(_FINDER_COLUMN_C_C_T_TYPE_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_T_TYPE_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -2821,12 +3428,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @throws NoSuchClassedModelUsageException if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage findByC_C_T_First(
+	public LayoutClassedModelUsage findByCN_CPK_T_First(
 			long classNameId, long classPK, int type,
 			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
 		throws NoSuchClassedModelUsageException {
 
-		LayoutClassedModelUsage layoutClassedModelUsage = fetchByC_C_T_First(
+		LayoutClassedModelUsage layoutClassedModelUsage = fetchByCN_CPK_T_First(
 			classNameId, classPK, type, orderByComparator);
 
 		if (layoutClassedModelUsage != null) {
@@ -2861,11 +3468,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the first matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage fetchByC_C_T_First(
+	public LayoutClassedModelUsage fetchByCN_CPK_T_First(
 		long classNameId, long classPK, int type,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		List<LayoutClassedModelUsage> list = findByC_C_T(
+		List<LayoutClassedModelUsage> list = findByCN_CPK_T(
 			classNameId, classPK, type, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -2886,12 +3493,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @throws NoSuchClassedModelUsageException if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage findByC_C_T_Last(
+	public LayoutClassedModelUsage findByCN_CPK_T_Last(
 			long classNameId, long classPK, int type,
 			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
 		throws NoSuchClassedModelUsageException {
 
-		LayoutClassedModelUsage layoutClassedModelUsage = fetchByC_C_T_Last(
+		LayoutClassedModelUsage layoutClassedModelUsage = fetchByCN_CPK_T_Last(
 			classNameId, classPK, type, orderByComparator);
 
 		if (layoutClassedModelUsage != null) {
@@ -2926,17 +3533,17 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the last matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage fetchByC_C_T_Last(
+	public LayoutClassedModelUsage fetchByCN_CPK_T_Last(
 		long classNameId, long classPK, int type,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator) {
 
-		int count = countByC_C_T(classNameId, classPK, type);
+		int count = countByCN_CPK_T(classNameId, classPK, type);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<LayoutClassedModelUsage> list = findByC_C_T(
+		List<LayoutClassedModelUsage> list = findByCN_CPK_T(
 			classNameId, classPK, type, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -2958,7 +3565,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @throws NoSuchClassedModelUsageException if a layout classed model usage with the primary key could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage[] findByC_C_T_PrevAndNext(
+	public LayoutClassedModelUsage[] findByCN_CPK_T_PrevAndNext(
 			long layoutClassedModelUsageId, long classNameId, long classPK,
 			int type,
 			OrderByComparator<LayoutClassedModelUsage> orderByComparator)
@@ -2975,13 +3582,13 @@ public class LayoutClassedModelUsagePersistenceImpl
 			LayoutClassedModelUsage[] array =
 				new LayoutClassedModelUsageImpl[3];
 
-			array[0] = getByC_C_T_PrevAndNext(
+			array[0] = getByCN_CPK_T_PrevAndNext(
 				session, layoutClassedModelUsage, classNameId, classPK, type,
 				orderByComparator, true);
 
 			array[1] = layoutClassedModelUsage;
 
-			array[2] = getByC_C_T_PrevAndNext(
+			array[2] = getByCN_CPK_T_PrevAndNext(
 				session, layoutClassedModelUsage, classNameId, classPK, type,
 				orderByComparator, false);
 
@@ -2995,7 +3602,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 		}
 	}
 
-	protected LayoutClassedModelUsage getByC_C_T_PrevAndNext(
+	protected LayoutClassedModelUsage getByCN_CPK_T_PrevAndNext(
 		Session session, LayoutClassedModelUsage layoutClassedModelUsage,
 		long classNameId, long classPK, int type,
 		OrderByComparator<LayoutClassedModelUsage> orderByComparator,
@@ -3014,11 +3621,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 		sb.append(_SQL_SELECT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-		sb.append(_FINDER_COLUMN_C_C_T_CLASSNAMEID_2);
+		sb.append(_FINDER_COLUMN_CN_CPK_T_CLASSNAMEID_2);
 
-		sb.append(_FINDER_COLUMN_C_C_T_CLASSPK_2);
+		sb.append(_FINDER_COLUMN_CN_CPK_T_CLASSPK_2);
 
-		sb.append(_FINDER_COLUMN_C_C_T_TYPE_2);
+		sb.append(_FINDER_COLUMN_CN_CPK_T_TYPE_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -3122,9 +3729,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @param type the type
 	 */
 	@Override
-	public void removeByC_C_T(long classNameId, long classPK, int type) {
+	public void removeByCN_CPK_T(long classNameId, long classPK, int type) {
 		for (LayoutClassedModelUsage layoutClassedModelUsage :
-				findByC_C_T(
+				findByCN_CPK_T(
 					classNameId, classPK, type, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null)) {
 
@@ -3141,7 +3748,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the number of matching layout classed model usages
 	 */
 	@Override
-	public int countByC_C_T(long classNameId, long classPK, int type) {
+	public int countByCN_CPK_T(long classNameId, long classPK, int type) {
 		boolean productionMode = ctPersistenceHelper.isProductionMode(
 			LayoutClassedModelUsage.class);
 
@@ -3151,7 +3758,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 		Long count = null;
 
 		if (productionMode) {
-			finderPath = _finderPathCountByC_C_T;
+			finderPath = _finderPathCountByCN_CPK_T;
 
 			finderArgs = new Object[] {classNameId, classPK, type};
 
@@ -3163,11 +3770,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 			sb.append(_SQL_COUNT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_T_CLASSNAMEID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_T_CLASSNAMEID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_T_CLASSPK_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_T_CLASSPK_2);
 
-			sb.append(_FINDER_COLUMN_C_C_T_TYPE_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_T_TYPE_2);
 
 			String sql = sb.toString();
 
@@ -3203,13 +3810,13 @@ public class LayoutClassedModelUsagePersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_C_C_T_CLASSNAMEID_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_T_CLASSNAMEID_2 =
 		"layoutClassedModelUsage.classNameId = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_T_CLASSPK_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_T_CLASSPK_2 =
 		"layoutClassedModelUsage.classPK = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_T_TYPE_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_T_TYPE_2 =
 		"layoutClassedModelUsage.type = ? AND layoutClassedModelUsage.containerKey IS NOT NULL";
 
 	private FinderPath _finderPathWithPaginationFindByCK_CT_P;
@@ -3859,8 +4466,8 @@ public class LayoutClassedModelUsagePersistenceImpl
 	private static final String _FINDER_COLUMN_CK_CT_P_PLID_2 =
 		"layoutClassedModelUsage.plid = ? AND layoutClassedModelUsage.containerKey IS NOT NULL";
 
-	private FinderPath _finderPathFetchByC_C_CK_CT_P;
-	private FinderPath _finderPathCountByC_C_CK_CT_P;
+	private FinderPath _finderPathFetchByCN_CPK_CK_CT_P;
+	private FinderPath _finderPathCountByCN_CPK_CK_CT_P;
 
 	/**
 	 * Returns the layout classed model usage where classNameId = &#63; and classPK = &#63; and containerKey = &#63; and containerType = &#63; and plid = &#63; or throws a <code>NoSuchClassedModelUsageException</code> if it could not be found.
@@ -3874,12 +4481,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @throws NoSuchClassedModelUsageException if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage findByC_C_CK_CT_P(
+	public LayoutClassedModelUsage findByCN_CPK_CK_CT_P(
 			long classNameId, long classPK, String containerKey,
 			long containerType, long plid)
 		throws NoSuchClassedModelUsageException {
 
-		LayoutClassedModelUsage layoutClassedModelUsage = fetchByC_C_CK_CT_P(
+		LayoutClassedModelUsage layoutClassedModelUsage = fetchByCN_CPK_CK_CT_P(
 			classNameId, classPK, containerKey, containerType, plid);
 
 		if (layoutClassedModelUsage == null) {
@@ -3925,11 +4532,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage fetchByC_C_CK_CT_P(
+	public LayoutClassedModelUsage fetchByCN_CPK_CK_CT_P(
 		long classNameId, long classPK, String containerKey, long containerType,
 		long plid) {
 
-		return fetchByC_C_CK_CT_P(
+		return fetchByCN_CPK_CK_CT_P(
 			classNameId, classPK, containerKey, containerType, plid, true);
 	}
 
@@ -3945,7 +4552,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the matching layout classed model usage, or <code>null</code> if a matching layout classed model usage could not be found
 	 */
 	@Override
-	public LayoutClassedModelUsage fetchByC_C_CK_CT_P(
+	public LayoutClassedModelUsage fetchByCN_CPK_CK_CT_P(
 		long classNameId, long classPK, String containerKey, long containerType,
 		long plid, boolean useFinderCache) {
 
@@ -3966,7 +4573,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(
-				_finderPathFetchByC_C_CK_CT_P, finderArgs);
+				_finderPathFetchByCN_CPK_CK_CT_P, finderArgs);
 		}
 
 		if (result instanceof LayoutClassedModelUsage) {
@@ -3989,24 +4596,24 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 			sb.append(_SQL_SELECT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CLASSNAMEID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CLASSNAMEID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CLASSPK_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CLASSPK_2);
 
 			boolean bindContainerKey = false;
 
 			if (containerKey.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CONTAINERKEY_3);
+				sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERKEY_3);
 			}
 			else {
 				bindContainerKey = true;
 
-				sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CONTAINERKEY_2);
+				sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERKEY_2);
 			}
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CONTAINERTYPE_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERTYPE_2);
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_PLID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_PLID_2);
 
 			String sql = sb.toString();
 
@@ -4036,7 +4643,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 				if (list.isEmpty()) {
 					if (useFinderCache && productionMode) {
 						finderCache.putResult(
-							_finderPathFetchByC_C_CK_CT_P, finderArgs, list);
+							_finderPathFetchByCN_CPK_CK_CT_P, finderArgs, list);
 					}
 				}
 				else {
@@ -4075,12 +4682,12 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the layout classed model usage that was removed
 	 */
 	@Override
-	public LayoutClassedModelUsage removeByC_C_CK_CT_P(
+	public LayoutClassedModelUsage removeByCN_CPK_CK_CT_P(
 			long classNameId, long classPK, String containerKey,
 			long containerType, long plid)
 		throws NoSuchClassedModelUsageException {
 
-		LayoutClassedModelUsage layoutClassedModelUsage = findByC_C_CK_CT_P(
+		LayoutClassedModelUsage layoutClassedModelUsage = findByCN_CPK_CK_CT_P(
 			classNameId, classPK, containerKey, containerType, plid);
 
 		return remove(layoutClassedModelUsage);
@@ -4097,7 +4704,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * @return the number of matching layout classed model usages
 	 */
 	@Override
-	public int countByC_C_CK_CT_P(
+	public int countByCN_CPK_CK_CT_P(
 		long classNameId, long classPK, String containerKey, long containerType,
 		long plid) {
 
@@ -4112,7 +4719,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 		Long count = null;
 
 		if (productionMode) {
-			finderPath = _finderPathCountByC_C_CK_CT_P;
+			finderPath = _finderPathCountByCN_CPK_CK_CT_P;
 
 			finderArgs = new Object[] {
 				classNameId, classPK, containerKey, containerType, plid
@@ -4126,24 +4733,24 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 			sb.append(_SQL_COUNT_LAYOUTCLASSEDMODELUSAGE_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CLASSNAMEID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CLASSNAMEID_2);
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CLASSPK_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CLASSPK_2);
 
 			boolean bindContainerKey = false;
 
 			if (containerKey.isEmpty()) {
-				sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CONTAINERKEY_3);
+				sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERKEY_3);
 			}
 			else {
 				bindContainerKey = true;
 
-				sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CONTAINERKEY_2);
+				sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERKEY_2);
 			}
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_CONTAINERTYPE_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERTYPE_2);
 
-			sb.append(_FINDER_COLUMN_C_C_CK_CT_P_PLID_2);
+			sb.append(_FINDER_COLUMN_CN_CPK_CK_CT_P_PLID_2);
 
 			String sql = sb.toString();
 
@@ -4185,22 +4792,22 @@ public class LayoutClassedModelUsagePersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_C_C_CK_CT_P_CLASSNAMEID_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_CK_CT_P_CLASSNAMEID_2 =
 		"layoutClassedModelUsage.classNameId = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_CK_CT_P_CLASSPK_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_CK_CT_P_CLASSPK_2 =
 		"layoutClassedModelUsage.classPK = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_CK_CT_P_CONTAINERKEY_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERKEY_2 =
 		"layoutClassedModelUsage.containerKey = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_CK_CT_P_CONTAINERKEY_3 =
+	private static final String _FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERKEY_3 =
 		"(layoutClassedModelUsage.containerKey IS NULL OR layoutClassedModelUsage.containerKey = '') AND ";
 
-	private static final String _FINDER_COLUMN_C_C_CK_CT_P_CONTAINERTYPE_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_CK_CT_P_CONTAINERTYPE_2 =
 		"layoutClassedModelUsage.containerType = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_C_CK_CT_P_PLID_2 =
+	private static final String _FINDER_COLUMN_CN_CPK_CK_CT_P_PLID_2 =
 		"layoutClassedModelUsage.plid = ?";
 
 	public LayoutClassedModelUsagePersistenceImpl() {
@@ -4243,7 +4850,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 			layoutClassedModelUsage);
 
 		finderCache.putResult(
-			_finderPathFetchByC_C_CK_CT_P,
+			_finderPathFetchByCN_CPK_CK_CT_P,
 			new Object[] {
 				layoutClassedModelUsage.getClassNameId(),
 				layoutClassedModelUsage.getClassPK(),
@@ -4254,6 +4861,8 @@ public class LayoutClassedModelUsagePersistenceImpl
 			layoutClassedModelUsage);
 	}
 
+	private int _valueObjectFinderCacheListThreshold;
+
 	/**
 	 * Caches the layout classed model usages in the entity cache if it is enabled.
 	 *
@@ -4262,6 +4871,14 @@ public class LayoutClassedModelUsagePersistenceImpl
 	@Override
 	public void cacheResult(
 		List<LayoutClassedModelUsage> layoutClassedModelUsages) {
+
+		if ((_valueObjectFinderCacheListThreshold == 0) ||
+			((_valueObjectFinderCacheListThreshold > 0) &&
+			 (layoutClassedModelUsages.size() >
+				 _valueObjectFinderCacheListThreshold))) {
+
+			return;
+		}
 
 		for (LayoutClassedModelUsage layoutClassedModelUsage :
 				layoutClassedModelUsages) {
@@ -4349,9 +4966,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 		};
 
 		finderCache.putResult(
-			_finderPathCountByC_C_CK_CT_P, args, Long.valueOf(1));
+			_finderPathCountByCN_CPK_CK_CT_P, args, Long.valueOf(1));
 		finderCache.putResult(
-			_finderPathFetchByC_C_CK_CT_P, args,
+			_finderPathFetchByCN_CPK_CK_CT_P, args,
 			layoutClassedModelUsageModelImpl);
 	}
 
@@ -4369,7 +4986,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 		layoutClassedModelUsage.setNew(true);
 		layoutClassedModelUsage.setPrimaryKey(layoutClassedModelUsageId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		layoutClassedModelUsage.setUuid(uuid);
 
@@ -4498,7 +5115,7 @@ public class LayoutClassedModelUsagePersistenceImpl
 			(LayoutClassedModelUsageModelImpl)layoutClassedModelUsage;
 
 		if (Validator.isNull(layoutClassedModelUsage.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			layoutClassedModelUsage.setUuid(uuid);
 		}
@@ -4506,25 +5123,25 @@ public class LayoutClassedModelUsagePersistenceImpl
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		Date now = new Date();
+		Date date = new Date();
 
 		if (isNew && (layoutClassedModelUsage.getCreateDate() == null)) {
 			if (serviceContext == null) {
-				layoutClassedModelUsage.setCreateDate(now);
+				layoutClassedModelUsage.setCreateDate(date);
 			}
 			else {
 				layoutClassedModelUsage.setCreateDate(
-					serviceContext.getCreateDate(now));
+					serviceContext.getCreateDate(date));
 			}
 		}
 
 		if (!layoutClassedModelUsageModelImpl.hasSetModifiedDate()) {
 			if (serviceContext == null) {
-				layoutClassedModelUsage.setModifiedDate(now);
+				layoutClassedModelUsage.setModifiedDate(date);
 			}
 			else {
 				layoutClassedModelUsage.setModifiedDate(
-					serviceContext.getModifiedDate(now));
+					serviceContext.getModifiedDate(date));
 			}
 		}
 
@@ -4699,6 +5316,26 @@ public class LayoutClassedModelUsagePersistenceImpl
 
 			if (layoutClassedModelUsage != null) {
 				map.put(primaryKey, layoutClassedModelUsage);
+			}
+
+			return map;
+		}
+
+		if ((databaseInMaxParameters > 0) &&
+			(primaryKeys.size() > databaseInMaxParameters)) {
+
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			while (iterator.hasNext()) {
+				Set<Serializable> page = new HashSet<>();
+
+				for (int i = 0;
+					 (i < databaseInMaxParameters) && iterator.hasNext(); i++) {
+
+					page.add(iterator.next());
+				}
+
+				map.putAll(fetchByPrimaryKeys(page));
 			}
 
 			return map;
@@ -4969,7 +5606,8 @@ public class LayoutClassedModelUsagePersistenceImpl
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType) {
 
-		return _ctColumnNamesMap.get(ctColumnResolutionType);
+		return _ctColumnNamesMap.getOrDefault(
+			ctColumnResolutionType, Collections.emptySet());
 	}
 
 	@Override
@@ -5003,7 +5641,6 @@ public class LayoutClassedModelUsagePersistenceImpl
 	static {
 		Set<String> ctControlColumnNames = new HashSet<String>();
 		Set<String> ctIgnoreColumnNames = new HashSet<String>();
-		Set<String> ctMergeColumnNames = new HashSet<String>();
 		Set<String> ctStrictColumnNames = new HashSet<String>();
 
 		ctControlColumnNames.add("mvccVersion");
@@ -5025,7 +5662,6 @@ public class LayoutClassedModelUsagePersistenceImpl
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
-		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.PK,
 			Collections.singleton("layoutClassedModelUsageId"));
@@ -5045,13 +5681,9 @@ public class LayoutClassedModelUsagePersistenceImpl
 	 * Initializes the layout classed model usage persistence.
 	 */
 	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-
-		_argumentsResolverServiceRegistration = _bundleContext.registerService(
-			ArgumentsResolver.class,
-			new LayoutClassedModelUsageModelArgumentsResolver(),
-			new HashMapDictionary<>());
+	public void activate() {
+		_valueObjectFinderCacheListThreshold = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.VALUE_OBJECT_FINDER_CACHE_LIST_THRESHOLD));
 
 		_finderPathWithPaginationFindAll = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
@@ -5128,8 +5760,8 @@ public class LayoutClassedModelUsagePersistenceImpl
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByPlid",
 			new String[] {Long.class.getName()}, new String[] {"plid"}, false);
 
-		_finderPathWithPaginationFindByC_C = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_C",
+		_finderPathWithPaginationFindByCN_CPK = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCN_CPK",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
@@ -5137,18 +5769,41 @@ public class LayoutClassedModelUsagePersistenceImpl
 			},
 			new String[] {"classNameId", "classPK"}, true);
 
-		_finderPathWithoutPaginationFindByC_C = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_C",
+		_finderPathWithoutPaginationFindByCN_CPK = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCN_CPK",
 			new String[] {Long.class.getName(), Long.class.getName()},
 			new String[] {"classNameId", "classPK"}, true);
 
-		_finderPathCountByC_C = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_C",
+		_finderPathCountByCN_CPK = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCN_CPK",
 			new String[] {Long.class.getName(), Long.class.getName()},
 			new String[] {"classNameId", "classPK"}, false);
 
-		_finderPathWithPaginationFindByC_C_T = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_C_T",
+		_finderPathWithPaginationFindByC_CN_CT = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_CN_CT",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				Long.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"companyId", "classNameId", "containerType"}, true);
+
+		_finderPathWithoutPaginationFindByC_CN_CT = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_CN_CT",
+			new String[] {
+				Long.class.getName(), Long.class.getName(), Long.class.getName()
+			},
+			new String[] {"companyId", "classNameId", "containerType"}, true);
+
+		_finderPathCountByC_CN_CT = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_CN_CT",
+			new String[] {
+				Long.class.getName(), Long.class.getName(), Long.class.getName()
+			},
+			new String[] {"companyId", "classNameId", "containerType"}, false);
+
+		_finderPathWithPaginationFindByCN_CPK_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCN_CPK_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
@@ -5156,16 +5811,16 @@ public class LayoutClassedModelUsagePersistenceImpl
 			},
 			new String[] {"classNameId", "classPK", "type_"}, true);
 
-		_finderPathWithoutPaginationFindByC_C_T = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_C_T",
+		_finderPathWithoutPaginationFindByCN_CPK_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCN_CPK_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName()
 			},
 			new String[] {"classNameId", "classPK", "type_"}, true);
 
-		_finderPathCountByC_C_T = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_C_T",
+		_finderPathCountByCN_CPK_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCN_CPK_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName()
@@ -5197,8 +5852,8 @@ public class LayoutClassedModelUsagePersistenceImpl
 			},
 			new String[] {"containerKey", "containerType", "plid"}, false);
 
-		_finderPathFetchByC_C_CK_CT_P = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByC_C_CK_CT_P",
+		_finderPathFetchByCN_CPK_CK_CT_P = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByCN_CPK_CK_CT_P",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName(), Long.class.getName(),
@@ -5210,8 +5865,8 @@ public class LayoutClassedModelUsagePersistenceImpl
 			},
 			true);
 
-		_finderPathCountByC_C_CK_CT_P = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_C_CK_CT_P",
+		_finderPathCountByCN_CPK_CK_CT_P = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCN_CPK_CK_CT_P",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName(), Long.class.getName(),
@@ -5222,13 +5877,31 @@ public class LayoutClassedModelUsagePersistenceImpl
 				"plid"
 			},
 			false);
+
+		_setLayoutClassedModelUsageUtilPersistence(this);
 	}
 
 	@Deactivate
 	public void deactivate() {
-		entityCache.removeCache(LayoutClassedModelUsageImpl.class.getName());
+		_setLayoutClassedModelUsageUtilPersistence(null);
 
-		_argumentsResolverServiceRegistration.unregister();
+		entityCache.removeCache(LayoutClassedModelUsageImpl.class.getName());
+	}
+
+	private void _setLayoutClassedModelUsageUtilPersistence(
+		LayoutClassedModelUsagePersistence layoutClassedModelUsagePersistence) {
+
+		try {
+			Field field = LayoutClassedModelUsageUtil.class.getDeclaredField(
+				"_persistence");
+
+			field.setAccessible(true);
+
+			field.set(null, layoutClassedModelUsagePersistence);
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new RuntimeException(reflectiveOperationException);
+		}
 	}
 
 	@Override
@@ -5256,8 +5929,6 @@ public class LayoutClassedModelUsagePersistenceImpl
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		super.setSessionFactory(sessionFactory);
 	}
-
-	private BundleContext _bundleContext;
 
 	@Reference
 	protected CTPersistenceHelper ctPersistenceHelper;
@@ -5300,99 +5971,11 @@ public class LayoutClassedModelUsagePersistenceImpl
 		return finderCache;
 	}
 
-	private ServiceRegistration<ArgumentsResolver>
-		_argumentsResolverServiceRegistration;
+	@Reference
+	private PortalUUID _portalUUID;
 
-	private static class LayoutClassedModelUsageModelArgumentsResolver
-		implements ArgumentsResolver {
-
-		@Override
-		public Object[] getArguments(
-			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
-			boolean original) {
-
-			String[] columnNames = finderPath.getColumnNames();
-
-			if ((columnNames == null) || (columnNames.length == 0)) {
-				if (baseModel.isNew()) {
-					return FINDER_ARGS_EMPTY;
-				}
-
-				return null;
-			}
-
-			LayoutClassedModelUsageModelImpl layoutClassedModelUsageModelImpl =
-				(LayoutClassedModelUsageModelImpl)baseModel;
-
-			long columnBitmask =
-				layoutClassedModelUsageModelImpl.getColumnBitmask();
-
-			if (!checkColumn || (columnBitmask == 0)) {
-				return _getValue(
-					layoutClassedModelUsageModelImpl, columnNames, original);
-			}
-
-			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
-				finderPath);
-
-			if (finderPathColumnBitmask == null) {
-				finderPathColumnBitmask = 0L;
-
-				for (String columnName : columnNames) {
-					finderPathColumnBitmask |=
-						layoutClassedModelUsageModelImpl.getColumnBitmask(
-							columnName);
-				}
-
-				_finderPathColumnBitmasksCache.put(
-					finderPath, finderPathColumnBitmask);
-			}
-
-			if ((columnBitmask & finderPathColumnBitmask) != 0) {
-				return _getValue(
-					layoutClassedModelUsageModelImpl, columnNames, original);
-			}
-
-			return null;
-		}
-
-		@Override
-		public String getClassName() {
-			return LayoutClassedModelUsageImpl.class.getName();
-		}
-
-		@Override
-		public String getTableName() {
-			return LayoutClassedModelUsageTable.INSTANCE.getTableName();
-		}
-
-		private static Object[] _getValue(
-			LayoutClassedModelUsageModelImpl layoutClassedModelUsageModelImpl,
-			String[] columnNames, boolean original) {
-
-			Object[] arguments = new Object[columnNames.length];
-
-			for (int i = 0; i < arguments.length; i++) {
-				String columnName = columnNames[i];
-
-				if (original) {
-					arguments[i] =
-						layoutClassedModelUsageModelImpl.getColumnOriginalValue(
-							columnName);
-				}
-				else {
-					arguments[i] =
-						layoutClassedModelUsageModelImpl.getColumnValue(
-							columnName);
-				}
-			}
-
-			return arguments;
-		}
-
-		private static final Map<FinderPath, Long>
-			_finderPathColumnBitmasksCache = new ConcurrentHashMap<>();
-
-	}
+	@Reference
+	private LayoutClassedModelUsageModelArgumentsResolver
+		_layoutClassedModelUsageModelArgumentsResolver;
 
 }

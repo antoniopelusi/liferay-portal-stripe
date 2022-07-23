@@ -166,4 +166,7 @@ public interface EntryModel extends BaseModel<Entry> {
 	 */
 	public void setFlag(int flag);
 
+	@Override
+	public Entry cloneWithOriginalValues();
+
 }

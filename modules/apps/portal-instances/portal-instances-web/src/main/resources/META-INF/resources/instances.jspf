@@ -38,7 +38,7 @@
 			currentURL
 		).setParameter(
 			"companyId", curCompany.getCompanyId()
-		).build();
+		).buildPortletURL();
 		%>
 
 		<liferay-ui:search-container-column-text

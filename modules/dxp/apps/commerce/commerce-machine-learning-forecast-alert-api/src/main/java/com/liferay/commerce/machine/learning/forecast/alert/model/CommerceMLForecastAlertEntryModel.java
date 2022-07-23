@@ -272,4 +272,7 @@ public interface CommerceMLForecastAlertEntryModel
 	 */
 	public void setStatus(int status);
 
+	@Override
+	public CommerceMLForecastAlertEntry cloneWithOriginalValues();
+
 }

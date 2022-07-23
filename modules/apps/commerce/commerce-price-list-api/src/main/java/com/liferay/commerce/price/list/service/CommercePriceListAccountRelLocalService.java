@@ -16,7 +16,9 @@ package com.liferay.commerce.price.list.service;
 
 import com.liferay.commerce.price.list.model.CommercePriceListAccountRel;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
@@ -25,11 +27,15 @@ import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -51,13 +57,15 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see CommercePriceListAccountRelLocalServiceUtil
  * @generated
  */
+@CTAware
 @ProviderType
 @Transactional(
 	isolation = Isolation.PORTAL,
 	rollbackFor = {PortalException.class, SystemException.class}
 )
 public interface CommercePriceListAccountRelLocalService
-	extends BaseLocalService, PersistedModelLocalService {
+	extends BaseLocalService, CTService<CommercePriceListAccountRel>,
+			PersistedModelLocalService {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -80,8 +88,8 @@ public interface CommercePriceListAccountRelLocalService
 		CommercePriceListAccountRel commercePriceListAccountRel);
 
 	public CommercePriceListAccountRel addCommercePriceListAccountRel(
-			long commercePriceListId, long commerceAccountId, int order,
-			ServiceContext serviceContext)
+			long userId, long commercePriceListId, long commerceAccountId,
+			int order, ServiceContext serviceContext)
 		throws PortalException;
 
 	/**
@@ -112,6 +120,7 @@ public interface CommercePriceListAccountRelLocalService
 	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceListAccountRel deleteCommercePriceListAccountRel(
 			CommercePriceListAccountRel commercePriceListAccountRel)
 		throws PortalException;
@@ -148,6 +157,9 @@ public interface CommercePriceListAccountRelLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int dslQueryCount(DSLQuery dslQuery);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public DynamicQuery dynamicQuery();
@@ -342,5 +354,20 @@ public interface CommercePriceListAccountRelLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public CommercePriceListAccountRel updateCommercePriceListAccountRel(
 		CommercePriceListAccountRel commercePriceListAccountRel);
+
+	@Override
+	@Transactional(enabled = false)
+	public CTPersistence<CommercePriceListAccountRel> getCTPersistence();
+
+	@Override
+	@Transactional(enabled = false)
+	public Class<CommercePriceListAccountRel> getModelClass();
+
+	@Override
+	@Transactional(rollbackFor = Throwable.class)
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<CommercePriceListAccountRel>, R, E>
+				updateUnsafeFunction)
+		throws E;
 
 }

@@ -77,7 +77,7 @@ List<Layout> mergeFailFriendlyURLLayouts = SitesUtil.getMergeFailFriendlyURLLayo
 				layoutSet.isPrivateLayout() ? "private-pages" : "public-pages"
 			).setParameter(
 				"groupId", groupId
-			).build();
+			).buildPortletURL();
 
 			for (Layout mergeFailFriendlyURLLayout : mergeFailFriendlyURLLayouts) {
 				editLayoutsURL.setParameter("selPlid", String.valueOf(mergeFailFriendlyURLLayout.getPlid()));

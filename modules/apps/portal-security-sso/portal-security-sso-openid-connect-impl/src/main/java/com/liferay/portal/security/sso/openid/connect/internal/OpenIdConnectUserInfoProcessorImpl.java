@@ -57,7 +57,7 @@ public class OpenIdConnectUserInfoProcessorImpl
 			return user.getUserId();
 		}
 
-		checkAddUser(companyId, emailAddress);
+		_checkAddUser(companyId, emailAddress);
 
 		String firstName = userInfo.getGivenName();
 		String lastName = userInfo.getFamilyName();
@@ -65,20 +65,12 @@ public class OpenIdConnectUserInfoProcessorImpl
 		if (Validator.isNull(firstName) || Validator.isNull(lastName) ||
 			Validator.isNull(emailAddress)) {
 
-			StringBundler sb = new StringBundler(9);
-
-			sb.append("Unable to map OpenId Connect user to the portal, ");
-			sb.append("missing or invalid profile information: ");
-			sb.append("{emailAddresss=");
-			sb.append(emailAddress);
-			sb.append(", firstName=");
-			sb.append(firstName);
-			sb.append(", lastName=");
-			sb.append(lastName);
-			sb.append("}");
-
 			throw new OpenIdConnectServiceException.UserMappingException(
-				sb.toString());
+				StringBundler.concat(
+					"Unable to map OpenId Connect user to the portal, missing ",
+					"or invalid profile information: {emailAddresss=",
+					emailAddress, ", firstName=", firstName, ", lastName=",
+					lastName, "}"));
 		}
 
 		long creatorUserId = 0;
@@ -122,7 +114,7 @@ public class OpenIdConnectUserInfoProcessorImpl
 		return user.getUserId();
 	}
 
-	protected void checkAddUser(long companyId, String emailAddress)
+	private void _checkAddUser(long companyId, String emailAddress)
 		throws PortalException {
 
 		Company company = _companyLocalService.getCompany(companyId);

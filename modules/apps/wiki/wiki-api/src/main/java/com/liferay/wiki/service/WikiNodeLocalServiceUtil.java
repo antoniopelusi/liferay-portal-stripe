@@ -54,12 +54,27 @@ public class WikiNodeLocalServiceUtil {
 		return getService().addDefaultNode(userId, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 #addNode(String, long, String, String, ServiceContext)}
+	 */
+	@Deprecated
 	public static WikiNode addNode(
 			long userId, String name, String description,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addNode(userId, name, description, serviceContext);
+	}
+
+	public static WikiNode addNode(
+			String externalReferenceCode, long userId, String name,
+			String description,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addNode(
+			externalReferenceCode, userId, name, description, serviceContext);
 	}
 
 	public static void addNodeResources(
@@ -178,6 +193,10 @@ public class WikiNodeLocalServiceUtil {
 		return getService().dslQuery(dslQuery);
 	}
 
+	public static int dslQueryCount(DSLQuery dslQuery) {
+		return getService().dslQueryCount(dslQuery);
+	}
+
 	public static DynamicQuery dynamicQuery() {
 		return getService().dynamicQuery();
 	}
@@ -267,6 +286,31 @@ public class WikiNodeLocalServiceUtil {
 
 	public static WikiNode fetchWikiNode(long nodeId) {
 		return getService().fetchWikiNode(nodeId);
+	}
+
+	/**
+	 * Returns the wiki node with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki node's external reference code
+	 * @return the matching wiki node, or <code>null</code> if a matching wiki node could not be found
+	 */
+	public static WikiNode fetchWikiNodeByExternalReferenceCode(
+		long groupId, String externalReferenceCode) {
+
+		return getService().fetchWikiNodeByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchWikiNodeByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	public static WikiNode fetchWikiNodeByReferenceCode(
+		long groupId, String externalReferenceCode) {
+
+		return getService().fetchWikiNodeByReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	/**
@@ -391,6 +435,22 @@ public class WikiNodeLocalServiceUtil {
 	 */
 	public static WikiNode getWikiNode(long nodeId) throws PortalException {
 		return getService().getWikiNode(nodeId);
+	}
+
+	/**
+	 * Returns the wiki node with the matching external reference code and group.
+	 *
+	 * @param groupId the primary key of the group
+	 * @param externalReferenceCode the wiki node's external reference code
+	 * @return the matching wiki node
+	 * @throws PortalException if a matching wiki node could not be found
+	 */
+	public static WikiNode getWikiNodeByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getWikiNodeByExternalReferenceCode(
+			groupId, externalReferenceCode);
 	}
 
 	/**

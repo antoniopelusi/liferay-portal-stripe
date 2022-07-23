@@ -169,11 +169,9 @@ public class SimulationProductNavigationControlMenuEntry
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
+		if (layout.isTypeControlPanel() ||
+			isEmbeddedPersonalApplicationLayout(layout)) {
 
-		if (isEmbeddedPersonalApplicationLayout(layout)) {
 			return false;
 		}
 
@@ -235,7 +233,10 @@ public class SimulationProductNavigationControlMenuEntry
 
 			IconTag iconTag = new IconTag();
 
-			iconTag.setCssClass("icon-monospaced sidenav-close");
+			iconTag.setAriaLabel(
+				_language.get(
+					(HttpServletRequest)pageContext.getRequest(), "close"));
+			iconTag.setCssClass("close sidenav-close");
 			iconTag.setImage("times");
 			iconTag.setMarkupView("lexicon");
 			iconTag.setUrl("javascript:;");

@@ -10,26 +10,43 @@
  */
 
 import ClayTable from '@clayui/table';
-import React from 'react';
+import React, {useEffect} from 'react';
 
+import ListHeadItem from '../../shared/components/list/ListHeadItem.es';
+import {useIsAdmin} from '../../shared/hooks/useIsAdmin.es';
 import Item from './InstanceListPageItem.es';
 
 const Table = ({items, totalCount}) => {
+	const {fetchData, isAdmin} = useIsAdmin();
+
+	useEffect(() => {
+		fetchData();
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	return (
 		<ClayTable>
 			<ClayTable.Head>
 				<ClayTable.Row>
 					<ClayTable.Cell headingCell style={{width: '5%'}} />
+
 					<ClayTable.Cell headingCell style={{width: '5%'}}>
 						{Liferay.Language.get('id')}
 					</ClayTable.Cell>
 
 					<ClayTable.Cell headingCell style={{width: '14%'}}>
-						{Liferay.Language.get('due-date')}
+						<ListHeadItem
+							name="dateOverdue"
+							title={Liferay.Language.get('due-date')}
+						/>
 					</ClayTable.Cell>
 
-					<ClayTable.Cell headingCell style={{width: '14%'}}>
-						{Liferay.Language.get('item-subject')}
+					<ClayTable.Cell headingCell style={{width: '13%'}}>
+						<ListHeadItem
+							name="assetType"
+							title={Liferay.Language.get('item-subject')}
+						/>
 					</ClayTable.Cell>
 
 					<ClayTable.Cell headingCell style={{width: '14%'}}>
@@ -37,14 +54,24 @@ const Table = ({items, totalCount}) => {
 					</ClayTable.Cell>
 
 					<ClayTable.Cell headingCell style={{width: '14%'}}>
-						{Liferay.Language.get('assignee')}
+						<ListHeadItem
+							name="assigneeName"
+							title={Liferay.Language.get('assignee')}
+						/>
 					</ClayTable.Cell>
 
 					<ClayTable.Cell headingCell style={{width: '14%'}}>
-						{Liferay.Language.get('created-by')}
+						<ListHeadItem
+							name="userName"
+							title={Liferay.Language.get('created-by')}
+						/>
 					</ClayTable.Cell>
-					<ClayTable.Cell headingCell style={{width: '15%'}}>
-						{Liferay.Language.get('creation-date')}
+
+					<ClayTable.Cell headingCell style={{width: '16%'}}>
+						<ListHeadItem
+							name="dateCreated"
+							title={Liferay.Language.get('creation-date')}
+						/>
 					</ClayTable.Cell>
 
 					<ClayTable.Cell headingCell style={{width: '5%'}} />
@@ -53,7 +80,12 @@ const Table = ({items, totalCount}) => {
 
 			<ClayTable.Body>
 				{items.map((item, index) => (
-					<Table.Item {...item} key={index} totalCount={totalCount} />
+					<Table.Item
+						{...item}
+						isAdmin={isAdmin}
+						key={index}
+						totalCount={totalCount}
+					/>
 				))}
 			</ClayTable.Body>
 		</ClayTable>

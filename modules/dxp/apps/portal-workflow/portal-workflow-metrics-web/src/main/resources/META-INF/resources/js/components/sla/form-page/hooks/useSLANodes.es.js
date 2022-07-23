@@ -26,6 +26,7 @@ const useSLANodes = (processId) => {
 			if (node.type === 'STATE') {
 				const newNode = {
 					...node,
+					// eslint-disable-next-line @liferay/no-abbreviations
 					desc: node.initial
 						? Liferay.Language.get('process-begins')
 						: `${Liferay.Language.get('process-ends')} ${
@@ -44,6 +45,7 @@ const useSLANodes = (processId) => {
 			else if (node.type === 'TASK') {
 				nodeEnters.push({
 					...node,
+					// eslint-disable-next-line @liferay/no-abbreviations
 					desc: `${Liferay.Language.get('enters-task')} ${
 						node.label
 					}`,
@@ -52,6 +54,7 @@ const useSLANodes = (processId) => {
 
 				nodeLeaves.push({
 					...node,
+					// eslint-disable-next-line @liferay/no-abbreviations
 					desc: `${Liferay.Language.get('leaves-task')} ${
 						node.label
 					}`,
@@ -96,11 +99,12 @@ const useSLANodes = (processId) => {
 			.filter(({id}) => !selectedNodes.includes(`${id}`))
 			.filter(
 				(node, index, self) =>
-					self.findIndex(({id}) => id == node.id) === index
+					self.findIndex(({id}) => id === node.id) === index
 			)
 			.map((node) => ({
 				...node,
 				compositeId: `${node.id}:on`,
+				// eslint-disable-next-line @liferay/no-abbreviations
 				desc: `${onTaskString} ${node.label}`,
 				executionType: 'on',
 			}));

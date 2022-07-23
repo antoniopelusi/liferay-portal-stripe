@@ -16,6 +16,8 @@ package com.liferay.headless.delivery.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.headless.delivery.client.dto.v1_0.MessageBoardMessage;
+import com.liferay.headless.delivery.client.pagination.Page;
+import com.liferay.headless.delivery.client.pagination.Pagination;
 import com.liferay.message.boards.model.MBMessage;
 import com.liferay.message.boards.model.MBThread;
 import com.liferay.message.boards.service.MBMessageLocalServiceUtil;
@@ -27,6 +29,9 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,43 +57,53 @@ public class MessageBoardMessageResourceTest
 
 	@Override
 	@Test
-	public void testPutSiteMessageBoardMessageByExternalReferenceCode()
+	public void testGetMessageBoardMessageMessageBoardMessagesPage()
 		throws Exception {
 
-		// Update
+		super.testGetMessageBoardMessageMessageBoardMessagesPage();
 
-		super.testPutSiteMessageBoardMessageByExternalReferenceCode();
+		// Message board messages in a tree hiearchy
 
-		// Add
+		Long parentMessageBoardMessageId =
+			testGetMessageBoardMessageMessageBoardMessagesPage_getParentMessageBoardMessageId();
 
-		MessageBoardMessage randomMessageBoardMessage =
-			randomMessageBoardMessage();
+		MessageBoardMessage messageBoardMessage1 =
+			testGetMessageBoardMessageMessageBoardMessagesPage_addMessageBoardMessage(
+				parentMessageBoardMessageId, randomMessageBoardMessage());
 
-		randomMessageBoardMessage.setParentMessageBoardMessageId(
-			_mbThread.getRootMessageId());
+		MessageBoardMessage messageBoardMessage2 =
+			testGetMessageBoardMessageMessageBoardMessagesPage_addMessageBoardMessage(
+				messageBoardMessage1.getId(), randomMessageBoardMessage());
 
-		MessageBoardMessage putMessageBoardMessage =
+		Boolean flatten = false;
+
+		Page<MessageBoardMessage> page =
 			messageBoardMessageResource.
-				putSiteMessageBoardMessageByExternalReferenceCode(
-					testGroup.getGroupId(),
-					randomMessageBoardMessage.getExternalReferenceCode(),
-					randomMessageBoardMessage);
+				getMessageBoardMessageMessageBoardMessagesPage(
+					parentMessageBoardMessageId, flatten, null, null, null,
+					Pagination.of(1, 10), null);
 
-		assertEquals(randomMessageBoardMessage, putMessageBoardMessage);
-		assertValid(putMessageBoardMessage);
+		Assert.assertEquals(1, page.getTotalCount());
 
-		MessageBoardMessage getMessageBoardMessage =
+		assertEqualsIgnoringOrder(
+			Arrays.asList(messageBoardMessage1),
+			(List<MessageBoardMessage>)page.getItems());
+		assertValid(page);
+
+		flatten = true;
+
+		page =
 			messageBoardMessageResource.
-				getSiteMessageBoardMessageByExternalReferenceCode(
-					testGroup.getGroupId(),
-					putMessageBoardMessage.getExternalReferenceCode());
+				getMessageBoardMessageMessageBoardMessagesPage(
+					parentMessageBoardMessageId, flatten, null, null, null,
+					Pagination.of(1, 10), null);
 
-		assertEquals(randomMessageBoardMessage, getMessageBoardMessage);
-		assertValid(getMessageBoardMessage);
+		Assert.assertEquals(2, page.getTotalCount());
 
-		Assert.assertEquals(
-			randomMessageBoardMessage.getExternalReferenceCode(),
-			getMessageBoardMessage.getExternalReferenceCode());
+		assertEqualsIgnoringOrder(
+			Arrays.asList(messageBoardMessage1, messageBoardMessage2),
+			(List<MessageBoardMessage>)page.getItems());
+		assertValid(page);
 	}
 
 	@Test
@@ -260,7 +275,7 @@ public class MessageBoardMessageResourceTest
 
 	@Override
 	protected MessageBoardMessage
-			testPutMessageBoardMessagePermission_addMessageBoardMessage()
+			testPutMessageBoardMessagePermissionsPage_addMessageBoardMessage()
 		throws Exception {
 
 		return _addMessageBoardMessage();
@@ -292,7 +307,22 @@ public class MessageBoardMessageResourceTest
 
 	@Override
 	protected MessageBoardMessage
-			testPutSiteMessageBoardMessagePermission_addMessageBoardMessage()
+			testPutSiteMessageBoardMessageByExternalReferenceCode_createMessageBoardMessage()
+		throws Exception {
+
+		MessageBoardMessage messageBoardMessage =
+			super.
+				testPutSiteMessageBoardMessageByExternalReferenceCode_createMessageBoardMessage();
+
+		messageBoardMessage.setParentMessageBoardMessageId(
+			_mbThread.getRootMessageId());
+
+		return messageBoardMessage;
+	}
+
+	@Override
+	protected MessageBoardMessage
+			testPutSiteMessageBoardMessagePermissionsPage_addMessageBoardMessage()
 		throws Exception {
 
 		return _addMessageBoardMessage();

@@ -173,10 +173,10 @@ public class DDMDataProviderInstanceServiceImpl
 			ddmDataProviderInstanceFinder.filterByKeywords(
 				companyId, groupIds, keywords, start, end, orderByComparator);
 
-		Stream<DDMDataProviderInstance> ddmDataProviderInstanceStream =
+		Stream<DDMDataProviderInstance> ddmDataProviderInstancesStream =
 			ddmDataProviderInstances.stream();
 
-		return ddmDataProviderInstanceStream.filter(
+		return ddmDataProviderInstancesStream.filter(
 			ddmDataProviderInstance -> {
 				try {
 					return _ddmDataProviderInstanceModelResourcePermission.
@@ -186,7 +186,7 @@ public class DDMDataProviderInstanceServiceImpl
 							ActionKeys.VIEW);
 				}
 				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+					_log.error(portalException);
 
 					return false;
 				}

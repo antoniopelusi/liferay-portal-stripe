@@ -27,6 +27,10 @@ public class DepotEntryGroupRelLocalServiceWrapper
 	implements DepotEntryGroupRelLocalService,
 			   ServiceWrapper<DepotEntryGroupRelLocalService> {
 
+	public DepotEntryGroupRelLocalServiceWrapper() {
+		this(null);
+	}
+
 	public DepotEntryGroupRelLocalServiceWrapper(
 		DepotEntryGroupRelLocalService depotEntryGroupRelLocalService) {
 
@@ -161,6 +165,13 @@ public class DepotEntryGroupRelLocalServiceWrapper
 	@Override
 	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
 		return _depotEntryGroupRelLocalService.dslQuery(dslQuery);
+	}
+
+	@Override
+	public int dslQueryCount(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return _depotEntryGroupRelLocalService.dslQueryCount(dslQuery);
 	}
 
 	@Override

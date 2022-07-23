@@ -23,6 +23,8 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -32,6 +34,10 @@ import javax.servlet.http.HttpServletRequest;
  * @author Julio Camarero
  */
 public class InputLocalizedTag extends IncludeTag {
+
+	public List<String> getActiveLanguageIds() {
+		return _activeLanguageIds;
+	}
 
 	public Set<Locale> getAvailableLocales() {
 		return _availableLocales;
@@ -81,6 +87,10 @@ public class InputLocalizedTag extends IncludeTag {
 		return _languageId;
 	}
 
+	public String getLanguagesDropdownDirection() {
+		return _languagesDropdownDirection;
+	}
+
 	public String getMaxLength() {
 		return _maxLength;
 	}
@@ -109,6 +119,10 @@ public class InputLocalizedTag extends IncludeTag {
 		return _xml;
 	}
 
+	public boolean isAdminMode() {
+		return _adminMode;
+	}
+
 	public boolean isAutoFocus() {
 		return _autoFocus;
 	}
@@ -123,6 +137,14 @@ public class InputLocalizedTag extends IncludeTag {
 
 	public boolean isIgnoreRequestValue() {
 		return _ignoreRequestValue;
+	}
+
+	public void setActiveLanguageIds(List<String> activeLanguageIds) {
+		_activeLanguageIds = activeLanguageIds;
+	}
+
+	public void setAdminMode(boolean adminMode) {
+		_adminMode = adminMode;
 	}
 
 	public void setAutoFocus(boolean autoFocus) {
@@ -189,6 +211,12 @@ public class InputLocalizedTag extends IncludeTag {
 		_languageId = languageId;
 	}
 
+	public void setLanguagesDropdownDirection(
+		String languagesDropdownDirection) {
+
+		_languagesDropdownDirection = languagesDropdownDirection;
+	}
+
 	public void setMaxLength(String maxLength) {
 		_maxLength = maxLength;
 	}
@@ -221,6 +249,8 @@ public class InputLocalizedTag extends IncludeTag {
 	protected void cleanUp() {
 		super.cleanUp();
 
+		_activeLanguageIds = new ArrayList<>();
+		_adminMode = false;
 		_autoFocus = false;
 		_autoSize = false;
 		_availableLocales = null;
@@ -237,6 +267,7 @@ public class InputLocalizedTag extends IncludeTag {
 		_ignoreRequestValue = false;
 		_inputAddon = null;
 		_languageId = null;
+		_languagesDropdownDirection = null;
 		_maxLength = null;
 		_name = null;
 		_placeholder = null;
@@ -277,6 +308,10 @@ public class InputLocalizedTag extends IncludeTag {
 		}
 
 		httpServletRequest.setAttribute(
+			"liferay-ui:input-localized:activeLanguageIds", _activeLanguageIds);
+		httpServletRequest.setAttribute(
+			"liferay-ui:input-localized:adminMode", String.valueOf(_adminMode));
+		httpServletRequest.setAttribute(
 			"liferay-ui:input-localized:autoFocus", String.valueOf(_autoFocus));
 		httpServletRequest.setAttribute(
 			"liferay-ui:input-localized:autoSize", String.valueOf(_autoSize));
@@ -313,6 +348,9 @@ public class InputLocalizedTag extends IncludeTag {
 		httpServletRequest.setAttribute(
 			"liferay-ui:input-localized:languageId", _languageId);
 		httpServletRequest.setAttribute(
+			"liferay-ui:input-localized:languagesDropdownDirection",
+			_languagesDropdownDirection);
+		httpServletRequest.setAttribute(
 			"liferay-ui:input-localized:maxLength", _maxLength);
 		httpServletRequest.setAttribute(
 			"liferay-ui:input-localized:name", _name);
@@ -334,6 +372,8 @@ public class InputLocalizedTag extends IncludeTag {
 	private static final String _PAGE =
 		"/html/taglib/ui/input_localized/page.jsp";
 
+	private List<String> _activeLanguageIds = new ArrayList<>();
+	private boolean _adminMode;
 	private boolean _autoFocus;
 	private boolean _autoSize;
 	private Set<Locale> _availableLocales;
@@ -350,6 +390,7 @@ public class InputLocalizedTag extends IncludeTag {
 	private boolean _ignoreRequestValue;
 	private String _inputAddon;
 	private String _languageId;
+	private String _languagesDropdownDirection;
 	private String _maxLength;
 	private String _name;
 	private String _placeholder;

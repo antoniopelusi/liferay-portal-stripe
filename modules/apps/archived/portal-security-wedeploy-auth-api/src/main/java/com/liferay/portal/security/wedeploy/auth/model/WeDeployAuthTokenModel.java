@@ -213,4 +213,7 @@ public interface WeDeployAuthTokenModel
 	 */
 	public void setType(int type);
 
+	@Override
+	public WeDeployAuthToken cloneWithOriginalValues();
+
 }

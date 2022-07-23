@@ -30,6 +30,8 @@ import java.util.Set;
  */
 public class DDMFormLayout implements Serializable {
 
+	public static final String MULTI_PAGES = "multi-pages";
+
 	public static final String SETTINGS_MODE = "settings";
 
 	public static final String SINGLE_PAGE_MODE = "single-page";
@@ -123,8 +125,16 @@ public class DDMFormLayout implements Serializable {
 		return _definitionSchemaVersion;
 	}
 
+	public Integer getNextPage() {
+		return _nextPage;
+	}
+
 	public String getPaginationMode() {
 		return _paginationMode;
+	}
+
+	public Integer getPreviousPage() {
+		return _previousPage;
 	}
 
 	@Override
@@ -170,8 +180,16 @@ public class DDMFormLayout implements Serializable {
 		_definitionSchemaVersion = definitionSchemaVersion;
 	}
 
+	public void setNextPage(Integer nextPage) {
+		_nextPage = nextPage;
+	}
+
 	public void setPaginationMode(String paginationMode) {
 		_paginationMode = paginationMode;
+	}
+
+	public void setPreviousPage(Integer previousPage) {
+		_previousPage = previousPage;
 	}
 
 	private Set<Locale> _availableLocales = new LinkedHashSet<>();
@@ -180,6 +198,8 @@ public class DDMFormLayout implements Serializable {
 	private List<DDMFormRule> _ddmFormRules = new ArrayList<>();
 	private Locale _defaultLocale;
 	private String _definitionSchemaVersion;
+	private Integer _nextPage;
 	private String _paginationMode;
+	private Integer _previousPage;
 
 }

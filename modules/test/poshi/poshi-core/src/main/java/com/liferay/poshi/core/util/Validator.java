@@ -171,12 +171,27 @@ public class Validator {
 		return false;
 	}
 
-	public static boolean isBlank(String s) {
-		if (s == null) {
+	/**
+	 * Returns <code>true</code> if the character is in the ASCII character set.
+	 * This includes characters with integer values between 32 and 126
+	 * (inclusive).
+	 *
+	 * @param  c the character to check
+	 * @return <code>true</code> if the character is in the ASCII character set;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean isAscii(char c) {
+		int i = c;
+
+		if ((i >= 32) && (i <= 126)) {
 			return true;
 		}
 
-		if (s.length() == 0) {
+		return false;
+	}
+
+	public static boolean isBlank(String s) {
+		if ((s == null) || (s.length() == 0)) {
 			return true;
 		}
 
